@@ -18,3 +18,27 @@
 
 .detailhead{display:flex;align-items:end;justify-content:space-between;gap:14px;margin-bottom:8px}.detailhead strong{font-size:14px}.detailhead small{color:var(--muted);font-size:10px}.hours{padding-bottom:6px;scrollbar-width:thin}.hours article{min-width:82px}.hours article strong{margin-top:3px}.hours article small:nth-of-type(2),.hours article small:nth-of-type(3){white-space:nowrap}
 @media(max-width:700px){.detailhead{display:block}.detailhead small{display:block;margin-top:3px}}
+
+/* MID 2.3 ensemble redesign */
+.ens-overview{display:grid;grid-template-columns:repeat(14,minmax(72px,1fr));gap:8px;margin:4px 0 14px}
+.ens-overview article{position:relative;min-width:0;padding:10px 8px 12px;border:1px solid var(--border);border-radius:16px;background:var(--s2);text-align:center}
+.ens-overview article small,.ens-overview article span,.ens-overview article i,.ens-overview article strong,.ens-overview article em{display:block}
+.ens-overview article small{font-size:11px;font-weight:700}
+.ens-overview article span{margin-top:2px;color:var(--muted);font-size:10px}
+.ens-overview article i{margin:6px 0;font-style:normal;font-size:25px}
+.ens-overview article strong{color:#ff8b63;font-size:19px}
+.ens-overview article em{color:#58b2ff;font-style:normal;font-size:17px;font-weight:700}
+.ens-overview article b{position:absolute;right:8px;top:8px;width:10px;height:10px;border-radius:50%;box-shadow:0 0 0 3px rgba(255,255,255,.06)}
+.confidence-dots{display:grid;grid-template-columns:repeat(14,minmax(0,1fr));gap:8px;margin:4px 0 14px}
+.confidence-dots button{display:grid;justify-items:center;gap:6px;padding:0;border:0;background:transparent;color:var(--text)}
+.confidence-dots button span{display:block;width:18px;height:18px;border-radius:50%;box-shadow:0 0 0 4px rgba(255,255,255,.04)}
+.confidence-dots button small{color:var(--muted);font-size:10px}
+@media(max-width:850px){.ensemble>.ens-overview,.ensemble>.confidence-dots,.ensemble>.chart{min-width:760px}}
+
+.quickfacts{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 12px}.quickfacts span{padding:7px 10px;border:1px solid var(--border);border-radius:999px;background:var(--s2);color:var(--muted);font-size:11px}.quickfacts b{color:var(--text)}
+.meteogram-day{overflow:hidden}.meteogramsvg{width:100%;height:300px;border:1px solid var(--border);border-radius:18px;background:linear-gradient(180deg,color-mix(in srgb,var(--s2) 82%,transparent),var(--surface))}
+.trend-combined{height:360px}
+.ens-overview article{background:linear-gradient(180deg,var(--s2),color-mix(in srgb,var(--surface) 92%,transparent))}
+.confidence-dots button span{box-shadow:0 0 0 4px rgba(255,255,255,.06),0 6px 14px rgba(0,0,0,.14)}
+@media(max-width:850px){.meteogramsvg{height:260px}.ensemble{overflow:visible}.ensemble>.charthead,.ensemble>.chips,.ensemble>.confidence-row,.ensemble>.ens-overview,.ensemble>.confidence-dots,.ensemble>.chart{min-width:0}.ens-overview{grid-template-columns:repeat(7,minmax(0,1fr))}.confidence-dots{grid-template-columns:repeat(7,minmax(0,1fr))}.trend-combined{height:320px}}
+@media(max-width:520px){.quickfacts{gap:6px}.quickfacts span{font-size:10px;padding:6px 8px}.meteogramsvg{height:230px}.ens-overview{grid-template-columns:repeat(4,minmax(0,1fr))}.confidence-dots{grid-template-columns:repeat(4,minmax(0,1fr))}.trend-combined{height:290px}}
