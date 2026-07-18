@@ -1,3 +1,7 @@
+# MID v2.2.0
+
+Meteorological Information Dashboard.
+
 # Open-Meteo Wetterzentrum
 
 GitHub-Pages-fähige React-/TypeScript-App mit Best Match, Ortssuche, aktuellen Wetterkarten, DWD-Stationsprüfung, Gefahrenindikatoren, 7-Tage-Detailansicht, 14-Tage-Ensembles, RainViewer-Radar, Dark Mode und Widget-PNG-Export.

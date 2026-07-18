@@ -15,3 +15,6 @@
 .charttooltip strong{margin-bottom:3px}
 @media(max-width:850px){.days{grid-template-columns:none}.days>button:nth-child(n){display:block}.days>button{flex-basis:118px}.confidence-row{gap:4px}.chart{min-width:760px}.ensemble{overflow-x:auto}.ensemble>.charthead,.ensemble>.chips,.ensemble>.confidence-row{min-width:760px}}
 @media(max-width:520px){.days>button:nth-child(n){display:block}.days>button{flex-basis:112px}}
+
+.detailhead{display:flex;align-items:end;justify-content:space-between;gap:14px;margin-bottom:8px}.detailhead strong{font-size:14px}.detailhead small{color:var(--muted);font-size:10px}.hours{padding-bottom:6px;scrollbar-width:thin}.hours article{min-width:82px}.hours article strong{margin-top:3px}.hours article small:nth-of-type(2),.hours article small:nth-of-type(3){white-space:nowrap}
+@media(max-width:700px){.detailhead{display:block}.detailhead small{display:block;margin-top:3px}}
