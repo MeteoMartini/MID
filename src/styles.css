@@ -42,3 +42,17 @@
 .confidence-dots button span{box-shadow:0 0 0 4px rgba(255,255,255,.06),0 6px 14px rgba(0,0,0,.14)}
 @media(max-width:850px){.meteogramsvg{height:260px}.ensemble{overflow:visible}.ensemble>.charthead,.ensemble>.chips,.ensemble>.confidence-row,.ensemble>.ens-overview,.ensemble>.confidence-dots,.ensemble>.chart{min-width:0}.ens-overview{grid-template-columns:repeat(7,minmax(0,1fr))}.confidence-dots{grid-template-columns:repeat(7,minmax(0,1fr))}.trend-combined{height:320px}}
 @media(max-width:520px){.quickfacts{gap:6px}.quickfacts span{font-size:10px;padding:6px 8px}.meteogramsvg{height:230px}.ens-overview{grid-template-columns:repeat(4,minmax(0,1fr))}.confidence-dots{grid-template-columns:repeat(4,minmax(0,1fr))}.trend-combined{height:290px}}
+
+/* v2.3.2 layout/readability refinements */
+.ens-overview{grid-template-columns:repeat(auto-fit,minmax(94px,1fr));align-items:stretch}
+.confidence-dots{grid-template-columns:repeat(auto-fit,minmax(72px,1fr));align-items:start}
+.ens-overview article{min-height:168px}
+.days{gap:10px;padding-bottom:10px}
+.days>button{flex:0 0 clamp(128px,18vw,158px);padding:14px 10px}
+.days button>span{font-size:14px;font-weight:700}.days button>small{font-size:9px;min-height:32px}.days button>b{font-size:30px}.days button>i{font-size:10px;line-height:1.35}
+.detailhead{display:flex;justify-content:space-between;gap:10px;align-items:flex-end;margin-bottom:10px}.detailhead small{color:var(--muted)}
+.meteogramsvg{height:360px}.meteogram-day{overflow:visible}
+.meteogram-day .quickfacts{margin-bottom:14px}
+@media (max-width: 980px){.meteogramsvg{height:320px}.days>button{flex-basis:132px}.ens-overview{grid-template-columns:repeat(7,minmax(0,1fr))}.confidence-dots{grid-template-columns:repeat(7,minmax(0,1fr))}}
+@media (max-width: 680px){.days{gap:8px}.days>button{flex-basis:124px;padding:12px 8px}.meteogramsvg{height:290px}.detailhead{display:block}.detailhead small{display:block;margin-top:6px}.ens-overview{grid-template-columns:repeat(4,minmax(0,1fr))}.confidence-dots{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media (max-width: 430px){.meteogramsvg{height:250px}.days>button{flex-basis:118px}}
