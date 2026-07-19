@@ -571,3 +571,49 @@ footer a:hover{opacity:1;color:var(--accent)}
   .forecast-barwrap{padding-left:30px}
   .forecast-barwrap b,.forecast-barwrap strong{font-size:17px}
 }
+
+
+/* v0.5.6: Kontrast im hellen Layout */
+:root{--apparent-line:#ffd08a}
+:root[data-theme=light]{--apparent-line:#9a5200}
+.detaillegend .apparent{border-top-color:var(--apparent-line)!important}
+.detaillegend i.apparent{background:var(--apparent-line)!important}
+
+:root[data-theme=light] .hazard.clear{
+  color:#11663b;
+  border-color:rgba(19,125,72,.42);
+  background:#e7f7ee;
+}
+:root[data-theme=light] .hazards .yellow,
+:root[data-theme=light] .forecast-hazards .yellow,
+:root[data-theme=light] .weatherwidget.modern.light .widgethazards .yellow{
+  color:#654600!important;
+  background:#fff1bd!important;
+  border-color:#c99200!important;
+}
+:root[data-theme=light] .hazards .orange,
+:root[data-theme=light] .forecast-hazards .orange,
+:root[data-theme=light] .weatherwidget.modern.light .widgethazards .orange{
+  color:#743200!important;
+  background:#ffe4ce!important;
+  border-color:#cf6614!important;
+}
+:root[data-theme=light] .hazards .red,
+:root[data-theme=light] .forecast-hazards .red,
+:root[data-theme=light] .weatherwidget.modern.light .widgethazards .red{
+  color:#861626!important;
+  background:#ffe0e5!important;
+  border-color:#ce3549!important;
+}
+:root[data-theme=light] .hazards .purple,
+:root[data-theme=light] .forecast-hazards .purple,
+:root[data-theme=light] .weatherwidget.modern.light .widgethazards .purple{
+  color:#58217f!important;
+  background:#f0e1ff!important;
+  border-color:#8d4bc3!important;
+}
+:root[data-theme=light] .weatherwidget.modern.light .widgethazards .ok{
+  color:#155f38!important;
+  background:#e7f7ee!important;
+  border-color:#2e9b61!important;
+}

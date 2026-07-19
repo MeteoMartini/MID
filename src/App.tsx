@@ -5,7 +5,7 @@ import {CircleMarker,MapContainer,Popup,TileLayer,WMSTileLayer,useMap} from 'rea
 import {toPng} from 'html-to-image';
 import {airQuality,cloudOktas,cloudOktasText,currentIndex,dayEffectiveUvMax,dayWeatherCharacter,ensembles,forecast,hazards,icon,label,mapDays,mapHours,mapMinutely15,searchLocations,reverseLocation,station,wind,type Day,type EnsembleDay,type Hour,type Location,type Minute15,type Station,type Weather,type WindUnit} from './weather';
 
-const VERSION='0.5.5';
+const VERSION='0.5.6';
 const LOGO_PATH='./mid-logo.png';
 const LOCATION_STORAGE_KEY='mid:lastLocation';
 function storedLocation():Location|null{try{const raw=localStorage.getItem(LOCATION_STORAGE_KEY);if(!raw)return null;const loc=JSON.parse(raw) as Location;return Number.isFinite(loc.latitude)&&Number.isFinite(loc.longitude)?loc:null}catch{return null}}
@@ -239,7 +239,7 @@ function Forecast({days,hours,selected,setSelected,unit}:{days:Day[];hours:Hour[
        {timeIndices.map(i=><line key={i} x1={xAt(i)} x2={xAt(i)} y1={tempTop} y2={rainBottom} stroke="currentColor" opacity="0.08" strokeDasharray="2 2"/>)}
        {p.map((x,i)=>{const x0=xAt(i),w=Math.max(2.8,plotW/24-1.2),parts=precipSeries[i],totalTop=yRain(parts.total),fill=parts.type!=='none'?precipMeta[parts.type].fill:'';return <g key={x.time}>{parts.total>.001&&parts.type!=='none'&&<rect x={Math.max(left,x0-w/2)} y={totalTop} width={w} height={Math.max(.45,rainBottom-totalTop)} rx="0.7" fill={fill}/>}</g>})}
        <path d={areaPath} fill="url(#tempFill)"/>
-       <path d={apparentPath} fill="none" stroke="#ffd8a3" opacity="0.65" strokeDasharray="5 4" strokeWidth="1.4" vectorEffect="non-scaling-stroke"/>
+       <path d={apparentPath} fill="none" stroke="var(--apparent-line)" opacity="0.96" strokeDasharray="5 4" strokeWidth="1.8" vectorEffect="non-scaling-stroke"/>
        <path d={tempPath} fill="none" stroke="#ff7a37" strokeWidth="1.8" vectorEffect="non-scaling-stroke"/><path d={probabilityPath} fill="none" stroke="#56d7ff" strokeWidth="1.5" strokeDasharray="3 3" vectorEffect="non-scaling-stroke"/>
        {iconIndices.map(i=><g key={i}><text x={xAt(i)} y="13" textAnchor="middle" fontSize="5.2">{icon(p[i].code,p[i].isDay)}</text></g>)}
        {timeIndices.map(i=><g key={i}><text x={xAt(i)} y="133" textAnchor="middle" fontSize="3.8" fill="currentColor" opacity="0.86">{p[i].time.slice(11,13)}:00</text></g>)}

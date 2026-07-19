@@ -1,3 +1,10 @@
+## 0.5.6
+
+- Linie der gefühlten Temperatur im hellen Layout deutlich kontrastreicher dargestellt
+- Legendenmuster für die gefühlte Temperatur an die neue Linienfarbe angepasst
+- Warntexte und Warnflächen im hellen Layout für Gelb, Orange, Rot und Violett kontrastreich überarbeitet
+- grüne Entwarnung im hellen Layout ebenfalls besser lesbar gestaltet
+
 ## 0.5.5
 
 - Groß-/Kleinschreibung in sekundären Tageswetterhinweisen korrigiert, z. B. „leichter Sprühregen“ statt „leichter sprühregen“.
