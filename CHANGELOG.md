@@ -1,3 +1,12 @@
+## 0.4.9
+
+- restriktives Versionsschema dokumentiert; diese Änderung bleibt ein Patch-Release
+- 14-Tage-Tooltip klar in Best Match, ENS-Mittel, P10–P90, Niederschlag und Prognosekonsistenz gegliedert
+- große stündliche Detailkarten entfernt und durch ein kompaktes Tooltip direkt am Tagesdiagramm ersetzt
+- Tooltip erscheint beim Klick auf eine Stunde im Diagramm oder auf eine Stundenkachel
+- UV-Logik korrigiert: tatsächlicher cloud-adjustierter Open-Meteo-UVI ist Primärwert; Klarhimmel-UVI wird nur als Vergleich/Fallback verwendet
+- UV-Fallback um Wolkenschichten, Sichtweite, Wetterzustand und mögliche Cloud-Enhancement-Situationen erweitert
+
 ## 0.4.8
 
 - Tooltip-Reihenfolge im 14-Tage-Temperaturtrend bestätigt und konsistent belassen

@@ -1,6 +1,6 @@
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.4.8**
+**Aktuelle Version: v0.4.9**
 
 MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React und TypeScript. Es verbindet Open-Meteo Best Match mit Ensemble-Prognosen, Stationsmessungen, Radar, Luftqualität, Gefahrenindikatoren und exportierbaren Wetterwidgets.
 
@@ -145,3 +145,21 @@ Die Hazard-Anzeigen sind automatisch berechnete Indikatoren und keine amtlichen 
 
 - UV-Index wird nun als effektiver, bewölkungs- und wetterkorrigierter UVI dargestellt
 - 14-Tage-Tooltip nutzt die gewünschte Reihenfolge: Best Match, ENS-Mittel, P10–P90, Niederschlag, Prognosekonsistenz
+
+
+## Versionsschema
+
+MID bleibt bis zur stabilen Produktreife in der Reihe `0.x.y`.
+
+- **Patch (`0.4.8` → `0.4.9`)**: gezielte Fehlerkorrekturen, fachliche Verfeinerungen und begrenzte UI-Änderungen ohne grundlegenden Umbau.
+- **Minor (`0.4.x` → `0.5.0`)**: deutlich neuer Funktionsbereich, größere Datenarchitektur oder wesentlich veränderter Bedienablauf.
+- **Major (`1.0.0`)**: stabiler, dokumentierter Funktionsumfang mit belastbarer Daten- und Deployment-Struktur.
+
+Versionssprünge werden restriktiv vergeben. Die Änderungen dieses Releases bleiben deshalb bei **v0.4.9**.
+
+## Stand v0.4.9
+
+- 14-Tage-Tooltip nach Best Match, ENS-Mittel, P10–P90, Niederschlag und Prognosekonsistenz gruppiert
+- stündliche Detailinformationen in ein Diagramm-Tooltip verlagert; die große Kartensektion unter dem Diagramm entfällt
+- tatsächlicher cloud-adjustierter Open-Meteo-UVI ist Primärwert; Klarhimmel-UVI dient nur als Vergleich beziehungsweise Fallback
+- UV-Fallback berücksichtigt Wolkenschichten, Sichtweite, Wetterzustand und mögliche Verstärkung bei aufgelockerter Bewölkung
