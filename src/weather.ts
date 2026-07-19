@@ -47,7 +47,31 @@ async function metarStation(lat:number,lon:number,elevation?:number,signal?:Abor
 export async function station(lat:number,lon:number,country?:string,elevation?:number,signal?:AbortSignal):Promise<Station|null>{const tasks=[metarStation(lat,lon,elevation,signal),brightSkyStation(lat,lon,elevation,signal)];const results=(await Promise.allSettled(tasks)).filter((x):x is PromiseFulfilledResult<Station|null>=>x.status==='fulfilled').map(x=>x.value).filter(Boolean) as Station[];if(!results.length)return null;return results.sort((a,b)=>{const da=a.distance??999999,db=b.distance??999999,ha=Math.abs((a.height??elevation??0)-(elevation??0)),hb=Math.abs((b.height??elevation??0)-(elevation??0));const aa=a.timestamp?Math.max(0,Date.now()-new Date(a.timestamp).getTime()):7200000,ab=b.timestamp?Math.max(0,Date.now()-new Date(b.timestamp).getTime()):7200000;return(da+ha*12+aa/36)-(db+hb*12+ab/36)})[0]}
 
 function n(v:unknown,fallback=NaN){return v===null||v===undefined||v===''?fallback:Number(v)}
-export function mapHours(w:Weather):Hour[]{return (w.hourly.time as string[]).map((time,i)=>({time,temperature:n(w.hourly.temperature_2m[i]),apparent:n(w.hourly.apparent_temperature[i]),humidity:n(w.hourly.relative_humidity_2m[i]),dewPoint:n(w.hourly.dew_point_2m[i]),precipitation:n(w.hourly.precipitation[i],0),rain:n(w.hourly.rain[i],0),showers:n(w.hourly.showers[i],0),snowfall:n(w.hourly.snowfall[i],0),probability:n(w.hourly.precipitation_probability[i],0),code:n(w.hourly.weather_code[i],3),wind:n(w.hourly.wind_speed_10m[i],0),gust:n(w.hourly.wind_gusts_10m[i],0),direction:n(w.hourly.wind_direction_10m[i],0),cloud:n(w.hourly.cloud_cover[i],0),uvIndex:n(w.hourly.uv_index[i],0),isDay:n(w.hourly.is_day[i],0)===1})).filter(x=>Number.isFinite(x.temperature))}
+export function effectiveUvIndex(base:number,cloud:number,code:number,isDay:boolean,precipitation=0){
+ if(!Number.isFinite(base)||base<=0||!isDay)return 0;
+ const cloudFrac=Math.min(1,Math.max(0,cloud/100));
+ let factor=1-0.78*Math.pow(cloudFrac,1.35);
+ if(code===3)factor=Math.min(factor,0.58);
+ if([45,48].includes(code))factor*=0.55;
+ if([51,53,55].includes(code))factor*=0.88;
+ if([61,63,65].includes(code))factor*=0.78;
+ if([80,81,82].includes(code))factor*=0.72;
+ if([71,73,75].includes(code))factor*=0.82;
+ if([85,86].includes(code))factor*=0.76;
+ if([95,96,99].includes(code))factor*=0.65;
+ if(Number.isFinite(precipitation)&&precipitation>0){
+  if(precipitation>=5)factor*=0.7;
+  else if(precipitation>=1)factor*=0.82;
+  else factor*=0.92;
+ }
+ factor=Math.min(1,Math.max(0.12,factor));
+ return Number((base*factor).toFixed(1));
+}
+export function dayEffectiveUvMax(day:Day,hours:Hour[]){
+ const vals=(hours??[]).map(x=>x.uvIndex).filter(v=>Number.isFinite(v));
+ return vals.length?Math.max(...vals):(Number.isFinite(day.uvMax)?Number(day.uvMax):0);
+}
+export function mapHours(w:Weather):Hour[]{return (w.hourly.time as string[]).map((time,i)=>{const code=n(w.hourly.weather_code[i],3),cloud=n(w.hourly.cloud_cover[i],0),precipitation=n(w.hourly.precipitation[i],0),isDay=n(w.hourly.is_day[i],0)===1,baseUv=n(w.hourly.uv_index[i],0);return{time,temperature:n(w.hourly.temperature_2m[i]),apparent:n(w.hourly.apparent_temperature[i]),humidity:n(w.hourly.relative_humidity_2m[i]),dewPoint:n(w.hourly.dew_point_2m[i]),precipitation,rain:n(w.hourly.rain[i],0),showers:n(w.hourly.showers[i],0),snowfall:n(w.hourly.snowfall[i],0),probability:n(w.hourly.precipitation_probability[i],0),code,wind:n(w.hourly.wind_speed_10m[i],0),gust:n(w.hourly.wind_gusts_10m[i],0),direction:n(w.hourly.wind_direction_10m[i],0),cloud,uvIndex:effectiveUvIndex(baseUv,cloud,code,isDay,precipitation),isDay}}).filter(x=>Number.isFinite(x.temperature))}
 export function mapDays(w:Weather):Day[]{return (w.daily.time as string[]).map((date,i)=>({date,code:n(w.daily.weather_code[i],3),max:n(w.daily.temperature_2m_max[i]),min:n(w.daily.temperature_2m_min[i]),precipitation:n(w.daily.precipitation_sum[i],0),probability:n(w.daily.precipitation_probability_max[i],0),wind:n(w.daily.wind_speed_10m_max[i],0),gust:n(w.daily.wind_gusts_10m_max[i],0),direction:n(w.daily.wind_direction_10m_dominant[i],0),uvMax:n(w.daily.uv_index_max[i],0)})).filter(d=>Number.isFinite(d.max)&&Number.isFinite(d.min)&&d.max>=d.min)}
 export function currentIndex(h:Hour[]){const now=Date.now();return h.reduce((b,x,i)=>{const d=Math.abs(new Date(x.time).getTime()-now);return d<b.d?{i,d}:b},{i:0,d:Infinity}).i}
 
@@ -162,7 +186,7 @@ function classifyThunder(codes:number[]):HazardLevel|null{
 
 export function hazards(h:Hour[],currentUv?:number){
  const s=h.slice(currentIndex(h),currentIndex(h)+24);if(!s.length)return[] as HazardItem[];
- const max=Math.max(...s.map(x=>x.temperature)),felt=Math.max(...s.map(x=>x.apparent).filter(Number.isFinite)),heat=Math.max(max,felt),min=Math.min(...s.map(x=>x.temperature)),gust=Math.max(...s.map(x=>x.gust)),rain=s.reduce((a,b)=>a+Math.max(0,b.precipitation||0),0),snow=s.reduce((a,b)=>a+Math.max(0,b.snowfall||0),0),uv=Math.max(currentUv??0,...s.map(x=>x.uvIndex||0)),thunderCodes=s.map(x=>x.code);
+ const max=Math.max(...s.map(x=>x.temperature)),felt=Math.max(...s.map(x=>x.apparent).filter(Number.isFinite)),heat=Math.max(max,felt),min=Math.min(...s.map(x=>x.temperature)),gust=Math.max(...s.map(x=>x.gust)),rain=s.reduce((a,b)=>a+Math.max(0,b.precipitation||0),0),snow=s.reduce((a,b)=>a+Math.max(0,b.snowfall||0),0),uv=Math.max(...s.map(x=>x.uvIndex||0),Number.isFinite(currentUv as number)?Number(currentUv):0),thunderCodes=s.map(x=>x.code);
  const a:HazardItem[]=[];
  const heatLevel=classifyHeatStress(heat);
  addHazard(a,heatLevel?{level:heatLevel,title:'Hitzebelastung',metric:`${Math.round(heat)} °C`,text:`Gefühlte Temperatur bis ${Math.round(heat)} °C, Lufttemperatur bis ${Math.round(max)} °C (Schwellen nach DWD/NWS-Hitzelogik).`}:null);

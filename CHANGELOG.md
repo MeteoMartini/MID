@@ -1,3 +1,9 @@
+## 0.4.8
+
+- Tooltip-Reihenfolge im 14-Tage-Temperaturtrend bestätigt und konsistent belassen
+- UV-Index auf effektive Werte umgestellt: bewölkungs- und wetterkorrigierte Anzeige statt unkorrigierter Rohwerte
+- UV-basierte Hazard-Logik und Tages-Hazards greifen nun auf die effektiven stündlichen UV-Werte zurück
+
 ## 0.4.7
 
 - Tooltip im 14-Tage-Temperaturtrend angepasst: "Best Match Tmin/Tmax" statt Minimum/Maximum

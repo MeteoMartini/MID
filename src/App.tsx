@@ -3,9 +3,9 @@ import {AlertTriangle,BadgeCheck,Cloud,Download,Droplets,Gauge,LocateFixed,Moon,
 import {Area,AreaChart,Bar,CartesianGrid,ComposedChart,Legend,Line,ResponsiveContainer,Tooltip,XAxis,YAxis} from 'recharts';
 import {CircleMarker,MapContainer,Popup,TileLayer,useMap} from 'react-leaflet';
 import {toPng} from 'html-to-image';
-import {airQuality,currentIndex,ensembles,forecast,hazards,icon,label,mapDays,mapHours,searchLocations,reverseLocation,station,wind,type Day,type EnsembleDay,type Hour,type Location,type Station,type Weather,type WindUnit} from './weather';
+import {airQuality,currentIndex,dayEffectiveUvMax,effectiveUvIndex,ensembles,forecast,hazards,icon,label,mapDays,mapHours,searchLocations,reverseLocation,station,wind,type Day,type EnsembleDay,type Hour,type Location,type Station,type Weather,type WindUnit} from './weather';
 
-const VERSION='0.4.7';
+const VERSION='0.4.8';
 const LOGO_PATH='./mid-logo.png';
 const LOCATION_STORAGE_KEY='mid:lastLocation';
 function storedLocation():Location|null{try{const raw=localStorage.getItem(LOCATION_STORAGE_KEY);if(!raw)return null;const loc=JSON.parse(raw) as Location;return Number.isFinite(loc.latitude)&&Number.isFinite(loc.longitude)?loc:null}catch{return null}}
@@ -22,7 +22,7 @@ export default function App(){
  async function load(){if(!loc)return;const id=++seq.current,c=new AbortController();setLoading(true);setError('');setEnsLoading(true);setEnsError('');setEns([]);setModels([]);setSt(null);setStationLoading(true);try{const[fw,aq]=await Promise.all([forecast(loc.latitude,loc.longitude,c.signal),airQuality(loc.latitude,loc.longitude,c.signal).catch(()=>null)]);if(id!==seq.current)return;setW(fw);setAir(aq);setSelected(String(fw.daily.time[0]));setLoading(false);station(loc.latitude,loc.longitude,loc.country_code,loc.elevation??fw.elevation,c.signal).then(x=>id===seq.current&&setSt(x)).finally(()=>id===seq.current&&setStationLoading(false));ensembles(loc.latitude,loc.longitude,c.signal).then(x=>{if(id===seq.current){setEns(x.days);setModels(x.models);setEnsError(x.days.length?'':'Keine ausreichend vollständigen Ensemble-Daten erhalten.')}}).catch(e=>{if(id===seq.current){setEns([]);setModels([]);setEnsError(e instanceof Error?e.message:'Ensemble-Daten konnten nicht geladen werden.')}}).finally(()=>id===seq.current&&setEnsLoading(false))}catch(e){if(id===seq.current){setLoading(false);setEnsLoading(false);setStationLoading(false);setError(e instanceof Error?e.message:'Laden fehlgeschlagen')}}}
  useEffect(()=>{if(loc)void load()},[loc?.id,loc?.latitude,loc?.longitude]);
  function locate(){if(!navigator.geolocation){setError('Standortermittlung nicht unterstützt.');return}setLoading(true);setError('');navigator.geolocation.getCurrentPosition(async p=>{try{const resolved=await reverseLocation(p.coords.latitude,p.coords.longitude,p.coords.altitude??undefined);setLoc(resolved)}catch{setLoc({id:Date.now(),name:`${p.coords.latitude.toFixed(2)}°, ${p.coords.longitude.toFixed(2)}°`,latitude:p.coords.latitude,longitude:p.coords.longitude,elevation:p.coords.altitude??undefined,autolocated:true})}},()=>{setLoading(false);setError('Standort konnte nicht ermittelt werden.')},{enableHighAccuracy:true,timeout:15000,maximumAge:300000})}
- const hours=useMemo(()=>w?mapHours(w):[],[w]),days=useMemo(()=>w?mapDays(w):[],[w]),hz=useMemo(()=>hazards(hours,Number(air?.current?.uv_index??NaN)),[hours,air]),risk=hours[currentIndex(hours)]?.probability??0;
+ const hours=useMemo(()=>w?mapHours(w):[],[w]),days=useMemo(()=>w?mapDays(w):[],[w]),hz=useMemo(()=>hazards(hours,hours[currentIndex(hours)]?.uvIndex),[hours]),risk=hours[currentIndex(hours)]?.probability??0;
  return <div className="app"><Header setLoc={setLoc} locate={locate} loading={loading} dark={dark} setDark={setDark} unit={unit} setUnit={setUnit} reload={load} hasLocation={!!loc}/><main>{!loc?<section className="empty-start"><Search size={30}/><div><strong>Ort oder Standort auswählen</strong><span>Beim ersten Aufruf bleibt MID leer. Der zuletzt gewählte Ort wird anschließend lokal gespeichert und beim nächsten Besuch automatisch geladen.</span></div></section>:<><section className="place"><div><span>{loc.autolocated?'Automatisch lokalisiert · ':''}{loc.admin1??loc.country??'Standort'}</span><h1>{loc.name}</h1><p>{loc.latitude.toFixed(2)}°N, {loc.longitude.toFixed(2)}°E · {Math.round(loc.elevation??w?.elevation??0)} m ü. NHN{loc.autolocated?' · Ortsname aus Geodatenbank':''}</p></div><aside><small>Aktuelle Niederschlagswahrscheinlichkeit</small><strong>{Math.round(risk)} %</strong></aside></section>{error&&<div className="error">{error}</div>}{loading&&!w?<div className="loading"><RefreshCw className="spin"/><strong>Wettermodelle werden geladen …</strong><span>Best Match, Luftqualität und Ensembles</span></div>:w&&<><Current loc={loc} w={w} air={air} st={st} stationLoading={stationLoading} unit={unit}/><Hazards data={hz}/><div className="split"><Forecast days={days} hours={hours} selected={selected} setSelected={setSelected} unit={unit}/><Radar lat={loc.latitude} lon={loc.longitude}/></div><Ensembles data={ens} models={models} days={days} loading={ensLoading} error={ensError}/><Widget loc={loc} days={days} hours={hours} unit={unit}/></>}</>}</main><footer><span>MID v{VERSION} · Wetter: Open-Meteo · Radar: RainViewer · Stationen: Bright Sky / WMO / optionale METAR-Proxy-Quellen · <a href="https://github.com/MeteoMartini/MID/blob/main/CHANGELOG.md" target="_blank" rel="noreferrer">Changelog</a></span><span>Aktualisiert: {new Date().toLocaleString('de-DE')}</span></footer></div>
 }
 
@@ -32,6 +32,10 @@ function Current({loc,w,air,st,stationLoading,unit}:{loc:Location;w:Weather;air:
  const c=w.current,fresh=!!st&&(!st.timestamp||Date.now()-new Date(st.timestamp).getTime()<150*60000),stationInfo=fresh?`${st!.provider??'WMO/METAR'} · ${st!.name} · ${Number.isFinite(st!.height)?`${Math.round(st!.height!)} m`:'Höhe unbekannt'} · ${Number.isFinite(st!.distance)?`${(st!.distance!/1000).toFixed(1).replace('.',',')} km`:'Entfernung unbekannt'}`:'';
  const observed=(v:number|undefined,fallback:number)=>fresh&&Number.isFinite(v)?Number(v):fallback;
  const temp=observed(st?.temperature,Number(c.temperature_2m)),hum=observed(st?.humidity,Number(c.relative_humidity_2m)),dew=observed(st?.dewPoint,Number(c.dew_point_2m)),pressure=observed(st?.pressure,Number(c.pressure_msl)),windSpeed=observed(st?.windSpeed!=null?(st.windUnit==='kt'?st.windSpeed:st.windSpeed/1.852):undefined,Number(c.wind_speed_10m)),windGust=observed(st?.windGust!=null?(st.windUnit==='kt'?st.windGust:st.windGust/1.852):undefined,Number(c.wind_gusts_10m)),windDirection=observed(st?.windDirection,Number(c.wind_direction_10m)),cloud=observed(st?.cloudCover,Number(c.cloud_cover)),precip=observed(st?.precipitation,Number(c.precipitation));
+ const mappedHours=mapHours(w);
+ const forecastHour=mappedHours[currentIndex(mappedHours)]??null;
+ const baseCurrentUv=air?.current?Number(air.current.uv_index):Number.NaN;
+ const effectiveCurrentUv=forecastHour?forecastHour.uvIndex:effectiveUvIndex(baseCurrentUv,cloud,Number(c.weather_code),Number(c.is_day)===1,precip);
  const source=(available:boolean,defaultText:string)=>available&&fresh?`${st!.provider??'Stationsmessung'} · ${st!.name}`:defaultText;
  const cards=[
   {icon:'💧',label:'Taupunkt',value:`${Math.round(dew)} °C`,detail:`Relative Feuchte ${Math.round(hum)} % · ${source(Number.isFinite(st?.dewPoint),'Best Match')}`,checked:fresh&&Number.isFinite(st?.dewPoint)},
@@ -39,7 +43,7 @@ function Current({loc,w,air,st,stationLoading,unit}:{loc:Location;w:Weather;air:
   {icon:'🌧️',label:'Niederschlag',value:`${precip.toFixed(1)} mm`,detail:source(Number.isFinite(st?.precipitation),'aktueller Modellzeitraum'),checked:fresh&&Number.isFinite(st?.precipitation)},
   {icon:'☁️',label:'Bewölkung',value:`${Math.round(cloud)} %`,detail:source(Number.isFinite(st?.cloudCover),'Best Match'),checked:fresh&&Number.isFinite(st?.cloudCover)},
   {icon:'⏱️',label:'Luftdruck',value:`${Math.round(pressure)} hPa`,detail:`auf Meereshöhe · ${source(Number.isFinite(st?.pressure),'Best Match')}`,checked:fresh&&Number.isFinite(st?.pressure)},
-  {icon:'☀️',label:'UV-Index',value:air?.current?Number(air.current.uv_index).toFixed(1):'–',detail:'Open-Meteo Luftqualitätsmodell',checked:false},
+  {icon:'☀️',label:'UV-Index',value:Number.isFinite(effectiveCurrentUv)?effectiveCurrentUv.toFixed(1):'–',detail:Number.isFinite(baseCurrentUv)?`effektiv (bewölkungs- und wetterkorrigiert) · Rohwert ${baseCurrentUv.toFixed(1)}`:'bewölkungs- und wetterkorrigiert',checked:false},
   {icon:'🏭',label:'Luftqualität',value:air?.current?`${Math.round(Number(air.current.european_aqi))} AQI`:'–',detail:air?.current?`PM2,5 ${Number(air.current.pm2_5).toFixed(1)} µg/m³`:'Open-Meteo',checked:false},
   {icon:'🏔️',label:'Höhe',value:`${Math.round(loc.elevation??w.elevation)} m`,detail:'ü. NHN',checked:false}
  ];
@@ -73,7 +77,7 @@ function dailyHazards(day:Day,hours:Hour[]){
  const items:{label:string;level:HazardBadgeLevel}[]=[];
  const apparent=hours.length?Math.max(...hours.map(x=>x.apparent).filter(Number.isFinite)):day.max;
  const heat=Math.max(day.max,apparent);
- const uvMax=hours.length?Math.max(...hours.map(x=>x.uvIndex||0),day.uvMax||0):day.uvMax||0;
+ const uvMax=dayEffectiveUvMax(day,hours);
  const snowSum=hours.reduce((s,x)=>s+Math.max(0,x.snowfall||0),0);
  const gust=day.gust;
  const gustLvl=gustLevelKt(gust); if(gustLvl)items.push({label:`Böen ${Math.round(gust)} kt`,level:gustLvl});
