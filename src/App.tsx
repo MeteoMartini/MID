@@ -5,7 +5,7 @@ import {CircleMarker,MapContainer,Popup,TileLayer,useMap} from 'react-leaflet';
 import {toPng} from 'html-to-image';
 import {airQuality,currentIndex,dayEffectiveUvMax,ensembles,forecast,hazards,icon,label,mapDays,mapHours,searchLocations,reverseLocation,station,wind,type Day,type EnsembleDay,type Hour,type Location,type Station,type Weather,type WindUnit} from './weather';
 
-const VERSION='0.5.0';
+const VERSION='0.5.1';
 const LOGO_PATH='./mid-logo.png';
 const LOCATION_STORAGE_KEY='mid:lastLocation';
 function storedLocation():Location|null{try{const raw=localStorage.getItem(LOCATION_STORAGE_KEY);if(!raw)return null;const loc=JSON.parse(raw) as Location;return Number.isFinite(loc.latitude)&&Number.isFinite(loc.longitude)?loc:null}catch{return null}}
@@ -60,7 +60,7 @@ type HazardBadgeLevel='yellow'|'orange'|'red'|'purple';
 type PrecipType='none'|'drizzle'|'rain'|'showers'|'snow'|'snowShowers'|'sleet'|'sleetShowers';
 const KMH_PER_KT=1.852;
 const precipMeta:Record<Exclude<PrecipType,'none'>,{label:string;legendClass:string;fill:string}>={
- drizzle:{label:'Nieselregen',legendClass:'drizzle',fill:'url(#drizzleFill)'},
+ drizzle:{label:'Sprühregen',legendClass:'drizzle',fill:'url(#drizzleFill)'},
  rain:{label:'Regen',legendClass:'rain',fill:'url(#rainFill)'},
  showers:{label:'Schauer',legendClass:'showers',fill:'url(#showersPattern)'},
  snow:{label:'Schnee',legendClass:'snow',fill:'url(#snowPattern)'},
@@ -102,15 +102,26 @@ function precipitationParts(h:Hour){
  else if(showerValue>=.05||[80,81,82,95,96,99].includes(h.code))type='showers';
  else type='rain';
  const snowSuffix=snowCm>=.05?` · ${snowCm.toFixed(1)} cm`:'',mmSuffix=`${total.toFixed(1)} mm`;
- const labelMap:Record<Exclude<PrecipType,'none'>,string>={drizzle:`Nieselregen ${mmSuffix}`,rain:`Regen ${mmSuffix}`,showers:`Schauer ${mmSuffix}`,snow:`Schnee ${snowCm.toFixed(1)} cm`,snowShowers:`Schneeschauer ${snowCm.toFixed(1)} cm`,sleet:`Schneeregen ${mmSuffix}${snowSuffix}`,sleetShowers:`Schneeregenschauer ${mmSuffix}${snowSuffix}`};
+ const labelMap:Record<Exclude<PrecipType,'none'>,string>={drizzle:`Sprühregen ${mmSuffix}`,rain:`Regen ${mmSuffix}`,showers:`Schauer ${mmSuffix}`,snow:`Schnee ${snowCm.toFixed(1)} cm`,snowShowers:`Schneeschauer ${snowCm.toFixed(1)} cm`,sleet:`Schneeregen ${mmSuffix}${snowSuffix}`,sleetShowers:`Schneeregenschauer ${mmSuffix}${snowSuffix}`};
  return{total,type,label:labelMap[type as Exclude<PrecipType,'none'>]};
 }
 function presentPrecipTypes(series:{type:PrecipType}[]){const order:PrecipType[]=['drizzle','rain','showers','snow','snowShowers','sleet','sleetShowers'];return order.filter(t=>series.some(x=>x.type===t)) as Exclude<PrecipType,'none'>[]}
 function Forecast({days,hours,selected,setSelected,unit}:{days:Day[];hours:Hour[];selected:string;setSelected:(x:string)=>void;unit:WindUnit}){
  const [selectedHour,setSelectedHour]=useState(0);
- const allMin=Math.min(...days.slice(0,7).map(x=>x.min)),allMax=Math.max(...days.slice(0,7).map(x=>x.max)),range=Math.max(1,allMax-allMin);
+ const boundaryHourRef=useRef<number|null>(null);
+ const forecastDays=days.slice(0,7);
+ const allMin=Math.min(...forecastDays.map(x=>x.min)),allMax=Math.max(...forecastDays.map(x=>x.max)),range=Math.max(1,allMax-allMin);
  const p=hours.filter(x=>x.time.startsWith(selected)).slice(0,24);
- useEffect(()=>{if(!p.length)return;const now=new Date();const isToday=selected===now.toISOString().slice(0,10);const middayIndex=p.findIndex(x=>x.time.slice(11,13)==='12');const fallback=middayIndex>=0?middayIndex:Math.min(6,Math.max(0,p.length-1));const idx=isToday?p.reduce((best,x,i)=>Math.abs(new Date(x.time).getTime()-now.getTime())<Math.abs(new Date(p[best].time).getTime()-now.getTime())?i:best,0):fallback;setSelectedHour(idx)},[selected,p.length]);
+ useEffect(()=>{if(!p.length)return;if(boundaryHourRef.current!==null){const requested=boundaryHourRef.current;setSelectedHour(requested===23?p.length-1:Math.min(Math.max(0,requested),p.length-1));boundaryHourRef.current=null;return}const now=new Date();const isToday=selected===now.toISOString().slice(0,10);const middayIndex=p.findIndex(x=>x.time.slice(11,13)==='12');const fallback=middayIndex>=0?middayIndex:Math.min(6,Math.max(0,p.length-1));const idx=isToday?p.reduce((best,x,i)=>Math.abs(new Date(x.time).getTime()-now.getTime())<Math.abs(new Date(p[best].time).getTime()-now.getTime())?i:best,0):fallback;setSelectedHour(idx)},[selected,p.length]);
+ function moveHour(delta:-1|1){
+  const nextIndex=selectedHour+delta;
+  if(nextIndex>=0&&nextIndex<p.length){setSelectedHour(nextIndex);return}
+  const dayIndex=forecastDays.findIndex(x=>x.date===selected);
+  const targetDay=forecastDays[dayIndex+delta];
+  if(!targetDay||!hours.some(x=>x.time.startsWith(targetDay.date)))return;
+  boundaryHourRef.current=delta>0?0:23;
+  setSelected(targetDay.date);
+ }
  if(!p.length)return null;
  const precipSeries=p.map(precipitationParts);
  const currentHour=p[Math.min(selectedHour,p.length-1)]??p[0],currentPrecip=precipSeries[Math.min(selectedHour,p.length-1)]??precipitationParts(currentHour);
@@ -134,7 +145,7 @@ function Forecast({days,hours,selected,setSelected,unit}:{days:Day[];hours:Hour[
  const totalRain=p.reduce((a,b)=>a+b.precipitation,0),maxProb=Math.max(...p.map(x=>x.probability)),gustMax=Math.max(...p.map(x=>x.gust)),windMax=Math.max(...p.map(x=>x.wind));
  const selectedDay=days.find(x=>x.date===selected)??days[0];
  return <section className="card"><Title eye="Best Match · seamless" title="7-Tage-Vorhersage"/>
-   <div className="forecastrows">{days.slice(0,7).map(d=>{const dt=new Date(`${d.date}T12:00:00`);const leftPct=((d.min-allMin)/range)*100;const widthPct=(Math.max(1,d.max-d.min)/range)*100;const hz=dailyHazards(d,hours.filter(x=>x.time.startsWith(d.date)));return <button className={`forecastrow ${selected===d.date?'active':''}`} key={d.date} onClick={()=>setSelected(d.date)}>
+   <div className="forecastrows">{forecastDays.map(d=>{const dt=new Date(`${d.date}T12:00:00`);const leftPct=((d.min-allMin)/range)*100;const widthPct=(Math.max(1,d.max-d.min)/range)*100;const hz=dailyHazards(d,hours.filter(x=>x.time.startsWith(d.date)));return <button className={`forecastrow ${selected===d.date?'active':''}`} key={d.date} onClick={()=>setSelected(d.date)}>
       <div className="forecast-date"><strong>{dt.toLocaleDateString('de-DE',{weekday:'short'})}</strong><small>{dt.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})}</small></div>
       <div className="forecast-icon"><span>{icon(d.code)}</span><small>{label(d.code)}</small></div>
       <div className="forecast-meta"><span>💧 {d.precipitation.toFixed(1)} mm · {Math.round(d.probability)} %</span><span>🌬️ {dirArrow(d.direction)} {wind(d.wind,unit)} · Böen {wind(d.gust,unit)}</span></div>
@@ -163,7 +174,7 @@ function Forecast({days,hours,selected,setSelected,unit}:{days:Day[];hours:Hour[
        <circle cx={xAt(selectedHour)} cy={yTemp(currentHour.temperature)} r="2.1" fill="#fff" stroke="#9ad0ff" strokeWidth="1.1"/><circle cx={xAt(selectedHour)} cy={yProb(currentHour.probability)} r="1.7" fill="#56d7ff" stroke="#ffffff" strokeWidth="0.7"/>
      </svg>
      <div className="hour-chart-tooltip persistent" role="status" aria-live="polite" aria-label={`Details für ${currentHour.time.slice(11,16)} Uhr`}>
-       <header><button type="button" onClick={()=>setSelectedHour(i=>(i-1+p.length)%p.length)} aria-label="Vorherige Stunde">‹</button><div><small>{currentHour.time.slice(11,16)} Uhr</small><strong>{icon(currentHour.code,currentHour.isDay)} {label(currentHour.code)}</strong></div><button type="button" onClick={()=>setSelectedHour(i=>(i+1)%p.length)} aria-label="Nächste Stunde">›</button></header>
+       <header><button type="button" onClick={()=>moveHour(-1)} aria-label="Vorherige Stunde">‹</button><div><small>{currentHour.time.slice(11,16)} Uhr</small><strong>{icon(currentHour.code,currentHour.isDay)} {label(currentHour.code)}</strong></div><button type="button" onClick={()=>moveHour(1)} aria-label="Nächste Stunde">›</button></header>
        <div className="hour-tooltip-grid compact"><span><small>Temperatur / gefühlt</small><b>{Math.round(currentHour.temperature)}° / {Math.round(currentHour.apparent)}°</b></span><span><small>Niederschlag</small><b>{currentHour.precipitation.toFixed(1)} mm · {Math.round(currentHour.probability)} %</b><em>{currentPrecip.label}</em></span><span><small>Wind / Böen</small><b>{dirArrow(currentHour.direction)} {wind(currentHour.wind,unit)} · {wind(currentHour.gust,unit)}</b></span><span><small>Feuchte / Taupunkt</small><b>{Math.round(currentHour.humidity)} % · {Math.round(currentHour.dewPoint)}°</b></span><span><small>Bewölkung</small><b>{Math.round(currentHour.cloud)} %</b></span><span><small>UV-Index</small><b>{currentHour.uvIndex.toFixed(1)}</b></span></div>
      </div>
      </div>

@@ -1,3 +1,9 @@
+## 0.5.1
+
+- Stunden-Navigation der Detailansicht springt an Tagesgrenzen automatisch zum angrenzenden Tag
+- 23:00 Uhr → nächster Tag 00:00 Uhr; 00:00 Uhr → vorheriger Tag 23:00 Uhr
+- Niederschlagsart Drizzle projektweit als „Sprühregen“ bezeichnet
+
 ## 0.5.0
 
 - stündliche Kachelmatrix entfernt und durch dauerhaft sichtbare, kompakte Stunden-Detailanzeige am Diagramm ersetzt

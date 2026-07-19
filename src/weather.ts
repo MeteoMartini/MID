@@ -97,7 +97,7 @@ export async function ensembles(lat:number,lon:number,signal?:AbortSignal){
  return fallback.days.length?fallback:{days,models:results.map(x=>x.model.label)};
 }
 
-export function label(c:number){const m:Record<number,string>={0:'Klar',1:'Überwiegend klar',2:'Teilweise bewölkt',3:'Bedeckt',45:'Nebel',48:'Reifnebel',51:'Nieselregen',53:'Nieselregen',55:'Starker Nieselregen',61:'Leichter Regen',63:'Regen',65:'Starker Regen',71:'Leichter Schneefall',73:'Schneefall',75:'Starker Schneefall',80:'Regenschauer',81:'Kräftige Schauer',82:'Starke Schauer',85:'Schneeschauer',86:'Starke Schneeschauer',95:'Gewitter',96:'Gewitter mit Hagel',99:'Starkes Gewitter'};return m[c]??'Wechselhaft'}
+export function label(c:number){const m:Record<number,string>={0:'Klar',1:'Überwiegend klar',2:'Teilweise bewölkt',3:'Bedeckt',45:'Nebel',48:'Reifnebel',51:'Sprühregen',53:'Sprühregen',55:'Starker Sprühregen',61:'Leichter Regen',63:'Regen',65:'Starker Regen',71:'Leichter Schneefall',73:'Schneefall',75:'Starker Schneefall',80:'Regenschauer',81:'Kräftige Schauer',82:'Starke Schauer',85:'Schneeschauer',86:'Starke Schneeschauer',95:'Gewitter',96:'Gewitter mit Hagel',99:'Starkes Gewitter'};return m[c]??'Wechselhaft'}
 export function icon(c:number,day=true){if(c===0)return day?'☀️':'🌙';if(c===1)return day?'🌤️':'🌙';if(c===2)return'⛅';if(c===3)return'☁️';if([45,48].includes(c))return'🌫️';if([51,53,55,80].includes(c))return'🌦️';if([61,63,65,81,82].includes(c))return'🌧️';if([71,73,75,85,86].includes(c))return'🌨️';if([95,96,99].includes(c))return'⛈️';return'🌤️'}
 export function wind(v:number,u:WindUnit){if(u==='kmh')return`${Math.round(v*1.852)} km/h`;if(u==='ms')return`${(v*.514444).toFixed(1)} m/s`;if(u==='mph')return`${Math.round(v*1.15078)} mph`;return`${Math.round(v)} kt`}
 
