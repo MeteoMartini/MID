@@ -1,33 +1,45 @@
-# MID Daten- und CAP-Proxy
+# MID Daten- und Warnungsproxy v0.6.1
 
 Der Cloudflare Worker stellt browserkompatibel folgende Daten bereit:
 
 - weltweite METAR-/WMO-Beobachtungen
 - optional Weather-Underground-PWS-Daten über einen lizenzierten The-Weather-Company-Zugang
-- amtliche Wetterwarnungen im Common Alerting Protocol (CAP)
+- amtliche Wetterwarnungen für Deutschland, Europa und die USA
 
 ## Bereitstellung
 
 1. Einen Cloudflare Worker anlegen.
-2. Den Inhalt aus `metar-proxy.js` übernehmen.
-3. Die öffentliche Worker-URL beim MID-Build setzen:
+2. Den gesamten Inhalt aus `metar-proxy.js` in den Cloudflare-Codeeditor übernehmen.
+3. **Deploy** ausführen.
+4. In GitHub unter **Settings → Secrets and variables → Actions → Variables** die Worker-Adresse als `VITE_METAR_PROXY_URL` hinterlegen.
+
+Optional kann dieselbe Adresse zusätzlich als `VITE_ALERT_PROXY_URL` gesetzt werden. Der mitgelieferte GitHub-Actions-Workflow übernimmt automatisch `VITE_METAR_PROXY_URL` als Warnungsproxy, wenn keine separate Warnungsadresse gesetzt ist.
+
+## Diagnose
 
 ```text
-VITE_METAR_PROXY_URL=https://DEIN-WORKER.workers.dev/
-VITE_ALERT_PROXY_URL=https://DEIN-WORKER.workers.dev/
+https://DEIN-WORKER.workers.dev/?mode=health
 ```
 
-`VITE_ALERT_PROXY_URL` ist optional. Fehlt sie, nutzt MID automatisch `VITE_METAR_PROXY_URL` auch für Warnungen.
+Erwartet wird unter anderem:
 
-## Amtliche CAP-Warnungen
+```json
+{"ok":true,"version":"0.6.1"}
+```
 
-Der Worker nutzt standortabhängig:
+Beispiel für Deutschland:
 
-- Deutschland: DWD CAP-Feed „Amtliche Warnungen“
-- Europa: öffentliche MeteoAlarm-Atom-Feeds mit CAP-Meldungen der nationalen Wetterdienste
+```text
+https://DEIN-WORKER.workers.dev/?mode=alerts&lat=50.82&lon=7.04&country=DE&name=Niederkassel&region=Nordrhein-Westfalen&language=de
+```
+
+## Amtliche Warnungen
+
+- Deutschland: primär offizieller DWD-WFS-Layer `dwd:Warnungen_Gemeinden`, standortgenau über Warnpolygone; DWD-CAP-Atom als Rückfallquelle
+- Europa: aktiv gepflegte MeteoAlarm-Atom-Feeds und verknüpfte CAP-Dokumente der nationalen Wetterdienste
 - USA: NOAA/National Weather Service Active Alerts
 
-Warnungen werden anhand der CAP-Geometrie (Polygon oder Kreis) auf den gewählten Standort gefiltert. In MID erscheinen zunächst nur die Überschriften; ein Klick blendet Meldungs- und Handlungstext ein.
+Bei MeteoAlarm werden die Feed-Einträge anhand von Ort, Bezirk und Region priorisiert und die CAP-Unteranfragen begrenzt. So bleibt der Abruf innerhalb des Limits des kostenlosen Cloudflare-Workers.
 
 ## Optionale Weather-Underground-PWS-Daten
 

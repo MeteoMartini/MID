@@ -1,6 +1,6 @@
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.6.0**
+**Aktuelle Version: v0.6.1**
 
 MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React und TypeScript. Es verbindet Open-Meteo Best Match mit Ensemble-Prognosen, Stationsmessungen, Radar, Luftqualität, Gefahrenindikatoren und exportierbaren Wetterwidgets.
 
@@ -17,8 +17,6 @@ MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React und TypeSc
 - OpenStreetMap-Grundkarte mit RainViewer-Radar
 - Luftqualität, Dark Mode sowie Widget-/PNG-Export im MID-Design
 - optional einblendbare Hazards im Widget und PNG-Export
-- amtliche standortbezogene Wetterwarnungen: DWD-CAP in Deutschland, CAP-Meldungen nationaler Wetterdienste über MeteoAlarm in Europa und NOAA/NWS in den USA
-- Warnungsüberschriften kompakt; Meldungs- und Handlungstext per Klick
 - responsive Darstellung für Smartphone, Tablet und Desktop
 
 ## Entwicklung
@@ -46,37 +44,46 @@ Nach dessen Bereitstellung wird die öffentliche Worker-Adresse beim Build als V
 
 ```text
 VITE_METAR_PROXY_URL=https://DEIN-WORKER.workers.dev/
+VITE_ALERT_PROXY_URL=https://DEIN-WORKER.workers.dev/
 ```
 
-MID vergleicht dann weltweit nahe Flugplatz-, METAR- und WMO-Messstationen anhand von Entfernung, Höhenunterschied und Aktualität. In Deutschland wird zusätzlich Bright Sky/DWD-WMO geprüft. Derselbe Worker stellt außerdem die amtlichen CAP-Warnungen browserkompatibel bereit.
+MID vergleicht dann weltweit nahe Flugplatz-, METAR- und WMO-Messstationen anhand von Entfernung, Höhenunterschied und Aktualität. In Deutschland wird zusätzlich Bright Sky/DWD-WMO geprüft.
+
+## Amtliche Wetterwarnungen
+
+MID v0.6.1 nutzt in Deutschland primär den amtlichen DWD-WFS-Layer `dwd:Warnungen_Gemeinden`. Die Warnpolygone werden auf den exakten Standort geprüft; dadurch werden nicht mehr nur die ersten Einträge eines deutschlandweiten CAP-Feeds ausgewertet. Falls der DWD-WFS vorübergehend nicht erreichbar ist, wird automatisch auf den DWD-CAP-Atom-Feed zurückgegriffen.
+
+Für andere unterstützte europäische Länder nutzt MID die aktiv gepflegten MeteoAlarm-Atom-Feeds und lädt nur eine priorisierte, begrenzte Zahl passender CAP-Dokumente. Dies verhindert, dass der kostenlose Cloudflare Worker sein Limit externer Unteranfragen überschreitet.
+
+Der Worker kann nach der Bereitstellung so geprüft werden:
+
+```text
+https://DEIN-WORKER.workers.dev/?mode=health
+```
+
+Für einen Warnungsabruf in Niederkassel:
+
+```text
+https://DEIN-WORKER.workers.dev/?mode=alerts&lat=50.82&lon=7.04&country=DE&name=Niederkassel&region=Nordrhein-Westfalen&language=de
+```
+
+Eine leere Liste `"alerts": []` ist nur dann eine Entwarnung, wenn die Antwort zugleich `"version": "0.6.1"` und keinen `error`-Eintrag enthält.
 
 ## Datenquellen
 
 - Open-Meteo: Best Match, Ensemblemodelle, Luftqualität und Geocoding
-- RainViewer: Radar
+- Deutscher Wetterdienst: amtliche Warnungen über WFS auf Gemeindeebene; DWD-CAP als Rückfallquelle; DWD-Radar/Nowcast
+- MeteoAlarm: internationale Atom-/CAP-Warnungen der nationalen europäischen Wetterdienste
+- NOAA/NWS: amtliche Warnungen für die USA
+- RainViewer: Radar außerhalb der DWD-Abdeckung
 - OpenStreetMap: Kartenbasis
 - Bright Sky: DWD-/WMO-Beobachtungen
 - NOAA AviationWeather: weltweite METAR-/Flugplatzbeobachtungen über den mitgelieferten Proxy
-- Deutscher Wetterdienst: amtliche Warnungen im CAP-Format für Deutschland
-- MeteoAlarm: CAP-/Atom-Warnungen der nationalen europäischen Wetterdienste
-- NOAA/National Weather Service: amtliche Warnungen für die USA
 
-Die Hazard-Anzeigen sind automatisch berechnete Indikatoren und keine amtlichen Warnungen. Die neue Sektion „Amtliche Wetterwarnungen“ ist davon getrennt und gibt CAP-Meldungen der jeweils zuständigen Behörden wieder.
+Die Hazard-Anzeigen sind automatisch berechnete Indikatoren und keine amtlichen Warnungen.
 
 
 ## Changelog
-
-### v0.6.0
-
-- neuer eigenständiger Funktionsbereich „Amtliche Wetterwarnungen“
-- Deutschland: direkte DWD-CAP-Warnungen
-- Europa: CAP-Warnungen nationaler Wetterdienste über öffentliche MeteoAlarm-Atom-Feeds
-- USA: NOAA/NWS Active Alerts
-- standortbezogene Filterung anhand von CAP-Polygonen und -Kreisen
-- zunächst nur Warnungsüberschriften; Meldungs- und Handlungstext per Klick
-- Cloudflare Worker um browserkompatiblen CAP-Abruf erweitert
-- Versionssprung auf 0.6.0 wegen eines neuen größeren Funktionsbereichs
-
 
 ### v0.5.4
 
@@ -233,6 +240,14 @@ Versionssprünge werden restriktiv vergeben. Dieses Release erhält **v0.5.0**, 
 - Kontrast der gefühlten Temperatur im hellen Meteogramm verbessert
 - Warnstufen im hellen Layout mit dunkleren Textfarben und klareren Hintergrund-/Rahmenfarben versehen
 
+
+## Stand v0.6.1
+
+- DWD-Warnungen auf standortgenauen WFS-Abruf auf Gemeindeebene umgestellt
+- DWD-CAP bleibt als automatische Rückfallquelle erhalten
+- MeteoAlarm-Abrufe priorisieren Orts-, Bezirks- und Regionsbezug und bleiben unter dem Cloudflare-Free-Limit
+- Cloudflare-Worker um Gesundheitsprüfung und Versionsdiagnose erweitert
+- GitHub-Pages-Workflow übernimmt die Worker-URL automatisch aus den Repository-Variablen
 
 ## Stand v0.5.7
 

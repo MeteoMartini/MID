@@ -1,13 +1,13 @@
-## 0.6.0
+## 0.6.1
 
-- eigenständige Sektion für amtliche Wetterwarnungen ergänzt
-- DWD-CAP für Deutschland integriert
-- MeteoAlarm-Atom/CAP der nationalen europäischen Wetterdienste integriert
-- NOAA/NWS-Warnungen für die USA integriert
-- Warnungen werden anhand von CAP-Polygonen und -Kreisen auf den Standort gefiltert
-- kompakte Überschriftenliste; Meldungs- und Handlungstext werden erst per Klick eingeblendet
-- Worker und Datenquellen-Disclaimer erweitert
-- Minor-Versionssprung aufgrund eines neuen größeren Funktionsbereichs
+- Abruf deutscher Warnungen auf den offiziellen DWD-WFS-Layer `dwd:Warnungen_Gemeinden` umgestellt
+- exakte standortbezogene Filterung über die amtlichen Warnpolygone
+- DWD-CAP-Atom-Feed als automatische Rückfallquelle beibehalten
+- MeteoAlarm-Atom/CAP-Abruf nach Ort, Bezirk und Region priorisiert
+- Zahl externer CAP-Unteranfragen begrenzt, damit der Cloudflare-Free-Worker nicht das Subrequest-Limit überschreitet
+- Worker-Endpunkt `?mode=health` und Versions-/Zeitangaben zur Diagnose ergänzt
+- GitHub-Actions-Workflow bindet `VITE_METAR_PROXY_URL` und `VITE_ALERT_PROXY_URL` aus Repository-Variablen ein
+- Fehler aus dem Warnungsproxy werden im Dashboard nicht mehr als scheinbare Entwarnung behandelt
 
 ## 0.5.7
 
