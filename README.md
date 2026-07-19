@@ -1,6 +1,6 @@
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.3.9**
+**Aktuelle Version: v0.4.0**
 
 MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React und TypeScript. Es verbindet Open-Meteo Best Match mit Ensemble-Prognosen, Stationsmessungen, Radar, Luftqualität, Gefahrenindikatoren und exportierbaren Wetterwidgets.
 
@@ -10,10 +10,13 @@ MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React und TypeSc
 - Abgleich mit der passendsten verfügbaren WMO-/METAR- oder DWD-WMO-Station
 - kompakte 7-Tage-Übersicht mit Temperaturbereich, Wind, Böen, Niederschlag und Tages-Hazards
 - interaktive stündliche Detailansicht: Diagramm und Stundenkacheln sind anklickbar
+- stündliche Wetterpiktogramme in der Detailansicht, sofern sinnvoll ohne Überlappung darstellbar
+- standardmäßig vorausgewählte aktuelle Stunde in der Detailansicht
 - sichtbare 14-Tage-Ensemble-Übersicht mit Best Match, P10–P90 und Prognosekonsistenz
 - gewichtete Nutzung der am Standort verfügbaren Open-Meteo-Ensemblemodelle
 - OpenStreetMap-Grundkarte mit RainViewer-Radar
-- Luftqualität, Dark Mode und Widget-PNG-Export
+- Luftqualität, Dark Mode sowie Widget-/PNG-Export im MID-Design
+- optional einblendbare Hazards im Widget und PNG-Export
 - responsive Darstellung für Smartphone, Tablet und Desktop
 
 ## Entwicklung
@@ -57,6 +60,16 @@ Die Hazard-Anzeigen sind automatisch berechnete Indikatoren und keine amtlichen 
 
 ## Changelog
 
+### v0.4.0
+
+- Suchfeld ist beim ersten Aufruf leer und dient nur der gezielten Orts-/Standortsuche
+- stündliche Wetterpiktogramme in der Detailansicht ergänzt; aktuelle Stunde wird standardmäßig vorausgewählt
+- stündliche Kacheln in der Detailansicht um Windrichtung und Wind erweitert
+- Detaildiagramm größer und besser lesbar skaliert
+- Widget-/PNG-Generator gestalterisch an das übrige MID-Design angepasst
+- neue Option zum Ein-/Ausblenden von Hazards im Widget und PNG-Export
+- README und Changelog aktualisiert
+
 ### v0.3.9
 
 - 14-Tage-Ensemblebereich wird immer angezeigt, auch während des Ladens oder bei einer vorübergehenden API-Störung
@@ -69,20 +82,8 @@ Die Hazard-Anzeigen sind automatisch berechnete Indikatoren und keine amtlichen 
 - gefühlte Temperatur in die Hitze-Hazards einbezogen
 - Karten und Kacheln auf kleinen Displays kompakter
 - METAR-/WMO-Abgleich erweitert und Worker aktualisiert
-- README und Changelog aktualisiert
 
 ### v0.3.8
 
 - eigenständige 14-Tage-Ensemble-Kachelübersicht ergänzt
 - farbige Konsistenzpunkte und Temperaturbalken ergänzt
-
-### v0.3.7
-
-- Verarbeitung einzelner Ensemblemitglieder eingeführt
-- Schutz vor `null`-Werten, die zuvor fälschlich als 0 °C erscheinen konnten
-- optionaler METAR-/WMO-Proxy ergänzt
-
-### v0.3.6
-
-- interaktive stündliche Detailwerte eingeführt
-- Taupunkt auf ganze Grad gerundet
