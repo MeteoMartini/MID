@@ -129,3 +129,25 @@
 @media(max-width:980px){.hour-inspector{grid-template-columns:repeat(2,minmax(0,1fr))}.ensrow{grid-template-columns:68px 42px 16px minmax(150px,1fr) 72px}}
 @media(max-width:680px){.detailhead{display:block}.detailhead small{display:block;margin-top:6px}.hour-pills{grid-template-columns:repeat(4,minmax(0,1fr))}.ensrow{grid-template-columns:58px 34px 14px minmax(120px,1fr) 58px;gap:8px;padding:10px}.ensrow .wx{font-size:20px}.ensrow .barbg{height:16px}.ensrow .ensspread{height:14px}.ensrow .bestrange{height:8px}}
 @media(max-width:430px){.hour-pills{grid-template-columns:repeat(3,minmax(0,1fr))}.hour-inspector{grid-template-columns:1fr}.ensrow{grid-template-columns:54px 28px 12px minmax(96px,1fr) 52px}.ensrow .temps{gap:6px;font-size:13px}}
+
+/* v0.3.8 explicit 14-day ensemble overview */
+.ens-summary{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0 14px;color:var(--muted);font-size:12px}
+.ens-summary span{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;border:1px solid var(--border);border-radius:999px;background:var(--s2)}
+.ens-summary b{color:var(--text)}
+.ens-overview-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:10px;margin-top:10px}
+.ens-card{display:grid;gap:9px;align-content:start;min-width:0;padding:12px;border:1px solid var(--border);border-radius:18px;background:var(--s2)}
+.ens-card header{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.ens-card header strong,.ens-card header small{display:block}
+.ens-card header small{color:var(--muted)}
+.ens-card .wx{font-size:28px;text-align:center}
+.ens-card .dot{width:14px;height:14px;border-radius:50%;box-shadow:0 0 0 4px rgba(255,255,255,.06)}
+.ens-card .barbg{position:relative;height:16px;border-radius:999px;background:rgba(255,208,85,.08);overflow:hidden}
+.ens-card .ensspread,.ens-card .bestrange{position:absolute;top:50%;transform:translateY(-50%);border-radius:999px}
+.ens-card .ensspread{height:14px;background:rgba(226,197,90,.38)}
+.ens-card .bestrange{height:8px;background:#f3c63b}
+.ens-card .temps{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.ens-card .temps b{color:#9dcbff}
+.ens-card .temps strong{color:#ffb07b}
+.ens-card>small{color:var(--muted);font-size:11px;line-height:1.3;min-height:28px}
+@media(max-width:680px){.ens-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ens-summary{font-size:11px}}
+@media(max-width:430px){.ens-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.ens-card{padding:10px}}
