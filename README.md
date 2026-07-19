@@ -1,6 +1,6 @@
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.5.2**
+**Aktuelle Version: v0.5.3**
 
 MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React und TypeScript. Es verbindet Open-Meteo Best Match mit Ensemble-Prognosen, Stationsmessungen, Radar, Luftqualität, Gefahrenindikatoren und exportierbaren Wetterwidgets.
 
@@ -187,3 +187,10 @@ Versionssprünge werden restriktiv vergeben. Dieses Release erhält **v0.5.0**, 
 - UVI-Logik korrigiert: MID verwendet ausschließlich den tatsächlich erwarteten, bewölkungsberücksichtigten `uv_index`; Klarhimmelwerte und zusätzliche Eigenkorrekturen werden nicht mehr angezeigt oder angewendet
 - Niederschlag aus dem Tooltip „Temperaturtrend und Prognoseunsicherheit“ entfernt
 - Minor-Versionssprung, da die Bedienstruktur der stündlichen Detailansicht substanziell geändert wurde
+
+
+## Stand v0.5.3
+
+- Niederschlagsformen werden strikt über WMO-Wettercodes klassifiziert.
+- Sprühregen wird nur noch für die Codes 51, 53 und 55 angezeigt; normaler Regen für 61, 63 und 65.
+- Mischformen werden nur bei gleichzeitig messbaren flüssigen und festen Anteilen ausgewiesen.

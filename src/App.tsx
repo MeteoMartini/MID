@@ -5,7 +5,7 @@ import {CircleMarker,MapContainer,Popup,TileLayer,WMSTileLayer,useMap} from 'rea
 import {toPng} from 'html-to-image';
 import {airQuality,currentIndex,dayEffectiveUvMax,ensembles,forecast,hazards,icon,label,mapDays,mapHours,mapMinutely15,searchLocations,reverseLocation,station,wind,type Day,type EnsembleDay,type Hour,type Location,type Minute15,type Station,type Weather,type WindUnit} from './weather';
 
-const VERSION='0.5.2';
+const VERSION='0.5.3';
 const LOGO_PATH='./mid-logo.png';
 const LOCATION_STORAGE_KEY='mid:lastLocation';
 function storedLocation():Location|null{try{const raw=localStorage.getItem(LOCATION_STORAGE_KEY);if(!raw)return null;const loc=JSON.parse(raw) as Location;return Number.isFinite(loc.latitude)&&Number.isFinite(loc.longitude)?loc:null}catch{return null}}
@@ -105,30 +105,42 @@ function dailyHazards(day:Day,hours:Hour[]){
  return items.sort((a,b)=>severityRank(b.level)-severityRank(a.level)).slice(0,3);
 }
 function dirArrow(deg:number){const to=((deg+180)%360+360)%360;const arrows=['↑','↗','→','↘','↓','↙','←','↖'];return arrows[Math.round(to/45)%8]}
+const WMO_PRECIP_TYPE:Partial<Record<number,PrecipType>>={
+ 51:'drizzle',53:'drizzle',55:'drizzle',
+ 56:'freezingDrizzle',57:'freezingDrizzle',
+ 61:'rain',63:'rain',65:'rain',
+ 66:'freezingRain',67:'freezingRain',
+ 68:'sleet',69:'sleet',
+ 71:'snow',73:'snow',75:'snow',77:'snowGrains',
+ 80:'showers',81:'showers',82:'showers',
+ 83:'sleetShowers',84:'sleetShowers',
+ 85:'snowShowers',86:'snowShowers',
+ 95:'thunderstorm',97:'thunderstorm',
+ 96:'thunderstormHail',99:'thunderstormHail'
+};
 function precipitationParts(h:PrecipSample){
  const total=Math.max(0,h.precipitation||0),rainValue=Math.max(0,h.rain||0),showerValue=Math.max(0,h.showers||0),snowCm=Math.max(0,h.snowfall||0),code=Math.round(h.code||0);
- if(total<.01&&snowCm<.01)return{total,type:'none' as PrecipType,label:'kein Niederschlag'};
- const hasLiquid=rainValue>=.01||showerValue>=.01;
- const hasSnow=snowCm>=.01||[71,73,75,77,85,86].includes(code);
+ const measurable=total>=.01||rainValue>=.01||showerValue>=.01||snowCm>=.01;
+ if(!measurable)return{total,type:'none' as PrecipType,label:'kein Niederschlag',code};
+ const baseType=WMO_PRECIP_TYPE[code];
+ const hasRain=rainValue>=.05;
+ const hasShowers=showerValue>=.05;
+ const hasSnow=snowCm>=.05;
  let type:PrecipType;
- if([96,99].includes(code))type='thunderstormHail';
- else if(code===95)type='thunderstorm';
- else if([56,57].includes(code))type='freezingDrizzle';
- else if([66,67].includes(code))type='freezingRain';
- else if([51,53,55].includes(code))type='drizzle';
- else if(code===77)type='snowGrains';
- else if([85,86].includes(code))type=hasLiquid&&rainValue+showerValue>=.01?'sleetShowers':'snowShowers';
- else if([80,81,82].includes(code))type=hasSnow?'sleetShowers':'showers';
- else if([71,73,75].includes(code))type=hasLiquid&&rainValue+showerValue>=.01?'sleet':'snow';
- else if([61,63,65].includes(code))type=hasSnow?'sleet':'rain';
- else if(hasSnow&&showerValue>=.01)type='sleetShowers';
- else if(hasSnow&&rainValue>=.01)type='sleet';
+ // Eindeutige WMO-Kategorien haben Vorrang. Gemischte Formen werden nur
+ // bei gleichzeitig messbaren flüssigen und festen Anteilen abgeleitet.
+ if(baseType==='thunderstormHail'||baseType==='thunderstorm'||baseType==='freezingDrizzle'||baseType==='freezingRain')type=baseType;
+ else if(hasSnow&&(hasShowers||baseType==='showers'||baseType==='snowShowers'||baseType==='sleetShowers'))type='sleetShowers';
+ else if(hasSnow&&(hasRain||baseType==='rain'||baseType==='drizzle'||baseType==='snow'||baseType==='sleet'))type='sleet';
+ else if(baseType)type=baseType;
+ else if(hasShowers)type='showers';
+ else if(hasRain||total>=.01)type='rain';
  else if(hasSnow)type='snow';
- else if(showerValue>=.01)type='showers';
- else type='rain';
- const meta=precipMeta[type as Exclude<PrecipType,'none'>];
+ else type='none';
+ if(type==='none')return{total,type,label:'kein Niederschlag',code};
+ const meta=precipMeta[type];
  const amount=type==='snow'||type==='snowShowers'||type==='snowGrains'?`${snowCm.toFixed(1)} cm`:type==='sleet'||type==='sleetShowers'?`${total.toFixed(1)} mm · ${snowCm.toFixed(1)} cm`:`${total.toFixed(1)} mm`;
- return{total,type,label:`${meta.label} ${amount}`};
+ return{total,type,label:`${meta.label} ${amount}`,code};
 }
 function presentPrecipTypes(series:{type:PrecipType}[]){const order:PrecipType[]=['drizzle','freezingDrizzle','rain','freezingRain','showers','sleet','sleetShowers','snow','snowGrains','snowShowers','thunderstorm','thunderstormHail'];return order.filter(t=>series.some(x=>x.type===t)) as Exclude<PrecipType,'none'>[]}
 function localTimeLabel(value:number){return new Date(value).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}

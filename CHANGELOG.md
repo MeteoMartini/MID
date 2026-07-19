@@ -1,3 +1,13 @@
+## 0.5.3
+
+- Niederschlagsklassifikation zentral und strikt nach WMO-Wettercodes überarbeitet
+- Sprühregen ausschließlich für WMO 51/53/55, gefrierender Sprühregen ausschließlich für 56/57
+- normaler Regen für 61/63/65 und gefrierender Regen für 66/67 eindeutig getrennt
+- Regenschauer 80/81/82, Schneefall 71/73/75, Schneegriesel 77 und Schneeschauer 85/86 eindeutig getrennt
+- zusätzliche Unterstützung für WMO-Mischcodes 68/69 (Schneeregen) sowie 83/84 (Schneeregenschauer)
+- Gewitterniederschlag und Gewitter mit Hagel getrennt
+- gemischte Niederschlagsformen werden nur bei gleichzeitig messbaren flüssigen und festen Anteilen abgeleitet
+
 ## 0.5.2
 
 - Niederschlagsarten anhand von WMO-Code, Regen-, Schauer- und Schneefallkomponenten neu klassifiziert
