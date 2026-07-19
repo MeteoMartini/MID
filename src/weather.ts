@@ -126,8 +126,11 @@ export function dayWeatherCharacter(day:Day,hours:Hour[]):DayWeatherCharacter{
  const dominant=severe?(candidate.maxProbability>=30||candidate.sum>=.2):sustained||quantitativelyRelevant;
  const period=candidate.first===candidate.last?dayPart(candidate.first):dayPart(candidate.first)===dayPart(candidate.last)?dayPart(candidate.first):`${dayPart(candidate.first)} bis ${dayPart(candidate.last)}`;
  const eventLabel=label(candidate.code);
+ const eventPhrase=/^(Leichter|Leichte|Leichtes|Starker|Starke|Starkes|Gefrierender|Gefrierende|Gefrierendes)\b/u.test(eventLabel)
+  ?eventLabel.charAt(0).toLocaleLowerCase('de-DE')+eventLabel.slice(1)
+  :eventLabel;
  if(!dominant){
-  const secondary=candidate.maxProbability>=25?`${period} ${eventLabel.toLowerCase()} möglich (${Math.round(candidate.maxProbability)} %)` : '';
+  const secondary=candidate.maxProbability>=25?`${period} ${eventPhrase} möglich (${Math.round(candidate.maxProbability)} %)` : '';
   return{...sky,secondary,cloudOktas:cloudOktas(weightedCloud),precipitationDominant:false};
  }
  const prefix=candidate.hours<6&&!severe?'Zeitweise ':'';

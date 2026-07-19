@@ -5,7 +5,7 @@ import {CircleMarker,MapContainer,Popup,TileLayer,WMSTileLayer,useMap} from 'rea
 import {toPng} from 'html-to-image';
 import {airQuality,cloudOktas,cloudOktasText,currentIndex,dayEffectiveUvMax,dayWeatherCharacter,ensembles,forecast,hazards,icon,label,mapDays,mapHours,mapMinutely15,searchLocations,reverseLocation,station,wind,type Day,type EnsembleDay,type Hour,type Location,type Minute15,type Station,type Weather,type WindUnit} from './weather';
 
-const VERSION='0.5.4';
+const VERSION='0.5.5';
 const LOGO_PATH='./mid-logo.png';
 const LOCATION_STORAGE_KEY='mid:lastLocation';
 function storedLocation():Location|null{try{const raw=localStorage.getItem(LOCATION_STORAGE_KEY);if(!raw)return null;const loc=JSON.parse(raw) as Location;return Number.isFinite(loc.latitude)&&Number.isFinite(loc.longitude)?loc:null}catch{return null}}
