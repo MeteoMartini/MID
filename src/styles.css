@@ -364,3 +364,33 @@ footer a:hover{opacity:1;color:var(--accent)}
 .detaillegend .stratiform{background:linear-gradient(180deg,#398ed8,#245f9e)}
 .detaillegend .convective{background:repeating-linear-gradient(135deg,#26c6f7 0 3px,#087ba6 3px 5px)}
 .detaillegend .snow{background:radial-gradient(circle at 25% 30%,#fff 0 1px,transparent 1.2px),radial-gradient(circle at 75% 70%,#fff 0 1px,transparent 1.2px),#c8dcff}
+
+/* v0.4.6 refinements */
+.hazards .orange{border:1px solid rgba(255,145,77,.46);background:rgba(255,145,77,.12);color:#ffb07b}
+.hazards .purple{border:1px solid rgba(178,118,255,.45);background:rgba(178,118,255,.13);color:#d6b7ff}
+.forecast-hazards .orange,.widgethazards .orange{border-color:rgba(255,145,77,.42)!important;background:rgba(255,145,77,.14)!important;color:#ffb07b!important}
+.forecast-hazards .purple,.widgethazards .purple{border-color:rgba(178,118,255,.38)!important;background:rgba(178,118,255,.14)!important;color:#d7bfff!important}
+.place aside{max-width:260px}
+.place aside small{white-space:normal;line-height:1.18;text-wrap:balance}
+.detaillegend{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 10px}
+.detaillegend span{display:inline-flex;align-items:center;gap:7px;padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:var(--s2);color:var(--muted);font-size:11px}
+.detaillegend i{display:inline-block;width:20px;height:3px;border-radius:999px;background:currentColor}
+.detaillegend i.temp{background:#ff7a37}
+.detaillegend i.apparent{background:#ffd8a3}
+.detaillegend i.probability{background:#56d7ff;border-top:1px dashed rgba(255,255,255,.55)}
+.detaillegend i.drizzle{background:linear-gradient(90deg,#8fd0ff,#5d9fd8)}
+.detaillegend i.rain{background:linear-gradient(90deg,#4aa3ff,#235f9c)}
+.detaillegend i.showers{background:repeating-linear-gradient(135deg,#27c7f6 0 4px,#0a7ba6 4px 7px)}
+.detaillegend i.snow{background:repeating-radial-gradient(circle at 3px 2px,#ffffff 0 1.4px,#c8dcff 1.5px 4px)}
+.detaillegend i.snow-showers{background:repeating-linear-gradient(135deg,#31c6f4 0 4px,#0b7ca7 4px 7px),repeating-radial-gradient(circle at 3px 2px,#ffffff 0 1.1px,#d7e8ff 1.2px 4px)}
+.detaillegend i.sleet{background:repeating-linear-gradient(135deg,#f4f7ff 0 3px,#7eb7ff 3px 6px)}
+.detaillegend i.sleet-showers{background:repeating-linear-gradient(135deg,#2ec9f5 0 3px,#90c4ff 3px 6px),repeating-radial-gradient(circle at 3px 2px,#ffffff 0 1px,transparent 1px 4px)}
+@media (max-width:760px){
+  .place{align-items:flex-start;flex-direction:column}
+  .place aside{width:100%;max-width:none;text-align:left}
+  .place aside strong{font-size:22px}
+}
+@media (max-width:520px){
+  .detaillegend span{font-size:10px;padding:6px 8px;max-width:100%;white-space:normal;line-height:1.2}
+  .place aside small{font-size:12px}
+}

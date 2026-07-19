@@ -1,6 +1,6 @@
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.4.5**
+**Aktuelle Version: v0.4.6**
 
 MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React und TypeScript. Es verbindet Open-Meteo Best Match mit Ensemble-Prognosen, Stationsmessungen, Radar, Luftqualität, Gefahrenindikatoren und exportierbaren Wetterwidgets.
 
@@ -60,15 +60,6 @@ Die Hazard-Anzeigen sind automatisch berechnete Indikatoren und keine amtlichen 
 
 
 ## Changelog
-
-### v0.4.5
-
-- 14-Tage-Niederschlags-Tooltip an das Kartenlayout des Temperaturtrends angeglichen
-- Begriff „Regenwahrscheinlichkeit“ in der 7-Tage-Detailansicht konsequent durch „Niederschlagswahrscheinlichkeit“ ersetzt
-- stündliche Niederschlagsbalken nach stratiformem Regen, konvektiven Schauern und Schnee differenziert
-- Niederschlagsarten durch Farben und Muster in Diagramm und Legende kenntlich gemacht
-- stündliche Detailwerte um die konkrete Niederschlagsart ergänzt
-- README und Changelog aktualisiert
 
 ### v0.4.4
 
@@ -133,3 +124,11 @@ Die Hazard-Anzeigen sind automatisch berechnete Indikatoren und keine amtlichen 
 
 - eigenständige 14-Tage-Ensemble-Kachelübersicht ergänzt
 - farbige Konsistenzpunkte und Temperaturbalken ergänzt
+
+
+## Stand v0.4.6
+
+- Hazard-Schwellen an DWD-, Meteoalarm- und NWS-Logik angenähert und in den automatischen Warnindikatoren farblich abgestuft
+- Niederschlagsformen in der 7-Tage-Detailansicht erweitert: Regen, Schauer, Schnee, Schneeschauer, Schneeregen und Schneeregenschauer (nur bei Datensignal)
+- Detail-Legende dynamisch und mobil umbruchfähig
+- Hochformat-Layout für lange Bezeichnungen verbessert

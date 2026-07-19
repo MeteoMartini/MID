@@ -115,23 +115,68 @@ function classifyHazard(value:number,thresholds:{yellow:number;orange?:number;re
  return null;
 }
 function addHazard(items:HazardItem[],item:HazardItem|null){if(item)items.push(item)}
+const levelOrder:{[k in HazardLevel]:number}={purple:4,red:3,orange:2,yellow:1};
+const KMH_PER_KT=1.852;
+
+function classifyWindGust(gustKt:number):HazardLevel|null{
+ const kmh=gustKt*KMH_PER_KT;
+ if(kmh>=103)return'purple';
+ if(kmh>=89)return'red';
+ if(kmh>=75)return'orange';
+ if(kmh>=50)return'yellow';
+ return null;
+}
+function classifyRain24(sumMm:number):HazardLevel|null{
+ if(sumMm>=60)return'purple';
+ if(sumMm>=40)return'red';
+ if(sumMm>=25)return'orange';
+ if(sumMm>=15)return'yellow';
+ return null;
+}
+function classifySnow24(sumCm:number):HazardLevel|null{
+ if(sumCm>=20)return'purple';
+ if(sumCm>=10)return'red';
+ if(sumCm>=5)return'orange';
+ if(sumCm>=1)return'yellow';
+ return null;
+}
+function classifyHeatStress(apparentC:number):HazardLevel|null{
+ if(apparentC>=46)return'purple';
+ if(apparentC>=41)return'red';
+ if(apparentC>=38)return'orange';
+ if(apparentC>=32)return'yellow';
+ return null;
+}
+function classifyUvIndex(uv:number):HazardLevel|null{
+ if(uv>=11)return'red';
+ if(uv>=8)return'orange';
+ if(uv>=6)return'yellow';
+ return null;
+}
+function classifyThunder(codes:number[]):HazardLevel|null{
+ if(codes.includes(99))return'red';
+ if(codes.includes(96))return'orange';
+ if(codes.includes(95))return'yellow';
+ return null;
+}
 
 export function hazards(h:Hour[],currentUv?:number){
  const s=h.slice(currentIndex(h),currentIndex(h)+24);if(!s.length)return[] as HazardItem[];
- const max=Math.max(...s.map(x=>x.temperature)),felt=Math.max(...s.map(x=>x.apparent).filter(Number.isFinite)),heat=Math.max(max,felt),min=Math.min(...s.map(x=>x.temperature)),gust=Math.max(...s.map(x=>x.gust)),rain=s.reduce((a,b)=>a+b.precipitation,0),uv=Math.max(currentUv??0,...s.map(x=>x.uvIndex||0)),thunderCodes=s.map(x=>x.code);
+ const max=Math.max(...s.map(x=>x.temperature)),felt=Math.max(...s.map(x=>x.apparent).filter(Number.isFinite)),heat=Math.max(max,felt),min=Math.min(...s.map(x=>x.temperature)),gust=Math.max(...s.map(x=>x.gust)),rain=s.reduce((a,b)=>a+Math.max(0,b.precipitation||0),0),snow=s.reduce((a,b)=>a+Math.max(0,b.snowfall||0),0),uv=Math.max(currentUv??0,...s.map(x=>x.uvIndex||0)),thunderCodes=s.map(x=>x.code);
  const a:HazardItem[]=[];
- const heatLevel=classifyHazard(heat,{yellow:32,orange:37,red:40,purple:44});
- addHazard(a,heatLevel?{level:heatLevel,title:'Hitzebelastung',metric:`${Math.round(heat)} °C`,text:`Gefühlte Temperatur bis ${Math.round(heat)} °C; Lufttemperatur bis ${Math.round(max)} °C.`}:null);
- const coldLevel=classifyHazard(min,{yellow:0,orange:-5,red:-10,purple:-15},false);
- addHazard(a,coldLevel?{level:coldLevel,title:'Frost-/Glättepotenzial',metric:`${Math.round(min)} °C`,text:`Tiefstwerte um ${Math.round(min)} °C.`}:null);
- const gustLevel=classifyHazard(gust,{yellow:25,orange:34,red:48,purple:64});
- addHazard(a,gustLevel?{level:gustLevel,title:'Wind / Böen',metric:`${Math.round(gust)} kt`,text:`Maximale Böen bis ${Math.round(gust)} kt.`}:null);
- const rainLevel=classifyHazard(rain,{yellow:15,orange:25,red:40,purple:60});
- addHazard(a,rainLevel?{level:rainLevel,title:'Starkregenpotenzial',metric:`${Math.round(rain)} mm`,text:`Niederschlagssumme von rund ${Math.round(rain)} mm in 24 Stunden.`}:null);
- const uvLevel=classifyHazard(uv,{yellow:6,orange:8,red:11,purple:14});
- addHazard(a,uvLevel?{level:uvLevel,title:'UV-Belastung',metric:`UV ${Math.round(uv)}`,text:`Maximaler UV-Index um ${Math.round(uv)}.`}:null);
- const thunderLevel=thunderCodes.includes(99)?'red':thunderCodes.includes(96)?'orange':thunderCodes.includes(95)?'yellow':null;
- addHazard(a,thunderLevel?{level:thunderLevel,title:'Gewitterpotenzial',metric:thunderLevel==='red'?'stark':'vorhanden',text:thunderLevel==='red'?'Signale für kräftige Gewitter in der Kurzfristvorhersage.':thunderLevel==='orange'?'Signale für Gewitter mit Hagel in der Kurzfristvorhersage.':'Gewittersignale in der Kurzfristvorhersage.'}:null);
- const levelOrder:{[k in HazardLevel]:number}={purple:4,red:3,orange:2,yellow:1};
+ const heatLevel=classifyHeatStress(heat);
+ addHazard(a,heatLevel?{level:heatLevel,title:'Hitzebelastung',metric:`${Math.round(heat)} °C`,text:`Gefühlte Temperatur bis ${Math.round(heat)} °C, Lufttemperatur bis ${Math.round(max)} °C (Schwellen nach DWD/NWS-Hitzelogik).`}:null);
+ const coldLevel=classifyHazard(min,{yellow:0,orange:-10,red:-20,purple:-30},false);
+ addHazard(a,coldLevel?{level:coldLevel,title:'Frost / Glätte',metric:`${Math.round(min)} °C`,text:`Tiefstwerte um ${Math.round(min)} °C.`}:null);
+ const gustLevel=classifyWindGust(gust);
+ addHazard(a,gustLevel?{level:gustLevel,title:'Wind / Böen',metric:`${Math.round(gust)} kt`,text:`Maximale Böen bis ${Math.round(gust)} kt (${Math.round(gust*KMH_PER_KT)} km/h; DWD/Meteoalarm-Stufen).`}:null);
+ const rainLevel=classifyRain24(rain);
+ addHazard(a,rainLevel?{level:rainLevel,title:'Starkregen',metric:`${Math.round(rain)} mm`,text:`24-Stunden-Summe um ${Math.round(rain)} mm (DWD-/Meteoalarm-Schwellen).`}:null);
+ const snowLevel=classifySnow24(snow);
+ addHazard(a,snowLevel?{level:snowLevel,title:'Schnee',metric:`${Math.round(snow)} cm`,text:`24-Stunden-Neuschnee um ${Math.round(snow)} cm.`}:null);
+ const uvLevel=classifyUvIndex(uv);
+ addHazard(a,uvLevel?{level:uvLevel,title:'UV-Belastung',metric:`UV ${Math.round(uv)}`,text:`Maximaler UV-Index um ${Math.round(uv)} (WHO/DWD/NWS-Kategorien).`}:null);
+ const thunderLevel=classifyThunder(thunderCodes);
+ addHazard(a,thunderLevel?{level:thunderLevel,title:'Gewitter',metric:thunderLevel==='red'?'stark':thunderLevel==='orange'?'mit Hagel':'möglich',text:thunderLevel==='red'?'Signale für starke Gewitter in der Kurzfristvorhersage.':thunderLevel==='orange'?'Signale für Gewitter mit Hagel in der Kurzfristvorhersage.':'Gewittersignale in der Kurzfristvorhersage.'}:null);
  return a.sort((x,y)=>levelOrder[y.level]-levelOrder[x.level]);
 }

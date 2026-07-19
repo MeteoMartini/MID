@@ -5,7 +5,7 @@ import {CircleMarker,MapContainer,Popup,TileLayer,useMap} from 'react-leaflet';
 import {toPng} from 'html-to-image';
 import {airQuality,currentIndex,ensembles,forecast,hazards,icon,label,mapDays,mapHours,searchLocations,reverseLocation,station,wind,type Day,type EnsembleDay,type Hour,type Location,type Station,type Weather,type WindUnit} from './weather';
 
-const VERSION='0.4.5';
+const VERSION='0.4.6';
 const LOGO_PATH='./mid-logo.png';
 const LOCATION_STORAGE_KEY='mid:lastLocation';
 function storedLocation():Location|null{try{const raw=localStorage.getItem(LOCATION_STORAGE_KEY);if(!raw)return null;const loc=JSON.parse(raw) as Location;return Number.isFinite(loc.latitude)&&Number.isFinite(loc.longitude)?loc:null}catch{return null}}
@@ -45,41 +45,72 @@ function Current({loc,w,air,st,stationLoading,unit}:{loc:Location;w:Weather;air:
  ];
  return <><section className="hero"><div>{icon(Number(c.weather_code),Number(c.is_day)===1)}</div><article><span>Aktuelles Wetter</span><strong>{Math.round(temp)}°</strong><b>{label(Number(c.weather_code))}</b><small>Gefühlt {Math.round(Number(c.apparent_temperature))} °C{fresh?' · Temperatur stationsgeprüft':''}</small></article><aside className={fresh?'ok':''}><i/><span><b>{fresh?'Nächstgeeignete Messstation':stationLoading?'Prüfung läuft':'Best Match'}</b><small>{fresh?stationInfo:stationLoading?'Stationsdaten werden im Hintergrund geprüft.':'Keine ausreichend aktuelle WMO-/METAR-Messstation verfügbar – Fallback auf Best Match'}</small></span></aside></section><section className="metrics">{cards.map(x=><article key={x.label}><header><span>{x.icon}</span><small>{x.label}</small>{x.checked&&<i title="Mit aktueller Stationsmessung abgeglichen"/>}</header><strong>{x.value}</strong><small>{x.detail}</small></article>)}</section></>
 }
-function Hazards({data}:{data:ReturnType<typeof hazards>}){if(!data.length)return <section className="hazard clear"><BadgeCheck/><div><strong>Keine markanten Gefahrenindikatoren</strong><span>Die automatische Auswertung der nächsten 24 Stunden zeigt keine auffälligen Signale.</span></div></section>;return <section className="hazards">{data.map(x=><article className={x.level} key={x.title}><AlertTriangle/><div><strong>{x.title}</strong><span>{x.text}</span></div></article>)}<small>Automatisch berechnete Indikatoren – keine amtlichen Warnungen.</small></section>}
+function Hazards({data}:{data:ReturnType<typeof hazards>}){if(!data.length)return <section className="hazard clear"><BadgeCheck/><div><strong>Keine markanten Gefahrenindikatoren</strong><span>Die automatische Auswertung der nächsten 24 Stunden zeigt keine auffälligen Signale.</span></div></section>;return <section className="hazards">{data.map(x=><article className={x.level} key={x.title}><AlertTriangle/><div><strong>{x.title}</strong><span>{x.text}</span></div></article>)}<small>Automatisch berechnete Indikatoren – Schwellen orientiert an DWD, Meteoalarm und NWS; keine amtlichen Warnungen.</small></section>}
 
 function MoveMap({lat,lon}:{lat:number;lon:number}){const map=useMap();useEffect(()=>{map.setView([lat,lon],7,{animate:true})},[lat,lon,map]);return null}
 function Radar({lat,lon}:{lat:number;lon:number}){const[frames,setFrames]=useState<{host:string;items:{time:number;path:string}[]} | null>(null),[index,setIndex]=useState(0),[opacity,setOpacity]=useState(82);useEffect(()=>{let alive=true;fetch('https://api.rainviewer.com/public/weather-maps.json',{cache:'no-store'}).then(r=>r.json()).then((d:Radar)=>{if(!alive)return;const items=(d.radar?.past??[]).slice(-12);setFrames({host:d.host,items});setIndex(Math.max(0,items.length-1))}).catch(()=>setFrames(null));return()=>{alive=false}},[lat,lon]);const frame=frames?.items[index];const url=frame?`${frames!.host}${frame.path}/256/{z}/{x}/{y}/2/1_1.png`:'';return <section className="card"><Title eye="Open source Radar" title="Regenradar"/><div className="radarmap"><MapContainer center={[lat,lon]} zoom={7} className="leafletmap" scrollWheelZoom={false}><MoveMap lat={lat} lon={lon}/><TileLayer attribution='&copy; OpenStreetMap-Mitwirkende' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"/>{url&&<TileLayer attribution='Radar &copy; RainViewer' url={url} opacity={opacity/100}/>}<CircleMarker center={[lat,lon]} radius={7} pathOptions={{color:'#fff',weight:2,fillColor:'#1f8cff',fillOpacity:0.95}}><Popup>Gewählter Standort</Popup></CircleMarker></MapContainer><div className="radarlegend"><strong>Radarintensität</strong><small>OpenStreetMap als Basiskarte, RainViewer als frei verfügbare Radar-Ebene.</small><span className="scale"/></div></div><div className="radarcontrols"><button className="secondary" disabled={!frames||index<=0} onClick={()=>setIndex(i=>Math.max(0,i-1))}>◀</button><div className="range"><small>Zeitschritt</small><input type="range" min={0} max={Math.max(0,(frames?.items.length??1)-1)} value={index} onChange={e=>setIndex(Number(e.target.value))}/></div><time>{frame?new Date(frame.time*1000).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}):'–:–'}</time><div className="range opacity"><small>Radar-Deckkraft</small><input type="range" min={25} max={100} value={opacity} onChange={e=>setOpacity(Number(e.target.value))}/></div></div><small className="source">Karte: OpenStreetMap · Radar: RainViewer</small></section>}
 
 
 function severityRank(level:'yellow'|'orange'|'red'|'purple'){return({yellow:1,orange:2,red:3,purple:4} as const)[level]}
+type HazardBadgeLevel='yellow'|'orange'|'red'|'purple';
+type PrecipType='none'|'drizzle'|'rain'|'showers'|'snow'|'snowShowers'|'sleet'|'sleetShowers';
+const KMH_PER_KT=1.852;
+const precipMeta:Record<Exclude<PrecipType,'none'>,{label:string;legendClass:string;fill:string}>={
+ drizzle:{label:'Nieselregen',legendClass:'drizzle',fill:'url(#drizzleFill)'},
+ rain:{label:'Regen',legendClass:'rain',fill:'url(#rainFill)'},
+ showers:{label:'Schauer',legendClass:'showers',fill:'url(#showersPattern)'},
+ snow:{label:'Schnee',legendClass:'snow',fill:'url(#snowPattern)'},
+ snowShowers:{label:'Schneeschauer',legendClass:'snow-showers',fill:'url(#snowShowersPattern)'},
+ sleet:{label:'Schneeregen',legendClass:'sleet',fill:'url(#sleetPattern)'},
+ sleetShowers:{label:'Schneeregenschauer',legendClass:'sleet-showers',fill:'url(#sleetShowersPattern)'}
+};
+function gustLevelKt(v:number):HazardBadgeLevel|null{const kmh=v*KMH_PER_KT;if(kmh>=103)return'purple';if(kmh>=89)return'red';if(kmh>=75)return'orange';if(kmh>=50)return'yellow';return null}
+function rainLevelMm(v:number):HazardBadgeLevel|null{if(v>=60)return'purple';if(v>=40)return'red';if(v>=25)return'orange';if(v>=15)return'yellow';return null}
+function heatLevelC(v:number):HazardBadgeLevel|null{if(v>=46)return'purple';if(v>=41)return'red';if(v>=38)return'orange';if(v>=32)return'yellow';return null}
+function uvLevel(v:number):HazardBadgeLevel|null{if(v>=11)return'red';if(v>=8)return'orange';if(v>=6)return'yellow';return null}
+function snowLevelCm(v:number):HazardBadgeLevel|null{if(v>=20)return'purple';if(v>=10)return'red';if(v>=5)return'orange';if(v>=1)return'yellow';return null}
 function dailyHazards(day:Day,hours:Hour[]){
- const items:{label:string;level:'yellow'|'orange'|'red'|'purple'}[]=[];
+ const items:{label:string;level:HazardBadgeLevel}[]=[];
  const apparent=hours.length?Math.max(...hours.map(x=>x.apparent).filter(Number.isFinite)):day.max;
  const heat=Math.max(day.max,apparent);
  const uvMax=hours.length?Math.max(...hours.map(x=>x.uvIndex||0),day.uvMax||0):day.uvMax||0;
- if(day.gust>=25)items.push({label:`Böen ${Math.round(day.gust)} kt`,level:day.gust>=64?'purple':day.gust>=48?'red':day.gust>=34?'orange':'yellow'});
- if(day.precipitation>=15||day.probability>=70)items.push({label:day.precipitation>=1?`${day.precipitation.toFixed(1)} mm`:`${Math.round(day.probability)} % Regen`,level:day.precipitation>=60?'purple':day.precipitation>=40?'red':day.precipitation>=25||day.probability>=85?'orange':'yellow'});
- if(heat>=32)items.push({label:`Gefühlt ${Math.round(heat)}°`,level:heat>=44?'purple':heat>=40?'red':heat>=37?'orange':'yellow'});
- if(uvMax>=6)items.push({label:`UV ${Math.round(uvMax)}`,level:uvMax>=14?'purple':uvMax>=11?'red':uvMax>=8?'orange':'yellow'});
+ const snowSum=hours.reduce((s,x)=>s+Math.max(0,x.snowfall||0),0);
+ const gust=day.gust;
+ const gustLvl=gustLevelKt(gust); if(gustLvl)items.push({label:`Böen ${Math.round(gust)} kt`,level:gustLvl});
+ const rainLvl=rainLevelMm(day.precipitation); if(rainLvl)items.push({label:`${day.precipitation.toFixed(1)} mm`,level:rainLvl});
+ const snowLvl=snowLevelCm(snowSum); if(snowLvl)items.push({label:`Schnee ${Math.round(snowSum)} cm`,level:snowLvl});
+ const heatLvl=heatLevelC(heat); if(heatLvl)items.push({label:`Gefühlt ${Math.round(heat)}°`,level:heatLvl});
+ const uvLvl=uvLevel(uvMax); if(uvLvl)items.push({label:`UV ${Math.round(uvMax)}`,level:uvLvl});
  if([95,96,99].includes(day.code))items.push({label:'Gewitter',level:day.code===99?'red':day.code===96?'orange':'yellow'});
  return items.sort((a,b)=>severityRank(b.level)-severityRank(a.level)).slice(0,3);
 }
 function dirArrow(deg:number){const to=((deg+180)%360+360)%360;const arrows=['↑','↗','→','↘','↓','↙','←','↖'];return arrows[Math.round(to/45)%8]}
 function precipitationParts(h:Hour){
- const total=Math.max(0,h.precipitation||0),rainValue=Math.max(0,Math.min(total,h.rain||0)),convective=Math.max(0,Math.min(Math.max(0,total-rainValue),h.showers||0)),residual=Math.max(0,total-rainValue-convective),snowSignal=h.snowfall>=.05||[71,73,75,77,85,86].includes(h.code),snowWater=snowSignal?residual:0,stratiform=rainValue+(snowSignal?0:residual);
- const labels:string[]=[];
- if(stratiform>=.05)labels.push(`stratiformer Regen ${stratiform.toFixed(1)} mm`);
- if(convective>=.05)labels.push(`konvektive Schauer ${convective.toFixed(1)} mm`);
- if(snowSignal&&(h.snowfall>=.05||snowWater>=.05))labels.push(`${[85,86].includes(h.code)?'konvektive Schneeschauer':'Schneefall'} ${h.snowfall.toFixed(1)} cm`);
- return{total,stratiform,convective,snowWater,label:labels.length?labels.join(' · '):'kein Niederschlag'};
+ const total=Math.max(0,h.precipitation||0),rainValue=Math.max(0,h.rain||0),showerValue=Math.max(0,h.showers||0),snowCm=Math.max(0,h.snowfall||0),snowSignal=snowCm>=.05||[71,73,75,77,85,86].includes(h.code);
+ if(total<.05&&snowCm<.05)return{total,type:'none' as PrecipType,label:'kein Niederschlag'};
+ let type:PrecipType='rain';
+ if(snowSignal&&showerValue>=.05&&rainValue>=.05)type='sleetShowers';
+ else if(snowSignal&&showerValue>=.05)type=[85,86].includes(h.code)&&rainValue<.05?'snowShowers':'sleetShowers';
+ else if(snowSignal&&rainValue>=.05)type='sleet';
+ else if(snowSignal&&[85,86].includes(h.code))type='snowShowers';
+ else if(snowSignal)type='snow';
+ else if([51,53,55].includes(h.code))type='drizzle';
+ else if(showerValue>=.05||[80,81,82,95,96,99].includes(h.code))type='showers';
+ else type='rain';
+ const snowSuffix=snowCm>=.05?` · ${snowCm.toFixed(1)} cm`:'',mmSuffix=`${total.toFixed(1)} mm`;
+ const labelMap:Record<Exclude<PrecipType,'none'>,string>={drizzle:`Nieselregen ${mmSuffix}`,rain:`Regen ${mmSuffix}`,showers:`Schauer ${mmSuffix}`,snow:`Schnee ${snowCm.toFixed(1)} cm`,snowShowers:`Schneeschauer ${snowCm.toFixed(1)} cm`,sleet:`Schneeregen ${mmSuffix}${snowSuffix}`,sleetShowers:`Schneeregenschauer ${mmSuffix}${snowSuffix}`};
+ return{total,type,label:labelMap[type as Exclude<PrecipType,'none'>]};
 }
+function presentPrecipTypes(series:{type:PrecipType}[]){const order:PrecipType[]=['drizzle','rain','showers','snow','snowShowers','sleet','sleetShowers'];return order.filter(t=>series.some(x=>x.type===t)) as Exclude<PrecipType,'none'>[]}
 function Forecast({days,hours,selected,setSelected,unit}:{days:Day[];hours:Hour[];selected:string;setSelected:(x:string)=>void;unit:WindUnit}){
  const [selectedHour,setSelectedHour]=useState(0);
  const allMin=Math.min(...days.slice(0,7).map(x=>x.min)),allMax=Math.max(...days.slice(0,7).map(x=>x.max)),range=Math.max(1,allMax-allMin);
  const p=hours.filter(x=>x.time.startsWith(selected)).slice(0,24);
  useEffect(()=>{if(!p.length)return;const now=new Date();const isToday=selected===now.toISOString().slice(0,10);const middayIndex=p.findIndex(x=>x.time.slice(11,13)==='12');const fallback=middayIndex>=0?middayIndex:Math.min(6,Math.max(0,p.length-1));const idx=isToday?p.reduce((best,x,i)=>Math.abs(new Date(x.time).getTime()-now.getTime())<Math.abs(new Date(p[best].time).getTime()-now.getTime())?i:best,0):fallback;setSelectedHour(idx)},[selected,p.length]);
  if(!p.length)return null;
- const currentHour=p[Math.min(selectedHour,p.length-1)]??p[0],currentPrecip=precipitationParts(currentHour);
+ const precipSeries=p.map(precipitationParts);
+ const currentHour=p[Math.min(selectedHour,p.length-1)]??p[0],currentPrecip=precipSeries[Math.min(selectedHour,p.length-1)]??precipitationParts(currentHour);
+ const precipLegendTypes=presentPrecipTypes(precipSeries);
  const tMin=Math.floor((Math.min(...p.map(x=>Math.min(x.temperature,x.apparent)))-2)/2)*2,tMax=Math.ceil((Math.max(...p.map(x=>Math.max(x.temperature,x.apparent)))+2)/2)*2,tempRange=Math.max(6,tMax-tMin);
  const rainMax=Math.max(1,...p.map(x=>x.precipitation));
  const W=240,H=148,left=18,right=18,plotW=W-left-right,tempTop=18,tempBottom=74,rainTop=90,rainBottom=124;
@@ -109,13 +140,13 @@ function Forecast({days,hours,selected,setSelected,unit}:{days:Day[];hours:Hour[
    <div className="hourdetail meteogram-day">
      <div className="detailhead"><strong>{new Date(`${selectedDay.date}T12:00:00`).toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'2-digit'})} · Detailansicht</strong><small>Aktuelle Stunde ist vorausgewählt. Diagramm und Stundenkacheln sind anklickbar; Wetter, Wind, Böen, Niederschlagsart und Niederschlagswahrscheinlichkeit werden direkt eingeblendet.</small></div>
      <div className="quickfacts"><span>{icon(selectedDay.code)} <b>{label(selectedDay.code)}</b></span><span>Σ Niederschlag <b>{totalRain.toFixed(1)} mm</b></span><span>max. Niederschlagswahrscheinlichkeit <b>{Math.round(maxProb)} %</b></span><span>max. Wind / Böen <b>{wind(windMax,unit)} · {wind(gustMax,unit)}</b></span></div>
-     <div className="detaillegend"><span><i className="temp"/> Temperatur</span><span><i className="apparent"/> Gefühlt</span><span><i className="stratiform"/> stratiformer Regen</span><span><i className="convective"/> konvektive Schauer</span><span><i className="snow"/> Schnee</span><span><i className="probability"/> Niederschlagswahrscheinlichkeit</span></div>
+     <div className="detaillegend"><span><i className="temp"/> Temperatur</span><span><i className="apparent"/> Gefühlt</span>{precipLegendTypes.map(type=><span key={type}><i className={precipMeta[type].legendClass}/>{precipMeta[type].label}</span>)}<span><i className="probability"/> Niederschlagswahrscheinlichkeit</span></div>
      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" className="meteogramsvg">
-       <defs><linearGradient id="tempFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#ff9b55" stopOpacity="0.42"/><stop offset="100%" stopColor="#ff9b55" stopOpacity="0.04"/></linearGradient><linearGradient id="stratiformFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#398ed8" stopOpacity="0.98"/><stop offset="100%" stopColor="#245f9e" stopOpacity="0.62"/></linearGradient><pattern id="convectivePattern" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="4" height="4" fill="#26c6f7"/><rect width="1.3" height="4" fill="#087ba6" opacity="0.85"/></pattern><pattern id="snowPattern" width="5" height="5" patternUnits="userSpaceOnUse"><rect width="5" height="5" fill="#c8dcff" opacity="0.88"/><circle cx="1.2" cy="1.2" r="0.65" fill="#ffffff"/><circle cx="3.8" cy="3.6" r="0.65" fill="#ffffff"/></pattern></defs>
+       <defs><linearGradient id="tempFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#ff9b55" stopOpacity="0.42"/><stop offset="100%" stopColor="#ff9b55" stopOpacity="0.04"/></linearGradient><linearGradient id="rainFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#4aa3ff" stopOpacity="0.96"/><stop offset="100%" stopColor="#235f9c" stopOpacity="0.72"/></linearGradient><linearGradient id="drizzleFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#86c9ff" stopOpacity="0.92"/><stop offset="100%" stopColor="#4e8ec7" stopOpacity="0.55"/></linearGradient><pattern id="showersPattern" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="4" height="4" fill="#26c6f7"/><rect width="1.3" height="4" fill="#087ba6" opacity="0.85"/></pattern><pattern id="snowPattern" width="5" height="5" patternUnits="userSpaceOnUse"><rect width="5" height="5" fill="#c8dcff" opacity="0.88"/><circle cx="1.2" cy="1.2" r="0.65" fill="#ffffff"/><circle cx="3.8" cy="3.6" r="0.65" fill="#ffffff"/></pattern><pattern id="snowShowersPattern" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="6" height="6" fill="#d7e8ff"/><rect width="1.3" height="6" fill="#3bc6f3" opacity="0.72"/><circle cx="4.8" cy="1.6" r="0.7" fill="#ffffff"/><circle cx="2.4" cy="4.6" r="0.7" fill="#ffffff"/></pattern><pattern id="sleetPattern" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="6" height="6" fill="#7eb7ff" opacity="0.9"/><rect width="1.4" height="6" fill="#f4f7ff" opacity="0.95"/></pattern><pattern id="sleetShowersPattern" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#90c4ff" opacity="0.9"/><rect width="1.3" height="6" fill="#2ec9f5" opacity="0.85"/><circle cx="4.8" cy="1.6" r="0.7" fill="#ffffff"/><circle cx="2.3" cy="4.3" r="0.7" fill="#ffffff"/></pattern></defs>
        {[0,1,2,3,4].map(i=>{const y=tempTop+i*(tempBottom-tempTop)/4,val=(tMax-(tempRange/4)*i);return <g key={i}><line x1={left} x2={W-right} y1={y} y2={y} stroke="currentColor" opacity="0.12"/><text x="3.5" y={y+1.8} fontSize="4.0" fill="currentColor" opacity="0.82">{Math.round(val)}°C</text></g>})}
        {[0,1,2].map(i=>{const y=rainTop+i*(rainBottom-rainTop)/2,val=(rainMax/2)*(2-i),prob=(2-i)*50;return <g key={i}><line x1={left} x2={W-right} y1={y} y2={y} stroke="currentColor" opacity="0.09"/><text x="3.5" y={y+1.6} fontSize="3.6" fill="currentColor" opacity="0.68">{val===0?0:val.toFixed(1)} mm</text><text x={W-0.5} y={y+1.6} textAnchor="end" fontSize="3.6" fill="#56d7ff" opacity="0.82">{prob} %</text></g>})}
        {timeIndices.map(i=><line key={i} x1={xAt(i)} x2={xAt(i)} y1={tempTop} y2={rainBottom} stroke="currentColor" opacity="0.08" strokeDasharray="2 2"/>)}
-       {p.map((x,i)=>{const x0=xAt(i),w=Math.max(2.8,plotW/24-1.2),parts=precipitationParts(x),stratTop=yRain(parts.stratiform),convTop=yRain(parts.stratiform+parts.convective),totalTop=yRain(parts.total);return <g key={x.time}>{parts.stratiform>.001&&<rect x={Math.max(left,x0-w/2)} y={stratTop} width={w} height={Math.max(.45,rainBottom-stratTop)} rx="0.7" fill="url(#stratiformFill)"/>}{parts.convective>.001&&<rect x={Math.max(left,x0-w/2)} y={convTop} width={w} height={Math.max(.45,stratTop-convTop)} rx="0.7" fill="url(#convectivePattern)"/>}{parts.snowWater>.001&&<rect x={Math.max(left,x0-w/2)} y={totalTop} width={w} height={Math.max(.45,convTop-totalTop)} rx="0.7" fill="url(#snowPattern)"/>}</g>})}
+       {p.map((x,i)=>{const x0=xAt(i),w=Math.max(2.8,plotW/24-1.2),parts=precipSeries[i],totalTop=yRain(parts.total),fill=parts.type!=='none'?precipMeta[parts.type].fill:'';return <g key={x.time}>{parts.total>.001&&parts.type!=='none'&&<rect x={Math.max(left,x0-w/2)} y={totalTop} width={w} height={Math.max(.45,rainBottom-totalTop)} rx="0.7" fill={fill}/>}</g>})}
        <path d={areaPath} fill="url(#tempFill)"/>
        <path d={apparentPath} fill="none" stroke="#ffd8a3" opacity="0.65" strokeDasharray="5 4" strokeWidth="1.4" vectorEffect="non-scaling-stroke"/>
        <path d={tempPath} fill="none" stroke="#ff7a37" strokeWidth="1.8" vectorEffect="non-scaling-stroke"/><path d={probabilityPath} fill="none" stroke="#56d7ff" strokeWidth="1.5" strokeDasharray="3 3" vectorEffect="non-scaling-stroke"/>

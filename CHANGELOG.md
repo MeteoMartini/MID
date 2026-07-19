@@ -1,12 +1,11 @@
+## 0.4.6
+
+- Hazard-Schwellen überarbeitet: farbige Abstufung orientiert an DWD, Meteoalarm und NWS
+- Niederschlagsformen in der 7-Tage-Detailansicht erweitert und vereinfacht benannt: Regen, Schauer, Schnee, Schneeschauer, Schneeregen und Schneeregenschauer
+- dynamische Detail-Legende für Niederschlagsarten ergänzt
+- Hochformat-/Mobil-Lesbarkeit bei langen Bezeichnungen verbessert
+
 # Changelog
-
-## 0.4.5
-
-- 14-Tage-Niederschlags-Tooltip an das Layout des Temperaturtrend-Tooltips angeglichen
-- „Regenwahrscheinlichkeit“ in der 7-Tage-Detailansicht in „Niederschlagswahrscheinlichkeit“ umbenannt
-- stündliche Niederschlagsbalken nach stratiformem Regen, konvektiven Schauern und Schnee unterschieden
-- Farben und Muster sowie eine erweiterte Legende für die Niederschlagsarten ergänzt
-- stündliche Detailansicht zeigt die konkrete Niederschlagsart und Teilmengen
 
 ## 0.4.4
 
