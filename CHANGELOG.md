@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.1
+
+- Changelog-Link im Footer
+- leerer Erststart ohne Standardort; lokales Merken des zuletzt gewählten Ortes
+- kombinierte Wind-/Windrichtungskachel bei den aktuellen Daten
+- kompaktere mobile Kacheln
+- Feinschliff der 14-Tage-Ensemble-Darstellung
+- Niederschlagswahrscheinlichkeit in der 14-Tage-Übersicht und im Niederschlagstrend
+- adaptive PNG-Abmessungen und kompakte nebeneinanderliegende Widget-Tage
+
 ## 0.4.0
 
 - Suchfeld ist beim ersten Aufruf leer und dient nur der gezielten Orts-/Standortsuche
