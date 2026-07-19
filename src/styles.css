@@ -473,3 +473,15 @@ footer a:hover{opacity:1;color:var(--accent)}
 .source.warning{padding:7px 9px;border:1px solid rgba(255,186,57,.28);border-radius:10px;background:rgba(255,186,57,.08);color:#e6bd64}
 @media(max-width:850px){.precip-now{min-width:0;max-width:none}.radarcontrols{grid-template-columns:auto minmax(120px,1fr) auto auto!important}.radarcontrols .opacity{grid-column:1/-1}}
 @media(max-width:520px){.precip-now{width:100%}.radarcontrols{grid-template-columns:auto minmax(0,1fr) auto!important}.radarcontrols time{grid-column:1/-1!important;text-align:center!important}.radarcontrols button:nth-of-type(2){grid-column:3}.radarcontrols .opacity{grid-column:1/-1}.radarlegend{width:185px}}
+
+/* v0.5.4 – Wolkenmenge in Achteln und belastbarer Tagescharakter */
+.forecast-icon{flex-wrap:wrap;align-content:center}
+.forecast-icon em{display:block;width:100%;margin-left:37px;color:var(--muted);font-size:9px;font-style:normal;line-height:1.25}
+.quickfacts span small{display:block;margin-top:3px;color:var(--muted);font-size:9px;line-height:1.2}
+.hour-tooltip-grid em{display:block;margin-top:2px;color:var(--muted);font-size:9px;font-style:normal}
+@media(max-width:760px){
+ .forecast-icon{display:grid;grid-template-columns:24px minmax(0,1fr);align-items:center}
+ .forecast-icon span{grid-row:1 / span 2}
+ .forecast-icon small{display:block!important;font-size:9px;line-height:1.15}
+ .forecast-icon em{display:none}
+}

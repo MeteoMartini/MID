@@ -1,14 +1,14 @@
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.5.3**
+**Aktuelle Version: v0.5.4**
 
 MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React und TypeScript. Es verbindet Open-Meteo Best Match mit Ensemble-Prognosen, Stationsmessungen, Radar, Luftqualität, Gefahrenindikatoren und exportierbaren Wetterwidgets.
 
 ## Funktionen
 
-- aktuelles Wetter einschließlich gefühlter Temperatur
+- aktuelles Wetter einschließlich gefühlter Temperatur und Bewölkung in Achteln (n/8)
 - Abgleich mit der passendsten verfügbaren WMO-/METAR- oder DWD-WMO-Station
-- kompakte 7-Tage-Übersicht mit Temperaturbereich, Wind, Böen, Niederschlag und Tages-Hazards
+- kompakte 7-Tage-Übersicht mit gewichtetem Tagescharakter, Temperaturbereich, Wind, Böen, Niederschlag und Tages-Hazards
 - interaktive stündliche Detailansicht: Diagramm und Stundenkacheln sind anklickbar
 - stündliche Wetterpiktogramme in der Detailansicht, sofern sinnvoll ohne Überlappung darstellbar
 - standardmäßig vorausgewählte aktuelle Stunde in der Detailansicht
@@ -60,6 +60,14 @@ Die Hazard-Anzeigen sind automatisch berechnete Indikatoren und keine amtlichen 
 
 
 ## Changelog
+
+### v0.5.4
+
+- Bewölkung in den aktuellen Daten und im Stunden-Tooltip auf Achtel (n/8) umgestellt
+- Tageswettercharakter aus den stündlichen Best-Match-Daten neu gewichtet
+- kurze oder niedrig wahrscheinliche Niederschlagsereignisse bestimmen nicht mehr automatisch das Symbol und den Haupttext des gesamten Tages
+- Tagescharakter berücksichtigt Dauer, Niederschlagsmenge, Wahrscheinlichkeit, Tageszeit und Schwere des Wetterereignisses
+- schwache Einzelereignisse werden nur als sekundärer Hinweis ausgegeben, beispielsweise „abends Sprühregen möglich (30 %)“
 
 ### v0.5.2
 

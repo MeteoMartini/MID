@@ -1,3 +1,10 @@
+## 0.5.4
+
+- Bewölkung in aktuellen Daten und Stunden-Tooltip auf n/8 umgestellt
+- Tageswettercharakter auf eine gewichtete stündliche Auswertung umgestellt
+- Niederschlagsereignisse werden nur bei ausreichender Dauer, Menge oder Wahrscheinlichkeit zum dominierenden Tagescharakter
+- kurze Ereignisse mit geringer Wahrscheinlichkeit erscheinen nur als sekundärer zeitbezogener Hinweis
+
 ## 0.5.3
 
 - Niederschlagsklassifikation zentral und strikt nach WMO-Wettercodes überarbeitet

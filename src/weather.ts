@@ -56,6 +56,84 @@ export function dayEffectiveUvMax(day:Day,hours:Hour[]){
 export function mapHours(w:Weather):Hour[]{return (w.hourly.time as string[]).map((time,i)=>{const code=n(w.hourly.weather_code[i],3),cloud=n(w.hourly.cloud_cover[i],0),precipitation=n(w.hourly.precipitation[i],0),isDay=n(w.hourly.is_day[i],0)===1,uvIndex=n(w.hourly.uv_index[i],NaN);return{time,temperature:n(w.hourly.temperature_2m[i]),apparent:n(w.hourly.apparent_temperature[i]),humidity:n(w.hourly.relative_humidity_2m[i]),dewPoint:n(w.hourly.dew_point_2m[i]),precipitation,rain:n(w.hourly.rain[i],0),showers:n(w.hourly.showers[i],0),snowfall:n(w.hourly.snowfall[i],0),probability:n(w.hourly.precipitation_probability[i],0),code,wind:n(w.hourly.wind_speed_10m[i],0),gust:n(w.hourly.wind_gusts_10m[i],0),direction:n(w.hourly.wind_direction_10m[i],0),cloud,uvIndex:Number.isFinite(uvIndex)&&isDay?Number(uvIndex.toFixed(1)):0,isDay}}).filter(x=>Number.isFinite(x.temperature))}
 export function mapMinutely15(w:Weather):Minute15[]{const m=w.minutely_15;if(!m?.time)return[];return (m.time as string[]).map((time,i)=>({time,precipitation:n(m.precipitation?.[i],0),rain:n(m.rain?.[i],0),showers:n(m.showers?.[i],0),snowfall:n(m.snowfall?.[i],0),probability:n(m.precipitation_probability?.[i],0),code:n(m.weather_code?.[i],0)}))}
 export function mapDays(w:Weather):Day[]{return (w.daily.time as string[]).map((date,i)=>({date,code:n(w.daily.weather_code[i],3),max:n(w.daily.temperature_2m_max[i]),min:n(w.daily.temperature_2m_min[i]),precipitation:n(w.daily.precipitation_sum[i],0),probability:n(w.daily.precipitation_probability_max[i],0),wind:n(w.daily.wind_speed_10m_max[i],0),gust:n(w.daily.wind_gusts_10m_max[i],0),direction:n(w.daily.wind_direction_10m_dominant[i],0),uvMax:n(w.daily.uv_index_max[i],0)})).filter(d=>Number.isFinite(d.max)&&Number.isFinite(d.min)&&d.max>=d.min)}
+
+export function cloudOktas(percent:number){return Math.max(0,Math.min(8,Math.round((Number.isFinite(percent)?percent:0)/12.5)))}
+export function cloudOktasText(percent:number){
+ const octas=cloudOktas(percent);
+ const description=octas===0?'wolkenlos':octas<=2?'gering bewölkt':octas<=4?'aufgelockert bewölkt':octas<=7?'stark bewölkt':'bedeckt';
+ return`${octas}/8 · ${description}`;
+}
+export type DayWeatherCharacter={code:number;label:string;secondary:string;cloudOktas:number;precipitationDominant:boolean};
+function dayPart(hour:number){if(hour<5)return'nachts';if(hour<10)return'morgens';if(hour<13)return'mittags';if(hour<18)return'nachmittags';return'abends'}
+function skyFromCloud(percent:number){
+ const octas=cloudOktas(percent);
+ if(octas<=1)return{code:0,label:'Klar'};
+ if(octas<=3)return{code:1,label:'Überwiegend klar'};
+ if(octas<=5)return{code:2,label:'Teilweise bewölkt'};
+ if(octas<=7)return{code:3,label:'Stark bewölkt'};
+ return{code:3,label:'Bedeckt'};
+}
+function precipCodeFamily(code:number){
+ if([51,53,55,56,57].includes(code))return'drizzle';
+ if([61,63,65,66,67,68,69].includes(code))return'rain';
+ if([71,73,75,77].includes(code))return'snow';
+ if([80,81,82,83,84,85,86].includes(code))return'showers';
+ if([95,96,97,99].includes(code))return'thunder';
+ return'none';
+}
+function representativePrecipCode(hours:Hour[]){
+ type FamilyRow={score:number;hours:number;sum:number;snowSum:number;maxProbability:number;probabilitySum:number;probabilitySamples:number;first:number;last:number;codes:Map<number,number>};
+ const families=new Map<string,FamilyRow>();
+ for(const h of hours){
+  let family=precipCodeFamily(h.code);
+  const amount=Math.max(0,h.precipitation||0),snow=Math.max(0,h.snowfall||0),probability=Math.max(0,Math.min(100,h.probability||0));
+  if(family==='none')family=h.showers>=.05?'showers':snow>=.05?'snow':h.rain>=.05||amount>=.05?'rain':'none';
+  if(family==='none')continue;
+  if(probability<20&&amount<.05&&snow<.05)continue;
+  const hour=Number(h.time.slice(11,13));
+  const dayWeight=h.isDay?1.12:.78;
+  const probabilityWeight=.12+probability/100;
+  const amountWeight=1+Math.min(2.2,amount*1.4+snow*.18);
+  const severity=family==='thunder'?2.4:family==='snow'||family==='showers'?1.25:family==='rain'?1.05:.82;
+  const score=dayWeight*probabilityWeight*amountWeight*severity;
+  const fallbackCode=family==='showers'?81:family==='snow'?73:family==='rain'?63:53;
+  const code=precipCodeFamily(h.code)!=='none'?h.code:fallbackCode;
+  const row=families.get(family)??{score:0,hours:0,sum:0,snowSum:0,maxProbability:0,probabilitySum:0,probabilitySamples:0,first:hour,last:hour,codes:new Map<number,number>()};
+  row.score+=score;
+  if(probability>=30||amount>=.05||snow>=.05)row.hours+=1;
+  row.sum+=amount;row.snowSum+=snow;row.maxProbability=Math.max(row.maxProbability,probability);
+  row.probabilitySum+=probability;row.probabilitySamples+=1;
+  row.first=Math.min(row.first,hour);row.last=Math.max(row.last,hour);
+  row.codes.set(code,(row.codes.get(code)??0)+score);
+  families.set(family,row);
+ }
+ const winner=[...families.entries()].sort((a,b)=>b[1].score-a[1].score)[0];
+ if(!winner)return null;
+ const[family,row]=winner;
+ const code=[...row.codes.entries()].sort((a,b)=>b[1]-a[1])[0]?.[0]??(family==='showers'?81:family==='snow'?73:family==='rain'?63:53);
+ return{family,code,...row,averageProbability:row.probabilitySum/Math.max(1,row.probabilitySamples)};
+}
+export function dayWeatherCharacter(day:Day,hours:Hour[]):DayWeatherCharacter{
+ const relevant=hours.filter(h=>h.time.startsWith(day.date));
+ if(!relevant.length)return{code:day.code,label:label(day.code),secondary:'',cloudOktas:0,precipitationDominant:precipCodeFamily(day.code)!=='none'};
+ const cloudWeight=relevant.reduce((sum,h)=>sum+(h.isDay?1.18:.72),0);
+ const weightedCloud=relevant.reduce((sum,h)=>sum+h.cloud*(h.isDay?1.18:.72),0)/Math.max(.1,cloudWeight);
+ const sky=skyFromCloud(weightedCloud),candidate=representativePrecipCode(relevant);
+ if(!candidate)return{...sky,secondary:'',cloudOktas:cloudOktas(weightedCloud),precipitationDominant:false};
+ const severe=candidate.family==='thunder';
+ const sustained=candidate.hours>=3&&candidate.averageProbability>=40;
+ const quantitativelyRelevant=candidate.sum>=1||candidate.snowSum>=1;
+ const dominant=severe?(candidate.maxProbability>=30||candidate.sum>=.2):sustained||quantitativelyRelevant;
+ const period=candidate.first===candidate.last?dayPart(candidate.first):dayPart(candidate.first)===dayPart(candidate.last)?dayPart(candidate.first):`${dayPart(candidate.first)} bis ${dayPart(candidate.last)}`;
+ const eventLabel=label(candidate.code);
+ if(!dominant){
+  const secondary=candidate.maxProbability>=25?`${period} ${eventLabel.toLowerCase()} möglich (${Math.round(candidate.maxProbability)} %)` : '';
+  return{...sky,secondary,cloudOktas:cloudOktas(weightedCloud),precipitationDominant:false};
+ }
+ const prefix=candidate.hours<6&&!severe?'Zeitweise ':'';
+ const secondary=`${period} · max. ${Math.round(candidate.maxProbability)} %`;
+ return{code:candidate.code,label:`${prefix}${eventLabel}`,secondary,cloudOktas:cloudOktas(weightedCloud),precipitationDominant:true};
+}
 export function currentIndex(h:Hour[]){const now=Date.now();return h.reduce((b,x,i)=>{const d=Math.abs(new Date(x.time).getTime()-now);return d<b.d?{i,d}:b},{i:0,d:Infinity}).i}
 
 function quantile(values:number[],p:number){const a=[...values].filter(Number.isFinite).sort((x,y)=>x-y);if(!a.length)return NaN;const idx=(a.length-1)*p,lo=Math.floor(idx),hi=Math.ceil(idx),w=idx-lo;return hi===lo?a[lo]:a[lo]*(1-w)+a[hi]*w}
