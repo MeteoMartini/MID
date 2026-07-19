@@ -71,3 +71,22 @@
 @media(max-width:1200px){.forecastrow{grid-template-columns:88px 150px 140px minmax(150px,1fr) 170px}}
 @media(max-width:950px){.forecastrow{grid-template-columns:88px 1.2fr 1fr;align-items:start}.forecast-meta{grid-column:2}.forecast-barwrap{grid-column:3;grid-row:1 / span 2}.forecast-hazards{grid-column:1 / -1}}
 @media(max-width:650px){.forecastrow{grid-template-columns:1fr;gap:8px}.forecast-icon,.forecast-date{justify-content:flex-start}.forecast-barwrap{grid-column:auto;grid-row:auto}.forecast-hazards{grid-column:auto}.forecast-barwrap b,.forecast-barwrap strong{font-size:20px}}
+
+/* v0.3.4 readability refinements */
+.meteogramsvg{height:420px;display:block}
+.forecast-barwrap{grid-template-columns:46px 1fr 46px}
+.forecast-meta span:last-child{opacity:.92}
+.forecastrow{grid-template-columns:92px 170px 220px minmax(170px,1fr) 220px}
+@media(max-width:1200px){.forecastrow{grid-template-columns:88px 150px 185px minmax(150px,1fr) 170px}}
+@media(max-width:950px){.forecastrow{grid-template-columns:88px 1.1fr 1fr}.forecast-meta{grid-column:2;grid-row:2}.forecast-barwrap{grid-column:3;grid-row:1 / span 2}}
+@media(max-width:680px){.meteogramsvg{height:330px}}
+@media(max-width:430px){.meteogramsvg{height:300px}.forecast-meta span{font-size:11px}}
+
+/* v0.3.5 readability fixes */
+.meteogram-day{overflow:hidden}
+.meteogramsvg{width:100%;height:460px;display:block;border:1px solid var(--border);border-radius:20px;background:linear-gradient(180deg,color-mix(in srgb,var(--s2) 82%,transparent),var(--surface))}
+.forecast-meta span{white-space:nowrap}
+.forecast-icon small{line-height:1.25}
+@media(max-width:980px){.meteogramsvg{height:390px}}
+@media(max-width:680px){.meteogramsvg{height:340px}.forecast-meta span{white-space:normal}}
+@media(max-width:430px){.meteogramsvg{height:300px}}

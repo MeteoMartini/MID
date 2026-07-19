@@ -5,7 +5,7 @@ import {CircleMarker,MapContainer,Popup,TileLayer,useMap} from 'react-leaflet';
 import {toPng} from 'html-to-image';
 import {airQuality,currentIndex,ensembles,forecast,hazards,icon,label,mapDays,mapHours,searchLocations,station,wind,type Day,type EnsembleDay,type Hour,type Location,type Station,type Weather,type WindUnit} from './weather';
 
-const VERSION='0.3.3';
+const VERSION='0.3.5';
 const DEFAULT:Location={id:1,name:'Rheidt',latitude:50.8069,longitude:7.0415,elevation:58,country:'Deutschland',country_code:'DE',admin1:'Nordrhein-Westfalen'};
 
 type Radar={host:string;radar:{past:{time:number;path:string}[]}};
@@ -56,6 +56,7 @@ function dailyHazards(day:Day){
  if([95,96,99].includes(day.code))items.push({label:'Gewitter',level:'red'});
  return items.slice(0,2);
 }
+function dirArrow(deg:number){const to=((deg+180)%360+360)%360;const arrows=['↑','↗','→','↘','↓','↙','←','↖'];return arrows[Math.round(to/45)%8]}
 function Forecast({days,hours,selected,setSelected,unit}:{days:Day[];hours:Hour[];selected:string;setSelected:(x:string)=>void;unit:WindUnit}){
  const p=hours.filter(x=>x.time.startsWith(selected));
  if(!p.length)return <section className="card"><Title eye="Best Match · seamless" title="7-Tage-Vorhersage · stündliche Details"/></section>;
@@ -64,38 +65,40 @@ function Forecast({days,hours,selected,setSelected,unit}:{days:Day[];hours:Hour[
  const tMax=Math.ceil((Math.max(...p.map(x=>x.temperature))+1)/2)*2;
  const tempRange=Math.max(6,tMax-tMin);
  const rainMax=Math.max(1,...p.map(x=>x.precipitation));
- const W=100,H=100,tempTop=17,tempBottom=55,rainTop=66,rainBottom=89;
- const xAt=(i:number)=>i/Math.max(1,p.length-1)*100;
+ const W=160,H=100,left=10,right=4,plotW=W-left-right,tempTop=18,tempBottom=53,rainTop=64,rainBottom=87;
+ const xAt=(i:number)=>left+(i/Math.max(1,p.length-1))*plotW;
  const yTemp=(v:number)=>tempBottom-((v-tMin)/tempRange)*(tempBottom-tempTop);
  const yRain=(v:number)=>rainBottom-(v/rainMax)*(rainBottom-rainTop);
  const tempPath=p.map((x,i)=>`${i?'L':'M'} ${xAt(i)} ${yTemp(x.temperature)}`).join(' ');
- const areaPath=`${tempPath} L 100 ${tempBottom} L 0 ${tempBottom} Z`;
- const baseIndices=[0,3,6,9,12,15,18,21,23].filter(i=>i<p.length);
- const changeIndices=p.map((x,i)=>i>0&&x.code!==p[i-1].code?i:-1).filter(i=>i>=0);
- const indices=[...new Set([...baseIndices,...changeIndices])].sort((a,b)=>a-b);
+ const areaPath=`${tempPath} L ${xAt(p.length-1)} ${tempBottom} L ${xAt(0)} ${tempBottom} Z`;
+ const iconIndices=[0,6,12,18,23].filter(i=>i<p.length);
+ const timeIndices=[0,3,6,9,12,15,18,21,23].filter(i=>i<p.length);
  const maxIdx=p.reduce((b,x,i)=>x.temperature>p[b].temperature?i:b,0),minIdx=p.reduce((b,x,i)=>x.temperature<p[b].temperature?i:b,0);
- const totalRain=p.reduce((a,b)=>a+b.precipitation,0),maxProb=Math.max(...p.map(x=>x.probability)),gustMax=Math.max(...p.map(x=>x.gust));
+ const totalRain=p.reduce((a,b)=>a+b.precipitation,0),maxProb=Math.max(...p.map(x=>x.probability)),gustMax=Math.max(...p.map(x=>x.gust)),windMax=Math.max(...p.map(x=>x.wind));
  const selectedDay=days.find(x=>x.date===selected)??days[0];
  return <section className="card"><Title eye="Best Match · seamless" title="7-Tage-Vorhersage"/>
-   <div className="forecastrows">{days.slice(0,7).map(d=>{const dt=new Date(`${d.date}T12:00:00`);const left=((d.min-allMin)/range)*100;const width=(Math.max(1,d.max-d.min)/range)*100;const hz=dailyHazards(d);return <button className={`forecastrow ${selected===d.date?'active':''}`} key={d.date} onClick={()=>setSelected(d.date)}>
+   <div className="forecastrows">{days.slice(0,7).map(d=>{const dt=new Date(`${d.date}T12:00:00`);const leftPct=((d.min-allMin)/range)*100;const widthPct=(Math.max(1,d.max-d.min)/range)*100;const hz=dailyHazards(d);return <button className={`forecastrow ${selected===d.date?'active':''}`} key={d.date} onClick={()=>setSelected(d.date)}>
       <div className="forecast-date"><strong>{dt.toLocaleDateString('de-DE',{weekday:'short'})}</strong><small>{dt.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})}</small></div>
       <div className="forecast-icon"><span>{icon(d.code)}</span><small>{label(d.code)}</small></div>
-      <div className="forecast-meta"><span>💧 {d.precipitation.toFixed(1)} mm</span><span>🌬️ {wind(d.wind,unit)}</span></div>
-      <div className="forecast-barwrap"><div className="forecast-barbg"><div className="forecast-bar" style={{left:`${left}%`,width:`${Math.max(8,width)}%`}}/></div><b>{Math.round(d.min)}°</b><strong>{Math.round(d.max)}°</strong></div>
+      <div className="forecast-meta"><span>💧 {d.precipitation.toFixed(1)} mm · {Math.round(d.probability)} %</span><span>🌬️ {dirArrow(d.direction)} {wind(d.wind,unit)} · Böen {wind(d.gust,unit)}</span></div>
+      <div className="forecast-barwrap"><b>{Math.round(d.min)}°</b><div className="forecast-barbg"><div className="forecast-bar" style={{left:`${leftPct}%`,width:`${Math.max(8,widthPct)}%`}}/></div><strong>{Math.round(d.max)}°</strong></div>
       <div className="forecast-hazards">{hz.length?hz.map((h,i)=><span key={i} className={h.level}>{h.label}</span>):<span className="none">keine markanten Hazards</span>}</div>
    </button>})}</div>
    <div className="hourdetail meteogram-day">
      <div className="detailhead"><strong>{new Date(`${selectedDay.date}T12:00:00`).toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'2-digit'})} · Detailansicht</strong><small>Klick auf einen Tag öffnet die stündlichen Details mit Temperatur, Niederschlag, Wind und Wetterentwicklung.</small></div>
-     <div className="quickfacts"><span>{icon(selectedDay.code)} <b>{label(selectedDay.code)}</b></span><span>Σ Niederschlag <b>{totalRain.toFixed(1)} mm</b></span><span>max. Regenrisiko <b>{Math.round(maxProb)} %</b></span><span>max. Böen <b>{wind(gustMax,unit)}</b></span></div>
-     <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="meteogramsvg">
-       <defs><linearGradient id="tempFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#ff9b55" stopOpacity="0.45"/><stop offset="100%" stopColor="#ff9b55" stopOpacity="0.02"/></linearGradient><linearGradient id="rainFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#4db8ff" stopOpacity="0.95"/><stop offset="100%" stopColor="#4db8ff" stopOpacity="0.35"/></linearGradient></defs>
-       {[0,1,2,3,4].map(i=>{const y=tempTop+i*(tempBottom-tempTop)/4,val=(tMax-(tempRange/4)*i);return <g key={i}><line x1="0" x2="100" y1={y} y2={y} stroke="currentColor" opacity="0.12"/><text x="1" y={y-1.3} fontSize="3.1" fill="currentColor" opacity="0.75">{Math.round(val)}°C</text></g>})}
-       {[0,1,2].map(i=>{const y=rainTop+i*(rainBottom-rainTop)/2,val=(rainMax/2)*(2-i);return <g key={i}><line x1="0" x2="100" y1={y} y2={y} stroke="currentColor" opacity="0.08"/><text x="1" y={y-1} fontSize="2.8" fill="currentColor" opacity="0.6">{val===0?0:val.toFixed(1)} mm</text></g>})}
-       {p.map((x,i)=>{const x0=xAt(i),w=100/Math.max(p.length,24)-0.8;return <g key={x.time}><rect x={Math.max(0,x0-w/2)} y={yRain(x.precipitation)} width={Math.max(1,w)} height={Math.max(.5,rainBottom-yRain(x.precipitation))} rx="0.7" fill="url(#rainFill)" opacity={Math.max(.2,.35+x.probability/150)}/>{x.probability>20&&<text x={x0} y={rainBottom+4.9} textAnchor="middle" fontSize="2.3" fill="currentColor" opacity="0.66">{Math.round(x.probability)}%</text>}</g>})}
+     <div className="quickfacts"><span>{icon(selectedDay.code)} <b>{label(selectedDay.code)}</b></span><span>Σ Niederschlag <b>{totalRain.toFixed(1)} mm</b></span><span>max. Regenrisiko <b>{Math.round(maxProb)} %</b></span><span>Wind / Böen <b>{windMax===gustMax?wind(windMax,unit):`${wind(windMax,unit)} · ${wind(gustMax,unit)}`}</b></span></div>
+     <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" className="meteogramsvg">
+       <defs><linearGradient id="tempFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#ff9b55" stopOpacity="0.42"/><stop offset="100%" stopColor="#ff9b55" stopOpacity="0.04"/></linearGradient><linearGradient id="rainFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#4db8ff" stopOpacity="0.95"/><stop offset="100%" stopColor="#4db8ff" stopOpacity="0.35"/></linearGradient></defs>
+       {[0,1,2,3,4].map(i=>{const y=tempTop+i*(tempBottom-tempTop)/4,val=(tMax-(tempRange/4)*i);return <g key={i}><line x1={left} x2={W-right} y1={y} y2={y} stroke="currentColor" opacity="0.12"/><text x="0.8" y={y+1.2} fontSize="3.2" fill="currentColor" opacity="0.78">{Math.round(val)}°C</text></g>})}
+       {[0,1,2].map(i=>{const y=rainTop+i*(rainBottom-rainTop)/2,val=(rainMax/2)*(2-i);return <g key={i}><line x1={left} x2={W-right} y1={y} y2={y} stroke="currentColor" opacity="0.09"/><text x="0.8" y={y+1.2} fontSize="2.9" fill="currentColor" opacity="0.64">{val===0?0:val.toFixed(1)} mm</text></g>})}
+       {timeIndices.map(i=><line key={i} x1={xAt(i)} x2={xAt(i)} y1={tempTop} y2={rainBottom} stroke="currentColor" opacity="0.08" strokeDasharray="2 2"/>) }
+       {p.map((x,i)=>{const x0=xAt(i),w=Math.max(1.8,plotW/24-0.9);return <g key={x.time}><rect x={Math.max(left,x0-w/2)} y={yRain(x.precipitation)} width={w} height={Math.max(.5,rainBottom-yRain(x.precipitation))} rx="0.6" fill="url(#rainFill)" opacity={Math.max(.18,.32+x.probability/170)}/></g>})}
        <path d={areaPath} fill="url(#tempFill)"/>
-       <path d={tempPath} fill="none" stroke="#ff7a37" strokeWidth="1.4" vectorEffect="non-scaling-stroke"/>
-       {indices.map(i=><g key={i}><text x={xAt(i)} y="10" textAnchor="middle" fontSize="4.8">{icon(p[i].code,p[i].isDay)}</text><text x={xAt(i)} y="97" textAnchor="middle" fontSize="2.9" fill="currentColor" opacity="0.84">{p[i].time.slice(11,16)}</text></g>)}
-       {[minIdx,maxIdx].map(i=><g key={i}><circle cx={xAt(i)} cy={yTemp(p[i].temperature)} r="1.1" fill="#fff" stroke="#ff7a37" strokeWidth="0.8"/><text x={xAt(i)} y={yTemp(p[i].temperature)-2.4} textAnchor="middle" fontSize="3.5" fill="#ffb37a">{Math.round(p[i].temperature)}°</text></g>)}
+       <path d={tempPath} fill="none" stroke="#ff7a37" strokeWidth="1.2" vectorEffect="non-scaling-stroke"/>
+       {iconIndices.map(i=><g key={i}><text x={xAt(i)} y="10" textAnchor="middle" fontSize="4.1">{icon(p[i].code,p[i].isDay)}</text></g>)}
+       {timeIndices.map(i=><g key={i}><text x={xAt(i)} y="96.5" textAnchor="middle" fontSize="3.1" fill="currentColor" opacity="0.84">{p[i].time.slice(11,13)} h</text></g>)}
+       {[minIdx,maxIdx].map(i=><g key={i}><circle cx={xAt(i)} cy={yTemp(p[i].temperature)} r="1.15" fill="#fff" stroke="#ff7a37" strokeWidth="0.8"/><text x={xAt(i)} y={yTemp(p[i].temperature)-2.3} textAnchor="middle" fontSize="3.4" fill="#ffb37a">{Math.round(p[i].temperature)}°</text></g>)}
+       {timeIndices.filter(i=>p[i].probability>24).map(i=><text key={`p${i}`} x={xAt(i)} y={90.8} textAnchor="middle" fontSize="2.5" fill="currentColor" opacity="0.68">{Math.round(p[i].probability)}%</text>)}
      </svg>
    </div>
  </section>}
@@ -112,7 +115,7 @@ function CombinedTrendChart({data}:{data:any[]}){const vals=data.flatMap(r=>[r.m
 function Ensembles({data,models,days}:{data:EnsembleDay[];models:string[];days:Day[]}){
  const best=new Map(days.map(x=>[x.date,x]));
  const overlap=data.filter(x=>best.has(x.date)).slice(0,14);
- const d=overlap.map((x,index)=>{const maxSpan=Math.max(0,x.maxHigh-x.maxLow),minSpan=Math.max(0,x.minHigh-x.minLow),combined=(maxSpan+minSpan)/2,leadPenalty=index*1.9,spreadPenalty=Math.min(44,combined*3.2),modelPenalty=Math.max(0,4-x.modelCount)*2,confidence=Math.max(28,Math.min(96,95-leadPenalty-spreadPenalty-modelPenalty));const day=best.get(x.date);const bestMax=Number.isFinite(day?.max)?day!.max:x.maxMean,bestMin=Number.isFinite(day?.min)?day!.min:x.minMean;return{...x,label:new Date(`${x.date}T12:00:00`).toLocaleDateString('de-DE',{weekday:'short',day:'2-digit'}),bestMax,bestMin,code:day?.code,maxSpan,minSpan,maxBand:Math.max(0.2,maxSpan),minBand:Math.max(0.2,minSpan),confidence}});
+ const d=overlap.map((x,index)=>{const day=best.get(x.date);const bestMax=Number.isFinite(day?.max)?day!.max:x.maxMean,bestMin=Number.isFinite(day?.min)?day!.min:x.minMean;const maxLow=Math.max(x.maxLow,Math.min(bestMax,x.maxMean)-5),maxHigh=Math.max(Math.min(x.maxHigh,Math.max(bestMax,x.maxMean)+5),maxLow+0.2),minLow=Math.max(x.minLow,Math.min(bestMin,x.minMean)-5),minHigh=Math.max(Math.min(x.minHigh,Math.max(bestMin,x.minMean)+5),minLow+0.2);const maxSpan=Math.max(0,maxHigh-maxLow),minSpan=Math.max(0,minHigh-minLow),combined=(maxSpan+minSpan)/2,leadPenalty=index*1.7,spreadPenalty=Math.min(38,combined*4.2),modelPenalty=Math.max(0,4-x.modelCount)*2,confidence=Math.max(35,Math.min(96,97-leadPenalty-spreadPenalty-modelPenalty));return{...x,label:new Date(`${x.date}T12:00:00`).toLocaleDateString('de-DE',{weekday:'short',day:'2-digit'}),bestMax,bestMin,code:day?.code,maxLow,maxHigh,minLow,minHigh,maxSpan,minSpan,maxBand:Math.max(0.2,maxHigh-maxLow),minBand:Math.max(0.2,minHigh-minLow),confidence}});
  if(!d.length)return null;
  const rainScale=niceRainScale(Math.max(...d.map(x=>x.precipitationHigh),1));
  const cards=d.map((x)=>({date:x.date,label:new Date(`${x.date}T12:00:00`).toLocaleDateString('de-DE',{weekday:'short'}),dm:new Date(`${x.date}T12:00:00`).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}),icon:icon(x.code??2,true),bestMax:x.bestMax,bestMin:x.bestMin,confidence:x.confidence}));
