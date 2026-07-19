@@ -1,6 +1,6 @@
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.4.9**
+**Aktuelle Version: v0.5.0**
 
 MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React und TypeScript. Es verbindet Open-Meteo Best Match mit Ensemble-Prognosen, Stationsmessungen, Radar, Luftqualität, Gefahrenindikatoren und exportierbaren Wetterwidgets.
 
@@ -143,7 +143,7 @@ Die Hazard-Anzeigen sind automatisch berechnete Indikatoren und keine amtlichen 
 
 ## Stand v0.4.8
 
-- UV-Index wird nun als effektiver, bewölkungs- und wetterkorrigierter UVI dargestellt
+- UV-Index verwendet den von Open-Meteo gelieferten, bewölkungsberücksichtigten `uv_index` ohne nachträgliche Eigenkorrektur
 - 14-Tage-Tooltip nutzt die gewünschte Reihenfolge: Best Match, ENS-Mittel, P10–P90, Niederschlag, Prognosekonsistenz
 
 
@@ -155,11 +155,19 @@ MID bleibt bis zur stabilen Produktreife in der Reihe `0.x.y`.
 - **Minor (`0.4.x` → `0.5.0`)**: deutlich neuer Funktionsbereich, größere Datenarchitektur oder wesentlich veränderter Bedienablauf.
 - **Major (`1.0.0`)**: stabiler, dokumentierter Funktionsumfang mit belastbarer Daten- und Deployment-Struktur.
 
-Versionssprünge werden restriktiv vergeben. Die Änderungen dieses Releases bleiben deshalb bei **v0.4.9**.
+Versionssprünge werden restriktiv vergeben. Dieses Release erhält **v0.5.0**, weil die stündliche Detailansicht strukturell neu bedient wird und die große Kachelmatrix vollständig entfällt.
 
 ## Stand v0.4.9
 
 - 14-Tage-Tooltip nach Best Match, ENS-Mittel, P10–P90, Niederschlag und Prognosekonsistenz gruppiert
 - stündliche Detailinformationen in ein Diagramm-Tooltip verlagert; die große Kartensektion unter dem Diagramm entfällt
-- tatsächlicher cloud-adjustierter Open-Meteo-UVI ist Primärwert; Klarhimmel-UVI dient nur als Vergleich beziehungsweise Fallback
-- UV-Fallback berücksichtigt Wolkenschichten, Sichtweite, Wetterzustand und mögliche Verstärkung bei aufgelockerter Bewölkung
+- tatsächlicher, bewölkungsberücksichtigter Open-Meteo-UVI wurde als Primärwert eingeführt; ab v0.5.0 entfallen Klarhimmelvergleich und eigene Nachkorrekturen vollständig
+
+## Stand v0.5.0
+
+- stündliche Kachelmatrix aus der 7-Tage-Detailansicht entfernt
+- dauerhaft sichtbare, kompakte Stunden-Detailanzeige direkt am Diagramm; Klick auf eine Stunde aktualisiert sie ohne Öffnen/Schließen
+- Detailanzeige bündelt Wetter, Temperatur, gefühlte Temperatur, Niederschlagsart/-menge/-wahrscheinlichkeit, Wind/Böen, Feuchte/Taupunkt, Bewölkung und UVI
+- UVI-Logik korrigiert: MID verwendet ausschließlich den tatsächlich erwarteten, bewölkungsberücksichtigten `uv_index`; Klarhimmelwerte und zusätzliche Eigenkorrekturen werden nicht mehr angezeigt oder angewendet
+- Niederschlag aus dem Tooltip „Temperaturtrend und Prognoseunsicherheit“ entfernt
+- Minor-Versionssprung, da die Bedienstruktur der stündlichen Detailansicht substanziell geändert wurde

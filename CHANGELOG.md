@@ -1,3 +1,11 @@
+## 0.5.0
+
+- stündliche Kachelmatrix entfernt und durch dauerhaft sichtbare, kompakte Stunden-Detailanzeige am Diagramm ersetzt
+- Stundenwahl erfolgt durch Klick ins Diagramm oder Vor-/Zurücknavigation im Tooltip
+- UVI verwendet ausschließlich den tatsächlich erwarteten, bewölkungsberücksichtigten Open-Meteo-Wert; Klarhimmelvergleich und zusätzliche Eigenkorrektur entfernt
+- Niederschlag aus dem Tooltip für Temperaturtrend und Prognoseunsicherheit entfernt
+- Minor-Release wegen substanzieller Änderung der Bedienstruktur
+
 ## 0.4.9
 
 - restriktives Versionsschema dokumentiert; diese Änderung bleibt ein Patch-Release
