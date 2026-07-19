@@ -1,6 +1,6 @@
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.4.1**
+**Aktuelle Version: v0.4.2**
 
 MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React und TypeScript. Es verbindet Open-Meteo Best Match mit Ensemble-Prognosen, Stationsmessungen, Radar, Luftqualität, Gefahrenindikatoren und exportierbaren Wetterwidgets.
 
@@ -18,6 +18,8 @@ MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React und TypeSc
 - Luftqualität, Dark Mode sowie Widget-/PNG-Export im MID-Design
 - optional einblendbare Hazards im Widget und PNG-Export
 - responsive Darstellung für Smartphone, Tablet und Desktop
+- automatische Standortwahl mit Ortsnamen aus einer Reverse-Geodatenbank und sichtbarem Autolokalisierungs-Hinweis
+- mobile Umschaltung zwischen hellem und dunklem Layout
 
 ## Entwicklung
 
@@ -59,6 +61,16 @@ MID vergleicht dann weltweit nahe Flugplatz-, METAR- und WMO-Messstationen anhan
 Die Hazard-Anzeigen sind automatisch berechnete Indikatoren und keine amtlichen Warnungen.
 
 ## Changelog
+
+### v0.4.2
+
+- automatisch lokalisierter Standort erhält den Ortsnamen aus der Reverse-Geodatenbank
+- Autolokalisierung wird in der Ortszeile ausdrücklich gekennzeichnet
+- Hell-/Dunkel-Umschalter bleibt auch im Smartphone-Layout sichtbar
+- Niederschlagswahrscheinlichkeit im 14-Tage-Trend lässt sich durch Klick auf den Legendeneintrag ein- und ausblenden
+- Widget-/PNG-Karten nochmals deutlich schmaler und dichter gesetzt
+- Tooltip des Temperaturtrends zeigt Best-Match-Minimum und Best-Match-Maximum als getrennte Einzelwerte
+- README und Changelog aktualisiert
 
 ### v0.4.1
 

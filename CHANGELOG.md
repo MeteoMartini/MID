@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.2
+
+- Ortsname nach automatischer Standortermittlung aus Reverse-Geodatenbank
+- sichtbare Kennzeichnung automatisch lokalisierter Orte
+- Hell-/Dunkel-Schalter im mobilen Layout verfügbar
+- klickbarer Legendeneintrag für die Niederschlagswahrscheinlichkeit im 14-Tage-Trend
+- nochmals schmalere und kompaktere Widget-/PNG-Darstellung
+- getrennte Best-Match-Minimum-/Maximum-Werte im Temperaturtrend-Tooltip
+
 ## 0.4.1
 
 - Changelog-Link im Footer

@@ -251,3 +251,52 @@ footer a:hover{opacity:1;color:var(--accent)}
 .weatherwidget.modern.compact .widgetgrid.days-5{grid-template-columns:repeat(5,minmax(104px,1fr))!important}
 .weatherwidget.modern.compact .widgetgrid.days-6{grid-template-columns:repeat(6,minmax(104px,1fr))!important}
 .weatherwidget.modern.compact .widgetgrid.days-7{grid-template-columns:repeat(7,minmax(104px,1fr))!important}
+
+/* v0.4.2 geolocation, mobile theme, rain legend and narrower widgets */
+.theme-toggle{display:inline-flex!important;align-items:center;justify-content:center;gap:5px}
+.theme-toggle span{display:none;font-size:11px;font-weight:750}
+.rain-legend{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:14px;color:var(--muted);font-size:12px}
+.rain-legend span,.rain-legend button{display:inline-flex;align-items:center;gap:6px;border:0;background:transparent;color:inherit;padding:3px 2px}
+.rain-legend button{cursor:pointer}
+.rain-legend button.inactive{opacity:.38;text-decoration:line-through}
+.rain-legend i{display:inline-block;flex:0 0 auto}
+.rain-legend i.bar{width:15px;height:10px;border-radius:3px;background:#2688ff}
+.rain-legend i.line{width:18px;height:0;border-top:2px solid #7d8aa0}
+.rain-legend i.line.high{border-color:#c4d0df}
+.rain-legend i.line.probability{border-color:#48d3ff;border-top-width:3px}
+.weatherwidget.modern.compact{border-radius:17px}
+.weatherwidget.modern.compact>header{padding:9px 11px}
+.weatherwidget.modern.compact>header span{font-size:8px}
+.weatherwidget.modern.compact>header strong{font-size:18px}
+.weatherwidget.modern.compact>header small{font-size:8px}
+.weatherwidget.modern.compact>header b{padding:5px 7px;font-size:9px}
+.weatherwidget.modern.compact .widgetgrid{gap:4px;padding:6px}
+.weatherwidget.modern.compact .widgetday{padding:6px;border-radius:11px}
+.weatherwidget.modern.compact .widgetday-head{gap:3px}
+.weatherwidget.modern.compact .widgetday-head strong{font-size:11px}
+.weatherwidget.modern.compact .widgetday-head small{font-size:8px}
+.weatherwidget.modern.compact .widgeticon{margin:4px 0 1px;font-size:22px}
+.weatherwidget.modern.compact .widgetlabel{font-size:8px}
+.weatherwidget.modern.compact .widgettemps{margin-top:3px;gap:4px}
+.weatherwidget.modern.compact .widgettemps strong{font-size:19px}
+.weatherwidget.modern.compact .widgettemps em{font-size:15px}
+.weatherwidget.modern.compact .widgetmeta{gap:2px;margin-top:4px}
+.weatherwidget.modern.compact .widgetmeta span{padding:3px 4px;font-size:7.5px;border-radius:8px}
+.weatherwidget.modern.compact .widgethazards{gap:3px;margin-top:4px}
+.weatherwidget.modern.compact .widgethazards span{padding:3px 4px;font-size:7px}
+.weatherwidget.modern.compact footer{padding:0 8px 7px;font-size:7px}
+.weatherwidget.modern.compact .widgetgrid.days-3{grid-template-columns:repeat(3,minmax(78px,1fr))!important}
+.weatherwidget.modern.compact .widgetgrid.days-4{grid-template-columns:repeat(4,minmax(78px,1fr))!important}
+.weatherwidget.modern.compact .widgetgrid.days-5{grid-template-columns:repeat(5,minmax(78px,1fr))!important}
+.weatherwidget.modern.compact .widgetgrid.days-6{grid-template-columns:repeat(6,minmax(78px,1fr))!important}
+.weatherwidget.modern.compact .widgetgrid.days-7{grid-template-columns:repeat(7,minmax(78px,1fr))!important}
+@media(max-width:520px){
+ .actions button:first-of-type{display:inline-flex!important}
+ .actions .theme-toggle{width:auto;min-width:58px;padding:0 7px}
+ .actions .theme-toggle span{display:inline}
+ .actions .reload-button{display:inline-flex!important;width:36px}
+ .actions{gap:4px}
+ .actions label{padding-left:6px}
+ .rain-legend{justify-content:flex-start;gap:8px;font-size:10px}
+ .chart.rain{height:280px}
+}
