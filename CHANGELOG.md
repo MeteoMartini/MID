@@ -1,3 +1,10 @@
+## 0.5.2
+
+- Niederschlagsarten anhand von WMO-Code, Regen-, Schauer- und Schneefallkomponenten neu klassifiziert
+- Sprühregen wird nicht mehr als pauschaler Fallback verwendet
+- Kurzfristkarte zeigt Niederschlagsart sowie voraussichtlichen Beginn und das Ende auf Basis der 15-Minuten-Best-Match-Daten
+- Radarzeitleiste innerhalb der DWD-Radarabdeckung bis +60 Minuten erweitert; außerhalb werden optionale RainViewer-Nowcast-Frames verwendet
+
 ## 0.5.1
 
 - Stunden-Navigation der Detailansicht springt an Tagesgrenzen automatisch zum angrenzenden Tag
