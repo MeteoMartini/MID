@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.4
+
+- Header bereinigt: neben dem Logo wird nur noch die Versionsangabe angezeigt
+- Detailansicht um Niederschlagswahrscheinlichkeits-Linie und kompakte Legende erweitert
+- Hazard-System auf vier Warnstufen (gelb, orange, rot, violett) erweitert
+- zusätzliche Hazard-Prüfung für UV-Index sowie feinere Stufen für Böen, Starkregen, Hitze, Frost und Gewitter
+- tägliche Hazard-Pills in 7-Tage-Ansicht und Widget entsprechend erweitert
+
 ## 0.4.3
 
 - HTML-Seitentitel auf „MID - Meteorological Information Dashboard“ gesetzt

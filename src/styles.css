@@ -332,3 +332,31 @@ footer a:hover{opacity:1;color:var(--accent)}
  .search .locate span{display:none}
  .locate svg{margin:0 auto}
 }
+
+/* v0.4.4 header cleanup, detail legend and multi-level hazards */
+.brand{gap:12px}
+.brand > span{display:flex;flex-direction:column;justify-content:center;gap:2px;min-width:0}
+.brand strong{display:block;line-height:1}
+.brand-version{display:inline-block!important;font-size:.95rem!important;font-weight:800;letter-spacing:.02em;color:var(--text)!important}
+.brand > span > small{display:block!important;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:min(44vw,420px)}
+.detaillegend{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 10px;color:var(--muted);font-size:11px}
+.detaillegend span{display:inline-flex;align-items:center;gap:7px;padding:4px 8px;border:1px solid var(--border);border-radius:999px;background:var(--s2)}
+.detaillegend i{display:inline-block;flex:0 0 auto}
+.detaillegend .temp,.detaillegend .apparent,.detaillegend .probability{width:18px;height:0;border-top:2px solid #ff7a37}
+.detaillegend .apparent{border-top-color:#ffd8a3;border-top-style:dashed}
+.detaillegend .probability{border-top-color:#56d7ff;border-top-style:dashed}
+.detaillegend .rain{width:12px;height:10px;border-radius:3px;background:linear-gradient(180deg,#4db8ff,#2f84d9)}
+.hazards .orange,.forecast-hazards .orange,.weatherwidget.modern .widgethazards .orange{border:1px solid rgba(255,149,0,.36);background:rgba(255,149,0,.14);color:#ffb25a}
+.hazards .purple,.forecast-hazards .purple,.weatherwidget.modern .widgethazards .purple{border:1px solid rgba(173,112,255,.36);background:rgba(173,112,255,.14);color:#c8a0ff}
+.hazards .yellow,.forecast-hazards .yellow,.weatherwidget.modern .widgethazards .yellow{border-color:rgba(255,186,57,.36)}
+.hazards .red,.forecast-hazards .red,.weatherwidget.modern .widgethazards .red{border-color:rgba(255,78,78,.36)}
+@media(max-width:850px){
+ .brand > span > small{display:none!important}
+}
+@media(max-width:520px){
+ .brand{gap:9px}
+ .brand-logo{width:36px;height:36px}
+ .brand-version{font-size:.88rem!important}
+ .detaillegend{gap:6px;font-size:10px}
+ .detaillegend span{padding:3px 6px}
+}
