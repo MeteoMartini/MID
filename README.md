@@ -1,6 +1,6 @@
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.5.7**
+**Aktuelle Version: v0.6.0**
 
 MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React und TypeScript. Es verbindet Open-Meteo Best Match mit Ensemble-Prognosen, Stationsmessungen, Radar, Luftqualität, Gefahrenindikatoren und exportierbaren Wetterwidgets.
 
@@ -17,6 +17,8 @@ MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React und TypeSc
 - OpenStreetMap-Grundkarte mit RainViewer-Radar
 - Luftqualität, Dark Mode sowie Widget-/PNG-Export im MID-Design
 - optional einblendbare Hazards im Widget und PNG-Export
+- amtliche standortbezogene Wetterwarnungen: DWD-CAP in Deutschland, CAP-Meldungen nationaler Wetterdienste über MeteoAlarm in Europa und NOAA/NWS in den USA
+- Warnungsüberschriften kompakt; Meldungs- und Handlungstext per Klick
 - responsive Darstellung für Smartphone, Tablet und Desktop
 
 ## Entwicklung
@@ -46,7 +48,7 @@ Nach dessen Bereitstellung wird die öffentliche Worker-Adresse beim Build als V
 VITE_METAR_PROXY_URL=https://DEIN-WORKER.workers.dev/
 ```
 
-MID vergleicht dann weltweit nahe Flugplatz-, METAR- und WMO-Messstationen anhand von Entfernung, Höhenunterschied und Aktualität. In Deutschland wird zusätzlich Bright Sky/DWD-WMO geprüft.
+MID vergleicht dann weltweit nahe Flugplatz-, METAR- und WMO-Messstationen anhand von Entfernung, Höhenunterschied und Aktualität. In Deutschland wird zusätzlich Bright Sky/DWD-WMO geprüft. Derselbe Worker stellt außerdem die amtlichen CAP-Warnungen browserkompatibel bereit.
 
 ## Datenquellen
 
@@ -55,11 +57,26 @@ MID vergleicht dann weltweit nahe Flugplatz-, METAR- und WMO-Messstationen anhan
 - OpenStreetMap: Kartenbasis
 - Bright Sky: DWD-/WMO-Beobachtungen
 - NOAA AviationWeather: weltweite METAR-/Flugplatzbeobachtungen über den mitgelieferten Proxy
+- Deutscher Wetterdienst: amtliche Warnungen im CAP-Format für Deutschland
+- MeteoAlarm: CAP-/Atom-Warnungen der nationalen europäischen Wetterdienste
+- NOAA/National Weather Service: amtliche Warnungen für die USA
 
-Die Hazard-Anzeigen sind automatisch berechnete Indikatoren und keine amtlichen Warnungen.
+Die Hazard-Anzeigen sind automatisch berechnete Indikatoren und keine amtlichen Warnungen. Die neue Sektion „Amtliche Wetterwarnungen“ ist davon getrennt und gibt CAP-Meldungen der jeweils zuständigen Behörden wieder.
 
 
 ## Changelog
+
+### v0.6.0
+
+- neuer eigenständiger Funktionsbereich „Amtliche Wetterwarnungen“
+- Deutschland: direkte DWD-CAP-Warnungen
+- Europa: CAP-Warnungen nationaler Wetterdienste über öffentliche MeteoAlarm-Atom-Feeds
+- USA: NOAA/NWS Active Alerts
+- standortbezogene Filterung anhand von CAP-Polygonen und -Kreisen
+- zunächst nur Warnungsüberschriften; Meldungs- und Handlungstext per Klick
+- Cloudflare Worker um browserkompatiblen CAP-Abruf erweitert
+- Versionssprung auf 0.6.0 wegen eines neuen größeren Funktionsbereichs
+
 
 ### v0.5.4
 

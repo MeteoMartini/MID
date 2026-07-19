@@ -1,3 +1,14 @@
+## 0.6.0
+
+- eigenständige Sektion für amtliche Wetterwarnungen ergänzt
+- DWD-CAP für Deutschland integriert
+- MeteoAlarm-Atom/CAP der nationalen europäischen Wetterdienste integriert
+- NOAA/NWS-Warnungen für die USA integriert
+- Warnungen werden anhand von CAP-Polygonen und -Kreisen auf den Standort gefiltert
+- kompakte Überschriftenliste; Meldungs- und Handlungstext werden erst per Klick eingeblendet
+- Worker und Datenquellen-Disclaimer erweitert
+- Minor-Versionssprung aufgrund eines neuen größeren Funktionsbereichs
+
 ## 0.5.7
 
 - kontinuierliche Farbskala für Prognosekonsistenz (0–100 %)

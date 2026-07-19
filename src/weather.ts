@@ -6,6 +6,8 @@ export type Minute15={time:string;precipitation:number;rain:number;showers:numbe
 export type Day={date:string;code:number;max:number;min:number;precipitation:number;probability:number;wind:number;gust:number;direction:number;uvMax:number};
 export type EnsembleDay={date:string;maxMean:number;maxLow:number;maxHigh:number;minMean:number;minLow:number;minHigh:number;precipitationMean:number;precipitationLow:number;precipitationHigh:number;precipitationProbability:number;modelCount:number;memberCount:number};
 export type Station={name:string;provider?:string;stationId?:string;distance?:number;height?:number;timestamp?:string;temperature?:number;humidity?:number;dewPoint?:number;pressure?:number;windSpeed?:number;windDirection?:number;windGust?:number;windUnit?:'kt'|'kmh';cloudCover?:number;precipitation?:number};
+export type OfficialAlertLevel='yellow'|'orange'|'red'|'purple'|'unknown';
+export type OfficialAlert={id:string;headline:string;description:string;instruction?:string;level:OfficialAlertLevel;severity?:string;event?:string;source:string;area?:string;effective?:string;onset?:string;expires?:string;url?:string};
 
 type EnsembleModel={id:string;label:string;resolutionKm:number;updateHours:number;maxDays:number;bbox?:[number,number,number,number]};
 const ensembleModels:EnsembleModel[]=[
@@ -41,11 +43,96 @@ export async function forecast(lat:number,lon:number,signal?:AbortSignal){const 
 export async function airQuality(lat:number,lon:number,signal?:AbortSignal){const p=new URLSearchParams({latitude:String(lat),longitude:String(lon),timezone:'auto',current:['european_aqi','pm10','pm2_5','nitrogen_dioxide','ozone','uv_index'].join(',')});return j<{current?:Record<string,number|string>}>(`https://air-quality-api.open-meteo.com/v1/air-quality?${p}`,signal)}
 
 function haversine(lat1:number,lon1:number,lat2:number,lon2:number){const r=6371000,toRad=(x:number)=>x*Math.PI/180,dLat=toRad(lat2-lat1),dLon=toRad(lon2-lon1),a=Math.sin(dLat/2)**2+Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;return 2*r*Math.asin(Math.sqrt(a))}
-async function brightSkyStation(lat:number,lon:number,elevation?:number,signal?:AbortSignal):Promise<Station|null>{try{const p=new URLSearchParams({lat:String(lat),lon:String(lon),max_dist:'75000'});const d=await j<any>(`https://api.brightsky.dev/current_weather?${p}`,signal);const w=d.weather,sources=(d.sources??[]) as any[];if(!w||!sources.length)return null;const num=(v:any)=>v===null||v===undefined||v===''?undefined:(Number.isFinite(Number(v))?Number(v):undefined);const scored=[...sources].sort((a:any,b:any)=>{const distA=num(a.distance)??999999,distB=num(b.distance)??999999;const hA=Math.abs((num(a.height)??0)-Number(elevation??0)),hB=Math.abs((num(b.height)??0)-Number(elevation??0));return(distA+hA*12)-(distB+hB*12)});const byId=sources.find((x:any)=>x.id===w.source_id),s=byId??scored[0];return{name:s.station_name||'DWD/WMO-Station',provider:'Bright Sky / DWD-WMO',stationId:s.wmo_station_id||s.id,distance:num(s.distance),height:num(s.height),timestamp:w.timestamp,temperature:num(w.temperature),humidity:num(w.relative_humidity),dewPoint:num(w.dew_point),pressure:num(w.pressure_msl),windSpeed:num(w.wind_speed),windDirection:num(w.wind_direction),windGust:num(w.wind_gust_speed),windUnit:'kmh',cloudCover:num(w.cloud_cover),precipitation:num(w.precipitation)}}catch{return null}}
+async function brightSkyStation(lat:number,lon:number,elevation?:number,signal?:AbortSignal):Promise<Station|null>{
+ try{
+  const p=new URLSearchParams({lat:String(lat),lon:String(lon),max_dist:'75000'});
+  const d=await j<any>(`https://api.brightsky.dev/current_weather?${p}`,signal),w=d.weather,sources=(d.sources??[]) as any[];
+  if(!w||!sources.length)return null;
+  const num=(v:any)=>v===null||v===undefined||v===''?undefined:(Number.isFinite(Number(v))?Number(v):undefined);
+  const scored=[...sources].sort((a:any,b:any)=>stationFitScore(num(a.distance),num(a.height),elevation,0)-stationFitScore(num(b.distance),num(b.height),elevation,0));
+  const byId=sources.find((x:any)=>x.id===w.source_id),s=byId??scored[0];
+  return{name:s.station_name||'DWD/WMO-Station',provider:'Bright Sky / DWD-WMO',stationId:s.wmo_station_id||s.id,distance:num(s.distance),height:num(s.height),timestamp:w.timestamp,temperature:num(w.temperature),humidity:num(w.relative_humidity),dewPoint:num(w.dew_point),pressure:num(w.pressure_msl),windSpeed:num(w.wind_speed),windDirection:num(w.wind_direction),windGust:num(w.wind_gust_speed),windUnit:'kmh',cloudCover:num(w.cloud_cover),precipitation:num(w.precipitation)};
+ }catch{return null}
+}
+
+type GeoSphereMetaStation={id:string;name:string;state?:string;lat:number;lon:number;altitude?:number;is_active?:boolean};
+let geoSphereMetadataPromise:Promise<GeoSphereMetaStation[]>|null=null;
+function geoSphereApplies(lat:number,lon:number,country?:string){const c=String(country||'').toUpperCase();return c==='AT'||(lat>=46.35&&lat<=49.05&&lon>=9.45&&lon<=17.3)}
+function arrayFromMetadata(d:any){
+ const candidates=[d?.stations,d?.station_metadata,d?.metadata?.stations,d?.data?.stations,d];
+ for(const c of candidates)if(Array.isArray(c))return c;
+ if(d&&typeof d==='object')for(const v of Object.values(d))if(Array.isArray(v)&&(v as any[]).some(x=>x&&('lat'in x||'latitude'in x)&&('id'in x||'station_id'in x)))return v as any[];
+ return[] as any[];
+}
+async function geoSphereMetadata(signal?:AbortSignal){
+ if(!geoSphereMetadataPromise)geoSphereMetadataPromise=j<any>('https://dataset.api.hub.geosphere.at/v1/station/current/tawes-v1-10min/metadata',signal).then(d=>arrayFromMetadata(d).map((s:any)=>({id:String(s.id??s.station_id??''),name:String(s.name??s.station_name??s.id??'GeoSphere-Station'),state:s.state,lat:Number(s.lat??s.latitude),lon:Number(s.lon??s.longitude),altitude:Number(s.altitude??s.height??s.elevation),is_active:s.is_active!==false})).filter((s:GeoSphereMetaStation)=>s.id&&Number.isFinite(s.lat)&&Number.isFinite(s.lon)&&s.is_active));
+ try{return await geoSphereMetadataPromise}catch(e){geoSphereMetadataPromise=null;throw e}
+}
+function lastValue(v:any):number|undefined{
+ const raw=v?.data??v?.values??v?.value??v;
+ if(Array.isArray(raw)){for(let i=raw.length-1;i>=0;i--){const n=Number(raw[i]);if(raw[i]!==null&&raw[i]!==''&&Number.isFinite(n))return n}return undefined}
+ const n=Number(raw);return raw!==null&&raw!==''&&Number.isFinite(n)?n:undefined;
+}
+function geoSphereFeatures(d:any){if(Array.isArray(d?.features))return d.features;if(Array.isArray(d?.data))return d.data;if(Array.isArray(d))return d;return[]}
+function geoSphereFeatureId(f:any){return String(f?.properties?.station_id??f?.properties?.station?.id??f?.station_id??f?.id??'')}
+function geoSphereParam(f:any,name:string){const props=f?.properties??f;const params=props?.parameters??props?.parameter??props;return lastValue(params?.[name]??params?.[name.toLowerCase()]??params?.[name.toUpperCase()])}
+function geoSphereTimestamp(d:any,f:any){const stamps=d?.timestamps??d?.time??f?.properties?.timestamps??f?.properties?.time;return Array.isArray(stamps)?String(stamps[stamps.length-1]??''):String(stamps??f?.properties?.timestamp??'')}
+async function geoSphereStation(lat:number,lon:number,elevation?:number,signal?:AbortSignal):Promise<Station|null>{
+ try{
+  const meta=await geoSphereMetadata(signal);
+  const nearby=meta.map(s=>({...s,distance:haversine(lat,lon,s.lat,s.lon)})).filter(s=>s.distance<=120000).sort((a,b)=>stationFitScore(a.distance,a.altitude,elevation,-18000)-stationFitScore(b.distance,b.altitude,elevation,-18000)).slice(0,10);
+  if(!nearby.length)return null;
+  const p=new URLSearchParams({parameters:'TL,TP,RF,PRED,P,FF,DD,FFX,RR',station_ids:nearby.map(s=>s.id).join(','),output_format:'geojson'});
+  const d=await j<any>(`https://dataset.api.hub.geosphere.at/v1/station/current/tawes-v1-10min?${p}`,signal),features=geoSphereFeatures(d),byId=new Map(nearby.map(s=>[s.id,s]));
+  const parsed=features.map((f:any)=>{
+   const id=geoSphereFeatureId(f),m=byId.get(id)??nearby.find(s=>String(f?.properties?.station?.name??'')===s.name);
+   if(!m)return null;
+   const ff=geoSphereParam(f,'FF'),ffx=geoSphereParam(f,'FFX');
+   return{name:m.name,provider:'GeoSphere Austria / TAWES',stationId:m.id,distance:m.distance,height:Number.isFinite(m.altitude)?m.altitude:undefined,timestamp:geoSphereTimestamp(d,f),temperature:geoSphereParam(f,'TL'),humidity:geoSphereParam(f,'RF'),dewPoint:geoSphereParam(f,'TP'),pressure:geoSphereParam(f,'PRED')??geoSphereParam(f,'P'),windSpeed:ff===undefined?undefined:ff*3.6,windDirection:geoSphereParam(f,'DD'),windGust:ffx===undefined?undefined:ffx*3.6,windUnit:'kmh' as const,precipitation:geoSphereParam(f,'RR')} as Station;
+  }).filter(Boolean) as Station[];
+  return parsed.sort((a,b)=>stationFitScore(a.distance,a.height,elevation,-18000)-stationFitScore(b.distance,b.height,elevation,-18000))[0]??null;
+ }catch{return null}
+}
+
 function parseMetarRows(d:any){return(Array.isArray(d)?d:d?.data??d?.metars??d?.features?.map((f:any)=>({...f.properties,lat:f.geometry?.coordinates?.[1],lon:f.geometry?.coordinates?.[0]}))??[]) as any[]}
-function metarToStation(rows:any[],lat:number,lon:number,elevation?:number):Station|null{const candidates=rows.map(r=>{const rlat=Number(r.lat??r.latitude),rlon=Number(r.lon??r.longitude);if(!Number.isFinite(rlat)||!Number.isFinite(rlon))return null;const distance=haversine(lat,lon,rlat,rlon),height=Number(r.elev??r.elevation??r.elevation_m);const heightPenalty=Number.isFinite(height)&&Number.isFinite(elevation)?Math.abs(height-Number(elevation))*12:0;const ageMs=Date.now()-new Date(r.reportTime??r.obsTime??r.timestamp??0).getTime();const agePenalty=Number.isFinite(ageMs)&&ageMs>0?Math.min(150000,ageMs/36):0;return{r,distance,score:distance+heightPenalty+agePenalty,height}}).filter(Boolean).sort((a:any,b:any)=>a.score-b.score);const c:any=candidates[0];if(!c)return null;const r=c.r,num=(v:any)=>v===null||v===undefined||v===''?undefined:(Number.isFinite(Number(v))?Number(v):undefined);const temperature=num(r.temp??r.temperature),dewPoint=num(r.dewp??r.dewPoint),rawPressure=num(r.altim??r.pressureMsl??r.pressure),pressure=rawPressure!==undefined&&rawPressure<100?rawPressure*33.8639:rawPressure,humidity=num(r.relativeHumidity??r.humidity)??(temperature!==undefined&&dewPoint!==undefined?Math.min(100,100*Math.exp((17.625*dewPoint)/(243.04+dewPoint)-(17.625*temperature)/(243.04+temperature))):undefined);return{name:r.name||r.site||r.station||r.icaoId||'METAR/WMO-Station',provider:r.provider||'METAR / WMO',stationId:r.icaoId||r.wmoId||r.id,distance:c.distance,height:num(c.height),timestamp:r.reportTime||r.obsTime||r.timestamp,temperature,dewPoint,humidity,pressure,windSpeed:num(r.wspd??r.windSpeed),windDirection:num(r.wdir??r.windDirection),windGust:num(r.wgst??r.windGust),windUnit:'kt',cloudCover:num(r.cloudCover),precipitation:num(r.precipitation)}}
-async function metarStation(lat:number,lon:number,elevation?:number,signal?:AbortSignal):Promise<Station|null>{const dLat=1.15,dLon=1.15/Math.max(.25,Math.cos(lat*Math.PI/180)),bbox=[lon-dLon,lat-dLat,lon+dLon,lat+dLat].map(x=>x.toFixed(3)).join(',');const configured=((import.meta as any).env?.VITE_METAR_PROXY_URL as string|undefined)||localStorage.getItem('metarProxyUrl')||'';const urls:string[]=[];if(configured){const u=new URL(configured);u.searchParams.set('lat',String(lat));u.searchParams.set('lon',String(lon));u.searchParams.set('radius_km','140');urls.push(u.toString())}urls.push(`https://aviationweather.gov/api/data/metar?format=json&hours=2&bbox=${encodeURIComponent(bbox)}`);for(const url of urls){try{const d=await j<any>(url,signal),s=metarToStation(parseMetarRows(d),lat,lon,elevation);if(s)return s}catch{}}return null}
-export async function station(lat:number,lon:number,country?:string,elevation?:number,signal?:AbortSignal):Promise<Station|null>{const tasks=[metarStation(lat,lon,elevation,signal),brightSkyStation(lat,lon,elevation,signal)];const results=(await Promise.allSettled(tasks)).filter((x):x is PromiseFulfilledResult<Station|null>=>x.status==='fulfilled').map(x=>x.value).filter(Boolean) as Station[];if(!results.length)return null;return results.sort((a,b)=>{const da=a.distance??999999,db=b.distance??999999,ha=Math.abs((a.height??elevation??0)-(elevation??0)),hb=Math.abs((b.height??elevation??0)-(elevation??0));const aa=a.timestamp?Math.max(0,Date.now()-new Date(a.timestamp).getTime()):7200000,ab=b.timestamp?Math.max(0,Date.now()-new Date(b.timestamp).getTime()):7200000;return(da+ha*12+aa/36)-(db+hb*12+ab/36)})[0]}
+function stationFitScore(distance:number|undefined,height:number|undefined,targetElevation:number|undefined,providerOffset=0,timestamp?:string){
+ const dist=distance??999999,terrain=Number(targetElevation??0)>=700,unknownHeight=height===undefined||!Number.isFinite(height),heightDiff=unknownHeight?0:Math.abs(Number(height)-Number(targetElevation??height)),heightPenalty=unknownHeight?(terrain?28000:9000):heightDiff*(terrain?55:28),extremePenalty=!unknownHeight&&terrain&&heightDiff>900?120000:0,age=timestamp?Math.max(0,Date.now()-new Date(timestamp).getTime()):7200000,agePenalty=Math.min(140000,age/32);return dist+heightPenalty+extremePenalty+agePenalty+providerOffset;
+}
+function metarToStation(rows:any[],lat:number,lon:number,elevation?:number):Station|null{
+ const candidates=rows.map(r=>{
+  if(Number(r.qcStatus)===0)return null;
+  const rlat=Number(r.lat??r.latitude),rlon=Number(r.lon??r.longitude);if(!Number.isFinite(rlat)||!Number.isFinite(rlon))return null;
+  const distance=haversine(lat,lon,rlat,rlon),heightRaw=r.elev??r.elevation??r.elevation_m,height=heightRaw===null||heightRaw===undefined?undefined:Number(heightRaw),timestamp=r.reportTime??r.obsTime??r.timestamp,provider=String(r.provider??''),providerOffset=provider.includes('Weather Underground')?-9000:0;
+  return{r,distance,score:stationFitScore(distance,Number.isFinite(height as number)?height:undefined,elevation,providerOffset,timestamp),height:Number.isFinite(height as number)?height:undefined};
+ }).filter(Boolean).sort((a:any,b:any)=>a.score-b.score);
+ const c:any=candidates[0];if(!c)return null;
+ const r=c.r,num=(v:any)=>v===null||v===undefined||v===''?undefined:(Number.isFinite(Number(v))?Number(v):undefined),temperature=num(r.temp??r.temperature),dewPoint=num(r.dewp??r.dewPoint),rawPressure=num(r.altim??r.pressureMsl??r.pressure),pressure=rawPressure!==undefined&&rawPressure<100?rawPressure*33.8639:rawPressure,humidity=num(r.relativeHumidity??r.humidity)??(temperature!==undefined&&dewPoint!==undefined?Math.min(100,100*Math.exp((17.625*dewPoint)/(243.04+dewPoint)-(17.625*temperature)/(243.04+temperature))):undefined);
+ return{name:r.name||r.site||r.station||r.icaoId||r.stationId||'WMO/PWS-Station',provider:r.provider||'METAR / WMO',stationId:r.icaoId||r.wmoId||r.stationId||r.id,distance:c.distance,height:c.height,timestamp:r.reportTime||r.obsTime||r.timestamp,temperature,dewPoint,humidity,pressure,windSpeed:num(r.wspd??r.windSpeed),windDirection:num(r.wdir??r.windDirection),windGust:num(r.wgst??r.windGust),windUnit:r.windUnit==='kmh'?'kmh':'kt',cloudCover:num(r.cloudCover),precipitation:num(r.precipitation??r.precipTotal)};
+}
+async function metarStation(lat:number,lon:number,elevation?:number,signal?:AbortSignal):Promise<Station|null>{
+ const dLat=1.15,dLon=1.15/Math.max(.25,Math.cos(lat*Math.PI/180)),bbox=[lon-dLon,lat-dLat,lon+dLon,lat+dLat].map(x=>x.toFixed(3)).join(','),configured=((import.meta as any).env?.VITE_METAR_PROXY_URL as string|undefined)||localStorage.getItem('metarProxyUrl')||'',urls:string[]=[];
+ if(configured){const u=new URL(configured);u.searchParams.set('lat',String(lat));u.searchParams.set('lon',String(lon));u.searchParams.set('radius_km','140');urls.push(u.toString())}
+ urls.push(`https://aviationweather.gov/api/data/metar?format=json&hours=2&bbox=${encodeURIComponent(bbox)}`);
+ for(const url of urls){try{const d=await j<any>(url,signal),s=metarToStation(parseMetarRows(d),lat,lon,elevation);if(s)return s}catch{}}
+ return null;
+}
+export async function station(lat:number,lon:number,country?:string,elevation?:number,signal?:AbortSignal):Promise<Station|null>{
+ const c=String(country||'').toUpperCase(),inGermany=c==='DE'||(!c&&lat>=47.2&&lat<=55.2&&lon>=5.5&&lon<=15.6),tasks:Promise<Station|null>[]=[metarStation(lat,lon,elevation,signal)];
+ if(geoSphereApplies(lat,lon,c))tasks.push(geoSphereStation(lat,lon,elevation,signal));
+ if(inGermany)tasks.push(brightSkyStation(lat,lon,elevation,signal));
+ const results=(await Promise.allSettled(tasks)).filter((x):x is PromiseFulfilledResult<Station|null>=>x.status==='fulfilled').map(x=>x.value).filter(Boolean) as Station[];
+ if(!results.length)return null;
+ return results.sort((a,b)=>stationFitScore(a.distance,a.height,elevation,a.provider?.includes('GeoSphere')?-18000:a.provider?.includes('Weather Underground')?-9000:0,a.timestamp)-stationFitScore(b.distance,b.height,elevation,b.provider?.includes('GeoSphere')?-18000:b.provider?.includes('Weather Underground')?-9000:0,b.timestamp))[0];
+}
+
+export async function officialWarnings(lat:number,lon:number,country?:string,name?:string,region?:string,signal?:AbortSignal):Promise<{alerts:OfficialAlert[];provider?:string;coverage?:string}> {
+ const configured=((import.meta as any).env?.VITE_ALERT_PROXY_URL as string|undefined)||((import.meta as any).env?.VITE_METAR_PROXY_URL as string|undefined)||localStorage.getItem('alertProxyUrl')||localStorage.getItem('metarProxyUrl')||'';
+ if(!configured)throw new Error('CAP-Warnungsproxy nicht konfiguriert.');
+ const u=new URL(configured);u.searchParams.set('mode','alerts');u.searchParams.set('lat',String(lat));u.searchParams.set('lon',String(lon));u.searchParams.set('country',String(country||'').toUpperCase());u.searchParams.set('language','de');
+ if(name)u.searchParams.set('name',name);if(region)u.searchParams.set('region',region);
+ const result=await j<{alerts?:OfficialAlert[];provider?:string;coverage?:string}>(u.toString(),signal);
+ return{alerts:(result.alerts??[]).filter(a=>a&&a.id&&a.headline),provider:result.provider,coverage:result.coverage};
+}
 
 function n(v:unknown,fallback=NaN){return v===null||v===undefined||v===''?fallback:Number(v)}
 
