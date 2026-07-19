@@ -360,3 +360,7 @@ footer a:hover{opacity:1;color:var(--accent)}
  .detaillegend{gap:6px;font-size:10px}
  .detaillegend span{padding:3px 6px}
 }
+.detaillegend .stratiform,.detaillegend .convective,.detaillegend .snow{width:14px;height:10px;border-radius:3px}
+.detaillegend .stratiform{background:linear-gradient(180deg,#398ed8,#245f9e)}
+.detaillegend .convective{background:repeating-linear-gradient(135deg,#26c6f7 0 3px,#087ba6 3px 5px)}
+.detaillegend .snow{background:radial-gradient(circle at 25% 30%,#fff 0 1px,transparent 1.2px),radial-gradient(circle at 75% 70%,#fff 0 1px,transparent 1.2px),#c8dcff}

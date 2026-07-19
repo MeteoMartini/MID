@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.5
+
+- 14-Tage-Niederschlags-Tooltip an das Layout des Temperaturtrend-Tooltips angeglichen
+- „Regenwahrscheinlichkeit“ in der 7-Tage-Detailansicht in „Niederschlagswahrscheinlichkeit“ umbenannt
+- stündliche Niederschlagsbalken nach stratiformem Regen, konvektiven Schauern und Schnee unterschieden
+- Farben und Muster sowie eine erweiterte Legende für die Niederschlagsarten ergänzt
+- stündliche Detailansicht zeigt die konkrete Niederschlagsart und Teilmengen
+
 ## 0.4.4
 
 - Header bereinigt: neben dem Logo wird nur noch die Versionsangabe angezeigt
