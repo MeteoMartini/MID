@@ -1,3 +1,10 @@
+## 0.5.7
+
+- kontinuierliche Farbskala für Prognosekonsistenz (0–100 %)
+- Konsistenzpunkte farblich exakt nach Prozentwert interpoliert
+- Schaltflächen für hohe/mittlere/geringe Konsistenz entfernt
+- kompakte Farbverlaufslegende ergänzt
+
 ## 0.5.6
 
 - Linie der gefühlten Temperatur im hellen Layout deutlich kontrastreicher dargestellt
