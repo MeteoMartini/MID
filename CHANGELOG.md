@@ -1,13 +1,21 @@
 # Changelog
 
+## 0.4.3
+
+- HTML-Seitentitel auf „MID - Meteorological Information Dashboard“ gesetzt
+- MID-Logo in Header und als Favicon eingebunden
+- Versionsnummer auch in der kompakten mobilen Kopfzeile sichtbar
+- 14-Tage-Niederschlagsdiagramm zeigt die Best-Match-Niederschlagsmenge des Ortes statt des Ensemble-Mittels
+- mobile Kopfzeile für Hochformat angepasst; Reload- und Lokalisierungs-Buttons sauber ausgerichtet
+- README und Changelog aktualisiert
+
 ## 0.4.2
 
-- Ortsname nach automatischer Standortermittlung aus Reverse-Geodatenbank
-- sichtbare Kennzeichnung automatisch lokalisierter Orte
-- Hell-/Dunkel-Schalter im mobilen Layout verfügbar
-- klickbarer Legendeneintrag für die Niederschlagswahrscheinlichkeit im 14-Tage-Trend
-- nochmals schmalere und kompaktere Widget-/PNG-Darstellung
-- getrennte Best-Match-Minimum-/Maximum-Werte im Temperaturtrend-Tooltip
+- Autolokalisierung benennt den Standort nach Geodatenbank und kennzeichnet dies deutlich
+- helle Layout-Umschaltung auch im mobilen Layout sichtbar
+- Niederschlagswahrscheinlichkeit im 14-Tage-Niederschlag per Legende ein-/ausblendbar
+- Widgets nochmals kompakter gestaltet
+- Tooltip im 14-Tage-Temperaturtrend zeigt für Best Match Min-/Max-Werte
 
 ## 0.4.1
 

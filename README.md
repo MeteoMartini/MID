@@ -1,6 +1,6 @@
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.4.2**
+**Aktuelle Version: v0.4.3**
 
 MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React und TypeScript. Es verbindet Open-Meteo Best Match mit Ensemble-Prognosen, Stationsmessungen, Radar, Luftqualität, Gefahrenindikatoren und exportierbaren Wetterwidgets.
 
@@ -18,8 +18,6 @@ MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React und TypeSc
 - Luftqualität, Dark Mode sowie Widget-/PNG-Export im MID-Design
 - optional einblendbare Hazards im Widget und PNG-Export
 - responsive Darstellung für Smartphone, Tablet und Desktop
-- automatische Standortwahl mit Ortsnamen aus einer Reverse-Geodatenbank und sichtbarem Autolokalisierungs-Hinweis
-- mobile Umschaltung zwischen hellem und dunklem Layout
 
 ## Entwicklung
 
@@ -60,17 +58,25 @@ MID vergleicht dann weltweit nahe Flugplatz-, METAR- und WMO-Messstationen anhan
 
 Die Hazard-Anzeigen sind automatisch berechnete Indikatoren und keine amtlichen Warnungen.
 
+
 ## Changelog
+
+### v0.4.3
+
+- Seiten-Titel auf „MID - Meteorological Information Dashboard“ vereinheitlicht
+- neues MID-Logo als Seitenlogo, Header-Logo und Favicon eingebunden
+- Versionsnummer nun auch in der kompakten Kopfzeile sichtbar
+- 14-Tage-Niederschlagsdiagramm nutzt für die Mengen-Balken jetzt den Best-Match-Niederschlag des Ortes statt des ENS-Mittels
+- mobile Kopfzeile überarbeitet; Reload- und Lokalisierungs-Schaltflächen in der Hochformat-Ansicht sauber ausgerichtet
+- README und Changelog aktualisiert
 
 ### v0.4.2
 
-- automatisch lokalisierter Standort erhält den Ortsnamen aus der Reverse-Geodatenbank
-- Autolokalisierung wird in der Ortszeile ausdrücklich gekennzeichnet
-- Hell-/Dunkel-Umschalter bleibt auch im Smartphone-Layout sichtbar
-- Niederschlagswahrscheinlichkeit im 14-Tage-Trend lässt sich durch Klick auf den Legendeneintrag ein- und ausblenden
-- Widget-/PNG-Karten nochmals deutlich schmaler und dichter gesetzt
-- Tooltip des Temperaturtrends zeigt Best-Match-Minimum und Best-Match-Maximum als getrennte Einzelwerte
-- README und Changelog aktualisiert
+- Autolokalisierung benennt den Standort nach Geodatenbank und kennzeichnet dies deutlich
+- helle Layout-Umschaltung auch im mobilen Handy-Layout sichtbar
+- Niederschlagswahrscheinlichkeit im 14-Tage-Niederschlag per Legendeneintrag ein-/ausblendbar
+- Widgets nochmals kompakter gestaltet
+- Tooltip im 14-Tage-Temperaturtrend zeigt für Best Match Min-/Max-Werte
 
 ### v0.4.1
 

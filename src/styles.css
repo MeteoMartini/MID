@@ -300,3 +300,35 @@ footer a:hover{opacity:1;color:var(--accent)}
  .rain-legend{justify-content:flex-start;gap:8px;font-size:10px}
  .chart.rain{height:280px}
 }
+
+/* v0.4.3 logo, title version and mobile header alignment */
+.brand{min-width:0}
+.brand-logo{width:42px;height:42px;display:block;flex:0 0 auto;border-radius:14px;object-fit:cover;box-shadow:0 10px 24px rgba(23,121,199,.25)}
+.brand span{min-width:0}
+.brand strong{display:flex;align-items:baseline;gap:6px;line-height:1}
+.brand > span > small{display:block;color:var(--muted);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:min(48vw,420px)}
+.brand-version{display:inline-block!important;color:var(--muted);font-size:.48em;font-weight:800;letter-spacing:.02em;vertical-align:middle}
+.locate span{display:inline}
+.actions button,.actions label,.search .locate{display:inline-flex;align-items:center;justify-content:center}
+.actions button svg,.actions label svg,.search .locate svg{display:block;flex:0 0 auto}
+@media(max-width:850px){
+ .brand > span > small{display:none}
+ .brand-version{display:inline-block!important}
+}
+@media(max-width:520px){
+ .top{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:'brand actions' 'search search';align-items:start}
+ .brand{grid-area:brand;min-width:0}
+ .brand-logo{width:36px;height:36px;border-radius:12px}
+ .brand strong{font-size:20px}
+ .brand-version{font-size:.5em}
+ .actions{grid-area:actions;align-self:start;display:grid;grid-auto-flow:column;grid-auto-columns:max-content;gap:4px}
+ .actions label,.actions button,.search .locate{height:42px}
+ .actions label{padding:0 6px 0 8px}
+ .actions .theme-toggle{min-width:54px}
+ .actions .reload-button{width:42px;height:42px}
+ .search{grid-area:search;display:grid;grid-template-columns:minmax(0,1fr) 46px;gap:8px;align-items:stretch}
+ .search>div{min-width:0}
+ .search .locate{width:46px;min-width:46px;padding:0!important;border-radius:13px}
+ .search .locate span{display:none}
+ .locate svg{margin:0 auto}
+}
