@@ -1,3 +1,8 @@
+## 0.4.7
+
+- Tooltip im 14-Tage-Temperaturtrend angepasst: "Best Match Tmin/Tmax" statt Minimum/Maximum
+- ENS-Mittel im Tooltip getrennt für Tmin und Tmax ausgewiesen
+
 ## 0.4.6
 
 - Hazard-Schwellen überarbeitet: farbige Abstufung orientiert an DWD, Meteoalarm und NWS
