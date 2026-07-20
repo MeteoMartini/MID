@@ -1,10 +1,10 @@
-# MID Daten-, Warnungs- und Radarproxy v0.7.15
+# MID Daten-, Warnungs- und Radarproxy v0.7.16
 
 Der Cloudflare Worker stellt browserkompatibel Stationsdaten, amtliche Warnungen und die standortbezogene Radar-Nowcast-Auswertung bereit. Ein zweiter Worker ist nicht erforderlich.
 
-## Kompatibilität v0.7.15
+## Kompatibilität v0.7.16
 
-Der Worker aktiviert DWD-RV nur noch bei einem auf Deutschland aufgelösten Ländercode. Außerhalb der bestätigten DWD-Abdeckung werden OPERA/ORD und RainViewer verwendet. Favoriten und Berg-/Skimodus liegen im Frontend.
+Der Radar-, Warnungs- und Stationsumfang bleibt gegenüber v0.7.15 unverändert. Standortverfolgung, gruppierte Favoriten und die Aktivierung des Berg-/Skimodus je Favorit werden vollständig im Frontend verwaltet. DWD-RV wird weiterhin nur bei bestätigter Deutschland-Abdeckung verwendet; sonst greifen OPERA/ORD und RainViewer.
 
 ## Enthaltene Dienste
 
@@ -60,7 +60,7 @@ Beispielantwort:
 ```json
 {
   "ok": true,
-  "version": "0.7.15",
+  "version": "0.7.16",
   "services": ["stations", "alerts", "hyperlocal-networks", "radar-nowcast"],
   "providers": {
     "NOAA AviationWeather": true,

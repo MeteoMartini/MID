@@ -830,3 +830,66 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 @media(max-width:1050px){.mountain-indicators{grid-template-columns:repeat(3,minmax(0,1fr))}.mountain-timeline{grid-template-columns:repeat(6,112px)}}
 @media(max-width:700px){.favorite-modal-backdrop{padding:0}.favorite-modal{width:100%;height:100%;max-height:none;border-radius:0}.favorite-manager-actions{flex-wrap:wrap}.favorite-manager-actions small{width:100%;margin:0;text-align:left}.favorite-manager-list{padding:10px}.favorite-manager-list>article{grid-template-columns:30px minmax(0,1fr)}.favorite-row-actions{grid-column:2;display:flex}.favorite-fields{grid-template-columns:1fr}.favorite-fields>small,.favorite-fields details{grid-column:1}.favorite-rules{grid-template-columns:1fr}.mountain-levels{grid-template-columns:1fr}.mountain-indicators{grid-template-columns:repeat(2,minmax(0,1fr))}.mountain-links{align-items:flex-start;flex-direction:column}.mountain-controls>small{width:100%;margin:0}}
 @media(max-width:520px){.favorite-strip{margin-top:-8px}.favorite-strip>div button{padding:7px 9px}.favorite-strip-manage{width:38px;flex-basis:38px}.mountain-controls label input{width:112px}.mountain-indicators{grid-template-columns:1fr 1fr}.mountain-indicators article{padding:8px}.mountain-timeline{grid-template-columns:repeat(6,104px)}}
+
+/* v0.7.16 – Standort als erster Schnellzugriff, gruppierte Favoriten und Ski-Konfiguration im Favoritenmenü */
+.search-stack{min-width:0}
+.header-favorites{margin:8px 0 0;padding-top:7px;border-top:1px solid var(--border)}
+.favorite-strip-groups{align-items:flex-end!important;gap:10px!important;padding-bottom:2px!important}
+.favorite-group{display:grid;flex:0 0 auto;gap:3px;min-width:max-content}
+.favorite-group>small{padding-left:3px;color:var(--muted);font-size:7px;font-weight:850;letter-spacing:.08em;line-height:1;text-transform:uppercase}
+.favorite-group>div{display:flex;gap:5px}
+.header-favorites .favorite-group button{position:relative;padding:6px 9px;border-radius:11px}
+.header-favorites .favorite-group button span{font-size:11px}
+.header-favorites .favorite-group button small{max-width:135px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:8px}
+.header-favorites .favorite-group button em{position:absolute;top:-5px;right:-4px;display:grid;width:18px;height:18px;place-items:center;border:1px solid var(--border);border-radius:999px;background:var(--surface);color:var(--accent);font-style:normal}
+.header-favorites .tracked-location button svg{color:var(--primary)}
+.header-favorites .tracked-location button b{color:var(--primary);background:color-mix(in srgb,var(--primary) 12%,transparent)}
+.header-favorites .favorite-strip-manage{width:38px;flex-basis:38px;border-radius:11px}
+.current-location-label{color:var(--primary)}
+.favorite-result-location{color:var(--primary)}
+.search-favorite-group+.search-favorite-group{border-top:1px solid var(--border)}
+.search .poi-kind.mountain{color:#6ec8ff}
+
+.favorite-location-option{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:13px 20px;border-bottom:1px solid var(--border);background:linear-gradient(145deg,color-mix(in srgb,var(--primary) 9%,var(--s2)),var(--s2))}
+.favorite-location-option>div{display:flex;align-items:flex-start;gap:10px;min-width:0}
+.favorite-location-option>div>svg{flex:0 0 auto;margin-top:2px;color:var(--primary)}
+.favorite-location-option strong,.favorite-location-option small{display:block}
+.favorite-location-option strong{font-size:12px}
+.favorite-location-option small{margin-top:2px;color:var(--muted);font-size:10px;line-height:1.4}
+.favorite-switch{position:relative;display:block;width:46px;height:26px;flex:0 0 46px}
+.favorite-switch input{position:absolute;opacity:0;pointer-events:none}
+.favorite-switch span{position:absolute;inset:0;border:1px solid var(--border);border-radius:999px;background:var(--surface);transition:.18s ease}
+.favorite-switch span:after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:var(--muted);transition:.18s ease}
+.favorite-switch input:checked+span{border-color:color-mix(in srgb,var(--primary) 60%,var(--border));background:color-mix(in srgb,var(--primary) 22%,var(--surface))}
+.favorite-switch input:checked+span:after{transform:translateX(20px);background:var(--primary)}
+.favorite-switch input:focus-visible+span{outline:2px solid var(--primary);outline-offset:3px}
+
+.favorite-mountain-settings summary{color:var(--accent)!important}
+.favorite-mountain-toggle{display:flex!important;align-items:center;gap:9px;margin-top:9px;padding:8px 10px;border:1px solid var(--border);border-radius:11px;background:var(--surface);color:var(--text)!important;font-size:10px!important;text-transform:none!important;letter-spacing:0!important}
+.favorite-mountain-toggle input{width:auto;flex:0 0 auto}
+.favorite-mountain-toggle strong,.favorite-mountain-toggle small{display:block}
+.favorite-mountain-toggle small{margin-top:2px;color:var(--muted);font-size:8px}
+.favorite-mountain-heights{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}
+.favorite-mountain-heights label{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"label label" "input unit";align-items:center;gap:4px;color:var(--muted);font-size:8px;font-weight:850;letter-spacing:.05em;text-transform:uppercase}
+.favorite-mountain-heights input{grid-area:input}
+.favorite-mountain-heights b{grid-area:unit;color:var(--muted);font-size:9px}
+.mountain-favorite-note{display:inline-flex!important;align-items:center;gap:5px;align-self:center;color:#e2a91f!important;font-size:9px!important;letter-spacing:0!important;text-transform:none!important}
+
+@media(max-width:850px){
+ .search-stack{grid-area:search;min-width:0}
+ .header-favorites{margin-top:7px}
+}
+@media(max-width:700px){
+ .favorite-location-option{padding:12px 14px}
+ .favorite-mountain-heights{grid-template-columns:1fr}
+}
+@media(max-width:520px){
+ .header-favorites{margin-top:6px;padding-top:5px}
+ .favorite-strip-groups{gap:7px!important}
+ .header-favorites .favorite-group button{padding:6px 8px}
+ .favorite-group>small{font-size:6px}
+ .favorite-location-option small{font-size:9px}
+ .mountain-favorite-note{max-width:125px;text-align:right}
+}
+@media(max-width:850px){.search-stack{grid-column:1/-1;grid-row:2}}
+@media(max-width:520px){.search-stack{grid-area:search;grid-column:auto;grid-row:auto}}
