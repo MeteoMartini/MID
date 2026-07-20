@@ -675,3 +675,21 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
  .official-message{padding:0 11px 11px 27px}
  .official-message p{font-size:12px}
 }
+
+/* v0.7.0 hyperlocal station blend and interactive climate/ENS trend legend */
+.trend-combined{height:350px}
+.trend-legend{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px 12px;color:var(--muted);font-size:11px}
+.trend-legend span,.trend-legend button{display:inline-flex;align-items:center;gap:6px;padding:3px 2px;border:0;background:transparent;color:inherit;white-space:nowrap}
+.trend-legend button{cursor:pointer}
+.trend-legend button.inactive{opacity:.36;text-decoration:line-through}
+.trend-legend i{display:inline-block;flex:0 0 auto}
+.trend-legend i.area{width:16px;height:9px;border-radius:3px}
+.trend-legend i.area.max{background:rgba(255,132,95,.35);border:1px solid rgba(255,132,95,.55)}
+.trend-legend i.area.min{background:rgba(83,169,255,.34);border:1px solid rgba(83,169,255,.58)}
+.trend-legend i.line{width:19px;height:0;border-top:3px solid}
+.trend-legend i.best-max{border-color:#ff6a37}
+.trend-legend i.best-min{border-color:#248dff}
+.trend-legend i.ens-max{border-color:#d89055;border-top-width:2px;border-top-style:dashed}
+.trend-legend i.climate{border-color:#8b6321;border-top-width:2px;border-top-style:dotted}
+:root[data-theme=dark] .trend-legend i.climate{border-color:#d4a552}
+@media(max-width:760px){.trend-combined{height:390px}.trend-legend{justify-content:flex-start;gap:6px 9px;font-size:10px}}

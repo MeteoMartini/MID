@@ -5,7 +5,8 @@ export type Hour={time:string;temperature:number;apparent:number;humidity:number
 export type Minute15={time:string;precipitation:number;rain:number;showers:number;snowfall:number;probability:number;code:number};
 export type Day={date:string;code:number;max:number;min:number;precipitation:number;probability:number;wind:number;gust:number;direction:number;uvMax:number};
 export type EnsembleDay={date:string;maxMean:number;maxLow:number;maxHigh:number;minMean:number;minLow:number;minHigh:number;precipitationMean:number;precipitationLow:number;precipitationHigh:number;precipitationProbability:number;modelCount:number;memberCount:number};
-export type Station={name:string;provider?:string;stationId?:string;distance?:number;height?:number;timestamp?:string;temperature?:number;humidity?:number;dewPoint?:number;pressure?:number;windSpeed?:number;windDirection?:number;windGust?:number;windUnit?:'kt'|'kmh';cloudCover?:number;precipitation?:number};
+export type ClimateDay={date:string;maxMean:number;minMean:number;years:number};
+export type Station={name:string;provider?:string;stationId?:string;distance?:number;height?:number;timestamp?:string;temperature?:number;humidity?:number;dewPoint?:number;pressure?:number;windSpeed?:number;windDirection?:number;windGust?:number;windUnit?:'kt'|'kmh';cloudCover?:number;precipitation?:number;stationCount?:number;sourceProviders?:string[];blended?:boolean;temperatureSpread?:number};
 export type OfficialAlertLevel='yellow'|'orange'|'red'|'purple'|'unknown';
 export type OfficialAlert={id:string;headline:string;description:string;instruction?:string;level:OfficialAlertLevel;severity?:string;event?:string;source:string;area?:string;effective?:string;onset?:string;expires?:string;url?:string};
 
@@ -120,22 +121,47 @@ function parseMetarRows(d:any){return(Array.isArray(d)?d:d?.data??d?.metars??d?.
 function stationFitScore(distance:number|undefined,height:number|undefined,targetElevation:number|undefined,providerOffset=0,timestamp?:string){
  const dist=distance??999999,terrain=Number(targetElevation??0)>=700,unknownHeight=height===undefined||!Number.isFinite(height),heightDiff=unknownHeight?0:Math.abs(Number(height)-Number(targetElevation??height)),heightPenalty=unknownHeight?(terrain?28000:9000):heightDiff*(terrain?55:28),extremePenalty=!unknownHeight&&terrain&&heightDiff>900?120000:0,age=timestamp?Math.max(0,Date.now()-new Date(timestamp).getTime()):7200000,agePenalty=Math.min(140000,age/32);return dist+heightPenalty+extremePenalty+agePenalty+providerOffset;
 }
-function metarToStation(rows:any[],lat:number,lon:number,elevation?:number):Station|null{
- const candidates=rows.map(r=>{
-  if(Number(r.qcStatus)===0)return null;
-  const rlat=Number(r.lat??r.latitude),rlon=Number(r.lon??r.longitude);if(!Number.isFinite(rlat)||!Number.isFinite(rlon))return null;
-  const distance=haversine(lat,lon,rlat,rlon),heightRaw=r.elev??r.elevation??r.elevation_m,height=heightRaw===null||heightRaw===undefined?undefined:Number(heightRaw),timestamp=r.reportTime??r.obsTime??r.timestamp,provider=String(r.provider??''),providerOffset=provider.includes('Weather Underground')?-9000:0;
-  return{r,distance,score:stationFitScore(distance,Number.isFinite(height as number)?height:undefined,elevation,providerOffset,timestamp),height:Number.isFinite(height as number)?height:undefined};
- }).filter(Boolean).sort((a:any,b:any)=>a.score-b.score);
- const c:any=candidates[0];if(!c)return null;
- const r=c.r,num=(v:any)=>v===null||v===undefined||v===''?undefined:(Number.isFinite(Number(v))?Number(v):undefined),temperature=num(r.temp??r.temperature),dewPoint=num(r.dewp??r.dewPoint),rawPressure=num(r.altim??r.pressureMsl??r.pressure),pressure=rawPressure!==undefined&&rawPressure<100?rawPressure*33.8639:rawPressure,humidity=num(r.relativeHumidity??r.humidity)??(temperature!==undefined&&dewPoint!==undefined?Math.min(100,100*Math.exp((17.625*dewPoint)/(243.04+dewPoint)-(17.625*temperature)/(243.04+temperature))):undefined);
- return{name:r.name||r.site||r.station||r.icaoId||r.stationId||'WMO/PWS-Station',provider:r.provider||'METAR / WMO',stationId:r.icaoId||r.wmoId||r.stationId||r.id,distance:c.distance,height:c.height,timestamp:r.reportTime||r.obsTime||r.timestamp,temperature,dewPoint,humidity,pressure,windSpeed:num(r.wspd??r.windSpeed),windDirection:num(r.wdir??r.windDirection),windGust:num(r.wgst??r.windGust),windUnit:r.windUnit==='kmh'?'kmh':'kt',cloudCover:num(r.cloudCover),precipitation:num(r.precipitation??r.precipTotal)};
+function stationProviderWeight(provider=''){
+ const p=provider.toLowerCase();
+ if(p.includes('geosphere')||p.includes('dwd-wmo')||p.includes('bright sky'))return 1.35;
+ if(p.includes('metar')||p.includes('aviationweather'))return 1.18;
+ if(p.includes('synoptic'))return 1.12;
+ if(p.includes('xweather'))return 1.03;
+ if(p.includes('weather underground'))return .98;
+ if(p.includes('netatmo'))return .92;
+ return 1;
 }
+function isPrivateNetwork(provider=''){const p=provider.toLowerCase();return p.includes('weather underground')||p.includes('netatmo')||p.includes('synoptic')||p.includes('xweather')||p.includes('pws')}
+function stationAgeMinutes(timestamp?:string){if(!timestamp)return 120;const t=new Date(timestamp).getTime();return Number.isFinite(t)?Math.max(0,(Date.now()-t)/60000):120}
+function median(values:number[]){const a=values.filter(Number.isFinite).sort((x,y)=>x-y);if(!a.length)return NaN;const i=Math.floor(a.length/2);return a.length%2?a[i]:(a[i-1]+a[i])/2}
+function robustStationValues(rows:{value:number;weight:number}[],absoluteLimit:number){if(rows.length<3)return rows;const med=median(rows.map(x=>x.value)),mad=median(rows.map(x=>Math.abs(x.value-med))),limit=Math.max(absoluteLimit,(Number.isFinite(mad)?mad:0)*4.45);const filtered=rows.filter(x=>Math.abs(x.value-med)<=limit);return filtered.length>=Math.max(2,Math.ceil(rows.length*.55))?filtered:rows}
+function stationWeightedMean(rows:{value:number;weight:number}[],absoluteLimit:number){const a=robustStationValues(rows.filter(x=>Number.isFinite(x.value)&&x.weight>0),absoluteLimit),sum=a.reduce((s,x)=>s+x.weight,0);return sum?a.reduce((s,x)=>s+x.value*x.weight,0)/sum:undefined}
+function stationCircularMean(rows:{value:number;weight:number}[]){const a=rows.filter(x=>Number.isFinite(x.value)&&x.weight>0);if(!a.length)return undefined;const x=a.reduce((s,r)=>s+Math.cos(r.value*Math.PI/180)*r.weight,0),y=a.reduce((s,r)=>s+Math.sin(r.value*Math.PI/180)*r.weight,0);return(Math.atan2(y,x)*180/Math.PI+360)%360}
+function stationRowWeight(s:Station,targetElevation?:number){const distanceKm=Math.max(0,(s.distance??80000)/1000),heightDiff=Number.isFinite(s.height)&&Number.isFinite(targetElevation)?Math.abs(Number(s.height)-Number(targetElevation)):180,age=stationAgeMinutes(s.timestamp),count=Math.sqrt(Math.max(1,s.stationCount??1));return stationProviderWeight(s.provider)*count/(1+distanceKm/14)**2*Math.exp(-heightDiff/420)*Math.exp(-age/125)}
+function robustBlendStations(input:Station[],targetElevation?:number):Station|null{
+ const fresh=input.filter(s=>stationAgeMinutes(s.timestamp)<=180&&Number.isFinite(s.temperature));if(!fresh.length)return null;
+ const terrain=Number(targetElevation??0)>=700;
+ const suitable=fresh.filter(s=>{const pws=isPrivateNetwork(s.provider),maxDistance=pws?55_000:160_000,maxHeight=terrain?(pws?500:850):(pws?320:600);return(s.distance??999999)<=maxDistance&&(!Number.isFinite(s.height)||!Number.isFinite(targetElevation)||Math.abs(Number(s.height)-Number(targetElevation))<=maxHeight)});
+ const candidates=(suitable.length?suitable:fresh).sort((a,b)=>stationFitScore(a.distance,a.height,targetElevation,isPrivateNetwork(a.provider)?-9000:0,a.timestamp)-stationFitScore(b.distance,b.height,targetElevation,isPrivateNetwork(b.provider)?-9000:0,b.timestamp)).slice(0,12);
+ if(candidates.length===1)return candidates[0];
+ const weighted=candidates.map(s=>({s,w:stationRowWeight(s,targetElevation)})).filter(x=>x.w>0),field=(key:keyof Station,limit:number)=>stationWeightedMean(weighted.map(x=>({value:Number(x.s[key]),weight:x.w})),limit),temperature=field('temperature',3.2);
+ if(temperature===undefined)return candidates[0];
+ const providers=[...new Set(candidates.flatMap(s=>s.sourceProviders?.length?s.sourceProviders:[s.provider||'Messstation']))],stationCount=candidates.reduce((sum,s)=>sum+Math.max(1,s.stationCount??1),0),tempValues=candidates.map(s=>Number(s.temperature)).filter(Number.isFinite),tempSpread=tempValues.length>1?Math.sqrt(tempValues.reduce((sum,v)=>sum+(v-temperature)**2,0)/tempValues.length):0;
+ const distances=weighted.map(x=>({value:Number(x.s.distance),weight:x.w})),heights=weighted.map(x=>({value:Number(x.s.height),weight:x.w})),latest=candidates.map(s=>s.timestamp).filter(Boolean).sort().at(-1),windDirections=weighted.map(x=>({value:Number(x.s.windDirection),weight:x.w}));
+ return{name:`Robustes Mittel aus ${stationCount} Stationen`,provider:'Lokales Stationsmittel',stationId:candidates.map(x=>x.stationId).filter(Boolean).slice(0,4).join(','),distance:stationWeightedMean(distances,35000),height:stationWeightedMean(heights,650),timestamp:latest,temperature,humidity:field('humidity',18),dewPoint:field('dewPoint',4.5),pressure:field('pressure',7),windSpeed:field('windSpeed',12),windDirection:stationCircularMean(windDirections),windGust:field('windGust',18),windUnit:'kt',cloudCover:field('cloudCover',38),precipitation:field('precipitation',8),stationCount,sourceProviders:providers,blended:true,temperatureSpread:tempSpread};
+}
+function rowToStation(r:any,lat:number,lon:number):Station|null{
+ if(Number(r.qcStatus)===0)return null;
+ const rlat=Number(r.lat??r.latitude),rlon=Number(r.lon??r.longitude);if(!Number.isFinite(rlat)||!Number.isFinite(rlon))return null;
+ const distance=haversine(lat,lon,rlat,rlon),heightRaw=r.elev??r.elevation??r.elevation_m,height=heightRaw===null||heightRaw===undefined?undefined:Number(heightRaw),num=(v:any)=>v===null||v===undefined||v===''?undefined:(Number.isFinite(Number(v))?Number(v):undefined),temperature=num(r.temp??r.temperature),dewPoint=num(r.dewp??r.dewPoint),rawPressure=num(r.altim??r.pressureMsl??r.pressure),pressure=rawPressure!==undefined&&rawPressure<100?rawPressure*33.8639:rawPressure,humidity=num(r.relativeHumidity??r.humidity)??(temperature!==undefined&&dewPoint!==undefined?Math.min(100,100*Math.exp((17.625*dewPoint)/(243.04+dewPoint)-(17.625*temperature)/(243.04+temperature))):undefined),windUnit=r.windUnit==='kmh'?'kmh':'kt',windSpeedRaw=num(r.wspd??r.windSpeed),windGustRaw=num(r.wgst??r.windGust);
+ return{name:r.name||r.site||r.station||r.icaoId||r.stationId||'WMO/PWS-Station',provider:r.provider||'METAR / WMO',stationId:r.icaoId||r.wmoId||r.stationId||r.id,distance,height:Number.isFinite(height as number)?height:undefined,timestamp:r.reportTime||r.obsTime||r.timestamp,temperature,dewPoint,humidity,pressure,windSpeed:windSpeedRaw===undefined?undefined:windUnit==='kmh'?windSpeedRaw/1.852:windSpeedRaw,windDirection:num(r.wdir??r.windDirection),windGust:windGustRaw===undefined?undefined:windUnit==='kmh'?windGustRaw/1.852:windGustRaw,windUnit:'kt',cloudCover:num(r.cloudCover),precipitation:num(r.precipitation??r.precipTotal)};
+}
+function parseMetarStations(rows:any[],lat:number,lon:number){return rows.map(r=>rowToStation(r,lat,lon)).filter(Boolean) as Station[]}
 async function metarStation(lat:number,lon:number,elevation?:number,signal?:AbortSignal):Promise<Station|null>{
  const dLat=1.15,dLon=1.15/Math.max(.25,Math.cos(lat*Math.PI/180)),bbox=[lon-dLon,lat-dLat,lon+dLon,lat+dLat].map(x=>x.toFixed(3)).join(','),configured=((import.meta as any).env?.VITE_METAR_PROXY_URL as string|undefined)||localStorage.getItem('metarProxyUrl')||'',urls:string[]=[];
  if(configured){const u=new URL(configured);u.searchParams.set('lat',String(lat));u.searchParams.set('lon',String(lon));u.searchParams.set('radius_km','140');urls.push(u.toString())}
  urls.push(`https://aviationweather.gov/api/data/metar?format=json&hoursBeforeNow=2&bbox=${encodeURIComponent(bbox)}`);
- for(const url of urls){try{const d=await j<any>(url,signal),s=metarToStation(parseMetarRows(d),lat,lon,elevation);if(s)return s}catch{}}
+ for(const url of urls){try{const d=await j<any>(url,signal),stations=parseMetarStations(parseMetarRows(d),lat,lon),s=robustBlendStations(stations,elevation);if(s)return s}catch{}}
  return null;
 }
 export async function station(lat:number,lon:number,country?:string,elevation?:number,signal?:AbortSignal):Promise<Station|null>{
@@ -144,7 +170,7 @@ export async function station(lat:number,lon:number,country?:string,elevation?:n
  if(inGermany)tasks.push(brightSkyStation(lat,lon,elevation,signal));
  const results=(await Promise.allSettled(tasks)).filter((x):x is PromiseFulfilledResult<Station|null>=>x.status==='fulfilled').map(x=>x.value).filter(Boolean) as Station[];
  if(!results.length)return null;
- return results.sort((a,b)=>stationFitScore(a.distance,a.height,elevation,a.provider?.includes('GeoSphere')?-18000:a.provider?.includes('Weather Underground')?-9000:0,a.timestamp)-stationFitScore(b.distance,b.height,elevation,b.provider?.includes('GeoSphere')?-18000:b.provider?.includes('Weather Underground')?-9000:0,b.timestamp))[0];
+ return robustBlendStations(results,elevation)??results.sort((a,b)=>stationFitScore(a.distance,a.height,elevation,a.provider?.includes('GeoSphere')?-18000:isPrivateNetwork(a.provider)?-9000:0,a.timestamp)-stationFitScore(b.distance,b.height,elevation,b.provider?.includes('GeoSphere')?-18000:isPrivateNetwork(b.provider)?-9000:0,b.timestamp))[0];
 }
 
 export async function officialWarnings(lat:number,lon:number,country?:string,name?:string,region?:string,district?:string,signal?:AbortSignal):Promise<{alerts:OfficialAlert[];provider?:string;coverage?:string}> {
@@ -287,6 +313,22 @@ export async function ensembles(lat:number,lon:number,signal?:AbortSignal){
  if(days.length>=7)return{days:days.slice(0,14),models:results.map(x=>x.model.label)};
  const fallback=await meanFallback(lat,lon,signal);
  return fallback.days.length?fallback:{days,models:results.map(x=>x.model.label)};
+}
+
+const CLIMATE_CACHE_PREFIX='mid:climatology:1991-2020:';
+type ClimateCache={created:number;values:Record<string,{max:number;min:number;years:number}>};
+function climateCacheKey(lat:number,lon:number,elevation?:number){return`${CLIMATE_CACHE_PREFIX}${(Math.round(lat*20)/20).toFixed(2)}:${(Math.round(lon*20)/20).toFixed(2)}:${Math.round(Number(elevation??0)/100)*100}`}
+function climateFromCache(key:string){try{const raw=localStorage.getItem(key);if(!raw)return null;const parsed=JSON.parse(raw) as ClimateCache;if(!parsed?.values||Date.now()-Number(parsed.created)>180*86400000)return null;return parsed}catch{return null}}
+function climateDateKey(date:string){return String(date).slice(5,10)}
+export async function climatology(lat:number,lon:number,elevation:number|undefined,dates:string[],signal?:AbortSignal):Promise<ClimateDay[]>{
+ const key=climateCacheKey(lat,lon,elevation);let cache=climateFromCache(key);
+ if(!cache){
+  const p=new URLSearchParams({latitude:String(lat),longitude:String(lon),start_date:'1991-01-01',end_date:'2020-12-31',daily:'temperature_2m_max,temperature_2m_min',timezone:'auto',models:'era5_land',cell_selection:'land'});if(Number.isFinite(elevation))p.set('elevation',String(elevation));
+  const data=await j<any>(`https://archive-api.open-meteo.com/v1/archive?${p}`,signal),times=(data.daily?.time??[]) as string[],max=(data.daily?.temperature_2m_max??[]) as number[],min=(data.daily?.temperature_2m_min??[]) as number[],buckets=new Map<string,{max:number[];min:number[]}>();
+  for(let i=0;i<times.length;i++){const k=climateDateKey(times[i]),hi=Number(max[i]),lo=Number(min[i]);if(!Number.isFinite(hi)||!Number.isFinite(lo))continue;const row=buckets.get(k)??{max:[],min:[]};row.max.push(hi);row.min.push(lo);buckets.set(k,row)}
+  const values:ClimateCache['values']={};buckets.forEach((row,k)=>{if(row.max.length>=20&&row.min.length>=20)values[k]={max:row.max.reduce((a,b)=>a+b,0)/row.max.length,min:row.min.reduce((a,b)=>a+b,0)/row.min.length,years:Math.min(row.max.length,row.min.length)}});if(!values['02-29']&&values['02-28']&&values['03-01'])values['02-29']={max:(values['02-28'].max+values['03-01'].max)/2,min:(values['02-28'].min+values['03-01'].min)/2,years:Math.min(values['02-28'].years,values['03-01'].years)};cache={created:Date.now(),values};try{localStorage.setItem(key,JSON.stringify(cache))}catch{}
+ }
+ return dates.map(date=>{const v=cache!.values[climateDateKey(date)];return v?{date,maxMean:v.max,minMean:v.min,years:v.years}:null}).filter(Boolean) as ClimateDay[];
 }
 
 export function label(c:number){const m:Record<number,string>={0:'Klar',1:'Überwiegend klar',2:'Teilweise bewölkt',3:'Bedeckt',45:'Nebel',48:'Reifnebel',51:'Leichter Sprühregen',53:'Sprühregen',55:'Starker Sprühregen',56:'Leichter gefrierender Sprühregen',57:'Starker gefrierender Sprühregen',61:'Leichter Regen',63:'Regen',65:'Starker Regen',66:'Leichter gefrierender Regen',67:'Starker gefrierender Regen',68:'Leichter Schneeregen',69:'Schneeregen',71:'Leichter Schneefall',73:'Schneefall',75:'Starker Schneefall',77:'Schneegriesel',80:'Leichte Regenschauer',81:'Regenschauer',82:'Starke Regenschauer',83:'Leichte Schneeregenschauer',84:'Schneeregenschauer',85:'Leichte Schneeschauer',86:'Starke Schneeschauer',95:'Gewitter',96:'Gewitter mit Hagel',97:'Starkes Gewitter',99:'Starkes Gewitter mit Hagel'};return m[c]??'Wechselhaft'}

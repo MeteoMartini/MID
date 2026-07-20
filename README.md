@@ -1,22 +1,27 @@
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.6.2**
+**Aktuelle Version: v0.7.0**
 
-MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React und TypeScript. Es verbindet Open-Meteo Best Match mit Ensemble-Prognosen, Stationsmessungen, Radar, Luftqualität, Gefahrenindikatoren und exportierbaren Wetterwidgets.
+MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React, TypeScript und Open-Meteo. Es verbindet Vorhersagen, Ensemblemodelle, aktuelle Stationsmessungen, amtliche Warnungen, Radar, Luftqualität und exportierbare Wetterwidgets.
+
+## Neuerungen in v0.7.0
+
+- aktuelle Wetterdaten können aus mehreren amtlichen und hyperlokalen Stationsnetzen zusammengeführt werden
+- robuste, entfernungs-, höhen-, aktualitäts- und qualitätsgewichtete Mittelung mehrerer Stationen
+- automatische Ausreißerunterdrückung statt unkritischer Übernahme einer einzelnen privaten Wetterstation
+- ENS-Mittel im 14-Tage-Temperaturdiagramm direkt über die Legende ein- und ausblendbar
+- klimatologisches Mittel 1991–2020 für tägliche Tmin und Tmax ergänzt und ebenfalls über die Legende schaltbar
 
 ## Funktionen
 
 - aktuelles Wetter einschließlich gefühlter Temperatur und Bewölkung in Achteln (n/8)
-- Abgleich mit der passendsten verfügbaren WMO-/METAR- oder DWD-WMO-Station
-- kompakte 7-Tage-Übersicht mit gewichtetem Tagescharakter, Temperaturbereich, Wind, Böen, Niederschlag und Tages-Hazards
-- interaktive stündliche Detailansicht: Diagramm und Stundenkacheln sind anklickbar
-- stündliche Wetterpiktogramme in der Detailansicht, sofern sinnvoll ohne Überlappung darstellbar
-- standardmäßig vorausgewählte aktuelle Stunde in der Detailansicht
-- sichtbare 14-Tage-Ensemble-Übersicht mit Best Match, P10–P90 und Prognosekonsistenz
-- gewichtete Nutzung der am Standort verfügbaren Open-Meteo-Ensemblemodelle
-- OpenStreetMap-Grundkarte mit RainViewer-Radar
-- Luftqualität, Dark Mode sowie Widget-/PNG-Export im MID-Design
-- optional einblendbare Hazards im Widget und PNG-Export
+- Abgleich mit geeigneten amtlichen und optionalen hyperlokalen Messstationen
+- kompakte 7-Tage-Übersicht mit gewichtetem Tagescharakter, Tmin/Tmax, Wind, Böen, Niederschlag und Hazards
+- interaktive stündliche Detailansicht mit auswählbarer Stunde
+- 14-Tage-Ensembleübersicht mit Best Match, P10–P90, ENS-Mittel, Konsistenz und Klimamittel
+- amtliche Warnungen: Deutschland über DWD, international über CAP/MeteoAlarm beziehungsweise NWS
+- OpenStreetMap-Karte mit DWD-/RainViewer-Radar
+- Luftqualität, Dark Mode und Widget-/PNG-Export
 - responsive Darstellung für Smartphone, Tablet und Desktop
 
 ## Entwicklung
@@ -34,240 +39,144 @@ npm run build
 
 ## GitHub Pages
 
-Unter **Settings → Pages → Source** muss **GitHub Actions** ausgewählt sein. Der vorhandene Deployment-Workflow baut den Vite-Stand aus dem Branch `main`.
+Unter **Settings → Pages → Source** muss **GitHub Actions** ausgewählt sein. Der Workflow in `.github/workflows/deploy.yml` baut den Branch `main`.
 
-## Weltweiter WMO-/METAR-Abgleich
-
-Für Stationsdaten und Warnungen ist **nur ein Cloudflare Worker** erforderlich. AviationWeather.gov erlaubt derzeit keine direkten Cross-Origin-Abfragen aus einer GitHub-Pages-Webseite; deshalb vermittelt `worker/metar-proxy.js` sowohl die weltweiten METAR-Abrufe als auch die amtlichen Warnungsfeeds.
-
-Nach dessen Bereitstellung wird dieselbe öffentliche Worker-Adresse beim Build gesetzt:
+Die öffentliche Worker-Adresse wird in GitHub unter **Settings → Secrets and variables → Actions → Variables** hinterlegt:
 
 ```text
 VITE_METAR_PROXY_URL=https://DEIN-WORKER.workers.dev/
-VITE_ALERT_PROXY_URL=https://DEIN-WORKER.workers.dev/
 ```
 
-MID v0.6.2 verwendet beim NOAA-AviationWeather-Endpunkt den aktuellen Parameter `hoursBeforeNow` und einen geografischen Begrenzungsrahmen. Dadurch werden außerhalb Deutschlands wieder nahe, aktuelle METAR-Stationen gefunden. Die Auswahl bewertet Entfernung, Höhenunterschied und Aktualität. In Deutschland wird zusätzlich Bright Sky/DWD-WMO geprüft, in Österreich GeoSphere Austria/TAWES und optional weltweit Weather Underground PWS über einen lizenzierten API-Zugang.
+Eine separate Warnungsadresse ist nicht nötig. Optional kann dieselbe Adresse zusätzlich als `VITE_ALERT_PROXY_URL` gesetzt werden.
 
-Ein allgemein frei zugänglicher weltweiter SYNOP-Livedienst ist derzeit nicht eingebaut. Außerhalb Deutschlands und Österreichs ist daher METAR die reguläre offene Stationsquelle; Orte ohne hinreichend nahe oder aktuelle METAR-Station fallen auf die Open-Meteo-Best-Match-Werte zurück.
+## Ein gemeinsamer Cloudflare Worker
 
-## Amtliche Wetterwarnungen
+MID benötigt weiterhin nur **einen** Cloudflare Worker. `worker/metar-proxy.js` übernimmt:
 
-MID v0.6.2 nutzt in Deutschland primär den amtlichen DWD-WFS-Layer `dwd:Warnungen_Gemeinden`. Die Warnpolygone werden auf den exakten Standort geprüft. Falls der DWD-WFS vorübergehend nicht erreichbar ist, wird automatisch auf den DWD-CAP-Atom-Feed zurückgegriffen.
+- weltweite NOAA-AviationWeather-METAR-Daten
+- optionale hyperlokale Beobachtungsnetze
+- deutsche DWD-Warnungen
+- europäische MeteoAlarm-/CAP-Warnungen
+- NWS-Warnungen für die USA
 
-Für andere unterstützte europäische Länder verwendet MID die aktiv gepflegten MeteoAlarm-Atom-/CAP-Feeds. Länderbezeichnungen werden in ISO-Zweibuchstabencodes normalisiert; ältere lokal gespeicherte Orte werden beim Start migriert. Fehlt der Ländercode dennoch, ermittelt der Worker ihn über Orts-/Regionsangaben und anschließend per Reverse-Geocoding. Der CAP-Parser verarbeitet sowohl eingebettete beziehungsweise XML-maskierte Meldungen als auch relative Verknüpfungen auf einzelne CAP-Dokumente.
+Nach einer Aktualisierung von `worker/metar-proxy.js` muss der Code im vorhandenen Cloudflare Worker ersetzt und erneut mit **Deploy** bereitgestellt werden.
 
-Der Worker kann nach der Bereitstellung so geprüft werden:
+Gesundheitstest:
 
 ```text
 https://DEIN-WORKER.workers.dev/?mode=health
 ```
 
-Für Niederkassel:
+Die Antwort nennt Version und aktivierte optionale Anbieter, ohne Zugangsdaten offenzulegen.
+
+## Aktuelle Stationsdaten und hyperlokale Netze
+
+MID nutzt je nach Standort und Konfiguration folgende Quellen:
+
+- **NOAA AviationWeather:** weltweite METAR-/Flugplatzbeobachtungen
+- **Bright Sky/DWD-WMO:** zusätzliche amtliche Beobachtungen in Deutschland
+- **GeoSphere Austria/TAWES:** aktuelle österreichische Stationsdaten
+- **Weather Underground / The Weather Company:** optionale PWS-Daten mit berechtigtem API-Schlüssel
+- **Netatmo:** optional öffentlich freigegebene Außenmodule über die offizielle API
+- **Synoptic Data:** optional Stationen aus Mesonet-/MesoWest-/MADIS-nahen Netzen einschließlich API-QC
+- **Xweather Observations:** optional globale Stations- und PWS-Beobachtungen mit QC-/Vertrauenswerten
+
+Es werden keine Anbieter-Webseiten gescrapt. Geschützte Quellen werden ausschließlich über offizielle APIs und nur mit selbst hinterlegten, dafür berechtigten Zugangsdaten abgefragt.
+
+### Robustes lokales Stationsmittel
+
+Der Worker liefert die verfügbaren Einzelstationen an MID. MID bewertet diese anschließend anhand von:
+
+- Entfernung zum Zielort
+- Höhendifferenz, in Bergregionen mit strengeren Grenzen
+- Alter der Messung
+- Anbieter- und QC-Qualität
+- Anzahl der zugrunde liegenden Stationen
+
+Ausreißer werden je Messgröße über Median und robuste Abweichungsgrenzen entfernt. Erst danach entsteht ein gewichtetes Mittel für Temperatur, Feuchte, Taupunkt, Druck, Wind und – soweit vorhanden – Niederschlag. Die Windrichtung wird zirkulär gemittelt, damit beispielsweise 359° und 1° korrekt als Nord und nicht als Süd behandelt werden.
+
+Sind zu wenige geeignete Stationen vorhanden, verwendet MID die bestgeeignete Einzelstation. Sind keine ausreichend aktuellen Messwerte verfügbar, bleibt Open-Meteo Best Match der Fallback.
+
+### Optionale Cloudflare-Secrets
+
+Alle folgenden Werte gehören in **Cloudflare → Worker → Settings → Variables and Secrets** und niemals in öffentliche `VITE_*`-Variablen:
+
+```text
+WEATHER_COM_API_KEY       # alternativ WU_API_KEY
+NETATMO_ACCESS_TOKEN
+SYNOPTIC_TOKEN
+XWEATHER_CLIENT_ID
+XWEATHER_CLIENT_SECRET
+```
+
+Ohne diese Secrets funktionieren METAR, Bright Sky/DWD und GeoSphere weiterhin. Die optionalen Netze werden dann einfach übersprungen.
+
+**Netatmo-Hinweis:** Der aktuelle Worker akzeptiert einen gültigen OAuth-Access-Token. Netatmo-Access-Tokens sind nicht als dauerhaftes statisches Secret gedacht und müssen entsprechend dem OAuth-Verfahren erneuert werden. MID speichert oder erschleicht keine Zugangsdaten und greift nur auf öffentlich freigegebene Außenmessungen zu.
+
+Stationsdiagnose, beispielsweise für Cagliari:
+
+```text
+https://DEIN-WORKER.workers.dev/?lat=39.2238&lon=9.1217&radius_km=140
+```
+
+Unter `diagnostics.sourceRows` ist sichtbar, welche Quellen Treffer geliefert haben. `providers` zeigt, welche optionalen Zugänge im Worker aktiviert sind.
+
+## 14-Tage-Diagramm und Klimamittel
+
+Im Diagramm **Temperaturtrend und Prognoseunsicherheit** sind folgende Darstellungen enthalten:
+
+- Best-Match-Tmin und -Tmax
+- gewichtete P10–P90-Spannen der Ensemblemodelle
+- ENS-Mittel für Tmin und Tmax
+- klimatologisches Mittel für Tmin und Tmax
+
+Die Legendenpunkte **ENS-Mittel** und **Klimamittel Tmin/Tmax** sind Schaltflächen. Ein Klick blendet die zugehörigen Linien ein oder aus; die Y-Achse passt sich an die sichtbaren Reihen an.
+
+Das Klimamittel wird standort- und höhenbezogen aus Open-Meteo ERA5-Land für die Referenzperiode **1991–2020** berechnet. Verwendet werden die Mittel der täglichen Höchst- und Tiefsttemperatur für den jeweiligen Kalendertag. Die auf 366 Kalendertage verdichteten Ergebnisse werden lokal für 180 Tage zwischengespeichert. Es handelt sich um Reanalyse-Klimatologie mit ungefähr 0,1° Rasterweite, nicht um ein Mittel einer einzelnen Ortsstation.
+
+## Amtliche Wetterwarnungen
+
+- **Deutschland:** DWD-WFS auf Gemeindeebene, DWD-CAP als Rückfallquelle
+- **Europa:** MeteoAlarm-Atom-/CAP-Feeds der nationalen Wetterdienste
+- **USA:** NOAA/National Weather Service Active Alerts
+
+MID zeigt zunächst nur die Überschriften. Der vollständige Meldungstext und vorhandene Handlungshinweise öffnen sich per Klick.
+
+Warnungstest für Niederkassel:
 
 ```text
 https://DEIN-WORKER.workers.dev/?mode=alerts&lat=50.82&lon=7.04&country=DE&name=Niederkassel&region=Nordrhein-Westfalen&language=de
 ```
 
-Für Cagliari:
+Warnungstest für Cagliari:
 
 ```text
 https://DEIN-WORKER.workers.dev/?mode=alerts&lat=39.2238&lon=9.1217&country=IT&name=Cagliari&region=Sardegna&language=de
 ```
 
-Die Cagliari-Antwort muss mindestens `"version": "0.6.2"`, `"countryCode": "IT"` und als Anbieter MeteoAlarm enthalten. Ob `"alerts"` gefüllt ist, hängt von den zum Abrufzeitpunkt tatsächlich aktiven CAP-Meldungen ab. Die frühere Meldung, für Italien sei kein Feed hinterlegt, darf nicht mehr erscheinen.
+Eine leere Liste `"alerts": []` kann korrekt sein, wenn aktuell keine standortbezogene amtliche Warnung aktiv ist. Fehler werden getrennt ausgewiesen.
 
 ## Datenquellen
 
-- Open-Meteo: Best Match, Ensemblemodelle, Luftqualität und Geocoding
-- Deutscher Wetterdienst: amtliche Warnungen über WFS auf Gemeindeebene; DWD-CAP als Rückfallquelle; DWD-Radar/Nowcast
-- MeteoAlarm: internationale Atom-/CAP-Warnungen der nationalen europäischen Wetterdienste
-- NOAA/NWS: amtliche Warnungen für die USA
+- Open-Meteo: Best Match, Ensemblemodelle, Geocoding, Luftqualität und ERA5-Land-Historie
+- Deutscher Wetterdienst: Warnungen, Radar/Nowcast und über Bright Sky zugängliche DWD-/WMO-Beobachtungen
+- GeoSphere Austria: TAWES-Beobachtungen
+- NOAA AviationWeather: METAR
+- MeteoAlarm und nationale Wetterdienste: internationale CAP-Warnungen
+- NOAA/NWS: US-Warnungen
+- optional The Weather Company/Weather Underground, Netatmo, Synoptic Data und Xweather
 - RainViewer: Radar außerhalb der DWD-Abdeckung
 - OpenStreetMap: Kartenbasis
-- Bright Sky: DWD-/WMO-Beobachtungen
-- NOAA AviationWeather: weltweite METAR-/Flugplatzbeobachtungen über den mitgelieferten Proxy
+- BigDataCloud: Reverse-Geocoding-Fallback
 
-Die Hazard-Anzeigen sind automatisch berechnete Indikatoren und keine amtlichen Warnungen.
+## Lizenz- und Nutzungshinweise
 
-
-## Changelog
-
-### v0.5.4
-
-- Bewölkung in den aktuellen Daten und im Stunden-Tooltip auf Achtel (n/8) umgestellt
-- Tageswettercharakter aus den stündlichen Best-Match-Daten neu gewichtet
-- kurze oder niedrig wahrscheinliche Niederschlagsereignisse bestimmen nicht mehr automatisch das Symbol und den Haupttext des gesamten Tages
-- Tagescharakter berücksichtigt Dauer, Niederschlagsmenge, Wahrscheinlichkeit, Tageszeit und Schwere des Wetterereignisses
-- schwache Einzelereignisse werden nur als sekundärer Hinweis ausgegeben, beispielsweise „abends Sprühregen möglich (30 %)“
-
-### v0.5.2
-
-- Niederschlagsarten meteorologisch anhand der WMO-Wettercodes sowie der Open-Meteo-Komponenten `rain`, `showers` und `snowfall` neu klassifiziert
-- Sprühregen wird nur noch bei den dafür vorgesehenen WMO-Codes 51, 53 und 55 verwendet
-- gefrierender Sprühregen, gefrierender Regen, Schneegriesel, Schneeregen, Schneeregenschauer und Gewitterniederschlag ergänzt
-- aktuelle Niederschlagswahrscheinlichkeit um 15-minütige Angabe von Niederschlagsart sowie voraussichtlichem Beginn und Ende erweitert
-- für Deutschland und angrenzende DWD-Radarabdeckung ist die Radarzeitleiste bis +60 Minuten über das offene DWD-RV-Nowcast nutzbar
-- außerhalb der DWD-Abdeckung werden RainViewer-Zukunftsframes genutzt, sofern die öffentliche Schnittstelle sie bereitstellt
-- README und Changelog aktualisiert
-
-### v0.5.1
-
-- Stunden-Navigation in der Detailansicht über Tagesgrenzen erweitert: 23:00 → nächster Tag 00:00 und 00:00 → vorheriger Tag 23:00
-- Bezeichnung der Niederschlagsart Drizzle projektweit auf „Sprühregen“ vereinheitlicht
-
-
-### v0.4.4
-
-- Header bereinigt: neben dem Logo wird nur noch die Versionsangabe angezeigt, damit „MID“ nicht doppelt erscheint
-- Detailansicht erweitert: zusätzliche Linie für die Niederschlagswahrscheinlichkeit sowie kompakte Legende für Temperatur, gefühlte Temperatur, Niederschlag und Regenwahrscheinlichkeit
-- Hazard-System auf vier Stufen erweitert (gelb, orange, rot, violett) und an gebräuchliche nationale/internationale Schwellen für UV, Wind/Böen, Starkregen, Hitze, Frost und Gewitter angelehnt
-- tägliche Hazard-Pills in 7-Tage-Ansicht und Widget entsprechend erweitert
-- README und Changelog aktualisiert
-
-### v0.4.3
-
-- Seiten-Titel auf „MID - Meteorological Information Dashboard“ vereinheitlicht
-- neues MID-Logo als Seitenlogo, Header-Logo und Favicon eingebunden
-- Versionsnummer nun auch in der kompakten Kopfzeile sichtbar
-- 14-Tage-Niederschlagsdiagramm nutzt für die Mengen-Balken jetzt den Best-Match-Niederschlag des Ortes statt des ENS-Mittels
-- mobile Kopfzeile überarbeitet; Reload- und Lokalisierungs-Schaltflächen in der Hochformat-Ansicht sauber ausgerichtet
-- README und Changelog aktualisiert
-
-### v0.4.2
-
-- Autolokalisierung benennt den Standort nach Geodatenbank und kennzeichnet dies deutlich
-- helle Layout-Umschaltung auch im mobilen Handy-Layout sichtbar
-- Niederschlagswahrscheinlichkeit im 14-Tage-Niederschlag per Legendeneintrag ein-/ausblendbar
-- Widgets nochmals kompakter gestaltet
-- Tooltip im 14-Tage-Temperaturtrend zeigt für Best Match Min-/Max-Werte
-
-### v0.4.1
-
-- Changelog unauffällig im Footer verlinkt
-- beim allerersten Aufruf keine vorgegebene Wetteransicht; zuletzt gewählter Ort wird lokal gespeichert und beim nächsten Besuch automatisch geladen
-- Wind und Windrichtung in den aktuellen Daten zu einer gemeinsamen Kachel zusammengefasst
-- mobile Messwert- und Forecast-Kacheln nochmals kompakter gestaltet
-- 14-Tage-Ensemble-Kacheln verdichtet und um Niederschlagswahrscheinlichkeit ergänzt
-- 14-Tage-Niederschlagstrend um eine eigene Wahrscheinlichkeitsachse erweitert
-- Widget-/PNG-Größe passt sich automatisch an Anzahl und Inhalt an; Tage bleiben nebeneinander
-- README und Changelog aktualisiert
-
-### v0.4.0
-
-- Suchfeld ist beim ersten Aufruf leer und dient nur der gezielten Orts-/Standortsuche
-- stündliche Wetterpiktogramme in der Detailansicht ergänzt; aktuelle Stunde wird standardmäßig vorausgewählt
-- stündliche Kacheln in der Detailansicht um Windrichtung und Wind erweitert
-- Detaildiagramm größer und besser lesbar skaliert
-- Widget-/PNG-Generator gestalterisch an das übrige MID-Design angepasst
-- neue Option zum Ein-/Ausblenden von Hazards im Widget und PNG-Export
-- README und Changelog aktualisiert
-
-### v0.3.9
-
-- 14-Tage-Ensemblebereich wird immer angezeigt, auch während des Ladens oder bei einer vorübergehenden API-Störung
-- fehlerhafte Open-Meteo-Modellkennungen korrigiert
-- standortabhängige Abfrage aller passenden globalen und regionalen Ensemblemodelle
-- Gewichtung nach räumlicher Auflösung, Aktualisierungsintervall, Vorhersagehorizont und Modellfamilie
-- robuster P10–P90-Filter gegen fehlende Werte und einzelne unplausible Mitglieder
-- zusätzlicher Rückfall auf verfügbare Ensemble-Modellmittel, falls Mitgliederdaten nicht ausreichend vollständig sind
-- Tagesdiagramm direkt anklickbar; Niederschlagswahrscheinlichkeit wird separat angezeigt
-- gefühlte Temperatur in die Hitze-Hazards einbezogen
-- Karten und Kacheln auf kleinen Displays kompakter
-- METAR-/WMO-Abgleich erweitert und Worker aktualisiert
-
-### v0.3.8
-
-- eigenständige 14-Tage-Ensemble-Kachelübersicht ergänzt
-- farbige Konsistenzpunkte und Temperaturbalken ergänzt
-
-
-## Stand v0.4.6
-
-- Hazard-Schwellen an DWD-, Meteoalarm- und NWS-Logik angenähert und in den automatischen Warnindikatoren farblich abgestuft
-- Niederschlagsformen in der 7-Tage-Detailansicht erweitert: Regen, Schauer, Schnee, Schneeschauer, Schneeregen und Schneeregenschauer (nur bei Datensignal)
-- Detail-Legende dynamisch und mobil umbruchfähig
-- Hochformat-Layout für lange Bezeichnungen verbessert
-
-
-## Stand v0.4.7
-
-- Tooltip im 14-Tage-Temperaturtrend sprachlich und fachlich präzisiert
-- Best Match nun als Tmin/Tmax benannt
-- ENS-Mittel im Tooltip getrennt für Tmin und Tmax ausgewiesen
-
-
-## Stand v0.4.8
-
-- UV-Index verwendet den von Open-Meteo gelieferten, bewölkungsberücksichtigten `uv_index` ohne nachträgliche Eigenkorrektur
-- 14-Tage-Tooltip nutzt die gewünschte Reihenfolge: Best Match, ENS-Mittel, P10–P90, Niederschlag, Prognosekonsistenz
-
+Die jeweiligen Nutzungsbedingungen, Abruflimits und Lizenzanforderungen der Datenanbieter gelten zusätzlich. MID enthält keine API-Zugangsdaten. Für kommerzielle oder öffentliche Bereitstellungen müssen Betreiber selbst prüfen, ob ihre Tarife und Lizenzen die konkrete Nutzung und Weitergabe erlauben.
 
 ## Versionsschema
 
-MID bleibt bis zur stabilen Produktreife in der Reihe `0.x.y`.
+- Patch (`0.x.y`): gezielte Korrekturen und kleinere Verbesserungen
+- Minor (`0.x.0`): neue wesentliche Funktion oder größere Daten-/UI-Architektur
+- Major (`1.0.0`): stabiler, dokumentierter Funktionsumfang
 
-- **Patch (`0.4.8` → `0.4.9`)**: gezielte Fehlerkorrekturen, fachliche Verfeinerungen und begrenzte UI-Änderungen ohne grundlegenden Umbau.
-- **Minor (`0.4.x` → `0.5.0`)**: deutlich neuer Funktionsbereich, größere Datenarchitektur oder wesentlich veränderter Bedienablauf.
-- **Major (`1.0.0`)**: stabiler, dokumentierter Funktionsumfang mit belastbarer Daten- und Deployment-Struktur.
-
-Versionssprünge werden restriktiv vergeben. Dieses Release erhält **v0.5.0**, weil die stündliche Detailansicht strukturell neu bedient wird und die große Kachelmatrix vollständig entfällt.
-
-## Stand v0.4.9
-
-- 14-Tage-Tooltip nach Best Match, ENS-Mittel, P10–P90, Niederschlag und Prognosekonsistenz gruppiert
-- stündliche Detailinformationen in ein Diagramm-Tooltip verlagert; die große Kartensektion unter dem Diagramm entfällt
-- tatsächlicher, bewölkungsberücksichtigter Open-Meteo-UVI wurde als Primärwert eingeführt; ab v0.5.0 entfallen Klarhimmelvergleich und eigene Nachkorrekturen vollständig
-
-## Stand v0.5.0
-
-- stündliche Kachelmatrix aus der 7-Tage-Detailansicht entfernt
-- dauerhaft sichtbare, kompakte Stunden-Detailanzeige direkt am Diagramm; Klick auf eine Stunde aktualisiert sie ohne Öffnen/Schließen
-- Detailanzeige bündelt Wetter, Temperatur, gefühlte Temperatur, Niederschlagsart/-menge/-wahrscheinlichkeit, Wind/Böen, Feuchte/Taupunkt, Bewölkung und UVI
-- UVI-Logik korrigiert: MID verwendet ausschließlich den tatsächlich erwarteten, bewölkungsberücksichtigten `uv_index`; Klarhimmelwerte und zusätzliche Eigenkorrekturen werden nicht mehr angezeigt oder angewendet
-- Niederschlag aus dem Tooltip „Temperaturtrend und Prognoseunsicherheit“ entfernt
-- Minor-Versionssprung, da die Bedienstruktur der stündlichen Detailansicht substanziell geändert wurde
-
-
-## Stand v0.5.3
-
-- Niederschlagsformen werden strikt über WMO-Wettercodes klassifiziert.
-- Sprühregen wird nur noch für die Codes 51, 53 und 55 angezeigt; normaler Regen für 61, 63 und 65.
-- Mischformen werden nur bei gleichzeitig messbaren flüssigen und festen Anteilen ausgewiesen.
-
-## Stand v0.5.5
-
-- Rechtschreibung in den ergänzenden Tageshinweisen korrigiert: meteorologische Substantive wie „Sprühregen“ bleiben großgeschrieben; nur vorangestellte Adjektive werden im Satzinneren kleingeschrieben.
-- 7-Tage-Tageszeilen für Hoch- und Querformat neu angeordnet, damit Wetterbeschreibung, Tmin/Tmax und Temperaturbalken nicht mehr überlappen.
-- Wetterbeschreibung wird innerhalb ihres eigenen Rasterbereichs umgebrochen; der Temperaturbereich erhält bei schmaleren Displays eine eigene Zeile.
-
-
-
-## Stand v0.5.6
-
-- Kontrast der gefühlten Temperatur im hellen Meteogramm verbessert
-- Warnstufen im hellen Layout mit dunkleren Textfarben und klareren Hintergrund-/Rahmenfarben versehen
-
-
-## Stand v0.6.1
-
-- DWD-Warnungen auf standortgenauen WFS-Abruf auf Gemeindeebene umgestellt
-- DWD-CAP bleibt als automatische Rückfallquelle erhalten
-- MeteoAlarm-Abrufe priorisieren Orts-, Bezirks- und Regionsbezug und bleiben unter dem Cloudflare-Free-Limit
-- Cloudflare-Worker um Gesundheitsprüfung und Versionsdiagnose erweitert
-- GitHub-Pages-Workflow übernimmt die Worker-URL automatisch aus den Repository-Variablen
-
-## Stand v0.6.2
-
-- ein gemeinsamer Cloudflare Worker versorgt weiterhin Stationsdaten und Warnungen; ein zweiter Worker ist nicht erforderlich
-- weltweiter METAR-Abruf auf den aktuellen NOAA-Parameter `hoursBeforeNow` korrigiert
-- Länderbezeichnungen und alte gespeicherte Orte auf ISO-Codes normalisiert
-- Cagliari/Sardinien wird zuverlässig Italien (`IT`) zugeordnet; Reverse-Geocoding dient als zusätzliche Rückfallebene
-- MeteoAlarm-Atom/CAP-Parser für eingebettete, maskierte und relativ verlinkte CAP-Meldungen erweitert
-- Diagnoseausgaben für Stationsabrufe und aufgelösten Warnungs-Ländercode ergänzt
-
-## Stand v0.5.7
-
-- Konsistenzpunkte in der 14-Tage-Ensemble-Übersicht verwenden nun eine kontinuierliche Prozent-Farbskala von Rot über Orange/Gelb bis Grün.
-- Die platzraubenden Schaltflächen „hohe/mittlere/geringe Konsistenz“ wurden entfernt.
-- Eine kompakte Farbverlaufslegende von 0 bis 100 % wurde ergänzt.
+v0.7.0 ist ein Minor-Release, weil sowohl die Stationsdatenarchitektur als auch das 14-Tage-Diagramm substanziell erweitert wurden.
