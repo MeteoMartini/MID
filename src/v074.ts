@@ -1,4 +1,4 @@
-import './v073.css';
+import './v074.css';
 
 type ForecastSnapshot={
   elevation?:number;
@@ -11,7 +11,7 @@ type WidgetSettings={days:number;dark:boolean;showWind:boolean;showRain:boolean;
 
 declare global{interface Window{__MID_FORECAST__?:ForecastSnapshot}}
 
-const VERSION='0.7.3';
+const VERSION='0.7.4';
 const CHART_KEY='mid:0.7.1:chart-visibility';
 const WIDGET_KEY='mid:0.7.1:widget-settings';
 const WIDGET_NAMES_KEY='mid:0.7.1:widget-place-names';
@@ -91,7 +91,7 @@ window.fetch=async(input:RequestInfo|URL,init?:RequestInit)=>{
   const response=await nativeFetch(input,init);if(url)captureForecast(response,url);return response;
 };
 
-function replaceVersionText(root:ParentNode){const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node:Node|null;while((node=walker.nextNode())){const text=node.nodeValue||'';if(/0\.7\.[0-2]/.test(text))node.nodeValue=text.replaceAll('0.7.0',VERSION).replaceAll('0.7.1',VERSION).replaceAll('0.7.2',VERSION)}}
+function replaceVersionText(root:ParentNode){const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node:Node|null;while((node=walker.nextNode())){const text=node.nodeValue||'';if(/0\.7\.[0-3]/.test(text))node.nodeValue=text.replaceAll('0.7.0',VERSION).replaceAll('0.7.1',VERSION).replaceAll('0.7.2',VERSION).replaceAll('0.7.3',VERSION)}}
 function enhanceVersion(){document.querySelectorAll<HTMLElement>('.brand-version,.app>footer,.weatherwidget footer').forEach(element=>replaceVersionText(element));const search=document.querySelector<HTMLInputElement>('.search input');if(search&&search.placeholder!=='Ort, PLZ oder Koordinaten suchen')search.placeholder='Ort, PLZ oder Koordinaten suchen'}
 
 const toggleDefinitions:{selector:string;label:string;key:ChartToggleKey;className:string}[]=[

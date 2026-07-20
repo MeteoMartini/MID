@@ -1,11 +1,11 @@
-import {useEffect,useMemo,useRef,useState} from 'react';
+import {useEffect,useMemo,useRef,useState,type KeyboardEvent as ReactKeyboardEvent} from 'react';
 import {AlertTriangle,BadgeCheck,Cloud,Download,Droplets,Gauge,LocateFixed,Moon,Navigation,RefreshCw,Search,Settings2,Sun,ThermometerSun,Umbrella,Wind,X} from 'lucide-react';
 import {Area,AreaChart,Bar,CartesianGrid,ComposedChart,Legend,Line,ResponsiveContainer,Tooltip,XAxis,YAxis} from 'recharts';
 import {CircleMarker,MapContainer,Popup,TileLayer,WMSTileLayer,useMap} from 'react-leaflet';
 import {toPng} from 'html-to-image';
 import {airQuality,climatology,cloudOktas,countryCodeFromLocation,cloudOktasText,currentIndex,dayEffectiveUvMax,dayWeatherCharacter,ensembles,forecast,hazards,icon,label,mapDays,mapHours,mapMinutely15,officialWarnings,searchLocations,reverseLocation,station,wind,type ClimateDay,type Day,type EnsembleDay,type Hour,type Location,type Minute15,type OfficialAlert,type Station,type Weather,type WindUnit} from './weather';
 
-const VERSION='0.7.3';
+const VERSION='0.7.4';
 const LOGO_PATH='./mid-logo.png';
 const LOCATION_STORAGE_KEY='mid:lastLocation';
 function normalizeLocation(loc:Location):Location{const country_code=countryCodeFromLocation(loc.country_code)||countryCodeFromLocation(loc.country)||undefined;return{...loc,country_code}}
@@ -179,6 +179,7 @@ function precipitationNowSummary(minutes:Minute15[],hours:Hour[]){
 function Forecast({days,hours,selected,setSelected,unit}:{days:Day[];hours:Hour[];selected:string;setSelected:(x:string)=>void;unit:WindUnit}){
  const [selectedHour,setSelectedHour]=useState(0);
  const boundaryHourRef=useRef<number|null>(null);
+ const detailChartRef=useRef<HTMLDivElement>(null);
  const forecastDays=days.slice(0,7);
  const allMin=Math.min(...forecastDays.map(x=>x.min)),allMax=Math.max(...forecastDays.map(x=>x.max)),range=Math.max(1,allMax-allMin);
  const p=hours.filter(x=>x.time.startsWith(selected)).slice(0,24);
@@ -191,6 +192,12 @@ function Forecast({days,hours,selected,setSelected,unit}:{days:Day[];hours:Hour[
   if(!targetDay||!hours.some(x=>x.time.startsWith(targetDay.date)))return;
   boundaryHourRef.current=delta>0?0:23;
   setSelected(targetDay.date);
+ }
+ function handleDetailChartKeyDown(event:ReactKeyboardEvent<HTMLDivElement>){
+  if(typeof window==='undefined'||!window.matchMedia('(min-width: 851px)').matches)return;
+  if(event.key!=='ArrowLeft'&&event.key!=='ArrowRight')return;
+  event.preventDefault();
+  moveHour(event.key==='ArrowLeft'?-1:1);
  }
  if(!p.length)return null;
  const precipSeries=p.map(precipitationParts);
@@ -224,10 +231,10 @@ function Forecast({days,hours,selected,setSelected,unit}:{days:Day[];hours:Hour[
       <div className="forecast-hazards">{hz.length?hz.map((h,i)=><span key={i} className={h.level}>{h.label}</span>):<span className="none">keine markanten Hazards</span>}</div>
    </button>})}</div>
    <div className="hourdetail meteogram-day">
-     <div className="detailhead"><strong>{new Date(`${selectedDay.date}T12:00:00`).toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'2-digit'})} · Detailansicht</strong><small>Aktuelle Stunde ist vorausgewählt. Das Diagramm ist stündlich anklickbar. Die Detailanzeige bleibt geöffnet und aktualisiert sich direkt beim Wechsel der Stunde.</small></div>
+     <div className="detailhead"><strong>{new Date(`${selectedDay.date}T12:00:00`).toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'2-digit'})} · Detailansicht</strong><small>Aktuelle Stunde ist vorausgewählt. Das Diagramm ist stündlich anklickbar. Am Desktop kann nach einem Klick mit ← und → stundenweise navigiert werden.</small></div>
      <div className="quickfacts"><span>{icon(selectedCharacter.code)} <b>{selectedCharacter.label}</b>{selectedCharacter.secondary&&<small>{selectedCharacter.secondary}</small>}</span><span>Σ Niederschlag <b>{totalRain.toFixed(1)} mm</b></span><span>max. Niederschlagswahrscheinlichkeit <b>{Math.round(maxProb)} %</b></span><span>max. Wind / Böen <b>{wind(windMax,unit)} · {wind(gustMax,unit)}</b></span></div>
      <div className="detaillegend"><span><i className="temp"/> Temperatur</span><span><i className="apparent"/> Gefühlt</span>{precipLegendTypes.map(type=><span key={type}><i className={precipMeta[type].legendClass}/>{precipMeta[type].label}</span>)}<span><i className="probability"/> Niederschlagswahrscheinlichkeit</span></div>
-     <div className="meteogram-stage">
+     <div ref={detailChartRef} className="meteogram-stage" tabIndex={0} onClick={()=>detailChartRef.current?.focus({preventScroll:true})} onKeyDown={handleDetailChartKeyDown} aria-label="Stündliches Wetterdiagramm. Nach einem Klick mit den Pfeiltasten links und rechts zwischen den Stunden wechseln.">
      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" className="meteogramsvg">
        <defs>
         <linearGradient id="tempFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#ff9b55" stopOpacity="0.42"/><stop offset="100%" stopColor="#ff9b55" stopOpacity="0.04"/></linearGradient>

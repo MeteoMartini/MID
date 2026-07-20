@@ -1,3 +1,11 @@
+## 0.7.4
+
+- Detaildiagramm am Desktop fokussierbar gemacht
+- Navigation mit Pfeiltaste links und rechts nach einem Klick in die Diagrammfläche ergänzt
+- bestehende Stundenlogik einschließlich automatischem Wechsel zum vorherigen oder nächsten Tag wiederverwendet
+- Standard-Scrollverhalten nur bei aktivem Diagrammfokus und nur für die horizontalen Pfeiltasten unterdrückt
+- visuellen Fokusrahmen für die Tastaturbedienung ergänzt
+
 ## 0.7.3
 
 - flächigen Bewölkungsverlauf im Tagesdetail durch eine horizontale Balkenzeile direkt unter den Wetterpiktogrammen ersetzt
