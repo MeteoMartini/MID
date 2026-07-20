@@ -1,8 +1,16 @@
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.7**
+**Aktuelle Version: v0.7.8**
 
 MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React, TypeScript und Open-Meteo. Es verbindet Vorhersagen, Ensemblemodelle, aktuelle Stationsmessungen, amtliche Warnungen, Radar, Luftqualität und exportierbare Wetterwidgets.
+
+## Neuerungen in v0.7.8
+
+- konsequente Ortszeit in Stundenwahl, Diagrammen, Radar, Kurzfristniederschlag, Warnungen und Widget
+- korrekte lokale Kalendertage auch bei weit entfernten Zielorten und großen Zeitzonenunterschieden
+- Sonnenaufgang und Sonnenuntergang bleiben an der lokalen Uhrzeit des gewählten Standorts ausgerichtet
+- Suche nach OpenStreetMap-POIs über Photon, darunter Berggipfel, Hotels, Hütten, Sehenswürdigkeiten, Gastronomie und weitere benannte Objekte
+- kompakte Kennzeichnung von POI-Typ und OpenStreetMap-Datenquelle in der Trefferliste
 
 ## Neuerungen in v0.7.7
 
@@ -236,3 +244,10 @@ Die jeweiligen Nutzungsbedingungen, Abruflimits und Lizenzanforderungen der Date
 - Major (`1.0.0`): stabiler, dokumentierter Funktionsumfang
 
 v0.7.7 ergänzt im Tagesdetail dezente Nachtflächen sowie Sonnenauf- und Sonnenuntergangszeiten. v0.7.6 korrigierte die Datumsdarstellung und präzisierte die Tag-/Nachtlogik der Bewölkungsbalken. v0.7.5 ergänzte kompakte Modellstand-Informationen mit Init- und Verfügbarkeitszeiten, ohne die Ansichten im geschlossenen Zustand merklich zu vergrößern.
+
+
+## Ortszeit und POI-Suche (v0.7.8)
+- Vorhersage-, Radar-, Warnungs- und Widgetzeiten werden in der vom Forecast zurückgegebenen IANA-Zeitzone des gewählten Orts dargestellt.
+- Die automatische Stundenwahl nutzt den tatsächlichen Zeitpunkt des Standorts statt der Geräte- oder UTC-Zeit.
+- Sonnenaufgang, Sonnenuntergang, Tageswechsel und Datumsbeschriftungen bleiben auch bei entfernten Orten konsistent.
+- Die Ortssuche kombiniert Open-Meteo-Orte/PLZ mit OpenStreetMap-POIs über Photon, darunter Berggipfel, Hotels, Hütten, Sehenswürdigkeiten, Gastronomie und weitere benannte Objekte.

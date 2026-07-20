@@ -1,4 +1,4 @@
-import './v077.css';
+import './v078.css';
 
 type ForecastSnapshot={
   elevation?:number;
@@ -11,7 +11,7 @@ type WidgetSettings={days:number;dark:boolean;showWind:boolean;showRain:boolean;
 
 declare global{interface Window{__MID_FORECAST__?:ForecastSnapshot}}
 
-const VERSION='0.7.7';
+const VERSION='0.7.8';
 const CHART_KEY='mid:0.7.1:chart-visibility';
 const WIDGET_KEY='mid:0.7.1:widget-settings';
 const WIDGET_NAMES_KEY='mid:0.7.1:widget-place-names';
@@ -47,7 +47,7 @@ async function coordinateResult(url:URL,init?:RequestInit){
   const coordinates=parseCoordinates(url.searchParams.get('name')||'');
   if(!coordinates)return null;
   const {lat,lon}=coordinates;
-  let reverse:any=null,elevation:number|undefined;
+  let reverse:any=null,elevation:number|undefined,timezone:string|undefined;
   await Promise.all([
     (async()=>{try{
       const reverseUrl=new URL('https://api.bigdatacloud.net/data/reverse-geocode-client');
@@ -57,11 +57,11 @@ async function coordinateResult(url:URL,init?:RequestInit){
     (async()=>{try{
       const elevationUrl=new URL('https://api.open-meteo.com/v1/forecast');
       elevationUrl.searchParams.set('latitude',String(lat));elevationUrl.searchParams.set('longitude',String(lon));elevationUrl.searchParams.set('current','temperature_2m');elevationUrl.searchParams.set('forecast_days','1');elevationUrl.searchParams.set('timezone','auto');
-      const response=await nativeFetch(elevationUrl,{signal:init?.signal,cache:'no-store'});if(response.ok){const data=await response.json() as {elevation?:number};const value=finite(data.elevation);if(value!==null)elevation=value}
+      const response=await nativeFetch(elevationUrl,{signal:init?.signal,cache:'no-store'});if(response.ok){const data=await response.json() as {elevation?:number;timezone?:string};const value=finite(data.elevation);if(value!==null)elevation=value;timezone=data.timezone}
     }catch{}})()
   ]);
   const name=reverse?.locality||reverse?.city||reverse?.principalSubdivision||`${lat.toFixed(4)}°, ${lon.toFixed(4)}°`;
-  const result={id:Date.now(),name,latitude:lat,longitude:lon,elevation,country:reverse?.countryName||undefined,country_code:String(reverse?.countryCode||'').toUpperCase()||undefined,admin1:reverse?.principalSubdivision||undefined,postcodes:reverse?.postcode?[String(reverse.postcode)]:undefined};
+  const result={id:Date.now(),name,latitude:lat,longitude:lon,elevation,timezone,source:'Koordinatensuche',country:reverse?.countryName||undefined,country_code:String(reverse?.countryCode||'').toUpperCase()||undefined,admin1:reverse?.principalSubdivision||undefined,postcodes:reverse?.postcode?[String(reverse.postcode)]:undefined};
   return new Response(JSON.stringify({results:[result]}),{status:200,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store'}});
 }
 
@@ -92,7 +92,7 @@ window.fetch=async(input:RequestInfo|URL,init?:RequestInit)=>{
 };
 
 function replaceVersionText(root:ParentNode){const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node:Node|null;while((node=walker.nextNode())){const text=node.nodeValue||'';if(/\bv0\.7\.\d+\b/.test(text))node.nodeValue=text.replace(/\bv0\.7\.\d+\b/g,`v${VERSION}`)}}
-function enhanceVersion(){document.querySelectorAll<HTMLElement>('.brand-version,.app>footer,.weatherwidget footer').forEach(element=>replaceVersionText(element));const search=document.querySelector<HTMLInputElement>('.search input');if(search&&search.placeholder!=='Ort, PLZ oder Koordinaten suchen')search.placeholder='Ort, PLZ oder Koordinaten suchen'}
+function enhanceVersion(){document.querySelectorAll<HTMLElement>('.brand-version,.app>footer,.weatherwidget footer').forEach(element=>replaceVersionText(element));const search=document.querySelector<HTMLInputElement>('.search input');if(search&&search.placeholder!=='Ort, PLZ, POI oder Koordinaten suchen')search.placeholder='Ort, PLZ, POI oder Koordinaten suchen'}
 
 const toggleDefinitions:{selector:string;label:string;key:ChartToggleKey;className:string}[]=[
   {selector:'.trend-legend > span',label:'ENS-Spanne Tmax',key:'tempMaxBand',className:'hide-temp-max-band'},
@@ -137,7 +137,7 @@ function enhanceSkyBars(){
   const dates=(snapshot.daily?.time??[]) as (string|number|null)[],date=dayIndex>=0?String(dates[dayIndex]??''):'';if(!date)return;
   const times=(snapshot.hourly?.time??[]) as (string|number|null)[],clouds=(snapshot.hourly?.cloud_cover??[]) as (string|number|null)[],daylight=(snapshot.hourly?.is_day??[]) as (string|number|null)[];
   const samples:SkyBarSample[]=[];
-  for(let index=0;index<times.length&&samples.length<24;index++){
+  for(let index=0;index<times.length;index++){
     if(!String(times[index]).startsWith(date))continue;
     const cloud=finite(clouds[index]);if(cloud===null)continue;
     samples.push(skyBarSample(cloud,Number(daylight[index])===1));
