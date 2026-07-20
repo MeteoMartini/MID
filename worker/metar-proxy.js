@@ -12,7 +12,7 @@ const SYNOPTIC_LATEST='https://api.synopticdata.com/v2/stations/latest';
 const XWEATHER_OBS='https://data.api.xweather.com/observations/closest';
 const GEOSPHERE_META='https://dataset.api.hub.geosphere.at/v1/station/current/tawes-v1-10min/metadata';
 const GEOSPHERE_CURRENT='https://dataset.api.hub.geosphere.at/v1/station/current/tawes-v1-10min';
-const WORKER_VERSION='0.7.9';
+const WORKER_VERSION='0.7.10';
 const CORS={'content-type':'application/json; charset=utf-8','access-control-allow-origin':'*','access-control-allow-methods':'GET,OPTIONS','cache-control':'public, max-age=180'};
 const FEED_SLUGS={
  AD:'andorra',AT:'austria',BE:'belgium',BA:'bosnia-herzegovina',BG:'bulgaria',HR:'croatia',CY:'cyprus',CZ:'czechia',DK:'denmark',EE:'estonia',FI:'finland',FR:'france',DE:'germany',GR:'greece',EL:'greece',HU:'hungary',IS:'iceland',IE:'ireland',IL:'israel',IT:'italy',LV:'latvia',LT:'lithuania',LU:'luxembourg',MT:'malta',MD:'moldova',ME:'montenegro',NL:'netherlands',MK:'republic-of-north-macedonia',NO:'norway',PL:'poland',PT:'portugal',RO:'romania',RS:'serbia',SK:'slovakia',SI:'slovenia',ES:'spain',SE:'sweden',CH:'switzerland',UA:'ukraine',GB:'united-kingdom',UK:'united-kingdom',AM:'armenia'
@@ -228,45 +228,60 @@ async function xweatherRows(lat,lon,radiusKm,clientId,clientSecret){
  return list.map(st=>{const ob=st?.ob??{},slat=number(st?.loc?.lat),slon=number(st?.loc?.long);if(slat===undefined||slon===undefined)return null;const dist=number(st?.relativeTo?.distanceKM)!==undefined?number(st.relativeTo.distanceKM)*1000:distance(lat,lon,slat,slon),trust=number(ob?.trustFactor),qc=number(ob?.QCcode);if(dist>Math.min(60,radiusKm)*1000||qc===0||(trust!==undefined&&trust<65))return null;return{stationId:st?.id,name:st?.place?.name||st?.id,lat:slat,lon:slon,elevation:number(st?.profile?.elevM),reportTime:ob?.dateTimeISO||st?.obDateTime,temp:number(ob?.tempC),dewp:number(ob?.dewpointC),relativeHumidity:number(ob?.humidity),pressure:number(ob?.pressureMB),windSpeed:number(ob?.windSpeedKTS),windDirection:number(ob?.windDirDEG),windGust:number(ob?.windGustKTS),cloudCover:number(ob?.sky),precipitation:number(ob?.precipMM),provider:`Xweather Observations${st?.dataSource?` / ${st.dataSource}`:''} (lizenzierter API-Zugang)`,distance:dist,windUnit:'kt',qcStatus:qc===undefined?1:qc>0?2:0,trustFactor:trust}}).filter(x=>x&&number(x.temp)!==undefined);
 }
 
-// --- Radar-Nowcast v0.7.9 ---------------------------------------------------
+// --- Radar-Nowcast v0.7.10 --------------------------------------------------
 const DWD_RADAR_WMS='https://maps.dwd.de/geoserver/wms';
 const OPERA_POSITION='https://api.meteogate.eu/eu-eumetnet-weather-radar/collections/observations/position';
 const RAINVIEWER_META='https://api.rainviewer.com/public/weather-maps.json';
+const RADAR_RATE_LIMIT=400;
 function clamp(v,min,max){return Math.max(min,Math.min(max,v))}
 function dwdRadarApplies(lat,lon,country=''){const c=directCountryCode(country);return c==='DE'||(!c&&lon>=1.4&&lon<=18.8&&lat>=45.6&&lat<=56.5)}
 function operaRadarApplies(lat,lon){return lat>=31.5&&lat<=72.5&&lon>=-30.5&&lon<=50.5}
 function offsetPoint(lat,lon,northKm,eastKm){return{lat:lat+northKm/111,lon:lon+eastKm/(111*Math.max(.2,Math.cos(lat*Math.PI/180)))}}
 function isoFloor5(epochMs=Date.now()){return new Date(Math.floor(epochMs/300000)*300000).toISOString().replace('.000Z','Z')}
-function radarRateLabel(rate){if(rate>=10)return'stark';if(rate>=3)return'mäßig bis stark';if(rate>=.8)return'mäßig';if(rate>=.1)return'leicht';return'sehr leicht'}
+function mmhFromDbz(dbz){const z=10**(dbz/10);return Math.max(0,(z/200)**(1/1.6))}
+function validRadarRate(value){const v=number(value);return v===undefined||v<0||v>RADAR_RATE_LIMIT?undefined:v}
+function radarRateLabel(rate){if(rate>=50)return'extremes Radarecho';if(rate>=20)return'sehr stark';if(rate>=8)return'stark';if(rate>=2.5)return'mäßig';if(rate>=.5)return'leicht';if(rate>=.1)return'sehr leicht';return'kein messbarer Niederschlag'}
 function normaliseDwdRate(value,key=''){
- const v=number(value);if(v===undefined||v<0)return 0;const k=String(key).toLowerCase();
- if(k.includes('dbz'))return mmhFromDbz(v);
- if(k.includes('gray')||k.includes('index'))return v<18?0:Math.max(0,((v-18)/18)**1.55);
- if(v>1000)return v/100*12;if(v>100)return v/100*12;if(v>60)return v/10;
- return v;
+ const v=number(value);if(v===undefined||v<0)return undefined;const k=String(key).toLowerCase();
+ // Der DWD-RV-WMS ist bereits in mm/h. GRAY_INDEX ist beim Raster-GetFeatureInfo
+ // der native Bandwert und darf nicht nochmals skaliert werden.
+ if(k.includes('dbz'))return validRadarRate(mmhFromDbz(v));
+ if(/gray_index|grayindex|rain.?rate|precip|rate|\brv\b/i.test(k))return validRadarRate(v);
+ return undefined;
 }
-function findNumericRadarValue(data){
- const queue=[data],seen=new Set();while(queue.length){const item=queue.shift();if(item===null||item===undefined)continue;if(typeof item==='number'&&Number.isFinite(item))return{value:item,key:''};if(typeof item!=='object'||seen.has(item))continue;seen.add(item);
-  for(const [key,value] of Object.entries(item)){if(typeof value==='number'&&Number.isFinite(value)&&/(rate|rain|precip|value|gray|band|dbz|rv)/i.test(key))return{value,key};if(value&&typeof value==='object')queue.push(value)}
+function dwdRateFromFeatureInfo(data,text=''){
+ const propertySets=[];
+ if(Array.isArray(data?.features))for(const feature of data.features)if(feature?.properties&&typeof feature.properties==='object')propertySets.push(feature.properties);
+ if(data?.properties&&typeof data.properties==='object')propertySets.push(data.properties);
+ for(const properties of propertySets){
+  const entries=Object.entries(properties);
+  const preferred=entries.find(([key,value])=>/^(GRAY_INDEX|GRAYINDEX|RAIN_RATE|RAINRATE|RATE|PRECIPITATION|RV)$/i.test(key)&&number(value)!==undefined)
+   ||entries.find(([key,value])=>/(gray.?index|rain.?rate|precip|\brate\b|\brv\b)/i.test(key)&&number(value)!==undefined);
+  if(preferred){const rate=normaliseDwdRate(preferred[1],preferred[0]);if(rate!==undefined)return rate}
  }
- return null;
+ const match=String(text).match(/(?:GRAY_INDEX|GRAYINDEX|RAIN_RATE|RAINRATE|PRECIPITATION|RATE|RV)\s*["':= ]+(-?\d+(?:\.\d+)?)/i);
+ return match?normaliseDwdRate(Number(match[1]),match[0]):undefined;
 }
 async function dwdPointRate(lat,lon,time){
  const delta=.025,u=new URL(DWD_RADAR_WMS);u.searchParams.set('service','WMS');u.searchParams.set('version','1.1.1');u.searchParams.set('request','GetFeatureInfo');u.searchParams.set('layers','dwd:Radar_rv_product_1x1km_ger');u.searchParams.set('query_layers','dwd:Radar_rv_product_1x1km_ger');u.searchParams.set('styles','');u.searchParams.set('srs','EPSG:4326');u.searchParams.set('bbox',`${lon-delta},${lat-delta},${lon+delta},${lat+delta}`);u.searchParams.set('width','5');u.searchParams.set('height','5');u.searchParams.set('x','2');u.searchParams.set('y','2');u.searchParams.set('format','image/png');u.searchParams.set('info_format','application/json');u.searchParams.set('feature_count','1');u.searchParams.set('time',time);
- const response=await fetch(u.toString(),{headers:{Accept:'application/json,text/plain,*/*'},cf:{cacheTtl:120,cacheEverything:true}});if(!response.ok)throw new Error(`DWD WMS HTTP ${response.status}`);const text=await response.text();let parsed;try{parsed=JSON.parse(text)}catch{parsed=text}
- const found=findNumericRadarValue(parsed);if(found)return normaliseDwdRate(found.value,found.key);
- const m=String(text).match(/(?:GRAY_INDEX|value|rate|rain)[^\d-]*(-?\d+(?:\.\d+)?)/i);return m?normaliseDwdRate(Number(m[1]),m[0]):0;
+ const response=await fetch(u.toString(),{headers:{Accept:'application/json,text/plain,*/*'},cf:{cacheTtl:120,cacheEverything:true}});if(!response.ok)throw new Error(`DWD WMS HTTP ${response.status}`);const text=await response.text();let parsed=null;try{parsed=JSON.parse(text)}catch{}
+ return dwdRateFromFeatureInfo(parsed,text);
 }
 async function dwdRadarNowcast(lat,lon){
- const base=Math.floor(Date.now()/300000)*300000,minuteOffsets=[-10,0,15,30,45,60,90,120],points=[[0,0],[3,0],[-3,0],[0,3],[0,-3]].map(([n,e])=>offsetPoint(lat,lon,n,e));
- let successes=0;const frames=[];for(const offset of minuteOffsets){const time=isoFloor5(base+offset*60000),rates=await Promise.all(points.map(p=>dwdPointRate(p.lat,p.lon,time).then(v=>{successes++;return v}).catch(()=>0)));frames.push({time:Date.parse(time),center:rates[0]||0,nearby:Math.max(...rates.slice(1),0),future:offset>0})}
- if(successes<Math.max(3,Math.floor(points.length*minuteOffsets.length*.2)))throw new Error('DWD-Radar liefert am Standort derzeit keine auswertbaren Werte.');
- return radarResultFromFrames('dwd','DWD-RV 0–2-h-Nowcast','high',frames,'Daten: Deutscher Wetterdienst; MID-Auswertung');
+ const base=Math.floor(Date.now()/300000)*300000,minuteOffsets=[-20,-15,-10,-5,0,5,10,15,20,30,45,60,90,120],points=[[0,0],[3,0],[-3,0],[0,3],[0,-3]].map(([n,e])=>offsetPoint(lat,lon,n,e));
+ let successes=0;const frames=[];
+ for(const offset of minuteOffsets){
+  const time=isoFloor5(base+offset*60000),values=await Promise.all(points.map(p=>dwdPointRate(p.lat,p.lon,time).then(v=>{if(v!==undefined)successes++;return v}).catch(()=>undefined))),valid=values.filter(v=>v!==undefined);
+  if(!valid.length)continue;
+  frames.push({time:Date.parse(time),center:values[0]??0,nearby:Math.max(...values.slice(1).filter(v=>v!==undefined),0),future:offset>0,validPoints:valid.length});
+ }
+ if(successes<5||!frames.length)throw new Error('DWD-Radar liefert am Standort derzeit keine auswertbaren Werte.');
+ return radarResultFromFrames('dwd','DWD-RV 0–2-h-Nowcast','high',frames,'Daten: Deutscher Wetterdienst; MID-Auswertung',{rateApproximate:false});
 }
 function coverageSeries(data){
  const collections=Array.isArray(data?.coverages)?data.coverages:[data],out=[];
- for(const cov of collections){if(!cov||typeof cov!=='object')continue;const axes=cov.domain?.axes??{},times=axes.t?.values??axes.time?.values??[],ranges=cov.ranges??{};let rangeKey=Object.keys(ranges).find(k=>/RATE/i.test(k))||Object.keys(ranges)[0],range=rangeKey?ranges[rangeKey]:null,values=range?.values??range?.data??[];if(!Array.isArray(values))continue;
-  const flat=values.flat?values.flat(Infinity):values;for(let i=0;i<Math.min(times.length,flat.length);i++){const v=number(flat[i]);if(v!==undefined)out.push({time:Date.parse(times[i]),rate:Math.max(0,v)})}
+ for(const cov of collections){if(!cov||typeof cov!=='object')continue;const axes=cov.domain?.axes??{},times=axes.t?.values??axes.time?.values??[],ranges=cov.ranges??{};const rangeKey=Object.keys(ranges).find(k=>/RATE/i.test(k))||Object.keys(ranges)[0],range=rangeKey?ranges[rangeKey]:null,values=range?.values??range?.data??[];if(!Array.isArray(values))continue;
+  const flat=values.flat?values.flat(Infinity):values;for(let i=0;i<Math.min(times.length,flat.length);i++){const rate=validRadarRate(flat[i]);if(rate!==undefined)out.push({time:Date.parse(times[i]),rate})}
  }
  return out.filter(x=>Number.isFinite(x.time)).sort((a,b)=>a.time-b.time);
 }
@@ -283,7 +298,7 @@ async function operaPointSeries(lat,lon){
 async function operaRadarNowcast(lat,lon){
  const points=[[0,0],[4,0],[-4,0],[0,4],[0,-4]].map(([n,e])=>offsetPoint(lat,lon,n,e)),series=await Promise.all(points.map(p=>operaPointSeries(p.lat,p.lon))),times=[...new Set(series.flatMap(s=>s.map(x=>x.time)))].sort((a,b)=>a-b).slice(-10),frames=times.map(time=>{const atTime=series.map(s=>{let best=null;for(const item of s)if(!best||Math.abs(item.time-time)<Math.abs(best.time-time))best=item;return best&&Math.abs(best.time-time)<=8*60000?best.rate:0});return{time,center:atTime[0]||0,nearby:Math.max(...atTime.slice(1),0),future:false}});
  if(!frames.length)throw new Error('OPERA/ORD ohne auswertbare RATE-Daten.');
- return radarResultFromFrames('opera','EUMETNET OPERA/ORD RATE','medium',frames,'EUMETNET OPERA composite products, CC BY 4.0; MID-Bewegungsnäherung');
+ return radarResultFromFrames('opera','EUMETNET OPERA/ORD RATE','medium',frames,'EUMETNET OPERA composite products, CC BY 4.0; MID-Bewegungsnäherung',{rateApproximate:false});
 }
 function u32(bytes,o){return((bytes[o]<<24)|(bytes[o+1]<<16)|(bytes[o+2]<<8)|bytes[o+3])>>>0}
 function paeth(a,b,c){const p=a+b-c,pa=Math.abs(p-a),pb=Math.abs(p-b),pc=Math.abs(p-c);return pa<=pb&&pa<=pc?a:pb<=pc?b:c}
@@ -294,22 +309,31 @@ async function decodePng(buffer){
  for(let y=0;y<height;y++){const filter=raw[rp++],row=raw.slice(rp,rp+stride);rp+=stride;for(let x=0;x<stride;x++){const left=x>=bpp?out[y*stride+x-bpp]:0,up=y?out[(y-1)*stride+x]:0,upLeft=y&&x>=bpp?out[(y-1)*stride+x-bpp]:0,v=row[x];out[y*stride+x]=filter===0?v:filter===1?(v+left)&255:filter===2?(v+up)&255:filter===3?(v+Math.floor((left+up)/2))&255:filter===4?(v+paeth(left,up,upLeft))&255:v}}
  const rgba=new Uint8Array(width*height*4);for(let i=0;i<width*height;i++){let r=0,g=0,b=0,a=255;if(colorType===6){r=out[i*4];g=out[i*4+1];b=out[i*4+2];a=out[i*4+3]}else if(colorType===2){r=out[i*3];g=out[i*3+1];b=out[i*3+2]}else if(colorType===3){const idx=out[i];r=palette?.[idx*3]??0;g=palette?.[idx*3+1]??0;b=palette?.[idx*3+2]??0;a=transparency?.[idx]??255}else if(colorType===4){r=g=b=out[i*2];a=out[i*2+1]}else{r=g=b=out[i]}rgba.set([r,g,b,a],i*4)}return{width,height,rgba};
 }
-function mmhFromDbz(dbz){const z=10**(dbz/10);return Math.max(0,(z/200)**(1/1.6))}
-function rainViewerPixelRate(r,g,b,a){if(a<18)return 0;let dbz=(a-70)/5;if(r>180&&g>155&&b<150)dbz=Math.max(dbz,43);if(r>175&&g<130&&b<130)dbz=Math.max(dbz,50);if(r>120&&b>120&&g<110)dbz=Math.max(dbz,57);if(b>r&&b>g)dbz=Math.max(dbz,18+Math.min(20,(b-Math.max(r,g))/4));return mmhFromDbz(clamp(dbz,-10,65))}
+// Offizielle Schlüsselstufen der RainViewer-Farbskala 2 (Universal Blue).
+// Die öffentliche API liefert nur eingefärbte PNGs; die Rate ist daher eine
+// aus der nächstgelegenen Palettenfarbe und Marshall-Palmer abgeleitete Näherung.
+const RAINVIEWER_BLUE=[
+ [-10,99,97,89,20],[-5,114,110,97,46],[0,130,123,105,73],[5,146,136,113,100],[10,210,196,139,160],[13,216,221,238,255],[16,81,197,232,255],[19,0,163,224,255],[20,0,163,224,255],[25,0,136,191,255],[30,0,85,136,255],[35,255,238,0,255],[40,255,170,0,255],[45,255,102,0,255],[50,193,0,0,255],[52,214,0,13,255],[54,215,0,19,255],[55,255,79,255,255],[57,255,95,255,255],[59,255,111,255,255],[60,255,98,255,255],[63,255,88,255,255],[66,245,231,251,255],[70,255,255,255,255]
+];
+function rainViewerPixelDbz(r,g,b,a){if(a<10)return undefined;let best=null,bestDistance=Infinity;for(const [dbz,pr,pg,pb,pa]of RAINVIEWER_BLUE){const distance=(r-pr)**2+(g-pg)**2+(b-pb)**2+.18*(a-pa)**2;if(distance<bestDistance){bestDistance=distance;best=dbz}}return bestDistance>30000?undefined:best}
+function rainViewerPixelRate(r,g,b,a){const dbz=rainViewerPixelDbz(r,g,b,a);return dbz===undefined||dbz<10?0:validRadarRate(mmhFromDbz(dbz))??0}
 function sampleRadarTile(image,lat){const cx=Math.floor(image.width/2),cy=Math.floor(image.height/2),kmPerPixel=156.54303392*Math.cos(lat*Math.PI/180)/(2**7),sample=(x,y)=>{x=clamp(Math.round(x),0,image.width-1);y=clamp(Math.round(y),0,image.height-1);const i=(y*image.width+x)*4;return rainViewerPixelRate(image.rgba[i],image.rgba[i+1],image.rgba[i+2],image.rgba[i+3])},center=sample(cx,cy),offsets=[3,5,8].map(k=>Math.max(1,k/kmPerPixel)),near=[];for(const o of offsets)for(const[a,b]of[[o,0],[-o,0],[0,o],[0,-o],[o*.7,o*.7],[-o*.7,o*.7]])near.push(sample(cx+a,cy+b));return{center,nearby:Math.max(...near,0)}}
 async function rainViewerRadarNowcast(lat,lon){
  const meta=await fetchJson(RAINVIEWER_META),past=(meta?.radar?.past??[]).slice(-6),host=meta?.host;if(!host||!past.length)throw new Error('RainViewer ohne aktuelle Frames.');
  const coverageUrl=`${host}/v2/coverage/0/256/7/${lat.toFixed(5)}/${lon.toFixed(5)}/0/0_0.png`,coverageResponse=await fetch(coverageUrl,{cf:{cacheTtl:86400,cacheEverything:true}});if(coverageResponse.ok){try{const coverage=await decodePng(await coverageResponse.arrayBuffer()),i=(Math.floor(coverage.height/2)*coverage.width+Math.floor(coverage.width/2))*4;if(coverage.rgba[i+3]>200&&coverage.rgba[i]<20&&coverage.rgba[i+1]<20&&coverage.rgba[i+2]<20)throw new Error('Keine RainViewer-Radarabdeckung.')}catch(error){if(String(error).includes('Keine RainViewer'))throw error}}
  const frames=[];for(const frame of past){const url=`${host}${frame.path}/256/7/${lat.toFixed(5)}/${lon.toFixed(5)}/2/0_0.png`,response=await fetch(url,{cf:{cacheTtl:600,cacheEverything:true}});if(!response.ok)continue;const sampled=sampleRadarTile(await decodePng(await response.arrayBuffer()),lat);frames.push({time:Number(frame.time)*1000,center:sampled.center,nearby:sampled.nearby,future:false})}
- if(!frames.length)throw new Error('RainViewer-Kacheln nicht auswertbar.');const fresh=Date.now()-frames.at(-1).time<25*60000,quality=fresh&&frames.length>=5?'medium':'low';return radarResultFromFrames('rainviewer','RainViewer-Radarnäherung',quality,frames,'Weather data by RainViewer; MID-Bewegungsnäherung');
+ if(!frames.length)throw new Error('RainViewer-Kacheln nicht auswertbar.');const fresh=Date.now()-frames.at(-1).time<25*60000,quality=fresh&&frames.length>=5?'medium':'low';return radarResultFromFrames('rainviewer','RainViewer-Radarnäherung',quality,frames,'Weather data by RainViewer; MID-Bewegungsnäherung',{rateApproximate:true});
 }
-function radarResultFromFrames(source,provider,quality,frames,license){
- frames=frames.filter(x=>Number.isFinite(x.time)).sort((a,b)=>a.time-b.time);const observed=frames.filter(x=>!x.future),latestObserved=observed.at(-1)||frames[0],future=frames.filter(x=>x.future),wet=x=>Number(x.center)>=.05||Number(x.nearby)>=.18;let radarProbability=5,arrivalMinutes,endMinutes,summary='Kein relevantes Radarecho am Standort oder in unmittelbarer Umgebung.';
- if(Number(latestObserved?.center)>=.05){radarProbability=98;arrivalMinutes=0;const futureWet=future.filter(wet);endMinutes=futureWet.length?Math.max(5,Math.round((futureWet.at(-1).time-latestObserved.time)/60000)):undefined;summary=`Niederschlag am Standort erkannt: ${radarRateLabel(latestObserved.center)} (${latestObserved.center.toFixed(1)} mm/h)${endMinutes?`; voraussichtlich noch etwa ${endMinutes} Minuten`:''}.`}
- else if(future.length){const first=future.find(wet);if(first){arrivalMinutes=Math.max(0,Math.round((first.time-latestObserved.time)/60000));radarProbability=clamp(Math.round(96-arrivalMinutes*.28+(first.center>0?5:0)),45,96);const last=future.filter(x=>x.time>=first.time&&wet(x)).at(-1);endMinutes=last?Math.round((last.time-latestObserved.time)/60000):undefined;summary=`Radarecho erreicht den Standort voraussichtlich in ${arrivalMinutes}–${arrivalMinutes+10} Minuten${first.center>=.05?` · ${radarRateLabel(first.center)} bis ${first.center.toFixed(1)} mm/h`:''}.`}}
- else if(Number(latestObserved?.nearby)>=.18){const earlier=observed[Math.max(0,observed.length-4)],trend=Number(latestObserved.nearby)-Number(earlier?.nearby||0),strength=Number(latestObserved.nearby);arrivalMinutes=trend>.05?20:35;radarProbability=clamp(Math.round(38+Math.min(32,strength*9)+(trend>0?14:-4)),25,82);summary=`Niederschlagsfeld in Standortnähe; Ankunft grob in ${arrivalMinutes-10}–${arrivalMinutes+15} Minuten möglich · Bewegungsnäherung aus Radarhistorie.`}
+function coherentDisplayRate(frame){const center=validRadarRate(frame?.center)??0,nearby=validRadarRate(frame?.nearby)??0;if(center>=120&&nearby<Math.max(8,center*.12))return{rate:Math.max(nearby,50),raw:center,uncertain:true};return{rate:center,raw:center,uncertain:center>=50}}
+function contiguousWetEvent(future,firstIndex,wet){const event=[];let dryCount=0;for(let i=firstIndex;i<future.length;i++){const frame=future[i];if(wet(frame)){event.push(frame);dryCount=0}else if(event.length&&++dryCount>1)break}return event}
+function radarResultFromFrames(source,provider,quality,frames,license,options={}){
+ frames=frames.filter(x=>Number.isFinite(x.time)).sort((a,b)=>a.time-b.time);const observed=frames.filter(x=>!x.future),latestObserved=observed.at(-1)||frames[0],future=frames.filter(x=>x.future),siteWet=x=>Number(x.center)>=.05,nearbyWet=x=>Number(x.nearby)>=.18;let radarProbability=5,arrivalMinutes,endMinutes,arrivalStartAt,arrivalEndAt,endAt,arrivalKind,peakRate=0,rateUncertain=false,summary='Kein relevantes Radarecho am Standort oder in unmittelbarer Umgebung.';
+ const current=coherentDisplayRate(latestObserved);
+ if(current.rate>=.05){radarProbability=98;arrivalMinutes=0;arrivalKind='site';peakRate=current.rate;rateUncertain=current.uncertain;const futureWet=future.filter(siteWet);if(futureWet.length){endAt=new Date(futureWet.at(-1).time).toISOString();endMinutes=Math.max(5,Math.round((futureWet.at(-1).time-latestObserved.time)/60000))}summary=`Niederschlag am Standort erkannt: ${radarRateLabel(current.rate)}.`}
+ else if(future.length){const firstIndex=future.findIndex(siteWet);if(firstIndex>=0){const first=future[firstIndex],event=contiguousWetEvent(future,firstIndex,siteWet),firstRate=coherentDisplayRate(first),eventRates=event.map(coherentDisplayRate),peak=eventRates.reduce((best,item)=>item.rate>best.rate?item:best,firstRate);arrivalMinutes=Math.max(0,Math.round((first.time-latestObserved.time)/60000));arrivalKind='site';const nextTime=future[firstIndex+1]?.time??first.time+5*60000,windowEnd=Math.min(nextTime,frames.at(-1).time);arrivalStartAt=new Date(first.time).toISOString();arrivalEndAt=new Date(Math.max(first.time,windowEnd)).toISOString();radarProbability=clamp(Math.round(96-arrivalMinutes*.28+(first.center>0?5:0)),45,96);const last=event.at(-1);if(last){endAt=new Date(last.time).toISOString();endMinutes=Math.max(arrivalMinutes,Math.round((last.time-latestObserved.time)/60000))}peakRate=peak.rate;rateUncertain=eventRates.some(x=>x.uncertain);summary=`Radarecho erreicht den Standort voraussichtlich in etwa ${arrivalMinutes} Minuten · ${radarRateLabel(peakRate)}.`}else{const nearbyIndex=future.findIndex(nearbyWet);if(nearbyIndex>=0){const first=future[nearbyIndex];arrivalMinutes=Math.max(0,Math.round((first.time-latestObserved.time)/60000));arrivalKind='nearby';arrivalStartAt=new Date(first.time).toISOString();arrivalEndAt=new Date(Math.min(future[nearbyIndex+1]?.time??first.time+10*60000,frames.at(-1).time)).toISOString();peakRate=validRadarRate(first.nearby)??0;rateUncertain=true;radarProbability=clamp(Math.round(32+Math.min(28,peakRate*5)-arrivalMinutes*.12),20,68);summary=`Radarecho erreicht voraussichtlich die Standortumgebung; ein Treffer am Standort ist noch unsicher · ${radarRateLabel(peakRate)}.`}}}
+ else if(Number(latestObserved?.nearby)>=.18){const earlier=observed[Math.max(0,observed.length-4)],trend=Number(latestObserved.nearby)-Number(earlier?.nearby||0),strength=Number(latestObserved.nearby);arrivalMinutes=trend>.05?20:35;arrivalKind='approximate';arrivalStartAt=new Date(latestObserved.time+Math.max(0,arrivalMinutes-10)*60000).toISOString();arrivalEndAt=new Date(latestObserved.time+(arrivalMinutes+15)*60000).toISOString();radarProbability=clamp(Math.round(38+Math.min(32,strength*9)+(trend>0?14:-4)),25,82);peakRate=validRadarRate(latestObserved.nearby)??0;rateUncertain=true;summary=`Niederschlagsfeld in Standortnähe; ein Standorttreffer ist nur grob abschätzbar · ${radarRateLabel(peakRate)}.`}
  else if(observed.length>=2&&Number(observed.at(-2).center)>=.05){radarProbability=12;summary='Das Radarecho hat den Standort zuletzt verlassen; kurzfristig nur geringes Wiederholungsrisiko.'}
- return{source,provider,quality,radarProbability,currentRate:Number(latestObserved?.center||0),arrivalMinutes,endMinutes,observedAt:latestObserved?new Date(latestObserved.time).toISOString():undefined,summary,coverage:true,license,diagnostics:{frames:frames.length,observedFrames:observed.length,futureFrames:future.length,latestNearbyRate:Number(latestObserved?.nearby||0)}};
+ return{source,provider,quality,radarProbability,currentRate:current.rate,rawCurrentRate:current.raw,peakRate,rateApproximate:Boolean(options.rateApproximate),rateUncertain,arrivalMinutes,endMinutes,arrivalKind,arrivalStartAt,arrivalEndAt,endAt,observedAt:latestObserved?new Date(latestObserved.time).toISOString():undefined,summary,coverage:true,license,diagnostics:{frames:frames.length,observedFrames:observed.length,futureFrames:future.length,latestNearbyRate:Number(latestObserved?.nearby||0),rawCurrentRate:current.raw}};
 }
 async function radarNowcastForPoint(lat,lon,country=''){
  const errors=[];if(dwdRadarApplies(lat,lon,country)){try{return await dwdRadarNowcast(lat,lon)}catch(error){errors.push(`DWD: ${error instanceof Error?error.message:String(error)}`)}}

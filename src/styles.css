@@ -693,3 +693,16 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 .trend-legend i.climate{border-color:#8b6321;border-top-width:2px;border-top-style:dotted}
 :root[data-theme=dark] .trend-legend i.climate{border-color:#d4a552}
 @media(max-width:760px){.trend-combined{height:390px}.trend-legend{justify-content:flex-start;gap:6px 9px;font-size:10px}}
+
+
+/* v0.7.10 – quellenspezifische Radarlegenden und kompakte Zeitangaben */
+.radarlegend{width:min(255px,calc(100% - 24px))}
+.radar-colour-legend{margin-top:7px}
+.radar-colour-legend small{margin-top:4px!important;color:rgba(255,255,255,.74);font-size:7px!important;line-height:1.2}
+.radar-colour-legend.dwd{min-height:32px;overflow:hidden;border-radius:7px;background:rgba(255,255,255,.94);padding:4px 5px}
+.radar-colour-legend.dwd img{display:block;width:100%;max-height:42px;object-fit:contain}
+.radar-colour-legend.dwd small{color:#32465b!important;text-align:center}
+.radar-colour-legend.rainviewer>div{display:grid;grid-template-columns:repeat(6,1fr);height:10px;overflow:hidden;border:1px solid rgba(255,255,255,.28);border-radius:999px}
+.radar-colour-legend.rainviewer i{display:block}
+.radar-colour-legend.rainviewer p{display:grid;grid-template-columns:repeat(6,1fr);margin:2px 0 0;color:rgba(255,255,255,.86);font-size:7px;line-height:1;text-align:center}
+@media(max-width:520px){.radarlegend{width:min(225px,calc(100% - 18px));right:9px;bottom:9px}.radar-colour-legend.dwd img{max-height:34px}}

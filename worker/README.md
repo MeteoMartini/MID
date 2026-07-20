@@ -1,4 +1,4 @@
-# MID Daten-, Warnungs- und Radarproxy v0.7.9
+# MID Daten-, Warnungs- und Radarproxy v0.7.10
 
 Der Cloudflare Worker stellt browserkompatibel Stationsdaten, amtliche Warnungen und die standortbezogene Radar-Nowcast-Auswertung bereit. Ein zweiter Worker ist nicht erforderlich.
 
@@ -56,7 +56,7 @@ Beispielantwort:
 ```json
 {
   "ok": true,
-  "version": "0.7.9",
+  "version": "0.7.10",
   "services": ["stations", "alerts", "hyperlocal-networks", "radar-nowcast"],
   "providers": {
     "NOAA AviationWeather": true,
@@ -130,3 +130,12 @@ https://DEIN-WORKER.workers.dev/?mode=radar-nowcast&lat=35.68&lon=139.76&country
 ```
 
 Die Antwort enthält `source`, `provider`, `quality`, `radarProbability`, `currentRate`, optionale Ankunfts-/Endzeiten und Diagnosewerte. OPERA-Komposite werden unter CC BY 4.0 verarbeitet; die RainViewer-Nutzung ist für persönliche, schulische und kleine Community-Projekte vorgesehen und benötigt eine sichtbare Quellenangabe.
+
+
+## Intensitätsprüfung v0.7.10
+
+- DWD-RV-`GRAY_INDEX` wird als nativer mm/h-Wert behandelt.
+- Beliebige numerische JSON-Felder werden nicht mehr als Radarwert akzeptiert.
+- OPERA-RATE-Fehlwerte außerhalb des Plausibilitätsbereichs werden verworfen.
+- RainViewer wird über die Universal-Blue-Palette in dBZ und anschließend per Marshall-Palmer nur näherungsweise nach mm/h überführt.
+- Die Antwort enthält zusätzlich absolute ISO-Zeitpunkte für Ankunftsfenster und geschätztes Ende.
