@@ -926,3 +926,12 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
  .header-favorites .favorite-strip-manage{width:36px;flex-basis:36px}
  .widget-collapse-toggle span{display:none}
 }
+
+/* v0.7.18 – verzögertes Laden und dynamischer Jetzt-Zeitpunkt */
+.viewport-gate{min-width:0}
+.radar-gate{min-height:0}
+.radar-gate>.lazy-placeholder{min-height:540px;margin-top:0}
+.ensemble-gate>.lazy-placeholder{min-height:180px}
+.lazy-placeholder{display:flex;align-items:center;justify-content:center;gap:10px;color:var(--muted);border-style:dashed;background:color-mix(in srgb,var(--surface) 92%,transparent)}
+.now-time-marker{filter:drop-shadow(0 0 2px rgba(255,49,91,.45))}
+@media(max-width:850px){.radar-gate>.lazy-placeholder{min-height:420px}}

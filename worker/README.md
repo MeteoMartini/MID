@@ -1,10 +1,10 @@
-# MID Daten-, Warnungs- und Radarproxy v0.7.17
+# MID Daten-, Warnungs- und Radarproxy v0.7.18
 
 Der Cloudflare Worker stellt browserkompatibel Stationsdaten, amtliche Warnungen und die standortbezogene Radar-Nowcast-Auswertung bereit. Ein zweiter Worker ist nicht erforderlich.
 
-## Kompatibilität v0.7.17
+## Kompatibilität v0.7.18
 
-Der Radar-, Warnungs- und Stationsumfang bleibt unverändert. Die Layout-, Widget- und QFF-Korrekturen werden im Frontend umgesetzt; der Workerstand wird zur einheitlichen Versionsanzeige mitgeführt.
+Der Radar- und Warnungsumfang bleibt unverändert. Für österreichische TAWES-Stationen liefert der Worker nun `PRED` nur nach einer QFF-Plausibilitätsprüfung als `pressureMsl`; der rohe Stationsdruck `P` bleibt getrennt und kann nicht mehr als Meereshöhendruck interpretiert werden.
 
 ## Enthaltene Dienste
 
@@ -22,7 +22,7 @@ Der Radar-, Warnungs- und Stationsumfang bleibt unverändert. Die Layout-, Widge
 ## Bereitstellung
 
 1. In Cloudflare einen Worker anlegen oder den vorhandenen MID-Worker öffnen.
-2. Den gesamten Inhalt von `metar-proxy.js` in den Codeeditor einsetzen.
+2. Den gesamten Inhalt von `worker.js` in den Codeeditor einsetzen.
 3. **Deploy** ausführen.
 4. Die Worker-Adresse in GitHub als Repository-Variable `VITE_METAR_PROXY_URL` hinterlegen.
 
@@ -60,7 +60,7 @@ Beispielantwort:
 ```json
 {
   "ok": true,
-  "version": "0.7.17",
+  "version": "0.7.18",
   "services": ["stations", "alerts", "hyperlocal-networks", "radar-nowcast"],
   "providers": {
     "NOAA AviationWeather": true,

@@ -1,6 +1,5 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import 'leaflet/dist/leaflet.css';
 import './styles.css';
 import './v078';
 import App from './App';

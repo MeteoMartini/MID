@@ -180,6 +180,15 @@ function lastValue(v:any):number|undefined{
  if(Array.isArray(raw)){for(let i=raw.length-1;i>=0;i--){const n=Number(raw[i]);if(raw[i]!==null&&raw[i]!==''&&Number.isFinite(n))return n}return undefined}
  const n=Number(raw);return raw!==null&&raw!==''&&Number.isFinite(n)?n:undefined;
 }
+function plausibleQff(value:number|undefined,height?:number,stationPressure?:number){
+ if(!Number.isFinite(value)||Number(value)<870||Number(value)>1085)return false;
+ const elevation=Number(height),surface=Number(stationPressure),qff=Number(value);
+ // In Hochlagen kann ein Stationsdruck von etwa 750–900 hPa versehentlich
+ // als reduzierter Druck erscheinen. QFF muss gegenüber P deutlich erhöht sein.
+ if(Number.isFinite(elevation)&&elevation>=600&&qff<950)return false;
+ if(Number.isFinite(elevation)&&Number.isFinite(surface)&&elevation>=150){const expectedLift=Math.min(155,Math.max(12,elevation*.055));if(qff-surface<expectedLift)return false}
+ return true;
+}
 function geoSphereFeatures(d:any){if(Array.isArray(d?.features))return d.features;if(Array.isArray(d?.data))return d.data;if(Array.isArray(d))return d;return[]}
 function geoSphereFeatureId(f:any){const station=f?.properties?.station;return String(f?.properties?.station_id??(station&&typeof station==='object'?station.id:station)??f?.station_id??f?.id??'')}
 function geoSphereParam(f:any,name:string){const props=f?.properties??f;const params=props?.parameters??props?.parameter??props;return lastValue(params?.[name]??params?.[name.toLowerCase()]??params?.[name.toUpperCase()])}
@@ -191,14 +200,14 @@ async function geoSphereStation(lat:number,lon:number,elevation?:number,signal?:
   const nearby=meta.map(s=>({...s,distance:haversine(lat,lon,s.lat,s.lon)})).filter(s=>s.distance<=120000).sort((a,b)=>stationFitScore(a.distance,a.altitude,elevation,-18000)-stationFitScore(b.distance,b.altitude,elevation,-18000)).slice(0,10);
   if(!nearby.length)return null;
   let d:any=null,lastError:any=null;
-  for(const parameters of ['TL,TP,RF,PRED,FF,DD,FFX,RR','TL,TP,RF,FF,DD,FFX,RR','TL,RR,FF']){try{const p=new URLSearchParams({parameters,station_ids:nearby.map(s=>s.id).join(','),output_format:'geojson'});d=await j<any>(`https://dataset.api.hub.geosphere.at/v1/station/current/tawes-v1-10min?${p}`,signal);break}catch(e){lastError=e}}
+  for(const parameters of ['TL,TP,RF,PRED,P,FF,DD,FFX,RR','TL,TP,RF,PRED,FF,DD,FFX,RR','TL,TP,RF,FF,DD,FFX,RR','TL,RR,FF']){try{const p=new URLSearchParams({parameters,station_ids:nearby.map(s=>s.id).join(','),output_format:'geojson'});d=await j<any>(`https://dataset.api.hub.geosphere.at/v1/station/current/tawes-v1-10min?${p}`,signal);break}catch(e){lastError=e}}
   if(!d)throw lastError??new Error('GeoSphere-Abruf fehlgeschlagen');
   const features=geoSphereFeatures(d),byId=new Map(nearby.map(s=>[s.id,s]));
   const parsed=features.map((f:any)=>{
    const id=geoSphereFeatureId(f),m=byId.get(id)??nearby.find(s=>String(f?.properties?.station?.name??'')===s.name);
    if(!m)return null;
-   const ff=geoSphereParam(f,'FF'),ffx=geoSphereParam(f,'FFX');
-   return{name:m.name,provider:'GeoSphere Austria / TAWES',stationId:m.id,distance:m.distance,height:Number.isFinite(m.altitude)?m.altitude:undefined,timestamp:geoSphereTimestamp(d,f),temperature:geoSphereParam(f,'TL'),humidity:geoSphereParam(f,'RF'),dewPoint:geoSphereParam(f,'TP'),pressure:geoSphereParam(f,'PRED'),pressureReference:'QFF',windSpeed:ff===undefined?undefined:ff*3.6/1.852,windDirection:geoSphereParam(f,'DD'),windGust:ffx===undefined?undefined:ffx*3.6/1.852,windUnit:'kt' as const,precipitation:geoSphereParam(f,'RR')} as Station;
+   const ff=geoSphereParam(f,'FF'),ffx=geoSphereParam(f,'FFX'),temperature=geoSphereParam(f,'TL'),stationPressure=geoSphereParam(f,'P'),pred=geoSphereParam(f,'PRED'),pressure=plausibleQff(pred,m.altitude,stationPressure)?pred:undefined;
+   return{name:m.name,provider:'GeoSphere Austria / TAWES',stationId:m.id,distance:m.distance,height:Number.isFinite(m.altitude)?m.altitude:undefined,timestamp:geoSphereTimestamp(d,f),temperature,humidity:geoSphereParam(f,'RF'),dewPoint:geoSphereParam(f,'TP'),pressure,pressureReference:pressure===undefined?undefined:'QFF',windSpeed:ff===undefined?undefined:ff*3.6/1.852,windDirection:geoSphereParam(f,'DD'),windGust:ffx===undefined?undefined:ffx*3.6/1.852,windUnit:'kt' as const,precipitation:geoSphereParam(f,'RR')} as Station;
   }).filter(Boolean) as Station[];
   const best=parsed.sort((a,b)=>stationFitScore(a.distance,a.height,elevation,-18000,a.timestamp)-stationFitScore(b.distance,b.height,elevation,-18000,b.timestamp))[0]??null;
   return robustBlendStations(parsed,elevation)??best;
@@ -241,7 +250,7 @@ function robustBlendStations(input:Station[],targetElevation?:number):Station|nu
 function rowToStation(r:any,lat:number,lon:number):Station|null{
  if(Number(r.qcStatus)===0)return null;
  const rlat=Number(r.lat??r.latitude),rlon=Number(r.lon??r.longitude);if(!Number.isFinite(rlat)||!Number.isFinite(rlon))return null;
- const distance=haversine(lat,lon,rlat,rlon),heightRaw=r.elev??r.elevation??r.elevation_m,height=heightRaw===null||heightRaw===undefined?undefined:Number(heightRaw),num=(v:any)=>v===null||v===undefined||v===''?undefined:(Number.isFinite(Number(v))?Number(v):undefined),temperature=num(r.temp??r.temperature),dewPoint=num(r.dewp??r.dewPoint),pressureMsl=num(r.pressureMsl),altimeter=num(r.altim),stationPressure=num(r.pressure),rawPressure=pressureMsl??altimeter??stationPressure,pressure=rawPressure!==undefined&&rawPressure<100?rawPressure*33.8639:rawPressure,pressureReference:Station['pressureReference']=pressureMsl!==undefined?'QFF':altimeter!==undefined?'QNH':stationPressure!==undefined?'station':undefined,humidity=num(r.relativeHumidity??r.humidity)??(temperature!==undefined&&dewPoint!==undefined?Math.min(100,100*Math.exp((17.625*dewPoint)/(243.04+dewPoint)-(17.625*temperature)/(243.04+temperature))):undefined),windUnit=r.windUnit==='kmh'?'kmh':'kt',windSpeedRaw=num(r.wspd??r.windSpeed),windGustRaw=num(r.wgst??r.windGust);
+ const distance=haversine(lat,lon,rlat,rlon),heightRaw=r.elev??r.elevation??r.elevation_m,height=heightRaw===null||heightRaw===undefined?undefined:Number(heightRaw),num=(v:any)=>v===null||v===undefined||v===''?undefined:(Number.isFinite(Number(v))?Number(v):undefined),temperature=num(r.temp??r.temperature),dewPoint=num(r.dewp??r.dewPoint),pressureMslRaw=num(r.pressureMsl),pressureMsl=plausibleQff(pressureMslRaw,height)?pressureMslRaw:undefined,altimeter=num(r.altim),stationPressure=num(r.pressure),rawPressure=pressureMsl??altimeter??stationPressure,pressure=rawPressure!==undefined&&rawPressure<100?rawPressure*33.8639:rawPressure,pressureReference:Station['pressureReference']=pressureMsl!==undefined?'QFF':altimeter!==undefined?'QNH':stationPressure!==undefined?'station':undefined,humidity=num(r.relativeHumidity??r.humidity)??(temperature!==undefined&&dewPoint!==undefined?Math.min(100,100*Math.exp((17.625*dewPoint)/(243.04+dewPoint)-(17.625*temperature)/(243.04+temperature))):undefined),windUnit=r.windUnit==='kmh'?'kmh':'kt',windSpeedRaw=num(r.wspd??r.windSpeed),windGustRaw=num(r.wgst??r.windGust);
  return{name:r.name||r.site||r.station||r.icaoId||r.stationId||'WMO/PWS-Station',provider:r.provider||'METAR / WMO',stationId:r.icaoId||r.wmoId||r.stationId||r.id,distance,height:Number.isFinite(height as number)?height:undefined,timestamp:normalizeStationTimestamp(r.reportTime??r.obsTime??r.timestamp),temperature,dewPoint,humidity,pressure,pressureReference,windSpeed:windSpeedRaw===undefined?undefined:windUnit==='kmh'?windSpeedRaw/1.852:windSpeedRaw,windDirection:num(r.wdir??r.windDirection),windGust:windGustRaw===undefined?undefined:windUnit==='kmh'?windGustRaw/1.852:windGustRaw,windUnit:'kt',cloudCover:num(r.cloudCover),precipitation:num(r.precipitation??r.precipTotal)};
 }
 function parseMetarStations(rows:any[],lat:number,lon:number){return rows.map(r=>rowToStation(r,lat,lon)).filter(Boolean) as Station[]}
@@ -258,7 +267,7 @@ export async function station(lat:number,lon:number,country?:string,elevation?:n
  if(inGermany)tasks.push(brightSkyStation(lat,lon,elevation,signal));
  const results=(await Promise.allSettled(tasks)).filter((x):x is PromiseFulfilledResult<Station|null>=>x.status==='fulfilled').map(x=>x.value).filter(Boolean) as Station[];
  if(!results.length)return null;
- const blended=robustBlendStations(results,elevation),geoSphereQff=c==='AT'?results.find(item=>item.provider?.includes('GeoSphere')&&Number.isFinite(item.pressure)&&(item.pressureReference==='QFF'||item.pressureReference==='MSL')):undefined;if(blended&&geoSphereQff)return{...blended,pressure:geoSphereQff.pressure,pressureReference:'QFF'};
+ const blended=robustBlendStations(results,elevation),geoSphereQff=c==='AT'?results.find(item=>item.provider?.includes('GeoSphere')&&plausibleQff(item.pressure,item.height)&&(item.pressureReference==='QFF'||item.pressureReference==='MSL')):undefined;if(blended&&geoSphereQff)return{...blended,pressure:geoSphereQff.pressure,pressureReference:'QFF'};
  return blended??results.sort((a,b)=>stationFitScore(a.distance,a.height,elevation,a.provider?.includes('GeoSphere')?-18000:isPrivateNetwork(a.provider)?-9000:0,a.timestamp)-stationFitScore(b.distance,b.height,elevation,b.provider?.includes('GeoSphere')?-18000:isPrivateNetwork(b.provider)?-9000:0,b.timestamp))[0];
 }
 
