@@ -1,8 +1,6 @@
-# MID Daten- und Warnungsproxy v0.7.1
+# MID Daten-, Warnungs- und Radarproxy v0.7.9
 
-> Hinweis zur MID-Oberfläche 0.7.8: Die Ortszeit-, POI-, Modellstand- und Best-Match-Erweiterungen werden vollständig im Frontend umgesetzt. Dafür ist keine Änderung des Worker-Codes erforderlich. Dieser Worker bleibt auf Version 0.7.1 und enthält weiterhin die vollständigen Korrekturen für GeoSphere/TAWES, METAR-Zeitstempel und Stationsdiagnose.
-
-Der Cloudflare Worker stellt browserkompatibel Stationsdaten und amtliche Warnungen bereit. Ein zweiter Worker ist nicht erforderlich.
+Der Cloudflare Worker stellt browserkompatibel Stationsdaten, amtliche Warnungen und die standortbezogene Radar-Nowcast-Auswertung bereit. Ein zweiter Worker ist nicht erforderlich.
 
 ## Enthaltene Dienste
 
@@ -15,6 +13,7 @@ Der Cloudflare Worker stellt browserkompatibel Stationsdaten und amtliche Warnun
 - DWD-Warnungen – Deutschland
 - MeteoAlarm/CAP – unterstützte europäische Länder
 - NOAA/NWS Active Alerts – USA
+- Radar-Nowcast: DWD-RV in Deutschland, EUMETNET OPERA/ORD in Europa und RainViewer als Fallback
 
 ## Bereitstellung
 
@@ -23,7 +22,7 @@ Der Cloudflare Worker stellt browserkompatibel Stationsdaten und amtliche Warnun
 3. **Deploy** ausführen.
 4. Die Worker-Adresse in GitHub als Repository-Variable `VITE_METAR_PROXY_URL` hinterlegen.
 
-Optional kann dieselbe Adresse als `VITE_ALERT_PROXY_URL` gesetzt werden. Der mitgelieferte Workflow verwendet ansonsten automatisch `VITE_METAR_PROXY_URL` auch für Warnungen.
+Optional kann dieselbe Adresse als `VITE_ALERT_PROXY_URL` und `VITE_RADAR_PROXY_URL` gesetzt werden. Ohne diese Variablen verwendet MID automatisch `VITE_METAR_PROXY_URL` auch für Warnungen und Radar.
 
 ## Optionale Secrets
 
@@ -57,8 +56,8 @@ Beispielantwort:
 ```json
 {
   "ok": true,
-  "version": "0.7.1",
-  "services": ["stations", "alerts", "hyperlocal-networks"],
+  "version": "0.7.9",
+  "services": ["stations", "alerts", "hyperlocal-networks", "radar-nowcast"],
   "providers": {
     "NOAA AviationWeather": true,
     "GeoSphere Austria": true,
@@ -108,3 +107,26 @@ https://DEIN-WORKER.workers.dev/?mode=alerts&lat=39.2238&lon=9.1217&country=IT&n
 ```
 
 Eine leere Warnungsliste kann korrekt sein. Ein Feld `error` weist dagegen auf einen Abruf- oder Parserfehler hin.
+
+
+## Radar-Nowcast testen
+
+Deutschland/DWD:
+
+```text
+https://DEIN-WORKER.workers.dev/?mode=radar-nowcast&lat=50.82&lon=7.04&country=DE
+```
+
+Europa/OPERA:
+
+```text
+https://DEIN-WORKER.workers.dev/?mode=radar-nowcast&lat=39.2238&lon=9.1217&country=IT
+```
+
+Außerhalb Europas/RainViewer-Fallback:
+
+```text
+https://DEIN-WORKER.workers.dev/?mode=radar-nowcast&lat=35.68&lon=139.76&country=JP
+```
+
+Die Antwort enthält `source`, `provider`, `quality`, `radarProbability`, `currentRate`, optionale Ankunfts-/Endzeiten und Diagnosewerte. OPERA-Komposite werden unter CC BY 4.0 verarbeitet; die RainViewer-Nutzung ist für persönliche, schulische und kleine Community-Projekte vorgesehen und benötigt eine sichtbare Quellenangabe.

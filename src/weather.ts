@@ -11,6 +11,8 @@ export type OfficialAlertLevel='yellow'|'orange'|'red'|'purple'|'unknown';
 export type OfficialAlert={id:string;headline:string;description:string;instruction?:string;level:OfficialAlertLevel;severity?:string;event?:string;source:string;area?:string;effective?:string;onset?:string;expires?:string;url?:string};
 export type ModelRunMeta={id:string;label:string;kind:'forecast'|'ensemble';initialisationTime?:string;availabilityTime?:string;updateIntervalSeconds?:number;temporalResolutionSeconds?:number};
 export type BestMatchModelInfo={summary:string;likelyChain:string;runs:ModelRunMeta[]};
+export type RadarNowcastQuality='high'|'medium'|'low';
+export type RadarNowcast={source:'dwd'|'opera'|'rainviewer'|'model';provider:string;quality:RadarNowcastQuality;radarProbability:number;currentRate?:number;arrivalMinutes?:number;endMinutes?:number;observedAt?:string;summary:string;coverage?:boolean;license?:string;diagnostics?:Record<string,unknown>};
 
 const COUNTRY_CODE_ALIASES:Record<string,string>={
  DE:'DE',DEUTSCHLAND:'DE',GERMANY:'DE',GERMANIA:'DE',AT:'AT',OSTERREICH:'AT',AUSTRIA:'AT',
@@ -254,6 +256,16 @@ export async function officialWarnings(lat:number,lon:number,country?:string,nam
  if(name)u.searchParams.set('name',name);if(region)u.searchParams.set('region',region);if(district)u.searchParams.set('district',district);
  const response=await fetch(u.toString(),{signal,cache:'no-store'});const result=await response.json().catch(()=>({})) as {alerts?:OfficialAlert[];provider?:string;coverage?:string;error?:string};if(!response.ok||result.error)throw new Error(result.error||`Warnungsproxy HTTP ${response.status}`);
  return{alerts:(result.alerts??[]).filter(a=>a&&a.id&&a.headline),provider:result.provider,coverage:result.coverage};
+}
+
+export async function radarNowcast(lat:number,lon:number,country?:string,signal?:AbortSignal):Promise<RadarNowcast|null>{
+ const configured=((import.meta as any).env?.VITE_RADAR_PROXY_URL as string|undefined)||((import.meta as any).env?.VITE_METAR_PROXY_URL as string|undefined)||localStorage.getItem('radarProxyUrl')||localStorage.getItem('metarProxyUrl')||'';
+ if(!configured)return null;
+ const u=new URL(configured);u.searchParams.set('mode','radar-nowcast');u.searchParams.set('lat',String(lat));u.searchParams.set('lon',String(lon));u.searchParams.set('country',countryCodeFromLocation(country)||String(country||''));
+ const response=await fetch(u.toString(),{signal,cache:'no-store'});const result=await response.json().catch(()=>({})) as RadarNowcast&{error?:string};
+ if(!response.ok||result.error)throw new Error(result.error||`Radar-Nowcast HTTP ${response.status}`);
+ if(!result||!Number.isFinite(Number(result.radarProbability)))return null;
+ return{...result,radarProbability:Math.max(0,Math.min(100,Number(result.radarProbability))),currentRate:Number.isFinite(Number(result.currentRate))?Number(result.currentRate):undefined,arrivalMinutes:Number.isFinite(Number(result.arrivalMinutes))?Number(result.arrivalMinutes):undefined,endMinutes:Number.isFinite(Number(result.endMinutes))?Number(result.endMinutes):undefined};
 }
 
 function n(v:unknown,fallback=NaN){return v===null||v===undefined||v===''?fallback:Number(v)}

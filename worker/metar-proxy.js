@@ -12,7 +12,7 @@ const SYNOPTIC_LATEST='https://api.synopticdata.com/v2/stations/latest';
 const XWEATHER_OBS='https://data.api.xweather.com/observations/closest';
 const GEOSPHERE_META='https://dataset.api.hub.geosphere.at/v1/station/current/tawes-v1-10min/metadata';
 const GEOSPHERE_CURRENT='https://dataset.api.hub.geosphere.at/v1/station/current/tawes-v1-10min';
-const WORKER_VERSION='0.7.1';
+const WORKER_VERSION='0.7.9';
 const CORS={'content-type':'application/json; charset=utf-8','access-control-allow-origin':'*','access-control-allow-methods':'GET,OPTIONS','cache-control':'public, max-age=180'};
 const FEED_SLUGS={
  AD:'andorra',AT:'austria',BE:'belgium',BA:'bosnia-herzegovina',BG:'bulgaria',HR:'croatia',CY:'cyprus',CZ:'czechia',DK:'denmark',EE:'estonia',FI:'finland',FR:'france',DE:'germany',GR:'greece',EL:'greece',HU:'hungary',IS:'iceland',IE:'ireland',IL:'israel',IT:'italy',LV:'latvia',LT:'lithuania',LU:'luxembourg',MT:'malta',MD:'moldova',ME:'montenegro',NL:'netherlands',MK:'republic-of-north-macedonia',NO:'norway',PL:'poland',PT:'portugal',RO:'romania',RS:'serbia',SK:'slovakia',SI:'slovenia',ES:'spain',SE:'sweden',CH:'switzerland',UA:'ukraine',GB:'united-kingdom',UK:'united-kingdom',AM:'armenia'
@@ -228,11 +228,105 @@ async function xweatherRows(lat,lon,radiusKm,clientId,clientSecret){
  return list.map(st=>{const ob=st?.ob??{},slat=number(st?.loc?.lat),slon=number(st?.loc?.long);if(slat===undefined||slon===undefined)return null;const dist=number(st?.relativeTo?.distanceKM)!==undefined?number(st.relativeTo.distanceKM)*1000:distance(lat,lon,slat,slon),trust=number(ob?.trustFactor),qc=number(ob?.QCcode);if(dist>Math.min(60,radiusKm)*1000||qc===0||(trust!==undefined&&trust<65))return null;return{stationId:st?.id,name:st?.place?.name||st?.id,lat:slat,lon:slon,elevation:number(st?.profile?.elevM),reportTime:ob?.dateTimeISO||st?.obDateTime,temp:number(ob?.tempC),dewp:number(ob?.dewpointC),relativeHumidity:number(ob?.humidity),pressure:number(ob?.pressureMB),windSpeed:number(ob?.windSpeedKTS),windDirection:number(ob?.windDirDEG),windGust:number(ob?.windGustKTS),cloudCover:number(ob?.sky),precipitation:number(ob?.precipMM),provider:`Xweather Observations${st?.dataSource?` / ${st.dataSource}`:''} (lizenzierter API-Zugang)`,distance:dist,windUnit:'kt',qcStatus:qc===undefined?1:qc>0?2:0,trustFactor:trust}}).filter(x=>x&&number(x.temp)!==undefined);
 }
 
+// --- Radar-Nowcast v0.7.9 ---------------------------------------------------
+const DWD_RADAR_WMS='https://maps.dwd.de/geoserver/wms';
+const OPERA_POSITION='https://api.meteogate.eu/eu-eumetnet-weather-radar/collections/observations/position';
+const RAINVIEWER_META='https://api.rainviewer.com/public/weather-maps.json';
+function clamp(v,min,max){return Math.max(min,Math.min(max,v))}
+function dwdRadarApplies(lat,lon,country=''){const c=directCountryCode(country);return c==='DE'||(!c&&lon>=1.4&&lon<=18.8&&lat>=45.6&&lat<=56.5)}
+function operaRadarApplies(lat,lon){return lat>=31.5&&lat<=72.5&&lon>=-30.5&&lon<=50.5}
+function offsetPoint(lat,lon,northKm,eastKm){return{lat:lat+northKm/111,lon:lon+eastKm/(111*Math.max(.2,Math.cos(lat*Math.PI/180)))}}
+function isoFloor5(epochMs=Date.now()){return new Date(Math.floor(epochMs/300000)*300000).toISOString().replace('.000Z','Z')}
+function radarRateLabel(rate){if(rate>=10)return'stark';if(rate>=3)return'mäßig bis stark';if(rate>=.8)return'mäßig';if(rate>=.1)return'leicht';return'sehr leicht'}
+function normaliseDwdRate(value,key=''){
+ const v=number(value);if(v===undefined||v<0)return 0;const k=String(key).toLowerCase();
+ if(k.includes('dbz'))return mmhFromDbz(v);
+ if(k.includes('gray')||k.includes('index'))return v<18?0:Math.max(0,((v-18)/18)**1.55);
+ if(v>1000)return v/100*12;if(v>100)return v/100*12;if(v>60)return v/10;
+ return v;
+}
+function findNumericRadarValue(data){
+ const queue=[data],seen=new Set();while(queue.length){const item=queue.shift();if(item===null||item===undefined)continue;if(typeof item==='number'&&Number.isFinite(item))return{value:item,key:''};if(typeof item!=='object'||seen.has(item))continue;seen.add(item);
+  for(const [key,value] of Object.entries(item)){if(typeof value==='number'&&Number.isFinite(value)&&/(rate|rain|precip|value|gray|band|dbz|rv)/i.test(key))return{value,key};if(value&&typeof value==='object')queue.push(value)}
+ }
+ return null;
+}
+async function dwdPointRate(lat,lon,time){
+ const delta=.025,u=new URL(DWD_RADAR_WMS);u.searchParams.set('service','WMS');u.searchParams.set('version','1.1.1');u.searchParams.set('request','GetFeatureInfo');u.searchParams.set('layers','dwd:Radar_rv_product_1x1km_ger');u.searchParams.set('query_layers','dwd:Radar_rv_product_1x1km_ger');u.searchParams.set('styles','');u.searchParams.set('srs','EPSG:4326');u.searchParams.set('bbox',`${lon-delta},${lat-delta},${lon+delta},${lat+delta}`);u.searchParams.set('width','5');u.searchParams.set('height','5');u.searchParams.set('x','2');u.searchParams.set('y','2');u.searchParams.set('format','image/png');u.searchParams.set('info_format','application/json');u.searchParams.set('feature_count','1');u.searchParams.set('time',time);
+ const response=await fetch(u.toString(),{headers:{Accept:'application/json,text/plain,*/*'},cf:{cacheTtl:120,cacheEverything:true}});if(!response.ok)throw new Error(`DWD WMS HTTP ${response.status}`);const text=await response.text();let parsed;try{parsed=JSON.parse(text)}catch{parsed=text}
+ const found=findNumericRadarValue(parsed);if(found)return normaliseDwdRate(found.value,found.key);
+ const m=String(text).match(/(?:GRAY_INDEX|value|rate|rain)[^\d-]*(-?\d+(?:\.\d+)?)/i);return m?normaliseDwdRate(Number(m[1]),m[0]):0;
+}
+async function dwdRadarNowcast(lat,lon){
+ const base=Math.floor(Date.now()/300000)*300000,minuteOffsets=[-10,0,15,30,45,60,90,120],points=[[0,0],[3,0],[-3,0],[0,3],[0,-3]].map(([n,e])=>offsetPoint(lat,lon,n,e));
+ let successes=0;const frames=[];for(const offset of minuteOffsets){const time=isoFloor5(base+offset*60000),rates=await Promise.all(points.map(p=>dwdPointRate(p.lat,p.lon,time).then(v=>{successes++;return v}).catch(()=>0)));frames.push({time:Date.parse(time),center:rates[0]||0,nearby:Math.max(...rates.slice(1),0),future:offset>0})}
+ if(successes<Math.max(3,Math.floor(points.length*minuteOffsets.length*.2)))throw new Error('DWD-Radar liefert am Standort derzeit keine auswertbaren Werte.');
+ return radarResultFromFrames('dwd','DWD-RV 0–2-h-Nowcast','high',frames,'Daten: Deutscher Wetterdienst; MID-Auswertung');
+}
+function coverageSeries(data){
+ const collections=Array.isArray(data?.coverages)?data.coverages:[data],out=[];
+ for(const cov of collections){if(!cov||typeof cov!=='object')continue;const axes=cov.domain?.axes??{},times=axes.t?.values??axes.time?.values??[],ranges=cov.ranges??{};let rangeKey=Object.keys(ranges).find(k=>/RATE/i.test(k))||Object.keys(ranges)[0],range=rangeKey?ranges[rangeKey]:null,values=range?.values??range?.data??[];if(!Array.isArray(values))continue;
+  const flat=values.flat?values.flat(Infinity):values;for(let i=0;i<Math.min(times.length,flat.length);i++){const v=number(flat[i]);if(v!==undefined)out.push({time:Date.parse(times[i]),rate:Math.max(0,v)})}
+ }
+ return out.filter(x=>Number.isFinite(x.time)).sort((a,b)=>a.time-b.time);
+}
+async function operaPointSeries(lat,lon){
+ const end=new Date(),start=new Date(end.getTime()-100*60000),datetime=`${start.toISOString().replace('.000Z','Z')}/${end.toISOString().replace('.000Z','Z')}`,variants=[
+  {'parameter-name':'RATE:comp',method:'comp'},
+  {standard_name:'RATE',method:'comp'},
+  {'parameter-name':'RATE',method:'comp'},
+  {'parameter-name':'RATE:comp',method:'comp',format:'ODIM'}
+ ];
+ let lastError;for(const variant of variants){try{const u=new URL(OPERA_POSITION);u.searchParams.set('coords',`POINT(${lon.toFixed(5)} ${lat.toFixed(5)})`);u.searchParams.set('datetime',datetime);u.searchParams.set('f','CoverageJSON');for(const[k,v]of Object.entries(variant))u.searchParams.set(k,v);const response=await fetch(u.toString(),{headers:{Accept:'application/prs.coverage+json,application/json'},cf:{cacheTtl:180,cacheEverything:true}});if(response.status===204)continue;if(!response.ok)throw new Error(`OPERA HTTP ${response.status}`);const data=await response.json(),series=coverageSeries(data);if(series.length)return series}catch(error){lastError=error}}
+ throw lastError||new Error('OPERA/ORD liefert keine Punktzeitreihe.');
+}
+async function operaRadarNowcast(lat,lon){
+ const points=[[0,0],[4,0],[-4,0],[0,4],[0,-4]].map(([n,e])=>offsetPoint(lat,lon,n,e)),series=await Promise.all(points.map(p=>operaPointSeries(p.lat,p.lon))),times=[...new Set(series.flatMap(s=>s.map(x=>x.time)))].sort((a,b)=>a-b).slice(-10),frames=times.map(time=>{const atTime=series.map(s=>{let best=null;for(const item of s)if(!best||Math.abs(item.time-time)<Math.abs(best.time-time))best=item;return best&&Math.abs(best.time-time)<=8*60000?best.rate:0});return{time,center:atTime[0]||0,nearby:Math.max(...atTime.slice(1),0),future:false}});
+ if(!frames.length)throw new Error('OPERA/ORD ohne auswertbare RATE-Daten.');
+ return radarResultFromFrames('opera','EUMETNET OPERA/ORD RATE','medium',frames,'EUMETNET OPERA composite products, CC BY 4.0; MID-Bewegungsnäherung');
+}
+function u32(bytes,o){return((bytes[o]<<24)|(bytes[o+1]<<16)|(bytes[o+2]<<8)|bytes[o+3])>>>0}
+function paeth(a,b,c){const p=a+b-c,pa=Math.abs(p-a),pb=Math.abs(p-b),pc=Math.abs(p-c);return pa<=pb&&pa<=pc?a:pb<=pc?b:c}
+async function decodePng(buffer){
+ const bytes=new Uint8Array(buffer);if(bytes.length<24||bytes[0]!==137||bytes[1]!==80)throw new Error('Ungültige PNG-Kachel');let pos=8,width=0,height=0,bitDepth=8,colorType=6,palette=null,transparency=null,idat=[];
+ while(pos+12<=bytes.length){const len=u32(bytes,pos),type=String.fromCharCode(...bytes.slice(pos+4,pos+8)),data=bytes.slice(pos+8,pos+8+len);pos+=12+len;if(type==='IHDR'){width=u32(data,0);height=u32(data,4);bitDepth=data[8];colorType=data[9]}else if(type==='PLTE')palette=data;else if(type==='tRNS')transparency=data;else if(type==='IDAT')idat.push(data);else if(type==='IEND')break}
+ if(bitDepth!==8||!width||!height)throw new Error('PNG-Format nicht unterstützt');const compressed=new Uint8Array(idat.reduce((n,x)=>n+x.length,0));let off=0;for(const chunk of idat){compressed.set(chunk,off);off+=chunk.length}const stream=new Blob([compressed]).stream().pipeThrough(new DecompressionStream('deflate')),raw=new Uint8Array(await new Response(stream).arrayBuffer()),bpp=colorType===6?4:colorType===2?3:colorType===4?2:1,stride=width*bpp,out=new Uint8Array(height*stride);let rp=0;
+ for(let y=0;y<height;y++){const filter=raw[rp++],row=raw.slice(rp,rp+stride);rp+=stride;for(let x=0;x<stride;x++){const left=x>=bpp?out[y*stride+x-bpp]:0,up=y?out[(y-1)*stride+x]:0,upLeft=y&&x>=bpp?out[(y-1)*stride+x-bpp]:0,v=row[x];out[y*stride+x]=filter===0?v:filter===1?(v+left)&255:filter===2?(v+up)&255:filter===3?(v+Math.floor((left+up)/2))&255:filter===4?(v+paeth(left,up,upLeft))&255:v}}
+ const rgba=new Uint8Array(width*height*4);for(let i=0;i<width*height;i++){let r=0,g=0,b=0,a=255;if(colorType===6){r=out[i*4];g=out[i*4+1];b=out[i*4+2];a=out[i*4+3]}else if(colorType===2){r=out[i*3];g=out[i*3+1];b=out[i*3+2]}else if(colorType===3){const idx=out[i];r=palette?.[idx*3]??0;g=palette?.[idx*3+1]??0;b=palette?.[idx*3+2]??0;a=transparency?.[idx]??255}else if(colorType===4){r=g=b=out[i*2];a=out[i*2+1]}else{r=g=b=out[i]}rgba.set([r,g,b,a],i*4)}return{width,height,rgba};
+}
+function mmhFromDbz(dbz){const z=10**(dbz/10);return Math.max(0,(z/200)**(1/1.6))}
+function rainViewerPixelRate(r,g,b,a){if(a<18)return 0;let dbz=(a-70)/5;if(r>180&&g>155&&b<150)dbz=Math.max(dbz,43);if(r>175&&g<130&&b<130)dbz=Math.max(dbz,50);if(r>120&&b>120&&g<110)dbz=Math.max(dbz,57);if(b>r&&b>g)dbz=Math.max(dbz,18+Math.min(20,(b-Math.max(r,g))/4));return mmhFromDbz(clamp(dbz,-10,65))}
+function sampleRadarTile(image,lat){const cx=Math.floor(image.width/2),cy=Math.floor(image.height/2),kmPerPixel=156.54303392*Math.cos(lat*Math.PI/180)/(2**7),sample=(x,y)=>{x=clamp(Math.round(x),0,image.width-1);y=clamp(Math.round(y),0,image.height-1);const i=(y*image.width+x)*4;return rainViewerPixelRate(image.rgba[i],image.rgba[i+1],image.rgba[i+2],image.rgba[i+3])},center=sample(cx,cy),offsets=[3,5,8].map(k=>Math.max(1,k/kmPerPixel)),near=[];for(const o of offsets)for(const[a,b]of[[o,0],[-o,0],[0,o],[0,-o],[o*.7,o*.7],[-o*.7,o*.7]])near.push(sample(cx+a,cy+b));return{center,nearby:Math.max(...near,0)}}
+async function rainViewerRadarNowcast(lat,lon){
+ const meta=await fetchJson(RAINVIEWER_META),past=(meta?.radar?.past??[]).slice(-6),host=meta?.host;if(!host||!past.length)throw new Error('RainViewer ohne aktuelle Frames.');
+ const coverageUrl=`${host}/v2/coverage/0/256/7/${lat.toFixed(5)}/${lon.toFixed(5)}/0/0_0.png`,coverageResponse=await fetch(coverageUrl,{cf:{cacheTtl:86400,cacheEverything:true}});if(coverageResponse.ok){try{const coverage=await decodePng(await coverageResponse.arrayBuffer()),i=(Math.floor(coverage.height/2)*coverage.width+Math.floor(coverage.width/2))*4;if(coverage.rgba[i+3]>200&&coverage.rgba[i]<20&&coverage.rgba[i+1]<20&&coverage.rgba[i+2]<20)throw new Error('Keine RainViewer-Radarabdeckung.')}catch(error){if(String(error).includes('Keine RainViewer'))throw error}}
+ const frames=[];for(const frame of past){const url=`${host}${frame.path}/256/7/${lat.toFixed(5)}/${lon.toFixed(5)}/2/0_0.png`,response=await fetch(url,{cf:{cacheTtl:600,cacheEverything:true}});if(!response.ok)continue;const sampled=sampleRadarTile(await decodePng(await response.arrayBuffer()),lat);frames.push({time:Number(frame.time)*1000,center:sampled.center,nearby:sampled.nearby,future:false})}
+ if(!frames.length)throw new Error('RainViewer-Kacheln nicht auswertbar.');const fresh=Date.now()-frames.at(-1).time<25*60000,quality=fresh&&frames.length>=5?'medium':'low';return radarResultFromFrames('rainviewer','RainViewer-Radarnäherung',quality,frames,'Weather data by RainViewer; MID-Bewegungsnäherung');
+}
+function radarResultFromFrames(source,provider,quality,frames,license){
+ frames=frames.filter(x=>Number.isFinite(x.time)).sort((a,b)=>a.time-b.time);const observed=frames.filter(x=>!x.future),latestObserved=observed.at(-1)||frames[0],future=frames.filter(x=>x.future),wet=x=>Number(x.center)>=.05||Number(x.nearby)>=.18;let radarProbability=5,arrivalMinutes,endMinutes,summary='Kein relevantes Radarecho am Standort oder in unmittelbarer Umgebung.';
+ if(Number(latestObserved?.center)>=.05){radarProbability=98;arrivalMinutes=0;const futureWet=future.filter(wet);endMinutes=futureWet.length?Math.max(5,Math.round((futureWet.at(-1).time-latestObserved.time)/60000)):undefined;summary=`Niederschlag am Standort erkannt: ${radarRateLabel(latestObserved.center)} (${latestObserved.center.toFixed(1)} mm/h)${endMinutes?`; voraussichtlich noch etwa ${endMinutes} Minuten`:''}.`}
+ else if(future.length){const first=future.find(wet);if(first){arrivalMinutes=Math.max(0,Math.round((first.time-latestObserved.time)/60000));radarProbability=clamp(Math.round(96-arrivalMinutes*.28+(first.center>0?5:0)),45,96);const last=future.filter(x=>x.time>=first.time&&wet(x)).at(-1);endMinutes=last?Math.round((last.time-latestObserved.time)/60000):undefined;summary=`Radarecho erreicht den Standort voraussichtlich in ${arrivalMinutes}–${arrivalMinutes+10} Minuten${first.center>=.05?` · ${radarRateLabel(first.center)} bis ${first.center.toFixed(1)} mm/h`:''}.`}}
+ else if(Number(latestObserved?.nearby)>=.18){const earlier=observed[Math.max(0,observed.length-4)],trend=Number(latestObserved.nearby)-Number(earlier?.nearby||0),strength=Number(latestObserved.nearby);arrivalMinutes=trend>.05?20:35;radarProbability=clamp(Math.round(38+Math.min(32,strength*9)+(trend>0?14:-4)),25,82);summary=`Niederschlagsfeld in Standortnähe; Ankunft grob in ${arrivalMinutes-10}–${arrivalMinutes+15} Minuten möglich · Bewegungsnäherung aus Radarhistorie.`}
+ else if(observed.length>=2&&Number(observed.at(-2).center)>=.05){radarProbability=12;summary='Das Radarecho hat den Standort zuletzt verlassen; kurzfristig nur geringes Wiederholungsrisiko.'}
+ return{source,provider,quality,radarProbability,currentRate:Number(latestObserved?.center||0),arrivalMinutes,endMinutes,observedAt:latestObserved?new Date(latestObserved.time).toISOString():undefined,summary,coverage:true,license,diagnostics:{frames:frames.length,observedFrames:observed.length,futureFrames:future.length,latestNearbyRate:Number(latestObserved?.nearby||0)}};
+}
+async function radarNowcastForPoint(lat,lon,country=''){
+ const errors=[];if(dwdRadarApplies(lat,lon,country)){try{return await dwdRadarNowcast(lat,lon)}catch(error){errors.push(`DWD: ${error instanceof Error?error.message:String(error)}`)}}
+ if(operaRadarApplies(lat,lon)){try{return await operaRadarNowcast(lat,lon)}catch(error){errors.push(`OPERA: ${error instanceof Error?error.message:String(error)}`)}}
+ try{return await rainViewerRadarNowcast(lat,lon)}catch(error){errors.push(`RainViewer: ${error instanceof Error?error.message:String(error)}`)}
+ return{source:'model',provider:'Open-Meteo Best Match',quality:'low',radarProbability:0,currentRate:0,summary:'Keine verwertbare Radarabdeckung; die Anzeige verwendet ausschließlich die Modellvorhersage.',coverage:false,diagnostics:{errors}};
+}
+
 export default{async fetch(request,env){
  if(request.method==='OPTIONS')return new Response(null,{status:204,headers:CORS});
  const u=new URL(request.url),mode=u.searchParams.get('mode')||'';
- if(mode==='health')return json({ok:true,version:WORKER_VERSION,services:['stations','alerts','hyperlocal-networks'],providers:{'NOAA AviationWeather':true,'GeoSphere Austria':true,'Weather Underground':Boolean(env?.WEATHER_COM_API_KEY||env?.WU_API_KEY),Netatmo:Boolean(env?.NETATMO_ACCESS_TOKEN),'Synoptic Data':Boolean(env?.SYNOPTIC_TOKEN),Xweather:Boolean(env?.XWEATHER_CLIENT_ID&&env?.XWEATHER_CLIENT_SECRET)},timestamp:new Date().toISOString()});
+ if(mode==='health')return json({ok:true,version:WORKER_VERSION,services:['stations','alerts','hyperlocal-networks','radar-nowcast'],providers:{'NOAA AviationWeather':true,'GeoSphere Austria':true,'Weather Underground':Boolean(env?.WEATHER_COM_API_KEY||env?.WU_API_KEY),Netatmo:Boolean(env?.NETATMO_ACCESS_TOKEN),'Synoptic Data':Boolean(env?.SYNOPTIC_TOKEN),Xweather:Boolean(env?.XWEATHER_CLIENT_ID&&env?.XWEATHER_CLIENT_SECRET)},timestamp:new Date().toISOString()});
  const lat=Number(u.searchParams.get('lat')),lon=Number(u.searchParams.get('lon'));if(!Number.isFinite(lat)||!Number.isFinite(lon))return json({error:'lat/lon required',version:WORKER_VERSION},400);
+ if(mode==='radar-nowcast'){
+  try{const result=await radarNowcastForPoint(lat,lon,u.searchParams.get('country')||'');return json({...result,version:WORKER_VERSION,checkedAt:new Date().toISOString()},200,{'cache-control':'public, max-age=120'})}
+  catch(error){return json({error:error instanceof Error?error.message:String(error),version:WORKER_VERSION,checkedAt:new Date().toISOString()},502,{'cache-control':'no-store'})}
+ }
  if(mode==='alerts'){
   try{const result=await officialAlerts(lat,lon,u.searchParams.get('country')||'',u.searchParams.get('name')||'',u.searchParams.get('region')||'',u.searchParams.get('district')||'',u.searchParams.get('language')||'de');return json({...result,version:WORKER_VERSION,checkedAt:new Date().toISOString()})}
   catch(error){return json({alerts:[],error:error instanceof Error?error.message:String(error),version:WORKER_VERSION,checkedAt:new Date().toISOString()},502,{'cache-control':'no-store'})}

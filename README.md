@@ -1,8 +1,18 @@
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.8**
+**Aktuelle Version: v0.7.9**
 
 MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React, TypeScript und Open-Meteo. Es verbindet Vorhersagen, Ensemblemodelle, aktuelle Stationsmessungen, amtliche Warnungen, Radar, Luftqualität und exportierbare Wetterwidgets.
+
+## Neuerungen in v0.7.9
+
+- standortbezogene Radar-Nowcast-Auswertung in der Kachel „Aktuelle Niederschlagswahrscheinlichkeit“
+- Deutschland: DWD-RV mit beobachteten und bis zu 2 Stunden vorausberechneten Radarzeitschritten
+- Europa außerhalb der DWD-Abdeckung: EUMETNET OPERA/ORD `RATE` als CC-BY-4.0-Radarkomposit mit eigener MID-Bewegungsnäherung
+- übrige abgedeckte Gebiete und Datenlücken: RainViewer-Historie mit räumlich-zeitlicher Näherung; transparent als Fallback gekennzeichnet
+- dynamische Kombination von Radar und Open-Meteo Best Match: 85/15 bis 30 Minuten, 70/30 bis 60 Minuten und 55/45 bis 120 Minuten, zusätzlich nach Radarqualität reduziert
+- Anzeige von erwarteter Ankunft, aktueller Intensität, geschätztem Ende, Quelle und Qualitätsstufe
+- Cloudflare Worker um `mode=radar-nowcast` sowie Radar-Caching und Quellen-Fallback erweitert
 
 ## Neuerungen in v0.7.8
 
@@ -104,9 +114,9 @@ Die öffentliche Worker-Adresse wird in GitHub unter **Settings → Secrets and 
 VITE_METAR_PROXY_URL=https://DEIN-WORKER.workers.dev/
 ```
 
-Eine separate Warnungsadresse ist nicht nötig. Optional kann dieselbe Adresse zusätzlich als `VITE_ALERT_PROXY_URL` gesetzt werden.
+Eine separate Warnungs- oder Radaradresse ist nicht nötig. Optional kann dieselbe Adresse zusätzlich als `VITE_ALERT_PROXY_URL` und `VITE_RADAR_PROXY_URL` gesetzt werden.
 
-Die zusätzlichen UI-Funktionen der MID-Version 0.7.2 benötigen keine weitere Änderung des Worker-Codes; der mitgelieferte Worker v0.7.1 enthält weiterhin alle bisherigen Korrekturen für GeoSphere/TAWES und Stationsdaten.
+Für v0.7.9 muss der mitgelieferte Worker neu bereitgestellt werden, weil die standortbezogene Radar-Nowcast-Auswertung jetzt serverseitig erfolgt.
 
 ### Automatische Versionsprüfung
 
@@ -122,6 +132,7 @@ MID benötigt weiterhin nur **einen** Cloudflare Worker. `worker/metar-proxy.js`
 - deutsche DWD-Warnungen
 - europäische MeteoAlarm-/CAP-Warnungen
 - NWS-Warnungen für die USA
+- standortbezogene Radar-Nowcast-Auswertung mit DWD-RV, EUMETNET OPERA/ORD und RainViewer-Fallback
 
 Nach einer Aktualisierung von `worker/metar-proxy.js` muss der Code im vorhandenen Cloudflare Worker ersetzt und erneut mit **Deploy** bereitgestellt werden.
 
@@ -243,7 +254,7 @@ Die jeweiligen Nutzungsbedingungen, Abruflimits und Lizenzanforderungen der Date
 - Minor (`0.x.0`): neue wesentliche Funktion oder größere Daten-/UI-Architektur
 - Major (`1.0.0`): stabiler, dokumentierter Funktionsumfang
 
-v0.7.7 ergänzt im Tagesdetail dezente Nachtflächen sowie Sonnenauf- und Sonnenuntergangszeiten. v0.7.6 korrigierte die Datumsdarstellung und präzisierte die Tag-/Nachtlogik der Bewölkungsbalken. v0.7.5 ergänzte kompakte Modellstand-Informationen mit Init- und Verfügbarkeitszeiten, ohne die Ansichten im geschlossenen Zustand merklich zu vergrößern.
+v0.7.9 ergänzt die standortbezogene Radar-/Modellkombination mit DWD, OPERA/ORD und RainViewer. v0.7.7 ergänzt im Tagesdetail dezente Nachtflächen sowie Sonnenauf- und Sonnenuntergangszeiten. v0.7.6 korrigierte die Datumsdarstellung und präzisierte die Tag-/Nachtlogik der Bewölkungsbalken. v0.7.5 ergänzte kompakte Modellstand-Informationen mit Init- und Verfügbarkeitszeiten, ohne die Ansichten im geschlossenen Zustand merklich zu vergrößern.
 
 
 ## Ortszeit und POI-Suche (v0.7.8)
