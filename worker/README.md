@@ -1,6 +1,10 @@
-# MID Daten-, Warnungs- und Radarproxy v0.7.13
+# MID Daten-, Warnungs- und Radarproxy v0.7.14
 
 Der Cloudflare Worker stellt browserkompatibel Stationsdaten, amtliche Warnungen und die standortbezogene Radar-Nowcast-Auswertung bereit. Ein zweiter Worker ist nicht erforderlich.
+
+## Kompatibilität v0.7.14
+
+Die Änderungen an Systemdesign, Radar-Bedienoberfläche und Favoriten liegen im Frontend. Die Radar- und Datenlogik entspricht funktional v0.7.13; der Worker wurde zur einheitlichen Versionsanzeige auf v0.7.14 angehoben.
 
 ## Enthaltene Dienste
 
@@ -56,7 +60,7 @@ Beispielantwort:
 ```json
 {
   "ok": true,
-  "version": "0.7.13",
+  "version": "0.7.14",
   "services": ["stations", "alerts", "hyperlocal-networks", "radar-nowcast"],
   "providers": {
     "NOAA AviationWeather": true,

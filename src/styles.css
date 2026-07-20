@@ -757,3 +757,21 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
  .radarcontrols .range{grid-template-columns:auto minmax(0,1fr)}
  .radarcontrols time{min-width:72px;font-size:14px}
 }
+
+/* v0.7.14 – Systemdesign, robuste Radarsteuerung und Favoriten */
+.place-title-row{display:flex;align-items:center;gap:10px;min-width:0}
+.place-title-row h1{min-width:0}
+.favorite-toggle{display:grid;width:38px;height:38px;flex:0 0 38px;place-items:center;padding:0;border:1px solid var(--border);border-radius:12px;background:color-mix(in srgb,var(--surface) 72%,transparent);color:var(--muted);transition:color .16s ease,border-color .16s ease,background .16s ease,transform .16s ease}
+.favorite-toggle:hover{transform:translateY(-1px);border-color:color-mix(in srgb,#f4b928 55%,var(--border));color:#f4b928}
+.favorite-toggle.active{border-color:rgba(244,185,40,.5);background:rgba(244,185,40,.12);color:#f4b928}
+.favorite-toggle:focus-visible{outline:2px solid var(--primary);outline-offset:3px}
+.search-section-label{display:flex;align-items:center;gap:6px;padding:8px 13px;border-bottom:1px solid var(--border);background:var(--s2);color:#e2a91f;font-size:10px;font-weight:850;letter-spacing:.08em;text-transform:uppercase}
+.search>section button strong{display:flex;align-items:center;gap:6px;min-width:0}
+.favorite-result-star{flex:0 0 auto;color:#e2a91f}
+/* Deckkraft immer in einer eigenen, vollständig nutzbaren Zeile. */
+.radarcontrols{grid-template-columns:auto minmax(0,1fr) auto!important;max-width:100%;overflow:visible}
+.radarcontrols .timeline{min-width:0}
+.radarcontrols .opacity{grid-column:1/-1!important;display:grid;grid-template-columns:auto minmax(0,1fr)!important;min-width:0;width:100%}
+.radarcontrols .opacity input{min-width:0;width:100%}
+@media(max-width:850px){.radarcontrols{grid-template-columns:1fr auto!important}.radar-playback-buttons{grid-column:1;grid-row:1}.radarcontrols time{grid-column:2;grid-row:1}.radarcontrols .timeline{grid-column:1/-1;grid-row:2}.radarcontrols .opacity{grid-column:1/-1!important;grid-row:3}}
+@media(max-width:520px){.place-title-row{gap:7px}.favorite-toggle{width:34px;height:34px;flex-basis:34px;border-radius:10px}.search-section-label{padding:7px 11px}}
