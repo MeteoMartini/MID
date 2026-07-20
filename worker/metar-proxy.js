@@ -10,7 +10,9 @@ const BIGDATA_REVERSE='https://api.bigdatacloud.net/data/reverse-geocode-client'
 const NETATMO_PUBLIC='https://api.netatmo.com/api/getpublicdata';
 const SYNOPTIC_LATEST='https://api.synopticdata.com/v2/stations/latest';
 const XWEATHER_OBS='https://data.api.xweather.com/observations/closest';
-const WORKER_VERSION='0.7.0';
+const GEOSPHERE_META='https://dataset.api.hub.geosphere.at/v1/station/current/tawes-v1-10min/metadata';
+const GEOSPHERE_CURRENT='https://dataset.api.hub.geosphere.at/v1/station/current/tawes-v1-10min';
+const WORKER_VERSION='0.7.1';
 const CORS={'content-type':'application/json; charset=utf-8','access-control-allow-origin':'*','access-control-allow-methods':'GET,OPTIONS','cache-control':'public, max-age=180'};
 const FEED_SLUGS={
  AD:'andorra',AT:'austria',BE:'belgium',BA:'bosnia-herzegovina',BG:'bulgaria',HR:'croatia',CY:'cyprus',CZ:'czechia',DK:'denmark',EE:'estonia',FI:'finland',FR:'france',DE:'germany',GR:'greece',EL:'greece',HU:'hungary',IS:'iceland',IE:'ireland',IL:'israel',IT:'italy',LV:'latvia',LT:'lithuania',LU:'luxembourg',MT:'malta',MD:'moldova',ME:'montenegro',NL:'netherlands',MK:'republic-of-north-macedonia',NO:'norway',PL:'poland',PT:'portugal',RO:'romania',RS:'serbia',SK:'slovakia',SI:'slovenia',ES:'spain',SE:'sweden',CH:'switzerland',UA:'ukraine',GB:'united-kingdom',UK:'united-kingdom',AM:'armenia'
@@ -49,7 +51,7 @@ function blocks(xml,tag){const re=new RegExp(`<(?:(?:\\w+):)?${tag}\\b[^>]*>([\\
 function tagValues(xml,tag){const re=new RegExp(`<(?:(?:\\w+):)?${tag}\\b[^>]*>([\\s\\S]*?)<\\/(?:(?:\\w+):)?${tag}>`,'gi');return[...String(xml).matchAll(re)].map(m=>cleanText(m[1])).filter(Boolean)}
 function tagValue(xml,tag){return tagValues(xml,tag)[0]||''}
 function attrValues(xml,tag,attr){const re=new RegExp(`<(?:(?:\\w+):)?${tag}\\b[^>]*\\b${attr}=["']([^"']+)["'][^>]*>`,'gi');return[...String(xml).matchAll(re)].map(m=>decodeXml(m[1])).filter(Boolean)}
-function safeDate(v){if(v===null||v===undefined||v==='')return undefined;const d=new Date(v);return Number.isFinite(d.getTime())?d.toISOString():undefined}
+function safeDate(v){if(v===null||v===undefined||v==='')return undefined;let raw=v;if(typeof raw==='string'&&/^\d{10,13}$/.test(raw.trim()))raw=Number(raw);if(typeof raw==='number'&&Number.isFinite(raw))raw=raw<1e12?raw*1000:raw;const d=new Date(raw);return Number.isFinite(d.getTime())?d.toISOString():undefined}
 function normalize(value=''){return String(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()}
 function directCountryCode(value=''){
  const raw=String(value||'').trim();if(!raw)return'';const upper=raw.toUpperCase();if(/^[A-Z]{2}$/.test(upper))return upper==='UK'?'GB':upper;
@@ -165,8 +167,29 @@ async function metarRows(lat,lon,radiusKm){
  const response=await fetch(api,{headers:{'User-Agent':`MID-weather-dashboard/${WORKER_VERSION} (+https://github.com/MeteoMartini/MID)`,'Accept':'application/json'}});
  if(response.status===204)return[];if(!response.ok)throw new Error(`AviationWeather HTTP ${response.status}`);
  const raw=await response.json();
- return(Array.isArray(raw)?raw:raw?.data??[]).map(r=>{const rlat=number(r.lat??r.latitude),rlon=number(r.lon??r.longitude);if(rlat===undefined||rlon===undefined)return null;const dist=distance(lat,lon,rlat,rlon);if(dist>radiusKm*1000)return null;return{icaoId:r.icaoId??r.icao_id??r.station_id,name:r.name??r.site??r.icaoId??r.station_id,lat:rlat,lon:rlon,elevation:number(r.elev??r.elevation??r.elevation_m),reportTime:r.reportTime??r.obsTime??r.observation_time,temp:number(r.temp??r.temperature??r.temp_c),dewp:number(r.dewp??r.dewPoint??r.dewpoint_c),relativeHumidity:number(r.relativeHumidity??r.humidity),windDirection:number(r.wdir??r.windDirection??r.wind_dir_degrees),windSpeed:number(r.wspd??r.windSpeed??r.wind_speed_kt),windGust:number(r.wgst??r.windGust??r.wind_gust_kt),pressure:number(r.altim??r.pressureMsl??r.sea_level_pressure_mb),cloudCover:number(r.cloudCover),provider:'NOAA AviationWeather / METAR-WMO',distance:dist,windUnit:'kt'}}).filter(Boolean);
+ return(Array.isArray(raw)?raw:raw?.data??[]).map(r=>{const rlat=number(r.lat??r.latitude),rlon=number(r.lon??r.longitude);if(rlat===undefined||rlon===undefined)return null;const dist=distance(lat,lon,rlat,rlon);if(dist>radiusKm*1000)return null;return{icaoId:r.icaoId??r.icao_id??r.station_id,name:r.name??r.site??r.icaoId??r.station_id,lat:rlat,lon:rlon,elevation:number(r.elev??r.elevation??r.elevation_m),reportTime:safeDate(r.reportTime??r.obsTime??r.observation_time??r.receiptTime),temp:number(r.temp??r.temperature??r.temp_c),dewp:number(r.dewp??r.dewPoint??r.dewpoint_c),relativeHumidity:number(r.relativeHumidity??r.humidity),windDirection:number(r.wdir??r.windDirection??r.wind_dir_degrees),windSpeed:number(r.wspd??r.windSpeed??r.wind_speed_kt),windGust:number(r.wgst??r.windGust??r.wind_gust_kt),pressure:number(r.altim??r.pressureMsl??r.sea_level_pressure_mb),cloudCover:number(r.cloudCover),provider:'NOAA AviationWeather / METAR-WMO',distance:dist,windUnit:'kt'}}).filter(Boolean);
 }
+
+let geoSphereMetadataCache={expires:0,stations:[]};
+function geoSphereApplies(lat,lon){return lat>=46.35&&lat<=49.05&&lon>=9.45&&lon<=17.3}
+function geoSphereStationArray(data){if(Array.isArray(data?.stations))return data.stations;if(Array.isArray(data?.station_metadata))return data.station_metadata;if(Array.isArray(data?.metadata?.stations))return data.metadata.stations;if(Array.isArray(data?.data?.stations))return data.data.stations;return[]}
+async function geoSphereMetadata(){
+ if(geoSphereMetadataCache.expires>Date.now()&&geoSphereMetadataCache.stations.length)return geoSphereMetadataCache.stations;
+ const raw=await fetchJson(GEOSPHERE_META),stations=geoSphereStationArray(raw).map(st=>({id:String(st?.id??st?.station_id??''),name:String(st?.name??st?.station_name??st?.id??'GeoSphere-Station'),lat:number(st?.lat??st?.latitude),lon:number(st?.lon??st?.longitude),elevation:number(st?.altitude??st?.height??st?.elevation),active:st?.is_active!==false})).filter(st=>st.id&&st.active&&st.lat!==undefined&&st.lon!==undefined);
+ geoSphereMetadataCache={expires:Date.now()+6*60*60*1000,stations};return stations;
+}
+function geoSphereLast(value){const raw=value?.data??value?.values??value?.value??value;if(Array.isArray(raw)){for(let i=raw.length-1;i>=0;i--){const n=number(raw[i]);if(n!==undefined)return n}return undefined}return number(raw)}
+function geoSphereParam(feature,name){const props=feature?.properties??feature,parameters=props?.parameters??props?.parameter??props;return geoSphereLast(parameters?.[name]??parameters?.[name.toLowerCase()]??parameters?.[name.toUpperCase()])}
+function geoSphereFeatureId(feature){const station=feature?.properties?.station;return String(feature?.properties?.station_id??(station&&typeof station==='object'?station.id:station)??feature?.station_id??feature?.id??'')}
+async function geoSphereRows(lat,lon,radiusKm){
+ if(!geoSphereApplies(lat,lon))return[];
+ const meta=await geoSphereMetadata(),nearby=meta.map(st=>({...st,distance:distance(lat,lon,st.lat,st.lon)})).filter(st=>st.distance<=Math.min(120,radiusKm)*1000).sort((a,b)=>a.distance-b.distance).slice(0,14);if(!nearby.length)return[];
+ const current=new URL(GEOSPHERE_CURRENT);current.searchParams.set('parameters','TL,TP,RF,P,FF,DD,FFX,RR');current.searchParams.set('station_ids',nearby.map(st=>st.id).join(','));current.searchParams.set('output_format','geojson');
+ let raw;try{raw=await fetchJson(current.toString())}catch{current.searchParams.set('parameters','TL,RR,FF');raw=await fetchJson(current.toString())}
+ const features=Array.isArray(raw?.features)?raw.features:Array.isArray(raw?.data)?raw.data:Array.isArray(raw)?raw:[],byId=new Map(nearby.map(st=>[st.id,st])),timestamp=safeDate(Array.isArray(raw?.timestamps)?raw.timestamps.at(-1):raw?.timestamp);
+ return features.map(feature=>{const id=geoSphereFeatureId(feature),metaStation=byId.get(id),coordinates=feature?.geometry?.coordinates??[],slon=metaStation?.lon??number(coordinates[0]),slat=metaStation?.lat??number(coordinates[1]);if(!metaStation||slat===undefined||slon===undefined)return null;const temp=geoSphereParam(feature,'TL');if(temp===undefined)return null;return{stationId:id,name:metaStation.name,lat:slat,lon:slon,elevation:metaStation.elevation,reportTime:timestamp??safeDate(feature?.properties?.timestamp),temp,dewp:geoSphereParam(feature,'TP'),relativeHumidity:geoSphereParam(feature,'RF'),pressure:geoSphereParam(feature,'P'),windSpeed:(()=>{const v=geoSphereParam(feature,'FF');return v===undefined?undefined:v*3.6})(),windDirection:geoSphereParam(feature,'DD'),windGust:(()=>{const v=geoSphereParam(feature,'FFX');return v===undefined?undefined:v*3.6})(),precipitation:geoSphereParam(feature,'RR'),provider:'GeoSphere Austria / TAWES',distance:metaStation.distance,windUnit:'kmh',qcStatus:1}}).filter(Boolean);
+}
+
 async function weatherUndergroundRows(lat,lon,radiusKm,apiKey){
  if(!apiKey)return[];
  const near=new URL(TWC_NEAR);near.searchParams.set('geocode',`${lat.toFixed(5)},${lon.toFixed(5)}`);near.searchParams.set('product','pws');near.searchParams.set('format','json');near.searchParams.set('apiKey',apiKey);
@@ -208,7 +231,7 @@ async function xweatherRows(lat,lon,radiusKm,clientId,clientSecret){
 export default{async fetch(request,env){
  if(request.method==='OPTIONS')return new Response(null,{status:204,headers:CORS});
  const u=new URL(request.url),mode=u.searchParams.get('mode')||'';
- if(mode==='health')return json({ok:true,version:WORKER_VERSION,services:['stations','alerts','hyperlocal-networks'],providers:{'NOAA AviationWeather':true,'Weather Underground':Boolean(env?.WEATHER_COM_API_KEY||env?.WU_API_KEY),Netatmo:Boolean(env?.NETATMO_ACCESS_TOKEN),'Synoptic Data':Boolean(env?.SYNOPTIC_TOKEN),Xweather:Boolean(env?.XWEATHER_CLIENT_ID&&env?.XWEATHER_CLIENT_SECRET)},timestamp:new Date().toISOString()});
+ if(mode==='health')return json({ok:true,version:WORKER_VERSION,services:['stations','alerts','hyperlocal-networks'],providers:{'NOAA AviationWeather':true,'GeoSphere Austria':true,'Weather Underground':Boolean(env?.WEATHER_COM_API_KEY||env?.WU_API_KEY),Netatmo:Boolean(env?.NETATMO_ACCESS_TOKEN),'Synoptic Data':Boolean(env?.SYNOPTIC_TOKEN),Xweather:Boolean(env?.XWEATHER_CLIENT_ID&&env?.XWEATHER_CLIENT_SECRET)},timestamp:new Date().toISOString()});
  const lat=Number(u.searchParams.get('lat')),lon=Number(u.searchParams.get('lon'));if(!Number.isFinite(lat)||!Number.isFinite(lon))return json({error:'lat/lon required',version:WORKER_VERSION},400);
  if(mode==='alerts'){
   try{const result=await officialAlerts(lat,lon,u.searchParams.get('country')||'',u.searchParams.get('name')||'',u.searchParams.get('region')||'',u.searchParams.get('district')||'',u.searchParams.get('language')||'de');return json({...result,version:WORKER_VERSION,checkedAt:new Date().toISOString()})}
@@ -216,6 +239,7 @@ export default{async fetch(request,env){
  }
  const radiusKm=Math.min(250,Math.max(25,Number(u.searchParams.get('radius_km'))||140)),sources=[
   {name:'NOAA AviationWeather',enabled:true,promise:metarRows(lat,lon,radiusKm)},
+  {name:'GeoSphere Austria',enabled:geoSphereApplies(lat,lon),promise:geoSphereRows(lat,lon,radiusKm)},
   {name:'Weather Underground',enabled:Boolean(env?.WEATHER_COM_API_KEY||env?.WU_API_KEY),promise:weatherUndergroundRows(lat,lon,radiusKm,env?.WEATHER_COM_API_KEY||env?.WU_API_KEY)},
   {name:'Netatmo',enabled:Boolean(env?.NETATMO_ACCESS_TOKEN),promise:netatmoRows(lat,lon,radiusKm,env?.NETATMO_ACCESS_TOKEN)},
   {name:'Synoptic Data',enabled:Boolean(env?.SYNOPTIC_TOKEN),promise:synopticRows(lat,lon,radiusKm,env?.SYNOPTIC_TOKEN)},

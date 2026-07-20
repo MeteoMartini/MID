@@ -97,23 +97,27 @@ function lastValue(v:any):number|undefined{
  const n=Number(raw);return raw!==null&&raw!==''&&Number.isFinite(n)?n:undefined;
 }
 function geoSphereFeatures(d:any){if(Array.isArray(d?.features))return d.features;if(Array.isArray(d?.data))return d.data;if(Array.isArray(d))return d;return[]}
-function geoSphereFeatureId(f:any){return String(f?.properties?.station_id??f?.properties?.station?.id??f?.station_id??f?.id??'')}
+function geoSphereFeatureId(f:any){const station=f?.properties?.station;return String(f?.properties?.station_id??(station&&typeof station==='object'?station.id:station)??f?.station_id??f?.id??'')}
 function geoSphereParam(f:any,name:string){const props=f?.properties??f;const params=props?.parameters??props?.parameter??props;return lastValue(params?.[name]??params?.[name.toLowerCase()]??params?.[name.toUpperCase()])}
-function geoSphereTimestamp(d:any,f:any){const stamps=d?.timestamps??d?.time??f?.properties?.timestamps??f?.properties?.time;return Array.isArray(stamps)?String(stamps[stamps.length-1]??''):String(stamps??f?.properties?.timestamp??'')}
+function normalizeStationTimestamp(value:any):string|undefined{if(value===null||value===undefined||value==='')return undefined;let raw:any=value;if(typeof raw==='string'&&/^\d{10,13}$/.test(raw.trim()))raw=Number(raw);if(typeof raw==='number'&&Number.isFinite(raw))raw=raw<1e12?raw*1000:raw;const d=new Date(raw);return Number.isFinite(d.getTime())?d.toISOString():undefined}
+function geoSphereTimestamp(d:any,f:any){const stamps=d?.timestamps??d?.time??f?.properties?.timestamps??f?.properties?.time,raw=Array.isArray(stamps)?stamps[stamps.length-1]:stamps??f?.properties?.timestamp;return normalizeStationTimestamp(raw)}
 async function geoSphereStation(lat:number,lon:number,elevation?:number,signal?:AbortSignal):Promise<Station|null>{
  try{
   const meta=await geoSphereMetadata(signal);
   const nearby=meta.map(s=>({...s,distance:haversine(lat,lon,s.lat,s.lon)})).filter(s=>s.distance<=120000).sort((a,b)=>stationFitScore(a.distance,a.altitude,elevation,-18000)-stationFitScore(b.distance,b.altitude,elevation,-18000)).slice(0,10);
   if(!nearby.length)return null;
-  const p=new URLSearchParams({parameters:'TL,TP,RF,PRED,P,FF,DD,FFX,RR',station_ids:nearby.map(s=>s.id).join(','),output_format:'geojson'});
-  const d=await j<any>(`https://dataset.api.hub.geosphere.at/v1/station/current/tawes-v1-10min?${p}`,signal),features=geoSphereFeatures(d),byId=new Map(nearby.map(s=>[s.id,s]));
+  let d:any=null,lastError:any=null;
+  for(const parameters of ['TL,TP,RF,PRED,P,FF,DD,FFX,RR','TL,TP,RF,P,FF,DD,FFX,RR','TL,RR,FF']){try{const p=new URLSearchParams({parameters,station_ids:nearby.map(s=>s.id).join(','),output_format:'geojson'});d=await j<any>(`https://dataset.api.hub.geosphere.at/v1/station/current/tawes-v1-10min?${p}`,signal);break}catch(e){lastError=e}}
+  if(!d)throw lastError??new Error('GeoSphere-Abruf fehlgeschlagen');
+  const features=geoSphereFeatures(d),byId=new Map(nearby.map(s=>[s.id,s]));
   const parsed=features.map((f:any)=>{
    const id=geoSphereFeatureId(f),m=byId.get(id)??nearby.find(s=>String(f?.properties?.station?.name??'')===s.name);
    if(!m)return null;
    const ff=geoSphereParam(f,'FF'),ffx=geoSphereParam(f,'FFX');
-   return{name:m.name,provider:'GeoSphere Austria / TAWES',stationId:m.id,distance:m.distance,height:Number.isFinite(m.altitude)?m.altitude:undefined,timestamp:geoSphereTimestamp(d,f),temperature:geoSphereParam(f,'TL'),humidity:geoSphereParam(f,'RF'),dewPoint:geoSphereParam(f,'TP'),pressure:geoSphereParam(f,'PRED')??geoSphereParam(f,'P'),windSpeed:ff===undefined?undefined:ff*3.6,windDirection:geoSphereParam(f,'DD'),windGust:ffx===undefined?undefined:ffx*3.6,windUnit:'kmh' as const,precipitation:geoSphereParam(f,'RR')} as Station;
+   return{name:m.name,provider:'GeoSphere Austria / TAWES',stationId:m.id,distance:m.distance,height:Number.isFinite(m.altitude)?m.altitude:undefined,timestamp:geoSphereTimestamp(d,f),temperature:geoSphereParam(f,'TL'),humidity:geoSphereParam(f,'RF'),dewPoint:geoSphereParam(f,'TP'),pressure:geoSphereParam(f,'PRED')??geoSphereParam(f,'P'),windSpeed:ff===undefined?undefined:ff*3.6/1.852,windDirection:geoSphereParam(f,'DD'),windGust:ffx===undefined?undefined:ffx*3.6/1.852,windUnit:'kt' as const,precipitation:geoSphereParam(f,'RR')} as Station;
   }).filter(Boolean) as Station[];
-  return parsed.sort((a,b)=>stationFitScore(a.distance,a.height,elevation,-18000)-stationFitScore(b.distance,b.height,elevation,-18000))[0]??null;
+  const best=parsed.sort((a,b)=>stationFitScore(a.distance,a.height,elevation,-18000,a.timestamp)-stationFitScore(b.distance,b.height,elevation,-18000,b.timestamp))[0]??null;
+  return robustBlendStations(parsed,elevation)??best;
  }catch{return null}
 }
 
@@ -132,7 +136,7 @@ function stationProviderWeight(provider=''){
  return 1;
 }
 function isPrivateNetwork(provider=''){const p=provider.toLowerCase();return p.includes('weather underground')||p.includes('netatmo')||p.includes('synoptic')||p.includes('xweather')||p.includes('pws')}
-function stationAgeMinutes(timestamp?:string){if(!timestamp)return 120;const t=new Date(timestamp).getTime();return Number.isFinite(t)?Math.max(0,(Date.now()-t)/60000):120}
+function stationAgeMinutes(timestamp?:string){if(!timestamp)return 120;const normalized=normalizeStationTimestamp(timestamp),t=normalized?new Date(normalized).getTime():NaN;return Number.isFinite(t)?Math.max(0,(Date.now()-t)/60000):120}
 function median(values:number[]){const a=values.filter(Number.isFinite).sort((x,y)=>x-y);if(!a.length)return NaN;const i=Math.floor(a.length/2);return a.length%2?a[i]:(a[i-1]+a[i])/2}
 function robustStationValues(rows:{value:number;weight:number}[],absoluteLimit:number){if(rows.length<3)return rows;const med=median(rows.map(x=>x.value)),mad=median(rows.map(x=>Math.abs(x.value-med))),limit=Math.max(absoluteLimit,(Number.isFinite(mad)?mad:0)*4.45);const filtered=rows.filter(x=>Math.abs(x.value-med)<=limit);return filtered.length>=Math.max(2,Math.ceil(rows.length*.55))?filtered:rows}
 function stationWeightedMean(rows:{value:number;weight:number}[],absoluteLimit:number){const a=robustStationValues(rows.filter(x=>Number.isFinite(x.value)&&x.weight>0),absoluteLimit),sum=a.reduce((s,x)=>s+x.weight,0);return sum?a.reduce((s,x)=>s+x.value*x.weight,0)/sum:undefined}
@@ -154,7 +158,7 @@ function rowToStation(r:any,lat:number,lon:number):Station|null{
  if(Number(r.qcStatus)===0)return null;
  const rlat=Number(r.lat??r.latitude),rlon=Number(r.lon??r.longitude);if(!Number.isFinite(rlat)||!Number.isFinite(rlon))return null;
  const distance=haversine(lat,lon,rlat,rlon),heightRaw=r.elev??r.elevation??r.elevation_m,height=heightRaw===null||heightRaw===undefined?undefined:Number(heightRaw),num=(v:any)=>v===null||v===undefined||v===''?undefined:(Number.isFinite(Number(v))?Number(v):undefined),temperature=num(r.temp??r.temperature),dewPoint=num(r.dewp??r.dewPoint),rawPressure=num(r.altim??r.pressureMsl??r.pressure),pressure=rawPressure!==undefined&&rawPressure<100?rawPressure*33.8639:rawPressure,humidity=num(r.relativeHumidity??r.humidity)??(temperature!==undefined&&dewPoint!==undefined?Math.min(100,100*Math.exp((17.625*dewPoint)/(243.04+dewPoint)-(17.625*temperature)/(243.04+temperature))):undefined),windUnit=r.windUnit==='kmh'?'kmh':'kt',windSpeedRaw=num(r.wspd??r.windSpeed),windGustRaw=num(r.wgst??r.windGust);
- return{name:r.name||r.site||r.station||r.icaoId||r.stationId||'WMO/PWS-Station',provider:r.provider||'METAR / WMO',stationId:r.icaoId||r.wmoId||r.stationId||r.id,distance,height:Number.isFinite(height as number)?height:undefined,timestamp:r.reportTime||r.obsTime||r.timestamp,temperature,dewPoint,humidity,pressure,windSpeed:windSpeedRaw===undefined?undefined:windUnit==='kmh'?windSpeedRaw/1.852:windSpeedRaw,windDirection:num(r.wdir??r.windDirection),windGust:windGustRaw===undefined?undefined:windUnit==='kmh'?windGustRaw/1.852:windGustRaw,windUnit:'kt',cloudCover:num(r.cloudCover),precipitation:num(r.precipitation??r.precipTotal)};
+ return{name:r.name||r.site||r.station||r.icaoId||r.stationId||'WMO/PWS-Station',provider:r.provider||'METAR / WMO',stationId:r.icaoId||r.wmoId||r.stationId||r.id,distance,height:Number.isFinite(height as number)?height:undefined,timestamp:normalizeStationTimestamp(r.reportTime??r.obsTime??r.timestamp),temperature,dewPoint,humidity,pressure,windSpeed:windSpeedRaw===undefined?undefined:windUnit==='kmh'?windSpeedRaw/1.852:windSpeedRaw,windDirection:num(r.wdir??r.windDirection),windGust:windGustRaw===undefined?undefined:windUnit==='kmh'?windGustRaw/1.852:windGustRaw,windUnit:'kt',cloudCover:num(r.cloudCover),precipitation:num(r.precipitation??r.precipTotal)};
 }
 function parseMetarStations(rows:any[],lat:number,lon:number){return rows.map(r=>rowToStation(r,lat,lon)).filter(Boolean) as Station[]}
 async function metarStation(lat:number,lon:number,elevation?:number,signal?:AbortSignal):Promise<Station|null>{

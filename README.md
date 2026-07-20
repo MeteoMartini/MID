@@ -1,16 +1,19 @@
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.0**
+**Aktuelle Version: v0.7.1**
 
 MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React, TypeScript und Open-Meteo. Es verbindet Vorhersagen, Ensemblemodelle, aktuelle Stationsmessungen, amtliche Warnungen, Radar, Luftqualität und exportierbare Wetterwidgets.
 
-## Neuerungen in v0.7.0
+## Neuerungen in v0.7.1
 
-- aktuelle Wetterdaten können aus mehreren amtlichen und hyperlokalen Stationsnetzen zusammengeführt werden
-- robuste, entfernungs-, höhen-, aktualitäts- und qualitätsgewichtete Mittelung mehrerer Stationen
-- automatische Ausreißerunterdrückung statt unkritischer Übernahme einer einzelnen privaten Wetterstation
-- ENS-Mittel im 14-Tage-Temperaturdiagramm direkt über die Legende ein- und ausblendbar
-- klimatologisches Mittel 1991–2020 für tägliche Tmin und Tmax ergänzt und ebenfalls über die Legende schaltbar
+- GeoSphere-TAWES-Antworten werden wieder korrekt den Stationskennungen zugeordnet
+- österreichische TAWES-Stationen werden zusätzlich über den gemeinsamen Worker abgerufen und mehrere geeignete Stationen robust gemittelt
+- TAWES-Windwerte und METAR-Zeitstempel werden zuverlässig normalisiert; die Worker-Diagnose weist GeoSphere Austria separat aus
+- alle wesentlichen Reihen der 14-Tage-Temperatur- und Niederschlagsdiagramme lassen sich einzeln ein- und ausblenden; die Auswahl wird lokal gespeichert
+- Tagesdetaildiagramm um einen stündlichen Verlauf der Gesamtbewölkung ergänzt
+- Abruf amtlicher Warnungen für Desktop-Browser durch HTTPS-Normalisierung, CORS-sicheren Neuversuch und Cache-Umgehung stabilisiert
+- Ortssuche akzeptiert Dezimalkoordinaten, deutsche Dezimalkommas sowie N/S/E/W-Angaben
+- Widget-/PNG-Generator speichert die letzte Konfiguration; der angezeigte Ortsname kann je Standort manuell angepasst werden
 
 ## Funktionen
 
@@ -49,11 +52,14 @@ VITE_METAR_PROXY_URL=https://DEIN-WORKER.workers.dev/
 
 Eine separate Warnungsadresse ist nicht nötig. Optional kann dieselbe Adresse zusätzlich als `VITE_ALERT_PROXY_URL` gesetzt werden.
 
+Die zusätzlichen UI-Funktionen dieser 0.7.1-Erweiterung benötigen keine weitere Änderung des Worker-Codes; der mitgelieferte Worker enthält weiterhin alle bisherigen 0.7.1-Korrekturen für GeoSphere/TAWES und Stationsdaten.
+
 ## Ein gemeinsamer Cloudflare Worker
 
 MID benötigt weiterhin nur **einen** Cloudflare Worker. `worker/metar-proxy.js` übernimmt:
 
 - weltweite NOAA-AviationWeather-METAR-Daten
+- österreichische GeoSphere-TAWES-Stationsdaten
 - optionale hyperlokale Beobachtungsnetze
 - deutsche DWD-Warnungen
 - europäische MeteoAlarm-/CAP-Warnungen
@@ -130,7 +136,7 @@ Im Diagramm **Temperaturtrend und Prognoseunsicherheit** sind folgende Darstellu
 - ENS-Mittel für Tmin und Tmax
 - klimatologisches Mittel für Tmin und Tmax
 
-Die Legendenpunkte **ENS-Mittel** und **Klimamittel Tmin/Tmax** sind Schaltflächen. Ein Klick blendet die zugehörigen Linien ein oder aus; die Y-Achse passt sich an die sichtbaren Reihen an.
+Die Legendenpunkte sind Schaltflächen. Best Match, ENS-Spannen, ENS-Mittel und Klimamittel lassen sich einzeln ein- oder ausblenden; die Auswahl wird lokal gespeichert. Die Y-Achse berücksichtigt die sichtbaren Reihen.
 
 Das Klimamittel wird standort- und höhenbezogen aus Open-Meteo ERA5-Land für die Referenzperiode **1991–2020** berechnet. Verwendet werden die Mittel der täglichen Höchst- und Tiefsttemperatur für den jeweiligen Kalendertag. Die auf 366 Kalendertage verdichteten Ergebnisse werden lokal für 180 Tage zwischengespeichert. Es handelt sich um Reanalyse-Klimatologie mit ungefähr 0,1° Rasterweite, nicht um ein Mittel einer einzelnen Ortsstation.
 
@@ -179,4 +185,4 @@ Die jeweiligen Nutzungsbedingungen, Abruflimits und Lizenzanforderungen der Date
 - Minor (`0.x.0`): neue wesentliche Funktion oder größere Daten-/UI-Architektur
 - Major (`1.0.0`): stabiler, dokumentierter Funktionsumfang
 
-v0.7.0 ist ein Minor-Release, weil sowohl die Stationsdatenarchitektur als auch das 14-Tage-Diagramm substanziell erweitert wurden.
+v0.7.1 bündelt gezielte Korrekturen des Stations- und Warnungsabrufs mit Bedienungsverbesserungen für Diagramme, Koordinatensuche und Widget-/PNG-Export.

@@ -5,7 +5,7 @@ import {CircleMarker,MapContainer,Popup,TileLayer,WMSTileLayer,useMap} from 'rea
 import {toPng} from 'html-to-image';
 import {airQuality,climatology,cloudOktas,countryCodeFromLocation,cloudOktasText,currentIndex,dayEffectiveUvMax,dayWeatherCharacter,ensembles,forecast,hazards,icon,label,mapDays,mapHours,mapMinutely15,officialWarnings,searchLocations,reverseLocation,station,wind,type ClimateDay,type Day,type EnsembleDay,type Hour,type Location,type Minute15,type OfficialAlert,type Station,type Weather,type WindUnit} from './weather';
 
-const VERSION='0.7.0';
+const VERSION='0.7.1';
 const LOGO_PATH='./mid-logo.png';
 const LOCATION_STORAGE_KEY='mid:lastLocation';
 function normalizeLocation(loc:Location):Location{const country_code=countryCodeFromLocation(loc.country_code)||countryCodeFromLocation(loc.country)||undefined;return{...loc,country_code}}

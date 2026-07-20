@@ -1,10 +1,13 @@
-# MID Daten- und Warnungsproxy v0.7.0
+# MID Daten- und Warnungsproxy v0.7.1
+
+> Hinweis zur erweiterten MID-Oberfläche 0.7.1: Die zusätzlichen Diagramm-Schalter, der Bewölkungsverlauf, die Koordinatensuche sowie die Widget-/PNG-Speicherung werden im MID-Frontend umgesetzt. Dafür ist keine weitere Änderung des Worker-Codes erforderlich. Dieser Worker enthält weiterhin die vollständigen zuvor eingeführten 0.7.1-Korrekturen für GeoSphere/TAWES, METAR-Zeitstempel und Stationsdiagnose.
 
 Der Cloudflare Worker stellt browserkompatibel Stationsdaten und amtliche Warnungen bereit. Ein zweiter Worker ist nicht erforderlich.
 
 ## Enthaltene Dienste
 
 - NOAA AviationWeather METAR – weltweit, ohne eigenes Secret
+- GeoSphere Austria/TAWES – Österreich, ohne eigenes Secret
 - Weather Underground/The Weather Company PWS – optional
 - Netatmo öffentliche Außenmessungen – optional
 - Synoptic Data Latest – optional, mit QC
@@ -34,7 +37,7 @@ XWEATHER_CLIENT_ID
 XWEATHER_CLIENT_SECRET
 ```
 
-Alle sind optional. Ohne sie bleiben NOAA-METAR und amtliche Warnungen aktiv.
+Alle sind optional. Ohne sie bleiben NOAA-METAR, GeoSphere Austria/TAWES und amtliche Warnungen aktiv.
 
 - Weather Underground, Netatmo und Xweather werden nur über offizielle, entsprechend berechtigte API-Zugänge verwendet.
 - `SYNOPTIC_TOKEN` ist ein Synoptic-Weather-API-Token.
@@ -54,10 +57,11 @@ Beispielantwort:
 ```json
 {
   "ok": true,
-  "version": "0.7.0",
+  "version": "0.7.1",
   "services": ["stations", "alerts", "hyperlocal-networks"],
   "providers": {
     "NOAA AviationWeather": true,
+    "GeoSphere Austria": true,
     "Weather Underground": false,
     "Netatmo": false,
     "Synoptic Data": false,
@@ -65,6 +69,14 @@ Beispielantwort:
   }
 }
 ```
+
+Stationsabruf für Innsbruck:
+
+```text
+https://DEIN-WORKER.workers.dev/?lat=47.26&lon=11.39&radius_km=140
+```
+
+Für einen funktionierenden österreichischen Abruf sollte `diagnostics.sourceRows["GeoSphere Austria"]` größer als `0` sein.
 
 Stationsabruf für Cagliari:
 
