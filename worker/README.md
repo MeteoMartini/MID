@@ -1,4 +1,4 @@
-# MID Daten-, Warnungs- und Radarproxy v0.7.12
+# MID Daten-, Warnungs- und Radarproxy v0.7.13
 
 Der Cloudflare Worker stellt browserkompatibel Stationsdaten, amtliche Warnungen und die standortbezogene Radar-Nowcast-Auswertung bereit. Ein zweiter Worker ist nicht erforderlich.
 
@@ -56,7 +56,7 @@ Beispielantwort:
 ```json
 {
   "ok": true,
-  "version": "0.7.12",
+  "version": "0.7.13",
   "services": ["stations", "alerts", "hyperlocal-networks", "radar-nowcast"],
   "providers": {
     "NOAA AviationWeather": true,
@@ -131,7 +131,7 @@ https://DEIN-WORKER.workers.dev/?mode=radar-nowcast&lat=35.68&lon=139.76&country
 
 Die Antwort enthält `source`, `provider`, `quality`, `radarProbability`, `currentRate`, optionale Ankunfts-/Endzeiten und Diagnosewerte. OPERA-Komposite werden unter CC BY 4.0 verarbeitet; die RainViewer-Nutzung ist für persönliche, schulische und kleine Community-Projekte vorgesehen und benötigt eine sichtbare Quellenangabe.
 
-## DWD-Radarrobustheit v0.7.12
+## DWD-Radarrobustheit v0.7.13
 
 - allgemeiner DWD-WMS-Capabilities-Endpunkt statt abgeleiteter, layerspezifischer URL
 - gezielte Auswertung der Zeitdimension des tatsächlich verwendeten Layers
@@ -142,3 +142,12 @@ Die Antwort enthält `source`, `provider`, `quality`, `radarProbability`, `curre
 - `GetFeatureInfo` wird nur zur Verfeinerung sichtbar nasser Pixel verwendet
 - auffällige Rasterbandwerte werden gegen die Kartenfarbe plausibilisiert
 - Primär- und Backup-Geoserver sowie OPERA-/RainViewer-Fallback bleiben erhalten
+
+## Änderungen in v0.7.13
+
+- DWD-Capabilities berücksichtigen geerbte WMS-Zeitdimensionen.
+- Bei laufendem Niederschlag wird das Ende aus dem ersten nachhaltig trockenen Zukunftsfenster berechnet.
+- Ein bis zum Ende des Nowcast-Horizonts anhaltendes Echo wird mit `endOpenEnded: true` zurückgegeben.
+- `endUncertain: true` kennzeichnet eine Endzeit, die nur auf einem einzelnen trockenen Randframe beruht.
+- Die zurückgegebene `timeline` enthält die verfügbare DWD-Zeitachse für die Radarfilm-Steuerung.
+

@@ -718,3 +718,42 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 .dwd-rate-classes{display:grid;grid-template-columns:2fr 2fr 2fr 2fr;margin-top:4px;color:rgba(255,255,255,.64);font-size:6.5px;line-height:1;text-align:center}
 .radar-colour-legend.dwd small{display:block;margin-top:5px!important;color:rgba(255,255,255,.66)!important;font-size:6.5px!important;text-align:center}
 @media(max-width:520px){.radar-colour-legend.dwd{padding:6px 7px 5px}.dwd-rate-ticks,.dwd-rate-classes{font-size:6px}}
+
+/* v0.7.13 – Radarfilm, mobile Steuerung und kompaktere DWD-Legende */
+.radarlegend{width:225px;padding:9px 10px 8px;border:1px solid rgba(255,255,255,.16);border-radius:14px;background:linear-gradient(145deg,rgba(7,20,34,.9),rgba(13,34,53,.84));box-shadow:0 12px 32px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.06)}
+.radarlegend-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.radarlegend-head strong{font-size:10px;letter-spacing:.01em}
+.radarlegend-head span{padding:2px 6px;border:1px solid rgba(255,255,255,.15);border-radius:999px;background:rgba(255,255,255,.07);color:rgba(255,255,255,.82);font-size:7px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.radarlegend>small{margin-top:3px!important;color:rgba(255,255,255,.7);font-size:7.5px!important;line-height:1.25}
+.radar-colour-legend.dwd{margin-top:6px;border:0;border-radius:9px;background:rgba(2,12,23,.48);padding:6px 7px 5px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+.radar-colour-legend.dwd .radar-legend-head{margin-bottom:4px}
+.radar-colour-legend.dwd .radar-legend-head span{display:inline-flex;align-items:center;gap:4px;padding:0;border:0;background:transparent;color:#fff;font-size:8px;font-weight:750;letter-spacing:0;text-transform:none}
+.radar-colour-legend.dwd .radar-legend-head b{color:rgba(255,255,255,.64);font-size:7px;font-weight:700}
+.dwd-rate-scale{height:9px;border-color:rgba(255,255,255,.22);box-shadow:none}
+.dwd-rate-ticks{margin-top:3px;font-size:6px;color:rgba(255,255,255,.82)}
+.dwd-rate-classes{margin-top:4px;font-size:6px;color:rgba(255,255,255,.54)}
+.radar-colour-legend.dwd small{margin-top:4px!important;font-size:6px!important;color:rgba(255,255,255,.5)!important}
+.radarcontrols{display:grid;grid-template-columns:auto minmax(170px,1fr) auto minmax(150px,.62fr);align-items:center;gap:10px;margin-top:11px}
+.radar-playback-buttons{display:flex;align-items:center;gap:5px}
+.radar-playback-buttons button{width:40px;height:40px;min-height:40px;padding:0!important}
+.radar-playback-buttons button.play{border-color:color-mix(in srgb,var(--primary) 55%,var(--border))!important;background:color-mix(in srgb,var(--primary) 18%,var(--s2))!important;color:var(--primary)!important}
+.radar-playback-buttons button:disabled{cursor:not-allowed;opacity:.38}
+.radarcontrols .timeline{min-width:0}
+.radarcontrols time{min-width:86px;text-align:center;font-variant-numeric:tabular-nums;font-weight:750}
+.radarcontrols time.future{color:var(--primary)}
+@media(max-width:850px){
+ .radarcontrols{grid-template-columns:1fr auto;gap:9px 12px}
+ .radar-playback-buttons{grid-column:1;grid-row:1}
+ .radarcontrols time{grid-column:2;grid-row:1;justify-self:end}
+ .radarcontrols .timeline{grid-column:1/-1;grid-row:2}
+ .radarcontrols .opacity{grid-column:1/-1;grid-row:3}
+}
+@media(max-width:520px){
+ .radarlegend{right:8px;bottom:8px;width:min(245px,calc(100% - 16px));padding:8px 9px 7px}
+ .radarlegend>small{font-size:7px!important}
+ .radarcontrols{grid-template-columns:1fr auto;margin-top:9px}
+ .radar-playback-buttons{gap:4px}
+ .radar-playback-buttons button{width:38px;height:38px;min-height:38px;border-radius:11px!important}
+ .radarcontrols .range{grid-template-columns:auto minmax(0,1fr)}
+ .radarcontrols time{min-width:72px;font-size:14px}
+}

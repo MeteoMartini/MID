@@ -1,10 +1,18 @@
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.12**
+**Aktuelle Version: v0.7.13**
 
 MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React, TypeScript und Open-Meteo. Es verbindet Vorhersagen, Ensemblemodelle, aktuelle Stationsmessungen, amtliche Warnungen, Radar, Luftqualität und exportierbare Wetterwidgets.
 
-## Neuerungen in v0.7.12
+## Radarfilm und Niederschlagsende (v0.7.13)
+
+- Der Bereich heißt nun **Niederschlagsradar**.
+- Vorheriger/nächster Zeitschritt sowie Play/Pause funktionieren auch in der mobilen Ansicht. Der Film läuft auf Wunsch automatisch und springt am Ende wieder zum ersten Frame.
+- Laufender Niederschlag erhält aus dem DWD-Nowcast eine voraussichtliche Endzeit. Hält das Echo bis zum Ende des 0–2-h-Horizonts an, wird die Angabe korrekt als **mindestens bis** gekennzeichnet.
+- Fehlen belastbare Zukunftsframes, nennt MID keine erfundene Endzeit, sondern weist transparent auf die begrenzte Ableitbarkeit hin.
+
+
+## Neuerungen in v0.7.13
 
 - DWD-Radarberechnung nutzt nun primär die tatsächlich gerenderte WMS-Radarkarte und nicht mehr ausschließlich `GetFeatureInfo`.
 - Transparente, niederschlagsfreie DWD-Pixel werden sicher als `0 mm/h` erkannt und bleiben eine erfolgreiche DWD-Auswertung.
@@ -116,7 +124,7 @@ VITE_METAR_PROXY_URL=https://DEIN-WORKER.workers.dev/
 
 Eine separate Warnungs- oder Radaradresse ist nicht nötig. Optional kann dieselbe Adresse zusätzlich als `VITE_ALERT_PROXY_URL` und `VITE_RADAR_PROXY_URL` gesetzt werden.
 
-Für v0.7.12 muss der mitgelieferte Worker neu bereitgestellt werden, weil die standortbezogene Radar-Nowcast-Auswertung jetzt serverseitig erfolgt.
+Für v0.7.13 muss der mitgelieferte Worker neu bereitgestellt werden, weil die standortbezogene Radar-Nowcast-Auswertung jetzt serverseitig erfolgt.
 
 ### Automatische Versionsprüfung
 
@@ -254,7 +262,7 @@ Die jeweiligen Nutzungsbedingungen, Abruflimits und Lizenzanforderungen der Date
 - Minor (`0.x.0`): neue wesentliche Funktion oder größere Daten-/UI-Architektur
 - Major (`1.0.0`): stabiler, dokumentierter Funktionsumfang
 
-v0.7.12 stabilisiert die DWD-WMS-Pixelanalyse; v0.7.11 ergänzte die standortbezogene Radar-/Modellkombination mit DWD, OPERA/ORD und RainViewer. v0.7.7 ergänzt im Tagesdetail dezente Nachtflächen sowie Sonnenauf- und Sonnenuntergangszeiten. v0.7.6 korrigierte die Datumsdarstellung und präzisierte die Tag-/Nachtlogik der Bewölkungsbalken. v0.7.5 ergänzte kompakte Modellstand-Informationen mit Init- und Verfügbarkeitszeiten, ohne die Ansichten im geschlossenen Zustand merklich zu vergrößern.
+v0.7.13 stabilisiert die DWD-WMS-Pixelanalyse; v0.7.11 ergänzte die standortbezogene Radar-/Modellkombination mit DWD, OPERA/ORD und RainViewer. v0.7.7 ergänzt im Tagesdetail dezente Nachtflächen sowie Sonnenauf- und Sonnenuntergangszeiten. v0.7.6 korrigierte die Datumsdarstellung und präzisierte die Tag-/Nachtlogik der Bewölkungsbalken. v0.7.5 ergänzte kompakte Modellstand-Informationen mit Init- und Verfügbarkeitszeiten, ohne die Ansichten im geschlossenen Zustand merklich zu vergrößern.
 
 
 ## Ortszeit und POI-Suche (v0.7.8)
@@ -264,11 +272,11 @@ v0.7.12 stabilisiert die DWD-WMS-Pixelanalyse; v0.7.11 ergänzte die standortbez
 - Die Ortssuche kombiniert Open-Meteo-Orte/PLZ mit OpenStreetMap-POIs über Photon, darunter Berggipfel, Hotels, Hütten, Sehenswürdigkeiten, Gastronomie und weitere benannte Objekte.
 
 
-### Radarintensität und Legenden (v0.7.12)
+### Radarintensität und Legenden (v0.7.13)
 
 DWD-RV und OPERA-RATE werden in ihrer nativen Einheit mm/h ausgewertet. RainViewer stellt in der öffentlichen API eingefärbte Universal-Blue-Reflektivitätskacheln bereit; daraus abgeleitete mm/h-Werte sind deshalb ausdrücklich Näherungen. Die Kartenlegende folgt automatisch der tatsächlich dargestellten Radarquelle. Ankunfts-, Datenstands- und Endzeit werden in der lokalen Zeitzone des gewählten Standorts angezeigt.
 
 
-## DWD-Radarrobustheit v0.7.12
+## DWD-Radarrobustheit v0.7.13
 
 Die DWD-Zeitachse wird am allgemeinen WMS-Endpunkt aus dem Layerblock von `dwd:Niederschlagsradar` beziehungsweise RV gelesen. Jeder benötigte Zeitschritt wird als kleine transparente Radar-PNG um den Standort geladen; daraus werden Mittelpunkt und Umgebung gemeinsam ausgewertet. Ein vollständig transparenter Pixel ist ein gültiger trockener DWD-Wert. `GetFeatureInfo` wird nur zur numerischen Verfeinerung eines sichtbar nassen Mittelpunktes verwendet. Bei technischen Ausfällen werden DWD-Backup, konkreter RV-Layer, OPERA und RainViewer gestaffelt verwendet.
