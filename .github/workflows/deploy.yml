@@ -1,39 +1,82 @@
 name: Deploy to GitHub Pages
+
 on:
+  # Normale direkte Änderungen am MID-Projekt weiterhin veröffentlichen.
   push:
-    branches: [main]
+    branches:
+      - main
+    paths-ignore:
+      - MID-professional-replacement.zip
+
+  # Nach erfolgreicher Installation der ZIP automatisch veröffentlichen.
+  workflow_run:
+    workflows:
+      - Install MID replacement
+    types:
+      - completed
+
+  # Manueller Rückfallstart bleibt möglich.
   workflow_dispatch:
+
 permissions:
   contents: read
   pages: write
   id-token: write
+
 concurrency:
   group: pages
   cancel-in-progress: true
+
 jobs:
   build:
+    if: >
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
+
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Aktuellen main-Stand laden
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Node.js 22 einrichten
+        uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
-      - run: npm run build
+
+      - name: Abhängigkeiten installieren
+        run: npm ci
+
+      - name: MID bauen
+        run: npm run build
         env:
           VITE_METAR_PROXY_URL: ${{ vars.VITE_METAR_PROXY_URL }}
           VITE_ALERT_PROXY_URL: ${{ vars.VITE_METAR_PROXY_URL }}
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+
+      - name: GitHub Pages konfigurieren
+        uses: actions/configure-pages@v5
+
+      - name: Pages-Artefakt hochladen
+        uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist
+
   deploy:
+    if: >
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
+
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+
     runs-on: ubuntu-latest
     needs: build
+
     steps:
-      - id: deployment
+      - name: GitHub Pages veröffentlichen
+        id: deployment
         uses: actions/deploy-pages@v4
