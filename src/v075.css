@@ -10,3 +10,21 @@
 /* v0.7.4: Tastaturfokus für die stündliche Desktop-Navigation */
 .meteogram-stage{outline:none}.meteogram-stage:focus-visible{border-radius:14px;outline:2px solid color-mix(in srgb,var(--primary) 72%,#fff);outline-offset:4px;box-shadow:0 0 0 5px color-mix(in srgb,var(--primary) 14%,transparent)}
 @media(max-width:850px){.meteogram-stage:focus-visible{outline:none;box-shadow:none}}
+
+/* MID v0.7.5 – kompakte Modelllauf-Transparenz */
+.title{position:relative;align-items:flex-start;gap:10px}
+.title-tools{display:flex;flex:0 0 auto;align-items:flex-start;justify-content:flex-end}
+.model-run-details{position:relative;font-size:11px}
+.model-run-details>summary{display:inline-flex;align-items:center;min-height:29px;padding:5px 9px;border:1px solid var(--border);border-radius:999px;background:var(--s2);color:var(--muted);font-weight:750;white-space:nowrap;list-style:none;cursor:pointer;user-select:none}
+.model-run-details>summary::-webkit-details-marker{display:none}
+.model-run-details[open]>summary,.model-run-details>summary:hover{border-color:color-mix(in srgb,var(--primary) 50%,var(--border));color:var(--text)}
+.model-run-popover{position:absolute;z-index:1800;top:calc(100% + 7px);right:0;width:min(430px,calc(100vw - 34px));padding:12px;border:1px solid var(--border);border-radius:14px;background:color-mix(in srgb,var(--surface) 96%,transparent);box-shadow:var(--shadow);backdrop-filter:blur(18px);color:var(--text)}
+.model-run-popover>strong{display:block;margin-bottom:4px;font-size:12px}
+.model-run-popover>p{margin:3px 0 8px;color:var(--muted);font-size:10px;line-height:1.4}
+.model-run-popover .model-run-chain{padding:7px 8px;border-radius:9px;background:var(--s2);color:var(--text)}
+.model-run-list{display:grid;gap:5px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+.model-run-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:9px;padding:4px 0}
+.model-run-row>span{overflow:hidden;font-weight:720;text-overflow:ellipsis;white-space:nowrap}
+.model-run-row>small{color:var(--muted);font-size:9px;white-space:nowrap}
+.model-run-empty{display:block;margin-top:8px;color:var(--muted)}
+@media(max-width:620px){.model-run-details>summary{min-height:27px;padding:4px 7px;font-size:10px}.model-run-popover{position:fixed;top:auto;right:8px;bottom:10px;left:8px;width:auto;max-height:min(65vh,480px);overflow:auto}.model-run-row{grid-template-columns:1fr}.model-run-row>small{white-space:normal}}

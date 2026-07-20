@@ -1,3 +1,11 @@
+## 0.7.5
+
+- platzsparende Modellstand-Information in den Titelzeilen der 7-Tage- und 14-Tage-Ansicht ergänzt
+- Open-Meteo-Metadaten für Init- und Verfügbarkeitszeit geeigneter deterministischer und tatsächlich aktiver Ensemblemodelle eingebunden
+- Best Match ehrlich als automatische, je Ort, Variable und Horizont wechselnde Modellkombination gekennzeichnet
+- wahrscheinliche Quellenkette regionaler und globaler Modelle separat als Schätzung ausgewiesen
+- Modellstände in einem aufklappbaren Popover dargestellt, sodass im geschlossenen Zustand nahezu kein zusätzlicher Platz benötigt wird
+
 ## 0.7.4
 
 - Detaildiagramm am Desktop fokussierbar gemacht
