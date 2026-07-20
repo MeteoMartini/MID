@@ -1,4 +1,4 @@
-# MID Daten-, Warnungs- und Radarproxy v0.7.11
+# MID Daten-, Warnungs- und Radarproxy v0.7.12
 
 Der Cloudflare Worker stellt browserkompatibel Stationsdaten, amtliche Warnungen und die standortbezogene Radar-Nowcast-Auswertung bereit. Ein zweiter Worker ist nicht erforderlich.
 
@@ -56,7 +56,7 @@ Beispielantwort:
 ```json
 {
   "ok": true,
-  "version": "0.7.11",
+  "version": "0.7.12",
   "services": ["stations", "alerts", "hyperlocal-networks", "radar-nowcast"],
   "providers": {
     "NOAA AviationWeather": true,
@@ -131,11 +131,14 @@ https://DEIN-WORKER.workers.dev/?mode=radar-nowcast&lat=35.68&lon=139.76&country
 
 Die Antwort enthält `source`, `provider`, `quality`, `radarProbability`, `currentRate`, optionale Ankunfts-/Endzeiten und Diagnosewerte. OPERA-Komposite werden unter CC BY 4.0 verarbeitet; die RainViewer-Nutzung ist für persönliche, schulische und kleine Community-Projekte vorgesehen und benötigt eine sichtbare Quellenangabe.
 
-## DWD-Radarrobustheit v0.7.11
+## DWD-Radarrobustheit v0.7.12
 
-- Zeitpunkte stammen aus der tatsächlichen WMS-Zeitdimension.
-- Primär- und Backup-Geoserver sowie `dwd:Radar_rv_product_1x1km_ger` und der offizielle Alias `dwd:Niederschlagsradar` werden validiert.
-- Erst nach einer erfolgreichen Punktabfrage wird die vollständige Zeitreihe geladen.
-- Die Anzahl externer Unterabfragen bleibt deutlich unter dem bisherigen Stand.
-- `0 mm/h` ist ein gültiger trockener Radarwert.
-- Bei einem externen Fehler meldet der Worker `coverageExpected`/`temporaryUnavailable`, statt fälschlich fehlende Abdeckung zu behaupten.
+- allgemeiner DWD-WMS-Capabilities-Endpunkt statt abgeleiteter, layerspezifischer URL
+- gezielte Auswertung der Zeitdimension des tatsächlich verwendeten Layers
+- stabiler Alias `dwd:Niederschlagsradar` vor dem konkreten RV-Layer
+- kleine transparente `GetMap`-PNG je Zeitschritt als primäre Datenprüfung
+- `0 mm/h` aus transparentem Kartenpixel gilt als erfolgreiche DWD-Auswertung
+- Mittelpunkt und 2/4/7-km-Umgebung werden aus derselben PNG abgetastet
+- `GetFeatureInfo` wird nur zur Verfeinerung sichtbar nasser Pixel verwendet
+- auffällige Rasterbandwerte werden gegen die Kartenfarbe plausibilisiert
+- Primär- und Backup-Geoserver sowie OPERA-/RainViewer-Fallback bleiben erhalten

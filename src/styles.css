@@ -706,3 +706,15 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 .radar-colour-legend.rainviewer i{display:block}
 .radar-colour-legend.rainviewer p{display:grid;grid-template-columns:repeat(6,1fr);margin:2px 0 0;color:rgba(255,255,255,.86);font-size:7px;line-height:1;text-align:center}
 @media(max-width:520px){.radarlegend{width:min(225px,calc(100% - 18px));right:9px;bottom:9px}.radar-colour-legend.dwd img{max-height:34px}}
+
+/* v0.7.12 – kompakte DWD-RV-Leseskala */
+.radar-colour-legend.dwd{min-height:0;overflow:visible;border:1px solid rgba(255,255,255,.18);border-radius:10px;background:rgba(8,23,39,.72);padding:7px 8px 6px;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+.radar-colour-legend.dwd .radar-legend-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:5px;color:#fff}
+.radar-colour-legend.dwd .radar-legend-head b{font-size:9px;letter-spacing:.01em}
+.radar-colour-legend.dwd .radar-legend-head span{font-size:8px;color:rgba(255,255,255,.72)}
+.dwd-rate-scale{display:grid;grid-template-columns:repeat(8,1fr);height:11px;overflow:hidden;border:1px solid rgba(255,255,255,.34);border-radius:999px;box-shadow:0 1px 4px rgba(0,0,0,.18)}
+.dwd-rate-scale i{display:block;min-width:0}
+.dwd-rate-ticks{display:grid;grid-template-columns:repeat(8,1fr);margin-top:3px;color:rgba(255,255,255,.9);font-size:6.5px;line-height:1;text-align:center;font-variant-numeric:tabular-nums}
+.dwd-rate-classes{display:grid;grid-template-columns:2fr 2fr 2fr 2fr;margin-top:4px;color:rgba(255,255,255,.64);font-size:6.5px;line-height:1;text-align:center}
+.radar-colour-legend.dwd small{display:block;margin-top:5px!important;color:rgba(255,255,255,.66)!important;font-size:6.5px!important;text-align:center}
+@media(max-width:520px){.radar-colour-legend.dwd{padding:6px 7px 5px}.dwd-rate-ticks,.dwd-rate-classes{font-size:6px}}

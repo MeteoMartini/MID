@@ -5,7 +5,7 @@ import {CircleMarker,MapContainer,Popup,TileLayer,WMSTileLayer,useMap} from 'rea
 import {toPng} from 'html-to-image';
 import {airQuality,bestMatchModelInfo,climatology,cloudOktas,countryCodeFromLocation,cloudOktasText,currentIndex,dayEffectiveUvMax,dayWeatherCharacter,ensembles,forecast,hazards,icon,label,mapDays,mapHours,mapMinutely15,officialWarnings,radarNowcast,searchLocations,reverseLocation,station,wind,type BestMatchModelInfo,type ClimateDay,type Day,type EnsembleDay,type Hour,type Location,type Minute15,type ModelRunMeta,type OfficialAlert,type RadarNowcast,type Station,type Weather,type WindUnit} from './weather';
 
-const VERSION='0.7.11';
+const VERSION='0.7.12';
 const LOGO_PATH='./mid-logo.png';
 const LOCATION_STORAGE_KEY='mid:lastLocation';
 function normalizeLocation(loc:Location):Location{const country_code=countryCodeFromLocation(loc.country_code)||countryCodeFromLocation(loc.country)||undefined;return{...loc,country_code}}
@@ -69,9 +69,12 @@ function OfficialWarnings({alerts,loading,error,provider,timezone}:{alerts:Offic
 }
 
 function MoveMap({lat,lon}:{lat:number;lon:number}){const map=useMap();useEffect(()=>{map.setView([lat,lon],7,{animate:true})},[lat,lon,map]);return null}
-const DWD_LEGEND_URL='https://maps.dwd.de/geoserver/wms?REQUEST=GetLegendGraphic&VERSION=1.3.0&FORMAT=image%2Fpng&WIDTH=14&HEIGHT=12&LAYER=dwd%3ARadar_rv_product_1x1km_ger&LEGEND_OPTIONS=layout%3Ahorizontal%3BfontSize%3A8';
+const DWD_RATE_LEGEND=[
+ {value:'0,1',color:'#d9f3ff'},{value:'0,5',color:'#72c9ff'},{value:'1',color:'#2f91e3'},{value:'2,5',color:'#43c879'},
+ {value:'5',color:'#f0d447'},{value:'10',color:'#f59b3d'},{value:'20',color:'#e34b4b'},{value:'50＋',color:'#b83fc8'}
+];
 const RAINVIEWER_LEGEND=[{dbz:10,color:'#d2c48b'},{dbz:20,color:'#00a3e0'},{dbz:30,color:'#005588'},{dbz:40,color:'#ffaa00'},{dbz:50,color:'#c10000'},{dbz:60,color:'#ff62ff'}];
-function RadarColourLegend({source}:{source:'dwd'|'rainviewer'}){return source==='dwd'?<div className="radar-colour-legend dwd"><img src={DWD_LEGEND_URL} alt="Offizielle DWD-RV-Farblegende in Millimeter pro Stunde"/><small>DWD-RV · mm/h · offizielle Layer-Skala</small></div>:<div className="radar-colour-legend rainviewer"><div>{RAINVIEWER_LEGEND.map(item=><i key={item.dbz} style={{background:item.color}} title={`${item.dbz} dBZ`}/>)}</div><p>{RAINVIEWER_LEGEND.map(item=><span key={item.dbz}>{item.dbz}{item.dbz===60?'＋':''}</span>)}</p><small>RainViewer Universal Blue · dBZ (mm/h nur näherungsweise)</small></div>}
+function RadarColourLegend({source}:{source:'dwd'|'rainviewer'}){return source==='dwd'?<div className="radar-colour-legend dwd"><div className="radar-legend-head"><b>Niederschlagsrate</b><span>mm/h</span></div><div className="dwd-rate-scale">{DWD_RATE_LEGEND.map(item=><i key={item.value} style={{background:item.color}} title={`${item.value} mm/h`}/>)}</div><div className="dwd-rate-ticks">{DWD_RATE_LEGEND.map(item=><span key={item.value}>{item.value}</span>)}</div><div className="dwd-rate-classes"><span>leicht</span><span>mäßig</span><span>stark</span><span>sehr stark</span></div><small>DWD-RV · vereinfachte MID-Leseskala zur Kartenebene</small></div>:<div className="radar-colour-legend rainviewer"><div>{RAINVIEWER_LEGEND.map(item=><i key={item.dbz} style={{background:item.color}} title={`${item.dbz} dBZ`}/>)}</div><p>{RAINVIEWER_LEGEND.map(item=><span key={item.dbz}>{item.dbz}{item.dbz===60?'＋':''}</span>)}</p><small>RainViewer Universal Blue · dBZ (mm/h nur näherungsweise)</small></div>}
 function Radar({lat,lon,timezone,analysis}:{lat:number;lon:number;timezone?:string;analysis?:RadarNowcast|null}){
  const inDwdCoverage=lon>=1.4&&lon<=18.8&&lat>=45.6&&lat<=56.5;
  const[frames,setFrames]=useState<RadarFrame[]>([]),[host,setHost]=useState(''),[index,setIndex]=useState(0),[opacity,setOpacity]=useState(82),[latestObserved,setLatestObserved]=useState(0),[source,setSource]=useState<'dwd'|'rainviewer'>(inDwdCoverage?'dwd':'rainviewer');
