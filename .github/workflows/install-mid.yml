@@ -1,10 +1,20 @@
 name: Install MID replacement
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - MID-professional-replacement.zip
+
   workflow_dispatch:
 
 permissions:
   contents: write
+
+concurrency:
+  group: mid-install
+  cancel-in-progress: false
 
 jobs:
   install:
@@ -13,6 +23,9 @@ jobs:
     steps:
       - name: Repository laden
         uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
 
       - name: Node.js 22 einrichten
         uses: actions/setup-node@v4
@@ -22,30 +35,39 @@ jobs:
       - name: Neue MID-Version entpacken
         run: |
           test -f MID-professional-replacement.zip
+
           rm -rf /tmp/mid-new
           mkdir -p /tmp/mid-new
+
           unzip -q MID-professional-replacement.zip -d /tmp/mid-new
 
-      - name: Alte Version ersetzen
+      - name: Alte MID-Version ersetzen
         run: |
-          rsync -a --delete             --exclude='.git/'             --exclude='.github/'             --exclude='MID-professional-replacement.zip'             /tmp/mid-new/ ./
+          rsync -a --delete \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='MID-professional-replacement.zip' \
+            /tmp/mid-new/ ./
+
           rm -f MID-professional-replacement.zip
           rm -f package-lock.json
 
       - name: Abhängigkeiten installieren
         run: npm install --no-audit --no-fund --legacy-peer-deps
 
-      - name: Projekt bauen
+      - name: Projekt prüfen und bauen
         run: npm run build
 
-      - name: Änderungen committen
+      - name: Neue MID-Version committen
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
           git add -A
+
           if git diff --cached --quiet; then
             echo "Keine Änderungen vorhanden."
           else
             git commit -m "Replace MID with professional dashboard"
-            git push
+            git push origin main
           fi
