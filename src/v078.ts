@@ -11,7 +11,7 @@ type WidgetSettings={days:number;dark:boolean;showWind:boolean;showRain:boolean;
 
 declare global{interface Window{__MID_FORECAST__?:ForecastSnapshot}}
 
-const VERSION='0.7.14';
+const VERSION='0.7.15';
 const CHART_KEY='mid:0.7.1:chart-visibility';
 const WIDGET_KEY='mid:0.7.1:widget-settings';
 const WIDGET_NAMES_KEY='mid:0.7.1:widget-place-names';
@@ -166,7 +166,7 @@ function enhanceSkyBars(){
     legend.querySelectorAll('[data-mid-cloud-legend],[data-mid-sky-legend],[data-mid-sky-note]').forEach(element=>element.remove());
     const sun=document.createElement('span');sun.dataset.midSkyLegend='1';sun.innerHTML='<i class="sunshine-bar"></i>Sonnenschein / klar';
     const cloud=document.createElement('span');cloud.dataset.midSkyLegend='1';cloud.innerHTML='<i class="cloudiness-bar"></i>Bewölkung';
-    const note=document.createElement('small');note.dataset.midSkyNote='1';note.className='mid-skybar-note';note.textContent='Tageslicht: Gelb bei überwiegend klarem Himmel, sonst Grau. Nachts bleibt klarer Himmel ohne Balken; Bewölkung erscheint ausschließlich grau. Je dicker, desto stärker der jeweilige Zustand.';
+    const note=document.createElement('small');note.dataset.midSkyNote='1';note.className='mid-skybar-note';note.textContent='Tagsüber: Gelb bei klarem Himmel, sonst Grau. Nachts: klar ohne Balken, Bewölkung grau. Dicke = Ausprägung.';
     legend.append(sun,cloud,note);
   }
 }

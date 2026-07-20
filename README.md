@@ -1,8 +1,17 @@
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.14**
+**Aktuelle Version: v0.7.15**
 
 MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React, TypeScript und Open-Meteo. Es verbindet Vorhersagen, Ensemblemodelle, aktuelle Stationsmessungen, amtliche Warnungen, Radar, Luftqualität und exportierbare Wetterwidgets.
+
+## Favoriten Phase 2 und Berg-/Skimodus (v0.7.15)
+
+- Favoriten können benannt, gruppiert, per Ziehen oder Pfeilen sortiert und als Standardort festgelegt werden. Beim Start wird der Standardort bevorzugt.
+- Eine horizontale Favoritenleiste ermöglicht den direkten Ortswechsel. Individuelle Schwellen für Niederschlagswahrscheinlichkeit, Böen, Frost und Hitze werden beim Aufruf gegen die nächsten 24 Stunden geprüft.
+- Export und Import erfolgen als versionierte JSON-Datei; alte Favoriteneinträge werden automatisch migriert.
+- Der optionale Berg-/Skimodus lädt denselben Standort für frei einstellbare Tal- und Gipfelhöhen mit statistischer Höhenanpassung. Angezeigt werden Temperatur, gefühlte Temperatur, Wind/Böen, Nullgradgrenze, angenäherte Schneegrenze, Sicht, angenäherte Wolkenuntergrenze, Windchill, Gipfeltrend und eine Tageslicht-Orientierungszeit.
+- Außerhalb einer tatsächlich bestätigten DWD-RV-Auswertung nutzt die Radarkarte die RainViewer-Fallbackebene; OPERA/ORD kann weiterhin die standortbezogene europäische Auswertung liefern.
+
 
 ## Systemdesign und Favoriten (v0.7.14)
 
