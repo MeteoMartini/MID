@@ -1,4 +1,4 @@
-import './v072.css';
+import './v073.css';
 
 type ForecastSnapshot={
   elevation?:number;
@@ -11,7 +11,7 @@ type WidgetSettings={days:number;dark:boolean;showWind:boolean;showRain:boolean;
 
 declare global{interface Window{__MID_FORECAST__?:ForecastSnapshot}}
 
-const VERSION='0.7.2';
+const VERSION='0.7.3';
 const CHART_KEY='mid:0.7.1:chart-visibility';
 const WIDGET_KEY='mid:0.7.1:widget-settings';
 const WIDGET_NAMES_KEY='mid:0.7.1:widget-place-names';
@@ -91,7 +91,7 @@ window.fetch=async(input:RequestInfo|URL,init?:RequestInit)=>{
   const response=await nativeFetch(input,init);if(url)captureForecast(response,url);return response;
 };
 
-function replaceVersionText(root:ParentNode){const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node:Node|null;while((node=walker.nextNode())){const text=node.nodeValue||'';if(/0\.7\.[01]/.test(text))node.nodeValue=text.replaceAll('0.7.0',VERSION).replaceAll('0.7.1',VERSION)}}
+function replaceVersionText(root:ParentNode){const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node:Node|null;while((node=walker.nextNode())){const text=node.nodeValue||'';if(/0\.7\.[0-2]/.test(text))node.nodeValue=text.replaceAll('0.7.0',VERSION).replaceAll('0.7.1',VERSION).replaceAll('0.7.2',VERSION)}}
 function enhanceVersion(){document.querySelectorAll<HTMLElement>('.brand-version,.app>footer,.weatherwidget footer').forEach(element=>replaceVersionText(element));const search=document.querySelector<HTMLInputElement>('.search input');if(search&&search.placeholder!=='Ort, PLZ oder Koordinaten suchen')search.placeholder='Ort, PLZ oder Koordinaten suchen'}
 
 const toggleDefinitions:{selector:string;label:string;key:ChartToggleKey;className:string}[]=[
@@ -116,26 +116,47 @@ function enhanceChartToggles(){
 
 const svgNs='http://www.w3.org/2000/svg';
 function svgElement<K extends keyof SVGElementTagNameMap>(name:K){return document.createElementNS(svgNs,name)}
-function enhanceCloudChart(){
+type SkyBarSample={cloud:number;isDay:boolean;color:'sun'|'cloud';level:1|2|3|4};
+function skyLevel(value:number):1|2|3|4{const v=clamp(value,0,100);return v>=75?4:v>=50?3:v>=25?2:1}
+function skyBarSample(cloud:number,isDay:boolean):SkyBarSample{
+  const bounded=clamp(cloud,0,100),sunshine=isDay&&bounded<50;
+  return sunshine?{cloud:bounded,isDay,color:'sun',level:skyLevel(100-bounded)}:{cloud:bounded,isDay,color:'cloud',level:skyLevel(bounded)};
+}
+function enhanceSkyBars(){
   const snapshot=window.__MID_FORECAST__,svg=document.querySelector<SVGSVGElement>('.meteogram-day .meteogramsvg');if(!snapshot||!svg)return;
   const rows=[...document.querySelectorAll<HTMLButtonElement>('.forecastrows .forecastrow')],active=document.querySelector<HTMLButtonElement>('.forecastrows .forecastrow.active'),dayIndex=active?rows.indexOf(active):-1;
   const dates=(snapshot.daily?.time??[]) as (string|number|null)[],date=dayIndex>=0?String(dates[dayIndex]??''):'';if(!date)return;
-  const times=(snapshot.hourly?.time??[]) as (string|number|null)[],clouds=(snapshot.hourly?.cloud_cover??[]) as (string|number|null)[];
-  const values=times.map((time,index)=>String(time).startsWith(date)?finite(clouds[index]):null).filter((value):value is number=>value!==null).slice(0,24);if(values.length<2)return;
-  const W=240,left=18,right=18,plotW=W-left-right,top=1.4,bottom=8.2,xAt=(index:number)=>left+(index/Math.max(1,values.length-1))*plotW,yAt=(value:number)=>bottom-clamp(value,0,100)/100*(bottom-top);
-  const selectedLine=svg.querySelector<SVGLineElement>('line[stroke="#9ad0ff"]'),selectedX=finite(selectedLine?.getAttribute('x1')),selectedIndex=selectedX===null?0:values.reduce((best,_value,index)=>Math.abs(xAt(index)-selectedX)<Math.abs(xAt(best)-selectedX)?index:best,0);
-  const signature=`${date}:${values.map(value=>Math.round(value)).join(',')}:${selectedIndex}`;if(svg.dataset.midCloudSignature===signature)return;svg.dataset.midCloudSignature=signature;
-  svg.querySelectorAll('[data-mid-cloud]').forEach(element=>element.remove());
-  const defs=svgElement('defs');defs.dataset.midCloud='1';const gradient=svgElement('linearGradient');gradient.id='midCloudFill';gradient.setAttribute('x1','0');gradient.setAttribute('y1','0');gradient.setAttribute('x2','0');gradient.setAttribute('y2','1');const stopA=svgElement('stop');stopA.setAttribute('offset','0%');stopA.setAttribute('stop-color','#b9c6d8');stopA.setAttribute('stop-opacity','.48');const stopB=svgElement('stop');stopB.setAttribute('offset','100%');stopB.setAttribute('stop-color','#b9c6d8');stopB.setAttribute('stop-opacity','.08');gradient.append(stopA,stopB);defs.append(gradient);svg.prepend(defs);
-  const group=svgElement('g');group.dataset.midCloud='1';group.setAttribute('pointer-events','none');group.setAttribute('aria-label','Verlauf der Gesamtbewölkung');
-  const linePath=values.map((value,index)=>`${index?'L':'M'} ${xAt(index).toFixed(2)} ${yAt(value).toFixed(2)}`).join(' '),areaPath=`${linePath} L ${xAt(values.length-1).toFixed(2)} ${bottom} L ${left} ${bottom} Z`;
-  const baseline=svgElement('line');baseline.setAttribute('x1',String(left));baseline.setAttribute('x2',String(W-right));baseline.setAttribute('y1',String(bottom));baseline.setAttribute('y2',String(bottom));baseline.setAttribute('stroke','currentColor');baseline.setAttribute('opacity','.10');
-  const area=svgElement('path');area.setAttribute('d',areaPath);area.setAttribute('fill','url(#midCloudFill)');
-  const line=svgElement('path');line.setAttribute('d',linePath);line.setAttribute('fill','none');line.setAttribute('stroke','#aab8ca');line.setAttribute('stroke-width','1.45');line.setAttribute('vector-effect','non-scaling-stroke');
-  const circle=svgElement('circle');circle.setAttribute('cx',String(xAt(selectedIndex)));circle.setAttribute('cy',String(yAt(values[selectedIndex])));circle.setAttribute('r','1.55');circle.setAttribute('fill','#f7fbff');circle.setAttribute('stroke','#aab8ca');circle.setAttribute('stroke-width','.9');
-  const text=svgElement('text');text.setAttribute('x',String(clamp(xAt(selectedIndex),26,218)));text.setAttribute('y',String(Math.max(top+2.15,yAt(values[selectedIndex])-1.15)));text.setAttribute('text-anchor','middle');text.setAttribute('font-size','3.5');text.setAttribute('fill','currentColor');text.setAttribute('opacity','.82');text.textContent=`☁ ${Math.round(values[selectedIndex])}%`;
-  group.append(baseline,area,line,circle,text);const tempArea=svg.querySelector('path[fill="url(#tempFill)"]'),hit=svg.querySelector('.hour-hit');tempArea?svg.insertBefore(group,tempArea):hit?svg.insertBefore(group,hit):svg.append(group);
-  const legend=document.querySelector<HTMLElement>('.meteogram-day .detaillegend');if(legend&&!legend.querySelector('[data-mid-cloud-legend]')){const item=document.createElement('span');item.dataset.midCloudLegend='1';item.innerHTML='<i class="cloud-cover"></i>Gesamtbewölkung';legend.append(item)}
+  const times=(snapshot.hourly?.time??[]) as (string|number|null)[],clouds=(snapshot.hourly?.cloud_cover??[]) as (string|number|null)[],daylight=(snapshot.hourly?.is_day??[]) as (string|number|null)[];
+  const samples:SkyBarSample[]=[];
+  for(let index=0;index<times.length&&samples.length<24;index++){
+    if(!String(times[index]).startsWith(date))continue;
+    const cloud=finite(clouds[index]);if(cloud===null)continue;
+    samples.push(skyBarSample(cloud,Number(daylight[index])===1));
+  }
+  if(samples.length<2)return;
+  const signature=`${date}:${samples.map(sample=>`${Math.round(sample.cloud)}-${sample.isDay?1:0}`).join(',')}`;if(svg.dataset.midSkySignature===signature)return;svg.dataset.midSkySignature=signature;
+  svg.querySelectorAll('[data-mid-cloud],[data-mid-skybar]').forEach(element=>element.remove());
+  const W=240,left=18,right=18,plotW=W-left-right,centerY=16.15,xAt=(index:number)=>left+(index/Math.max(1,samples.length-1))*plotW;
+  const boundaryBefore=(index:number)=>index<=0?left:(xAt(index-1)+xAt(index))/2,boundaryAfter=(index:number)=>index>=samples.length-1?W-right:(xAt(index)+xAt(index+1))/2;
+  const strokeWidth=(level:1|2|3|4)=>[0,2.1,3.4,4.9,6.5][level];
+  const group=svgElement('g');group.dataset.midSkybar='1';group.setAttribute('pointer-events','none');group.setAttribute('aria-label','Sonnenschein und Gesamtbewölkung in vier Stärken');
+  let runStart=0;
+  for(let index=1;index<=samples.length;index++){
+    const previous=samples[index-1],current=samples[index];
+    if(index<samples.length&&current.color===previous.color&&current.level===previous.level)continue;
+    let x1=boundaryBefore(runStart),x2=boundaryAfter(index-1);const gap=Math.min(.72,Math.max(0,(x2-x1)*.12));x1+=gap;x2-=gap;
+    if(x2<=x1){const mid=(x1+x2)/2;x1=mid-.18;x2=mid+.18}
+    const line=svgElement('line');line.dataset.midSkybar='1';line.setAttribute('x1',x1.toFixed(2));line.setAttribute('x2',x2.toFixed(2));line.setAttribute('y1',String(centerY));line.setAttribute('y2',String(centerY));line.setAttribute('stroke',previous.color==='sun'?'#ffc229':'#aeb3b9');line.setAttribute('stroke-width',String(strokeWidth(previous.level)));line.setAttribute('stroke-linecap','round');line.setAttribute('vector-effect','non-scaling-stroke');line.setAttribute('opacity',previous.color==='sun'?'.98':'.92');
+    const title=svgElement('title');title.textContent=previous.color==='sun'?`Sonnenschein/Klarheit · Stufe ${previous.level} von 4`:`Gesamtbewölkung · Stufe ${previous.level} von 4`;line.append(title);group.append(line);runStart=index;
+  }
+  const tempArea=svg.querySelector('path[fill="url(#tempFill)"]'),hit=svg.querySelector('.hour-hit');tempArea?svg.insertBefore(group,tempArea):hit?svg.insertBefore(group,hit):svg.append(group);
+  const legend=document.querySelector<HTMLElement>('.meteogram-day .detaillegend');if(legend){
+    legend.querySelectorAll('[data-mid-cloud-legend],[data-mid-sky-legend],[data-mid-sky-note]').forEach(element=>element.remove());
+    const sun=document.createElement('span');sun.dataset.midSkyLegend='1';sun.innerHTML='<i class="sunshine-bar"></i>Sonnenschein / klar';
+    const cloud=document.createElement('span');cloud.dataset.midSkyLegend='1';cloud.innerHTML='<i class="cloudiness-bar"></i>Bewölkung';
+    const note=document.createElement('small');note.dataset.midSkyNote='1';note.className='mid-skybar-note';note.textContent='Vier Stufen: Gelb wird mit zunehmender Klarheit dicker, Grau mit zunehmender Bewölkung.';
+    legend.append(sun,cloud,note);
+  }
 }
 
 function labelContaining(root:ParentNode,text:string){return[...root.querySelectorAll<HTMLLabelElement>('label')].find(label=>label.textContent?.includes(text))}
@@ -202,7 +223,7 @@ async function checkVersion(force=false){
 function setupVersionChecks(){cleanUpdateQuery();void checkVersion(true);window.setInterval(()=>{if(document.visibilityState==='visible')void checkVersion()},VERSION_CHECK_INTERVAL);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')void checkVersion(true)});window.addEventListener('pageshow',()=>void checkVersion(true));window.addEventListener('focus',()=>void checkVersion())}
 
 function improveWarningMessage(){const message=document.querySelector<HTMLElement>('.official-warnings.unavailable small');if(message&&/failed to fetch/i.test(message.textContent||''))message.textContent='Amtliche Warnungen konnten vom Desktop-Browser nicht geladen werden. MID hat den CORS-sicheren Abruf automatisch wiederholt; bitte Netzwerk- oder Inhaltsblocker prüfen.'}
-function enhance(){if(enhancing)return;enhancing=true;try{enhanceVersion();enhanceChartToggles();enhanceCloudChart();enhanceWidget();improveWarningMessage()}finally{enhancing=false}}
+function enhance(){if(enhancing)return;enhancing=true;try{enhanceVersion();enhanceChartToggles();enhanceSkyBars();enhanceWidget();improveWarningMessage()}finally{enhancing=false}}
 function scheduleEnhance(){if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;enhance()})}
 function start(){enhance();setupVersionChecks();new MutationObserver(scheduleEnhance).observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['class','x1']});window.addEventListener('mid:forecast-updated',scheduleEnhance)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();

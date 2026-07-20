@@ -1,8 +1,15 @@
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.2**
+**Aktuelle Version: v0.7.3**
 
 MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React, TypeScript und Open-Meteo. Es verbindet Vorhersagen, Ensemblemodelle, aktuelle Stationsmessungen, amtliche Warnungen, Radar, Luftqualität und exportierbare Wetterwidgets.
+
+## Neuerungen in v0.7.3
+
+- Sonnenschein und Gesamtbewölkung erscheinen im Tagesdetail als abgerundete Balkenzeile direkt unter den Wetterpiktogrammen
+- gelbe Balken kennzeichnen sonnige beziehungsweise überwiegend klare Phasen; je dicker, desto klarer
+- graue Balken kennzeichnen Bewölkung; je dicker, desto stärker bewölkt
+- beide Darstellungen verwenden vier eindeutig abgestufte Linienstärken; nachts wird kein Sonnenschein suggeriert
 
 ## Neuerungen in v0.7.2
 
@@ -198,4 +205,4 @@ Die jeweiligen Nutzungsbedingungen, Abruflimits und Lizenzanforderungen der Date
 - Minor (`0.x.0`): neue wesentliche Funktion oder größere Daten-/UI-Architektur
 - Major (`1.0.0`): stabiler, dokumentierter Funktionsumfang
 
-v0.7.2 ergänzt eine zuverlässige Update-Erkennung für installierte Web-Apps und ordnet den Bewölkungsverlauf im Tagesdetail optisch oberhalb der Temperaturkurve an.
+v0.7.3 ersetzt den flächigen Bewölkungsverlauf durch eine kompakte Balkenzeile unter den Wetterpiktogrammen. Gelb und Grau zeigen Klarheit beziehungsweise Bewölkung in jeweils vier Stärken.
