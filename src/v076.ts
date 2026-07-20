@@ -1,4 +1,4 @@
-import './v075.css';
+import './v076.css';
 
 type ForecastSnapshot={
   elevation?:number;
@@ -11,7 +11,7 @@ type WidgetSettings={days:number;dark:boolean;showWind:boolean;showRain:boolean;
 
 declare global{interface Window{__MID_FORECAST__?:ForecastSnapshot}}
 
-const VERSION='0.7.5';
+const VERSION='0.7.6';
 const CHART_KEY='mid:0.7.1:chart-visibility';
 const WIDGET_KEY='mid:0.7.1:widget-settings';
 const WIDGET_NAMES_KEY='mid:0.7.1:widget-place-names';
@@ -91,7 +91,7 @@ window.fetch=async(input:RequestInfo|URL,init?:RequestInit)=>{
   const response=await nativeFetch(input,init);if(url)captureForecast(response,url);return response;
 };
 
-function replaceVersionText(root:ParentNode){const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node:Node|null;while((node=walker.nextNode())){const text=node.nodeValue||'';if(/0\.7\.[0-3]/.test(text))node.nodeValue=text.replaceAll('0.7.0',VERSION).replaceAll('0.7.1',VERSION).replaceAll('0.7.2',VERSION).replaceAll('0.7.3',VERSION)}}
+function replaceVersionText(root:ParentNode){const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node:Node|null;while((node=walker.nextNode())){const text=node.nodeValue||'';if(/\bv0\.7\.\d+\b/.test(text))node.nodeValue=text.replace(/\bv0\.7\.\d+\b/g,`v${VERSION}`)}}
 function enhanceVersion(){document.querySelectorAll<HTMLElement>('.brand-version,.app>footer,.weatherwidget footer').forEach(element=>replaceVersionText(element));const search=document.querySelector<HTMLInputElement>('.search input');if(search&&search.placeholder!=='Ort, PLZ oder Koordinaten suchen')search.placeholder='Ort, PLZ oder Koordinaten suchen'}
 
 const toggleDefinitions:{selector:string;label:string;key:ChartToggleKey;className:string}[]=[
@@ -116,11 +116,20 @@ function enhanceChartToggles(){
 
 const svgNs='http://www.w3.org/2000/svg';
 function svgElement<K extends keyof SVGElementTagNameMap>(name:K){return document.createElementNS(svgNs,name)}
-type SkyBarSample={cloud:number;isDay:boolean;color:'sun'|'cloud';level:1|2|3|4};
-function skyLevel(value:number):1|2|3|4{const v=clamp(value,0,100);return v>=75?4:v>=50?3:v>=25?2:1}
+type SkyBarLevel=0|1|2|3|4;
+type SkyBarSample={cloud:number;isDay:boolean;color:'sun'|'cloud'|'none';level:SkyBarLevel};
+function rangeLevel(value:number,min:number,max:number):1|2|3|4{
+  const ratio=clamp((value-min)/Math.max(1,max-min),0,1);
+  return Math.min(4,Math.max(1,Math.ceil(ratio*4))) as 1|2|3|4;
+}
 function skyBarSample(cloud:number,isDay:boolean):SkyBarSample{
-  const bounded=clamp(cloud,0,100),sunshine=isDay&&bounded<50;
-  return sunshine?{cloud:bounded,isDay,color:'sun',level:skyLevel(100-bounded)}:{cloud:bounded,isDay,color:'cloud',level:skyLevel(bounded)};
+  const bounded=clamp(cloud,0,100);
+  if(!isDay){
+    if(bounded<20)return{cloud:bounded,isDay,color:'none',level:0};
+    return{cloud:bounded,isDay,color:'cloud',level:rangeLevel(bounded,20,100)};
+  }
+  if(bounded<50)return{cloud:bounded,isDay,color:'sun',level:rangeLevel(50-bounded,0,50)};
+  return{cloud:bounded,isDay,color:'cloud',level:rangeLevel(bounded,50,100)};
 }
 function enhanceSkyBars(){
   const snapshot=window.__MID_FORECAST__,svg=document.querySelector<SVGSVGElement>('.meteogram-day .meteogramsvg');if(!snapshot||!svg)return;
@@ -138,23 +147,26 @@ function enhanceSkyBars(){
   svg.querySelectorAll('[data-mid-cloud],[data-mid-skybar]').forEach(element=>element.remove());
   const W=240,left=18,right=18,plotW=W-left-right,centerY=16.15,xAt=(index:number)=>left+(index/Math.max(1,samples.length-1))*plotW;
   const boundaryBefore=(index:number)=>index<=0?left:(xAt(index-1)+xAt(index))/2,boundaryAfter=(index:number)=>index>=samples.length-1?W-right:(xAt(index)+xAt(index+1))/2;
-  const strokeWidth=(level:1|2|3|4)=>[0,2.1,3.4,4.9,6.5][level];
+  const strokeWidth=(level:SkyBarLevel)=>[0,2.1,3.4,4.9,6.5][level];
   const group=svgElement('g');group.dataset.midSkybar='1';group.setAttribute('pointer-events','none');group.setAttribute('aria-label','Sonnenschein und Gesamtbewölkung in vier Stärken');
   let runStart=0;
   for(let index=1;index<=samples.length;index++){
     const previous=samples[index-1],current=samples[index];
     if(index<samples.length&&current.color===previous.color&&current.level===previous.level)continue;
-    let x1=boundaryBefore(runStart),x2=boundaryAfter(index-1);const gap=Math.min(.72,Math.max(0,(x2-x1)*.12));x1+=gap;x2-=gap;
-    if(x2<=x1){const mid=(x1+x2)/2;x1=mid-.18;x2=mid+.18}
-    const line=svgElement('line');line.dataset.midSkybar='1';line.setAttribute('x1',x1.toFixed(2));line.setAttribute('x2',x2.toFixed(2));line.setAttribute('y1',String(centerY));line.setAttribute('y2',String(centerY));line.setAttribute('stroke',previous.color==='sun'?'#ffc229':'#aeb3b9');line.setAttribute('stroke-width',String(strokeWidth(previous.level)));line.setAttribute('stroke-linecap','round');line.setAttribute('vector-effect','non-scaling-stroke');line.setAttribute('opacity',previous.color==='sun'?'.98':'.92');
-    const title=svgElement('title');title.textContent=previous.color==='sun'?`Sonnenschein/Klarheit · Stufe ${previous.level} von 4`:`Gesamtbewölkung · Stufe ${previous.level} von 4`;line.append(title);group.append(line);runStart=index;
+    if(previous.color!=='none'){
+      let x1=boundaryBefore(runStart),x2=boundaryAfter(index-1);const gap=Math.min(.72,Math.max(0,(x2-x1)*.12));x1+=gap;x2-=gap;
+      if(x2<=x1){const mid=(x1+x2)/2;x1=mid-.18;x2=mid+.18}
+      const line=svgElement('line');line.dataset.midSkybar='1';line.setAttribute('x1',x1.toFixed(2));line.setAttribute('x2',x2.toFixed(2));line.setAttribute('y1',String(centerY));line.setAttribute('y2',String(centerY));line.setAttribute('stroke',previous.color==='sun'?'#ffc229':'#aeb3b9');line.setAttribute('stroke-width',String(strokeWidth(previous.level)));line.setAttribute('stroke-linecap','round');line.setAttribute('vector-effect','non-scaling-stroke');line.setAttribute('opacity',previous.color==='sun'?'.98':'.92');
+      const title=svgElement('title');title.textContent=previous.color==='sun'?`Sonnenschein/Klarheit · Stufe ${previous.level} von 4`:`Gesamtbewölkung · Stufe ${previous.level} von 4`;line.append(title);group.append(line);
+    }
+    runStart=index;
   }
   const tempArea=svg.querySelector('path[fill="url(#tempFill)"]'),hit=svg.querySelector('.hour-hit');tempArea?svg.insertBefore(group,tempArea):hit?svg.insertBefore(group,hit):svg.append(group);
   const legend=document.querySelector<HTMLElement>('.meteogram-day .detaillegend');if(legend){
     legend.querySelectorAll('[data-mid-cloud-legend],[data-mid-sky-legend],[data-mid-sky-note]').forEach(element=>element.remove());
     const sun=document.createElement('span');sun.dataset.midSkyLegend='1';sun.innerHTML='<i class="sunshine-bar"></i>Sonnenschein / klar';
     const cloud=document.createElement('span');cloud.dataset.midSkyLegend='1';cloud.innerHTML='<i class="cloudiness-bar"></i>Bewölkung';
-    const note=document.createElement('small');note.dataset.midSkyNote='1';note.className='mid-skybar-note';note.textContent='Vier Stufen: Gelb wird mit zunehmender Klarheit dicker, Grau mit zunehmender Bewölkung.';
+    const note=document.createElement('small');note.dataset.midSkyNote='1';note.className='mid-skybar-note';note.textContent='Tageslicht: Gelb bei überwiegend klarem Himmel, sonst Grau. Nachts bleibt klarer Himmel ohne Balken; Bewölkung erscheint ausschließlich grau. Je dicker, desto stärker der jeweilige Zustand.';
     legend.append(sun,cloud,note);
   }
 }
