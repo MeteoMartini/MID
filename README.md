@@ -1,6 +1,6 @@
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.6.1**
+**Aktuelle Version: v0.6.2**
 
 MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React und TypeScript. Es verbindet Open-Meteo Best Match mit Ensemble-Prognosen, Stationsmessungen, Radar, Luftqualität, Gefahrenindikatoren und exportierbaren Wetterwidgets.
 
@@ -38,22 +38,24 @@ Unter **Settings → Pages → Source** muss **GitHub Actions** ausgewählt sein
 
 ## Weltweiter WMO-/METAR-Abgleich
 
-AviationWeather.gov erlaubt derzeit keine direkten Cross-Origin-Abfragen aus einer GitHub-Pages-Webseite. Deshalb enthält MID unter `worker/metar-proxy.js` einen kleinen Cloudflare-Worker-Proxy.
+Für Stationsdaten und Warnungen ist **nur ein Cloudflare Worker** erforderlich. AviationWeather.gov erlaubt derzeit keine direkten Cross-Origin-Abfragen aus einer GitHub-Pages-Webseite; deshalb vermittelt `worker/metar-proxy.js` sowohl die weltweiten METAR-Abrufe als auch die amtlichen Warnungsfeeds.
 
-Nach dessen Bereitstellung wird die öffentliche Worker-Adresse beim Build als Variable gesetzt:
+Nach dessen Bereitstellung wird dieselbe öffentliche Worker-Adresse beim Build gesetzt:
 
 ```text
 VITE_METAR_PROXY_URL=https://DEIN-WORKER.workers.dev/
 VITE_ALERT_PROXY_URL=https://DEIN-WORKER.workers.dev/
 ```
 
-MID vergleicht dann weltweit nahe Flugplatz-, METAR- und WMO-Messstationen anhand von Entfernung, Höhenunterschied und Aktualität. In Deutschland wird zusätzlich Bright Sky/DWD-WMO geprüft.
+MID v0.6.2 verwendet beim NOAA-AviationWeather-Endpunkt den aktuellen Parameter `hoursBeforeNow` und einen geografischen Begrenzungsrahmen. Dadurch werden außerhalb Deutschlands wieder nahe, aktuelle METAR-Stationen gefunden. Die Auswahl bewertet Entfernung, Höhenunterschied und Aktualität. In Deutschland wird zusätzlich Bright Sky/DWD-WMO geprüft, in Österreich GeoSphere Austria/TAWES und optional weltweit Weather Underground PWS über einen lizenzierten API-Zugang.
+
+Ein allgemein frei zugänglicher weltweiter SYNOP-Livedienst ist derzeit nicht eingebaut. Außerhalb Deutschlands und Österreichs ist daher METAR die reguläre offene Stationsquelle; Orte ohne hinreichend nahe oder aktuelle METAR-Station fallen auf die Open-Meteo-Best-Match-Werte zurück.
 
 ## Amtliche Wetterwarnungen
 
-MID v0.6.1 nutzt in Deutschland primär den amtlichen DWD-WFS-Layer `dwd:Warnungen_Gemeinden`. Die Warnpolygone werden auf den exakten Standort geprüft; dadurch werden nicht mehr nur die ersten Einträge eines deutschlandweiten CAP-Feeds ausgewertet. Falls der DWD-WFS vorübergehend nicht erreichbar ist, wird automatisch auf den DWD-CAP-Atom-Feed zurückgegriffen.
+MID v0.6.2 nutzt in Deutschland primär den amtlichen DWD-WFS-Layer `dwd:Warnungen_Gemeinden`. Die Warnpolygone werden auf den exakten Standort geprüft. Falls der DWD-WFS vorübergehend nicht erreichbar ist, wird automatisch auf den DWD-CAP-Atom-Feed zurückgegriffen.
 
-Für andere unterstützte europäische Länder nutzt MID die aktiv gepflegten MeteoAlarm-Atom-Feeds und lädt nur eine priorisierte, begrenzte Zahl passender CAP-Dokumente. Dies verhindert, dass der kostenlose Cloudflare Worker sein Limit externer Unteranfragen überschreitet.
+Für andere unterstützte europäische Länder verwendet MID die aktiv gepflegten MeteoAlarm-Atom-/CAP-Feeds. Länderbezeichnungen werden in ISO-Zweibuchstabencodes normalisiert; ältere lokal gespeicherte Orte werden beim Start migriert. Fehlt der Ländercode dennoch, ermittelt der Worker ihn über Orts-/Regionsangaben und anschließend per Reverse-Geocoding. Der CAP-Parser verarbeitet sowohl eingebettete beziehungsweise XML-maskierte Meldungen als auch relative Verknüpfungen auf einzelne CAP-Dokumente.
 
 Der Worker kann nach der Bereitstellung so geprüft werden:
 
@@ -61,13 +63,19 @@ Der Worker kann nach der Bereitstellung so geprüft werden:
 https://DEIN-WORKER.workers.dev/?mode=health
 ```
 
-Für einen Warnungsabruf in Niederkassel:
+Für Niederkassel:
 
 ```text
 https://DEIN-WORKER.workers.dev/?mode=alerts&lat=50.82&lon=7.04&country=DE&name=Niederkassel&region=Nordrhein-Westfalen&language=de
 ```
 
-Eine leere Liste `"alerts": []` ist nur dann eine Entwarnung, wenn die Antwort zugleich `"version": "0.6.1"` und keinen `error`-Eintrag enthält.
+Für Cagliari:
+
+```text
+https://DEIN-WORKER.workers.dev/?mode=alerts&lat=39.2238&lon=9.1217&country=IT&name=Cagliari&region=Sardegna&language=de
+```
+
+Die Cagliari-Antwort muss mindestens `"version": "0.6.2"`, `"countryCode": "IT"` und als Anbieter MeteoAlarm enthalten. Ob `"alerts"` gefüllt ist, hängt von den zum Abrufzeitpunkt tatsächlich aktiven CAP-Meldungen ab. Die frühere Meldung, für Italien sei kein Feed hinterlegt, darf nicht mehr erscheinen.
 
 ## Datenquellen
 
@@ -248,6 +256,15 @@ Versionssprünge werden restriktiv vergeben. Dieses Release erhält **v0.5.0**, 
 - MeteoAlarm-Abrufe priorisieren Orts-, Bezirks- und Regionsbezug und bleiben unter dem Cloudflare-Free-Limit
 - Cloudflare-Worker um Gesundheitsprüfung und Versionsdiagnose erweitert
 - GitHub-Pages-Workflow übernimmt die Worker-URL automatisch aus den Repository-Variablen
+
+## Stand v0.6.2
+
+- ein gemeinsamer Cloudflare Worker versorgt weiterhin Stationsdaten und Warnungen; ein zweiter Worker ist nicht erforderlich
+- weltweiter METAR-Abruf auf den aktuellen NOAA-Parameter `hoursBeforeNow` korrigiert
+- Länderbezeichnungen und alte gespeicherte Orte auf ISO-Codes normalisiert
+- Cagliari/Sardinien wird zuverlässig Italien (`IT`) zugeordnet; Reverse-Geocoding dient als zusätzliche Rückfallebene
+- MeteoAlarm-Atom/CAP-Parser für eingebettete, maskierte und relativ verlinkte CAP-Meldungen erweitert
+- Diagnoseausgaben für Stationsabrufe und aufgelösten Warnungs-Ländercode ergänzt
 
 ## Stand v0.5.7
 

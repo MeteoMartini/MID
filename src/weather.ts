@@ -9,6 +9,28 @@ export type Station={name:string;provider?:string;stationId?:string;distance?:nu
 export type OfficialAlertLevel='yellow'|'orange'|'red'|'purple'|'unknown';
 export type OfficialAlert={id:string;headline:string;description:string;instruction?:string;level:OfficialAlertLevel;severity?:string;event?:string;source:string;area?:string;effective?:string;onset?:string;expires?:string;url?:string};
 
+const COUNTRY_CODE_ALIASES:Record<string,string>={
+ DE:'DE',DEUTSCHLAND:'DE',GERMANY:'DE',GERMANIA:'DE',AT:'AT',OSTERREICH:'AT',AUSTRIA:'AT',
+ IT:'IT',ITALIEN:'IT',ITALY:'IT',ITALIA:'IT',FR:'FR',FRANKREICH:'FR',FRANCE:'FR',
+ ES:'ES',SPANIEN:'ES',SPAIN:'ES',ESPANA:'ES',PT:'PT',PORTUGAL:'PT',
+ CH:'CH',SCHWEIZ:'CH',SWITZERLAND:'CH',SUISSE:'CH',SVIZZERA:'CH',
+ GB:'GB',UK:'GB',GROSSBRITANNIEN:'GB',UNITEDKINGDOM:'GB',US:'US',USA:'US',UNITEDSTATES:'US',UNITEDSTATESOFAMERICA:'US',
+ NL:'NL',NIEDERLANDE:'NL',NETHERLANDS:'NL',BE:'BE',BELGIEN:'BE',BELGIUM:'BE',
+ DK:'DK',DANEMARK:'DK',DENMARK:'DK',NO:'NO',NORWEGEN:'NO',NORWAY:'NO',SE:'SE',SCHWEDEN:'SE',SWEDEN:'SE',FI:'FI',FINNLAND:'FI',FINLAND:'FI',
+ IE:'IE',IRLAND:'IE',IRELAND:'IE',IS:'IS',ISLAND:'IS',ICELAND:'IS',PL:'PL',POLEN:'PL',POLAND:'PL',
+ CZ:'CZ',TSCHECHIEN:'CZ',CZECHIA:'CZ',SK:'SK',SLOWAKEI:'SK',SLOVAKIA:'SK',SI:'SI',SLOWENIEN:'SI',SLOVENIA:'SI',
+ HR:'HR',KROATIEN:'HR',CROATIA:'HR',GR:'GR',EL:'GR',GRIECHENLAND:'GR',GREECE:'GR',HU:'HU',UNGARN:'HU',HUNGARY:'HU',
+ RO:'RO',RUMANIEN:'RO',ROMANIA:'RO',BG:'BG',BULGARIEN:'BG',BULGARIA:'BG',RS:'RS',SERBIEN:'RS',SERBIA:'RS',
+ BA:'BA',BOSNIENUNDHERZEGOWINA:'BA',BOSNIAANDHERZEGOVINA:'BA',ME:'ME',MONTENEGRO:'ME',MK:'MK',NORDMAZEDONIEN:'MK',NORTHMACEDONIA:'MK',
+ EE:'EE',ESTLAND:'EE',ESTONIA:'EE',LV:'LV',LETTLAND:'LV',LATVIA:'LV',LT:'LT',LITAUEN:'LT',LITHUANIA:'LT',
+ LU:'LU',LUXEMBURG:'LU',LUXEMBOURG:'LU',MT:'MT',MALTA:'MT',CY:'CY',ZYPERN:'CY',CYPRUS:'CY',UA:'UA',UKRAINE:'UA',
+ MD:'MD',MOLDAU:'MD',MOLDOVA:'MD',IL:'IL',ISRAEL:'IL',AD:'AD',ANDORRA:'AD'
+};
+export function countryCodeFromLocation(value?:string){
+ const raw=String(value||'').trim();if(!raw)return'';const upper=raw.toUpperCase();if(/^[A-Z]{2}$/.test(upper))return upper==='UK'?'GB':upper;
+ const key=raw.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]/g,'');return COUNTRY_CODE_ALIASES[key]||'';
+}
+
 type EnsembleModel={id:string;label:string;resolutionKm:number;updateHours:number;maxDays:number;bbox?:[number,number,number,number]};
 const ensembleModels:EnsembleModel[]=[
  {id:'icon_seamless',label:'DWD ICON EPS Seamless',resolutionKm:8,updateHours:3,maxDays:7.5,bbox:[-25,30,45,72]},
@@ -112,12 +134,12 @@ function metarToStation(rows:any[],lat:number,lon:number,elevation?:number):Stat
 async function metarStation(lat:number,lon:number,elevation?:number,signal?:AbortSignal):Promise<Station|null>{
  const dLat=1.15,dLon=1.15/Math.max(.25,Math.cos(lat*Math.PI/180)),bbox=[lon-dLon,lat-dLat,lon+dLon,lat+dLat].map(x=>x.toFixed(3)).join(','),configured=((import.meta as any).env?.VITE_METAR_PROXY_URL as string|undefined)||localStorage.getItem('metarProxyUrl')||'',urls:string[]=[];
  if(configured){const u=new URL(configured);u.searchParams.set('lat',String(lat));u.searchParams.set('lon',String(lon));u.searchParams.set('radius_km','140');urls.push(u.toString())}
- urls.push(`https://aviationweather.gov/api/data/metar?format=json&hours=2&bbox=${encodeURIComponent(bbox)}`);
+ urls.push(`https://aviationweather.gov/api/data/metar?format=json&hoursBeforeNow=2&bbox=${encodeURIComponent(bbox)}`);
  for(const url of urls){try{const d=await j<any>(url,signal),s=metarToStation(parseMetarRows(d),lat,lon,elevation);if(s)return s}catch{}}
  return null;
 }
 export async function station(lat:number,lon:number,country?:string,elevation?:number,signal?:AbortSignal):Promise<Station|null>{
- const c=String(country||'').toUpperCase(),inGermany=c==='DE'||(!c&&lat>=47.2&&lat<=55.2&&lon>=5.5&&lon<=15.6),tasks:Promise<Station|null>[]=[metarStation(lat,lon,elevation,signal)];
+ const c=countryCodeFromLocation(country),inGermany=c==='DE'||(!c&&lat>=47.2&&lat<=55.2&&lon>=5.5&&lon<=15.6),tasks:Promise<Station|null>[]=[metarStation(lat,lon,elevation,signal)];
  if(geoSphereApplies(lat,lon,c))tasks.push(geoSphereStation(lat,lon,elevation,signal));
  if(inGermany)tasks.push(brightSkyStation(lat,lon,elevation,signal));
  const results=(await Promise.allSettled(tasks)).filter((x):x is PromiseFulfilledResult<Station|null>=>x.status==='fulfilled').map(x=>x.value).filter(Boolean) as Station[];
@@ -128,7 +150,7 @@ export async function station(lat:number,lon:number,country?:string,elevation?:n
 export async function officialWarnings(lat:number,lon:number,country?:string,name?:string,region?:string,district?:string,signal?:AbortSignal):Promise<{alerts:OfficialAlert[];provider?:string;coverage?:string}> {
  const configured=((import.meta as any).env?.VITE_ALERT_PROXY_URL as string|undefined)||((import.meta as any).env?.VITE_METAR_PROXY_URL as string|undefined)||localStorage.getItem('alertProxyUrl')||localStorage.getItem('metarProxyUrl')||'';
  if(!configured)throw new Error('CAP-Warnungsproxy nicht konfiguriert.');
- const u=new URL(configured);u.searchParams.set('mode','alerts');u.searchParams.set('lat',String(lat));u.searchParams.set('lon',String(lon));u.searchParams.set('country',String(country||'').toUpperCase());u.searchParams.set('language','de');
+ const u=new URL(configured);u.searchParams.set('mode','alerts');u.searchParams.set('lat',String(lat));u.searchParams.set('lon',String(lon));u.searchParams.set('country',countryCodeFromLocation(country)||String(country||''));u.searchParams.set('language','de');
  if(name)u.searchParams.set('name',name);if(region)u.searchParams.set('region',region);if(district)u.searchParams.set('district',district);
  const response=await fetch(u.toString(),{signal,cache:'no-store'});const result=await response.json().catch(()=>({})) as {alerts?:OfficialAlert[];provider?:string;coverage?:string;error?:string};if(!response.ok||result.error)throw new Error(result.error||`Warnungsproxy HTTP ${response.status}`);
  return{alerts:(result.alerts??[]).filter(a=>a&&a.id&&a.headline),provider:result.provider,coverage:result.coverage};
