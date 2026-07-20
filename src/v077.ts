@@ -1,4 +1,4 @@
-import './v076.css';
+import './v077.css';
 
 type ForecastSnapshot={
   elevation?:number;
@@ -11,7 +11,7 @@ type WidgetSettings={days:number;dark:boolean;showWind:boolean;showRain:boolean;
 
 declare global{interface Window{__MID_FORECAST__?:ForecastSnapshot}}
 
-const VERSION='0.7.6';
+const VERSION='0.7.7';
 const CHART_KEY='mid:0.7.1:chart-visibility';
 const WIDGET_KEY='mid:0.7.1:widget-settings';
 const WIDGET_NAMES_KEY='mid:0.7.1:widget-place-names';

@@ -5,7 +5,7 @@ import {CircleMarker,MapContainer,Popup,TileLayer,WMSTileLayer,useMap} from 'rea
 import {toPng} from 'html-to-image';
 import {airQuality,bestMatchModelInfo,climatology,cloudOktas,countryCodeFromLocation,cloudOktasText,currentIndex,dayEffectiveUvMax,dayWeatherCharacter,ensembles,forecast,hazards,icon,label,mapDays,mapHours,mapMinutely15,officialWarnings,searchLocations,reverseLocation,station,wind,type BestMatchModelInfo,type ClimateDay,type Day,type EnsembleDay,type Hour,type Location,type Minute15,type ModelRunMeta,type OfficialAlert,type Station,type Weather,type WindUnit} from './weather';
 
-const VERSION='0.7.6';
+const VERSION='0.7.7';
 const LOGO_PATH='./mid-logo.png';
 const LOCATION_STORAGE_KEY='mid:lastLocation';
 function normalizeLocation(loc:Location):Location{const country_code=countryCodeFromLocation(loc.country_code)||countryCodeFromLocation(loc.country)||undefined;return{...loc,country_code}}
@@ -154,6 +154,8 @@ function precipitationParts(h:PrecipSample){
 }
 function presentPrecipTypes(series:{type:PrecipType}[]){const order:PrecipType[]=['drizzle','freezingDrizzle','rain','freezingRain','showers','sleet','sleetShowers','snow','snowGrains','snowShowers','thunderstorm','thunderstormHail'];return order.filter(t=>series.some(x=>x.type===t)) as Exclude<PrecipType,'none'>[]}
 function localTimeLabel(value:number){return new Date(value).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}
+function clockMinutes(value?:string){const match=String(value||'').match(/T(\d{2}):(\d{2})/);if(!match)return null;const hours=Number(match[1]),minutes=Number(match[2]);return Number.isFinite(hours)&&Number.isFinite(minutes)?hours*60+minutes:null}
+function clockLabel(value?:string){const match=String(value||'').match(/T(\d{2}):(\d{2})/);return match?`${match[1]}:${match[2]}`:''}
 function precipitationNowSummary(minutes:Minute15[],hours:Hour[]){
  const now=Date.now();
  const source=minutes.length?'15-Minuten-Best-Match':'stündlicher Best Match';
@@ -205,7 +207,7 @@ function Forecast({days,hours,selected,setSelected,unit,modelInfo}:{days:Day[];h
  const precipLegendTypes=presentPrecipTypes(precipSeries);
  const tMin=Math.floor((Math.min(...p.map(x=>Math.min(x.temperature,x.apparent)))-2)/2)*2,tMax=Math.ceil((Math.max(...p.map(x=>Math.max(x.temperature,x.apparent)))+2)/2)*2,tempRange=Math.max(6,tMax-tMin);
  const rainMax=Math.max(1,...p.map(x=>x.precipitation));
- const W=240,H=166,left=18,right=18,plotW=W-left-right,cloudTop=18,tempTop=39,tempBottom=94,rainTop=111,rainBottom=145;
+ const W=240,H=166,left=18,right=18,plotW=W-left-right,cloudTop=18,tempTop=39,tempBottom=94,rainTop=111,rainBottom=145,nightBottom=153;
  const xAt=(i:number)=>left+(i/Math.max(1,p.length-1))*plotW;
  const yTemp=(v:number)=>tempBottom-((v-tMin)/tempRange)*(tempBottom-tempTop);
  const yRain=(v:number)=>rainBottom-(v/rainMax)*(rainBottom-rainTop);
@@ -221,6 +223,10 @@ function Forecast({days,hours,selected,setSelected,unit,modelInfo}:{days:Day[];h
  const maxIdx=p.reduce((b,x,i)=>x.temperature>p[b].temperature?i:b,0),minIdx=p.reduce((b,x,i)=>x.temperature<p[b].temperature?i:b,0);
  const totalRain=p.reduce((a,b)=>a+b.precipitation,0),maxProb=Math.max(...p.map(x=>x.probability)),gustMax=Math.max(...p.map(x=>x.gust)),windMax=Math.max(...p.map(x=>x.wind));
  const selectedDay=days.find(x=>x.date===selected)??days[0];
+ const sunriseMinutes=clockMinutes(selectedDay.sunrise),sunsetMinutes=clockMinutes(selectedDay.sunset);
+ const sunriseLabel=clockLabel(selectedDay.sunrise),sunsetLabel=clockLabel(selectedDay.sunset);
+ const xClock=(minutes:number)=>left+(clamp(minutes,0,23*60)/(23*60))*plotW;
+ const sunriseX=sunriseMinutes===null?null:xClock(sunriseMinutes),sunsetX=sunsetMinutes===null?null:xClock(sunsetMinutes);
  const selectedCharacter=dayWeatherCharacter(selectedDay,p);
  return <section className="card"><Title eye="Best Match · automatische Modellkombination" title="7-Tage-Vorhersage"><ModelRunDetails kind="best" info={modelInfo}/></Title>
    <div className="forecastrows">{forecastDays.map(d=>{const dt=new Date(`${d.date}T12:00:00`);const leftPct=((d.min-allMin)/range)*100;const widthPct=(Math.max(1,d.max-d.min)/range)*100;const dayHours=hours.filter(x=>x.time.startsWith(d.date)),character=dayWeatherCharacter(d,dayHours),hz=dailyHazards(d,dayHours);return <button className={`forecastrow ${selected===d.date?'active':''}`} key={d.date} onClick={()=>setSelected(d.date)}>
@@ -238,6 +244,7 @@ function Forecast({days,hours,selected,setSelected,unit,modelInfo}:{days:Day[];h
      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" className="meteogramsvg">
        <defs>
         <linearGradient id="tempFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#ff9b55" stopOpacity="0.42"/><stop offset="100%" stopColor="#ff9b55" stopOpacity="0.04"/></linearGradient>
+        <pattern id="nightHatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(32)"><rect width="5" height="5" fill="#71809b" opacity="0.055"/><line x1="0" y1="0" x2="0" y2="5" stroke="#71809b" strokeWidth="0.7" opacity="0.18"/></pattern>
         <linearGradient id="rainFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#4aa3ff" stopOpacity="0.96"/><stop offset="100%" stopColor="#235f9c" stopOpacity="0.72"/></linearGradient>
         <linearGradient id="drizzleFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#86c9ff" stopOpacity="0.92"/><stop offset="100%" stopColor="#4e8ec7" stopOpacity="0.55"/></linearGradient>
         <pattern id="freezingDrizzlePattern" width="5" height="5" patternUnits="userSpaceOnUse"><rect width="5" height="5" fill="#75c9ff"/><path d="M0 5L5 0" stroke="#e9fbff" strokeWidth="1"/><circle cx="1.2" cy="1.2" r=".55" fill="#fff"/></pattern>
@@ -251,6 +258,10 @@ function Forecast({days,hours,selected,setSelected,unit,modelInfo}:{days:Day[];h
         <pattern id="thunderstormPattern" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#5865d8"/><path d="M1 0L3 2H2L4 6" stroke="#ffe56b" strokeWidth="1" fill="none"/></pattern>
         <pattern id="thunderstormHailPattern" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#6147a8"/><path d="M1 0L3 2H2L4 6" stroke="#ffe56b" strokeWidth="1" fill="none"/><circle cx="5" cy="1.2" r=".7" fill="#fff"/></pattern>
        </defs>
+       {sunriseX!==null&&sunriseX>left&&<rect x={left} y="0" width={Math.max(0,sunriseX-left)} height={nightBottom} fill="url(#nightHatch)" pointerEvents="none"/>}
+       {sunsetX!==null&&sunsetX<W-right&&<rect x={sunsetX} y="0" width={Math.max(0,W-right-sunsetX)} height={nightBottom} fill="url(#nightHatch)" pointerEvents="none"/>}
+       {sunriseX!==null&&<g pointerEvents="none"><line x1={sunriseX} x2={sunriseX} y1="0" y2={nightBottom} stroke="#7f91ad" strokeWidth="0.55" opacity="0.42" strokeDasharray="2 2"/><text x={sunriseX+1.4} y="150.4" textAnchor="start" fontSize="3.45" fill="currentColor" opacity="0.68">↗ {sunriseLabel}</text></g>}
+       {sunsetX!==null&&<g pointerEvents="none"><line x1={sunsetX} x2={sunsetX} y1="0" y2={nightBottom} stroke="#7f91ad" strokeWidth="0.55" opacity="0.42" strokeDasharray="2 2"/><text x={sunsetX-1.4} y="150.4" textAnchor="end" fontSize="3.45" fill="currentColor" opacity="0.68">{sunsetLabel} ↘</text></g>}
        {[0,1,2,3,4].map(i=>{const y=tempTop+i*(tempBottom-tempTop)/4,val=(tMax-(tempRange/4)*i);return <g key={i}><line x1={left} x2={W-right} y1={y} y2={y} stroke="currentColor" opacity="0.12"/><text x="3.5" y={y+1.8} fontSize="4.0" fill="currentColor" opacity="0.82">{Math.round(val)}°C</text></g>})}
        {[0,1,2].map(i=>{const y=rainTop+i*(rainBottom-rainTop)/2,val=(rainMax/2)*(2-i),prob=(2-i)*50;return <g key={i}><line x1={left} x2={W-right} y1={y} y2={y} stroke="currentColor" opacity="0.09"/><text x="3.5" y={y+1.6} fontSize="3.6" fill="currentColor" opacity="0.68">{val===0?0:val.toFixed(1)} mm</text><text x={W-0.5} y={y+1.6} textAnchor="end" fontSize="3.6" fill="#56d7ff" opacity="0.82">{prob} %</text></g>})}
        {timeIndices.map(i=><line key={i} x1={xAt(i)} x2={xAt(i)} y1={cloudTop} y2={rainBottom} stroke="currentColor" opacity="0.08" strokeDasharray="2 2"/>)}

@@ -11,7 +11,7 @@
 .meteogram-stage{outline:none}.meteogram-stage:focus-visible{border-radius:14px;outline:2px solid color-mix(in srgb,var(--primary) 72%,#fff);outline-offset:4px;box-shadow:0 0 0 5px color-mix(in srgb,var(--primary) 14%,transparent)}
 @media(max-width:850px){.meteogram-stage:focus-visible{outline:none;box-shadow:none}}
 
-/* MID v0.7.6 – kompakte Modelllauf-Transparenz */
+/* MID v0.7.7 – kompakte Modelllauf-Transparenz */
 .title{position:relative;align-items:flex-start;gap:10px}
 .title-tools{display:flex;flex:0 0 auto;align-items:flex-start;justify-content:flex-end}
 .model-run-details{position:relative;font-size:11px}

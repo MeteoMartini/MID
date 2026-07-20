@@ -1,8 +1,14 @@
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.6**
+**Aktuelle Version: v0.7.7**
 
 MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React, TypeScript und Open-Meteo. Es verbindet Vorhersagen, Ensemblemodelle, aktuelle Stationsmessungen, amtliche Warnungen, Radar, Luftqualität und exportierbare Wetterwidgets.
+
+## Neuerungen in v0.7.7
+
+- Tagesdetaildiagramm markiert die Nachtstunden vor Sonnenaufgang und nach Sonnenuntergang mit einer dezenten diagonalen Schraffur.
+- Sonnenauf- und Sonnenuntergangszeit werden direkt an den Übergängen im Diagramm klein und platzsparend eingeblendet.
+- Die Zeiten stammen aus den orts- und tagesbezogenen Open-Meteo-Daten; die vorhandene Tag-/Nachtlogik der Sonnenschein- und Bewölkungsbalken bleibt unverändert.
 
 ## Neuerungen in v0.7.6
 
@@ -229,4 +235,4 @@ Die jeweiligen Nutzungsbedingungen, Abruflimits und Lizenzanforderungen der Date
 - Minor (`0.x.0`): neue wesentliche Funktion oder größere Daten-/UI-Architektur
 - Major (`1.0.0`): stabiler, dokumentierter Funktionsumfang
 
-v0.7.6 korrigiert die Datumsdarstellung und präzisiert die Tag-/Nachtlogik der Bewölkungsbalken. v0.7.5 ergänzte kompakte Modellstand-Informationen mit Init- und Verfügbarkeitszeiten, ohne die Ansichten im geschlossenen Zustand merklich zu vergrößern.
+v0.7.7 ergänzt im Tagesdetail dezente Nachtflächen sowie Sonnenauf- und Sonnenuntergangszeiten. v0.7.6 korrigierte die Datumsdarstellung und präzisierte die Tag-/Nachtlogik der Bewölkungsbalken. v0.7.5 ergänzte kompakte Modellstand-Informationen mit Init- und Verfügbarkeitszeiten, ohne die Ansichten im geschlossenen Zustand merklich zu vergrößern.
