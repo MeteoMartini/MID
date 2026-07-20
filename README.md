@@ -1,8 +1,15 @@
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.16**
+**Aktuelle Version: v0.7.17**
 
 MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React, TypeScript und Open-Meteo. Es verbindet Vorhersagen, Ensemblemodelle, aktuelle Stationsmessungen, amtliche Warnungen, Radar, Luftqualität und exportierbare Wetterwidgets.
+
+## Layout-, Widget- und QFF-Korrekturen (v0.7.17)
+
+- Die Suchleiste bleibt auf Smartphones vollständig breit. Favoriten werden direkt darunter wieder als einzelne kompakte Bubbles angezeigt.
+- Der Widget- und PNG-Generator startet eingeklappt und belegt erst nach dem Öffnen den vollständigen Konfigurationsbereich.
+- Für GeoSphere-Austria/TAWES wird beim Luftdruck nur `PRED` verwendet. Dieser reduzierte Luftdruck entspricht dem auf Meereshöhe bezogenen Wert; der rohe Stationsdruck `P` wird nicht als QFF ausgegeben.
+- Nicht eindeutig als QFF/MSL ausgewiesene Stationsdrücke, insbesondere METAR-QNH, werden für die QFF-Karte verworfen. MID verwendet dann den ortsbezogenen Open-Meteo-Wert `pressure_msl`.
 
 ## Standortverfolgung und kompakte Favoriten (v0.7.16)
 
