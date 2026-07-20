@@ -1,6 +1,7 @@
-import './v071.css';
+import './v072.css';
 
 type ForecastSnapshot={
+  elevation?:number;
   hourly?:Record<string,(string|number|null)[]>;
   daily?:Record<string,(string|number|null)[]>;
 };
@@ -8,9 +9,9 @@ type ChartToggleKey='tempMaxBand'|'tempMinBand'|'bestMax'|'bestMin'|'rainBest'|'
 type ChartVisibility=Record<ChartToggleKey,boolean>;
 type WidgetSettings={days:number;dark:boolean;showWind:boolean;showRain:boolean;showHazards:boolean};
 
-declare global{interface Window{__MID071_FORECAST__?:ForecastSnapshot}}
+declare global{interface Window{__MID_FORECAST__?:ForecastSnapshot}}
 
-const VERSION='0.7.1';
+const VERSION='0.7.2';
 const CHART_KEY='mid:0.7.1:chart-visibility';
 const WIDGET_KEY='mid:0.7.1:widget-settings';
 const WIDGET_NAMES_KEY='mid:0.7.1:widget-place-names';
@@ -46,14 +47,21 @@ async function coordinateResult(url:URL,init?:RequestInit){
   const coordinates=parseCoordinates(url.searchParams.get('name')||'');
   if(!coordinates)return null;
   const {lat,lon}=coordinates;
-  let reverse:any=null;
-  try{
-    const reverseUrl=new URL('https://api.bigdatacloud.net/data/reverse-geocode-client');
-    reverseUrl.searchParams.set('latitude',String(lat));reverseUrl.searchParams.set('longitude',String(lon));reverseUrl.searchParams.set('localityLanguage','de');
-    const response=await nativeFetch(reverseUrl,{signal:init?.signal,cache:'no-store'});if(response.ok)reverse=await response.json();
-  }catch{}
+  let reverse:any=null,elevation:number|undefined;
+  await Promise.all([
+    (async()=>{try{
+      const reverseUrl=new URL('https://api.bigdatacloud.net/data/reverse-geocode-client');
+      reverseUrl.searchParams.set('latitude',String(lat));reverseUrl.searchParams.set('longitude',String(lon));reverseUrl.searchParams.set('localityLanguage','de');
+      const response=await nativeFetch(reverseUrl,{signal:init?.signal,cache:'no-store'});if(response.ok)reverse=await response.json();
+    }catch{}})(),
+    (async()=>{try{
+      const elevationUrl=new URL('https://api.open-meteo.com/v1/forecast');
+      elevationUrl.searchParams.set('latitude',String(lat));elevationUrl.searchParams.set('longitude',String(lon));elevationUrl.searchParams.set('current','temperature_2m');elevationUrl.searchParams.set('forecast_days','1');elevationUrl.searchParams.set('timezone','auto');
+      const response=await nativeFetch(elevationUrl,{signal:init?.signal,cache:'no-store'});if(response.ok){const data=await response.json() as {elevation?:number};const value=finite(data.elevation);if(value!==null)elevation=value}
+    }catch{}})()
+  ]);
   const name=reverse?.locality||reverse?.city||reverse?.principalSubdivision||`${lat.toFixed(4)}°, ${lon.toFixed(4)}°`;
-  const result={id:Date.now(),name,latitude:lat,longitude:lon,country:reverse?.countryName||undefined,country_code:String(reverse?.countryCode||'').toUpperCase()||undefined,admin1:reverse?.principalSubdivision||undefined,postcodes:reverse?.postcode?[String(reverse.postcode)]:undefined};
+  const result={id:Date.now(),name,latitude:lat,longitude:lon,elevation,country:reverse?.countryName||undefined,country_code:String(reverse?.countryCode||'').toUpperCase()||undefined,admin1:reverse?.principalSubdivision||undefined,postcodes:reverse?.postcode?[String(reverse.postcode)]:undefined};
   return new Response(JSON.stringify({results:[result]}),{status:200,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store'}});
 }
 
@@ -74,7 +82,7 @@ async function warningFetch(input:RequestInfo|URL,init:RequestInit|undefined,url
   throw new Error(lastError instanceof Error&&lastError.message&&!/failed to fetch/i.test(lastError.message)?lastError.message:'Amtliche Warnungen konnten wegen einer Netzwerk- oder CORS-Sperre nicht geladen werden. MID hat den Abruf automatisch wiederholt.');
 }
 
-function captureForecast(response:Response,url:URL){if(!response.ok||url.hostname!=='api.open-meteo.com'||!url.pathname.includes('/v1/forecast'))return;void response.clone().json().then((data:ForecastSnapshot)=>{if(data?.hourly?.time){window.__MID071_FORECAST__=data;window.dispatchEvent(new Event('mid:forecast-updated'))}}).catch(()=>{});}
+function captureForecast(response:Response,url:URL){if(!response.ok||url.hostname!=='api.open-meteo.com'||!url.pathname.includes('/v1/forecast'))return;void response.clone().json().then((data:ForecastSnapshot)=>{if(data?.hourly?.time){window.__MID_FORECAST__=data;window.dispatchEvent(new Event('mid:forecast-updated'))}}).catch(()=>{});}
 
 window.fetch=async(input:RequestInfo|URL,init?:RequestInit)=>{
   const url=requestUrl(input);
@@ -83,7 +91,7 @@ window.fetch=async(input:RequestInfo|URL,init?:RequestInit)=>{
   const response=await nativeFetch(input,init);if(url)captureForecast(response,url);return response;
 };
 
-function replaceVersionText(root:ParentNode){const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node:Node|null;while((node=walker.nextNode())){const text=node.nodeValue||'';if(text.includes('0.7.0'))node.nodeValue=text.replaceAll('0.7.0',VERSION)}}
+function replaceVersionText(root:ParentNode){const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node:Node|null;while((node=walker.nextNode())){const text=node.nodeValue||'';if(/0\.7\.[01]/.test(text))node.nodeValue=text.replaceAll('0.7.0',VERSION).replaceAll('0.7.1',VERSION)}}
 function enhanceVersion(){document.querySelectorAll<HTMLElement>('.brand-version,.app>footer,.weatherwidget footer').forEach(element=>replaceVersionText(element));const search=document.querySelector<HTMLInputElement>('.search input');if(search&&search.placeholder!=='Ort, PLZ oder Koordinaten suchen')search.placeholder='Ort, PLZ oder Koordinaten suchen'}
 
 const toggleDefinitions:{selector:string;label:string;key:ChartToggleKey;className:string}[]=[
@@ -109,12 +117,12 @@ function enhanceChartToggles(){
 const svgNs='http://www.w3.org/2000/svg';
 function svgElement<K extends keyof SVGElementTagNameMap>(name:K){return document.createElementNS(svgNs,name)}
 function enhanceCloudChart(){
-  const snapshot=window.__MID071_FORECAST__,svg=document.querySelector<SVGSVGElement>('.meteogram-day .meteogramsvg');if(!snapshot||!svg)return;
+  const snapshot=window.__MID_FORECAST__,svg=document.querySelector<SVGSVGElement>('.meteogram-day .meteogramsvg');if(!snapshot||!svg)return;
   const rows=[...document.querySelectorAll<HTMLButtonElement>('.forecastrows .forecastrow')],active=document.querySelector<HTMLButtonElement>('.forecastrows .forecastrow.active'),dayIndex=active?rows.indexOf(active):-1;
   const dates=(snapshot.daily?.time??[]) as (string|number|null)[],date=dayIndex>=0?String(dates[dayIndex]??''):'';if(!date)return;
   const times=(snapshot.hourly?.time??[]) as (string|number|null)[],clouds=(snapshot.hourly?.cloud_cover??[]) as (string|number|null)[];
   const values=times.map((time,index)=>String(time).startsWith(date)?finite(clouds[index]):null).filter((value):value is number=>value!==null).slice(0,24);if(values.length<2)return;
-  const W=240,left=18,right=18,plotW=W-left-right,top=77,bottom=88,xAt=(index:number)=>left+(index/Math.max(1,values.length-1))*plotW,yAt=(value:number)=>bottom-clamp(value,0,100)/100*(bottom-top);
+  const W=240,left=18,right=18,plotW=W-left-right,top=1.4,bottom=8.2,xAt=(index:number)=>left+(index/Math.max(1,values.length-1))*plotW,yAt=(value:number)=>bottom-clamp(value,0,100)/100*(bottom-top);
   const selectedLine=svg.querySelector<SVGLineElement>('line[stroke="#9ad0ff"]'),selectedX=finite(selectedLine?.getAttribute('x1')),selectedIndex=selectedX===null?0:values.reduce((best,_value,index)=>Math.abs(xAt(index)-selectedX)<Math.abs(xAt(best)-selectedX)?index:best,0);
   const signature=`${date}:${values.map(value=>Math.round(value)).join(',')}:${selectedIndex}`;if(svg.dataset.midCloudSignature===signature)return;svg.dataset.midCloudSignature=signature;
   svg.querySelectorAll('[data-mid-cloud]').forEach(element=>element.remove());
@@ -125,8 +133,8 @@ function enhanceCloudChart(){
   const area=svgElement('path');area.setAttribute('d',areaPath);area.setAttribute('fill','url(#midCloudFill)');
   const line=svgElement('path');line.setAttribute('d',linePath);line.setAttribute('fill','none');line.setAttribute('stroke','#aab8ca');line.setAttribute('stroke-width','1.45');line.setAttribute('vector-effect','non-scaling-stroke');
   const circle=svgElement('circle');circle.setAttribute('cx',String(xAt(selectedIndex)));circle.setAttribute('cy',String(yAt(values[selectedIndex])));circle.setAttribute('r','1.55');circle.setAttribute('fill','#f7fbff');circle.setAttribute('stroke','#aab8ca');circle.setAttribute('stroke-width','.9');
-  const text=svgElement('text');text.setAttribute('x',String(clamp(xAt(selectedIndex),26,218)));text.setAttribute('y',String(Math.max(top+2,yAt(values[selectedIndex])-2)));text.setAttribute('text-anchor','middle');text.setAttribute('font-size','3.5');text.setAttribute('fill','currentColor');text.setAttribute('opacity','.82');text.textContent=`☁ ${Math.round(values[selectedIndex])}%`;
-  group.append(baseline,area,line,circle,text);const hit=svg.querySelector('.hour-hit');hit?svg.insertBefore(group,hit):svg.append(group);
+  const text=svgElement('text');text.setAttribute('x',String(clamp(xAt(selectedIndex),26,218)));text.setAttribute('y',String(Math.max(top+2.15,yAt(values[selectedIndex])-1.15)));text.setAttribute('text-anchor','middle');text.setAttribute('font-size','3.5');text.setAttribute('fill','currentColor');text.setAttribute('opacity','.82');text.textContent=`☁ ${Math.round(values[selectedIndex])}%`;
+  group.append(baseline,area,line,circle,text);const tempArea=svg.querySelector('path[fill="url(#tempFill)"]'),hit=svg.querySelector('.hour-hit');tempArea?svg.insertBefore(group,tempArea):hit?svg.insertBefore(group,hit):svg.append(group);
   const legend=document.querySelector<HTMLElement>('.meteogram-day .detaillegend');if(legend&&!legend.querySelector('[data-mid-cloud-legend]')){const item=document.createElement('span');item.dataset.midCloudLegend='1';item.innerHTML='<i class="cloud-cover"></i>Gesamtbewölkung';legend.append(item)}
 }
 
@@ -157,10 +165,46 @@ function enhanceWidget(){
 const nativeAnchorClick=HTMLAnchorElement.prototype.click;
 HTMLAnchorElement.prototype.click=function(this:HTMLAnchorElement){if(/^wetter-widget-/i.test(this.download)){const name=document.querySelector<HTMLInputElement>('[data-mid-place-name]')?.value.trim(),suffix=this.download.match(/(\d+tage\.png)$/i)?.[1];if(name&&suffix){const slug=name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');this.download=`wetter-widget-${slug}-${suffix}`}}return nativeAnchorClick.call(this)};
 
+
+type VersionDescriptor={version?:string;releasedAt?:string};
+const AUTO_UPDATE_KEY='mid:auto-update';
+const VERSION_CHECK_INTERVAL=15*60*1000;
+const VERSION_CHECK_THROTTLE=30*1000;
+const RELOAD_ATTEMPT_KEY='mid:update-reload-attempt';
+let lastVersionCheck=0;
+let versionCheckPromise:Promise<void>|null=null;
+let dismissedVersion='';
+
+function versionNumbers(value:string){return String(value||'').trim().replace(/^v/i,'').split(/[.-]/).map(part=>Number.parseInt(part,10)).map(value=>Number.isFinite(value)?value:0)}
+function isNewerVersion(candidate:string,current:string){const a=versionNumbers(candidate),b=versionNumbers(current),length=Math.max(a.length,b.length);for(let i=0;i<length;i++){const av=a[i]??0,bv=b[i]??0;if(av!==bv)return av>bv}return false}
+function autoUpdateEnabled(){try{return localStorage.getItem(AUTO_UPDATE_KEY)==='true'}catch{return false}}
+function setAutoUpdate(value:boolean){try{localStorage.setItem(AUTO_UPDATE_KEY,String(value))}catch{}}
+function recentReloadAttempt(version:string){try{const raw=sessionStorage.getItem(RELOAD_ATTEMPT_KEY);if(!raw)return false;const data=JSON.parse(raw) as {version?:string;time?:number};return data.version===version&&Date.now()-Number(data.time||0)<60000}catch{return false}}
+function markReloadAttempt(version:string){try{sessionStorage.setItem(RELOAD_ATTEMPT_KEY,JSON.stringify({version,time:Date.now()}))}catch{}}
+function cleanUpdateQuery(){try{const url=new URL(location.href),had=url.searchParams.has('mid-update')||url.searchParams.has('mid-refresh');if(!had)return;url.searchParams.delete('mid-update');url.searchParams.delete('mid-refresh');history.replaceState(history.state,'',url.toString())}catch{}}
+function reloadForVersion(version:string){markReloadAttempt(version);const url=new URL(location.href);url.searchParams.set('mid-update',version);url.searchParams.set('mid-refresh',String(Date.now()));location.replace(url.toString())}
+function removeUpdateNotice(){document.querySelector<HTMLElement>('[data-mid-update-notice]')?.remove()}
+function showUpdateNotice(version:string,releasedAt?:string){
+  if(dismissedVersion===version)return;
+  let notice=document.querySelector<HTMLElement>('[data-mid-update-notice]');
+  if(notice?.dataset.version===version)return;
+  notice?.remove();notice=document.createElement('aside');notice.dataset.midUpdateNotice='1';notice.dataset.version=version;notice.className='mid-update-notice';notice.setAttribute('role','status');notice.setAttribute('aria-live','polite');
+  const copy=document.createElement('div');copy.className='mid-update-copy';const strong=document.createElement('strong');strong.textContent='MID wurde aktualisiert – jetzt neu laden';const small=document.createElement('small');const date=releasedAt?new Date(releasedAt):null;small.textContent=`Version ${version} ist verfügbar${date&&Number.isFinite(date.getTime())?` · ${date.toLocaleString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}`:''}.`;copy.append(strong,small);
+  const autoLabel=document.createElement('label');autoLabel.className='mid-update-auto';const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.checked=autoUpdateEnabled();const autoText=document.createElement('span');autoText.textContent='Künftige Updates automatisch laden';autoLabel.append(checkbox,autoText);
+  const actions=document.createElement('div');actions.className='mid-update-actions';const later=document.createElement('button');later.type='button';later.className='secondary';later.textContent='Später';later.addEventListener('click',()=>{dismissedVersion=version;removeUpdateNotice()});const reload=document.createElement('button');reload.type='button';reload.className='primary';reload.textContent='Jetzt neu laden';reload.addEventListener('click',()=>reloadForVersion(version));actions.append(later,reload);
+  checkbox.addEventListener('change',()=>{setAutoUpdate(checkbox.checked);if(checkbox.checked)reloadForVersion(version)});
+  notice.append(copy,autoLabel,actions);document.body.append(notice);
+}
+async function checkVersion(force=false){
+  const now=Date.now();if(!force&&now-lastVersionCheck<VERSION_CHECK_THROTTLE)return;if(versionCheckPromise)return versionCheckPromise;
+  lastVersionCheck=now;versionCheckPromise=(async()=>{try{const url=new URL('./version.json',document.baseURI);url.searchParams.set('_mid',String(Date.now()));const response=await nativeFetch(url,{cache:'no-store',headers:{'cache-control':'no-cache','pragma':'no-cache'}});if(!response.ok)return;const descriptor=await response.json() as VersionDescriptor,remote=String(descriptor.version||'').trim();if(!remote)return;if(!isNewerVersion(remote,VERSION)){removeUpdateNotice();try{sessionStorage.removeItem(RELOAD_ATTEMPT_KEY)}catch{}return}if(autoUpdateEnabled()&&!recentReloadAttempt(remote)){reloadForVersion(remote);return}showUpdateNotice(remote,descriptor.releasedAt)}catch{}finally{versionCheckPromise=null}})();return versionCheckPromise;
+}
+function setupVersionChecks(){cleanUpdateQuery();void checkVersion(true);window.setInterval(()=>{if(document.visibilityState==='visible')void checkVersion()},VERSION_CHECK_INTERVAL);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')void checkVersion(true)});window.addEventListener('pageshow',()=>void checkVersion(true));window.addEventListener('focus',()=>void checkVersion())}
+
 function improveWarningMessage(){const message=document.querySelector<HTMLElement>('.official-warnings.unavailable small');if(message&&/failed to fetch/i.test(message.textContent||''))message.textContent='Amtliche Warnungen konnten vom Desktop-Browser nicht geladen werden. MID hat den CORS-sicheren Abruf automatisch wiederholt; bitte Netzwerk- oder Inhaltsblocker prüfen.'}
 function enhance(){if(enhancing)return;enhancing=true;try{enhanceVersion();enhanceChartToggles();enhanceCloudChart();enhanceWidget();improveWarningMessage()}finally{enhancing=false}}
 function scheduleEnhance(){if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;enhance()})}
-function start(){enhance();new MutationObserver(scheduleEnhance).observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['class','x1']});window.addEventListener('mid:forecast-updated',scheduleEnhance)}
+function start(){enhance();setupVersionChecks();new MutationObserver(scheduleEnhance).observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['class','x1']});window.addEventListener('mid:forecast-updated',scheduleEnhance)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 
 export{};

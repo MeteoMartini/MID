@@ -1,8 +1,17 @@
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.1**
+**Aktuelle Version: v0.7.2**
 
 MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React, TypeScript und Open-Meteo. Es verbindet Vorhersagen, Ensemblemodelle, aktuelle Stationsmessungen, amtliche Warnungen, Radar, Luftqualität und exportierbare Wetterwidgets.
+
+## Neuerungen in v0.7.2
+
+- Verlauf der Gesamtbewölkung im Tagesdetail als eigener oberer Diagrammbereich über der Temperaturkurve angeordnet
+- automatischer Versionscheck über `version.json` mit cache-freiem Abruf beim Start
+- Update-Hinweis „MID wurde aktualisiert – jetzt neu laden“ mit optionaler automatischer Neuladung
+- erneute Versionsprüfung bei Rückkehr aus dem Hintergrund, beim erneuten Anzeigen der Seite und regelmäßig während der Nutzung
+- korrekte Höhenangabe im Widget auch bei Koordinatensuche durch Open-Meteo-Höhenabfrage und Vorhersage-Fallback
+- Widget-Optionen werden beim nächsten Aufruf zuverlässig aus dem lokalen Speicher wiederhergestellt
 
 ## Neuerungen in v0.7.1
 
@@ -52,7 +61,11 @@ VITE_METAR_PROXY_URL=https://DEIN-WORKER.workers.dev/
 
 Eine separate Warnungsadresse ist nicht nötig. Optional kann dieselbe Adresse zusätzlich als `VITE_ALERT_PROXY_URL` gesetzt werden.
 
-Die zusätzlichen UI-Funktionen dieser 0.7.1-Erweiterung benötigen keine weitere Änderung des Worker-Codes; der mitgelieferte Worker enthält weiterhin alle bisherigen 0.7.1-Korrekturen für GeoSphere/TAWES und Stationsdaten.
+Die zusätzlichen UI-Funktionen der MID-Version 0.7.2 benötigen keine weitere Änderung des Worker-Codes; der mitgelieferte Worker v0.7.1 enthält weiterhin alle bisherigen Korrekturen für GeoSphere/TAWES und Stationsdaten.
+
+### Automatische Versionsprüfung
+
+MID lädt beim Start `version.json` mit `cache: no-store`. Ist dort eine höhere Version als die im JavaScript-Build enthaltene Version eingetragen, erscheint der Hinweis **„MID wurde aktualisiert – jetzt neu laden“**. Nutzer können die neue Version sofort laden oder die automatische Neuladung künftiger Updates aktivieren. Die Prüfung wird außerdem beim Zurückkehren aus dem Hintergrund, über `pageshow` und in regelmäßigen Abständen wiederholt.
 
 ## Ein gemeinsamer Cloudflare Worker
 
@@ -185,4 +198,4 @@ Die jeweiligen Nutzungsbedingungen, Abruflimits und Lizenzanforderungen der Date
 - Minor (`0.x.0`): neue wesentliche Funktion oder größere Daten-/UI-Architektur
 - Major (`1.0.0`): stabiler, dokumentierter Funktionsumfang
 
-v0.7.1 bündelt gezielte Korrekturen des Stations- und Warnungsabrufs mit Bedienungsverbesserungen für Diagramme, Koordinatensuche und Widget-/PNG-Export.
+v0.7.2 ergänzt eine zuverlässige Update-Erkennung für installierte Web-Apps und ordnet den Bewölkungsverlauf im Tagesdetail optisch oberhalb der Temperaturkurve an.

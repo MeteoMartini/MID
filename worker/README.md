@@ -1,6 +1,6 @@
 # MID Daten- und Warnungsproxy v0.7.1
 
-> Hinweis zur erweiterten MID-Oberfläche 0.7.1: Die zusätzlichen Diagramm-Schalter, der Bewölkungsverlauf, die Koordinatensuche sowie die Widget-/PNG-Speicherung werden im MID-Frontend umgesetzt. Dafür ist keine weitere Änderung des Worker-Codes erforderlich. Dieser Worker enthält weiterhin die vollständigen zuvor eingeführten 0.7.1-Korrekturen für GeoSphere/TAWES, METAR-Zeitstempel und Stationsdiagnose.
+> Hinweis zur MID-Oberfläche 0.7.2: Die neue Anordnung des Bewölkungsverlaufs und die automatische Versionsprüfung werden vollständig im Frontend umgesetzt. Dafür ist keine Änderung des Worker-Codes erforderlich. Dieser Worker bleibt auf Version 0.7.1 und enthält weiterhin die vollständigen Korrekturen für GeoSphere/TAWES, METAR-Zeitstempel und Stationsdiagnose.
 
 Der Cloudflare Worker stellt browserkompatibel Stationsdaten und amtliche Warnungen bereit. Ein zweiter Worker ist nicht erforderlich.
 
