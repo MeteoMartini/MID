@@ -1,15 +1,17 @@
-# MID Daten-, Warnungs- und Radarproxy v0.7.19
+# MID Daten-, Warnungs- und Radarproxy v0.7.20
 
 Der Cloudflare Worker stellt browserkompatibel Stationsdaten, amtliche Warnungen und die standortbezogene Radar-Nowcast-Auswertung bereit. Ein zweiter Worker ist nicht erforderlich.
 
-## Kompatibilität v0.7.19
+## Kompatibilität v0.7.20
 
-Der Radar- und Warnungsumfang bleibt unverändert. Für österreichische TAWES-Stationen liefert der Worker nun `PRED` nur nach einer QFF-Plausibilitätsprüfung als `pressureMsl`; der rohe Stationsdruck `P` bleibt getrennt und kann nicht mehr als Meereshöhendruck interpretiert werden.
+Der Worker liefert nun zusätzliche Einzelmesspunkte für die modellgestützte hyperlokale Analyse im Frontend. Radar und Warnungen bleiben kompatibel. Offizielle DWD-Beobachtungen werden über Bright Sky an mehreren Suchpunkten gesammelt; openSenseMap kann als niedrig gewichtete offene Zusatzquelle zugeschaltet beziehungsweise deaktiviert werden.
 
 ## Enthaltene Dienste
 
 - NOAA AviationWeather METAR – weltweit, ohne eigenes Secret
+- DWD Open Data über Bright Sky – Deutschland, mehrere deduplizierte Messpunkte ohne eigenes Secret
 - GeoSphere Austria/TAWES – Österreich, ohne eigenes Secret
+- openSenseMap/senseBox – offene Außenmessungen, ohne Secret und nur als niedrig gewichtete Zusatzquelle
 - Weather Underground/The Weather Company PWS – optional
 - Netatmo öffentliche Außenmessungen – optional
 - Synoptic Data Latest – optional, mit QC
@@ -38,9 +40,10 @@ NETATMO_ACCESS_TOKEN
 SYNOPTIC_TOKEN
 XWEATHER_CLIENT_ID
 XWEATHER_CLIENT_SECRET
+ENABLE_OPENSENSEMAP        # optional: false deaktiviert die offene Citizen-Science-Quelle
 ```
 
-Alle sind optional. Ohne sie bleiben NOAA-METAR, GeoSphere Austria/TAWES und amtliche Warnungen aktiv.
+Alle Secrets sind optional. Ohne sie bleiben NOAA-METAR, DWD Open Data/Bright Sky, GeoSphere Austria/TAWES, openSenseMap und amtliche Warnungen aktiv. `ENABLE_OPENSENSEMAP=false` ist eine normale Worker-Variable, kein Secret.
 
 - Weather Underground, Netatmo und Xweather werden nur über offizielle, entsprechend berechtigte API-Zugänge verwendet.
 - `SYNOPTIC_TOKEN` ist ein Synoptic-Weather-API-Token.
@@ -60,11 +63,13 @@ Beispielantwort:
 ```json
 {
   "ok": true,
-  "version": "0.7.19",
-  "services": ["stations", "alerts", "hyperlocal-networks", "radar-nowcast"],
+  "version": "0.7.20",
+  "services": ["stations", "alerts", "hyperlocal-networks", "model-assisted-local-analysis", "radar-nowcast"],
   "providers": {
     "NOAA AviationWeather": true,
+    "DWD Open Data / Bright Sky": true,
     "GeoSphere Austria": true,
+    "openSenseMap / senseBox": true,
     "Weather Underground": false,
     "Netatmo": false,
     "Synoptic Data": false,
@@ -94,7 +99,9 @@ Die Antwort enthält:
 - `diagnostics.sourceRows`: Treffer je Quelle
 - `diagnostics.errors`: Fehler je Quelle
 
-Die robuste Zusammenführung und Ausreißerunterdrückung erfolgt anschließend im MID-Frontend. Dabei werden Entfernung, Höhenunterschied, Aktualität, Anbieterqualität und QC berücksichtigt.
+Die eigentliche Analyse erfolgt anschließend im MID-Frontend. Für Zielort und Stationsstandorte wird derselbe Best-Match-Modellhintergrund auf der jeweiligen Höhe abgefragt. MID interpoliert die Messungs-minus-Modell-Abweichungen statt rohe Stationswerte zu mitteln. Entfernung, Höhe, Aktualität, Netzqualität, Stadt-/Landlage und robuste räumliche Ausreißerprüfungen bestimmen das Gewicht. Citizen-Science-Sensoren besitzen bewusst kurze Reichweiten und deutlich niedrigere Gewichte.
+
+Synoptic-Abfragen verwenden `qc_checks=synopticlabs` und entfernen Werte, die grundlegende oder erweiterte Qualitätsprüfungen nicht bestehen.
 
 ## Warnungstests
 

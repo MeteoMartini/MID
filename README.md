@@ -1,8 +1,28 @@
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.19**
+**Aktuelle Version: v0.7.20**
 
 MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React, TypeScript und Open-Meteo. Es verbindet Vorhersagen, Ensemblemodelle, aktuelle Stationsmessungen, amtliche Warnungen, Radar, Luftqualität und exportierbare Wetterwidgets.
+
+## Hyperlokale aktuelle Messwerte (v0.7.20)
+
+MID berechnet aktuelle Temperatur und weitere bodennahe Parameter jetzt als **modellgestützte lokale Restfeldanalyse**. Dabei werden Messwerte nicht einfach mit einer pauschalen Temperaturabnahme pro Höhenmeter auf den Zielort übertragen.
+
+1. Für den Zielort und jede geeignete Messstation wird zeitgleich der Open-Meteo-Best-Match-Hintergrund auf der jeweiligen Stationshöhe abgefragt.
+2. Aus jeder Station wird die lokale Abweichung `Messung − Modellhintergrund` gebildet.
+3. Nur diese Abweichungen werden räumlich zum Zielort interpoliert und dort wieder auf den Best-Match-Hintergrund aufgeschlagen.
+4. Robuste Median-/MAD-Prüfungen entfernen widersprüchliche Sensoren; die Gewichtung berücksichtigt Entfernung, Höhenunterschied, Messalter, Netzqualität und die Kompatibilität von Stadt-, Umland- und Landlage.
+
+Quellenpriorität:
+
+- DWD Open Data über Bright Sky sowie GeoSphere Austria/TAWES als hoch gewichtete offizielle Netze
+- NOAA AviationWeather/METAR und qualitätsgeprüfte Synoptic-/MADIS-Netze
+- optional lizenzierte Weather-Underground-, Netatmo- und Xweather-Zugänge
+- openSenseMap/senseBox als niedrig gewichtete Citizen-Science-Ergänzung mit enger Reichweite und strenger Aktualitäts-/Plausibilitätsprüfung
+
+Interpoliert werden Temperatur, relative Feuchte, Taupunkt, QFF sowie Wind und Böen. Niederschlag und Bewölkung werden weiterhin konservativer aus direkt geeigneten Messungen beziehungsweise Radar und Best Match übernommen, weil diese Größen kleinräumig sprunghaft sein können.
+
+Die Anzeige nennt den effektiven Radius, die geschätzte Temperaturunsicherheit, die lokale Korrektur zum Modellhintergrund und die tatsächlich verwendeten Netze. Eine öffentlich dokumentierte operative DWD-Schnittstelle mit der Bezeichnung **„GMA“** konnte nicht belastbar identifiziert werden; MID behauptet daher keine solche Quelle, sondern nutzt nachvollziehbar die frei verfügbaren DWD-Beobachtungen und weitere offen oder autorisiert zugängliche Netze.
 
 ## Wassersportmodus (v0.7.19)
 
