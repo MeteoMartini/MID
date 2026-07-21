@@ -33,6 +33,7 @@ type BasemapId='osm'|'positron'|'dark';
 type ModelLineMode='off'|'isobars'|'isoheights'|'both';
 type CompositeSettings={basemap:BasemapId;showRadar:boolean;highResolution:boolean;showSatellite:boolean;showLightning:boolean;modelLines:ModelLineMode;radarOpacity:number;satelliteOpacity:number;lightningOpacity:number;modelOpacity:number};
 const SETTINGS_KEY='mid:composite-settings:v2';
+const LAYERS_KEY='mid:composite-layers:v1';
 const BASEMAPS:Record<BasemapId,{label:string;detail:string;url:string;attribution:string}>={
  osm:{label:'OpenStreetMap',detail:'Standard',url:'https://tile.openstreetmap.org/{z}/{x}/{y}.png',attribution:'&copy; OpenStreetMap-Mitwirkende'},
  positron:{label:'Schlicht hell',detail:'CARTO Positron',url:'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',attribution:'&copy; OpenStreetMap-Mitwirkende &copy; CARTO'},
@@ -61,8 +62,8 @@ function toFrames(values:ProductTime[]|undefined,referenceSeconds:number){return
 function storedSettings():CompositeSettings{
  const defaults:CompositeSettings={basemap:'positron',showRadar:true,highResolution:false,showSatellite:false,showLightning:false,modelLines:'off',radarOpacity:76,satelliteOpacity:58,lightningOpacity:92,modelOpacity:82};
  try{
-  const raw=JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}') as Partial<CompositeSettings>,basemap=raw.basemap&&BASEMAPS[raw.basemap]?raw.basemap:defaults.basemap,showRadar=typeof raw.showRadar==='boolean'?raw.showRadar:defaults.showRadar,highResolution=showRadar&&raw.highResolution===true,modelLines=MODEL_LINE_MODES.includes(raw.modelLines as ModelLineMode)?raw.modelLines as ModelLineMode:defaults.modelLines;
-  return{basemap,showRadar,highResolution,showSatellite:typeof raw.showSatellite==='boolean'?raw.showSatellite:defaults.showSatellite,showLightning:typeof raw.showLightning==='boolean'?raw.showLightning:defaults.showLightning,modelLines,radarOpacity:clamp(Number(raw.radarOpacity)||defaults.radarOpacity,15,100),satelliteOpacity:clamp(Number(raw.satelliteOpacity)||defaults.satelliteOpacity,15,100),lightningOpacity:clamp(Number(raw.lightningOpacity)||defaults.lightningOpacity,20,100),modelOpacity:clamp(Number(raw.modelOpacity)||defaults.modelOpacity,20,100)};
+  const raw=JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}') as Partial<CompositeSettings>,layers=JSON.parse(localStorage.getItem(LAYERS_KEY)||'{}') as Partial<Pick<CompositeSettings,'showRadar'|'highResolution'|'showSatellite'|'showLightning'|'modelLines'>>,basemap=raw.basemap&&BASEMAPS[raw.basemap]?raw.basemap:defaults.basemap,showRadar=typeof layers.showRadar==='boolean'?layers.showRadar:typeof raw.showRadar==='boolean'?raw.showRadar:defaults.showRadar,highResolution=showRadar&&(typeof layers.highResolution==='boolean'?layers.highResolution:raw.highResolution===true),selectedModelLines=layers.modelLines??raw.modelLines,modelLines=MODEL_LINE_MODES.includes(selectedModelLines as ModelLineMode)?selectedModelLines as ModelLineMode:defaults.modelLines;
+  return{basemap,showRadar,highResolution,showSatellite:typeof layers.showSatellite==='boolean'?layers.showSatellite:typeof raw.showSatellite==='boolean'?raw.showSatellite:defaults.showSatellite,showLightning:typeof layers.showLightning==='boolean'?layers.showLightning:typeof raw.showLightning==='boolean'?raw.showLightning:defaults.showLightning,modelLines,radarOpacity:clamp(Number(raw.radarOpacity)||defaults.radarOpacity,15,100),satelliteOpacity:clamp(Number(raw.satelliteOpacity)||defaults.satelliteOpacity,15,100),lightningOpacity:clamp(Number(raw.lightningOpacity)||defaults.lightningOpacity,20,100),modelOpacity:clamp(Number(raw.modelOpacity)||defaults.modelOpacity,20,100)};
  }catch{return defaults}
 }
 function formatInZone(value:number,timeZone:string|undefined,options:Intl.DateTimeFormatOptions){try{return new Intl.DateTimeFormat('de-DE',{...options,timeZone:timeZone||undefined}).format(new Date(value))}catch{return new Intl.DateTimeFormat('de-DE',options).format(new Date(value))}}
@@ -99,7 +100,7 @@ export default function RadarPanel({lat,lon,timezone,analysis,isDay=true}:{lat:n
  const referenceMs=nowMs+clockOffsetMs,referenceSeconds=Math.floor(referenceMs/1000);
 
  useEffect(()=>{const timer=window.setInterval(()=>setNowMs(Date.now()),30000);return()=>window.clearInterval(timer)},[]);
- useEffect(()=>{try{localStorage.setItem(SETTINGS_KEY,JSON.stringify({basemap,showRadar,highResolution,showSatellite,showLightning,modelLines,radarOpacity,satelliteOpacity,lightningOpacity,modelOpacity} satisfies CompositeSettings))}catch{}},[basemap,showRadar,highResolution,showSatellite,showLightning,modelLines,radarOpacity,satelliteOpacity,lightningOpacity,modelOpacity]);
+ useEffect(()=>{try{localStorage.setItem(SETTINGS_KEY,JSON.stringify({basemap,showRadar,highResolution,showSatellite,showLightning,modelLines,radarOpacity,satelliteOpacity,lightningOpacity,modelOpacity} satisfies CompositeSettings));localStorage.setItem(LAYERS_KEY,JSON.stringify({showRadar,highResolution,showSatellite,showLightning,modelLines}))}catch{}},[basemap,showRadar,highResolution,showSatellite,showLightning,modelLines,radarOpacity,satelliteOpacity,lightningOpacity,modelOpacity]);
  useEffect(()=>{
   let alive=true;setPlaying(false);setHost('');setRadarTileError('');
   if(source==='dwd'){

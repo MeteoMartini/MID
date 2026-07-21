@@ -1,6 +1,13 @@
+## v0.7.37 – 2026-07-21
+
+- Ensembles: zusätzliches, etwas dunkleres P25–P75-Temperaturband für die Vorhersagetage 1–7; über die Legende ein- und ausblendbar.
+- Ensemble-Aggregation liefert dafür gewichtete 25- und 75-Prozent-Quantile für Tagesminimum und Tagesmaximum.
+- Kompositbild: aktive Layer (Niederschlag, 250-m-Radar, Satellit, Blitze und Modelllinienmodus) werden separat und dauerhaft im Browser gespeichert und beim nächsten Öffnen wiederhergestellt.
+- Worker: keine funktionale Änderung; nur einheitliche Versionsanhebung.
+
 # Changelog
 
-## v0.7.36 — Meteogramm-Datenkonsistenz, exportfeste Linien und kompaktere Mobilkarten
+## v0.7.37 — Meteogramm-Datenkonsistenz, exportfeste Linien und kompaktere Mobilkarten
 
 - Fehlende API-Werte werden nicht mehr irrtümlich als `0` interpretiert; die Meteogrammzeitachse endet am letzten zusammenhängenden Boden- und Druckniveau-Datensatz.
 - Best Match verwendet für das Druckniveau-Meteogramm eine durchgängige ECMWF-IFS-HRES-Zeitreihe, statt nach kurzer Regionalmodelllaufzeit leere Profilfelder zu erzeugen.
