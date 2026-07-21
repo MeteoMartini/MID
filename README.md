@@ -1,16 +1,34 @@
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.24**
+**Aktuelle Version: v0.7.26**
 
 MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React, TypeScript und Open-Meteo. Es verbindet Vorhersagen, Ensemblemodelle, aktuelle Stationsmessungen, amtliche Warnungen, Radar, Luftqualität und exportierbare Wetterwidgets.
 
+
+## Exakt gekoppelte Ensemble-Achsen und DWD HX (v0.7.26)
+
+- Temperatur- und Niederschlagsdiagramm des 14-Tage-Ensembles nutzen eine gemeinsame numerische Tageskoordinate.
+- Widget-PNG lässt sich über „in Zwischenablage kopieren“ direkt übernehmen.
+- Für deutsche Orte prüft MID zuerst das nationale DWD-HX-Radarkomposit mit 250 m Rasterweite; nur wenn dieses nicht aktuell verfügbar ist, folgt ein geeignetes PX250-Standortradar.
+
+
+## Exklusive Niederschlagswahl und abgesicherte Kompositzeiten (v0.7.25)
+
+- Die beiden Niederschlagsvarianten heißen einheitlich **„Niederschlag · 1 km“** und **„Niederschlag · 250 m“**. Sie sind gegenseitig ausschließend: Die Auswahl einer Variante deaktiviert die andere; ein zweiter Klick blendet Niederschlag vollständig aus.
+- PX250 ist ein aktueller Einzelstand und bestimmt keine Satelliten- oder Blitzfilmachse mehr. Worker und Frontend verwerfen PX250-Produkte, die älter als das zulässige Livefenster sind; ein veralteter Dateiverweis wird auch beim HDF5-Abruf erneut blockiert.
+- Sämtliche relativen Zeiten werden gegen die plausible Worker-Serverzeit geprüft. Radar bleibt auf −1 bis +2 Stunden begrenzt, Satellit und Blitz auf ihre tatsächlich gemeldeten Beobachtungsfenster. Veraltete oder weit zukünftige WMS-Zeitpunkte werden bereits im Worker abgewiesen.
+- Satelliten- und WMS-Layer werden bei jedem realen Produktzeitwechsel neu aufgebaut. Meldet ein Satellitendienst keine verlässliche Zeitdimension, wird dessen echter „latest“-Stand ohne erfundene Uhrzeit verwendet.
+- Blitzpunkte erscheinen als ungefüllte, nach Intensität skalierte Ringe mit einer altersabhängigen 20-Minuten-Skala von Weiß über Gelb und Orange bis Dunkelrot. Die Darstellung orientiert sich optisch am Altersprinzip der Blitzortung-Livekarten, verwendet aber keine Blitzortung-Rohdaten.
+- Blitzortung.org wird nicht als Datenquelle abgefragt: Rohdaten stehen Teilnehmern beziehungsweise ausdrücklich autorisierten Projekten zur Verfügung und dürfen nicht direkt von den Blitzortung-Servern in fremde Anwendungen übernommen werden.
+
 ## Reparierte Kompositkarten und korrekte relative Zeitachse (v0.7.24)
 
-- DWD-Radar, DWD-Blitzraster und EUMETSAT-Satelliten-/Blitzkarten werden über eine neue CORS-sichere WMS-Route des MID-Workers geladen. Direkte Browserprobleme oder abweichende CORS-Regeln der Datenserver führen damit nicht mehr zu dauerhaft leeren Layern.
-- Die WMS-Capabilities-Auswertung ordnet Zeitdimensionen streng dem tatsächlichen Produktlayer zu. Ein nicht mehr aktueller Layer kann dadurch nicht mehr versehentlich mit Zeitstempeln eines anderen Produkts abgefragt werden.
-- MID wählt das frischeste geeignete Satellitenprodukt dynamisch: MTG-FCI HRFI, danach MSG-HRV beziehungsweise MSG-IR und anschließend ein DWD-Meteosat-Tag/Nacht-Produkt als robuster Rückfall.
-- Für Deutschland bleibt die Radarkarte auch dann aktiv, wenn die standortbezogene Pixelanalyse vorübergehend nicht verfügbar ist. Die Kartenquelle wird von der Analyseverfügbarkeit entkoppelt.
-- Die DWD-RV-Achse reicht – sofern in den Capabilities vorhanden – von **−1 Stunde Beobachtung bis +2 Stunden Nowcast**. Die Anzeige nennt den relativen Schritt (`−45 min`, `Jetzt`, `+1 h 30 min`) und daneben die Ortszeit.
+- Der Fehler „−5555 bis −2555 min“ entstand durch eine Kombination aus Epoch-Millisekunden, die im Frontend wie ISO-Text interpretiert wurden, und einem Sekunden-/Millisekunden-Mix in der Zeitfensterberechnung. Beide Zeitpfade sind nun normalisiert und getestet.
+- DWD-Radar, DWD-Blitzraster und EUMETSAT-Satelliten-/Blitzkarten werden über die CORS-sichere WMS-Route des MID-Workers geladen. Der Worker reicht nur geprüfte WMS-Parameter, erlaubte Layer und valide Zeitstempel weiter.
+- Die WMS-Capabilities-Auswertung ordnet Zeitdimensionen streng dem tatsächlichen Produktlayer zu. MID erzeugt keine vermeintlichen historischen oder zukünftigen Kartenframes mehr, wenn die Quelle keine passenden Zeiten meldet.
+- Für Deutschland wird bevorzugt der explizite DWD-RV-Layer mit 1-km-Raster verwendet. Die sichtbare Achse ist auf **−1 Stunde bis +2 Stunden relativ zur aktuellen Uhrzeit** begrenzt; Zukunftsframes erscheinen nur, wenn der Dienst sie wirklich bereitstellt.
+- MID wählt das frischeste geeignete Satellitenprodukt dynamisch: MTG-FCI HRFI, danach MSG-HRV beziehungsweise MSG-IR und anschließend ein aktuelles DWD-Meteosat-Tag/Nacht-Produkt. Liefert der Tageslayer keine Kacheln, folgt automatisch das IR-Produkt.
+- Der große Zeitwert zeigt `−45 min`, `Jetzt` oder `+1 h 30 min`; darunter stehen Ortszeit und gegebenenfalls die Kennzeichnung „Prognose“.
 
 ## Karten-Rezentrierung, Bergwerte und achsentreue Ensemble-Diagramme (v0.7.23)
 

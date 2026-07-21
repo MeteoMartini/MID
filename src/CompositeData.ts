@@ -6,7 +6,7 @@ export type LightningPoint={id:string;lat:number;lon:number;observedAt?:string;c
 export type LightningPointResponse={points:LightningPoint[];provider?:string;observedAt?:string;coverage?:string;fallback?:'mtg-li'|'none';nativeResolutionKm?:number;historyMinutes?:number;commercial?:boolean;enterprise?:boolean;reason?:string;error?:string};
 export type WmsProvider='dwd'|'eumetsat';
 export type ProductTime=string|number;
-export type CompositeProduct={provider:WmsProvider;layer:string;label:string;resolutionKm?:number;times:ProductTime[];fresh?:boolean;fallback?:boolean};
+export type CompositeProduct={provider:WmsProvider;layer:string;label:string;resolutionKm?:number;times:ProductTime[];fresh?:boolean;fallback?:boolean;latestOnly?:boolean};
 export type CompositeProductTimes={
  satelliteDay:ProductTime[];
  satelliteIr:ProductTime[];
@@ -28,11 +28,12 @@ export function configuredDataProxy(){
 }
 function endpoint(mode:string,lat:number,lon:number){
  const configured=configuredDataProxy();
- if(!configured)throw new Error('Cloudflare Worker v0.7.24 ist nicht konfiguriert.');
+ if(!configured)throw new Error('Cloudflare Worker v0.7.26 ist nicht konfiguriert.');
  const url=new URL(configured,location.href);
  url.searchParams.set('mode',mode);
  url.searchParams.set('lat',String(lat));
  url.searchParams.set('lon',String(lon));
+ url.searchParams.set('_mid','0.7.26');
  return url;
 }
 export function compositeWmsProxy(provider:WmsProvider){
@@ -41,6 +42,7 @@ export function compositeWmsProxy(provider:WmsProvider){
  const url=new URL(configured,location.href);
  url.searchParams.set('mode','composite-wms');
  url.searchParams.set('provider',provider);
+ url.searchParams.set('_mid','0.7.26');
  return url.toString();
 }
 async function getJson<T extends {error?:string}>(url:URL,signal?:AbortSignal):Promise<T>{
