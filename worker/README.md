@@ -1,8 +1,8 @@
-# MID Daten-, Warnungs- und Radarproxy v0.7.20
+# MID Daten-, Warnungs- und Radarproxy v0.7.20.1
 
 Der Cloudflare Worker stellt browserkompatibel Stationsdaten, amtliche Warnungen und die standortbezogene Radar-Nowcast-Auswertung bereit. Ein zweiter Worker ist nicht erforderlich.
 
-## Kompatibilität v0.7.20
+## Kompatibilität v0.7.20.1
 
 Der Worker liefert nun zusätzliche Einzelmesspunkte für die modellgestützte hyperlokale Analyse im Frontend. Radar und Warnungen bleiben kompatibel. Offizielle DWD-Beobachtungen werden über Bright Sky an mehreren Suchpunkten gesammelt; openSenseMap kann als niedrig gewichtete offene Zusatzquelle zugeschaltet beziehungsweise deaktiviert werden.
 
@@ -63,7 +63,7 @@ Beispielantwort:
 ```json
 {
   "ok": true,
-  "version": "0.7.20",
+  "version": "0.7.20.1",
   "services": ["stations", "alerts", "hyperlocal-networks", "model-assisted-local-analysis", "radar-nowcast"],
   "providers": {
     "NOAA AviationWeather": true,

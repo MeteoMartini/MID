@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.7.20",
+  "version": "0.7.20.1",
   "type": "module",
   "scripts": {
     "dev": "vite",

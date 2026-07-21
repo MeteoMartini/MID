@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.7.20.1
+
+- Angaben zu Temperaturabweichungen, Temperaturunsicherheit und lokaler Modellkorrektur werden nun fachlich korrekt in Kelvin (K) statt in Grad Celsius ausgegeben.
+- Absolute Temperaturen bleiben unverändert in Grad Celsius (°C).
+- Frontend und kompatibler Cloudflare Worker auf v0.7.20.1 angehoben.
+
 ## v0.7.20
 
 - Modellgestützte hyperlokale Analyse für aktuelle Temperatur, relative Feuchte, Taupunkt, QFF sowie Wind und Böen ergänzt.
