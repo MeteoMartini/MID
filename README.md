@@ -1,8 +1,17 @@
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.18**
+**Aktuelle Version: v0.7.19**
 
 MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React, TypeScript und Open-Meteo. Es verbindet Vorhersagen, Ensemblemodelle, aktuelle Stationsmessungen, amtliche Warnungen, Radar, Luftqualität und exportierbare Wetterwidgets.
+
+## Wassersportmodus (v0.7.19)
+
+- Der Wassersportmodus wird je Favorit im Favoritenmenü aktiviert und als eigenes, verzögert geladenes Modul aufgebaut. Gewässertyp und Aktivitätsprofil lassen sich getrennt konfigurieren.
+- Für Küsten- und Meeresstandorte nutzt MID die Open-Meteo Marine API mit Wassertemperatur, signifikanter Wellenhöhe, Wellenrichtung und -periode, Peak-Periode, Windsee, Dünung, Strömung sowie modelliertem Wasserstand einschließlich Tide.
+- Gezeitenwendepunkte werden aus der Wasserstandszeitreihe abgeleitet. Die Anzeige nennt Hoch-/Tiefpunkte, aktuelle Tendenz und die modellierte 24-Stunden-Spanne. Bezug ist das globale mittlere Meeresspiegelniveau, nicht das nautische Kartennull.
+- Wetterseitig werden Wind/Böen, Luft- und gefühlte Temperatur, UV, Niederschlagswahrscheinlichkeit, Sicht und Gewittersignale ergänzt. Persönliche Schwellen für Wellen, Böen und Kaltwasser erzeugen eine kompakte Eignungsbewertung.
+- Für See- und Flussprofile werden nicht verfügbare Wasserparameter bewusst ausgeblendet. Entfernte Meeresgitter werden nicht als Binnengewässerdaten ausgegeben.
+- Marine- und Gezeitendaten werden nur geladen, wenn das Profil aktiv ist und der Bereich in die Nähe des sichtbaren Ausschnitts kommt. Favoritenexporte verwenden Schema-Version 4 und migrieren ältere Profile automatisch.
 
 ## Performance, Jetzt-Linie und QFF-Plausibilisierung (v0.7.18)
 

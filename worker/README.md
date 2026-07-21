@@ -1,8 +1,8 @@
-# MID Daten-, Warnungs- und Radarproxy v0.7.18
+# MID Daten-, Warnungs- und Radarproxy v0.7.19
 
 Der Cloudflare Worker stellt browserkompatibel Stationsdaten, amtliche Warnungen und die standortbezogene Radar-Nowcast-Auswertung bereit. Ein zweiter Worker ist nicht erforderlich.
 
-## Kompatibilität v0.7.18
+## Kompatibilität v0.7.19
 
 Der Radar- und Warnungsumfang bleibt unverändert. Für österreichische TAWES-Stationen liefert der Worker nun `PRED` nur nach einer QFF-Plausibilitätsprüfung als `pressureMsl`; der rohe Stationsdruck `P` bleibt getrennt und kann nicht mehr als Meereshöhendruck interpretiert werden.
 
@@ -60,7 +60,7 @@ Beispielantwort:
 ```json
 {
   "ok": true,
-  "version": "0.7.18",
+  "version": "0.7.19",
   "services": ["stations", "alerts", "hyperlocal-networks", "radar-nowcast"],
   "providers": {
     "NOAA AviationWeather": true,
