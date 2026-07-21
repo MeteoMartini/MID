@@ -1,13 +1,22 @@
 # Changelog
 
+## v0.7.36 — Meteogramm-Datenkonsistenz, exportfeste Linien und kompaktere Mobilkarten
+
+- Fehlende API-Werte werden nicht mehr irrtümlich als `0` interpretiert; die Meteogrammzeitachse endet am letzten zusammenhängenden Boden- und Druckniveau-Datensatz.
+- Best Match verwendet für das Druckniveau-Meteogramm eine durchgängige ECMWF-IFS-HRES-Zeitreihe, statt nach kurzer Regionalmodelllaufzeit leere Profilfelder zu erzeugen.
+- Linien, Niederschlagsbalken, Schneehöhenkurve und Niederschlagsfarben werden im SVG direkt gesetzt und bleiben dadurch auch im iOS-PNG-Export sichtbar.
+- QFF-Achsenwerte werden ohne Tausenderpunkt ausgegeben; die Schneehöhenachse entfällt vollständig, wenn keine messbare Schneehöhe vorliegt.
+- Tagesbezeichnungen werden über dem jeweiligen Tagesabschnitt zentriert und überlappen am ersten unvollständigen Tag nicht mehr.
+- Mobile 7-Tage-Kacheln enthalten unverändert alle Angaben, benötigen durch kleinere Abstände, kompaktere Typografie und eine flachere Temperaturzeile aber deutlich weniger Höhe.
+- NOAA GFS für Druckniveauprofile auf die druckniveaugeeignete 0,25°-Variante vereinheitlicht.
+
 ## v0.7.35 — stabiler Meteogramm-Export, echte Tooltips und feste Satellitenstände
 
 - Meteogramm-Export erzeugt nur noch eine PNG-Datei und sperrt Mehrfachauslösungen.
-- Export verwendet `toBlob`, einen festen 1120-px-Arbeitsbereich, ein kompaktes Layout und blendet unsichtbare Interaktionsflächen aus. SVG-Pfade erhalten explizit `fill="none"`, wodurch schwarze Exportflächen verhindert werden.
-- Desktop nutzt weiterhin „Speichern unter…“, sofern `showSaveFilePicker` verfügbar ist; sonst erfolgt genau ein regulärer PNG-Download.
+- Export verwendet `toBlob`, einen festen 1120-px-Arbeitsbereich, ein kompaktes Layout und blendet unsichtbare Interaktionsflächen aus.
 - Diagramme besitzen sichtbare Hover-/Touch-Tooltips mit Zeit, Niveau und Messwerten.
-- Modellabhängige Meteogramm-Laufzeiten werden bereits im Worker angefordert und im Frontend zusätzlich begrenzt: ICON-D2 48 h, ICON-EU 120 h, ARPEGE Europa 114 h, ECMWF/GFS 168 h, ICON Global 180 h.
-- Satellitenraster werden während des Zoomens ausgeblendet und danach mit neuem Cache-Schlüssel vollständig geladen. Pro Produkt wird nur ein exakt datierter Frame dargestellt; WMS-Tile-Modus und zeitlich gemischte Zoomstände entfallen.
+- Modellabhängige Meteogramm-Laufzeiten werden bereits im Worker angefordert und im Frontend zusätzlich begrenzt.
+- Satellitenraster werden während des Zoomens ausgeblendet und danach mit neuem Cache-Schlüssel vollständig geladen.
 
 ## v0.7.34 — Kompositkarte und Meteogramm-Feinschliff
 

@@ -1,13 +1,14 @@
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.35**
+**Aktuelle Version: v0.7.36**
 
-## Neuerungen in v0.7.35
+## Neuerungen in v0.7.36
 
-- Ein einzelner, kompakter und exportstabiler Meteogramm-PNG-Download ohne schwarze SVG-Flächen.
-- Echte Diagramm-Tooltips für Maus und Touch.
-- Zeitachsen folgen der tatsächlichen Laufzeit des gewählten Modells.
-- Satellitenbilder behalten beim Zoomen einen einzigen exakt datierten Produktstand.
+- Fehlende Meteogrammwerte bleiben fehlend und werden nicht mehr als Nullwerte gezeichnet.
+- Best Match nutzt für das Druckniveauprofil eine durchgängige ECMWF-IFS-HRES-Zeitreihe bis 168 Stunden.
+- Temperatur-, Druck-, Wind-, Böen-, Niederschlags- und Schneehöhenlinien sind durch direkte SVG-Farben auch im iOS-PNG-Export sichtbar.
+- Sinnvollere Achsen: QFF ohne Tausendertrennzeichen; keine künstliche Schneehöhenachse ohne Schneehöhe.
+- Tagesbeschriftungen sind zentriert; mobile Tageskarten wurden bei identischem Inhalt deutlich flacher gestaltet.
 
 ## Neuerungen in v0.7.34
 

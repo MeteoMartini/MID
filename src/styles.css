@@ -1088,3 +1088,42 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 .meteogram-export-stage.exporting .meteogram-scale,.meteogram-export-stage.exporting .risk-legend span{padding:3px 6px}
 .meteogram-export-stage.exporting .meteogram-disclaimer{padding:5px 8px}
 .meteogram-export-stage.exporting .meteogram-tooltip{display:none!important}
+
+/* v0.7.36: robuste SVG-Exporte und kompaktere mobile Tageskarten */
+.meteogram-row-label-bg{fill:transparent!important}
+.meteogram-axis-unit{fill:var(--muted);font-size:7px;font-weight:800}
+.meteogram-no-data{fill:var(--muted);font-size:10px;font-weight:700}
+.meteogram-export-stage.exporting svg path,.meteogram-export-stage.exporting svg rect,.meteogram-export-stage.exporting svg line{shape-rendering:geometricPrecision}
+
+@media(max-width:760px){
+  .forecastrows{gap:5px}
+  .forecastrow{
+    grid-template-columns:46px minmax(0,1fr) 62px;
+    grid-template-rows:auto auto auto;
+    gap:3px 7px;
+    padding:6px 8px 7px;
+    border-radius:14px;
+  }
+  .forecast-date{grid-column:1;grid-row:1;align-self:start}
+  .forecast-date strong{font-size:16px;line-height:1}
+  .forecast-date small{font-size:8.5px;line-height:1.1;margin-top:3px}
+  .forecast-meta{grid-column:2;grid-row:1;display:flex;flex-wrap:wrap;gap:2px 8px;font-size:9.5px;line-height:1.15;align-self:start}
+  .forecast-meta span{white-space:nowrap!important}
+  .forecast-hazards{grid-column:3;grid-row:1 / span 2;align-content:start;justify-items:end;gap:3px}
+  .forecast-hazards span{font-size:8px;padding:3px 5px;line-height:1.05}
+  .forecast-icon{grid-column:1 / 3;grid-row:2;grid-template-columns:30px minmax(0,1fr);gap:5px;min-height:25px;align-items:center}
+  .forecast-icon span{font-size:20px;line-height:1}
+  .forecast-icon small{font-size:9.5px;line-height:1.05}
+  .forecast-icon em{font-size:7.5px;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .forecast-barwrap{grid-column:1 / -1;grid-row:3;grid-template-columns:36px 1fr 36px;gap:5px;padding:0 2px;margin-top:0}
+  .forecast-barwrap b,.forecast-barwrap strong{font-size:16px}
+  .forecast-barbg{height:9px}
+}
+@media(max-width:480px){
+  .forecastrow{grid-template-columns:43px minmax(0,1fr) 58px;padding:6px 7px}
+  .forecast-meta{font-size:9px;gap:1px 6px}
+  .forecast-icon{grid-template-columns:28px minmax(0,1fr)}
+  .forecast-barwrap{grid-template-columns:34px 1fr 34px}
+  .forecast-hazards span{font-size:7.5px}
+}
+@media(max-width:760px){.forecast-icon em{white-space:normal;overflow:visible;text-overflow:clip}}
