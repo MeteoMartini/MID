@@ -1,3 +1,12 @@
+# v0.7.41
+
+- Vollständiger TypeScript- und Worker-Check; ungenutzte Imports, Variablen und Hilfsfunktionen entfernt.
+- `noUnusedLocals` und `noUnusedParameters` als dauerhafte Build-Prüfungen aktiviert.
+- Versionsnummer zentral aus `package.json` synchronisiert (`src/version.ts`, `public/version.json`, Worker), um erneute Updater-Abweichungen zu verhindern.
+- Überdimensioniertes Logo von 1672×941 auf 512×288 px reduziert; Darstellung bleibt bei maximal 42 px unverändert, Download- und Projektgröße sinken deutlich.
+- Build-Abhängigkeit `@vitejs/plugin-react` korrekt in die Entwicklungsabhängigkeiten verschoben.
+- Generierte lokale Build-Artefakte werden nicht mehr ausgeliefert. Keine Funktionsänderung am Worker.
+
 ## v0.7.40 – 2026-07-21
 
 - Updater: lokale Laufzeitversion und veröffentlichte `version.json` werden wieder aus demselben Versionsstand erzeugt; die in v0.7.37 verbliebene interne Kennung v0.7.36 wurde korrigiert.

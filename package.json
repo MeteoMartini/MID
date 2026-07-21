@@ -1,15 +1,17 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.7.40",
+  "version": "0.7.41",
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "sync-version": "node scripts/sync-version.mjs",
+    "prebuild": "npm run sync-version",
     "build": "tsc -b && vite build",
+    "verify": "npm run build && node --check worker/metar-proxy.js",
     "preview": "vite preview"
   },
   "dependencies": {
-    "@vitejs/plugin-react": "^4.4.1",
     "html-to-image": "^1.11.13",
     "jsfive": "^0.4.0",
     "leaflet": "^1.9.4",
@@ -24,7 +26,8 @@
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "typescript": "^5.7.3",
-    "vite": "^6.0.7"
+    "vite": "^6.0.7",
+    "@vitejs/plugin-react": "^4.4.1"
   },
   "overrides": {
     "@jridgewell/trace-mapping": "0.3.28"

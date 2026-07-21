@@ -1147,7 +1147,7 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 .consistency-popover strong{font-size:10px}.consistency-popover span{color:var(--text);font-weight:750}.consistency-popover small{color:var(--muted)}
 .ens-card.consistency-open{z-index:12}
 
-/* v0.7.40: kontrastreicher Dunkel-Export und Luftfahrthöhen */
+/* v0.7.41: kontrastreicher Dunkel-Export und Luftfahrthöhen */
 .meteogram-export-stage.exporting.export-dark{background:#0b1622!important;color:#f4f8fc!important}
 .meteogram-export-stage.exporting.export-dark .meteogram-meta,
 .meteogram-export-stage.exporting.export-dark .meteogram-block,

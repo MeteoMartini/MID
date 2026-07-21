@@ -1,3 +1,10 @@
+## v0.7.41 – Code-Audit und funktionsneutrale Verschlankung
+
+- Zentrale Versionssynchronisierung aus `package.json` verhindert abweichende Updater-, Frontend- und Worker-Versionen.
+- Striktere TypeScript-Prüfung erkennt ungenutzten Code bereits beim Build.
+- Überdimensioniertes Logo verkleinert, ohne die sichtbare 42-px-Darstellung zu verändern.
+- Unbenutzte Imports, Variablen und Hilfsfunktionen entfernt; Laufzeitfunktionen und Datenquellen bleiben unverändert.
+
 # MID – Meteorological Information Dashboard
 
 **Aktuelle Version: v0.7.40**
