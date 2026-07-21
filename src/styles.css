@@ -1044,3 +1044,19 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 
 /* v0.7.30: Meteogramm-Achsen und kontrastreiche Winddarstellung */
 .meteogram-line-block .meteogram-axis-label{font-weight:750}
+
+.meteogram-controls{grid-template-columns:minmax(250px,1fr) auto auto auto auto}
+.meteogram-fit{overflow:hidden}
+.meteogram-fit svg{max-width:100% !important}
+.meteogram-export-stage{display:grid;gap:10px}
+.meteogram-isoline{fill:none;vector-effect:non-scaling-stroke;stroke-width:1.15;opacity:.92}
+.meteogram-isoline.humidity{stroke:rgba(248,252,255,.95)}
+:root[data-theme=light] .meteogram-isoline.humidity{stroke:rgba(10,38,59,.62)}
+.meteogram-isoline.temp{stroke:rgba(255,255,255,.8)}
+:root[data-theme=light] .meteogram-isoline.temp{stroke:rgba(24,54,80,.68)}
+.meteogram-isoline-label{fill:var(--text);font-size:7px;font-weight:800;paint-order:stroke;stroke:rgba(255,255,255,.82);stroke-width:2.5px;stroke-linejoin:round}
+:root[data-theme=dark] .meteogram-isoline-label{stroke:rgba(3,8,14,.86)}
+.meteogram-precip-bar.none{fill:rgba(39,140,226,.16)}
+@media(max-width:1040px){.meteogram-controls{grid-template-columns:1fr 1fr 1fr}.meteogram-controls>label:first-child{grid-column:1/-1}}
+@media(max-width:700px){.meteogram-controls{grid-template-columns:1fr 1fr}.meteogram-controls>label:first-child{grid-column:1/-1}}
+@media(max-width:520px){.meteogram-controls{grid-template-columns:1fr}}

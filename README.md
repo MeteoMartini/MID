@@ -1,8 +1,8 @@
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.30**
+**Aktuelle Version: v0.7.31**
 
-## Neuerungen in v0.7.30
+## Neuerungen in v0.7.31
 
 - Druck- und Höhenachsen im Meteogramm meteorologisch korrekt orientiert: 300 hPa oben, Boden unten
 - Wind- und Böendiagramm beginnt fest bei 0 kt; negative Achsenwerte sind ausgeschlossen
