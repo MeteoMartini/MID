@@ -1,6 +1,13 @@
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.34**
+**Aktuelle Version: v0.7.35**
+
+## Neuerungen in v0.7.35
+
+- Ein einzelner, kompakter und exportstabiler Meteogramm-PNG-Download ohne schwarze SVG-Flächen.
+- Echte Diagramm-Tooltips für Maus und Touch.
+- Zeitachsen folgen der tatsächlichen Laufzeit des gewählten Modells.
+- Satellitenbilder behalten beim Zoomen einen einzigen exakt datierten Produktstand.
 
 ## Neuerungen in v0.7.34
 

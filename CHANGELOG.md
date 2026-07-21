@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.7.35 — stabiler Meteogramm-Export, echte Tooltips und feste Satellitenstände
+
+- Meteogramm-Export erzeugt nur noch eine PNG-Datei und sperrt Mehrfachauslösungen.
+- Export verwendet `toBlob`, einen festen 1120-px-Arbeitsbereich, ein kompaktes Layout und blendet unsichtbare Interaktionsflächen aus. SVG-Pfade erhalten explizit `fill="none"`, wodurch schwarze Exportflächen verhindert werden.
+- Desktop nutzt weiterhin „Speichern unter…“, sofern `showSaveFilePicker` verfügbar ist; sonst erfolgt genau ein regulärer PNG-Download.
+- Diagramme besitzen sichtbare Hover-/Touch-Tooltips mit Zeit, Niveau und Messwerten.
+- Modellabhängige Meteogramm-Laufzeiten werden bereits im Worker angefordert und im Frontend zusätzlich begrenzt: ICON-D2 48 h, ICON-EU 120 h, ARPEGE Europa 114 h, ECMWF/GFS 168 h, ICON Global 180 h.
+- Satellitenraster werden während des Zoomens ausgeblendet und danach mit neuem Cache-Schlüssel vollständig geladen. Pro Produkt wird nur ein exakt datierter Frame dargestellt; WMS-Tile-Modus und zeitlich gemischte Zoomstände entfallen.
+
 ## v0.7.34 — Kompositkarte und Meteogramm-Feinschliff
 
 - Aktivieren der Modelllinien verändert den Kartenausschnitt nicht mehr.

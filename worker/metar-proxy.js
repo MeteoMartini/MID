@@ -14,7 +14,7 @@ const GEOSPHERE_META='https://dataset.api.hub.geosphere.at/v1/station/current/ta
 const GEOSPHERE_CURRENT='https://dataset.api.hub.geosphere.at/v1/station/current/tawes-v1-10min';
 const BRIGHTSKY_CURRENT='https://api.brightsky.dev/current_weather';
 const OPENSENSEMAP_BOXES='https://api.opensensemap.org/boxes';
-const WORKER_VERSION='0.7.34';
+const WORKER_VERSION='0.7.35';
 const CORS={'content-type':'application/json; charset=utf-8','access-control-allow-origin':'*','access-control-allow-methods':'GET,OPTIONS','cache-control':'public, max-age=180'};
 const FEED_SLUGS={
  AD:'andorra',AT:'austria',BE:'belgium',BA:'bosnia-herzegovina',BG:'bulgaria',HR:'croatia',CY:'cyprus',CZ:'czechia',DK:'denmark',EE:'estonia',FI:'finland',FR:'france',DE:'germany',GR:'greece',EL:'greece',HU:'hungary',IS:'iceland',IE:'ireland',IL:'israel',IT:'italy',LV:'latvia',LT:'lithuania',LU:'luxembourg',MT:'malta',MD:'moldova',ME:'montenegro',NL:'netherlands',MK:'republic-of-north-macedonia',NO:'norway',PL:'poland',PT:'portugal',RO:'romania',RS:'serbia',SK:'slovakia',SI:'slovenia',ES:'spain',SE:'sweden',CH:'switzerland',UA:'ukraine',GB:'united-kingdom',UK:'united-kingdom',AM:'armenia'
@@ -617,15 +617,21 @@ function openMeteoRows(data){return Array.isArray(data)?data:Array.isArray(data?
 
 const METEOGRAM_LEVELS=[1000,975,950,925,900,850,800,700,600,500,400,300];
 const METEOGRAM_MODELS=new Map([
- ['best_match','Best Match'],['dwd_icon_d2','DWD ICON-D2'],['dwd_icon_eu','DWD ICON-EU'],['meteofrance_arpege_europe','Météo-France ARPEGE Europa'],['ecmwf_ifs','ECMWF IFS HRES'],['ncep_gfs013','NOAA GFS 0,11°'],['dwd_icon','DWD ICON Global']
+ ['best_match',{label:'Best Match',hours:168}],
+ ['dwd_icon_d2',{label:'DWD ICON-D2',hours:48}],
+ ['dwd_icon_eu',{label:'DWD ICON-EU',hours:120}],
+ ['meteofrance_arpege_europe',{label:'Météo-France ARPEGE Europa',hours:114}],
+ ['ecmwf_ifs',{label:'ECMWF IFS HRES',hours:168}],
+ ['ncep_gfs013',{label:'NOAA GFS 0,11°',hours:168}],
+ ['dwd_icon',{label:'DWD ICON Global',hours:180}]
 ]);
 const METEOGRAM_SURFACE=['temperature_2m','relative_humidity_2m','pressure_msl','wind_speed_10m','wind_direction_10m','wind_gusts_10m','precipitation','rain','showers','snowfall','snow_depth','weather_code','freezing_level_height'];
 const METEOGRAM_PROFILE=METEOGRAM_LEVELS.flatMap(level=>[`temperature_${level}hPa`,`relative_humidity_${level}hPa`,`cloud_cover_${level}hPa`,`wind_speed_${level}hPa`,`wind_direction_${level}hPa`,`geopotential_height_${level}hPa`]);
 async function meteogramData(lat,lon,model,elevation){
- const selected=METEOGRAM_MODELS.has(model)?model:'best_match',url=new URL('https://api.open-meteo.com/v1/forecast');url.searchParams.set('latitude',String(lat));url.searchParams.set('longitude',String(lon));if(Number.isFinite(elevation))url.searchParams.set('elevation',String(Math.max(-500,Math.min(9000,elevation))));url.searchParams.set('hourly',[...METEOGRAM_SURFACE,...METEOGRAM_PROFILE].join(','));url.searchParams.set('forecast_hours','168');url.searchParams.set('models',selected);url.searchParams.set('timezone','GMT');url.searchParams.set('timeformat','unixtime');url.searchParams.set('wind_speed_unit','kn');url.searchParams.set('precipitation_unit','mm');url.searchParams.set('temperature_unit','celsius');url.searchParams.set('cell_selection','nearest');
+ const selected=METEOGRAM_MODELS.has(model)?model:'best_match',modelConfig=METEOGRAM_MODELS.get(selected),forecastHours=modelConfig?.hours??168,url=new URL('https://api.open-meteo.com/v1/forecast');url.searchParams.set('latitude',String(lat));url.searchParams.set('longitude',String(lon));if(Number.isFinite(elevation))url.searchParams.set('elevation',String(Math.max(-500,Math.min(9000,elevation))));url.searchParams.set('hourly',[...METEOGRAM_SURFACE,...METEOGRAM_PROFILE].join(','));url.searchParams.set('forecast_hours',String(forecastHours));url.searchParams.set('models',selected);url.searchParams.set('timezone','GMT');url.searchParams.set('timeformat','unixtime');url.searchParams.set('wind_speed_unit','kn');url.searchParams.set('precipitation_unit','mm');url.searchParams.set('temperature_unit','celsius');url.searchParams.set('cell_selection','nearest');
  const response=await fetch(url.toString(),{headers:{Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},cf:{cacheTtl:600,cacheEverything:true}}),text=await response.text();let data={};try{data=JSON.parse(text)}catch{}if(!response.ok||data?.error)throw new Error(data?.reason||data?.error||`Open-Meteo Meteogramm HTTP ${response.status}`);
  let meta=null;if(selected!=='best_match'){try{const metaResponse=await fetch(`https://api.open-meteo.com/data/${selected}/static/meta.json`,{headers:{Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},cf:{cacheTtl:600,cacheEverything:true}});if(metaResponse.ok)meta=await metaResponse.json()}catch{}}
- const initial=number(meta?.last_run_initialisation_time),available=number(meta?.last_run_availability_time);return{data,requestedModel:selected,modelLabel:METEOGRAM_MODELS.get(selected),runInitialisationTime:Number.isFinite(initial)?new Date(initial*1000).toISOString():undefined,runAvailabilityTime:Number.isFinite(available)?new Date(available*1000).toISOString():undefined,checkedAt:new Date().toISOString()};
+ const initial=number(meta?.last_run_initialisation_time),available=number(meta?.last_run_availability_time);return{data,requestedModel:selected,modelLabel:modelConfig?.label,forecastHours,runInitialisationTime:Number.isFinite(initial)?new Date(initial*1000).toISOString():undefined,runAvailabilityTime:Number.isFinite(available)?new Date(available*1000).toISOString():undefined,checkedAt:new Date().toISOString()};
 }
 
 function modelContourDomain(lat,lon){

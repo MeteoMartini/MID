@@ -1074,3 +1074,17 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 /* v0.7.34: Druckzentren und zoomfeste Rasterstände */
 .leaflet-tooltip.mid-pressure-center{padding:4px 7px;border:1px solid rgba(255,255,255,.78);border-radius:999px;background:rgba(14,24,36,.9);box-shadow:0 2px 7px rgba(0,0,0,.5);color:#fff;text-align:center;pointer-events:none;line-height:1}
 .leaflet-tooltip.mid-pressure-center:before{display:none}.leaflet-tooltip.mid-pressure-center span{display:block;font-size:15px;font-weight:950}.leaflet-tooltip.mid-pressure-center small{display:block;margin-top:2px;font-size:7px;font-weight:800;white-space:nowrap}.leaflet-tooltip.mid-pressure-center.high{border-color:#72b9ff;color:#9fd1ff}.leaflet-tooltip.mid-pressure-center.low{border-color:#ff8c82;color:#ffaaa2}
+
+/* v0.7.35: echte Diagramm-Tooltips und kompakter, exportstabiler PNG-Stand */
+.meteogram-chart-wrap{position:relative;touch-action:pan-y}
+.meteogram-tooltip{position:absolute;z-index:8;display:grid;gap:2px;max-width:min(250px,72%);padding:7px 9px;border:1px solid rgba(255,255,255,.72);border-radius:9px;background:rgba(13,25,37,.94);box-shadow:0 4px 15px rgba(0,0,0,.3);color:#fff;font-size:8px;font-weight:700;line-height:1.3;pointer-events:none;transform:translate(8px,-105%);white-space:nowrap}
+.meteogram-tooltip span:first-child{color:#a8d8ff;font-weight:900}
+.meteogram-export-stage.exporting{gap:4px;padding:6px;border-radius:12px;box-sizing:border-box}
+.meteogram-export-stage.exporting .meteogram-meta{padding:5px 8px;border-radius:8px}
+.meteogram-export-stage.exporting .meteogram-block{border-radius:9px;box-shadow:none}
+.meteogram-export-stage.exporting .meteogram-block>header{padding:5px 8px;min-height:0}
+.meteogram-export-stage.exporting .meteogram-block>header strong{font-size:11px}
+.meteogram-export-stage.exporting .meteogram-block>header small{margin-top:1px;font-size:7px}
+.meteogram-export-stage.exporting .meteogram-scale,.meteogram-export-stage.exporting .risk-legend span{padding:3px 6px}
+.meteogram-export-stage.exporting .meteogram-disclaimer{padding:5px 8px}
+.meteogram-export-stage.exporting .meteogram-tooltip{display:none!important}
