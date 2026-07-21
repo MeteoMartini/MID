@@ -1,8 +1,16 @@
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.22**
+**Aktuelle Version: v0.7.23**
 
 MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React, TypeScript und Open-Meteo. Es verbindet Vorhersagen, Ensemblemodelle, aktuelle Stationsmessungen, amtliche Warnungen, Radar, Luftqualität und exportierbare Wetterwidgets.
+
+## Karten-Rezentrierung, Bergwerte und achsentreue Ensemble-Diagramme (v0.7.23)
+
+- Im Kompositbild führt ein kompakter Locate-Me-Schalter die Karte nach manuellem Verschieben animiert zum gewählten Ort zurück. Aktive Layer, Zeitstellung, Deckkräfte und Kartenbasis bleiben dabei unverändert.
+- Tal- und Gipfelhöhe lassen sich auf Desktop und Mobilgeräten als konkrete Meterzahl eingeben. Die Eingabe akzeptiert leere Zwischenstände beim Tippen und bietet zusätzlich gut erreichbare ±50-m-Schalter.
+- Bergwerte nennen ihre Bezugshöhe ausdrücklich in m ü. NHN. Aktuelle Tal-/Gipfelkarten sowie die zeitliche Gipfelprognose stellen normale und gefühlte Temperatur gemeinsam dar. Die bisherige „Schneegrenze“ heißt nun „Schneefallgrenze“.
+- Der automatische Gerätestandort wird in Schnellzugriff, Suchauswahl und Favoritenverwaltung einheitlich als „Standort“ bezeichnet.
+- Beide Diagramme des 14-Tage-Ensemble-Trends reservieren dauerhaft dieselben linken und rechten Achsenbreiten. Dadurch bleiben alle Tagesmarken exakt untereinander, auch wenn die Niederschlagswahrscheinlichkeit deaktiviert wird.
 
 ## PowerPoint-Export, Kompositfilm und direkte Favoritensortierung (v0.7.22)
 
@@ -69,7 +77,7 @@ Die Anzeige nennt den effektiven Radius, die geschätzte Temperaturunsicherheit,
 
 ## Standortverfolgung und kompakte Favoriten (v0.7.16)
 
-- Optionaler **„1. Standort“**: Ist die Standortverfolgung im Favoritenmenü aktiviert, bestimmt MID bei jedem Öffnen die aktuelle Geräteposition neu und zeigt sie als ersten Schnellzugriff. Standardort und letzter Ort bleiben der Rückfall, falls die Ortung nicht verfügbar ist.
+- Optionaler **„Standort“**: Ist die Standortverfolgung im Favoritenmenü aktiviert, bestimmt MID bei jedem Öffnen die aktuelle Geräteposition neu und zeigt sie als ersten Schnellzugriff. Standardort und letzter Ort bleiben der Rückfall, falls die Ortung nicht verfügbar ist.
 - Favoriten sind unmittelbar unter dem Suchfeld nach ihren Gruppen geordnet. Die Leiste ist horizontal scrollbar und bleibt auch auf Mobilgeräten kompakt.
 - Der Berg-/Skimodus wird ausschließlich im Favoritenmenü je Favorit aktiviert und dort mit Tal- und Gipfelhöhe konfiguriert. Deaktivierte Orte belegen im Dashboard keinen Platz mehr.
 - Favoritenexporte verwenden Schema-Version 3 und enthalten neben Regeln und Ski-Konfiguration optional auch die Einstellung für den ersten Standort. Alte Favoriten werden weiterhin automatisch migriert.
@@ -77,10 +85,10 @@ Die Anzeige nennt den effektiven Radius, die geschätzte Temperaturunsicherheit,
 
 ## Favoriten Phase 2 und Berg-/Skimodus (v0.7.15)
 
-- Favoriten können benannt, gruppiert, per Ziehen oder Pfeilen sortiert und als Standardort festgelegt werden. Der Standardort wird beim Start bevorzugt, sofern der optionale „1. Standort“ nicht aktiviert ist.
+- Favoriten können benannt, gruppiert, per Ziehen oder Pfeilen sortiert und als Standardort festgelegt werden. Der Standardort wird beim Start bevorzugt, sofern der optionale Auto-„Standort“ nicht aktiviert ist.
 - Die nach Gruppen gegliederte Favoritenleiste liegt direkt unter dem Suchfeld und ermöglicht den direkten Ortswechsel. Individuelle Schwellen für Niederschlagswahrscheinlichkeit, Böen, Frost und Hitze werden beim Aufruf gegen die nächsten 24 Stunden geprüft.
 - Export und Import erfolgen als versionierte JSON-Datei; alte Favoriteneinträge werden automatisch migriert.
-- Der optionale Berg-/Skimodus wird im Favoritenmenü je Ort aktiviert und dort über Tal- und Gipfelhöhe konfiguriert. Angezeigt werden Temperatur, gefühlte Temperatur, Wind/Böen, Nullgradgrenze, angenäherte Schneegrenze, Sicht, angenäherte Wolkenuntergrenze, Windchill, Gipfeltrend und eine Tageslicht-Orientierungszeit.
+- Der optionale Berg-/Skimodus wird im Favoritenmenü je Ort aktiviert und dort über Tal- und Gipfelhöhe konfiguriert. Angezeigt werden Temperatur, gefühlte Temperatur, Wind/Böen, Nullgradgrenze, angenäherte Schneefallgrenze, Sicht, angenäherte Wolkenuntergrenze, Windchill, Gipfeltrend und eine Tageslicht-Orientierungszeit.
 - Außerhalb einer tatsächlich bestätigten DWD-RV-Auswertung nutzt die Radarkarte die RainViewer-Fallbackebene; OPERA/ORD kann weiterhin die standortbezogene europäische Auswertung liefern.
 
 

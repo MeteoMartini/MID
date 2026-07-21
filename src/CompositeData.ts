@@ -12,7 +12,7 @@ export function configuredDataProxy(){
 }
 function endpoint(mode:string,lat:number,lon:number){
  const configured=configuredDataProxy();
- if(!configured)throw new Error('Cloudflare Worker v0.7.22 ist nicht konfiguriert.');
+ if(!configured)throw new Error('Cloudflare Worker v0.7.23 ist nicht konfiguriert.');
  const url=new URL(configured,location.href);url.searchParams.set('mode',mode);url.searchParams.set('lat',String(lat));url.searchParams.set('lon',String(lon));return url;
 }
 async function getJson<T extends {error?:string}>(url:URL,signal?:AbortSignal):Promise<T>{

@@ -1,8 +1,10 @@
-# MID Daten-, Warnungs- und Radarproxy v0.7.22
+# MID Daten-, Warnungs- und Radarproxy v0.7.23
 
 Der Cloudflare Worker stellt browserkompatibel Stationsdaten, amtliche Warnungen und die standortbezogene Radar-Nowcast-Auswertung bereit. Ein zweiter Worker ist nicht erforderlich.
 
-## Kompatibilität v0.7.22
+## Kompatibilität v0.7.23
+
+In v0.7.23 wurden keine Datenroute und keine Providerlogik verändert. Die Versionskennung wurde ausschließlich zur einheitlichen Auslieferung mit dem Frontend angehoben.
 
 Der Worker erweitert die bestehenden Stations-, Warnungs- und Nowcast-Dienste um zeitlich begrenzte Radar-/OPERA-Filmfenster und eine ortsabhängige Blitzquellenwahl. Mit autorisierten Xweather-Zugangsdaten werden weltweite Vaisala-/GLD360-Punktdaten genutzt; ohne Zugangsdaten bleiben DWD-Blitzgeometrien in Deutschland und EUMETSAT MTG-LI als freier Satelliten-Fallback erhalten. Die bisherigen Schnittstellen bleiben kompatibel.
 
@@ -69,7 +71,7 @@ Beispielantwort:
 ```json
 {
   "ok": true,
-  "version": "0.7.22",
+  "version": "0.7.23",
   "services": ["stations", "alerts", "hyperlocal-networks", "model-assisted-local-analysis", "radar-nowcast", "px250-proxy", "opera-grid-history", "best-location-lightning", "composite-product-times"],
   "providers": {
     "NOAA AviationWeather": true,
