@@ -1,5 +1,14 @@
 # v0.7.46
 
+## 0.7.47
+
+- Kompakte Startansicht als neuer Standard mit dauerhaft sichtbarer 7-Tage-Vorhersage.
+- Stündliche Details der 7-Tage-Vorhersage sind in der kompakten Ansicht einblendbar.
+- Kompositbild, 14-Tage-Ensemble, Meteogramm und Widget-Generator sind einklappbar und werden erst beim Öffnen vorbereitet.
+- Modulzustände und gewählte Ansichtsart werden lokal gespeichert.
+- Fallback-Schalter zur bisherigen vollständigen Ansicht ergänzt.
+
+
 - Meteogramm-Höhenachsen: Flight Levels werden konsequent nach unten auf volle Zehner gerundet; hft-Angaben nach unten auf durch fünf teilbare Werte.
 
 # 0.7.44 — stabiler heller Meteogramm-Export
