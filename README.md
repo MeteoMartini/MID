@@ -1,8 +1,16 @@
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.28**
+**Aktuelle Version: v0.7.29**
 
-## Druckniveau-Meteogramm (v0.7.28)
+## Neuerungen in v0.7.29
+
+- großräumige geglättete Modelllinien mit Europa-Ausschnitt für deutsche Standorte
+- dynamische Isobarendichte und 500-hPa-Isohypsen im Abstand von 8 gpdm
+- deutlich besser lesbare, wiederholte Konturbeschriftungen
+- EuCom geprüft: derzeit kein öffentlich nutzbarer Datenendpunkt für MID; OPERA bleibt der europäische Radar-Fallback
+
+
+## Druckniveau-Meteogramm (v0.7.29)
 
 Die vorletzte Dashboard-Kachel bleibt beim Start geschlossen und lädt erst beim Öffnen. Sie zeigt bis zu sieben Tage beziehungsweise die vollständige kürzere Modelllaufzeit mit relativer Feuchte, Temperatur und Wind von Stationsniveau bis 300 hPa. Ergänzt werden 2-m-/850-hPa-Temperatur, QFF, Bodenwind und Böen, Niederschlagsformen und Schneehöhe. Optionale Vereisungs-, Turbulenz- und CAT-Bänder sind diagnostische Ableitungen aus Modellfeldern und keine amtlichen Flugwetterprodukte.
 
@@ -10,7 +18,7 @@ Die vorletzte Dashboard-Kachel bleibt beim Start geschlossen und lädt erst beim
 MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React, TypeScript und Open-Meteo. Es verbindet Vorhersagen, Ensemblemodelle, aktuelle Stationsmessungen, amtliche Warnungen, Radar, Luftqualität und exportierbare Wetterwidgets.
 
 
-## Durchgehende Komposit-Zeitachse, Modelllinien und Satellitenniederschlag (v0.7.28)
+## Durchgehende Komposit-Zeitachse, Modelllinien und Satellitenniederschlag (v0.7.29)
 
 - Das Kompositbild besitzt unabhängig von der Datenquelle eine feste Achse von **−1 Stunde bis +2 Stunden**. Echte Produktstände werden zwischen benachbarten Frames weich überblendet; nach dem letzten Stand wird die Ebene zunächst gehalten und anschließend sichtbar ausgeblendet.
 - RainViewer-Metadaten laufen gecacht über den MID-Worker. Da die öffentliche RainViewer-API keine Zukunftsframes mehr liefert, erfindet MID keinen Radar-Nowcast: Der letzte reale Radarstand wird zeitlich gekennzeichnet und in der Zukunft ausgefadet; soweit verfügbar, ergänzt das H-SAF-Satellitenniederschlagsprodukt die fehlende Radarfläche.

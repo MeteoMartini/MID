@@ -1010,15 +1010,16 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 @keyframes mid-lightning-ring-pulse{0%,100%{stroke-opacity:1}50%{stroke-opacity:.42}}
 .ring-legend i{box-shadow:0 0 1px rgba(0,0,0,.95),0 0 3px rgba(255,188,42,.28)!important}
 .lightning-age-legend.ring-legend{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px 5px}.lightning-age-legend.ring-legend span{min-width:0}
-/* v0.7.28: weiche Kompositframes und schlanke Modellkonturen */
+/* v0.7.29: weiche Kompositframes und schlanke Modellkonturen */
 .composite-card .leaflet-tile{transition:opacity .38s ease-in-out!important}
-.leaflet-tooltip.mid-contour-label{padding:1px 4px;border:0;border-radius:5px;background:rgba(20,28,40,.76);box-shadow:none;color:#f6f8ff;font-size:7px;font-weight:800;line-height:1.15;pointer-events:none}
-.leaflet-tooltip.mid-contour-label:before{display:none}.leaflet-tooltip.mid-contour-label.isoheights{color:#ffe17b}
-.mid-model-contour{filter:drop-shadow(0 1px 1px rgba(0,0,0,.42))}
+.leaflet-tooltip.mid-contour-label{padding:2px 5px;border:1px solid rgba(255,255,255,.58);border-radius:5px;background:rgba(15,23,35,.88);box-shadow:0 1px 4px rgba(0,0,0,.48);color:#fff;font-size:10px;font-weight:900;line-height:1.1;letter-spacing:.01em;text-shadow:0 1px 1px #000;pointer-events:none;white-space:nowrap}
+.leaflet-tooltip.mid-contour-label:before{display:none}.leaflet-tooltip.mid-contour-label.isoheights{border-color:rgba(255,225,107,.8);color:#ffe16b}
+.mid-model-contour{filter:drop-shadow(0 1px 1px rgba(0,0,0,.62));stroke-linejoin:round;stroke-linecap:round}.mid-model-contour.major{filter:drop-shadow(0 1px 2px rgba(0,0,0,.72))}
+@media(max-width:700px){.leaflet-tooltip.mid-contour-label{font-size:9px;padding:2px 4px}}
 .composite-switch small{white-space:normal!important;display:-webkit-box!important;-webkit-line-clamp:2;-webkit-box-orient:vertical;min-height:2.2em}
 @media(max-width:520px){.composite-switch small{min-height:2.1em}}
 
-/* v0.7.28: lazy Meteogramm mit Druckniveauprofilen */
+/* v0.7.29: lazy Meteogramm mit Druckniveauprofilen */
 .meteogram-gate>.lazy-placeholder{min-height:94px}
 .meteogram-card{overflow:hidden}.meteogram-card.collapsed{padding-bottom:14px}.meteogram-card.collapsed>.title{margin-bottom:0}
 .meteogram-collapse-toggle{display:flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:11px;background:var(--s2);color:var(--text);padding:8px 11px;font:inherit;font-weight:800;cursor:pointer}

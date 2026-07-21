@@ -2,7 +2,7 @@ import {useEffect,useMemo,useRef,useState} from 'react';
 import {ChevronDown,ChevronUp,Layers3,RefreshCw,Snowflake} from 'lucide-react';
 import {configuredDataProxy} from './CompositeData';
 
-const VERSION='0.7.28';
+const VERSION='0.7.29';
 const LEVELS=[1000,975,950,925,900,850,800,700,600,500,400,300] as const;
 const SURFACE_KEY='surface';
 const HOUR_WIDTH=7;

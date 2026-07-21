@@ -11,8 +11,8 @@ export type RainViewerFrame={time:number;path:string};
 export type RainViewerResponse={host:string;generated?:number;radar:{past:RainViewerFrame[];nowcast?:RainViewerFrame[]};error?:string};
 export type ContourPath=[number,number][];
 export type ContourLevel={level:number;paths:ContourPath[]};
-export type ModelContourFrame={time:string;isobars:ContourLevel[];isoheights:ContourLevel[]};
-export type ModelContourResponse={frames:ModelContourFrame[];provider?:string;model?:string;resolutionNote?:string;grid?:{rows:number;cols:number;latSpan:number;lonSpan:number};checkedAt?:string;error?:string};
+export type ModelContourFrame={time:string;isobarStep?:number;isoheightStepGpdm?:number;isobars:ContourLevel[];isoheights:ContourLevel[]};
+export type ModelContourResponse={frames:ModelContourFrame[];provider?:string;model?:string;resolutionNote?:string;grid?:{rows:number;cols:number;latSpan:number;lonSpan:number;scope?:string;bounds?:{south:number;north:number;west:number;east:number}};contours?:{isobars?:string;isoheights?:string};checkedAt?:string;error?:string};
 export type CompositeProductTimes={
  satelliteDay:ProductTime[];
  satelliteIr:ProductTime[];
@@ -36,12 +36,12 @@ export function configuredDataProxy(){
 }
 function endpoint(mode:string,lat:number,lon:number){
  const configured=configuredDataProxy();
- if(!configured)throw new Error('Cloudflare Worker v0.7.28 ist nicht konfiguriert.');
+ if(!configured)throw new Error('Cloudflare Worker v0.7.29 ist nicht konfiguriert.');
  const url=new URL(configured,location.href);
  url.searchParams.set('mode',mode);
  url.searchParams.set('lat',String(lat));
  url.searchParams.set('lon',String(lon));
- url.searchParams.set('_mid','0.7.28');
+ url.searchParams.set('_mid','0.7.29');
  return url;
 }
 export function compositeWmsProxy(provider:WmsProvider){
@@ -50,7 +50,7 @@ export function compositeWmsProxy(provider:WmsProvider){
  const url=new URL(configured,location.href);
  url.searchParams.set('mode','composite-wms');
  url.searchParams.set('provider',provider);
- url.searchParams.set('_mid','0.7.28');
+ url.searchParams.set('_mid','0.7.29');
  return url.toString();
 }
 async function getJson<T extends {error?:string}>(url:URL,signal?:AbortSignal):Promise<T>{

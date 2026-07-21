@@ -1,4 +1,13 @@
-## v0.7.28
+## 0.7.29
+
+- Modelllinien auf großräumige, ortsabhängige Kartenausschnitte erweitert; für Standorte in Deutschland wird der europäische ICON-EU-Ausschnitt verwendet
+- Konturen bilinear verdichtet, zu durchgehenden Pfaden verbunden und geglättet
+- Isobarenabstand dynamisch auf 1, 2 oder 4 hPa nach dem Druckgradienten angepasst; Ziel ist eine auch bei schwachen Gradienten erkennbare Liniendichte von ungefähr 100 km
+- 500-hPa-Isohypsen auf den meteorologischen Abstand von 8 gpdm umgestellt
+- Konturbeschriftungen vergrößert, kontrastreicher gestaltet und entlang langer Linien wiederholt
+- EuCom als DWD-Flugwetterprodukt geprüft; mangels öffentlicher, lizenzierter Abrufschnittstelle nicht in den öffentlichen Worker integriert
+
+## v0.7.29
 
 - neue, beim Start geschlossene Kachel „Meteogramm“ unmittelbar vor dem Widget-/PNG-Generator
 - Modellauswahl mit Best Match sowie ausgewählten regionalen und globalen deterministischen Modellen
@@ -8,9 +17,9 @@
 - optional einblendbare diagnostische Höhenbänder für Vereisung sowie Turbulenz/CAT; ausdrücklich nicht als amtliche Flugwetterprodukte gekennzeichnet
 - Druckniveaus unterhalb des Geländes werden zeitabhängig ausgeblendet
 - Meteogramm wird als eigener Lazy-Load-Chunk geladen; Modelldaten werden erst beim Öffnen der Kachel abgerufen und im Worker zwischengespeichert
-- Cloudflare Worker um die Route `mode=meteogram` erweitert; Frontend und Worker einheitlich auf v0.7.28 angehoben
+- Cloudflare Worker um die Route `mode=meteogram` erweitert; Frontend und Worker einheitlich auf v0.7.29 angehoben
 
-## v0.7.28
+## v0.7.29
 
 - Kompositfilm auf eine feste relative Achse von −1 Stunde bis +2 Stunden umgestellt; nicht vorhandene Layerstände werden weich ausgeblendet, reale benachbarte Frames überblendet.
 - RainViewer-Metadaten über eine gecachte Workerroute angebunden; letzter realer Radarstand bleibt mit Zeitstempel sichtbar und wird ohne erfundene Zukunftsframes ausgefadet.
@@ -19,7 +28,7 @@
 - H-SAF-Satellitenniederschlagsrate als ergänzende Radarfläche integriert; automatischer MTG-H40B-Vorrang, sobald der Layer im öffentlichen EUMETView-WMS erscheint, mit MSG-H60B als aktuellem Fallback.
 - Ortsabhängige Isobaren und 500-hPa-Isohypsen aus Open-Meteo Best Match ergänzt.
 - Gemeinsame `CompositeTimeline`-Logik, Worker-Caching und Rendering von maximal zwei Blendframes reduzieren doppelte Berechnungen und Kartenlast.
-- Frontend und funktional erweiterter Cloudflare Worker einheitlich auf v0.7.28 angehoben.
+- Frontend und funktional erweiterter Cloudflare Worker einheitlich auf v0.7.29 angehoben.
 
 # Changelog
 

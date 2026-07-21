@@ -1,13 +1,13 @@
-# MID Daten-, Warnungs- und Radarproxy v0.7.28
+# MID Daten-, Warnungs- und Radarproxy v0.7.29
 
-## Druckniveau-Meteogramm v0.7.28
+## Druckniveau-Meteogramm v0.7.29
 
 `?mode=meteogram&lat=...&lon=...&elevation=...&model=...` lädt und cached stündliche Open-Meteo-Druckniveauprofile von Stationsniveau bis 300 hPa für maximal 168 Stunden. Zulässig sind Best Match, DWD ICON-D2/EU/Global, Météo-France ARPEGE Europa, ECMWF IFS HRES und NOAA GFS 0,11°.
 
 
 Der Cloudflare Worker stellt browserkompatibel Stationsdaten, amtliche Warnungen und die standortbezogene Radar-Nowcast-Auswertung bereit. Ein zweiter Worker ist nicht erforderlich.
 
-## Komposit- und Modellrouten v0.7.28
+## Komposit- und Modellrouten v0.7.29
 
 - `rainviewer-meta` stellt die öffentliche RainViewer-Historie CORS-sicher und 120 Sekunden gecacht bereit. Zukunftsframes werden nur weitergereicht, wenn der Anbieter sie tatsächlich meldet.
 - `composite-times` liefert bis zu 150 Minuten Satelliten- und 130 Minuten Blitzhistorie sowie einen Publikationspuffer für verspätet eintreffende Satellitenprodukte.
@@ -16,16 +16,16 @@ Der Cloudflare Worker stellt browserkompatibel Stationsdaten, amtliche Warnungen
 - `composite-wms` akzeptiert die neuen freigegebenen H-SAF-Layer und berücksichtigt die längere Veröffentlichungsverzögerung von Satellitenprodukten.
 
 
-## Hochauflösendes Radar v0.7.28
+## Hochauflösendes Radar v0.7.29
 
 Der Endpunkt `px250-meta` prüft für deutsche Orte zuerst das nationale DWD-HX-Komposit (`weather/radar/composite/hx`) mit 250-m-Raster. Ein aktuelles PX250-Standortprodukt dient nur noch als Fallback. `px250-file` validiert Produkt, Dateiname und Aktualität erneut.
 
-## Kompatibilität v0.7.28
+## Kompatibilität v0.7.29
 
 Der Worker wurde funktional erweitert. Die Route `mode=composite-wms` leitet ausschließlich freigegebene Layer, valide Zeitstempel und notwendige WMS-Kartenparameter an DWD beziehungsweise EUMETSAT weiter, setzt CORS-Header und verwendet beim DWD automatisch den Ausfallserver. `composite-times` liefert Zeitwerte einheitlich als ISO-Zeit, ergänzt den tatsächlich verwendeten DWD-Radar-Layer und die Serverzeit und trennt jede Zeitdimension strikt nach Produkt. DWD-RV stellt für die Oberfläche – soweit vom Dienst angeboten – ein reales relatives Fenster von −1 Stunde bis +2 Stunden bereit; künstliche Zukunftsframes werden nicht erzeugt.
 
 
-### Zusätzliche Absicherung in v0.7.28
+### Zusätzliche Absicherung in v0.7.29
 
 - `px250-meta` akzeptiert nur frische Standortprodukte und prüft mehrere nahe Radarstandorte. `px250-file` validiert den Zeitstempel des Dateinamens erneut, sodass alte Cache-Verweise nicht mehr ausgeliefert werden.
 - `composite-wms` weist Zeitpunkte außerhalb des jeweils zulässigen Radar-, Satelliten- oder Blitzfensters zurück.
@@ -98,7 +98,7 @@ Beispielantwort:
 ```json
 {
   "ok": true,
-  "version": "0.7.28",
+  "version": "0.7.29",
   "services": ["stations", "alerts", "hyperlocal-networks", "model-assisted-local-analysis", "radar-nowcast", "px250-proxy", "opera-grid-history", "rainviewer-metadata", "best-location-lightning", "composite-product-times", "model-contours", "cors-safe-composite-wms"],
   "providers": {
     "NOAA AviationWeather": true,
@@ -210,3 +210,9 @@ Die Antwort enthält `source`, `provider`, `quality`, `radarProbability`, `curre
 - `endUncertain: true` kennzeichnet eine Endzeit, die nur auf einem einzelnen trockenen Randframe beruht.
 - Die zurückgegebene `timeline` enthält die verfügbare DWD-Zeitachse für die Radarfilm-Steuerung.
 
+
+## Modelllinien v0.7.29
+
+`mode=model-contours` liefert großräumige, geglättete Konturen. In Europa wird ein einheitlicher ICON-EU-Lauf genutzt, um Modellnähte zu vermeiden. Isobaren werden abhängig vom Druckgradienten mit 1, 2 oder 4 hPa Abstand berechnet; 500-hPa-Isohypsen haben 8 gpdm Abstand.
+
+EuCom ist ein vom DWD für Flugsicherungs-/Flugwetterkunden erzeugtes europäisches Radarkomposit. In den öffentlich auffindbaren DWD-Unterlagen ist kein frei zugänglicher WMS-, Open-Data- oder API-Endpunkt dokumentiert. Der Worker bindet EuCom deshalb nicht ohne kundenspezifische Berechtigung ein.
