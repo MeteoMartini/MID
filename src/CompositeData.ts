@@ -7,12 +7,13 @@ export type LightningPoint={id:string;lat:number;lon:number;observedAt?:string;c
 export type LightningPointResponse={points:LightningPoint[];provider?:string;observedAt?:string;coverage?:string;fallback?:'mtg-li'|'none';nativeResolutionKm?:number;historyMinutes?:number;commercial?:boolean;enterprise?:boolean;reason?:string;error?:string};
 export type WmsProvider='dwd'|'eumetsat';
 export type ProductTime=string|number;
-export type CompositeProduct={provider:WmsProvider;layer:string;label:string;resolutionKm?:number;times:ProductTime[];fresh?:boolean;fallback?:boolean;latestOnly?:boolean};
+export type CompositeProduct={provider:WmsProvider;layer:string;label:string;resolutionKm?:number;times:ProductTime[];fresh?:boolean;fallback?:boolean;latestOnly?:boolean;latestTime?:ProductTime};
 export type RainViewerFrame={time:number;path:string};
 export type RainViewerResponse={host:string;generated?:number;radar:{past:RainViewerFrame[];nowcast?:RainViewerFrame[]};error?:string};
 export type ContourPath=[number,number][];
 export type ContourLevel={level:number;paths:ContourPath[]};
-export type ModelContourFrame={time:string;isobarStep?:number;isoheightStepGpdm?:number;isobars:ContourLevel[];isoheights:ContourLevel[]};
+export type PressureCenter={type:'H'|'T';lat:number;lon:number;value:number;prominence?:number};
+export type ModelContourFrame={time:string;isobarStep?:number;isoheightStepGpdm?:number;isobars:ContourLevel[];isoheights:ContourLevel[];centers?:PressureCenter[]};
 export type ModelContourResponse={frames:ModelContourFrame[];provider?:string;model?:string;resolutionNote?:string;fallback?:{from?:string;to?:string;reason?:string};grid?:{rows:number;cols:number;latSpan:number;lonSpan:number;scope?:string;bounds?:{south:number;north:number;west:number;east:number}};contours?:{isobars?:string;isoheights?:string};checkedAt?:string;error?:string};
 export type CompositeProductTimes={
  satelliteDay:ProductTime[];

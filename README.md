@@ -1,12 +1,16 @@
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.33**
+**Aktuelle Version: v0.7.34**
 
-## Neuerungen in v0.7.33
+## Neuerungen in v0.7.34
 
-- Druck- und Höhenachsen im Meteogramm meteorologisch korrekt orientiert: 300 hPa oben, Boden unten
-- Wind- und Böendiagramm beginnt fest bei 0 kt; negative Achsenwerte sind ausgeschlossen
-- Windpfeile mit kontrastreichem Doppelstrich für helle und dunkle Ansicht
+- Modelllinien verändern beim Einschalten weder Zoom noch Kartenausschnitt.
+- Bodendruckzentren erscheinen als H/T-Markierungen mit Druckwert.
+- Rasterlayer werden beim Zoomen konsistent für denselben Produktzeitpunkt neu aufgebaut.
+- Meteogramm-Isolinien dürfen wieder am Rand und an Datenlücken enden.
+- Feuchtefelder verlaufen farblich von trockenem Gelb zu feuchtem Grün.
+- Alle Druckniveaus besitzen sichtbare horizontale Hilfslinien; Hauptflächen sind stärker.
+- Schneehöhenachsen verwenden passende Dezimalstellen bei kleinen Wertebereichen.
 
 
 ## Neuerungen in v0.7.29
