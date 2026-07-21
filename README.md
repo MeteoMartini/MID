@@ -1,8 +1,16 @@
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.23**
+**Aktuelle Version: v0.7.24**
 
 MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React, TypeScript und Open-Meteo. Es verbindet Vorhersagen, Ensemblemodelle, aktuelle Stationsmessungen, amtliche Warnungen, Radar, Luftqualität und exportierbare Wetterwidgets.
+
+## Reparierte Kompositkarten und korrekte relative Zeitachse (v0.7.24)
+
+- DWD-Radar, DWD-Blitzraster und EUMETSAT-Satelliten-/Blitzkarten werden über eine neue CORS-sichere WMS-Route des MID-Workers geladen. Direkte Browserprobleme oder abweichende CORS-Regeln der Datenserver führen damit nicht mehr zu dauerhaft leeren Layern.
+- Die WMS-Capabilities-Auswertung ordnet Zeitdimensionen streng dem tatsächlichen Produktlayer zu. Ein nicht mehr aktueller Layer kann dadurch nicht mehr versehentlich mit Zeitstempeln eines anderen Produkts abgefragt werden.
+- MID wählt das frischeste geeignete Satellitenprodukt dynamisch: MTG-FCI HRFI, danach MSG-HRV beziehungsweise MSG-IR und anschließend ein DWD-Meteosat-Tag/Nacht-Produkt als robuster Rückfall.
+- Für Deutschland bleibt die Radarkarte auch dann aktiv, wenn die standortbezogene Pixelanalyse vorübergehend nicht verfügbar ist. Die Kartenquelle wird von der Analyseverfügbarkeit entkoppelt.
+- Die DWD-RV-Achse reicht – sofern in den Capabilities vorhanden – von **−1 Stunde Beobachtung bis +2 Stunden Nowcast**. Die Anzeige nennt den relativen Schritt (`−45 min`, `Jetzt`, `+1 h 30 min`) und daneben die Ortszeit.
 
 ## Karten-Rezentrierung, Bergwerte und achsentreue Ensemble-Diagramme (v0.7.23)
 

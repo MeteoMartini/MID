@@ -14,7 +14,7 @@ const GEOSPHERE_META='https://dataset.api.hub.geosphere.at/v1/station/current/ta
 const GEOSPHERE_CURRENT='https://dataset.api.hub.geosphere.at/v1/station/current/tawes-v1-10min';
 const BRIGHTSKY_CURRENT='https://api.brightsky.dev/current_weather';
 const OPENSENSEMAP_BOXES='https://api.opensensemap.org/boxes';
-const WORKER_VERSION='0.7.23';
+const WORKER_VERSION='0.7.24';
 const CORS={'content-type':'application/json; charset=utf-8','access-control-allow-origin':'*','access-control-allow-methods':'GET,OPTIONS','cache-control':'public, max-age=180'};
 const FEED_SLUGS={
  AD:'andorra',AT:'austria',BE:'belgium',BA:'bosnia-herzegovina',BG:'bulgaria',HR:'croatia',CY:'cyprus',CZ:'czechia',DK:'denmark',EE:'estonia',FI:'finland',FR:'france',DE:'germany',GR:'greece',EL:'greece',HU:'hungary',IS:'iceland',IE:'ireland',IL:'israel',IT:'italy',LV:'latvia',LT:'lithuania',LU:'luxembourg',MT:'malta',MD:'moldova',ME:'montenegro',NL:'netherlands',MK:'republic-of-north-macedonia',NO:'norway',PL:'poland',PT:'portugal',RO:'romania',RS:'serbia',SK:'slovakia',SI:'slovenia',ES:'spain',SE:'sweden',CH:'switzerland',UA:'ukraine',GB:'united-kingdom',UK:'united-kingdom',AM:'armenia'
@@ -306,29 +306,27 @@ function xmlLayerBlock(xml,layer){
  while((match=tokens.exec(source))){const token=match[0];if(/^<Layer\b/i.test(token)){stack.push({start:match.index,names:[]})}else if(/^<\/Layer/i.test(token)){const item=stack.pop();if(item&&item.names.includes(layer))return source.slice(item.start,tokens.lastIndex)}else if(match[1]&&stack.length){stack.at(-1).names.push(match[1].trim())}}
  return'';
 }
+function parseWmsTimeContent(block){const times=[];for(const match of String(block||'').matchAll(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?Z/gi)){const t=Date.parse(match[0]);if(Number.isFinite(t))times.push(t)}for(const part of String(block||'').split(',')){const fields=part.trim().split('/');if(fields.length!==3)continue;const start=Date.parse(fields[0]),end=Date.parse(fields[1]),step=parseIsoDurationMs(fields[2]);if(!Number.isFinite(start)||!Number.isFinite(end)||step<60000||step>6*3600000)continue;for(let t=start;t<=end&&times.length<2500;t+=step)times.push(t)}return[...new Set(times)].sort((a,b)=>a-b)}
 function dwdTimesFromCapabilities(xml,layer=''){
- const source=String(xml||''),scoped=layer?xmlLayerBlock(source,layer):'';
- const parseTimes=text=>{const blocks=[...String(text||'').matchAll(/<(?:Dimension|Extent)\b[^>]*\bname\s*=\s*["']time["'][^>]*>([\s\S]*?)<\/(?:Dimension|Extent)>/gi)].map(m=>m[1]),times=[];
-  for(const block of blocks){
-   for(const match of block.matchAll(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?Z/gi)){const t=Date.parse(match[0]);if(Number.isFinite(t))times.push(t)}
-   for(const part of block.split(',')){const fields=part.trim().split('/');if(fields.length!==3)continue;const start=Date.parse(fields[0]),end=Date.parse(fields[1]),step=parseIsoDurationMs(fields[2]);if(!Number.isFinite(start)||!Number.isFinite(end)||step<60000||step>3600000)continue;for(let t=start;t<=end&&times.length<1500;t+=step)times.push(t)}
-  }
-  return[...new Set(times)].sort((a,b)=>a-b)
- };
- // Manche DWD-Layer erben die Zeitdimension vom übergeordneten Layer. Dann
- // enthält der exakte Layerblock keine eigene Dimension; deshalb fällt MID
- // kontrolliert auf die gesamte Capabilities-Datei zurück.
- const exact=parseTimes(scoped);return exact.length?exact:parseTimes(source);
+ const source=String(xml||'');if(!layer){const blocks=[...source.matchAll(/<(?:\w+:)?(?:Dimension|Extent)\b([^>]*)>([\s\S]*?)<\/(?:\w+:)?(?:Dimension|Extent)>/gi)].filter(match=>/\bname\s*=\s*["']time["']/i.test(match[1]||''));return[...new Set(blocks.flatMap(match=>parseWmsTimeContent(match[2])))].sort((a,b)=>a-b)}
+ // WMS-Zeitdimensionen dürfen vererbt werden. Der Parser sammelt deshalb nur
+ // die Dimensionen des Ziel-Layers und seiner tatsächlichen Eltern. Ein
+ // früherer Rückfall auf die gesamte Capabilities-Datei vermischte Zeitachsen
+ // verschiedener Produkte und erzeugte dadurch leere Karten mit falscher Zeit.
+ const token=/<(?:\w+:)?Layer\b[^>]*>|<\/(?:\w+:)?Layer>|<(?:\w+:)?Name>\s*([^<]+?)\s*<\/(?:\w+:)?Name>|<(?:\w+:)?(?:Dimension|Extent)\b([^>]*)>([\s\S]*?)<\/(?:\w+:)?(?:Dimension|Extent)>/gi,stack=[];let match;
+ while((match=token.exec(source))){const raw=match[0];if(/^<(?:\w+:)?Layer\b/i.test(raw)){stack.push({name:'',times:[]});continue}if(/^<\/(?:\w+:)?Layer/i.test(raw)){const current=stack.at(-1);if(current?.name===layer)return[...new Set(stack.flatMap(item=>item.times))].sort((a,b)=>a-b);stack.pop();continue}if(match[1]&&stack.length){stack.at(-1).name=decodeXml(match[1]).trim();continue}if(match[2]&&stack.length&&/\bname\s*=\s*["']time["']/i.test(match[2]))stack.at(-1).times.push(...parseWmsTimeContent(match[3]))
+ }
+ return[];
 }
-function generatedDwdTimes(now=Date.now()){const base=Math.floor(now/300000)*300000,out=[];for(let minute=-25;minute<=120;minute+=5)out.push(base+minute*60000);return out}
+function generatedDwdTimes(now=Date.now()){const base=Math.floor(now/300000)*300000,out=[];for(let minute=-60;minute<=120;minute+=5)out.push(base+minute*60000);return out}
 function selectDwdTimes(times,now=Date.now()){
- // Für die Kartenanimation wird höchstens ein ±1-h-Fenster bereitgestellt.
- // Beobachtungen bleiben in 5-min-Auflösung, Zukunftsframes werden bei Bedarf
- // auf etwa 10 min ausgedünnt, damit Worker- und Browserlast vertretbar bleiben.
- const usable=(times.length?times:generatedDwdTimes(now)).filter(t=>t>=now-65*60000&&t<=now+65*60000).sort((a,b)=>a-b);
- const observed=usable.filter(t=>t<=now+90000).slice(-13),allFuture=usable.filter(t=>t>now+90000&&t<=now+65*60000),future=allFuture.filter((_,i)=>i===0||i%2===0||i===allFuture.length-1);
- return[...new Set([...observed,...future])].slice(-20);
+ // Gewünschtes Kartenfenster: eine Stunde Beobachtung bis zwei Stunden
+ // Nowcast. Vergangenheit bleibt 5-minütig, die Zukunft wird auf etwa
+ // 10 Minuten ausgedünnt, damit die Kartenanimation flüssig und vertretbar bleibt.
+ const usable=(times.length?times:generatedDwdTimes(now)).filter(t=>t>=now-65*60000&&t<=now+125*60000).sort((a,b)=>a-b),observed=usable.filter(t=>t<=now+90000).slice(-13),allFuture=usable.filter(t=>t>now+90000),future=allFuture.filter((_,i)=>i===0||i%2===1||i===allFuture.length-1);
+ return[...new Set([...observed,...future])].sort((a,b)=>a-b);
 }
+function dwdAnalysisTimes(times,now,validatedTime){const observed=times.filter(t=>t<=now+90000),future=times.filter(t=>t>now+90000),sample=[...observed.filter((_,i)=>i%2===0||i===observed.length-1),...future.filter((_,i)=>i%2===0||i===future.length-1),validatedTime].filter(Number.isFinite).sort((a,b)=>a-b);if(sample.length<=18)return[...new Set(sample)];const step=Math.ceil(sample.length/18),reduced=sample.filter((_,i)=>i%step===0);if(reduced.at(-1)!==sample.at(-1))reduced.push(sample.at(-1));return[...new Set(reduced)]}
 function dwdCapabilitiesUrl(base){const u=new URL(base);u.searchParams.set('service','WMS');u.searchParams.set('version','1.3.0');u.searchParams.set('request','GetCapabilities');return u.toString()}
 async function dwdAvailableTimes(base,layer){const response=await fetch(dwdCapabilitiesUrl(base),{headers:{Accept:'application/xml,text/xml,*/*'},cf:{cacheTtl:300,cacheEverything:true}});if(!response.ok)throw new Error(`DWD Capabilities HTTP ${response.status}`);const text=await response.text(),times=dwdTimesFromCapabilities(text,layer);if(!times.length)throw new Error('DWD Capabilities ohne passende Zeitdimension');return times}
 function rgbHsl(r,g,b){r/=255;g/=255;b/=255;const max=Math.max(r,g,b),min=Math.min(r,g,b),d=max-min,l=(max+min)/2;let h=0,s=0;if(d){s=d/(1-Math.abs(2*l-1));if(max===r)h=60*((g-b)/d%6);else if(max===g)h=60*((b-r)/d+2);else h=60*((r-g)/d+4);if(h<0)h+=360}return{h,s,l}}
@@ -376,11 +374,11 @@ async function findDwdQuery(lat,lon,now=Date.now()){
  throw new Error(`DWD-Radarkarte nicht lesbar${errors.length?`: ${errors.slice(-4).join(' | ')}`:''}`);
 }
 async function dwdRadarNowcast(lat,lon){
- const now=Date.now(),query=await findDwdQuery(lat,lon,now),frames=[];
- for(const time of query.times){let sample;if(time===query.validatedTime)sample=query.validatedSample;else{try{sample=await dwdMapFrame(query.base,query.layer,lat,lon,time)}catch{continue}}let center=sample.center;if(center>0){const precise=await dwdPointRate(query.base,query.layer,lat,lon,time,center);if(precise!==undefined)center=precise}frames.push({time,center,nearby:sample.nearby,future:time>now+90000,validPoints:19})}
+ const now=Date.now(),query=await findDwdQuery(lat,lon,now),frames=[],analysisTimes=dwdAnalysisTimes(query.times,now,query.validatedTime);
+ for(const time of analysisTimes){let sample;if(time===query.validatedTime)sample=query.validatedSample;else{try{sample=await dwdMapFrame(query.base,query.layer,lat,lon,time)}catch{continue}}let center=sample.center;if(center>0){const precise=await dwdPointRate(query.base,query.layer,lat,lon,time,center);if(precise!==undefined)center=precise}frames.push({time,center,nearby:sample.nearby,future:time>now+90000,validPoints:19})}
  if(!frames.length)throw new Error('DWD-Radar liefert keine verwertbare Kartenzeitreihe.');
- const result=radarResultFromFrames('dwd','DWD-RV 0–2-h-Nowcast',query.fromCapabilities?'high':'medium',frames,'Daten: Deutscher Wetterdienst; MID-Pixel- und Punkt-Auswertung',{rateApproximate:false});
- const displayTimes=query.fromCapabilities&&query.times.length>1?query.times:frames.map(x=>x.time);return{...result,radarLayer:query.layer,timeline:[...new Set(displayTimes)].sort((a,b)=>a-b).map(x=>new Date(x).toISOString()),diagnostics:{...(result.diagnostics||{}),endpoint:query.base,layer:query.layer,method:'WMS GetMap + optional GetFeatureInfo',capabilitiesTimeAxis:query.fromCapabilities,queryErrors:query.errors.slice(-8)}};
+ const result=radarResultFromFrames('dwd','DWD-RV −1 h bis +2 h',query.fromCapabilities?'high':'medium',frames,'Daten: Deutscher Wetterdienst; MID-Pixel- und Punkt-Auswertung',{rateApproximate:false});
+ const displayTimes=query.fromCapabilities&&query.times.length>1?query.times:frames.map(x=>x.time);return{...result,radarLayer:query.layer,timeline:[...new Set(displayTimes)].sort((a,b)=>a-b).map(x=>new Date(x).toISOString()),diagnostics:{...(result.diagnostics||{}),endpoint:query.base,layer:query.layer,method:'WMS GetMap + optional GetFeatureInfo',capabilitiesTimeAxis:query.fromCapabilities,displayWindowMinutes:[-60,120],queryErrors:query.errors.slice(-8)}};
 }
 function coverageSeries(data){
  const collections=Array.isArray(data?.coverages)?data.coverages:[data],out=[];
@@ -526,19 +524,42 @@ async function bestLightningPoints(lat,lon,env){
 
 
 const EUMETSAT_WMS='https://view.eumetsat.int/geoserver/wms';
+const SATELLITE_DAY_CANDIDATES=[
+ {provider:'eumetsat',layer:'mtg_fd:vis06_hrfi',label:'MTG FCI VIS 0,6 HRFI',resolutionKm:.5},
+ {provider:'eumetsat',layer:'msg_fes:rgb_eview',label:'MSG European HRV RGB',resolutionKm:1},
+ {provider:'dwd',layer:'dwd:Satellite_meteosat_1km_euat_rgb_clouds_day_and_night',label:'DWD Meteosat Europa RGB/IR',resolutionKm:1},
+ {provider:'dwd',layer:'dwd:SAT_EU_RGB',label:'DWD Meteosat Europa RGB',resolutionKm:1}
+];
+const SATELLITE_IR_CANDIDATES=[
+ {provider:'eumetsat',layer:'mtg_fd:ir105_hrfi',label:'MTG FCI IR 10,5 HRFI',resolutionKm:1},
+ {provider:'eumetsat',layer:'msg_fes:ir108',label:'MSG SEVIRI IR 10,8',resolutionKm:3},
+ {provider:'dwd',layer:'dwd:Satellite_meteosat_1km_euat_rgb_clouds_day_and_night',label:'DWD Meteosat Europa Tag/Nacht',resolutionKm:1},
+ {provider:'dwd',layer:'dwd:SAT_EU_RGB',label:'DWD Meteosat Europa RGB',resolutionKm:1}
+];
 async function wmsCapabilitiesText(base,label){const response=await fetch(dwdCapabilitiesUrl(base),{headers:{Accept:'application/xml,text/xml,*/*'},cf:{cacheTtl:300,cacheEverything:true}});if(!response.ok)throw new Error(`${label} Capabilities HTTP ${response.status}`);return response.text()}
-function recentObservedTimes(times,now=Date.now()){const unique=[...new Set((times||[]).filter(Number.isFinite).filter(time=>time>=now-70*60000&&time<=now+6*60000))].sort((a,b)=>a-b);if(unique.length<=14)return unique;const step=Math.max(1,Math.ceil(unique.length/14)),selected=unique.filter((_,index)=>index%step===0);if(selected.at(-1)!==unique.at(-1))selected.push(unique.at(-1));return selected.slice(-14)}
-async function compositeTimes(lat,lon){const result={satelliteDay:[],satelliteIr:[],mtgLightning:[],dwdLightning:[],checkedAt:new Date().toISOString()},tasks=[];
- if(mtgLightningApplies(lat,lon))tasks.push(wmsCapabilitiesText(EUMETSAT_WMS,'EUMETSAT').then(xml=>{result.satelliteDay=recentObservedTimes(dwdTimesFromCapabilities(xml,'mtg_fd:vis06_hrfi'));result.satelliteIr=recentObservedTimes(dwdTimesFromCapabilities(xml,'mtg_fd:ir105_hrfi'));result.mtgLightning=recentObservedTimes(dwdTimesFromCapabilities(xml,'mtg_fd:li_afa'))}));
- if(inGermanyBounds(lat,lon))tasks.push(wmsCapabilitiesText(DWD_RADAR_WMS_PRIMARY,'DWD').then(xml=>{result.dwdLightning=recentObservedTimes(dwdTimesFromCapabilities(xml,'dwd:Blitzdichte'))}));
- const settled=await Promise.allSettled(tasks),errors=settled.filter(item=>item.status==='rejected').map(item=>item.reason instanceof Error?item.reason.message:String(item.reason));return{...result,errors};
+function recentObservedTimes(times,now=Date.now(),historyMinutes=70,maxFrames=14){const unique=[...new Set((times||[]).filter(Number.isFinite).filter(time=>time>=now-historyMinutes*60000&&time<=now+6*60000))].sort((a,b)=>a-b);if(unique.length<=maxFrames)return unique;const step=Math.max(1,Math.ceil(unique.length/maxFrames)),selected=unique.filter((_,index)=>index%step===0);if(selected.at(-1)!==unique.at(-1))selected.push(unique.at(-1));return selected.slice(-maxFrames)}
+function satelliteProduct(capabilities,candidates,now=Date.now()){
+ const products=[];for(const candidate of candidates){const xml=capabilities[candidate.provider];if(!xml)continue;const all=dwdTimesFromCapabilities(xml,candidate.layer),latest=all.at(-1);if(!Number.isFinite(latest)||latest<now-6*3600000||latest>now+10*60000)continue;const history=candidate.provider==='dwd'?240:75,times=recentObservedTimes(all,now,history,candidate.provider==='dwd'?4:14);products.push({...candidate,times:times.map(time=>new Date(time).toISOString()),latest,fresh:latest>=now-90*60000})}
+ products.sort((a,b)=>Number(b.fresh)-Number(a.fresh)||Number(b.provider==='eumetsat')-Number(a.provider==='eumetsat')||(a.resolutionKm??99)-(b.resolutionKm??99)||b.latest-a.latest);const chosen=products[0];if(!chosen)return undefined;const{latest,...product}=chosen;return{...product,fallback:product.provider!=='eumetsat'||!product.layer.startsWith('mtg_fd:')}
+}
+async function compositeTimes(lat,lon){const result={satelliteDay:[],satelliteIr:[],mtgLightning:[],dwdLightning:[],checkedAt:new Date().toISOString()},capabilities={},errors=[];
+ const requests=[];if(mtgLightningApplies(lat,lon))requests.push(wmsCapabilitiesText(EUMETSAT_WMS,'EUMETSAT').then(xml=>{capabilities.eumetsat=xml}).catch(error=>errors.push(error instanceof Error?error.message:String(error))));if(mtgLightningApplies(lat,lon)||inGermanyBounds(lat,lon))requests.push(wmsCapabilitiesText(DWD_RADAR_WMS_PRIMARY,'DWD').then(xml=>{capabilities.dwd=xml}).catch(error=>errors.push(error instanceof Error?error.message:String(error))));await Promise.all(requests);
+ if(capabilities.eumetsat){result.mtgLightning=recentObservedTimes(dwdTimesFromCapabilities(capabilities.eumetsat,'mtg_fd:li_afa')).map(time=>new Date(time).toISOString())}
+ if(capabilities.dwd&&inGermanyBounds(lat,lon)){result.dwdLightning=recentObservedTimes(dwdTimesFromCapabilities(capabilities.dwd,'dwd:Blitzdichte')).map(time=>new Date(time).toISOString())}
+ if(mtgLightningApplies(lat,lon)){result.satelliteDayProduct=satelliteProduct(capabilities,SATELLITE_DAY_CANDIDATES);result.satelliteIrProduct=satelliteProduct(capabilities,SATELLITE_IR_CANDIDATES);result.satelliteDay=result.satelliteDayProduct?.times||[];result.satelliteIr=result.satelliteIrProduct?.times||[]}
+ return{...result,errors};
+}
+async function compositeWmsResponse(request){const url=new URL(request.url),provider=String(url.searchParams.get('provider')||'').toLowerCase(),bases=provider==='dwd'?[DWD_RADAR_WMS_PRIMARY,DWD_RADAR_WMS_BACKUP]:provider==='eumetsat'?[EUMETSAT_WMS]:[];if(!bases.length)return json({error:'Ungültiger WMS-Provider',version:WORKER_VERSION},400,{'cache-control':'no-store'});const allowed=new Set(['service','request','version','layers','styles','format','transparent','crs','srs','bbox','width','height','time','exceptions','bgcolor','tiled']),errors=[];
+ for(const base of bases){try{const upstream=new URL(base);for(const[key,value]of url.searchParams){const normalized=key.toLowerCase();if(allowed.has(normalized))upstream.searchParams.set(normalized,value)}if(!upstream.searchParams.has('service'))upstream.searchParams.set('service','WMS');if(!upstream.searchParams.has('request'))upstream.searchParams.set('request','GetMap');const response=await fetch(upstream.toString(),{headers:{Accept:'image/png,image/webp,image/jpeg,*/*','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},cf:{cacheTtl:120,cacheEverything:true}}),type=String(response.headers.get('content-type')||'').toLowerCase();if(!response.ok)throw new Error(`${new URL(base).hostname} HTTP ${response.status}`);if(!type.startsWith('image/')){const text=(await response.text()).slice(0,240).replace(/\s+/g,' ');throw new Error(`${new URL(base).hostname} lieferte kein Kartenbild${text?`: ${text}`:''}`)}return new Response(response.body,{status:200,headers:{'content-type':type,'access-control-allow-origin':'*','cache-control':'public, max-age=120','x-mid-wms-provider':provider,'x-mid-worker-version':WORKER_VERSION}})}catch(error){errors.push(error instanceof Error?error.message:String(error))}}
+ return new Response(errors.join(' | ')||'WMS-Karte nicht verfügbar',{status:502,headers:{'content-type':'text/plain; charset=utf-8','access-control-allow-origin':'*','cache-control':'no-store','x-mid-worker-version':WORKER_VERSION}})
 }
 
 export default{async fetch(request,env){
  if(request.method==='OPTIONS')return new Response(null,{status:204,headers:CORS});
  const u=new URL(request.url),mode=u.searchParams.get('mode')||'';
  if(mode==='px250-file')return px250FileResponse(request);
- if(mode==='health')return json({ok:true,version:WORKER_VERSION,services:['stations','alerts','hyperlocal-networks','model-assisted-local-analysis','radar-nowcast','px250-proxy','opera-grid-history','best-location-lightning','composite-product-times'],providers:{'NOAA AviationWeather':true,'DWD Open Data / Bright Sky':true,'GeoSphere Austria':true,'openSenseMap / senseBox':env?.ENABLE_OPENSENSEMAP!=='false','Weather Underground':Boolean(env?.WEATHER_COM_API_KEY||env?.WU_API_KEY),Netatmo:Boolean(env?.NETATMO_ACCESS_TOKEN),'Synoptic Data':Boolean(env?.SYNOPTIC_TOKEN),Xweather:Boolean(env?.XWEATHER_CLIENT_ID&&env?.XWEATHER_CLIENT_SECRET)},timestamp:new Date().toISOString()});
+ if(mode==='composite-wms')return compositeWmsResponse(request);
+ if(mode==='health')return json({ok:true,version:WORKER_VERSION,services:['stations','alerts','hyperlocal-networks','model-assisted-local-analysis','radar-nowcast','px250-proxy','opera-grid-history','best-location-lightning','composite-product-times','cors-safe-composite-wms'],providers:{'NOAA AviationWeather':true,'DWD Open Data / Bright Sky':true,'GeoSphere Austria':true,'openSenseMap / senseBox':env?.ENABLE_OPENSENSEMAP!=='false','Weather Underground':Boolean(env?.WEATHER_COM_API_KEY||env?.WU_API_KEY),Netatmo:Boolean(env?.NETATMO_ACCESS_TOKEN),'Synoptic Data':Boolean(env?.SYNOPTIC_TOKEN),Xweather:Boolean(env?.XWEATHER_CLIENT_ID&&env?.XWEATHER_CLIENT_SECRET)},timestamp:new Date().toISOString()});
  const lat=Number(u.searchParams.get('lat')),lon=Number(u.searchParams.get('lon'));if(!Number.isFinite(lat)||!Number.isFinite(lon))return json({error:'lat/lon required',version:WORKER_VERSION},400);
  if(mode==='px250-meta'){
   try{return json({...await px250Metadata(request,lat,lon),version:WORKER_VERSION,checkedAt:new Date().toISOString()},200,{'cache-control':'public, max-age=120'})}

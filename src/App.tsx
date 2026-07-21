@@ -2,7 +2,7 @@ import {lazy,Suspense,useEffect,useMemo,useRef,useState,type KeyboardEvent as Re
 import {AlertTriangle,BadgeCheck,ChevronDown,ChevronUp,Cloud,CloudFog,ClipboardCopy,Download,Eye,FileDown,Gauge,GripVertical,LocateFixed,MountainSnow,Moon,Navigation,RefreshCw,Search,Settings2,SlidersHorizontal,Snowflake,Star,Sun,ThermometerSun,Trash2,Umbrella,Upload,Waves,Wind,X} from 'lucide-react';
 import {airQuality,bestMatchModelInfo,climatology,cloudOktas,countryCodeFromLocation,cloudOktasText,currentIndex,dayEffectiveUvMax,dayWeatherCharacter,ensembles,forecast,hazards,icon,label,mapDays,mapHours,mapMinutely15,mountainForecast,officialWarnings,radarNowcast,searchLocations,reverseLocation,station,wind,type BestMatchModelInfo,type ClimateDay,type Day,type EnsembleDay,type Hour,type Location,type Minute15,type ModelRunMeta,type MountainForecast,type MountainWeather,type OfficialAlert,type RadarNowcast,type Station,type Weather,type WindUnit} from './weather';
 
-const VERSION='0.7.23';
+const VERSION='0.7.24';
 const LOGO_PATH='./mid-logo.png';
 const LOCATION_STORAGE_KEY='mid:lastLocation';
 const FAVORITES_STORAGE_KEY='mid:favorites';

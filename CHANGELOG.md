@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.7.24
+
+- Leere Radar- und Satellitenkarten behoben: DWD- und EUMETSAT-WMS-Kacheln werden CORS-sicher über den Cloudflare Worker ausgeliefert; der DWD-Ausfallserver bleibt als Rückfall aktiv.
+- WMS-Zeitparser korrigiert. Zeitdimensionen werden nur noch vom ausgewählten Layer und seinen tatsächlichen Eltern übernommen; fremde Zeitachsen anderer Produkte können nicht mehr zu falschen Uhrzeiten und leeren Bildern führen.
+- Satellitenquelle wird anhand der aktuell wirklich verfügbaren Produktzeiten gewählt: bevorzugt hochaufgelöstes MTG-FCI, anschließend MSG-HRV/IR und zuletzt ein aktuelles DWD-Meteosat-Produkt.
+- Radarbild bleibt auch bei einer vorübergehend fehlgeschlagenen punktuellen Radaranalyse aktiv und nutzt den für den Ort erwarteten Kartenprovider.
+- DWD-RV-Zeitfenster auf relativ −1 Stunde bis +2 Stunden korrigiert. Vergangenheitsframes bleiben 5-minütig; Zukunftsframes werden zur Lastbegrenzung etwa 10-minütig dargestellt.
+- Zeitangabe zeigt jetzt gleichzeitig den relativen Abstand zum neuesten Beobachtungsframe und die korrekte Ortszeit.
+- Frontend und funktional erweiterter Cloudflare Worker einheitlich auf v0.7.24 angehoben.
+
 ## v0.7.23
 
 - Kompositbild um einen kleinen „Locate Me“-Button ergänzt, der die verschobene Karte animiert auf den gewählten Standort zurückführt, ohne Zoomstufe oder Layerauswahl zurückzusetzen.

@@ -1,10 +1,10 @@
-# MID Daten-, Warnungs- und Radarproxy v0.7.23
+# MID Daten-, Warnungs- und Radarproxy v0.7.24
 
 Der Cloudflare Worker stellt browserkompatibel Stationsdaten, amtliche Warnungen und die standortbezogene Radar-Nowcast-Auswertung bereit. Ein zweiter Worker ist nicht erforderlich.
 
-## Kompatibilität v0.7.23
+## Kompatibilität v0.7.24
 
-In v0.7.23 wurden keine Datenroute und keine Providerlogik verändert. Die Versionskennung wurde ausschließlich zur einheitlichen Auslieferung mit dem Frontend angehoben.
+Der Worker wurde funktional erweitert. Die neue Route `mode=composite-wms` leitet ausschließlich erlaubte WMS-Kartenparameter an DWD beziehungsweise EUMETSAT weiter, setzt CORS-Header und verwendet beim DWD automatisch den Ausfallserver. `composite-times` prüft die Zeitdimension jedes konkreten Layers, wählt dynamisch ein frisches Satellitenprodukt und liefert keine fremden Zeitstempel mehr. DWD-RV stellt für die Oberfläche – soweit vom Dienst angeboten – ein relatives Fenster von −1 Stunde bis +2 Stunden bereit.
 
 Der Worker erweitert die bestehenden Stations-, Warnungs- und Nowcast-Dienste um zeitlich begrenzte Radar-/OPERA-Filmfenster und eine ortsabhängige Blitzquellenwahl. Mit autorisierten Xweather-Zugangsdaten werden weltweite Vaisala-/GLD360-Punktdaten genutzt; ohne Zugangsdaten bleiben DWD-Blitzgeometrien in Deutschland und EUMETSAT MTG-LI als freier Satelliten-Fallback erhalten. Die bisherigen Schnittstellen bleiben kompatibel.
 
@@ -25,7 +25,8 @@ Der Worker erweitert die bestehenden Stations-, Warnungs- und Nowcast-Dienste um
 - PX250-Metadaten und HDF5-Dateiproxy für das hochaufgelöste lokale DWD-Radarprodukt
 - EUMETNET-OPERA-RATE-Punktraster einschließlich kompakter Historie bis ungefähr 60 Minuten für die europäische Kartenvisualisierung
 - Ortsabhängige Blitzquelle: optional weltweite Vaisala-Xweather-/GLD360-Punktdaten, sonst DWD-Blitzgeometrien in Deutschland und MTG-LI-Raster im Satellitenabdeckungsbereich
-- Reale WMS-Produktzeitpunkte für den synchronen Satelliten-/Blitz-Kartenfilm (`composite-times`)
+- Reale, layergebundene WMS-Produktzeitpunkte sowie dynamische Satellitenproduktwahl (`composite-times`)
+- CORS-sicherer DWD-/EUMETSAT-Kartenproxy mit DWD-Ausfallserver (`composite-wms`)
 
 ## Bereitstellung
 
@@ -71,8 +72,8 @@ Beispielantwort:
 ```json
 {
   "ok": true,
-  "version": "0.7.23",
-  "services": ["stations", "alerts", "hyperlocal-networks", "model-assisted-local-analysis", "radar-nowcast", "px250-proxy", "opera-grid-history", "best-location-lightning", "composite-product-times"],
+  "version": "0.7.24",
+  "services": ["stations", "alerts", "hyperlocal-networks", "model-assisted-local-analysis", "radar-nowcast", "px250-proxy", "opera-grid-history", "best-location-lightning", "composite-product-times", "cors-safe-composite-wms"],
   "providers": {
     "NOAA AviationWeather": true,
     "DWD Open Data / Bright Sky": true,
