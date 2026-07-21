@@ -1217,3 +1217,10 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 .meteogram-export-stage.exporting.export-light .meteogram-isoline-label{fill:#10263b!important;stroke:#fff!important;stroke-width:3px!important}
 .meteogram-export-stage.exporting.export-light .meteogram-wind-arrow .wind-arrow-halo{stroke:#fff!important;fill:#fff!important}
 .meteogram-export-stage.exporting.export-light .meteogram-wind-arrow .wind-arrow-core{stroke:#10263b!important;fill:#10263b!important}
+
+
+/* v0.7.46 – eindeutige aktive Favoritenmarkierung */
+.header-favorites .favorite-bubbles>button{-webkit-tap-highlight-color:transparent}
+.header-favorites .favorite-bubbles>button:focus{outline:none}
+.header-favorites .favorite-bubbles>button:focus-visible{outline:2px solid color-mix(in srgb,var(--primary) 75%,white);outline-offset:2px}
+.header-favorites .favorite-bubbles>button:not(.active){box-shadow:none}

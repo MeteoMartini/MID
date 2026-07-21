@@ -1,4 +1,4 @@
-# v0.7.45
+# v0.7.46
 
 - Meteogramm-Höhenachsen: Flight Levels werden konsequent nach unten auf volle Zehner gerundet; hft-Angaben nach unten auf durch fünf teilbare Werte.
 
