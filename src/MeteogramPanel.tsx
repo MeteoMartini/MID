@@ -2,8 +2,8 @@ import {useEffect,useMemo,useRef,useState} from 'react';
 import {ChevronDown,ChevronUp,Download,Layers3,RefreshCw,Snowflake} from 'lucide-react';
 import {toPng} from 'html-to-image';
 import {configuredDataProxy} from './CompositeData';
+import {MID_VERSION as VERSION} from './version';
 
-const VERSION='0.7.31';
 const LEVELS=[1000,975,950,925,900,850,800,700,600,500,400,300] as const;
 const SURFACE_KEY='surface';
 const MODEL_KEY='mid:meteogram:model';

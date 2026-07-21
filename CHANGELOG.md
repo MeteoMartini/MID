@@ -1,3 +1,14 @@
+# Changelog
+
+## v0.7.32 — Updater- und Modelllinien-Korrektur
+
+- Zentrale Versionskonstante für App, Zusatzmodul und Meteogramm; der Updater vergleicht nicht mehr irrtümlich die aktuelle Veröffentlichung mit einer veralteten internen Versionsnummer.
+- Modelllinien: ungültigen Parameter `elevation=nan` entfernt.
+- Modelllinien-Raster weiterhin in kurzen Zeilenabfragen; maximal vier parallele Abrufe.
+- Europa: ICON-EU bleibt erste Wahl, bei unvollständiger Modellabdeckung automatischer einheitlicher Fallback auf ICON Global.
+- Nordamerika verwendet für Druckniveaukarten GFS 0,25° statt des Modells ohne benötigte Druckniveauvariablen.
+- Upstream-Fehlermeldungen werden konkret ausgewertet statt nur als pauschales HTTP 400 angezeigt.
+
 ## 0.7.31
 
 - Meteogrammprofile und optionale Risikoebenen vertikal gedreht: hohe Atmosphäre oben, Boden bzw. bodennahe Druckflächen unten
