@@ -14,7 +14,7 @@ const GEOSPHERE_META='https://dataset.api.hub.geosphere.at/v1/station/current/ta
 const GEOSPHERE_CURRENT='https://dataset.api.hub.geosphere.at/v1/station/current/tawes-v1-10min';
 const BRIGHTSKY_CURRENT='https://api.brightsky.dev/current_weather';
 const OPENSENSEMAP_BOXES='https://api.opensensemap.org/boxes';
-const WORKER_VERSION='0.7.38';
+const WORKER_VERSION='0.7.39';
 const CORS={'content-type':'application/json; charset=utf-8','access-control-allow-origin':'*','access-control-allow-methods':'GET,OPTIONS','cache-control':'public, max-age=180'};
 const FEED_SLUGS={
  AD:'andorra',AT:'austria',BE:'belgium',BA:'bosnia-herzegovina',BG:'bulgaria',HR:'croatia',CY:'cyprus',CZ:'czechia',DK:'denmark',EE:'estonia',FI:'finland',FR:'france',DE:'germany',GR:'greece',EL:'greece',HU:'hungary',IS:'iceland',IE:'ireland',IL:'israel',IT:'italy',LV:'latvia',LT:'lithuania',LU:'luxembourg',MT:'malta',MD:'moldova',ME:'montenegro',NL:'netherlands',MK:'republic-of-north-macedonia',NO:'norway',PL:'poland',PT:'portugal',RO:'romania',RS:'serbia',SK:'slovakia',SI:'slovenia',ES:'spain',SE:'sweden',CH:'switzerland',UA:'ukraine',GB:'united-kingdom',UK:'united-kingdom',AM:'armenia'
@@ -615,7 +615,7 @@ function smoothPath(path,iterations=2){if(path.length<3)return path;let result=p
 function contourSegments(values,lats,lons,step,maxLevels=90){const interpolated=upsampleGrid(values,lats,lons,2),field=interpolated.values,fieldLats=interpolated.lats,fieldLons=interpolated.lons,finite=field.flat().filter(Number.isFinite);if(!finite.length)return[];const min=Math.min(...finite),max=Math.max(...finite),first=Math.ceil(min/step)*step,levels=[];for(let level=first;level<=max&&levels.length<maxLevels;level+=step){const segments=[];for(let row=0;row<field.length-1;row++)for(let col=0;col<field[row].length-1;col++){const corners=[{lat:fieldLats[row],lon:fieldLons[col],value:field[row][col]},{lat:fieldLats[row],lon:fieldLons[col+1],value:field[row][col+1]},{lat:fieldLats[row+1],lon:fieldLons[col+1],value:field[row+1][col+1]},{lat:fieldLats[row+1],lon:fieldLons[col],value:field[row+1][col]}];if(corners.some(point=>!Number.isFinite(point.value)))continue;const edges=[[0,1],[1,2],[2,3],[3,0]],hits=[];for(const[i,j]of edges){const av=corners[i].value-level,bv=corners[j].value-level;if(av===0&&bv===0)continue;if(av===0||bv===0||av*bv<0)hits.push(interpolatePoint(corners[i],corners[j],level))}if(hits.length===2)segments.push([hits[0],hits[1]]);else if(hits.length>=4){const center=(corners[0].value+corners[1].value+corners[2].value+corners[3].value)/4;if(center>=level){segments.push([hits[0],hits[3]],[hits[1],hits[2]])}else{segments.push([hits[0],hits[1]],[hits[2],hits[3]])}}}const paths=stitchSegments(segments).filter(path=>path.length>2).map(path=>smoothPath(path,2));if(paths.length)levels.push({level:Number(level.toFixed(2)),paths})}return levels}
 function openMeteoRows(data){return Array.isArray(data)?data:Array.isArray(data?.results)?data.results:[data]}
 
-const METEOGRAM_LEVELS=[1000,975,950,925,900,850,800,700,600,500,400,300];
+const METEOGRAM_LEVELS=[1000,975,950,925,900,850,800,700,600,500,400,300,250,200,150,100];
 const METEOGRAM_MODELS=new Map([
  ['best_match',{label:'Best Match',hours:168}],
  ['dwd_icon_d2',{label:'DWD ICON-D2',hours:48}],

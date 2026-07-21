@@ -1,4 +1,4 @@
-## v0.7.38 – 2026-07-21
+## v0.7.39 – 2026-07-21
 
 - Updater: lokale Laufzeitversion und veröffentlichte `version.json` werden wieder aus demselben Versionsstand erzeugt; die in v0.7.37 verbliebene interne Kennung v0.7.36 wurde korrigiert.
 - Ensembles: P25–P75 besitzt in der Legende getrennte farbige Flächenfelder für Tmax und Tmin.

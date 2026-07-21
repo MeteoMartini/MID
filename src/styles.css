@@ -1132,3 +1132,17 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
   .forecast-hazards span{font-size:7.5px}
 }
 @media(max-width:760px){.forecast-icon em{white-space:normal;overflow:visible;text-overflow:clip}}
+
+/* v0.7.39 aviation overlays and interactive consistency */
+.risk-legend .cat-moderate{background:rgba(139,92,190,.18);color:#7a46a7}
+.risk-legend .cat-strong{background:rgba(91,45,145,.2);color:#5b2d91}
+.risk-legend .zero-line-key,.risk-legend .minus-ten-key,.risk-legend .tropopause-key{position:relative;padding-left:18px;background:transparent;color:var(--text)}
+.risk-legend .zero-line-key:before,.risk-legend .minus-ten-key:before,.risk-legend .tropopause-key:before{content:"";position:absolute;left:5px;top:50%;width:10px;height:2px;transform:translateY(-50%);border-radius:999px}
+.risk-legend .zero-line-key:before{background:#1678c8;height:3px}
+.risk-legend .minus-ten-key:before{background:repeating-linear-gradient(90deg,#527a9a 0 5px,transparent 5px 8px)}
+.risk-legend .tropopause-key:before{background:repeating-linear-gradient(90deg,#1b3046 0 6px,transparent 6px 9px);height:3px}
+.consistency-dot{border:0;cursor:pointer;padding:0;appearance:none}
+.ens-card{position:relative}
+.consistency-popover{position:absolute;z-index:8;top:42px;right:8px;left:8px;display:grid;gap:3px;padding:9px 10px;border:1px solid var(--border);border-radius:11px;background:color-mix(in srgb,var(--surface) 94%,transparent);box-shadow:0 10px 24px rgba(15,35,55,.16);font-size:9px;line-height:1.35;backdrop-filter:blur(10px)}
+.consistency-popover strong{font-size:10px}.consistency-popover span{color:var(--text);font-weight:750}.consistency-popover small{color:var(--muted)}
+.ens-card.consistency-open{z-index:12}
