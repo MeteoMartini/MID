@@ -14,7 +14,7 @@ const GEOSPHERE_META='https://dataset.api.hub.geosphere.at/v1/station/current/ta
 const GEOSPHERE_CURRENT='https://dataset.api.hub.geosphere.at/v1/station/current/tawes-v1-10min';
 const BRIGHTSKY_CURRENT='https://api.brightsky.dev/current_weather';
 const OPENSENSEMAP_BOXES='https://api.opensensemap.org/boxes';
-const WORKER_VERSION='0.7.27';
+const WORKER_VERSION='0.7.28';
 const CORS={'content-type':'application/json; charset=utf-8','access-control-allow-origin':'*','access-control-allow-methods':'GET,OPTIONS','cache-control':'public, max-age=180'};
 const FEED_SLUGS={
  AD:'andorra',AT:'austria',BE:'belgium',BA:'bosnia-herzegovina',BG:'bulgaria',HR:'croatia',CY:'cyprus',CZ:'czechia',DK:'denmark',EE:'estonia',FI:'finland',FR:'france',DE:'germany',GR:'greece',EL:'greece',HU:'hungary',IS:'iceland',IE:'ireland',IL:'israel',IT:'italy',LV:'latvia',LT:'lithuania',LU:'luxembourg',MT:'malta',MD:'moldova',ME:'montenegro',NL:'netherlands',MK:'republic-of-north-macedonia',NO:'norway',PL:'poland',PT:'portugal',RO:'romania',RS:'serbia',SK:'slovakia',SI:'slovenia',ES:'spain',SE:'sweden',CH:'switzerland',UA:'ukraine',GB:'united-kingdom',UK:'united-kingdom',AM:'armenia'
@@ -458,7 +458,7 @@ async function radarNowcastForPoint(lat,lon,country=''){
 }
 
 
-// --- Kompositbild-Daten v0.7.27 --------------------------------------------
+// --- Kompositbild-Daten v0.7.28 --------------------------------------------
 const DWD_PX250_ROOT='https://opendata.dwd.de/weather/radar/sites/px250';
 const DWD_HX_ROOTS=['https://opendata.dwd.de/weather/radar/composite/hx','https://opendatao.dwd.de/weather/radar/composite/hx'];
 const DWD_PX250_SITES=[
@@ -606,6 +606,20 @@ async function compositeTimes(lat,lon){const serverTime=new Date().toISOString()
 function interpolatePoint(a,b,level){const av=Number(a.value),bv=Number(b.value),den=bv-av,ratio=Math.abs(den)<1e-9?.5:clamp((level-av)/den,0,1);return[a.lat+(b.lat-a.lat)*ratio,a.lon+(b.lon-a.lon)*ratio]}
 function contourSegments(values,lats,lons,step){const finite=values.flat().filter(Number.isFinite);if(!finite.length)return[];const min=Math.min(...finite),max=Math.max(...finite),first=Math.ceil(min/step)*step,levels=[];for(let level=first;level<=max&&levels.length<45;level+=step){const paths=[];for(let row=0;row<values.length-1;row++)for(let col=0;col<values[row].length-1;col++){const corners=[{lat:lats[row],lon:lons[col],value:values[row][col]},{lat:lats[row],lon:lons[col+1],value:values[row][col+1]},{lat:lats[row+1],lon:lons[col+1],value:values[row+1][col+1]},{lat:lats[row+1],lon:lons[col],value:values[row+1][col]}];if(corners.some(point=>!Number.isFinite(point.value)))continue;const edges=[[0,1],[1,2],[2,3],[3,0]],hits=[];for(const[i,j]of edges){const av=corners[i].value-level,bv=corners[j].value-level;if(av===0&&bv===0)continue;if(av===0||bv===0||av*bv<0)hits.push(interpolatePoint(corners[i],corners[j],level))}if(hits.length===2)paths.push([hits[0],hits[1]]);else if(hits.length>=4){paths.push([hits[0],hits[1]]);paths.push([hits[2],hits[3]])}}if(paths.length)levels.push({level,paths})}return levels}
 function openMeteoRows(data){return Array.isArray(data)?data:Array.isArray(data?.results)?data.results:[data]}
+
+const METEOGRAM_LEVELS=[1000,975,950,925,900,850,800,700,600,500,400,300];
+const METEOGRAM_MODELS=new Map([
+ ['best_match','Best Match'],['dwd_icon_d2','DWD ICON-D2'],['dwd_icon_eu','DWD ICON-EU'],['meteofrance_arpege_europe','Météo-France ARPEGE Europa'],['ecmwf_ifs','ECMWF IFS HRES'],['ncep_gfs013','NOAA GFS 0,11°'],['dwd_icon','DWD ICON Global']
+]);
+const METEOGRAM_SURFACE=['temperature_2m','relative_humidity_2m','pressure_msl','wind_speed_10m','wind_direction_10m','wind_gusts_10m','precipitation','rain','showers','snowfall','snow_depth','weather_code','freezing_level_height'];
+const METEOGRAM_PROFILE=METEOGRAM_LEVELS.flatMap(level=>[`temperature_${level}hPa`,`relative_humidity_${level}hPa`,`cloud_cover_${level}hPa`,`wind_speed_${level}hPa`,`wind_direction_${level}hPa`,`geopotential_height_${level}hPa`]);
+async function meteogramData(lat,lon,model,elevation){
+ const selected=METEOGRAM_MODELS.has(model)?model:'best_match',url=new URL('https://api.open-meteo.com/v1/forecast');url.searchParams.set('latitude',String(lat));url.searchParams.set('longitude',String(lon));if(Number.isFinite(elevation))url.searchParams.set('elevation',String(Math.max(-500,Math.min(9000,elevation))));url.searchParams.set('hourly',[...METEOGRAM_SURFACE,...METEOGRAM_PROFILE].join(','));url.searchParams.set('forecast_hours','168');url.searchParams.set('models',selected);url.searchParams.set('timezone','GMT');url.searchParams.set('timeformat','unixtime');url.searchParams.set('wind_speed_unit','kn');url.searchParams.set('precipitation_unit','mm');url.searchParams.set('temperature_unit','celsius');url.searchParams.set('cell_selection','nearest');
+ const response=await fetch(url.toString(),{headers:{Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},cf:{cacheTtl:600,cacheEverything:true}}),text=await response.text();let data={};try{data=JSON.parse(text)}catch{}if(!response.ok||data?.error)throw new Error(data?.reason||data?.error||`Open-Meteo Meteogramm HTTP ${response.status}`);
+ let meta=null;if(selected!=='best_match'){try{const metaResponse=await fetch(`https://api.open-meteo.com/data/${selected}/static/meta.json`,{headers:{Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},cf:{cacheTtl:600,cacheEverything:true}});if(metaResponse.ok)meta=await metaResponse.json()}catch{}}
+ const initial=number(meta?.last_run_initialisation_time),available=number(meta?.last_run_availability_time);return{data,requestedModel:selected,modelLabel:METEOGRAM_MODELS.get(selected),runInitialisationTime:Number.isFinite(initial)?new Date(initial*1000).toISOString():undefined,runAvailabilityTime:Number.isFinite(available)?new Date(available*1000).toISOString():undefined,checkedAt:new Date().toISOString()};
+}
+
 async function modelContours(lat,lon){
  const rows=9,cols=9,latSpan=6,lonSpan=Math.min(12,8/Math.max(.45,Math.cos(lat*Math.PI/180))),lats=Array.from({length:rows},(_,index)=>lat+latSpan/2-index*latSpan/(rows-1)),lons=Array.from({length:cols},(_,index)=>lon-lonSpan/2+index*lonSpan/(cols-1)),latitudes=[],longitudes=[];for(const y of lats)for(const x of lons){latitudes.push(y.toFixed(4));longitudes.push(x.toFixed(4))}
  const url=new URL('https://api.open-meteo.com/v1/forecast');url.searchParams.set('latitude',latitudes.join(','));url.searchParams.set('longitude',longitudes.join(','));url.searchParams.set('hourly','pressure_msl,geopotential_height_500hPa');url.searchParams.set('past_hours','2');url.searchParams.set('forecast_hours','5');url.searchParams.set('models','best_match');url.searchParams.set('timezone','GMT');url.searchParams.set('cell_selection','nearest');
@@ -640,7 +654,7 @@ export default{async fetch(request,env){
  const u=new URL(request.url),mode=u.searchParams.get('mode')||'';
  if(mode==='px250-file')return px250FileResponse(request);
  if(mode==='composite-wms')return compositeWmsResponse(request);
- if(mode==='health')return json({ok:true,version:WORKER_VERSION,services:['stations','alerts','hyperlocal-networks','model-assisted-local-analysis','radar-nowcast','px250-proxy','opera-grid-history','rainviewer-metadata','best-location-lightning','composite-product-times','model-contours','cors-safe-composite-wms'],providers:{'NOAA AviationWeather':true,'DWD Open Data / Bright Sky':true,'GeoSphere Austria':true,'openSenseMap / senseBox':env?.ENABLE_OPENSENSEMAP!=='false','Weather Underground':Boolean(env?.WEATHER_COM_API_KEY||env?.WU_API_KEY),Netatmo:Boolean(env?.NETATMO_ACCESS_TOKEN),'Synoptic Data':Boolean(env?.SYNOPTIC_TOKEN),Xweather:Boolean(env?.XWEATHER_CLIENT_ID&&env?.XWEATHER_CLIENT_SECRET)},timestamp:new Date().toISOString()});
+ if(mode==='health')return json({ok:true,version:WORKER_VERSION,services:['stations','alerts','hyperlocal-networks','model-assisted-local-analysis','radar-nowcast','px250-proxy','opera-grid-history','rainviewer-metadata','best-location-lightning','composite-product-times','model-contours','pressure-level-meteogram','cors-safe-composite-wms'],providers:{'NOAA AviationWeather':true,'DWD Open Data / Bright Sky':true,'GeoSphere Austria':true,'openSenseMap / senseBox':env?.ENABLE_OPENSENSEMAP!=='false','Weather Underground':Boolean(env?.WEATHER_COM_API_KEY||env?.WU_API_KEY),Netatmo:Boolean(env?.NETATMO_ACCESS_TOKEN),'Synoptic Data':Boolean(env?.SYNOPTIC_TOKEN),Xweather:Boolean(env?.XWEATHER_CLIENT_ID&&env?.XWEATHER_CLIENT_SECRET)},timestamp:new Date().toISOString()});
  const lat=Number(u.searchParams.get('lat')),lon=Number(u.searchParams.get('lon'));if(!Number.isFinite(lat)||!Number.isFinite(lon))return json({error:'lat/lon required',version:WORKER_VERSION},400);
  if(mode==='rainviewer-meta'){
   try{return json({...await rainViewerMetadata(),version:WORKER_VERSION,checkedAt:new Date().toISOString()},200,{'cache-control':'public, max-age=120'})}
@@ -649,6 +663,10 @@ export default{async fetch(request,env){
  if(mode==='model-contours'){
   try{return json({...await modelContours(lat,lon),version:WORKER_VERSION},200,{'cache-control':'public, max-age=900'})}
   catch(error){return json({frames:[],error:error instanceof Error?error.message:String(error),version:WORKER_VERSION,checkedAt:new Date().toISOString()},502,{'cache-control':'no-store'})}
+ }
+ if(mode==='meteogram'){
+  try{return json({...await meteogramData(lat,lon,String(u.searchParams.get('model')||'best_match'),Number(u.searchParams.get('elevation'))),version:WORKER_VERSION},200,{'cache-control':'public, max-age=600'})}
+  catch(error){return json({error:error instanceof Error?error.message:String(error),version:WORKER_VERSION,checkedAt:new Date().toISOString()},502,{'cache-control':'no-store'})}
  }
  if(mode==='px250-meta'){
   try{return json({...await px250Metadata(request,lat,lon),version:WORKER_VERSION,checkedAt:new Date().toISOString()},200,{'cache-control':'public, max-age=120'})}
