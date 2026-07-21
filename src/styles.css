@@ -1146,3 +1146,32 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 .consistency-popover{position:absolute;z-index:8;top:42px;right:8px;left:8px;display:grid;gap:3px;padding:9px 10px;border:1px solid var(--border);border-radius:11px;background:color-mix(in srgb,var(--surface) 94%,transparent);box-shadow:0 10px 24px rgba(15,35,55,.16);font-size:9px;line-height:1.35;backdrop-filter:blur(10px)}
 .consistency-popover strong{font-size:10px}.consistency-popover span{color:var(--text);font-weight:750}.consistency-popover small{color:var(--muted)}
 .ens-card.consistency-open{z-index:12}
+
+/* v0.7.40: kontrastreicher Dunkel-Export und Luftfahrthöhen */
+.meteogram-export-stage.exporting.export-dark{background:#0b1622!important;color:#f4f8fc!important}
+.meteogram-export-stage.exporting.export-dark .meteogram-meta,
+.meteogram-export-stage.exporting.export-dark .meteogram-block,
+.meteogram-export-stage.exporting.export-dark .meteogram-block>header,
+.meteogram-export-stage.exporting.export-dark .meteogram-scroll,
+.meteogram-export-stage.exporting.export-dark .meteogram-disclaimer{background:#102234!important;border-color:#385069!important;color:#f4f8fc!important}
+.meteogram-export-stage.exporting.export-dark .meteogram-meta span,
+.meteogram-export-stage.exporting.export-dark .meteogram-block>header strong{color:#f7fbff!important}
+.meteogram-export-stage.exporting.export-dark .meteogram-block>header small,
+.meteogram-export-stage.exporting.export-dark .meteogram-disclaimer{color:#c3d2df!important}
+.meteogram-export-stage.exporting.export-dark .meteogram-day-label,
+.meteogram-export-stage.exporting.export-dark .meteogram-row-label,
+.meteogram-export-stage.exporting.export-dark .meteogram-axis-label,
+.meteogram-export-stage.exporting.export-dark .meteogram-axis-unit,
+.meteogram-export-stage.exporting.export-dark .meteogram-no-data{fill:#e9f2f8!important;color:#e9f2f8!important}
+.meteogram-export-stage.exporting.export-dark .meteogram-row-label-bg{fill:#102234!important}
+.meteogram-export-stage.exporting.export-dark .meteogram-day-line{stroke:#738ba0!important;stroke-opacity:.78!important}
+.meteogram-export-stage.exporting.export-dark .meteogram-hour-line,
+.meteogram-export-stage.exporting.export-dark .meteogram-value-line{stroke:#61778b!important;stroke-opacity:.42!important}
+.meteogram-export-stage.exporting.export-dark .meteogram-pressure-line{stroke:#d1dde7!important;stroke-opacity:.5!important}
+.meteogram-export-stage.exporting.export-dark .meteogram-isoline.humidity{stroke:#f8fbff!important;stroke-width:1.55!important;opacity:1!important}
+.meteogram-export-stage.exporting.export-dark .meteogram-isoline.temp{stroke:#eef6fc!important;stroke-width:1.45!important;opacity:1!important}
+.meteogram-export-stage.exporting.export-dark .meteogram-isoline-label{fill:#f9fcff!important;stroke:#07111b!important;stroke-width:3px!important}
+.meteogram-export-stage.exporting.export-dark .meteogram-wind-arrow .wind-arrow-halo{stroke:#050b11!important;fill:#050b11!important}
+.meteogram-export-stage.exporting.export-dark .meteogram-wind-arrow .wind-arrow-core{stroke:#ffffff!important;fill:#ffffff!important}
+.meteogram-export-stage.exporting.export-dark .tropopause-line{stroke:#f2f7fb!important}
+.meteogram-export-stage.exporting.export-light{background:#f3f6fa!important;color:#17283a!important}
