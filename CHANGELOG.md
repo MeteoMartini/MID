@@ -1,3 +1,10 @@
+## 0.7.30
+
+- Meteogrammprofile und optionale Risikoebenen vertikal gedreht: hohe Atmosphäre oben, Boden bzw. bodennahe Druckflächen unten
+- Wind- und Böenachsen beginnen zwingend bei 0 kt; eingehende Windwerte werden defensiv auf nichtnegative Werte begrenzt
+- Windpfeile für helle und dunkle Ansicht mit kontrastreicher Kontur neu gezeichnet
+- Cloudflare Worker funktional unverändert, nur einheitliche Versionsanhebung
+
 ## 0.7.29
 
 - Modelllinien auf großräumige, ortsabhängige Kartenausschnitte erweitert; für Standorte in Deutschland wird der europäische ICON-EU-Ausschnitt verwendet

@@ -36,12 +36,12 @@ export function configuredDataProxy(){
 }
 function endpoint(mode:string,lat:number,lon:number){
  const configured=configuredDataProxy();
- if(!configured)throw new Error('Cloudflare Worker v0.7.29 ist nicht konfiguriert.');
+ if(!configured)throw new Error('Cloudflare Worker v0.7.30 ist nicht konfiguriert.');
  const url=new URL(configured,location.href);
  url.searchParams.set('mode',mode);
  url.searchParams.set('lat',String(lat));
  url.searchParams.set('lon',String(lon));
- url.searchParams.set('_mid','0.7.29');
+ url.searchParams.set('_mid','0.7.30');
  return url;
 }
 export function compositeWmsProxy(provider:WmsProvider){
@@ -50,7 +50,7 @@ export function compositeWmsProxy(provider:WmsProvider){
  const url=new URL(configured,location.href);
  url.searchParams.set('mode','composite-wms');
  url.searchParams.set('provider',provider);
- url.searchParams.set('_mid','0.7.29');
+ url.searchParams.set('_mid','0.7.30');
  return url.toString();
 }
 async function getJson<T extends {error?:string}>(url:URL,signal?:AbortSignal):Promise<T>{
