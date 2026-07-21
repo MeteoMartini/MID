@@ -1,3 +1,13 @@
+# v0.7.33
+
+- Meteogramm: unvollständige Isolinien an internen Datenlücken werden verworfen; Konturen sind auf den Datenbereich begrenzt.
+- Dezente horizontale Hilfslinien auf 1000, 850, 700, 500 und 300 hPa.
+- Relative Feuchte mit Isolinien im 20-Prozentpunkte-Raster.
+- WMO-Windfiedern zeigen zur Herkunftsrichtung, sind länger und kennzeichnen Windstille mit einem Kreis.
+- Tooltips für Profil-, Linien-, Niederschlags- und Risikodiagramme erweitert.
+- Download nutzt, soweit unterstützt, „Speichern unter…“; auf Mobilgeräten folgt die System-Freigabe und sonst der normale Browser-Download.
+- Worker: keine funktionale Änderung; nur einheitliche Versionsanhebung.
+
 # Changelog
 
 ## v0.7.32 — Updater- und Modelllinien-Korrektur
