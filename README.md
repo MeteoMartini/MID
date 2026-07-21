@@ -1,8 +1,17 @@
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.21**
+**Aktuelle Version: v0.7.22**
 
 MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React, TypeScript und Open-Meteo. Es verbindet Vorhersagen, Ensemblemodelle, aktuelle Stationsmessungen, amtliche Warnungen, Radar, Luftqualität und exportierbare Wetterwidgets.
+
+## PowerPoint-Export, Kompositfilm und direkte Favoritensortierung (v0.7.22)
+
+- Der Widget-Generator kopiert das gerenderte Widget als hochauflösendes PNG direkt in die Systemzwischenablage. In PowerPoint genügt anschließend Einfügen; blockiert der Browser die Bildzwischenablage, zeigt MID automatisch ein kopierbares Fallbackbild für Rechtsklick beziehungsweise langes Drücken. Der klassische PNG-Download bleibt separat erhalten.
+- Komposit-Layer und ihre individuellen Deckkräfte werden dauerhaft im Browser gespeichert. Deckkraftregler erscheinen nur für aktivierte Niederschlags-, Satelliten- und Blitzlayer.
+- Die gemeinsame Zeitachse nutzt die tatsächlich verfügbaren Produktzeitpunkte: DWD-RV einschließlich Nowcast bis ungefähr ±1 Stunde, OPERA-Historie bis rund 60 Minuten sowie historische Satelliten-/Blitzzeitpunkte, soweit der jeweilige Dienst sie liefert. Layerwechsel werden mit kurzen Opazitätsübergängen geglättet.
+- MID wählt ortsabhängig die beste verfügbare Radarauflösung: DWD-PX250 mit 250 m im lokalen Radarbereich, DWD-RV mit 1 km in Deutschland, EUMETNET OPERA RATE mit 2 km in Europa und RainViewer erst als weiterer Fallback.
+- Blitzaktivität wird als ungefüllte, nach Stärke beziehungsweise Häufigkeit skalierte Ringe dargestellt. Mit konfigurierten Xweather-Zugangsdaten stehen lizenzierte Vaisala-/GLD360-Punktdaten weltweit bereit; ohne Zugangsdaten nutzt MID DWD in Deutschland und EUMETSAT MTG-LI im europäischen/afrikanischen Satellitenbereich. nowcast/LINET und Earth Networks werden wegen ihrer kommerziellen Lizenzierung nicht ohne Vertrag eingebunden.
+- Favoriten lassen sich direkt in der Schnellzugriffsleiste unter der Suche per Maus oder Touch am Griff verschieben; die neue Reihenfolge wird sofort gespeichert.
 
 ## Kompositbild: Radar, Satellit und Blitzaktivität (v0.7.21)
 

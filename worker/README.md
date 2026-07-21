@@ -1,10 +1,10 @@
-# MID Daten-, Warnungs- und Radarproxy v0.7.21
+# MID Daten-, Warnungs- und Radarproxy v0.7.22
 
 Der Cloudflare Worker stellt browserkompatibel Stationsdaten, amtliche Warnungen und die standortbezogene Radar-Nowcast-Auswertung bereit. Ein zweiter Worker ist nicht erforderlich.
 
-## Kompatibilität v0.7.21
+## Kompatibilität v0.7.22
 
-Der Worker erweitert die bestehenden Stations-, Warnungs- und Nowcast-Dienste um einen CORS-sicheren DWD-PX250-Dateipfad, ein EUMETNET-OPERA-Kartenraster und DWD-Blitzgeometrien. Damit kann das Kompositbild die Providerpriorität DWD → OPERA → RainViewer auch visuell korrekt abbilden. Die bisherigen Schnittstellen bleiben kompatibel.
+Der Worker erweitert die bestehenden Stations-, Warnungs- und Nowcast-Dienste um zeitlich begrenzte Radar-/OPERA-Filmfenster und eine ortsabhängige Blitzquellenwahl. Mit autorisierten Xweather-Zugangsdaten werden weltweite Vaisala-/GLD360-Punktdaten genutzt; ohne Zugangsdaten bleiben DWD-Blitzgeometrien in Deutschland und EUMETSAT MTG-LI als freier Satelliten-Fallback erhalten. Die bisherigen Schnittstellen bleiben kompatibel.
 
 ## Enthaltene Dienste
 
@@ -21,8 +21,9 @@ Der Worker erweitert die bestehenden Stations-, Warnungs- und Nowcast-Dienste um
 - NOAA/NWS Active Alerts – USA
 - Radar-Nowcast: DWD-RV in Deutschland, EUMETNET OPERA/ORD in Europa und RainViewer als Fallback
 - PX250-Metadaten und HDF5-Dateiproxy für das hochaufgelöste lokale DWD-Radarprodukt
-- EUMETNET-OPERA-RATE-Punktraster für die europäische Kartenvisualisierung
-- DWD-Blitzgeometrien für zeitcodierte Blitzkreise; das Frontend fällt bei Bedarf auf Rasterlayer zurück
+- EUMETNET-OPERA-RATE-Punktraster einschließlich kompakter Historie bis ungefähr 60 Minuten für die europäische Kartenvisualisierung
+- Ortsabhängige Blitzquelle: optional weltweite Vaisala-Xweather-/GLD360-Punktdaten, sonst DWD-Blitzgeometrien in Deutschland und MTG-LI-Raster im Satellitenabdeckungsbereich
+- Reale WMS-Produktzeitpunkte für den synchronen Satelliten-/Blitz-Kartenfilm (`composite-times`)
 
 ## Bereitstellung
 
@@ -43,12 +44,14 @@ NETATMO_ACCESS_TOKEN
 SYNOPTIC_TOKEN
 XWEATHER_CLIENT_ID
 XWEATHER_CLIENT_SECRET
+XWEATHER_LIGHTNING_ENTERPRISE  # optional: true bei freigeschalteter Lightning-Enterprise-Historie
 ENABLE_OPENSENSEMAP        # optional: false deaktiviert die offene Citizen-Science-Quelle
 ```
 
 Alle Secrets sind optional. Ohne sie bleiben NOAA-METAR, DWD Open Data/Bright Sky, GeoSphere Austria/TAWES, openSenseMap und amtliche Warnungen aktiv. `ENABLE_OPENSENSEMAP=false` ist eine normale Worker-Variable, kein Secret.
 
 - Weather Underground, Netatmo und Xweather werden nur über offizielle, entsprechend berechtigte API-Zugänge verwendet.
+- Die Xweather-Zugangsdaten werden zusätzlich für den weltweiten Lightning-Endpunkt genutzt. Der Standardzugang liefert die letzten fünf Minuten; mit `XWEATHER_LIGHTNING_ENTERPRISE=true` fordert MID eine auf 2.500 Treffer begrenzte Historie bis 60 Minuten an. Ohne passenden Tarif bleibt die globale Punktquelle deaktiviert; MID fällt transparent auf die freien regionalen Quellen zurück.
 - `SYNOPTIC_TOKEN` ist ein Synoptic-Weather-API-Token.
 - Netatmo benötigt einen gültigen OAuth-Access-Token. Ein statisch hinterlegter Access-Token muss nach Ablauf erneuert werden; der Worker führt ohne zusätzliche persistente OAuth-Infrastruktur keine automatische Tokenrotation durch.
 - Secrets niemals als öffentliche GitHub-Variable oder `VITE_*`-Variable eintragen.
@@ -66,8 +69,8 @@ Beispielantwort:
 ```json
 {
   "ok": true,
-  "version": "0.7.21",
-  "services": ["stations", "alerts", "hyperlocal-networks", "model-assisted-local-analysis", "radar-nowcast", "px250-proxy", "opera-grid", "lightning-points"],
+  "version": "0.7.22",
+  "services": ["stations", "alerts", "hyperlocal-networks", "model-assisted-local-analysis", "radar-nowcast", "px250-proxy", "opera-grid-history", "best-location-lightning", "composite-product-times"],
   "providers": {
     "NOAA AviationWeather": true,
     "DWD Open Data / Bright Sky": true,
@@ -87,9 +90,10 @@ Kompositbild-Diagnose für Niederkassel:
 https://DEIN-WORKER.workers.dev/?mode=px250-meta&lat=50.82&lon=7.04
 https://DEIN-WORKER.workers.dev/?mode=opera-grid&lat=50.82&lon=7.04
 https://DEIN-WORKER.workers.dev/?mode=lightning-points&lat=50.82&lon=7.04
+https://DEIN-WORKER.workers.dev/?mode=composite-times&lat=50.82&lon=7.04
 ```
 
-Der von `px250-meta` zurückgegebene `fileUrl` verweist auf denselben Worker und darf direkt vom Frontend geladen werden. Für die drei Kompositmodi sind keine zusätzlichen Secrets erforderlich.
+Der von `px250-meta` zurückgegebene `fileUrl` verweist auf denselben Worker und darf direkt vom Frontend geladen werden. PX250, OPERA und die freien DWD-/MTG-LI-Fallbacks benötigen keine zusätzlichen Secrets. Für weltweite Xweather-/GLD360-Blitzpunkte sind `XWEATHER_CLIENT_ID` und `XWEATHER_CLIENT_SECRET` erforderlich.
 
 Stationsabruf für Innsbruck:
 

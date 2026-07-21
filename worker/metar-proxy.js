@@ -14,7 +14,7 @@ const GEOSPHERE_META='https://dataset.api.hub.geosphere.at/v1/station/current/ta
 const GEOSPHERE_CURRENT='https://dataset.api.hub.geosphere.at/v1/station/current/tawes-v1-10min';
 const BRIGHTSKY_CURRENT='https://api.brightsky.dev/current_weather';
 const OPENSENSEMAP_BOXES='https://api.opensensemap.org/boxes';
-const WORKER_VERSION='0.7.21';
+const WORKER_VERSION='0.7.22';
 const CORS={'content-type':'application/json; charset=utf-8','access-control-allow-origin':'*','access-control-allow-methods':'GET,OPTIONS','cache-control':'public, max-age=180'};
 const FEED_SLUGS={
  AD:'andorra',AT:'austria',BE:'belgium',BA:'bosnia-herzegovina',BG:'bulgaria',HR:'croatia',CY:'cyprus',CZ:'czechia',DK:'denmark',EE:'estonia',FI:'finland',FR:'france',DE:'germany',GR:'greece',EL:'greece',HU:'hungary',IS:'iceland',IE:'ireland',IL:'israel',IT:'italy',LV:'latvia',LT:'lithuania',LU:'luxembourg',MT:'malta',MD:'moldova',ME:'montenegro',NL:'netherlands',MK:'republic-of-north-macedonia',NO:'norway',PL:'poland',PT:'portugal',RO:'romania',RS:'serbia',SK:'slovakia',SI:'slovenia',ES:'spain',SE:'sweden',CH:'switzerland',UA:'ukraine',GB:'united-kingdom',UK:'united-kingdom',AM:'armenia'
@@ -322,9 +322,12 @@ function dwdTimesFromCapabilities(xml,layer=''){
 }
 function generatedDwdTimes(now=Date.now()){const base=Math.floor(now/300000)*300000,out=[];for(let minute=-25;minute<=120;minute+=5)out.push(base+minute*60000);return out}
 function selectDwdTimes(times,now=Date.now()){
- const usable=(times.length?times:generatedDwdTimes(now)).filter(t=>t>=now-35*60000&&t<=now+125*60000).sort((a,b)=>a-b);
- const observed=usable.filter(t=>t<=now+90000).slice(-5),allFuture=usable.filter(t=>t>now+90000),future=allFuture.filter((_,i)=>i===0||i%2===0||i===allFuture.length-1);
- return[...new Set([...observed,...future])].slice(-22);
+ // Für die Kartenanimation wird höchstens ein ±1-h-Fenster bereitgestellt.
+ // Beobachtungen bleiben in 5-min-Auflösung, Zukunftsframes werden bei Bedarf
+ // auf etwa 10 min ausgedünnt, damit Worker- und Browserlast vertretbar bleiben.
+ const usable=(times.length?times:generatedDwdTimes(now)).filter(t=>t>=now-65*60000&&t<=now+65*60000).sort((a,b)=>a-b);
+ const observed=usable.filter(t=>t<=now+90000).slice(-13),allFuture=usable.filter(t=>t>now+90000&&t<=now+65*60000),future=allFuture.filter((_,i)=>i===0||i%2===0||i===allFuture.length-1);
+ return[...new Set([...observed,...future])].slice(-20);
 }
 function dwdCapabilitiesUrl(base){const u=new URL(base);u.searchParams.set('service','WMS');u.searchParams.set('version','1.3.0');u.searchParams.set('request','GetCapabilities');return u.toString()}
 async function dwdAvailableTimes(base,layer){const response=await fetch(dwdCapabilitiesUrl(base),{headers:{Accept:'application/xml,text/xml,*/*'},cf:{cacheTtl:300,cacheEverything:true}});if(!response.ok)throw new Error(`DWD Capabilities HTTP ${response.status}`);const text=await response.text(),times=dwdTimesFromCapabilities(text,layer);if(!times.length)throw new Error('DWD Capabilities ohne passende Zeitdimension');return times}
@@ -451,7 +454,7 @@ async function radarNowcastForPoint(lat,lon,country=''){
 }
 
 
-// --- Kompositbild-Daten v0.7.21 --------------------------------------------
+// --- Kompositbild-Daten v0.7.22 --------------------------------------------
 const DWD_PX250_ROOT='https://opendata.dwd.de/weather/radar/sites/px250';
 const DWD_PX250_SITES=[
  {code:'asb',wmo:'10103',name:'Borkum/Emden',lat:53.564011,lon:6.748292},{code:'boo',wmo:'10132',name:'Boostedt',lat:54.004381,lon:10.046899},
@@ -486,10 +489,12 @@ async function px250FileResponse(request){
 }
 async function operaGrid(lat,lon){
  const spacingKm=42,offsets=[-2,-1,0,1,2],locations=[];for(const north of offsets)for(const east of offsets){const point=offsetPoint(lat,lon,north*spacingKm,east*spacingKm);locations.push(point)}
- const settled=await Promise.allSettled(locations.map(point=>operaPointSeries(point.lat,point.lon))),points=[];
- settled.forEach((result,index)=>{if(result.status!=='fulfilled'||!result.value.length)return;const latest=result.value.at(-1),point=locations[index];points.push({lat:point.lat,lon:point.lon,rate:validRadarRate(latest.rate)??0,observedAt:new Date(latest.time).toISOString()})});
- if(!points.length)throw new Error('EUMETNET OPERA/ORD liefert aktuell kein darstellbares Raster.');
- const observedAt=points.map(point=>point.observedAt).filter(Boolean).sort().at(-1);return{points,provider:'EUMETNET OPERA/ORD RATE',observedAt,spacingKm,coverage:'Europa · 5×5-Punktraster aus dem OPERA-Komposit',license:'CC BY 4.0'};
+ const settled=await Promise.allSettled(locations.map(point=>operaPointSeries(point.lat,point.lon))),seriesByLocation=settled.map(result=>result.status==='fulfilled'?result.value:[]),allTimes=[...new Set(seriesByLocation.flatMap(series=>series.map(item=>item.time)))].filter(Number.isFinite).sort((a,b)=>a-b),latest=allTimes.at(-1);
+ if(!latest)throw new Error('EUMETNET OPERA/ORD liefert aktuell kein darstellbares Raster.');
+ const candidates=allTimes.filter(time=>time>=latest-65*60000),targets=[];for(const time of candidates){if(!targets.length||time-targets.at(-1)>=8*60000)targets.push(time)}if(targets.at(-1)!==latest)targets.push(latest);const selectedTargets=targets.slice(-8),frames=[];
+ for(const target of selectedTargets){const points=[];seriesByLocation.forEach((series,index)=>{if(!series.length)return;let nearest=series[0];for(const item of series)if(Math.abs(item.time-target)<Math.abs(nearest.time-target))nearest=item;if(Math.abs(nearest.time-target)>8*60000)return;const point=locations[index];points.push({lat:point.lat,lon:point.lon,rate:validRadarRate(nearest.rate)??0,observedAt:new Date(nearest.time).toISOString()})});if(points.length)frames.push({time:new Date(target).toISOString(),points})}
+ if(!frames.length)throw new Error('EUMETNET OPERA/ORD liefert aktuell kein darstellbares Raster.');
+ const current=frames.at(-1),observedAt=current.time;return{points:current.points,frames,provider:'EUMETNET OPERA/ORD RATE',observedAt,spacingKm,nativeResolutionKm:2,temporalResolutionMinutes:15,coverage:'Europa · 5×5-Stützraster aus dem OPERA-Komposit · Film bis 60 Minuten',license:'CC BY 4.0'};
 }
 function flattenCoordinatePairs(value,out=[]){if(!Array.isArray(value))return out;if(value.length>=2&&Number.isFinite(Number(value[0]))&&Number.isFinite(Number(value[1]))){out.push([Number(value[0]),Number(value[1])]);return out}for(const child of value)flattenCoordinatePairs(child,out);return out}
 function geometryCentre(geometry){const pairs=flattenCoordinatePairs(geometry?.coordinates);if(!pairs.length)return null;const valid=pairs.filter(([lon,lat])=>lon>=-180&&lon<=180&&lat>=-90&&lat<=90);if(!valid.length)return null;return{lon:valid.reduce((sum,p)=>sum+p[0],0)/valid.length,lat:valid.reduce((sum,p)=>sum+p[1],0)/valid.length}}
@@ -504,11 +509,36 @@ async function dwdLightningPoints(lat,lon){
  throw new Error(`DWD-Blitzpunkte nicht verfügbar: ${errors.slice(-3).join(' | ')}`);
 }
 
+const XWEATHER_LIGHTNING='https://data.api.xweather.com/lightning/closest';
+function mtgLightningApplies(lat,lon){return lat>=-60&&lat<=72&&lon>=-75&&lon<=80}
+async function xweatherLightningPoints(lat,lon,clientId,clientSecret,enterprise=false){
+ const url=new URL(XWEATHER_LIGHTNING);url.searchParams.set('p',`${lat.toFixed(5)},${lon.toFixed(5)}`);url.searchParams.set('radius','100km');url.searchParams.set('limit',enterprise?'2500':'1000');url.searchParams.set('filter','all');if(enterprise)url.searchParams.set('from','-1hour');url.searchParams.set('format','json');url.searchParams.set('client_id',clientId);url.searchParams.set('client_secret',clientSecret);
+ const response=await fetch(url.toString(),{headers:{Accept:'application/json'},cf:{cacheTtl:45,cacheEverything:true}});if(!response.ok)throw new Error(`Xweather Lightning HTTP ${response.status}`);const raw=await response.json();if(raw?.success===false)throw new Error(raw?.error?.description||'Xweather Lightning nicht autorisiert');const rows=Array.isArray(raw?.response)?raw.response:[],points=[];
+ for(const row of rows){const plat=number(row?.loc?.lat),plon=number(row?.loc?.long),observedAt=safeDate(row?.ob?.dateTimeISOMS||row?.ob?.dateTimeISO||row?.ob?.timestampMS||Number(row?.ob?.timestamp)*1000);if(plat===undefined||plon===undefined||!observedAt)continue;points.push({id:String(row?.id||`${plat.toFixed(5)}:${plon.toFixed(5)}:${observedAt}`),lat:plat,lon:plon,observedAt,intensity:number(row?.ob?.pulse?.peakamp),pulseType:String(row?.ob?.pulse?.type||''),count:number(row?.ob?.pulse?.numSensors),accuracyKm:1})}
+ return{points,provider:'Vaisala Xweather / GLD360',observedAt:points.map(point=>point.observedAt).sort().at(-1),coverage:'Weltweit · lizenzierte Bodenblitzdaten bis 100 km Umkreis',nativeResolutionKm:1,historyMinutes:enterprise?60:5,commercial:true,enterprise};
+}
+async function bestLightningPoints(lat,lon,env){
+ if(env?.XWEATHER_CLIENT_ID&&env?.XWEATHER_CLIENT_SECRET){try{return await xweatherLightningPoints(lat,lon,env.XWEATHER_CLIENT_ID,env.XWEATHER_CLIENT_SECRET,env?.XWEATHER_LIGHTNING_ENTERPRISE==='true')}catch(error){if(!inGermanyBounds(lat,lon)&&!mtgLightningApplies(lat,lon))throw error}}
+ if(inGermanyBounds(lat,lon)){try{return{...await dwdLightningPoints(lat,lon),nativeResolutionKm:1,historyMinutes:60,commercial:false}}catch(error){if(!mtgLightningApplies(lat,lon))throw error}}
+ if(mtgLightningApplies(lat,lon))return{points:[],provider:'EUMETSAT MTG-LI AFA',coverage:'Europa, Afrika und angrenzende Ozeane · satellitengestütztes 2-km-Raster',fallback:'mtg-li',nativeResolutionKm:2,historyMinutes:60,commercial:false};
+ return{points:[],provider:'Keine freie Echtzeit-Blitzquelle',coverage:'Außerhalb der freien DWD- und MTG-LI-Abdeckung',fallback:'none',reason:'Weltweite Punktdaten benötigen lizenzierte Xweather-/GLD360-, nowcast/LINET- oder Earth-Networks-Zugangsdaten.',commercial:false};
+}
+
+
+const EUMETSAT_WMS='https://view.eumetsat.int/geoserver/wms';
+async function wmsCapabilitiesText(base,label){const response=await fetch(dwdCapabilitiesUrl(base),{headers:{Accept:'application/xml,text/xml,*/*'},cf:{cacheTtl:300,cacheEverything:true}});if(!response.ok)throw new Error(`${label} Capabilities HTTP ${response.status}`);return response.text()}
+function recentObservedTimes(times,now=Date.now()){const unique=[...new Set((times||[]).filter(Number.isFinite).filter(time=>time>=now-70*60000&&time<=now+6*60000))].sort((a,b)=>a-b);if(unique.length<=14)return unique;const step=Math.max(1,Math.ceil(unique.length/14)),selected=unique.filter((_,index)=>index%step===0);if(selected.at(-1)!==unique.at(-1))selected.push(unique.at(-1));return selected.slice(-14)}
+async function compositeTimes(lat,lon){const result={satelliteDay:[],satelliteIr:[],mtgLightning:[],dwdLightning:[],checkedAt:new Date().toISOString()},tasks=[];
+ if(mtgLightningApplies(lat,lon))tasks.push(wmsCapabilitiesText(EUMETSAT_WMS,'EUMETSAT').then(xml=>{result.satelliteDay=recentObservedTimes(dwdTimesFromCapabilities(xml,'mtg_fd:vis06_hrfi'));result.satelliteIr=recentObservedTimes(dwdTimesFromCapabilities(xml,'mtg_fd:ir105_hrfi'));result.mtgLightning=recentObservedTimes(dwdTimesFromCapabilities(xml,'mtg_fd:li_afa'))}));
+ if(inGermanyBounds(lat,lon))tasks.push(wmsCapabilitiesText(DWD_RADAR_WMS_PRIMARY,'DWD').then(xml=>{result.dwdLightning=recentObservedTimes(dwdTimesFromCapabilities(xml,'dwd:Blitzdichte'))}));
+ const settled=await Promise.allSettled(tasks),errors=settled.filter(item=>item.status==='rejected').map(item=>item.reason instanceof Error?item.reason.message:String(item.reason));return{...result,errors};
+}
+
 export default{async fetch(request,env){
  if(request.method==='OPTIONS')return new Response(null,{status:204,headers:CORS});
  const u=new URL(request.url),mode=u.searchParams.get('mode')||'';
  if(mode==='px250-file')return px250FileResponse(request);
- if(mode==='health')return json({ok:true,version:WORKER_VERSION,services:['stations','alerts','hyperlocal-networks','model-assisted-local-analysis','radar-nowcast','px250-proxy','opera-grid','lightning-points'],providers:{'NOAA AviationWeather':true,'DWD Open Data / Bright Sky':true,'GeoSphere Austria':true,'openSenseMap / senseBox':env?.ENABLE_OPENSENSEMAP!=='false','Weather Underground':Boolean(env?.WEATHER_COM_API_KEY||env?.WU_API_KEY),Netatmo:Boolean(env?.NETATMO_ACCESS_TOKEN),'Synoptic Data':Boolean(env?.SYNOPTIC_TOKEN),Xweather:Boolean(env?.XWEATHER_CLIENT_ID&&env?.XWEATHER_CLIENT_SECRET)},timestamp:new Date().toISOString()});
+ if(mode==='health')return json({ok:true,version:WORKER_VERSION,services:['stations','alerts','hyperlocal-networks','model-assisted-local-analysis','radar-nowcast','px250-proxy','opera-grid-history','best-location-lightning','composite-product-times'],providers:{'NOAA AviationWeather':true,'DWD Open Data / Bright Sky':true,'GeoSphere Austria':true,'openSenseMap / senseBox':env?.ENABLE_OPENSENSEMAP!=='false','Weather Underground':Boolean(env?.WEATHER_COM_API_KEY||env?.WU_API_KEY),Netatmo:Boolean(env?.NETATMO_ACCESS_TOKEN),'Synoptic Data':Boolean(env?.SYNOPTIC_TOKEN),Xweather:Boolean(env?.XWEATHER_CLIENT_ID&&env?.XWEATHER_CLIENT_SECRET)},timestamp:new Date().toISOString()});
  const lat=Number(u.searchParams.get('lat')),lon=Number(u.searchParams.get('lon'));if(!Number.isFinite(lat)||!Number.isFinite(lon))return json({error:'lat/lon required',version:WORKER_VERSION},400);
  if(mode==='px250-meta'){
   try{return json({...await px250Metadata(request,lat,lon),version:WORKER_VERSION,checkedAt:new Date().toISOString()},200,{'cache-control':'public, max-age=120'})}
@@ -518,8 +548,12 @@ export default{async fetch(request,env){
   try{return json({...await operaGrid(lat,lon),version:WORKER_VERSION,checkedAt:new Date().toISOString()},200,{'cache-control':'public, max-age=180'})}
   catch(error){return json({points:[],error:error instanceof Error?error.message:String(error),version:WORKER_VERSION,checkedAt:new Date().toISOString()},502,{'cache-control':'no-store'})}
  }
+ if(mode==='composite-times'){
+  try{return json({...await compositeTimes(lat,lon),version:WORKER_VERSION},200,{'cache-control':'public, max-age=240'})}
+  catch(error){return json({satelliteDay:[],satelliteIr:[],mtgLightning:[],dwdLightning:[],error:error instanceof Error?error.message:String(error),version:WORKER_VERSION},502,{'cache-control':'no-store'})}
+ }
  if(mode==='lightning-points'){
-  try{return json({...await dwdLightningPoints(lat,lon),version:WORKER_VERSION,checkedAt:new Date().toISOString()},200,{'cache-control':'public, max-age=120'})}
+  try{return json({...await bestLightningPoints(lat,lon,env),version:WORKER_VERSION,checkedAt:new Date().toISOString()},200,{'cache-control':'public, max-age=60'})}
   catch(error){return json({points:[],error:error instanceof Error?error.message:String(error),version:WORKER_VERSION,checkedAt:new Date().toISOString()},502,{'cache-control':'no-store'})}
  }
  if(mode==='radar-nowcast'){
