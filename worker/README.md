@@ -1,17 +1,26 @@
-# MID Daten-, Warnungs- und Radarproxy v0.7.26
+# MID Daten-, Warnungs- und Radarproxy v0.7.27
 
 Der Cloudflare Worker stellt browserkompatibel Stationsdaten, amtliche Warnungen und die standortbezogene Radar-Nowcast-Auswertung bereit. Ein zweiter Worker ist nicht erforderlich.
 
-## Hochauflösendes Radar v0.7.26
+## Komposit- und Modellrouten v0.7.27
+
+- `rainviewer-meta` stellt die öffentliche RainViewer-Historie CORS-sicher und 120 Sekunden gecacht bereit. Zukunftsframes werden nur weitergereicht, wenn der Anbieter sie tatsächlich meldet.
+- `composite-times` liefert bis zu 150 Minuten Satelliten- und 130 Minuten Blitzhistorie sowie einen Publikationspuffer für verspätet eintreffende Satellitenprodukte.
+- H-SAF-Niederschlagsprodukte werden in der Reihenfolge MTG H40B (sobald als WMS-Layer vorhanden) und MSG H60B ausgewählt.
+- `model-contours` fragt nur bei aktivierter Oberfläche ein 9×9-Stützraster aus Open-Meteo Best Match ab und erzeugt Isobaren im 4-hPa-Abstand sowie 500-hPa-Isohypsen im 60-m-Abstand. Die Antwort wird 15 Minuten gecacht.
+- `composite-wms` akzeptiert die neuen freigegebenen H-SAF-Layer und berücksichtigt die längere Veröffentlichungsverzögerung von Satellitenprodukten.
+
+
+## Hochauflösendes Radar v0.7.27
 
 Der Endpunkt `px250-meta` prüft für deutsche Orte zuerst das nationale DWD-HX-Komposit (`weather/radar/composite/hx`) mit 250-m-Raster. Ein aktuelles PX250-Standortprodukt dient nur noch als Fallback. `px250-file` validiert Produkt, Dateiname und Aktualität erneut.
 
-## Kompatibilität v0.7.26
+## Kompatibilität v0.7.27
 
 Der Worker wurde funktional erweitert. Die Route `mode=composite-wms` leitet ausschließlich freigegebene Layer, valide Zeitstempel und notwendige WMS-Kartenparameter an DWD beziehungsweise EUMETSAT weiter, setzt CORS-Header und verwendet beim DWD automatisch den Ausfallserver. `composite-times` liefert Zeitwerte einheitlich als ISO-Zeit, ergänzt den tatsächlich verwendeten DWD-Radar-Layer und die Serverzeit und trennt jede Zeitdimension strikt nach Produkt. DWD-RV stellt für die Oberfläche – soweit vom Dienst angeboten – ein reales relatives Fenster von −1 Stunde bis +2 Stunden bereit; künstliche Zukunftsframes werden nicht erzeugt.
 
 
-### Zusätzliche Absicherung in v0.7.26
+### Zusätzliche Absicherung in v0.7.27
 
 - `px250-meta` akzeptiert nur frische Standortprodukte und prüft mehrere nahe Radarstandorte. `px250-file` validiert den Zeitstempel des Dateinamens erneut, sodass alte Cache-Verweise nicht mehr ausgeliefert werden.
 - `composite-wms` weist Zeitpunkte außerhalb des jeweils zulässigen Radar-, Satelliten- oder Blitzfensters zurück.
@@ -84,8 +93,8 @@ Beispielantwort:
 ```json
 {
   "ok": true,
-  "version": "0.7.26",
-  "services": ["stations", "alerts", "hyperlocal-networks", "model-assisted-local-analysis", "radar-nowcast", "px250-proxy", "opera-grid-history", "best-location-lightning", "composite-product-times", "cors-safe-composite-wms"],
+  "version": "0.7.27",
+  "services": ["stations", "alerts", "hyperlocal-networks", "model-assisted-local-analysis", "radar-nowcast", "px250-proxy", "opera-grid-history", "rainviewer-metadata", "best-location-lightning", "composite-product-times", "model-contours", "cors-safe-composite-wms"],
   "providers": {
     "NOAA AviationWeather": true,
     "DWD Open Data / Bright Sky": true,
@@ -106,6 +115,8 @@ https://DEIN-WORKER.workers.dev/?mode=px250-meta&lat=50.82&lon=7.04
 https://DEIN-WORKER.workers.dev/?mode=opera-grid&lat=50.82&lon=7.04
 https://DEIN-WORKER.workers.dev/?mode=lightning-points&lat=50.82&lon=7.04
 https://DEIN-WORKER.workers.dev/?mode=composite-times&lat=50.82&lon=7.04
+https://DEIN-WORKER.workers.dev/?mode=rainviewer-meta&lat=50.82&lon=7.04
+https://DEIN-WORKER.workers.dev/?mode=model-contours&lat=50.82&lon=7.04
 ```
 
 Der von `px250-meta` zurückgegebene `fileUrl` verweist auf denselben Worker und darf direkt vom Frontend geladen werden. PX250, OPERA und die freien DWD-/MTG-LI-Fallbacks benötigen keine zusätzlichen Secrets. Für weltweite Xweather-/GLD360-Blitzpunkte sind `XWEATHER_CLIENT_ID` und `XWEATHER_CLIENT_SECRET` erforderlich.

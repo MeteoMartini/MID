@@ -1,8 +1,19 @@
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.26**
+**Aktuelle Version: v0.7.27**
 
 MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React, TypeScript und Open-Meteo. Es verbindet Vorhersagen, Ensemblemodelle, aktuelle Stationsmessungen, amtliche Warnungen, Radar, Luftqualität und exportierbare Wetterwidgets.
+
+
+## Durchgehende Komposit-Zeitachse, Modelllinien und Satellitenniederschlag (v0.7.27)
+
+- Das Kompositbild besitzt unabhängig von der Datenquelle eine feste Achse von **−1 Stunde bis +2 Stunden**. Echte Produktstände werden zwischen benachbarten Frames weich überblendet; nach dem letzten Stand wird die Ebene zunächst gehalten und anschließend sichtbar ausgeblendet.
+- RainViewer-Metadaten laufen gecacht über den MID-Worker. Da die öffentliche RainViewer-API keine Zukunftsframes mehr liefert, erfindet MID keinen Radar-Nowcast: Der letzte reale Radarstand wird zeitlich gekennzeichnet und in der Zukunft ausgefadet; soweit verfügbar, ergänzt das H-SAF-Satellitenniederschlagsprodukt die fehlende Radarfläche.
+- Satellitenbilder erhalten einen großzügigen Veröffentlichungs- und Aktualitätspuffer. Ein nominell älterer Aufnahmezeitpunkt bleibt dadurch nutzbar, wenn das Produkt erst mit Verzögerung veröffentlicht wurde.
+- Blitzraster liefern bis zu zwei Stunden Historie; auf der gemeinsamen Achse sind mindestens die vergangenen 30 Minuten anwählbar. Punktdaten werden zeitgerecht dargestellt und bei fehlender Punkthistorie durch das regionale DWD-/MTG-LI-Raster ersetzt.
+- Ein neuer Schalter zeigt **Isobaren**, **500-hPa-Isohypsen** oder beide Linien. Die Felder werden nur bei aktivierter Ebene über Open-Meteo Best Match aus dem ortsabhängig höchstaufgelösten verfügbaren Modell berechnet.
+- H-SAF-Niederschlagsraten werden aus dem besten im EUMETView-WMS tatsächlich vorhandenen Produkt gewählt. MID bevorzugt einen künftigen veröffentlichten MTG-H40B-Layer automatisch und verwendet derzeit das verfügbare MSG-H60B-Produkt als Kartenfallback.
+- Der Kompositcode wurde verschlankt: gemeinsame Zeit-/Blendlogik, gecachte Provider-Metadaten, höchstens zwei gleichzeitig gerenderte Zwischenframes und Lazy Loading der schweren Karten- und HDF5-Komponenten.
 
 
 ## Exakt gekoppelte Ensemble-Achsen und DWD HX (v0.7.26)
