@@ -41,7 +41,7 @@ function tooltipFromEvent(event:ReactPointerEvent<SVGElement>,lines:string[]):To
 function clearPointerTooltip(event:ReactPointerEvent<SVGElement>,setTooltip:(value:TooltipState)=>void){if(event.pointerType!=='touch')setTooltip(null)}
 function ChartTooltip({value}:{value:TooltipState}){if(!value)return null;return <div className="meteogram-tooltip" style={{left:value.x,top:value.y}}>{value.lines.map((line,index)=><span key={`${line}-${index}`}>{line}</span>)}</div>}
 
-function aviationHeightLabel(metres:number){const hft=Math.max(0,Math.round(metres*3.28084/100));return hft>=50?`FL${String(hft).padStart(3,'0')}`:`${hft} hft`}
+function aviationHeightLabel(metres:number){const rawHft=Math.max(0,metres*3.28084/100);if(rawHft>=50){const flightLevel=Math.floor(rawHft/10)*10;return `FL${String(flightLevel).padStart(3,'0')}`}const hft=Math.floor(rawHft/5)*5;return `${hft} hft`}
 function aviationHeightDetail(metres:number){return `${aviationHeightLabel(metres)} · ${Math.round(metres)} m`}
 function finite(value:unknown):number|null{if(value===null||value===undefined||value==='')return null;const number=Number(value);return Number.isFinite(number)?number:null}
 function epoch(value:number|string):number{if(typeof value==='number')return Math.abs(value)<1e12?value*1000:value;const parsed=Date.parse(value);return Number.isFinite(parsed)?parsed:NaN}

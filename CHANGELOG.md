@@ -1,3 +1,7 @@
+# v0.7.45
+
+- Meteogramm-Höhenachsen: Flight Levels werden konsequent nach unten auf volle Zehner gerundet; hft-Angaben nach unten auf durch fünf teilbare Werte.
+
 # 0.7.44 — stabiler heller Meteogramm-Export
 
 - Problematischen geklonten Theme-Export entfernt.
