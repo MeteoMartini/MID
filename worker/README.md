@@ -1,4 +1,6 @@
-# MID Daten-, Warnungs- und Radarproxy v0.7.41
+# MID Daten-, Warnungs- und Radarproxy v0.7.42
+
+Keine funktionale Worker-Änderung in v0.7.42; nur einheitliche Versionsanhebung.
 
 Funktionale Änderung in v0.7.41: `best_match` wird für das vertikale Meteogramm auf eine konsistente ECMWF-IFS-HRES-Druckniveauzeitreihe abgebildet. Dadurch entstehen nach dem Ende eines kurz laufenden Regionalmodells keine leeren Profilfelder. Der Worker liefert weiterhin die tatsächliche Modelllaufzeit über `forecastHours`.
 

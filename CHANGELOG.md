@@ -1,3 +1,8 @@
+## 0.7.42
+
+- Theme-Auswahl um Auto erweitert; folgt der Betriebssystemeinstellung und reagiert live auf Systemwechsel.
+- Bestehende Hell-/Dunkel-Auswahl bleibt gespeichert und kompatibel.
+
 # v0.7.41
 
 - Vollständiger TypeScript- und Worker-Check; ungenutzte Imports, Variablen und Hilfsfunktionen entfernt.

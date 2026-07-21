@@ -1175,3 +1175,9 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 .meteogram-export-stage.exporting.export-dark .meteogram-wind-arrow .wind-arrow-core{stroke:#ffffff!important;fill:#ffffff!important}
 .meteogram-export-stage.exporting.export-dark .tropopause-line{stroke:#f2f7fb!important}
 .meteogram-export-stage.exporting.export-light{background:#f3f6fa!important;color:#17283a!important}
+
+/* v0.7.42 – three-state theme selector */
+.theme-mode-control{display:inline-flex!important;align-items:center;justify-content:center;gap:4px;height:38px;padding:0 7px;border:1px solid var(--border);border-radius:11px;background:var(--panel);color:var(--text);box-shadow:none}
+.theme-mode-control .theme-mode-icon{display:inline-flex;align-items:center;justify-content:center;color:var(--muted)}
+.theme-mode-control select{min-width:58px;border:0!important;background:transparent!important;color:inherit!important;padding:0 18px 0 0!important;font:inherit;font-size:12px;font-weight:750;outline:0;cursor:pointer}
+@media(max-width:520px){.theme-mode-control{padding:0 5px}.theme-mode-control select{min-width:50px;font-size:11px}}

@@ -1,4 +1,4 @@
-## v0.7.41 – Code-Audit und funktionsneutrale Verschlankung
+## v0.7.42 – Code-Audit und funktionsneutrale Verschlankung
 
 - Zentrale Versionssynchronisierung aus `package.json` verhindert abweichende Updater-, Frontend- und Worker-Versionen.
 - Striktere TypeScript-Prüfung erkennt ungenutzten Code bereits beim Build.
