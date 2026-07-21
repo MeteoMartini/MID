@@ -1,10 +1,10 @@
-# MID Daten-, Warnungs- und Radarproxy v0.7.20.2
+# MID Daten-, Warnungs- und Radarproxy v0.7.21
 
 Der Cloudflare Worker stellt browserkompatibel Stationsdaten, amtliche Warnungen und die standortbezogene Radar-Nowcast-Auswertung bereit. Ein zweiter Worker ist nicht erforderlich.
 
-## Kompatibilität v0.7.20.2
+## Kompatibilität v0.7.21
 
-Der Worker liefert nun zusätzliche Einzelmesspunkte für die modellgestützte hyperlokale Analyse im Frontend. Radar und Warnungen bleiben kompatibel. Offizielle DWD-Beobachtungen werden über Bright Sky an mehreren Suchpunkten gesammelt; openSenseMap kann als niedrig gewichtete offene Zusatzquelle zugeschaltet beziehungsweise deaktiviert werden.
+Der Worker erweitert die bestehenden Stations-, Warnungs- und Nowcast-Dienste um einen CORS-sicheren DWD-PX250-Dateipfad, ein EUMETNET-OPERA-Kartenraster und DWD-Blitzgeometrien. Damit kann das Kompositbild die Providerpriorität DWD → OPERA → RainViewer auch visuell korrekt abbilden. Die bisherigen Schnittstellen bleiben kompatibel.
 
 ## Enthaltene Dienste
 
@@ -20,6 +20,9 @@ Der Worker liefert nun zusätzliche Einzelmesspunkte für die modellgestützte h
 - MeteoAlarm/CAP – unterstützte europäische Länder
 - NOAA/NWS Active Alerts – USA
 - Radar-Nowcast: DWD-RV in Deutschland, EUMETNET OPERA/ORD in Europa und RainViewer als Fallback
+- PX250-Metadaten und HDF5-Dateiproxy für das hochaufgelöste lokale DWD-Radarprodukt
+- EUMETNET-OPERA-RATE-Punktraster für die europäische Kartenvisualisierung
+- DWD-Blitzgeometrien für zeitcodierte Blitzkreise; das Frontend fällt bei Bedarf auf Rasterlayer zurück
 
 ## Bereitstellung
 
@@ -63,8 +66,8 @@ Beispielantwort:
 ```json
 {
   "ok": true,
-  "version": "0.7.20.2",
-  "services": ["stations", "alerts", "hyperlocal-networks", "model-assisted-local-analysis", "radar-nowcast"],
+  "version": "0.7.21",
+  "services": ["stations", "alerts", "hyperlocal-networks", "model-assisted-local-analysis", "radar-nowcast", "px250-proxy", "opera-grid", "lightning-points"],
   "providers": {
     "NOAA AviationWeather": true,
     "DWD Open Data / Bright Sky": true,
@@ -77,6 +80,16 @@ Beispielantwort:
   }
 }
 ```
+
+Kompositbild-Diagnose für Niederkassel:
+
+```text
+https://DEIN-WORKER.workers.dev/?mode=px250-meta&lat=50.82&lon=7.04
+https://DEIN-WORKER.workers.dev/?mode=opera-grid&lat=50.82&lon=7.04
+https://DEIN-WORKER.workers.dev/?mode=lightning-points&lat=50.82&lon=7.04
+```
+
+Der von `px250-meta` zurückgegebene `fileUrl` verweist auf denselben Worker und darf direkt vom Frontend geladen werden. Für die drei Kompositmodi sind keine zusätzlichen Secrets erforderlich.
 
 Stationsabruf für Innsbruck:
 

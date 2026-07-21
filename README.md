@@ -1,17 +1,18 @@
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.20.2**
+**Aktuelle Version: v0.7.21**
 
 MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React, TypeScript und Open-Meteo. Es verbindet Vorhersagen, Ensemblemodelle, aktuelle Stationsmessungen, amtliche Warnungen, Radar, Luftqualität und exportierbare Wetterwidgets.
 
-## Kompositbild: Radar, Satellit und Blitzaktivität (v0.7.20.2)
+## Kompositbild: Radar, Satellit und Blitzaktivität (v0.7.21)
 
-- Der frühere Bereich **Niederschlagsradar** heißt nun **Kompositbild**. Niederschlag, hochaufgelöstes Radar, Satellit und Blitzaktivität lassen sich getrennt kombinieren.
-- **Radar 250 m** verwendet das lokale DWD-PX250-Standortprodukt im HDF5-Format. MID prüft den nächstgelegenen DWD-Radarstandort direkt über den öffentlichen DWD-Open-Data-Server und aktiviert die Ebene nur innerhalb der Produktreichweite und bei einer vorhandenen aktuellen Datei. Die HDF5-Daten werden erst nach dem Einschalten im Browser geladen und lokal als transparentes Reflektivitätsraster gerendert; der Cloudflare Worker bleibt funktional unverändert.
-- Die 250-m-Ebene ist ein aktuelles Reflektivitätsbild in dBZ. Sie ist kein höher aufgelöster RV-Niederschlags-Nowcast und besitzt daher weder künstliche Zukunftsframes noch eine mm/h-Skala.
-- **Satellit HRV** nutzt tagsüber den hochaufgelösten sichtbaren MTG-FCI-HRFI-Kanal VIS 0,6. Nachts wechselt MID automatisch auf **IR 10,5**; bei fehlendem Tageslayer wird ebenfalls auf IR zurückgefallen.
-- **Echtzeitblitze** nutzt in Deutschland die DWD-NowCastMIX-Blitzdichte im 1-km-Raster mit 5-Minuten-Aktualisierung. Außerhalb dieses Bereichs dient EUMETSAT MTG-LI `li_afa` mit 2-km-Raster als NRT-Fallback; die Darstellung ist keine metergenaue Bodeneinschlagskarte.
-- Satelliten-, Blitz- und PX250-Code werden weiterhin verzögert geladen. Der normale Radarfilm bleibt unabhängig davon erhalten.
+- Der Kartenbereich kombiniert Niederschlag, DWD-PX250, hochaufgelöste MTG-Satellitenbilder und Blitzaktivität. Die Legende ist schlank und zeigt nur Skalen der tatsächlich aktiven Layer.
+- **Radar 250 m** wird nicht mehr direkt aus dem Browser beim DWD geprüft. Der Cloudflare Worker ermittelt den nächstgelegenen PX250-Standort, stellt die aktuelle HDF5-Datei CORS-sicher bereit und aktiviert den Schalter nur bei tatsächlicher Verfügbarkeit innerhalb der Produktreichweite.
+- Die Radarpriorität lautet nun auch in der sichtbaren Karte konsequent **DWD-RV → EUMETNET OPERA/ORD → RainViewer**. OPERA wird als europäisches RATE-Punktraster dargestellt; RainViewer erscheint erst, wenn der Worker auch OPERA nicht auswerten konnte.
+- Als Kartenbasis stehen **OpenStreetMap**, das schlichte helle **CARTO Positron** und das schlichte dunkle **CARTO Dark Matter** zur Verfügung. Die Auswahl wird lokal gespeichert.
+- In Deutschland versucht MID, DWD-Blitzgeometrien als farbige Kreise darzustellen. Farbe und Deckkraft bilden das Alter ab; bei nicht verfügbaren Vektordaten bleibt die DWD-Blitzdichte als automatischer Raster-Fallback. Außerhalb dient EUMETSAT MTG-LI AFA als Fallback.
+- **Satellit HRV** nutzt tagsüber den hochaufgelösten sichtbaren MTG-FCI-HRFI-Kanal VIS 0,6. Nachts oder bei fehlendem Tageslayer wird automatisch IR 10,5 verwendet.
+- Favoriten können in der Verwaltung am Griff per Drag & Drop verschoben werden. Neben Maus-Drag wird Pointer-/Touch-Sortierung unterstützt; die Pfeiltasten bleiben als barrierearme Alternative erhalten.
 
 ## Hyperlokale aktuelle Messwerte (v0.7.20)
 
