@@ -317,13 +317,23 @@ export async function radarNowcast(lat:number,lon:number,country?:string,signal?
 
 function n(v:unknown,fallback=NaN){return v===null||v===undefined||v===''?fallback:Number(v)}
 
+// Approximate local altitude adjustment: no extra adjustment below 500 m,
+// then +10 % per additional 1000 m. The factor is intentionally capped
+// because cloud, ozone, aerosols and snow can dominate the local UVI.
+export function uvAltitudeFactor(elevation:number|undefined){
+ const h=Number(elevation);if(!Number.isFinite(h)||h<=500)return 1;return Math.min(1.35,1+((h-500)/1000)*0.10);
+}
+export function altitudeCorrectedUvi(value:number,elevation:number|undefined){
+ const uv=Number(value);if(!Number.isFinite(uv))return Number.NaN;return Number(Math.max(0,uv*uvAltitudeFactor(elevation)).toFixed(1));
+}
+
 export function dayEffectiveUvMax(day:Day,hours:Hour[]){
  const vals=(hours??[]).map(x=>x.uvIndex).filter(v=>Number.isFinite(v));
  return vals.length?Math.max(...vals):(Number.isFinite(day.uvMax)?Number(day.uvMax):0);
 }
-export function mapHours(w:Weather):Hour[]{return (w.hourly.time as string[]).map((time,i)=>{const code=n(w.hourly.weather_code[i],3),cloud=n(w.hourly.cloud_cover[i],0),precipitation=n(w.hourly.precipitation[i],0),isDay=n(w.hourly.is_day[i],0)===1,uvIndex=n(w.hourly.uv_index[i],NaN);return{time,epoch:localIsoEpoch(time,w.timezone,Number(w.utc_offset_seconds)||0),timezone:w.timezone,temperature:n(w.hourly.temperature_2m[i]),apparent:n(w.hourly.apparent_temperature[i]),humidity:n(w.hourly.relative_humidity_2m[i]),dewPoint:n(w.hourly.dew_point_2m[i]),precipitation,rain:n(w.hourly.rain[i],0),showers:n(w.hourly.showers[i],0),snowfall:n(w.hourly.snowfall[i],0),probability:n(w.hourly.precipitation_probability[i],0),code,wind:n(w.hourly.wind_speed_10m[i],0),gust:n(w.hourly.wind_gusts_10m[i],0),direction:n(w.hourly.wind_direction_10m[i],0),cloud,uvIndex:Number.isFinite(uvIndex)&&isDay?Number(uvIndex.toFixed(1)):0,visibility:n(w.hourly.visibility?.[i],NaN),cape:n(w.hourly.cape?.[i],0),isDay}}).filter(x=>Number.isFinite(x.temperature))}
+export function mapHours(w:Weather):Hour[]{return (w.hourly.time as string[]).map((time,i)=>{const code=n(w.hourly.weather_code[i],3),cloud=n(w.hourly.cloud_cover[i],0),precipitation=n(w.hourly.precipitation[i],0),isDay=n(w.hourly.is_day[i],0)===1,uvIndex=n(w.hourly.uv_index[i],NaN);return{time,epoch:localIsoEpoch(time,w.timezone,Number(w.utc_offset_seconds)||0),timezone:w.timezone,temperature:n(w.hourly.temperature_2m[i]),apparent:n(w.hourly.apparent_temperature[i]),humidity:n(w.hourly.relative_humidity_2m[i]),dewPoint:n(w.hourly.dew_point_2m[i]),precipitation,rain:n(w.hourly.rain[i],0),showers:n(w.hourly.showers[i],0),snowfall:n(w.hourly.snowfall[i],0),probability:n(w.hourly.precipitation_probability[i],0),code,wind:n(w.hourly.wind_speed_10m[i],0),gust:n(w.hourly.wind_gusts_10m[i],0),direction:n(w.hourly.wind_direction_10m[i],0),cloud,uvIndex:Number.isFinite(uvIndex)&&isDay?altitudeCorrectedUvi(uvIndex,w.elevation):0,visibility:n(w.hourly.visibility?.[i],NaN),cape:n(w.hourly.cape?.[i],0),isDay}}).filter(x=>Number.isFinite(x.temperature))}
 export function mapMinutely15(w:Weather):Minute15[]{const m=w.minutely_15;if(!m?.time)return[];return (m.time as string[]).map((time,i)=>({time,epoch:localIsoEpoch(time,w.timezone,Number(w.utc_offset_seconds)||0),timezone:w.timezone,precipitation:n(m.precipitation?.[i],0),rain:n(m.rain?.[i],0),showers:n(m.showers?.[i],0),snowfall:n(m.snowfall?.[i],0),probability:n(m.precipitation_probability?.[i],0),code:n(m.weather_code?.[i],0)}))}
-export function mapDays(w:Weather):Day[]{return (w.daily.time as string[]).map((date,i)=>({date,code:n(w.daily.weather_code[i],3),max:n(w.daily.temperature_2m_max[i]),min:n(w.daily.temperature_2m_min[i]),sunrise:String(w.daily.sunrise?.[i]??'')||undefined,sunset:String(w.daily.sunset?.[i]??'')||undefined,sunshineDuration:n(w.daily.sunshine_duration?.[i],0),precipitation:n(w.daily.precipitation_sum[i],0),probability:n(w.daily.precipitation_probability_max[i],0),wind:n(w.daily.wind_speed_10m_max[i],0),gust:n(w.daily.wind_gusts_10m_max[i],0),direction:n(w.daily.wind_direction_10m_dominant[i],0),uvMax:n(w.daily.uv_index_max[i],0)})).filter(d=>Number.isFinite(d.max)&&Number.isFinite(d.min)&&d.max>=d.min)}
+export function mapDays(w:Weather):Day[]{return (w.daily.time as string[]).map((date,i)=>({date,code:n(w.daily.weather_code[i],3),max:n(w.daily.temperature_2m_max[i]),min:n(w.daily.temperature_2m_min[i]),sunrise:String(w.daily.sunrise?.[i]??'')||undefined,sunset:String(w.daily.sunset?.[i]??'')||undefined,sunshineDuration:n(w.daily.sunshine_duration?.[i],0),precipitation:n(w.daily.precipitation_sum[i],0),probability:n(w.daily.precipitation_probability_max[i],0),wind:n(w.daily.wind_speed_10m_max[i],0),gust:n(w.daily.wind_gusts_10m_max[i],0),direction:n(w.daily.wind_direction_10m_dominant[i],0),uvMax:altitudeCorrectedUvi(n(w.daily.uv_index_max[i],0),w.elevation)})).filter(d=>Number.isFinite(d.max)&&Number.isFinite(d.min)&&d.max>=d.min)}
 
 export function cloudOktas(percent:number){return Math.max(0,Math.min(8,Math.round((Number.isFinite(percent)?percent:0)/12.5)))}
 export function cloudOktasText(percent:number){
@@ -333,8 +343,21 @@ export function cloudOktasText(percent:number){
 }
 export type DayWeatherCharacter={code:number;label:string;secondary:string;cloudOktas:number;precipitationDominant:boolean};
 function dayPart(hour:number){if(hour<5)return'nachts';if(hour<10)return'morgens';if(hour<13)return'mittags';if(hour<18)return'nachmittags';return'abends'}
-function skyFromCloud(percent:number){
- const octas=cloudOktas(percent);
+function daylightDurationSeconds(day:Day){
+ const minutes=(value?:string)=>{const match=String(value??'').match(/T(\d{2}):(\d{2})/);return match?Number(match[1])*60+Number(match[2]):NaN};
+ const sunrise=minutes(day.sunrise),sunset=minutes(day.sunset);
+ return Number.isFinite(sunrise)&&Number.isFinite(sunset)&&sunset>sunrise?(sunset-sunrise)*60:12*3600;
+}
+function skyFromCloud(percent:number,sunshineFraction?:number){
+ const octas=cloudOktas(percent),sun=Number.isFinite(sunshineFraction)?Math.max(0,Math.min(1,Number(sunshineFraction))):NaN;
+ if(Number.isFinite(sun)){
+  if(sun>=.72)return{code:octas<=3?0:1,label:'Heiter'};
+  if(sun>=.50)return{code:1,label:'Wolkig, oft sonnig'};
+  if(sun>=.28)return{code:2,label:'Sonne und Wolken'};
+  if(sun>=.10)return{code:3,label:'Meist bewölkt'};
+  if(octas>=8)return{code:3,label:'Bedeckt'};
+  return{code:3,label:'Stark bewölkt'};
+ }
  if(octas<=1)return{code:0,label:'Klar'};
  if(octas<=3)return{code:1,label:'Überwiegend klar'};
  if(octas<=5)return{code:2,label:'Teilweise bewölkt'};
@@ -386,8 +409,10 @@ export function dayWeatherCharacter(day:Day,hours:Hour[]):DayWeatherCharacter{
  if(!relevant.length)return{code:day.code,label:label(day.code),secondary:'',cloudOktas:0,precipitationDominant:precipCodeFamily(day.code)!=='none'};
  const cloudWeight=relevant.reduce((sum,h)=>sum+(h.isDay?1.18:.72),0);
  const weightedCloud=relevant.reduce((sum,h)=>sum+h.cloud*(h.isDay?1.18:.72),0)/Math.max(.1,cloudWeight);
- const sky=skyFromCloud(weightedCloud),candidate=representativePrecipCode(relevant);
- if(!candidate)return{...sky,secondary:'',cloudOktas:cloudOktas(weightedCloud),precipitationDominant:false};
+ const sunshineFraction=Math.max(0,day.sunshineDuration||0)/Math.max(1,daylightDurationSeconds(day));
+ const effectiveCloud=Math.max(0,Math.min(100,weightedCloud*.72+(1-Math.min(1,sunshineFraction))*100*.28));
+ const sky=skyFromCloud(effectiveCloud,sunshineFraction),candidate=representativePrecipCode(relevant);
+ if(!candidate)return{...sky,secondary:'',cloudOktas:cloudOktas(effectiveCloud),precipitationDominant:false};
  const severe=candidate.family==='thunder';
  const sustained=candidate.hours>=3&&candidate.averageProbability>=40;
  const quantitativelyRelevant=candidate.sum>=1||candidate.snowSum>=1;
@@ -399,11 +424,11 @@ export function dayWeatherCharacter(day:Day,hours:Hour[]):DayWeatherCharacter{
   :eventLabel;
  if(!dominant){
   const secondary=candidate.maxProbability>=25?`${period} ${eventPhrase} möglich (${Math.round(candidate.maxProbability)} %)` : '';
-  return{...sky,secondary,cloudOktas:cloudOktas(weightedCloud),precipitationDominant:false};
+  return{...sky,secondary,cloudOktas:cloudOktas(effectiveCloud),precipitationDominant:false};
  }
  const prefix=candidate.hours<6&&!severe?'Zeitweise ':'';
  const secondary=`${period} · max. ${Math.round(candidate.maxProbability)} %`;
- return{code:candidate.code,label:`${prefix}${eventLabel}`,secondary,cloudOktas:cloudOktas(weightedCloud),precipitationDominant:true};
+ return{code:candidate.code,label:`${prefix}${eventLabel}`,secondary,cloudOktas:cloudOktas(effectiveCloud),precipitationDominant:true};
 }
 export function currentIndex(h:Hour[]){const now=Date.now();return h.reduce((b,x,i)=>{const timestamp=Number.isFinite(x.epoch)?x.epoch:Date.parse(`${x.time}Z`),d=Math.abs(timestamp-now);return d<b.d?{i,d}:b},{i:0,d:Infinity}).i}
 
@@ -548,7 +573,7 @@ export function hazards(h:Hour[],currentUv?:number){
  const snowLevel=classifySnow24(snow);
  addHazard(a,snowLevel?{level:snowLevel,title:'Schnee',metric:`${Math.round(snow)} cm`,text:`24-Stunden-Neuschnee um ${Math.round(snow)} cm.`}:null);
  const uvLevel=classifyUvIndex(uv);
- addHazard(a,uvLevel?{level:uvLevel,title:'UV-Belastung',metric:`UV ${Math.round(uv)}`,text:`Maximaler UV-Index um ${Math.round(uv)} (WHO/DWD/NWS-Kategorien).`}:null);
+ addHazard(a,uvLevel?{level:uvLevel,title:'UVI-Belastung',metric:`UVI ${Math.round(uv)}`,text:`Maximaler UVI um ${Math.round(uv)} (WHO/DWD/NWS-Kategorien).`}:null);
  const thunderLevel=classifyThunder(thunderCodes);
  addHazard(a,thunderLevel?{level:thunderLevel,title:'Gewitter',metric:thunderLevel==='red'?'stark':thunderLevel==='orange'?'mit Hagel':'möglich',text:thunderLevel==='red'?'Signale für starke Gewitter in der Kurzfristvorhersage.':thunderLevel==='orange'?'Signale für Gewitter mit Hagel in der Kurzfristvorhersage.':'Gewittersignale in der Kurzfristvorhersage.'}:null);
  return a.sort((x,y)=>levelOrder[y.level]-levelOrder[x.level]);

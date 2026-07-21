@@ -1,4 +1,20 @@
+# Changelog
+
+## 0.7.50
+
+- Mobile Detailansicht ohne technische Kürzel wie „NS“ oder „NS-Wkt.“; stattdessen eindeutige Wetter-Symbole und kurze Klartextangaben.
+- „UV“ und „UV-Index“ in der Oberfläche konsequent durch „UVI“ ersetzt.
+- UVI-Werte werden für Standorte oberhalb von 500 m transparent näherungsweise höhenkorrigiert (+10 % je weitere 1000 m, gedeckelt auf +35 %).
+- Die aktuelle UVI-Kachel weist eine aktive Höhenkorrektur samt Zuschlag und Standortshöhe aus.
+
 # v0.7.46
+
+## 0.7.49
+
+- Tagescharakter der 7-Tage-Vorhersage präzisiert: Sonnenscheindauer, Tageslänge und effektive Tagesbewölkung werden gemeinsam bewertet.
+- Statt pauschalem „Stark bewölkt“ erscheinen je nach Verhältnis nun kurze Abstufungen wie „Heiter“, „Wolkig, oft sonnig“, „Sonne und Wolken“, „Meist bewölkt“ oder „Bedeckt“.
+- Mobile Detailansicht platzsparender beschriftet, unter anderem mit „Σ NS“, „max. NS-Wkt.“, „Temp.“ und „NS-Wkt.“ in der Legende.
+- Desktop-Beschriftungen bleiben ausgeschrieben.
 
 ## 0.7.48
 

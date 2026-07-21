@@ -1,7 +1,7 @@
 import {lazy,Suspense,useEffect,useMemo,useRef,useState,type KeyboardEvent as ReactKeyboardEvent,type PointerEvent as ReactPointerEvent,type ReactNode} from 'react';
 import {AlertTriangle,BadgeCheck,ChevronDown,ChevronUp,CloudFog,ClipboardCopy,Download,Eye,FileDown,GripVertical,LocateFixed,MountainSnow,Monitor,Moon,Navigation,RefreshCw,Search,Settings2,SlidersHorizontal,Snowflake,Star,Sun,Trash2,Upload,Waves,Wind,X} from 'lucide-react';
 import {MID_VERSION as VERSION} from './version';
-import {airQuality,bestMatchModelInfo,climatology,cloudOktas,countryCodeFromLocation,cloudOktasText,currentIndex,dayEffectiveUvMax,dayWeatherCharacter,ensembles,forecast,hazards,icon,label,mapDays,mapHours,mapMinutely15,mountainForecast,officialWarnings,radarNowcast,searchLocations,reverseLocation,station,wind,type BestMatchModelInfo,type ClimateDay,type Day,type EnsembleDay,type Hour,type Location,type Minute15,type ModelRunMeta,type MountainForecast,type MountainWeather,type OfficialAlert,type RadarNowcast,type Station,type Weather,type WindUnit} from './weather';
+import {airQuality,bestMatchModelInfo,climatology,cloudOktas,countryCodeFromLocation,cloudOktasText,currentIndex,dayEffectiveUvMax,dayWeatherCharacter,ensembles,forecast,hazards,icon,label,mapDays,mapHours,mapMinutely15,mountainForecast,officialWarnings,radarNowcast,searchLocations,reverseLocation,station,uvAltitudeFactor,wind,type BestMatchModelInfo,type ClimateDay,type Day,type EnsembleDay,type Hour,type Location,type Minute15,type ModelRunMeta,type MountainForecast,type MountainWeather,type OfficialAlert,type RadarNowcast,type Station,type Weather,type WindUnit} from './weather';
 
 const LOGO_PATH='./mid-logo.png';
 const LOCATION_STORAGE_KEY='mid:lastLocation';
@@ -211,7 +211,8 @@ function Current({w,air,st,stationLoading,unit}:{w:Weather;air:any;st:Station|nu
  const mappedHours=mapHours(w);
  const forecastHour=mappedHours[currentIndex(mappedHours)]??null;
  const airCurrentUv=air?.current?Number(air.current.uv_index):Number.NaN;
- const actualCurrentUv=forecastHour&&Number.isFinite(forecastHour.uvIndex)?forecastHour.uvIndex:(Number.isFinite(airCurrentUv)?airCurrentUv:Number.NaN);
+ const altitudeFactor=uvAltitudeFactor(w.elevation),altitudeBonus=Math.max(0,Math.round((altitudeFactor-1)*100));
+ const actualCurrentUv=forecastHour&&Number.isFinite(forecastHour.uvIndex)?forecastHour.uvIndex:(Number.isFinite(airCurrentUv)?Number((airCurrentUv*altitudeFactor).toFixed(1)):Number.NaN);
  const source=(available:boolean,defaultText:string)=>available&&fresh?(st!.analysisMethod?'hyperlokale Restfeldanalyse':st!.blended?`robustes Mittel aus ${st!.stationCount??2} Stationen`:`${st!.provider??'Stationsmessung'} · ${st!.name}`):defaultText;
  const cards=[
   {icon:'💧',label:'Taupunkt',value:`${Math.round(dew)} °C`,detail:`Relative Feuchte ${Math.round(hum)} % · ${source(Number.isFinite(st?.dewPoint),'Best Match')}`,checked:fresh&&Number.isFinite(st?.dewPoint)},
@@ -219,7 +220,7 @@ function Current({w,air,st,stationLoading,unit}:{w:Weather;air:any;st:Station|nu
   {icon:'🌧️',label:'Niederschlag',value:`${precip.toFixed(1)} mm`,detail:source(Number.isFinite(st?.precipitation),'aktueller Modellzeitraum'),checked:fresh&&Number.isFinite(st?.precipitation)},
   {icon:'☁️',label:'Bewölkung',value:`${cloudOktas(cloud)}/8`,detail:`${cloudOktasText(cloud).split(' · ')[1]} · ${source(Number.isFinite(st?.cloudCover),'Best Match')}`,checked:fresh&&Number.isFinite(st?.cloudCover)},
   {icon:'⏱️',label:'Luftdruck',value:`${Math.round(pressure)} hPa`,detail:`auf Meereshöhe (QFF) · ${source(qffStationPressure,'Best Match pressure_msl')}`,checked:fresh&&qffStationPressure},
-  {icon:'☀️',label:'UV-Index',value:Number.isFinite(actualCurrentUv)?actualCurrentUv.toFixed(1):'–',detail:'tatsächlich erwarteter, bewölkungsberücksichtigter UVI',checked:false},
+  {icon:'☀️',label:'UVI',value:Number.isFinite(actualCurrentUv)?actualCurrentUv.toFixed(1):'–',detail:`bewölkungsberücksichtigt${altitudeBonus>0?` · näherungsweise höhenkorrigiert (+${altitudeBonus} % bei ${Math.round(w.elevation)} m)`:''}`,checked:false},
   {icon:'🏭',label:'Luftqualität',value:air?.current?`${Math.round(Number(air.current.european_aqi))} AQI`:'–',detail:air?.current?`PM2,5 ${Number(air.current.pm2_5).toFixed(1)} µg/m³`:'Open-Meteo',checked:false},
   {icon:'🌤️',label:'Sonnenschein',value:sunshineDurationLabel(Number(c.sunshine_duration)),detail:'innerhalb der letzten Stunde',checked:false}
  ];
@@ -287,7 +288,7 @@ function dailyHazards(day:Day,hours:Hour[]){
  const rainLvl=rainLevelMm(day.precipitation); if(rainLvl)items.push({label:`${day.precipitation.toFixed(1)} mm`,level:rainLvl});
  const snowLvl=snowLevelCm(snowSum); if(snowLvl)items.push({label:`Schnee ${Math.round(snowSum)} cm`,level:snowLvl});
  const heatLvl=heatLevelC(heat); if(heatLvl)items.push({label:`Gefühlt ${Math.round(heat)}°`,level:heatLvl});
- const uvLvl=uvLevel(uvMax); if(uvLvl)items.push({label:`UV ${Math.round(uvMax)}`,level:uvLvl});
+ const uvLvl=uvLevel(uvMax); if(uvLvl)items.push({label:`UVI ${Math.round(uvMax)}`,level:uvLvl});
  if([95,96,99].includes(day.code))items.push({label:'Gewitter',level:day.code===99?'red':day.code===96?'orange':'yellow'});
  return items.sort((a,b)=>severityRank(b.level)-severityRank(a.level)).slice(0,3);
 }
@@ -447,8 +448,8 @@ function Forecast({days,hours,selected,setSelected,unit,modelInfo,timezone,timez
    {compactMode&&<button type="button" className="forecast-detail-toggle" onClick={()=>setDetailsOpen(value=>!value)} aria-expanded={detailsOpen}>{detailsOpen?<ChevronUp size={18}/>:<ChevronDown size={18}/>}<span>{detailsOpen?'Stündliche Detailansicht schließen':'Stündliche Detailansicht öffnen'}</span></button>}
    {(!compactMode||detailsOpen)&&<div className="hourdetail meteogram-day">
      <div className="detailhead"><strong>{formatDateOnly(selectedDay.date,{weekday:'long',day:'2-digit',month:'2-digit'})} · Detailansicht</strong><small>Aktuelle Stunde am gewählten Ort ist vorausgewählt · Ortszeit {zoneCaption(timezone,timezoneAbbreviation)}. Das Diagramm ist stündlich anklickbar; am Desktop mit ← und → navigierbar.</small></div>
-     <div className="quickfacts"><span>{icon(selectedCharacter.code)} <b>{selectedCharacter.label}</b>{selectedCharacter.secondary&&<small>{selectedCharacter.secondary}</small>}</span><span>Σ Niederschlag <b>{totalRain.toFixed(1)} mm</b></span><span>max. Niederschlagswahrscheinlichkeit <b>{Math.round(maxProb)} %</b></span><span>max. Wind / Böen <b>{wind(windMax,unit)} · {wind(gustMax,unit)}</b></span></div>
-     <div className="detaillegend"><span><i className="temp"/> Temperatur</span><span><i className="apparent"/> Gefühlt</span>{precipLegendTypes.map(type=><span key={type}><i className={precipMeta[type].legendClass}/>{precipMeta[type].label}</span>)}<span><i className="probability"/> Niederschlagswahrscheinlichkeit</span></div>
+     <div className="quickfacts"><span>{icon(selectedCharacter.code)} <b>{selectedCharacter.label}</b>{selectedCharacter.secondary&&<small>{selectedCharacter.secondary}</small>}</span><span aria-label="Niederschlag gesamt">💧 <b>{totalRain.toFixed(1)} mm</b></span><span aria-label="Maximale Niederschlagswahrscheinlichkeit">☔ <b>max. {Math.round(maxProb)} %</b></span><span aria-label="Maximaler Wind und maximale Böen">🌬️ <b>{wind(windMax,unit)} · 💨 {wind(gustMax,unit)}</b></span></div>
+     <div className="detaillegend"><span><i className="temp"/>🌡️ Temperatur</span><span><i className="apparent"/> Gefühlt</span>{precipLegendTypes.map(type=><span key={type}><i className={precipMeta[type].legendClass}/>{precipMeta[type].label}</span>)}<span><i className="probability"/>☔ Wahrscheinlichkeit</span></div>
      <div ref={detailChartRef} className="meteogram-stage" tabIndex={0} onClick={()=>detailChartRef.current?.focus({preventScroll:true})} onKeyDown={handleDetailChartKeyDown} aria-label="Stündliches Wetterdiagramm. Nach einem Klick mit den Pfeiltasten links und rechts zwischen den Stunden wechseln.">
      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" className="meteogramsvg">
        <defs>
@@ -488,7 +489,7 @@ function Forecast({days,hours,selected,setSelected,unit,modelInfo,timezone,timez
      </svg>
      <div className="hour-chart-tooltip persistent" role="status" aria-live="polite" aria-label={`Details für ${currentHour.time.slice(11,16)} Uhr`}>
        <header><button type="button" onClick={()=>moveHour(-1)} aria-label="Vorherige Stunde">‹</button><div><small>{currentHour.time.slice(11,16)} Uhr</small><strong>{icon(currentHour.code,currentHour.isDay)} {label(currentHour.code)}</strong></div><button type="button" onClick={()=>moveHour(1)} aria-label="Nächste Stunde">›</button></header>
-       <div className="hour-tooltip-grid compact"><span><small>Temperatur / gefühlt</small><b>{Math.round(currentHour.temperature)}° / {Math.round(currentHour.apparent)}°</b></span><span><small>Niederschlag</small><b>{currentHour.precipitation.toFixed(1)} mm · {Math.round(currentHour.probability)} %</b><em>{currentPrecip.label}</em></span><span><small>Wind / Böen</small><b>{dirArrow(currentHour.direction)} {wind(currentHour.wind,unit)} · {wind(currentHour.gust,unit)}</b></span><span><small>Feuchte / Taupunkt</small><b>{Math.round(currentHour.humidity)} % · {Math.round(currentHour.dewPoint)}°</b></span><span><small>Bewölkung</small><b>{cloudOktas(currentHour.cloud)}/8</b><em>{cloudOktasText(currentHour.cloud).split(' · ')[1]}</em></span><span><small>UV-Index</small><b>{currentHour.uvIndex.toFixed(1)}</b></span></div>
+       <div className="hour-tooltip-grid compact"><span><small>Temperatur / gefühlt</small><b>{Math.round(currentHour.temperature)}° / {Math.round(currentHour.apparent)}°</b></span><span><small>Niederschlag</small><b>{currentHour.precipitation.toFixed(1)} mm · {Math.round(currentHour.probability)} %</b><em>{currentPrecip.label}</em></span><span><small>Wind / Böen</small><b>{dirArrow(currentHour.direction)} {wind(currentHour.wind,unit)} · {wind(currentHour.gust,unit)}</b></span><span><small>Feuchte / Taupunkt</small><b>{Math.round(currentHour.humidity)} % · {Math.round(currentHour.dewPoint)}°</b></span><span><small>Bewölkung</small><b>{cloudOktas(currentHour.cloud)}/8</b><em>{cloudOktasText(currentHour.cloud).split(' · ')[1]}</em></span><span><small>UVI</small><b>{currentHour.uvIndex.toFixed(1)}</b></span></div>
      </div>
      </div>
    </div>}
