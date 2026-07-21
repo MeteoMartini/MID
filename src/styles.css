@@ -686,6 +686,11 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 .trend-legend i.area{width:16px;height:9px;border-radius:3px}
 .trend-legend i.area.max{background:rgba(255,132,95,.35);border:1px solid rgba(255,132,95,.55)}
 .trend-legend i.area.min{background:rgba(83,169,255,.34);border:1px solid rgba(83,169,255,.58)}
+.trend-legend i.area.quartile-max{background:rgba(232,95,53,.52);border:1px solid rgba(232,95,53,.82)}
+.trend-legend i.area.quartile-min{background:rgba(38,127,201,.52);border:1px solid rgba(38,127,201,.82)}
+.trend-legend .quartile-toggle{gap:8px;padding:4px 7px;border:1px solid color-mix(in srgb,var(--border) 78%,transparent);border-radius:8px;background:color-mix(in srgb,var(--s2) 78%,transparent)}
+.trend-legend .quartile-key{display:inline-flex;align-items:center;gap:5px;padding:0;border:0;background:transparent}
+.trend-legend .quartile-toggle small{font-size:9px;color:var(--muted)}
 .trend-legend i.line{width:19px;height:0;border-top:3px solid}
 .trend-legend i.best-max{border-color:#ff6a37}
 .trend-legend i.best-min{border-color:#248dff}

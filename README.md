@@ -1,8 +1,8 @@
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.37**
+**Aktuelle Version: v0.7.38**
 
-## Neuerungen in v0.7.37
+## Neuerungen in v0.7.38
 
 - Fehlende Meteogrammwerte bleiben fehlend und werden nicht mehr als Nullwerte gezeichnet.
 - Best Match nutzt für das Druckniveauprofil eine durchgängige ECMWF-IFS-HRES-Zeitreihe bis 168 Stunden.
