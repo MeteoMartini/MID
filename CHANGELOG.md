@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.51
+
+- Kurze Tagesbeschreibungen berücksichtigen nun markante Wetteränderungen im Tagesverlauf.
+- Später einsetzende Schauer, Regen, Schnee oder Gewitter werden direkt mit Tageszeit genannt, z. B. „Sonnig, ab Nachmittag Schauer“.
+- Deutliche Bewölkungstrends erscheinen knapp als „ab Mittag wolkiger“ oder „ab Mittag auflockernd“.
+- Früh endender Niederschlag wird als Verlauf wie „Schauer am Morgen, später heiter“ beschrieben.
+
 ## 0.7.50
 
 - Mobile Detailansicht ohne technische Kürzel wie „NS“ oder „NS-Wkt.“; stattdessen eindeutige Wetter-Symbole und kurze Klartextangaben.

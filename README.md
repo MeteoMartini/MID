@@ -7,7 +7,7 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.40**
+**Aktuelle Version: v0.7.51**
 
 ## Neuerungen in v0.7.40
 
