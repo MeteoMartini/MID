@@ -1,5 +1,12 @@
 # v0.7.46
 
+## 0.7.48
+
+- Ansichtswahl direkt unter der Favoritenleiste als kompakte Auswahl „Kompakt“ oder „Vollständig“ mit Kurzbeschreibung.
+- Höhenkachel aus den aktuellen Wetterdaten entfernt.
+- Sonnenscheindauer der letzten Stunde als aktuelle Kennzahl ergänzt.
+- Sonnenscheindauer platzsparend in die Tageswerte der 7-Tage-Vorhersage aufgenommen.
+
 ## 0.7.47
 
 - Kompakte Startansicht als neuer Standard mit dauerhaft sichtbarer 7-Tage-Vorhersage.
