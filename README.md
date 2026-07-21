@@ -1,8 +1,17 @@
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.20.1**
+**Aktuelle Version: v0.7.20.2**
 
 MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React, TypeScript und Open-Meteo. Es verbindet Vorhersagen, Ensemblemodelle, aktuelle Stationsmessungen, amtliche Warnungen, Radar, Luftqualität und exportierbare Wetterwidgets.
+
+## Kompositbild: Radar, Satellit und Blitzaktivität (v0.7.20.2)
+
+- Der frühere Bereich **Niederschlagsradar** heißt nun **Kompositbild**. Niederschlag, hochaufgelöstes Radar, Satellit und Blitzaktivität lassen sich getrennt kombinieren.
+- **Radar 250 m** verwendet das lokale DWD-PX250-Standortprodukt im HDF5-Format. MID prüft den nächstgelegenen DWD-Radarstandort direkt über den öffentlichen DWD-Open-Data-Server und aktiviert die Ebene nur innerhalb der Produktreichweite und bei einer vorhandenen aktuellen Datei. Die HDF5-Daten werden erst nach dem Einschalten im Browser geladen und lokal als transparentes Reflektivitätsraster gerendert; der Cloudflare Worker bleibt funktional unverändert.
+- Die 250-m-Ebene ist ein aktuelles Reflektivitätsbild in dBZ. Sie ist kein höher aufgelöster RV-Niederschlags-Nowcast und besitzt daher weder künstliche Zukunftsframes noch eine mm/h-Skala.
+- **Satellit HRV** nutzt tagsüber den hochaufgelösten sichtbaren MTG-FCI-HRFI-Kanal VIS 0,6. Nachts wechselt MID automatisch auf **IR 10,5**; bei fehlendem Tageslayer wird ebenfalls auf IR zurückgefallen.
+- **Echtzeitblitze** nutzt in Deutschland die DWD-NowCastMIX-Blitzdichte im 1-km-Raster mit 5-Minuten-Aktualisierung. Außerhalb dieses Bereichs dient EUMETSAT MTG-LI `li_afa` mit 2-km-Raster als NRT-Fallback; die Darstellung ist keine metergenaue Bodeneinschlagskarte.
+- Satelliten-, Blitz- und PX250-Code werden weiterhin verzögert geladen. Der normale Radarfilm bleibt unabhängig davon erhalten.
 
 ## Hyperlokale aktuelle Messwerte (v0.7.20)
 
