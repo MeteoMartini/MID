@@ -1,3 +1,9 @@
+# 0.7.44 — stabiler heller Meteogramm-Export
+
+- Problematischen geklonten Theme-Export entfernt.
+- Meteogramm-PNG wird direkt aus dem sichtbaren Diagrammbaum in einem temporären, festen hellen Export-Theme erzeugt.
+- iOS/Safari erhält damit keine leeren schwarzen oder weißen Exportbilder mehr.
+
 ## 0.7.42
 
 - Theme-Auswahl um Auto erweitert; folgt der Betriebssystemeinstellung und reagiert live auf Systemwechsel.
