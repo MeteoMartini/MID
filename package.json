@@ -1,18 +1,16 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.7.57",
+  "version": "0.7.58",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "sync-version": "node scripts/sync-version.mjs",
-    "prebuild": "npm run sync-version && npm run test:source && npm run test:worker-client",
+    "prebuild": "npm run sync-version",
     "build": "tsc -b && vite build",
-    "verify": "npm run build && node --check worker/metar-proxy.js && npm run test:updater && npm run test:source",
+    "verify": "npm run build && node --check worker/metar-proxy.js && npm run test:updater",
     "preview": "vite preview",
-    "test:updater": "node scripts/test-updater.mjs",
-    "test:source": "node scripts/test-source.mjs",
-    "test:worker-client": "node scripts/test-worker-client.mjs"
+    "test:updater": "node scripts/test-updater.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

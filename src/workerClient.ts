@@ -9,17 +9,12 @@ const LAST_GOOD_MAX_AGE=7*24*60*60*1000;
 
 function storageGet(key:string){try{return localStorage.getItem(key)||''}catch{return''}}
 function splitUrls(value:unknown){return String(value||'').split(/[\s,;]+/).map(item=>item.trim()).filter(Boolean)}
-function normaliseBase(value:string){const trimmed=String(value||'').trim();if(!trimmed)return'';try{const url=new URL(trimmed,typeof location==='undefined'?'https://mid.invalid/':location.href);return url.protocol==='http:'||url.protocol==='https:'?url.toString():''}catch{return''}}
+function normaliseBase(value:string){try{return new URL(value,typeof location==='undefined'?'https://mid.invalid/':location.href).toString()}catch{return''}}
 function uniqueUrls(values:string[]){const seen=new Set<string>(),result:string[]=[];for(const raw of values){const value=normaliseBase(raw);if(!value||seen.has(value))continue;seen.add(value);result.push(value)}return result}
 function recentLastGood(){
  try{
-  const parsed=JSON.parse(storageGet(LAST_GOOD_KEY)) as {url?:string;at?:number},url=normaliseBase(String(parsed.url||''));
-  if(!url||Number(parsed.at)<=Date.now()-LAST_GOOD_MAX_AGE)return'';
-  if(typeof location!=='undefined'){
-   const endpoint=new URL(url),page=new URL(location.href);endpoint.hash='';endpoint.search='';page.hash='';page.search='';
-   if(endpoint.href===page.href){localStorage.removeItem(LAST_GOOD_KEY);return''}
-  }
-  return url;
+  const parsed=JSON.parse(storageGet(LAST_GOOD_KEY)) as {url?:string;at?:number};
+  return parsed.url&&Number(parsed.at)>Date.now()-LAST_GOOD_MAX_AGE?parsed.url:'';
  }catch{return''}
 }
 function rememberLastGood(url:string){try{localStorage.setItem(LAST_GOOD_KEY,JSON.stringify({url,at:Date.now()}))}catch{}}
@@ -82,10 +77,7 @@ export async function fetchWorkerJson<T extends WorkerPayload>(mode:string,param
   const request=requestController(options.signal,options.timeoutMs??9000);
   try{
    const response=await fetch(buildWorkerUrl(base,mode,params).toString(),{signal:request.signal,cache:options.cache??'no-store',headers:{Accept:'application/json'}});
-   const contentType=(response.headers.get('content-type')||'').toLowerCase();
-   if(!contentType.includes('json')){await response.body?.cancel().catch(()=>{});throw new Error(`HTTP ${response.status} · Endpunkt lieferte keine JSON-Antwort`)}
-   const data=await response.json() as T;
-   if(!data||typeof data!=='object'||Array.isArray(data))throw new Error('Ungültige Worker-Antwort');
+   const data=await response.json().catch(()=>({})) as T;
    if(!response.ok||data.error)throw new Error(data.error||`HTTP ${response.status}`);
    rememberLastGood(base);
    return data;

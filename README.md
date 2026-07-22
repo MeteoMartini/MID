@@ -7,22 +7,7 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.57**
-
-## Neuerungen in v0.7.57
-
-- Widget-Wettertexte nutzen einen platzsparenden Zweizeiler ohne Vergrößerung des Exportformats.
-- Leere Worker-Konfigurationswerte erzeugen keinen falschen GitHub-Pages-Endpunkt mehr.
-- Nicht-JSON-Antworten werden verworfen; MID wechselt zum echten Worker beziehungsweise zum direkten Meteogramm-Fallback.
-
-## Neuerungen in v0.7.56
-
-- Such- und Favoriten-Popover schließt bei Klick außerhalb und mit Escape.
-- Konsistenzpunkte der Ensemble-Übersicht besitzen Hover-/Fokus-Tooltips.
-- Desktop-Detaildiagramm unterstützt Stundenwechsel mit ←/→ und Mausrad sowie Tageswechsel mit ↑/↓.
-- Meteogramm öffnet direkt über die äußere Modulklappe und lädt sofort.
-- Der standortbezogene Radarabgleich wird automatisch aktualisiert und bei vorübergehenden Fehlern erneut versucht.
-- Der PWA-Cache wurde versioniert erneuert, damit keine veralteten Lazy-Module erhalten bleiben.
+**Aktuelle Version: v0.7.55**
 
 ## Neuerungen in v0.7.40
 

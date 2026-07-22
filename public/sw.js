@@ -1,4 +1,4 @@
-const CACHE='mid-shell-v0.7.57';
+const CACHE='mid-shell-v0.7.54';
 const SHELL=['./','./manifest.webmanifest','./mid-logo.png'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('mid-shell-')&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim()))});

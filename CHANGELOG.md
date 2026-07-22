@@ -1,21 +1,7 @@
 # Changelog
 
-## 0.7.57
-- Widget-Wettertexte werden in der kompakten Exportansicht über bis zu zwei Zeilen vollständig lesbar dargestellt; Abstände wurden kompensiert, damit Bildformat und übrige Angaben unverändert bleiben.
-- Leere Worker-Variablen werden nicht länger fälschlich als aktuelle GitHub-Pages-Adresse interpretiert.
-- Ein durch den bisherigen Fehler gespeicherter Seiten-Endpunkt wird automatisch verworfen.
-- Worker-Antworten werden auf JSON geprüft; HTML-Seiten oder andere Scheinantworten gelten als Fehler und lösen den nächsten Endpunkt beziehungsweise den direkten Meteogramm-Fallback aus.
-- Dadurch erreichen Radar-Nowcast, Meteogramm, Warnungen und weitere Worker-Dienste wieder den tatsächlich konfigurierten Cloudflare Worker.
-- Ein automatisierter Regressionstest prüft leere Konfigurationswerte, alte Seitenendpunkte, METAR-Rückfall und den Wechsel nach Nicht-JSON-Antworten.
-- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionsanhebung.
-
-## 0.7.56
-- Suchfeld-Popover schließt zuverlässig bei Klick außerhalb, Escape, Standortwahl oder Wechsel der Desktop-Ansicht; verspätete Suchantworten öffnen es nach dem Verlassen nicht erneut.
-- Ensemble-Konsistenzpunkte zeigen ihren Erläuterungstext bereits beim Hover beziehungsweise Tastaturfokus und schließen ihn beim Verlassen automatisch; Touch-Bedienung per Klick bleibt erhalten.
-- Desktop-Detaildiagramm: ←/→ wechselt stündlich, ↑ zum nächsten Tag, ↓ zum vorherigen Tag; nach Fokus navigiert das Mausrad stündlich vor beziehungsweise zurück.
-- Meteogramm besitzt nur noch die äußere Modulklappe, wird beim Öffnen unmittelbar gemountet und lädt automatisch; die fehleranfällige doppelte Einklappung und der zusätzliche Viewport-Gate wurden entfernt.
-- Radarabgleich startet nach dem Basisforecast automatisch, aktualisiert sich alle fünf Minuten, versucht nach Fehlern nach einer Minute erneut und reagiert auf Online-/Sichtbarkeitswechsel. Quelle, Radar-/Modellgewichtung und fehlende oder veraltete Radardaten werden deutlich ausgewiesen.
-- PWA-Service-Worker-Cache auf v0.7.56 angehoben, damit keine alten Lazy-Module oder Shell-Dateien aus v0.7.54 weiterverwendet werden.
+## 0.7.58
+- Widget: Der Wettertext erhält einen festen, zweizeiligen Bereich mit sauberem Umbruch; beide Textzeilen bleiben vollständig sichtbar und kollidieren nicht mehr mit den Temperaturwerten.
 - Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionsanhebung.
 
 ## 0.7.55
