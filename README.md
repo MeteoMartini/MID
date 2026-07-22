@@ -7,7 +7,7 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.54**
+**Aktuelle Version: v0.7.55**
 
 ## Neuerungen in v0.7.40
 
@@ -294,6 +294,22 @@ VITE_METAR_PROXY_URL=https://DEIN-WORKER.workers.dev/
 ```
 
 Eine separate Warnungs- oder Radaradresse ist nicht nötig. Optional kann dieselbe Adresse zusätzlich als `VITE_ALERT_PROXY_URL` und `VITE_RADAR_PROXY_URL` gesetzt werden.
+
+
+### Schutz vor blockierten Worker-Aufrufen
+
+MID kann eine Browser-, DNS-, Firewall- oder Unternehmensnetz-Sperre nicht selbst aufheben. Ab v0.7.55 werden jedoch mehrere erreichbare Endpunkte automatisch nacheinander versucht. Der zuletzt erfolgreiche Endpunkt wird lokal gespeichert und bei folgenden Worker- und WMS-Aufrufen bevorzugt.
+
+Empfohlen ist eine eigene Cloudflare-Custom-Domain oder ein gleichursprünglicher Pfad, damit MID nicht ausschließlich von der häufig pauschal gesperrten `workers.dev`-Domain abhängt:
+
+```text
+VITE_WORKER_SAME_ORIGIN_PATH=/api/mid-worker
+VITE_WORKER_FALLBACK_URLS=https://worker-fallback.example.com/,https://DEIN-WORKER.workers.dev/
+```
+
+`VITE_WORKER_SAME_ORIGIN_PATH` darf nur gesetzt werden, wenn der verwendete Host diesen Pfad tatsächlich zum Worker routet. Reines GitHub Pages kann selbst keinen serverseitigen Proxy unter `/api/` bereitstellen; dort sollte eine eigene Worker-Custom-Domain als primäre oder zusätzliche URL verwendet werden.
+
+METAR-Daten besitzen weiterhin einen direkten AviationWeather-Fallback. Das Druckniveau-Meteogramm wechselt bei einem blockierten Worker automatisch zum direkten Open-Meteo-Abruf. Daten, die aus CORS-, Lizenz- oder Rechenaufwandsgründen zwingend über den Worker laufen, werden über die konfigurierten Ersatzendpunkte abgesichert.
 
 Für v0.7.13 muss der mitgelieferte Worker neu bereitgestellt werden, weil die standortbezogene Radar-Nowcast-Auswertung jetzt serverseitig erfolgt.
 

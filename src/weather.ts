@@ -1,3 +1,4 @@
+import {fetchWorkerJson,workerBaseCandidates} from './workerClient';
 export type WindUnit='kn'|'kmh'|'ms'|'mph';
 export type UrbanClass='urban'|'suburban'|'rural'|'unknown';
 export type Location={id:number;name:string;latitude:number;longitude:number;elevation?:number;timezone?:string;country?:string;country_code?:string;admin1?:string;admin2?:string;postcodes?:string[];autolocated?:boolean;source?:string;poiType?:string;poiCategory?:string;featureCode?:string;population?:number;urbanClass?:UrbanClass};
@@ -280,11 +281,9 @@ function rowToStation(r:any,lat:number,lon:number):Station|null{
 }
 function parseMetarStations(rows:any[],lat:number,lon:number){return rows.map(r=>rowToStation(r,lat,lon)).filter(Boolean) as Station[]}
 async function metarStations(lat:number,lon:number,signal?:AbortSignal):Promise<Station[]>{
- const dLat=1.15,dLon=1.15/Math.max(.25,Math.cos(lat*Math.PI/180)),bbox=[lon-dLon,lat-dLat,lon+dLon,lat+dLat].map(x=>x.toFixed(3)).join(','),configured=((import.meta as any).env?.VITE_METAR_PROXY_URL as string|undefined)||localStorage.getItem('metarProxyUrl')||'',urls:string[]=[];
- if(configured){const u=new URL(configured);u.searchParams.set('lat',String(lat));u.searchParams.set('lon',String(lon));u.searchParams.set('radius_km','140');urls.push(u.toString())}
- urls.push(`https://aviationweather.gov/api/data/metar?format=json&hoursBeforeNow=2&bbox=${encodeURIComponent(bbox)}`);
- for(const url of urls){try{const d=await j<any>(url,signal),stations=parseMetarStations(parseMetarRows(d),lat,lon);if(stations.length)return stations}catch{}}
- return[];
+ const dLat=1.15,dLon=1.15/Math.max(.25,Math.cos(lat*Math.PI/180)),bbox=[lon-dLon,lat-dLat,lon+dLon,lat+dLat].map(x=>x.toFixed(3)).join(',');
+ if(workerBaseCandidates('metar').length){try{const data=await fetchWorkerJson<any>('',{lat,lon,radius_km:140},{purpose:'metar',signal,timeoutMs:8000}),stations=parseMetarStations(parseMetarRows(data),lat,lon);if(stations.length)return stations}catch{}}
+ try{const data=await j<any>(`https://aviationweather.gov/api/data/metar?format=json&hoursBeforeNow=2&bbox=${encodeURIComponent(bbox)}`,signal);return parseMetarStations(parseMetarRows(data),lat,lon)}catch{return[]}
 }
 export async function station(lat:number,lon:number,country?:string,elevation?:number,context?:Location,signal?:AbortSignal):Promise<Station|null>{
  const c=countryCodeFromLocation(country),inGermany=c==='DE'||(!c&&lat>=47.2&&lat<=55.2&&lon>=5.5&&lon<=15.6),tasks:Promise<Station[]|Station|null>[]=[metarStations(lat,lon,signal)];
@@ -297,20 +296,13 @@ export async function station(lat:number,lon:number,country?:string,elevation?:n
 }
 
 export async function officialWarnings(lat:number,lon:number,country?:string,name?:string,region?:string,district?:string,signal?:AbortSignal):Promise<{alerts:OfficialAlert[];provider?:string;coverage?:string}> {
- const configured=((import.meta as any).env?.VITE_ALERT_PROXY_URL as string|undefined)||((import.meta as any).env?.VITE_METAR_PROXY_URL as string|undefined)||localStorage.getItem('alertProxyUrl')||localStorage.getItem('metarProxyUrl')||'';
- if(!configured)throw new Error('CAP-Warnungsproxy nicht konfiguriert.');
- const u=new URL(configured);u.searchParams.set('mode','alerts');u.searchParams.set('lat',String(lat));u.searchParams.set('lon',String(lon));u.searchParams.set('country',countryCodeFromLocation(country)||String(country||''));u.searchParams.set('language','de');
- if(name)u.searchParams.set('name',name);if(region)u.searchParams.set('region',region);if(district)u.searchParams.set('district',district);
- const response=await fetch(u.toString(),{signal,cache:'no-store'});const result=await response.json().catch(()=>({})) as {alerts?:OfficialAlert[];provider?:string;coverage?:string;error?:string};if(!response.ok||result.error)throw new Error(result.error||`Warnungsproxy HTTP ${response.status}`);
+ const result=await fetchWorkerJson<{alerts?:OfficialAlert[];provider?:string;coverage?:string;error?:string}>('alerts',{lat,lon,country:countryCodeFromLocation(country)||String(country||''),language:'de',name,region,district},{purpose:'alerts',signal,timeoutMs:12000});
  return{alerts:(result.alerts??[]).filter(a=>a&&a.id&&a.headline),provider:result.provider,coverage:result.coverage};
 }
 
 export async function radarNowcast(lat:number,lon:number,country?:string,signal?:AbortSignal):Promise<RadarNowcast|null>{
- const configured=((import.meta as any).env?.VITE_RADAR_PROXY_URL as string|undefined)||((import.meta as any).env?.VITE_METAR_PROXY_URL as string|undefined)||localStorage.getItem('radarProxyUrl')||localStorage.getItem('metarProxyUrl')||'';
- if(!configured)return null;
- const u=new URL(configured);u.searchParams.set('mode','radar-nowcast');u.searchParams.set('lat',String(lat));u.searchParams.set('lon',String(lon));u.searchParams.set('country',countryCodeFromLocation(country)||String(country||''));
- const response=await fetch(u.toString(),{signal,cache:'no-store'});const result=await response.json().catch(()=>({})) as RadarNowcast&{error?:string};
- if(!response.ok||result.error)throw new Error(result.error||`Radar-Nowcast HTTP ${response.status}`);
+ if(!workerBaseCandidates('radar').length)return null;
+ const result=await fetchWorkerJson<RadarNowcast&{error?:string}>('radar-nowcast',{lat,lon,country:countryCodeFromLocation(country)||String(country||'')},{purpose:'radar',signal,timeoutMs:12000});
  if(!result||!Number.isFinite(Number(result.radarProbability)))return null;
  return{...result,radarProbability:Math.max(0,Math.min(100,Number(result.radarProbability))),currentRate:Number.isFinite(Number(result.currentRate))?Number(result.currentRate):undefined,arrivalMinutes:Number.isFinite(Number(result.arrivalMinutes))?Number(result.arrivalMinutes):undefined,endMinutes:Number.isFinite(Number(result.endMinutes))?Number(result.endMinutes):undefined};
 }

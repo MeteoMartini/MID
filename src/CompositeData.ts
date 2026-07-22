@@ -1,4 +1,4 @@
-import {MID_VERSION} from './version';
+import {buildWorkerUrl,configuredWorkerBase,fetchWorkerJson} from './workerClient';
 export type CompositeSource='dwd'|'opera'|'rainviewer'|'model';
 export type OperaGridPoint={lat:number;lon:number;rate:number;observedAt?:string};
 export type OperaGridFrame={time:string;points:OperaGridPoint[]};
@@ -32,36 +32,14 @@ export type CompositeProductTimes={
  error?:string;
 };
 
-export function configuredDataProxy(){
- const env=(import.meta as any).env??{};
- return String(env.VITE_RADAR_PROXY_URL||env.VITE_METAR_PROXY_URL||localStorage.getItem('radarProxyUrl')||localStorage.getItem('metarProxyUrl')||'').trim();
-}
-function endpoint(mode:string,lat:number,lon:number){
- const configured=configuredDataProxy();
- if(!configured)throw new Error(`Cloudflare Worker v${MID_VERSION} ist nicht konfiguriert.`);
- const url=new URL(configured,location.href);
- url.searchParams.set('mode',mode);
- url.searchParams.set('lat',String(lat));
- url.searchParams.set('lon',String(lon));
- url.searchParams.set('_mid',MID_VERSION);
- return url;
-}
+export function configuredDataProxy(){return configuredWorkerBase('radar')}
 export function compositeWmsProxy(provider:WmsProvider){
  const configured=configuredDataProxy();
  if(!configured)return'';
- const url=new URL(configured,location.href);
- url.searchParams.set('mode','composite-wms');
- url.searchParams.set('provider',provider);
- url.searchParams.set('_mid',MID_VERSION);
- return url.toString();
+ return buildWorkerUrl(configured,'composite-wms',{provider}).toString();
 }
-async function getJson<T extends {error?:string}>(url:URL,signal?:AbortSignal):Promise<T>{
- const response=await fetch(url.toString(),{signal,cache:'no-store'}),data=await response.json().catch(()=>({})) as T;
- if(!response.ok||data.error)throw new Error(data.error||`Worker HTTP ${response.status}`);
- return data;
-}
-export async function loadOperaGrid(lat:number,lon:number,signal?:AbortSignal){return getJson<OperaGrid>(endpoint('opera-grid',lat,lon),signal)}
-export async function loadLightningPoints(lat:number,lon:number,signal?:AbortSignal){return getJson<LightningPointResponse>(endpoint('lightning-points',lat,lon),signal)}
-export async function loadCompositeTimes(lat:number,lon:number,signal?:AbortSignal){return getJson<CompositeProductTimes>(endpoint('composite-times',lat,lon),signal)}
-export async function loadRainViewer(lat:number,lon:number,signal?:AbortSignal){return getJson<RainViewerResponse>(endpoint('rainviewer-meta',lat,lon),signal)}
-export async function loadModelContours(lat:number,lon:number,signal?:AbortSignal){return getJson<ModelContourResponse>(endpoint('model-contours',lat,lon),signal)}
+export async function loadOperaGrid(lat:number,lon:number,signal?:AbortSignal){return fetchWorkerJson<OperaGrid>('opera-grid',{lat,lon},{purpose:'radar',signal,timeoutMs:11000})}
+export async function loadLightningPoints(lat:number,lon:number,signal?:AbortSignal){return fetchWorkerJson<LightningPointResponse>('lightning-points',{lat,lon},{purpose:'radar',signal,timeoutMs:10000})}
+export async function loadCompositeTimes(lat:number,lon:number,signal?:AbortSignal){return fetchWorkerJson<CompositeProductTimes>('composite-times',{lat,lon},{purpose:'radar',signal,timeoutMs:10000})}
+export async function loadRainViewer(lat:number,lon:number,signal?:AbortSignal){return fetchWorkerJson<RainViewerResponse>('rainviewer-meta',{lat,lon},{purpose:'radar',signal,timeoutMs:9000})}
+export async function loadModelContours(lat:number,lon:number,signal?:AbortSignal){return fetchWorkerJson<ModelContourResponse>('model-contours',{lat,lon},{purpose:'radar',signal,timeoutMs:15000})}

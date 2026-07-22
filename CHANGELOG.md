@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.55
+- Desktop: Ansichtswahl aus der breiten Favoriten-/Suchspalte entfernt und als kompakte Auswahl direkt neben Suchfeld und Standortbutton platziert; auf schmalen Ansichten bleibt der gut bedienbare Segment-Schalter erhalten.
+- Worker-Aufrufe verwenden nun mehrere konfigurierbare Endpunkte mit automatischem Failover, Zeitlimit und gespeichertem zuletzt erfolgreichen Endpunkt.
+- Optionaler gleichursprünglicher Worker-Pfad und zusätzliche Fallback-Adressen schützen insbesondere gegen gesperrte `workers.dev`-Domains; vollständiger Schutz gegen lokale, DNS- oder Unternehmensnetz-Blockaden ist technisch nicht erzwingbar.
+- METAR behält den direkten AviationWeather-Fallback; das Meteogramm fällt bei blockiertem Worker automatisch auf Open-Meteo direkt zurück.
+- Warnungen, Radar-Nowcast, Kompositdaten, Blitz, 250-m-Radar und Modellkonturen melden nach Ausschöpfen aller Endpunkte eine eindeutige Blockade-/Netzwerkdiagnose.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionsanhebung.
+
 ## 0.7.54
 - Buildkorrektur: Typdeklaration für `import.meta.env` ergänzt, damit `src/pwa.ts` im GitHub-Workflow kompiliert.
 - Buildkorrektur: ungenutzten Tageszeit-Helfer entfernt; TypeScript-Prüfung mit `noUnusedLocals` läuft wieder fehlerfrei.
