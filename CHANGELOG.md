@@ -1,3 +1,17 @@
+# MID v0.7.70.1
+
+- Ensemble-Diagramm-Tooltip präzisiert: Bei der Sonnenscheindauer heißt der Klammerzusatz nun `P10–P90` statt des unspezifischen Ausdrucks `Bandbreite`.
+- Versionsschema auf aufwertungsabhängige Releases umgestellt: Funktionsstände verwenden `0.7.x`, eng begrenzte Wartungsänderungen `0.7.x.y`.
+- Versionssynchronisierung, Anzeigeersetzung und Updater-Vergleich für vierteilige Wartungsversionen abgesichert.
+- Keine funktionale Worker-Änderung; nur einheitliche Versionssynchronisierung auf `0.7.70.1`.
+
+# MID v0.7.70
+
+- Sichtbare Mess- und Prognosewerte auf einheitliche deutsche Dezimaldarstellung geprüft und erweitert.
+- Aktuelle Bewölkung um die METAR-Ceiling in hunderten Fuß über Grund (`hft`) ergänzt; geeignete BKN-, OVC- und VV-Lagen fließen stationsgewichtet in die hyperlokale Analyse ein.
+- Desktop-Kacheln der aktuellen Einzelparameter platzsparender angeordnet, sodass bei ausreichender Breite alle Parameter in einer Zeile stehen.
+- Cloudflare Worker funktional um strukturierte Wolkenlagen, vertikale Sichtweite und METAR-Rohmeldung erweitert.
+
 # MID v0.7.69
 
 - Sonnenscheindauer in der 7-Tage-Vorhersage und im Ensemble-Tooltip mit maximal einer Nachkommastelle formatiert: volle Stunden erscheinen ohne unnötige Dezimalstelle (`15 h` statt `15,0 h`), Zwischenwerte weiterhin mit deutschem Dezimalkomma.

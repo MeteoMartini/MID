@@ -1,3 +1,5 @@
+function formatDecimalFixed(value:number,fractionDigits=1){return new Intl.NumberFormat('de-DE',{useGrouping:false,minimumFractionDigits:fractionDigits,maximumFractionDigits:fractionDigits}).format(value)}
+
 export type PrecipType='none'|'drizzle'|'freezingDrizzle'|'rain'|'freezingRain'|'showers'|'snow'|'snowGrains'|'snowShowers'|'sleet'|'sleetShowers'|'thunderstorm'|'thunderstormHail';
 
 export type PrecipSample={
@@ -82,10 +84,10 @@ export function precipitationParts(h:PrecipSample):PrecipitationParts{
 
  if(type==='none')return{total,type,label:'kein Niederschlag',code};
  const amount=type==='snow'||type==='snowShowers'||type==='snowGrains'
-  ?`${snowCm.toFixed(1)} cm`
+  ?`${formatDecimalFixed(snowCm,1)} cm`
   :type==='sleet'||type==='sleetShowers'
-   ?`${total.toFixed(1)} mm · ${snowCm.toFixed(1)} cm`
-   :`${total.toFixed(1)} mm`;
+   ?`${formatDecimalFixed(total,1)} mm · ${formatDecimalFixed(snowCm,1)} cm`
+   :`${formatDecimalFixed(total,1)} mm`;
  return{total,type,label:`${PRECIP_LABEL[type]} ${amount}`,code};
 }
 

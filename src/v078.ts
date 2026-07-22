@@ -60,7 +60,7 @@ async function coordinateResult(url:URL,init?:RequestInit){
       const response=await nativeFetch(elevationUrl,{signal:init?.signal,cache:'no-store'});if(response.ok){const data=await response.json() as {elevation?:number;timezone?:string};const value=finite(data.elevation);if(value!==null)elevation=value;timezone=data.timezone}
     }catch{}})()
   ]);
-  const name=reverse?.locality||reverse?.city||reverse?.principalSubdivision||`${lat.toFixed(4)}°, ${lon.toFixed(4)}°`;
+  const name=reverse?.locality||reverse?.city||reverse?.principalSubdivision||`${lat.toLocaleString('de-DE',{useGrouping:false,minimumFractionDigits:4,maximumFractionDigits:4})}°, ${lon.toLocaleString('de-DE',{useGrouping:false,minimumFractionDigits:4,maximumFractionDigits:4})}°`;
   const result={id:Date.now(),name,latitude:lat,longitude:lon,elevation,timezone,source:'Koordinatensuche',country:reverse?.countryName||undefined,country_code:String(reverse?.countryCode||'').toUpperCase()||undefined,admin1:reverse?.principalSubdivision||undefined,postcodes:reverse?.postcode?[String(reverse.postcode)]:undefined};
   return new Response(JSON.stringify({results:[result]}),{status:200,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store'}});
 }
@@ -91,7 +91,7 @@ window.fetch=async(input:RequestInfo|URL,init?:RequestInit)=>{
   const response=await nativeFetch(input,init);if(url)captureForecast(response,url);return response;
 };
 
-function replaceVersionText(root:ParentNode){const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node:Node|null;while((node=walker.nextNode())){const text=node.nodeValue||'';if(/\bv0\.7\.\d+\b/.test(text))node.nodeValue=text.replace(/\bv0\.7\.\d+\b/g,`v${VERSION}`)}}
+function replaceVersionText(root:ParentNode){const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node:Node|null;while((node=walker.nextNode())){const text=node.nodeValue||'';if(/\bv\d+\.\d+\.\d+(?:\.\d+)?\b/.test(text))node.nodeValue=text.replace(/\bv\d+\.\d+\.\d+(?:\.\d+)?\b/g,`v${VERSION}`)}}
 function enhanceVersion(){document.querySelectorAll<HTMLElement>('.brand-version,.app>footer,.weatherwidget footer').forEach(element=>replaceVersionText(element));const search=document.querySelector<HTMLInputElement>('.search input');if(search&&search.placeholder!=='Ort, PLZ, POI oder Koordinaten suchen')search.placeholder='Ort, PLZ, POI oder Koordinaten suchen'}
 
 const toggleDefinitions:{selector:string;label:string;key:ChartToggleKey;className:string}[]=[

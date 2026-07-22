@@ -1,21 +1,23 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.7.69",
+  "version": "0.7.70.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "sync-version": "node scripts/sync-version.mjs",
     "prebuild": "npm run sync-version",
     "build": "tsc -b && vite build",
-    "verify": "npm run build && node --check worker/metar-proxy.js && npm run test:updater && npm run test:interactions && npm run test:radar && npm run test:precipitation && npm run test:sunshine && npm run test:hyperlocal",
+    "verify": "npm run build && node --check worker/metar-proxy.js && npm run test:updater && npm run test:interactions && npm run test:radar && npm run test:precipitation && npm run test:sunshine && npm run test:hyperlocal && npm run test:format-layout && npm run test:versioning",
     "preview": "vite preview",
     "test:updater": "node scripts/test-updater.mjs",
     "test:radar": "node scripts/test-radar.mjs",
     "test:interactions": "node scripts/test-interactions.mjs",
     "test:precipitation": "node scripts/test-precipitation.mjs",
     "test:sunshine": "node scripts/test-sunshine-format.mjs",
-    "test:hyperlocal": "node scripts/test-hyperlocal-fields.mjs"
+    "test:hyperlocal": "node scripts/test-hyperlocal-fields.mjs",
+    "test:format-layout": "node scripts/test-german-format-layout.mjs",
+    "test:versioning": "node scripts/test-versioning.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

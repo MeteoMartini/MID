@@ -7,7 +7,15 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.69**
+**Aktuelle Version: v0.7.70.1**
+
+
+## Neuerungen in v0.7.70.1
+
+- Der Sonnenscheindauer-Zusatz im Ensemble-Tooltip bezeichnet die Unsicherheit nun ausdrücklich als `P10–P90`.
+- Eng begrenzte Wartungsänderungen erhalten künftig eine vierte Versionsstelle; größere funktionale Aufwertungen erhöhen weiterhin die dritte Stelle.
+- Versionssynchronisierung, Service-Worker-Cache und sichtbare Versionsersetzung unterstützen das vierteilige Wartungsschema.
+
 
 ## Neuerungen in v0.7.69
 
@@ -506,9 +514,14 @@ Die jeweiligen Nutzungsbedingungen, Abruflimits und Lizenzanforderungen der Date
 
 ## Versionsschema
 
-- Patch (`0.x.y`): gezielte Korrekturen und kleinere Verbesserungen
-- Minor (`0.x.0`): neue wesentliche Funktion oder größere Daten-/UI-Architektur
-- Major (`1.0.0`): stabiler, dokumentierter Funktionsumfang
+MID verwendet innerhalb der laufenden Entwicklungslinie ein vierstufiges, auf den tatsächlichen Umfang abgestimmtes Schema:
+
+- Funktionsrelease (`0.7.x`): neue Funktion, neue Datenquelle oder spürbare fachliche beziehungsweise UI-Aufwertung. Die dritte Stelle wird erhöht, beispielsweise `0.7.70` → `0.7.71`.
+- Wartungsrelease (`0.7.x.y`): eng begrenzte Fehlerkorrektur, Text-/Formatanpassung, Build- oder Verpackungsreparatur ohne eigenständige Funktionsaufwertung. Die vierte Stelle beginnt bei `1` und wird innerhalb desselben Funktionsstands erhöht, beispielsweise `0.7.70.1`, `0.7.70.2`.
+- Neue Funktionsaufwertung nach einem Wartungsrelease: Erhöhung der dritten Stelle und Wegfall der vierten Stelle, beispielsweise `0.7.70.2` → `0.7.71`.
+- Größere Entwicklungslinie (`0.8.0`) beziehungsweise stabiler Hauptstand (`1.0.0`): nur bei einer entsprechend weitreichenden Architektur-, Daten- oder Produktstufe.
+
+Die Versionswahl richtet sich damit nicht mehr automatisch nach jeder einzelnen Änderung. Reine Wartungsänderungen werden als Unterrelease des zuletzt aufgewerteten Funktionsstands geführt. Frontend, `version.json`, Service-Worker-Cache und Cloudflare Worker werden weiterhin auf denselben vollständigen Versionswert synchronisiert.
 
 v0.7.13 stabilisiert die DWD-WMS-Pixelanalyse; v0.7.11 ergänzte die standortbezogene Radar-/Modellkombination mit DWD, OPERA/ORD und RainViewer. v0.7.7 ergänzt im Tagesdetail dezente Nachtflächen sowie Sonnenauf- und Sonnenuntergangszeiten. v0.7.6 korrigierte die Datumsdarstellung und präzisierte die Tag-/Nachtlogik der Bewölkungsbalken. v0.7.5 ergänzte kompakte Modellstand-Informationen mit Init- und Verfügbarkeitszeiten, ohne die Ansichten im geschlossenen Zustand merklich zu vergrößern.
 

@@ -1341,3 +1341,13 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 .sunshine-scale-legend>i{width:min(255px,44vw);min-width:155px;height:18px;padding:0 9px;border-color:color-mix(in srgb,var(--border) 58%,transparent);box-shadow:none}
 .sunshine-scale-legend b,.sunshine-scale-legend em{font-size:8.5px;font-weight:650}
 @media(max-width:520px){.sunshine-scale-legend>i{width:min(215px,58vw);min-width:135px;height:17px;padding:0 7px}.sunshine-scale-legend b,.sunshine-scale-legend em{font-size:8px}}
+
+/* v0.7.70 – kompakte aktuelle Parameter in einer Desktop-Zeile */
+@media(min-width:1101px){
+ .metrics{grid-template-columns:repeat(9,minmax(0,1fr));gap:7px}
+ .metrics article{min-height:86px;padding:9px 8px;border-radius:14px}
+ .metrics header{gap:4px;font-size:9px}
+ .metrics header i{top:8px;right:8px}
+ .metrics article>strong{margin-top:7px;font-size:clamp(14px,1.2vw,19px);line-height:1.05}
+ .metrics article>small{margin-top:3px;font-size:8px;line-height:1.18}
+}
