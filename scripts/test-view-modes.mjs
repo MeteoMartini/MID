@@ -12,7 +12,7 @@ for(const token of ["type LayoutMode='standard'|'advanced'","return stored==='ad
  if(!app.includes(token))failures.push(`Ansichtsmodus fehlt: ${token}`);
 }
 if(app.includes("layoutMode==='full'")||app.includes("layoutMode==='compact'"))failures.push('Alte Modusabfragen compact/full sind noch aktiv.');
-for(const token of ['.mode-info-popover','.mode-standard footer .data-disclaimer','.mode-standard .hazards>small','.mode-explanation'])if(!styles.includes(token))failures.push(`Modus-CSS fehlt: ${token}`);
+for(const token of ['.mode-info-popover','.mode-standard .hazards>small','.mode-explanation','.app>footer>.mode-info-popover'])if(!styles.includes(token))failures.push(`Modus-CSS fehlt: ${token}`);
 for(const source of [app,ensemble]){
  for(const token of ["document.addEventListener('pointerdown',outside,true)","document.addEventListener('touchstart',outside", "document.addEventListener('keydown',escape)", 'ref.current?.contains(event.target as Node)'])if(!source.includes(token))failures.push(`Außenklick-Schließlogik fehlt in ${source===app?'App':'Ensemble'}: ${token}`);
 }

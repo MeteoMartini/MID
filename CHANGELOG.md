@@ -1,3 +1,12 @@
+# MID v0.7.77
+
+- Widget-/PNG-Generator und Druckniveau-Meteogramm stehen ausschließlich im Erweiterten Modus zur Verfügung.
+- Quellen bleiben in beiden Modi über die Fußzeilen-Schaltfläche `Quellen` erreichbar und öffnen sich als bei Außenklick, Touch oder Escape schließbares Popover.
+- Beim erstmaligen Öffnen des Standardmodus werden die stündliche Detailansicht sowie alle nachfolgenden einklappbaren Module geschlossen initialisiert.
+- Bestehende Modulzustände bleiben nach der Erstinitialisierung weiterhin lokal gespeichert.
+- Der Zusatz `Ortsname aus Geodatenbank` wurde in beiden Ansichtsmodi entfernt.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionssynchronisierung.
+
 # MID v0.7.76
 
 - Modellstände-Popover in Best-Match- und Ensemble-Bereichen schließen nun zuverlässig bei Klick oder Tippen außerhalb sowie mit Escape.

@@ -7,8 +7,17 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.76**
+**Aktuelle Version: v0.7.77**
 
+
+
+## Neuerungen in v0.7.77
+
+- Meteogramm und Widget-/PNG-Generator werden nur noch im Erweiterten Modus eingeblendet und dadurch im Standardmodus auch nicht unnötig nachgeladen.
+- Die Fußzeile enthält in beiden Modi einen kompakten Eintrag `Quellen`; sämtliche Anbieter- und Haftungshinweise öffnen sich dort als schließbares Popover.
+- Beim ersten Öffnen des Standardmodus starten die stündliche Detailansicht und alle nachfolgenden Module eingeklappt. Danach merkt sich MID die persönliche Modulstellung wieder lokal.
+- Der Hinweis `Ortsname aus Geodatenbank` entfällt vollständig.
+- Der Cloudflare Worker wurde nicht funktional verändert; seine Versionsnummer wurde lediglich synchronisiert.
 
 
 ## Neuerungen in v0.7.76
