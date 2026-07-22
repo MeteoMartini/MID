@@ -7,7 +7,18 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.63**
+**Aktuelle Version: v0.7.65**
+
+## Neuerungen in v0.7.65
+
+- Beide Ensemble-Diagramme besitzen jetzt identische, symmetrisch eingerückte Tagesachsen: Die linke und rechte y-Achse stehen neben den dargestellten Tageswerten statt durch den ersten beziehungsweise letzten Wert zu laufen.
+- Bright-Sky/DWD liefert Stationswind in km/h; MID normalisiert diese Werte nun vor der hyperlokalen Restfeldanalyse konsequent auf kt. Eine zusätzliche generische Schutzschicht konvertiert auch künftige Stationsquellen mit `windUnit: kmh`.
+- Die Interaktionsprüfung kontrolliert die Achsengeometrie und die Wind-Einheitennormalisierung als Regressionstest.
+
+## Neuerungen in v0.7.64
+
+- Temperaturtooltip und Diagrammlegende wurden getrennt, damit sie einander nicht überdecken.
+- Die Tagesachsen von Temperatur- und Niederschlagsdiagramm wurden auf ein gemeinsames Raster gebracht.
 
 ## Neuerungen in v0.7.63
 

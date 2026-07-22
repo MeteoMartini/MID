@@ -1,3 +1,18 @@
+# MID v0.7.65
+
+- Temperatur- und Niederschlagsdiagramm verwenden nun dieselbe symmetrische Tagesachse mit je einem halben Zeitschritt Abstand zu linker und rechter y-Achse; erste und letzte Werte liegen nicht mehr auf den Achsen.
+- Abstand, Beschriftung und Innenränder der x-Achsen wurden vereinheitlicht; Bewölkungsband, Temperaturkurven, Niederschlagsbalken und Wahrscheinlichkeitskurve bleiben taggenau deckungsgleich.
+- Einheitenfehler der hyperlokalen Windanalyse behoben: Bright-Sky/DWD-Windwerte werden von km/h nach kt umgerechnet, bevor sie mit dem in kt angeforderten Open-Meteo-Hintergrundfeld verrechnet werden.
+- Zusätzliche zentrale Normalisierung fängt künftig sämtliche Stationsdatensätze mit `windUnit: kmh` vor Restfeldanalyse und robuster Mittelung ab.
+- Regressionsprüfung um symmetrische Diagrammachsen, identische Achsenabstände und Stationswind-Normalisierung ergänzt.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionsanhebung.
+
+# MID v0.7.64
+
+- Tooltip und interaktive Temperaturlegende räumlich getrennt, sodass der Tooltip die Legende nicht mehr überdeckt.
+- Temperatur- und Niederschlagsdiagramm zunächst auf ein gemeinsames Tagesraster ausgerichtet.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionsanhebung.
+
 # MID v0.7.63
 
 - Buildfehler `TS2304: Cannot find name 'RainTooltip'` in der Ensemble-Niederschlagsgrafik behoben.
