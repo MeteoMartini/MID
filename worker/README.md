@@ -1,6 +1,6 @@
-# MID Daten-, Warnungs- und Radarproxy v0.7.75
+# MID Daten-, Warnungs- und Radarproxy v0.7.76
 
-Keine funktionale Cloudflare-Worker-Änderung in v0.7.75; die Versionsnummer wurde zur einheitlichen Auslieferung mit dem Hauptprojekt synchronisiert. Die plattformübergreifende Tagesnavigation und die geänderte Favoriten-Einsortierung betreffen ausschließlich das Frontend.
+Keine funktionale Cloudflare-Worker-Änderung in v0.7.76; die Versionsnummer wurde zur einheitlichen Auslieferung mit dem Hauptprojekt synchronisiert. Die plattformübergreifende Tagesnavigation und die geänderte Favoriten-Einsortierung betreffen ausschließlich das Frontend.
 
 Keine funktionale Cloudflare-Worker-Änderung in v0.7.73; die Versionsnummer wurde zur einheitlichen Auslieferung mit dem Hauptprojekt synchronisiert. Tooltip-, Wolkenhöhen- und mobile Navigationsänderungen betreffen ausschließlich das Frontend.
 

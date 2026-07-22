@@ -7,8 +7,18 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.75**
+**Aktuelle Version: v0.7.76**
 
+
+
+## Neuerungen in v0.7.76
+
+- Der Standardmodus ersetzt den bisherigen Kompaktmodus und wird beim ersten Öffnen automatisch verwendet.
+- Der erweiterte Modus ersetzt die bisherige Vollansicht. Alle Zusatzmodule bleiben einklappbar; fachliche und technische Hintergründe werden jedoch direkt eingeblendet.
+- Im Standardmodus öffnen sich ausgewählte Erklärungen über dezente Info-Schaltflächen, wodurch Dashboard und Diagramme deutlich schlanker wirken.
+- Info-Popover und die Modellstände-Fenster schließen bei Klick oder Tippen außerhalb sowie mit Escape.
+- Bestehende gespeicherte Ansichtsoptionen werden automatisch auf Standard beziehungsweise Erweitert übertragen.
+- Der Cloudflare Worker wurde nicht funktional verändert; seine Versionsnummer wurde lediglich synchronisiert.
 
 
 ## Neuerungen in v0.7.75

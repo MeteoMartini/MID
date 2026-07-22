@@ -1455,3 +1455,17 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 .settings-header>.header-favorites .favorite-bubbles>button{min-height:34px;padding-top:5px;padding-bottom:5px}
 .settings-header>.header-favorites .favorite-strip-manage{width:34px;height:34px;flex-basis:34px}
 @media(max-width:700px){.settings-header>.header-favorites{padding-top:5px}.settings-header>.header-favorites .favorite-bubbles>button{min-height:32px;padding-top:4px;padding-bottom:4px}.settings-header>.header-favorites .favorite-strip-manage{width:32px;height:32px;flex-basis:32px}}
+
+/* MID v0.7.76 – Standard-/Erweiterter Modus und kontextuelle Erklärungen */
+.mode-info{position:relative;display:inline-flex;flex:0 0 auto;align-items:center;justify-content:center;vertical-align:middle}
+.mode-info>button{display:inline-flex;align-items:center;justify-content:center;width:25px;height:25px;padding:0;border:1px solid color-mix(in srgb,var(--muted) 34%,var(--border));border-radius:999px;background:color-mix(in srgb,var(--s2) 82%,transparent);color:var(--muted);box-shadow:none;transition:border-color .15s ease,color .15s ease,background .15s ease}
+.mode-info>button:hover,.mode-info>button:focus-visible,.mode-info.open>button{border-color:color-mix(in srgb,var(--primary) 58%,var(--border));background:color-mix(in srgb,var(--primary) 10%,var(--s2));color:var(--text);outline:none}
+.mode-info-popover{position:absolute;z-index:1900;top:calc(100% + 7px);right:0;width:min(360px,calc(100vw - 24px));padding:10px 12px;border:1px solid var(--border);border-radius:13px;background:color-mix(in srgb,var(--surface) 97%,transparent);color:var(--text);box-shadow:var(--shadow);font-size:10px;font-weight:500;line-height:1.45;letter-spacing:normal;text-align:left;text-transform:none;white-space:normal;backdrop-filter:blur(16px)}
+.mode-explanation{max-width:760px;margin:0;color:var(--muted);font-size:10px;line-height:1.5;text-align:right}
+.charthead>.mode-info,.detailhead>.mode-info{margin-left:auto}
+.hero aside>span{min-width:0}.hero aside>span>.mode-info{margin-top:5px}.hero aside>span>.mode-info-popover{min-width:280px}
+.mode-standard footer .data-disclaimer,.mode-standard .hazards>small,.mode-standard .mountain-links>small{display:none}
+.mode-advanced footer .data-disclaimer{display:block}
+.mode-standard footer{min-height:36px}
+@media(max-width:850px){.mode-explanation{text-align:left}.charthead{display:flex;align-items:center}.charthead>.mode-info{margin-left:auto}.detailhead{display:flex;align-items:center}.detailhead>.mode-info{margin-left:auto}}
+@media(max-width:620px){.mode-info-popover{position:fixed;z-index:4200;top:auto;right:8px;bottom:10px;left:8px;width:auto;max-height:55vh;overflow:auto;font-size:11px}.hero aside>span>.mode-info-popover{min-width:0}.charthead,.detailhead{align-items:flex-start}}

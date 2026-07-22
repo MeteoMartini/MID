@@ -1,3 +1,13 @@
+# MID v0.7.76
+
+- Modellstände-Popover in Best-Match- und Ensemble-Bereichen schließen nun zuverlässig bei Klick oder Tippen außerhalb sowie mit Escape.
+- Bisherigen Kompaktmodus in `Standardmodus` umbenannt und als Erststartmodus festgelegt; bestehende Compact-Einstellungen werden automatisch übernommen.
+- Bisherigen Vollständig-Modus durch den `Erweiterten Modus` ersetzt. Dieser verwendet weiterhin einklappbare Module, ergänzt jedoch meteorologische und technische Hintergründe direkt in der Oberfläche.
+- Im Standardmodus werden ausgewählte Bedien- und Datenerklärungen über dezente Info-Schaltflächen geöffnet und bei Außenklick, Touch oder Escape wieder geschlossen.
+- Ausführliche Stationsanalyse, Ensemble-Methodik, Bedienhinweise und lange technische Quellen-/Haftungserklärungen werden im erweiterten Modus direkt angezeigt.
+- Alte gespeicherte Vollansicht wird automatisch in den erweiterten Modus migriert.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionssynchronisierung.
+
 # MID v0.7.75
 
 - Dezente Tagespfeile der stündlichen Detailansicht stehen nun auf Handy, Tablet im Hoch- und Querformat sowie Desktop dauerhaft bereit.
