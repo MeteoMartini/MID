@@ -1315,3 +1315,11 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
   pointer-events:none!important;
 }
 .ensemble-sky-strip{shape-rendering:crispEdges}
+
+/* v0.7.64 – Trend-Tooltip darf Legende nicht überdecken; x-Achse wie Niederschlagsdiagramm */
+.trend-combined{display:flex;flex-direction:column;gap:8px}
+.trend-chart-toolbar{flex:0 0 auto}
+.trend-combined>.recharts-responsive-container{flex:1 1 auto;min-height:0}
+.trend-combined .recharts-wrapper{overflow:visible}
+.trend-combined .recharts-tooltip-wrapper{max-width:min(320px,calc(100vw - 24px));pointer-events:none}
+.trend-combined .recharts-cartesian-axis-tick-value tspan{dominant-baseline:hanging}

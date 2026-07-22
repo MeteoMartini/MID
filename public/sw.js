@@ -1,4 +1,4 @@
-const CACHE='mid-shell-v0.7.63';
+const CACHE='mid-shell-v0.7.64';
 const SHELL=['./','./index.html','./manifest.webmanifest','./mid-logo.png','./mid-icon-192.png','./mid-icon-512.png'];
 
 self.addEventListener('install',event=>{
