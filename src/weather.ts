@@ -593,8 +593,8 @@ export function dayWeatherCharacter(day:Day,hours:Hour[]):DayWeatherCharacter{
  const lateStart=candidate.first>=10,endsEarly=candidate.last<=13;
  let characterLabel:string;
  if(lateStart){
-  const when=transitionTime(candidate.first),full=`${compactSkyFallback(skyLabel)}, ${event} ${when}`;
-  characterLabel=fitDayLabel(full,fitDayLabel(`${event} ${when}`,event));
+  const when=transitionTime(candidate.first),full=`${compactSkyFallback(skyLabel)}, ${when} ${event}`;
+  characterLabel=fitDayLabel(full,fitDayLabel(`${when} ${event}`,event));
  }else if(endsEarly){
   const lateCloud=partCloud(relevant,13,20),lateSky=Number.isFinite(lateCloud)?conciseSkyLabel(lateCloud).toLocaleLowerCase('de-DE'):compactSkyFallback(skyLabel).toLocaleLowerCase('de-DE');
   characterLabel=fitDayLabel(`${event} morgens, später ${lateSky}`,`${event} morgens`);

@@ -1,3 +1,9 @@
+# MID v0.7.77.1
+
+- Beschriftung der gelb-grauen Sonnenschein-/Bewölkungslegende in allen Farbdesigns mit einer festen dunklen Schriftfarbe lesbar gemacht.
+- Deutsche Wortstellung bei später einsetzenden Schauern korrigiert, z. B. `Stark bewölkt, abends Schauer` statt `Stark bewölkt, Schauer abends`.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionssynchronisierung.
+
 # MID v0.7.77
 
 - Widget-/PNG-Generator und Druckniveau-Meteogramm stehen ausschließlich im Erweiterten Modus zur Verfügung.

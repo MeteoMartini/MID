@@ -7,8 +7,15 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.77**
+**Aktuelle Version: v0.7.77.1**
 
+
+
+## Neuerungen in v0.7.77.1
+
+- Die Beschriftung `viel Sonne` / `wenig Sonne` im gelb-grauen Legendenband verwendet unabhängig vom Hell-/Dunkeldesign eine gut lesbare dunkle Schrift.
+- Tagescharaktere mit späteren Schauern verwenden die natürliche deutsche Wortstellung, beispielsweise `Stark bewölkt, abends Schauer`.
+- Der Cloudflare Worker wurde nicht funktional verändert; seine Versionsnummer wurde lediglich synchronisiert.
 
 
 ## Neuerungen in v0.7.77
