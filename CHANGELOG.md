@@ -1,14 +1,24 @@
+# MID v0.7.60
+
+- Updatearchitektur bereinigt: nur noch ein zentral registrierter Service Worker; Installation und Aktivierung sind getrennt, der Seitenwechsel erfolgt erst nach `controllerchange` und anschließend cachefrei per `location.replace`.
+- Such-/Favoritenbereich schließt zuverlässig bei Außenklick, Fokuswechsel, Escape, Ortswahl und über einen dauerhaft erreichbaren Schließen-Button.
+- Ensemble-Konsistenzpunkte besitzen einen CSS-gesteuerten Hover-/Fokus-Tooltip, der ohne Klick erscheint und beim Verlassen automatisch verschwindet.
+- Desktop-Detaildiagramm erhält native, nicht-passive Eingabehandler: Pfeil hoch/runter wechselt den Tag, Pfeil links/rechts und Mausrad wechseln stündlich.
+- Radarabgleich korrigiert DWD-Kartenpixel durch GetFeatureInfo-Punktwerte auch bei scheinbar trockenem PNG-Pixel, begrenzt Teilabrufe, prüft Aktualität und 3-Stunden-Horizont und aktualisiert alle fünf Minuten sowie bei Sichtbarkeit/Fokus.
+- GitHub-Pages-Build übernimmt explizite Radar-, Same-Origin- und Fallback-Worker-Endpunkte.
+- Automatisierte Prüfungen für Updater, UI-Interaktionen und den konkreten DWD-Radarfehler ergänzt.
+
+# MID v0.7.59
+
+- Updateablauf stabilisiert: kein automatischer Reload beim Aktivieren der Option, keine Update-URL-Schleife und aktualisierter Service-Worker-Cache.
+- Such-/Favoritenmenü schließt bei Klick außerhalb und mit Escape.
+- Konsistenzpunkte zeigen ihren Tooltip bereits beim Hover/Fokus und schließen beim Verlassen.
+- Desktop-Detaildiagramm: Pfeil hoch/runter wechselt tageweise; Mausrad navigiert stündlich.
+- Radarabgleich mit Cache-Buster, Wiederholungsversuch und automatischer Aktualisierung alle fünf Minuten robuster gemacht.
+
 # Changelog
 
 ## 0.7.59
-- Updateablauf neu abgesichert: Die neue Startseite sowie alle referenzierten Skript- und CSS-Dateien werden vor dem Wechsel vollständig geprüft und vorgeladen. Erst danach wird der Service Worker kontrolliert aktiviert und MID neu geladen.
-- Doppelte bzw. veraltete Service-Worker-Pfade vereinheitlicht; beide Kompatibilitätsdateien verwenden nun denselben versionsgebundenen Cache. Ein fehlgeschlagener Modulstart zeigt statt einer grauen/weißen Seite eine Reparaturansicht mit einmalig geschützter Cache-Bereinigung.
-- DWD-Radarabgleich korrigiert: GetFeatureInfo wird auch dann ausgewertet, wenn die vereinfachte Kartenfarbdekodierung zunächst 0 mm/h meldet. Damit unterdrückt ein falsch als trocken erkanntes Pixel keine tatsächlichen schwachen RV-Echos mehr.
-- DWD-Punktwerte werden für jeden begrenzten Analyseframe abgefragt und mit Diagnosewerten versehen; die Framezahl bleibt zur Einhaltung der Worker-Subrequest-Grenzen begrenzt.
-- Radar korrigiert das Modell ausschließlich im 0- bis 3-Stunden-Fenster, verwirft Radarstände über 35 Minuten und aktualisiert sich alle fünf Minuten sowie bei Rückkehr in die App. Das Modell bleibt die Basis, der Radaranteil ist auf 60 % begrenzt.
-- GitHub-Pages-Build übernimmt Radar-, Same-Origin- und Fallback-Worker-Variablen nun ausdrücklich; zuletzt erfolgreiche Worker-Adressen werden getrennt nach Verwendungszweck und nur noch 36 Stunden gespeichert.
-
-## 0.7.58
 - Widget: Der Wettertext erhält einen festen, zweizeiligen Bereich mit sauberem Umbruch; beide Textzeilen bleiben vollständig sichtbar und kollidieren nicht mehr mit den Temperaturwerten.
 - Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionsanhebung.
 

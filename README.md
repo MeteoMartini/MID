@@ -7,14 +7,15 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.59**
+**Aktuelle Version: v0.7.60**
 
-## Neuerungen in v0.7.59
+## Neuerungen in v0.7.60
 
-- Sicherer Update-Preflight mit vollständiger Prüfung der neuen Startseite, Skripte und Styles vor der Aktivierung.
-- Kontrollierte Service-Worker-Aktivierung sowie sichtbare Boot- und Reparaturansicht statt einer grauen oder weißen Seite bei einem defekten lokalen Cache.
-- Korrigierter DWD-Radarabgleich: GetFeatureInfo überschreibt nun auch einen fälschlich als trocken erkannten Kartenpixel.
-- Radar wird alle fünf Minuten und bei Rückkehr in die App aktualisiert; Modellbasis und Radar-Korrektur bleiben transparent getrennt.
+- Stabiler PWA-Updateablauf ohne konkurrierende Service Worker und ohne graue/weiße Update-Zwischenansicht.
+- Such-/Favoritenmenü lässt sich per Außenklick, Escape und Schließen-Schaltfläche jederzeit verlassen.
+- Ensemble-Konsistenzinformationen erscheinen beim Hovern und verschwinden beim Verlassen automatisch.
+- Desktop-Detaildiagramm unterstützt Tagesnavigation über Pfeil hoch/runter und Stundennavigation über Mausrad sowie Pfeil links/rechts.
+- DWD-Radarabgleich nutzt Punktabfragen unabhängig vom sichtbaren Kartenpixel und wird durch eine konkrete Integrationsprüfung abgesichert.
 
 
 ## Neuerungen in v0.7.40
@@ -306,7 +307,7 @@ Eine separate Warnungs- oder Radaradresse ist nicht nötig. Optional kann diesel
 
 ### Schutz vor blockierten Worker-Aufrufen
 
-MID kann eine Browser-, DNS-, Firewall- oder Unternehmensnetz-Sperre nicht selbst aufheben. Ab v0.7.55 werden jedoch mehrere erreichbare Endpunkte automatisch nacheinander versucht. Der zuletzt erfolgreiche Endpunkt wird getrennt nach Verwendungszweck höchstens 36 Stunden lokal gespeichert und erst nach den ausdrücklich konfigurierten Endpunkten als zusätzlicher Rückfall versucht.
+MID kann eine Browser-, DNS-, Firewall- oder Unternehmensnetz-Sperre nicht selbst aufheben. Ab v0.7.55 werden jedoch mehrere erreichbare Endpunkte automatisch nacheinander versucht. Der zuletzt erfolgreiche Endpunkt wird lokal gespeichert und bei folgenden Worker- und WMS-Aufrufen bevorzugt.
 
 Empfohlen ist eine eigene Cloudflare-Custom-Domain oder ein gleichursprünglicher Pfad, damit MID nicht ausschließlich von der häufig pauschal gesperrten `workers.dev`-Domain abhängt:
 

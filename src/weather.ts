@@ -302,7 +302,10 @@ export async function officialWarnings(lat:number,lon:number,country?:string,nam
 
 export async function radarNowcast(lat:number,lon:number,country?:string,signal?:AbortSignal):Promise<RadarNowcast|null>{
  if(!workerBaseCandidates('radar').length)return null;
- const result=await fetchWorkerJson<RadarNowcast&{error?:string}>('radar-nowcast',{lat,lon,country:countryCodeFromLocation(country)||String(country||'')},{purpose:'radar',signal,timeoutMs:12000});
+ const params={lat,lon,country:countryCodeFromLocation(country)||String(country||''),_ts:Date.now()};
+ let result:RadarNowcast&{error?:string};
+ try{result=await fetchWorkerJson<RadarNowcast&{error?:string}>('radar-nowcast',params,{purpose:'radar',signal,timeoutMs:16000})}
+ catch(firstError){await new Promise<void>((resolve,reject)=>{const id=setTimeout(resolve,700);signal?.addEventListener('abort',()=>{clearTimeout(id);reject(signal.reason)},{once:true})});result=await fetchWorkerJson<RadarNowcast&{error?:string}>('radar-nowcast',{...params,_ts:Date.now()},{purpose:'radar',signal,timeoutMs:20000})}
  if(!result||!Number.isFinite(Number(result.radarProbability)))return null;
  return{...result,radarProbability:Math.max(0,Math.min(100,Number(result.radarProbability))),currentRate:Number.isFinite(Number(result.currentRate))?Number(result.currentRate):undefined,arrivalMinutes:Number.isFinite(Number(result.arrivalMinutes))?Number(result.arrivalMinutes):undefined,endMinutes:Number.isFinite(Number(result.endMinutes))?Number(result.endMinutes):undefined};
 }

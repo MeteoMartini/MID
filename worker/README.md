@@ -1,6 +1,6 @@
-# MID Daten-, Warnungs- und Radarproxy v0.7.59
+# MID Daten-, Warnungs- und Radarproxy v0.7.60
 
-Funktionale Änderung in v0.7.59: Die DWD-RV-Punktabfrage per GetFeatureInfo wird nun auch bei zunächst trocken wirkenden Kartenpixeln durchgeführt. Dadurch können schwache Echos die vereinfachte Farbauswertung korrigieren; Diagnosewerte weisen Punkt- und Kartenfallbacks getrennt aus.
+In v0.7.60 wurde der DWD-Radarabgleich funktional korrigiert: Die GetFeatureInfo-Punktabfrage wird auch bei einem scheinbar trockenen GetMap-Pixel ausgeführt, die Analyse ist auf höchstens zwölf Frames begrenzt und liefert Diagnosezähler für Punktwerte und Karten-Fallbacks.
 
 Funktionale Änderung in v0.7.41: `best_match` wird für das vertikale Meteogramm auf eine konsistente ECMWF-IFS-HRES-Druckniveauzeitreihe abgebildet. Dadurch entstehen nach dem Ende eines kurz laufenden Regionalmodells keine leeren Profilfelder. Der Worker liefert weiterhin die tatsächliche Modelllaufzeit über `forecastHours`.
 

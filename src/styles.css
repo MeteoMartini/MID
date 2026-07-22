@@ -1274,3 +1274,20 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
   text-align:center;
 }
 .weatherwidget.modern.compact .widgettemps{margin-top:4px}
+
+/* v0.7.60 – Suche zuverlässig verlassen, Hover-Tooltip und Diagrammfokus */
+.search.open{z-index:1600}
+.search>section .search-close-results{position:sticky;bottom:0;z-index:2;display:flex!important;align-items:center;justify-content:center;gap:7px;border-top:1px solid var(--border);border-bottom:0;background:color-mix(in srgb,var(--surface) 92%,var(--primary) 8%)!important;text-align:center!important}
+.search>section .search-close-results strong{display:block}
+.search>div>button[aria-label="Suche schließen"],.search>div>button[aria-label="Suche leeren"]{display:grid;flex:0 0 30px;place-items:center}
+
+.ens-card{overflow:visible}
+.ens-card:hover,.ens-card:focus-within,.ens-card.consistency-open{z-index:30}
+.consistency-trigger{position:relative;z-index:31;display:inline-grid;place-items:center}
+.consistency-trigger .consistency-popover{top:24px;right:-7px;left:auto;width:min(230px,70vw);opacity:0;visibility:hidden;transform:translateY(-5px);pointer-events:none;transition:opacity .12s ease,visibility .12s ease,transform .12s ease}
+.consistency-trigger:hover .consistency-popover,.consistency-trigger:focus-within .consistency-popover,.consistency-trigger.open .consistency-popover{opacity:1;visibility:visible;transform:translateY(0)}
+.consistency-dot{touch-action:manipulation}
+
+.meteogram-stage:focus{outline:none}
+.meteogram-stage:focus-visible{outline:2px solid color-mix(in srgb,var(--primary) 78%,white);outline-offset:4px;border-radius:12px}
+@media(min-width:851px){.meteogram-stage{cursor:crosshair;overscroll-behavior:contain}}
