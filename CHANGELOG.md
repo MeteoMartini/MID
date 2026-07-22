@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.52
+
+- Wetter-Icons werden nun mit der vollständigen Tagesbeschreibung einschließlich Bewölkungstrend abgeglichen.
+- Bei „Stark bewölkt, ab Mittag auflockernd“ erscheint ein Sonne-Wolken-Symbol statt einer reinen Sonne.
+- „Heiter“ nutzt ein leicht bewölktes Sonnensymbol; „Heiter, später wolkiger“ und ähnliche Übergänge ein repräsentatives Mischsymbol.
+- Niederschlags- und Gewittersymbole bleiben bei dominanten oder markanten Ereignissen vorrangig.
+
 ## 0.7.51
 
 - Kurze Tagesbeschreibungen berücksichtigen nun markante Wetteränderungen im Tagesverlauf.

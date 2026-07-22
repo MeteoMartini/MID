@@ -416,6 +416,20 @@ function partCloud(hours:Hour[],from:number,to:number){
  if(!values.length)return Number.NaN;
  return values.reduce((sum,h)=>sum+h.cloud,0)/values.length;
 }
+function representativeSkyCode(description:string,fallbackCode:number){
+ const text=description.toLocaleLowerCase('de-DE');
+ // Verlaufstexte brauchen ein Mischsymbol: Es soll weder nur den frühen noch nur den späten Zustand zeigen.
+ if(text.includes('auflockernd'))return 2;
+ if(text.includes('wolkiger')){
+  if(text.startsWith('bedeckt')||text.startsWith('stark bewölkt'))return 3;
+  return 2;
+ }
+ if(text==='sonnig'||text==='klar')return 0;
+ if(text==='heiter'||text.includes('oft sonnig')||text.includes('überwiegend klar'))return 1;
+ if(text.includes('sonne und wolken')||text==='wolkig'||text.includes('teilweise bewölkt'))return 2;
+ if(text.includes('bedeckt')||text.includes('bewölkt'))return 3;
+ return fallbackCode;
+}
 function skyTrend(hours:Hour[],fallback:string){
  const morning=partCloud(hours,6,11),midday=partCloud(hours,11,14),afternoon=partCloud(hours,14,18),evening=partCloud(hours,18,22);
  const early=Number.isFinite(morning)?morning:midday,late=Number.isFinite(afternoon)?afternoon:evening;
@@ -452,8 +466,8 @@ export function dayWeatherCharacter(day:Day,hours:Hour[]):DayWeatherCharacter{
  const weightedCloud=relevant.reduce((sum,h)=>sum+h.cloud*(h.isDay?1.18:.72),0)/Math.max(.1,cloudWeight);
  const sunshineFraction=Math.max(0,day.sunshineDuration||0)/Math.max(1,daylightDurationSeconds(day));
  const effectiveCloud=Math.max(0,Math.min(100,weightedCloud*.72+(1-Math.min(1,sunshineFraction))*100*.28));
- const sky=skyFromCloud(effectiveCloud,sunshineFraction),skyLabel=skyTrend(relevant,sky.label),candidate=representativePrecipCode(relevant);
- if(!candidate)return{...sky,label:skyLabel,secondary:'',cloudOktas:cloudOktas(effectiveCloud),precipitationDominant:false};
+ const sky=skyFromCloud(effectiveCloud,sunshineFraction),skyLabel=skyTrend(relevant,sky.label),skyCode=representativeSkyCode(skyLabel,sky.code),candidate=representativePrecipCode(relevant);
+ if(!candidate)return{...sky,code:skyCode,label:skyLabel,secondary:'',cloudOktas:cloudOktas(effectiveCloud),precipitationDominant:false};
  const severe=candidate.family==='thunder';
  const sustained=candidate.hours>=3&&candidate.averageProbability>=40;
  const quantitativelyRelevant=candidate.sum>=1||candidate.snowSum>=1;
@@ -465,7 +479,7 @@ export function dayWeatherCharacter(day:Day,hours:Hour[]):DayWeatherCharacter{
   :eventLabel;
  if(!dominant){
   const secondary=candidate.maxProbability>=25?`${period} ${eventPhrase} möglich (${Math.round(candidate.maxProbability)} %)` : '';
-  return{...sky,label:skyLabel,secondary,cloudOktas:cloudOktas(effectiveCloud),precipitationDominant:false};
+  return{...sky,code:skyCode,label:skyLabel,secondary,cloudOktas:cloudOktas(effectiveCloud),precipitationDominant:false};
  }
  const event=shortEvent(candidate.family,eventLabel),lateStart=candidate.first>=10;
  const endsEarly=candidate.last<=13;
