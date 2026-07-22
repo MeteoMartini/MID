@@ -7,7 +7,14 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.65**
+**Aktuelle Version: v0.7.66**
+
+## Neuerungen in v0.7.66
+
+- Das Sonnen-/Bewölkungsband im Ensemble-Temperaturtrend verwendet ausschließlich die tägliche Best-Match-Sonnenscheindauer und eine Referenzfarbskala von Gelb über Beige bis Grau.
+- Best-Match-Werte werden in Stunden dargestellt und sicherheitshalber auf die lokale Tageslänge begrenzt.
+- Die Ensemble-API wird zusätzlich nach der Sonnenscheindauer jedes Mitglieds abgefragt; daraus entstehen modellgewichtete P10–P90-Werte. Nicht unterstützende Modelle werden automatisch ohne diese Zusatzvariable erneut geladen.
+- Der Tooltip zeigt nun „Sonnenscheindauer: x,y h (Bandbreite von a,b h bis c,d h)“ und bricht die Bandbreite bei wenig Platz kleiner beziehungsweise in eine zweite Zeile um.
 
 ## Neuerungen in v0.7.65
 

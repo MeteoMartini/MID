@@ -1,3 +1,13 @@
+# MID v0.7.66
+
+- Bewölkungs-/Sonnenband im Temperaturtrend farblich an die Referenzskala angepasst: kräftiges Gelb für viel Sonne, abgestufte Beige-Töne und neutrales Grau für wenig Sonne.
+- Die Bandfarbe wird ausschließlich aus der täglichen Best-Match-Sonnenscheindauer gebildet; ungültige oder physikalisch zu hohe Werte werden auf das lokale Intervall zwischen Sonnenauf- und Sonnenuntergang begrenzt.
+- Ensembleabruf um `sunshine_duration` je Mitglied erweitert; tägliche Summen werden modellgewichtet zu P10, Mittel und P90 aggregiert. Modelle ohne diese Variable bleiben durch einen automatischen Fallback weiterhin für Temperatur und Niederschlag nutzbar.
+- Tooltip ersetzt „Bewölkung“ durch die Best-Match-Sonnenscheindauer in Stunden sowie die P10–P90-Bandbreite in Stunden mit deutschem Dezimalformat und responsivem Zeilenumbruch.
+- Kompakte Sonnen-/Wolken-Farbskala nach Referenzmuster direkt in die Diagrammlegende aufgenommen, ohne die Außenhöhe des Diagramms zu verändern.
+- Regressionsprüfung um Best-Match-Datenpfad, Ensemble-Sonnenbandbreite, Tooltiptext und Farbskala ergänzt.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionsanhebung.
+
 # MID v0.7.65
 
 - Temperatur- und Niederschlagsdiagramm verwenden nun dieselbe symmetrische Tagesachse mit je einem halben Zeitschritt Abstand zu linker und rechter y-Achse; erste und letzte Werte liegen nicht mehr auf den Achsen.

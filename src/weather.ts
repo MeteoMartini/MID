@@ -6,7 +6,7 @@ export type Weather={latitude:number;longitude:number;elevation:number;timezone:
 export type Hour={time:string;epoch:number;timezone:string;temperature:number;apparent:number;humidity:number;dewPoint:number;precipitation:number;rain:number;showers:number;snowfall:number;probability:number;code:number;wind:number;gust:number;direction:number;cloud:number;uvIndex:number;visibility:number;cape:number;isDay:boolean};
 export type Minute15={time:string;epoch:number;timezone:string;precipitation:number;rain:number;showers:number;snowfall:number;probability:number;code:number};
 export type Day={date:string;code:number;max:number;min:number;sunrise?:string;sunset?:string;sunshineDuration:number;precipitation:number;probability:number;wind:number;gust:number;direction:number;uvMax:number};
-export type EnsembleDay={date:string;maxMean:number;maxLow:number;maxHigh:number;maxQ25:number;maxQ75:number;minMean:number;minLow:number;minHigh:number;minQ25:number;minQ75:number;precipitationMean:number;precipitationLow:number;precipitationHigh:number;precipitationProbability:number;modelCount:number;memberCount:number};
+export type EnsembleDay={date:string;maxMean:number;maxLow:number;maxHigh:number;maxQ25:number;maxQ75:number;minMean:number;minLow:number;minHigh:number;minQ25:number;minQ75:number;precipitationMean:number;precipitationLow:number;precipitationHigh:number;precipitationProbability:number;sunshineDurationMean:number;sunshineDurationLow:number;sunshineDurationHigh:number;modelCount:number;memberCount:number};
 export type ClimateDay={date:string;maxMean:number;minMean:number;years:number};
 export type Station={name:string;provider?:string;stationId?:string;latitude?:number;longitude?:number;distance?:number;height?:number;timestamp?:string;temperature?:number;humidity?:number;dewPoint?:number;pressure?:number;pressureReference?:'QFF'|'MSL'|'QNH'|'station';windSpeed?:number;windDirection?:number;windGust?:number;windUnit?:'kt'|'kmh';cloudCover?:number;precipitation?:number;stationCount?:number;sourceProviders?:string[];blended?:boolean;temperatureSpread?:number;trustFactor?:number;networkClass?:'official'|'professional'|'pws'|'citizen'|'unknown';siteClass?:UrbanClass;analysisMethod?:string;uncertainty?:number;effectiveResolutionKm?:number;candidateCount?:number;rejectedCount?:number;localCorrection?:number;backgroundModel?:string;urbanClass?:UrbanClass};
 export type OfficialAlertLevel='yellow'|'orange'|'red'|'purple'|'unknown';
@@ -548,38 +548,97 @@ function weightedQuantile(values:{value:number;weight:number}[],p:number){const 
 function weightedMean(values:{value:number;weight:number}[]){const a=values.filter(x=>Number.isFinite(x.value)&&x.weight>0),w=a.reduce((s,x)=>s+x.weight,0);return w?a.reduce((s,x)=>s+x.value*x.weight,0)/w:NaN}
 function weightedProbability(values:{value:number;weight:number}[],threshold=.1){const a=values.filter(x=>Number.isFinite(x.value)&&x.weight>0),w=a.reduce((s,x)=>s+x.weight,0);return w?100*a.filter(x=>x.value>=threshold).reduce((s,x)=>s+x.weight,0)/w:0}
 function robustWeighted(values:{value:number;weight:number}[],absolute:number){if(values.length<5)return values;const med=weightedQuantile(values,.5),q1=weightedQuantile(values,.25),q3=weightedQuantile(values,.75),iqr=Math.max(.5,q3-q1),limit=Math.max(absolute,1.8*iqr);const filtered=values.filter(x=>Math.abs(x.value-med)<=limit);return filtered.length>=Math.max(4,Math.ceil(values.length*.55))?filtered:values}
-type MemberDay={date:string;max:number;min:number;precipitation:number};
+type MemberDay={date:string;max:number;min:number;precipitation:number;sunshineDuration:number};
 type ModelResult={model:EnsembleModel;members:Map<string,MemberDay[]>};
-function parseModelMembers(w:Weather,model:EnsembleModel):ModelResult|null{const times=(w.hourly.time as string[])??[],keys=Object.keys(w.hourly),tempKeys=keys.filter(k=>/^temperature_2m(?:_member\d+)?$/.test(k)),precipKeys=keys.filter(k=>/^precipitation(?:_member\d+)?$/.test(k));if(!times.length||!tempKeys.length)return null;const suffix=(k:string)=>k.replace('temperature_2m',''),pBySuffix=new Map(precipKeys.map(k=>[k.replace('precipitation',''),k]));const members=new Map<string,MemberDay[]>();for(const tk of tempKeys){const s=suffix(tk),pk=pBySuffix.get(s),temps=w.hourly[tk]??[],rain=pk?w.hourly[pk]??[]:[];const daily=new Map<string,{t:number[];p:number[]}>();for(let i=0;i<times.length;i++){const date=String(times[i]).slice(0,10),tv=n(temps[i]),pv=n(rain[i]);if(!daily.has(date))daily.set(date,{t:[],p:[]});const d=daily.get(date)!;if(Number.isFinite(tv)&&tv>-65&&tv<65)d.t.push(tv);if(Number.isFinite(pv)&&pv>=0&&pv<150)d.p.push(pv)}const rows:MemberDay[]=[];daily.forEach((d,date)=>{if(d.t.length>=18){const max=Math.max(...d.t),min=Math.min(...d.t),precipitation=d.p.reduce((a,b)=>a+b,0);if(Number.isFinite(max)&&Number.isFinite(min)&&max>=min&&max-min<35)rows.push({date,max,min,precipitation})}});if(rows.length>=2)members.set(s||'_control',rows)}return members.size?{model,members}:null}
+function parseModelMembers(w:Weather,model:EnsembleModel):ModelResult|null{
+ const times=(w.hourly.time as string[])??[],keys=Object.keys(w.hourly),tempKeys=keys.filter(k=>/^temperature_2m(?:_member\d+)?$/.test(k)),precipKeys=keys.filter(k=>/^precipitation(?:_member\d+)?$/.test(k)),sunshineKeys=keys.filter(k=>/^sunshine_duration(?:_member\d+)?$/.test(k));
+ if(!times.length||!tempKeys.length)return null;
+ const suffix=(k:string)=>k.replace('temperature_2m',''),pBySuffix=new Map(precipKeys.map(k=>[k.replace('precipitation',''),k])),sBySuffix=new Map(sunshineKeys.map(k=>[k.replace('sunshine_duration',''),k]));
+ const members=new Map<string,MemberDay[]>();
+ for(const tk of tempKeys){
+  const s=suffix(tk),pk=pBySuffix.get(s),sk=sBySuffix.get(s),temps=w.hourly[tk]??[],rain=pk?w.hourly[pk]??[]:[],sunshine=sk?w.hourly[sk]??[]:[];
+  const daily=new Map<string,{t:number[];p:number[];s:number[]}>();
+  for(let i=0;i<times.length;i++){
+   const date=String(times[i]).slice(0,10),tv=n(temps[i]),pv=n(rain[i]),sv=n(sunshine[i]);
+   if(!daily.has(date))daily.set(date,{t:[],p:[],s:[]});
+   const d=daily.get(date)!;
+   if(Number.isFinite(tv)&&tv>-65&&tv<65)d.t.push(tv);
+   if(Number.isFinite(pv)&&pv>=0&&pv<150)d.p.push(pv);
+   if(Number.isFinite(sv)&&sv>=0&&sv<=21600)d.s.push(sv);
+  }
+  const rows:MemberDay[]=[];
+  daily.forEach((d,date)=>{
+   if(d.t.length>=18){
+    const max=Math.max(...d.t),min=Math.min(...d.t),precipitation=d.p.reduce((a,b)=>a+b,0),sunshineDuration=d.s.length>=6?clampNumber(d.s.reduce((a,b)=>a+b,0),0,86400):NaN;
+    if(Number.isFinite(max)&&Number.isFinite(min)&&max>=min&&max-min<35)rows.push({date,max,min,precipitation,sunshineDuration});
+   }
+  });
+  if(rows.length>=2)members.set(s||'_control',rows);
+ }
+ return members.size?{model,members}:null;
+}
+function clampNumber(value:number,min:number,max:number){return Math.min(max,Math.max(min,value))}
 function modelDayWeight(model:EnsembleModel,lead:number,memberCount:number){if(lead+1>model.maxDays+.5)return 0;const resolution=Math.min(1.65,Math.max(.65,Math.sqrt(25/model.resolutionKm))),update=Math.min(1.25,Math.max(.82,Math.sqrt(6/model.updateHours))),regional=model.bbox?1.12:1,horizon=lead+1<=model.maxDays*.65?1:0.9;return resolution*update*regional*horizon/Math.max(1,memberCount)}
-function aggregateMembers(results:ModelResult[]){const allDates=[...new Set(results.flatMap(r=>[...r.members.values()].flatMap(m=>m.map(x=>x.date))))].sort().slice(0,14),days:EnsembleDay[]=[];for(let lead=0;lead<allDates.length;lead++){const date=allDates[lead];let maxVals:{value:number;weight:number}[]=[],minVals:{value:number;weight:number}[]=[],rainVals:{value:number;weight:number}[]=[];const modelsUsed=new Set<string>();let memberCount=0;for(const r of results){const memberRows=[...r.members.values()].map(rows=>rows.find(x=>x.date===date)).filter(Boolean) as MemberDay[];if(!memberRows.length)continue;const medMax=quantile(memberRows.map(x=>x.max),.5),medMin=quantile(memberRows.map(x=>x.min),.5),filtered=memberRows.filter(x=>Math.abs(x.max-medMax)<=8&&Math.abs(x.min-medMin)<=8);const rows=filtered.length>=Math.max(3,Math.ceil(memberRows.length*.55))?filtered:memberRows;const weight=modelDayWeight(r.model,lead,rows.length);if(!rows.length||weight<=0)continue;modelsUsed.add(r.model.id);memberCount+=rows.length;for(const row of rows){maxVals.push({value:row.max,weight});minVals.push({value:row.min,weight});rainVals.push({value:row.precipitation,weight})}}maxVals=robustWeighted(maxVals,9);minVals=robustWeighted(minVals,9);rainVals=robustWeighted(rainVals,25);if(modelsUsed.size<2||memberCount<10||maxVals.length<6||minVals.length<6)continue;const maxLow=weightedQuantile(maxVals,.1),maxHigh=weightedQuantile(maxVals,.9),maxQ25=weightedQuantile(maxVals,.25),maxQ75=weightedQuantile(maxVals,.75),minLow=weightedQuantile(minVals,.1),minHigh=weightedQuantile(minVals,.9),minQ25=weightedQuantile(minVals,.25),minQ75=weightedQuantile(minVals,.75),precipitationLow=weightedQuantile(rainVals,.1),precipitationHigh=weightedQuantile(rainVals,.9);if(![maxLow,maxHigh,maxQ25,maxQ75,minLow,minHigh,minQ25,minQ75].every(Number.isFinite)||maxHigh<maxLow||minHigh<minLow)continue;days.push({date,maxMean:weightedMean(maxVals),maxLow,maxHigh,maxQ25,maxQ75,minMean:weightedMean(minVals),minLow,minHigh,minQ25,minQ75,precipitationMean:weightedMean(rainVals),precipitationLow:Number.isFinite(precipitationLow)?precipitationLow:0,precipitationHigh:Number.isFinite(precipitationHigh)?precipitationHigh:0,precipitationProbability:weightedProbability(rainVals,.1),modelCount:modelsUsed.size,memberCount})}return days}
-function dailyMeanSeries(w:Weather){const out=new Map<string,MemberDay>(),times=(w.hourly.time as string[])??[],temps=w.hourly.temperature_2m??[],rain=w.hourly.precipitation??[],daily=new Map<string,{t:number[];p:number[]}>();for(let i=0;i<times.length;i++){const date=String(times[i]).slice(0,10),tv=n(temps[i]),pv=n(rain[i]);if(!daily.has(date))daily.set(date,{t:[],p:[]});const d=daily.get(date)!;if(Number.isFinite(tv)&&tv>-65&&tv<65)d.t.push(tv);if(Number.isFinite(pv)&&pv>=0&&pv<150)d.p.push(pv)}daily.forEach((d,date)=>{if(d.t.length>=18)out.set(date,{date,max:Math.max(...d.t),min:Math.min(...d.t),precipitation:d.p.reduce((a,b)=>a+b,0)})});return out}
+function aggregateMembers(results:ModelResult[]){
+ const allDates=[...new Set(results.flatMap(r=>[...r.members.values()].flatMap(m=>m.map(x=>x.date))))].sort().slice(0,14),days:EnsembleDay[]=[];
+ for(let lead=0;lead<allDates.length;lead++){
+  const date=allDates[lead];
+  let maxVals:{value:number;weight:number}[]=[],minVals:{value:number;weight:number}[]=[],rainVals:{value:number;weight:number}[]=[],sunVals:{value:number;weight:number}[]=[];
+  const modelsUsed=new Set<string>();let memberCount=0;
+  for(const r of results){
+   const memberRows=[...r.members.values()].map(rows=>rows.find(x=>x.date===date)).filter(Boolean) as MemberDay[];
+   if(!memberRows.length)continue;
+   const medMax=quantile(memberRows.map(x=>x.max),.5),medMin=quantile(memberRows.map(x=>x.min),.5),filtered=memberRows.filter(x=>Math.abs(x.max-medMax)<=8&&Math.abs(x.min-medMin)<=8),rows=filtered.length>=Math.max(3,Math.ceil(memberRows.length*.55))?filtered:memberRows,weight=modelDayWeight(r.model,lead,rows.length);
+   if(!rows.length||weight<=0)continue;
+   modelsUsed.add(r.model.id);memberCount+=rows.length;
+   for(const row of rows){maxVals.push({value:row.max,weight});minVals.push({value:row.min,weight});rainVals.push({value:row.precipitation,weight});if(Number.isFinite(row.sunshineDuration))sunVals.push({value:row.sunshineDuration,weight})}
+  }
+  maxVals=robustWeighted(maxVals,9);minVals=robustWeighted(minVals,9);rainVals=robustWeighted(rainVals,25);sunVals=robustWeighted(sunVals,21600);
+  if(modelsUsed.size<2||memberCount<10||maxVals.length<6||minVals.length<6)continue;
+  const maxLow=weightedQuantile(maxVals,.1),maxHigh=weightedQuantile(maxVals,.9),maxQ25=weightedQuantile(maxVals,.25),maxQ75=weightedQuantile(maxVals,.75),minLow=weightedQuantile(minVals,.1),minHigh=weightedQuantile(minVals,.9),minQ25=weightedQuantile(minVals,.25),minQ75=weightedQuantile(minVals,.75),precipitationLow=weightedQuantile(rainVals,.1),precipitationHigh=weightedQuantile(rainVals,.9),sunshineDurationLow=sunVals.length>=6?weightedQuantile(sunVals,.1):NaN,sunshineDurationHigh=sunVals.length>=6?weightedQuantile(sunVals,.9):NaN,sunshineDurationMean=sunVals.length>=6?weightedMean(sunVals):NaN;
+  if(![maxLow,maxHigh,maxQ25,maxQ75,minLow,minHigh,minQ25,minQ75].every(Number.isFinite)||maxHigh<maxLow||minHigh<minLow)continue;
+  days.push({date,maxMean:weightedMean(maxVals),maxLow,maxHigh,maxQ25,maxQ75,minMean:weightedMean(minVals),minLow,minHigh,minQ25,minQ75,precipitationMean:weightedMean(rainVals),precipitationLow:Number.isFinite(precipitationLow)?precipitationLow:0,precipitationHigh:Number.isFinite(precipitationHigh)?precipitationHigh:0,precipitationProbability:weightedProbability(rainVals,.1),sunshineDurationMean,sunshineDurationLow,sunshineDurationHigh,modelCount:modelsUsed.size,memberCount});
+ }
+ return days;
+}
+function dailyMeanSeries(w:Weather){
+ const out=new Map<string,MemberDay>(),times=(w.hourly.time as string[])??[],temps=w.hourly.temperature_2m??[],rain=w.hourly.precipitation??[],sunshine=w.hourly.sunshine_duration??[],daily=new Map<string,{t:number[];p:number[];s:number[]}>();
+ for(let i=0;i<times.length;i++){
+  const date=String(times[i]).slice(0,10),tv=n(temps[i]),pv=n(rain[i]),sv=n(sunshine[i]);
+  if(!daily.has(date))daily.set(date,{t:[],p:[],s:[]});
+  const d=daily.get(date)!;
+  if(Number.isFinite(tv)&&tv>-65&&tv<65)d.t.push(tv);
+  if(Number.isFinite(pv)&&pv>=0&&pv<150)d.p.push(pv);
+  if(Number.isFinite(sv)&&sv>=0&&sv<=21600)d.s.push(sv);
+ }
+ daily.forEach((d,date)=>{if(d.t.length>=18)out.set(date,{date,max:Math.max(...d.t),min:Math.min(...d.t),precipitation:d.p.reduce((a,b)=>a+b,0),sunshineDuration:d.s.length>=6?clampNumber(d.s.reduce((a,b)=>a+b,0),0,86400):NaN})});
+ return out;
+}
+async function fetchEnsembleWeather(lat:number,lon:number,forecastDays:number,modelId:string,signal?:AbortSignal){
+ let lastError:unknown;
+ for(const hourly of ['temperature_2m,precipitation,sunshine_duration','temperature_2m,precipitation']){
+  const p=new URLSearchParams({latitude:String(lat),longitude:String(lon),timezone:'auto',forecast_days:String(forecastDays),models:modelId,hourly});
+  try{return await j<Weather>(`https://ensemble-api.open-meteo.com/v1/ensemble?${p}`,signal)}catch(error){lastError=error;if(signal?.aborted)throw error}
+ }
+ throw lastError;
+}
 async function meanFallback(lat:number,lon:number,signal?:AbortSignal){
- const settled=await Promise.allSettled(meanModelIds.map(async id=>{
-  const p=new URLSearchParams({latitude:String(lat),longitude:String(lon),timezone:'auto',forecast_days:'14',models:id,hourly:'temperature_2m,precipitation'});
-  const w=await j<Weather>(`https://ensemble-api.open-meteo.com/v1/ensemble?${p}`,signal);
-  return{id,series:dailyMeanSeries(w)};
- }));
+ const settled=await Promise.allSettled(meanModelIds.map(async id=>({id,series:dailyMeanSeries(await fetchEnsembleWeather(lat,lon,14,id,signal))})));
  const ok=settled.filter(x=>x.status==='fulfilled').map(x=>(x as PromiseFulfilledResult<{id:string;series:Map<string,MemberDay>}>).value).filter(x=>x.series.size>=7);
  const dates=[...new Set(ok.flatMap(x=>[...x.series.keys()]))].sort().slice(0,14),days:EnsembleDay[]=[];
  for(const date of dates){
   const rows=ok.map(x=>x.series.get(date)).filter(Boolean) as MemberDay[];
   if(rows.length<2)continue;
-  const max=rows.map(x=>x.max),min=rows.map(x=>x.min),rain=rows.map(x=>x.precipitation);
-  days.push({date,maxMean:quantile(max,.5),maxLow:quantile(max,.1),maxHigh:quantile(max,.9),maxQ25:quantile(max,.25),maxQ75:quantile(max,.75),minMean:quantile(min,.5),minLow:quantile(min,.1),minHigh:quantile(min,.9),minQ25:quantile(min,.25),minQ75:quantile(min,.75),precipitationMean:quantile(rain,.5),precipitationLow:quantile(rain,.1),precipitationHigh:quantile(rain,.9),precipitationProbability:rain.length?100*rain.filter(v=>v>=.1).length/rain.length:0,modelCount:rows.length,memberCount:0});
+  const max=rows.map(x=>x.max),min=rows.map(x=>x.min),rain=rows.map(x=>x.precipitation),sun=rows.map(x=>x.sunshineDuration).filter(Number.isFinite);
+  days.push({date,maxMean:quantile(max,.5),maxLow:quantile(max,.1),maxHigh:quantile(max,.9),maxQ25:quantile(max,.25),maxQ75:quantile(max,.75),minMean:quantile(min,.5),minLow:quantile(min,.1),minHigh:quantile(min,.9),minQ25:quantile(min,.25),minQ75:quantile(min,.75),precipitationMean:quantile(rain,.5),precipitationLow:quantile(rain,.1),precipitationHigh:quantile(rain,.9),precipitationProbability:rain.length?100*rain.filter(v=>v>=.1).length/rain.length:0,sunshineDurationMean:sun.length>=2?quantile(sun,.5):NaN,sunshineDurationLow:sun.length>=2?quantile(sun,.1):NaN,sunshineDurationHigh:sun.length>=2?quantile(sun,.9):NaN,modelCount:rows.length,memberCount:0});
  }
  return{days,models:ok.map(x=>x.id.replaceAll('_ensemble_mean','').replaceAll('_',' '))};
 }
 export async function ensembles(lat:number,lon:number,signal?:AbortSignal){
  const selected=ensembleModels.filter(m=>modelApplies(m,lat,lon));
- const settled=await Promise.allSettled(selected.map(async model=>{
-  const p=new URLSearchParams({latitude:String(lat),longitude:String(lon),timezone:'auto',forecast_days:'15',models:model.id,hourly:'temperature_2m,precipitation'});
-  const w=await j<Weather>(`https://ensemble-api.open-meteo.com/v1/ensemble?${p}`,signal);
-  return parseModelMembers(w,model);
- }));
+ const settled=await Promise.allSettled(selected.map(async model=>parseModelMembers(await fetchEnsembleWeather(lat,lon,15,model.id,signal),model)));
  const results=settled.filter(x=>x.status==='fulfilled').map(x=>(x as PromiseFulfilledResult<ModelResult|null>).value).filter(Boolean) as ModelResult[];
- const activeModels=results.map(x=>x.model),runs=await modelRunMetas(activeModels.map(x=>({id:x.metaId,label:x.label,kind:'ensemble' as const})),signal);
- const days=aggregateMembers(results);
+ const activeModels=results.map(x=>x.model),runs=await modelRunMetas(activeModels.map(x=>({id:x.metaId,label:x.label,kind:'ensemble' as const})),signal),days=aggregateMembers(results);
  if(days.length>=7)return{days:days.slice(0,14),models:activeModels.map(x=>x.label),runs};
  const fallback=await meanFallback(lat,lon,signal);
  return fallback.days.length?{...fallback,runs}:{days,models:activeModels.map(x=>x.label),runs};
