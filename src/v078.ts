@@ -100,8 +100,7 @@ const toggleDefinitions:{selector:string;label:string;key:ChartToggleKey;classNa
   {selector:'.trend-legend > span',label:'Best Match Tmax',key:'bestMax',className:'hide-best-max'},
   {selector:'.trend-legend > span',label:'Best Match Tmin',key:'bestMin',className:'hide-best-min'},
   {selector:'.rain-legend > span',label:'Best Match',key:'rainBest',className:'hide-rain-best'},
-  {selector:'.rain-legend > span',label:'P10',key:'rainLow',className:'hide-rain-low'},
-  {selector:'.rain-legend > span',label:'P90',key:'rainHigh',className:'hide-rain-high'}
+  {selector:'.rain-legend > span',label:'P10–P90',key:'rainHigh',className:'hide-rain-high'}
 ];
 function toggleChart(key:ChartToggleKey){chartVisibility={...chartVisibility,[key]:!chartVisibility[key]};writeJson(CHART_KEY,chartVisibility);enhanceChartToggles()}
 function enhanceChartToggles(){

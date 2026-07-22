@@ -262,6 +262,9 @@ footer a:hover{opacity:1;color:var(--accent)}
 .rain-legend i{display:inline-block;flex:0 0 auto}
 .rain-legend i.bar{width:15px;height:10px;border-radius:3px;background:#2688ff}
 .rain-legend i.line{width:18px;height:0;border-top:2px solid #7d8aa0}
+.rain-legend i.errorbar{position:relative;width:16px;height:14px;background:linear-gradient(#666,#666) center 1px/12px 3px no-repeat,linear-gradient(#666,#666) center calc(100% - 1px)/12px 3px no-repeat}
+.rain-legend i.errorbar::before{content:"";position:absolute;left:7px;top:1px;bottom:1px;border-left:3px solid #666;border-radius:2px}
+.rain-legend i.errorbar::after{display:none}
 .rain-legend i.line.high{border-color:#c4d0df}
 .rain-legend i.line.probability{border-color:#48d3ff;border-top-width:3px}
 .weatherwidget.modern.compact{border-radius:17px}
