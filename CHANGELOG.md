@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.56
+- Suchfeld-Popover schließt zuverlässig bei Klick außerhalb, Escape, Standortwahl oder Wechsel der Desktop-Ansicht; verspätete Suchantworten öffnen es nach dem Verlassen nicht erneut.
+- Ensemble-Konsistenzpunkte zeigen ihren Erläuterungstext bereits beim Hover beziehungsweise Tastaturfokus und schließen ihn beim Verlassen automatisch; Touch-Bedienung per Klick bleibt erhalten.
+- Desktop-Detaildiagramm: ←/→ wechselt stündlich, ↑ zum nächsten Tag, ↓ zum vorherigen Tag; nach Fokus navigiert das Mausrad stündlich vor beziehungsweise zurück.
+- Meteogramm besitzt nur noch die äußere Modulklappe, wird beim Öffnen unmittelbar gemountet und lädt automatisch; die fehleranfällige doppelte Einklappung und der zusätzliche Viewport-Gate wurden entfernt.
+- Radarabgleich startet nach dem Basisforecast automatisch, aktualisiert sich alle fünf Minuten, versucht nach Fehlern nach einer Minute erneut und reagiert auf Online-/Sichtbarkeitswechsel. Quelle, Radar-/Modellgewichtung und fehlende oder veraltete Radardaten werden deutlich ausgewiesen.
+- PWA-Service-Worker-Cache auf v0.7.56 angehoben, damit keine alten Lazy-Module oder Shell-Dateien aus v0.7.54 weiterverwendet werden.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionsanhebung.
+
 ## 0.7.55
 - Desktop: Ansichtswahl aus der breiten Favoriten-/Suchspalte entfernt und als kompakte Auswahl direkt neben Suchfeld und Standortbutton platziert; auf schmalen Ansichten bleibt der gut bedienbare Segment-Schalter erhalten.
 - Worker-Aufrufe verwenden nun mehrere konfigurierbare Endpunkte mit automatischem Failover, Zeitlimit und gespeichertem zuletzt erfolgreichen Endpunkt.

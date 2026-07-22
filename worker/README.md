@@ -1,6 +1,6 @@
-# MID Daten-, Warnungs- und Radarproxy v0.7.55
+# MID Daten-, Warnungs- und Radarproxy v0.7.56
 
-Keine funktionale Worker-Änderung in v0.7.55; nur einheitliche Versionsanhebung. Die neue Mehrendpunkt-/Failover-Logik liegt in der MID-Web-App.
+Keine funktionale Worker-Änderung in v0.7.56; nur einheitliche Versionsanhebung. Die neue Mehrendpunkt-/Failover-Logik liegt in der MID-Web-App.
 
 Funktionale Änderung in v0.7.41: `best_match` wird für das vertikale Meteogramm auf eine konsistente ECMWF-IFS-HRES-Druckniveauzeitreihe abgebildet. Dadurch entstehen nach dem Ende eines kurz laufenden Regionalmodells keine leeren Profilfelder. Der Worker liefert weiterhin die tatsächliche Modelllaufzeit über `forecastHours`.
 

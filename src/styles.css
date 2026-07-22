@@ -1257,3 +1257,11 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 .mobile-view-switch{display:none}
 @media(min-width:851px){.search-stack>.search{grid-template-columns:minmax(0,1fr) auto auto}.mobile-view-switch{display:none!important}}
 @media(max-width:850px){.desktop-view-control{display:none}.mobile-view-switch{display:grid}}
+
+
+/* v0.7.56 interaction and reliability fixes */
+.search:focus-within>div{border-color:color-mix(in srgb,var(--primary) 58%,var(--border));box-shadow:0 0 0 3px color-mix(in srgb,var(--primary) 13%,transparent)}
+.meteogram-stage:focus-visible{outline:3px solid color-mix(in srgb,var(--primary) 55%,transparent);outline-offset:4px}
+.consistency-dot{position:relative}
+.consistency-popover{pointer-events:none}
+.module-shell-content>.meteogram-card{margin-top:0;box-shadow:none}
