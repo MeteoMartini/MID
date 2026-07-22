@@ -7,8 +7,18 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.71**
+**Aktuelle Version: v0.7.72**
 
+
+
+## Neuerungen in v0.7.72
+
+- Ein neues zentrales Einstellungsmenü bündelt Ansicht, Farbdesign, Einheiten, Favoriten und MID-Systemstatus.
+- Die Favoritenverwaltung ist als vollständiges Untermenü integriert; bestehende Gruppen, Profile, Regeln, Import/Export und Sortierfunktionen bleiben erhalten.
+- Der Kopfbereich wurde auf die Ortssuche, Standortbestimmung, Einstellungen und das Neuladen der Wetterdaten verschlankt.
+- Farbdesign und Windeinheit werden nicht mehr dauerhaft im Kopfbereich angezeigt, sondern über übersichtliche Auswahlkarten eingestellt.
+- Das Einstellungsmenü verwendet am Desktop eine Seitenleiste und auf Mobilgeräten eine platzsparende horizontale Navigation mit Vollbilddarstellung.
+- Der Cloudflare Worker wurde nicht funktional verändert; seine Versionsnummer wurde lediglich synchronisiert.
 
 
 ## Neuerungen in v0.7.71

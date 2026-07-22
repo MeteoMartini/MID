@@ -1,5 +1,7 @@
-# MID Daten-, Warnungs- und Radarproxy v0.7.71
+# MID Daten-, Warnungs- und Radarproxy v0.7.72
 
+
+Keine funktionale Cloudflare-Worker-Änderung in v0.7.72; die Versionsnummer wurde zur einheitlichen Auslieferung mit dem Hauptprojekt synchronisiert. Das zentrale Einstellungsmenü betrifft ausschließlich das Frontend.
 
 Keine funktionale Cloudflare-Worker-Änderung in v0.7.71; die Versionsnummer wurde zur einheitlichen Auslieferung mit dem Hauptprojekt synchronisiert. Die globalen METAR-Korrekturen aus v0.7.70.4 bleiben unverändert enthalten.
 

@@ -1,14 +1,14 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.7.71",
+  "version": "0.7.72",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "sync-version": "node scripts/sync-version.mjs",
     "prebuild": "npm run sync-version",
     "build": "tsc -b && vite build",
-    "verify": "npm run build && node --check worker/metar-proxy.js && npm run test:updater && npm run test:interactions && npm run test:radar && npm run test:precipitation && npm run test:sunshine && npm run test:hyperlocal && npm run test:format-layout && npm run test:versioning && npm run test:ensemble && npm run test:rain-chart && npm run test:global-metar && npm run test:requests",
+    "verify": "npm run build && node --check worker/metar-proxy.js && npm run test:updater && npm run test:interactions && npm run test:radar && npm run test:precipitation && npm run test:sunshine && npm run test:hyperlocal && npm run test:format-layout && npm run test:versioning && npm run test:ensemble && npm run test:rain-chart && npm run test:global-metar && npm run test:requests && npm run test:settings",
     "preview": "vite preview",
     "test:updater": "node scripts/test-updater.mjs",
     "test:radar": "node scripts/test-radar.mjs",
@@ -21,7 +21,8 @@
     "test:ensemble": "node scripts/test-ensemble-models.mjs",
     "test:global-metar": "node scripts/test-global-metar.mjs",
     "test:rain-chart": "node scripts/test-rain-errorbars.mjs",
-    "test:requests": "node scripts/test-request-cancellation.mjs"
+    "test:requests": "node scripts/test-request-cancellation.mjs",
+    "test:settings": "node scripts/test-settings-menu.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",
