@@ -1,7 +1,7 @@
-# MID Daten-, Warnungs- und Radarproxy v0.7.70.4
+# MID Daten-, Warnungs- und Radarproxy v0.7.71
 
 
-Funktionale Änderung in v0.7.70.4: Der weltweite NOAA-AviationWeather-/METAR-Abruf verwendet die aktuelle Bounding-Box-Reihenfolge Breitengrad/Längengrad, ein dreistündiges Beobachtungsfenster und eine Deduplizierung auf die neueste Meldung je ICAO-Station. Damit stehen METAR, Sichtweite, Wolkenlagen und Ceiling auch für ausländische Orte wieder zur Verfügung.
+Keine funktionale Cloudflare-Worker-Änderung in v0.7.71; die Versionsnummer wurde zur einheitlichen Auslieferung mit dem Hauptprojekt synchronisiert. Die globalen METAR-Korrekturen aus v0.7.70.4 bleiben unverändert enthalten.
 
 
 Wartungsstand v0.7.70.2 enthält gegenüber v0.7.70.1 keine funktionale Worker-Änderung; die Versionsnummer wurde zur einheitlichen Auslieferung synchronisiert.

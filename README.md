@@ -7,8 +7,19 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.70.4**
+**Aktuelle Version: v0.7.71**
 
+
+
+## Neuerungen in v0.7.71
+
+- Updates werden erst angeboten, nachdem der vollständige produktive App-Shell einschließlich der referenzierten JavaScript- und CSS-Dateien erfolgreich geladen und geprüft wurde.
+- MID bewahrt die letzte geprüfte Vorversion. Bleibt nach einer Aktualisierung die Laufzeit-Gesundheitsmeldung länger als 20 Sekunden aus, wird automatisch zur Vorversion zurückgeschaltet.
+- Über die neue Systemstatus-Schaltfläche im Kopfbereich lassen sich App-, Worker- und aktive Cacheversion prüfen, der MID-Cache reparieren, die Vorversion wiederherstellen oder der Service Worker zurücksetzen.
+- Eine aktive Rückfallversion zeigt eine Wiederherstellungsleiste, mit der die aktuelle Version erneut getestet werden kann.
+- Best-Match-Basisdaten, Stationsanalyse, Luftqualität, Radar, amtliche Warnungen und Modellinformationen laden voneinander unabhängig und besitzen jeweils einen eigenen Abbruchcontroller.
+- Ensemble und Klimatologie sind voneinander entkoppelt. Ortswechsel, manuelles Neuladen, Suchwechsel, Meteogrammwechsel und PX250-Aktualisierungen brechen veraltete Netzwerkanfragen ab.
+- Der Cloudflare Worker wurde nicht funktional verändert; seine Versionsnummer wurde lediglich synchronisiert.
 
 
 ## Neuerungen in v0.7.70.4

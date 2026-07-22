@@ -1,3 +1,14 @@
+# MID v0.7.71
+
+- Update-System grundlegend erweitert: Eine neue Version wird vor der Aktivierung vollständig in einen eigenen App-Shell-Cache geladen, einschließlich der tatsächlich im produktiven `index.html` referenzierten JavaScript- und CSS-Dateien.
+- Die zuletzt geprüfte Vorversion bleibt erhalten. Schlägt der Start der neuen App fehl und wird innerhalb von 20 Sekunden keine Laufzeit-Gesundheitsmeldung gesendet, schaltet MID automatisch auf die vorherige Version zurück.
+- Manuelle Systemverwaltung ergänzt: App-/Worker-/aktive Version anzeigen, MID-Cache neu aufbauen, vorherige Version wiederherstellen und Service Worker samt App-Caches zurücksetzen. Favoriten und Einstellungen bleiben beim Reset erhalten.
+- Rückfallversion erhält eine feste Wiederherstellungsleiste, über die die aktuelle Version erneut getestet werden kann.
+- Datenabrufe entkoppelt: Best Match, Stationsanalyse, Luftqualität, Radar, amtliche Warnungen und Modellinformationen verwenden getrennte AbortController und blockieren einander nicht.
+- Ensemble und Klimatologie laden unabhängig voneinander. Ortswechsel, manuelles Neuladen und Ansichtswechsel brechen veraltete Requests ab, damit alte Ergebnisse keinen neuen Standort überschreiben.
+- Such-, Meteogramm- und PX250-Metadatenabrufe zusätzlich gegen überholte Antworten und weiterlaufende Netzwerkzugriffe abgesichert.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionssynchronisierung.
+
 # MID v0.7.70.4
 
 - Weltweiten NOAA-AviationWeather-/METAR-Abruf korrigiert: Die geografische Bounding-Box wird entsprechend der aktuellen API-Reihenfolge als Breitengrad/Längengrad übergeben.

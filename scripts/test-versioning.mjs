@@ -24,4 +24,5 @@ function isNewerVersion(candidate,current){const a=versionNumbers(candidate),b=v
 for(const [candidate,current,expected] of [['0.7.70.1','0.7.70',true],['0.7.70.2','0.7.70.1',true],['0.7.71','0.7.70.9',true],['0.7.70','0.7.70.1',false],['0.7.70.1','0.7.70.1',false]])if(isNewerVersion(candidate,current)!==expected)failures.push(`Versionsvergleich fehlerhaft: ${candidate} gegenüber ${current}`);
 
 if(failures.length){console.error('Versionsprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log(`Versionsschema geprüft: ${pkg.version} als Wartungsstand; dreiteilige Funktions- und vierteilige Wartungsreleases werden korrekt verarbeitet.`);
+const releaseType=pkg.version.split('.').length===3?'Funktionsstand':'Wartungsstand';
+console.log(`Versionsschema geprüft: ${pkg.version} als ${releaseType}; dreiteilige Funktions- und vierteilige Wartungsreleases werden korrekt verarbeitet.`);

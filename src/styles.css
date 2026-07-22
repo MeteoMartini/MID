@@ -1354,3 +1354,24 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
  .metrics article>strong{margin-top:7px;font-size:clamp(14px,1.2vw,19px);line-height:1.05}
  .metrics article>small{margin-top:3px;font-size:8px;line-height:1.18}
 }
+
+/* MID v0.7.71 – geprüftes Update-, Cache- und Rückfallsystem */
+.system-update-button{display:inline-grid;place-items:center;min-width:38px;min-height:38px;padding:0}
+.system-update-backdrop{position:fixed;z-index:5200;inset:0;display:grid;place-items:center;padding:16px;background:rgba(3,10,20,.56);backdrop-filter:blur(9px)}
+.system-update-dialog{width:min(720px,100%);max-height:min(86vh,760px);overflow:auto;padding:18px;border:1px solid var(--border);border-radius:20px;background:var(--surface);color:var(--text);box-shadow:0 28px 90px rgba(0,0,0,.42)}
+.system-update-dialog>header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px}
+.system-update-dialog>header span{display:block;color:var(--accent);font-size:10px;font-weight:850;letter-spacing:.1em;text-transform:uppercase}
+.system-update-dialog>header h2{margin:3px 0 0;font-size:20px}
+.system-update-dialog>header button{display:grid;place-items:center;width:36px;height:36px;padding:0;border-radius:10px}
+.system-version-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.system-version-grid article{min-width:0;padding:11px;border:1px solid var(--border);border-radius:13px;background:var(--s2)}
+.system-version-grid small,.system-version-grid strong{display:block}.system-version-grid small{color:var(--muted);font-size:9px}.system-version-grid strong{margin-top:4px;overflow:hidden;font-size:13px;text-overflow:ellipsis;white-space:nowrap}
+.system-cache-list{display:grid;gap:4px;margin-top:10px;padding:11px 12px;border:1px solid var(--border);border-radius:13px;background:color-mix(in srgb,var(--s2) 72%,transparent)}
+.system-cache-list small{color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.07em}.system-cache-list span{font-size:12px;font-weight:760}.system-cache-list em{color:var(--accent);font-size:10px;font-style:normal}
+.system-update-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
+.system-update-actions button{display:flex;align-items:center;justify-content:center;gap:7px;min-height:43px;padding:8px 10px;font-size:11px;line-height:1.2}
+.system-update-actions .danger{border-color:color-mix(in srgb,#e84b4b 46%,var(--border));color:#e84b4b}
+.system-update-message{margin:10px 0 0;padding:9px 11px;border-radius:11px;background:color-mix(in srgb,var(--primary) 11%,var(--s2));font-size:11px}
+.system-update-note{display:block;margin-top:11px;color:var(--muted);font-size:10px;line-height:1.45}
+.system-update-loading{display:flex;align-items:center;gap:8px;min-height:68px;color:var(--muted);font-size:11px}
+@media(max-width:720px){.system-version-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.system-update-actions{grid-template-columns:1fr}.system-update-dialog{padding:14px}}
