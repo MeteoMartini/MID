@@ -7,8 +7,18 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.72**
+**Aktuelle Version: v0.7.73**
 
+
+
+## Neuerungen in v0.7.73
+
+- Der Tooltip des Ensemble-Temperaturtrends bleibt auch am ersten und letzten Vorhersagetag vollständig innerhalb des sichtbaren Bereichs.
+- `Ceiling` wird nur bei mindestens 5/8 Bewölkung angezeigt. Bei FEW/SCT beziehungsweise 1/8 bis 4/8 steht stattdessen die niedrigste gemeldete `Wolkenuntergrenze` in hft.
+- Die hyperlokale Analyse führt Ceiling und Wolkenuntergrenze als getrennte Stationsfelder und vermischt beide Begriffe nicht.
+- Handy und Tablet erhalten im stündlichen Detaildiagramm dezente linke und rechte Randtasten zum Wechseln des Vorhersagetages; die Uhrzeit bleibt möglichst erhalten.
+- Der farbige Konsistenzpunkt der mobilen Ensembleübersicht öffnet seine Erläuterung bereits mit dem ersten Tippen.
+- Der Cloudflare Worker wurde nicht funktional verändert; seine Versionsnummer wurde lediglich synchronisiert.
 
 
 ## Neuerungen in v0.7.72

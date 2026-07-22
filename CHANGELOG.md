@@ -1,3 +1,12 @@
+# MID v0.7.73
+
+- Ensemble-Temperaturtooltip horizontal wieder an Diagramm und Viewport begrenzt; am rechten beziehungsweise linken Rand wechselt die Position automatisch zur sichtbaren Seite.
+- METAR-Wolkenhöhe fachlich differenziert: `Ceiling` erscheint nur bei mindestens 5/8 Bewölkung aus BKN/OVC/VV, bei 1/8 bis 4/8 wird die niedrigste FEW-/SCT-Lage als `Wolkenuntergrenze` in hft angezeigt.
+- Hyperlokale Stationsanalyse um die separate Wolkenuntergrenze erweitert, ohne aus dünner Bewölkung fälschlich eine Ceiling abzuleiten.
+- Stündliche Detailansicht auf Handy und Tablet um dezente Randtasten für den tageweisen Wechsel ergänzt; die gewählte Uhrzeit wird beim Tageswechsel beibehalten.
+- Konsistenzpunkte im mobilen 14-Tage-Ensemble-Trend reagieren nun beim ersten Tippen. Hover wird ausschließlich auf Geräten mit echter Maus-/Trackpad-Hoverfunktion verwendet.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionssynchronisierung.
+
 # MID v0.7.72
 
 - Zentrales Einstellungsmenü ergänzt und die bisher verteilten Kopfbereichsregler dort logisch zusammengeführt.

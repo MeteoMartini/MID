@@ -3,7 +3,7 @@ const read=path=>fs.readFileSync(new URL(path,import.meta.url),'utf8');
 const app=read('../src/App.tsx'),ensemble=read('../src/EnsemblePanel.tsx'),styles=read('../src/styles.css'),weather=read('../src/weather.ts');
 const failures=[];
 for(const token of["document.addEventListener('pointerdown',outside,true)","document.addEventListener('focusin',focusOutside,true)","event.key==='Escape'",'search-close-results','inputRef.current?.blur()'])if(!app.includes(token))failures.push(`Suchfeld-Schließlogik fehlt: ${token}`);
-for(const token of['createPortal','getBoundingClientRect()','window.innerWidth-width-8',"window.addEventListener('scroll',update,true)",'onMouseEnter={onOpen}','onMouseLeave={onClose}','consistency-popover-portal'])if(!ensemble.includes(token)&&!styles.includes(token))failures.push(`Randfester Hover-Tooltip fehlt: ${token}`);
+for(const token of['createPortal','getBoundingClientRect()','window.innerWidth-width-8',"window.addEventListener('scroll',update,true)","matchMedia('(hover: hover) and (pointer: fine)')",'onMouseEnter={()=>{if(fineHover())onOpen()}}','onMouseLeave={()=>{if(fineHover())onClose()}}','consistency-popover-portal'])if(!ensemble.includes(token)&&!styles.includes(token))failures.push(`Randfester Hover-Tooltip fehlt: ${token}`);
 if(!styles.includes('position:fixed!important')||!styles.includes('z-index:4200!important')||!styles.includes('max-width:calc(100vw - 16px)'))failures.push('Portal-Tooltip ist nicht viewportfest und randbegrenzt');
 for(const token of['function RainTooltip(','<Tooltip content={<RainTooltip/>}/>','bestPrecipitation','precipitationProbability'])if(!ensemble.includes(token))failures.push(`Niederschlags-Tooltip fehlt oder ist nicht eingebunden: ${token}`);
 for(const token of['ReferenceArea','yAxisId="sky"','x1={row.x-.46}','y2={6.5}','skyBandColor','sunshineShare:sunShare','ensemble-sky-strip'])if(!ensemble.includes(token)&&!styles.includes(token))failures.push(`Bewölkungsband fehlt: ${token}`);
@@ -15,7 +15,12 @@ for(const token of["detailPlotRef=useRef<SVGSVGElement>(null)","plot.addEventLis
 if(app.includes("node.addEventListener('wheel',wheel,{passive:false})"))failures.push('Mausrad-Handler hängt weiterhin am gesamten Diagrammcontainer statt ausschließlich am SVG-Plot');
 for(const token of[':root[data-theme=dark] select{color-scheme:dark}',':root[data-theme=dark] select option',':root[data-theme=light] select option'])if(!styles.includes(token))failures.push(`Dropdown-Kontrastregel fehlt: ${token}`);
 
+
+for(const token of ['allowEscapeViewBox={{x:false,y:true}}',"maxWidth:'calc(100vw - 16px)'"])if(!ensemble.includes(token))failures.push(`Trend-Tooltip ist horizontal nicht begrenzt: ${token}`);
+if(ensemble.includes('allowEscapeViewBox={{x:true,y:true}}'))failures.push('Trend-Tooltip darf horizontal nicht mehr aus der Diagramm- bzw. Bildschirmfläche entweichen');
+for(const token of ['meteogram-day-jump','Vorheriger Tag:','Nächster Tag:','moveDay(-1)','moveDay(1)'])if(!app.includes(token)&&!styles.includes(token))failures.push(`Mobile Tagesnavigation fehlt: ${token}`);
+if(ensemble.includes('onFocus={onOpen}'))failures.push('Konsistenzpunkt öffnet auf Touch weiterhin bereits über Fokus und benötigt dadurch zwei Taps');
 for(const token of['sunshine_duration','sunshineDurationLow','sunshineDurationHigh','bestSunshineHours','Sonnenscheindauer:</b>','P10–P90:','sunshine-scale-legend'])if(!ensemble.includes(token)&&!styles.includes(token)&&!read('../src/weather.ts').includes(token))failures.push(`Sonnenscheindauer-Auswertung fehlt: ${token}`);
 if(!ensemble.includes('sanitizeSunshineSeconds(day,day.sunshineDuration,0)'))failures.push('Bewölkungsband nutzt nicht ausdrücklich den Best-Match-Wert');
 if(failures.length){console.error('Interaktionsprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Interaktionen geprüft: Suche schließt, Tooltips bleiben getrennt von der Legende, beide Tagesachsen sind symmetrisch eingerückt, Best-Match-Sonnenscheindauer und ENS-P10–P90 sind eingebunden, Diagrammnavigation funktioniert; das Mausrad wird nur über dem SVG-Plot abgefangen und Stationswind wird in kt normalisiert.');
+console.log('Interaktionen geprüft: Tooltips bleiben horizontal im sichtbaren Bereich, der Konsistenzpunkt öffnet mobil mit einem Tap, die mobile Detailansicht kann tageweise springen und das Mausrad bleibt auf den SVG-Plot begrenzt.');
