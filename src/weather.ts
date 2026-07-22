@@ -336,13 +336,14 @@ function rowToStation(r:any,lat:number,lon:number):Station|null{
 }
 
 function parseMetarStations(rows:any[],lat:number,lon:number){return rows.map(r=>rowToStation(r,lat,lon)).filter(Boolean) as Station[]}
-async function metarStations(lat:number,lon:number,signal?:AbortSignal):Promise<Station[]>{
- const dLat=1.15,dLon=1.15/Math.max(.25,Math.cos(lat*Math.PI/180)),bbox=[lon-dLon,lat-dLat,lon+dLon,lat+dLat].map(x=>x.toFixed(3)).join(',');
- if(workerBaseCandidates('metar').length){try{const data=await fetchWorkerJson<any>('',{lat,lon,radius_km:140},{purpose:'metar',signal,timeoutMs:8000}),stations=parseMetarStations(parseMetarRows(data),lat,lon);if(stations.length)return stations}catch{}}
- try{const data=await j<any>(`https://aviationweather.gov/api/data/metar?format=json&hoursBeforeNow=2&bbox=${encodeURIComponent(bbox)}`,signal);return parseMetarStations(parseMetarRows(data),lat,lon)}catch{return[]}
+function awcMetarBbox(lat:number,lon:number,radiusKm:number){const dLat=radiusKm/111,dLon=radiusKm/(111*Math.max(.25,Math.cos(lat*Math.PI/180)));return[Math.max(-89.9,lat-dLat),Math.max(-180,lon-dLon),Math.min(89.9,lat+dLat),Math.min(180,lon+dLon)].map(x=>x.toFixed(3)).join(',')}
+async function metarStations(lat:number,lon:number,radiusKm=140,signal?:AbortSignal):Promise<Station[]>{
+ const bbox=awcMetarBbox(lat,lon,radiusKm);
+ if(workerBaseCandidates('metar').length){try{const data=await fetchWorkerJson<any>('',{lat,lon,radius_km:radiusKm},{purpose:'metar',signal,timeoutMs:10000}),stations=parseMetarStations(parseMetarRows(data),lat,lon);if(stations.length)return stations}catch{}}
+ try{const data=await j<any>(`https://aviationweather.gov/api/data/metar?format=json&hours=3&bbox=${encodeURIComponent(bbox)}`,signal);return parseMetarStations(parseMetarRows(data),lat,lon)}catch{return[]}
 }
 export async function station(lat:number,lon:number,country?:string,elevation?:number,context?:Location,signal?:AbortSignal):Promise<Station|null>{
- const c=countryCodeFromLocation(country),inGermany=c==='DE'||(!c&&lat>=47.2&&lat<=55.2&&lon>=5.5&&lon<=15.6),tasks:Promise<Station[]|Station|null>[]=[metarStations(lat,lon,signal)];
+ const c=countryCodeFromLocation(country),inGermany=c==='DE'||(!c&&lat>=47.2&&lat<=55.2&&lon>=5.5&&lon<=15.6),metarRadiusKm=inGermany?140:220,tasks:Promise<Station[]|Station|null>[]=[metarStations(lat,lon,metarRadiusKm,signal)];
  if(geoSphereApplies(lat,lon,c))tasks.push(geoSphereStation(lat,lon,elevation,signal));
  if(inGermany)tasks.push(brightSkyStation(lat,lon,elevation,signal));
  const settled=await Promise.allSettled(tasks),results=settled.filter((x):x is PromiseFulfilledResult<Station[]|Station|null>=>x.status==='fulfilled').flatMap(x=>Array.isArray(x.value)?x.value:x.value?[x.value]:[]);

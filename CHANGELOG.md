@@ -1,3 +1,16 @@
+# MID v0.7.70.4
+
+- Weltweiten NOAA-AviationWeather-/METAR-Abruf korrigiert: Die geografische Bounding-Box wird entsprechend der aktuellen API-Reihenfolge als Breitengrad/Längengrad übergeben.
+- METAR-Zeitfenster auf drei Stunden erweitert und internationale Suchweite außerhalb Deutschlands von 140 auf 220 km erhöht.
+- Mehrfachmeldungen derselben ICAO-Station werden auf die jeweils neueste Beobachtung reduziert.
+- METAR-Sichtweite wird nun auch über den Worker vollständig an die hyperlokale Analyse weitergereicht.
+- Eigener Regressionstest für internationale METAR-Orte ergänzt; funktionale Worker-Änderung, daher Worker vor dem Hauptprojekt bereitstellen.
+
+# MID v0.7.70.3
+
+- Im Ensemble-Niederschlagsdiagramm die getrennten P10-/P90-Kurven durch einen dunkelgrauen P10–P90-Fehlerbalken über dem Best-Match-Niederschlagsbalken ersetzt.
+- Fehlerbalken werden nur an Tagen mit Best-Match-Niederschlag angezeigt.
+
 # MID v0.7.70.2
 
 - Mausradnavigation der stündlichen Detailansicht auf die eigentliche SVG-Diagrammfläche begrenzt; Legende, Überschrift, Quickfacts und Stunden-Tooltip scrollen die Seite wieder normal.

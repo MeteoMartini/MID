@@ -7,9 +7,20 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.70.2**
+**Aktuelle Version: v0.7.70.4**
 
 
+
+## Neuerungen in v0.7.70.4
+
+- NOAA AviationWeather/METAR funktioniert nun auch für ausländische Orte: Die AWC-Bounding-Box verwendet die aktuelle Reihenfolge Breitengrad/Längengrad.
+- Das Zeitfenster umfasst drei Stunden; außerhalb Deutschlands wird in bis zu 220 km Entfernung nach geeigneten METAR-Stationen gesucht.
+- Pro ICAO-Station wird nur die neueste Meldung verwendet; Sichtweite, Wolkenlagen und Ceiling werden vollständig an die hyperlokale Analyse weitergereicht.
+- Der Cloudflare Worker wurde funktional geändert und muss vor dem Hauptprojekt aktualisiert werden.
+
+## Neuerungen in v0.7.70.3
+
+- P10 und P90 erscheinen im Ensemble-Niederschlagsdiagramm als gemeinsamer dunkelgrauer Fehlerbalken über dem Best-Match-Balken.
 
 ## Neuerungen in v0.7.70.2
 

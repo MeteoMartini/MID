@@ -14,7 +14,7 @@ const GEOSPHERE_META='https://dataset.api.hub.geosphere.at/v1/station/current/ta
 const GEOSPHERE_CURRENT='https://dataset.api.hub.geosphere.at/v1/station/current/tawes-v1-10min';
 const BRIGHTSKY_CURRENT='https://api.brightsky.dev/current_weather';
 const OPENSENSEMAP_BOXES='https://api.opensensemap.org/boxes';
-const WORKER_VERSION='0.7.70.3';
+const WORKER_VERSION='0.7.70.4';
 const CORS={'content-type':'application/json; charset=utf-8','access-control-allow-origin':'*','access-control-allow-methods':'GET,OPTIONS','cache-control':'public, max-age=180'};
 const FEED_SLUGS={
  AD:'andorra',AT:'austria',BE:'belgium',BA:'bosnia-herzegovina',BG:'bulgaria',HR:'croatia',CY:'cyprus',CZ:'czechia',DK:'denmark',EE:'estonia',FI:'finland',FR:'france',DE:'germany',GR:'greece',EL:'greece',HU:'hungary',IS:'iceland',IE:'ireland',IL:'israel',IT:'italy',LV:'latvia',LT:'lithuania',LU:'luxembourg',MT:'malta',MD:'moldova',ME:'montenegro',NL:'netherlands',MK:'republic-of-north-macedonia',NO:'norway',PL:'poland',PT:'portugal',RO:'romania',RS:'serbia',SK:'slovakia',SI:'slovenia',ES:'spain',SE:'sweden',CH:'switzerland',UA:'ukraine',GB:'united-kingdom',UK:'united-kingdom',AM:'armenia'
@@ -186,13 +186,25 @@ async function openSenseMapRows(lat,lon,radiusKm){
  }
  return rows.sort((a,b)=>a.distance-b.distance).slice(0,32);
 }
-async function metarRows(lat,lon,radiusKm){
- const dLat=radiusKm/111,dLon=radiusKm/(111*Math.max(.25,Math.cos(lat*Math.PI/180))),bbox=[lon-dLon,lat-dLat,lon+dLon,lat+dLat].map(v=>v.toFixed(3)).join(','),api=new URL(AWC_API);
- api.searchParams.set('format','json');api.searchParams.set('hoursBeforeNow','2');api.searchParams.set('bbox',bbox);
- const response=await fetch(api,{headers:{'User-Agent':`MID-weather-dashboard/${WORKER_VERSION} (+https://github.com/MeteoMartini/MID)`,'Accept':'application/json'}});
+function awcMetarBboxes(lat,lon,radiusKm){
+ const dLat=radiusKm/111,dLon=radiusKm/(111*Math.max(.25,Math.cos(lat*Math.PI/180))),lat0=Math.max(-89.9,lat-dLat),lat1=Math.min(89.9,lat+dLat),lon0=lon-dLon,lon1=lon+dLon,box=(a,b,c,d)=>[a,b,c,d].map(value=>Number(value).toFixed(3)).join(',');
+ if(lon0>=-180&&lon1<=180)return[box(lat0,lon0,lat1,lon1)];
+ if(lon0<-180)return[box(lat0,lon0+360,lat1,180),box(lat0,-180,lat1,lon1)];
+ return[box(lat0,lon0,lat1,180),box(lat0,-180,lat1,lon1-360)];
+}
+function metarReportTime(row){const value=safeDate(row?.reportTime??row?.obsTime??row?.observation_time??row?.receiptTime);return value?Date.parse(value):0}
+function latestMetarRows(rows){const map=new Map();for(const row of rows){const key=String(row?.icaoId??row?.icao_id??row?.station_id??`${row?.lat??row?.latitude}:${row?.lon??row?.longitude}`);const previous=map.get(key);if(!previous||metarReportTime(row)>=metarReportTime(previous))map.set(key,row)}return[...map.values()]}
+async function awcMetarBoxRows(bbox){
+ const api=new URL(AWC_API);api.searchParams.set('format','json');api.searchParams.set('hours','3');api.searchParams.set('bbox',bbox);
+ const response=await fetch(api,{headers:{'User-Agent':`MID-weather-dashboard/${WORKER_VERSION} (+https://github.com/MeteoMartini/MID)`,'Accept':'application/json'},cf:{cacheTtl:60,cacheEverything:true}});
  if(response.status===204)return[];if(!response.ok)throw new Error(`AviationWeather HTTP ${response.status}`);
- const raw=await response.json();
- return(Array.isArray(raw)?raw:raw?.data??[]).map(r=>{const rlat=number(r.lat??r.latitude),rlon=number(r.lon??r.longitude);if(rlat===undefined||rlon===undefined)return null;const dist=distance(lat,lon,rlat,rlon);if(dist>radiusKm*1000)return null;return{icaoId:r.icaoId??r.icao_id??r.station_id,name:r.name??r.site??r.icaoId??r.station_id,lat:rlat,lon:rlon,elevation:number(r.elev??r.elevation??r.elevation_m),reportTime:safeDate(r.reportTime??r.obsTime??r.observation_time??r.receiptTime),temp:number(r.temp??r.temperature??r.temp_c),dewp:number(r.dewp??r.dewPoint??r.dewpoint_c),relativeHumidity:number(r.relativeHumidity??r.humidity),windDirection:number(r.wdir??r.windDirection??r.wind_dir_degrees),windSpeed:number(r.wspd??r.windSpeed??r.wind_speed_kt),windGust:number(r.wgst??r.windGust??r.wind_gust_kt),pressure:number(r.altim??r.pressureMsl??r.sea_level_pressure_mb),cloudCover:number(r.cloudCover),clouds:Array.isArray(r.clouds)?r.clouds:Array.isArray(r.cloudLayers)?r.cloudLayers:undefined,vertVis:number(r.vertVis??r.verticalVisibility),rawOb:r.rawOb??r.raw_text,provider:'NOAA AviationWeather / METAR-WMO',distance:dist,windUnit:'kt'}}).filter(Boolean);
+ const raw=await response.json();return Array.isArray(raw)?raw:raw?.data??[];
+}
+async function metarRows(lat,lon,radiusKm){
+ const settled=await Promise.allSettled(awcMetarBboxes(lat,lon,radiusKm).map(awcMetarBoxRows)),failures=settled.filter(result=>result.status==='rejected');
+ if(failures.length===settled.length)throw failures[0].reason;
+ const raw=latestMetarRows(settled.flatMap(result=>result.status==='fulfilled'?result.value:[]));
+ return raw.map(r=>{const rlat=number(r.lat??r.latitude),rlon=number(r.lon??r.longitude);if(rlat===undefined||rlon===undefined)return null;const dist=distance(lat,lon,rlat,rlon);if(dist>radiusKm*1000)return null;return{icaoId:r.icaoId??r.icao_id??r.station_id,name:r.name??r.site??r.icaoId??r.station_id,lat:rlat,lon:rlon,elevation:number(r.elev??r.elevation??r.elevation_m),reportTime:safeDate(r.reportTime??r.obsTime??r.observation_time??r.receiptTime),temp:number(r.temp??r.temperature??r.temp_c),dewp:number(r.dewp??r.dewPoint??r.dewpoint_c),relativeHumidity:number(r.relativeHumidity??r.humidity),windDirection:number(r.wdir??r.windDirection??r.wind_dir_degrees),windSpeed:number(r.wspd??r.windSpeed??r.wind_speed_kt),windGust:number(r.wgst??r.windGust??r.wind_gust_kt),pressure:number(r.altim??r.pressureMsl??r.sea_level_pressure_mb),visibility:r.visib??r.visibility??r.visibility_statute_mi,cloudCover:number(r.cloudCover),clouds:Array.isArray(r.clouds)?r.clouds:Array.isArray(r.cloudLayers)?r.cloudLayers:undefined,vertVis:number(r.vertVis??r.verticalVisibility),rawOb:r.rawOb??r.raw_text,provider:'NOAA AviationWeather / METAR-WMO',distance:dist,windUnit:'kt',qcStatus:2,trustFactor:92,networkClass:'professional',siteClass:stationSiteClass(r.name??r.site??r.icaoId??r.station_id,'METAR airport')}}).filter(Boolean);
 }
 
 let geoSphereMetadataCache={expires:0,stations:[]};
