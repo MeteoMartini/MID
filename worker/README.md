@@ -1,7 +1,7 @@
-# MID Daten-, Warnungs- und Radarproxy v0.7.70.1
+# MID Daten-, Warnungs- und Radarproxy v0.7.70.2
 
 
-Wartungsstand v0.7.70.1 enthält gegenüber v0.7.70 keine funktionale Worker-Änderung; die Versionsnummer wurde zur einheitlichen Auslieferung synchronisiert.
+Wartungsstand v0.7.70.2 enthält gegenüber v0.7.70.1 keine funktionale Worker-Änderung; die Versionsnummer wurde zur einheitlichen Auslieferung synchronisiert.
 In v0.7.70 wurde der METAR-Datenpfad funktional erweitert: Der Worker reicht strukturierte Wolkenlagen, vertikale Sichtweite und die Rohmeldung an die Anwendung weiter. Dadurch kann MID die Hauptwolkenuntergrenze als Ceiling in hft bestimmen und in die hyperlokale Stationsanalyse einbeziehen.
 
 In v0.7.60 wurde der DWD-Radarabgleich funktional korrigiert: Die GetFeatureInfo-Punktabfrage wird auch bei einem scheinbar trockenen GetMap-Pixel ausgeführt, die Analyse ist auf höchstens zwölf Frames begrenzt und liefert Diagnosezähler für Punktwerte und Karten-Fallbacks.

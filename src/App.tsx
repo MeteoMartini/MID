@@ -368,7 +368,7 @@ function combineRadarAndModel(model:PrecipNowResult,radar:RadarNowcast|null,load
 function Forecast({days,hours,selected,setSelected,unit,modelInfo,timezone,timezoneAbbreviation,compactMode}:{days:Day[];hours:Hour[];selected:string;setSelected:(x:string)=>void;unit:WindUnit;modelInfo:BestMatchModelInfo|null;timezone:string;timezoneAbbreviation?:string;compactMode:boolean}){
  const [selectedHour,setSelectedHour]=useState(0),[detailsOpen,setDetailsOpen]=useState(()=>localStorage.getItem('mid:forecastDetailsOpen')==='1'),[nowTick,setNowTick]=useState(()=>Date.now());
  const requestedClockHourRef=useRef<number|null>(null);
- const detailChartRef=useRef<HTMLDivElement>(null),wheelGateRef=useRef(0);
+ const detailChartRef=useRef<HTMLDivElement>(null),detailPlotRef=useRef<SVGSVGElement>(null),wheelGateRef=useRef(0);
  useEffect(()=>{const timer=window.setInterval(()=>setNowTick(Date.now()),30000);return()=>window.clearInterval(timer)},[]);
  useEffect(()=>{try{localStorage.setItem('mid:forecastDetailsOpen',detailsOpen?'1':'0')}catch{}},[detailsOpen]);
  const forecastDays=days.slice(0,7);
@@ -393,13 +393,13 @@ function Forecast({days,hours,selected,setSelected,unit,modelInfo,timezone,timez
   setSelected(targetDay.date);
  }
  useEffect(()=>{
-  const node=detailChartRef.current;if(!node||typeof window==='undefined'||(compactMode&&!detailsOpen))return;
+  const node=detailChartRef.current,plot=detailPlotRef.current;if(!node||!plot||typeof window==='undefined'||(compactMode&&!detailsOpen))return;
   const desktop=()=>window.matchMedia('(min-width: 851px)').matches;
   const focusChart=()=>{if(desktop())node.focus({preventScroll:true})};
   const keydown=(event:KeyboardEvent)=>{if(!desktop())return;if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();event.stopPropagation();moveHour(event.key==='ArrowLeft'?-1:1);return}if(event.key==='ArrowUp'||event.key==='ArrowDown'){event.preventDefault();event.stopPropagation();moveDay(event.key==='ArrowUp'?1:-1)}};
-  const wheel=(event:WheelEvent)=>{if(!desktop())return;const delta=Math.abs(event.deltaY)>=Math.abs(event.deltaX)?event.deltaY:event.deltaX;if(Math.abs(delta)<8)return;event.preventDefault();event.stopPropagation();const now=performance.now();if(now-wheelGateRef.current<130)return;wheelGateRef.current=now;moveHour(delta<0?1:-1)};
-  node.addEventListener('pointerdown',focusChart,true);node.addEventListener('mousedown',focusChart,true);node.addEventListener('keydown',keydown);node.addEventListener('wheel',wheel,{passive:false});
-  return()=>{node.removeEventListener('pointerdown',focusChart,true);node.removeEventListener('mousedown',focusChart,true);node.removeEventListener('keydown',keydown);node.removeEventListener('wheel',wheel)};
+  const wheel=(event:WheelEvent)=>{if(!desktop())return;const delta=Math.abs(event.deltaY)>=Math.abs(event.deltaX)?event.deltaY:event.deltaX;if(Math.abs(delta)<8)return;event.preventDefault();event.stopPropagation();focusChart();const now=performance.now();if(now-wheelGateRef.current<130)return;wheelGateRef.current=now;moveHour(delta<0?1:-1)};
+  node.addEventListener('pointerdown',focusChart,true);node.addEventListener('mousedown',focusChart,true);node.addEventListener('keydown',keydown);plot.addEventListener('wheel',wheel,{passive:false});
+  return()=>{node.removeEventListener('pointerdown',focusChart,true);node.removeEventListener('mousedown',focusChart,true);node.removeEventListener('keydown',keydown);plot.removeEventListener('wheel',wheel)};
  },[selected,selectedHour,p.length,detailsOpen,compactMode,hours]);
  if(!p.length)return null;
  const precipSeries=p.map(precipitationParts);
@@ -439,11 +439,11 @@ function Forecast({days,hours,selected,setSelected,unit,modelInfo,timezone,timez
    </button>})}</div>
    {compactMode&&<button type="button" className="forecast-detail-toggle" onClick={()=>setDetailsOpen(value=>!value)} aria-expanded={detailsOpen}>{detailsOpen?<ChevronUp size={18}/>:<ChevronDown size={18}/>}<span>{detailsOpen?'Stündliche Detailansicht schließen':'Stündliche Detailansicht öffnen'}</span></button>}
    {(!compactMode||detailsOpen)&&<div className="hourdetail meteogram-day">
-     <div className="detailhead"><strong>{formatDateOnly(selectedDay.date,{weekday:'long',day:'2-digit',month:'2-digit'})} · Detailansicht</strong><small>Aktuelle Stunde am gewählten Ort ist vorausgewählt · Ortszeit {zoneCaption(timezone,timezoneAbbreviation)}. Das Diagramm ist stündlich anklickbar; am Desktop wechseln ←/→ stündlich, ↑ zum nächsten und ↓ zum vorherigen Tag. Mausrad vor = eine Stunde vor, Mausrad zurück = eine Stunde zurück.</small></div>
+     <div className="detailhead"><strong>{formatDateOnly(selectedDay.date,{weekday:'long',day:'2-digit',month:'2-digit'})} · Detailansicht</strong><small>Aktuelle Stunde am gewählten Ort ist vorausgewählt · Ortszeit {zoneCaption(timezone,timezoneAbbreviation)}. Das Diagramm ist stündlich anklickbar; am Desktop wechseln ←/→ stündlich, ↑ zum nächsten und ↓ zum vorherigen Tag. Mausrad über dem Diagramm vor = eine Stunde vor, Mausrad zurück = eine Stunde zurück.</small></div>
      <div className="quickfacts"><span>{icon(selectedCharacter.code)} <b>{selectedCharacter.label}</b>{selectedCharacter.secondary&&<small>{selectedCharacter.secondary}</small>}</span><span aria-label="Niederschlag gesamt">💧 <b>{formatDecimalFixed(totalRain,1)} mm</b></span><span aria-label="Maximale Niederschlagswahrscheinlichkeit">☔ <b>max. {Math.round(maxProb)} %</b></span><span aria-label="Maximaler Wind und maximale Böen">🌬️ <b>{wind(windMax,unit)} · 💨 {wind(gustMax,unit)}</b></span></div>
      <div className="detaillegend"><span><i className="temp"/>🌡️ Temperatur</span><span><i className="apparent"/> Gefühlt</span>{precipLegendTypes.map(type=><span key={type}><i className={precipMeta[type].legendClass}/>{precipMeta[type].label}</span>)}<span><i className="probability"/>☔ Wahrscheinlichkeit</span></div>
-     <div ref={detailChartRef} className="meteogram-stage" tabIndex={0} role="application" onPointerDownCapture={()=>detailChartRef.current?.focus({preventScroll:true})} onClick={()=>detailChartRef.current?.focus({preventScroll:true})} aria-label="Stündliches Wetterdiagramm. Nach einem Klick wechseln Pfeil links und rechts stündlich, Pfeil oben zum nächsten Tag und Pfeil unten zum vorherigen Tag. Mausrad vor wechselt eine Stunde vor, Mausrad zurück eine Stunde zurück.">
-     <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" className="meteogramsvg">
+     <div ref={detailChartRef} className="meteogram-stage" tabIndex={0} role="application" onPointerDownCapture={()=>detailChartRef.current?.focus({preventScroll:true})} onClick={()=>detailChartRef.current?.focus({preventScroll:true})} aria-label="Stündliches Wetterdiagramm. Nach einem Klick wechseln Pfeil links und rechts stündlich, Pfeil oben zum nächsten Tag und Pfeil unten zum vorherigen Tag. Mausrad über der Diagrammfläche vor wechselt eine Stunde vor, Mausrad zurück eine Stunde zurück.">
+     <svg ref={detailPlotRef} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" className="meteogramsvg">
        <defs>
         <linearGradient id="tempFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#ff9b55" stopOpacity="0.42"/><stop offset="100%" stopColor="#ff9b55" stopOpacity="0.04"/></linearGradient>
         <pattern id="nightHatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(32)"><rect width="5" height="5" fill="#71809b" opacity="0.055"/><line x1="0" y1="0" x2="0" y2="5" stroke="#71809b" strokeWidth="0.7" opacity="0.18"/></pattern>

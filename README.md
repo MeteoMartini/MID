@@ -7,8 +7,16 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.70.1**
+**Aktuelle Version: v0.7.70.2**
 
+
+
+## Neuerungen in v0.7.70.2
+
+- Die Mausradnavigation der Detailansicht reagiert nur noch, solange sich der Mauszeiger unmittelbar über der SVG-Diagrammfläche befindet.
+- Die Ensemble-Auswertung verwendet wieder die aktuellen Open-Meteo-Kennungen der einzelnen Ensemblemitglieder und der Ensemble-Mittelmodelle.
+- Modellabrufe werden begrenzt parallel ausgeführt und bei temporären API-Fehlern kontrolliert wiederholt, damit Browser- oder API-Limits nicht unnötig ausgelöst werden.
+- Falls weder Mitgliedermodelle noch die Mittelmodell-Reserve auswertbare Tagesreihen liefern, zeigt MID eine präzisere Fehlerdiagnose.
 
 ## Neuerungen in v0.7.70.1
 

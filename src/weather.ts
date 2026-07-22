@@ -44,28 +44,29 @@ export function countryCodeFromLocation(value?:string){
 
 type EnsembleModel={id:string;label:string;metaId:string;resolutionKm:number;updateHours:number;maxDays:number;bbox?:[number,number,number,number]};
 const ensembleModels:EnsembleModel[]=[
- {id:'icon_seamless',label:'DWD ICON EPS Seamless',metaId:'dwd_icon_eps',resolutionKm:8,updateHours:3,maxDays:7.5,bbox:[-25,30,45,72]},
- {id:'icon_global',label:'DWD ICON EPS Global',metaId:'dwd_icon_eps',resolutionKm:26,updateHours:12,maxDays:7.5},
- {id:'icon_eu',label:'DWD ICON EPS EU',metaId:'dwd_icon_eu_eps',resolutionKm:13,updateHours:6,maxDays:5,bbox:[-25,30,45,72]},
- {id:'icon_d2',label:'DWD ICON EPS D2',metaId:'dwd_icon_d2_eps',resolutionKm:2,updateHours:3,maxDays:2,bbox:[-6,43,26,58]},
- {id:'gfs_seamless',label:'NOAA GFS Ensemble Seamless',metaId:'ncep_gefs025',resolutionKm:32,updateHours:6,maxDays:35},
- {id:'gfs025',label:'NOAA GFS Ensemble 0.25°',metaId:'ncep_gefs025',resolutionKm:25,updateHours:6,maxDays:10},
- {id:'gfs05',label:'NOAA GFS Ensemble 0.5°',metaId:'ncep_gefs05',resolutionKm:50,updateHours:6,maxDays:35},
- {id:'aigefs025',label:'NOAA AIGEFS 0.25°',metaId:'ncep_aigefs025',resolutionKm:25,updateHours:6,maxDays:16},
- {id:'ecmwf_ifs025',label:'ECMWF IFS Ensemble',metaId:'ecmwf_ifs025_ensemble',resolutionKm:25,updateHours:6,maxDays:15},
- {id:'ecmwf_aifs025',label:'ECMWF AIFS Ensemble',metaId:'ecmwf_aifs025_ensemble',resolutionKm:25,updateHours:6,maxDays:15},
- {id:'gem_global',label:'GEM Global Ensemble',metaId:'cmc_gem_geps',resolutionKm:25,updateHours:12,maxDays:16},
- {id:'bom_access_global',label:'BOM ACCESS Global Ensemble',metaId:'bom_access_global_ensemble',resolutionKm:40,updateHours:6,maxDays:10},
- {id:'ukmo_global',label:'UKMO Global Ensemble',metaId:'ukmo_global_ensemble_20km',resolutionKm:20,updateHours:6,maxDays:8},
- {id:'ukmo_uk',label:'UKMO UK Ensemble',metaId:'ukmo_uk_ensemble_2km',resolutionKm:2,updateHours:1,maxDays:5,bbox:[-12,48,4,62]},
- {id:'meteoswiss_icon_ch1',label:'MeteoSwiss ICON CH1',metaId:'meteoswiss_icon_ch1_ensemble',resolutionKm:1,updateHours:3,maxDays:1.4,bbox:[3,43,18,50]},
- {id:'meteoswiss_icon_ch2',label:'MeteoSwiss ICON CH2',metaId:'meteoswiss_icon_ch2_ensemble',resolutionKm:2,updateHours:6,maxDays:.5,bbox:[3,43,18,50]},
+ {id:'icon_seamless_eps',label:'DWD ICON EPS Seamless',metaId:'dwd_icon_eps',resolutionKm:8,updateHours:3,maxDays:7.5,bbox:[-25,30,45,72]},
+ {id:'icon_global_eps',label:'DWD ICON EPS Global',metaId:'dwd_icon_eps',resolutionKm:26,updateHours:12,maxDays:7.5},
+ {id:'icon_eu_eps',label:'DWD ICON EPS EU',metaId:'dwd_icon_eu_eps',resolutionKm:13,updateHours:6,maxDays:5,bbox:[-25,30,45,72]},
+ {id:'icon_d2_eps',label:'DWD ICON EPS D2',metaId:'dwd_icon_d2_eps',resolutionKm:2,updateHours:3,maxDays:2,bbox:[-6,43,26,58]},
+ {id:'ncep_gefs_seamless',label:'NOAA GFS Ensemble Seamless',metaId:'ncep_gefs025',resolutionKm:32,updateHours:6,maxDays:35},
+ {id:'ncep_gefs025',label:'NOAA GFS Ensemble 0.25°',metaId:'ncep_gefs025',resolutionKm:25,updateHours:6,maxDays:10},
+ {id:'ncep_gefs05',label:'NOAA GFS Ensemble 0.5°',metaId:'ncep_gefs05',resolutionKm:50,updateHours:6,maxDays:35},
+ {id:'ncep_aigefs025',label:'NOAA AIGEFS 0.25°',metaId:'ncep_aigefs025',resolutionKm:25,updateHours:6,maxDays:16},
+ {id:'ecmwf_ifs025_ensemble',label:'ECMWF IFS Ensemble',metaId:'ecmwf_ifs025_ensemble',resolutionKm:25,updateHours:6,maxDays:15},
+ {id:'ecmwf_aifs025_ensemble',label:'ECMWF AIFS Ensemble',metaId:'ecmwf_aifs025_ensemble',resolutionKm:25,updateHours:6,maxDays:15},
+ {id:'gem_global_ensemble',label:'GEM Global Ensemble',metaId:'cmc_gem_geps',resolutionKm:25,updateHours:12,maxDays:16},
+ {id:'bom_access_global_ensemble',label:'BOM ACCESS Global Ensemble',metaId:'bom_access_global_ensemble',resolutionKm:40,updateHours:6,maxDays:10},
+ {id:'ukmo_global_ensemble_20km',label:'UKMO Global Ensemble',metaId:'ukmo_global_ensemble_20km',resolutionKm:20,updateHours:6,maxDays:8},
+ {id:'ukmo_uk_ensemble_2km',label:'UKMO UK Ensemble',metaId:'ukmo_uk_ensemble_2km',resolutionKm:2,updateHours:1,maxDays:5,bbox:[-12,48,4,62]},
+ {id:'meteoswiss_icon_ch1_ensemble',label:'MeteoSwiss ICON CH1',metaId:'meteoswiss_icon_ch1_ensemble',resolutionKm:1,updateHours:3,maxDays:1.4,bbox:[3,43,18,50]},
+ {id:'meteoswiss_icon_ch2_ensemble',label:'MeteoSwiss ICON CH2',metaId:'meteoswiss_icon_ch2_ensemble',resolutionKm:2,updateHours:6,maxDays:.5,bbox:[3,43,18,50]},
  {id:'google_weathernext2_ensemble',label:'Google WeatherNext 2',metaId:'google_weathernext2_ensemble',resolutionKm:25,updateHours:12,maxDays:15}
 ];
 const meanModelIds=[
- 'dwd_icon_eps_ensemble_mean_seamless','dwd_icon_eps_ensemble_mean_global','dwd_icon_eps_ensemble_mean_eu','dwd_icon_eps_ensemble_mean_d2',
- 'gfs_seamless_ensemble_mean','gfs025_ensemble_mean','gfs05_ensemble_mean','ecmwf_ifs025_ensemble_mean','ecmwf_aifs025_ensemble_mean',
- 'gem_global_ensemble_mean','bom_access_global_ensemble_mean','ukmo_global_ensemble_mean','ukmo_uk_ensemble_mean','meteoswiss_icon_ch1_ensemble_mean','meteoswiss_icon_ch2_ensemble_mean'
+ 'dwd_icon_eps_ensemble_mean_seamless','dwd_icon_eps_ensemble_mean','dwd_icon_eu_eps_ensemble_mean','dwd_icon_d2_eps_ensemble_mean',
+ 'ncep_gefs_ensemble_mean_seamless','ncep_gefs025_ensemble_mean','ncep_gefs05_ensemble_mean','ncep_aigefs025_ensemble_mean','ncep_hgefs025_ensemble_mean',
+ 'ecmwf_ifs025_ensemble_mean','ecmwf_aifs025_ensemble_mean','cmc_gem_geps_ensemble_mean','bom_access_global_ensemble_mean',
+ 'ukmo_global_ensemble_mean_20km','ukmo_uk_ensemble_mean_2km','meteoswiss_icon_ch1_ensemble_mean','meteoswiss_icon_ch2_ensemble_mean','google_weathernext2_ensemble_mean'
 ];
 function modelApplies(m:EnsembleModel,lat:number,lon:number){if(!m.bbox)return true;const[minLon,minLat,maxLon,maxLat]=m.bbox;return lon>=minLon&&lon<=maxLon&&lat>=minLat&&lat<=maxLat}
 
@@ -668,16 +669,41 @@ function dailyMeanSeries(w:Weather){
  daily.forEach((d,date)=>{if(d.t.length>=18)out.set(date,{date,max:Math.max(...d.t),min:Math.min(...d.t),precipitation:d.p.reduce((a,b)=>a+b,0),sunshineDuration:d.s.length>=6?clampNumber(d.s.reduce((a,b)=>a+b,0),0,86400):NaN})});
  return out;
 }
+async function settledMapLimited<T,R>(items:T[],limit:number,task:(item:T,index:number)=>Promise<R>){
+ const results=new Array<PromiseSettledResult<R>>(items.length);let cursor=0;
+ const worker=async()=>{while(cursor<items.length){const index=cursor++;try{results[index]={status:'fulfilled',value:await task(items[index],index)}}catch(reason){results[index]={status:'rejected',reason}}}};
+ await Promise.all(Array.from({length:Math.min(Math.max(1,limit),items.length)},worker));return results;
+}
+function ensembleRetryDelay(ms:number,signal?:AbortSignal){return new Promise<void>((resolve,reject)=>{if(signal?.aborted){reject(new DOMException('Abgebrochen','AbortError'));return}const timer=setTimeout(resolve,ms);signal?.addEventListener('abort',()=>{clearTimeout(timer);reject(new DOMException('Abgebrochen','AbortError'))},{once:true})})}
+async function fetchEnsembleRequest(url:string,signal?:AbortSignal){
+ let lastError:unknown;
+ for(let attempt=0;attempt<3;attempt++){
+  try{
+   const response=await fetch(url,{signal,cache:'no-store'});
+   if(response.ok)return await response.json() as Weather;
+   const error=new Error(`HTTP ${response.status}`);lastError=error;
+   if(![429,500,502,503,504].includes(response.status)||attempt===2)throw error;
+  }catch(error){
+   lastError=error;if(signal?.aborted)throw error;
+   const status=Number(String(error instanceof Error?error.message:error).match(/HTTP (\d+)/)?.[1]);
+   if(Number.isFinite(status)&&![429,500,502,503,504].includes(status))throw error;
+   if(attempt===2)throw error;
+  }
+  await ensembleRetryDelay(450*(attempt+1),signal);
+ }
+ throw lastError;
+}
 async function fetchEnsembleWeather(lat:number,lon:number,forecastDays:number,modelId:string,signal?:AbortSignal){
  let lastError:unknown;
  for(const hourly of ['temperature_2m,precipitation,sunshine_duration','temperature_2m,precipitation']){
   const p=new URLSearchParams({latitude:String(lat),longitude:String(lon),timezone:'auto',forecast_days:String(forecastDays),models:modelId,hourly});
-  try{return await j<Weather>(`https://ensemble-api.open-meteo.com/v1/ensemble?${p}`,signal)}catch(error){lastError=error;if(signal?.aborted)throw error}
+  try{return await fetchEnsembleRequest(`https://ensemble-api.open-meteo.com/v1/ensemble?${p}`,signal)}catch(error){lastError=error;if(signal?.aborted)throw error}
  }
  throw lastError;
 }
 async function meanFallback(lat:number,lon:number,signal?:AbortSignal){
- const settled=await Promise.allSettled(meanModelIds.map(async id=>({id,series:dailyMeanSeries(await fetchEnsembleWeather(lat,lon,14,id,signal))})));
+ const settled=await settledMapLimited(meanModelIds,4,async id=>({id,series:dailyMeanSeries(await fetchEnsembleWeather(lat,lon,14,id,signal))}));
+ if(signal?.aborted)throw new DOMException('Abgebrochen','AbortError');
  const ok=settled.filter(x=>x.status==='fulfilled').map(x=>(x as PromiseFulfilledResult<{id:string;series:Map<string,MemberDay>}>).value).filter(x=>x.series.size>=7);
  const dates=[...new Set(ok.flatMap(x=>[...x.series.keys()]))].sort().slice(0,14),days:EnsembleDay[]=[];
  for(const date of dates){
@@ -690,12 +716,15 @@ async function meanFallback(lat:number,lon:number,signal?:AbortSignal){
 }
 export async function ensembles(lat:number,lon:number,signal?:AbortSignal){
  const selected=ensembleModels.filter(m=>modelApplies(m,lat,lon));
- const settled=await Promise.allSettled(selected.map(async model=>parseModelMembers(await fetchEnsembleWeather(lat,lon,15,model.id,signal),model)));
- const results=settled.filter(x=>x.status==='fulfilled').map(x=>(x as PromiseFulfilledResult<ModelResult|null>).value).filter(Boolean) as ModelResult[];
+ const settled=await settledMapLimited(selected,4,async model=>parseModelMembers(await fetchEnsembleWeather(lat,lon,15,model.id,signal),model));
+ if(signal?.aborted)throw new DOMException('Abgebrochen','AbortError');
+ const results=settled.filter(x=>x.status==='fulfilled').map(x=>(x as PromiseFulfilledResult<ModelResult|null>).value).filter(Boolean) as ModelResult[],failedCount=settled.filter(x=>x.status==='rejected').length;
  const activeModels=results.map(x=>x.model),runs=await modelRunMetas(activeModels.map(x=>({id:x.metaId,label:x.label,kind:'ensemble' as const})),signal),days=aggregateMembers(results);
  if(days.length>=7)return{days:days.slice(0,14),models:activeModels.map(x=>x.label),runs};
  const fallback=await meanFallback(lat,lon,signal);
- return fallback.days.length?{...fallback,runs}:{days,models:activeModels.map(x=>x.label),runs};
+ if(fallback.days.length)return{...fallback,runs};
+ if(days.length)return{days,models:activeModels.map(x=>x.label),runs};
+ throw new Error(`Keine ausreichend vollständigen Ensemble-Daten: ${failedCount} von ${selected.length} Mitgliedermodell-Abrufen fehlgeschlagen; auch die Ensemble-Mittel-Reserve lieferte keine auswertbare Tagesreihe.`);
 }
 
 const CLIMATE_CACHE_PREFIX='mid:climatology:1991-2020:';

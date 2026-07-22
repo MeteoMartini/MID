@@ -1,3 +1,11 @@
+# MID v0.7.70.2
+
+- Mausradnavigation der stündlichen Detailansicht auf die eigentliche SVG-Diagrammfläche begrenzt; Legende, Überschrift, Quickfacts und Stunden-Tooltip scrollen die Seite wieder normal.
+- Ursache der ausgefallenen Ensemble-Auswertung behoben: veraltete Open-Meteo-Modellkennungen für Mitgliedsmodelle und Ensemble-Mittel durch die aktuellen API-Kennungen ersetzt.
+- Ensemble-Abrufe auf vier parallele Modellanfragen begrenzt und bei HTTP 429/5xx mit kurzen Wiederholungsversuchen abgesichert.
+- Ensemble-Mittel-Reserve vollständig auf die aktuellen DWD-, NOAA-, ECMWF-, GEM-, BOM-, UKMO-, MeteoSwiss- und Google-Kennungen aktualisiert.
+- Diagnose bei vollständigem Ausfall präzisiert; keine funktionale Worker-Änderung, nur Versionssynchronisierung.
+
 # MID v0.7.70.1
 
 - Ensemble-Diagramm-Tooltip präzisiert: Bei der Sonnenscheindauer heißt der Klammerzusatz nun `P10–P90` statt des unspezifischen Ausdrucks `Bandbreite`.
