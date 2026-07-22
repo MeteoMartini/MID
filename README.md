@@ -7,7 +7,14 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.66**
+**Aktuelle Version: v0.7.67**
+
+## Neuerungen in v0.7.67
+
+- Das Detailansichtsdiagramm verwendet für Niederschlagsform, Wettertext, Symbol, Balkenmuster, Legende und Stunden-Tooltip dieselbe WMO-basierte Klassifikation.
+- Reiner Schnee wird nicht mehr als Schneeregen interpretiert, nur weil `precipitation` zusätzlich das Wasseräquivalent des Schneefalls enthält.
+- Schneeregen beziehungsweise Schneeregenschauer werden im Daten-Fallback nur bei gleichzeitig festem und flüssigem Niederschlagsanteil abgeleitet.
+- Ein eigener Regressionstest deckt alle wesentlichen Niederschlagsformen ab.
 
 ## Neuerungen in v0.7.66
 

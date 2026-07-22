@@ -2,6 +2,7 @@ import {lazy,Suspense,useEffect,useMemo,useRef,useState,type PointerEvent as Rea
 import {AlertTriangle,BadgeCheck,ChevronDown,ChevronUp,CloudFog,ClipboardCopy,Download,Eye,FileDown,GripVertical,LocateFixed,MountainSnow,Monitor,Moon,Navigation,RefreshCw,Search,Settings2,SlidersHorizontal,Snowflake,Star,Sun,Trash2,Upload,Waves,Wind,X} from 'lucide-react';
 import {MID_VERSION as VERSION} from './version';
 import {airQuality,bestMatchModelInfo,climatology,cloudOktas,countryCodeFromLocation,cloudOktasText,currentIndex,dayEffectiveUvMax,dayWeatherCharacter,ensembles,forecast,hazards,icon,label,mapDays,mapHours,mapMinutely15,mountainForecast,officialWarnings,radarNowcast,searchLocations,reverseLocation,station,uvAltitudeFactor,wind,type BestMatchModelInfo,type ClimateDay,type Day,type EnsembleDay,type Hour,type Location,type Minute15,type ModelRunMeta,type MountainForecast,type MountainWeather,type OfficialAlert,type RadarNowcast,type Station,type Weather,type WindUnit} from './weather';
+import {precipitationParts,presentPrecipTypes,type PrecipSample,type PrecipType} from './precipitation';
 
 const LOGO_PATH='./mid-logo.png';
 const LOCATION_STORAGE_KEY='mid:lastLocation';
@@ -269,8 +270,6 @@ function OfficialWarnings({alerts,loading,error,provider,timezone}:{alerts:Offic
 
 function severityRank(level:'yellow'|'orange'|'red'|'purple'){return({yellow:1,orange:2,red:3,purple:4} as const)[level]}
 type HazardBadgeLevel='yellow'|'orange'|'red'|'purple';
-type PrecipType='none'|'drizzle'|'freezingDrizzle'|'rain'|'freezingRain'|'showers'|'snow'|'snowGrains'|'snowShowers'|'sleet'|'sleetShowers'|'thunderstorm'|'thunderstormHail';
-type PrecipSample={time?:string;epoch?:number;timezone?:string;precipitation:number;rain:number;showers:number;snowfall:number;probability:number;code:number};
 const KMH_PER_KT=1.852;
 const precipMeta:Record<Exclude<PrecipType,'none'>,{label:string;legendClass:string;fill:string}>={
  drizzle:{label:'Sprühregen',legendClass:'drizzle',fill:'url(#drizzleFill)'},
@@ -307,44 +306,6 @@ function dailyHazards(day:Day,hours:Hour[]){
  return items.sort((a,b)=>severityRank(b.level)-severityRank(a.level)).slice(0,3);
 }
 function dirArrow(deg:number){const to=((deg+180)%360+360)%360;const arrows=['↑','↗','→','↘','↓','↙','←','↖'];return arrows[Math.round(to/45)%8]}
-const WMO_PRECIP_TYPE:Partial<Record<number,PrecipType>>={
- 51:'drizzle',53:'drizzle',55:'drizzle',
- 56:'freezingDrizzle',57:'freezingDrizzle',
- 61:'rain',63:'rain',65:'rain',
- 66:'freezingRain',67:'freezingRain',
- 68:'sleet',69:'sleet',
- 71:'snow',73:'snow',75:'snow',77:'snowGrains',
- 80:'showers',81:'showers',82:'showers',
- 83:'sleetShowers',84:'sleetShowers',
- 85:'snowShowers',86:'snowShowers',
- 95:'thunderstorm',97:'thunderstorm',
- 96:'thunderstormHail',99:'thunderstormHail'
-};
-function precipitationParts(h:PrecipSample){
- const total=Math.max(0,h.precipitation||0),rainValue=Math.max(0,h.rain||0),showerValue=Math.max(0,h.showers||0),snowCm=Math.max(0,h.snowfall||0),code=Math.round(h.code||0);
- const measurable=total>=.01||rainValue>=.01||showerValue>=.01||snowCm>=.01;
- if(!measurable)return{total,type:'none' as PrecipType,label:'kein Niederschlag',code};
- const baseType=WMO_PRECIP_TYPE[code];
- const hasRain=rainValue>=.05;
- const hasShowers=showerValue>=.05;
- const hasSnow=snowCm>=.05;
- let type:PrecipType;
- // Eindeutige WMO-Kategorien haben Vorrang. Gemischte Formen werden nur
- // bei gleichzeitig messbaren flüssigen und festen Anteilen abgeleitet.
- if(baseType==='thunderstormHail'||baseType==='thunderstorm'||baseType==='freezingDrizzle'||baseType==='freezingRain')type=baseType;
- else if(hasSnow&&(hasShowers||baseType==='showers'||baseType==='snowShowers'||baseType==='sleetShowers'))type='sleetShowers';
- else if(hasSnow&&(hasRain||baseType==='rain'||baseType==='drizzle'||baseType==='snow'||baseType==='sleet'))type='sleet';
- else if(baseType)type=baseType;
- else if(hasShowers)type='showers';
- else if(hasRain||total>=.01)type='rain';
- else if(hasSnow)type='snow';
- else type='none';
- if(type==='none')return{total,type,label:'kein Niederschlag',code};
- const meta=precipMeta[type];
- const amount=type==='snow'||type==='snowShowers'||type==='snowGrains'?`${snowCm.toFixed(1)} cm`:type==='sleet'||type==='sleetShowers'?`${total.toFixed(1)} mm · ${snowCm.toFixed(1)} cm`:`${total.toFixed(1)} mm`;
- return{total,type,label:`${meta.label} ${amount}`,code};
-}
-function presentPrecipTypes(series:{type:PrecipType}[]){const order:PrecipType[]=['drizzle','freezingDrizzle','rain','freezingRain','showers','sleet','sleetShowers','snow','snowGrains','snowShowers','thunderstorm','thunderstormHail'];return order.filter(t=>series.some(x=>x.type===t)) as Exclude<PrecipType,'none'>[]}
 function localTimeLabel(value:number,timezone?:string){return formatInZone(value,timezone,{hour:'2-digit',minute:'2-digit'})}
 function clockMinutes(value?:string){const match=String(value||'').match(/T(\d{2}):(\d{2})/);if(!match)return null;const hours=Number(match[1]),minutes=Number(match[2]);return Number.isFinite(hours)&&Number.isFinite(minutes)?hours*60+minutes:null}
 function clockLabel(value?:string){const match=String(value||'').match(/T(\d{2}):(\d{2})/);return match?`${match[1]}:${match[2]}`:''}

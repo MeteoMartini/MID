@@ -1,3 +1,11 @@
+# MID v0.7.67
+
+- Niederschlagsform im stündlichen Detaildiagramm vereinheitlicht: WMO-Wettercode steuert nun Wettertext, Symbol, Balkenmuster, Legende und Stunden-Tooltip konsistent.
+- Fehler behoben, durch den reiner Schneefall beziehungsweise Schneeschauer wegen des Wasseräquivalents im Feld `precipitation` fälschlich als Schneeregen oder Schneeregenschauer dargestellt wurde.
+- Mischformen werden bei fehlendem geeigneten WMO-Code nur noch dann abgeleitet, wenn gleichzeitig ein messbarer fester und flüssiger Niederschlagsanteil vorliegt.
+- Niederschlagsklassifikation in ein separat testbares Modul ausgelagert und mit Regressionstests für Schnee, Schneeschauer, Schneeregen, Schneeregenschauer, Regen und gefrierenden Regen abgesichert.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionsanhebung.
+
 # MID v0.7.66
 
 - Bewölkungs-/Sonnenband im Temperaturtrend farblich an die Referenzskala angepasst: kräftiges Gelb für viel Sonne, abgestufte Beige-Töne und neutrales Grau für wenig Sonne.
