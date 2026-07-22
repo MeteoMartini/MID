@@ -1265,3 +1265,24 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 .consistency-dot{position:relative}
 .consistency-popover{pointer-events:none}
 .module-shell-content>.meteogram-card{margin-top:0;box-shadow:none}
+
+/* v0.7.57 widget text and worker-client reliability */
+.weatherwidget.modern.compact .widgetlabel{
+ display:-webkit-box;
+ min-height:18px;
+ max-height:18px;
+ overflow:hidden;
+ color:inherit;
+ line-height:9px;
+ white-space:normal;
+ text-overflow:clip;
+ overflow-wrap:anywhere;
+ -webkit-box-orient:vertical;
+ -webkit-line-clamp:2;
+ line-clamp:2;
+}
+.weatherwidget.modern.compact .widgeticon{margin:2px 0 0}
+.weatherwidget.modern.compact .widgettemps{margin-top:1px}
+.weatherwidget.modern.compact .widgetmeta{margin-top:2px}
+.weatherwidget.modern.compact .widgethazards{margin-top:3px}
+

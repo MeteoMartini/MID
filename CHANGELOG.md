@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.57
+- Widget-Wettertexte werden in der kompakten Exportansicht über bis zu zwei Zeilen vollständig lesbar dargestellt; Abstände wurden kompensiert, damit Bildformat und übrige Angaben unverändert bleiben.
+- Leere Worker-Variablen werden nicht länger fälschlich als aktuelle GitHub-Pages-Adresse interpretiert.
+- Ein durch den bisherigen Fehler gespeicherter Seiten-Endpunkt wird automatisch verworfen.
+- Worker-Antworten werden auf JSON geprüft; HTML-Seiten oder andere Scheinantworten gelten als Fehler und lösen den nächsten Endpunkt beziehungsweise den direkten Meteogramm-Fallback aus.
+- Dadurch erreichen Radar-Nowcast, Meteogramm, Warnungen und weitere Worker-Dienste wieder den tatsächlich konfigurierten Cloudflare Worker.
+- Ein automatisierter Regressionstest prüft leere Konfigurationswerte, alte Seitenendpunkte, METAR-Rückfall und den Wechsel nach Nicht-JSON-Antworten.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionsanhebung.
+
 ## 0.7.56
 - Suchfeld-Popover schließt zuverlässig bei Klick außerhalb, Escape, Standortwahl oder Wechsel der Desktop-Ansicht; verspätete Suchantworten öffnen es nach dem Verlassen nicht erneut.
 - Ensemble-Konsistenzpunkte zeigen ihren Erläuterungstext bereits beim Hover beziehungsweise Tastaturfokus und schließen ihn beim Verlassen automatisch; Touch-Bedienung per Klick bleibt erhalten.

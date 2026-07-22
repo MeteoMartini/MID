@@ -7,7 +7,13 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.56**
+**Aktuelle Version: v0.7.57**
+
+## Neuerungen in v0.7.57
+
+- Widget-Wettertexte nutzen einen platzsparenden Zweizeiler ohne Vergrößerung des Exportformats.
+- Leere Worker-Konfigurationswerte erzeugen keinen falschen GitHub-Pages-Endpunkt mehr.
+- Nicht-JSON-Antworten werden verworfen; MID wechselt zum echten Worker beziehungsweise zum direkten Meteogramm-Fallback.
 
 ## Neuerungen in v0.7.56
 

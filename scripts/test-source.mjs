@@ -5,6 +5,8 @@ const pkg=JSON.parse(read('../package.json'));
 const app=read('../src/App.tsx');
 const ensemble=read('../src/EnsemblePanel.tsx');
 const meteogram=read('../src/MeteogramPanel.tsx');
+const workerClient=read('../src/workerClient.ts');
+const styles=read('../src/styles.css');
 const sw=read('../public/sw.js');
 const serviceWorker=read('../public/service-worker.js');
 
@@ -22,7 +24,11 @@ const requirements=[
  ['Radartransparenz',app,'Radarabgleich ·'],
  ['Ensemble-Hover',ensemble,'hoveredConsistency'],
  ['Ensemble-Mouseenter',ensemble,'onMouseEnter'],
- ['Meteogramm-Autoload',meteogram,'void load(controller.signal)']
+ ['Meteogramm-Autoload',meteogram,'void load(controller.signal)'],
+ ['Leere Worker-Adresse überspringen',workerClient,"if(!trimmed)return''"],
+ ['Alten Seiten-Endpunkt verwerfen',workerClient,'endpoint.href===page.href'],
+ ['Worker-JSON-Prüfung',workerClient,"contentType.includes('json')"],
+ ['Widget-Zweizeiler',styles,'-webkit-line-clamp:2']
 ];
 const missing=requirements.filter(([,source,token])=>!source.includes(token)).map(([name])=>name);
 if(missing.length){console.error('Quellprüfung fehlgeschlagen:',missing.join(', '));process.exit(1)}
@@ -30,4 +36,4 @@ if(app.includes('className="meteogram-gate"')){console.error('Meteogramm ist noc
 if(meteogram.includes('[open,setOpen]')){console.error('Meteogramm besitzt noch eine doppelte interne Modulklappe.');process.exit(1)}
 const expected=`mid-shell-v${pkg.version}`;
 if(!sw.includes(expected)||!serviceWorker.includes(expected)){console.error(`Service-Worker-Cache stimmt nicht mit ${pkg.version} überein.`);process.exit(1)}
-console.log(`Quellprüfung v${pkg.version}: Suche, ENS-Hover, Diagrammnavigation, Meteogramm, Radarabgleich und PWA-Cache vorhanden.`);
+console.log(`Quellprüfung v${pkg.version}: Suche, ENS-Hover, Diagrammnavigation, Meteogramm, Worker-Failover, Widget-Zweizeiler, Radarabgleich und PWA-Cache vorhanden.`);
