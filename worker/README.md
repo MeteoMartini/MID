@@ -1,15 +1,12 @@
-# MID Daten-, Warnungs- und Radarproxy v0.7.74
+# MID Daten-, Warnungs- und Radarproxy v0.7.75
 
-
-Keine funktionale Cloudflare-Worker-Änderung in v0.7.74; die Versionsnummer wurde zur einheitlichen Auslieferung mit dem Hauptprojekt synchronisiert. Die Favoriten-Schnellleiste betrifft ausschließlich das Frontend.
-
+Keine funktionale Cloudflare-Worker-Änderung in v0.7.75; die Versionsnummer wurde zur einheitlichen Auslieferung mit dem Hauptprojekt synchronisiert. Die plattformübergreifende Tagesnavigation und die geänderte Favoriten-Einsortierung betreffen ausschließlich das Frontend.
 
 Keine funktionale Cloudflare-Worker-Änderung in v0.7.73; die Versionsnummer wurde zur einheitlichen Auslieferung mit dem Hauptprojekt synchronisiert. Tooltip-, Wolkenhöhen- und mobile Navigationsänderungen betreffen ausschließlich das Frontend.
 
 Keine funktionale Cloudflare-Worker-Änderung in v0.7.72; die Versionsnummer wurde zur einheitlichen Auslieferung mit dem Hauptprojekt synchronisiert. Das zentrale Einstellungsmenü betrifft ausschließlich das Frontend.
 
 Keine funktionale Cloudflare-Worker-Änderung in v0.7.71; die Versionsnummer wurde zur einheitlichen Auslieferung mit dem Hauptprojekt synchronisiert. Die globalen METAR-Korrekturen aus v0.7.70.4 bleiben unverändert enthalten.
-
 
 Wartungsstand v0.7.70.2 enthält gegenüber v0.7.70.1 keine funktionale Worker-Änderung; die Versionsnummer wurde zur einheitlichen Auslieferung synchronisiert.
 In v0.7.70 wurde der METAR-Datenpfad funktional erweitert: Der Worker reicht strukturierte Wolkenlagen, vertikale Sichtweite und die Rohmeldung an die Anwendung weiter. Dadurch kann MID die Hauptwolkenuntergrenze als Ceiling in hft bestimmen und in die hyperlokale Stationsanalyse einbeziehen.
@@ -22,7 +19,6 @@ Funktionale Änderung in v0.7.41: `best_match` wird für das vertikale Meteogram
 
 `?mode=meteogram&lat=...&lon=...&elevation=...&model=...` lädt und cached stündliche Open-Meteo-Druckniveauprofile von Stationsniveau bis 300 hPa für maximal 168 Stunden. Zulässig sind Best Match, DWD ICON-D2/EU/Global, Météo-France ARPEGE Europa, ECMWF IFS HRES und NOAA GFS 0,25°.
 
-
 Der Cloudflare Worker stellt browserkompatibel Stationsdaten, amtliche Warnungen und die standortbezogene Radar-Nowcast-Auswertung bereit. Ein zweiter Worker ist nicht erforderlich.
 
 ## Komposit- und Modellrouten v0.7.41
@@ -33,7 +29,6 @@ Der Cloudflare Worker stellt browserkompatibel Stationsdaten, amtliche Warnungen
 - `model-contours` lädt ein großräumiges 17×25-Stützraster in kurzen Zeilenabfragen, erzeugt geglättete dynamische Isobaren und 500-hPa-Isohypsen im Abstand 8 gpdm und erkennt zusätzlich räumlich getrennte H-/T-Druckzentren. Die Antwort wird 15 Minuten gecacht.
 - `composite-wms` akzeptiert die neuen freigegebenen H-SAF-Layer und berücksichtigt die längere Veröffentlichungsverzögerung von Satellitenprodukten.
 
-
 ## Hochauflösendes Radar v0.7.41
 
 Der Endpunkt `px250-meta` prüft für deutsche Orte zuerst das nationale DWD-HX-Komposit (`weather/radar/composite/hx`) mit 250-m-Raster. Ein aktuelles PX250-Standortprodukt dient nur noch als Fallback. `px250-file` validiert Produkt, Dateiname und Aktualität erneut.
@@ -41,7 +36,6 @@ Der Endpunkt `px250-meta` prüft für deutsche Orte zuerst das nationale DWD-HX-
 ## Kompatibilität v0.7.41
 
 Der Worker wurde funktional erweitert. Die Route `mode=composite-wms` leitet ausschließlich freigegebene Layer, valide Zeitstempel und notwendige WMS-Kartenparameter an DWD beziehungsweise EUMETSAT weiter, setzt CORS-Header und verwendet beim DWD automatisch den Ausfallserver. `composite-times` liefert Zeitwerte einheitlich als ISO-Zeit, ergänzt den tatsächlich verwendeten DWD-Radar-Layer und die Serverzeit und trennt jede Zeitdimension strikt nach Produkt. DWD-RV stellt für die Oberfläche – soweit vom Dienst angeboten – ein reales relatives Fenster von −1 Stunde bis +2 Stunden bereit; künstliche Zukunftsframes werden nicht erzeugt.
-
 
 ### Zusätzliche Absicherung in v0.7.41
 
@@ -185,7 +179,6 @@ https://DEIN-WORKER.workers.dev/?mode=alerts&lat=39.2238&lon=9.1217&country=IT&n
 
 Eine leere Warnungsliste kann korrekt sein. Ein Feld `error` weist dagegen auf einen Abruf- oder Parserfehler hin.
 
-
 ## Radar-Nowcast testen
 
 Deutschland/DWD:
@@ -227,7 +220,6 @@ Die Antwort enthält `source`, `provider`, `quality`, `radarProbability`, `curre
 - Ein bis zum Ende des Nowcast-Horizonts anhaltendes Echo wird mit `endOpenEnded: true` zurückgegeben.
 - `endUncertain: true` kennzeichnet eine Endzeit, die nur auf einem einzelnen trockenen Randframe beruht.
 - Die zurückgegebene `timeline` enthält die verfügbare DWD-Zeitachse für die Radarfilm-Steuerung.
-
 
 ## Modelllinien v0.7.41
 

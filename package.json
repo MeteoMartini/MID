@@ -1,14 +1,14 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.7.74",
+  "version": "0.7.75",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "sync-version": "node scripts/sync-version.mjs",
     "prebuild": "npm run sync-version",
     "build": "tsc -b && vite build",
-    "verify": "npm run build && node --check worker/metar-proxy.js && npm run test:updater && npm run test:interactions && npm run test:radar && npm run test:precipitation && npm run test:sunshine && npm run test:hyperlocal && npm run test:format-layout && npm run test:versioning && npm run test:ensemble && npm run test:rain-chart && npm run test:global-metar && npm run test:requests && npm run test:settings && npm run test:ui-regressions && npm run test:favorites-strip",
+    "verify": "npm run build && node --check worker/metar-proxy.js && npm run test:updater && npm run test:interactions && npm run test:radar && npm run test:precipitation && npm run test:sunshine && npm run test:hyperlocal && npm run test:format-layout && npm run test:versioning && npm run test:ensemble && npm run test:rain-chart && npm run test:global-metar && npm run test:requests && npm run test:settings && npm run test:ui-regressions && npm run test:favorites-strip && npm run test:navigation-favorites",
     "preview": "vite preview",
     "test:updater": "node scripts/test-updater.mjs",
     "test:radar": "node scripts/test-radar.mjs",
@@ -24,7 +24,8 @@
     "test:requests": "node scripts/test-request-cancellation.mjs",
     "test:settings": "node scripts/test-settings-menu.mjs",
     "test:ui-regressions": "node scripts/test-ui-regressions.mjs",
-    "test:favorites-strip": "node scripts/test-favorite-quick-strip.mjs"
+    "test:favorites-strip": "node scripts/test-favorite-quick-strip.mjs",
+    "test:navigation-favorites": "node scripts/test-navigation-favorites.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

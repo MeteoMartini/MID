@@ -1,3 +1,11 @@
+# MID v0.7.75
+
+- Dezente Tagespfeile der stündlichen Detailansicht stehen nun auf Handy, Tablet im Hoch- und Querformat sowie Desktop dauerhaft bereit.
+- Die Pfeile bleiben responsiv: Auf kleinen Smartphones nur als Symbole, auf größeren Displays zusätzlich mit abgekürztem Wochentag.
+- Neu angelegte Favoriten werden nicht mehr vorne einsortiert, sondern am Ende der bestehenden Reihenfolge ergänzt.
+- Auch importierte, bisher noch nicht vorhandene Favoriten werden hinter den vorhandenen Einträgen angefügt; die Reihenfolge innerhalb des Imports bleibt erhalten.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionssynchronisierung.
+
 # MID v0.7.74
 
 - Favoriten-Schnellleiste platzsparend als eigene zweite Reihe unter der Kopfleiste reaktiviert.

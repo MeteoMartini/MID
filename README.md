@@ -7,8 +7,17 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.74**
+**Aktuelle Version: v0.7.75**
 
+
+
+## Neuerungen in v0.7.75
+
+- Die dezenten Tagespfeile im stündlichen Detaildiagramm sind nun nicht nur auf Mobilgeräten, sondern auch auf Tablets im Querformat und am Desktop sichtbar.
+- Auf kleinen Smartphones werden nur die Pfeilsymbole gezeigt; auf größeren Ansichten ergänzt der abgekürzte Wochentag die Navigation.
+- Neue Favoriten werden automatisch am Ende der bestehenden Favoritenreihenfolge eingefügt und können anschließend wie gewohnt per Drag&Drop verschoben werden.
+- Importierte neue Favoriten werden ebenfalls hinter vorhandenen Favoriten ergänzt.
+- Der Cloudflare Worker wurde nicht funktional verändert; seine Versionsnummer wurde lediglich synchronisiert.
 
 
 ## Neuerungen in v0.7.74

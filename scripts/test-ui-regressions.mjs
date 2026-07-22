@@ -8,10 +8,11 @@ if(ensemble.includes('allowEscapeViewBox={{x:true,y:true}}'))failures.push('Tren
 
 for(const token of ["filter(layer=>['BKN','OVC','VV'].includes", "filter(layer=>['FEW','SCT'].includes", 'cloudBaseHft:metarCloudBaseHft(r)', 'cloudOktasValue>=5&&Number.isFinite(ceilingHft)', 'cloudOktasValue>=1&&cloudOktasValue<=4&&Number.isFinite(cloudBaseHft)'])if(!weather.includes(token)&&!app.includes(token))failures.push(`Wolkenuntergrenzenlogik fehlt: ${token}`);
 
-for(const token of ['className="meteogram-day-jump"','Vorheriger Tag:','Nächster Tag:','@media(max-width:850px)','pointer-events:none','touch-action:manipulation'])if(!app.includes(token)&&!styles.includes(token))failures.push(`Mobile Tagesnavigation fehlt: ${token}`);
+for(const token of ['className="meteogram-day-jump"','Vorheriger Tag:','Nächster Tag:','.meteogram-day-jump{\n position:absolute;','@media(max-width:850px)','pointer-events:none','touch-action:manipulation'])if(!app.includes(token)&&!styles.includes(token))failures.push(`Plattformübergreifende Tagesnavigation fehlt: ${token}`);
+if(styles.includes('.meteogram-day-jump{display:none}'))failures.push('Tagesnavigation wird auf Desktop weiterhin ausgeblendet.');
 
 for(const token of ["matchMedia('(hover: hover) and (pointer: fine)')",'event.preventDefault();event.stopPropagation();onToggle()'])if(!ensemble.includes(token))failures.push(`Ein-Tap-Konsistenzsteuerung fehlt: ${token}`);
 if(ensemble.includes('onFocus={onOpen}'))failures.push('Der Fokus öffnet den Konsistenzpunkt weiterhin vor dem Touch-Klick.');
 
 if(failures.length){console.error('UI-Regressionsprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('UI-Regressionsprüfung bestanden: Tooltip-Randbegrenzung, wolkenabhängige Höhenbezeichnung, mobile Tagesnavigation und Ein-Tap-Konsistenzsteuerung sind vorhanden.');
+console.log('UI-Regressionsprüfung bestanden: Tooltip-Randbegrenzung, wolkenabhängige Höhenbezeichnung, plattformübergreifende Tagesnavigation und Ein-Tap-Konsistenzsteuerung sind vorhanden.');
