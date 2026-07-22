@@ -95,6 +95,7 @@ export default function App(){
   }catch(e){if(id===seq.current){setLoading(false);setStationLoading(false);setOfficialLoading(false);setRadarAnalysisLoading(false);setError(e instanceof Error?e.message:'Laden fehlgeschlagen')}}
  }
  useEffect(()=>{if(loc)void load()},[loc?.id,loc?.latitude,loc?.longitude]);
+ useEffect(()=>{if(!loc||!w)return;let active=true,controller:AbortController|null=null;const refresh=()=>{if(document.visibilityState!=='visible'||!active)return;controller?.abort();controller=new AbortController();setRadarAnalysisLoading(true);radarNowcast(loc.latitude,loc.longitude,loc.country_code||loc.country,controller.signal).then(value=>{if(active){setRadarAnalysis(value);setRadarAnalysisError('')}}).catch(error=>{if(active&&error instanceof DOMException&&error.name==='AbortError')return;if(active)setRadarAnalysisError(error instanceof Error?error.message:'Radarauswertung nicht verfügbar.')}).finally(()=>active&&setRadarAnalysisLoading(false))};const timer=window.setInterval(refresh,5*60*1000),visibility=()=>{if(document.visibilityState==='visible')refresh()};document.addEventListener('visibilitychange',visibility);return()=>{active=false;controller?.abort();window.clearInterval(timer);document.removeEventListener('visibilitychange',visibility)}},[loc?.id,loc?.latitude,loc?.longitude,w?.timezone]);
  useEffect(()=>{if(!ensembleRequested||!loc||!w)return;const id=seq.current,c=new AbortController();setEnsLoading(true);setClimateLoading(true);setEnsError('');setClimateError('');const dates=(w.daily.time as string[]).slice(0,14);climatology(loc.latitude,loc.longitude,loc.elevation??w.elevation,dates,c.signal).then(x=>{if(id===seq.current)setClimate(x)}).catch(e=>{if(id===seq.current)setClimateError(e instanceof Error?e.message:'Klimatologisches Mittel konnte nicht geladen werden.')}).finally(()=>id===seq.current&&setClimateLoading(false));ensembles(loc.latitude,loc.longitude,c.signal).then(x=>{if(id===seq.current){setEns(x.days);setModels(x.models);setEnsembleRuns(x.runs??[]);setEnsError(x.days.length?'':'Keine ausreichend vollständigen Ensemble-Daten erhalten.')}}).catch(e=>{if(id===seq.current){setEns([]);setModels([]);setEnsembleRuns([]);setEnsError(e instanceof Error?e.message:'Ensemble-Daten konnten nicht geladen werden.')}}).finally(()=>id===seq.current&&setEnsLoading(false));return()=>c.abort()},[ensembleRequested,loc?.id,loc?.latitude,loc?.longitude,w]);
  function locate(){if(!navigator.geolocation){setError('Standortermittlung nicht unterstützt.');return}setLoading(true);setError('');navigator.geolocation.getCurrentPosition(async p=>{try{const resolved=await reverseLocation(p.coords.latitude,p.coords.longitude,p.coords.altitude??undefined);setLoc({...resolved,autolocated:true})}catch{setLoc({id:Date.now(),name:`${p.coords.latitude.toFixed(2)}°, ${p.coords.longitude.toFixed(2)}°`,latitude:p.coords.latitude,longitude:p.coords.longitude,elevation:p.coords.altitude??undefined,autolocated:true})}},()=>{setLoading(false);setError('Standort konnte nicht ermittelt werden. Der Standard- oder letzte Ort bleibt geöffnet.')},{enableHighAccuracy:true,timeout:15000,maximumAge:120000})}
  useEffect(()=>{if(!locationTracking){autoLocationRequested.current=false;return}if(autoLocationRequested.current)return;autoLocationRequested.current=true;locate()},[locationTracking]);
@@ -371,18 +372,22 @@ function radarSummary(radar:RadarNowcast,timezone?:string){
  return radar.summary;
 }
 function combineRadarAndModel(model:PrecipNowResult,radar:RadarNowcast|null,loading:boolean,error:string,timezone?:string):PrecipNowResult{
- if(!radar){return{...model,source:loading?`${model.source} · Radarauswertung läuft …`:error?`${model.source} · Radar-Fallback`:model.source}}
+ if(!radar){return{...model,source:loading?`${model.source} · Radarabgleich läuft …`:error?`${model.source} · Radarabgleich nicht verfügbar`:model.source}}
  if(radar.source==='model'||radar.coverage===false){if(radar.temporaryUnavailable||radar.coverageExpected)return{...model,source:`${model.source} · ${radar.expectedSource||'Radar'} vorübergehend nicht auswertbar`};return{...model,source:`${model.source} · keine verwertbare Radarabdeckung`}};
- const arrival=Number.isFinite(radar.arrivalMinutes as number)?Number(radar.arrivalMinutes):(Number(radar.currentRate||0)>=.05?0:120);
- const horizonWeight=arrival<=30?.85:arrival<=60?.70:.55;
- const qualityFactor=radar.quality==='high'?1:radar.quality==='medium'?.82:.65;
- const radarWeight=Math.max(.25,Math.min(.85,horizonWeight*qualityFactor));
+ const currentRate=Number(radar.currentRate||0),arrival=Number.isFinite(radar.arrivalMinutes as number)?Number(radar.arrivalMinutes):(currentRate>=.05?0:120),observedTime=Date.parse(radar.observedAt||''),ageMinutes=Number.isFinite(observedTime)?Math.max(0,(Date.now()-observedTime)/60000):0;
+ if(ageMinutes>35)return{...model,source:`${model.source} · Radarstand veraltet (${Math.round(ageMinutes)} min)`};
+ if(currentRate<.05&&arrival>180)return{...model,source:`${model.source} · Radarecho außerhalb des 3-h-Abgleichfensters`};
+ // Das Modell bleibt die Basis. Radar korrigiert die nächsten drei Stunden,
+ // gewinnt bei nahen und qualitativ guten Echos aber gezielt an Einfluss.
+ const horizonWeight=arrival<=30?.60:arrival<=60?.48:arrival<=120?.36:.24;
+ const qualityFactor=radar.quality==='high'?1:radar.quality==='medium'?.82:.62;
+ const radarWeight=Math.max(.15,Math.min(.60,horizonWeight*qualityFactor));
  const modelProbability=Math.max(0,Math.min(100,Number(model.probability)||0));
  const radarProbability=Math.max(0,Math.min(100,Number(radar.radarProbability)||0));
- let probability=Math.round(radarWeight*radarProbability+(1-radarWeight)*modelProbability);
- if(Number(radar.currentRate||0)>=.05)probability=Math.max(probability,90);
+ let probability=Math.round(modelProbability+radarWeight*(radarProbability-modelProbability));
+ if(currentRate>=.05)probability=Math.max(probability,90);
  const quality=radar.quality==='high'?'hoch':radar.quality==='medium'?'mittel':'eingeschränkt',observed=radarClock(radar.observedAt,timezone);
- return{probability,summary:radarSummary(radar,timezone)||model.summary,source:`${radar.provider}${observed?` · Stand ${observed} Uhr`:''} · Qualität ${quality} · ${Math.round(radarWeight*100)} % Radar / ${Math.round((1-radarWeight)*100)} % Modell`};
+ return{probability,summary:radarSummary(radar,timezone)||model.summary,source:`Radarabgleich aktiv · ${radar.provider}${observed?` · Stand ${observed} Uhr`:''} · Qualität ${quality} · Korrektur ${Math.round(radarWeight*100)} %`};
 }
 
 function Forecast({days,hours,selected,setSelected,unit,modelInfo,timezone,timezoneAbbreviation,compactMode}:{days:Day[];hours:Hour[];selected:string;setSelected:(x:string)=>void;unit:WindUnit;modelInfo:BestMatchModelInfo|null;timezone:string;timezoneAbbreviation?:string;compactMode:boolean}){

@@ -7,7 +7,15 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.55**
+**Aktuelle Version: v0.7.59**
+
+## Neuerungen in v0.7.59
+
+- Sicherer Update-Preflight mit vollständiger Prüfung der neuen Startseite, Skripte und Styles vor der Aktivierung.
+- Kontrollierte Service-Worker-Aktivierung sowie sichtbare Boot- und Reparaturansicht statt einer grauen oder weißen Seite bei einem defekten lokalen Cache.
+- Korrigierter DWD-Radarabgleich: GetFeatureInfo überschreibt nun auch einen fälschlich als trocken erkannten Kartenpixel.
+- Radar wird alle fünf Minuten und bei Rückkehr in die App aktualisiert; Modellbasis und Radar-Korrektur bleiben transparent getrennt.
+
 
 ## Neuerungen in v0.7.40
 
@@ -298,7 +306,7 @@ Eine separate Warnungs- oder Radaradresse ist nicht nötig. Optional kann diesel
 
 ### Schutz vor blockierten Worker-Aufrufen
 
-MID kann eine Browser-, DNS-, Firewall- oder Unternehmensnetz-Sperre nicht selbst aufheben. Ab v0.7.55 werden jedoch mehrere erreichbare Endpunkte automatisch nacheinander versucht. Der zuletzt erfolgreiche Endpunkt wird lokal gespeichert und bei folgenden Worker- und WMS-Aufrufen bevorzugt.
+MID kann eine Browser-, DNS-, Firewall- oder Unternehmensnetz-Sperre nicht selbst aufheben. Ab v0.7.55 werden jedoch mehrere erreichbare Endpunkte automatisch nacheinander versucht. Der zuletzt erfolgreiche Endpunkt wird getrennt nach Verwendungszweck höchstens 36 Stunden lokal gespeichert und erst nach den ausdrücklich konfigurierten Endpunkten als zusätzlicher Rückfall versucht.
 
 Empfohlen ist eine eigene Cloudflare-Custom-Domain oder ein gleichursprünglicher Pfad, damit MID nicht ausschließlich von der häufig pauschal gesperrten `workers.dev`-Domain abhängt:
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.59
+- Updateablauf neu abgesichert: Die neue Startseite sowie alle referenzierten Skript- und CSS-Dateien werden vor dem Wechsel vollständig geprüft und vorgeladen. Erst danach wird der Service Worker kontrolliert aktiviert und MID neu geladen.
+- Doppelte bzw. veraltete Service-Worker-Pfade vereinheitlicht; beide Kompatibilitätsdateien verwenden nun denselben versionsgebundenen Cache. Ein fehlgeschlagener Modulstart zeigt statt einer grauen/weißen Seite eine Reparaturansicht mit einmalig geschützter Cache-Bereinigung.
+- DWD-Radarabgleich korrigiert: GetFeatureInfo wird auch dann ausgewertet, wenn die vereinfachte Kartenfarbdekodierung zunächst 0 mm/h meldet. Damit unterdrückt ein falsch als trocken erkanntes Pixel keine tatsächlichen schwachen RV-Echos mehr.
+- DWD-Punktwerte werden für jeden begrenzten Analyseframe abgefragt und mit Diagnosewerten versehen; die Framezahl bleibt zur Einhaltung der Worker-Subrequest-Grenzen begrenzt.
+- Radar korrigiert das Modell ausschließlich im 0- bis 3-Stunden-Fenster, verwirft Radarstände über 35 Minuten und aktualisiert sich alle fünf Minuten sowie bei Rückkehr in die App. Das Modell bleibt die Basis, der Radaranteil ist auf 60 % begrenzt.
+- GitHub-Pages-Build übernimmt Radar-, Same-Origin- und Fallback-Worker-Variablen nun ausdrücklich; zuletzt erfolgreiche Worker-Adressen werden getrennt nach Verwendungszweck und nur noch 36 Stunden gespeichert.
+
 ## 0.7.58
 - Widget: Der Wettertext erhält einen festen, zweizeiligen Bereich mit sauberem Umbruch; beide Textzeilen bleiben vollständig sichtbar und kollidieren nicht mehr mit den Temperaturwerten.
 - Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionsanhebung.

@@ -1,5 +1,6 @@
 import './v078.css';
 import {MID_VERSION as VERSION} from './version';
+import {activateMidUpdate} from './pwa';
 
 type ForecastSnapshot={
   elevation?:number;
@@ -207,30 +208,40 @@ const RELOAD_ATTEMPT_KEY='mid:update-reload-attempt';
 let lastVersionCheck=0;
 let versionCheckPromise:Promise<void>|null=null;
 let dismissedVersion='';
+let updatingVersion='';
 
 function versionNumbers(value:string){return String(value||'').trim().replace(/^v/i,'').split(/[.-]/).map(part=>Number.parseInt(part,10)).map(value=>Number.isFinite(value)?value:0)}
 function isNewerVersion(candidate:string,current:string){const a=versionNumbers(candidate),b=versionNumbers(current),length=Math.max(a.length,b.length);for(let i=0;i<length;i++){const av=a[i]??0,bv=b[i]??0;if(av!==bv)return av>bv}return false}
 function autoUpdateEnabled(){try{return localStorage.getItem(AUTO_UPDATE_KEY)==='true'}catch{return false}}
 function setAutoUpdate(value:boolean){try{localStorage.setItem(AUTO_UPDATE_KEY,String(value))}catch{}}
-function recentReloadAttempt(version:string){try{const raw=sessionStorage.getItem(RELOAD_ATTEMPT_KEY);if(!raw)return false;const data=JSON.parse(raw) as {version?:string;time?:number};return data.version===version&&Date.now()-Number(data.time||0)<60000}catch{return false}}
+function recentReloadAttempt(version:string){try{const raw=sessionStorage.getItem(RELOAD_ATTEMPT_KEY);if(!raw)return false;const data=JSON.parse(raw) as {version?:string;time?:number};return data.version===version&&Date.now()-Number(data.time||0)<120000}catch{return false}}
 function markReloadAttempt(version:string){try{sessionStorage.setItem(RELOAD_ATTEMPT_KEY,JSON.stringify({version,time:Date.now()}))}catch{}}
+function clearReloadAttempt(){try{sessionStorage.removeItem(RELOAD_ATTEMPT_KEY)}catch{}}
 function cleanUpdateQuery(){try{const url=new URL(location.href),had=url.searchParams.has('mid-update')||url.searchParams.has('mid-refresh');if(!had)return;url.searchParams.delete('mid-update');url.searchParams.delete('mid-refresh');history.replaceState(history.state,'',url.toString())}catch{}}
-async function reloadForVersion(version:string){markReloadAttempt(version);try{const registrations=await navigator.serviceWorker?.getRegistrations?.()??[];for(const registration of registrations){registration.waiting?.postMessage({type:'SKIP_WAITING'});await registration.update().catch(()=>{})}}catch{}const url=new URL(location.href);url.searchParams.set('mid-update',version);url.searchParams.set('mid-refresh',String(Date.now()));location.replace(url.toString())}
 function removeUpdateNotice(){document.querySelector<HTMLElement>('[data-mid-update-notice]')?.remove()}
-function showUpdateNotice(version:string,releasedAt?:string){
-  if(dismissedVersion===version)return;
+function updateErrorText(error:unknown){const message=error instanceof Error?error.message:String(error||'');return message||'Das Update konnte nicht sicher vorbereitet werden.'}
+async function startSafeUpdate(version:string){
+  if(updatingVersion)return;updatingVersion=version;markReloadAttempt(version);
+  const notice=document.querySelector<HTMLElement>('[data-mid-update-notice]'),status=notice?.querySelector<HTMLElement>('[data-mid-update-status]'),buttons=notice?.querySelectorAll<HTMLButtonElement>('button'),checkbox=notice?.querySelector<HTMLInputElement>('input[type="checkbox"]');
+  if(status)status.textContent=`Version ${version} wird vollständig geprüft und vorgeladen …`;buttons?.forEach(button=>button.disabled=true);if(checkbox)checkbox.disabled=true;
+  try{await activateMidUpdate(version)}catch(error){
+    updatingVersion='';clearReloadAttempt();if(status)status.textContent=`Update nicht ausgeführt: ${updateErrorText(error)}`;buttons?.forEach(button=>button.disabled=false);if(checkbox)checkbox.disabled=false;
+  }
+}
+function showUpdateNotice(version:string,releasedAt?:string,automatic=false){
+  if(dismissedVersion===version&&!automatic)return;
   let notice=document.querySelector<HTMLElement>('[data-mid-update-notice]');
-  if(notice?.dataset.version===version)return;
+  if(notice?.dataset.version===version){if(automatic&&!updatingVersion)window.setTimeout(()=>void startSafeUpdate(version),350);return}
   notice?.remove();notice=document.createElement('aside');notice.dataset.midUpdateNotice='1';notice.dataset.version=version;notice.className='mid-update-notice';notice.setAttribute('role','status');notice.setAttribute('aria-live','polite');
-  const copy=document.createElement('div');copy.className='mid-update-copy';const strong=document.createElement('strong');strong.textContent='MID wurde aktualisiert – jetzt neu laden';const small=document.createElement('small');const date=releasedAt?new Date(releasedAt):null;small.textContent=`Version ${version} ist verfügbar${date&&Number.isFinite(date.getTime())?` · ${date.toLocaleString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}`:''}.`;copy.append(strong,small);
+  const copy=document.createElement('div');copy.className='mid-update-copy';const strong=document.createElement('strong');strong.textContent=automatic?'MID-Update wird sicher vorbereitet':'MID wurde aktualisiert – jetzt neu laden';const small=document.createElement('small');small.dataset.midUpdateStatus='1';const date=releasedAt?new Date(releasedAt):null;small.textContent=`Version ${version} ist verfügbar${date&&Number.isFinite(date.getTime())?` · ${date.toLocaleString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}`:''}.`;copy.append(strong,small);
   const autoLabel=document.createElement('label');autoLabel.className='mid-update-auto';const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.checked=autoUpdateEnabled();const autoText=document.createElement('span');autoText.textContent='Künftige Updates automatisch laden';autoLabel.append(checkbox,autoText);
-  const actions=document.createElement('div');actions.className='mid-update-actions';const later=document.createElement('button');later.type='button';later.className='secondary';later.textContent='Später';later.addEventListener('click',()=>{dismissedVersion=version;removeUpdateNotice()});const reload=document.createElement('button');reload.type='button';reload.className='primary';reload.textContent='Jetzt neu laden';reload.addEventListener('click',()=>reloadForVersion(version));actions.append(later,reload);
-  checkbox.addEventListener('change',()=>{setAutoUpdate(checkbox.checked);if(checkbox.checked)reloadForVersion(version)});
-  notice.append(copy,autoLabel,actions);document.body.append(notice);
+  const actions=document.createElement('div');actions.className='mid-update-actions';const later=document.createElement('button');later.type='button';later.className='secondary';later.textContent='Später';later.addEventListener('click',()=>{dismissedVersion=version;removeUpdateNotice()});const reload=document.createElement('button');reload.type='button';reload.className='primary';reload.textContent='Sicher aktualisieren';reload.addEventListener('click',()=>void startSafeUpdate(version));actions.append(later,reload);
+  checkbox.addEventListener('change',()=>{setAutoUpdate(checkbox.checked);if(checkbox.checked)void startSafeUpdate(version)});
+  notice.append(copy,autoLabel,actions);document.body.append(notice);if(automatic)window.setTimeout(()=>void startSafeUpdate(version),350);
 }
 async function checkVersion(force=false){
   const now=Date.now();if(!force&&now-lastVersionCheck<VERSION_CHECK_THROTTLE)return;if(versionCheckPromise)return versionCheckPromise;
-  lastVersionCheck=now;versionCheckPromise=(async()=>{try{const url=new URL('./version.json',document.baseURI);url.searchParams.set('_mid',String(Date.now()));const response=await nativeFetch(url,{cache:'no-store',headers:{'cache-control':'no-cache','pragma':'no-cache'}});if(!response.ok)return;const descriptor=await response.json() as VersionDescriptor,remote=String(descriptor.version||'').trim();if(!remote)return;if(!isNewerVersion(remote,VERSION)){removeUpdateNotice();try{sessionStorage.removeItem(RELOAD_ATTEMPT_KEY)}catch{}return}if(autoUpdateEnabled()&&!recentReloadAttempt(remote)){reloadForVersion(remote);return}showUpdateNotice(remote,descriptor.releasedAt)}catch{}finally{versionCheckPromise=null}})();return versionCheckPromise;
+  lastVersionCheck=now;versionCheckPromise=(async()=>{try{const url=new URL('./version.json',document.baseURI);url.searchParams.set('_mid',String(Date.now()));const response=await nativeFetch(url,{cache:'no-store',headers:{'cache-control':'no-cache','pragma':'no-cache'}});if(!response.ok)return;const descriptor=await response.json() as VersionDescriptor,remote=String(descriptor.version||'').trim();if(!remote)return;if(!isNewerVersion(remote,VERSION)){removeUpdateNotice();clearReloadAttempt();return}const automatic=autoUpdateEnabled()&&!recentReloadAttempt(remote);showUpdateNotice(remote,descriptor.releasedAt,automatic)}catch{}finally{versionCheckPromise=null}})();return versionCheckPromise;
 }
 function setupVersionChecks(){cleanUpdateQuery();void checkVersion(true);window.setInterval(()=>{if(document.visibilityState==='visible')void checkVersion()},VERSION_CHECK_INTERVAL);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')void checkVersion(true)});window.addEventListener('pageshow',()=>void checkVersion(true));window.addEventListener('focus',()=>void checkVersion())}
 

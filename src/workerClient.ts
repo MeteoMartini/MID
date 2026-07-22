@@ -4,20 +4,21 @@ export type WorkerPurpose='general'|'metar'|'alerts'|'radar'|'meteogram';
 type WorkerPayload={error?:string};
 type WorkerFetchOptions={purpose?:WorkerPurpose;signal?:AbortSignal;timeoutMs?:number;cache?:RequestCache};
 
-const LAST_GOOD_KEY='mid:worker:lastGood';
-const LAST_GOOD_MAX_AGE=7*24*60*60*1000;
+const LAST_GOOD_PREFIX='mid:worker:lastGood';
+const LAST_GOOD_MAX_AGE=36*60*60*1000;
 
 function storageGet(key:string){try{return localStorage.getItem(key)||''}catch{return''}}
 function splitUrls(value:unknown){return String(value||'').split(/[\s,;]+/).map(item=>item.trim()).filter(Boolean)}
 function normaliseBase(value:string){try{return new URL(value,typeof location==='undefined'?'https://mid.invalid/':location.href).toString()}catch{return''}}
 function uniqueUrls(values:string[]){const seen=new Set<string>(),result:string[]=[];for(const raw of values){const value=normaliseBase(raw);if(!value||seen.has(value))continue;seen.add(value);result.push(value)}return result}
-function recentLastGood(){
+function lastGoodKey(purpose:WorkerPurpose){return`${LAST_GOOD_PREFIX}:${purpose}`}
+function recentLastGood(purpose:WorkerPurpose){
  try{
-  const parsed=JSON.parse(storageGet(LAST_GOOD_KEY)) as {url?:string;at?:number};
+  const raw=storageGet(lastGoodKey(purpose))||storageGet(LAST_GOOD_PREFIX),parsed=JSON.parse(raw) as {url?:string;at?:number};
   return parsed.url&&Number(parsed.at)>Date.now()-LAST_GOOD_MAX_AGE?parsed.url:'';
  }catch{return''}
 }
-function rememberLastGood(url:string){try{localStorage.setItem(LAST_GOOD_KEY,JSON.stringify({url,at:Date.now()}))}catch{}}
+function rememberLastGood(purpose:WorkerPurpose,url:string){try{localStorage.setItem(lastGoodKey(purpose),JSON.stringify({url,at:Date.now()}))}catch{}}
 function purposeSpecificEnv(purpose:WorkerPurpose,env:ImportMetaEnv){
  if(purpose==='alerts')return String(env.VITE_ALERT_PROXY_URL||'');
  if(purpose==='radar'||purpose==='meteogram')return String(env.VITE_RADAR_PROXY_URL||'');
@@ -32,14 +33,14 @@ function purposeSpecificStorage(purpose:WorkerPurpose){
 export function workerBaseCandidates(purpose:WorkerPurpose='general'){
  const env=import.meta.env;
  return uniqueUrls([
-  recentLastGood(),
   String(env.VITE_WORKER_SAME_ORIGIN_PATH||''),
   purposeSpecificEnv(purpose,env),
   String(env.VITE_METAR_PROXY_URL||''),
-  ...splitUrls(env.VITE_WORKER_FALLBACK_URLS),
   purposeSpecificStorage(purpose),
   storageGet('metarProxyUrl'),
-  ...splitUrls(storageGet('midWorkerFallbackUrls')||storageGet('workerFallbackUrls'))
+  ...splitUrls(env.VITE_WORKER_FALLBACK_URLS),
+  ...splitUrls(storageGet('midWorkerFallbackUrls')||storageGet('workerFallbackUrls')),
+  recentLastGood(purpose)
  ]);
 }
 
@@ -79,7 +80,7 @@ export async function fetchWorkerJson<T extends WorkerPayload>(mode:string,param
    const response=await fetch(buildWorkerUrl(base,mode,params).toString(),{signal:request.signal,cache:options.cache??'no-store',headers:{Accept:'application/json'}});
    const data=await response.json().catch(()=>({})) as T;
    if(!response.ok||data.error)throw new Error(data.error||`HTTP ${response.status}`);
-   rememberLastGood(base);
+   rememberLastGood(purpose,base);
    return data;
   }catch(error){
    if(options.signal?.aborted)throw abortReason(options.signal);
