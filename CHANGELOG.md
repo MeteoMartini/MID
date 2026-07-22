@@ -1,3 +1,12 @@
+# MID v0.7.69
+
+- Sonnenscheindauer in der 7-Tage-Vorhersage und im Ensemble-Tooltip mit maximal einer Nachkommastelle formatiert: volle Stunden erscheinen ohne unnötige Dezimalstelle (`15 h` statt `15,0 h`), Zwischenwerte weiterhin mit deutschem Dezimalkomma.
+- Gelb-graue Sonnenscheinlegende im Ensemble-Temperaturdiagramm verkleinert und optisch zurückgenommen, ohne das eigentliche Datenband zu verändern.
+- Aktuelle Messwerte um die Karte „Sichtweite“ zwischen Niederschlag und Bewölkung ergänzt.
+- Hyperlokale Analyse um Sichtweite erweitert und zugleich Bewölkung sowie Niederschlag in die modellgestützte Restfeldanalyse aufgenommen; Temperatur, Feuchte, Taupunkt, Luftdruck, Wind, Böen, Sichtweite, Bewölkung und Niederschlag nutzen nun alle verfügbaren geeigneten Stationsmessungen.
+- Bright-Sky-Sichtweite wird in Metern übernommen; METAR-Sichtweiten werden aus Statute Miles zuverlässig in Meter normalisiert. METAR-Wolkenlagen werden zusätzlich in eine Flächenbedeckung überführt.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionsanhebung.
+
 # MID v0.7.67
 
 - Niederschlagsform im stündlichen Detaildiagramm vereinheitlicht: WMO-Wettercode steuert nun Wettertext, Symbol, Balkenmuster, Legende und Stunden-Tooltip konsistent.

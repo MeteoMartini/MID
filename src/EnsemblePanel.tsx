@@ -42,7 +42,7 @@ function skyBandColor(sunShare:number){
  let a=stops[0],b=stops[stops.length-1];for(let i=0;i<stops.length-1;i++){if(value>=stops[i].v&&value<=stops[i+1].v){a=stops[i];b=stops[i+1];break}}
  const t=(value-a.v)/Math.max(.001,b.v-a.v),rgb=a.c.map((channel,index)=>Math.round(channel+(b.c[index]-channel)*t));return `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
 }
-function formatSunshineHours(value:unknown){const number=Number(value);return Number.isFinite(number)?new Intl.NumberFormat('de-DE',{minimumFractionDigits:1,maximumFractionDigits:1}).format(number):'–'}
+function formatSunshineHours(value:unknown){const number=Number(value);return Number.isFinite(number)?new Intl.NumberFormat('de-DE',{minimumFractionDigits:0,maximumFractionDigits:1}).format(number):'–'}
 function SunshineScaleLegend(){return <div className="sunshine-scale-legend" aria-label="Farblegende der Sonnenscheindauer"><span aria-hidden="true">☀️</span><i><b>viel Sonne</b><em>wenig Sonne</em></i><span aria-hidden="true">☁️</span></div>}
 function ConsistencyControl({date,confidence,modelCount,memberCount,open,onOpen,onClose,onToggle}:{date:string;confidence:number;modelCount:number;memberCount:number;open:boolean;onOpen:()=>void;onClose:()=>void;onToggle:()=>void}){
  const buttonRef=useRef<HTMLButtonElement>(null),tooltipRef=useRef<HTMLDivElement>(null),[position,setPosition]=useState({left:8,top:8,width:230,above:false});

@@ -1,6 +1,6 @@
-# MID Daten-, Warnungs- und Radarproxy v0.7.63
+# MID Daten-, Warnungs- und Radarproxy v0.7.69
 
-In v0.7.63 erfolgte ausschließlich die einheitliche Versionsanhebung; die Worker-Funktionalität bleibt gegenüber v0.7.62 unverändert.
+In v0.7.69 erfolgte ausschließlich die einheitliche Versionsanhebung; die Worker-Funktionalität bleibt gegenüber v0.7.68 unverändert.
 
 In v0.7.60 wurde der DWD-Radarabgleich funktional korrigiert: Die GetFeatureInfo-Punktabfrage wird auch bei einem scheinbar trockenen GetMap-Pixel ausgeführt, die Analyse ist auf höchstens zwölf Frames begrenzt und liefert Diagnosezähler für Punktwerte und Karten-Fallbacks.
 

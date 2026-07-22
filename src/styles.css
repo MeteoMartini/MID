@@ -1334,3 +1334,10 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 .sunshine-tooltip-line>span{display:flex!important;align-items:baseline;flex-wrap:wrap;gap:2px 5px}
 .sunshine-tooltip-line small{color:var(--muted);font-size:9.5px;line-height:1.3;white-space:normal}
 @media(max-width:520px){.sunshine-scale-legend>i{width:min(250px,62vw);min-width:155px;padding:0 8px}.sunshine-scale-legend b,.sunshine-scale-legend em{font-size:9px}.sunshine-tooltip-line small{flex-basis:100%;padding-left:0}}
+
+/* v0.7.69 – kompaktere Sonnenscheinlegende */
+.sunshine-scale-legend{gap:5px;font-size:10px;opacity:.88}
+.sunshine-scale-legend>span{font-size:15px}
+.sunshine-scale-legend>i{width:min(255px,44vw);min-width:155px;height:18px;padding:0 9px;border-color:color-mix(in srgb,var(--border) 58%,transparent);box-shadow:none}
+.sunshine-scale-legend b,.sunshine-scale-legend em{font-size:8.5px;font-weight:650}
+@media(max-width:520px){.sunshine-scale-legend>i{width:min(215px,58vw);min-width:135px;height:17px;padding:0 7px}.sunshine-scale-legend b,.sunshine-scale-legend em{font-size:8px}}

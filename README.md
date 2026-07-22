@@ -7,7 +7,15 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.67**
+**Aktuelle Version: v0.7.69**
+
+## Neuerungen in v0.7.69
+
+- Volle Sonnenscheinstunden werden ohne Dezimalstelle angezeigt, Zwischenwerte weiterhin mit deutschem Dezimalkomma und höchstens einer Nachkommastelle.
+- Die Sonnen-/Wolken-Farbskala im Ensemble-Diagramm ist kompakter und weniger dominant.
+- Unter den aktuellen Messwerten steht die Sichtweite zwischen Niederschlag und Bewölkung.
+- Die hyperlokale Restfeldanalyse berücksichtigt zusätzlich Sichtweite, Bewölkung und Niederschlag sowie weiterhin Temperatur, relative Feuchte, Taupunkt, Luftdruck, Windgeschwindigkeit, Windrichtung und Böen.
+- Sichtweiten aus Bright Sky und METAR werden auf Meter vereinheitlicht; METAR-Wolkenlagen werden in prozentuale Bedeckung übersetzt.
 
 ## Neuerungen in v0.7.67
 

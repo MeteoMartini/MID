@@ -1,19 +1,21 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.7.67",
+  "version": "0.7.69",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "sync-version": "node scripts/sync-version.mjs",
     "prebuild": "npm run sync-version",
     "build": "tsc -b && vite build",
-    "verify": "npm run build && node --check worker/metar-proxy.js && npm run test:updater && npm run test:interactions && npm run test:radar && npm run test:precipitation",
+    "verify": "npm run build && node --check worker/metar-proxy.js && npm run test:updater && npm run test:interactions && npm run test:radar && npm run test:precipitation && npm run test:sunshine && npm run test:hyperlocal",
     "preview": "vite preview",
     "test:updater": "node scripts/test-updater.mjs",
     "test:radar": "node scripts/test-radar.mjs",
     "test:interactions": "node scripts/test-interactions.mjs",
-    "test:precipitation": "node scripts/test-precipitation.mjs"
+    "test:precipitation": "node scripts/test-precipitation.mjs",
+    "test:sunshine": "node scripts/test-sunshine-format.mjs",
+    "test:hyperlocal": "node scripts/test-hyperlocal-fields.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",
