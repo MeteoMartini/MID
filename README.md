@@ -7,7 +7,20 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.61**
+**Aktuelle Version: v0.7.63**
+
+## Neuerungen in v0.7.63
+
+- Buildfehler in `src/EnsemblePanel.tsx` behoben: Die versehentlich fehlende Komponente `RainTooltip` ist wieder vollständig definiert.
+- Der Niederschlags-Tooltip behandelt fehlende oder ungültige Werte robust und verhindert dadurch weitere Laufzeitfehler.
+- Eine zusätzliche Regressionsprüfung stellt sicher, dass `RainTooltip` definiert und im Niederschlagsdiagramm eingebunden bleibt.
+
+
+## Neuerungen in v0.7.62
+
+- Konsistenztooltips der Ensemble-Tageskarten bleiben an linken und rechten Rändern vollständig sichtbar und schließen beim Verlassen automatisch.
+- Das Temperaturtrend-Diagramm enthält direkt oberhalb der Zeitachse ein tägliches Bewölkungsband von Grau (wenig Sonne) bis Gelb (viel Sonne), ohne seine bisherigen Außenmaße zu vergrößern.
+
 
 ## Neuerungen in v0.7.61
 

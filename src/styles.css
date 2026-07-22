@@ -1298,3 +1298,20 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 :root[data-theme=light] select{color-scheme:light}
 :root[data-theme=light] select option,:root[data-theme=light] select optgroup{background-color:#fff!important;color:#132238!important}
 
+
+/* v0.7.62 – randfester ENS-Konsistenztooltip und Bewölkungsband */
+.consistency-popover-portal{
+  position:fixed!important;
+  z-index:4200!important;
+  right:auto!important;
+  bottom:auto!important;
+  display:grid!important;
+  gap:3px;
+  max-width:calc(100vw - 16px);
+  margin:0;
+  opacity:1!important;
+  visibility:visible!important;
+  transform:none!important;
+  pointer-events:none!important;
+}
+.ensemble-sky-strip{shape-rendering:crispEdges}

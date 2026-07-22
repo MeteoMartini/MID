@@ -1,3 +1,19 @@
+# MID v0.7.63
+
+- Buildfehler `TS2304: Cannot find name 'RainTooltip'` in der Ensemble-Niederschlagsgrafik behoben.
+- Fehlende `RainTooltip`-Komponente wiederhergestellt und gegen nicht numerische beziehungsweise fehlende Diagrammwerte abgesichert.
+- Semantische TypeScript-Prüfung der geänderten Ensemble-Komponente sowie die vorhandenen Updater-, Interaktions- und Radarprüfungen erfolgreich ausgeführt.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionsanhebung.
+
+# MID v0.7.62
+
+- Ensemble-Konsistenztooltips werden über ein viewportfestes Portal gerendert, an allen Bildschirmrändern automatisch eingerückt und nicht mehr durch horizontal scrollende Kartenbereiche abgeschnitten.
+- Hover und Tastaturfokus öffnen den Konsistenztooltip unmittelbar; beim Verlassen schließt er automatisch, Touch/Klick bleibt ergänzend nutzbar.
+- Im Diagramm „Temperaturtrend und Prognoseunsicherheit“ zeigt ein tägliches Bewölkungsband direkt oberhalb der x-Achse Grau für wenig Sonne bis Gelb für viel Sonne.
+- Das Bewölkungsband wird aus der Best-Match-Sonnenscheindauer relativ zur astronomischen Tageslänge berechnet und im Diagrammtooltip zusätzlich erläutert.
+- Höhe, Außenabstände und Achsenreserven des Temperaturdiagramms bleiben unverändert.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionsanhebung.
+
 # MID v0.7.61
 
 - Tageswechsel im Desktop-Detaildiagramm bewahrt die ausgewählte Ortsstunde: Pfeil hoch springt zum Folgetag und Pfeil runter zum Vortag jeweils auf denselben stündlichen Zeitschritt; an Zeitumstellungstagen wird der nächstliegende vorhandene Stundenwert verwendet.
