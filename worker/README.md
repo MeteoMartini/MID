@@ -1,4 +1,7 @@
-# MID Daten-, Warnungs- und Radarproxy v0.7.73
+# MID Daten-, Warnungs- und Radarproxy v0.7.74
+
+
+Keine funktionale Cloudflare-Worker-Änderung in v0.7.74; die Versionsnummer wurde zur einheitlichen Auslieferung mit dem Hauptprojekt synchronisiert. Die Favoriten-Schnellleiste betrifft ausschließlich das Frontend.
 
 
 Keine funktionale Cloudflare-Worker-Änderung in v0.7.73; die Versionsnummer wurde zur einheitlichen Auslieferung mit dem Hauptprojekt synchronisiert. Tooltip-, Wolkenhöhen- und mobile Navigationsänderungen betreffen ausschließlich das Frontend.

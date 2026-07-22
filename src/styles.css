@@ -1446,3 +1446,10 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
  .meteogram-day-jump>button{width:32px;min-width:32px;height:32px;min-height:32px;padding:0}
  .meteogram-day-jump>button span{display:none}
 }
+
+/* MID v0.7.74 – kompakte Favoriten-Schnellleiste unter der Kopfleiste */
+.settings-header>.header-favorites{grid-column:1/-1;width:100%;min-width:0;margin:0;padding:6px 0 0;border-top:1px solid var(--border);gap:6px;align-items:center}
+.settings-header>.header-favorites .favorite-bubbles{gap:6px;padding:0 2px 2px}
+.settings-header>.header-favorites .favorite-bubbles>button{min-height:34px;padding-top:5px;padding-bottom:5px}
+.settings-header>.header-favorites .favorite-strip-manage{width:34px;height:34px;flex-basis:34px}
+@media(max-width:700px){.settings-header>.header-favorites{padding-top:5px}.settings-header>.header-favorites .favorite-bubbles>button{min-height:32px;padding-top:4px;padding-bottom:4px}.settings-header>.header-favorites .favorite-strip-manage{width:32px;height:32px;flex-basis:32px}}

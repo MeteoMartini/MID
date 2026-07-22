@@ -7,8 +7,17 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.73**
+**Aktuelle Version: v0.7.74**
 
+
+
+## Neuerungen in v0.7.74
+
+- Unter der kompakten Kopfleiste steht wieder eine schmale Favoriten-Schnellleiste zur direkten Ortsauswahl bereit.
+- Der automatisch bestimmte Standort sowie Favoriten, Standardkennzeichen, Gruppen und aktivierte Berg-/Ski- beziehungsweise Wassersportprofile werden platzsparend dargestellt.
+- Favoriten können in der Schnellleiste per Drag&Drop mit Maus oder Touch-Griff umsortiert werden; die gespeicherte Reihenfolge wird unmittelbar aktualisiert.
+- Die vollständige Bearbeitung von Namen, Gruppen, Regeln, Profilen, Standardort sowie Import und Export bleibt im Favoriten-Untermenü der Einstellungen.
+- Der Cloudflare Worker wurde nicht funktional verändert; seine Versionsnummer wurde lediglich synchronisiert.
 
 
 ## Neuerungen in v0.7.73

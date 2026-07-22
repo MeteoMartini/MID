@@ -1,3 +1,11 @@
+# MID v0.7.74
+
+- Favoriten-Schnellleiste platzsparend als eigene zweite Reihe unter der Kopfleiste reaktiviert.
+- Aktuelle Position und alle gespeicherten Favoriten sind wieder direkt auswählbar; aktiver Ort, Standardort, Gruppe sowie Berg-/Ski- und Wassersportprofile bleiben erkennbar.
+- Reihenfolge lässt sich unmittelbar in der Schnellleiste per Maus-Drag&Drop und auf Touchgeräten über den Griff verschieben; die neue Reihenfolge wird wie bisher lokal gespeichert.
+- Das kleine Verwaltungssymbol öffnet direkt den Favoriten-Unterbereich der zentralen Einstellungen. Umbenennen, Gruppen, Regeln, Import/Export, Standardort und Profile bleiben ausschließlich dort.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionssynchronisierung.
+
 # MID v0.7.73
 
 - Ensemble-Temperaturtooltip horizontal wieder an Diagramm und Viewport begrenzt; am rechten beziehungsweise linken Rand wechselt die Position automatisch zur sichtbaren Seite.
