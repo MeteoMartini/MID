@@ -215,7 +215,7 @@ function setAutoUpdate(value:boolean){try{localStorage.setItem(AUTO_UPDATE_KEY,S
 function recentReloadAttempt(version:string){try{const raw=sessionStorage.getItem(RELOAD_ATTEMPT_KEY);if(!raw)return false;const data=JSON.parse(raw) as {version?:string;time?:number};return data.version===version&&Date.now()-Number(data.time||0)<60000}catch{return false}}
 function markReloadAttempt(version:string){try{sessionStorage.setItem(RELOAD_ATTEMPT_KEY,JSON.stringify({version,time:Date.now()}))}catch{}}
 function cleanUpdateQuery(){try{const url=new URL(location.href),had=url.searchParams.has('mid-update')||url.searchParams.has('mid-refresh');if(!had)return;url.searchParams.delete('mid-update');url.searchParams.delete('mid-refresh');history.replaceState(history.state,'',url.toString())}catch{}}
-function reloadForVersion(version:string){markReloadAttempt(version);const url=new URL(location.href);url.searchParams.set('mid-update',version);url.searchParams.set('mid-refresh',String(Date.now()));location.replace(url.toString())}
+async function reloadForVersion(version:string){markReloadAttempt(version);try{const registrations=await navigator.serviceWorker?.getRegistrations?.()??[];for(const registration of registrations){registration.waiting?.postMessage({type:'SKIP_WAITING'});await registration.update().catch(()=>{})}}catch{}const url=new URL(location.href);url.searchParams.set('mid-update',version);url.searchParams.set('mid-refresh',String(Date.now()));location.replace(url.toString())}
 function removeUpdateNotice(){document.querySelector<HTMLElement>('[data-mid-update-notice]')?.remove()}
 function showUpdateNotice(version:string,releasedAt?:string){
   if(dismissedVersion===version)return;

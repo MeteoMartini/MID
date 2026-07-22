@@ -1242,3 +1242,10 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 .view-switch button:focus-visible{outline:2px solid color-mix(in srgb,var(--primary) 75%,white);outline-offset:1px}
 @media(max-width:650px){.view-switch{grid-template-columns:auto 1fr 1fr}.view-switch button{padding:6px 7px}.view-switch button small{white-space:normal;line-height:1.15}.view-switch-label{padding:0 4px}}
 @media(max-width:430px){.view-switch{grid-template-columns:1fr 1fr}.view-switch-label{grid-column:1/-1;padding:2px 5px 0}.view-switch button strong,.view-switch button small{white-space:normal}}
+
+/* v0.7.53 – Favoritengriff links zwischen Rand und Stern */
+.header-favorites .favorite-bubbles>button{grid-template-columns:12px auto auto;grid-template-areas:"grip icon name" "grip icon detail";padding-left:7px}
+.header-favorites .favorite-bubbles>button .favorite-quick-grip{grid-area:grip;display:grid;place-items:center;width:12px;height:100%;color:var(--muted);cursor:grab;touch-action:none}
+.header-favorites .favorite-bubbles>button .favorite-quick-grip:active{cursor:grabbing}
+.header-favorites .favorite-bubbles>button .favorite-quick-grip svg{color:inherit}
+.header-favorites .favorite-bubbles>button>b{grid-column:4}

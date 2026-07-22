@@ -342,7 +342,19 @@ export function cloudOktasText(percent:number){
  return`${octas}/8 · ${description}`;
 }
 export type DayWeatherCharacter={code:number;label:string;secondary:string;cloudOktas:number;precipitationDominant:boolean};
-function dayPart(hour:number){if(hour<5)return'nachts';if(hour<10)return'morgens';if(hour<13)return'mittags';if(hour<18)return'nachmittags';return'abends'}
+const DAY_LABEL_MAX=30;
+const DAY_SECONDARY_MAX=28;
+type DayPartKey='night'|'morning'|'midday'|'afternoon'|'evening';
+function dayPartKey(hour:number):DayPartKey{if(hour<5)return'night';if(hour<10)return'morning';if(hour<14)return'midday';if(hour<18)return'afternoon';return'evening'}
+function compactSkyFallback(labelText:string){
+ const text=labelText.trim();
+ if(text==='Wolkig, oft sonnig')return'Oft sonnig';
+ if(text==='Überwiegend klar')return'Meist klar';
+ if(text==='Teilweise bewölkt')return'Wolkig';
+ return text;
+}
+function fitDayLabel(text:string,fallback:string){const clean=text.replace(/\s+/g,' ').trim();return clean.length<=DAY_LABEL_MAX?clean:fallback}
+function fitDaySecondary(text:string,fallback:string){const clean=text.replace(/\s+/g,' ').trim();return clean.length<=DAY_SECONDARY_MAX?clean:fallback}
 function daylightDurationSeconds(day:Day){
  const minutes=(value?:string)=>{const match=String(value??'').match(/T(\d{2}):(\d{2})/);return match?Number(match[1])*60+Number(match[2]):NaN};
  const sunrise=minutes(day.sunrise),sunset=minutes(day.sunset);
@@ -433,17 +445,20 @@ function representativeSkyCode(description:string,fallbackCode:number){
 function skyTrend(hours:Hour[],fallback:string){
  const morning=partCloud(hours,6,11),midday=partCloud(hours,11,14),afternoon=partCloud(hours,14,18),evening=partCloud(hours,18,22);
  const early=Number.isFinite(morning)?morning:midday,late=Number.isFinite(afternoon)?afternoon:evening;
- if(!Number.isFinite(early)||!Number.isFinite(late))return fallback;
- const delta=late-early,earlyLabel=conciseSkyLabel(early);
+ const base=compactSkyFallback(fallback);
+ if(!Number.isFinite(early)||!Number.isFinite(late))return base;
+ const delta=late-early,earlyLabel=conciseSkyLabel(early),lateLabel=conciseSkyLabel(late).toLocaleLowerCase('de-DE');
  if(delta>=30){
   const timing=Number.isFinite(midday)&&midday-early>=18?'ab Mittag':'später';
-  return`${earlyLabel}, ${timing} wolkiger`;
+  const full=`${earlyLabel}, ${timing} ${lateLabel}`;
+  return fitDayLabel(full,timing==='ab Mittag'?'Ab Mittag wolkiger':'Später wolkiger');
  }
  if(delta<=-30){
   const timing=Number.isFinite(midday)&&early-midday>=18?'ab Mittag':'später';
-  return`${earlyLabel}, ${timing} auflockernd`;
+  const full=`${earlyLabel}, ${timing} ${lateLabel}`;
+  return fitDayLabel(full,timing==='ab Mittag'?'Ab Mittag auflockernd':'Später auflockernd');
  }
- return fallback;
+ return base;
 }
 function shortEvent(family:string,eventLabel:string){
  if(family==='showers')return eventLabel.toLowerCase().includes('schnee')?'Schneeschauer':'Schauer';
@@ -454,47 +469,80 @@ function shortEvent(family:string,eventLabel:string){
  return eventLabel;
 }
 function transitionTime(hour:number){
- if(hour<10)return'am Morgen';
- if(hour<13)return'ab Mittag';
- if(hour<17)return'ab Nachmittag';
- return'am Abend';
+ if(hour<10)return'morgens';
+ if(hour<14)return'ab Mittag';
+ if(hour<18)return'nachmittags';
+ return'abends';
+}
+function eventFamilyAtHour(h:Hour){
+ let family=precipCodeFamily(h.code);
+ if(family==='none')family=h.showers>=.05?'showers':h.snowfall>=.05?'snow':h.rain>=.05||h.precipitation>=.05?'rain':'none';
+ return family;
+}
+function eventTiming(hours:Hour[],family:string){
+ const order:DayPartKey[]=['night','morning','midday','afternoon','evening'];
+ const active=new Set(hours.filter(h=>eventFamilyAtHour(h)===family&&(h.probability>=25||h.precipitation>=.05||h.snowfall>=.05)).map(h=>dayPartKey(Number(h.time.slice(11,13)))));
+ const parts=order.filter(part=>active.has(part));
+ if(!parts.length)return'';
+ if(parts.length>=3)return'zeitweise';
+ if(parts.length===1){const part=parts[0];return part==='night'?'nachts':part==='morning'?'morgens':part==='midday'?'mittags':part==='afternoon'?'nachmittags':'abends'}
+ const pair=parts.join(':');
+ if(pair==='night:morning')return'nachts/morgens';
+ if(pair==='morning:midday')return'vormittags';
+ if(pair==='midday:afternoon')return'ab Mittag';
+ if(pair==='afternoon:evening')return'später';
+ return`${parts[0]==='night'?'nachts':parts[0]==='morning'?'morgens':parts[0]==='midday'?'mittags':parts[0]==='afternoon'?'nachmittags':'abends'}/${parts[1]==='night'?'nachts':parts[1]==='morning'?'morgens':parts[1]==='midday'?'mittags':parts[1]==='afternoon'?'nachmittags':'abends'}`;
+}
+function possibleEventText(event:string,timing:string){
+ const full=timing?`${event} ${timing} möglich`:`${event} möglich`;
+ const fallback=timing==='zeitweise'?`Zeitweise ${event}`:timing==='ab Mittag'?`${event} ab Mittag`:timing==='später'?`${event} später`:`${event} möglich`;
+ return fitDaySecondary(full,fallback.length<=DAY_SECONDARY_MAX?fallback:`${event} möglich`);
 }
 export function dayWeatherCharacter(day:Day,hours:Hour[]):DayWeatherCharacter{
  const relevant=hours.filter(h=>h.time.startsWith(day.date));
- if(!relevant.length)return{code:day.code,label:label(day.code),secondary:'',cloudOktas:0,precipitationDominant:precipCodeFamily(day.code)!=='none'};
- const cloudWeight=relevant.reduce((sum,h)=>sum+(h.isDay?1.18:.72),0);
- const weightedCloud=relevant.reduce((sum,h)=>sum+h.cloud*(h.isDay?1.18:.72),0)/Math.max(.1,cloudWeight);
+ if(!relevant.length){
+  const family=precipCodeFamily(day.code),raw=label(day.code),fallbackLabel=family==='none'?compactSkyFallback(raw):shortEvent(family,raw);
+  return{code:day.code,label:fitDayLabel(fallbackLabel,family==='none'?'Wechselhaft':fallbackLabel),secondary:'',cloudOktas:0,precipitationDominant:family!=='none'};
+ }
+ const daylight=relevant.filter(h=>h.isDay);
+ const cloudWeight=relevant.reduce((sum,h)=>{const hour=Number(h.time.slice(11,13));return sum+(h.isDay?(hour>=9&&hour<18?1.55:1.15):.35)},0);
+ const weightedCloud=relevant.reduce((sum,h)=>{const hour=Number(h.time.slice(11,13));return sum+h.cloud*(h.isDay?(hour>=9&&hour<18?1.55:1.15):.35)},0)/Math.max(.1,cloudWeight);
  const sunshineFraction=Math.max(0,day.sunshineDuration||0)/Math.max(1,daylightDurationSeconds(day));
- const effectiveCloud=Math.max(0,Math.min(100,weightedCloud*.72+(1-Math.min(1,sunshineFraction))*100*.28));
- const sky=skyFromCloud(effectiveCloud,sunshineFraction),skyLabel=skyTrend(relevant,sky.label),skyCode=representativeSkyCode(skyLabel,sky.code),candidate=representativePrecipCode(relevant);
- if(!candidate)return{...sky,code:skyCode,label:skyLabel,secondary:'',cloudOktas:cloudOktas(effectiveCloud),precipitationDominant:false};
+ const hourlyBrightness=daylight.length?daylight.reduce((sum,h)=>sum+Math.max(0,Math.min(1,(85-h.cloud)/70)),0)/daylight.length:Math.max(0,1-weightedCloud/100);
+ const skySignal=Math.max(0,Math.min(1,hourlyBrightness*.9+sunshineFraction*.1));
+ const heavyCloudShare=daylight.length?daylight.filter(h=>h.cloud>=75).length/daylight.length:0;
+ const overcastShare=daylight.length?daylight.filter(h=>h.cloud>=90).length/daylight.length:0;
+ const sunshineCloud=(1-skySignal)*100;
+ let effectiveCloud=Math.max(0,Math.min(100,weightedCloud*.92+sunshineCloud*.08));
+ if(heavyCloudShare>=.5)effectiveCloud=Math.max(effectiveCloud,66);
+ if(overcastShare>=.35)effectiveCloud=Math.max(effectiveCloud,78);
+ let sunshineForLabel=skySignal;
+ if(overcastShare>=.5)sunshineForLabel=Math.min(sunshineForLabel,.09);
+ else if(heavyCloudShare>=.65||overcastShare>=.35)sunshineForLabel=Math.min(sunshineForLabel,.18);
+ else if(heavyCloudShare>=.45)sunshineForLabel=Math.min(sunshineForLabel,.27);
+ const sky=skyFromCloud(effectiveCloud,sunshineForLabel),skyLabel=skyTrend(relevant,sky.label),skyCode=representativeSkyCode(skyLabel,sky.code),candidate=representativePrecipCode(relevant);
+ if(!candidate)return{...sky,code:skyCode,label:fitDayLabel(skyLabel,compactSkyFallback(sky.label)),secondary:'',cloudOktas:cloudOktas(effectiveCloud),precipitationDominant:false};
  const severe=candidate.family==='thunder';
  const sustained=candidate.hours>=3&&candidate.averageProbability>=40;
  const quantitativelyRelevant=candidate.sum>=1||candidate.snowSum>=1;
  const dominant=severe?(candidate.maxProbability>=30||candidate.sum>=.2):sustained||quantitativelyRelevant;
- const period=candidate.first===candidate.last?dayPart(candidate.first):dayPart(candidate.first)===dayPart(candidate.last)?dayPart(candidate.first):`${dayPart(candidate.first)} bis ${dayPart(candidate.last)}`;
- const eventLabel=label(candidate.code);
- const eventPhrase=/^(Leichter|Leichte|Leichtes|Starker|Starke|Starkes|Gefrierender|Gefrierende|Gefrierendes)\b/u.test(eventLabel)
-  ?eventLabel.charAt(0).toLocaleLowerCase('de-DE')+eventLabel.slice(1)
-  :eventLabel;
+ const eventLabel=label(candidate.code),event=shortEvent(candidate.family,eventLabel),timing=eventTiming(relevant,candidate.family);
  if(!dominant){
-  const secondary=candidate.maxProbability>=25?`${period} ${eventPhrase} möglich (${Math.round(candidate.maxProbability)} %)` : '';
-  return{...sky,code:skyCode,label:skyLabel,secondary,cloudOktas:cloudOktas(effectiveCloud),precipitationDominant:false};
+  const secondary=candidate.maxProbability>=25?possibleEventText(event,timing):'';
+  return{...sky,code:skyCode,label:fitDayLabel(skyLabel,compactSkyFallback(sky.label)),secondary,cloudOktas:cloudOktas(effectiveCloud),precipitationDominant:false};
  }
- const event=shortEvent(candidate.family,eventLabel),lateStart=candidate.first>=10;
- const endsEarly=candidate.last<=13;
+ const lateStart=candidate.first>=10,endsEarly=candidate.last<=13;
  let characterLabel:string;
  if(lateStart){
-  characterLabel=`${skyLabel}, ${transitionTime(candidate.first)} ${event}`;
+  const when=transitionTime(candidate.first),full=`${compactSkyFallback(skyLabel)}, ${event} ${when}`;
+  characterLabel=fitDayLabel(full,fitDayLabel(`${event} ${when}`,event));
  }else if(endsEarly){
-  const lateCloud=partCloud(relevant,13,20),lateSky=Number.isFinite(lateCloud)?conciseSkyLabel(lateCloud).toLocaleLowerCase('de-DE'):skyLabel.toLocaleLowerCase('de-DE');
-  characterLabel=`${event} am Morgen, später ${lateSky}`;
+  const lateCloud=partCloud(relevant,13,20),lateSky=Number.isFinite(lateCloud)?conciseSkyLabel(lateCloud).toLocaleLowerCase('de-DE'):compactSkyFallback(skyLabel).toLocaleLowerCase('de-DE');
+  characterLabel=fitDayLabel(`${event} morgens, später ${lateSky}`,`${event} morgens`);
  }else{
-  const prefix=candidate.hours<6&&!severe?'Zeitweise ':'';
-  characterLabel=`${prefix}${eventLabel}`;
+  characterLabel=timing?timing==='zeitweise'?fitDayLabel(`Zeitweise ${event}`,event):fitDayLabel(`${event} ${timing}`,event):candidate.hours<6&&!severe?fitDayLabel(`Zeitweise ${event}`,event):event;
  }
- const secondary=`max. ${Math.round(candidate.maxProbability)} %`;
- return{code:candidate.code,label:characterLabel,secondary,cloudOktas:cloudOktas(effectiveCloud),precipitationDominant:true};
+ return{code:candidate.code,label:characterLabel,secondary:'',cloudOktas:cloudOktas(effectiveCloud),precipitationDominant:true};
 }
 
 export function currentIndex(h:Hour[]){const now=Date.now();return h.reduce((b,x,i)=>{const timestamp=Number.isFinite(x.epoch)?x.epoch:Date.parse(`${x.time}Z`),d=Math.abs(timestamp-now);return d<b.d?{i,d}:b},{i:0,d:Infinity}).i}

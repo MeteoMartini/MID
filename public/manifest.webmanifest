@@ -1,0 +1,14 @@
+{
+  "name":"MID – Meteorological Information Dashboard",
+  "short_name":"MID",
+  "description":"Professionelles Wetterdashboard mit Best Match, Ensemble, Meteogramm und Favoriten.",
+  "start_url":"./",
+  "scope":"./",
+  "display":"standalone",
+  "orientation":"any",
+  "background_color":"#07111f",
+  "theme_color":"#07111f",
+  "icons":[
+    {"src":"./mid-logo.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+  ]
+}

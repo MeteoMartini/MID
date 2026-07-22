@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.7.54
+- Buildkorrektur: Typdeklaration für `import.meta.env` ergänzt, damit `src/pwa.ts` im GitHub-Workflow kompiliert.
+- Buildkorrektur: ungenutzten Tageszeit-Helfer entfernt; TypeScript-Prüfung mit `noUnusedLocals` läuft wieder fehlerfrei.
+- Tagesbeschreibung, Wetter-Icon und Tagescharakter werden konsequent aus denselben stündlichen Daten abgeleitet; die tägliche Sonnenscheindauer dient nur noch als schwacher Plausibilitätsfaktor.
+- Bewölkte Stunden können dadurch nicht mehr zugleich zu einem unpassenden Tagescharakter wie „Heiter“ führen.
+- Wettertexte besitzen feste, semantisch gekürzte Längenlimits: Haupttext maximal 30, Zusatztext maximal 28 Zeichen.
+- Unnatürliche Zeitspannen wie „nachts bis abends“ entfallen; getrennte Ereignisfenster erscheinen kurz als „nachts/abends“, längere Verteilungen als „zeitweise“.
+- Niederschlagswahrscheinlichkeiten werden nicht mehr doppelt im Beschreibungstext wiederholt, da sie bereits in den Tageswerten stehen.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionsanhebung.
+
+## 0.7.53
+- PWA-Manifest, Apple-Web-App-Metadaten und vorsichtiger Service Worker mit Network-First für Navigation und version.json.
+- Favoriten und Einstellungen werden zusätzlich in IndexedDB und Cache Storage gespiegelt und bei leerem localStorage automatisch wiederhergestellt.
+- Wettercharakter und Icon werden vorrangig aus der stündlichen Tagesbewölkung abgeleitet; Sonnenstunden dienen nur noch als Plausibilitätsfaktor.
+- Favoriten-Griff links zwischen Rand und Stern verlegt.
+- Updater um Service-Worker-Aktualisierung ergänzt und durch automatisierten Konsistenztest geprüft.
+
 ## 0.7.52
 
 - Wetter-Icons werden nun mit der vollständigen Tagesbeschreibung einschließlich Bewölkungstrend abgeglichen.
