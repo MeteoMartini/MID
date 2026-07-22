@@ -7,7 +7,13 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.60**
+**Aktuelle Version: v0.7.61**
+
+## Neuerungen in v0.7.61
+
+- Pfeil hoch/runter im Desktop-Detaildiagramm wechselt den Tag, ohne die ausgewählte Stunde zu verändern.
+- Dropdowns für Ansicht, Windeinheit, Farbschema, Modelle und weitere Auswahlfelder bleiben im dunklen Design vollständig lesbar.
+
 
 ## Neuerungen in v0.7.60
 

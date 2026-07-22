@@ -1,3 +1,10 @@
+# MID v0.7.61
+
+- Tageswechsel im Desktop-Detaildiagramm bewahrt die ausgewählte Ortsstunde: Pfeil hoch springt zum Folgetag und Pfeil runter zum Vortag jeweils auf denselben stündlichen Zeitschritt; an Zeitumstellungstagen wird der nächstliegende vorhandene Stundenwert verwendet.
+- Native Dropdownlisten übernehmen das aktive Hell-/Dunkel-Farbschema einschließlich expliziter Hintergrund- und Schriftfarben für Optionen und Optionsgruppen.
+- Interaktionsprüfung um Regressionstests für Stundenerhalt beim Tageswechsel und Dropdown-Kontrast ergänzt.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionsanhebung.
+
 # MID v0.7.60
 
 - Updatearchitektur bereinigt: nur noch ein zentral registrierter Service Worker; Installation und Aktivierung sind getrennt, der Seitenwechsel erfolgt erst nach `controllerchange` und anschließend cachefrei per `location.replace`.

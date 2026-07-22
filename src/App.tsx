@@ -403,26 +403,29 @@ function combineRadarAndModel(model:PrecipNowResult,radar:RadarNowcast|null,load
 
 function Forecast({days,hours,selected,setSelected,unit,modelInfo,timezone,timezoneAbbreviation,compactMode}:{days:Day[];hours:Hour[];selected:string;setSelected:(x:string)=>void;unit:WindUnit;modelInfo:BestMatchModelInfo|null;timezone:string;timezoneAbbreviation?:string;compactMode:boolean}){
  const [selectedHour,setSelectedHour]=useState(0),[detailsOpen,setDetailsOpen]=useState(()=>localStorage.getItem('mid:forecastDetailsOpen')==='1'),[nowTick,setNowTick]=useState(()=>Date.now());
- const boundaryHourRef=useRef<number|null>(null);
+ const requestedClockHourRef=useRef<number|null>(null);
  const detailChartRef=useRef<HTMLDivElement>(null),wheelGateRef=useRef(0);
  useEffect(()=>{const timer=window.setInterval(()=>setNowTick(Date.now()),30000);return()=>window.clearInterval(timer)},[]);
  useEffect(()=>{try{localStorage.setItem('mid:forecastDetailsOpen',detailsOpen?'1':'0')}catch{}},[detailsOpen]);
  const forecastDays=days.slice(0,7);
  const allMin=Math.min(...forecastDays.map(x=>x.min)),allMax=Math.max(...forecastDays.map(x=>x.max)),range=Math.max(1,allMax-allMin);
  const p=hours.filter(x=>x.time.startsWith(selected));
- useEffect(()=>{if(!p.length)return;if(boundaryHourRef.current!==null){const requested=boundaryHourRef.current;setSelectedHour(requested===23?p.length-1:Math.min(Math.max(0,requested),p.length-1));boundaryHourRef.current=null;return}const isToday=selected===localDateInZone(timezone);const middayIndex=p.findIndex(x=>x.time.slice(11,13)==='12');const fallback=middayIndex>=0?middayIndex:Math.min(6,Math.max(0,p.length-1));setSelectedHour(isToday?currentIndex(p):fallback)},[selected,p.length,timezone]);
+ useEffect(()=>{if(!p.length)return;if(requestedClockHourRef.current!==null){const requested=requestedClockHourRef.current;const exact=p.findIndex(x=>Number(x.time.slice(11,13))===requested);const nearest=exact>=0?exact:p.reduce((best,x,index)=>Math.abs(Number(x.time.slice(11,13))-requested)<Math.abs(Number(p[best].time.slice(11,13))-requested)?index:best,0);setSelectedHour(nearest);requestedClockHourRef.current=null;return}const isToday=selected===localDateInZone(timezone);const middayIndex=p.findIndex(x=>x.time.slice(11,13)==='12');const fallback=middayIndex>=0?middayIndex:Math.min(6,Math.max(0,p.length-1));setSelectedHour(isToday?currentIndex(p):fallback)},[selected,p.length,timezone]);
  function moveHour(delta:-1|1){
   const nextIndex=selectedHour+delta;
   if(nextIndex>=0&&nextIndex<p.length){setSelectedHour(nextIndex);return}
   const dayIndex=forecastDays.findIndex(x=>x.date===selected);
   const targetDay=forecastDays[dayIndex+delta];
   if(!targetDay||!hours.some(x=>x.time.startsWith(targetDay.date)))return;
-  boundaryHourRef.current=delta>0?0:23;
+  requestedClockHourRef.current=delta>0?0:23;
   setSelected(targetDay.date);
  }
  function moveDay(delta:-1|1){
   const dayIndex=forecastDays.findIndex(x=>x.date===selected),targetDay=forecastDays[dayIndex+delta];
   if(!targetDay)return;
+  const activeHour=p[Math.min(Math.max(0,selectedHour),p.length-1)];
+  const clockHour=Number(activeHour?.time.slice(11,13));
+  requestedClockHourRef.current=Number.isFinite(clockHour)?clockHour:12;
   setSelected(targetDay.date);
  }
  useEffect(()=>{

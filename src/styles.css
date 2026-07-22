@@ -1291,3 +1291,10 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 .meteogram-stage:focus{outline:none}
 .meteogram-stage:focus-visible{outline:2px solid color-mix(in srgb,var(--primary) 78%,white);outline-offset:4px;border-radius:12px}
 @media(min-width:851px){.meteogram-stage{cursor:crosshair;overscroll-behavior:contain}}
+
+/* v0.7.61 – native Dropdowns im aktiven Farbschema lesbar */
+:root[data-theme=dark] select{color-scheme:dark}
+:root[data-theme=dark] select option,:root[data-theme=dark] select optgroup{background-color:#0b1727!important;color:#eef6ff!important}
+:root[data-theme=light] select{color-scheme:light}
+:root[data-theme=light] select option,:root[data-theme=light] select optgroup{background-color:#fff!important;color:#132238!important}
+
