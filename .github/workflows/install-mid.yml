@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - MID-professional-replacement.zip
+      - 'MID-professional-replacement*.zip'
 
   workflow_dispatch:
 
@@ -36,21 +36,36 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
-      - name: Neue MID-Version entpacken
+      - name: Release-ZIP auswählen und entpacken
         shell: bash
         timeout-minutes: 3
         run: |
           set -euo pipefail
 
-          if [ ! -f MID-professional-replacement.zip ]; then
-            echo "::error::MID-professional-replacement.zip wurde nicht gefunden."
+          mapfile -t archives < <(
+            find . -maxdepth 1 -type f \
+              -name 'MID-professional-replacement*.zip' \
+              -printf '%f\n' | sort
+          )
+
+          if [ "${#archives[@]}" -eq 0 ]; then
+            echo "::error::Keine MID-Release-ZIP im Repository-Hauptverzeichnis gefunden."
+            echo "Erwartet wird z. B. MID-professional-replacement.zip oder MID-professional-replacement(54).zip."
             exit 1
           fi
 
+          if [ "${#archives[@]}" -gt 1 ]; then
+            echo "::error::Mehrere MID-Release-ZIPs gefunden. Bitte nur eine ZIP hochladen."
+            printf 'Gefunden: %s\n' "${archives[@]}"
+            exit 1
+          fi
+
+          archive="${archives[0]}"
+          echo "Verwendetes Release-Archiv: ${archive}"
+
           rm -rf /tmp/mid-new
           mkdir -p /tmp/mid-new
-
-          unzip -q MID-professional-replacement.zip -d /tmp/mid-new
+          unzip -q "$archive" -d /tmp/mid-new
 
           if [ ! -f /tmp/mid-new/package.json ]; then
             echo "::error::Die ZIP enthält keine package.json im Hauptverzeichnis."
@@ -73,27 +88,48 @@ jobs:
           rsync -a --delete \
             --exclude='.git/' \
             --exclude='.github/' \
-            --exclude='MID-professional-replacement.zip' \
+            --exclude='MID-professional-replacement*.zip' \
             /tmp/mid-new/ ./
 
-          rm -f MID-professional-replacement.zip
+          rm -f -- MID-professional-replacement*.zip
 
           echo "MID-Projekt wurde ersetzt."
           echo "Die mitgelieferte package-lock.json bleibt erhalten."
 
-      - name: npm-Netzwerkzugriff absichern
+      - name: Lockfile und npm-Netzwerkzugriff prüfen
         shell: bash
         timeout-minutes: 2
         run: |
           set -euo pipefail
 
+          npm config set registry https://registry.npmjs.org/
           npm config set fetch-retries 3
           npm config set fetch-retry-factor 2
           npm config set fetch-retry-mintimeout 5000
           npm config set fetch-retry-maxtimeout 30000
           npm config set fetch-timeout 60000
-
           npm cache verify || true
+
+          node <<'NODE'
+          const fs = require('node:fs');
+          const lock = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
+          const invalid = [];
+
+          for (const [name, entry] of Object.entries(lock.packages ?? {})) {
+            const resolved = entry && typeof entry === 'object' ? entry.resolved : undefined;
+            if (typeof resolved !== 'string') continue;
+            if (/internal\.api\.openai\.org|applied-caas-gateway|localhost|127\.0\.0\.1/i.test(resolved)) {
+              invalid.push(`${name || '(root)'}: ${resolved}`);
+            }
+          }
+
+          if (invalid.length) {
+            console.error('Nicht öffentlich erreichbare Paket-URLs im Lockfile:\n' + invalid.join('\n'));
+            process.exit(1);
+          }
+
+          console.log('Lockfile enthält keine internen oder lokalen Paket-URLs.');
+          NODE
 
           echo "Node: $(node --version)"
           echo "npm: $(npm --version)"
@@ -113,11 +149,11 @@ jobs:
               npm ci \
                 --no-audit \
                 --no-fund \
-                --prefer-offline \
+                --prefer-online \
                 --legacy-peer-deps
             then
               echo "npm ci wurde erfolgreich abgeschlossen."
-              npm ls --depth=0
+              npm ls --depth=0 || true
               exit 0
             fi
 
@@ -182,6 +218,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "Keine Änderungen vorhanden."
           else
-            git commit -m "Replace MID with professional dashboard"
-            git push origin main
+            version=$(node -p "require('./package.json').version")
+            git commit -m "Install MID v${version}"
+            git push origin HEAD:main
           fi
