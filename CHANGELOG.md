@@ -1,3 +1,12 @@
+# MID v0.7.80
+
+- Im Windbereich der erweiterten stündlichen Detailansicht werden die vorhandenen DWD-/Meteoalarm-Warnschwellen ab 50, 75, 89 und 103 km/h als dezente gelbe, orangefarbene, rote und violette Schraffurbereiche dargestellt.
+- Die Warnflächen werden ausschließlich innerhalb des tatsächlich sichtbaren Windbereichs gezeichnet und liegen hinter Wind-, Böen- und Richtungselementen.
+- Meteogramm und Widget-/PNG-Generator besitzen keine eigene zweite Ein-/Ausklappsteuerung mehr; beide werden ausschließlich über den jeweiligen äußeren Modulschalter geöffnet und geschlossen.
+- Beim Schließen der Module werden die enthaltenen Komponenten weiterhin ausgehängt und laufende Meteogrammabrufe abgebrochen.
+- Regressionstest für Windwarnflächen und eindeutige Modulsteuerung ergänzt.
+- Cloudflare Worker ohne funktionale Änderung; nur Versionssynchronisierung.
+
 # MID v0.7.79.3
 
 - Die Zahl der Wetterpiktogramme in der stündlichen Detailansicht wird nun aus der tatsächlich verfügbaren Diagrammbreite bestimmt und bis zur konfliktfrei möglichen Höchstzahl erhöht.

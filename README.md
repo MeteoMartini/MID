@@ -7,7 +7,16 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.79.3**
+**Aktuelle Version: v0.7.80**
+
+## Neuerungen in v0.7.80
+
+- Der Windpart der erweiterten Detailansicht zeigt die bestehenden Warnstufen ab 50, 75, 89 und 103 km/h als zurückhaltend schraffierte Bereiche in Gelb, Orange, Rot und Violett.
+- Die Flächen erscheinen nur, soweit die jeweilige Warnstufe innerhalb der aktuellen Windskala liegt, und bleiben hinter Wind- und Böenlinien sowie den Richtungspfeilen.
+- Meteogramm und Widget-/PNG-Generator werden nur noch über den äußeren Modulschalter ein- beziehungsweise ausgeklappt; die bisherigen inneren Schalter wurden vollständig entfernt.
+- Das Meteogramm lädt beim Öffnen des äußeren Moduls und bricht seinen Abruf beim Schließen weiterhin automatisch ab.
+- Der Cloudflare Worker wurde nicht funktional verändert; seine Versionsnummer wurde lediglich synchronisiert.
+
 
 
 ## Wartung in v0.7.79.3

@@ -917,10 +917,6 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 .header-favorites .favorite-bubbles>button.tracked-location b{background:color-mix(in srgb,var(--primary) 12%,transparent);color:var(--primary)}
 .header-favorites .favorite-bubbles>button em{position:absolute;top:-4px;right:-3px;display:grid;width:17px;height:17px;place-items:center;border:1px solid var(--border);border-radius:999px;background:var(--surface);color:var(--accent);font-style:normal}
 .header-favorites .favorite-strip-manage{width:38px;flex-basis:38px;border-radius:999px}
-.widget-collapsible.collapsed{padding-bottom:14px}
-.widget-collapsible.collapsed>.title{margin-bottom:0}
-.widget-collapse-toggle{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:7px 10px;border:1px solid var(--border);border-radius:11px;background:var(--s2);color:var(--text);font-size:10px;font-weight:800}
-.widget-collapse-toggle:hover{border-color:color-mix(in srgb,var(--primary) 45%,var(--border));background:color-mix(in srgb,var(--primary) 8%,var(--s2))}
 @media(max-width:850px){
  .search-stack{grid-column:1/-1;grid-row:2;width:100%;min-width:0}
  .header-favorites{margin-top:6px}
@@ -932,7 +928,6 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
  .header-favorites .favorite-bubbles{gap:6px}
  .header-favorites .favorite-bubbles>button{padding:7px 9px}
  .header-favorites .favorite-strip-manage{width:36px;flex-basis:36px}
- .widget-collapse-toggle span{display:none}
 }
 
 /* v0.7.18 – verzögertes Laden und dynamischer Jetzt-Zeitpunkt */
@@ -1029,8 +1024,7 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 
 /* v0.7.29: lazy Meteogramm mit Druckniveauprofilen */
 .meteogram-gate>.lazy-placeholder{min-height:94px}
-.meteogram-card{overflow:hidden}.meteogram-card.collapsed{padding-bottom:14px}.meteogram-card.collapsed>.title{margin-bottom:0}
-.meteogram-collapse-toggle{display:flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:11px;background:var(--s2);color:var(--text);padding:8px 11px;font:inherit;font-weight:800;cursor:pointer}
+.meteogram-card{overflow:hidden}
 .meteogram-content{display:grid;gap:10px}.meteogram-controls{display:grid;grid-template-columns:minmax(250px,1fr) auto auto auto;gap:8px;align-items:end}
 .meteogram-controls>label:first-child{display:grid;gap:5px}.meteogram-controls>label:first-child>span{font-size:9px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.06em}
 .meteogram-controls select{width:100%;min-width:0;border:1px solid var(--border);border-radius:11px;background:var(--s2);color:var(--text);padding:10px 11px;font:inherit}
@@ -1048,7 +1042,7 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 .risk-legend{display:flex;gap:6px}.risk-legend span{padding:4px 7px;border-radius:999px;font-size:7px;font-weight:900}.risk-legend .moderate{background:rgba(242,177,47,.2);color:#d7940f}.risk-legend .strong{background:rgba(218,69,62,.2);color:#d94b45}.risk-legend .cat{background:rgba(137,82,184,.2);color:#9561bf}.risk-cell.moderate{fill:rgba(242,177,47,.58)}.risk-cell.strong{fill:rgba(218,69,62,.72)}.risk-cell.cat{stroke:#8d55b8;stroke-width:1.1;stroke-dasharray:2 1}
 .meteogram-disclaimer{margin:0;padding:7px 10px;border-left:3px solid var(--primary);border-radius:7px;background:rgba(47,145,227,.07);color:var(--muted);font-size:8px;line-height:1.45}
 @media(max-width:900px){.meteogram-controls{grid-template-columns:1fr 1fr}.meteogram-controls>label:first-child{grid-column:1/-1}.meteogram-controls>button{min-width:0}.meteogram-meta{display:grid;gap:3px}}
-@media(max-width:520px){.meteogram-collapse-toggle span{display:none}.meteogram-controls{grid-template-columns:1fr}.meteogram-controls>label:first-child{grid-column:auto}.meteogram-option,.meteogram-controls>button{min-height:39px}.meteogram-block>header{padding:8px 9px}.meteogram-block>header strong{font-size:11px}.meteogram-scale{display:none}.meteogram-line-legend{gap:5px}.meteogram-disclaimer{font-size:7.5px}}
+@media(max-width:520px){.meteogram-controls{grid-template-columns:1fr}.meteogram-controls>label:first-child{grid-column:auto}.meteogram-option,.meteogram-controls>button{min-height:39px}.meteogram-block>header{padding:8px 9px}.meteogram-block>header strong{font-size:11px}.meteogram-scale{display:none}.meteogram-line-legend{gap:5px}.meteogram-disclaimer{font-size:7.5px}}
 
 /* v0.7.30: Meteogramm-Achsen und kontrastreiche Winddarstellung */
 .meteogram-line-block .meteogram-axis-label{font-weight:750}
