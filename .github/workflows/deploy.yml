@@ -15,7 +15,7 @@ on:
     types:
       - completed
 
-  # Manueller Rückfallstart bleibt möglich.
+  # Manueller Start bleibt möglich.
   workflow_dispatch:
 
 permissions:
@@ -37,12 +37,12 @@ jobs:
 
     steps:
       - name: Aktuellen main-Stand laden
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: main
 
       - name: Node.js 22 einrichten
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm
@@ -57,10 +57,10 @@ jobs:
           VITE_ALERT_PROXY_URL: ${{ vars.VITE_METAR_PROXY_URL }}
 
       - name: GitHub Pages konfigurieren
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       - name: Pages-Artefakt hochladen
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: ./dist
 
@@ -79,4 +79,4 @@ jobs:
     steps:
       - name: GitHub Pages veröffentlichen
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
