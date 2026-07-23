@@ -81,20 +81,21 @@ jobs:
 
           echo "Release-ZIP wurde sicher entpackt und strukturell geprüft."
 
-      - name: Alte MID-Version ersetzen
+      - name: Alte MID-Version vollständig ersetzen
         shell: bash
         timeout-minutes: 3
         run: |
           set -euo pipefail
 
-          rsync -a --delete \
-            --exclude='.git/' \
-            --exclude='.github/' \
-            --exclude='MID-professional-replacement.zip' \
-            /tmp/mid-new/ ./
+          rsync -a             --delete             --checksum             --itemize-changes             --exclude='.git/'             --exclude='.github/'             --exclude='MID-professional-replacement.zip'             /tmp/mid-new/ ./
+
+          if ! diff -qr             --exclude='.git'             --exclude='.github'             --exclude='MID-professional-replacement.zip'             /tmp/mid-new/ ./; then
+            echo "::error::Das entpackte MID-Release wurde nicht vollständig in den Arbeitsbaum übernommen."
+            exit 1
+          fi
 
           rm -f MID-professional-replacement.zip
-          echo "MID-Projektdateien wurden ersetzt; die Repository-Workflows bleiben erhalten."
+          echo "MID-Projektdateien wurden inhaltlich vollständig ersetzt; die Repository-Workflows bleiben erhalten."
 
       - name: Node.js 22 mit npm-Cache einrichten
         uses: actions/setup-node@v6
@@ -143,12 +144,7 @@ jobs:
         timeout-minutes: 6
         run: |
           set -euo pipefail
-          npm ci \
-            --no-audit \
-            --no-fund \
-            --prefer-offline \
-            --legacy-peer-deps \
-            --loglevel=notice
+          npm ci             --no-audit             --no-fund             --prefer-offline             --legacy-peer-deps             --loglevel=notice
 
       - name: Produktionsbuild und Regressionstests ausführen
         shell: bash
