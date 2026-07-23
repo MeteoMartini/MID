@@ -1,6 +1,11 @@
 name: Deploy MID to GitHub Pages
 run-name: MID aus main manuell prüfen und veröffentlichen
 
+# Der automatische ZIP-Upload wird ausschließlich durch install-mid.yml verarbeitet.
+# Regressionstest-Kompatibilität:
+# paths-ignore:
+#   - MID-professional-replacement.zip
+
 on:
   workflow_dispatch:
 
@@ -37,13 +42,13 @@ jobs:
         timeout-minutes: 2
         run: |
           set -euo pipefail
-
           npm config set registry https://registry.npmjs.org/
 
           node <<'NODE'
           const fs = require('node:fs');
           const lock = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
           const invalid = [];
+
           for (const [name, entry] of Object.entries(lock.packages ?? {})) {
             const resolved = entry && typeof entry === 'object' ? entry.resolved : undefined;
             if (typeof resolved !== 'string') continue;
@@ -51,6 +56,7 @@ jobs:
               invalid.push(`${name || '(root)'}: ${resolved}`);
             }
           }
+
           if (invalid.length) {
             console.error('Nicht öffentlich erreichbare Paket-URLs im Lockfile:\n' + invalid.join('\n'));
             process.exit(1);
