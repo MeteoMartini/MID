@@ -7,7 +7,15 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.86**
+**Aktuelle Version: v0.7.86.1**
+
+## Wartung in v0.7.86.1 – reproduzierbarer Nullability-Test
+
+- Der isolierte TypeScript-Test für optionale Ensemble-Klimawerte nutzt jetzt eine eigene temporäre `tsconfig.json`.
+- Mit `moduleResolution: Bundler`, `skipLibCheck: true` und `types: []` wird ausschließlich die erzeugte Testdatei geprüft.
+- Projektfremde Ambient-Typen aus `node_modules/@types` lösen dadurch keine falschen Fehler zu Babel- oder React-Unterabhängigkeiten mehr aus.
+- Die strikte Prüfung der eigentlichen Nullability-Logik bleibt unverändert aktiv.
+
 
 ## Wartung in v0.7.86 – Kompositinformation und OPERA-Zugriff
 

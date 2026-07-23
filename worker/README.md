@@ -1,3 +1,7 @@
+# MID Daten-, Warnungs-, Radar- und Gewitterproxy v0.7.86.1
+
+Keine funktionale Worker-Änderung. Die Versionsnummer wurde lediglich mit der Korrektur des Frontend-Regressionstests synchronisiert.
+
 # MID Daten-, Warnungs-, Radar- und Gewitterproxy v0.7.86
 
 Funktionale OPERA-Korrektur: `opera-raster-meta` liest die real vorhandenen CIRRUS-DBZH-HDF5-Objekte über S3 ListObjectsV2 ein und erzeugt keine hypothetischen Zeitstände mehr. `opera-raster-file` akzeptiert validierte Objektschlüssel; bei einem S3-Indexausfall steht ein begrenzter Range-Probe-Fallback bereit.

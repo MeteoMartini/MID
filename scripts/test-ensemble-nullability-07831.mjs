@@ -29,7 +29,19 @@ function scale(data:Row[],show:boolean){
 }
 void tooltip;void scale;
 `);
-const compile=spawnSync('tsc',['--noEmit','--strict','--target','ES2022',path.join(tempDir,'check.ts')],{cwd:root,encoding:'utf8'});
+await writeFile(path.join(tempDir,'tsconfig.json'),JSON.stringify({
+  compilerOptions:{
+    noEmit:true,
+    strict:true,
+    target:'ES2022',
+    module:'ESNext',
+    moduleResolution:'Bundler',
+    skipLibCheck:true,
+    types:[]
+  },
+  files:['check.ts']
+},null,2));
+const compile=spawnSync('tsc',['-p',path.join(tempDir,'tsconfig.json')],{cwd:root,encoding:'utf8'});
 if(compile.status!==0)failures.push(`Strikter TypeScript-Nullability-Test fehlgeschlagen: ${(compile.stdout||'')+(compile.stderr||'')}`.trim());
 await rm(tempDir,{recursive:true,force:true});
 if(failures.length){console.error('Ensemble-Nullability-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
