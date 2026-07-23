@@ -16,8 +16,7 @@ for(const token of [
  'title="Widget- und PNG-Generator"',
  'label="Quellen anzeigen"',
  'trigger={<><Info size={13}/><span>Quellen</span></>}',
- "document.addEventListener('pointerdown',outside,true)",
- "document.addEventListener('touchstart',outside"
+ "useDismissibleLayer(ref,open,()=>setOpen(false))"
 ])if(!app.includes(token))failures.push(`Erwartete Umsetzung fehlt: ${token}`);
 
 if(app.includes('Ortsname aus Geodatenbank'))failures.push('Der Hinweis „Ortsname aus Geodatenbank“ ist weiterhin sichtbar.');

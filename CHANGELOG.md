@@ -1,3 +1,27 @@
+# MID v0.7.83.2
+
+- GitHub-Actions-Warnung zur erzwungenen Node.js-24-Ausführung entfernt: `actions/checkout` und `actions/setup-node` wurden in Installations- und Deployment-Workflow von v4 auf v6 aktualisiert.
+- Der Installer-Workflow ist zusätzlich als Wiederherstellungs-/Referenzkopie Bestandteil des vollständigen MID-Projekts.
+- Regressionstest verhindert künftig die erneute Verwendung der Node-20-basierten Action-Versionen v1 bis v4.
+- Das Projekt selbst wird weiterhin bewusst mit Node.js 22 gebaut; geändert wurde ausschließlich die interne Laufzeit der GitHub-Actions-Bausteine.
+- Cloudflare Worker ohne funktionale Änderung; nur Versionssynchronisierung.
+
+# MID v0.7.83.1
+
+- GitHub-Buildfehler in `src/EnsemblePanel.tsx` behoben: optionale Klimawerte werden vor der Formatierung gemeinsam als endliche Zahlen eingegrenzt.
+- Die Temperatur-Skalierung filtert `number | undefined` nun über einen echten TypeScript-Type-Guard statt über einen unzulässigen `number`-Callback.
+- Eine leere optionale Klimareihe fällt für die Skalenberechnung sicher auf die Best-Match-Werte zurück.
+- Strikter Regressionstest für die Ensemble-Nullability ergänzt.
+- Cloudflare Worker ohne funktionale Änderung; nur Versionssynchronisierung.
+
+# MID v0.7.83
+
+- Warnfreie Tage werden in der 7-Tage-Vorhersage kompakt als „Keine Hazards“ gekennzeichnet.
+- Sonnenscheindauer, Prognosekonsistenz und Best-Match-Hazards verwenden im Ensemble-Tooltip einen einheitlichen Abschnittsaufbau.
+- Gemeinsame Popover- und Diagrammhilfen reduzieren redundante Listener und doppelte Skalenlogik.
+- Ensemble-Diagramm- und Tooltip-Daten wurden stärker typisiert; stabile React-Schlüssel und ein automatischer CodeCheck wurden ergänzt.
+- Cloudflare Worker ohne funktionale Änderung; nur Versionssynchronisierung.
+
 # MID v0.7.82.2
 
 - Die 7-Tage-Vorhersage zeigt an warnfreien Tagen wieder einen dezenten Hinweis „Keine Warnhinweise“.

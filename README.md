@@ -7,7 +7,31 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.82.2**
+**Aktuelle Version: v0.7.83.2**
+
+## Wartung in v0.7.83.2
+
+- Die GitHub-Actions-Bausteine `actions/checkout` und `actions/setup-node` verwenden nun die Node-24-kompatiblen Hauptversionen v6.
+- Damit entfällt die Warnung, dass Node.js 20 veraltet ist und die v4-Actions nur zwangsweise unter Node.js 24 ausgeführt werden.
+- Die eigentliche MID-Buildumgebung bleibt bei Node.js 22; dies ist unabhängig von der internen Action-Laufzeit.
+- Installations- und Deployment-Workflow werden durch einen eigenen Regressionstest auf veraltete Action-Versionen geprüft.
+- Keine funktionale Änderung am Cloudflare Worker.
+
+## Wartung in v0.7.83.1
+
+- Der GitHub-Produktionsbuild scheitert nicht mehr an optionalen Klimawerten im Ensemble-Tooltip und in der Temperaturskala.
+- `climateMin` und `climateMax` werden vor der Übergabe an Zahlenformatierer ausdrücklich als endliche Zahlen geprüft.
+- Die Skalierungswerte werden mit einem TypeScript-Type-Guard von `undefined` bereinigt und besitzen einen sicheren Best-Match-Fallback.
+- Ein strikter Nullability-Regressionstest schützt die korrigierten Stellen vor erneutem Auftreten von TS2345 beziehungsweise TS2769.
+- Keine funktionale Änderung am Cloudflare Worker.
+
+## Neuerungen in v0.7.83
+
+- Warnfreie Tage heißen in der 7-Tage-Vorhersage kompakt „Keine Hazards“ und bleiben innerhalb ihrer Tageskarte.
+- Der Ensemble-Tooltip verwendet für Sonnenscheindauer, Prognosekonsistenz und Best-Match-Hazards einen einheitlichen Aufbau.
+- Popover-Schließlogik, Diagrammskalen und Tooltip-Auswertung wurden zentralisiert; redundante Pointer-/Touch-Listener und doppelte Hilfsfunktionen wurden entfernt.
+- Ensemble-Zeilen und Tooltip-Payloads sind explizit typisiert; Hazard-Schlüssel wurden stabilisiert und ein CodeCheck in die Prüfkette aufgenommen.
+- Keine funktionale Änderung am Cloudflare Worker.
 
 ## Wartung in v0.7.82.2
 
