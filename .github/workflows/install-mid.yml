@@ -14,13 +14,13 @@ permissions:
 
 concurrency:
   group: mid-install
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   install:
     name: MID installieren und prüfen
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 40
 
     steps:
       - name: Repository laden
@@ -81,65 +81,118 @@ jobs:
           echo "MID-Projekt wurde ersetzt."
           echo "Die mitgelieferte package-lock.json bleibt erhalten."
 
-      - name: npm-Netzwerkzugriff absichern
+      - name: npm-Netzwerkzugriff prüfen
         shell: bash
         timeout-minutes: 2
         run: |
           set -euo pipefail
 
-          npm config set fetch-retries 3
+          npm config set fetch-retries 2
           npm config set fetch-retry-factor 2
-          npm config set fetch-retry-mintimeout 5000
-          npm config set fetch-retry-maxtimeout 30000
-          npm config set fetch-timeout 60000
-
-          npm cache verify || true
+          npm config set fetch-retry-mintimeout 3000
+          npm config set fetch-retry-maxtimeout 15000
+          npm config set fetch-timeout 30000
 
           echo "Node: $(node --version)"
           echo "npm: $(npm --version)"
-          echo "npm-Registry: $(npm config get registry)"
-          echo "npm-Cache: $(npm config get cache)"
+          echo "Registry: $(npm config get registry)"
+          echo "Cache: $(npm config get cache)"
+
+          echo "Prüfe Erreichbarkeit des npm-Registrys …"
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            --location \
+            --connect-timeout 10 \
+            --max-time 30 \
+            https://registry.npmjs.org/-/ping
+
+          echo
+          echo "npm-Registry ist erreichbar."
 
       - name: Abhängigkeiten reproduzierbar installieren
         shell: bash
-        timeout-minutes: 12
+        timeout-minutes: 7
         run: |
           set -uo pipefail
 
-          for attempt in 1 2 3; do
-            echo "npm-ci-Versuch ${attempt} von 3"
+          run_npm_ci() {
+            local max_seconds=150
+            local elapsed=0
+            local status=0
 
-            if timeout --signal=TERM --kill-after=30s 4m \
-              npm ci \
-                --no-audit \
-                --no-fund \
-                --prefer-offline \
-                --legacy-peer-deps
-            then
+            echo "Starte npm ci in eigener Prozessgruppe …"
+
+            setsid npm ci \
+              --no-audit \
+              --no-fund \
+              --prefer-offline \
+              --legacy-peer-deps \
+              --ignore-scripts \
+              --loglevel=notice &
+
+            local npm_pid=$!
+            local process_group=$npm_pid
+
+            echo "npm-PID: ${npm_pid}"
+            echo "Maximale Laufzeit: ${max_seconds} Sekunden"
+
+            while kill -0 "$npm_pid" 2>/dev/null; do
+              sleep 15
+              elapsed=$((elapsed + 15))
+
+              echo "npm ci läuft – ${elapsed}/${max_seconds} Sekunden"
+
+              if [ "$elapsed" -ge "$max_seconds" ]; then
+                echo "::warning::npm ci überschreitet ${max_seconds} Sekunden."
+                echo "Beende die vollständige npm-Prozessgruppe ${process_group}."
+
+                kill -TERM -- "-${process_group}" 2>/dev/null || true
+                sleep 5
+                kill -KILL -- "-${process_group}" 2>/dev/null || true
+
+                wait "$npm_pid" 2>/dev/null || true
+                return 124
+              fi
+            done
+
+            wait "$npm_pid"
+            status=$?
+
+            return "$status"
+          }
+
+          for attempt in 1 2; do
+            echo
+            echo "===== npm-ci-Versuch ${attempt} von 2 ====="
+
+            if run_npm_ci; then
               echo "npm ci wurde erfolgreich abgeschlossen."
               npm ls --depth=0
               exit 0
             fi
 
             status=$?
-            echo "npm ci ist mit Status ${status} fehlgeschlagen."
+            echo "::warning::npm ci ist mit Status ${status} fehlgeschlagen."
 
-            if [ "$attempt" -eq 3 ]; then
-              echo "::error::npm ci ist nach drei begrenzten Versuchen fehlgeschlagen."
+            if [ "$attempt" -eq 2 ]; then
+              echo "::error::npm ci ist nach zwei Versuchen fehlgeschlagen."
               exit 1
             fi
 
-            wait_seconds=$((attempt * 10))
-            echo "Neuer Versuch in ${wait_seconds} Sekunden."
-            sleep "$wait_seconds"
+            echo "Bereite zweiten Versuch vor …"
+            rm -rf node_modules
+            npm cache verify || true
+            sleep 10
           done
 
       - name: Produktionsbuild ausführen
         shell: bash
-        timeout-minutes: 10
+        timeout-minutes: 8
         run: |
           set -euo pipefail
-          timeout --signal=TERM --kill-after=30s 9m npm run build
+          npm run build
 
       - name: Worker-Syntax prüfen
         shell: bash
@@ -150,22 +203,42 @@ jobs:
 
       - name: MID-Regressionstests ausführen
         shell: bash
-        timeout-minutes: 20
+        timeout-minutes: 15
         run: |
           set -euo pipefail
 
-          TEST_SCRIPTS=$(node -e "const p=require('./package.json'); console.log(Object.keys(p.scripts).filter(k=>k.startsWith('test:')).join('\n'))")
+          mapfile -t TEST_SCRIPTS < <(
+            node -e "
+              const scripts = require('./package.json').scripts ?? {};
+              for (const name of Object.keys(scripts)) {
+                if (name.startsWith('test:')) console.log(name);
+              }
+            "
+          )
 
-          if [ -z "$TEST_SCRIPTS" ]; then
-            echo "::error::Keine MID-Regressionstests in package.json gefunden."
+          if [ "${#TEST_SCRIPTS[@]}" -eq 0 ]; then
+            echo "::error::Keine MID-Regressionstests gefunden."
             exit 1
           fi
 
-          while IFS= read -r script; do
-            [ -z "$script" ] && continue
+          for script in "${TEST_SCRIPTS[@]}"; do
+            echo
             echo "===== npm run ${script} ====="
-            timeout --signal=TERM --kill-after=15s 3m npm run "$script"
-          done <<< "$TEST_SCRIPTS"
+
+            if ! timeout \
+              --signal=TERM \
+              --kill-after=10s \
+              2m \
+              npm run "$script"
+            then
+              status=$?
+              echo "::error::Der Test ${script} ist mit Status ${status} fehlgeschlagen."
+              exit "$status"
+            fi
+          done
+
+          echo
+          echo "Alle MID-Regressionstests wurden erfolgreich ausgeführt."
 
       - name: Neue MID-Version committen
         shell: bash
