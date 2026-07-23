@@ -1,6 +1,6 @@
 import {fetchWorkerJson,workerBaseCandidates} from './workerClient';
 import {formatDecimal} from './format';
-import {summarizeDwdWarnings,type DwdWarningLevel} from './dwdWarnings';
+import {formatDwdWarningDetail,formatDwdWarningValue,summarizeDwdWarnings,type DwdWarningLevel} from './dwdWarnings';
 export type WindUnit='kn'|'kmh'|'ms'|'mph';
 export type UrbanClass='urban'|'suburban'|'rural'|'unknown';
 export type Location={id:number;name:string;latitude:number;longitude:number;elevation?:number;timezone?:string;country?:string;country_code?:string;admin1?:string;admin2?:string;postcodes?:string[];autolocated?:boolean;source?:string;poiType?:string;poiCategory?:string;featureCode?:string;population?:number;urbanClass?:UrbanClass};
@@ -765,7 +765,7 @@ export type HazardItem={level:HazardLevel;title:string;text:string;metric?:strin
 const levelOrder:{[k in HazardLevel]:number}={purple:4,red:3,orange:2,yellow:1};
 function dwdHazardClass(level:DwdWarningLevel):HazardLevel{return level===4?'purple':level===3?'red':level===2?'orange':'yellow'}
 
-export function hazards(h:Hour[],_currentUv?:number,elevation=0){
+export function hazards(h:Hour[],_currentUv?:number,elevation=0,unit:WindUnit='kn'){
  const start=currentIndex(h),horizon=h.slice(start,start+96);if(!horizon.length)return[] as HazardItem[];
- return summarizeDwdWarnings(horizon,elevation,24).map(signal=>({level:dwdHazardClass(signal.level),title:signal.title,metric:`${Number.isFinite(signal.value)?formatDecimal(signal.value,1):''}${signal.unit?` ${signal.unit}`:''}`.trim(),text:`${signal.detail} Automatisch aus dem Open-Meteo-Best-Match abgeleitet; keine amtliche Warnung.`})).sort((a,b)=>levelOrder[b.level]-levelOrder[a.level]);
+ return summarizeDwdWarnings(horizon,elevation,24).map(signal=>({level:dwdHazardClass(signal.level),title:signal.title,metric:formatDwdWarningValue(signal,unit),text:`${formatDwdWarningDetail(signal,unit)} Automatisch aus dem Open-Meteo-Best-Match abgeleitet; keine amtliche Warnung.`})).sort((a,b)=>levelOrder[b.level]-levelOrder[a.level]);
 }

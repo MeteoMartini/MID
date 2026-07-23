@@ -7,7 +7,16 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.81.1**
+**Aktuelle Version: v0.7.82**
+
+## Neuerungen in v0.7.82
+
+- Warnungen folgen nun konsequent der gewählten Windeinheit. In kt, m/s und mph steht der km/h-Wert ergänzend in Klammern; bei km/h wird die Beaufortstärke ergänzt.
+- Prognostizierte Warnwerte werden in Texten ganzzahlig ausgegeben, insbesondere bei Wärmebelastung, Frost, Niederschlag und Schnee.
+- In der 7-Tage-Vorhersage erscheinen ab Warnstufe 1 ausschließlich kompakte, farblich nach Stufe unterschiedene Symbole mit erwartetem Wert. Ereignisname, vollständiger Warntext und Einheiten stehen im Tooltip.
+- Das stündliche Detaildiagramm enthält keine separaten Warnmarker mehr. Die Windwarn-Schraffuren und horizontalen Schwellenlinien bleiben als Skalenhilfe erhalten.
+- Der Ensemble-Temperaturtrend zeigt oberhalb des gelb-grauen Sonnenscheinbands Best-Match-Hazards ab Warnstufe 2.
+- Keine funktionale Änderung am Cloudflare Worker.
 
 ## Wartung in v0.7.81.1
 

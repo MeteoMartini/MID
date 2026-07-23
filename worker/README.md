@@ -1,3 +1,7 @@
+# MID Daten-, Warnungs- und Radarproxy v0.7.82
+
+Keine funktionale Cloudflare-Worker-Änderung in v0.7.82; die Warntext-, 7-Tage- und Ensemble-Hazarddarstellung betrifft ausschließlich das Frontend.
+
 # MID Daten-, Warnungs- und Radarproxy v0.7.81.1
 
 Keine funktionale Cloudflare-Worker-Änderung in v0.7.81.1; die Ergänzung der DWD-Warnstufe 1 betrifft ausschließlich die Frontend-Auswertung und Darstellung.

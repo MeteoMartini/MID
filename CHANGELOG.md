@@ -1,3 +1,13 @@
+# MID v0.7.82
+
+- Warntexte und kompakte Hazardwerte verwenden die gewählte Windeinheit; bei kt, m/s oder mph wird der km/h-Wert ergänzt, bei km/h die Beaufortstärke.
+- Warntexte zeigen prognostizierte Temperaturen und Mengen ausschließlich als ganze Werte ohne Dezimalkomma.
+- Die 7-Tage-Vorhersage zeigt ab DWD-Warnstufe 1 nur noch kompakte, stufenfarbige Symbole mit erwartetem Wert; die ausführliche Erläuterung bleibt im Tooltip.
+- Best-Match-Warnmarker wurden aus dem stündlichen Detaildiagramm entfernt. Die dezenten Windwarnflächen und horizontalen DWD-Schwellenlinien bleiben bestehen.
+- Im Ensemble-Temperaturtrend erscheinen oberhalb des Sonnenschein-/Bewölkungsbands stufenfarbige Best-Match-Hazards ab Warnstufe 2.
+- Allgemeine Best-Match-Gefahrenkarten verwenden dieselbe ganzzahlige und einheitenbewusste Warntextformatierung.
+- Cloudflare Worker ohne funktionale Änderung; nur Versionssynchronisierung.
+
 # MID v0.7.81.1
 
 - DWD-Warnstufe 1 in der zentralen Best-Match-Auswertung ergänzt und fachlich korrigiert.
