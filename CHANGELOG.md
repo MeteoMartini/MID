@@ -1,3 +1,11 @@
+# MID v0.7.83.3
+
+- Achsentick-Beschriftungen im Ensemble-Temperaturdiagramm vertikal korrigiert.
+- Die zusätzliche CSS-Baseline `dominant-baseline: hanging`, die X- und Y-Achsenwerte leicht nach unten verschob, wurde entfernt.
+- Recharts übernimmt wieder die vorgesehene mittige Standardausrichtung der Tickwerte.
+- Regressionstest für die Achsenausrichtung ergänzt.
+- Cloudflare Worker ohne funktionale Änderung; nur Versionssynchronisierung.
+
 # MID v0.7.83.2
 
 - GitHub-Actions-Warnung zur erzwungenen Node.js-24-Ausführung entfernt: `actions/checkout` und `actions/setup-node` wurden in Installations- und Deployment-Workflow von v4 auf v6 aktualisiert.

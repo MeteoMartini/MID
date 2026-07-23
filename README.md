@@ -7,7 +7,12 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.83.2**
+**Aktuelle Version: v0.7.83.3**
+
+## Wartung in v0.7.83.3
+
+- Die Zahlenbeschriftungen der X- und Y-Achse im Ensemble-Temperaturdiagramm sind wieder exakt an den jeweiligen Tickmarken ausgerichtet.
+- Eine zusätzliche CSS-Baseline, die beide Achsenwerte leicht nach unten versetzte, wurde entfernt.
 
 ## Wartung in v0.7.83.2
 

@@ -1,6 +1,6 @@
-# MID Daten-, Warnungs- und Radarproxy v0.7.83.1
+# MID Daten-, Warnungs- und Radarproxy v0.7.83.3
 
-Keine funktionale Cloudflare-Worker-Änderung in v0.7.83.1; die Versionsnummer wurde ausschließlich mit der TypeScript-Buildkorrektur des Frontends synchronisiert.
+Keine funktionale Cloudflare-Worker-Änderung in v0.7.83.3; die Versionsnummer wurde ausschließlich mit der Achsenausrichtung des Frontends synchronisiert.
 
 # MID Daten-, Warnungs- und Radarproxy v0.7.83
 

@@ -1319,7 +1319,7 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 .trend-combined>.recharts-responsive-container{flex:1 1 auto;min-height:0}
 .trend-combined .recharts-wrapper{overflow:visible}
 .trend-combined .recharts-tooltip-wrapper{max-width:min(320px,calc(100vw - 24px));pointer-events:none}
-.trend-combined .recharts-cartesian-axis-tick-value tspan{dominant-baseline:hanging}
+/* Recharts setzt die Tick-Baseline bereits passend per dy; keine zusätzliche Baseline-Verschiebung. */
 
 /* v0.7.66 – Best-Match-Sonnenscheindauer mit ENS-P10–P90 */
 .trend-chart-toolbar{display:grid;gap:5px;justify-items:stretch}
