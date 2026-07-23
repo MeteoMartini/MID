@@ -1,21 +1,10 @@
 name: Deploy to GitHub Pages
 
 on:
-  # Normale direkte Änderungen am MID-Projekt weiterhin veröffentlichen.
   push:
     branches:
       - main
-    paths-ignore:
-      - MID-professional-replacement.zip
 
-  # Nach erfolgreicher Installation der ZIP automatisch veröffentlichen.
-  workflow_run:
-    workflows:
-      - Install MID replacement
-    types:
-      - completed
-
-  # Manueller Start bleibt möglich.
   workflow_dispatch:
 
 permissions:
@@ -29,54 +18,100 @@ concurrency:
 
 jobs:
   build:
-    if: >
-      github.event_name != 'workflow_run' ||
-      github.event.workflow_run.conclusion == 'success'
-
+    name: MID bauen
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
-      - name: Aktuellen main-Stand laden
+      - name: Repository laden
         uses: actions/checkout@v6
-        with:
-          ref: main
 
-      - name: Node.js 22 einrichten
+      - name: Node.js 22 mit npm-Cache einrichten
         uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm
+          cache-dependency-path: package-lock.json
 
-      - name: Abhängigkeiten installieren
-        run: npm ci
+      - name: npm-Netzwerkzugriff absichern
+        shell: bash
+        run: |
+          set -euo pipefail
 
-      - name: MID bauen
-        run: npm run build
+          npm config set fetch-retries 5
+          npm config set fetch-retry-factor 2
+          npm config set fetch-retry-mintimeout 20000
+          npm config set fetch-retry-maxtimeout 120000
+
+          npm cache verify || true
+
+          echo "npm-Registry:"
+          npm config get registry
+
+          echo "npm-Cache:"
+          npm config get cache
+
+      - name: Abhängigkeiten reproduzierbar installieren
+        shell: bash
+        run: |
+          set -uo pipefail
+
+          for attempt in 1 2 3; do
+            echo "npm-ci-Versuch ${attempt} von 3"
+
+            if npm ci \
+              --no-audit \
+              --no-fund \
+              --prefer-offline \
+              --legacy-peer-deps
+            then
+              echo "npm ci wurde erfolgreich abgeschlossen."
+              exit 0
+            fi
+
+            if [ "$attempt" -eq 3 ]; then
+              echo "::error::npm ci ist nach drei Versuchen fehlgeschlagen."
+              exit 1
+            fi
+
+            wait_seconds=$((attempt * 20))
+
+            echo "Installation fehlgeschlagen."
+            echo "Neuer Versuch in ${wait_seconds} Sekunden."
+
+            sleep "$wait_seconds"
+          done
+
+      - name: MID für GitHub Pages bauen
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run build
         env:
           VITE_METAR_PROXY_URL: ${{ vars.VITE_METAR_PROXY_URL }}
-          VITE_ALERT_PROXY_URL: ${{ vars.VITE_METAR_PROXY_URL }}
+          VITE_ALERT_PROXY_URL: ${{ vars.VITE_ALERT_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
+          VITE_RADAR_PROXY_URL: ${{ vars.VITE_RADAR_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
+          VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH }}
+          VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}
 
       - name: GitHub Pages konfigurieren
-        uses: actions/configure-pages@v6
+        uses: actions/configure-pages@v5
 
-      - name: Pages-Artefakt hochladen
-        uses: actions/upload-pages-artifact@v5
+      - name: Produktionsbuild hochladen
+        uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist
 
   deploy:
-    if: >
-      github.event_name != 'workflow_run' ||
-      github.event.workflow_run.conclusion == 'success'
+    name: MID veröffentlichen
+    runs-on: ubuntu-latest
+    needs: build
 
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
-    runs-on: ubuntu-latest
-    needs: build
-
     steps:
-      - name: GitHub Pages veröffentlichen
+      - name: GitHub-Pages-Deployment ausführen
         id: deployment
-        uses: actions/deploy-pages@v5
+        uses: actions/deploy-pages@v4
