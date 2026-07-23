@@ -1,3 +1,7 @@
+# MID Daten-, Warnungs- und Radarproxy v0.7.88
+
+Funktionale Erweiterung des bestehenden Workers für die Starkregenanalyse der aktuellen Niederschlagswahrscheinlichkeit: RADOLAN-YW-Summen 15/30/60/180/360 Minuten, DWD-RV-Nowcast bis +120 Minuten, KONRAD3D-Zellzug und Starkregenflag, KOSTRA-DWD-2020-Einordnung sowie DWD-Stationsabgleich. Amtliche Warnungen bleiben getrennt. Die Cloudflare-Auslieferung erfolgt weiterhin als einzelner Worker; in `MID-worker.zip` heißt die Einstiegdatei `worker.js`.
+
 # MID Daten-, Warnungs- und Radarproxy v0.7.87.1
 
 Funktionale Erweiterung um DWD-RADOLAN-YW-Metadaten und HDF5-Proxy, DWD-RV-Niederschlagsakkumulation bis +120 Minuten, KOSTRA-DWD-2020-ASC-ZIP-Proxy und DWD-Stationsregenabgleich. Die Starkregenanalyse bleibt von amtlichen Warnungen getrennt.

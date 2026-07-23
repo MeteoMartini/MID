@@ -1,3 +1,14 @@
+# MID v0.7.88
+
+- Funktionsrelease für die nächste Ausbaustufe der aktuellen Niederschlagswahrscheinlichkeit.
+- RADOLAN-YW liefert beobachtete 15-/30-/60-/180-/360-Minuten-Summen am gewählten Ort und im relevanten Umfeld.
+- DWD-RV ergänzt Nowcast-Summen bis +120 Minuten; KONRAD3D steuert Starkregenflag, Zellzug und Annäherungsinformation bei.
+- KOSTRA-DWD-2020 ordnet 30-, 60- und 360-Minuten-Summen statistisch ein; die Darstellung bezeichnet diese Einordnung ausdrücklich nicht als amtliche Warnstufe.
+- Nahe DWD-Niederschlagsstationen werden als Plausibilitätsabgleich für Radar- und Nowcast-Signale herangezogen.
+- Die Starkregenkarte wird nur bei einem tatsächlichen Signal eingeblendet.
+- Amtliche Warnungen und die abgeleitete MID-Starkregenanalyse bleiben technisch und visuell getrennt.
+- Der bestehende Cloudflare Worker wurde um die erforderlichen Datenrouten erweitert; die Auslieferungsdatei bleibt `MID-worker.zip` mit `worker.js` als Einstiegdatei.
+
 # MID v0.7.87.1
 
 - Release-Pipeline korrigiert: `package-lock.json` enthält keine internen OpenAI-Paketserver mehr; `jsfive` und `pako` werden über die öffentliche npm-Registry bezogen.
