@@ -7,7 +7,24 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.80**
+**Aktuelle Version: v0.7.81.1**
+
+## Wartung in v0.7.81.1
+
+- Die zentrale DWD-Auswertung kennt nun auch Warnstufe 1: Windböen über 50 km/h, einfache Gewitter, leichter Schneefall, modellseitig ableitbare Glätte, Frost bis 800 m, Nebel unter 150 m sowie starke Wärmebelastung über etwa 32 °C bei geringer Abkühlung.
+- Im Winddiagramm ist der Bereich von mehr als 50 bis 65 km/h gelb schraffiert und durch eine eigene horizontale Schwellenlinie gekennzeichnet.
+- Die Warnmarkerzeile im Detaildiagramm bleibt bewusst auf Stufen 2 bis 4 begrenzt; Stufe 1 wird in der allgemeinen Gefahrenauswertung berücksichtigt.
+- Eine UV-Warnung wird nicht allein aus einem UVI-Schwellenwert konstruiert, weil das amtliche Kriterium eine regionale beziehungsweise klimatologische Einordnung benötigt.
+- Keine funktionale Änderung am Cloudflare Worker.
+
+## Neuerungen in v0.7.81
+
+- Die stündliche Detailansicht zeigt in Standard- und Erweitertem Modus oberhalb des Sonnenschein-/Bewölkungsbands kompakte Warnmarker aus dem Open-Meteo-Best-Match.
+- Angezeigt werden nur DWD-Warnstufen 2 bis 4. Symbol, Warnfarbe und eingeblendete Stufennummer unterscheiden Wind, Gewitter, Stark-/Dauerregen, Schnee/Schneeverwehung, Glätte/Glatteis, strengen Frost und extreme Wärmebelastung.
+- Zusammenhängende Warnzeiträume werden zu einem Marker verdichtet. Klick, Tippen, Enter oder Leertaste öffnen einen kurzen Tooltip mit Ereignis, Prognosewert und DWD-Stufe.
+- Die Winddarstellung verwendet die offiziellen DWD-Schwellen 65, 90, 105, 120 und über 140 km/h. Dezente horizontale Linien kennzeichnen den Beginn jeder neuen Schwelle.
+- Forecast-Hazards und die 24-Stunden-Gefahrenauswertung verwenden dieselbe zentrale Schwellenlogik. Die Hinweise bleiben automatische Modellindikatoren und ersetzen keine amtlichen DWD-/CAP-Warnungen.
+- Der Cloudflare Worker wurde nicht funktional verändert; seine Versionsnummer wurde lediglich synchronisiert.
 
 ## Neuerungen in v0.7.80
 

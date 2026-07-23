@@ -1,5 +1,6 @@
 import {fetchWorkerJson,workerBaseCandidates} from './workerClient';
 import {formatDecimal} from './format';
+import {summarizeDwdWarnings,type DwdWarningLevel} from './dwdWarnings';
 export type WindUnit='kn'|'kmh'|'ms'|'mph';
 export type UrbanClass='urban'|'suburban'|'rural'|'unknown';
 export type Location={id:number;name:string;latitude:number;longitude:number;elevation?:number;timezone?:string;country?:string;country_code?:string;admin1?:string;admin2?:string;postcodes?:string[];autolocated?:boolean;source?:string;poiType?:string;poiCategory?:string;featureCode?:string;population?:number;urbanClass?:UrbanClass};
@@ -761,84 +762,10 @@ export function wind(v:number,u:WindUnit){if(u==='kmh')return`${Math.round(v*1.8
 export type HazardLevel='yellow'|'orange'|'red'|'purple';
 export type HazardItem={level:HazardLevel;title:string;text:string;metric?:string};
 
-function classifyHazard(value:number,thresholds:{yellow:number;orange?:number;red?:number;purple?:number},higher=true):HazardLevel|null{
- if(!Number.isFinite(value))return null;
- if(higher){
-  if(thresholds.purple!==undefined&&value>=thresholds.purple)return'purple';
-  if(thresholds.red!==undefined&&value>=thresholds.red)return'red';
-  if(thresholds.orange!==undefined&&value>=thresholds.orange)return'orange';
-  if(value>=thresholds.yellow)return'yellow';
-  return null;
- }
- if(thresholds.purple!==undefined&&value<=thresholds.purple)return'purple';
- if(thresholds.red!==undefined&&value<=thresholds.red)return'red';
- if(thresholds.orange!==undefined&&value<=thresholds.orange)return'orange';
- if(value<=thresholds.yellow)return'yellow';
- return null;
-}
-function addHazard(items:HazardItem[],item:HazardItem|null){if(item)items.push(item)}
 const levelOrder:{[k in HazardLevel]:number}={purple:4,red:3,orange:2,yellow:1};
-const KMH_PER_KT=1.852;
+function dwdHazardClass(level:DwdWarningLevel):HazardLevel{return level===4?'purple':level===3?'red':level===2?'orange':'yellow'}
 
-function classifyWindGust(gustKt:number):HazardLevel|null{
- const kmh=gustKt*KMH_PER_KT;
- if(kmh>=103)return'purple';
- if(kmh>=89)return'red';
- if(kmh>=75)return'orange';
- if(kmh>=50)return'yellow';
- return null;
-}
-function classifyRain24(sumMm:number):HazardLevel|null{
- if(sumMm>=60)return'purple';
- if(sumMm>=40)return'red';
- if(sumMm>=25)return'orange';
- if(sumMm>=15)return'yellow';
- return null;
-}
-function classifySnow24(sumCm:number):HazardLevel|null{
- if(sumCm>=20)return'purple';
- if(sumCm>=10)return'red';
- if(sumCm>=5)return'orange';
- if(sumCm>=1)return'yellow';
- return null;
-}
-function classifyHeatStress(apparentC:number):HazardLevel|null{
- if(apparentC>=46)return'purple';
- if(apparentC>=41)return'red';
- if(apparentC>=38)return'orange';
- if(apparentC>=32)return'yellow';
- return null;
-}
-function classifyUvIndex(uv:number):HazardLevel|null{
- if(uv>=11)return'red';
- if(uv>=8)return'orange';
- if(uv>=6)return'yellow';
- return null;
-}
-function classifyThunder(codes:number[]):HazardLevel|null{
- if(codes.includes(99))return'red';
- if(codes.includes(96))return'orange';
- if(codes.includes(95))return'yellow';
- return null;
-}
-
-export function hazards(h:Hour[],currentUv?:number){
- const s=h.slice(currentIndex(h),currentIndex(h)+24);if(!s.length)return[] as HazardItem[];
- const max=Math.max(...s.map(x=>x.temperature)),felt=Math.max(...s.map(x=>x.apparent).filter(Number.isFinite)),heat=Math.max(max,felt),min=Math.min(...s.map(x=>x.temperature)),gust=Math.max(...s.map(x=>x.gust)),rain=s.reduce((a,b)=>a+Math.max(0,b.precipitation||0),0),snow=s.reduce((a,b)=>a+Math.max(0,b.snowfall||0),0),uv=Math.max(...s.map(x=>x.uvIndex||0),Number.isFinite(currentUv as number)?Number(currentUv):0),thunderCodes=s.map(x=>x.code);
- const a:HazardItem[]=[];
- const heatLevel=classifyHeatStress(heat);
- addHazard(a,heatLevel?{level:heatLevel,title:'Hitzebelastung',metric:`${Math.round(heat)} °C`,text:`Gefühlte Temperatur bis ${Math.round(heat)} °C, Lufttemperatur bis ${Math.round(max)} °C (Schwellen nach DWD/NWS-Hitzelogik).`}:null);
- const coldLevel=classifyHazard(min,{yellow:0,orange:-10,red:-20,purple:-30},false);
- addHazard(a,coldLevel?{level:coldLevel,title:'Frost / Glätte',metric:`${Math.round(min)} °C`,text:`Tiefstwerte um ${Math.round(min)} °C.`}:null);
- const gustLevel=classifyWindGust(gust);
- addHazard(a,gustLevel?{level:gustLevel,title:'Wind / Böen',metric:`${Math.round(gust)} kt`,text:`Maximale Böen bis ${Math.round(gust)} kt (${Math.round(gust*KMH_PER_KT)} km/h; DWD/Meteoalarm-Stufen).`}:null);
- const rainLevel=classifyRain24(rain);
- addHazard(a,rainLevel?{level:rainLevel,title:'Starkregen',metric:`${Math.round(rain)} mm`,text:`24-Stunden-Summe um ${Math.round(rain)} mm (DWD-/Meteoalarm-Schwellen).`}:null);
- const snowLevel=classifySnow24(snow);
- addHazard(a,snowLevel?{level:snowLevel,title:'Schnee',metric:`${Math.round(snow)} cm`,text:`24-Stunden-Neuschnee um ${Math.round(snow)} cm.`}:null);
- const uvLevel=classifyUvIndex(uv);
- addHazard(a,uvLevel?{level:uvLevel,title:'UVI-Belastung',metric:`UVI ${Math.round(uv)}`,text:`Maximaler UVI um ${Math.round(uv)} (WHO/DWD/NWS-Kategorien).`}:null);
- const thunderLevel=classifyThunder(thunderCodes);
- addHazard(a,thunderLevel?{level:thunderLevel,title:'Gewitter',metric:thunderLevel==='red'?'stark':thunderLevel==='orange'?'mit Hagel':'möglich',text:thunderLevel==='red'?'Signale für starke Gewitter in der Kurzfristvorhersage.':thunderLevel==='orange'?'Signale für Gewitter mit Hagel in der Kurzfristvorhersage.':'Gewittersignale in der Kurzfristvorhersage.'}:null);
- return a.sort((x,y)=>levelOrder[y.level]-levelOrder[x.level]);
+export function hazards(h:Hour[],_currentUv?:number,elevation=0){
+ const start=currentIndex(h),horizon=h.slice(start,start+96);if(!horizon.length)return[] as HazardItem[];
+ return summarizeDwdWarnings(horizon,elevation,24).map(signal=>({level:dwdHazardClass(signal.level),title:signal.title,metric:`${Number.isFinite(signal.value)?formatDecimal(signal.value,1):''}${signal.unit?` ${signal.unit}`:''}`.trim(),text:`${signal.detail} Automatisch aus dem Open-Meteo-Best-Match abgeleitet; keine amtliche Warnung.`})).sort((a,b)=>levelOrder[b.level]-levelOrder[a.level]);
 }

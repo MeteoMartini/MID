@@ -1,14 +1,14 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.7.80",
+  "version": "0.7.81.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "sync-version": "node scripts/sync-version.mjs",
     "prebuild": "npm run sync-version",
     "build": "tsc -b && vite build",
-    "verify": "npm run build && node --check worker/metar-proxy.js && npm run test:updater && npm run test:interactions && npm run test:radar && npm run test:precipitation && npm run test:sunshine && npm run test:hyperlocal && npm run test:format-layout && npm run test:versioning && npm run test:ensemble && npm run test:rain-chart && npm run test:global-metar && npm run test:requests && npm run test:settings && npm run test:ui-regressions && npm run test:favorites-strip && npm run test:navigation-favorites && npm run test:view-modes && npm run test:mode-content && npm run test:legend-language && npm run test:detail-parameters && npm run test:chart-layout && npm run test:detail-pictograms && npm run test:wind-warnings-modules",
+    "verify": "npm run build && node --check worker/metar-proxy.js && npm run test:updater && npm run test:interactions && npm run test:radar && npm run test:precipitation && npm run test:sunshine && npm run test:hyperlocal && npm run test:format-layout && npm run test:versioning && npm run test:ensemble && npm run test:rain-chart && npm run test:global-metar && npm run test:requests && npm run test:settings && npm run test:ui-regressions && npm run test:favorites-strip && npm run test:navigation-favorites && npm run test:view-modes && npm run test:mode-content && npm run test:legend-language && npm run test:detail-parameters && npm run test:chart-layout && npm run test:detail-pictograms && npm run test:wind-warnings-modules && npm run test:dwd-warnings",
     "preview": "vite preview",
     "test:updater": "node scripts/test-updater.mjs",
     "test:radar": "node scripts/test-radar.mjs",
@@ -32,7 +32,8 @@
     "test:detail-parameters": "node scripts/test-detail-parameters.mjs",
     "test:chart-layout": "node scripts/test-chart-layout-079.mjs",
     "test:detail-pictograms": "node scripts/test-detail-pictograms.mjs",
-    "test:wind-warnings-modules": "node scripts/test-wind-warnings-modules.mjs"
+    "test:wind-warnings-modules": "node scripts/test-wind-warnings-modules.mjs",
+    "test:dwd-warnings": "node scripts/test-dwd-warning-markers.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

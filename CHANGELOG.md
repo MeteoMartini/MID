@@ -1,3 +1,24 @@
+# MID v0.7.81.1
+
+- DWD-Warnstufe 1 in der zentralen Best-Match-Auswertung ergänzt und fachlich korrigiert.
+- Windböen werden ab Überschreiten von 50 km/h als Stufe 1 erkannt; der Windbereich besitzt nun zusätzlich die gelbe Schraffur und Trennlinie zwischen 50 und 65 km/h.
+- Einfache Gewitter, leichter Schneefall, Glätte bei Niederschlag und Frost, Frost unter 0 °C bis 800 m, Nebel unter 150 m Sichtweite und starke Wärmebelastung über etwa 32 °C bei geringer Abkühlung werden als Stufe 1 berücksichtigt.
+- Die kompakte Warnsymbolzeile oberhalb des Sonnenschein-/Bewölkungsbands zeigt gemäß Vorgabe weiterhin ausschließlich Stufen 2 bis 4; Stufe 1 fließt in die allgemeine 24-Stunden-Gefahrenauswertung und Windskalierung ein.
+- UV-Warnstufe 1 wird nicht künstlich aus dem UVI allein erzeugt, weil das DWD-Kriterium zusätzlich eine regionale beziehungsweise klimatologische Abweichung verlangt.
+- Regressionstests um sämtliche automatisch ableitbaren Stufe-1-Kriterien und die Filterung der Symbolzeile erweitert.
+- Cloudflare Worker ohne funktionale Änderung; nur Versionssynchronisierung.
+
+# MID v0.7.81
+
+- Best-Match-basierte Warnhinweise wurden in beiden Modi als eigene Symbolzeile unmittelbar oberhalb des Sonnenschein-/Bewölkungsbands ergänzt.
+- Es werden ausschließlich modellseitig überschrittene DWD-Warnstufen 2 bis 4 dargestellt; Ereignisart, Warnfarbe und Stufennummer sind direkt unterscheidbar.
+- Warnmarker fassen zusammenhängende Zeiträume zusammen und öffnen per Klick, Tippen oder Tastatur einen kurzen Tooltip; sie sind ausdrücklich keine amtlichen Warnungen.
+- DWD-Warnkriterien für Wind, Gewitter, Stark- und Dauerregen, Schneefall, Schneeverwehung, markante Glätte/Glatteis, strengen Frost und extreme Wärmebelastung zentralisiert.
+- Windwarnbereiche auf die offiziellen Schwellen 65, 90, 105, 120 und über 140 km/h umgestellt; jede neue Schwelle wird zusätzlich durch eine dezente horizontale Linie markiert.
+- Automatische Hazard-Karten und Tagesindikatoren verwenden dieselbe zentrale DWD-Logik und keine bisherigen Mischschwellen aus DWD, Meteoalarm und NWS mehr.
+- Regressionstest für DWD-Schwellen, Warnmarker, Intensitäten, Tooltips und horizontale Schwellenlinien ergänzt.
+- Cloudflare Worker ohne funktionale Änderung; nur Versionssynchronisierung.
+
 # MID v0.7.80
 
 - Im Windbereich der erweiterten stündlichen Detailansicht werden die vorhandenen DWD-/Meteoalarm-Warnschwellen ab 50, 75, 89 und 103 km/h als dezente gelbe, orangefarbene, rote und violette Schraffurbereiche dargestellt.

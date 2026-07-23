@@ -1,3 +1,7 @@
+# MID Daten-, Warnungs- und Radarproxy v0.7.81.1
+
+Keine funktionale Cloudflare-Worker-Änderung in v0.7.81.1; die Ergänzung der DWD-Warnstufe 1 betrifft ausschließlich die Frontend-Auswertung und Darstellung.
+
 # MID Daten-, Warnungs- und Radarproxy v0.7.80
 
 Keine funktionale Cloudflare-Worker-Änderung in v0.7.80; die Versionsnummer wurde zur einheitlichen Auslieferung synchronisiert. Windwarnflächen und die vereinfachte Modulsteuerung betreffen ausschließlich das Frontend.
