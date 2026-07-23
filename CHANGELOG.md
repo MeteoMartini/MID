@@ -1,3 +1,11 @@
+# MID v0.7.88.2
+
+- Die mit v0.7.88.1 eingeführte Sprühregen-Plausibilisierung gilt nun konsequent auch für die Wettertexte und Wettersymbole der 7-Tage-Vorhersage, des Widgets und des 14-Tage-Ensemble-Trends.
+- Unplausible WMO-Sprühregen-Codes 51–55 werden in Tageszusammenfassungen nicht mehr als „Sprühregen“ weitergereicht, sondern anhand der DWD/WMO-Stundenschwellen als leichter, mäßiger oder starker Regen behandelt.
+- Tagesereignisse, Zeitangaben und repräsentative Wettersymbole greifen jetzt auf dieselbe zentralisierte Niederschlagsform-Auswertung wie die Stundenansicht zurück.
+- README, Changelog und sämtliche Versionsstellen aktualisiert.
+- Cloudflare Worker ohne funktionale Änderung.
+
 # MID v0.7.88.1
 
 - Plausibilitätsprüfung für Open-Meteo-Sprühregen ergänzt: WMO-Codes 51–55 werden nur noch bei hoher relativer Feuchte, ausgeprägter tiefer Bewölkung und schwacher stratiformer Niederschlagsrate als Sprühregen dargestellt.

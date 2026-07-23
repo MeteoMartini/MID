@@ -7,7 +7,13 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.88.1**
+**Aktuelle Version: v0.7.88.2**
+
+## Wartung in v0.7.88.2 – Einheitliche Wettertexte
+
+- Die Plausibilitätsprüfung der Niederschlagsform wird jetzt nicht nur in Stundenwerten und Tooltips, sondern auch in der 7-Tage-Vorhersage, im Wetter-Widget und im 14-Tage-Ensemble-Trend verwendet.
+- Wettertext und Wettersymbol beruhen damit überall auf derselben korrigierten Niederschlagsform.
+- Ein unplausibler Best-Match-Sprühregencode erscheint in den Tagesansichten als Regen mit passender DWD/WMO-Intensität.
 
 ## Wartung in v0.7.88.1 – Plausibilisierte Niederschlagsform
 

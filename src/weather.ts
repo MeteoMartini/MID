@@ -3,6 +3,7 @@ import {formatDecimal} from './format';
 import {formatDwdWarningDetail,formatDwdWarningValue,summarizeDwdWarnings,type DwdWarningLevel} from './dwdWarnings';
 import {loadOperaRaster} from './CompositeData';
 import {analyseOperaRasterNowcast} from './OperaRasterSource';
+import {precipitationParts} from './precipitation';
 export type WindUnit='kn'|'kmh'|'ms'|'mph';
 export type UrbanClass='urban'|'suburban'|'rural'|'unknown';
 export type Location={id:number;name:string;latitude:number;longitude:number;elevation?:number;timezone?:string;country?:string;country_code?:string;admin1?:string;admin2?:string;postcodes?:string[];autolocated?:boolean;source?:string;poiType?:string;poiCategory?:string;featureCode?:string;population?:number;urbanClass?:UrbanClass};
@@ -474,6 +475,23 @@ function skyFromCloud(percent:number,sunshineFraction?:number){
  if(octas<=7)return{code:3,label:'Stark bewölkt'};
  return{code:3,label:'Bedeckt'};
 }
+function plausiblePrecipFamily(h:Hour){
+ const part=precipitationParts(h);
+ if(part.type==='drizzle'||part.type==='freezingDrizzle')return'drizzle';
+ if(part.type==='rain'||part.type==='freezingRain'||part.type==='sleet')return'rain';
+ if(part.type==='snow'||part.type==='snowGrains')return'snow';
+ if(part.type==='showers'||part.type==='snowShowers'||part.type==='sleetShowers')return'showers';
+ if(part.type==='thunderstorm'||part.type==='thunderstormHail')return'thunder';
+ return'none';
+}
+function plausiblePrecipCode(h:Hour,family:string){
+ if(family==='drizzle')return h.code;
+ if(family==='rain'&&[51,53,55].includes(h.code)){
+  const total=Math.max(0,h.precipitation||0);
+  return total>=10?65:total>=2.5?63:61;
+ }
+ return precipCodeFamily(h.code)!=='none'?h.code:family==='showers'?81:family==='snow'?73:family==='rain'?63:53;
+}
 function precipCodeFamily(code:number){
  if([51,53,55,56,57].includes(code))return'drizzle';
  if([61,63,65,66,67,68,69].includes(code))return'rain';
@@ -486,7 +504,7 @@ function representativePrecipCode(hours:Hour[]){
  type FamilyRow={score:number;hours:number;sum:number;snowSum:number;maxProbability:number;probabilitySum:number;probabilitySamples:number;first:number;last:number;codes:Map<number,number>};
  const families=new Map<string,FamilyRow>();
  for(const h of hours){
-  let family=precipCodeFamily(h.code);
+  let family=plausiblePrecipFamily(h);
   const amount=Math.max(0,h.precipitation||0),snow=Math.max(0,h.snowfall||0),probability=Math.max(0,Math.min(100,h.probability||0));
   if(family==='none')family=h.showers>=.05?'showers':snow>=.05?'snow':h.rain>=.05||amount>=.05?'rain':'none';
   if(family==='none')continue;
@@ -497,8 +515,7 @@ function representativePrecipCode(hours:Hour[]){
   const amountWeight=1+Math.min(2.2,amount*1.4+snow*.18);
   const severity=family==='thunder'?2.4:family==='snow'||family==='showers'?1.25:family==='rain'?1.05:.82;
   const score=dayWeight*probabilityWeight*amountWeight*severity;
-  const fallbackCode=family==='showers'?81:family==='snow'?73:family==='rain'?63:53;
-  const code=precipCodeFamily(h.code)!=='none'?h.code:fallbackCode;
+  const code=plausiblePrecipCode(h,family);
   const row=families.get(family)??{score:0,hours:0,sum:0,snowSum:0,maxProbability:0,probabilitySum:0,probabilitySamples:0,first:hour,last:hour,codes:new Map<number,number>()};
   row.score+=score;
   if(probability>=30||amount>=.05||snow>=.05)row.hours+=1;
@@ -573,9 +590,7 @@ function transitionTime(hour:number){
  return'abends';
 }
 function eventFamilyAtHour(h:Hour){
- let family=precipCodeFamily(h.code);
- if(family==='none')family=h.showers>=.05?'showers':h.snowfall>=.05?'snow':h.rain>=.05||h.precipitation>=.05?'rain':'none';
- return family;
+ return plausiblePrecipFamily(h);
 }
 function eventTiming(hours:Hour[],family:string){
  const order:DayPartKey[]=['night','morning','midday','afternoon','evening'];
