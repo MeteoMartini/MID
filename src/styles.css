@@ -1491,3 +1491,14 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 .detaillegend i.direction{height:16px!important;background:none!important;color:#7bc8ef;font-size:15px;line-height:16px;text-align:center}
 .detaillegend i.direction::before{content:'↗'}
 @media(max-width:640px){.detaillegend.interactive{gap:5px}.detaillegend.interactive button{padding:5px 7px;font-size:10px}}
+
+/* MID v0.7.79 – kompakte Ortszeit, getrennte Diagrammkopf-Lanes und gerade Skalen */
+.place>div{min-width:0;max-width:100%}
+.place-meta{display:block;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:clip;font-size:clamp(9px,1.05vw,13px);letter-spacing:-.005em}
+.place-meta.advanced{font-size:clamp(8.5px,.96vw,12px)}
+.local-timezone{white-space:nowrap;font-variant-numeric:tabular-nums}
+.charthead,.detailhead{display:flex;align-items:center;gap:9px;min-height:28px}
+.charthead h3,.detailhead>strong{min-width:0;margin-right:auto}
+.meteogramsvg.adaptive-detail-chart{overflow:visible}
+@media(max-width:850px){.place-meta,.place-meta.advanced{font-size:9px;letter-spacing:-.012em}.charthead,.detailhead{align-items:flex-start}}
+@media(max-width:520px){.place-meta,.place-meta.advanced{font-size:8px;letter-spacing:-.018em}}

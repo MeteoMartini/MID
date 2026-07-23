@@ -142,9 +142,10 @@ function enhanceSkyBars(){
     samples.push(skyBarSample(cloud,Number(daylight[index])===1));
   }
   if(samples.length<2)return;
-  const signature=`${date}:${samples.map(sample=>`${Math.round(sample.cloud)}-${sample.isDay?1:0}`).join(',')}`;if(svg.dataset.midSkySignature===signature)return;svg.dataset.midSkySignature=signature;
+  const viewBox=svg.viewBox.baseVal,width=Number(viewBox?.width)||Number(svg.getAttribute('width'))||240,left=Number(svg.dataset.plotLeft)||18,right=Number(svg.dataset.plotRight)||18,centerY=Number(svg.dataset.skybarY)||10,plotW=Math.max(1,width-left-right);
+  const signature=`${date}:${Math.round(width)}:${left}:${right}:${centerY}:${samples.map(sample=>`${Math.round(sample.cloud)}-${sample.isDay?1:0}`).join(',')}`;if(svg.dataset.midSkySignature===signature)return;svg.dataset.midSkySignature=signature;
   svg.querySelectorAll('[data-mid-cloud],[data-mid-skybar]').forEach(element=>element.remove());
-  const W=240,left=18,right=18,plotW=W-left-right,centerY=16.15,xAt=(index:number)=>left+(index/Math.max(1,samples.length-1))*plotW;
+  const W=width,xAt=(index:number)=>left+(index/Math.max(1,samples.length-1))*plotW;
   const boundaryBefore=(index:number)=>index<=0?left:(xAt(index-1)+xAt(index))/2,boundaryAfter=(index:number)=>index>=samples.length-1?W-right:(xAt(index)+xAt(index+1))/2;
   const strokeWidth=(level:SkyBarLevel)=>[0,2.1,3.4,4.9,6.5][level];
   const group=svgElement('g');group.dataset.midSkybar='1';group.setAttribute('pointer-events','none');group.setAttribute('aria-label','Sonnenschein und Gesamtbewölkung in vier Stärken');

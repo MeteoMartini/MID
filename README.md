@@ -7,8 +7,18 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.78.1**
+**Aktuelle Version: v0.7.79**
 
+
+
+## Neuerungen in v0.7.79
+
+- Die Ortszeile des Erweiterten Modus bleibt einzeilig und zeigt Ortszeit, GMT-Abweichung und Z-Zeit, z. B. `Ortszeit 08:15 GMT+2 (06:15Z)`.
+- Die längeren Fach- und Bedienerklärungen der Detail- und Ensemble-Diagramme öffnen über ein dezentes `(i)` und schließen bei Klick/Tippen außerhalb oder mit Escape.
+- Ensemble-Niederschlagsfehlerbalken liegen unabhängig vom Best Match exakt zwischen P10 und P90.
+- Sonnenschein-/Bewölkungsband, Wetterpiktogramme und Jetzt-Zeit besitzen getrennte vertikale Bereiche.
+- Achsenwerte werden mit möglichst runden Schrittweiten erzeugt; die Zahl der Windrichtungspfeile passt sich dynamisch an die verfügbare Breite an.
+- Der Cloudflare Worker wurde nicht funktional verändert; seine Versionsnummer wurde lediglich synchronisiert.
 
 
 ## Wartung in v0.7.78.1

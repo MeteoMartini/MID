@@ -1,3 +1,14 @@
+# MID v0.7.79
+
+- Im Erweiterten Modus zeigt die Ortszeile nun die aktuelle Ortszeit mit GMT-Abweichung und zusätzlich die Z-Zeit in Klammern; die einzeilige Darstellung passt ihre Schriftgröße responsiv an.
+- Erklärungen der stündlichen Detailansicht, der 14-Tage-Ensemble-Übersicht sowie der Temperatur- und Niederschlagsdiagramme wurden auch im Erweiterten Modus in dezente, bei Außenklick schließbare Info-Popover verschoben.
+- P10–P90-Fehlerbalken im Ensemble-Niederschlagsdiagramm werden unabhängig vom Best-Match-Wert exakt zwischen P10 und P90 gezeichnet.
+- Oberen Bereich der Detailansicht in getrennte Ebenen für Sonnenschein-/Bewölkungsband, Wetterpiktogramme und aktuelle Uhrzeit gegliedert, damit keine Überdeckungen entstehen.
+- Temperatur-, Niederschlags- und Windachsen verwenden nun möglichst glatte, an runden Schrittweiten ausgerichtete Werte.
+- Dichte der Windrichtungspfeile wird anhand der tatsächlich verfügbaren Diagrammbreite automatisch maximiert, ohne benachbarte Pfeile zu überdecken.
+- Regressionstests für Z-Zeit, Info-Popover, exakte P10–P90-Spanne, adaptive Kopfleiste, Achsenskalierung und Windpfeildichte ergänzt.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionssynchronisierung.
+
 # MID v0.7.78.1
 
 - TypeScript-Buildfehler TS2367 in der Niederschlagsdarstellung der erweiterten Detailansicht behoben.

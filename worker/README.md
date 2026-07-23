@@ -1,3 +1,7 @@
+# MID Daten-, Warnungs- und Radarproxy v0.7.79
+
+Keine funktionale Cloudflare-Worker-Änderung in v0.7.79; die Versionsnummer wurde zur einheitlichen Auslieferung mit dem Hauptprojekt synchronisiert. Ortszeit-, Info-Popover-, Ensemble-Fehlerbalken- und Detaildiagramm-Anpassungen betreffen ausschließlich das Frontend.
+
 # MID Daten-, Warnungs- und Radarproxy v0.7.78.1
 
 Keine funktionale Cloudflare-Worker-Änderung in v0.7.78.1; die Versionsnummer wurde zur einheitlichen Auslieferung mit dem Hauptprojekt synchronisiert. CHMI-Modellkatalog und die erweiterte, adaptive Detailansicht betreffen ausschließlich das Frontend.
