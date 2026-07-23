@@ -394,11 +394,22 @@ export async function thunderstormNowcast(lat:number,lon:number,country?:string,
  return fetchWorkerJson<ThunderstormNowcast>('thunderstorm-nowcast',{lat,lon,country:countryCodeFromLocation(country)||String(country||''),_ts:Date.now()},{purpose:'radar',signal,timeoutMs:15000});
 }
 
+
+function mergeDwdOperaNowcast(dwd:RadarNowcast,opera:RadarNowcast):RadarNowcast{
+ const dwdProbability=Math.max(0,Math.min(100,Number(dwd.radarProbability)||0)),operaProbability=Math.max(0,Math.min(100,Number(opera.radarProbability)||0)),operaWeight=dwd.quality==='high'?.20:dwd.quality==='medium'?.28:.36,blended=Math.round(dwdProbability*(1-operaWeight)+operaProbability*operaWeight),radarProbability=Math.max(dwdProbability,blended),discrepancy=Math.abs(dwdProbability-operaProbability),quality:RadarNowcastQuality=discrepancy>=55&&dwd.quality==='high'?'medium':dwd.quality;
+ return{...dwd,quality,radarProbability,peakRate:Math.max(Number(dwd.peakRate)||0,Number(opera.peakRate)||0),provider:`${dwd.provider} · OPERA CIRRUS-Abgleich`,license:[dwd.license,'EUMETNET OPERA composite products, CC BY 4.0'].filter(Boolean).join(' · '),diagnostics:{...(dwd.diagnostics||{}),operaCrossCheck:{available:true,provider:opera.provider,probability:operaProbability,currentRate:opera.currentRate,peakRate:opera.peakRate,observedAt:opera.observedAt,quality:opera.quality,summary:opera.summary,weight:operaWeight,discrepancy}}};
+}
+async function operaNowcast(lat:number,lon:number,signal?:AbortSignal){
+ if(!operaRadarApplies(lat,lon))return null;
+ try{const metadata=await loadOperaRaster(lat,lon,signal);return normaliseRadarNowcast(await analyseOperaRasterNowcast(metadata.frames??[],lat,lon,signal))}catch(error){abortError(signal);void error;return null}
+}
+
 export async function radarNowcast(lat:number,lon:number,country?:string,signal?:AbortSignal):Promise<RadarNowcast|null>{
  if(!workerBaseCandidates('radar').length)return null;
- const countryCode=countryCodeFromLocation(country),params={lat,lon,country:countryCode||String(country||''),_ts:Date.now()};
- if(dwdRadarExpected(lat,lon,countryCode)){const dwdResult=normaliseRadarNowcast(await requestRadarStage(params,'dwd',signal));if(dwdResult?.source==='dwd')return dwdResult}
- if(operaRadarApplies(lat,lon))try{const metadata=await loadOperaRaster(lat,lon,signal),operaResult=await analyseOperaRasterNowcast(metadata.frames??[],lat,lon,signal);return normaliseRadarNowcast(operaResult)}catch(error){abortError(signal);void error}
+ const countryCode=countryCodeFromLocation(country),params={lat,lon,country:countryCode||String(country||''),_ts:Date.now()},dwdExpected=dwdRadarExpected(lat,lon,countryCode),operaExpected=operaRadarApplies(lat,lon),[dwdSettled,operaSettled]=await Promise.allSettled([dwdExpected?requestRadarStage(params,'dwd',signal):Promise.resolve(null),operaExpected?operaNowcast(lat,lon,signal):Promise.resolve(null)]);abortError(signal);
+ const dwdResult=dwdSettled.status==='fulfilled'?normaliseRadarNowcast(dwdSettled.value):null,operaResult=operaSettled.status==='fulfilled'?operaSettled.value:null;
+ if(dwdResult?.source==='dwd')return operaResult?.source==='opera'?mergeDwdOperaNowcast(dwdResult,operaResult):dwdResult;
+ if(operaResult?.source==='opera')return operaResult;
  const fallback=normaliseRadarNowcast(await requestRadarStage({...params,_ts:Date.now()},'rainviewer',signal));return fallback?.source==='opera'?null:fallback;
 }
 

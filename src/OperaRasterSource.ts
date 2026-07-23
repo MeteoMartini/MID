@@ -2,13 +2,16 @@ import type {OperaRasterFrame} from './CompositeData';
 import type {RadarNowcast,RadarNowcastQuality} from './weather';
 
 type H5Node={value?:ArrayLike<number>|unknown;shape?:number[];attrs?:Record<string,unknown>};
-type Projection={lat0:number;lon0:number;x0:number;y0:number;a:number;e2:number;authalicRadius?:number};
+export type OperaProjection={lat0:number;lon0:number;x0:number;y0:number;a:number;e2:number;authalicRadius?:number};
+type Projection=OperaProjection;
 export type OperaRaster={values:ArrayLike<number>;width:number;height:number;gain:number;offset:number;nodata:number;undetect:number;quantity:string;projection:Projection;minX:number;maxY:number;xScale:number;yScale:number};
 export type OperaRasterPoint={covered:boolean;dbz?:number;rate:number;column?:number;row?:number};
 export type OperaRasterSample={covered:boolean;currentRate:number;currentDbz?:number;localRate:number;nearbyRate:number;nearestWetKm?:number;validPixels:number;wetPixels:number};
 
 const rasterCache=new Map<string,Promise<OperaRaster>>();
 const MAX_CACHE=2;
+export const OPERA_GRID_EXTENT_X=3_800_000;
+export const OPERA_GRID_EXTENT_Y=4_400_000;
 
 function text(value:unknown):string{
  if(typeof value==='string')return value.replace(/\0/g,'').trim();
@@ -39,7 +42,7 @@ function param(definition:string,name:string,fallback:number){const match=defini
 function projectionFrom(where:H5Node|undefined):Projection{
  const definition=text(attr(where,'projdef','projection_definition','proj4')),ellipsoid=(definition.match(/(?:^|\s)\+ellps=([^\s]+)/i)?.[1]||'WGS84').toUpperCase(),a=param(definition,'a',param(definition,'R',6378137));
  const inverseFlattening=ellipsoid==='GRS80'?298.257222101:ellipsoid==='WGS84'?298.257223563:Infinity,e2=Number.isFinite(inverseFlattening)?2/inverseFlattening-1/(inverseFlattening*inverseFlattening):0,authalicRadius=param(definition,'R',NaN);
- return{lat0:param(definition,'lat_0',55),lon0:param(definition,'lon_0',10),x0:param(definition,'x_0',1950000),y0:param(definition,'y_0',2100000),a,e2,authalicRadius:Number.isFinite(authalicRadius)?authalicRadius:undefined};
+ return{lat0:param(definition,'lat_0',55),lon0:param(definition,'lon_0',10),x0:param(definition,'x_0',1950000),y0:param(definition,'y_0',-2100000),a,e2,authalicRadius:Number.isFinite(authalicRadius)?authalicRadius:undefined};
 }
 function q(phi:number,e2:number){if(e2<=0)return 2*Math.sin(phi);const e=Math.sqrt(e2),sin=Math.sin(phi),denominator=1-e2*sin*sin;return(1-e2)*(sin/denominator-(1/(2*e))*Math.log((1-e*sin)/(1+e*sin)))}
 export function forwardOperaLaea(latDegrees:number,lonDegrees:number,projection:Projection):[number,number]|null{
@@ -66,8 +69,10 @@ async function decode(url:string):Promise<OperaRaster>{
  const response=await fetch(url,{cache:'force-cache'});if(!response.ok)throw new Error(`OPERA-HDF5 HTTP ${response.status}`);const buffer=await response.arrayBuffer();if(buffer.byteLength<1000)throw new Error('OPERA-HDF5-Datei ist unvollständig.');
  const hdf5=await import('jsfive'),file=new hdf5.File(buffer,url),where=getNode(file,'where'),{dataset,what,quantity}=findDataset(file),shape=dataset.shape??[],height=Number(shape[0]),width=Number(shape[1]);
  if(!width||!height||width*height>25_000_000)throw new Error('Ungültige OPERA-Rastergröße.');const values=dataset.value as ArrayLike<number>;if(!values||values.length<width*height)throw new Error('OPERA-Raster ist unvollständig.');
- const xScale=Math.abs(scalar(attr(where,'xscale','x_scale'))??1000),yScale=Math.abs(scalar(attr(where,'yscale','y_scale'))??1000),llX=scalar(attr(where,'LL_x','ll_x')),urY=scalar(attr(where,'UR_y','ur_y')),urX=scalar(attr(where,'UR_x','ur_x')),llY=scalar(attr(where,'LL_y','ll_y')),minX=llX??(urX!==undefined?urX-width*xScale:0),maxY=urY??(llY!==undefined?llY+height*yScale:height*yScale);
- return{values,width,height,gain:scalar(attr(what,'gain'))??0.5,offset:scalar(attr(what,'offset'))??-32.5,nodata:scalar(attr(what,'nodata'))??255,undetect:scalar(attr(what,'undetect'))??0,quantity,projection:projectionFrom(where),minX,maxY,xScale,yScale};
+ const xScale=Math.abs(scalar(attr(where,'xscale','x_scale'))??OPERA_GRID_EXTENT_X/width),yScale=Math.abs(scalar(attr(where,'yscale','y_scale'))??OPERA_GRID_EXTENT_Y/height),llX=scalar(attr(where,'LL_x','ll_x')),ulX=scalar(attr(where,'UL_x','ul_x')),urY=scalar(attr(where,'UR_y','ur_y')),ulY=scalar(attr(where,'UL_y','ul_y')),urX=scalar(attr(where,'UR_x','ur_x')),llY=scalar(attr(where,'LL_y','ll_y')),minX=llX??ulX??(urX!==undefined?urX-width*xScale:0),maxY=urY??ulY??(llY!==undefined?llY+height*yScale:0),projection=projectionFrom(where);
+ const origin=forwardOperaLaea(projection.lat0,projection.lon0,projection),originColumn=origin?Math.floor((origin[0]-minX)/xScale):NaN,originRow=origin?Math.floor((maxY-origin[1])/yScale):NaN;
+ if(!origin||originColumn<0||originColumn>=width||originRow<0||originRow>=height)throw new Error(`OPERA-Rastergeometrie ist inkonsistent (Ursprung ${Math.round(originColumn)}/${Math.round(originRow)}, Raster ${width}×${height}).`);
+ return{values,width,height,gain:scalar(attr(what,'gain'))??1,offset:scalar(attr(what,'offset'))??0,nodata:scalar(attr(what,'nodata'))??255,undetect:scalar(attr(what,'undetect'))??0,quantity,projection,minX,maxY,xScale,yScale};
 }
 function abortable<T>(promise:Promise<T>,signal?:AbortSignal):Promise<T>{
  if(!signal)return promise;if(signal.aborted)return Promise.reject(signal.reason??new DOMException('Vorgang abgebrochen.','AbortError'));

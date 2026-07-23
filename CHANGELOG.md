@@ -1,3 +1,22 @@
+# MID v0.7.87.1
+
+- Release-Pipeline korrigiert: `package-lock.json` enthält keine internen OpenAI-Paketserver mehr; `jsfive` und `pako` werden über die öffentliche npm-Registry bezogen.
+- ZIP-Installation und GitHub-Pages-Deployment sind im Installationsworkflow direkt verkettet, weil ein Bot-Commit mit `GITHUB_TOKEN` keinen weiteren Push-Workflow startet.
+- Pages-Actions auf `configure-pages@v6`, `upload-pages-artifact@v5` und `deploy-pages@v5` aktualisiert; vorzeitiges Deployment beim reinen ZIP-Upload wird verhindert.
+- OPERA-Nutzung erneut gehärtet: Der Worker ermittelt aktuelle CIRRUS-DBZH-Dateien jetzt primär über die offizielle MeteoGate-ORD-API und parallel über den offenen S3-Index.
+- Falls beide Verzeichnisdienste ausfallen, bleibt der begrenzte HDF5-Range-Probe-Fallback aktiv. Dadurch hängt OPERA weder allein vom S3-Listing noch von geschätzten Zeitstempeln ab.
+- Kompositbild und aktuelle Niederschlagswahrscheinlichkeit verwenden weiterhin denselben validierten HDF5-Rasterpfad; DWD bleibt in Deutschland primär, OPERA ist sichtbare Unterlage und unabhängiger Abgleich.
+- OPERA-Regressionstest um den ORD-API-Pfad erweitert.
+
+# MID v0.7.87
+
+- Belastbare erste Ausbaustufe des automatischen Starkregen-/Überflutungsindikators ergänzt: RADOLAN-YW-Summen für 15/30/60/180/360 Minuten, DWD-RV-Nowcast-Summen bis +120 Minuten, KONRAD3D-Starkregenflag und Zellzug, KOSTRA-DWD-2020-Einordnung für 30/60/360 Minuten sowie DWD-Stationsabgleich.
+- Die Starkregenkarte erscheint ausschließlich bei einem tatsächlichen Mess-, Nowcast-, KONRAD-, KOSTRA- oder nahen Stationssignal und bleibt vollständig von amtlichen Warnungen getrennt.
+- OPERA-CIRRUS-Georeferenzierung korrigiert: Das offizielle LAEA-Raster verwendet eine Oberkante von y=0 m und den negativen Projektionsursprung y_0=-2.100.000 m. Die frühere Ersatzgeometrie verschob Standortabfragen um 4.400 km und führte dadurch zu NoData.
+- Das Kompositbild deklariert OPERA erst nach erfolgreichem Download, HDF5-Dekodierung und realer Standortabdeckungsprüfung als bereit. OPERA wird als europäische Unterlage dargestellt, DWD liegt in Deutschland darüber.
+- Die aktuelle Niederschlagswahrscheinlichkeit prüft DWD und OPERA parallel. DWD bleibt in Deutschland primär; OPERA dient als unabhängiger Abgleich und übernimmt bei DWD-Ausfall. RainViewer bleibt der letzte Fallback.
+- OPERA-Bereitschaft, Datenstand und Fehlergrund werden im Infodialog des Kompositbildes ausgewiesen.
+
 # MID v0.7.86.1
 
 - Fehler im isolierten Ensemble-Nullability-Regressionstest behoben: Der Test verwendet nun eine eigene temporäre TypeScript-Konfiguration mit `moduleResolution: Bundler`, `skipLibCheck: true` und leerer `types`-Liste.

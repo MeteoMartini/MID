@@ -19,6 +19,8 @@ need('worker',"mode==='opera-raster-meta'",'Workerroute opera-raster-meta fehlt.
 need('worker',"mode==='opera-raster-file'",'Workerroute opera-raster-file fehlt.');
 need('worker','OPERA@${operaStamp(value)}@0@DBZH.h5','Offizieller OPERA-CIRRUS-DBZH-Dateipfad fehlt.');
 need('worker',"url.searchParams.set('list-type','2')",'OPERA-S3-Objektliste wird nicht abgefragt.');
+need('worker',"const OPERA_ORD_API=",'Offizielle OPERA-ORD-API ist nicht als primärer Ermittlungspfad eingebunden.');
+need('worker',"standard_name','DBZH'",'ORD-Abfrage fordert das DBZH-Komposit nicht explizit an.');
 need('worker','operaTimeFromKey','OPERA-Zeitstempel werden nicht aus real vorhandenen Objektschlüsseln gelesen.');
 need('worker','operaListedFrames','OPERA-Metadaten beruhen nicht auf real gelisteten S3-Objekten.');
 need('panel','LazyOperaRasterOverlay','OPERA-Rasteroverlay ist nicht in das Kompositbild eingebunden.');
@@ -30,8 +32,22 @@ need('styles','.composite-info-popover','Darstellung des Komposit-Infodialogs fe
 if(files.panel.includes('<small className="source">Kompositquellen:'))failures.push('Der lange Komposit-Erklärtext steht weiterhin offen unter der Karte.');
 need('source','ODIM-HDF5-Rasterpixel und 30-km-Umfeld direkt im Browser ausgewertet','Direkte Rasterauswertung für die Niederschlagswahrscheinlichkeit fehlt.');
 need('source','sampleOperaRaster','Standort- und Umfeldstichprobe des OPERA-Rasters fehlt.');
+need('source','OPERA_GRID_EXTENT_X=3_800_000','Offizielle OPERA-Rasterbreite von 3.800 km fehlt.');
+need('source','OPERA_GRID_EXTENT_Y=4_400_000','Offizielle OPERA-Rasterhöhe von 4.400 km fehlt.');
+need('source',"y0:param(definition,'y_0',-2100000)",'Der OPERA-LAEA-Ursprung verwendet nicht das korrekte negative false northing.');
+need('source',"maxY=urY??ulY??(llY!==undefined?llY+height*yScale:0)",'Die OPERA-Rasteroberkante fällt nicht korrekt auf y=0 m zurück.');
+if(files.source.includes("y0:param(definition,'y_0',2100000)"))failures.push('Der frühere falsche positive OPERA-y_0-Fallback ist noch aktiv.');
+if(files.source.includes('maxY=urY??(llY!==undefined?llY+height*yScale:height*yScale)'))failures.push('Die frühere um 4.400 km verschobene OPERA-Rasteroberkante ist noch aktiv.');
 need('weather','analyseOperaRasterNowcast','Aktuelle Niederschlagswahrscheinlichkeit nutzt OPERA CIRRUS nicht.');
 need('weather','loadOperaRaster','OPERA-Rastermetadaten werden nicht für den Nowcast geladen.');
+need('weather','mergeDwdOperaNowcast','DWD-Ergebnis wird nicht mit OPERA CIRRUS gegengeprüft.');
+need('weather','Promise.allSettled','DWD und OPERA werden für die aktuelle Niederschlagswahrscheinlichkeit nicht parallel geprüft.');
+need('weather','operaCrossCheck','OPERA-Kontrollsignal wird nicht im Radarergebnis dokumentiert.');
+need('panel','loadOperaRasterData(latest.fileUrl','Kompositbild prüft die tatsächliche OPERA-HDF5-Datei nicht vor Verwendung.');
+need('panel','sampleOperaRaster(raster,lat,lon,3)','Kompositbild prüft die reale OPERA-Abdeckung am Standort nicht.');
+need('panel',"activeSource!=='rainviewer'&&operaDisplayFrame",'OPERA wird unter einer verfügbaren DWD-Ebene nicht als europäische Radarunterlage gerendert.');
+need('panel',"label:'OPERA-Bereitschaft'",'Infodialog zeigt den geprüften OPERA-Bereitschaftsstatus nicht.');
+need('overlay',"canvas.style.zIndex='355'",'OPERA-Unterlage liegt nicht kontrolliert unter dem DWD-Radar-Layer.');
 need('weather',"requestRadarStage(params,'dwd'",'Explizite DWD-Stufe vor OPERA fehlt.');
 need('weather',"'rainviewer',signal",'Explizite RainViewer-Stufe nach OPERA fehlt.');
 need('worker',"stage==='dwd'",'Worker unterstützt die isolierte DWD-Stufe nicht.');
@@ -45,10 +61,10 @@ if(files.worker.includes('operaRadarNowcast(')||files.worker.includes('OPERA_POS
 if(files.worker.includes('for(let index=12;index>=0;index--)'))failures.push('OPERA-Metadaten erfinden weiterhin rückwirkende Frames ohne Objektprüfung.');
 if(files.worker.includes("method:'HEAD'"))failures.push('OPERA-Erkennung hängt weiterhin von unzuverlässigen HEAD-Antworten ab.');
 const dwd=files.worker.indexOf('if(!rainViewerOnly&&dwdExpected)'),rain=files.worker.indexOf('rainViewerRadarNowcast',dwd);if(dwd<0||rain<dwd)failures.push('Worker-Fallbackreihenfolge DWD vor RainViewer ist nicht erkennbar.');
-const weatherDwd=files.weather.indexOf("requestRadarStage(params,'dwd'"),weatherOpera=files.weather.indexOf('analyseOperaRasterNowcast',weatherDwd),weatherFallback=files.weather.indexOf("'rainviewer',signal",weatherOpera);if(weatherDwd<0||weatherOpera<weatherDwd||weatherFallback<weatherOpera)failures.push('Frontend-Reihenfolge DWD → OPERA CIRRUS → Worker-Fallback ist nicht eingehalten.');
+const radarFunction=files.weather.slice(files.weather.indexOf('export async function radarNowcast'),files.weather.indexOf('function n(',files.weather.indexOf('export async function radarNowcast'))),weatherDwd=radarFunction.indexOf("requestRadarStage(params,'dwd'"),weatherOpera=radarFunction.indexOf('operaNowcast(lat,lon,signal)'),weatherFallback=radarFunction.indexOf("'rainviewer',signal");if(weatherDwd<0||weatherOpera<0||weatherFallback<0||weatherFallback<weatherDwd||weatherFallback<weatherOpera)failures.push('Frontend-Prüfung DWD + OPERA vor RainViewer-Fallback ist nicht eingehalten.');
 
 if(failures.length){console.error('OPERA-Phase-1-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('OPERA Phase 1 geprüft: echtes CIRRUS-HDF5, gemeinsame Rasterauswertung, DWD → OPERA → RainViewer und keine Stützpunktlogik.');
+console.log('OPERA Phase 1 geprüft: korrigierte LAEA-Geometrie, reale HDF5-Vorprüfung, DWD + OPERA-Abgleich, OPERA-Unterlage und RainViewer nur als letzter Fallback.');
 
 const originalFetch=globalThis.fetch;
 const nominal=(()=>{const date=new Date();date.setUTCSeconds(0,0);date.setUTCMinutes(Math.floor(date.getUTCMinutes()/5)*5);return date.getTime()})();
@@ -56,6 +72,7 @@ const objectKey=value=>{const date=new Date(value),pad=number=>String(number).pa
 const listedKeys=Array.from({length:13},(_,index)=>objectKey(nominal-(12-index)*5*60000));
 globalThis.fetch=async(input,init={})=>{
  const url=new URL(typeof input==='string'?input:input.url),method=String(init.method||'GET').toUpperCase();
+ if(url.hostname==='api.meteogate.eu'){const links=listedKeys.map(key=>`https://s3.waw3-1.cloudferro.com/openradar-24h/${key}`);return new Response(JSON.stringify({ranges:links,links:links.map(href=>({href}))}),{status:200,headers:{'content-type':'application/prs.coverage+json'}})}
  if(url.hostname==='s3.waw3-1.cloudferro.com'&&url.searchParams.get('list-type')==='2'){
   const prefix=url.searchParams.get('prefix')||'',keys=listedKeys.filter(key=>key.startsWith(prefix)),xml=`<?xml version="1.0" encoding="UTF-8"?><ListBucketResult>${keys.map(key=>`<Contents><Key>${key}</Key></Contents>`).join('')}</ListBucketResult>`;
   return new Response(xml,{status:200,headers:{'content-type':'application/xml'}});
@@ -67,7 +84,7 @@ globalThis.fetch=async(input,init={})=>{
 try{
  const module=await import('../worker/metar-proxy.js?opera-raster-test='+Date.now());
  const metadataResponse=await module.default.fetch(new Request('https://mid.test/?mode=opera-raster-meta&lat=50.82&lon=7.04'),{}),metadata=await metadataResponse.json();
- if(!metadataResponse.ok||metadata.frames?.length!==13||metadata.nativeResolutionKm!==1||metadata.temporalResolutionMinutes!==5||metadata.discovery!=='S3 ListObjectsV2'||!String(metadata.frames?.at(-1)?.fileUrl||'').includes('mode=opera-raster-file')||!String(metadata.frames?.at(-1)?.fileUrl||'').includes('key=')){
+ if(!metadataResponse.ok||metadata.frames?.length!==13||metadata.nativeResolutionKm!==1||metadata.temporalResolutionMinutes!==5||metadata.discovery!=='ORD API + S3 ListObjectsV2'||!String(metadata.frames?.at(-1)?.fileUrl||'').includes('mode=opera-raster-file')||!String(metadata.frames?.at(-1)?.fileUrl||'').includes('key=')){
   console.error('OPERA-Metadatentest fehlgeschlagen:',JSON.stringify(metadata));process.exit(1);
  }
  const times=metadata.frames.map(frame=>Date.parse(frame.time));if(times.some((time,index)=>index>0&&time-times[index-1]!==5*60000)){
@@ -83,6 +100,7 @@ try{
 const fallbackFetch=globalThis.fetch;
 globalThis.fetch=async(input,init={})=>{
  const url=new URL(typeof input==='string'?input:input.url),method=String(init.method||'GET').toUpperCase();
+ if(url.hostname==='api.meteogate.eu')return new Response('ORD vorübergehend nicht verfügbar',{status:503});
  if(url.hostname==='s3.waw3-1.cloudferro.com'&&url.searchParams.get('list-type')==='2')return new Response('Index vorübergehend nicht verfügbar',{status:503});
  if(url.hostname==='s3.waw3-1.cloudferro.com'&&method==='GET'&&String(init.headers?.Range||init.headers?.range||'').startsWith('bytes='))return new Response(new Uint8Array([137,72,68,70,13,10,26,10]),{status:206,headers:{'content-type':'application/x-hdf5','content-range':'bytes 0-7/12'}});
  throw new Error(`Unerwarteter OPERA-Fallback-Testabruf: ${url}`);

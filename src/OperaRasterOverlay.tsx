@@ -27,7 +27,7 @@ function render(map:L.Map,canvas:HTMLCanvasElement,raster:OperaRaster){
 export default function OperaRasterOverlay({frame,opacity,onStatus}:{frame:OperaRasterFrame;opacity:number;onStatus?:(status:Status,message?:string)=>void}){
  const map=useMap();
  useEffect(()=>{let active=true,raf=0;const pane=map.getPane('overlayPane');if(!pane){onStatus?.('error','Leaflet-Overlayebene nicht verfügbar.');return}
-  const canvas=L.DomUtil.create('canvas','mid-opera-raster-canvas',pane) as HTMLCanvasElement;canvas.style.position='absolute';canvas.style.pointerEvents='none';canvas.style.zIndex='365';canvas.style.opacity=String(Math.max(0,Math.min(1,opacity)));onStatus?.('loading');
+  const canvas=L.DomUtil.create('canvas','mid-opera-raster-canvas',pane) as HTMLCanvasElement;canvas.style.position='absolute';canvas.style.pointerEvents='none';canvas.style.zIndex='355';canvas.style.opacity=String(Math.max(0,Math.min(1,opacity)));onStatus?.('loading');
   let raster:OperaRaster|undefined;const redraw=()=>{if(!active||!raster)return;cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>{try{render(map,canvas,raster!);if(active)onStatus?.('ready')}catch(error){if(active)onStatus?.('error',error instanceof Error?error.message:String(error))}})};
   loadOperaRasterData(frame.fileUrl).then(value=>{if(!active)return;raster=value;redraw()}).catch(error=>{if(active)onStatus?.('error',error instanceof Error?error.message:String(error))});map.on('moveend zoomend resize viewreset',redraw);
   return()=>{active=false;cancelAnimationFrame(raf);map.off('moveend zoomend resize viewreset',redraw);canvas.remove()};

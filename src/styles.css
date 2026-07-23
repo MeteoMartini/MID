@@ -1527,19 +1527,18 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 
 
 /* v0.7.85 – getrennte Niederschlags- und Gewitter-Kurzinformation */
-.place-nowcards{display:grid;grid-template-columns:repeat(2,minmax(155px,260px));gap:9px;align-items:stretch}
+.place-nowcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,260px));gap:9px;align-items:stretch}
 .place-nowcards aside{min-width:0;max-width:none;padding:12px 15px;border:1px solid rgba(63,176,255,.28);border-radius:16px;background:linear-gradient(145deg,rgba(22,134,255,.16),rgba(68,206,255,.08));text-align:right}
 .place-nowcards aside small,.place-nowcards aside strong,.place-nowcards aside span,.place-nowcards aside em{display:block}
 .place-nowcards aside span{margin-top:4px;font-size:10px;line-height:1.28}
 .place-nowcards aside em{margin-top:5px;color:var(--muted);font-size:8px;font-style:normal;line-height:1.25}
 .place-nowcards .precip-now strong{font-size:25px}
-.place-nowcards .thunder-now strong{margin-top:3px;font-size:16px;line-height:1.12}
-.thunder-now.clear{border-color:rgba(34,190,114,.28)!important;background:linear-gradient(145deg,rgba(34,190,114,.11),rgba(34,190,114,.04))!important}
-.thunder-now.yellow{border-color:rgba(255,186,57,.42)!important;background:linear-gradient(145deg,rgba(255,186,57,.15),rgba(255,186,57,.05))!important}
-.thunder-now.orange{border-color:rgba(255,145,77,.46)!important;background:linear-gradient(145deg,rgba(255,145,77,.16),rgba(255,145,77,.05))!important}
-.thunder-now.red{border-color:rgba(255,78,78,.46)!important;background:linear-gradient(145deg,rgba(255,78,78,.16),rgba(255,78,78,.05))!important}
-.thunder-now.purple{border-color:rgba(178,118,255,.45)!important;background:linear-gradient(145deg,rgba(178,118,255,.17),rgba(178,118,255,.05))!important}
-@media(max-width:1000px){.place-nowcards{grid-template-columns:minmax(155px,260px)}}
+.place-nowcards .thunder-now strong,.place-nowcards .heavy-rain-now strong{margin-top:3px;font-size:16px;line-height:1.12}
+.thunder-now.yellow,.heavy-rain-now.yellow{border-color:rgba(255,186,57,.42)!important;background:linear-gradient(145deg,rgba(255,186,57,.15),rgba(255,186,57,.05))!important}
+.thunder-now.orange,.heavy-rain-now.orange{border-color:rgba(255,145,77,.46)!important;background:linear-gradient(145deg,rgba(255,145,77,.16),rgba(255,145,77,.05))!important}
+.thunder-now.red,.heavy-rain-now.red{border-color:rgba(255,78,78,.46)!important;background:linear-gradient(145deg,rgba(255,78,78,.16),rgba(255,78,78,.05))!important}
+.thunder-now.purple,.heavy-rain-now.purple{border-color:rgba(178,118,255,.45)!important;background:linear-gradient(145deg,rgba(178,118,255,.17),rgba(178,118,255,.05))!important}
+@media(max-width:1000px){.place-nowcards{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}}
 @media(max-width:760px){.place-nowcards{width:100%;grid-template-columns:1fr 1fr}.place-nowcards aside{text-align:left}}
 @media(max-width:520px){.place-nowcards{grid-template-columns:1fr}.place-nowcards aside{width:100%}.place-nowcards .precip-now strong{font-size:22px}}
 

@@ -7,7 +7,23 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.86.1**
+**Aktuelle Version: v0.7.87.1**
+
+## Wartung der Release-Pipeline
+
+- Das Release-Lockfile verweist ausschließlich auf öffentlich erreichbare npm-Paketquellen.
+- Ein Upload von `MID-professional-replacement.zip` startet Installation, vollständige Prüfung und GitHub-Pages-Deployment in derselben Workflow-Ausführung.
+- Normale Änderungen auf `main` werden weiterhin vom separaten Deployment-Workflow geprüft und veröffentlicht; ein reiner ZIP-Upload löst dort keinen verfrühten Parallelbuild aus.
+
+## Neuerungen in v0.7.87 – Starkregen und belastbare OPERA-Nutzung
+
+- Der neue Starkregen-/Überflutungsindikator kombiniert DWD RADOLAN YW für beobachtete 15-/30-/60-/180-/360-Minuten-Summen, DWD-RV-Nowcast bis +120 Minuten, KONRAD3D-Zellinformationen, KOSTRA-DWD-2020 und nahe DWD-Niederschlagsstationen.
+- Die Zusatzkarte erscheint nur bei einem tatsächlichen Signal und verwendet keine amtlichen Warnungen. Amtliche Warnungen bleiben ausschließlich im separaten Warnungsbereich.
+- Die OPERA-CIRRUS-Projektion wurde an die offizielle 3.800 × 4.400-km-LAEA-Geometrie angepasst. Insbesondere liegen die Rasteroberkante bei y=0 m und der Projektionsursprung bei y_0=-2.100.000 m.
+- Das Kompositbild lädt und dekodiert den neuesten realen OPERA-HDF5-Frame vor der Freigabe. Im europäischen Komposit bildet OPERA die Unterlage; das höher priorisierte DWD-Radar liegt in Deutschland darüber.
+- Für die aktuelle Niederschlagswahrscheinlichkeit werden DWD und OPERA parallel geprüft. OPERA wird als Kontrollsignal einbezogen und übernimmt, wenn die DWD-Radaranalyse nicht verfügbar ist. RainViewer bleibt der letzte Fallback.
+- Der Infodialog des Kompositbilds zeigt den tatsächlich geprüften OPERA-Bereitschaftsstatus einschließlich Datenstand oder Fehlergrund.
+
 
 ## Wartung in v0.7.86.1 – reproduzierbarer Nullability-Test
 

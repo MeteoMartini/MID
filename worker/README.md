@@ -1,3 +1,7 @@
+# MID Daten-, Warnungs- und Radarproxy v0.7.87.1
+
+Funktionale Erweiterung um DWD-RADOLAN-YW-Metadaten und HDF5-Proxy, DWD-RV-Niederschlagsakkumulation bis +120 Minuten, KOSTRA-DWD-2020-ASC-ZIP-Proxy und DWD-Stationsregenabgleich. Die Starkregenanalyse bleibt von amtlichen Warnungen getrennt.
+
 # MID Daten-, Warnungs-, Radar- und Gewitterproxy v0.7.86.1
 
 Keine funktionale Worker-Änderung. Die Versionsnummer wurde lediglich mit der Korrektur des Frontend-Regressionstests synchronisiert.
