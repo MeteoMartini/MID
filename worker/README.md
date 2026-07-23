@@ -1,3 +1,11 @@
+# MID Daten-, Warnungs- und Radarproxy v0.7.79.2
+
+Keine funktionale Cloudflare-Worker-Änderung in v0.7.79.2; die Versionsnummer wurde zur einheitlichen Auslieferung synchronisiert. Die neue Reihenfolge der oberen Detaildiagramm-Lanes und die verlängerte Stundenmarkierung betreffen ausschließlich das Frontend.
+
+# MID Daten-, Warnungs- und Radarproxy v0.7.79.1
+
+Keine funktionale Cloudflare-Worker-Änderung in v0.7.79.1; die Versionsnummer wurde zur einheitlichen Auslieferung synchronisiert. Der Tausch von Wetterpiktogrammen und Sonnenschein-/Bewölkungsband betrifft ausschließlich das Frontend.
+
 # MID Daten-, Warnungs- und Radarproxy v0.7.79
 
 Keine funktionale Cloudflare-Worker-Änderung in v0.7.79; die Versionsnummer wurde zur einheitlichen Auslieferung mit dem Hauptprojekt synchronisiert. Ortszeit-, Info-Popover-, Ensemble-Fehlerbalken- und Detaildiagramm-Anpassungen betreffen ausschließlich das Frontend.

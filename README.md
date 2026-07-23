@@ -7,8 +7,23 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.79**
+**Aktuelle Version: v0.7.79.2**
 
+
+
+## Wartung in v0.7.79.2
+
+- Die stündliche Detailansicht verwendet in Standard- und Erweitertem Modus die Reihenfolge JETZT-Zeitmarkierung, Wetterpiktogramme, Sonnenschein-/Bewölkungsband und Diagrammfläche.
+- Die blaue Linie des ausgewählten Zeitschritts reicht bis zur Piktogramm-Lane und liegt hinter den Symbolen.
+- Die oberen Diagramm-Lanes besitzen auf Smartphone, Tablet und Desktop weiterhin getrennte Abstände.
+- Keine funktionale Änderung am Cloudflare Worker.
+
+
+## Wartung in v0.7.79.1
+
+- Im stündlichen Detaildiagramm stehen die Wetterpiktogramme nun oberhalb des Sonnenschein-/Bewölkungsbands.
+- Das Band wurde an die bisherige Piktogrammposition verschoben; Jetzt-Zeit und Diagrammbeginn wurden mit ausreichendem Abstand nachgeführt.
+- Keine funktionale Änderung am Cloudflare Worker.
 
 
 ## Neuerungen in v0.7.79

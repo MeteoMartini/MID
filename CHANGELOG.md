@@ -1,3 +1,16 @@
+# MID v0.7.79.2
+
+- In beiden Ansichtsmodi folgt der Kopfbereich der stündlichen Detailansicht nun der Reihenfolge: JETZT-Zeitmarkierung, Wetterpiktogramme, Sonnenschein-/Bewölkungsband, eigentliche Diagrammfläche.
+- Die blaue Markierung des ausgewählten Zeitschritts reicht jetzt bis in die Piktogramm-Lane und wird hinter den Wetterpiktogrammen gezeichnet, damit diese lesbar bleiben.
+- Vertikale Abstände und Diagrammhöhe wurden für schmale und breite Ansichten gemeinsam angepasst.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionssynchronisierung.
+
+# MID v0.7.79.1
+
+- In der stündlichen Detailansicht wurden Wetterpiktogramme und Sonnenschein-/Bewölkungsband vertikal getauscht: Die Piktogramme stehen nun oben, das Band direkt darunter.
+- Abstände zur Jetzt-Zeitmarkierung und zur eigentlichen Diagrammfläche wurden entsprechend angepasst, damit alle Elemente weiterhin getrennt bleiben.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionssynchronisierung.
+
 # MID v0.7.79
 
 - Im Erweiterten Modus zeigt die Ortszeile nun die aktuelle Ortszeit mit GMT-Abweichung und zusätzlich die Z-Zeit in Klammern; die einzeilige Darstellung passt ihre Schriftgröße responsiv an.
