@@ -1,3 +1,11 @@
+# MID v0.7.82.2
+
+- Die 7-Tage-Vorhersage zeigt an warnfreien Tagen wieder einen dezenten Hinweis „Keine Warnhinweise“.
+- Best-Match-Hazards ab interner Intensitätsstufe 2 erscheinen im Ensemble-Temperaturtrend wieder als kompakte, farbcodierte Piktogramme direkt oberhalb des Sonnenschein-/Bewölkungsbands; die vollständigen Angaben bleiben im Tages-Tooltip.
+- Schriftart und Textfarben des Ensemble-Temperatur-Tooltips wurden vereinheitlicht.
+- Aus sämtlichen automatisch erzeugten Warntexten und Windschwellen-Tooltips wurden ausgeschriebene Hinweise auf DWD-Warnstufen entfernt; die interne Farbcodierung und Schwellenlogik bleiben unverändert.
+- Cloudflare Worker ohne funktionale Änderung; nur Versionssynchronisierung.
+
 # MID v0.7.82.1
 
 - Die ausgeschriebene Bezeichnung zeigt die Anfangsbuchstaben **M**, **I** und **D** innerhalb von „Meteorological Information Dashboard“ fett.

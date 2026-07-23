@@ -7,7 +7,14 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.82.1**
+**Aktuelle Version: v0.7.82.2**
+
+## Wartung in v0.7.82.2
+
+- Warnfreie Tage der 7-Tage-Vorhersage werden wieder dezent als solche gekennzeichnet.
+- Im Ensemble-Temperaturtrend stehen kompakte, nach Intensität eingefärbte Best-Match-Warnpiktogramme direkt über dem Sonnenschein-/Bewölkungsband; ausführliche Angaben bleiben im Tooltip.
+- Der Ensemble-Tooltip verwendet konsistente Schrift- und Textfarben.
+- Automatisch erzeugte Warntexte nennen keine DWD-Warnstufennummern mehr.
 
 ## Wartung in v0.7.82.1
 

@@ -35,6 +35,8 @@ else{
  if(!/^35 kt \(65 km\/h\)$/.test(kn))failures.push(`Windwert in kt/km/h unerwartet: ${kn}`);
  if(!/^65 km\/h \(Bft 8\)$/.test(kmh))failures.push(`Windwert in km/h/Bft unerwartet: ${kmh}`);
  if(!detail.includes('35 kt (65 km/h)'))failures.push('Warntext berücksichtigt die gewählte Einheit nicht.');
+
+if(detail.includes('DWD-Warnstufe')||detail.includes('DWD-Hitzewarnstufe'))failures.push('Warntext enthält weiterhin eine ausgeschriebene Warnstufe.');
  if(formatDwdWarningCompactValue(windSignal,'kn')!=='35 kt')failures.push('Kompakter Tageswarnwert enthält weiterhin eine Umrechnung.');
  if(formatDwdWarningCompactValue(windSignal,'kmh')!=='65 km/h')failures.push('Kompakter Tageswarnwert in km/h ist falsch.');
 }
@@ -43,9 +45,10 @@ const heat=signal([sample({apparent:38.6})],'heat');
 if(heat&&/[,.]\d/.test(formatDwdWarningDetail(heat,'kn')))failures.push('Wärme-Warntext enthält weiterhin Kommawerte.');
 
 for(const token of ["minimumLevel:DwdWarningLevel=1","dailyHazards(d,dayHours,elevation,unit,1)",'compact-hazard','formatDwdWarningCompactValue(signal,unit)'])if(!app.includes(token))failures.push(`7-Tage-Hazarddarstellung fehlt: ${token}`);
+if(!app.includes('Keine Warnhinweise')||!styles.includes('.forecast-hazards .no-hazard'))failures.push('Dezenter Hinweis für warnfreie Tage fehlt.');
 for(const token of ['detailWarningMarkers(p,hours,elevation)','model-warning-marker','detail-model-warning-tooltip','data-warning-y'])if(app.includes(token))failures.push(`Warnmarker ist im Detaildiagramm noch vorhanden: ${token}`);
 for(const token of ['signal.level>=2','Best-Match-Warnhinweise','ensemble-hazard-tooltip'])if(!ensemble.includes(token))failures.push(`Ensemble-Hazard-Tooltip fehlt: ${token}`);
-for(const token of ['EnsembleHazardShape','hazardPoints','ensemble-hazard-marker'])if(ensemble.includes(token)||styles.includes(token))failures.push(`Veralteter Ensemble-Hazardmarker ist noch vorhanden: ${token}`);
+for(const token of ['EnsembleHazardShape','ReferenceDot','ensemble-hazard-marker'])if(!ensemble.includes(token)&&!styles.includes(token))failures.push(`Kompakter Ensemble-Hazardmarker fehlt: ${token}`);
 if(!styles.includes('.forecast-hazards .compact-hazard')||!styles.includes('.ensemble-hazard-tooltip'))failures.push('Hazard-Stile für 7-Tage- und Ensemble-Tooltip fehlen.');
 
 await rm(outDir,{recursive:true,force:true});
