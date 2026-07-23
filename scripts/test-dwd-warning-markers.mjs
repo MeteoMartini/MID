@@ -8,7 +8,7 @@ const outDir=path.join(root,'.dwd-warning-test');
 await rm(outDir,{recursive:true,force:true});
 const compile=spawnSync('tsc',['src/dwdWarnings.ts','--target','ES2022','--module','ES2022','--moduleResolution','Bundler','--strict','--skipLibCheck','--outDir','.dwd-warning-test'],{cwd:root,stdio:'inherit',shell:process.platform==='win32'});
 if(compile.status!==0)process.exit(compile.status??1);
-const {dwdWarningSignalsAt,summarizeDwdWarnings,formatDwdWarningValue,formatDwdWarningDetail,formatDwdWindValue}=await import(`${pathToFileURL(path.join(outDir,'dwdWarnings.js')).href}?v=${Date.now()}`);
+const {dwdWarningSignalsAt,summarizeDwdWarnings,formatDwdWarningValue,formatDwdWarningCompactValue,formatDwdWarningDetail,formatDwdWindValue}=await import(`${pathToFileURL(path.join(outDir,'dwdWarnings.js')).href}?v=${Date.now()}`);
 const app=await readFile(path.join(root,'src','App.tsx'),'utf8');
 const ensemble=await readFile(path.join(root,'src','EnsemblePanel.tsx'),'utf8');
 const styles=await readFile(path.join(root,'src','styles.css'),'utf8');
@@ -35,16 +35,19 @@ else{
  if(!/^35 kt \(65 km\/h\)$/.test(kn))failures.push(`Windwert in kt/km/h unerwartet: ${kn}`);
  if(!/^65 km\/h \(Bft 8\)$/.test(kmh))failures.push(`Windwert in km/h/Bft unerwartet: ${kmh}`);
  if(!detail.includes('35 kt (65 km/h)'))failures.push('Warntext berücksichtigt die gewählte Einheit nicht.');
+ if(formatDwdWarningCompactValue(windSignal,'kn')!=='35 kt')failures.push('Kompakter Tageswarnwert enthält weiterhin eine Umrechnung.');
+ if(formatDwdWarningCompactValue(windSignal,'kmh')!=='65 km/h')failures.push('Kompakter Tageswarnwert in km/h ist falsch.');
 }
 if(formatDwdWindValue(50,'kmh')!=='50 km/h (Bft 7)')failures.push('Beaufort-Zusatz für km/h ist falsch.');
 const heat=signal([sample({apparent:38.6})],'heat');
 if(heat&&/[,.]\d/.test(formatDwdWarningDetail(heat,'kn')))failures.push('Wärme-Warntext enthält weiterhin Kommawerte.');
 
-for(const token of ["minimumLevel:DwdWarningLevel=1","dailyHazards(d,dayHours,elevation,unit,1)",'compact-hazard','formatDwdWarningValue(signal,unit)'])if(!app.includes(token))failures.push(`7-Tage-Hazarddarstellung fehlt: ${token}`);
+for(const token of ["minimumLevel:DwdWarningLevel=1","dailyHazards(d,dayHours,elevation,unit,1)",'compact-hazard','formatDwdWarningCompactValue(signal,unit)'])if(!app.includes(token))failures.push(`7-Tage-Hazarddarstellung fehlt: ${token}`);
 for(const token of ['detailWarningMarkers(p,hours,elevation)','model-warning-marker','detail-model-warning-tooltip','data-warning-y'])if(app.includes(token))failures.push(`Warnmarker ist im Detaildiagramm noch vorhanden: ${token}`);
-for(const token of ['EnsembleHazardShape','hazardPoints','signal.level>=2','ensemble-hazard-marker','DWD_WARNING_COLORS'])if(!ensemble.includes(token))failures.push(`Ensemble-Hazarddarstellung fehlt: ${token}`);
-if(!styles.includes('.forecast-hazards .compact-hazard')||!styles.includes('.ensemble-hazard-marker'))failures.push('Hazard-Stile für 7-Tage- und Ensemble-Darstellung fehlen.');
+for(const token of ['signal.level>=2','Best-Match-Warnhinweise','ensemble-hazard-tooltip'])if(!ensemble.includes(token))failures.push(`Ensemble-Hazard-Tooltip fehlt: ${token}`);
+for(const token of ['EnsembleHazardShape','hazardPoints','ensemble-hazard-marker'])if(ensemble.includes(token)||styles.includes(token))failures.push(`Veralteter Ensemble-Hazardmarker ist noch vorhanden: ${token}`);
+if(!styles.includes('.forecast-hazards .compact-hazard')||!styles.includes('.ensemble-hazard-tooltip'))failures.push('Hazard-Stile für 7-Tage- und Ensemble-Tooltip fehlen.');
 
 await rm(outDir,{recursive:true,force:true});
 if(failures.length){console.error('DWD-Warnkriterien-/Darstellungsprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('DWD-Warnungen geprüft: Warntexte sind ganzzahlig und einheitenbewusst; 7-Tage-Hazards starten bei Stufe 1, Detailmarker sind entfernt und der Ensembletrend zeigt Hazards ab Stufe 2.');
+console.log('DWD-Warnungen geprüft: Warntexte sind ganzzahlig und einheitenbewusst; 7-Tage-Hazards zeigen nur Wert und Einheit, Detailmarker sind entfernt und Ensemble-Hazards stehen ab Stufe 2 im Tooltip.');

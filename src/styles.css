@@ -1504,6 +1504,9 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 .forecast-hazards .compact-hazard{display:inline-flex;align-items:center;gap:4px;max-width:100%;white-space:nowrap}
 .forecast-hazards .compact-hazard b{font-size:1.15em;line-height:1}
 .forecast-hazards .compact-hazard em{overflow:hidden;font-style:normal;font-weight:800;text-overflow:ellipsis}
-.ensemble-hazard-marker{cursor:help;outline:none}
-.ensemble-hazard-marker:hover circle:first-of-type{filter:brightness(1.08)}
 @media(max-width:760px){.forecast-hazards .compact-hazard{gap:3px}.forecast-hazards .compact-hazard b{font-size:1.05em}.forecast-hazards .compact-hazard em{font-size:.92em}}
+
+/* MID v0.7.82.1 – kompakte Warn-/Branding-Korrekturen */
+.brand-expanded b{display:inline;font-weight:900;color:inherit}
+.trend-tooltip>.tooltip-group.ensemble-hazard-tooltip{display:grid;gap:2px}
+.trend-tooltip>.tooltip-group.ensemble-hazard-tooltip span{white-space:normal}

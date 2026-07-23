@@ -1,3 +1,12 @@
+# MID v0.7.82.1
+
+- Die ausgeschriebene Bezeichnung zeigt die Anfangsbuchstaben **M**, **I** und **D** innerhalb von „Meteorological Information Dashboard“ fett.
+- Das Rückfallsystem versucht eine neuere, vollständig gecachte MID-Version nun automatisch erneut; die Rückfallleiste verschwindet beim manuellen erneuten Test sofort und bleibt nicht dauerhaft an einer älteren Version hängen.
+- Warnfelder der 7-Tage-Vorhersage zeigen nur noch den prognostizierten Wert in der gewählten Einheit, ohne zusätzliche Umrechnung oder Beaufortangabe; der vollständige Warntext bleibt im Tooltip.
+- Best-Match-Warnhinweise ab Warnstufe 2 wurden im Ensemble-Temperaturtrend aus der Diagrammfläche entfernt und platzsparend in den Tages-Tooltip integriert.
+- Im Detaildiagramm besitzt die Niederschlagswahrscheinlichkeit eine unabhängige rechte 0-/50-/100-%-Achse. Niederschlagsbalken werden an den Plotgrenzen beschnitten und können die rechte Achse nicht mehr überdecken.
+- Cloudflare Worker ohne funktionale Änderung; nur Versionssynchronisierung.
+
 # MID v0.7.82
 
 - Warntexte und kompakte Hazardwerte verwenden die gewählte Windeinheit; bei kt, m/s oder mph wird der km/h-Wert ergänzt, bei km/h die Beaufortstärke.

@@ -7,7 +7,16 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.82**
+**Aktuelle Version: v0.7.82.1**
+
+## Wartung in v0.7.82.1
+
+- In der ausgeschriebenen Produktbezeichnung sind **M**, **I** und **D** hervorgehoben.
+- Eine nach einem Rückfall neu bereitgestellte Version wird automatisch erneut als kontrolliertes Update getestet. Beim manuellen Test verschwindet die Rückfallleiste unmittelbar und der Aufruf erfolgt mit Cache-Busting.
+- Die 7-Tage-Warnfelder enthalten ausschließlich Wert und gewählte Einheit; Umrechnungen und Beaufort bleiben dem ausführlichen Tooltip vorbehalten.
+- Ensemble-Hazards ab Warnstufe 2 stehen kompakt im Temperaturtrend-Tooltip statt als zusätzliche Marker in der Diagrammfläche.
+- Niederschlagsbalken bleiben innerhalb der Plotfläche. Die rechte Wahrscheinlichkeitsskala ist als eigenständige Achse mit 0, 50 und 100 Prozent ausgerichtet.
+- Keine funktionale Änderung am Cloudflare Worker.
 
 ## Neuerungen in v0.7.82
 

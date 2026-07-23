@@ -36,6 +36,15 @@ export function formatDwdWindValue(kmh:number,unit:DwdDisplayWindUnit='kt'){
  const value=Math.max(0,finite(kmh)),primary=unit==='kmh'?`${rounded(value)} km/h`:unit==='ms'?`${rounded(value/3.6)} m/s`:unit==='mph'?`${rounded(value/1.609344)} mph`:`${rounded(value/KMH_PER_KT)} kt`;
  return unit==='kmh'?`${primary} (Bft ${beaufortFromKmh(value)})`:`${primary} (${rounded(value)} km/h)`;
 }
+export function formatDwdWarningCompactValue(signal:DwdWarningSignal,unit:DwdDisplayWindUnit='kt'){
+ const windOnly=(kmh:number)=>{const value=Math.max(0,finite(kmh));return unit==='kmh'?`${rounded(value)} km/h`:unit==='ms'?`${rounded(value/3.6)} m/s`:unit==='mph'?`${rounded(value/1.609344)} mph`:`${rounded(value/KMH_PER_KT)} kt`};
+ if(signal.kind==='wind'||signal.kind==='snowdrift')return windOnly(signal.value);
+ if(signal.kind==='heavyRain'||signal.kind==='continuousRain')return`${rounded(signal.value)} mm`;
+ if(signal.kind==='snow')return`${rounded(signal.value)} cm`;
+ if(signal.kind==='fog')return`${Math.max(0,rounded(signal.value))} m`;
+ if(signal.kind==='heat'||signal.kind==='frost'||signal.unit==='°C')return`${rounded(signal.value)} °C`;
+ return'';
+}
 export function formatDwdWarningValue(signal:DwdWarningSignal,unit:DwdDisplayWindUnit='kt'){
  if(signal.kind==='wind')return formatDwdWindValue(signal.value,unit);
  if(signal.kind==='snowdrift'){const snow=Number.isFinite(signal.secondaryValue)?`${rounded(signal.secondaryValue!)} cm · `:'';return`${snow}${formatDwdWindValue(signal.value,unit)}`}
