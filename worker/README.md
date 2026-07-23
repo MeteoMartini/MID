@@ -1,3 +1,11 @@
+# MID Daten-, Warnungs- und Radarproxy v0.7.84.1
+
+Keine funktionale Cloudflare-Worker-Änderung in v0.7.84.1; die Versionsnummer wurde ausschließlich mit der TypeScript-Buildkorrektur des OPERA-Rasteroverlays synchronisiert.
+
+# MID Daten-, Warnungs- und Radarproxy v0.7.84
+
+Phase 1 stellt das echte EUMETNET-OPERA-CIRRUS-DBZH-Raster über `opera-raster-meta` und `opera-raster-file` bereit. Die Anwendung wertet dasselbe 1-km-/5-Minuten-Raster für Karte und aktuelle Niederschlagswahrscheinlichkeit aus. Die Reihenfolge lautet DWD → OPERA CIRRUS → RainViewer; die frühere OPERA-Punkt-/Stützstellenlogik ist entfernt.
+
 # MID Daten-, Warnungs- und Radarproxy v0.7.83.3
 
 Keine funktionale Cloudflare-Worker-Änderung in v0.7.83.3; die Versionsnummer wurde ausschließlich mit der Achsenausrichtung des Frontends synchronisiert.
@@ -90,7 +98,7 @@ Der Worker wurde funktional erweitert. Die Route `mode=composite-wms` leitet aus
 - Satellitenprodukte ohne vollständige Zeitreihe werden als `latestOnly` gemeldet; sofern die Capabilities einen letzten exakten Zeitpunkt enthalten, wird dieser zusätzlich als `latestTime` fixiert.
 - Blitzortung.org ist keine Worker-Quelle. Die Anwendung übernimmt lediglich eine ähnliche alterscodierte Darstellung; Rohdaten werden ausschließlich aus freigegebenen DWD- beziehungsweise autorisierten kommerziellen Quellen bezogen.
 
-Der Worker erweitert die bestehenden Stations-, Warnungs- und Nowcast-Dienste um zeitlich begrenzte Radar-/OPERA-Filmfenster und eine ortsabhängige Blitzquellenwahl. Mit autorisierten Xweather-Zugangsdaten werden weltweite Vaisala-/GLD360-Punktdaten genutzt; ohne Zugangsdaten bleiben DWD-Blitzgeometrien in Deutschland und EUMETSAT MTG-LI als freier Satelliten-Fallback erhalten. Die bisherigen Schnittstellen bleiben kompatibel.
+Der Worker erweitert die bestehenden Stations-, Warnungs- und Nowcast-Dienste um ein zeitlich validiertes OPERA-CIRRUS-HDF5-Filmfenster und eine ortsabhängige Blitzquellenwahl. Mit autorisierten Xweather-Zugangsdaten werden weltweite Vaisala-/GLD360-Punktdaten genutzt; ohne Zugangsdaten bleiben DWD-Blitzgeometrien in Deutschland und EUMETSAT MTG-LI als freier Satelliten-Fallback erhalten. Die bisherigen Schnittstellen bleiben kompatibel.
 
 ## Enthaltene Dienste
 
@@ -105,9 +113,9 @@ Der Worker erweitert die bestehenden Stations-, Warnungs- und Nowcast-Dienste um
 - DWD-Warnungen – Deutschland
 - MeteoAlarm/CAP – unterstützte europäische Länder
 - NOAA/NWS Active Alerts – USA
-- Radar-Nowcast: DWD-RV in Deutschland, EUMETNET OPERA/ORD in Europa und RainViewer als Fallback
+- Radar-Nowcast: DWD-RV in Deutschland; das Frontend wertet danach das echte OPERA-CIRRUS-Raster aus; RainViewer ist der letzte Fallback
 - PX250-Metadaten und HDF5-Dateiproxy für das hochaufgelöste lokale DWD-Radarprodukt
-- EUMETNET-OPERA-RATE-Punktraster einschließlich kompakter Historie bis ungefähr 60 Minuten für die europäische Kartenvisualisierung
+- EUMETNET OPERA CIRRUS DBZH als echtes ODIM-HDF5-Raster mit 1 km Rasterweite und ungefähr 60 Minuten Historie
 - Ortsabhängige Blitzquelle: optional weltweite Vaisala-Xweather-/GLD360-Punktdaten, sonst DWD-Blitzgeometrien in Deutschland und MTG-LI-Raster im Satellitenabdeckungsbereich
 - Reale, layergebundene WMS-Produktzeitpunkte sowie dynamische Satellitenproduktwahl (`composite-times`)
 - CORS-sicherer DWD-/EUMETSAT-Kartenproxy mit DWD-Ausfallserver (`composite-wms`)
@@ -156,8 +164,8 @@ Beispielantwort:
 ```json
 {
   "ok": true,
-  "version": "0.7.36",
-  "services": ["stations", "alerts", "hyperlocal-networks", "model-assisted-local-analysis", "radar-nowcast", "px250-proxy", "opera-grid-history", "rainviewer-metadata", "best-location-lightning", "composite-product-times", "model-contours", "cors-safe-composite-wms"],
+  "version": "0.7.84",
+  "services": ["stations", "alerts", "hyperlocal-networks", "model-assisted-local-analysis", "radar-nowcast", "px250-proxy", "opera-cirrus-raster", "rainviewer-metadata", "best-location-lightning", "composite-product-times", "model-contours", "cors-safe-composite-wms"],
   "providers": {
     "NOAA AviationWeather": true,
     "DWD Open Data / Bright Sky": true,
@@ -175,14 +183,18 @@ Kompositbild-Diagnose für Niederkassel:
 
 ```text
 https://DEIN-WORKER.workers.dev/?mode=px250-meta&lat=50.82&lon=7.04
-https://DEIN-WORKER.workers.dev/?mode=opera-grid&lat=50.82&lon=7.04
+https://DEIN-WORKER.workers.dev/?mode=opera-raster-meta&lat=50.82&lon=7.04
 https://DEIN-WORKER.workers.dev/?mode=lightning-points&lat=50.82&lon=7.04
 https://DEIN-WORKER.workers.dev/?mode=composite-times&lat=50.82&lon=7.04
 https://DEIN-WORKER.workers.dev/?mode=rainviewer-meta&lat=50.82&lon=7.04
 https://DEIN-WORKER.workers.dev/?mode=model-contours&lat=50.82&lon=7.04
+https://DEIN-WORKER.workers.dev/?mode=radar-nowcast&stage=dwd&country=DE&lat=50.82&lon=7.04
+https://DEIN-WORKER.workers.dev/?mode=radar-nowcast&stage=rainviewer&lat=50.82&lon=7.04
 ```
 
-Der von `px250-meta` zurückgegebene `fileUrl` verweist auf denselben Worker und darf direkt vom Frontend geladen werden. PX250, OPERA und die freien DWD-/MTG-LI-Fallbacks benötigen keine zusätzlichen Secrets. Für weltweite Xweather-/GLD360-Blitzpunkte sind `XWEATHER_CLIENT_ID` und `XWEATHER_CLIENT_SECRET` erforderlich.
+`stage=dwd` prüft ausschließlich das deutsche DWD-Radar. `stage=rainviewer` ruft ausschließlich den letzten globalen Notfallpfad auf. OPERA wird dazwischen im Frontend aus dem echten CIRRUS-HDF5 ausgewertet, damit Karte und aktuelle Niederschlagswahrscheinlichkeit dasselbe Raster nutzen.
+
+Der von `px250-meta` zurückgegebene `fileUrl` verweist auf denselben Worker und darf direkt vom Frontend geladen werden. PX250, OPERA CIRRUS und die freien DWD-/MTG-LI-Fallbacks benötigen keine zusätzlichen Secrets. Für weltweite Xweather-/GLD360-Blitzpunkte sind `XWEATHER_CLIENT_ID` und `XWEATHER_CLIENT_SECRET` erforderlich.
 
 Stationsabruf für Innsbruck:
 
@@ -233,11 +245,13 @@ Deutschland/DWD:
 https://DEIN-WORKER.workers.dev/?mode=radar-nowcast&lat=50.82&lon=7.04&country=DE
 ```
 
-Europa/OPERA:
+Europa/OPERA-CIRRUS-Metadaten:
 
 ```text
-https://DEIN-WORKER.workers.dev/?mode=radar-nowcast&lat=39.2238&lon=9.1217&country=IT
+https://DEIN-WORKER.workers.dev/?mode=opera-raster-meta&lat=39.2238&lon=9.1217
 ```
+
+Die standortbezogene OPERA-Auswertung erfolgt im Frontend aus dem zurückgegebenen HDF5-Raster und wird mit der aktuellen Niederschlagswahrscheinlichkeit kombiniert.
 
 Außerhalb Europas/RainViewer-Fallback:
 

@@ -14,7 +14,7 @@ const GEOSPHERE_META='https://dataset.api.hub.geosphere.at/v1/station/current/ta
 const GEOSPHERE_CURRENT='https://dataset.api.hub.geosphere.at/v1/station/current/tawes-v1-10min';
 const BRIGHTSKY_CURRENT='https://api.brightsky.dev/current_weather';
 const OPENSENSEMAP_BOXES='https://api.opensensemap.org/boxes';
-const WORKER_VERSION='0.7.83.3';
+const WORKER_VERSION='0.7.84.1';
 const CORS={'content-type':'application/json; charset=utf-8','access-control-allow-origin':'*','access-control-allow-methods':'GET,OPTIONS','cache-control':'public, max-age=180'};
 const FEED_SLUGS={
  AD:'andorra',AT:'austria',BE:'belgium',BA:'bosnia-herzegovina',BG:'bulgaria',HR:'croatia',CY:'cyprus',CZ:'czechia',DK:'denmark',EE:'estonia',FI:'finland',FR:'france',DE:'germany',GR:'greece',EL:'greece',HU:'hungary',IS:'iceland',IE:'ireland',IL:'israel',IT:'italy',LV:'latvia',LT:'lithuania',LU:'luxembourg',MT:'malta',MD:'moldova',ME:'montenegro',NL:'netherlands',MK:'republic-of-north-macedonia',NO:'norway',PL:'poland',PT:'portugal',RO:'romania',RS:'serbia',SK:'slovakia',SI:'slovenia',ES:'spain',SE:'sweden',CH:'switzerland',UA:'ukraine',GB:'united-kingdom',UK:'united-kingdom',AM:'armenia'
@@ -272,13 +272,11 @@ const DWD_RADAR_WMS_BACKUP='https://brz-maps.dwd.de/geoserver/wms';
 // Das explizite RV-Produkt steht zuerst, weil nur seine eigene Zeitdimension
 // zuverlässig Beobachtungen und den Nowcast bis +2 Stunden beschreibt.
 const DWD_RADAR_LAYERS=['dwd:Radar_rv_product_1x1km_ger','dwd:Niederschlagsradar'];
-const OPERA_POSITION='https://api.meteogate.eu/eu-eumetnet-weather-radar/collections/observations/position';
 const RAINVIEWER_META='https://api.rainviewer.com/public/weather-maps.json';
 const RADAR_RATE_LIMIT=400;
 function clamp(v,min,max){return Math.max(min,Math.min(max,v))}
 function dwdRadarApplies(lat,lon,country=''){return directCountryCode(country)==='DE'}
 function operaRadarApplies(lat,lon){return lat>=31.5&&lat<=72.5&&lon>=-30.5&&lon<=50.5}
-function offsetPoint(lat,lon,northKm,eastKm){return{lat:lat+northKm/111,lon:lon+eastKm/(111*Math.max(.2,Math.cos(lat*Math.PI/180)))}}
 function isoFloor5(epochMs=Date.now()){return new Date(Math.floor(epochMs/300000)*300000).toISOString().replace('.000Z','Z')}
 function mmhFromDbz(dbz){const z=10**(dbz/10);return Math.max(0,(z/200)**(1/1.6))}
 function validRadarRate(value){const v=number(value);return v===undefined||v<0||v>RADAR_RATE_LIMIT?undefined:v}
@@ -391,28 +389,6 @@ async function dwdRadarNowcast(lat,lon){
  const result=radarResultFromFrames('dwd','DWD-RV −1 h bis +2 h',query.fromCapabilities?'high':'medium',frames,'Daten: Deutscher Wetterdienst; MID-Pixel- und Punkt-Auswertung',{rateApproximate:false});
  const displayTimes=query.fromCapabilities&&query.times.length>1?query.times:frames.map(x=>x.time);return{...result,radarLayer:query.layer,timeline:[...new Set(displayTimes)].sort((a,b)=>a-b).map(x=>new Date(x).toISOString()),diagnostics:{...(result.diagnostics||{}),endpoint:query.base,layer:query.layer,method:'WMS GetMap + GetFeatureInfo je Analyseframe',featureInfoHits,mapFallbacks,analysedFrames,capabilitiesTimeAxis:query.fromCapabilities,displayWindowMinutes:[-60,120],queryErrors:query.errors.slice(-8)}};
 }
-function coverageSeries(data){
- const collections=Array.isArray(data?.coverages)?data.coverages:[data],out=[];
- for(const cov of collections){if(!cov||typeof cov!=='object')continue;const axes=cov.domain?.axes??{},times=axes.t?.values??axes.time?.values??[],ranges=cov.ranges??{};const rangeKey=Object.keys(ranges).find(k=>/RATE/i.test(k))||Object.keys(ranges)[0],range=rangeKey?ranges[rangeKey]:null,values=range?.values??range?.data??[];if(!Array.isArray(values))continue;
-  const flat=values.flat?values.flat(Infinity):values;for(let i=0;i<Math.min(times.length,flat.length);i++){const rate=validRadarRate(flat[i]);if(rate!==undefined)out.push({time:Date.parse(times[i]),rate})}
- }
- return out.filter(x=>Number.isFinite(x.time)).sort((a,b)=>a.time-b.time);
-}
-async function operaPointSeries(lat,lon){
- const end=new Date(),start=new Date(end.getTime()-100*60000),datetime=`${start.toISOString().replace('.000Z','Z')}/${end.toISOString().replace('.000Z','Z')}`,variants=[
-  {'parameter-name':'RATE:comp',method:'comp'},
-  {standard_name:'RATE',method:'comp'},
-  {'parameter-name':'RATE',method:'comp'},
-  {'parameter-name':'RATE:comp',method:'comp',format:'ODIM'}
- ];
- let lastError;for(const variant of variants){try{const u=new URL(OPERA_POSITION);u.searchParams.set('coords',`POINT(${lon.toFixed(5)} ${lat.toFixed(5)})`);u.searchParams.set('datetime',datetime);u.searchParams.set('f','CoverageJSON');for(const[k,v]of Object.entries(variant))u.searchParams.set(k,v);const response=await fetch(u.toString(),{headers:{Accept:'application/prs.coverage+json,application/json'},cf:{cacheTtl:180,cacheEverything:true}});if(response.status===204)continue;if(!response.ok)throw new Error(`OPERA HTTP ${response.status}`);const data=await response.json(),series=coverageSeries(data);if(series.length)return series}catch(error){lastError=error}}
- throw lastError||new Error('OPERA/ORD liefert keine Punktzeitreihe.');
-}
-async function operaRadarNowcast(lat,lon){
- const points=[[0,0],[4,0],[-4,0],[0,4],[0,-4]].map(([n,e])=>offsetPoint(lat,lon,n,e)),series=await Promise.all(points.map(p=>operaPointSeries(p.lat,p.lon))),times=[...new Set(series.flatMap(s=>s.map(x=>x.time)))].sort((a,b)=>a-b).slice(-10),frames=times.map(time=>{const atTime=series.map(s=>{let best=null;for(const item of s)if(!best||Math.abs(item.time-time)<Math.abs(best.time-time))best=item;return best&&Math.abs(best.time-time)<=8*60000?best.rate:0});return{time,center:atTime[0]||0,nearby:Math.max(...atTime.slice(1),0),future:false}});
- if(!frames.length)throw new Error('OPERA/ORD ohne auswertbare RATE-Daten.');
- const result=radarResultFromFrames('opera','EUMETNET OPERA/ORD RATE','medium',frames,'EUMETNET OPERA composite products, CC BY 4.0; MID-Bewegungsnäherung',{rateApproximate:false});return{...result,timeline:frames.map(frame=>new Date(frame.time).toISOString())};
-}
 function u32(bytes,o){return((bytes[o]<<24)|(bytes[o+1]<<16)|(bytes[o+2]<<8)|bytes[o+3])>>>0}
 function paeth(a,b,c){const p=a+b-c,pa=Math.abs(p-a),pb=Math.abs(p-b),pc=Math.abs(p-c);return pa<=pb&&pa<=pc?a:pb<=pc?b:c}
 async function decodePng(buffer){
@@ -459,13 +435,14 @@ function radarResultFromFrames(source,provider,quality,frames,license,options={}
  else if(observed.length>=2&&Number(observed.at(-2).center)>=.05){radarProbability=12;summary='Das Radarecho hat den Standort zuletzt verlassen; kurzfristig nur geringes Wiederholungsrisiko.'}
  return{source,provider,quality,radarProbability,currentRate:current.rate,rawCurrentRate:current.raw,peakRate,rateApproximate:Boolean(options.rateApproximate),rateUncertain,arrivalMinutes,endMinutes,arrivalKind,arrivalStartAt,arrivalEndAt,endAt,endOpenEnded,endUncertain,observedAt:latestObserved?new Date(latestObserved.time).toISOString():undefined,summary,coverage:true,license,diagnostics:{frames:frames.length,observedFrames:observed.length,futureFrames:future.length,latestNearbyRate:Number(latestObserved?.nearby||0),rawCurrentRate:current.raw}};
 }
-async function radarNowcastForPoint(lat,lon,country=''){
- const errors=[],dwdExpected=dwdRadarApplies(lat,lon,country),operaExpected=operaRadarApplies(lat,lon);
- if(dwdExpected){try{return await dwdRadarNowcast(lat,lon)}catch(error){errors.push(`DWD: ${error instanceof Error?error.message:String(error)}`)}}
- if(operaExpected){try{return await operaRadarNowcast(lat,lon)}catch(error){errors.push(`OPERA: ${error instanceof Error?error.message:String(error)}`)}}
- try{return await rainViewerRadarNowcast(lat,lon)}catch(error){errors.push(`RainViewer: ${error instanceof Error?error.message:String(error)}`)}
- const expectedSource=dwdExpected?'DWD-RV':operaExpected?'EUMETNET OPERA/ORD':undefined;
- return{source:'model',provider:'Open-Meteo Best Match',quality:'low',radarProbability:0,currentRate:0,summary:expectedSource?'Radarabdeckung ist für den Standort grundsätzlich vorhanden, die externe Radarauswertung war vorübergehend nicht abrufbar.':'Für den Standort ist derzeit keine verwertbare Radarabdeckung verfügbar.',coverage:false,coverageExpected:Boolean(expectedSource),temporaryUnavailable:Boolean(expectedSource),expectedSource,diagnostics:{errors}};
+async function radarNowcastForPoint(lat,lon,country='',stage='all'){
+ const errors=[],dwdExpected=dwdRadarApplies(lat,lon,country),operaExpected=operaRadarApplies(lat,lon),dwdOnly=stage==='dwd',rainViewerOnly=stage==='rainviewer';
+ if(!rainViewerOnly&&dwdExpected){try{return await dwdRadarNowcast(lat,lon)}catch(error){errors.push(`DWD: ${error instanceof Error?error.message:String(error)}`)}}
+ // Das echte OPERA-CIRRUS-HDF5 wird im Frontend strikt zwischen der DWD-Stufe
+ // und der RainViewer-Stufe dekodiert und für die Niederschlagswahrscheinlichkeit ausgewertet.
+ if(!dwdOnly)try{const rainViewer=await rainViewerRadarNowcast(lat,lon);return{...rainViewer,diagnostics:{...(rainViewer.diagnostics||{}),requestedStage:stage,fallbackAfter:dwdExpected?'DWD und OPERA CIRRUS':operaExpected?'OPERA CIRRUS':undefined}}}catch(error){errors.push(`RainViewer: ${error instanceof Error?error.message:String(error)}`)}
+ const expectedSource=dwdExpected?'DWD-RV / EUMETNET OPERA CIRRUS':operaExpected?'EUMETNET OPERA CIRRUS':undefined;
+ return{source:'model',provider:'Open-Meteo Best Match',quality:'low',radarProbability:0,currentRate:0,summary:expectedSource?'Radarabdeckung ist für den Standort grundsätzlich vorhanden, die externe Radarauswertung war vorübergehend nicht abrufbar.':'Für den Standort ist derzeit keine verwertbare Radarabdeckung verfügbar.',coverage:false,coverageExpected:Boolean(expectedSource),temporaryUnavailable:Boolean(expectedSource),expectedSource,diagnostics:{errors,requestedStage:stage}};
 }
 
 
@@ -525,15 +502,14 @@ async function px250FileResponse(request){
  if(!Number.isFinite(ageMinutes)||ageMinutes>40||ageMinutes<-10)return json({error:'Der angeforderte PX250-Stand ist nicht aktuell und wird nicht als Livebild ausgeliefert.',version:WORKER_VERSION,observedAt},409,{'cache-control':'no-store'});
  const upstream=await fetch(`${DWD_PX250_ROOT}/${site.code}/${file}`,{headers:{Accept:'application/octet-stream,*/*'},cf:{cacheTtl:180,cacheEverything:true}});if(!upstream.ok)return json({error:`DWD-PX250-Datei HTTP ${upstream.status}`,version:WORKER_VERSION},upstream.status,{'cache-control':'no-store'});const headers=new Headers();headers.set('content-type',upstream.headers.get('content-type')||'application/x-hdf5');headers.set('cache-control','public, max-age=180');headers.set('access-control-allow-origin','*');headers.set('access-control-allow-methods','GET,OPTIONS');const length=upstream.headers.get('content-length');if(length)headers.set('content-length',length);return new Response(upstream.body,{status:200,headers});
 }
-async function operaGrid(lat,lon){
- const spacingKm=42,offsets=[-2,-1,0,1,2],locations=[];for(const north of offsets)for(const east of offsets){const point=offsetPoint(lat,lon,north*spacingKm,east*spacingKm);locations.push(point)}
- const settled=await Promise.allSettled(locations.map(point=>operaPointSeries(point.lat,point.lon))),seriesByLocation=settled.map(result=>result.status==='fulfilled'?result.value:[]),allTimes=[...new Set(seriesByLocation.flatMap(series=>series.map(item=>item.time)))].filter(Number.isFinite).sort((a,b)=>a-b),latest=allTimes.at(-1);
- if(!latest)throw new Error('EUMETNET OPERA/ORD liefert aktuell kein darstellbares Raster.');
- const candidates=allTimes.filter(time=>time>=latest-65*60000),targets=[];for(const time of candidates){if(!targets.length||time-targets.at(-1)>=8*60000)targets.push(time)}if(targets.at(-1)!==latest)targets.push(latest);const selectedTargets=targets.slice(-8),frames=[];
- for(const target of selectedTargets){const points=[];seriesByLocation.forEach((series,index)=>{if(!series.length)return;let nearest=series[0];for(const item of series)if(Math.abs(item.time-target)<Math.abs(nearest.time-target))nearest=item;if(Math.abs(nearest.time-target)>8*60000)return;const point=locations[index];points.push({lat:point.lat,lon:point.lon,rate:validRadarRate(nearest.rate)??0,observedAt:new Date(nearest.time).toISOString()})});if(points.length)frames.push({time:new Date(target).toISOString(),points})}
- if(!frames.length)throw new Error('EUMETNET OPERA/ORD liefert aktuell kein darstellbares Raster.');
- const current=frames.at(-1),observedAt=current.time;return{points:current.points,frames,provider:'EUMETNET OPERA/ORD RATE',observedAt,spacingKm,nativeResolutionKm:2,temporalResolutionMinutes:15,coverage:'Europa · 5×5-Stützraster aus dem OPERA-Komposit · Film bis 60 Minuten',license:'CC BY 4.0'};
-}
+const OPERA_S3_ROOT='https://s3.waw3-1.cloudferro.com/openradar-24h';
+function operaNominalTime(value=Date.now()-5*60000){const date=new Date(value);date.setUTCSeconds(0,0);date.setUTCMinutes(Math.floor(date.getUTCMinutes()/5)*5);return date.getTime()}
+function operaStamp(value){const date=new Date(value),pad=number=>String(number).padStart(2,'0');return`${date.getUTCFullYear()}${pad(date.getUTCMonth()+1)}${pad(date.getUTCDate())}T${pad(date.getUTCHours())}${pad(date.getUTCMinutes())}`}
+function operaS3Url(value){const date=new Date(value),pad=number=>String(number).padStart(2,'0');return`${OPERA_S3_ROOT}/${date.getUTCFullYear()}/${pad(date.getUTCMonth()+1)}/${pad(date.getUTCDate())}/OPERA/COMP/OPERA@${operaStamp(value)}@0@DBZH.h5`}
+async function operaFrameExists(value){const upstream=operaS3Url(value);try{const head=await fetch(upstream,{method:'HEAD',headers:{Accept:'application/octet-stream'},cf:{cacheTtl:120,cacheEverything:true}});if(head.ok)return true;if(![403,405].includes(head.status))return false}catch{}try{const probe=await fetch(upstream,{headers:{Accept:'application/octet-stream','Range':'bytes=0-7'},cf:{cacheTtl:120,cacheEverything:true}}),ok=probe.ok||probe.status===206;try{await probe.body?.cancel()}catch{}return ok}catch{return false}}
+function operaProxyFileUrl(request,value){const url=new URL(request.url);url.search='';url.searchParams.set('mode','opera-raster-file');url.searchParams.set('time',new Date(value).toISOString());return url.toString()}
+async function operaRasterMetadata(request){let latest=NaN,start=operaNominalTime();for(let index=0;index<10;index++){const candidate=start-index*5*60000;if(await operaFrameExists(candidate)){latest=candidate;break}}if(!Number.isFinite(latest))throw new Error('EUMETNET OPERA CIRRUS liefert im aktuellen Zeitfenster keine erreichbare HDF5-Datei.');const frames=[];for(let index=12;index>=0;index--){const time=latest-index*5*60000;frames.push({time:new Date(time).toISOString(),fileUrl:operaProxyFileUrl(request,time),product:'DBZH',nativeResolutionKm:1,temporalResolutionMinutes:5})}return{frames,provider:'EUMETNET OPERA CIRRUS / ORD',product:'DBZH',observedAt:new Date(latest).toISOString(),nativeResolutionKm:1,temporalResolutionMinutes:5,coverage:'Europa · echtes CIRRUS-Maximalreflektivitätskomposit · 1-km-Raster · 60-Minuten-Film',license:'CC BY 4.0'}}
+async function operaRasterFileResponse(request){const url=new URL(request.url),raw=String(url.searchParams.get('time')||''),time=Date.parse(raw);if(!Number.isFinite(time))return json({error:'Ungültiger OPERA-Zeitpunkt.',version:WORKER_VERSION},400,{'cache-control':'no-store'});const date=new Date(time),aligned=date.getUTCSeconds()===0&&date.getUTCMilliseconds()===0&&date.getUTCMinutes()%5===0,age=Date.now()-time;if(!aligned||age>130*60000||age<-10*60000)return json({error:'Der angeforderte OPERA-Stand liegt außerhalb des zulässigen Livefensters.',version:WORKER_VERSION,requestedTime:new Date(time).toISOString()},409,{'cache-control':'no-store'});const upstream=await fetch(operaS3Url(time),{headers:{Accept:'application/octet-stream,*/*'},cf:{cacheTtl:300,cacheEverything:true}});if(!upstream.ok)return json({error:`OPERA-HDF5 HTTP ${upstream.status}`,version:WORKER_VERSION,requestedTime:new Date(time).toISOString()},upstream.status,{'cache-control':'no-store'});const headers=new Headers();headers.set('content-type',upstream.headers.get('content-type')||'application/x-hdf5');headers.set('cache-control','public, max-age=300, stale-while-revalidate=120');headers.set('access-control-allow-origin','*');headers.set('access-control-allow-methods','GET,OPTIONS');headers.set('x-mid-radar-provider','EUMETNET OPERA CIRRUS');headers.set('x-mid-radar-product','DBZH');headers.set('x-mid-worker-version',WORKER_VERSION);const length=upstream.headers.get('content-length');if(length)headers.set('content-length',length);return new Response(upstream.body,{status:200,headers})}
 function flattenCoordinatePairs(value,out=[]){if(!Array.isArray(value))return out;if(value.length>=2&&Number.isFinite(Number(value[0]))&&Number.isFinite(Number(value[1]))){out.push([Number(value[0]),Number(value[1])]);return out}for(const child of value)flattenCoordinatePairs(child,out);return out}
 function geometryCentre(geometry){const pairs=flattenCoordinatePairs(geometry?.coordinates);if(!pairs.length)return null;const valid=pairs.filter(([lon,lat])=>lon>=-180&&lon<=180&&lat>=-90&&lat<=90);if(!valid.length)return null;return{lon:valid.reduce((sum,p)=>sum+p[0],0)/valid.length,lat:valid.reduce((sum,p)=>sum+p[1],0)/valid.length}}
 function lightningTimestamp(feature){const props=feature?.properties&&typeof feature.properties==='object'?feature.properties:{},preferred=Object.entries(props).filter(([key])=>/(time|date|valid|reference|start|end|timestamp)/i.test(key));for(const[,value]of preferred){const parsed=safeDate(value);if(parsed)return parsed}for(const value of[feature?.id,...Object.values(props)]){if(typeof value!=='string')continue;const match=value.match(/20\d{2}-?\d{2}-?\d{2}[T_ -]?\d{2}:?\d{2}(?::?\d{2})?/);if(match){const parsed=safeDate(match[0].replace('_','T'));if(parsed)return parsed}}return undefined}
@@ -686,8 +662,9 @@ export default{async fetch(request,env){
  if(request.method==='OPTIONS')return new Response(null,{status:204,headers:CORS});
  const u=new URL(request.url),mode=u.searchParams.get('mode')||'';
  if(mode==='px250-file')return px250FileResponse(request);
+ if(mode==='opera-raster-file')return operaRasterFileResponse(request);
  if(mode==='composite-wms')return compositeWmsResponse(request);
- if(mode==='health')return json({ok:true,version:WORKER_VERSION,services:['stations','alerts','hyperlocal-networks','model-assisted-local-analysis','radar-nowcast','px250-proxy','opera-grid-history','rainviewer-metadata','best-location-lightning','composite-product-times','model-contours','pressure-level-meteogram','cors-safe-composite-wms'],providers:{'NOAA AviationWeather':true,'DWD Open Data / Bright Sky':true,'GeoSphere Austria':true,'openSenseMap / senseBox':env?.ENABLE_OPENSENSEMAP!=='false','Weather Underground':Boolean(env?.WEATHER_COM_API_KEY||env?.WU_API_KEY),Netatmo:Boolean(env?.NETATMO_ACCESS_TOKEN),'Synoptic Data':Boolean(env?.SYNOPTIC_TOKEN),Xweather:Boolean(env?.XWEATHER_CLIENT_ID&&env?.XWEATHER_CLIENT_SECRET)},timestamp:new Date().toISOString()});
+ if(mode==='health')return json({ok:true,version:WORKER_VERSION,services:['stations','alerts','hyperlocal-networks','model-assisted-local-analysis','radar-nowcast','px250-proxy','opera-cirrus-raster','rainviewer-metadata','best-location-lightning','composite-product-times','model-contours','pressure-level-meteogram','cors-safe-composite-wms'],providers:{'NOAA AviationWeather':true,'DWD Open Data / Bright Sky':true,'GeoSphere Austria':true,'openSenseMap / senseBox':env?.ENABLE_OPENSENSEMAP!=='false','Weather Underground':Boolean(env?.WEATHER_COM_API_KEY||env?.WU_API_KEY),Netatmo:Boolean(env?.NETATMO_ACCESS_TOKEN),'Synoptic Data':Boolean(env?.SYNOPTIC_TOKEN),Xweather:Boolean(env?.XWEATHER_CLIENT_ID&&env?.XWEATHER_CLIENT_SECRET)},timestamp:new Date().toISOString()});
  const lat=Number(u.searchParams.get('lat')),lon=Number(u.searchParams.get('lon'));if(!Number.isFinite(lat)||!Number.isFinite(lon))return json({error:'lat/lon required',version:WORKER_VERSION},400);
  if(mode==='rainviewer-meta'){
   try{return json({...await rainViewerMetadata(),version:WORKER_VERSION,checkedAt:new Date().toISOString()},200,{'cache-control':'public, max-age=120'})}
@@ -705,9 +682,9 @@ export default{async fetch(request,env){
   try{return json({...await px250Metadata(request,lat,lon),version:WORKER_VERSION,checkedAt:new Date().toISOString()},200,{'cache-control':'public, max-age=120'})}
   catch(error){return json({available:false,error:error instanceof Error?error.message:String(error),version:WORKER_VERSION,checkedAt:new Date().toISOString()},502,{'cache-control':'no-store'})}
  }
- if(mode==='opera-grid'){
-  try{return json({...await operaGrid(lat,lon),version:WORKER_VERSION,checkedAt:new Date().toISOString()},200,{'cache-control':'public, max-age=180'})}
-  catch(error){return json({points:[],error:error instanceof Error?error.message:String(error),version:WORKER_VERSION,checkedAt:new Date().toISOString()},502,{'cache-control':'no-store'})}
+ if(mode==='opera-raster-meta'){
+  try{return json({...await operaRasterMetadata(request),version:WORKER_VERSION,checkedAt:new Date().toISOString()},200,{'cache-control':'public, max-age=120'})}
+  catch(error){return json({frames:[],error:error instanceof Error?error.message:String(error),version:WORKER_VERSION,checkedAt:new Date().toISOString()},502,{'cache-control':'no-store'})}
  }
  if(mode==='composite-times'){
   try{return json({...await compositeTimes(lat,lon),version:WORKER_VERSION},200,{'cache-control':'public, max-age=60'})}
@@ -718,7 +695,7 @@ export default{async fetch(request,env){
   catch(error){return json({points:[],error:error instanceof Error?error.message:String(error),version:WORKER_VERSION,checkedAt:new Date().toISOString()},502,{'cache-control':'no-store'})}
  }
  if(mode==='radar-nowcast'){
-  try{const result=await radarNowcastForPoint(lat,lon,u.searchParams.get('country')||'');return json({...result,version:WORKER_VERSION,checkedAt:new Date().toISOString()},200,{'cache-control':'public, max-age=120'})}
+  try{const requestedStage=u.searchParams.get('stage')||'all',stage=['dwd','rainviewer'].includes(requestedStage)?requestedStage:'all',result=await radarNowcastForPoint(lat,lon,u.searchParams.get('country')||'',stage);return json({...result,version:WORKER_VERSION,checkedAt:new Date().toISOString()},200,{'cache-control':'public, max-age=120'})}
   catch(error){return json({error:error instanceof Error?error.message:String(error),version:WORKER_VERSION,checkedAt:new Date().toISOString()},502,{'cache-control':'no-store'})}
  }
  if(mode==='alerts'){

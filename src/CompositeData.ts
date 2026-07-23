@@ -1,8 +1,7 @@
 import {buildWorkerUrl,configuredWorkerBase,fetchWorkerJson} from './workerClient';
 export type CompositeSource='dwd'|'opera'|'rainviewer'|'model';
-export type OperaGridPoint={lat:number;lon:number;rate:number;observedAt?:string};
-export type OperaGridFrame={time:string;points:OperaGridPoint[]};
-export type OperaGrid={points:OperaGridPoint[];frames?:OperaGridFrame[];provider?:string;observedAt?:string;spacingKm?:number;nativeResolutionKm?:number;temporalResolutionMinutes?:number;error?:string};
+export type OperaRasterFrame={time:string;fileUrl:string;product:'DBZH';nativeResolutionKm?:number;temporalResolutionMinutes?:number};
+export type OperaRasterResponse={frames:OperaRasterFrame[];provider?:string;product?:string;observedAt?:string;nativeResolutionKm?:number;temporalResolutionMinutes?:number;coverage?:string;license?:string;error?:string};
 export type LightningPoint={id:string;lat:number;lon:number;observedAt?:string;count?:number;intensity?:number;pulseType?:string;accuracyKm?:number};
 export type LightningPointResponse={points:LightningPoint[];provider?:string;observedAt?:string;coverage?:string;fallback?:'mtg-li'|'none';nativeResolutionKm?:number;historyMinutes?:number;commercial?:boolean;enterprise?:boolean;reason?:string;error?:string};
 export type WmsProvider='dwd'|'eumetsat';
@@ -38,7 +37,7 @@ export function compositeWmsProxy(provider:WmsProvider){
  if(!configured)return'';
  return buildWorkerUrl(configured,'composite-wms',{provider}).toString();
 }
-export async function loadOperaGrid(lat:number,lon:number,signal?:AbortSignal){return fetchWorkerJson<OperaGrid>('opera-grid',{lat,lon},{purpose:'radar',signal,timeoutMs:11000})}
+export async function loadOperaRaster(lat:number,lon:number,signal?:AbortSignal){return fetchWorkerJson<OperaRasterResponse>('opera-raster-meta',{lat,lon},{purpose:'radar',signal,timeoutMs:12000})}
 export async function loadLightningPoints(lat:number,lon:number,signal?:AbortSignal){return fetchWorkerJson<LightningPointResponse>('lightning-points',{lat,lon},{purpose:'radar',signal,timeoutMs:10000})}
 export async function loadCompositeTimes(lat:number,lon:number,signal?:AbortSignal){return fetchWorkerJson<CompositeProductTimes>('composite-times',{lat,lon},{purpose:'radar',signal,timeoutMs:10000})}
 export async function loadRainViewer(lat:number,lon:number,signal?:AbortSignal){return fetchWorkerJson<RainViewerResponse>('rainviewer-meta',{lat,lon},{purpose:'radar',signal,timeoutMs:9000})}

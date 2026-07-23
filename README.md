@@ -7,7 +7,22 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.83.3**
+**Aktuelle Version: v0.7.84.1**
+
+## Wartung in v0.7.84.1
+
+- Der GitHub-Produktionsbuild scheitert nicht mehr mit TS18048 im OPERA-Rasteroverlay.
+- Die Kartenberechnung verwendet nun `map.getPixelOrigin()` statt des in den Leaflet-Typen optionalen `pixelBounds.min`.
+- Die Radarprojektion und sichtbare Darstellung bleiben dabei unverändert.
+- Keine funktionale Änderung am Cloudflare Worker.
+
+## Neuerungen in v0.7.84 – Phase 1 Radar und aktuelle Niederschlagswahrscheinlichkeit
+
+- Das europäische Radar ist kein interpoliertes Punktfeld mehr: MID lädt das echte **EUMETNET OPERA CIRRUS DBZH** als ODIM-HDF5-Raster und reprojiziert das 1-km-Raster direkt in die Karte.
+- Die Quellenreihenfolge lautet einheitlich **DWD HX/PX250 beziehungsweise DWD-RV → OPERA CIRRUS → RainViewer**. RainViewer bleibt ausschließlich der letzte Fallback.
+- Für die **aktuelle Niederschlagswahrscheinlichkeit** werden derselbe OPERA-Rasterstand, das Standortpixel und ein 30-km-Umfeld ausgewertet. Das Ergebnis wird anschließend wie bisher mit Open-Meteo Best Match kombiniert.
+- OPERA stellt reale Beobachtungsstände in fünfminütiger Folge bereit; MID kennzeichnet daraus abgeleitete Niederschlagsraten und Bewegungsangaben ausdrücklich als Näherung.
+- Die Worker-Routen `opera-raster-meta` und `opera-raster-file` übernehmen Zeitvalidierung, Cache und CORS-sichere Bereitstellung. Die frühere OPERA-Stützpunktlogik ist entfernt.
 
 ## Wartung in v0.7.83.3
 
@@ -388,7 +403,7 @@ MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React, TypeScrip
 - Der Widget-Generator kopiert das gerenderte Widget als hochauflösendes PNG direkt in die Systemzwischenablage. In PowerPoint genügt anschließend Einfügen; blockiert der Browser die Bildzwischenablage, zeigt MID automatisch ein kopierbares Fallbackbild für Rechtsklick beziehungsweise langes Drücken. Der klassische PNG-Download bleibt separat erhalten.
 - Komposit-Layer und ihre individuellen Deckkräfte werden dauerhaft im Browser gespeichert. Deckkraftregler erscheinen nur für aktivierte Niederschlags-, Satelliten- und Blitzlayer.
 - Die gemeinsame Zeitachse nutzt die tatsächlich verfügbaren Produktzeitpunkte: DWD-RV einschließlich Nowcast bis ungefähr ±1 Stunde, OPERA-Historie bis rund 60 Minuten sowie historische Satelliten-/Blitzzeitpunkte, soweit der jeweilige Dienst sie liefert. Layerwechsel werden mit kurzen Opazitätsübergängen geglättet.
-- MID wählt ortsabhängig die beste verfügbare Radarauflösung: DWD-PX250 mit 250 m im lokalen Radarbereich, DWD-RV mit 1 km in Deutschland, EUMETNET OPERA RATE mit 2 km in Europa und RainViewer erst als weiterer Fallback.
+- MID wählt ortsabhängig die beste verfügbare Radarauflösung: DWD-PX250 mit 250 m im lokalen Radarbereich, DWD-RV mit 1 km in Deutschland, EUMETNET OPERA CIRRUS DBZH mit 1 km in Europa und RainViewer erst als letzter Fallback.
 - Blitzaktivität wird als ungefüllte, nach Stärke beziehungsweise Häufigkeit skalierte Ringe dargestellt. Mit konfigurierten Xweather-Zugangsdaten stehen lizenzierte Vaisala-/GLD360-Punktdaten weltweit bereit; ohne Zugangsdaten nutzt MID DWD in Deutschland und EUMETSAT MTG-LI im europäischen/afrikanischen Satellitenbereich. nowcast/LINET und Earth Networks werden wegen ihrer kommerziellen Lizenzierung nicht ohne Vertrag eingebunden.
 - Favoriten lassen sich direkt in der Schnellzugriffsleiste unter der Suche per Maus oder Touch am Griff verschieben; die neue Reihenfolge wird sofort gespeichert.
 
@@ -396,7 +411,7 @@ MID ist ein GitHub-Pages-fähiges Wetterdashboard auf Basis von React, TypeScrip
 
 - Der Kartenbereich kombiniert Niederschlag, DWD-PX250, hochaufgelöste MTG-Satellitenbilder und Blitzaktivität. Die Legende ist schlank und zeigt nur Skalen der tatsächlich aktiven Layer.
 - **Radar 250 m** wird nicht mehr direkt aus dem Browser beim DWD geprüft. Der Cloudflare Worker ermittelt den nächstgelegenen PX250-Standort, stellt die aktuelle HDF5-Datei CORS-sicher bereit und aktiviert den Schalter nur bei tatsächlicher Verfügbarkeit innerhalb der Produktreichweite.
-- Die Radarpriorität lautet nun auch in der sichtbaren Karte konsequent **DWD-RV → EUMETNET OPERA/ORD → RainViewer**. OPERA wird als europäisches RATE-Punktraster dargestellt; RainViewer erscheint erst, wenn der Worker auch OPERA nicht auswerten konnte.
+- Die sichtbare Karte verwendet konsequent **DWD-RV → EUMETNET OPERA CIRRUS → RainViewer**. OPERA wird als echtes europäisches ODIM-HDF5-Raster dargestellt; RainViewer erscheint erst, wenn die DWD- und OPERA-Rasterpfade nicht nutzbar sind.
 - Als Kartenbasis stehen **OpenStreetMap**, das schlichte helle **CARTO Positron** und das schlichte dunkle **CARTO Dark Matter** zur Verfügung. Die Auswahl wird lokal gespeichert.
 - In Deutschland versucht MID, DWD-Blitzgeometrien als farbige Kreise darzustellen. Farbe und Deckkraft bilden das Alter ab; bei nicht verfügbaren Vektordaten bleibt die DWD-Blitzdichte als automatischer Raster-Fallback. Außerhalb dient EUMETSAT MTG-LI AFA als Fallback.
 - **Satellit HRV** nutzt tagsüber den hochaufgelösten sichtbaren MTG-FCI-HRFI-Kanal VIS 0,6. Nachts oder bei fehlendem Tageslayer wird automatisch IR 10,5 verwendet.
@@ -460,7 +475,7 @@ Die Anzeige nennt den effektiven Radius, die geschätzte Temperaturunsicherheit,
 - Die nach Gruppen gegliederte Favoritenleiste liegt direkt unter dem Suchfeld und ermöglicht den direkten Ortswechsel. Individuelle Schwellen für Niederschlagswahrscheinlichkeit, Böen, Frost und Hitze werden beim Aufruf gegen die nächsten 24 Stunden geprüft.
 - Export und Import erfolgen als versionierte JSON-Datei; alte Favoriteneinträge werden automatisch migriert.
 - Der optionale Berg-/Skimodus wird im Favoritenmenü je Ort aktiviert und dort über Tal- und Gipfelhöhe konfiguriert. Angezeigt werden Temperatur, gefühlte Temperatur, Wind/Böen, Nullgradgrenze, angenäherte Schneefallgrenze, Sicht, angenäherte Wolkenuntergrenze, Windchill, Gipfeltrend und eine Tageslicht-Orientierungszeit.
-- Außerhalb einer tatsächlich bestätigten DWD-RV-Auswertung nutzt die Radarkarte die RainViewer-Fallbackebene; OPERA/ORD kann weiterhin die standortbezogene europäische Auswertung liefern.
+- Außerhalb einer bestätigten DWD-RV-Auswertung nutzt die Radarkarte zuerst das echte OPERA-CIRRUS-Raster; RainViewer wird ausschließlich als letzter Fallback geladen.
 
 
 ## Systemdesign und Favoriten (v0.7.14)
@@ -622,7 +637,7 @@ MID benötigt weiterhin nur **einen** Cloudflare Worker. `worker/metar-proxy.js`
 - deutsche DWD-Warnungen
 - europäische MeteoAlarm-/CAP-Warnungen
 - NWS-Warnungen für die USA
-- standortbezogene Radar-Nowcast-Auswertung mit DWD-RV, EUMETNET OPERA/ORD und RainViewer-Fallback
+- standortbezogene Radar-Nowcast-Auswertung mit DWD-RV, echtem EUMETNET-OPERA-CIRRUS-Raster und RainViewer als letztem Fallback
 
 Nach einer Aktualisierung von `worker/metar-proxy.js` muss der Code im vorhandenen Cloudflare Worker ersetzt und erneut mit **Deploy** bereitgestellt werden.
 
@@ -761,9 +776,9 @@ v0.7.13 stabilisiert die DWD-WMS-Pixelanalyse; v0.7.11 ergänzte die standortbez
 
 ### Radarintensität und Legenden (v0.7.13)
 
-DWD-RV und OPERA-RATE werden in ihrer nativen Einheit mm/h ausgewertet. RainViewer stellt in der öffentlichen API eingefärbte Universal-Blue-Reflektivitätskacheln bereit; daraus abgeleitete mm/h-Werte sind deshalb ausdrücklich Näherungen. Die Kartenlegende folgt automatisch der tatsächlich dargestellten Radarquelle. Ankunfts-, Datenstands- und Endzeit werden in der lokalen Zeitzone des gewählten Standorts angezeigt.
+DWD-RV wird in seiner Niederschlagsrate ausgewertet. OPERA CIRRUS liefert DBZH-Reflektivität; daraus abgeleitete mm/h-Werte sind ebenso ausdrücklich Näherungen wie die aus eingefärbten RainViewer-Kacheln rekonstruierten Werte. Die Kartenlegende folgt automatisch der tatsächlich dargestellten Radarquelle. Ankunfts-, Datenstands- und Endzeit werden in der lokalen Zeitzone des gewählten Standorts angezeigt.
 
 
 ## DWD-Radarrobustheit v0.7.13
 
-Die DWD-Zeitachse wird am allgemeinen WMS-Endpunkt aus dem Layerblock von `dwd:Niederschlagsradar` beziehungsweise RV gelesen. Jeder benötigte Zeitschritt wird als kleine transparente Radar-PNG um den Standort geladen; daraus werden Mittelpunkt und Umgebung gemeinsam ausgewertet. Ein vollständig transparenter Pixel ist ein gültiger trockener DWD-Wert. `GetFeatureInfo` wird nur zur numerischen Verfeinerung eines sichtbar nassen Mittelpunktes verwendet. Bei technischen Ausfällen werden DWD-Backup, konkreter RV-Layer, OPERA und RainViewer gestaffelt verwendet.
+Die DWD-Zeitachse wird am allgemeinen WMS-Endpunkt aus dem Layerblock von `dwd:Niederschlagsradar` beziehungsweise RV gelesen. Jeder benötigte Zeitschritt wird als kleine transparente Radar-PNG um den Standort geladen; daraus werden Mittelpunkt und Umgebung gemeinsam ausgewertet. Ein vollständig transparenter Pixel ist ein gültiger trockener DWD-Wert. `GetFeatureInfo` wird nur zur numerischen Verfeinerung eines sichtbar nassen Mittelpunktes verwendet. Bei technischen Ausfällen werden DWD-Backup und konkreter RV-Layer geprüft; anschließend wertet das Frontend das echte OPERA-CIRRUS-HDF5 aus und verwendet RainViewer erst zuletzt.

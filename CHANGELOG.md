@@ -1,3 +1,20 @@
+# MID v0.7.84.1
+
+- GitHub-Buildfehler TS18048 im OPERA-Rasteroverlay behoben.
+- Statt des optional typisierten `pixelBounds.min` verwendet die Darstellung nun Leaflets eindeutig typisierten Karten-Pixelursprung.
+- Regressionstest verhindert die erneute Verwendung des optionalen Bounds-Minimums.
+- Cloudflare Worker ohne funktionale Änderung; nur Versionssynchronisierung.
+
+# MID v0.7.84
+
+- Phase 1 der europäischen Radarintegration auf Basis von MID v0.7.83.3 umgesetzt.
+- Das Kompositbild lädt das echte EUMETNET-OPERA-CIRRUS-DBZH-Komposit als ODIM-HDF5-Raster mit 1 km Rasterweite und fünfminütigem Produktzyklus.
+- Radarpriorität vereinheitlicht: DWD-HX/PX250 beziehungsweise DWD-RV → OPERA CIRRUS → RainViewer als letzter Fallback.
+- Die frühere OPERA-Punkt-/Stützstellenauswertung wurde vollständig entfernt.
+- Karte und aktuelle Niederschlagswahrscheinlichkeit verwenden denselben OPERA-Rasterdecoder; Standortpixel und 30-km-Umfeld fließen in die Radar-/Best-Match-Kombination ein.
+- Neue Worker-Routen `opera-raster-meta` und `opera-raster-file` liefern validierte Metadaten und CORS-sichere HDF5-Dateien.
+- Regressionstest für OPERA-Raster, Quellenreihenfolge und Entfernung der Altlogik ergänzt.
+
 # MID v0.7.83.3
 
 - Achsentick-Beschriftungen im Ensemble-Temperaturdiagramm vertikal korrigiert.

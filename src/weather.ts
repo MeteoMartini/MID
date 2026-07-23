@@ -1,6 +1,8 @@
 import {fetchWorkerJson,workerBaseCandidates} from './workerClient';
 import {formatDecimal} from './format';
 import {formatDwdWarningDetail,formatDwdWarningValue,summarizeDwdWarnings,type DwdWarningLevel} from './dwdWarnings';
+import {loadOperaRaster} from './CompositeData';
+import {analyseOperaRasterNowcast} from './OperaRasterSource';
 export type WindUnit='kn'|'kmh'|'ms'|'mph';
 export type UrbanClass='urban'|'suburban'|'rural'|'unknown';
 export type Location={id:number;name:string;latitude:number;longitude:number;elevation?:number;timezone?:string;country?:string;country_code?:string;admin1?:string;admin2?:string;postcodes?:string[];autolocated?:boolean;source?:string;poiType?:string;poiCategory?:string;featureCode?:string;population?:number;urbanClass?:UrbanClass};
@@ -368,14 +370,28 @@ export async function officialWarnings(lat:number,lon:number,country?:string,nam
  return{alerts:(result.alerts??[]).filter(a=>a&&a.id&&a.headline),provider:result.provider,coverage:result.coverage};
 }
 
-export async function radarNowcast(lat:number,lon:number,country?:string,signal?:AbortSignal):Promise<RadarNowcast|null>{
- if(!workerBaseCandidates('radar').length)return null;
- const params={lat,lon,country:countryCodeFromLocation(country)||String(country||''),_ts:Date.now()};
- let result:RadarNowcast&{error?:string};
- try{result=await fetchWorkerJson<RadarNowcast&{error?:string}>('radar-nowcast',params,{purpose:'radar',signal,timeoutMs:16000})}
- catch(firstError){await new Promise<void>((resolve,reject)=>{const id=setTimeout(resolve,700);signal?.addEventListener('abort',()=>{clearTimeout(id);reject(signal.reason)},{once:true})});result=await fetchWorkerJson<RadarNowcast&{error?:string}>('radar-nowcast',{...params,_ts:Date.now()},{purpose:'radar',signal,timeoutMs:20000})}
+function normaliseRadarNowcast(result:(RadarNowcast&{error?:string})|null|undefined):RadarNowcast|null{
  if(!result||!Number.isFinite(Number(result.radarProbability)))return null;
  return{...result,radarProbability:Math.max(0,Math.min(100,Number(result.radarProbability))),currentRate:Number.isFinite(Number(result.currentRate))?Number(result.currentRate):undefined,arrivalMinutes:Number.isFinite(Number(result.arrivalMinutes))?Number(result.arrivalMinutes):undefined,endMinutes:Number.isFinite(Number(result.endMinutes))?Number(result.endMinutes):undefined};
+}
+function operaRadarApplies(lat:number,lon:number){return lat>=31.5&&lat<=72.5&&lon>=-30.5&&lon<=50.5}
+function dwdRadarExpected(lat:number,lon:number,countryCode:string){return countryCode==='DE'||(!countryCode&&lat>=47.2&&lat<=55.2&&lon>=5.5&&lon<=15.6)}
+function abortError(signal?:AbortSignal){if(signal?.aborted)throw signal.reason??new DOMException('Vorgang abgebrochen.','AbortError')}
+function radarRetryDelay(signal?:AbortSignal){
+ if(signal?.aborted)return Promise.reject(signal.reason??new DOMException('Vorgang abgebrochen.','AbortError'));
+ return new Promise<void>((resolve,reject)=>{let settled=false;const finish=(error?:unknown)=>{if(settled)return;settled=true;clearTimeout(timer);signal?.removeEventListener('abort',abort);error===undefined?resolve():reject(error)},abort=()=>finish(signal?.reason??new DOMException('Vorgang abgebrochen.','AbortError')),timer=setTimeout(()=>finish(),700);signal?.addEventListener('abort',abort,{once:true})});
+}
+async function requestRadarStage(params:{lat:number;lon:number;country:string;_ts:number},stage:'dwd'|'rainviewer',signal?:AbortSignal){
+ try{return await fetchWorkerJson<RadarNowcast&{error?:string}>('radar-nowcast',{...params,stage},{purpose:'radar',signal,timeoutMs:stage==='dwd'?14000:16000})}
+ catch(firstError){abortError(signal);await radarRetryDelay(signal);try{return await fetchWorkerJson<RadarNowcast&{error?:string}>('radar-nowcast',{...params,stage,_ts:Date.now()},{purpose:'radar',signal,timeoutMs:stage==='dwd'?18000:20000})}catch(secondError){abortError(signal);void firstError;void secondError;return null}}
+}
+
+export async function radarNowcast(lat:number,lon:number,country?:string,signal?:AbortSignal):Promise<RadarNowcast|null>{
+ if(!workerBaseCandidates('radar').length)return null;
+ const countryCode=countryCodeFromLocation(country),params={lat,lon,country:countryCode||String(country||''),_ts:Date.now()};
+ if(dwdRadarExpected(lat,lon,countryCode)){const dwdResult=normaliseRadarNowcast(await requestRadarStage(params,'dwd',signal));if(dwdResult?.source==='dwd')return dwdResult}
+ if(operaRadarApplies(lat,lon))try{const metadata=await loadOperaRaster(lat,lon,signal),operaResult=await analyseOperaRasterNowcast(metadata.frames??[],lat,lon,signal);return normaliseRadarNowcast(operaResult)}catch(error){abortError(signal);void error}
+ const fallback=normaliseRadarNowcast(await requestRadarStage({...params,_ts:Date.now()},'rainviewer',signal));return fallback?.source==='opera'?null:fallback;
 }
 
 function n(v:unknown,fallback=NaN){return v===null||v===undefined||v===''?fallback:Number(v)}
