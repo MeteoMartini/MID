@@ -7,7 +7,15 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.84.1**
+**Aktuelle Version: v0.7.86**
+
+## Wartung in v0.7.86 – Kompositinformation und OPERA-Zugriff
+
+- Die technischen Erläuterungen des Kompositbildes stehen nicht mehr dauerhaft unter der Karte, sondern hinter einem Infobutton im Kartenkopf.
+- Der Dialog zeigt strukturiert Quelle, Produkt, Auflösung, Datenstand, Alter, Status, Lizenz und die aktive Fallbackreihenfolge.
+- OPERA-Zeitstände werden aus der offiziellen S3-Objektliste übernommen. MID gibt nur HDF5-Dateien weiter, deren Objektschlüssel tatsächlich vorhanden und zeitlich plausibel sind.
+- Falls die Objektliste vorübergehend nicht verfügbar ist, prüft der Worker reale HDF5-Dateien mit kleinen Bytebereichsabfragen; RainViewer bleibt erst danach der letzte Radar-Fallback.
+
 
 ## Wartung in v0.7.84.1
 

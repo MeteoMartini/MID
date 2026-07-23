@@ -9,7 +9,7 @@ const enhancer=await readFile(path.join(root,'src','v078.ts'),'utf8');
 const styles=await readFile(path.join(root,'src','styles.css'),'utf8');
 const failures=[];
 
-for(const token of ['formatGmtOffset','clockTick','place-meta','Z)`','niceRange(','nicePositiveRange(','temperatureTicks.map','rainTicks.map','windTicks.map','directionIndices.map','data-skybar-y={skyBarY}','nowBadgeY=4','iconY=narrowChart?46:48','skyBarY=narrowChart?69:71','cloudTop=skyBarY+','selectedMarkerTop=iconY-10','className="selected-hour-line"','y1={selectedMarkerTop}'])if(!app.includes(token))failures.push(`Detail-/Ortsdarstellung fehlt: ${token}`);
+for(const token of ['formatGmtOffset','clockTick','place-meta','formatZuluHm(clockTick)','niceRange(','nicePositiveRange(','temperatureTicks.map','rainTicks.map','windTicks.map','directionIndices.map','data-skybar-y={skyBarY}','nowBadgeY=4','iconY=narrowChart?46:48','skyBarY=narrowChart?69:71','cloudTop=skyBarY+','selectedMarkerTop=iconY-10','className="selected-hour-line"','y1={selectedMarkerTop}'])if(!app.includes(token))failures.push(`Detail-/Ortsdarstellung fehlt: ${token}`);
 
 const laneMatch=app.match(/nowBadgeY=(\d+),iconY=narrowChart\?(\d+):(\d+),skyBarY=narrowChart\?(\d+):(\d+),cloudTop=skyBarY\+\(narrowChart\?(\d+):(\d+)\)/);
 if(!laneMatch)failures.push('Die vertikale Lane-Reihenfolge konnte nicht ausgewertet werden.');

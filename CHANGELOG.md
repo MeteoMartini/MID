@@ -1,3 +1,19 @@
+# MID v0.7.86
+
+- Ausführliche Quellen-, Produkt-, Auflösungs-, Zeit-, Alters-, Status- und Lizenzangaben des Kompositbildes in einen barrierefrei beschrifteten Infodialog verschoben.
+- OPERA-CIRRUS-Erkennung korrigiert: Der Worker liest nun die tatsächlich vorhandenen DBZH-HDF5-Objekte aus dem offiziellen S3-Index, statt Zeitstempel zu erraten.
+- Nur real vorhandene OPERA-Frames werden an Karte und aktuelle Niederschlagswahrscheinlichkeit übergeben; bei einem nicht verfügbaren Index folgt ein kontrollierter Range-Probe-Fallback.
+- OPERA-Dateiproxy verwendet validierte Objektschlüssel und liefert Diagnoseheader für Quelle, Produkt, Schlüssel und Worker-Version.
+- Regressionstest für Infodialog, reale OPERA-Objektliste, fehlertolerante Erkennung und CORS-HDF5-Proxy erweitert.
+
+# MID v0.7.85
+
+- Z-Zeit unter dem Ortsnamen einheitlich als `hhmmZ` ohne Doppelpunkt dargestellt.
+- Separate Gewitterinformation neben der aktuellen Niederschlagswahrscheinlichkeit ergänzt.
+- DWD KONRAD3D wird fünfminütig für Zellposition, Zugrichtung, Schweregrad, Trend, Blitzrate, Hagel-, Starkregen- und Böenflags ausgewertet.
+- Amtliche DWD-WFS/CAP-Gewitterwarnungen haben Vorrang; Radar, Best-Match und Stationsniederschlag dienen ergänzend der Plausibilisierung.
+- Neue Workerroute `thunderstorm-nowcast` und Regressionstest ergänzt.
+
 # MID v0.7.84.1
 
 - GitHub-Buildfehler TS18048 im OPERA-Rasteroverlay behoben.

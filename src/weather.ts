@@ -19,6 +19,8 @@ export type ModelRunMeta={id:string;label:string;kind:'forecast'|'ensemble';init
 export type BestMatchModelInfo={summary:string;likelyChain:string;runs:ModelRunMeta[]};
 export type RadarNowcastQuality='high'|'medium'|'low';
 export type RadarNowcast={source:'dwd'|'opera'|'rainviewer'|'model';provider:string;quality:RadarNowcastQuality;radarProbability:number;currentRate?:number;rawCurrentRate?:number;peakRate?:number;rateApproximate?:boolean;rateUncertain?:boolean;arrivalMinutes?:number;endMinutes?:number;arrivalKind?:'site'|'nearby'|'approximate';arrivalStartAt?:string;arrivalEndAt?:string;endAt?:string;endOpenEnded?:boolean;endUncertain?:boolean;observedAt?:string;summary:string;coverage?:boolean;coverageExpected?:boolean;temporaryUnavailable?:boolean;expectedSource?:string;radarLayer?:string;timeline?:string[];license?:string;diagnostics?:Record<string,unknown>};
+export type Konrad3dCell={id:string;latitude:number;longitude:number;currentDistanceKm:number;relevanceDistanceKm:number;forecastDistanceKm?:number;forecastEffectiveDistanceKm?:number;forecastTime?:string;arrivalMinutes?:number;isApproaching?:boolean;severity:number;trend:number;hailFlag:number;heavyRainFlag:number;gustFlag?:number;lightningRate:number;areaHail:number;areaLargeHail:number;speedKmh:number};
+export type ThunderstormNowcast={available:boolean;coverage:boolean;temporaryUnavailable?:boolean;provider:string;product?:string;observedAt?:string;ageMinutes?:number;cellsFound:number;nearbyCells:Konrad3dCell[];nearest?:Konrad3dCell;summary:string;temporalResolutionMinutes?:number;license?:string;error?:string};
 export type MountainWeather={latitude:number;longitude:number;elevation:number;timezone:string;timezone_abbreviation?:string;utc_offset_seconds?:number;current:Record<string,number|string|null>;hourly:Record<string,(number|string|null)[]>};
 export type MountainForecast={valley:MountainWeather;summit:MountainWeather};
 export type MarineForecast={latitude:number;longitude:number;generationtime_ms?:number;utc_offset_seconds?:number;timezone:string;timezone_abbreviation?:string;current?:Record<string,number|string|null>;hourly:Record<string,(number|string|null)[]>;minutely_15?:Record<string,(number|string|null)[]>;daily?:Record<string,(number|string|null)[]>};
@@ -384,6 +386,12 @@ function radarRetryDelay(signal?:AbortSignal){
 async function requestRadarStage(params:{lat:number;lon:number;country:string;_ts:number},stage:'dwd'|'rainviewer',signal?:AbortSignal){
  try{return await fetchWorkerJson<RadarNowcast&{error?:string}>('radar-nowcast',{...params,stage},{purpose:'radar',signal,timeoutMs:stage==='dwd'?14000:16000})}
  catch(firstError){abortError(signal);await radarRetryDelay(signal);try{return await fetchWorkerJson<RadarNowcast&{error?:string}>('radar-nowcast',{...params,stage,_ts:Date.now()},{purpose:'radar',signal,timeoutMs:stage==='dwd'?18000:20000})}catch(secondError){abortError(signal);void firstError;void secondError;return null}}
+}
+
+
+export async function thunderstormNowcast(lat:number,lon:number,country?:string,signal?:AbortSignal):Promise<ThunderstormNowcast|null>{
+ if(!workerBaseCandidates('radar').length)return null;
+ return fetchWorkerJson<ThunderstormNowcast>('thunderstorm-nowcast',{lat,lon,country:countryCodeFromLocation(country)||String(country||''),_ts:Date.now()},{purpose:'radar',signal,timeoutMs:15000});
 }
 
 export async function radarNowcast(lat:number,lon:number,country?:string,signal?:AbortSignal):Promise<RadarNowcast|null>{

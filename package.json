@@ -1,14 +1,14 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.7.84.1",
+  "version": "0.7.86",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "sync-version": "node scripts/sync-version.mjs",
     "prebuild": "npm run sync-version",
     "build": "tsc -b && vite build",
-    "verify": "npm run build && node --check worker/metar-proxy.js && npm run test:updater && npm run test:interactions && npm run test:radar && npm run test:precipitation && npm run test:sunshine && npm run test:hyperlocal && npm run test:format-layout && npm run test:versioning && npm run test:ensemble && npm run test:rain-chart && npm run test:global-metar && npm run test:requests && npm run test:settings && npm run test:ui-regressions && npm run test:favorites-strip && npm run test:navigation-favorites && npm run test:view-modes && npm run test:mode-content && npm run test:legend-language && npm run test:detail-parameters && npm run test:chart-layout && npm run test:detail-pictograms && npm run test:wind-warnings-modules && npm run test:dwd-warnings && npm run test:maintenance && npm run test:warning-ui && npm run test:code-quality && npm run test:ensemble-nullability && npm run test:actions-runtime && npm run test:axis-alignment && npm run test:opera-raster",
+    "verify": "npm run build && node --check worker/metar-proxy.js && npm run test:updater && npm run test:interactions && npm run test:radar && npm run test:precipitation && npm run test:sunshine && npm run test:hyperlocal && npm run test:format-layout && npm run test:versioning && npm run test:ensemble && npm run test:rain-chart && npm run test:global-metar && npm run test:requests && npm run test:settings && npm run test:ui-regressions && npm run test:favorites-strip && npm run test:navigation-favorites && npm run test:view-modes && npm run test:mode-content && npm run test:legend-language && npm run test:detail-parameters && npm run test:chart-layout && npm run test:detail-pictograms && npm run test:wind-warnings-modules && npm run test:dwd-warnings && npm run test:maintenance && npm run test:warning-ui && npm run test:code-quality && npm run test:ensemble-nullability && npm run test:actions-runtime && npm run test:axis-alignment && npm run test:opera-raster && npm run test:thunderstorm",
     "preview": "vite preview",
     "test:updater": "node scripts/test-updater.mjs",
     "test:radar": "node scripts/test-radar.mjs",
@@ -40,7 +40,8 @@
     "test:ensemble-nullability": "node scripts/test-ensemble-nullability-07831.mjs",
     "test:actions-runtime": "node scripts/test-github-actions-runtime.mjs",
     "test:axis-alignment": "node scripts/test-ensemble-axis-alignment.mjs",
-    "test:opera-raster": "node scripts/test-opera-raster.mjs"
+    "test:opera-raster": "node scripts/test-opera-raster.mjs",
+    "test:thunderstorm": "node scripts/test-thunderstorm-nowcast.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",
