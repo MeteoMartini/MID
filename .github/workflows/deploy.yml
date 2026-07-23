@@ -6,16 +6,7 @@ on:
     branches:
       - main
     paths-ignore:
-      - 'MID-professional-replacement*.zip'
-
-  workflow_run:
-    workflows:
-      - Install MID replacement
-    types:
-      - completed
-    branches:
-      - main
-
+      - MID-professional-replacement.zip
   workflow_dispatch:
 
 permissions:
@@ -30,15 +21,12 @@ concurrency:
 jobs:
   build:
     name: MID prüfen und bauen
-    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 25
 
     steps:
       - name: Repository laden
         uses: actions/checkout@v6
-        with:
-          ref: main
 
       - name: Node.js 22 mit npm-Cache einrichten
         uses: actions/setup-node@v6
@@ -86,7 +74,7 @@ jobs:
           npm ci \
             --no-audit \
             --no-fund \
-            --prefer-online \
+            --prefer-offline \
             --legacy-peer-deps \
             --loglevel=notice
 
@@ -113,7 +101,6 @@ jobs:
 
   deploy:
     name: MID veröffentlichen
-    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     needs: build
     timeout-minutes: 10
