@@ -1,3 +1,7 @@
+# MID Daten-, Warnungs- und Radarproxy v0.7.79.3
+
+Keine funktionale Cloudflare-Worker-Änderung in v0.7.79.3; die Versionsnummer wurde zur einheitlichen Auslieferung synchronisiert. Die adaptive Maximierung der Wetterpiktogramme betrifft ausschließlich das Frontend.
+
 # MID Daten-, Warnungs- und Radarproxy v0.7.79.2
 
 Keine funktionale Cloudflare-Worker-Änderung in v0.7.79.2; die Versionsnummer wurde zur einheitlichen Auslieferung synchronisiert. Die neue Reihenfolge der oberen Detaildiagramm-Lanes und die verlängerte Stundenmarkierung betreffen ausschließlich das Frontend.

@@ -7,7 +7,15 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.79.2**
+**Aktuelle Version: v0.7.79.3**
+
+
+## Wartung in v0.7.79.3
+
+- Die Piktogrammzeile der stündlichen Detailansicht nutzt die verfügbare Breite deutlich besser aus.
+- MID zeigt je nach Smartphone-, Tablet- oder Desktopbreite die maximal ohne gegenseitige Überdeckung mögliche Anzahl an Wetterpiktogrammen.
+- Auf ausreichend breiten Ansichten werden sämtliche stündlichen Wetterpiktogramme dargestellt; bei weniger Platz erfolgt eine gleichmäßige Verteilung einschließlich Tagesanfang und Tagesende.
+- Keine funktionale Änderung am Cloudflare Worker.
 
 
 

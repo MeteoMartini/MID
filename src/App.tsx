@@ -62,6 +62,12 @@ function niceStep(value:number){if(!Number.isFinite(value)||value<=0)return 1;co
 function niceRange(minValue:number,maxValue:number,targetIntervals=4){const min=Number.isFinite(minValue)?minValue:0,max=Number.isFinite(maxValue)?maxValue:min+1,step=niceStep(Math.max(1e-6,(max-min)/Math.max(1,targetIntervals))),niceMin=Math.floor(min/step)*step,niceMax=Math.ceil(max/step)*step,ticks:number[]=[];for(let value=niceMin;value<=niceMax+step*.1;value+=step)ticks.push(Number(value.toFixed(6)));return{min:niceMin,max:niceMax,step,ticks}}
 function nicePositiveRange(maxValue:number,targetIntervals=3){const raw=Math.max(0,Number(maxValue)||0),step=niceStep(Math.max(1e-6,raw/Math.max(1,targetIntervals))),max=Math.max(step,Math.ceil(raw/step)*step),ticks:number[]=[];for(let value=0;value<=max+step*.1;value+=step)ticks.push(Number(value.toFixed(6)));return{max,step,ticks}}
 function clamp(v:number,min:number,max:number){return Math.min(max,Math.max(min,v))}
+function maximizeVisibleIndices(length:number,maxVisible:number){
+ if(length<=0||maxVisible<=0)return[];
+ if(length<=maxVisible)return Array.from({length},(_,index)=>index);
+ const count=Math.max(2,Math.min(length,Math.floor(maxVisible)));
+ return Array.from({length:count},(_,index)=>Math.round(index*(length-1)/(count-1)));
+}
 
 const LazyRadar=lazy(()=>import('./RadarPanel'));
 const LazyEnsembles=lazy(()=>import('./EnsemblePanel'));
@@ -503,7 +509,7 @@ function Forecast({days,hours,selected,setSelected,unit,modelInfo,timezone,timez
  const windPath=showWind?p.map((x,i)=>`${i?'L':'M'} ${xAt(i)} ${yWind(x.wind)}`).join(' '):'';
  const gustPath=showGust?p.map((x,i)=>`${i?'L':'M'} ${xAt(i)} ${yWind(x.gust)}`).join(' '):'';
  const areaPath=showTemperature?`${tempPath} L ${xAt(p.length-1)} ${tempBottom} L ${xAt(0)} ${tempBottom} Z`:'';
- const iconStep=Math.max(1,Math.ceil((p.length-1)/Math.max(1,Math.floor(plotW/(narrowChart?58:mediumChart?66:72))))),iconIndices=p.map((_,i)=>i).filter(i=>i===0||i===p.length-1||i%iconStep===0);
+ const iconFontSize=narrowChart?17:20,iconMinimumSpacing=narrowChart?34:mediumChart?36:38,maxIconCount=Math.max(2,Math.floor(plotW/iconMinimumSpacing)+1),iconIndices=maximizeVisibleIndices(p.length,maxIconCount);
  const timeStep=Math.max(1,Math.ceil((p.length-1)/Math.max(1,Math.floor(plotW/(narrowChart?72:mediumChart?82:92))))),timeIndices=p.map((_,i)=>i).filter(i=>i===0||i===p.length-1||i%timeStep===0);
  const directionStep=Math.max(1,Math.ceil((p.length-1)/Math.max(1,Math.floor(plotW/(narrowChart?28:mediumChart?32:36))))),directionIndices=p.map((_,i)=>i).filter(i=>i===0||i===p.length-1||i%directionStep===0);
  const maxIdx=p.reduce((b,x,i)=>x.temperature>p[b].temperature?i:b,0),minIdx=p.reduce((b,x,i)=>x.temperature<p[b].temperature?i:b,0);
@@ -567,7 +573,7 @@ function Forecast({days,hours,selected,setSelected,unit,modelInfo,timezone,timez
        {showGust&&<path d={gustPath} fill="none" stroke="#b786ff" strokeWidth="2" strokeDasharray="7 5" vectorEffect="non-scaling-stroke"/>}
        {showDirection&&directionIndices.map(i=><g key={`direction-${i}`}><text x={xAt(i)} y={directionY} textAnchor="middle" fontSize={labelFont+3} fill="#7bc8ef" opacity="0.9">{dirArrow(p[i].direction)}</text></g>)}
        <line className="selected-hour-line" x1={xAt(selectedHour)} x2={xAt(selectedHour)} y1={selectedMarkerTop} y2={contentBottom} stroke="#9ad0ff" opacity="0.85" strokeWidth="1.5" vectorEffect="non-scaling-stroke"/>
-       {iconIndices.map(i=><g key={`weather-icon-${i}`}><text x={xAt(i)} y={iconY} textAnchor="middle" fontSize={narrowChart?17:20}>{icon(p[i].code,p[i].isDay)}</text></g>)}
+       {iconIndices.map(i=><g key={`weather-icon-${i}`}><text x={xAt(i)} y={iconY} textAnchor="middle" fontSize={iconFontSize}>{icon(p[i].code,p[i].isDay)}</text></g>)}
        {timeIndices.map(i=><g key={`time-label-${i}`}><text x={xAt(i)} y={timeY+17} textAnchor="middle" fontSize={labelFont} fill="currentColor" opacity="0.86">{p[i].time.slice(11,13)}:00</text></g>)}
        {showTemperature&&[minIdx,maxIdx].map(i=><g key={`temperature-extreme-${i}`}><circle cx={xAt(i)} cy={yTemp(p[i].temperature)} r="4" fill="#fff" stroke="#ff7a37" strokeWidth="2"/><text x={xAt(i)} y={yTemp(p[i].temperature)-8} textAnchor="middle" fontSize={labelFont} fill="#ff9f62">{Math.round(p[i].temperature)}°</text></g>)}
        {p.map((x,i)=>{const x0=i===0?left:(xAt(i-1)+xAt(i))/2,x1=i===p.length-1?W-right:(xAt(i)+xAt(i+1))/2;return <rect key={`hit${x.time}`} x={x0} y="0" width={Math.max(1,x1-x0)} height={H} fill="transparent" className="hour-hit" onClick={()=>setSelectedHour(i)}><title>{`${x.time.slice(11,16)} · ${Math.round(x.temperature)} °C · Taupunkt ${Math.round(x.dewPoint)} °C · ${Math.round(x.probability)} % Niederschlagswahrscheinlichkeit · ${dirArrow(x.direction)} ${wind(x.wind,unit)}, Böen ${wind(x.gust,unit)}`}</title></rect>})}

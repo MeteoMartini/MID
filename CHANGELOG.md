@@ -1,3 +1,10 @@
+# MID v0.7.79.3
+
+- Die Zahl der Wetterpiktogramme in der stündlichen Detailansicht wird nun aus der tatsächlich verfügbaren Diagrammbreite bestimmt und bis zur konfliktfrei möglichen Höchstzahl erhöht.
+- Auf breiten Tablet- und Desktopansichten können alle stündlichen Piktogramme erscheinen; auf schmaleren Displays werden sie gleichmäßig über den Tag verteilt.
+- Der bisher sehr großzügige feste Mindestabstand wurde durch eine an Symbolgröße und Ansichtsbreite angepasste Verteilung ersetzt.
+- Cloudflare Worker ohne funktionale Änderung; nur Versionssynchronisierung.
+
 # MID v0.7.79.2
 
 - In beiden Ansichtsmodi folgt der Kopfbereich der stündlichen Detailansicht nun der Reihenfolge: JETZT-Zeitmarkierung, Wetterpiktogramme, Sonnenschein-/Bewölkungsband, eigentliche Diagrammfläche.
