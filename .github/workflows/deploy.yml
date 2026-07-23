@@ -5,10 +5,8 @@ on:
   push:
     branches:
       - main
-
     paths-ignore:
       - MID-professional-replacement.zip
-
   workflow_dispatch:
 
 permissions:
@@ -51,46 +49,21 @@ jobs:
           npm config set fetch-timeout 60000
 
           node <<'NODE'
-          const fs = require("node:fs");
-
-          const lock = JSON.parse(
-            fs.readFileSync("package-lock.json", "utf8")
-          );
-
+          const fs = require('node:fs');
+          const lock = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
           const invalid = [];
-
           for (const [name, entry] of Object.entries(lock.packages ?? {})) {
-            const resolved =
-              entry && typeof entry === "object"
-                ? entry.resolved
-                : undefined;
-
-            if (typeof resolved !== "string") {
-              continue;
-            }
-
-            if (
-              /internal\.api\.openai\.org|applied-caas-gateway|localhost|127\.0\.0\.1/i
-                .test(resolved)
-            ) {
-              invalid.push(
-                `${name || "(root)"}: ${resolved}`
-              );
+            const resolved = entry && typeof entry === 'object' ? entry.resolved : undefined;
+            if (typeof resolved !== 'string') continue;
+            if (/internal\.api\.openai\.org|applied-caas-gateway|localhost|127\.0\.0\.1/i.test(resolved)) {
+              invalid.push(`${name || '(root)'}: ${resolved}`);
             }
           }
-
           if (invalid.length) {
-            console.error(
-              "Nicht öffentlich erreichbare Paket-URLs im Lockfile:\n" +
-              invalid.join("\n")
-            );
-
+            console.error('Nicht öffentlich erreichbare Paket-URLs im Lockfile:\n' + invalid.join('\n'));
             process.exit(1);
           }
-
-          console.log(
-            "Lockfile enthält keine internen oder lokalen Paket-URLs."
-          );
+          console.log('Lockfile enthält keine internen oder lokalen Paket-URLs.');
           NODE
 
       - name: Abhängigkeiten reproduzierbar installieren
@@ -98,7 +71,6 @@ jobs:
         timeout-minutes: 6
         run: |
           set -euo pipefail
-
           npm ci \
             --no-audit \
             --no-fund \
@@ -132,7 +104,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     timeout-minutes: 10
-
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

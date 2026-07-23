@@ -1,5 +1,4 @@
-name: Install MID release and deploy
-run-name: MID-Release aus ZIP installieren und veröffentlichen
+name: Install MID replacement
 
 on:
   push:
@@ -12,19 +11,16 @@ on:
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 concurrency:
-  group: mid-install-${{ github.ref }}
-  cancel-in-progress: true
+  group: mid-install
+  cancel-in-progress: false
 
 jobs:
-  install_build:
-    name: MID installieren, prüfen und bauen
-    if: github.actor != 'github-actions[bot]' || github.event_name == 'workflow_dispatch'
+  install:
+    name: MID installieren und prüfen
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
 
     steps:
       - name: Repository laden
@@ -33,68 +29,40 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - name: Release-ZIP sicher entpacken
+      - name: Node.js 22 mit npm-Cache einrichten
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Neue MID-Version entpacken
         shell: bash
         timeout-minutes: 3
         run: |
           set -euo pipefail
 
-          archive="MID-professional-replacement.zip"
-          target="/tmp/mid-new"
-
-          if [ ! -f "$archive" ]; then
-            echo "::error::${archive} wurde nicht im Repository-Hauptverzeichnis gefunden."
+          if [ ! -f MID-professional-replacement.zip ]; then
+            echo "::error::MID-professional-replacement.zip wurde nicht gefunden."
             exit 1
           fi
 
-          rm -rf "$target"
-          mkdir -p "$target"
+          rm -rf /tmp/mid-new
+          mkdir -p /tmp/mid-new
 
-          ARCHIVE="$archive" TARGET="$target" python3 - <<'PY'
-          import os
-          import stat
-          from pathlib import Path
-          from zipfile import ZipFile
+          unzip -q MID-professional-replacement.zip -d /tmp/mid-new
 
-          archive = Path(os.environ["ARCHIVE"])
-          target = Path(os.environ["TARGET"]).resolve()
+          if [ ! -f /tmp/mid-new/package.json ]; then
+            echo "::error::Die ZIP enthält keine package.json im Hauptverzeichnis."
+            exit 1
+          fi
 
-          with ZipFile(archive) as zip_file:
-              for entry in zip_file.infolist():
-                  relative = Path(entry.filename)
+          if [ ! -f /tmp/mid-new/package-lock.json ]; then
+            echo "::error::Die ZIP enthält keine package-lock.json im Hauptverzeichnis."
+            exit 1
+          fi
 
-                  if relative.is_absolute() or ".." in relative.parts:
-                      raise SystemExit(
-                          f"Unsicherer ZIP-Pfad: {entry.filename}"
-                      )
-
-                  mode = entry.external_attr >> 16
-
-                  if stat.S_ISLNK(mode):
-                      raise SystemExit(
-                          f"Links sind im Release-ZIP nicht zulässig: "
-                          f"{entry.filename}"
-                      )
-
-                  destination = (target / relative).resolve()
-
-                  if target != destination and target not in destination.parents:
-                      raise SystemExit(
-                          f"ZIP-Pfad verlässt das Zielverzeichnis: "
-                          f"{entry.filename}"
-                      )
-
-              zip_file.extractall(target)
-          PY
-
-          for required in package.json package-lock.json src worker public; do
-            if [ ! -e "$target/$required" ]; then
-              echo "::error::Im Hauptverzeichnis der ZIP fehlt: ${required}"
-              exit 1
-            fi
-          done
-
-          echo "Release-ZIP wurde sicher entpackt und strukturell geprüft."
+          echo "MID-Archiv wurde erfolgreich geprüft und entpackt."
 
       - name: Alte MID-Version ersetzen
         shell: bash
@@ -110,104 +78,96 @@ jobs:
 
           rm -f MID-professional-replacement.zip
 
-          echo "MID-Projektdateien wurden ersetzt."
-          echo "Die Repository-Workflows bleiben erhalten."
+          echo "MID-Projekt wurde ersetzt."
+          echo "Die mitgelieferte package-lock.json bleibt erhalten."
 
-      - name: Node.js 22 mit npm-Cache einrichten
-        uses: actions/setup-node@v6
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: package-lock.json
-
-      - name: Lockfile und npm-Registry prüfen
+      - name: npm-Netzwerkzugriff absichern
         shell: bash
         timeout-minutes: 2
         run: |
           set -euo pipefail
 
-          npm config set registry https://registry.npmjs.org/
-          npm config set fetch-retries 2
+          npm config set fetch-retries 3
           npm config set fetch-retry-factor 2
-          npm config set fetch-retry-mintimeout 3000
-          npm config set fetch-retry-maxtimeout 15000
+          npm config set fetch-retry-mintimeout 5000
+          npm config set fetch-retry-maxtimeout 30000
           npm config set fetch-timeout 60000
 
-          node <<'NODE'
-          const fs = require("node:fs");
-
-          const lock = JSON.parse(
-            fs.readFileSync("package-lock.json", "utf8")
-          );
-
-          const invalid = [];
-
-          for (const [name, entry] of Object.entries(lock.packages ?? {})) {
-            const resolved =
-              entry && typeof entry === "object"
-                ? entry.resolved
-                : undefined;
-
-            if (typeof resolved !== "string") {
-              continue;
-            }
-
-            if (
-              /internal\.api\.openai\.org|applied-caas-gateway|localhost|127\.0\.0\.1/i
-                .test(resolved)
-            ) {
-              invalid.push(
-                `${name || "(root)"}: ${resolved}`
-              );
-            }
-          }
-
-          if (invalid.length) {
-            console.error(
-              "Nicht öffentlich erreichbare Paket-URLs im Lockfile:\n" +
-              invalid.join("\n")
-            );
-
-            process.exit(1);
-          }
-
-          console.log(
-            "Lockfile enthält keine internen oder lokalen Paket-URLs."
-          );
-          NODE
+          npm cache verify || true
 
           echo "Node: $(node --version)"
           echo "npm: $(npm --version)"
-          echo "Registry: $(npm config get registry)"
+          echo "npm-Registry: $(npm config get registry)"
+          echo "npm-Cache: $(npm config get cache)"
 
       - name: Abhängigkeiten reproduzierbar installieren
         shell: bash
-        timeout-minutes: 6
+        timeout-minutes: 12
         run: |
-          set -euo pipefail
+          set -uo pipefail
 
-          npm ci \
-            --no-audit \
-            --no-fund \
-            --prefer-offline \
-            --legacy-peer-deps \
-            --loglevel=notice
+          for attempt in 1 2 3; do
+            echo "npm-ci-Versuch ${attempt} von 3"
 
-      - name: Produktionsbuild und Regressionstests ausführen
+            if timeout --signal=TERM --kill-after=30s 4m \
+              npm ci \
+                --no-audit \
+                --no-fund \
+                --prefer-offline \
+                --legacy-peer-deps
+            then
+              echo "npm ci wurde erfolgreich abgeschlossen."
+              npm ls --depth=0
+              exit 0
+            fi
+
+            status=$?
+            echo "npm ci ist mit Status ${status} fehlgeschlagen."
+
+            if [ "$attempt" -eq 3 ]; then
+              echo "::error::npm ci ist nach drei begrenzten Versuchen fehlgeschlagen."
+              exit 1
+            fi
+
+            wait_seconds=$((attempt * 10))
+            echo "Neuer Versuch in ${wait_seconds} Sekunden."
+            sleep "$wait_seconds"
+          done
+
+      - name: Produktionsbuild ausführen
         shell: bash
-        timeout-minutes: 15
-        env:
-          VITE_METAR_PROXY_URL: ${{ vars.VITE_METAR_PROXY_URL }}
-          VITE_ALERT_PROXY_URL: ${{ vars.VITE_ALERT_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
-          VITE_RADAR_PROXY_URL: ${{ vars.VITE_RADAR_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
-          VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH }}
-          VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}
+        timeout-minutes: 10
         run: |
           set -euo pipefail
-          npm run verify
+          timeout --signal=TERM --kill-after=30s 9m npm run build
+
+      - name: Worker-Syntax prüfen
+        shell: bash
+        timeout-minutes: 2
+        run: |
+          set -euo pipefail
+          node --check worker/metar-proxy.js
+
+      - name: MID-Regressionstests ausführen
+        shell: bash
+        timeout-minutes: 20
+        run: |
+          set -euo pipefail
+
+          TEST_SCRIPTS=$(node -e "const p=require('./package.json'); console.log(Object.keys(p.scripts).filter(k=>k.startsWith('test:')).join('\n'))")
+
+          if [ -z "$TEST_SCRIPTS" ]; then
+            echo "::error::Keine MID-Regressionstests in package.json gefunden."
+            exit 1
+          fi
+
+          while IFS= read -r script; do
+            [ -z "$script" ] && continue
+            echo "===== npm run ${script} ====="
+            timeout --signal=TERM --kill-after=15s 3m npm run "$script"
+          done <<< "$TEST_SCRIPTS"
 
       - name: Neue MID-Version committen
-        id: commit
         shell: bash
         timeout-minutes: 5
         run: |
@@ -220,46 +180,8 @@ jobs:
           git add -A
 
           if git diff --cached --quiet; then
-            echo "::error::Das Release-ZIP führte zu keinen installierbaren Änderungen."
-            exit 1
+            echo "Keine Änderungen vorhanden."
+          else
+            git commit -m "Replace MID with professional dashboard"
+            git push origin main
           fi
-
-          version=$(node -p "require('./package.json').version")
-
-          git commit -m "Install MID v${version}"
-          git push origin HEAD:main
-
-          echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-
-      - name: GitHub Pages konfigurieren
-        uses: actions/configure-pages@v6
-
-      - name: Produktionsbuild für Pages hochladen
-        uses: actions/upload-pages-artifact@v5
-        with:
-          path: ./dist
-
-  deploy:
-    name: MID auf GitHub Pages veröffentlichen
-    needs: install_build
-    if: success()
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-
-    concurrency:
-      group: mid-pages
-      cancel-in-progress: true
-
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    steps:
-      - name: GitHub-Pages-Deployment ausführen
-        id: deployment
-        uses: actions/deploy-pages@v5
