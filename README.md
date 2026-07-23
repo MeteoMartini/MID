@@ -7,17 +7,14 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.88**
+**Aktuelle Version: v0.7.88.1**
 
-## Neuerungen in v0.7.88 – Starkregenanalyse für die aktuelle Niederschlagswahrscheinlichkeit
+## Wartung in v0.7.88.1 – Plausibilisierte Niederschlagsform
 
-- Die aktuelle Niederschlagswahrscheinlichkeit erhält eine belastbare Starkregen-Ausbaustufe mit RADOLAN-YW-Summen für 15, 30, 60, 180 und 360 Minuten.
-- DWD-RV ergänzt ortsbezogene Nowcast-Summen bis +120 Minuten; KONRAD3D liefert Starkregenflag, Zellzug und Annäherung.
-- KOSTRA-DWD-2020 ordnet die 30-, 60- und 360-Minuten-Summen statistisch ein, ohne daraus eine amtliche Warnstufe abzuleiten.
-- Ein Abgleich mit nahe gelegenen DWD-Niederschlagsstationen kennzeichnet plausible Übereinstimmungen und auffällige Radar-/Stationsabweichungen.
-- Die zusätzliche Starkregenkarte erscheint nur bei einem tatsächlichen Mess-, Nowcast-, KONRAD-, KOSTRA- oder Stationssignal.
-- Amtliche Warnungen bleiben optisch, textlich und logisch vollständig von der MID-Radar-/Nowcast-Analyse getrennt.
-- Der Cloudflare Worker stellt die hierfür benötigten RADOLAN-, RV-, KOSTRA- und Stationsrouten über den bestehenden Worker bereit; es ist kein zweiter Worker erforderlich.
+- Open-Meteo-WMO-Codes 51–55 führen nur noch bei hoher Luftfeuchte, dominanter tiefer Bewölkung und schwacher stratiformer Niederschlagsrate zu Sprühregen.
+- Ohne diese Begleitmerkmale wird der Niederschlag als Regen dargestellt und gemäß DWD/WMO nach der stündlichen Niederschlagsmenge als leicht, mäßig, stark oder sehr stark eingestuft.
+- Die Best-Match-Abfrage lädt dafür zusätzlich `cloud_cover_low`; Schaueranteil und Gesamtbewölkung dienen als weitere Plausibilitätsmerkmale.
+- Amtliche Warnungen sowie Starkregen- und Radarlogik bleiben unverändert und getrennt.
 
 ## Wartung der Release-Pipeline
 

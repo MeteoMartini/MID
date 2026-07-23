@@ -12,6 +12,9 @@ export type PrecipSample={
  snowfall:number;
  probability:number;
  code:number;
+ humidity?:number;
+ cloud?:number;
+ lowCloud?:number;
 };
 
 export type PrecipitationParts={
@@ -57,6 +60,38 @@ const PRECIP_LABEL:Record<Exclude<PrecipType,'none'>,string>={
  * besonders für Schnee wichtig: precipitation enthält dort das flüssige
  * Wasseräquivalent und darf nicht als zusätzlicher Regenanteil gelten.
  */
+function finiteOrNaN(value:unknown){const number=Number(value);return Number.isFinite(number)?number:Number.NaN}
+
+function drizzlePlausible(h:PrecipSample,total:number){
+ const humidity=finiteOrNaN(h.humidity);
+ const lowCloud=finiteOrNaN(h.lowCloud);
+ const cloud=finiteOrNaN(h.cloud);
+ const humidEnough=Number.isFinite(humidity)&&humidity>=88;
+ const stratusSignal=Number.isFinite(lowCloud)?lowCloud>=70:Number.isFinite(cloud)&&cloud>=85;
+ const weakStratiformRate=total<2.5&&Math.max(0,Number(h.showers)||0)<.05;
+ return humidEnough&&stratusSignal&&weakStratiformRate;
+}
+
+function rainIntensity(total:number){
+ if(total>=50)return'sehr starker';
+ if(total>=10)return'starker';
+ if(total>=2.5)return'mäßiger';
+ return'leichter';
+}
+
+function drizzleIntensity(total:number){
+ if(total>=.5)return'starker';
+ if(total>=.1)return'mäßiger';
+ return'leichter';
+}
+
+/**
+ * Bestimmt die Niederschlagsform für Diagramm, Legende und Stunden-Tooltip.
+ * WMO-Codes bleiben die primäre Phasenangabe. Sprühregen-Codes 51–55 werden
+ * jedoch nur übernommen, wenn zugleich eine feuchte, tiefe Stratuslage und
+ * eine schwache stratiforme Niederschlagsrate vorliegen. Fehlt diese
+ * Plausibilität, wird nach DWD/WMO als Regen klassifiziert.
+ */
 export function precipitationParts(h:PrecipSample):PrecipitationParts{
  const total=Math.max(0,Number(h.precipitation)||0);
  const rainValue=Math.max(0,Number(h.rain)||0);
@@ -72,9 +107,8 @@ export function precipitationParts(h:PrecipSample):PrecipitationParts{
  const hasSnow=snowCm>=.05;
  let type:PrecipType;
 
- // Der WMO-Code steuert dieselbe Niederschlagsform wie Wettertext und Symbol.
- // Nur bei fehlendem/ungeeignetem Code wird aus den Mengenfeldern abgeleitet.
- if(codedType)type=codedType;
+ if(codedType==='drizzle')type=drizzlePlausible(h,total)?'drizzle':'rain';
+ else if(codedType)type=codedType;
  else if(hasSnow&&hasShowers)type='sleetShowers';
  else if(hasSnow&&hasRain)type='sleet';
  else if(hasSnow)type='snow';
@@ -88,7 +122,12 @@ export function precipitationParts(h:PrecipSample):PrecipitationParts{
   :type==='sleet'||type==='sleetShowers'
    ?`${formatDecimalFixed(total,1)} mm · ${formatDecimalFixed(snowCm,1)} cm`
    :`${formatDecimalFixed(total,1)} mm`;
- return{total,type,label:`${PRECIP_LABEL[type]} ${amount}`,code};
+ const label=type==='rain'
+  ?`${rainIntensity(total)} Regen ${amount}`
+  :type==='drizzle'
+   ?`${drizzleIntensity(total)} Sprühregen ${amount}`
+   :`${PRECIP_LABEL[type]} ${amount}`;
+ return{total,type,label,code};
 }
 
 const PRECIP_TYPE_ORDER:PrecipType[]=['drizzle','freezingDrizzle','rain','freezingRain','showers','sleet','sleetShowers','snow','snowGrains','snowShowers','thunderstorm','thunderstormHail'];

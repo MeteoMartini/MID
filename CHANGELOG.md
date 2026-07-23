@@ -1,13 +1,11 @@
-# MID v0.7.88
+# MID v0.7.88.1
 
-- Funktionsrelease für die nächste Ausbaustufe der aktuellen Niederschlagswahrscheinlichkeit.
-- RADOLAN-YW liefert beobachtete 15-/30-/60-/180-/360-Minuten-Summen am gewählten Ort und im relevanten Umfeld.
-- DWD-RV ergänzt Nowcast-Summen bis +120 Minuten; KONRAD3D steuert Starkregenflag, Zellzug und Annäherungsinformation bei.
-- KOSTRA-DWD-2020 ordnet 30-, 60- und 360-Minuten-Summen statistisch ein; die Darstellung bezeichnet diese Einordnung ausdrücklich nicht als amtliche Warnstufe.
-- Nahe DWD-Niederschlagsstationen werden als Plausibilitätsabgleich für Radar- und Nowcast-Signale herangezogen.
-- Die Starkregenkarte wird nur bei einem tatsächlichen Signal eingeblendet.
-- Amtliche Warnungen und die abgeleitete MID-Starkregenanalyse bleiben technisch und visuell getrennt.
-- Der bestehende Cloudflare Worker wurde um die erforderlichen Datenrouten erweitert; die Auslieferungsdatei bleibt `MID-worker.zip` mit `worker.js` als Einstiegdatei.
+- Plausibilitätsprüfung für Open-Meteo-Sprühregen ergänzt: WMO-Codes 51–55 werden nur noch bei hoher relativer Feuchte, ausgeprägter tiefer Bewölkung und schwacher stratiformer Niederschlagsrate als Sprühregen dargestellt.
+- Fehlen die typischen Stratus-/Feuchtemerkmale oder ist die Niederschlagsrate zu hoch, wird der Niederschlag als Regen klassifiziert.
+- Regenintensitäten werden nach den DWD/WMO-Stundenschwellen als leicht, mäßig, stark oder sehr stark bezeichnet; Sprühregen nutzt seine eigenen DWD-Intensitätsstufen.
+- `cloud_cover_low` wird jetzt in der Best-Match-Stundenprognose geladen und zusammen mit relativer Feuchte, Gesamtbewölkung, Schauersignal und Niederschlagsmenge ausgewertet.
+- Regressionstests sichern plausiblen Sprühregen und die Umklassifizierung unplausibler Sprühregen-Codes ab.
+- Cloudflare Worker ohne funktionale Änderung; Versionsnummer lediglich synchronisiert.
 
 # MID v0.7.87.1
 
