@@ -18,7 +18,9 @@ concurrency:
 
 jobs:
   install:
+    name: MID installieren und prüfen
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - name: Repository laden
@@ -27,22 +29,45 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - name: Node.js 22 einrichten
+      - name: Node.js 22 mit npm-Cache einrichten
         uses: actions/setup-node@v6
         with:
           node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
 
       - name: Neue MID-Version entpacken
+        shell: bash
         run: |
-          test -f MID-professional-replacement.zip
+          set -euo pipefail
+
+          if [ ! -f MID-professional-replacement.zip ]; then
+            echo "::error::MID-professional-replacement.zip wurde nicht gefunden."
+            exit 1
+          fi
 
           rm -rf /tmp/mid-new
           mkdir -p /tmp/mid-new
 
           unzip -q MID-professional-replacement.zip -d /tmp/mid-new
 
+          if [ ! -f /tmp/mid-new/package.json ]; then
+            echo "::error::Die ZIP enthält keine package.json im Hauptverzeichnis."
+            exit 1
+          fi
+
+          if [ ! -f /tmp/mid-new/package-lock.json ]; then
+            echo "::error::Die ZIP enthält keine package-lock.json im Hauptverzeichnis."
+            exit 1
+          fi
+
+          echo "MID-Archiv wurde erfolgreich geprüft und entpackt."
+
       - name: Alte MID-Version ersetzen
+        shell: bash
         run: |
+          set -euo pipefail
+
           rsync -a --delete \
             --exclude='.git/' \
             --exclude='.github/' \
@@ -50,18 +75,73 @@ jobs:
             /tmp/mid-new/ ./
 
           rm -f MID-professional-replacement.zip
-          rm -f package-lock.json
 
-      - name: Abhängigkeiten installieren
-        run: npm install --no-audit --no-fund --legacy-peer-deps
+          echo "MID-Projekt wurde ersetzt."
+          echo "Die mitgelieferte package-lock.json bleibt erhalten."
 
-      - name: Projekt prüfen und bauen
-        run: npm run build
+      - name: npm-Netzwerkzugriff absichern
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          npm config set fetch-retries 5
+          npm config set fetch-retry-factor 2
+          npm config set fetch-retry-mintimeout 20000
+          npm config set fetch-retry-maxtimeout 120000
+
+          npm cache verify || true
+
+          echo "npm-Registry:"
+          npm config get registry
+
+          echo "npm-Cache:"
+          npm config get cache
+
+      - name: Abhängigkeiten reproduzierbar installieren
+        shell: bash
+        run: |
+          set -uo pipefail
+
+          for attempt in 1 2 3; do
+            echo "npm-ci-Versuch ${attempt} von 3"
+
+            if npm ci \
+              --no-audit \
+              --no-fund \
+              --prefer-offline \
+              --legacy-peer-deps
+            then
+              echo "npm ci wurde erfolgreich abgeschlossen."
+              exit 0
+            fi
+
+            if [ "$attempt" -eq 3 ]; then
+              echo "::error::npm ci ist nach drei Versuchen fehlgeschlagen."
+              exit 1
+            fi
+
+            wait_seconds=$((attempt * 20))
+
+            echo "Installation fehlgeschlagen."
+            echo "Neuer Versuch in ${wait_seconds} Sekunden."
+
+            sleep "$wait_seconds"
+          done
+
+      - name: Projekt vollständig prüfen und bauen
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run verify
 
       - name: Neue MID-Version committen
+        shell: bash
         run: |
+          set -euo pipefail
+
           git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
 
           git add -A
 
