@@ -7,8 +7,27 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.77.1**
+**Aktuelle Version: v0.7.78.1**
 
+
+
+## Wartung in v0.7.78.1
+
+- GitHub-Buildfehler `TS2367` in `src/App.tsx` behoben.
+- Niederschlagstypen werden vor dem Zugriff auf die typspezifische Darstellung mit einem Type-Guard von `none` getrennt.
+- Dynamische Niederschlagsskala und Balkendarstellung verwenden dieselbe typsichere Logik.
+- Keine fachliche oder sichtbare Funktionsänderung gegenüber v0.7.78.
+
+## Neuerungen in v0.7.78
+
+- Die Best-Match-Modellstandsanzeige kennt nun die neuen Open-Meteo-Kennungen `chmi_aladin_seamless`, `chmi_aladin_central_europe_2km` und `chmi_aladin_cz_1km`.
+- Im Erweiterten Modus wird die Legende der stündlichen Detailansicht zur Parametersteuerung: Temperatur, gefühlte Temperatur, Taupunkt, einzelne Niederschlagsarten, Wahrscheinlichkeit, Wind, Böen und Richtung können separat ein- oder ausgeblendet werden.
+- Der Taupunkt erscheint als dezente Linie. Unterhalb des Niederschlags werden Wind und Böen mit gemeinsamer Skala sowie darunter die Richtungspfeile dargestellt.
+- Schaltet man alle Parameter eines Bereichs ab, verschwindet der entsprechende Diagrammabschnitt vollständig; beim Wiedereinschalten wird er automatisch ergänzt.
+- Die Diagrammgröße wird mit der tatsächlich verfügbaren Breite berechnet und bleibt auf Smartphone, Tablet im Hoch-/Querformat und Desktop verzerrungsfrei.
+- Die gefühlte Temperatur wird nun auch in der Legende in beiden Ansichtsmodi eindeutig gestrichelt dargestellt.
+- Die jüngsten serverseitigen Open-Meteo-Korrekturen an ECMWF-Solarwerten, AIGEFS und GFS-Niederschlag werden ohne zusätzliche lokale Umrechnung automatisch genutzt.
+- Der Cloudflare Worker wurde nicht funktional verändert; seine Versionsnummer wurde lediglich synchronisiert.
 
 
 ## Neuerungen in v0.7.77.1

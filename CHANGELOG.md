@@ -1,3 +1,22 @@
+# MID v0.7.78.1
+
+- TypeScript-Buildfehler TS2367 in der Niederschlagsdarstellung der erweiterten Detailansicht behoben.
+- Den Niederschlagstyp `none` vor der Verwendung des engeren `DetailPrecipType` jetzt über einen expliziten Type-Guard ausgeschlossen.
+- Dieselbe typsichere Prüfung wird auch für die dynamische Niederschlagsskala verwendet.
+- Regressionstest erweitert, damit die fehlerhafte Kombination aus Exclude-Typcast und anschließendem `none`-Vergleich nicht erneut eingeführt wird.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionssynchronisierung.
+
+# MID v0.7.78
+
+- Open-Meteo-Modellkatalog um CHMI ALADIN Seamless, ALADIN Mitteleuropa 2,3 km und ALADIN Tschechien 1 km ergänzt, damit aktuelle Modellstände im Best-Match-Status korrekt benannt werden.
+- Die jüngsten serverseitigen Open-Meteo-Korrekturen für ECMWF-Solarinterpolation, AIGEFS-Abruf und GFS-Niederschlags-Deakkumulation werden automatisch über die bestehenden APIs genutzt; hierfür ist keine eigene MID-Datenumrechnung erforderlich.
+- Im Erweiterten Modus lassen sich Temperatur, gefühlte Temperatur, Taupunkt, einzelne Niederschlagsarten, Niederschlagswahrscheinlichkeit, Wind, Böen und Windrichtung unmittelbar über die Legende ein- und ausblenden.
+- Taupunkt als zurückhaltende Linie ergänzt; unter dem Niederschlagsbereich erscheinen Wind und Böen sowie darunter Richtungspfeile.
+- Nicht mehr benötigte Temperatur-, Niederschlags- und Windbereiche werden dynamisch entfernt. Das SVG passt ViewBox und Höhe per ResizeObserver an Hoch-/Querformat und verfügbare Bildschirmbreite an, ohne die Darstellung zu verzerren.
+- Legendenmuster der gefühlten Temperatur in Standard- und Erweitertem Modus an die gestrichelte Diagrammlinie angeglichen.
+- Auswahl der erweiterten Detailparameter wird lokal gespeichert.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionssynchronisierung.
+
 # MID v0.7.77.1
 
 - Beschriftung der gelb-grauen Sonnenschein-/Bewölkungslegende in allen Farbdesigns mit einer festen dunklen Schriftfarbe lesbar gemacht.

@@ -1476,3 +1476,18 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 .app>footer>.mode-info-popover{top:auto;right:auto;bottom:calc(100% + 8px);left:50%;width:min(680px,calc(100vw - 24px));max-height:min(62vh,520px);overflow:auto;transform:translateX(-50%);font-size:10px;line-height:1.5}
 .mode-standard footer{min-height:36px}
 @media(max-width:620px){.app>footer>.mode-info{margin-left:0;margin-right:0}.app>footer>.mode-info-popover{position:fixed;top:auto;right:8px;bottom:10px;left:8px;width:auto;max-height:60vh;transform:none;font-size:11px}}
+
+/* MID v0.7.78 – adaptive Detailansicht und schaltbare Parameter */
+.meteogramsvg.adaptive-detail-chart{display:block;width:100%;min-height:0!important;max-height:none!important}
+.detaillegend.interactive button{display:inline-flex;align-items:center;gap:7px;padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:var(--s2);color:var(--muted);font-size:11px;transition:opacity .16s ease,border-color .16s ease,background .16s ease,transform .16s ease}
+.detaillegend.interactive button:hover{border-color:color-mix(in srgb,var(--primary) 46%,var(--border));transform:translateY(-1px)}
+.detaillegend.interactive button:focus-visible{outline:2px solid color-mix(in srgb,var(--primary) 72%,white);outline-offset:2px}
+.detaillegend.interactive button.active{border-color:color-mix(in srgb,var(--primary) 34%,var(--border));color:var(--text)}
+.detaillegend.interactive button.inactive{opacity:.38;filter:saturate(.35)}
+.detaillegend i.apparent{height:3px!important;border:0!important;background:repeating-linear-gradient(90deg,var(--apparent-line) 0 7px,transparent 7px 11px)!important}
+.detaillegend i.dewpoint{background:#59b8b0!important;opacity:.72}
+.detaillegend i.windline{background:#4fc985!important}
+.detaillegend i.gustline{height:3px!important;background:repeating-linear-gradient(90deg,#b786ff 0 7px,transparent 7px 11px)!important}
+.detaillegend i.direction{height:16px!important;background:none!important;color:#7bc8ef;font-size:15px;line-height:16px;text-align:center}
+.detaillegend i.direction::before{content:'↗'}
+@media(max-width:640px){.detaillegend.interactive{gap:5px}.detaillegend.interactive button{padding:5px 7px;font-size:10px}}
