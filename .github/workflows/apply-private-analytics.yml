@@ -1,0 +1,381 @@
+name: Apply MID private analytics
+run-name: MID v0.7.90.5 – private Zugriffsauswertung einspielen
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: mid-private-analytics
+  cancel-in-progress: false
+
+jobs:
+  patch_build:
+    name: MID patchen, prüfen und bauen
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Repository laden
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Node.js 22 mit npm-Cache einrichten
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Private Zugriffsauswertung einspielen
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > /tmp/apply-private-analytics.py <<'PY'
+          #!/usr/bin/env python3
+          from pathlib import Path
+          import json
+          import re
+          import sys
+
+          ROOT=Path.cwd()
+          FROM_VERSION='0.7.90.4'
+          TO_VERSION='0.7.90.5'
+          ANALYTICS_TS=r"""const CLOUDFLARE_BEACON_URL='https://static.cloudflareinsights.com/beacon.min.js';
+          const INTERNAL_DEVICE_KEY='mid.analytics.internal-device';
+          const CONTROL_PARAMETER='mid-analytics';
+
+          type AnalyticsStatus={
+           enabled:boolean;
+           reason:'loaded'|'already-loaded'|'internal-device'|'development'|'missing-token'|'unsupported';
+          };
+
+          function analyticsToken(){
+           const value=String(import.meta.env.VITE_CLOUDFLARE_ANALYTICS_TOKEN||'').trim();
+           return /^[A-Za-z0-9_-]{20,128}$/.test(value)?value:'';
+          }
+
+          function removeControlParameter(url:URL){
+           url.searchParams.delete(CONTROL_PARAMETER);
+           const next=`${url.pathname}${url.search}${url.hash}`;
+           window.history.replaceState(window.history.state,'',next);
+          }
+
+          function isInternalDevice(){
+           const url=new URL(window.location.href);
+           const command=(url.searchParams.get(CONTROL_PARAMETER)||'').trim().toLowerCase();
+           let internal=false;
+           try{
+            if(command==='internal'||command==='exclude'){
+             localStorage.setItem(INTERNAL_DEVICE_KEY,'1');
+             internal=true;
+            }else if(command==='external'||command==='include'||command==='reset'){
+             localStorage.removeItem(INTERNAL_DEVICE_KEY);
+            }else{
+             internal=localStorage.getItem(INTERNAL_DEVICE_KEY)==='1';
+            }
+           }catch{
+            internal=command==='internal'||command==='exclude';
+           }
+           if(command)removeControlParameter(url);
+           return internal;
+          }
+
+          export function initPrivateWebAnalytics():AnalyticsStatus{
+           if(typeof window==='undefined'||typeof document==='undefined')return{enabled:false,reason:'unsupported'};
+           if(isInternalDevice())return{enabled:false,reason:'internal-device'};
+           if(!import.meta.env.PROD)return{enabled:false,reason:'development'};
+           const token=analyticsToken();
+           if(!token)return{enabled:false,reason:'missing-token'};
+           const existing=document.querySelector<HTMLScriptElement>(`script[src^="${CLOUDFLARE_BEACON_URL}"]`);
+           if(existing)return{enabled:true,reason:'already-loaded'};
+           const script=document.createElement('script');
+           script.type='module';
+           script.src=CLOUDFLARE_BEACON_URL;
+           script.setAttribute('data-cf-beacon',JSON.stringify({token,spa:true}));
+           script.setAttribute('data-mid-analytics','cloudflare');
+           document.head.appendChild(script);
+           return{enabled:true,reason:'loaded'};
+          }"""
+          TEST_MJS=r"""import {readFile} from 'node:fs/promises';
+
+          const read=path=>readFile(new URL(path,import.meta.url),'utf8');
+          const [analytics,main,pkg,installWorkflow,deployWorkflow,documentation]=await Promise.all([
+           read('../src/analytics.ts'),
+           read('../src/main.tsx'),
+           read('../package.json'),
+           read('../.github/workflows/install-mid.yml'),
+           read('../.github/workflows/deploy.yml'),
+           read('../docs/private-analytics.md')
+          ]);
+          const failures=[];
+          for(const token of [
+           'https://static.cloudflareinsights.com/beacon.min.js',
+           'VITE_CLOUDFLARE_ANALYTICS_TOKEN',
+           "const INTERNAL_DEVICE_KEY='mid.analytics.internal-device'",
+           "const CONTROL_PARAMETER='mid-analytics'",
+           "script.type='module'",
+           "JSON.stringify({token,spa:true})",
+           "window.history.replaceState",
+           "if(!import.meta.env.PROD)",
+           "reason:'missing-token'"
+          ]){
+           if(!analytics.includes(token))failures.push(`Analytics-Integration unvollständig: ${token}`);
+          }
+          if(!main.includes("import {initPrivateWebAnalytics} from './analytics';"))failures.push('Analytics-Initialisierung ist nicht in main.tsx importiert');
+          const initIndex=main.indexOf('initPrivateWebAnalytics();');
+          const restoreIndex=main.indexOf('await restorePersistentState();');
+          if(initIndex<0||restoreIndex<0||initIndex>restoreIndex)failures.push('Analytics-Kontrolle läuft nicht vor der Wiederherstellung des App-Zustands');
+          const packageJson=JSON.parse(pkg);
+          if(packageJson.scripts?.['test:private-analytics']!=='node scripts/test-private-analytics.mjs')failures.push('Analytics-Regressionstest fehlt in package.json');
+          if(!String(packageJson.scripts?.verify||'').includes('npm run test:private-analytics'))failures.push('Analytics-Regressionstest fehlt in der Gesamtprüfung');
+          for(const [name,workflow] of [['install-mid.yml',installWorkflow],['deploy.yml',deployWorkflow]]){
+           if(!workflow.includes('VITE_CLOUDFLARE_ANALYTICS_TOKEN: ${{ vars.VITE_CLOUDFLARE_ANALYTICS_TOKEN }}'))failures.push(`${name} übergibt die Analytics-ID nicht an Vite`);
+          }
+          for(const token of ['Cloudflare-Einfügung deaktivieren','?mid-analytics=internal','?mid-analytics=external']){
+           if(!documentation.includes(token))failures.push(`Analytics-Dokumentation unvollständig: ${token}`);
+          }
+          if(failures.length){
+           console.error(`Private-Analytics-Prüfung fehlgeschlagen:\n- ${failures.join('\n- ')}`);
+           process.exit(1);
+          }
+          console.log('Private Zugriffsauswertung geprüft: konfigurierbarer Cloudflare-Beacon, lokale Geräteausnahme, Workflow-Variable und Dokumentation sind vorhanden.');"""
+          DOCS_MD=r"""# Private Zugriffsauswertung in MID
+
+          MID lädt Cloudflare Web Analytics nur im Produktionsbuild und nur dann, wenn die
+          GitHub-Repository-Variable `VITE_CLOUDFLARE_ANALYTICS_TOKEN` einen gültigen
+          Cloudflare-Site-Token enthält. Ohne Token wird keine Verbindung zum
+          Analytics-Beacon aufgebaut.
+
+          ## Cloudflare vorbereiten
+
+          1. In Cloudflare **Web Analytics** öffnen und die öffentliche MID-Adresse als
+             Website hinzufügen.
+          2. Bei einer über Cloudflare geleiteten Domain die **automatische
+             Cloudflare-Einfügung deaktivieren** und die manuelle JS-Snippet-Installation
+             wählen. Andernfalls könnte Cloudflare den Beacon schon vor der lokalen
+             MID-Ausnahme einfügen.
+          3. Aus dem angezeigten Snippet nur den Wert hinter `"token"` kopieren.
+          4. In GitHub unter **Repository → Settings → Secrets and variables → Actions →
+             Variables** eine Repository-Variable mit dem Namen
+             `VITE_CLOUDFLARE_ANALYTICS_TOKEN` anlegen.
+          5. MID neu bauen beziehungsweise den vorhandenen manuellen
+             GitHub-Pages-Deploy-Workflow starten.
+
+          Der Site-Token ist eine öffentliche Website-Kennung und wird von Vite in das
+          Browserpaket eingebaut. Die Statistik selbst bleibt im geschützten
+          Cloudflare-Konto.
+
+          ## Eigene Geräte ausschließen
+
+          Auf jedem eigenen Browser beziehungsweise jeder installierten MID-PWA einmal
+          folgende Adresse aufrufen:
+
+          ```text
+          https://DEINE-MID-ADRESSE/?mid-analytics=internal
+          ```
+
+          MID speichert die Ausnahme lokal für diesen Browser und entfernt den
+          Steuerparameter sofort wieder aus der sichtbaren Adresse. Von diesem Browser
+          wird der Cloudflare-Beacon anschließend nicht mehr geladen.
+
+          Die Zählung lässt sich auf einem Gerät wieder aktivieren mit:
+
+          ```text
+          https://DEINE-MID-ADRESSE/?mid-analytics=external
+          ```
+
+          Die Kennzeichnung ist absichtlich geräte- und browserbezogen. Sie wird nicht an
+          einen Server übertragen und muss daher auf iPhone, iPad, Desktop-Browser und
+          gegebenenfalls der installierten PWA jeweils separat gesetzt werden.
+
+          ## Datenschutz und Grenzen
+
+          - MID setzt für diese Funktion selbst keine Cookies.
+          - Der Beacon wird in lokaler Entwicklung grundsätzlich nicht geladen.
+          - Fehlt der Token oder ist er formal ungültig, bleibt Analytics vollständig aus.
+          - Wer den Beacon durch einen Inhaltsblocker sperrt, kann in der
+            JavaScript-basierten Statistik fehlen.
+          - Es gibt in MID keine öffentliche Statistikseite und keinen sichtbaren
+            Besucherzähler."""
+
+          def read(path):
+              return (ROOT/path).read_text(encoding='utf-8')
+
+          def write(path,content):
+              target=ROOT/path
+              target.parent.mkdir(parents=True,exist_ok=True)
+              target.write_text(content,encoding='utf-8')
+
+          def replace_once(path,old,new):
+              content=read(path)
+              if new in content:
+                  return
+              if old not in content:
+                  raise RuntimeError(f'{path}: erwarteter Ausgangstext nicht gefunden')
+              write(path,content.replace(old,new,1))
+
+          package_path=ROOT/'package.json'
+          if not package_path.exists():
+              raise SystemExit('package.json wurde nicht gefunden. Das Skript muss im MID-Hauptverzeichnis laufen.')
+          package=json.loads(package_path.read_text(encoding='utf-8'))
+          if package.get('version')==TO_VERSION:
+              print(f'MID v{TO_VERSION} ist bereits eingespielt.')
+              sys.exit(0)
+          if package.get('version')!=FROM_VERSION:
+              raise SystemExit(f'Abbruch: erwartet wird MID v{FROM_VERSION}, gefunden wurde v{package.get("version")}.')
+
+          write('src/analytics.ts',ANALYTICS_TS)
+          write('scripts/test-private-analytics.mjs',TEST_MJS)
+          write('docs/private-analytics.md',DOCS_MD)
+
+          replace_once(
+              'src/main.tsx',
+              "import {markMidRuntimeHealthy,registerMidServiceWorker} from './pwa';",
+              "import {markMidRuntimeHealthy,registerMidServiceWorker} from './pwa';\nimport {initPrivateWebAnalytics} from './analytics';"
+          )
+          replace_once(
+              'src/main.tsx',
+              "async function start(){\n await restorePersistentState();",
+              "async function start(){\n initPrivateWebAnalytics();\n await restorePersistentState();"
+          )
+
+          package['version']=TO_VERSION
+          scripts=package.setdefault('scripts',{})
+          scripts['test:private-analytics']='node scripts/test-private-analytics.mjs'
+          verify=str(scripts.get('verify',''))
+          if 'npm run test:private-analytics' not in verify:
+              scripts['verify']=verify+' && npm run test:private-analytics'
+          write('package.json',json.dumps(package,ensure_ascii=False,indent=2)+'\n')
+
+          lock=json.loads(read('package-lock.json'))
+          lock['version']=TO_VERSION
+          lock.setdefault('packages',{}).setdefault('',{})['version']=TO_VERSION
+          write('package-lock.json',json.dumps(lock,ensure_ascii=False,indent=2)+'\n')
+
+          write('src/version.ts',f"export const MID_VERSION='{TO_VERSION}';\n")
+          write('public/version.json',json.dumps({'version':TO_VERSION},indent=2)+'\n')
+
+          for path in ['public/service-worker.js','public/sw.js']:
+              replace_once(path,f"const CACHE='mid-shell-v{FROM_VERSION}';",f"const CACHE='mid-shell-v{TO_VERSION}';")
+          replace_once('worker/metar-proxy.js',f"const WORKER_VERSION='{FROM_VERSION}';",f"const WORKER_VERSION='{TO_VERSION}';")
+
+          analytics_env='          VITE_CLOUDFLARE_ANALYTICS_TOKEN: ${{ vars.VITE_CLOUDFLARE_ANALYTICS_TOKEN }}'
+          for path in ['.github/workflows/install-mid.yml','.github/workflows/deploy.yml']:
+              content=read(path)
+              if analytics_env not in content:
+                  anchor='          VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}'
+                  if anchor not in content:
+                      raise RuntimeError(f'{path}: Build-Umgebungsblock nicht gefunden')
+                  content=content.replace(anchor,anchor+'\n'+analytics_env,1)
+                  write(path,content)
+
+          env_path=ROOT/'.env.example'
+          if env_path.exists():
+              env_content=env_path.read_text(encoding='utf-8')
+              if 'VITE_CLOUDFLARE_ANALYTICS_TOKEN=' not in env_content:
+                  env_path.write_text(env_content.rstrip()+'\nVITE_CLOUDFLARE_ANALYTICS_TOKEN=\n',encoding='utf-8')
+
+          readme_heading=f'## Wartung in v{TO_VERSION} – Private Zugriffsauswertung'
+          readme=read('README.md')
+          if readme_heading not in readme:
+              readme_intro=f"""## Wartung in v{TO_VERSION} – Private Zugriffsauswertung
+
+          - Private Cloudflare-Web-Analytics-Integration ergänzt; ohne konfigurierte Site-ID wird keinerlei Beacon geladen.
+          - Eigene Browser und installierte PWAs lassen sich lokal per `?mid-analytics=internal` dauerhaft von der Zählung ausschließen.
+          - Die Gegenfunktion `?mid-analytics=external` hebt die lokale Ausnahme wieder auf.
+          - Der Steuerparameter wird vor dem Laden des Beacons aus der Adresse entfernt.
+          - GitHub-Builds übernehmen die Site-ID ausschließlich aus `VITE_CLOUDFLARE_ANALYTICS_TOKEN`.
+          - Neuer Regressionstest und ausführliche Einrichtungsdokumentation ergänzt.
+          - Cloudflare Worker ohne funktionale Änderung.
+
+          """
+              readme=readme_intro+readme
+          readme=re.sub(r'\*\*Aktuelle Version: v0\.7\.90\.4\*\*',f'**Aktuelle Version: v{TO_VERSION}**',readme,count=1)
+          write('README.md',readme)
+
+          changelog_heading=f'# MID v{TO_VERSION}'
+          changelog=read('CHANGELOG.md')
+          if changelog_heading not in changelog:
+              changelog_intro=f"""# MID v{TO_VERSION}
+
+          - Private, nicht öffentlich einsehbare Zugriffsauswertung über einen nur bei vorhandener Build-Konfiguration geladenen Cloudflare-Web-Analytics-Beacon ergänzt.
+          - Site-ID wird nicht fest im Quellcode hinterlegt, sondern über die GitHub-Variable `VITE_CLOUDFLARE_ANALYTICS_TOKEN` in den Produktionsbuild übernommen.
+          - Eigene Geräte können sich über `?mid-analytics=internal` lokal von der Erfassung ausschließen; `?mid-analytics=external` aktiviert die Zählung wieder.
+          - Der Steuerparameter wird vor dem Beacon-Start aus der URL entfernt; Entwicklung, fehlende oder ungültige IDs bleiben vollständig ohne Analytics-Aufruf.
+          - Automatische SPA-Erfassung, Doppelbeacon-Schutz, Regressionstest und Einrichtungsdokumentation ergänzt.
+          - README, Changelog, Lockfile, Service-Worker-Cache und Versionsstellen aktualisiert.
+          - Cloudflare Worker ohne funktionale Änderung.
+
+          """
+              changelog=changelog_intro+changelog
+          write('CHANGELOG.md',changelog)
+
+          print(f'MID wurde lokal von v{FROM_VERSION} auf v{TO_VERSION} für private Zugriffsauswertung gepatcht.')
+          PY
+          python3 /tmp/apply-private-analytics.py
+          rm -f .github/workflows/apply-private-analytics.yml
+
+      - name: Abhängigkeiten reproduzierbar installieren
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm config set registry https://registry.npmjs.org/
+          npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
+
+      - name: Produktionsbuild und vollständige Regressionstests
+        shell: bash
+        timeout-minutes: 18
+        env:
+          VITE_METAR_PROXY_URL: ${{ vars.VITE_METAR_PROXY_URL }}
+          VITE_ALERT_PROXY_URL: ${{ vars.VITE_ALERT_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
+          VITE_RADAR_PROXY_URL: ${{ vars.VITE_RADAR_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
+          VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH }}
+          VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}
+          VITE_CLOUDFLARE_ANALYTICS_TOKEN: ${{ vars.VITE_CLOUDFLARE_ANALYTICS_TOKEN }}
+        run: |
+          set -euo pipefail
+          npm run verify
+
+      - name: MID v0.7.90.5 committen
+        id: commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "::error::Der Analytics-Patch führte zu keinen Änderungen."
+            exit 1
+          fi
+          git commit -m "Install MID v0.7.90.5"
+          git push origin HEAD:main
+          echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: GitHub Pages konfigurieren
+        uses: actions/configure-pages@v6
+
+      - name: Produktionsbuild hochladen
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: ./dist
+
+  deploy:
+    name: MID v0.7.90.5 veröffentlichen
+    needs: patch_build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: GitHub-Pages-Deployment ausführen
+        id: deployment
+        uses: actions/deploy-pages@v5
