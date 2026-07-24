@@ -1,3 +1,10 @@
+# MID v0.7.88.3
+
+- Darstellungsfehler im Tooltip des 14-Tage-Ensemble-Trends behoben.
+- Der Prozentwert der Prognosekonsistenz wird nun als untrennbare Einheit dargestellt und bricht auch auf schmalen Bildschirmen nicht mehr zwischen Zahl und Prozentzeichen um.
+- README, Changelog und Versionsstellen aktualisiert.
+- Cloudflare Worker ohne funktionale Änderung.
+
 # MID v0.7.88.2
 
 - Die mit v0.7.88.1 eingeführte Sprühregen-Plausibilisierung gilt nun konsequent auch für die Wettertexte und Wettersymbole der 7-Tage-Vorhersage, des Widgets und des 14-Tage-Ensemble-Trends.

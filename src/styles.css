@@ -1554,3 +1554,10 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 .composite-info-popover dd{min-width:0;margin:0;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .composite-info-popover p{margin:11px 0 0;padding-top:10px;border-top:1px solid var(--border);color:var(--muted)}
 @media(max-width:620px){.composite-info-popover{width:auto}.composite-info-popover dl{grid-template-columns:82px minmax(0,1fr)}}
+
+/* v0.7.88.3 – Prozentwert der Prognosekonsistenz bleibt im Tooltip untrennbar */
+.trend-tooltip>.tooltip-group.consistency-tooltip-line>.consistency-value{
+  white-space:nowrap;
+  min-width:max-content;
+  font-variant-numeric:tabular-nums;
+}

@@ -7,7 +7,12 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.88.2**
+**Aktuelle Version: v0.7.88.3**
+
+## Wartung in v0.7.88.3 – Tooltip-Prognosekonsistenz
+
+- Der Prozentwert der Prognosekonsistenz im Tooltip des 14-Tage-Trends bleibt jetzt auch auf schmalen Displays in einer Zeile.
+- Zahl und Prozentzeichen werden als untrennbare Einheit ausgegeben.
 
 ## Wartung in v0.7.88.2 – Einheitliche Wettertexte
 
