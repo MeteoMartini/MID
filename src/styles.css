@@ -1600,3 +1600,19 @@ button,input,select,textarea{font:inherit}
   html{scroll-behavior:auto}
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
+
+/* v0.7.89.4 – Windrichtung ohne 45-Grad-Raster */
+.wind-direction-arrow{
+ display:inline-block;
+ width:1em;
+ height:1em;
+ line-height:1;
+ text-align:center;
+ transform-origin:50% 50%;
+ vertical-align:-.08em;
+ font-weight:800;
+ font-variant-numeric:tabular-nums;
+}
+.svg-wind-direction-arrow{stroke:#7bc8ef;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;opacity:.92;pointer-events:none}
+:root[data-theme=light] .svg-wind-direction-arrow{stroke:#1678a7}
+.weatherwidget .wind-direction-arrow{vertical-align:-.06em}

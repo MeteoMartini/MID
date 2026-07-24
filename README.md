@@ -1,3 +1,9 @@
+## Wartung in v0.7.89.4 – Windrichtung über volle 360 Grad
+
+- Windpfeile werden nicht mehr auf acht Himmelsrichtungen gerundet, sondern mit dem exakten gelieferten Winkel gedreht.
+- Dies gilt für aktuelle Lage, Tagesvorhersage, Stundenchart, ausgewählte Stunde, Bergmodus und exportierbares Wetter-Widget.
+- Der Pfeil zeigt weiterhin in die Richtung, in die der Wind weht; Herkunfts- und Zielwinkel bleiben über Titel und Screenreader zugänglich.
+
 ## Sofortkorrektur in v0.7.89.3 – App-Start wiederhergestellt
 
 - Die in v0.7.89 eingeführte manuelle Vendor-Chunk-Aufteilung wurde entfernt.
@@ -26,7 +32,7 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.89.3**
+**Aktuelle Version: v0.7.89.4**
 
 ## Revision in v0.7.89 – responsiver und schlanker
 

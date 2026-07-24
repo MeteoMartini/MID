@@ -1,3 +1,12 @@
+# MID v0.7.89.4
+
+- Windrichtungspfeile in aktueller Lage, Tageskarten, Stunden-Detailansicht, Tooltips, Bergmodus und Widget verwenden jetzt den exakten Winkel von 0 bis 359,9 Grad statt eines Acht-Richtungen-Rasters in 45-Grad-Schritten.
+- Die bisherige MID-Konvention bleibt erhalten: Der Pfeil zeigt in die Richtung, in die der Wind weht; im zugänglichen Titel werden Herkunfts- und Zielrichtung in Grad genannt.
+- Das Meteogramm nutzte bereits die vollständige 360-Grad-Drehung und bleibt unverändert konsistent.
+- Neuer Regressionstest verhindert die Rückkehr der diskreten Unicode-Pfeile.
+- README, Changelog, Service-Worker-Cache und Versionsstellen aktualisiert.
+- Cloudflare Worker ohne funktionale Änderung.
+
 # MID v0.7.89.3
 
 - Kritischen Laufzeitfehler nach dem Start von v0.7.89.x behoben.
