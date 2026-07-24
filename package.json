@@ -1,14 +1,14 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.7.90",
+  "version": "0.7.90.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "sync-version": "node scripts/sync-version.mjs",
     "prebuild": "npm run sync-version",
     "build": "tsc -b && vite build",
-    "verify": "npm run build && node --check worker/metar-proxy.js && npm run test:updater && npm run test:interactions && npm run test:radar && npm run test:precipitation && npm run test:sunshine && npm run test:hyperlocal && npm run test:format-layout && npm run test:versioning && npm run test:ensemble && npm run test:rain-chart && npm run test:global-metar && npm run test:requests && npm run test:settings && npm run test:ui-regressions && npm run test:favorites-strip && npm run test:navigation-favorites && npm run test:view-modes && npm run test:mode-content && npm run test:legend-language && npm run test:detail-parameters && npm run test:chart-layout && npm run test:detail-pictograms && npm run test:wind-warnings-modules && npm run test:dwd-warnings && npm run test:maintenance && npm run test:warning-ui && npm run test:code-quality && npm run test:ensemble-nullability && npm run test:actions-runtime && npm run test:axis-alignment && npm run test:opera-raster && npm run test:thunderstorm && npm run test:heavy-rain && npm run test:performance && npm run test:wind-direction-360 && npm run test:detail-precip-consistency && npm run test:pwa-install",
+    "verify": "npm run build && node --check worker/metar-proxy.js && npm run test:updater && npm run test:interactions && npm run test:radar && npm run test:precipitation && npm run test:sunshine && npm run test:hyperlocal && npm run test:format-layout && npm run test:versioning && npm run test:ensemble && npm run test:rain-chart && npm run test:global-metar && npm run test:requests && npm run test:settings && npm run test:ui-regressions && npm run test:favorites-strip && npm run test:navigation-favorites && npm run test:view-modes && npm run test:mode-content && npm run test:legend-language && npm run test:detail-parameters && npm run test:chart-layout && npm run test:detail-pictograms && npm run test:wind-warnings-modules && npm run test:dwd-warnings && npm run test:maintenance && npm run test:warning-ui && npm run test:code-quality && npm run test:ensemble-nullability && npm run test:actions-runtime && npm run test:axis-alignment && npm run test:opera-raster && npm run test:thunderstorm && npm run test:heavy-rain && npm run test:performance && npm run test:wind-direction-360 && npm run test:detail-precip-consistency && npm run test:pwa-install && npm run test:forecast-wind-layout",
     "preview": "vite preview",
     "test:updater": "node scripts/test-updater.mjs",
     "test:radar": "node scripts/test-radar.mjs",
@@ -46,7 +46,8 @@
     "test:performance": "node scripts/test-performance-budget.mjs",
     "test:wind-direction-360": "node scripts/test-wind-direction-360.mjs",
     "test:detail-precip-consistency": "node scripts/test-detail-precip-consistency.mjs",
-    "test:pwa-install": "node scripts/test-pwa-install.mjs"
+    "test:pwa-install": "node scripts/test-pwa-install.mjs",
+    "test:forecast-wind-layout": "node scripts/test-forecast-wind-layout.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

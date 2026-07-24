@@ -1643,3 +1643,23 @@ footer{flex-wrap:wrap;align-items:center}
 .pwa-install-status,.pwa-install-direct,.pwa-install-guide{padding:14px;border:1px solid var(--border);border-radius:16px;background:var(--s2)}.pwa-install-status{display:flex;align-items:flex-start;gap:10px}.pwa-install-status.success{border-color:rgba(45,204,130,.38);background:rgba(45,204,130,.09)}.pwa-install-status svg{flex:0 0 auto;color:#2dcc82}.pwa-install-status strong,.pwa-install-status span{display:block}.pwa-install-status span{margin-top:3px;color:var(--muted);font-size:10px;line-height:1.45}.pwa-install-direct{display:flex;align-items:center;justify-content:space-between;gap:12px}.pwa-install-direct p{margin:0;color:var(--muted);font-size:11px}.pwa-install-direct button{white-space:nowrap}
 .pwa-install-guide>strong{display:block;margin-bottom:8px;font-size:13px}.pwa-install-guide ol{display:grid;gap:8px;margin:0;padding-left:22px}.pwa-install-guide li{padding-left:3px;color:var(--muted);font-size:11px;line-height:1.45}.pwa-install-guide li b{color:var(--text)}.pwa-install-guide li svg{display:inline;vertical-align:-3px}.pwa-install-guide>small{display:block;margin-top:10px;color:var(--muted);font-size:9px}.pwa-install-message{margin:0;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--primary) 11%,var(--s2));color:var(--text);font-size:10px}.pwa-install-note{color:var(--muted);font-size:9px;line-height:1.45}
 @media(max-width:620px){footer{justify-content:flex-start}.footer-install-button{order:3;width:100%}.pwa-install-backdrop{padding:8px}.pwa-install-dialog{max-height:94vh;border-radius:19px}.pwa-install-content{padding:14px}.pwa-install-benefits{grid-template-columns:1fr}.pwa-install-direct{align-items:stretch;flex-direction:column}.pwa-install-direct button{width:100%}}
+
+
+/* v0.7.90.1 – Windangabe der mobilen 7-Tage-Karten bleibt als geschlossene Zeile */
+.forecast-meta-wind{
+  display:inline-flex!important;
+  align-items:center;
+  gap:3px;
+  min-width:max-content;
+  white-space:nowrap!important;
+}
+.forecast-meta-wind .wind-direction-arrow{
+  flex:0 0 1em;
+}
+@media(max-width:760px){
+  .forecast-meta-wind{
+    flex:0 0 100%;
+    width:100%;
+    justify-content:flex-start;
+  }
+}

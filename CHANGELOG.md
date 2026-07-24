@@ -1,3 +1,12 @@
+# MID v0.7.90.1
+
+- Verrutschte Windangabe in den mobilen Karten der 7-Tage-Vorhersage korrigiert.
+- Wind-Symbol, 360-Grad-Richtungspfeil, Geschwindigkeit und Böen werden als untrennbare, eigene zweite Metazeile dargestellt.
+- Niederschlagsmenge und Sonnenscheindauer bleiben in der ersten Metazeile und können sich bei sehr schmalen Displays weiterhin responsiv anordnen.
+- Neuer Regressionstest verhindert das erneute Aufteilen der Windangabe.
+- README, Changelog, Service-Worker-Cache und Versionsstellen aktualisiert.
+- Cloudflare Worker ohne funktionale Änderung.
+
 # MID v0.7.90
 
 - Sichtbaren Info-/Installationsbutton „MID als App nutzen“ im App-Footer ergänzt.

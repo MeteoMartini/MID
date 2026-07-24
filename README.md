@@ -1,3 +1,8 @@
+## Wartung in v0.7.90.1 – Windzeile der 7-Tage-Vorhersage
+
+- Die Windangabe der mobilen Tageskarten besitzt jetzt eine eigene vollständige Zeile.
+- Wind-Symbol, Richtungspfeil, Geschwindigkeit und Böen können nicht mehr getrennt umbrechen oder gegeneinander verrutschen.
+
 ## Neuerung in v0.7.90 – MID als App nutzen
 
 - Ein sichtbarer Button „MID als App nutzen“ öffnet eine gerätegerechte Installationshilfe.
@@ -47,7 +52,7 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.90**
+**Aktuelle Version: v0.7.90.1**
 
 ## Revision in v0.7.89 – responsiver und schlanker
 
