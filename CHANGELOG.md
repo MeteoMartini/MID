@@ -1,3 +1,14 @@
+# MID v0.7.89.3
+
+- Kritischen Laufzeitfehler nach dem Start von v0.7.89.x behoben.
+- Die manuelle Aufteilung von React, Icons, Diagramm-, Karten-, Export- und HDF5-Bibliotheken wurde vollständig zurückgenommen. Sie brachte bei den überwiegend statischen Importen keinen verlässlichen Bedarfsladevorteil und konnte eine fehlerhafte Initialisierungsreihenfolge der erzeugten Browser-Chunks verursachen.
+- Das bewährte Vite-Standard-Bundling ist wieder aktiv. Das echte Lazy-Loading der großen MID-Module bleibt unverändert erhalten.
+- Sichere Optimierungen bleiben bestehen: ES2020-Ziel, CSS-Code-Splitting, deaktivierte Produktions-Source-Maps, Rendering-Containment, Touch-Scrolling, mobile Tooltip-Begrenzung und reduzierte Bewegung.
+- Der Performance-Test verhindert künftig ausdrücklich die erneute Aktivierung manueller Vendor-Chunks.
+- Service-Worker-Cache auf v0.7.89.3 erhöht, damit fehlerhafte Assets der vorherigen Version nicht weiterverwendet werden.
+- README, Changelog und sämtliche Versionsstellen aktualisiert.
+- Cloudflare Worker ohne funktionale Änderung.
+
 # MID v0.7.89.2
 
 - Zweiten GitHub-Buildfehler in `vite.config.ts` behoben.

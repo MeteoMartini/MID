@@ -1,3 +1,11 @@
+## Sofortkorrektur in v0.7.89.3 – App-Start wiederhergestellt
+
+- Die in v0.7.89 eingeführte manuelle Vendor-Chunk-Aufteilung wurde entfernt.
+- Vite übernimmt wieder selbst die sichere Abhängigkeits- und Initialisierungsreihenfolge.
+- Das echte Lazy-Loading von Radar, Ensemble, Wassersport und Meteogramm bleibt erhalten.
+- Alle funktionsneutralen CSS-/Touch-/Responsivitätsoptimierungen aus v0.7.89 bleiben bestehen.
+- Der neue Service-Worker-Cache v0.7.89.3 verhindert die dauerhafte Verwendung der fehlerhaften Vorgänger-Assets.
+
 ## Wartung in v0.7.89.2 – Korrekte `indexOf`-Klammerung
 
 - Die manuelle Vite-Chunk-Aufteilung verwendet nun korrekt geklammerte Ausdrücke wie `id.indexOf('recharts') >= 0`.
@@ -18,7 +26,7 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.89.2**
+**Aktuelle Version: v0.7.89.3**
 
 ## Revision in v0.7.89 – responsiver und schlanker
 
