@@ -1,3 +1,12 @@
+# MID v0.7.90.5
+
+- Private, nicht öffentlich einsehbare Zugriffsauswertung über Cloudflare Web Analytics ergänzt.
+- Die Site-Kennung wird als öffentliche Laufzeitkonfiguration geladen, sodass bestehende GitHub-Workflowdateien unverändert bleiben.
+- Eigene Geräte können sich über `?mid-analytics=internal` lokal von der Erfassung ausschließen; `?mid-analytics=external` aktiviert die Zählung wieder.
+- Entwicklung, fehlende oder ungültige IDs bleiben vollständig ohne Analytics-Aufruf.
+- Regressionstest, Dokumentation und Versionssynchronisierung ergänzt.
+- Cloudflare Worker ohne funktionale Änderung.
+
 # MID v0.7.90.4
 
 - Luftqualitätskarte um einen kompakten Info-Button zur Zusammensetzung des europäischen AQI ergänzt.

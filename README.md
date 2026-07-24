@@ -1,3 +1,12 @@
+## Wartung in v0.7.90.5 – Private Zugriffsauswertung
+
+- Private Cloudflare-Web-Analytics-Integration ergänzt; ohne konfigurierte Site-ID wird keinerlei Beacon geladen.
+- Eigene Browser und installierte PWAs lassen sich lokal per `?mid-analytics=internal` dauerhaft von der Zählung ausschließen.
+- `?mid-analytics=external` hebt die lokale Ausnahme wieder auf.
+- Die öffentliche Site-Kennung liegt in `public/analytics-config.json`; vorhandene Deployment-Workflows müssen nicht verändert werden.
+- Neuer Regressionstest und ausführliche Einrichtungsdokumentation ergänzt.
+- Cloudflare Worker ohne funktionale Änderung.
+
 ## Wartung in v0.7.90.4 – Erklärte Luftqualität
 
 - Die Luftqualitätskarte besitzt einen Info-Button zur Zusammensetzung des europäischen AQI.
@@ -72,7 +81,7 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.90.4**
+**Aktuelle Version: v0.7.90.5**
 
 ## Revision in v0.7.89 – responsiver und schlanker
 
