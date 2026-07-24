@@ -1,3 +1,9 @@
+## Wartung in v0.7.90.3 – Einzeilige Tageskarten-Metadaten
+
+- Niederschlag, Sonnenscheindauer und Wind stehen in der 7-Tage-Vorhersage wieder gemeinsam in einer Zeile.
+- Windsymbol, exakter Richtungspfeil, Geschwindigkeit und Böen bleiben dabei als untrennbare Einheit erhalten.
+- Auf kleinen Displays wird die gesamte verfügbare Kartenbreite genutzt und die Schrift responsiv angepasst.
+
 ## Wartung in v0.7.90.2 – Passende Wetterpiktogramme im Detaildiagramm
 
 - Stunden-Niederschlagsmengen gelten bei Open-Meteo für das vorangegangene Stundenintervall, während der Wettercode den Zustand am angegebenen Zeitpunkt beschreibt.
@@ -59,7 +65,7 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.90.2**
+**Aktuelle Version: v0.7.90.3**
 
 ## Revision in v0.7.89 – responsiver und schlanker
 

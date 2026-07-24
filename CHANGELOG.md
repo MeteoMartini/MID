@@ -1,3 +1,13 @@
+# MID v0.7.90.3
+
+- Layout der Metadaten in der 7-Tage-Vorhersage korrigiert.
+- Niederschlagsmenge und -wahrscheinlichkeit, Sonnenscheindauer sowie Windsymbol, exakter 360°-Pfeil, Windgeschwindigkeit und Böen stehen wieder gemeinsam in einer Zeile.
+- Auf schmalen Displays nutzt die Metazeile die Breite bis zum rechten Kartenrand und eine responsive Schriftgröße, statt die Windangabe in eine zweite Zeile zu zwingen.
+- Hazard-Hinweise bleiben separat in der zweiten Kartenzeile.
+- Regressionstest für das einzeilige Windlayout aktualisiert.
+- README, Changelog, Service-Worker-Cache und Versionsstellen aktualisiert.
+- Cloudflare Worker ohne funktionale Änderung.
+
 # MID v0.7.90.2
 
 - Ursache unpassender Wetterpiktogramme im stündlichen Detaildiagramm behoben.

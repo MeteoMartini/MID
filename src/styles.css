@@ -1645,7 +1645,20 @@ footer{flex-wrap:wrap;align-items:center}
 @media(max-width:620px){footer{justify-content:flex-start}.footer-install-button{order:3;width:100%}.pwa-install-backdrop{padding:8px}.pwa-install-dialog{max-height:94vh;border-radius:19px}.pwa-install-content{padding:14px}.pwa-install-benefits{grid-template-columns:1fr}.pwa-install-direct{align-items:stretch;flex-direction:column}.pwa-install-direct button{width:100%}}
 
 
-/* v0.7.90.1 – Windangabe der mobilen 7-Tage-Karten bleibt als geschlossene Zeile */
+
+/* v0.7.90.3 – Niederschlag, Sonne und Wind bleiben gemeinsam in einer Metazeile */
+.forecast-meta{
+  display:flex;
+  align-items:center;
+  flex-wrap:nowrap;
+  gap:4px 8px;
+  min-width:0;
+  max-width:100%;
+}
+.forecast-meta>span{
+  flex:0 0 auto;
+  white-space:nowrap!important;
+}
 .forecast-meta-wind{
   display:inline-flex!important;
   align-items:center;
@@ -1657,9 +1670,23 @@ footer{flex-wrap:wrap;align-items:center}
   flex:0 0 1em;
 }
 @media(max-width:760px){
-  .forecast-meta-wind{
-    flex:0 0 100%;
-    width:100%;
-    justify-content:flex-start;
+  .forecast-meta{
+    grid-column:2 / -1;
+    grid-row:1;
+    gap:3px 6px;
+    font-size:clamp(7.8px,2.35vw,9.5px);
+    line-height:1.1;
+  }
+  .forecast-hazards{
+    grid-column:3;
+    grid-row:2;
+    align-content:start;
+    justify-items:end;
+  }
+}
+@media(max-width:480px){
+  .forecast-meta{
+    gap:2px 4px;
+    font-size:clamp(7.3px,2.25vw,8.8px);
   }
 }
