@@ -4,6 +4,7 @@ import {MID_VERSION as VERSION} from './version';
 import {formatDecimal,formatDecimalFixed} from './format';
 import {airQuality,bestMatchModelInfo,climatology,cloudOktas,countryCodeFromLocation,cloudOktasText,currentIndex,dayWeatherCharacter,ensembles,forecast,hazards,icon,label,mapDays,mapHours,mapMinutely15,mountainForecast,officialWarnings,radarNowcast,thunderstormNowcast,searchLocations,reverseLocation,station,uvAltitudeFactor,wind,type BestMatchModelInfo,type ClimateDay,type Day,type EnsembleDay,type Hour,type Location,type Minute15,type ModelRunMeta,type MountainForecast,type MountainWeather,type OfficialAlert,type RadarNowcast,type Station,type ThunderstormNowcast,type Weather,type WindUnit} from './weather';
 import {precipitationParts,presentPrecipTypes,type PrecipSample,type PrecipType} from './precipitation';
+import {representativeDetailPictograms} from './detailPictograms';
 import {getMidUpdateStatus,repairMidCache,resetMidServiceWorker,rollbackMidVersion,type MidUpdateStatus} from './pwa';
 import {DWD_WARNING_COLORS,DWD_WIND_THRESHOLDS_KMH,formatDwdWarningCompactValue,formatDwdWarningDetail,formatDwdWindValue,summarizeDwdWarnings,type DwdWarningLevel} from './dwdWarnings';
 import {useDismissibleLayer} from './useDismissibleLayer';
@@ -518,7 +519,7 @@ function Forecast({days,hours,selected,setSelected,unit,modelInfo,timezone,timez
  const windPath=showWind?p.map((x,i)=>`${i?'L':'M'} ${xAt(i)} ${yWind(x.wind)}`).join(' '):'';
  const gustPath=showGust?p.map((x,i)=>`${i?'L':'M'} ${xAt(i)} ${yWind(x.gust)}`).join(' '):'';
  const areaPath=showTemperature?`${tempPath} L ${xAt(p.length-1)} ${tempBottom} L ${xAt(0)} ${tempBottom} Z`:'';
- const iconFontSize=narrowChart?17:20,iconMinimumSpacing=narrowChart?34:mediumChart?36:38,maxIconCount=Math.max(2,Math.floor(plotW/iconMinimumSpacing)+1),iconIndices=maximizeVisibleIndices(p.length,maxIconCount);
+ const iconFontSize=narrowChart?17:20,iconMinimumSpacing=narrowChart?34:mediumChart?36:38,maxIconCount=Math.max(2,Math.floor(plotW/iconMinimumSpacing)+1),iconIndices=maximizeVisibleIndices(p.length,maxIconCount),iconPoints=representativeDetailPictograms(iconIndices,p,precipSeries);
  const timeStep=Math.max(1,Math.ceil((p.length-1)/Math.max(1,Math.floor(plotW/(narrowChart?72:mediumChart?82:92))))),timeIndices=p.map((_,i)=>i).filter(i=>i===0||i===p.length-1||i%timeStep===0);
  const directionStep=Math.max(1,Math.ceil((p.length-1)/Math.max(1,Math.floor(plotW/(narrowChart?28:mediumChart?32:36))))),directionIndices=p.map((_,i)=>i).filter(i=>i===0||i===p.length-1||i%directionStep===0);
  const maxIdx=p.reduce((b,x,i)=>x.temperature>p[b].temperature?i:b,0),minIdx=p.reduce((b,x,i)=>x.temperature<p[b].temperature?i:b,0);
@@ -584,7 +585,7 @@ function Forecast({days,hours,selected,setSelected,unit,modelInfo,timezone,timez
        {showGust&&<path d={gustPath} fill="none" stroke="#b786ff" strokeWidth="2" strokeDasharray="7 5" vectorEffect="non-scaling-stroke"/>}
        {showDirection&&directionIndices.map(i=><SvgWindDirectionArrow key={`direction-${i}`} x={xAt(i)} y={directionY-2} direction={p[i].direction} size={labelFont+5}/>)}
        <line className="selected-hour-line" x1={xAt(selectedHour)} x2={xAt(selectedHour)} y1={selectedMarkerTop} y2={contentBottom} stroke="#9ad0ff" opacity="0.85" strokeWidth="1.5" vectorEffect="non-scaling-stroke"/>
-       {iconIndices.map(i=>{const parts=precipSeries[i],displayCode=parts.type==='none'?p[i].code:parts.displayCode;return <g key={`weather-icon-${i}`}><text x={xAt(i)} y={iconY} textAnchor="middle" fontSize={iconFontSize}>{icon(displayCode,p[i].isDay)}</text></g>})}
+       {iconPoints.map(point=>{const i=point.index,source=p[point.sourceIndex]??p[i];return <g key={`weather-icon-${i}`}><text x={xAt(i)} y={iconY} textAnchor="middle" fontSize={iconFontSize}>{icon(point.displayCode,source.isDay)}</text></g>})}
        {timeIndices.map(i=><g key={`time-label-${i}`}><text x={xAt(i)} y={timeY+17} textAnchor="middle" fontSize={labelFont} fill="currentColor" opacity="0.86">{p[i].time.slice(11,13)}:00</text></g>)}
        {showTemperature&&[minIdx,maxIdx].map(i=><g key={`temperature-extreme-${i}`}><circle cx={xAt(i)} cy={yTemp(p[i].temperature)} r="4" fill="#fff" stroke="#ff7a37" strokeWidth="2"/><text x={xAt(i)} y={yTemp(p[i].temperature)-8} textAnchor="middle" fontSize={labelFont} fill="#ff9f62">{Math.round(p[i].temperature)}°</text></g>)}
        {p.map((x,i)=>{const x0=i===0?left:(xAt(i-1)+xAt(i))/2,x1=i===p.length-1?W-right:(xAt(i)+xAt(i+1))/2;return <rect key={`hit${x.time}`} x={x0} y="0" width={Math.max(1,x1-x0)} height={H} fill="transparent" className="hour-hit" onClick={()=>setSelectedHour(i)}><title>{`${x.time.slice(11,16)} · ${Math.round(x.temperature)} °C · Taupunkt ${Math.round(x.dewPoint)} °C · ${Math.round(x.probability)} % Niederschlagswahrscheinlichkeit · ${windDirectionDescription(x.direction)} · ${wind(x.wind,unit)}, Böen ${wind(x.gust,unit)}`}</title></rect>})}

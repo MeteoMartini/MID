@@ -1,3 +1,10 @@
+## Wartung in v0.7.90.2 – Passende Wetterpiktogramme im Detaildiagramm
+
+- Stunden-Niederschlagsmengen gelten bei Open-Meteo für das vorangegangene Stundenintervall, während der Wettercode den Zustand am angegebenen Zeitpunkt beschreibt.
+- MID erzeugt deshalb für jeden messbaren Niederschlag einen zur plausibilisierten Niederschlagsart passenden Anzeigecode.
+- Werden Piktogramme auf schmalen Displays ausgedünnt, wird pro Zeitfenster das meteorologisch aussagekräftigste Ereignis gewählt; kurze Regen-, Schnee- oder Schauerphasen bleiben sichtbar.
+- Auf breiten Ansichten bleiben Piktogramm und Stundenbalken stundengenau; auf schmalen Ansichten repräsentiert jedes ausgedünnte Symbol sein umliegendes Zeitfenster.
+
 ## Wartung in v0.7.90.1 – Windzeile der 7-Tage-Vorhersage
 
 - Die Windangabe der mobilen Tageskarten besitzt jetzt eine eigene vollständige Zeile.
@@ -52,7 +59,7 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.90.1**
+**Aktuelle Version: v0.7.90.2**
 
 ## Revision in v0.7.89 – responsiver und schlanker
 

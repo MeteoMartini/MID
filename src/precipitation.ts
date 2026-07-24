@@ -87,6 +87,22 @@ function drizzleIntensity(total:number){
  return'leichter';
 }
 
+function representativePrecipitationCode(type:PrecipType,total:number,snowCm:number){
+ if(type==='drizzle')return total>=.5?55:total>=.1?53:51;
+ if(type==='freezingDrizzle')return total>=.5?57:56;
+ if(type==='rain')return total>=10?65:total>=2.5?63:61;
+ if(type==='freezingRain')return total>=2.5?67:66;
+ if(type==='showers')return total>=10?82:total>=2.5?81:80;
+ if(type==='snow')return snowCm>=2?75:snowCm>=.5?73:71;
+ if(type==='snowGrains')return 77;
+ if(type==='snowShowers')return snowCm>=2?86:85;
+ if(type==='sleet')return total>=2.5?69:68;
+ if(type==='sleetShowers')return total>=2.5?84:83;
+ if(type==='thunderstormHail')return 96;
+ if(type==='thunderstorm')return 95;
+ return 3;
+}
+
 /**
  * Bestimmt die Niederschlagsform für Diagramm, Legende und Stunden-Tooltip.
  * WMO-Codes bleiben die primäre Phasenangabe. Sprühregen-Codes 51–55 werden
@@ -129,9 +145,9 @@ export function precipitationParts(h:PrecipSample):PrecipitationParts{
   :type==='drizzle'
    ?`${drizzleIntensity(total)} Sprühregen`
    :PRECIP_LABEL[type];
- const displayCode=codedType==='drizzle'&&type==='rain'
-  ?total>=10?65:total>=2.5?63:61
-  :code;
+ const displayCode=codedType===type
+  ?code
+  :representativePrecipitationCode(type,total,snowCm);
  const label=`${weatherLabel} ${amount}`;
  return{total,type,label,weatherLabel,code,displayCode};
 }

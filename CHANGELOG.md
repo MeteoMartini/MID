@@ -1,3 +1,14 @@
+# MID v0.7.90.2
+
+- Ursache unpassender Wetterpiktogramme im stündlichen Detaildiagramm behoben.
+- Open-Meteo liefert `weather_code` als Momentaufnahme, Niederschlagsmengen dagegen als Summe des vorangegangenen Stundenintervalls. Deshalb konnte ein trockener Momentcode über einem vorhandenen Niederschlagsbalken erscheinen.
+- Aus Mengenfeldern abgeleitete Niederschlagsarten erhalten jetzt immer einen passenden repräsentativen WMO-Anzeigecode für Regen, Schauer, Schnee, Schneeregen, gefrierenden Niederschlag oder Gewitter.
+- Bei responsiv ausgedünnten Wetterpiktogrammen repräsentiert jedes Symbol nun sein umliegendes Zeitfenster. Ein kurzes Niederschlagsereignis zwischen zwei bisherigen Abtaststunden wird dadurch nicht mehr übersprungen.
+- Die Piktogrammpositionen bleiben konfliktfrei gleichmäßig verteilt; jedes Symbol repräsentiert das zugehörige Zeitfenster und übernimmt darin ein vorhandenes Niederschlagsereignis.
+- Neuer ausführbarer Regressionstest für Intervallbezug, Fallback-Anzeigecodes und kurze Niederschlagsereignisse.
+- README, Changelog, Service-Worker-Cache und Versionsstellen aktualisiert.
+- Cloudflare Worker ohne funktionale Änderung.
+
 # MID v0.7.90.1
 
 - Verrutschte Windangabe in den mobilen Karten der 7-Tage-Vorhersage korrigiert.

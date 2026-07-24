@@ -10,7 +10,7 @@ const checks=[
  /currentWeatherLabel=currentPrecip\.type==='none'\?label\(currentHour\.code\):currentPrecip\.weatherLabel/,
  /icon\(currentWeatherCode,currentHour\.isDay\)/,
  /\{currentWeatherLabel\}/,
- /parts\.displayCode/
+ /representativeDetailPictograms\(iconIndices,p,precipSeries\)/
 ];
 for(const pattern of checks){
  if(!pattern.test(app))failures.push(`Detailansicht nutzt die plausibilisierte Niederschlagsform nicht vollständig: ${pattern}`);

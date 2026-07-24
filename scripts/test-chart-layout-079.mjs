@@ -18,7 +18,7 @@ else{
  if(!(now<narrowIcon&&narrowIcon<narrowSky&&narrowSky<narrowSky+narrowGap))failures.push('Schmale Ansicht folgt nicht JETZT → Piktogramme → Band → Diagramm.');
  if(!(now<wideIcon&&wideIcon<wideSky&&wideSky<wideSky+wideGap))failures.push('Breite Ansicht folgt nicht JETZT → Piktogramme → Band → Diagramm.');
 }
-const selectedLineIndex=app.indexOf('className="selected-hour-line"'),iconIndex=app.indexOf('{iconIndices.map');
+const selectedLineIndex=app.indexOf('className="selected-hour-line"'),iconIndex=app.indexOf('{iconPoints.map');
 if(selectedLineIndex<0||iconIndex<0||selectedLineIndex>iconIndex)failures.push('Die blaue Stundenlinie liegt nicht hinter den Piktogrammen.');
 
 if(!app.includes('return <InfoHint label="Erklärung anzeigen">{advanced?(technical??summary):summary}</InfoHint>'))failures.push('Detailbeschreibung wird im erweiterten Modus nicht über (i) geöffnet.');
