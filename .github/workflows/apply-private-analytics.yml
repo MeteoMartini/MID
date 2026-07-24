@@ -318,7 +318,7 @@ jobs:
 
           print(f'MID v{TO_VERSION} wurde für private Zugriffsauswertung vorbereitet.')
           print('Cloudflare-Site-Token:', 'konfiguriert' if token else 'nicht gesetzt – Analytics bleibt inaktiv')
-PY
+          PY
           python3 /tmp/apply-private-analytics.py
 
       - name: Abhängigkeiten reproduzierbar installieren
