@@ -1,3 +1,14 @@
+## Wartung in v0.7.89.2 – Korrekte `indexOf`-Klammerung
+
+- Die manuelle Vite-Chunk-Aufteilung verwendet nun korrekt geklammerte Ausdrücke wie `id.indexOf('recharts') >= 0`.
+- Dadurch ist der Node-TypeScript-Build wieder gültig.
+
+## Wartung in v0.7.89.1 – GitHub-Build
+
+- Die manuelle Vite-Chunk-Aufteilung bleibt erhalten.
+- Für die Pfadprüfung wird aus Kompatibilitätsgründen `indexOf(...) >= 0` statt `includes(...)` verwendet.
+- Dadurch kompiliert `vite.config.ts` auch mit der bestehenden TypeScript-Library-Konfiguration des Node-Builds.
+
 ## v0.7.42 – Code-Audit und funktionsneutrale Verschlankung
 
 - Zentrale Versionssynchronisierung aus `package.json` verhindert abweichende Updater-, Frontend- und Worker-Versionen.
@@ -7,7 +18,16 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.88.3**
+**Aktuelle Version: v0.7.89.2**
+
+## Revision in v0.7.89 – responsiver und schlanker
+
+- Produktionscode wird in kleinere Funktionspakete für Diagramme, Karten, Export, HDF5, React und Icons aufgeteilt und nur bei Bedarf geladen.
+- Nicht sichtbare, umfangreiche Bereiche werden durch moderne Browser-Containment-Techniken effizienter gerendert.
+- Diagramme, Tooltips und Informationsdialoge reagieren stabiler auf kleine Displays und Touch-Bedienung.
+- Nutzer mit reduzierter Bewegungsdarstellung erhalten stark verkürzte Animationen.
+- Temporäre TypeScript-/Vite-Build-Artefakte sind nicht mehr Bestandteil des Release-ZIP.
+- Keine Funktion wurde entfernt; Cloudflare-Routen und Datenlogik bleiben unverändert.
 
 ## Wartung in v0.7.88.3 – Tooltip-Prognosekonsistenz
 

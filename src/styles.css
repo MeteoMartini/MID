@@ -1561,3 +1561,42 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
   min-width:max-content;
   font-variant-numeric:tabular-nums;
 }
+
+
+/* MID v0.7.89 – responsive und ressourcenschonende Darstellung */
+.viewport-gate,.module-shell,.forecast-card,.detailcard,.trend-card{
+  min-width:0;
+}
+.viewport-gate{
+  content-visibility:auto;
+  contain-intrinsic-size:auto 620px;
+}
+.module-shell-content{
+  min-width:0;
+  contain:layout style;
+}
+.chartscroll,.detail-scroll,.trend-scroll,.meteogram-scroll,.radar-timeline{
+  overscroll-behavior-inline:contain;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-gutter:stable;
+}
+.trend-tooltip,.mode-info-popover,.composite-info-popover{
+  max-width:min(92vw,520px);
+  overflow-wrap:anywhere;
+}
+img,canvas,svg{max-width:100%}
+button,input,select,textarea{font:inherit}
+@media(max-width:760px){
+  .trend-tooltip{max-height:min(78dvh,680px);overflow:auto}
+  .module-shell-toggle{min-height:48px}
+  .module-shell-content{overflow:clip}
+  .chartscroll,.detail-scroll,.trend-scroll,.meteogram-scroll{scroll-snap-type:x proximity}
+}
+@media(max-width:420px){
+  .trend-tooltip{width:calc(100vw - 16px);max-width:none}
+  .mode-info-popover,.composite-info-popover{width:calc(100vw - 16px);max-width:none}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}

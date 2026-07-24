@@ -1,3 +1,30 @@
+# MID v0.7.89.2
+
+- Zweiten GitHub-Buildfehler in `vite.config.ts` behoben.
+- Die vorherige Ersetzung hatte `indexOf(...) >= 0` falsch geklammert und dadurch einen Vergleich innerhalb des Funktionsarguments erzeugt.
+- Sämtliche Pfadprüfungen der manuellen Chunk-Aufteilung verwenden nun korrekt `id.indexOf('...') >= 0`.
+- README, Changelog und Versionsstellen aktualisiert.
+- Cloudflare Worker ohne funktionale Änderung.
+
+# MID v0.7.89.1
+
+- GitHub-Buildfehler in `vite.config.ts` behoben.
+- Die Chunk-Aufteilung verwendet nun `indexOf(...) >= 0` statt `String.prototype.includes(...)` und ist damit mit der im Node-TypeScript-Projekt verwendeten Bibliothekskonfiguration kompatibel.
+- Die Performance-Optimierungen und die funktionale Aufteilung der Ladepakete bleiben unverändert erhalten.
+- README, Changelog und Versionsstellen aktualisiert.
+- Cloudflare Worker ohne funktionale Änderung.
+
+# MID v0.7.89
+
+- Intensive Code- und Release-Revision mit Schwerpunkt auf Responsivität, Ladeverhalten und Paketgröße ohne Funktionsabbau.
+- Vite-Build in getrennte, bedarfsgerecht ladbare Bibliotheks-Chunks für Diagramme, Karten, Export, HDF5, React und Icons aufgeteilt; Source-Maps im Produktionsbuild deaktiviert.
+- Unterhalb des sichtbaren Bereichs liegende Module werden browserseitig über `content-visibility` und intrinsische Platzhalter effizienter dargestellt.
+- Horizontale Diagramm- und Zeitachsen erhalten stabileres Touch-Scrolling, begrenztes Overscrolling und mobile Scroll-Snap-Unterstützung.
+- Tooltips und Informationsdialoge wurden für schmale Displays gegen Überbreite, abgeschnittene Inhalte und unkontrollierte Umbrüche abgesichert.
+- Unterstützung für `prefers-reduced-motion` ergänzt und unnötige Build-Artefakte aus dem Release-ZIP entfernt.
+- README, Changelog und sämtliche Versionsstellen aktualisiert.
+- Cloudflare Worker ohne funktionale Änderung; Versionsnummer nur synchronisiert.
+
 # MID v0.7.88.3
 
 - Darstellungsfehler im Tooltip des 14-Tage-Ensemble-Trends behoben.
