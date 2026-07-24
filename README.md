@@ -1,3 +1,13 @@
+## MID v0.7.91 – Berg-/Wintersport
+
+- Berg-/Skimodus in Berg-/Wintersport umbenannt und um Saisonprofile Automatisch, Sommer und Winter erweitert.
+- Automatische Tal-, optionale Mittel- und Bergstationsbestimmung aus OpenStreetMap; fehlende Höhen über Copernicus GLO-90.
+- Alle Stationsnamen und Höhen bleiben je Favorit editierbar; bestehende Favoriten werden rückwärtskompatibel migriert.
+- Wetterabfrage verwendet echte Koordinaten und Höhen für bis zu drei Niveaus.
+- Winterprofil mit Modell-Schneehöhe, 24/48-h-Neuschnee sowie passenden GeoSphere-TAWES-Schneepegeln in Österreich.
+- Sommerprofil mit Sicht, UV, Wind, tiefer Bewölkung, Nullgradgrenze und Gewitterpotenzial.
+- Neue Worker-Routen, Dokumentation und Regressionstest ergänzt.
+
 ## Wartung in v0.7.90.5 – Private Zugriffsauswertung
 
 - Private Cloudflare-Web-Analytics-Integration ergänzt; ohne konfigurierte Site-ID wird keinerlei Beacon geladen.
@@ -81,7 +91,7 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.90.5**
+**Aktuelle Version: v0.7.91**
 
 ## Revision in v0.7.89 – responsiver und schlanker
 

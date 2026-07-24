@@ -1,3 +1,11 @@
+# MID v0.7.91
+
+- Berg-/Wintersport mit automatischen Höhenpunkten, optionaler Mittelstation und editierbaren Profilen.
+- Saisonprofile Automatisch/Sommer/Winter und niveauspezifische Parameter.
+- Modellschneehöhen an echten Niveaukoordinaten sowie GeoSphere-TAWES-Messschnee in Österreich.
+- Worker-Integration für OpenStreetMap/Overpass, Copernicus-Geländehöhen und Schneepegel.
+- Rückwärtskompatible Favoritenmigration, neue Dokumentation und Regressionstest.
+
 # MID v0.7.90.5
 
 - Private, nicht öffentlich einsehbare Zugriffsauswertung über Cloudflare Web Analytics ergänzt.

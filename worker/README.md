@@ -1,3 +1,7 @@
+# MID Daten-, Warnungs-, Radar- und Bergsportproxy v0.7.91
+
+Funktionale Erweiterung um `mode=mountain-profile` und `mode=snow-observations`. Das Höhenprofil wertet OpenStreetMap-Seilbahnstationen und Liftwege aus und ergänzt fehlende Höhen über Copernicus GLO-90 via Open-Meteo. Für österreichische Bergsportorte ordnet die Schnee-Route aktuelle GeoSphere-TAWES-Schneepegel konservativ den Niveaus Tal, Mitte und Berg zu. Das Frontend besitzt zusätzlich einen direkten CORS-Fallback, sodass die vollständige MID-Ersatz-ZIP auch vor einer optionalen Worker-Aktualisierung funktionsfähig bleibt.
+
 # MID Daten-, Warnungs- und Radarproxy v0.7.88
 
 Funktionale Erweiterung des bestehenden Workers für die Starkregenanalyse der aktuellen Niederschlagswahrscheinlichkeit: RADOLAN-YW-Summen 15/30/60/180/360 Minuten, DWD-RV-Nowcast bis +120 Minuten, KONRAD3D-Zellzug und Starkregenflag, KOSTRA-DWD-2020-Einordnung sowie DWD-Stationsabgleich. Amtliche Warnungen bleiben getrennt. Die Cloudflare-Auslieferung erfolgt weiterhin als einzelner Worker; in `MID-worker.zip` heißt die Einstiegdatei `worker.js`.
@@ -184,8 +188,8 @@ Beispielantwort:
 ```json
 {
   "ok": true,
-  "version": "0.7.84",
-  "services": ["stations", "alerts", "hyperlocal-networks", "model-assisted-local-analysis", "radar-nowcast", "px250-proxy", "opera-cirrus-raster", "rainviewer-metadata", "best-location-lightning", "composite-product-times", "model-contours", "cors-safe-composite-wms"],
+  "version": "0.7.91",
+  "services": ["stations", "alerts", "hyperlocal-networks", "model-assisted-local-analysis", "radar-nowcast", "px250-proxy", "opera-cirrus-raster", "rainviewer-metadata", "best-location-lightning", "composite-product-times", "model-contours", "mountain-profile", "snow-observations", "cors-safe-composite-wms"],
   "providers": {
     "NOAA AviationWeather": true,
     "DWD Open Data / Bright Sky": true,

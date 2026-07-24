@@ -1777,3 +1777,26 @@ footer{flex-wrap:wrap;align-items:center}
     width:auto;
   }
 }
+
+/* MID v0.7.91 – Berg-/Wintersport */
+.favorite-mountain-settings .mountain-profile-grid{display:grid;gap:.65rem;margin-top:.75rem}
+.mountain-season-select{display:grid;grid-template-columns:minmax(120px,1fr) minmax(150px,1.2fr);gap:.55rem;align-items:center}
+.mountain-season-select select,.mountain-level-name input{width:100%;min-width:0}
+.mountain-auto-row{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin:.55rem 0}
+.mountain-auto-row button{display:inline-flex;align-items:center;gap:.4rem}
+.mountain-auto-row small{flex:1 1 220px}
+.mountain-profile-status{display:block;margin-top:.35rem;font-size:.76rem;opacity:.78}
+.mountain-middle-toggle{display:flex;gap:.55rem;align-items:center;margin:.45rem 0}
+.mountain-level-name{display:grid;grid-template-columns:90px 1fr;gap:.55rem;align-items:center}
+.mountain-ski .mountain-season-badge{display:inline-flex;align-items:center;gap:.35rem;padding:.28rem .55rem;border-radius:999px;background:var(--surface-2,rgba(127,145,173,.13));font-size:.76rem;font-weight:800}
+.mountain-ski .mountain-levels.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.mountain-snow-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.4rem;margin:.55rem 0}
+.mountain-snow-pair span{padding:.45rem;border-radius:.55rem;background:var(--surface-2,rgba(127,145,173,.1))}
+.mountain-snow-pair small,.mountain-snow-pair b{display:block}
+.mountain-observation{display:block;margin-top:.4rem;padding-top:.4rem;border-top:1px solid rgba(127,145,173,.2)}
+.mountain-observation b{display:block}
+.mountain-source-note{display:block;margin-top:.65rem;opacity:.76}
+.mountain-season-summary{display:flex;gap:.5rem;flex-wrap:wrap;margin:.6rem 0}
+.mountain-season-summary span{padding:.35rem .55rem;border-radius:.5rem;background:var(--surface-2,rgba(127,145,173,.1));font-size:.78rem}
+@media(max-width:850px){.mountain-ski .mountain-levels.three{grid-template-columns:1fr}.mountain-season-select,.mountain-level-name{grid-template-columns:1fr}.mountain-snow-pair{grid-template-columns:1fr 1fr}}
+
