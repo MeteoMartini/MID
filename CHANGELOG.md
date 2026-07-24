@@ -1,3 +1,24 @@
+# MID v0.7.90
+
+- Sichtbaren Info-/Installationsbutton „MID als App nutzen“ im App-Footer ergänzt.
+- Unterstützte Chromium-Browser öffnen über `beforeinstallprompt` den nativen Installationsdialog.
+- iPhone und iPad erhalten eine integrierte Safari-Anleitung für „Zum Home-Bildschirm hinzufügen“ und „Als Web-App öffnen“.
+- Standalone-Erkennung berücksichtigt CSS-Display-Mode und den iOS-Navigatorstatus; bereits installierte Instanzen werden erkannt.
+- Responsiver, zugänglicher Dialog mit Escape-/Hintergrund-Schließen, Installationsstatus und klaren Vorteilen.
+- Neuer Regressionstest prüft Manifest, Apple-PWA-Metadaten, Installationsereignisse und responsive Oberfläche.
+- README, Changelog, Service-Worker-Cache und Versionsstellen aktualisiert.
+- Cloudflare Worker ohne funktionale Änderung.
+
+# MID v0.7.89.5
+
+- Die Felder unter dem Detaildiagramm wurden vollständig auf die Regen-/Sprühregen-Plausibilitätsprüfung umgestellt.
+- Das Niederschlagsfeld nutzte bereits die plausibilisierte Form; nun verwenden auch Wettertext, Wettersymbol und die Wetterpiktogramme im Detaildiagramm denselben korrigierten Anzeigecode.
+- Ein unplausibler Open-Meteo-Sprühregencode erscheint damit überall in der Detailansicht konsistent als leichter, mäßiger oder starker Regen.
+- Die Niederschlagsarten der Detaillegende werden nicht mehr als dünne Linien, sondern als kompakte Balken im jeweiligen Farb- und Musterdesign dargestellt.
+- Neuer Regressionstest für die Konsistenz der Detailansicht und ihrer Niederschlagslegende.
+- README, Changelog, Service-Worker-Cache und Versionsstellen aktualisiert.
+- Cloudflare Worker ohne funktionale Änderung.
+
 # MID v0.7.89.4
 
 - Windrichtungspfeile in aktueller Lage, Tageskarten, Stunden-Detailansicht, Tooltips, Bergmodus und Widget verwenden jetzt den exakten Winkel von 0 bis 359,9 Grad statt eines Acht-Richtungen-Rasters in 45-Grad-Schritten.

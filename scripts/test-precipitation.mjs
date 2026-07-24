@@ -37,6 +37,12 @@ const cases=[
 ];
 const failures=[];
 for(const [name,input,expected] of cases){const actual=precipitationParts(input).type;if(actual!==expected)failures.push(`${name}: erwartet ${expected}, erhalten ${actual}`)}
+const plausibleDrizzle=precipitationParts(sample({code:53,precipitation:.3,rain:.3,humidity:95,cloud:100,lowCloud:92}));
+if(plausibleDrizzle.weatherLabel!=='mäßiger Sprühregen')failures.push(`Plausibler Sprühregen erhält falschen Wettertext: ${plausibleDrizzle.weatherLabel}`);
+if(plausibleDrizzle.displayCode!==53)failures.push(`Plausibler Sprühregen erhält falschen Anzeigecode: ${plausibleDrizzle.displayCode}`);
+const implausibleDrizzle=precipitationParts(sample({code:53,precipitation:.8,rain:.8,humidity:72,cloud:55,lowCloud:18}));
+if(implausibleDrizzle.weatherLabel!=='leichter Regen')failures.push(`Unplausibler Sprühregen wird im Wettertext nicht zu Regen: ${implausibleDrizzle.weatherLabel}`);
+if(implausibleDrizzle.displayCode!==61)failures.push(`Unplausibler Sprühregen behält falschen Symbolcode: ${implausibleDrizzle.displayCode}`);
 const legend=presentPrecipTypes(cases.slice(0,5).map(([,input])=>precipitationParts(input)));
 for(const expected of ['snow','snowShowers','sleet','sleetShowers'])if(!legend.includes(expected))failures.push(`Legende enthält ${expected} nicht`);
 if(legend.filter(type=>type==='sleet').length!==1)failures.push('Legende enthält Schneeregen mehrfach');

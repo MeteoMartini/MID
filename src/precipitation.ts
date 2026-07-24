@@ -21,7 +21,9 @@ export type PrecipitationParts={
  total:number;
  type:PrecipType;
  label:string;
+ weatherLabel:string;
  code:number;
+ displayCode:number;
 };
 
 export const WMO_PRECIP_TYPE:Partial<Record<number,PrecipType>>={
@@ -99,7 +101,7 @@ export function precipitationParts(h:PrecipSample):PrecipitationParts{
  const snowCm=Math.max(0,Number(h.snowfall)||0);
  const code=Math.round(Number(h.code)||0);
  const measurable=total>=.01||rainValue>=.01||showerValue>=.01||snowCm>=.01;
- if(!measurable)return{total,type:'none',label:'kein Niederschlag',code};
+ if(!measurable)return{total,type:'none',label:'kein Niederschlag',weatherLabel:'kein Niederschlag',code,displayCode:code};
 
  const codedType=WMO_PRECIP_TYPE[code];
  const hasRain=rainValue>=.05;
@@ -116,18 +118,22 @@ export function precipitationParts(h:PrecipSample):PrecipitationParts{
  else if(hasRain||total>=.01)type='rain';
  else type='none';
 
- if(type==='none')return{total,type,label:'kein Niederschlag',code};
+ if(type==='none')return{total,type,label:'kein Niederschlag',weatherLabel:'kein Niederschlag',code,displayCode:code};
  const amount=type==='snow'||type==='snowShowers'||type==='snowGrains'
   ?`${formatDecimalFixed(snowCm,1)} cm`
   :type==='sleet'||type==='sleetShowers'
    ?`${formatDecimalFixed(total,1)} mm · ${formatDecimalFixed(snowCm,1)} cm`
    :`${formatDecimalFixed(total,1)} mm`;
- const label=type==='rain'
-  ?`${rainIntensity(total)} Regen ${amount}`
+ const weatherLabel=type==='rain'
+  ?`${rainIntensity(total)} Regen`
   :type==='drizzle'
-   ?`${drizzleIntensity(total)} Sprühregen ${amount}`
-   :`${PRECIP_LABEL[type]} ${amount}`;
- return{total,type,label,code};
+   ?`${drizzleIntensity(total)} Sprühregen`
+   :PRECIP_LABEL[type];
+ const displayCode=codedType==='drizzle'&&type==='rain'
+  ?total>=10?65:total>=2.5?63:61
+  :code;
+ const label=`${weatherLabel} ${amount}`;
+ return{total,type,label,weatherLabel,code,displayCode};
 }
 
 const PRECIP_TYPE_ORDER:PrecipType[]=['drizzle','freezingDrizzle','rain','freezingRain','showers','sleet','sleetShowers','snow','snowGrains','snowShowers','thunderstorm','thunderstormHail'];

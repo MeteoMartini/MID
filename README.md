@@ -1,3 +1,18 @@
+## Neuerung in v0.7.90 – MID als App nutzen
+
+- Ein sichtbarer Button „MID als App nutzen“ öffnet eine gerätegerechte Installationshilfe.
+- Chromium-Browser verwenden den nativen Installationsdialog über `beforeinstallprompt`.
+- Auf iPhone und iPad zeigt MID den Safari-Weg über „Teilen“ und „Zum Home-Bildschirm hinzufügen“.
+- Eine bereits installierte Standalone-App wird erkannt und entsprechend bestätigt.
+- Der Dialog ist responsiv, per Escape oder Hintergrundklick schließbar und benötigt keinen App-Store.
+- Manifest, Service Worker und Apple-Web-App-Metadaten bleiben die technische PWA-Grundlage.
+
+## Wartung in v0.7.89.5 – Konsistente Detailansicht
+
+- Wettertext, Wettersymbol, Diagrammpiktogramme und Niederschlagsfeld unter dem Detaildiagramm verwenden dieselbe Regen-/Sprühregen-Plausibilitätsprüfung.
+- Fehlen die typischen Sprühregenmerkmale, erscheint in allen Detailfeldern Regen mit passender DWD/WMO-Intensität.
+- Niederschlagsarten werden in der Legende als Balken mit dem jeweiligen Farb- beziehungsweise Musterdesign des Diagramms dargestellt.
+
 ## Wartung in v0.7.89.4 – Windrichtung über volle 360 Grad
 
 - Windpfeile werden nicht mehr auf acht Himmelsrichtungen gerundet, sondern mit dem exakten gelieferten Winkel gedreht.
@@ -32,7 +47,7 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.89.4**
+**Aktuelle Version: v0.7.90**
 
 ## Revision in v0.7.89 – responsiver und schlanker
 
