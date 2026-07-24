@@ -1,3 +1,10 @@
+## Wartung in v0.7.90.4 – Erklärte Luftqualität
+
+- Die Luftqualitätskarte besitzt einen Info-Button zur Zusammensetzung des europäischen AQI.
+- MID lädt die Teilindizes für PM2,5, PM10, NO₂, O₃ und SO₂ und nennt den aktuell maßgeblichen Schadstoff.
+- Ein sechsstufiger farbiger Balken mit Rautenmarkierung ordnet den Wert als gut, ordentlich, mäßig, schlecht, sehr schlecht oder extrem schlecht ein.
+- Der AQI-Indikator ist formell und optisch klar vom grünen runden Punkt des Stationsabgleichs getrennt.
+
 ## Wartung in v0.7.90.3 – Einzeilige Tageskarten-Metadaten
 
 - Niederschlag, Sonnenscheindauer und Wind stehen in der 7-Tage-Vorhersage wieder gemeinsam in einer Zeile.
@@ -65,7 +72,7 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.90.3**
+**Aktuelle Version: v0.7.90.4**
 
 ## Revision in v0.7.89 – responsiver und schlanker
 

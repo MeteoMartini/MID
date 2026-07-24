@@ -1,3 +1,13 @@
+# MID v0.7.90.4
+
+- Luftqualitätskarte um einen kompakten Info-Button zur Zusammensetzung des europäischen AQI ergänzt.
+- Der Gesamt-AQI wird als höchster Teilindex aus PM2,5, PM10, NO₂, O₃ und SO₂ erläutert; die unterschiedlichen Bezugszeiträume von Feinstaub und Gasen werden genannt.
+- Eigenständiger sechsstufiger AQI-Indikator mit Rautenmarkierung, Kategorienbezeichnung und farbiger Segmentleiste ergänzt. Er unterscheidet sich bewusst vom runden grünen Stationsabgleich-Punkt der hyperlokalen Analyse.
+- Die fünf europäischen AQI-Teilindizes sowie SO₂ werden zusätzlich von Open-Meteo geladen; der aktuell maßgebliche Schadstoff wird in der Kartenzeile genannt.
+- Neuer Regressionstest für AQI-Datenfelder, Erklärung und Indikatordesign.
+- README, Changelog, Service-Worker-Cache und Versionsstellen aktualisiert.
+- Cloudflare Worker ohne funktionale Änderung.
+
 # MID v0.7.90.3
 
 - Layout der Metadaten in der 7-Tage-Vorhersage korrigiert.

@@ -307,6 +307,41 @@ function Header({setLoc,favorites,setFavorites,current,locationTracking,onOpenSe
 function sunshineDurationLabel(seconds:number,compact=false){if(!Number.isFinite(seconds)||seconds<0)return'–';if(compact)return`${new Intl.NumberFormat('de-DE',{minimumFractionDigits:0,maximumFractionDigits:1}).format(seconds/3600)} h`;const totalMinutes=Math.round(seconds/60),hours=Math.floor(totalMinutes/60),minutes=totalMinutes%60;return hours?`${hours} h ${String(minutes).padStart(2,'0')} min`:`${minutes} min`}
 function visibilityLabel(meters:number){if(!Number.isFinite(meters)||meters<0)return'–';const km=meters/1000;return km>=10?`${Math.round(km)} km`:`${new Intl.NumberFormat('de-DE',{minimumFractionDigits:km<1?2:1,maximumFractionDigits:km<1?2:1}).format(km)} km`}
 
+
+const EUROPEAN_AQI_BANDS=[
+ {key:'good',label:'Gut',max:20},
+ {key:'fair',label:'Ordentlich',max:40},
+ {key:'moderate',label:'Mäßig',max:60},
+ {key:'poor',label:'Schlecht',max:80},
+ {key:'very-poor',label:'Sehr schlecht',max:100},
+ {key:'extreme',label:'Extrem schlecht',max:Number.POSITIVE_INFINITY}
+] as const;
+function europeanAqiBand(value:number){
+ const index=Math.max(0,EUROPEAN_AQI_BANDS.findIndex(band=>value<=band.max));
+ return{...EUROPEAN_AQI_BANDS[index],index};
+}
+const EUROPEAN_AQI_COMPONENTS=[
+ ['european_aqi_pm2_5','PM2,5'],
+ ['european_aqi_pm10','PM10'],
+ ['european_aqi_nitrogen_dioxide','NO₂'],
+ ['european_aqi_ozone','O₃'],
+ ['european_aqi_sulphur_dioxide','SO₂']
+] as const;
+function dominantEuropeanAqi(current:Record<string,number|string>|undefined){
+ if(!current)return'';
+ let dominant='',highest=Number.NEGATIVE_INFINITY;
+ for(const[key,label]of EUROPEAN_AQI_COMPONENTS){
+  const value=Number(current[key]);
+  if(Number.isFinite(value)&&value>highest){highest=value;dominant=label}
+ }
+ return dominant;
+}
+function AqiIndicator({value}:{value:number}){
+ if(!Number.isFinite(value))return null;
+ const band=europeanAqiBand(value);
+ return <span className={`aqi-indicator aqi-${band.key}`} role="img" aria-label={`Luftqualität ${band.label}, europäischer AQI ${Math.round(value)}`}><span className="aqi-marker" aria-hidden="true"/><b>{band.label}</b><span className="aqi-segments" aria-hidden="true">{EUROPEAN_AQI_BANDS.map((entry,index)=><i key={entry.key} className={index===band.index?'active':''}/>)}</span></span>
+}
+
 function Current({w,air,st,stationLoading,unit,advancedMode}:{w:Weather;air:any;st:Station|null;stationLoading:boolean;unit:WindUnit;advancedMode:boolean}){
  const c=w.current,fresh=!!st&&(!st.timestamp||Date.now()-new Date(st.timestamp).getTime()<150*60000),providerSummary=st?.sourceProviders?.slice(0,4).map(x=>x.replace(/ \(.*?\)$/,'')).join(', '),stationInfo=fresh?(st!.analysisMethod?`${st!.analysisMethod} · ${st!.stationCount??1} Messpunkte${Number.isFinite(st!.effectiveResolutionKm)?` · effektiver Radius ${formatDecimal(st!.effectiveResolutionKm!,1,1)} km`:''}${Number.isFinite(st!.uncertainty)?` · Temperatur ±${formatDecimal(st!.uncertainty!,1,1)} K`:''}${Number.isFinite(st!.localCorrection)?` · lokale Korrektur ${st!.localCorrection!>=0?'+':''}${formatDecimal(st!.localCorrection!,1,1)} K`:''} · ${providerSummary||'mehrere Netze'}`:st!.blended?`${st!.stationCount??2} geeignete Messstationen · ${providerSummary||'mehrere Netze'} · mittlere Entfernung ${Number.isFinite(st!.distance)?`${formatDecimal(st!.distance!/1000,1,1)} km`:'unbekannt'}`:`${st!.provider??'WMO/METAR'} · ${st!.name} · ${Number.isFinite(st!.height)?`${Math.round(st!.height!)} m`:'Höhe unbekannt'} · ${Number.isFinite(st!.distance)?`${formatDecimal(st!.distance!/1000,1,1)} km`:'Entfernung unbekannt'}`):'';
  const observed=(v:number|undefined,fallback:number)=>fresh&&Number.isFinite(v)?Number(v):fallback;
@@ -316,6 +351,7 @@ function Current({w,air,st,stationLoading,unit,advancedMode}:{w:Weather;air:any;
  const airCurrentUv=air?.current?Number(air.current.uv_index):Number.NaN;
  const altitudeFactor=uvAltitudeFactor(w.elevation),altitudeBonus=Math.max(0,Math.round((altitudeFactor-1)*100));
  const actualCurrentUv=forecastHour&&Number.isFinite(forecastHour.uvIndex)?forecastHour.uvIndex:(Number.isFinite(airCurrentUv)?Number((airCurrentUv*altitudeFactor).toFixed(1)):Number.NaN);
+ const airAqi=air?.current?Number(air.current.european_aqi):Number.NaN,airDominant=dominantEuropeanAqi(air?.current);
  const source=(available:boolean,defaultText:string)=>available&&fresh?(st!.analysisMethod?'hyperlokale Restfeldanalyse':st!.blended?`robustes Mittel aus ${st!.stationCount??2} Stationen`:`${st!.provider??'Stationsmessung'} · ${st!.name}`):defaultText;
  const cards=[
   {icon:'💧',label:'Taupunkt',value:`${Math.round(dew)} °C`,detail:`Relative Feuchte ${Math.round(hum)} % · ${source(Number.isFinite(st?.dewPoint),'Best Match')}`,checked:fresh&&Number.isFinite(st?.dewPoint)},
@@ -325,10 +361,10 @@ function Current({w,air,st,stationLoading,unit,advancedMode}:{w:Weather;air:any;
   {icon:'☁️',label:'Bewölkung',value:`${cloudOktasValue}/8`,detail:`${cloudBaseDetail}${cloudOktasText(cloud).split(' · ')[1]} · ${source(Number.isFinite(st?.cloudCover)||Number.isFinite(st?.ceilingHft)||Number.isFinite(st?.cloudBaseHft),'Best Match')}`,checked:fresh&&(Number.isFinite(st?.cloudCover)||Number.isFinite(st?.ceilingHft)||Number.isFinite(st?.cloudBaseHft))},
   {icon:'⏱️',label:'Luftdruck',value:`${Math.round(pressure)} hPa`,detail:`auf Meereshöhe (QFF) · ${source(qffStationPressure,'Best Match pressure_msl')}`,checked:fresh&&qffStationPressure},
   {icon:'☀️',label:'UVI',value:Number.isFinite(actualCurrentUv)?formatDecimal(actualCurrentUv,1):'–',detail:`bewölkungsberücksichtigt${altitudeBonus>0?` · näherungsweise höhenkorrigiert (+${altitudeBonus} % bei ${Math.round(w.elevation)} m)`:''}`,checked:false},
-  {icon:'🏭',label:'Luftqualität',value:air?.current?`${Math.round(Number(air.current.european_aqi))} AQI`:'–',detail:air?.current?`PM2,5 ${formatDecimal(Number(air.current.pm2_5),1)} µg/m³`:'Open-Meteo',checked:false},
+  {icon:'🏭',label:'Luftqualität',value:Number.isFinite(airAqi)?`${Math.round(airAqi)} AQI`:'–',detail:air?.current?`PM2,5 ${formatDecimal(Number(air.current.pm2_5),1)} µg/m³${airDominant?` · maßgeblich ${airDominant}`:''}`:'Open-Meteo/CAMS',checked:false},
   {icon:'🌤️',label:'Sonnenschein',value:sunshineDurationLabel(Number(c.sunshine_duration)),detail:'innerhalb der letzten Stunde',checked:false}
  ];
- return <><section className="hero"><div>{icon(Number(c.weather_code),Number(c.is_day)===1)}</div><article><span>Aktuelles Wetter</span><strong>{Math.round(temp)}°</strong><b>{label(Number(c.weather_code))}</b><small>Gefühlt {Math.round(Number(c.apparent_temperature))} °C{fresh?(st?.analysisMethod?' · modell- und stationsgestützt lokal analysiert':st?.blended?' · Temperatur robust lokal gemittelt':' · Temperatur stationsgeprüft'):''}</small></article><aside className={fresh?'ok':''}><i/><span><b>{fresh?(st?.analysisMethod?'Hyperlokale Analyse':st?.blended?'Lokales Stationsmittel':'Nächstgeeignete Messstation'):stationLoading?'Prüfung läuft':'Best Match'}</b>{advancedMode?<small>{fresh?stationInfo:stationLoading?'Stationsdaten werden im Hintergrund geprüft.':'Keine ausreichend aktuelle amtliche oder hyperlokale Messstation verfügbar – Fallback auf Best Match'}</small>:<InfoHint label="Datenanalyse erklären">{fresh?'Aktuelle Messwerte werden mit dem örtlichen Best-Match-Hintergrund geprüft und lokal gewichtet.':stationLoading?'Geeignete Stationsdaten werden im Hintergrund gesucht und geprüft.':'Ohne ausreichend aktuelle Messstation verwendet MID die Best-Match-Vorhersage.'}</InfoHint>}</span></aside></section><section className="metrics">{cards.map(x=><article key={x.label}><header><span>{x.icon}</span><small>{x.label}</small>{x.checked&&<i title="Mit aktueller Stationsmessung abgeglichen"/>}</header><strong>{x.value}</strong><small>{x.detail}</small></article>)}</section></>
+ return <><section className="hero"><div>{icon(Number(c.weather_code),Number(c.is_day)===1)}</div><article><span>Aktuelles Wetter</span><strong>{Math.round(temp)}°</strong><b>{label(Number(c.weather_code))}</b><small>Gefühlt {Math.round(Number(c.apparent_temperature))} °C{fresh?(st?.analysisMethod?' · modell- und stationsgestützt lokal analysiert':st?.blended?' · Temperatur robust lokal gemittelt':' · Temperatur stationsgeprüft'):''}</small></article><aside className={fresh?'ok':''}><i/><span><b>{fresh?(st?.analysisMethod?'Hyperlokale Analyse':st?.blended?'Lokales Stationsmittel':'Nächstgeeignete Messstation'):stationLoading?'Prüfung läuft':'Best Match'}</b>{advancedMode?<small>{fresh?stationInfo:stationLoading?'Stationsdaten werden im Hintergrund geprüft.':'Keine ausreichend aktuelle amtliche oder hyperlokale Messstation verfügbar – Fallback auf Best Match'}</small>:<InfoHint label="Datenanalyse erklären">{fresh?'Aktuelle Messwerte werden mit dem örtlichen Best-Match-Hintergrund geprüft und lokal gewichtet.':stationLoading?'Geeignete Stationsdaten werden im Hintergrund gesucht und geprüft.':'Ohne ausreichend aktuelle Messstation verwendet MID die Best-Match-Vorhersage.'}</InfoHint>}</span></aside></section><section className="metrics">{cards.map(x=><article key={x.label} className={x.label==='Luftqualität'?'air-quality-card':undefined}><header><span>{x.icon}</span><small>{x.label}</small>{x.label==='Luftqualität'&&<InfoHint label="AQI erklären"><strong>Europäischer Luftqualitätsindex</strong><br/>Der Gesamt-AQI entspricht dem höchsten Teilindex aus PM2,5, PM10, NO₂, O₃ und SO₂. Feinstaub wird über gleitende 24-Stunden-Mittel, die Gase über Stundenwerte eingeordnet.<br/><br/>0–20 gut · bis 40 ordentlich · bis 60 mäßig · bis 80 schlecht · bis 100 sehr schlecht · über 100 extrem schlecht.</InfoHint>}{x.checked&&<i title="Mit aktueller Stationsmessung abgeglichen"/>}</header><strong>{x.value}</strong>{x.label==='Luftqualität'&&<AqiIndicator value={airAqi}/>}<small>{x.detail}</small></article>)}</section></>
 }
 function metricNumber(source:Record<string,any>|undefined,key:string){const value=Number(source?.[key]);return Number.isFinite(value)?value:NaN}
 function windChill(tempC:number,windKt:number){const kmh=windKt*1.852;if(tempC>10||kmh<4.8)return tempC;return 13.12+.6215*tempC-11.37*Math.pow(kmh,.16)+.3965*tempC*Math.pow(kmh,.16)}

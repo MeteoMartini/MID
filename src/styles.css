@@ -1690,3 +1690,90 @@ footer{flex-wrap:wrap;align-items:center}
     font-size:clamp(7.3px,2.25vw,8.8px);
   }
 }
+
+/* v0.7.90.4 – AQI-Erklärung und eigenständiger Luftqualitätsindikator */
+.metrics .air-quality-card header{
+  align-items:center;
+  padding-right:1px;
+}
+.metrics .air-quality-card header>.mode-info{
+  margin-left:auto;
+}
+.metrics .air-quality-card header>.mode-info>button{
+  width:18px;
+  height:18px;
+  border-color:color-mix(in srgb,var(--primary) 42%,var(--border));
+  background:color-mix(in srgb,var(--primary) 8%,var(--s2));
+}
+.metrics .air-quality-card header>.mode-info svg{
+  width:12px;
+  height:12px;
+}
+.metrics .air-quality-card .mode-info-popover{
+  right:-4px;
+  width:min(330px,calc(100vw - 24px));
+}
+.aqi-indicator{
+  display:grid;
+  grid-template-columns:8px auto 1fr;
+  align-items:center;
+  gap:5px;
+  margin-top:5px;
+  color:var(--muted);
+  font-size:8px;
+  line-height:1;
+}
+.aqi-indicator>b{
+  color:var(--text);
+  font-size:8px;
+  white-space:nowrap;
+}
+.aqi-marker{
+  width:7px;
+  height:7px;
+  border:1px solid currentColor;
+  border-radius:1px;
+  background:currentColor;
+  transform:rotate(45deg);
+  box-shadow:0 0 0 2px color-mix(in srgb,currentColor 16%,transparent);
+}
+.aqi-segments{
+  display:grid;
+  grid-template-columns:repeat(6,minmax(3px,1fr));
+  gap:2px;
+  min-width:42px;
+  height:6px;
+}
+.aqi-segments>i{
+  display:block;
+  height:4px;
+  align-self:center;
+  border-radius:2px;
+  opacity:.24;
+}
+.aqi-segments>i:nth-child(1){background:#35b779}
+.aqi-segments>i:nth-child(2){background:#82c96b}
+.aqi-segments>i:nth-child(3){background:#e3c84c}
+.aqi-segments>i:nth-child(4){background:#f09a45}
+.aqi-segments>i:nth-child(5){background:#df5b54}
+.aqi-segments>i:nth-child(6){background:#9d5a9e}
+.aqi-segments>i.active{
+  height:6px;
+  opacity:1;
+  box-shadow:0 0 0 1px color-mix(in srgb,currentColor 18%,transparent);
+}
+.aqi-good{color:#35b779}
+.aqi-fair{color:#82c96b}
+.aqi-moderate{color:#c6a92b}
+.aqi-poor{color:#e17c33}
+.aqi-very-poor{color:#d94c4c}
+.aqi-extreme{color:#925397}
+@media(max-width:620px){
+  .metrics .air-quality-card .mode-info-popover{
+    position:fixed;
+    right:8px;
+    bottom:10px;
+    left:8px;
+    width:auto;
+  }
+}
