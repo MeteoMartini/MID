@@ -13,15 +13,18 @@ for(const token of [
   'className="charttooltip trend-tooltip compact-trend-tooltip"',
   'className="trend-tooltip-head"',
   'className="trend-tooltip-matrix" role="table" aria-label="Temperaturwerte"',
+  'className="matrix-head value-head" role="columnheader">Tmax</span>',
+  'className="matrix-value" role="cell">{item.max}</span>',
+  'position={compactTrendTooltip?{x:4}:undefined}',
+  'allowEscapeViewBox={{x:false,y:true}}',
   'Best Match: {formatSunshineHours(row.bestSunshineHours)} h',
   'className="tooltip-meta-block ensemble-hazard-tooltip"'
 ]) if(!panel.includes(token)) failures.push(`Kompakter Ensemble-Tooltip fehlt: ${token}`);
 
 for(const token of [
   '.compact-trend-tooltip{',
-  '.compact-trend-tooltip .trend-tooltip-head{',
-  '.compact-trend-tooltip .trend-tooltip-matrix{',
-  '.compact-trend-tooltip .trend-tooltip-meta{',
+  '.compact-trend-tooltip .trend-tooltip-matrix,.compact-trend-tooltip .trend-tooltip-meta{font-size:11px}',
+  '.compact-trend-tooltip .trend-tooltip-matrix>.matrix-value,.compact-trend-tooltip .trend-tooltip-matrix>.value-head{',
   '@media(max-width:520px){',
   '@media(max-width:390px){'
 ]) if(!styles.includes(token)) failures.push(`Tooltip-Stil fehlt: ${token}`);
@@ -32,4 +35,4 @@ if(failures.length){
   console.error('Ensemble-Tooltip-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));
   process.exit(1);
 }
-console.log('Ensemble-Tooltip geprüft: kompakte Matrixdarstellung für Tmin/Tmax und schmale Displays ist vorhanden.');
+console.log('Ensemble-Tooltip geprüft: Matrix, verdichtete Handy-Darstellung und feste linke Tooltip-Position auf schmalen Displays sind vorhanden.');

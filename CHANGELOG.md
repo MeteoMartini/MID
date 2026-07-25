@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.7.95.8
+
+- GitHub-Regression korrigiert: Interaktions-, UI- und Spezialtest prüfen nun dieselbe responsive Tooltip-Implementierung
+- Ensemble-Temperaturdiagramm: auf Displays bis 520 px wird der Tooltip mit fester linker X-Position im sichtbaren Diagrammbereich gehalten; die rechte Tmax-Spalte bleibt dadurch vollständig lesbar
+- Tagesdetailansicht: überflüssige Vorwärtsreferenz auf `narrowChart` aus der Desktop-Tooltip-Entscheidung entfernt
+- Regressionen schützen vor erneutem TypeScript-Fehler `TS2448/TS2454` und vor einer rechts abgeschnittenen Ensemble-Tooltip-Spalte
+
+## 0.7.95.7
+
+- Buildfehler TS2448/TS2454 behoben: `narrowChart` wird im responsiven Tooltip-Schalter nicht mehr vor seiner Deklaration verwendet
+- responsives Verhalten bleibt unverändert: Karten auf kleinen Displays, bedarfsweise Tooltip-Darstellung auf großen Displays
+- Regressionstest schützt nun ausdrücklich vor einer erneuten Vorwärtsreferenz in der Tooltip-Logik
+
+## 0.7.95.6
+
+- Tagesdetailansicht: auf kleinen Displays wieder Kartenansicht unterhalb des Diagramms; das Stunden-Overlay ist nun nur noch für große Displays aktiv und erscheint nur bei Bedarf
+- Stunden-Overlay weiter verschlankt, damit auf großen Displays weniger Diagrammfläche verdeckt wird
+- Ensemble-Temperatur-Tooltip auf Handy-Displays weiter verdichtet und Recharts-Tooltip horizontal aus dem Viewport-Clipping befreit, damit die rechte Tmax-Spalte lesbar bleibt
+- Regressionstests für responsives Stunden-Detail und kompakten Ensemble-Tooltip aktualisiert
+
+## 0.7.95.6
+
+- Tagesdetailansicht: responsives Stunden-Detail überarbeitet
+- kleine Displays zeigen die kompakten Parameterkarten wieder unter dem Diagramm, damit das Chart nicht verdeckt wird
+- größere Displays nutzen ein kompaktes Overlay nur noch nach Klick/Antippen und mit Schließen-Schaltfläche statt dauerhaft im Diagramm
+- zusätzliche Regression für die neue responsive Stunden-Detaildarstellung ergänzt
+
 ## 0.7.95.5
 
 - GitHub-Regression behoben: der kompakte Ensemble-Temperaturtooltip verwendet wieder die vollständige Bezeichnung „Sonnenscheindauer“

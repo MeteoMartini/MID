@@ -424,40 +424,51 @@ footer a:hover{opacity:1;color:var(--accent)}
 }
 @media(max-width:430px){.hour-tooltip-grid{grid-template-columns:1fr}.trend-tooltip{min-width:min(260px,82vw)}}
 
-/* v0.5.0 compact detail tooltip inside chart */
+/* v0.5.0 responsive hour detail presentation */
 .hour-chart-tooltip.detail-overlay{
  top:12px;
- width:min(360px,calc(100% - 24px));
+ width:min(276px,28vw,calc(100% - 24px));
  max-height:calc(100% - 24px);
- padding:10px 11px;
+ padding:9px 10px;
 }
 .hour-chart-tooltip.detail-overlay.place-right{left:12px;right:auto;transform:none}
 .hour-chart-tooltip.detail-overlay.place-left{left:auto;right:12px;transform:none}
 .hour-chart-tooltip.detail-overlay.place-center{left:50%;right:auto;transform:translateX(-50%)}
-.hour-chart-tooltip.detail-overlay>header{
+.hour-chart-tooltip.detail-overlay>header,.hour-detail-panel.mobile-cards>header{
  align-items:center;
  justify-content:center;
  margin-bottom:8px;
  padding-bottom:8px;
 }
-.hour-chart-tooltip.detail-overlay>header>div{flex:1;text-align:center;min-width:0}
-.hour-chart-tooltip.detail-overlay>header>div em{display:block;margin-top:3px;color:var(--muted);font-size:10px;font-style:normal;line-height:1.25;overflow-wrap:anywhere}
-.hour-chart-tooltip.detail-overlay>header button{
+.hour-chart-tooltip.detail-overlay>header>div,.hour-detail-panel.mobile-cards>header>div{flex:1;text-align:center;min-width:0}
+.hour-chart-tooltip.detail-overlay>header>div em,.hour-detail-panel.mobile-cards>header>div em{display:block;margin-top:3px;color:var(--muted);font-size:10px;font-style:normal;line-height:1.25;overflow-wrap:anywhere}
+.hour-chart-tooltip.detail-overlay>header button,.hour-detail-panel.mobile-cards>header button{
  flex:0 0 34px;
  width:34px;
  height:34px;
  font-size:22px;
  line-height:1;
 }
+.hour-chart-tooltip.detail-overlay .hour-tooltip-actions{display:flex;gap:6px;align-items:center}
 .hour-tooltip-grid.compact{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
 .hour-tooltip-grid.compact>span{padding:7px 8px}
 .hour-tooltip-grid.compact b{font-size:12px;line-height:1.28}
-@media(max-width:760px){
- .hour-chart-tooltip.detail-overlay,.hour-chart-tooltip.detail-overlay.place-left,.hour-chart-tooltip.detail-overlay.place-right,.hour-chart-tooltip.detail-overlay.place-center{left:12px!important;right:12px!important;bottom:12px;top:auto;width:auto;max-height:72%;transform:none}
+.hour-detail-panel.mobile-cards{
+ margin-top:12px;
+ padding:10px 12px;
+ border:1px solid var(--border);
+ border-radius:22px;
+ background:linear-gradient(145deg,color-mix(in srgb,var(--s2) 94%,transparent),color-mix(in srgb,var(--surface) 96%,transparent));
+ box-shadow:0 18px 44px rgba(0,0,0,.08);
+}
+@media(min-width:900px){
+ .hour-detail-panel.mobile-cards{display:none}
+}
+@media(max-width:899px){
+ .hour-chart-tooltip.detail-overlay,.hour-chart-tooltip.detail-overlay.place-left,.hour-chart-tooltip.detail-overlay.place-right,.hour-chart-tooltip.detail-overlay.place-center{display:none}
  .hour-tooltip-grid.compact{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media(max-width:390px){.hour-tooltip-grid.compact{grid-template-columns:1fr}}
-
 /* v0.5.2 precipitation nowcast, radar future timeline and precise precipitation forms */
 .precip-now{min-width:260px;max-width:390px;text-align:left!important}
 .precip-now strong{margin-top:2px}
@@ -1779,11 +1790,12 @@ footer{flex-wrap:wrap;align-items:center}
 
 /* v0.7.95.4 – kompaktes Ensemble-Temperatur-Tooltip */
 .compact-trend-tooltip{
-  width:min(420px,calc(100vw - 18px));
-  min-width:min(300px,calc(100vw - 18px));
-  gap:8px;
-  padding:10px;
+  width:min(390px,calc(100vw - 14px));
+  min-width:0;
+  gap:7px;
+  padding:9px 10px;
 }
+.compact-trend-tooltip .trend-tooltip-matrix,.compact-trend-tooltip .trend-tooltip-meta{font-size:11px}
 .compact-trend-tooltip .trend-tooltip-head{
   display:flex;
   align-items:flex-start;
@@ -1796,8 +1808,8 @@ footer{flex-wrap:wrap;align-items:center}
 .compact-trend-tooltip .trend-tooltip-head span{color:var(--muted);font-size:10px;white-space:nowrap}
 .compact-trend-tooltip .trend-tooltip-matrix{
   display:grid;
-  grid-template-columns:minmax(92px,1.05fr) minmax(74px,1fr) minmax(74px,1fr);
-  gap:4px 8px;
+  grid-template-columns:minmax(82px,.9fr) minmax(0,1fr) minmax(0,1fr);
+  gap:3px 6px;
   align-items:start;
 }
 .compact-trend-tooltip .trend-tooltip-matrix>span{
@@ -1815,6 +1827,10 @@ footer{flex-wrap:wrap;align-items:center}
 .compact-trend-tooltip .trend-tooltip-matrix>.rowlabel{
   color:var(--muted);
   font-weight:700;
+}
+.compact-trend-tooltip .trend-tooltip-matrix>.matrix-value,.compact-trend-tooltip .trend-tooltip-matrix>.value-head{
+  text-align:right;
+  font-variant-numeric:tabular-nums;
 }
 .compact-trend-tooltip .trend-tooltip-meta{
   display:grid;
@@ -1838,12 +1854,15 @@ footer{flex-wrap:wrap;align-items:center}
 }
 .compact-trend-tooltip .ensemble-hazard-tooltip{gap:3px}
 @media(max-width:520px){
-  .compact-trend-tooltip{width:calc(100vw - 16px);min-width:0;padding:9px}
+  .compact-trend-tooltip{width:calc(100vw - 10px);padding:8px 9px}
   .compact-trend-tooltip .trend-tooltip-head{display:block}
-  .compact-trend-tooltip .trend-tooltip-head span{display:block;margin-top:2px;white-space:normal}
-  .compact-trend-tooltip .trend-tooltip-matrix{grid-template-columns:minmax(76px,.95fr) minmax(64px,1fr) minmax(64px,1fr);gap:4px 6px}
+  .compact-trend-tooltip .trend-tooltip-head strong{font-size:12px}
+  .compact-trend-tooltip .trend-tooltip-head span{display:block;margin-top:1px;white-space:normal;font-size:9.5px}
+  .compact-trend-tooltip .trend-tooltip-matrix,.compact-trend-tooltip .trend-tooltip-meta{font-size:10.3px}
+  .compact-trend-tooltip .trend-tooltip-matrix{grid-template-columns:minmax(70px,.88fr) minmax(0,1fr) minmax(0,1fr);gap:2px 5px}
 }
 @media(max-width:390px){
-  .compact-trend-tooltip .trend-tooltip-matrix{grid-template-columns:minmax(70px,.92fr) minmax(58px,1fr) minmax(58px,1fr)}
-  .compact-trend-tooltip .trend-tooltip-matrix>.matrix-head,.compact-trend-tooltip .tooltip-meta-block b{font-size:9px}
+  .compact-trend-tooltip .trend-tooltip-matrix,.compact-trend-tooltip .trend-tooltip-meta{font-size:9.7px}
+  .compact-trend-tooltip .trend-tooltip-matrix{grid-template-columns:minmax(63px,.82fr) minmax(0,1fr) minmax(0,1fr)}
+  .compact-trend-tooltip .trend-tooltip-matrix>.matrix-head,.compact-trend-tooltip .tooltip-meta-block b{font-size:8.7px}
 }

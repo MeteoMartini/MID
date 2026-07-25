@@ -8,26 +8,36 @@ const styles=await readFile(path.join(root,'src','styles.css'),'utf8');
 const failures=[];
 
 for(const token of [
-  "const tooltipPlacement=narrowChart?'place-center':xAt(selectedHour)<=left+plotW*.36?'place-right':xAt(selectedHour)>=left+plotW*.64?'place-left':'place-center';",
-  'className={`hour-chart-tooltip detail-overlay ${tooltipPlacement}`}',
-  '{currentPrecip.label} · {windDirectionDescription(currentHour.direction)}',
-  '<small>Temperatur</small><b>{Math.round(currentHour.temperature)}° · gefühlt {Math.round(currentHour.apparent)}°</b>',
-  '<small>Bewölkung</small><b>{cloudOktas(currentHour.cloud)}/8 · {cloudOktasText(currentHour.cloud).split('
-]) if(!app.includes(token)) failures.push(`Tooltip-Overlay fehlt: ${token}`);
+  'const [selectedHour,setSelectedHour]=useState(0),[hourTooltipOpen,setHourTooltipOpen]=useState(false)',
+  'const detailUsesDesktopTooltip=detailChartWidth>=900;',
+  'const useTooltipOverlay=detailUsesDesktopTooltip,hourTooltipVisible=useTooltipOverlay&&hourTooltipOpen;',
+  'onClick={()=>{setSelectedHour(i);if(useTooltipOverlay)setHourTooltipOpen(true)}}',
+  '{hourTooltipVisible&&<div className={`hour-chart-tooltip detail-overlay ${tooltipPlacement}`}',
+  'onClick={()=>setHourTooltipOpen(false)} aria-label="Stundendetails schließen"',
+  '{!useTooltipOverlay&&<div className="hour-detail-panel mobile-cards" role="status" aria-live="polite" aria-label={`Details für ${currentHour.time.slice(11,16)} Uhr`}>',
+  'className="hour-tooltip-actions"'
+]) if(!app.includes(token)) failures.push(`Responsives Stunden-Detail fehlt: ${token}`);
 
 for(const token of [
-  '.hour-chart-tooltip.detail-overlay{',
-  '.hour-chart-tooltip.detail-overlay.place-right{left:12px;right:auto;transform:none}',
-  '.hour-chart-tooltip.detail-overlay.place-left{left:auto;right:12px;transform:none}',
-  '.hour-chart-tooltip.detail-overlay.place-center{left:50%;right:auto;transform:translateX(-50%)}',
-  '.hour-tooltip-grid.compact{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}',
+  '.hour-detail-panel.mobile-cards{',
+  '.hour-chart-tooltip.detail-overlay .hour-tooltip-actions{display:flex;gap:6px;align-items:center}',
+  '@media(min-width:900px){',
+  '@media(max-width:899px){',
+  '.hour-chart-tooltip.detail-overlay,.hour-chart-tooltip.detail-overlay.place-left,.hour-chart-tooltip.detail-overlay.place-right,.hour-chart-tooltip.detail-overlay.place-center{display:none}',
   '@media(max-width:390px){.hour-tooltip-grid.compact{grid-template-columns:1fr}}'
-]) if(!styles.includes(token)) failures.push(`Tooltip-CSS fehlt: ${token}`);
+]) if(!styles.includes(token)) failures.push(`Responsives Tooltip-CSS fehlt: ${token}`);
 
-if(app.includes('hour-chart-tooltip persistent')) failures.push('Alte persistente Detailkarten-Ausgabe ist noch aktiv.');
+if(app.includes('const useTooltipOverlay=detailUsesDesktopTooltip&&!narrowChart')) failures.push('narrowChart wird im Tooltip-Schalter erneut vor seiner Deklaration verwendet.');
+const tooltipDeclaration=app.indexOf('const useTooltipOverlay=detailUsesDesktopTooltip,hourTooltipVisible=useTooltipOverlay&&hourTooltipOpen;');
+const narrowDeclaration=app.indexOf('narrowChart=W<560');
+if(tooltipDeclaration<0||narrowDeclaration<0) failures.push('Deklarationen für Tooltip oder Diagrammbreite konnten nicht geprüft werden.');
+
+if(app.includes('hour-chart-tooltip persistent')) failures.push('Veraltete persistente Stunden-Tooltip-Variante ist noch vorhanden.');
+if(app.includes('const useTooltipOverlay=detailUsesDesktopTooltip&&!narrowChart')) failures.push('narrowChart wird im Tooltip-Modus erneut vor seiner Deklaration verwendet.');
+
 
 if(failures.length){
-  console.error('Detail-Tooltip-Overlay-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));
+  console.error('Prüfung der responsiven Stunden-Details fehlgeschlagen:\n- '+failures.join('\n- '));
   process.exit(1);
 }
-console.log('Detail-Tooltip-Overlay geprüft: Die Detailansicht nutzt ein kompaktes Overlay im Diagramm statt darunterliegender Karten und bleibt auf kleinen Displays einspaltig lesbar.');
+console.log('Responsives Stunden-Detail geprüft: Telefone nutzen Karten unter dem Diagramm, große Displays ein nur bei Bedarf sichtbares Overlay.');
