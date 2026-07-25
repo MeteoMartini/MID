@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.7.95.5
+
+- GitHub-Regression behoben: der kompakte Ensemble-Temperaturtooltip verwendet wieder die vollständige Bezeichnung „Sonnenscheindauer“
+- bestehende Interaktionsprüfung erkennt die Sonnenscheindauer-Auswertung damit wieder korrekt, ohne das kompakte Tooltip-Layout zu verändern
+- nachgelagerte Regressionstests für Codequalität, Warnhinweise und Sonnenscheindauer an die neue kompakte Tooltip-Struktur angepasst
+
+## 0.7.95.4
+
+- Ensemble-Temperaturdiagramm: Tooltip kompakt auf Matrixdarstellung für Tmin/Tmax umgestellt, damit er auch auf schmalen Hochformat-Displays lesbar bleibt
+- Inhalte bleiben vollständig erhalten, wurden aber in kurze Zeilen und kompakte Zusatzblöcke für Sonnenschein, Modelle/Konsistenz und Hazards überführt
+- responsive Breiten- und Schriftanpassungen für sehr schmale Displays ergänzt
+- zusätzlicher Regressionstest für den kompakten Ensemble-Tooltip ergänzt
+
 ## 0.7.95.3
 
 - Tagesdetailansicht: die bisherigen darunterliegenden Stundenkarten wurden durch ein kompaktes Overlay-Tooltip direkt im Diagramm ersetzt
