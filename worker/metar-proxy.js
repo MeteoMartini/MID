@@ -17,7 +17,7 @@ const OPENSENSEMAP_BOXES='https://api.opensensemap.org/boxes';
 const DWD_KONRAD3D_INDEX='https://opendata.dwd.de/weather/radar/konrad3d/';
 const DWD_RADOLAN_YW_ROOT='https://opendata.dwd.de/weather/radar/radolan/yw/';
 const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids_germany/return_periods/precipitation/KOSTRA/KOSTRA_DWD_2020/asc/';
-const WORKER_VERSION='0.7.95.13';
+const WORKER_VERSION='0.7.95.14';
 const CORS={'content-type':'application/json; charset=utf-8','access-control-allow-origin':'*','access-control-allow-methods':'GET,OPTIONS','cache-control':'public, max-age=180'};
 const FEED_SLUGS={
  AD:'andorra',AT:'austria',BE:'belgium',BA:'bosnia-herzegovina',BG:'bulgaria',HR:'croatia',CY:'cyprus',CZ:'czechia',DK:'denmark',EE:'estonia',FI:'finland',FR:'france',DE:'germany',GR:'greece',EL:'greece',HU:'hungary',IS:'iceland',IE:'ireland',IL:'israel',IT:'italy',LV:'latvia',LT:'lithuania',LU:'luxembourg',MT:'malta',MD:'moldova',ME:'montenegro',NL:'netherlands',MK:'republic-of-north-macedonia',NO:'norway',PL:'poland',PT:'portugal',RO:'romania',RS:'serbia',SK:'slovakia',SI:'slovenia',ES:'spain',SE:'sweden',CH:'switzerland',UA:'ukraine',GB:'united-kingdom',UK:'united-kingdom',AM:'armenia'
@@ -644,7 +644,7 @@ const SATELLITE_PRECIP_CANDIDATES=[
  {provider:'eumetsat',layer:'mtg_fd:precipitation_rate',label:'MTG FCI Niederschlagsrate',resolutionKm:2},
  {provider:'eumetsat',layer:'msg_fes:h60b',label:'H SAF Satelliten-Niederschlagsrate',resolutionKm:3}
 ];
-async function wmsCapabilitiesText(base,label){const response=await fetch(dwdCapabilitiesUrl(base),{headers:{Accept:'application/xml,text/xml,*/*','Cache-Control':'no-cache'},cache:'no-store',cf:{cacheTtl:0,cacheEverything:false}});if(!response.ok)throw new Error(`${label} Capabilities HTTP ${response.status}`);return response.text()}
+async function wmsCapabilitiesText(base,label){const response=await fetch(dwdCapabilitiesUrl(base),{headers:{Accept:'application/xml,text/xml,*/*','Cache-Control':'no-cache'},cache:'no-store'});if(!response.ok)throw new Error(`${label} Capabilities HTTP ${response.status}`);return response.text()}
 async function firstWmsCapabilities(bases,label){const errors=[];for(const base of bases){try{return await wmsCapabilitiesText(base,label)}catch(error){errors.push(error instanceof Error?error.message:String(error))}}throw new Error(errors.join(' | ')||`${label} Capabilities nicht verfügbar`)}
 function recentObservedTimes(times,now=Date.now(),historyMinutes=135,maxFrames=28,futureMinutes=10){const unique=[...new Set((times||[]).filter(Number.isFinite).filter(time=>time>=now-historyMinutes*60000&&time<=now+futureMinutes*60000))].sort((a,b)=>a-b);if(unique.length<=maxFrames)return unique;const step=Math.max(1,Math.ceil(unique.length/maxFrames)),selected=unique.filter((_,index)=>index%step===0);if(selected.at(-1)!==unique.at(-1))selected.push(unique.at(-1));return selected.slice(-maxFrames)}
 function hasWmsLayer(xml,layer){return tagValues(xml,'Name').some(value=>sameWmsLayer(value,layer))}
@@ -758,7 +758,7 @@ async function compositeWmsResponse(request){
  for(const base of bases){try{
   const upstream=new URL(base);for(const[key,value]of url.searchParams){const normalized=key.toLowerCase();if(!allowed.has(normalized))continue;const outgoing=provider==='dwd'&&normalized==='layers'?String(value).split(',').map(layer=>dwdLayerForEndpoint(layer,base)).join(','):value;upstream.searchParams.set(normalized,outgoing)}
   if(!upstream.searchParams.has('service'))upstream.searchParams.set('service','WMS');if(!upstream.searchParams.has('request'))upstream.searchParams.set('request','GetMap');
-  const response=await fetch(upstream.toString(),{headers:{Accept:'image/png,image/webp,image/jpeg,*/*','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`,'Cache-Control':'no-cache'},cache:'no-store',cf:{cacheTtl:0,cacheEverything:false}}),type=String(response.headers.get('content-type')||'').toLowerCase();
+  const response=await fetch(upstream.toString(),{headers:{Accept:'image/png,image/webp,image/jpeg,*/*','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`,'Cache-Control':'no-cache'},cache:'no-store'}),type=String(response.headers.get('content-type')||'').toLowerCase();
   if(!response.ok)throw new Error(`${new URL(base).hostname} HTTP ${response.status}`);if(!type.startsWith('image/')){const text=(await response.text()).slice(0,240).replace(/\s+/g,' ');throw new Error(`${new URL(base).hostname} lieferte kein Kartenbild${text?`: ${text}`:''}`)}
   return new Response(response.body,{status:200,headers:{'content-type':type,'access-control-allow-origin':'*','cache-control':'no-store, no-cache, must-revalidate','pragma':'no-cache','expires':'0','x-mid-wms-provider':provider,'x-mid-wms-layer':layers.join(','),'x-mid-wms-endpoint':new URL(base).pathname,'x-mid-worker-version':WORKER_VERSION}})
  }catch(error){errors.push(error instanceof Error?error.message:String(error))}}

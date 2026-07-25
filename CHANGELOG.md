@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.7.95.14
+
+- Sonne/Mond: abweichenden Spezialhintergrund entfernt; die zehnte aktuelle Wetterkarte nutzt wieder dasselbe Kartendesign wie die übrigen Messwerte
+- Kompositbild: Cloudflare-Laufzeitfehler beseitigt, indem `cache: no-store` nicht mehr mit dem inkompatiblen `cf.cacheTtl: 0` kombiniert wird; dies betrifft Capabilities sowie Radar-, Satelliten- und Blitzkacheln
+- offizielle Livequellen beibehalten: DWD `dwd:Radar_rv_product_1x1km_ger` / `dwd:Niederschlagsradar`, EUMETSAT MTG FCI GeoColour/IR 10,5 und MTG-LI AFA
+- Berg-/Wintersport: automatische OpenStreetMap-Suche nach Tal-, optionaler Mittel- und Bergstation sowie Höhenauffüllung über Copernicus GLO-90 wiederhergestellt
+- Berg-/Wintersport: editierbare Stationsnamen, Koordinaten und Höhen sowie Saisonprofile Automatisch, Sommer und Winter wiederhergestellt
+- saisonabhängige Höhenparameter: Winter mit Schneehöhe, Neuschnee, Verfrachtung und Whiteout; Sommer mit Sicht, UV, Wind und CAPE
+- Regressionen für Cloudflare-WMS-Cachekompatibilität, einheitliches Sonne/Mond-Design und automatische Bergprofile ergänzt
+
 ## 0.7.95.13
 
 - aktuelle Übersicht: die in v0.7.92 eingeführte zehnte Karte „Sonne / Mond“ mit Auf-/Untergängen, Tageslänge, Tageslängenänderung, Mondphase, Beleuchtung und Mondalter vollständig wiederhergestellt

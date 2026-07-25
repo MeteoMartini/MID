@@ -1898,8 +1898,27 @@ footer{flex-wrap:wrap;align-items:center}
 }
 
 /* v0.7.95.13 – wiederhergestellte aktuelle Sonne-/Mond-Karte */
-.metrics .sun-moon-card{background:linear-gradient(145deg,color-mix(in srgb,var(--s2) 92%,#ffd85b 8%),var(--surface))}
 .metrics .sun-moon-primary{display:block;white-space:nowrap}
 .metrics .sun-moon-detail{display:grid;gap:2px}
 .metrics .sun-moon-detail>span{display:block}
-@media(min-width:1101px){.metrics{grid-template-columns:repeat(10,minmax(0,1fr))}.metrics .sun-moon-card{min-width:0}}
+@media(min-width:1101px){.metrics{grid-template-columns:repeat(10,minmax(0,1fr))}}
+
+
+/* v0.7.95.14 – automatische Bergprofile und saisonale Höhenansicht */
+.mountain-profile-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:9px;padding:10px;border:1px solid var(--border);border-radius:13px;background:var(--surface)}
+.mountain-season-select,.mountain-level-name{display:grid!important;gap:4px!important;align-content:end;color:var(--muted)!important;font-size:8px!important;font-weight:850!important;letter-spacing:.05em!important;text-transform:uppercase!important}
+.mountain-season-select select,.mountain-level-name input{min-width:0;height:40px;padding:7px 9px;border:1px solid var(--border);border-radius:10px;background:var(--s2);color:var(--text)}
+.mountain-auto-row{grid-column:1/-1;display:flex;align-items:center;gap:9px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.mountain-auto-row button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:8px 11px;border:1px solid color-mix(in srgb,var(--primary) 55%,var(--border));border-radius:10px;background:color-mix(in srgb,var(--primary) 10%,var(--s2));color:var(--text);font-weight:800}
+.mountain-auto-row button:disabled{opacity:.6;cursor:wait}.mountain-auto-row small{color:var(--muted);font-size:9px;line-height:1.35}
+.mountain-middle-toggle{grid-column:1/-1;display:flex!important;align-items:center!important;gap:8px!important;padding:7px 9px;border:1px solid var(--border);border-radius:10px;background:var(--s2);color:var(--text)!important;font-size:9px!important;font-weight:800!important;letter-spacing:0!important;text-transform:none!important}.mountain-middle-toggle input{width:auto!important}
+.mountain-profile-grid>.mountain-profile-status{grid-column:1/-1;color:var(--muted);font-size:9px;line-height:1.45}
+.mountain-season-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border:1px solid var(--border);border-radius:999px;background:var(--s2);color:var(--accent);font-size:9px;font-weight:850}
+.mountain-ski>.mountain-profile-status{display:block;margin:-8px 0 10px;color:var(--muted);font-size:9px}
+.mountain-levels.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.mountain-season-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:10px}.mountain-season-summary>span{padding:8px 9px;border:1px solid var(--border);border-radius:12px;background:var(--s2);font-size:9px;line-height:1.35}.mountain-season-summary b{font-size:10px}
+.mountain-snow-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:9px}.mountain-snow-pair>span{padding:7px;border:1px solid var(--border);border-radius:10px;background:color-mix(in srgb,var(--surface) 86%,transparent)}.mountain-snow-pair small,.mountain-snow-pair b{display:block}.mountain-snow-pair small{color:var(--muted);font-size:8px}.mountain-snow-pair b{margin-top:2px;font-size:10px;line-height:1.25}
+.mountain-source-note{display:block;margin-top:8px;color:var(--muted);font-size:8px}
+@media(max-width:1050px){.mountain-levels.three{grid-template-columns:repeat(3,minmax(180px,1fr));overflow-x:auto}.mountain-season-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){.mountain-profile-grid{grid-template-columns:1fr}.mountain-auto-row,.mountain-middle-toggle,.mountain-profile-grid>.mountain-profile-status{grid-column:1}.mountain-auto-row{align-items:flex-start;flex-direction:column}.mountain-levels.three{grid-template-columns:1fr;overflow:visible}.mountain-season-summary{grid-template-columns:1fr 1fr}}
+@media(max-width:420px){.mountain-season-summary,.mountain-snow-pair{grid-template-columns:1fr}}

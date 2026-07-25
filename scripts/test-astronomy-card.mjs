@@ -13,7 +13,7 @@ for(const token of [
   "label:'Sonne / Mond'",
   'className="sun-moon-primary"',
   'className="sun-moon-detail"',
-  "x.label==='Sonne / Mond'?'sun-moon-card'"
+  "className={x.label==='Luftqualität'?'air-quality-card':undefined}"
 ]) if(!app.includes(token)) failures.push(`Sonne-/Mond-Karte fehlt: ${token}`);
 for(const token of [
   'export function astronomySummary',
@@ -22,9 +22,10 @@ for(const token of [
   'export function formatDayLengthChange'
 ]) if(!astronomy.includes(token)) failures.push(`Astronomie-Berechnung fehlt: ${token}`);
 for(const token of [
-  '.metrics .sun-moon-card{',
   '.metrics .sun-moon-detail{',
   '@media(min-width:1101px){.metrics{grid-template-columns:repeat(10,minmax(0,1fr))}'
 ]) if(!styles.includes(token)) failures.push(`Sonne-/Mond-Stil fehlt: ${token}`);
+if(app.includes("x.label==='Sonne / Mond'?'sun-moon-card'")) failures.push('Sonne/Mond verwendet weiterhin eine abweichende Spezialkarte.');
+if(styles.includes('.metrics .sun-moon-card{')) failures.push('Sonne/Mond besitzt weiterhin einen abweichenden Spezialhintergrund.');
 if(failures.length){console.error('Astronomie-Kartenprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Astronomie-Karte geprüft: Sonne/Mond ist wieder als zehnte aktuelle Wetterkarte mit vollständigen Tages- und Mondwerten vorhanden.');
+console.log('Astronomie-Karte geprüft: Sonne/Mond ist als zehnte aktuelle Wetterkarte vollständig vorhanden und nutzt wieder das normale Kartendesign.');

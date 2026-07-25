@@ -1,4 +1,4 @@
-# MID Daten-, Warnungs- und Radarproxy v0.7.95.13
+# MID Daten-, Warnungs- und Radarproxy v0.7.95.14
 
 Funktionale Kompositkorrektur: EUMETSAT GeoColour und MTG-LI können als aktueller Dienststand ohne TIME-Parameter geladen werden; das DWD-1-km-Radar verwendet bei fehlender echter Zeitdimension den offiziellen Alias `dwd:Niederschlagsradar`. Erfundene WMS-Zeitwerte werden für die sichtbare Kompositkarte nicht mehr erzeugt.
 

@@ -14,7 +14,7 @@ for(const token of [
  'Der Gesamt-AQI entspricht dem höchsten Teilindex aus PM2,5, PM10, NO₂, O₃ und SO₂',
  'Feinstaub wird über gleitende 24-Stunden-Mittel',
  "<AqiIndicator value={airAqi}/>",
- "className={x.label==='Luftqualität'?'air-quality-card':x.label==='Sonne / Mond'?'sun-moon-card':undefined}"
+ "className={x.label==='Luftqualität'?'air-quality-card':undefined}"
 ]){
  if(!app.includes(token))failures.push(`AQI-Karte unvollständig: ${token}`);
 }

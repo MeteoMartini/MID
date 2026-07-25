@@ -17,7 +17,7 @@ for(const token of [
   "result.mtgLightningLatestOnly=!mtgTimes.length;",
   "if(!available.length)continue;",
   "if(!result.dwdRadar.length){result.dwdRadarLayer='dwd:Niederschlagsradar';result.dwdRadarLatestOnly=true}",
-  "cache:'no-store',cf:{cacheTtl:0,cacheEverything:false}",
+  "cache:'no-store'",
   "'cache-control':'no-store, no-cache, must-revalidate'"
 ]) if(!worker.includes(token)) failures.push(`Live-WMS-Schutz fehlt: ${token}`);
 
@@ -37,6 +37,7 @@ for(const token of [
   "setLightningRasterFailure('dwd')"
 ]) if(!radar.includes(token)) failures.push(`Visueller Komposit-Fallback fehlt: ${token}`);
 
+if(worker.includes("cache:'no-store',cf:{cacheTtl:0")) failures.push('Cloudflare-incompatible Kombination aus cache:no-store und cf.cacheTtl:0 ist noch vorhanden.');
 if(worker.includes("const available=dwdTimesFromCapabilities(capabilities.dwd,layer),selected=selectDwdTimes(available,now)")) failures.push('Eine fehlende DWD-Zeitdimension erzeugt weiterhin erfundene TIME-Werte.');
 
 const originalFetch=globalThis.fetch;
@@ -73,7 +74,7 @@ try{
     for(const [key,value] of Object.entries({mode:'composite-wms',provider,service:'WMS',request:'GetMap',version:provider==='dwd'?'1.1.1':'1.3.0',layers,styles:'',format:'image/png',transparent:'true',crs:'EPSG:3857',srs:'EPSG:3857',bbox:'700000,6500000,800000,6600000',width:'256',height:'256'}))mapUrl.searchParams.set(key,value);
     const response=await module.default.fetch(new Request(mapUrl),{});
     const last=captured.at(-1);
-    if(!response.ok||!last||last.init?.cache!=='no-store'||last.init?.cf?.cacheTtl!==0||!String(response.headers.get('cache-control')).includes('no-store')||new URL(last.url).searchParams.has('time')){
+    if(!response.ok||!last||last.init?.cache!=='no-store'||last.init?.cf!==undefined||!String(response.headers.get('cache-control')).includes('no-store')||new URL(last.url).searchParams.has('time')){
       failures.push(`${layers} wird nicht als cachefreier aktueller Dienststand ohne TIME geladen: ${last?.url||response.status}`);
     }
   }
@@ -83,4 +84,4 @@ if(failures.length){
   console.error('Komposit-Live-Layer-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));
   process.exit(1);
 }
-console.log('Komposit-Live-Layer geprüft: GeoColour-/LI-Latest, offizieller DWD-Radaralias, echte Zeitdimensionen und cachefreie WMS-Abrufe sind abgesichert.');
+console.log('Komposit-Live-Layer geprüft: GeoColour-/LI-Latest, offizieller DWD-Radaralias, echte Zeitdimensionen und cachefreie WMS-Abrufe ohne widersprüchliche Cloudflare-TTL-Option sind abgesichert.');
