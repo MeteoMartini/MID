@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.95.12
+
+- Kompositbild: DWD-WMS-Routing auf den offiziell dokumentierten generischen GeoServer-Endpunkt als Primärquelle zurückgestellt
+- DWD-Workspace-Endpunkte bleiben als Fallback erhalten; Layerpräfix `dwd:` wird dort automatisch entfernt
+- 1-km-Radar erkennt die RV-Zeitachse nun auch aus Workspace-Capabilities ohne Namespace und erzeugt bei fehlender Zeitdimension eine kontrollierte Live-Zeitachse
+- Satellit: offiziell dokumentiertes DWD-Meteosat-Europa-Produkt `Satellite_meteosat_1km_euat_rgb_day_hrv_and_night_ir108_3h` als belastbarer Tag-/Nacht-Fallback ergänzt
+- Satelliten-Altersfenster berücksichtigt die dreistündige Aktualisierung dieses DWD-Produkts
+- neue Regression für generischen DWD-Endpunkt, Workspace-Fallback, Namespace-Behandlung und DWD-Satellitenprodukt ergänzt
+
 ## 0.7.95.11
 
 - Kompositbild: WMS-Kartenbilder werden durch Worker und Browser nicht mehr zwischengespeichert; dadurch keine aus unterschiedlichen alten/neuen Kacheln zusammengesetzten Satellitenbilder mehr

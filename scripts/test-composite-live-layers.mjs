@@ -8,12 +8,15 @@ const radar=await readFile(path.join(root,'src','RadarPanel.tsx'),'utf8');
 const failures=[];
 
 for(const token of [
-  "const DWD_RADAR_WMS_PRIMARY='https://maps.dwd.de/geoserver/dwd/wms';",
-  'const DWD_RADAR_WMS_BASES=[DWD_RADAR_WMS_PRIMARY,DWD_RADAR_WMS_LEGACY,DWD_RADAR_WMS_BACKUP,DWD_RADAR_WMS_BACKUP_LEGACY];',
+  "const DWD_RADAR_WMS_PRIMARY='https://maps.dwd.de/geoserver/wms';",
+  'const DWD_RADAR_WMS_BASES=[DWD_RADAR_WMS_PRIMARY,DWD_RADAR_WMS_BACKUP,DWD_RADAR_WMS_WORKSPACE,DWD_RADAR_WMS_BACKUP_WORKSPACE];',
   "firstWmsCapabilities(DWD_RADAR_WMS_BASES,'DWD')",
+  "layer:'dwd:Satellite_meteosat_1km_euat_rgb_day_hrv_and_night_ir108_3h'",
+  "function sameWmsLayer(left,right)",
+  "function dwdLayerForEndpoint(layer,base)",
   "cache:'no-store',cf:{cacheTtl:0,cacheEverything:false}",
   "'cache-control':'no-store, no-cache, must-revalidate'",
-  'if(latest<now-190*60000||latest>now+15*60000)continue;'
+  'const maxAgeMinutes=Number(candidate.maxAgeMinutes)||190,freshAgeMinutes=Number(candidate.freshAgeMinutes)||80;'
 ]) if(!worker.includes(token)) failures.push(`Live-WMS-Schutz fehlt: ${token}`);
 
 for(const token of [
@@ -59,8 +62,8 @@ try{
   const mapUrl=new URL('https://mid.test/');
   for(const [key,value] of Object.entries({mode:'composite-wms',provider:'dwd',service:'WMS',request:'GetMap',version:'1.1.1',layers:'dwd:Radar_rv_product_1x1km_ger',styles:'',format:'image/png',transparent:'true',srs:'EPSG:3857',bbox:'700000,6500000,800000,6600000',width:'256',height:'256',time:fresh}))mapUrl.searchParams.set(key,value);
   const mapResponse=await module.default.fetch(new Request(mapUrl),{});
-  if(!mapResponse.ok||!capturedMapUrl.includes('/geoserver/dwd/wms?')||capturedMapInit?.cache!=='no-store'||capturedMapInit?.cf?.cacheTtl!==0||!String(mapResponse.headers.get('cache-control')).includes('no-store')){
-    failures.push(`DWD-Live-WMS wird nicht cachefrei über den Workspace-Endpunkt geladen: ${capturedMapUrl} / ${mapResponse.status}`);
+  if(!mapResponse.ok||!capturedMapUrl.includes('/geoserver/wms?')||capturedMapInit?.cache!=='no-store'||capturedMapInit?.cf?.cacheTtl!==0||!String(mapResponse.headers.get('cache-control')).includes('no-store')){
+    failures.push(`DWD-Live-WMS wird nicht cachefrei über den offiziellen generischen Endpunkt geladen: ${capturedMapUrl} / ${mapResponse.status}`);
   }
 }finally{globalThis.fetch=originalFetch}
 
