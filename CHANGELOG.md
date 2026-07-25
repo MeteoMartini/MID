@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.95.9
+
+- Tagesdetailansicht mobil: Stundenkarten unter dem Diagramm kompakter gestaltet
+- Pfeiltasten der mobilen Stundenkarten sauber horizontal in einer Zeile ausgerichtet
+- Untertitel unter Uhrzeit und Wetter in den mobilen Stundenkarten entfernt
+- Abstände, Polsterung und Typografie der mobilen Stundenkarten weiter verdichtet
+
 ## 0.7.95.8
 
 - GitHub-Regression korrigiert: Interaktions-, UI- und Spezialtest prüfen nun dieselbe responsive Tooltip-Implementierung

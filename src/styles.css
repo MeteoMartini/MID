@@ -435,13 +435,14 @@ footer a:hover{opacity:1;color:var(--accent)}
 .hour-chart-tooltip.detail-overlay.place-left{left:auto;right:12px;transform:none}
 .hour-chart-tooltip.detail-overlay.place-center{left:50%;right:auto;transform:translateX(-50%)}
 .hour-chart-tooltip.detail-overlay>header,.hour-detail-panel.mobile-cards>header{
+ display:flex;
  align-items:center;
  justify-content:center;
  margin-bottom:8px;
  padding-bottom:8px;
 }
 .hour-chart-tooltip.detail-overlay>header>div,.hour-detail-panel.mobile-cards>header>div{flex:1;text-align:center;min-width:0}
-.hour-chart-tooltip.detail-overlay>header>div em,.hour-detail-panel.mobile-cards>header>div em{display:block;margin-top:3px;color:var(--muted);font-size:10px;font-style:normal;line-height:1.25;overflow-wrap:anywhere}
+.hour-chart-tooltip.detail-overlay>header>div em{display:block;margin-top:3px;color:var(--muted);font-size:10px;font-style:normal;line-height:1.25;overflow-wrap:anywhere}
 .hour-chart-tooltip.detail-overlay>header button,.hour-detail-panel.mobile-cards>header button{
  flex:0 0 34px;
  width:34px;
@@ -450,23 +451,44 @@ footer a:hover{opacity:1;color:var(--accent)}
  line-height:1;
 }
 .hour-chart-tooltip.detail-overlay .hour-tooltip-actions{display:flex;gap:6px;align-items:center}
-.hour-tooltip-grid.compact{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
-.hour-tooltip-grid.compact>span{padding:7px 8px}
-.hour-tooltip-grid.compact b{font-size:12px;line-height:1.28}
+.hour-tooltip-grid.compact{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.hour-tooltip-grid.compact>span{padding:6px 7px}
+.hour-tooltip-grid.compact b{font-size:11px;line-height:1.24}
 .hour-detail-panel.mobile-cards{
- margin-top:12px;
- padding:10px 12px;
+ margin-top:10px;
+ padding:9px 10px;
  border:1px solid var(--border);
- border-radius:22px;
+ border-radius:18px;
  background:linear-gradient(145deg,color-mix(in srgb,var(--s2) 94%,transparent),color-mix(in srgb,var(--surface) 96%,transparent));
- box-shadow:0 18px 44px rgba(0,0,0,.08);
+ box-shadow:0 14px 34px rgba(0,0,0,.07);
 }
+.hour-detail-panel.mobile-cards>header{
+ display:grid;
+ grid-template-columns:34px minmax(0,1fr) 34px;
+ gap:8px;
+ align-items:center;
+ margin-bottom:6px;
+ padding-bottom:6px;
+}
+.hour-detail-panel.mobile-cards>header>.hour-detail-headline{
+ display:flex;
+ flex-direction:column;
+ gap:2px;
+ align-items:center;
+ justify-content:center;
+}
+.hour-detail-panel.mobile-cards>header>.hour-detail-headline small{color:var(--muted);font-size:11px;line-height:1.1}
+.hour-detail-panel.mobile-cards>header>.hour-detail-headline strong{font-size:16px;line-height:1.12}
 @media(min-width:900px){
  .hour-detail-panel.mobile-cards{display:none}
 }
 @media(max-width:899px){
  .hour-chart-tooltip.detail-overlay,.hour-chart-tooltip.detail-overlay.place-left,.hour-chart-tooltip.detail-overlay.place-right,.hour-chart-tooltip.detail-overlay.place-center{display:none}
  .hour-tooltip-grid.compact{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:460px){
+ .hour-detail-panel.mobile-cards>header>.hour-detail-headline strong{font-size:15px}
+ .hour-detail-panel.mobile-cards>header>.hour-detail-headline small{font-size:10px}
 }
 @media(max-width:390px){.hour-tooltip-grid.compact{grid-template-columns:1fr}}
 /* v0.5.2 precipitation nowcast, radar future timeline and precise precipitation forms */
