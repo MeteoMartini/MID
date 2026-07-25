@@ -1039,9 +1039,9 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 @media(max-width:700px){.composite-controls time{min-width:70px}.composite-controls time>span{font-size:14px}}
 
 /* v0.7.26 · exklusive Niederschlagsauswahl, harte Zeitgrenzen und Blitzortung-inspirierte Ringe */
-.mid-lightning-ring{stroke-linecap:round;filter:drop-shadow(0 0 1px rgba(0,0,0,.95)) drop-shadow(0 0 3px rgba(255,188,42,.3));transition:stroke .18s ease,stroke-opacity .22s ease,opacity .22s ease}
-.mid-lightning-ring.newest{animation:mid-lightning-ring-pulse 1.15s ease-in-out infinite}
-@keyframes mid-lightning-ring-pulse{0%,100%{stroke-opacity:1}50%{stroke-opacity:.42}}
+.mid-lightning-ring,.mid-lightning-strike{stroke-linecap:round;filter:drop-shadow(0 0 1px rgba(0,0,0,.95)) drop-shadow(0 0 4px rgba(255,188,42,.42));transition:stroke .18s ease,fill .18s ease,fill-opacity .22s ease,opacity .22s ease}
+.mid-lightning-ring.newest,.mid-lightning-strike.newest{animation:mid-lightning-ring-pulse 1.15s ease-in-out infinite}
+@keyframes mid-lightning-ring-pulse{0%,100%{stroke-opacity:1;fill-opacity:1}50%{stroke-opacity:.48;fill-opacity:.58}}
 .ring-legend i{box-shadow:0 0 1px rgba(0,0,0,.95),0 0 3px rgba(255,188,42,.28)!important}
 .lightning-age-legend.ring-legend{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px 5px}.lightning-age-legend.ring-legend span{min-width:0}
 /* v0.7.29: weiche Kompositframes und schlanke Modellkonturen */

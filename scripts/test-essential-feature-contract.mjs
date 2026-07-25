@@ -15,10 +15,11 @@ const contract={
   'Bergprofil-UI':[app,['Automatisch bestimmen','Talstation','Mittelstation','Bergstation','Saisonprofil']],
   'Kompositbild':[radar,['Niederschlag · 1 km','Echtzeitblitze','Satellit']],
   'Kompositdaten':[composite,['composite-wms','composite-times']],
-  'WMS-Worker':[worker,['compositeWmsResponse','DWD_RADAR_LAYERS','mtg_fd:li_afa']],
-  'Benachrichtigungs-UI':[app,['Benachrichtigungen','Niederschlagsbeginn','Gewitterzelle nähert sich']],
+  'Komposit-Fallbacks':[radar,['LOCAL_SATELLITE_DAY','localCompositeFallback','lightningDirect?DIRECT_WMS.eumetsat']],
+  'WMS-Worker':[worker,['compositeWmsResponse','DWD_RADAR_LAYERS','mtg_fd:li_afa','compositeDiagnostics']],
+  'Benachrichtigungs-UI':[app,['Benachrichtigungen','Niederschlagsbeginn','Gewitterzelle nähert sich','tracked-location','TRACKED_PUSH_RULES_KEY']],
   'Push-Client':[push,['push-subscribe','push-unsubscribe','syncPushNotifications']],
-  'Push-Panel':[panel,['PushSettingsPanel','Benachrichtigungen aktivieren']],
+  'Push-Panel':[panel,['PushSettingsPanel','Benachrichtigungen aktivieren','Aktueller Standort']],
   'Push-Service-Worker':[sw,["addEventListener('push'","addEventListener('notificationclick'"]],
   'Push-Worker':[worker,['pushConfigured','pushSubscribe','runPushSchedule','async scheduled']]
 };

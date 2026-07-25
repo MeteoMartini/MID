@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.7.95.16
+
+- Benachrichtigungen: bei aktivierter Standortverfolgung kann auch die zuletzt erfolgreich automatisch bestimmte Position eigene Regeln für Niederschlagsbeginn und sich nähernde Gewitterzellen erhalten
+- Hitze-Hazard plausibilisiert: Tagesmaximum der gefühlten Temperatur und Tagesminimum der Lufttemperatur werden gemeinsam ausgewertet; ein früherer niedrigerer Stundenwert kann das Tagesmaximum nicht mehr überschreiben
+- Gewitterbezeichnung „Einfaches Gewitter“ auf „Gewitter“ verkürzt
+- Modellstände-Info im 14-Tage-Ensemble auf expliziten, mobil zuverlässigen Button mit schließbarem Dialog-Popover umgestellt
+- Kompositbild: Satellit und MTG-LI erhalten sofortige offizielle Latest-Fallbacks unabhängig von einer langsamen Produktzeitenabfrage
+- Kompositbild: bei Ausfall des Worker-WMS-Proxys wird einmalig direkt auf den offiziellen DWD-/EUMETSAT-WMS gewechselt, bevor der nächste Produktfallback greift
+- Blitzdarstellung: veraltete DWD-Blitzgeometrien werden verworfen; Punktdarstellung mit alterscodierten, gefüllten Markern nach dem Prinzip von Blitzortungskarten
+- Cloudflare Worker: parallele WMS-/WFS-Fallbacks mit festen Zeitlimits sowie neuer Diagnoseendpunkt `mode=composite-diagnostics`
+- zusätzliche Regressionen für Standort-Push, Hitzeplausibilität, Modellstände-Info und robuste Live-Kompositquellen
+
 ## 0.7.95.15
 
 - persönliche Benachrichtigungsfunktionen aus dem bewährten Stand v0.7.92 vollständig wiederhergestellt

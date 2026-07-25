@@ -1,3 +1,15 @@
+# MID Daten-, Warnungs-, Radar- und Push-Proxy v0.7.95.16
+
+Die Live-Kompositdienste antworten jetzt ohne blockierende GetCapabilities-Abhängigkeit. Radar, Satellit und MTG-LI verwenden offizielle Latest-Zugänge; DWD-WMS-/WFS-Fallbacks laufen parallel mit festen Zeitlimits. Der neue Diagnoseendpunkt prüft die drei sichtbaren Kernquellen mit echten Mini-GetMap-Abrufen:
+
+```text
+https://DEIN-WORKER.workers.dev/?mode=composite-diagnostics
+```
+
+Erwartet werden drei Einträge unter `checks`: DWD Niederschlagsradar, EUMETSAT GeoColour und EUMETSAT LI AFA. `ok: false` mit HTTP-Status oder Zeitüberschreitung weist auf einen externen Dienst- oder Worker-Netzwerkfehler hin.
+
+Die persönlichen Push-Benachrichtigungen gelten weiterhin für Favoriten und zusätzlich – bei aktivierter Standortverfolgung – für die zuletzt erfolgreich automatisch bestimmte Position. Die Cloudflare-Konfiguration aus v0.7.95.15 bleibt unverändert erforderlich.
+
 # MID Daten-, Warnungs-, Radar- und Push-Proxy v0.7.95.15
 
 Die bereits in v0.7.92 eingeführten persönlichen Web-Push-Benachrichtigungen sind wieder vollständig enthalten. Der Worker stellt `push-config`, `push-subscribe` und `push-unsubscribe` bereit und prüft die Favoritenregeln per Cron-Trigger alle fünf Minuten.

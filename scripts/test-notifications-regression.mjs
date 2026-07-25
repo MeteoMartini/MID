@@ -14,12 +14,15 @@ requireTokens('App-Integration',app,[
   "import {syncPushNotifications,type PushRuleFavorite} from './pushNotifications';",
   "import {PushSettingsPanel} from './PushSettingsPanel';",
   "type SettingsSection='view'|'appearance'|'units'|'notifications'|'favorites'|'system';",
-  'precipitationStart?:boolean;thunderstormApproach?:boolean',
-  'precipitationStart:false,thunderstormApproach:false',
-  'precipitationStart:Boolean(rules.precipitationStart),thunderstormApproach:Boolean(rules.thunderstormApproach)',
+  "const TRACKED_LOCATION_KEY='mid:lastTrackedLocation';",
+  "const TRACKED_PUSH_RULES_KEY='mid:trackedPushRules';",
+  "id:'tracked-location'",
+  'if(locationTracking&&trackedLocation)pushFavorites.unshift',
   'void syncPushNotifications(pushFavorites).catch(()=>undefined)',
-  "['notifications','Benachrichtigungen',<Bell size={18}/>,'Push-Regeln je Favorit']",
-  "{section==='notifications'&&<PushSettingsPanel favorites={favorites} onRuleChange={patchPushRule}/>}",
+  "['notifications','Benachrichtigungen',<Bell size={18}/>,'Push-Regeln je Favorit und Standort']",
+  "trackedLocation={trackedLocation}",
+  "trackedPushRules={trackedPushRules}",
+  "setTrackedPushRules={setTrackedPushRules}",
   '<b>Niederschlagsbeginn</b>',
   '<b>Gewitterzelle nähert sich</b>'
 ]);
@@ -33,17 +36,15 @@ requireTokens('Push-Client',push,[
 ]);
 requireTokens('Push-Einstellungen',panel,[
   'export function PushSettingsPanel',
+  'Aktueller Standort',
+  "id:'tracked-location'",
+  'locationTracking&&trackedLocation',
   'Benachrichtigungen aktivieren',
   'Auf diesem Gerät deaktivieren',
   'Niederschlagsbeginn',
   'Gewitterzelle nähert sich'
 ]);
-requireTokens('Push-Stile',styles,[
-  '.favorite-push-rules{',
-  '.push-settings-panel{',
-  '.push-status-card{',
-  '.push-favorite-list{'
-]);
+requireTokens('Push-Stile',styles,['.favorite-push-rules{','.push-settings-panel{','.push-status-card{','.push-favorite-list{']);
 requireTokens('Cloudflare-Worker',worker,[
   "'access-control-allow-methods':'GET,POST,OPTIONS'",
   'function pushConfigured(env)',
@@ -56,20 +57,9 @@ requireTokens('Cloudflare-Worker',worker,[
   'WebPush:pushConfigured(env)',
   'async scheduled(_controller,env,ctx){ctx.waitUntil(runPushSchedule(env))}'
 ]);
-requireTokens('Service Worker',serviceWorker,[
-  "self.addEventListener('push'",
-  'self.registration.showNotification',
-  "self.addEventListener('notificationclick'",
-  'self.clients.openWindow'
-]);
-requireTokens('Worker-Anleitung',workerReadme,[
-  'MID_PUSH_SUBSCRIPTIONS',
-  'VAPID_PUBLIC_KEY',
-  'VAPID_PRIVATE_KEY',
-  'VAPID_SUBJECT',
-  '*/5 * * * *'
-]);
+requireTokens('Service Worker',serviceWorker,["self.addEventListener('push'",'self.registration.showNotification',"self.addEventListener('notificationclick'",'self.clients.openWindow']);
+requireTokens('Worker-Anleitung',workerReadme,['MID_PUSH_SUBSCRIPTIONS','VAPID_PUBLIC_KEY','VAPID_PRIVATE_KEY','VAPID_SUBJECT','*/5 * * * *']);
 requireTokens('VAPID-Generator',vapid,["createECDH('prime256v1')",'VAPID_PUBLIC_KEY=','VAPID_PRIVATE_KEY=']);
 if(serviceWorker!==serviceWorkerAlias)failures.push('public/service-worker.js und public/sw.js sind nicht identisch.');
 if(failures.length){console.error('Benachrichtigungsregression fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Benachrichtigungen geprüft: UI, Favoritenregeln, Push-Client, Service Worker, KV/VAPID-Worker und Cron-Auswertung sind vollständig vorhanden.');
+console.log('Benachrichtigungen geprüft: Favoriten und verfolgter Standort, Push-Client, Service Worker, KV/VAPID-Worker und Cron-Auswertung sind vollständig vorhanden.');
