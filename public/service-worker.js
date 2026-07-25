@@ -1,4 +1,4 @@
-const CACHE='mid-shell-v0.7.95.14';
+const CACHE='mid-shell-v0.7.95.15';
 const VERSION=CACHE.replace('mid-shell-v','');
 const CACHE_PREFIX='mid-shell-v';
 const META_CACHE='mid-system-meta-v1';
@@ -61,4 +61,14 @@ self.addEventListener('fetch',event=>{
   const cached=await cache.match(request);if(cached)return cached;
   return fetch(request).then(response=>{if(response.ok&&['script','style','image','font'].includes(request.destination))event.waitUntil(cache.put(request,response.clone()));return response});
  })())
+});
+
+self.addEventListener('push',event=>{
+ let payload={};try{payload=event.data?.json?.()??{}}catch{try{payload={body:event.data?.text?.()||''}}catch{payload={}}}
+ const title=String(payload.title||'MID Wetterhinweis'),body=String(payload.body||'Neue Wetterinformation verfügbar.'),url=String(payload.url||new URL('./',self.registration.scope)),options={body,icon:new URL('./mid-icon-192.png',self.registration.scope).toString(),badge:new URL('./mid-icon-180.png',self.registration.scope).toString(),tag:String(payload.tag||'mid-weather'),renotify:Boolean(payload.renotify),data:{url,favoriteId:payload.favoriteId||'',timestamp:payload.timestamp||Date.now()}};
+ event.waitUntil(self.registration.showNotification(title,options));
+});
+
+self.addEventListener('notificationclick',event=>{
+ event.notification.close();const target=String(event.notification.data?.url||new URL('./',self.registration.scope));event.waitUntil((async()=>{const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});for(const client of windows){try{const current=new URL(client.url),wanted=new URL(target,self.registration.scope);if(current.origin===wanted.origin&&current.pathname===wanted.pathname){await client.focus();if('navigate'in client)await client.navigate(wanted.toString());return}}catch{}}if(self.clients.openWindow)await self.clients.openWindow(target)})());
 });

@@ -1922,3 +1922,36 @@ footer{flex-wrap:wrap;align-items:center}
 @media(max-width:1050px){.mountain-levels.three{grid-template-columns:repeat(3,minmax(180px,1fr));overflow-x:auto}.mountain-season-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:700px){.mountain-profile-grid{grid-template-columns:1fr}.mountain-auto-row,.mountain-middle-toggle,.mountain-profile-grid>.mountain-profile-status{grid-column:1}.mountain-auto-row{align-items:flex-start;flex-direction:column}.mountain-levels.three{grid-template-columns:1fr;overflow:visible}.mountain-season-summary{grid-template-columns:1fr 1fr}}
 @media(max-width:420px){.mountain-season-summary,.mountain-snow-pair{grid-template-columns:1fr}}
+
+/* MID v0.7.95.15 – persönliche Push-Benachrichtigungen */
+.favorite-push-rules{display:grid;gap:7px;margin-top:9px}
+.favorite-push-rules>label{display:grid;grid-template-columns:auto auto minmax(0,1fr);align-items:center;gap:8px;padding:9px;border:1px solid var(--border);border-radius:11px;background:var(--s2)}
+.favorite-push-rules>label>svg{color:var(--primary)}
+.favorite-push-rules span,.favorite-push-rules b,.favorite-push-rules small{display:block}
+.favorite-push-rules small{margin-top:2px;color:var(--muted);font-size:9px}
+.push-settings-panel{display:grid;gap:14px}
+.push-status-card{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px;border:1px solid var(--border);border-radius:16px;background:var(--s2)}
+.push-status-card>div{display:flex;align-items:center;gap:11px;min-width:0}
+.push-status-card span,.push-status-card strong,.push-status-card small{display:block}
+.push-status-card small{margin-top:3px;color:var(--muted);font-size:10px}
+.push-status-card>button{display:grid;flex:0 0 38px;width:38px;height:38px;place-items:center;border:1px solid var(--border);border-radius:11px;background:var(--surface);color:var(--text)}
+.push-status-card.active{border-color:rgba(34,190,114,.36);background:rgba(34,190,114,.08)}
+.push-status-card.active>div>svg{color:#22be72}
+.push-status-card.blocked{border-color:rgba(255,91,91,.35);background:rgba(255,91,91,.08)}
+.push-status-card.blocked>div>svg{color:#ff6b6b}
+.push-worker-url{overflow-wrap:anywhere;color:var(--muted);font-size:9px}
+.push-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.push-actions>button{display:inline-flex;align-items:center;gap:7px;min-height:42px;padding:9px 13px;border:1px solid var(--border);border-radius:12px;background:var(--s2);color:var(--text);font-weight:800}
+.push-actions>button.danger{border-color:rgba(255,91,91,.35);color:#ff7777}
+.push-actions>small{color:var(--muted);font-size:10px}
+.push-favorite-list{display:grid;gap:9px}
+.push-favorite-list>article{display:grid;gap:8px;padding:13px;border:1px solid var(--border);border-radius:15px;background:var(--s2)}
+.push-favorite-list>article>header strong,.push-favorite-list>article>header small{display:block}
+.push-favorite-list>article>header small{margin-top:2px;color:var(--muted);font-size:9px}
+.push-favorite-list>article>label{display:grid;grid-template-columns:auto auto minmax(0,1fr);align-items:center;gap:9px;padding:10px;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+.push-favorite-list>article>label>svg{color:var(--primary)}
+.push-favorite-list>article>label span,.push-favorite-list>article>label b,.push-favorite-list>article>label small{display:block}
+.push-favorite-list>article>label small{margin-top:2px;color:var(--muted);font-size:9px;line-height:1.35}
+.push-message{margin:0;padding:10px 12px;border:1px solid color-mix(in srgb,var(--primary) 35%,var(--border));border-radius:11px;background:color-mix(in srgb,var(--primary) 8%,var(--surface));font-size:11px}
+.push-privacy-note{color:var(--muted);font-size:9px;line-height:1.45}
+@media(max-width:760px){.push-actions{align-items:stretch}.push-actions>button{width:100%}.push-favorite-list>article>label{grid-template-columns:auto auto minmax(0,1fr)}}

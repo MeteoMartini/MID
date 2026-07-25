@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.95.15
+
+- persönliche Benachrichtigungsfunktionen aus dem bewährten Stand v0.7.92 vollständig wiederhergestellt
+- Favoritenregeln „Niederschlagsbeginn“ und „Gewitterzelle nähert sich“ wieder in Favoritenverwaltung und Einstellungsbereich „Benachrichtigungen“ verfügbar
+- Geräteaktivierung, Statusprüfung, Synchronisierung und Deaktivierung von Web-Push-Abonnements wiederhergestellt
+- Service Worker wieder um Push-Empfang, Systembenachrichtigung und Öffnen des zugehörigen MID-Favoriten ergänzt
+- Cloudflare Worker wieder um KV-Abonnements, VAPID-Verschlüsselung, Push-API und fünfminütige Cron-Auswertung ergänzt
+- neuer verbindlicher Regressionstest schützt künftig die essentiellen MID-Bestandteile Sonne/Mond, Kompositbild, Berg-/Wintersport und Benachrichtigungen gemeinsam vor unbeabsichtigtem Entfernen
+
 ## 0.7.95.14
 
 - Sonne/Mond: abweichenden Spezialhintergrund entfernt; die zehnte aktuelle Wetterkarte nutzt wieder dasselbe Kartendesign wie die übrigen Messwerte

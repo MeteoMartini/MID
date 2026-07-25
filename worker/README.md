@@ -1,3 +1,28 @@
+# MID Daten-, Warnungs-, Radar- und Push-Proxy v0.7.95.15
+
+Die bereits in v0.7.92 eingeführten persönlichen Web-Push-Benachrichtigungen sind wieder vollständig enthalten. Der Worker stellt `push-config`, `push-subscribe` und `push-unsubscribe` bereit und prüft die Favoritenregeln per Cron-Trigger alle fünf Minuten.
+
+## Erforderliche Push-Konfiguration in Cloudflare
+
+- KV-Bindung: `MID_PUSH_SUBSCRIPTIONS`
+- Textvariable: `VAPID_PUBLIC_KEY`
+- Geheimnis: `VAPID_PRIVATE_KEY`
+- Textvariable: `VAPID_SUBJECT` (z. B. `mailto:DEINE-ADRESSE@example.com`)
+- Textvariable: `MID_ALLOWED_ORIGIN=https://meteomartini.github.io`
+- Textvariable: `MID_APP_URL=https://meteomartini.github.io/MID/`
+- Cron-Trigger: `*/5 * * * *`
+
+Neue VAPID-Schlüssel können einmalig mit `node generate-vapid.mjs` erzeugt werden. Bereits eingerichtete Schlüssel dürfen nicht ersetzt werden, weil bestehende Geräteabonnements sonst ungültig werden.
+
+Diagnose:
+
+```text
+https://DEIN-WORKER.workers.dev/?mode=health
+https://DEIN-WORKER.workers.dev/?mode=push-config
+```
+
+Bei korrekter Einrichtung meldet `health` den Anbieter `WebPush: true` und `push-config` den Wert `enabled: true`.
+
 # MID Daten-, Warnungs- und Radarproxy v0.7.95.14
 
 Funktionale Kompositkorrektur: EUMETSAT GeoColour und MTG-LI können als aktueller Dienststand ohne TIME-Parameter geladen werden; das DWD-1-km-Radar verwendet bei fehlender echter Zeitdimension den offiziellen Alias `dwd:Niederschlagsradar`. Erfundene WMS-Zeitwerte werden für die sichtbare Kompositkarte nicht mehr erzeugt.
