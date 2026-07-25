@@ -1,3 +1,13 @@
+# MID v0.7.92
+
+- Luftdruckkarte im erweiterten Modus um die Änderung des auf Meereshöhe reduzierten Drucks über drei Stunden samt Trendpfeil und Klartexttendenz ergänzt.
+- Zehnte aktuelle Wetterkarte „Sonne / Mond“ mit Sonnenaufgang, Sonnenuntergang, Tageslänge, Änderung zum Vortag, Mondaufgang, Monduntergang, aktuellem Mondsymbol, Phase, Beleuchtungsanteil und Mondalter ergänzt.
+- Favoritenregeln um echte Web-Push-Mitteilungen für Niederschlagsbeginn und sich nähernde Gewitterzellen erweitert.
+- Neuer Einstellungsbereich „Benachrichtigungen“, Push-Registrierung in der PWA und Push-Ereignisse im Service Worker.
+- Cloudflare Worker um KV-gespeicherte Push-Abonnements, VAPID-Verschlüsselung und einen fünfminütigen Cron-Prüflauf erweitert.
+- Deutsche Schritt-für-Schritt-Anleitung für den Worker `https://mid-data-proxy.martinmolkentin.workers.dev` ergänzt.
+- Neuer Regressionstest für Astronomie, Luftdrucktendenz und Push-Funktionen.
+
 # MID v0.7.91
 
 - Berg-/Wintersport mit automatischen Höhenpunkten, optionaler Mittelstation und editierbaren Profilen.

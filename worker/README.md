@@ -1,3 +1,13 @@
+# MID Daten-, Warnungs-, Radar-, Bergsport- und Push-Worker v0.7.92
+
+Der Worker v0.7.92 ergänzt die bestehenden MID-Dienste um persönliche Web-Push-Regeln für Niederschlagsbeginn und sich nähernde Gewitterzellen. Er enthält die Routen `push-config`, `push-subscribe` und `push-unsubscribe` sowie einen `scheduled()`-Handler für den fünfminütigen Cron-Lauf.
+
+**Worker-Upload erforderlich: Ja.** Die Datei `worker/metar-proxy.js` muss den bisherigen Cloudflare-Worker vollständig ersetzen. Anschließend sind KV, VAPID-Variablen, das VAPID-Geheimnis und der Cron-Trigger einzurichten.
+
+Cloudflare Worker: `https://mid-data-proxy.martinmolkentin.workers.dev`
+
+Vollständige deutsche Schritt-für-Schritt-Anleitung: `../ANLEITUNG-v0.7.92.md` beziehungsweise `../docs/push-notifications.md`.
+
 # MID Daten-, Warnungs-, Radar- und Bergsportproxy v0.7.91
 
 Funktionale Erweiterung um `mode=mountain-profile` und `mode=snow-observations`. Das Höhenprofil wertet OpenStreetMap-Seilbahnstationen und Liftwege aus und ergänzt fehlende Höhen über Copernicus GLO-90 via Open-Meteo. Für österreichische Bergsportorte ordnet die Schnee-Route aktuelle GeoSphere-TAWES-Schneepegel konservativ den Niveaus Tal, Mitte und Berg zu. Das Frontend besitzt zusätzlich einen direkten CORS-Fallback, sodass die vollständige MID-Ersatz-ZIP auch vor einer optionalen Worker-Aktualisierung funktionsfähig bleibt.

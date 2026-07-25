@@ -1,4 +1,13 @@
-## MID v0.7.91 – Berg-/Wintersport
+## MID v0.7.92 – Sonne/Mond, Luftdrucktendenz und Push
+
+### Neu in v0.7.92
+
+- Luftdruckänderung über drei Stunden ausschließlich im erweiterten Modus.
+- Zehnte aktuelle Karte „Sonne / Mond“ mit Auf-/Untergängen, Tageslänge und genauer aktueller Mondphase.
+- Persönliche Web-Push-Regeln je Favorit für Niederschlagsbeginn und sich nähernde Gewitterzellen.
+- Der Cloudflare Worker muss für Push auf v0.7.92 aktualisiert und mit KV, VAPID sowie Cron eingerichtet werden.
+- Vollständige Anleitung: `ANLEITUNG-v0.7.92.md` und `docs/push-notifications.md`.
+
 
 - Berg-/Skimodus in Berg-/Wintersport umbenannt und um Saisonprofile Automatisch, Sommer und Winter erweitert.
 - Automatische Tal-, optionale Mittel- und Bergstationsbestimmung aus OpenStreetMap; fehlende Höhen über Copernicus GLO-90.
@@ -91,7 +100,7 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.91**
+**Aktuelle Version: v0.7.92**
 
 ## Revision in v0.7.89 – responsiver und schlanker
 
