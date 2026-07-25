@@ -35,6 +35,6 @@ Messung und Modell werden getrennt ausgewiesen. Die Werte beschreiben die natür
 
 Amtliche Lawinenbulletins, Sperrungen und Betreiberangaben haben stets Vorrang. MID erzeugt keine Lawinenwarnung und keine Freigabe für Pisten, Routen oder Touren.
 
-## Standortbindung ab v0.7.93
+## Standortbindung ab v0.7.94
 
 Jede automatische Höhenbestimmung verwendet die Koordinaten des konkret bearbeiteten Favoriten. Overpass-Abfragen besitzen einen koordinatenspezifischen Cache-Key; zusätzlich verwirft das Frontend jedes Worker-Profil, dessen Höhenpunkte mehr als 32 km vom Favoriten entfernt liegen. Dadurch kann ein zuvor für Sölden oder einen anderen Ort ermitteltes Profil nicht auf weitere Favoriten übertragen werden.

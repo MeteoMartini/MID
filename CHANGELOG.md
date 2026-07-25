@@ -1,3 +1,13 @@
+# MID v0.7.94
+
+- Push-Regeln zusätzlich für den aktivierten Standortverfolgungs-Ort ergänzt.
+- Eigene, unabhängig schaltbare Regeln für Niederschlagsbeginn und sich nähernde Gewitterzellen am aktuellen Standort.
+- Koordinaten werden bei jeder erfolgreichen automatischen Standortbestimmung aktualisiert und bei aktivem Push-Abonnement unmittelbar mit dem Worker synchronisiert.
+- Ohne geöffnete App verwendet der Worker die zuletzt erfolgreich übermittelte Position; keine dauerhafte Hintergrund-Ortung.
+- Worker-Zustand wird bei einer deutlich geänderten Standortkoordinate zurückgesetzt, damit Ereignisse am neuen Ort nicht durch den vorherigen Ort unterdrückt werden.
+- Datenschutztext und deutsche Installationsanleitung aktualisiert; neuer Regressionstest für Standortverfolgungs-Push.
+- Cloudflare Worker auf v0.7.94 synchronisiert; bestehende KV-, VAPID- und Cron-Einstellungen bleiben unverändert.
+
 # MID v0.7.93
 
 - 14-Tage-Ensemble-Temperaturtooltip als kompakte, mobile Temperaturtabelle neu gestaltet; sämtliche Bereiche, Sonnenscheindauer, Hazards und Prognosekonsistenz bleiben enthalten.

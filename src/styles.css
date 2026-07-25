@@ -1825,7 +1825,7 @@ footer{flex-wrap:wrap;align-items:center}
 @media(max-width:760px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.sun-moon-primary{white-space:normal}.push-actions{align-items:stretch}.push-actions>button{width:100%}.push-favorite-list>article>label{grid-template-columns:auto auto minmax(0,1fr)}}
 
 
-/* MID v0.7.93 – kompakte Diagramm-Tooltips und standorttreue Bergprofile */
+/* MID v0.7.94 – kompakte Diagramm-Tooltips und standorttreue Bergprofile */
 .compact-trend-tooltip{
  width:min(338px,calc(100vw - 20px));
  min-width:0!important;
@@ -1889,3 +1889,13 @@ footer{flex-wrap:wrap;align-items:center}
 .detail-tooltip-grid dd{min-width:0;margin:0;text-align:right;font-weight:750;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .detail-tooltip-grid dd small{display:block;margin-top:1px;color:var(--muted);font-size:8.5px;font-weight:650}
 @media(max-width:380px){.detail-chart-popover{width:calc(100% - 12px);padding:7px}.detail-tooltip-grid>div{grid-template-columns:88px minmax(0,1fr);gap:5px}}
+
+
+/* MID v0.7.94 – Push-Regeln für den automatisch verfolgten Standort */
+.push-tracked-location{border-color:color-mix(in srgb,var(--primary) 38%,var(--border))!important;background:color-mix(in srgb,var(--primary) 6%,var(--s2))!important}
+.push-tracked-location>header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.push-tracked-location>header>span{display:flex;align-items:flex-start;gap:8px;min-width:0}.push-tracked-location>header>span>svg{flex:0 0 auto;color:var(--primary)}
+.push-location-refresh{display:inline-flex;align-items:center;gap:5px;flex:0 0 auto;padding:7px 9px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text);font-size:9px;font-weight:800}
+.push-favorite-list>article>label.disabled{opacity:.55}.push-favorite-list>article>label.disabled input{cursor:not-allowed}
+.push-tracked-location>p{margin:0;color:var(--muted);font-size:9px;line-height:1.4}
+@media(max-width:620px){.push-tracked-location>header{display:grid}.push-location-refresh{width:100%;justify-content:center}}

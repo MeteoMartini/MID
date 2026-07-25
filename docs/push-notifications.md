@@ -1,4 +1,4 @@
-# MID v0.7.93 – Installations- und Cloudflare-Anleitung
+# MID v0.7.94 – Installations- und Cloudflare-Anleitung
 
 Diese Anleitung gehört zu:
 
@@ -18,7 +18,7 @@ Diese Anleitung gehört zu:
 5. Committe direkt in den Branch `main`.
 6. Öffne in GitHub den Bereich **Actions**.
 7. Warte, bis der Workflow **Install MID release and deploy** vollständig grün ist.
-8. Öffne anschließend MID und prüfe im Systemstatus die Version `0.7.93`.
+8. Öffne anschließend MID und prüfe im Systemstatus die Version `0.7.94`.
 
 ## 2. Worker-Code in Cloudflare aktualisieren
 
@@ -33,7 +33,7 @@ Diese Anleitung gehört zu:
 7. Öffne lokal `worker.js`, kopiere den vollständigen Inhalt und füge ihn in Cloudflare ein.
 8. Klicke auf **Bereitstellen**.
 9. Warte etwa eine Minute.
-10. Öffne `https://mid-data-proxy.martinmolkentin.workers.dev/?mode=health`. Erwartet wird unter anderem `"version":"0.7.93"`.
+10. Öffne `https://mid-data-proxy.martinmolkentin.workers.dev/?mode=health`. Erwartet wird unter anderem `"version":"0.7.94"`.
 
 ## 3. KV-Speicher für Push-Abonnements anlegen
 
@@ -59,7 +59,7 @@ Der sichtbare Name ist frei wählbar. Der spätere Bindungsname muss dagegen exa
 
 ## 5. VAPID-Schlüssel erzeugen – nur bei einer erstmaligen Push-Einrichtung
 
-Bereits für MID v0.7.92 eingerichtete VAPID-Schlüssel **nicht neu erzeugen**. Sie bleiben für v0.7.93 gültig.
+Bereits für MID v0.7.92 eingerichtete VAPID-Schlüssel **nicht neu erzeugen**. Sie bleiben für v0.7.94 gültig.
 
 ### Ohne Mac-/Windows-PC direkt über Cloudflare
 
@@ -134,7 +134,7 @@ https://mid-data-proxy.martinmolkentin.workers.dev/?mode=health
 https://mid-data-proxy.martinmolkentin.workers.dev/?mode=push-config
 ```
 
-Bei `health` muss die Version `0.7.93` erscheinen. Unter den Anbietern muss `WebPush` auf `true` stehen.
+Bei `health` muss die Version `0.7.94` erscheinen. Unter den Anbietern muss `WebPush` auf `true` stehen.
 
 Bei `push-config` muss ungefähr erscheinen:
 
@@ -142,7 +142,7 @@ Bei `push-config` muss ungefähr erscheinen:
 {
   "enabled": true,
   "publicKey": "...",
-  "version": "0.7.93"
+  "version": "0.7.94"
 }
 ```
 
@@ -197,10 +197,10 @@ Push funktioniert auf iPhone und iPad nur in der installierten Home-Bildschirm-W
 
 ## 13. Abschließende Kontrolle
 
-- MID zeigt Version `0.7.93`.
+- MID zeigt Version `0.7.94`.
 - Die aktuelle Übersicht enthält die zehnte Karte **Sonne / Mond**.
 - Im erweiterten Modus zeigt die Luftdruckkarte die Änderung über drei Stunden.
-- `?mode=health` meldet `0.7.93` und `WebPush: true`.
+- `?mode=health` meldet `0.7.94` und `WebPush: true`.
 - `?mode=push-config` meldet `enabled: true`.
 - Der Cron-Trigger `*/5 * * * *` ist sichtbar.
 - Nach Push-Aktivierung liegt im KV-Namespace mindestens ein Schlüssel vor, der mit `sub:` beginnt.
@@ -226,3 +226,17 @@ Die Regel verwendet derzeit DWD KONRAD3D und ist auf das deutsche Radarverbundge
 ### Keine sofortige Testnachricht
 
 MID sendet nur dann eine Nachricht, wenn die jeweilige Wetterbedingung tatsächlich eintritt. Der Cron-Lauf prüft im Abstand von fünf Minuten.
+
+
+## Neu in MID v0.7.94: Push für den Standortverfolgungs-Ort
+
+Ist unter **Einstellungen → Favoriten** die Standortverfolgung aktiviert, erscheint unter **Einstellungen → Benachrichtigungen** zusätzlich der Eintrag **Aktueller Standort**. Dort lassen sich „Niederschlagsbeginn“ und „Gewitterzelle nähert sich“ unabhängig von den gespeicherten Favoriten aktivieren.
+
+MID aktualisiert die dafür verwendeten Koordinaten bei jeder erfolgreichen automatischen Standortbestimmung. Solange die App geschlossen ist, verwendet der Cloudflare Worker die zuletzt erfolgreich übermittelte Position. Eine dauerhafte Hintergrund-Ortung durch MID findet nicht statt.
+
+Die bestehende Cloudflare-Konfiguration bleibt unverändert. Nach dem Update ist lediglich die neue `worker.js` v0.7.94 bereitzustellen; KV-Bindung, VAPID-Schlüssel und Cron-Trigger werden weiterverwendet.
+
+
+### Standortwechsel und Ereigniszustand
+
+Ändert sich die automatisch bestimmte Position, übermittelt MID die neuen Koordinaten bei einem bereits aktiven Push-Abonnement erneut. Der Worker erkennt den Koordinatenwechsel und beginnt für dieses Standortziel mit einem frischen Ereigniszustand. So kann ein bereits am vorherigen Ort aktiver Regen- oder Gewitterzustand eine Meldung am neuen Ort nicht unterdrücken.
