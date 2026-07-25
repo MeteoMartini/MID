@@ -1,5 +1,42 @@
 # Changelog
 
+## 0.7.95.21
+
+- GitHub-Regression behoben: Workflow-Reparaturdateien liegen nun ohne versteckten `.github`-Unterordner direkt unter `workflow-patches/` und werden dadurch vom ZIP-Installer nicht mehr durch dessen `.github/`-Ausschluss entfernt
+- Web-Analytics-Test robust gegen fehlende optionale Repository-Workflowdateien gemacht; fehlende Reparaturdateien führen nicht mehr zu einem ungefangenen `ENOENT`
+- Regression prüft jetzt ausdrücklich die rsync-sicheren Pfade `workflow-patches/install-mid.yml` und `workflow-patches/deploy.yml`
+
+## 0.7.95.20
+
+- GitHub-Workflow-Regression behoben: der ZIP-Installer bewahrt `.github/workflows` absichtlich, daher erreichten die bereits korrigierten Analytics-Zeilen die aktiven Repository-Workflows nicht
+- Web-Analytics-Test blockiert die MID-Installation bei veralteten aktiven Workflows nicht mehr; er meldet den Zustand nun verständlich als Hinweis
+- separates, geprüftes Workflow-Reparaturpaket mit `install-mid.yml` und `deploy.yml` ergänzt
+- beide Reparaturdateien enthalten `VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN` und erhalten den ursprünglichen Install→Test→Commit→Pages-Ablauf
+
+## 0.7.95.19
+
+- GitHub-Buildfehler der Luftdrucktendenz behoben: `Hour` enthält jetzt wieder den stündlichen Meeresspiegeldruck
+- Open-Meteo-Abruf um `hourly=pressure_msl` ergänzt und die Druckwerte in `mapHours()` übernommen
+- Luftdrucktendenz kann dadurch typensicher aus dem aktuellen und dem etwa drei Stunden zurückliegenden Wert berechnet werden
+- Regressionstest erweitert: Typdefinition, API-Parameter und Mapping der Luftdruck-Zeitreihe werden gemeinsam geprüft
+
+## 0.7.95.18
+
+- automatischer Schlüsselfunktionsschutz: sämtliche vorhandenen und künftig neu angelegten `scripts/test-*.mjs` werden ohne manuelle Paketlisten automatisch ausgeführt
+- Kontinuitätsprüfung verhindert das unbemerkte Entfernen bereits geschützter Regressionstests gegenüber der Vorversion
+- Cloudflare Web Analytics für GitHub Pages korrekt als manueller Beacon mit SPA-Unterstützung integriert
+- GitHub-Actions-Variable `VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN` in beide Produktionsworkflows aufgenommen
+- sichtbare Web-Analytics-Diagnose unter MID-Systemstatus ergänzt (aktiv, Token/Snippet fehlt oder blockiert)
+- Luftdrucktendenz, Analytics und automatischer Test-Runner zusätzlich in den essentiellen MID-Funktionsvertrag aufgenommen
+
+## 0.7.95.17
+
+- Luftdrucktendenz aus dem bewährten Stand wiederhergestellt: Änderung über drei Stunden, Richtungspfeil und Einordnung von stark fallend bis stark steigend im Erweiterten Modus
+- 14-Tage-Ensemble: umfassenden Erklärtext über das Info-i wiederhergestellt und dauerhaft sichtbar neben dem Titel angeordnet
+- 14-Tage-Ensemble: Modellstände-Button samt schließbarem Popover, Initialisierungs- und Verfügbarkeitszeiten auf Desktop und Mobil abgesichert
+- einzelne Info-i für Ensemble-Übersicht, Temperaturtrend und Niederschlag mit vollständigen Erklärtexten und eindeutigen Beschriftungen versehen
+- essentiellen MID-Funktionsvertrag um Luftdrucktendenz sowie Ensemble-Erklärungen und Modellstände erweitert, damit diese Funktionen bei künftigen Reparaturen nicht erneut verschwinden
+
 ## 0.7.95.16
 
 - Benachrichtigungen: bei aktivierter Standortverfolgung kann auch die zuletzt erfolgreich automatisch bestimmte Position eigene Regeln für Niederschlagsbeginn und sich nähernde Gewitterzellen erhalten

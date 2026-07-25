@@ -1955,3 +1955,17 @@ footer{flex-wrap:wrap;align-items:center}
 .push-message{margin:0;padding:10px 12px;border:1px solid color-mix(in srgb,var(--primary) 35%,var(--border));border-radius:11px;background:color-mix(in srgb,var(--primary) 8%,var(--surface));font-size:11px}
 .push-privacy-note{color:var(--muted);font-size:9px;line-height:1.45}
 @media(max-width:760px){.push-actions{align-items:stretch}.push-actions>button{width:100%}.push-favorite-list>article>label{grid-template-columns:auto auto minmax(0,1fr)}}
+
+/* MID v0.7.95.17 – wiederhergestellte Luftdrucktendenz */
+.pressure-tendency{display:block;margin-bottom:3px;color:var(--text);line-height:1.3}
+.pressure-tendency>b{color:var(--accent);font-variant-numeric:tabular-nums}
+
+/* MID v0.7.95.18 – Web-Analytics-Diagnose */
+.system-analytics-card{display:grid;gap:3px;padding:11px 12px;border:1px solid var(--border);border-radius:13px;background:var(--s2)}
+.system-analytics-card small,.system-analytics-card strong,.system-analytics-card span{display:block}
+.system-analytics-card small{color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.06em}
+.system-analytics-card span{color:var(--muted);font-size:10px;line-height:1.35}
+.system-analytics-card.loaded{border-color:rgba(34,190,114,.38);background:rgba(34,190,114,.08)}
+.system-analytics-card.loaded strong{color:#36d386}
+.system-analytics-card.missing-token,.system-analytics-card.missing-snippet,.system-analytics-card.blocked{border-color:rgba(255,186,57,.42);background:rgba(255,186,57,.09)}
+.system-analytics-card.missing-token strong,.system-analytics-card.missing-snippet strong,.system-analytics-card.blocked strong{color:#ffca63}

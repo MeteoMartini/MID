@@ -46,3 +46,18 @@
  .detaillegend span{gap:5px;padding:4px 6px;white-space:nowrap}
  .detaillegend .mid-skybar-note{white-space:normal}
 }
+
+
+/* MID v0.7.95.17 – Ensemble-Erklärungen und Modellstände dauerhaft sichtbar */
+.ensemble>.title{flex-wrap:wrap}
+.ensemble>.title .title-tools{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}
+.ensemble-explanation{display:grid;gap:6px}
+.ensemble-explanation>strong{font-size:12px}
+.ensemble-explanation>span{display:block;color:var(--muted);font-size:10px;line-height:1.45}
+.ensemble-explanation>span b{color:var(--text)}
+@media(max-width:620px){
+ .ensemble>.title .title-tools{width:100%;justify-content:flex-start;margin-top:3px}
+ .ensemble>.title .title-tools>.mode-info{order:1}
+ .ensemble>.title .title-tools>.model-run-details{order:2}
+ .ensemble-explanation>span{font-size:11px}
+}

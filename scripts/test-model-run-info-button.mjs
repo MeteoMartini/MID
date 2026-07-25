@@ -11,7 +11,8 @@ for(const [label,text] of [['Best Match',app],['Ensemble',ensemble]])for(const t
   'className="model-run-popover" role="dialog"',
   'className="model-run-close" onClick={()=>setOpen(false)'
 ])if(!text.includes(token))failures.push(`${label}: ${token}`);
-for(const token of ['.model-run-details>button{','.model-run-details.open>button','.model-run-popover{','@media(max-width:620px){.model-run-details>button'])if(!css.includes(token))failures.push(`Modellstände-CSS: ${token}`);
+for(const token of ['.model-run-details>button{','.model-run-details.open>button','.model-run-popover{','.ensemble>.title .title-tools{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}','@media(max-width:620px){.model-run-details>button'])if(!css.includes(token))failures.push(`Modellstände-CSS: ${token}`);
+for(const token of ['function EnsembleExplanation()','label="14-Tage-Ensemble erklären"','<EnsembleExplanation/><ModelRunDetails runs={runs}/>','Initialisierung {formatModelRunTime(row.initialisationTime)} · verfügbar seit {formatAvailabilityTime(row.availabilityTime)}'])if(!ensemble.includes(token))failures.push(`Ensemble-Info fehlt: ${token}`);
 if(ensemble.includes('<details className="model-run-details"'))failures.push('Ensemble verwendet noch das mobile problematische native details/summary-Element.');
 if(failures.length){console.error('Modellstände-Info-Button fehlerhaft:\n- '+failures.join('\n- '));process.exit(1)}
 console.log('Modellstände-Info-Button geprüft: expliziter Button, schließbares Popover, Außenklick/Escape und mobile feste Position sind vorhanden.');

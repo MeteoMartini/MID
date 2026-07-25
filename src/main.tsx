@@ -5,6 +5,9 @@ import './v078';
 import App from './App';
 import {restorePersistentState,startPersistenceBridge} from './persistence';
 import {markMidRuntimeHealthy,registerMidServiceWorker} from './pwa';
+import {startWebAnalyticsDiagnostics} from './webAnalytics';
+
+startWebAnalyticsDiagnostics();
 
 async function signalHealthy(){
  await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));
