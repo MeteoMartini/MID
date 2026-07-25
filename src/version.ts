@@ -1,1 +1,1 @@
-export const MID_VERSION='0.7.95.10';
+export const MID_VERSION='0.7.95.11';

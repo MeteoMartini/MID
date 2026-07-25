@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.95.11
+
+- Kompositbild: WMS-Kartenbilder werden durch Worker und Browser nicht mehr zwischengespeichert; dadurch keine aus unterschiedlichen alten/neuen Kacheln zusammengesetzten Satellitenbilder mehr
+- Satellitenprodukte mit explizit veralteter Zeitdimension werden vollständig verworfen und nicht mehr fälschlich als zeitloser „latest“-Layer verwendet
+- DWD-1-km-Radar auf den offiziellen Workspace-WMS-Endpunkt umgestellt; generische und BRZ-Endpunkte bleiben als gestufte Fallbacks erhalten
+- Echtzeitblitze: dynamischer Fallback von leerer DWD-Blitzzeitachse auf EUMETSAT MTG-LI; MTG-LI-Kartenabruf auf WMS 1.3.0 korrigiert
+- Produktzeit-Metadaten und WMS-Capabilities werden für die Live-Layer ohne Zwischenablage neu geprüft
+- zusätzlicher Regressionstest für Satellitenfrische, DWD-1-km-Radar und MTG-LI-Fallback ergänzt
+
 ## 0.7.95.10
 
 - Kompositbild: Service Worker behandelt Worker-, WMS-, Zeit- und BBOX-Anfragen jetzt als Live-Daten und liefert sie nicht mehr aus dem App-Shell-Cache

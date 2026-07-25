@@ -17,7 +17,7 @@ const OPENSENSEMAP_BOXES='https://api.opensensemap.org/boxes';
 const DWD_KONRAD3D_INDEX='https://opendata.dwd.de/weather/radar/konrad3d/';
 const DWD_RADOLAN_YW_ROOT='https://opendata.dwd.de/weather/radar/radolan/yw/';
 const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids_germany/return_periods/precipitation/KOSTRA/KOSTRA_DWD_2020/asc/';
-const WORKER_VERSION='0.7.95.10';
+const WORKER_VERSION='0.7.95.11';
 const CORS={'content-type':'application/json; charset=utf-8','access-control-allow-origin':'*','access-control-allow-methods':'GET,OPTIONS','cache-control':'public, max-age=180'};
 const FEED_SLUGS={
  AD:'andorra',AT:'austria',BE:'belgium',BA:'bosnia-herzegovina',BG:'bulgaria',HR:'croatia',CY:'cyprus',CZ:'czechia',DK:'denmark',EE:'estonia',FI:'finland',FR:'france',DE:'germany',GR:'greece',EL:'greece',HU:'hungary',IS:'iceland',IE:'ireland',IL:'israel',IT:'italy',LV:'latvia',LT:'lithuania',LU:'luxembourg',MT:'malta',MD:'moldova',ME:'montenegro',NL:'netherlands',MK:'republic-of-north-macedonia',NO:'norway',PL:'poland',PT:'portugal',RO:'romania',RS:'serbia',SK:'slovakia',SI:'slovenia',ES:'spain',SE:'sweden',CH:'switzerland',UA:'ukraine',GB:'united-kingdom',UK:'united-kingdom',AM:'armenia'
@@ -311,8 +311,11 @@ async function xweatherRows(lat,lon,radiusKm,clientId,clientSecret){
 }
 
 // --- Radar-Nowcast v0.7.13 --------------------------------------------------
-const DWD_RADAR_WMS_PRIMARY='https://maps.dwd.de/geoserver/wms';
-const DWD_RADAR_WMS_BACKUP='https://brz-maps.dwd.de/geoserver/wms';
+const DWD_RADAR_WMS_PRIMARY='https://maps.dwd.de/geoserver/dwd/wms';
+const DWD_RADAR_WMS_LEGACY='https://maps.dwd.de/geoserver/wms';
+const DWD_RADAR_WMS_BACKUP='https://brz-maps.dwd.de/geoserver/dwd/wms';
+const DWD_RADAR_WMS_BACKUP_LEGACY='https://brz-maps.dwd.de/geoserver/wms';
+const DWD_RADAR_WMS_BASES=[DWD_RADAR_WMS_PRIMARY,DWD_RADAR_WMS_LEGACY,DWD_RADAR_WMS_BACKUP,DWD_RADAR_WMS_BACKUP_LEGACY];
 // Das explizite RV-Produkt steht zuerst, weil nur seine eigene Zeitdimension
 // zuverlässig Beobachtungen und den Nowcast bis +2 Stunden beschreibt.
 const DWD_RADAR_LAYERS=['dwd:Radar_rv_product_1x1km_ger','dwd:Niederschlagsradar'];
@@ -416,7 +419,7 @@ async function dwdPointRate(base,layer,lat,lon,time,mapRate){
 }
 async function findDwdQuery(lat,lon,now=Date.now()){
  const errors=[];
- for(const base of[DWD_RADAR_WMS_PRIMARY,DWD_RADAR_WMS_BACKUP])for(const layer of DWD_RADAR_LAYERS){
+ for(const base of DWD_RADAR_WMS_BASES)for(const layer of DWD_RADAR_LAYERS){
   let times=[],fromCapabilities=true;try{times=await dwdAvailableTimes(base,layer)}catch(error){fromCapabilities=false;errors.push(`${new URL(base).hostname}/${layer}: ${error instanceof Error?error.message:String(error)}`)}
   const selected=selectDwdTimes(times,now),observedCandidates=selected.filter(t=>t<=now+90000).slice(-3).reverse();
   for(const time of observedCandidates){try{const sample=await dwdMapFrame(base,layer,lat,lon,time);return{base,layer,times:selected,validatedTime:time,validatedSample:sample,fromCapabilities,errors}}catch(error){errors.push(`${new URL(base).hostname}/${layer}/GetMap: ${error instanceof Error?error.message:String(error)}`)}}
@@ -626,7 +629,7 @@ const SATELLITE_PRECIP_CANDIDATES=[
  {provider:'eumetsat',layer:'mtg_fd:precipitation_rate',label:'MTG FCI Niederschlagsrate',resolutionKm:2},
  {provider:'eumetsat',layer:'msg_fes:h60b',label:'H SAF Satelliten-Niederschlagsrate',resolutionKm:3}
 ];
-async function wmsCapabilitiesText(base,label){const response=await fetch(dwdCapabilitiesUrl(base),{headers:{Accept:'application/xml,text/xml,*/*'},cf:{cacheTtl:300,cacheEverything:true}});if(!response.ok)throw new Error(`${label} Capabilities HTTP ${response.status}`);return response.text()}
+async function wmsCapabilitiesText(base,label){const response=await fetch(dwdCapabilitiesUrl(base),{headers:{Accept:'application/xml,text/xml,*/*','Cache-Control':'no-cache'},cache:'no-store',cf:{cacheTtl:0,cacheEverything:false}});if(!response.ok)throw new Error(`${label} Capabilities HTTP ${response.status}`);return response.text()}
 async function firstWmsCapabilities(bases,label){const errors=[];for(const base of bases){try{return await wmsCapabilitiesText(base,label)}catch(error){errors.push(error instanceof Error?error.message:String(error))}}throw new Error(errors.join(' | ')||`${label} Capabilities nicht verfügbar`)}
 function recentObservedTimes(times,now=Date.now(),historyMinutes=135,maxFrames=28,futureMinutes=10){const unique=[...new Set((times||[]).filter(Number.isFinite).filter(time=>time>=now-historyMinutes*60000&&time<=now+futureMinutes*60000))].sort((a,b)=>a-b);if(unique.length<=maxFrames)return unique;const step=Math.max(1,Math.ceil(unique.length/maxFrames)),selected=unique.filter((_,index)=>index%step===0);if(selected.at(-1)!==unique.at(-1))selected.push(unique.at(-1));return selected.slice(-maxFrames)}
 function hasWmsLayer(xml,layer){const target=String(layer).trim().toLowerCase();return tagValues(xml,'Name').some(value=>value.trim().toLowerCase()===target)}
@@ -634,9 +637,14 @@ function satelliteProduct(capabilities,candidates,now=Date.now()){
  const products=[],latestOnly=[];
  for(const candidate of candidates){const xml=capabilities[candidate.provider];if(!xml||!hasWmsLayer(xml,candidate.layer))continue;const all=dwdTimesFromCapabilities(xml,candidate.layer),latest=all.at(-1);
   // Satellitenprodukte erscheinen häufig einige Minuten nach ihrem nominellen
-  // Aufnahmezeitpunkt. Deshalb gilt ein großzügiger Publikationspuffer.
-  if(Number.isFinite(latest)&&latest>=now-190*60000&&latest<=now+15*60000){const times=recentObservedTimes(all,now,150,30,15);if(times.length)products.push({...candidate,times:times.map(time=>new Date(time).toISOString()),latest,fresh:latest>=now-80*60000})}
-  else latestOnly.push({...candidate,times:[],latestOnly:true,fresh:false});
+  // Aufnahmezeitpunkt. Deshalb gilt ein großzügiger Publikationspuffer. Ein
+  // Layer mit expliziter, aber veralteter Zeitdimension darf jedoch nicht als
+  // vermeintlicher "latest"-Layer ohne TIME weiterverwendet werden.
+  if(Number.isFinite(latest)){
+   if(latest<now-190*60000||latest>now+15*60000)continue;
+   const times=recentObservedTimes(all,now,150,30,15);if(times.length)products.push({...candidate,times:times.map(time=>new Date(time).toISOString()),latest,fresh:latest>=now-80*60000});continue;
+  }
+  latestOnly.push({...candidate,times:[],latestOnly:true,fresh:false});
  }
  products.sort((a,b)=>Number(b.fresh)-Number(a.fresh)||Number(b.provider==='eumetsat')-Number(a.provider==='eumetsat')||(a.resolutionKm??99)-(b.resolutionKm??99)||b.latest-a.latest);let chosen=products[0];
  if(!chosen){latestOnly.sort((a,b)=>Number(b.provider==='eumetsat')-Number(a.provider==='eumetsat')||(a.resolutionKm??99)-(b.resolutionKm??99));chosen=latestOnly[0]}
@@ -645,7 +653,7 @@ function satelliteProduct(capabilities,candidates,now=Date.now()){
 async function compositeTimes(lat,lon){const serverTime=new Date().toISOString(),now=Date.now(),result={satelliteDay:[],satelliteIr:[],satellitePrecip:[],mtgLightning:[],dwdLightning:[],dwdRadar:[],dwdRadarLayer:'',checkedAt:serverTime,serverTime},capabilities={},errors=[];
  const requests=[];
  if(mtgLightningApplies(lat,lon))requests.push(firstWmsCapabilities([EUMETSAT_WMS],'EUMETSAT').then(xml=>{capabilities.eumetsat=xml}).catch(error=>errors.push(error instanceof Error?error.message:String(error))));
- if(mtgLightningApplies(lat,lon)||inGermanyBounds(lat,lon))requests.push(firstWmsCapabilities([DWD_RADAR_WMS_PRIMARY,DWD_RADAR_WMS_BACKUP],'DWD').then(xml=>{capabilities.dwd=xml}).catch(error=>errors.push(error instanceof Error?error.message:String(error))));
+ if(mtgLightningApplies(lat,lon)||inGermanyBounds(lat,lon))requests.push(firstWmsCapabilities(DWD_RADAR_WMS_BASES,'DWD').then(xml=>{capabilities.dwd=xml}).catch(error=>errors.push(error instanceof Error?error.message:String(error))));
  await Promise.all(requests);
  if(capabilities.eumetsat)result.mtgLightning=recentObservedTimes(dwdTimesFromCapabilities(capabilities.eumetsat,'mtg_fd:li_afa'),now,130,28,10).map(time=>new Date(time).toISOString());
  if(capabilities.dwd&&inGermanyBounds(lat,lon)){
@@ -707,7 +715,7 @@ const WMS_ALLOWED_LAYERS={
  eumetsat:new Set(['mtg_fd:vis06_hrfi','mtg_fd:ir105_hrfi','mtg_fd:li_afa','msg_fes:rgb_eview','msg_fes:ir108',...SATELLITE_PRECIP_CANDIDATES.map(item=>item.layer)])
 };
 async function compositeWmsResponse(request){
- const url=new URL(request.url),provider=String(url.searchParams.get('provider')||'').toLowerCase(),bases=provider==='dwd'?[DWD_RADAR_WMS_PRIMARY,DWD_RADAR_WMS_BACKUP]:provider==='eumetsat'?[EUMETSAT_WMS]:[];
+ const url=new URL(request.url),provider=String(url.searchParams.get('provider')||'').toLowerCase(),bases=provider==='dwd'?DWD_RADAR_WMS_BASES:provider==='eumetsat'?[EUMETSAT_WMS]:[];
  if(!bases.length)return json({error:'Ungültiger WMS-Provider',version:WORKER_VERSION},400,{'cache-control':'no-store'});
  const layers=String(url.searchParams.get('layers')||'').split(',').map(value=>value.trim()).filter(Boolean),allowedLayers=WMS_ALLOWED_LAYERS[provider];
  if(!layers.length||layers.some(layer=>!allowedLayers?.has(layer)))return json({error:'Nicht freigegebener WMS-Layer',version:WORKER_VERSION},400,{'cache-control':'no-store'});
@@ -717,9 +725,9 @@ async function compositeWmsResponse(request){
  for(const base of bases){try{
   const upstream=new URL(base);for(const[key,value]of url.searchParams){const normalized=key.toLowerCase();if(allowed.has(normalized))upstream.searchParams.set(normalized,value)}
   if(!upstream.searchParams.has('service'))upstream.searchParams.set('service','WMS');if(!upstream.searchParams.has('request'))upstream.searchParams.set('request','GetMap');
-  const response=await fetch(upstream.toString(),{headers:{Accept:'image/png,image/webp,image/jpeg,*/*','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},cf:{cacheTtl:120,cacheEverything:true}}),type=String(response.headers.get('content-type')||'').toLowerCase();
+  const response=await fetch(upstream.toString(),{headers:{Accept:'image/png,image/webp,image/jpeg,*/*','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`,'Cache-Control':'no-cache'},cache:'no-store',cf:{cacheTtl:0,cacheEverything:false}}),type=String(response.headers.get('content-type')||'').toLowerCase();
   if(!response.ok)throw new Error(`${new URL(base).hostname} HTTP ${response.status}`);if(!type.startsWith('image/')){const text=(await response.text()).slice(0,240).replace(/\s+/g,' ');throw new Error(`${new URL(base).hostname} lieferte kein Kartenbild${text?`: ${text}`:''}`)}
-  return new Response(response.body,{status:200,headers:{'content-type':type,'access-control-allow-origin':'*','cache-control':'public, max-age=120','x-mid-wms-provider':provider,'x-mid-wms-layer':layers.join(','),'x-mid-worker-version':WORKER_VERSION}})
+  return new Response(response.body,{status:200,headers:{'content-type':type,'access-control-allow-origin':'*','cache-control':'no-store, no-cache, must-revalidate','pragma':'no-cache','expires':'0','x-mid-wms-provider':provider,'x-mid-wms-layer':layers.join(','),'x-mid-worker-version':WORKER_VERSION}})
  }catch(error){errors.push(error instanceof Error?error.message:String(error))}}
  return new Response(errors.join(' | ')||'WMS-Karte nicht verfügbar',{status:502,headers:{'content-type':'text/plain; charset=utf-8','access-control-allow-origin':'*','cache-control':'no-store','x-mid-worker-version':WORKER_VERSION}});
 }
@@ -767,7 +775,7 @@ export default{async fetch(request,env){
   catch(error){return json({frames:[],error:error instanceof Error?error.message:String(error),version:WORKER_VERSION,checkedAt:new Date().toISOString()},502,{'cache-control':'no-store'})}
  }
  if(mode==='composite-times'){
-  try{return json({...await compositeTimes(lat,lon),version:WORKER_VERSION},200,{'cache-control':'public, max-age=60'})}
+  try{return json({...await compositeTimes(lat,lon),version:WORKER_VERSION},200,{'cache-control':'no-store, no-cache, must-revalidate','pragma':'no-cache','expires':'0'})}
   catch(error){return json({satelliteDay:[],satelliteIr:[],satellitePrecip:[],mtgLightning:[],dwdLightning:[],dwdRadar:[],dwdRadarLayer:'',serverTime:new Date().toISOString(),error:error instanceof Error?error.message:String(error),version:WORKER_VERSION},502,{'cache-control':'no-store'})}
  }
  if(mode==='lightning-points'){
