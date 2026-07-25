@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.95.10
+
+- Kompositbild: Service Worker behandelt Worker-, WMS-, Zeit- und BBOX-Anfragen jetzt als Live-Daten und liefert sie nicht mehr aus dem App-Shell-Cache
+- Kompositbild: Satellitenkacheln erhalten beim Laden neuer Produktstände, beim Einschalten der Ebene und zusätzlich alle zwei Minuten eine neue Revisionskennung
+- Kompositbild: Query-Parameter werden bei normalen Runtime-Cachetreffern nicht mehr ignoriert, sodass unterschiedliche Kartenkacheln nicht verwechselt werden
+- Ensemble-Temperaturdiagramm: Handy-Tooltip auf maximal 286 px verdichtet; Temperatureinheit in die Spaltenüberschrift verlagert und Werte ohne wiederholtes °C dargestellt
+- Ensemble-Temperaturdiagramm: Sonnenschein- und Modellangaben zu kompakten Einzeilern zusammengezogen
+- zusätzliche Regression für Komposit-Cachefrische ergänzt und bestehende Tooltip-Regressionen aktualisiert
+
 ## 0.7.95.9
 
 - Tagesdetailansicht mobil: Stundenkarten unter dem Diagramm kompakter gestaltet

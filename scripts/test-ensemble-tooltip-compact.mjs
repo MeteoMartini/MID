@@ -12,21 +12,23 @@ for(const token of [
   "showClimatology&&isFiniteNumber(row.climateMin)&&isFiniteNumber(row.climateMax)?{label:'Klima 91–20'",
   'className="charttooltip trend-tooltip compact-trend-tooltip"',
   'className="trend-tooltip-head"',
-  'className="trend-tooltip-matrix" role="table" aria-label="Temperaturwerte"',
-  'className="matrix-head value-head" role="columnheader">Tmax</span>',
+  'className="trend-tooltip-matrix" role="table" aria-label="Temperaturwerte in Grad Celsius"',
+  'className="matrix-head value-head" role="columnheader">Tmax °C</span>',
   'className="matrix-value" role="cell">{item.max}</span>',
-  'position={compactTrendTooltip?{x:4}:undefined}',
+  'position={compactTrendTooltip?{x:0}:undefined}',
   'allowEscapeViewBox={{x:false,y:true}}',
-  'Best Match: {formatSunshineHours(row.bestSunshineHours)} h',
+  'className="tooltip-meta-line sunshine-tooltip-line"',
   'className="tooltip-meta-block ensemble-hazard-tooltip"'
 ]) if(!panel.includes(token)) failures.push(`Kompakter Ensemble-Tooltip fehlt: ${token}`);
 
 for(const token of [
   '.compact-trend-tooltip{',
-  '.compact-trend-tooltip .trend-tooltip-matrix,.compact-trend-tooltip .trend-tooltip-meta{font-size:11px}',
+  'width:min(286px,calc(100vw - 24px))',
+  'white-space:nowrap;',
+  '.compact-trend-tooltip .trend-tooltip-matrix>.matrix-value,.compact-trend-tooltip .trend-tooltip-matrix>.value-head{',
   '.compact-trend-tooltip .trend-tooltip-matrix>.matrix-value,.compact-trend-tooltip .trend-tooltip-matrix>.value-head{',
   '@media(max-width:520px){',
-  '@media(max-width:390px){'
+  '@media(max-width:360px){'
 ]) if(!styles.includes(token)) failures.push(`Tooltip-Stil fehlt: ${token}`);
 
 if(panel.includes('Tmin: {formatDecimalFixed(row.minLow,1)} bis {formatDecimalFixed(row.minHigh,1)} °C')) failures.push('Altes breites Fließtext-Layout des Ensemble-Tooltips ist noch vorhanden.');

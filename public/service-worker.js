@@ -1,4 +1,4 @@
-const CACHE='mid-shell-v0.7.95.9';
+const CACHE='mid-shell-v0.7.95.10';
 const VERSION=CACHE.replace('mid-shell-v','');
 const CACHE_PREFIX='mid-shell-v';
 const META_CACHE='mid-system-meta-v1';
@@ -14,6 +14,7 @@ async function readMeta(){try{const cache=await caches.open(META_CACHE),response
 async function writeMeta(meta){const cache=await caches.open(META_CACHE);await cache.put(META_URL,new Response(JSON.stringify(meta),{headers:{'content-type':'application/json','cache-control':'no-store'}}));activeCacheMemo=String(meta.activeCache||'')}
 function reply(event,data){const port=event.ports?.[0];if(port)port.postMessage(data);else event.source?.postMessage?.(data)}
 function sameScopeAsset(value){try{const url=new URL(value,self.registration.scope),scope=new URL(self.registration.scope);return url.origin===scope.origin&&url.pathname.startsWith(scope.pathname)?url.toString():null}catch{return null}}
+function liveDataRequest(request,url){const mode=String(url.searchParams.get('mode')||'').toLowerCase(),service=String(url.searchParams.get('service')||'').toLowerCase(),operation=String(url.searchParams.get('request')||'').toLowerCase();return Boolean(mode)||service==='wms'||operation==='getmap'||url.searchParams.has('bbox')||url.searchParams.has('time')&&request.destination==='image'}
 async function fetchAsset(url){const response=await fetch(url,{cache:'no-store',redirect:'follow'});if(!response.ok)throw new Error(`${new URL(url).pathname}: HTTP ${response.status}`);const destination=new URL(url).pathname;if(/\.(?:js|mjs|css)$/i.test(destination)){const type=response.headers.get('content-type')||'';if(type.includes('text/html'))throw new Error(`${destination}: unerwartete HTML-Antwort`)}return response}
 async function cacheShell(cacheName=CACHE){
  const cache=await caches.open(cacheName);
@@ -53,10 +54,11 @@ self.addEventListener('fetch',event=>{
  const request=event.request;if(request.method!=='GET')return;const url=new URL(request.url),scope=new URL(self.registration.scope);if(url.origin!==scope.origin||!url.pathname.startsWith(scope.pathname))return;
  event.respondWith((async()=>{
   const active=await activeCacheName(),rollbackMode=active!==CACHE,cache=await caches.open(active);
-  if(rollbackMode){if(request.mode==='navigate'){const page=(await cache.match(new URL('./index.html',self.registration.scope).toString()))||await cache.match(new URL('./',self.registration.scope).toString());return page?rollbackDocument(page,active):Response.error()}const cached=await cache.match(request,{ignoreSearch:true});if(cached)return cached;return fetch(request).catch(()=>new Response('MID-Ressource ist in der Rückfallversion nicht verfügbar.',{status:503}))}
-  if(url.pathname.endsWith('/version.json')||url.pathname.endsWith('/manifest.webmanifest'))return fetch(request,{cache:'no-store'}).then(response=>{if(response.ok)event.waitUntil(cache.put(request,response.clone()));return response}).catch(()=>cache.match(request,{ignoreSearch:true}).then(response=>response||Response.error()));
+  if(liveDataRequest(request,url))return fetch(request,{cache:'no-store'}).catch(()=>new Response('MID-Livedaten sind vorübergehend nicht erreichbar.',{status:503,headers:{'cache-control':'no-store'}}));
+  if(rollbackMode){if(request.mode==='navigate'){const page=(await cache.match(new URL('./index.html',self.registration.scope).toString()))||await cache.match(new URL('./',self.registration.scope).toString());return page?rollbackDocument(page,active):Response.error()}const cached=await cache.match(request);if(cached)return cached;return fetch(request).catch(()=>new Response('MID-Ressource ist in der Rückfallversion nicht verfügbar.',{status:503}))}
+  if(url.pathname.endsWith('/version.json')||url.pathname.endsWith('/manifest.webmanifest'))return fetch(request,{cache:'no-store'}).then(response=>{if(response.ok)event.waitUntil(cache.put(request,response.clone()));return response}).catch(()=>cache.match(request).then(response=>response||Response.error()));
   if(request.mode==='navigate')return fetch(request,{cache:'no-store'}).then(response=>{if(response.ok)event.waitUntil(cache.put(new URL('./index.html',self.registration.scope).toString(),response.clone()));return response}).catch(()=>cache.match(new URL('./index.html',self.registration.scope).toString()).then(response=>response||cache.match(new URL('./',self.registration.scope).toString())).then(response=>response||Response.error()));
-  const cached=await cache.match(request,{ignoreSearch:true});if(cached)return cached;
+  const cached=await cache.match(request);if(cached)return cached;
   return fetch(request).then(response=>{if(response.ok&&['script','style','image','font'].includes(request.destination))event.waitUntil(cache.put(request,response.clone()));return response});
  })())
 });
