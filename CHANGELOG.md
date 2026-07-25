@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.95.22
+
+- 14-Tage-Ensemble: sämtliche Info-Schaltflächen und „Modellstände“ auf robuste Body-Portale umgestellt, damit Popover nicht mehr von Modul-Containern oder mobilem Overflow abgeschnitten werden
+- eigene, dauerhaft sichtbare Ensemble-Hilfeleiste unter der Überschrift ergänzt
+- Außenklick, Escape, erneutes Antippen, Scroll- und Größenänderungen für alle Ensemble-Popover abgesichert
+- aktuelles Wetter: dezente Tageswerte Tmin und Tmax im Kopfbereich ergänzt
+- neue Regression für Ensemble-Hilfe und Tagesintervall sowie Erweiterung des essentiellen Funktionsvertrags
+
 ## 0.7.95.21
 
 - GitHub-Regression behoben: Workflow-Reparaturdateien liegen nun ohne versteckten `.github`-Unterordner direkt unter `workflow-patches/` und werden dadurch vom ZIP-Installer nicht mehr durch dessen `.github/`-Ausschluss entfernt

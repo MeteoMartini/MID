@@ -9,7 +9,7 @@ const styles=await readFile(path.join(root,'src','styles.css'),'utf8');
 const failures=[];
 for(const token of [
   "import {astronomySummary,formatAstronomyTime,formatDayLengthChange,formatDuration} from './astronomy';",
-  'const mappedHours=mapHours(w),pressureChange=pressureTendency(mappedHours),astronomy=astronomySummary(w);',
+  'const mappedHours=mapHours(w),mappedDays=mapDays(w),todayDate=localDateInZone(w.timezone),currentDay=mappedDays.find(day=>day.date===todayDate)??mappedDays[0],pressureChange=pressureTendency(mappedHours),astronomy=astronomySummary(w);',
   "label:'Sonne / Mond'",
   'className="sun-moon-primary"',
   'className="sun-moon-detail"',

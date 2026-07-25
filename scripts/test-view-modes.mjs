@@ -14,7 +14,8 @@ for(const token of ["type LayoutMode='standard'|'advanced'","return stored==='ad
 }
 if(app.includes("layoutMode==='full'")||app.includes("layoutMode==='compact'"))failures.push('Alte Modusabfragen compact/full sind noch aktiv.');
 for(const token of ['.mode-info-popover','.mode-standard .hazards>small','.mode-explanation','.app>footer>.mode-info-popover'])if(!styles.includes(token))failures.push(`Modus-CSS fehlt: ${token}`);
-for(const source of [app,ensemble])if(!source.includes("useDismissibleLayer(ref,open,()=>setOpen(false))"))failures.push(`Gemeinsame Außenklick-Schließlogik fehlt in ${source===app?'App':'Ensemble'}.`);
+if(!app.includes("useDismissibleLayer(ref,open,()=>setOpen(false))"))failures.push('Gemeinsame Außenklick-Schließlogik fehlt in App.');
+for(const token of ['function useEnsemblePortal(open:boolean',"document.addEventListener('pointerdown',dismiss,true)","document.addEventListener('keydown',escape)",'refs.trigger.current?.contains(target)||refs.layer.current?.contains(target)'])if(!ensemble.includes(token))failures.push(`Portal-Außenklick-Schließlogik fehlt im Ensemble: ${token}`);
 for(const token of ["document.addEventListener('pointerdown',onPointerDown,true)","document.addEventListener('keydown',onKeyDown)",'ref.current?.contains(event.target as Node)'])if(!dismissible.includes(token))failures.push(`Gemeinsame Außenklick-Schließlogik unvollständig: ${token}`);
 if(!ensemble.includes('advancedMode:boolean')||!ensemble.includes('ModeExplanation advanced={advancedMode}'))failures.push('Ensemble-Erklärungen unterscheiden Standard- und erweiterten Modus nicht.');
 if(!app.includes('compactMode advancedMode='))failures.push('Die 7-Tage-Detailansicht bleibt nicht in beiden Modi einklappbar.');

@@ -26,8 +26,9 @@ const contract={
   'Push-Panel':[pushPanel,['PushSettingsPanel','Benachrichtigungen aktivieren','Aktueller Standort']],
   'Push-Service-Worker':[sw,["addEventListener('push'","addEventListener('notificationclick'"]],
   'Push-Worker':[worker,['pushConfigured','pushSubscribe','runPushSchedule','async scheduled']],
-  'Ensemble-Erklärungen':[ensemblePanel,['function EnsembleExplanation()','14-Tage-Ensemble verstehen','P10–P90','Prognosekonsistenz','Temperaturtrend und Prognoseunsicherheit erklären','Niederschlagsdiagramm erklären']],
-  'Ensemble-Modellstände':[ensemblePanel,['ⓘ Modellstände','className="model-run-popover"','Initialisierung {formatModelRunTime','verfügbar seit {formatAvailabilityTime']]
+  'Ensemble-Erklärungen':[ensemblePanel,['function EnsembleExplanation()','14-Tage-Ensemble verstehen','P10–P90','Prognosekonsistenz','Temperaturtrend und Prognoseunsicherheit erklären','Niederschlagsdiagramm erklären','createPortal(<div ref={layer}']],
+  'Ensemble-Modellstände':[ensemblePanel,['ⓘ Modellstände','ensemble-help-toolbar','model-run-popover ensemble-portal-popover','Initialisierung {formatModelRunTime','verfügbar seit {formatAvailabilityTime']],
+  'Aktuelles Tagesintervall':[app,['hero-day-range','<small>Tmin</small>','<small>Tmax</small>']]
 };
 for(const[label,[text,tokens]]of Object.entries(contract))for(const token of tokens)if(!text.includes(token))failures.push(`${label}: ${token}`);
 if(failures.length){console.error('Essentieller MID-Funktionsvertrag verletzt:\n- '+failures.join('\n- '));process.exit(1)}

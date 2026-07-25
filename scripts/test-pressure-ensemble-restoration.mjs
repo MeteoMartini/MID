@@ -13,7 +13,7 @@ const [app,panel,styles,v078,weather]=await Promise.all([
 const failures=[];
 for(const token of [
  'function pressureTendency(hours:Hour[])',
- 'const mappedHours=mapHours(w),pressureChange=pressureTendency(mappedHours),astronomy=astronomySummary(w);',
+ 'const mappedHours=mapHours(w),mappedDays=mapDays(w),todayDate=localDateInZone(w.timezone),currentDay=mappedDays.find(day=>day.date===todayDate)??mappedDays[0],pressureChange=pressureTendency(mappedHours),astronomy=astronomySummary(w);',
  'advancedMode&&pressureChange&&<span className="pressure-tendency">',
  'hPa / 3 h',
  "delta<=-3?'stark fallend'",
@@ -32,7 +32,9 @@ for(const token of [
  '<b>P10–P90</b>',
  '<b>Prognosekonsistenz</b>',
  '<b>Modellstände</b>',
- '<EnsembleExplanation/><ModelRunDetails runs={runs}/>',
+ 'function EnsembleHelpToolbar({runs}',
+ '<EnsembleHelpToolbar runs={runs}/>',
+ 'createPortal(<div ref={layer} id={id} className="mode-info-popover ensemble-info-popover ensemble-portal-popover"',
  'ⓘ Modellstände',
  'Initialisierung {formatModelRunTime(row.initialisationTime)} · verfügbar seit {formatAvailabilityTime(row.availabilityTime)}',
  'label="14-Tage-Ensemble-Übersicht erklären"',
@@ -40,8 +42,8 @@ for(const token of [
  'label="Niederschlagsdiagramm erklären"'
 ])if(!panel.includes(token))failures.push(`Ensemble-Erklärung/Modellstände fehlt: ${token}`);
 for(const token of [
- '.ensemble>.title{flex-wrap:wrap}',
- '.ensemble>.title .title-tools{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}',
+ '.ensemble-help-toolbar{display:flex;align-items:center;justify-content:flex-end;gap:7px',
+ '.ensemble-portal-popover{position:fixed!important;right:auto!important;bottom:auto!important;z-index:6200!important',
  '.ensemble-explanation{display:grid;gap:6px}',
  '@media(max-width:620px){'
 ])if(!v078.includes(token))failures.push(`Ensemble-Steuerungs-CSS fehlt: ${token}`);
