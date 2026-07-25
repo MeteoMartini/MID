@@ -1,3 +1,10 @@
+# MID v0.7.95
+
+- Ensemble-Temperaturtooltip wird über ein viewportgebundenes Portal angezeigt und bleibt auf kleinen Displays vollständig innerhalb der sichtbaren Fläche.
+- Detailansicht-Tooltip wird ebenfalls als randfestes Portal positioniert und bei Antippen dynamisch oberhalb oder unterhalb des Berührungspunkts platziert.
+- Inhalt und Messwerte beider Tooltips bleiben vollständig erhalten; Abstände, Typografie und Tabellenraster wurden für sehr kleine Displays verdichtet.
+- Cloudflare Worker ohne funktionale Änderung auf v0.7.95 synchronisiert.
+
 # MID v0.7.94
 
 - Push-Regeln zusätzlich für den aktivierten Standortverfolgungs-Ort ergänzt.

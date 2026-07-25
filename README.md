@@ -1,6 +1,6 @@
-## MID v0.7.94 – Push für den Standortverfolgungs-Ort
+## MID v0.7.95 – Push für den Standortverfolgungs-Ort
 
-### Neu in v0.7.94
+### Neu in v0.7.95
 
 - Ist die Standortverfolgung aktiviert, erscheint unter **Einstellungen → Benachrichtigungen** zusätzlich das Ziel **Aktueller Standort**.
 - Für dieses Ziel lassen sich **Niederschlagsbeginn** und **Gewitterzelle nähert sich** unabhängig von gespeicherten Favoriten aktivieren.
@@ -8,7 +8,7 @@
 - Im geschlossenen Zustand überwacht der Worker die zuletzt erfolgreich übermittelte Position. MID führt keine dauerhafte Hintergrund-Ortung durch.
 - Wechselt die Position, wird der ereignisbezogene Worker-Zustand für das Standortziel zurückgesetzt, damit ein Regen- oder Gewitterereignis am neuen Ort korrekt erkannt werden kann.
 - **Worker-Upload erforderlich:** Ja. Die bestehende KV-Bindung, VAPID-Schlüssel und der Cron-Trigger aus v0.7.92/v0.7.93 bleiben unverändert.
-- Vollständige Anleitung: `ANLEITUNG-v0.7.94.md` und `docs/push-notifications.md`.
+- Vollständige Anleitung: `ANLEITUNG-v0.7.95.md` und `docs/push-notifications.md`.
 
 ## MID v0.7.93 – kompakte Tooltips und standorttreue Bergprofile
 
@@ -119,7 +119,7 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.94**
+**Aktuelle Version: v0.7.95**
 
 ## Revision in v0.7.89 – responsiver und schlanker
 

@@ -1,4 +1,4 @@
-# MID Daten-, Warnungs-, Radar-, Bergsport- und Push-Worker v0.7.94
+# MID Daten-, Warnungs-, Radar-, Bergsport- und Push-Worker v0.7.95
 
 Worker-Korrektur für die automatische Berg-/Wintersport-Höhenbestimmung: Overpass-Abfragen werden nun mit einem koordinatenspezifischen GET-Cache-Key ausgeführt. Zusätzlich werden nur ortsnahe, plausible Lift-/Stationspaare verwendet. Damit kann ein zuvor für Sölden oder einen anderen Favoriten ermitteltes Profil nicht auf weitere Orte übertragen werden.
 
@@ -6,7 +6,7 @@ Worker-Korrektur für die automatische Berg-/Wintersport-Höhenbestimmung: Overp
 
 Cloudflare Worker: `https://mid-data-proxy.martinmolkentin.workers.dev`
 
-Vollständige deutsche Anleitung: `../ANLEITUNG-v0.7.94.md` beziehungsweise `../docs/push-notifications.md`. Für eine erstmalige VAPID-Erzeugung ohne PC liegt `vapid-generator-worker.js` bei.
+Vollständige deutsche Anleitung: `../ANLEITUNG-v0.7.95.md` beziehungsweise `../docs/push-notifications.md`. Für eine erstmalige VAPID-Erzeugung ohne PC liegt `vapid-generator-worker.js` bei.
 
 # MID Daten-, Warnungs-, Radar-, Bergsport- und Push-Worker v0.7.92
 
