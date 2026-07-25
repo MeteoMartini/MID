@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.95.3
+
+- Tagesdetailansicht: die bisherigen darunterliegenden Stundenkarten wurden durch ein kompaktes Overlay-Tooltip direkt im Diagramm ersetzt
+- Tooltip reagiert auf Klick/Antippen im Diagramm, enthält weiterhin alle wesentlichen Stundenwerte und lässt sich per Pfeiltasten darin stündlich weiterschalten
+- responsives Tooltip-Layout für Desktop, Tablet und Smartphone überarbeitet; auf kleinen Displays reduziert sich das Raster bis auf eine Spalte
+- zusätzlicher Regressionstest für das neue Detail-Tooltip-Overlay ergänzt
+
 ## 0.7.95.2
 
 - Detailansicht: Stundenchart bleibt bewusst auf einer festen Volltagesachse von 00:00 bis 23:00
