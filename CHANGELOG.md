@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.95.13
+
+- aktuelle Übersicht: die in v0.7.92 eingeführte zehnte Karte „Sonne / Mond“ mit Auf-/Untergängen, Tageslänge, Tageslängenänderung, Mondphase, Beleuchtung und Mondalter vollständig wiederhergestellt
+- Kompositbild Satellit: offizielles EUMETSAT-MTG-GeoColour-Produkt als primärer Tag-/Nacht-Layer ergänzt; bei fehlender oder veralteter Capabilities-Zeitachse wird der dokumentierte aktuelle Dienststand ohne TIME-Parameter geladen
+- Kompositbild Satellit: automatische Rückfallkette GeoColour → IR 10,5 → DWD Meteosat Europa ergänzt
+- Kompositbild 1-km-Radar: erfundene TIME-Werte bei fehlender DWD-Zeitdimension entfernt; stattdessen wird der offizielle Alias `dwd:Niederschlagsradar` ohne festen Zeitpunkt als aktueller Dienststand geladen
+- Kompositbild Blitze: EUMETSAT MTG-LI als bevorzugter freier Rasterlayer; bei fehlender Zeitdimension wird der aktuelle Dienststand ohne TIME geladen, bei Kachelfehler folgt automatisch DWD Blitzdichte
+- zusätzliche Regressionen für Astronomiekarte sowie zeitlose, cachefreie Radar-, Satelliten- und Blitzfallbacks ergänzt
+
 ## 0.7.95.12
 
 - Kompositbild: DWD-WMS-Routing auf den offiziell dokumentierten generischen GeoServer-Endpunkt als Primärquelle zurückgestellt

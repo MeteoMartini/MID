@@ -1,3 +1,7 @@
+# MID Daten-, Warnungs- und Radarproxy v0.7.95.13
+
+Funktionale Kompositkorrektur: EUMETSAT GeoColour und MTG-LI können als aktueller Dienststand ohne TIME-Parameter geladen werden; das DWD-1-km-Radar verwendet bei fehlender echter Zeitdimension den offiziellen Alias `dwd:Niederschlagsradar`. Erfundene WMS-Zeitwerte werden für die sichtbare Kompositkarte nicht mehr erzeugt.
+
 # MID Daten-, Warnungs- und Radarproxy v0.7.88
 
 Funktionale Erweiterung des bestehenden Workers für die Starkregenanalyse der aktuellen Niederschlagswahrscheinlichkeit: RADOLAN-YW-Summen 15/30/60/180/360 Minuten, DWD-RV-Nowcast bis +120 Minuten, KONRAD3D-Zellzug und Starkregenflag, KOSTRA-DWD-2020-Einordnung sowie DWD-Stationsabgleich. Amtliche Warnungen bleiben getrennt. Die Cloudflare-Auslieferung erfolgt weiterhin als einzelner Worker; in `MID-worker.zip` heißt die Einstiegdatei `worker.js`.

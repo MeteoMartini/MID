@@ -10,7 +10,7 @@ const failures=[];
 
 for(const token of [
   '[tileRevision,setTileRevision]=useState(()=>Math.floor(Date.now()/60000))',
-  'loadCompositeTimes(lat,lon,controller.signal).then(data=>{setProductTimes(data);setTileRevision(value=>value+1);',
+  'loadCompositeTimes(lat,lon,controller.signal).then(data=>{setProductTimes(data);',
   'window.setInterval(()=>setTileRevision(value=>value+1),120000)',
   'onClick={()=>{setShowSatellite(value=>!value);setTileRevision(value=>value+1)}}',
   'rasterVersionUrl(satelliteProxy,tileRevision,iso)'

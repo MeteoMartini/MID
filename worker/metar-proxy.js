@@ -17,7 +17,7 @@ const OPENSENSEMAP_BOXES='https://api.opensensemap.org/boxes';
 const DWD_KONRAD3D_INDEX='https://opendata.dwd.de/weather/radar/konrad3d/';
 const DWD_RADOLAN_YW_ROOT='https://opendata.dwd.de/weather/radar/radolan/yw/';
 const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids_germany/return_periods/precipitation/KOSTRA/KOSTRA_DWD_2020/asc/';
-const WORKER_VERSION='0.7.95.12';
+const WORKER_VERSION='0.7.95.13';
 const CORS={'content-type':'application/json; charset=utf-8','access-control-allow-origin':'*','access-control-allow-methods':'GET,OPTIONS','cache-control':'public, max-age=180'};
 const FEED_SLUGS={
  AD:'andorra',AT:'austria',BE:'belgium',BA:'bosnia-herzegovina',BG:'bulgaria',HR:'croatia',CY:'cyprus',CZ:'czechia',DK:'denmark',EE:'estonia',FI:'finland',FR:'france',DE:'germany',GR:'greece',EL:'greece',HU:'hungary',IS:'iceland',IE:'ireland',IL:'israel',IT:'italy',LV:'latvia',LT:'lithuania',LU:'luxembourg',MT:'malta',MD:'moldova',ME:'montenegro',NL:'netherlands',MK:'republic-of-north-macedonia',NO:'norway',PL:'poland',PT:'portugal',RO:'romania',RS:'serbia',SK:'slovakia',SI:'slovenia',ES:'spain',SE:'sweden',CH:'switzerland',UA:'ukraine',GB:'united-kingdom',UK:'united-kingdom',AM:'armenia'
@@ -616,19 +616,26 @@ async function bestLightningPoints(lat,lon,env){
 
 const EUMETSAT_WMS='https://view.eumetsat.int/geoserver/wms';
 const SATELLITE_DAY_CANDIDATES=[
- {provider:'eumetsat',layer:'mtg_fd:vis06_hrfi',label:'MTG FCI VIS 0,6 HRFI',resolutionKm:.5},
+ // GeoColour ist das von EUMETSAT dokumentierte Tag-/Nacht-RGB und kann
+ // ohne TIME stets als aktuellster verfügbarer Dienststand abgerufen werden.
+ {provider:'eumetsat',layer:'mtg_fd:rgb_geocolour',label:'MTG FCI GeoColour',resolutionKm:1,maxAgeMinutes:120,freshAgeMinutes:45},
+ {provider:'eumetsat',layer:'mtg_fd:rgb_cloudtype',label:'MTG FCI Cloud Type RGB',resolutionKm:1,maxAgeMinutes:120,freshAgeMinutes:45},
+ {provider:'eumetsat',layer:'mtg_fd:vis06_hrfi',label:'MTG FCI VIS 0,6 HRFI',resolutionKm:.5,maxAgeMinutes:120,freshAgeMinutes:45},
  {provider:'eumetsat',layer:'msg_fes:rgb_eview',label:'MSG European HRV RGB',resolutionKm:1},
  {provider:'dwd',layer:'dwd:Satellite_meteosat_1km_euat_rgb_day_hrv_and_night_ir108_3h',label:'DWD Meteosat Europa RGB/IR (3 h)',resolutionKm:1,maxAgeMinutes:300,freshAgeMinutes:210},
  {provider:'dwd',layer:'dwd:Satellite_meteosat_1km_euat_rgb_clouds_day_and_night',label:'DWD Meteosat Europa RGB/IR',resolutionKm:1},
  {provider:'dwd',layer:'dwd:SAT_EU_RGB',label:'DWD Meteosat Europa RGB',resolutionKm:1}
 ];
 const SATELLITE_IR_CANDIDATES=[
- {provider:'eumetsat',layer:'mtg_fd:ir105_hrfi',label:'MTG FCI IR 10,5 HRFI',resolutionKm:1},
+ {provider:'eumetsat',layer:'mtg_fd:rgb_geocolour',label:'MTG FCI GeoColour Tag/Nacht',resolutionKm:1,maxAgeMinutes:120,freshAgeMinutes:45},
+ {provider:'eumetsat',layer:'mtg_fd:ir105_hrfi',label:'MTG FCI IR 10,5 HRFI',resolutionKm:1,maxAgeMinutes:120,freshAgeMinutes:45},
  {provider:'eumetsat',layer:'msg_fes:ir108',label:'MSG SEVIRI IR 10,8',resolutionKm:3},
  {provider:'dwd',layer:'dwd:Satellite_meteosat_1km_euat_rgb_day_hrv_and_night_ir108_3h',label:'DWD Meteosat Europa Tag/Nacht (3 h)',resolutionKm:1,maxAgeMinutes:300,freshAgeMinutes:210},
  {provider:'dwd',layer:'dwd:Satellite_meteosat_1km_euat_rgb_clouds_day_and_night',label:'DWD Meteosat Europa Tag/Nacht',resolutionKm:1},
  {provider:'dwd',layer:'dwd:SAT_EU_RGB',label:'DWD Meteosat Europa RGB',resolutionKm:1}
 ];
+const SATELLITE_LATEST_DAY={provider:'eumetsat',layer:'mtg_fd:rgb_geocolour',label:'MTG FCI GeoColour · aktueller Dienststand',resolutionKm:1,times:[],latestOnly:true,fallback:true};
+const SATELLITE_LATEST_IR={provider:'eumetsat',layer:'mtg_fd:ir105_hrfi',label:'MTG FCI IR 10,5 · aktueller Dienststand',resolutionKm:1,times:[],latestOnly:true,fallback:true};
 // H40B ist das operative MTG-FCI-Niederschlagsprodukt. Es wird automatisch
 // bevorzugt, sobald EUMETView einen entsprechenden WMS-Layer veröffentlicht.
 // Bis dahin ist das öffentlich verfügbare MSG/H SAF H60B der belastbare WMS-Fallback.
@@ -658,17 +665,35 @@ function satelliteProduct(capabilities,candidates,now=Date.now()){
  if(!chosen){latestOnly.sort((a,b)=>Number(b.provider==='eumetsat')-Number(a.provider==='eumetsat')||(a.resolutionKm??99)-(b.resolutionKm??99));chosen=latestOnly[0]}
  if(!chosen)return undefined;const{latest,...product}=chosen;return{...product,latestTime:Number.isFinite(latest)?new Date(latest).toISOString():undefined,fallback:product.provider!=='eumetsat'||(!product.layer.startsWith('mtg_fd:')&&product.layer!=='msg_fes:h60b')}
 }
-async function compositeTimes(lat,lon){const serverTime=new Date().toISOString(),now=Date.now(),result={satelliteDay:[],satelliteIr:[],satellitePrecip:[],mtgLightning:[],dwdLightning:[],dwdRadar:[],dwdRadarLayer:'',checkedAt:serverTime,serverTime},capabilities={},errors=[];
+async function compositeTimes(lat,lon){const serverTime=new Date().toISOString(),now=Date.now(),result={satelliteDay:[],satelliteIr:[],satellitePrecip:[],mtgLightning:[],dwdLightning:[],dwdRadar:[],dwdRadarLayer:'',dwdRadarLatestOnly:false,mtgLightningLatestOnly:false,checkedAt:serverTime,serverTime},capabilities={},errors=[];
  const requests=[];
  if(mtgLightningApplies(lat,lon))requests.push(firstWmsCapabilities([EUMETSAT_WMS],'EUMETSAT').then(xml=>{capabilities.eumetsat=xml}).catch(error=>errors.push(error instanceof Error?error.message:String(error))));
  if(mtgLightningApplies(lat,lon)||inGermanyBounds(lat,lon))requests.push(firstWmsCapabilities(DWD_RADAR_WMS_BASES,'DWD').then(xml=>{capabilities.dwd=xml}).catch(error=>errors.push(error instanceof Error?error.message:String(error))));
  await Promise.all(requests);
- if(capabilities.eumetsat)result.mtgLightning=recentObservedTimes(dwdTimesFromCapabilities(capabilities.eumetsat,'mtg_fd:li_afa'),now,130,28,10).map(time=>new Date(time).toISOString());
- if(capabilities.dwd&&inGermanyBounds(lat,lon)){
-  result.dwdLightning=recentObservedTimes(dwdTimesFromCapabilities(capabilities.dwd,'dwd:Blitzdichte'),now,130,28,10).map(time=>new Date(time).toISOString());
-  for(const layer of DWD_RADAR_LAYERS){if(!hasWmsLayer(capabilities.dwd,layer))continue;const available=dwdTimesFromCapabilities(capabilities.dwd,layer),selected=selectDwdTimes(available,now);if(selected.length){result.dwdRadar=selected.map(time=>new Date(time).toISOString());result.dwdRadarLayer=layer;break}}
+ if(mtgLightningApplies(lat,lon)){
+  const mtgTimes=capabilities.eumetsat?recentObservedTimes(dwdTimesFromCapabilities(capabilities.eumetsat,'mtg_fd:li_afa'),now,80,20,10):[];
+  result.mtgLightning=mtgTimes.map(time=>new Date(time).toISOString());
+  // EUMETView dokumentiert GetMap ohne TIME ausdrücklich als "latest".
+  // Dadurch bleibt das freie LI-Raster auch bei einer vorübergehend fehlenden
+  // oder unvollständigen Capabilities-Zeitdimension nutzbar.
+  result.mtgLightningLatestOnly=!mtgTimes.length;
  }
- if(mtgLightningApplies(lat,lon)){result.satelliteDayProduct=satelliteProduct(capabilities,SATELLITE_DAY_CANDIDATES,now);result.satelliteIrProduct=satelliteProduct(capabilities,SATELLITE_IR_CANDIDATES,now);result.satellitePrecipProduct=satelliteProduct(capabilities,SATELLITE_PRECIP_CANDIDATES,now);result.satelliteDay=result.satelliteDayProduct?.times||[];result.satelliteIr=result.satelliteIrProduct?.times||[];result.satellitePrecip=result.satellitePrecipProduct?.times||[]}
+ if(inGermanyBounds(lat,lon)){
+  if(capabilities.dwd){
+   result.dwdLightning=recentObservedTimes(dwdTimesFromCapabilities(capabilities.dwd,'dwd:Blitzdichte'),now,65,16,10).map(time=>new Date(time).toISOString());
+   for(const layer of DWD_RADAR_LAYERS){if(!hasWmsLayer(capabilities.dwd,layer))continue;const available=dwdTimesFromCapabilities(capabilities.dwd,layer);if(!available.length)continue;const selected=selectDwdTimes(available,now);if(selected.length){result.dwdRadar=selected.map(time=>new Date(time).toISOString());result.dwdRadarLayer=layer;break}}
+  }
+  // Der offizielle Alias liefert ohne TIME stets das aktuell nutzerfreundlichste
+  // DWD-Radarprodukt. Er ist der belastbare visuelle Rückfall, wenn die
+  // RV-Zeitdimension oder einzelne zeitcodierte Kacheln ausfallen.
+  if(!result.dwdRadar.length){result.dwdRadarLayer='dwd:Niederschlagsradar';result.dwdRadarLatestOnly=true}
+ }
+ if(mtgLightningApplies(lat,lon)){
+  result.satelliteDayProduct=satelliteProduct(capabilities,SATELLITE_DAY_CANDIDATES,now)||{...SATELLITE_LATEST_DAY};
+  result.satelliteIrProduct=satelliteProduct(capabilities,SATELLITE_IR_CANDIDATES,now)||{...SATELLITE_LATEST_IR};
+  result.satellitePrecipProduct=satelliteProduct(capabilities,SATELLITE_PRECIP_CANDIDATES,now);
+  result.satelliteDay=result.satelliteDayProduct?.times||[];result.satelliteIr=result.satelliteIrProduct?.times||[];result.satellitePrecip=result.satellitePrecipProduct?.times||[]
+ }
  return{...result,errors};
 }
 
@@ -720,7 +745,7 @@ async function modelContours(lat,lon){
 }
 const WMS_ALLOWED_LAYERS={
  dwd:new Set([...DWD_RADAR_LAYERS,'dwd:Blitzdichte',...SATELLITE_DAY_CANDIDATES.filter(item=>item.provider==='dwd').map(item=>item.layer),...SATELLITE_IR_CANDIDATES.filter(item=>item.provider==='dwd').map(item=>item.layer)]),
- eumetsat:new Set(['mtg_fd:vis06_hrfi','mtg_fd:ir105_hrfi','mtg_fd:li_afa','msg_fes:rgb_eview','msg_fes:ir108',...SATELLITE_PRECIP_CANDIDATES.map(item=>item.layer)])
+ eumetsat:new Set(['mtg_fd:li_afa',...SATELLITE_DAY_CANDIDATES.filter(item=>item.provider==='eumetsat').map(item=>item.layer),...SATELLITE_IR_CANDIDATES.filter(item=>item.provider==='eumetsat').map(item=>item.layer),...SATELLITE_PRECIP_CANDIDATES.map(item=>item.layer)])
 };
 async function compositeWmsResponse(request){
  const url=new URL(request.url),provider=String(url.searchParams.get('provider')||'').toLowerCase(),bases=provider==='dwd'?DWD_RADAR_WMS_BASES:provider==='eumetsat'?[EUMETSAT_WMS]:[];

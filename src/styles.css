@@ -1896,3 +1896,10 @@ footer{flex-wrap:wrap;align-items:center}
   .compact-trend-tooltip .trend-tooltip-matrix,.compact-trend-tooltip .trend-tooltip-meta{font-size:8.8px}
   .compact-trend-tooltip .trend-tooltip-matrix{grid-template-columns:minmax(58px,.76fr) minmax(0,1fr) minmax(0,1fr)}
 }
+
+/* v0.7.95.13 – wiederhergestellte aktuelle Sonne-/Mond-Karte */
+.metrics .sun-moon-card{background:linear-gradient(145deg,color-mix(in srgb,var(--s2) 92%,#ffd85b 8%),var(--surface))}
+.metrics .sun-moon-primary{display:block;white-space:nowrap}
+.metrics .sun-moon-detail{display:grid;gap:2px}
+.metrics .sun-moon-detail>span{display:block}
+@media(min-width:1101px){.metrics{grid-template-columns:repeat(10,minmax(0,1fr))}.metrics .sun-moon-card{min-width:0}}
