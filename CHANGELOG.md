@@ -1,3 +1,12 @@
+# MID v0.7.93
+
+- 14-Tage-Ensemble-Temperaturtooltip als kompakte, mobile Temperaturtabelle neu gestaltet; sämtliche Bereiche, Sonnenscheindauer, Hazards und Prognosekonsistenz bleiben enthalten.
+- Stündliche Detailansicht zeigt Informationen erst nach Klick oder Antippen in einem kompakten, randabhängig positionierten Tooltip mit Stundennavigation und Schließen-Schaltfläche.
+- Automatische Berg-/Wintersport-Höhenbestimmung strikt an die Koordinaten des jeweiligen Favoriten gebunden.
+- Versehentliche Wiederverwendung eines zuvor gecachten Overpass-Ergebnisses verhindert: koordinatenspezifischer GET-Cache-Key und zusätzliche räumliche Frontend-Validierung.
+- Cloudflare Worker auf v0.7.93 synchronisiert; bestehende KV-, VAPID- und Cron-Einstellungen bleiben unverändert.
+- Neuer Regressionstest für Tooltip-Kompaktheit und standortbezogene Bergprofile.
+
 # MID v0.7.92
 
 - Luftdruckkarte im erweiterten Modus um die Änderung des auf Meereshöhe reduzierten Drucks über drei Stunden samt Trendpfeil und Klartexttendenz ergänzt.

@@ -1,4 +1,4 @@
-# MID v0.7.92 – Installations- und Cloudflare-Anleitung
+# MID v0.7.93 – Installations- und Cloudflare-Anleitung
 
 Diese Anleitung gehört zu:
 
@@ -6,6 +6,8 @@ Diese Anleitung gehört zu:
 - `MID-worker.zip`
 - Cloudflare Worker: `https://mid-data-proxy.martinmolkentin.workers.dev`
 - MID-Web-App: `https://meteomartini.github.io/MID/`
+
+> **Aktualisierung von v0.7.92:** Bereits vorhandene KV-, VAPID- und Cron-Einstellungen bleiben gültig. In diesem Fall genügen die Installation der neuen Projekt-ZIP, der vollständige Austausch von `worker.js` und die Gesundheitsprüfung. Die Schritte 3 bis 8 müssen nicht wiederholt werden.
 
 ## 1. MID-Projekt in GitHub installieren
 
@@ -16,7 +18,7 @@ Diese Anleitung gehört zu:
 5. Committe direkt in den Branch `main`.
 6. Öffne in GitHub den Bereich **Actions**.
 7. Warte, bis der Workflow **Install MID release and deploy** vollständig grün ist.
-8. Öffne anschließend MID und prüfe im Systemstatus die Version `0.7.92`.
+8. Öffne anschließend MID und prüfe im Systemstatus die Version `0.7.93`.
 
 ## 2. Worker-Code in Cloudflare aktualisieren
 
@@ -31,7 +33,7 @@ Diese Anleitung gehört zu:
 7. Öffne lokal `worker.js`, kopiere den vollständigen Inhalt und füge ihn in Cloudflare ein.
 8. Klicke auf **Bereitstellen**.
 9. Warte etwa eine Minute.
-10. Öffne `https://mid-data-proxy.martinmolkentin.workers.dev/?mode=health`. Erwartet wird unter anderem `"version":"0.7.92"`.
+10. Öffne `https://mid-data-proxy.martinmolkentin.workers.dev/?mode=health`. Erwartet wird unter anderem `"version":"0.7.93"`.
 
 ## 3. KV-Speicher für Push-Abonnements anlegen
 
@@ -55,28 +57,26 @@ Der sichtbare Name ist frei wählbar. Der spätere Bindungsname muss dagegen exa
 8. Wähle den zuvor angelegten Namespace `MID Push Subscriptions`.
 9. Klicke auf **Bereitstellen**.
 
-## 5. VAPID-Schlüssel erzeugen
+## 5. VAPID-Schlüssel erzeugen – nur bei einer erstmaligen Push-Einrichtung
 
-Die Schlüssel werden einmal erzeugt und danach dauerhaft weiterverwendet.
+Bereits für MID v0.7.92 eingerichtete VAPID-Schlüssel **nicht neu erzeugen**. Sie bleiben für v0.7.93 gültig.
 
-1. Öffne auf einem Mac oder Windows-PC ein Terminal beziehungsweise PowerShell.
-2. Wechsle in den entpackten Ordner von `MID-worker.zip`.
-3. Führe aus:
+### Ohne Mac-/Windows-PC direkt über Cloudflare
 
-```bash
-node generate-vapid.mjs
-```
+1. Erstelle unter **Workers & Pages → Anwendung erstellen → Worker erstellen** vorübergehend einen zweiten Worker, beispielsweise `mid-vapid-generator`.
+2. Öffne dessen **Code bearbeiten**.
+3. Ersetze den Beispielcode vollständig durch die mitgelieferte Datei `vapid-generator-worker.js`.
+4. Ersetze in der ersten Zeile `HIER-EIGENEN-LANGEN-CODE-EINTRAGEN` durch einen eigenen langen Zugriffscode.
+5. Klicke auf **Bereitstellen**.
+6. Öffne die Generatoradresse mit `?code=DEIN-ZUGRIFFSCODE`.
+7. Kopiere `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` und `VAPID_SUBJECT` gemeinsam in eine gesperrte Notiz. Jede Aktualisierung erzeugt ein neues Paar.
+8. Lösche den Hilfs-Worker unmittelbar danach wieder vollständig.
 
-4. Sichere die drei ausgegebenen Zeilen:
+### Alternativ mit Node.js
 
-```text
-VAPID_PUBLIC_KEY=...
-VAPID_PRIVATE_KEY=...
-VAPID_SUBJECT=mailto:DEINE-ADRESSE@example.com
-```
+Im entpackten Ordner kann `node generate-vapid.mjs` ausgeführt werden.
 
-5. Ersetze bei `VAPID_SUBJECT` die Beispieladresse durch deine reale Kontaktadresse.
-6. Veröffentliche den privaten Schlüssel niemals und lade ihn nicht in GitHub hoch.
+Ersetze bei `VAPID_SUBJECT` die Beispieladresse durch eine reale Kontaktadresse. Der private Schlüssel darf niemals in GitHub oder in den öffentlichen Worker-Code gelangen.
 
 ## 6. Öffentliche Variablen in Cloudflare eintragen
 
@@ -134,7 +134,7 @@ https://mid-data-proxy.martinmolkentin.workers.dev/?mode=health
 https://mid-data-proxy.martinmolkentin.workers.dev/?mode=push-config
 ```
 
-Bei `health` muss die Version `0.7.92` erscheinen. Unter den Anbietern muss `WebPush` auf `true` stehen.
+Bei `health` muss die Version `0.7.93` erscheinen. Unter den Anbietern muss `WebPush` auf `true` stehen.
 
 Bei `push-config` muss ungefähr erscheinen:
 
@@ -142,7 +142,7 @@ Bei `push-config` muss ungefähr erscheinen:
 {
   "enabled": true,
   "publicKey": "...",
-  "version": "0.7.92"
+  "version": "0.7.93"
 }
 ```
 
@@ -197,10 +197,10 @@ Push funktioniert auf iPhone und iPad nur in der installierten Home-Bildschirm-W
 
 ## 13. Abschließende Kontrolle
 
-- MID zeigt Version `0.7.92`.
+- MID zeigt Version `0.7.93`.
 - Die aktuelle Übersicht enthält die zehnte Karte **Sonne / Mond**.
 - Im erweiterten Modus zeigt die Luftdruckkarte die Änderung über drei Stunden.
-- `?mode=health` meldet `0.7.92` und `WebPush: true`.
+- `?mode=health` meldet `0.7.93` und `WebPush: true`.
 - `?mode=push-config` meldet `enabled: true`.
 - Der Cron-Trigger `*/5 * * * *` ist sichtbar.
 - Nach Push-Aktivierung liegt im KV-Namespace mindestens ein Schlüssel vor, der mit `sub:` beginnt.

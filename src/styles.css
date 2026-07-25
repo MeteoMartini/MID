@@ -1823,3 +1823,69 @@ footer{flex-wrap:wrap;align-items:center}
 .push-message{margin:0;padding:10px 12px;border:1px solid color-mix(in srgb,var(--primary) 35%,var(--border));border-radius:11px;background:color-mix(in srgb,var(--primary) 8%,var(--surface));font-size:11px}.push-privacy-note{color:var(--muted);font-size:9px;line-height:1.45}
 @media(max-width:1200px){.metrics{grid-template-columns:repeat(5,minmax(0,1fr))}}
 @media(max-width:760px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.sun-moon-primary{white-space:normal}.push-actions{align-items:stretch}.push-actions>button{width:100%}.push-favorite-list>article>label{grid-template-columns:auto auto minmax(0,1fr)}}
+
+
+/* MID v0.7.93 – kompakte Diagramm-Tooltips und standorttreue Bergprofile */
+.compact-trend-tooltip{
+ width:min(338px,calc(100vw - 20px));
+ min-width:0!important;
+ max-width:calc(100vw - 20px);
+ max-height:min(72dvh,540px);
+ overflow:auto;
+ gap:6px!important;
+ padding:8px 9px!important;
+ border-radius:11px!important;
+ font-size:10px!important;
+ line-height:1.25;
+}
+.compact-trend-tooltip>.trend-tooltip-date{display:block;margin:0 0 1px;font-size:13px;line-height:1.25}
+.trend-tooltip-temperature-table{display:grid;border:1px solid var(--border);border-radius:9px;overflow:hidden;background:color-mix(in srgb,var(--s2) 72%,transparent)}
+.trend-tooltip-table-row{display:grid;grid-template-columns:minmax(86px,1.25fr) minmax(70px,1fr) minmax(70px,1fr);align-items:center;min-width:0;border-top:1px solid var(--border)}
+.trend-tooltip-table-row:first-child{border-top:0}
+.trend-tooltip-table-row>*{min-width:0;padding:4px 5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.trend-tooltip-table-row>b:first-child{color:var(--muted);font-size:9px;letter-spacing:.025em}
+.trend-tooltip-table-row>span{text-align:right;font-variant-numeric:tabular-nums}
+.trend-tooltip-table-head{background:color-mix(in srgb,var(--s3) 82%,transparent);color:var(--muted);font-size:8.5px;text-transform:uppercase;letter-spacing:.06em}
+.trend-tooltip-table-head>b{text-align:right}
+.trend-tooltip-meta-row{display:grid;grid-template-columns:minmax(82px,.75fr) minmax(0,1.7fr);gap:7px;padding-top:5px;border-top:1px solid var(--border)}
+.trend-tooltip-meta-row>b{color:var(--muted);font-size:8.5px;text-transform:uppercase;letter-spacing:.055em}
+.trend-tooltip-meta-row>span{min-width:0;text-align:right;overflow-wrap:anywhere}
+.trend-tooltip-meta-row>span>strong{font-size:inherit}
+.trend-tooltip-hazards>span{display:grid;gap:2px;text-align:left}
+.trend-tooltip-hazards em{font-style:normal;line-height:1.25}
+@media(max-width:380px){.compact-trend-tooltip{width:calc(100vw - 16px);padding:7px!important}.trend-tooltip-table-row{grid-template-columns:minmax(78px,1.15fr) minmax(64px,1fr) minmax(64px,1fr)}.trend-tooltip-table-row>*{padding:4px}.trend-tooltip-meta-row{grid-template-columns:74px minmax(0,1fr);gap:5px}}
+
+.detail-chart-popover{
+ position:absolute;
+ z-index:45;
+ width:min(292px,calc(100% - 16px));
+ max-height:min(68dvh,calc(100% - 16px));
+ overflow:auto;
+ padding:8px;
+ border:1px solid color-mix(in srgb,var(--primary) 34%,var(--border));
+ border-radius:12px;
+ background:color-mix(in srgb,var(--surface) 97%,transparent);
+ box-shadow:0 12px 34px rgba(0,0,0,.3);
+ backdrop-filter:blur(14px);
+ color:var(--text);
+ font-size:10px;
+ line-height:1.25;
+}
+.detail-chart-popover.right.below{transform:translate(9px,9px)}
+.detail-chart-popover.left.below{transform:translate(calc(-100% - 9px),9px)}
+.detail-chart-popover.right.above{transform:translate(9px,calc(-100% - 9px))}
+.detail-chart-popover.left.above{transform:translate(calc(-100% - 9px),calc(-100% - 9px))}
+.detail-chart-popover>header{display:grid;grid-template-columns:28px minmax(0,1fr) 28px 26px;align-items:center;gap:5px;padding-bottom:6px;margin-bottom:5px;border-bottom:1px solid var(--border)}
+.detail-chart-popover>header>div{min-width:0;text-align:center}
+.detail-chart-popover>header small,.detail-chart-popover>header strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.detail-chart-popover>header small{color:var(--muted);font-size:9px}
+.detail-chart-popover>header strong{font-size:11px}
+.detail-chart-popover>header button{display:grid;width:28px;height:28px;place-items:center;padding:0;border:1px solid var(--border);border-radius:8px;background:var(--s2);color:var(--text);font-size:18px;line-height:1}
+.detail-chart-popover>header .detail-tooltip-close{width:26px;height:26px;color:var(--muted)}
+.detail-tooltip-grid{display:grid;gap:0;margin:0}
+.detail-tooltip-grid>div{display:grid;grid-template-columns:94px minmax(0,1fr);gap:7px;padding:4px 2px;border-top:1px solid color-mix(in srgb,var(--border) 70%,transparent)}
+.detail-tooltip-grid>div:first-child{border-top:0}
+.detail-tooltip-grid dt{color:var(--muted);font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:.045em}
+.detail-tooltip-grid dd{min-width:0;margin:0;text-align:right;font-weight:750;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.detail-tooltip-grid dd small{display:block;margin-top:1px;color:var(--muted);font-size:8.5px;font-weight:650}
+@media(max-width:380px){.detail-chart-popover{width:calc(100% - 12px);padding:7px}.detail-tooltip-grid>div{grid-template-columns:88px minmax(0,1fr);gap:5px}}

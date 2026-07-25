@@ -1,3 +1,13 @@
+# MID Daten-, Warnungs-, Radar-, Bergsport- und Push-Worker v0.7.93
+
+Worker-Korrektur für die automatische Berg-/Wintersport-Höhenbestimmung: Overpass-Abfragen werden nun mit einem koordinatenspezifischen GET-Cache-Key ausgeführt. Zusätzlich werden nur ortsnahe, plausible Lift-/Stationspaare verwendet. Damit kann ein zuvor für Sölden oder einen anderen Favoriten ermitteltes Profil nicht auf weitere Orte übertragen werden.
+
+**Worker-Upload erforderlich: Ja.** `worker/metar-proxy.js` beziehungsweise die separate `worker.js` muss den bisherigen Cloudflare-Worker vollständig ersetzen. Bereits eingerichtete KV-, VAPID- und Cron-Einstellungen bleiben unverändert und müssen nicht neu angelegt werden.
+
+Cloudflare Worker: `https://mid-data-proxy.martinmolkentin.workers.dev`
+
+Vollständige deutsche Anleitung: `../ANLEITUNG-v0.7.93.md` beziehungsweise `../docs/push-notifications.md`. Für eine erstmalige VAPID-Erzeugung ohne PC liegt `vapid-generator-worker.js` bei.
+
 # MID Daten-, Warnungs-, Radar-, Bergsport- und Push-Worker v0.7.92
 
 Der Worker v0.7.92 ergänzt die bestehenden MID-Dienste um persönliche Web-Push-Regeln für Niederschlagsbeginn und sich nähernde Gewitterzellen. Er enthält die Routen `push-config`, `push-subscribe` und `push-unsubscribe` sowie einen `scheduled()`-Handler für den fünfminütigen Cron-Lauf.

@@ -13,9 +13,9 @@ const required=[
  [astronomy,'moonIllumination'],[astronomy,'moonTimesForDate'],[astronomy,'dayLengthChangeSeconds'],
  [push,"'push-subscribe'"],[push,"'push-unsubscribe'"],[panel,'Niederschlagsbeginn'],[panel,'Gewitterzelle nähert sich'],
  [sw,"addEventListener('push'"],[sw,"addEventListener('notificationclick'"],
- [worker,"WORKER_VERSION='0.7.92'"],[worker,"mode==='push-config'"],[worker,'async scheduled('],[docs,'https://mid-data-proxy.martinmolkentin.workers.dev'],[docs,'MID_PUSH_SUBSCRIPTIONS'],[docs,'VAPID_PRIVATE_KEY'],[docs,'*/5 * * * *']
+ [worker,"WORKER_VERSION='0.7.93'"],[worker,"mode==='push-config'"],[worker,'async scheduled('],[docs,'https://mid-data-proxy.martinmolkentin.workers.dev'],[docs,'MID_PUSH_SUBSCRIPTIONS'],[docs,'VAPID_PRIVATE_KEY'],[docs,'*/5 * * * *']
 ];
-for(const[source,needle]of required)if(!source.includes(needle))throw new Error(`Fehlender v0.7.92-Baustein: ${needle}`);
+for(const[source,needle]of required)if(!source.includes(needle))throw new Error(`Fehlender v0.7.93-Baustein: ${needle}`);
 const cardLabels=[...app.matchAll(/label:'([^']+)'/g)].map(match=>match[1]);
 if(!cardLabels.includes('Sonne / Mond'))throw new Error('Sonne-/Mondkarte fehlt.');
 console.log('Astronomie-, Luftdruck- und Push-Regressionstest erfolgreich.');

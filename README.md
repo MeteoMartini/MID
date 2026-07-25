@@ -1,12 +1,19 @@
-## MID v0.7.92 – Sonne/Mond, Luftdrucktendenz und Push
+## MID v0.7.93 – kompakte Tooltips und standorttreue Bergprofile
 
-### Neu in v0.7.92
+### Neu in v0.7.93
+
+- Das 14-Tage-Ensemble-Temperaturtooltip zeigt alle bisherigen Angaben in einer schmalen dreispaltigen Tabelle und bleibt auf kleinen Displays innerhalb des sichtbaren Bereichs.
+- Das stündliche Detaildiagramm öffnet nach Klick oder Antippen ein kompaktes, schließbares Tooltip mit Stundennavigation statt eines dauerhaften breiten Informationsblocks.
+- Die automatische Tal-/Mittel-/Bergstationsbestimmung ist strikt an die Koordinaten des bearbeiteten Favoriten gebunden. Räumlich unpassende Worker-Ergebnisse werden verworfen.
+- Der Overpass-Cache des Cloudflare Workers verwendet einen koordinatenspezifischen Schlüssel, damit ein Profil von Sölden oder einem anderen Ort nicht für weitere Favoriten wiederverwendet wird.
+- **Worker-Upload erforderlich:** Ja. Bereits eingerichtete KV-, VAPID- und Cron-Einstellungen aus v0.7.92 bleiben unverändert.
+- Vollständige Anleitung: `ANLEITUNG-v0.7.93.md` und `docs/push-notifications.md`.
+
+### Weiterhin enthalten seit v0.7.92
 
 - Luftdruckänderung über drei Stunden ausschließlich im erweiterten Modus.
 - Zehnte aktuelle Karte „Sonne / Mond“ mit Auf-/Untergängen, Tageslänge und genauer aktueller Mondphase.
 - Persönliche Web-Push-Regeln je Favorit für Niederschlagsbeginn und sich nähernde Gewitterzellen.
-- Der Cloudflare Worker muss für Push auf v0.7.92 aktualisiert und mit KV, VAPID sowie Cron eingerichtet werden.
-- Vollständige Anleitung: `ANLEITUNG-v0.7.92.md` und `docs/push-notifications.md`.
 
 
 - Berg-/Skimodus in Berg-/Wintersport umbenannt und um Saisonprofile Automatisch, Sommer und Winter erweitert.
@@ -100,7 +107,7 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.92**
+**Aktuelle Version: v0.7.93**
 
 ## Revision in v0.7.89 – responsiver und schlanker
 
