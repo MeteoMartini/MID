@@ -1,27 +1,3 @@
-# MID Daten-, Warnungs-, Radar-, Bergsport- und Push-Worker v0.7.95
-
-Worker-Korrektur für die automatische Berg-/Wintersport-Höhenbestimmung: Overpass-Abfragen werden nun mit einem koordinatenspezifischen GET-Cache-Key ausgeführt. Zusätzlich werden nur ortsnahe, plausible Lift-/Stationspaare verwendet. Damit kann ein zuvor für Sölden oder einen anderen Favoriten ermitteltes Profil nicht auf weitere Orte übertragen werden.
-
-**Worker-Upload erforderlich: Ja.** `worker/metar-proxy.js` beziehungsweise die separate `worker.js` muss den bisherigen Cloudflare-Worker vollständig ersetzen. Bereits eingerichtete KV-, VAPID- und Cron-Einstellungen bleiben unverändert und müssen nicht neu angelegt werden.
-
-Cloudflare Worker: `https://mid-data-proxy.martinmolkentin.workers.dev`
-
-Vollständige deutsche Anleitung: `../ANLEITUNG-v0.7.95.md` beziehungsweise `../docs/push-notifications.md`. Für eine erstmalige VAPID-Erzeugung ohne PC liegt `vapid-generator-worker.js` bei.
-
-# MID Daten-, Warnungs-, Radar-, Bergsport- und Push-Worker v0.7.92
-
-Der Worker v0.7.92 ergänzt die bestehenden MID-Dienste um persönliche Web-Push-Regeln für Niederschlagsbeginn und sich nähernde Gewitterzellen. Er enthält die Routen `push-config`, `push-subscribe` und `push-unsubscribe` sowie einen `scheduled()`-Handler für den fünfminütigen Cron-Lauf.
-
-**Worker-Upload erforderlich: Ja.** Die Datei `worker/metar-proxy.js` muss den bisherigen Cloudflare-Worker vollständig ersetzen. Anschließend sind KV, VAPID-Variablen, das VAPID-Geheimnis und der Cron-Trigger einzurichten.
-
-Cloudflare Worker: `https://mid-data-proxy.martinmolkentin.workers.dev`
-
-Vollständige deutsche Schritt-für-Schritt-Anleitung: `../ANLEITUNG-v0.7.92.md` beziehungsweise `../docs/push-notifications.md`.
-
-# MID Daten-, Warnungs-, Radar- und Bergsportproxy v0.7.91
-
-Funktionale Erweiterung um `mode=mountain-profile` und `mode=snow-observations`. Das Höhenprofil wertet OpenStreetMap-Seilbahnstationen und Liftwege aus und ergänzt fehlende Höhen über Copernicus GLO-90 via Open-Meteo. Für österreichische Bergsportorte ordnet die Schnee-Route aktuelle GeoSphere-TAWES-Schneepegel konservativ den Niveaus Tal, Mitte und Berg zu. Das Frontend besitzt zusätzlich einen direkten CORS-Fallback, sodass die vollständige MID-Ersatz-ZIP auch vor einer optionalen Worker-Aktualisierung funktionsfähig bleibt.
-
 # MID Daten-, Warnungs- und Radarproxy v0.7.88
 
 Funktionale Erweiterung des bestehenden Workers für die Starkregenanalyse der aktuellen Niederschlagswahrscheinlichkeit: RADOLAN-YW-Summen 15/30/60/180/360 Minuten, DWD-RV-Nowcast bis +120 Minuten, KONRAD3D-Zellzug und Starkregenflag, KOSTRA-DWD-2020-Einordnung sowie DWD-Stationsabgleich. Amtliche Warnungen bleiben getrennt. Die Cloudflare-Auslieferung erfolgt weiterhin als einzelner Worker; in `MID-worker.zip` heißt die Einstiegdatei `worker.js`.
@@ -208,8 +184,8 @@ Beispielantwort:
 ```json
 {
   "ok": true,
-  "version": "0.7.91",
-  "services": ["stations", "alerts", "hyperlocal-networks", "model-assisted-local-analysis", "radar-nowcast", "px250-proxy", "opera-cirrus-raster", "rainviewer-metadata", "best-location-lightning", "composite-product-times", "model-contours", "mountain-profile", "snow-observations", "cors-safe-composite-wms"],
+  "version": "0.7.84",
+  "services": ["stations", "alerts", "hyperlocal-networks", "model-assisted-local-analysis", "radar-nowcast", "px250-proxy", "opera-cirrus-raster", "rainviewer-metadata", "best-location-lightning", "composite-product-times", "model-contours", "cors-safe-composite-wms"],
   "providers": {
     "NOAA AviationWeather": true,
     "DWD Open Data / Bright Sky": true,

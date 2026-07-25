@@ -5,7 +5,6 @@ import './v078';
 import App from './App';
 import {restorePersistentState,startPersistenceBridge} from './persistence';
 import {markMidRuntimeHealthy,registerMidServiceWorker} from './pwa';
-import {initPrivateWebAnalytics} from './analytics';
 
 async function signalHealthy(){
  await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));
@@ -14,7 +13,6 @@ async function signalHealthy(){
 }
 
 async function start(){
- void initPrivateWebAnalytics();
  await restorePersistentState();
  startPersistenceBridge();
  ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><App/></React.StrictMode>);

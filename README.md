@@ -1,50 +1,3 @@
-## MID v0.7.95 – Push für den Standortverfolgungs-Ort
-
-### Neu in v0.7.95
-
-- Ist die Standortverfolgung aktiviert, erscheint unter **Einstellungen → Benachrichtigungen** zusätzlich das Ziel **Aktueller Standort**.
-- Für dieses Ziel lassen sich **Niederschlagsbeginn** und **Gewitterzelle nähert sich** unabhängig von gespeicherten Favoriten aktivieren.
-- Bei jeder erfolgreichen automatischen Ortung werden die zuletzt ermittelten Koordinaten lokal gespeichert und bei bestehendem Push-Abonnement an den privaten Worker synchronisiert.
-- Im geschlossenen Zustand überwacht der Worker die zuletzt erfolgreich übermittelte Position. MID führt keine dauerhafte Hintergrund-Ortung durch.
-- Wechselt die Position, wird der ereignisbezogene Worker-Zustand für das Standortziel zurückgesetzt, damit ein Regen- oder Gewitterereignis am neuen Ort korrekt erkannt werden kann.
-- **Worker-Upload erforderlich:** Ja. Die bestehende KV-Bindung, VAPID-Schlüssel und der Cron-Trigger aus v0.7.92/v0.7.93 bleiben unverändert.
-- Vollständige Anleitung: `ANLEITUNG-v0.7.95.md` und `docs/push-notifications.md`.
-
-## MID v0.7.93 – kompakte Tooltips und standorttreue Bergprofile
-
-### Neu in v0.7.93
-
-- Das 14-Tage-Ensemble-Temperaturtooltip zeigt alle bisherigen Angaben in einer schmalen dreispaltigen Tabelle und bleibt auf kleinen Displays innerhalb des sichtbaren Bereichs.
-- Das stündliche Detaildiagramm öffnet nach Klick oder Antippen ein kompaktes, schließbares Tooltip mit Stundennavigation statt eines dauerhaften breiten Informationsblocks.
-- Die automatische Tal-/Mittel-/Bergstationsbestimmung ist strikt an die Koordinaten des bearbeiteten Favoriten gebunden. Räumlich unpassende Worker-Ergebnisse werden verworfen.
-- Der Overpass-Cache des Cloudflare Workers verwendet einen koordinatenspezifischen Schlüssel, damit ein Profil von Sölden oder einem anderen Ort nicht für weitere Favoriten wiederverwendet wird.
-- **Worker-Upload erforderlich:** Ja. Bereits eingerichtete KV-, VAPID- und Cron-Einstellungen aus v0.7.92 bleiben unverändert.
-- Vollständige Anleitung: `ANLEITUNG-v0.7.93.md` und `docs/push-notifications.md`.
-
-### Weiterhin enthalten seit v0.7.92
-
-- Luftdruckänderung über drei Stunden ausschließlich im erweiterten Modus.
-- Zehnte aktuelle Karte „Sonne / Mond“ mit Auf-/Untergängen, Tageslänge und genauer aktueller Mondphase.
-- Persönliche Web-Push-Regeln je Favorit für Niederschlagsbeginn und sich nähernde Gewitterzellen.
-
-
-- Berg-/Skimodus in Berg-/Wintersport umbenannt und um Saisonprofile Automatisch, Sommer und Winter erweitert.
-- Automatische Tal-, optionale Mittel- und Bergstationsbestimmung aus OpenStreetMap; fehlende Höhen über Copernicus GLO-90.
-- Alle Stationsnamen und Höhen bleiben je Favorit editierbar; bestehende Favoriten werden rückwärtskompatibel migriert.
-- Wetterabfrage verwendet echte Koordinaten und Höhen für bis zu drei Niveaus.
-- Winterprofil mit Modell-Schneehöhe, 24/48-h-Neuschnee sowie passenden GeoSphere-TAWES-Schneepegeln in Österreich.
-- Sommerprofil mit Sicht, UV, Wind, tiefer Bewölkung, Nullgradgrenze und Gewitterpotenzial.
-- Neue Worker-Routen, Dokumentation und Regressionstest ergänzt.
-
-## Wartung in v0.7.90.5 – Private Zugriffsauswertung
-
-- Private Cloudflare-Web-Analytics-Integration ergänzt; ohne konfigurierte Site-ID wird keinerlei Beacon geladen.
-- Eigene Browser und installierte PWAs lassen sich lokal per `?mid-analytics=internal` dauerhaft von der Zählung ausschließen.
-- `?mid-analytics=external` hebt die lokale Ausnahme wieder auf.
-- Die öffentliche Site-Kennung liegt in `public/analytics-config.json`; vorhandene Deployment-Workflows müssen nicht verändert werden.
-- Neuer Regressionstest und ausführliche Einrichtungsdokumentation ergänzt.
-- Cloudflare Worker ohne funktionale Änderung.
-
 ## Wartung in v0.7.90.4 – Erklärte Luftqualität
 
 - Die Luftqualitätskarte besitzt einen Info-Button zur Zusammensetzung des europäischen AQI.
@@ -119,7 +72,7 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.95**
+**Aktuelle Version: v0.7.90.4**
 
 ## Revision in v0.7.89 – responsiver und schlanker
 
