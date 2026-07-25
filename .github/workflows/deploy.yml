@@ -73,6 +73,7 @@ jobs:
           VITE_RADAR_PROXY_URL: ${{ vars.VITE_RADAR_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
           VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH }}
           VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}
+          VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN: ${{ vars.VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN }}
         run: npm run verify
 
       - name: GitHub Pages konfigurieren
