@@ -18,7 +18,7 @@ for(const token of [
  '<Marker position={[lat,lon]} icon={headingIcon}'
 ])if(!radar.includes(token))failures.push(`Blickrichtungsmarker fehlt: ${token}`);
 for(const token of [
- "import {toBlob} from 'html-to-image';",
+ "await import('html-to-image')",
  "import {MID_VERSION} from './version';",
  'function EnsembleShareButton',
  'navigator.share',

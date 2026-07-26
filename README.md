@@ -1,4 +1,10 @@
 
+## Wartung v0.7.102.1 – Ensembleanzeige wiederhergestellt
+
+- Ein geöffnetes Ensemble-Modul bleibt während Wetterneuladen und Ortswechseln aktiv und lädt für den aktuellen Ort zuverlässig neu.
+- Modellstände und Modelllauf-Änderungsradar bleiben auch im vorläufigen Ladezustand sichtbar.
+- Der optionale PNG-Export wird erst beim Teilen nachgeladen und kann die Ensemble-Diagramme nicht mehr blockieren.
+
 ## Neu in v0.7.102.0
 
 - Richtungsabhängiger Standortmarker im Kompositbild; auf iPhone/iPad wird die Kompassfreigabe beim Antippen angefordert.

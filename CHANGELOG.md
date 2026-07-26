@@ -1,3 +1,11 @@
+# MID v0.7.102.1
+
+- Ensemble-Ladezustand repariert: Ein geöffnetes 14-Tage-Ensemble bleibt während des Wetterladens und bei Ortswechseln aktiv und startet für den neuen Ort zuverlässig einen neuen Ensemble- und Klimadatenabruf.
+- Der gespeicherte Offen-Zustand des Ensemble-Moduls initialisiert die Datenanforderung bereits beim App-Start.
+- Die PNG-Exportbibliothek wird erst beim tatsächlichen Antippen von „Teilen“ dynamisch geladen. Ein Fehler des optionalen Exportpfads kann Diagramme, Modellstände und Modelllauf-Änderungsradar dadurch nicht mehr gemeinsam ausblenden.
+- Modellstände und Modelllauf-Änderungsradar bleiben auch im vorläufigen Ensemble-/Ladezustand sichtbar.
+- Neuer Regressionstest schützt die Ensemble-Sichtbarkeit, den Ladepfad und die Entkopplung der Teilen-Funktion.
+
 # MID v0.7.102.0
 
 - Standortmarker im Kompositbild durch ein richtungsabhängiges Symbol mit blauem Positionsring und Pfeil in Blickrichtung ersetzt.
