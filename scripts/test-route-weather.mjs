@@ -12,7 +12,7 @@ for(const token of [
  "const LazyRouteWeather=lazy(()=>import('./RouteWeatherPanel'));",
  'title="Routenwetter"',
  'summary="Schematische Strecke, Windpfeile und Einschränkungsbewertung"',
- '<LazyRouteWeather start={loc} defaultProfile={routeWeatherSettings.defaultProfile} sampleMinutes={routeWeatherSettings.sampleMinutes}/>'
+ '<MemoLazyRouteWeather start={loc} defaultProfile={routeWeatherSettings.defaultProfile} sampleMinutes={routeWeatherSettings.sampleMinutes}/>'
 ])if(!app.includes(token))failures.push(`App-Integration fehlt: ${token}`);
 
 for(const token of [

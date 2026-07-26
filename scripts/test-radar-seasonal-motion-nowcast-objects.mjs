@@ -20,7 +20,7 @@ requireTokens('Meteorologischer Zugvektor',worker,[
 ]);
 requireTokens('Nowcast-Objekt-API',worker,["mode==='nowcastmix-points'",'dwdLightningPoints(lat,lon)',"'dwd-nowcastmix-lightning'"]);
 requireTokens('Komposit-Option',radar,[
- 'showNowcastObjects:boolean','label="Nowcast-Objekte"','detail="KONRAD3D · NowCastMIX"','function KonradNowcastObjects(','loadNowcastMixPoints(','visibleNowcastMix','<KonradNowcastObjects data={thunder}'
+ 'showNowcastObjects:boolean','label="Nowcast-Objekte"','detail="KONRAD3D · NowCastMIX"','function KonradNowcastObjects(','loadNowcastMixPoints(','visibleNowcastMix','<MemoKonradNowcastObjects data={thunder}'
 ]);
 requireTokens('Wiederhergestellte Zugpfeile',radar,[
  'motionAvailable=showRadar&&Number.isFinite(motionDirection)&&Number.isFinite(motionSpeed)&&motionSpeed>=2','showMotion=showMotionOverlay&&motionAvailable','displayMotionAnchors=motionAnchors.length?motionAnchors:','showMotionField=showMotion&&displayMotionAnchors.length>0','confidence={analysis?.motionConfidence||\'low\'}',"confidence==='low'?'7 5':undefined"

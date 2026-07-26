@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.7.100.1",
+  "version": "0.7.100.4",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -55,7 +55,8 @@
     "test:local-imports": "node scripts/test-local-imports.mjs",
     "test:baseline-079526": "node scripts/test-baseline-079526-contract.mjs",
     "test:pressure-tendency": "node scripts/test-pressure-tendency.mjs",
-    "test:release-lineage": "node scripts/test-release-lineage.mjs"
+    "test:release-lineage": "node scripts/test-release-lineage.mjs",
+    "test:responsiveness": "node scripts/test-responsiveness-071003.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

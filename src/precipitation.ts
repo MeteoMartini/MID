@@ -75,35 +75,14 @@ function drizzlePlausible(h:PrecipSample,total:number){
  return humidEnough&&stratusSignal&&weakStratiformRate;
 }
 
-function snowPlausible(h:PrecipSample,snowCm:number){
- const temperature=finiteOrNaN(h.temperature);
- // Ein explizites Schneemengenfeld ist stärker als die bodennahe Temperatur,
- // weil nasser Schnee auch kurzzeitig bei leicht positiven Temperaturen fällt.
- if(snowCm>=.01)return true;
- // Fehlt die Temperatur vollständig, bleibt der WMO-Code maßgeblich.
- if(!Number.isFinite(temperature))return true;
- return temperature<=2.5;
-}
-
-function snowGrainsPlausible(h:PrecipSample,total:number,snowCm:number){
- const temperature=finiteOrNaN(h.temperature);
+function snowGrainsPlausible(h:PrecipSample,total:number){
  const humidity=finiteOrNaN(h.humidity);
  const lowCloud=finiteOrNaN(h.lowCloud);
  const cloud=finiteOrNaN(h.cloud);
- const coldEnough=snowCm>=.01||!Number.isFinite(temperature)||temperature<=1.5;
- const humidEnough=!Number.isFinite(humidity)||humidity>=80;
- const stratusSignal=Number.isFinite(lowCloud)?lowCloud>=60:Number.isFinite(cloud)?cloud>=75:true;
- const weakNonConvective=total<1&&Math.max(0,Number(h.showers)||0)<.05&&Math.max(0,Number(h.rain)||0)<.05;
- return coldEnough&&humidEnough&&stratusSignal&&weakNonConvective;
-}
-
-function skyFallbackCode(h:PrecipSample){
- const cloud=Number.isFinite(finiteOrNaN(h.lowCloud))?finiteOrNaN(h.lowCloud):finiteOrNaN(h.cloud);
- if(!Number.isFinite(cloud))return 3;
- if(cloud<=15)return 0;
- if(cloud<=40)return 1;
- if(cloud<=75)return 2;
- return 3;
+ const humidEnough=Number.isFinite(humidity)&&humidity>=80;
+ const stratusSignal=Number.isFinite(lowCloud)?lowCloud>=60:Number.isFinite(cloud)&&cloud>=75;
+ const weakNonConvective=total<1&&Math.max(0,Number(h.showers)||0)<.05;
+ return humidEnough&&stratusSignal&&weakNonConvective;
 }
 
 function rainIntensity(total:number){
@@ -136,11 +115,11 @@ function representativePrecipitationCode(type:PrecipType,total:number,snowCm:num
 }
 
 /**
- * Bestimmt die Niederschlagsform für Diagramm, Legende und Stunden-Tooltip.
- * WMO-Codes bleiben die primäre Phasenangabe. Sprühregen-Codes 51–55 werden
- * jedoch nur übernommen, wenn zugleich eine feuchte, tiefe Stratuslage und
- * eine schwache stratiforme Niederschlagsrate vorliegen. Fehlt diese
- * Plausibilität, wird nach DWD/WMO als Regen klassifiziert.
+ * Bestimmt Niederschlagsart, Text und Symbol zentral für die gesamte App.
+ * Der WMO-Code bleibt für die Phase (flüssig, gefrierend, gemischt oder fest)
+ * maßgeblich. Die Plausibilitätsprüfung korrigiert ausschließlich die seltenen
+ * Unterarten Sprühregen und Schneegriesel: fehlt die typische feuchte, tiefe
+ * Stratuslage, wird innerhalb derselben Phase zu Regen bzw. Schnee verallgemeinert.
  */
 export function precipitationParts(h:PrecipSample):PrecipitationParts{
  const total=Math.max(0,Number(h.precipitation)||0);
@@ -148,7 +127,6 @@ export function precipitationParts(h:PrecipSample):PrecipitationParts{
  const showerValue=Math.max(0,Number(h.showers)||0);
  const snowCm=Math.max(0,Number(h.snowfall)||0);
  const code=Math.round(Number(h.code)||0);
- const measurable=total>=.01||rainValue>=.01||showerValue>=.01||snowCm>=.01;
  const codedType=WMO_PRECIP_TYPE[code];
  const hasRain=rainValue>=.05;
  const hasShowers=showerValue>=.05;
@@ -156,21 +134,14 @@ export function precipitationParts(h:PrecipSample):PrecipitationParts{
  let type:PrecipType;
 
  if(codedType==='drizzle'){
-  if(drizzlePlausible(h,total))type='drizzle';
-  else if(measurable)type=hasShowers?'showers':'rain';
-  else type='none';
+  type=drizzlePlausible(h,total)?'drizzle':hasShowers?'showers':'rain';
+ }else if(codedType==='freezingDrizzle'){
+  type=drizzlePlausible(h,total)?'freezingDrizzle':'freezingRain';
  }else if(codedType==='snowGrains'){
-  if(snowGrainsPlausible(h,total,snowCm))type='snowGrains';
-  else if(snowPlausible(h,snowCm)&&(hasSnow||total>=.01))type='snow';
-  else if(hasShowers)type='showers';
-  else if(hasRain||total>=.01)type='rain';
-  else type='none';
- }else if(codedType==='snow'||codedType==='snowShowers'){
-  if(snowPlausible(h,snowCm))type=codedType;
-  else if(hasShowers)type='showers';
-  else if(hasRain||total>=.01)type='rain';
-  else type='none';
+  type=snowGrainsPlausible(h,total)?'snowGrains':hasShowers?'snowShowers':'snow';
  }else if(codedType){
+  // Die vom Modell gelieferte Niederschlagsphase darf durch Feuchte-, Wolken-
+  // oder Temperaturkriterien nicht verändert werden.
   type=codedType;
  }else if(hasSnow&&hasShowers)type='sleetShowers';
  else if(hasSnow&&hasRain)type='sleet';
@@ -179,10 +150,7 @@ export function precipitationParts(h:PrecipSample):PrecipitationParts{
  else if(hasRain||total>=.01)type='rain';
  else type='none';
 
- if(type==='none'){
-  const correctedDryCode=codedType==='drizzle'||codedType==='snow'||codedType==='snowGrains'||codedType==='snowShowers'?skyFallbackCode(h):code;
-  return{total,type,label:'kein Niederschlag',weatherLabel:'kein Niederschlag',code,displayCode:correctedDryCode};
- }
+ if(type==='none')return{total,type,label:'kein Niederschlag',weatherLabel:'kein Niederschlag',code,displayCode:code};
  const amount=type==='snow'||type==='snowShowers'||type==='snowGrains'
   ?`${formatDecimalFixed(snowCm,1)} cm`
   :type==='sleet'||type==='sleetShowers'

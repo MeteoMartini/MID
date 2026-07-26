@@ -13,7 +13,7 @@ const failures=[];
 const need=(label,text,tokens)=>{for(const token of tokens)if(!text.includes(token))failures.push(`${label}: ${token}`)};
 need('KONRAD3D-Ortsbezug Worker',worker,['siteBearingDeg:Number(bearingTowards(lat,lon,clat,clon).toFixed(1))','forecastUncertaintyKm:bestForecast?.uncertaintyKm']);
 need('KONRAD3D-Typvertrag',weather,['siteBearingDeg?:number','forecastUncertaintyKm?:number']);
-need('Gewitterkarte',app,["combineThunderstormInformation(thunderAnalysis,hours,radarAnalysis,st,loc?.name??\'Standort\')",'KONRAD3D-Zellinformationen anzeigen','thunder-detail-list']);
+need('Gewitterkarte',app,["displayLocationName=currentFavorite?favoriteLabel(currentFavorite):loc?.name??'Standort'",'combineThunderstormInformation(thunderAnalysis,hours,radarAnalysis,st,displayLocationName)','KONRAD3D-Zellinformationen anzeigen','thunder-detail-list']);
 need('Gewitterauswertung',thunder,['Aktuell ${Math.round(currentDistance)} km','größte berechnete Annäherung','Aktuelle Entfernung / Richtung','Wirksamer Mindestabstand','Unsicherheitsradius','Datenstand']);
 need('Optionale Verlagerung',radar,['showMotionOverlay:boolean','showMotionOverlay:true','showMotion=showMotionOverlay&&motionAvailable','label="Verlagerung"','Pfeile · Richtung · Tempo']);
 need('Objektlegende',radar,['function NowcastObjectLegend()','KONRAD3D schwach','NowCastMIX-Blitzgeometrie','Zellprognose','showNowcastObjects&&<NowcastObjectLegend/>']);

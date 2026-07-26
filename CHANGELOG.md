@@ -1,3 +1,24 @@
+# MID v0.7.100.4
+
+- GitHub-Produktionsbuild repariert: `ChevronDown` wird für die einklappbare Komposit-Legende wieder vollständig aus `lucide-react` importiert. Dadurch ist der TypeScript-Fehler `TS2304: Cannot find name ChevronDown` beseitigt.
+- Die Gewitterinformation verwendet nun exakt dieselbe sichtbare Ortsbezeichnung wie der Seitenkopf. Ein manuell vergebener Favoritenname beziehungsweise Alias (z. B. „Rheidt“) ersetzt damit auch in Kurztext und KONRAD3D-Tooltip die automatisch rückwärtsgeocodierte Bezeichnung (z. B. „Mondorf“).
+- Änderungen des Favoritennamens lösen unmittelbar eine Neuberechnung der memoisierten Gewittertexte aus. Koordinaten, Entfernungsberechnung und KONRAD3D-Abfrage bleiben unverändert auf dem tatsächlichen Standort.
+- Zwei Regressionen schützen die Favoriten-Ortsbezeichnung und den zuvor fehlenden Icon-Import.
+
+# MID v0.7.100.3
+
+- Laufende Ortszeit aus dem großen App-Renderpfad isoliert, sodass nicht mehr alle 30 Sekunden das vollständige Dashboard neu aufgebaut wird.
+- Dashboard-, Karten- und Vektorbereiche memoisiert sowie Radar-/Starkregen-Abrufe bei Fokuswechsel entdoppelt.
+- Leaflet-Canvas und reduzierte Touch-Effekte verbessern die Responsivität ohne Funktionsabbau.
+
+# MID v0.7.100.2
+
+- Die Kompositbild-Legende startet nun standardmäßig in einer sehr kompakten Ansicht mit Zeitangabe und aktiver Radarquelle. Per Klick oder Tippen lässt sie sich aufklappen und wieder minimieren.
+- Die aufgeklappte Legende enthält weiterhin aktive Layer, Niederschlagsfarbskala, Blitzalter sowie KONRAD3D-/NowCastMIX-Erklärung, wurde aber in Abständen und Bedienfläche möglichst kompakt gehalten.
+- Die zentrale Plausibilitätsprüfung für Sprühregen und Schneegriesel wurde fachlich eingegrenzt: Sie verallgemeinert nur die seltene Unterart, verändert aber niemals die vom WMO-Code vorgegebene flüssige, gefrierende, gemischte oder feste Niederschlagsphase.
+- Unplausibler Sprühregen wird zu Regen, unplausibler gefrierender Sprühregen zu gefrierendem Regen und unplausibler Schneegriesel zu Schnee beziehungsweise Schneeschauern. Schnee- und Schneeschauercodes bleiben unabhängig von bodennaher Temperatur oder parallelen Regenfeldern fest.
+- Neuer Regressionstest schützt einklappbare Legende und phasenerhaltende Niederschlagslogik.
+
 # MID v0.7.100.1
 
 - TypeScript-Buildfehler `TS18047: loc is possibly null` in der Gewitterinformation behoben. Der Ortsname wird nun nullsicher aus `loc?.name` abgeleitet und fällt während der initialen Standortauflösung auf „Standort“ zurück.

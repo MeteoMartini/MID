@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.7.100.1",
+  "releaseVersion": "0.7.100.4",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -25,7 +25,10 @@
     "scripts/test-radar-consistency-079802.mjs",
     "scripts/test-radar-seasonal-motion-nowcast-objects.mjs",
     "scripts/test-notification-interval.mjs",
-    "scripts/test-thunder-location-and-radar-overlays.mjs"
+    "scripts/test-thunder-location-and-radar-overlays.mjs",
+    "scripts/test-composite-legend-and-phase-preservation.mjs",
+    "scripts/test-responsiveness-071003.mjs",
+    "scripts/test-build-regression-071004.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md"
 }
