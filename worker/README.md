@@ -310,3 +310,7 @@ Die Antwort enthält `source`, `provider`, `quality`, `radarProbability`, `curre
 `mode=model-contours` liefert großräumige, geglättete Konturen. In Europa wird ein einheitlicher ICON-EU-Lauf genutzt, um Modellnähte zu vermeiden. Isobaren werden abhängig vom Druckgradienten mit 1, 2 oder 4 hPa Abstand berechnet; 500-hPa-Isohypsen haben 8 gpdm Abstand.
 
 EuCom ist ein vom DWD für Flugsicherungs-/Flugwetterkunden erzeugtes europäisches Radarkomposit. In den öffentlich auffindbaren DWD-Unterlagen ist kein frei zugänglicher WMS-, Open-Data- oder API-Endpunkt dokumentiert. Der Worker bindet EuCom deshalb nicht ohne kundenspezifische Berechtigung ein.
+
+## v0.7.98.0 – Bewegungsfeld und Nowcast-Zeitreihe
+
+Der Radar-Nowcast liefert zusätzlich eine standortbezogene Zeitreihe (`nowcastSeries`) sowie räumliche Niederschlagsanker (`motionAnchors`). Für DWD-RV wird der aktuelle Radarstand in einem größeren Umfeld ausgewertet; RainViewer erzeugt Anker aus der aktuellen Rasterkachel. Das Frontend nutzt diese Punkte für flächige Zugrichtungspfeile und die optionale Nowcast-Leiste in der Niederschlagswahrscheinlichkeits-Kachel.

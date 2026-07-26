@@ -6,6 +6,19 @@ Vor jeder Änderung müssen `package.json` und `MID_BASELINE.json` aus `mid-stab
 
 **Verbindliche Projektanweisung für neue Chats:** „Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.“
 
+## Wartung v0.7.98.1 – nullsichere Radar-Nowcast-Kachel
+
+- Die optionale Radar-Nowcast-Leiste kann bereits während des initialen Wetterladens gerendert werden, ohne direkt auf einen noch nicht vorhandenen Wetterdatensatz zuzugreifen.
+- Die Zeitzone wird nullsicher übergeben; bis Wetterdaten vorliegen, verwendet die Zeitleiste ihren lokalen Fallback.
+- Ein eigener Regressionstest schützt den GitHub-Fehler TS18047 dauerhaft.
+
+## Funktionsrelease v0.7.98.0 – flächige Radarzugrichtung und Nowcast-Leiste
+
+- Das Kompositbild verteilt Zugrichtungspfeile auf tatsächlich erkannte Niederschlagsfelder statt nur unmittelbar am ausgewählten Ort.
+- DWD, OPERA und RainViewer liefern räumliche Echoanker; Richtung und Geschwindigkeit bleiben zusätzlich direkt am Standort ablesbar.
+- Eine neue, in den Einstellungen aktivierbare Radar-Nowcast-Leiste ergänzt die Kachel „Aktuelle Niederschlagswahrscheinlichkeit“ bei erkanntem oder heranziehendem Radarecho.
+- Die Zeitachse zeigt eine Stunde Vergangenheit und zwei Stunden Zukunft mit Jetzt-Marker und intensitätsabhängigen Niederschlagssegmenten.
+
 ## Wartung v0.7.97.1 – plausible automatische Bergprofile
 
 - Die automatische Lift-/Stationssuche ist auf einen lokalen 18-km-Raum begrenzt und an die Geländehöhe des Favoriten gekoppelt.
@@ -107,7 +120,7 @@ Der vollständige Referenzumfang von MID v0.7.95.26 ist wiederhergestellt. Info-
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.97.1**
+**Aktuelle Version: v0.7.98.1**
 
 ## Revision in v0.7.89 – responsiver und schlanker
 

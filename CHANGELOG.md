@@ -1,3 +1,21 @@
+# MID v0.7.98.1
+
+- GitHub-Produktionsbuild repariert: Die optionale Radar-Nowcast-Leiste greift während des initialen Wetterladens nicht mehr direkt auf einen möglicherweise noch nicht verfügbaren Wetterdatensatz zu.
+- Der Zeitzonenwert wird nullsicher an die Nowcast-Leiste übergeben; bis zum Eintreffen der Wetterdaten verwendet die Darstellung den vorhandenen lokalen Fallback.
+- Neue Regression schützt den exakten TS18047-Fall (`w` möglicherweise `null`) und verhindert eine erneute nicht-nullgesicherte Übergabe in der Ortskopfzeile.
+
+# MID v0.7.98.0
+
+- Kompositbild um ein flächiges Niederschlags-Bewegungsfeld erweitert. Richtungspfeile werden nicht mehr nur am ausgewählten Ort, sondern an aus dem aktuellen Radarbild ermittelten Niederschlagsankern dargestellt.
+- DWD-RV erzeugt dafür ein zusätzliches großräumiges Bewegungsfeld aus dem neuesten Radarstand; RainViewer- und OPERA-Raster liefern ebenfalls räumliche Niederschlagsanker als Fallback.
+- OPERA-CIRRUS vergleicht aufeinanderfolgende Rasterstände jetzt auch flächig, um Zugrichtung und Geschwindigkeit außerhalb der DWD-Abdeckung abzuleiten.
+- Pfeildesign an die gewünschte Radaroptik angepasst: helle, kontrastgerahmte Bewegungsvektoren direkt auf den Niederschlagsfeldern.
+- Zugrichtung und Zuggeschwindigkeit am ausgewählten Ort werden zusätzlich als permanentes Standortlabel und als frei platzierte Statuskarte angezeigt. Die Anzeige liegt unterhalb der Karten-Schaltflächen und wird nicht mehr von Zoom-, Kartenbasis- oder Standortsteuerung verdeckt.
+- Radar-Nowcast-Zeitreihe um standortbezogene Beobachtungs- und Vorhersageframes ergänzt.
+- Neue, in den Einstellungen aktivierbare „Radar-Nowcast-Leiste“ in der Kachel „Aktuelle Niederschlagswahrscheinlichkeit“. Sie erscheint nur bei erkanntem oder heranziehendem Radarecho und zeigt eine Zeitachse von −1 bis +2 Stunden mit Jetzt-Markierung und Intensitätssegmenten.
+- Einstellung wird versionsunabhängig unter `mid:radarDisplaySettings` gespeichert.
+- Neue Regression schützt flächige Echoanker, Standortkennzeichnung, Nowcast-Datenreihe, Einstellungspersistenz und responsive Zeitachse.
+
 # MID v0.7.97.1
 
 - Automatische Bergprofil-Ermittlung gegen ortsfremde Liftkombinationen gehärtet. Der bisherige 25-km-Suchraum und die unbeschränkte Kombination beliebiger Tal- und Bergpunkte konnten extreme, nicht zusammengehörige Profile erzeugen.
