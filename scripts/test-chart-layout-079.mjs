@@ -22,7 +22,7 @@ const selectedLineIndex=app.indexOf('className="selected-hour-line"'),iconIndex=
 if(selectedLineIndex<0||iconIndex<0||selectedLineIndex>iconIndex)failures.push('Die blaue Stundenlinie liegt nicht hinter den Piktogrammen.');
 
 if(!app.includes('return <InfoHint label="Erklärung anzeigen">{advanced?(technical??summary):summary}</InfoHint>'))failures.push('Detailbeschreibung wird im erweiterten Modus nicht über (i) geöffnet.');
-for(const token of ['function ModeExplanation({advanced,summary,technical,label}', 'return <InfoHint label={label}>{advanced?technical:summary}</InfoHint>'])if(!ensemble.includes(token))failures.push(`Ensemble-Erklärungen werden nicht robust über (i) geöffnet: ${token}`);
+for(const token of ["function ModeExplanation({advanced,summary,technical,label=\'Diagramm erklären\'}", 'return <InfoHint label={label}>{advanced?technical:summary}</InfoHint>'])if(!ensemble.includes(token))failures.push(`Ensemble-Erklärungen werden nicht robust über (i) geöffnet: ${token}`);
 for(const token of ['precipitationMidPlot','precipitationErrorRange','dataKey="precipitationMidPlot"','dataKey="precipitationErrorRange"'])if(!ensemble.includes(token))failures.push(`P10–P90-Fehlerbalkenlogik fehlt: ${token}`);
 if(ensemble.includes('dataKey="precipitationErrorBest"'))failures.push('Der Fehlerbalken ist weiterhin am Best-Match-Wert verankert.');
 if(!enhancer.includes('svg.viewBox.baseVal')||!enhancer.includes('svg.dataset.skybarY'))failures.push('Sonne-/Bewölkungsbalken nutzen nicht die echte adaptive SVG-Geometrie.');

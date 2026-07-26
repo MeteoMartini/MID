@@ -4,15 +4,15 @@ import {fileURLToPath} from 'node:url';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=relative=>readFile(path.join(root,relative),'utf8');
-const [app,ensemble,styles,worker,serviceWorker,astronomy,mountain,push,pushPanel,modelChanges,analytics,routePanel]=await Promise.all([
- read('src/App.tsx'),read('src/EnsemblePanel.tsx'),read('src/styles.css'),read('worker/metar-proxy.js'),read('public/service-worker.js'),read('src/astronomy.ts'),read('src/mountainSports.ts'),read('src/pushNotifications.ts'),read('src/PushSettingsPanel.tsx'),read('src/modelRunChanges.ts'),read('src/webAnalytics.ts'),read('src/RouteWeatherPanel.tsx')
+const [app,ensemble,styles,v078,worker,serviceWorker,astronomy,mountain,push,pushPanel,modelChanges,analytics,routePanel]=await Promise.all([
+ read('src/App.tsx'),read('src/EnsemblePanel.tsx'),read('src/styles.css'),read('src/v078.css'),read('worker/metar-proxy.js'),read('public/service-worker.js'),read('src/astronomy.ts'),read('src/mountainSports.ts'),read('src/pushNotifications.ts'),read('src/PushSettingsPanel.tsx'),read('src/modelRunChanges.ts'),read('src/webAnalytics.ts'),read('src/RouteWeatherPanel.tsx')
 ]);
 const failures=[];
 const requireTokens=(name,text,tokens)=>{for(const token of tokens)if(!text.includes(token))failures.push(`${name}: ${token}`)};
 requireTokens('Info-Portale',app,["function PortalPopover","document.addEventListener('pointerdown',dismiss,true)","document.addEventListener('keydown',escape)","createPortal(<span ref={layerRef}","className=\"model-run-button\"","ⓘ Modellstände"]);
-requireTokens('Ensemble-Portale',ensemble,["createPortal(<div ref={layer}","ensemble-help-toolbar","className=\"model-run-button\"","Initialisierung {formatModelRunTime","verfügbar seit {formatAvailabilityTime"]);
+requireTokens('Ensemble-Portale',ensemble,["function useEnsemblePortal(open:boolean","createPortal(<div ref={layer}","ensemble-help-toolbar","className=\"model-run-popover ensemble-portal-popover\"","Initialisierung {formatModelRunTime","verfügbar seit {formatAvailabilityTime"]);
 requireTokens('Konsistenz-Tooltips',ensemble,["buttonRef.current?.contains(target)||tooltipRef.current?.contains(target)","document.addEventListener('pointerdown',dismiss,true)","if(event.key==='Escape')onClose()","event.preventDefault();event.stopPropagation();onToggle()"]);
-requireTokens('Portal-CSS',styles,['.ensemble-portal-popover{','.consistency-popover-portal{','.app-portal-popover{','position:fixed']);
+requireTokens('Portal-CSS',styles+v078,['.ensemble-portal-popover{','.consistency-popover-portal{','.app-portal-popover{','position:fixed']);
 requireTokens('Luftdruck/Astronomie',app,['function pressureTendency','hPa / 3 h','astronomySummary(w)','Sonne / Mond','hero-day-range']);
 requireTokens('Astronomiekern',astronomy,['export function astronomySummary','moonIllumination','formatDayLengthChange']);
 requireTokens('Bergprofil',mountain,['export async function mountainProfile','OVERPASS_ENDPOINTS','applyMountainProfile',"season:'auto'",'summer','winter']);

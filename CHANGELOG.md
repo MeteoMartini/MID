@@ -1,3 +1,13 @@
+# MID v0.7.95.29
+
+- Einstellungsdialog wieder vollständig an das geschützte Design von MID v0.7.95.26 angeglichen: zweispaltiger Desktopdialog, mobile Bereichsnavigation, Auswahlkarten, Einheitenauswahl und eingebettete Detailbereiche.
+- Design der erweiterten Funktionen auf die v0.7.95.26-Kartenstruktur zurückgestellt; Modelllauf-Änderungsradar und Routenwetter besitzen wieder die ursprünglichen Gruppen-, Auswahl- und Konfigurationselemente.
+- Routenwetter-Einstellungen um Standardprofil (Auto, Fahrrad, zu Fuß) und Prüfintervall ergänzt; diese Optionen steuern wieder die Vorbelegung und Zahl der Streckenstichproben.
+- Sämtliche Ensemble-Hilfe- und Modellstände-Popover wieder nach v0.7.95.26 umgesetzt: Body-Portale, Außenklick/-tippen, Escape, erneutes Antippen sowie responsive Positionierung.
+- Prognosekonsistenzpunkte verwenden wieder den geschützten v0.7.95.26-Tooltip mit Hover auf Mausgeräten, Ein-Tap-Bedienung und sicherem Außenklick-Schließen.
+- Temperaturtrend-Tooltip wieder als sehr kompakte Tmin/Tmax-Matrix von v0.7.95.26 hergestellt, einschließlich P25–P75, P10–P90, ENS-Mittel, Klima, Sonne, Modellzahl und Hazards.
+- Veraltete Regressionserwartungen an die wiederhergestellte v0.7.95.26-Darstellung angepasst und neuer verbindlicher Referenztest für Einstellungen und Ensemble-Tooltips ergänzt.
+
 # MID v0.7.95.28
 
 - GitHub-TypeScript-Buildfehler der Luftdrucktendenz behoben: `Hour.pressure` ist wieder typisiert, `pressure_msl` wird stündlich geladen und in `mapHours()` übernommen.

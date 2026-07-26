@@ -3,7 +3,7 @@ const read=path=>fs.readFileSync(new URL(path,import.meta.url),'utf8');
 const app=read('../src/App.tsx'),ensemble=read('../src/EnsemblePanel.tsx'),weather=read('../src/weather.ts'),styles=read('../src/styles.css');
 const failures=[];
 
-for(const token of ['allowEscapeViewBox={{x:false,y:true}}',"maxWidth:'calc(100vw - 16px)'"])if(!ensemble.includes(token))failures.push(`Horizontal begrenzter Trend-Tooltip fehlt: ${token}`);
+for(const token of ['allowEscapeViewBox={{x:false,y:true}}',"maxWidth:'calc(100vw - 24px)'"])if(!ensemble.includes(token))failures.push(`Horizontal begrenzter Trend-Tooltip fehlt: ${token}`);
 if(ensemble.includes('allowEscapeViewBox={{x:true,y:true}}'))failures.push('Trend-Tooltip darf horizontal nicht aus dem sichtbaren Bereich entweichen.');
 
 for(const token of ["filter(layer=>['BKN','OVC','VV'].includes", "filter(layer=>['FEW','SCT'].includes", 'cloudBaseHft:metarCloudBaseHft(r)', 'cloudOktasValue>=5&&Number.isFinite(ceilingHft)', 'cloudOktasValue>=1&&cloudOktasValue<=4&&Number.isFinite(cloudBaseHft)'])if(!weather.includes(token)&&!app.includes(token))failures.push(`Wolkenuntergrenzenlogik fehlt: ${token}`);

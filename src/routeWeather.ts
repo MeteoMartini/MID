@@ -1,6 +1,7 @@
 import {forecast,icon,label,mapHours,type Hour,type Location} from './weather';
 import {precipitationParts,type PrecipType} from './precipitation';
 
+export type RouteProfile='car'|'bike'|'foot';
 export type RouteRestrictionLevel='none'|'low'|'moderate'|'high'|'critical';
 export type RouteMapMode='line'|'segments'|'corridor';
 
@@ -70,12 +71,10 @@ export function haversineKm(lat1:number,lon1:number,lat2:number,lon2:number){
 }
 
 function interpolateCoordinate(start:number,end:number,fraction:number){return start+(end-start)*fraction}
-function chooseCheckpointCount(distanceKm:number){
- if(distanceKm<60)return 3;
- if(distanceKm<180)return 4;
- if(distanceKm<320)return 5;
- if(distanceKm<520)return 6;
- return 7;
+function chooseCheckpointCount(distanceKm:number,durationMinutes:number,sampleMinutes:number){
+ const temporal=Math.ceil(durationMinutes/Math.max(15,sampleMinutes))+1;
+ const spatial=distanceKm<60?3:distanceKm<180?4:distanceKm<320?5:distanceKm<520?6:7;
+ return clamp(Math.max(spatial,temporal),3,9);
 }
 
 function nearestHour(hours:Hour[],targetMs:number){
@@ -178,11 +177,11 @@ export function routeLevelColor(level:RouteRestrictionLevel){
 
 export function routeLevelClass(level:RouteRestrictionLevel){return `route-level-${level}`}
 
-export async function loadRouteWeather(start:Location,destination:Location,departureIso:string,speedKmh:number,signal?:AbortSignal):Promise<RouteWeatherResult>{
- const safeSpeed=Math.max(30,Math.min(140,Number(speedKmh)||90));
+export async function loadRouteWeather(start:Location,destination:Location,departureIso:string,speedKmh:number,sampleMinutes=20,signal?:AbortSignal):Promise<RouteWeatherResult>{
+ const safeSpeed=Math.max(4,Math.min(140,Number(speedKmh)||90));
  const distanceKm=Math.max(1,haversineKm(start.latitude,start.longitude,destination.latitude,destination.longitude));
- const checkpointCount=chooseCheckpointCount(distanceKm);
  const durationMinutes=Math.max(20,Math.round(distanceKm/safeSpeed*60));
+ const checkpointCount=chooseCheckpointCount(distanceKm,durationMinutes,sampleMinutes);
  const departureTime=new Date(departureIso);
  const points=Array.from({length:checkpointCount},(_,index)=>{
   const fraction=index/(checkpointCount-1);

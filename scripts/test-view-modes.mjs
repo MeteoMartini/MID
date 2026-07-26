@@ -13,7 +13,7 @@ for(const token of ["type LayoutMode='standard'|'advanced'","return stored==='ad
 }
 if(app.includes("layoutMode==='full'")||app.includes("layoutMode==='compact'"))failures.push('Alte Modusabfragen compact/full sind noch aktiv.');
 for(const token of ['.mode-info-popover','.mode-standard .hazards>small','.mode-explanation','.app>footer>.mode-info-popover'])if(!styles.includes(token))failures.push(`Modus-CSS fehlt: ${token}`);
-for(const [name,source,containment,portal] of [['App',app,'anchorRef.current?.contains(target)||layerRef.current?.contains(target)','createPortal(<span ref={layerRef}'],['Ensemble',ensemble,'anchorRef.current?.contains(target)||layer.current?.contains(target)','createPortal(<div ref={layer}']]){
+for(const [name,source,containment,portal] of [['App',app,'anchorRef.current?.contains(target)||layerRef.current?.contains(target)','createPortal(<span ref={layerRef}'],['Ensemble',ensemble,'refs.trigger.current?.contains(target)||refs.layer.current?.contains(target)','createPortal(<div ref={layer}']]){
  for(const token of ["document.addEventListener('pointerdown',dismiss,true)","document.addEventListener('keydown',escape)",containment,portal])if(!source.includes(token))failures.push(`Portal-/Außenklick-Schließlogik fehlt in ${name}: ${token}`);
 }
 if(!ensemble.includes('advancedMode:boolean')||!ensemble.includes('advanced={advancedMode}'))failures.push('Ensemble-Erklärungen unterscheiden Standard- und erweiterten Modus nicht.');
