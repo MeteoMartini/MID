@@ -319,3 +319,8 @@ Der Radar-Nowcast liefert zusätzlich eine standortbezogene Zeitreihe (`nowcastS
 ## v0.7.98.2 – PX250-Priorität und Mehrframe-Zugrichtung
 
 Der Worker bevorzugt ein frisches lokales DWD-PX250-Standortradar vor dem nationalen HX-Komposit. HX bleibt ein Fallback. Die DWD-Zugrichtung wird aus mehreren großräumigen Radarframes mittels Rasterkorrelation als Zielrichtung „Zug nach …“ bestimmt.
+
+
+## v0.7.99.0 – saisonale Echoauswertung und Hybrid-Zugvektor
+
+Der Radar-Nowcast verwendet abhängig von Jahreszeit und meteorologischem Kontext unterschiedliche Schwellen für Standorttreffer, Umgebungsechos und Bewegungsanker. Ein winterliches Signal aus Feuchttemperatur, Lufttemperatur, Schneefall oder WMO-Code aktiviert auch außerhalb des Kalender-Winterhalbjahrs das empfindlichere Profil. Die Zugrichtung kombiniert, sofern verfügbar, Mehrframe-Rasterkorrelation, KONRAD3D-Zellverlagerung und eine Schwerpunktströmung aus 925/850/700/500 hPa. `mode=nowcastmix-points` liefert die DWD-NowCastMIX-Blitzgeometrien für die optionale Objektlage des Kompositbildes.

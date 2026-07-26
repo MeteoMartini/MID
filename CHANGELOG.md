@@ -1,14 +1,12 @@
-# MID v0.7.98.2
+# MID v0.7.99.0
 
-- Radar-Nowcast-Leiste mit dem Text der Niederschlagswahrscheinlichkeits-Kachel synchronisiert. Erwartete Ankunftsfenster aus `arrivalStartAt`/`arrivalEndAt` werden jetzt unabhängig von unvollständigen Zukunftsframes als eigener Balken dargestellt.
-- Balkenhöhen der Nowcast-Leiste stärker nach Radarintensität gestaffelt; beobachtete Standorttreffer, Echos in der Umgebung und unsichere erwartete Treffer sind optisch getrennt.
-- 250-m-Radarüberlagerung räumlich korrigiert: Das nächstgelegene frische DWD-PX250-Standortradar wird vor dem nationalen HX-Komposit bevorzugt. HX bleibt nur noch als projizierter Fallback.
-- HDF5-Georeferenzierung erweitert. Projektion, Rasterursprung und Rastermaß werden aus den ODIM-Attributen gelesen und in geographische Grenzen zurückgerechnet, bevor ein grober Fallback verwendet wird.
-- Modelllauf-Änderungsradar zeigt beim Niederschlagsbeginn den alten und neuen Zeitpunkt vollständig in einer eigenen Zeile und die Differenz darunter, z. B. `26.07. 15:00 Uhr → 26.07. 14:00 Uhr` sowie `1 h früher`.
-- Zugrichtung und Zuggeschwindigkeit des Niederschlags werden bei DWD-RV aus mehreren großräumigen Radarframes mittels Rasterkorrelation bestimmt. Die Richtung ist ausdrücklich die Zielrichtung „Zug nach …“ und nicht die meteorologische Herkunftsrichtung.
-- OPERA-CIRRUS verwendet ebenfalls mehrere historische Rasterstände statt nur eines Zweiervergleichs. Bei unzureichender Übereinstimmung bleibt die Anzeige zurückhaltend.
-- Zugpfeile und Standortlabel werden nur noch bei mindestens mittlerer Bewegungssicherheit eingeblendet; geringe Sicherheit bleibt als „nicht belastbar ermittelbar“ ohne irreführende Richtungspfeile.
-- Neue funktionale Regression prüft ostwärts wandernde Testfelder gegen eine 180-Grad-Invertierung sowie Nowcast-Fenster, PX250-Quellenpriorität und den vollständigen alten/neuen Niederschlagsbeginn.
+- Saisonabhängige Radar-Echoauswertung ergänzt. Schwache stratiforme beziehungsweise winterliche Echos werden im Winterhalbjahr sensibler behandelt; im Sommerhalbjahr werden sehr schwache, nicht konvektive Echos zurückhaltender gewichtet. Temperatur, Feuchttemperatur, Schneesignal und Wettercode können das reine Kalenderprofil meteorologisch übersteuern.
+- Einheitliche saisonale Schwellen für Standorttreffer, Echo in der Umgebung, Bewegungsfeld und Niederschlagsanker in DWD-, OPERA- und RainViewer-Auswertungen eingeführt. Das aktive Echo-Profil wird in der Dateninformation des Kompositbildes ausgewiesen.
+- Verlagerungspfeile wiederhergestellt. Auch bei geringer Sicherheit bleibt ein gestrichelter, klar gekennzeichneter Vektor sichtbar, sofern ein belastbarer Bewegungsvektor und ein Niederschlagssignal vorhanden sind.
+- Zugrichtung als meteorologischer Hybridvektor erweitert: Mehrframe-Rasterkorrelation wird mit KONRAD3D-Zellverlagerung und einer Schwerpunktströmung aus 925-, 850-, 700- und 500-hPa-Winden plausibilisiert. Die angezeigte Richtung ist ausdrücklich die Richtung, in die das Niederschlagsfeld zieht.
+- Kompositbild um die gespeicherte Option „Nowcast-Objekte“ erweitert. Sie blendet DWD-KONRAD3D-Zellen mit Prognosebahn sowie DWD-NowCastMIX-Blitzgeometrien unabhängig von der normalen Blitzebene ein.
+- Eigener Worker-Endpunkt für NowCastMIX-Objekte ergänzt, damit diese Ebene nicht durch eine optional konfigurierte globale Blitzquelle ersetzt wird.
+- Neue funktionale Regression prüft saisonale Sommer-/Winterschwellen, winterliche Hydrometeor-Übersteuerung, die 180-Grad-Konvention der Schwerpunktströmung, wiederhergestellte Pfeile und die Nowcast-Objektoption.
 
 # MID v0.7.98.1
 

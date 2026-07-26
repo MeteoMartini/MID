@@ -39,6 +39,7 @@ export function compositeWmsProxy(provider:WmsProvider){
 }
 export async function loadOperaRaster(lat:number,lon:number,signal?:AbortSignal){return fetchWorkerJson<OperaRasterResponse>('opera-raster-meta',{lat,lon},{purpose:'radar',signal,timeoutMs:12000})}
 export async function loadLightningPoints(lat:number,lon:number,signal?:AbortSignal){return fetchWorkerJson<LightningPointResponse>('lightning-points',{lat,lon},{purpose:'radar',signal,timeoutMs:10000})}
+export async function loadNowcastMixPoints(lat:number,lon:number,signal?:AbortSignal){return fetchWorkerJson<LightningPointResponse>('nowcastmix-points',{lat,lon},{purpose:'radar',signal,timeoutMs:10000})}
 export async function loadCompositeTimes(lat:number,lon:number,signal?:AbortSignal){return fetchWorkerJson<CompositeProductTimes>('composite-times',{lat,lon},{purpose:'radar',signal,timeoutMs:10000})}
 export async function loadRainViewer(lat:number,lon:number,signal?:AbortSignal){return fetchWorkerJson<RainViewerResponse>('rainviewer-meta',{lat,lon},{purpose:'radar',signal,timeoutMs:9000})}
 export async function loadModelContours(lat:number,lon:number,signal?:AbortSignal){return fetchWorkerJson<ModelContourResponse>('model-contours',{lat,lon},{purpose:'radar',signal,timeoutMs:15000})}
