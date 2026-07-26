@@ -328,3 +328,8 @@ Der Radar-Nowcast verwendet abhängig von Jahreszeit und meteorologischem Kontex
 ## v0.7.99.2 – Mindestabstand zwischen Push-Mitteilungen
 
 Das Frontend überträgt `notificationIntervalMinutes` mit dem Push-Abonnement. Zulässige Werte sind 15, 30, 60, 120 und 180 Minuten. Der Cron-Trigger bleibt bei fünf Minuten, der Worker erlaubt jedoch geräteweit erst nach Ablauf des gewählten Mindestabstands eine weitere Mitteilung. Ereignisse, die während der Sperrzeit weiterhin relevant sind, bleiben ausstehend und werden nach Ablauf erneut geprüft. Alte KV-Einträge ohne Wert verwenden 60 Minuten als sicheren Übergangsstandard.
+
+
+## v0.7.100.0 – eindeutiger KONRAD3D-Ortsbezug
+
+KONRAD3D-Zellobjekte liefern zusätzlich den Richtungswinkel vom abgefragten Standort zur aktuellen Zelle sowie den Unsicherheitsradius der ausgewählten Prognoseposition. Frontend und Worker trennen damit aktuelle Distanz, prognostizierten Rohabstand und um die Unsicherheitsellipse verminderten wirksamen Mindestabstand eindeutig.

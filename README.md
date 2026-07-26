@@ -6,6 +6,13 @@ Vor jeder Änderung müssen `package.json` und `MID_BASELINE.json` aus `mid-stab
 
 **Verbindliche Projektanweisung für neue Chats:** „Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.“
 
+## Funktionsrelease v0.7.100.0 – geprüfte Gewitterlokalisierung und steuerbare Overlays
+
+- Die Gewitterkarte verwendet die tatsächliche aktuelle Zelldistanz und zeigt die prognostizierte größte Annäherung getrennt an.
+- Ein schließbarer KONRAD3D-Tooltip enthält Zellkennung, Positionen, Bewegung, Unsicherheit, Intensität, Trend, Blitz-, Hagel-, Starkregen- und Böeninformationen sowie den Datenstand.
+- Das Kompositbild erklärt KONRAD3D-Intensitätsfarben, Prognosebahn und NowCastMIX-Blitzobjekte in einer eigenen Legende.
+- Niederschlags-Verlagerungspfeile, Zugchip und Standortlabel sind über einen eigenen persistenten Schalter unabhängig von den übrigen Layern ein- und ausblendbar.
+
 ## Wartung v0.7.98.1 – nullsichere Radar-Nowcast-Kachel
 
 - Die optionale Radar-Nowcast-Leiste kann bereits während des initialen Wetterladens gerendert werden, ohne direkt auf einen noch nicht vorhandenen Wetterdatensatz zuzugreifen.

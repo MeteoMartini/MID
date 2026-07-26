@@ -1,3 +1,19 @@
+# MID v0.7.100.1
+
+- TypeScript-Buildfehler `TS18047: loc is possibly null` in der Gewitterinformation behoben. Der Ortsname wird nun nullsicher aus `loc?.name` abgeleitet und fällt während der initialen Standortauflösung auf „Standort“ zurück.
+- Die Ortsbezeichnung wurde in die Abhängigkeiten der memoisierten Gewitterauswertung aufgenommen, damit ein später aufgelöster oder gewechselter Ort zuverlässig neu bewertet wird.
+- Neuer Regressionstest verhindert direkte Zugriffe auf `loc.name` innerhalb der Gewitterauswertung und schützt damit exakt den in GitHub Actions aufgetretenen Fehler.
+
+# MID v0.7.100.0
+
+- Die Gewitterinformation trennt jetzt die **aktuelle Entfernung** einer KONRAD3D-Zelle sauber von der prognostizierten größten Annäherung. Zuvor konnte der um die Unsicherheitsellipse verminderte Prognoseabstand wie eine aktuelle Entfernung wirken.
+- Jede KONRAD3D-Zelle erhält einen vom ausgewählten MID-Ort aus berechneten Richtungswinkel. Die Kurzkarte nennt aktuelle Distanz, relative Himmelsrichtung, erwartete Annäherungszeit und den unverfälschten Prognoseabstand.
+- Neuer schließbarer Info-Tooltip in der Gewitterkarte mit Zellkennung, aktuellen und prognostizierten Koordinaten, Zellstufe/Trend, Zugrichtung und -geschwindigkeit, Blitzrate, Hagel-/Starkregen-/Böensignalen, Unsicherheitsradius, Datenalter und Zahl erkannter Zellen.
+- Die KONRAD3D-Karten-Popups wurden um dieselben verfügbaren Zellinformationen erweitert.
+- Das Kompositbild besitzt eine eigene Legende für KONRAD3D-Stufen, Zellprognosebahnen und NowCastMIX-Blitzgeometrien.
+- Das Verlagerungsoverlay ist nun als eigener, dauerhaft gespeicherter Schalter verfügbar. Er blendet Niederschlagspfeile, Zughinweis und Standort-Zuglabel gemeinsam ein oder aus, ohne Radar oder Nowcast-Objekte abzuschalten.
+- Neuer Regressionstest schützt Ortsbezug, Distanztrennung, Unsicherheitsangabe, Objektlegende und Verlagerungsschalter.
+
 # MID v0.7.99.2
 
 - Im Untermenü **Benachrichtigungen** eine dauerhaft gespeicherte Auswahl für den Mindestabstand zwischen Push-Mitteilungen ergänzt. Verfügbar sind 15, 30, 60, 120 und 180 Minuten; Standard ist 30 Minuten.
