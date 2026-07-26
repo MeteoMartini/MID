@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.95.26
+
+- Routenwetter als optionale Funktion ausschließlich im Erweiterten Modus ergänzt
+- neues Untermenü „Erweiterte Funktionen“ bündelt Modelllauf-Änderungsradar und Routenwetter mit separater Konfiguration
+- zeitbezogene Routenanalyse für Auto, Fahrrad und Fußweg über OpenStreetMap/OSRM mit bis zu neun Best-Match-Wetterprüfpunkten
+- Abfahrtszeit, Route, Ankunftszeiten, Temperatur, Niederschlag, Wind/Böen, Sicht, Gewitter- und Schneesignale werden entlang der Strecke ausgewertet
+- schematische Routengrafik, mobile Abschnittskarten und dauerhafter Funktionsschutz ergänzt
+
 ## 0.7.95.25
 
 - Modelllauf-Änderungsradar im Erweiterten Modus ergänzt; vergleicht den aktuellen 14-Tage-Ensemble-/Best-Match-Stand mit der vorherigen gespeicherten Prognose

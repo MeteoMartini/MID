@@ -4,8 +4,8 @@ import {fileURLToPath} from 'node:url';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=relative=>readFile(path.join(root,relative),'utf8');
-const [app,astronomy,mountain,radar,composite,worker,sw,push,pushPanel,ensemblePanel,modelChanges,analytics,runner,coverage]=await Promise.all([
-  read('src/App.tsx'),read('src/astronomy.ts'),read('src/mountainSports.ts'),read('src/RadarPanel.tsx'),read('src/CompositeData.ts'),read('worker/metar-proxy.js'),read('public/service-worker.js'),read('src/pushNotifications.ts'),read('src/PushSettingsPanel.tsx'),read('src/EnsemblePanel.tsx'),read('src/modelRunChanges.ts'),read('src/webAnalytics.ts'),read('scripts/run-regressions.mjs'),read('scripts/test-feature-change-coverage.mjs')
+const [app,astronomy,mountain,radar,composite,worker,sw,push,pushPanel,ensemblePanel,modelChanges,analytics,runner,coverage,routePanel,routeWeather]=await Promise.all([
+  read('src/App.tsx'),read('src/astronomy.ts'),read('src/mountainSports.ts'),read('src/RadarPanel.tsx'),read('src/CompositeData.ts'),read('worker/metar-proxy.js'),read('public/service-worker.js'),read('src/pushNotifications.ts'),read('src/PushSettingsPanel.tsx'),read('src/EnsemblePanel.tsx'),read('src/modelRunChanges.ts'),read('src/webAnalytics.ts'),read('scripts/run-regressions.mjs'),read('scripts/test-feature-change-coverage.mjs'),read('src/RouteWeatherPanel.tsx'),read('src/routeWeather.ts')
 ]);
 const failures=[];
 const contract={
@@ -31,8 +31,11 @@ const contract={
   'Modelllauf-Änderungsradar':[app,['MODEL_CHANGE_SETTINGS_KEY','Änderungsradar im 14-Tage-Ensemble anzeigen','Bei materieller Änderung benachrichtigen','forecastMaterialChange:true']],
   'Modelllauf-Vergleich':[modelChanges,['buildModelChangeSnapshot','compareModelChangeSnapshots','updateModelChangeRadar','precipitation-onset']],
   'Modelllauf-Push':[worker,['pushForecastState','pushForecastChangeEvents','favorite.rules.forecastMaterialChange','mid-model-change-']],
-  'Aktuelles Tagesintervall':[app,['hero-day-range','<small>Tmin</small>','<small>Tmax</small>']]
+  'Aktuelles Tagesintervall':[app,['hero-day-range','<small>Tmin</small>','<small>Tmax</small>']],
+  'Routenwetter-Konfiguration':[app,['ROUTE_WEATHER_SETTINGS_KEY','Erweiterte Funktionen','Routenwetter im Dashboard anzeigen',"layoutMode==='advanced'&&routeWeatherSettings.enabled"]],
+  'Routenwetter-UI':[routePanel,['RouteWeatherPanel','Routenwetter berechnen','Aktueller Dashboard-Ort','route-weather-timeline','RouteSketch']],
+  'Routenwetter-Kern':[routeWeather,['calculateRouteWeather','routed-car/route/v1/driving','routed-bike/route/v1/driving','routed-foot/route/v1/driving',"timeformat:'unixtime'","models:'best_match'"]]
 };
 for(const[label,[text,tokens]]of Object.entries(contract))for(const token of tokens)if(!text.includes(token))failures.push(`${label}: ${token}`);
 if(failures.length){console.error('Essentieller MID-Funktionsvertrag verletzt:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Essentieller MID-Funktionsvertrag geprüft: Luftdrucktendenz, Ensemble-Erklärungen/Modellstände/Änderungsradar, Sonne/Mond, Kompositbild, Berg-/Wintersport und Benachrichtigungen bleiben geschützt.');
+console.log('Essentieller MID-Funktionsvertrag geprüft: Luftdrucktendenz, Ensemble-Erklärungen/Modellstände/Änderungsradar, Sonne/Mond, Kompositbild, Berg-/Wintersport, Routenwetter und Benachrichtigungen bleiben geschützt.');
