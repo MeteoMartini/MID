@@ -20,6 +20,8 @@ concurrency:
 
 jobs:
   install_build:
+    outputs:
+      commit_sha: ${{ steps.commit.outputs.commit_sha }}
     name: MID installieren, prüfen und bauen
     if: github.actor != 'github-actions[bot]' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
@@ -72,7 +74,7 @@ jobs:
               zip_file.extractall(target)
           PY
 
-          for required in package.json package-lock.json src worker public; do
+          for required in package.json package-lock.json MID_BASELINE.json MID_SOURCE_OF_TRUTH.md src worker public; do
             if [ ! -e "$target/$required" ]; then
               echo "::error::Im Hauptverzeichnis der ZIP fehlt: ${required}"
               exit 1
@@ -213,7 +215,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
-      contents: read
+      contents: write
       pages: write
       id-token: write
     concurrency:
@@ -227,3 +229,15 @@ jobs:
       - name: GitHub-Pages-Deployment ausführen
         id: deployment
         uses: actions/deploy-pages@v5
+
+      - name: Erfolgreichen Release-Commit laden
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.install_build.outputs.commit_sha }}
+          fetch-depth: 0
+
+      - name: Letzten erfolgreichen Stand als stabile MID-Basis markieren
+        shell: bash
+        run: |
+          set -euo pipefail
+          git push --force origin HEAD:refs/heads/mid-stable

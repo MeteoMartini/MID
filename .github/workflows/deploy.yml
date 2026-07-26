@@ -1,5 +1,5 @@
 name: Deploy MID to GitHub Pages
-run-name: MID aus main manuell prüfen und veröffentlichen
+run-name: Letzte stabile MID-Version manuell prüfen und veröffentlichen
 
 # Der automatische ZIP-Upload wird ausschließlich durch install-mid.yml verarbeitet.
 # Regressionstest-Kompatibilität:
@@ -20,7 +20,7 @@ concurrency:
 
 jobs:
   build:
-    name: MID manuell prüfen und bauen
+    name: Stabile MID-Version manuell prüfen und bauen
     runs-on: ubuntu-latest
     timeout-minutes: 25
 
@@ -28,7 +28,7 @@ jobs:
       - name: Repository laden
         uses: actions/checkout@v6
         with:
-          ref: main
+          ref: mid-stable
 
       - name: Node.js 22 mit npm-Cache einrichten
         uses: actions/setup-node@v6
@@ -42,13 +42,18 @@ jobs:
         timeout-minutes: 2
         run: |
           set -euo pipefail
+
           npm config set registry https://registry.npmjs.org/
+          npm config set fetch-retries 2
+          npm config set fetch-retry-factor 2
+          npm config set fetch-retry-mintimeout 3000
+          npm config set fetch-retry-maxtimeout 15000
+          npm config set fetch-timeout 60000
 
           node <<'NODE'
           const fs = require('node:fs');
           const lock = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
           const invalid = [];
-
           for (const [name, entry] of Object.entries(lock.packages ?? {})) {
             const resolved = entry && typeof entry === 'object' ? entry.resolved : undefined;
             if (typeof resolved !== 'string') continue;
@@ -56,17 +61,28 @@ jobs:
               invalid.push(`${name || '(root)'}: ${resolved}`);
             }
           }
-
           if (invalid.length) {
             console.error('Nicht öffentlich erreichbare Paket-URLs im Lockfile:\n' + invalid.join('\n'));
             process.exit(1);
           }
+          console.log('Lockfile enthält keine internen oder lokalen Paket-URLs.');
           NODE
 
       - name: Abhängigkeiten reproduzierbar installieren
-        run: npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
+        shell: bash
+        timeout-minutes: 6
+        run: |
+          set -euo pipefail
+          npm ci \
+            --no-audit \
+            --no-fund \
+            --prefer-offline \
+            --legacy-peer-deps \
+            --loglevel=notice
 
       - name: Produktionsbuild und Regressionstests ausführen
+        shell: bash
+        timeout-minutes: 15
         env:
           VITE_METAR_PROXY_URL: ${{ vars.VITE_METAR_PROXY_URL }}
           VITE_ALERT_PROXY_URL: ${{ vars.VITE_ALERT_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
@@ -74,7 +90,9 @@ jobs:
           VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH }}
           VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}
           VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN: ${{ vars.VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN }}
-        run: npm run verify
+        run: |
+          set -euo pipefail
+          npm run verify
 
       - name: GitHub Pages konfigurieren
         uses: actions/configure-pages@v6
