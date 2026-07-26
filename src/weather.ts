@@ -71,13 +71,22 @@ const ensembleModels:EnsembleModel[]=[
  {id:'meteoswiss_icon_ch2_ensemble',label:'MeteoSwiss ICON CH2',metaId:'meteoswiss_icon_ch2_ensemble',resolutionKm:2,updateHours:6,maxDays:.5,bbox:[3,43,18,50]},
  {id:'google_weathernext2_ensemble',label:'Google WeatherNext 2',metaId:'google_weathernext2_ensemble',resolutionKm:25,updateHours:12,maxDays:15}
 ];
-const meanModelIds=[
- 'dwd_icon_eps_ensemble_mean_seamless','dwd_icon_eps_ensemble_mean','dwd_icon_eu_eps_ensemble_mean','dwd_icon_d2_eps_ensemble_mean',
- 'ncep_gefs_ensemble_mean_seamless','ncep_gefs025_ensemble_mean','ncep_gefs05_ensemble_mean','ncep_aigefs025_ensemble_mean','ncep_hgefs025_ensemble_mean',
- 'ecmwf_ifs025_ensemble_mean','ecmwf_aifs025_ensemble_mean','cmc_gem_geps_ensemble_mean','bom_access_global_ensemble_mean',
- 'ukmo_global_ensemble_mean_20km','ukmo_uk_ensemble_mean_2km','meteoswiss_icon_ch1_ensemble_mean','meteoswiss_icon_ch2_ensemble_mean','google_weathernext2_ensemble_mean'
+type EnsembleMeanModel={id:string;label:string;metaId:string;resolutionKm:number;updateHours:number;maxDays:number};
+const ensemblePriority=['icon_d2_eps','icon_eu_eps','icon_seamless_eps','ecmwf_ifs025_ensemble','ecmwf_aifs025_ensemble','ncep_gefs05','gem_global_ensemble','google_weathernext2_ensemble'];
+const meanModels:EnsembleMeanModel[]=[
+ {id:'dwd_icon_eps_ensemble_mean_seamless',label:'DWD ICON EPS Mittel',metaId:'dwd_icon_eps',resolutionKm:8,updateHours:3,maxDays:7.5},
+ {id:'ncep_gefs_ensemble_mean_seamless',label:'NOAA GEFS Mittel',metaId:'ncep_gefs05',resolutionKm:32,updateHours:6,maxDays:14},
+ {id:'ecmwf_ifs025_ensemble_mean',label:'ECMWF IFS ENS Mittel',metaId:'ecmwf_ifs025_ensemble',resolutionKm:25,updateHours:6,maxDays:14},
+ {id:'ecmwf_aifs025_ensemble_mean',label:'ECMWF AIFS ENS Mittel',metaId:'ecmwf_aifs025_ensemble',resolutionKm:25,updateHours:6,maxDays:14},
+ {id:'cmc_gem_geps_ensemble_mean',label:'GEM GEPS Mittel',metaId:'cmc_gem_geps',resolutionKm:25,updateHours:12,maxDays:14},
+ {id:'google_weathernext2_ensemble_mean',label:'Google WeatherNext 2 Mittel',metaId:'google_weathernext2_ensemble',resolutionKm:25,updateHours:12,maxDays:14}
 ];
+const ENSEMBLE_CACHE_PREFIX='mid:ensemble:v3:';
 function modelApplies(m:EnsembleModel,lat:number,lon:number){if(!m.bbox)return true;const[minLon,minLat,maxLon,maxLat]=m.bbox;return lon>=minLon&&lon<=maxLon&&lat>=minLat&&lat<=maxLat}
+function selectedEnsembleModels(lat:number,lon:number){const rank=new Map(ensemblePriority.map((id,index)=>[id,index]));return ensembleModels.filter(model=>modelApplies(model,lat,lon)).sort((a,b)=>(rank.get(a.id)??99)-(rank.get(b.id)??99)||a.resolutionKm-b.resolutionKm).slice(0,8)}
+function ensembleCacheKey(lat:number,lon:number){return`${ENSEMBLE_CACHE_PREFIX}${(Math.round(lat*20)/20).toFixed(2)}:${(Math.round(lon*20)/20).toFixed(2)}`}
+function readEnsembleCache(lat:number,lon:number){try{const raw=localStorage.getItem(ensembleCacheKey(lat,lon));if(!raw)return null;const parsed=JSON.parse(raw) as {created:number;days:EnsembleDay[];models:string[];runs:ModelRunMeta[]};if(!Array.isArray(parsed.days)||parsed.days.length<5||Date.now()-Number(parsed.created)>24*3600000)return null;return parsed}catch{return null}}
+function writeEnsembleCache(lat:number,lon:number,value:{days:EnsembleDay[];models:string[];runs:ModelRunMeta[]}){try{localStorage.setItem(ensembleCacheKey(lat,lon),JSON.stringify({created:Date.now(),...value}))}catch{}}
 
 async function j<T>(url:string,signal?:AbortSignal):Promise<T>{const r=await fetch(url,{signal,cache:'no-store'});if(!r.ok)throw new Error(`HTTP ${r.status}`);return r.json()}
 
@@ -128,7 +137,9 @@ function candidateApplies(candidate:ForecastCandidate,lat:number,lon:number,coun
 async function modelRunMeta(candidate:ModelMetaCandidate,signal?:AbortSignal):Promise<ModelRunMeta|null>{
  const host=candidate.kind==='ensemble'?'https://ensemble-api.open-meteo.com':'https://api.open-meteo.com';
  try{
-  const data=await j<any>(`${host}/data/${candidate.id}/static/meta.json?cache_buster=${Date.now()}`,signal);
+  let data:any;
+  if(workerBaseCandidates('general').length){try{const proxied=await fetchWorkerJson<any>('model-meta',{model:candidate.id,kind:candidate.kind},{purpose:'general',signal,timeoutMs:9000,cache:'no-store'});if(Number.isFinite(Number(proxied?.last_run_initialisation_time)))data=proxied}catch{}}
+  if(!data)data=await j<any>(`${host}/data/${candidate.id}/static/meta.json?cache_buster=${Date.now()}`,signal);
   const init=Number(data.last_run_initialisation_time),available=Number(data.last_run_availability_time);
   if(!Number.isFinite(init))return null;
   return{id:candidate.id,label:candidate.label,kind:candidate.kind,initialisationTime:new Date(init*1000).toISOString(),availabilityTime:Number.isFinite(available)?new Date(available*1000).toISOString():undefined,updateIntervalSeconds:Number(data.update_interval_seconds)||undefined,temporalResolutionSeconds:Number(data.temporal_resolution_seconds)||undefined};
@@ -719,19 +730,7 @@ function aggregateMembers(results:ModelResult[]){
  }
  return days;
 }
-function dailyMeanSeries(w:Weather){
- const out=new Map<string,MemberDay>(),times=(w.hourly.time as string[])??[],temps=w.hourly.temperature_2m??[],rain=w.hourly.precipitation??[],sunshine=w.hourly.sunshine_duration??[],daily=new Map<string,{t:number[];p:number[];s:number[]}>();
- for(let i=0;i<times.length;i++){
-  const date=String(times[i]).slice(0,10),tv=n(temps[i]),pv=n(rain[i]),sv=n(sunshine[i]);
-  if(!daily.has(date))daily.set(date,{t:[],p:[],s:[]});
-  const d=daily.get(date)!;
-  if(Number.isFinite(tv)&&tv>-65&&tv<65)d.t.push(tv);
-  if(Number.isFinite(pv)&&pv>=0&&pv<150)d.p.push(pv);
-  if(Number.isFinite(sv)&&sv>=0&&sv<=21600)d.s.push(sv);
- }
- daily.forEach((d,date)=>{if(d.t.length>=18)out.set(date,{date,max:Math.max(...d.t),min:Math.min(...d.t),precipitation:d.p.reduce((a,b)=>a+b,0),sunshineDuration:d.s.length>=6?clampNumber(d.s.reduce((a,b)=>a+b,0),0,86400):NaN})});
- return out;
-}
+
 async function settledMapLimited<T,R>(items:T[],limit:number,task:(item:T,index:number)=>Promise<R>){
  const results=new Array<PromiseSettledResult<R>>(items.length);let cursor=0;
  const worker=async()=>{while(cursor<items.length){const index=cursor++;try{results[index]={status:'fulfilled',value:await task(items[index],index)}}catch(reason){results[index]={status:'rejected',reason}}}};
@@ -756,38 +755,48 @@ async function fetchEnsembleRequest(url:string,signal?:AbortSignal){
  }
  throw lastError;
 }
-async function fetchEnsembleWeather(lat:number,lon:number,forecastDays:number,modelId:string,signal?:AbortSignal){
- let lastError:unknown;
- for(const hourly of ['temperature_2m,precipitation,sunshine_duration','temperature_2m,precipitation']){
-  const p=new URLSearchParams({latitude:String(lat),longitude:String(lon),timezone:'auto',forecast_days:String(forecastDays),models:modelId,hourly});
-  try{return await fetchEnsembleRequest(`https://ensemble-api.open-meteo.com/v1/ensemble?${p}`,signal)}catch(error){lastError=error;if(signal?.aborted)throw error}
+async function fetchEnsembleWeather(lat:number,lon:number,forecastDays:number,modelId:string,signal?:AbortSignal,hourly='temperature_2m,precipitation'){
+ const parameters={lat,lon,model:modelId,forecast_days:Math.max(1,Math.min(14,Math.ceil(forecastDays))),variables:hourly};
+ if(workerBaseCandidates('general').length){try{const proxied=await fetchWorkerJson<Weather&{error?:string}>('ensemble-proxy',parameters,{purpose:'general',signal,timeoutMs:18000,cache:'no-store'});if(Array.isArray(proxied?.hourly?.time)&&proxied.hourly.time.length>=12)return proxied}catch{}}
+ const p=new URLSearchParams({latitude:String(lat),longitude:String(lon),timezone:'auto',forecast_days:String(parameters.forecast_days),models:modelId,hourly});
+ return fetchEnsembleRequest(`https://ensemble-api.open-meteo.com/v1/ensemble?${p}`,signal);
+}
+function pseudoModelFromMeanSpread(w:Weather,definition:EnsembleMeanModel):ModelResult|null{
+ const times=(w.hourly?.time as string[])??[],mean=w.hourly?.temperature_2m??[],spread=w.hourly?.temperature_2m_spread??[],rain=w.hourly?.precipitation??[],rainSpread=w.hourly?.precipitation_spread??[];
+ if(times.length<24||!mean.length||!spread.length)return null;
+ const z=[-1.28155,-.67449,0,.67449,1.28155],members=new Map<string,MemberDay[]>();
+ for(let member=0;member<z.length;member++){
+  const daily=new Map<string,{t:number[];p:number[]}>();
+  for(let index=0;index<times.length;index++){
+   const date=String(times[index]).slice(0,10),temperature=n(mean[index]),sigma=Math.max(0,n(spread[index])),precipitation=Math.max(0,n(rain[index])+z[member]*Math.max(0,n(rainSpread[index])));
+   if(!Number.isFinite(temperature))continue;const row=daily.get(date)??{t:[],p:[]};row.t.push(temperature+z[member]*sigma);if(Number.isFinite(precipitation))row.p.push(precipitation);daily.set(date,row);
+  }
+  const rows:MemberDay[]=[];daily.forEach((row,date)=>{if(row.t.length>=18)rows.push({date,max:Math.max(...row.t),min:Math.min(...row.t),precipitation:row.p.reduce((sum,value)=>sum+value,0),sunshineDuration:NaN})});
+  if(rows.length>=5)members.set(`spread_${member+1}`,rows);
  }
- throw lastError;
+ if(members.size<3)return null;
+ const model:EnsembleModel={id:definition.id,label:definition.label,metaId:definition.metaId,resolutionKm:definition.resolutionKm,updateHours:definition.updateHours,maxDays:definition.maxDays};
+ return{model,members};
 }
 async function meanFallback(lat:number,lon:number,signal?:AbortSignal){
- const settled=await settledMapLimited(meanModelIds,4,async id=>({id,series:dailyMeanSeries(await fetchEnsembleWeather(lat,lon,14,id,signal))}));
+ const settled=await settledMapLimited(meanModels,2,async definition=>pseudoModelFromMeanSpread(await fetchEnsembleWeather(lat,lon,definition.maxDays,definition.id,signal,'temperature_2m,temperature_2m_spread,precipitation,precipitation_spread'),definition));
  if(signal?.aborted)throw new DOMException('Abgebrochen','AbortError');
- const ok=settled.filter(x=>x.status==='fulfilled').map(x=>(x as PromiseFulfilledResult<{id:string;series:Map<string,MemberDay>}>).value).filter(x=>x.series.size>=7);
- const dates=[...new Set(ok.flatMap(x=>[...x.series.keys()]))].sort().slice(0,14),days:EnsembleDay[]=[];
- for(const date of dates){
-  const rows=ok.map(x=>x.series.get(date)).filter(Boolean) as MemberDay[];
-  if(rows.length<2)continue;
-  const max=rows.map(x=>x.max),min=rows.map(x=>x.min),rain=rows.map(x=>x.precipitation),sun=rows.map(x=>x.sunshineDuration).filter(Number.isFinite);
-  days.push({date,maxMean:quantile(max,.5),maxLow:quantile(max,.1),maxHigh:quantile(max,.9),maxQ25:quantile(max,.25),maxQ75:quantile(max,.75),minMean:quantile(min,.5),minLow:quantile(min,.1),minHigh:quantile(min,.9),minQ25:quantile(min,.25),minQ75:quantile(min,.75),precipitationMean:quantile(rain,.5),precipitationLow:quantile(rain,.1),precipitationHigh:quantile(rain,.9),precipitationProbability:rain.length?100*rain.filter(v=>v>=.1).length/rain.length:0,sunshineDurationMean:sun.length>=2?quantile(sun,.5):NaN,sunshineDurationLow:sun.length>=2?quantile(sun,.1):NaN,sunshineDurationHigh:sun.length>=2?quantile(sun,.9):NaN,modelCount:rows.length,memberCount:0});
- }
- return{days,models:ok.map(x=>x.id.replaceAll('_ensemble_mean','').replaceAll('_',' '))};
+ const results=settled.filter(x=>x.status==='fulfilled').map(x=>(x as PromiseFulfilledResult<ModelResult|null>).value).filter(Boolean) as ModelResult[];
+ const days=aggregateMembers(results),activeModels=results.map(result=>result.model),runs=await modelRunMetas(activeModels.map(model=>({id:model.metaId,label:model.label,kind:'ensemble' as const})),signal);
+ return{days,models:activeModels.map(model=>model.label),runs};
 }
 export async function ensembles(lat:number,lon:number,signal?:AbortSignal){
- const selected=ensembleModels.filter(m=>modelApplies(m,lat,lon));
- const settled=await settledMapLimited(selected,4,async model=>parseModelMembers(await fetchEnsembleWeather(lat,lon,15,model.id,signal),model));
+ const selected=selectedEnsembleModels(lat,lon),cache=readEnsembleCache(lat,lon);
+ const settled=await settledMapLimited(selected,2,async model=>parseModelMembers(await fetchEnsembleWeather(lat,lon,model.maxDays,model.id,signal),model));
  if(signal?.aborted)throw new DOMException('Abgebrochen','AbortError');
  const results=settled.filter(x=>x.status==='fulfilled').map(x=>(x as PromiseFulfilledResult<ModelResult|null>).value).filter(Boolean) as ModelResult[],failedCount=settled.filter(x=>x.status==='rejected').length;
- const activeModels=results.map(x=>x.model),runs=await modelRunMetas(activeModels.map(x=>({id:x.metaId,label:x.label,kind:'ensemble' as const})),signal),days=aggregateMembers(results);
- if(days.length>=7)return{days:days.slice(0,14),models:activeModels.map(x=>x.label),runs};
+ const activeModels=results.map(x=>x.model),days=aggregateMembers(results),runs=await modelRunMetas(activeModels.map(x=>({id:x.metaId,label:x.label,kind:'ensemble' as const})),signal);
+ if(days.length>=7){const value={days:days.slice(0,14),models:activeModels.map(x=>x.label),runs};writeEnsembleCache(lat,lon,value);return value}
  const fallback=await meanFallback(lat,lon,signal);
- if(fallback.days.length)return{...fallback,runs};
- if(days.length)return{days,models:activeModels.map(x=>x.label),runs};
- throw new Error(`Keine ausreichend vollständigen Ensemble-Daten: ${failedCount} von ${selected.length} Mitgliedermodell-Abrufen fehlgeschlagen; auch die Ensemble-Mittel-Reserve lieferte keine auswertbare Tagesreihe.`);
+ if(fallback.days.length>=5){writeEnsembleCache(lat,lon,fallback);return fallback}
+ if(days.length){const value={days,models:activeModels.map(x=>x.label),runs};writeEnsembleCache(lat,lon,value);return value}
+ if(cache)return{days:cache.days,models:[...cache.models,'lokaler letzter erfolgreicher Stand'],runs:cache.runs};
+ throw new Error(`Keine ausreichend vollständigen Ensemble-Daten: ${failedCount} von ${selected.length} priorisierten Mitgliedermodell-Abrufen fehlgeschlagen; die offizielle Ensemble-Mittel-/Spread-Reserve lieferte ebenfalls keine auswertbare Tagesreihe.`);
 }
 
 const CLIMATE_CACHE_PREFIX='mid:climatology:1991-2020:';

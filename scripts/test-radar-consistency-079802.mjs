@@ -16,12 +16,13 @@ const [app,radar,pixel,worker,changes,ensemble,styles]=await Promise.all([
 ]);
 const failures=[];
 for(const token of [
- 'const arrivalSegment=arrivalVisible?',
+ 'const arrivalSegment:Segment|null=arrivalVisible?',
  'arrivalSegment&&!observedArrivalCovered',
- 'Die Balkenhöhe entspricht der Radarintensität.',
+ 'Die y-Achse und Balkenhöhe zeigen die Intensität',
  "radar.arrivalKind!=='site'",
- 'if(value>=50)return 22',
- 'className={`radar-nowcast-wet future expected'
+ 'function radarRateScale(',
+ 'radar-nowcast-yaxis',
+ 'radar-nowcast-events'
 ])if(!app.includes(token))failures.push(`Nowcast-Leiste: ${token}`);
 for(const token of ['.radar-nowcast-wet.expected{','.radar-nowcast-wet.expected.uncertain{','.radar-nowcast-wet.nearby{'])if(!styles.includes(token))failures.push(`Nowcast-CSS: ${token}`);
 for(const token of ['function projectedBounds(',"projectionFrom(where)",'inverseProjected(','boundsFromFile(file,meta,dataset)'])if(!pixel.includes(token))failures.push(`PX250-Georeferenz: ${token}`);

@@ -1,3 +1,13 @@
+# MID v0.7.103.0
+
+- Ensemble-Datenpfad grundlegend stabilisiert: statt bis zu 14 parallelen Mitgliedermodellfamilien werden höchstens acht priorisierte, räumlich passende Modelle mit maximal zwei gleichzeitigen Abrufen geladen.
+- Neuer Cloudflare-Proxy für Open-Meteo-Ensemble- und Modellmetadaten ergänzt, um Browser-/CORS-/Rate-Limit-Ausfälle zu reduzieren und Modellstände zuverlässig bereitzustellen.
+- Offizielle Ensemble-Mittel-/Spread-Reserve verwendet Temperatur- und Niederschlagsspreizung zur Rekonstruktion belastbarer Quantile, falls einzelne Mitgliedermodelle ausfallen.
+- Letzter erfolgreicher Ensemble-Stand wird ortsbezogen 24 Stunden lokal vorgehalten, sodass Diagramme und Modelllauf-Radar bei vorübergehender API-Störung nicht vollständig verschwinden.
+- KONRAD3D-Annäherungslogik korrigiert: Eine Zelle gilt nur als näherkommend, wenn das prognostizierte Zellzentrum tatsächlich näher liegt; eine größere Unsicherheitsellipse darf keine scheinbare Annäherung erzeugen.
+- Radar-Nowcast auf 5- bis 15-minütige Einzelintervalle erweitert. Die Balkenhöhe nutzt eine dynamische mm/h-y-Achse; zusammenhängende Zeiträume zeigen maximale Intensität und grob abgeleitete Niederschlagsmenge.
+- Neuer Regressionstest schützt Ensemble-Recovery, Worker-Proxy, Modellmetadaten, Zellzentrum-Plausibilisierung sowie Nowcast-y-Achse und Intervallmengen.
+
 # MID v0.7.102.1
 
 - Ensemble-Ladezustand repariert: Ein geöffnetes 14-Tage-Ensemble bleibt während des Wetterladens und bei Ortswechseln aktiv und startet für den neuen Ort zuverlässig einen neuen Ensemble- und Klimadatenabruf.
