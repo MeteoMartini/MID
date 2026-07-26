@@ -1,3 +1,13 @@
+# MID v0.7.95.30
+
+- Niederschlags-Plausibilisierung appweit vereinheitlicht: aktuelles Wetter, 7-Tage-Vorhersage, stündliche Detailansicht, Ensemble, Meteogramm, Berg-/Wintersportmodul und Routenwetter verwenden nun dieselbe zentrale Ableitung für Wettertext, Piktogramm und Niederschlagsart.
+- Regen/Sprühregen-Prüfung vollständig wiederhergestellt: Sprühregen-Codes werden nur noch bei plausibler feuchter tiefer Stratuslage und schwacher nicht-konvektiver Rate übernommen; andernfalls erfolgt eine konsistente Umstufung zu Regen, Schauer oder trockener Bewölkung.
+- Plausibilitätsprüfung auf Schnee und Schneegriesel erweitert. Bodentemperatur, explizite Schneemenge, Feuchte, tiefe Bewölkung, Niederschlagsrate und konvektiver Anteil verhindern warme oder dynamisch unplausible Schneesymbole; valide nasse Schneefälle mit explizitem Schneefeld bleiben erhalten.
+- Auch trockene Fehlcodes werden korrigiert: Ein unplausibler Niederschlagscode ohne messbaren Niederschlag fällt auf einen zur Bewölkung passenden trockenen WMO-Code zurück.
+- Meteogramm-Abfrage um Gesamt- und tiefe Bewölkung ergänzt, damit die zentrale Plausibilitätsprüfung dort dieselben Eingangsdaten wie die übrige App verwendet.
+- Tagesbezogene DWD-Hazard-Auswertung korrigiert: Warnungen werden nur aus Startstunden des angezeigten Tages gebildet, erhalten aber bis zu 72 Stunden Vorlaufdaten für Schwellen und nächtliche Abkühlung. Dadurch entspricht der Temperaturwert im Wärme-Warnbutton wieder der maximalen gefühlten Temperatur des Tages.
+- Neue appweite Regression schützt Niederschlagskonsistenz und den Tageshöchstwert der gefühlten Temperatur; synthetischer Testfall 34 °C am Vormittag und 36 °C am Nachmittag erwartet korrekt 36 °C im Warnhinweis.
+
 # MID v0.7.95.29
 
 - Einstellungsdialog wieder vollständig an das geschützte Design von MID v0.7.95.26 angeglichen: zweispaltiger Desktopdialog, mobile Bereichsnavigation, Auswahlkarten, Einheitenauswahl und eingebettete Detailbereiche.

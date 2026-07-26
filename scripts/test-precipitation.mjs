@@ -26,6 +26,11 @@ const cases=[
  ['Schneeschauercode bleibt Schneeschauer',sample({code:85,precipitation:1.1,showers:.3,snowfall:1.4}), 'snowShowers'],
  ['Schneeregencode bleibt Schneeregen',sample({code:68,precipitation:1.3,rain:.7,snowfall:.4}), 'sleet'],
  ['Schneeregenschauercode bleibt Schneeregenschauer',sample({code:83,precipitation:1.4,showers:.8,snowfall:.5}), 'sleetShowers'],
+ ['Schneegriesel bleibt bei kalter feuchter Stratuslage Schneegriesel',sample({code:77,temperature:-2,humidity:92,cloud:100,lowCloud:94,precipitation:.2,snowfall:.2}), 'snowGrains'],
+ ['Warmer Schneegrieselcode mit Regenfeld wird zu Regen',sample({code:77,temperature:5,humidity:62,cloud:35,lowCloud:20,precipitation:.6,rain:.6}), 'rain'],
+ ['Warmer Schneefallcode ohne Schneemenge wird zu Regen',sample({code:73,temperature:4.5,precipitation:.8,rain:.8}), 'rain'],
+ ['Warmer Schneeschauercode ohne Schneemenge wird zum Regenschauer',sample({code:85,temperature:5,precipitation:.9,showers:.9}), 'showers'],
+ ['Explizite Schneemenge erhält Schnee auch bei leicht positiver Temperatur',sample({code:73,temperature:4,precipitation:.6,snowfall:.4}), 'snow'],
  ['Sprühregen bleibt bei feuchter tiefer Stratuslage Sprühregen',sample({code:53,precipitation:.3,rain:.3,humidity:95,cloud:100,lowCloud:92}), 'drizzle'],
  ['Sprühregencode wird ohne Stratussignal als Regen plausibilisiert',sample({code:53,precipitation:.8,rain:.8,humidity:72,cloud:55,lowCloud:18}), 'rain'],
  ['Sprühregencode wird bei kräftiger Niederschlagsrate als Regen plausibilisiert',sample({code:55,precipitation:3.2,rain:3.2,humidity:96,cloud:100,lowCloud:95}), 'rain'],
@@ -43,6 +48,13 @@ if(plausibleDrizzle.displayCode!==53)failures.push(`Plausibler Sprühregen erhä
 const implausibleDrizzle=precipitationParts(sample({code:53,precipitation:.8,rain:.8,humidity:72,cloud:55,lowCloud:18}));
 if(implausibleDrizzle.weatherLabel!=='leichter Regen')failures.push(`Unplausibler Sprühregen wird im Wettertext nicht zu Regen: ${implausibleDrizzle.weatherLabel}`);
 if(implausibleDrizzle.displayCode!==61)failures.push(`Unplausibler Sprühregen behält falschen Symbolcode: ${implausibleDrizzle.displayCode}`);
+
+const implausibleSnowGrainsDry=precipitationParts(sample({code:77,temperature:6,humidity:45,cloud:25,lowCloud:10}));
+if(implausibleSnowGrainsDry.type!=='none')failures.push(`Trockener warmer Schneegrieselcode bleibt fälschlich Niederschlag: ${implausibleSnowGrainsDry.type}`);
+if(![0,1,2,3].includes(implausibleSnowGrainsDry.displayCode))failures.push(`Trockener warmer Schneegrieselcode erhält keinen plausiblen Wolken-Fallback: ${implausibleSnowGrainsDry.displayCode}`);
+const implausibleSnowRain=precipitationParts(sample({code:75,temperature:5,precipitation:1.2,rain:1.2,cloud:90}));
+if(implausibleSnowRain.type!=='rain'||![61,63,65].includes(implausibleSnowRain.displayCode))failures.push(`Warmer Schneecode wird nicht konsistent als Regen dargestellt: ${implausibleSnowRain.type}/${implausibleSnowRain.displayCode}`);
+
 const fallbackRain=precipitationParts(sample({code:3,precipitation:.8,rain:.8,probability:80}));
 if(fallbackRain.displayCode!==61)failures.push(`Fallback-Regen erhält trotz messbarer Menge keinen Regensymbolcode: ${fallbackRain.displayCode}`);
 const fallbackSnow=precipitationParts(sample({code:3,precipitation:.8,snowfall:1.2,probability:80}));
@@ -52,4 +64,4 @@ for(const expected of ['snow','snowShowers','sleet','sleetShowers'])if(!legend.i
 if(legend.filter(type=>type==='sleet').length!==1)failures.push('Legende enthält Schneeregen mehrfach');
 await rm(outDir,{recursive:true,force:true});
 if(failures.length){console.error('Niederschlagsformen-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Niederschlagsformen geprüft: WMO-Code steuert Symbol, Legende und Tooltip konsistent; Mischformen entstehen im Fallback nur bei gleichzeitig festem und flüssigem Anteil.');
+console.log('Niederschlagsformen geprüft: Regen/Sprühregen sowie Schnee/Schneegriesel werden zentral plausibilisiert; Symbol, Text, Legende und Tooltip bleiben konsistent.');

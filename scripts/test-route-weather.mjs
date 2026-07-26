@@ -28,8 +28,9 @@ for(const token of [
 
 for(const token of [
  'precipitationParts({',
- "precipitation.type==='none'?hour.code:precipitation.displayCode",
- "precipitation.type==='none'?label(hour.code):precipitation.weatherLabel",
+ 'temperature:hour.temperature',
+ 'const displayCode=precipitation.displayCode',
+ "precipitation.type==='none'?label(displayCode):precipitation.weatherLabel",
  'export async function loadRouteWeather',
  'Schematische Route als Luftlinie zwischen Start und Ziel',
  'formatRouteWind'

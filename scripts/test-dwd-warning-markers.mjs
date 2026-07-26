@@ -44,7 +44,7 @@ if(formatDwdWindValue(50,'kmh')!=='50 km/h (Bft 7)')failures.push('Beaufort-Zusa
 const heat=signal([sample({apparent:38.6})],'heat');
 if(heat&&/[,.]\d/.test(formatDwdWarningDetail(heat,'kn')))failures.push('Wärme-Warntext enthält weiterhin Kommawerte.');
 
-for(const token of ["minimumLevel:DwdWarningLevel=1","dailyHazards(d,dayHours,elevation,unit,1)",'compact-hazard','formatDwdWarningCompactValue(signal,unit)'])if(!app.includes(token))failures.push(`7-Tage-Hazarddarstellung fehlt: ${token}`);
+for(const token of ["minimumLevel:DwdWarningLevel=1","dailyHazards(d,hours,elevation,unit,1)",'compact-hazard','formatDwdWarningCompactValue(signal,unit)'])if(!app.includes(token))failures.push(`7-Tage-Hazarddarstellung fehlt: ${token}`);
 if(!app.includes('Keine Hazards')||!styles.includes('.forecast-hazards .no-hazard'))failures.push('Dezenter Hinweis für warnfreie Tage fehlt.');
 for(const token of ['detailWarningMarkers(p,hours,elevation)','model-warning-marker','detail-model-warning-tooltip','data-warning-y'])if(app.includes(token))failures.push(`Warnmarker ist im Detaildiagramm noch vorhanden: ${token}`);
 for(const token of ['signal.level>=2','<b>Hazards</b>','ensemble-hazard-tooltip'])if(!ensemble.includes(token))failures.push(`Ensemble-Hazard-Tooltip fehlt: ${token}`);

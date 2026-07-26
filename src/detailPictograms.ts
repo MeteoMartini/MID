@@ -40,11 +40,11 @@ function pictogramScore(hour:DetailPictogramHour,parts:PrecipitationParts){
   const probabilityBonus=Math.min(20,Math.max(0,Number(hour.probability)||0)/5);
   return 1000+PRECIP_PRIORITY[parts.type]*10+amountBonus+probabilityBonus;
  }
- return rawWeatherPriority(Math.round(Number(hour.code)||0));
+ return rawWeatherPriority(Math.round(Number(parts.displayCode)||0));
 }
 
-export function detailPictogramDisplayCode(hour:DetailPictogramHour,parts:PrecipitationParts){
- return parts.type==='none'?hour.code:parts.displayCode;
+export function detailPictogramDisplayCode(_hour:DetailPictogramHour,parts:PrecipitationParts){
+ return parts.displayCode;
 }
 
 /**

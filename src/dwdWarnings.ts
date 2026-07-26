@@ -120,3 +120,21 @@ export function dwdWarningSignalsAt(samples:DwdWarningSample[],index:number,elev
 }
 
 export function summarizeDwdWarnings(samples:DwdWarningSample[],elevation=0,startLimit=samples.length){const byKind=new Map<DwdWarningKind,DwdWarningSignal>();for(let index=0;index<Math.min(samples.length,Math.max(0,startLimit));index++){for(const signal of dwdWarningSignalsAt(samples,index,elevation)){const previous=byKind.get(signal.kind);if(!previous||signal.level>previous.level||signal.level===previous.level&&signal.value>previous.value)byKind.set(signal.kind,signal)}}return[...byKind.values()].sort((a,b)=>b.level-a.level||a.kind.localeCompare(b.kind))}
+
+/**
+ * Tagesbezogene Zusammenfassung mit vollständigem Vorwärtsfenster.
+ * Die ersten `dayCount` Stunden gehören zum angezeigten Kalendertag; weitere
+ * Stunden werden ausschließlich für 12-/24-/48-/72-h-Schwellen und die
+ * nächtliche Abkühlung herangezogen. Dadurch bleibt der angezeigte Warnwert
+ * beim Tagesmaximum (z. B. maximale gefühlte Temperatur) und wird nicht auf
+ * einen früheren, technisch noch vollständig auswertbaren Stundenwert gekürzt.
+ */
+export function summarizeDwdWarningsForDay(samples:DwdWarningSample[],date:string,elevation=0){
+ const start=samples.findIndex(sample=>String(sample.time||'').startsWith(date));
+ if(start<0)return[] as DwdWarningSignal[];
+ let dayCount=0;
+ while(start+dayCount<samples.length&&String(samples[start+dayCount]?.time||'').startsWith(date))dayCount++;
+ if(!dayCount)return[] as DwdWarningSignal[];
+ const extended=samples.slice(start,start+dayCount+72);
+ return summarizeDwdWarnings(extended,elevation,dayCount);
+}

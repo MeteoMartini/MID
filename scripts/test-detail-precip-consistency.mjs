@@ -6,8 +6,8 @@ const [app,styles]=await Promise.all([
 ]);
 const failures=[];
 const checks=[
- /currentWeatherCode=currentPrecip\.type==='none'\?currentHour\.code:currentPrecip\.displayCode/,
- /currentWeatherLabel=currentPrecip\.type==='none'\?label\(currentHour\.code\):currentPrecip\.weatherLabel/,
+ /currentWeatherCode=currentPrecip\.displayCode/,
+ /currentWeatherLabel=currentPrecip\.type==='none'\?label\(currentWeatherCode\):currentPrecip\.weatherLabel/,
  /icon\(currentWeatherCode,currentHour\.isDay\)/,
  /\{currentWeatherLabel\}/,
  /representativeDetailPictograms\(iconIndices,p,precipSeries\)/

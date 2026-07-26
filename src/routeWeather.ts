@@ -103,12 +103,13 @@ function assessCheckpoint(hour:Hour){
   snowfall:hour.snowfall,
   probability:hour.probability,
   code:hour.code,
+  temperature:hour.temperature,
   humidity:hour.humidity,
   cloud:hour.cloud,
   lowCloud:hour.lowCloud
  });
- const displayCode=precipitation.type==='none'?hour.code:precipitation.displayCode;
- const displayLabel=precipitation.type==='none'?label(hour.code):precipitation.weatherLabel;
+ const displayCode=precipitation.displayCode;
+ const displayLabel=precipitation.type==='none'?label(displayCode):precipitation.weatherLabel;
  const reasons:string[]=[];
  let score=0;
 

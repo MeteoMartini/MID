@@ -4,6 +4,7 @@ import {toBlob} from 'html-to-image';
 import {fetchWorkerJson,workerBaseCandidates} from './workerClient';
 import {MID_VERSION as VERSION} from './version';
 import {formatDecimal,formatDecimalFixed} from './format';
+import {precipitationParts} from './precipitation';
 
 const LEVELS=[1000,975,950,925,900,850,800,700,600,500,400,300] as const;
 const UPPER_LEVELS=[250,200,150,100] as const;
@@ -25,7 +26,7 @@ const MODELS:ModelOption[]=[
  {id:'dwd_icon',label:'DWD ICON Global',hours:180,detail:'ca. 11 km · bis 180 h'}
 ];
 
-const SURFACE_VARS=['temperature_2m','relative_humidity_2m','pressure_msl','wind_speed_10m','wind_direction_10m','wind_gusts_10m','precipitation','rain','showers','snowfall','snow_depth','weather_code','freezing_level_height'];
+const SURFACE_VARS=['temperature_2m','relative_humidity_2m','pressure_msl','wind_speed_10m','wind_direction_10m','wind_gusts_10m','precipitation','rain','showers','snowfall','snow_depth','weather_code','cloud_cover','cloud_cover_low','freezing_level_height'];
 const PROFILE_VARS=PROFILE_LEVELS.flatMap(level=>[`temperature_${level}hPa`,`relative_humidity_${level}hPa`,`cloud_cover_${level}hPa`,`wind_speed_${level}hPa`,`wind_direction_${level}hPa`,`geopotential_height_${level}hPa`]);
 const HOURLY_VARS=[...SURFACE_VARS,...PROFILE_VARS];
 
@@ -90,7 +91,27 @@ function contourLevels(values:number[][],levels:number[]){const rows=values.leng
  return result}
 function pathFromGrid(points:[number,number][],x:(value:number)=>number,y:(value:number)=>number){return points.map((point,index)=>`${index?'L':'M'}${x(point[0]).toFixed(1)},${y(point[1]).toFixed(1)}`).join(' ')}
 function formatTick(value:number,_unit:string,step=1){const decimals=step<.1?2:step<1?1:0;return value.toLocaleString('de-DE',{useGrouping:false,minimumFractionDigits:decimals,maximumFractionDigits:decimals})}
-function precipType(index:number,hourly:HourlyRecord){const precip=valueAt(hourly,'precipitation',index)??0,rain=valueAt(hourly,'rain',index)??0,showers=valueAt(hourly,'showers',index)??0,snow=valueAt(hourly,'snowfall',index)??0,temp=valueAt(hourly,'temperature_2m',index),t850=valueAt(hourly,'temperature_850hPa',index),code=valueAt(hourly,'weather_code',index)??0;if(precip<.05&&snow<.03)return{short:'',label:'kein Niederschlag',kind:'none'};if(temp!==null&&temp<=.5&&t850!==null&&t850>1&&precip>.05)return{short:'FZRA',label:'gefrierender Regen',kind:'freezing'};if(snow>.03&&rain+showers>.03)return{short:'RASN',label:'Schneeregen / Mischphase',kind:'mixed'};if(snow>.03||[71,73,75,77,85,86].includes(code))return{short:'SN',label:temp!==null&&temp>1?'nasser Schnee':'Schnee',kind:'snow'};if(showers>Math.max(.05,rain*.7)||[80,81,82].includes(code))return{short:'SHRA',label:'Regenschauer',kind:'showers'};return{short:'RA',label:'Regen',kind:'rain'}}
+function precipType(index:number,hourly:HourlyRecord){
+ const precip=valueAt(hourly,'precipitation',index)??0,rain=valueAt(hourly,'rain',index)??0,showers=valueAt(hourly,'showers',index)??0,snow=valueAt(hourly,'snowfall',index)??0,temp=valueAt(hourly,'temperature_2m',index),t850=valueAt(hourly,'temperature_850hPa',index),code=valueAt(hourly,'weather_code',index)??0;
+ if(temp!==null&&temp<=.5&&t850!==null&&t850>1&&precip>.05)return{short:'FZRA',label:'gefrierender Regen',kind:'freezing'};
+ const part=precipitationParts({precipitation:precip,rain,showers,snowfall:snow,probability:0,code,temperature:temp??undefined,humidity:valueAt(hourly,'relative_humidity_2m',index)??undefined,cloud:valueAt(hourly,'cloud_cover',index)??undefined,lowCloud:valueAt(hourly,'cloud_cover_low',index)??undefined});
+ const mapped={
+  none:{short:'',label:'kein Niederschlag',kind:'none'},
+  drizzle:{short:'DZ',label:part.weatherLabel,kind:'rain'},
+  freezingDrizzle:{short:'FZDZ',label:part.weatherLabel,kind:'freezing'},
+  rain:{short:'RA',label:part.weatherLabel,kind:'rain'},
+  freezingRain:{short:'FZRA',label:part.weatherLabel,kind:'freezing'},
+  showers:{short:'SHRA',label:part.weatherLabel,kind:'showers'},
+  snow:{short:'SN',label:part.weatherLabel,kind:'snow'},
+  snowGrains:{short:'SG',label:part.weatherLabel,kind:'snow'},
+  snowShowers:{short:'SHSN',label:part.weatherLabel,kind:'snow'},
+  sleet:{short:'RASN',label:part.weatherLabel,kind:'mixed'},
+  sleetShowers:{short:'SHRASN',label:part.weatherLabel,kind:'mixed'},
+  thunderstorm:{short:'TSRA',label:part.weatherLabel,kind:'showers'},
+  thunderstormHail:{short:'TSGR',label:part.weatherLabel,kind:'showers'}
+ } as const;
+ return mapped[part.type];
+}
 function icingRisk(row:ProfileRow,index:number):RiskCell{const temp=row.temperature[index],rh=row.humidity[index],cloud=row.cloud[index];if(temp===null||rh===null||temp>0||temp<-22)return 0;const moist=Math.max(rh,cloud??0);if(temp<=-2&&temp>=-15&&moist>=92)return 2;if(moist>=80)return 1;return 0}
 function turbulenceRisk(rows:ProfileRow[],rowIndex:number,index:number):{turbulence:RiskCell;cat:RiskCell}{if(rowIndex<=0||rowIndex>=rows.length-1)return{turbulence:0,cat:0};const lower=rows[rowIndex-1],row=rows[rowIndex],upper=rows[rowIndex+1],u=(speed:number,direction:number)=>-speed*.514444*Math.sin(direction*Math.PI/180),v=(speed:number,direction:number)=>-speed*.514444*Math.cos(direction*Math.PI/180),h1=lower.heights[index],h2=upper.heights[index],s1=lower.windSpeed[index],s2=upper.windSpeed[index],d1=lower.windDirection[index],d2=upper.windDirection[index],t1=lower.temperature[index],t2=upper.temperature[index];if([h1,h2,s1,s2,d1,d2,t1,t2].some(value=>value===null))return{turbulence:0,cat:0};const dz=Math.max(100,Math.abs(h2!-h1!)),du=u(s2!,d2!)-u(s1!,d1!),dv=v(s2!,d2!)-v(s1!,d1!),shear=Math.sqrt(du*du+dv*dv)/dz,pressure=row.pressure??1000,theta1=(t1!+273.15)*Math.pow(1000/(lower.pressure??1000),.286),theta2=(t2!+273.15)*Math.pow(1000/(upper.pressure??300),.286),theta=(row.temperature[index]??0)+273.15,ri=(9.81/theta)*((theta2-theta1)/dz)/Math.max(1e-7,shear*shear);let risk:RiskCell=0;if(shear>=.02||ri<=0)risk=2;else if(shear>=.011||ri<.25)risk=1;const isCat=risk>0&&pressure<=700&&(row.humidity[index]??100)<70;return{turbulence:isCat?0:risk,cat:isCat?risk:0}}
 type LevelLinePoint={height:number;pressure:number;temperature:number};

@@ -6,6 +6,13 @@ Vor jeder Änderung müssen `package.json` und `MID_BASELINE.json` aus `mid-stab
 
 **Verbindliche Projektanweisung für neue Chats:** „Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.“
 
+## Wartung in v0.7.95.30 – appweite Niederschlagslogik, Temperaturwarnwert und ortsgebundene Höhenprofile
+
+- Regen/Sprühregen, gefrierender Sprühregen/gefrierender Regen sowie Schnee/Schneegriesel werden in allen App-Darstellungen über denselben zentralen Plausibilitätskern klassifiziert. Dies gilt auch bei auf null gerundeten Mengen mit vorhandenem WMO-Niederschlagscode.
+- Der Wärme-Warnwert einer Tageskarte zeigt nach ausgelöster Wärmebelastung die höchste gefühlte Temperatur des vollständigen Tages.
+- Automatische Bergprofile sind über einen Koordinatenschlüssel fest an den jeweiligen Favoriten gebunden. Fremde Profile werden verworfen und neu bestimmt.
+- Tal- und Bergniveau werden räumlich begrenzt aus passenden Stations-/Liftpunkten bestimmt. Eine Mittelstation wird nur angezeigt, wenn ein ausdrücklich vorhandenes und zum Tal-/Bergpaar passendes Mittelniveau gefunden wurde.
+
 ## Wartung in v0.7.95.27 – Funktionskontinuität zu v0.7.95.26
 
 Der vollständige Referenzumfang von MID v0.7.95.26 ist wiederhergestellt. Info-Schaltflächen und der Button „Modellstände“ verwenden robuste Body-Portale und schließen per Außenklick/-tippen oder Escape. Die Tooltips der farbigen Prognosekonsistenzpunkte besitzen dieselbe Schließlogik, ohne Klicks auf Punkt oder Tooltip selbst zu verlieren. Zusätzlich sind Luftdrucktendenz, Sonne/Mond, Modelllauf-Änderungsradar, Benachrichtigungen, Bergprofil, Web-Analytics-Diagnose und die Worker-Unterstützung wieder vollständig verdrahtet. Ein eigener Referenzvertrag schützt diese Funktionen künftig automatisch.
