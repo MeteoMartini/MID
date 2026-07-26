@@ -6,6 +6,14 @@ Vor jeder Änderung müssen `package.json` und `MID_BASELINE.json` aus `mid-stab
 
 **Verbindliche Projektanweisung für neue Chats:** „Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.“
 
+## Funktionsrelease v0.7.97.0 – Bergdaten, Radarzug, Deep-Links und dauerhafte Modellstände
+
+- Der Berg-/Wintersportmodus nutzt je Höhenstufe tatsächliche Koordinaten, getrennte Mess-/Modell-Schneehöhen und strenge GeoSphere-Qualitätskriterien in Österreich.
+- Benachrichtigungen öffnen den betroffenen Favoriten; reguläre App-Starts stellen den zuletzt geöffneten Ort wieder her.
+- Das Kompositbild zeigt die aus aufeinanderfolgenden Radarframes abgeleitete Zugrichtung als Pfeile.
+- Modelllaufstände werden in einem versionsunabhängigen Sammelarchiv gesichert und über die bestehende persistente Zustandsbrücke wiederhergestellt.
+- Cloudflare Web Analytics wird bei konfiguriertem Buildtoken automatisch eingebunden.
+
 ## Wartung in v0.7.95.30 – appweite Niederschlagslogik, Temperaturwarnwert und ortsgebundene Höhenprofile
 
 - Regen/Sprühregen, gefrierender Sprühregen/gefrierender Regen sowie Schnee/Schneegriesel werden in allen App-Darstellungen über denselben zentralen Plausibilitätskern klassifiziert. Dies gilt auch bei auf null gerundeten Mengen mit vorhandenem WMO-Niederschlagscode.
@@ -91,7 +99,7 @@ Der vollständige Referenzumfang von MID v0.7.95.26 ist wiederhergestellt. Info-
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.95.27**
+**Aktuelle Version: v0.7.97.0**
 
 ## Revision in v0.7.89 – responsiver und schlanker
 

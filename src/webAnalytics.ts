@@ -7,6 +7,17 @@ let status:WebAnalyticsStatus={state:import.meta.env.PROD?'loading':'disabled-de
 
 function publish(next:WebAnalyticsStatus){status=next;window.dispatchEvent(new CustomEvent<WebAnalyticsStatus>('mid:web-analytics-status',{detail:next}))}
 function nextStatus(state:WebAnalyticsState,message:string,scriptPresent:boolean):WebAnalyticsStatus{return{state,message,tokenConfigured:Boolean(TOKEN),scriptPresent,updatedAt:new Date().toISOString()}}
+function ensureBeacon(){
+ const existing=document.querySelector<HTMLScriptElement>(`script[src^="${BEACON_SRC}"][data-cf-beacon]`);
+ if(existing)return existing;
+ const script=document.createElement('script');
+ script.defer=true;
+ script.src=BEACON_SRC;
+ script.dataset.cfBeacon=JSON.stringify({token:TOKEN});
+ script.setAttribute('data-mid-analytics','cloudflare');
+ document.head.appendChild(script);
+ return script;
+}
 
 export function getWebAnalyticsStatus(){return status}
 
@@ -14,8 +25,8 @@ export function startWebAnalyticsDiagnostics(){
  if(typeof window==='undefined'||typeof document==='undefined')return status;
  if(!import.meta.env.PROD){publish(nextStatus('disabled-dev','In der Entwicklungsumgebung deaktiviert.',false));return status}
  if(!TOKEN){publish(nextStatus('missing-token','GitHub-Buildvariable VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN fehlt.',false));return status}
- const script=document.querySelector<HTMLScriptElement>(`script[src^="${BEACON_SRC}"][data-cf-beacon]`);
- if(!script){publish(nextStatus('missing-snippet','Der Analytics-Beacon wurde trotz Token nicht in die Produktionsseite eingebaut.',false));return status}
+ const script=ensureBeacon();
+ if(!script){publish(nextStatus('missing-snippet','Der Analytics-Beacon konnte trotz Token nicht erzeugt werden.',false));return status}
  publish(nextStatus('loading','Cloudflare-Web-Analytics-Beacon wird geladen.',true));
  const loaded=()=>publish(nextStatus('loaded','Cloudflare-Web-Analytics-Beacon ist geladen.',true));
  const blocked=()=>publish(nextStatus('blocked','Analytics-Beacon wurde durch Netzwerk, DNS oder Inhaltsblocker verhindert.',true));

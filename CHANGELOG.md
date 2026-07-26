@@ -1,3 +1,17 @@
+# MID v0.7.97.0
+
+- Berg-/Wintersportmodus vollständig geprüft und auf Schema 2 gehärtet: Saisonprofile Automatisch/Sommer/Winter, Lift-/Stations- und Geländehöhenprofil, optionale Mittelstation, editierbare Stationsdaten und höhenbezogene Einzelkoordinaten bleiben erhalten.
+- Winterdaten je Höhenstufe erweitert: Schneedecke wird getrennt als GeoSphere-Messwert und Open-Meteo-Modellwert dargestellt; Neuschnee der vergangenen 24 Stunden sowie Prognosen für +24 und +48 Stunden bleiben separat sichtbar.
+- GeoSphere-Schneemessungen für Österreich über den MID-Worker ergänzt. Messwerte werden nur bei höchstens 25 km Entfernung, höchstens 350 m Höhendifferenz, maximal drei Stunden Alter und plausibler Schneehöhe übernommen.
+- Sommerliche Bergparameter wie UV-Index, Sicht, Wind/Böen und Gewitterpotenzial sowie die automatische Migration älterer Favoritenprofile auf das neue Bergschema abgesichert.
+- Cloudflare Web Analytics wieder funktionsfähig verdrahtet: Bei vorhandener GitHub-Buildvariable erzeugt MID den offiziellen Beacon im Produktionsbuild selbst und zeigt den Lade-/Blockierstatus im Systembereich an.
+- Untermenü „Benachrichtigungen“ optisch an die übrigen Einstellungen angeglichen: gruppierte Auswahlkarten, aktive Zustände und einheitliche Abstände/Radien.
+- Push-Mitteilungen enthalten nun einen Zielort-Deep-Link. Beim Antippen öffnet beziehungsweise navigiert die installierte App direkt zum betroffenen Favoriten; Koordinaten dienen als sicherer Rückfall.
+- Normales Öffnen der App lädt wieder den zuletzt geöffneten Ort. Automatische Standortverfolgung aktualisiert nur die Benachrichtigungsposition und überschreibt den sichtbaren Ort nicht mehr.
+- Kompositbild um aus Radarbildfolgen abgeleitete Zugrichtung ergänzt. Mehrere Richtungspfeile werden direkt auf dem Radarbild angezeigt; Richtung, Geschwindigkeit und Sicherheitsstufe stehen zusätzlich in der Quelleninformation.
+- Modelllauf-Änderungsradar auf ein versionsunabhängiges Sammelarchiv umgestellt. Je Ort bleiben mehrere Stände in localStorage sowie der bestehenden IndexedDB-/Cache-Sicherung erhalten und werden aus älteren Einzelständen migriert.
+- Neue Gesamtsuite schützt Berg-/Wintersport, GeoSphere-Schnee, Analytics, Benachrichtigungsdesign und Deep-Links, letzten Ort, Radar-Zugrichtung sowie das versionsfeste Modellarchiv.
+
 # MID v0.7.95.30
 
 - Niederschlags-Plausibilisierung appweit vereinheitlicht: aktuelles Wetter, 7-Tage-Vorhersage, stündliche Detailansicht, Ensemble, Meteogramm, Berg-/Wintersportmodul und Routenwetter verwenden nun dieselbe zentrale Ableitung für Wettertext, Piktogramm und Niederschlagsart.
