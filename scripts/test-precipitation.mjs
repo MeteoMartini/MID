@@ -26,12 +26,12 @@ const cases=[
  ['Schneeschauercode bleibt Schneeschauer',sample({code:85,precipitation:1.1,showers:.3,snowfall:1.4}), 'snowShowers'],
  ['Schneeregencode bleibt Schneeregen',sample({code:68,precipitation:1.3,rain:.7,snowfall:.4}), 'sleet'],
  ['Schneeregenschauercode bleibt Schneeregenschauer',sample({code:83,precipitation:1.4,showers:.8,snowfall:.5}), 'sleetShowers'],
- ['Schneegriesel bleibt bei kalter feuchter Stratuslage Schneegriesel',sample({code:77,temperature:-2,humidity:92,cloud:100,lowCloud:94,precipitation:.2,snowfall:.2}), 'snowGrains'],
+ ['Schneegriesel bleibt bei kalter feuchter Stratuslage Schneegriesel',sample({code:77,temperature:-2,dewPoint:-2.4,humidity:96,cloud:100,lowCloud:94,precipitation:.2,snowfall:.2}), 'snowGrains'],
  ['Unplausibler Schneegrieselcode wird innerhalb der festen Phase zu Schnee',sample({code:77,temperature:5,humidity:62,cloud:35,lowCloud:20,precipitation:.6,rain:.6}), 'snow'],
  ['Warmer Schneefallcode bleibt gemäß WMO-Phase Schnee',sample({code:73,temperature:4.5,precipitation:.8,rain:.8}), 'snow'],
  ['Warmer Schneeschauercode bleibt gemäß WMO-Phase Schneeschauer',sample({code:85,temperature:5,precipitation:.9,showers:.9}), 'snowShowers'],
  ['Explizite Schneemenge erhält Schnee auch bei leicht positiver Temperatur',sample({code:73,temperature:4,precipitation:.6,snowfall:.4}), 'snow'],
- ['Sprühregen bleibt bei feuchter tiefer Stratuslage Sprühregen',sample({code:53,precipitation:.3,rain:.3,humidity:95,cloud:100,lowCloud:92}), 'drizzle'],
+ ['Sprühregen bleibt bei feuchter tiefer Stratuslage Sprühregen',sample({code:53,temperature:8,dewPoint:7.5,precipitation:.3,rain:.3,humidity:96,cloud:100,lowCloud:92}), 'drizzle'],
  ['Sprühregencode wird ohne Stratussignal als Regen plausibilisiert',sample({code:53,precipitation:.8,rain:.8,humidity:72,cloud:55,lowCloud:18}), 'rain'],
  ['Sprühregencode wird bei kräftiger Niederschlagsrate als Regen plausibilisiert',sample({code:55,precipitation:3.2,rain:3.2,humidity:96,cloud:100,lowCloud:95}), 'rain'],
  ['Regencode bleibt Regen',sample({code:63,precipitation:2.4,rain:2.4,snowfall:.1}), 'rain'],
@@ -42,7 +42,7 @@ const cases=[
 ];
 const failures=[];
 for(const [name,input,expected] of cases){const actual=precipitationParts(input).type;if(actual!==expected)failures.push(`${name}: erwartet ${expected}, erhalten ${actual}`)}
-const plausibleDrizzle=precipitationParts(sample({code:53,precipitation:.3,rain:.3,humidity:95,cloud:100,lowCloud:92}));
+const plausibleDrizzle=precipitationParts(sample({code:53,temperature:8,dewPoint:7.5,precipitation:.3,rain:.3,humidity:96,cloud:100,lowCloud:92}));
 if(plausibleDrizzle.weatherLabel!=='mäßiger Sprühregen')failures.push(`Plausibler Sprühregen erhält falschen Wettertext: ${plausibleDrizzle.weatherLabel}`);
 if(plausibleDrizzle.displayCode!==53)failures.push(`Plausibler Sprühregen erhält falschen Anzeigecode: ${plausibleDrizzle.displayCode}`);
 const implausibleDrizzle=precipitationParts(sample({code:53,precipitation:.8,rain:.8,humidity:72,cloud:55,lowCloud:18}));
@@ -56,6 +56,14 @@ const implausibleSnowRain=precipitationParts(sample({code:75,temperature:5,preci
 if(implausibleSnowRain.type!=='snow'||implausibleSnowRain.displayCode!==75)failures.push(`Schneecode darf nicht in die flüssige Phase wechseln: ${implausibleSnowRain.type}/${implausibleSnowRain.displayCode}`);
 const implausibleFreezingDrizzle=precipitationParts(sample({code:57,precipitation:1.2,rain:1.2,humidity:70,cloud:40,lowCloud:10}));
 if(implausibleFreezingDrizzle.type!=='freezingRain'||![66,67].includes(implausibleFreezingDrizzle.displayCode))failures.push(`Gefrierender Sprühregen muss innerhalb der gefrierenden Flüssigphase bleiben: ${implausibleFreezingDrizzle.type}/${implausibleFreezingDrizzle.displayCode}`);
+
+
+const highBaseColdFrontDrizzle=precipitationParts(sample({code:53,temperature:11,dewPoint:3.2,precipitation:.4,rain:.4,humidity:92,cloud:100,lowCloud:88,showers:0}));
+if(highBaseColdFrontDrizzle.type!=='rain')failures.push(`Sprühregen bei geschätzter Wolkenbasis über 3000 ft wird nicht zu Regen verallgemeinert: ${highBaseColdFrontDrizzle.type}`);
+const showerAlternation=precipitationParts(sample({code:53,temperature:10,dewPoint:8.8,precipitation:.7,rain:.2,showers:.5,humidity:94,cloud:100,lowCloud:88}));
+if(showerAlternation.type!=='showers')failures.push(`Sprühregencode bei gleichzeitigem Schauersignal wird nicht als Schauer dargestellt: ${showerAlternation.type}`);
+const highBaseSnowGrains=precipitationParts(sample({code:77,temperature:-3,dewPoint:-11,precipitation:.2,snowfall:.2,humidity:90,cloud:100,lowCloud:85}));
+if(highBaseSnowGrains.type!=='snow')failures.push(`Schneegriesel bei hoher Wolkenbasis wird nicht innerhalb der festen Phase zu Schnee verallgemeinert: ${highBaseSnowGrains.type}`);
 
 const fallbackRain=precipitationParts(sample({code:3,precipitation:.8,rain:.8,probability:80}));
 if(fallbackRain.displayCode!==61)failures.push(`Fallback-Regen erhält trotz messbarer Menge keinen Regensymbolcode: ${fallbackRain.displayCode}`);

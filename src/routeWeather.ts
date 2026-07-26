@@ -104,6 +104,7 @@ function assessCheckpoint(hour:Hour){
   probability:hour.probability,
   code:hour.code,
   temperature:hour.temperature,
+  dewPoint:hour.dewPoint,
   humidity:hour.humidity,
   cloud:hour.cloud,
   lowCloud:hour.lowCloud

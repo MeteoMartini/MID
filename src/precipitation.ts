@@ -13,9 +13,12 @@ export type PrecipSample={
  probability:number;
  code:number;
  temperature?:number;
+ dewPoint?:number;
  humidity?:number;
  cloud?:number;
  lowCloud?:number;
+ cloudBaseHft?:number;
+ ceilingHft?:number;
 };
 
 export type PrecipitationParts={
@@ -65,24 +68,31 @@ const PRECIP_LABEL:Record<Exclude<PrecipType,'none'>,string>={
  */
 function finiteOrNaN(value:unknown){const number=Number(value);return Number.isFinite(number)?number:Number.NaN}
 
+function estimatedCloudBaseHft(h:PrecipSample){
+ const observed=[finiteOrNaN(h.ceilingHft),finiteOrNaN(h.cloudBaseHft)].filter(Number.isFinite);
+ if(observed.length)return Math.min(...observed);
+ const temperature=finiteOrNaN(h.temperature),dewPoint=finiteOrNaN(h.dewPoint);
+ // Näherung für die konvektive Kondensationshöhe: ca. 400 ft je Kelvin T−Td.
+ return Number.isFinite(temperature)&&Number.isFinite(dewPoint)?Math.max(0,(temperature-dewPoint)*400):Number.NaN;
+}
+
+function lowStratusSignal(h:PrecipSample,{humidityMinimum,lowCloudMinimum}:{humidityMinimum:number;lowCloudMinimum:number}){
+ const humidity=finiteOrNaN(h.humidity),lowCloud=finiteOrNaN(h.lowCloud),cloud=finiteOrNaN(h.cloud),baseHft=estimatedCloudBaseHft(h);
+ const humidEnough=Number.isFinite(humidity)&&humidity>=humidityMinimum;
+ const lowCloudEnough=Number.isFinite(lowCloud)?lowCloud>=lowCloudMinimum:Number.isFinite(cloud)&&cloud>=92;
+ const lowCloudDominant=Number.isFinite(lowCloud)&&Number.isFinite(cloud)?lowCloud>=Math.max(lowCloudMinimum,cloud*.72):lowCloudEnough;
+ const sufficientlyLow=Number.isFinite(baseHft)?baseHft<=3000:humidEnough&&humidity>=97&&lowCloudEnough;
+ return humidEnough&&lowCloudEnough&&lowCloudDominant&&sufficientlyLow;
+}
+
 function drizzlePlausible(h:PrecipSample,total:number){
- const humidity=finiteOrNaN(h.humidity);
- const lowCloud=finiteOrNaN(h.lowCloud);
- const cloud=finiteOrNaN(h.cloud);
- const humidEnough=Number.isFinite(humidity)&&humidity>=88;
- const stratusSignal=Number.isFinite(lowCloud)?lowCloud>=70:Number.isFinite(cloud)&&cloud>=85;
- const weakStratiformRate=total<2.5&&Math.max(0,Number(h.showers)||0)<.05;
- return humidEnough&&stratusSignal&&weakStratiformRate;
+ const weakStratiformRate=total<=.8&&Math.max(0,Number(h.showers)||0)<.03;
+ return lowStratusSignal(h,{humidityMinimum:92,lowCloudMinimum:80})&&weakStratiformRate;
 }
 
 function snowGrainsPlausible(h:PrecipSample,total:number){
- const humidity=finiteOrNaN(h.humidity);
- const lowCloud=finiteOrNaN(h.lowCloud);
- const cloud=finiteOrNaN(h.cloud);
- const humidEnough=Number.isFinite(humidity)&&humidity>=80;
- const stratusSignal=Number.isFinite(lowCloud)?lowCloud>=60:Number.isFinite(cloud)&&cloud>=75;
- const weakNonConvective=total<1&&Math.max(0,Number(h.showers)||0)<.05;
- return humidEnough&&stratusSignal&&weakNonConvective;
+ const weakNonConvective=total<=.5&&Math.max(0,Number(h.showers)||0)<.03;
+ return lowStratusSignal(h,{humidityMinimum:88,lowCloudMinimum:75})&&weakNonConvective;
 }
 
 function rainIntensity(total:number){
@@ -119,7 +129,8 @@ function representativePrecipitationCode(type:PrecipType,total:number,snowCm:num
  * Der WMO-Code bleibt für die Phase (flüssig, gefrierend, gemischt oder fest)
  * maßgeblich. Die Plausibilitätsprüfung korrigiert ausschließlich die seltenen
  * Unterarten Sprühregen und Schneegriesel: fehlt die typische feuchte, tiefe
- * Stratuslage, wird innerhalb derselben Phase zu Regen bzw. Schnee verallgemeinert.
+ * Stratuslage, eine sehr niedrige Wolkenbasis und eine schwache nicht-konvektive
+ * Rate, wird innerhalb derselben Phase zu Regen bzw. Schnee verallgemeinert.
  */
 export function precipitationParts(h:PrecipSample):PrecipitationParts{
  const total=Math.max(0,Number(h.precipitation)||0);

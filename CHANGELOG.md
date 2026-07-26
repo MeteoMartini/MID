@@ -1,3 +1,13 @@
+# MID v0.7.103.1
+
+- Tagesdetail-Tooltip neu angeordnet: **Taupunkt / Feuchte** steht vor **Wind / Böen**; innerhalb des Feuchtefelds wird zuerst der Taupunkt und danach die relative Feuchte angezeigt.
+- Aktuelle Windkachel an die Tagesdetaildarstellung angeglichen: Windrichtungspfeil, Windgeschwindigkeit und Böen stehen gemeinsam im Hauptwert; Richtung und Datenquelle folgen getrennt in der Detailzeile.
+- Zentrale Sprühregen-/Schneegriesel-Plausibilisierung verschärft, ohne die Niederschlagsphase zu verändern. Neben Luftfeuchte und tiefer Bewölkung werden Taupunktspreizung, geschätzte beziehungsweise beobachtete Wolkenbasis, Niederschlagsrate und Schauersignal berücksichtigt.
+- Sprühregen bei geschätzter/erfasster Wolkenbasis über 3000 ft GND wird innerhalb der flüssigen Phase zu Regen verallgemeinert; bei gleichzeitigem Schauersignal zu Regenschauern. Schneegriesel wird unter unplausiblen Bedingungen ausschließlich zu Schnee beziehungsweise Schneeschauern verallgemeinert.
+- Taupunktinformationen werden nun in aktuellem Wetter, Tagesdetail, Meteogramm, Berg-/Wintersport und Routenwetter an dieselbe zentrale Plausibilisierung übergeben.
+- Push-Mitteilungen nennen statt des generischen Wortes „Favorit“ den gegebenenfalls manuell geänderten Ortsnamen; beim dynamischen Standort lautet der Bezug **„am Standort“**. Dies gilt für Titel und Texte von Niederschlags- und Gewittermeldungen.
+- Neuer Regressionstest schützt Feldreihenfolge, Winddarstellung, appweite Taupunkt-/Wolkenbasisprüfung und ortsbezogene Push-Texte.
+
 # MID v0.7.103.0
 
 - Ensemble-Datenpfad grundlegend stabilisiert: statt bis zu 14 parallelen Mitgliedermodellfamilien werden höchstens acht priorisierte, räumlich passende Modelle mit maximal zwei gleichzeitigen Abrufen geladen.
