@@ -1,3 +1,9 @@
+
+## Neu in v0.7.102.0
+
+- Richtungsabhängiger Standortmarker im Kompositbild; auf iPhone/iPad wird die Kompassfreigabe beim Antippen angefordert.
+- Teilen-Buttons für Temperatur- und Niederschlags-Ensemble. Die PNG-Exporte bilden die aktuell gewählte Darstellung ab und enthalten MID-, Quellen- und Modellstandsinformationen.
+
 ## Funktionsrelease v0.7.101.0 – offizieller EU-AQI und robuste Radar-Livequellen
 
 - Die Luftqualitätskachel nutzt die offiziellen EEA-Konzentrationsbänder und Farben für PM2,5, PM10, NO₂, O₃ und SO₂.

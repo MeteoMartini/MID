@@ -1,3 +1,23 @@
+# MID v0.7.102.0
+
+- Standortmarker im Kompositbild durch ein richtungsabhängiges Symbol mit blauem Positionsring und Pfeil in Blickrichtung ersetzt.
+- Gerätekompass nutzt auf iPhone/iPad `webkitCompassHeading` und fordert die notwendige Bewegungssensor-Berechtigung erst nach einem bewussten Antippen des Markers an. Auf anderen Geräten wird ein absoluter Device-Orientation-Wert verwendet; die Anzeige wird geglättet.
+- Fehlende oder verweigerte Kompassfreigabe wird transparent im Standort-Popup erklärt, ohne die Karten- oder Positionsfunktion einzuschränken.
+- Beide Ensemble-Diagramme erhalten einen eigenen Teilen-Button: Temperaturtrend und Niederschlagsdiagramm können als PNG über das native Teilen-Menü ausgegeben werden.
+- Der Export übernimmt exakt die aktuell ausgewählte Diagrammdarstellung, einschließlich ENS-Mittel, Klimamittel, P25–P75 und Niederschlagswahrscheinlichkeit.
+- Exportbilder enthalten MID-Name und Version, Standort, aktive Modellfamilien, Initialisierungs-/Verfügbarkeitszeiten, Darstellungsoptionen und Quellenhinweis.
+- Fallback für Browser ohne Datei-Teilen: Das PNG wird lokal heruntergeladen.
+- Neuer Regressionstest schützt Standort-Blickrichtung, iOS-Berechtigung, beide Teilen-Buttons und den vollständigen Quellenblock.
+
+# MID v0.7.101.1
+
+- Widersprüchliche Gewitter-Pushmeldung korrigiert: Der sichtbare Abstand stammt nun ausschließlich aus der tatsächlichen aktuellen Zellposition und nicht mehr aus dem durch Prognoseunsicherheit reduzierten Relevanzabstand.
+- Aktuelle Nähe und künftige Annäherung werden getrennt behandelt. Befindet sich eine Zelle bereits höchstens 20 km entfernt, wird keine zusätzliche spätere Annäherungszeit mehr angezeigt.
+- Bei weniger als 1 km Abstand lautet der Hinweis „unmittelbar am Favoriten“ statt „0 km entfernt“.
+- Bei einer noch entfernten Zelle nennt die Pushmeldung aktuelle Entfernung, Annäherungszeit und prognostizierten Rohabstand getrennt.
+- Dieselbe Grenzlogik wurde in der sichtbaren Gewitterkarte und in der KONRAD3D-Kurzbeschreibung vereinheitlicht.
+- Neuer funktionaler Regressionstest bildet den problematischen Fall „aktueller Abstand 42 km, effektiver Prognoseabstand 0 km, Annäherung in 30 min“ sowie unmittelbare und nahe Zelllagen ab.
+
 # MID v0.7.101.0
 
 - Luftqualitätskachel auf die offiziellen sechs Stufen des European Air Quality Index der EEA umgestellt. PM2,5, PM10, NO₂, O₃ und SO₂ werden anhand ihrer aktuellen Konzentration klassifiziert; die schlechteste Einzelstufe bestimmt die Gesamtstufe.

@@ -20,15 +20,15 @@ function stationRainText(station:Station|null){const rain=Number(station?.precip
 export function combineThunderstormInformation(nowcast:ThunderstormNowcast|null,hours:Hour[],radar:RadarNowcast|null,station:Station|null,locationName='Standort'):ThunderInfo|null{
  const cell=nowcast?.nearest;
  if(nowcast?.available&&cell&&cell.relevanceDistanceKm<=80){
-  const currentDistance=Math.max(0,Number(cell.currentDistanceKm)||0),forecastDistance=Number(cell.forecastDistanceKm),effectiveDistance=Number(cell.forecastEffectiveDistanceKm),uncertainty=Number(cell.forecastUncertaintyKm),arrival=Number(cell.arrivalMinutes),nearNow=currentDistance<=25,approaching=Boolean(cell.isApproaching&&Number.isFinite(arrival)&&arrival<=90),direction=compassWord(cell.siteBearingDeg),headline=nearNow?'Gewitterzelle nahe':approaching?'Gewitterzelle nähert sich':'Gewitterzelle im Umfeld';
-  const positionText=`Aktuell ${Math.round(currentDistance)} km${direction?` ${direction}`:''} von ${locationName}`;
-  const approachText=approaching&&Number.isFinite(forecastDistance)?`; größte berechnete Annäherung in etwa ${Math.round(arrival)} min auf ca. ${Math.round(forecastDistance)} km`:approaching?`; mögliche Annäherung in etwa ${Math.round(arrival)} min`:'';
+  const currentDistanceRaw=Number(cell.currentDistanceKm),currentDistance=Number.isFinite(currentDistanceRaw)?Math.max(0,currentDistanceRaw):Number.NaN,forecastDistance=Number(cell.forecastDistanceKm),effectiveDistance=Number(cell.forecastEffectiveDistanceKm),uncertainty=Number(cell.forecastUncertaintyKm),arrival=Number(cell.arrivalMinutes),nearNow=Number.isFinite(currentDistance)&&currentDistance<=25,atSite=Number.isFinite(currentDistance)&&currentDistance<1,approaching=Boolean(!nearNow&&cell.isApproaching&&Number.isFinite(arrival)&&arrival>0&&arrival<=90),direction=compassWord(cell.siteBearingDeg),headline=atSite?'Gewitterzelle unmittelbar am Standort':nearNow?'Gewitterzelle nahe':approaching?'Gewitterzelle nähert sich':'Gewitterzelle im Umfeld';
+  const positionText=atSite?`Aktuell unmittelbar bei ${locationName}`:Number.isFinite(currentDistance)?`Aktuell ${Math.max(1,Math.round(currentDistance))} km${direction?` ${direction}`:''} von ${locationName}`:`Aktuelle Entfernung zu ${locationName} nicht belastbar verfügbar`;
+  const approachText=approaching&&Number.isFinite(forecastDistance)?`; größte berechnete Annäherung in etwa ${Math.round(arrival)} min auf ca. ${Math.max(0,Math.round(forecastDistance))} km`:approaching?`; mögliche Annäherung in etwa ${Math.round(arrival)} min`:'';
   const summary=`${positionText}${approachText}. ${cellDetailsShort(cell)}.`;
   const details:ThunderInfoDetail[]=[
    {label:'Bezugsort',value:locationName},
    {label:'Zellkennung',value:cell.id},
    {label:'Aktuelle Zellposition',value:coordinate(cell.latitude,cell.longitude)},
-   {label:'Aktuelle Entfernung / Richtung',value:`${decimal(currentDistance)} km · ${compassShort(cell.siteBearingDeg)}`},
+   {label:'Aktuelle Entfernung / Richtung',value:atSite?`unter 1 km · ${compassShort(cell.siteBearingDeg)}`:Number.isFinite(currentDistance)?`${decimal(currentDistance)} km · ${compassShort(cell.siteBearingDeg)}`:'–'},
    {label:'Zellstufe / Trend',value:`${severityText(cell.severity)} · ${trendText(cell.trend)}`},
    {label:'Zellverlagerung',value:Number.isFinite(Number(cell.motionDirectionDeg))||cell.speedKmh>0?`nach ${compassShort(cell.motionDirectionDeg)} · ${Math.round(cell.speedKmh||0)} km/h`:'nicht belastbar verfügbar'},
    {label:'Prognostizierte Position',value:coordinate(cell.forecastLatitude,cell.forecastLongitude)},
