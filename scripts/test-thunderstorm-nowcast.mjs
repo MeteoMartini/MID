@@ -9,7 +9,7 @@ if(app.includes("formatInZone(now,'UTC',{hour:'2-digit',minute:'2-digit',hourCyc
 need(app,'Gewitterinformation','Separate Gewitterinformation fehlt in der Standortzeile.');
 need(weather,"fetchWorkerJson<ThunderstormNowcast>('thunderstorm-nowcast'",'Frontend-Abruf für KONRAD3D fehlt.');
 need(worker,"mode==='thunderstorm-nowcast'",'Workerroute thunderstorm-nowcast fehlt.');
-need(worker,'DWD_KONRAD3D_INDEX','Offizieller DWD-KONRAD3D-Pfad fehlt.');
+need(worker,'DWD_KONRAD3D_ROOTS','Offizielle DWD-KONRAD3D-Pfade mit Spiegelserver fehlen.');
 need(worker,"tagNumber(intensity,'heavy_rain_flag')",'KONRAD3D-Starkregenflag wird nicht ausgewertet.');
 need(worker,"tagNumber(lightning,'lightning_rate')",'KONRAD3D-Blitzrate wird nicht ausgewertet.');
 need(worker,"tagNumber(intensity,'hail_flag')",'KONRAD3D-Hagelflag wird nicht ausgewertet.');

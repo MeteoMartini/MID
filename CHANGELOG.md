@@ -1,9 +1,14 @@
-# MID v0.7.100.6
+# MID v0.7.101.0
 
-- GitHub-Produktionsbuild repariert: `RadioTower` wird für die Ladehinweise des DWD-250-m- und OPERA-Radars wieder vollständig aus `lucide-react` importiert. Damit sind die beiden `TS2304`-Fehler in `RadarPanel.tsx` beseitigt.
-- Luftdruckkachel strukturell korrigiert: 3-Stunden-Trend, Trendbezeichnung und QFF-/Datenquellenzeile besitzen nun eigene Layoutzeilen und können auf schmalen Displays nicht mehr zu Wörtern wie „steigendauf“ zusammenlaufen.
-- Best-Match-Feldname wird lesbar als `Best Match · pressure_msl` abgesetzt.
-- Neuer Regressionstest schützt Icon-Import, Ladehinweise und die getrennte Luftdruckdarstellung.
+- Luftqualitätskachel auf die offiziellen sechs Stufen des European Air Quality Index der EEA umgestellt. PM2,5, PM10, NO₂, O₃ und SO₂ werden anhand ihrer aktuellen Konzentration klassifiziert; die schlechteste Einzelstufe bestimmt die Gesamtstufe.
+- Offizielle EEA-Farbpalette übernommen: Gut, Mittelmäßig, Mittel, Schlecht, Sehr schlecht und Äußerst schlecht.
+- Erweiterter AQI-Tooltip zeigt sämtliche Einzelkonzentrationen, deren jeweilige EU-AQI-Stufe und die nächstgelegene EEA-Messstation mit Name, Entfernung, Klasse und EoI-Kennung.
+- Neuer Worker-Endpunkt für die nächstgelegene EEA-Luftgütemessstation; die zusätzliche Abfrage läuft nur im erweiterten Modus.
+- KONRAD3D-Abfrage auf primären und offiziellen DWD-Spiegelserver erweitert und als eigener fünfminütiger Liveabruf aus dem initialen Wetter-Ladebündel entkoppelt.
+- NowCastMIX prüft sowohl Accumulated Flash Geometry als auch Accumulated Flash Area über primären und redundanten DWD-WFS-Dienst. Eine erfolgreiche Nullmenge wird nun als „Dienst erreichbar, keine Objekte“ statt als Fehler behandelt.
+- Kompositbild zeigt für K3D und NowCastMIX eindeutig Datenstand, erreichbaren Leerdatensatz oder Dienstfehler.
+- App-weite Performanceprüfung: doppelte Stunden-/Tageskartierung in der aktuellen Wetterkachel entfernt, Detaildiagramm-Uhr nur bei sichtbarem geöffnetem Tageschart aktiv und sämtliche Komposit-Pollings/Animationen außerhalb des Sichtbereichs pausiert.
+- Neuer Regressionstest schützt EU-AQI, EEA-Station, Offscreen-Pause und K3D-/NowCastMIX-Fallbacks.
 
 # MID v0.7.100.5
 

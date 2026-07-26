@@ -1714,6 +1714,7 @@ footer{flex-wrap:wrap;align-items:center}
   width:min(330px,calc(100vw - 24px));
 }
 .aqi-indicator{
+  color:var(--aqi-color,#50ccaa);
   display:grid;
   grid-template-columns:8px auto 1fr;
   align-items:center;
@@ -1751,23 +1752,9 @@ footer{flex-wrap:wrap;align-items:center}
   border-radius:2px;
   opacity:.24;
 }
-.aqi-segments>i:nth-child(1){background:#35b779}
-.aqi-segments>i:nth-child(2){background:#82c96b}
-.aqi-segments>i:nth-child(3){background:#e3c84c}
-.aqi-segments>i:nth-child(4){background:#f09a45}
-.aqi-segments>i:nth-child(5){background:#df5b54}
-.aqi-segments>i:nth-child(6){background:#9d5a9e}
-.aqi-segments>i.active{
-  height:6px;
-  opacity:1;
-  box-shadow:0 0 0 1px color-mix(in srgb,currentColor 18%,transparent);
-}
-.aqi-good{color:#35b779}
-.aqi-fair{color:#82c96b}
-.aqi-moderate{color:#c6a92b}
-.aqi-poor{color:#e17c33}
-.aqi-very-poor{color:#d94c4c}
-.aqi-extreme{color:#925397}
+.aqi-segments>i.active{height:6px;opacity:1;box-shadow:0 0 0 1px color-mix(in srgb,currentColor 18%,transparent)}
+.aqi-good,.aqi-fair,.aqi-moderate,.aqi-poor,.aqi-very-poor,.aqi-extremely-poor{color:var(--aqi-color)}
+.aqi-tooltip-values{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin:7px 0 2px}.aqi-tooltip-values>span{display:grid;grid-template-columns:auto 1fr;gap:2px 7px;padding:6px 7px;border:1px solid var(--border);border-radius:9px;background:var(--s2)}.aqi-tooltip-values b{font-size:10px}.aqi-tooltip-values em{justify-self:end;font-style:normal;font-size:9px;font-variant-numeric:tabular-nums}.aqi-tooltip-values small{grid-column:1/-1;color:var(--muted);font-size:8px}
 @media(max-width:620px){
   .metrics .air-quality-card .mode-info-popover{
     position:fixed;

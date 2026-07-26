@@ -12,7 +12,7 @@ for(const token of [
   "label=\"K3D / MIX\"",
   "label=\"Zugpfeile\"",
   'radarButtonDetail=',
-  'nowcastButtonDetail=`K3D ${thunder?.nearbyCells?.length??0} · MIX ${visibleNowcastMix.length}`'
+  'nowcastButtonDetail=`${k3dButtonState} · ${mixButtonState}`'
 ])need(radar,token,'Kompakte Layerbuttons fehlen');
 
 for(const token of [

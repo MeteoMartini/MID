@@ -1,3 +1,10 @@
+## Funktionsrelease v0.7.101.0 – offizieller EU-AQI und robuste Radar-Livequellen
+
+- Die Luftqualitätskachel nutzt die offiziellen EEA-Konzentrationsbänder und Farben für PM2,5, PM10, NO₂, O₃ und SO₂.
+- Im erweiterten Modus nennt der Info-Tooltip alle aktuellen Einzelwerte und die nächstgelegene EEA-Messstation.
+- KONRAD3D nutzt primären und Spiegelserver; NowCastMIX unterscheidet echte Leerdatensätze von Dienstfehlern und prüft Geometrie- sowie Flächenlayer.
+- Kompositabrufe und Animationen pausieren außerhalb des Sichtbereichs; doppelte Kartierungen und unnötige Detailuhr-Renderings wurden entfernt.
+
 ## Verbindliche MID-Quellbasis ab v0.7.95.28
 
 Der einzige technische Ausgangspunkt für weitere Entwicklungen ist der GitHub-Zweig **`mid-stable`**. Er wird erst nach erfolgreichem TypeScript-/Vite-Build, vollständiger Regression und erfolgreichem GitHub-Pages-Deployment auf den neuen Commit gesetzt. `main`, ältere Chat-Anhänge und Gesprächserinnerungen sind keine Codebasis.

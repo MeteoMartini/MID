@@ -1,0 +1,50 @@
+export type EuropeanAqiBandKey='good'|'fair'|'moderate'|'poor'|'very-poor'|'extremely-poor';
+export type EuropeanAqiPollutantKey='pm2_5'|'pm10'|'nitrogen_dioxide'|'ozone'|'sulphur_dioxide';
+export type EuropeanAqiBand={key:EuropeanAqiBandKey;label:string;index:number;color:string;health:string};
+export type EuropeanAqiPollutantResult={key:EuropeanAqiPollutantKey;label:string;formula:string;value:number;unit:'µg/m³';band:EuropeanAqiBand};
+export type EuropeanAirQualityResult={band:EuropeanAqiBand;dominant:EuropeanAqiPollutantResult;pollutants:EuropeanAqiPollutantResult[]};
+export type AirQualityStationMeta={available:boolean;name?:string;stationCode?:string;eoiCode?:string;country?:string;countryCode?:string;stationClass?:string;latitude?:number;longitude?:number;distanceKm?:number;provider?:string;checkedAt?:string;reason?:string;error?:string};
+
+export const EUROPEAN_AQI_BANDS:EuropeanAqiBand[]=[
+ {key:'good',label:'Gut',index:0,color:'#50F0E6',health:'Die Luftqualität ist gut.'},
+ {key:'fair',label:'Mittelmäßig',index:1,color:'#50CCAA',health:'Die Luftqualität ist akzeptabel.'},
+ {key:'moderate',label:'Mittel',index:2,color:'#F0E641',health:'Empfindliche Personen können Beschwerden bemerken.'},
+ {key:'poor',label:'Schlecht',index:3,color:'#FF5050',health:'Empfindliche Personen sollten anstrengende Aktivitäten im Freien reduzieren.'},
+ {key:'very-poor',label:'Sehr schlecht',index:4,color:'#960032',health:'Gesundheitliche Auswirkungen sind möglich; körperliche Belastung im Freien reduzieren.'},
+ {key:'extremely-poor',label:'Äußerst schlecht',index:5,color:'#7D2181',health:'Gesundheitsrisiko: anstrengende Aktivitäten im Freien vermeiden.'}
+];
+
+type PollutantDefinition={key:EuropeanAqiPollutantKey;label:string;formula:string;thresholds:[number,number,number,number,number]};
+export const EUROPEAN_AQI_POLLUTANTS:PollutantDefinition[]=[
+ {key:'pm2_5',label:'Feinstaub PM2,5',formula:'PM2,5',thresholds:[5,15,50,90,140]},
+ {key:'pm10',label:'Feinstaub PM10',formula:'PM10',thresholds:[15,45,120,195,270]},
+ {key:'nitrogen_dioxide',label:'Stickstoffdioxid',formula:'NO₂',thresholds:[10,25,60,100,150]},
+ {key:'ozone',label:'Ozon',formula:'O₃',thresholds:[60,100,120,160,180]},
+ {key:'sulphur_dioxide',label:'Schwefeldioxid',formula:'SO₂',thresholds:[20,40,125,190,275]}
+];
+
+export function classifyEuropeanAqiPollutant(key:EuropeanAqiPollutantKey,value:unknown):EuropeanAqiPollutantResult|null{
+ const number=Number(value),definition=EUROPEAN_AQI_POLLUTANTS.find(item=>item.key===key);
+ if(!definition||!Number.isFinite(number)||number<0)return null;
+ const index=definition.thresholds.findIndex(max=>number<=max),band=EUROPEAN_AQI_BANDS[index<0?5:index];
+ return{key,label:definition.label,formula:definition.formula,value:number,unit:'µg/m³',band};
+}
+
+export function classifyEuropeanAirQuality(current:Record<string,number|string>|undefined|null):EuropeanAirQualityResult|null{
+ if(!current)return null;
+ const pollutants=EUROPEAN_AQI_POLLUTANTS.map(item=>classifyEuropeanAqiPollutant(item.key,current[item.key])).filter((item):item is EuropeanAqiPollutantResult=>Boolean(item));
+ if(!pollutants.length)return null;
+ const dominant=[...pollutants].sort((a,b)=>b.band.index-a.band.index||b.value-a.value)[0];
+ return{band:dominant.band,dominant,pollutants};
+}
+
+export function stationClassLabel(value?:string){
+ const key=String(value||'').trim().toLowerCase();
+ if(key.includes('traffic'))return'verkehrsnah';
+ if(key.includes('industrial'))return'industriegeprägt';
+ if(key.includes('background'))return'Hintergrundstation';
+ if(key.includes('urban'))return'städtisch';
+ if(key.includes('suburban'))return'vorstädtisch';
+ if(key.includes('rural'))return'ländlich';
+ return value?.trim()||'Stationsklasse nicht angegeben';
+}
