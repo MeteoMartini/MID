@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.95.25
+
+- Modelllauf-Änderungsradar im Erweiterten Modus ergänzt; vergleicht den aktuellen 14-Tage-Ensemble-/Best-Match-Stand mit der vorherigen gespeicherten Prognose
+- Änderungen bei Tmax, Tmin, Niederschlagsmenge, Niederschlagswahrscheinlichkeit, Böen, Prognosekonsistenz, Ensemble-Spanne und Niederschlagsbeginn werden nach Relevanz sortiert dargestellt
+- Aktivierung im Einstellungsmenü unter „Erweiterter Modus“; im Standardmodus bleibt die Funktion vollständig ausgeblendet
+- optionale Web-Push-Benachrichtigung für materielle Prognoseänderungen am aktuell dargestellten Ort ergänzt
+- Cloudflare-Worker speichert einen Vergleichsstand und prüft im bestehenden Fünf-Minuten-Cron auf materielle Änderungen, ohne beim ersten Basisabruf eine Meldung auszulösen
+- neue Funktion in den automatischen Regressionstest und den essentiellen MID-Funktionsvertrag aufgenommen
+
 ## 0.7.95.24
 
 - GitHub-Regression der automatischen Funktionsabdeckung behoben: neu über die Release-ZIP eingebrachte, zunächst ungetrackte `scripts/test-*.mjs`-Dateien werden jetzt als neue Regressionstests erkannt

@@ -1,3 +1,9 @@
+# MID Daten-, Warnungs-, Radar- und Push-Proxy v0.7.95.25
+
+Der bestehende Web-Push-Dienst prüft nun optional auch materielle Änderungen der operativen Prognose für den im Erweiterten Modus ausgewählten Ort. Die Regel wird nur synchronisiert, wenn „Modelllauf-Änderungsradar“ und „Bei materieller Änderung benachrichtigen“ aktiviert sind. Der vorhandene Cron-Trigger `*/5 * * * *`, die KV-Bindung und die bestehenden VAPID-Schlüssel werden weiterverwendet; neue Secrets oder Bindungen sind nicht erforderlich.
+
+Als materiell gelten unter anderem Änderungen ab ungefähr 2,5 K bei Tmin/Tmax, 25 Prozentpunkten bei der Niederschlagswahrscheinlichkeit, 12 kt bei Böen, deutlich veränderte Niederschlagsmengen oder ein um mindestens zwei Stunden verschobener Niederschlagsbeginn. Beim ersten Abruf wird nur eine Vergleichsbasis gespeichert; es erfolgt keine Initialbenachrichtigung.
+
 # MID Daten-, Warnungs-, Radar- und Push-Proxy v0.7.95.16
 
 Die Live-Kompositdienste antworten jetzt ohne blockierende GetCapabilities-Abhängigkeit. Radar, Satellit und MTG-LI verwenden offizielle Latest-Zugänge; DWD-WMS-/WFS-Fallbacks laufen parallel mit festen Zeitlimits. Der neue Diagnoseendpunkt prüft die drei sichtbaren Kernquellen mit echten Mini-GetMap-Abrufen:

@@ -6,7 +6,7 @@ export type PushRuleFavorite={
  latitude:number;
  longitude:number;
  country?:string;
- rules:{precipitationStart:boolean;thunderstormApproach:boolean};
+ rules:{precipitationStart:boolean;thunderstormApproach:boolean;forecastMaterialChange:boolean};
 };
 export type PushStatus={supported:boolean;permission:NotificationPermission|'unsupported';configured:boolean;subscribed:boolean;workerUrl:string;message:string};
 
@@ -20,7 +20,7 @@ async function workerGet<T>(mode:string){const candidates=workerBaseCandidates('
 async function workerPost<T>(mode:string,body:unknown){const candidates=workerBaseCandidates('general');if(!candidates.length)throw new Error('Cloudflare Worker ist nicht konfiguriert.');const errors:string[]=[];for(const base of candidates)try{return{data:await readJson<T>(await fetch(buildWorkerUrl(base,mode),{method:'POST',cache:'no-store',headers:{Accept:'application/json','Content-Type':'application/json','Cache-Control':'no-cache'},body:JSON.stringify(body)})),base}}catch(error){errors.push(error instanceof Error?error.message:String(error))}throw new Error(errors.at(-1)||'Worker ist nicht erreichbar.')}
 function serialiseSubscription(subscription:PushSubscription){const json=subscription.toJSON();return{endpoint:subscription.endpoint,expirationTime:subscription.expirationTime,keys:{p256dh:String(json.keys?.p256dh||''),auth:String(json.keys?.auth||'')}}}
 async function readyRegistration(){const registration=await navigator.serviceWorker.ready;if(!registration.active)throw new Error('Der MID-Service-Worker ist noch nicht aktiv. App bitte neu öffnen.');return registration}
-function activeFavorites(favorites:PushRuleFavorite[]){return favorites.filter(item=>item.rules.precipitationStart||item.rules.thunderstormApproach).map(item=>({id:item.id,name:item.name,latitude:item.latitude,longitude:item.longitude,country:item.country||'',rules:item.rules}))}
+function activeFavorites(favorites:PushRuleFavorite[]){return favorites.filter(item=>item.rules.precipitationStart||item.rules.thunderstormApproach||item.rules.forecastMaterialChange).map(item=>({id:item.id,name:item.name,latitude:item.latitude,longitude:item.longitude,country:item.country||'',rules:item.rules}))}
 async function saveSubscription(subscription:PushSubscription,favorites:PushRuleFavorite[]){return workerPost<WorkerReply>('push-subscribe',{subscription:serialiseSubscription(subscription),favorites:activeFavorites(favorites),appUrl:new URL('./',document.baseURI).toString(),userAgent:navigator.userAgent})}
 
 export async function getPushStatus():Promise<PushStatus>{
