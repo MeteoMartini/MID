@@ -1886,3 +1886,13 @@ footer{flex-wrap:wrap;align-items:center}
 .radar-motion-arrow.low,.radar-motion-arrow-head.low{opacity:.72}
 .composite-switch[aria-pressed=true] .lucide-navigation{transform:rotate(-12deg)}
 @media(max-width:700px){.leaflet-tooltip.konrad-cell-label{font-size:7px;padding:3px 5px}.radar-motion-arrow.low,.radar-motion-arrow-head.low{opacity:.8}}
+
+/* MID v0.7.99.2 – geräteweites Mindestintervall für Push-Mitteilungen */
+.push-frequency-group{background:color-mix(in srgb,var(--primary) 5%,var(--s2))}
+.push-interval-setting{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(190px,auto);align-items:center;gap:12px;padding:13px 14px!important}
+.push-interval-setting>svg{color:var(--primary)}
+.push-interval-setting>span,.push-interval-setting strong,.push-interval-setting small{display:block}
+.push-interval-setting small{margin-top:3px;color:var(--muted);font-size:9px;line-height:1.4}
+.push-interval-setting select{width:100%;min-width:190px;height:42px;padding:7px 34px 7px 11px;border:1px solid color-mix(in srgb,var(--primary) 42%,var(--border));border-radius:11px;background:var(--surface);color:var(--text);font-weight:800}
+.push-interval-setting select:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+@media(max-width:760px){.push-interval-setting{grid-template-columns:auto minmax(0,1fr)}.push-interval-setting select{grid-column:1/-1;min-width:0}}

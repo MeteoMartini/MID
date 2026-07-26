@@ -1,3 +1,12 @@
+# MID v0.7.99.2
+
+- Im Untermenü **Benachrichtigungen** eine dauerhaft gespeicherte Auswahl für den Mindestabstand zwischen Push-Mitteilungen ergänzt. Verfügbar sind 15, 30, 60, 120 und 180 Minuten; Standard ist 30 Minuten.
+- Das Intervall gilt geräteweit für Niederschlagsbeginn, Gewitterannäherung und materielle Modelllaufänderungen. Der Cloudflare-Cron darf weiterhin alle fünf Minuten prüfen, der Worker sendet innerhalb des gewählten Zeitraums jedoch höchstens eine Mitteilung an dieses Gerät.
+- Der Mindestabstand wird zusammen mit dem Push-Abonnement im privaten Cloudflare-KV-Eintrag gespeichert und bei jeder Einstellungsänderung automatisch synchronisiert.
+- Während der Sperrzeit erkannte Ereignisse werden nicht als bereits gemeldet verbucht. Sie bleiben ausstehend und werden nach Ablauf des Intervalls erneut geprüft, sofern das Signal noch relevant ist.
+- Bestehende Abonnements ohne gespeicherten Wert verwenden im Worker vorsichtshalber 60 Minuten, bis die aktualisierte App das gewählte Intervall synchronisiert.
+- Neue funktionale Regression prüft UI-Auswahl, lokale Persistenz, Client-Übertragung sowie die serverseitige Zeitprüfung.
+
 # MID v0.7.99.1
 
 - Automatische Berg-/Wintersport-Profilermittlung von der Auswahl eines einzelnen Liftpaares auf das zusammenhängende Wander-/Skigebiet umgestellt. MID wählt nun die niedrigste plausible Talstation, eine explizite beziehungsweise vernetzte Mittelstation und die höchste verbundene Bergstation. Der Referenzfall Sölden schützt Giggijoch-Talniveau, Gaislachkogl-Mittelstation und 3.340-m-Bergniveau.

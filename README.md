@@ -954,3 +954,7 @@ DWD-RV wird in seiner Niederschlagsrate ausgewertet. OPERA CIRRUS liefert DBZH-R
 ## DWD-Radarrobustheit v0.7.13
 
 Die DWD-Zeitachse wird am allgemeinen WMS-Endpunkt aus dem Layerblock von `dwd:Niederschlagsradar` beziehungsweise RV gelesen. Jeder benötigte Zeitschritt wird als kleine transparente Radar-PNG um den Standort geladen; daraus werden Mittelpunkt und Umgebung gemeinsam ausgewertet. Ein vollständig transparenter Pixel ist ein gültiger trockener DWD-Wert. `GetFeatureInfo` wird nur zur numerischen Verfeinerung eines sichtbar nassen Mittelpunktes verwendet. Bei technischen Ausfällen werden DWD-Backup und konkreter RV-Layer geprüft; anschließend wertet das Frontend das echte OPERA-CIRRUS-HDF5 aus und verwendet RainViewer erst zuletzt.
+
+### Push-Häufigkeit
+
+Unter **Einstellungen → Benachrichtigungen → Häufigkeit** lässt sich ein geräteweiter Mindestabstand von 15, 30, 60, 120 oder 180 Minuten festlegen. Der Worker prüft weiterhin im Fünf-Minuten-Takt, sendet aber innerhalb des gewählten Intervalls keine weitere Mitteilung an dasselbe Gerät.

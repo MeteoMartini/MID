@@ -324,3 +324,7 @@ Der Worker bevorzugt ein frisches lokales DWD-PX250-Standortradar vor dem nation
 ## v0.7.99.0 – saisonale Echoauswertung und Hybrid-Zugvektor
 
 Der Radar-Nowcast verwendet abhängig von Jahreszeit und meteorologischem Kontext unterschiedliche Schwellen für Standorttreffer, Umgebungsechos und Bewegungsanker. Ein winterliches Signal aus Feuchttemperatur, Lufttemperatur, Schneefall oder WMO-Code aktiviert auch außerhalb des Kalender-Winterhalbjahrs das empfindlichere Profil. Die Zugrichtung kombiniert, sofern verfügbar, Mehrframe-Rasterkorrelation, KONRAD3D-Zellverlagerung und eine Schwerpunktströmung aus 925/850/700/500 hPa. `mode=nowcastmix-points` liefert die DWD-NowCastMIX-Blitzgeometrien für die optionale Objektlage des Kompositbildes.
+
+## v0.7.99.2 – Mindestabstand zwischen Push-Mitteilungen
+
+Das Frontend überträgt `notificationIntervalMinutes` mit dem Push-Abonnement. Zulässige Werte sind 15, 30, 60, 120 und 180 Minuten. Der Cron-Trigger bleibt bei fünf Minuten, der Worker erlaubt jedoch geräteweit erst nach Ablauf des gewählten Mindestabstands eine weitere Mitteilung. Ereignisse, die während der Sperrzeit weiterhin relevant sind, bleiben ausstehend und werden nach Ablauf erneut geprüft. Alte KV-Einträge ohne Wert verwenden 60 Minuten als sicheren Übergangsstandard.

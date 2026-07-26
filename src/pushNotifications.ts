@@ -8,6 +8,7 @@ export type PushRuleFavorite={
  country?:string;
  rules:{precipitationStart:boolean;thunderstormApproach:boolean;forecastMaterialChange:boolean};
 };
+export type PushNotificationInterval=15|30|60|120|180;
 export type PushStatus={supported:boolean;permission:NotificationPermission|'unsupported';configured:boolean;subscribed:boolean;workerUrl:string;message:string};
 
 type PushConfig={enabled?:boolean;publicKey?:string;version?:string;error?:string};
@@ -21,7 +22,7 @@ async function workerPost<T>(mode:string,body:unknown){const candidates=workerBa
 function serialiseSubscription(subscription:PushSubscription){const json=subscription.toJSON();return{endpoint:subscription.endpoint,expirationTime:subscription.expirationTime,keys:{p256dh:String(json.keys?.p256dh||''),auth:String(json.keys?.auth||'')}}}
 async function readyRegistration(){const registration=await navigator.serviceWorker.ready;if(!registration.active)throw new Error('Der MID-Service-Worker ist noch nicht aktiv. App bitte neu öffnen.');return registration}
 function activeFavorites(favorites:PushRuleFavorite[]){return favorites.filter(item=>item.rules.precipitationStart||item.rules.thunderstormApproach||item.rules.forecastMaterialChange).map(item=>({id:item.id,name:item.name,latitude:item.latitude,longitude:item.longitude,country:item.country||'',rules:item.rules}))}
-async function saveSubscription(subscription:PushSubscription,favorites:PushRuleFavorite[]){return workerPost<WorkerReply>('push-subscribe',{subscription:serialiseSubscription(subscription),favorites:activeFavorites(favorites),appUrl:new URL('./',document.baseURI).toString(),userAgent:navigator.userAgent})}
+async function saveSubscription(subscription:PushSubscription,favorites:PushRuleFavorite[],notificationIntervalMinutes:PushNotificationInterval){return workerPost<WorkerReply>('push-subscribe',{subscription:serialiseSubscription(subscription),favorites:activeFavorites(favorites),notificationIntervalMinutes,appUrl:new URL('./',document.baseURI).toString(),userAgent:navigator.userAgent})}
 
 export async function getPushStatus():Promise<PushStatus>{
  if(!supportsPush())return{supported:false,permission:'unsupported',configured:false,subscribed:false,workerUrl:'',message:'Web Push wird von diesem Browser oder dieser Installationsart nicht unterstützt.'};
@@ -32,17 +33,17 @@ export async function getPushStatus():Promise<PushStatus>{
  return{supported:true,permission,configured,subscribed,workerUrl,message};
 }
 
-export async function enablePushNotifications(favorites:PushRuleFavorite[]){
+export async function enablePushNotifications(favorites:PushRuleFavorite[],notificationIntervalMinutes:PushNotificationInterval){
  if(!supportsPush())throw new Error('Web Push wird von diesem Browser nicht unterstützt.');
  const configResult=await workerGet<PushConfig>('push-config'),config=configResult.data;if(!config.enabled||!config.publicKey)throw new Error('Der Cloudflare Worker ist für Push noch nicht vollständig eingerichtet.');
  const permission=Notification.permission==='granted'?'granted':await Notification.requestPermission();if(permission!=='granted')throw new Error(permission==='denied'?'Benachrichtigungen wurden blockiert.':'Benachrichtigungen wurden nicht freigegeben.');
  const registration=await readyRegistration();let subscription=await registration.pushManager.getSubscription();if(!subscription)subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:base64UrlToBytes(config.publicKey)});
- await saveSubscription(subscription,favorites);return{workerUrl:configResult.base,subscription};
+ await saveSubscription(subscription,favorites,notificationIntervalMinutes);return{workerUrl:configResult.base,subscription};
 }
 
-export async function syncPushNotifications(favorites:PushRuleFavorite[]){
+export async function syncPushNotifications(favorites:PushRuleFavorite[],notificationIntervalMinutes:PushNotificationInterval){
  if(!supportsPush()||Notification.permission!=='granted')return false;
- const registration=await readyRegistration(),subscription=await registration.pushManager.getSubscription();if(!subscription)return false;await saveSubscription(subscription,favorites);return true;
+ const registration=await readyRegistration(),subscription=await registration.pushManager.getSubscription();if(!subscription)return false;await saveSubscription(subscription,favorites,notificationIntervalMinutes);return true;
 }
 
 export async function disablePushNotifications(){
