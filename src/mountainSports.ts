@@ -42,8 +42,8 @@ const ELEVATION_ENDPOINT='https://api.open-meteo.com/v1/elevation';
 const FORECAST_ENDPOINT='https://api.open-meteo.com/v1/forecast';
 const LIFT_TYPES=new Set(['cable_car','gondola','chair_lift','mixed_lift','drag_lift','t-bar','j-bar','platter','magic_carpet','funicular']);
 const PROFILE_SEARCH_RADIUS_M=18000;
-const PROFILE_CLUSTER_LINK_M=1800;
-const PROFILE_MAX_SPAN_M=15000;
+const PROFILE_CLUSTER_LINK_M=2600;
+const PROFILE_MAX_SPAN_M=18000;
 const PROFILE_MIN_GAIN_M=250;
 const PROFILE_MAX_GAIN_M=2200;
 const clamp=(value:number,min:number,max:number)=>Math.min(max,Math.max(min,value));
@@ -56,14 +56,14 @@ function isPeakLocation(loc:Location){return /gipfel|peak|summit|mountain|bergsp
 function automaticProfileEnvelope(loc:Location,anchorElevation:number,candidate:MountainCandidate){
  const elevation=Number(candidate.elevation),peak=isPeakLocation(loc);
  if(!Number.isFinite(elevation)||candidate.distanceM>PROFILE_SEARCH_RADIUS_M)return false;
- return peak?elevation>=anchorElevation-2200&&elevation<=anchorElevation+600:elevation>=Math.max(-100,anchorElevation-550)&&elevation<=anchorElevation+1900;
+ return peak?elevation>=anchorElevation-2200&&elevation<=anchorElevation+600:elevation>=Math.max(-100,anchorElevation-550)&&elevation<=anchorElevation+2200;
 }
 function automaticConfigPlausible(loc:Location,config:{valleyElevation:number;middleElevation:number;summitElevation:number;middleEnabled:boolean;valleyLatitude?:number;valleyLongitude?:number;middleLatitude?:number;middleLongitude?:number;summitLatitude?:number;summitLongitude?:number}){
  const anchor=Number(loc.elevation),peak=isPeakLocation(loc),valley=Number(config.valleyElevation),summit=Number(config.summitElevation),middle=Number(config.middleElevation);
  if(!Number.isFinite(valley)||!Number.isFinite(summit)||summit-valley<PROFILE_MIN_GAIN_M||summit-valley>PROFILE_MAX_GAIN_M)return false;
  if(Number.isFinite(anchor)&&anchor>0){
   if(peak){if(summit<anchor-500||summit>anchor+650||valley<anchor-2300)return false}
-  else if(valley<anchor-550||valley>anchor+500||summit>anchor+1950||summit<anchor+120)return false;
+  else if(valley<anchor-550||valley>anchor+500||summit>anchor+2200||summit<anchor+120)return false;
  }
  if(config.middleEnabled&&(!Number.isFinite(middle)||middle<=valley+80||middle>=summit-80))return false;
  const coordinates:[[unknown,unknown],[unknown,unknown],[unknown,unknown]]=[[config.valleyLatitude,config.valleyLongitude],[config.middleLatitude,config.middleLongitude],[config.summitLatitude,config.summitLongitude]];
@@ -71,7 +71,7 @@ function automaticConfigPlausible(loc:Location,config:{valleyElevation:number;mi
  return true;
 }
 function parseElevation(value:unknown){const match=String(value??'').replace(',','.').match(/-?\d+(?:\.\d+)?/),number=match?Number(match[0]):NaN;return Number.isFinite(number)&&number>=-100&&number<=9000?number:undefined}
-function stationRole(value:unknown):MountainLevelRole|undefined{const role=String(value??'').toLowerCase();if(/bottom|lower|valley|tal/.test(role))return'valley';if(/mid|middle|mittel/.test(role))return'middle';if(/top|upper|summit|berg/.test(role))return'summit';return undefined}
+function stationRole(value:unknown):MountainLevelRole|undefined{const role=String(value??'').toLowerCase();if(/bottom|lower|valley|tal/.test(role))return'valley';if(/mid|middle|mittel|intermediate|zwischen/.test(role))return'middle';if(/top|upper|summit|berg/.test(role))return'summit';return undefined}
 async function fetchJson<T>(url:string,signal?:AbortSignal,init:RequestInit={}):Promise<T>{const response=await fetch(url,{...init,signal,cache:'no-store',headers:{Accept:'application/json',...(init.headers??{})}});if(!response.ok)throw new Error(`${new URL(url).hostname} HTTP ${response.status}`);return response.json() as Promise<T>}
 
 export function defaultMountainConfig(loc:Location):MountainConfig{const elevation=Math.max(0,Math.round(Number(loc.elevation)||0)),peak=/gipfel|peak|mountain/i.test(`${loc.poiCategory||''} ${loc.poiType||''}`),valley=peak?Math.max(0,elevation-1200):elevation,summit=peak?Math.max(elevation,1):Math.max(elevation+1200,1200);return{schemaVersion:2,enabled:false,season:'auto',middleEnabled:false,valleyElevation:valley,middleElevation:Math.round((valley+summit)/2),summitElevation:summit,valleyName:'Talstation',middleName:'Mittelstation',summitName:'Bergstation',valleyLatitude:loc.latitude,valleyLongitude:loc.longitude,middleLatitude:loc.latitude,middleLongitude:loc.longitude,summitLatitude:loc.latitude,summitLongitude:loc.longitude,profileSource:'derived',profileConfidence:'low'}}
@@ -106,19 +106,36 @@ function connectedCandidateGroups(candidates:MountainCandidate[]){
 async function localElevation(loc:Location,signal?:AbortSignal){let elevation=Math.max(0,Math.round(Number(loc.elevation)||0));if(elevation)return elevation;const url=new URL(ELEVATION_ENDPOINT);url.searchParams.set('latitude',String(loc.latitude));url.searchParams.set('longitude',String(loc.longitude));try{const data=await fetchJson<{elevation?:number[]}>(url.toString(),signal),value=numeric(data.elevation?.[0]);if(value!==undefined)elevation=Math.max(0,Math.round(value))}catch(error){if(signal?.aborted)throw error}return elevation}
 async function derivedProfile(loc:Location,signal?:AbortSignal):Promise<MountainProfileResult>{const elevation=await localElevation(loc,signal),summit=Math.max(elevation+600,Math.max(1200,elevation+1200));return{levels:[{role:'valley',name:`${loc.name} · Talniveau`,latitude:loc.latitude,longitude:loc.longitude,elevation,source:'abgeleitet'},{role:'summit',name:`${loc.name} · Bergniveau`,latitude:loc.latitude,longitude:loc.longitude,elevation:summit,source:'abgeleitet'}],source:'Abgeleitete Ausgangswerte',confidence:'low',checkedAt:new Date().toISOString(),diagnostics:{fallback:true}}}
 
-type MountainPairSelection={valley:MountainCandidate;summit:MountainCandidate;middle?:MountainCandidate;sameLift:boolean;groupSize:number;score:number};
+type MountainPairSelection={valley:MountainCandidate;summit:MountainCandidate;middle?:MountainCandidate;sameLift:boolean;areaWide:boolean;groupSize:number;score:number};
+function candidateElevation(candidate:MountainCandidate){return Number(candidate.elevation)}
+function explicitMiddle(candidate:MountainCandidate){return candidate.role==='middle'||/mittel(?:station)?|middle|intermediate|zwischenstation/i.test(candidate.name)}
+function candidateConnectivity(candidate:MountainCandidate,group:MountainCandidate[]){return group.filter(other=>other!==candidate&&(Boolean(candidate.liftId&&candidate.liftId===other.liftId)||distanceMeters(candidate.latitude,candidate.longitude,other.latitude,other.longitude)<=320)).length}
+function chooseAreaMiddle(group:MountainCandidate[],valley:MountainCandidate,summit:MountainCandidate){
+ const low=candidateElevation(valley),high=candidateElevation(summit),target=low+(high-low)*.44;
+ const candidates=group.filter(candidate=>candidate!==valley&&candidate!==summit&&candidateElevation(candidate)>low+140&&candidateElevation(candidate)<high-140&&(candidate.kind==='station'||explicitMiddle(candidate)));
+ return candidates.sort((left,right)=>{
+  const leftScore=(explicitMiddle(left)?180:0)+(left.kind==='station'?42:0)+candidateConnectivity(left,group)*16-Math.abs(candidateElevation(left)-target)/8-left.distanceM/1000;
+  const rightScore=(explicitMiddle(right)?180:0)+(right.kind==='station'?42:0)+candidateConnectivity(right,group)*16-Math.abs(candidateElevation(right)-target)/8-right.distanceM/1000;
+  return rightScore-leftScore;
+ })[0];
+}
 export function selectMountainProfileCandidates(loc:Location,anchorElevation:number,input:MountainCandidate[]):MountainPairSelection|undefined{
  const peak=isPeakLocation(loc),candidates=dedupeCandidates(input).filter(candidate=>automaticProfileEnvelope(loc,anchorElevation,candidate)),groups=connectedCandidateGroups(candidates);let best:MountainPairSelection|undefined;
- for(const group of groups){if(group.length<2)continue;for(const valley of group)for(const summit of group){if(valley===summit)continue;const valleyElevation=Number(valley.elevation),summitElevation=Number(summit.elevation),gain=summitElevation-valleyElevation,span=distanceMeters(valley.latitude,valley.longitude,summit.latitude,summit.longitude),sameLift=Boolean(valley.liftId&&valley.liftId===summit.liftId);if(gain<PROFILE_MIN_GAIN_M||gain>PROFILE_MAX_GAIN_M||span>PROFILE_MAX_SPAN_M)continue;if(!sameLift&&group.length<3)continue;
-   if(peak){if(summitElevation<anchorElevation-500||summitElevation>anchorElevation+650||valleyElevation<anchorElevation-2300||valley.distanceM>PROFILE_SEARCH_RADIUS_M)continue}
-   else{if(valleyElevation<anchorElevation-500||valleyElevation>anchorElevation+450||valley.distanceM>9000||summitElevation<anchorElevation+120||summitElevation>anchorElevation+1900)continue}
-   const preferredGain=peak?Math.min(1450,Math.max(650,anchorElevation-valleyElevation)):1000,gainScore=90-Math.abs(gain-preferredGain)/18,anchorScore=peak?-Math.abs(summitElevation-anchorElevation)/15:-Math.abs(valleyElevation-anchorElevation)/10,summitBonus=peak?0:Math.min(55,Math.max(0,summitElevation-anchorElevation)/22),roleScore=(valley.role==='valley'?30:valley.role==='summit'?-55:0)+(summit.role==='summit'?30:summit.role==='valley'?-55:0),relationScore=sameLift?65:Math.min(24,group.length*2),distancePenalty=valley.distanceM/220+summit.distanceM/900+span/900,stationScore=(valley.kind==='station'?5:0)+(summit.kind==='station'?5:0),score=gainScore+anchorScore+summitBonus+roleScore+relationScore+stationScore-distancePenalty;
-   if(!best||score>best.score)best={valley,summit,sameLift,groupSize:group.length,score};
+ for(const group of groups){
+  if(group.length<3)continue;
+  const nearest=Math.min(...group.map(candidate=>candidate.distanceM));
+  if(nearest>9000)continue;
+  const valleyPool=group.filter(candidate=>{const elevation=candidateElevation(candidate);if(!Number.isFinite(elevation))return false;if(peak)return elevation>=anchorElevation-2300&&elevation<=anchorElevation-250;return elevation>=anchorElevation-500&&elevation<=anchorElevation+450&&candidate.distanceM<=9000&&candidate.role!=='summit'}).sort((left,right)=>candidateElevation(left)-candidateElevation(right)||(left.role==='valley'?-1:0)-(right.role==='valley'?-1:0)||(left.kind==='station'?-1:0)-(right.kind==='station'?-1:0)||left.distanceM-right.distanceM);
+  if(!valleyPool.length)continue;
+  for(const valley of valleyPool.slice(0,4)){
+   const valleyElevation=candidateElevation(valley),summitPool=group.filter(candidate=>{const elevation=candidateElevation(candidate),gain=elevation-valleyElevation,span=distanceMeters(valley.latitude,valley.longitude,candidate.latitude,candidate.longitude);if(!Number.isFinite(elevation)||candidate===valley||gain<PROFILE_MIN_GAIN_M||gain>PROFILE_MAX_GAIN_M||span>PROFILE_MAX_SPAN_M)return false;if(peak)return elevation>=anchorElevation-500&&elevation<=anchorElevation+650;return elevation>=anchorElevation+120&&elevation<=anchorElevation+2200&&candidate.role!=='valley'}).sort((left,right)=>candidateElevation(right)-candidateElevation(left)||(right.role==='summit'?1:0)-(left.role==='summit'?1:0)||left.distanceM-right.distanceM);
+   if(!summitPool.length)continue;
+   const summit=summitPool[0],summitElevation=candidateElevation(summit),gain=summitElevation-valleyElevation,span=distanceMeters(valley.latitude,valley.longitude,summit.latitude,summit.longitude),sameLift=Boolean(valley.liftId&&valley.liftId===summit.liftId),middle=chooseAreaMiddle(group,valley,summit),explicitRoles=(valley.role==='valley'?20:0)+(summit.role==='summit'?20:0)+(middle&&explicitMiddle(middle)?30:0),score=gain*.16+(summitElevation-anchorElevation)*.08+(anchorElevation-valleyElevation)*.06+Math.min(90,group.length*5)+explicitRoles-nearest/180-span/1400-valley.distanceM/700;
+   const selection={valley,summit,middle,sameLift,areaWide:!sameLift,groupSize:group.length,score};
+   if(!best||selection.score>best.score)best=selection;
   }
  }
- if(!best)return undefined;
- const selectedGroup=groups.find(group=>group.includes(best!.valley)&&group.includes(best!.summit))??[],target=(Number(best.valley.elevation)+Number(best.summit.elevation))/2,middleCandidates=selectedGroup.filter(candidate=>candidate!==best!.valley&&candidate!==best!.summit&&Number(candidate.elevation)>Number(best!.valley.elevation)+100&&Number(candidate.elevation)<Number(best!.summit.elevation)-100&&(candidate.role==='middle'||Boolean(candidate.liftId&&(candidate.liftId===best!.valley.liftId||candidate.liftId===best!.summit.liftId))));
- best.middle=middleCandidates.sort((left,right)=>Math.abs(Number(left.elevation)-target)-Math.abs(Number(right.elevation)-target)||left.distanceM-right.distanceM)[0];return best;
+ return best;
 }
 async function directMountainProfile(loc:Location,signal?:AbortSignal):Promise<MountainProfileResult>{
  const elements=await overpassElements(loc,signal),anchorElevation=await localElevation(loc,signal),candidates:MountainCandidate[]=[];
@@ -130,8 +147,8 @@ async function directMountainProfile(loc:Location,signal?:AbortSignal):Promise<M
  const byLift=new Map<string,MountainCandidate[]>();for(const candidate of candidates)if(candidate.liftId){const rows=byLift.get(candidate.liftId)??[];rows.push(candidate);byLift.set(candidate.liftId,rows)}for(const rows of byLift.values())if(rows.length===2&&Number(rows[0].elevation)>Number(rows[1].elevation)){rows[0].role='summit';rows[1].role='valley';rows[0].name=rows[0].name.replace(/ · Tal$/,' · Berg');rows[1].name=rows[1].name.replace(/ · Berg$/,' · Tal')}
  associateStationsWithLiftEnds(candidates);
  const selection=selectMountainProfileCandidates(loc,anchorElevation,candidates);if(!selection)return derivedProfile(loc,signal);
- const level=(candidate:MountainCandidate,role:MountainLevelRole):MountainProfileLevel=>({role,name:candidate.name||mountainLevelLabel(role),latitude:candidate.latitude,longitude:candidate.longitude,elevation:Math.round(Number(candidate.elevation)),source:candidate.source}),confidence:MountainProfileConfidence=selection.sameLift?'high':selection.groupSize>=5?'medium':'low',levels=[level(selection.valley,'valley'),...(selection.middle?[level(selection.middle,'middle')]:[]),level(selection.summit,'summit')],profileCheck={valleyElevation:levels[0].elevation,middleElevation:levels[1]?.role==='middle'?levels[1].elevation:Math.round((levels[0].elevation+levels.at(-1)!.elevation)/2),summitElevation:levels.at(-1)!.elevation,middleEnabled:levels.some(row=>row.role==='middle'),valleyLatitude:levels[0].latitude,valleyLongitude:levels[0].longitude,middleLatitude:levels.find(row=>row.role==='middle')?.latitude,middleLongitude:levels.find(row=>row.role==='middle')?.longitude,summitLatitude:levels.at(-1)!.latitude,summitLongitude:levels.at(-1)!.longitude};if(!automaticConfigPlausible(loc,profileCheck))return derivedProfile(loc,signal);
- return{levels,source:'OpenStreetMap + Copernicus GLO-90 via Open-Meteo',confidence,checkedAt:new Date().toISOString(),diagnostics:{osmElements:elements.length,candidates:candidates.length,localCandidates:candidates.filter(candidate=>automaticProfileEnvelope(loc,anchorElevation,candidate)).length,anchorElevation,sameLift:selection.sameLift,clusterSize:selection.groupSize,explicitMiddle:Boolean(selection.middle),selectionScore:Number(selection.score.toFixed(1)),searchRadiusKm:PROFILE_SEARCH_RADIUS_M/1000}};
+ const level=(candidate:MountainCandidate,role:MountainLevelRole):MountainProfileLevel=>({role,name:candidate.name||mountainLevelLabel(role),latitude:candidate.latitude,longitude:candidate.longitude,elevation:Math.round(Number(candidate.elevation)),source:candidate.source}),confidence:MountainProfileConfidence=selection.groupSize>=7&&Number(selection.summit.elevation)-Number(selection.valley.elevation)>=700?'high':selection.groupSize>=4?'medium':'low',levels=[level(selection.valley,'valley'),...(selection.middle?[level(selection.middle,'middle')]:[]),level(selection.summit,'summit')],profileCheck={valleyElevation:levels[0].elevation,middleElevation:levels[1]?.role==='middle'?levels[1].elevation:Math.round((levels[0].elevation+levels.at(-1)!.elevation)/2),summitElevation:levels.at(-1)!.elevation,middleEnabled:levels.some(row=>row.role==='middle'),valleyLatitude:levels[0].latitude,valleyLongitude:levels[0].longitude,middleLatitude:levels.find(row=>row.role==='middle')?.latitude,middleLongitude:levels.find(row=>row.role==='middle')?.longitude,summitLatitude:levels.at(-1)!.latitude,summitLongitude:levels.at(-1)!.longitude};if(!automaticConfigPlausible(loc,profileCheck))return derivedProfile(loc,signal);
+ return{levels,source:'OpenStreetMap + Copernicus GLO-90 via Open-Meteo',confidence,checkedAt:new Date().toISOString(),diagnostics:{osmElements:elements.length,candidates:candidates.length,localCandidates:candidates.filter(candidate=>automaticProfileEnvelope(loc,anchorElevation,candidate)).length,anchorElevation,sameLift:selection.sameLift,areaWide:selection.areaWide,clusterSize:selection.groupSize,explicitMiddle:Boolean(selection.middle),selectionScore:Number(selection.score.toFixed(1)),searchRadiusKm:PROFILE_SEARCH_RADIUS_M/1000}};
 }
 
 export async function mountainProfile(loc:Location,signal?:AbortSignal):Promise<MountainProfileResult>{try{return await directMountainProfile(loc,signal)}catch(error){if(signal?.aborted)throw error;const fallback=await derivedProfile(loc,signal);return{...fallback,diagnostics:{...fallback.diagnostics,error:error instanceof Error?error.message:String(error)}}}}

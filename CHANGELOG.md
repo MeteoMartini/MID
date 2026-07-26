@@ -1,12 +1,11 @@
-# MID v0.7.99.0
+# MID v0.7.99.1
 
-- Saisonabhängige Radar-Echoauswertung ergänzt. Schwache stratiforme beziehungsweise winterliche Echos werden im Winterhalbjahr sensibler behandelt; im Sommerhalbjahr werden sehr schwache, nicht konvektive Echos zurückhaltender gewichtet. Temperatur, Feuchttemperatur, Schneesignal und Wettercode können das reine Kalenderprofil meteorologisch übersteuern.
-- Einheitliche saisonale Schwellen für Standorttreffer, Echo in der Umgebung, Bewegungsfeld und Niederschlagsanker in DWD-, OPERA- und RainViewer-Auswertungen eingeführt. Das aktive Echo-Profil wird in der Dateninformation des Kompositbildes ausgewiesen.
-- Verlagerungspfeile wiederhergestellt. Auch bei geringer Sicherheit bleibt ein gestrichelter, klar gekennzeichneter Vektor sichtbar, sofern ein belastbarer Bewegungsvektor und ein Niederschlagssignal vorhanden sind.
-- Zugrichtung als meteorologischer Hybridvektor erweitert: Mehrframe-Rasterkorrelation wird mit KONRAD3D-Zellverlagerung und einer Schwerpunktströmung aus 925-, 850-, 700- und 500-hPa-Winden plausibilisiert. Die angezeigte Richtung ist ausdrücklich die Richtung, in die das Niederschlagsfeld zieht.
-- Kompositbild um die gespeicherte Option „Nowcast-Objekte“ erweitert. Sie blendet DWD-KONRAD3D-Zellen mit Prognosebahn sowie DWD-NowCastMIX-Blitzgeometrien unabhängig von der normalen Blitzebene ein.
-- Eigener Worker-Endpunkt für NowCastMIX-Objekte ergänzt, damit diese Ebene nicht durch eine optional konfigurierte globale Blitzquelle ersetzt wird.
-- Neue funktionale Regression prüft saisonale Sommer-/Winterschwellen, winterliche Hydrometeor-Übersteuerung, die 180-Grad-Konvention der Schwerpunktströmung, wiederhergestellte Pfeile und die Nowcast-Objektoption.
+- Automatische Berg-/Wintersport-Profilermittlung von der Auswahl eines einzelnen Liftpaares auf das zusammenhängende Wander-/Skigebiet umgestellt. MID wählt nun die niedrigste plausible Talstation, eine explizite beziehungsweise vernetzte Mittelstation und die höchste verbundene Bergstation. Der Referenzfall Sölden schützt Giggijoch-Talniveau, Gaislachkogl-Mittelstation und 3.340-m-Bergniveau.
+- Höhenhülle für hochalpine, aber noch lokal verbundene Bergstationen erweitert; ortsfremde Gruppen bleiben über Nähe, Geländeanker, Clusterverbindung und maximale Gebietsspanne ausgeschlossen.
+- Modelllauf-Änderungsradar speichert die einzelnen eingebundenen Modellstände im Snapshot. Bei identischen Sammelzeiten zeigt es nun das tatsächlich geänderte Modell sowie dessen alten und neuen Initialisierungs- beziehungsweise Verfügbarkeitsstand.
+- Push-Deep-Links repariert: fehlende Koordinatenparameter werden nicht mehr durch `Number(null)` als 0°/0° interpretiert. Koordinaten, Ortsname und Land werden zusätzlich im Notification-Payload gespeichert und beim Öffnen durch beide Service Worker erneut in die Ziel-URL geschrieben.
+- Dynamischer Standort und nahezu deckungsgleicher statischer Favorit können gleichzeitig aktiv sein. Die Zuordnung berücksichtigt horizontale Entfernung und, sofern vorhanden, die Höhendifferenz.
+- Neue funktionale Regression prüft Skigebiets-Extremhöhen, Modelllaufidentifikation, Push-Koordinaten und Favoriten-Gleichsetzung.
 
 # MID v0.7.98.1
 
