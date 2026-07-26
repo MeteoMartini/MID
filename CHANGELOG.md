@@ -1,3 +1,13 @@
+# MID v0.7.97.1
+
+- Automatische Bergprofil-Ermittlung gegen ortsfremde Liftkombinationen gehärtet. Der bisherige 25-km-Suchraum und die unbeschränkte Kombination beliebiger Tal- und Bergpunkte konnten extreme, nicht zusammengehörige Profile erzeugen.
+- Suchradius auf 18 km begrenzt und Kandidaten zusätzlich an die Geländehöhe des gewählten Ortes gekoppelt. Bei normalen Bergorten darf das automatische Talniveau höchstens 500 m unter beziehungsweise 450 m über der Ortshöhe liegen; der Gipfelpunkt muss oberhalb liegen und bleibt ebenfalls höhenbegrenzt.
+- Liftstationen werden nur noch innerhalb räumlich zusammenhängender Liftgruppen kombiniert. Endpunkte derselben Liftanlage werden bevorzugt; Einzelkandidaten aus verschiedenen Skigebieten dürfen nicht mehr allein wegen großer Höhendifferenz gekoppelt werden.
+- Stationsknoten werden nahe gelegenen Liftenden zugeordnet, damit Tal-/Bergrollen und Anlagenzusammenhang belastbarer erkannt werden. Eine Mittelstation wird nur noch bei expliziter Mittelrollen-Kennzeichnung oder tatsächlichem Bezug zur gewählten Liftanlage übernommen.
+- Zusätzliche Maximalgrenzen für Höhendifferenz, horizontale Spannweite und Entfernung zum Favoriten verhindern Profile wie 490 m Talhöhe bei einem Ort auf rund 1.958 m.
+- Bereits gespeicherte automatische Altprofile werden beim Versionswechsel geprüft. Unplausible Höhen oder Koordinaten werden auf sichere lokale Ausgangswerte zurückgesetzt; manuell bearbeitete Profile bleiben unangetastet.
+- Neue Regression bildet den gemeldeten Obergurgl-/Hochgurgl-Fall nach und schützt Suchradius, lokale Höhenhülle, Liftcluster und Altprofilmigration.
+
 # MID v0.7.97.0
 
 - Berg-/Wintersportmodus vollständig geprüft und auf Schema 2 gehärtet: Saisonprofile Automatisch/Sommer/Winter, Lift-/Stations- und Geländehöhenprofil, optionale Mittelstation, editierbare Stationsdaten und höhenbezogene Einzelkoordinaten bleiben erhalten.

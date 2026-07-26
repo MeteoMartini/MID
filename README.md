@@ -6,6 +6,14 @@ Vor jeder Änderung müssen `package.json` und `MID_BASELINE.json` aus `mid-stab
 
 **Verbindliche Projektanweisung für neue Chats:** „Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.“
 
+## Wartung v0.7.97.1 – plausible automatische Bergprofile
+
+- Die automatische Lift-/Stationssuche ist auf einen lokalen 18-km-Raum begrenzt und an die Geländehöhe des Favoriten gekoppelt.
+- Tal und Berg dürfen nur noch aus räumlich zusammenhängenden Liftgruppen stammen; Endpunkte derselben Anlage werden bevorzugt.
+- Ortsfremde Tiefpunkte und übergroße Höhenprofile werden verworfen. Der gemeldete Obergurgl-/Hochgurgl-Fall mit 490 m Talhöhe wird dadurch ausgeschlossen.
+- Eine Mittelstation wird nur bei expliziter Mittelstationsrolle oder direktem Bezug zur ausgewählten Liftanlage übernommen.
+- Bereits gespeicherte unplausible automatische Profile werden beim Laden zurückgesetzt und können anschließend sauber neu bestimmt werden; manuelle Anpassungen bleiben erhalten.
+
 ## Funktionsrelease v0.7.97.0 – Bergdaten, Radarzug, Deep-Links und dauerhafte Modellstände
 
 - Der Berg-/Wintersportmodus nutzt je Höhenstufe tatsächliche Koordinaten, getrennte Mess-/Modell-Schneehöhen und strenge GeoSphere-Qualitätskriterien in Österreich.
@@ -99,7 +107,7 @@ Der vollständige Referenzumfang von MID v0.7.95.26 ist wiederhergestellt. Info-
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.97.0**
+**Aktuelle Version: v0.7.97.1**
 
 ## Revision in v0.7.89 – responsiver und schlanker
 
