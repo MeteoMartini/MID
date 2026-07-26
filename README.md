@@ -6,6 +6,13 @@ Vor jeder Änderung müssen `package.json` und `MID_BASELINE.json` aus `mid-stab
 
 **Verbindliche Projektanweisung für neue Chats:** „Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.“
 
+## Wartung v0.7.98.2 – konsistenter Radar-Nowcast und robuste Zugrichtung
+
+- Erwartete Radar-Ankunftsfenster erscheinen verbindlich in der Nowcast-Leiste; die Balkenhöhe repräsentiert die Intensität.
+- Lokale DWD-PX250-Standortradare werden vor dem nationalen HX-Fallback verwendet und HDF5-Projektionsdaten werden für die Kartenlage ausgewertet.
+- Niederschlagsbeginn im Modelllauf-Änderungsradar zeigt alten Zeitpunkt, neuen Zeitpunkt und Differenz getrennt.
+- Zugrichtung wird aus mehreren großräumigen Frames als Zielrichtung „nach“ bestimmt und gegen 180-Grad-Invertierung getestet.
+
 ## Wartung v0.7.98.1 – nullsichere Radar-Nowcast-Kachel
 
 - Die optionale Radar-Nowcast-Leiste kann bereits während des initialen Wetterladens gerendert werden, ohne direkt auf einen noch nicht vorhandenen Wetterdatensatz zuzugreifen.
@@ -120,7 +127,7 @@ Der vollständige Referenzumfang von MID v0.7.95.26 ist wiederhergestellt. Info-
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.98.1**
+**Aktuelle Version: v0.7.98.2**
 
 ## Revision in v0.7.89 – responsiver und schlanker
 

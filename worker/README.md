@@ -314,3 +314,8 @@ EuCom ist ein vom DWD für Flugsicherungs-/Flugwetterkunden erzeugtes europäisc
 ## v0.7.98.0 – Bewegungsfeld und Nowcast-Zeitreihe
 
 Der Radar-Nowcast liefert zusätzlich eine standortbezogene Zeitreihe (`nowcastSeries`) sowie räumliche Niederschlagsanker (`motionAnchors`). Für DWD-RV wird der aktuelle Radarstand in einem größeren Umfeld ausgewertet; RainViewer erzeugt Anker aus der aktuellen Rasterkachel. Das Frontend nutzt diese Punkte für flächige Zugrichtungspfeile und die optionale Nowcast-Leiste in der Niederschlagswahrscheinlichkeits-Kachel.
+
+
+## v0.7.98.2 – PX250-Priorität und Mehrframe-Zugrichtung
+
+Der Worker bevorzugt ein frisches lokales DWD-PX250-Standortradar vor dem nationalen HX-Komposit. HX bleibt ein Fallback. Die DWD-Zugrichtung wird aus mehreren großräumigen Radarframes mittels Rasterkorrelation als Zielrichtung „Zug nach …“ bestimmt.

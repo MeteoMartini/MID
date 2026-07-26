@@ -23,8 +23,8 @@ requireTokens('Favoriten-Deep-Link Worker',worker,['pushFavoriteUrl','mid-favori
 requireTokens('Favoriten-Deep-Link App',app,['function notificationLocation()','url.searchParams.get(\'mid-favorite\')','favorites.find(item=>item.id===favoriteId)','for(const key of[\'mid-favorite\',\'mid-lat\',\'mid-lon\',\'mid-name\',\'mid-country\'])']);
 requireTokens('Favoriten-Deep-Link Service Worker',sw,['notificationclick','favoriteId','targetUrl.searchParams.set(\'mid-favorite\',favoriteId)','client.navigate(target)']);
 requireTokens('Letzter Ort',app,['const notified=notificationLocation();if(notified)return notified;const last=storedLocation();if(last)return last','localStorage.setItem(LOCATION_STORAGE_KEY,JSON.stringify(normalized))','function locate(openLocation=true)','locate(false)']);
-requireTokens('Radar-Zugrichtung Worker',worker,['precipitationCentroid','centroidEastKm','centroidNorthKm','radarMotionFromFrames','motionDirectionDeg','motionSpeedKmh','radar-centroid-tracking']);
-requireTokens('Radar-Zugrichtung UI',radar,['function PrecipitationMotionArrows','Zugrichtung {Math.round(motionDirection)}°','aus Radarbildfolge abgeleitet','motionDirectionDeg','motionSpeedKmh']);
+requireTokens('Radar-Zugrichtung Worker',worker,['precipitationCentroid','centroidEastKm','centroidNorthKm','radarMotionFromFrames','motionDirectionDeg','motionSpeedKmh','multi-frame-grid-correlation']);
+requireTokens('Radar-Zugrichtung UI',radar,['function PrecipitationMotionArrows','Zugrichtung nach {Math.round(motionDirection)}°','aus Radarbildfolge abgeleitet','motionDirectionDeg','motionSpeedKmh']);
 requireTokens('Radar-Zugrichtung Typ',weather,['motionDirectionDeg?:number','motionSpeedKmh?:number','motionConfidence?:\'high\'|\'medium\'|\'low\'']);
 requireTokens('Radar-Zugrichtung CSS',styles,['.radarmap .radar-motion-chip{','.radar-motion-arrow,','.radar-motion-arrow-head']);
 requireTokens('Versionsfestes Modellarchiv',modelChanges,['HISTORY_KEY=\'mid:model-run-change-history:v2\'','type ModelChangeHistory','appendHistory','slice(-6)','slice(40)','loadModelChangeSnapshot','saveModelChangeSnapshot']);
