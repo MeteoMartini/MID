@@ -1,3 +1,22 @@
+# MID v0.7.100.6
+
+- GitHub-Produktionsbuild repariert: `RadioTower` wird für die Ladehinweise des DWD-250-m- und OPERA-Radars wieder vollständig aus `lucide-react` importiert. Damit sind die beiden `TS2304`-Fehler in `RadarPanel.tsx` beseitigt.
+- Luftdruckkachel strukturell korrigiert: 3-Stunden-Trend, Trendbezeichnung und QFF-/Datenquellenzeile besitzen nun eigene Layoutzeilen und können auf schmalen Displays nicht mehr zu Wörtern wie „steigendauf“ zusammenlaufen.
+- Best-Match-Feldname wird lesbar als `Best Match · pressure_msl` abgesetzt.
+- Neuer Regressionstest schützt Icon-Import, Ladehinweise und die getrennte Luftdruckdarstellung.
+
+# MID v0.7.100.5
+
+- Großes textliches Zugrichtungs-Overlay im Kompositbild entfernt. Richtung und Geschwindigkeit bleiben im kompakten Layerbutton, im Infofenster und im Standort-Popup verfügbar.
+- Niederschlags-Zugpfeile als hoch liegende weiße Div-Marker neu umgesetzt. Dadurch bleiben sie unabhängig vom Canvasrenderer und von Radar-/Satellitenrastern sichtbar.
+- KONRAD3D-Zellen als deutliche farbige Marker mit K3D-Stufe und verfügbaren Hagel-, Starkregen-, Blitz- und Böensymbolen neu gerendert.
+- NowCastMIX-Blitzobjekte als violette Blitzmarker in einer eigenen, gut sichtbaren Markerebene dargestellt.
+- Layerbuttons oberhalb der Karte deutlich verdichtet. Kurze Bezeichnungen wie „Radar · 1 km“, „K3D / MIX“ und „Zugpfeile“ zeigen darunter den aktuellen Datenstand beziehungsweise Objektzahlen.
+- Scrollen auf Touchgeräten verbessert: Die Karte startet mobil im Scrollmodus und fängt Ein-Finger-Seitenscrollen nicht mehr ab. Über „Karte aktiv“ lässt sich Verschieben/Zoomen jederzeit wieder einschalten.
+- Blitz- und NowCastMIX-Vektoren werden räumlich ausgedünnt und auf ein gerätegerechtes Renderingbudget begrenzt. Die Daten bleiben abrufbar; nur überlagerte Marker werden zusammengefasst.
+- Laufende Kompositanimation stoppt beim Seitenscrollen, um Layer-Neuaufbau während der Scrollbewegung zu vermeiden.
+- Neuer Regressionstest für kompaktes Layerband, sichtbare Zugpfeile/Nowcast-Symbole und touchfreundliches Karten-Scrolling.
+
 # MID v0.7.100.4
 
 - GitHub-Produktionsbuild repariert: `ChevronDown` wird für die einklappbare Komposit-Legende wieder vollständig aus `lucide-react` importiert. Dadurch ist der TypeScript-Fehler `TS2304: Cannot find name ChevronDown` beseitigt.

@@ -1923,3 +1923,48 @@ button,input,select,[role="button"]{touch-action:manipulation}
  .card,.top{box-shadow:0 8px 24px rgba(0,0,0,.16)}
  :root[data-theme=light] .card,:root[data-theme=light] .top{box-shadow:0 7px 20px rgba(33,61,88,.09)}
 }
+
+/* MID v0.7.100.5 – Kompositbedienung, sichtbare Nowcast-Symbole und flüssigeres Scrollen */
+.composite-card{contain:layout paint style;isolation:isolate}
+.composite-layer-switches{gap:6px!important;padding-bottom:3px}
+.composite-switch.compact{grid-template-columns:auto minmax(0,1fr)!important;min-width:0!important;min-height:44px!important;padding:6px 8px!important;border-radius:12px!important;contain:layout paint style}
+.composite-switch.compact>span{min-width:0}
+.composite-switch.compact b{font-size:9px!important;line-height:1.05!important}
+.composite-switch.compact small{display:block!important;min-height:0!important;margin-top:2px!important;color:var(--muted)!important;font-size:6.6px!important;line-height:1.12!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;-webkit-line-clamp:unset!important}
+.composite-switch-emoji{display:grid;width:24px;height:24px;place-items:center;border-radius:8px;background:color-mix(in srgb,var(--primary) 8%,var(--s2));font-size:15px;line-height:1}
+.composite-switch.active .composite-switch-emoji{background:color-mix(in srgb,var(--primary) 16%,var(--s2))}
+.radarmap{contain:layout paint style;isolation:isolate;overscroll-behavior:contain}
+.radarmap.touch-scroll-mode .leaflet-container{touch-action:pan-y!important}
+.composite-map-interaction{position:absolute;z-index:950;right:8px;bottom:52px;display:inline-flex;align-items:center;gap:5px;min-height:30px;padding:5px 8px;border:1px solid rgba(255,255,255,.72);border-radius:10px;background:rgba(16,31,46,.82);color:#fff;box-shadow:0 5px 14px rgba(0,0,0,.22);font-size:8px;font-weight:800;line-height:1;touch-action:manipulation}
+.composite-map-interaction.active{border-color:color-mix(in srgb,var(--primary) 75%,white);background:color-mix(in srgb,var(--primary) 62%,#122338)}
+.mid-motion-div-icon,.mid-konrad-div-icon,.mid-nowcastmix-div-icon{background:transparent!important;border:0!important}
+.mid-motion-arrow-marker{display:block;transform:translateZ(0);pointer-events:none}
+.mid-motion-arrow-marker svg{display:block;width:100%;height:100%;overflow:visible;transform-origin:50% 50%}
+.mid-motion-arrow-marker path{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.mid-motion-arrow-marker .halo{stroke:rgba(10,23,35,.88);stroke-width:7}
+.mid-motion-arrow-marker .core{stroke:#fff;stroke-width:3.2}
+.mid-motion-arrow-marker.low .core{stroke:#eef8ff}
+.mid-konrad-marker{display:inline-flex;align-items:center;gap:3px;min-width:48px;min-height:25px;padding:4px 6px;border:2px solid rgba(255,255,255,.94);border-radius:9px;background:color-mix(in srgb,var(--konrad-color) 86%,#142131);color:#fff;box-shadow:0 4px 12px rgba(0,0,0,.3);font-size:8px;line-height:1;white-space:nowrap;transform:translateZ(0)}
+.mid-konrad-marker:after{content:"";position:absolute;left:26px;bottom:-6px;border:5px solid transparent;border-top-color:rgba(255,255,255,.94)}
+.mid-konrad-marker small{font-size:7px;letter-spacing:-.08em}
+.mid-nowcastmix-marker{display:grid;width:24px;height:24px;place-items:center;border:2px solid #fff;border-radius:50%;background:rgba(115,73,225,.9);color:#fff;box-shadow:0 3px 10px rgba(46,20,112,.38);font-size:13px;line-height:1;transform:translateZ(0)}
+@media(max-width:760px){
+ .composite-layer-switches{display:flex!important;overflow-x:auto;gap:5px!important;padding:1px 1px 5px;scroll-snap-type:none!important;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch}
+ .composite-switch.compact{flex:0 0 112px!important;min-height:42px!important;padding:5px 7px!important}
+ .composite-switch.compact b{font-size:8.5px!important}.composite-switch.compact small{font-size:6.1px!important}.composite-switch-emoji{width:22px;height:22px;font-size:14px}
+ .radarmap{height:min(66vh,560px)}
+ .composite-map-interaction{right:7px;bottom:48px}
+ .mid-konrad-marker{min-width:43px;padding:4px 5px;font-size:7px}.mid-konrad-marker small{font-size:6px}
+}
+@media (hover:none),(pointer:coarse){
+ .radarmap,.composite-card{box-shadow:none!important}
+ .mid-konrad-marker,.mid-nowcastmix-marker{box-shadow:0 2px 7px rgba(0,0,0,.22)}
+ .composite-layer-switches{scrollbar-width:none}.composite-layer-switches::-webkit-scrollbar{display:none}
+}
+
+/* MID v0.7.100.6 – Luftdruckdetail sauber trennen */
+.metrics .pressure-detail{display:grid;gap:3px;min-width:0}
+.metrics .pressure-tendency{display:flex;flex-wrap:wrap;align-items:baseline;gap:3px 5px;min-width:0}
+.metrics .pressure-tendency>b,.metrics .pressure-tendency>span{display:inline-block;min-width:0}
+.metrics .pressure-source{display:block;min-width:0;overflow-wrap:anywhere;word-break:normal}
+@media(max-width:760px){.metrics .pressure-detail{gap:2px}.metrics .pressure-tendency{gap:2px 4px}}
