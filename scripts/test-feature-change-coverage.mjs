@@ -22,7 +22,9 @@ if(ref){
   if(file==='public/service-worker.js'||file==='public/sw.js')return meaningfulDiff(ref,file,[/^const CACHE='mid-shell-v/]);
   return true;
  });
- const changedTests=git(['diff','--name-only',ref,'--','scripts']).split(/\r?\n/).filter(name=>/^scripts\/test-.*\.mjs$/i.test(name));
+ const modifiedTests=git(['diff','--name-only',ref,'--','scripts']).split(/\r?\n/).filter(name=>/^scripts\/test-.*\.mjs$/i.test(name));
+ const untrackedTests=git(['ls-files','--others','--exclude-standard','--','scripts/test-*.mjs']).split(/\r?\n/).filter(name=>/^scripts\/test-.*\.mjs$/i.test(name));
+ const changedTests=[...new Set([...modifiedTests,...untrackedTests])];
  if(functional.length&&!changedTests.length)failures.push(`Funktionscode geändert, aber kein Regressionstest ergänzt oder angepasst: ${functional.join(', ')}`);
 }
 if(failures.length){console.error('Automatische Testabdeckung neuer Funktionen fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}

@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.7.95.24
+
+- GitHub-Regression der automatischen Funktionsabdeckung behoben: neu über die Release-ZIP eingebrachte, zunächst ungetrackte `scripts/test-*.mjs`-Dateien werden jetzt als neue Regressionstests erkannt
+- `test-feature-change-coverage.mjs` kombiniert geänderte und ungetrackte Testdateien, statt nur bereits von Git verwaltete Dateien auszuwerten
+- eigener Regressionstest schützt den Änderungsabdeckungs-Wächter gegen denselben Fehler bei künftigen Funktionsupdates
+- Konsistenz-Tooltip-Außenklick aus v0.7.95.23 bleibt unverändert geschützt
+
+## 0.7.95.23
+
+- 14-Tage-Ensemble: Tooltips der farbigen Prognosekonsistenzpunkte schließen nun wie die übrigen Popover bei Klick oder Tippen außerhalb
+- Klicks innerhalb des Konsistenz-Tooltips sowie auf den zugehörigen Farbpunkt bleiben von der Außenklick-Schließlogik ausgenommen
+- Escape schließt den geöffneten Konsistenz-Tooltip weiterhin zuverlässig
+- neue automatisch erkannte Regression schützt diese Interaktion dauerhaft
+
 ## 0.7.95.22
 
 - 14-Tage-Ensemble: sämtliche Info-Schaltflächen und „Modellstände“ auf robuste Body-Portale umgestellt, damit Popover nicht mehr von Modul-Containern oder mobilem Overflow abgeschnitten werden
