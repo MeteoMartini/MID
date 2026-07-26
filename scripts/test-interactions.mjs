@@ -16,11 +16,11 @@ if(app.includes("node.addEventListener('wheel',wheel,{passive:false})"))failures
 for(const token of[':root[data-theme=dark] select{color-scheme:dark}',':root[data-theme=dark] select option',':root[data-theme=light] select option'])if(!styles.includes(token))failures.push(`Dropdown-Kontrastregel fehlt: ${token}`);
 
 
-for(const token of ['position={compactTrendTooltip?{x:0}:undefined}','allowEscapeViewBox={{x:false,y:true}}',"maxWidth:'calc(100vw - 24px)'",'className="matrix-value" role="cell"'])if(!ensemble.includes(token))failures.push(`Responsiv lesbarer Trend-Tooltip fehlt: ${token}`);
-if(ensemble.includes('allowEscapeViewBox={{x:true,y:true}}'))failures.push('Trend-Tooltip darf horizontal nicht unkontrolliert aus dem Bildschirm entweichen');
+for(const token of ['allowEscapeViewBox={{x:false,y:true}}',"maxWidth:'calc(100vw - 16px)'"])if(!ensemble.includes(token))failures.push(`Trend-Tooltip ist horizontal nicht begrenzt: ${token}`);
+if(ensemble.includes('allowEscapeViewBox={{x:true,y:true}}'))failures.push('Trend-Tooltip darf horizontal nicht mehr aus der Diagramm- bzw. Bildschirmfläche entweichen');
 for(const token of ['meteogram-day-jump','Vorheriger Tag:','Nächster Tag:','moveDay(-1)','moveDay(1)'])if(!app.includes(token)&&!styles.includes(token))failures.push(`Mobile Tagesnavigation fehlt: ${token}`);
 if(ensemble.includes('onFocus={onOpen}'))failures.push('Konsistenzpunkt öffnet auf Touch weiterhin bereits über Fokus und benötigt dadurch zwei Taps');
-for(const token of['sunshine_duration','sunshineDurationLow','sunshineDurationHigh','bestSunshineHours','className="tooltip-meta-line sunshine-tooltip-line"','P10–P90 ','sunshine-scale-legend'])if(!ensemble.includes(token)&&!styles.includes(token)&&!read('../src/weather.ts').includes(token))failures.push(`Sonnenscheindauer-Auswertung fehlt: ${token}`);
+for(const token of['sunshine_duration','sunshineDurationLow','sunshineDurationHigh','bestSunshineHours','Sonnenscheindauer</b>','P10–P90:','sunshine-scale-legend'])if(!ensemble.includes(token)&&!styles.includes(token)&&!read('../src/weather.ts').includes(token))failures.push(`Sonnenscheindauer-Auswertung fehlt: ${token}`);
 if(!ensemble.includes('sanitizeSunshineSeconds(day,day.sunshineDuration,0)'))failures.push('Bewölkungsband nutzt nicht ausdrücklich den Best-Match-Wert');
 if(failures.length){console.error('Interaktionsprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
 console.log('Interaktionen geprüft: Tooltips bleiben horizontal im sichtbaren Bereich, der Konsistenzpunkt öffnet mobil mit einem Tap, die mobile Detailansicht kann tageweise springen und das Mausrad bleibt auf den SVG-Plot begrenzt.');

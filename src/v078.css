@@ -15,20 +15,19 @@
 .title{position:relative;align-items:flex-start;gap:10px}
 .title-tools{display:flex;flex:0 0 auto;align-items:flex-start;justify-content:flex-end}
 .model-run-details{position:relative;font-size:11px}
-.model-run-details>button{font:inherit;cursor:pointer}
-.model-run-details>button{display:inline-flex;align-items:center;min-height:29px;padding:5px 9px;border:1px solid var(--border);border-radius:999px;background:var(--s2);color:var(--muted);font-weight:750;white-space:nowrap;list-style:none;cursor:pointer;user-select:none}
-.model-run-details.open>button,.model-run-details>button:hover{border-color:color-mix(in srgb,var(--primary) 50%,var(--border));color:var(--text)}
+.model-run-details>summary{display:inline-flex;align-items:center;min-height:29px;padding:5px 9px;border:1px solid var(--border);border-radius:999px;background:var(--s2);color:var(--muted);font-weight:750;white-space:nowrap;list-style:none;cursor:pointer;user-select:none}
+.model-run-details>summary::-webkit-details-marker{display:none}
+.model-run-details[open]>summary,.model-run-details>summary:hover{border-color:color-mix(in srgb,var(--primary) 50%,var(--border));color:var(--text)}
 .model-run-popover{position:absolute;z-index:1800;top:calc(100% + 7px);right:0;width:min(430px,calc(100vw - 34px));padding:12px;border:1px solid var(--border);border-radius:14px;background:color-mix(in srgb,var(--surface) 96%,transparent);box-shadow:var(--shadow);backdrop-filter:blur(18px);color:var(--text)}
 .model-run-popover>strong{display:block;margin-bottom:4px;font-size:12px}
 .model-run-popover>p{margin:3px 0 8px;color:var(--muted);font-size:10px;line-height:1.4}
 .model-run-popover .model-run-chain{padding:7px 8px;border-radius:9px;background:var(--s2);color:var(--text)}
 .model-run-list{display:grid;gap:5px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
-.model-run-close{display:block;margin:10px 0 0 auto;padding:6px 10px;border:1px solid var(--border);border-radius:9px;background:var(--s2);color:var(--text);font-weight:750}
 .model-run-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:9px;padding:4px 0}
 .model-run-row>span{overflow:hidden;font-weight:720;text-overflow:ellipsis;white-space:nowrap}
 .model-run-row>small{color:var(--muted);font-size:9px;white-space:nowrap}
 .model-run-empty{display:block;margin-top:8px;color:var(--muted)}
-@media(max-width:620px){.model-run-details>button{min-height:27px;padding:4px 7px;font-size:10px}.model-run-popover{position:fixed;top:auto;right:8px;bottom:10px;left:8px;width:auto;max-height:min(65vh,480px);overflow:auto}.model-run-row{grid-template-columns:1fr}.model-run-row>small{white-space:normal}}
+@media(max-width:620px){.model-run-details>summary{min-height:27px;padding:4px 7px;font-size:10px}.model-run-popover{position:fixed;top:auto;right:8px;bottom:10px;left:8px;width:auto;max-height:min(65vh,480px);overflow:auto}.model-run-row{grid-template-columns:1fr}.model-run-row>small{white-space:normal}}
 
 /* MID v0.7.8 – POI-Hinweise und Ortszeit */
 .search .poi-kind{display:inline-flex;margin-left:6px;padding:2px 6px;border:1px solid var(--border);border-radius:999px;background:var(--s2);color:var(--accent);font-size:8px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;vertical-align:middle}.local-timezone{color:var(--muted);white-space:nowrap}
@@ -45,47 +44,4 @@
  .detaillegend{gap:5px}
  .detaillegend span{gap:5px;padding:4px 6px;white-space:nowrap}
  .detaillegend .mid-skybar-note{white-space:normal}
-}
-
-
-/* MID v0.7.95.17 – Ensemble-Erklärungen und Modellstände dauerhaft sichtbar */
-.ensemble>.title{flex-wrap:wrap}
-.ensemble>.title .title-tools{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}
-.ensemble-explanation{display:grid;gap:6px}
-.ensemble-explanation>strong{font-size:12px}
-.ensemble-explanation>span{display:block;color:var(--muted);font-size:10px;line-height:1.45}
-.ensemble-explanation>span b{color:var(--text)}
-@media(max-width:620px){
- .ensemble>.title .title-tools{width:100%;justify-content:flex-start;margin-top:3px}
- .ensemble>.title .title-tools>.mode-info{order:1}
- .ensemble>.title .title-tools>.model-run-details{order:2}
- .ensemble-explanation>span{font-size:11px}
-}
-
-
-/* MID v0.7.95.22 – robuste Ensemble-Hilfe und Tages-Min/Max im aktuellen Wetter */
-.ensemble-help-toolbar{display:flex;align-items:center;justify-content:flex-end;gap:7px;min-height:31px;margin:-8px 0 10px}
-.ensemble-help-toolbar>.mode-info>button,.ensemble-help-toolbar>.model-run-details>button,.ensemble .charthead>.mode-info>button{touch-action:manipulation}
-.ensemble-portal-popover{position:fixed!important;right:auto!important;bottom:auto!important;z-index:6200!important;pointer-events:auto;overscroll-behavior:contain;box-sizing:border-box}
-.ensemble-info-popover{display:grid;gap:10px}
-.ensemble-info-content{min-width:0}
-.ensemble-info-close{justify-self:end;min-height:32px;padding:6px 10px;border:1px solid var(--border);border-radius:9px;background:var(--s2);color:var(--text);font-weight:750}
-.hero-kicker-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;min-width:0}
-.hero-kicker-row>span:first-child{color:var(--accent);font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
-.hero-day-range{display:inline-flex;flex:0 0 auto;align-items:center;gap:7px;padding:5px 8px;border:1px solid color-mix(in srgb,var(--border) 78%,var(--primary));border-radius:999px;background:color-mix(in srgb,var(--surface) 72%,transparent);box-shadow:0 5px 18px rgba(0,0,0,.08);font-variant-numeric:tabular-nums;backdrop-filter:blur(10px)}
-.hero-day-range>span{display:inline-flex;align-items:baseline;gap:4px;white-space:nowrap}
-.hero-day-range small{color:var(--muted);font-size:8px;font-weight:750;letter-spacing:.02em;text-transform:none}
-.hero-day-range b{font-size:13px;line-height:1}
-.hero-day-range .min b{color:#63b4ff}.hero-day-range .max b{color:#ff8a67}
-.hero-day-range>i{width:1px;height:16px;background:var(--border)}
-@media(max-width:620px){
- .ensemble-help-toolbar{justify-content:flex-start;margin:-5px 0 9px}
- .ensemble-portal-popover{right:auto!important;bottom:auto!important}
- .hero-kicker-row{gap:7px}
- .hero-day-range{gap:5px;padding:4px 6px}
- .hero-day-range small{font-size:7px}.hero-day-range b{font-size:11px}
-}
-@media(max-width:390px){
- .hero-kicker-row{align-items:flex-start;flex-direction:column;gap:4px}
- .hero-day-range{align-self:flex-start}
 }

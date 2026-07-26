@@ -1,38 +1,105 @@
-import {useEffect,useMemo,useRef,useState,type FormEvent,type ReactNode} from 'react';
-import {AlertTriangle,ArrowLeftRight,Bike,CalendarClock,Car,CloudRain,Footprints,MapPin,Navigation,RefreshCw,Search,Thermometer,Wind} from 'lucide-react';
-import {searchLocations,type Location,type WindUnit} from './weather';
-import {calculateRouteWeather,routeProfileLabel,routeWeatherIcon,routeWeatherLabel,windValueFromKt,type RouteCoordinate,type RouteProfile,type RouteWeatherPoint,type RouteWeatherResult} from './routeWeather';
+import {useEffect,useMemo,useRef,useState} from 'react';
+import {AlertTriangle,CloudRain,MapPinned,Navigation,Route as RouteIcon,Search,Wind} from 'lucide-react';
+import L from 'leaflet';
+import {CircleMarker,MapContainer,Marker,Polyline,TileLayer,Tooltip,useMap} from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import {searchLocations,type Location} from './weather';
+import {formatDecimal} from './format';
+import {formatLocalIso,formatRouteWind,loadRouteWeather,routeLevelClass,routeLevelColor,type RouteCheckpoint,type RouteMapMode,type RouteWeatherResult} from './routeWeather';
 
-export type RouteWeatherFavorite={id:string;label:string;location:Location};
-type Props={currentLocation:Location;favorites:RouteWeatherFavorite[];unit:WindUnit;defaultProfile:RouteProfile;sampleMinutes:number};
-
-function roundedDeparture(){const date=new Date(Date.now()+30*60000);date.setMinutes(Math.ceil(date.getMinutes()/15)*15,0,0);return date}
-function inputDate(value:Date){const local=new Date(value.getTime()-value.getTimezoneOffset()*60000);return local.toISOString().slice(0,16)}
-function dateTime(epoch:number){return new Intl.DateTimeFormat('de-DE',{weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(new Date(epoch))}
-function time(epoch:number){return new Intl.DateTimeFormat('de-DE',{hour:'2-digit',minute:'2-digit'}).format(new Date(epoch))}
-function duration(seconds:number){const minutes=Math.round(seconds/60),hours=Math.floor(minutes/60),rest=minutes%60;return hours?`${hours} h ${String(rest).padStart(2,'0')} min`:`${minutes} min`}
-function distance(km:number){return km>=100?`${Math.round(km)} km`:`${new Intl.NumberFormat('de-DE',{maximumFractionDigits:1}).format(km)} km`}
-
-function LocationField({labelText,location,onChange,onClear,currentLocation,favorites,allowCurrent=false}:{labelText:string;location:Location|null;onChange:(location:Location)=>void;onClear:()=>void;currentLocation:Location;favorites:RouteWeatherFavorite[];allowCurrent?:boolean}){
- const[query,setQuery]=useState(location?.name??''),[results,setResults]=useState<Location[]>([]),[focused,setFocused]=useState(false),seq=useRef(0);
- useEffect(()=>setQuery(location?.name??''),[location?.id,location?.latitude,location?.longitude,location?.name]);
- useEffect(()=>{const value=query.trim(),id=++seq.current;if(value.length<2||value===location?.name){setResults([]);return}const controller=new AbortController(),timer=window.setTimeout(()=>{void searchLocations(value,controller.signal).then(rows=>{if(id===seq.current&&!controller.signal.aborted)setResults(rows.slice(0,7))}).catch(()=>{if(id===seq.current&&!controller.signal.aborted)setResults([])})},380);return()=>{window.clearTimeout(timer);controller.abort()}},[query,location?.name]);
- const choose=(next:Location)=>{onChange(next);setQuery(next.name);setResults([]);setFocused(false)};
- return <label className="route-location-field"><span>{labelText}</span><div><MapPin size={17}/><input value={query} onFocus={()=>setFocused(true)} onBlur={()=>window.setTimeout(()=>setFocused(false),120)} onChange={event=>{const value=event.target.value;setQuery(value);if(value!==location?.name)onClear();setFocused(true)}} placeholder={`${labelText} suchen`} aria-label={`${labelText} der Route`}/>{query&&<button type="button" onMouseDown={event=>event.preventDefault()} onClick={()=>{setQuery('');setResults([]);onClear()}} aria-label={`${labelText} leeren`}>×</button>}</div>{focused&&(results.length>0||favorites.length>0||allowCurrent)&&<section className="route-location-results" onMouseDown={event=>event.preventDefault()}>{allowCurrent&&<button type="button" onClick={()=>choose(currentLocation)}><Navigation size={15}/><span><b>Aktueller Dashboard-Ort</b><small>{currentLocation.name}</small></span></button>}{favorites.slice(0,6).map(favorite=><button type="button" key={favorite.id} onClick={()=>choose(favorite.location)}><MapPin size={15}/><span><b>{favorite.label}</b><small>Favorit</small></span></button>)}{results.map(result=><button type="button" key={`${result.id}:${result.latitude}:${result.longitude}`} onClick={()=>choose(result)}><Search size={15}/><span><b>{result.name}</b><small>{[result.admin2,result.admin1,result.country].filter(Boolean).join(', ')}</small></span></button>)}</section>}</label>
+function formatDateTime(value:string){
+ return new Date(value).toLocaleString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+}
+function formatDuration(minutes:number){
+ const hours=Math.floor(minutes/60),mins=minutes%60;
+ return hours?`${hours} h ${String(mins).padStart(2,'0')} min`:`${mins} min`;
+}
+function displayDestination(loc:Location){
+ return [loc.name,loc.admin1||loc.country].filter(Boolean).join(' · ');
+}
+function defaultDepartureInput(){
+ const date=new Date();
+ date.setMinutes(0,0,0);
+ date.setHours(date.getHours()+1);
+ return formatLocalIso(date.toISOString());
 }
 
-function RouteSketch({geometry,points}:{geometry:RouteCoordinate[];points:RouteWeatherPoint[]}){
- const drawing=useMemo(()=>{if(geometry.length<2)return null;const lons=geometry.map(row=>row[0]),lats=geometry.map(row=>row[1]),minLon=Math.min(...lons),maxLon=Math.max(...lons),minLat=Math.min(...lats),maxLat=Math.max(...lats),lonRange=Math.max(.0001,maxLon-minLon),latRange=Math.max(.0001,maxLat-minLat),project=(coordinate:RouteCoordinate)=>[8+(coordinate[0]-minLon)/lonRange*84,8+(maxLat-coordinate[1])/latRange*64] as const,path=geometry.map((coordinate,index)=>{const[x,y]=project(coordinate);return`${index?'L':'M'}${x.toFixed(2)} ${y.toFixed(2)}`}).join(' '),markers=points.map(point=>{const[x,y]=project([point.longitude,point.latitude]);return{x,y,severity:point.severity,index:point.index}});return{path,markers}},[geometry,points]);
- if(!drawing)return null;
- return <div className="route-sketch" aria-label="Vereinfachter Verlauf der Route"><svg viewBox="0 0 100 80" role="img"><path className="route-sketch-shadow" d={drawing.path}/><path className="route-sketch-line" d={drawing.path}/>{drawing.markers.map(marker=><circle key={marker.index} className={`route-sketch-marker ${marker.severity}`} cx={marker.x} cy={marker.y} r={marker.index===0||marker.index===drawing.markers.length-1?2.5:1.8}/>)}</svg><small>Schematischer Verlauf · Punkte entsprechen den Wetterzeitpunkten</small></div>
+function RouteBounds({points}:{points:[number,number][]}){
+ const map=useMap();
+ useEffect(()=>{
+  if(!points.length)return;
+  const bounds=L.latLngBounds(points.map(point=>L.latLng(point[0],point[1])));
+  map.fitBounds(bounds.pad(0.25),{padding:[24,24]});
+ },[map,JSON.stringify(points)]);
+ return null;
 }
 
+function windIcon(direction:number,color:string){
+ return L.divIcon({
+  className:'route-wind-marker',
+  html:`<span class="route-wind-glyph" style="color:${color};transform:rotate(${direction}deg)">↑</span>`,
+  iconSize:[18,18],
+  iconAnchor:[9,9]
+ });
+}
 
-export default function RouteWeatherPanel({currentLocation,favorites,unit,defaultProfile,sampleMinutes}:Props){
- const initialDestination=favorites.find(favorite=>Math.abs(favorite.location.latitude-currentLocation.latitude)>.001||Math.abs(favorite.location.longitude-currentLocation.longitude)>.001)?.location??null,[start,setStart]=useState<Location|null>(currentLocation),[destination,setDestination]=useState<Location|null>(initialDestination),[profile,setProfile]=useState<RouteProfile>(defaultProfile),[interval,setIntervalValue]=useState(sampleMinutes),[departure,setDeparture]=useState(()=>inputDate(roundedDeparture())),[result,setResult]=useState<RouteWeatherResult|null>(null),[loading,setLoading]=useState(false),[error,setError]=useState(''),controller=useRef<AbortController|null>(null);
- useEffect(()=>{setStart(current=>current??currentLocation)},[currentLocation.id,currentLocation.latitude,currentLocation.longitude]);
- useEffect(()=>()=>controller.current?.abort(),[]);
- const calculate=async(event?:FormEvent)=>{event?.preventDefault();if(!start||!destination){setError('Bitte Start und Ziel auswählen.');return}controller.current?.abort();const next=new AbortController();controller.current=next;setLoading(true);setError('');try{const value=await calculateRouteWeather(start,destination,new Date(departure).getTime(),profile,interval,next.signal);if(!next.signal.aborted)setResult(value)}catch(reason){if(!next.signal.aborted)setError(reason instanceof Error?reason.message:'Routenwetter konnte nicht berechnet werden.')}finally{if(controller.current===next){controller.current=null;setLoading(false)}}};
- const swap=()=>{const previous=start;if(destination)setStart(destination);if(previous)setDestination(previous);setResult(null)};
- return <section className="route-weather-panel"><header><div><span>ZEITBEZOGENE STRECKENPROGNOSE</span><h2>Routenwetter</h2><p>MID fährt die Route zeitlich ab und ordnet jedem Abschnitt das Wetter zum voraussichtlichen Durchfahrtszeitpunkt zu.</p></div><Navigation size={30}/></header><form className="route-weather-form" onSubmit={calculate}><div className="route-endpoints"><LocationField labelText="Start" location={start} onChange={location=>{setStart(location);setResult(null)}} onClear={()=>{setStart(null);setResult(null)}} currentLocation={currentLocation} favorites={favorites} allowCurrent/><button type="button" className="route-swap" onClick={swap} aria-label="Start und Ziel tauschen"><ArrowLeftRight size={18}/></button><LocationField labelText="Ziel" location={destination} onChange={location=>{setDestination(location);setResult(null)}} onClear={()=>{setDestination(null);setResult(null)}} currentLocation={currentLocation} favorites={favorites}/></div><div className="route-options"><fieldset><legend>Fortbewegung</legend>{([['car',<Car size={17}/>,'Auto'],['bike',<Bike size={17}/>,'Fahrrad'],['foot',<Footprints size={17}/>,'Zu Fuß']] as [RouteProfile,ReactNode,string][]).map(([value,iconNode,text])=><button type="button" key={value} className={profile===value?'active':''} onClick={()=>{setProfile(value);setResult(null)}} aria-pressed={profile===value}>{iconNode}{text}</button>)}</fieldset><label><span><CalendarClock size={16}/>Abfahrt</span><input type="datetime-local" value={departure} min={inputDate(new Date(Date.now()-30*60000))} max={inputDate(new Date(Date.now()+7*86400000))} onChange={event=>{setDeparture(event.target.value);setResult(null)}}/></label><label><span>Prüfpunkte</span><select value={interval} onChange={event=>{setIntervalValue(Number(event.target.value));setResult(null)}}><option value={15}>etwa alle 15 min</option><option value={20}>etwa alle 20 min</option><option value={30}>etwa alle 30 min</option><option value={45}>etwa alle 45 min</option></select></label><button className="primary route-calculate" type="submit" disabled={loading||!start||!destination}>{loading?<RefreshCw className="spin" size={18}/>:<Navigation size={18}/>}<span>{loading?'Route und Wetter werden berechnet …':'Routenwetter berechnen'}</span></button></div></form>{error&&<div className="route-weather-error"><AlertTriangle size={18}/><span>{error}</span></div>}{result&&<div className="route-weather-result"><section className={`route-weather-summary ${result.severity}`}><div><small>{routeProfileLabel(result.profile)} · {distance(result.distanceKm)} · {duration(result.durationSeconds)}</small><strong>{result.summary}</strong><span>Abfahrt {dateTime(result.departureEpoch)} · Ankunft {time(result.arrivalEpoch)}</span></div><b>{result.points.filter(point=>point.severity==='warning'||point.severity==='danger').length} markante Abschnitte</b></section><RouteSketch geometry={result.geometry} points={result.points}/><div className="route-weather-timeline" aria-label="Wetter entlang der Route">{result.points.map(point=><article key={point.index} className={point.severity}><header><span>{routeWeatherIcon(point)}</span><div><strong>{point.locationLabel}</strong><small>{time(point.arrivalEpoch)} · km {Math.round(point.distanceKm)}</small></div><b>{Math.round(point.temperature)}°</b></header><p>{routeWeatherLabel(point)}</p><div className="route-point-metrics"><span><CloudRain size={14}/><b>{Math.round(point.precipitationProbability)} %</b><small>{new Intl.NumberFormat('de-DE',{maximumFractionDigits:1}).format(point.precipitation)} mm</small></span><span><Wind size={14}/><b>{windValueFromKt(point.windSpeedKt,unit)}</b><small>Böen {windValueFromKt(point.windGustKt,unit)}</small></span><span><Thermometer size={14}/><b>gefühlt {Math.round(point.apparentTemperature)}°</b><small>{point.visibilityM<10000?`Sicht ${distance(point.visibilityM/1000)}`:'gute Sicht'}</small></span></div><footer>{point.signals.map(signal=><em key={signal}>{signal}</em>)}</footer></article>)}</div><small className="route-weather-source">Routing: {result.provider} / OpenStreetMap · Wetter: {result.weatherProvider} · zeitlich interpolierte Durchfahrt, keine Verkehrslage. Letzte Berechnung {time(new Date(result.checkedAt).getTime())}.</small></div>} {!result&&!loading&&!error&&<div className="route-weather-empty"><Navigation size={28}/><strong>Start, Ziel und Abfahrtszeit wählen</strong><span>Die Route wird mit OpenStreetMap berechnet und an bis zu neun zeitbezogenen Prüfpunkten mit Best-Match-Wetterdaten verbunden.</span></div>}</section>
+function RouteMap({result,mode}:{result:RouteWeatherResult;mode:RouteMapMode}){
+ const points=result.checkpoints.map(point=>[point.latitude,point.longitude] as [number,number]);
+ const segmentWeight=mode==='corridor'?5:4;
+ return <div className="route-weather-map"><MapContainer center={points[0]} zoom={7} className="leafletmap" scrollWheelZoom={false} fadeAnimation={false} zoomAnimation={false}><RouteBounds points={points}/><TileLayer attribution='&copy; OpenStreetMap-Mitwirkende' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" keepBuffer={1}/>{mode==='line'&&<Polyline positions={points} pathOptions={{color:'#1e78ff',weight:5,opacity:.92}}/>}{result.checkpoints.slice(1).map((point,index)=>{const previous=result.checkpoints[index],positions:[[number,number],[number,number]]=[[previous.latitude,previous.longitude],[point.latitude,point.longitude]],color=routeLevelColor(point.restriction.level);if(mode==='segments')return <Polyline key={`segment-${point.id}`} positions={positions} pathOptions={{color,weight:segmentWeight,opacity:.94}}/>;if(mode==='corridor')return [<Polyline key={`corridor-wide-${point.id}`} positions={positions} pathOptions={{color,weight:18,opacity:.18,lineCap:'round'}}/>,<Polyline key={`corridor-line-${point.id}`} positions={positions} pathOptions={{color,weight:segmentWeight,opacity:.94}}/>];return null})}{result.checkpoints.map(point=>{const color=routeLevelColor(point.restriction.level);return <CircleMarker key={`point-${point.id}`} center={[point.latitude,point.longitude]} radius={8} pathOptions={{color:'#ffffff',weight:2,fillColor:color,fillOpacity:.94}}><Tooltip direction="top" offset={[0,-6]}><div className="route-map-tooltip"><strong>{point.name}</strong><span>{formatDateTime(point.etaIso)}</span><span>{point.weather.icon} {point.weather.label}</span><span>{Math.round(point.weather.temperature)} °C · {Math.round(point.weather.precipitationProbability)} %</span><span>{formatRouteWind(point.weather.direction,point.weather.wind,point.weather.gust)}</span></div></Tooltip></CircleMarker>})}{result.checkpoints.map(point=>{const color=routeLevelColor(point.restriction.level);return <Marker key={`wind-${point.id}`} position={[point.latitude,point.longitude]} icon={windIcon(point.weather.direction,color)}><Tooltip direction="bottom" offset={[0,10]}>{formatRouteWind(point.weather.direction,point.weather.wind,point.weather.gust)}</Tooltip></Marker>})}</MapContainer></div>;
+}
+
+export default function RouteWeatherPanel({start}:{start:Location}){
+ const[destinationQuery,setDestinationQuery]=useState('');
+ const[destination,setDestination]=useState<Location|null>(null);
+ const[suggestions,setSuggestions]=useState<Location[]>([]);
+ const[searchLoading,setSearchLoading]=useState(false);
+ const[departureInput,setDepartureInput]=useState(defaultDepartureInput);
+ const[speedKmh,setSpeedKmh]=useState(90);
+ const[mode,setMode]=useState<RouteMapMode>('line');
+ const[result,setResult]=useState<RouteWeatherResult|null>(null);
+ const[loading,setLoading]=useState(false);
+ const[error,setError]=useState('');
+ const searchSeq=useRef(0),loadController=useRef<AbortController|null>(null);
+
+ useEffect(()=>{setResult(null);setError('');setSuggestions([]);setDestination(null);setDestinationQuery('')},[start.id,start.latitude,start.longitude]);
+ useEffect(()=>{
+  const query=destinationQuery.trim();
+  if(destination&&query===displayDestination(destination))return;
+  if(query.length<2){setSuggestions([]);setSearchLoading(false);return;}
+  const id=++searchSeq.current,controller=new AbortController(),timer=window.setTimeout(()=>{
+   setSearchLoading(true);
+   searchLocations(query,controller.signal).then(items=>{
+    if(id!==searchSeq.current)return;
+    setSuggestions(items.filter(item=>Math.abs(item.latitude-start.latitude)>.001||Math.abs(item.longitude-start.longitude)>.001).slice(0,7));
+   }).catch(()=>{if(id===searchSeq.current)setSuggestions([])}).finally(()=>{if(id===searchSeq.current)setSearchLoading(false)});
+  },220);
+  return()=>{controller.abort();window.clearTimeout(timer);};
+ },[destinationQuery,start.latitude,start.longitude,destination]);
+
+ const departureInfo=useMemo(()=>{
+  const parsed=new Date(departureInput);
+  return Number.isFinite(parsed.getTime())?parsed.toISOString():new Date().toISOString();
+ },[departureInput]);
+
+ const analyse=async()=>{
+  if(!destination){setError('Bitte zuerst ein Ziel aus der Suche auswählen.');return;}
+  loadController.current?.abort();
+  const controller=new AbortController();
+  loadController.current=controller;
+  setLoading(true);setError('');
+  try{
+   const route=await loadRouteWeather(start,destination,departureInfo,speedKmh,controller.signal);
+   if(!controller.signal.aborted)setResult(route);
+  }catch(reason){
+   if(!controller.signal.aborted)setError(reason instanceof Error?reason.message:'Routenwetter konnte nicht geladen werden.');
+  }finally{
+   if(loadController.current===controller)loadController.current=null;
+   if(!controller.signal.aborted)setLoading(false);
+  }
+ };
+
+ const routeCoordinates=useMemo(()=>result?.checkpoints.map(point=>[point.latitude,point.longitude] as [number,number])??[],[result]);
+
+ return <section className="card route-weather-card"><div className="charthead"><div><h3>Routenwetter</h3><p className="route-weather-headline">Schematische Route mit MID-Plausibilisierung für Regen/Sprühregen sowie Schnee/Schneegriesel, Windpfeilen und Einschränkungsbewertung.</p></div><div className="route-weather-disclaimer"><MapPinned size={16}/><span>Luftlinien-Schema zwischen Start und Ziel – keine Navigationsroute.</span></div></div><div className="route-weather-controls"><label><span>Start</span><input value={displayDestination(start)} readOnly/></label><label className="route-weather-destination"><span>Ziel</span><div className="route-destination-field"><input value={destinationQuery} onChange={event=>{setDestinationQuery(event.target.value);setDestination(null);}} placeholder="Ort oder PLZ suchen" aria-label="Ziel für das Routenwetter"/><button type="button" onClick={analyse} disabled={loading||!destination}><RouteIcon size={15}/><span>{loading?'Lädt …':'Route analysieren'}</span></button></div>{(searchLoading||suggestions.length>0)&&<div className="route-search-results">{searchLoading&&<span className="route-search-hint"><Search size={14}/>Suche läuft …</span>}{suggestions.map(item=><button key={`${item.id}:${item.latitude}:${item.longitude}`} type="button" onClick={()=>{setDestination(item);setDestinationQuery(displayDestination(item));setSuggestions([]);setError('');}}><strong>{item.name}</strong><small>{[item.admin1,item.country].filter(Boolean).join(' · ')} · {formatDecimal(item.latitude,2,2)}° / {formatDecimal(item.longitude,2,2)}°</small></button>)}{!searchLoading&&!suggestions.length&&destinationQuery.trim().length>=2&&<span className="route-search-hint"><AlertTriangle size={14}/>Kein passender Zielvorschlag gefunden.</span>}</div>}</label><label><span>Abfahrt</span><input type="datetime-local" value={departureInput} onChange={event=>setDepartureInput(event.target.value)}/></label><label><span>Ø Reisegeschwindigkeit</span><div className="route-speed-input"><input type="range" min={50} max={130} step={5} value={speedKmh} onChange={event=>setSpeedKmh(Number(event.target.value))}/><b>{speedKmh} km/h</b></div></label></div><div className="route-weather-note"><CloudRain size={15}/><span>Die Route nutzt dieselbe Niederschlagslogik wie die übrigen MID-Vorhersagen. Ein unplausibler Sprühregen-Code erscheint dadurch auch hier als Regen; Schneesignale und Schneegriesel bleiben konsistent aus WMO-Code und Niederschlagsfeldern abgeleitet.</span></div>{error&&<div className="error">{error}</div>}{result&&<><div className="route-weather-summary"><div className="route-summary-main"><span className={`route-assessment-chip ${routeLevelClass(result.assessment.level)}`}>{result.assessment.headline}</span><strong>{start.name} → {destination?.name||result.destination.name}</strong><small>{result.assessment.summary}</small></div><div className="route-summary-metrics"><div><small>Distanz</small><b>{new Intl.NumberFormat('de-DE',{maximumFractionDigits:1}).format(result.distanceKm)} km</b></div><div><small>Dauer</small><b>{formatDuration(result.durationMinutes)}</b></div><div><small>Abfahrt</small><b>{formatDateTime(result.departureIso)}</b></div><div><small>Ankunft</small><b>{formatDateTime(result.arrivalIso)}</b></div></div></div><div className="route-mode-toggle" role="tablist" aria-label="Kartenmodus Routenwetter"><button type="button" className={mode==='line'?'active':''} onClick={()=>setMode('line')} aria-pressed={mode==='line'}>Linie</button><button type="button" className={mode==='segments'?'active':''} onClick={()=>setMode('segments')} aria-pressed={mode==='segments'}>Segmente</button><button type="button" className={mode==='corridor'?'active':''} onClick={()=>setMode('corridor')} aria-pressed={mode==='corridor'}>Korridor</button></div><RouteMap result={result} mode={mode}/><div className="route-weather-grid"><article className="route-evaluation-card"><h4><Navigation size={16}/>Einschränkungsbewertung</h4><ul>{result.assessment.impacts.map(item=><li key={item}>{item}</li>)}</ul></article><article className="route-evaluation-card"><h4><AlertTriangle size={16}/>Fachliche Grenzen</h4><ul>{result.assessment.limitations.map(item=><li key={item}>{item}</li>)}</ul></article></div><div className="route-checkpoints"><div className="route-checkpoints-head"><strong>Abschnitte entlang der Route</strong><small>{routeCoordinates.length} Stichprobenpunkte</small></div><div className="route-checkpoint-list">{result.checkpoints.map((point:RouteCheckpoint)=><article key={point.id} className={`route-checkpoint ${routeLevelClass(point.restriction.level)}`}><div className="route-checkpoint-top"><span className="route-checkpoint-name">{point.name}</span><span className="route-checkpoint-time">{formatDateTime(point.etaIso)}</span></div><div className="route-checkpoint-weather"><strong>{point.weather.icon} {point.weather.label}</strong><span>{Math.round(point.weather.temperature)} °C (gefühlt {Math.round(point.weather.apparent)} °C)</span><span>{point.weather.precipLabel} · {Math.round(point.weather.precipitationProbability)} %</span><span><Wind size={14}/>{formatRouteWind(point.weather.direction,point.weather.wind,point.weather.gust)}</span><span>Sicht {point.weather.visibility>=1000?`${Math.round(point.weather.visibility/100)/10} km`:`${Math.round(point.weather.visibility)} m`}</span></div><p>{point.restriction.reasons.join(' · ')}</p><small>{new Intl.NumberFormat('de-DE',{maximumFractionDigits:1}).format(point.distanceKm)} km ab Start · {formatDuration(point.elapsedMinutes)}</small></article>)}</div></div></>}</section>;
 }

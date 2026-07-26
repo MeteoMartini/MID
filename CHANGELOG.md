@@ -1,208 +1,533 @@
+# MID v0.7.96.0
+
+- Neues Modul **Routenwetter** ergänzt. Es analysiert eine schematische Strecke zwischen aktuellem Startort und einem frei suchbaren Zielort auf einer Karte.
+- Drei Kartenmodi hinzugefügt: **Linie**, **Segmente** und **Korridor**. Dadurch lässt sich derselbe Routenverlauf in mehreren kompakten Darstellungsweisen vergleichen.
+- Entlang der Route werden Stichprobenpunkte mit Wetterzustand, Windpfeilen und ETA dargestellt. Die Windpfeile folgen der bestehenden MID-Konvention und zeigen in die Richtung, in die der Wind weht.
+- Die Route verwendet für Niederschlagsart, Wettertext und Wettersymbol dieselbe MID-Plausibilisierungslogik wie die übrigen Vorhersagen. Unplausible Sprühregen-Codes werden auch im Routenwetter als Regen behandelt; Schnee, Schneegriesel, Schneeschauer, Schneeregen und gefrierender Niederschlag bleiben konsistent aus WMO-Code und Niederschlagsfeldern abgeleitet.
+- Neue Einschränkungsbewertung für die Gesamtstrecke und jeden Streckenabschnitt ergänzt. Sie berücksichtigt u. a. Niederschlagsintensität, winterliche Niederschlagsformen, Gewitter, Windböen und Sicht.
+- Fachliche Grenzen des Routenwetters werden im Modul transparent ausgewiesen, insbesondere die schematische Luftlinie, Modellgitter-Stichproben und die erhöhte Unsicherheit bei Schauern, Gewittern und langen Routen.
+- Neuer Regressionstest für UI-Integration, Kartenmodi, Plausibilisierung und Bewertung des Routenwetters.
+- README-/Versionsstellen, Service-Worker-Cache und Cloudflare-Worker-Version synchronisiert.
+
+# MID v0.7.90.4
+
+- Luftqualitätskarte um einen kompakten Info-Button zur Zusammensetzung des europäischen AQI ergänzt.
+- Der Gesamt-AQI wird als höchster Teilindex aus PM2,5, PM10, NO₂, O₃ und SO₂ erläutert; die unterschiedlichen Bezugszeiträume von Feinstaub und Gasen werden genannt.
+- Eigenständiger sechsstufiger AQI-Indikator mit Rautenmarkierung, Kategorienbezeichnung und farbiger Segmentleiste ergänzt. Er unterscheidet sich bewusst vom runden grünen Stationsabgleich-Punkt der hyperlokalen Analyse.
+- Die fünf europäischen AQI-Teilindizes sowie SO₂ werden zusätzlich von Open-Meteo geladen; der aktuell maßgebliche Schadstoff wird in der Kartenzeile genannt.
+- Neuer Regressionstest für AQI-Datenfelder, Erklärung und Indikatordesign.
+- README, Changelog, Service-Worker-Cache und Versionsstellen aktualisiert.
+- Cloudflare Worker ohne funktionale Änderung.
+
+# MID v0.7.90.3
+
+- Layout der Metadaten in der 7-Tage-Vorhersage korrigiert.
+- Niederschlagsmenge und -wahrscheinlichkeit, Sonnenscheindauer sowie Windsymbol, exakter 360°-Pfeil, Windgeschwindigkeit und Böen stehen wieder gemeinsam in einer Zeile.
+- Auf schmalen Displays nutzt die Metazeile die Breite bis zum rechten Kartenrand und eine responsive Schriftgröße, statt die Windangabe in eine zweite Zeile zu zwingen.
+- Hazard-Hinweise bleiben separat in der zweiten Kartenzeile.
+- Regressionstest für das einzeilige Windlayout aktualisiert.
+- README, Changelog, Service-Worker-Cache und Versionsstellen aktualisiert.
+- Cloudflare Worker ohne funktionale Änderung.
+
+# MID v0.7.90.2
+
+- Ursache unpassender Wetterpiktogramme im stündlichen Detaildiagramm behoben.
+- Open-Meteo liefert `weather_code` als Momentaufnahme, Niederschlagsmengen dagegen als Summe des vorangegangenen Stundenintervalls. Deshalb konnte ein trockener Momentcode über einem vorhandenen Niederschlagsbalken erscheinen.
+- Aus Mengenfeldern abgeleitete Niederschlagsarten erhalten jetzt immer einen passenden repräsentativen WMO-Anzeigecode für Regen, Schauer, Schnee, Schneeregen, gefrierenden Niederschlag oder Gewitter.
+- Bei responsiv ausgedünnten Wetterpiktogrammen repräsentiert jedes Symbol nun sein umliegendes Zeitfenster. Ein kurzes Niederschlagsereignis zwischen zwei bisherigen Abtaststunden wird dadurch nicht mehr übersprungen.
+- Die Piktogrammpositionen bleiben konfliktfrei gleichmäßig verteilt; jedes Symbol repräsentiert das zugehörige Zeitfenster und übernimmt darin ein vorhandenes Niederschlagsereignis.
+- Neuer ausführbarer Regressionstest für Intervallbezug, Fallback-Anzeigecodes und kurze Niederschlagsereignisse.
+- README, Changelog, Service-Worker-Cache und Versionsstellen aktualisiert.
+- Cloudflare Worker ohne funktionale Änderung.
+
+# MID v0.7.90.1
+
+- Verrutschte Windangabe in den mobilen Karten der 7-Tage-Vorhersage korrigiert.
+- Wind-Symbol, 360-Grad-Richtungspfeil, Geschwindigkeit und Böen werden als untrennbare, eigene zweite Metazeile dargestellt.
+- Niederschlagsmenge und Sonnenscheindauer bleiben in der ersten Metazeile und können sich bei sehr schmalen Displays weiterhin responsiv anordnen.
+- Neuer Regressionstest verhindert das erneute Aufteilen der Windangabe.
+- README, Changelog, Service-Worker-Cache und Versionsstellen aktualisiert.
+- Cloudflare Worker ohne funktionale Änderung.
+
+# MID v0.7.90
+
+- Sichtbaren Info-/Installationsbutton „MID als App nutzen“ im App-Footer ergänzt.
+- Unterstützte Chromium-Browser öffnen über `beforeinstallprompt` den nativen Installationsdialog.
+- iPhone und iPad erhalten eine integrierte Safari-Anleitung für „Zum Home-Bildschirm hinzufügen“ und „Als Web-App öffnen“.
+- Standalone-Erkennung berücksichtigt CSS-Display-Mode und den iOS-Navigatorstatus; bereits installierte Instanzen werden erkannt.
+- Responsiver, zugänglicher Dialog mit Escape-/Hintergrund-Schließen, Installationsstatus und klaren Vorteilen.
+- Neuer Regressionstest prüft Manifest, Apple-PWA-Metadaten, Installationsereignisse und responsive Oberfläche.
+- README, Changelog, Service-Worker-Cache und Versionsstellen aktualisiert.
+- Cloudflare Worker ohne funktionale Änderung.
+
+# MID v0.7.89.5
+
+- Die Felder unter dem Detaildiagramm wurden vollständig auf die Regen-/Sprühregen-Plausibilitätsprüfung umgestellt.
+- Das Niederschlagsfeld nutzte bereits die plausibilisierte Form; nun verwenden auch Wettertext, Wettersymbol und die Wetterpiktogramme im Detaildiagramm denselben korrigierten Anzeigecode.
+- Ein unplausibler Open-Meteo-Sprühregencode erscheint damit überall in der Detailansicht konsistent als leichter, mäßiger oder starker Regen.
+- Die Niederschlagsarten der Detaillegende werden nicht mehr als dünne Linien, sondern als kompakte Balken im jeweiligen Farb- und Musterdesign dargestellt.
+- Neuer Regressionstest für die Konsistenz der Detailansicht und ihrer Niederschlagslegende.
+- README, Changelog, Service-Worker-Cache und Versionsstellen aktualisiert.
+- Cloudflare Worker ohne funktionale Änderung.
+
+# MID v0.7.89.4
+
+- Windrichtungspfeile in aktueller Lage, Tageskarten, Stunden-Detailansicht, Tooltips, Bergmodus und Widget verwenden jetzt den exakten Winkel von 0 bis 359,9 Grad statt eines Acht-Richtungen-Rasters in 45-Grad-Schritten.
+- Die bisherige MID-Konvention bleibt erhalten: Der Pfeil zeigt in die Richtung, in die der Wind weht; im zugänglichen Titel werden Herkunfts- und Zielrichtung in Grad genannt.
+- Das Meteogramm nutzte bereits die vollständige 360-Grad-Drehung und bleibt unverändert konsistent.
+- Neuer Regressionstest verhindert die Rückkehr der diskreten Unicode-Pfeile.
+- README, Changelog, Service-Worker-Cache und Versionsstellen aktualisiert.
+- Cloudflare Worker ohne funktionale Änderung.
+
+# MID v0.7.89.3
+
+- Kritischen Laufzeitfehler nach dem Start von v0.7.89.x behoben.
+- Die manuelle Aufteilung von React, Icons, Diagramm-, Karten-, Export- und HDF5-Bibliotheken wurde vollständig zurückgenommen. Sie brachte bei den überwiegend statischen Importen keinen verlässlichen Bedarfsladevorteil und konnte eine fehlerhafte Initialisierungsreihenfolge der erzeugten Browser-Chunks verursachen.
+- Das bewährte Vite-Standard-Bundling ist wieder aktiv. Das echte Lazy-Loading der großen MID-Module bleibt unverändert erhalten.
+- Sichere Optimierungen bleiben bestehen: ES2020-Ziel, CSS-Code-Splitting, deaktivierte Produktions-Source-Maps, Rendering-Containment, Touch-Scrolling, mobile Tooltip-Begrenzung und reduzierte Bewegung.
+- Der Performance-Test verhindert künftig ausdrücklich die erneute Aktivierung manueller Vendor-Chunks.
+- Service-Worker-Cache auf v0.7.89.3 erhöht, damit fehlerhafte Assets der vorherigen Version nicht weiterverwendet werden.
+- README, Changelog und sämtliche Versionsstellen aktualisiert.
+- Cloudflare Worker ohne funktionale Änderung.
+
+# MID v0.7.89.2
+
+- Zweiten GitHub-Buildfehler in `vite.config.ts` behoben.
+- Die vorherige Ersetzung hatte `indexOf(...) >= 0` falsch geklammert und dadurch einen Vergleich innerhalb des Funktionsarguments erzeugt.
+- Sämtliche Pfadprüfungen der manuellen Chunk-Aufteilung verwenden nun korrekt `id.indexOf('...') >= 0`.
+- README, Changelog und Versionsstellen aktualisiert.
+- Cloudflare Worker ohne funktionale Änderung.
+
+# MID v0.7.89.1
+
+- GitHub-Buildfehler in `vite.config.ts` behoben.
+- Die Chunk-Aufteilung verwendet nun `indexOf(...) >= 0` statt `String.prototype.includes(...)` und ist damit mit der im Node-TypeScript-Projekt verwendeten Bibliothekskonfiguration kompatibel.
+- Die Performance-Optimierungen und die funktionale Aufteilung der Ladepakete bleiben unverändert erhalten.
+- README, Changelog und Versionsstellen aktualisiert.
+- Cloudflare Worker ohne funktionale Änderung.
+
+# MID v0.7.89
+
+- Intensive Code- und Release-Revision mit Schwerpunkt auf Responsivität, Ladeverhalten und Paketgröße ohne Funktionsabbau.
+- Vite-Build in getrennte, bedarfsgerecht ladbare Bibliotheks-Chunks für Diagramme, Karten, Export, HDF5, React und Icons aufgeteilt; Source-Maps im Produktionsbuild deaktiviert.
+- Unterhalb des sichtbaren Bereichs liegende Module werden browserseitig über `content-visibility` und intrinsische Platzhalter effizienter dargestellt.
+- Horizontale Diagramm- und Zeitachsen erhalten stabileres Touch-Scrolling, begrenztes Overscrolling und mobile Scroll-Snap-Unterstützung.
+- Tooltips und Informationsdialoge wurden für schmale Displays gegen Überbreite, abgeschnittene Inhalte und unkontrollierte Umbrüche abgesichert.
+- Unterstützung für `prefers-reduced-motion` ergänzt und unnötige Build-Artefakte aus dem Release-ZIP entfernt.
+- README, Changelog und sämtliche Versionsstellen aktualisiert.
+- Cloudflare Worker ohne funktionale Änderung; Versionsnummer nur synchronisiert.
+
+# MID v0.7.88.3
+
+- Darstellungsfehler im Tooltip des 14-Tage-Ensemble-Trends behoben.
+- Der Prozentwert der Prognosekonsistenz wird nun als untrennbare Einheit dargestellt und bricht auch auf schmalen Bildschirmen nicht mehr zwischen Zahl und Prozentzeichen um.
+- README, Changelog und Versionsstellen aktualisiert.
+- Cloudflare Worker ohne funktionale Änderung.
+
+# MID v0.7.88.2
+
+- Die mit v0.7.88.1 eingeführte Sprühregen-Plausibilisierung gilt nun konsequent auch für die Wettertexte und Wettersymbole der 7-Tage-Vorhersage, des Widgets und des 14-Tage-Ensemble-Trends.
+- Unplausible WMO-Sprühregen-Codes 51–55 werden in Tageszusammenfassungen nicht mehr als „Sprühregen“ weitergereicht, sondern anhand der DWD/WMO-Stundenschwellen als leichter, mäßiger oder starker Regen behandelt.
+- Tagesereignisse, Zeitangaben und repräsentative Wettersymbole greifen jetzt auf dieselbe zentralisierte Niederschlagsform-Auswertung wie die Stundenansicht zurück.
+- README, Changelog und sämtliche Versionsstellen aktualisiert.
+- Cloudflare Worker ohne funktionale Änderung.
+
+# MID v0.7.88.1
+
+- Plausibilitätsprüfung für Open-Meteo-Sprühregen ergänzt: WMO-Codes 51–55 werden nur noch bei hoher relativer Feuchte, ausgeprägter tiefer Bewölkung und schwacher stratiformer Niederschlagsrate als Sprühregen dargestellt.
+- Fehlen die typischen Stratus-/Feuchtemerkmale oder ist die Niederschlagsrate zu hoch, wird der Niederschlag als Regen klassifiziert.
+- Regenintensitäten werden nach den DWD/WMO-Stundenschwellen als leicht, mäßig, stark oder sehr stark bezeichnet; Sprühregen nutzt seine eigenen DWD-Intensitätsstufen.
+- `cloud_cover_low` wird jetzt in der Best-Match-Stundenprognose geladen und zusammen mit relativer Feuchte, Gesamtbewölkung, Schauersignal und Niederschlagsmenge ausgewertet.
+- Regressionstests sichern plausiblen Sprühregen und die Umklassifizierung unplausibler Sprühregen-Codes ab.
+- Cloudflare Worker ohne funktionale Änderung; Versionsnummer lediglich synchronisiert.
+
+# MID v0.7.87.1
+
+- Release-Pipeline korrigiert: `package-lock.json` enthält keine internen OpenAI-Paketserver mehr; `jsfive` und `pako` werden über die öffentliche npm-Registry bezogen.
+- ZIP-Installation und GitHub-Pages-Deployment sind im Installationsworkflow direkt verkettet, weil ein Bot-Commit mit `GITHUB_TOKEN` keinen weiteren Push-Workflow startet.
+- Pages-Actions auf `configure-pages@v6`, `upload-pages-artifact@v5` und `deploy-pages@v5` aktualisiert; vorzeitiges Deployment beim reinen ZIP-Upload wird verhindert.
+- OPERA-Nutzung erneut gehärtet: Der Worker ermittelt aktuelle CIRRUS-DBZH-Dateien jetzt primär über die offizielle MeteoGate-ORD-API und parallel über den offenen S3-Index.
+- Falls beide Verzeichnisdienste ausfallen, bleibt der begrenzte HDF5-Range-Probe-Fallback aktiv. Dadurch hängt OPERA weder allein vom S3-Listing noch von geschätzten Zeitstempeln ab.
+- Kompositbild und aktuelle Niederschlagswahrscheinlichkeit verwenden weiterhin denselben validierten HDF5-Rasterpfad; DWD bleibt in Deutschland primär, OPERA ist sichtbare Unterlage und unabhängiger Abgleich.
+- OPERA-Regressionstest um den ORD-API-Pfad erweitert.
+
+# MID v0.7.87
+
+- Belastbare erste Ausbaustufe des automatischen Starkregen-/Überflutungsindikators ergänzt: RADOLAN-YW-Summen für 15/30/60/180/360 Minuten, DWD-RV-Nowcast-Summen bis +120 Minuten, KONRAD3D-Starkregenflag und Zellzug, KOSTRA-DWD-2020-Einordnung für 30/60/360 Minuten sowie DWD-Stationsabgleich.
+- Die Starkregenkarte erscheint ausschließlich bei einem tatsächlichen Mess-, Nowcast-, KONRAD-, KOSTRA- oder nahen Stationssignal und bleibt vollständig von amtlichen Warnungen getrennt.
+- OPERA-CIRRUS-Georeferenzierung korrigiert: Das offizielle LAEA-Raster verwendet eine Oberkante von y=0 m und den negativen Projektionsursprung y_0=-2.100.000 m. Die frühere Ersatzgeometrie verschob Standortabfragen um 4.400 km und führte dadurch zu NoData.
+- Das Kompositbild deklariert OPERA erst nach erfolgreichem Download, HDF5-Dekodierung und realer Standortabdeckungsprüfung als bereit. OPERA wird als europäische Unterlage dargestellt, DWD liegt in Deutschland darüber.
+- Die aktuelle Niederschlagswahrscheinlichkeit prüft DWD und OPERA parallel. DWD bleibt in Deutschland primär; OPERA dient als unabhängiger Abgleich und übernimmt bei DWD-Ausfall. RainViewer bleibt der letzte Fallback.
+- OPERA-Bereitschaft, Datenstand und Fehlergrund werden im Infodialog des Kompositbildes ausgewiesen.
+
+# MID v0.7.86.1
+
+- Fehler im isolierten Ensemble-Nullability-Regressionstest behoben: Der Test verwendet nun eine eigene temporäre TypeScript-Konfiguration mit `moduleResolution: Bundler`, `skipLibCheck: true` und leerer `types`-Liste.
+- Dadurch werden bei der kleinen Testdatei keine projektexternen Ambient-Typdefinitionen aus `node_modules/@types` mehr unnötig mitkompiliert.
+- Die im GitHub-Lauf gemeldeten TS2792-Fehler zu `@babel/parser`, `@babel/types` und `csstype` treten nicht mehr auf; der eigentliche strikte Nullability-Test bleibt erhalten.
+- Keine funktionale Änderung an Wetterdarstellung oder Cloudflare Worker.
+
+# MID v0.7.86
+
+- Ausführliche Quellen-, Produkt-, Auflösungs-, Zeit-, Alters-, Status- und Lizenzangaben des Kompositbildes in einen barrierefrei beschrifteten Infodialog verschoben.
+- OPERA-CIRRUS-Erkennung korrigiert: Der Worker liest nun die tatsächlich vorhandenen DBZH-HDF5-Objekte aus dem offiziellen S3-Index, statt Zeitstempel zu erraten.
+- Nur real vorhandene OPERA-Frames werden an Karte und aktuelle Niederschlagswahrscheinlichkeit übergeben; bei einem nicht verfügbaren Index folgt ein kontrollierter Range-Probe-Fallback.
+- OPERA-Dateiproxy verwendet validierte Objektschlüssel und liefert Diagnoseheader für Quelle, Produkt, Schlüssel und Worker-Version.
+- Regressionstest für Infodialog, reale OPERA-Objektliste, fehlertolerante Erkennung und CORS-HDF5-Proxy erweitert.
+
+# MID v0.7.85
+
+- Z-Zeit unter dem Ortsnamen einheitlich als `hhmmZ` ohne Doppelpunkt dargestellt.
+- Separate Gewitterinformation neben der aktuellen Niederschlagswahrscheinlichkeit ergänzt.
+- DWD KONRAD3D wird fünfminütig für Zellposition, Zugrichtung, Schweregrad, Trend, Blitzrate, Hagel-, Starkregen- und Böenflags ausgewertet.
+- Amtliche DWD-WFS/CAP-Gewitterwarnungen haben Vorrang; Radar, Best-Match und Stationsniederschlag dienen ergänzend der Plausibilisierung.
+- Neue Workerroute `thunderstorm-nowcast` und Regressionstest ergänzt.
+
+# MID v0.7.84.1
+
+- GitHub-Buildfehler TS18048 im OPERA-Rasteroverlay behoben.
+- Statt des optional typisierten `pixelBounds.min` verwendet die Darstellung nun Leaflets eindeutig typisierten Karten-Pixelursprung.
+- Regressionstest verhindert die erneute Verwendung des optionalen Bounds-Minimums.
+- Cloudflare Worker ohne funktionale Änderung; nur Versionssynchronisierung.
+
+# MID v0.7.84
+
+- Phase 1 der europäischen Radarintegration auf Basis von MID v0.7.83.3 umgesetzt.
+- Das Kompositbild lädt das echte EUMETNET-OPERA-CIRRUS-DBZH-Komposit als ODIM-HDF5-Raster mit 1 km Rasterweite und fünfminütigem Produktzyklus.
+- Radarpriorität vereinheitlicht: DWD-HX/PX250 beziehungsweise DWD-RV → OPERA CIRRUS → RainViewer als letzter Fallback.
+- Die frühere OPERA-Punkt-/Stützstellenauswertung wurde vollständig entfernt.
+- Karte und aktuelle Niederschlagswahrscheinlichkeit verwenden denselben OPERA-Rasterdecoder; Standortpixel und 30-km-Umfeld fließen in die Radar-/Best-Match-Kombination ein.
+- Neue Worker-Routen `opera-raster-meta` und `opera-raster-file` liefern validierte Metadaten und CORS-sichere HDF5-Dateien.
+- Regressionstest für OPERA-Raster, Quellenreihenfolge und Entfernung der Altlogik ergänzt.
+
+# MID v0.7.83.3
+
+- Achsentick-Beschriftungen im Ensemble-Temperaturdiagramm vertikal korrigiert.
+- Die zusätzliche CSS-Baseline `dominant-baseline: hanging`, die X- und Y-Achsenwerte leicht nach unten verschob, wurde entfernt.
+- Recharts übernimmt wieder die vorgesehene mittige Standardausrichtung der Tickwerte.
+- Regressionstest für die Achsenausrichtung ergänzt.
+- Cloudflare Worker ohne funktionale Änderung; nur Versionssynchronisierung.
+
+# MID v0.7.83.2
+
+- GitHub-Actions-Warnung zur erzwungenen Node.js-24-Ausführung entfernt: `actions/checkout` und `actions/setup-node` wurden in Installations- und Deployment-Workflow von v4 auf v6 aktualisiert.
+- Der Installer-Workflow ist zusätzlich als Wiederherstellungs-/Referenzkopie Bestandteil des vollständigen MID-Projekts.
+- Regressionstest verhindert künftig die erneute Verwendung der Node-20-basierten Action-Versionen v1 bis v4.
+- Das Projekt selbst wird weiterhin bewusst mit Node.js 22 gebaut; geändert wurde ausschließlich die interne Laufzeit der GitHub-Actions-Bausteine.
+- Cloudflare Worker ohne funktionale Änderung; nur Versionssynchronisierung.
+
+# MID v0.7.83.1
+
+- GitHub-Buildfehler in `src/EnsemblePanel.tsx` behoben: optionale Klimawerte werden vor der Formatierung gemeinsam als endliche Zahlen eingegrenzt.
+- Die Temperatur-Skalierung filtert `number | undefined` nun über einen echten TypeScript-Type-Guard statt über einen unzulässigen `number`-Callback.
+- Eine leere optionale Klimareihe fällt für die Skalenberechnung sicher auf die Best-Match-Werte zurück.
+- Strikter Regressionstest für die Ensemble-Nullability ergänzt.
+- Cloudflare Worker ohne funktionale Änderung; nur Versionssynchronisierung.
+
+# MID v0.7.83
+
+- Warnfreie Tage werden in der 7-Tage-Vorhersage kompakt als „Keine Hazards“ gekennzeichnet.
+- Sonnenscheindauer, Prognosekonsistenz und Best-Match-Hazards verwenden im Ensemble-Tooltip einen einheitlichen Abschnittsaufbau.
+- Gemeinsame Popover- und Diagrammhilfen reduzieren redundante Listener und doppelte Skalenlogik.
+- Ensemble-Diagramm- und Tooltip-Daten wurden stärker typisiert; stabile React-Schlüssel und ein automatischer CodeCheck wurden ergänzt.
+- Cloudflare Worker ohne funktionale Änderung; nur Versionssynchronisierung.
+
+# MID v0.7.82.2
+
+- Die 7-Tage-Vorhersage zeigt an warnfreien Tagen wieder einen dezenten Hinweis „Keine Warnhinweise“.
+- Best-Match-Hazards ab interner Intensitätsstufe 2 erscheinen im Ensemble-Temperaturtrend wieder als kompakte, farbcodierte Piktogramme direkt oberhalb des Sonnenschein-/Bewölkungsbands; die vollständigen Angaben bleiben im Tages-Tooltip.
+- Schriftart und Textfarben des Ensemble-Temperatur-Tooltips wurden vereinheitlicht.
+- Aus sämtlichen automatisch erzeugten Warntexten und Windschwellen-Tooltips wurden ausgeschriebene Hinweise auf DWD-Warnstufen entfernt; die interne Farbcodierung und Schwellenlogik bleiben unverändert.
+- Cloudflare Worker ohne funktionale Änderung; nur Versionssynchronisierung.
+
+# MID v0.7.82.1
+
+- Die ausgeschriebene Bezeichnung zeigt die Anfangsbuchstaben **M**, **I** und **D** innerhalb von „Meteorological Information Dashboard“ fett.
+- Das Rückfallsystem versucht eine neuere, vollständig gecachte MID-Version nun automatisch erneut; die Rückfallleiste verschwindet beim manuellen erneuten Test sofort und bleibt nicht dauerhaft an einer älteren Version hängen.
+- Warnfelder der 7-Tage-Vorhersage zeigen nur noch den prognostizierten Wert in der gewählten Einheit, ohne zusätzliche Umrechnung oder Beaufortangabe; der vollständige Warntext bleibt im Tooltip.
+- Best-Match-Warnhinweise ab Warnstufe 2 wurden im Ensemble-Temperaturtrend aus der Diagrammfläche entfernt und platzsparend in den Tages-Tooltip integriert.
+- Im Detaildiagramm besitzt die Niederschlagswahrscheinlichkeit eine unabhängige rechte 0-/50-/100-%-Achse. Niederschlagsbalken werden an den Plotgrenzen beschnitten und können die rechte Achse nicht mehr überdecken.
+- Cloudflare Worker ohne funktionale Änderung; nur Versionssynchronisierung.
+
+# MID v0.7.82
+
+- Warntexte und kompakte Hazardwerte verwenden die gewählte Windeinheit; bei kt, m/s oder mph wird der km/h-Wert ergänzt, bei km/h die Beaufortstärke.
+- Warntexte zeigen prognostizierte Temperaturen und Mengen ausschließlich als ganze Werte ohne Dezimalkomma.
+- Die 7-Tage-Vorhersage zeigt ab DWD-Warnstufe 1 nur noch kompakte, stufenfarbige Symbole mit erwartetem Wert; die ausführliche Erläuterung bleibt im Tooltip.
+- Best-Match-Warnmarker wurden aus dem stündlichen Detaildiagramm entfernt. Die dezenten Windwarnflächen und horizontalen DWD-Schwellenlinien bleiben bestehen.
+- Im Ensemble-Temperaturtrend erscheinen oberhalb des Sonnenschein-/Bewölkungsbands stufenfarbige Best-Match-Hazards ab Warnstufe 2.
+- Allgemeine Best-Match-Gefahrenkarten verwenden dieselbe ganzzahlige und einheitenbewusste Warntextformatierung.
+- Cloudflare Worker ohne funktionale Änderung; nur Versionssynchronisierung.
+
+# MID v0.7.81.1
+
+- DWD-Warnstufe 1 in der zentralen Best-Match-Auswertung ergänzt und fachlich korrigiert.
+- Windböen werden ab Überschreiten von 50 km/h als Stufe 1 erkannt; der Windbereich besitzt nun zusätzlich die gelbe Schraffur und Trennlinie zwischen 50 und 65 km/h.
+- Einfache Gewitter, leichter Schneefall, Glätte bei Niederschlag und Frost, Frost unter 0 °C bis 800 m, Nebel unter 150 m Sichtweite und starke Wärmebelastung über etwa 32 °C bei geringer Abkühlung werden als Stufe 1 berücksichtigt.
+- Die kompakte Warnsymbolzeile oberhalb des Sonnenschein-/Bewölkungsbands zeigt gemäß Vorgabe weiterhin ausschließlich Stufen 2 bis 4; Stufe 1 fließt in die allgemeine 24-Stunden-Gefahrenauswertung und Windskalierung ein.
+- UV-Warnstufe 1 wird nicht künstlich aus dem UVI allein erzeugt, weil das DWD-Kriterium zusätzlich eine regionale beziehungsweise klimatologische Abweichung verlangt.
+- Regressionstests um sämtliche automatisch ableitbaren Stufe-1-Kriterien und die Filterung der Symbolzeile erweitert.
+- Cloudflare Worker ohne funktionale Änderung; nur Versionssynchronisierung.
+
+# MID v0.7.81
+
+- Best-Match-basierte Warnhinweise wurden in beiden Modi als eigene Symbolzeile unmittelbar oberhalb des Sonnenschein-/Bewölkungsbands ergänzt.
+- Es werden ausschließlich modellseitig überschrittene DWD-Warnstufen 2 bis 4 dargestellt; Ereignisart, Warnfarbe und Stufennummer sind direkt unterscheidbar.
+- Warnmarker fassen zusammenhängende Zeiträume zusammen und öffnen per Klick, Tippen oder Tastatur einen kurzen Tooltip; sie sind ausdrücklich keine amtlichen Warnungen.
+- DWD-Warnkriterien für Wind, Gewitter, Stark- und Dauerregen, Schneefall, Schneeverwehung, markante Glätte/Glatteis, strengen Frost und extreme Wärmebelastung zentralisiert.
+- Windwarnbereiche auf die offiziellen Schwellen 65, 90, 105, 120 und über 140 km/h umgestellt; jede neue Schwelle wird zusätzlich durch eine dezente horizontale Linie markiert.
+- Automatische Hazard-Karten und Tagesindikatoren verwenden dieselbe zentrale DWD-Logik und keine bisherigen Mischschwellen aus DWD, Meteoalarm und NWS mehr.
+- Regressionstest für DWD-Schwellen, Warnmarker, Intensitäten, Tooltips und horizontale Schwellenlinien ergänzt.
+- Cloudflare Worker ohne funktionale Änderung; nur Versionssynchronisierung.
+
+# MID v0.7.80
+
+- Im Windbereich der erweiterten stündlichen Detailansicht werden die vorhandenen DWD-/Meteoalarm-Warnschwellen ab 50, 75, 89 und 103 km/h als dezente gelbe, orangefarbene, rote und violette Schraffurbereiche dargestellt.
+- Die Warnflächen werden ausschließlich innerhalb des tatsächlich sichtbaren Windbereichs gezeichnet und liegen hinter Wind-, Böen- und Richtungselementen.
+- Meteogramm und Widget-/PNG-Generator besitzen keine eigene zweite Ein-/Ausklappsteuerung mehr; beide werden ausschließlich über den jeweiligen äußeren Modulschalter geöffnet und geschlossen.
+- Beim Schließen der Module werden die enthaltenen Komponenten weiterhin ausgehängt und laufende Meteogrammabrufe abgebrochen.
+- Regressionstest für Windwarnflächen und eindeutige Modulsteuerung ergänzt.
+- Cloudflare Worker ohne funktionale Änderung; nur Versionssynchronisierung.
+
+# MID v0.7.79.3
+
+- Die Zahl der Wetterpiktogramme in der stündlichen Detailansicht wird nun aus der tatsächlich verfügbaren Diagrammbreite bestimmt und bis zur konfliktfrei möglichen Höchstzahl erhöht.
+- Auf breiten Tablet- und Desktopansichten können alle stündlichen Piktogramme erscheinen; auf schmaleren Displays werden sie gleichmäßig über den Tag verteilt.
+- Der bisher sehr großzügige feste Mindestabstand wurde durch eine an Symbolgröße und Ansichtsbreite angepasste Verteilung ersetzt.
+- Cloudflare Worker ohne funktionale Änderung; nur Versionssynchronisierung.
+
+# MID v0.7.79.2
+
+- In beiden Ansichtsmodi folgt der Kopfbereich der stündlichen Detailansicht nun der Reihenfolge: JETZT-Zeitmarkierung, Wetterpiktogramme, Sonnenschein-/Bewölkungsband, eigentliche Diagrammfläche.
+- Die blaue Markierung des ausgewählten Zeitschritts reicht jetzt bis in die Piktogramm-Lane und wird hinter den Wetterpiktogrammen gezeichnet, damit diese lesbar bleiben.
+- Vertikale Abstände und Diagrammhöhe wurden für schmale und breite Ansichten gemeinsam angepasst.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionssynchronisierung.
+
+# MID v0.7.79.1
+
+- In der stündlichen Detailansicht wurden Wetterpiktogramme und Sonnenschein-/Bewölkungsband vertikal getauscht: Die Piktogramme stehen nun oben, das Band direkt darunter.
+- Abstände zur Jetzt-Zeitmarkierung und zur eigentlichen Diagrammfläche wurden entsprechend angepasst, damit alle Elemente weiterhin getrennt bleiben.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionssynchronisierung.
+
+# MID v0.7.79
+
+- Im Erweiterten Modus zeigt die Ortszeile nun die aktuelle Ortszeit mit GMT-Abweichung und zusätzlich die Z-Zeit in Klammern; die einzeilige Darstellung passt ihre Schriftgröße responsiv an.
+- Erklärungen der stündlichen Detailansicht, der 14-Tage-Ensemble-Übersicht sowie der Temperatur- und Niederschlagsdiagramme wurden auch im Erweiterten Modus in dezente, bei Außenklick schließbare Info-Popover verschoben.
+- P10–P90-Fehlerbalken im Ensemble-Niederschlagsdiagramm werden unabhängig vom Best-Match-Wert exakt zwischen P10 und P90 gezeichnet.
+- Oberen Bereich der Detailansicht in getrennte Ebenen für Sonnenschein-/Bewölkungsband, Wetterpiktogramme und aktuelle Uhrzeit gegliedert, damit keine Überdeckungen entstehen.
+- Temperatur-, Niederschlags- und Windachsen verwenden nun möglichst glatte, an runden Schrittweiten ausgerichtete Werte.
+- Dichte der Windrichtungspfeile wird anhand der tatsächlich verfügbaren Diagrammbreite automatisch maximiert, ohne benachbarte Pfeile zu überdecken.
+- Regressionstests für Z-Zeit, Info-Popover, exakte P10–P90-Spanne, adaptive Kopfleiste, Achsenskalierung und Windpfeildichte ergänzt.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionssynchronisierung.
+
+# MID v0.7.78.1
+
+- TypeScript-Buildfehler TS2367 in der Niederschlagsdarstellung der erweiterten Detailansicht behoben.
+- Den Niederschlagstyp `none` vor der Verwendung des engeren `DetailPrecipType` jetzt über einen expliziten Type-Guard ausgeschlossen.
+- Dieselbe typsichere Prüfung wird auch für die dynamische Niederschlagsskala verwendet.
+- Regressionstest erweitert, damit die fehlerhafte Kombination aus Exclude-Typcast und anschließendem `none`-Vergleich nicht erneut eingeführt wird.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionssynchronisierung.
+
+# MID v0.7.78
+
+- Open-Meteo-Modellkatalog um CHMI ALADIN Seamless, ALADIN Mitteleuropa 2,3 km und ALADIN Tschechien 1 km ergänzt, damit aktuelle Modellstände im Best-Match-Status korrekt benannt werden.
+- Die jüngsten serverseitigen Open-Meteo-Korrekturen für ECMWF-Solarinterpolation, AIGEFS-Abruf und GFS-Niederschlags-Deakkumulation werden automatisch über die bestehenden APIs genutzt; hierfür ist keine eigene MID-Datenumrechnung erforderlich.
+- Im Erweiterten Modus lassen sich Temperatur, gefühlte Temperatur, Taupunkt, einzelne Niederschlagsarten, Niederschlagswahrscheinlichkeit, Wind, Böen und Windrichtung unmittelbar über die Legende ein- und ausblenden.
+- Taupunkt als zurückhaltende Linie ergänzt; unter dem Niederschlagsbereich erscheinen Wind und Böen sowie darunter Richtungspfeile.
+- Nicht mehr benötigte Temperatur-, Niederschlags- und Windbereiche werden dynamisch entfernt. Das SVG passt ViewBox und Höhe per ResizeObserver an Hoch-/Querformat und verfügbare Bildschirmbreite an, ohne die Darstellung zu verzerren.
+- Legendenmuster der gefühlten Temperatur in Standard- und Erweitertem Modus an die gestrichelte Diagrammlinie angeglichen.
+- Auswahl der erweiterten Detailparameter wird lokal gespeichert.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionssynchronisierung.
+
+# MID v0.7.77.1
+
+- Beschriftung der gelb-grauen Sonnenschein-/Bewölkungslegende in allen Farbdesigns mit einer festen dunklen Schriftfarbe lesbar gemacht.
+- Deutsche Wortstellung bei später einsetzenden Schauern korrigiert, z. B. `Stark bewölkt, abends Schauer` statt `Stark bewölkt, Schauer abends`.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionssynchronisierung.
+
+# MID v0.7.77
+
+- Widget-/PNG-Generator und Druckniveau-Meteogramm stehen ausschließlich im Erweiterten Modus zur Verfügung.
+- Quellen bleiben in beiden Modi über die Fußzeilen-Schaltfläche `Quellen` erreichbar und öffnen sich als bei Außenklick, Touch oder Escape schließbares Popover.
+- Beim erstmaligen Öffnen des Standardmodus werden die stündliche Detailansicht sowie alle nachfolgenden einklappbaren Module geschlossen initialisiert.
+- Bestehende Modulzustände bleiben nach der Erstinitialisierung weiterhin lokal gespeichert.
+- Der Zusatz `Ortsname aus Geodatenbank` wurde in beiden Ansichtsmodi entfernt.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionssynchronisierung.
+
+# MID v0.7.76
+
+- Modellstände-Popover in Best-Match- und Ensemble-Bereichen schließen nun zuverlässig bei Klick oder Tippen außerhalb sowie mit Escape.
+- Bisherigen Kompaktmodus in `Standardmodus` umbenannt und als Erststartmodus festgelegt; bestehende Compact-Einstellungen werden automatisch übernommen.
+- Bisherigen Vollständig-Modus durch den `Erweiterten Modus` ersetzt. Dieser verwendet weiterhin einklappbare Module, ergänzt jedoch meteorologische und technische Hintergründe direkt in der Oberfläche.
+- Im Standardmodus werden ausgewählte Bedien- und Datenerklärungen über dezente Info-Schaltflächen geöffnet und bei Außenklick, Touch oder Escape wieder geschlossen.
+- Ausführliche Stationsanalyse, Ensemble-Methodik, Bedienhinweise und lange technische Quellen-/Haftungserklärungen werden im erweiterten Modus direkt angezeigt.
+- Alte gespeicherte Vollansicht wird automatisch in den erweiterten Modus migriert.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionssynchronisierung.
+
+# MID v0.7.75
+
+- Dezente Tagespfeile der stündlichen Detailansicht stehen nun auf Handy, Tablet im Hoch- und Querformat sowie Desktop dauerhaft bereit.
+- Die Pfeile bleiben responsiv: Auf kleinen Smartphones nur als Symbole, auf größeren Displays zusätzlich mit abgekürztem Wochentag.
+- Neu angelegte Favoriten werden nicht mehr vorne einsortiert, sondern am Ende der bestehenden Reihenfolge ergänzt.
+- Auch importierte, bisher noch nicht vorhandene Favoriten werden hinter den vorhandenen Einträgen angefügt; die Reihenfolge innerhalb des Imports bleibt erhalten.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionssynchronisierung.
+
+# MID v0.7.74
+
+- Favoriten-Schnellleiste platzsparend als eigene zweite Reihe unter der Kopfleiste reaktiviert.
+- Aktuelle Position und alle gespeicherten Favoriten sind wieder direkt auswählbar; aktiver Ort, Standardort, Gruppe sowie Berg-/Ski- und Wassersportprofile bleiben erkennbar.
+- Reihenfolge lässt sich unmittelbar in der Schnellleiste per Maus-Drag&Drop und auf Touchgeräten über den Griff verschieben; die neue Reihenfolge wird wie bisher lokal gespeichert.
+- Das kleine Verwaltungssymbol öffnet direkt den Favoriten-Unterbereich der zentralen Einstellungen. Umbenennen, Gruppen, Regeln, Import/Export, Standardort und Profile bleiben ausschließlich dort.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionssynchronisierung.
+
+# MID v0.7.73
+
+- Ensemble-Temperaturtooltip horizontal wieder an Diagramm und Viewport begrenzt; am rechten beziehungsweise linken Rand wechselt die Position automatisch zur sichtbaren Seite.
+- METAR-Wolkenhöhe fachlich differenziert: `Ceiling` erscheint nur bei mindestens 5/8 Bewölkung aus BKN/OVC/VV, bei 1/8 bis 4/8 wird die niedrigste FEW-/SCT-Lage als `Wolkenuntergrenze` in hft angezeigt.
+- Hyperlokale Stationsanalyse um die separate Wolkenuntergrenze erweitert, ohne aus dünner Bewölkung fälschlich eine Ceiling abzuleiten.
+- Stündliche Detailansicht auf Handy und Tablet um dezente Randtasten für den tageweisen Wechsel ergänzt; die gewählte Uhrzeit wird beim Tageswechsel beibehalten.
+- Konsistenzpunkte im mobilen 14-Tage-Ensemble-Trend reagieren nun beim ersten Tippen. Hover wird ausschließlich auf Geräten mit echter Maus-/Trackpad-Hoverfunktion verwendet.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionssynchronisierung.
+
+# MID v0.7.72
+
+- Zentrales Einstellungsmenü ergänzt und die bisher verteilten Kopfbereichsregler dort logisch zusammengeführt.
+- Ansichtsoptionen, Farbdesign (Auto/Hell/Dunkel), Windeinheit, Favoritenverwaltung und MID-Systemstatus besitzen eigene Unterbereiche.
+- Favoritenverwaltung vollständig als Untermenü eingebettet; Gruppen, Reihenfolge, Standardort, Import/Export sowie Berg-/Ski- und Wassersportprofile bleiben erhalten.
+- Permanenten Favoritenstreifen sowie direkte Ansicht-, Design-, Einheiten- und Systemstatusregler aus dem Kopfbereich entfernt. Favoriten bleiben über die Ortssuche schnell erreichbar.
+- Kopfbereich auf allen Plattformen auf Ortssuche, Standort, Einstellungen und Neuladen reduziert; responsive Vollbilddarstellung des Einstellungsmenüs auf Mobilgeräten ergänzt.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionssynchronisierung.
+
+# MID v0.7.71
+
+- Update-System grundlegend erweitert: Eine neue Version wird vor der Aktivierung vollständig in einen eigenen App-Shell-Cache geladen, einschließlich der tatsächlich im produktiven `index.html` referenzierten JavaScript- und CSS-Dateien.
+- Die zuletzt geprüfte Vorversion bleibt erhalten. Schlägt der Start der neuen App fehl und wird innerhalb von 20 Sekunden keine Laufzeit-Gesundheitsmeldung gesendet, schaltet MID automatisch auf die vorherige Version zurück.
+- Manuelle Systemverwaltung ergänzt: App-/Worker-/aktive Version anzeigen, MID-Cache neu aufbauen, vorherige Version wiederherstellen und Service Worker samt App-Caches zurücksetzen. Favoriten und Einstellungen bleiben beim Reset erhalten.
+- Rückfallversion erhält eine feste Wiederherstellungsleiste, über die die aktuelle Version erneut getestet werden kann.
+- Datenabrufe entkoppelt: Best Match, Stationsanalyse, Luftqualität, Radar, amtliche Warnungen und Modellinformationen verwenden getrennte AbortController und blockieren einander nicht.
+- Ensemble und Klimatologie laden unabhängig voneinander. Ortswechsel, manuelles Neuladen und Ansichtswechsel brechen veraltete Requests ab, damit alte Ergebnisse keinen neuen Standort überschreiben.
+- Such-, Meteogramm- und PX250-Metadatenabrufe zusätzlich gegen überholte Antworten und weiterlaufende Netzwerkzugriffe abgesichert.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionssynchronisierung.
+
+# MID v0.7.70.4
+
+- Weltweiten NOAA-AviationWeather-/METAR-Abruf korrigiert: Die geografische Bounding-Box wird entsprechend der aktuellen API-Reihenfolge als Breitengrad/Längengrad übergeben.
+- METAR-Zeitfenster auf drei Stunden erweitert und internationale Suchweite außerhalb Deutschlands von 140 auf 220 km erhöht.
+- Mehrfachmeldungen derselben ICAO-Station werden auf die jeweils neueste Beobachtung reduziert.
+- METAR-Sichtweite wird nun auch über den Worker vollständig an die hyperlokale Analyse weitergereicht.
+- Eigener Regressionstest für internationale METAR-Orte ergänzt; funktionale Worker-Änderung, daher Worker vor dem Hauptprojekt bereitstellen.
+
+# MID v0.7.70.3
+
+- Im Ensemble-Niederschlagsdiagramm die getrennten P10-/P90-Kurven durch einen dunkelgrauen P10–P90-Fehlerbalken über dem Best-Match-Niederschlagsbalken ersetzt.
+- Fehlerbalken werden nur an Tagen mit Best-Match-Niederschlag angezeigt.
+
+# MID v0.7.70.2
+
+- Mausradnavigation der stündlichen Detailansicht auf die eigentliche SVG-Diagrammfläche begrenzt; Legende, Überschrift, Quickfacts und Stunden-Tooltip scrollen die Seite wieder normal.
+- Ursache der ausgefallenen Ensemble-Auswertung behoben: veraltete Open-Meteo-Modellkennungen für Mitgliedsmodelle und Ensemble-Mittel durch die aktuellen API-Kennungen ersetzt.
+- Ensemble-Abrufe auf vier parallele Modellanfragen begrenzt und bei HTTP 429/5xx mit kurzen Wiederholungsversuchen abgesichert.
+- Ensemble-Mittel-Reserve vollständig auf die aktuellen DWD-, NOAA-, ECMWF-, GEM-, BOM-, UKMO-, MeteoSwiss- und Google-Kennungen aktualisiert.
+- Diagnose bei vollständigem Ausfall präzisiert; keine funktionale Worker-Änderung, nur Versionssynchronisierung.
+
+# MID v0.7.70.1
+
+- Ensemble-Diagramm-Tooltip präzisiert: Bei der Sonnenscheindauer heißt der Klammerzusatz nun `P10–P90` statt des unspezifischen Ausdrucks `Bandbreite`.
+- Versionsschema auf aufwertungsabhängige Releases umgestellt: Funktionsstände verwenden `0.7.x`, eng begrenzte Wartungsänderungen `0.7.x.y`.
+- Versionssynchronisierung, Anzeigeersetzung und Updater-Vergleich für vierteilige Wartungsversionen abgesichert.
+- Keine funktionale Worker-Änderung; nur einheitliche Versionssynchronisierung auf `0.7.70.1`.
+
+# MID v0.7.70
+
+- Sichtbare Mess- und Prognosewerte auf einheitliche deutsche Dezimaldarstellung geprüft und erweitert.
+- Aktuelle Bewölkung um die METAR-Ceiling in hunderten Fuß über Grund (`hft`) ergänzt; geeignete BKN-, OVC- und VV-Lagen fließen stationsgewichtet in die hyperlokale Analyse ein.
+- Desktop-Kacheln der aktuellen Einzelparameter platzsparender angeordnet, sodass bei ausreichender Breite alle Parameter in einer Zeile stehen.
+- Cloudflare Worker funktional um strukturierte Wolkenlagen, vertikale Sichtweite und METAR-Rohmeldung erweitert.
+
+# MID v0.7.69
+
+- Sonnenscheindauer in der 7-Tage-Vorhersage und im Ensemble-Tooltip mit maximal einer Nachkommastelle formatiert: volle Stunden erscheinen ohne unnötige Dezimalstelle (`15 h` statt `15,0 h`), Zwischenwerte weiterhin mit deutschem Dezimalkomma.
+- Gelb-graue Sonnenscheinlegende im Ensemble-Temperaturdiagramm verkleinert und optisch zurückgenommen, ohne das eigentliche Datenband zu verändern.
+- Aktuelle Messwerte um die Karte „Sichtweite“ zwischen Niederschlag und Bewölkung ergänzt.
+- Hyperlokale Analyse um Sichtweite erweitert und zugleich Bewölkung sowie Niederschlag in die modellgestützte Restfeldanalyse aufgenommen; Temperatur, Feuchte, Taupunkt, Luftdruck, Wind, Böen, Sichtweite, Bewölkung und Niederschlag nutzen nun alle verfügbaren geeigneten Stationsmessungen.
+- Bright-Sky-Sichtweite wird in Metern übernommen; METAR-Sichtweiten werden aus Statute Miles zuverlässig in Meter normalisiert. METAR-Wolkenlagen werden zusätzlich in eine Flächenbedeckung überführt.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionsanhebung.
+
+# MID v0.7.67
+
+- Niederschlagsform im stündlichen Detaildiagramm vereinheitlicht: WMO-Wettercode steuert nun Wettertext, Symbol, Balkenmuster, Legende und Stunden-Tooltip konsistent.
+- Fehler behoben, durch den reiner Schneefall beziehungsweise Schneeschauer wegen des Wasseräquivalents im Feld `precipitation` fälschlich als Schneeregen oder Schneeregenschauer dargestellt wurde.
+- Mischformen werden bei fehlendem geeigneten WMO-Code nur noch dann abgeleitet, wenn gleichzeitig ein messbarer fester und flüssiger Niederschlagsanteil vorliegt.
+- Niederschlagsklassifikation in ein separat testbares Modul ausgelagert und mit Regressionstests für Schnee, Schneeschauer, Schneeregen, Schneeregenschauer, Regen und gefrierenden Regen abgesichert.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionsanhebung.
+
+# MID v0.7.66
+
+- Bewölkungs-/Sonnenband im Temperaturtrend farblich an die Referenzskala angepasst: kräftiges Gelb für viel Sonne, abgestufte Beige-Töne und neutrales Grau für wenig Sonne.
+- Die Bandfarbe wird ausschließlich aus der täglichen Best-Match-Sonnenscheindauer gebildet; ungültige oder physikalisch zu hohe Werte werden auf das lokale Intervall zwischen Sonnenauf- und Sonnenuntergang begrenzt.
+- Ensembleabruf um `sunshine_duration` je Mitglied erweitert; tägliche Summen werden modellgewichtet zu P10, Mittel und P90 aggregiert. Modelle ohne diese Variable bleiben durch einen automatischen Fallback weiterhin für Temperatur und Niederschlag nutzbar.
+- Tooltip ersetzt „Bewölkung“ durch die Best-Match-Sonnenscheindauer in Stunden sowie die P10–P90-Bandbreite in Stunden mit deutschem Dezimalformat und responsivem Zeilenumbruch.
+- Kompakte Sonnen-/Wolken-Farbskala nach Referenzmuster direkt in die Diagrammlegende aufgenommen, ohne die Außenhöhe des Diagramms zu verändern.
+- Regressionsprüfung um Best-Match-Datenpfad, Ensemble-Sonnenbandbreite, Tooltiptext und Farbskala ergänzt.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionsanhebung.
+
+# MID v0.7.65
+
+- Temperatur- und Niederschlagsdiagramm verwenden nun dieselbe symmetrische Tagesachse mit je einem halben Zeitschritt Abstand zu linker und rechter y-Achse; erste und letzte Werte liegen nicht mehr auf den Achsen.
+- Abstand, Beschriftung und Innenränder der x-Achsen wurden vereinheitlicht; Bewölkungsband, Temperaturkurven, Niederschlagsbalken und Wahrscheinlichkeitskurve bleiben taggenau deckungsgleich.
+- Einheitenfehler der hyperlokalen Windanalyse behoben: Bright-Sky/DWD-Windwerte werden von km/h nach kt umgerechnet, bevor sie mit dem in kt angeforderten Open-Meteo-Hintergrundfeld verrechnet werden.
+- Zusätzliche zentrale Normalisierung fängt künftig sämtliche Stationsdatensätze mit `windUnit: kmh` vor Restfeldanalyse und robuster Mittelung ab.
+- Regressionsprüfung um symmetrische Diagrammachsen, identische Achsenabstände und Stationswind-Normalisierung ergänzt.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionsanhebung.
+
+# MID v0.7.64
+
+- Tooltip und interaktive Temperaturlegende räumlich getrennt, sodass der Tooltip die Legende nicht mehr überdeckt.
+- Temperatur- und Niederschlagsdiagramm zunächst auf ein gemeinsames Tagesraster ausgerichtet.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionsanhebung.
+
+# MID v0.7.63
+
+- Buildfehler `TS2304: Cannot find name 'RainTooltip'` in der Ensemble-Niederschlagsgrafik behoben.
+- Fehlende `RainTooltip`-Komponente wiederhergestellt und gegen nicht numerische beziehungsweise fehlende Diagrammwerte abgesichert.
+- Semantische TypeScript-Prüfung der geänderten Ensemble-Komponente sowie die vorhandenen Updater-, Interaktions- und Radarprüfungen erfolgreich ausgeführt.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionsanhebung.
+
+# MID v0.7.62
+
+- Ensemble-Konsistenztooltips werden über ein viewportfestes Portal gerendert, an allen Bildschirmrändern automatisch eingerückt und nicht mehr durch horizontal scrollende Kartenbereiche abgeschnitten.
+- Hover und Tastaturfokus öffnen den Konsistenztooltip unmittelbar; beim Verlassen schließt er automatisch, Touch/Klick bleibt ergänzend nutzbar.
+- Im Diagramm „Temperaturtrend und Prognoseunsicherheit“ zeigt ein tägliches Bewölkungsband direkt oberhalb der x-Achse Grau für wenig Sonne bis Gelb für viel Sonne.
+- Das Bewölkungsband wird aus der Best-Match-Sonnenscheindauer relativ zur astronomischen Tageslänge berechnet und im Diagrammtooltip zusätzlich erläutert.
+- Höhe, Außenabstände und Achsenreserven des Temperaturdiagramms bleiben unverändert.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionsanhebung.
+
+# MID v0.7.61
+
+- Tageswechsel im Desktop-Detaildiagramm bewahrt die ausgewählte Ortsstunde: Pfeil hoch springt zum Folgetag und Pfeil runter zum Vortag jeweils auf denselben stündlichen Zeitschritt; an Zeitumstellungstagen wird der nächstliegende vorhandene Stundenwert verwendet.
+- Native Dropdownlisten übernehmen das aktive Hell-/Dunkel-Farbschema einschließlich expliziter Hintergrund- und Schriftfarben für Optionen und Optionsgruppen.
+- Interaktionsprüfung um Regressionstests für Stundenerhalt beim Tageswechsel und Dropdown-Kontrast ergänzt.
+- Cloudflare Worker ohne funktionale Änderung; nur einheitliche Versionsanhebung.
+
+# MID v0.7.60
+
+- Updatearchitektur bereinigt: nur noch ein zentral registrierter Service Worker; Installation und Aktivierung sind getrennt, der Seitenwechsel erfolgt erst nach `controllerchange` und anschließend cachefrei per `location.replace`.
+- Such-/Favoritenbereich schließt zuverlässig bei Außenklick, Fokuswechsel, Escape, Ortswahl und über einen dauerhaft erreichbaren Schließen-Button.
+- Ensemble-Konsistenzpunkte besitzen einen CSS-gesteuerten Hover-/Fokus-Tooltip, der ohne Klick erscheint und beim Verlassen automatisch verschwindet.
+- Desktop-Detaildiagramm erhält native, nicht-passive Eingabehandler: Pfeil hoch/runter wechselt den Tag, Pfeil links/rechts und Mausrad wechseln stündlich.
+- Radarabgleich korrigiert DWD-Kartenpixel durch GetFeatureInfo-Punktwerte auch bei scheinbar trockenem PNG-Pixel, begrenzt Teilabrufe, prüft Aktualität und 3-Stunden-Horizont und aktualisiert alle fünf Minuten sowie bei Sichtbarkeit/Fokus.
+- GitHub-Pages-Build übernimmt explizite Radar-, Same-Origin- und Fallback-Worker-Endpunkte.
+- Automatisierte Prüfungen für Updater, UI-Interaktionen und den konkreten DWD-Radarfehler ergänzt.
+
+# MID v0.7.59
+
+- Updateablauf stabilisiert: kein automatischer Reload beim Aktivieren der Option, keine Update-URL-Schleife und aktualisierter Service-Worker-Cache.
+- Such-/Favoritenmenü schließt bei Klick außerhalb und mit Escape.
+- Konsistenzpunkte zeigen ihren Tooltip bereits beim Hover/Fokus und schließen beim Verlassen.
+- Desktop-Detaildiagramm: Pfeil hoch/runter wechselt tageweise; Mausrad navigiert stündlich.
+- Radarabgleich mit Cache-Buster, Wiederholungsversuch und automatischer Aktualisierung alle fünf Minuten robuster gemacht.
+
 # Changelog
-
-## 0.7.95.26
-
-- Routenwetter als optionale Funktion ausschließlich im Erweiterten Modus ergänzt
-- neues Untermenü „Erweiterte Funktionen“ bündelt Modelllauf-Änderungsradar und Routenwetter mit separater Konfiguration
-- zeitbezogene Routenanalyse für Auto, Fahrrad und Fußweg über OpenStreetMap/OSRM mit bis zu neun Best-Match-Wetterprüfpunkten
-- Abfahrtszeit, Route, Ankunftszeiten, Temperatur, Niederschlag, Wind/Böen, Sicht, Gewitter- und Schneesignale werden entlang der Strecke ausgewertet
-- schematische Routengrafik, mobile Abschnittskarten und dauerhafter Funktionsschutz ergänzt
-
-## 0.7.95.25
-
-- Modelllauf-Änderungsradar im Erweiterten Modus ergänzt; vergleicht den aktuellen 14-Tage-Ensemble-/Best-Match-Stand mit der vorherigen gespeicherten Prognose
-- Änderungen bei Tmax, Tmin, Niederschlagsmenge, Niederschlagswahrscheinlichkeit, Böen, Prognosekonsistenz, Ensemble-Spanne und Niederschlagsbeginn werden nach Relevanz sortiert dargestellt
-- Aktivierung im Einstellungsmenü unter „Erweiterter Modus“; im Standardmodus bleibt die Funktion vollständig ausgeblendet
-- optionale Web-Push-Benachrichtigung für materielle Prognoseänderungen am aktuell dargestellten Ort ergänzt
-- Cloudflare-Worker speichert einen Vergleichsstand und prüft im bestehenden Fünf-Minuten-Cron auf materielle Änderungen, ohne beim ersten Basisabruf eine Meldung auszulösen
-- neue Funktion in den automatischen Regressionstest und den essentiellen MID-Funktionsvertrag aufgenommen
-
-## 0.7.95.24
-
-- GitHub-Regression der automatischen Funktionsabdeckung behoben: neu über die Release-ZIP eingebrachte, zunächst ungetrackte `scripts/test-*.mjs`-Dateien werden jetzt als neue Regressionstests erkannt
-- `test-feature-change-coverage.mjs` kombiniert geänderte und ungetrackte Testdateien, statt nur bereits von Git verwaltete Dateien auszuwerten
-- eigener Regressionstest schützt den Änderungsabdeckungs-Wächter gegen denselben Fehler bei künftigen Funktionsupdates
-- Konsistenz-Tooltip-Außenklick aus v0.7.95.23 bleibt unverändert geschützt
-
-## 0.7.95.23
-
-- 14-Tage-Ensemble: Tooltips der farbigen Prognosekonsistenzpunkte schließen nun wie die übrigen Popover bei Klick oder Tippen außerhalb
-- Klicks innerhalb des Konsistenz-Tooltips sowie auf den zugehörigen Farbpunkt bleiben von der Außenklick-Schließlogik ausgenommen
-- Escape schließt den geöffneten Konsistenz-Tooltip weiterhin zuverlässig
-- neue automatisch erkannte Regression schützt diese Interaktion dauerhaft
-
-## 0.7.95.22
-
-- 14-Tage-Ensemble: sämtliche Info-Schaltflächen und „Modellstände“ auf robuste Body-Portale umgestellt, damit Popover nicht mehr von Modul-Containern oder mobilem Overflow abgeschnitten werden
-- eigene, dauerhaft sichtbare Ensemble-Hilfeleiste unter der Überschrift ergänzt
-- Außenklick, Escape, erneutes Antippen, Scroll- und Größenänderungen für alle Ensemble-Popover abgesichert
-- aktuelles Wetter: dezente Tageswerte Tmin und Tmax im Kopfbereich ergänzt
-- neue Regression für Ensemble-Hilfe und Tagesintervall sowie Erweiterung des essentiellen Funktionsvertrags
-
-## 0.7.95.21
-
-- GitHub-Regression behoben: Workflow-Reparaturdateien liegen nun ohne versteckten `.github`-Unterordner direkt unter `workflow-patches/` und werden dadurch vom ZIP-Installer nicht mehr durch dessen `.github/`-Ausschluss entfernt
-- Web-Analytics-Test robust gegen fehlende optionale Repository-Workflowdateien gemacht; fehlende Reparaturdateien führen nicht mehr zu einem ungefangenen `ENOENT`
-- Regression prüft jetzt ausdrücklich die rsync-sicheren Pfade `workflow-patches/install-mid.yml` und `workflow-patches/deploy.yml`
-
-## 0.7.95.20
-
-- GitHub-Workflow-Regression behoben: der ZIP-Installer bewahrt `.github/workflows` absichtlich, daher erreichten die bereits korrigierten Analytics-Zeilen die aktiven Repository-Workflows nicht
-- Web-Analytics-Test blockiert die MID-Installation bei veralteten aktiven Workflows nicht mehr; er meldet den Zustand nun verständlich als Hinweis
-- separates, geprüftes Workflow-Reparaturpaket mit `install-mid.yml` und `deploy.yml` ergänzt
-- beide Reparaturdateien enthalten `VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN` und erhalten den ursprünglichen Install→Test→Commit→Pages-Ablauf
-
-## 0.7.95.19
-
-- GitHub-Buildfehler der Luftdrucktendenz behoben: `Hour` enthält jetzt wieder den stündlichen Meeresspiegeldruck
-- Open-Meteo-Abruf um `hourly=pressure_msl` ergänzt und die Druckwerte in `mapHours()` übernommen
-- Luftdrucktendenz kann dadurch typensicher aus dem aktuellen und dem etwa drei Stunden zurückliegenden Wert berechnet werden
-- Regressionstest erweitert: Typdefinition, API-Parameter und Mapping der Luftdruck-Zeitreihe werden gemeinsam geprüft
-
-## 0.7.95.18
-
-- automatischer Schlüsselfunktionsschutz: sämtliche vorhandenen und künftig neu angelegten `scripts/test-*.mjs` werden ohne manuelle Paketlisten automatisch ausgeführt
-- Kontinuitätsprüfung verhindert das unbemerkte Entfernen bereits geschützter Regressionstests gegenüber der Vorversion
-- Cloudflare Web Analytics für GitHub Pages korrekt als manueller Beacon mit SPA-Unterstützung integriert
-- GitHub-Actions-Variable `VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN` in beide Produktionsworkflows aufgenommen
-- sichtbare Web-Analytics-Diagnose unter MID-Systemstatus ergänzt (aktiv, Token/Snippet fehlt oder blockiert)
-- Luftdrucktendenz, Analytics und automatischer Test-Runner zusätzlich in den essentiellen MID-Funktionsvertrag aufgenommen
-
-## 0.7.95.17
-
-- Luftdrucktendenz aus dem bewährten Stand wiederhergestellt: Änderung über drei Stunden, Richtungspfeil und Einordnung von stark fallend bis stark steigend im Erweiterten Modus
-- 14-Tage-Ensemble: umfassenden Erklärtext über das Info-i wiederhergestellt und dauerhaft sichtbar neben dem Titel angeordnet
-- 14-Tage-Ensemble: Modellstände-Button samt schließbarem Popover, Initialisierungs- und Verfügbarkeitszeiten auf Desktop und Mobil abgesichert
-- einzelne Info-i für Ensemble-Übersicht, Temperaturtrend und Niederschlag mit vollständigen Erklärtexten und eindeutigen Beschriftungen versehen
-- essentiellen MID-Funktionsvertrag um Luftdrucktendenz sowie Ensemble-Erklärungen und Modellstände erweitert, damit diese Funktionen bei künftigen Reparaturen nicht erneut verschwinden
-
-## 0.7.95.16
-
-- Benachrichtigungen: bei aktivierter Standortverfolgung kann auch die zuletzt erfolgreich automatisch bestimmte Position eigene Regeln für Niederschlagsbeginn und sich nähernde Gewitterzellen erhalten
-- Hitze-Hazard plausibilisiert: Tagesmaximum der gefühlten Temperatur und Tagesminimum der Lufttemperatur werden gemeinsam ausgewertet; ein früherer niedrigerer Stundenwert kann das Tagesmaximum nicht mehr überschreiben
-- Gewitterbezeichnung „Einfaches Gewitter“ auf „Gewitter“ verkürzt
-- Modellstände-Info im 14-Tage-Ensemble auf expliziten, mobil zuverlässigen Button mit schließbarem Dialog-Popover umgestellt
-- Kompositbild: Satellit und MTG-LI erhalten sofortige offizielle Latest-Fallbacks unabhängig von einer langsamen Produktzeitenabfrage
-- Kompositbild: bei Ausfall des Worker-WMS-Proxys wird einmalig direkt auf den offiziellen DWD-/EUMETSAT-WMS gewechselt, bevor der nächste Produktfallback greift
-- Blitzdarstellung: veraltete DWD-Blitzgeometrien werden verworfen; Punktdarstellung mit alterscodierten, gefüllten Markern nach dem Prinzip von Blitzortungskarten
-- Cloudflare Worker: parallele WMS-/WFS-Fallbacks mit festen Zeitlimits sowie neuer Diagnoseendpunkt `mode=composite-diagnostics`
-- zusätzliche Regressionen für Standort-Push, Hitzeplausibilität, Modellstände-Info und robuste Live-Kompositquellen
-
-## 0.7.95.15
-
-- persönliche Benachrichtigungsfunktionen aus dem bewährten Stand v0.7.92 vollständig wiederhergestellt
-- Favoritenregeln „Niederschlagsbeginn“ und „Gewitterzelle nähert sich“ wieder in Favoritenverwaltung und Einstellungsbereich „Benachrichtigungen“ verfügbar
-- Geräteaktivierung, Statusprüfung, Synchronisierung und Deaktivierung von Web-Push-Abonnements wiederhergestellt
-- Service Worker wieder um Push-Empfang, Systembenachrichtigung und Öffnen des zugehörigen MID-Favoriten ergänzt
-- Cloudflare Worker wieder um KV-Abonnements, VAPID-Verschlüsselung, Push-API und fünfminütige Cron-Auswertung ergänzt
-- neuer verbindlicher Regressionstest schützt künftig die essentiellen MID-Bestandteile Sonne/Mond, Kompositbild, Berg-/Wintersport und Benachrichtigungen gemeinsam vor unbeabsichtigtem Entfernen
-
-## 0.7.95.14
-
-- Sonne/Mond: abweichenden Spezialhintergrund entfernt; die zehnte aktuelle Wetterkarte nutzt wieder dasselbe Kartendesign wie die übrigen Messwerte
-- Kompositbild: Cloudflare-Laufzeitfehler beseitigt, indem `cache: no-store` nicht mehr mit dem inkompatiblen `cf.cacheTtl: 0` kombiniert wird; dies betrifft Capabilities sowie Radar-, Satelliten- und Blitzkacheln
-- offizielle Livequellen beibehalten: DWD `dwd:Radar_rv_product_1x1km_ger` / `dwd:Niederschlagsradar`, EUMETSAT MTG FCI GeoColour/IR 10,5 und MTG-LI AFA
-- Berg-/Wintersport: automatische OpenStreetMap-Suche nach Tal-, optionaler Mittel- und Bergstation sowie Höhenauffüllung über Copernicus GLO-90 wiederhergestellt
-- Berg-/Wintersport: editierbare Stationsnamen, Koordinaten und Höhen sowie Saisonprofile Automatisch, Sommer und Winter wiederhergestellt
-- saisonabhängige Höhenparameter: Winter mit Schneehöhe, Neuschnee, Verfrachtung und Whiteout; Sommer mit Sicht, UV, Wind und CAPE
-- Regressionen für Cloudflare-WMS-Cachekompatibilität, einheitliches Sonne/Mond-Design und automatische Bergprofile ergänzt
-
-## 0.7.95.13
-
-- aktuelle Übersicht: die in v0.7.92 eingeführte zehnte Karte „Sonne / Mond“ mit Auf-/Untergängen, Tageslänge, Tageslängenänderung, Mondphase, Beleuchtung und Mondalter vollständig wiederhergestellt
-- Kompositbild Satellit: offizielles EUMETSAT-MTG-GeoColour-Produkt als primärer Tag-/Nacht-Layer ergänzt; bei fehlender oder veralteter Capabilities-Zeitachse wird der dokumentierte aktuelle Dienststand ohne TIME-Parameter geladen
-- Kompositbild Satellit: automatische Rückfallkette GeoColour → IR 10,5 → DWD Meteosat Europa ergänzt
-- Kompositbild 1-km-Radar: erfundene TIME-Werte bei fehlender DWD-Zeitdimension entfernt; stattdessen wird der offizielle Alias `dwd:Niederschlagsradar` ohne festen Zeitpunkt als aktueller Dienststand geladen
-- Kompositbild Blitze: EUMETSAT MTG-LI als bevorzugter freier Rasterlayer; bei fehlender Zeitdimension wird der aktuelle Dienststand ohne TIME geladen, bei Kachelfehler folgt automatisch DWD Blitzdichte
-- zusätzliche Regressionen für Astronomiekarte sowie zeitlose, cachefreie Radar-, Satelliten- und Blitzfallbacks ergänzt
-
-## 0.7.95.12
-
-- Kompositbild: DWD-WMS-Routing auf den offiziell dokumentierten generischen GeoServer-Endpunkt als Primärquelle zurückgestellt
-- DWD-Workspace-Endpunkte bleiben als Fallback erhalten; Layerpräfix `dwd:` wird dort automatisch entfernt
-- 1-km-Radar erkennt die RV-Zeitachse nun auch aus Workspace-Capabilities ohne Namespace und erzeugt bei fehlender Zeitdimension eine kontrollierte Live-Zeitachse
-- Satellit: offiziell dokumentiertes DWD-Meteosat-Europa-Produkt `Satellite_meteosat_1km_euat_rgb_day_hrv_and_night_ir108_3h` als belastbarer Tag-/Nacht-Fallback ergänzt
-- Satelliten-Altersfenster berücksichtigt die dreistündige Aktualisierung dieses DWD-Produkts
-- neue Regression für generischen DWD-Endpunkt, Workspace-Fallback, Namespace-Behandlung und DWD-Satellitenprodukt ergänzt
-
-## 0.7.95.11
-
-- Kompositbild: WMS-Kartenbilder werden durch Worker und Browser nicht mehr zwischengespeichert; dadurch keine aus unterschiedlichen alten/neuen Kacheln zusammengesetzten Satellitenbilder mehr
-- Satellitenprodukte mit explizit veralteter Zeitdimension werden vollständig verworfen und nicht mehr fälschlich als zeitloser „latest“-Layer verwendet
-- DWD-1-km-Radar auf den offiziellen Workspace-WMS-Endpunkt umgestellt; generische und BRZ-Endpunkte bleiben als gestufte Fallbacks erhalten
-- Echtzeitblitze: dynamischer Fallback von leerer DWD-Blitzzeitachse auf EUMETSAT MTG-LI; MTG-LI-Kartenabruf auf WMS 1.3.0 korrigiert
-- Produktzeit-Metadaten und WMS-Capabilities werden für die Live-Layer ohne Zwischenablage neu geprüft
-- zusätzlicher Regressionstest für Satellitenfrische, DWD-1-km-Radar und MTG-LI-Fallback ergänzt
-
-## 0.7.95.10
-
-- Kompositbild: Service Worker behandelt Worker-, WMS-, Zeit- und BBOX-Anfragen jetzt als Live-Daten und liefert sie nicht mehr aus dem App-Shell-Cache
-- Kompositbild: Satellitenkacheln erhalten beim Laden neuer Produktstände, beim Einschalten der Ebene und zusätzlich alle zwei Minuten eine neue Revisionskennung
-- Kompositbild: Query-Parameter werden bei normalen Runtime-Cachetreffern nicht mehr ignoriert, sodass unterschiedliche Kartenkacheln nicht verwechselt werden
-- Ensemble-Temperaturdiagramm: Handy-Tooltip auf maximal 286 px verdichtet; Temperatureinheit in die Spaltenüberschrift verlagert und Werte ohne wiederholtes °C dargestellt
-- Ensemble-Temperaturdiagramm: Sonnenschein- und Modellangaben zu kompakten Einzeilern zusammengezogen
-- zusätzliche Regression für Komposit-Cachefrische ergänzt und bestehende Tooltip-Regressionen aktualisiert
-
-## 0.7.95.9
-
-- Tagesdetailansicht mobil: Stundenkarten unter dem Diagramm kompakter gestaltet
-- Pfeiltasten der mobilen Stundenkarten sauber horizontal in einer Zeile ausgerichtet
-- Untertitel unter Uhrzeit und Wetter in den mobilen Stundenkarten entfernt
-- Abstände, Polsterung und Typografie der mobilen Stundenkarten weiter verdichtet
-
-## 0.7.95.8
-
-- GitHub-Regression korrigiert: Interaktions-, UI- und Spezialtest prüfen nun dieselbe responsive Tooltip-Implementierung
-- Ensemble-Temperaturdiagramm: auf Displays bis 520 px wird der Tooltip mit fester linker X-Position im sichtbaren Diagrammbereich gehalten; die rechte Tmax-Spalte bleibt dadurch vollständig lesbar
-- Tagesdetailansicht: überflüssige Vorwärtsreferenz auf `narrowChart` aus der Desktop-Tooltip-Entscheidung entfernt
-- Regressionen schützen vor erneutem TypeScript-Fehler `TS2448/TS2454` und vor einer rechts abgeschnittenen Ensemble-Tooltip-Spalte
-
-## 0.7.95.7
-
-- Buildfehler TS2448/TS2454 behoben: `narrowChart` wird im responsiven Tooltip-Schalter nicht mehr vor seiner Deklaration verwendet
-- responsives Verhalten bleibt unverändert: Karten auf kleinen Displays, bedarfsweise Tooltip-Darstellung auf großen Displays
-- Regressionstest schützt nun ausdrücklich vor einer erneuten Vorwärtsreferenz in der Tooltip-Logik
-
-## 0.7.95.6
-
-- Tagesdetailansicht: auf kleinen Displays wieder Kartenansicht unterhalb des Diagramms; das Stunden-Overlay ist nun nur noch für große Displays aktiv und erscheint nur bei Bedarf
-- Stunden-Overlay weiter verschlankt, damit auf großen Displays weniger Diagrammfläche verdeckt wird
-- Ensemble-Temperatur-Tooltip auf Handy-Displays weiter verdichtet und Recharts-Tooltip horizontal aus dem Viewport-Clipping befreit, damit die rechte Tmax-Spalte lesbar bleibt
-- Regressionstests für responsives Stunden-Detail und kompakten Ensemble-Tooltip aktualisiert
-
-## 0.7.95.6
-
-- Tagesdetailansicht: responsives Stunden-Detail überarbeitet
-- kleine Displays zeigen die kompakten Parameterkarten wieder unter dem Diagramm, damit das Chart nicht verdeckt wird
-- größere Displays nutzen ein kompaktes Overlay nur noch nach Klick/Antippen und mit Schließen-Schaltfläche statt dauerhaft im Diagramm
-- zusätzliche Regression für die neue responsive Stunden-Detaildarstellung ergänzt
-
-## 0.7.95.5
-
-- GitHub-Regression behoben: der kompakte Ensemble-Temperaturtooltip verwendet wieder die vollständige Bezeichnung „Sonnenscheindauer“
-- bestehende Interaktionsprüfung erkennt die Sonnenscheindauer-Auswertung damit wieder korrekt, ohne das kompakte Tooltip-Layout zu verändern
-- nachgelagerte Regressionstests für Codequalität, Warnhinweise und Sonnenscheindauer an die neue kompakte Tooltip-Struktur angepasst
-
-## 0.7.95.4
-
-- Ensemble-Temperaturdiagramm: Tooltip kompakt auf Matrixdarstellung für Tmin/Tmax umgestellt, damit er auch auf schmalen Hochformat-Displays lesbar bleibt
-- Inhalte bleiben vollständig erhalten, wurden aber in kurze Zeilen und kompakte Zusatzblöcke für Sonnenschein, Modelle/Konsistenz und Hazards überführt
-- responsive Breiten- und Schriftanpassungen für sehr schmale Displays ergänzt
-- zusätzlicher Regressionstest für den kompakten Ensemble-Tooltip ergänzt
-
-## 0.7.95.3
-
-- Tagesdetailansicht: die bisherigen darunterliegenden Stundenkarten wurden durch ein kompaktes Overlay-Tooltip direkt im Diagramm ersetzt
-- Tooltip reagiert auf Klick/Antippen im Diagramm, enthält weiterhin alle wesentlichen Stundenwerte und lässt sich per Pfeiltasten darin stündlich weiterschalten
-- responsives Tooltip-Layout für Desktop, Tablet und Smartphone überarbeitet; auf kleinen Displays reduziert sich das Raster bis auf eine Spalte
-- zusätzlicher Regressionstest für das neue Detail-Tooltip-Overlay ergänzt
-
-## 0.7.95.2
-
-- Detailansicht: Stundenchart bleibt bewusst auf einer festen Volltagesachse von 00:00 bis 23:00
-- für den aktuellen Tag werden zusätzlich die vergangenen 24 Stunden vom Forecast-Endpunkt nachgeladen, damit in der Detailansicht wieder der komplette Tagesverlauf dargestellt wird
-- Sonnenaufgang, Sonnenuntergang, Nacht-Schraffur und "JETZT" bleiben damit auf der festen 00:00–23:00-Achse korrekt verortet
-- Regressionstest für die Volltages-Zeitachse und die zusätzliche `past_hours`-Anforderung ergänzt
 
 ## 0.7.59
 - Widget: Der Wettertext erhält einen festen, zweizeiligen Bereich mit sauberem Umbruch; beide Textzeilen bleiben vollständig sichtbar und kollidieren nicht mehr mit den Temperaturwerten.

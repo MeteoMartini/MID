@@ -18,11 +18,11 @@ for(const [name,source,tokens] of [
  ['Komposit/Radar',radar,['formatDecimal(lightningData.nativeResolutionKm,1)']]
 ])for(const token of tokens)if(!source.includes(token))failures.push(`${name}: deutsche Dezimaldarstellung fehlt: ${token}`);
 
-for(const token of ['@media(min-width:1101px)','grid-template-columns:repeat(10,minmax(0,1fr))','.metrics article{min-height:86px'])if(!styles.includes(token))failures.push(`Kompakte Ein-Zeilen-Kacheln fehlen: ${token}`);
+for(const token of ['@media(min-width:1101px)','grid-template-columns:repeat(9,minmax(0,1fr))','.metrics article{min-height:86px'])if(!styles.includes(token))failures.push(`Kompakte Ein-Zeilen-Kacheln fehlen: ${token}`);
 
 const formatter=new Intl.NumberFormat('de-DE',{useGrouping:false,minimumFractionDigits:1,maximumFractionDigits:1});
 if(formatter.format(1.4)!=='1,4')failures.push('Intl-Regression: 1.4 wird nicht als 1,4 formatiert');
 if(formatter.format(24.9)!=='24,9')failures.push('Intl-Regression: 24.9 wird nicht als 24,9 formatiert');
 
 if(failures.length){console.error('Format-/Layoutprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Format und Layout geprüft: sichtbare Dezimalwerte nutzen deutsches Komma; zehn aktuelle Parameter bleiben am Desktop in einer kompakten Zeile.');
+console.log('Format und Layout geprüft: sichtbare Dezimalwerte nutzen deutsches Komma; neun aktuelle Parameter bleiben am Desktop in einer kompakten Zeile.');

@@ -22,8 +22,6 @@ export type CompositeProductTimes={
  dwdLightning:ProductTime[];
  dwdRadar?:ProductTime[];
  dwdRadarLayer?:string;
- dwdRadarLatestOnly?:boolean;
- mtgLightningLatestOnly?:boolean;
  satelliteDayProduct?:CompositeProduct;
  satelliteIrProduct?:CompositeProduct;
  satellitePrecipProduct?:CompositeProduct;

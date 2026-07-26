@@ -11,9 +11,9 @@ const failures=[];
 for(const [token,where] of [
  ['✓ Keine Hazards',app],
  ['<ForecastHazards hazards={hz}/>',app],
- ['tooltip-meta-line sunshine-tooltip-line',ensemble],
- ['<b>Sonne</b>',ensemble],
- ['<span>{Math.round(row.confidence)} % Konsistenz</span>',ensemble],
+ ['tooltip-group-wide sunshine-tooltip-line',ensemble],
+ ['<b>Sonnenscheindauer</b>',ensemble],
+ ['<b>Prognosekonsistenz</b>',ensemble],
  ["import {useDismissibleLayer} from './useDismissibleLayer';",app+ensemble],
  ["document.addEventListener('pointerdown',onPointerDown,true)",dismissible],
  ['export function niceTemperatureScale',chartMath],

@@ -906,15 +906,3 @@ DWD-RV wird in seiner Niederschlagsrate ausgewertet. OPERA CIRRUS liefert DBZH-R
 ## DWD-Radarrobustheit v0.7.13
 
 Die DWD-Zeitachse wird am allgemeinen WMS-Endpunkt aus dem Layerblock von `dwd:Niederschlagsradar` beziehungsweise RV gelesen. Jeder benötigte Zeitschritt wird als kleine transparente Radar-PNG um den Standort geladen; daraus werden Mittelpunkt und Umgebung gemeinsam ausgewertet. Ein vollständig transparenter Pixel ist ein gültiger trockener DWD-Wert. `GetFeatureInfo` wird nur zur numerischen Verfeinerung eines sichtbar nassen Mittelpunktes verwendet. Bei technischen Ausfällen werden DWD-Backup und konkreter RV-Layer geprüft; anschließend wertet das Frontend das echte OPERA-CIRRUS-HDF5 aus und verwendet RainViewer erst zuletzt.
-
-## Cloudflare Web Analytics auf GitHub Pages
-
-MID wird über GitHub Pages ausgeliefert und ist damit kein Cloudflare-Pages-Projekt. Die automatische Pages-Injektion greift deshalb nicht. Der Produktionsbuild fügt den offiziellen Cloudflare-Beacon nur ein, wenn die GitHub-Actions-Variable `VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN` gesetzt ist.
-
-1. In Cloudflare **Web Analytics → Add a site** den tatsächlich aufgerufenen Hostnamen anlegen. Für die Standardadresse `https://meteomartini.github.io/MID/` lautet der Hostname `meteomartini.github.io` – ohne Pfad.
-2. Unter **Manage site** den öffentlichen Site-Token aus dem JS-Snippet kopieren.
-3. In GitHub **Settings → Secrets and variables → Actions → Variables** die Repository-Variable `VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN` anlegen.
-4. MID neu deployen. Unter **Einstellungen → MID-Systemstatus** muss anschließend „Cloudflare Web Analytics – Beacon aktiv“ erscheinen.
-
-Fehlt der Token, bleibt der Beacon bewusst aus. Wird er durch einen Inhaltsblocker blockiert, zeigt der Systemstatus dies ebenfalls an. Der Site-Token ist ein öffentlicher Messbezeichner und kein Secret.
-
