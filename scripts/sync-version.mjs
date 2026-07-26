@@ -6,6 +6,10 @@ if(!/^\d+\.\d+\.\d+(?:\.\d+)?(?:[-+][0-9A-Za-z.-]+)?$/.test(version))throw new E
 
 await writeFile(new URL('../src/version.ts',import.meta.url),`export const MID_VERSION='${version}';\n`);
 await writeFile(new URL('../public/version.json',import.meta.url),`${JSON.stringify({version},null,2)}\n`);
+const baselineUrl=new URL('../MID_BASELINE.json',import.meta.url);
+const baseline=JSON.parse(await readFile(baselineUrl,'utf8'));
+baseline.releaseVersion=version;
+await writeFile(baselineUrl,`${JSON.stringify(baseline,null,2)}\n`);
 const workerUrl=new URL('../worker/metar-proxy.js',import.meta.url);
 const worker=await readFile(workerUrl,'utf8');
 const updated=worker.replace(/const WORKER_VERSION='[^']+';/,`const WORKER_VERSION='${version}';`);

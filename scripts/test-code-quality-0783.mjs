@@ -14,7 +14,7 @@ for(const [token,where] of [
  ['tooltip-group-wide sunshine-tooltip-line',ensemble],
  ['<b>Sonnenscheindauer</b>',ensemble],
  ['<b>Prognosekonsistenz</b>',ensemble],
- ["import {useDismissibleLayer} from './useDismissibleLayer';",app+ensemble],
+ ["import {useDismissibleLayer} from './useDismissibleLayer';",app+ensemble+await read('src/RadarPanel.tsx')],
  ["document.addEventListener('pointerdown',onPointerDown,true)",dismissible],
  ['export function niceTemperatureScale',chartMath],
  ['export function nicePositiveRange',chartMath],
@@ -29,4 +29,4 @@ if(!styles.includes('text-overflow:ellipsis;white-space:nowrap;box-sizing:border
 const sourceFiles=(await readdir(path.join(root,'src'))).filter(name=>/\.(ts|tsx)$/.test(name));
 if(sourceFiles.length<15)failures.push('Unerwartet wenige Quellcodedateien gefunden.');
 if(failures.length){console.error('CodeCheck v0.7.83 fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('CodeCheck v0.7.83 bestanden: gemeinsame Popover-Logik, zentrale Diagrammskalen, typisierte Ensemble-Tooltips, stabile Hazard-Keys und überlaufsichere 7-Tage-Hinweise.');
+console.log('CodeCheck v0.7.83 bestanden: robuste Portal-/Popover-Logik, zentrale Diagrammskalen, typisierte Ensemble-Tooltips, stabile Hazard-Keys und überlaufsichere 7-Tage-Hinweise.');

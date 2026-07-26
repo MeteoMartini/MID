@@ -1,13 +1,19 @@
-# MID v0.7.96.0
+# MID v0.7.95.28
 
-- Neues Modul **Routenwetter** ergänzt. Es analysiert eine schematische Strecke zwischen aktuellem Startort und einem frei suchbaren Zielort auf einer Karte.
-- Drei Kartenmodi hinzugefügt: **Linie**, **Segmente** und **Korridor**. Dadurch lässt sich derselbe Routenverlauf in mehreren kompakten Darstellungsweisen vergleichen.
-- Entlang der Route werden Stichprobenpunkte mit Wetterzustand, Windpfeilen und ETA dargestellt. Die Windpfeile folgen der bestehenden MID-Konvention und zeigen in die Richtung, in die der Wind weht.
-- Die Route verwendet für Niederschlagsart, Wettertext und Wettersymbol dieselbe MID-Plausibilisierungslogik wie die übrigen Vorhersagen. Unplausible Sprühregen-Codes werden auch im Routenwetter als Regen behandelt; Schnee, Schneegriesel, Schneeschauer, Schneeregen und gefrierender Niederschlag bleiben konsistent aus WMO-Code und Niederschlagsfeldern abgeleitet.
-- Neue Einschränkungsbewertung für die Gesamtstrecke und jeden Streckenabschnitt ergänzt. Sie berücksichtigt u. a. Niederschlagsintensität, winterliche Niederschlagsformen, Gewitter, Windböen und Sicht.
-- Fachliche Grenzen des Routenwetters werden im Modul transparent ausgewiesen, insbesondere die schematische Luftlinie, Modellgitter-Stichproben und die erhöhte Unsicherheit bei Schauern, Gewittern und langen Routen.
-- Neuer Regressionstest für UI-Integration, Kartenmodi, Plausibilisierung und Bewertung des Routenwetters.
-- README-/Versionsstellen, Service-Worker-Cache und Cloudflare-Worker-Version synchronisiert.
+- GitHub-TypeScript-Buildfehler der Luftdrucktendenz behoben: `Hour.pressure` ist wieder typisiert, `pressure_msl` wird stündlich geladen und in `mapHours()` übernommen.
+- Eigener Regressionstest schützt API-Feld, Typdefinition, Mapping und dreistündige Drucktendenz gemeinsam.
+- Verbindliche maschinenlesbare Quellbasis `MID_BASELINE.json` ergänzt; sie verankert den vollständigen Referenzstand v0.7.95.26 am Commit `213ab6a52a48dcd073066e95551b5d7f057570be`.
+- Release-Workflow aktualisiert nach erfolgreichem Build und Pages-Deployment automatisch den Zweig `mid-stable`; manuelle Deployments verwenden ausschließlich diesen letzten erfolgreich veröffentlichten Stand.
+- Neuer Quellbasis-Test verhindert fehlende Referenzverträge, unsynchronisierte Releaseversionen und einen Rückfall auf unbestätigte App-Basen.
+
+# MID v0.7.95.27
+
+- Vollständige Funktionskontinuität auf Basis des Referenzstands v0.7.95.26 wiederhergestellt; der fehlerhafte Funktionsabbau der nachfolgenden Paketbasis wurde nicht übernommen.
+- Info-Schaltflächen und Modellstände in Best-Match- und Ensemble-Bereichen als robuste Body-Portale abgesichert; Außenklick/-tippen, Escape, erneutes Antippen, Scrollen und Größenänderungen funktionieren zuverlässig.
+- Tooltips der farbigen Prognosekonsistenzpunkte schließen bei Klick oder Tippen außerhalb; Interaktionen auf Punkt und Tooltip selbst bleiben erhalten.
+- Luftdrucktendenz, Sonne/Mond, Modelllauf-Änderungsradar, Benachrichtigungen, erweitertes Bergprofil, Web-Analytics-Diagnose und die zugehörige Worker-/Service-Worker-Unterstützung wieder vollständig verdrahtet.
+- Routenwetter bleibt als optionale erweiterte Funktion aus v0.7.95.26 erhalten.
+- Automatischer v0.7.95.26-Funktionsvertrag und Popover-Regression ergänzt; alle vorhandenen MID-Regressionstests werden weiterhin automatisch erkannt.
 
 # MID v0.7.90.4
 

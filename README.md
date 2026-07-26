@@ -1,3 +1,15 @@
+## Verbindliche MID-Quellbasis ab v0.7.95.28
+
+Der einzige technische Ausgangspunkt für weitere Entwicklungen ist der GitHub-Zweig **`mid-stable`**. Er wird erst nach erfolgreichem TypeScript-/Vite-Build, vollständiger Regression und erfolgreichem GitHub-Pages-Deployment auf den neuen Commit gesetzt. `main`, ältere Chat-Anhänge und Gesprächserinnerungen sind keine Codebasis.
+
+Vor jeder Änderung müssen `package.json` und `MID_BASELINE.json` aus `mid-stable` gelesen werden. Stimmen Version, Linie oder Pflichtverträge nicht überein, darf kein Release erzeugt werden. Die Datei verankert die vollständige Referenz v0.7.95.26 am Commit `213ab6a52a48dcd073066e95551b5d7f057570be` und wird bei jeder Versionssynchronisierung automatisch auf die neue Releaseversion aktualisiert.
+
+**Verbindliche Projektanweisung für neue Chats:** „Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.“
+
+## Wartung in v0.7.95.27 – Funktionskontinuität zu v0.7.95.26
+
+Der vollständige Referenzumfang von MID v0.7.95.26 ist wiederhergestellt. Info-Schaltflächen und der Button „Modellstände“ verwenden robuste Body-Portale und schließen per Außenklick/-tippen oder Escape. Die Tooltips der farbigen Prognosekonsistenzpunkte besitzen dieselbe Schließlogik, ohne Klicks auf Punkt oder Tooltip selbst zu verlieren. Zusätzlich sind Luftdrucktendenz, Sonne/Mond, Modelllauf-Änderungsradar, Benachrichtigungen, Bergprofil, Web-Analytics-Diagnose und die Worker-Unterstützung wieder vollständig verdrahtet. Ein eigener Referenzvertrag schützt diese Funktionen künftig automatisch.
+
 ## Wartung in v0.7.90.4 – Erklärte Luftqualität
 
 - Die Luftqualitätskarte besitzt einen Info-Button zur Zusammensetzung des europäischen AQI.
@@ -72,7 +84,7 @@
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.90.4**
+**Aktuelle Version: v0.7.95.27**
 
 ## Revision in v0.7.89 – responsiver und schlanker
 

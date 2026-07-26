@@ -16,7 +16,10 @@ for(const token of [
  'title="Widget- und PNG-Generator"',
  'label="Quellen anzeigen"',
  'trigger={<><Info size={13}/><span>Quellen</span></>}',
- "useDismissibleLayer(ref,open,()=>setOpen(false))"
+ "document.addEventListener('pointerdown',dismiss,true)",
+ "document.addEventListener('keydown',escape)",
+ 'anchorRef.current?.contains(target)||layerRef.current?.contains(target)',
+ 'createPortal(<span ref={layerRef}'
 ])if(!app.includes(token))failures.push(`Erwartete Umsetzung fehlt: ${token}`);
 
 if(app.includes('Ortsname aus Geodatenbank'))failures.push('Der Hinweis „Ortsname aus Geodatenbank“ ist weiterhin sichtbar.');

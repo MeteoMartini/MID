@@ -1,3 +1,7 @@
+# MID Daten-, Warnungs-, Radar- und Push-Proxy v0.7.95.27
+
+Der Worker-Stand von v0.7.95.26 wurde vollständig wiederhergestellt und auf v0.7.95.27 synchronisiert. Enthalten sind die robusten DWD-/EUMETSAT-WMS-Fallbacks, `composite-diagnostics`, Web-Push-Regeln für Niederschlagsbeginn und sich nähernde Gewitterzellen sowie Benachrichtigungen bei materiellen Prognoseänderungen. Für Push werden die KV-Bindung `MID_PUSH_SUBSCRIPTIONS`, die Secrets `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` und der Cron-Trigger `*/5 * * * *` benötigt. Die Einstiegdatei in `MID-worker.zip` heißt `worker.js`.
+
 # MID Daten-, Warnungs- und Radarproxy v0.7.88
 
 Funktionale Erweiterung des bestehenden Workers für die Starkregenanalyse der aktuellen Niederschlagswahrscheinlichkeit: RADOLAN-YW-Summen 15/30/60/180/360 Minuten, DWD-RV-Nowcast bis +120 Minuten, KONRAD3D-Zellzug und Starkregenflag, KOSTRA-DWD-2020-Einordnung sowie DWD-Stationsabgleich. Amtliche Warnungen bleiben getrennt. Die Cloudflare-Auslieferung erfolgt weiterhin als einzelner Worker; in `MID-worker.zip` heißt die Einstiegdatei `worker.js`.

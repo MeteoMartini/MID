@@ -1,0 +1,20 @@
+import fs from 'node:fs';
+const read=path=>fs.readFileSync(new URL(path,import.meta.url),'utf8');
+const pkg=JSON.parse(read('../package.json'));
+const baseline=JSON.parse(read('../MID_BASELINE.json'));
+const install=read('../workflow-patches/install-mid.yml');
+const deploy=read('../workflow-patches/deploy.yml');
+const failures=[];
+if(baseline.schema!==1)failures.push('Unbekanntes Baseline-Schema');
+if(baseline.lineage!=='MID-v0.7.95.26-complete')failures.push('Falsche MID-Linie');
+if(baseline.canonicalBase?.version!=='0.7.95.26'||baseline.canonicalBase?.commit!=='213ab6a52a48dcd073066e95551b5d7f057570be')failures.push('Referenzbasis v0.7.95.26 ist nicht eindeutig verankert');
+if(baseline.releaseVersion!==pkg.version)failures.push('MID_BASELINE.json und package.json sind nicht synchron');
+if(baseline.stableBranch!=='mid-stable')failures.push('Stabiler Quellzweig ist nicht mid-stable');
+if(baseline.documentation!=='MID_SOURCE_OF_TRUTH.md'||!fs.existsSync(new URL('../MID_SOURCE_OF_TRUTH.md',import.meta.url)))failures.push('Verbindliche Quellbasis-Dokumentation fehlt');
+for(const file of baseline.requiredRegressionTests??[])if(!fs.existsSync(new URL('../'+file,import.meta.url)))failures.push(`Pflicht-Regression fehlt: ${file}`);
+if(!install.includes('MID_BASELINE.json'))failures.push('Installer verlangt die Baseline-Datei nicht');
+if(!install.includes('needs.install_build.outputs.commit_sha'))failures.push('Erfolgreicher Installationscommit wird nicht an den Deploy-Job übergeben');
+if(!install.includes('HEAD:refs/heads/mid-stable'))failures.push('mid-stable wird nach erfolgreichem Deployment nicht aktualisiert');
+if(!deploy.includes('ref: mid-stable'))failures.push('Manueller Deploy verwendet nicht die stabile Basis');
+if(failures.length){console.error('MID-Quellbasis-Schutz fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
+console.log(`MID-Quellbasis geschützt: ${baseline.lineage}, Release ${pkg.version}, stabiler Zweig ${baseline.stableBranch}.`);
