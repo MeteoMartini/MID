@@ -88,3 +88,16 @@
  .hero-kicker-row{align-items:flex-start;flex-direction:column;gap:4px}
  .hero-day-range{align-self:flex-start}
 }
+
+/* MID v0.7.106.3 – hochwertigere Tages-Min/Max-Anzeige */
+.hero-day-range>em{font-style:normal}
+@media(min-width:851px){
+ .hero-kicker-row{align-items:center}
+ .hero-day-range{display:grid;grid-template-columns:auto auto 48px auto;align-items:center;gap:10px;min-width:225px;padding:9px 12px;border-radius:15px;background:linear-gradient(145deg,color-mix(in srgb,var(--surface) 86%,transparent),color-mix(in srgb,var(--primary) 7%,var(--surface)));box-shadow:0 8px 22px rgba(0,0,0,.1)}
+ .hero-day-range>em{color:var(--muted);font-size:8px;font-weight:850;letter-spacing:.08em;text-transform:uppercase}
+ .hero-day-range>span{display:grid;gap:1px;align-items:center}
+ .hero-day-range small{font-size:7px;letter-spacing:.06em;text-transform:uppercase}
+ .hero-day-range b{font-size:17px}
+ .hero-day-range>i{width:48px;height:5px;border:0;border-radius:999px;background:linear-gradient(90deg,#63b4ff 0%,#b8d7d0 42%,#f0c85f 68%,#ff8a67 100%);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--border) 75%,transparent)}
+}
+@media(max-width:850px){.hero-day-range>em{display:none}}

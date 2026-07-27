@@ -1,3 +1,28 @@
+# MID v0.7.107.0
+
+- Grundlegendes Performance-Audit ohne Funktionsabbau: Ensemble-Aufrufe nutzen nun einen 20-minütigen Frischcache, Open-Meteo-Modellabfragen werden regional priorisiert und doppelte globale ECMWF-Abfragen in Europa vermieden.
+- Kompositdarstellung entlastet: Statt mehrerer gleichzeitig überblendeter Konturframes wird nur der zeitlich maßgebliche Frame gerendert; vorberechnete Konturgeometrien, wiederverwendete Datumsformatierer und verzögertes Speichern der Kartenoptionen reduzieren Rechen-, DOM- und Speicherlast.
+- Isobaren und 500-hPa-Isohypsen wieder deutlich sichtbar: eigener Leaflet-Layer oberhalb der Wetterebenen, kontrastreiche Doppelkontur mit dunklem Halo, stärkere Hauptlinien und besser lesbare Beschriftungen sowie Druckzentren.
+- Open-Meteo-Modellbestand aktualisiert: regionale ECMWF-IFS- und AIFS-Ensembles für Europa einschließlich offizieller Ensemble-Mittel integriert und gegenüber redundanten globalen Varianten bevorzugt.
+- Abrufstrategie an die Open-Meteo-Aktualisierung angepasst: Konturdaten werden client- und worker-seitig 30 Minuten zwischengespeichert, im sichtbaren Modul stündlich geprüft und bei kurzzeitigen Abruffehlern nicht mehr sofort aus der Karte entfernt.
+- Neuer Regressionstest schützt die Performanceoptimierungen, aktuellen Open-Meteo-Modellkennungen sowie die sichtbaren Isobaren/Isohypsen. Insgesamt 93 automatische MID-Regressionstests bestanden.
+
+# MID v0.7.106.3
+
+- Berg-/Wintersport-Favoriten robuster gespeichert: automatisch ermittelte Lift-/Stationsprofile werden synchron sowohl im Favoritenbestand als auch separat je Standort gesichert und unmittelbar in die persistente IndexedDB-/Cache-Sicherung übernommen.
+- Automatische Lift-/Stationssuche erhält einen zweiten Abrufdurchlauf. Bei einem vorübergehenden Dienstfehler bleibt ein bereits erfolgreich ermitteltes automatisches Profil erhalten, statt durch abgeleitete Standardwerte überschrieben zu werden.
+- Wind- und Schneedeckendaten in den Höhenkacheln räumlich getrennt und als eigenständige Informationsblöcke beschriftet.
+- Desktopdarstellung von Tmin/Tmax im aktuellen Wetter zu einer größeren, klar gegliederten Tagesbereichskarte mit Temperaturverlauf aufgewertet; mobile Darstellung bleibt kompakt.
+- Neuer Regressionstest schützt Bergprofil-Persistenz, Abruffallback, getrennte Wind-/Schneedaten und die überarbeitete Desktop-Tagesbereichsanzeige.
+
+# MID v0.7.106.2
+
+- Ensemble-PNG-Export grundlegend stabilisiert: Während des Exports werden Temperatur- und Niederschlagsdiagramm nicht mehr nachträglich über einen bereits gerenderten responsiven Recharts-Container verbreitert, sondern in einer festen, geräteunabhängigen Plot-Geometrie neu gerendert.
+- Ursache der fehlerhaften Exporte beseitigt: Beim Wechsel von der Bildschirmbreite auf 1180 px konnten Achsen bereits die neue Breite verwenden, während Kurven, Flächen oder deren Clip-Pfad noch auf der alten Mobil- bzw. Desktopbreite beruhten. Das führte mobil zur Stauchung/Abschneidung und am Desktop zum Überlaufen rechts über den Achsenbereich.
+- Exportmodus nutzt nun einen festen 1096-px-Plot, Desktop-Achsenabstände unabhängig vom Geräte-Viewport, einen expliziten Export-Renderzustand und wartet auf den tatsächlich neu aufgebauten Recharts-Wrapper.
+- Recharts-Animationen für die statischen Ensemblekurven und -flächen deaktiviert, damit während der PNG-Aufnahme keine Zwischengeometrie oder unvollständiger Clip-Pfad erfasst wird.
+- Exportbereich wird streng beschnitten; Metadaten bleiben wie gewünscht als Fußnote unter dem Diagramm. Neuer Regressionstest schützt die feste Desktop-/Mobil-Geometrie, animationsfreie Aufnahme und den vollständigen Plotbereich.
+
 # MID v0.7.106.1
 
 - Tagesdetaildiagramm: Ursache für Windwerte oberhalb der Böen eingegrenzt. MID verwendet Wind und Böen aus demselben Open-Meteo-Best-Match-Abruf, in identischer Einheit und am identischen Stundenindex; bekannte Modell-/Interpolationskonstellationen können dennoch `wind_gusts_10m < wind_speed_10m` liefern.

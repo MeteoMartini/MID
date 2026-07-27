@@ -104,7 +104,7 @@ Der Cloudflare Worker stellt browserkompatibel Stationsdaten, amtliche Warnungen
 - `rainviewer-meta` stellt die öffentliche RainViewer-Historie CORS-sicher und 120 Sekunden gecacht bereit. Zukunftsframes werden nur weitergereicht, wenn der Anbieter sie tatsächlich meldet.
 - `composite-times` liefert bis zu 150 Minuten Satelliten- und 130 Minuten Blitzhistorie sowie einen Publikationspuffer für verspätet eintreffende Satellitenprodukte.
 - H-SAF-Niederschlagsprodukte werden in der Reihenfolge MTG H40B (sobald als WMS-Layer vorhanden) und MSG H60B ausgewählt.
-- `model-contours` lädt ein großräumiges 17×25-Stützraster in kurzen Zeilenabfragen, erzeugt geglättete dynamische Isobaren und 500-hPa-Isohypsen im Abstand 8 gpdm und erkennt zusätzlich räumlich getrennte H-/T-Druckzentren. Die Antwort wird 15 Minuten gecacht.
+- `model-contours` lädt ein großräumiges 17×25-Stützraster in kurzen Zeilenabfragen, erzeugt geglättete dynamische Isobaren und 500-hPa-Isohypsen im Abstand 8 gpdm und erkennt zusätzlich räumlich getrennte H-/T-Druckzentren. Die Antwort wird 30 Minuten gecacht.
 - `composite-wms` akzeptiert die neuen freigegebenen H-SAF-Layer und berücksichtigt die längere Veröffentlichungsverzögerung von Satellitenprodukten.
 
 ## Hochauflösendes Radar v0.7.41
