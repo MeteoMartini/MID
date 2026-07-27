@@ -1,3 +1,9 @@
+# MID v0.7.105.2
+
+- Desktop-Darstellung der 7-Tage-Vorhersage überarbeitet: Die Temperaturbalken erhalten auf Desktop etwas kompaktere Spalten, damit Niederschlags-, Sonnen- und Windtext nicht mehr von den Temperaturwerten überdeckt wird.
+- Die Forecast-Zeile verteilt den verfügbaren Platz auf Desktop nun textfreundlicher; auf mittleren Desktopbreiten darf die Metazeile bei Bedarf umbrechen, auf großen Desktopbreiten bleibt sie weiterhin einzeilig.
+- Neuer Regressionstest schützt das Desktop-Layout der 7-Tage-Vorhersage mit schmaleren Temperaturbalken und den angepassten Spaltenbreiten.
+
 # MID v0.7.105.1
 
 - Radar-Nowcast: Die Niederschlagssumme für die nächsten zwei Stunden wird nun konsistent aus allen künftig sichtbaren 5-Minuten-Segmenten der Diagrammleiste gebildet. Dadurch erscheinen heranziehende bzw. unsichere Treffer nicht mehr mit Balken, aber gleichzeitig mit 0,00 mm in der Summenzeile.
