@@ -1,3 +1,10 @@
+# MID v0.7.108.2
+
+- Ensemble-Temperaturdiagramm: Achsentitel analog zum Niederschlagsdiagramm aus der Recharts-SVG-Fläche herausgelöst. „Temperatur“/„°C“ und „Vorhersagetag“ besitzen nun reservierte Layoutbereiche und bleiben auf Desktop, Mobilgeräten sowie im PNG-Export lesbar.
+- Temperatur-Exportgeometrie angepasst: Der feste 1096-px-Bereich enthält einen 1000-px-Diagrammkern mit getrennten Achsentitel- und Ausgleichsspalten; dadurch bleiben Plot und Achsenticks sauber ausgerichtet.
+- Aktuelles Wetter mobil: Tmin/Tmax wird als kleine, dezente Pille am oberen Modulrand dargestellt und aus dem normalen Gridfluss genommen. Dadurch entsteht keine zusätzliche breite Hero-Zeile und kein unnötiger Höhenbedarf.
+- Neue bzw. angepasste Regressionstests schützen die externen Temperatur-Achsentitel, die feste Exportgeometrie und die platzsparende mobile Tmin-/Tmax-Anzeige.
+
 # MID v0.7.108.1
 
 - Ensemble-Niederschlagsdiagramm: Achsentitel aus der Recharts-SVG-Fläche herausgelöst und als eigenständige, reservierte Layoutbereiche umgesetzt. Dadurch können „Niederschlag“, „Wahrscheinlichkeit“ und „Vorhersagetag“ weder von Achsenticks noch vom Teilen-/Infobereich überlagert oder abgeschnitten werden.

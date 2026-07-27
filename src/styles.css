@@ -2226,3 +2226,115 @@ button,input,select,[role="button"]{touch-action:manipulation}
 @media(max-width:420px){
   .ensemble-chart-export .chart.rain{height:258px!important}
 }
+
+/* MID v0.7.108.2 – dauerhaft lesbare Achsentitel im Ensemble-Temperaturdiagramm */
+.ensemble-temp-plot{
+  display:grid;
+  grid-template-columns:44px minmax(0,1fr) 38px;
+  gap:6px;
+  align-items:stretch;
+  flex:1 1 auto;
+  width:100%;
+  min-width:0;
+  min-height:0;
+}
+.ensemble-temp-chart-core{
+  display:grid;
+  grid-template-rows:minmax(0,1fr) 28px;
+  min-width:0;
+  min-height:0;
+}
+.ensemble-temp-chart-core>.recharts-responsive-container{
+  min-width:0!important;
+  min-height:0!important;
+}
+.ensemble-temp-axis-title{
+  color:var(--muted);
+  font-size:10px;
+  font-weight:700;
+  line-height:1;
+  letter-spacing:.01em;
+  pointer-events:none;
+  user-select:none;
+}
+.ensemble-temp-axis-title b,
+.ensemble-temp-axis-title small{
+  font:inherit;
+  white-space:nowrap;
+}
+.ensemble-temp-axis-title-left{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  writing-mode:vertical-rl;
+  transform:rotate(180deg);
+}
+.ensemble-temp-axis-title-bottom{
+  display:flex;
+  align-items:end;
+  justify-content:center;
+  padding-top:5px;
+  font-size:11px;
+}
+.ensemble-temp-axis-spacer{display:block}
+@media(max-width:620px){
+  .ensemble-temp-plot{
+    grid-template-columns:minmax(0,1fr);
+    grid-template-rows:22px minmax(0,1fr);
+    gap:3px;
+  }
+  .ensemble-temp-chart-core{
+    grid-column:1;
+    grid-row:2;
+    grid-template-rows:minmax(0,1fr) 24px;
+  }
+  .ensemble-temp-axis-title-left{
+    grid-column:1;
+    grid-row:1;
+    justify-content:flex-start;
+    writing-mode:horizontal-tb;
+    transform:none;
+    gap:3px;
+    font-size:8px;
+  }
+  .ensemble-temp-axis-title-bottom{
+    align-items:center;
+    padding-top:2px;
+    font-size:9px;
+  }
+  .ensemble-temp-axis-spacer{display:none}
+}
+.ensemble-chart-export.ensemble-exporting .ensemble-temp-plot{
+  grid-template-columns:42px 1000px 38px;
+  grid-template-rows:minmax(0,1fr);
+  gap:8px;
+  width:1096px;
+  margin:0 auto;
+}
+.ensemble-chart-export.ensemble-exporting .ensemble-temp-chart-core{
+  grid-column:auto;
+  grid-row:auto;
+  grid-template-rows:minmax(0,1fr) 28px;
+}
+.ensemble-chart-export.ensemble-exporting .ensemble-temp-axis-title-left{
+  grid-column:auto;
+  grid-row:auto;
+  justify-content:center;
+  writing-mode:vertical-rl;
+  transform:rotate(180deg);
+  font-size:10px;
+}
+.ensemble-chart-export.ensemble-exporting .ensemble-temp-axis-title-bottom{
+  align-items:end;
+  padding-top:5px;
+  font-size:11px;
+}
+.ensemble-chart-export.ensemble-exporting .ensemble-temp-axis-spacer{display:block}
+.ensemble-chart-export.ensemble-exporting .ensemble-temp-plot .ensemble-fixed-chart,
+.ensemble-chart-export.ensemble-exporting .ensemble-temp-plot .ensemble-fixed-chart>.recharts-wrapper,
+.ensemble-chart-export.ensemble-exporting .ensemble-temp-plot .ensemble-fixed-chart>svg{
+  width:1000px!important;
+  min-width:1000px!important;
+  max-width:1000px!important;
+}

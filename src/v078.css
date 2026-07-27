@@ -161,3 +161,51 @@
  .module-inline-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}
  .module-inline-options label,.module-inline-options select,.water-inline-options label:last-child,.water-inline-options label:last-child select{min-width:0;width:100%}
 }
+
+/* MID v0.7.108.2 – mobile, platzsparende Tmin-/Tmax-Pille */
+@media(max-width:520px){
+ .hero>.hero-day-range{
+  position:absolute;
+  z-index:2;
+  top:10px;
+  right:10px;
+  display:inline-flex;
+  grid-template-columns:none;
+  grid-template-areas:none;
+  align-items:center;
+  width:auto;
+  min-width:0;
+  min-height:0;
+  padding:4px 7px;
+  gap:5px;
+  border-color:color-mix(in srgb,var(--border) 88%,transparent);
+  border-radius:999px;
+  background:color-mix(in srgb,var(--surface) 76%,transparent);
+  box-shadow:none;
+  backdrop-filter:blur(8px);
+ }
+ .hero>.hero-day-range>em,
+ .hero>.hero-day-range>i{display:none}
+ .hero>.hero-day-range>span{
+  display:inline-flex;
+  align-items:baseline;
+  gap:3px;
+ }
+ .hero>.hero-day-range>.min,
+ .hero>.hero-day-range>.max{
+  justify-self:auto;
+  text-align:left;
+ }
+ .hero>.hero-day-range>.max::before{
+  content:"·";
+  margin-right:2px;
+  color:var(--muted);
+ }
+ .hero>.hero-day-range small{
+  font-size:6.5px;
+  font-weight:750;
+  letter-spacing:.03em;
+  text-transform:none;
+ }
+ .hero>.hero-day-range b{font-size:10px}
+}

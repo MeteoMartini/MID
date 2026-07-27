@@ -20,4 +20,7 @@ assert.match(water,/aria-label="Wassersportaktivität"/,'Aktivitäts-Untermodus 
 assert.match(app,/updateCurrentWater=useCallback[\s\S]*persistFavoriteSnapshot/,'Wassersport-Untermodi müssen dauerhaft im Favoritenprofil gespeichert werden');
 assert.match(css,/\.module-inline-segmented/,'Dezentes Segment-Steuerelement fehlt');
 assert.match(css,/\.module-inline-options/,'Dezente Moduloptionen fehlen');
+
+assert.match(css,/@media\(max-width:520px\)[\s\S]*?\.hero>\.hero-day-range\{[\s\S]*?position:absolute;[\s\S]*?width:auto;[\s\S]*?min-height:0;/,'Mobile Tmin/Tmax muss als unauffällige Pille ohne zusätzliche Hero-Zeile erscheinen');
+assert.match(css,/\.hero>\.hero-day-range>em,[\s\S]*?\.hero>\.hero-day-range>i\{display:none\}/,'Mobile Tmin/Tmax muss Beschriftung und Verlaufsbalken ausblenden');
 console.log('Aktuelles Wetter, Windumbruch, Trend-Rechtschreibung und direkte Berg-/Wassersportoptionen geprüft.');

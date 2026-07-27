@@ -15,7 +15,7 @@ for(const token of [
  '[exportingKind,setExportingKind]=useState<EnsembleExportKind|null>(null)',
  "compactTrendTooltip=exporting?false:viewportCompact",
  "compactChart=exportingKind==='precipitation'?false:viewportCompactChart",
- "StableChartFrame exporting={exporting} height={310}",
+ "StableChartFrame exporting={exporting} height={exporting?282:310} exportWidth={ENSEMBLE_TEMP_EXPORT_CHART_WIDTH}",
  "StableChartFrame exporting={exportingKind==='precipitation'} height={250} exportWidth={ENSEMBLE_RAIN_EXPORT_CHART_WIDTH}"
 ])if(!ensemble.includes(token))failures.push(`Feste Export-Geometrie fehlt: ${token}`);
 if((ensemble.match(/isAnimationActive=\{false\}/g)||[]).length<16)failures.push('Nicht alle Ensemble-Flächen und -Linien sind für den Export animationsfrei.');
@@ -26,6 +26,7 @@ for(const token of [
  'contain:none!important',
  '.ensemble-chart-export.ensemble-exporting .ensemble-fixed-chart{',
  'width:1096px!important',
+ 'width:1000px!important',
  'overflow:hidden'
 ])if(!styles.includes(token))failures.push(`CSS-Schutz der Export-Geometrie fehlt: ${token}`);
 if(failures.length){console.error('Feste Ensemble-Export-Geometrie fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
