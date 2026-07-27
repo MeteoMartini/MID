@@ -9,7 +9,8 @@ assert.match(app,/function buildSevenDayForecastSummary/,'Auswertungsfunktion fe
 assert.match(app,/function sevenDayPoint/,'Tagescharakter-Auswertung für die Kurzinterpretation fehlt');
 assert.match(app,/function sevenDayClause/,'natürliche Satzbildung für die Kurzinterpretation fehlt');
 assert.match(app,/Heute und morgen \$\{description\}|Heute \$\{description\}/,'der erste Prognosetag muss sprachlich natürlich mit Heute beginnen können');
-assert.match(app,/meist sonnig und zunehmend heiß|zunehmend heiß|meist sonnig und heiß/,'Hitzephase wird nicht kompakt beschrieben');
+assert.match(app,/zunehmend heiß|sehr heiß|extrem heiß|sommerlich warm/,'DWD-nahe Temperaturklassifikation fehlt');
+assert.match(app,/überwiegend bewölkt, aber meist trocken/,'bewölkte Trockenphasen müssen im Trend eigenständig erkennbar sein');
 const summaryIndex=app.indexOf('<SevenDayForecastSummary');
 const dayIndex=app.indexOf('{forecastDays.map',summaryIndex);
 assert.ok(summaryIndex>=0&&dayIndex>summaryIndex,'Kurzinterpretation muss vor dem ersten Prognosetag stehen');

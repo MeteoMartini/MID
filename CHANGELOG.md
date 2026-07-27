@@ -1,3 +1,19 @@
+# MID v0.7.106.0
+
+- 7-Tage-Trend fachlich neu gewichtet: Die ersten Prognosetage erhalten deutlich mehr Einfluss als das Ende des Zeitraums; kurze spätere Ausreißer verdrängen damit nicht mehr den unmittelbar bevorstehenden Wettercharakter.
+- Wetterverlauf differenzierter ausgewertet: heiter/sonnig, Sonne und Wolken, stark bzw. meist bewölkt, regnerisch, gewittrig und winterlich werden als eigene zeitliche Regime behandelt. Bewölkungstexte haben Vorrang vor einer isoliert hohen Sonnenscheindauer; die Sonnenscheindauer wird zusätzlich relativ zur astronomischen Tageslänge bewertet.
+- Temperaturbeschreibung an DWD-Kenntage angelehnt: Sommertag ab 25 °C, heißer Tag ab 30 °C, sehr heiß ab 35 °C, extrem heiß ab 40 °C, Tropennacht ab 20 °C Mindesttemperatur sowie Eistag bei einem Tagesmaximum unter 0 °C. Verfügbare ERA5-Land-Klimamittel 1991–2020 fließen für markante Abweichungen vom örtlichen Klimamittel ein.
+- Markante automatische DWD-nahe Warnsignale werden priorisiert in den Kurztrend aufgenommen; dafür bleibt bei einem Hazard stets Platz im maximal dreisätzigen Text.
+- Klimamittel werden nun bereits für die aktivierte 7-Tage-Kurzinterpretation geladen und nicht erst nach dem Öffnen des Ensemble-Moduls.
+- Quellengetreue Wind-/Böenbehandlung nachgezogen: keine Glättung und keine künstliche Anhebung der Böe mehr. Ist ein Böenwert kleiner als der zugehörige Wind, wird er als unplausibel behandelt und als nicht verfügbar dargestellt.
+- Neue und angepasste Regressionstests schützen Frühgewichtung, DWD-Kenntage, Klimavergleich, Hazard-Priorität, Bewölkungsverlauf und die unverfälschte Wind-/Böenprüfung.
+
+# MID v0.7.105.5
+
+- Exportdarstellung der Ensemble-Diagramme stabilisiert: Temperatur- und Niederschlagsgrafiken erhalten ausgewogenere Außenabstände, damit Achsen und Kurven in Desktop- und Mobil-Exports nicht mehr nach rechts verrutschen.
+- Export-Metadaten neu angeordnet: „Darstellung“, „Quellen“, „Modellstände“ und „MID“ stehen nun als Fußnote unter dem Diagramm statt oberhalb der Grafik.
+- Neuer Regressionstest schützt die Fußnotenposition und die exportstabilen Diagrammmargen; der bestehende Interaktionstest akzeptiert die angepassten Außenmaße.
+
 # MID v0.7.105.4
 
 - Bergmodul sprachlich auf „Berg-/Wintersport“ umgestellt und die Kachelstruktur saisonal aufgewertet: UVI erscheint wieder als eigenständige Kachel; zusätzlich zeigt der Sommermodus das Gewitterpotenzial und der Wintermodus den prognostizierten Neuschnee +24 h.
