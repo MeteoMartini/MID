@@ -568,7 +568,7 @@ function RadarNowcastTimeline({radar,timezone}:{radar:RadarNowcast;timezone?:str
  const statusFor=(segment:RawSegment)=>segment.expected?(segment.uncertain?'Erwarteter Treffer · unsicher':'Erwarteter Standorttreffer'):segment.nearby?'Echo in der Umgebung':segment.future?'Prognostizierter Standorttreffer':'Beobachtung am Standort';
  for(const segment of rawSegments){const first=Math.floor(segment.start/FIVE_MINUTES)*FIVE_MINUTES,last=Math.ceil(segment.end/FIVE_MINUTES)*FIVE_MINUTES;for(let slot=first;slot<last;slot+=FIVE_MINUTES){if(slot<start||slot>=end)continue;const candidate:Segment={id:`${slot}`,start:slot,end:slot+FIVE_MINUTES,left:position(slot),right:position(slot+FIVE_MINUTES),rate:segment.rate,amount:radarIntervalAmount(segment.rate,5),future:segment.future||slot>now,nearby:segment.nearby,expected:segment.expected,uncertain:segment.uncertain,status:statusFor(segment)},existing=bucketMap.get(slot),candidateRank=(candidate.expected?0:candidate.nearby?1:2)+(candidate.rate/1000),existingRank=existing?((existing.expected?0:existing.nearby?1:2)+(existing.rate/1000)):-1;if(!existing||candidateRank>existingRank)bucketMap.set(slot,candidate)}}
  const timelineSegments:Segment[]=[];for(let slot=start;slot<end;slot+=FIVE_MINUTES){const existing=bucketMap.get(slot);timelineSegments.push(existing??{id:`${slot}`,start:slot,end:slot+FIVE_MINUTES,left:position(slot),right:position(slot+FIVE_MINUTES),rate:0,amount:0,future:slot>now,nearby:false,status:slot>now?'Kein prognostiziertes Radarsignal':'Kein Radarsignal am Standort'})}
- const displaySegments=timelineSegments.filter(segment=>segment.rate>0),scale=radarRateScale(Math.max(...displaySegments.map(segment=>segment.rate),.05)),forecastAmount=displaySegments.filter(segment=>segment.end>now&&!segment.nearby).reduce((sum,segment)=>sum+segment.amount,0),[selectedId,setSelectedId]=useState<string|null>(null),selected=timelineSegments.find(segment=>segment.id===selectedId)??null,anchorRef=useRef<HTMLButtonElement|null>(null),trackRef=useRef<HTMLDivElement|null>(null),dragPointer=useRef<number|null>(null);
+ const displaySegments=timelineSegments.filter(segment=>segment.rate>0),scale=radarRateScale(Math.max(...displaySegments.map(segment=>segment.rate),.05)),forecastAmount=timelineSegments.filter(segment=>segment.rate>0&&segment.end>now).reduce((sum,segment)=>sum+segment.amount,0),[selectedId,setSelectedId]=useState<string|null>(null),selected=timelineSegments.find(segment=>segment.id===selectedId)??null,anchorRef=useRef<HTMLButtonElement|null>(null),trackRef=useRef<HTMLDivElement|null>(null),dragPointer=useRef<number|null>(null);
  useEffect(()=>{if(selectedId&&!timelineSegments.some(segment=>segment.id===selectedId))setSelectedId(null)},[selectedId,timelineSegments]);
  const selectAt=(clientX:number)=>{const track=trackRef.current;if(!track)return;const rect=track.getBoundingClientRect(),ratio=Math.max(0,Math.min(.9999,(clientX-rect.left)/Math.max(1,rect.width))),slot=start+Math.floor(ratio*timelineSegments.length)*FIVE_MINUTES,set=timelineSegments.find(segment=>segment.start===slot)??timelineSegments.at(-1);if(set)setSelectedId(set.id)};
  const pointerDown=(event:ReactPointerEvent<HTMLDivElement>)=>{if(event.button!==0)return;dragPointer.current=event.pointerId;event.currentTarget.setPointerCapture?.(event.pointerId);selectAt(event.clientX)};
@@ -603,38 +603,51 @@ function combineRadarAndModel(model:PrecipNowResult,radar:RadarNowcast|null,load
  return{probability,summary:radarSummary(radar,timezone)||model.summary,source:`Radarabgleich aktiv · ${radar.provider}${observed?` · Stand ${observed} Uhr`:''} · ${ageMinutes} min alt · Qualität ${quality}${seasonal} · ${Math.round(radarWeight*100)} % Radar / ${Math.round((1-radarWeight)*100)} % Modell`};
 }
 
-type SevenDayWeatherRegime='sunny'|'cloudy'|'changeable'|'rain'|'thunder'|'snow';
-type SevenDayWeatherPoint={day:Day;regime:SevenDayWeatherRegime};
-type SevenDayWeatherSegment={regime:SevenDayWeatherRegime;start:number;end:number;days:Day[]};
-function sevenDayRegime(day:Day,dayHours:Hour[]):SevenDayWeatherRegime{
- const codes=[day.code,...dayHours.map(hour=>hour.code)].filter(Number.isFinite).map(Number),has=(values:number[])=>codes.some(code=>values.includes(Math.round(code))),maxCape=Math.max(0,...dayHours.map(hour=>Number(hour.cape)||0));
- if(has([95,96,97,99])||maxCape>=700&&day.probability>=45)return'thunder';
- if(has([71,73,75,77,85,86]))return'snow';
- if(has([80,81,82])||day.precipitation>=.4&&day.probability>=35&&codes.some(code=>code<=2))return'changeable';
- if(has([51,53,55,56,57,61,63,65,66,67])||day.precipitation>=1||day.probability>=60)return'rain';
- if(has([0,1])&&day.precipitation<.3&&day.probability<35)return'sunny';
- if(has([2])&&day.precipitation<.5)return'changeable';
- return'cloudy';
+type SevenDayWeatherRegime='dry'|'wet'|'storm'|'snow';
+type SevenDayWeatherPoint={day:Day;regime:SevenDayWeatherRegime;sunHours:number;showery:boolean;sunny:boolean;cloudy:boolean;hot:boolean;warm:boolean;veryHot:boolean};
+type SevenDayWeatherSegment={regime:SevenDayWeatherRegime;start:number;end:number;points:SevenDayWeatherPoint[]};
+function sevenDayPoint(day:Day,dayHours:Hour[]):SevenDayWeatherPoint{
+ const character=dayWeatherCharacter(day,dayHours),codes=[day.code,...dayHours.map(hour=>hour.code)].filter(Number.isFinite).map(Number),has=(values:number[])=>codes.some(code=>values.includes(Math.round(code))),maxCape=Math.max(0,...dayHours.map(hour=>Number(hour.cape)||0)),text=`${character.label} ${character.secondary||''}`.toLocaleLowerCase('de-DE'),sunHours=Math.max(0,Number(day.sunshineDuration)||0)/3600,veryHot=day.max>=34,hot=day.max>=30,warm=day.max>=25,sunny=/sonnig|heiter/.test(text)||sunHours>=6||(has([0,1])&&day.probability<35),cloudy=/bedeckt|bewölkt|wolkig/.test(text)||(!sunny&&sunHours<4),showery=has([80,81,82])||/schauer|wechselhaft/.test(text),wetDominant=character.precipitationDominant||day.precipitation>=1.2||day.probability>=75||(day.precipitation>=.6&&day.probability>=55),stormy=has([95,96,97,99])||maxCape>=700&&day.probability>=45,snowy=has([71,73,75,77,85,86]),regime=snowy?'snow':stormy?'storm':wetDominant?'wet':'dry';
+ return{day,regime,sunHours,showery,sunny,cloudy,hot,warm,veryHot};
 }
 function sevenDaySegmentDescription(segment:SevenDayWeatherSegment){
- const maxima=segment.days.map(day=>day.max).filter(Number.isFinite),averageMax=maxima.length?maxima.reduce((sum,value)=>sum+value,0)/maxima.length:0,hotDays=maxima.filter(value=>value>=30).length;
- if(segment.regime==='sunny')return hotDays>=Math.ceil(segment.days.length/2)?'sonnig, trocken und heiß':averageMax>=24?'sonnig, trocken und warm':'sonnig und trocken';
- if(segment.regime==='thunder')return'gewittrig und wechselhaft';
+ const points=segment.points,totalPrecip=points.reduce((sum,point)=>sum+Math.max(0,Number(point.day.precipitation)||0),0),showeryDays=points.filter(point=>point.showery).length,sunnyDays=points.filter(point=>point.sunny).length,cloudyDays=points.filter(point=>point.cloudy).length,hotDays=points.filter(point=>point.hot).length,warmDays=points.filter(point=>point.warm).length,veryHotDays=points.filter(point=>point.veryHot).length,risingHeat=points.length>=2&&points[points.length-1].day.max>=points[0].day.max+4;
  if(segment.regime==='snow')return'winterlich mit Schnee';
- if(segment.regime==='rain')return'regnerisch';
- if(segment.regime==='cloudy')return'überwiegend bewölkt';
- return'wechselhaft';
+ if(segment.regime==='storm')return hotDays>=Math.ceil(points.length/2)?'schwül und gewittrig':'wechselhaft mit Gewittern';
+ if(segment.regime==='wet'){
+  if(showeryDays>=Math.ceil(points.length/2)&&totalPrecip<8)return'wechselhaft mit einzelnen Schauern';
+  if(totalPrecip>=8||points.some(point=>point.day.probability>=80&&point.day.precipitation>=2))return'regnerisch';
+  return'wechselhaft mit Regenphasen';
+ }
+ if(hotDays>=Math.ceil(points.length/2)){
+  if(risingHeat&&hotDays>=2)return sunnyDays>=Math.ceil(points.length/2)?'meist sonnig und zunehmend heiß':'zunehmend heiß';
+  if(sunnyDays>=Math.ceil(points.length/2))return veryHotDays>0?'meist sonnig und heiß':'freundlich bis sonnig und warm';
+  return'überwiegend trocken und heiß';
+ }
+ if(warmDays>=Math.ceil(points.length/2))return sunnyDays>=Math.ceil(points.length/2)?'freundlich und warm':'überwiegend trocken und warm';
+ if(sunnyDays>=Math.ceil(points.length/2))return'meist sonnig und trocken';
+ if(cloudyDays>=Math.ceil(points.length/2))return'überwiegend trocken, zeitweise wolkig';
+ return'überwiegend trocken';
 }
 function sevenDayWeekday(day:Day){return formatDateOnly(day.date,{weekday:'long'})}
+function sevenDayClause(segment:SevenDayWeatherSegment,forecastDays:Day[],index:number,total:number){
+ const description=sevenDaySegmentDescription(segment),startDay=forecastDays[segment.start],endDay=forecastDays[segment.end];
+ if(index===0){
+  if(segment.start===0&&segment.end===0)return`Heute ${description}`;
+  if(segment.start===0&&segment.end===1)return`Heute und morgen ${description}`;
+  return`Bis ${sevenDayWeekday(endDay)} ${description}`;
+ }
+ if(segment.start===segment.end)return`Am ${sevenDayWeekday(startDay)} ${description}`;
+ if(index===total-1)return`Ab ${sevenDayWeekday(startDay)} ${description}`;
+ return`Danach ${description}`;
+}
 export function buildSevenDayForecastSummary(days:Day[],hours:Hour[]){
  const forecastDays=days.slice(0,7);if(!forecastDays.length)return'';
- const points:SevenDayWeatherPoint[]=forecastDays.map(day=>({day,regime:sevenDayRegime(day,hours.filter(hour=>hour.time.startsWith(day.date)))})),segments:SevenDayWeatherSegment[]=[];
- for(const point of points){const current=segments[segments.length-1];if(current?.regime===point.regime){current.end++;current.days.push(point.day)}else segments.push({regime:point.regime,start:segments.length?segments[segments.length-1].end+1:0,end:segments.length?segments[segments.length-1].end+1:0,days:[point.day]})}
- if(segments.length===1)return`Die nächsten sieben Tage bleiben ${sevenDaySegmentDescription(segments[0])}.`;
- const first=segments[0],last=segments[segments.length-1],firstClause=`Bis ${sevenDayWeekday(forecastDays[first.end])} ${sevenDaySegmentDescription(first)}`,lastClause=`ab ${sevenDayWeekday(forecastDays[last.start])} ${sevenDaySegmentDescription(last)}`;
- if(segments.length===2)return`${firstClause}, ${lastClause}.`;
- if(segments.length===3){const middle=segments[1],middlePeriod=middle.start===middle.end?sevenDayWeekday(forecastDays[middle.start]):`${sevenDayWeekday(forecastDays[middle.start])} bis ${sevenDayWeekday(forecastDays[middle.end])}`;return`${firstClause}, ${middlePeriod} ${sevenDaySegmentDescription(middle)}, ${lastClause}.`}
- return`${firstClause}, danach wechselhaft, ${lastClause}.`;
+ const points:SevenDayWeatherPoint[]=forecastDays.map(day=>sevenDayPoint(day,hours.filter(hour=>hour.time.startsWith(day.date)))),segments:SevenDayWeatherSegment[]=[];
+ for(const point of points){const current=segments[segments.length-1];if(current?.regime===point.regime){current.end++;current.points.push(point)}else segments.push({regime:point.regime,start:segments.length?segments[segments.length-1].end+1:0,end:segments.length?segments[segments.length-1].end+1:0,points:[point]})}
+ if(segments.length===1)return segments[0].end===0?`Heute ${sevenDaySegmentDescription(segments[0])}.`:`Die nächsten sieben Tage bleiben ${sevenDaySegmentDescription(segments[0])}.`;
+ const effectiveSegments=segments.length<=3?segments:[segments[0],segments[1],segments[segments.length-1]],clauses=effectiveSegments.map((segment,index)=>sevenDayClause(segment,forecastDays,index,effectiveSegments.length));
+ return`${clauses.join('. ')}.`;
 }
 function SevenDayForecastSummary({days,hours}:{days:Day[];hours:Hour[]}){const summary=useMemo(()=>buildSevenDayForecastSummary(days,hours),[days,hours]);if(!summary)return null;return <aside className="seven-day-forecast-summary" aria-label="Kurzinterpretation der nächsten sieben Tage"><small>7-Tage-Trend</small><strong>{summary}</strong></aside>}
 

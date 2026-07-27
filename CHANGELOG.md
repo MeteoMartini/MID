@@ -1,3 +1,9 @@
+# MID v0.7.105.1
+
+- Radar-Nowcast: Die Niederschlagssumme für die nächsten zwei Stunden wird nun konsistent aus allen künftig sichtbaren 5-Minuten-Segmenten der Diagrammleiste gebildet. Dadurch erscheinen heranziehende bzw. unsichere Treffer nicht mehr mit Balken, aber gleichzeitig mit 0,00 mm in der Summenzeile.
+- 7-Tage-Kurzinterpretation sprachlich und meteorologisch verfeinert: Der Text wertet jetzt den tatsächlich dargestellten Tagescharakter gröber aus, vermeidet doppelte Formulierungen wie „wechselhaft, danach wechselhaft“ und beginnt am aktuellen ersten Tag natürlich mit „Heute“ statt „bis Montag“.
+- Neue Regressionstests schützen die korrigierte Radar-Summenlogik sowie die verbesserte deutsche Satzbildung der 7-Tage-Kurzinterpretation.
+
 # MID v0.7.105.0
 
 - Neue, standardmäßig aktive 7-Tage-Kurzinterpretation vor dem ersten Prognosetag. Zusammenhängende Wetterphasen werden zu einem möglichst kurzen deutschen Satz verdichtet, etwa „Bis Dienstag wechselhaft, ab Mittwoch sonnig, trocken und heiß.“

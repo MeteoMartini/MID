@@ -6,8 +6,10 @@ assert.match(app,/FORECAST_DISPLAY_SETTINGS_KEY='mid:forecastDisplaySettings'/,'
 assert.match(app,/showSevenDaySummary:parsed\?\.showSevenDaySummary!==false/,'Kurzinterpretation muss standardmäßig aktiv sein');
 assert.match(app,/7-Tage-Kurzinterpretation/,'Schalter in den Einstellungen fehlt');
 assert.match(app,/function buildSevenDayForecastSummary/,'Auswertungsfunktion fehlt');
-assert.match(app,/Bis \$\{sevenDayWeekday/,'kompakte Bis-/Ab-Interpretation fehlt');
-assert.match(app,/sonnig, trocken und heiß/,'Hitzephase wird nicht kompakt beschrieben');
+assert.match(app,/function sevenDayPoint/,'Tagescharakter-Auswertung für die Kurzinterpretation fehlt');
+assert.match(app,/function sevenDayClause/,'natürliche Satzbildung für die Kurzinterpretation fehlt');
+assert.match(app,/Heute und morgen \$\{description\}|Heute \$\{description\}/,'der erste Prognosetag muss sprachlich natürlich mit Heute beginnen können');
+assert.match(app,/meist sonnig und zunehmend heiß|zunehmend heiß|meist sonnig und heiß/,'Hitzephase wird nicht kompakt beschrieben');
 const summaryIndex=app.indexOf('<SevenDayForecastSummary');
 const dayIndex=app.indexOf('{forecastDays.map',summaryIndex);
 assert.ok(summaryIndex>=0&&dayIndex>summaryIndex,'Kurzinterpretation muss vor dem ersten Prognosetag stehen');
