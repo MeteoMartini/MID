@@ -1,3 +1,10 @@
+# MID v0.7.109.2
+
+- Kompositbild: Für KONRAD3D-Zellen wird im K3D-/NowCastMIX-Layer nun zusätzlich ein Wahrscheinlichkeitskegel der Zugbahn gerendert. Der Kegel nutzt die verfügbare Prognoseposition und den Unsicherheitsradius und macht die erwartete Verlagerung wieder direkt auf der Karte sichtbar.
+- Die Zellprognose selbst wird im Overlay wieder klar visualisiert: gestrichelte Prognoselinie, markierter Prognosepunkt sowie ein eigener Overlay-Pane sorgen dafür, dass die Darstellung auch über Radar- und Satellitenlayern sichtbar bleibt.
+- Die Legende des Kompositbilds wurde passend ergänzt und erläutert nun sowohl die Zellprognose als auch den Wahrscheinlichkeitskegel.
+- Neuer Regressionstest schützt Wahrscheinlichkeitskegel, Prognosepunkt, Overlay-Pane und Legendenhinweis.
+
 # MID v0.7.109.1
 
 - Tagesdetaildiagramm im Tablet-Hochformat verbessert: Alle stündlichen Wetterpiktogramme und Windrichtungspfeile bleiben sichtbar.
