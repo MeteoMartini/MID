@@ -1,0 +1,12 @@
+import {readFileSync} from 'node:fs';
+import assert from 'node:assert/strict';
+const app=readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
+const css=readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
+assert.match(app,/label:'Luftqualität',value:airClassification\?airClassification\.band\.label:'–'/,'AQI-Kachel muss als Primärwert nur noch die Einstufung zeigen');
+assert.match(app,/detail:airClassification\?`\$\{airClassification\.dominant\.formula\} · \$\{formatDecimal\(airClassification\.dominant\.value,1,1\)\} µg\/m³ · Open-Meteo\/CAMS`:'Open-Meteo\/CAMS'/,'AQI-Kachel muss die Doppelung im Detailtext vermeiden');
+assert.match(app,/airCard\?'Luftqualität \(EU-AQI\)':x\.label/,'AQI-Kachel muss EU-AQI in der Überschrift tragen');
+assert.match(app,/className=\{airCard\?'air-quality-primary':undefined\}/,'AQI-Kachel braucht eine eigene kompaktere Primärtypografie');
+assert.doesNotMatch(app,/<b>\{band\.label\}<\/b>/,'AQI-Indikator darf die Einstufung nicht doppelt wiederholen');
+assert.match(css,/\.metrics \.air-quality-card>strong\.air-quality-primary\{/,'kompaktere AQI-Typografie fehlt');
+assert.match(css,/\.aqi-indicator\{[\s\S]*display:flex;/,'AQI-Indikator muss kompakter als horizontale Leiste dargestellt werden');
+console.log('AQI-Kachel geprüft: kompakter Hauptwert, EU-AQI in der Überschrift und keine doppelte Mittelmäßig-Anzeige.');

@@ -1713,23 +1713,26 @@ footer{flex-wrap:wrap;align-items:center}
   right:-4px;
   width:min(330px,calc(100vw - 24px));
 }
+.metrics .air-quality-card>strong.air-quality-primary{
+  margin-top:9px;
+  font-size:clamp(13px,1.05vw,18px);
+  line-height:1.12;
+}
+.metrics .air-quality-card>small{
+  margin-top:5px;
+  line-height:1.22;
+}
 .aqi-indicator{
   color:var(--aqi-color,#50ccaa);
-  display:grid;
-  grid-template-columns:8px auto 1fr;
+  display:flex;
   align-items:center;
-  gap:5px;
-  margin-top:5px;
-  color:var(--muted);
-  font-size:8px;
+  gap:7px;
+  margin-top:6px;
+  min-height:10px;
   line-height:1;
 }
-.aqi-indicator>b{
-  color:var(--text);
-  font-size:8px;
-  white-space:nowrap;
-}
 .aqi-marker{
+  flex:0 0 auto;
   width:7px;
   height:7px;
   border:1px solid currentColor;
@@ -1739,11 +1742,12 @@ footer{flex-wrap:wrap;align-items:center}
   box-shadow:0 0 0 2px color-mix(in srgb,currentColor 16%,transparent);
 }
 .aqi-segments{
+  flex:1 1 auto;
   display:grid;
   grid-template-columns:repeat(6,minmax(3px,1fr));
-  gap:2px;
+  gap:3px;
   min-width:42px;
-  height:6px;
+  height:7px;
 }
 .aqi-segments>i{
   display:block;

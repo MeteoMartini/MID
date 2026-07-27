@@ -1,3 +1,9 @@
+# MID v0.7.105.3
+
+- Kachel „Luftqualität“ gestalterisch an die übrigen Aktuell-Wetter-Kacheln angenähert: Die große Primärschrift ist kompakter, EU-AQI steht nun in der Überschrift und die doppelte Wiederholung der Einstufung entfällt.
+- AQI-Kachel inhaltlich gestrafft: Primärwert zeigt nur noch die Stufe, die Detailzeile nennt kompakt den maßgeblichen Stoff mit Konzentration und Quelle.
+- Neuer Regressionstest schützt die kompaktere AQI-Kachel mit EU-AQI in der Überschrift und ohne doppelte Statusanzeige.
+
 # MID v0.7.105.2
 
 - Desktop-Darstellung der 7-Tage-Vorhersage überarbeitet: Die Temperaturbalken erhalten auf Desktop etwas kompaktere Spalten, damit Niederschlags-, Sonnen- und Windtext nicht mehr von den Temperaturwerten überdeckt wird.
