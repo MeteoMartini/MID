@@ -9,11 +9,10 @@ assert.match(app,/Neuschnee \+24 h/,'Wintermodus muss Neuschnee als eigene Kache
 assert.match(app,/Gewitterpotenzial/,'Sommermodus muss Gewitterpotenzial als eigene Kachel anbieten');
 assert.doesNotMatch(app,/title="Berg- & Skimodus"/,'alter Berg-/Skimodus-Titel darf nicht mehr verwendet werden');
 assert.match(weather,/export function validateWindPair\(/,'wind/gust-Plausibilitätsprüfung fehlt');
-assert.match(weather,/gust:Number\.isFinite\(gustValue\)&&gustValue>=base\?gustValue:Number\.NaN/,'unplausible Böen müssen als nicht verfügbar gelten');
-assert.doesNotMatch(weather,/Math\.max\(base,gustValue\)/,'Böen dürfen nicht künstlich auf den Windwert angehoben werden');
+assert.match(weather,/const adjusted=!Number\.isFinite\(gustValue\)\|\|gustValue<base;/,'unplausible oder fehlende Böen müssen am selben Zeitpunkt erkannt werden');
+assert.match(weather,/return\{wind:base,gust:adjusted\?base:gustValue,adjusted\};/,'unplausible Böen müssen punktweise auf Windniveau angeglichen werden, ohne den Windwert zu verändern');
 assert.match(weather,/windPair=validateWindPair\(n\(w\.hourly\.wind_speed_10m\[i\],0\),n\(w\.hourly\.wind_gusts_10m\[i\],0\)\)/,'Stundenmapping muss Wind/Böen plausibilisieren');
-assert.match(weather,/export function wind\(v:number,u:WindUnit\)\{if\(!Number\.isFinite\(v\)\)return'–';/,'ungültige Böenwerte müssen als Gedankenstrich erscheinen');
 assert.match(app,/const currentWindPair=validateWindPair\(windSpeed,windGust\),displayWindSpeed=currentWindPair\.wind,displayWindGust=currentWindPair\.gust;/,'Aktuelle Windkachel muss plausible Wind-/Böenwerte nutzen');
 assert.match(app,/windPair=validateWindPair\(windSpeed,gust\)/,'Bergstufen müssen Wind/Böen plausibilisieren');
 assert.match(css,/\.mountain-indicators\{display:grid;grid-template-columns:repeat\(auto-fit,minmax\(118px,1fr\)\)/,'Bergindikatoren müssen für zusätzliche Kacheln flexibel umbrechen');
-console.log('Berg-/Wintersport und Wind/Böen-Plausibilisierung geprüft: keine Glättung oder künstliche Anhebung, ungültige Böe wird ausgeblendet.');
+console.log('Berg-/Wintersport und Wind/Böen-Plausibilisierung geprüft: Wind bleibt unverändert, Böen werden nur punktweise bei fehlenden oder kleineren Werten angeglichen.');

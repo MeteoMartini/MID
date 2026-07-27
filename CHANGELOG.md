@@ -1,3 +1,10 @@
+# MID v0.7.106.1
+
+- Tagesdetaildiagramm: Ursache für Windwerte oberhalb der Böen eingegrenzt. MID verwendet Wind und Böen aus demselben Open-Meteo-Best-Match-Abruf, in identischer Einheit und am identischen Stundenindex; bekannte Modell-/Interpolationskonstellationen können dennoch `wind_gusts_10m < wind_speed_10m` liefern.
+- Plausibilitätsbehandlung angepasst: Der Windwert bleibt unverändert. Eine fehlende oder kleinere Böe wird ausschließlich punktweise für denselben Zeitpunkt auf das Windniveau gesetzt – ohne zeitliche Glättung, Mittelwertbildung oder Veränderung benachbarter Stunden.
+- Wind- und Böenlinie bleiben im Diagramm erhalten. Bei identischen Werten bleibt die grüne Windlinie durch die Lücken der gestrichelten Böenlinie sichtbar; der Stunden-Tooltip kennzeichnet eine vorgenommene Angleichung.
+- Neue Regression schützt die punktweise Angleichung, die endlichen Diagrammwerte und die Sichtbarkeit beider Kurven.
+
 # MID v0.7.106.0
 
 - 7-Tage-Trend fachlich neu gewichtet: Die ersten Prognosetage erhalten deutlich mehr Einfluss als das Ende des Zeitraums; kurze spätere Ausreißer verdrängen damit nicht mehr den unmittelbar bevorstehenden Wettercharakter.

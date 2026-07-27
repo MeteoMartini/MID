@@ -1,0 +1,15 @@
+import {readFileSync} from 'node:fs';
+import assert from 'node:assert/strict';
+const weather=readFileSync(new URL('../src/weather.ts',import.meta.url),'utf8');
+const app=readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
+assert.match(weather,/Preserve the wind value and reconcile only the same timestamp's/,'Dokumentation der punktweisen Wind-/Böen-Plausibilisierung fehlt');
+assert.match(weather,/not temporal smoothing/,'es muss ausdrücklich ausgeschlossen sein, dass zeitlich geglättet wird');
+assert.match(weather,/return\{wind:base,gust:adjusted\?base:gustValue,adjusted\};/,'bei Böe kleiner Wind oder fehlender Böe müssen beide Reihen mit einem endlichen Wert erhalten bleiben');
+assert.match(weather,/gustAdjusted:windPair\.adjusted/,'Stundenwerte müssen die Angleichung für die Detailansicht kennzeichnen');
+assert.match(app,/const windPath=showWind\?p\.map/,'Windpfad im Tagesdetaildiagramm fehlt');
+assert.match(app,/const gustPath=showGust\?p\.map/,'Böenpfad im Tagesdetaildiagramm fehlt');
+assert.match(app,/stroke="#4fc985"/,'sichtbare Windlinie fehlt');
+assert.match(app,/stroke="#b786ff"[^>]*strokeDasharray="7 5"/,'sichtbare gestrichelte Böenlinie fehlt; bei gleichen Werten muss die Windlinie in den Lücken erkennbar bleiben');
+assert.match(app,/currentHour\.gustAdjusted&&<em>Böe auf Windniveau plausibilisiert<\/em>/,'Tooltip-Hinweis auf angeglichene Böe fehlt');
+assert.doesNotMatch(weather,/gust:.*Number\.NaN/,'die Böenreihe darf wegen eines unplausiblen Einzelwerts nicht mehr in NaN umgewandelt werden');
+console.log('Tagesdetail-Wind geprüft: nachvollziehbare punktweise Böenangleichung ohne Glättung; Wind- und Böenlinie bleiben sichtbar.');
