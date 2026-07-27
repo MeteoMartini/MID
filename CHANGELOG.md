@@ -1,3 +1,31 @@
+# MID v0.7.103.6
+
+- Push-Titel und -Texte für reguläre Favoriten sprachlich korrigiert: statt „Niederschlag bei Münster“ beziehungsweise „Gewitter bei Münster“ verwendet MID nun „Niederschlag in Münster“ und „Gewitter in Münster“.
+- Lauftexte wurden entsprechend auf „Regen hat in Münster begonnen“ beziehungsweise „Regen beginnt in Münster …“ angepasst.
+- Der dynamische Standort bleibt unverändert natürlich als „am Standort“ formuliert.
+- Prognoseänderungen verwenden künftig „für <Ort>“ statt „bei <Ort>“.
+- Eigener Regressionstest schützt die Ortspräpositionen in Push-Mitteilungen.
+
+# MID v0.7.103.5
+
+- Gerätekompass des Standortmarkers robuster verdrahtet: Auf iOS werden Sensorlistener erst nach erteilter Berechtigung aktiviert; parallele absolute und relative Orientierungssignale überschreiben sich nicht mehr.
+- Standortzentrierung fordert bei fehlender Blickrichtung ebenfalls die iOS-Sensorfreigabe an. Die Richtungsbewegung reagiert schneller, bleibt aber geglättet.
+- Richtungsspitze des weiterhin kompakten Standortmarkers kontrastreicher und relativ zum Positionsring deutlicher gestaltet.
+- Radar-Nowcast zeigt wieder dezent die aufsummierte Niederschlagsmenge bis +2 Stunden.
+- Dynamische mm/h-Achse auf glatte Skalenstufen umgestellt; ab 1 mm/h werden passende ganzzahlige Achsenwerte verwendet.
+- Neuer Regressionstest für Sensorfreigabe, kontinuierliche Markerrotation, Pfeilsichtbarkeit, Summenanzeige und glatte Achsenwerte.
+
+# MID v0.7.103.4
+
+- EEA-Messstationssuche auf die aktuellen offiziellen ArcGIS-Dienste `air.discomap.eea.europa.eu` und `eeha.discomap.eea.europa.eu` umgestellt.
+- Der bisherige einzelne Legacy-Host, der HTTP 403 lieferte, ist nicht mehr alleinige Datenquelle.
+- Worker probiert nun zwei EEA-Spiegelserver und zwei räumliche Abfragestrategien (Umkreissuche und Bounding-Envelope).
+- Browserseitiger direkter EEA-Fallback ergänzt, falls der Cloudflare-Worker oder dessen Upstream vorübergehend nicht erreichbar ist.
+- Letzte erfolgreich gefundene EEA-Messstation wird ortsbezogen bis zu 30 Tage als Rückfall gespeichert und im Tooltip transparent gekennzeichnet.
+- Stationsklasse des aktuellen EEA-Layers wird als Messumfang statt irreführend als Verkehrs-/Umgebungsklasse erklärt.
+- Technische Rohfehlermeldungen werden im AQI-Tooltip durch eine verständliche Statusmeldung ersetzt.
+- Neuer Regressionstest für EEA-Hostwechsel, Spiegelserver, Geometrie-Fallback, Browser-Rückfall und Cache.
+
 # MID v0.7.103.3
 
 - GitHub-/TypeScript-Buildfehler `TS2540: Cannot assign to current because it is a read-only property` im Radar-Nowcast behoben.

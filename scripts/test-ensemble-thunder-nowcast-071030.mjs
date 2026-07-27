@@ -35,7 +35,7 @@ for(const token of [
  "5-Minuten-Menge",
  "formatDecimalFixed(selected.amount,2)",
  "<PortalPopover anchorRef={anchorRef}",
- "−1 h bis +2 h · 5 min"
+ "Σ +2 h {radarAmountLabel(forecastAmount)} mm"
 ])if(!app.includes(token))failures.push(`Nowcast-Auflösung fehlt: ${token}`);
 for(const token of ['.radar-nowcast-yaxis','.radar-nowcast-grid.half','.radar-nowcast-popover'])if(!styles.includes(token))failures.push(`Nowcast-CSS fehlt: ${token}`);
 for(const forbidden of ['radar-nowcast-events','5–15-minütig','Die y-Achse und Balkenhöhe zeigen die Intensität'])if(app.includes(forbidden))failures.push(`Veralteter Nowcast-Inhalt noch vorhanden: ${forbidden}`);

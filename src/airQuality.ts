@@ -3,7 +3,7 @@ export type EuropeanAqiPollutantKey='pm2_5'|'pm10'|'nitrogen_dioxide'|'ozone'|'s
 export type EuropeanAqiBand={key:EuropeanAqiBandKey;label:string;index:number;color:string;health:string};
 export type EuropeanAqiPollutantResult={key:EuropeanAqiPollutantKey;label:string;formula:string;value:number;unit:'µg/m³';band:EuropeanAqiBand};
 export type EuropeanAirQualityResult={band:EuropeanAqiBand;dominant:EuropeanAqiPollutantResult;pollutants:EuropeanAqiPollutantResult[]};
-export type AirQualityStationMeta={available:boolean;name?:string;stationCode?:string;eoiCode?:string;country?:string;countryCode?:string;stationClass?:string;latitude?:number;longitude?:number;distanceKm?:number;provider?:string;checkedAt?:string;reason?:string;error?:string};
+export type AirQualityStationMeta={available:boolean;name?:string;stationCode?:string;eoiCode?:string;country?:string;countryCode?:string;stationClass?:string;latitude?:number;longitude?:number;distanceKm?:number;provider?:string;checkedAt?:string;reason?:string;error?:string;sourceHost?:string;cached?:boolean;cachedAt?:string;diagnostics?:unknown};
 
 export const EUROPEAN_AQI_BANDS:EuropeanAqiBand[]=[
  {key:'good',label:'Gut',index:0,color:'#50F0E6',health:'Die Luftqualität ist gut.'},
@@ -40,6 +40,10 @@ export function classifyEuropeanAirQuality(current:Record<string,number|string>|
 
 export function stationClassLabel(value?:string){
  const key=String(value||'').trim().toLowerCase();
+ if(key==='0'||key==='all-mandatory-pollutants')return'Messumfang: alle Pflichtschadstoffe';
+ if(key==='1'||key==='main-pollutants')return'Messumfang: Hauptschadstoffe';
+ if(key==='2'||key==='some-main-pollutants')return'Messumfang: einige Hauptschadstoffe';
+ if(key==='3'||key==='other-pollutants')return'Messumfang: weitere Schadstoffe';
  if(key.includes('traffic'))return'verkehrsnah';
  if(key.includes('industrial'))return'industriegeprägt';
  if(key.includes('background'))return'Hintergrundstation';

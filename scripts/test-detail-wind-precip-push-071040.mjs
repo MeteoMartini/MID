@@ -17,7 +17,7 @@ for(const token of ["label:'Wind / Böen'","{wind(windSpeed,unit)} · {wind(wind
 for(const token of ['dewPoint?:number','cloudBaseHft?:number','ceilingHft?:number','estimatedCloudBaseHft','baseHft<=3000','total<=.8','total<=.5'])
  if(!precip.includes(token))failures.push(`Zentrale Niederschlagsplausibilisierung fehlt: ${token}`);
 for(const [name,text] of [['App',app],['Meteogramm',meteogram],['Routenwetter',route]])if(!text.includes('dewPoint:'))failures.push(`${name} übergibt den Taupunkt nicht an die zentrale Plausibilisierung.`);
-for(const token of ['pushVisibleLocationName','pushLocationPhrases','am Standort','bei ${name}','body:thunderPushBody(result,favorite)'])if(!worker.includes(token))failures.push(`Push-Ortsbezug fehlt: ${token}`);
+for(const token of ['pushVisibleLocationName','pushLocationPhrases','am Standort','in ${name}','body:thunderPushBody(result,favorite)'])if(!worker.includes(token))failures.push(`Push-Ortsbezug fehlt: ${token}`);
 if(worker.includes('hat am Favoriten begonnen')||worker.includes('nähert sich dem Favoriten'))failures.push('Generischer Favoriten-Ortstext ist im Worker verblieben.');
 if(failures.length){console.error('Detail/Wind/Niederschlag/Push-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
 console.log('Detailfelder, aktuelle Windkachel, appweite Stratus-Plausibilisierung und ortsbezogene Push-Texte geprüft.');
