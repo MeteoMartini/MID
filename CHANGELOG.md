@@ -1,3 +1,9 @@
+# MID v0.7.109.1
+
+- Tagesdetaildiagramm im Tablet-Hochformat verbessert: Alle stündlichen Wetterpiktogramme und Windrichtungspfeile bleiben sichtbar.
+- Wetterpiktogramme und Richtungspfeile werden im Tablet-Hochformat abhängig vom verfügbaren Stundenabstand kompakter skaliert, damit sich die 24 Stunden nicht überdecken.
+- Querformat- und Smartphone-Verhalten bleiben unverändert; ein neuer Regressionstest schützt den zusätzlichen Tablet-Hochformatmodus.
+
 # MID v0.7.109.0
 
 - Dezenter, einmaliger Hinweis zur Nutzung als Web-App ergänzt. Der Hinweis kann über das X dauerhaft geschlossen werden; die Auswahl wird lokal gespeichert und erscheint bei späteren Neustarts nicht erneut.
