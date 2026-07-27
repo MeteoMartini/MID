@@ -1,3 +1,19 @@
+# MID v0.7.111.1
+
+- GitHub-Produktionsbuild repariert: Zwei durch die neuen Lern-/Szenariofunktionen verbliebene, ungenutzte Funktionsparameter wurden entfernt. Dadurch bestehen `noUnusedLocals` und `noUnusedParameters` wieder ohne TS6133-Abbruch.
+- `currentWeightedForecasts` erhält nur noch die tatsächlich verwendeten Prognose-, Ensemble- und Auswertungsdaten; die Funktionalität der lokal gewichteten Prognose bleibt unverändert.
+- Die Ermittlung des ersten Szenario-Divergenztags verwendet keinen ungenutzten Datumsparameter mehr; Ensemble-Szenariocluster bleiben unverändert.
+- Zusätzliche Compilerprüfung über sämtliche TS-/TSX-Quelldateien bestätigt: keine verbliebenen TS6133-/TS6192-/TS6196-Diagnosen.
+
+# MID v0.7.111.0
+
+- Prognosegüte zum lokalen Lernsystem ausgebaut: Modellfehler werden getrennt nach Wetterlage sowie +12-, +24-, +48- und +72-Stunden-Horizont bewertet. Die Rückblicksreferenz wurde um Wettercode, Böen und Sonnenscheindauer erweitert, um Hochdruck-, Schauer-, Dauerregen-, Gewitter-, Sturm- und winterliche Lagen zu unterscheiden.
+- Lokal lernende Modellgewichtung umgesetzt: Gewichte werden aus historischen Fehlern je Wetterlage und Vorhersagehorizont mit globaler Regularisierung, Mindeststichprobe und Gewichtsobergrenze abgeleitet. MID speichert die daraus erzeugte Prognose als eigenen Vergleich und weist die nachträglich gemessene Verbesserung oder Verschlechterung gegenüber Open-Meteo Best Match aus.
+- Ensemble-Szenariocluster ergänzt: vollständige Ensemble-Mitglieder werden über bis zu sieben Tage nach Temperatur- und Niederschlagsverlauf gruppiert. MID zeigt zwei bis drei gewichtete Szenarien mit Anteil, beteiligten Modellfamilien, Verlaufszusammenfassung und dem ersten markanten Divergenztag.
+- Berg-/Wintersportanalyse nach Höhenzone ergänzt: Für Tal-, Mittel- und Bergzone werden die nächsten Stunden anhand von Temperatur, Wet-Bulb-Temperatur, Sicht, Niederschlag, Gewitterpotenzial und Böen bewertet. MID nennt die günstigste Höhenzone, das beste Zeitfenster, Schneequalität und relevante Einschränkungen.
+- Bestehende Prognosearchive der v1-Struktur werden verlustarm in das erweiterte v2-Archiv migriert; die Daten bleiben über die vorhandene verschlüsselte Gerätesynchronisation übertragbar.
+- Neuer Regressionstest schützt Lerngewichtung, Wetterlagen-/Horizontbewertung, Szenariocluster, Höhenzonenanalyse und deren App-/UI-Verdrahtung.
+
 # MID v0.7.110.0
 
 - Modelllauf-Änderungsradar auf die nächsten drei Tage fokussiert. Jede erkannte Änderung nennt nun ausdrücklich die betroffene Best-Match- oder Ensemble-Modellfamilie; auch die serverseitige Push-Prüfung verwendet dasselbe Drei-Tage-Fenster.

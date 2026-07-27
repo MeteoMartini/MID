@@ -11,7 +11,7 @@ for(const token of [
  "'ecmwf_aifs_europe_ensemble'",
  "'ecmwf_ifs_europe_ensemble_mean'",
  "'ecmwf_aifs_europe_ensemble_mean'",
- "ENSEMBLE_CACHE_PREFIX='mid:ensemble:v4:'",
+ "ENSEMBLE_CACHE_PREFIX='mid:ensemble:v5:'",
  'ENSEMBLE_FRESH_CACHE_MS=20*60*1000',
  'withoutGlobalEcmwfDuplicates',
  'selectedMeanModels(lat,lon)',
