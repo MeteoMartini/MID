@@ -30,12 +30,14 @@ for(const token of [
  "und damit nicht näher"
 ])if(!thunder.includes(token))failures.push(`Gewitter-Plausibilisierung fehlt: ${token}`);
 for(const token of [
- "radar-nowcast-yaxis",
- "radar-nowcast-events",
- "max. ${formatDecimalFixed(peak,1)} mm/h",
- "ca. ${formatDecimalFixed(amount,2)} mm",
- "5–15-minütig"
+ "const FIVE_MINUTES=5*60000",
+ "Radar-Nowcast mit 5-Minuten-Balken",
+ "5-Minuten-Menge",
+ "formatDecimalFixed(selected.amount,2)",
+ "<PortalPopover anchorRef={anchorRef}",
+ "−1 h bis +2 h · 5 min"
 ])if(!app.includes(token))failures.push(`Nowcast-Auflösung fehlt: ${token}`);
-for(const token of ['.radar-nowcast-yaxis','.radar-nowcast-events','.radar-nowcast-grid.half'])if(!styles.includes(token))failures.push(`Nowcast-CSS fehlt: ${token}`);
+for(const token of ['.radar-nowcast-yaxis','.radar-nowcast-grid.half','.radar-nowcast-popover'])if(!styles.includes(token))failures.push(`Nowcast-CSS fehlt: ${token}`);
+for(const forbidden of ['radar-nowcast-events','5–15-minütig','Die y-Achse und Balkenhöhe zeigen die Intensität'])if(app.includes(forbidden))failures.push(`Veralteter Nowcast-Inhalt noch vorhanden: ${forbidden}`);
 if(failures.length){console.error('Ensemble-/Gewitter-/Nowcast-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
 console.log('Ensemble-Recovery, KONRAD3D-Zellzentrumprüfung und hochaufgelöster Radar-Nowcast geprüft.');

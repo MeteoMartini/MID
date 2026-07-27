@@ -1,3 +1,19 @@
+# MID v0.7.103.3
+
+- GitHub-/TypeScript-Buildfehler `TS2540: Cannot assign to current because it is a read-only property` im Radar-Nowcast behoben.
+- Der dynamische Popover-Anker der 5-Minuten-Balken verwendet nun ein ausdrücklich schreibbares `useRef<HTMLButtonElement | null>`.
+- Das MID-typische Verhalten bleibt vollständig erhalten: Antippen eines Balkens öffnet dessen Tooltip; erneutes Antippen, Außenklick oder Escape schließen ihn.
+- Neuer Regressionstest schützt die schreibbare Ref-Typisierung und die Zuordnung des aktiven Balkens als Popover-Anker.
+
+# MID v0.7.103.2
+
+- Radar-Nowcast deutlich verdichtet und auf durchgängige 5-Minuten-Balken umgestellt. Jeder Balken öffnet per Klick/Tippen einen MID-typischen Portal-Tooltip mit Zeitraum, Status, Intensität in mm/h und abgeleiteter 5-Minuten-Menge; Außenklick und Escape schließen den Tooltip.
+- Erklärtexte und zusätzliche Ereigniskarten unter der Nowcast-Leiste entfernt; die numerische Intensitätsskala bleibt kompakt erhalten.
+- Standortmarker im Kompositbild auf die halbe bisherige Größe reduziert, Blickrichtung und Sensorfunktion bleiben erhalten.
+- Ensemble-Diagramme nach Einführung der Export-Wrapper wieder strikt an die verfügbare Viewportbreite gebunden. Der historische globale Mindestwert von 760 px wird innerhalb beider Diagramm-Wrapper aufgehoben.
+- Achsen, Ränder, Legenden und Diagrammhöhen werden auf schmalen Displays kompakt angepasst, sodass Temperatur- und Niederschlagsdiagramm vollständig im Bildschirm bleiben.
+- Neuer Regressionstest für 5-Minuten-Nowcast, Portal-Tooltip, Markergröße und mobile Ensemblebreite.
+
 # MID v0.7.103.1
 
 - Tagesdetail-Tooltip neu angeordnet: **Taupunkt / Feuchte** steht vor **Wind / Böen**; innerhalb des Feuchtefelds wird zuerst der Taupunkt und danach die relative Feuchte angezeigt.

@@ -16,14 +16,15 @@ const [app,radar,pixel,worker,changes,ensemble,styles]=await Promise.all([
 ]);
 const failures=[];
 for(const token of [
- 'const arrivalSegment:Segment|null=arrivalVisible?',
- 'arrivalSegment&&!observedArrivalCovered',
- 'Die y-Achse und Balkenhöhe zeigen die Intensität',
+ 'const FIVE_MINUTES=5*60000',
+ 'observedArrivalCovered=rawSegments.some',
  "radar.arrivalKind!=='site'",
  'function radarRateScale(',
  'radar-nowcast-yaxis',
- 'radar-nowcast-events'
+ '5-Minuten-Menge',
+ '<PortalPopover anchorRef={anchorRef}'
 ])if(!app.includes(token))failures.push(`Nowcast-Leiste: ${token}`);
+for(const forbidden of ['Die y-Achse und Balkenhöhe zeigen die Intensität','radar-nowcast-events','5–15-minütig'])if(app.includes(forbidden))failures.push(`Veraltete Nowcast-Leiste: ${forbidden}`);
 for(const token of ['.radar-nowcast-wet.expected{','.radar-nowcast-wet.expected.uncertain{','.radar-nowcast-wet.nearby{'])if(!styles.includes(token))failures.push(`Nowcast-CSS: ${token}`);
 for(const token of ['function projectedBounds(',"projectionFrom(where)",'inverseProjected(','boundsFromFile(file,meta,dataset)'])if(!pixel.includes(token))failures.push(`PX250-Georeferenz: ${token}`);
 const metadataStart=worker.indexOf('async function px250Metadata(request,lat,lon){'),metadataEnd=worker.indexOf('async function px250FileResponse',metadataStart),metadata=worker.slice(metadataStart,metadataEnd);
