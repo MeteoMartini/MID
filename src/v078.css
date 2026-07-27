@@ -101,3 +101,63 @@
  .hero-day-range>i{width:48px;height:5px;border:0;border-radius:999px;background:linear-gradient(90deg,#63b4ff 0%,#b8d7d0 42%,#f0c85f 68%,#ff8a67 100%);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--border) 75%,transparent)}
 }
 @media(max-width:850px){.hero-day-range>em{display:none}}
+
+/* MID v0.7.108.0 – geordnetes Aktuell-Wetter-Layout, kompakte Moduloptionen und umbrechungsfeste Windwerte */
+@media(min-width:1101px){
+ .hero{grid-template-columns:115px minmax(260px,1fr) minmax(225px,245px) minmax(280px,400px)}
+}
+.hero-kicker-row{justify-content:flex-start}
+.hero>.hero-day-range{
+ display:grid;
+ grid-template-columns:minmax(48px,1fr) 48px minmax(48px,1fr);
+ grid-template-areas:"caption caption caption" "min scale max";
+ align-self:center;
+ width:100%;
+ min-width:0;
+ min-height:86px;
+ padding:11px 13px;
+ border:1px solid var(--border);
+ border-radius:14px;
+ background:color-mix(in srgb,var(--surface) 84%,transparent);
+ box-shadow:none;
+ backdrop-filter:none;
+ font-variant-numeric:tabular-nums;
+}
+.hero>.hero-day-range>em{grid-area:caption;align-self:start;justify-self:start;color:var(--muted);font-size:8px;font-weight:850;letter-spacing:.08em;text-transform:uppercase}
+.hero>.hero-day-range>.min{grid-area:min;justify-self:start}
+.hero>.hero-day-range>.max{grid-area:max;justify-self:end;text-align:right}
+.hero>.hero-day-range>span{display:grid;gap:2px;align-self:end}
+.hero>.hero-day-range small{font-size:7px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.hero>.hero-day-range b{font-size:17px;line-height:1}
+.hero>.hero-day-range>i{grid-area:scale;align-self:end;width:48px;height:5px;margin-bottom:5px;border:0;border-radius:999px;background:linear-gradient(90deg,#63b4ff 0%,#b8d7d0 42%,#f0c85f 68%,#ff8a67 100%);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--border) 75%,transparent)}
+.metrics .wind-gust-card>strong{font-size:clamp(12px,1.12vw,18px);letter-spacing:-.035em;white-space:nowrap}
+.wind-value-nowrap{display:inline-flex;align-items:center;gap:2px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.mountain-title-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.module-inline-segmented{display:inline-flex;align-items:center;gap:2px;padding:3px;border:1px solid var(--border);border-radius:10px;background:color-mix(in srgb,var(--s2) 88%,transparent)}
+.module-inline-segmented>span{padding:0 5px;color:var(--muted)!important;font-size:7px!important;font-weight:800!important;letter-spacing:.06em!important;text-transform:uppercase!important}
+.module-inline-segmented button{min-height:27px;padding:4px 8px;border:0;border-radius:7px;background:transparent;color:var(--muted);font-size:8px;font-weight:800;cursor:pointer}
+.module-inline-segmented button:hover{color:var(--text);background:color-mix(in srgb,var(--primary) 8%,transparent)}
+.module-inline-segmented button.active{background:color-mix(in srgb,var(--primary) 16%,var(--surface));color:var(--primary);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--primary) 35%,var(--border))}
+.module-inline-options{display:flex;align-items:end;justify-content:flex-end;gap:7px;flex-wrap:wrap}
+.module-inline-options label{display:grid;gap:3px;min-width:112px}
+.module-inline-options label>span{color:var(--muted)!important;font-size:7px!important;font-weight:800!important;letter-spacing:.06em!important;text-transform:uppercase!important}
+.module-inline-options select{height:31px;min-width:112px;padding:4px 24px 4px 8px;border:1px solid var(--border);border-radius:9px;background:var(--s2);color:var(--text);font-size:8px;font-weight:750}
+.water-inline-options label:last-child{min-width:142px}.water-inline-options label:last-child select{min-width:142px}
+@media(max-width:1100px) and (min-width:851px){
+ .hero{grid-template-columns:95px minmax(0,1fr) minmax(220px,250px)}
+ .hero>.hero-day-range{grid-column:3}
+ .hero>aside{grid-column:1/-1;max-width:none}
+}
+@media(max-width:850px){
+ .hero>.hero-day-range{grid-column:2;justify-self:start;width:min(100%,235px);min-height:68px;padding:8px 10px}
+ .hero>.hero-day-range>em{display:block}
+ .mountain-title-actions,.module-inline-options{width:100%;justify-content:flex-start}
+ .mountain-ski>.title,.water-sports>.title{flex-wrap:wrap}
+ .mountain-ski>.title .title-tools,.water-sports>.title .title-tools{width:100%;justify-content:flex-start}
+}
+@media(max-width:520px){
+ .hero>.hero-day-range{grid-column:1/-1;width:100%;min-height:62px}
+ .module-inline-segmented{width:100%}.module-inline-segmented button{flex:1}
+ .module-inline-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}
+ .module-inline-options label,.module-inline-options select,.water-inline-options label:last-child,.water-inline-options label:last-child select{min-width:0;width:100%}
+}

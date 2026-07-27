@@ -8,7 +8,7 @@ for(const token of [
  "const ENSEMBLE_EXPORT_PLOT_WIDTH=1096",
  "type EnsembleExportKind='temperature'|'precipitation'",
  'function StableChartFrame',
- 'cloneElement(children,{width:ENSEMBLE_EXPORT_PLOT_WIDTH,height})',
+ 'cloneElement(children,{width:exportWidth,height})',
  'function waitForStableExportChart',
  "target.querySelector('.ensemble-fixed-chart .recharts-wrapper')",
  'onExportingChange(kind)',
@@ -16,7 +16,7 @@ for(const token of [
  "compactTrendTooltip=exporting?false:viewportCompact",
  "compactChart=exportingKind==='precipitation'?false:viewportCompactChart",
  "StableChartFrame exporting={exporting} height={310}",
- "StableChartFrame exporting={exportingKind==='precipitation'} height={250}"
+ "StableChartFrame exporting={exportingKind==='precipitation'} height={250} exportWidth={ENSEMBLE_RAIN_EXPORT_CHART_WIDTH}"
 ])if(!ensemble.includes(token))failures.push(`Feste Export-Geometrie fehlt: ${token}`);
 if((ensemble.match(/isAnimationActive=\{false\}/g)||[]).length<16)failures.push('Nicht alle Ensemble-Flächen und -Linien sind für den Export animationsfrei.');
 if((ensemble.match(/<StableChartFrame/g)||[]).length!==2)failures.push('Temperatur- und Niederschlagsdiagramm müssen jeweils genau einen festen Export-Frame verwenden.');

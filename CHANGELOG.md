@@ -1,3 +1,19 @@
+# MID v0.7.108.1
+
+- Ensemble-Niederschlagsdiagramm: Achsentitel aus der Recharts-SVG-Fläche herausgelöst und als eigenständige, reservierte Layoutbereiche umgesetzt. Dadurch können „Niederschlag“, „Wahrscheinlichkeit“ und „Vorhersagetag“ weder von Achsenticks noch vom Teilen-/Infobereich überlagert oder abgeschnitten werden.
+- Responsive Darstellung angepasst: Auf Desktop stehen die beiden y-Achsentitel in festen seitlichen Spalten; auf schmalen Mobilgeräten wechseln sie in eine kompakte horizontale Kopfzeile über dem Plot.
+- Exportgeometrie erweitert: Der 1096-px-Exportbereich wird in feste Achsentitelspalten und einen 992-px-Diagrammkern aufgeteilt, sodass die Titel auch in mobil erzeugten PNGs korrekt positioniert bleiben.
+- Neuer Regressionstest schützt Desktop-, Mobil- und Exportposition der Niederschlagsachsen; bestehender Test für die feste Ensemble-Exportgeometrie wurde auf den variablen Diagrammkern erweitert.
+
+# MID v0.7.108.0
+
+- Aktuelles Wetter: Tmin/Tmax aus der frei schwebenden Kicker-Zeile entfernt und als eigener, sauber begrenzter Grid-Bereich zwischen Wettertext und Analysekarte angeordnet. Die Darstellung folgt auf Desktop, Tablet und Mobil nun festen Modulgrenzen.
+- Wind-/Böen-Kachel: Wert und Einheit werden als zusammenhängende, responsive Zeile dargestellt; ein unschöner Umbruch innerhalb der Böeneinheit wird verhindert.
+- 7-Tage-Trend: Rechtschreibung der Hazard-Sätze korrigiert. Substantive wie „Sturmböen“ bleiben großgeschrieben; nur tatsächlich vorangestellte Adjektive werden im Satzkontext kleingeschrieben.
+- Berg-/Wintersport: dezenter, direkt bedienbarer Saisonumschalter Auto/Sommer/Winter im Anzeigebereich ergänzt und dauerhaft im zugehörigen Favoritenprofil gespeichert.
+- Wassersport: Gewässertyp und Aktivität als kompakte Direktoptionen in den Anzeigebereich aufgenommen; Änderungen werden ebenfalls dauerhaft im Favoritenprofil gespeichert.
+- Neuer Regressionstest schützt Hero-Raster, Windumbruch, Trend-Rechtschreibung und die persistenten Direktoptionen beider Spezialmodule.
+
 # MID v0.7.107.0
 
 - Grundlegendes Performance-Audit ohne Funktionsabbau: Ensemble-Aufrufe nutzen nun einen 20-minütigen Frischcache, Open-Meteo-Modellabfragen werden regional priorisiert und doppelte globale ECMWF-Abfragen in Europa vermieden.
