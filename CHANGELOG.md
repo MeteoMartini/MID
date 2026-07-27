@@ -1,3 +1,12 @@
+# MID v0.7.110.0
+
+- Modelllauf-Änderungsradar auf die nächsten drei Tage fokussiert. Jede erkannte Änderung nennt nun ausdrücklich die betroffene Best-Match- oder Ensemble-Modellfamilie; auch die serverseitige Push-Prüfung verwendet dasselbe Drei-Tage-Fenster.
+- Optionale geräteübergreifende Synchronisation in den Systemeinstellungen ergänzt. Favoriten, Darstellungsoptionen, Spezialprofile und Auswertungsverläufe werden vor dem Upload im Browser mit AES-GCM verschlüsselt und über einen persönlichen Synchronisationscode zwischen MID-Geräten abgeglichen.
+- Routenwetter vorläufig aus Dashboard, Einstellungen und aktiver Laufzeit entfernt. Die Quellmodule bleiben ausschließlich als stillgelegte Basis für eine spätere Reaktivierung erhalten.
+- Im erweiterten Modus das neue Modul „Prognosegüte und Rückblick“ ergänzt. MID archiviert Prognosestände für die nächsten drei Tage, vergleicht abgeschlossene Tage bevorzugt mit der nachträglichen ERA5-Land-Reanalyse und verwendet für noch nicht verfügbare Tage einen klar gekennzeichneten Best-Match-Rückblick als vorläufige Referenz. Daraus werden Temperaturfehler, Niederschlagsfehler, Brier-Score, lokale Modellrangfolge, tagesbezogene Sieger sowie vorläufige Lerngewichte berechnet.
+- Gerätesynchronisation im Worker ergänzt und der bestehende KV-Speicher wiederverwendet; es sind keine neuen Bindings erforderlich, sofern MID_PUSH_SUBSCRIPTIONS bereits für Push eingerichtet ist.
+- Neue Regression schützt Drei-Tage-Fenster, Modellangaben, verschlüsselte Gerätesynchronisation, Routenwetter-Stilllegung und Prognosegüte.
+
 # MID v0.7.109.2
 
 - Kompositbild: Für KONRAD3D-Zellen wird im K3D-/NowCastMIX-Layer nun zusätzlich ein Wahrscheinlichkeitskegel der Zugbahn gerendert. Der Kegel nutzt die verfügbare Prognoseposition und den Unsicherheitsradius und macht die erwartete Verlagerung wieder direkt auf der Karte sichtbar.

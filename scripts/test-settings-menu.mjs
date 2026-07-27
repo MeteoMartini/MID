@@ -9,10 +9,10 @@ const failures=[];
 for(const token of ["type SettingsSection='view'|'appearance'|'units'|'notifications'|'favorites'|'system'",'function SettingsManager','Ansichtsoptionen','Farbdesign','Einheitenauswahl','Benachrichtigungen','MID-Systemstatus','embedded/'])if(!app.includes(token))failures.push(`Einstellungsmenü fehlt: ${token}`);
 if(!app.includes("onOpenSettings('favorites')"))failures.push('Favoritenverwaltung ist nicht aus der Suche als Einstellungs-Untermenü erreichbar.');
 if(!app.includes("section==='favorites'&&<FavoritesManager"))failures.push('Favoritenmanager ist nicht in das Einstellungsmenü eingebettet.');
-if(!app.includes("section==='system'&&<SystemUpdateManager"))failures.push('MID-Systemstatus ist nicht in das Einstellungsmenü eingebettet.');
+if(!app.includes("section==='system'&&<><DeviceSyncSettings/><SystemUpdateManager"))failures.push('MID-Systemstatus ist nicht in das Einstellungsmenü eingebettet.');
 const header=app.slice(app.indexOf('function Header('),app.indexOf('function sunshineDurationLabel'));
 for(const oldToken of ['desktop-view-control','mobile-view-switch','theme-mode-control','system-update-button'])if(header.includes(oldToken))failures.push(`Alter Kopfbereich-Regler noch vorhanden: ${oldToken}`);
 for(const token of ['settings-button','compact-actions'])if(!header.includes(token))failures.push(`Kompakter Kopfbereich fehlt: ${token}`);
 for(const token of ['.settings-backdrop','.settings-dialog','.settings-nav','.settings-choice-grid','.settings-unit-grid','.favorite-modal.embedded','.system-update-dialog.embedded'])if(!styles.includes(token))failures.push(`Einstellungs-CSS fehlt: ${token}`);
 if(failures.length){console.error('Einstellungsmenü-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Einstellungsmenü geprüft: Ansicht, Farbdesign, Einheiten, Benachrichtigungen, Favoriten-Detailverwaltung und MID-Systemstatus bleiben zentral integriert; die Kopfleiste enthält nur Einstellungen und Neuladen sowie die separate Favoriten-Schnellleiste.');
+console.log('Einstellungsmenü geprüft: Ansicht, Farbdesign, Einheiten, Benachrichtigungen, Favoriten-Detailverwaltung, Gerätesynchronisation und MID-Systemstatus bleiben zentral integriert; die Kopfleiste enthält nur Einstellungen und Neuladen sowie die separate Favoriten-Schnellleiste.');

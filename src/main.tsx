@@ -6,6 +6,7 @@ import App from './App';
 import {restorePersistentState,startPersistenceBridge} from './persistence';
 import {markMidRuntimeHealthy,registerMidServiceWorker} from './pwa';
 import {startWebAnalyticsDiagnostics} from './webAnalytics';
+import {restoreDeviceSyncState,startDeviceSyncBridge} from './deviceSync';
 
 async function signalHealthy(){
  await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));
@@ -15,7 +16,9 @@ async function signalHealthy(){
 
 async function start(){
  await restorePersistentState();
+ await restoreDeviceSyncState();
  startPersistenceBridge();
+ startDeviceSyncBridge();
  ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><App/></React.StrictMode>);
  startWebAnalyticsDiagnostics();
  void signalHealthy();

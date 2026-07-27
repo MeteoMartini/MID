@@ -22,9 +22,9 @@ requireTokens('Einstellungen-Struktur v0.7.95.26',app,[
  'className="settings-choice-grid three"',
  'className="settings-unit-grid"',
  'className="advanced-feature-settings"',
- 'className="advanced-feature-group route-feature-settings"',
- '<span>Standardprofil</span>',
- '<span>Prüfintervall</span>'
+ 'Änderungsradar für die nächsten drei Tage anzeigen',
+ 'DeviceSyncSettings',
+ 'Prognosegüte und Rückblick'
 ]);
 requireTokens('Einstellungen-Design v0.7.95.26',styles,[
  '.settings-backdrop{position:fixed;z-index:5400;',

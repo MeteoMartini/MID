@@ -12,7 +12,8 @@ export type Weather={latitude:number;longitude:number;elevation:number;timezone:
 export type Hour={time:string;epoch:number;timezone:string;temperature:number;apparent:number;humidity:number;dewPoint:number;pressure:number;precipitation:number;rain:number;showers:number;snowfall:number;probability:number;code:number;wind:number;gust:number;gustAdjusted?:boolean;direction:number;cloud:number;lowCloud:number;uvIndex:number;visibility:number;cape:number;isDay:boolean};
 export type Minute15={time:string;epoch:number;timezone:string;precipitation:number;rain:number;showers:number;snowfall:number;probability:number;code:number};
 export type Day={date:string;code:number;max:number;min:number;sunrise?:string;sunset?:string;sunshineDuration:number;precipitation:number;probability:number;wind:number;gust:number;gustAdjusted?:boolean;direction:number;uvMax:number};
-export type EnsembleDay={date:string;maxMean:number;maxLow:number;maxHigh:number;maxQ25:number;maxQ75:number;minMean:number;minLow:number;minHigh:number;minQ25:number;minQ75:number;precipitationMean:number;precipitationLow:number;precipitationHigh:number;precipitationProbability:number;sunshineDurationMean:number;sunshineDurationLow:number;sunshineDurationHigh:number;modelCount:number;memberCount:number};
+export type EnsembleModelDay={id:string;label:string;max:number;min:number;precipitation:number;precipitationProbability:number;memberCount:number};
+export type EnsembleDay={date:string;maxMean:number;maxLow:number;maxHigh:number;maxQ25:number;maxQ75:number;minMean:number;minLow:number;minHigh:number;minQ25:number;minQ75:number;precipitationMean:number;precipitationLow:number;precipitationHigh:number;precipitationProbability:number;sunshineDurationMean:number;sunshineDurationLow:number;sunshineDurationHigh:number;modelCount:number;memberCount:number;modelSummaries?:EnsembleModelDay[]};
 export type ClimateDay={date:string;maxMean:number;minMean:number;years:number};
 export type Station={name:string;provider?:string;stationId?:string;latitude?:number;longitude?:number;distance?:number;height?:number;timestamp?:string;temperature?:number;humidity?:number;dewPoint?:number;pressure?:number;pressureReference?:'QFF'|'MSL'|'QNH'|'station';windSpeed?:number;windDirection?:number;windGust?:number;windUnit?:'kt'|'kmh';visibility?:number;cloudCover?:number;ceilingHft?:number;cloudBaseHft?:number;precipitation?:number;stationCount?:number;sourceProviders?:string[];blended?:boolean;temperatureSpread?:number;trustFactor?:number;networkClass?:'official'|'professional'|'pws'|'citizen'|'unknown';siteClass?:UrbanClass;analysisMethod?:string;uncertainty?:number;effectiveResolutionKm?:number;candidateCount?:number;rejectedCount?:number;localCorrection?:number;backgroundModel?:string;urbanClass?:UrbanClass};
 export type OfficialAlertLevel='yellow'|'orange'|'red'|'purple'|'unknown';
@@ -764,7 +765,7 @@ function aggregateMembers(results:ModelResult[]){
  const allDates=[...new Set(results.flatMap(r=>[...r.members.values()].flatMap(m=>m.map(x=>x.date))))].sort().slice(0,14),days:EnsembleDay[]=[];
  for(let lead=0;lead<allDates.length;lead++){
   const date=allDates[lead];
-  let maxVals:{value:number;weight:number}[]=[],minVals:{value:number;weight:number}[]=[],rainVals:{value:number;weight:number}[]=[],sunVals:{value:number;weight:number}[]=[];
+  let maxVals:{value:number;weight:number}[]=[],minVals:{value:number;weight:number}[]=[],rainVals:{value:number;weight:number}[]=[],sunVals:{value:number;weight:number}[]=[],modelSummaries:EnsembleModelDay[]=[];
   const modelsUsed=new Set<string>();let memberCount=0;
   for(const r of results){
    const memberRows=[...r.members.values()].map(rows=>rows.find(x=>x.date===date)).filter(Boolean) as MemberDay[];
@@ -772,13 +773,14 @@ function aggregateMembers(results:ModelResult[]){
    const medMax=quantile(memberRows.map(x=>x.max),.5),medMin=quantile(memberRows.map(x=>x.min),.5),filtered=memberRows.filter(x=>Math.abs(x.max-medMax)<=8&&Math.abs(x.min-medMin)<=8),rows=filtered.length>=Math.max(3,Math.ceil(memberRows.length*.55))?filtered:memberRows,weight=modelDayWeight(r.model,lead,rows.length);
    if(!rows.length||weight<=0)continue;
    modelsUsed.add(r.model.id);memberCount+=rows.length;
+   modelSummaries.push({id:r.model.id,label:r.model.label,max:quantile(rows.map(item=>item.max),.5),min:quantile(rows.map(item=>item.min),.5),precipitation:quantile(rows.map(item=>item.precipitation),.5),precipitationProbability:100*rows.filter(item=>item.precipitation>=.1).length/Math.max(1,rows.length),memberCount:rows.length});
    for(const row of rows){maxVals.push({value:row.max,weight});minVals.push({value:row.min,weight});rainVals.push({value:row.precipitation,weight});if(Number.isFinite(row.sunshineDuration))sunVals.push({value:row.sunshineDuration,weight})}
   }
   maxVals=robustWeighted(maxVals,9);minVals=robustWeighted(minVals,9);rainVals=robustWeighted(rainVals,25);sunVals=robustWeighted(sunVals,21600);
   if(modelsUsed.size<2||memberCount<10||maxVals.length<6||minVals.length<6)continue;
   const maxLow=weightedQuantile(maxVals,.1),maxHigh=weightedQuantile(maxVals,.9),maxQ25=weightedQuantile(maxVals,.25),maxQ75=weightedQuantile(maxVals,.75),minLow=weightedQuantile(minVals,.1),minHigh=weightedQuantile(minVals,.9),minQ25=weightedQuantile(minVals,.25),minQ75=weightedQuantile(minVals,.75),precipitationLow=weightedQuantile(rainVals,.1),precipitationHigh=weightedQuantile(rainVals,.9),sunshineDurationLow=sunVals.length>=6?weightedQuantile(sunVals,.1):NaN,sunshineDurationHigh=sunVals.length>=6?weightedQuantile(sunVals,.9):NaN,sunshineDurationMean=sunVals.length>=6?weightedMean(sunVals):NaN;
   if(![maxLow,maxHigh,maxQ25,maxQ75,minLow,minHigh,minQ25,minQ75].every(Number.isFinite)||maxHigh<maxLow||minHigh<minLow)continue;
-  days.push({date,maxMean:weightedMean(maxVals),maxLow,maxHigh,maxQ25,maxQ75,minMean:weightedMean(minVals),minLow,minHigh,minQ25,minQ75,precipitationMean:weightedMean(rainVals),precipitationLow:Number.isFinite(precipitationLow)?precipitationLow:0,precipitationHigh:Number.isFinite(precipitationHigh)?precipitationHigh:0,precipitationProbability:weightedProbability(rainVals,.1),sunshineDurationMean,sunshineDurationLow,sunshineDurationHigh,modelCount:modelsUsed.size,memberCount});
+  days.push({date,maxMean:weightedMean(maxVals),maxLow,maxHigh,maxQ25,maxQ75,minMean:weightedMean(minVals),minLow,minHigh,minQ25,minQ75,precipitationMean:weightedMean(rainVals),precipitationLow:Number.isFinite(precipitationLow)?precipitationLow:0,precipitationHigh:Number.isFinite(precipitationHigh)?precipitationHigh:0,precipitationProbability:weightedProbability(rainVals,.1),sunshineDurationMean,sunshineDurationLow,sunshineDurationHigh,modelCount:modelsUsed.size,memberCount,modelSummaries:modelSummaries.filter(item=>[item.max,item.min,item.precipitation,item.precipitationProbability].every(Number.isFinite))});
  }
  return days;
 }
