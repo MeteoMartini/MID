@@ -12,8 +12,9 @@ const detailOrder=app.indexOf('<small>Taupunkt / Feuchte</small>');
 const windOrder=app.indexOf('<small>Wind / Böen</small>',detailOrder);
 if(detailOrder<0||windOrder<0||detailOrder>=windOrder)failures.push('Tagesdetail-Tooltip ordnet Taupunkt/Feuchte nicht vor Wind/Böen ein.');
 if(!app.includes('<b>{Math.round(currentHour.dewPoint)}° · {Math.round(currentHour.humidity)} %</b>'))failures.push('Tagesdetail-Tooltip zeigt Taupunkt und Feuchte nicht in der gewünschten Reihenfolge.');
-for(const token of ["label:'Wind / Böen'","{wind(windSpeed,unit)} · {wind(windGust,unit)}","detail:`Richtung ${Math.round(windDirection)}°"])
+for(const token of ["label:'Wind / Böen'","detail:`Richtung ${Math.round(windDirection)}°"])
  if(!app.includes(token))failures.push(`Aktuelle Windkachel fehlt: ${token}`);
+if(!app.includes('{wind(displayWindSpeed,unit)} · {wind(displayWindGust,unit)}')&&!app.includes('{wind(windSpeed,unit)} · {wind(windGust,unit)}'))failures.push('Aktuelle Windkachel zeigt Wind/Böen nicht im erwarteten Format oder ohne Normalisierung an.');
 for(const token of ['dewPoint?:number','cloudBaseHft?:number','ceilingHft?:number','estimatedCloudBaseHft','baseHft<=3000','total<=.8','total<=.5'])
  if(!precip.includes(token))failures.push(`Zentrale Niederschlagsplausibilisierung fehlt: ${token}`);
 for(const [name,text] of [['App',app],['Meteogramm',meteogram],['Routenwetter',route]])if(!text.includes('dewPoint:'))failures.push(`${name} übergibt den Taupunkt nicht an die zentrale Plausibilisierung.`);

@@ -1,0 +1,17 @@
+import {readFileSync} from 'node:fs';
+import assert from 'node:assert/strict';
+const app=readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
+const weather=readFileSync(new URL('../src/weather.ts',import.meta.url),'utf8');
+const css=readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
+assert.match(app,/title="Berg-\/Wintersport"/,'Bergmodul muss auf „Berg-/Wintersport“ umbenannt sein');
+assert.match(app,/<small>UVI Berg<\/small>/,'Bergmodul muss UVI wieder als eigene Kachel zeigen');
+assert.match(app,/Neuschnee \+24 h/,'Wintermodus muss Neuschnee als eigene Kachel anbieten');
+assert.match(app,/Gewitterpotenzial/,'Sommermodus muss Gewitterpotenzial als eigene Kachel anbieten');
+assert.doesNotMatch(app,/title="Berg- & Skimodus"/,'alter Berg-/Skimodus-Titel darf nicht mehr verwendet werden');
+assert.match(weather,/export function normalizeWindPair\(/,'wind/gust-Normalisierung fehlt');
+assert.match(weather,/windPair=normalizeWindPair\(n\(w\.hourly\.wind_speed_10m\[i\],0\),n\(w\.hourly\.wind_gusts_10m\[i\],0\)\)/,'Stundenmapping muss Wind/Böen normalisieren');
+assert.match(weather,/wind:windPair\.wind,gust:windPair\.gust/,'Detaildiagramm muss normalisierte Wind-/Böenwerte nutzen');
+assert.match(app,/const currentWindPair=normalizeWindPair\(windSpeed,windGust\),displayWindSpeed=currentWindPair\.wind,displayWindGust=currentWindPair\.gust;/,'Aktuelle Windkachel muss normalisierte Wind-/Böenwerte nutzen');
+assert.match(app,/windPair=normalizeWindPair\(windSpeed,gust\)/,'Bergstufen müssen Wind/Böen normalisieren');
+assert.match(css,/\.mountain-indicators\{display:grid;grid-template-columns:repeat\(auto-fit,minmax\(118px,1fr\)\)/,'Bergindikatoren müssen für zusätzliche Kacheln flexibel umbrechen');
+console.log('Berg-/Wintersport und Wind/Böen-Normalisierung geprüft: Titel/Kacheln aktualisiert, Detailwerte unmöglichkeitsfrei.');

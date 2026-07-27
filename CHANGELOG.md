@@ -1,3 +1,10 @@
+# MID v0.7.105.4
+
+- Bergmodul sprachlich auf „Berg-/Wintersport“ umgestellt und die Kachelstruktur saisonal aufgewertet: UVI erscheint wieder als eigenständige Kachel; zusätzlich zeigt der Sommermodus das Gewitterpotenzial und der Wintermodus den prognostizierten Neuschnee +24 h.
+- Bergindikatoren layoutseitig flexibilisiert, damit die zusätzlichen saisonalen Kacheln auf Desktop und Mobil sauber umbrechen.
+- Wind- und Böenwerte appweit für Stunden- und Tagesmapping sowie in den aktuellen und bergbezogenen Anzeigen geglättet: Böen werden nun niemals kleiner als der zugehörige Wind dargestellt.
+- Neuer Regressionstest schützt Berg-/Wintersport-Kacheln und die Wind/Böen-Normalisierung; bestehender Wind-Test wurde auf die normalisierte Darstellung erweitert.
+
 # MID v0.7.105.3
 
 - Kachel „Luftqualität“ gestalterisch an die übrigen Aktuell-Wetter-Kacheln angenähert: Die große Primärschrift ist kompakter, EU-AQI steht nun in der Überschrift und die doppelte Wiederholung der Einstufung entfällt.
