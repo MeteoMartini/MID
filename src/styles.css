@@ -1985,3 +1985,28 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .radar-location-bearing::before{left:0!important;top:0!important;width:15px!important;height:20px!important;background:linear-gradient(180deg,#35c8ff 0%,#078bdd 72%,#0876c3 100%)!important;clip-path:polygon(50% 0,100% 76%,66% 64%,66% 100%,34% 100%,34% 64%,0 76%)!important;filter:drop-shadow(0 0 1px #fff) drop-shadow(0 1px 1px rgba(8,55,92,.55));box-shadow:none!important}
 .radar-location-marker.heading-unavailable .radar-location-bearing{opacity:.55;filter:saturate(.7)}
 .radar-nowcast-title span{display:inline-flex;align-items:baseline;gap:4px;white-space:nowrap}.radar-nowcast-title span strong{color:var(--text);font-size:7px;font-weight:750;letter-spacing:0;text-transform:none}
+
+
+/* MID v0.7.103.7 – Ensemble-Export/Lesbarkeit */
+.ensemble-chart-export.ensemble-exporting{width:1180px!important;max-width:none!important;min-width:1180px!important;padding:20px 22px 18px;border:1px solid color-mix(in srgb,var(--border) 92%,transparent);border-radius:20px;box-shadow:0 12px 36px rgba(7,17,31,.08)}
+.ensemble-chart-export.ensemble-exporting .ensemble-export-header{display:grid;gap:2px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.ensemble-chart-export.ensemble-exporting .ensemble-export-kicker{font-size:12px;font-weight:800;letter-spacing:.04em;color:var(--muted);text-transform:uppercase}
+.ensemble-chart-export.ensemble-exporting .ensemble-export-header strong{font-size:25px;line-height:1.08;letter-spacing:-.02em;color:var(--text)}
+.ensemble-chart-export.ensemble-exporting .ensemble-export-subtitle{font-size:14px;font-weight:700;color:var(--muted)}
+.ensemble-chart-export.ensemble-exporting .charthead{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-top:0;margin-bottom:8px}
+.ensemble-chart-export.ensemble-exporting .charthead h3{font-size:20px;line-height:1.15}
+.ensemble-chart-export.ensemble-exporting .trend-combined{height:390px!important}
+.ensemble-chart-export.ensemble-exporting .chart.rain{height:300px!important}
+.ensemble-chart-export.ensemble-exporting .ensemble-export-footer{display:grid;gap:5px;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);color:var(--muted);font-size:10px;line-height:1.35}
+.ensemble-chart-export.ensemble-exporting .ensemble-export-footer span{display:block}
+.ensemble-chart-export.ensemble-exporting .ensemble-export-footer b{display:inline-block;min-width:92px;color:var(--text)}
+
+/* MID v0.7.104.0 – gleitender Radar-Nowcast und dezente Summenzeile */
+.radar-nowcast-title .radar-nowcast-total{display:block;color:var(--muted);font-size:6.8px!important;font-weight:750;line-height:1.1;letter-spacing:.01em;text-transform:none;white-space:nowrap}
+.radar-nowcast-scrubber{touch-action:pan-y;cursor:crosshair;outline:none}
+.radar-nowcast-scrubber:focus-visible{outline:2px solid color-mix(in srgb,var(--primary) 72%,white);outline-offset:2px;border-radius:5px}
+.radar-nowcast-scrubber .radar-nowcast-wet{pointer-events:none}
+.radar-nowcast-scrub-anchor{position:absolute;z-index:8;bottom:10px;width:2px;height:2px;margin:0;padding:0;border:0;background:transparent;pointer-events:none;transform:translateX(-1px)}
+.radar-nowcast-strip.compact .radar-nowcast-title{align-items:center}
+@media(max-width:520px){.radar-nowcast-title .radar-nowcast-total{font-size:6.2px!important}}
+.radar-nowcast-scrubber .radar-nowcast-wet{pointer-events:auto}

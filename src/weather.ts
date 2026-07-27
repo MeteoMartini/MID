@@ -327,10 +327,10 @@ function dedupeStationCandidates(input:Station[]){const out=new Map<string,Stati
 type ResidualResult={value?:number;uncertainty?:number;correction?:number;accepted:Set<Station>;weights:Map<Station,number>};
 function residualField(candidates:Station[],backgrounds:LocalBackground[],target:LocalBackground,obsKey:keyof Station,bgKey:keyof LocalBackground,targetElevation:number|undefined,targetUrban:UrbanClass,absoluteLimit:number,min:number,max:number,predicate?:(s:Station)=>boolean):ResidualResult{const raw=candidates.map((s,i)=>{const observed=Number(s[obsKey]),base=Number(backgrounds[i+1]?.[bgKey]),weight=analysisWeight(s,targetElevation,targetUrban);return{station:s,residual:observed-base,weight}}).filter(x=>(!predicate||predicate(x.station))&&Number.isFinite(x.residual)&&x.weight>.0001&&Number(x.station[obsKey])>=min&&Number(x.station[obsKey])<=max),accepted=new Set<Station>(),weights=new Map<Station,number>();if(!raw.length||!Number.isFinite(Number(target[bgKey])))return{accepted,weights};const med=median(raw.map(x=>x.residual)),mad=median(raw.map(x=>Math.abs(x.residual-med))),limit=Math.max(absoluteLimit,Number.isFinite(mad)?mad*3.7:0),filtered=raw.filter(x=>Math.abs(x.residual-med)<=limit&&Math.abs(x.residual)<=absoluteLimit*2.5),use=filtered.length?filtered:raw.sort((a,b)=>b.weight-a.weight).slice(0,1),sum=use.reduce((a,x)=>a+x.weight,0);if(!sum)return{accepted,weights};for(const x of use){accepted.add(x.station);weights.set(x.station,x.weight)}const correction=use.reduce((a,x)=>a+x.residual*x.weight,0)/sum,variance=use.reduce((a,x)=>a+(x.residual-correction)**2*x.weight,0)/sum,effectiveN=sum*sum/Math.max(.0001,use.reduce((a,x)=>a+x.weight*x.weight,0)),uncertainty=Math.max(.18,Math.sqrt(Math.max(0,variance))+.45/Math.sqrt(Math.max(1,effectiveN)));return{value:Number(target[bgKey])+correction,uncertainty,correction,accepted,weights}}
 function directStationField(candidates:Station[],obsKey:keyof Station,targetElevation:number|undefined,targetUrban:UrbanClass,absoluteLimit:number,min:number,max:number):ResidualResult{const raw=candidates.map(station=>({station,value:Number(station[obsKey]),weight:analysisWeight(station,targetElevation,targetUrban)})).filter(row=>Number.isFinite(row.value)&&row.value>=min&&row.value<=max&&row.weight>.0001),accepted=new Set<Station>(),weights=new Map<Station,number>();if(!raw.length)return{accepted,weights};const med=median(raw.map(row=>row.value)),mad=median(raw.map(row=>Math.abs(row.value-med))),limit=Math.max(absoluteLimit,Number.isFinite(mad)?mad*3.7:0),filtered=raw.filter(row=>Math.abs(row.value-med)<=limit),use=filtered.length?filtered:raw.sort((a,b)=>b.weight-a.weight).slice(0,1),sum=use.reduce((total,row)=>total+row.weight,0);if(!sum)return{accepted,weights};for(const row of use){accepted.add(row.station);weights.set(row.station,row.weight)}const value=use.reduce((total,row)=>total+row.value*row.weight,0)/sum,variance=use.reduce((total,row)=>total+(row.value-value)**2*row.weight,0)/sum;return{value,uncertainty:Math.sqrt(Math.max(0,variance)),accepted,weights}}
-async function hyperlocalAnalysis(input:Station[],lat:number,lon:number,elevation:number|undefined,context:Location|undefined,signal?:AbortSignal):Promise<Station|null>{
+async function hyperlocalAnalysis(input:Station[],lat:number,lon:number,elevation:number|undefined,context:Location|undefined,signal?:AbortSignal,fast=false):Promise<Station|null>{
  const deduped=dedupeStationCandidates(input),nonCitizen=deduped.filter(s=>!isCitizenNetwork(s.provider)),fallback=robustBlendStations(nonCitizen.length?deduped:deduped.length>=3?deduped:[],elevation);
  if(!deduped.length||(!nonCitizen.length&&deduped.length<3))return null;
- const ranked=deduped.sort((a,b)=>stationFitScore(a.distance,a.height,elevation,isPrivateNetwork(a.provider)?-7000:0,a.timestamp)-stationFitScore(b.distance,b.height,elevation,isPrivateNetwork(b.provider)?-7000:0,b.timestamp)).filter(s=>Number.isFinite(s.latitude)&&Number.isFinite(s.longitude)).slice(0,17);
+ const ranked=deduped.sort((a,b)=>stationFitScore(a.distance,a.height,elevation,isPrivateNetwork(a.provider)?-7000:0,a.timestamp)-stationFitScore(b.distance,b.height,elevation,isPrivateNetwork(b.provider)?-7000:0,b.timestamp)).filter(s=>Number.isFinite(s.latitude)&&Number.isFinite(s.longitude)).slice(0,fast?10:17);
  if(!ranked.length)return fallback;
  let backgrounds:LocalBackground[];
  try{backgrounds=await localBackground([{lat,lon,elevation},...ranked.map(s=>({lat:Number(s.latitude),lon:Number(s.longitude),elevation:s.height}))],signal)}catch{return fallback}
@@ -396,18 +396,18 @@ function rowToStation(r:any,lat:number,lon:number):Station|null{
 
 function parseMetarStations(rows:any[],lat:number,lon:number){return rows.map(r=>rowToStation(r,lat,lon)).filter(Boolean) as Station[]}
 function awcMetarBbox(lat:number,lon:number,radiusKm:number){const dLat=radiusKm/111,dLon=radiusKm/(111*Math.max(.25,Math.cos(lat*Math.PI/180)));return[Math.max(-89.9,lat-dLat),Math.max(-180,lon-dLon),Math.min(89.9,lat+dLat),Math.min(180,lon+dLon)].map(x=>x.toFixed(3)).join(',')}
-async function metarStations(lat:number,lon:number,radiusKm=140,signal?:AbortSignal):Promise<Station[]>{
+async function metarStations(lat:number,lon:number,radiusKm=140,signal?:AbortSignal,fast=false):Promise<Station[]>{
  const bbox=awcMetarBbox(lat,lon,radiusKm);
- if(workerBaseCandidates('metar').length){try{const data=await fetchWorkerJson<any>('',{lat,lon,radius_km:radiusKm},{purpose:'metar',signal,timeoutMs:10000}),stations=parseMetarStations(parseMetarRows(data),lat,lon);if(stations.length)return stations}catch{}}
+ if(workerBaseCandidates('metar').length){try{const data=await fetchWorkerJson<any>('',{lat,lon,radius_km:radiusKm,fast:fast?1:0},{purpose:'metar',signal,timeoutMs:fast?6000:10000}),stations=parseMetarStations(parseMetarRows(data),lat,lon);if(stations.length)return stations}catch{}}
  try{const data=await j<any>(`https://aviationweather.gov/api/data/metar?format=json&hours=3&bbox=${encodeURIComponent(bbox)}`,signal);return parseMetarStations(parseMetarRows(data),lat,lon)}catch{return[]}
 }
-export async function station(lat:number,lon:number,country?:string,elevation?:number,context?:Location,signal?:AbortSignal):Promise<Station|null>{
- const c=countryCodeFromLocation(country),inGermany=c==='DE'||(!c&&lat>=47.2&&lat<=55.2&&lon>=5.5&&lon<=15.6),metarRadiusKm=inGermany?140:220,tasks:Promise<Station[]|Station|null>[]=[metarStations(lat,lon,metarRadiusKm,signal)];
+export async function station(lat:number,lon:number,country?:string,elevation?:number,context?:Location,signal?:AbortSignal,fast=false):Promise<Station|null>{
+ const c=countryCodeFromLocation(country),inGermany=c==='DE'||(!c&&lat>=47.2&&lat<=55.2&&lon>=5.5&&lon<=15.6),metarRadiusKm=inGermany?140:220,metarTask=fast?metarStations(lat,lon,metarRadiusKm,signal,true):metarStations(lat,lon,metarRadiusKm,signal),tasks:Promise<Station[]|Station|null>[]=[metarTask];
  if(geoSphereApplies(lat,lon,c))tasks.push(geoSphereStation(lat,lon,elevation,signal));
  if(inGermany)tasks.push(brightSkyStation(lat,lon,elevation,signal));
  const settled=await Promise.allSettled(tasks),results=settled.filter((x):x is PromiseFulfilledResult<Station[]|Station|null>=>x.status==='fulfilled').flatMap(x=>Array.isArray(x.value)?x.value:x.value?[x.value]:[]);
  if(!results.length)return null;
- const analysed=await hyperlocalAnalysis(results,lat,lon,elevation,context,signal),geoSphereQff=c==='AT'?results.find(item=>item.provider?.includes('GeoSphere')&&plausibleQff(item.pressure,item.height)&&(item.pressureReference==='QFF'||item.pressureReference==='MSL')):undefined;if(analysed&&geoSphereQff&&analysed.pressure===undefined)return{...analysed,pressure:geoSphereQff.pressure,pressureReference:'QFF'};
+ const analysed=await hyperlocalAnalysis(results,lat,lon,elevation,context,signal,fast),geoSphereQff=c==='AT'?results.find(item=>item.provider?.includes('GeoSphere')&&plausibleQff(item.pressure,item.height)&&(item.pressureReference==='QFF'||item.pressureReference==='MSL')):undefined;if(analysed&&geoSphereQff&&analysed.pressure===undefined)return{...analysed,pressure:geoSphereQff.pressure,pressureReference:'QFF'};
  const nonCitizen=results.filter(item=>!isCitizenNetwork(item.provider));return analysed??robustBlendStations(nonCitizen.length?results:results.length>=3?results:[],elevation)??nonCitizen[0]??null;
 }
 
@@ -427,9 +427,9 @@ function radarRetryDelay(signal?:AbortSignal){
  if(signal?.aborted)return Promise.reject(signal.reason??new DOMException('Vorgang abgebrochen.','AbortError'));
  return new Promise<void>((resolve,reject)=>{let settled=false;const finish=(error?:unknown)=>{if(settled)return;settled=true;clearTimeout(timer);signal?.removeEventListener('abort',abort);error===undefined?resolve():reject(error)},abort=()=>finish(signal?.reason??new DOMException('Vorgang abgebrochen.','AbortError')),timer=setTimeout(()=>finish(),700);signal?.addEventListener('abort',abort,{once:true})});
 }
-async function requestRadarStage(params:{lat:number;lon:number;country:string;_ts:number},stage:'dwd'|'rainviewer',signal?:AbortSignal){
- try{return await fetchWorkerJson<RadarNowcast&{error?:string}>('radar-nowcast',{...params,stage},{purpose:'radar',signal,timeoutMs:stage==='dwd'?14000:16000})}
- catch(firstError){abortError(signal);await radarRetryDelay(signal);try{return await fetchWorkerJson<RadarNowcast&{error?:string}>('radar-nowcast',{...params,stage,_ts:Date.now()},{purpose:'radar',signal,timeoutMs:stage==='dwd'?18000:20000})}catch(secondError){abortError(signal);void firstError;void secondError;return null}}
+async function requestRadarStage(params:{lat:number;lon:number;country:string;_ts:number},stage:'dwd'|'rainviewer',signal?:AbortSignal,fast=false){
+ try{return await fetchWorkerJson<RadarNowcast&{error?:string}>('radar-nowcast',{...params,stage,fast:fast?1:0},{purpose:'radar',signal,timeoutMs:stage==='dwd'?(fast?8000:14000):16000})}
+ catch(firstError){abortError(signal);await radarRetryDelay(signal);try{return await fetchWorkerJson<RadarNowcast&{error?:string}>('radar-nowcast',{...params,stage,fast:fast?1:0,_ts:Date.now()},{purpose:'radar',signal,timeoutMs:stage==='dwd'?(fast?11000:18000):20000})}catch(secondError){abortError(signal);void firstError;void secondError;return null}}
 }
 
 
@@ -448,13 +448,15 @@ async function operaNowcast(lat:number,lon:number,signal?:AbortSignal){
  try{const metadata=await loadOperaRaster(lat,lon,signal);return normaliseRadarNowcast(await analyseOperaRasterNowcast(metadata.frames??[],lat,lon,signal))}catch(error){abortError(signal);void error;return null}
 }
 
-export async function radarNowcast(lat:number,lon:number,country?:string,signal?:AbortSignal):Promise<RadarNowcast|null>{
+export async function radarNowcast(lat:number,lon:number,country?:string,signal?:AbortSignal,fast=false):Promise<RadarNowcast|null>{
  if(!workerBaseCandidates('radar').length)return null;
- const countryCode=countryCodeFromLocation(country),params={lat,lon,country:countryCode||String(country||''),_ts:Date.now()},dwdExpected=dwdRadarExpected(lat,lon,countryCode),operaExpected=operaRadarApplies(lat,lon),[dwdSettled,operaSettled]=await Promise.allSettled([dwdExpected?requestRadarStage(params,'dwd',signal):Promise.resolve(null),operaExpected?operaNowcast(lat,lon,signal):Promise.resolve(null)]);abortError(signal);
+ const countryCode=countryCodeFromLocation(country),params={lat,lon,country:countryCode||String(country||''),_ts:Date.now()},dwdExpected=dwdRadarExpected(lat,lon,countryCode),operaExpected=operaRadarApplies(lat,lon);
+ if(fast&&dwdExpected){const dwdResult=normaliseRadarNowcast(await requestRadarStage(params,'dwd',signal,true));if(dwdResult?.source==='dwd')return dwdResult}
+ const[dwdSettled,operaSettled]=await Promise.allSettled([dwdExpected?requestRadarStage(params,'dwd',signal,false):Promise.resolve(null),operaExpected?operaNowcast(lat,lon,signal):Promise.resolve(null)]);abortError(signal);
  const dwdResult=dwdSettled.status==='fulfilled'?normaliseRadarNowcast(dwdSettled.value):null,operaResult=operaSettled.status==='fulfilled'?operaSettled.value:null;
  if(dwdResult?.source==='dwd')return operaResult?.source==='opera'?mergeDwdOperaNowcast(dwdResult,operaResult):dwdResult;
  if(operaResult?.source==='opera')return operaResult;
- const fallback=normaliseRadarNowcast(await requestRadarStage({...params,_ts:Date.now()},'rainviewer',signal));return fallback?.source==='opera'?null:fallback;
+ const fallback=normaliseRadarNowcast(await requestRadarStage({...params,_ts:Date.now()},'rainviewer',signal,false));return fallback?.source==='opera'?null:fallback;
 }
 
 function n(v:unknown,fallback=NaN){return v===null||v===undefined||v===''?fallback:Number(v)}

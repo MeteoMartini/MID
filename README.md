@@ -146,7 +146,7 @@ Der vollständige Referenzumfang von MID v0.7.95.26 ist wiederhergestellt. Info-
 
 # MID – Meteorological Information Dashboard
 
-**Aktuelle Version: v0.7.103.5**
+**Aktuelle Version: v0.7.103.4**
 
 ## Revision in v0.7.89 – responsiver und schlanker
 

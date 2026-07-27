@@ -1,19 +1,13 @@
-# MID v0.7.103.6
+# MID v0.7.104.0
 
-- Push-Titel und -Texte für reguläre Favoriten sprachlich korrigiert: statt „Niederschlag bei Münster“ beziehungsweise „Gewitter bei Münster“ verwendet MID nun „Niederschlag in Münster“ und „Gewitter in Münster“.
-- Lauftexte wurden entsprechend auf „Regen hat in Münster begonnen“ beziehungsweise „Regen beginnt in Münster …“ angepasst.
-- Der dynamische Standort bleibt unverändert natürlich als „am Standort“ formuliert.
-- Prognoseänderungen verwenden künftig „für <Ort>“ statt „bei <Ort>“.
-- Eigener Regressionstest schützt die Ortspräpositionen in Push-Mitteilungen.
-
-# MID v0.7.103.5
-
-- Gerätekompass des Standortmarkers robuster verdrahtet: Auf iOS werden Sensorlistener erst nach erteilter Berechtigung aktiviert; parallele absolute und relative Orientierungssignale überschreiben sich nicht mehr.
-- Standortzentrierung fordert bei fehlender Blickrichtung ebenfalls die iOS-Sensorfreigabe an. Die Richtungsbewegung reagiert schneller, bleibt aber geglättet.
-- Richtungsspitze des weiterhin kompakten Standortmarkers kontrastreicher und relativ zum Positionsring deutlicher gestaltet.
-- Radar-Nowcast zeigt wieder dezent die aufsummierte Niederschlagsmenge bis +2 Stunden.
-- Dynamische mm/h-Achse auf glatte Skalenstufen umgestellt; ab 1 mm/h werden passende ganzzahlige Achsenwerte verwendet.
-- Neuer Regressionstest für Sensorfreigabe, kontinuierliche Markerrotation, Pfeilsichtbarkeit, Summenanzeige und glatte Achsenwerte.
+- Radar-Nowcast als durchgehend horizontal erkundbarer 5-Minuten-Scrubber umgesetzt: Fingerbewegung nach links/rechts aktualisiert den MID-typischen Portal-Tooltip am jeweils berührten Zeitschritt; Außenklick, erneutes Antippen und Escape schließen ihn.
+- 5-Minuten-Mengen fachlich korrigiert: Standortwert und Umgebungsecho werden getrennt; ein stärkeres Echo im Suchumfeld ersetzt nicht mehr den tatsächlichen Standortwert. Unsichere Prognoseersatzwerte werden begrenzt und transparent gekennzeichnet.
+- +2-h-Niederschlagssumme deutlich zurückgenommen und nur aus zukünftigen Standorttreffern gebildet; Umgebungsechos fließen nicht in die Standortsumme ein.
+- Radar-Analyse auf einen progressiven Schnellpfad umgestellt: zuerst wenige WMS-Punktwerte ohne aufwendige Bewegungsfelder/KONRAD-Kontext, anschließend vollständige DWD-/OPERA-Analyse im Hintergrund. Letzte erfolgreiche Analyse wird ortsbezogen kurzzeitig zwischengespeichert.
+- Hyperlokale Analyse progressiv beschleunigt: sofortige Kernnetzauswertung mit reduziertem Kandidatenbudget, danach vollständige Mehrnetz-/Restfeldanalyse im Hintergrund; letzte erfolgreiche Ortsanalyse wird kurzzeitig zwischengespeichert.
+- Aktuelle Wetterdaten um RADOLAN-Rückschau ergänzt: letzte Stunde aus angeeichtem RW, bei noch nicht ausreichend aktuellem RW aus nicht angeeichten RY-5-Minuten-Produkten; letzte 24 Stunden aus dem aktuellen angeeichten SF-Produkt.
+- Neue Worker-Endpunkte `radolan-history-meta` und `radolan-history-file` mit DWD-Produktprüfung, Caching und ortsbezogener Browserauswertung ergänzt.
+- Neuer Regressionstest schützt Touch-Scrubbing, progressive Schnellpfade, Trennung von Standort-/Umgebungsecho und die RADOLAN-Rückschau.
 
 # MID v0.7.103.4
 
