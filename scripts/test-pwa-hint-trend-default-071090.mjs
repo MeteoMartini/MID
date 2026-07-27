@@ -1,0 +1,17 @@
+import {readFileSync} from 'node:fs';
+import assert from 'node:assert/strict';
+const app=readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
+const pwa=readFileSync(new URL('../src/PwaInstallButton.tsx',import.meta.url),'utf8');
+const css=readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
+assert.match(pwa,/PWA_HINT_DISMISSED_KEY='mid:pwaInstallHintDismissed'/,'dauerhafter Speicherwert für den Installationshinweis fehlt');
+assert.match(pwa,/localStorage\.setItem\(PWA_HINT_DISMISSED_KEY,'1'\)/,'Schließen des Installationshinweises wird nicht dauerhaft gespeichert');
+assert.match(pwa,/hintReady&&!hintDismissed&&!installed&&!open/,'Installationshinweis muss nur einmalig außerhalb der installierten App erscheinen');
+assert.match(pwa,/className="pwa-install-hint-close"/,'dauerhaft schließbares X am Installationshinweis fehlt');
+assert.match(pwa,/className={`header-install-button\$\{installed\?' installed':''\}`}/,'kompakter App-Status in der Kopfzeile fehlt');
+assert.match(app,/<div className="actions compact-actions"><PwaInstallButton\/><button className="settings-button"/,'App-Status muss links neben dem Einstellungsbutton stehen');
+assert.doesNotMatch(app,/<footer>[\s\S]{0,350}<PwaInstallButton\/>/,'alter breiter Installationsbutton darf nicht im Footer bleiben');
+assert.match(app,/DEFAULT_FORECAST_DISPLAY_SETTINGS:ForecastDisplaySettings=\{showSevenDaySummary:true\}/,'7-Tage-Trend ist nicht als Standard aktiviert');
+assert.match(app,/showSevenDaySummary:parsed\?\.showSevenDaySummary!==false/,'nur eine ausdrückliche Deaktivierung darf den 7-Tage-Trend ausschalten');
+assert.match(css,/\.pwa-install-hint\{position:fixed/,'dezentes Hinweis-Overlay ist nicht gestaltet');
+assert.match(css,/\.header-install-button\.installed/,'installierter App-Status besitzt keine kompakte Statusgestaltung');
+console.log('PWA-Hinweis/Kopfzeile und 7-Tage-Standard geprüft: einmalig schließbar, dauerhaft gespeichert, installierter Status kompakt, Trend standardmäßig aktiv.');

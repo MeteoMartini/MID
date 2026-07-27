@@ -1630,11 +1630,15 @@ button,input,select,textarea{font:inherit}
 }
 
 
-/* v0.7.90 – sichtbare PWA-Installation „MID als App nutzen“ */
-footer{flex-wrap:wrap;align-items:center}
-.footer-install-button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:34px;padding:7px 10px;border:1px solid var(--border);border-radius:999px;background:var(--s2);color:var(--text);font-size:10px;font-weight:850;white-space:nowrap}
-.footer-install-button:hover{border-color:color-mix(in srgb,var(--primary) 58%,var(--border));background:color-mix(in srgb,var(--s2) 82%,var(--primary) 18%)}
-.footer-install-button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+/* v0.7.109.0 – persistenter, dezenter PWA-Hinweis und kompakter Kopfzeilenstatus */
+.header-install-button{display:inline-flex!important;align-items:center;justify-content:center;gap:5px;width:auto!important;min-width:54px;height:36px!important;padding:0 9px!important;border:1px solid var(--border)!important;border-radius:11px!important;background:var(--s2)!important;color:var(--text)!important;font-size:9px;font-weight:850;white-space:nowrap}
+.header-install-button:hover{border-color:color-mix(in srgb,var(--primary) 58%,var(--border))!important;background:color-mix(in srgb,var(--s2) 82%,var(--primary) 18%)!important}
+.header-install-button.installed{border-color:rgba(45,204,130,.34)!important;background:rgba(45,204,130,.09)!important;color:color-mix(in srgb,#2dcc82 74%,var(--text))!important}
+.header-install-button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.pwa-install-hint{position:fixed;z-index:5650;right:max(14px,env(safe-area-inset-right));bottom:max(14px,env(safe-area-inset-bottom));display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;width:min(560px,calc(100vw - 28px));overflow:hidden;border:1px solid color-mix(in srgb,var(--primary) 24%,var(--border));border-radius:18px;background:color-mix(in srgb,var(--surface) 96%,var(--primary) 4%);box-shadow:0 16px 42px rgba(4,14,28,.23);color:var(--text)}
+.pwa-install-hint-main{display:grid!important;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:11px;width:100%!important;height:auto!important;min-height:54px;padding:10px 12px!important;border:0!important;border-radius:0!important;background:transparent!important;color:inherit!important;text-align:left}
+.pwa-install-hint-main svg{color:color-mix(in srgb,var(--primary) 78%,var(--text));flex:0 0 auto}.pwa-install-hint-main span{font-size:11px;line-height:1.35}.pwa-install-hint-main:hover{background:color-mix(in srgb,var(--primary) 7%,transparent)!important}
+.pwa-install-hint-close{display:grid!important;width:42px!important;height:42px!important;margin-right:6px;padding:0!important;place-items:center;border:0!important;border-radius:12px!important;background:transparent!important;color:var(--muted)!important}.pwa-install-hint-close:hover{background:var(--s2)!important;color:var(--text)!important}
 .pwa-install-backdrop{position:fixed;z-index:5700;inset:0;display:grid;place-items:center;padding:16px;background:rgba(2,8,17,.68);backdrop-filter:blur(12px)}
 .pwa-install-dialog{width:min(620px,100%);max-height:min(90vh,760px);overflow:auto;border:1px solid var(--border);border-radius:24px;background:var(--surface);color:var(--text);box-shadow:0 32px 100px rgba(0,0,0,.5)}
 .pwa-install-dialog>header{position:sticky;z-index:1;top:0;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:17px 19px;border-bottom:1px solid var(--border);background:color-mix(in srgb,var(--surface) 94%,var(--primary) 6%);backdrop-filter:blur(18px)}
@@ -1643,7 +1647,7 @@ footer{flex-wrap:wrap;align-items:center}
 .pwa-install-benefits{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.pwa-install-benefits span{display:flex;align-items:center;gap:7px;min-width:0;padding:10px;border:1px solid var(--border);border-radius:13px;background:var(--s2);font-size:10px;font-weight:800}.pwa-install-benefits svg{flex:0 0 auto;color:#2dcc82}
 .pwa-install-status,.pwa-install-direct,.pwa-install-guide{padding:14px;border:1px solid var(--border);border-radius:16px;background:var(--s2)}.pwa-install-status{display:flex;align-items:flex-start;gap:10px}.pwa-install-status.success{border-color:rgba(45,204,130,.38);background:rgba(45,204,130,.09)}.pwa-install-status svg{flex:0 0 auto;color:#2dcc82}.pwa-install-status strong,.pwa-install-status span{display:block}.pwa-install-status span{margin-top:3px;color:var(--muted);font-size:10px;line-height:1.45}.pwa-install-direct{display:flex;align-items:center;justify-content:space-between;gap:12px}.pwa-install-direct p{margin:0;color:var(--muted);font-size:11px}.pwa-install-direct button{white-space:nowrap}
 .pwa-install-guide>strong{display:block;margin-bottom:8px;font-size:13px}.pwa-install-guide ol{display:grid;gap:8px;margin:0;padding-left:22px}.pwa-install-guide li{padding-left:3px;color:var(--muted);font-size:11px;line-height:1.45}.pwa-install-guide li b{color:var(--text)}.pwa-install-guide li svg{display:inline;vertical-align:-3px}.pwa-install-guide>small{display:block;margin-top:10px;color:var(--muted);font-size:9px}.pwa-install-message{margin:0;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--primary) 11%,var(--s2));color:var(--text);font-size:10px}.pwa-install-note{color:var(--muted);font-size:9px;line-height:1.45}
-@media(max-width:620px){footer{justify-content:flex-start}.footer-install-button{order:3;width:100%}.pwa-install-backdrop{padding:8px}.pwa-install-dialog{max-height:94vh;border-radius:19px}.pwa-install-content{padding:14px}.pwa-install-benefits{grid-template-columns:1fr}.pwa-install-direct{align-items:stretch;flex-direction:column}.pwa-install-direct button{width:100%}}
+@media(max-width:620px){.header-install-button{min-width:38px;height:40px!important;padding:0 8px!important}.header-install-button span{display:none}.pwa-install-hint{right:10px;bottom:max(10px,env(safe-area-inset-bottom));width:calc(100vw - 20px);border-radius:15px}.pwa-install-hint-main{min-height:50px;padding:9px 10px!important}.pwa-install-hint-main span{font-size:10px}.pwa-install-backdrop{padding:8px}.pwa-install-dialog{max-height:94vh;border-radius:19px}.pwa-install-content{padding:14px}.pwa-install-benefits{grid-template-columns:1fr}.pwa-install-direct{align-items:stretch;flex-direction:column}.pwa-install-direct button{width:100%}}
 
 
 
@@ -2337,4 +2341,50 @@ button,input,select,[role="button"]{touch-action:manipulation}
   width:1000px!important;
   min-width:1000px!important;
   max-width:1000px!important;
+}
+
+/* MID v0.7.108.3 – SVG-Modellkonturen und kollisionsfreie mobile Komposit-Overlays */
+.leaflet-mid-model-lines-pane{
+ z-index:665!important;
+ pointer-events:none!important;
+ mix-blend-mode:normal!important;
+}
+.leaflet-mid-model-lines-pane svg{
+ overflow:visible!important;
+ pointer-events:none!important;
+}
+.mid-model-contour{
+ vector-effect:non-scaling-stroke;
+ shape-rendering:geometricPrecision;
+}
+.radarlegend.compact.collapsed .radarlegend-toggle{
+ min-height:28px;
+ padding:4px 7px;
+}
+.radarlegend.compact.collapsed .radarlegend-toggle strong{font-size:8.5px}
+.radarlegend.compact.collapsed .radarlegend-toggle small{font-size:5.9px!important}
+@media(max-width:760px){
+ .composite-map-interaction{
+  right:auto;
+  left:8px;
+  bottom:52px;
+  min-height:28px;
+  padding:4px 7px;
+ }
+ .radarlegend.compact.collapsed{
+  right:7px;
+  bottom:7px;
+ }
+}
+@media(max-width:520px){
+ .composite-map-interaction{
+  left:7px;
+  bottom:48px;
+  min-height:27px;
+  padding:4px 7px;
+ }
+ .radarlegend.compact.collapsed .radarlegend-toggle{
+  min-height:27px;
+  padding:4px 6px;
+ }
 }

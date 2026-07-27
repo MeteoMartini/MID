@@ -1,3 +1,17 @@
+# MID v0.7.109.0
+
+- Dezenter, einmaliger Hinweis zur Nutzung als Web-App ergänzt. Der Hinweis kann über das X dauerhaft geschlossen werden; die Auswahl wird lokal gespeichert und erscheint bei späteren Neustarts nicht erneut.
+- PWA-Status aus dem Footer in die Kopfzeile verlagert: links neben Einstellungen steht nun ein kleines „App“-Feld; bei installierter MID-App wird es kompakt als installiert markiert. Die vollständigen Installationshinweise bleiben über dieses Feld erreichbar.
+- 7-Tage-Trend als belastbarer Standard abgesichert: Ohne gespeicherte Präferenz ist er nach jedem Neustart aktiv; nur eine ausdrücklich gespeicherte Deaktivierung hält ihn ausgeschaltet.
+- Neue Regressionstests schützen die persistente Hinweis-Ausblendung, den kompakten Kopfzeilenstatus und die Standardaktivierung des 7-Tage-Trends.
+
+# MID v0.7.108.3
+
+- Aktuelles Wetter mobil: Die kompakte Tmin-/Tmax-Pille besitzt nun eine feste geringe Höhe; Beschriftungen, Trennpunkt und Temperaturwerte sind vertikal sauber zentriert.
+- Kompositbild: Isobaren und 500-hPa-Isohypsen werden unabhängig vom globalen Leaflet-Canvasmodus über einen eigenen SVG-Renderer im Modelllinien-Pane gezeichnet. Linienkontrast, Strichstärke und Halo wurden erhöht, damit vollständige Konturen über Radar- und Satellitenflächen sichtbar bleiben.
+- Mobile Komposit-Overlays neu angeordnet: Das Feld „Scrollen“ steht links oberhalb des Kartenfußes und kollidiert nicht mehr mit dem rechts unten liegenden, verkleinerten „Jetzt“-Overlay.
+- Neuer Regressionstest schützt mobile Tmin/Tmax-Zentrierung, explizite SVG-Modellkonturen und die kollisionsfreie Overlay-Anordnung.
+
 # MID v0.7.108.2
 
 - Ensemble-Temperaturdiagramm: Achsentitel analog zum Niederschlagsdiagramm aus der Recharts-SVG-Fläche herausgelöst. „Temperatur“/„°C“ und „Vorhersagetag“ besitzen nun reservierte Layoutbereiche und bleiben auf Desktop, Mobilgeräten sowie im PNG-Export lesbar.

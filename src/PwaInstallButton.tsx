@@ -8,22 +8,26 @@ type BeforeInstallPromptEvent=Event&{
 
 type NavigatorWithStandalone=Navigator&{standalone?:boolean};
 
+const PWA_HINT_DISMISSED_KEY='mid:pwaInstallHintDismissed';
+
 function runsStandalone(){
+ if(typeof window==='undefined'||typeof navigator==='undefined')return false;
  return window.matchMedia?.('(display-mode: standalone)').matches===true||(navigator as NavigatorWithStandalone).standalone===true;
 }
-
-function isIosDevice(){return /iphone|ipad|ipod/i.test(navigator.userAgent)}
-function isAndroidDevice(){return /android/i.test(navigator.userAgent)}
+function isIosDevice(){return typeof navigator!=='undefined'&&/iphone|ipad|ipod/i.test(navigator.userAgent)}
+function isAndroidDevice(){return typeof navigator!=='undefined'&&/android/i.test(navigator.userAgent)}
+function storedHintDismissed(){try{return localStorage.getItem(PWA_HINT_DISMISSED_KEY)==='1'}catch{return false}}
+function storeHintDismissed(){try{localStorage.setItem(PWA_HINT_DISMISSED_KEY,'1')}catch{}}
 
 export function PwaInstallButton(){
- const[open,setOpen]=useState(false),[installPrompt,setInstallPrompt]=useState<BeforeInstallPromptEvent|null>(null),[installed,setInstalled]=useState(runsStandalone),[message,setMessage]=useState('');
+ const[open,setOpen]=useState(false),[installPrompt,setInstallPrompt]=useState<BeforeInstallPromptEvent|null>(null),[installed,setInstalled]=useState(runsStandalone),[message,setMessage]=useState(''),[hintDismissed,setHintDismissed]=useState(storedHintDismissed),[hintReady,setHintReady]=useState(false);
  const ios=useMemo(isIosDevice,[]),android=useMemo(isAndroidDevice,[]);
 
  useEffect(()=>{
   const media=window.matchMedia?.('(display-mode: standalone)');
   const updateInstalled=()=>setInstalled(runsStandalone());
   const capture=(event:Event)=>{event.preventDefault();setInstallPrompt(event as BeforeInstallPromptEvent)};
-  const markInstalled=()=>{setInstalled(true);setInstallPrompt(null);setMessage('MID wurde erfolgreich als App installiert.')};
+  const markInstalled=()=>{setInstalled(true);setInstallPrompt(null);setMessage('MID wurde erfolgreich als App installiert.');setHintDismissed(true);storeHintDismissed()};
   window.addEventListener('beforeinstallprompt',capture);
   window.addEventListener('appinstalled',markInstalled);
   media?.addEventListener?.('change',updateInstalled);
@@ -35,6 +39,13 @@ export function PwaInstallButton(){
  },[]);
 
  useEffect(()=>{
+  if(installed){setHintDismissed(true);storeHintDismissed();return}
+  if(hintDismissed)return;
+  const timer=window.setTimeout(()=>setHintReady(true),1400);
+  return()=>window.clearTimeout(timer);
+ },[hintDismissed,installed]);
+
+ useEffect(()=>{
   if(!open)return;
   const previous=document.body.style.overflow;
   const escape=(event:KeyboardEvent)=>{if(event.key==='Escape')setOpen(false)};
@@ -43,6 +54,8 @@ export function PwaInstallButton(){
   return()=>{document.body.style.overflow=previous;document.removeEventListener('keydown',escape)};
  },[open]);
 
+ const dismissHint=()=>{setHintDismissed(true);setHintReady(false);storeHintDismissed()};
+ const openDialog=()=>{setMessage('');setOpen(true);dismissHint()};
  const install=async()=>{
   if(!installPrompt)return;
   setMessage('');
@@ -51,16 +64,22 @@ export function PwaInstallButton(){
    const choice=await installPrompt.userChoice;
    setInstallPrompt(null);
    setMessage(choice.outcome==='accepted'?'Installation wurde bestätigt.':'Installation wurde abgebrochen. Du kannst sie später erneut über den Browser starten.');
+   if(choice.outcome==='accepted')dismissHint();
   }catch{
    setInstallPrompt(null);
    setMessage('Der Installationsdialog konnte nicht geöffnet werden. Nutze bitte das Browsermenü.');
   }
  };
+ const hintText=ios?'Als App nutzen: Teilen-Symbol → „Zum Home-Bildschirm“':installPrompt?'MID als App nutzen: App-Feld öffnen und installieren':android?'Als App nutzen: Browsermenü → „App installieren“':'MID als App nutzen: App-Feld in der Kopfleiste öffnen';
 
  return <>
-  <button type="button" className="footer-install-button" onClick={()=>{setMessage('');setOpen(true)}} aria-haspopup="dialog" aria-expanded={open}>
-   <Smartphone size={14}/><span>{installed?'MID-App installiert':'MID als App nutzen'}</span>
+  <button type="button" className={`header-install-button${installed?' installed':''}`} onClick={openDialog} aria-haspopup="dialog" aria-expanded={open} title={installed?'MID-App installiert':'MID als App nutzen'} aria-label={installed?'MID-App installiert':'MID als App nutzen'}>
+   {installed?<BadgeCheck size={16}/>:<Smartphone size={16}/>}<span>App</span>
   </button>
+  {hintReady&&!hintDismissed&&!installed&&!open&&<aside className="pwa-install-hint" role="status" aria-label="Hinweis zur Installation als App">
+   <button type="button" className="pwa-install-hint-main" onClick={openDialog} aria-label="Installationshinweise öffnen"><Download size={19}/><span>{hintText}</span></button>
+   <button type="button" className="pwa-install-hint-close" onClick={dismissHint} aria-label="Installationshinweis dauerhaft schließen"><X size={18}/></button>
+  </aside>}
   {open&&<div className="pwa-install-backdrop" role="presentation" onPointerDown={(event:ReactPointerEvent<HTMLDivElement>)=>event.target===event.currentTarget&&setOpen(false)}>
    <section className="pwa-install-dialog" role="dialog" aria-modal="true" aria-labelledby="pwa-install-title">
     <header><div><span>Web-App installieren</span><h2 id="pwa-install-title">MID als App nutzen</h2></div><button type="button" onClick={()=>setOpen(false)} aria-label="Installationshinweis schließen"><X size={19}/></button></header>

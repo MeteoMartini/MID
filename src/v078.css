@@ -209,3 +209,39 @@
  }
  .hero>.hero-day-range b{font-size:10px}
 }
+
+/* MID v0.7.108.3 – mobile Tmin/Tmax vertikal zentrieren und kompakt halten */
+@media(max-width:520px){
+ .hero>.hero-day-range{
+  top:8px;
+  right:8px;
+  height:28px;
+  min-height:28px;
+  padding:0 8px;
+  gap:5px;
+  align-items:center;
+  justify-content:center;
+  line-height:1;
+ }
+ .hero>.hero-day-range>span{
+  align-self:center;
+  align-items:center;
+  justify-content:center;
+  gap:3px;
+  min-height:0;
+  line-height:1;
+ }
+ .hero>.hero-day-range small,
+ .hero>.hero-day-range b{
+  display:inline-flex;
+  align-items:center;
+  height:16px;
+  line-height:16px;
+ }
+ .hero>.hero-day-range>.max::before{
+  display:inline-flex;
+  align-items:center;
+  height:16px;
+  line-height:16px;
+ }
+}
