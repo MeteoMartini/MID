@@ -2010,3 +2010,9 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .radar-nowcast-strip.compact .radar-nowcast-title{align-items:center}
 @media(max-width:520px){.radar-nowcast-title .radar-nowcast-total{font-size:6.2px!important}}
 .radar-nowcast-scrubber .radar-nowcast-wet{pointer-events:auto}
+
+/* MID v0.7.105.0 – kompakte 7-Tage-Interpretation */
+.seven-day-forecast-summary{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:8px 12px;padding:11px 13px;border:1px solid color-mix(in srgb,var(--primary) 28%,var(--border));border-radius:14px;background:linear-gradient(135deg,color-mix(in srgb,var(--primary) 8%,var(--surface)),var(--surface));box-shadow:0 5px 16px rgba(24,84,130,.06)}
+.seven-day-forecast-summary small{color:var(--primary);font-size:8px;font-weight:850;letter-spacing:.09em;text-transform:uppercase;white-space:nowrap}
+.seven-day-forecast-summary strong{min-width:0;color:var(--text);font-size:12px;line-height:1.35}
+@media(max-width:620px){.seven-day-forecast-summary{grid-template-columns:1fr;gap:3px;padding:9px 10px;border-radius:12px}.seven-day-forecast-summary strong{font-size:11px}}

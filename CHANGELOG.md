@@ -1,3 +1,11 @@
+# MID v0.7.105.0
+
+- Neue, standardmäßig aktive 7-Tage-Kurzinterpretation vor dem ersten Prognosetag. Zusammenhängende Wetterphasen werden zu einem möglichst kurzen deutschen Satz verdichtet, etwa „Bis Dienstag wechselhaft, ab Mittwoch sonnig, trocken und heiß.“
+- Eigener Schalter unter Einstellungen → Ansicht zum vollständigen Deaktivieren der Kurzinterpretation; Auswahl wird dauerhaft lokal gespeichert.
+- Tagesdetaildiagramm erkennt zusätzlich sämtliche Querformat-Displays und zeigt dort sämtliche stündlichen Wetterpiktogramme sowie alle Windrichtungspfeile.
+- Piktogramme und Richtungspfeile werden abhängig vom verfügbaren Punktabstand dynamisch verkleinert, statt Zeitpunkte auszudünnen.
+- Neuer Regressionstest schützt Einstellungs-Persistenz, Position vor dem ersten Prognosetag, phasenbasierte Kurzinterpretation sowie vollständige Hoch- und Querformatmarker.
+
 # MID v0.7.104.0
 
 - Radar-Nowcast als durchgehend horizontal erkundbarer 5-Minuten-Scrubber umgesetzt: Fingerbewegung nach links/rechts aktualisiert den MID-typischen Portal-Tooltip am jeweils berührten Zeitschritt; Außenklick, erneutes Antippen und Escape schließen ihn.
