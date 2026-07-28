@@ -1,3 +1,10 @@
+# MID v0.8.2.2
+
+- Ensemble-Szenariocluster sprachlich korrigiert: Bei genau einer beteiligten Modellfamilie steht nun „1 Modellfamilie“, bei mehreren weiterhin „Modellfamilien“. Die gleiche Singular-/Plural-Logik gilt für die Zusammenfassung der aktiven Modellfamilien.
+- Eigene Sensoren bis auf Weiteres vollständig deaktiviert: Eingabefelder und automatischer Abruf wurden aus dem Rückblickmodul entfernt; zusätzlich blockiert der Lernkern sowohl manuelle als auch automatische private Sensorübernahmen. Die Implementierung bleibt stillgelegt für eine spätere belastbare Automatisierung erhalten.
+- KPI zur Regenwahrscheinlichkeit eindeutig umbenannt: „Güte der Regenwahrscheinlichkeit“ bezeichnet nun ausdrücklich die historische Kalibrierungsqualität der Best-Match-Wahrscheinlichkeiten und nicht die aktuelle Regenwahrscheinlichkeit. Der zugehörige Brier-Score wird direkt angezeigt und erläutert.
+- Neuer Regressionstest schützt Modellfamilien-Wording, die technische Sensor-Deaktivierung und die eindeutige Regenwahrscheinlichkeits-KPI.
+
 # MID v0.8.2.1
 
 - Release-Paketierung korrigiert: Das vorherige ZIP war inkrementell aktualisiert worden und enthielt dadurch neben dem aktuellen Regressionstest noch die veraltete Datei `test-scenario-settings-regime-0820.mjs` sowie ältere Quellstände. GitHub führte deshalb 108 statt 107 Tests aus; der obsolete Test schlug erwartungsgemäß fehl.
