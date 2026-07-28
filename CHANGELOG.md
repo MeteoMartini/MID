@@ -1,3 +1,17 @@
+# MID v0.8.0.1
+
+- Umfassendes Audit sämtlicher mit v0.8.0 eingeführter Wetterzwilling-Funktionen durchgeführt und dabei Einheiten-, Herkunfts-, Zeit- und Archivfehler korrigiert.
+- Räumliche Umfeldanalyse korrigiert: Stationsentfernungen werden zuverlässig von Metern in Kilometer umgerechnet; bereits gespeicherte fehlerhafte v0.8.0-Werte werden automatisch migriert. Unrealistische Entfernungen werden nicht mehr als reguläre Referenz angezeigt.
+- Echozugdarstellung abgesichert: Eine Richtung von 0° wird nur noch bei tatsächlich belastbarer Bewegung ausgegeben; sonst erscheint ein klarer Hinweis. Qualitätsstufen werden vollständig deutsch dargestellt.
+- Beobachtungswahrheit bereinigt: Stations-, Radar- und Modellwerte bleiben getrennte Quellen; Radar und Station werden bei der Tagesmenge nicht mehr doppelt gezählt. Hyperlokale Restfeld- und Stationsmittelanalysen werden korrekt als analysiert statt als direkt gemessen gekennzeichnet.
+- Zeitzonen- und Tagesgrenzen korrigiert: Prognosehorizonte, Tagesabschluss, Sensorwerte, Rückblicke und persönliche Zeitfenster verwenden nun konsequent die Zeitzone des Standorts.
+- Prognosearchiv robuster gemacht: IndexedDB und lokaler Speicher werden verlustfrei zusammengeführt, Schreibvorgänge serialisiert und ältere fehlerhafte Archivdaten migriert.
+- Lernlogik gegen Scheingenauigkeit abgesichert: Mindestzahl unabhängiger Tage, gedeckelte Modellgewichte, getrennte Parameterfreigaben und keine vorzeitige Ausweisung eines Modellsiegers.
+- Ensemble-Szenarien widerstandsfähiger gemacht: optionale Böen-/Sonnenscheinfelder können fehlen, ohne ganze Modelle oder Cluster unbrauchbar zu machen; entsprechende API-Abfragen besitzen einen reduzierten Fallback.
+- Berg-/Wintersportanalyse nach Höhenzone gegen fehlende Werte und NaN-Scores abgesichert; Zeitfenster enden nun am Ende der letzten ausgewerteten Stunde.
+- Hintergrundlernen vervollständigt: Archivwiederherstellung und Rückblicksaktualisierung funktionieren auch, wenn das Prognosegüte-Modul nicht geöffnet wird.
+- Neuer Wetterzwilling-Audit-Test schützt Einheiten, Quellenherkunft, Zeitzonen, Lernfreigaben, Assimilation, Szenarien und Höhenzonen.
+
 # MID v0.8.0
 
 - Lokaler Wetterzwilling Stufe 1 – Wahrheits-, Standort- und Archivkern: Unveränderliche Prognosesnapshots, unabhängige Beobachtungshierarchie aus Messung, Radar/Analyse, ERA5-Land-Reanalyse und gekennzeichnetem Modell-Fallback; Quellenqualität, Vertrauen und Abdeckung werden mitgeführt. Langzeitspiegel in IndexedDB und Migration bestehender Rückblicksdaten ergänzt.

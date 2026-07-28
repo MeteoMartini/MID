@@ -10,7 +10,7 @@ const [engine,panel,settings,app,weather,styles]=await Promise.all([
 const failures=[];
 const requireTokens=(label,text,tokens)=>{for(const token of tokens)if(!text.includes(token))failures.push(`${label}: ${token}`)};
 requireTokens('Stufe 1 · Wahrheits-/Standort-/Archivkern',engine,[
- "const DB_NAME='mid-weather-twin-archive'",'type ObservationSource=','recordLiveTwinObservation(','recordCustomSensorObservation(','fetchPrivateSensorObservation(','readTwinSiteProfile(','updateTwinSiteProfile(','restoreForecastVerificationArchive(','kind:\'measured\'',"'reanalysis'",'kind:\'model-fallback\''
+ "const DB_NAME='mid-weather-twin-archive'",'type ObservationSource=','recordLiveTwinObservation(','recordCustomSensorObservation(','fetchPrivateSensorObservation(','readTwinSiteProfile(','updateTwinSiteProfile(','restoreForecastVerificationArchive(','kind:\'analysed\'',"'private-sensor'","'reanalysis'",'kind:\'model-fallback\''
 ]);
 requireTokens('Stufe 2 · Lernkern',engine,[
  'parameterMetrics','type ProbabilityCalibrationBin=','type BiasCorrection=','calibrationBins(','modelBiases(','regularizedWeights(','equal_weighted','mid_local_weighted','best_match','confidenceFromSamples('
