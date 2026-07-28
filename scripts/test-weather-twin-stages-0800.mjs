@@ -27,7 +27,7 @@ requireTokens('Wetterzwilling-Oberfläche',panel,[
 
 if(panel.includes('Eigene Sensoren')||panel.includes('weather-twin-sensors'))failures.push('Eigene Sensoren sind entgegen der vorläufigen Deaktivierung noch in der Oberfläche aktiv.');
 requireTokens('Systemeinstellungen',settings,['Lokaler Wetterzwilling','Lokal gelernte Prognose als Hauptprognose','Radar-/Nowcast-Assimilation']);
-requireTokens('App-Integration',app,['WeatherTwinSettingsPanel','displayDays=useMemo','displayHours=useMemo','recordForecastCapture(','recordLiveTwinObservation(','twinActive={weatherTwinSettings.useAsMainForecast']);
+requireTokens('App-Integration',app,['WeatherTwinSettingsPanel','displayDays=useMemo','displayHours=useMemo','recordForecastCapture(','recordLiveTwinObservation(','twinActive={Boolean(weatherTwinSettings.useAsMainForecast']);
 requireTokens('Ensembleparameter',weather,['gust?:number','sunshineDuration?:number','wind_gusts_10m','sunshine_duration']);
 requireTokens('Wetterzwilling-Styling',styles,['.weather-twin-panel','.weather-twin-health','.weather-twin-spatial','.weather-twin-personal','.weather-twin-active-badge']);
 if(failures.length){console.error('Lokaler-Wetterzwilling-Stufenprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}

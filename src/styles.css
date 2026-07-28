@@ -2471,3 +2471,63 @@ button,input,select,[role="button"]{touch-action:manipulation}
 
 /* v0.8.5.0 – vollständige Wetterzwilling-Sicherung und Netatmo-Einrichtungsdiagnose */
 .connected-station-setup{display:grid;gap:5px;margin-top:10px;padding:10px 12px;border:1px solid color-mix(in srgb,var(--accent) 28%,var(--border));border-radius:12px;background:color-mix(in srgb,var(--accent) 7%,var(--surface))}.connected-station-setup strong{font-size:11px}.connected-station-setup small,.connected-station-setup span{color:var(--muted);font-size:9px;line-height:1.4}.device-sync-actions{display:grid;gap:4px}.device-sync-actions small+small{margin-top:1px}
+
+/* MID v0.8.6.0 – Qualitätsfreigabe und Kennzeichnung der lokal gewichteten Hauptprognose */
+.weather-twin-activation-offer{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  align-items:center;
+  gap:11px;
+  margin:12px 0;
+  padding:12px 14px;
+  border:1px solid color-mix(in srgb,#20a56b 42%,var(--border));
+  border-radius:15px;
+  background:linear-gradient(135deg,color-mix(in srgb,#20a56b 10%,var(--surface)),color-mix(in srgb,var(--primary) 5%,var(--surface)));
+  box-shadow:0 7px 18px color-mix(in srgb,#20a56b 9%,transparent);
+}
+.weather-twin-activation-offer.inner{margin:0}
+.weather-twin-activation-offer>svg{color:#16915d}
+.weather-twin-activation-offer>span{display:grid;gap:3px;min-width:0}
+.weather-twin-activation-offer strong{font-size:10.5px;line-height:1.25}
+.weather-twin-activation-offer small{color:var(--muted);font-size:8px;line-height:1.4;overflow-wrap:anywhere}
+.weather-twin-activation-offer button{
+  min-height:36px;
+  padding:7px 11px;
+  border:1px solid color-mix(in srgb,#20a56b 48%,var(--border));
+  border-radius:10px;
+  background:color-mix(in srgb,#20a56b 13%,var(--surface));
+  color:var(--text);
+  font:inherit;
+  font-size:8.5px;
+  font-weight:850;
+  white-space:nowrap;
+  cursor:pointer;
+}
+.weather-twin-activation-offer button:hover{background:color-mix(in srgb,#20a56b 20%,var(--surface))}
+.weather-twin-model-badge{
+  display:inline-flex;
+  align-items:center;
+  max-width:min(420px,34vw);
+  min-height:28px;
+  padding:5px 8px;
+  border:1px solid color-mix(in srgb,var(--primary) 32%,var(--border));
+  border-radius:999px;
+  background:color-mix(in srgb,var(--primary) 6%,var(--surface));
+  color:var(--muted);
+  font-size:7.5px;
+  font-style:normal;
+  font-weight:800;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+@media(max-width:700px){
+  .weather-twin-activation-offer{grid-template-columns:auto 1fr;padding:11px 12px}
+  .weather-twin-activation-offer button{grid-column:1/-1;width:100%}
+  .weather-twin-model-badge{max-width:50vw;font-size:6.8px}
+}
+@media(max-width:480px){
+  .weather-twin-model-badge{max-width:42vw}
+  .weather-twin-model-badge{font-size:0}
+  .weather-twin-model-badge:after{content:"Lokaler Modellmix";font-size:7px}
+}

@@ -28,6 +28,6 @@ need(verification,'recordForecastCapture(locationKey:string,days:Day[],ensemble:
 need(app,'recordForecastCapture(favoriteKey(loc),days,ens,loc,hours)','App übergibt den Stundenverlauf nicht an die Wetterlagenklassifikation.');
 for(const token of ['checked={settings.biasCorrection}','checked={settings.probabilityCalibration}','checked={settings.personalRecommendations}'])need(settings,token,`Globale Wetterzwilling-Option fehlt in den Einstellungen: ${token}`);
 if(panel.includes('checked={settings.biasCorrection}')||panel.includes('checked={settings.probabilityCalibration}'))failures.push('Globale Lernoptionen werden im Rückblicksmodul weiterhin doppelt angeboten.');
-need(panel,'Einstellungen → MID-System → Lokaler Wetterzwilling','Hinweis auf die zentrale Konfiguration fehlt.');
+need(panel,'Einstellungen → Lokaler Wetterzwilling','Hinweis auf die zentrale Konfiguration fehlt.');
 if(failures.length){console.error('Szenario-/Regime-/Einstellungsprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
 console.log('Szenariodarstellung, Ausreißerfilter, Dauerregenklassifikation und zentrale Wetterzwilling-Einstellungen sind geprüft.');

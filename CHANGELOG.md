@@ -1,3 +1,11 @@
+# MID v0.8.6.0
+
+- Lokale MID-Prognose erhält eine explizite Qualitätsfreigabe: Sie wird erst nach mindestens sechs abgeschlossenen Kontrolltagen, mindestens zwei Modellfamilien, zwei belastbaren aktuellen Prognosetagen und einem mindestens gleichwertigen Vergleich mit Open-Meteo Best Match als Hauptprognose zugelassen.
+- Ist die Qualitätsfreigabe erreicht und die Hauptprognose noch nicht aktiviert, erscheint im Dashboard sowie im Modul „Prognosegüte und Rückblick“ ein direktes Aktivierungsangebot.
+- Aktivierte lokale Prognosen werden eindeutig als „MID Wetterzwilling · lokal gewichteter Modellmix“ gekennzeichnet. Zusätzlich zeigt MID das führende Modell als Schwerpunkt mit seinem aktuellen Gewichtsanteil; Best Match bleibt ausdrücklich die unveränderte Kontrollgruppe.
+- Eine vorzeitig in den Einstellungen aktivierte Hauptprognose wird nur vorgemerkt und erst nach der Qualitätsfreigabe tatsächlich angewendet.
+- Neuer Regressionstest schützt Qualitätsfreigabe, Aktivierungsangebot, Modellmix-Kennzeichnung und den Best-Match-Kontrollschutz.
+
 # MID v0.8.5.0
 
 - Geräteübergreifende Synchronisation erweitert: Neben dem kompakten `localStorage`-Stand wird nun das vollständige Wetterzwilling-Langzeitarchiv aus IndexedDB mit sämtlichen Prognosesnapshots, Beobachtungen und Rückblicken exportiert, im Browser per AES-GCM verschlüsselt, in begrenzte Archivteile zerlegt und über den bestehenden Cloudflare-KV-Geräteverbund gesichert.
