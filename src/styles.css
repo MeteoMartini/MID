@@ -2616,3 +2616,11 @@ button,input,select,[role="button"]{touch-action:manipulation}
 @media(max-width:900px){html,body{overscroll-behavior-x:none}}
 .search>section button.current-favorite-result{background:color-mix(in srgb,var(--primary) 10%,var(--surface));box-shadow:inset 3px 0 0 var(--primary)}
 .search>section button.current-favorite-result strong{color:var(--text)}
+
+/* MID v0.8.12.0 – einklappbarer Wasserwetter-Verlauf */
+.water-forecast-matrix{display:grid;gap:10px;margin-top:12px;border:1px solid color-mix(in srgb,#38bdf8 30%,var(--border));border-radius:15px;background:color-mix(in srgb,#38bdf8 4%,var(--surface));overflow:hidden}
+.water-matrix-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:12px;border:0;background:transparent;color:var(--text);font:inherit;text-align:left;cursor:pointer}
+.water-matrix-summary>span{display:grid;gap:2px;min-width:0}.water-matrix-summary small{color:#1688c8;font-size:8px;font-weight:850;letter-spacing:.08em;text-transform:uppercase}.water-matrix-summary strong{font-size:12px}.water-matrix-summary em{color:var(--muted);font-size:8px;font-style:normal;font-weight:650}.water-matrix-summary>svg{flex:0 0 auto;color:var(--muted)}
+.water-forecast-matrix.open .water-matrix-summary{border-bottom:1px solid color-mix(in srgb,var(--border) 80%,transparent)}
+.water-matrix-content{display:grid;gap:10px;padding:0 12px 12px}.water-matrix-content>p{margin:0;color:var(--muted);font-size:8.5px;line-height:1.4}.water-matrix-controls{justify-content:flex-start}.water-matrix-day{margin:0}.water-matrix-level>header{background:color-mix(in srgb,#38bdf8 8%,var(--surface))}.water-matrix-pair{display:grid!important;place-items:center;gap:1px}.water-matrix-pair strong{font-size:8.5px}.water-matrix-pair small{max-width:72px;white-space:normal;text-align:center}.water-matrix-row>span{min-height:36px}
+@media(max-width:620px){.water-matrix-summary{padding:10px}.water-matrix-content{padding:0 10px 10px}.water-matrix-row{grid-template-columns:94px repeat(var(--mountain-columns),minmax(68px,1fr))}.water-matrix-summary strong{font-size:11px}}

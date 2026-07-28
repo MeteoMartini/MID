@@ -1,12 +1,10 @@
-# MID v0.8.11.0
+# MID v0.8.12.0
 
-- Favoriten-/Lesezeichenmenü verbessert: Beim Öffnen wird der aktuell angezeigte Favorit automatisch innerhalb der Liste sichtbar und zentriert. Auch die horizontale Favoriten-Schnellleiste führt den aktiven Favoriten ohne unnötiges manuelles Scrollen in den sichtbaren Bereich.
-- Favoritenwechsel und Ansichtsbeibehaltung effizienter gemacht: Die sichtbaren Modulpositionen werden nur noch einmal je Element vermessen, statt wiederholt Layoutinformationen aus dem Browser abzufragen.
-- Favoritenpersistenz entdoppelt: Profiländerungen werden zentral gespeichert, unveränderte Werte nicht erneut geschrieben und doppelte unmittelbare IndexedDB-/Cache-Sicherungen entfernt. Separate Bergprofile bleiben weiterhin dauerhaft je Favorit gespeichert.
-- Hintergrundlernen und Push-Synchronisation reagieren nur noch auf tatsächlich relevante Favoritenänderungen. Reine Profil-, Sortier- oder Darstellungsänderungen lösen keine unnötigen Wetterzwilling- oder Push-Abrufe aus; das Lernen aller Favoriten startet bevorzugt in einer Browser-Leerlaufphase.
-- Geräteübergreifende Synchronisation deutlich entlastet: Unveränderte Wetterzwilling-Langzeitarchive werden bereits anhand ihrer Revision beziehungsweise ihres Zeitstands erkannt und nicht erneut vollständig in Segmenten heruntergeladen. Parallele Synchronisationsaufrufe werden zusammengeführt, Einstellungs- und Archivabruf laufen parallel und Offline-Zustände werden berücksichtigt.
-- Lokale Sicherung optimiert: Flüchtige Analyse- und Ensemblecaches werden nicht mehr in den vollständigen persistenten Einstellungs-Snapshot kopiert; Sicherungen werden serialisiert, entdoppelt und bevorzugt in Leerlaufzeiten ausgeführt. Bei Ausblenden oder Schließen der App wird weiterhin sofort gesichert.
-- Neuer Regressionstest schützt das direkte Anspringen des aktiven Favoriten sowie die Performance-Optimierungen bei Layoutmessung, Persistenz, Hintergrundlernen, Push- und Archiv-Synchronisation.
+- Wassersportmodul sprachlich auf „Wassersport“ verkürzt; Favoritenprofil, Schnellzugriff und Modulkopf verwenden nun dieselbe Bezeichnung.
+- Neuer standardmäßig eingeklappter „Wasserwetter-Verlauf“ analog zur Höhenwetter-Matrix: umschaltbar zwischen 1- und 3-Stunden-Auflösung, mit aufklappbaren nächsten drei Tagen und Tageslichtfenstern.
+- Der Verlauf zeigt Wetter, Luft-/gefühlte Temperatur, Wind/Böen, Niederschlag, Sicht sowie Gewitter/UVI; an geeigneten Meeresstandorten zusätzlich Welle/Richtung, Wellenperiode, Wassertemperatur, Strömung und modellierten Wasserstand.
+- Automatische Bergsaison korrigiert: Außerhalb der klassischen Skisaison wird im Automatikmodus konsequent „Sommer“ gewählt; einzelne Restschnee- oder Neuschneesignalwerte erzwingen dann kein Winterprofil mehr.
+- Neuer Regressionstest schützt Wasserwetter-Verlauf, eingeklappten Startzustand, Wassersport-Wording und die saisonale Sommerwahl.
 
 # MID v0.8.10.2
 

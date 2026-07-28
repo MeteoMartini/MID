@@ -635,12 +635,13 @@ Interpoliert werden Temperatur, relative Feuchte, Taupunkt, QFF sowie Wind und B
 
 Die Anzeige nennt den effektiven Radius, die geschätzte Temperaturunsicherheit, die lokale Korrektur zum Modellhintergrund und die tatsächlich verwendeten Netze. Eine öffentlich dokumentierte operative DWD-Schnittstelle mit der Bezeichnung **„GMA“** konnte nicht belastbar identifiziert werden; MID behauptet daher keine solche Quelle, sondern nutzt nachvollziehbar die frei verfügbaren DWD-Beobachtungen und weitere offen oder autorisiert zugängliche Netze.
 
-## Wassersportmodus (v0.7.19)
+## Wassersport (v0.7.19)
 
-- Der Wassersportmodus wird je Favorit im Favoritenmenü aktiviert und als eigenes, verzögert geladenes Modul aufgebaut. Gewässertyp und Aktivitätsprofil lassen sich getrennt konfigurieren.
+- Der Wassersport wird je Favorit im Favoritenmenü aktiviert und als eigenes, verzögert geladenes Modul aufgebaut. Gewässertyp und Aktivitätsprofil lassen sich getrennt konfigurieren.
 - Für Küsten- und Meeresstandorte nutzt MID die Open-Meteo Marine API mit Wassertemperatur, signifikanter Wellenhöhe, Wellenrichtung und -periode, Peak-Periode, Windsee, Dünung, Strömung sowie modelliertem Wasserstand einschließlich Tide.
 - Gezeitenwendepunkte werden aus der Wasserstandszeitreihe abgeleitet. Die Anzeige nennt Hoch-/Tiefpunkte, aktuelle Tendenz und die modellierte 24-Stunden-Spanne. Bezug ist das globale mittlere Meeresspiegelniveau, nicht das nautische Kartennull.
 - Wetterseitig werden Wind/Böen, Luft- und gefühlte Temperatur, UV, Niederschlagswahrscheinlichkeit, Sicht und Gewittersignale ergänzt. Persönliche Schwellen für Wellen, Böen und Kaltwasser erzeugen eine kompakte Eignungsbewertung.
+- Ein standardmäßig eingeklappter Wasserwetter-Verlauf stellt die Bedingungen in 1- oder 3-Stunden-Auflösung über bis zu drei Tage dar; an Meeresstandorten werden Wetter- und Marineparameter zeitlich gemeinsam gegenübergestellt.
 - Für See- und Flussprofile werden nicht verfügbare Wasserparameter bewusst ausgeblendet. Entfernte Meeresgitter werden nicht als Binnengewässerdaten ausgegeben.
 - Marine- und Gezeitendaten werden nur geladen, wenn das Profil aktiv ist und der Bereich in die Nähe des sichtbaren Ausschnitts kommt. Favoritenexporte verwenden Schema-Version 4 und migrieren ältere Profile automatisch.
 
