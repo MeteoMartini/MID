@@ -2611,3 +2611,6 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .mountain-matrix-row>span.mountain-precip-heavy small{color:rgba(255,255,255,.86)}
 [data-theme="dark"] .mountain-matrix-row>span.mountain-precip-moderate{color:#f3f8fc}
 [data-theme="dark"] .mountain-matrix-row>span.mountain-precip-moderate small{color:rgba(243,248,252,.82)}
+
+/* MID v0.8.10.0 – randbasierte Favoritennavigation in der mobilen Appansicht */
+@media(max-width:900px){html,body{overscroll-behavior-x:none}}

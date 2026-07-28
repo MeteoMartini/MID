@@ -1,3 +1,11 @@
+# MID v0.8.10.0
+
+- Mobile Favoritennavigation ergänzt: Eine deutliche Wischgeste vom linken beziehungsweise rechten Bildschirmrand zur Mitte öffnet den vorherigen beziehungsweise nächsten Favoriten. Die Gesten sind ausschließlich in der Appansicht aktiv und bleiben im Einstellungsdialog gesperrt.
+- Favoritenwechsel auf Mobilgeräten und per Desktop-Klick bewahren nun die aktuelle Ansicht: MID merkt sich den sichtbaren Modul-/Sektionsanker, die relative Bildschirmposition und den ausgewählten Prognosetag. Dadurch bleibt beispielsweise das Tagesdetaildiagramm beim Ortswechsel geöffnet und im Sichtbereich.
+- Aktuelle Sonnenscheindauer korrigiert: Statt das einzelne 15-Minuten-Current-Intervall fälschlich als letzte Stunde auszugeben, summiert MID bis zu vier echte 15-Minuten-Werte zu einem gleitenden 60-Minuten-Fenster. Der Zeitraum und die Zahl der Intervalle werden transparent ausgewiesen.
+- Die aktuelle Viertelstunde der Sonnenscheindauer erhält bei übereinstimmend dichter lokaler und modellierter Bewölkung einen vorsichtigen Plausibilitätscheck; ältere Viertelstunden des 60-Minuten-Fensters bleiben unverändert.
+- Neuer Regressionstest schützt Rand-Wischgesten, Ansichts-/Tageserhalt, die 60-Minuten-Sonnenscheinaggregation und den lokalen Bewölkungsabgleich.
+
 # MID v0.8.9.0
 
 - Berg-/Wintersport-Höhenwetter farblich aufgewertet: Wind-/Böenzellen erhalten ab den bestehenden DWD-nahen Schwellen dezente, textkontrastschonende Warnstufen-Hintergründe; Niederschlagszellen reichen von blassem Blau bei geringen Mengen bis zu dunkelblau mit weißer Schrift bei höheren Intervallsummen.
