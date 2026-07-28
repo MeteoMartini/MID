@@ -1,3 +1,9 @@
+# MID v0.8.7.2
+
+- Szenariocluster sprachlich präzisiert: Die bisher unklare Bezeichnung „abweichende zeitliche Verteilung“ wurde entfernt. MID benennt nun konkret, worin die zeitliche Abweichung besteht, zum Beispiel „Niederschlagsschwerpunkt am Montag statt am Freitag“, „mehr Niederschlag am Sonntag“, „wärmer am Donnerstag“ oder „windiger am Samstag“.
+- Die konkrete Beschreibung wird aus dem stärksten Unterschied der Tagesverläufe gegenüber dem führenden Szenario abgeleitet; identische generische Szenariobezeichnungen werden dadurch ebenfalls vermieden.
+- Neuer Regressionstest schützt die konkrete parameter- und wochentagsbezogene Szenariobeschreibung.
+
 # MID v0.8.7.1
 
 - Ensemble-Szenariocluster transparenter gemacht: Für jede vertretene Modellfamilie zeigt MID nun, wie viele ihrer Mitglieder dem jeweiligen Szenario zugeordnet sind und welchem Anteil innerhalb dieser Modellfamilie das entspricht. Dadurch ist nachvollziehbar, warum beispielsweise ICON EPS Seamless gleichzeitig in mehreren Szenarien vorkommen kann.
