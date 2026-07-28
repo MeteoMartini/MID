@@ -1,3 +1,16 @@
+# MID v0.8.7.4
+
+- Berg-/Wintersport: Die Analyse nach Höhenzone bewertet nun ausschließlich das Tageslichtfenster von Sonnenaufgang bis Sonnenuntergang des laufenden Tages. Nach Sonnenuntergang wird automatisch der Folgetag ausgewertet und deutlich als „Morgen“ gekennzeichnet.
+- Höhenzonenanalyse um einen gestuften Tagesverlauf erweitert: MID ermittelt stundenweise die günstigste Höhenzone und beschreibt relevante Wechsel, etwa eine günstigere Hochlage bis zum Nachmittag und anschließend bessere Bedingungen im Tal wegen Niederschlag, Sichtverschlechterung, Böen oder Gewitterrisiko.
+- Gewitterpotenzial und UVI im Bergmodul werden nicht mehr aus dem gesamten 72-Stunden-Zeitraum gebildet, sondern nur aus dem tatsächlich bewerteten Tageslichtfenster. Ein erst übermorgen erwartetes Gewitter beeinflusst damit die heutige oder morgige Höhenzonenanalyse nicht mehr.
+- Neuer Regressionstest schützt Tageslichtfenster, Folgetagswechsel, gestufte Höhenzonen und die tagesbezogene Gewitterauswertung.
+
+# MID v0.8.7.3
+
+- Desktop-Hovertext für die niedrigste Gewitterstufe sprachlich korrigiert: Statt „Gewitter: Einfaches Gewitter“ erscheint nun schlicht „Gewitter“.
+- Höhere Gewitterstufen bleiben weiterhin als „Starkes Gewitter“, „Schweres Gewitter“ bzw. „Extremes Gewitter“ differenziert.
+- Neuer Regressionstest schützt das Wording der niedrigsten Gewitterstufe.
+
 # MID v0.8.7.2
 
 - Szenariocluster sprachlich präzisiert: Die bisher unklare Bezeichnung „abweichende zeitliche Verteilung“ wurde entfernt. MID benennt nun konkret, worin die zeitliche Abweichung besteht, zum Beispiel „Niederschlagsschwerpunkt am Montag statt am Freitag“, „mehr Niederschlag am Sonntag“, „wärmer am Donnerstag“ oder „windiger am Samstag“.

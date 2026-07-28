@@ -14,7 +14,7 @@ for(const token of ['Güte nach Wetterlage und Horizont','Lokale Modellgewichtun
 for(const token of ['export type EnsembleScenarioCluster','function buildEnsembleScenarios(','scenarioLabel(','scenarios=buildEnsembleScenarios','scenarios:cache.scenarios??[]'])need('Ensemble-Szenariocluster',weather,token);
 for(const token of ['function EnsembleScenarioClusters(','Wahrscheinliche alternative Wetterverläufe','<EnsembleScenarioClusters scenarios={scenarios}/>'])need('Szenariocluster-UI',ensemble,token);
 for(const token of ['setEnsembleScenarios(value.scenarios??[])','scenarios={ensembleScenarios}'])need('Szenariocluster-Appverdrahtung',app,token);
-for(const token of ['function mountainZoneAssessments(','function MountainZoneAnalysis(','Analyse nach Höhenzone','<MountainZoneAnalysis data={data}/>','mountainSnowQuality(','contiguousMountainWindow('])need('Berg-Höhenzonenanalyse',app,token);
+for(const token of ['function mountainZoneAssessments(','function MountainZoneAnalysis(','Analyse nach Höhenzone','<MountainZoneAnalysis data={data} days={days}/>','mountainSnowQuality(','contiguousMountainWindow('])need('Berg-Höhenzonenanalyse',app,token);
 for(const token of ['.ensemble-scenarios{','.forecast-segment-quality{','.forecast-weighted-days{','.mountain-zone-analysis{'])need('Neue UI-Stile',styles,token);
 if(failures.length){console.error('Lernsystem-/Szenario-/Höhenzonenprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
 console.log('Prognosegüte nach Wetterlage/Horizont, überprüfbare lokale Lerngewichtung, Ensemble-Szenariocluster und Berg-Höhenzonenanalyse sind geprüft.');
