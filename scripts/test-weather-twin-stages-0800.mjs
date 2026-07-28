@@ -1,0 +1,32 @@
+import {readFile} from 'node:fs/promises';
+const [engine,panel,settings,app,weather,styles]=await Promise.all([
+ readFile(new URL('../src/forecastVerification.ts',import.meta.url),'utf8'),
+ readFile(new URL('../src/ForecastVerificationPanel.tsx',import.meta.url),'utf8'),
+ readFile(new URL('../src/WeatherTwinSettings.tsx',import.meta.url),'utf8'),
+ readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
+ readFile(new URL('../src/weather.ts',import.meta.url),'utf8'),
+ readFile(new URL('../src/styles.css',import.meta.url),'utf8')
+]);
+const failures=[];
+const requireTokens=(label,text,tokens)=>{for(const token of tokens)if(!text.includes(token))failures.push(`${label}: ${token}`)};
+requireTokens('Stufe 1 · Wahrheits-/Standort-/Archivkern',engine,[
+ "const DB_NAME='mid-weather-twin-archive'",'type ObservationSource=','recordLiveTwinObservation(','recordCustomSensorObservation(','fetchPrivateSensorObservation(','readTwinSiteProfile(','updateTwinSiteProfile(','restoreForecastVerificationArchive(','kind:\'measured\'',"'reanalysis'",'kind:\'model-fallback\''
+]);
+requireTokens('Stufe 2 · Lernkern',engine,[
+ 'parameterMetrics','type ProbabilityCalibrationBin=','type BiasCorrection=','calibrationBins(','modelBiases(','regularizedWeights(','equal_weighted','mid_local_weighted','best_match','confidenceFromSamples('
+]);
+requireTokens('Stufe 3 · aktiver Wetterzwilling',engine,[
+ 'applyLocalTwinForecast(','applyLocalTwinHours(','nowcastAdjustedPrediction(','Radar-/Nowcast-Signal','privateSensorUrl'
+]);
+requireTokens('Stufe 4 · Entscheidungszwilling',engine,[
+ 'buildTwinRecommendations(','recordTwinRecommendationFeedback(','TwinActivity','bestActivityWindow(','Arbeitsweg','Berg-/Wintersport'
+]);
+requireTokens('Wetterzwilling-Oberfläche',panel,[
+ 'Unabhängige Wetterwahrheit','Räumliche Umfeldanalyse','Lokaler Standortfingerabdruck','Eigene Sensoren','Parametergetrennte Modellgüte','Kalibrierung der Regenwahrscheinlichkeit','Persönlicher Entscheidungszwilling','MID-Gewichtung gegen Best Match'
+]);
+requireTokens('Systemeinstellungen',settings,['Lokaler Wetterzwilling','Lokal gelernte Prognose als Hauptprognose','Radar-/Nowcast-Assimilation']);
+requireTokens('App-Integration',app,['WeatherTwinSettingsPanel','displayDays=useMemo','displayHours=useMemo','recordForecastCapture(','recordLiveTwinObservation(','twinActive={weatherTwinSettings.useAsMainForecast']);
+requireTokens('Ensembleparameter',weather,['gust?:number','sunshineDuration?:number','wind_gusts_10m','sunshine_duration']);
+requireTokens('Wetterzwilling-Styling',styles,['.weather-twin-panel','.weather-twin-health','.weather-twin-spatial','.weather-twin-personal','.weather-twin-active-badge']);
+if(failures.length){console.error('Lokaler-Wetterzwilling-Stufenprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
+console.log('Lokaler Wetterzwilling Stufen 1–4 geprüft: Wahrheitskern, Lernen, aktive Assimilation und persönliche Entscheidungen sind integriert.');

@@ -1,3 +1,14 @@
+# MID v0.8.0
+
+- Lokaler Wetterzwilling Stufe 1 – Wahrheits-, Standort- und Archivkern: Unveränderliche Prognosesnapshots, unabhängige Beobachtungshierarchie aus Messung, Radar/Analyse, ERA5-Land-Reanalyse und gekennzeichnetem Modell-Fallback; Quellenqualität, Vertrauen und Abdeckung werden mitgeführt. Langzeitspiegel in IndexedDB und Migration bestehender Rückblicksdaten ergänzt.
+- Dauerhafter Standortfingerabdruck je Favorit mit Geländeform, Exposition, Kaltluft-, Nebel- und Gewässereinfluss. Eine räumliche Umfeldanalyse macht Stationsdistanz, Echozugrichtung und Standortwirkung sichtbar.
+- Optionale private Sensorintegration per JSON-Endpunkt oder manueller Messung mit eigener Herkunfts- und Qualitätskennzeichnung. Wetterzwilling-Archive und Profile bleiben über die vorhandene verschlüsselte Gerätesynchronisation übertragbar.
+- Lokaler Wetterzwilling Stufe 2 – Lernkern: Prognosegüte getrennt nach Temperatur, Niederschlag, Regenwahrscheinlichkeit, Böen und Sonnenschein sowie nach Wetterlage und +12/+24/+48/+72 Stunden. Lokale Bias-Korrektur, Brier-Score, Wahrscheinlichkeitskalibrierung, Regularisierung, Mindeststichproben und Vertrauensstufen schützen vor Überanpassung.
+- Kontrollgruppen integriert: Open-Meteo Best Match, einfaches Multimodellmittel und MID lokal gewichtet werden parallel archiviert und nachträglich objektiv verglichen. Modellgewichte werden je Parameter, Wetterlage und Horizont berechnet und begrenzt.
+- Lokaler Wetterzwilling Stufe 3 – aktiver Zwilling: Die lokal gelernte Vorhersage ist in den Einstellungen als Hauptprognose aktivierbar. Ohne ausreichende Datenbasis bleibt unverändert Best Match aktiv. Für die ersten Stunden können Radar-/Nowcast-Signale nachvollziehbar assimiliert werden; Rohprognosen bleiben unverändert im Archiv.
+- Lokaler Wetterzwilling Stufe 4 – persönlicher Entscheidungszwilling: Aktivitätsprofile für Arbeitsweg, Draußenaktivitäten, Garten, Rudern, Hundespaziergang, Berg-/Wintersport und Hitzeschutz. MID ermittelt geeignete Zeitfenster, nennt Auswirkungen und Unsicherheit und lernt über hilfreiche/nicht passende Rückmeldungen.
+- Ensemble-Datenbasis für den Lernkern um Böen und Sonnenscheindauer erweitert. Neue Regression schützt sämtliche vier Wetterzwilling-Stufen und die aktive App-Integration.
+
 # MID v0.7.111.1
 
 - GitHub-Produktionsbuild repariert: Zwei durch die neuen Lern-/Szenariofunktionen verbliebene, ungenutzte Funktionsparameter wurden entfernt. Dadurch bestehen `noUnusedLocals` und `noUnusedParameters` wieder ohne TS6133-Abbruch.

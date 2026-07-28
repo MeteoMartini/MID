@@ -12,7 +12,7 @@ export type Weather={latitude:number;longitude:number;elevation:number;timezone:
 export type Hour={time:string;epoch:number;timezone:string;temperature:number;apparent:number;humidity:number;dewPoint:number;pressure:number;precipitation:number;rain:number;showers:number;snowfall:number;probability:number;code:number;wind:number;gust:number;gustAdjusted?:boolean;direction:number;cloud:number;lowCloud:number;uvIndex:number;visibility:number;cape:number;isDay:boolean};
 export type Minute15={time:string;epoch:number;timezone:string;precipitation:number;rain:number;showers:number;snowfall:number;probability:number;code:number};
 export type Day={date:string;code:number;max:number;min:number;sunrise?:string;sunset?:string;sunshineDuration:number;precipitation:number;probability:number;wind:number;gust:number;gustAdjusted?:boolean;direction:number;uvMax:number};
-export type EnsembleModelDay={id:string;label:string;max:number;min:number;precipitation:number;precipitationProbability:number;memberCount:number};
+export type EnsembleModelDay={id:string;label:string;max:number;min:number;precipitation:number;precipitationProbability:number;memberCount:number;gust?:number;sunshineDuration?:number;weatherCode?:number};
 export type EnsembleScenarioPoint={date:string;max:number;min:number;precipitation:number;sunshineDuration:number};
 export type EnsembleScenarioCluster={id:string;label:string;summary:string;probability:number;memberCount:number;modelLabels:string[];divergenceDate?:string;points:EnsembleScenarioPoint[]};
 export type EnsembleDay={date:string;maxMean:number;maxLow:number;maxHigh:number;maxQ25:number;maxQ75:number;minMean:number;minLow:number;minHigh:number;minQ25:number;minQ75:number;precipitationMean:number;precipitationLow:number;precipitationHigh:number;precipitationProbability:number;sunshineDurationMean:number;sunshineDurationLow:number;sunshineDurationHigh:number;modelCount:number;memberCount:number;modelSummaries?:EnsembleModelDay[]};
@@ -732,10 +732,10 @@ function weightedQuantile(values:{value:number;weight:number}[],p:number){const 
 function weightedMean(values:{value:number;weight:number}[]){const a=values.filter(x=>Number.isFinite(x.value)&&x.weight>0),w=a.reduce((s,x)=>s+x.weight,0);return w?a.reduce((s,x)=>s+x.value*x.weight,0)/w:NaN}
 function weightedProbability(values:{value:number;weight:number}[],threshold=.1){const a=values.filter(x=>Number.isFinite(x.value)&&x.weight>0),w=a.reduce((s,x)=>s+x.weight,0);return w?100*a.filter(x=>x.value>=threshold).reduce((s,x)=>s+x.weight,0)/w:0}
 function robustWeighted(values:{value:number;weight:number}[],absolute:number){if(values.length<5)return values;const med=weightedQuantile(values,.5),q1=weightedQuantile(values,.25),q3=weightedQuantile(values,.75),iqr=Math.max(.5,q3-q1),limit=Math.max(absolute,1.8*iqr);const filtered=values.filter(x=>Math.abs(x.value-med)<=limit);return filtered.length>=Math.max(4,Math.ceil(values.length*.55))?filtered:values}
-type MemberDay={date:string;max:number;min:number;precipitation:number;sunshineDuration:number};
+type MemberDay={date:string;max:number;min:number;precipitation:number;sunshineDuration:number;gust:number};
 type ModelResult={model:EnsembleModel;members:Map<string,MemberDay[]>};
 type ScenarioTrajectory={id:string;modelId:string;modelLabel:string;weight:number;rows:MemberDay[];vector:number[]};
-function scenarioTrajectoryVector(rows:MemberDay[],dates:string[]){const values:number[]=[];for(const date of dates){const row=rows.find(item=>item.date===date);if(!row)return[];values.push(row.max,row.min,Math.log1p(Math.max(0,row.precipitation))*3)}return values}
+function scenarioTrajectoryVector(rows:MemberDay[],dates:string[]){const values:number[]=[];for(const date of dates){const row=rows.find(item=>item.date===date);if(!row)return[];values.push(row.max,row.min,Math.log1p(Math.max(0,row.precipitation))*3,Math.log1p(Math.max(0,row.gust))*1.25)}return values}
 function standardizeScenarioVectors(items:ScenarioTrajectory[]){if(!items.length)return items;const width=items[0].vector.length,means=Array(width).fill(0),scales=Array(width).fill(1),total=items.reduce((sum,item)=>sum+item.weight,0)||1;for(let index=0;index<width;index++){means[index]=items.reduce((sum,item)=>sum+item.vector[index]*item.weight,0)/total;const variance=items.reduce((sum,item)=>sum+(item.vector[index]-means[index])**2*item.weight,0)/total;scales[index]=Math.max(.35,Math.sqrt(variance))}return items.map(item=>({...item,vector:item.vector.map((value,index)=>(value-means[index])/scales[index])}))}
 function vectorDistance(a:number[],b:number[]){let sum=0;for(let index=0;index<Math.min(a.length,b.length);index++)sum+=(a[index]-b[index])**2;return Math.sqrt(sum)}
 function scenarioCentroids(items:ScenarioTrajectory[],count:number){const centroids:number[][]=[];const first=[...items].sort((a,b)=>a.id.localeCompare(b.id))[0];if(!first)return centroids;centroids.push([...first.vector]);while(centroids.length<count){const candidate=[...items].sort((a,b)=>Math.min(...centroids.map(center=>vectorDistance(b.vector,center)))-Math.min(...centroids.map(center=>vectorDistance(a.vector,center))))[0];if(!candidate)break;centroids.push([...candidate.vector])}return centroids}
@@ -746,26 +746,27 @@ function scenarioLabel(points:EnsembleScenarioPoint[],baseline:EnsembleDay[]){co
 function scenarioSummary(label:string,points:EnsembleScenarioPoint[]){const rain=points.slice(0,5).reduce((sum,point)=>sum+point.precipitation,0),peak=Math.max(...points.slice(0,5).map(point=>point.max)),minimum=Math.min(...points.slice(0,5).map(point=>point.min));return`${label.charAt(0).toUpperCase()+label.slice(1)} · ${formatDecimal(rain,1,1)} mm in fünf Tagen · etwa ${Math.round(minimum)} bis ${Math.round(peak)} °C`}
 function buildEnsembleScenarios(results:ModelResult[],days:EnsembleDay[]):EnsembleScenarioCluster[]{const dates=days.slice(0,7).map(day=>day.date);if(dates.length<4)return[];const trajectories:ScenarioTrajectory[]=[];for(const result of results){const memberCount=Math.max(1,result.members.size),weight=1/memberCount;for(const[memberId,rows]of result.members){const complete=dates.map(date=>rows.find(row=>row.date===date)).filter(Boolean) as MemberDay[];if(complete.length!==dates.length)continue;const vector=scenarioTrajectoryVector(complete,dates);if(vector.length)trajectories.push({id:`${result.model.id}:${memberId}`,modelId:result.model.id,modelLabel:result.model.label,weight,rows:complete,vector})}}if(trajectories.length<10)return[];const normalized=standardizeScenarioVectors(trajectories),count=normalized.length>=28?3:2,{assignments}=clusterScenarioItems(normalized,count),groups=Array.from({length:count},(_,index)=>trajectories.filter((_,itemIndex)=>assignments[itemIndex]===index)),totalWeight=trajectories.reduce((sum,item)=>sum+item.weight,0)||1,clusters=groups.map((group,index)=>{const probability=100*group.reduce((sum,item)=>sum+item.weight,0)/totalWeight,points=dates.map(date=>weightedScenarioPoint(group,date)),models=[...new Set(group.map(item=>item.modelLabel))],label=scenarioLabel(points,days);return{id:`scenario-${index+1}`,label,summary:scenarioSummary(label,points),probability,memberCount:group.length,modelLabels:models.slice(0,5),points}}).filter(cluster=>cluster.probability>=6).sort((a,b)=>b.probability-a.probability);if(clusters.length<2)return[];const divergenceDate=dates.find((_,index)=>{const values=clusters.map(cluster=>cluster.points[index]).filter(Boolean);return Math.max(...values.map(point=>point.max))-Math.min(...values.map(point=>point.max))>=2.5||Math.max(...values.map(point=>point.precipitation))-Math.min(...values.map(point=>point.precipitation))>=2.5});return clusters.map((cluster,index)=>({...cluster,id:`scenario-${index+1}`,divergenceDate}))}
 function parseModelMembers(w:Weather,model:EnsembleModel):ModelResult|null{
- const times=(w.hourly.time as string[])??[],keys=Object.keys(w.hourly),tempKeys=keys.filter(k=>/^temperature_2m(?:_member\d+)?$/.test(k)),precipKeys=keys.filter(k=>/^precipitation(?:_member\d+)?$/.test(k)),sunshineKeys=keys.filter(k=>/^sunshine_duration(?:_member\d+)?$/.test(k));
+ const times=(w.hourly.time as string[])??[],keys=Object.keys(w.hourly),tempKeys=keys.filter(k=>/^temperature_2m(?:_member\d+)?$/.test(k)),precipKeys=keys.filter(k=>/^precipitation(?:_member\d+)?$/.test(k)),sunshineKeys=keys.filter(k=>/^sunshine_duration(?:_member\d+)?$/.test(k)),gustKeys=keys.filter(k=>/^wind_gusts_10m(?:_member\d+)?$/.test(k));
  if(!times.length||!tempKeys.length)return null;
- const suffix=(k:string)=>k.replace('temperature_2m',''),pBySuffix=new Map(precipKeys.map(k=>[k.replace('precipitation',''),k])),sBySuffix=new Map(sunshineKeys.map(k=>[k.replace('sunshine_duration',''),k]));
+ const suffix=(k:string)=>k.replace('temperature_2m',''),pBySuffix=new Map(precipKeys.map(k=>[k.replace('precipitation',''),k])),sBySuffix=new Map(sunshineKeys.map(k=>[k.replace('sunshine_duration',''),k])),gBySuffix=new Map(gustKeys.map(k=>[k.replace('wind_gusts_10m',''),k]));
  const members=new Map<string,MemberDay[]>();
  for(const tk of tempKeys){
-  const s=suffix(tk),pk=pBySuffix.get(s),sk=sBySuffix.get(s),temps=w.hourly[tk]??[],rain=pk?w.hourly[pk]??[]:[],sunshine=sk?w.hourly[sk]??[]:[];
-  const daily=new Map<string,{t:number[];p:number[];s:number[]}>();
+  const s=suffix(tk),pk=pBySuffix.get(s),sk=sBySuffix.get(s),gk=gBySuffix.get(s),temps=w.hourly[tk]??[],rain=pk?w.hourly[pk]??[]:[],sunshine=sk?w.hourly[sk]??[]:[],gusts=gk?w.hourly[gk]??[]:[];
+  const daily=new Map<string,{t:number[];p:number[];s:number[];g:number[]}>();
   for(let i=0;i<times.length;i++){
-   const date=String(times[i]).slice(0,10),tv=n(temps[i]),pv=n(rain[i]),sv=n(sunshine[i]);
-   if(!daily.has(date))daily.set(date,{t:[],p:[],s:[]});
+   const date=String(times[i]).slice(0,10),tv=n(temps[i]),pv=n(rain[i]),sv=n(sunshine[i]),gv=n(gusts[i]);
+   if(!daily.has(date))daily.set(date,{t:[],p:[],s:[],g:[]});
    const d=daily.get(date)!;
    if(Number.isFinite(tv)&&tv>-65&&tv<65)d.t.push(tv);
    if(Number.isFinite(pv)&&pv>=0&&pv<150)d.p.push(pv);
    if(Number.isFinite(sv)&&sv>=0&&sv<=21600)d.s.push(sv);
+   if(Number.isFinite(gv)&&gv>=0&&gv<180)d.g.push(gv);
   }
   const rows:MemberDay[]=[];
   daily.forEach((d,date)=>{
    if(d.t.length>=18){
-    const max=Math.max(...d.t),min=Math.min(...d.t),precipitation=d.p.reduce((a,b)=>a+b,0),sunshineDuration=d.s.length>=6?clampNumber(d.s.reduce((a,b)=>a+b,0),0,86400):NaN;
-    if(Number.isFinite(max)&&Number.isFinite(min)&&max>=min&&max-min<35)rows.push({date,max,min,precipitation,sunshineDuration});
+    const max=Math.max(...d.t),min=Math.min(...d.t),precipitation=d.p.reduce((a,b)=>a+b,0),sunshineDuration=d.s.length>=6?clampNumber(d.s.reduce((a,b)=>a+b,0),0,86400):NaN,gust=d.g.length?Math.max(...d.g):NaN;
+    if(Number.isFinite(max)&&Number.isFinite(min)&&max>=min&&max-min<35)rows.push({date,max,min,precipitation,sunshineDuration,gust});
    }
   });
   if(rows.length>=2)members.set(s||'_control',rows);
@@ -786,7 +787,7 @@ function aggregateMembers(results:ModelResult[]){
    const medMax=quantile(memberRows.map(x=>x.max),.5),medMin=quantile(memberRows.map(x=>x.min),.5),filtered=memberRows.filter(x=>Math.abs(x.max-medMax)<=8&&Math.abs(x.min-medMin)<=8),rows=filtered.length>=Math.max(3,Math.ceil(memberRows.length*.55))?filtered:memberRows,weight=modelDayWeight(r.model,lead,rows.length);
    if(!rows.length||weight<=0)continue;
    modelsUsed.add(r.model.id);memberCount+=rows.length;
-   modelSummaries.push({id:r.model.id,label:r.model.label,max:quantile(rows.map(item=>item.max),.5),min:quantile(rows.map(item=>item.min),.5),precipitation:quantile(rows.map(item=>item.precipitation),.5),precipitationProbability:100*rows.filter(item=>item.precipitation>=.1).length/Math.max(1,rows.length),memberCount:rows.length});
+   modelSummaries.push({id:r.model.id,label:r.model.label,max:quantile(rows.map(item=>item.max),.5),min:quantile(rows.map(item=>item.min),.5),precipitation:quantile(rows.map(item=>item.precipitation),.5),precipitationProbability:100*rows.filter(item=>item.precipitation>=.1).length/Math.max(1,rows.length),memberCount:rows.length,gust:rows.some(item=>Number.isFinite(item.gust))?quantile(rows.map(item=>item.gust).filter(Number.isFinite),.5):undefined,sunshineDuration:rows.some(item=>Number.isFinite(item.sunshineDuration))?quantile(rows.map(item=>item.sunshineDuration).filter(Number.isFinite),.5):undefined});
    for(const row of rows){maxVals.push({value:row.max,weight});minVals.push({value:row.min,weight});rainVals.push({value:row.precipitation,weight});if(Number.isFinite(row.sunshineDuration))sunVals.push({value:row.sunshineDuration,weight})}
   }
   maxVals=robustWeighted(maxVals,9);minVals=robustWeighted(minVals,9);rainVals=robustWeighted(rainVals,25);sunVals=robustWeighted(sunVals,21600);
@@ -822,7 +823,7 @@ async function fetchEnsembleRequest(url:string,signal?:AbortSignal){
  }
  throw lastError;
 }
-async function fetchEnsembleWeather(lat:number,lon:number,forecastDays:number,modelId:string,signal?:AbortSignal,hourly='temperature_2m,precipitation'){
+async function fetchEnsembleWeather(lat:number,lon:number,forecastDays:number,modelId:string,signal?:AbortSignal,hourly='temperature_2m,precipitation,wind_gusts_10m,sunshine_duration'){
  const parameters={lat,lon,model:modelId,forecast_days:Math.max(1,Math.min(14,Math.ceil(forecastDays))),variables:hourly};
  if(workerBaseCandidates('general').length){try{const proxied=await fetchWorkerJson<Weather&{error?:string}>('ensemble-proxy',parameters,{purpose:'general',signal,timeoutMs:18000,cache:'no-store'});if(Array.isArray(proxied?.hourly?.time)&&proxied.hourly.time.length>=12)return proxied}catch{}}
  const p=new URLSearchParams({latitude:String(lat),longitude:String(lon),timezone:'auto',forecast_days:String(parameters.forecast_days),models:modelId,hourly});
@@ -838,7 +839,7 @@ function pseudoModelFromMeanSpread(w:Weather,definition:EnsembleMeanModel):Model
    const date=String(times[index]).slice(0,10),temperature=n(mean[index]),sigma=Math.max(0,n(spread[index])),precipitation=Math.max(0,n(rain[index])+z[member]*Math.max(0,n(rainSpread[index])));
    if(!Number.isFinite(temperature))continue;const row=daily.get(date)??{t:[],p:[]};row.t.push(temperature+z[member]*sigma);if(Number.isFinite(precipitation))row.p.push(precipitation);daily.set(date,row);
   }
-  const rows:MemberDay[]=[];daily.forEach((row,date)=>{if(row.t.length>=18)rows.push({date,max:Math.max(...row.t),min:Math.min(...row.t),precipitation:row.p.reduce((sum,value)=>sum+value,0),sunshineDuration:NaN})});
+  const rows:MemberDay[]=[];daily.forEach((row,date)=>{if(row.t.length>=18)rows.push({date,max:Math.max(...row.t),min:Math.min(...row.t),precipitation:row.p.reduce((sum,value)=>sum+value,0),sunshineDuration:NaN,gust:NaN})});
   if(rows.length>=5)members.set(`spread_${member+1}`,rows);
  }
  if(members.size<3)return null;
