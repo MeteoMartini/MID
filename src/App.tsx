@@ -440,7 +440,7 @@ function Header({setLoc,favorites,setFavorites,current,locationTracking,onOpenSe
  </header>
 }
 
-function sunshineDurationLabel(seconds:number,compact=false){if(!Number.isFinite(seconds)||seconds<0)return'–';if(compact)return`${new Intl.NumberFormat('de-DE',{minimumFractionDigits:0,maximumFractionDigits:1}).format(seconds/3600)} h`;const totalMinutes=Math.round(seconds/60),hours=Math.floor(totalMinutes/60),minutes=totalMinutes%60;return hours?`${hours} h ${String(minutes).padStart(2,'0')} min`:`${minutes} min`}
+function sunshineDurationLabel(seconds:number,compact=false){if(!Number.isFinite(seconds)||seconds<0)return'–';if(compact)return`${new Intl.NumberFormat('de-DE',{minimumFractionDigits:0,maximumFractionDigits:1}).format(seconds/3600)} h`;const totalMinutes=Math.round(seconds/60),hours=Math.floor(totalMinutes/60),minutes=totalMinutes%60;return hours?(minutes?`${hours} h ${String(minutes).padStart(2,'0')} min`:`${hours} h`):`${minutes} min`}
 function visibilityLabel(meters:number){if(!Number.isFinite(meters)||meters<0)return'–';const km=meters/1000;return km>=10?`${Math.round(km)} km`:`${new Intl.NumberFormat('de-DE',{minimumFractionDigits:km<1?2:1,maximumFractionDigits:km<1?2:1}).format(km)} km`}
 
 

@@ -1,3 +1,10 @@
+# MID v0.8.10.1
+
+- Aktuelle Sonnenscheindauer korrigiert: Die 60-Minuten-Auswertung verwendet jetzt exakt die letzten vier 15-Minuten-Intervalle statt durch die inklusive Zeitgrenze versehentlich fünf Werte zu summieren. Eine Anzeige wie „1 h 15 min in den letzten 60 Minuten“ ist damit ausgeschlossen.
+- Jedes 15-Minuten-Intervall wird zusätzlich auf höchstens 900 Sekunden Sonnenschein begrenzt; auch Current- und Stunden-Fallback können den ausgewiesenen Zeitraum nicht mehr überschreiten.
+- Volle 60 Minuten werden kompakt als „1 h“ statt „1 h 00 min“ dargestellt.
+- Neuer Regressionstest schützt Intervallzahl, physikalische Obergrenze und Ausgabeformat.
+
 # MID v0.8.10.0
 
 - Mobile Favoritennavigation ergänzt: Eine deutliche Wischgeste vom linken beziehungsweise rechten Bildschirmrand zur Mitte öffnet den vorherigen beziehungsweise nächsten Favoriten. Die Gesten sind ausschließlich in der Appansicht aktiv und bleiben im Einstellungsdialog gesperrt.
