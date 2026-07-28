@@ -16,7 +16,9 @@ need(weather,'median+Math.max(60,8*mad,median*3+25)','Szenario-Ausreißergrenze 
 need(weather,'gust:mean(row=>row.gust)','Böen werden in den Szenariokennwerten nicht fortgeführt.');
 need(ensemble,'className={index===0?\'leading\':\'\'}','Führendes Szenario verwendet noch die globale .primary-Klasse.');
 if(ensemble.includes("className={index===0?'primary':''}"))failures.push('Globale .primary-Klasse verursacht weiterhin unlesbaren Text auf blauem Grund.');
-need(ensemble,'Tagesniederschlag','Balkenbedeutung wird nicht erklärt.');
+need(ensemble,'Sieben-Tage-Verlauf','Der neue tägliche Szenariovergleich fehlt.');
+need(ensemble,'Temperatur · Niederschlag · Böen','Die Bedeutung des Szenariovergleichs wird nicht vollständig erklärt.');
+if(ensemble.includes('ensemble-scenario-strip'))failures.push('Die alte Niederschlags-Säulendarstellung ist noch aktiv.');
 need(ensemble,'Temperaturspanne','Temperaturkennwert fehlt in den Szenarien.');
 need(ensemble,'Böenspitze','Wind-/Böenkennwert fehlt in den Szenarien.');
 need(styles,'.ensemble-scenarios article.leading','Dezente Hervorhebung des führenden Szenarios fehlt.');

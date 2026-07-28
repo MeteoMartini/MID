@@ -1,3 +1,17 @@
+# MID v0.8.8.1
+
+- Szenariocluster: Temperaturdifferenzen gegenüber Referenzszenario A werden physikalisch korrekt in Kelvin (K) statt in Grad Celsius beziehungsweise mit Gradzeichen ausgewiesen.
+- Absolute Temperaturwerte und Temperaturspannen bleiben weiterhin in Grad Celsius (°C).
+- Neuer Regressionstest schützt die saubere Trennung zwischen absoluten Temperaturen in °C und Temperaturabweichungen in K.
+
+# MID v0.8.8.0
+
+- Berg-/Wintersport um einen kompakten Höhenwetter-Verlauf erweitert: Für Tal-, Mittel- und Bergzone werden Wetter, Temperatur, Sicht, Wolkenuntergrenze, Wind/Böen, Niederschlag und Schneefallgrenze im Tagesverlauf dargestellt. Die Auflösung ist zwischen 1 Stunde und 3 Stunden umschaltbar; die nächsten drei Tage lassen sich bei Bedarf aufklappen.
+- Die bisherige einfache Bergprognose wurde durch die höhenzonierte Vergleichsmatrix ersetzt. Bei 3-Stunden-Auflösung werden Niederschlags- und Schneemengen je Intervall summiert; alle übrigen Parameter bleiben zeitpunktbezogen und kompakt vergleichbar.
+- Saison- und Profilstatus im Bergmodul sprachlich und räumlich getrennt: Statt zusammengeschriebenem „WinterAutomatisch · hohe Sicherheit“ erscheint nun beispielsweise „Winter · Saison automatisch erkannt · Profil automatisch abgeleitet · hohe Sicherheit“.
+- Szenariocluster vollständig neu visualisiert: Statt blauer Niederschlagssäulen zeigt jede Variante nun sieben Tageskarten mit Temperaturspanne, Niederschlagsmenge und Böenspitze. Ab Szenario B werden die konkreten Tagesabweichungen gegenüber Szenario A direkt ausgewiesen und farblich nach nasser, trockener, wärmer, kühler oder windiger unterschieden.
+- Neuer Regressionstest schützt Höhenwetter-Matrix, Auflösungsumschalter, Drei-Tage-Erweiterung, Profilwording und den neuen siebentägigen Szenariovergleich.
+
 # MID v0.8.7.4
 
 - Berg-/Wintersport: Die Analyse nach Höhenzone bewertet nun ausschließlich das Tageslichtfenster von Sonnenaufgang bis Sonnenuntergang des laufenden Tages. Nach Sonnenuntergang wird automatisch der Folgetag ausgewertet und deutlich als „Morgen“ gekennzeichnet.
