@@ -1,3 +1,10 @@
+# MID v0.8.6.2
+
+- Ensemble-Szenariocluster: Die sichtbaren Szenarioanteile werden nun gemeinsam nach dem größten-Rest-Verfahren gerundet und ergeben deshalb immer exakt 100 %. Einzelnes kaufmännisches Runden konnte zuvor wie im Screenshot 42 % + 39 % + 20 % = 101 % erzeugen.
+- Die Prozentwerte werden vor der Rundung auf die tatsächlich dargestellten zwei oder drei Szenarien normalisiert; ausgeblendete statistische Restcluster verfälschen die sichtbare Summe damit nicht.
+- Erklärung und Tooltip weisen jetzt ausdrücklich darauf hin, dass es sich um relative, gemeinsam gerundete Ensembleanteile und nicht um amtliche Eintrittswahrscheinlichkeiten handelt.
+- Neuer funktionaler Regressionstest schützt die exakte 100-%-Summe auch bei Drittelverteilungen, Nullwerten und nicht ganzzahlig summierenden Rohanteilen.
+
 # MID v0.8.6.1
 
 - Open-Meteo-Upstream-Prüfung erweitert: Relevante, verifizierte Änderungen sollen künftig automatisch in den nächsten MID-Entwicklungsstand übernommen werden; unsichere oder inkompatible Änderungen bleiben bis zur fachlichen Verifikation unangetastet.
