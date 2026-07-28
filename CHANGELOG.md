@@ -1,3 +1,12 @@
+# MID v0.8.1.0
+
+- Starre 58-%-Grenze der lokalen Modellgewichtung durch eine adaptive, vertrauensabhängige Obergrenze ersetzt. Die zulässige Dominanz eines Modells richtet sich nun nach globaler und wetterlagen-/horizontspezifischer Stichprobe sowie dem echten Kontrollvergleich von „MID lokal gewichtet“ gegen Best Match.
+- Adaptive Schutzstaffel eingeführt: in früher Lernphase typischerweise 48–54 %, bei wachsender Evidenz 56–62 % und nur bei ausreichend belegter, nachgewiesener Verbesserung maximal 65 %. Bei negativer Kontrollgüte wird die Grenze automatisch wieder abgesenkt.
+- Parametergewichte für Temperatur, Niederschlag, Wahrscheinlichkeit, Böen und Sonnenschein erhalten zusätzlich eigene, von der jeweiligen Stichprobe abhängige Obergrenzen. Die aktuell wirksame Grenze, Vertrauensstufe und Kontrollgüte werden in der Prognoseerklärung ausgewiesen.
+- Standortfingerabdruck grundlegend verbessert: MID kombiniert Orts-/POI-Metadaten mit einem 17-Punkte-DEM-Höhenprofil im 10-km-Umfeld und leitet daraus Geländeform, Exposition, Kaltluftsenken-, Nebel- und Gewässereinfluss ab.
+- Die Vorauswahl bleibt vollständig editierbar. Ein neuer Schalter „Neu ableiten“ beziehungsweise „Automatik wiederherstellen“ verwirft bei Bedarf manuelle Änderungen und berechnet das Profil erneut. Die Ableitungsgründe sowie DEM-Relief und relative Höhenlage werden transparent angezeigt.
+- Neuer Regressionstest schützt adaptive Gewichtsobergrenzen, Kontrollgruppenbezug, parameterbezogene Grenzen, DEM-/Metadatenableitung und die editierbare Rückkehr zur Automatik.
+
 # MID v0.8.0.1
 
 - Umfassendes Audit sämtlicher mit v0.8.0 eingeführter Wetterzwilling-Funktionen durchgeführt und dabei Einheiten-, Herkunfts-, Zeit- und Archivfehler korrigiert.
