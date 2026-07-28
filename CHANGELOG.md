@@ -1,3 +1,10 @@
+# MID v0.8.10.2
+
+- Aktuelle Sonnenscheindauer wird in der Wetterkachel konsequent als Minutenwert je ausgewiesenem Stundenfenster dargestellt: beispielsweise „60 min“ statt „1 h“.
+- Die Anzeige bleibt auf die tatsächlich abgedeckte Zeitspanne und grundsätzlich auf höchstens 60 Minuten begrenzt; bei nur 45 Minuten Datenabdeckung können daher maximal 45 min erscheinen.
+- Tages- und Ensembleangaben bleiben weiterhin in Stunden, da dort mehrstündige beziehungsweise tägliche Summen dargestellt werden.
+- Neuer Regressionstest schützt Minutenformat, Stundenobergrenze und die Verwendung der aggregierten 60-Minuten-Auswertung in der aktuellen Wetterkachel.
+
 # MID v0.8.10.1
 
 - Aktuelle Sonnenscheindauer korrigiert: Die 60-Minuten-Auswertung verwendet jetzt exakt die letzten vier 15-Minuten-Intervalle statt durch die inklusive Zeitgrenze versehentlich fünf Werte zu summieren. Eine Anzeige wie „1 h 15 min in den letzten 60 Minuten“ ist damit ausgeschlossen.
