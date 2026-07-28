@@ -1,3 +1,11 @@
+# MID v0.8.7.1
+
+- Ensemble-Szenariocluster transparenter gemacht: Für jede vertretene Modellfamilie zeigt MID nun, wie viele ihrer Mitglieder dem jeweiligen Szenario zugeordnet sind und welchem Anteil innerhalb dieser Modellfamilie das entspricht. Dadurch ist nachvollziehbar, warum beispielsweise ICON EPS Seamless gleichzeitig in mehreren Szenarien vorkommen kann.
+- Szenariobezeichnungen nachgeschärft: Szenario B/C werden relativ zum führenden Szenario beschrieben; doppelte Beschriftungen wie mehrfach „nahe am Ensemble-Schwerpunkt“ werden vermieden.
+- Divergenzerkennung robuster eingestellt: Der heutige, bereits teilweise abgelaufene Tag löst keine normale Trennung mehr aus. Eine markante Divergenz wird frühestens ab morgen bei mindestens zwei aufeinanderfolgenden auffälligen Tagen oder ausnahmsweise bei einer außergewöhnlich starken eintägigen Abweichung ausgewiesen. Temperatur, Tagesniederschlag und Böen fließen gemeinsam ein.
+- Ensemblecache auf Generation v7 angehoben, damit ältere Szenariodaten ohne Modellfamilienanteile oder mit der früheren empfindlichen Divergenzlogik nicht weiterverwendet werden.
+- Neuer Regressionstest schützt Modellfamilienanteile, eindeutige Szenariolabels und die robuste zukünftige Divergenzerkennung.
+
 # MID v0.8.7.0
 
 - „Lokaler Standortfingerabdruck“ in „Lokales Standortprofil“ umbenannt und als standardmäßig eingeklappte, persistente Detailsektion neu gestaltet. Im geschlossenen Zustand bleiben Geländeform, Exposition, Kaltluft-, Nebel- und Gewässereinfluss direkt ablesbar; zum Bearbeiten wird die Sektion wie bisher aufgeklappt.
