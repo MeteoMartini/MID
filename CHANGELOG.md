@@ -1,3 +1,10 @@
+# MID v0.8.9.0
+
+- Berg-/Wintersport-Höhenwetter farblich aufgewertet: Wind-/Böenzellen erhalten ab den bestehenden DWD-nahen Schwellen dezente, textkontrastschonende Warnstufen-Hintergründe; Niederschlagszellen reichen von blassem Blau bei geringen Mengen bis zu dunkelblau mit weißer Schrift bei höheren Intervallsummen.
+- Wolkenbasis eindeutig referenziert: Die Höhenmatrix zeigt die Untergrenze in Meter über NHN und zusätzlich relativ über dem jeweiligen Tal-/Mittel-/Bergniveau. Unterschiede zwischen Höhenzonen werden als Ergebnis getrennter Punktprognosen und Vertikalprofile erklärt.
+- Wolkenschicht- und Sichtplausibilität ergänzt: MID lädt begrenzte Druckniveau-Wolken- und Geopotentialprofile, erkennt Schichten mit mehr als 5/8 Bedeckung und stuft die Sicht innerhalb einer solchen Schicht konservativ als stark reduziert ein. Diese Korrektur fließt auch in die Höhenzonenbewertung ein.
+- Neuer Regressionstest schützt Windwarnfarben, Niederschlagsintensitätsfarben, NHN-/Grundbezug und Wolkenschicht-Sichtprüfung.
+
 # MID v0.8.8.1
 
 - Szenariocluster: Temperaturdifferenzen gegenüber Referenzszenario A werden physikalisch korrekt in Kelvin (K) statt in Grad Celsius beziehungsweise mit Gradzeichen ausgewiesen.
