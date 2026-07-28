@@ -29,7 +29,7 @@ requireTokens('Radar-Zugrichtung Typ',weather,['motionDirectionDeg?:number','mot
 requireTokens('Radar-Zugrichtung CSS',styles,['.radarmap .radar-motion-chip{','.radar-motion-arrow,','.radar-motion-arrow-head']);
 requireTokens('Versionsfestes Modellarchiv',modelChanges,['HISTORY_KEY=\'mid:model-run-change-history:v2\'','type ModelChangeHistory','appendHistory','slice(-6)','slice(40)','loadModelChangeSnapshot','saveModelChangeSnapshot']);
 if(persistence.includes("if(localStorage.getItem('mid:favorites'))return false"))failures.push('Persistenz: früher Abbruch bei vorhandenen Favoriten wurde nicht entfernt.');
-requireTokens('Persistenzbrücke',persistence,['const INCLUDED_KEYS=(key:string)=>key.startsWith(\'mid:\')','if(INCLUDED_KEYS(key)&&localStorage.getItem(key)===null)localStorage.setItem(key,value)','readDb()','readCache()']);
+requireTokens('Persistenzbrücke',persistence,['const INCLUDED_KEYS=(key:string)=>','if(INCLUDED_KEYS(key)&&localStorage.getItem(key)===null)localStorage.setItem(key,value)','readDb()','readCache()']);
 
 // Funktionaler Test: Das neue Sammelarchiv überlebt den Wegfall des alten Einzelkeys.
 try{

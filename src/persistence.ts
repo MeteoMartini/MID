@@ -3,9 +3,11 @@ const STORE='snapshots';
 const SNAPSHOT_KEY='current';
 const CACHE_NAME='mid-state-backup-v1';
 const CACHE_URL='./__mid_state_backup__.json';
-const INCLUDED_KEYS=(key:string)=>key.startsWith('mid:')||['theme','windUnit'].includes(key);
+const TRANSIENT_PREFIXES=['mid:analysis-cache:','mid:ensemble:','mid:worker:lastGood','mid:update','mid:runtime','mid:state-restored'];
+const INCLUDED_KEYS=(key:string)=>(key.startsWith('mid:')||['theme','windUnit'].includes(key))&&!TRANSIENT_PREFIXES.some(prefix=>key.startsWith(prefix));
 
 type Snapshot={schema:'mid-state';version:1;savedAt:string;values:Record<string,string>};
+type IdleWindow=Window&{requestIdleCallback?:(callback:()=>void,options?:{timeout:number})=>number;cancelIdleCallback?:(handle:number)=>void};
 
 function openDb():Promise<IDBDatabase>{return new Promise((resolve,reject)=>{const request=indexedDB.open(DB_NAME,1);request.onupgradeneeded=()=>{if(!request.result.objectStoreNames.contains(STORE))request.result.createObjectStore(STORE)};request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error)})}
 function collect():Snapshot{const values:Record<string,string>={};for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key&&INCLUDED_KEYS(key)){const value=localStorage.getItem(key);if(value!==null)values[key]=value}}return{schema:'mid-state',version:1,savedAt:new Date().toISOString(),values}}
@@ -16,6 +18,10 @@ async function readCache():Promise<Snapshot|null>{if(!('caches'in window))return
 function valid(snapshot:Snapshot|null):snapshot is Snapshot{return Boolean(snapshot&&snapshot.schema==='mid-state'&&snapshot.version===1&&snapshot.values&&typeof snapshot.values==='object')}
 function apply(snapshot:Snapshot){for(const[key,value]of Object.entries(snapshot.values))if(INCLUDED_KEYS(key)&&localStorage.getItem(key)===null)localStorage.setItem(key,value)}
 export async function restorePersistentState(){try{const candidates=await Promise.allSettled([readDb(),readCache()]);const snapshots=candidates.filter((x):x is PromiseFulfilledResult<Snapshot|null>=>x.status==='fulfilled').map(x=>x.value).filter(valid).sort((a,b)=>Date.parse(b.savedAt)-Date.parse(a.savedAt));if(!snapshots.length)return false;apply(snapshots[0]);sessionStorage.setItem('mid:state-restored','1');return true}catch{return false}}
-let timer:number|undefined;
-export async function persistStateNow(){try{const snapshot=collect();await Promise.allSettled([writeDb(snapshot),writeCache(snapshot)])}catch{}}
-export function startPersistenceBridge(){const schedule=()=>{window.clearTimeout(timer);timer=window.setTimeout(()=>void persistStateNow(),350)};const originalSet=localStorage.setItem.bind(localStorage),originalRemove=localStorage.removeItem.bind(localStorage);try{localStorage.setItem=((key:string,value:string)=>{originalSet(key,value);if(INCLUDED_KEYS(key))schedule()}) as typeof localStorage.setItem;localStorage.removeItem=((key:string)=>{originalRemove(key);if(INCLUDED_KEYS(key))schedule()}) as typeof localStorage.removeItem}catch{}window.addEventListener('pagehide',()=>void persistStateNow());document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')void persistStateNow()});schedule()}
+
+let timer:number|undefined,idleHandle:number|undefined,persistPromise:Promise<void>|null=null,persistAgain=false;
+export function persistStateNow(){if(persistPromise){persistAgain=true;return persistPromise}persistPromise=(async()=>{do{persistAgain=false;const snapshot=collect();await Promise.allSettled([writeDb(snapshot),writeCache(snapshot)])}while(persistAgain)})().catch(()=>undefined).finally(()=>{persistPromise=null});return persistPromise}
+function cancelScheduled(){if(timer!==undefined){window.clearTimeout(timer);timer=undefined}if(idleHandle!==undefined){(window as IdleWindow).cancelIdleCallback?.(idleHandle);idleHandle=undefined}}
+function schedulePersist(){cancelScheduled();timer=window.setTimeout(()=>{timer=undefined;const idleWindow=window as IdleWindow;if(idleWindow.requestIdleCallback)idleHandle=idleWindow.requestIdleCallback(()=>{idleHandle=undefined;void persistStateNow()},{timeout:1200});else void persistStateNow()},350)}
+function flushPersist(){cancelScheduled();void persistStateNow()}
+export function startPersistenceBridge(){const originalSet=localStorage.setItem.bind(localStorage),originalRemove=localStorage.removeItem.bind(localStorage);try{localStorage.setItem=((key:string,value:string)=>{if(localStorage.getItem(key)===value)return;originalSet(key,value);if(INCLUDED_KEYS(key))schedulePersist()}) as typeof localStorage.setItem;localStorage.removeItem=((key:string)=>{if(localStorage.getItem(key)===null)return;originalRemove(key);if(INCLUDED_KEYS(key))schedulePersist()}) as typeof localStorage.removeItem}catch{}const pagehide=()=>flushPersist(),visibility=()=>{if(document.visibilityState==='hidden')flushPersist()};window.addEventListener('pagehide',pagehide);document.addEventListener('visibilitychange',visibility);schedulePersist()}

@@ -2614,3 +2614,5 @@ button,input,select,[role="button"]{touch-action:manipulation}
 
 /* MID v0.8.10.0 – randbasierte Favoritennavigation in der mobilen Appansicht */
 @media(max-width:900px){html,body{overscroll-behavior-x:none}}
+.search>section button.current-favorite-result{background:color-mix(in srgb,var(--primary) 10%,var(--surface));box-shadow:inset 3px 0 0 var(--primary)}
+.search>section button.current-favorite-result strong{color:var(--text)}

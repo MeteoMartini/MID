@@ -13,11 +13,12 @@ assert.match(app,/return \/\^\(Schwere\|Orkanartige\|Extreme\|Starke\|Leichte\|M
 assert.match(app,/title=sevenDayHazardPhrase\(candidate\.signal\.title\)/,'7-Tage-Trend muss die rechtschreibungsbewusste Hazard-Phrase verwenden');
 assert.match(app,/onConfigChange:\(change:Partial<MountainConfig>\)=>void/,'Berg-/Wintersport braucht eine direkte Konfigurationsschnittstelle');
 assert.match(app,/aria-label="Saisonprofil"[\s\S]*Auto[\s\S]*Sommer[\s\S]*Winter/,'Saisonumschalter muss im Berg-/Wintersportbereich sichtbar sein');
-assert.match(app,/updateCurrentMountain=useCallback[\s\S]*persistFavoriteSnapshot/,'Saisonumschalter muss das Favoritenprofil dauerhaft speichern');
+assert.match(app,/updateCurrentMountain=useCallback[\s\S]*setFavorites/,'Saisonumschalter muss das Favoritenprofil aktualisieren');
+assert.match(app,/useEffect\(\(\)=>\{persistFavoriteSnapshot\(favorites\)\}/,'Favoritenprofile müssen zentral dauerhaft gespeichert werden');
 assert.match(water,/onConfigChange:\(change:Partial<WaterConfig>\)=>void/,'Wassersportbereich braucht eine direkte Konfigurationsschnittstelle');
 assert.match(water,/aria-label="Gewässertyp"/,'Gewässer-Untermodus fehlt im Wassersportbereich');
 assert.match(water,/aria-label="Wassersportaktivität"/,'Aktivitäts-Untermodus fehlt im Wassersportbereich');
-assert.match(app,/updateCurrentWater=useCallback[\s\S]*persistFavoriteSnapshot/,'Wassersport-Untermodi müssen dauerhaft im Favoritenprofil gespeichert werden');
+assert.match(app,/updateCurrentWater=useCallback[\s\S]*setFavorites/,'Wassersport-Untermodi müssen das Favoritenprofil aktualisieren');
 assert.match(css,/\.module-inline-segmented/,'Dezentes Segment-Steuerelement fehlt');
 assert.match(css,/\.module-inline-options/,'Dezente Moduloptionen fehlen');
 
