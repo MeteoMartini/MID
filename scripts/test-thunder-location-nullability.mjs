@@ -3,7 +3,7 @@ import {readFile} from 'node:fs/promises';
 const app=await readFile(new URL('../src/App.tsx',import.meta.url),'utf8');
 const failures=[];
 
-if(!app.includes("currentFavorite=matchingFavorite(favorites,loc),displayLocationName=currentFavorite?favoriteLabel(currentFavorite):loc?.name??'Standort'")){
+if(!app.includes("currentFavorite=useMemo(()=>matchingFavorite(favorites,loc)")||!app.includes("displayLocationName=currentFavorite?favoriteLabel(currentFavorite):loc?.name??'Standort'")){
  failures.push('Die sichtbare Favoritenbezeichnung wird nicht als Ortsname für die Gewitterinformation abgeleitet.');
 }
 if(!app.includes('combineThunderstormInformation(thunderAnalysis,hours,radarAnalysis,st,displayLocationName)')){

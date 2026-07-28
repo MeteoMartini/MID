@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.8.13.0",
+  "version": "0.8.15.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -59,7 +59,8 @@
     "test:responsiveness": "node scripts/test-responsiveness-071003.mjs",
     "test:radar-nowcast-ref": "node scripts/test-radar-nowcast-ref.mjs",
     "test:eea-station": "node scripts/test-eea-station-resilience.mjs",
-    "test:forecast-summary": "node scripts/test-forecast-summary-landscape.mjs"
+    "test:forecast-summary": "node scripts/test-forecast-summary-landscape.mjs",
+    "test:detail-pressure": "node scripts/test-detail-pressure-collapsible-legend-08150.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

@@ -1,3 +1,19 @@
+# MID v0.8.15.0
+
+- GitHub-Produktionsbuild korrigiert: Die Favoriten-Persistenz verwendet für optionale Idle-Callbacks keine TypeScript-Narrowing-Verzweigung mehr, durch die `window` im Fallback als `never` interpretiert wurde. Der bisherige Fehler TS2339 bei `clearTimeout` ist damit behoben.
+- Tagesdetaildiagramm um einen eigenen Luftdruckverlauf in hPa ergänzt. Die adaptive Druckskala erhält eine separate kompakte Diagrammspur; der Verlauf ist standardmäßig sichtbar und über die Legende deaktivierbar.
+- Die Detaillegende lässt sich vollständig ein- und ausklappen. Der Zustand wird gespeichert; auf schmalen Displays startet sie beim ersten Aufruf platzsparend eingeklappt.
+- Stündliche Detailkacheln neu geordnet: Luftdruck mit kurzfristiger Tendenz beziehungsweise Tagesbereich ergänzt; Bewölkung und UVI zu einer gemeinsamen Kachel zusammengeführt, sodass die mobile Darstellung trotz zusätzlicher Information kompakt bleibt.
+- Neuer Regressionstest schützt Buildfix, Luftdruck-Datenpfad, Diagrammspur, schaltbare und persistente Legende sowie die mobile Kachelstruktur.
+
+# MID v0.8.14.0
+
+- Neue Favoriten starten ohne aktive numerische persönliche Regeln. Bestehende unveränderte Standardregeln werden bei der Migration ebenfalls als deaktiviert erkannt; individuell angepasste Regeln und Push-Regeln bleiben erhalten. Ein eigener Schalter aktiviert die 24-Stunden-Prüfung bewusst je Favorit.
+- Favoritenmenü korrigiert: Beim Öffnen wird der aktuell angezeigte Favorit nach vollständig aufgebautem Menü zuverlässig mittig in den sichtbaren Bereich geführt. Die Positionierung wird über zwei Renderframes und einen kurzen Layout-Fallback abgesichert.
+- Performance-Audit erweitert: Favoritenänderungen werden entprellt und in Browser-Leerlaufphasen gespeichert, bei Ausblenden oder Schließen aber sofort gesichert. Unveränderte Push-/Lernsignaturen werden memoisiert, Wetterzwilling-Ableitungen reagieren nur noch auf tatsächlich relevante Schalter, und lange Favoritenlisten werden per Rendering-Containment entlastet.
+- Deaktivierte persönliche Regeln erzeugen weder Regelberechnungen noch die zugehörigen kontrollierten Eingabefelder; Push-Benachrichtigungsregeln bleiben davon unabhängig.
+- Neuer Regressionstest schützt Standardzustand, Legacy-Migration, robustes Zentrieren des aktiven Favoriten und die zusätzlichen Performance-Maßnahmen.
+
 # MID v0.8.13.0
 
 - Wetterpiktogramme konsequent um Tages-/Nachtvarianten ergänzt: Bewölkung, Sprühregen und Schauer verwenden nachts keine Sonnenpiktogramme mehr. Der Höhenwetter-Verlauf übernimmt dafür nun ebenfalls den jeweiligen `is_day`-Status je Zeitabschnitt.

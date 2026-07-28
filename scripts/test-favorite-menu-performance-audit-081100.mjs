@@ -9,9 +9,10 @@ const failures=[];
 const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
 for(const token of [
  'function revealWithinScrollContainer',
+ 'function centerWithinScrollContainer',
  'resultsRef=useRef<HTMLElement>(null)',
  'activeFavoriteRef=useRef<HTMLButtonElement>(null)',
- "revealWithinScrollContainer(container,element,'vertical')",
+ 'centerWithinScrollContainer(container,element)',
  'ref={item.id===currentFavoriteId?activeFavoriteRef:undefined}',
  'bubbleContainerRef=useRef<HTMLDivElement>(null)',
  "revealWithinScrollContainer(container,element,'horizontal')",
@@ -22,8 +23,8 @@ for(const token of [
  'function writeStorageIfChanged',
  'if(locationsShallowEqual(item.location,merged))return item',
  "measured=[...document.querySelectorAll<HTMLElement>('[data-mid-view]')].map(node=>({node,rect:node.getBoundingClientRect()}))",
- 'const pushFavoriteSignature=',
- 'const learningFavoriteSignature=',
+ 'const pushFavoriteSignature=useMemo',
+ 'const learningFavoriteSignature=useMemo',
  'requestIdle?requestIdle(run,{timeout:1800})'
 ])need('App-Performance',app,token);
 if(app.includes('queueMicrotask(()=>void persistStateNow())'))failures.push('Favoritenänderungen lösen weiterhin eine doppelte unmittelbare Vollsicherung aus.');
