@@ -1,3 +1,11 @@
+# MID v0.8.13.0
+
+- Wetterpiktogramme konsequent um Tages-/Nachtvarianten ergänzt: Bewölkung, Sprühregen und Schauer verwenden nachts keine Sonnenpiktogramme mehr. Der Höhenwetter-Verlauf übernimmt dafür nun ebenfalls den jeweiligen `is_day`-Status je Zeitabschnitt.
+- Sonne-/Mond-Kachel verdichtet: Sonnenauf- und -untergang bleiben kompakt im Primärwert; Mondphase und die verbleibenden Tage bis zum nächsten Neu- oder Vollmond erscheinen direkt darunter.
+- Schließbares Astronomie-Info-Popover ergänzt. Es zeigt chronologisch astronomische, nautische und bürgerliche Dämmerung, blaue und goldene Stunde, Sonnenhöchststand sowie Mondauf- und -untergang. Außenklick/-tippen und Escape schließen wie bei den übrigen MID-Tooltips.
+- Astronomiekern erweitert um zusätzliche Sonnenhöhen-Ereignisse und Countdown zum nächsten Neu-/Vollmond.
+- Neuer Regressionstest schützt Nachtpiktogramme, Höhenwetter-Tag/Nacht-Bezug, kompakte Mondanzeige und das Astronomie-Popover.
+
 # MID v0.8.12.0
 
 - Wassersportmodul sprachlich auf „Wassersport“ verkürzt; Favoritenprofil, Schnellzugriff und Modulkopf verwenden nun dieselbe Bezeichnung.

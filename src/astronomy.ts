@@ -11,6 +11,19 @@ type ZonedDateParts={year:number;month:number;day:number;hour:number;minute:numb
 export type AstronomySummary={
  sunrise?:Date;
  sunset?:Date;
+ solarNoon?:Date;
+ civilDawn?:Date;
+ civilDusk?:Date;
+ nauticalDawn?:Date;
+ nauticalDusk?:Date;
+ astronomicalDawn?:Date;
+ astronomicalDusk?:Date;
+ blueHourMorningStart?:Date;
+ blueHourMorningEnd?:Date;
+ blueHourEveningStart?:Date;
+ blueHourEveningEnd?:Date;
+ goldenHourMorningEnd?:Date;
+ goldenHourEveningStart?:Date;
  dayLengthSeconds:number;
  dayLengthChangeSeconds:number;
  moonrise?:Date;
@@ -22,6 +35,8 @@ export type AstronomySummary={
  moonIllumination:number;
  moonAgeDays:number;
  moonPhaseFraction:number;
+ daysUntilNewMoon:number;
+ daysUntilFullMoon:number;
  timezone:string;
 };
 
@@ -52,9 +67,10 @@ function localDateParts(date:Date,timezone:string){const parts=zonedParts(date,t
 function shiftDate(parts:{year:number;month:number;day:number},days:number){const date=new Date(Date.UTC(parts.year,parts.month-1,parts.day+days));return{year:date.getUTCFullYear(),month:date.getUTCMonth()+1,day:date.getUTCDate()}}
 
 function sunTimesForDate(parts:{year:number;month:number;day:number},lat:number,lon:number,timezone:string){
- const sample=zonedDateToUtc(parts.year,parts.month,parts.day,12,0,0,timezone),lw=RAD*-lon,phi=RAD*lat,d=toDays(sample),n=julianCycle(d,lw),ds=approxTransit(0,lw,n),m=solarMeanAnomaly(ds),l=eclipticLongitude(m),dec=declination(l,0),jNoon=solarTransitJ(ds,m,l),jSet=setJ(RAD*-.833,lw,phi,dec,n,m,l),jRise=jNoon-(jSet-jNoon);
- const sunrise=Number.isFinite(jRise)?fromJulian(jRise):undefined,sunset=Number.isFinite(jSet)?fromJulian(jSet):undefined;
- return{sunrise,sunset};
+ const sample=zonedDateToUtc(parts.year,parts.month,parts.day,12,0,0,timezone),lw=RAD*-lon,phi=RAD*lat,d=toDays(sample),n=julianCycle(d,lw),ds=approxTransit(0,lw,n),m=solarMeanAnomaly(ds),l=eclipticLongitude(m),dec=declination(l,0),jNoon=solarTransitJ(ds,m,l);
+ const pair=(altitudeDegrees:number)=>{const altitude=RAD*altitudeDegrees,ratio=(Math.sin(altitude)-Math.sin(phi)*Math.sin(dec))/(Math.cos(phi)*Math.cos(dec));if(!Number.isFinite(ratio)||ratio<-1||ratio>1)return{rise:undefined,set:undefined};const jSet=setJ(altitude,lw,phi,dec,n,m,l),jRise=jNoon-(jSet-jNoon);return{rise:Number.isFinite(jRise)?fromJulian(jRise):undefined,set:Number.isFinite(jSet)?fromJulian(jSet):undefined}};
+ const horizon=pair(-.833),civil=pair(-6),nautical=pair(-12),astronomical=pair(-18),blueOuter=pair(-8),blueInner=pair(-4),golden=pair(6);
+ return{sunrise:horizon.rise,sunset:horizon.set,solarNoon:Number.isFinite(jNoon)?fromJulian(jNoon):undefined,civilDawn:civil.rise,civilDusk:civil.set,nauticalDawn:nautical.rise,nauticalDusk:nautical.set,astronomicalDawn:astronomical.rise,astronomicalDusk:astronomical.set,blueHourMorningStart:blueOuter.rise,blueHourMorningEnd:blueInner.rise,blueHourEveningStart:blueInner.set,blueHourEveningEnd:blueOuter.set,goldenHourMorningEnd:golden.rise,goldenHourEveningStart:golden.set};
 }
 function dayLengthSeconds(sunrise?:Date,sunset?:Date){if(!sunrise||!sunset)return Number.NaN;const seconds=(sunset.getTime()-sunrise.getTime())/1000;return seconds>0&&seconds<DAY_MS/1000?seconds:Number.NaN}
 
@@ -75,8 +91,8 @@ function moonDescriptor(phase:number){
 }
 
 export function astronomySummary(w:Weather,at=new Date()):AstronomySummary{
- const timezone=w.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC',today=localDateParts(at,timezone),yesterday=shiftDate(today,-1),sunToday=sunTimesForDate(today,w.latitude,w.longitude,timezone),sunYesterday=sunTimesForDate(yesterday,w.latitude,w.longitude,timezone),dayLength=dayLengthSeconds(sunToday.sunrise,sunToday.sunset),previousLength=dayLengthSeconds(sunYesterday.sunrise,sunYesterday.sunset),moonTimes=moonTimesForDate(today,w.latitude,w.longitude,timezone),illumination=moonIllumination(at),descriptor=moonDescriptor(illumination.phase);
- return{sunrise:sunToday.sunrise,sunset:sunToday.sunset,dayLengthSeconds:dayLength,dayLengthChangeSeconds:Number.isFinite(dayLength)&&Number.isFinite(previousLength)?dayLength-previousLength:Number.NaN,moonrise:moonTimes.moonrise,moonset:moonTimes.moonset,moonAlwaysUp:moonTimes.alwaysUp,moonAlwaysDown:moonTimes.alwaysDown,moonIcon:descriptor.icon,moonPhase:descriptor.phaseName,moonIllumination:illumination.fraction,moonAgeDays:descriptor.age,moonPhaseFraction:illumination.phase,timezone};
+ const timezone=w.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC',today=localDateParts(at,timezone),yesterday=shiftDate(today,-1),sunToday=sunTimesForDate(today,w.latitude,w.longitude,timezone),sunYesterday=sunTimesForDate(yesterday,w.latitude,w.longitude,timezone),dayLength=dayLengthSeconds(sunToday.sunrise,sunToday.sunset),previousLength=dayLengthSeconds(sunYesterday.sunrise,sunYesterday.sunset),moonTimes=moonTimesForDate(today,w.latitude,w.longitude,timezone),illumination=moonIllumination(at),descriptor=moonDescriptor(illumination.phase),daysUntilNewMoon=((1-illumination.phase)%1)*MOON_CYCLE_DAYS,daysUntilFullMoon=((.5-illumination.phase+1)%1)*MOON_CYCLE_DAYS;
+ return{...sunToday,dayLengthSeconds:dayLength,dayLengthChangeSeconds:Number.isFinite(dayLength)&&Number.isFinite(previousLength)?dayLength-previousLength:Number.NaN,moonrise:moonTimes.moonrise,moonset:moonTimes.moonset,moonAlwaysUp:moonTimes.alwaysUp,moonAlwaysDown:moonTimes.alwaysDown,moonIcon:descriptor.icon,moonPhase:descriptor.phaseName,moonIllumination:illumination.fraction,moonAgeDays:descriptor.age,moonPhaseFraction:illumination.phase,daysUntilNewMoon,daysUntilFullMoon,timezone};
 }
 
 export function formatAstronomyTime(value:Date|undefined,timezone:string){return value?new Intl.DateTimeFormat('de-DE',{timeZone:timezone,hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(value):'–'}
