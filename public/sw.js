@@ -1,4 +1,4 @@
-const CACHE='mid-shell-v0.8.2.2';
+const CACHE='mid-shell-v0.8.4.0';
 const VERSION=CACHE.replace('mid-shell-v','');
 const CACHE_PREFIX='mid-shell-v';
 const META_CACHE='mid-system-meta-v1';

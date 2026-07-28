@@ -16,7 +16,7 @@ requireTokens('Stufe 2 · Lernkern',engine,[
  'parameterMetrics','type ProbabilityCalibrationBin=','type BiasCorrection=','calibrationBins(','modelBiases(','regularizedWeights(','equal_weighted','mid_local_weighted','best_match','confidenceFromSamples('
 ]);
 requireTokens('Stufe 3 · aktiver Wetterzwilling',engine,[
- 'applyLocalTwinForecast(','applyLocalTwinHours(','nowcastAdjustedPrediction(','Radar-/Nowcast-Signal','privateSensorUrl','PRIVATE_SENSOR_INTEGRATION_ENABLED=false'
+ 'applyLocalTwinForecast(','applyLocalTwinHours(','nowcastAdjustedPrediction(','Radar-/Nowcast-Signal','privateSensorUrl','PRIVATE_SENSOR_INTEGRATION_ENABLED=true'
 ]);
 requireTokens('Stufe 4 · Entscheidungszwilling',engine,[
  'buildTwinRecommendations(','recordTwinRecommendationFeedback(','TwinActivity','bestActivityWindow(','Arbeitsweg','Berg-/Wintersport'

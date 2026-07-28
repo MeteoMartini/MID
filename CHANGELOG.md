@@ -1,3 +1,21 @@
+# MID v0.8.4.0
+
+- Lokaler Wetterzwilling lernt beim Öffnen beziehungsweise Wieder-Sichtbarwerden der App nun standardmäßig für sämtliche gespeicherten Favoriten und nicht mehr nur für den gerade angezeigten Standort. Die Favoriten werden ressourcenschonend nacheinander verarbeitet; identische Standorte werden entdoppelt, der aktive Ort wird nicht doppelt geladen und jeder Favorit wird höchstens einmal innerhalb von sechs Stunden erneut abgerufen.
+- Für jeden fälligen Favoriten werden Best-Match- und Ensembleprognosen archiviert sowie abgeschlossene Rückblicke nachgeführt. Vorübergehende Fehler eines Ortes blockieren die übrige Warteschlange nicht; abgebrochene Läufe werden beim nächsten Öffnen erneut aufgenommen.
+- Neuer Wetterzwilling-Schalter „Alle Favoriten beim Öffnen nachführen“ mit sichtbarem Laufstatus und Zeitstempel. Die Funktion ist standardmäßig aktiv, kann aber unabhängig vom eigentlichen Wetterzwilling deaktiviert werden.
+- Einstellungsmenü neu geordnet: Ansicht, Farbdesign und Einheiten sind in „Ansicht & Einheiten“ gebündelt; „Lokaler Wetterzwilling“, „Daten & Synchronisation“ sowie „System & Updates“ besitzen eigenständige, intuitiv auffindbare Bereiche. Favoriten heißen nun „Favoriten & Profile“.
+- Gerätespezifische Favoritenlauf- und Cooldown-Zustände sind von der Geräte-Synchronisation ausgeschlossen; die eigentlichen Prognosearchive und Lernprofile bleiben synchronisierbar.
+- Neuer Regressionstest schützt das Favoritenlernen, die Drosselung, die getrennte Einstellungsnavigation und den Ausschluss technischer Laufzustände aus dem Geräteabgleich.
+
+# MID v0.8.3.0
+
+- Eigene vernetzte Wetterstationen reaktiviert und automatisierbar umgesetzt: Netatmo kann über den offiziellen OAuth-Zugriff mit reinem Stations-Leserecht verbunden, eine Station samt Außenmodul ausgewählt und regelmäßig in MID übernommen werden.
+- Anbieterübergreifender Standard-JSON-Adapter ergänzt. Damit können unter anderem Home-Assistant-, Ecowitt-, WeatherLink- oder vergleichbare Bridges über einen HTTPS-Endpunkt Stationswerte an MID bereitstellen.
+- Übernommene Eigenmessungen durchlaufen eine feldweise Plausibilitätsprüfung auf Alter, Standortdistanz, meteorologische Wertebereiche, Abweichung zur Referenzanalyse sowie Wind-/Böenkonsistenz. Unplausible Einzelfelder werden verworfen; plausible Werte bleiben nutzbar.
+- Plausible Stationswerte ergänzen „Aktuelles Wetter“ und werden mit eigener Quellenkennzeichnung in das Lernarchiv des lokalen Wetterzwillings aufgenommen. Amtliche, analysierte und modellbasierte Referenzen bleiben getrennt nachvollziehbar.
+- Netatmo-Zugriffstoken werden im Worker AES-GCM-verschlüsselt gespeichert; lokale Stationszugänge und Bearer-Token sind von der geräteübergreifenden Synchronisation ausgeschlossen.
+- Neue Worker-Routen für OAuth-Start, Callback, Status, Beobachtungsabruf und Trennung sowie neuer funktionaler Regressionstest für Netatmo und Standard-JSON.
+
 # MID v0.8.2.2
 
 - Ensemble-Szenariocluster sprachlich korrigiert: Bei genau einer beteiligten Modellfamilie steht nun „1 Modellfamilie“, bei mehreren weiterhin „Modellfamilien“. Die gleiche Singular-/Plural-Logik gilt für die Zusammenfassung der aktiven Modellfamilien.

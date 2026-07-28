@@ -10,7 +10,7 @@ let internalWrite=false;
 let syncTimer:number|undefined;
 let periodicTimer:number|undefined;
 const encoder=new TextEncoder(),decoder=new TextDecoder();
-const EXCLUDED_PREFIXES=['mid:analysis-cache:','mid:ensemble:','mid:worker:lastGood','mid:device-sync:','mid:update','mid:runtime','mid:state-restored'];
+const EXCLUDED_PREFIXES=['mid:analysis-cache:','mid:ensemble:','mid:worker:lastGood','mid:device-sync:','mid:connected-station:','mid:twin-background-','mid:update','mid:runtime','mid:state-restored'];
 const EXCLUDED_KEYS=new Set(['mid:lastLocation','mid:lastTrackedLocation']);
 
 function b64url(bytes:Uint8Array){let raw='';for(const byte of bytes)raw+=String.fromCharCode(byte);return btoa(raw).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
