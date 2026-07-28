@@ -1,3 +1,12 @@
+# MID v0.8.5.0
+
+- Geräteübergreifende Synchronisation erweitert: Neben dem kompakten `localStorage`-Stand wird nun das vollständige Wetterzwilling-Langzeitarchiv aus IndexedDB mit sämtlichen Prognosesnapshots, Beobachtungen und Rückblicken exportiert, im Browser per AES-GCM verschlüsselt, in begrenzte Archivteile zerlegt und über den bestehenden Cloudflare-KV-Geräteverbund gesichert.
+- Beim Abruf auf einem weiteren Gerät wird das vollständige Langzeitarchiv entschlüsselt und verlustfrei mit dem dortigen lokalen Archiv zusammengeführt. Kein Gerät überschreibt dabei ältere oder zusätzliche Lernfälle eines anderen Geräts; der zusammengeführte Stand wird anschließend wieder verschlüsselt gesichert.
+- Der Synchronisationsstatus zeigt nun gesondert Zeitpunkt, Standortzahl und Datensatzumfang des vollständigen Wetterzwilling-Archivs. Manuelle Synchronisation umfasst Einstellungen und Langzeitarchiv; automatische Abgleiche übertragen das Archiv nur bei einem neueren Datenstand.
+- Worker um atomare, segmentierte Archivablage mit Manifest, 180-Tage-Aufbewahrung und Bereinigung der vorherigen Archivgeneration erweitert. Es ist weiterhin kein zusätzliches Cloudflare-Binding erforderlich; das vorhandene `MID_PUSH_SUBSCRIPTIONS`-KV wird genutzt.
+- Netatmo-Einrichtungsdiagnose verbessert: MID zeigt nun konkret an, welche Worker-Bindings oder Secrets fehlen, deaktiviert den OAuth-Start bis zur vollständigen Konfiguration und erläutert die notwendigen Schritte direkt im Einstellungsbereich.
+- Neuer funktionaler Regressionstest schützt Vollarchiv-Export/-Import, verschlüsselte Segmentübertragung, Worker-Manifest, Abruf einzelner Archivteile und die Netatmo-Konfigurationsdiagnose.
+
 # MID v0.8.4.0
 
 - Lokaler Wetterzwilling lernt beim Öffnen beziehungsweise Wieder-Sichtbarwerden der App nun standardmäßig für sämtliche gespeicherten Favoriten und nicht mehr nur für den gerade angezeigten Standort. Die Favoriten werden ressourcenschonend nacheinander verarbeitet; identische Standorte werden entdoppelt, der aktive Ort wird nicht doppelt geladen und jeder Favorit wird höchstens einmal innerhalb von sechs Stunden erneut abgerufen.

@@ -16,7 +16,7 @@ export type ConnectedStationConfig={
  maxDistanceKm:number;
 };
 export type ConnectedStationDevice={id:string;name:string;latitude?:number;longitude?:number;elevation?:number;modules:{id:string;name:string;type:string}[]};
-export type ConnectedStationStatus={configured:boolean;connected:boolean;provider?:string;devices?:ConnectedStationDevice[];message?:string;redirectUri?:string;error?:string};
+export type ConnectedStationStatus={configured:boolean;connected:boolean;provider?:string;devices?:ConnectedStationDevice[];message?:string;redirectUri?:string;requires?:string[];missing?:string[];error?:string};
 export type ConnectedStationObservation={station:Station;quality:number;issues:string[];accepted:string[];rejected:string[]};
 
 type NetatmoObservationReply={ok?:boolean;error?:string;observation?:any;device?:ConnectedStationDevice;quality?:number;issues?:string[]};

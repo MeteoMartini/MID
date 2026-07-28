@@ -2468,3 +2468,6 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .weather-twin-background-status>b{color:var(--text);font-size:9px}.weather-twin-background-status>span{font-size:8px;line-height:1.35}.weather-twin-background-status>small{font-size:7.5px}
 .weather-twin-background-status.running{border-color:color-mix(in srgb,var(--primary) 42%,var(--border));background:color-mix(in srgb,var(--primary) 7%,var(--surface))}
 @media(max-width:700px){.settings-section-stack{gap:14px}.settings-section-stack>.settings-section{padding-bottom:14px}}
+
+/* v0.8.5.0 – vollständige Wetterzwilling-Sicherung und Netatmo-Einrichtungsdiagnose */
+.connected-station-setup{display:grid;gap:5px;margin-top:10px;padding:10px 12px;border:1px solid color-mix(in srgb,var(--accent) 28%,var(--border));border-radius:12px;background:color-mix(in srgb,var(--accent) 7%,var(--surface))}.connected-station-setup strong{font-size:11px}.connected-station-setup small,.connected-station-setup span{color:var(--muted);font-size:9px;line-height:1.4}.device-sync-actions{display:grid;gap:4px}.device-sync-actions small+small{margin-top:1px}
