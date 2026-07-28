@@ -13,7 +13,7 @@ need('Wetterzwilling-Einstellung',verification,['learnAllFavorites:boolean','lea
 need('Favoritenlernen in App',app,['learnWeatherTwinsForFavorites','weatherTwinSettings.learnAllFavorites','favorites.map(item=>item.location)','loc?favoriteKey(loc):undefined','visibilitychange','window.addEventListener(\'online\',schedule)']);
 need('Hintergrundsammler',background,['SUCCESS_COOLDOWN_MS=6*3600000','FAILURE_COOLDOWN_MS=45*60000','for(const location of queue)','await forecast(','await ensembles(','recordForecastCapture(','refreshForecastReferences(','key===activeLocationKey']);
 need('Transparente Einstellung',settings,['Alle Favoriten beim Öffnen nachführen','höchstens einmal je sechs Stunden','weather-twin-background-status','mid:twin-background-learning']);
-need('Aufgeräumte Navigation',app,["['view','Ansicht & Einheiten'","['twin','Lokaler Wetterzwilling'","['sync','Daten & Synchronisation'","['system','System & Updates'","section==='twin'&&<WeatherTwinSettingsPanel/>","section==='sync'&&<DeviceSyncSettings/>"]);
+need('Aufgeräumte Navigation',app,["['view','Ansicht & Einheiten'","['twin','Lokaler Wetterzwilling'","['sync','Daten & Synchronisation'","['system','System & Updates'","section==='twin'&&<WeatherTwinSettingsPanel/>","section==='sync'&&<div className=\"settings-section-stack\"><DeviceSyncSettings/>"]);
 need('Layout',styles,['.settings-section-stack{','.weather-twin-background-status{']);
 need('Gerätespezifischer Laufstatus',sync,["'mid:twin-background-'"]);
 if(app.includes("section==='system'&&<><DeviceSyncSettings/><SystemUpdateManager"))failures.push('Wetterzwilling und Synchronisation hängen noch unsortiert im Systemstatus.');

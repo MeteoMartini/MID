@@ -2536,3 +2536,47 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .connected-station-settings.is-disabled{opacity:.92}
 .connected-station-disabled-note{display:grid;gap:4px;padding:11px 12px;border:1px solid color-mix(in srgb,var(--muted) 24%,var(--border));border-radius:12px;background:color-mix(in srgb,var(--muted) 6%,var(--surface))}
 .connected-station-disabled-note strong{font-size:10px}.connected-station-disabled-note small{font-size:8.5px}
+
+/* v0.8.7.0 – eingeklapptes lokales Standortprofil und Apple-Widget-Vorbereitung */
+.weather-twin-site{display:block;padding:0;overflow:hidden}
+.weather-twin-site>summary{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:flex-start;gap:10px;padding:12px;cursor:pointer;list-style:none}
+.weather-twin-site>summary::-webkit-details-marker{display:none}
+.weather-twin-site>summary>svg{margin-top:2px;color:var(--primary)}
+.weather-twin-site-title{display:grid;gap:3px;min-width:0}
+.weather-twin-site-title>strong{font-size:12px}
+.weather-twin-site-title>small{color:var(--muted);font-size:8px;line-height:1.35}
+.weather-twin-site-summary-values{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.weather-twin-site-summary-values>b{display:inline-flex;align-items:center;min-height:24px;padding:4px 7px;border:1px solid color-mix(in srgb,var(--border) 88%,transparent);border-radius:999px;background:var(--s2);color:var(--text);font-size:7.5px;font-weight:750;line-height:1.1}
+.weather-twin-site-summary-status{display:flex;align-items:center;gap:7px;justify-self:end;color:var(--muted)}
+.weather-twin-site-summary-status>em{color:var(--primary);font-size:8px;font-style:normal;font-weight:800;white-space:nowrap}
+.weather-twin-site-summary-status>svg{transition:transform .18s ease}
+.weather-twin-site[open] .weather-twin-site-summary-status>svg{transform:rotate(180deg)}
+.weather-twin-site-editor{display:grid!important;grid-template-columns:1fr!important;gap:10px;padding:0 12px 12px;border-top:1px solid color-mix(in srgb,var(--border) 84%,transparent)}
+.weather-twin-site-status{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:10px;margin-left:0}
+.weather-twin-site-fields{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}
+.weather-twin-site-fields label{display:grid;gap:4px;color:var(--muted);font-size:8px}
+.weather-twin-site-fields label.inline{grid-template-columns:auto 1fr;align-items:center;align-content:center}
+.weather-twin-site-fields select{min-width:0;width:100%;height:34px;padding:0 7px;border:1px solid var(--border);border-radius:9px;background:var(--s2);color:var(--text);font:inherit;font-size:8px}
+
+.apple-widget-settings{display:grid;gap:14px}
+.apple-widget-readiness-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.apple-widget-readiness-grid article{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:9px;padding:12px;border:1px solid var(--border);border-radius:14px;background:var(--surface)}
+.apple-widget-readiness-grid article>svg{color:var(--primary)}
+.apple-widget-readiness-grid article>span{display:grid;gap:3px;min-width:0}
+.apple-widget-readiness-grid article strong{font-size:11px}
+.apple-widget-readiness-grid article small{color:var(--muted);font-size:8px;line-height:1.35}
+.apple-widget-readiness-grid article>b{padding:4px 7px;border-radius:999px;background:color-mix(in srgb,var(--primary) 12%,var(--surface));color:var(--primary);font-size:8px}
+.apple-widget-feed-card{display:grid;gap:9px;padding:12px;border:1px solid var(--border);border-radius:14px;background:var(--surface)}
+.apple-widget-feed-card>header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.apple-widget-feed-card>header>span{display:grid;gap:3px}
+.apple-widget-feed-card>header strong{font-size:11px}
+.apple-widget-feed-card>header small,.apple-widget-feed-card>small{color:var(--muted);font-size:8px;line-height:1.35}
+.apple-widget-feed-card>header>div{display:flex;gap:6px}
+.apple-widget-feed-card button{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:32px;padding:6px 9px;border:1px solid color-mix(in srgb,var(--primary) 35%,var(--border));border-radius:9px;background:color-mix(in srgb,var(--primary) 7%,var(--surface));color:var(--text);font:inherit;font-size:8px;font-weight:800}
+.apple-widget-feed-card button:disabled{opacity:.48;cursor:not-allowed}
+.apple-widget-feed-card code{display:block;max-width:100%;padding:9px;border:1px solid color-mix(in srgb,var(--border) 84%,transparent);border-radius:10px;background:var(--s2);color:var(--text);font-size:8px;line-height:1.45;overflow-wrap:anywhere;white-space:pre-wrap}
+.apple-widget-note{margin:0;padding:10px 12px;border-left:3px solid var(--primary);border-radius:0 10px 10px 0;background:color-mix(in srgb,var(--primary) 6%,var(--surface));color:var(--muted);font-size:9px;line-height:1.45}
+.apple-widget-note strong{color:var(--text)}
+
+@media(max-width:1000px){.weather-twin-site-fields{grid-template-columns:repeat(3,minmax(0,1fr))}.apple-widget-readiness-grid{grid-template-columns:1fr}}
+@media(max-width:700px){.weather-twin-site>summary{grid-template-columns:auto minmax(0,1fr)}.weather-twin-site-summary-status{grid-column:2;justify-self:start;flex-wrap:wrap}.weather-twin-site-fields{grid-template-columns:1fr}.apple-widget-feed-card>header{display:grid}.apple-widget-feed-card>header>div{justify-self:start;flex-wrap:wrap}}

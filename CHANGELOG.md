@@ -1,3 +1,10 @@
+# MID v0.8.7.0
+
+- „Lokaler Standortfingerabdruck“ in „Lokales Standortprofil“ umbenannt und als standardmäßig eingeklappte, persistente Detailsektion neu gestaltet. Im geschlossenen Zustand bleiben Geländeform, Exposition, Kaltluft-, Nebel- und Gewässereinfluss direkt ablesbar; zum Bearbeiten wird die Sektion wie bisher aufgeklappt.
+- Vorbereitung für native Apple-Widgets und watchOS-Komplikationen ergänzt: stabiler Worker-Datenfeed `mid.native.widget.v1`, prüf- und kopierbare Feed-Adresse unter „Daten & Synchronisation“, kompakter 12-Stunden-/5-Tage-Datenvertrag sowie SF-Symbol-Zuordnung.
+- Native WidgetKit-Grundstruktur für iOS, iPadOS und watchOS hinzugefügt, einschließlich Swift-`Codable`-Modell, `AppIntentTimelineProvider` und Vorlagen für Home-Screen-, Lock-Screen-, Smart-Stack- und Komplikationsfamilien.
+- Neuer Regressionstest schützt Standortprofil-Zusammenfassung, Worker-Feed, Apple-Widgetfamilien und das native Startgerüst.
+
 # MID v0.8.6.2
 
 - Ensemble-Szenariocluster: Die sichtbaren Szenarioanteile werden nun gemeinsam nach dem größten-Rest-Verfahren gerundet und ergeben deshalb immer exakt 100 %. Einzelnes kaufmännisches Runden konnte zuvor wie im Screenshot 42 % + 39 % + 20 % = 101 % erzeugen.

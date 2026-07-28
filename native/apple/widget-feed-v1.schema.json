@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mid.example/schema/native-widget-feed-v1.json",
+  "title": "MID Native Widget Feed v1",
+  "type": "object",
+  "required": ["schema", "version", "generatedAt", "expiresAt", "location", "units", "current", "hourly", "daily", "source"],
+  "properties": {
+    "schema": {"const": "mid.native.widget.v1"},
+    "version": {"type": "string"},
+    "generatedAt": {"type": "string", "format": "date-time"},
+    "expiresAt": {"type": "string", "format": "date-time"},
+    "location": {"type": "object"},
+    "units": {"type": "object"},
+    "current": {"type": "object"},
+    "hourly": {"type": "array", "maxItems": 12},
+    "daily": {"type": "array", "maxItems": 5},
+    "source": {"type": "object"}
+  }
+}

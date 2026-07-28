@@ -984,3 +984,13 @@ Die DWD-Zeitachse wird am allgemeinen WMS-Endpunkt aus dem Layerblock von `dwd:N
 ### Push-Häufigkeit
 
 Unter **Einstellungen → Benachrichtigungen → Häufigkeit** lässt sich ein geräteweiter Mindestabstand von 15, 30, 60, 120 oder 180 Minuten festlegen. Der Worker prüft weiterhin im Fünf-Minuten-Takt, sendet aber innerhalb des gewählten Intervalls keine weitere Mitteilung an dasselbe Gerät.
+
+## Native Apple-Widgets und watchOS-Komplikationen
+
+MID stellt ab v0.8.7.0 einen kompakten, versionierten Datenfeed bereit:
+
+```text
+?mode=native-widget-feed&lat=…&lon=…&name=…&unit=kn
+```
+
+Der Feed liefert aktuelle Werte, 12 Stunden und fünf Tage im Vertrag `mid.native.widget.v1`. Unter `native/apple/` liegt ein WidgetKit-Startgerüst mit Swift-Datenmodell, App-Intent-Timeline-Provider und Vorlagen für iOS-/iPadOS-Widgets sowie watchOS-Komplikationen. Die PWA selbst installiert keine nativen WidgetKit-Erweiterungen; dazu ist weiterhin ein signiertes natives Xcode-App- und Widget-Extension-Target erforderlich.

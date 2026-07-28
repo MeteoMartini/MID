@@ -22,7 +22,7 @@ requireTokens('Stufe 4 · Entscheidungszwilling',engine,[
  'buildTwinRecommendations(','recordTwinRecommendationFeedback(','TwinActivity','bestActivityWindow(','Arbeitsweg','Berg-/Wintersport'
 ]);
 requireTokens('Wetterzwilling-Oberfläche',panel,[
- 'Unabhängige Wetterwahrheit','Räumliche Umfeldanalyse','Lokaler Standortfingerabdruck','Parametergetrennte Modellgüte','Kalibrierung der Regenwahrscheinlichkeit','Persönlicher Entscheidungszwilling','MID-Gewichtung gegen Best Match'
+ 'Unabhängige Wetterwahrheit','Räumliche Umfeldanalyse','Lokales Standortprofil','Parametergetrennte Modellgüte','Kalibrierung der Regenwahrscheinlichkeit','Persönlicher Entscheidungszwilling','MID-Gewichtung gegen Best Match'
 ]);
 
 if(panel.includes('Eigene Sensoren')||panel.includes('weather-twin-sensors'))failures.push('Eigene Sensoren sind entgegen der vorläufigen Deaktivierung noch in der Oberfläche aktiv.');

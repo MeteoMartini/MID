@@ -10,7 +10,7 @@ for(const token of ["type SettingsSection='view'|'appearance'|'units'|'notificat
 if(!app.includes("onOpenSettings('favorites')"))failures.push('Favoritenverwaltung ist nicht aus der Suche als Einstellungs-Untermenü erreichbar.');
 if(!app.includes("section==='favorites'&&<FavoritesManager"))failures.push('Favoritenmanager ist nicht in das Einstellungsmenü eingebettet.');
 if(!app.includes("section==='twin'&&<WeatherTwinSettingsPanel/>"))failures.push('Lokaler Wetterzwilling besitzt keinen eigenen intuitiven Einstellungsbereich.');
-if(!app.includes("section==='sync'&&<DeviceSyncSettings/>"))failures.push('Gerätesynchronisation besitzt keinen eigenen Einstellungsbereich.');
+if(!app.includes("section==='sync'&&<div className=\"settings-section-stack\"><DeviceSyncSettings/>"))failures.push('Gerätesynchronisation besitzt keinen eigenen Einstellungsbereich.');
 if(!app.includes("section==='system'&&<SystemUpdateManager open onClose={onClose} embedded/>"))failures.push('System- und Updatebereich ist nicht separat eingebettet.');
 const header=app.slice(app.indexOf('function Header('),app.indexOf('function sunshineDurationLabel'));
 for(const oldToken of ['desktop-view-control','mobile-view-switch','theme-mode-control','system-update-button'])if(header.includes(oldToken))failures.push(`Alter Kopfbereich-Regler noch vorhanden: ${oldToken}`);

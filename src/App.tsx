@@ -21,6 +21,7 @@ import {PushSettingsPanel} from './PushSettingsPanel';
 import {getWebAnalyticsStatus,type WebAnalyticsStatus} from './webAnalytics';
 import {DeviceSyncSettings} from './DeviceSyncSettings';
 import {WeatherTwinSettings as WeatherTwinSettingsPanel} from './WeatherTwinSettings';
+import {AppleWidgetSettings} from './AppleWidgetSettings';
 import {applyLocalTwinForecastFromReport,applyLocalTwinHours,buildForecastVerificationReport,readWeatherTwinSettings,recordForecastCapture,recordLiveTwinObservation,refreshForecastReferences,restoreForecastVerificationArchive,writeWeatherTwinSettings,type TwinMainForecastStatus,type WeatherTwinSettings} from './forecastVerification';
 import {classifyEuropeanAirQuality,EUROPEAN_AQI_BANDS,stationClassLabel,type AirQualityStationMeta,type EuropeanAirQualityResult} from './airQuality';
 import {CONNECTED_STATION_INTEGRATION_ENABLED,fetchConnectedStation,mergeConnectedStation,readConnectedStationConfig} from './connectedStation';
@@ -390,7 +391,7 @@ function SettingsManager({open,section,setSection,onClose,favorites,setFavorites
   {section==='notifications'&&<PushSettingsPanel favorites={favorites} onRuleChange={patchPushRule} locationTracking={locationTracking} trackedLocation={trackedLocation} trackedRules={trackedPushRules} onTrackedRuleChange={patchTrackedPushRule} modelChangeLocation={currentLocation} modelChangeNotificationEnabled={layoutMode==='advanced'&&modelChangeSettings.enabled&&modelChangeSettings.notifyMaterial} notificationIntervalMinutes={pushNotificationInterval} onNotificationIntervalChange={setPushNotificationInterval}/>} 
   {section==='favorites'&&<FavoritesManager open favorites={favorites} setFavorites={setFavorites} locationTracking={locationTracking} setLocationTracking={setLocationTracking} onClose={onClose} onSelect={onSelectFavorite} embedded/>}
   {section==='twin'&&<WeatherTwinSettingsPanel/>}
-  {section==='sync'&&<DeviceSyncSettings/>}
+  {section==='sync'&&<div className="settings-section-stack"><DeviceSyncSettings/><AppleWidgetSettings location={currentLocation} unit={unit}/></div>}
   {section==='system'&&<SystemUpdateManager open onClose={onClose} embedded/>}
  </div></div></section></div>
 }
