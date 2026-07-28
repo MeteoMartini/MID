@@ -1,3 +1,17 @@
+# MID v0.8.2.1
+
+- Release-Paketierung korrigiert: Das vorherige ZIP war inkrementell aktualisiert worden und enthielt dadurch neben dem aktuellen Regressionstest noch die veraltete Datei `test-scenario-settings-regime-0820.mjs` sowie ältere Quellstände. GitHub führte deshalb 108 statt 107 Tests aus; der obsolete Test schlug erwartungsgemäß fehl.
+- Das Professional-Replacement wird nun als vollständig neu erzeugtes Archiv ausgegeben. Gelöschte oder umbenannte Dateien können damit nicht mehr aus einer Vorgängerversion im ZIP verbleiben.
+- Neuer Regressionstest schützt die Release-Sauberkeit und erkennt den veralteten Szenario-/Regime-Test ausdrücklich. Die funktionalen Korrekturen aus v0.8.2.0 zu Szenarioclustern, Dauerregenklassifikation und zentralen Wetterzwilling-Einstellungen bleiben vollständig erhalten.
+
+# MID v0.8.2.0
+
+- Ensemble-Szenariocluster fachlich und visuell überarbeitet: Die führende Karte verwendet keine globale Primärbutton-Klasse mehr, wodurch alle Texte auch im hellen Design lesbar bleiben. Temperaturspanne, Fünf-Tage-Niederschlag und Böenspitze werden nun getrennt ausgewiesen; die Balken sind ausdrücklich als Tagesniederschlag beschriftet.
+- Isolierte, statistisch unplausible Niederschlagsausreißer einzelner Ensemblefamilien werden mit einer robusten Median-/MAD-Prüfung vor der Szenarioclusterung entfernt. Der Ensemblecache wurde deshalb auf Generation v6 angehoben.
+- Wetterlagenklassifikation korrigiert: Eine Tagesmenge von 5 mm führt nicht mehr pauschal zur „Dauerregenlage“. Dauerregen erfordert nun eine mindestens sechsstündige zusammenhängende Regenphase mit relevanter Menge oder eine DWD-nahe hohe Tagesmenge; Stundenverläufe werden beim Prognosearchiv und aktuellen Rückblick berücksichtigt. Alte gespeicherte Referenzklassifikationen werden neu bewertet.
+- Globale Wetterzwilling-Schalter für Hauptprognose, Nowcast-Assimilation, Bias-Korrektur, Wahrscheinlichkeitskalibrierung und persönliche Empfehlungen wurden zentral unter Einstellungen → MID-System zusammengeführt. Das Rückblicksmodul zeigt nur noch den Betriebsstatus; standortbezogene Profile, Sensoren und Aktivitätsprofile bleiben dort editierbar.
+- Neuer Regressionstest schützt Szenarioplausibilität, Kennwertdarstellung, Dauerregenklassifikation und die zentrale Einstellungsstruktur.
+
 # MID v0.8.1.0
 
 - Starre 58-%-Grenze der lokalen Modellgewichtung durch eine adaptive, vertrauensabhängige Obergrenze ersetzt. Die zulässige Dominanz eines Modells richtet sich nun nach globaler und wetterlagen-/horizontspezifischer Stichprobe sowie dem echten Kontrollvergleich von „MID lokal gewichtet“ gegen Best Match.
