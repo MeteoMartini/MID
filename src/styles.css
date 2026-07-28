@@ -2531,3 +2531,8 @@ button,input,select,[role="button"]{touch-action:manipulation}
   .weather-twin-model-badge{font-size:0}
   .weather-twin-model-badge:after{content:"Lokaler Modellmix";font-size:7px}
 }
+
+/* v0.8.6.1 – private Stationsübernahme vorläufig vollständig deaktiviert */
+.connected-station-settings.is-disabled{opacity:.92}
+.connected-station-disabled-note{display:grid;gap:4px;padding:11px 12px;border:1px solid color-mix(in srgb,var(--muted) 24%,var(--border));border-radius:12px;background:color-mix(in srgb,var(--muted) 6%,var(--surface))}
+.connected-station-disabled-note strong{font-size:10px}.connected-station-disabled-note small{font-size:8.5px}

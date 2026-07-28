@@ -1,3 +1,11 @@
+# MID v0.8.6.1
+
+- Open-Meteo-Upstream-Prüfung erweitert: Relevante, verifizierte Änderungen sollen künftig automatisch in den nächsten MID-Entwicklungsstand übernommen werden; unsichere oder inkompatible Änderungen bleiben bis zur fachlichen Verifikation unangetastet.
+- Persönlicher Entscheidungszwilling wird im Rückblickmodul vollständig ausgeblendet, solange „Persönliche Empfehlungen“ in den Einstellungen deaktiviert ist. Die Aktivitätsbezeichnung „Draußenaktivität“ wurde appweit durch „Outdoor“ ersetzt.
+- Direkte Datenübernahme von Netatmo, Standard-JSON und anderen privaten Wetterstationen bis auf Weiteres vollständig deaktiviert. Bestehende Konfigurationen bleiben für eine spätere Reaktivierung erhalten, werden aber weder abgefragt noch in „Aktuelles Wetter“ oder das Lernarchiv übernommen.
+- Harte technische Sperren verhindern Stationsabrufe, OAuth-Starts und private Sensorarchivierung; bei deaktivierter Funktion wird auch kein periodischer Stations-Timer mehr gestartet.
+- Neuer Regressionstest schützt bedingte Anzeige des Entscheidungszwillings, Outdoor-Wording und die vollständige Stationssperre.
+
 # MID v0.8.6.0
 
 - Lokale MID-Prognose erhält eine explizite Qualitätsfreigabe: Sie wird erst nach mindestens sechs abgeschlossenen Kontrolltagen, mindestens zwei Modellfamilien, zwei belastbaren aktuellen Prognosetagen und einem mindestens gleichwertigen Vergleich mit Open-Meteo Best Match als Hauptprognose zugelassen.

@@ -9,14 +9,14 @@ const [client,settings,engine,app,workerText,styles,sync]=await Promise.all([
  readFile(new URL('../src/deviceSync.ts',import.meta.url),'utf8')
 ]);
 const failures=[],need=(text,token,message)=>{if(!text.includes(token))failures.push(message)};
-need(settings,'Netatmo Weather API','Netatmo-Auswahl fehlt in den Einstellungen.');
-need(settings,'Standardisiertes Stations-JSON','Generischer automatisierbarer Stationsadapter fehlt.');
+need(settings,'Datenübernahme vorübergehend deaktiviert','Stationsübernahme ist in den Einstellungen nicht sichtbar deaktiviert.');
+need(settings,'Keine Datenübertragung','Hinweis zur ausgesetzten Datenübertragung fehlt.');
 need(client,'validateConnectedStation','Plausibilitätsprüfung der eigenen Station fehlt.');
 need(client,'Stationsmessung ist älter als 45 Minuten.','Messalter wird nicht geprüft.');
 need(client,'Böe punktweise an Windniveau angeglichen','Wind-/Böen-Plausibilisierung fehlt.');
-need(client,'recordCustomSensorObservation','Plausible Messwerte fließen nicht ins Lernarchiv.');
-need(app,'mergeConnectedStation(st,personalSt)','Eigene Stationswerte werden nicht in Aktuelles Wetter übernommen.');
-need(engine,'PRIVATE_SENSOR_INTEGRATION_ENABLED=true','Automatisierte Sensorbeobachtungen sind nicht aktiviert.');
+need(client,'CONNECTED_STATION_INTEGRATION_ENABLED=false','Harte Sperre für vernetzte Stationen fehlt.');
+need(app,'mergeConnectedStation(st,personalSt)','Vorbereitete, derzeit inaktive Stationsintegration ist nicht erhalten.');
+need(engine,'PRIVATE_SENSOR_INTEGRATION_ENABLED=false','Private Sensorbeobachtungen sind nicht deaktiviert.');
 need(workerText,"scope','read_station'",'Netatmo OAuth fordert nicht das Leserecht read_station an.');
 need(workerText,"mode==='netatmo-observation'",'Netatmo-Abrufroute fehlt.');
 need(workerText,'stationEncrypt(env,token)','Netatmo-Tokens werden nicht verschlüsselt gespeichert.');
@@ -35,5 +35,5 @@ try{
  response=await worker.fetch(new Request(`https://worker.test/?mode=netatmo-callback&state=${encodeURIComponent(state)}&code=code-1`),env);if(response.status!==302)throw new Error('OAuth-Callback leitete nicht zurück.');
  const stored=[...kv.map.values()].find(value=>String(value).includes('mid-netatmo-token'));if(!stored||String(stored).includes('secret-access-token'))throw new Error('Token wurde nicht verschlüsselt gespeichert.');
  response=await worker.fetch(new Request('https://worker.test/?mode=netatmo-observation',{method:'POST',headers:{Origin:'https://app.test','Content-Type':'application/json'},body:JSON.stringify({connectionId,deviceId:'device-1',moduleId:'outdoor-1'})}),env);const observation=await response.json();const normalizedWind=Number(observation.observation?.windSpeed);if(!response.ok||observation.observation?.temperature!==23.4||!Number.isFinite(normalizedWind)||Math.abs(normalizedWind-9.719)>.02)throw new Error('Netatmo-Messwertnormalisierung fehlgeschlagen.');
- console.log('Netatmo OAuth, verschlüsselte Tokenablage, Stationsauswahl, Standard-JSON und Plausibilitätsübernahme sind geprüft.');
+ console.log('Netatmo-/JSON-Code bleibt für spätere Reaktivierung erhalten; Frontend- und Lernübernahme sind derzeit hart deaktiviert.');
 }catch(error){console.error('Funktionale Netatmo-Prüfung fehlgeschlagen:',error);process.exit(1)}finally{globalThis.fetch=originalFetch}

@@ -12,7 +12,7 @@ need('Vollarchiv-Export',verification,['exportForecastVerificationArchive','impo
 need('Client-Synchronisation',sync,['pushWeatherTwinArchive','pullWeatherTwinArchive','device-sync-archive-chunk-push','device-sync-archive-commit','device-sync-archive-manifest','device-sync-archive-chunk-pull','vollständigem Wetterzwilling-Langzeitarchiv']);
 need('Worker-Archiv',worker,['DEVICE_SYNC_ARCHIVE_MAX_CHUNKS','deviceSyncArchiveChunkPush','deviceSyncArchiveCommit','deviceSyncArchiveManifest','deviceSyncArchiveChunkPull',"'device-sync-archive'"]);
 need('Netatmo-Diagnose',worker,['function netatmoMissing(','missing:netatmoMissing(env)']);
-need('Netatmo-UI',stationUi,['Worker-Einrichtung erforderlich','Fehlend erkannt:','status?.configured===false']);
+need('Netatmo-UI deaktiviert',stationUi,['Datenübernahme vorübergehend deaktiviert','Keine Datenübertragung','aria-disabled="true"']);
 need('Netatmo-Statusvertrag',station,['missing?:string[]','requires?:string[]']);
 
 class MemoryKv{
