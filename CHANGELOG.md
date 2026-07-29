@@ -1,3 +1,11 @@
+# MID v0.8.18.8
+
+- Eigene Windwarnungen: Die modellierte Windrichtung steht nun direkt im laufenden Warntext – analog zur Formulierung amtlicher DWD-Warnungen – und nicht mehr in einer separaten Kapsel.
+- Bei stabiler Richtung lautet die Warnung beispielsweise „Sturmböen bis 39 kt (71 km/h) aus westlicher Richtung.“
+- Bei markanter Drehung wird der Text unmittelbar erweitert, etwa „…; anfangs aus südwestlicher, später aus nordwestlicher Richtung.“
+- Die separate Windrichtungs-Kapsel einschließlich ihrer CSS-Regeln wurde entfernt; die kompakte Gültigkeitskapsel bleibt unverändert bestehen.
+- Regressionstests schützen die Inline-Formulierung, Richtungswechsel, den 360°-/0°-Übergang und das Fehlen der separaten Richtungsanzeige.
+
 # MID v0.8.18.7
 
 - Eigene Windwarnungen zeigen jetzt zusätzlich die modellierte Windrichtung im jeweiligen Warnzeitraum.

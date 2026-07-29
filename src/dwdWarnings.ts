@@ -46,6 +46,12 @@ function warningWindDirectionText(occurrences:WarningOccurrence[]){
  return Number.isFinite(overall)?`Aus ${windDirectionAdjective(overall)} Richtung`:'';
 }
 export function formatDwdWarningDirection(signal:DwdWarningSignal){if(signal.kind!=='wind'&&signal.kind!=='snowdrift')return'';if(signal.windDirectionText)return signal.windDirectionText;return Number.isFinite(signal.windDirection)?`Aus ${windDirectionAdjective(Number(signal.windDirection))} Richtung`:''}
+export function formatDwdWarningDetailWithDirection(signal:DwdWarningSignal,unit:DwdDisplayWindUnit='kt'){
+ const detail=formatDwdWarningDetail(signal,unit).trim().replace(/[.!?]+$/,'');
+ const direction=formatDwdWarningDirection(signal).trim();if(!direction)return`${detail}.`;
+ const inlineDirection=`${direction.charAt(0).toLocaleLowerCase('de-DE')}${direction.slice(1)}`;
+ return direction.startsWith('Anfangs')?`${detail}; ${inlineDirection}.`:`${detail} ${inlineDirection}.`;
+}
 
 function rounded(value:number){return Math.round(value)}
 export function beaufortFromKmh(kmh:number){const value=Math.max(0,finite(kmh));const limits=[1,6,12,20,29,39,50,62,75,89,103,118];const index=limits.findIndex(limit=>value<limit);return index<0?12:index}
