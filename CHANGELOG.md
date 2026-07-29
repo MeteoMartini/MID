@@ -1,3 +1,9 @@
+# MID v0.8.18.12
+
+- 7-Tage-Vorhersage: Die kompakten Warnsymbole zeigen pro Warntyp nur noch die höchste erreichte Warnstufe. Mehrere Wind-, Schnee-, Regen- oder andere Intensitätsstufen werden in dieser engen Übersicht nicht mehr gestapelt.
+- Die vollständige Mehrstufenanzeige mit niedrigeren Intensitäten, Gültigkeitszeiträumen und Windrichtung bleibt in den ausführlichen eigenen Warnkarten unverändert erhalten.
+- Neuer Regressionstest schützt die Trennung zwischen kompakter Tagesübersicht und vollständiger Warnkartendarstellung.
+
 # MID v0.8.18.11
 
 - GitHub-/TypeScript-Buildfix für die Mehrstufen-Warnlogik: Die nach der Umstellung nicht mehr verwendeten Hilfsfunktionen `levelFromThresholds` und `windClassification` wurden entfernt.

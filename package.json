@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.8.18.11",
+  "version": "0.8.18.12",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -81,7 +81,8 @@
     "test:hazard-wind-direction-inline": "node scripts/test-hazard-wind-direction-inline-08188.mjs",
     "test:hazard-hour-direction": "node scripts/test-hazard-hour-direction-08189.mjs",
     "test:hazard-lower-intensity": "node scripts/test-hazard-lower-intensity-081810.mjs",
-    "test:warning-buildfix": "node scripts/test-warning-buildfix-081811.mjs"
+    "test:warning-buildfix": "node scripts/test-warning-buildfix-081811.mjs",
+    "test:forecast-highest-hazard-per-kind": "node scripts/test-forecast-highest-hazard-per-kind-081812.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",
