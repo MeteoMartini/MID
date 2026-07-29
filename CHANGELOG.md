@@ -1,3 +1,9 @@
+# MID v0.8.18.13
+
+- Ensemble-Temperaturdiagramm: Warnmarker werden nun vor der Darstellung nach Warntyp zusammengefasst. Je Warntyp erscheint ausschließlich die höchste erreichte Warnstufe; unterschiedliche Warntypen bleiben parallel sichtbar.
+- Ensemble-Tooltip: Auch die Hazard-Liste enthält je Warntyp nur noch die höchste Warnung. Niedrigere Schwellen desselben Typs werden dort nicht mehr doppelt aufgeführt.
+- Neuer Regressionstest schützt die gemeinsame Filterung von Diagrammmarkern und Tooltip sowie den Erhalt verschiedener Warntypen.
+
 # MID v0.8.18.12
 
 - 7-Tage-Vorhersage: Die kompakten Warnsymbole zeigen pro Warntyp nur noch die höchste erreichte Warnstufe. Mehrere Wind-, Schnee-, Regen- oder andere Intensitätsstufen werden in dieser engen Übersicht nicht mehr gestapelt.
