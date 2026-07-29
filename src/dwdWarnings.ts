@@ -16,7 +16,7 @@ export type DwdWarningSample={
  isDay?:boolean;
 };
 export type DwdDisplayWindUnit='kn'|'kt'|'kmh'|'ms'|'mph';
-export type DwdWarningSignal={kind:DwdWarningKind;level:DwdWarningLevel;title:string;symbol:string;detail:string;value:number;unit:string;windowHours?:number;secondaryValue?:number;secondaryUnit?:string};
+export type DwdWarningSignal={kind:DwdWarningKind;level:DwdWarningLevel;title:string;symbol:string;detail:string;value:number;unit:string;windowHours?:number;secondaryValue?:number;secondaryUnit?:string;validFrom?:string;validTo?:string};
 
 export const DWD_WARNING_COLORS:Record<DwdWarningLevel,string>={1:'#e6c229',2:'#ef8d32',3:'#e74a4a',4:'#9b59c6'};
 export const DWD_WIND_THRESHOLDS_KMH=[
@@ -119,7 +119,19 @@ export function dwdWarningSignalsAt(samples:DwdWarningSample[],index:number,elev
  return signals.sort((a,b)=>b.level-a.level||a.kind.localeCompare(b.kind));
 }
 
-export function summarizeDwdWarnings(samples:DwdWarningSample[],elevation=0,startLimit=samples.length){const byKind=new Map<DwdWarningKind,DwdWarningSignal>();for(let index=0;index<Math.min(samples.length,Math.max(0,startLimit));index++){for(const signal of dwdWarningSignalsAt(samples,index,elevation)){const previous=byKind.get(signal.kind);if(!previous||signal.level>previous.level||signal.level===previous.level&&signal.value>previous.value)byKind.set(signal.kind,signal)}}return[...byKind.values()].sort((a,b)=>b.level-a.level||a.kind.localeCompare(b.kind))}
+type WarningOccurrence={signal:DwdWarningSignal;index:number;start:number;end:number};
+function warningSampleEpoch(sample:DwdWarningSample){const raw=Number(sample.epoch);if(Number.isFinite(raw))return raw<1e12?raw*1000:raw;const parsed=Date.parse(String(sample.time??''));return Number.isFinite(parsed)?parsed:Number.NaN}
+function warningOccurrence(signal:DwdWarningSignal,index:number,sample:DwdWarningSample):WarningOccurrence{const start=warningSampleEpoch(sample),durationHours=Math.max(1,Math.round(Number(signal.windowHours)||1));return{signal,index,start,end:Number.isFinite(start)?start+durationHours*3600000:Number.NaN}}
+function warningValidity(occurrences:WarningOccurrence[],selected:WarningOccurrence){
+ const timed=occurrences.filter(item=>Number.isFinite(item.start)&&Number.isFinite(item.end)).sort((a,b)=>a.start-b.start);if(!timed.length||!Number.isFinite(selected.start))return{};
+ const merged:{start:number;end:number;members:WarningOccurrence[]}[]=[];for(const item of timed){const current=merged.at(-1);if(current&&item.start<=current.end+5*60000){current.end=Math.max(current.end,item.end);current.members.push(item)}else merged.push({start:item.start,end:item.end,members:[item]})}
+ const interval=merged.find(item=>item.members.includes(selected))??merged.find(item=>selected.start>=item.start&&selected.start<=item.end);return interval?{validFrom:new Date(interval.start).toISOString(),validTo:new Date(interval.end).toISOString()}:{};
+}
+export function summarizeDwdWarnings(samples:DwdWarningSample[],elevation=0,startLimit=samples.length){
+ const byKind=new Map<DwdWarningKind,WarningOccurrence>(),occurrences=new Map<DwdWarningKind,WarningOccurrence[]>(),limit=Math.min(samples.length,Math.max(0,startLimit));
+ for(let index=0;index<limit;index++)for(const signal of dwdWarningSignalsAt(samples,index,elevation)){const occurrence=warningOccurrence(signal,index,samples[index]),rows=occurrences.get(signal.kind)??[];rows.push(occurrence);occurrences.set(signal.kind,rows);const previous=byKind.get(signal.kind);if(!previous||signal.level>previous.signal.level||signal.level===previous.signal.level&&signal.value>previous.signal.value)byKind.set(signal.kind,occurrence)}
+ return[...byKind.values()].map(selected=>({...selected.signal,...warningValidity(occurrences.get(selected.signal.kind)??[],selected)})).sort((a,b)=>b.level-a.level||a.kind.localeCompare(b.kind));
+}
 
 /**
  * Tagesbezogene Zusammenfassung mit vollständigem Vorwärtsfenster.

@@ -961,12 +961,12 @@ export function icon(c:number,day=true){if(c===0)return day?'☀️':'🌙';if(c
 export function wind(v:number,u:WindUnit){if(!Number.isFinite(v))return'–';if(u==='kmh')return`${Math.round(v*1.852)} km/h`;if(u==='ms')return`${formatDecimal(v*.514444,1,1)} m/s`;if(u==='mph')return`${Math.round(v*1.15078)} mph`;return`${Math.round(v)} kt`}
 
 export type HazardLevel='yellow'|'orange'|'red'|'purple';
-export type HazardItem={level:HazardLevel;title:string;text:string;metric?:string};
+export type HazardItem={level:HazardLevel;title:string;text:string;metric?:string;validFrom?:string;validTo?:string};
 
 const levelOrder:{[k in HazardLevel]:number}={purple:4,red:3,orange:2,yellow:1};
 function dwdHazardClass(level:DwdWarningLevel):HazardLevel{return level===4?'purple':level===3?'red':level===2?'orange':'yellow'}
 
 export function hazards(h:Hour[],_currentUv?:number,elevation=0,unit:WindUnit='kn'){
  const start=currentIndex(h),horizon=h.slice(start,start+96);if(!horizon.length)return[] as HazardItem[];
- return summarizeDwdWarnings(horizon,elevation,24).map(signal=>({level:dwdHazardClass(signal.level),title:signal.title,metric:formatDwdWarningValue(signal,unit),text:`${formatDwdWarningDetail(signal,unit)} Automatisch aus dem Open-Meteo-Best-Match abgeleitet; keine amtliche Warnung.`})).sort((a,b)=>levelOrder[b.level]-levelOrder[a.level]);
+ return summarizeDwdWarnings(horizon,elevation,24).map(signal=>({level:dwdHazardClass(signal.level),title:signal.title,metric:formatDwdWarningValue(signal,unit),text:`${formatDwdWarningDetail(signal,unit)} Automatisch aus dem Open-Meteo-Best-Match abgeleitet; keine amtliche Warnung.`,validFrom:signal.validFrom,validTo:signal.validTo})).sort((a,b)=>levelOrder[b.level]-levelOrder[a.level]);
 }

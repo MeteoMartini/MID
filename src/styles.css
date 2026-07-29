@@ -2848,3 +2848,33 @@ button,input,select,[role="button"]{touch-action:manipulation}
 @media(max-width:1180px){.flight-cross-form{grid-template-columns:repeat(3,minmax(0,1fr))}.flight-route-input{grid-column:1/-1}.flight-generate{grid-column:1/-1}}
 @media(max-width:760px){.flight-subsection-content{padding:9px}.flight-section-head{display:grid}.flight-source-badge{justify-self:start}.flight-cross-form{grid-template-columns:repeat(2,minmax(0,1fr));padding:9px}.flight-route-input{grid-column:1/-1}.flight-generate{width:100%;min-width:0}.flight-result-toolbar{align-items:flex-start}.flight-result-toolbar .secondary{min-height:34px;padding:7px 9px}.flight-cross-stage{min-width:780px}.flight-point-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:480px){.flight-cross-form{grid-template-columns:1fr}.flight-route-input,.flight-generate{grid-column:1}.flight-cross-form small{min-height:0}.flight-section-head h3{font-size:17px}.flight-point-cards{grid-template-columns:1fr}.flight-result-toolbar{display:grid}.flight-result-toolbar .secondary{justify-self:start}}
+
+/* MID v0.8.18.4 – dauerhaft erreichbares Impressum mit geschützter Kontaktanzeige */
+.app>footer>.footer-legal-link{width:auto;min-height:29px;padding:0 10px;border:1px solid color-mix(in srgb,var(--muted) 34%,var(--border));border-radius:999px;background:color-mix(in srgb,var(--s2) 82%,transparent);color:var(--muted);font-size:10px;font-weight:750;box-shadow:none}
+.app>footer>.footer-legal-link:hover,.app>footer>.footer-legal-link:focus-visible{border-color:color-mix(in srgb,var(--primary) 58%,var(--border));background:color-mix(in srgb,var(--primary) 10%,var(--s2));color:var(--text);outline:none}
+.imprint-backdrop{position:fixed;z-index:5700;inset:0;display:grid;place-items:center;padding:16px;background:rgba(2,8,17,.68);backdrop-filter:blur(12px)}
+.imprint-dialog{width:min(620px,100%);max-height:min(88vh,760px);overflow:auto;padding:20px;border:1px solid var(--border);border-radius:22px;background:var(--surface);color:var(--text);box-shadow:0 32px 100px rgba(0,0,0,.48)}
+.imprint-dialog>header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px;padding-bottom:13px;border-bottom:1px solid var(--border)}
+.imprint-dialog>header span{display:block;color:var(--accent);font-size:9px;font-weight:900;letter-spacing:.13em;text-transform:uppercase}
+.imprint-dialog>header h2{margin:3px 0 0;font-size:25px}
+.imprint-dialog>header button{display:grid;width:40px;height:40px;place-items:center;padding:0;border:1px solid var(--border);border-radius:12px;background:var(--s2);color:var(--text)}
+.imprint-content{display:grid;gap:15px;min-width:0}
+.imprint-content>p{margin:0;color:var(--muted);font-size:10px;line-height:1.45}
+.imprint-content address{display:grid;gap:4px;padding:15px;border:1px solid var(--border);border-radius:15px;background:var(--s2);font-style:normal;line-height:1.4}
+.imprint-content address strong{font-size:16px}.imprint-content address span{font-size:12px}
+.imprint-content>section{display:grid;gap:8px;padding:15px;border:1px solid var(--border);border-radius:15px;background:color-mix(in srgb,var(--s2) 72%,transparent)}
+.imprint-content>section>strong{font-size:13px}
+.imprint-content>small{color:var(--muted);font-size:9px;line-height:1.45}
+.protected-imprint-email{display:grid;justify-items:start;gap:7px}
+.protected-imprint-email button,.protected-imprint-email a{display:inline-flex;align-items:center;min-height:38px;padding:8px 12px;border:1px solid color-mix(in srgb,var(--primary) 48%,var(--border));border-radius:11px;background:color-mix(in srgb,var(--primary) 10%,var(--surface));color:var(--text);font-size:12px;font-weight:800;text-decoration:none}
+.protected-imprint-email button:hover,.protected-imprint-email a:hover{border-color:var(--primary);background:color-mix(in srgb,var(--primary) 15%,var(--surface))}
+.protected-imprint-email small{max-width:560px;color:var(--muted);font-size:9px;line-height:1.45}
+.settings-legal .imprint-content.embedded{max-width:680px}
+@media(max-width:620px){.app>footer>.footer-legal-link{min-height:29px}.imprint-backdrop{padding:0}.imprint-dialog{width:100%;height:100dvh;max-height:none;padding:16px;border:0;border-radius:0}.imprint-dialog>header h2{font-size:22px}.imprint-content address,.imprint-content>section{padding:13px}.imprint-content address strong{font-size:15px}}
+
+/* MID v0.8.18.5 – kompakte Gültigkeitszeiträume eigener Warnindikatoren */
+.hazards article>div{min-width:0}
+.hazard-validity{display:inline-flex!important;align-items:center;gap:4px;width:max-content;max-width:100%;margin-top:7px!important;padding:3px 7px;border:1px solid var(--border);border-radius:999px;background:color-mix(in srgb,var(--s2) 78%,transparent);color:var(--text);font-size:8px!important;font-weight:800;line-height:1.2}
+.hazard-validity svg{flex:0 0 auto;width:11px;height:11px}
+.hazard-validity time{min-width:0;white-space:normal}
+@media(max-width:760px){.hazard-validity{margin-top:6px!important;padding:3px 6px;font-size:8px!important}}

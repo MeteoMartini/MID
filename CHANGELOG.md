@@ -1,3 +1,18 @@
+# MID v0.8.18.5
+
+- Eigene Warnindikatoren zeigen jetzt einen kompakten Gültigkeitszeitraum in Ortszeit. Aktive Zeitfenster beginnen verständlich mit „jetzt“, künftige sowie über Mitternacht reichende Zeiträume werden mit Uhrzeit beziehungsweise Datum dargestellt.
+- Die Gültigkeit wird aus den zusammenhängenden Stunden beziehungsweise Akkumulationsfenstern des jeweiligen Warnsignals berechnet; getrennte Ereignisse werden nicht zu einem einzigen langen Zeitraum vermischt.
+- Die neue Zeitangabe erscheint als platzsparende, responsive Kapsel direkt in der Warnkarte und bleibt auf schmalen Displays umbrechbar. Amtliche Warnungen und deren bestehende CAP-Zeiträume bleiben unverändert.
+- Neuer Regressionstest schützt Berechnung, Datenvertrag, Ortszeitformatierung und kompakte Darstellung.
+
+# MID v0.8.18.4
+
+- Dauerhaft erreichbares Impressum im App-Footer ergänzt und zusätzlich als eigener Bereich „Rechtliches“ im Einstellungsmenü aufgenommen.
+- Anbieterkennzeichnung mit vollständigem Namen und ladungsfähiger Anschrift integriert.
+- Die Kontaktadresse liegt weder im initialen DOM noch als zusammenhängender Klartext im App-Quellcode vor. Sie wird erst nach bewusster Nutzerinteraktion aus getrennten Zeichencodes zusammengesetzt und anschließend als anklickbare E-Mail-Adresse angeboten.
+- Barrierearmes Impressumsdialogfenster mit Escape-, Außenklick- und mobiler Vollbildbedienung ergänzt.
+- Neuer Regressionstest schützt Erreichbarkeit, Pflichtangaben, responsives Design und die E-Mail-Obfuskation.
+
 # MID v0.8.18.3
 
 - Cross Section vorerst vollständig pausiert: Im Erweiterten Modus erscheint nur noch eine statische Karte „To be continued“. Das aktive Flugmeteorologie-Modul importiert oder rendert die Cross-Section-Komponente nicht mehr.
