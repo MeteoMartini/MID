@@ -1,3 +1,11 @@
+# MID v0.8.18.1
+
+- Cross Sections: Darstellung von Wolken, Vereisung und Turbulenz deutlich verfeinert. Die Felder werden horizontal und vertikal verdichtet und dadurch wesentlich weniger blockig dargestellt.
+- Cross Sections: Konturlinien wie Nullgradgrenze, Isotachen und Tropopause werden nun geglättet und optisch näher an die GRAMET-Vorlage angenähert.
+- Cross Sections: Das Topographieprofil wird höher aufgelöst aus den vorhandenen Stützpunkten interpoliert und als geglättete Geländeform dargestellt.
+- Cross Sections: Eine obere Zeitachse innerhalb der Grafik verbessert die Lesbarkeit und orientiert sich stärker an klassischen Flugwetter-Schnitten.
+- Neuer Regressionstest schützt die verdichtete Feldaufbereitung, die geglätteten Linien, die Top-Zeitachse und die präzisere SVG-Darstellung.
+
 # MID v0.8.18.0
 
 - Neuer Bereich im Erweiterten Modus: „Flugmeteorologie“ bündelt künftig die neue Untersektion „Cross Section“ und die bisherige eigenständige Meteogramm-Sektion als Untersektion „Meteogramme“.
