@@ -30,7 +30,7 @@ need('Synchronisationsbrücke',main,'startDeviceSyncBridge');
 need('Worker-Sync-Push',worker,"mode==='device-sync-push'");
 need('Worker-Sync-Pull',worker,"mode==='device-sync-pull'");
 need('Worker-Sync-Dienst',worker,"'device-sync'");
-need('Systemeinstellungen',app,'<DeviceSyncSettings/>');
+need('Systemeinstellungen',app,"<DeviceSyncSettings advancedMode={layoutMode==='advanced'}/>");
 
 for(const token of ['recordForecastCapture','refreshForecastReferences','buildForecastVerificationReport','modelSummaries','weightingReady','predictionDayScore','reanalysisReferenceRequest','retrospectiveBestMatchRequest'])need('Prognosegüte-Logik',verification,token);
 for(const token of ['Prognosegüte und Rückblick','Was wurde vorhergesagt – was zeigt der Rückblick?','Lokale Modellgüte','Lokale Modellgewichtung'])need('Prognosegüte-Panel',verificationPanel,token);

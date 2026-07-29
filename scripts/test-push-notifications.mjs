@@ -6,7 +6,8 @@ const [app,push,panel,worker,sw,legacySw]=await Promise.all([
  readFile(path.join(root,'src','App.tsx'),'utf8'),readFile(path.join(root,'src','pushNotifications.ts'),'utf8'),readFile(path.join(root,'src','PushSettingsPanel.tsx'),'utf8'),readFile(path.join(root,'worker','metar-proxy.js'),'utf8'),readFile(path.join(root,'public','service-worker.js'),'utf8'),readFile(path.join(root,'public','sw.js'),'utf8')
 ]);
 const failures=[];
-for(const token of ['Benachrichtigungen','Niederschlagsbeginn','Gewitterzelle nähert sich','tracked-location','TRACKED_PUSH_RULES_KEY','syncPushNotifications'])if(!app.includes(token))failures.push(`Push-App fehlt: ${token}`);
+for(const token of ['Benachrichtigungen','tracked-location','TRACKED_PUSH_RULES_KEY','syncPushNotifications'])if(!app.includes(token))failures.push(`Push-App fehlt: ${token}`);
+for(const token of ['Niederschlagsbeginn','Gewitterzelle nähert sich','Benachrichtigungen aktivieren','Bei materieller Änderung benachrichtigen'])if(!panel.includes(token))failures.push(`Zentrale Benachrichtigungsoption fehlt: ${token}`);
 for(const token of ['push-config','push-subscribe','push-unsubscribe','syncPushNotifications','forecastMaterialChange:boolean'])if(!push.includes(token))failures.push(`Push-Client fehlt: ${token}`);
 for(const token of ['PushSettingsPanel','Benachrichtigungen aktivieren','Aktueller Standort'])if(!panel.includes(token))failures.push(`Push-Panel fehlt: ${token}`);
 for(const token of ['pushConfigured','pushSubscribe','pushUnsubscribe','runPushSchedule','async scheduled','MID_PUSH_SUBSCRIPTIONS','VAPID_PUBLIC_KEY'])if(!worker.includes(token))failures.push(`Push-Worker fehlt: ${token}`);

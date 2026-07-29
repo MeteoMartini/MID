@@ -1,3 +1,12 @@
+# MID v0.8.16.0
+
+- App- und Einstellungsdesign vereinheitlicht: Kartenradien, Abstände, Abschnittsüberschriften, Zustände und mobile Darstellung folgen nun einem gemeinsamen visuellen System.
+- Benachrichtigungsoptionen zentralisiert: Niederschlags-, Gewitter- und Modelllaufänderungsregeln werden ausschließlich im Untermenü „Benachrichtigungen“ verwaltet. Die Favoritenverwaltung enthält nur noch Favoriten-, Profil- und numerische Vor-Ort-Regeln.
+- Standardmodus redaktionell entschlackt: technische Quellen-, Stations- und Verfahrensangaben werden gekürzt oder hinter einer Informationsöffnung gebündelt; der Erweiterte Modus behält die vollständigen meteorologischen Hintergründe.
+- Wetterzwilling und Gerätesynchronisation zeigen im Standardmodus vereinfachte Bezeichnungen und weniger technische Optionen. Radar-/Nowcast-Assimilation, Bias-Korrektur, Wahrscheinlichkeitskalibrierung, private Stationskonfiguration sowie Apple-Widget-Werkzeuge bleiben dem Erweiterten Modus vorbehalten.
+- Komposit- und Ensemblemodule verwenden im Standardmodus verständlichere Kurzbeschreibungen; aktuelle Datenkarten zeigen kompaktere Quellen- und Messhinweise.
+- Neuer Regressionstest schützt die zentrale Benachrichtigungsverwaltung, die Standard-/Erweitert-Trennung sowie das vereinheitlichte Einstellungsdesign.
+
 # MID v0.8.15.7
 
 - Aktuelle Daten: Die Kachel „Sonne / Mond“ wurde erneut an das Standarddesign der übrigen Kacheln angeglichen. Sonnenaufgang und Sonnenuntergang erscheinen nun als zwei untereinander liegende, sauber getrennte Zeitblöcke mit Trennlinie statt in einer Sonderdarstellung.

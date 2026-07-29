@@ -17,12 +17,14 @@ requireTokens('Luftdruck/Astronomie',app,['function pressureTendency','hPa / 3 h
 requireTokens('Astronomiekern',astronomy,['export function astronomySummary','moonIllumination','formatDayLengthChange']);
 requireTokens('Bergprofil',mountain,['export async function mountainProfile','OVERPASS_ENDPOINTS','applyMountainProfile',"season:'auto'",'summer','winter']);
 requireTokens('Bergprofil-UI',app,['Automatisch bestimmen','Talstation','Mittelstation','Bergstation','Saisonprofil','mountainSportsForecast']);
-requireTokens('Push-UI',app,['Benachrichtigungen','Niederschlagsbeginn','Gewitterzelle nähert sich','tracked-location','TRACKED_PUSH_RULES_KEY']);
+requireTokens('Push-UI',app,['Benachrichtigungen','tracked-location','TRACKED_PUSH_RULES_KEY']);
+requireTokens('Zentrale Push-Regeln',pushPanel,['Niederschlagsbeginn','Gewitterzelle nähert sich','Bei materieller Änderung benachrichtigen']);
 requireTokens('Push-Client',push,['push-subscribe','push-unsubscribe','syncPushNotifications','forecastMaterialChange:boolean']);
 requireTokens('Push-Panel',pushPanel,['PushSettingsPanel','Benachrichtigungen aktivieren','Aktueller Standort']);
 requireTokens('Push-Service-Worker',serviceWorker,["addEventListener('push'","addEventListener('notificationclick'",'showNotification']);
 requireTokens('Push-Worker',worker,['pushConfigured','pushSubscribe','runPushSchedule','async scheduled','pushForecastState','pushForecastChangeEvents','mid-model-change-']);
-requireTokens('Modelllauf-Änderungsradar',app,['MODEL_CHANGE_SETTINGS_KEY','Änderungsradar für die nächsten drei Tage anzeigen','Bei materieller Änderung benachrichtigen','forecastMaterialChange:true']);
+requireTokens('Modelllauf-Änderungsradar',app,['MODEL_CHANGE_SETTINGS_KEY','Änderungsradar für die nächsten drei Tage anzeigen','forecastMaterialChange:true']);
+requireTokens('Modelllauf-Benachrichtigung',pushPanel,['Bei materieller Änderung benachrichtigen','onModelChangeNotificationChange']);
 requireTokens('Modelllauf-Vergleich',modelChanges,['buildModelChangeSnapshot','compareModelChangeSnapshots','updateModelChangeRadar',"metric:'onset'"]);
 requireTokens('Web Analytics',analytics,['VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN','static.cloudflareinsights.com/beacon.min.js','mid:web-analytics-status']);
 if(/ROUTE_WEATHER_SETTINGS_KEY|LazyRouteWeather|title="Routenwetter"/.test(app))failures.push('Routenwetter ist trotz vorläufiger Entfernung noch aktiv eingebunden.');
