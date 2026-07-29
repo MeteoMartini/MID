@@ -1,3 +1,17 @@
+# MID v0.8.18.11
+
+- GitHub-/TypeScript-Buildfix für die Mehrstufen-Warnlogik: Die nach der Umstellung nicht mehr verwendeten Hilfsfunktionen `levelFromThresholds` und `windClassification` wurden entfernt.
+- Die aktive Mehrstufenberechnung über `windClassifications` sowie alle niedrigeren Warnstufen, Gültigkeitszeiträume und Windrichtungstexte bleiben unverändert erhalten.
+- Neuer Regressionstest schützt vor erneutem Einbringen ungenutzter Warnungs-Helper und sichert die aktive Mehrstufen-Windlogik ab.
+
+# MID v0.8.18.10
+
+- Eigene Warnungen: Beim Überschreiten mehrerer Schwellen werden nun neben der höchsten Warnstufe auch die niedrigeren Intensitätsstufen ausgegeben.
+- Jede Warnstufe erhält einen eigenen, automatisch berechneten Gültigkeitszeitraum; bei Wind bleibt die niedrigere Stufe über den gesamten Zeitraum aktiv, in dem ihre Schwelle überschritten wird, während höhere Stufen als zusätzliche engere Warnphase erscheinen.
+- Windwarnungen nennen bei niedrigeren Stufen Schwellenwert und zeitweilige Spitze, etwa „Windböen über 50 km/h; zeitweise bis 71 km/h“, einschließlich Windrichtung beziehungsweise Richtungsänderung.
+- Niedrigere Warnstufen werden kompakt als solche gekennzeichnet, ohne die bestehende übersichtliche Kartenstruktur oder die Datums-/Zeitkapsel zu vergrößern.
+- Neuer Regressionstest schützt Mehrstufenlogik, überlappende Warnzeiträume, Windrichtungstext, Datenvertrag und responsive Darstellung.
+
 # MID v0.8.18.9
 
 - Eigene Windwarnungen korrigiert: Die reale stündliche Best-Match-Windrichtung wurde intern im Feld `direction` geführt, die Warnlogik hatte jedoch ausschließlich `windDirection` ausgewertet. Dadurch blieb die Richtung trotz vorhandener Daten im Warntext leer.

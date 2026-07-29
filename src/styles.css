@@ -2878,3 +2878,11 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .hazard-validity svg{flex:0 0 auto;width:11px;height:11px}
 .hazard-validity time{min-width:0;white-space:normal}
 @media(max-width:760px){.hazard-validity{margin-top:6px!important;padding:3px 6px;font-size:8px!important}}
+
+
+/* MID v0.8.18.10 – zusätzliche niedrigere Warnstufen mit eigenem Zeitraum */
+.hazard-title-line{display:flex;align-items:center;justify-content:space-between;gap:7px;min-width:0}
+.hazard-title-line strong{min-width:0}
+.hazard-title-line em{flex:0 0 auto;padding:2px 6px;border:1px solid currentColor;border-radius:999px;opacity:.78;font-size:7px;font-style:normal;font-weight:850;line-height:1.15;white-space:nowrap}
+.hazards article.lower-intensity{box-shadow:inset 3px 0 0 color-mix(in srgb,currentColor 62%,transparent)}
+@media(max-width:760px){.hazard-title-line{align-items:flex-start;flex-wrap:wrap;gap:4px 6px}.hazard-title-line em{padding:2px 5px;font-size:6.8px}}
