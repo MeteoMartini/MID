@@ -1,3 +1,12 @@
+# MID v0.8.19.0
+
+- Neue, standardmäßig eingeklappte Sektion „Reisewetter & Reiseplaner“ im unteren App-Bereich. Sie ist im Standard- und Erweiterten Modus verfügbar und wird erst beim Scrollen beziehungsweise Öffnen lazy geladen.
+- Freie Zielortsuche unabhängig vom aktuell geöffneten MID-Ort. Für einen festen Reisezeitraum werden klimatologisch erwartbare Temperatur, Niederschlagstage, Sonnenschein, Wind, Schneefall und ein kompakter Tagesverlauf dargestellt.
+- Flexibler Reiseplaner: Innerhalb eines Suchzeitraums von bis zu 120 Tagen kann ein 2- bis 42-tägiges Reisefenster nach „ausgewogen“, möglichst trocken, warm, kalt, sonnig, schneereich oder windarm optimiert werden.
+- Optional definierbare Bedingungen: Mindest-/Höchsttemperatur, maximale Regentage, Mindestsonnenschein, maximales Windmaximum und Mindestschneehöhe. Falls kein Fenster alle Bedingungen erfüllt, zeigt MID transparent die beste Annäherung und die noch verfehlten Kriterien.
+- Datengrundlage ist die Open-Meteo-ERA5-Land-Reanalyse 1991–2020. Historische Schneehöhe wird nur bei ausdrücklicher Schneewahl zusätzlich aus Stundenwerten geladen; alle Klimadaten werden lokal aggregiert und für 180 Tage zwischengespeichert. Die Sektion erzeugt keine automatischen Workerzugriffe.
+- Neuer Regressionstest schützt Modulposition, eingeklappten Standardzustand, Zielortsuche, feste und flexible Planung, Bedingungen, Klimadatenpfad, optionale Schneehöhe und die dynamische Auswahl des besten Zeitfensters.
+
 # MID v0.8.18.15
 
 - Wasserwetter-Verlauf: Gezeiten- und Wasserstandswendepunkte werden nun direkt in der Tagesmatrix angezeigt. Jeder Tag enthält eine kompakte Tabellenzeile mit Hoch-/Tiefpunkt, exakter Uhrzeit und modelliertem Wasserstand.

@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.8.18.15",
+  "version": "0.8.19.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -85,7 +85,8 @@
     "test:forecast-highest-hazard-per-kind": "node scripts/test-forecast-highest-hazard-per-kind-081812.mjs",
     "test:ensemble-highest-hazard-per-kind": "node scripts/test-ensemble-highest-hazard-per-kind-081813.mjs",
     "test:hazard-interrupted-lower-stage": "node scripts/test-hazard-interrupted-lower-stage-081814.mjs",
-    "test:water-tide-matrix": "node scripts/test-water-tide-matrix-081815.mjs"
+    "test:water-tide-matrix": "node scripts/test-water-tide-matrix-081815.mjs",
+    "test:travel-planner": "node scripts/test-travel-planner-08190.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",
