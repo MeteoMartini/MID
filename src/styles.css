@@ -2626,19 +2626,20 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .water-matrix-content{display:grid;gap:10px;padding:0 12px 12px}.water-matrix-content>p{margin:0;color:var(--muted);font-size:8.5px;line-height:1.4}.water-matrix-controls{justify-content:flex-start}.water-matrix-day{margin:0}.water-matrix-level>header{background:color-mix(in srgb,#38bdf8 8%,var(--surface))}.water-matrix-pair{display:grid!important;place-items:center;gap:1px}.water-matrix-pair strong{font-size:8.5px}.water-matrix-pair small{max-width:72px;white-space:normal;text-align:center}.water-matrix-row>span{min-height:36px}
 @media(max-width:620px){.water-matrix-summary{padding:10px}.water-matrix-content{padding:0 10px 10px}.water-matrix-row{grid-template-columns:94px repeat(var(--mountain-columns),minmax(68px,1fr))}.water-matrix-summary strong{font-size:11px}}
 
-/* MID v0.8.13.0 / v0.8.15.6: day/night pictograms and responsive compact astronomy card */
+/* MID v0.8.13.0 / v0.8.15.7: responsive astronomy card aligned with the standard metric-card design */
+.metrics .sun-moon-card{min-height:156px}
 .metrics .sun-moon-card header>.mode-info{margin-left:auto}
 .metrics .sun-moon-card header>.mode-info>button{width:22px;height:22px}
-.metrics .sun-moon-card>strong{margin-top:8px;line-height:1.1;white-space:normal}
-.sun-moon-card-value{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:end;gap:8px;min-width:0}
-.sun-moon-time-block{display:grid;gap:2px;min-width:0}
-.sun-moon-time-block:last-child{text-align:right}
-.sun-moon-time-block small{color:var(--muted);font-size:8px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
-.sun-moon-time-block b{display:block;color:var(--text);font-size:clamp(16px,1.55vw,24px);font-variant-numeric:tabular-nums;line-height:1.02}
-.sun-moon-divider{align-self:center;color:var(--muted);font-size:11px;font-weight:800}
-.sun-moon-detail{display:grid;gap:3px;line-height:1.28}
-.sun-moon-phase{display:flex;align-items:center;gap:5px;min-width:0;flex-wrap:wrap;color:var(--text)}
-.sun-moon-phase i{font-style:normal}
+.metrics .sun-moon-card>strong{display:grid;gap:8px;margin-top:8px;font-size:inherit;line-height:1.1;white-space:normal}
+.metrics .sun-moon-card>small{display:grid;gap:5px;margin-top:6px}
+.sun-moon-card-value{display:grid;gap:8px;min-width:0}
+.sun-moon-time-block{display:grid;gap:2px;min-width:0;text-align:left}
+.sun-moon-time-block small{color:var(--muted);font-size:8px;font-weight:850;letter-spacing:.11em;text-transform:uppercase;line-height:1.15}
+.sun-moon-time-block b{display:block;color:var(--text);font-size:clamp(22px,2.35vw,34px);font-weight:850;font-variant-numeric:tabular-nums;line-height:.96}
+.sun-moon-card-divider{display:block;height:1px;border-radius:999px;background:color-mix(in srgb,var(--border) 92%,transparent)}
+.sun-moon-detail{display:grid;gap:4px;min-width:0;line-height:1.28}
+.sun-moon-phase{display:flex;align-items:center;gap:7px;min-width:0;flex-wrap:wrap;color:var(--text)}
+.sun-moon-phase i{font-style:normal;font-size:14px;line-height:1}
 .sun-moon-phase b{font-size:10px;line-height:1.15}
 .sun-moon-phase em{color:var(--muted);font-style:normal;font-weight:650}
 .sun-moon-meta{display:block;color:var(--muted)}
@@ -2652,10 +2653,9 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .astronomy-event-list time{font-variant-numeric:tabular-nums;font-size:10px;font-weight:800}
 .astronomy-moon-detail,.astronomy-polar-note{display:block;padding:7px 8px;border-radius:9px;background:var(--s2);font-size:9px;line-height:1.35}
 .astronomy-popover-content>small{color:var(--muted);font-size:8px;line-height:1.4}
-@media(max-width:620px){.metrics .sun-moon-card>strong{font-size:14px}.sun-moon-card-value{gap:6px}.sun-moon-time-block b{font-size:18px}.sun-moon-time-block small{font-size:7.5px}.sun-moon-phase b{font-size:9.5px}.astronomy-event-list b{font-size:10px}.astronomy-event-list time{font-size:11px}.astronomy-popover-content>small{font-size:9px}}
-@media(max-width:420px){.sun-moon-card-value{grid-template-columns:1fr;gap:5px}.sun-moon-divider{display:none}.sun-moon-time-block:last-child{padding-top:4px;border-top:1px solid var(--border);text-align:left}}
-
-
+@media(max-width:760px){.metrics .sun-moon-card{min-height:148px}.metrics .sun-moon-card>strong{gap:7px}.sun-moon-card-value{gap:7px}.sun-moon-time-block b{font-size:clamp(20px,6.4vw,30px)}}
+@media(max-width:620px){.metrics .sun-moon-card{min-height:142px}.metrics .sun-moon-card>strong{margin-top:7px}.metrics .sun-moon-card>small{gap:4px}.sun-moon-time-block small{font-size:7.5px}.sun-moon-phase b{font-size:9.5px}.astronomy-event-list b{font-size:10px}.astronomy-event-list time{font-size:11px}.astronomy-popover-content>small{font-size:9px}}
+@media(max-width:420px){.metrics .sun-moon-card{min-height:138px}.sun-moon-time-block b{font-size:clamp(18px,8.4vw,24px)}.sun-moon-phase{gap:5px}.sun-moon-phase em{display:inline}}
 /* MID v0.8.15.0 – Luftdruck im Tagesdetail und einklappbare Legende */
 .detail-legend-shell{margin:2px 0 8px}
 .detail-legend-toolbar{display:flex;justify-content:flex-end;min-height:30px}

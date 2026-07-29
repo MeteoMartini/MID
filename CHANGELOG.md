@@ -1,12 +1,9 @@
-# MID v0.8.15.6
+# MID v0.8.15.7
 
-- Interaktionspfade für Klicks und Wischgesten weiter entlastet: Der bislang global aktive, nicht-passive `touchmove`-Listener wird nur noch während einer tatsächlich am Bildschirmrand begonnenen Favoritengeste registriert und anschließend sofort entfernt. Normales Scrollen und horizontale Bedienung werden dadurch nicht mehr unnötig in den blockierenden Gestenpfad gezogen.
-- Favoriten-Schnellleiste, Suchmenü und Favoritenverwaltung verwenden statt mehrerer zeitversetzter Nachpositionierungen einen gemeinsamen, per `requestAnimationFrame` gedrosselten Mechanismus. Ein kurzer Layout-Fallback, `ResizeObserver` und das Ende der Schriftinitialisierung sichern den direkten Sprung zum aktiven Favoriten weiterhin ab.
-- Drag-and-drop beziehungsweise Touch-Reihenfolgeänderungen der Favoriten werden auf höchstens eine Zustandsänderung je Darstellungsframe begrenzt. Unveränderte Zielpositionen lösen keine erneuten React-Updates mehr aus.
-- Popover-Positionierungen bei Scroll- und Größenänderungen werden in einem einzelnen Animationsframe zusammengefasst; identische Positionen erzeugen keine redundanten Zustandsaktualisierungen.
-- Der Erhalt der aktuellen Dashboardansicht bei Ortswechseln vermisst nicht mehr synchron sämtliche Module, sondern bestimmt das sichtbare Modul gezielt über den Bildschirmbezugspunkt.
-- Altlastenbereinigung ohne Funktionsverlust: Die bis auf Weiteres deaktivierte private Netatmo-/Stationsintegration bleibt vollständig im Quellstand vorbereitet, wird aber nicht mehr in den aktiven App-Bundle- und Pollingpfad importiert. Das deaktivierte Routenwetter bleibt ebenfalls als Quellmodul erhalten und weiterhin außerhalb des aktiven Bundlepfads.
-- Neuer Regressionstest schützt die optimierten Interaktionspfade, die weiterhin robuste Favoritenpositionierung und die Trennung deaktivierter Zukunftsmodule vom aktiven Laufzeitpfad.
+- Aktuelle Daten: Die Kachel „Sonne / Mond“ wurde erneut an das Standarddesign der übrigen Kacheln angeglichen. Sonnenaufgang und Sonnenuntergang erscheinen nun als zwei untereinander liegende, sauber getrennte Zeitblöcke mit Trennlinie statt in einer Sonderdarstellung.
+- Desktop- und Mobilansicht wurden auf überlappungsfreie Darstellung optimiert: mehr vertikale Reserve, stabile Typografie, kein Zusammenlaufen der Überschriften und keine Kollision mit der Info-Schaltfläche.
+- Mondphase, nächste Mondphase und Tageslänge bleiben darunter kompakt erhalten.
+- Der Regressionstest für die Astronomie-Kachel prüft jetzt ausdrücklich das standardnahe Kartenlayout sowie die überlappungsfreie Desktop-/Mobilstruktur.
 
 # MID v0.8.15.4
 
