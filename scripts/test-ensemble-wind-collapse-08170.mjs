@@ -38,14 +38,16 @@ if(panel.includes("compact=exporting?false:useCompactEnsembleChart()"))failures.
 
 for(const token of [
   'wind?:number;gust?:number;',
-  'windMean:number;windLow:number;windHigh:number;gustMean:number;gustLow:number;gustHigh:number;',
-  "const ENSEMBLE_CACHE_PREFIX='mid:ensemble:v8:'",
+  'windMean:number;windLow:number;windHigh:number;windQ25:number;windQ75:number;gustMean:number;gustLow:number;gustHigh:number;gustQ25:number;gustQ75:number;',
+  "const ENSEMBLE_CACHE_PREFIX='mid:ensemble:v9:'",
   "windKeys=keys.filter(k=>/^wind_speed_10m",
   "gustKeys=keys.filter(k=>/^wind_gusts_10m",
   'wind=d.w.length?Math.max(...d.w):NaN',
   'gust=d.g.length?Math.max(...d.g):NaN',
   'windLow=windVals.length>=6?weightedQuantile(windVals,.1):NaN',
+  'windQ25=windVals.length>=6?weightedQuantile(windVals,.25):NaN',
   'gustHigh=gustVals.length>=6?weightedQuantile(gustVals,.9):NaN',
+  'gustQ75=gustVals.length>=6?weightedQuantile(gustVals,.75):NaN',
   "hourly='temperature_2m,precipitation,wind_speed_10m,wind_gusts_10m,sunshine_duration'",
   "wind_speed_unit:'kn'"
 ])need('Ensemble-Winddaten',weather,token);
@@ -74,4 +76,4 @@ for(const token of [
 for(const token of ['<small>Aufgang</small>','<small>Untergang</small>'])need('Kompakte Sonne-/Mond-Beschriftung',app,token);
 
 if(failures.length){console.error('Ensemble-Wind-/Einklappprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Ensemble geprüft: Wind/Böen mit P10–P90, Best Match und ENS-Mittel; alle drei Diagramme sind einklappbar und die Sonne-/Mond-Werte bleiben kompakt.');
+console.log('Ensemble geprüft: Wind/Böen mit P10–P90, P25–P75, Best Match und ENS-Mittel; alle drei Diagramme sind einklappbar und die Sonne-/Mond-Werte bleiben kompakt.');

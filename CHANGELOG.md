@@ -1,3 +1,10 @@
+# MID v0.8.17.1
+
+- Ensemble-Winddiagramm: Für Wind und Böen wird an den Vorhersagetagen 1–7 zusätzlich der engere P25–P75-Kernbereich dargestellt. Er liegt als deutlich dunklere Fläche innerhalb des bisherigen P10–P90-Bereichs und entspricht damit der Quartildarstellung des Temperaturtrends.
+- Die gewichteten Wind- und Böenquartile werden aus denselben plausibilisierten Ensemblemitgliedern wie P10–P90 und ENS-Mittel berechnet. Der lokale Ensemblecache wird wegen der zusätzlichen Quartilfelder einmalig erneuert; Tooltip, Erklärung und PNG-Metadaten weisen P25–P75 für Tage 1–7 aus.
+- Die Wind-/Böenlegende ist nun mittig oberhalb des Diagramms angeordnet; Wind/Böen-Umschaltung und Legende bleiben auch auf schmalen Displays zentriert und umbrechbar.
+- Neuer Regressionstest schützt Quartilberechnung, Begrenzung auf Tage 1–7, dunklere Flächendarstellung und mittige Legendenposition.
+
 # MID v0.8.17.0
 
 - Aktuelle Daten: Die Uhrzeiten der Kachel „Sonne / Mond“ verwenden nun eine ausdrücklich begrenzte, an den übrigen Kachelwerten orientierte Schriftgröße. Die Kachel besitzt keine eigene Mindesthöhe mehr und vergrößert die gesamte Parameterzeile weder auf Desktop noch mobil.

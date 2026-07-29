@@ -2750,16 +2750,19 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .ensemble-chart-collapse[aria-expanded="false"] svg{transform:rotate(-90deg)}
 .ensemble-chart-collapse:hover{border-color:color-mix(in srgb,var(--primary) 42%,var(--border));background:color-mix(in srgb,var(--primary) 8%,var(--s2))}
 .chart.wind-trend{display:flex;height:340px;flex-direction:column;gap:8px;min-width:0}
-.wind-trend-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;min-width:0}
+.wind-trend-toolbar{display:grid;justify-items:center;gap:7px;min-width:0}
 .wind-mode-switch{display:inline-flex;align-items:center;padding:2px;border:1px solid var(--border);border-radius:10px;background:var(--s2)}
 .wind-mode-switch button{min-height:29px;padding:5px 10px;border:0;border-radius:8px;background:transparent;color:var(--muted);font-size:10px;font-weight:800}
 .wind-mode-switch button.active{background:var(--surface);color:var(--text);box-shadow:0 1px 5px rgba(19,45,72,.12)}
-.wind-legend{display:flex;align-items:center;justify-content:flex-end;gap:8px 12px;flex-wrap:wrap;color:var(--muted);font-size:10px}
-.wind-legend span{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.wind-legend{display:flex;align-items:center;justify-content:center;gap:8px 12px;flex-wrap:wrap;width:100%;color:var(--muted);font-size:10px;text-align:center}
+.wind-legend span{display:inline-flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap}
 .wind-legend i{display:inline-block;flex:0 0 auto}
 .wind-legend i.area{width:17px;height:9px;border-radius:3px}
 .wind-legend i.area.wind{border:1px solid rgba(28,147,223,.58);background:rgba(86,185,239,.3)}
 .wind-legend i.area.gust{border:1px solid rgba(239,125,50,.62);background:rgba(247,164,93,.32)}
+.wind-legend i.area.quartile.wind{border-color:rgba(8,121,189,.82);background:rgba(8,121,189,.5)}
+.wind-legend i.area.quartile.gust{border-color:rgba(217,101,33,.84);background:rgba(217,101,33,.52)}
+.wind-legend small{color:var(--muted);font-size:8px;font-weight:750}
 .wind-legend i.line{width:19px;height:0;border-top:3px solid}
 .wind-legend i.line.best.wind{border-color:#1c93df}
 .wind-legend i.line.best.gust{border-color:#ef7d32}
@@ -2780,8 +2783,8 @@ button,input,select,[role="button"]{touch-action:manipulation}
  .ensemble-chart-collapse{min-width:34px;padding:6px}
  .ensemble-chart-collapse span{display:none}
  .chart.wind-trend{height:300px}
- .wind-trend-toolbar{align-items:flex-start;gap:6px}
- .wind-legend{justify-content:flex-start;gap:4px 7px;font-size:8px}
+ .wind-trend-toolbar{gap:5px}
+ .wind-legend{justify-content:center;gap:4px 7px;font-size:8px}
  .wind-mode-switch button{min-height:27px;padding:4px 8px;font-size:9px}
  .ensemble-wind-plot{grid-template-columns:minmax(0,1fr);grid-template-rows:22px minmax(0,1fr);gap:3px}
  .ensemble-wind-chart-core{grid-column:1;grid-row:2;grid-template-rows:minmax(0,1fr) 24px}
@@ -2789,7 +2792,7 @@ button,input,select,[role="button"]{touch-action:manipulation}
  .ensemble-wind-axis-title-bottom{align-items:center;padding-top:2px;font-size:9px}
  .ensemble-wind-axis-spacer{display:none}
 }
-@media(max-width:420px){.chart.wind-trend{height:285px}.wind-trend-toolbar{display:grid}.wind-legend{font-size:7.5px}}
+@media(max-width:420px){.chart.wind-trend{height:300px}.wind-legend{font-size:7.5px}.wind-legend small{font-size:7px}}
 .ensemble-chart-export.ensemble-exporting .chart.wind-trend{height:365px!important}
 .ensemble-chart-export.ensemble-exporting .ensemble-wind-plot{grid-template-columns:42px 1000px 38px;grid-template-rows:minmax(0,1fr);gap:8px;width:1096px;margin:0 auto}
 .ensemble-chart-export.ensemble-exporting .ensemble-wind-chart-core{grid-column:auto;grid-row:auto;grid-template-rows:minmax(0,1fr) 28px}
