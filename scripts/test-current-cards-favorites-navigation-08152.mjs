@@ -23,18 +23,22 @@ for(const token of [
   'favoriteKey(a)===favoriteKey(b)||locationsNearlyEquivalent(a,b)',
   'favorites.find(item=>favoriteKey(item.location)===favoriteKey(location))??favorites.find(item=>locationsNearlyEquivalent(item.location,location))',
   'same=loc&&locationsNearlyEquivalent(loc,normalized)',
-  'favorites.findIndex(item=>locationsMatchFavoriteSelection(item.location,loc))'
+  'currentFavorites.findIndex(item=>locationsMatchFavoriteSelection(item.location,currentLocation))'
 ])need('Standort-/Favoritenaktivierung',app,token);
 
 for(const token of [
-  'timers=[0,70,180,360,650].map',
-  'timers=[0,70,180,360].map',
-  'timers=[0,80,200,420].map',
-  'new ResizeObserver(reveal)',
+  'function useActiveItemReveal',
+  'new ResizeObserver(schedule)',
+  'observer.observe(elementRef.current)',
+  'void fonts?.ready.then(schedule)',
+  "useActiveItemReveal(Boolean(activeFavoriteId)",
+  'useActiveItemReveal(open&&Boolean(currentFavoriteId)',
+  'useActiveItemReveal(open&&favoritesMode&&Boolean(currentFavoriteId)',
   'ref={listRef}',
   'ref={item.id===currentFavoriteId?activeRowRef:undefined}',
   'centerWithinScrollContainer(container,element)'
 ])need('Direkter Sprung zum aktiven Favoriten',app,token);
+if(app.includes('timers=[0,70,180,360,650].map')||app.includes('timers=[0,70,180,360].map')||app.includes('timers=[0,80,200,420].map'))failures.push('Veraltete Mehrfach-Timer für Favoritenpositionierung sind weiterhin aktiv.');
 
 for(const token of [
   '.metrics .air-quality-card header>.mode-info,',

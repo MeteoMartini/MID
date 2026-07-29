@@ -15,7 +15,8 @@ need(client,'validateConnectedStation','Plausibilitätsprüfung der eigenen Stat
 need(client,'Stationsmessung ist älter als 45 Minuten.','Messalter wird nicht geprüft.');
 need(client,'Böe punktweise an Windniveau angeglichen','Wind-/Böen-Plausibilisierung fehlt.');
 need(client,'CONNECTED_STATION_INTEGRATION_ENABLED=false','Harte Sperre für vernetzte Stationen fehlt.');
-need(app,'mergeConnectedStation(st,personalSt)','Vorbereitete, derzeit inaktive Stationsintegration ist nicht erhalten.');
+need(app,'const effectiveStation=st;','Aktive Dashboard-Pfade verwenden bei deaktivierter Privatstation weiterhin unnötige Merge- und Pollinglogik.');
+if(app.includes("from './connectedStation'")||app.includes('personalSt')||app.includes('mid:connected-station-settings'))failures.push('Deaktivierte Privatstationsintegration wird weiterhin in den aktiven Dashboard-Bundlepfad gezogen.');
 need(engine,'PRIVATE_SENSOR_INTEGRATION_ENABLED=false','Private Sensorbeobachtungen sind nicht deaktiviert.');
 need(workerText,"scope','read_station'",'Netatmo OAuth fordert nicht das Leserecht read_station an.');
 need(workerText,"mode==='netatmo-observation'",'Netatmo-Abrufroute fehlt.');

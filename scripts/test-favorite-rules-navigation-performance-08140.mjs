@@ -26,11 +26,13 @@ for(const token of [
 ])need('Performance ohne Funktionsverlust',app,token);
 for(const token of [
   'function centerWithinScrollContainer',
-  'secondFrame=window.requestAnimationFrame(reveal)',
-  'timers=[0,70,180,360,650].map',
-  "new ResizeObserver(reveal)",
+  'function useActiveItemReveal',
+  'new ResizeObserver(schedule)',
+  'observer.observe(elementRef.current)',
+  'void fonts?.ready.then(schedule)',
   'centerWithinScrollContainer(container,element)'
 ])need('Aktiver Favorit wird robust zentriert',app,token);
+if(app.includes('timers=[0,70,180,360,650].map'))failures.push('Alte Timer-Kaskade für den Favoritensprung ist weiterhin vorhanden.');
 for(const token of ['content-visibility:auto','contain:layout paint style','contain-intrinsic-size:auto 320px','.favorite-rule-toggle'])need('Favoritenlisten-Rendering',styles,token);
 if(app.includes("const DEFAULT_FAVORITE_RULES:FavoriteRules={rainProbability"))failures.push('Alte automatisch aktive Favoritenregeln sind weiterhin als Standard vorhanden.');
 if(failures.length){console.error('Favoritenregeln-/Navigation-/Performance-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
