@@ -2878,3 +2878,7 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .hazard-validity svg{flex:0 0 auto;width:11px;height:11px}
 .hazard-validity time{min-width:0;white-space:normal}
 @media(max-width:760px){.hazard-validity{margin-top:6px!important;padding:3px 6px;font-size:8px!important}}
+.hazard-wind-direction{display:inline-flex!important;align-items:center;gap:4px;width:max-content;max-width:100%;margin-top:6px!important;padding:3px 7px;border:1px solid color-mix(in srgb,currentColor 24%,var(--border));border-radius:999px;background:color-mix(in srgb,var(--s2) 72%,transparent);color:var(--text);font-size:8px!important;font-weight:800;line-height:1.2}
+.hazard-wind-direction svg{flex:0 0 auto;width:11px;height:11px;transform:rotate(45deg)}
+.hazard-wind-direction>span{min-width:0;margin:0!important;white-space:normal;font-size:inherit!important}
+@media(max-width:760px){.hazard-wind-direction{margin-top:5px!important;padding:3px 6px;font-size:8px!important}}

@@ -1,3 +1,12 @@
+# MID v0.8.18.7
+
+- Eigene Windwarnungen zeigen jetzt zusätzlich die modellierte Windrichtung im jeweiligen Warnzeitraum.
+- Bei stabiler Windrichtung erscheint eine kompakte Angabe wie „Aus südwestlicher Richtung“.
+- Markante Richtungsänderungen werden zeitlich verständlich beschrieben, beispielsweise „Anfangs aus südwestlicher, später aus nordwestlicher Richtung“.
+- Die Richtungsbewertung verwendet zirkuläre Mittelwerte, sodass der Übergang über 360°/0° korrekt als nördliche Strömung erkannt wird.
+- Die aktuelle Warnkarte erhält eine kompakte Windrichtungs-Kapsel; Tages-, Widget- und Ensemble-Hazard-Tooltips übernehmen die Richtungsinformation ebenfalls.
+- Neuer Regressionstest schützt konstante Windrichtung, Richtungswechsel, 360°-Übergänge und responsive Darstellung.
+
 # MID v0.8.18.6
 
 - Eigene Warnindikatoren: Warnzeiträume, die erst morgen beginnen, zeigen nun kompakt sowohl „Morgen“ als auch das konkrete Datum, zum Beispiel „Morgen, 30.07. · 08:00–12:00 Uhr“.

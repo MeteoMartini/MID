@@ -10,13 +10,14 @@ export type DwdWarningSample={
  showers?:number;
  snowfall?:number;
  gust?:number;
+ windDirection?:number;
  code?:number;
  visibility?:number;
  uvIndex?:number;
  isDay?:boolean;
 };
 export type DwdDisplayWindUnit='kn'|'kt'|'kmh'|'ms'|'mph';
-export type DwdWarningSignal={kind:DwdWarningKind;level:DwdWarningLevel;title:string;symbol:string;detail:string;value:number;unit:string;windowHours?:number;secondaryValue?:number;secondaryUnit?:string;validFrom?:string;validTo?:string};
+export type DwdWarningSignal={kind:DwdWarningKind;level:DwdWarningLevel;title:string;symbol:string;detail:string;value:number;unit:string;windowHours?:number;secondaryValue?:number;secondaryUnit?:string;validFrom?:string;validTo?:string;windDirection?:number;windDirectionText?:string};
 
 export const DWD_WARNING_COLORS:Record<DwdWarningLevel,string>={1:'#e6c229',2:'#ef8d32',3:'#e74a4a',4:'#9b59c6'};
 export const DWD_WIND_THRESHOLDS_KMH=[
@@ -29,6 +30,22 @@ export const DWD_WIND_THRESHOLDS_KMH=[
 ];
 
 const KMH_PER_KT=1.852;
+
+const WIND_DIRECTION_ADJECTIVES=['nördlicher','nordöstlicher','östlicher','südöstlicher','südlicher','südwestlicher','westlicher','nordwestlicher'] as const;
+function normaliseWindDirection(value:number){return((value%360)+360)%360}
+function windDirectionAdjective(value:number){return WIND_DIRECTION_ADJECTIVES[Math.round(normaliseWindDirection(value)/45)%8]}
+function circularMeanDirection(values:number[]){
+ const finiteValues=values.filter(Number.isFinite).map(normaliseWindDirection);if(!finiteValues.length)return Number.NaN;
+ const radians=finiteValues.map(value=>value*Math.PI/180),x=radians.reduce((sum,value)=>sum+Math.cos(value),0),y=radians.reduce((sum,value)=>sum+Math.sin(value),0);if(Math.abs(x)<1e-8&&Math.abs(y)<1e-8)return finiteValues[0];return normaliseWindDirection(Math.atan2(y,x)*180/Math.PI);
+}
+function directionDifference(a:number,b:number){const delta=Math.abs(normaliseWindDirection(a)-normaliseWindDirection(b));return Math.min(delta,360-delta)}
+function warningWindDirectionText(occurrences:WarningOccurrence[]){
+ const directions=occurrences.sort((a,b)=>a.start-b.start).map(item=>Number(item.signal.windDirection)).filter(Number.isFinite);if(!directions.length)return'';
+ const groupSize=Math.max(1,Math.ceil(directions.length/3)),early=circularMeanDirection(directions.slice(0,groupSize)),late=circularMeanDirection(directions.slice(-groupSize)),overall=circularMeanDirection(directions);
+ if(directions.length>=3&&Number.isFinite(early)&&Number.isFinite(late)&&directionDifference(early,late)>=67.5)return`Anfangs aus ${windDirectionAdjective(early)}, später aus ${windDirectionAdjective(late)} Richtung`;
+ return Number.isFinite(overall)?`Aus ${windDirectionAdjective(overall)} Richtung`:'';
+}
+export function formatDwdWarningDirection(signal:DwdWarningSignal){if(signal.kind!=='wind'&&signal.kind!=='snowdrift')return'';if(signal.windDirectionText)return signal.windDirectionText;return Number.isFinite(signal.windDirection)?`Aus ${windDirectionAdjective(Number(signal.windDirection))} Richtung`:''}
 
 function rounded(value:number){return Math.round(value)}
 export function beaufortFromKmh(kmh:number){const value=Math.max(0,finite(kmh));const limits=[1,6,12,20,29,39,50,62,75,89,103,118];const index=limits.findIndex(limit=>value<limit);return index<0?12:index}
@@ -109,7 +126,7 @@ function heatSignal(samples:DwdWarningSample[],index:number){const sample=sample
 export function dwdWarningSignalsAt(samples:DwdWarningSample[],index:number,elevation=0){
  const sample=samples[index];if(!sample)return[] as DwdWarningSignal[];
  const signals:DwdWarningSignal[]=[];
- const gustKmh=finite(sample.gust)*KMH_PER_KT,windClass=windClassification(gustKmh),wind=windClass?{kind:'wind',level:windClass.level,title:windClass.label,symbol:'💨',detail:`${windClass.label} bis ${Math.round(gustKmh)} km/h.`,value:gustKmh,unit:'km/h'} satisfies DwdWarningSignal:null;
+ const gustKmh=finite(sample.gust)*KMH_PER_KT,windDirection=Number.isFinite(Number(sample.windDirection))?normaliseWindDirection(Number(sample.windDirection)):undefined,windClass=windClassification(gustKmh),wind=windClass?{kind:'wind',level:windClass.level,title:windClass.label,symbol:'💨',detail:`${windClass.label} bis ${Math.round(gustKmh)} km/h.`,value:gustKmh,unit:'km/h',windDirection} satisfies DwdWarningSignal:null;
  const rain=rainWindowSignal(samples,index),snow=snowWindowSignal(samples,index,elevation),drift=snowdriftSignal(samples,index),ice=iceSignal(sample),fog=fogSignal(sample),heat=heatSignal(samples,index);
  if(wind)signals.push(wind);if(rain)signals.push(rain);if(snow)signals.push(snow);if(drift)signals.push(drift);if(ice)signals.push(ice);if(fog)signals.push(fog);if(heat)signals.push(heat);
  const thunder=thunderSignal(sample,wind,rain);if(thunder)signals.push(thunder);
@@ -125,7 +142,7 @@ function warningOccurrence(signal:DwdWarningSignal,index:number,sample:DwdWarnin
 function warningValidity(occurrences:WarningOccurrence[],selected:WarningOccurrence){
  const timed=occurrences.filter(item=>Number.isFinite(item.start)&&Number.isFinite(item.end)).sort((a,b)=>a.start-b.start);if(!timed.length||!Number.isFinite(selected.start))return{};
  const merged:{start:number;end:number;members:WarningOccurrence[]}[]=[];for(const item of timed){const current=merged.at(-1);if(current&&item.start<=current.end+5*60000){current.end=Math.max(current.end,item.end);current.members.push(item)}else merged.push({start:item.start,end:item.end,members:[item]})}
- const interval=merged.find(item=>item.members.includes(selected))??merged.find(item=>selected.start>=item.start&&selected.start<=item.end);return interval?{validFrom:new Date(interval.start).toISOString(),validTo:new Date(interval.end).toISOString()}:{};
+ const interval=merged.find(item=>item.members.includes(selected))??merged.find(item=>selected.start>=item.start&&selected.start<=item.end);return interval?{validFrom:new Date(interval.start).toISOString(),validTo:new Date(interval.end).toISOString(),windDirectionText:selected.signal.kind==='wind'?warningWindDirectionText(interval.members):undefined}:{};
 }
 export function summarizeDwdWarnings(samples:DwdWarningSample[],elevation=0,startLimit=samples.length){
  const byKind=new Map<DwdWarningKind,WarningOccurrence>(),occurrences=new Map<DwdWarningKind,WarningOccurrence[]>(),limit=Math.min(samples.length,Math.max(0,startLimit));
