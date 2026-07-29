@@ -183,13 +183,41 @@ function warningSignalStrength(signal:DwdWarningSignal){const value=Number(signa
 function warningStrength(occurrence:WarningOccurrence){return warningSignalStrength(occurrence.signal)}
 function strongestWarningOccurrence(items:WarningOccurrence[]){return items.reduce((best,item)=>!best||warningStrength(item)>warningStrength(best)?item:best,items[0])}
 function warningIntervalsOverlap(a:DwdWarningSignal,b:DwdWarningSignal){const aStart=Date.parse(String(a.validFrom??'')),aEnd=Date.parse(String(a.validTo??'')),bStart=Date.parse(String(b.validFrom??'')),bEnd=Date.parse(String(b.validTo??''));return Number.isFinite(aStart)&&Number.isFinite(aEnd)&&Number.isFinite(bStart)&&Number.isFinite(bEnd)&&aStart<bEnd&&bStart<aEnd}
+function warningStageRank(signal:DwdWarningSignal){return Number(signal.stageRank)||signal.level}
+function roundedComparable(value:number|undefined){return Number.isFinite(Number(value))?Math.round(Number(value)):null}
+function warningContentMatches(a:DwdWarningSignal,b:DwdWarningSignal){
+ return warningStageKey(a)===warningStageKey(b)&&a.unit===b.unit&&(a.windowHours??null)===(b.windowHours??null)&&(a.secondaryUnit??null)===(b.secondaryUnit??null)&&roundedComparable(a.value)===roundedComparable(b.value)&&roundedComparable(a.secondaryValue)===roundedComparable(b.secondaryValue)&&(a.windDirectionText??'')===(b.windDirectionText??'');
+}
+function higherWarningCoversGap(all:DwdWarningSignal[],signal:DwdWarningSignal,gapStart:number,gapEnd:number){
+ if(!Number.isFinite(gapStart)||!Number.isFinite(gapEnd)||gapEnd<=gapStart)return false;
+ const intervals=all.filter(other=>other!==signal&&other.kind===signal.kind&&warningStageRank(other)>warningStageRank(signal)).map(other=>({start:Date.parse(String(other.validFrom??'')),end:Date.parse(String(other.validTo??''))})).filter(item=>Number.isFinite(item.start)&&Number.isFinite(item.end)&&item.end>gapStart&&item.start<gapEnd).sort((a,b)=>a.start-b.start);
+ let cursor=gapStart;
+ for(const interval of intervals){if(interval.start>cursor+5*60000)return false;cursor=Math.max(cursor,interval.end);if(cursor>=gapEnd-5*60000)return true}
+ return false;
+}
+function mergeInterruptedLowerWarnings(signals:DwdWarningSignal[]){
+ const merged:DwdWarningSignal[]=[],groups=new Map<string,DwdWarningSignal[]>();
+ for(const signal of signals){const key=warningStageKey(signal),rows=groups.get(key)??[];rows.push(signal);groups.set(key,rows)}
+ for(const rows of groups.values()){
+  const sorted=[...rows].sort((a,b)=>Date.parse(String(a.validFrom??''))-Date.parse(String(b.validFrom??'')));let current:DwdWarningSignal|undefined;
+  for(const signal of sorted){
+   if(!current){current={...signal};continue}
+   const currentEnd=Date.parse(String(current.validTo??'')),nextStart=Date.parse(String(signal.validFrom??''));
+   if(warningContentMatches(current,signal)&&Number.isFinite(currentEnd)&&Number.isFinite(nextStart)&&nextStart>=currentEnd&&higherWarningCoversGap(signals,current,currentEnd,nextStart)){current={...current,validTo:signal.validTo};continue}
+   merged.push(current);current={...signal};
+  }
+  if(current)merged.push(current);
+ }
+ return merged;
+}
 export function summarizeDwdWarnings(samples:DwdWarningSample[],elevation=0,startLimit=samples.length){
  const occurrences=new Map<string,WarningOccurrence[]>(),limit=Math.min(samples.length,Math.max(0,startLimit));
  for(let index=0;index<limit;index++)for(const signal of dwdWarningSignalsAt(samples,index,elevation)){const occurrence=warningOccurrence(signal,index,samples[index]),key=warningStageKey(signal),rows=occurrences.get(key)??[];rows.push(occurrence);occurrences.set(key,rows)}
  const summarized:DwdWarningSignal[]=[];
  for(const rows of occurrences.values()){const intervals=warningIntervals(rows),untimed=rows.filter(item=>!Number.isFinite(item.start)||!Number.isFinite(item.end));for(const interval of intervals){const selected=strongestWarningOccurrence(interval.members);summarized.push({...selected.signal,...warningValidity(interval.members,selected)})}if(untimed.length)summarized.push({...strongestWarningOccurrence(untimed).signal})}
- for(const signal of summarized){signal.lowerIntensity=summarized.some(other=>other!==signal&&other.kind===signal.kind&&warningIntervalsOverlap(signal,other)&&((Number(other.stageRank)||other.level)>(Number(signal.stageRank)||signal.level)))}
- return summarized.sort((a,b)=>b.level-a.level||(Number(b.stageRank)||0)-(Number(a.stageRank)||0)||warningSignalStrength(b)-warningSignalStrength(a)||Date.parse(String(a.validFrom??''))-Date.parse(String(b.validFrom??''))||a.kind.localeCompare(b.kind));
+ const consolidated=mergeInterruptedLowerWarnings(summarized);
+ for(const signal of consolidated){signal.lowerIntensity=consolidated.some(other=>other!==signal&&other.kind===signal.kind&&warningIntervalsOverlap(signal,other)&&warningStageRank(other)>warningStageRank(signal))}
+ return consolidated.sort((a,b)=>b.level-a.level||warningStageRank(b)-warningStageRank(a)||warningSignalStrength(b)-warningSignalStrength(a)||Date.parse(String(a.validFrom??''))-Date.parse(String(b.validFrom??''))||a.kind.localeCompare(b.kind));
 }
 
 /**

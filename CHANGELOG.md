@@ -1,3 +1,16 @@
+# MID v0.8.18.15
+
+- Wasserwetter-Verlauf: Gezeiten- und Wasserstandswendepunkte werden nun direkt in der Tagesmatrix angezeigt. Jeder Tag enthält eine kompakte Tabellenzeile mit Hoch-/Tiefpunkt, exakter Uhrzeit und modelliertem Wasserstand.
+- Die Wendepunktanalyse wurde von sechs auf bis zu 18 Ereignisse erweitert, damit beim Aufklappen der Option „Nächste 3 Tage“ alle verfügbaren Tageswendepunkte abgedeckt werden können.
+- Die neue Zeile spannt übersichtlich über die Zeitspalten, bleibt horizontal scrollbar und unterscheidet Hoch- und Tiefpunkte farblich, ohne die stündlichen beziehungsweise dreistündlichen Wasserstandswerte zu verdrängen.
+- Neuer Regressionstest schützt Drei-Tage-Abdeckung, Datenübergabe, Tabellenintegration und responsive Darstellung.
+
+# MID v0.8.18.14
+
+- Eigene Warnkarten: Identische niedrigere Warnphasen werden jetzt über eine dazwischenliegende höhere Warnstufe hinweg zu einem einzigen einrahmenden Gültigkeitszeitraum verbunden. Im gezeigten Wärmebeispiel gilt die starke Wärmebelastung damit einmal von 11:00 bis 21:00 Uhr, während die extreme Wärmebelastung weiterhin separat von 15:00 bis 17:00 Uhr ausgewiesen wird.
+- Eine niedrigere Warnung wird nur zusammengeführt, wenn Warntyp, Warnstufe und sichtbarer Inhalt unverändert bleiben und die zeitliche Lücke vollständig durch eine höhere Warnstufe desselben Typs abgedeckt ist. Inhaltlich unterschiedliche Phasen bleiben getrennt.
+- Neuer Regressionstest schützt die einrahmende Zusammenfassung und verhindert zugleich das versehentliche Zusammenführen unterschiedlicher Warninhalte.
+
 # MID v0.8.18.13
 
 - Ensemble-Temperaturdiagramm: Warnmarker werden nun vor der Darstellung nach Warntyp zusammengefasst. Je Warntyp erscheint ausschließlich die höchste erreichte Warnstufe; unterschiedliche Warntypen bleiben parallel sichtbar.
