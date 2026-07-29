@@ -1,3 +1,10 @@
+# MID v0.8.17.2
+
+- Aktuelle Daten: Die UVI-Kachel verwendet nun die offiziellen fünf Gefahrenstufen des DWD/WHO-Schemas: keine bis gering (0–2), mittel (3–5), hoch (6–7), sehr hoch (8–10) und extrem (ab 11).
+- Analog zur Luftqualitätskachel zeigt die UVI-Kachel einen farbigen Stufenindikator und die Gefahrenstufe als Hauptwert; der konkrete UV-Index bleibt als Zahlenwert sichtbar.
+- Eine gleich große Info-Schaltfläche öffnet stufengerechte Handlungsempfehlungen, die kompakte Gesamtübersicht aller Stufen sowie im Erweiterten Modus Angaben zur Bewölkungs- und Höhenkorrektur.
+- Neuer Regressionstest schützt Schwellenwerte, Bezeichnungen, Schutzempfehlungen, Indikator und die einheitliche Info-Schaltfläche.
+
 # MID v0.8.17.1
 
 - Ensemble-Winddiagramm: Für Wind und Böen wird an den Vorhersagetagen 1–7 zusätzlich der engere P25–P75-Kernbereich dargestellt. Er liegt als deutlich dunklere Fläche innerhalb des bisherigen P10–P90-Bereichs und entspricht damit der Quartildarstellung des Temperaturtrends.
