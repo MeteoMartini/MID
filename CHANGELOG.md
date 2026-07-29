@@ -1,11 +1,9 @@
-# MID v0.8.16.0
+# MID v0.8.16.1
 
-- App- und Einstellungsdesign vereinheitlicht: Kartenradien, Abstände, Abschnittsüberschriften, Zustände und mobile Darstellung folgen nun einem gemeinsamen visuellen System.
-- Benachrichtigungsoptionen zentralisiert: Niederschlags-, Gewitter- und Modelllaufänderungsregeln werden ausschließlich im Untermenü „Benachrichtigungen“ verwaltet. Die Favoritenverwaltung enthält nur noch Favoriten-, Profil- und numerische Vor-Ort-Regeln.
-- Standardmodus redaktionell entschlackt: technische Quellen-, Stations- und Verfahrensangaben werden gekürzt oder hinter einer Informationsöffnung gebündelt; der Erweiterte Modus behält die vollständigen meteorologischen Hintergründe.
-- Wetterzwilling und Gerätesynchronisation zeigen im Standardmodus vereinfachte Bezeichnungen und weniger technische Optionen. Radar-/Nowcast-Assimilation, Bias-Korrektur, Wahrscheinlichkeitskalibrierung, private Stationskonfiguration sowie Apple-Widget-Werkzeuge bleiben dem Erweiterten Modus vorbehalten.
-- Komposit- und Ensemblemodule verwenden im Standardmodus verständlichere Kurzbeschreibungen; aktuelle Datenkarten zeigen kompaktere Quellen- und Messhinweise.
-- Neuer Regressionstest schützt die zentrale Benachrichtigungsverwaltung, die Standard-/Erweitert-Trennung sowie das vereinheitlichte Einstellungsdesign.
+- Aktuelle Daten: Die Kachel „Sonne / Mond“ wurde kompakter abgestimmt. Die Zeitwerte für Sonnenaufgang und Sonnenuntergang verwenden nun deutlich kleinere, an die übrigen Kacheln angeglichene Schriftgrößen.
+- Die Mindesthöhe der Sonne-/Mond-Kachel wurde spürbar reduziert, damit die gesamte Zeile der aktuellen Daten auf Desktop und mobil nicht unnötig in die Höhe gezogen wird.
+- Die Trennung von Sonnenaufgang, Sonnenuntergang, Mondphase und Tageslänge bleibt erhalten, jedoch mit dichterem vertikalem Rhythmus und platzsparenderen Details.
+- Der bestehende Regressionstest für die Astronomie-Kachel prüft jetzt ausdrücklich die kompaktere Typografie und die verringerte Kartenhöhe.
 
 # MID v0.8.15.7
 
