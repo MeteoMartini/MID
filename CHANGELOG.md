@@ -1,3 +1,11 @@
+# MID v0.8.17.3
+
+- Ensemble-Winddiagramm: Die zuletzt gewählte Ansicht „Wind“ oder „Böen“ wird dauerhaft lokal gespeichert und beim nächsten Öffnen der Ensemble-Sektion wiederhergestellt.
+- Hyperlokale Bewölkungsanalyse korrigiert: Explizite, aktuelle METAR-Sichtmeldungen wie CAVOK beziehungsweise klare Himmelsmeldungen werden nun zusätzlich direkt konsolidiert und können eine unplausible modellbasierte Bedeckung begrenzen. Entgegengesetzte aktuelle BKN-/OVC-Meldungen werden konfliktbewusst berücksichtigt.
+- Hintergrund: Die bisherige Restfeldmethode konnte einen falschen lokalen Modellgradienten erhalten, wenn das Best-Match-Modell am Zielort bedeckt, am Flughafen jedoch klar rechnete; die Stationsabweichung war dann nahe null und korrigierte den Zielwert nicht.
+- Im Erweiterten Modus weist die Bewölkungskachel aus, wenn eine aktuelle METAR-Sicht- oder Wolkenmeldung die lokale Bewölkung korrigiert hat.
+- Neuer Regressionstest schützt die persistente Wind-/Böenauswahl, CAVOK-/Klarmeldungs-Erkennung, konfliktbewusste Wolkenkorrektur und die transparente Quellenangabe.
+
 # MID v0.8.17.2
 
 - Aktuelle Daten: Die UVI-Kachel verwendet nun die offiziellen fünf Gefahrenstufen des DWD/WHO-Schemas: keine bis gering (0–2), mittel (3–5), hoch (6–7), sehr hoch (8–10) und extrem (ab 11).

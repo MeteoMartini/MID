@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.8.17.2",
+  "version": "0.8.17.3",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -68,7 +68,8 @@
     "test:settings-standard-design": "node scripts/test-settings-standard-design-08160.mjs",
     "test:ensemble-wind-collapse": "node scripts/test-ensemble-wind-collapse-08170.mjs",
     "test:ensemble-wind-quartiles": "node scripts/test-ensemble-wind-quartiles-08171.mjs",
-    "test:uvi-card": "node scripts/test-uvi-card-08172.mjs"
+    "test:uvi-card": "node scripts/test-uvi-card-08172.mjs",
+    "test:ensemble-selection-cloud": "node scripts/test-ensemble-wind-selection-cloud-reconciliation-08173.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",
