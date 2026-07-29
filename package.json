@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.8.16.1",
+  "version": "0.8.17.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -65,7 +65,8 @@
     "test:location-favorite-selection": "node scripts/test-location-favorite-selection-08154.mjs",
     "test:interaction-performance": "node scripts/test-interaction-performance-cleanup-08155.mjs",
     "test:sun-moon-card": "node scripts/test-sun-moon-card-08156.mjs",
-    "test:settings-standard-design": "node scripts/test-settings-standard-design-08160.mjs"
+    "test:settings-standard-design": "node scripts/test-settings-standard-design-08160.mjs",
+    "test:ensemble-wind-collapse": "node scripts/test-ensemble-wind-collapse-08170.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

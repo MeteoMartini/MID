@@ -27,7 +27,7 @@ need(app,'ensembleRequested||weatherTwinSettings.enabled','Ensemblemodelle werde
 need(app,'refreshForecastReferences(key,loc,controller.signal)','Rückblicksreferenzen werden ohne geöffnetes Modul nicht aktualisiert.');
 need(app,'hazards(displayHours','Hazards verwenden nicht die aktiv angepasste Stundenprognose.');
 need(weather,'Number.isFinite(row.gust)?Math.log1p','Szenariocluster behandeln fehlende Böen nicht nullsicher.');
-need(weather,"return request('temperature_2m,precipitation')",'Ensembleabruf besitzt keinen Kernvariablen-Fallback bei optional nicht unterstützten Feldern.');
+need(weather,"'temperature_2m,precipitation'",'Ensembleabruf besitzt keinen Kernvariablen-Fallback bei optional nicht unterstützten Feldern.');
 need(app,'row.available>=3','Höhenzonenanalyse wertet unzureichende/NaN-behaftete Daten weiterhin aus.');
 need(app,'nextClockHour(rows[best.end].time)','Höhenzonen-Zeitfenster endet nicht am Ende der letzten Stunde.');
 if(!styles.includes('.weather-twin-spatial'))failures.push('Räumliche Umfeldanalyse besitzt kein Styling.');

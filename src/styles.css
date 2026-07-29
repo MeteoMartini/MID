@@ -2626,21 +2626,21 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .water-matrix-content{display:grid;gap:10px;padding:0 12px 12px}.water-matrix-content>p{margin:0;color:var(--muted);font-size:8.5px;line-height:1.4}.water-matrix-controls{justify-content:flex-start}.water-matrix-day{margin:0}.water-matrix-level>header{background:color-mix(in srgb,#38bdf8 8%,var(--surface))}.water-matrix-pair{display:grid!important;place-items:center;gap:1px}.water-matrix-pair strong{font-size:8.5px}.water-matrix-pair small{max-width:72px;white-space:normal;text-align:center}.water-matrix-row>span{min-height:36px}
 @media(max-width:620px){.water-matrix-summary{padding:10px}.water-matrix-content{padding:0 10px 10px}.water-matrix-row{grid-template-columns:94px repeat(var(--mountain-columns),minmax(68px,1fr))}.water-matrix-summary strong{font-size:11px}}
 
-/* MID v0.8.13.0 / v0.8.16.1: compact astronomy card without oversized metric rows */
-.metrics .sun-moon-card{min-height:118px}
+/* MID v0.8.13.0 / v0.8.17.0: compact astronomy card without oversized metric rows */
+.metrics .sun-moon-card{min-height:0}
 .metrics .sun-moon-card header>.mode-info{margin-left:auto}
 .metrics .sun-moon-card header>.mode-info>button{width:22px;height:22px}
-.metrics .sun-moon-card>strong{display:grid;gap:6px;margin-top:7px;font-size:inherit;line-height:1.08;white-space:normal}
-.metrics .sun-moon-card>small{display:grid;gap:4px;margin-top:5px}
-.sun-moon-card-value{display:grid;gap:6px;min-width:0}
-.sun-moon-time-block{display:grid;gap:2px;min-width:0;text-align:left}
-.sun-moon-time-block small{color:var(--muted);font-size:7px;font-weight:850;letter-spacing:.11em;text-transform:uppercase;line-height:1.12}
-.sun-moon-time-block b{display:block;color:var(--text);font-size:clamp(16px,1.45vw,22px);font-weight:820;font-variant-numeric:tabular-nums;line-height:.98}
-.sun-moon-card-divider{display:block;height:1px;border-radius:999px;background:color-mix(in srgb,var(--border) 92%,transparent)}
-.sun-moon-detail{display:grid;gap:3px;min-width:0;line-height:1.24}
-.sun-moon-phase{display:flex;align-items:center;gap:6px;min-width:0;flex-wrap:wrap;color:var(--text)}
-.sun-moon-phase i{font-style:normal;font-size:12px;line-height:1}
-.sun-moon-phase b{font-size:9px;line-height:1.12}
+.metrics .sun-moon-card>strong{display:block;margin-top:6px;font-size:clamp(13px,.95vw,16px);line-height:1.04;white-space:normal}
+.metrics .sun-moon-card>small{display:grid;gap:2px;margin-top:4px}
+.sun-moon-card-value{display:grid;grid-template-columns:minmax(0,1fr) 1px minmax(0,1fr);align-items:end;gap:6px;min-width:0}
+.sun-moon-time-block{display:grid;gap:1px;min-width:0;text-align:left}
+.sun-moon-time-block small{color:var(--muted);font-size:6.4px;font-weight:850;letter-spacing:.1em;text-transform:uppercase;line-height:1.05}
+.sun-moon-time-block b{display:block;color:var(--text);font:inherit;font-weight:780;font-variant-numeric:tabular-nums;line-height:1}
+.sun-moon-card-divider{display:block;width:1px;height:28px;align-self:center;border-radius:999px;background:color-mix(in srgb,var(--border) 92%,transparent)}
+.sun-moon-detail{display:grid;gap:2px;min-width:0;line-height:1.18}
+.sun-moon-phase{display:flex;align-items:center;gap:4px;min-width:0;flex-wrap:wrap;color:var(--text)}
+.sun-moon-phase i{font-style:normal;font-size:10px;line-height:1}
+.sun-moon-phase b{font-size:8px;line-height:1.08}
 .sun-moon-phase em{color:var(--muted);font-style:normal;font-weight:650}
 .sun-moon-meta{display:block;color:var(--muted)}
 .astronomy-popover-content{display:grid;gap:9px;min-width:0}
@@ -2653,9 +2653,9 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .astronomy-event-list time{font-variant-numeric:tabular-nums;font-size:10px;font-weight:800}
 .astronomy-moon-detail,.astronomy-polar-note{display:block;padding:7px 8px;border-radius:9px;background:var(--s2);font-size:9px;line-height:1.35}
 .astronomy-popover-content>small{color:var(--muted);font-size:8px;line-height:1.4}
-@media(max-width:760px){.metrics .sun-moon-card{min-height:106px}.metrics .sun-moon-card>strong{gap:5px}.sun-moon-card-value{gap:5px}.sun-moon-time-block b{font-size:clamp(15px,5.4vw,20px)}}
-@media(max-width:620px){.metrics .sun-moon-card{min-height:100px}.metrics .sun-moon-card>strong{margin-top:6px}.metrics .sun-moon-card>small{gap:3px}.sun-moon-time-block small{font-size:6.8px}.sun-moon-phase b{font-size:8.5px}.astronomy-event-list b{font-size:10px}.astronomy-event-list time{font-size:11px}.astronomy-popover-content>small{font-size:9px}}
-@media(max-width:420px){.metrics .sun-moon-card{min-height:96px}.sun-moon-time-block b{font-size:clamp(14px,7.2vw,18px)}.sun-moon-phase{gap:4px}.sun-moon-phase em{display:inline}}
+@media(max-width:760px){.metrics .sun-moon-card>strong{font-size:14px}.sun-moon-card-value{gap:5px}.sun-moon-card-divider{height:25px}}
+@media(max-width:620px){.metrics .sun-moon-card>strong{margin-top:5px;font-size:13.5px}.sun-moon-time-block small{font-size:6.2px}.sun-moon-phase b{font-size:7.8px}.astronomy-event-list b{font-size:10px}.astronomy-event-list time{font-size:11px}.astronomy-popover-content>small{font-size:9px}}
+@media(max-width:420px){.metrics .sun-moon-card>strong{font-size:13px}.sun-moon-card-value{gap:4px}.sun-moon-card-divider{height:23px}.sun-moon-phase{gap:3px}.sun-moon-phase em{display:inline}}
 /* MID v0.8.15.0 – Luftdruck im Tagesdetail und einklappbare Legende */
 .detail-legend-shell{margin:2px 0 8px}
 .detail-legend-toolbar{display:flex;justify-content:flex-end;min-height:30px}
@@ -2739,3 +2739,63 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .settings-dialog[data-settings-mode=standard] .weather-twin-settings,.settings-dialog[data-settings-mode=standard] .device-sync-settings{padding:14px}
 .mode-standard .metrics article>small{line-height:1.3}
 @media(max-width:700px){.settings-section>header{padding-bottom:10px}.settings-option-list{margin-top:10px}.push-settings-group{padding:11px}.settings-dialog[data-settings-mode=standard] .settings-content{padding-top:14px}.settings-dialog[data-settings-mode=standard] .settings-section>header h3{font-size:20px}}
+
+/* MID v0.8.17.0 – einklappbare Ensemble-Diagramme und Wind-/Böentrend */
+.ensemble-chart-export{margin-top:11px;border:1px solid color-mix(in srgb,var(--border) 88%,transparent);padding:9px 10px 10px}
+.ensemble-chart-export>.charthead{align-items:center;margin:0 0 8px}
+.ensemble-chart-export.collapsed{padding-bottom:8px;background:color-mix(in srgb,var(--s2) 48%,var(--surface))}
+.ensemble-chart-export.collapsed>.charthead{margin-bottom:0}
+.ensemble-chart-collapse{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:34px;padding:6px 9px;border:1px solid var(--border);border-radius:10px;background:var(--s2);color:var(--text);font-size:10px;font-weight:750;cursor:pointer}
+.ensemble-chart-collapse svg{transition:transform .18s ease}
+.ensemble-chart-collapse[aria-expanded="false"] svg{transform:rotate(-90deg)}
+.ensemble-chart-collapse:hover{border-color:color-mix(in srgb,var(--primary) 42%,var(--border));background:color-mix(in srgb,var(--primary) 8%,var(--s2))}
+.chart.wind-trend{display:flex;height:340px;flex-direction:column;gap:8px;min-width:0}
+.wind-trend-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;min-width:0}
+.wind-mode-switch{display:inline-flex;align-items:center;padding:2px;border:1px solid var(--border);border-radius:10px;background:var(--s2)}
+.wind-mode-switch button{min-height:29px;padding:5px 10px;border:0;border-radius:8px;background:transparent;color:var(--muted);font-size:10px;font-weight:800}
+.wind-mode-switch button.active{background:var(--surface);color:var(--text);box-shadow:0 1px 5px rgba(19,45,72,.12)}
+.wind-legend{display:flex;align-items:center;justify-content:flex-end;gap:8px 12px;flex-wrap:wrap;color:var(--muted);font-size:10px}
+.wind-legend span{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.wind-legend i{display:inline-block;flex:0 0 auto}
+.wind-legend i.area{width:17px;height:9px;border-radius:3px}
+.wind-legend i.area.wind{border:1px solid rgba(28,147,223,.58);background:rgba(86,185,239,.3)}
+.wind-legend i.area.gust{border:1px solid rgba(239,125,50,.62);background:rgba(247,164,93,.32)}
+.wind-legend i.line{width:19px;height:0;border-top:3px solid}
+.wind-legend i.line.best.wind{border-color:#1c93df}
+.wind-legend i.line.best.gust{border-color:#ef7d32}
+.wind-legend i.line.mean{border-top-width:2px;border-top-style:dashed}
+.wind-legend i.line.mean.wind{border-color:#56b9ef}
+.wind-legend i.line.mean.gust{border-color:#f7a45d}
+.ensemble-wind-plot{display:grid;grid-template-columns:44px minmax(0,1fr) 38px;gap:6px;align-items:stretch;flex:1 1 auto;width:100%;min-width:0;min-height:0}
+.ensemble-wind-chart-core{display:grid;grid-template-rows:minmax(0,1fr) 28px;min-width:0;min-height:0}
+.ensemble-wind-chart-core>.recharts-responsive-container{min-width:0!important;min-height:0!important}
+.ensemble-wind-axis-title{color:var(--muted);font-size:10px;font-weight:700;line-height:1;letter-spacing:.01em;pointer-events:none;user-select:none}
+.ensemble-wind-axis-title b,.ensemble-wind-axis-title small{font:inherit;white-space:nowrap}
+.ensemble-wind-axis-title-left{display:flex;align-items:center;justify-content:center;gap:4px;writing-mode:vertical-rl;transform:rotate(180deg)}
+.ensemble-wind-axis-title-bottom{display:flex;align-items:end;justify-content:center;padding-top:5px;font-size:11px}
+.ensemble-wind-axis-spacer{display:block}
+.wind-tooltip{display:grid;gap:4px}
+@media(max-width:620px){
+ .ensemble-chart-export{padding:8px;border-radius:12px}
+ .ensemble-chart-collapse{min-width:34px;padding:6px}
+ .ensemble-chart-collapse span{display:none}
+ .chart.wind-trend{height:300px}
+ .wind-trend-toolbar{align-items:flex-start;gap:6px}
+ .wind-legend{justify-content:flex-start;gap:4px 7px;font-size:8px}
+ .wind-mode-switch button{min-height:27px;padding:4px 8px;font-size:9px}
+ .ensemble-wind-plot{grid-template-columns:minmax(0,1fr);grid-template-rows:22px minmax(0,1fr);gap:3px}
+ .ensemble-wind-chart-core{grid-column:1;grid-row:2;grid-template-rows:minmax(0,1fr) 24px}
+ .ensemble-wind-axis-title-left{grid-column:1;grid-row:1;justify-content:flex-start;writing-mode:horizontal-tb;transform:none;gap:3px;font-size:8px}
+ .ensemble-wind-axis-title-bottom{align-items:center;padding-top:2px;font-size:9px}
+ .ensemble-wind-axis-spacer{display:none}
+}
+@media(max-width:420px){.chart.wind-trend{height:285px}.wind-trend-toolbar{display:grid}.wind-legend{font-size:7.5px}}
+.ensemble-chart-export.ensemble-exporting .chart.wind-trend{height:365px!important}
+.ensemble-chart-export.ensemble-exporting .ensemble-wind-plot{grid-template-columns:42px 1000px 38px;grid-template-rows:minmax(0,1fr);gap:8px;width:1096px;margin:0 auto}
+.ensemble-chart-export.ensemble-exporting .ensemble-wind-chart-core{grid-column:auto;grid-row:auto;grid-template-rows:minmax(0,1fr) 28px}
+.ensemble-chart-export.ensemble-exporting .ensemble-wind-axis-title-left{grid-column:auto;grid-row:auto;justify-content:center;writing-mode:vertical-rl;transform:rotate(180deg);font-size:10px}
+.ensemble-chart-export.ensemble-exporting .ensemble-wind-axis-title-bottom{align-items:end;padding-top:5px;font-size:11px}
+.ensemble-chart-export.ensemble-exporting .ensemble-wind-axis-spacer{display:block}
+.ensemble-chart-export.ensemble-exporting .ensemble-wind-plot .ensemble-fixed-chart,
+.ensemble-chart-export.ensemble-exporting .ensemble-wind-plot .ensemble-fixed-chart>.recharts-wrapper,
+.ensemble-chart-export.ensemble-exporting .ensemble-wind-plot .ensemble-fixed-chart>svg{width:1000px!important;min-width:1000px!important;max-width:1000px!important}

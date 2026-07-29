@@ -12,11 +12,11 @@ export type Weather={latitude:number;longitude:number;elevation:number;timezone:
 export type Hour={time:string;epoch:number;timezone:string;temperature:number;apparent:number;humidity:number;dewPoint:number;pressure:number;precipitation:number;rain:number;showers:number;snowfall:number;probability:number;code:number;wind:number;gust:number;gustAdjusted?:boolean;direction:number;cloud:number;lowCloud:number;uvIndex:number;visibility:number;cape:number;isDay:boolean};
 export type Minute15={time:string;epoch:number;timezone:string;precipitation:number;rain:number;showers:number;snowfall:number;probability:number;code:number};
 export type Day={date:string;code:number;max:number;min:number;sunrise?:string;sunset?:string;sunshineDuration:number;precipitation:number;probability:number;wind:number;gust:number;gustAdjusted?:boolean;direction:number;uvMax:number};
-export type EnsembleModelDay={id:string;label:string;max:number;min:number;precipitation:number;precipitationProbability:number;memberCount:number;gust?:number;sunshineDuration?:number;weatherCode?:number};
+export type EnsembleModelDay={id:string;label:string;max:number;min:number;precipitation:number;precipitationProbability:number;memberCount:number;wind?:number;gust?:number;sunshineDuration?:number;weatherCode?:number};
 export type EnsembleScenarioPoint={date:string;max:number;min:number;precipitation:number;sunshineDuration:number;gust:number};
 export type EnsembleScenarioModelShare={id:string;label:string;memberCount:number;familyMemberCount:number;familyShare:number};
 export type EnsembleScenarioCluster={id:string;label:string;summary:string;probability:number;memberCount:number;modelLabels:string[];modelShares?:EnsembleScenarioModelShare[];divergenceDate?:string;points:EnsembleScenarioPoint[]};
-export type EnsembleDay={date:string;maxMean:number;maxLow:number;maxHigh:number;maxQ25:number;maxQ75:number;minMean:number;minLow:number;minHigh:number;minQ25:number;minQ75:number;precipitationMean:number;precipitationLow:number;precipitationHigh:number;precipitationProbability:number;sunshineDurationMean:number;sunshineDurationLow:number;sunshineDurationHigh:number;modelCount:number;memberCount:number;modelSummaries?:EnsembleModelDay[]};
+export type EnsembleDay={date:string;maxMean:number;maxLow:number;maxHigh:number;maxQ25:number;maxQ75:number;minMean:number;minLow:number;minHigh:number;minQ25:number;minQ75:number;precipitationMean:number;precipitationLow:number;precipitationHigh:number;precipitationProbability:number;sunshineDurationMean:number;sunshineDurationLow:number;sunshineDurationHigh:number;windMean:number;windLow:number;windHigh:number;gustMean:number;gustLow:number;gustHigh:number;modelCount:number;memberCount:number;modelSummaries?:EnsembleModelDay[]};
 export type ClimateDay={date:string;maxMean:number;minMean:number;years:number};
 export type Station={name:string;provider?:string;stationId?:string;latitude?:number;longitude?:number;distance?:number;height?:number;timestamp?:string;temperature?:number;humidity?:number;dewPoint?:number;pressure?:number;pressureReference?:'QFF'|'MSL'|'QNH'|'station';windSpeed?:number;windDirection?:number;windGust?:number;windUnit?:'kt'|'kmh';visibility?:number;cloudCover?:number;ceilingHft?:number;cloudBaseHft?:number;precipitation?:number;stationCount?:number;sourceProviders?:string[];blended?:boolean;temperatureSpread?:number;trustFactor?:number;networkClass?:'official'|'professional'|'pws'|'citizen'|'unknown';siteClass?:UrbanClass;analysisMethod?:string;uncertainty?:number;effectiveResolutionKm?:number;candidateCount?:number;rejectedCount?:number;localCorrection?:number;backgroundModel?:string;urbanClass?:UrbanClass};
 export type OfficialAlertLevel='yellow'|'orange'|'red'|'purple'|'unknown';
@@ -91,7 +91,7 @@ const meanModels:EnsembleMeanModel[]=[
  {id:'cmc_gem_geps_ensemble_mean',label:'GEM GEPS Mittel',metaId:'cmc_gem_geps',resolutionKm:25,updateHours:12,maxDays:14},
  {id:'google_weathernext2_ensemble_mean',label:'Google WeatherNext 2 Mittel',metaId:'google_weathernext2_ensemble',resolutionKm:25,updateHours:12,maxDays:14}
 ];
-const ENSEMBLE_CACHE_PREFIX='mid:ensemble:v7:';
+const ENSEMBLE_CACHE_PREFIX='mid:ensemble:v8:';
 const ENSEMBLE_FRESH_CACHE_MS=20*60*1000;
 function modelApplies(m:EnsembleModel,lat:number,lon:number){if(!m.bbox)return true;const[minLon,minLat,maxLon,maxLat]=m.bbox;return lon>=minLon&&lon<=maxLon&&lat>=minLat&&lat<=maxLat}
 function withoutGlobalEcmwfDuplicates(models:EnsembleModel[]){const ids=new Set(models.map(model=>model.id));return models.filter(model=>!(model.id==='ecmwf_ifs025_ensemble'&&ids.has('ecmwf_ifs_europe_ensemble'))&&!(model.id==='ecmwf_aifs025_ensemble'&&ids.has('ecmwf_aifs_europe_ensemble'))&&!(model.id==='ecmwf_ifs025_ensemble_mean'&&ids.has('ecmwf_ifs_europe_ensemble_mean'))&&!(model.id==='ecmwf_aifs025_ensemble_mean'&&ids.has('ecmwf_aifs_europe_ensemble_mean')))}
@@ -751,7 +751,7 @@ function weightedQuantile(values:{value:number;weight:number}[],p:number){const 
 function weightedMean(values:{value:number;weight:number}[]){const a=values.filter(x=>Number.isFinite(x.value)&&x.weight>0),w=a.reduce((s,x)=>s+x.weight,0);return w?a.reduce((s,x)=>s+x.value*x.weight,0)/w:NaN}
 function weightedProbability(values:{value:number;weight:number}[],threshold=.1){const a=values.filter(x=>Number.isFinite(x.value)&&x.weight>0),w=a.reduce((s,x)=>s+x.weight,0);return w?100*a.filter(x=>x.value>=threshold).reduce((s,x)=>s+x.weight,0)/w:0}
 function robustWeighted(values:{value:number;weight:number}[],absolute:number){if(values.length<5)return values;const med=weightedQuantile(values,.5),q1=weightedQuantile(values,.25),q3=weightedQuantile(values,.75),iqr=Math.max(.5,q3-q1),limit=Math.max(absolute,1.8*iqr);const filtered=values.filter(x=>Math.abs(x.value-med)<=limit);return filtered.length>=Math.max(4,Math.ceil(values.length*.55))?filtered:values}
-type MemberDay={date:string;max:number;min:number;precipitation:number;sunshineDuration:number;gust:number};
+type MemberDay={date:string;max:number;min:number;precipitation:number;sunshineDuration:number;wind:number;gust:number};
 type ModelResult={model:EnsembleModel;members:Map<string,MemberDay[]>};
 type ScenarioTrajectory={id:string;modelId:string;modelLabel:string;weight:number;rows:MemberDay[];vector:number[]};
 function scenarioTrajectoryVector(rows:MemberDay[],dates:string[]){const values:number[]=[];for(const date of dates){const row=rows.find(item=>item.date===date);if(!row||![row.max,row.min,row.precipitation].every(Number.isFinite))return[];values.push(row.max,row.min,Math.log1p(Math.max(0,row.precipitation))*3,Number.isFinite(row.gust)?Math.log1p(Math.max(0,row.gust))*1.25:NaN)}return values}
@@ -797,27 +797,28 @@ function buildEnsembleScenarios(results:ModelResult[],days:EnsembleDay[]):Ensemb
  return labelled.map(cluster=>({...cluster,divergenceDate}));
 }
 function parseModelMembers(w:Weather,model:EnsembleModel):ModelResult|null{
- const times=(w.hourly.time as string[])??[],keys=Object.keys(w.hourly),tempKeys=keys.filter(k=>/^temperature_2m(?:_member\d+)?$/.test(k)),precipKeys=keys.filter(k=>/^precipitation(?:_member\d+)?$/.test(k)),sunshineKeys=keys.filter(k=>/^sunshine_duration(?:_member\d+)?$/.test(k)),gustKeys=keys.filter(k=>/^wind_gusts_10m(?:_member\d+)?$/.test(k));
+ const times=(w.hourly.time as string[])??[],keys=Object.keys(w.hourly),tempKeys=keys.filter(k=>/^temperature_2m(?:_member\d+)?$/.test(k)),precipKeys=keys.filter(k=>/^precipitation(?:_member\d+)?$/.test(k)),sunshineKeys=keys.filter(k=>/^sunshine_duration(?:_member\d+)?$/.test(k)),windKeys=keys.filter(k=>/^wind_speed_10m(?:_member\d+)?$/.test(k)),gustKeys=keys.filter(k=>/^wind_gusts_10m(?:_member\d+)?$/.test(k));
  if(!times.length||!tempKeys.length)return null;
- const suffix=(k:string)=>k.replace('temperature_2m',''),pBySuffix=new Map(precipKeys.map(k=>[k.replace('precipitation',''),k])),sBySuffix=new Map(sunshineKeys.map(k=>[k.replace('sunshine_duration',''),k])),gBySuffix=new Map(gustKeys.map(k=>[k.replace('wind_gusts_10m',''),k]));
+ const suffix=(k:string)=>k.replace('temperature_2m',''),pBySuffix=new Map(precipKeys.map(k=>[k.replace('precipitation',''),k])),sBySuffix=new Map(sunshineKeys.map(k=>[k.replace('sunshine_duration',''),k])),wBySuffix=new Map(windKeys.map(k=>[k.replace('wind_speed_10m',''),k])),gBySuffix=new Map(gustKeys.map(k=>[k.replace('wind_gusts_10m',''),k]));
  const members=new Map<string,MemberDay[]>();
  for(const tk of tempKeys){
-  const s=suffix(tk),pk=pBySuffix.get(s),sk=sBySuffix.get(s),gk=gBySuffix.get(s),temps=w.hourly[tk]??[],rain=pk?w.hourly[pk]??[]:[],sunshine=sk?w.hourly[sk]??[]:[],gusts=gk?w.hourly[gk]??[]:[];
-  const daily=new Map<string,{t:number[];p:number[];s:number[];g:number[]}>();
+  const s=suffix(tk),pk=pBySuffix.get(s),sk=sBySuffix.get(s),wk=wBySuffix.get(s),gk=gBySuffix.get(s),temps=w.hourly[tk]??[],rain=pk?w.hourly[pk]??[]:[],sunshine=sk?w.hourly[sk]??[]:[],winds=wk?w.hourly[wk]??[]:[],gusts=gk?w.hourly[gk]??[]:[];
+  const daily=new Map<string,{t:number[];p:number[];s:number[];w:number[];g:number[]}>();
   for(let i=0;i<times.length;i++){
-   const date=String(times[i]).slice(0,10),tv=n(temps[i]),pv=n(rain[i]),sv=n(sunshine[i]),gv=n(gusts[i]);
-   if(!daily.has(date))daily.set(date,{t:[],p:[],s:[],g:[]});
+   const date=String(times[i]).slice(0,10),tv=n(temps[i]),pv=n(rain[i]),sv=n(sunshine[i]),wv=n(winds[i]),gv=n(gusts[i]);
+   if(!daily.has(date))daily.set(date,{t:[],p:[],s:[],w:[],g:[]});
    const d=daily.get(date)!;
    if(Number.isFinite(tv)&&tv>-65&&tv<65)d.t.push(tv);
    if(Number.isFinite(pv)&&pv>=0&&pv<150)d.p.push(pv);
    if(Number.isFinite(sv)&&sv>=0&&sv<=21600)d.s.push(sv);
+   if(Number.isFinite(wv)&&wv>=0&&wv<140)d.w.push(wv);
    if(Number.isFinite(gv)&&gv>=0&&gv<180)d.g.push(gv);
   }
   const rows:MemberDay[]=[];
   daily.forEach((d,date)=>{
    if(d.t.length>=18){
-    const max=Math.max(...d.t),min=Math.min(...d.t),precipitation=d.p.reduce((a,b)=>a+b,0),sunshineDuration=d.s.length>=6?clampNumber(d.s.reduce((a,b)=>a+b,0),0,86400):NaN,gust=d.g.length?Math.max(...d.g):NaN;
-    if(Number.isFinite(max)&&Number.isFinite(min)&&max>=min&&max-min<35)rows.push({date,max,min,precipitation,sunshineDuration,gust});
+    const max=Math.max(...d.t),min=Math.min(...d.t),precipitation=d.p.reduce((a,b)=>a+b,0),sunshineDuration=d.s.length>=6?clampNumber(d.s.reduce((a,b)=>a+b,0),0,86400):NaN,wind=d.w.length?Math.max(...d.w):NaN,gust=d.g.length?Math.max(...d.g):NaN;
+    if(Number.isFinite(max)&&Number.isFinite(min)&&max>=min&&max-min<35)rows.push({date,max,min,precipitation,sunshineDuration,wind,gust});
    }
   });
   if(rows.length>=2)members.set(s||'_control',rows);
@@ -830,7 +831,7 @@ function aggregateMembers(results:ModelResult[]){
  const allDates=[...new Set(results.flatMap(r=>[...r.members.values()].flatMap(m=>m.map(x=>x.date))))].sort().slice(0,14),days:EnsembleDay[]=[];
  for(let lead=0;lead<allDates.length;lead++){
   const date=allDates[lead];
-  let maxVals:{value:number;weight:number}[]=[],minVals:{value:number;weight:number}[]=[],rainVals:{value:number;weight:number}[]=[],sunVals:{value:number;weight:number}[]=[],modelSummaries:EnsembleModelDay[]=[];
+  let maxVals:{value:number;weight:number}[]=[],minVals:{value:number;weight:number}[]=[],rainVals:{value:number;weight:number}[]=[],sunVals:{value:number;weight:number}[]=[],windVals:{value:number;weight:number}[]=[],gustVals:{value:number;weight:number}[]=[],modelSummaries:EnsembleModelDay[]=[];
   const modelsUsed=new Set<string>();let memberCount=0;
   for(const r of results){
    const memberRows=[...r.members.values()].map(rows=>rows.find(x=>x.date===date)).filter(Boolean) as MemberDay[];
@@ -838,14 +839,14 @@ function aggregateMembers(results:ModelResult[]){
    const medMax=quantile(memberRows.map(x=>x.max),.5),medMin=quantile(memberRows.map(x=>x.min),.5),filtered=memberRows.filter(x=>Math.abs(x.max-medMax)<=8&&Math.abs(x.min-medMin)<=8),rows=filtered.length>=Math.max(3,Math.ceil(memberRows.length*.55))?filtered:memberRows,weight=modelDayWeight(r.model,lead,rows.length);
    if(!rows.length||weight<=0)continue;
    modelsUsed.add(r.model.id);memberCount+=rows.length;
-   modelSummaries.push({id:r.model.id,label:r.model.label,max:quantile(rows.map(item=>item.max),.5),min:quantile(rows.map(item=>item.min),.5),precipitation:quantile(rows.map(item=>item.precipitation),.5),precipitationProbability:100*rows.filter(item=>item.precipitation>=.1).length/Math.max(1,rows.length),memberCount:rows.length,gust:rows.some(item=>Number.isFinite(item.gust))?quantile(rows.map(item=>item.gust).filter(Number.isFinite),.5):undefined,sunshineDuration:rows.some(item=>Number.isFinite(item.sunshineDuration))?quantile(rows.map(item=>item.sunshineDuration).filter(Number.isFinite),.5):undefined});
-   for(const row of rows){maxVals.push({value:row.max,weight});minVals.push({value:row.min,weight});rainVals.push({value:row.precipitation,weight});if(Number.isFinite(row.sunshineDuration))sunVals.push({value:row.sunshineDuration,weight})}
+   modelSummaries.push({id:r.model.id,label:r.model.label,max:quantile(rows.map(item=>item.max),.5),min:quantile(rows.map(item=>item.min),.5),precipitation:quantile(rows.map(item=>item.precipitation),.5),precipitationProbability:100*rows.filter(item=>item.precipitation>=.1).length/Math.max(1,rows.length),memberCount:rows.length,wind:rows.some(item=>Number.isFinite(item.wind))?quantile(rows.map(item=>item.wind).filter(Number.isFinite),.5):undefined,gust:rows.some(item=>Number.isFinite(item.gust))?quantile(rows.map(item=>item.gust).filter(Number.isFinite),.5):undefined,sunshineDuration:rows.some(item=>Number.isFinite(item.sunshineDuration))?quantile(rows.map(item=>item.sunshineDuration).filter(Number.isFinite),.5):undefined});
+   for(const row of rows){maxVals.push({value:row.max,weight});minVals.push({value:row.min,weight});rainVals.push({value:row.precipitation,weight});if(Number.isFinite(row.sunshineDuration))sunVals.push({value:row.sunshineDuration,weight});if(Number.isFinite(row.wind))windVals.push({value:row.wind,weight});if(Number.isFinite(row.gust))gustVals.push({value:row.gust,weight})}
   }
-  maxVals=robustWeighted(maxVals,9);minVals=robustWeighted(minVals,9);rainVals=robustWeighted(rainVals,25);sunVals=robustWeighted(sunVals,21600);
+  maxVals=robustWeighted(maxVals,9);minVals=robustWeighted(minVals,9);rainVals=robustWeighted(rainVals,25);sunVals=robustWeighted(sunVals,21600);windVals=robustWeighted(windVals,35);gustVals=robustWeighted(gustVals,45);
   if(modelsUsed.size<2||memberCount<10||maxVals.length<6||minVals.length<6)continue;
-  const maxLow=weightedQuantile(maxVals,.1),maxHigh=weightedQuantile(maxVals,.9),maxQ25=weightedQuantile(maxVals,.25),maxQ75=weightedQuantile(maxVals,.75),minLow=weightedQuantile(minVals,.1),minHigh=weightedQuantile(minVals,.9),minQ25=weightedQuantile(minVals,.25),minQ75=weightedQuantile(minVals,.75),precipitationLow=weightedQuantile(rainVals,.1),precipitationHigh=weightedQuantile(rainVals,.9),sunshineDurationLow=sunVals.length>=6?weightedQuantile(sunVals,.1):NaN,sunshineDurationHigh=sunVals.length>=6?weightedQuantile(sunVals,.9):NaN,sunshineDurationMean=sunVals.length>=6?weightedMean(sunVals):NaN;
+  const maxLow=weightedQuantile(maxVals,.1),maxHigh=weightedQuantile(maxVals,.9),maxQ25=weightedQuantile(maxVals,.25),maxQ75=weightedQuantile(maxVals,.75),minLow=weightedQuantile(minVals,.1),minHigh=weightedQuantile(minVals,.9),minQ25=weightedQuantile(minVals,.25),minQ75=weightedQuantile(minVals,.75),precipitationLow=weightedQuantile(rainVals,.1),precipitationHigh=weightedQuantile(rainVals,.9),sunshineDurationLow=sunVals.length>=6?weightedQuantile(sunVals,.1):NaN,sunshineDurationHigh=sunVals.length>=6?weightedQuantile(sunVals,.9):NaN,sunshineDurationMean=sunVals.length>=6?weightedMean(sunVals):NaN,windLow=windVals.length>=6?weightedQuantile(windVals,.1):NaN,windHigh=windVals.length>=6?weightedQuantile(windVals,.9):NaN,windMean=windVals.length>=6?weightedMean(windVals):NaN,gustLow=gustVals.length>=6?weightedQuantile(gustVals,.1):NaN,gustHigh=gustVals.length>=6?weightedQuantile(gustVals,.9):NaN,gustMean=gustVals.length>=6?weightedMean(gustVals):NaN;
   if(![maxLow,maxHigh,maxQ25,maxQ75,minLow,minHigh,minQ25,minQ75].every(Number.isFinite)||maxHigh<maxLow||minHigh<minLow)continue;
-  days.push({date,maxMean:weightedMean(maxVals),maxLow,maxHigh,maxQ25,maxQ75,minMean:weightedMean(minVals),minLow,minHigh,minQ25,minQ75,precipitationMean:weightedMean(rainVals),precipitationLow:Number.isFinite(precipitationLow)?precipitationLow:0,precipitationHigh:Number.isFinite(precipitationHigh)?precipitationHigh:0,precipitationProbability:weightedProbability(rainVals,.1),sunshineDurationMean,sunshineDurationLow,sunshineDurationHigh,modelCount:modelsUsed.size,memberCount,modelSummaries:modelSummaries.filter(item=>[item.max,item.min,item.precipitation,item.precipitationProbability].every(Number.isFinite))});
+  days.push({date,maxMean:weightedMean(maxVals),maxLow,maxHigh,maxQ25,maxQ75,minMean:weightedMean(minVals),minLow,minHigh,minQ25,minQ75,precipitationMean:weightedMean(rainVals),precipitationLow:Number.isFinite(precipitationLow)?precipitationLow:0,precipitationHigh:Number.isFinite(precipitationHigh)?precipitationHigh:0,precipitationProbability:weightedProbability(rainVals,.1),sunshineDurationMean,sunshineDurationLow,sunshineDurationHigh,windMean,windLow,windHigh,gustMean,gustLow,gustHigh,modelCount:modelsUsed.size,memberCount,modelSummaries:modelSummaries.filter(item=>[item.max,item.min,item.precipitation,item.precipitationProbability].every(Number.isFinite))});
  }
  return days;
 }
@@ -874,9 +875,9 @@ async function fetchEnsembleRequest(url:string,signal?:AbortSignal){
  }
  throw lastError;
 }
-async function fetchEnsembleWeather(lat:number,lon:number,forecastDays:number,modelId:string,signal?:AbortSignal,hourly='temperature_2m,precipitation,wind_gusts_10m,sunshine_duration'){
- const forecast_days=Math.max(1,Math.min(14,Math.ceil(forecastDays))),request=async(variables:string)=>{const parameters={lat,lon,model:modelId,forecast_days,variables};if(workerBaseCandidates('general').length){try{const proxied=await fetchWorkerJson<Weather&{error?:string}>('ensemble-proxy',parameters,{purpose:'general',signal,timeoutMs:18000,cache:'no-store'});if(Array.isArray(proxied?.hourly?.time)&&proxied.hourly.time.length>=12)return proxied}catch{}}const p=new URLSearchParams({latitude:String(lat),longitude:String(lon),timezone:'auto',forecast_days:String(forecast_days),models:modelId,hourly:variables});return fetchEnsembleRequest(`https://ensemble-api.open-meteo.com/v1/ensemble?${p}`,signal)};
- try{return await request(hourly)}catch(error){const optional=/wind_gusts_10m|sunshine_duration/.test(hourly);if(!optional||signal?.aborted)throw error;return request('temperature_2m,precipitation')}
+async function fetchEnsembleWeather(lat:number,lon:number,forecastDays:number,modelId:string,signal?:AbortSignal,hourly='temperature_2m,precipitation,wind_speed_10m,wind_gusts_10m,sunshine_duration'){
+ const forecast_days=Math.max(1,Math.min(14,Math.ceil(forecastDays))),request=async(variables:string)=>{const parameters={lat,lon,model:modelId,forecast_days,variables};if(workerBaseCandidates('general').length){try{const proxied=await fetchWorkerJson<Weather&{error?:string}>('ensemble-proxy',parameters,{purpose:'general',signal,timeoutMs:18000,cache:'no-store'});if(Array.isArray(proxied?.hourly?.time)&&proxied.hourly.time.length>=12)return proxied}catch{}}const p=new URLSearchParams({latitude:String(lat),longitude:String(lon),timezone:'auto',forecast_days:String(forecast_days),models:modelId,hourly:variables,wind_speed_unit:'kn'});return fetchEnsembleRequest(`https://ensemble-api.open-meteo.com/v1/ensemble?${p}`,signal)};
+ const attempts=[hourly,hourly.split(',').filter(value=>value!=='sunshine_duration').join(','),'temperature_2m,precipitation,wind_speed_10m,wind_gusts_10m','temperature_2m,precipitation'].filter((value,index,list)=>value&&list.indexOf(value)===index);let lastError:unknown;for(const variables of attempts){try{return await request(variables)}catch(error){lastError=error;if(signal?.aborted)throw error}}throw lastError;
 }
 function pseudoModelFromMeanSpread(w:Weather,definition:EnsembleMeanModel):ModelResult|null{
  const times=(w.hourly?.time as string[])??[],mean=w.hourly?.temperature_2m??[],spread=w.hourly?.temperature_2m_spread??[],rain=w.hourly?.precipitation??[],rainSpread=w.hourly?.precipitation_spread??[];
@@ -888,7 +889,7 @@ function pseudoModelFromMeanSpread(w:Weather,definition:EnsembleMeanModel):Model
    const date=String(times[index]).slice(0,10),temperature=n(mean[index]),sigma=Math.max(0,n(spread[index])),precipitation=Math.max(0,n(rain[index])+z[member]*Math.max(0,n(rainSpread[index])));
    if(!Number.isFinite(temperature))continue;const row=daily.get(date)??{t:[],p:[]};row.t.push(temperature+z[member]*sigma);if(Number.isFinite(precipitation))row.p.push(precipitation);daily.set(date,row);
   }
-  const rows:MemberDay[]=[];daily.forEach((row,date)=>{if(row.t.length>=18)rows.push({date,max:Math.max(...row.t),min:Math.min(...row.t),precipitation:row.p.reduce((sum,value)=>sum+value,0),sunshineDuration:NaN,gust:NaN})});
+  const rows:MemberDay[]=[];daily.forEach((row,date)=>{if(row.t.length>=18)rows.push({date,max:Math.max(...row.t),min:Math.min(...row.t),precipitation:row.p.reduce((sum,value)=>sum+value,0),sunshineDuration:NaN,wind:NaN,gust:NaN})});
   if(rows.length>=5)members.set(`spread_${member+1}`,rows);
  }
  if(members.size<3)return null;

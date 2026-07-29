@@ -1,3 +1,11 @@
+# MID v0.8.17.0
+
+- Aktuelle Daten: Die Uhrzeiten der Kachel „Sonne / Mond“ verwenden nun eine ausdrücklich begrenzte, an den übrigen Kachelwerten orientierte Schriftgröße. Die Kachel besitzt keine eigene Mindesthöhe mehr und vergrößert die gesamte Parameterzeile weder auf Desktop noch mobil.
+- Ensemble: Unterhalb des Niederschlagsdiagramms wurde ein zusätzliches Winddiagramm ergänzt. Es lässt sich zwischen täglichem Windmaximum und Böenspitzen umschalten und zeigt Best Match, gewichtetes Ensemble-Mittel sowie P10–P90 im Stil des Temperaturtrends.
+- Die Open-Meteo-Ensembleabfrage und der Worker-Proxy liefern Wind und Böen einheitlich in Knoten. Der Ensemblecache wurde wegen des erweiterten Datenvertrags invalidiert.
+- Temperatur-, Niederschlags- und Winddiagramm können einzeln ein- und ausgeklappt werden. Der Zustand wird lokal gespeichert; PNG-Export, Tooltips, Legenden und mobile Darstellung bleiben je Diagramm erhalten.
+- Neue und erweiterte Regressionstests schützen Wind-/Böendaten, Worker-Proxy, Exportgeometrie, Diagrammreihenfolge, Einklappzustände sowie die kompakte Sonne-/Mond-Kachel.
+
 # MID v0.8.16.1
 
 - Aktuelle Daten: Die Kachel „Sonne / Mond“ wurde kompakter abgestimmt. Die Zeitwerte für Sonnenaufgang und Sonnenuntergang verwenden nun deutlich kleinere, an die übrigen Kacheln angeglichene Schriftgrößen.

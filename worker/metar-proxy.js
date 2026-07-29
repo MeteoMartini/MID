@@ -21,7 +21,7 @@ const DWD_RADOLAN_HISTORY_ROOTS={rw:'https://opendata.dwd.de/weather/radar/radol
 const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids_germany/return_periods/precipitation/KOSTRA/KOSTRA_DWD_2020/asc/';
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
-const WORKER_VERSION='0.8.16.1';
+const WORKER_VERSION='0.8.17.0';
 const CORS={'content-type':'application/json; charset=utf-8','access-control-allow-origin':'*','access-control-allow-methods':'GET,POST,OPTIONS','access-control-allow-headers':'content-type','cache-control':'public, max-age=180'};
 const FEED_SLUGS={
  AD:'andorra',AT:'austria',BE:'belgium',BA:'bosnia-herzegovina',BG:'bulgaria',HR:'croatia',CY:'cyprus',CZ:'czechia',DK:'denmark',EE:'estonia',FI:'finland',FR:'france',DE:'germany',GR:'greece',EL:'greece',HU:'hungary',IS:'iceland',IE:'ireland',IL:'israel',IT:'italy',LV:'latvia',LT:'lithuania',LU:'luxembourg',MT:'malta',MD:'moldova',ME:'montenegro',NL:'netherlands',MK:'republic-of-north-macedonia',NO:'norway',PL:'poland',PT:'portugal',RO:'romania',RS:'serbia',SK:'slovakia',SI:'slovenia',ES:'spain',SE:'sweden',CH:'switzerland',UA:'ukraine',GB:'united-kingdom',UK:'united-kingdom',AM:'armenia'
@@ -56,11 +56,11 @@ function bearingTowards(lat1,lon1,lat2,lon2){const toRad=value=>value*Math.PI/18
 function at(v,i){return Array.isArray(v)?v[i]:undefined}
 function json(data,status=200,headers={}){return new Response(JSON.stringify(data),{status,headers:{...CORS,...headers}})}
 async function openMeteoEnsembleProxy(url){
- const lat=number(url.searchParams.get('lat')),lon=number(url.searchParams.get('lon')),days=Math.max(1,Math.min(14,Math.ceil(number(url.searchParams.get('forecast_days'))||14))),model=String(url.searchParams.get('model')||'').trim(),requested=String(url.searchParams.get('variables')||'temperature_2m,precipitation').split(',').map(value=>value.trim()).filter(Boolean),allowedVariables=new Set(['temperature_2m','temperature_2m_spread','precipitation','precipitation_spread','sunshine_duration','sunshine_duration_spread']);
+ const lat=number(url.searchParams.get('lat')),lon=number(url.searchParams.get('lon')),days=Math.max(1,Math.min(14,Math.ceil(number(url.searchParams.get('forecast_days'))||14))),model=String(url.searchParams.get('model')||'').trim(),requested=String(url.searchParams.get('variables')||'temperature_2m,precipitation').split(',').map(value=>value.trim()).filter(Boolean),allowedVariables=new Set(['temperature_2m','temperature_2m_spread','precipitation','precipitation_spread','sunshine_duration','sunshine_duration_spread','wind_speed_10m','wind_gusts_10m']);
  if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180)return json({error:'gültige lat/lon erforderlich'},400,{'cache-control':'no-store'});
  if(!/^[a-z0-9_]{3,80}$/i.test(model))return json({error:'ungültiges Ensemblemodell'},400,{'cache-control':'no-store'});
  const variables=[...new Set(requested.filter(value=>allowedVariables.has(value)))];if(!variables.length)return json({error:'keine zulässigen Ensemblevariablen'},400,{'cache-control':'no-store'});
- const query=new URLSearchParams({latitude:String(lat),longitude:String(lon),timezone:'auto',forecast_days:String(days),models:model,hourly:variables.join(',')});
+ const query=new URLSearchParams({latitude:String(lat),longitude:String(lon),timezone:'auto',forecast_days:String(days),models:model,hourly:variables.join(','),wind_speed_unit:'kn'});
  const response=await fetchWithDeadline(`${OPEN_METEO_ENSEMBLE}?${query}`,{headers:{Accept:'application/json'}},18000),body=await response.text();
  if(!response.ok)return json({error:`Open-Meteo Ensemble HTTP ${response.status}`,upstream:body.slice(0,280)},response.status>=500?502:response.status,{'cache-control':'no-store'});
  try{return json(JSON.parse(body),200,{'cache-control':'public, max-age=600'})}catch{return json({error:'Ungültige Ensemble-Antwort'},502,{'cache-control':'no-store'})}

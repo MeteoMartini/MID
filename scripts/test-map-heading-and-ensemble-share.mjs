@@ -29,11 +29,13 @@ for(const token of [
  '<b>Modellstände:</b>',
  'kind="temperature"',
  'kind="precipitation"',
+ 'kind="wind"',
  'targetRef={temperatureExportRef}',
- 'targetRef={rainExportRef}'
+ 'targetRef={rainExportRef}',
+ 'targetRef={windExportRef}'
 ])if(!ensemble.includes(token))failures.push(`Ensemble-Teilen fehlt: ${token}`);
 for(const token of ['.radar-location-marker','.radar-location-bearing','.ensemble-share-button','.ensemble-export-header','.ensemble-export-footer'])if(!styles.includes(token))failures.push(`Styling fehlt: ${token}`);
 if(!pkg.dependencies?.['html-to-image'])failures.push('html-to-image-Abhängigkeit fehlt.');
-if((ensemble.match(/<EnsembleShareButton/g)||[]).length!==2)failures.push('Es müssen genau zwei sichtbare Ensemble-Teilen-Buttons vorhanden sein.');
+if((ensemble.match(/<EnsembleShareButton/g)||[]).length!==3)failures.push('Es müssen genau drei sichtbare Ensemble-Teilen-Buttons vorhanden sein.');
 if(failures.length){console.error('Kartenrichtung/Ensemble-Export fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Kartenrichtung und Ensemble-Export geprüft: Kompassmarker, iOS-Berechtigung, zwei PNG-Teilen-Buttons, MID- und Quellenblock vorhanden.');
+console.log('Kartenrichtung und Ensemble-Export geprüft: Kompassmarker, iOS-Berechtigung, drei PNG-Teilen-Buttons, MID- und Quellenblock vorhanden.');
