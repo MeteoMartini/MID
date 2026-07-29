@@ -56,10 +56,10 @@ for(const token of [
  'async function flightCrossSection(u)',
  "mode==='flight-cross-section'",
  "'pressure-level-meteogram','flight-cross-section'",
- "source:'Open-Meteo Druckniveaudaten · NOAA AviationWeather Airport-/Stationsinformationen'"
+ "Open-Meteo Elevation"
 ])need('Worker-Integration',worker,token);
 need('Package-Test',pkg,'test:flight-meteorology');
 need('Baseline-Test',baseline,'scripts/test-flight-meteorology-08180.mjs');
 for(const file of ['../src/FlightMeteorologyPanel.tsx','../src/CrossSectionPanel.tsx']){try{await stat(new URL(file,import.meta.url))}catch{failures.push(`Neue Moduldatei fehlt: ${file}`)}}
 if(failures.length){console.error('Flugmeteorologie-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Flugmeteorologie geprüft: neue Advanced-Sektion, Cross Section, gruppierte Meteogramme, ICAO-/Zeit-/FL-Maske, realistische Vertikalgrafik und Worker-Datenpfad vorhanden.');
+console.log('Flugmeteorologie geprüft: neue Advanced-Sektion, Cross Section, gruppierte Meteogramme, ICAO-/Zeit-/FL-Maske, realistischere Vertikalgrafik und Terrain-Integration vorhanden.');

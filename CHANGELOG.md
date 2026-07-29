@@ -1,3 +1,11 @@
+# MID v0.8.18.2
+
+- Cross Section: Wetter-Abtastung deutlich erhöht. Es stehen nun bis zu 49 Wetterstützpunkte entlang der Route zur Verfügung; Standard ist 33 statt bisher sehr grober Stichproben.
+- Cross Section: Topographie vollständig neu aufgesetzt. Das Geländeprofil wird jetzt unabhängig vom Wettermodell über eine separate, hochaufgelöste Elevation-Abfrage entlang der gesamten Route berechnet. Dadurch bleibt der Untergrund von Modellwahl und Wetter-Abtastpunkten entkoppelt.
+- Cross Section: Grafikdarstellung weiter an klassische GRAMET-Vorlagen angenähert, inklusive dichterer Feldrasterung für Wolken, Vereisung und Turbulenz, gelb/oranger Kopfzeile, weicherer Wolkenzeichnung und zusätzlicher Gelände-Kontur.
+- Cross Section: Ergebnisleiste ergänzt um Wetter- und Terrain-Stützpunktzahlen zur transparenten Qualitätskontrolle.
+- Neue Regression sichert das unabhängige Terrain-Profil, die erhöhten Stützpunktzahlen sowie die zugehörige UI-/Worker-Verdrahtung zusätzlich ab.
+
 # MID v0.8.18.1
 
 - Cross Sections: Darstellung von Wolken, Vereisung und Turbulenz deutlich verfeinert. Die Felder werden horizontal und vertikal verdichtet und dadurch wesentlich weniger blockig dargestellt.
