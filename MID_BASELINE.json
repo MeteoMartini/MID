@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.8.15.2",
+  "releaseVersion": "0.8.15.4",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -37,7 +37,8 @@
     "scripts/test-favorite-menu-performance-audit-081100.mjs",
     "scripts/test-water-matrix-season-08120.mjs",
     "scripts/test-night-icons-astronomy-08130.mjs",
-    "scripts/test-detail-pressure-collapsible-legend-08150.mjs"
+    "scripts/test-detail-pressure-collapsible-legend-08150.mjs",
+    "scripts/test-location-favorite-selection-08154.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md"
 }

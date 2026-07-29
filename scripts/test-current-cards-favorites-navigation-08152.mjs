@@ -14,9 +14,10 @@ for(const token of [
   "const[locationSelectionSource,setLocationSelectionSource]=useState<'tracked'|'manual'>",
   "source=normalized.autolocated?'tracked':'manual'",
   'setLocationSelectionSource(source)',
-  'sourceChanged=Boolean(loc?.autolocated)!==Boolean(normalized.autolocated)',
-  'const reconciled={...loc,autolocated:normalized.autolocated===true}',
-  "activeFavoriteId=trackedSelectionActive?'':matchingFavorite(favorites,current)?.id??''",
+  'function trackedLocationTarget(favorites:Favorite[],tracked:Location)',
+  'const favorite=matchingFavorite(favorites,tracked)',
+  'if(loc&&!locationsShallowEqual(loc,normalized))',
+  "activeFavoriteId=matchingFavorite(favorites,current)?.id??''",
   'trackedActive=Boolean(locationTracking&&trackedSelectionActive&&current&&trackedLocation&&locationsNearlyEquivalent(current,trackedLocation))',
   'function locationsMatchFavoriteSelection',
   'favoriteKey(a)===favoriteKey(b)||locationsNearlyEquivalent(a,b)',
@@ -57,8 +58,8 @@ const sameBranch=app.indexOf('if(same){',setLocStart);
 if(setLocStart<0||setSource<0||sameBranch<0||setSource>sameBranch)failures.push('Die Auswahlquelle wird nicht vor dem Nahbereichs-Kurzschluss aktualisiert.');
 
 if(app.includes('locationDistanceMeters(a,b)<=150'))failures.push('Die unerwünschte strikte 150-m-Identitätsprüfung ist weiterhin aktiv.');
-if(app.includes("activeFavoriteId=current?.autolocated?'':"))failures.push('Die Schnellleiste leitet den Aktivstatus weiterhin direkt aus potenziell veralteten Ortsmetadaten statt aus der aktuellen Auswahlquelle ab.');
+if(app.includes("activeFavoriteId=trackedSelectionActive?'':")||app.includes("activeFavoriteId=current?.autolocated?'':"))failures.push('Die Standortauswahl unterdrückt weiterhin die gleichzeitige Markierung des passenden Favoriten.');
 if(app.includes('trackedActive=Boolean(locationTracking&&current?.autolocated'))failures.push('Der Standort-Aktivrahmen hängt weiterhin direkt am möglicherweise veralteten autolocated-Feld.');
 if(app.includes("autolocated:favoriteId==='tracked-location'||closeFavorite?.location.autolocated"))failures.push('Gespeicherte Favoriten können den Auto-Standortstatus weiterhin erben.');
 if(failures.length){console.error('Aktuelle-Daten-/Favoritenkorrektur fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Aktuelle Daten und Favoriten geprüft: identische Info-Schaltflächen, direkter Menüsprung, wiederhergestellte Nahbereichszuordnung sowie eine explizit von der Ortsnähe getrennte Standort-Aktivmarkierung.');
+console.log('Aktuelle Daten und Favoriten geprüft: identische Info-Schaltflächen, direkter Menüsprung, Nahbereichszuordnung, kanonische Favoritenauswahl und zusätzliche Standort-Aktivmarkierung.');

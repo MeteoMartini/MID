@@ -1,3 +1,18 @@
+# MID v0.8.15.4
+
+- Standortauswahl mit Favoritenabgleich korrigiert: Nach einer Geräteortung prüft MID die bewährte geografische Nahbereichszuordnung. Entspricht die Position einem gespeicherten Favoriten, wird dessen kanonischer Ort geöffnet statt eines separaten Reverse-Geocoding-Punkts.
+- Dadurch werden für die Standortauswahl automatisch die vollständigen Favoritenprofile verwendet, insbesondere Wetterzwilling-Daten, lokale Lernhistorie sowie Berg-/Winter- und Wasserprofile. Die tatsächlich gemessene Geräteposition bleibt separat für Standortstatus und Distanzprüfung gespeichert.
+- Favorit und Standort dürfen nun gleichzeitig aktiv markiert sein: Der passende Favorit bleibt in Schnellleiste, Suchmenü und Favoritenverwaltung blau markiert; zusätzlich erhält der Standort-Eintrag seinen blauen Rahmen, solange die Auswahl tatsächlich von der Geräteortung stammt.
+- Eine manuelle Orts- oder Favoritenauswahl entfernt weiterhin sofort ausschließlich den Standort-Rahmen. Beim Standortabgleich wird auf den ausdrücklich zugeordneten kanonischen Favoritenort umgeschaltet, damit Wetterdaten, Favoritenschlüssel und Profildaten konsistent aus derselben Ortsbasis stammen.
+- Neuer Regressionstest schützt Favoritenabgleich der Geräteposition, kanonische Favoritenauswahl, gleichzeitige Standort-/Favoritenmarkierung und das Zurücksetzen des Standortstatus bei manueller Auswahl.
+
+# MID v0.8.15.3
+
+- Berg-/Wintersport: Der vollständige Höhenwetter-Verlauf ist im Sommer- wie im Winterprofil standardmäßig eingeklappt und lässt sich über eine kompakte Kopfzeile gezielt öffnen und wieder schließen.
+- Beim Wechsel zwischen Sommer- und Winterprofil wird der Höhenwetter-Verlauf erneut geschlossen; auch eine zuvor aufgeklappte Drei-Tage-Ansicht kehrt in den kompakten Ausgangszustand zurück.
+- Die 1-/3-Stunden-Umschaltung und die Erweiterung auf die nächsten drei Tage bleiben nach dem Öffnen unverändert verfügbar. Auf mobilen Displays beansprucht die geschlossene Darstellung nur noch eine kompakte Zeile.
+- Neuer Regressionstest schützt den geschlossenen Startzustand, beide Saisonbezeichnungen, den Saisonwechsel und die bedingte Darstellung der umfangreichen Höhenmatrix.
+
 # MID v0.8.15.2
 
 - Favoriten-Nahbereichslogik wiederhergestellt: Exakte Koordinaten werden weiterhin bevorzugt; Orte und POIs innerhalb der bewährten plausiblen Distanz- und Höhenschwellen werden wieder demselben Favoriten zugeordnet. Dadurch entstehen bei nur wenigen hundert Metern Abweichung keine unnötigen zusätzlichen Favoriten oder Datenneuladungen.
