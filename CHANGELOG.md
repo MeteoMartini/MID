@@ -1,3 +1,10 @@
+# MID v0.8.18.3
+
+- Cross Section vorerst vollständig pausiert: Im Erweiterten Modus erscheint nur noch eine statische Karte „To be continued“. Das aktive Flugmeteorologie-Modul importiert oder rendert die Cross-Section-Komponente nicht mehr.
+- Der Worker-Endpunkt `flight-cross-section` ist hart deaktiviert, aus dem Health-Servicekatalog entfernt und antwortet ohne externe Datenabrufe mit HTTP 410. Dadurch entstehen durch diese Funktion keine NOAA-, Open-Meteo- oder Elevation-Subrequests mehr.
+- Druckniveau-Meteogramme bleiben unverändert aktiv. Der Cross-Section-Quellcode wird für eine spätere Weiterentwicklung erhalten, aber nicht in den aktiven Frontendpfad eingebunden.
+- Neuer Regressionstest schützt die UI-Pausierung, den entfernten Frontendpfad und die serverseitige Sperre.
+
 # MID v0.8.18.2
 
 - Cross Section: Wetter-Abtastung deutlich erhöht. Es stehen nun bis zu 49 Wetterstützpunkte entlang der Route zur Verfügung; Standard ist 33 statt bisher sehr grober Stichproben.
