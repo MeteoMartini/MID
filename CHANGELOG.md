@@ -1,3 +1,22 @@
+# MID v0.8.15.2
+
+- Favoriten-Nahbereichslogik wiederhergestellt: Exakte Koordinaten werden weiterhin bevorzugt; Orte und POIs innerhalb der bewährten plausiblen Distanz- und Höhenschwellen werden wieder demselben Favoriten zugeordnet. Dadurch entstehen bei nur wenigen hundert Metern Abweichung keine unnötigen zusätzlichen Favoriten oder Datenneuladungen.
+- Die in v0.8.15.1 eingeführte strikte 150-m-/ID-Prüfung wurde vollständig zurückgenommen. Favoritenmenü, Schnellleiste, Favoritenstern, Ortswechsel und mobile Rand-Wischnavigation verwenden wieder dieselbe konsistente Nahbereichszuordnung.
+- Standort-Aktivrahmen grundlegend entkoppelt: Die blaue Markierung richtet sich nun nach der ausdrücklich zuletzt gewählten Quelle „Gerätestandort“ oder „manuelle Orts-/Favoritenauswahl“ und nicht mehr allein nach einem potenziell veralteten `autolocated`-Merkmal im Ortsobjekt.
+- Auch wenn ein Ortswechsel wegen geringer Entfernung ohne Datenneuladung abgekürzt wird, wird die Auswahlquelle sofort aktualisiert. Ein manuell gewählter Favorit nimmt daher zuverlässig die Standort-Markierung zurück; ein tatsächlich aufgerufener Gerätestandort aktiviert sie gezielt.
+- Der Standort-Rahmen verlangt zusätzlich weiterhin eine geografische Übereinstimmung mit der zuletzt ermittelten Geräteposition. Ein rund 200 km entfernter Ort kann damit weder über die Auswahlquelle noch über die Distanzprüfung als aktiver Standort erscheinen.
+- Regressionstest erweitert: geprüft werden Nahbereichszuordnung über wenige hundert Meter, Ablehnung weit entfernter Orte, Quellenwechsel vor dem Kurzschluss, Menüsprung und die einheitlichen Info-Schaltflächen.
+
+# MID v0.8.15.1
+
+- Aktuelle Daten: Die Info-Schaltflächen der Kacheln „Luftqualität“ und „Sonne / Mond“ verwenden nun dieselbe Größe, Ausrichtung und visuelle Gestaltung.
+- Favoritenmenü stabilisiert: Beim Öffnen werden der aktuell angezeigte Favorit sowohl im Suchmenü als auch in der Favoritenverwaltung nach dem vollständigen Layout mehrfach abgesichert und direkt mittig in den sichtbaren Bereich geführt. Größenänderungen des Menüs lösen die Positionierung erneut aus.
+- Favoriten-Schnellleiste springt auch unter iOS/Safari zuverlässig zum aktiven Favoriten; spätere Layoutänderungen und horizontale Überläufe werden berücksichtigt.
+- Standortstatus korrigiert: Gespeicherte Favoriten übernehmen den internen Auto-Standortstatus nicht mehr. Der blaue Aktivrahmen des dynamischen „Standort“-Eintrags erscheint ausschließlich bei einer tatsächlich über die Geräteortung geöffneten Position.
+- Die aktive Favoritenerkennung verwendet für die Oberfläche keine großzügige geografische Näherungsprüfung mehr, sodass andere Orte oder nahe POIs nicht fälschlich als aktiver Favorit markiert werden.
+- Auch der eigentliche Ortswechsel und die mobile Favoriten-Wischzuordnung verwenden nun dieselbe strikte Identität; nahe, aber unterschiedliche Orte werden nicht mehr als bereits geöffnet verworfen.
+- Neuer Regressionstest schützt Info-Schaltflächen, direkten Menüsprung, Favoritenverwaltung, Schnellleiste und die Trennung zwischen Auto-Standort und gespeichertem Favoriten.
+
 # MID v0.8.15.0
 
 - GitHub-Produktionsbuild korrigiert: Die Favoriten-Persistenz verwendet für optionale Idle-Callbacks keine TypeScript-Narrowing-Verzweigung mehr, durch die `window` im Fallback als `never` interpretiert wurde. Der bisherige Fehler TS2339 bei `clearTimeout` ist damit behoben.

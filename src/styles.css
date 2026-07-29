@@ -2667,3 +2667,29 @@ button,input,select,[role="button"]{touch-action:manipulation}
  .detail-legend-toolbar{justify-content:center}
  .detail-legend-toggle{width:100%;justify-content:center}
 }
+
+/* MID v0.8.15.1 – vereinheitlichte Info-Schaltflächen und robuste Favoritenpositionierung */
+.metrics .air-quality-card header>.mode-info,
+.metrics .sun-moon-card header>.mode-info{
+  margin-left:auto;
+}
+.metrics .air-quality-card header>.mode-info>button,
+.metrics .sun-moon-card header>.mode-info>button{
+  width:22px;
+  height:22px;
+  border-color:color-mix(in srgb,var(--muted) 34%,var(--border));
+  background:color-mix(in srgb,var(--s2) 82%,transparent);
+}
+.metrics .air-quality-card header>.mode-info svg,
+.metrics .sun-moon-card header>.mode-info svg{
+  width:14px;
+  height:14px;
+}
+.search>section button.current-favorite-result,
+.favorite-manager-list>article.current-favorite-row{
+  scroll-margin-block:38px;
+}
+.favorite-manager-list>article.current-favorite-row{
+  border-color:color-mix(in srgb,var(--primary) 42%,var(--border));
+  box-shadow:inset 3px 0 0 color-mix(in srgb,var(--primary) 72%,transparent);
+}

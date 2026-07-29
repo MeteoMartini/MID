@@ -65,16 +65,16 @@ for(const token of [
  "longitudeRaw===null||longitudeRaw.trim()===''?NaN",
  'validCoordinates=Number.isFinite(latitude)',
  "queryName||closeFavorite?.alias||closeFavorite?.location.name||'Benachrichtigungsort'",
- 'locationsNearlyEquivalent',
+ 'locationsMatchFavoriteSelection',
  'currentFavorite=useMemo(()=>matchingFavorite(favorites,loc)',
- 'const active=locationsNearlyEquivalent(item.location,current)'
+ 'const active=item.id===activeFavoriteId'
 ])requireToken('Push/Favoriten-App',app,token);
 for(const token of ['function pushLocationPayload','...pushLocationPayload(favorite)','locationName:String(favorite?.name'])requireToken('Push-Worker',worker,token);
 for(const [name,text] of [['Service Worker',sw],['Legacy Service Worker',legacySw]])for(const token of ['latitude:payload.latitude','locationName:payload.locationName','targetUrl.searchParams.set(\'mid-lat\'','targetUrl.searchParams.set(\'mid-name\''])requireToken(name,text,token);
 
 const distance=(a,b)=>{const rad=Math.PI/180,dLat=(b.latitude-a.latitude)*rad,dLon=(b.longitude-a.longitude)*rad,h=Math.sin(dLat/2)**2+Math.cos(a.latitude*rad)*Math.cos(b.latitude*rad)*Math.sin(dLon/2)**2;return 12742000*Math.asin(Math.min(1,Math.sqrt(h)))};
 const dynamic={latitude:50.8120,longitude:7.0410,elevation:62},favorite={latitude:50.8170,longitude:7.0430,elevation:75};
-if(distance(dynamic,favorite)>900||Math.abs(dynamic.elevation-favorite.elevation)>150)failures.push('Favoriten-Nähetest: Referenzorte liegen unerwartet außerhalb der Aktivierungsschwelle.');
+if(distance(dynamic,favorite)<=150)failures.push('Favoriten-Auswahltest: getrennte Orte liegen unerwartet innerhalb der strikten Aktivierungsschwelle.');
 
 if(failures.length){console.error('MID-v0.7.99.1-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('MID-v0.7.99.1 geprüft: Skigebietsweite Höhenwahl, eindeutige Modelllaufkennung, exakte Push-Koordinaten und gleichzeitige Favoritenaktivierung sind geschützt.');
+console.log('MID-v0.7.99.1 geprüft: Skigebietsweite Höhenwahl, eindeutige Modelllaufkennung, exakte Push-Koordinaten und strikte Favoritenaktivierung sind geschützt.');

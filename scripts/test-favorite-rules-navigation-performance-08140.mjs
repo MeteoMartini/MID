@@ -27,7 +27,8 @@ for(const token of [
 for(const token of [
   'function centerWithinScrollContainer',
   'secondFrame=window.requestAnimationFrame(reveal)',
-  'window.setTimeout(reveal,120)',
+  'timers=[0,70,180,360,650].map',
+  "new ResizeObserver(reveal)",
   'centerWithinScrollContainer(container,element)'
 ])need('Aktiver Favorit wird robust zentriert',app,token);
 for(const token of ['content-visibility:auto','contain:layout paint style','contain-intrinsic-size:auto 320px','.favorite-rule-toggle'])need('Favoritenlisten-Rendering',styles,token);
