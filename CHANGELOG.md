@@ -1,3 +1,9 @@
+# MID v0.8.18.6
+
+- Eigene Warnindikatoren: Warnzeiträume, die erst morgen beginnen, zeigen nun kompakt sowohl „Morgen“ als auch das konkrete Datum, zum Beispiel „Morgen, 30.07. · 08:00–12:00 Uhr“.
+- Spätere Warnungen tragen ebenfalls das Datum; heutige Warnungen bleiben platzsparend bei der Uhrzeit. Zeiträume über Mitternacht zeigen weiterhin Start- und Enddatum vollständig.
+- Neuer Regressionstest prüft Morgen-, Folgetag-, Heute- und Mitternachtsdarstellung in der Ortszeitzone.
+
 # MID v0.8.18.5
 
 - Eigene Warnindikatoren zeigen jetzt einen kompakten Gültigkeitszeitraum in Ortszeit. Aktive Zeitfenster beginnen verständlich mit „jetzt“, künftige sowie über Mitternacht reichende Zeiträume werden mit Uhrzeit beziehungsweise Datum dargestellt.

@@ -694,8 +694,10 @@ function MountainLevel({level,unit,snowLine}:{level:MountainLevelForecast;unit:W
 
 function hazardValidityLabel(validFrom:string|undefined,validTo:string|undefined,timezone?:string){
  const start=Date.parse(String(validFrom??'')),end=Date.parse(String(validTo??''));if(!Number.isFinite(start)||!Number.isFinite(end)||end<=start)return'';
- const time=(value:number)=>formatInZone(value,timezone,{hour:'2-digit',minute:'2-digit'}),date=(value:number)=>formatInZone(value,timezone,{day:'2-digit',month:'2-digit'}),sameDate=date(start)===date(end),active=start<=Date.now()&&end>Date.now();
- return sameDate?`${active?'jetzt':time(start)}–${time(end)} Uhr`:`${date(start)}, ${time(start)} – ${date(end)}, ${time(end)}`;
+ const now=Date.now(),time=(value:number)=>formatInZone(value,timezone,{hour:'2-digit',minute:'2-digit'}),date=(value:number)=>formatInZone(value,timezone,{day:'2-digit',month:'2-digit'}),dateKey=(value:number)=>formatInZone(value,timezone,{year:'numeric',month:'2-digit',day:'2-digit'}),startDate=dateKey(start),endDate=dateKey(end),today=dateKey(now),tomorrow=dateKey(now+24*60*60*1000),sameDate=startDate===endDate,active=start<=now&&end>now;
+ if(!sameDate)return`${date(start)}, ${active?'jetzt':time(start)} – ${date(end)}, ${time(end)} Uhr`;
+ const dayPrefix=startDate===today?'':startDate===tomorrow?`Morgen, ${date(start)} · `:`${date(start)} · `;
+ return`${dayPrefix}${active?'jetzt':time(start)}–${time(end)} Uhr`;
 }
 function Hazards({data,timezone}:{data:ReturnType<typeof hazards>;timezone?:string}){if(!data.length)return <section className="hazard clear"><BadgeCheck/><div><strong>Keine Warnindikatoren</strong><span>Die automatische Auswertung der nächsten 24 Stunden zeigt keine warnwürdigen Best-Match-Signale.</span></div></section>;return <section className="hazards">{data.map(x=>{const validity=hazardValidityLabel(x.validFrom,x.validTo,timezone);return <article className={x.level} key={`${x.title}:${x.validFrom??''}`}><AlertTriangle/><div><strong>{x.title}</strong><span>{x.text}</span>{validity&&<span className="hazard-validity" title="Automatisch berechneter Gültigkeitszeitraum des Warnindikators"><Clock3 size={11}/><time dateTime={x.validFrom}>Gültig: {validity}</time></span>}</div></article>})}<small>Automatisch aus dem Best Match abgeleitete Indikatoren nach DWD-Kriterien; keine amtlichen Warnungen.</small></section>}
 
