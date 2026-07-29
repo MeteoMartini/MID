@@ -1,3 +1,12 @@
+# MID v0.8.18.0
+
+- Neuer Bereich im Erweiterten Modus: „Flugmeteorologie“ bündelt künftig die neue Untersektion „Cross Section“ und die bisherige eigenständige Meteogramm-Sektion als Untersektion „Meteogramme“.
+- Die Cross-Section-Eingabemaske folgt dem bewährten GRAMET-Prinzip: zwei bis acht ICAO-Punkte in Flugrichtung, UTC-Start und -Ende, detailliertes Flugniveau, Wettermodell und Abtastdichte. Identische Start-/Endzeiten erzeugen einen reinen räumlichen Wetterschnitt; unterschiedliche Zeiten bilden den Flugverlauf entlang der Route ab.
+- Der Cloudflare Worker löst ICAO-Kennungen über die weltweiten Airport-/Stationsinformationen von NOAA AviationWeather auf, interpoliert die Route großkreisnah und lädt für bis zu 19 Stützpunkte konsistente Open-Meteo-Druckniveaudaten.
+- Die neue responsive Cross-Section-Grafik zeigt Geländeprofil, Wolkenschichten, Nullgradgrenze, Tropopause, Isotachen, gewähltes Flugniveau sowie diagnostische Vereisungs-, Turbulenz- und Niederschlagssignale. Unterhalb folgen Daten am gewählten Flugniveau und Wind-/Temperaturangaben an Standardflugflächen.
+- Route, Modell, Flugniveau, Abtastdichte und Zeitwahl werden lokal gespeichert. Die erzeugte Grafik kann als hochauflösendes PNG exportiert werden.
+- Neuer Regressionstest schützt Advanced-Modulstruktur, gruppierte Meteogramme, Eingabemaske, responsive Grafik, Worker-Auflösung und Datenpfad.
+
 # MID v0.8.17.3
 
 - Ensemble-Winddiagramm: Die zuletzt gewählte Ansicht „Wind“ oder „Böen“ wird dauerhaft lokal gespeichert und beim nächsten Öffnen der Ensemble-Sektion wiederhergestellt.

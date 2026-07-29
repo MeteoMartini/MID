@@ -4,6 +4,7 @@ import path from 'node:path';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const app=await readFile(path.join(root,'src','App.tsx'),'utf8');
+const flight=await readFile(path.join(root,'src','FlightMeteorologyPanel.tsx'),'utf8');
 const styles=await readFile(path.join(root,'src','styles.css'),'utf8');
 const failures=[];
 
@@ -12,7 +13,7 @@ for(const token of [
  "collapseStoredStandardModules()",
  "localStorage.setItem('mid:forecastDetailsOpen','0')",
  "layoutMode==='advanced'&&<><CollapsibleModule",
- 'title="Meteogramm"',
+ 'title="Flugmeteorologie"',
  'title="Widget- und PNG-Generator"',
  'label="Quellen anzeigen"',
  'trigger={<><Info size={13}/><span>Quellen</span></>}',
@@ -21,10 +22,11 @@ for(const token of [
  'anchorRef.current?.contains(target)||layerRef.current?.contains(target)',
  'createPortal(<span ref={layerRef}'
 ])if(!app.includes(token))failures.push(`Erwartete Umsetzung fehlt: ${token}`);
+for(const token of ['title="Cross Section"','title="Meteogramme"',"lazy(()=>import('./MeteogramPanel'))"])if(!flight.includes(token))failures.push(`Flugmeteorologie-Gruppierung fehlt: ${token}`);
 
 if(app.includes('Ortsname aus Geodatenbank'))failures.push('Der Hinweis „Ortsname aus Geodatenbank“ ist weiterhin sichtbar.');
 if(app.includes('className="data-disclaimer"'))failures.push('Die Quellen werden weiterhin als dauerhaft sichtbarer Disclaimer ausgegeben.');
 for(const token of ['.app>footer>.mode-info>button','.app>footer>.mode-info-popover'])if(!styles.includes(token))failures.push(`Quellen-Popover-CSS fehlt: ${token}`);
 
 if(failures.length){console.error('Standard-/Erweitert-Inhaltsprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Standard-/Erweitert-Inhalte geprüft: Erststartmodule sind eingeklappt, Meteogramm und Widget/PNG bleiben dem erweiterten Modus vorbehalten, Quellen öffnen als schließbares Fußzeilen-Popover.');
+console.log('Standard-/Erweitert-Inhalte geprüft: Erststartmodule sind eingeklappt, Flugmeteorologie mit Cross Section/Meteogrammen und Widget/PNG bleibt dem erweiterten Modus vorbehalten, Quellen öffnen als schließbares Fußzeilen-Popover.');

@@ -333,3 +333,7 @@ Das Frontend überträgt `notificationIntervalMinutes` mit dem Push-Abonnement. 
 ## v0.7.100.0 – eindeutiger KONRAD3D-Ortsbezug
 
 KONRAD3D-Zellobjekte liefern zusätzlich den Richtungswinkel vom abgefragten Standort zur aktuellen Zelle sowie den Unsicherheitsradius der ausgewählten Prognoseposition. Frontend und Worker trennen damit aktuelle Distanz, prognostizierten Rohabstand und um die Unsicherheitsellipse verminderten wirksamen Mindestabstand eindeutig.
+
+## Flugmeteorologischer Cross Section v0.8.18.0
+
+`?mode=flight-cross-section&route=EDDG_EDDL_EDDF&start=...&end=...&flight_level=100&model=best_match&samples=13` löst zwei bis acht ICAO-Kennungen über NOAA AviationWeather Airport-/Stationsinformationen auf, interpoliert die Route großkreisnah und lädt die zeitlich zur Flugroute passenden Open-Meteo-Druckniveaudaten. Die normalisierte Antwort enthält Route, Wegpunkte, Gelände, Niederschlag sowie Temperatur, Feuchte, Bewölkung und Wind an den Druckniveaus 1000 bis 100 hPa. Zulässig sind 9 bis 19 Abtastpunkte und ein Zeitraum bis 36 Stunden.

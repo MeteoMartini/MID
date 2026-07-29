@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.8.17.3",
+  "releaseVersion": "0.8.18.0",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -45,7 +45,8 @@
     "scripts/test-ensemble-wind-collapse-08170.mjs",
     "scripts/test-ensemble-wind-quartiles-08171.mjs",
     "scripts/test-uvi-card-08172.mjs",
-    "scripts/test-ensemble-wind-selection-cloud-reconciliation-08173.mjs"
+    "scripts/test-ensemble-wind-selection-cloud-reconciliation-08173.mjs",
+    "scripts/test-flight-meteorology-08180.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md"
 }

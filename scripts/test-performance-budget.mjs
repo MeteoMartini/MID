@@ -1,14 +1,16 @@
 import {readFile} from 'node:fs/promises';
 
-const [app,vite,css]=await Promise.all([
+const [app,flight,vite,css]=await Promise.all([
  readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
+ readFile(new URL('../src/FlightMeteorologyPanel.tsx',import.meta.url),'utf8'),
  readFile(new URL('../vite.config.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/styles.css',import.meta.url),'utf8')
 ]);
 const failures=[];
-for(const module of ['RadarPanel','EnsemblePanel','WaterSportsPanel','MeteogramPanel']){
+for(const module of ['RadarPanel','EnsemblePanel','WaterSportsPanel','FlightMeteorologyPanel']){
  if(!app.includes(`lazy(()=>import('./${module}'))`))failures.push(`${module} wird nicht lazy geladen`);
 }
+if(!flight.includes("lazy(()=>import('./MeteogramPanel'))"))failures.push('MeteogramPanel wird innerhalb der Flugmeteorologie nicht lazy geladen');
 for(const token of ["target:'es2020'","cssCodeSplit:true","sourcemap:false","reportCompressedSize:false"]){
  if(!vite.includes(token))failures.push(`Sichere Vite-Optimierung fehlt: ${token}`);
 }

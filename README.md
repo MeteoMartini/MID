@@ -995,3 +995,7 @@ MID stellt ab v0.8.7.0 einen kompakten, versionierten Datenfeed bereit:
 ```
 
 Der Feed liefert aktuelle Werte, 12 Stunden und fünf Tage im Vertrag `mid.native.widget.v1`. Unter `native/apple/` liegt ein WidgetKit-Startgerüst mit Swift-Datenmodell, App-Intent-Timeline-Provider und Vorlagen für iOS-/iPadOS-Widgets sowie watchOS-Komplikationen. Die PWA selbst installiert keine nativen WidgetKit-Erweiterungen; dazu ist weiterhin ein signiertes natives Xcode-App- und Widget-Extension-Target erforderlich.
+
+## Flugmeteorologie (v0.8.18.0)
+
+Im Erweiterten Modus bündelt das Modul „Flugmeteorologie“ die neue Untersektion „Cross Section“ und die bisherige Druckniveau-Darstellung als Untersektion „Meteogramme“. Die Cross-Section-Maske verarbeitet ICAO-Routen, UTC-Start/-Ende, Flugniveau, Modell und Abtastdichte. Die Ausgabe kombiniert Strecke und Zeit mit Geländeprofil, Wolkenschichten, Nullgradgrenze, Tropopause, Isotachen sowie diagnostischen Vereisungs-, Turbulenz- und Niederschlagssignalen. Die Cross-Section-Daten werden über den MID-Worker aus NOAA AviationWeather Airport-/Stationsinformationen und Open-Meteo-Druckniveaudaten erzeugt; die Grafik ist ausdrücklich keine amtliche Flugwetterberatung oder Navigationsgrundlage.
