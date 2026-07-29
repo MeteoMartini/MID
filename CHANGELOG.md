@@ -1,3 +1,10 @@
+# MID v0.8.18.9
+
+- Eigene Windwarnungen korrigiert: Die reale stündliche Best-Match-Windrichtung wurde intern im Feld `direction` geführt, die Warnlogik hatte jedoch ausschließlich `windDirection` ausgewertet. Dadurch blieb die Richtung trotz vorhandener Daten im Warntext leer.
+- Die Warnlogik akzeptiert nun beide Feldbezeichnungen und übernimmt damit die tatsächlich von MID verwendeten Stundenwerte zuverlässig.
+- Stabile Richtungen erscheinen direkt im Satz, etwa „Windböen bis 29 kt (54 km/h) aus westlicher Richtung.“; markante Drehungen werden weiterhin als „anfangs …, später …“ formuliert.
+- Neuer dynamischer Regressionstest verwendet ausdrücklich den echten `Hour.direction`-Datenvertrag und schützt sowohl konstante Richtung als auch Richtungswechsel vor erneutem Ausfall.
+
 # MID v0.8.18.8
 
 - Eigene Windwarnungen: Die modellierte Windrichtung steht nun direkt im laufenden Warntext – analog zur Formulierung amtlicher DWD-Warnungen – und nicht mehr in einer separaten Kapsel.

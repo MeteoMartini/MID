@@ -11,6 +11,7 @@ export type DwdWarningSample={
  snowfall?:number;
  gust?:number;
  windDirection?:number;
+ direction?:number;
  code?:number;
  visibility?:number;
  uvIndex?:number;
@@ -132,7 +133,7 @@ function heatSignal(samples:DwdWarningSample[],index:number){const sample=sample
 export function dwdWarningSignalsAt(samples:DwdWarningSample[],index:number,elevation=0){
  const sample=samples[index];if(!sample)return[] as DwdWarningSignal[];
  const signals:DwdWarningSignal[]=[];
- const gustKmh=finite(sample.gust)*KMH_PER_KT,windDirection=Number.isFinite(Number(sample.windDirection))?normaliseWindDirection(Number(sample.windDirection)):undefined,windClass=windClassification(gustKmh),wind=windClass?{kind:'wind',level:windClass.level,title:windClass.label,symbol:'💨',detail:`${windClass.label} bis ${Math.round(gustKmh)} km/h.`,value:gustKmh,unit:'km/h',windDirection} satisfies DwdWarningSignal:null;
+ const gustKmh=finite(sample.gust)*KMH_PER_KT,rawWindDirection=Number.isFinite(Number(sample.windDirection))?Number(sample.windDirection):Number.isFinite(Number(sample.direction))?Number(sample.direction):Number.NaN,windDirection=Number.isFinite(rawWindDirection)?normaliseWindDirection(rawWindDirection):undefined,windClass=windClassification(gustKmh),wind=windClass?{kind:'wind',level:windClass.level,title:windClass.label,symbol:'💨',detail:`${windClass.label} bis ${Math.round(gustKmh)} km/h.`,value:gustKmh,unit:'km/h',windDirection} satisfies DwdWarningSignal:null;
  const rain=rainWindowSignal(samples,index),snow=snowWindowSignal(samples,index,elevation),drift=snowdriftSignal(samples,index),ice=iceSignal(sample),fog=fogSignal(sample),heat=heatSignal(samples,index);
  if(wind)signals.push(wind);if(rain)signals.push(rain);if(snow)signals.push(snow);if(drift)signals.push(drift);if(ice)signals.push(ice);if(fog)signals.push(fog);if(heat)signals.push(heat);
  const thunder=thunderSignal(sample,wind,rain);if(thunder)signals.push(thunder);
