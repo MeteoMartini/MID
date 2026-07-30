@@ -18,7 +18,7 @@ for(const token of [
 for(const token of [
   'function motionArrowIcon(',
   'mid-motion-arrow-marker',
-  'zIndexOffset={800}',
+  "<Pane name=\"mid-motion-arrows\" style={{zIndex:525,pointerEvents:'none'}}>",
   'function konradMarkerIcon(',
   'mid-konrad-marker',
   'function nowcastMixMarkerIcon()',

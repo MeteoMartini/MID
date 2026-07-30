@@ -23,7 +23,7 @@ requireTokens('Komposit-Option',radar,[
  'showNowcastObjects:boolean','label="K3D / MIX"','nowcastButtonDetail=`${k3dButtonState} · ${mixButtonState}`','function KonradNowcastObjects(','loadNowcastMixPoints(','visibleNowcastMix','<MemoKonradNowcastObjects data={thunder}'
 ]);
 requireTokens('Wiederhergestellte Zugpfeile',radar,[
- 'motionAvailable=showRadar&&Number.isFinite(motionDirection)&&Number.isFinite(motionSpeed)&&motionSpeed>=2','showMotion=showMotionOverlay&&motionAvailable','displayMotionAnchors=motionAnchors.length?motionAnchors:','showMotionField=showMotion&&displayMotionAnchors.length>0','confidence={analysis?.motionConfidence||\'low\'}',"confidence==='low'?'6 4':''"
+ 'motionAvailable=showRadar&&Number.isFinite(motionDirection)&&Number.isFinite(motionSpeed)&&motionSpeed>=2','showMotion=showMotionOverlay&&motionAvailable','displayMotionAnchors=motionAnchors','showMotionField=showMotion&&displayMotionAnchors.length>0','confidence={analysis?.motionConfidence||\'low\'}',"confidence==='low'?'5 4':''"
 ]);
 requireTokens('App-Schwellen',app,['function radarSiteThreshold(','function radarNearbyThreshold(','seasonalEchoLabel']);
 requireTokens('OPERA-Saisonprofil',opera,['function operaSeasonalEchoProfile(','winter-sensitive','summer-filter','echoProfile.siteThreshold','echoProfile.anchorThreshold','seasonalEchoLabel:echoProfile.label']);

@@ -9,7 +9,7 @@ for(const token of [
  "requiresPermission&&permission!=='granted'",
  "stamp-lastAbsoluteAt.current<1200",
  "delta*.48",
- "if(deviceHeading.heading===null)void deviceHeading.request()",
+ "if(actualLocation&&deviceHeading.heading===null)void deviceHeading.request()",
  "style=\"--mid-heading:${angle}deg\""
 ])if(!radar.includes(token))failures.push(`Blickrichtungsaktualisierung fehlt: ${token}`);
 for(const token of [

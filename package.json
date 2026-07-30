@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.8.25.0",
+  "version": "0.8.25.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -106,7 +106,9 @@
     "test:current-metrics-collapse": "node scripts/test-current-metrics-collapse-08240.mjs",
     "test:ensemble-diagonal-date-axis": "node scripts/test-ensemble-diagonal-date-axis-08241.mjs",
     "test:current-more-hazard-caption": "node scripts/test-current-more-hazard-caption-08242.mjs",
-    "test:composite-wms-lightning-k3d-wind": "node scripts/test-composite-wms-lightning-k3d-wind-08250.mjs"
+    "test:composite-wms-lightning-k3d-wind": "node scripts/test-composite-wms-lightning-k3d-wind-08250.mjs",
+    "test:composite-visibility-quality": "node scripts/test-composite-visibility-quality-08251.mjs",
+    "test:radar-unused-pxfactor-buildfix": "node scripts/test-radar-unused-pxfactor-buildfix-08252.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

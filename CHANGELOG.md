@@ -1,3 +1,18 @@
+## 0.8.25.2
+
+- Produktionsbuild repariert: Die in `RadarPanel.tsx` nicht verwendete Variable `pxFactor` wurde entfernt.
+- Die Sichtbarkeitslogik des DWD-250-m-Radars bleibt über die explizit verwendete Bedingung `pxDisplayAvailable` vollständig erhalten.
+- Eine neue Regression verhindert, dass der ungenutzte PX250-Faktor oder eine gleichartige TypeScript-TS6133-Regression erneut in den Produktionsstand gelangt.
+
+## 0.8.25.1
+
+- Kompositbild: Die Blickrichtungsspitze erscheint nur noch beim tatsächlich per Geräteortung geöffneten Standort; bei gesuchten Orten und Favoriten wird ausschließlich der neutrale Ortsmarker angezeigt.
+- Kompositbild: Isobaren und 500-hPa-Isohypsen werden nach dem Laden der MID-Modellkonturen mehrfach geglättet und mit abgerundeten Linien gezeichnet; der DWD-ICON-WMS bleibt als schneller Lade- und Ausfallfallback erhalten.
+- Kompositbild: DWD PX250/HX wurde durch redundante DWD-Open-Data-Endpunkte, tolerantere Aktualitätsfenster, robustere HDF5-Datensatzerkennung, korrigierte Projektionsparameter und eine statische Darstellung des neuesten Einzelstands stabilisiert.
+- Kompositbild: Blitzpunkte besitzen nun eine eigene, über Radar-, Satelliten- und Warnrastern liegende Kartenebene sowie deutlich sichtbare gefüllte Marker mit Halo.
+- Kompositbild: Zugpfeile werden kleiner und transparenter dargestellt, nur noch an tatsächlich nassen Ankerpunkten gesetzt und innerhalb eines Sicherheitsabstands zum Kartenrand ausgeblendet; künstliche Ersatzanker entfallen.
+- Radar-Bewegungsanalyse: Ankerpunkte aus den äußeren Rasterzellen werden verworfen, damit NoData- und Kompositränder keine scheinbaren Verlagerungspfeile erzeugen.
+
 ## 0.8.25.0
 
 - Kompositbild: OPERA CIRRUS wird nach erfolgreicher HDF5-Rastervalidierung auch dann geladen, wenn der gewählte Standort in einem trockenen oder lokalen NoData-Pixel liegt; die Kartenreprojektion wurde auf mobilen Geräten entlastet.

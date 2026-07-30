@@ -2986,3 +2986,18 @@ button,input,select,[role="button"]{touch-action:manipulation}
  pointer-events:none;
  user-select:none;
 }
+
+/* MID v0.8.25.1 · Kompositbild: Standort, Blitzpunkte, Modelllinien und dezente Zugpfeile */
+.leaflet-mid-lightning-points-pane{z-index:710!important;pointer-events:auto!important}
+.leaflet-mid-motion-arrows-pane{z-index:525!important;pointer-events:none!important}
+.mid-lightning-ring{paint-order:stroke fill;filter:drop-shadow(0 0 2px rgba(2,8,16,.98)) drop-shadow(0 0 5px rgba(255,220,84,.72));vector-effect:non-scaling-stroke}
+.mid-lightning-ring.newest{animation:mid-lightning-visible-pulse 1.15s ease-in-out infinite}
+@keyframes mid-lightning-visible-pulse{0%,100%{stroke-opacity:1;fill-opacity:.82}50%{stroke-opacity:.62;fill-opacity:.46}}
+.mid-motion-arrow-marker .halo{stroke:rgba(8,20,32,.58);stroke-width:5.2}
+.mid-motion-arrow-marker .core{stroke:rgba(255,255,255,.88);stroke-width:2.35}
+.mid-motion-arrow-marker.low .core{stroke:rgba(238,248,255,.72)}
+.radar-location-marker.selected-location{height:19px!important}
+.radar-location-marker.selected-location .radar-location-ring{top:2px!important}
+.radar-location-marker.actual-location .radar-location-bearing.unavailable{opacity:.5;filter:saturate(.72)}
+.mid-model-contour.foreground{shape-rendering:geometricPrecision;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.82))}
+.mid-model-contour.foreground.isoheights{stroke-dasharray:12 5}

@@ -8,14 +8,14 @@ const [radar,ensemble,styles,pkg]=await Promise.all([
 ]);
 const failures=[];
 for(const token of [
- 'function useDeviceHeading()',
+ 'function useDeviceHeading(enabled=true)',
  'webkitCompassHeading',
  'requestPermission',
- 'function locationHeadingIcon',
+ 'function locationHeadingIcon(heading:number|null,showBearing:boolean)',
  'radar-location-bearing',
  'Blickrichtung',
- 'Standortsymbol antippen, um die Blickrichtung zu aktivieren.',
- '<Marker position={[lat,lon]} icon={headingIcon}'
+ 'actualLocation&&(deviceHeading.heading!==null',
+ 'actualLocation&&deviceHeading.heading===null'
 ])if(!radar.includes(token))failures.push(`Blickrichtungsmarker fehlt: ${token}`);
 for(const token of [
  "await import('html-to-image')",
