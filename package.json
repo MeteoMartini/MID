@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.8.19.4",
+  "version": "0.8.19.6",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -89,7 +89,9 @@
     "test:travel-planner": "node scripts/test-travel-planner-08190.mjs",
     "test:travel-request-budget": "node scripts/test-travel-planner-request-budget-08191.mjs",
     "test:icao-location-search": "node scripts/test-icao-location-search-08193.mjs",
-    "test:icao-location-buildfix": "node scripts/test-icao-location-buildfix-08194.mjs"
+    "test:icao-location-buildfix": "node scripts/test-icao-location-buildfix-08194.mjs",
+    "test:detail-thunder-ensemble-precip": "node scripts/test-detail-thunder-ensemble-precip-08195.mjs",
+    "test:detail-thunder-indices": "node scripts/test-detail-thunder-indices-08196.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

@@ -24,6 +24,7 @@ import {AppleWidgetSettings} from './AppleWidgetSettings';
 import {applyLocalTwinForecastFromReport,applyLocalTwinHours,buildForecastVerificationReport,readWeatherTwinSettings,recordForecastCapture,recordLiveTwinObservation,refreshForecastReferences,restoreForecastVerificationArchive,writeWeatherTwinSettings,type TwinMainForecastStatus,type WeatherTwinSettings} from './forecastVerification';
 import {classifyEuropeanAirQuality,EUROPEAN_AQI_BANDS,stationClassLabel,type AirQualityStationMeta,type EuropeanAirQualityResult} from './airQuality';
 import {learnWeatherTwinsForFavorites} from './twinBackgroundLearning';
+import {significantHourlyThunderRisk} from './detailThunderRisk';
 
 const LOGO_PATH='./mid-logo.png';
 const LOCATION_STORAGE_KEY='mid:lastLocation';
@@ -986,7 +987,7 @@ function Forecast({days,hours,climate,selected,setSelected,unit,modelInfo,timezo
  },[selected,selectedHour,p.length,detailsOpen,compactMode,hours]);
  if(!p.length)return null;
  const precipSeries=p.map(precipitationParts);
- const currentHour=p[Math.min(selectedHour,p.length-1)]??p[0],currentPrecip=precipSeries[Math.min(selectedHour,p.length-1)]??precipitationParts(currentHour),currentWeatherCode=currentPrecip.displayCode,currentWeatherLabel=currentPrecip.type==='none'?label(currentWeatherCode):currentPrecip.weatherLabel;
+ const currentHour=p[Math.min(selectedHour,p.length-1)]??p[0],currentPrecip=precipSeries[Math.min(selectedHour,p.length-1)]??precipitationParts(currentHour),currentWeatherCode=currentPrecip.displayCode,currentWeatherLabel=currentPrecip.type==='none'?label(currentWeatherCode):currentPrecip.weatherLabel,currentThunderRisk=significantHourlyThunderRisk(currentHour);
  const precipLegendTypes=presentPrecipTypes(precipSeries) as DetailPrecipType[];
  const visiblePrecipLegendTypes=advancedMode?precipLegendTypes.filter(type=>!hiddenPrecipTypes.includes(type)):precipLegendTypes;
  const pressureValues=p.map(x=>x.pressure).filter(Number.isFinite),pressureAvailable=pressureValues.length>=2;
@@ -1101,7 +1102,7 @@ function Forecast({days,hours,climate,selected,setSelected,unit,modelInfo,timezo
      </svg>
      <div className="hour-chart-tooltip persistent" role="status" aria-live="polite" aria-label={`Details für ${currentHour.time.slice(11,16)} Uhr`}>
        <header><button type="button" onClick={()=>moveHour(-1)} aria-label="Vorherige Stunde">‹</button><div><small>{currentHour.time.slice(11,16)} Uhr</small><strong>{icon(currentWeatherCode,currentHour.isDay)} {currentWeatherLabel}</strong></div><button type="button" onClick={()=>moveHour(1)} aria-label="Nächste Stunde">›</button></header>
-       <div className="hour-tooltip-grid compact"><span><small>Temperatur / gefühlt</small><b>{Math.round(currentHour.temperature)}° / {Math.round(currentHour.apparent)}°</b></span><span><small>Niederschlag</small><b>{formatDecimalFixed(currentHour.precipitation,1)} mm · {Math.round(currentHour.probability)} %</b><em>{currentPrecip.label}</em></span><span><small>Taupunkt / Feuchte</small><b>{Math.round(currentHour.dewPoint)}° · {Math.round(currentHour.humidity)} %</b></span><span><small>Wind / Böen</small><b><WindDirectionArrow direction={currentHour.direction}/> {wind(currentHour.wind,unit)} · {wind(currentHour.gust,unit)}</b>{currentHour.gustAdjusted&&<em>Böe auf Windniveau plausibilisiert</em>}</span><span><small>Luftdruck</small><b>{Number.isFinite(currentHour.pressure)?`${formatDecimalFixed(currentHour.pressure,1)} hPa`:'–'}</b><em>{pressureTrendLabel}</em></span><span className="hour-tooltip-cloud-uvi"><small>Bewölkung / UVI</small><b>{cloudOktas(currentHour.cloud)}/8 · UVI {formatDecimal(currentHour.uvIndex,1)}</b><em>{cloudOktasText(currentHour.cloud).split(' · ')[1]}</em></span></div>
+       <div className="hour-tooltip-grid compact"><span><small>Temperatur / gefühlt</small><b>{Math.round(currentHour.temperature)}° / {Math.round(currentHour.apparent)}°</b></span><span className="hour-tooltip-precipitation"><small>Niederschlag</small><b>{formatDecimalFixed(currentHour.precipitation,1)} mm · {Math.round(currentHour.probability)} %</b><em title={currentThunderRisk?`${currentPrecip.label} · ${currentThunderRisk.label}`:currentPrecip.label}>{currentPrecip.label}{currentThunderRisk&&<> · <span className={`hourly-thunder-risk ${currentThunderRisk.level}`}>⚡ {currentThunderRisk.shortLabel}</span></>}</em></span><span><small>Taupunkt / Feuchte</small><b>{Math.round(currentHour.dewPoint)}° · {Math.round(currentHour.humidity)} %</b></span><span><small>Wind / Böen</small><b><WindDirectionArrow direction={currentHour.direction}/> {wind(currentHour.wind,unit)} · {wind(currentHour.gust,unit)}</b>{currentHour.gustAdjusted&&<em>Böe auf Windniveau plausibilisiert</em>}</span><span><small>Luftdruck</small><b>{Number.isFinite(currentHour.pressure)?`${formatDecimalFixed(currentHour.pressure,1)} hPa`:'–'}</b><em>{pressureTrendLabel}</em></span><span className="hour-tooltip-cloud-uvi"><small>Bewölkung / UVI</small><b>{cloudOktas(currentHour.cloud)}/8 · UVI {formatDecimal(currentHour.uvIndex,1)}</b><em>{cloudOktasText(currentHour.cloud).split(' · ')[1]}</em></span></div>
      </div>
      </div>
    </div>}

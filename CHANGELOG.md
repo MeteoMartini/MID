@@ -1,3 +1,19 @@
+# MID v0.8.19.6
+
+- Tagesdetailansicht: Das kompakte stündliche Gewitterrisiko basiert nicht mehr im Wesentlichen auf CAPE und Niederschlag, sondern auf einer kombinierten Best-Match-Diagnose aus WMO-Gewittercode, CAPE, Lifted Index, konvektiver Hemmung (CIN), Feuchteprofil, integriertem Wasserdampf sowie Schauer-/Niederschlags- und Auslösesignalen.
+- Hohe CAPE-Werte allein lösen keine Gewitteranzeige mehr aus. Eine starke konvektive Hemmung kann das Signal unterdrücken, während übereinstimmende Instabilitäts-, Feuchte- und Triggerparameter die Stufe „erhöht“ oder „hoch“ stützen.
+- Die Darstellung in der Niederschlagskachel bleibt unverändert kompakt als „⚡ erhöht“ beziehungsweise „⚡ hoch“; die Kachelgröße wird nicht verändert.
+- Die zusätzlichen Open-Meteo-Parameter werden im bestehenden Best-Match-Abruf mitgeführt und verursachen keine weiteren Netzaufrufe.
+- Neuer Regressionstest schützt Datenvertrag, Mehrindex-Bewertung, starke CIN-Deckelung, konservativen Fallback und direkte WMO-Gewittersignale.
+
+# MID v0.8.19.5
+
+- Tagesdetailansicht: Die bestehende stündliche Niederschlagskachel nennt bei signifikantem Modellhinweis nun kompakt ein erhöhtes oder hohes Gewitterrisiko. WMO-Gewittercodes werden unmittelbar berücksichtigt; zusätzlich werden CAPE, Niederschlagssignal und Niederschlagswahrscheinlichkeit gemeinsam plausibilisiert.
+- Die Gewitterinformation wird in der vorhandenen Detailzeile der Niederschlagskachel ausgegeben und per Ein-Zeilen-Kürzung begrenzt, sodass die Kachelgröße unverändert bleibt.
+- Ensemble-Temperaturtrend: Die Niederschlagsmenge wird in den Bewölkungs-/Sonnenkästchen nur noch über ein kleines oder großes Symbol unterschieden. Regen nutzt einen Tropfen, Schnee eine Schneeflocke; Mischformen kombinieren beide kompakt.
+- Gewitterblitze werden neben das Niederschlagssymbol versetzt und passend verkleinert, damit weder Blitz noch Tropfen/Flocke einander verdecken und die Symbolik vollständig innerhalb des bestehenden Kästchens bleibt.
+- Neuer Regressionstest schützt die stündliche Gewitterrisikologik, die kompakte Kachelintegration und die vereinfachte Ensemble-Symbolik.
+
 # MID v0.8.19.4
 
 - GitHub-/TypeScript-Buildfix für die ICAO-Ortssuche: Der Rückgabetyp des neuen Worker-Aufrufs wurde an den bestehenden `fetchWorkerJson`-Vertrag angepasst. Damit ist `Location` nicht mehr fälschlich direkt gegen den optionalen Worker-Fehlerumschlag typisiert.
