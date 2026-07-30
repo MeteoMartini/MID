@@ -1,3 +1,12 @@
+## 0.8.21.0
+
+- Hyperlokale Analyse: zentrales Quellenqualitätsregister mit feldspezifischer Bewertung von Entfernung, Alter, Standorttyp und Vertrauensfaktor
+- Hyperlokale Analyse: lokale Restfeldkorrekturen werden bei geringer Stationsstützung konservativ gedämpft; mehrere übereinstimmende Messpunkte erhalten stärkeres Gewicht
+- Niederschlagsmessungen: explizite 10-/60-Minuten-Bezugsintervalle und einheitliche Normalisierung vor der lokalen Assimilation
+- Performance: Kurzzeitcache für Stationsanalyse und Modellhintergrund, begrenzte Stale-Fallbacks sowie Cache-Größenlimits
+- Workerzugriffe: lokaler Antwortcache, Stale-if-error und temporärer Circuit-Breaker für wiederholt fehlschlagende Endpunkte
+- Worker: Quellenvertrag um Niederschlagsintervalle für DWD/Bright Sky, GeoSphere und Synoptic ergänzt; Stations- und Warnantworten abrufschonend zwischengespeichert
+
 ## 0.8.20.0
 
 - Hyperlokale Analyse: physische Stationsentdopplung über Kennung, Lage, Höhe, Messzeit und Temperaturplausibilität; Quellenalias-Dopplungen werden vor der Gewichtung entfernt.

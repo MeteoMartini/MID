@@ -2,7 +2,14 @@ import {MID_VERSION} from './version';
 
 export type WorkerPurpose='general'|'metar'|'alerts'|'radar'|'meteogram';
 type WorkerPayload={error?:string};
-type WorkerFetchOptions={purpose?:WorkerPurpose;signal?:AbortSignal;timeoutMs?:number;cache?:RequestCache};
+type WorkerFetchOptions={purpose?:WorkerPurpose;signal?:AbortSignal;timeoutMs?:number;cache?:RequestCache;maxAgeMs?:number;staleIfErrorMs?:number;cacheKey?:string};
+
+type WorkerCacheEntry={at:number;data:WorkerPayload};
+type WorkerEndpointHealth={failures:number;blockedUntil:number};
+const workerResponseCache=new Map<string,WorkerCacheEntry>();
+const workerEndpointHealth=new Map<string,WorkerEndpointHealth>();
+const WORKER_CACHE_LIMIT=36;
+class WorkerRequestError extends Error{constructor(message:string,readonly status=0){super(message);this.name='WorkerRequestError'}}
 
 const LAST_GOOD_KEY='mid:worker:lastGood';
 const LAST_GOOD_MAX_AGE=36*60*60*1000;
@@ -68,6 +75,19 @@ function errorText(error:unknown){
  if(error instanceof Error)return error.message;
  return String(error||'unbekannter Fehler');
 }
+function stableWorkerCacheKey(purpose:WorkerPurpose,mode:string,params:Record<string,string|number|undefined>,explicit?:string){
+ if(explicit)return`${purpose}:${explicit}`;
+ const values=Object.entries(params).filter(([,value])=>value!==undefined&&value!=='').sort(([a],[b])=>a.localeCompare(b)).map(([key,value])=>`${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`).join('&');
+ return`${purpose}:${mode}?${values}`;
+}
+function cachedWorkerPayload<T extends WorkerPayload>(key:string,maxAgeMs:number){const cached=workerResponseCache.get(key);return cached&&Date.now()-cached.at<=maxAgeMs?cached.data as T:undefined}
+function storeWorkerPayload(key:string,data:WorkerPayload){workerResponseCache.set(key,{at:Date.now(),data});if(workerResponseCache.size>WORKER_CACHE_LIMIT){const remove=[...workerResponseCache.entries()].sort((a,b)=>a[1].at-b[1].at).slice(0,workerResponseCache.size-WORKER_CACHE_LIMIT);for(const[item]of remove)workerResponseCache.delete(item)}}
+function endpointHealthKey(purpose:WorkerPurpose,base:string){return`${purpose}:${base}`}
+function endpointBlocked(purpose:WorkerPurpose,base:string){return Number(workerEndpointHealth.get(endpointHealthKey(purpose,base))?.blockedUntil||0)>Date.now()}
+function endpointSuccess(purpose:WorkerPurpose,base:string){workerEndpointHealth.delete(endpointHealthKey(purpose,base))}
+function endpointFailure(purpose:WorkerPurpose,base:string,error:unknown){const retryable=!(error instanceof WorkerRequestError)||error.status===0||error.status===408||error.status===429||error.status>=500;if(!retryable)return;const key=endpointHealthKey(purpose,base),previous=workerEndpointHealth.get(key),failures=(previous?.failures||0)+1,blockedUntil=failures>=4?Date.now()+120000:failures>=2?Date.now()+30000:0;workerEndpointHealth.set(key,{failures,blockedUntil})}
+function staleWorkerPayload<T extends WorkerPayload>(key:string,staleIfErrorMs:number){const cached=workerResponseCache.get(key);return cached&&Date.now()-cached.at<=staleIfErrorMs?cached.data as T:undefined}
+
 function parseWorkerPayload<T extends WorkerPayload>(response:Response,text:string):T{
  const contentType=String(response.headers.get('content-type')||'').toLowerCase(),trimmed=text.trim();
  if(!trimmed)throw new Error(`Leere Worker-Antwort (HTTP ${response.status})`);
@@ -79,24 +99,27 @@ function parseWorkerPayload<T extends WorkerPayload>(response:Response,text:stri
 }
 
 export async function fetchWorkerJson<T extends WorkerPayload>(mode:string,params:Record<string,string|number|undefined>={},options:WorkerFetchOptions={}):Promise<T>{
- const purpose=options.purpose??'general',candidates=workerBaseCandidates(purpose);
- if(!candidates.length)throw new Error(`Cloudflare Worker v${MID_VERSION} ist nicht konfiguriert.`);
- const failures:string[]=[];
- for(const base of candidates){
+ const purpose=options.purpose??'general',candidates=workerBaseCandidates(purpose),cacheKey=stableWorkerCacheKey(purpose,mode,params,options.cacheKey),maxAgeMs=Math.max(0,Number(options.maxAgeMs)||0),staleIfErrorMs=Math.max(maxAgeMs,Number(options.staleIfErrorMs)||0);
+ if(maxAgeMs>0){const cached=cachedWorkerPayload<T>(cacheKey,maxAgeMs);if(cached)return cached}
+ if(!candidates.length){const stale=staleIfErrorMs>0?staleWorkerPayload<T>(cacheKey,staleIfErrorMs):undefined;if(stale)return stale;throw new Error(`Cloudflare Worker v${MID_VERSION} ist nicht konfiguriert.`)}
+ const failures:string[]=[],available=candidates.filter(base=>!endpointBlocked(purpose,base)),attempts=available.length?available:[candidates[0]];
+ for(const base of attempts){
   if(options.signal?.aborted)throw abortReason(options.signal);
   const request=requestController(options.signal,options.timeoutMs??9000);
   try{
-   const response=await fetch(buildWorkerUrl(base,mode,params).toString(),{signal:request.signal,cache:options.cache??'no-store',headers:{Accept:'application/json','Cache-Control':'no-cache'}});
+   const response=await fetch(buildWorkerUrl(base,mode,params).toString(),{signal:request.signal,cache:options.cache??'no-store',headers:{Accept:'application/json','Cache-Control':options.cache==='default'?'max-age=0':'no-cache'}});
    const text=await response.text(),data=parseWorkerPayload<T>(response,text);
-   if(!response.ok||data.error)throw new Error(data.error||`HTTP ${response.status}`);
-   rememberLastGood(purpose,base);
+   if(!response.ok||data.error)throw new WorkerRequestError(data.error||`HTTP ${response.status}`,response.status);
+   rememberLastGood(purpose,base);endpointSuccess(purpose,base);if(maxAgeMs>0||staleIfErrorMs>0)storeWorkerPayload(cacheKey,data);
    return data;
   }catch(error){
    if(options.signal?.aborted)throw abortReason(options.signal);
-   const host=(()=>{try{return new URL(base,location.href).host||base}catch{return base}})();
+   endpointFailure(purpose,base,error);
+   const host=(()=>{try{return new URL(base,typeof location==='undefined'?'https://mid.invalid/':location.href).host||base}catch{return base}})();
    failures.push(`${host}: ${errorText(error)}`);
   }finally{request.cleanup()}
  }
- const detail=failures.slice(-3).join(' · ');
- throw new Error(`Workerzugriff über ${candidates.length} Endpunkt${candidates.length===1?'':'e'} fehlgeschlagen${detail?`: ${detail}`:''}. Browser-, DNS-, CORS- oder Netzwerkblockade möglich.`);
+ const stale=staleIfErrorMs>0?staleWorkerPayload<T>(cacheKey,staleIfErrorMs):undefined;if(stale)return stale;
+ const detail=failures.slice(-3).join(' · '),blocked=candidates.length-attempts.length;
+ throw new Error(`Workerzugriff über ${attempts.length} Endpunkt${attempts.length===1?'':'e'} fehlgeschlagen${blocked>0?` · ${blocked} vorübergehend ausgelassen`:''}${detail?`: ${detail}`:''}. Browser-, DNS-, CORS- oder Netzwerkblockade möglich.`);
 }
