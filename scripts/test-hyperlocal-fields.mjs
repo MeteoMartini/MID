@@ -17,8 +17,8 @@ for(const token of [
   'cloudCover:metarCloudCover(r)',
   'ceilingHft:metarCeilingHft(r)',
   'cloudBaseHft:metarCloudBaseHft(r)',
-  "ceiling=directStationField(ranked,'ceilingHft'",
-  "cloudBase=directStationField(ranked,'cloudBaseHft'",
+  "ceiling=directStationField(ranked.filter(authoritative),'ceilingHft'",
+  "cloudBase=directStationField(ranked.filter(authoritative),'cloudBaseHft'",
   'ceilingHft:ceiling.value===undefined?direct?.ceilingHft',
   'cloudBaseHft:cloudBase.value===undefined?direct?.cloudBaseHft',
   'value*1609.344'

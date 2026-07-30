@@ -1,3 +1,11 @@
+## 0.8.20.0
+
+- Hyperlokale Analyse: physische Stationsentdopplung über Kennung, Lage, Höhe, Messzeit und Temperaturplausibilität; Quellenalias-Dopplungen werden vor der Gewichtung entfernt.
+- Hyperlokale Analyse: zirkuläre modellgestützte Restfeldanalyse der Windrichtung sowie abschließende Konsistenzprüfung von Temperatur/Taupunkt/Feuchte und Wind/Böen.
+- Hyperlokale Analyse: Sicht, Bewölkung, Ceiling, Wolkenuntergrenze und Niederschlag werden nur aus amtlichen beziehungsweise professionellen Beobachtungsnetzen korrigiert.
+- Abrufbudget: GeoSphere/Bright Sky werden bei vorhandenem Worker nur bei fehlender Quelle direkt nachgeladen; ein zweiter Stationslauf erfolgt nur bei geringer Dichte, hoher Unsicherheit oder großer effektiver Entfernung.
+- Quellen- und Qualitätsaudit für nowcast/LINET, weitere Beobachtungsquellen, App-Architektur, Cachevertrag und Buildprozess ergänzt.
+
 ## 0.8.19.12
 
 - 7-Tage-Vorhersage: Haupt- und Untertitel beginnen zuverlässig mit Großbuchstaben.
