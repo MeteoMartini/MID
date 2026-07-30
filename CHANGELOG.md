@@ -1,3 +1,9 @@
+## 0.8.24.2
+
+- Eigene Warnungen: Der erläuternde Fußtext wurde auf den einzigen Satz „Automatisch aus Best Match abgeleitet.“ gekürzt.
+- Aktuelles Wetter: Die Schaltfläche für die Messwertkacheln heißt jetzt kompakt „mehr“ beziehungsweise im geöffneten Zustand „weniger“.
+- Aktuelles Wetter: Die Schaltfläche wurde aus dem Inhaltskopf an den unteren rechten Modulrand verlegt. Reservierter Außenabstand, eigener Ebenenwert und mobile Abstände verhindern Überdeckungen mit Tmin/Tmax, Wettertext, Analysekarte und nachfolgenden Modulen.
+
 ## 0.8.24.1
 
 - Ensemble-Diagramme: Datumsbeschriftungen der Temperatur-, Niederschlags- und Windachsen werden jetzt diagonal dargestellt, sodass alle 14 Vorhersagetage auch auf schmalen Displays eindeutig lesbar bleiben.

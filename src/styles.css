@@ -2966,15 +2966,15 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .mountain-level-main>span>.mid-weather-pictogram{width:1em;height:1em}
 .quickfacts .mid-weather-pictogram,.hour-tooltip strong .mid-weather-pictogram,.route-map-tooltip .mid-weather-pictogram,.route-checkpoint-weather .mid-weather-pictogram{width:1.35em;height:1.35em;vertical-align:-.32em}
 
-/* MID v0.8.24.0 · ein-/ausklappbare Messwertkacheln im aktuellen Wetter */
-.current-metrics-toggle{display:inline-flex;align-items:center;justify-content:center;gap:4px;min-height:29px;margin-left:auto;padding:5px 8px;border:1px solid color-mix(in srgb,var(--border) 82%,var(--primary));border-radius:999px;background:color-mix(in srgb,var(--surface) 78%,transparent);color:var(--text);font-size:8px;font-weight:800;white-space:nowrap;box-shadow:0 5px 16px rgba(0,0,0,.07);transition:border-color .16s ease,background .16s ease,transform .16s ease}
-.current-metrics-toggle:hover{border-color:color-mix(in srgb,var(--primary) 58%,var(--border));background:color-mix(in srgb,var(--primary) 10%,var(--surface));transform:translateY(-1px)}
+/* MID v0.8.24.2 · kompakte Mehr-Schaltfläche am Modulrand */
+.hero[data-mid-view="current"]{margin-bottom:18px}
+.current-metrics-toggle{position:absolute;z-index:5;right:18px;bottom:-13px;display:inline-flex;align-items:center;justify-content:center;gap:3px;min-width:58px;min-height:27px;padding:4px 9px;border:1px solid color-mix(in srgb,var(--border) 68%,var(--primary));border-radius:999px;background:color-mix(in srgb,var(--surface) 94%,var(--s2));color:var(--text);font-size:8px;font-weight:800;line-height:1;white-space:nowrap;box-shadow:0 7px 20px rgba(0,0,0,.2);transition:border-color .16s ease,background .16s ease,transform .16s ease}
+.current-metrics-toggle:hover{border-color:color-mix(in srgb,var(--primary) 62%,var(--border));background:color-mix(in srgb,var(--primary) 12%,var(--surface));transform:translateY(-1px)}
 .current-metrics-toggle:focus-visible{outline:2px solid color-mix(in srgb,var(--primary) 72%,white);outline-offset:2px}
 .current-metrics-toggle svg{flex:0 0 auto}
-.current-metrics-toggle b{font:inherit}
+.current-metrics-toggle b{font:inherit;text-transform:lowercase}
 .metrics[hidden]{display:none}
-@media(max-width:520px){.current-metrics-toggle{min-height:27px;padding:4px 7px;font-size:7.5px}}
-@media(max-width:390px){.current-metrics-toggle{align-self:flex-start;margin-left:0}}
+@media(max-width:520px){.hero[data-mid-view="current"]{margin-bottom:17px}.current-metrics-toggle{right:11px;bottom:-12px;min-width:54px;min-height:25px;padding:4px 8px;font-size:7.5px}}
 
 /* MID v0.8.24.1 – lesbare diagonale Datumsachse in allen Ensemble-Diagrammen */
 .ensemble-date-axis-tick{

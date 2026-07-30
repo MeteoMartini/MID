@@ -50,7 +50,7 @@ const frostStages=dwdWarningSignalsAt(frostSamples,0).filter(signal=>signal.kind
 if(frostStages.map(signal=>signal.level).join(',')!=='2,1')failures.push(`Kumulative Froststufen fehlen: ${frostStages.map(signal=>signal.level).join(',')}`);
 for(const token of ['function windClassifications(kmh:number)','function warningStageKey(signal:DwdWarningSignal)','lowerIntensity?:boolean','warningIntervalsOverlap(signal,other)'])if(!warnings.includes(token))failures.push(`Mehrstufenlogik fehlt: ${token}`);
 for(const token of ['kind?:DwdWarningKind;lowerIntensity?:boolean','kind:signal.kind,lowerIntensity:signal.lowerIntensity'])if(!weather.includes(token))failures.push(`Hazard-Datenvertrag fehlt: ${token}`);
-for(const token of ['lower-intensity','Niedrigere Stufe','bei überschrittenen Schwellen werden zusätzliche niedrigere Intensitätsstufen'])if(!app.includes(token))failures.push(`Warnkartendarstellung fehlt: ${token}`);
+for(const token of ['lower-intensity','Niedrigere Stufe'])if(!app.includes(token))failures.push(`Warnkartendarstellung fehlt: ${token}`);
 for(const token of ['.hazard-title-line{','.hazards article.lower-intensity{'])if(!styles.includes(token))failures.push(`Kompaktes Mehrstufen-CSS fehlt: ${token}`);
 if(!pkg.includes('test:hazard-lower-intensity'))failures.push('Package-Testeintrag fehlt.');
 if(!baseline.includes('scripts/test-hazard-lower-intensity-081810.mjs'))failures.push('Baseline-Testeintrag fehlt.');

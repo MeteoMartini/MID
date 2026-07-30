@@ -15,11 +15,12 @@ for(const token of [
  'className="current-metrics-toggle"',
  'aria-expanded={metricsOpen}',
  'aria-controls="current-weather-metrics"',
- "metricsOpen?'Kacheln ausblenden':'Kacheln einblenden'",
+ "metricsOpen?'weniger':'mehr'",
+ 'aria-label={metricsOpen?',
  'id="current-weather-metrics" className="metrics" hidden={!metricsOpen}'
 ])need('Aktuelles Wetter',app,token);
 for(const token of [
- '.current-metrics-toggle{display:inline-flex;',
+ '.current-metrics-toggle{position:absolute;',
  '.current-metrics-toggle:focus-visible',
  '.metrics[hidden]{display:none}'
 ])need('Darstellung',styles,token);
