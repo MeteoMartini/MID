@@ -1,4 +1,5 @@
 export type DetailThunderRiskLevel='elevated'|'high';
+export const DETAIL_THUNDER_RISK_DISPLAY_THRESHOLD=30;
 export type DetailThunderRisk={level:DetailThunderRiskLevel;shortLabel:string;label:string;score:number;percent:number;signals:string[]};
 export type DetailThunderRiskSample={
  code?:number;
@@ -24,7 +25,7 @@ function thunderRiskPercent(level:DetailThunderRiskLevel,score:number,directThun
  if(directThunder&&level==='high')return clamp(Math.round(82+score*1.15),85,93);
  if(directThunder)return clamp(Math.round(62+score*1.2),65,82);
  if(level==='high')return clamp(Math.round(56+score*3.1),72,88);
- return clamp(Math.round(27+score*5.2),35,69);
+ return clamp(Math.round(12+score*6.5),DETAIL_THUNDER_RISK_DISPLAY_THRESHOLD,69);
 }
 
 /**
@@ -84,5 +85,6 @@ export function significantHourlyThunderRisk(sample:DetailThunderRiskSample):Det
 
  if(!stronglyCapped&&instability>=4.5&&moisture>=2&&trigger>=2&&score>=8)return{level:'high',shortLabel:'hoch',label:'Hohes Gewitterrisiko aus CAPE, Lifted Index, CIN sowie Feuchte- und Schauersignalen',score,percent:thunderRiskPercent('high',score,false,false),signals};
  if(!stronglyCapped&&instability>=2.5&&moisture>=1&&trigger>=1&&score>=5.5)return{level:'elevated',shortLabel:'erhöht',label:'Erhöhtes Gewitterrisiko aus mehreren Best-Match-Stabilitäts- und Feuchteparametern',score,percent:thunderRiskPercent('elevated',score,false,false),signals};
+ if(!stronglyCapped&&instability>=1.5&&moisture>=1&&trigger>=1&&score>=2.8){const percent=thunderRiskPercent('elevated',score,false,false);if(percent>=DETAIL_THUNDER_RISK_DISPLAY_THRESHOLD)return{level:'elevated',shortLabel:'möglich',label:'Modelliertes Gewitterrisiko aus kombinierter Instabilität, Feuchte und Auslösung',score,percent,signals};}
  return null;
 }

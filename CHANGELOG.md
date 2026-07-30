@@ -1,3 +1,9 @@
+## 0.8.19.8
+
+- Tagesdetailansicht: Die kompakte Gewitterrisiko-Prozentangabe erscheint jetzt ab 30 %. Die Schwelle bleibt an die kombinierte Mehrindexdiagnose aus Instabilität, Feuchte, Auslösung und CIN gekoppelt; CAPE allein erzeugt weiterhin kein Signal.
+- 7-Tage-Trend: Gewitterformulierungen verwenden jetzt dieselbe stündliche Mehrindexdiagnose wie die Tagesdetailansicht. Die frühere grobe Ersatzregel aus CAPE ≥ 700 J/kg und Tages-Niederschlagswahrscheinlichkeit ≥ 45 % wurde entfernt.
+- Bei 30–69 % wird im Trend von Gewitterrisiko gesprochen; erst bei direktem WMO-/Warnsignal oder mindestens 70 % von Gewittern. Dadurch bleiben Kurztrend, Tagesdetail und eigene Warnungen konsistent.
+
 ## 0.8.19.7
 
 - Tagesdetailansicht: Gewitterrisiko in der stündlichen Niederschlagskachel jetzt als kompakte Prozentangabe dargestellt

@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.8.19.7",
+  "version": "0.8.19.8",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -91,7 +91,8 @@
     "test:icao-location-search": "node scripts/test-icao-location-search-08193.mjs",
     "test:icao-location-buildfix": "node scripts/test-icao-location-buildfix-08194.mjs",
     "test:detail-thunder-ensemble-precip": "node scripts/test-detail-thunder-ensemble-precip-08195.mjs",
-    "test:detail-thunder-indices": "node scripts/test-detail-thunder-indices-08196.mjs"
+    "test:detail-thunder-indices": "node scripts/test-detail-thunder-indices-08196.mjs",
+    "test:detail-thunder-threshold-trend": "node scripts/test-detail-thunder-threshold-trend-08198.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

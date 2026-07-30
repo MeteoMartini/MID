@@ -24,7 +24,7 @@ import {AppleWidgetSettings} from './AppleWidgetSettings';
 import {applyLocalTwinForecastFromReport,applyLocalTwinHours,buildForecastVerificationReport,readWeatherTwinSettings,recordForecastCapture,recordLiveTwinObservation,refreshForecastReferences,restoreForecastVerificationArchive,writeWeatherTwinSettings,type TwinMainForecastStatus,type WeatherTwinSettings} from './forecastVerification';
 import {classifyEuropeanAirQuality,EUROPEAN_AQI_BANDS,stationClassLabel,type AirQualityStationMeta,type EuropeanAirQualityResult} from './airQuality';
 import {learnWeatherTwinsForFavorites} from './twinBackgroundLearning';
-import {significantHourlyThunderRisk} from './detailThunderRisk';
+import {DETAIL_THUNDER_RISK_DISPLAY_THRESHOLD,significantHourlyThunderRisk} from './detailThunderRisk';
 
 const LOGO_PATH='./mid-logo.png';
 const LOCATION_STORAGE_KEY='mid:lastLocation';
@@ -846,7 +846,7 @@ function combineRadarAndModel(model:PrecipNowResult,radar:RadarNowcast|null,load
 
 type SevenDayWeatherRegime='sunny'|'mixed'|'cloudy'|'wet'|'storm'|'snow';
 type SevenDayThermalClass='extreme-hot'|'very-hot'|'hot'|'summer'|'ice'|'frost'|'above-normal'|'below-normal'|'neutral';
-type SevenDayWeatherPoint={index:number;day:Day;regime:SevenDayWeatherRegime;sunHours:number;sunShare:number;showery:boolean;thermal:SevenDayThermalClass;climateDelta:number;tropicalNight:boolean;hazards:ReturnType<typeof summarizeDwdWarningsForDay>};
+type SevenDayWeatherPoint={index:number;day:Day;regime:SevenDayWeatherRegime;sunHours:number;sunShare:number;showery:boolean;thunderRiskPercent:number;thunderDirect:boolean;thermal:SevenDayThermalClass;climateDelta:number;tropicalNight:boolean;hazards:ReturnType<typeof summarizeDwdWarningsForDay>};
 type SevenDayWeatherSegment={regime:SevenDayWeatherRegime;start:number;end:number;points:SevenDayWeatherPoint[]};
 // DWD-Kenntage: Sommertag ab 25 °C, Heißer Tag ab 30 °C, sehr heiß ab 35 °C, extrem heiß ab 40 °C, Tropennacht ab Tmin 20 °C und Eistag bei Tmax < 0 °C.
 const SEVEN_DAY_TREND_WEIGHTS=[1.8,1.5,1.25,1,.82,.68,.55] as const;
@@ -866,10 +866,10 @@ function sevenDayThermalClass(day:Day,climate?:ClimateDay){
  return'neutral';
 }
 function sevenDayPoint(day:Day,dayHours:Hour[],allHours:Hour[],index:number,climate:ClimateDay|undefined,elevation:number):SevenDayWeatherPoint{
- const character=dayWeatherCharacter(day,dayHours),codes=[day.code,...dayHours.map(hour=>hour.code)].filter(Number.isFinite).map(value=>Math.round(Number(value))),has=(values:number[])=>codes.some(code=>values.includes(code)),maxCape=Math.max(0,...dayHours.map(hour=>Number(hour.cape)||0)),text=`${character.label} ${character.secondary||''}`.toLocaleLowerCase('de-DE'),sunHours=Math.max(0,Number(day.sunshineDuration)||0)/3600,sunShare=Math.max(0,Math.min(1,sunHours/Math.max(1,sevenDayDaylightHours(day)))),showery=has([80,81,82])||/schauer|wechselhaft/.test(text),wetDominant=character.precipitationDominant||day.precipitation>=1.2||day.probability>=75||(day.precipitation>=.6&&day.probability>=55),stormy=has([95,96,97,99])||maxCape>=700&&day.probability>=45,snowy=has([71,73,75,77,85,86]),sunnyText=/sonnig|heiter|wolkenlos/.test(text),denseCloudText=/stark bewölkt|meist bewölkt|bedeckt|trüb/.test(text),mixedText=/sonne und wolken|wechselnd bewölkt|aufgelockert|teils bewölkt|zeitweise wolkig|später wolkig/.test(text);
+ const character=dayWeatherCharacter(day,dayHours),codes=[day.code,...dayHours.map(hour=>hour.code)].filter(Number.isFinite).map(value=>Math.round(Number(value))),has=(values:number[])=>codes.some(code=>values.includes(code)),text=`${character.label} ${character.secondary||''}`.toLocaleLowerCase('de-DE'),sunHours=Math.max(0,Number(day.sunshineDuration)||0)/3600,sunShare=Math.max(0,Math.min(1,sunHours/Math.max(1,sevenDayDaylightHours(day)))),showery=has([80,81,82])||/schauer|wechselhaft/.test(text),wetDominant=character.precipitationDominant||day.precipitation>=1.2||day.probability>=75||(day.precipitation>=.6&&day.probability>=55),hazards=summarizeDwdWarningsForDay(allHours,day.date,elevation),hourlyThunderRisks=dayHours.map(hour=>significantHourlyThunderRisk(hour)).filter((risk):risk is NonNullable<ReturnType<typeof significantHourlyThunderRisk>>=>Boolean(risk)),thunderRiskPercent=Math.max(0,...hourlyThunderRisks.map(risk=>risk.percent)),thunderDirect=has([95,96,97,99])||hazards.some(signal=>signal.kind==='thunderstorm'),stormy=thunderRiskPercent>=DETAIL_THUNDER_RISK_DISPLAY_THRESHOLD||thunderDirect,snowy=has([71,73,75,77,85,86]),sunnyText=/sonnig|heiter|wolkenlos/.test(text),denseCloudText=/stark bewölkt|meist bewölkt|bedeckt|trüb/.test(text),mixedText=/sonne und wolken|wechselnd bewölkt|aufgelockert|teils bewölkt|zeitweise wolkig|später wolkig/.test(text);
  let regime:SevenDayWeatherRegime;
  if(snowy)regime='snow';else if(stormy)regime='storm';else if(wetDominant)regime='wet';else if(sunnyText&&denseCloudText||mixedText)regime='mixed';else if(denseCloudText)regime='cloudy';else if(sunnyText)regime='sunny';else if(codes.includes(0)||codes.includes(1))regime=sunShare>=.35?'sunny':'mixed';else if(codes.includes(2))regime='mixed';else if(codes.includes(3))regime='cloudy';else regime=sunShare>=.65?'sunny':sunShare>=.3?'mixed':'cloudy';
- return{index,day,regime,sunHours,sunShare,showery,thermal:sevenDayThermalClass(day,climate),climateDelta:climate&&Number.isFinite(climate.maxMean)?Number(day.max)-climate.maxMean:Number.NaN,tropicalNight:Number(day.min)>=20,hazards:summarizeDwdWarningsForDay(allHours,day.date,elevation)};
+ return{index,day,regime,sunHours,sunShare,showery,thunderRiskPercent,thunderDirect,thermal:sevenDayThermalClass(day,climate),climateDelta:climate&&Number.isFinite(climate.maxMean)?Number(day.max)-climate.maxMean:Number.NaN,tropicalNight:Number(day.min)>=20,hazards};
 }
 function sevenDayThermalPhrase(segment:SevenDayWeatherSegment){
  const points=segment.points,totalWeight=points.reduce((sum,point)=>sum+sevenDayWeight(point.index),0),score=(classes:SevenDayThermalClass[])=>points.reduce((sum,point)=>sum+(classes.includes(point.thermal)?sevenDayWeight(point.index):0),0),first=points[0],last=points[points.length-1],risingHeat=points.length>=2&&Number(first.day.max)<30&&Number(last.day.max)>=30&&Number(last.day.max)-Number(first.day.max)>=4,tropicalNights=points.filter(point=>point.tropicalNight).length,nightSuffix=tropicalNights===1?' mit möglicher Tropennacht':tropicalNights>1?' mit möglichen Tropennächten':'';
@@ -886,10 +886,10 @@ function sevenDayThermalPhrase(segment:SevenDayWeatherSegment){
  return'';
 }
 function sevenDaySegmentDescription(segment:SevenDayWeatherSegment){
- const points=segment.points,totalPrecip=points.reduce((sum,point)=>sum+Math.max(0,Number(point.day.precipitation)||0),0),showeryScore=points.reduce((sum,point)=>sum+(point.showery?sevenDayWeight(point.index):0),0),weight=points.reduce((sum,point)=>sum+sevenDayWeight(point.index),0),thermal=sevenDayThermalPhrase(segment);
+ const points=segment.points,totalPrecip=points.reduce((sum,point)=>sum+Math.max(0,Number(point.day.precipitation)||0),0),showeryScore=points.reduce((sum,point)=>sum+(point.showery?sevenDayWeight(point.index):0),0),weight=points.reduce((sum,point)=>sum+sevenDayWeight(point.index),0),thermal=sevenDayThermalPhrase(segment),maxThunderRisk=Math.max(0,...points.map(point=>point.thunderRiskPercent)),directThunder=points.some(point=>point.thunderDirect);
  let base='';
  if(segment.regime==='snow')base='winterlich mit Schnee';
- else if(segment.regime==='storm')base='wechselhaft mit Gewittern';
+ else if(segment.regime==='storm')base=directThunder||maxThunderRisk>=70?'wechselhaft mit Gewittern':maxThunderRisk>=50?'wechselhaft mit erhöhtem Gewitterrisiko':'wechselhaft mit Gewitterrisiko';
  else if(segment.regime==='wet')base=showeryScore>=weight*.45&&totalPrecip<10?'wechselhaft mit Schauern':totalPrecip>=8?'regnerisch':'zeitweise regnerisch';
  else if(segment.regime==='cloudy')base='überwiegend bewölkt, aber meist trocken';
  else if(segment.regime==='mixed')base='mit Sonne und Wolken, überwiegend trocken';
