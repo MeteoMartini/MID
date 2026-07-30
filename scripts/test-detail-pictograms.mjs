@@ -12,7 +12,8 @@ for(const token of[
  'iconIndices=maximizeVisibleIndices(p.length,maxIconCount)',
  'iconPoints=representativeDetailPictograms(iconIndices,p,precipSeries)',
  'iconPoints.map(point=>',
- 'fontSize={iconFontSize}'
+ 'size=iconFontSize*1.45',
+ 'size={size}'
 ])if(!app.includes(token))failures.push(`Adaptive Wetterpiktogramme: ${token} fehlt.`);
 if(/plotW\/(?:narrowChart\?58:mediumChart\?66:72)/.test(app))failures.push('Die alte zu großzügige Piktogramm-Abstandslogik ist noch vorhanden.');
 if(failures.length){console.error('Detailpiktogramm-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}

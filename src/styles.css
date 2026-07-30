@@ -2957,3 +2957,11 @@ button,input,select,[role="button"]{touch-action:manipulation}
 
 @media(max-width:600px){.short-term-header{align-items:flex-start}.short-term-header>em{display:none}.short-term-strip{padding-inline:9px}.short-term-strip>button{flex-basis:76px;min-width:76px}.short-term-detail>div{grid-template-columns:1fr 1fr}.dashboard-module-item{grid-template-columns:24px minmax(0,1fr)}.dashboard-module-order-actions{grid-column:2;justify-content:flex-end}.device-sync-qr{grid-template-columns:1fr;justify-items:center}.device-sync-qr>header,.device-sync-qr>small{width:100%}.device-sync-qr-code{grid-column:1;grid-row:auto;width:min(190px,70vw)}}
 @media(max-width:390px){.short-term-detail>div{grid-template-columns:1fr}.dashboard-module-item>label{gap:6px}.device-sync-qr-code{width:min(176px,72vw)}}
+
+/* MID v0.8.23.0 · transparente professionelle Wetterpiktogramme */
+.mid-weather-pictogram{display:inline-block;width:1em;height:1em;max-width:100%;overflow:visible;vertical-align:-.16em;flex:none}
+.hero>div>.mid-weather-pictogram{width:1em;height:1em}
+.short-term-weather-icon>.mid-weather-pictogram,.forecast-icon span>.mid-weather-pictogram,.ens-card .wx>.mid-weather-pictogram,.widgeticon>.mid-weather-pictogram,.travel-day-icon>.mid-weather-pictogram{width:1em;height:1em}
+.mountain-matrix-weather i>.mid-weather-pictogram{width:1.35em;height:1.35em;vertical-align:middle}
+.mountain-level-main>span>.mid-weather-pictogram{width:1em;height:1em}
+.quickfacts .mid-weather-pictogram,.hour-tooltip strong .mid-weather-pictogram,.route-map-tooltip .mid-weather-pictogram,.route-checkpoint-weather .mid-weather-pictogram{width:1.35em;height:1.35em;vertical-align:-.32em}

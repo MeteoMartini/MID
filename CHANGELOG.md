@@ -1,3 +1,11 @@
+## 0.8.23.0
+
+- Wetterdarstellung vollständig auf ein transparentes, skalierbares SVG-Piktogrammsystem umgestellt. Alle relevanten WMO-Wettergruppen besitzen eigenständige professionelle Symbole für Tag und Nacht, einschließlich Nebel, Reifnebel, Sprühregen, gefrierendem Niederschlag, Schneeregen, Schneegriesel, Schauern, Gewitter und Hagel.
+- Das bisher plattformabhängig eckig oder intransparent gerenderte Nebel-Emoji wurde durch ein transparentes Vektor-Piktogramm mit Wolken- und Nebelbändern ersetzt.
+- Die neuen Wetterpiktogramme werden konsistent in aktuellem Wetter, Kurzfristvorhersage, 7-Tage-Prognose, Tagesdetail, Ensemble, Widget, Berg-/Wasser-/Reise- und Routenwetter verwendet.
+- Gewitterinformation: Bezugsort, aktuelle Zellposition und prognostizierte Zellposition erhalten hinter dem Ortsnamen den dreistelligen ISO-3166-Alpha-3-Ländercode, beispielsweise „Niederkassel, DEU“.
+- Der Ortsnamencache der Gewitterinformation wurde auf eine neue Version migriert, damit vorhandene Einträge ohne Ländercode nicht weiterverwendet werden.
+
 ## 0.8.22.3
 
 - Kurzfristvorhersage: Die Karten zeigen in der obersten Zeile jetzt direkt die Uhrzeit; die relative +xx-min-Angabe entfällt aus der Kartenansicht und bleibt nur in der Detailansicht erhalten.

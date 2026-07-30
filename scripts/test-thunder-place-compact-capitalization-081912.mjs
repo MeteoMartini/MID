@@ -26,7 +26,7 @@ for(const token of [
  'forecastPlaceName:thunderPlaceNames.forecast'
 ])need('Gewitter-Orts-/Zeitbezug',thunder+app,token);
 for(const token of [
- "const THUNDER_PLACE_CACHE_KEY='mid:thunder-place-cache:v1'",
+ "const THUNDER_PLACE_CACHE_KEY='mid:thunder-place-cache:v2'",
  'resolveThunderPlace(cell.latitude,cell.longitude,controller.signal)',
  'resolveThunderPlace(cell.forecastLatitude,cell.forecastLongitude,controller.signal)',
  '.slice(0,4)'

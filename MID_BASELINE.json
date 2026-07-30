@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.8.22.3",
+  "releaseVersion": "0.8.23.0",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -80,6 +80,7 @@
     "scripts/test-short-term-modules-qr-sync-08220.mjs",
     "scripts/test-short-term-rounding-wind-layout-08221.mjs",
     "scripts/test-radar-period-wording-08222.mjs",
-    "scripts/test-short-term-card-labels-08223.mjs"
+    "scripts/test-short-term-card-labels-08223.mjs",
+    "scripts/test-weather-pictograms-country-codes-08230.mjs"
   ]
 }
