@@ -18,7 +18,6 @@ export type TravelClimateDay={
  snowDepthMean?:number;
  snowCoverProbability?:number;
  cloudMean:number;
- humidityMean:number;
  weatherCode:number;
  years:number;
 };
@@ -57,7 +56,6 @@ export type TravelSummary={
  snowDepthMean?:number;
  snowCoverDaysExpected?:number;
  cloudMean:number;
- humidityMean:number;
 };
 
 export type TravelConstraints={
@@ -106,35 +104,41 @@ type Bucket={
  wind:number[];
  snowfall:number[];
  cloud:number[];
- humidity:number[];
  codes:Map<number,number>;
 };
 
-const BASE_CACHE_PREFIX='mid:travel-climate:1991-2020:v1:';
-const SNOW_CACHE_PREFIX='mid:travel-snow-depth:1991-2020:v1:';
-const CACHE_MAX_AGE=180*86400000;
-const DAILY_VARIABLES=['weather_code','temperature_2m_mean','temperature_2m_max','temperature_2m_min','precipitation_sum','precipitation_hours','sunshine_duration','daylight_duration','wind_speed_10m_max','snowfall_sum','cloud_cover_mean','relative_humidity_2m_mean'].join(',');
+const BASE_CACHE_PREFIX='mid:travel-climate:1991-2020:v2:';
+const SNOW_CACHE_PREFIX='mid:travel-snow-depth:1991-2020:v2:';
+const CACHE_MAX_AGE=3*365*86400000;
+const CLIMATE_GRID_DEGREES=.1;
+const CLIMATE_ELEVATION_STEP=250;
+const DAILY_VARIABLES=['weather_code','temperature_2m_max','temperature_2m_min','precipitation_sum','sunshine_duration','daylight_duration','wind_speed_10m_max','snowfall_sum'].join(',');
+const memoryCache=new Map<string,unknown>();
+const inFlightRequests=new Map<string,Promise<unknown>>();
 
 function rounded(value:number,step:number){return Math.round(value/step)*step}
-function cacheKey(prefix:string,latitude:number,longitude:number,elevation?:number){return`${prefix}${rounded(latitude,.05).toFixed(2)}:${rounded(longitude,.05).toFixed(2)}:${rounded(Number(elevation??0),100)}`}
-function readCache<T>(key:string):T|null{try{const raw=localStorage.getItem(key);if(!raw)return null;const parsed=JSON.parse(raw) as {createdAt?:number}&T;if(!Number.isFinite(parsed.createdAt)||Date.now()-Number(parsed.createdAt)>CACHE_MAX_AGE)return null;return parsed}catch{return null}}
-function writeCache(key:string,value:unknown){try{localStorage.setItem(key,JSON.stringify(value))}catch{}}
+function normalizedClimateLocation(location:{latitude:number;longitude:number;elevation?:number}){return{latitude:rounded(location.latitude,CLIMATE_GRID_DEGREES),longitude:rounded(location.longitude,CLIMATE_GRID_DEGREES),elevation:Number.isFinite(location.elevation)?rounded(Number(location.elevation),CLIMATE_ELEVATION_STEP):undefined}}
+function cacheKey(prefix:string,latitude:number,longitude:number,elevation?:number){return`${prefix}${latitude.toFixed(1)}:${longitude.toFixed(1)}:${Math.round(Number(elevation??0))}`}
+function readCache<T>(key:string):T|null{const memory=memoryCache.get(key) as ({createdAt?:number}&T)|undefined;if(memory&&Number.isFinite(memory.createdAt)&&Date.now()-Number(memory.createdAt)<=CACHE_MAX_AGE)return memory;try{const raw=localStorage.getItem(key);if(!raw)return null;const parsed=JSON.parse(raw) as {createdAt?:number}&T;if(!Number.isFinite(parsed.createdAt)||Date.now()-Number(parsed.createdAt)>CACHE_MAX_AGE)return null;memoryCache.set(key,parsed);return parsed}catch{return null}}
+function writeCache(key:string,value:unknown){memoryCache.set(key,value);try{localStorage.setItem(key,JSON.stringify(value))}catch{}}
+async function sharedRequest<T>(key:string,load:()=>Promise<T>):Promise<T>{const active=inFlightRequests.get(key) as Promise<T>|undefined;if(active)return active;const request=load().finally(()=>inFlightRequests.delete(key));inFlightRequests.set(key,request);return request}
+async function waitForShared<T>(promise:Promise<T>,signal?:AbortSignal):Promise<T>{if(!signal)return promise;if(signal.aborted)throw abortError();return new Promise<T>((resolve,reject)=>{const abort=()=>reject(abortError());signal.addEventListener('abort',abort,{once:true});promise.then(value=>{signal.removeEventListener('abort',abort);resolve(value)},error=>{signal.removeEventListener('abort',abort);reject(error)})})}
 function numberAt(values:unknown[],index:number){const value=Number(values[index]);return Number.isFinite(value)?value:Number.NaN}
 function mean(values:number[]){const finite=values.filter(Number.isFinite);return finite.length?finite.reduce((sum,value)=>sum+value,0)/finite.length:Number.NaN}
 function quantile(values:number[],q:number){const finite=values.filter(Number.isFinite).sort((a,b)=>a-b);if(!finite.length)return Number.NaN;const position=(finite.length-1)*q,lower=Math.floor(position),upper=Math.ceil(position);return lower===upper?finite[lower]:finite[lower]+(finite[upper]-finite[lower])*(position-lower)}
 function mode(codes:Map<number,number>){let best=3,count=-1;for(const[code,next]of codes)if(next>count){best=code;count=next}return best}
 function dateKey(value:string){return String(value).slice(5,10)}
-function emptyBucket():Bucket{return{max:[],min:[],mean:[],precipitation:[],wet:0,sunshine:[],daylight:[],wind:[],snowfall:[],cloud:[],humidity:[],codes:new Map()}}
+function emptyBucket():Bucket{return{max:[],min:[],mean:[],precipitation:[],wet:0,sunshine:[],daylight:[],wind:[],snowfall:[],cloud:[],codes:new Map()}}
 function addFinite(array:number[],value:number){if(Number.isFinite(value))array.push(value)}
 function abortError(){return new DOMException('Abgebrochen','AbortError')}
-async function fetchJson<T>(url:string,signal?:AbortSignal):Promise<T>{const response=await fetch(url,{signal,cache:'force-cache',headers:{Accept:'application/json'}});const payload=await response.json().catch(()=>({}));if(!response.ok||(payload as {error?:boolean}).error)throw new Error(String((payload as {reason?:string}).reason||`Open-Meteo HTTP ${response.status}`));return payload as T}
+async function fetchJson<T>(url:string):Promise<T>{const response=await fetch(url,{cache:'force-cache',headers:{Accept:'application/json'}});const payload=await response.json().catch(()=>({}));if(!response.ok||(payload as {error?:boolean}).error)throw new Error(String((payload as {reason?:string}).reason||`Open-Meteo HTTP ${response.status}`));return payload as T}
 
 export function aggregateTravelClimate(payload:HistoricalDailyPayload):TravelClimateDataset{
  const daily=payload.daily??{},times=(daily.time??[]) as string[],buckets=new Map<string,Bucket>();
  for(let index=0;index<times.length;index++){
   const key=dateKey(times[index]),bucket=buckets.get(key)??emptyBucket();
-  const max=numberAt(daily.temperature_2m_max??[],index),min=numberAt(daily.temperature_2m_min??[],index),meanValue=numberAt(daily.temperature_2m_mean??[],index),precipitation=numberAt(daily.precipitation_sum??[],index),sunshine=numberAt(daily.sunshine_duration??[],index),daylight=numberAt(daily.daylight_duration??[],index),wind=numberAt(daily.wind_speed_10m_max??[],index),snowfall=numberAt(daily.snowfall_sum??[],index),cloud=numberAt(daily.cloud_cover_mean??[],index),humidity=numberAt(daily.relative_humidity_2m_mean??[],index),code=Math.round(numberAt(daily.weather_code??[],index));
-  addFinite(bucket.max,max);addFinite(bucket.min,min);addFinite(bucket.mean,meanValue);addFinite(bucket.precipitation,precipitation);addFinite(bucket.sunshine,sunshine/3600);addFinite(bucket.daylight,daylight/3600);addFinite(bucket.wind,wind);addFinite(bucket.snowfall,snowfall);addFinite(bucket.cloud,cloud);addFinite(bucket.humidity,humidity);
+  const max=numberAt(daily.temperature_2m_max??[],index),min=numberAt(daily.temperature_2m_min??[],index),precipitation=numberAt(daily.precipitation_sum??[],index),sunshine=numberAt(daily.sunshine_duration??[],index),daylight=numberAt(daily.daylight_duration??[],index),wind=numberAt(daily.wind_speed_10m_max??[],index),snowfall=numberAt(daily.snowfall_sum??[],index),code=Math.round(numberAt(daily.weather_code??[],index)),meanValue=Number.isFinite(max)&&Number.isFinite(min)?(max+min)/2:Number.NaN,cloudProxy=Number.isFinite(sunshine)&&Number.isFinite(daylight)&&daylight>0?Math.max(0,Math.min(100,100*(1-sunshine/daylight))):Number.NaN;
+  addFinite(bucket.max,max);addFinite(bucket.min,min);addFinite(bucket.mean,meanValue);addFinite(bucket.precipitation,precipitation);addFinite(bucket.sunshine,sunshine/3600);addFinite(bucket.daylight,daylight/3600);addFinite(bucket.wind,wind);addFinite(bucket.snowfall,snowfall);addFinite(bucket.cloud,cloudProxy);
   if(Number.isFinite(precipitation)&&precipitation>=1)bucket.wet++;
   if(Number.isFinite(code))bucket.codes.set(code,(bucket.codes.get(code)??0)+1);
   buckets.set(key,bucket);
@@ -143,7 +147,7 @@ export function aggregateTravelClimate(payload:HistoricalDailyPayload):TravelCli
  for(const[key,bucket]of buckets){
   const years=Math.max(bucket.max.length,bucket.min.length,bucket.precipitation.length);
   if(years<20)continue;
-  days[key]={key,maxMean:mean(bucket.max),minMean:mean(bucket.min),meanMean:mean(bucket.mean),maxP25:quantile(bucket.max,.25),maxP75:quantile(bucket.max,.75),minP25:quantile(bucket.min,.25),minP75:quantile(bucket.min,.75),precipitationMean:mean(bucket.precipitation),wetProbability:years?bucket.wet/years*100:0,sunshineMeanHours:mean(bucket.sunshine),daylightMeanHours:mean(bucket.daylight),windMaxMean:mean(bucket.wind),snowfallMean:mean(bucket.snowfall),cloudMean:mean(bucket.cloud),humidityMean:mean(bucket.humidity),weatherCode:mode(bucket.codes),years};
+  days[key]={key,maxMean:mean(bucket.max),minMean:mean(bucket.min),meanMean:mean(bucket.mean),maxP25:quantile(bucket.max,.25),maxP75:quantile(bucket.max,.75),minP25:quantile(bucket.min,.25),minP75:quantile(bucket.min,.75),precipitationMean:mean(bucket.precipitation),wetProbability:years?bucket.wet/years*100:0,sunshineMeanHours:mean(bucket.sunshine),daylightMeanHours:mean(bucket.daylight),windMaxMean:mean(bucket.wind),snowfallMean:mean(bucket.snowfall),cloudMean:mean(bucket.cloud),weatherCode:mode(bucket.codes),years};
  }
  return{createdAt:Date.now(),latitude:Number(payload.latitude),longitude:Number(payload.longitude),elevation:Number.isFinite(Number(payload.elevation))?Number(payload.elevation):undefined,timezone:String(payload.timezone||'auto'),source:'Open-Meteo ERA5-Land-Reanalyse',referencePeriod:'1991–2020',days,snowDepthIncluded:false};
 }
@@ -159,18 +163,16 @@ function aggregateSnowDepth(payload:HistoricalHourlyPayload){
 }
 
 export async function fetchTravelClimatology(location:{latitude:number;longitude:number;elevation?:number},includeSnowDepth:boolean,signal?:AbortSignal):Promise<TravelClimateDataset>{
- const baseKey=cacheKey(BASE_CACHE_PREFIX,location.latitude,location.longitude,location.elevation);let dataset=readCache<TravelClimateDataset>(baseKey);
+ const climateLocation=normalizedClimateLocation(location),baseKey=cacheKey(BASE_CACHE_PREFIX,climateLocation.latitude,climateLocation.longitude,climateLocation.elevation);let dataset=readCache<TravelClimateDataset>(baseKey);
  if(!dataset){
-  const params=new URLSearchParams({latitude:String(location.latitude),longitude:String(location.longitude),start_date:'1991-01-01',end_date:'2020-12-31',daily:DAILY_VARIABLES,timezone:'auto',models:'era5_land',cell_selection:'land',wind_speed_unit:'kmh'});if(Number.isFinite(location.elevation))params.set('elevation',String(location.elevation));
-  dataset=aggregateTravelClimate(await fetchJson<HistoricalDailyPayload>(`https://archive-api.open-meteo.com/v1/archive?${params}`,signal));writeCache(baseKey,dataset);
+  const request=sharedRequest<TravelClimateDataset>(baseKey,async()=>{const cached=readCache<TravelClimateDataset>(baseKey);if(cached)return cached;const params=new URLSearchParams({latitude:String(climateLocation.latitude),longitude:String(climateLocation.longitude),start_date:'1991-01-01',end_date:'2020-12-31',daily:DAILY_VARIABLES,timezone:'auto',models:'era5_land',cell_selection:'land',wind_speed_unit:'kmh'});if(Number.isFinite(climateLocation.elevation))params.set('elevation',String(climateLocation.elevation));const result=aggregateTravelClimate(await fetchJson<HistoricalDailyPayload>(`https://archive-api.open-meteo.com/v1/archive?${params}`));writeCache(baseKey,result);return result});
+  dataset=await waitForShared(request,signal);
  }
  if(!includeSnowDepth)return dataset;
- const snowKey=cacheKey(SNOW_CACHE_PREFIX,location.latitude,location.longitude,location.elevation),cachedSnow=readCache<{createdAt:number;values:Record<string,{mean:number;probability:number;years:number}>}>(snowKey);
- let snow=cachedSnow?.values;
+ const snowKey=cacheKey(SNOW_CACHE_PREFIX,climateLocation.latitude,climateLocation.longitude,climateLocation.elevation),cachedSnow=readCache<{createdAt:number;values:Record<string,{mean:number;probability:number;years:number}>}>(snowKey);let snow=cachedSnow?.values;
  if(!snow){
   try{
-   const params=new URLSearchParams({latitude:String(location.latitude),longitude:String(location.longitude),start_date:'1991-01-01',end_date:'2020-12-31',hourly:'snow_depth',timezone:'auto',models:'era5_land',cell_selection:'land'});if(Number.isFinite(location.elevation))params.set('elevation',String(location.elevation));
-   snow=aggregateSnowDepth(await fetchJson<HistoricalHourlyPayload>(`https://archive-api.open-meteo.com/v1/archive?${params}`,signal));writeCache(snowKey,{createdAt:Date.now(),values:snow});
+   const request=sharedRequest<{createdAt:number;values:Record<string,{mean:number;probability:number;years:number}>}>(snowKey,async()=>{const cached=readCache<{createdAt:number;values:Record<string,{mean:number;probability:number;years:number}>}>(snowKey);if(cached)return cached;const params=new URLSearchParams({latitude:String(climateLocation.latitude),longitude:String(climateLocation.longitude),start_date:'1991-01-01',end_date:'2020-12-31',hourly:'snow_depth',timezone:'auto',models:'era5_land',cell_selection:'land'});if(Number.isFinite(climateLocation.elevation))params.set('elevation',String(climateLocation.elevation));const value={createdAt:Date.now(),values:aggregateSnowDepth(await fetchJson<HistoricalHourlyPayload>(`https://archive-api.open-meteo.com/v1/archive?${params}`))};writeCache(snowKey,value);return value});snow=(await waitForShared(request,signal)).values;
   }catch(error){if(signal?.aborted)throw abortError();return{...dataset,snowDepthIncluded:false,snowDepthWarning:error instanceof Error?`Historische Schneehöhe nicht verfügbar: ${error.message}`:'Historische Schneehöhe nicht verfügbar.'}}
  }
  const days={...dataset.days};for(const[key,value]of Object.entries(snow)){const day=days[key];if(day)days[key]={...day,snowDepthMean:value.mean,snowCoverProbability:value.probability,years:Math.min(day.years,value.years)}}
@@ -182,13 +184,13 @@ function isoDate(date:Date){return date.toISOString().slice(0,10)}
 export function addDays(value:string,days:number){const date=parseIsoDate(value);if(!Number.isFinite(date.getTime()))return value;date.setUTCDate(date.getUTCDate()+days);return isoDate(date)}
 export function daysBetween(start:string,end:string){const a=parseIsoDate(start),b=parseIsoDate(end);if(!Number.isFinite(a.getTime())||!Number.isFinite(b.getTime()))return Number.NaN;return Math.round((b.getTime()-a.getTime())/86400000)}
 export function dateRange(start:string,end:string){const span=daysBetween(start,end);if(!Number.isFinite(span)||span<0||span>366)return[];return Array.from({length:span+1},(_,index)=>addDays(start,index))}
-function interpolatedLeapDay(dataset:TravelClimateDataset):TravelClimateDay|undefined{const before=dataset.days['02-28'],after=dataset.days['03-01'];if(!before||!after)return undefined;const mix=(a:number|undefined,b:number|undefined)=>Number.isFinite(a)&&Number.isFinite(b)?(Number(a)+Number(b))/2:undefined;return{...before,key:'02-29',maxMean:mix(before.maxMean,after.maxMean)??before.maxMean,minMean:mix(before.minMean,after.minMean)??before.minMean,meanMean:mix(before.meanMean,after.meanMean)??before.meanMean,maxP25:mix(before.maxP25,after.maxP25)??before.maxP25,maxP75:mix(before.maxP75,after.maxP75)??before.maxP75,minP25:mix(before.minP25,after.minP25)??before.minP25,minP75:mix(before.minP75,after.minP75)??before.minP75,precipitationMean:mix(before.precipitationMean,after.precipitationMean)??before.precipitationMean,wetProbability:mix(before.wetProbability,after.wetProbability)??before.wetProbability,sunshineMeanHours:mix(before.sunshineMeanHours,after.sunshineMeanHours)??before.sunshineMeanHours,daylightMeanHours:mix(before.daylightMeanHours,after.daylightMeanHours)??before.daylightMeanHours,windMaxMean:mix(before.windMaxMean,after.windMaxMean)??before.windMaxMean,snowfallMean:mix(before.snowfallMean,after.snowfallMean)??before.snowfallMean,snowDepthMean:mix(before.snowDepthMean,after.snowDepthMean),snowCoverProbability:mix(before.snowCoverProbability,after.snowCoverProbability),cloudMean:mix(before.cloudMean,after.cloudMean)??before.cloudMean,humidityMean:mix(before.humidityMean,after.humidityMean)??before.humidityMean,weatherCode:before.weatherCode,years:Math.min(before.years,after.years)};}
+function interpolatedLeapDay(dataset:TravelClimateDataset):TravelClimateDay|undefined{const before=dataset.days['02-28'],after=dataset.days['03-01'];if(!before||!after)return undefined;const mix=(a:number|undefined,b:number|undefined)=>Number.isFinite(a)&&Number.isFinite(b)?(Number(a)+Number(b))/2:undefined;return{...before,key:'02-29',maxMean:mix(before.maxMean,after.maxMean)??before.maxMean,minMean:mix(before.minMean,after.minMean)??before.minMean,meanMean:mix(before.meanMean,after.meanMean)??before.meanMean,maxP25:mix(before.maxP25,after.maxP25)??before.maxP25,maxP75:mix(before.maxP75,after.maxP75)??before.maxP75,minP25:mix(before.minP25,after.minP25)??before.minP25,minP75:mix(before.minP75,after.minP75)??before.minP75,precipitationMean:mix(before.precipitationMean,after.precipitationMean)??before.precipitationMean,wetProbability:mix(before.wetProbability,after.wetProbability)??before.wetProbability,sunshineMeanHours:mix(before.sunshineMeanHours,after.sunshineMeanHours)??before.sunshineMeanHours,daylightMeanHours:mix(before.daylightMeanHours,after.daylightMeanHours)??before.daylightMeanHours,windMaxMean:mix(before.windMaxMean,after.windMaxMean)??before.windMaxMean,snowfallMean:mix(before.snowfallMean,after.snowfallMean)??before.snowfallMean,snowDepthMean:mix(before.snowDepthMean,after.snowDepthMean),snowCoverProbability:mix(before.snowCoverProbability,after.snowCoverProbability),cloudMean:mix(before.cloudMean,after.cloudMean)??before.cloudMean,weatherCode:before.weatherCode,years:Math.min(before.years,after.years)};}
 export function travelClimateForDate(dataset:TravelClimateDataset,date:string):TravelDatePoint|undefined{const key=dateKey(date),value=dataset.days[key]??(key==='02-29'?interpolatedLeapDay(dataset):undefined);return value?{...value,date}:undefined}
 export function travelPeriod(dataset:TravelClimateDataset,start:string,end:string){return dateRange(start,end).map(date=>travelClimateForDate(dataset,date)).filter((value):value is TravelDatePoint=>Boolean(value))}
 
 export function summarizeTravelPeriod(points:TravelDatePoint[]):TravelSummary{
  const first=points[0]?.date??'',last=points[points.length-1]?.date??'',count=Math.max(1,points.length),sum=(key:keyof TravelClimateDay)=>points.reduce((total,point)=>{const value=Number(point[key]);return total+(Number.isFinite(value)?value:0)},0),meanOptional=(key:keyof TravelClimateDay)=>{const values=points.map(point=>Number(point[key])).filter(Number.isFinite);return values.length?values.reduce((total,value)=>total+value,0)/values.length:undefined};
- return{start:first,end:last,days:points.length,avgMax:sum('maxMean')/count,avgMin:sum('minMean')/count,avgMean:sum('meanMean')/count,avgMaxP25:sum('maxP25')/count,avgMaxP75:sum('maxP75')/count,precipitationTotal:sum('precipitationMean'),wetDaysExpected:sum('wetProbability')/100,sunshineTotal:sum('sunshineMeanHours'),sunshinePerDay:sum('sunshineMeanHours')/count,daylightPerDay:sum('daylightMeanHours')/count,windMaxMean:sum('windMaxMean')/count,snowfallTotal:sum('snowfallMean'),snowDepthMean:meanOptional('snowDepthMean'),snowCoverDaysExpected:points.some(point=>Number.isFinite(point.snowCoverProbability))?sum('snowCoverProbability')/100:undefined,cloudMean:sum('cloudMean')/count,humidityMean:sum('humidityMean')/count};
+ return{start:first,end:last,days:points.length,avgMax:sum('maxMean')/count,avgMin:sum('minMean')/count,avgMean:sum('meanMean')/count,avgMaxP25:sum('maxP25')/count,avgMaxP75:sum('maxP75')/count,precipitationTotal:sum('precipitationMean'),wetDaysExpected:sum('wetProbability')/100,sunshineTotal:sum('sunshineMeanHours'),sunshinePerDay:sum('sunshineMeanHours')/count,daylightPerDay:sum('daylightMeanHours')/count,windMaxMean:sum('windMaxMean')/count,snowfallTotal:sum('snowfallMean'),snowDepthMean:meanOptional('snowDepthMean'),snowCoverDaysExpected:points.some(point=>Number.isFinite(point.snowCoverProbability))?sum('snowCoverProbability')/100:undefined,cloudMean:sum('cloudMean')/count};
 }
 
 function scoreSummary(summary:TravelSummary,preference:TravelPreference){

@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.8.19.0",
+  "releaseVersion": "0.8.19.4",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -62,7 +62,10 @@
     "scripts/test-ensemble-highest-hazard-per-kind-081813.mjs",
     "scripts/test-hazard-interrupted-lower-stage-081814.mjs",
     "scripts/test-water-tide-matrix-081815.mjs",
-    "scripts/test-travel-planner-08190.mjs"
+    "scripts/test-travel-planner-08190.mjs",
+    "scripts/test-travel-planner-request-budget-08191.mjs",
+    "scripts/test-icao-location-search-08193.mjs",
+    "scripts/test-icao-location-buildfix-08194.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md"
 }

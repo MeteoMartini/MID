@@ -35,6 +35,8 @@ for(const token of [
  'Max. erwartete Regentage',
  'Mind. mittlere Schneehöhe',
  'Bestes Reisezeitfenster finden',
+ 'Detaillierte Schneehöhe laden',
+ 'Der MID-Worker wird dafür nicht verwendet.',
  'Das Ergebnis ist eine klimatologische Erwartung',
  'searchLocations(value,controller.signal)'
 ])need('Reiseplaner-Oberfläche',panel,token);
@@ -50,7 +52,10 @@ for(const token of [
  'export function travelNarrative(',
  'Klimatologisch ist der Zeitraum',
  "source:'Open-Meteo ERA5-Land-Reanalyse'",
- 'CACHE_MAX_AGE=180*86400000'
+ 'CACHE_MAX_AGE=3*365*86400000',
+ 'CLIMATE_GRID_DEGREES=.1',
+ 'sharedRequest<T>',
+ "DAILY_VARIABLES=['weather_code','temperature_2m_max','temperature_2m_min','precipitation_sum','sunshine_duration','daylight_duration','wind_speed_10m_max','snowfall_sum']"
 ])need('Reiseplaner-Logik',logic,token);
 
 for(const token of [

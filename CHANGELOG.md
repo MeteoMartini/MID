@@ -1,3 +1,31 @@
+# MID v0.8.19.4
+
+- GitHub-/TypeScript-Buildfix für die ICAO-Ortssuche: Der Rückgabetyp des neuen Worker-Aufrufs wurde an den bestehenden `fetchWorkerJson`-Vertrag angepasst. Damit ist `Location` nicht mehr fälschlich direkt gegen den optionalen Worker-Fehlerumschlag typisiert.
+- Die ICAO-Suche, ihr 30-Tage-Cache, die NOAA-AviationWeather-Auflösung und die Darstellung in Haupt-, Reise- und Routenwettersuche bleiben funktional unverändert.
+- Neuer Regressionstest schützt vor dem konkreten TS2559-Buildfehler.
+
+# MID v0.8.19.3
+
+- Ortssuchen erweitert: Neben Ort, Region, PLZ und POI können nun weltweit exakte vierstellige ICAO Location Indicators wie EDDG, EDDF oder KJFK eingegeben werden.
+- Die gemeinsame Suchfunktion steht damit auch in der Hauptsuche, der Routenwetter-Zielsuche und im Reisewetter-Reiseplaner zur Verfügung. ICAO-Treffer werden als Flughafen gekennzeichnet und mit Koordinaten sowie Höhenlage übernommen.
+- Abrufschutz: Eine ICAO-Abfrage wird nur bei einem exakten vierstelligen Suchmuster und fehlendem gleichnamigem Orts-/PLZ-Treffer ausgelöst. Erfolgreiche Ergebnisse werden 30 Tage lokal gespeichert; parallele identische Abfragen werden zusammengeführt.
+- Der Worker löst ICAO-Kennungen über NOAA AviationWeather auf und speichert erfolgreiche Antworten zusätzlich mit einem 30-Tage-HTTP-Cache.
+- Neuer Regressionstest schützt Datenvertrag, Caching, Worker-Endpunkt und alle drei Suchoberflächen.
+
+# MID v0.8.19.2
+
+- Ensemble-Temperaturdiagramm: In den Bewölkungs-/Sonnenkästchen erscheinen nun bei Best-Match-Niederschlag kompakte Niederschlagssymbole direkt innerhalb des bestehenden Rahmens. Je nach Niederschlagsart werden Tropfen, Schneeflocken oder gemischte Symbole gezeigt; Gewittertage erhalten zusätzlich einen Blitz.
+- Die Symbolik wird nach Best-Match-Niederschlagsmenge und -wahrscheinlichkeit in ein bis drei Zeichen abgestuft, ohne die Diagrammgröße oder die Kästchengeometrie zu verändern.
+- Der Tooltip des Temperaturtrends nennt zusätzlich die zugehörige Best-Match-Niederschlagsart, -menge und die Best-Match-Wahrscheinlichkeit.
+
+# MID v0.8.19.1
+
+- Reisewetter-Abrufe deutlich reduziert, ohne die Sektion zu deaktivieren: pro ungefähr 10-km-Klimaraster und Höhenklasse wird nur ein kompakter Basisdatensatz angefordert und anschließend drei Jahre lokal wiederverwendet.
+- Parallele oder wiederholte identische Klimaanfragen werden zusammengeführt; mehrfaches Tippen beziehungsweise gleichzeitige Auswertungen lösen dadurch keinen doppelten Netzabruf aus.
+- Der Basisabruf wurde um nicht benötigte historische Variablen verkleinert. Temperaturmittel und Bewölkungsnähe werden aus den verbleibenden Tageswerten abgeleitet.
+- Detaillierte historische Schneehöhe wird nicht mehr automatisch allein durch die Optimierung „Hohe Schneelage“ geladen. Sie erfordert eine ausdrückliche Zusatzoption oder eine definierte Mindestschneehöhe; ohne Zusatzabruf bewertet MID das bereits enthaltene Schneefallpotenzial.
+- Die Reisewetter-Sektion nutzt weiterhin keinen MID-Worker und bleibt standardmäßig eingeklappt. Ein neuer Regressionstest schützt Abrufbudget, In-Flight-Entdopplung, Rastercache, reduzierten Variablensatz und die explizite Schneehöhenfreigabe.
+
 # MID v0.8.19.0
 
 - Neue, standardmäßig eingeklappte Sektion „Reisewetter & Reiseplaner“ im unteren App-Bereich. Sie ist im Standard- und Erweiterten Modus verfügbar und wird erst beim Scrollen beziehungsweise Öffnen lazy geladen.

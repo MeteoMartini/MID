@@ -8,7 +8,7 @@ import type {AirQualityStationMeta} from './airQuality';
 export type WindUnit='kn'|'kmh'|'ms'|'mph';
 export type UrbanClass='urban'|'suburban'|'rural'|'unknown';
 export type CloudObservation='cavok'|'clear'|'layers';
-export type Location={id:number;name:string;latitude:number;longitude:number;elevation?:number;timezone?:string;country?:string;country_code?:string;admin1?:string;admin2?:string;postcodes?:string[];autolocated?:boolean;source?:string;poiType?:string;poiCategory?:string;featureCode?:string;population?:number;urbanClass?:UrbanClass};
+export type Location={id:number;name:string;latitude:number;longitude:number;elevation?:number;timezone?:string;country?:string;country_code?:string;admin1?:string;admin2?:string;postcodes?:string[];icao?:string;autolocated?:boolean;source?:string;poiType?:string;poiCategory?:string;featureCode?:string;population?:number;urbanClass?:UrbanClass};
 export type Weather={latitude:number;longitude:number;elevation:number;timezone:string;timezone_abbreviation?:string;utc_offset_seconds?:number;current:Record<string,number|string>;hourly:Record<string,(number|string|null)[]>;daily:Record<string,(number|string|null)[]>;minutely_15?:Record<string,(number|string|null)[]>};
 export type Hour={time:string;epoch:number;timezone:string;temperature:number;apparent:number;humidity:number;dewPoint:number;pressure:number;precipitation:number;rain:number;showers:number;snowfall:number;probability:number;code:number;wind:number;gust:number;gustAdjusted?:boolean;direction:number;cloud:number;lowCloud:number;uvIndex:number;visibility:number;cape:number;isDay:boolean};
 export type Minute15={time:string;epoch:number;timezone:string;precipitation:number;rain:number;showers:number;snowfall:number;probability:number;code:number};
@@ -171,11 +171,25 @@ export async function bestMatchModelInfo(lat:number,lon:number,country?:string,s
  const runs=await modelRunMetas(selected,signal);
  return{summary:'Open-Meteo kombiniert automatisch die am Ort und je Variable geeignetsten Modelle; die konkrete Quelle wird in der Best-Match-Antwort nicht stundenweise ausgewiesen.',likelyChain,runs};
 }
+const ICAO_LOCATION_CACHE_KEY='mid:icao-location-cache:v1';
+const ICAO_LOCATION_CACHE_TTL=30*86400000;
+const icaoLocationRequests=new Map<string,Promise<Location|null>>();
+function normalizedSearchToken(value:string){return value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
+function readIcaoLocationCache(code:string){try{const cache=JSON.parse(localStorage.getItem(ICAO_LOCATION_CACHE_KEY)||'{}') as Record<string,{at:number;location:Location}>;const entry=cache[code];if(!entry||!Number.isFinite(entry.at)||Date.now()-entry.at>ICAO_LOCATION_CACHE_TTL)return null;return entry.location}catch{return null}}
+function writeIcaoLocationCache(code:string,location:Location){try{const raw=JSON.parse(localStorage.getItem(ICAO_LOCATION_CACHE_KEY)||'{}') as Record<string,{at:number;location:Location}>,entries=Object.entries(raw).filter(([,entry])=>Number.isFinite(entry?.at)&&Date.now()-entry.at<=ICAO_LOCATION_CACHE_TTL).sort((a,b)=>b[1].at-a[1].at).slice(0,39);localStorage.setItem(ICAO_LOCATION_CACHE_KEY,JSON.stringify(Object.fromEntries([[code,{at:Date.now(),location}],...entries.filter(([key])=>key!==code)])))}catch{}}
+async function icaoLocation(code:string,signal?:AbortSignal){
+ const cached=readIcaoLocationCache(code);if(cached)return cached;
+ let request=icaoLocationRequests.get(code);
+ if(!request){request=fetchWorkerJson<Location&{error?:string}>('icao-location',{icao:code},{purpose:'general',timeoutMs:9000,cache:'default'}).then(location=>{const normalized={...location,icao:String(location.icao||code).toUpperCase(),source:location.source||'NOAA AviationWeather / ICAO',poiType:location.poiType||'airport',poiCategory:location.poiCategory||'Flughafen'};writeIcaoLocationCache(code,normalized);return normalized}).catch(()=>null).finally(()=>icaoLocationRequests.delete(code));icaoLocationRequests.set(code,request)}
+ const location=await request;if(signal?.aborted)throw signal.reason??new DOMException('Abgebrochen','AbortError');return location;
+}
 export async function searchLocations(q:string,signal?:AbortSignal){
  const query=q.trim(),openParams=new URLSearchParams({name:query,count:'8',language:'de',format:'json'}),photonParams=new URLSearchParams({q:query,lang:'de',limit:'8'});
  const tasks:Promise<Location[]>[]=[j<{results?:any[]}>(`https://geocoding-api.open-meteo.com/v1/search?${openParams}`,signal).then(x=>(x.results??[]).map((location:any)=>({...location,featureCode:String(location.feature_code||'')||undefined,population:Number.isFinite(Number(location.population))?Number(location.population):undefined,urbanClass:urbanClassFromPlace(location.feature_code,location.population),source:'Open-Meteo'} as Location))).catch(()=>[])];
  if(query.length>=3)tasks.push(j<{features?:PhotonFeature[]}>(`https://photon.komoot.io/api/?${photonParams}`,signal).then(x=>(x.features??[]).map(photonLocation).filter((location):location is Location=>!!location)).catch(()=>[]));
- const groups=await Promise.all(tasks),combined=groups.flat(),result:Location[]=[];
+ const groups=await Promise.all(tasks),combined=groups.flat(),code=normalizedSearchToken(query),looksLikeIcao=/^[A-Z]{4}$/.test(code)&&query.replace(/\s/g,'').length===4,exactPlace=combined.some(location=>normalizedSearchToken(location.name)===code||location.postcodes?.some(postcode=>normalizedSearchToken(postcode)===code));
+ if(looksLikeIcao&&!exactPlace){const airport=await icaoLocation(code,signal);if(airport)combined.unshift(airport)}
+ const result:Location[]=[];
  for(const location of combined){if(result.some(existing=>similarLocation(existing,location)))continue;result.push(location);if(result.length>=12)break}
  return result;
 }
