@@ -22,6 +22,8 @@ for(const token of [
  'function buildTargetEpochs(now:number)',
  'targets.push(quarter);',
  'direction+180',
+ 'const NAVIGATION_ICON_BASE_DEGREES=45;',
+ 'windToDegrees(direction)-NAVIGATION_ICON_BASE_DEGREES',
  "intervalLabel:quarter?'15 min':'1 h'"
 ])need('Kurzfristlogik',shortTerm,token);
 for(const token of [

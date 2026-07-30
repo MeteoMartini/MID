@@ -1,3 +1,15 @@
+## 0.8.22.3
+
+- Kurzfristvorhersage: Die Karten zeigen in der obersten Zeile jetzt direkt die Uhrzeit; die relative +xx-min-Angabe entfällt aus der Kartenansicht und bleibt nur in der Detailansicht erhalten.
+- Kurzfristvorhersage: Der Hinweis im Header wurde auf die fachliche Quellenangabe „Best Match“ reduziert; der Zusatz „ohne zusätzlichen Abruf“ entfällt.
+- Kurzfristvorhersage: Windpfeile der Karten wurden erneut korrigiert und berücksichtigen nun die 45°-Grundausrichtung des Navigationssymbols, sodass Pfeilrichtung und ausgeschriebene Herkunftsrichtung wieder konsistent zusammenpassen.
+
+## 0.8.22.2
+
+- Radar-Nowcast: Der bisher missverständliche Relativtext „Radarecho erreicht den Standort in … Minuten“ wurde für prognostizierte Standortniederschläge durch einen eindeutigen Uhrzeitraum ersetzt.
+- Radar-Nowcast: Sichere Standorttreffer werden als „Niederschlag am Standort voraussichtlich von HH:MM bis HH:MM Uhr“ ausgegeben; unsichere Umgebungsechos bleiben ausdrücklich als mögliches Trefferfenster gekennzeichnet.
+- Worker: Das Ende eines prognostizierten Niederschlagsereignisses entspricht nun dem Ende des letzten nassen Radarintervalls statt dessen Beginn. Dadurch entfallen widersprüchliche Angaben wie Ankunft bis 20:30 Uhr und Ende bereits 19:50 Uhr.
+
 ## 0.8.22.1
 
 - Kurzfristvorhersage: Zeitachsenstufen rasten nun auf die nächste volle Viertelstunde ein, zeigen vier 15-Minuten-Schritte und wechseln danach auf volle Stunden bis +24 Stunden.

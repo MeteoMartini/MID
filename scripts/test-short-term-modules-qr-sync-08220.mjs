@@ -23,10 +23,11 @@ for(const token of [
  'className="short-term-strip"',
  'className="short-term-detail"',
  'Number(point.thunderPercent)>=30',
- 'Best Match · ohne zusätzlichen Abruf'
+ 'Best Match'
 ])need('Kurzfristvorhersage',shortTerm,token);
 forbid('Kurzfristvorhersage',shortTerm,'fetch(');
 forbid('Kurzfristvorhersage',shortTerm,'fetchWorker');
+forbid('Kurzfristvorhersage',shortTerm,'ohne zusätzlichen Abruf');
 
 const warningsIndex=modules.indexOf("{id:'warnings'");
 const shortIndex=modules.indexOf("{id:'short-term'");
