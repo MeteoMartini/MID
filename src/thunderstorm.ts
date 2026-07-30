@@ -1,4 +1,4 @@
-import type {Hour,RadarNowcast,Station,ThunderstormNowcast} from './weather';
+import type {Hour,RadarNowcast,Station,ThunderstormNowcast,WindUnit} from './weather';
 
 export type ThunderInfoLevel='yellow'|'orange'|'red'|'purple';
 export type ThunderInfoFactTone='neutral'|'motion'|'rain'|'hail'|'wind'|'lightning';
@@ -6,7 +6,8 @@ export type ThunderInfoStatusKind='at-site'|'near'|'approaching'|'passing'|'surr
 export type ThunderInfoDetail={label:string;value:string};
 export type ThunderInfoFact={label:string;value:string;tone?:ThunderInfoFactTone;prominent?:boolean};
 export type ThunderInfoStatus={kind:ThunderInfoStatusKind;label:string;detail:string};
-export type ThunderInfoContext={timezone?:string;currentPlaceName?:string;forecastPlaceName?:string};
+// Kompatibilitätsvertrag: export type ThunderInfoContext={timezone?:string;currentPlaceName?:string;forecastPlaceName?:string}
+export type ThunderInfoContext={timezone?:string;currentPlaceName?:string;forecastPlaceName?:string;windUnit?:WindUnit};
 export type ThunderInfo={
  level:ThunderInfoLevel;
  headline:string;
@@ -34,7 +35,8 @@ function coordinate(lat:number|undefined,lon:number|undefined){return Number.isF
 function flagText(value:number|undefined,none='kein Signal'){const number=Number(value);return Number.isFinite(number)&&number>0?`Stufe ${Math.round(number)}`:none}
 function joinGerman(parts:string[]){if(parts.length<2)return parts[0]??'';return`${parts.slice(0,-1).join(', ')} und ${parts.at(-1)}`}
 function stationRainText(station:Station|null){const rain=Number(station?.precipitation);if(!Number.isFinite(rain)||rain<.1)return'';return `${station?.provider?.includes('DWD')?'DWD-Station':'Station'} bestätigt Niederschlag`}
-function gustSignalText(flag:number|undefined){const value=Math.round(Number(flag)||0);return value>=3?'orkanartige Böen, teils über 100 km/h möglich':value===2?'schwere Sturmböen bis etwa 90 km/h möglich':value===1?'stürmische Böen bis etwa 75 km/h möglich':'kein markantes Böensignal'}
+function selectedWindSpeed(kmh:number,unit:WindUnit='kmh'){if(!Number.isFinite(kmh))return'–';if(unit==='kn')return`${Math.round(kmh/1.852)} kt`;if(unit==='ms')return`${decimal(kmh/3.6,1)} m/s`;if(unit==='mph')return`${Math.round(kmh/1.609344)} mph`;return`${Math.round(kmh)} km/h`}
+function gustSignalText(flag:number|undefined,unit:WindUnit='kmh'){const value=Math.round(Number(flag)||0),speed=value>=3?105:value===2?90:value===1?75:0,formatted=speed?selectedWindSpeed(speed,unit):'';return value>=3?`orkanartige Böen, teils über ${formatted} möglich`:value===2?`schwere Sturmböen bis etwa ${formatted} möglich`:value===1?`stürmische Böen bis etwa ${formatted} möglich`:'kein markantes Böensignal'}
 function gustHeadlineText(flag:number|undefined){const value=Math.round(Number(flag)||0);return value>=3?'orkanartige Böen':value===2?'schwere Sturmböen':value===1?'stürmische Böen':''}
 function hailSignalText(cell:NonNullable<ThunderstormNowcast['nearest']>){if(cell.areaLargeHail>0||cell.hailFlag>=2)return'größerer Hagel möglich';if(cell.areaHail>0||cell.hailFlag>=1)return'Hagel möglich';return'kein Hagelsignal'}
 function hailHeadlineText(cell:NonNullable<ThunderstormNowcast['nearest']>){if(cell.areaLargeHail>0||cell.hailFlag>=2)return'größerer Hagel';if(cell.areaHail>0||cell.hailFlag>=1)return'Hagel';return''}
@@ -99,7 +101,7 @@ export function combineThunderstormInformation(nowcast:ThunderstormNowcast|null,
   ];
   if(cell.heavyRainFlag>0)quickFacts.push({label:'Starkregen',value:heavyRainSignalText(cell.heavyRainFlag),tone:'rain',prominent:true});
   if(cell.hailFlag>0||cell.areaHail>0)quickFacts.push({label:'Hagel',value:hailSignalText(cell),tone:'hail',prominent:true});
-  if((cell.gustFlag??0)>0)quickFacts.push({label:'Windböen',value:gustSignalText(cell.gustFlag),tone:'wind',prominent:true});
+  if((cell.gustFlag??0)>0)quickFacts.push({label:'Windböen',value:gustSignalText(cell.gustFlag,context.windUnit),tone:'wind',prominent:true});
   if(cell.lightningRate>0)quickFacts.push({label:'Blitzaktivität',value:lightningActivityText(cell.lightningRate),tone:'lightning',prominent:false});
   const forecastClock=localForecastClock(cell,arrival,context.timezone),details:ThunderInfoDetail[]=[
    {label:'Bezugsort',value:locationName},
@@ -116,7 +118,7 @@ export function combineThunderstormInformation(nowcast:ThunderstormNowcast|null,
    {label:'Blitzaktivität',value:cell.lightningRate>0?`${Math.round(cell.lightningRate)} Blitze je 5 min`:'kein Blitzsignal im Zellobjekt'},
    {label:'Hagel',value:`${flagText(cell.hailFlag)}${cell.areaHail>0?` · Hagelfläche ${decimal(cell.areaHail)} km²`:''}${cell.areaLargeHail>0?` · Großhagelfläche ${decimal(cell.areaLargeHail)} km²`:''}`},
    {label:'Starkregen',value:flagText(cell.heavyRainFlag)},
-   {label:'Böen',value:flagText(cell.gustFlag)},
+   {label:'Böen',value:(cell.gustFlag??0)>0?gustSignalText(cell.gustFlag,context.windUnit):flagText(cell.gustFlag)},
    {label:'Datenstand',value:`${zulu(nowcast.observedAt)}${Number.isFinite(Number(nowcast.ageMinutes))?` · ${Math.max(0,Math.round(Number(nowcast.ageMinutes)))} min alt`:''}`},
    {label:'Erkannte Zellen',value:`${nowcast.cellsFound} insgesamt · ${nowcast.nearbyCells.length} im 80-km-Umfeld`}
   ];

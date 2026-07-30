@@ -2,6 +2,8 @@ import {exportForecastVerificationArchive,importForecastVerificationArchive,type
 import {buildWorkerUrl,workerBaseCandidates} from './workerClient';
 
 export const DEVICE_SYNC_CONFIG_KEY='mid:device-sync:v1';
+export const DEVICE_SYNC_PENDING_KEY='mid:device-sync:pending-code';
+const DEVICE_SYNC_HASH_KEY='mid-sync';
 export type DeviceSyncConfig={
  enabled:boolean;
  syncKey:string;
@@ -37,6 +39,24 @@ function b64url(bytes:Uint8Array){let raw='';for(const byte of bytes)raw+=String
 function fromB64url(value:string){const normalized=value.replace(/-/g,'+').replace(/_/g,'/'),raw=atob(normalized+'='.repeat((4-normalized.length%4)%4)),bytes=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);return bytes}
 export function normaliseDeviceSyncCode(value:string){return String(value||'').replace(/[^A-Za-z0-9_-]/g,'')}
 export function formatDeviceSyncCode(value:string){const clean=normaliseDeviceSyncCode(value);return clean.match(/.{1,8}/g)?.join('-')||clean}
+export function parseDeviceSyncTransfer(value:string){
+ const raw=String(value||'').trim();if(!raw)return'';
+ try{const url=new URL(raw,typeof location!=='undefined'?location.href:'https://mid.invalid/'),params=new URLSearchParams(url.hash.replace(/^#/,'')),hashCode=params.get(DEVICE_SYNC_HASH_KEY)||'';if(hashCode)return normaliseDeviceSyncCode(hashCode)}catch{}
+ const prefixed=raw.match(/(?:^|[?#&])mid-sync=([^&#]+)/i)?.[1]||raw.replace(/^mid-sync:/i,'');
+ return normaliseDeviceSyncCode(decodeURIComponent(prefixed));
+}
+export function buildDeviceSyncTransferUrl(syncKey:string){
+ const clean=normaliseDeviceSyncCode(syncKey);if(clean.length<32)throw new Error('Der Synchronisationscode ist unvollständig.');
+ const base=typeof location!=='undefined'?new URL(location.href):new URL('https://mid.invalid/');base.hash=`${DEVICE_SYNC_HASH_KEY}=${encodeURIComponent(clean)}`;return base.toString();
+}
+export function storePendingDeviceSyncCode(code:string){const clean=normaliseDeviceSyncCode(code);if(clean.length>=32)try{sessionStorage.setItem(DEVICE_SYNC_PENDING_KEY,clean)}catch{}return clean}
+export function readPendingDeviceSyncCode(){try{return normaliseDeviceSyncCode(sessionStorage.getItem(DEVICE_SYNC_PENDING_KEY)||'')}catch{return''}}
+export function clearPendingDeviceSyncCode(){try{sessionStorage.removeItem(DEVICE_SYNC_PENDING_KEY)}catch{}}
+export function consumeDeviceSyncTransferFromLocation(){
+ if(typeof location==='undefined')return'';const code=parseDeviceSyncTransfer(location.href);if(code.length<32)return'';storePendingDeviceSyncCode(code);
+ try{const cleanUrl=new URL(location.href);cleanUrl.hash='';history.replaceState(history.state,'',cleanUrl.toString())}catch{}
+ return code;
+}
 function randomToken(bytes=32){return b64url(crypto.getRandomValues(new Uint8Array(bytes)))}
 function newDeviceId(){return randomToken(12)}
 export function readDeviceSyncConfig():DeviceSyncConfig{try{const parsed=JSON.parse(localStorage.getItem(DEVICE_SYNC_CONFIG_KEY)||'{}') as Partial<DeviceSyncConfig>;return{enabled:Boolean(parsed.enabled),syncKey:normaliseDeviceSyncCode(parsed.syncKey||''),deviceId:String(parsed.deviceId||newDeviceId()),lastSyncAt:parsed.lastSyncAt,pendingChangedAt:parsed.pendingChangedAt,lastMessage:parsed.lastMessage,lastArchiveSyncAt:parsed.lastArchiveSyncAt,archiveLocations:Number(parsed.archiveLocations)||0,archiveCaptures:Number(parsed.archiveCaptures)||0,archiveReferences:Number(parsed.archiveReferences)||0,archiveObservations:Number(parsed.archiveObservations)||0,archiveBytes:Number(parsed.archiveBytes)||0,archiveMessage:parsed.archiveMessage,lastArchiveRevision:parsed.lastArchiveRevision}}catch{return{enabled:false,syncKey:'',deviceId:newDeviceId()}}}

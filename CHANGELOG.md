@@ -1,3 +1,10 @@
+## 0.8.22.0
+
+- Gewitterinformation: modellierte Böengeschwindigkeiten verwenden nun durchgängig die in MID gewählte Windeinheit.
+- Neue optionale Kurzfristvorhersage direkt zwischen Warnungen und 7-Tage-Prognose: +15, +30, +45 Minuten, +1 Stunde und anschließend stündlich bis +24 Stunden; horizontal scrollbar und mit kompakter Detailansicht bei Auswahl. Die Darstellung nutzt ausschließlich bereits geladene 15-Minuten- und Best-Match-Stundendaten und verursacht keine zusätzlichen Abrufe.
+- Dashboard-Sektionen können in den Einstellungen einzeln ein- oder ausgeschaltet sowie per Drag-and-drop, Touch-Griff oder Schaltflächen neu angeordnet werden. Deaktivierte Module werden nicht gerendert und lösen dadurch keine modulbezogenen Ladevorgänge aus.
+- Gerätesynchronisation: lokal erzeugter QR-Code mit sicherem Fragmenttransfer. Das Zielgerät kann den Code über die Kamera-App scannen, MID öffnen und die Übernahme nach ausdrücklicher Bestätigung durchführen; der Schlüssel wird weder an einen QR-Dienst noch als URL-Anfrage an den Server übertragen.
+
 ## 0.8.21.0
 
 - Hyperlokale Analyse: zentrales Quellenqualitätsregister mit feldspezifischer Bewertung von Entfernung, Alter, Standorttyp und Vertrauensfaktor
