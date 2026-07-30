@@ -1,3 +1,9 @@
+## 0.8.24.0
+
+- Aktuelles Wetter: Die nachfolgenden Messwertkacheln lassen sich über eine kompakte Schaltfläche im Kopfbereich ein- und ausklappen.
+- Der gewählte Zustand der Aktuell-Wetter-Kacheln wird lokal gespeichert und beim nächsten Öffnen von MID wiederhergestellt.
+- Die Schaltfläche ist für Maus, Touch und Tastatur bedienbar und weist ihren Zustand über `aria-expanded` aus.
+
 ## 0.8.23.0
 
 - Wetterdarstellung vollständig auf ein transparentes, skalierbares SVG-Piktogrammsystem umgestellt. Alle relevanten WMO-Wettergruppen besitzen eigenständige professionelle Symbole für Tag und Nacht, einschließlich Nebel, Reifnebel, Sprühregen, gefrierendem Niederschlag, Schneeregen, Schneegriesel, Schauern, Gewitter und Hagel.
