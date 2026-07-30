@@ -44,7 +44,8 @@ need('weather','mergeDwdOperaNowcast','DWD-Ergebnis wird nicht mit OPERA CIRRUS 
 need('weather','Promise.allSettled','DWD und OPERA werden für die aktuelle Niederschlagswahrscheinlichkeit nicht parallel geprüft.');
 need('weather','operaCrossCheck','OPERA-Kontrollsignal wird nicht im Radarergebnis dokumentiert.');
 need('panel','loadOperaRasterData(latest.fileUrl','Kompositbild prüft die tatsächliche OPERA-HDF5-Datei nicht vor Verwendung.');
-need('panel','sampleOperaRaster(raster,lat,lon,3)','Kompositbild prüft die reale OPERA-Abdeckung am Standort nicht.');
+need('panel',"if(!raster.width||!raster.height||!raster.values?.length)",'Kompositbild validiert das reale OPERA-HDF5-Raster nicht.');
+if(files.panel.includes('sampleOperaRaster(raster,lat,lon,3)'))failures.push('Kompositbild verwirft OPERA weiterhin fälschlich wegen einer lokalen NoData-/Trockenstichprobe.');
 need('panel',"activeSource!=='rainviewer'&&operaDisplayFrame",'OPERA wird unter einer verfügbaren DWD-Ebene nicht als europäische Radarunterlage gerendert.');
 need('panel',"label:'OPERA-Bereitschaft'",'Infodialog zeigt den geprüften OPERA-Bereitschaftsstatus nicht.');
 need('overlay',"canvas.style.zIndex='355'",'OPERA-Unterlage liegt nicht kontrolliert unter dem DWD-Radar-Layer.');

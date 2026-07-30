@@ -1,3 +1,12 @@
+## 0.8.25.0
+
+- Kompositbild: OPERA CIRRUS wird nach erfolgreicher HDF5-Rastervalidierung auch dann geladen, wenn der gewählte Standort in einem trockenen oder lokalen NoData-Pixel liegt; die Kartenreprojektion wurde auf mobilen Geräten entlastet.
+- Kompositbild: optionale amtliche DWD-Warnkarte auf Gemeindeebene mit eigener Deckkraftsteuerung ergänzt.
+- Kompositbild: Isobaren und 500-hPa-Geopotential werden primär als serverseitig gerenderte DWD-ICON-WMS-Layer geladen; die bisherigen MID-Konturen bleiben als automatischer Fallback erhalten.
+- Kompositbild: Blitzdarstellung verwendet bei fehlenden Punktdaten nun zuverlässig das jeweils aktuelle DWD-Blitzdichte- beziehungsweise EUMETSAT-MTG-LI-Raster auch ohne veröffentlichte Zeitdimension; NowCastMIX-Punkte unterdrücken das Blitzraster nicht mehr.
+- Kompositbild: KONRAD3D nutzt für Zuglinie und Wahrscheinlichkeitskegel den zeitlich weitesten belastbaren Prognosepunkt; falls nur Bewegungsrichtung und Geschwindigkeit vorliegen, wird ein gekennzeichneter 30-Minuten-Zugpfad abgeleitet.
+- Kurzfristvorhersage: Überschreitet die prognostizierte Böe eine DWD-Warnschwelle, erhält der Windrichtungspfeil die Farbe der höchsten erreichten Warnstufe.
+
 ## 0.8.24.2
 
 - Eigene Warnungen: Der erläuternde Fußtext wurde auf den einzigen Satz „Automatisch aus Best Match abgeleitet.“ gekürzt.
