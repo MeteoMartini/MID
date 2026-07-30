@@ -186,11 +186,11 @@ function precipitationVisualDescriptor(code:number,precipitation:number,probabil
  return{type,size,thunder,label};
 }
 function PrecipitationGlyph({type,size,thunder}:{type:'rain'|'snow'|'mixed';size:'small'|'large';thunder:boolean}){
- const scale=size==='large'?1.12:.76,precipitationOffset=thunder?-4:0;
- const drop=<path d="M0 -6 C2.4 -2.7 3.8 -0.8 3.8 1.6 C3.8 4.4 2 6.2 0 6.2 C-2 6.2 -3.8 4.4 -3.8 1.6 C-3.8 -0.8 -2.4 -2.7 0 -6 Z" fill="#4a8ef4" stroke="rgba(255,255,255,.82)" strokeWidth="0.6"/>;
- const snow=<g stroke="#ffffff" strokeWidth="1" strokeLinecap="round"><line x1="0" y1="-4.4" x2="0" y2="4.4"/><line x1="-3.8" y1="0" x2="3.8" y2="0"/><line x1="-2.8" y1="-2.8" x2="2.8" y2="2.8"/><line x1="-2.8" y1="2.8" x2="2.8" y2="-2.8"/></g>;
- const precipitation=type==='rain'?drop:type==='snow'?snow:<g><g transform="translate(-2.7,0) scale(.78)">{drop}</g><g transform="translate(3.1,0) scale(.78)">{snow}</g></g>;
- return <g><g transform={`translate(${precipitationOffset},0) scale(${scale})`}>{precipitation}</g>{thunder&&<path d="M3 -4.5 L-0.8 1 H2.4 L-2.6 8.2 L-1 3.2 H-4.1 Z" fill="#d74b4b" stroke="rgba(255,255,255,.78)" strokeWidth="0.5" transform="translate(7.8,0) scale(.84)"/>}</g>;
+ const scale=size==='large'?.94:.66,precipitationOffset=thunder?-3.1:0,boltOffset=thunder?5.6:0;
+ const drop=<path d="M0 -6 C2.4 -2.7 3.8 -0.8 3.8 1.6 C3.8 4.4 2 6.2 0 6.2 C-2 6.2 -3.8 4.4 -3.8 1.6 C-3.8 -0.8 -2.4 -2.7 0 -6 Z" fill="#4a8ef4" stroke="rgba(255,255,255,.9)" strokeWidth="0.7"/>;
+ const snow=<g stroke="#ffffff" strokeWidth="1.15" strokeLinecap="round"><line x1="0" y1="-4.4" x2="0" y2="4.4"/><line x1="-3.8" y1="0" x2="3.8" y2="0"/><line x1="-2.8" y1="-2.8" x2="2.8" y2="2.8"/><line x1="-2.8" y1="2.8" x2="2.8" y2="-2.8"/></g>;
+ const precipitation=type==='rain'?drop:type==='snow'?snow:<g><g transform="translate(-2.5,0) scale(.72)">{drop}</g><g transform="translate(2.8,0) scale(.72)">{snow}</g></g>;
+ return <g><g transform={`translate(${precipitationOffset},0) scale(${scale})`}>{precipitation}</g>{thunder&&<path d="M2.2 -6.4 L-2.2 0.6 H0.4 L-2.6 6.8 L4.6 -1 H1.5 Z" fill="#ef6b57" stroke="#fff0a8" strokeWidth="1.15" strokeLinejoin="round" transform={`translate(${boltOffset},0) scale(.92)`}/>}</g>;
 }
 function EnsemblePrecipShape({cx,cy,row}:{cx?:number;cy?:number;row:TrendRow}){
  if(!Number.isFinite(cx)||!Number.isFinite(cy)||row.precipVisualType==='none')return null;

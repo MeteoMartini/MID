@@ -2900,5 +2900,5 @@ button,input,select,[role="button"]{touch-action:manipulation}
 @media(max-width:520px){.travel-mode-switch{grid-template-columns:1fr}.travel-location-search{grid-template-columns:1fr}.travel-location-search .secondary{justify-self:start}.travel-period-fields{grid-template-columns:1fr}.travel-period-fields label:last-child:nth-child(3){grid-column:1}.travel-constraints>div{grid-template-columns:1fr}.travel-metrics{grid-template-columns:1fr}.travel-analyse{width:100%}.travel-selected-destination .secondary{grid-column:1/-1}.travel-result h4{font-size:16px}.travel-day-strip article{flex-basis:88px}}
 /* v0.8.19.5 compact hourly thunder risk in the existing precipitation tile */
 .hour-tooltip-precipitation em{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hourly-thunder-risk{font-weight:800;color:#d89a28}
+.hourly-thunder-risk{display:inline-flex;align-items:center;gap:2px;font-weight:800;color:#d89a28}
 .hourly-thunder-risk.high{color:#e66b54}

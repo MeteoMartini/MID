@@ -19,23 +19,26 @@ for(const token of [
  'currentThunderRisk=significantHourlyThunderRisk(currentHour)',
  'className="hour-tooltip-precipitation"',
  'className={`hourly-thunder-risk ${currentThunderRisk.level}`}',
- '⚡ {currentThunderRisk.shortLabel}'
+ '⚡ {currentThunderRisk.percent} %',
+ 'currentThunderRisk.percent} %'
 ])need('Tagesdetail',app,token);
 for(const token of [
  "const directThunder=[95,96,97,99].includes(code)",
- "if(directThunder)return{level:'elevated'",
+ "if(directThunder){const normalizedScore=Math.max(score,6);return{level:'elevated'",
  'const instability=',
  'const moisture=',
  'const trigger=',
- 'const stronglyCapped='
+ 'const stronglyCapped=',
+ 'function thunderRiskPercent(',
+ 'percent:thunderRiskPercent(' 
 ])need('Gewitterrisiko',thunder,token);
 for(const token of [
  "precipVisualSize:'small'|'large';",
  "const size=amount>=largeThreshold?'large' as const:'small' as const;",
  "function PrecipitationGlyph({type,size,thunder}",
- "const scale=size==='large'?1.12:.76",
- 'precipitationOffset=thunder?-4:0',
- 'transform="translate(7.8,0) scale(.84)"',
+ "const scale=size==='large'?.94:.66",
+ 'precipitationOffset=thunder?-3.1:0',
+ 'strokeLinejoin="round"',
  'size={row.precipVisualSize}',
  "data.filter(row=>row.precipVisualType!=='none')"
 ])need('Ensemble-Symbolik',ensemble,token);
@@ -57,6 +60,11 @@ else{
   ['nicht-signifikant',risk({code:3,cape:900,probability:15,precipitation:0}), null]
  ];
  for(const [label,value,expected] of cases){const actual=value?.level??null;if(actual!==expected)failures.push(`${label}: erwartet ${expected}, erhalten ${actual}`)}
+ const percentCases=[
+  ['Direktes Gewitter-Prozent',risk({code:95,cape:300,probability:20}), [65,82]],
+  ['Mehrindex-hoch-Prozent',risk({code:80,cape:1800,liftedIndex:-5,convectiveInhibition:30,temperature:24,dewPoint:18,humidity:70,columnWaterVapour:35,probability:65,showers:.5}), [72,88]]
+ ];
+ for(const [label,value,[min,max]] of percentCases){const actual=value?.percent??null;if(actual===null||actual<min||actual>max)failures.push(`${label}: erwarteter Prozentbereich ${min}-${max}, erhalten ${actual}`)}
 }
 
 if(failures.length){console.error('Detail-Gewitter/Ensemble-Niederschlag-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}

@@ -1,3 +1,8 @@
+## 0.8.19.7
+
+- Tagesdetailansicht: Gewitterrisiko in der stündlichen Niederschlagskachel jetzt als kompakte Prozentangabe dargestellt
+- 14-Tage-Ensemble: Niederschlags-/Schneesymbole bleiben innerhalb der Bewölkungskästchen; Blitzsymbol für Gewitter deutlicher und besser erkennbar
+
 # MID v0.8.19.6
 
 - Tagesdetailansicht: Das kompakte stündliche Gewitterrisiko basiert nicht mehr im Wesentlichen auf CAPE und Niederschlag, sondern auf einer kombinierten Best-Match-Diagnose aus WMO-Gewittercode, CAPE, Lifted Index, konvektiver Hemmung (CIN), Feuchteprofil, integriertem Wasserdampf sowie Schauer-/Niederschlags- und Auslösesignalen.
