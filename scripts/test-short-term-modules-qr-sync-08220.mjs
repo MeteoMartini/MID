@@ -16,7 +16,8 @@ const need=(area,text,token)=>{if(!text.includes(token))failures.push(`${area}: 
 const forbid=(area,text,token)=>{if(text.includes(token))failures.push(`${area}: unerlaubt ${token}`)};
 
 for(const token of [
- "const OFFSETS=[15,30,45,60,...Array.from({length:23},(_,index)=>(index+2)*60)]",
+ 'const QUARTER_STEP_COUNT=4;',
+ 'function buildTargetEpochs(now:number)',
  'export function buildShortTermForecast(',
  "offsetMinutes<=60?nearest(minutes15,target,12*60000):undefined",
  'className="short-term-strip"',

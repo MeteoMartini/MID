@@ -1,3 +1,9 @@
+## 0.8.22.1
+
+- Kurzfristvorhersage: Zeitachsenstufen rasten nun auf die nächste volle Viertelstunde ein, zeigen vier 15-Minuten-Schritte und wechseln danach auf volle Stunden bis +24 Stunden.
+- Kurzfristvorhersage: Windpfeile zeigen jetzt konsistent in die Richtung, in die der Wind weht, während die Himmelsrichtung weiterhin die Herkunftsrichtung des Windes benennt.
+- Kurzfristvorhersage: Gewitter-Badges erhalten auf schmalen Karten eine eigene Zeile und überdecken dadurch weder Temperatur noch Wettersymbol.
+
 ## 0.8.22.0
 
 - Gewitterinformation: modellierte Böengeschwindigkeiten verwenden nun durchgängig die in MID gewählte Windeinheit.
