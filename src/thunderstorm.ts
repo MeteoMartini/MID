@@ -6,6 +6,7 @@ export type ThunderInfoStatusKind='at-site'|'near'|'approaching'|'passing'|'surr
 export type ThunderInfoDetail={label:string;value:string};
 export type ThunderInfoFact={label:string;value:string;tone?:ThunderInfoFactTone;prominent?:boolean};
 export type ThunderInfoStatus={kind:ThunderInfoStatusKind;label:string;detail:string};
+export type ThunderInfoContext={timezone?:string;currentPlaceName?:string;forecastPlaceName?:string};
 export type ThunderInfo={
  level:ThunderInfoLevel;
  headline:string;
@@ -40,8 +41,30 @@ function hailHeadlineText(cell:NonNullable<ThunderstormNowcast['nearest']>){if(c
 function heavyRainSignalText(flag:number|undefined){const value=Math.round(Number(flag)||0);return value>=3?'extremer Starkregen möglich':value===2?'heftiger Starkregen möglich':value===1?'Starkregen möglich':'kein Starkregensignal'}
 function heavyRainHeadlineText(flag:number|undefined){const value=Math.round(Number(flag)||0);return value>=3?'extremem Starkregen':value===2?'heftigem Starkregen':value===1?'Starkregen':''}
 function lightningActivityText(rate:number|undefined){const value=Number(rate);if(!Number.isFinite(value)||value<=0)return'keine Blitzaktivität im Zellobjekt';const activity=value>=30?'hoch':value>=15?'mäßig':'gering';return `${Math.round(value)} Blitze/5 min · Aktivität ${activity}`}
-function locationFocusText(cell:NonNullable<ThunderstormNowcast['nearest']>,locationName:string,currentDistance:number,atSite:boolean){const direction=compassWord(cell.siteBearingDeg);return atSite?`unmittelbar bei ${locationName}`:Number.isFinite(currentDistance)?`${Math.max(1,Math.round(currentDistance))} km${direction?` ${direction}`:''} von ${locationName}`:`in der Nähe von ${locationName}`}
-function arrivalWindowText(approaching:boolean,movingAway:boolean,arrival:number,forecastDistance:number){if(approaching&&Number.isFinite(arrival)&&arrival>0&&arrival<=90)return Number.isFinite(forecastDistance)?`in etwa ${Math.round(arrival)} min · ca. ${Math.max(0,Math.round(forecastDistance))} km`:`in etwa ${Math.round(arrival)} min`;if(movingAway&&Number.isFinite(forecastDistance))return`zieht voraussichtlich vorbei · danach ca. ${Math.round(forecastDistance)} km`;return'keine belastbare Annäherung'}
+function normalizedPlace(value:string|undefined){return String(value||'').trim().replace(/\s+/g,' ')}
+function samePlace(a:string|undefined,b:string|undefined){const normalized=(value:string|undefined)=>normalizedPlace(value).toLocaleLowerCase('de-DE').replace(/[^a-zäöüß0-9]/g,'');const left=normalized(a),right=normalized(b);return Boolean(left&&right&&(left===right||left.includes(right)||right.includes(left)))}
+function namedCoordinate(placeName:string|undefined,lat:number|undefined,lon:number|undefined){const place=normalizedPlace(placeName),coords=coordinate(lat,lon);return place?`${place} · ${coords}`:coords}
+function localForecastClock(cell:NonNullable<ThunderstormNowcast['nearest']>,arrival:number,timezone?:string){
+ let epoch=Date.parse(String(cell.forecastTime||''));
+ if(!Number.isFinite(epoch)&&Number.isFinite(arrival)&&arrival>=0)epoch=Date.now()+arrival*60000;
+ if(!Number.isFinite(epoch))return'';
+ try{return new Intl.DateTimeFormat('de-DE',{hour:'2-digit',minute:'2-digit',timeZone:timezone||undefined}).format(new Date(epoch))}catch{return new Intl.DateTimeFormat('de-DE',{hour:'2-digit',minute:'2-digit'}).format(new Date(epoch))}
+}
+function locationFocusText(cell:NonNullable<ThunderstormNowcast['nearest']>,locationName:string,currentDistance:number,atSite:boolean,currentPlaceName?:string){
+ const direction=compassWord(cell.siteBearingDeg),place=normalizedPlace(currentPlaceName),placeText=place&&!samePlace(place,locationName)?`bei ${place}`:'';
+ const relative=atSite?`unmittelbar bei ${locationName}`:Number.isFinite(currentDistance)?`${Math.max(1,Math.round(currentDistance))} km${direction?` ${direction}`:''} von ${locationName}`:`in der Nähe von ${locationName}`;
+ return[placeText,relative].filter(Boolean).join(' · ');
+}
+function approachWindowText(cell:NonNullable<ThunderstormNowcast['nearest']>,locationName:string,approaching:boolean,movingAway:boolean,arrival:number,currentDistance:number,forecastDistance:number,effectiveDistance:number,uncertainty:number,context:ThunderInfoContext){
+ const clock=localForecastClock(cell,arrival,context.timezone),when=clock?`gegen ${clock} Uhr`:Number.isFinite(arrival)&&arrival>0?`in etwa ${Math.round(arrival)} min`:'zum berechneten Prognosezeitpunkt',forecastPlace=normalizedPlace(context.forecastPlaceName),placeSuffix=forecastPlace&&!samePlace(forecastPlace,locationName)?` · Zellzentrum dann bei ${forecastPlace}`:'',withinUncertainty=Number.isFinite(forecastDistance)&&Number.isFinite(uncertainty)&&forecastDistance<=uncertainty,siteHitPossible=withinUncertainty||(Number.isFinite(effectiveDistance)&&effectiveDistance<=.5);
+ if(approaching){
+  if(siteHitPossible)return`Möglicher Standorttreffer in ${locationName} ${when}${placeSuffix}`;
+  return Number.isFinite(forecastDistance)?`Nächste Annäherung an ${locationName} ${when} auf ca. ${Math.max(0,Math.round(forecastDistance))} km${placeSuffix}`:`Nächste Annäherung an ${locationName} ${when}${placeSuffix}`;
+ }
+ if(movingAway)return`Nächste Annäherung an ${locationName} voraussichtlich bereits erfolgt; Zellzentrum zieht vorbei${Number.isFinite(forecastDistance)?` und ist anschließend ca. ${Math.round(forecastDistance)} km entfernt und damit nicht näher`:''}`;
+ if(Number.isFinite(currentDistance)&&currentDistance<=25)return`Zellzentrum aktuell ca. ${Math.max(1,Math.round(currentDistance))} km entfernt; keine nähere Passage von ${locationName} berechnet`;
+ return`Keine belastbare Annäherung an ${locationName} berechnet`;
+}
 function threatHeadline(nearNow:boolean,atSite:boolean,approaching:boolean,movingAway:boolean){return atSite?'Gewitterzelle unmittelbar am Standort':nearNow?'Gewitterzelle nahe':approaching?'Gewitterzelle nähert sich':movingAway?'Gewitterzelle zieht voraussichtlich vorbei':'Gewitterzelle im Umfeld'}
 function impactHeadline(cell:NonNullable<ThunderstormNowcast['nearest']>){
  const severity=Math.max(Number(cell.severity)||0,Number(cell.hailFlag)||0,Number(cell.heavyRainFlag)||0,Number(cell.gustFlag)||0);
@@ -51,43 +74,43 @@ function impactHeadline(cell:NonNullable<ThunderstormNowcast['nearest']>){
  if(possible.length)return`${base}; ${joinGerman(possible)} möglich`;
  return base;
 }
-function movementStatus(cell:NonNullable<ThunderstormNowcast['nearest']>,locationName:string,currentDistance:number,forecastDistance:number,arrival:number,nearNow:boolean,atSite:boolean,approaching:boolean,movingAway:boolean):ThunderInfoStatus{
+function movementStatus(cell:NonNullable<ThunderstormNowcast['nearest']>,locationName:string,currentDistance:number,forecastDistance:number,effectiveDistance:number,uncertainty:number,arrival:number,nearNow:boolean,atSite:boolean,approaching:boolean,movingAway:boolean,context:ThunderInfoContext):ThunderInfoStatus{
  if(atSite)return{kind:'at-site',label:'Am Standort',detail:`Zellzentrum unmittelbar bei ${locationName}`};
- if(nearNow)return{kind:'near',label:'In unmittelbarer Nähe',detail:locationFocusText(cell,locationName,currentDistance,false)};
- if(approaching)return{kind:'approaching',label:'Nähert sich',detail:arrivalWindowText(true,false,arrival,forecastDistance)};
- if(movingAway)return{kind:'passing',label:'Zieht voraussichtlich vorbei',detail:arrivalWindowText(false,true,arrival,forecastDistance)};
- return{kind:'surrounding',label:'Im Umfeld',detail:'derzeit keine belastbare Annäherung des Zellzentrums'};
+ if(approaching)return{kind:'approaching',label:'Nähert sich',detail:approachWindowText(cell,locationName,true,false,arrival,currentDistance,forecastDistance,effectiveDistance,uncertainty,context)};
+ if(nearNow)return{kind:'near',label:'In unmittelbarer Nähe',detail:approachWindowText(cell,locationName,false,false,arrival,currentDistance,forecastDistance,effectiveDistance,uncertainty,context)};
+ if(movingAway)return{kind:'passing',label:'Zieht voraussichtlich vorbei',detail:approachWindowText(cell,locationName,false,true,arrival,currentDistance,forecastDistance,effectiveDistance,uncertainty,context)};
+ return{kind:'surrounding',label:'Im Umfeld',detail:approachWindowText(cell,locationName,false,false,arrival,currentDistance,forecastDistance,effectiveDistance,uncertainty,context)};
 }
 function motionFact(cell:NonNullable<ThunderstormNowcast['nearest']>){
  const direction=Number.isFinite(Number(cell.motionDirectionDeg))?`nach ${compassShort(cell.motionDirectionDeg)}`:'Richtung nicht belastbar';
  return cell.speedKmh>0?`${direction} · ${Math.round(cell.speedKmh)} km/h`:direction;
 }
 
-export function combineThunderstormInformation(nowcast:ThunderstormNowcast|null,hours:Hour[],radar:RadarNowcast|null,station:Station|null,locationName='Standort'):ThunderInfo|null{
+export function combineThunderstormInformation(nowcast:ThunderstormNowcast|null,hours:Hour[],radar:RadarNowcast|null,station:Station|null,locationName='Standort',context:ThunderInfoContext={}):ThunderInfo|null{
  const cell=nowcast?.nearest;
  if(nowcast?.available&&cell&&cell.relevanceDistanceKm<=80){
-  const currentDistanceRaw=Number(cell.currentDistanceKm),currentDistance=Number.isFinite(currentDistanceRaw)?Math.max(0,currentDistanceRaw):Number.NaN,forecastDistance=Number(cell.forecastDistanceKm),effectiveDistance=Number(cell.forecastEffectiveDistanceKm),uncertainty=Number(cell.forecastUncertaintyKm),arrival=Number(cell.arrivalMinutes),nearNow=Number.isFinite(currentDistance)&&currentDistance<=25,atSite=Number.isFinite(currentDistance)&&currentDistance<1,centerGetsCloser=Number.isFinite(currentDistance)&&Number.isFinite(forecastDistance)&&forecastDistance+2<currentDistance,approaching=Boolean(!nearNow&&cell.isApproaching&&centerGetsCloser&&Number.isFinite(arrival)&&arrival>0&&arrival<=90),movingAway=Boolean(!nearNow&&Number.isFinite(currentDistance)&&Number.isFinite(forecastDistance)&&forecastDistance>currentDistance+2),direction=compassWord(cell.siteBearingDeg),status=movementStatus(cell,locationName,currentDistance,forecastDistance,arrival,nearNow,atSite,approaching,movingAway),legacyHeadline=threatHeadline(nearNow,atSite,approaching,movingAway),headline=impactHeadline(cell);
+  const currentDistanceRaw=Number(cell.currentDistanceKm),currentDistance=Number.isFinite(currentDistanceRaw)?Math.max(0,currentDistanceRaw):Number.NaN,forecastDistance=Number(cell.forecastDistanceKm),effectiveDistance=Number(cell.forecastEffectiveDistanceKm),uncertainty=Number(cell.forecastUncertaintyKm),arrival=Number(cell.arrivalMinutes),nearNow=Number.isFinite(currentDistance)&&currentDistance<=25,atSite=Number.isFinite(currentDistance)&&currentDistance<1,centerGetsCloser=Number.isFinite(currentDistance)&&Number.isFinite(forecastDistance)&&forecastDistance+2<currentDistance,approaching=Boolean(cell.isApproaching&&centerGetsCloser&&Number.isFinite(forecastDistance)&&(Number.isFinite(arrival)&&arrival>=0&&arrival<=90||Boolean(cell.forecastTime))),movingAway=Boolean(!approaching&&!nearNow&&Number.isFinite(currentDistance)&&Number.isFinite(forecastDistance)&&forecastDistance>currentDistance+2),direction=compassWord(cell.siteBearingDeg),status=movementStatus(cell,locationName,currentDistance,forecastDistance,effectiveDistance,uncertainty,arrival,nearNow,atSite,approaching,movingAway,context),legacyHeadline=threatHeadline(nearNow,atSite,approaching,movingAway),headline=impactHeadline(cell),position=locationFocusText(cell,locationName,currentDistance,atSite,context.currentPlaceName);
   const positionText=atSite?`Aktuell unmittelbar bei ${locationName}`:Number.isFinite(currentDistance)?`Aktuell ${Math.max(1,Math.round(currentDistance))} km${direction?` ${direction}`:''} von ${locationName}`:`Aktuelle Entfernung zu ${locationName} nicht belastbar verfügbar`;
-  const approachText=approaching&&Number.isFinite(forecastDistance)?`; größte berechnete Annäherung des Zellzentrums in etwa ${Math.round(arrival)} min auf ca. ${Math.max(0,Math.round(forecastDistance))} km`:approaching?`; mögliche Annäherung in etwa ${Math.round(arrival)} min`:movingAway&&Number.isFinite(forecastDistance)?`; Zellzentrum in der Prognose anschließend ca. ${Math.round(forecastDistance)} km entfernt und damit nicht näher`:'';
+  const approachText=approaching&&Number.isFinite(forecastDistance)?`; größte berechnete Annäherung des Zellzentrums ${localForecastClock(cell,arrival,context.timezone)?`gegen ${localForecastClock(cell,arrival,context.timezone)} Uhr `:''}auf ca. ${Math.max(0,Math.round(forecastDistance))} km`:approaching?`; mögliche Annäherung in etwa ${Math.round(arrival)} min`:movingAway&&Number.isFinite(forecastDistance)?`; Zellzentrum in der Prognose anschließend ca. ${Math.round(forecastDistance)} km entfernt und damit nicht näher`:'';
   const summary=`${positionText}${approachText}. ${motionFact(cell)}. ${lightningActivityText(cell.lightningRate)}; Zelltrend ${trendText(cell.trend)}.`;
   const quickFacts:ThunderInfoFact[]=[
-   {label:'Schwerpunkt aktuell',value:locationFocusText(cell,locationName,currentDistance,atSite),tone:'motion',prominent:true},
-   {label:'Mögliche Annäherung',value:arrivalWindowText(approaching,movingAway,arrival,forecastDistance),tone:'motion',prominent:true},
+   {label:'Zellposition',value:position,tone:'motion',prominent:true},
    {label:'Zug',value:motionFact(cell),tone:'motion',prominent:true}
   ];
   if(cell.heavyRainFlag>0)quickFacts.push({label:'Starkregen',value:heavyRainSignalText(cell.heavyRainFlag),tone:'rain',prominent:true});
   if(cell.hailFlag>0||cell.areaHail>0)quickFacts.push({label:'Hagel',value:hailSignalText(cell),tone:'hail',prominent:true});
   if((cell.gustFlag??0)>0)quickFacts.push({label:'Windböen',value:gustSignalText(cell.gustFlag),tone:'wind',prominent:true});
   if(cell.lightningRate>0)quickFacts.push({label:'Blitzaktivität',value:lightningActivityText(cell.lightningRate),tone:'lightning',prominent:false});
-  const details:ThunderInfoDetail[]=[
+  const forecastClock=localForecastClock(cell,arrival,context.timezone),details:ThunderInfoDetail[]=[
    {label:'Bezugsort',value:locationName},
+   {label:'Bewertung für den Bezugsort',value:status.detail},
    {label:'Zellkennung',value:cell.id},
-   {label:'Aktuelle Zellposition',value:coordinate(cell.latitude,cell.longitude)},
+   {label:'Aktuelle Zellposition',value:namedCoordinate(context.currentPlaceName,cell.latitude,cell.longitude)},
    {label:'Aktuelle Entfernung / Richtung',value:atSite?`unter 1 km · ${compassShort(cell.siteBearingDeg)}`:Number.isFinite(currentDistance)?`${decimal(currentDistance)} km · ${compassShort(cell.siteBearingDeg)}`:'–'},
    {label:'Zellstufe / Trend',value:`${severityText(cell.severity)} · ${trendText(cell.trend)}`},
    {label:'Zellverlagerung',value:Number.isFinite(Number(cell.motionDirectionDeg))||cell.speedKmh>0?`nach ${compassShort(cell.motionDirectionDeg)} · ${Math.round(cell.speedKmh||0)} km/h`:'nicht belastbar verfügbar'},
-   {label:'Prognostizierte Position',value:coordinate(cell.forecastLatitude,cell.forecastLongitude)},
-   {label:'Prognosezeit',value:zulu(cell.forecastTime)},
+   {label:'Prognostizierte Position',value:namedCoordinate(context.forecastPlaceName,cell.forecastLatitude,cell.forecastLongitude)},
+   {label:'Zeit der nächsten Annäherung',value:forecastClock?`${forecastClock} Uhr Ortszeit · ${zulu(cell.forecastTime)}`:zulu(cell.forecastTime)},
    {label:'Abstand der prognostizierten Position',value:Number.isFinite(forecastDistance)?`${decimal(forecastDistance)} km`:'–'},
    {label:'Wirksamer Mindestabstand',value:Number.isFinite(effectiveDistance)?`${decimal(effectiveDistance)} km${Number.isFinite(uncertainty)?` · Unsicherheitsradius ${decimal(uncertainty)} km`:''}`:'–'},
    {label:'Blitzaktivität',value:cell.lightningRate>0?`${Math.round(cell.lightningRate)} Blitze je 5 min`:'kein Blitzsignal im Zellobjekt'},
@@ -111,6 +134,6 @@ export function combineThunderstormInformation(nowcast:ThunderstormNowcast|null,
  }
  const now=Date.now(),next=hours.filter(hour=>hour.epoch>=now-30*60000&&hour.epoch<=now+3*3600000),thunder=next.find(hour=>[95,96,97,98,99].includes(Math.round(hour.code))),highCape=Math.max(0,...next.map(hour=>Number(hour.cape)||0)),radarRate=Number(radar?.currentRate||0),stationRain=stationRainText(station),combinedConvectiveSignal=radarRate>=8&&highCape>=750;
  if(!thunder&&!combinedConvectiveSignal)return null;
- const severe=Boolean(thunder&&[96,97,98,99].includes(Math.round(thunder.code)))||highCape>=1800||radarRate>=25,extra=[thunder?'Best Match signalisiert Gewitter':'starkes Radarecho mit erhöhter Konvektionsenergie',radarRate>=8?`Radarecho ${Math.round(radarRate)} mm/h`:'',highCape>=750?`CAPE ${Math.round(highCape)} J/kg`:'',stationRain].filter(Boolean).join(' · '),quickFacts:ThunderInfoFact[]=[{label:'Zeitraum',value:'nächste 3 Stunden',tone:'motion',prominent:true},{label:'Radarintensität',value:radarRate>=.05?`${decimal(radarRate)} mm/h`:'kein Standortecho',tone:'rain',prominent:true},{label:'Konvektionsenergie',value:highCape>0?`${Math.round(highCape)} J/kg`:'nicht verfügbar',tone:'lightning',prominent:true},{label:'KONRAD3D',value:nowcast?.summary||'keine relevante aktuelle Zelle',tone:'neutral',prominent:false}],status:ThunderInfoStatus={kind:'model',label:'Modellsignal',detail:'keine nah relevante aktuelle KONRAD3D-Zelle'};
+ const severe=Boolean(thunder&&[96,97,98,99].includes(Math.round(thunder.code)))||highCape>=1800||radarRate>=25,extra=[thunder?'Best Match signalisiert Gewitter':'starkes Radarecho mit erhöhter Konvektionsenergie',radarRate>=8?`Radarecho ${Math.round(radarRate)} mm/h`:'',highCape>=750?`CAPE ${Math.round(highCape)} J/kg`:'',stationRain].filter(Boolean).join(' · '),quickFacts:ThunderInfoFact[]=[{label:'Zeitraum',value:'nächste 3 Stunden',tone:'motion',prominent:true},{label:'Radarintensität',value:radarRate>=.05?`${decimal(radarRate)} mm/h`:'kein Standortecho',tone:'rain',prominent:true},{label:'Konvektionsenergie',value:highCape>0?`${Math.round(highCape)} J/kg`:'nicht verfügbar',tone:'lightning',prominent:true},{label:'KONRAD3D',value:nowcast?.summary||'keine relevante aktuelle Zelle',tone:'neutral',prominent:false}],status:ThunderInfoStatus={kind:'model',label:'Modellsignal',detail:`Keine nah relevante aktuelle KONRAD3D-Zelle bei ${locationName}`};
  return{level:severe?'orange':'yellow',headline:severe?'Deutliches Gewittersignal':'Gewittersignal',summary:`In den kommenden drei Stunden bei ${locationName}: ${extra}.`,source:'Modell-, Radar- und Stationsabgleich · keine amtliche Warnung',status,quickFacts,detailLead:'Es liegt derzeit keine nah relevante KONRAD3D-Zelle vor. Die Information basiert daher vor allem auf Modell-, Radar- und gegebenenfalls Stationssignalen.',advisory:'Hinweis: Es handelt sich um eine automatische Vorabinformation und nicht um eine amtliche Warnung.',details:[{label:'Bezugsort',value:locationName},{label:'Radarintensität',value:radarRate>=.05?`${decimal(radarRate)} mm/h`:'kein Standortecho'},{label:'Konvektionsenergie',value:highCape>0?`${Math.round(highCape)} J/kg`:'nicht verfügbar'},{label:'KONRAD3D',value:nowcast?.summary||'keine relevante aktuelle Zelle'}]};
 }

@@ -578,8 +578,9 @@ function compactSkyFallback(labelText:string){
  if(text==='Teilweise bewölkt')return'Wolkig';
  return text;
 }
-function fitDayLabel(text:string,fallback:string){const clean=text.replace(/\s+/g,' ').trim();return clean.length<=DAY_LABEL_MAX?clean:fallback}
-function fitDaySecondary(text:string,fallback:string){const clean=text.replace(/\s+/g,' ').trim();return clean.length<=DAY_SECONDARY_MAX?clean:fallback}
+function sentenceStartText(value:string){const clean=String(value||'').trim();return clean?`${clean.charAt(0).toLocaleUpperCase('de-DE')}${clean.slice(1)}`:''}
+function fitDayLabel(text:string,fallback:string){const clean=text.replace(/\s+/g,' ').trim();return sentenceStartText(clean.length<=DAY_LABEL_MAX?clean:fallback)}
+function fitDaySecondary(text:string,fallback:string){const clean=text.replace(/\s+/g,' ').trim();return sentenceStartText(clean.length<=DAY_SECONDARY_MAX?clean:fallback)}
 function daylightDurationSeconds(day:Day){
  const minutes=(value?:string)=>{const match=String(value??'').match(/T(\d{2}):(\d{2})/);return match?Number(match[1])*60+Number(match[2]):NaN};
  const sunrise=minutes(day.sunrise),sunset=minutes(day.sunset);

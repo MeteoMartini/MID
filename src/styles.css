@@ -2925,3 +2925,16 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .thunder-fact.rain small{color:#72b9ff}.thunder-fact.hail small{color:#ccefff}.thunder-fact.wind small{color:#ffb28a}.thunder-fact.lightning small{color:#ffe17e}.thunder-fact.motion small{color:#8cc9f7}
 .thunder-info-popover{max-height:calc(100dvh - 16px);overflow:auto;overscroll-behavior:contain;scrollbar-width:thin}.thunder-info-popover .thunder-info-sheet{padding-bottom:2px}.thunder-info-close{position:sticky;bottom:0;width:100%;margin-top:10px;padding:9px 12px;border:1px solid var(--border);border-radius:10px;background:color-mix(in srgb,var(--surface) 94%,transparent);color:var(--text);font-weight:850;box-shadow:0 -8px 18px color-mix(in srgb,var(--surface) 88%,transparent)}
 @media(max-width:560px){.thunder-status{grid-template-columns:1fr;gap:2px}.thunder-status b{white-space:normal}.thunder-info-popover{width:calc(100vw - 16px)!important;max-height:calc(100dvh - 16px)}.thunder-fact-grid:not(.thunder-fact-grid-expanded){grid-template-columns:1fr 1fr;gap:6px}.thunder-fact{padding:7px 8px;border-radius:11px}.thunder-fact small{font-size:7.5px}.thunder-fact strong{font-size:10px}}
+
+/* v0.8.19.12 – kompakte Gewitterkarte mit Ortsbezug und klarer Annäherungszeit */
+.place-nowcards .thunder-now{padding:11px 12px!important;gap:0}
+.place-nowcards .thunder-now>.nowcard-label-row{margin-bottom:3px}
+.place-nowcards .thunder-now>strong{margin-top:1px!important;font-size:15px!important;line-height:1.16!important}
+.place-nowcards .thunder-now>em{margin-top:7px;font-size:7.5px;line-height:1.25}
+.thunder-status{margin-top:6px;padding:6px 8px;border-radius:10px;gap:2px 7px}
+.thunder-status b{font-size:9px}.thunder-status span{font-size:8.5px;line-height:1.25}
+.thunder-fact-grid:not(.thunder-fact-grid-expanded){grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:5px;margin-top:6px}
+.thunder-fact-grid:not(.thunder-fact-grid-expanded) .thunder-fact{padding:6px 7px;border-radius:10px}
+.thunder-fact-grid:not(.thunder-fact-grid-expanded) .thunder-fact small{font-size:7px;line-height:1.15;letter-spacing:.08em}
+.thunder-fact-grid:not(.thunder-fact-grid-expanded) .thunder-fact strong{margin-top:2px;font-size:9.5px;line-height:1.22}
+@media(max-width:560px){.place-nowcards .thunder-now{padding:10px!important}.thunder-status{grid-template-columns:auto minmax(0,1fr);align-items:start}.thunder-status b{white-space:nowrap}.thunder-fact-grid:not(.thunder-fact-grid-expanded){grid-template-columns:1fr 1fr;gap:5px}.thunder-fact-grid:not(.thunder-fact-grid-expanded) .thunder-fact strong{font-size:9px}}

@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.8.19.11",
+  "version": "0.8.19.12",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -94,7 +94,8 @@
     "test:detail-thunder-indices": "node scripts/test-detail-thunder-indices-08196.mjs",
     "test:detail-thunder-threshold-trend": "node scripts/test-detail-thunder-threshold-trend-08198.mjs",
     "test:thunder-info-wording": "node scripts/test-thunder-info-wording-081910.mjs",
-    "test:thunder-buildfix": "node scripts/test-thunder-unused-parameter-buildfix-081911.mjs"
+    "test:thunder-buildfix": "node scripts/test-thunder-unused-parameter-buildfix-081911.mjs",
+    "test:thunder-place-compact": "node scripts/test-thunder-place-compact-capitalization-081912.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

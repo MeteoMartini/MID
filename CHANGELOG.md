@@ -1,3 +1,10 @@
+## 0.8.19.12
+
+- 7-Tage-Vorhersage: Haupt- und Untertitel beginnen zuverlässig mit Großbuchstaben.
+- Gewitterinformation: aktuelle und prognostizierte Zellposition erhalten nach Möglichkeit einen Ortsnamen; die Ortsauflösung wird räumlich gerastert und 12 Stunden lokal zwischengespeichert.
+- Gewitterinformation: nächste Annäherung beziehungsweise möglicher Standorttreffer wird mit Ortszeit und Abstand zum ausgewählten Ort deutlich benannt.
+- Gewitterkarte kompakter gestaltet; der freie doppelte Zusammenfassungstext entfällt und Kerndaten stehen ausschließlich in Status- und Unterfeldern.
+
 ## 0.8.19.11
 
 - GitHub-Produktionsbuild repariert: Der nach der Gewittertext-Verfeinerung nicht mehr benötigte Parameter `cell` wurde aus `threatHeadline` und dem zugehörigen Aufruf vollständig entfernt.
