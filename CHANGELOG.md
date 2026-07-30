@@ -1,3 +1,19 @@
+## 0.8.19.11
+
+- GitHub-Produktionsbuild repariert: Der nach der Gewittertext-Verfeinerung nicht mehr benötigte Parameter `cell` wurde aus `threatHeadline` und dem zugehörigen Aufruf vollständig entfernt.
+- Die verfeinerte Gewitterinformation und die natürlichere Sprache der 7-Tage-Untertitel bleiben unverändert erhalten.
+
+## 0.8.19.10
+
+- Gewitterinformation weiter verfeinert: natürliche, wirkungsorientierte Überschriften, klar priorisierte Zellbewegung und farblich differenzierte Kernauswirkungen.
+- Erweiterte Gewitterdetails erscheinen in einem größeren, mobilen Infofenster mit Schließen-Schaltfläche.
+- 7-Tage-Untertitel verwenden natürliche Zeit-vor-Ereignis-Formulierungen wie „Abends Regen möglich“.
+
+## 0.8.19.9
+
+- Gewitterinformation erweitert: kompakte Kerndaten jetzt direkt auf der Gewitterkarte sichtbar
+- Ausführlichere KONRAD3D-Gewitterdetails per Info-Button als strukturierte Übersicht mit Schwerpunkt, Annäherung, Böen-, Hagel-, Blitz- und Zugbahnangaben
+
 ## 0.8.19.8
 
 - Tagesdetailansicht: Die kompakte Gewitterrisiko-Prozentangabe erscheint jetzt ab 30 %. Die Schwelle bleibt an die kombinierte Mehrindexdiagnose aus Instabilität, Feuchte, Auslösung und CIN gekoppelt; CAPE allein erzeugt weiterhin kein Signal.

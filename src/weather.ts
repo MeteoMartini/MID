@@ -5,6 +5,7 @@ import {loadOperaRaster} from './CompositeData';
 import {analyseOperaRasterNowcast} from './OperaRasterSource';
 import {precipitationParts} from './precipitation';
 import type {AirQualityStationMeta} from './airQuality';
+import {naturalPossibleEventFallback,naturalPossibleEventText} from './forecastWording';
 export type WindUnit='kn'|'kmh'|'ms'|'mph';
 export type UrbanClass='urban'|'suburban'|'rural'|'unknown';
 export type CloudObservation='cavok'|'clear'|'layers';
@@ -729,8 +730,7 @@ function eventTiming(hours:Hour[],family:string){
  return`${parts[0]==='night'?'nachts':parts[0]==='morning'?'morgens':parts[0]==='midday'?'mittags':parts[0]==='afternoon'?'nachmittags':'abends'}/${parts[1]==='night'?'nachts':parts[1]==='morning'?'morgens':parts[1]==='midday'?'mittags':parts[1]==='afternoon'?'nachmittags':'abends'}`;
 }
 function possibleEventText(event:string,timing:string){
- const full=timing?`${event} ${timing} möglich`:`${event} möglich`;
- const fallback=timing==='zeitweise'?`Zeitweise ${event}`:timing==='ab Mittag'?`${event} ab Mittag`:timing==='später'?`${event} später`:`${event} möglich`;
+ const full=naturalPossibleEventText(event,timing),fallback=naturalPossibleEventFallback(event,timing);
  return fitDaySecondary(full,fallback.length<=DAY_SECONDARY_MAX?fallback:`${event} möglich`);
 }
 export function dayWeatherCharacter(day:Day,hours:Hour[]):DayWeatherCharacter{

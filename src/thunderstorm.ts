@@ -1,11 +1,28 @@
 import type {Hour,RadarNowcast,Station,ThunderstormNowcast} from './weather';
 
 export type ThunderInfoLevel='yellow'|'orange'|'red'|'purple';
+export type ThunderInfoFactTone='neutral'|'motion'|'rain'|'hail'|'wind'|'lightning';
+export type ThunderInfoStatusKind='at-site'|'near'|'approaching'|'passing'|'surrounding'|'model';
 export type ThunderInfoDetail={label:string;value:string};
-export type ThunderInfo={level:ThunderInfoLevel;headline:string;summary:string;source:string;details?:ThunderInfoDetail[]};
+export type ThunderInfoFact={label:string;value:string;tone?:ThunderInfoFactTone;prominent?:boolean};
+export type ThunderInfoStatus={kind:ThunderInfoStatusKind;label:string;detail:string};
+export type ThunderInfo={
+ level:ThunderInfoLevel;
+ headline:string;
+ summary:string;
+ source:string;
+ status?:ThunderInfoStatus;
+ details?:ThunderInfoDetail[];
+ quickFacts?:ThunderInfoFact[];
+ detailLead?:string;
+ advisory?:string;
+};
 
 const SEVERITY_LABELS=['schwach','moderat','stark','extrem'] as const;
-function severityLevel(severity:number,hailFlag:number,heavyRainFlag:number):ThunderInfoLevel{const score=Math.max(Number(severity)||0,Number(hailFlag)||0,Number(heavyRainFlag)||0);return score>=3?'purple':score>=2?'red':score>=1?'orange':'yellow'}
+function severityLevel(severity:number,hailFlag:number,heavyRainFlag:number,gustFlag=0):ThunderInfoLevel{
+ const score=Math.max(Number(severity)||0,Number(hailFlag)||0,Number(heavyRainFlag)||0,Number(gustFlag)||0);
+ return score>=3?'purple':score>=2?'red':score>=1?'orange':'yellow';
+}
 function severityText(value:number){return SEVERITY_LABELS[Math.max(0,Math.min(3,Math.round(Number(value)||0)))]}
 function trendText(value:number){return value>=2?'schnell anwachsend':value===1?'anwachsend':value<=-2?'schnell abschwächend':value===-1?'abschwächend':'stabil'}
 function compassWord(value:number|undefined){if(!Number.isFinite(Number(value)))return'';const labels=['nördlich','nordöstlich','östlich','südöstlich','südlich','südwestlich','westlich','nordwestlich'];return labels[Math.round((((Number(value)%360)+360)%360)/45)%8]}
@@ -14,16 +31,54 @@ function decimal(value:number|undefined,digits=1){return Number.isFinite(Number(
 function zulu(value?:string){if(!value)return'–';const date=new Date(value);return Number.isFinite(date.getTime())?`${date.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',timeZone:'UTC'})} ${date.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',timeZone:'UTC'})}Z`:'–'}
 function coordinate(lat:number|undefined,lon:number|undefined){return Number.isFinite(Number(lat))&&Number.isFinite(Number(lon))?`${decimal(lat,3)}° N · ${decimal(lon,3)}° E`:'–'}
 function flagText(value:number|undefined,none='kein Signal'){const number=Number(value);return Number.isFinite(number)&&number>0?`Stufe ${Math.round(number)}`:none}
-function cellDetailsShort(cell:NonNullable<ThunderstormNowcast['nearest']>){const details=[`KONRAD3D ${severityText(cell.severity)}`,trendText(cell.trend)];if(cell.lightningRate>0)details.push(`${Math.round(cell.lightningRate)} Blitze/5 min`);if(cell.hailFlag>0||cell.areaHail>0)details.push(cell.hailFlag>=2||cell.areaLargeHail>0?'Großhagelsignal':'Hagelsignal');if(cell.heavyRainFlag>0)details.push(`Starkregenstufe ${cell.heavyRainFlag}`);if((cell.gustFlag??0)>0)details.push(`Böenstufe ${cell.gustFlag}`);return details.join(' · ')}
+function joinGerman(parts:string[]){if(parts.length<2)return parts[0]??'';return`${parts.slice(0,-1).join(', ')} und ${parts.at(-1)}`}
 function stationRainText(station:Station|null){const rain=Number(station?.precipitation);if(!Number.isFinite(rain)||rain<.1)return'';return `${station?.provider?.includes('DWD')?'DWD-Station':'Station'} bestätigt Niederschlag`}
+function gustSignalText(flag:number|undefined){const value=Math.round(Number(flag)||0);return value>=3?'orkanartige Böen, teils über 100 km/h möglich':value===2?'schwere Sturmböen bis etwa 90 km/h möglich':value===1?'stürmische Böen bis etwa 75 km/h möglich':'kein markantes Böensignal'}
+function gustHeadlineText(flag:number|undefined){const value=Math.round(Number(flag)||0);return value>=3?'orkanartige Böen':value===2?'schwere Sturmböen':value===1?'stürmische Böen':''}
+function hailSignalText(cell:NonNullable<ThunderstormNowcast['nearest']>){if(cell.areaLargeHail>0||cell.hailFlag>=2)return'größerer Hagel möglich';if(cell.areaHail>0||cell.hailFlag>=1)return'Hagel möglich';return'kein Hagelsignal'}
+function hailHeadlineText(cell:NonNullable<ThunderstormNowcast['nearest']>){if(cell.areaLargeHail>0||cell.hailFlag>=2)return'größerer Hagel';if(cell.areaHail>0||cell.hailFlag>=1)return'Hagel';return''}
+function heavyRainSignalText(flag:number|undefined){const value=Math.round(Number(flag)||0);return value>=3?'extremer Starkregen möglich':value===2?'heftiger Starkregen möglich':value===1?'Starkregen möglich':'kein Starkregensignal'}
+function heavyRainHeadlineText(flag:number|undefined){const value=Math.round(Number(flag)||0);return value>=3?'extremem Starkregen':value===2?'heftigem Starkregen':value===1?'Starkregen':''}
+function lightningActivityText(rate:number|undefined){const value=Number(rate);if(!Number.isFinite(value)||value<=0)return'keine Blitzaktivität im Zellobjekt';const activity=value>=30?'hoch':value>=15?'mäßig':'gering';return `${Math.round(value)} Blitze/5 min · Aktivität ${activity}`}
+function locationFocusText(cell:NonNullable<ThunderstormNowcast['nearest']>,locationName:string,currentDistance:number,atSite:boolean){const direction=compassWord(cell.siteBearingDeg);return atSite?`unmittelbar bei ${locationName}`:Number.isFinite(currentDistance)?`${Math.max(1,Math.round(currentDistance))} km${direction?` ${direction}`:''} von ${locationName}`:`in der Nähe von ${locationName}`}
+function arrivalWindowText(approaching:boolean,movingAway:boolean,arrival:number,forecastDistance:number){if(approaching&&Number.isFinite(arrival)&&arrival>0&&arrival<=90)return Number.isFinite(forecastDistance)?`in etwa ${Math.round(arrival)} min · ca. ${Math.max(0,Math.round(forecastDistance))} km`:`in etwa ${Math.round(arrival)} min`;if(movingAway&&Number.isFinite(forecastDistance))return`zieht voraussichtlich vorbei · danach ca. ${Math.round(forecastDistance)} km`;return'keine belastbare Annäherung'}
+function threatHeadline(nearNow:boolean,atSite:boolean,approaching:boolean,movingAway:boolean){return atSite?'Gewitterzelle unmittelbar am Standort':nearNow?'Gewitterzelle nahe':approaching?'Gewitterzelle nähert sich':movingAway?'Gewitterzelle zieht voraussichtlich vorbei':'Gewitterzelle im Umfeld'}
+function impactHeadline(cell:NonNullable<ThunderstormNowcast['nearest']>){
+ const severity=Math.max(Number(cell.severity)||0,Number(cell.hailFlag)||0,Number(cell.heavyRainFlag)||0,Number(cell.gustFlag)||0);
+ const base=severity>=3?'Sehr starkes Gewitter':severity>=2?'Starkes Gewitter':severity>=1?'Kräftiges Gewitter':'Gewitter';
+ const rain=heavyRainHeadlineText(cell.heavyRainFlag),possible=[hailHeadlineText(cell),gustHeadlineText(cell.gustFlag)].filter(Boolean);
+ if(rain)return`${base} mit ${rain}${possible.length?`; ${joinGerman(possible)} möglich`:''}`;
+ if(possible.length)return`${base}; ${joinGerman(possible)} möglich`;
+ return base;
+}
+function movementStatus(cell:NonNullable<ThunderstormNowcast['nearest']>,locationName:string,currentDistance:number,forecastDistance:number,arrival:number,nearNow:boolean,atSite:boolean,approaching:boolean,movingAway:boolean):ThunderInfoStatus{
+ if(atSite)return{kind:'at-site',label:'Am Standort',detail:`Zellzentrum unmittelbar bei ${locationName}`};
+ if(nearNow)return{kind:'near',label:'In unmittelbarer Nähe',detail:locationFocusText(cell,locationName,currentDistance,false)};
+ if(approaching)return{kind:'approaching',label:'Nähert sich',detail:arrivalWindowText(true,false,arrival,forecastDistance)};
+ if(movingAway)return{kind:'passing',label:'Zieht voraussichtlich vorbei',detail:arrivalWindowText(false,true,arrival,forecastDistance)};
+ return{kind:'surrounding',label:'Im Umfeld',detail:'derzeit keine belastbare Annäherung des Zellzentrums'};
+}
+function motionFact(cell:NonNullable<ThunderstormNowcast['nearest']>){
+ const direction=Number.isFinite(Number(cell.motionDirectionDeg))?`nach ${compassShort(cell.motionDirectionDeg)}`:'Richtung nicht belastbar';
+ return cell.speedKmh>0?`${direction} · ${Math.round(cell.speedKmh)} km/h`:direction;
+}
 
 export function combineThunderstormInformation(nowcast:ThunderstormNowcast|null,hours:Hour[],radar:RadarNowcast|null,station:Station|null,locationName='Standort'):ThunderInfo|null{
  const cell=nowcast?.nearest;
  if(nowcast?.available&&cell&&cell.relevanceDistanceKm<=80){
-  const currentDistanceRaw=Number(cell.currentDistanceKm),currentDistance=Number.isFinite(currentDistanceRaw)?Math.max(0,currentDistanceRaw):Number.NaN,forecastDistance=Number(cell.forecastDistanceKm),effectiveDistance=Number(cell.forecastEffectiveDistanceKm),uncertainty=Number(cell.forecastUncertaintyKm),arrival=Number(cell.arrivalMinutes),nearNow=Number.isFinite(currentDistance)&&currentDistance<=25,atSite=Number.isFinite(currentDistance)&&currentDistance<1,centerGetsCloser=Number.isFinite(currentDistance)&&Number.isFinite(forecastDistance)&&forecastDistance+2<currentDistance,approaching=Boolean(!nearNow&&cell.isApproaching&&centerGetsCloser&&Number.isFinite(arrival)&&arrival>0&&arrival<=90),movingAway=Boolean(!nearNow&&Number.isFinite(currentDistance)&&Number.isFinite(forecastDistance)&&forecastDistance>currentDistance+2),direction=compassWord(cell.siteBearingDeg),headline=atSite?'Gewitterzelle unmittelbar am Standort':nearNow?'Gewitterzelle nahe':approaching?'Gewitterzelle nähert sich':movingAway?'Gewitterzelle zieht voraussichtlich vorbei':'Gewitterzelle im Umfeld';
+  const currentDistanceRaw=Number(cell.currentDistanceKm),currentDistance=Number.isFinite(currentDistanceRaw)?Math.max(0,currentDistanceRaw):Number.NaN,forecastDistance=Number(cell.forecastDistanceKm),effectiveDistance=Number(cell.forecastEffectiveDistanceKm),uncertainty=Number(cell.forecastUncertaintyKm),arrival=Number(cell.arrivalMinutes),nearNow=Number.isFinite(currentDistance)&&currentDistance<=25,atSite=Number.isFinite(currentDistance)&&currentDistance<1,centerGetsCloser=Number.isFinite(currentDistance)&&Number.isFinite(forecastDistance)&&forecastDistance+2<currentDistance,approaching=Boolean(!nearNow&&cell.isApproaching&&centerGetsCloser&&Number.isFinite(arrival)&&arrival>0&&arrival<=90),movingAway=Boolean(!nearNow&&Number.isFinite(currentDistance)&&Number.isFinite(forecastDistance)&&forecastDistance>currentDistance+2),direction=compassWord(cell.siteBearingDeg),status=movementStatus(cell,locationName,currentDistance,forecastDistance,arrival,nearNow,atSite,approaching,movingAway),legacyHeadline=threatHeadline(nearNow,atSite,approaching,movingAway),headline=impactHeadline(cell);
   const positionText=atSite?`Aktuell unmittelbar bei ${locationName}`:Number.isFinite(currentDistance)?`Aktuell ${Math.max(1,Math.round(currentDistance))} km${direction?` ${direction}`:''} von ${locationName}`:`Aktuelle Entfernung zu ${locationName} nicht belastbar verfügbar`;
   const approachText=approaching&&Number.isFinite(forecastDistance)?`; größte berechnete Annäherung des Zellzentrums in etwa ${Math.round(arrival)} min auf ca. ${Math.max(0,Math.round(forecastDistance))} km`:approaching?`; mögliche Annäherung in etwa ${Math.round(arrival)} min`:movingAway&&Number.isFinite(forecastDistance)?`; Zellzentrum in der Prognose anschließend ca. ${Math.round(forecastDistance)} km entfernt und damit nicht näher`:'';
-  const summary=`${positionText}${approachText}. ${cellDetailsShort(cell)}.`;
+  const summary=`${positionText}${approachText}. ${motionFact(cell)}. ${lightningActivityText(cell.lightningRate)}; Zelltrend ${trendText(cell.trend)}.`;
+  const quickFacts:ThunderInfoFact[]=[
+   {label:'Schwerpunkt aktuell',value:locationFocusText(cell,locationName,currentDistance,atSite),tone:'motion',prominent:true},
+   {label:'Mögliche Annäherung',value:arrivalWindowText(approaching,movingAway,arrival,forecastDistance),tone:'motion',prominent:true},
+   {label:'Zug',value:motionFact(cell),tone:'motion',prominent:true}
+  ];
+  if(cell.heavyRainFlag>0)quickFacts.push({label:'Starkregen',value:heavyRainSignalText(cell.heavyRainFlag),tone:'rain',prominent:true});
+  if(cell.hailFlag>0||cell.areaHail>0)quickFacts.push({label:'Hagel',value:hailSignalText(cell),tone:'hail',prominent:true});
+  if((cell.gustFlag??0)>0)quickFacts.push({label:'Windböen',value:gustSignalText(cell.gustFlag),tone:'wind',prominent:true});
+  if(cell.lightningRate>0)quickFacts.push({label:'Blitzaktivität',value:lightningActivityText(cell.lightningRate),tone:'lightning',prominent:false});
   const details:ThunderInfoDetail[]=[
    {label:'Bezugsort',value:locationName},
    {label:'Zellkennung',value:cell.id},
@@ -42,9 +97,20 @@ export function combineThunderstormInformation(nowcast:ThunderstormNowcast|null,
    {label:'Datenstand',value:`${zulu(nowcast.observedAt)}${Number.isFinite(Number(nowcast.ageMinutes))?` · ${Math.max(0,Math.round(Number(nowcast.ageMinutes)))} min alt`:''}`},
    {label:'Erkannte Zellen',value:`${nowcast.cellsFound} insgesamt · ${nowcast.nearbyCells.length} im 80-km-Umfeld`}
   ];
-  return{level:severityLevel(cell.severity,cell.hailFlag,cell.heavyRainFlag),headline,summary,source:`DWD KONRAD3D · 5-minütig${Number.isFinite(Number(nowcast.ageMinutes))?` · ${Math.max(0,Math.round(Number(nowcast.ageMinutes)))} min alt`:''} · keine amtliche Warnung`,details};
+  return{
+   level:severityLevel(cell.severity,cell.hailFlag,cell.heavyRainFlag,cell.gustFlag),
+   headline,
+   summary,
+   status,
+   source:`DWD KONRAD3D · 5-minütig${Number.isFinite(Number(nowcast.ageMinutes))?` · ${Math.max(0,Math.round(Number(nowcast.ageMinutes)))} min alt`:''} · keine amtliche Warnung`,
+   quickFacts,
+   detailLead:`${legacyHeadline}. ${status.label}: ${status.detail}. Die farblich hervorgehobenen Kernauswirkungen beruhen auf den aktuellen KONRAD3D-Signalen.`,
+   advisory:'Hinweis: Es handelt sich um eine automatische KONRAD3D-/Radar-/Modellanalyse und nicht um eine amtliche Warnung. Lokal können Intensität, Zugbahn und Auswirkungen kurzfristig abweichen.',
+   details
+  };
  }
  const now=Date.now(),next=hours.filter(hour=>hour.epoch>=now-30*60000&&hour.epoch<=now+3*3600000),thunder=next.find(hour=>[95,96,97,98,99].includes(Math.round(hour.code))),highCape=Math.max(0,...next.map(hour=>Number(hour.cape)||0)),radarRate=Number(radar?.currentRate||0),stationRain=stationRainText(station),combinedConvectiveSignal=radarRate>=8&&highCape>=750;
  if(!thunder&&!combinedConvectiveSignal)return null;
- const severe=Boolean(thunder&&[96,97,98,99].includes(Math.round(thunder.code)))||highCape>=1800||radarRate>=25,extra=[thunder?'Best Match signalisiert Gewitter':'starkes Radarecho mit erhöhter Konvektionsenergie',radarRate>=8?`Radarecho ${Math.round(radarRate)} mm/h`:'',highCape>=750?`CAPE ${Math.round(highCape)} J/kg`:'',stationRain].filter(Boolean).join(' · ');return{level:severe?'orange':'yellow',headline:'Gewittersignal',summary:`In den kommenden drei Stunden bei ${locationName}: ${extra}.`,source:'Modell-, Radar- und Stationsabgleich · keine amtliche Warnung',details:[{label:'Bezugsort',value:locationName},{label:'Radarintensität',value:radarRate>=.05?`${decimal(radarRate)} mm/h`:'kein Standortecho'},{label:'Konvektionsenergie',value:highCape>0?`${Math.round(highCape)} J/kg`:'nicht verfügbar'},{label:'KONRAD3D',value:nowcast?.summary||'keine relevante aktuelle Zelle'}]};
+ const severe=Boolean(thunder&&[96,97,98,99].includes(Math.round(thunder.code)))||highCape>=1800||radarRate>=25,extra=[thunder?'Best Match signalisiert Gewitter':'starkes Radarecho mit erhöhter Konvektionsenergie',radarRate>=8?`Radarecho ${Math.round(radarRate)} mm/h`:'',highCape>=750?`CAPE ${Math.round(highCape)} J/kg`:'',stationRain].filter(Boolean).join(' · '),quickFacts:ThunderInfoFact[]=[{label:'Zeitraum',value:'nächste 3 Stunden',tone:'motion',prominent:true},{label:'Radarintensität',value:radarRate>=.05?`${decimal(radarRate)} mm/h`:'kein Standortecho',tone:'rain',prominent:true},{label:'Konvektionsenergie',value:highCape>0?`${Math.round(highCape)} J/kg`:'nicht verfügbar',tone:'lightning',prominent:true},{label:'KONRAD3D',value:nowcast?.summary||'keine relevante aktuelle Zelle',tone:'neutral',prominent:false}],status:ThunderInfoStatus={kind:'model',label:'Modellsignal',detail:'keine nah relevante aktuelle KONRAD3D-Zelle'};
+ return{level:severe?'orange':'yellow',headline:severe?'Deutliches Gewittersignal':'Gewittersignal',summary:`In den kommenden drei Stunden bei ${locationName}: ${extra}.`,source:'Modell-, Radar- und Stationsabgleich · keine amtliche Warnung',status,quickFacts,detailLead:'Es liegt derzeit keine nah relevante KONRAD3D-Zelle vor. Die Information basiert daher vor allem auf Modell-, Radar- und gegebenenfalls Stationssignalen.',advisory:'Hinweis: Es handelt sich um eine automatische Vorabinformation und nicht um eine amtliche Warnung.',details:[{label:'Bezugsort',value:locationName},{label:'Radarintensität',value:radarRate>=.05?`${decimal(radarRate)} mm/h`:'kein Standortecho'},{label:'Konvektionsenergie',value:highCape>0?`${Math.round(highCape)} J/kg`:'nicht verfügbar'},{label:'KONRAD3D',value:nowcast?.summary||'keine relevante aktuelle Zelle'}]};
 }
