@@ -11,8 +11,8 @@ for(const token of [
  'EnsembleExportHeader kind="temperature"',
  'EnsembleExportHeader kind="precipitation"',
  'EnsembleExportMeta models={models} runs={runs}',
- "chartMargin=compactTrendTooltip?{top:10,right:8,left:1,bottom:32}:{top:14,right:26,left:10,bottom:36}",
- "rainChartMargin=compactChart?{top:10,right:8,left:1,bottom:32}:{top:16,right:26,left:10,bottom:36}"
+ "chartMargin=compactTrendTooltip?{top:10,right:8,left:1,bottom:54}:{top:14,right:26,left:10,bottom:58}",
+ "rainChartMargin=compactChart?{top:10,right:8,left:1,bottom:54}:{top:16,right:26,left:10,bottom:58}"
 ])if(!ensemble.includes(token))failures.push(`Ensemble-Export-Struktur fehlt: ${token}`);
 if((ensemble.match(/className="ensemble-export-chart-body"/g)||[]).length<2)failures.push('Es müssen zwei Export-Chart-Wrapper vorhanden sein.');
 for(const token of ['.ensemble-export-chart-body','.ensemble-export-footnote','.ensemble-chart-export.ensemble-exporting .ensemble-export-chart-body'])if(!styles.includes(token))failures.push(`Export-Styling fehlt: ${token}`);

@@ -2975,3 +2975,13 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .metrics[hidden]{display:none}
 @media(max-width:520px){.current-metrics-toggle{min-height:27px;padding:4px 7px;font-size:7.5px}}
 @media(max-width:390px){.current-metrics-toggle{align-self:flex-start;margin-left:0}}
+
+/* MID v0.8.24.1 – lesbare diagonale Datumsachse in allen Ensemble-Diagrammen */
+.ensemble-date-axis-tick{
+ fill:var(--muted);
+ font-weight:700;
+ letter-spacing:.01em;
+ text-rendering:geometricPrecision;
+ pointer-events:none;
+ user-select:none;
+}

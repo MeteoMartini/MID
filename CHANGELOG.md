@@ -1,3 +1,8 @@
+## 0.8.24.1
+
+- Ensemble-Diagramme: Datumsbeschriftungen der Temperatur-, Niederschlags- und Windachsen werden jetzt diagonal dargestellt, sodass alle 14 Vorhersagetage auch auf schmalen Displays eindeutig lesbar bleiben.
+- Ensemble-Diagramme: Mobile Achsenticks verwenden eine stärkere Neigung als Desktop und Export; zusätzlicher Achsenraum verhindert Überdeckungen mit Diagramminhalten und dem externen Achsentitel.
+
 ## 0.8.24.0
 
 - Aktuelles Wetter: Die nachfolgenden Messwertkacheln lassen sich über eine kompakte Schaltfläche im Kopfbereich ein- und ausklappen.
