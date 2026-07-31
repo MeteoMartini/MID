@@ -17,7 +17,7 @@ for(const token of [
  'angle=compact?-52:-38',
  'textAnchor="end"',
  'className="ensemble-date-axis-tick"',
- 'height={compactTrendTooltip?54:58}',
+ 'xAxisHeight=compact?54:58',
  'height={compactChart?54:58}',
  'height={compact?54:58}'
 ])need('Ensemble-Datumsachse',panel,token);

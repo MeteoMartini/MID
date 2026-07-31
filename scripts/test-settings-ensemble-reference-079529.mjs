@@ -62,7 +62,7 @@ requireTokens('Ensemble-Temperaturtooltip v0.7.95.26',panel,[
  'className="trend-tooltip-matrix"',
  '>Tmin °C<',
  '>Tmax °C<',
- "position={compactTrendTooltip?{x:0}:undefined}",
+ "position={compact?{x:0}:undefined}",
  "maxWidth:'calc(100vw - 24px)'"
 ]);
 requireTokens('Ensemble-CSS v0.7.95.26',styles+v078,[

@@ -9,7 +9,7 @@ const [app,ensemble,warnings,styles]=await Promise.all([
 ]);
 const failures=[];
 for(const token of ['Keine Hazards','no-hazard'])if(!(app+styles).includes(token))failures.push(`Warnfreier 7-Tage-Hinweis fehlt: ${token}`);
-for(const token of ['EnsembleLegacyWeatherBand','ensemble-legacy-hazard-badges','ensemble-legacy-weather-band','DWD_WARNING_COLORS'])if(!(ensemble+styles).includes(token))failures.push(`Ensemble-Warnmarker fehlt: ${token}`);
+for(const token of ['function EnsembleHazardShape','function EnsembleTemperatureWeatherOverlay','layer="hazards"','DWD_WARNING_COLORS'])if(!(ensemble+styles).includes(token))failures.push(`Ensemble-Warnmarker fehlt: ${token}`);
 for(const token of ['<b>Hazards</b>','row.hazards.map'])if(!ensemble.includes(token))failures.push(`Ensemble-Warnungen fehlen im Tooltip: ${token}`);
 for(const token of ['.trend-tooltip,.trend-tooltip *','.trend-tooltip>strong','.tooltip-group span'])if(!styles.includes(token))failures.push(`Vereinheitlichte Tooltip-Schrift fehlt: ${token}`);
 for(const forbidden of ['DWD-Warnstufe','DWD-Hitzewarnstufe'])if((app+ensemble+warnings).includes(forbidden))failures.push(`Warntexte enthalten weiterhin „${forbidden}“.`);

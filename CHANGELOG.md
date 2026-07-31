@@ -1,3 +1,10 @@
+## 0.8.26.13
+
+- Ensemble-Hochformat: Temperatur-Tooltip in Größe, Aufbau und Inhalt auf den bewährten Stand v0.8.25.4 zurückgeführt.
+- Ensemble-Temperaturdiagramm: Sonne-/Wolkenfelder, Niederschlagssymbolik und Hazardmarker werden wieder tagesgenau am unteren Plotrand statt mitten im Diagramm dargestellt.
+- Recharts 3: Die Wetterebene erhält eine explizit aus Chartgröße, Achsenreserven und Tagesdomäne berechnete SVG-Geometrie; die Linien bleiben darüber sichtbar, Hazardmarker darüber.
+- Ensemble-Geometrie: identische Tagesdomänen und Achsenreserven der Temperatur-, Niederschlags- und Winddiagramme bleiben erhalten.
+
 ## 0.8.26.12
 
 - Ensemble-Diagramme: Optik und Bedienung des Temperaturdiagramms wieder auf den bewährten Stand von v0.8.25.4 zurückgeführt, weiterhin mit stabilem Recharts-3-Größenrahmen.

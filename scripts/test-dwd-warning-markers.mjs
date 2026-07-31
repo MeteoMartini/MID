@@ -48,7 +48,7 @@ for(const token of ["minimumLevel:DwdWarningLevel=1","dailyHazards(d,hours,eleva
 if(!app.includes('Keine Hazards')||!styles.includes('.forecast-hazards .no-hazard'))failures.push('Dezenter Hinweis für warnfreie Tage fehlt.');
 for(const token of ['detailWarningMarkers(p,hours,elevation)','model-warning-marker','detail-model-warning-tooltip','data-warning-y'])if(app.includes(token))failures.push(`Warnmarker ist im Detaildiagramm noch vorhanden: ${token}`);
 for(const token of ['signal.level>=2','<b>Hazards</b>','ensemble-hazard-tooltip'])if(!ensemble.includes(token))failures.push(`Ensemble-Hazard-Tooltip fehlt: ${token}`);
-for(const token of ['EnsembleLegacyWeatherBand','ensemble-legacy-hazard-badges','ensemble-legacy-weather-band','DWD_WARNING_COLORS'])if(!ensemble.includes(token)&&!styles.includes(token))failures.push(`Kompakter Ensemble-Hazardmarker fehlt: ${token}`);
+for(const token of ['function EnsembleHazardShape','function EnsembleTemperatureWeatherOverlay','layer="hazards"','DWD_WARNING_COLORS'])if(!ensemble.includes(token)&&!styles.includes(token))failures.push(`Kompakter Ensemble-Hazardmarker fehlt: ${token}`);
 if(!styles.includes('.forecast-hazards .compact-hazard')||!styles.includes('.ensemble-hazard-tooltip'))failures.push('Hazard-Stile für 7-Tage- und Ensemble-Tooltip fehlen.');
 
 await rm(outDir,{recursive:true,force:true});

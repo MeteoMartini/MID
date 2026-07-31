@@ -3011,81 +3011,53 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .meteogram-source-disclosure summary{cursor:pointer;color:var(--text);font-weight:800;list-style-position:inside}
 .meteogram-source-disclosure p{margin:6px 0 0}
 
-/* MID v0.8.26.12 · Ensemble-Optik v0.8.25.4 mit stabilem Recharts-3-Rahmen */
+/* MID v0.8.26.13 · Ensemble-Optik aus v0.8.25.4, technisch auf Recharts 3 */
 .ensemble-responsive-chart{position:relative;display:block;width:100%;height:100%;min-width:0;min-height:180px;overflow:visible}
 .ensemble-responsive-chart>.recharts-wrapper,.ensemble-responsive-chart>svg{display:block;max-width:none!important;overflow:visible}
 .ensemble-chart-measuring{display:block;width:100%;height:100%;min-height:180px}
 .ensemble-chart-export .recharts-tooltip-wrapper{z-index:30!important;pointer-events:none}
 .ensemble-chart-export .recharts-wrapper,.ensemble-chart-export .recharts-surface{touch-action:pan-y;overscroll-behavior-y:auto;-webkit-tap-highlight-color:transparent}
+.compact-trend-tooltip{max-width:min(336px,calc(100vw - 24px))}
+@media(max-width:520px){.compact-trend-tooltip{max-width:min(286px,calc(100vw - 24px))}}
+@media(max-width:360px){.compact-trend-tooltip{max-width:min(272px,calc(100vw - 20px))}}
 
-/* Wetterband wie vor dem Audit: schmale tagesgenaue Sonnen-/Wolkenfelder direkt am Plotrand. */
-.ensemble-temp-chart-stage{position:relative;min-width:0;min-height:0;height:100%}
-.ensemble-legacy-weather-band{
- position:absolute;
- z-index:18;
- left:var(--ensemble-legacy-left);
- right:var(--ensemble-legacy-right);
- bottom:var(--ensemble-legacy-bottom);
- display:grid;
- grid-template-columns:repeat(var(--ensemble-legacy-days),minmax(0,1fr));
- height:13px;
- pointer-events:none;
- overflow:visible;
-}
-.ensemble-legacy-weather-cell{
- position:relative;
- display:grid;
- place-items:center;
- min-width:0;
- height:13px;
- margin:0 .5px;
- border:1px solid rgba(112,126,138,.38);
- border-radius:2px;
- box-shadow:0 1px 1px rgba(17,31,45,.12);
- overflow:visible;
-}
-.ensemble-legacy-precip-glyph{display:block;width:17px;height:14px;overflow:visible}
-.ensemble-legacy-hazard-badges{position:absolute;z-index:2;top:-15px;left:50%;display:flex;gap:2px;transform:translateX(-50%);white-space:nowrap}
-.ensemble-legacy-hazard-badges i{display:grid;width:14px;height:14px;place-items:center;border:1px solid rgba(255,255,255,.9);border-radius:50%;color:#172033;font-size:8px;font-style:normal;line-height:1;box-shadow:0 1px 2px rgba(0,0,0,.28)}
-.ensemble-legacy-weather-band.exporting{height:14px}
-.ensemble-legacy-weather-band.exporting .ensemble-legacy-weather-cell{height:14px}
-
-/* Temperatur-Tooltip: kompakt, vollständig und ohne partielle Zeilenumbrüche. */
-.compact-trend-tooltip{
- width:min(372px,calc(100vw - 16px));
- max-width:min(372px,calc(100vw - 16px));
- overflow:visible;
- overflow-wrap:normal;
- word-break:normal;
-}
-.compact-trend-tooltip .trend-tooltip-head,
-.compact-trend-tooltip .trend-tooltip-matrix,
-.compact-trend-tooltip .trend-tooltip-meta{min-width:0}
-.compact-trend-tooltip .trend-tooltip-head strong,
-.compact-trend-tooltip .trend-tooltip-head span,
-.compact-trend-tooltip .trend-tooltip-matrix>span,
-.compact-trend-tooltip .tooltip-meta-line>*,
-.compact-trend-tooltip .tooltip-meta-block>span{white-space:nowrap;overflow-wrap:normal;word-break:normal}
-.compact-trend-tooltip .trend-tooltip-matrix{grid-template-columns:minmax(82px,.9fr) minmax(88px,1fr) minmax(88px,1fr)}
-.compact-trend-tooltip .tooltip-meta-line{grid-template-columns:auto minmax(0,1fr) auto;column-gap:7px}
-.compact-trend-tooltip .tooltip-meta-line>span:nth-child(2){text-align:left}
-.compact-trend-tooltip .tooltip-meta-line>span:last-child{text-align:right}
-.compact-trend-tooltip .ensemble-hazard-tooltip>span{font-size:9px}
+/* MID v0.8.26.13 · Ensemble-Hochformat exakt an v0.8.25.4 angeglichen */
+.ensemble-temperature-canvas{position:relative;display:block;min-width:0;min-height:0;overflow:visible}
+.ensemble-temperature-canvas>.recharts-wrapper{position:relative;z-index:1;overflow:visible}
+.ensemble-temperature-weather-overlay{position:absolute;inset:0;display:block;overflow:visible;pointer-events:none}
+.ensemble-temperature-weather-overlay.weather{z-index:0}
+.ensemble-temperature-weather-overlay.hazards{z-index:2}
+.ensemble-temperature-weather-overlay .ensemble-sky-strip{shape-rendering:crispEdges}
+.compact-trend-tooltip{width:min(336px,calc(100vw - 24px));max-width:min(336px,calc(100vw - 24px));min-width:0;gap:6px;padding:8px 9px;overflow:visible;overflow-wrap:normal;word-break:normal}
+.compact-trend-tooltip .trend-tooltip-matrix,.compact-trend-tooltip .trend-tooltip-meta{font-size:10.5px}
+.compact-trend-tooltip .trend-tooltip-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.compact-trend-tooltip .trend-tooltip-head strong{margin:0;font-size:12px;white-space:nowrap}
+.compact-trend-tooltip .trend-tooltip-head span{color:var(--muted);font-size:9.5px;white-space:nowrap}
+.compact-trend-tooltip .trend-tooltip-matrix{display:grid;grid-template-columns:minmax(72px,.85fr) minmax(0,1fr) minmax(0,1fr);gap:3px 5px;align-items:start}
+.compact-trend-tooltip .trend-tooltip-matrix>span{min-width:0;line-height:1.22;white-space:nowrap;overflow-wrap:normal;word-break:normal}
+.compact-trend-tooltip .trend-tooltip-matrix>.matrix-head{color:var(--muted);font-size:9.3px;font-weight:800;text-transform:uppercase;letter-spacing:.025em}
+.compact-trend-tooltip .trend-tooltip-matrix>.rowlabel{color:var(--muted);font-weight:700}
+.compact-trend-tooltip .trend-tooltip-matrix>.matrix-value,.compact-trend-tooltip .trend-tooltip-matrix>.value-head{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.compact-trend-tooltip .trend-tooltip-meta{display:grid;gap:4px;padding-top:6px;border-top:1px solid var(--border)}
+.compact-trend-tooltip .tooltip-meta-line{display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:4px 7px;align-items:baseline}
+.compact-trend-tooltip .tooltip-meta-line b,.compact-trend-tooltip .tooltip-meta-block b{color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.035em}
+.compact-trend-tooltip .tooltip-meta-line span,.compact-trend-tooltip .tooltip-meta-block span{line-height:1.22;white-space:normal;overflow:visible;overflow-wrap:normal;word-break:normal}
+.compact-trend-tooltip .tooltip-meta-line span:last-child{text-align:right}
+.compact-trend-tooltip .tooltip-meta-block{display:grid;gap:2px}
+.compact-trend-tooltip .ensemble-hazard-tooltip{gap:3px}
 @media(max-width:520px){
- .compact-trend-tooltip{width:calc(100vw - 10px);max-width:calc(100vw - 10px);padding:7px 8px}
+ .compact-trend-tooltip{width:min(286px,calc(100vw - 24px));max-width:min(286px,calc(100vw - 24px));padding:7px 8px}
+ .compact-trend-tooltip .trend-tooltip-head{gap:6px;padding-bottom:5px}
  .compact-trend-tooltip .trend-tooltip-head strong{font-size:11px}
- .compact-trend-tooltip .trend-tooltip-head span{font-size:8.6px}
- .compact-trend-tooltip .trend-tooltip-matrix,.compact-trend-tooltip .trend-tooltip-meta{font-size:8.9px}
- .compact-trend-tooltip .trend-tooltip-matrix{grid-template-columns:minmax(66px,.76fr) minmax(78px,1fr) minmax(78px,1fr);gap:2px 4px}
- .compact-trend-tooltip .tooltip-meta-line{column-gap:5px}
- .compact-trend-tooltip .tooltip-meta-line b,.compact-trend-tooltip .tooltip-meta-block b{font-size:8px}
- .ensemble-legacy-weather-band,.ensemble-legacy-weather-cell{height:12px}
- .ensemble-legacy-precip-glyph{width:15px;height:13px}
- .ensemble-legacy-hazard-badges{top:-13px}
- .ensemble-legacy-hazard-badges i{width:12px;height:12px;font-size:7px}
+ .compact-trend-tooltip .trend-tooltip-head span{font-size:8.8px}
+ .compact-trend-tooltip .trend-tooltip-matrix,.compact-trend-tooltip .trend-tooltip-meta{font-size:9.2px}
+ .compact-trend-tooltip .trend-tooltip-matrix{grid-template-columns:minmax(62px,.8fr) minmax(0,1fr) minmax(0,1fr);gap:2px 4px}
+ .compact-trend-tooltip .trend-tooltip-matrix>.matrix-head,.compact-trend-tooltip .tooltip-meta-line b,.compact-trend-tooltip .tooltip-meta-block b{font-size:8.2px}
+ .compact-trend-tooltip .trend-tooltip-meta{gap:3px;padding-top:5px}
+ .compact-trend-tooltip .tooltip-meta-line{gap:3px 5px}
 }
 @media(max-width:360px){
- .compact-trend-tooltip{width:calc(100vw - 8px);max-width:calc(100vw - 8px);padding:6px}
- .compact-trend-tooltip .trend-tooltip-matrix,.compact-trend-tooltip .trend-tooltip-meta{font-size:8.1px}
- .compact-trend-tooltip .trend-tooltip-matrix{grid-template-columns:minmax(60px,.72fr) minmax(70px,1fr) minmax(70px,1fr);gap:2px 3px}
+ .compact-trend-tooltip{width:min(272px,calc(100vw - 20px));max-width:min(272px,calc(100vw - 20px));padding:6px 7px}
+ .compact-trend-tooltip .trend-tooltip-matrix,.compact-trend-tooltip .trend-tooltip-meta{font-size:8.8px}
+ .compact-trend-tooltip .trend-tooltip-matrix{grid-template-columns:minmax(58px,.76fr) minmax(0,1fr) minmax(0,1fr)}
 }
