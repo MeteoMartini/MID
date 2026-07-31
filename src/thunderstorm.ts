@@ -38,8 +38,15 @@ function stationRainText(station:Station|null){const rain=Number(station?.precip
 function selectedWindSpeed(kmh:number,unit:WindUnit='kmh'){if(!Number.isFinite(kmh))return'–';if(unit==='kn')return`${Math.round(kmh/1.852)} kt`;if(unit==='ms')return`${decimal(kmh/3.6,1)} m/s`;if(unit==='mph')return`${Math.round(kmh/1.609344)} mph`;return`${Math.round(kmh)} km/h`}
 function gustSignalText(flag:number|undefined,unit:WindUnit='kmh'){const value=Math.round(Number(flag)||0),speed=value>=3?105:value===2?90:value===1?75:0,formatted=speed?selectedWindSpeed(speed,unit):'';return value>=3?`orkanartige Böen, teils über ${formatted} möglich`:value===2?`schwere Sturmböen bis etwa ${formatted} möglich`:value===1?`stürmische Böen bis etwa ${formatted} möglich`:'kein markantes Böensignal'}
 function gustHeadlineText(flag:number|undefined){const value=Math.round(Number(flag)||0);return value>=3?'orkanartige Böen':value===2?'schwere Sturmböen':value===1?'stürmische Böen':''}
-function hailSignalText(cell:NonNullable<ThunderstormNowcast['nearest']>){if(cell.areaLargeHail>0||cell.hailFlag>=2)return'größerer Hagel möglich';if(cell.areaHail>0||cell.hailFlag>=1)return'Hagel möglich';return'kein Hagelsignal'}
-function hailHeadlineText(cell:NonNullable<ThunderstormNowcast['nearest']>){if(cell.areaLargeHail>0||cell.hailFlag>=2)return'größerer Hagel';if(cell.areaHail>0||cell.hailFlag>=1)return'Hagel';return''}
+type HailSizeAssessment={headline:string;compact:string;detail:string};
+function hailSizeAssessment(cell:NonNullable<ThunderstormNowcast['nearest']>):HailSizeAssessment{
+ const flag=Math.max(0,Math.round(Number(cell.hailFlag)||0)),largeHailSignal=Number(cell.areaLargeHail)>0||flag>=2,hailSignal=largeHailSignal||Number(cell.areaHail)>0||flag>=1;
+ if(largeHailSignal)return{headline:'größerer Hagel',compact:'größerer Hagel möglich · Körner um oder über 2 cm nicht ausgeschlossen',detail:'KONRAD3D-Großhagelsignal aktiv; potenziell schadenträchtige Korngrößen um oder über 2 cm sind möglich. Eine exakte Korngröße wird nicht direkt gemessen.'};
+ if(hailSignal)return{headline:'Hagel',compact:'kleiner bis mittelgroßer Hagel möglich · kein separates Großhagelsignal',detail:'KONRAD3D-Hagelsignal aktiv, jedoch ohne separates Großhagelsignal. Eine exakte Korngröße wird nicht direkt gemessen.'};
+ return{headline:'',compact:'kein Hagelsignal',detail:'Kein KONRAD3D-Hagelsignal im aktuellen Zellobjekt.'};
+}
+function hailSignalText(cell:NonNullable<ThunderstormNowcast['nearest']>){return hailSizeAssessment(cell).compact}
+function hailHeadlineText(cell:NonNullable<ThunderstormNowcast['nearest']>){return hailSizeAssessment(cell).headline}
 function heavyRainSignalText(flag:number|undefined){const value=Math.round(Number(flag)||0);return value>=3?'extremer Starkregen möglich':value===2?'heftiger Starkregen möglich':value===1?'Starkregen möglich':'kein Starkregensignal'}
 function heavyRainHeadlineText(flag:number|undefined){const value=Math.round(Number(flag)||0);return value>=3?'extremem Starkregen':value===2?'heftigem Starkregen':value===1?'Starkregen':''}
 function lightningActivityText(rate:number|undefined){const value=Number(rate);if(!Number.isFinite(value)||value<=0)return'keine Blitzaktivität im Zellobjekt';const activity=value>=30?'hoch':value>=15?'mäßig':'gering';return `${Math.round(value)} Blitze/5 min · Aktivität ${activity}`}
@@ -116,7 +123,7 @@ export function combineThunderstormInformation(nowcast:ThunderstormNowcast|null,
    {label:'Abstand der prognostizierten Position',value:Number.isFinite(forecastDistance)?`${decimal(forecastDistance)} km`:'–'},
    {label:'Wirksamer Mindestabstand',value:Number.isFinite(effectiveDistance)?`${decimal(effectiveDistance)} km${Number.isFinite(uncertainty)?` · Unsicherheitsradius ${decimal(uncertainty)} km`:''}`:'–'},
    {label:'Blitzaktivität',value:cell.lightningRate>0?`${Math.round(cell.lightningRate)} Blitze je 5 min`:'kein Blitzsignal im Zellobjekt'},
-   {label:'Hagel',value:`${flagText(cell.hailFlag)}${cell.areaHail>0?` · Hagelfläche ${decimal(cell.areaHail)} km²`:''}${cell.areaLargeHail>0?` · Großhagelfläche ${decimal(cell.areaLargeHail)} km²`:''}`},
+   {label:'Hagelgröße / Hagelfläche',value:`${hailSizeAssessment(cell).detail}${cell.areaHail>0?` · Hagelfläche ${decimal(cell.areaHail)} km²`:''}${cell.areaLargeHail>0?` · davon Großhagelfläche ${decimal(cell.areaLargeHail)} km²`:''}`},
    {label:'Starkregen',value:flagText(cell.heavyRainFlag)},
    {label:'Böen',value:(cell.gustFlag??0)>0?gustSignalText(cell.gustFlag,context.windUnit):flagText(cell.gustFlag)},
    {label:'Datenstand',value:`${zulu(nowcast.observedAt)}${Number.isFinite(Number(nowcast.ageMinutes))?` · ${Math.max(0,Math.round(Number(nowcast.ageMinutes)))} min alt`:''}`},
@@ -130,7 +137,7 @@ export function combineThunderstormInformation(nowcast:ThunderstormNowcast|null,
    source:`DWD KONRAD3D · 5-minütig${Number.isFinite(Number(nowcast.ageMinutes))?` · ${Math.max(0,Math.round(Number(nowcast.ageMinutes)))} min alt`:''} · keine amtliche Warnung`,
    quickFacts,
    detailLead:`${legacyHeadline}. ${status.label}: ${status.detail}. Die farblich hervorgehobenen Kernauswirkungen beruhen auf den aktuellen KONRAD3D-Signalen.`,
-   advisory:'Hinweis: Es handelt sich um eine automatische KONRAD3D-/Radar-/Modellanalyse und nicht um eine amtliche Warnung. Lokal können Intensität, Zugbahn und Auswirkungen kurzfristig abweichen.',
+   advisory:'Hinweis: Es handelt sich um eine automatische KONRAD3D-/Radar-/Modellanalyse und nicht um eine amtliche Warnung. Hagelgrößen werden als radarbasierte Größenklasse, nicht als direkt gemessener Korndurchmesser angegeben. Lokal können Intensität, Zugbahn und Auswirkungen kurzfristig abweichen.',
    details
   };
  }

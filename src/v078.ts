@@ -20,10 +20,10 @@ const defaultChartVisibility:ChartVisibility={tempMaxBand:true,tempMinBand:true,
 let chartVisibility=readJson<ChartVisibility>(CHART_KEY,defaultChartVisibility);
 let enhancing=false;
 let scheduled=false;
+let enhancementResizeTimer=0;
 let enhancementObserver:MutationObserver|null=null;
-let enhancementResizeObserver:ResizeObserver|null=null;
 let enhancementRoot:HTMLElement|null=null;
-let observedResizeTargets=new WeakSet<Element>();
+const ENHANCEMENT_SELECTOR='.ensemble,.forecastrows,.widget-controls,.weatherwidget,.meteogram-day,.brand-version,.official-warnings.unavailable,.app>footer';
 
 function readJson<T>(key:string,fallback:T):T{try{const value=localStorage.getItem(key);return value?{...fallback,...JSON.parse(value)}:fallback}catch{return fallback}}
 function writeJson(key:string,value:unknown){try{localStorage.setItem(key,JSON.stringify(value))}catch{}}
@@ -64,8 +64,8 @@ async function coordinateResult(url:URL,init?:RequestInit){
       const response=await nativeFetch(elevationUrl,{signal:init?.signal,cache:'no-store'});if(response.ok){const data=await response.json() as {elevation?:number;timezone?:string};const value=finite(data.elevation);if(value!==null)elevation=value;timezone=data.timezone}
     }catch{}})()
   ]);
-  const name=reverse?.locality||reverse?.city||reverse?.principalSubdivision||`${lat.toLocaleString('de-DE',{useGrouping:false,minimumFractionDigits:4,maximumFractionDigits:4})}°, ${lon.toLocaleString('de-DE',{useGrouping:false,minimumFractionDigits:4,maximumFractionDigits:4})}°`;
-  const result={id:Date.now(),name,latitude:lat,longitude:lon,elevation,timezone,source:'Koordinatensuche',country:reverse?.countryName||undefined,country_code:String(reverse?.countryCode||'').toUpperCase()||undefined,admin1:reverse?.principalSubdivision||undefined,postcodes:reverse?.postcode?[String(reverse.postcode)]:undefined};
+  const city=String(reverse?.city||'').trim(),locality=String(reverse?.locality||'').trim(),name=locality||city||reverse?.principalSubdivision||`${lat.toLocaleString('de-DE',{useGrouping:false,minimumFractionDigits:4,maximumFractionDigits:4})}°, ${lon.toLocaleString('de-DE',{useGrouping:false,minimumFractionDigits:4,maximumFractionDigits:4})}°`;
+  const result={id:Date.now(),name,latitude:lat,longitude:lon,elevation,timezone,source:'Koordinatensuche',country:reverse?.countryName||undefined,country_code:String(reverse?.countryCode||'').toUpperCase()||undefined,city:city||undefined,locality:locality||undefined,admin1:reverse?.principalSubdivision||undefined,postcodes:reverse?.postcode?[String(reverse.postcode)]:undefined};
   return new Response(JSON.stringify({results:[result]}),{status:200,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store'}});
 }
 
@@ -255,18 +255,25 @@ function setupVersionChecks(){cleanUpdateQuery();void checkVersion(true);window.
 function improveWarningMessage(){const message=document.querySelector<HTMLElement>('.official-warnings.unavailable small');if(message&&/failed to fetch/i.test(message.textContent||''))message.textContent='Amtliche Warnungen konnten vom Desktop-Browser nicht geladen werden. MID hat den CORS-sicheren Abruf automatisch wiederholt; bitte Netzwerk- oder Inhaltsblocker prüfen.'}
 function enhance(){if(enhancing)return;enhancing=true;try{enhanceVersion();enhanceChartToggles();enhanceSkyBars();enhanceWidget();improveWarningMessage()}finally{enhancing=false}}
 function scheduleEnhance(){if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;enhance()})}
-function observeEnhancementResizeTargets(){if(!enhancementResizeObserver||!enhancementRoot)return;enhancementRoot.querySelectorAll<HTMLElement>('.ensemble,.meteogram-day,.weatherwidget,.forecastrows').forEach(target=>{if(observedResizeTargets.has(target))return;observedResizeTargets.add(target);enhancementResizeObserver?.observe(target)})}
+function scheduleEnhanceAfterResize(){window.clearTimeout(enhancementResizeTimer);enhancementResizeTimer=window.setTimeout(scheduleEnhance,160)}
+function mutationTouchesEnhancement(records:MutationRecord[]){
+ for(const record of records){
+  const target=record.target instanceof Element?record.target:null;
+  if(target?.closest(ENHANCEMENT_SELECTOR))return true;
+  for(const node of [...record.addedNodes,...record.removedNodes])if(node instanceof Element&&(node.matches(ENHANCEMENT_SELECTOR)||node.querySelector(ENHANCEMENT_SELECTOR)))return true;
+ }
+ return false;
+}
 function enhancementInteraction(event:Event){const target=event.target instanceof Element?event.target:null;if(!target)return;if(target.closest('.ensemble,.forecastrows,.widget-controls,.weatherwidget,.meteogram-day'))scheduleEnhance()}
 function connectEnhancementObserver(){
  const next=(document.querySelector<HTMLElement>('.app')??document.body);if(enhancementRoot===next)return;
  if(enhancementRoot){enhancementRoot.removeEventListener('click',enhancementInteraction,true);enhancementRoot.removeEventListener('change',enhancementInteraction,true)}
- enhancementObserver?.disconnect();enhancementResizeObserver?.disconnect();enhancementRoot=next;
- enhancementObserver=new MutationObserver(records=>{if(records.some(record=>record.addedNodes.length||record.removedNodes.length)){if(enhancementRoot===document.body&&document.querySelector('.app'))connectEnhancementObserver();observeEnhancementResizeTargets();scheduleEnhance()}});
+ enhancementObserver?.disconnect();enhancementRoot=next;
+ enhancementObserver=new MutationObserver(records=>{if(enhancementRoot===document.body&&document.querySelector('.app')){connectEnhancementObserver();return}if(mutationTouchesEnhancement(records))scheduleEnhance()});
  enhancementObserver.observe(next,{subtree:true,childList:true});
- enhancementResizeObserver=new ResizeObserver(()=>scheduleEnhance());observedResizeTargets=new WeakSet<Element>();observeEnhancementResizeTargets();
  next.addEventListener('click',enhancementInteraction,true);next.addEventListener('change',enhancementInteraction,true);
 }
-function start(){enhance();setupVersionChecks();connectEnhancementObserver();window.addEventListener('mid:forecast-updated',scheduleEnhance);window.addEventListener('resize',scheduleEnhance,{passive:true})}
+function start(){enhance();setupVersionChecks();connectEnhancementObserver();window.addEventListener('mid:forecast-updated',scheduleEnhance);window.addEventListener('resize',scheduleEnhanceAfterResize,{passive:true});window.addEventListener('orientationchange',scheduleEnhanceAfterResize,{passive:true})}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 
 export{};

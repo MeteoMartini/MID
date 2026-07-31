@@ -13,7 +13,7 @@ for(const token of [
   'function tideSeriesForDate(data:MarineForecast|undefined,date:string)',
   'function tideEventsForDate(data:MarineForecast|undefined,date:string)',
   'function WaterTideRow({points,events}',
-  '>Gezeiten / Wendepunkte<',
+  '>Gezeiten<',
   "event.kind==='high'?'Hochpunkt':'Tiefpunkt'",
   'timeLabel(event.time)} · {seaLevelText(event.level)',
   '<WaterTideRow points={points} events={tideEventsForDate(marine,window.date)}/>',

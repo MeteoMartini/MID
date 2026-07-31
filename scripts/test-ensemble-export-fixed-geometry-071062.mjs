@@ -21,7 +21,7 @@ for(const token of [
  "EnsembleChartFrame exporting={exportingKind==='precipitation'} height={250} exportWidth={ENSEMBLE_RAIN_EXPORT_CHART_WIDTH}",
  "EnsembleChartFrame exporting={exporting} height={exporting?270:292} exportWidth={ENSEMBLE_WIND_EXPORT_CHART_WIDTH}"
 ])if(!ensemble.includes(token))failures.push(`Feste Export-Geometrie fehlt: ${token}`);
-for(const token of ['export function EnsembleChartFrame','cloneElement(children,{width:exportWidth,height,responsive:false})','className="ensemble-fixed-chart"','className="ensemble-responsive-chart"','ResizeObserver','width:size.width','height:size.height','minHeight'])if(!frame.includes(token))failures.push(`Modularer Export-/Live-Frame fehlt: ${token}`);
+for(const token of ['export function EnsembleChartFrame','cloneElement(children,{width:exportWidth,height,responsive:false})','className="ensemble-fixed-chart"','className="ensemble-responsive-chart"','ResizeObserver','cloneElement(children,{width,height,responsive:false','style={{height,minHeight}}','minHeight'])if(!frame.includes(token))failures.push(`Modularer Export-/Live-Frame fehlt: ${token}`);
 if(frame.includes('ResponsiveContainer'))failures.push('Der Recharts-3-Livepfad darf nicht mehr vom kollabierenden ResponsiveContainer abhängen.');
 if((ensemble.match(/isAnimationActive=\{false\}/g)||[]).length<16)failures.push('Nicht alle Ensemble-Flächen und -Linien sind für den Export animationsfrei.');
 if((ensemble.match(/<EnsembleChartFrame/g)||[]).length!==3)failures.push('Temperatur-, Niederschlags- und Winddiagramm müssen jeweils genau einen festen Export-Frame verwenden.');

@@ -42,12 +42,12 @@ const panel=files['src/EnsemblePanel.tsx'],frame=files['src/EnsembleChartFrame.t
 need('Recharts-3-Migration',panel,"from 'recharts'");
 if((panel.match(/<ComposedChart\b/g)||[]).length!==3)failures.push('Es sind nicht genau drei Ensemble-Diagramme vorhanden.');
 if(panel.includes('accessibilityLayer'))failures.push('Die zusätzliche Recharts-Accessibility-DOM-Schicht ist wegen mobiler Scrolllast wieder aktiv.');
-for(const token of ['className="ensemble-responsive-chart"','ResizeObserver','getBoundingClientRect()','width:size.width','height:size.height','responsive:false'])need('Recharts-Frame',frame,token);forbid('Recharts-Frame',frame,'ResponsiveContainer');need('Recharts-Frame',panel,"from './EnsembleChartFrame'");
+for(const token of ['className="ensemble-responsive-chart"','ResizeObserver','getBoundingClientRect()','cloneElement(children,{width,height,responsive:false','style={{height,minHeight}}','responsive:false'])need('Recharts-Frame',frame,token);forbid('Recharts-Frame',frame,'ResponsiveContainer');need('Recharts-Frame',panel,"from './EnsembleChartFrame'");
 forbid('Recharts-3-Migration',panel,'recharts/lib/');forbid('Recharts-3-Migration',panel,'recharts/es6/');forbid('Recharts-3-Migration',panel,'activeIndex=');
 
 for(const [area,text,limit] of [['Radar-Cache',files['src/radarHistory.ts'],'RADAR_HISTORY_CACHE_LIMIT=24'],['KOSTRA-Cache',files['src/heavyRain.ts'],'KOSTRA_POINT_CACHE_LIMIT=32'],['Reisecache',files['src/travelPlanner.ts'],'TRAVEL_STORAGE_CACHE_LIMIT=24']])need(area,text,limit);
 for(const token of ['writeBoundedMapEntry','pruneStorageEntries','writeBoundedStorage'])need('Cache-Richtlinie',files['src/cachePolicy.ts'],token);
-forbid('DOM-Performance',files['src/v078.ts'],'observe(document.documentElement');forbid('DOM-Performance',files['src/v078.ts'],'attributes:true');need('DOM-Performance',files['src/v078.ts'],"observe(next,{subtree:true,childList:true})");need('DOM-Performance',files['src/v078.ts'],'ResizeObserver');
+forbid('DOM-Performance',files['src/v078.ts'],'observe(document.documentElement');forbid('DOM-Performance',files['src/v078.ts'],'attributes:true');need('DOM-Performance',files['src/v078.ts'],"observe(next,{subtree:true,childList:true})");need('DOM-Performance',files['src/v078.ts'],'function mutationTouchesEnhancement(');need('DOM-Performance',files['src/v078.ts'],'scheduleEnhanceAfterResize');forbid('DOM-Performance',files['src/v078.ts'],'enhancementResizeObserver');
 
 const workflows=[files['ci/github/workflows/install-mid.yml'],files['ci/github/workflows/deploy.yml'],files['ci/github/workflows/dependency-audit.yml']].join('\n');
 for(const action of ['actions/checkout','actions/setup-node','actions/configure-pages','actions/upload-pages-artifact','actions/deploy-pages'])if(!new RegExp(`${action.replace('/','\\/')}@[0-9a-f]{40}`).test(workflows))failures.push(`Workflow-SHA fehlt: ${action}`);

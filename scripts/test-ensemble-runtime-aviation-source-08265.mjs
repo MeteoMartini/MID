@@ -15,8 +15,8 @@ for(const token of [
  'className="ensemble-responsive-chart"',
  'ResizeObserver',
  'getBoundingClientRect()',
- 'width:size.width',
- 'height:size.height',
+ 'cloneElement(children,{width,height,responsive:false',
+ 'style={{height,minHeight}}',
  'minHeight=Math.max(180,Math.min(240,height-42))',
  'responsive:false'
 ])need('Ensemble-Liveframe',frame,token);

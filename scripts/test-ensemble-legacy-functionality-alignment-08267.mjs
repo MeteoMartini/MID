@@ -9,7 +9,7 @@ if(count(panel,'ticks={data.map(row=>row.x)}')!==2||count(panel,'ticks={d.map(ro
 if(count(panel,"domain={[-.5,Math.max(.5,maxDayIndex+.5)]}")!==2||count(panel,"domain={[-.5,Math.max(.5,d.length-.5)]}")!==1)failures.push('Die drei Diagramme verwenden nicht dieselbe halbtägige Randdomäne.');
 for(const token of ['rightAxisWidth=compact?40:58','width={compactChart?40:58}','width={compact?40:58}','const ENSEMBLE_RAIN_EXPORT_CHART_WIDTH=992;','const ENSEMBLE_TEMP_EXPORT_CHART_WIDTH=992;','const ENSEMBLE_WIND_EXPORT_CHART_WIDTH=992;'])need('Vertikale Tagesausrichtung',panel,token);
 for(const token of ['.ensemble-temperature-canvas{position:relative;','.ensemble-temperature-weather-overlay.weather{z-index:0}','touch-action:pan-y;'])need('Gemeinsame Plotgeometrie',styles,token);
-for(const token of ['ResizeObserver','contentRect.width','width:size.width','height:size.height','responsive:false'])need('Recharts-3-Liveframe',frame,token);
+for(const token of ['ResizeObserver','contentRect.width','cloneElement(children,{width,height,responsive:false','style={{height,minHeight}}','responsive:false'])need('Recharts-3-Liveframe',frame,token);
 if(frame.includes('ResponsiveContainer'))failures.push('Der Liveframe hängt erneut von ResponsiveContainer ab.');
 const source=ts.createSourceFile('EnsemblePanel.tsx',panel,ts.ScriptTarget.ESNext,true,ts.ScriptKind.TSX);if(source.parseDiagnostics.length)failures.push(...source.parseDiagnostics.map(i=>`Parser: ${i.messageText}`));
 const p=JSON.parse(pkg),b=JSON.parse(baseline);if(!p.scripts?.['test:ensemble-legacy-functionality-alignment'])failures.push('Package-Testskript fehlt.');if(!b.regressionTests?.includes('scripts/test-ensemble-legacy-functionality-alignment-08267.mjs'))failures.push('Baseline-Regression fehlt.');

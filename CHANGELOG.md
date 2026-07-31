@@ -1,3 +1,8 @@
+## 0.8.26.17
+- Wasserwetter-Zeile auf „Gezeiten“ verkürzt und Wendepunktzeiten per Zwischenwertberechnung minutengenau ausgegeben.
+- Ensemble-Hazards oberhalb der Bewölkungsfelder angeordnet; mehrere Marker stehen kollisionsfrei nebeneinander.
+- Niederschlagssymbole werden dynamisch auf die Abmessungen des jeweiligen Bewölkungsfeldes begrenzt.
+
 ## 0.8.26.15
 - TypeScript-Buildfehler TS18048 in der hyperlokalen Kurzfrist-Temperaturbrücke behoben; optionale Anker- und Horizontwerte werden vor dem Vergleich typsicher normalisiert.
 - Eigene Regression gegen die erneute direkte Gegenüberstellung optionaler Werte ergänzt.

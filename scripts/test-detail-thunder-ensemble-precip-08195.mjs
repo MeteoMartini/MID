@@ -40,7 +40,7 @@ for(const token of [
  'precipitationOffset=thunder?-3.1:0',
  'strokeLinejoin="round"',
  'size={row.precipVisualSize}',
- "function EnsemblePrecipShape({cx,cy,row}",
+ "function EnsemblePrecipShape({cx,cy,row,boxWidth,boxHeight}",
  "row.precipVisualType==='none')return null",
  "<PrecipitationGlyph type={row.precipVisualType}"
 ])need('Ensemble-Symbolik',ensemble,token);

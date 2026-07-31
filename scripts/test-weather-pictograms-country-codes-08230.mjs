@@ -33,10 +33,10 @@ for(const [area,text] of [['App',app],['Ensemble',ensemble],['Kurzfrist',shortTe
 for(const [area,text] of [['App',app],['Ensemble',ensemble],['Kurzfrist',shortTerm],['Wasser',water],['Reise',travel],['Route',route]])forbid(area,text,'{icon(');
 
 for(const token of [
- "const THUNDER_PLACE_CACHE_KEY='mid:thunder-place-cache:v2'",
+ "const THUNDER_PLACE_CACHE_KEY='mid:thunder-place-cache:v3'",
  'function appendIsoCountry(',
- 'thunderLocationName=appendIsoCountry(',
- 'return appendIsoCountry(name,location.country_code||location.country)'
+ 'thunderLocationName=thunderPlaceNames.site||appendIsoCountry(',
+ 'return candidate?appendIsoCountry(candidate,location.country_code||location.country)'
 ])need('Gewitter-Ortsnamen',app,token);
 need('ISO-Modul',iso,'export function isoAlpha3');
 need('ISO-Modul',iso,'"DE":"DEU"');
