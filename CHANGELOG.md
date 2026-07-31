@@ -1,3 +1,36 @@
+## 0.8.26.3
+
+- GitHub-Regressionen von der im Repository bereits aktiven Workflowgeneration entkoppelt: geprüft wird nun das kanonische, im Release gebündelte Workflowpaket. Dadurch bleibt der reguläre MID-Installer auch mit dem älteren aktiven Installationsworkflow lauffähig.
+- Automatische Selbständerung von `.github/workflows` aus dem laufenden Installationsjob entfernt. Der jobgebundene `GITHUB_TOKEN` besitzt hierfür keinen eigenständigen Workflow-Schreibvertrag; Workflowupdates werden daher bewusst als separates, manuell einzuspielendes Paket bereitgestellt.
+- Kanonische CI-Dateien zusätzlich unter `ci/github/` aufgenommen und mit einem expliziten, idempotenten Synchronisationsskript versehen. Nicht von MID verwaltete Workflows bleiben dabei unangetastet.
+- Neue Regression simuliert ausdrücklich einen alten aktiven Installer und stellt sicher, dass Build- und Wartungsprüfungen trotzdem reproduzierbar bestehen.
+
+## 0.8.26.2
+
+- CI-Regressionsprüfungen stabilisiert: Workflowprüfung ist nicht mehr von unverbindlichen Versionskommentaren abhängig und kontrolliert ausschließlich die verbindlichen MID-Workflows.
+- Wartungs-/Recharts-3-Test vollständig deterministisch gemacht: die umgebungsabhängige Offline-npm-Unterprozessprüfung wurde durch direkte Lockfile-Struktur-, Quellen- und Integritätskontrollen ersetzt.
+- Neue Regression schützt die GitHub-Actions-Prüfungen vor Abhängigkeiten vom Runner-Cache, von npm-Metadaten und von Workflow-Kommentaren.
+
+## 0.8.26.1
+
+- Recharts-3-Buildfix: die nicht mehr unterstützte `isFront`-Eigenschaft der beiden `ReferenceDot`-Marker wurde durch das offizielle `zIndex`-Prop ersetzt. Niederschlags- und Hazardmarker bleiben damit oberhalb der Diagrammflächen sichtbar.
+- Die nach der Recharts-3-Migration ungenutzte Konstante `ENSEMBLE_EXPORT_PLOT_WIDTH` wurde entfernt und der TypeScript-Produktionsbuild dadurch von TS6133 bereinigt.
+- Neue Regression prüft sämtliche `ReferenceDot`-Marker auf Recharts-3-kompatible Props und verhindert die Wiedereinführung der ungenutzten Exportkonstante.
+- Die Wartungsregression prüft Versionsgleichheit nun ohne einen fest codierten Einzelrelease und bleibt dadurch auch für nachfolgende Wartungsstände wirksam.
+
+## 0.8.26.0
+
+- Ensemble-Diagramme auf **Recharts 3.8.1** migriert; `react-is` ist passend zu React 18.3.1 festgeschrieben. Temperatur-, Niederschlags- und Winddiagramm behalten sämtliche Datenreihen, Tooltips, Fehlerbalken, Warnmarker und PNG-Exporte.
+- Die drei Ensemble-Diagramme verwenden die Recharts-3-Zugänglichkeitsschicht; responsive Größenänderungen werden gedrosselt und der feste Exportpfad wurde in ein eigenes, wiederverwendbares Chart-Frame-Modul ausgelagert.
+- Buildwerkzeuge auf die bereits geprüften stabilen Stände TypeScript 5.9.3, Vite 6.4.3 und `@vitejs/plugin-react` 4.7.0 festgeschrieben. Node-/npm-Vertrag über `engines` und `packageManager` ergänzt.
+- Versionssynchronisierung aktualisiert nun auch `package-lock.json`; Paket, Lockfile, Frontend, Baseline, Service Worker und Cloudflare Worker werden gemeinsam auf denselben Releasewert gesetzt.
+- TypeScript-Prüfung auf artefaktfreies `--noEmit` umgestellt. Generierte `*.tsbuildinfo`- und `vite.config.*`-Ausgaben werden nicht mehr Bestandteil der Quell- oder Releasebasis.
+- Radarhistorie, KOSTRA-Punktdaten und Reise-/Klimatologiecache erhalten LRU-Grenzen, Ablaufbereinigung und bei Local-Storage-Engpässen einen kontrollierten Bereinigungs-/Wiederholungsversuch. Bestehende Cache- und Stale-Fallback-Funktionen bleiben erhalten.
+- Die nachträgliche UI-Aufwertung beobachtet nicht mehr das gesamte Dokument einschließlich Attributänderungen. Sie ist auf den App-Baum, relevante Interaktionen und Größenänderungen der betroffenen Diagrammcontainer begrenzt.
+- GitHub Actions auf vollständige Commit-SHAs festgeschrieben, Berechtigungen je Job reduziert und regelmäßige npm-Sicherheitsprüfung sowie Dependabot für npm und GitHub Actions ergänzt.
+- Das Release enthält eine kanonische, separat einspielbare `.github`-Konfiguration mit SHA-fixierten Actions, Audits und Dependabot; Workflowänderungen werden aus Sicherheitsgründen nicht vom laufenden Installationsjob selbst geschrieben.
+- Neue Wartungsregression schützt Recharts-3-Vertrag, Lockfile-Konsistenz, Cachegrenzen, DOM-Beobachtung, SHA-Pinning, Audits, Laufzeitvertrag und Release-Sauberkeit.
+
 ## 0.8.25.4
 
 - Wasserwetter-Verlauf: Gezeiten- und Wasserstandswendepunkte werden je angezeigtem Prognosetag für den vollständigen Kalendertag ermittelt und nicht mehr auf das jeweilige Tageslicht-, Aktivitäts- oder Stundenfenster begrenzt.

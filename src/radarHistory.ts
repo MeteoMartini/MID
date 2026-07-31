@@ -1,5 +1,6 @@
 import {fetchWorkerJson} from './workerClient';
 import {loadAndSampleRadolan} from './RadolanRasterSource';
+import {readFreshMapEntry,writeBoundedMapEntry} from './cachePolicy';
 
 export type RadarHistoryProduct={
  mode:'single'|'sum';
@@ -36,6 +37,8 @@ export type RadarHistory={
 };
 
 const cache=new Map<string,{time:number;value:RadarHistory}>();
+const RADAR_HISTORY_CACHE_MAX_AGE=5*60000;
+const RADAR_HISTORY_CACHE_LIMIT=24;
 function key(lat:number,lon:number){return`${lat.toFixed(3)}:${lon.toFixed(3)}`}
 function validAmount(value:number){return Number.isFinite(value)?Math.max(0,Math.min(500,value)):undefined}
 async function sampleProduct(product:RadarHistoryProduct,lat:number,lon:number,signal?:AbortSignal){
@@ -48,7 +51,7 @@ async function sampleProduct(product:RadarHistoryProduct,lat:number,lon:number,s
 }
 
 export async function radarHistory(lat:number,lon:number,signal?:AbortSignal):Promise<RadarHistory|null>{
- const cacheKey=key(lat,lon),cached=cache.get(cacheKey);if(cached&&Date.now()-cached.time<5*60000)return cached.value;
+ const cacheKey=key(lat,lon),cached=readFreshMapEntry(cache,cacheKey,RADAR_HISTORY_CACHE_MAX_AGE);if(cached)return cached;
  const meta=await fetchWorkerJson<RadarHistoryMeta>('radolan-history-meta',{lat,lon,_ts:Date.now()},{purpose:'radar',signal,timeoutMs:9000});
  if(!meta.coverage||(!meta.hour&&!meta.day))return null;
  const [hourResult,dayResult]=await Promise.allSettled([meta.hour?sampleProduct(meta.hour,lat,lon,signal):Promise.resolve({amount:undefined,completeness:0}),meta.day?sampleProduct(meta.day,lat,lon,signal):Promise.resolve({amount:undefined,completeness:0})]);
@@ -56,5 +59,5 @@ export async function radarHistory(lat:number,lon:number,signal?:AbortSignal):Pr
  if(meta.hour)parts.push(`${meta.hour.product}${meta.hour.adjusted?' angeeicht':' nicht angeeicht'}`);
  if(meta.day)parts.push(`${meta.day.product}${meta.day.adjusted?' angeeicht':' nicht angeeicht'}`);
  const value:RadarHistory={coverage:true,observedAt,lastHourMm:hour.amount,last24hMm:day.amount,hourProduct:meta.hour?.product as 'RW'|'RY'|undefined,dayProduct:meta.day?.product as 'SF'|undefined,hourAdjusted:meta.hour?.adjusted,dayAdjusted:meta.day?.adjusted,hourCompleteness:hour.completeness,provider:meta.provider||'DWD RADOLAN',sourceText:parts.length?`DWD RADOLAN · ${parts.join(' · ')}`:'DWD RADOLAN',diagnostics:{...(meta.diagnostics||{}),hourCompleteness:hour.completeness,hourError:hourResult.status==='rejected'?String(hourResult.reason):undefined,dayError:dayResult.status==='rejected'?String(dayResult.reason):undefined}};
- cache.set(cacheKey,{time:Date.now(),value});return value;
+ writeBoundedMapEntry(cache,cacheKey,{time:Date.now(),value},RADAR_HISTORY_CACHE_LIMIT);return value;
 }

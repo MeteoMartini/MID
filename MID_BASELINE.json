@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.8.25.4",
+  "releaseVersion": "0.8.26.3",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -89,6 +89,10 @@
     "scripts/test-composite-visibility-quality-08251.mjs",
     "scripts/test-radar-unused-pxfactor-buildfix-08252.mjs",
     "scripts/test-seven-day-night-rain-coherence-08253.mjs",
-    "scripts/test-water-tides-full-calendar-day-08254.mjs"
+    "scripts/test-water-tides-full-calendar-day-08254.mjs",
+    "scripts/test-maintenance-recharts3-cache-ci-08260.mjs",
+    "scripts/test-recharts3-reference-dot-buildfix-08261.mjs",
+    "scripts/test-ci-regression-determinism-08262.mjs",
+    "scripts/test-github-workflow-bootstrap-08263.mjs"
   ]
 }

@@ -1,4 +1,4 @@
-import {readFile,mkdtemp,rm} from 'node:fs/promises';
+import {readFile,writeFile,mkdtemp,rm} from 'node:fs/promises';
 import {spawnSync} from 'node:child_process';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
@@ -42,7 +42,10 @@ try{
  const compile=spawnSync('tsc',['--pretty','false','--target','ES2022','--module','ESNext','--moduleResolution','Bundler','--strict','--skipLibCheck','--outDir',compileDir,path.resolve('src/travelPlanner.ts')],{cwd:path.resolve('.'),encoding:'utf8'});
  if(compile.status!==0)failures.push(`TypeScript: ${compile.stdout||compile.stderr}`);
  else{
-  const module=await import(`${pathToFileURL(path.join(compileDir,'travelPlanner.js')).href}?v=${Date.now()}`);
+  const compiledPath=path.join(compileDir,'travelPlanner.js');
+  const compiledSource=(await readFile(compiledPath,'utf8')).replace("from './cachePolicy'","from './cachePolicy.js'");
+  await writeFile(compiledPath,compiledSource);
+  const module=await import(`${pathToFileURL(compiledPath).href}?v=${Date.now()}`);
   let fetchCount=0,lastUrl='';
   globalThis.fetch=async url=>{
    fetchCount++;lastUrl=String(url);

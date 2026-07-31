@@ -956,9 +956,9 @@ Die jeweiligen Nutzungsbedingungen, Abruflimits und Lizenzanforderungen der Date
 
 MID verwendet innerhalb der laufenden Entwicklungslinie ein vierstufiges, auf den tatsächlichen Umfang abgestimmtes Schema:
 
-- Funktionsrelease (`0.7.x`): neue Funktion, neue Datenquelle oder spürbare fachliche beziehungsweise UI-Aufwertung. Die dritte Stelle wird erhöht, beispielsweise `0.7.70` → `0.7.71`.
-- Wartungsrelease (`0.7.x.y`): eng begrenzte Fehlerkorrektur, Text-/Formatanpassung, Build- oder Verpackungsreparatur ohne eigenständige Funktionsaufwertung. Die vierte Stelle beginnt bei `1` und wird innerhalb desselben Funktionsstands erhöht, beispielsweise `0.7.70.1`, `0.7.70.2`.
-- Neue Funktionsaufwertung nach einem Wartungsrelease: Erhöhung der dritten Stelle und Wegfall der vierten Stelle, beispielsweise `0.7.70.2` → `0.7.71`.
+- Funktionsrelease (`0.7.x` oder äquivalent `0.7.x.0`): neue Funktion, neue Datenquelle oder spürbare fachliche beziehungsweise UI-Aufwertung. Die dritte Stelle wird erhöht und eine vorhandene vierte Stelle auf `0` gesetzt, beispielsweise `0.7.70.2` → `0.7.71.0`.
+- Wartungsrelease (`0.7.x.y` mit `y ≥ 1`): eng begrenzte Fehlerkorrektur, Text-/Formatanpassung, Build- oder Verpackungsreparatur ohne eigenständige Funktionsaufwertung. Die vierte Stelle beginnt bei `1` und wird innerhalb desselben Funktionsstands erhöht, beispielsweise `0.7.70.1`, `0.7.70.2`.
+- Dreiteilige historische Funktionsstände und vierteilige Funktionsstände mit abschließender `0` werden beim Versionsvergleich gleichwertig unterstützt.
 - Größere Entwicklungslinie (`0.8.0`) beziehungsweise stabiler Hauptstand (`1.0.0`): nur bei einer entsprechend weitreichenden Architektur-, Daten- oder Produktstufe.
 
 Die Versionswahl richtet sich damit nicht mehr automatisch nach jeder einzelnen Änderung. Reine Wartungsänderungen werden als Unterrelease des zuletzt aufgewerteten Funktionsstands geführt. Frontend, `version.json`, Service-Worker-Cache und Cloudflare Worker werden weiterhin auf denselben vollständigen Versionswert synchronisiert.
@@ -999,3 +999,11 @@ Der Feed liefert aktuelle Werte, 12 Stunden und fünf Tage im Vertrag `mid.nativ
 ## Flugmeteorologie (v0.8.18.3)
 
 Im Erweiterten Modus enthält das Modul „Flugmeteorologie“ weiterhin die Druckniveau-Meteogramme. Die geplante Untersektion „Cross Section“ ist vorerst deaktiviert und wird als zukünftiges Feature mit „To be continued“ ausgewiesen. Der aktive Frontendpfad lädt das Cross-Section-Modul nicht; der Worker-Endpunkt ist ebenfalls gesperrt und führt keine externen Datenabrufe aus. Der Quellcode bleibt für eine spätere Weiterentwicklung erhalten.
+
+## Technische Wartung ab MID v0.8.26.0
+
+MID verwendet für die Ensemble-Diagramme Recharts 3.8.1 mit einem gemeinsamen responsiven Bildschirm- und fest dimensionierten Exportpfad. Sämtliche Temperatur-, Niederschlags- und Winddarstellungen bleiben animationsfrei exportierbar und erhalten ihre bisherigen Tooltips, Spannweiten, Fehlerbalken und Warnmarker.
+
+Der Build prüft TypeScript ohne generierte Quellartefakte. `npm run sync-version` hält Paket, Lockfile, Baseline, Frontend, Worker und Service Worker synchron. Die CI führt reproduzierbare Installationen, Produktionsbuild, sämtliche Regressionstests und einen Audit der Produktionsabhängigkeiten aus. Ein zusätzlicher Wochenlauf prüft auch Entwicklungsabhängigkeiten; Dependabot erstellt nur überprüfbare Aktualisierungsvorschläge.
+
+Langfristig wachsende Radar-, KOSTRA- und Reisewettercaches sind LRU-begrenzt und entfernen abgelaufene Einträge. Die UI-Nachbearbeitung beobachtet nur noch relevante App- und Diagrammbereiche statt sämtlicher Dokumentattribute.

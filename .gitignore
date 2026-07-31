@@ -4,3 +4,9 @@ dist
 .env*
 
 .precip-test/
+
+# TypeScript/Vite build artefacts
+auto-generated/
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts

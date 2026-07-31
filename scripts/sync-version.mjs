@@ -6,6 +6,16 @@ if(!/^\d+\.\d+\.\d+(?:\.\d+)?(?:[-+][0-9A-Za-z.-]+)?$/.test(version))throw new E
 
 await writeFile(new URL('../src/version.ts',import.meta.url),`export const MID_VERSION='${version}';\n`);
 await writeFile(new URL('../public/version.json',import.meta.url),`${JSON.stringify({version},null,2)}\n`);
+const lockUrl=new URL('../package-lock.json',import.meta.url);
+const lock=JSON.parse(await readFile(lockUrl,'utf8'));
+lock.version=version;
+if(lock.packages?.['']){
+ lock.packages[''].version=version;
+ lock.packages[''].dependencies={...(pkg.dependencies??{})};
+ lock.packages[''].devDependencies={...(pkg.devDependencies??{})};
+ if(pkg.engines)lock.packages[''].engines={...pkg.engines};else delete lock.packages[''].engines;
+}
+await writeFile(lockUrl,`${JSON.stringify(lock,null,2)}\n`);
 const baselineUrl=new URL('../MID_BASELINE.json',import.meta.url);
 const baseline=JSON.parse(await readFile(baselineUrl,'utf8'));
 baseline.releaseVersion=version;

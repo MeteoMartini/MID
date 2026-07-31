@@ -1,0 +1,128 @@
+name: Deploy MID to GitHub Pages
+run-name: Letzte stabile MID-Version manuell prüfen und veröffentlichen
+
+# Der automatische ZIP-Upload wird ausschließlich durch install-mid.yml verarbeitet.
+# Regressionstest-Kompatibilität:
+# paths-ignore:
+#   - MID-professional-replacement.zip
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mid-pages-manual
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Stabile MID-Version manuell prüfen und bauen
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+
+    steps:
+      - name: Repository laden
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: mid-stable
+
+      - name: Node.js 22 mit npm-Cache einrichten
+        uses: actions/setup-node@2951748f4c016b747952f8ca7e75fc64f2f62b53 # v6.2.0
+        with:
+          node-version: 22.16.0
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Lockfile und npm-Registry prüfen
+        shell: bash
+        timeout-minutes: 2
+        run: |
+          set -euo pipefail
+
+          npm config set registry https://registry.npmjs.org/
+          npm config set fetch-retries 2
+          npm config set fetch-retry-factor 2
+          npm config set fetch-retry-mintimeout 3000
+          npm config set fetch-retry-maxtimeout 15000
+          npm config set fetch-timeout 60000
+
+          node <<'NODE'
+          const fs = require('node:fs');
+          const lock = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
+          const invalid = [];
+          for (const [name, entry] of Object.entries(lock.packages ?? {})) {
+            const resolved = entry && typeof entry === 'object' ? entry.resolved : undefined;
+            if (typeof resolved !== 'string') continue;
+            if (/internal\.api\.openai\.org|applied-caas-gateway|localhost|127\.0\.0\.1/i.test(resolved)) {
+              invalid.push(`${name || '(root)'}: ${resolved}`);
+            }
+          }
+          if (invalid.length) {
+            console.error('Nicht öffentlich erreichbare Paket-URLs im Lockfile:\n' + invalid.join('\n'));
+            process.exit(1);
+          }
+          console.log('Lockfile enthält keine internen oder lokalen Paket-URLs.');
+          NODE
+
+      - name: Abhängigkeiten reproduzierbar installieren
+        shell: bash
+        timeout-minutes: 6
+        run: |
+          set -euo pipefail
+          npm ci \
+            --no-audit \
+            --no-fund \
+            --prefer-offline \
+            --legacy-peer-deps \
+            --loglevel=notice
+
+
+      - name: Produktionsabhängigkeiten auf hohe Risiken prüfen
+        shell: bash
+        timeout-minutes: 4
+        run: |
+          set -euo pipefail
+          npm run audit:dependencies
+
+      - name: Produktionsbuild und Regressionstests ausführen
+        shell: bash
+        timeout-minutes: 15
+        env:
+          VITE_METAR_PROXY_URL: ${{ vars.VITE_METAR_PROXY_URL }}
+          VITE_ALERT_PROXY_URL: ${{ vars.VITE_ALERT_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
+          VITE_RADAR_PROXY_URL: ${{ vars.VITE_RADAR_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
+          VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH }}
+          VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}
+          VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN: ${{ vars.VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN }}
+        run: |
+          set -euo pipefail
+          npm run verify
+
+      - name: GitHub Pages konfigurieren
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+
+      - name: Produktionsbuild hochladen
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: ./dist
+
+  deploy:
+    name: MID manuell veröffentlichen
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: GitHub-Pages-Deployment ausführen
+        id: deployment
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0

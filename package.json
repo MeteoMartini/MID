@@ -1,13 +1,13 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.8.25.4",
+  "version": "0.8.26.3",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "sync-version": "node scripts/sync-version.mjs",
     "prebuild": "npm run sync-version",
-    "build": "tsc -b && vite build",
+    "build": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json && vite build",
     "verify": "npm run build && node --check worker/metar-proxy.js && node scripts/run-regressions.mjs",
     "preview": "vite preview",
     "test:updater": "node scripts/test-updater.mjs",
@@ -110,7 +110,14 @@
     "test:composite-visibility-quality": "node scripts/test-composite-visibility-quality-08251.mjs",
     "test:radar-unused-pxfactor-buildfix": "node scripts/test-radar-unused-pxfactor-buildfix-08252.mjs",
     "test:seven-day-night-rain-coherence": "node scripts/test-seven-day-night-rain-coherence-08253.mjs",
-    "test:water-tides-full-calendar-day": "node scripts/test-water-tides-full-calendar-day-08254.mjs"
+    "test:water-tides-full-calendar-day": "node scripts/test-water-tides-full-calendar-day-08254.mjs",
+    "audit:dependencies": "npm audit --audit-level=high --omit=dev",
+    "audit:all": "npm audit --audit-level=high",
+    "test:maintenance-08260": "node scripts/test-maintenance-recharts3-cache-ci-08260.mjs",
+    "test:recharts3-reference-dot-buildfix": "node scripts/test-recharts3-reference-dot-buildfix-08261.mjs",
+    "test:ci-regression-determinism": "node scripts/test-ci-regression-determinism-08262.mjs",
+    "sync:github-workflows": "node scripts/sync-github-workflows.mjs",
+    "test:github-workflow-bootstrap": "node scripts/test-github-workflow-bootstrap-08263.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",
@@ -120,17 +127,23 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-leaflet": "^4.2.1",
-    "recharts": "^2.15.0"
+    "recharts": "3.8.1",
+    "react-is": "18.3.1"
   },
   "devDependencies": {
     "@types/leaflet": "^1.9.16",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
-    "typescript": "^5.7.3",
-    "vite": "^6.0.7",
-    "@vitejs/plugin-react": "^4.4.1"
+    "typescript": "5.9.3",
+    "vite": "6.4.3",
+    "@vitejs/plugin-react": "4.7.0"
   },
   "overrides": {
     "@jridgewell/trace-mapping": "0.3.28"
+  },
+  "packageManager": "npm@10.9.2",
+  "engines": {
+    "node": ">=22.12 <25",
+    "npm": ">=10 <12"
   }
 }

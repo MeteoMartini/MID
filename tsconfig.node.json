@@ -1,1 +1,1 @@
-{"compilerOptions":{"composite":true,"skipLibCheck":true,"module":"ESNext","moduleResolution":"Bundler"},"include":["vite.config.ts"]}
+{"compilerOptions":{"target":"ES2022","skipLibCheck":true,"module":"ESNext","moduleResolution":"Bundler","noEmit":true},"include":["vite.config.ts"]}

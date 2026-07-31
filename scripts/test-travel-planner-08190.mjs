@@ -1,4 +1,4 @@
-import {readFile,mkdtemp,rm} from 'node:fs/promises';
+import {readFile,writeFile,mkdtemp,rm} from 'node:fs/promises';
 import {spawnSync} from 'node:child_process';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
@@ -74,7 +74,10 @@ try{
  const compile=spawnSync('tsc',['--pretty','false','--target','ES2022','--module','ESNext','--moduleResolution','Bundler','--strict','--skipLibCheck','--outDir',compileDir,path.resolve('src/travelPlanner.ts')],{cwd:path.resolve('.'),encoding:'utf8'});
  if(compile.status!==0)failures.push(`TypeScript: ${compile.stdout||compile.stderr}`);
  else{
-  const module=await import(`${pathToFileURL(path.join(compileDir,'travelPlanner.js')).href}?v=${Date.now()}`);
+  const compiledPath=path.join(compileDir,'travelPlanner.js');
+  const compiledSource=(await readFile(compiledPath,'utf8')).replace("from './cachePolicy'","from './cachePolicy.js'");
+  await writeFile(compiledPath,compiledSource);
+  const module=await import(`${pathToFileURL(compiledPath).href}?v=${Date.now()}`);
   const daily={time:[],weather_code:[],temperature_2m_mean:[],temperature_2m_max:[],temperature_2m_min:[],precipitation_sum:[],precipitation_hours:[],sunshine_duration:[],daylight_duration:[],wind_speed_10m_max:[],snowfall_sum:[],cloud_cover_mean:[],relative_humidity_2m_mean:[]};
   for(let year=1991;year<=2020;year++)for(let day=1;day<=20;day++){
    const dry=day<=5,warm=day>=11&&day<=15,date=`${year}-01-${String(day).padStart(2,'0')}`;

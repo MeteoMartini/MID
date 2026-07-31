@@ -1,3 +1,4 @@
+import {pruneStorageEntries,touchMapEntry,writeBoundedMapEntry,writeBoundedStorage} from './cachePolicy';
 export type TravelPreference='balanced'|'dry'|'warm'|'cold'|'sunny'|'snow'|'calm';
 
 export type TravelClimateDay={
@@ -115,13 +116,18 @@ const CLIMATE_ELEVATION_STEP=250;
 const DAILY_VARIABLES=['weather_code','temperature_2m_max','temperature_2m_min','precipitation_sum','sunshine_duration','daylight_duration','wind_speed_10m_max','snowfall_sum'].join(',');
 const memoryCache=new Map<string,unknown>();
 const inFlightRequests=new Map<string,Promise<unknown>>();
+const TRAVEL_MEMORY_CACHE_LIMIT=32;
+const TRAVEL_STORAGE_CACHE_LIMIT=24;
+const TRAVEL_CACHE_PREFIXES=[BASE_CACHE_PREFIX,SNOW_CACHE_PREFIX];
+let storagePruned=false;
 
 function rounded(value:number,step:number){return Math.round(value/step)*step}
 function normalizedClimateLocation(location:{latitude:number;longitude:number;elevation?:number}){return{latitude:rounded(location.latitude,CLIMATE_GRID_DEGREES),longitude:rounded(location.longitude,CLIMATE_GRID_DEGREES),elevation:Number.isFinite(location.elevation)?rounded(Number(location.elevation),CLIMATE_ELEVATION_STEP):undefined}}
 function cacheKey(prefix:string,latitude:number,longitude:number,elevation?:number){return`${prefix}${latitude.toFixed(1)}:${longitude.toFixed(1)}:${Math.round(Number(elevation??0))}`}
-function readCache<T>(key:string):T|null{const memory=memoryCache.get(key) as ({createdAt?:number}&T)|undefined;if(memory&&Number.isFinite(memory.createdAt)&&Date.now()-Number(memory.createdAt)<=CACHE_MAX_AGE)return memory;try{const raw=localStorage.getItem(key);if(!raw)return null;const parsed=JSON.parse(raw) as {createdAt?:number}&T;if(!Number.isFinite(parsed.createdAt)||Date.now()-Number(parsed.createdAt)>CACHE_MAX_AGE)return null;memoryCache.set(key,parsed);return parsed}catch{return null}}
-function writeCache(key:string,value:unknown){memoryCache.set(key,value);try{localStorage.setItem(key,JSON.stringify(value))}catch{}}
-async function sharedRequest<T>(key:string,load:()=>Promise<T>):Promise<T>{const active=inFlightRequests.get(key) as Promise<T>|undefined;if(active)return active;const request=load().finally(()=>inFlightRequests.delete(key));inFlightRequests.set(key,request);return request}
+function prepareStorage(){if(storagePruned||typeof localStorage==='undefined')return;storagePruned=true;try{pruneStorageEntries(localStorage,TRAVEL_CACHE_PREFIXES,TRAVEL_STORAGE_CACHE_LIMIT,CACHE_MAX_AGE)}catch{}}
+function readCache<T>(key:string):T|null{prepareStorage();const memory=touchMapEntry(memoryCache,key) as ({createdAt?:number}&T)|undefined;if(memory&&Number.isFinite(memory.createdAt)&&Date.now()-Number(memory.createdAt)<=CACHE_MAX_AGE)return memory;if(memory)memoryCache.delete(key);try{const raw=localStorage.getItem(key);if(!raw)return null;const parsed=JSON.parse(raw) as {createdAt?:number}&T;if(!Number.isFinite(parsed.createdAt)||Date.now()-Number(parsed.createdAt)>CACHE_MAX_AGE){localStorage.removeItem(key);return null}writeBoundedMapEntry(memoryCache,key,parsed,TRAVEL_MEMORY_CACHE_LIMIT);return parsed}catch{return null}}
+function writeCache(key:string,value:unknown){writeBoundedMapEntry(memoryCache,key,value,TRAVEL_MEMORY_CACHE_LIMIT);try{writeBoundedStorage(localStorage,key,value,TRAVEL_CACHE_PREFIXES,TRAVEL_STORAGE_CACHE_LIMIT,CACHE_MAX_AGE)}catch{}}
+async function sharedRequest<T>(key:string,load:()=>Promise<T>):Promise<T>{const active=touchMapEntry(inFlightRequests,key) as Promise<T>|undefined;if(active)return active;const request=load().finally(()=>inFlightRequests.delete(key));writeBoundedMapEntry(inFlightRequests,key,request,TRAVEL_MEMORY_CACHE_LIMIT);return request}
 async function waitForShared<T>(promise:Promise<T>,signal?:AbortSignal):Promise<T>{if(!signal)return promise;if(signal.aborted)throw abortError();return new Promise<T>((resolve,reject)=>{const abort=()=>reject(abortError());signal.addEventListener('abort',abort,{once:true});promise.then(value=>{signal.removeEventListener('abort',abort);resolve(value)},error=>{signal.removeEventListener('abort',abort);reject(error)})})}
 function numberAt(values:unknown[],index:number){const value=Number(values[index]);return Number.isFinite(value)?value:Number.NaN}
 function mean(values:number[]){const finite=values.filter(Number.isFinite);return finite.length?finite.reduce((sum,value)=>sum+value,0)/finite.length:Number.NaN}

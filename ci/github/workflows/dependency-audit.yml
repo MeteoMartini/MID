@@ -1,0 +1,50 @@
+name: MID dependency and maintenance audit
+run-name: Abhängigkeiten und Release-Vertrag prüfen
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 3 * * 1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mid-dependency-audit
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    name: Lockfile, Abhängigkeiten und Regressionen prüfen
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    steps:
+      - name: Repository laden
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: mid-stable
+      - name: Node.js mit npm-Cache einrichten
+        uses: actions/setup-node@2951748f4c016b747952f8ca7e75fc64f2f62b53 # v6.2.0
+        with:
+          node-version: 22.16.0
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Abhängigkeiten reproduzierbar installieren
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm config set registry https://registry.npmjs.org/
+          npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
+      - name: Sicherheitsprüfung ausführen
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run audit:all
+      - name: Release- und Wartungsregressionen ausführen
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run test:maintenance-08260
+          node scripts/run-regressions.mjs
