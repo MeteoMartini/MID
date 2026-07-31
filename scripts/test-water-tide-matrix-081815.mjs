@@ -9,14 +9,15 @@ const [water,styles,pkg,baseline]=await Promise.all([
 const failures=[];
 const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
 for(const token of [
-  'events.length<18',
-  'function tideEventsForDate(events:TideEvent[],date:string)',
+  'function tideEventsFromSeries(series:TideSeries,startIndex=2,limit=36)',
+  'function tideSeriesForDate(data:MarineForecast|undefined,date:string)',
+  'function tideEventsForDate(data:MarineForecast|undefined,date:string)',
   'function WaterTideRow({points,events}',
   '>Gezeiten / Wendepunkte<',
   "event.kind==='high'?'Hochpunkt':'Tiefpunkt'",
   'timeLabel(event.time)} · {seaLevelText(event.level)',
-  '<WaterTideRow points={points} events={tideEventsForDate(tideEvents,window.date)}/>',
-  'tideEvents={tides.events}',
+  '<WaterTideRow points={points} events={tideEventsForDate(marine,window.date)}/>',
+  'Gezeiten werden unabhängig vom angezeigten Aktivitätszeitfenster für den gesamten jeweiligen Kalendertag aufgeführt.',
   'Gezeiten- und Wasserstandswendepunkte',
   'if(windows.length>=3)break'
 ])need('Wasserwetter-Tidenmatrix',water,token);

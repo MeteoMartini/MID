@@ -1,3 +1,9 @@
+## 0.8.25.4
+
+- Wasserwetter-Verlauf: Gezeiten- und Wasserstandswendepunkte werden je angezeigtem Prognosetag für den vollständigen Kalendertag ermittelt und nicht mehr auf das jeweilige Tageslicht-, Aktivitäts- oder Stundenfenster begrenzt.
+- Für angebrochene 15-Minuten-Datenreihen verwendet MID automatisch die vollständigere stündliche Wasserstandsreihe, damit am aktuellen Tag auch bereits vor dem sichtbaren Verlauf liegende Hoch- und Tiefpunkte aufgeführt werden.
+- Die kompakte allgemeine Gezeitenübersicht bleibt auf kommende Wendepunkte beschränkt; nur die Tageszeile im Wasserwetter-Verlauf zeigt sämtliche Fälle des jeweiligen Kalendertags.
+
 ## 0.8.25.3
 
 - 7-Tage-Trend: Eine Tropennacht wird nun auf die dem jeweiligen Prognosetag folgende Nacht bezogen. Bevorzugt werden die Stunden von 20:00 Uhr bis 08:00 Uhr ausgewertet; der Tiefstwert des Folgetags dient nur als Fallback.
