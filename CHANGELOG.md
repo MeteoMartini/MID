@@ -1,3 +1,8 @@
+## 0.8.26.18
+- Gezeitenzeiten werden mittels robuster lokaler Kurvenanpassung zwischen den Modellstützstellen minutengenau geschätzt.
+- Ensemble-Hazardmarker erhalten mehr Abstand zum Bewölkungsband; Niederschlagssymbole werden zusätzlich im jeweiligen Tagesfeld beschnitten.
+- Temperatur-, Niederschlags- und Windkarten erhalten eindeutige Ebenen, damit Tooltips weder von Hazardmarkern noch von nachfolgenden Diagrammüberschriften verdeckt werden.
+
 ## 0.8.26.17
 - Wasserwetter-Zeile auf „Gezeiten“ verkürzt und Wendepunktzeiten per Zwischenwertberechnung minutengenau ausgegeben.
 - Ensemble-Hazards oberhalb der Bewölkungsfelder angeordnet; mehrere Marker stehen kollisionsfrei nebeneinander.

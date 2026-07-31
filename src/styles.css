@@ -3023,7 +3023,7 @@ button,input,select,[role="button"]{touch-action:manipulation}
 
 /* MID v0.8.26.13 · Ensemble-Hochformat exakt an v0.8.25.4 angeglichen */
 .ensemble-temperature-canvas{position:relative;display:block;min-width:0;min-height:0;overflow:visible}
-.ensemble-temperature-canvas>.recharts-wrapper{position:relative;z-index:1;overflow:visible}
+.ensemble-temperature-canvas>.recharts-wrapper{position:relative;z-index:3;overflow:visible}
 .ensemble-temperature-weather-overlay{position:absolute;inset:0;display:block;overflow:visible;pointer-events:none}
 .ensemble-temperature-weather-overlay.weather{z-index:0}
 .ensemble-temperature-weather-overlay.hazards{z-index:2}
@@ -3069,4 +3069,17 @@ button,input,select,[role="button"]{touch-action:manipulation}
  .chartscroll,.detail-scroll,.trend-scroll,.meteogram-scroll{scroll-snap-type:none}
  .card,.hero{box-shadow:0 5px 18px rgba(0,0,0,.13)}
  :root[data-theme=light] .card,:root[data-theme=light] .hero{box-shadow:0 4px 15px rgba(33,61,88,.075)}
+}
+
+
+/* MID v0.8.26.18 · Gezeiten-Minuteninterpolation und störungsfreie Ensemble-Overlays */
+.ensemble-chart-export{overflow:visible}
+.ensemble-chart-temperature{z-index:30}
+.ensemble-chart-precipitation{z-index:20}
+.ensemble-chart-wind{z-index:10}
+.ensemble-chart-export .recharts-tooltip-wrapper{z-index:100!important}
+.ensemble-temperature-weather-overlay.hazards{z-index:2}
+.ensemble-temperature-canvas>.recharts-wrapper{z-index:3}
+@supports selector(:has(*)){
+ .ensemble-chart-export:has(.recharts-tooltip-wrapper[style*="visibility: visible"]){z-index:100}
 }

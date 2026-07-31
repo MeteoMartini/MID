@@ -18,7 +18,7 @@ for(const token of [
   'timeLabel(event.time)} · {seaLevelText(event.level)',
   '<WaterTideRow points={points} events={tideEventsForDate(marine,window.date)}/>',
   'Gezeiten werden unabhängig vom angezeigten Aktivitätszeitfenster für den gesamten jeweiligen Kalendertag aufgeführt.',
-  'Gezeiten- und Wasserstandswendepunkte',
+  '<h3>Gezeiten</h3>',
   'if(windows.length>=3)break'
 ])need('Wasserwetter-Tidenmatrix',water,token);
 for(const token of [
