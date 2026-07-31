@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.8.26.13",
+  "version": "0.8.26.15",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -127,7 +127,8 @@
     "test:ensemble-visual-scroll": "node scripts/test-ensemble-visual-scroll-regression-082610.mjs",
     "test:ensemble-tooltip-helper-buildfix": "node scripts/test-ensemble-tooltip-helper-buildfix-082611.mjs",
     "test:ensemble-optical-restore": "node scripts/test-ensemble-optical-restore-082612.mjs",
-    "test:ensemble-portrait-restore": "node scripts/test-ensemble-portrait-restore-082613.mjs"
+    "test:ensemble-portrait-restore": "node scripts/test-ensemble-portrait-restore-082613.mjs",
+    "test:short-term-anchor-buildfix": "node scripts/test-short-term-anchor-narrowing-buildfix-082615.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

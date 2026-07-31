@@ -53,9 +53,9 @@ function localForecastClock(cell:NonNullable<ThunderstormNowcast['nearest']>,arr
  try{return new Intl.DateTimeFormat('de-DE',{hour:'2-digit',minute:'2-digit',timeZone:timezone||undefined}).format(new Date(epoch))}catch{return new Intl.DateTimeFormat('de-DE',{hour:'2-digit',minute:'2-digit'}).format(new Date(epoch))}
 }
 function locationFocusText(cell:NonNullable<ThunderstormNowcast['nearest']>,locationName:string,currentDistance:number,atSite:boolean,currentPlaceName?:string){
- const direction=compassWord(cell.siteBearingDeg),place=normalizedPlace(currentPlaceName),placeText=place&&!samePlace(place,locationName)?`bei ${place}`:'';
- const relative=atSite?`unmittelbar bei ${locationName}`:Number.isFinite(currentDistance)?`${Math.max(1,Math.round(currentDistance))} km${direction?` ${direction}`:''} von ${locationName}`:`in der Nähe von ${locationName}`;
- return[placeText,relative].filter(Boolean).join(' · ');
+ const direction=compassWord(cell.siteBearingDeg),place=normalizedPlace(currentPlaceName),relative=atSite?`unmittelbar bei ${locationName}`:Number.isFinite(currentDistance)?`${Math.max(1,Math.round(currentDistance))} km${direction?` ${direction}`:''} von ${locationName}`:`in der Nähe von ${locationName}`;
+ if(place&&samePlace(place,locationName))return relative;
+ return place?`${place} · ${relative}`:relative;
 }
 function approachWindowText(cell:NonNullable<ThunderstormNowcast['nearest']>,locationName:string,approaching:boolean,movingAway:boolean,arrival:number,currentDistance:number,forecastDistance:number,effectiveDistance:number,uncertainty:number,context:ThunderInfoContext){
  const clock=localForecastClock(cell,arrival,context.timezone),when=clock?`gegen ${clock} Uhr`:Number.isFinite(arrival)&&arrival>0?`in etwa ${Math.round(arrival)} min`:'zum berechneten Prognosezeitpunkt',forecastPlace=normalizedPlace(context.forecastPlaceName),placeSuffix=forecastPlace&&!samePlace(forecastPlace,locationName)?` · Zellzentrum dann bei ${forecastPlace}`:'',withinUncertainty=Number.isFinite(forecastDistance)&&Number.isFinite(uncertainty)&&forecastDistance<=uncertainty,siteHitPossible=withinUncertainty||(Number.isFinite(effectiveDistance)&&effectiveDistance<=.5);
@@ -102,7 +102,7 @@ export function combineThunderstormInformation(nowcast:ThunderstormNowcast|null,
   if(cell.heavyRainFlag>0)quickFacts.push({label:'Starkregen',value:heavyRainSignalText(cell.heavyRainFlag),tone:'rain',prominent:true});
   if(cell.hailFlag>0||cell.areaHail>0)quickFacts.push({label:'Hagel',value:hailSignalText(cell),tone:'hail',prominent:true});
   if((cell.gustFlag??0)>0)quickFacts.push({label:'Windböen',value:gustSignalText(cell.gustFlag,context.windUnit),tone:'wind',prominent:true});
-  if(cell.lightningRate>0)quickFacts.push({label:'Blitzaktivität',value:lightningActivityText(cell.lightningRate),tone:'lightning',prominent:false});
+  if(cell.lightningRate>0)quickFacts.push({label:'Blitzaktivität',value:lightningActivityText(cell.lightningRate),tone:'lightning',prominent:true});
   const forecastClock=localForecastClock(cell,arrival,context.timezone),details:ThunderInfoDetail[]=[
    {label:'Bezugsort',value:locationName},
    {label:'Bewertung für den Bezugsort',value:status.detail},

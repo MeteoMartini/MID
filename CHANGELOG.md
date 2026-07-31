@@ -1,3 +1,12 @@
+## 0.8.26.15
+- TypeScript-Buildfehler TS18048 in der hyperlokalen Kurzfrist-Temperaturbrücke behoben; optionale Anker- und Horizontwerte werden vor dem Vergleich typsicher normalisiert.
+- Eigene Regression gegen die erneute direkte Gegenüberstellung optionaler Werte ergänzt.
+
+## 0.8.26.14
+- Gewitterinformation auf der Startseite kompakter und vollständiger dargestellt; Ortsbezug bevorzugt nun Stadtniveau statt Stadtteilniveau.
+- Kurzfristvorhersage für die ersten 15-Minuten-Schritte thermisch an die aktuelle hyperlokale Analyse angenähert.
+- Szenariocluster sprachlich und strukturell verständlicher aufbereitet.
+
 ## 0.8.26.13
 
 - Ensemble-Hochformat: Temperatur-Tooltip in Größe, Aufbau und Inhalt auf den bewährten Stand v0.8.25.4 zurückgeführt.

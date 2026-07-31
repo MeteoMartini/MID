@@ -8,6 +8,8 @@ import {formatDecimal} from './format';
 import {DWD_WIND_THRESHOLDS_KMH} from './dwdWarnings';
 
 type ShortTermSource='15-min'|'hourly';
+export type ShortTermAnchor={temperature?:number;apparent?:number;humidity?:number;dewPoint?:number;pressure?:number;wind?:number;gust?:number;direction?:number;code?:number;isDay?:boolean};
+
 export type ShortTermForecastPoint={
  id:string;
  offsetMinutes:number;
@@ -58,6 +60,7 @@ function buildTargetEpochs(now:number){
 }
 function windToDegrees(direction:number){return((direction+180)%360+360)%360}
 function directionArrowRotation(direction:number){return Number.isFinite(direction)?((windToDegrees(direction)-NAVIGATION_ICON_BASE_DEGREES)%360+360)%360:0}
+function bridgeThermalValue(anchor:number|undefined,horizon:number|undefined,base:number,offsetMinutes:number){const start=Number(anchor),end=Number(horizon);if(!Number.isFinite(start)||!Number.isFinite(end)||offsetMinutes>60)return base;const progress=Math.max(0,Math.min(1,offsetMinutes/60)),ramp=start+(end-start)*progress;return end>=start?Math.max(base,ramp):Math.min(base,ramp)}
 export function shortTermWindWarningLevel(gustKnots:number):0|1|2|3|4{
  const kmh=Math.max(0,Number(gustKnots)||0)*1.852;
  const exceeded=DWD_WIND_THRESHOLDS_KMH.filter(item=>item.threshold===50||item.threshold===140?kmh>item.threshold:kmh>=item.threshold).at(-1);
@@ -65,24 +68,25 @@ export function shortTermWindWarningLevel(gustKnots:number):0|1|2|3|4{
 }
 function windWarningClass(gustKnots:number){const level=shortTermWindWarningLevel(gustKnots);return level?` wind-warning-level-${level}`:''}
 
-export function buildShortTermForecast(minutes15:Minute15[],hours:Hour[],timezone:string,now=Date.now()):ShortTermForecastPoint[]{
+export function buildShortTermForecast(minutes15:Minute15[],hours:Hour[],timezone:string,now=Date.now(),anchor:ShortTermAnchor={}):ShortTermForecastPoint[]{
  if(!hours.length)return[];
- const points:ShortTermForecastPoint[]=[];
+ const points:ShortTermForecastPoint[]=[],nearHorizon=interpolatedHour(hours,Math.min(now+60*60000,(hours.at(-1)?.epoch??now))),horizonTemperature=nearHorizon?.temperature,horizonApparent=nearHorizon?.apparent;
  for(const target of buildTargetEpochs(now)){
   const offsetMinutes=Math.max(1,Math.round((target-now)/60000)),quarter=offsetMinutes<=60?nearest(minutes15,target,12*60000):undefined,base=interpolatedHour(hours,target);
   if(!base)continue;
   const precipitation=quarter?.precipitation??base.precipitation,rain=quarter?.rain??base.rain,showers=quarter?.showers??base.showers,snowfall=quarter?.snowfall??base.snowfall,probability=quarter?.probability??base.probability,rawCode=quarter?.code??base.code;
   const parts=precipitationParts({time:quarter?.time??base.time,epoch:target,timezone,precipitation,rain,showers,snowfall,probability,code:rawCode,temperature:base.temperature,dewPoint:base.dewPoint,humidity:base.humidity,cloud:base.cloud,lowCloud:base.lowCloud});
   const thunder=significantHourlyThunderRisk({...base,code:parts.displayCode,precipitation,rain,showers,probability});
-  points.push({id:`${offsetMinutes}:${target}`,offsetMinutes,offsetLabel:offsetLabel(offsetMinutes),timeLabel:clock(target,timezone),intervalLabel:quarter?'15 min':'1 h',epoch:target,source:quarter?'15-min':'hourly',temperature:base.temperature,apparent:base.apparent,humidity:base.humidity,dewPoint:base.dewPoint,pressure:base.pressure,precipitation,probability,code:parts.displayCode,weatherLabel:parts.type==='none'?label(parts.displayCode):parts.weatherLabel,wind:base.wind,gust:Math.max(base.wind,base.gust),direction:base.direction,isDay:base.isDay,thunderPercent:thunder?.percent});
+  const temperature=bridgeThermalValue(anchor.temperature,horizonTemperature,base.temperature,offsetMinutes),apparent=bridgeThermalValue(anchor.apparent,horizonApparent,base.apparent,offsetMinutes);
+  points.push({id:`${offsetMinutes}:${target}`,offsetMinutes,offsetLabel:offsetLabel(offsetMinutes),timeLabel:clock(target,timezone),intervalLabel:quarter?'15 min':'1 h',epoch:target,source:quarter?'15-min':'hourly',temperature,apparent,humidity:base.humidity,dewPoint:base.dewPoint,pressure:base.pressure,precipitation,probability,code:parts.displayCode,weatherLabel:parts.type==='none'?label(parts.displayCode):parts.weatherLabel,wind:base.wind,gust:Math.max(base.wind,base.gust),direction:base.direction,isDay:base.isDay,thunderPercent:thunder?.percent});
  }
  return points;
 }
 
 function DirectionArrow({direction,gust}:{direction:number;gust:number}){const rotation=directionArrowRotation(direction),warningClass=windWarningClass(gust);return <Navigation size={13} className={`short-term-wind-arrow${warningClass}`} style={{transform:`rotate(${rotation}deg)`}} aria-hidden="true"/>}
 
-export function ShortTermForecast({minutes15,hours,timezone,unit}:{minutes15:Minute15[];hours:Hour[];timezone:string;unit:WindUnit}){
- const points=useMemo(()=>buildShortTermForecast(minutes15,hours,timezone),[minutes15,hours,timezone]),[selectedId,setSelectedId]=useState(''),selected=points.find(point=>point.id===selectedId);
+export function ShortTermForecast({minutes15,hours,timezone,unit,anchor}:{minutes15:Minute15[];hours:Hour[];timezone:string;unit:WindUnit;anchor?:ShortTermAnchor}){
+ const points=useMemo(()=>buildShortTermForecast(minutes15,hours,timezone,Date.now(),anchor),[minutes15,hours,timezone,anchor]),[selectedId,setSelectedId]=useState(''),selected=points.find(point=>point.id===selectedId);
  if(!points.length)return null;
  return <section className="card short-term-forecast" data-mid-view="short-term"><header className="short-term-header"><span><small>Kurzfristvorhersage</small><strong>Die nächsten 24 Stunden</strong></span><em>Best Match</em></header><div className="short-term-strip" role="list" aria-label="Kurzfristvorhersage in Zeitschritten">{points.map(point=><button type="button" role="listitem" key={point.id} className={selectedId===point.id?'active':''} onClick={()=>setSelectedId(current=>current===point.id?'':point.id)} aria-expanded={selectedId===point.id}><time><b>{point.timeLabel}</b></time><strong className="short-term-temperature">{Math.round(point.temperature)}°</strong><span className="short-term-weather-icon"><WeatherPictogram code={point.code} day={point.isDay} title={point.weatherLabel}/></span><span className="short-term-wind"><DirectionArrow direction={point.direction} gust={point.gust}/><small>{cardinal(point.direction)} {wind(point.wind,unit)}</small></span><span className="short-term-precip"><Droplets size={13}/><small>{Math.round(point.probability)} %</small>{point.precipitation>=.05&&<em>{formatDecimal(point.precipitation,1)} mm</em>}</span>{Number(point.thunderPercent)>=30&&<span className="short-term-thunder"><CloudLightning size={13}/>{Math.round(Number(point.thunderPercent))} %</span>}</button>)}</div>{selected&&<div className="short-term-detail" role="region" aria-label={`Details ${selected.timeLabel}`}><header><span><b>{selected.timeLabel} Uhr · {selected.weatherLabel}</b><small>{selected.offsetLabel} · Bezugsintervall {selected.intervalLabel}</small></span><button type="button" onClick={()=>setSelectedId('')} aria-label="Kurzfristdetails schließen">×</button></header><div><span><Droplets/><small>Niederschlag</small><strong>{Math.round(selected.probability)} % · {formatDecimal(selected.precipitation,1)} mm</strong></span><span><Thermometer/><small>Gefühlt</small><strong>{Math.round(selected.apparent)} °C</strong></span><span><Gauge/><small>Luftdruck</small><strong>{Math.round(selected.pressure)} hPa</strong></span><span><WindIcon/><small>Wind / Böen</small><strong>{cardinal(selected.direction)} {wind(selected.wind,unit)} · {wind(selected.gust,unit)}</strong></span><span><Navigation/><small>Feuchte / Taupunkt</small><strong>{Math.round(selected.humidity)} % · {Math.round(selected.dewPoint)} °C</strong></span>{Number(selected.thunderPercent)>=30&&<span className="thunder"><CloudLightning/><small>Gewitterrisiko</small><strong>{Math.round(Number(selected.thunderPercent))} %</strong></span>}</div></div>}</section>
 }
