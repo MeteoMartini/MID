@@ -3011,192 +3011,81 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .meteogram-source-disclosure summary{cursor:pointer;color:var(--text);font-weight:800;list-style-position:inside}
 .meteogram-source-disclosure p{margin:6px 0 0}
 
-/* MID v0.8.26.7 · vollständige Ensemble-Funktion und gemeinsame Tagesgeometrie */
+/* MID v0.8.26.12 · Ensemble-Optik v0.8.25.4 mit stabilem Recharts-3-Rahmen */
 .ensemble-responsive-chart{position:relative;display:block;width:100%;height:100%;min-width:0;min-height:180px;overflow:visible}
 .ensemble-responsive-chart>.recharts-wrapper,.ensemble-responsive-chart>svg{display:block;max-width:none!important;overflow:visible}
 .ensemble-chart-measuring{display:block;width:100%;height:100%;min-height:180px}
 .ensemble-chart-export .recharts-tooltip-wrapper{z-index:30!important;pointer-events:none}
-.ensemble-chart-export .recharts-tooltip-wrapper .trend-tooltip,
-.ensemble-chart-export .recharts-tooltip-wrapper .rain-tooltip,
-.ensemble-chart-export .recharts-tooltip-wrapper .wind-tooltip{max-width:min(330px,calc(100vw - 24px))}
+.ensemble-chart-export .recharts-wrapper,.ensemble-chart-export .recharts-surface{touch-action:pan-y;overscroll-behavior-y:auto;-webkit-tap-highlight-color:transparent}
 
-/* Alle drei Diagramme reservieren links und rechts exakt dieselbe Breite. */
-.ensemble-temp-plot,.ensemble-rain-plot,.ensemble-wind-plot{
- grid-template-columns:44px minmax(0,1fr) 52px;
- gap:6px;
-}
-.ensemble-temp-chart-core,.ensemble-rain-chart-core,.ensemble-wind-chart-core{
- grid-template-rows:minmax(0,1fr) 20px;
- gap:0;
-}
-.ensemble-temp-axis-title-bottom,.ensemble-rain-axis-title-bottom,.ensemble-wind-axis-title-bottom{
- align-items:flex-start;
- justify-content:center;
- min-height:20px;
- padding:2px 0 0;
- border-top:1px solid color-mix(in srgb,var(--border) 68%,transparent);
- font-size:10px;
- line-height:1;
-}
-.ensemble-temp-axis-spacer,.ensemble-wind-axis-spacer{display:block}
-.ensemble-sky-strip{shape-rendering:geometricPrecision}
-
-/* Einheitliche mobile Plotbreite und dieselbe Datumsposition je Vorhersagetag. */
-@media(max-width:620px){
- .ensemble-temp-plot,.ensemble-rain-plot,.ensemble-wind-plot{
-  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
-  grid-template-rows:22px minmax(0,1fr);
-  gap:3px 8px;
- }
- .ensemble-temp-chart-core,.ensemble-rain-chart-core,.ensemble-wind-chart-core{
-  grid-column:1/-1;
-  grid-row:2;
-  grid-template-rows:minmax(0,1fr) 18px;
- }
- .ensemble-temp-axis-title-left,.ensemble-rain-axis-title-left,.ensemble-wind-axis-title-left{
-  grid-column:1;
-  grid-row:1;
-  justify-content:flex-start;
-  writing-mode:horizontal-tb;
-  transform:none;
-  gap:3px;
-  font-size:8px;
- }
- .ensemble-rain-axis-title-right{
-  grid-column:2;
-  grid-row:1;
-  justify-content:flex-end;
-  writing-mode:horizontal-tb;
-  transform:none;
-  text-align:right;
-  font-size:8px;
- }
- .ensemble-temp-axis-spacer,.ensemble-wind-axis-spacer{
-  display:block;
-  grid-column:2;
-  grid-row:1;
- }
- .ensemble-temp-axis-title-bottom,.ensemble-rain-axis-title-bottom,.ensemble-wind-axis-title-bottom{
-  min-height:18px;
-  padding-top:2px;
-  font-size:8.5px;
- }
-}
-
-/* Einheitliche Exportbreite: gleiche Tagesposition in Temperatur, Regen und Wind. */
-.ensemble-chart-export.ensemble-exporting .ensemble-temp-plot,
-.ensemble-chart-export.ensemble-exporting .ensemble-rain-plot,
-.ensemble-chart-export.ensemble-exporting .ensemble-wind-plot{
- grid-template-columns:42px 992px 46px;
- grid-template-rows:minmax(0,1fr);
- gap:8px;
- width:1096px;
- margin:0 auto;
-}
-.ensemble-chart-export.ensemble-exporting .ensemble-temp-plot .ensemble-fixed-chart,
-.ensemble-chart-export.ensemble-exporting .ensemble-wind-plot .ensemble-fixed-chart,
-.ensemble-chart-export.ensemble-exporting .ensemble-temp-plot .ensemble-fixed-chart>.recharts-wrapper,
-.ensemble-chart-export.ensemble-exporting .ensemble-wind-plot .ensemble-fixed-chart>.recharts-wrapper,
-.ensemble-chart-export.ensemble-exporting .ensemble-temp-plot .ensemble-fixed-chart>svg,
-.ensemble-chart-export.ensemble-exporting .ensemble-wind-plot .ensemble-fixed-chart>svg{
- width:992px!important;
- min-width:992px!important;
- max-width:992px!important;
-}
-
-
-/* MID v0.8.26.9 · sichtbare Ensemble-Wetterlage und umbruchfreier Temperatur-Tooltip */
-.ensemble-weather-layer,.ensemble-weather-day-layer{pointer-events:none}
-.ensemble-sky-box{shape-rendering:geometricPrecision;filter:drop-shadow(0 1px 1px rgba(17,31,45,.16))}
-.ensemble-sky-glyph{filter:drop-shadow(0 .5px .7px rgba(17,31,45,.18))}
-.ensemble-weather-layer .ensemble-hazard-marker circle{stroke-width:1.15;filter:drop-shadow(0 1px 2px rgba(0,0,0,.34))}
-
-.compact-trend-tooltip{
- width:min(382px,calc(100vw - 16px));
- max-width:min(382px,calc(100vw - 16px));
- overflow:hidden;
-}
-.compact-trend-tooltip .trend-tooltip-head strong,
-.compact-trend-tooltip .trend-tooltip-head span,
-.compact-trend-tooltip .trend-tooltip-matrix>span,
-.compact-trend-tooltip .tooltip-meta-line>*,
-.compact-trend-tooltip .tooltip-meta-block>span{
- white-space:nowrap;
-}
-.compact-trend-tooltip .trend-tooltip-matrix>.rowlabel{overflow:hidden;text-overflow:ellipsis}
-.compact-trend-tooltip .tooltip-meta-line{grid-template-columns:auto auto minmax(0,1fr)}
-.compact-trend-tooltip .tooltip-meta-line>span{min-width:0;overflow:hidden;text-overflow:ellipsis}
-.compact-trend-tooltip .tooltip-meta-block>span{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis}
-@media(max-width:520px){
- .compact-trend-tooltip{width:min(348px,calc(100vw - 12px));max-width:min(348px,calc(100vw - 12px))}
- .compact-trend-tooltip .trend-tooltip-matrix{grid-template-columns:minmax(68px,.82fr) minmax(76px,1fr) minmax(76px,1fr)}
- .compact-trend-tooltip .tooltip-meta-line{column-gap:5px}
-}
-@media(max-width:380px){
- .compact-trend-tooltip{width:calc(100vw - 10px);max-width:calc(100vw - 10px);padding:6px}
- .compact-trend-tooltip .trend-tooltip-matrix,.compact-trend-tooltip .trend-tooltip-meta{font-size:8.5px}
- .compact-trend-tooltip .trend-tooltip-matrix{grid-template-columns:minmax(60px,.72fr) minmax(70px,1fr) minmax(70px,1fr);gap:2px 3px}
- .compact-trend-tooltip .tooltip-meta-line b,.compact-trend-tooltip .tooltip-meta-block b{font-size:7.9px}
-}
-
-/* MID v0.8.26.10 · sichtbare Ensemble-Wetterzeile, umbruchfreie Tooltips und flüssiges Scrollen */
+/* Wetterband wie vor dem Audit: schmale tagesgenaue Sonnen-/Wolkenfelder direkt am Plotrand. */
 .ensemble-temp-chart-stage{position:relative;min-width:0;min-height:0;height:100%}
-.ensemble-weather-strip{
+.ensemble-legacy-weather-band{
  position:absolute;
- z-index:24;
- left:var(--ensemble-weather-left);
- right:var(--ensemble-weather-right);
- bottom:var(--ensemble-weather-bottom);
+ z-index:18;
+ left:var(--ensemble-legacy-left);
+ right:var(--ensemble-legacy-right);
+ bottom:var(--ensemble-legacy-bottom);
  display:grid;
- grid-template-columns:repeat(var(--ensemble-weather-days),minmax(0,1fr));
- align-items:stretch;
- height:27px;
+ grid-template-columns:repeat(var(--ensemble-legacy-days),minmax(0,1fr));
+ height:13px;
  pointer-events:none;
- contain:layout style;
  overflow:visible;
 }
-.ensemble-weather-cell{
+.ensemble-legacy-weather-cell{
  position:relative;
  display:grid;
  place-items:center;
  min-width:0;
- margin:0 1px;
+ height:13px;
+ margin:0 .5px;
+ border:1px solid rgba(112,126,138,.38);
+ border-radius:2px;
+ box-shadow:0 1px 1px rgba(17,31,45,.12);
  overflow:visible;
- border:1px solid rgba(105,118,130,.5);
- border-radius:4px;
- box-shadow:0 1px 2px rgba(17,31,45,.13);
 }
-.ensemble-day-weather-symbol{display:block;width:min(32px,100%);height:23px;overflow:visible;filter:none!important}
-.ensemble-day-hazards{position:absolute;z-index:2;top:-14px;left:50%;display:flex;gap:2px;transform:translateX(-50%);white-space:nowrap}
-.ensemble-day-hazards i{display:grid;width:14px;height:14px;place-items:center;border:1px solid rgba(255,255,255,.9);border-radius:50%;color:#172033;font-size:8px;font-style:normal;line-height:1;box-shadow:0 1px 2px rgba(0,0,0,.28)}
-.ensemble-weather-strip.exporting{height:30px}
-.ensemble-weather-strip.exporting .ensemble-day-weather-symbol{width:30px;height:25px}
+.ensemble-legacy-precip-glyph{display:block;width:17px;height:14px;overflow:visible}
+.ensemble-legacy-hazard-badges{position:absolute;z-index:2;top:-15px;left:50%;display:flex;gap:2px;transform:translateX(-50%);white-space:nowrap}
+.ensemble-legacy-hazard-badges i{display:grid;width:14px;height:14px;place-items:center;border:1px solid rgba(255,255,255,.9);border-radius:50%;color:#172033;font-size:8px;font-style:normal;line-height:1;box-shadow:0 1px 2px rgba(0,0,0,.28)}
+.ensemble-legacy-weather-band.exporting{height:14px}
+.ensemble-legacy-weather-band.exporting .ensemble-legacy-weather-cell{height:14px}
 
-/* Der Temperatur-Tooltip bleibt in jeder Zeile einzeilig; lange Texte werden sauber gekürzt. */
-.compact-trend-tooltip{width:min(410px,calc(100vw - 12px))!important;max-width:min(410px,calc(100vw - 12px))!important;overflow:hidden!important;overflow-wrap:normal!important;word-break:normal!important}
-.compact-trend-tooltip *{white-space:nowrap!important;overflow-wrap:normal!important;word-break:normal!important}
-.compact-trend-tooltip .trend-tooltip-head,.compact-trend-tooltip .trend-tooltip-matrix,.compact-trend-tooltip .trend-tooltip-meta{min-width:0;overflow:hidden}
-.compact-trend-tooltip .trend-tooltip-head strong,.compact-trend-tooltip .trend-tooltip-head span,.compact-trend-tooltip .trend-tooltip-matrix>span,.compact-trend-tooltip .tooltip-meta-line>*,.compact-trend-tooltip .tooltip-meta-block>span{min-width:0;overflow:hidden;text-overflow:ellipsis}
-.compact-trend-tooltip .tooltip-meta-block{min-width:0;overflow:hidden}
+/* Temperatur-Tooltip: kompakt, vollständig und ohne partielle Zeilenumbrüche. */
+.compact-trend-tooltip{
+ width:min(372px,calc(100vw - 16px));
+ max-width:min(372px,calc(100vw - 16px));
+ overflow:visible;
+ overflow-wrap:normal;
+ word-break:normal;
+}
+.compact-trend-tooltip .trend-tooltip-head,
+.compact-trend-tooltip .trend-tooltip-matrix,
+.compact-trend-tooltip .trend-tooltip-meta{min-width:0}
+.compact-trend-tooltip .trend-tooltip-head strong,
+.compact-trend-tooltip .trend-tooltip-head span,
+.compact-trend-tooltip .trend-tooltip-matrix>span,
+.compact-trend-tooltip .tooltip-meta-line>*,
+.compact-trend-tooltip .tooltip-meta-block>span{white-space:nowrap;overflow-wrap:normal;word-break:normal}
+.compact-trend-tooltip .trend-tooltip-matrix{grid-template-columns:minmax(82px,.9fr) minmax(88px,1fr) minmax(88px,1fr)}
+.compact-trend-tooltip .tooltip-meta-line{grid-template-columns:auto minmax(0,1fr) auto;column-gap:7px}
+.compact-trend-tooltip .tooltip-meta-line>span:nth-child(2){text-align:left}
+.compact-trend-tooltip .tooltip-meta-line>span:last-child{text-align:right}
+.compact-trend-tooltip .ensemble-hazard-tooltip>span{font-size:9px}
 @media(max-width:520px){
- .compact-trend-tooltip{width:calc(100vw - 8px)!important;max-width:calc(100vw - 8px)!important;padding:6px 7px!important}
- .compact-trend-tooltip .trend-tooltip-matrix,.compact-trend-tooltip .trend-tooltip-meta{font-size:8.6px!important}
- .compact-trend-tooltip .trend-tooltip-matrix{grid-template-columns:minmax(58px,.7fr) minmax(72px,1fr) minmax(72px,1fr)!important;gap:2px 3px!important}
- .compact-trend-tooltip .trend-tooltip-head strong{font-size:10px!important}
- .compact-trend-tooltip .trend-tooltip-head span{font-size:8.2px!important}
- .ensemble-weather-strip{height:24px}
- .ensemble-day-weather-symbol{height:20px}
- .ensemble-day-hazards{top:-12px}
- .ensemble-day-hazards i{width:12px;height:12px;font-size:7px}
+ .compact-trend-tooltip{width:calc(100vw - 10px);max-width:calc(100vw - 10px);padding:7px 8px}
+ .compact-trend-tooltip .trend-tooltip-head strong{font-size:11px}
+ .compact-trend-tooltip .trend-tooltip-head span{font-size:8.6px}
+ .compact-trend-tooltip .trend-tooltip-matrix,.compact-trend-tooltip .trend-tooltip-meta{font-size:8.9px}
+ .compact-trend-tooltip .trend-tooltip-matrix{grid-template-columns:minmax(66px,.76fr) minmax(78px,1fr) minmax(78px,1fr);gap:2px 4px}
+ .compact-trend-tooltip .tooltip-meta-line{column-gap:5px}
+ .compact-trend-tooltip .tooltip-meta-line b,.compact-trend-tooltip .tooltip-meta-block b{font-size:8px}
+ .ensemble-legacy-weather-band,.ensemble-legacy-weather-cell{height:12px}
+ .ensemble-legacy-precip-glyph{width:15px;height:13px}
+ .ensemble-legacy-hazard-badges{top:-13px}
+ .ensemble-legacy-hazard-badges i{width:12px;height:12px;font-size:7px}
 }
 @media(max-width:360px){
- .compact-trend-tooltip .trend-tooltip-matrix,.compact-trend-tooltip .trend-tooltip-meta{font-size:7.9px!important}
- .compact-trend-tooltip .trend-tooltip-matrix{grid-template-columns:minmax(52px,.64fr) minmax(66px,1fr) minmax(66px,1fr)!important}
- .compact-trend-tooltip .tooltip-meta-line b,.compact-trend-tooltip .tooltip-meta-block b{font-size:7.2px!important}
+ .compact-trend-tooltip{width:calc(100vw - 8px);max-width:calc(100vw - 8px);padding:6px}
+ .compact-trend-tooltip .trend-tooltip-matrix,.compact-trend-tooltip .trend-tooltip-meta{font-size:8.1px}
+ .compact-trend-tooltip .trend-tooltip-matrix{grid-template-columns:minmax(60px,.72fr) minmax(70px,1fr) minmax(70px,1fr);gap:2px 3px}
 }
-
-/* Recharts 3: keine zusätzliche Accessibility-DOM-Schicht, keine Layoutreads beim Scrollen. */
-.ensemble-chart-export{content-visibility:auto;contain-intrinsic-size:auto 420px}
-.ensemble-chart-export .recharts-wrapper,.ensemble-chart-export .recharts-surface{touch-action:pan-y;overscroll-behavior:contain;-webkit-tap-highlight-color:transparent}
-.ensemble-responsive-chart{contain:layout style;overflow:visible}
-.trend-combined .recharts-tooltip-wrapper{max-width:min(410px,calc(100vw - 8px))!important}

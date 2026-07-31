@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.8.26.11",
+  "releaseVersion": "0.8.26.12",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -101,6 +101,7 @@
     "scripts/test-ensemble-weather-overlay-tooltip-08268.mjs",
     "scripts/test-ensemble-precipitation-type-buildfix-08269.mjs",
     "scripts/test-ensemble-visual-scroll-regression-082610.mjs",
-    "scripts/test-ensemble-tooltip-helper-buildfix-082611.mjs"
+    "scripts/test-ensemble-tooltip-helper-buildfix-082611.mjs",
+    "scripts/test-ensemble-optical-restore-082612.mjs"
   ]
 }

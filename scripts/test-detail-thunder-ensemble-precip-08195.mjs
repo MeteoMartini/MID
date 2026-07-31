@@ -41,7 +41,7 @@ for(const token of [
  'strokeLinejoin="round"',
  'size={row.precipVisualSize}',
  "precipType=row.precipVisualType==='none'?null:row.precipVisualType",
- "hasPrecip=precipType!==null"
+ "<PrecipitationGlyph type={precipType}"
 ])need('Ensemble-Symbolik',ensemble,token);
 if(ensemble.includes('precipVisualCount')||ensemble.includes('count:1|2|3'))failures.push('Die alte Mehrfachsymbolik mit ein bis drei Tropfen/Flocken ist noch vorhanden.');
 for(const token of ['.hour-tooltip-precipitation em{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}', '.hourly-thunder-risk.high{color:#e66b54}'])need('Kompakt-CSS',styles,token);

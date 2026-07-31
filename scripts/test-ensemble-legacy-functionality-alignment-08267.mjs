@@ -18,9 +18,9 @@ for(const token of [
  '<Tooltip content={<TrendTooltip',
  '<Tooltip content={<RainTooltip',
  '<Tooltip content={<WindTooltip',
- 'function EnsembleWeatherStrip',
- '<PrecipitationGlyph',
- '<EnsembleHazardBadges',
+ 'function EnsembleLegacyWeatherBand',
+ '<PrecipitationGlyph type={precipType}',
+ 'ensemble-legacy-hazard-badges',
  'precipVisualType',
  'SunshineScaleLegend'
 ])need('Vollständige Ensemble-Funktion',panel,token);
@@ -36,12 +36,11 @@ for(const token of [
  'const ENSEMBLE_WIND_EXPORT_CHART_WIDTH=992;'
 ])need('Vertikale Tagesausrichtung',panel,token);
 for(const token of [
- 'MID v0.8.26.7 · vollständige Ensemble-Funktion und gemeinsame Tagesgeometrie',
- '.ensemble-temp-plot,.ensemble-rain-plot,.ensemble-wind-plot{',
- 'grid-template-columns:44px minmax(0,1fr) 52px;',
- '.ensemble-temp-axis-title-bottom,.ensemble-rain-axis-title-bottom,.ensemble-wind-axis-title-bottom{',
- 'border-top:1px solid color-mix(in srgb,var(--border) 68%,transparent);',
- 'grid-template-columns:42px 992px 46px;'
+ 'MID v0.8.26.12 · Ensemble-Optik v0.8.25.4 mit stabilem Recharts-3-Rahmen',
+ '.ensemble-temp-chart-stage{',
+ '.ensemble-legacy-weather-band{',
+ 'grid-template-columns:repeat(var(--ensemble-legacy-days),minmax(0,1fr));',
+ 'touch-action:pan-y;'
 ])need('Gemeinsame Plotgeometrie',styles,token);
 for(const token of ['ResizeObserver','contentRect.width','width:size.width','height:size.height','responsive:false'])need('Recharts-3-Liveframe',frame,token);
 if(frame.includes('ResponsiveContainer'))failures.push('Der Liveframe hängt erneut von ResponsiveContainer ab.');
@@ -55,4 +54,4 @@ if(!parsedPackage.scripts?.['test:ensemble-legacy-functionality-alignment'])fail
 if(!parsedBaseline.regressionTests?.includes('scripts/test-ensemble-legacy-functionality-alignment-08267.mjs'))failures.push('Baseline-Regression fehlt.');
 
 if(failures.length){console.error('Ensemble-Funktions-/Ausrichtungsprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Ensemble-Tooltips, Wetter-/Niederschlagskästchen, flüssiger Recharts-3-Liveframe und gemeinsame Tagesgeometrie geprüft.');
+console.log('Ensemble-Tooltips, schlankes Wetter-/Niederschlagsband, Hazardmarker, flüssiger Recharts-3-Liveframe und gemeinsame Tagesgeometrie geprüft.');

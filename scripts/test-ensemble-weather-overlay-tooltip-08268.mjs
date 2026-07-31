@@ -14,32 +14,31 @@ const need=(area,text,token)=>{if(!text.includes(token))failures.push(`${area}: 
 const forbid=(area,text,token)=>{if(text.includes(token))failures.push(`${area}: unerlaubt ${token}`)};
 
 for(const token of [
- 'function EnsembleDayWeatherSymbol',
- 'function EnsembleHazardBadges',
- 'function EnsembleWeatherStrip',
- 'ensemble-weather-strip${exporting',
+ 'function EnsembleLegacyWeatherBand',
+ 'ensemble-legacy-weather-band${exporting',
  'data.map(row=>',
- '<EnsembleDayWeatherSymbol row={row}/>',
+ 'className="ensemble-legacy-weather-cell"',
  '<PrecipitationGlyph type={precipType}',
- '<EnsembleHazardBadges hazards={row.hazards}/>',
- '<EnsembleWeatherStrip data={data} compact={compactTrendTooltip} exporting={exporting}/>',
+ 'className="ensemble-legacy-hazard-badges"',
+ '<EnsembleLegacyWeatherBand data={data} compact={compactTrendTooltip} exporting={exporting}/>',
  'compactPrecipitationTooltipLabel(row)',
- 'title={row.precipVisualLabel}'
-])need('Sichtbare Ensemble-Wetterzeile',panel,token);
-forbid('Sichtbare Ensemble-Wetterzeile',panel,'useCartesianScale');
-forbid('Sichtbare Ensemble-Wetterzeile',panel,'ZIndexLayer');
-forbid('Sichtbare Ensemble-Wetterzeile',panel,'<ReferenceArea');
-forbid('Sichtbare Ensemble-Wetterzeile',panel,'<ReferenceDot');
+ 'title={title}'
+])need('Sichtbares Ensemble-Wetterband',panel,token);
+forbid('Sichtbares Ensemble-Wetterband',panel,'useCartesianScale');
+forbid('Sichtbares Ensemble-Wetterband',panel,'ZIndexLayer');
+forbid('Sichtbares Ensemble-Wetterband',panel,'<ReferenceArea');
+forbid('Sichtbares Ensemble-Wetterband',panel,'<ReferenceDot');
+forbid('Sichtbares Ensemble-Wetterband',panel,'function EnsembleDayWeatherSymbol');
 
 for(const token of [
- 'MID v0.8.26.10 · sichtbare Ensemble-Wetterzeile, umbruchfreie Tooltips und flüssiges Scrollen',
- '.ensemble-weather-strip{',
- 'grid-template-columns:repeat(var(--ensemble-weather-days),minmax(0,1fr));',
- '.ensemble-weather-cell{',
- '.ensemble-day-hazards{',
- '.compact-trend-tooltip *{white-space:nowrap!important;',
- 'text-overflow:ellipsis'
-])need('Tooltip-/Wetterzeilen-CSS',styles,token);
+ 'MID v0.8.26.12 · Ensemble-Optik v0.8.25.4 mit stabilem Recharts-3-Rahmen',
+ '.ensemble-legacy-weather-band{',
+ 'grid-template-columns:repeat(var(--ensemble-legacy-days),minmax(0,1fr));',
+ '.ensemble-legacy-weather-cell{',
+ '.ensemble-legacy-hazard-badges{',
+ '.compact-trend-tooltip .trend-tooltip-matrix>span,',
+ 'white-space:nowrap;'
+])need('Tooltip-/Wetterband-CSS',styles,token);
 
 const source=ts.createSourceFile('EnsemblePanel.tsx',panel,ts.ScriptTarget.ESNext,true,ts.ScriptKind.TSX);
 if(source.parseDiagnostics.length)failures.push(...source.parseDiagnostics.map(item=>`Parser: ${item.messageText}`));
@@ -47,5 +46,5 @@ const parsedPackage=JSON.parse(pkg),parsedBaseline=JSON.parse(baseline);
 if(!parsedPackage.scripts?.['test:ensemble-weather-overlay-tooltip'])failures.push('Package-Testskript fehlt.');
 if(!parsedBaseline.regressionTests?.includes('scripts/test-ensemble-weather-overlay-tooltip-08268.mjs'))failures.push('Baseline-Regression fehlt.');
 
-if(failures.length){console.error('Ensemble-Wetterzeilen-/Tooltip-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Sonne-/Wolken-Kästchen, Niederschlagssymbolik, Hazardmarker und umbruchfreier Temperatur-Tooltip geprüft.');
+if(failures.length){console.error('Ensemble-Wetterband-/Tooltip-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
+console.log('Schlanke Sonne-/Wolken-Kästchen, Niederschlagssymbolik, Hazardmarker und umbruchfreier Temperatur-Tooltip geprüft.');

@@ -15,32 +15,29 @@ const need=(area,text,token)=>{if(!text.includes(token))failures.push(`${area}: 
 const forbid=(area,text,token)=>{if(text.includes(token))failures.push(`${area}: unerlaubt ${token}`)};
 
 for(const token of [
- 'function EnsembleWeatherStrip',
+ 'function EnsembleLegacyWeatherBand',
  'data.map(row=>',
- 'className="ensemble-weather-cell"',
- '<EnsembleDayWeatherSymbol row={row}/>',
- '<EnsembleHazardBadges hazards={row.hazards}/>',
+ 'className="ensemble-legacy-weather-cell"',
+ 'className="ensemble-legacy-hazard-badges"',
  '<PrecipitationGlyph type={precipType}',
- '</ComposedChart></EnsembleChartFrame><EnsembleWeatherStrip data={data} compact={compactTrendTooltip} exporting={exporting}/>',
- "'--ensemble-weather-days':String(Math.max(1,data.length))",
- "'--ensemble-weather-left':`${marginLeft+axisWidth}px`",
- "'--ensemble-weather-right':`${marginRight+rightReserve}px`"
-])need('Wetterzeile',panel,token);
-forbid('Wetterzeile',panel,'useCartesianScale');
-forbid('Wetterzeile',panel,'ZIndexLayer');
-forbid('Wetterzeile',panel,'accessibilityLayer');
+ '<EnsembleLegacyWeatherBand data={data} compact={compactTrendTooltip} exporting={exporting}/>',
+ "'--ensemble-legacy-days':String(Math.max(1,data.length))",
+ "'--ensemble-legacy-left':`${marginLeft+leftAxis}px`",
+ "'--ensemble-legacy-right':`${marginRight+rightAxis}px`"
+])need('Wetterband',panel,token);
+forbid('Wetterband',panel,'useCartesianScale');
+forbid('Wetterband',panel,'ZIndexLayer');
+forbid('Wetterband',panel,'accessibilityLayer');
 
 for(const token of [
- '.ensemble-weather-strip{',
+ '.ensemble-legacy-weather-band{',
  'position:absolute;',
- 'z-index:24;',
- 'grid-template-columns:repeat(var(--ensemble-weather-days),minmax(0,1fr));',
- '.ensemble-day-hazards{position:absolute;',
- '.compact-trend-tooltip *{white-space:nowrap!important;',
- '.ensemble-chart-export{content-visibility:auto;',
+ 'grid-template-columns:repeat(var(--ensemble-legacy-days),minmax(0,1fr));',
+ '.ensemble-legacy-hazard-badges{position:absolute;',
  'touch-action:pan-y;',
- '.ensemble-responsive-chart{contain:layout style;'
+ '.ensemble-responsive-chart{position:relative;'
 ])need('Darstellung/Performance',styles,token);
+if(styles.includes('.ensemble-chart-export{content-visibility:auto'))failures.push('Darstellung/Performance: unerlaubtes Ensemble-content-visibility.');
 for(const token of ['ResizeObserver(entries=>','entry.contentRect.width','entry.contentRect.height'])need('Resize-Performance',frame,token);
 forbid('Resize-Performance',frame,"window.addEventListener('orientationchange'");
 
@@ -51,4 +48,4 @@ if(!parsedPackage.scripts?.['test:ensemble-visual-scroll'])failures.push('Packag
 if(!parsedBaseline.regressionTests?.includes('scripts/test-ensemble-visual-scroll-regression-082610.mjs'))failures.push('Baseline-Regression fehlt.');
 
 if(failures.length){console.error('Ensemble-Darstellungs-/Scrollprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Ensemble-Wetterkästchen, Niederschlagssymbole, Hazardmarker, einzeiliger Tooltip und mobile Scrollentlastung geprüft.');
+console.log('Schlankes Ensemble-Wetterband, Niederschlagssymbole, Hazardmarker, einzeiliger Tooltip und mobile Scrollentlastung geprüft.');

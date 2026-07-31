@@ -1,3 +1,10 @@
+## 0.8.26.12
+
+- Ensemble-Diagramme: Optik und Bedienung des Temperaturdiagramms wieder auf den bewährten Stand von v0.8.25.4 zurückgeführt, weiterhin mit stabilem Recharts-3-Größenrahmen.
+- Ensemble-Diagramme: schmale tagesgenaue Sonne-/Wolkenfelder, Niederschlagssymbolik und Hazardmarker als leichte, exakt an der gemeinsamen Tagesachse ausgerichtete Ebene wiederhergestellt.
+- Ensemble-Diagramme: Temperatur-Tooltip kompakt und vollständig ohne partielle Zeilenumbrüche; lange technische Bezeichnungen wurden fachlich verkürzt statt abgeschnitten.
+- Performance: zusätzliche Recharts-Accessibility-Schicht, experimentelle Skalenebenen, große Wetterkarten-Overlays und content-visibility-Rasterisierung entfernt; vertikales Touch-Scrollen priorisiert.
+
 ## 0.8.26.11
 
 - Buildfix: Der im Temperatur-Ensemble-Tooltip verwendete Helfer `compactPrecipitationTooltipLabel` ist wieder eindeutig deklariert.

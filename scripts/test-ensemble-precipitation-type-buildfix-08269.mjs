@@ -15,8 +15,7 @@ const need=(token)=>{if(!panel.includes(token))failures.push(`EnsemblePanel: ${t
 const forbid=(token)=>{if(panel.includes(token))failures.push(`EnsemblePanel: unerlaubt ${token}`)};
 
 need("const precipType=row.precipVisualType==='none'?null:row.precipVisualType");
-need('hasPrecip=precipType!==null');
-need('{precipType&&<g');
+need('{precipType&&<svg');
 need('<PrecipitationGlyph type={precipType}');
 forbid('<PrecipitationGlyph type={row.precipVisualType}');
 
