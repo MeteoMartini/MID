@@ -9,7 +9,7 @@ const [water,styles,pkg,baseline]=await Promise.all([
 const failures=[];
 const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
 for(const token of [
-  'function tideEventsFromSeries(series:TideSeries,startIndex=2,limit=36)',
+  'function tideEventsFromSeries(series:TideSeries,startIndex=0,limit=36)',
   'function tideSeriesForDate(data:MarineForecast|undefined,date:string)',
   'function tideEventsForDate(data:MarineForecast|undefined,date:string)',
   'function WaterTideRow({points,events}',

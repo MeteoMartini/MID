@@ -1007,3 +1007,10 @@ MID verwendet für die Ensemble-Diagramme Recharts 3.8.1 mit einem gemeinsamen r
 Der Build prüft TypeScript ohne generierte Quellartefakte. `npm run sync-version` hält Paket, Lockfile, Baseline, Frontend, Worker und Service Worker synchron. Die CI führt reproduzierbare Installationen, Produktionsbuild, sämtliche Regressionstests und einen Audit der Produktionsabhängigkeiten aus. Ein zusätzlicher Wochenlauf prüft auch Entwicklungsabhängigkeiten; Dependabot erstellt nur überprüfbare Aktualisierungsvorschläge.
 
 Langfristig wachsende Radar-, KOSTRA- und Reisewettercaches sind LRU-begrenzt und entfernen abgelaufene Einträge. Die UI-Nachbearbeitung beobachtet nur noch relevante App- und Diagrammbereiche statt sämtlicher Dokumentattribute.
+
+## Ensemble-Liveanzeige und Flugwetter-Datenherkunft ab MID v0.8.26.5
+
+- Die drei Ensemble-Diagramme verwenden im sichtbaren App-Betrieb den nativen responsiven Modus von Recharts 3 und besitzen eine abgesicherte Mindesthöhe. Der feste PNG-Exportpfad bleibt davon getrennt.
+- Die Vereisungs- und Turbulenzdarstellungen der Meteogramme sind MID-Diagnosen aus den Druckniveau-Daten des jeweils ausgewählten Modells.
+- Sie sind nicht mit den operationellen DWD-Produkten ADWICE beziehungsweise WAWFOR-EDP gleichzusetzen.
+- Eine spätere direkte WAWFOR-Anbindung setzt einen vertraglich freigeschalteten DWD-Zugang sowie einen serverseitigen GRIB2-Ingest voraus. Ein vollständiger WAWFOR-Datensatz wird nicht in den Browser geladen.

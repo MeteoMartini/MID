@@ -1,3 +1,22 @@
+## 0.8.26.6
+
+- Buildfix: In der Gezeiten-Glättung des Wasserwetter-Moduls wurde ein ungenutzter Callback-Parameter entfernt, der bei aktiviertem `noUnusedParameters` den TypeScript-Produktionsbuild mit TS6133 abbrach.
+- Regression ergänzt, damit derselbe Buildfehler nicht erneut eingeführt wird.
+- Die Ensemble-/Flugwetterquellen-Regression akzeptiert nun spätere Wartungsstände der v0.8.26-Linie und blockiert dadurch keine legitimen Buildfix-Releases mehr.
+
+## 0.8.26.5
+
+- Ensemble-Diagramme: Recharts-3-Liveansicht auf den nativen responsiven Diagrammmodus umgestellt und mit einer belastbaren Mindesthöhe versehen; Temperatur-, Niederschlags- und Winddiagramme kollabieren dadurch nicht mehr auf 0 Pixel.
+- Ensemble-Export: feste, deterministische PNG-Geometrie bleibt unverändert erhalten und ist vom responsiven Livepfad getrennt.
+- Flugmeteogramme: Datenherkunft für Vereisungs- und Turbulenzfelder transparent gekennzeichnet. Die dargestellten Felder bleiben MID-Diagnosen aus Druckniveaudaten und werden nicht fälschlich als direkte DWD-ADWICE- oder WAWFOR-EDP-Produkte bezeichnet.
+- DWD-Flugwetterprüfung dokumentiert: ADWICE ist ein Produkt für den europäischen Luftraum; globale Turbulenz-/EDP-Daten werden über den vertragspflichtigen WAWFOR-Datensatz in GRIB2 bereitgestellt und sind kein frei abrufbares Open-Data-Produkt.
+
+## 0.8.26.4
+
+- Wasserwetter-Verlauf: Gezeitenwendepunkte werden mit einer amplitudenadaptiven, zeitfensterbasierten Extremenerkennung ermittelt. Dadurch werden Hoch- und Tiefpunkte auch bei flachen 15-Minuten-Wasserstandskurven zuverlässig erkannt.
+- Gezeiten: unvollständige oder für die Wendepunkterkennung ungeeignete 15-Minuten-Daten fallen automatisch auf die vollständige stündliche Wasserstandsreihe zurück.
+- Marine-Datenabruf: der 15-Minuten-Wasserstand wird ausdrücklich für den vollständigen achtägigen Vorhersagezeitraum angefordert; nicht benötigte 15-Minuten-Strömungsfelder entfallen zugunsten geringerer Datenlast.
+
 ## 0.8.26.3
 
 - GitHub-Regressionen von der im Repository bereits aktiven Workflowgeneration entkoppelt: geprüft wird nun das kanonische, im Release gebündelte Workflowpaket. Dadurch bleibt der reguläre MID-Installer auch mit dem älteren aktiven Installationsworkflow lauffähig.

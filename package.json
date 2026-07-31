@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.8.26.3",
+  "version": "0.8.26.6",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -117,7 +117,10 @@
     "test:recharts3-reference-dot-buildfix": "node scripts/test-recharts3-reference-dot-buildfix-08261.mjs",
     "test:ci-regression-determinism": "node scripts/test-ci-regression-determinism-08262.mjs",
     "sync:github-workflows": "node scripts/sync-github-workflows.mjs",
-    "test:github-workflow-bootstrap": "node scripts/test-github-workflow-bootstrap-08263.mjs"
+    "test:github-workflow-bootstrap": "node scripts/test-github-workflow-bootstrap-08263.mjs",
+    "test:water-tide-turning-points": "node scripts/test-water-tide-turning-points-08264.mjs",
+    "test:ensemble-runtime-aviation-source": "node scripts/test-ensemble-runtime-aviation-source-08265.mjs",
+    "test:water-unused-callback-buildfix": "node scripts/test-water-unused-callback-buildfix-08266.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

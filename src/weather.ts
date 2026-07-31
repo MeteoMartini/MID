@@ -240,7 +240,7 @@ export async function mountainForecast(lat:number,lon:number,valleyElevation:num
 export async function marineForecast(lat:number,lon:number,timezone='auto',signal?:AbortSignal):Promise<MarineForecast>{
  const variables=['wave_height','wave_direction','wave_period','wave_peak_period','wind_wave_height','wind_wave_direction','wind_wave_period','wind_wave_peak_period','swell_wave_height','swell_wave_direction','swell_wave_period','swell_wave_peak_period','secondary_swell_wave_height','secondary_swell_wave_direction','secondary_swell_wave_period','sea_level_height_msl','sea_surface_temperature','ocean_current_velocity','ocean_current_direction'];
  const daily=['wave_height_max','wave_direction_dominant','wave_period_max','wind_wave_height_max','wind_wave_direction_dominant','wind_wave_period_max','wind_wave_peak_period_max','swell_wave_height_max','swell_wave_direction_dominant','swell_wave_period_max','swell_wave_peak_period_max'];
- const p=new URLSearchParams({latitude:String(lat),longitude:String(lon),timezone:timezone||'auto',forecast_days:'8',cell_selection:'sea',wind_speed_unit:'kn',current:variables.join(','),hourly:variables.join(','),minutely_15:['sea_level_height_msl','ocean_current_velocity','ocean_current_direction'].join(','),daily:daily.join(',')});
+ const p=new URLSearchParams({latitude:String(lat),longitude:String(lon),timezone:timezone||'auto',forecast_days:'8',forecast_minutely_15:String(8*24*4),cell_selection:'sea',wind_speed_unit:'kn',current:variables.join(','),hourly:variables.join(','),minutely_15:'sea_level_height_msl',daily:daily.join(',')});
  return j<MarineForecast>(`https://marine-api.open-meteo.com/v1/marine?${p}`,signal);
 }
 

@@ -13,19 +13,19 @@ const failures=[];
 const need=(text,token)=>{if(!text.includes(token))failures.push(`fehlt: ${token}`)};
 for(const token of [
  'function tideSeriesForDate(data:MarineForecast|undefined,date:string)',
- 'fullDay=minutes.length&&Math.min(...minutes)<=60&&Math.max(...minutes)>=1380',
- 'tideEventsFromSeries(tideSeriesForDate(data,date))',
+ 'fullDay=minutes.length>0&&Math.min(...minutes)<=60&&Math.max(...minutes)>=1380',
+ 'primary=tideSeriesForDate(data,date)',
  'Gezeiten werden unabhängig vom angezeigten Aktivitätszeitfenster für den gesamten jeweiligen Kalendertag aufgeführt.'
 ])need(source,token);
 need(pkg,'test:water-tides-full-calendar-day');
 need(baseline,'scripts/test-water-tides-full-calendar-day-08254.mjs');
 
 const start=source.indexOf("type TideEvent=");
-const endToken='function tideEventsForDate(data:MarineForecast|undefined,date:string){return tideEventsFromSeries(tideSeriesForDate(data,date)).filter(event=>event.time.slice(0,10)===date)}';
+const endToken='function tideAnalysis(';
 const end=source.indexOf(endToken);
 if(start<0||end<0)failures.push('Hilfslogik konnte nicht für den dynamischen Test isoliert werden.');
 else{
- const isolated=`type MarineForecast={hourly:Record<string,(number|string|null)[]>;minutely_15?:Record<string,(number|string|null)[]>};\n${source.slice(start,end+endToken.length)}\nexport {tideEventsForDate};\n`;
+ const isolated=`type MarineForecast={hourly:Record<string,(number|string|null)[]>;minutely_15?:Record<string,(number|string|null)[]>};\n${source.slice(start,end)}\nexport {tideEventsForDate};\n`;
  const dir=await mkdtemp(join(tmpdir(),'mid-tides-08254-'));
  try{
   const output=ts.transpileModule(isolated,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022},fileName:'tides.ts'}).outputText;
