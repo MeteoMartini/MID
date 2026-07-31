@@ -14,11 +14,10 @@ const failures=[];
 const need=(token)=>{if(!panel.includes(token))failures.push(`EnsemblePanel: ${token}`)};
 const forbid=(token)=>{if(panel.includes(token))failures.push(`EnsemblePanel: unerlaubt ${token}`)};
 
-need("precipType=row.precipVisualType==='none'?null:row.precipVisualType");
+need("const precipType=row.precipVisualType==='none'?null:row.precipVisualType");
 need('hasPrecip=precipType!==null');
 need('{precipType&&<g');
 need('<PrecipitationGlyph type={precipType}');
-forbid('{hasPrecip&&<g');
 forbid('<PrecipitationGlyph type={row.precipVisualType}');
 
 const source=ts.createSourceFile('EnsemblePanel.tsx',panel,ts.ScriptTarget.ESNext,true,ts.ScriptKind.TSX);
@@ -40,4 +39,4 @@ if(!parsedPackage.scripts?.['test:ensemble-precipitation-type-buildfix'])failure
 if(!parsedBaseline.regressionTests?.includes('scripts/test-ensemble-precipitation-type-buildfix-08269.mjs'))failures.push('Baseline-Regression fehlt.');
 
 if(failures.length){console.error('Ensemble-Niederschlagstyp-Buildfix fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Recharts-3-Niederschlagssymbolik ist auf aktive Typen eingegrenzt; der TS2322-Buildfehler ist geschützt.');
+console.log('Ensemble-Niederschlagssymbolik ist auf aktive Typen eingegrenzt; der TS2322-Buildfehler ist geschützt.');

@@ -3138,3 +3138,65 @@ button,input,select,[role="button"]{touch-action:manipulation}
  .compact-trend-tooltip .trend-tooltip-matrix{grid-template-columns:minmax(60px,.72fr) minmax(70px,1fr) minmax(70px,1fr);gap:2px 3px}
  .compact-trend-tooltip .tooltip-meta-line b,.compact-trend-tooltip .tooltip-meta-block b{font-size:7.9px}
 }
+
+/* MID v0.8.26.10 · sichtbare Ensemble-Wetterzeile, umbruchfreie Tooltips und flüssiges Scrollen */
+.ensemble-temp-chart-stage{position:relative;min-width:0;min-height:0;height:100%}
+.ensemble-weather-strip{
+ position:absolute;
+ z-index:24;
+ left:var(--ensemble-weather-left);
+ right:var(--ensemble-weather-right);
+ bottom:var(--ensemble-weather-bottom);
+ display:grid;
+ grid-template-columns:repeat(var(--ensemble-weather-days),minmax(0,1fr));
+ align-items:stretch;
+ height:27px;
+ pointer-events:none;
+ contain:layout style;
+ overflow:visible;
+}
+.ensemble-weather-cell{
+ position:relative;
+ display:grid;
+ place-items:center;
+ min-width:0;
+ margin:0 1px;
+ overflow:visible;
+ border:1px solid rgba(105,118,130,.5);
+ border-radius:4px;
+ box-shadow:0 1px 2px rgba(17,31,45,.13);
+}
+.ensemble-day-weather-symbol{display:block;width:min(32px,100%);height:23px;overflow:visible;filter:none!important}
+.ensemble-day-hazards{position:absolute;z-index:2;top:-14px;left:50%;display:flex;gap:2px;transform:translateX(-50%);white-space:nowrap}
+.ensemble-day-hazards i{display:grid;width:14px;height:14px;place-items:center;border:1px solid rgba(255,255,255,.9);border-radius:50%;color:#172033;font-size:8px;font-style:normal;line-height:1;box-shadow:0 1px 2px rgba(0,0,0,.28)}
+.ensemble-weather-strip.exporting{height:30px}
+.ensemble-weather-strip.exporting .ensemble-day-weather-symbol{width:30px;height:25px}
+
+/* Der Temperatur-Tooltip bleibt in jeder Zeile einzeilig; lange Texte werden sauber gekürzt. */
+.compact-trend-tooltip{width:min(410px,calc(100vw - 12px))!important;max-width:min(410px,calc(100vw - 12px))!important;overflow:hidden!important;overflow-wrap:normal!important;word-break:normal!important}
+.compact-trend-tooltip *{white-space:nowrap!important;overflow-wrap:normal!important;word-break:normal!important}
+.compact-trend-tooltip .trend-tooltip-head,.compact-trend-tooltip .trend-tooltip-matrix,.compact-trend-tooltip .trend-tooltip-meta{min-width:0;overflow:hidden}
+.compact-trend-tooltip .trend-tooltip-head strong,.compact-trend-tooltip .trend-tooltip-head span,.compact-trend-tooltip .trend-tooltip-matrix>span,.compact-trend-tooltip .tooltip-meta-line>*,.compact-trend-tooltip .tooltip-meta-block>span{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.compact-trend-tooltip .tooltip-meta-block{min-width:0;overflow:hidden}
+@media(max-width:520px){
+ .compact-trend-tooltip{width:calc(100vw - 8px)!important;max-width:calc(100vw - 8px)!important;padding:6px 7px!important}
+ .compact-trend-tooltip .trend-tooltip-matrix,.compact-trend-tooltip .trend-tooltip-meta{font-size:8.6px!important}
+ .compact-trend-tooltip .trend-tooltip-matrix{grid-template-columns:minmax(58px,.7fr) minmax(72px,1fr) minmax(72px,1fr)!important;gap:2px 3px!important}
+ .compact-trend-tooltip .trend-tooltip-head strong{font-size:10px!important}
+ .compact-trend-tooltip .trend-tooltip-head span{font-size:8.2px!important}
+ .ensemble-weather-strip{height:24px}
+ .ensemble-day-weather-symbol{height:20px}
+ .ensemble-day-hazards{top:-12px}
+ .ensemble-day-hazards i{width:12px;height:12px;font-size:7px}
+}
+@media(max-width:360px){
+ .compact-trend-tooltip .trend-tooltip-matrix,.compact-trend-tooltip .trend-tooltip-meta{font-size:7.9px!important}
+ .compact-trend-tooltip .trend-tooltip-matrix{grid-template-columns:minmax(52px,.64fr) minmax(66px,1fr) minmax(66px,1fr)!important}
+ .compact-trend-tooltip .tooltip-meta-line b,.compact-trend-tooltip .tooltip-meta-block b{font-size:7.2px!important}
+}
+
+/* Recharts 3: keine zusätzliche Accessibility-DOM-Schicht, keine Layoutreads beim Scrollen. */
+.ensemble-chart-export{content-visibility:auto;contain-intrinsic-size:auto 420px}
+.ensemble-chart-export .recharts-wrapper,.ensemble-chart-export .recharts-surface{touch-action:pan-y;overscroll-behavior:contain;-webkit-tap-highlight-color:transparent}
+.ensemble-responsive-chart{contain:layout style;overflow:visible}
+.trend-combined .recharts-tooltip-wrapper{max-width:min(410px,calc(100vw - 8px))!important}

@@ -1,3 +1,16 @@
+## 0.8.26.11
+
+- Buildfix: Der im Temperatur-Ensemble-Tooltip verwendete Helfer `compactPrecipitationTooltipLabel` ist wieder eindeutig deklariert.
+- Ensemble-Funktionalität bleibt unverändert: Wetterkästchen, Niederschlagssymbolik, Hazardmarker, Tooltips und die gemeinsame Tagesausrichtung werden nicht verändert.
+- Neue Regression verhindert eine erneute Verwendung des Tooltip-Helfers ohne passende Deklaration.
+
+## 0.8.26.10
+
+- Ensemble-Temperaturdiagramm: Sonne-/Wolken-Kästchen, Niederschlagssymbolik und Hazardmarker werden wieder als eigenständige, stets sichtbare Tageszeile oberhalb der Datumsachse dargestellt. Die Tagespositionen nutzen dieselben linken und rechten Achsenreserven wie alle drei Ensemble-Diagramme.
+- Ensemble-Temperaturtooltip: sämtliche Tabellen-, Zusatz- und Hazardzeilen bleiben einzeilig; lange Inhalte werden kontrolliert gekürzt statt umgebrochen.
+- Ensemble-Performance: experimentelle Recharts-Skalenhooks und die zusätzliche Accessibility-DOM-Schicht wurden entfernt. ResizeObserver nutzt direkt die gelieferten Maße, Offscreen-Diagramme verwenden content-visibility und Touch-Flächen erlauben ungehindertes vertikales Scrollen.
+- Regressionen: Sichtbarkeit der Wetterzeile, Niederschlags- und Hazardmarker, gemeinsame Tagesgeometrie, Tooltip-Zeilen und mobile Scrollentlastung sind zusätzlich abgesichert.
+
 ## 0.8.26.9
 
 - Ensemble-Diagramme: TypeScript-Buildfehler der wiederhergestellten Niederschlagssymbolik behoben. Der Zustand `none` wird vor der Übergabe an das Regen-/Schnee-/Mischform-Piktogramm explizit ausgeschlossen.

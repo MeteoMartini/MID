@@ -18,10 +18,9 @@ for(const token of [
  '<Tooltip content={<TrendTooltip',
  '<Tooltip content={<RainTooltip',
  '<Tooltip content={<WindTooltip',
- 'function EnsembleWeatherLayer',
+ 'function EnsembleWeatherStrip',
  '<PrecipitationGlyph',
- '<EnsembleHazardShape',
- '<ZIndexLayer zIndex={1800}>',
+ '<EnsembleHazardBadges',
  'precipVisualType',
  'SunshineScaleLegend'
 ])need('Vollständige Ensemble-Funktion',panel,token);
@@ -44,8 +43,10 @@ for(const token of [
  'border-top:1px solid color-mix(in srgb,var(--border) 68%,transparent);',
  'grid-template-columns:42px 992px 46px;'
 ])need('Gemeinsame Plotgeometrie',styles,token);
-for(const token of ['ResizeObserver','getBoundingClientRect()','width:size.width','height:size.height','responsive:false'])need('Recharts-3-Liveframe',frame,token);
+for(const token of ['ResizeObserver','contentRect.width','width:size.width','height:size.height','responsive:false'])need('Recharts-3-Liveframe',frame,token);
 if(frame.includes('ResponsiveContainer'))failures.push('Der Liveframe hängt erneut von ResponsiveContainer ab.');
+if(panel.includes('accessibilityLayer'))failures.push('Die zusätzliche Recharts-DOM-Schicht bremst mobiles Scrollen erneut aus.');
+if(panel.includes('useCartesianScale')||panel.includes('ZIndexLayer'))failures.push('Experimentelle Recharts-Skalenhooks sind wieder aktiv.');
 
 const source=ts.createSourceFile('EnsemblePanel.tsx',panel,ts.ScriptTarget.ESNext,true,ts.ScriptKind.TSX);
 if(source.parseDiagnostics.length)failures.push(...source.parseDiagnostics.map(item=>`Parser: ${item.messageText}`));
@@ -54,4 +55,4 @@ if(!parsedPackage.scripts?.['test:ensemble-legacy-functionality-alignment'])fail
 if(!parsedBaseline.regressionTests?.includes('scripts/test-ensemble-legacy-functionality-alignment-08267.mjs'))failures.push('Baseline-Regression fehlt.');
 
 if(failures.length){console.error('Ensemble-Funktions-/Ausrichtungsprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Ensemble-Tooltips, Wetter-/Niederschlagskästchen, Recharts-3-Liveframe und gemeinsame Tagesgeometrie geprüft.');
+console.log('Ensemble-Tooltips, Wetter-/Niederschlagskästchen, flüssiger Recharts-3-Liveframe und gemeinsame Tagesgeometrie geprüft.');

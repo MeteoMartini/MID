@@ -11,23 +11,26 @@ const forbid=(token)=>{if(panel.includes(token))failures.push(`unerlaubt: ${toke
 forbid('const ENSEMBLE_EXPORT_PLOT_WIDTH=');
 forbid(' isFront');
 forbid('<ReferenceDot');
-need('ZIndexLayer,useCartesianScale');
-need('<ZIndexLayer zIndex={1800}>');
-need('function EnsembleWeatherDayLayer');
-need('<PrecipitationGlyph');
-need('<EnsembleHazardShape');
+forbid('useCartesianScale');
+forbid('ZIndexLayer');
+need('function EnsembleWeatherStrip');
+need('ensemble-weather-strip${exporting');
+need('<EnsembleDayWeatherSymbol row={row}/>');
+need('<EnsembleHazardBadges hazards={row.hazards}/>');
+need('<PrecipitationGlyph type={precipType}');
 
 const source=ts.createSourceFile('EnsemblePanel.tsx',panel,ts.ScriptTarget.ESNext,true,ts.ScriptKind.TSX);
 if(source.parseDiagnostics.length)failures.push(...source.parseDiagnostics.map(item=>`Parser: ${item.messageText}`));
-let zIndexLayers=0,referenceDots=0;
+let referenceDots=0,weatherStrips=0;
 const visit=node=>{
- if(ts.isJsxElement(node)&&node.openingElement.tagName.getText(source)==='ZIndexLayer')zIndexLayers+=1;
+ if(ts.isJsxElement(node)&&node.openingElement.tagName.getText(source)==='EnsembleWeatherStrip')weatherStrips+=1;
+ if(ts.isJsxSelfClosingElement(node)&&node.tagName.getText(source)==='EnsembleWeatherStrip')weatherStrips+=1;
  if(ts.isJsxSelfClosingElement(node)&&node.tagName.getText(source)==='ReferenceDot')referenceDots+=1;
  ts.forEachChild(node,visit)
 };
 visit(source);
-if(zIndexLayers<1)failures.push('Keine Recharts-3-ZIndexLayer-Wetterebene gefunden.');
+if(weatherStrips!==1)failures.push(`Erwartet genau eine sichtbare Wetterzeile, gefunden ${weatherStrips}.`);
 if(referenceDots!==0)failures.push(`Alte ReferenceDot-Marker noch vorhanden: ${referenceDots}.`);
 
 if(failures.length){console.error('Recharts-3-Wetterebenen-Buildfix fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Recharts-3-ZIndexLayer, Koordinatenskalierung und entfernte Alt-ReferenceDot-Props geprüft.');
+console.log('Recharts-3-Wetterzeile ist unabhängig von experimentellen Skalenhooks und alten ReferenceDot-Props.');

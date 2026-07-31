@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.8.26.9",
+  "version": "0.8.26.11",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -123,7 +123,9 @@
     "test:water-unused-callback-buildfix": "node scripts/test-water-unused-callback-buildfix-08266.mjs",
     "test:ensemble-legacy-functionality-alignment": "node scripts/test-ensemble-legacy-functionality-alignment-08267.mjs",
     "test:ensemble-weather-overlay-tooltip": "node scripts/test-ensemble-weather-overlay-tooltip-08268.mjs",
-    "test:ensemble-precipitation-type-buildfix": "node scripts/test-ensemble-precipitation-type-buildfix-08269.mjs"
+    "test:ensemble-precipitation-type-buildfix": "node scripts/test-ensemble-precipitation-type-buildfix-08269.mjs",
+    "test:ensemble-visual-scroll": "node scripts/test-ensemble-visual-scroll-regression-082610.mjs",
+    "test:ensemble-tooltip-helper-buildfix": "node scripts/test-ensemble-tooltip-helper-buildfix-082611.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

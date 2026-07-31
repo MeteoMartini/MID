@@ -40,7 +40,8 @@ if(!pkg.scripts?.build?.includes('tsc --noEmit -p tsconfig.app.json')||pkg.scrip
 
 const panel=files['src/EnsemblePanel.tsx'],frame=files['src/EnsembleChartFrame.tsx'];
 need('Recharts-3-Migration',panel,"from 'recharts'");
-if((panel.match(/<ComposedChart\b/g)||[]).length!==3||(panel.match(/<ComposedChart[^>]*accessibilityLayer/g)||[]).length!==3)failures.push('Nicht alle drei Ensemble-Diagramme verwenden die Recharts-3-Zugänglichkeitsschicht.');
+if((panel.match(/<ComposedChart\b/g)||[]).length!==3)failures.push('Es sind nicht genau drei Ensemble-Diagramme vorhanden.');
+if(panel.includes('accessibilityLayer'))failures.push('Die zusätzliche Recharts-Accessibility-DOM-Schicht ist wegen mobiler Scrolllast wieder aktiv.');
 for(const token of ['className="ensemble-responsive-chart"','ResizeObserver','getBoundingClientRect()','width:size.width','height:size.height','responsive:false'])need('Recharts-Frame',frame,token);forbid('Recharts-Frame',frame,'ResponsiveContainer');need('Recharts-Frame',panel,"from './EnsembleChartFrame'");
 forbid('Recharts-3-Migration',panel,'recharts/lib/');forbid('Recharts-3-Migration',panel,'recharts/es6/');forbid('Recharts-3-Migration',panel,'activeIndex=');
 
