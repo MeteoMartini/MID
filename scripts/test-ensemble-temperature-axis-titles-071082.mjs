@@ -6,7 +6,7 @@ const [panel,styles]=await Promise.all([
 ]);
 const failures=[];
 for(const token of [
-  'ENSEMBLE_TEMP_EXPORT_CHART_WIDTH=1000',
+  'ENSEMBLE_TEMP_EXPORT_CHART_WIDTH=992',
   'className="ensemble-temp-plot"',
   'ensemble-temp-axis-title-left',
   'ensemble-temp-axis-title-bottom',
@@ -22,14 +22,14 @@ for(const obsolete of [
 ])if(trendBlock.includes(obsolete))failures.push(`Recharts-Achsentitel darf im Temperaturdiagramm nicht mehr verwendet werden: ${obsolete}`);
 for(const token of [
   '.ensemble-temp-plot{',
-  'grid-template-columns:44px minmax(0,1fr) 38px',
+  'grid-template-columns:44px minmax(0,1fr) 52px',
   '.ensemble-temp-chart-core{',
   'writing-mode:vertical-rl',
   '@media(max-width:620px)',
   'grid-template-rows:22px minmax(0,1fr)',
   '.ensemble-chart-export.ensemble-exporting .ensemble-temp-plot{',
-  'grid-template-columns:42px 1000px 38px',
-  'width:1000px!important'
+  'grid-template-columns:42px 992px 46px',
+  'width:992px!important'
 ])if(!styles.includes(token))failures.push(`Responsives Temperatur-Achsentitel-Styling fehlt: ${token}`);
 if(failures.length){
   console.error('Ensemble-Temperaturachsen fehlgeschlagen:\n- '+failures.join('\n- '));

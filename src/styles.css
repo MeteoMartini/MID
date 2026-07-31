@@ -2274,7 +2274,7 @@ button,input,select,[role="button"]{touch-action:manipulation}
 /* MID v0.7.108.2 – dauerhaft lesbare Achsentitel im Ensemble-Temperaturdiagramm */
 .ensemble-temp-plot{
   display:grid;
-  grid-template-columns:44px minmax(0,1fr) 38px;
+  grid-template-columns:44px minmax(0,1fr) 52px;
   gap:6px;
   align-items:stretch;
   flex:1 1 auto;
@@ -2350,7 +2350,7 @@ button,input,select,[role="button"]{touch-action:manipulation}
   .ensemble-temp-axis-spacer{display:none}
 }
 .ensemble-chart-export.ensemble-exporting .ensemble-temp-plot{
-  grid-template-columns:42px 1000px 38px;
+  grid-template-columns:42px 992px 46px;
   grid-template-rows:minmax(0,1fr);
   gap:8px;
   width:1096px;
@@ -2378,9 +2378,9 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .ensemble-chart-export.ensemble-exporting .ensemble-temp-plot .ensemble-fixed-chart,
 .ensemble-chart-export.ensemble-exporting .ensemble-temp-plot .ensemble-fixed-chart>.recharts-wrapper,
 .ensemble-chart-export.ensemble-exporting .ensemble-temp-plot .ensemble-fixed-chart>svg{
-  width:1000px!important;
-  min-width:1000px!important;
-  max-width:1000px!important;
+  width:992px!important;
+  min-width:992px!important;
+  max-width:992px!important;
 }
 
 /* MID v0.7.108.3 – SVG-Modellkonturen und kollisionsfreie mobile Komposit-Overlays */
@@ -2809,7 +2809,7 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .wind-legend i.line.mean{border-top-width:2px;border-top-style:dashed}
 .wind-legend i.line.mean.wind{border-color:#56b9ef}
 .wind-legend i.line.mean.gust{border-color:#f7a45d}
-.ensemble-wind-plot{display:grid;grid-template-columns:44px minmax(0,1fr) 38px;gap:6px;align-items:stretch;flex:1 1 auto;width:100%;min-width:0;min-height:0}
+.ensemble-wind-plot{display:grid;grid-template-columns:44px minmax(0,1fr) 52px;gap:6px;align-items:stretch;flex:1 1 auto;width:100%;min-width:0;min-height:0}
 .ensemble-wind-chart-core{display:grid;grid-template-rows:minmax(0,1fr) 28px;min-width:0;min-height:0}
 .ensemble-wind-chart-core>.recharts-responsive-container{min-width:0!important;min-height:0!important}
 .ensemble-wind-axis-title{color:var(--muted);font-size:10px;font-weight:700;line-height:1;letter-spacing:.01em;pointer-events:none;user-select:none}
@@ -2834,14 +2834,14 @@ button,input,select,[role="button"]{touch-action:manipulation}
 }
 @media(max-width:420px){.chart.wind-trend{height:300px}.wind-legend{font-size:7.5px}.wind-legend small{font-size:7px}}
 .ensemble-chart-export.ensemble-exporting .chart.wind-trend{height:365px!important}
-.ensemble-chart-export.ensemble-exporting .ensemble-wind-plot{grid-template-columns:42px 1000px 38px;grid-template-rows:minmax(0,1fr);gap:8px;width:1096px;margin:0 auto}
+.ensemble-chart-export.ensemble-exporting .ensemble-wind-plot{grid-template-columns:42px 992px 46px;grid-template-rows:minmax(0,1fr);gap:8px;width:1096px;margin:0 auto}
 .ensemble-chart-export.ensemble-exporting .ensemble-wind-chart-core{grid-column:auto;grid-row:auto;grid-template-rows:minmax(0,1fr) 28px}
 .ensemble-chart-export.ensemble-exporting .ensemble-wind-axis-title-left{grid-column:auto;grid-row:auto;justify-content:center;writing-mode:vertical-rl;transform:rotate(180deg);font-size:10px}
 .ensemble-chart-export.ensemble-exporting .ensemble-wind-axis-title-bottom{align-items:end;padding-top:5px;font-size:11px}
 .ensemble-chart-export.ensemble-exporting .ensemble-wind-axis-spacer{display:block}
 .ensemble-chart-export.ensemble-exporting .ensemble-wind-plot .ensemble-fixed-chart,
 .ensemble-chart-export.ensemble-exporting .ensemble-wind-plot .ensemble-fixed-chart>.recharts-wrapper,
-.ensemble-chart-export.ensemble-exporting .ensemble-wind-plot .ensemble-fixed-chart>svg{width:1000px!important;min-width:1000px!important;max-width:1000px!important}
+.ensemble-chart-export.ensemble-exporting .ensemble-wind-plot .ensemble-fixed-chart>svg{width:992px!important;min-width:992px!important;max-width:992px!important}
 
 /* MID v0.8.18.0 – Flugmeteorologie: Cross Section und gruppierte Meteogramme */
 .flight-meteorology{display:grid;gap:12px}
@@ -3010,3 +3010,96 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .meteogram-source-disclosure{margin:0 0 10px;padding:8px 10px;border:1px solid var(--border);border-radius:12px;background:color-mix(in srgb,var(--s2) 84%,var(--surface));color:var(--muted);font-size:9px;line-height:1.4}
 .meteogram-source-disclosure summary{cursor:pointer;color:var(--text);font-weight:800;list-style-position:inside}
 .meteogram-source-disclosure p{margin:6px 0 0}
+
+/* MID v0.8.26.7 · vollständige Ensemble-Funktion und gemeinsame Tagesgeometrie */
+.ensemble-responsive-chart{position:relative;display:block;width:100%;height:100%;min-width:0;min-height:180px;overflow:visible}
+.ensemble-responsive-chart>.recharts-wrapper,.ensemble-responsive-chart>svg{display:block;max-width:none!important;overflow:visible}
+.ensemble-chart-measuring{display:block;width:100%;height:100%;min-height:180px}
+.ensemble-chart-export .recharts-tooltip-wrapper{z-index:30!important;pointer-events:none}
+.ensemble-chart-export .recharts-tooltip-wrapper .trend-tooltip,
+.ensemble-chart-export .recharts-tooltip-wrapper .rain-tooltip,
+.ensemble-chart-export .recharts-tooltip-wrapper .wind-tooltip{max-width:min(330px,calc(100vw - 24px))}
+
+/* Alle drei Diagramme reservieren links und rechts exakt dieselbe Breite. */
+.ensemble-temp-plot,.ensemble-rain-plot,.ensemble-wind-plot{
+ grid-template-columns:44px minmax(0,1fr) 52px;
+ gap:6px;
+}
+.ensemble-temp-chart-core,.ensemble-rain-chart-core,.ensemble-wind-chart-core{
+ grid-template-rows:minmax(0,1fr) 20px;
+ gap:0;
+}
+.ensemble-temp-axis-title-bottom,.ensemble-rain-axis-title-bottom,.ensemble-wind-axis-title-bottom{
+ align-items:flex-start;
+ justify-content:center;
+ min-height:20px;
+ padding:2px 0 0;
+ border-top:1px solid color-mix(in srgb,var(--border) 68%,transparent);
+ font-size:10px;
+ line-height:1;
+}
+.ensemble-temp-axis-spacer,.ensemble-wind-axis-spacer{display:block}
+.ensemble-sky-strip{shape-rendering:geometricPrecision}
+
+/* Einheitliche mobile Plotbreite und dieselbe Datumsposition je Vorhersagetag. */
+@media(max-width:620px){
+ .ensemble-temp-plot,.ensemble-rain-plot,.ensemble-wind-plot{
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  grid-template-rows:22px minmax(0,1fr);
+  gap:3px 8px;
+ }
+ .ensemble-temp-chart-core,.ensemble-rain-chart-core,.ensemble-wind-chart-core{
+  grid-column:1/-1;
+  grid-row:2;
+  grid-template-rows:minmax(0,1fr) 18px;
+ }
+ .ensemble-temp-axis-title-left,.ensemble-rain-axis-title-left,.ensemble-wind-axis-title-left{
+  grid-column:1;
+  grid-row:1;
+  justify-content:flex-start;
+  writing-mode:horizontal-tb;
+  transform:none;
+  gap:3px;
+  font-size:8px;
+ }
+ .ensemble-rain-axis-title-right{
+  grid-column:2;
+  grid-row:1;
+  justify-content:flex-end;
+  writing-mode:horizontal-tb;
+  transform:none;
+  text-align:right;
+  font-size:8px;
+ }
+ .ensemble-temp-axis-spacer,.ensemble-wind-axis-spacer{
+  display:block;
+  grid-column:2;
+  grid-row:1;
+ }
+ .ensemble-temp-axis-title-bottom,.ensemble-rain-axis-title-bottom,.ensemble-wind-axis-title-bottom{
+  min-height:18px;
+  padding-top:2px;
+  font-size:8.5px;
+ }
+}
+
+/* Einheitliche Exportbreite: gleiche Tagesposition in Temperatur, Regen und Wind. */
+.ensemble-chart-export.ensemble-exporting .ensemble-temp-plot,
+.ensemble-chart-export.ensemble-exporting .ensemble-rain-plot,
+.ensemble-chart-export.ensemble-exporting .ensemble-wind-plot{
+ grid-template-columns:42px 992px 46px;
+ grid-template-rows:minmax(0,1fr);
+ gap:8px;
+ width:1096px;
+ margin:0 auto;
+}
+.ensemble-chart-export.ensemble-exporting .ensemble-temp-plot .ensemble-fixed-chart,
+.ensemble-chart-export.ensemble-exporting .ensemble-wind-plot .ensemble-fixed-chart,
+.ensemble-chart-export.ensemble-exporting .ensemble-temp-plot .ensemble-fixed-chart>.recharts-wrapper,
+.ensemble-chart-export.ensemble-exporting .ensemble-wind-plot .ensemble-fixed-chart>.recharts-wrapper,
+.ensemble-chart-export.ensemble-exporting .ensemble-temp-plot .ensemble-fixed-chart>svg,
+.ensemble-chart-export.ensemble-exporting .ensemble-wind-plot .ensemble-fixed-chart>svg{
+ width:992px!important;
+ min-width:992px!important;
+ max-width:992px!important;
+}

@@ -41,7 +41,7 @@ if(!pkg.scripts?.build?.includes('tsc --noEmit -p tsconfig.app.json')||pkg.scrip
 const panel=files['src/EnsemblePanel.tsx'],frame=files['src/EnsembleChartFrame.tsx'];
 need('Recharts-3-Migration',panel,"from 'recharts'");
 if((panel.match(/<ComposedChart\b/g)||[]).length!==3||(panel.match(/<ComposedChart[^>]*accessibilityLayer/g)||[]).length!==3)failures.push('Nicht alle drei Ensemble-Diagramme verwenden die Recharts-3-Zugänglichkeitsschicht.');
-need('Recharts-Frame',frame,'responsive:true');need('Recharts-Frame',frame,'className="ensemble-responsive-chart"');forbid('Recharts-Frame',frame,'ResponsiveContainer');need('Recharts-Frame',panel,"from './EnsembleChartFrame'");
+for(const token of ['className="ensemble-responsive-chart"','ResizeObserver','getBoundingClientRect()','width:size.width','height:size.height','responsive:false'])need('Recharts-Frame',frame,token);forbid('Recharts-Frame',frame,'ResponsiveContainer');need('Recharts-Frame',panel,"from './EnsembleChartFrame'");
 forbid('Recharts-3-Migration',panel,'recharts/lib/');forbid('Recharts-3-Migration',panel,'recharts/es6/');forbid('Recharts-3-Migration',panel,'activeIndex=');
 
 for(const [area,text,limit] of [['Radar-Cache',files['src/radarHistory.ts'],'RADAR_HISTORY_CACHE_LIMIT=24'],['KOSTRA-Cache',files['src/heavyRain.ts'],'KOSTRA_POINT_CACHE_LIMIT=32'],['Reisecache',files['src/travelPlanner.ts'],'TRAVEL_STORAGE_CACHE_LIMIT=24']])need(area,text,limit);

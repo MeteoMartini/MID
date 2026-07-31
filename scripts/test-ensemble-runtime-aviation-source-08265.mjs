@@ -13,9 +13,10 @@ const forbid=(area,text,token)=>{if(text.includes(token))failures.push(`${area}:
 
 for(const token of [
  'className="ensemble-responsive-chart"',
- 'responsive:true',
- "width:'100%'",
- "height:'100%'",
+ 'ResizeObserver',
+ 'getBoundingClientRect()',
+ 'width:size.width',
+ 'height:size.height',
  'minHeight=Math.max(180,Math.min(240,height-42))',
  'responsive:false'
 ])need('Ensemble-Liveframe',frame,token);

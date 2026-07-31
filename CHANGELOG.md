@@ -1,3 +1,10 @@
+## 0.8.26.7
+
+- Ensemble-Diagramme: Interaktive Darstellung wie vor dem Wartungsaudit wiederhergestellt; Temperatur-, Niederschlags- und Winddiagramm verwenden wieder zuverlässig Tooltips und explizit gemessene Recharts-3-Pixelabmessungen.
+- Temperatur-Ensemble: Sonne-/Wolken-Kästchen, Niederschlagssymbolik und Hazardmarker werden wieder innerhalb der Diagrammfläche dargestellt.
+- Ensemble-Ausrichtung: Alle drei Diagramme verwenden dieselbe linke und rechte Achsenreserve, dieselbe Tagesdomäne und dieselbe Exportbreite, sodass identische Vorhersagetage vertikal exakt übereinanderliegen.
+- Ensemble-Achsen: Die Beschriftung „Vorhersagetag“ wurde enger an die Datumsachse angebunden und optisch vom nachfolgenden Inhalt abgegrenzt.
+
 ## 0.8.26.6
 
 - Buildfix: In der Gezeiten-Glättung des Wasserwetter-Moduls wurde ein ungenutzter Callback-Parameter entfernt, der bei aktiviertem `noUnusedParameters` den TypeScript-Produktionsbuild mit TS6133 abbrach.
