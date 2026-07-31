@@ -31,6 +31,7 @@ import {isoAlpha3} from './iso3166';
 import {DashboardModuleSettingsPanel} from './DashboardModuleSettings';
 import {readDashboardModuleSettings,writeDashboardModuleSettings,type DashboardModuleId,type DashboardModuleSettings} from './dashboardModules';
 import {consumeDeviceSyncTransferFromLocation} from './deviceSync';
+import {followingNightIsTropical} from './forecastNight';
 
 const LOGO_PATH='./mid-logo.png';
 const LOCATION_STORAGE_KEY='mid:lastLocation';
@@ -907,11 +908,11 @@ function sevenDayThermalClass(day:Day,climate?:ClimateDay){
  if(Number.isFinite(delta)&&delta<=-4.5)return'below-normal';
  return'neutral';
 }
-function sevenDayPoint(day:Day,dayHours:Hour[],allHours:Hour[],index:number,climate:ClimateDay|undefined,elevation:number):SevenDayWeatherPoint{
+function sevenDayPoint(day:Day,nextDay:Day|undefined,dayHours:Hour[],allHours:Hour[],index:number,climate:ClimateDay|undefined,elevation:number):SevenDayWeatherPoint{
  const character=dayWeatherCharacter(day,dayHours),codes=[day.code,...dayHours.map(hour=>hour.code)].filter(Number.isFinite).map(value=>Math.round(Number(value))),has=(values:number[])=>codes.some(code=>values.includes(code)),text=`${character.label} ${character.secondary||''}`.toLocaleLowerCase('de-DE'),sunHours=Math.max(0,Number(day.sunshineDuration)||0)/3600,sunShare=Math.max(0,Math.min(1,sunHours/Math.max(1,sevenDayDaylightHours(day)))),showery=has([80,81,82])||/schauer|wechselhaft/.test(text),wetDominant=character.precipitationDominant||day.precipitation>=1.2||day.probability>=75||(day.precipitation>=.6&&day.probability>=55),hazards=summarizeDwdWarningsForDay(allHours,day.date,elevation),hourlyThunderRisks=dayHours.map(hour=>significantHourlyThunderRisk(hour)).filter((risk):risk is NonNullable<ReturnType<typeof significantHourlyThunderRisk>>=>Boolean(risk)),thunderRiskPercent=Math.max(0,...hourlyThunderRisks.map(risk=>risk.percent)),thunderDirect=has([95,96,97,99])||hazards.some(signal=>signal.kind==='thunderstorm'),stormy=thunderRiskPercent>=DETAIL_THUNDER_RISK_DISPLAY_THRESHOLD||thunderDirect,snowy=has([71,73,75,77,85,86]),sunnyText=/sonnig|heiter|wolkenlos/.test(text),denseCloudText=/stark bewölkt|meist bewölkt|bedeckt|trüb/.test(text),mixedText=/sonne und wolken|wechselnd bewölkt|aufgelockert|teils bewölkt|zeitweise wolkig|später wolkig/.test(text);
  let regime:SevenDayWeatherRegime;
  if(snowy)regime='snow';else if(stormy)regime='storm';else if(wetDominant)regime='wet';else if(sunnyText&&denseCloudText||mixedText)regime='mixed';else if(denseCloudText)regime='cloudy';else if(sunnyText)regime='sunny';else if(codes.includes(0)||codes.includes(1))regime=sunShare>=.35?'sunny':'mixed';else if(codes.includes(2))regime='mixed';else if(codes.includes(3))regime='cloudy';else regime=sunShare>=.65?'sunny':sunShare>=.3?'mixed':'cloudy';
- return{index,day,regime,sunHours,sunShare,showery,thunderRiskPercent,thunderDirect,thermal:sevenDayThermalClass(day,climate),climateDelta:climate&&Number.isFinite(climate.maxMean)?Number(day.max)-climate.maxMean:Number.NaN,tropicalNight:Number(day.min)>=20,hazards};
+ return{index,day,regime,sunHours,sunShare,showery,thunderRiskPercent,thunderDirect,thermal:sevenDayThermalClass(day,climate),climateDelta:climate&&Number.isFinite(climate.maxMean)?Number(day.max)-climate.maxMean:Number.NaN,tropicalNight:followingNightIsTropical(day,nextDay,allHours),hazards};
 }
 function sevenDayThermalPhrase(segment:SevenDayWeatherSegment){
  const points=segment.points,totalWeight=points.reduce((sum,point)=>sum+sevenDayWeight(point.index),0),score=(classes:SevenDayThermalClass[])=>points.reduce((sum,point)=>sum+(classes.includes(point.thermal)?sevenDayWeight(point.index):0),0),first=points[0],last=points[points.length-1],risingHeat=points.length>=2&&Number(first.day.max)<30&&Number(last.day.max)>=30&&Number(last.day.max)-Number(first.day.max)>=4,tropicalNights=points.filter(point=>point.tropicalNight).length,nightSuffix=tropicalNights===1?' mit möglicher Tropennacht':tropicalNights>1?' mit möglichen Tropennächten':'';
@@ -975,7 +976,7 @@ function sevenDayHazardClause(points:SevenDayWeatherPoint[]){
 }
 export function buildSevenDayForecastSummary(days:Day[],hours:Hour[],climate:ClimateDay[]=[],elevation=0){
  const forecastDays=days.slice(0,7);if(!forecastDays.length)return'';
- const climateMap=new Map(climate.map(day=>[day.date,day])),points=forecastDays.map((day,index)=>sevenDayPoint(day,hours.filter(hour=>hour.time.startsWith(day.date)),hours,index,climateMap.get(day.date),elevation)),segments:SevenDayWeatherSegment[]=[];
+ const climateMap=new Map(climate.map(day=>[day.date,day])),points=forecastDays.map((day,index)=>sevenDayPoint(day,forecastDays[index+1],hours.filter(hour=>hour.time.startsWith(day.date)),hours,index,climateMap.get(day.date),elevation)),segments:SevenDayWeatherSegment[]=[];
  for(const point of points){const current=segments[segments.length-1];if(current?.regime===point.regime){current.end=point.index;current.points.push(point)}else segments.push({regime:point.regime,start:point.index,end:point.index,points:[point]})}
  const effectiveSegments=selectSevenDaySegments(segments),clauses=effectiveSegments.map((segment,index)=>sevenDayClause(segment,forecastDays,index,effectiveSegments.length)),hazardClause=sevenDayHazardClause(points),weatherClauses=hazardClause?clauses.slice(0,2):clauses.slice(0,3),text=[...weatherClauses,hazardClause].filter(Boolean).join('. ');
  return`${text}.`;

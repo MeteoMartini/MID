@@ -1,3 +1,9 @@
+## 0.8.25.3
+
+- 7-Tage-Trend: Eine Tropennacht wird nun auf die dem jeweiligen Prognosetag folgende Nacht bezogen. Bevorzugt werden die Stunden von 20:00 Uhr bis 08:00 Uhr ausgewertet; der Tiefstwert des Folgetags dient nur als Fallback.
+- Tageswarnungen: Stark- und Dauerregenhinweise werden nicht mehr einem trockenen Kalendertag zugeordnet, nur weil ein langes 12-/24-/48-/72-Stunden-Fenster erst später einsetzenden Niederschlag umfasst.
+- 7-Tage-Trend und Tageskarten bleiben dadurch konsistent: Bei 0,0 mm und trockener Stundenprognose erscheint keine vorgezogene Dauerregen-Aussage mehr.
+
 ## 0.8.25.2
 
 - Produktionsbuild repariert: Die in `RadarPanel.tsx` nicht verwendete Variable `pxFactor` wurde entfernt.

@@ -228,12 +228,19 @@ export function summarizeDwdWarnings(samples:DwdWarningSample[],elevation=0,star
  * beim Tagesmaximum (z. B. maximale gefühlte Temperatur) und wird nicht auf
  * einen früheren, technisch noch vollständig auswertbaren Stundenwert gekürzt.
  */
+function dailyWarningHasMatchingPrecipitation(signal:DwdWarningSignal,daySamples:DwdWarningSample[]){
+ if(signal.kind!=='heavyRain'&&signal.kind!=='continuousRain')return true;
+ const liquid=daySamples.map(liquidPrecipitation),total=liquid.reduce((sum,value)=>sum+value,0),wetHours=liquid.filter(value=>value>=.05).length;
+ if(total<.05||wetHours===0)return false;
+ if(signal.kind==='continuousRain'&&total<1&&wetHours<2)return false;
+ return true;
+}
 export function summarizeDwdWarningsForDay(samples:DwdWarningSample[],date:string,elevation=0){
  const start=samples.findIndex(sample=>String(sample.time||'').startsWith(date));
  if(start<0)return[] as DwdWarningSignal[];
  let dayCount=0;
  while(start+dayCount<samples.length&&String(samples[start+dayCount]?.time||'').startsWith(date))dayCount++;
  if(!dayCount)return[] as DwdWarningSignal[];
- const extended=samples.slice(start,start+dayCount+72);
- return summarizeDwdWarnings(extended,elevation,dayCount);
+ const extended=samples.slice(start,start+dayCount+72),daySamples=extended.slice(0,dayCount);
+ return summarizeDwdWarnings(extended,elevation,dayCount).filter(signal=>dailyWarningHasMatchingPrecipitation(signal,daySamples));
 }
