@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.8.26.7",
+  "releaseVersion": "0.8.26.9",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -97,6 +97,8 @@
     "scripts/test-water-tide-turning-points-08264.mjs",
     "scripts/test-ensemble-runtime-aviation-source-08265.mjs",
     "scripts/test-water-unused-callback-buildfix-08266.mjs",
-    "scripts/test-ensemble-legacy-functionality-alignment-08267.mjs"
+    "scripts/test-ensemble-legacy-functionality-alignment-08267.mjs",
+    "scripts/test-ensemble-weather-overlay-tooltip-08268.mjs",
+    "scripts/test-ensemble-precipitation-type-buildfix-08269.mjs"
   ]
 }

@@ -18,9 +18,10 @@ for(const token of [
  '<Tooltip content={<TrendTooltip',
  '<Tooltip content={<RainTooltip',
  '<Tooltip content={<WindTooltip',
- 'className="ensemble-sky-strip"',
- '<EnsemblePrecipShape',
+ 'function EnsembleWeatherLayer',
+ '<PrecipitationGlyph',
  '<EnsembleHazardShape',
+ '<ZIndexLayer zIndex={1800}>',
  'precipVisualType',
  'SunshineScaleLegend'
 ])need('Vollständige Ensemble-Funktion',panel,token);

@@ -1,3 +1,14 @@
+## 0.8.26.9
+
+- Ensemble-Diagramme: TypeScript-Buildfehler der wiederhergestellten Niederschlagssymbolik behoben. Der Zustand `none` wird vor der Übergabe an das Regen-/Schnee-/Mischform-Piktogramm explizit ausgeschlossen.
+- Neue Regression schützt die sichtbaren Sonne-/Wolken-Kästchen, Niederschlagssymbole und Hazardmarker vor einer erneuten ungültigen Typübergabe unter Recharts 3.
+
+## 0.8.26.8
+
+- Ensemble-Temperaturdiagramm: Sonne-/Wolken-Kästchen, Niederschlagssymbole und Hazardmarker werden unter Recharts 3 über eine eigene hoch priorisierte Koordinatenebene zuverlässig oberhalb der Diagrammflächen gerendert.
+- Ensemble-Temperaturtooltip: Werte, Überschriften und Metadaten bleiben einzeilig; lange Niederschlags- und Hazardtexte werden kompakt dargestellt und behalten den vollständigen Inhalt als Titelinformation.
+- Ensemble-Geometrie: gemeinsame Tagesdomäne, Tickfolge und horizontale Ausrichtung von Temperatur-, Niederschlags- und Winddiagramm bleiben unverändert erhalten.
+
 ## 0.8.26.7
 
 - Ensemble-Diagramme: Interaktive Darstellung wie vor dem Wartungsaudit wiederhergestellt; Temperatur-, Niederschlags- und Winddiagramm verwenden wieder zuverlässig Tooltips und explizit gemessene Recharts-3-Pixelabmessungen.
