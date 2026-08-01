@@ -3137,3 +3137,88 @@ button,input,select,[role="button"]{touch-action:manipulation}
  .ensemble-advanced-toggle em{white-space:normal}
  .ensemble-forecast-compass{padding:10px}
 }
+
+
+/* MID v0.8.27.2 · umbruchfreie Ensemble-Tooltips, getrennte Windachse und direkte Favoritenbedienung */
+.compact-trend-tooltip{
+  width:min(370px,calc(100vw - 16px));
+  max-width:min(370px,calc(100vw - 16px));
+}
+.compact-trend-tooltip .tooltip-meta-line{
+  grid-template-columns:max-content max-content minmax(max-content,1fr);
+  column-gap:7px;
+}
+.compact-trend-tooltip .tooltip-meta-line>span{
+  min-width:max-content;
+  white-space:nowrap;
+  overflow-wrap:normal;
+  word-break:keep-all;
+}
+.compact-trend-tooltip .tooltip-meta-line>span:last-child{
+  justify-self:end;
+  text-align:right;
+}
+.compact-trend-tooltip .tooltip-meta-block>span{
+  white-space:normal;
+}
+.chart.wind-trend{
+  height:auto!important;
+  min-height:390px;
+  overflow:visible;
+}
+.ensemble-wind-plot{
+  flex:0 0 auto;
+  overflow:visible;
+}
+.ensemble-wind-chart-core{
+  grid-template-rows:auto 34px;
+  overflow:visible;
+}
+.ensemble-wind-axis-title-bottom{
+  align-items:flex-end;
+  min-height:34px;
+  padding-top:10px;
+}
+.header-favorites .favorite-bubbles>button{
+  touch-action:pan-x;
+  user-select:none;
+  -webkit-user-select:none;
+}
+.header-favorites .favorite-bubbles>button:active{
+  transform:scale(.985);
+}
+.header-favorites .favorite-bubbles>button.active:active{
+  transform:scale(.99);
+}
+@media(max-width:620px){
+  .compact-trend-tooltip{
+    width:min(354px,calc(100vw - 12px));
+    max-width:min(354px,calc(100vw - 12px));
+  }
+  .compact-trend-tooltip .tooltip-meta-line{
+    column-gap:5px;
+  }
+  .chart.wind-trend{
+    height:auto!important;
+    min-height:374px;
+  }
+  .ensemble-wind-chart-core{
+    grid-template-rows:auto 36px;
+  }
+  .ensemble-wind-axis-title-bottom{
+    min-height:36px;
+    padding-top:12px;
+  }
+}
+@media(max-width:360px){
+  .compact-trend-tooltip{
+    width:calc(100vw - 10px);
+    max-width:calc(100vw - 10px);
+  }
+  .compact-trend-tooltip .trend-tooltip-meta{
+    font-size:8.4px;
+  }
+  .compact-trend-tooltip .tooltip-meta-line b{
+    font-size:7.8px;
+  }
+}

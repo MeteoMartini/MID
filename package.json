@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.8.27.1",
+  "version": "0.8.27.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -134,7 +134,8 @@
     "test:water-tide-tooltip-layering": "node scripts/test-water-tide-tooltip-layering-082618.mjs",
     "test:short-term-hyperlocal-consistency": "node scripts/test-short-term-hyperlocal-consistency-082619.mjs",
     "test:advanced-progressive-skybar-performance": "node scripts/test-advanced-progressive-skybar-performance-08270.mjs",
-    "test:short-term-thunder-sample-buildfix": "node scripts/test-short-term-thunder-sample-buildfix-08271.mjs"
+    "test:short-term-thunder-sample-buildfix": "node scripts/test-short-term-thunder-sample-buildfix-08271.mjs",
+    "test:ensemble-tooltip-axis-favorites": "node scripts/test-ensemble-tooltip-axis-favorites-08272.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

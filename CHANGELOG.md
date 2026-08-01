@@ -1,3 +1,9 @@
+## 0.8.27.2
+- Ensemble-Temperaturtooltips halten Metadatenzeilen nun ohne unerwünschte Umbrüche zusammen.
+- Wind-/Böendiagramme reservieren einen eigenen Bereich für diagonale Datumsbeschriftungen und den Achsentitel.
+- Favoriten reagieren auf Touch-/Pen-Eingaben bereits beim ersten eindeutigen Antippen; das Verschieben bleibt über den Griff erhalten.
+- Hintergrundlernen der Wetterzwillinge wird bei Nutzerinteraktion sofort abgebrochen und erst nach einer Ruhephase fortgesetzt.
+
 ## 0.8.27.1
 - TypeScript-Buildfehler TS2353 in der hyperlokal angepassten Kurzfristvorhersage behoben.
 - Die Gewitterrisikoprüfung erhält nun ausschließlich die im `DetailThunderRiskSample` definierten meteorologischen Felder; die benötigten Instabilitätsparameter bleiben vollständig erhalten.
