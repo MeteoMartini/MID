@@ -1,3 +1,9 @@
+## 0.8.27.8
+- Ensemble-Temperaturdiagramm: Tageskästchen optisch enger und klarer auf die Tagesachsen zentriert.
+- Ensemble-Temperaturdiagramm: mehr vertikale Reserve für Datumsachse und Achsentitel, damit Hoch- und Querformat stabiler aussehen.
+- Temperatur-Tooltip: bei rechten Datenpunkten automatische Linksverschiebung, damit die rechte Spalte nicht mehr abgeschnitten wird.
+- Regressionstests für Temperaturband und Tooltip-Geometrie erweitert.
+
 ## 0.8.27.7
 - GitHub-Veröffentlichung repariert: acht veraltete Regressionstests auf die seit v0.8.27.6 beabsichtigte Temperaturachsen- und Wetterkachelgeometrie aktualisiert.
 - Historische Versionsprüfungen prüfen nun Mindeststand und Synchronität mit `MID_BASELINE.json`, statt spätere Wartungsreleases fälschlich abzulehnen.

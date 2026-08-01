@@ -17,10 +17,10 @@ for(const token of [
  'angle=compact?-52:-38',
  'textAnchor="end"',
  'className="ensemble-date-axis-tick"',
- 'xAxisHeight=compact?64:68',
  'height={compactChart?54:58}',
  'height={compact?54:58}'
 ])need('Ensemble-Datumsachse',panel,token);
+if(!/xAxisHeight=compact\?(64|74):(68|78)/.test(panel))failures.push('Ensemble-Datumsachse: variable X-Achsenhöhe fehlt.');
 const tickCount=(panel.match(/tick=\{<EnsembleDateAxisTick/g)||[]).length;
 if(tickCount!==3)failures.push(`Ensemble-Datumsachse: erwartet 3 diagonale X-Achsen, gefunden ${tickCount}`);
 for(const token of [

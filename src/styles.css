@@ -3278,3 +3278,18 @@ button,input,select,[role="button"]{touch-action:manipulation}
 /* MID v0.8.27.6 · sichtbare Temperatur-Tagesachse und präziser zentrierte Wetterkacheln */
 .ensemble-temperature-canvas .recharts-cartesian-axis-tick-value,.ensemble-temperature-canvas .ensemble-date-axis-tick{paint-order:stroke fill;stroke:color-mix(in srgb,var(--surface) 92%,transparent);stroke-width:.85px;stroke-linejoin:round}
 .ensemble-temperature-weather-overlay .ensemble-sky-strip{filter:drop-shadow(0 1px 0 rgba(255,255,255,.35))}
+
+
+/* MID v0.8.27.8 · robuste Temperaturband-Geometrie und rechts sichere Tooltips */
+.ensemble-temp-chart-core{grid-template-rows:minmax(0,1fr) 36px}
+.ensemble-temp-axis-title-bottom{align-items:flex-start;padding-top:11px;line-height:1.1}
+.trend-combined .recharts-tooltip-wrapper,.ensemble-chart-export .recharts-tooltip-wrapper{overflow:visible!important}
+.compact-trend-tooltip.align-right{transform:translateX(calc(-100% + 26px))}
+@media(max-width:620px){
+  .ensemble-temp-chart-core{grid-template-rows:minmax(0,1fr) 32px}
+  .ensemble-temp-axis-title-bottom{padding-top:8px}
+  .compact-trend-tooltip.align-right{transform:translateX(calc(-100% + 18px))}
+}
+@media(max-width:420px){
+  .ensemble-temp-chart-core{grid-template-rows:minmax(0,1fr) 34px}
+}

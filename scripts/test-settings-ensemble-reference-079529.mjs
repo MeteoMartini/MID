@@ -59,7 +59,8 @@ requireTokens('Ensemble-Konsistenz v0.7.95.26',panel,[
  "fineHover()"
 ]);
 requireTokens('Ensemble-Temperaturtooltip v0.7.95.26',panel,[
- 'className="charttooltip trend-tooltip compact-trend-tooltip"',
+ "compact-trend-tooltip${alignRight?\' align-right\':\'\'}",
+ 'function TrendTooltip(',
  'className="trend-tooltip-matrix"',
  '>Tmin °C<',
  '>Tmax °C<',
