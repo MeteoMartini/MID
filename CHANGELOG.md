@@ -1,3 +1,6 @@
+## 0.8.33.2
+- Temperatur-Ensembletooltip: Sonne-Wertblock leicht nach rechts versetzt, damit Beschriftung und Werte klar getrennt und vollständig lesbar bleiben
+
 ## 0.8.33.1
 - Temperatur-Ensembletooltip: Sonne samt P10–P90 und Niederschlag samt Wahrscheinlichkeit jeweils bündig in einer einzigen Zeile dargestellt.
 - Ortssuche: Suchfeld reagiert über die gesamte Eingabefläche bereits auf die erste Berührung und fokussiert ohne Scrollsprung.

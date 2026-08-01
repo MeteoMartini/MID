@@ -3977,3 +3977,12 @@ html.mid-fast-scroll .ensemble-chart-export{
 @media(max-width:390px){
  .ensemble-pro-tooltip .trend-tooltip-meta .tooltip-meta-line.single-value>.tooltip-meta-value{font-size:7.8px!important}
 }
+
+
+/* MID v0.8.33.2 · Sonne-Wertblock im Ensemble-Temperaturtooltip leicht nach rechts versetzt */
+.ensemble-pro-tooltip .trend-tooltip-meta .sunshine-tooltip-line.single-value>.tooltip-meta-value{
+  padding-left:8px!important;
+}
+@media(max-width:620px){
+  .ensemble-pro-tooltip .trend-tooltip-meta .sunshine-tooltip-line.single-value>.tooltip-meta-value{padding-left:6px!important}
+}
