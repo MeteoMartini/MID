@@ -144,6 +144,7 @@ const forecastCandidates:ForecastCandidate[]=[
 ];
 const globalForecastCandidates:ForecastCandidate[]=[
  {id:'ecmwf_ifs',label:'ECMWF IFS HRES 9 km',kind:'forecast'},
+ {id:'ecmwf_aifs025',label:'ECMWF AIFS 0,25°',kind:'forecast'},
  {id:'ncep_gfs013',label:'NOAA GFS 0.11°',kind:'forecast'},
  {id:'dwd_icon',label:'DWD ICON Global',kind:'forecast'}
 ];
@@ -168,7 +169,7 @@ async function modelRunMetas(candidates:ModelMetaCandidate[],signal?:AbortSignal
  return settled.filter((x):x is PromiseFulfilledResult<ModelRunMeta|null>=>x.status==='fulfilled').map(x=>x.value).filter(Boolean) as ModelRunMeta[];
 }
 export async function bestMatchModelInfo(lat:number,lon:number,country?:string,signal?:AbortSignal):Promise<BestMatchModelInfo>{
- const code=countryCodeFromLocation(country),locals=forecastCandidates.filter(x=>candidateApplies(x,lat,lon,code)).slice(0,3),selected=[...locals,...globalForecastCandidates.slice(0,2)];
+ const code=countryCodeFromLocation(country),locals=forecastCandidates.filter(x=>candidateApplies(x,lat,lon,code)).slice(0,3),selected=[...locals,...globalForecastCandidates.slice(0,3)];
  const likelyChain=locals.length?`${locals.map(x=>x.label).join(' → ')} → Globalmodell`:'höchstaufgelöstes verfügbares Regionalmodell → Globalmodell';
  const runs=await modelRunMetas(selected,signal);
  return{summary:'Open-Meteo kombiniert automatisch die am Ort und je Variable geeignetsten Modelle; die konkrete Quelle wird in der Best-Match-Antwort nicht stundenweise ausgewiesen.',likelyChain,runs};

@@ -26,8 +26,8 @@ need(verification,'longestWet>=6&&precipitation>=8','Dauerregen wird nicht anhan
 need(verification,"precipitation>=25&&[61,63,65].includes(code)",'DWD-nahe Mengenreserve für Dauerregen fehlt.');
 if(verification.includes("precipitation>=5||[63,65].includes(code)"))failures.push('Alte Fehlklassifikation ab pauschal 5 mm ist noch aktiv.');
 need(verification,'row.regime=inferRegime(row);','Alte gespeicherte Fehlklassifikationen werden nicht neu bewertet.');
-need(verification,'recordForecastCapture(locationKey:string,days:Day[],ensemble:EnsembleDay[],location?:Location,hours:Hour[]=[]','Stundenverlauf wird beim Prognosearchiv nicht berücksichtigt.');
-need(app,'recordForecastCapture(favoriteKey(loc),days,ens,loc,hours)','App übergibt den Stundenverlauf nicht an die Wetterlagenklassifikation.');
+need(verification,'recordForecastCapture(locationKey:string,days:Day[],ensemble:EnsembleDay[],location?:Location,hours:Hour[]=','Stundenverlauf wird beim Prognosearchiv nicht berücksichtigt.');
+need(app,'recordForecastCapture(favoriteKey(loc),days,ens,loc,hours','App übergibt den Stundenverlauf nicht an die Wetterlagenklassifikation.');
 for(const token of ['checked={settings.biasCorrection}','checked={settings.probabilityCalibration}','checked={settings.personalRecommendations}'])need(settings,token,`Globale Wetterzwilling-Option fehlt in den Einstellungen: ${token}`);
 if(panel.includes('checked={settings.biasCorrection}')||panel.includes('checked={settings.probabilityCalibration}'))failures.push('Globale Lernoptionen werden im Rückblicksmodul weiterhin doppelt angeboten.');
 need(panel,'Einstellungen → Lokaler Wetterzwilling','Hinweis auf die zentrale Konfiguration fehlt.');

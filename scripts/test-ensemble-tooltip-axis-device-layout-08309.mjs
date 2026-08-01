@@ -53,7 +53,7 @@ for(const device of deviceMatrix){const plotWidth=device.viewport-device.outer-d
 
 const source=ts.createSourceFile('EnsemblePanel.tsx',panel,ts.ScriptTarget.ESNext,true,ts.ScriptKind.TSX);
 if(source.parseDiagnostics.length)failures.push(...source.parseDiagnostics.map(item=>`Parser: ${ts.flattenDiagnosticMessageText(item.messageText,'\n')}`));
-if(pkg.version!=='0.8.30.9')failures.push(`package.json: ${pkg.version}`);
+if(!/^0\.8\.(?:30\.9|3[1-9]\.\d+)$/.test(pkg.version))failures.push(`package.json: ${pkg.version}`);
 if(baseline.releaseVersion!==pkg.version)failures.push(`Baseline ${baseline.releaseVersion} != package ${pkg.version}`);
 if(failures.length){console.error('Ensemble-Tooltip-/Achsen-/Gerätelayout-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
 console.log('Ensemble-Tooltip-Schließung, einheitliche X-Achsen, Tageshilfslinien und Hoch-/Querformatverträge geprüft.');

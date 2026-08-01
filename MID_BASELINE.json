@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.8.30.9",
+  "releaseVersion": "0.8.32.0",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -69,7 +69,8 @@
     "scripts/test-detail-thunder-ensemble-precip-08195.mjs",
     "scripts/test-detail-thunder-indices-08196.mjs",
     "scripts/test-detail-thunder-threshold-trend-08198.mjs",
-    "scripts/test-thunder-info-wording-081910.mjs"
+    "scripts/test-thunder-info-wording-081910.mjs",
+    "scripts/test-priority-forecast-fusion-08320.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -131,6 +132,7 @@
     "scripts/test-ensemble-measured-axis-weatherband-08306.mjs",
     "scripts/test-ensemble-rain-wind-axis-tooltip-08307.mjs",
     "scripts/test-ensemble-axis-tooltip-08308.mjs",
-    "scripts/test-ensemble-tooltip-axis-device-layout-08309.mjs"
+    "scripts/test-ensemble-tooltip-axis-device-layout-08309.mjs",
+    "scripts/test-menu-scroll-stability-08310.mjs"
   ]
 }

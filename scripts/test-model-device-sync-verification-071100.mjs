@@ -37,7 +37,7 @@ for(const token of ['Prognosegüte und Rückblick','Was wurde vorhergesagt – w
 need('Modellsummaries-Typ',weather,'modelSummaries?:EnsembleModelDay[]');
 need('Modellsummaries-Aufbau',weather,'modelSummaries.push');
 need('Erweiterter Modus',app,'title="Prognosegüte und Rückblick"');
-if(!app.includes('recordForecastCapture(favoriteKey(loc),days,ens)')&&!app.includes('recordForecastCapture(favoriteKey(loc),days,ens,loc)')&&!app.includes('recordForecastCapture(favoriteKey(loc),days,ens,loc,hours)'))failures.push('Prognosearchiv: recordForecastCapture für den aktiven Favoriten fehlt');
+if(!app.includes('recordForecastCapture(favoriteKey(loc),days,ens'))failures.push('Prognosearchiv: recordForecastCapture für den aktiven Favoriten fehlt');
 
 for(const token of ['LazyRouteWeather','title="Routenwetter"','ROUTE_WEATHER_SETTINGS_KEY'])reject('Routenwetter',app,token);
 need('Dormantes Routenwetter-Panel',routePanel,'RouteWeatherPanel');

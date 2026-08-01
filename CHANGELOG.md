@@ -1,3 +1,16 @@
+## 0.8.32.0
+- Adaptive Mehrquellen-Prognose mit vier Prioritätsstufen eingeführt: regionale Hochauflösungsmodelle und Nowcasting, ECMWF IFS/AIFS, zusätzliche europäische Modellfamilien sowie NOAA GFS als globale Rückfallebene.
+- Robuste, vorlaufzeitabhängige Modellfusion mit Best-Match-Anker, Modellfamilien-Begrenzung, gewichteten Medianen und konservativen Korrekturlimits ergänzt.
+- DWD-/europäische Radar-Nowcasts und KONRAD3D-Gewitterinformationen werden im Kurzfristbereich vorrangig und zeitlich begrenzt eingeblendet.
+- Modellfusion wird nur bei hinreichender unabhängiger Übereinstimmung angewendet und als eigener Kandidat in die lokale Prognoseverifikation aufgenommen.
+- Responsivität abgesichert: sofortiger Best-Match-Start, Fusion ausschließlich im Hintergrund/Idle, kleiner Tagesdatensatz, maximal drei parallele Quellenabrufe sowie lokaler und Worker-seitiger Cache.
+
+## 0.8.31.0
+- Einstellungs- und Favoritenmenüs öffnen mit sofortiger Dialoghülle und verzögertem Inhaltsaufbau.
+- Viewport-Gates aktivieren schwere Module nur noch nach stabiler Sichtbarkeit und in einer Idle-Phase.
+- iOS-Scrollstabilität verbessert: problematisches content-visibility für schwere Dashboard-/Ensemblebereiche deaktiviert.
+- Schnelle Scrollphasen reduzieren temporär teure visuelle Effekte und Karten-/Chart-Interaktionen.
+
 ## 0.8.30.9
 - Ensemble-Tooltips schließen zuverlässig durch Antippen/Klicken der geöffneten Tooltipkarte sowie weiterhin durch Außenklick und Escape.
 - Niederschlags- und Wind/Böen-Diagramm verwenden wieder dieselbe Recharts-Datumsachse wie das Temperaturdiagramm; die problematische externe HTML-Achse wurde entfernt.

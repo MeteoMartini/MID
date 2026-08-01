@@ -3912,3 +3912,53 @@ button,input,select,[role="button"]{touch-action:manipulation}
     padding-top:8px!important;
   }
 }
+
+/* MID v0.8.31.0 · stabile iOS-Scrollpfade und sofort reagierende Einstellungs-/Favoritenoberfläche */
+.viewport-gate,
+.ensemble-advanced-body,
+.ensemble-export-chart-body{
+  content-visibility:visible!important;
+  contain-intrinsic-size:none!important;
+}
+.viewport-gate{
+  contain:layout style;
+  min-height:1px;
+}
+.viewport-gate>.lazy-placeholder{
+  min-height:92px;
+}
+.settings-backdrop{
+  overscroll-behavior:contain;
+  touch-action:none;
+}
+.settings-dialog{
+  transform:translateZ(0);
+  contain:layout style;
+}
+.settings-content{
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+.settings-content-loading{
+  display:grid;
+  min-height:180px;
+  place-items:center;
+  align-content:center;
+  gap:9px;
+  color:var(--muted);
+}
+.settings-content-loading svg{animation:spin .9s linear infinite}
+html.mid-settings-open{overflow:hidden}
+html.mid-fast-scroll .card,
+html.mid-fast-scroll .top,
+html.mid-fast-scroll .settings-dialog{
+  box-shadow:none!important;
+}
+html.mid-fast-scroll .radarmap,
+html.mid-fast-scroll .ensemble-chart-export{
+  pointer-events:none;
+}
+@media(hover:none),(pointer:coarse){
+  .viewport-gate{contain:layout style}
+  .settings-dialog{box-shadow:0 10px 32px rgba(0,0,0,.2)}
+}
