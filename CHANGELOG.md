@@ -1,8 +1,7 @@
-## 0.8.30.5
-- Szenario-Cluster: Temperaturwerte robust ohne Dollarzeichen formatiert.
-- Prognose-Kompass: Vorlauf in Kalendertagen statt Anzahl der eingeschlossenen Tageszeilen berechnet.
-- Temperatur-Ensemble: senkrechte Hilfslinien direkt an die X-Achsen-Tagesmarken gebunden.
-- Alle Ensemble-Diagramme: horizontale Haupt-Rasterlinien exakt auf den beschrifteten Y-Achsenmarken.
+## 0.8.30.6
+- Temperatur-Ensemble: senkrechte Tageshilfslinien wieder sichtbar und direkt aus den tatsächlich gerenderten X-Achsenmarken abgeleitet.
+- Temperatur-Ensemble: Sonne-/Wolkenkästchen verwenden dieselben vermessenen Tageszentren; Zellgrenzen liegen exakt in der Mitte benachbarter Achsmarken – einschließlich des letzten Tages rechts.
+- Zusätzliche Regression verhindert die Rückkehr zur theoretischen, nach rechts driftenden Wetterband-Geometrie.
 
 ## 0.8.30.4
 - TypeScript-Buildfix: ungenutzte `cellSlotWidth`-Deklaration entfernt

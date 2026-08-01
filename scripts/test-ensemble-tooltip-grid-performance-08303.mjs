@@ -17,9 +17,12 @@ for(const token of [
  'onActive={rainTooltip.markActive}',
  "portal={typeof document!=='undefined'?document.body:null}",
  'animationDuration={0}',
- 'cellX=plotLeft+(slotIndex/dayCount)*plotWidth',
- 'cellRight=plotLeft+((slotIndex+1)/dayCount)*plotWidth',
- 'centerX=plotLeft+((slotIndex+.5)/dayCount)*plotWidth',
+ 'function useTemperatureAxisCenters',
+ ".recharts-xAxis .recharts-cartesian-axis-tick-line",
+ 'cellX=index===0?bandLeft:(centers[index-1]+centerX)/2',
+ 'cellRight=index===dayCount-1?bandRight:(centerX+centers[index+1])/2',
+ 'centerX=centers[index]',
+ 'function EnsembleTemperatureVerticalGrid',
  '<ReferenceLine key={`temperature-vertical-${row.date}`} x={row.x}',
  '<ReferenceLine key={`temperature-horizontal-${value}`} yAxisId="t" y={value}',
  '<ReferenceLine key={`rain-horizontal-${value}`} yAxisId="mm" y={value}',
@@ -31,7 +34,8 @@ for(const token of [
  '@media(orientation:landscape) and (pointer:coarse){',
  'transition:none!important;',
  '.ensemble-major-grid-line.horizontal{',
- '.ensemble-major-grid-line.vertical{'
+ '.ensemble-major-grid-line.vertical{',
+ '.ensemble-temperature-grid-overlay line{'
 ])if(!css.includes(token))failures.push(`Ensemble-CSS-Vertrag fehlt: ${token}`);
 if(failures.length){
   console.error('MID Tooltip-/Raster-/Performanceprüfung fehlgeschlagen:\n- '+failures.join('\n- '));

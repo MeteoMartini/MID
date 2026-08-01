@@ -5,7 +5,7 @@ const css=readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
 const pkg=JSON.parse(readFileSync(new URL('../package.json',import.meta.url),'utf8'));
 const baseline=JSON.parse(readFileSync(new URL('../MID_BASELINE.json',import.meta.url),'utf8'));
 const failures=[];
-if(pkg.version!=='0.8.30.5')failures.push(`Unerwartete Version: ${pkg.version}`);
+const parts=String(pkg.version).split('.').map(Number),minimum=[0,8,30,5],atLeast=parts.some((value,index)=>value>minimum[index]&&parts.slice(0,index).every((part,partIndex)=>part===minimum[partIndex]))||parts.every((value,index)=>value===minimum[index]);if(!atLeast)failures.push(`Version liegt vor 0.8.30.5: ${pkg.version}`);
 if(baseline.releaseVersion!==pkg.version)failures.push(`Baseline ${baseline.releaseVersion} passt nicht zu ${pkg.version}`);
 for(const token of [
  "function scenarioTemperatureRange(minimum:number,maximum:number){return String(Math.round(minimum))+'–'+String(Math.round(maximum))+'\\u00a0\\u00b0C'}",

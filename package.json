@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.8.30.5",
+  "version": "0.8.30.6",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -152,7 +152,8 @@
     "test:sync-origin-midwx": "node scripts/test-sync-origin-midwx-08302.mjs",
     "test:ensemble-tooltip-grid-performance": "node scripts/test-ensemble-tooltip-grid-performance-08303.mjs",
     "test:compass-scenario-wording": "node scripts/test-compass-scenario-wording-08304.mjs",
-    "test:scenario-compass-grid": "node scripts/test-scenario-compass-grid-08305.mjs"
+    "test:scenario-compass-grid": "node scripts/test-scenario-compass-grid-08305.mjs",
+    "test:ensemble-measured-axis-weatherband": "node scripts/test-ensemble-measured-axis-weatherband-08306.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

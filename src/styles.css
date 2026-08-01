@@ -3712,3 +3712,20 @@ button,input,select,[role="button"]{touch-action:manipulation}
   stroke-dasharray:4 5!important;
   opacity:1!important;
 }
+
+/* MID v0.8.30.6 · achsvermessene Tageszentren und wieder sichtbare senkrechte Temperatur-Hilfslinien */
+.ensemble-temperature-grid-overlay{
+  position:absolute;
+  inset:0;
+  z-index:3;
+  display:block;
+  overflow:visible;
+  pointer-events:none;
+}
+.ensemble-temperature-grid-overlay line{
+  stroke:color-mix(in srgb,var(--muted) 48%,transparent);
+  stroke-width:1;
+  stroke-dasharray:4 5;
+  vector-effect:non-scaling-stroke;
+  shape-rendering:geometricPrecision;
+}
