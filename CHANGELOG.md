@@ -1,3 +1,8 @@
+## 0.8.33.1
+- Temperatur-Ensembletooltip: Sonne samt P10–P90 und Niederschlag samt Wahrscheinlichkeit jeweils bündig in einer einzigen Zeile dargestellt.
+- Ortssuche: Suchfeld reagiert über die gesamte Eingabefläche bereits auf die erste Berührung und fokussiert ohne Scrollsprung.
+- Favoriten: Standortstern, Standort-Schnellzugriff und Favoritenblasen reagieren auf Touch unmittelbar beim ersten gültigen Tap; störende Pointer-Capture-Logik entfernt.
+
 ## 0.8.33.0
 - DWD MOSMIX als stationsbezogene statistische Nachkorrektur der adaptiven Mehrquellen-Prognose integriert.
 - MOSMIX wird wegen seiner ICON-/IFS-Basis nicht als zusätzliche unabhängige Modellfamilie gezählt, sondern nur nach robustem Mehrmodellkonsens angewendet.

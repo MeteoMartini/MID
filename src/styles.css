@@ -3962,3 +3962,18 @@ html.mid-fast-scroll .ensemble-chart-export{
   .viewport-gate{contain:layout style}
   .settings-dialog{box-shadow:0 10px 32px rgba(0,0,0,.2)}
 }
+
+
+/* MID v0.8.33.1 · kompakte Tooltip-Metazeilen und zuverlässige Erstberührung */
+.ensemble-pro-tooltip .trend-tooltip-meta .tooltip-meta-line.single-value{grid-template-columns:76px minmax(0,1fr)!important;align-items:baseline}
+.ensemble-pro-tooltip .trend-tooltip-meta .tooltip-meta-line.single-value>.tooltip-meta-value{grid-column:2!important;display:block!important;min-width:0;white-space:nowrap!important;overflow-wrap:normal!important;word-break:keep-all!important;text-align:left!important;font-variant-numeric:tabular-nums}
+.search-input-shell,.search-input-shell input,.favorite-toggle,.favorite-strip button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.search-input-shell{cursor:text}
+.favorite-toggle,.favorite-strip button{cursor:pointer}
+@media(max-width:620px){
+ .ensemble-pro-tooltip .trend-tooltip-meta .tooltip-meta-line.single-value{grid-template-columns:54px minmax(0,1fr)!important;gap:2px 3px!important}
+ .ensemble-pro-tooltip .trend-tooltip-meta .tooltip-meta-line.single-value>.tooltip-meta-value{font-size:8.1px!important;letter-spacing:-.01em}
+}
+@media(max-width:390px){
+ .ensemble-pro-tooltip .trend-tooltip-meta .tooltip-meta-line.single-value>.tooltip-meta-value{font-size:7.8px!important}
+}
