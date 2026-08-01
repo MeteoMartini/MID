@@ -1,0 +1,23 @@
+import {readFileSync} from 'node:fs';
+const weather=readFileSync(new URL('../src/weather.ts',import.meta.url),'utf8');
+const app=readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
+const worker=readFileSync(new URL('../worker/metar-proxy.js',import.meta.url),'utf8');
+const pkg=JSON.parse(readFileSync(new URL('../package.json',import.meta.url),'utf8'));
+const baseline=JSON.parse(readFileSync(new URL('../MID_BASELINE.json',import.meta.url),'utf8'));
+const failures=[];
+const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
+const forbid=(label,text,token)=>{if(text.includes(token))failures.push(`${label}: unerlaubt ${token}`)};
+need('AIFS-Modell-ID',weather,"{id:'ecmwf_aifs025_single',label:'ECMWF AIFS Single 0,25°'");
+forbid('AIFS-Modell-ID',weather,"{id:'ecmwf_aifs025',label:'ECMWF AIFS 0,25°',kind:'forecast'}");
+need('Frischeprüfung',weather,'function modelMetaIsFresh(data:any)');
+need('Frischeprüfung',weather,'now-initMs<=maximumAgeMs');
+need('Metadatenquelle',weather,"metadataSource:'Open-Meteo Metadata API'");
+need('Best-Match-Wording',weather,'belegen daher nicht, dass Best Match genau dieses Modell verwendet');
+need('Best-Match-Kandidaten',app,'Am Standort potenziell relevante Regionalmodelle:');
+forbid('Best-Match-Kandidaten',app,'Wahrscheinliche Kette:');
+need('Worker-Alias',worker,"ecmwf_aifs025:['ecmwf_aifs025_single','ecmwf_aifs025']");
+need('Worker-Fusion',worker,"apiIds:['ecmwf_aifs025_single','ecmwf_aifs025','ecmwf_aifs']");
+need('Worker-Frischeprüfung',worker,'function modelMetaFresh(payload)');
+if(pkg.version!==baseline.releaseVersion)failures.push(`Versionsabweichung: package ${pkg.version}, baseline ${baseline.releaseVersion}`);
+if(failures.length){console.error('Modellmetadaten-/Init-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
+console.log('Open-Meteo Bezugsquelle, aktuelle AIFS-Single-ID und Modelllauf-Frischeprüfung bestanden.');

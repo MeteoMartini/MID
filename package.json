@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.8.32.0",
+  "version": "0.8.33.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -158,7 +158,9 @@
     "test:ensemble-axis-tooltip-08308": "node scripts/test-ensemble-axis-tooltip-08308.mjs",
     "test:ensemble-tooltip-axis-device-layout": "node scripts/test-ensemble-tooltip-axis-device-layout-08309.mjs",
     "test:menu-scroll-stability": "node scripts/test-menu-scroll-stability-08310.mjs",
-    "test:priority-forecast-fusion": "node scripts/test-priority-forecast-fusion-08320.mjs"
+    "test:priority-forecast-fusion": "node scripts/test-priority-forecast-fusion-08320.mjs",
+    "test:model-meta-source-init": "node scripts/test-model-meta-source-init-08321.mjs",
+    "test:mosmix-adaptive-fusion": "node scripts/test-mosmix-adaptive-fusion-08330.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

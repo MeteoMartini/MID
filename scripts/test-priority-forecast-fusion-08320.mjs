@@ -44,8 +44,8 @@ for(const token of [
  'MID Mehrquellen-Prognose · adaptiv gewichtet'
 ])need('App-Integration',app,token);
 need('Verifikation',verification,'additional:AdditionalForecastPrediction[]=[]');
-need('App-Integration',app,"label:'MID Prioritätsfusion'");
-need('Modelllaufinfo',weather,"id:'ecmwf_aifs025'");
+if(!app.includes("label:'MID Prioritätsfusion'")&&!app.includes("'MID Prioritätsfusion + MOSMIX':'MID Prioritätsfusion'"))failures.push('App-Integration: MID Prioritätsfusion-Label fehlt.');
+need('Modelllaufinfo',weather,"id:'ecmwf_aifs025_single'");
 const setWeather=app.indexOf('setW(fw);'),fusionEffect=app.indexOf('loadForecastFusion(');
 if(setWeather<0||fusionEffect<0||fusionEffect<setWeather)failures.push('Mehrquellen-Fusion darf die erste Best-Match-Darstellung nicht blockieren.');
 const parts=String(pkg.version).split('.').map(Number),minimum=[0,8,32,0];

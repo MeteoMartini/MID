@@ -5,7 +5,8 @@ const failures=[];
 const need=(token)=>{if(!shortTerm.includes(token))failures.push(`fehlt: ${token}`)};
 const forbid=(token)=>{if(shortTerm.includes(token))failures.push(`unerlaubt: ${token}`)};
 
-need('<em>Best Match</em>');
+need("forecastSourceLabel||'Best Match'");
+need('<em>{sourceLabel}</em>');
 need('<time><b>{point.timeLabel}</b></time>');
 forbid('ohne zusätzlichen Abruf');
 forbid('<b>{point.offsetLabel}</b>');

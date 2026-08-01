@@ -24,8 +24,8 @@ export type ClimateDay={date:string;maxMean:number;minMean:number;years:number};
 export type Station={name:string;provider?:string;stationId?:string;latitude?:number;longitude?:number;distance?:number;height?:number;timestamp?:string;temperature?:number;humidity?:number;dewPoint?:number;pressure?:number;pressureReference?:'QFF'|'MSL'|'QNH'|'station';windSpeed?:number;windDirection?:number;windGust?:number;windUnit?:'kt'|'kmh';visibility?:number;cloudCover?:number;ceilingHft?:number;cloudBaseHft?:number;precipitation?:number;precipitationMinutes?:number;cloudObservation?:CloudObservation;cloudAnalysisMethod?:string;stationCount?:number;sourceProviders?:string[];blended?:boolean;temperatureSpread?:number;trustFactor?:number;networkClass?:'official'|'professional'|'pws'|'citizen'|'unknown';siteClass?:UrbanClass;analysisMethod?:string;uncertainty?:number;effectiveResolutionKm?:number;candidateCount?:number;rejectedCount?:number;localCorrection?:number;backgroundModel?:string;urbanClass?:UrbanClass;staleFallback?:boolean;cacheAgeMinutes?:number};
 export type OfficialAlertLevel='yellow'|'orange'|'red'|'purple'|'unknown';
 export type OfficialAlert={id:string;headline:string;description:string;instruction?:string;level:OfficialAlertLevel;severity?:string;event?:string;source:string;area?:string;effective?:string;onset?:string;expires?:string;url?:string};
-export type ModelRunMeta={id:string;label:string;kind:'forecast'|'ensemble';initialisationTime?:string;availabilityTime?:string;updateIntervalSeconds?:number;temporalResolutionSeconds?:number};
-export type BestMatchModelInfo={summary:string;likelyChain:string;runs:ModelRunMeta[]};
+export type ModelRunMeta={id:string;label:string;kind:'forecast'|'ensemble';initialisationTime?:string;availabilityTime?:string;updateIntervalSeconds?:number;temporalResolutionSeconds?:number;metadataModelId?:string;metadataSource?:string};
+export type BestMatchModelInfo={summary:string;likelyChain:string;candidateModels?:string;runs:ModelRunMeta[]};
 export type RadarNowcastQuality='high'|'medium'|'low';
 export type RadarMotionAnchor={lat:number;lon:number;rate?:number};
 export type RadarNowcastFrame={time:string;rate:number;nearbyRate?:number;future:boolean};
@@ -119,7 +119,7 @@ function urbanClassFromPlace(featureCode?:string,population?:number,osmKey?:stri
 function photonLocation(feature:PhotonFeature,index:number):Location|null{const coordinates=feature.geometry?.coordinates,properties=feature.properties??{},lon=Number(coordinates?.[0]),lat=Number(coordinates?.[1]);if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180)return null;const name=String(properties.name||properties.city||properties.locality||'').trim();if(!name)return null;const extra=properties.extra??{},elevation=numeric(extra.ele??extra.elevation??properties.ele??properties.elevation),category=poiCategory(properties.osm_key,properties.osm_value),admin1=properties.state||properties.region,admin2=properties.county||properties.district||properties.city,urbanClass=urbanClassFromPlace(undefined,undefined,properties.osm_key,properties.osm_value);return{id:photonId(properties,index),name,latitude:lat,longitude:lon,elevation,country:properties.country,country_code:String(properties.countrycode||'').toUpperCase()||undefined,admin1:admin1?String(admin1):undefined,admin2:admin2&&String(admin2)!==String(admin1)?String(admin2):undefined,postcodes:properties.postcode?[String(properties.postcode)]:undefined,source:'OpenStreetMap/Photon',poiType:[properties.osm_key,properties.osm_value].filter(Boolean).join('='),poiCategory:category,urbanClass}}
 function similarLocation(a:Location,b:Location){if(a.name.trim().toLocaleLowerCase('de-DE')!==b.name.trim().toLocaleLowerCase('de-DE'))return false;return haversine(a.latitude,a.longitude,b.latitude,b.longitude)<2500}
 
-type ModelMetaCandidate={id:string;label:string;kind:'forecast'|'ensemble'};
+type ModelMetaCandidate={id:string;label:string;kind:'forecast'|'ensemble';metaIds?:string[]};
 type ForecastCandidate=ModelMetaCandidate&{countries?:string[];bbox?:[number,number,number,number]};
 const forecastCandidates:ForecastCandidate[]=[
  {id:'dwd_icon_d2',label:'DWD ICON-D2',kind:'forecast',countries:['DE','CH','AT'],bbox:[-6,43,26,58]},
@@ -144,7 +144,7 @@ const forecastCandidates:ForecastCandidate[]=[
 ];
 const globalForecastCandidates:ForecastCandidate[]=[
  {id:'ecmwf_ifs',label:'ECMWF IFS HRES 9 km',kind:'forecast'},
- {id:'ecmwf_aifs025',label:'ECMWF AIFS 0,25°',kind:'forecast'},
+ {id:'ecmwf_aifs025_single',label:'ECMWF AIFS Single 0,25°',kind:'forecast',metaIds:['ecmwf_aifs025_single']},
  {id:'ncep_gfs013',label:'NOAA GFS 0.11°',kind:'forecast'},
  {id:'dwd_icon',label:'DWD ICON Global',kind:'forecast'}
 ];
@@ -152,16 +152,21 @@ function candidateApplies(candidate:ForecastCandidate,lat:number,lon:number,coun
  if(candidate.countries?.includes(country))return true;
  if(!candidate.bbox)return false;const[minLon,minLat,maxLon,maxLat]=candidate.bbox;return lon>=minLon&&lon<=maxLon&&lat>=minLat&&lat<=maxLat;
 }
+function modelMetaEpochMs(value:unknown){const numberValue=Number(value);if(!Number.isFinite(numberValue))return Number.NaN;return numberValue>10_000_000_000?numberValue:numberValue*1000}
+function modelMetaIsFresh(data:any){const initMs=modelMetaEpochMs(data?.last_run_initialisation_time),updateSeconds=Math.max(3600,Number(data?.update_interval_seconds)||21600),maximumAgeMs=Math.max(18*3600000,Math.min(72*3600000,updateSeconds*4000+6*3600000)),now=Date.now();return Number.isFinite(initMs)&&initMs<=now+2*3600000&&now-initMs<=maximumAgeMs}
 async function modelRunMeta(candidate:ModelMetaCandidate,signal?:AbortSignal):Promise<ModelRunMeta|null>{
- const host=candidate.kind==='ensemble'?'https://ensemble-api.open-meteo.com':'https://api.open-meteo.com';
- try{
-  let data:any;
-  if(workerBaseCandidates('general').length){try{const proxied=await fetchWorkerJson<any>('model-meta',{model:candidate.id,kind:candidate.kind},{purpose:'general',signal,timeoutMs:9000,cache:'no-store'});if(Number.isFinite(Number(proxied?.last_run_initialisation_time)))data=proxied}catch{}}
-  if(!data)data=await j<any>(`${host}/data/${candidate.id}/static/meta.json?cache_buster=${Date.now()}`,signal);
-  const init=Number(data.last_run_initialisation_time),available=Number(data.last_run_availability_time);
-  if(!Number.isFinite(init))return null;
-  return{id:candidate.id,label:candidate.label,kind:candidate.kind,initialisationTime:new Date(init*1000).toISOString(),availabilityTime:Number.isFinite(available)?new Date(available*1000).toISOString():undefined,updateIntervalSeconds:Number(data.update_interval_seconds)||undefined,temporalResolutionSeconds:Number(data.temporal_resolution_seconds)||undefined};
- }catch{return null}
+ const host=candidate.kind==='ensemble'?'https://ensemble-api.open-meteo.com':'https://api.open-meteo.com',metaIds=candidate.metaIds?.length?candidate.metaIds:[candidate.id];
+ for(const metadataModelId of metaIds){
+  try{
+   let data:any;
+   if(workerBaseCandidates('general').length){try{const proxied=await fetchWorkerJson<any>('model-meta',{model:metadataModelId,kind:candidate.kind},{purpose:'general',signal,timeoutMs:9000,cache:'no-store'});if(modelMetaIsFresh(proxied))data=proxied}catch{}}
+   if(!data){const direct=await j<any>(`${host}/data/${metadataModelId}/static/meta.json?cache_buster=${Date.now()}`,signal);if(modelMetaIsFresh(direct))data=direct}
+   if(!data)continue;
+   const initMs=modelMetaEpochMs(data.last_run_initialisation_time),availableMs=modelMetaEpochMs(data.last_run_availability_time),availableValid=Number.isFinite(availableMs)&&availableMs>=initMs-3600000&&availableMs<=Date.now()+2*3600000;
+   return{id:candidate.id,label:candidate.label,kind:candidate.kind,initialisationTime:new Date(initMs).toISOString(),availabilityTime:availableValid?new Date(availableMs).toISOString():undefined,updateIntervalSeconds:Number(data.update_interval_seconds)||undefined,temporalResolutionSeconds:Number(data.temporal_resolution_seconds)||undefined,metadataModelId,metadataSource:'Open-Meteo Metadata API'};
+  }catch{}
+ }
+ return null
 }
 async function modelRunMetas(candidates:ModelMetaCandidate[],signal?:AbortSignal){
  const unique=[...new Map(candidates.map(x=>[`${x.kind}:${x.id}`,x])).values()];
@@ -169,10 +174,9 @@ async function modelRunMetas(candidates:ModelMetaCandidate[],signal?:AbortSignal
  return settled.filter((x):x is PromiseFulfilledResult<ModelRunMeta|null>=>x.status==='fulfilled').map(x=>x.value).filter(Boolean) as ModelRunMeta[];
 }
 export async function bestMatchModelInfo(lat:number,lon:number,country?:string,signal?:AbortSignal):Promise<BestMatchModelInfo>{
- const code=countryCodeFromLocation(country),locals=forecastCandidates.filter(x=>candidateApplies(x,lat,lon,code)).slice(0,3),selected=[...locals,...globalForecastCandidates.slice(0,3)];
- const likelyChain=locals.length?`${locals.map(x=>x.label).join(' → ')} → Globalmodell`:'höchstaufgelöstes verfügbares Regionalmodell → Globalmodell';
+ const code=countryCodeFromLocation(country),applicable=forecastCandidates.filter(x=>candidateApplies(x,lat,lon,code)),locals=[...applicable.filter(x=>x.countries?.includes(code)),...applicable.filter(x=>!x.countries?.includes(code)&&!x.id.includes('seamless')),...applicable.filter(x=>x.id.includes('seamless'))].filter((candidate,index,rows)=>rows.findIndex(row=>row.id===candidate.id)===index).slice(0,4),selected=[...locals,...globalForecastCandidates.slice(0,3)],candidateModels=locals.length?locals.map(x=>x.label).join(' · '):'höchstaufgelöstes am Standort verfügbares Regionalmodell';
  const runs=await modelRunMetas(selected,signal);
- return{summary:'Open-Meteo kombiniert automatisch die am Ort und je Variable geeignetsten Modelle; die konkrete Quelle wird in der Best-Match-Antwort nicht stundenweise ausgewiesen.',likelyChain,runs};
+ return{summary:'Best Match stammt aus der Open-Meteo Forecast API. Die konkrete Modellquelle kann je Variable und Zeitraum wechseln und wird von der Best-Match-Antwort nicht ausgewiesen. Die unten genannten Läufe stammen separat aus der Open-Meteo Metadata API und belegen daher nicht, dass Best Match genau dieses Modell verwendet.',likelyChain:'',candidateModels,runs};
 }
 const ICAO_LOCATION_CACHE_KEY='mid:icao-location-cache:v1';
 const ICAO_LOCATION_CACHE_TTL=30*86400000;

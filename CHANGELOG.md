@@ -1,9 +1,16 @@
-## 0.8.32.0
-- Adaptive Mehrquellen-Prognose mit vier Prioritätsstufen eingeführt: regionale Hochauflösungsmodelle und Nowcasting, ECMWF IFS/AIFS, zusätzliche europäische Modellfamilien sowie NOAA GFS als globale Rückfallebene.
-- Robuste, vorlaufzeitabhängige Modellfusion mit Best-Match-Anker, Modellfamilien-Begrenzung, gewichteten Medianen und konservativen Korrekturlimits ergänzt.
-- DWD-/europäische Radar-Nowcasts und KONRAD3D-Gewitterinformationen werden im Kurzfristbereich vorrangig und zeitlich begrenzt eingeblendet.
-- Modellfusion wird nur bei hinreichender unabhängiger Übereinstimmung angewendet und als eigener Kandidat in die lokale Prognoseverifikation aufgenommen.
-- Responsivität abgesichert: sofortiger Best-Match-Start, Fusion ausschließlich im Hintergrund/Idle, kleiner Tagesdatensatz, maximal drei parallele Quellenabrufe sowie lokaler und Worker-seitiger Cache.
+## 0.8.33.0
+- DWD MOSMIX als stationsbezogene statistische Nachkorrektur der adaptiven Mehrquellen-Prognose integriert.
+- MOSMIX wird wegen seiner ICON-/IFS-Basis nicht als zusätzliche unabhängige Modellfamilie gezählt, sondern nur nach robustem Mehrmodellkonsens angewendet.
+- Kurzfristvorhersage erhält direkte stündliche MOSMIX-Korrekturen; Radar- und Gewitternowcast bleiben im unmittelbaren Niederschlagszeitraum vorrangig.
+- 7-Tage- und 14-Tage-Best-Match-Referenz verwenden die adaptive Fusion; MOSMIX wirkt nur innerhalb seiner maximalen Zehn-Tage-Abdeckung.
+- Wetterzwilling archiviert Modellfusion mit und ohne MOSMIX getrennt, damit der lokale Zusatznutzen messbar wird.
+- Nicht blockierende Hintergrundabfrage mit Worker-/Local-Cache und Qualitätsfiltern für Entfernung und Höhenunterschied.
+
+## 0.8.32.1
+- Modelllauf-Metadaten für ECMWF AIFS auf die aktuelle Open-Meteo-Quelle `ecmwf_aifs025_single` umgestellt.
+- Monatealte oder zeitlich unplausible Modelllauf-Metadaten werden nicht mehr angezeigt oder für die Mehrquellenfusion verwendet.
+- Best-Match-Information fachlich präzisiert: statt einer nicht belegbaren Modellkette zeigt MID nur noch potenziell relevante Regionalmodelle und kennzeichnet die Metadatenquelle.
+- Worker-Aliase und Forecast-Fusion für ECMWF AIFS Single aktualisiert.
 
 ## 0.8.31.0
 - Einstellungs- und Favoritenmenüs öffnen mit sofortiger Dialoghülle und verzögertem Inhaltsaufbau.
