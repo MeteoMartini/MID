@@ -25,7 +25,8 @@ if(!app.includes('return <InfoHint label="Erklärung anzeigen">{advanced?(techni
 for(const token of ["function ModeExplanation({advanced,summary,technical,label=\'Diagramm erklären\'}", 'return <InfoHint label={label}>{advanced?technical:summary}</InfoHint>'])if(!ensemble.includes(token))failures.push(`Ensemble-Erklärungen werden nicht robust über (i) geöffnet: ${token}`);
 for(const token of ['precipitationMidPlot','precipitationErrorRange','dataKey="precipitationMidPlot"','dataKey="precipitationErrorRange"'])if(!ensemble.includes(token))failures.push(`P10–P90-Fehlerbalkenlogik fehlt: ${token}`);
 if(ensemble.includes('dataKey="precipitationErrorBest"'))failures.push('Der Fehlerbalken ist weiterhin am Best-Match-Wert verankert.');
-if(!enhancer.includes('svg.viewBox.baseVal')||!enhancer.includes('svg.dataset.skybarY'))failures.push('Sonne-/Bewölkungsbalken nutzen nicht die echte adaptive SVG-Geometrie.');
+for(const token of ['function detailSkyBarSegments(','detailSkyBarSegments(p,left,right,W,skyBarY)','data-mid-skybar="react"','data-mid-sky-legend="react"'])if(!app.includes(token))failures.push(`Deklarativer Sonne-/Bewölkungsbalken fehlt: ${token}`);
+for(const token of ['enhanceSkyBars','__MID_FORECAST__','mid:forecast-updated'])if(enhancer.includes(token))failures.push(`Veraltete imperative Skybar-Logik ist noch aktiv: ${token}`);
 for(const token of ['.place-meta.advanced','white-space:nowrap','font-variant-numeric:tabular-nums'])if(!styles.includes(token))failures.push(`Kompakte einzeilige Ortszeitdarstellung fehlt: ${token}`);
 
 if(failures.length){console.error('v0.7.79-Diagrammprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}

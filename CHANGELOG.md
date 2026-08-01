@@ -1,3 +1,18 @@
+## 0.8.27.1
+- TypeScript-Buildfehler TS2353 in der hyperlokal angepassten Kurzfristvorhersage behoben.
+- Die Gewitterrisikoprüfung erhält nun ausschließlich die im `DetailThunderRiskSample` definierten meteorologischen Felder; die benötigten Instabilitätsparameter bleiben vollständig erhalten.
+- Eigene Regression gegen erneut eingeschleuste, nicht unterstützte Felder ergänzt.
+
+## 0.8.27.0
+- Modelllauf-Änderungsradar und Szenario-Cluster nur noch im erweiterten Modus, jeweils einklappbar und im geschlossenen Zustand nicht gerendert.
+- Tagesdetail-Sonne-/Bewölkungsbalken direkt an den aktuellen React-Datenstand gebunden; veraltete DOM-Nachbearbeitung entfernt.
+- Weitere Rendering-, Observer-, Scroll-, Resize- und Ensemble-Aufbereitungsbremsen beseitigt; MID-Prognose-Kompass ergänzt.
+
+## 0.8.26.19
+- Kurzfristvorhersage wird bei frischer hyperlokaler oder stationsgestützter Analyse für die ersten Zeitstufen kontrolliert an Temperatur, Feuchte, Taupunkt, QFF-Luftdruck, Wind/Böen, Windrichtung, Bewölkung, Sicht und Niederschlag angeglichen.
+- Wetterpiktogramme und Detailwerte folgen der lokalen Ausgangslage und laufen je nach Veränderlichkeit des Parameters gestuft zum Best Match zurück.
+- Veraltete Stationswerte bleiben ausgeschlossen; km/h-Stationswind wird vor der Angleichung korrekt in kt umgerechnet und die aktive Datenbasis wird in der Kurzfristkarte gekennzeichnet.
+
 ## 0.8.26.18
 - Gezeitenzeiten werden mittels robuster lokaler Kurvenanpassung zwischen den Modellstützstellen minutengenau geschätzt.
 - Ensemble-Hazardmarker erhalten mehr Abstand zum Bewölkungsband; Niederschlagssymbole werden zusätzlich im jeweiligen Tagesfeld beschnitten.

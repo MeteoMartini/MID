@@ -3083,3 +3083,57 @@ button,input,select,[role="button"]{touch-action:manipulation}
 @supports selector(:has(*)){
  .ensemble-chart-export:has(.recharts-tooltip-wrapper[style*="visibility: visible"]){z-index:100}
 }
+
+/* MID v0.8.27.0 · progressive Ensemble-Offenlegung, Prognose-Kompass und Rendering-Budget */
+.ensemble-advanced-header{display:flex!important;align-items:center!important;gap:8px!important;min-width:0}
+.ensemble-advanced-toggle{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:10px;width:100%;min-width:0;padding:0;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer}
+.ensemble-scenarios .ensemble-advanced-toggle{grid-template-columns:minmax(0,1fr) auto}
+.ensemble-advanced-toggle>span:not(.model-change-icon){display:grid;gap:2px;min-width:0}
+.ensemble-advanced-toggle small{color:var(--primary);font-size:7.5px;font-weight:850;letter-spacing:.075em;text-transform:uppercase}
+.ensemble-advanced-toggle strong{font-size:12px;line-height:1.25}
+.ensemble-advanced-toggle em{overflow:hidden;color:var(--muted);font-size:8.5px;font-style:normal;line-height:1.3;text-overflow:ellipsis;white-space:nowrap}
+.ensemble-advanced-toggle>svg{flex:0 0 auto;transition:transform .18s ease}
+.ensemble-advanced-toggle[aria-expanded="false"]>svg{transform:rotate(-90deg)}
+.ensemble-advanced-toggle:focus-visible{outline:2px solid color-mix(in srgb,var(--primary) 72%,white);outline-offset:5px;border-radius:8px}
+.ensemble-advanced-body{display:grid;gap:10px;min-width:0}
+.model-change-radar.collapsed,.ensemble-scenarios.collapsed{gap:0;padding-block:10px}
+.model-change-radar .ensemble-advanced-body>footer{padding-top:2px;color:var(--muted);font-size:8px;line-height:1.4}
+.model-change-radar>.ensemble-advanced-header{display:block!important}
+.model-change-radar .ensemble-advanced-toggle{grid-template-columns:auto minmax(0,1fr) auto auto}
+.model-change-radar .model-change-status{justify-self:end}
+.ensemble-scenarios>.ensemble-advanced-body{display:grid!important;grid-template-columns:1fr!important;gap:9px}
+.ensemble-scenarios>.ensemble-advanced-body>p{margin:0;color:var(--muted);font-size:9px;line-height:1.4}
+.ensemble-scenarios>.ensemble-advanced-body>div{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.ensemble-scenarios>.ensemble-advanced-header>.mode-info{flex:0 0 auto}
+.ensemble-scenarios article{contain:layout paint style}
+.ensemble-scenario-days{overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+
+.ensemble-forecast-compass{display:grid;gap:10px;margin:12px 0;padding:12px 13px;border:1px solid color-mix(in srgb,var(--primary) 30%,var(--border));border-radius:15px;background:linear-gradient(145deg,color-mix(in srgb,var(--primary) 7%,var(--s2)),var(--surface));contain:layout style}
+.ensemble-forecast-compass>header{display:flex;align-items:center;gap:9px}
+.ensemble-forecast-compass>header>span{display:grid;width:34px;height:34px;place-items:center;border-radius:11px;background:color-mix(in srgb,var(--primary) 14%,var(--s3));color:var(--primary);font-size:19px;font-weight:900}
+.ensemble-forecast-compass>header>div{display:grid;gap:1px}
+.ensemble-forecast-compass>header small{color:var(--primary);font-size:7.5px;font-weight:850;letter-spacing:.075em;text-transform:uppercase}
+.ensemble-forecast-compass>header strong{font-size:12px}
+.ensemble-forecast-compass>div{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.ensemble-forecast-compass>div>span{display:grid;align-content:start;gap:3px;min-width:0;padding:9px 10px;border:1px solid color-mix(in srgb,var(--border) 82%,transparent);border-radius:11px;background:color-mix(in srgb,var(--s2) 84%,transparent)}
+.ensemble-forecast-compass>div small{color:var(--muted);font-size:7.5px;font-weight:750;text-transform:uppercase;letter-spacing:.035em}
+.ensemble-forecast-compass>div b{font-size:10.5px;line-height:1.35}
+.ensemble-forecast-compass>div em{color:var(--muted);font-size:7.5px;font-style:normal;line-height:1.35}
+.ensemble-forecast-compass.hoch>header>span,.ensemble-forecast-compass.gut>header>span{color:#35b86e}
+.ensemble-forecast-compass.eingeschränkt>header>span{color:#e18c3d}
+.consistency-legend.simple{grid-template-columns:auto minmax(90px,180px);width:min(100%,340px)}
+.consistency-legend.simple>span{font-size:9px;text-align:left!important}
+.consistency-dot.static{display:inline-block;border:0;cursor:default}
+
+/* Scroll-/Resize-Pfade bleiben messbar, lösen aber keine unnötigen Chart-Neuberechnungen aus. */
+.ensemble-chart-export.collapsed{contain:layout style}
+.ensemble-advanced-body,.ensemble-export-chart-body{content-visibility:auto;contain-intrinsic-size:auto 320px}
+@media(max-width:900px){.ensemble-scenarios>.ensemble-advanced-body>div{grid-template-columns:1fr}.ensemble-forecast-compass>div{grid-template-columns:1fr}}
+@media(max-width:620px){
+ .ensemble-advanced-toggle{grid-template-columns:auto minmax(0,1fr) auto}
+ .model-change-radar .ensemble-advanced-toggle{grid-template-columns:auto minmax(0,1fr) auto}
+ .model-change-radar .model-change-status{grid-column:2/-1;justify-self:start;margin-top:3px}
+ .model-change-radar .ensemble-advanced-toggle>svg{grid-column:3;grid-row:1}
+ .ensemble-advanced-toggle em{white-space:normal}
+ .ensemble-forecast-compass{padding:10px}
+}

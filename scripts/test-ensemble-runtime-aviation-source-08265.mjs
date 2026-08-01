@@ -36,8 +36,9 @@ for(const token of [
 ])need('Flugwetter-Herkunft',meteogram,token);
 forbid('Flugwetter-Herkunft',meteogram,'ADWICE-Daten werden geladen');
 
-const parsedPackage=JSON.parse(pkg),parsedBaseline=JSON.parse(baseline),versionParts=String(parsedPackage.version||'').split('.').map(Number);
-if(versionParts.length!==4||versionParts[0]!==0||versionParts[1]!==8||versionParts[2]!==26||!Number.isInteger(versionParts[3])||versionParts[3]<5)failures.push(`Paketversion ${parsedPackage.version} liegt nicht auf oder nach dem geprüften Wartungsstand 0.8.26.5.`);
+const parsedPackage=JSON.parse(pkg),parsedBaseline=JSON.parse(baseline),versionParts=String(parsedPackage.version||'').split('.').map(Number),minimumVersion=[0,8,26,5];
+const validVersion=versionParts.length===4&&versionParts.every(Number.isInteger),isAtLeastMinimum=validVersion&&versionParts.some((part,index)=>part!==minimumVersion[index]?part>minimumVersion[index]:false)||validVersion&&versionParts.every((part,index)=>part===minimumVersion[index]);
+if(!isAtLeastMinimum)failures.push(`Paketversion ${parsedPackage.version} liegt nicht auf oder nach dem geprüften Wartungsstand 0.8.26.5.`);
 if(!parsedBaseline.regressionTests?.includes('scripts/test-ensemble-runtime-aviation-source-08265.mjs'))failures.push('Neue Regression fehlt in MID_BASELINE.json.');
 if(!parsedPackage.scripts?.['test:ensemble-runtime-aviation-source'])failures.push('Neues Testskript fehlt in package.json.');
 

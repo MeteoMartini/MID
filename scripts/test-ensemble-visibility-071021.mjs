@@ -13,7 +13,7 @@ if(!panel.includes("await import('html-to-image')"))failures.push('PNG-Exportbib
 const fallbackStart=panel.indexOf('if(!d.length)return');
 const fallbackEnd=panel.indexOf('const rainScale=',fallbackStart);
 const fallback=panel.slice(fallbackStart,fallbackEnd);
-if(!fallback.includes('<EnsembleHelpToolbar runs={runs}/>'))failures.push('Modellstände fehlen im Ensemble-Fallback.');
+if(!fallback.includes('<EnsembleHelpToolbar runs={runs} advancedMode={advancedMode}/>'))failures.push('Modellstände fehlen im Ensemble-Fallback.');
 if(!fallback.includes('<ModelRunChangeRadar report={changeReport}'))failures.push('Modelllauf-Änderungsradar fehlt im Ensemble-Fallback.');
 if(!panel.includes('<CombinedTrendChart'))failures.push('Temperatur-Ensemble-Diagramm fehlt.');
 if(!panel.includes('className="chart rain"'))failures.push('Niederschlags-Ensemble-Diagramm fehlt.');

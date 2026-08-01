@@ -12,8 +12,9 @@ const failures=[];
 for(const token of [
  "document.addEventListener('pointerdown',dismiss,true)",
  "document.addEventListener('keydown',escape)",
- "window.addEventListener('resize',update)",
- "window.addEventListener('scroll',update,true)",
+ "window.addEventListener('resize',schedule,{passive:true})",
+ "window.addEventListener('scroll',schedule,scrollOptions)",
+ "setStyle(current=>current.left===next.left&&current.top===next.top",
  'createPortal(',
  'ensemble-help-toolbar',
  'label="14-Tage-Ensemble-Übersicht erklären"',

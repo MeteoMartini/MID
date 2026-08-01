@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.8.26.18",
+  "releaseVersion": "0.8.27.1",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -107,6 +107,9 @@
     "scripts/test-short-term-anchor-narrowing-buildfix-082615.mjs",
     "scripts/test-thunder-city-hail-scroll-performance-082616.mjs",
     "scripts/test-water-tide-minute-hazard-layout-082617.mjs",
-    "scripts/test-water-tide-tooltip-layering-082618.mjs"
+    "scripts/test-water-tide-tooltip-layering-082618.mjs",
+    "scripts/test-short-term-hyperlocal-consistency-082619.mjs",
+    "scripts/test-advanced-progressive-skybar-performance-08270.mjs",
+    "scripts/test-short-term-thunder-sample-buildfix-08271.mjs"
   ]
 }

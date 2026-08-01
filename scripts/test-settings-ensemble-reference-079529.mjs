@@ -40,12 +40,13 @@ requireTokens('Einstellungen-Design v0.7.95.26',styles,[
 ]);
 requireTokens('Ensemble-Hilfe v0.7.95.26',panel,[
  'function useEnsemblePortal(open:boolean',
- 'function EnsembleExplanation()',
+ 'function EnsembleExplanation({advancedMode}',
  '<strong>14-Tage-Ensemble verstehen</strong>',
  '<b>P10–P90</b>',
  '<b>Prognosekonsistenz</b>',
- '<b>Modellstände</b>',
- 'function EnsembleHelpToolbar({runs}',
+ 'ENS-Mittel, Klimamittel, Modellstände, Szenario-Cluster und das Änderungsradar',
+ 'function EnsembleHelpToolbar({runs,advancedMode}',
+ '{advancedMode&&<ModelRunDetails runs={runs}/>',
  'className="model-run-popover ensemble-portal-popover"',
  'className="mode-info-popover ensemble-info-popover ensemble-portal-popover"'
 ]);
