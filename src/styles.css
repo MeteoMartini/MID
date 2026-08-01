@@ -3693,3 +3693,22 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .ensemble-scenario-probability-meter small{color:var(--muted);font-size:6.6px;white-space:nowrap}
 @media(max-width:900px){.ensemble-scenario-probability-overview,.ensemble-scenario-cards{grid-template-columns:1fr!important}}
 @media(max-width:620px){.ensemble-scenario-probability-overview{grid-template-columns:repeat(3,minmax(0,1fr))!important}.ensemble-scenario-probability-overview>span{padding:7px}.ensemble-scenario-probability-overview header strong{font-size:13px}.ensemble-scenario-probability-overview small{font-size:6.4px}}
+
+/* MID v0.8.30.5 · achsgenaue Ensemble-Rasterlinien und robuste Szenario-/Kompasswerte */
+.ensemble-major-grid-line{
+  pointer-events:none;
+  shape-rendering:geometricPrecision;
+  vector-effect:non-scaling-stroke;
+}
+.ensemble-major-grid-line.horizontal{
+  stroke:color-mix(in srgb,var(--muted) 56%,transparent)!important;
+  stroke-width:1.05!important;
+  stroke-dasharray:4 5!important;
+  opacity:1!important;
+}
+.ensemble-major-grid-line.vertical{
+  stroke:color-mix(in srgb,var(--muted) 46%,transparent)!important;
+  stroke-width:.95!important;
+  stroke-dasharray:4 5!important;
+  opacity:1!important;
+}

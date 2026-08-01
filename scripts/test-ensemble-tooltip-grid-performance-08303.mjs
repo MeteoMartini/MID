@@ -20,19 +20,21 @@ for(const token of [
  'cellX=plotLeft+(slotIndex/dayCount)*plotWidth',
  'cellRight=plotLeft+((slotIndex+1)/dayCount)*plotWidth',
  'centerX=plotLeft+((slotIndex+.5)/dayCount)*plotWidth',
- 'className="ensemble-weather-day-guide"',
- '<CartesianGrid horizontal vertical={false} stroke="#8399ad"',
- '<CartesianGrid horizontal vertical stroke="#8399ad"'
+ '<ReferenceLine key={`temperature-vertical-${row.date}`} x={row.x}',
+ '<ReferenceLine key={`temperature-horizontal-${value}`} yAxisId="t" y={value}',
+ '<ReferenceLine key={`rain-horizontal-${value}`} yAxisId="mm" y={value}',
+ '<ReferenceLine key={`wind-horizontal-${value}`} yAxisId="wind" y={value}'
 ])if(!panel.includes(token))failures.push(`Ensemble-Quellvertrag fehlt: ${token}`);
+for(const obsolete of ['className="ensemble-weather-day-guide"','<CartesianGrid horizontal vertical={false} stroke="#8399ad"'])if(panel.includes(obsolete))failures.push(`Veraltete Rastergeometrie vorhanden: ${obsolete}`);
 for(const token of [
  'MID v0.8.30.3 · exakte Tageszentren, sichere Querformat-Tooltips und schnellere Chartinteraktion',
- '.ensemble-weather-day-guide{',
  '@media(orientation:landscape) and (pointer:coarse){',
- '.ensemble-temperature-canvas .recharts-cartesian-grid-horizontal line,',
- 'transition:none!important;'
+ 'transition:none!important;',
+ '.ensemble-major-grid-line.horizontal{',
+ '.ensemble-major-grid-line.vertical{'
 ])if(!css.includes(token))failures.push(`Ensemble-CSS-Vertrag fehlt: ${token}`);
 if(failures.length){
-  console.error('MID v0.8.30.3 Tooltip-/Raster-/Performanceprüfung fehlgeschlagen:\n- '+failures.join('\n- '));
+  console.error('MID Tooltip-/Raster-/Performanceprüfung fehlgeschlagen:\n- '+failures.join('\n- '));
   process.exit(1);
 }
-console.log('Querformat-Tooltips, exakt zentrierte Tageszellen, sichtbare Rasterlinien und zustandsarme Klick-Tooltips geprüft.');
+console.log('Querformat-Tooltips, achsgenaue Tageslinien, horizontale Hauptlinien und zustandsarme Klick-Tooltips geprüft.');
