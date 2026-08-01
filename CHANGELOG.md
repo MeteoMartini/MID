@@ -1,8 +1,9 @@
-## 0.8.29.0
-- Vollständige iCloud-Backup-Wiederherstellung mit exaktem langlebigem App-Zustand und Wetterzwillingarchiv
-- iOS-PWA-Übernahmecode für getrennte Safari-/Home-Bildschirm-Speicher
-- Geräteübergreifender Abgleich erweitert um Standortdaten und automatische Wetterzwilling-Archivsyncs
-- Verlustarme Übernahme entfernter Gerätestände und kontrollierter Reload nach Remote-Änderungen
+## 0.8.30.0
+- Menü „Daten & Synchronisation“ widerspruchsfrei neu geordnet: automatische Web-App-Synchronisation zuerst, manuelle iCloud-Sicherheitskopie als zusätzlicher Notfallschutz.
+- Gemeinsame portable Datenrichtlinie für Sicherung und Synchronisation eingeführt; Ensemble-, Diagramm-, Modul- und weitere App-Einstellungen werden nicht mehr durch zu breite Ausschlüsse übergangen.
+- Vollständiger Snapshot-Abgleich v2 synchronisiert nun auch Löschungen und setzt portable Einstellungen auf verbundenen Web-Apps konsistent gleich.
+- Sicherungsformat v3 übernimmt auf Wunsch den bestehenden Geräteverbund und stellt Wiederherstellungsstände für weitere Web-Apps bereit.
+- Klare iOS-Hinweise ergänzt: Safari und installierte Home-Bildschirm-Web-Apps müssen einmal mit demselben Synchronisationscode verbunden werden.
 
 ## 0.8.28.1
 - Ensemble-Diagramme im Hochformat verbreitert und in der Höhe reduziert; Achsen, Legenden und leicht diagonale Tagesbeschriftungen vereinheitlicht.

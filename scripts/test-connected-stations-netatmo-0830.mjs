@@ -1,12 +1,12 @@
 import {readFile} from 'node:fs/promises';
-const [client,settings,engine,app,workerText,styles,sync]=await Promise.all([
+const [client,settings,engine,app,workerText,styles,policy]=await Promise.all([
  readFile(new URL('../src/connectedStation.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/ConnectedStationSettings.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/forecastVerification.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
  readFile(new URL('../worker/metar-proxy.js',import.meta.url),'utf8'),
  readFile(new URL('../src/styles.css',import.meta.url),'utf8'),
- readFile(new URL('../src/deviceSync.ts',import.meta.url),'utf8')
+ readFile(new URL('../src/portableUserData.ts',import.meta.url),'utf8')
 ]);
 const failures=[],need=(text,token,message)=>{if(!text.includes(token))failures.push(message)};
 need(settings,'Datenübernahme vorübergehend deaktiviert','Stationsübernahme ist in den Einstellungen nicht sichtbar deaktiviert.');
@@ -22,7 +22,7 @@ need(workerText,"scope','read_station'",'Netatmo OAuth fordert nicht das Leserec
 need(workerText,"mode==='netatmo-observation'",'Netatmo-Abrufroute fehlt.');
 need(workerText,'stationEncrypt(env,token)','Netatmo-Tokens werden nicht verschlüsselt gespeichert.');
 need(styles,'.connected-station-settings','Styling für Stationsanbindung fehlt.');
-need(sync,"'mid:connected-station:'",'Lokale Stationszugänge werden nicht von der Gerätesynchronisation ausgeschlossen.');
+need(policy,"'mid:connected-station:'",'Lokale Stationszugänge werden nicht von der Gerätesynchronisation ausgeschlossen.');
 if(failures.length){console.error('Vernetzte-Wetterstation-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
 
 class MemoryKv{constructor(){this.map=new Map()}async put(key,value){this.map.set(key,value)}async get(key,options){const value=this.map.get(key);if(value===undefined)return null;return options?.type==='json'?JSON.parse(value):value}async delete(key){this.map.delete(key)}async list(){return{keys:[],list_complete:true}}}

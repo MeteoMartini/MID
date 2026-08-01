@@ -24,7 +24,7 @@ need('Worker-3-Tage-Push',worker,"url.searchParams.set('forecast_days','3')");
 need('Worker-3-Tage-Zeilen',worker,'times.slice(0,3)');
 
 for(const token of ["crypto.subtle.encrypt({name:'AES-GCM'","crypto.subtle.decrypt({name:'AES-GCM'",'startDeviceSyncBridge','restoreDeviceSyncState','device-sync-push','device-sync-pull'])need('Gerätesynchronisation',deviceSync,token);
-for(const token of ['Geräteübergreifende Synchronisation','Persönlicher Synchronisationscode','Jetzt synchronisieren','Bestehenden Geräteverbund verwenden'])need('Synchronisationseinstellungen',deviceSettings,token);
+for(const token of ['Geräteübergreifende Synchronisation','Persönlicher Synchronisationscode','Alle Daten jetzt abgleichen','Diese Web-App mit vorhandenem Stand verbinden'])need('Synchronisationseinstellungen',deviceSettings,token);
 need('Synchronisationsstart',main,'restoreDeviceSyncState');
 need('Synchronisationsbrücke',main,'startDeviceSyncBridge');
 need('Worker-Sync-Push',worker,"mode==='device-sync-push'");

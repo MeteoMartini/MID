@@ -1,0 +1,21 @@
+import {readFileSync} from 'node:fs';
+const app=readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
+const syncUi=readFileSync(new URL('../src/DeviceSyncSettings.tsx',import.meta.url),'utf8');
+const backupUi=readFileSync(new URL('../src/ICloudBackupSettings.tsx',import.meta.url),'utf8');
+const sync=readFileSync(new URL('../src/deviceSync.ts',import.meta.url),'utf8');
+const backup=readFileSync(new URL('../src/iCloudBackup.ts',import.meta.url),'utf8');
+const policy=readFileSync(new URL('../src/portableUserData.ts',import.meta.url),'utf8');
+const css=readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
+const failures=[];
+const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
+for(const token of ['Ein Stand auf allen MID-Web-Apps','Automatische Synchronisation','iCloud-Sicherheitskopie','jede installierte Web-App einmal mit demselben Code verbunden'])need('Einstellungsübersicht',app,token);
+if(app.indexOf('<DeviceSyncSettings')>app.indexOf('<ICloudBackupSettings'))failures.push('Automatische Synchronisation muss vor der manuellen Sicherheitskopie erscheinen.');
+for(const token of ['Automatische Web-App-Synchronisation','Diese Web-App automatisch synchronisieren','Diese Web-App mit vorhandenem Stand verbinden','Geräteübergreifend übernommen'])need('Sync-Menü',syncUi,token);
+for(const token of ['Manuelle iCloud-Sicherheitskopie','Eine Sicherungsdatei ist kein laufender Geräteabgleich','Nach dem Einspielen für andere Web-Apps bereitstellen'])need('Backup-Menü',backupUi,token);
+for(const token of ['collectPortableUserData','replacePortableUserData','version:2','snapshot.version>=2'])need('Vollständiger Sync-Vertrag',sync,token);
+for(const token of ['collectPortableUserData','replacePortableUserData','BACKUP_VERSION=3'])need('Vollständiger Backup-Vertrag',backup,token);
+for(const token of ["'mid:ensemble:v9:'",'mid:ensemble:advanced','PORTABLE_USER_DATA_INCLUDED','PORTABLE_USER_DATA_EXCLUDED'])need('Portable Richtlinie',policy,token);
+if(policy.includes("'mid:ensemble:'"))failures.push('Ensemble-Einstellungen würden pauschal ausgeschlossen.');
+for(const token of ['.data-sync-overview','.device-sync-coverage'])need('Menüdesign',css,token);
+if(failures.length){console.error('Sicherungs-/Synchronisationsmenü-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
+console.log('Widerspruchsfreies Menü und vollständiger portabler Web-App-Abgleich geprüft.');

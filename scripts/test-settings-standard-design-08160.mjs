@@ -32,8 +32,9 @@ for(const token of [
 ])need('Kompakter Wetterzwilling im Standardmodus',twinSettings,token);
 for(const token of [
  'DeviceSyncSettings({advancedMode=false}',
- "advancedMode?'Favoriten, Einstellungen, Profile sowie das vollständige Wetterzwilling-Langzeitarchiv",
- "'Favoriten und Einstellungen verschlüsselt auf mehreren MID-Geräten verwenden.'"
+ 'Automatische Web-App-Synchronisation',
+ 'Diese Web-App automatisch synchronisieren',
+ 'Geräteübergreifend übernommen'
 ])need('Kompakte Synchronisation im Standardmodus',syncSettings,token);
 need('Apple-Werkzeuge nur im Erweiterten Modus',app,"layoutMode==='advanced'?<AppleWidgetSettings location={currentLocation} unit={unit}/>");
 

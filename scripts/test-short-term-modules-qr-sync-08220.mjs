@@ -72,9 +72,9 @@ for(const token of [
 for(const token of [
  "void import('./qrCode')",
  'createQrSvg(transferUrl)',
- 'Mit QR-Code verbinden',
- 'mit der Kamera-App scannen',
- 'Der QR-Code wird ausschließlich lokal erzeugt'
+ 'Weitere Web-App verbinden',
+ 'QR-Code auf dem anderen Gerät scannen',
+ 'Der QR-Code enthält den geheimen Synchronisationsschlüssel' 
 ])need('QR-Einstellungen',syncSettings,token);
 for(const token of [
  'export function createQrSvg(',
