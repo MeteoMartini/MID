@@ -7,8 +7,8 @@ const failures=[];
 const need=token=>{if(!panel.includes(token))failures.push(`fehlt: ${token}`)};
 const forbid=token=>{if(panel.includes(token))failures.push(`unerlaubt: ${token}`)};
 for(const token of [' isFront','<ReferenceArea','<ReferenceDot','useCartesianScale','ZIndexLayer'])forbid(token);
-for(const token of ['function EnsemblePrecipShape','function EnsembleHazardShape','function EnsembleTemperatureWeatherOverlay','layer:\'weather\'|\'hazards\'','plotBottom=height-margin.bottom-xAxisHeight','hazardY=Math.max(plotTop+8,cellY-18)'])need(token);
-if(!/cellHeight=Math\.max\(13,plotHeight\*\.(072|076)\)/.test(panel))failures.push('fehlt: flexible cellHeight-Geometrie');
+for(const token of ['function EnsemblePrecipShape','function EnsembleHazardShape','function EnsembleTemperatureWeatherOverlay','layer:\'weather\'|\'hazards\'','plotBottom=height-margin.bottom-xAxisHeight','hazardY=Math.max(plotTop+8,cellY-20)'])need(token);
+if(!/cellHeight=Math\.max\(12,plotHeight\*\.058\)/.test(panel))failures.push('fehlt: flexible cellHeight-Geometrie');
 const source=ts.createSourceFile('EnsemblePanel.tsx',panel,ts.ScriptTarget.ESNext,true,ts.ScriptKind.TSX);
 if(source.parseDiagnostics.length)failures.push(...source.parseDiagnostics.map(item=>`Parser: ${item.messageText}`));
 if(failures.length){console.error('Recharts-3-Wetterebenen-Buildfix fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}

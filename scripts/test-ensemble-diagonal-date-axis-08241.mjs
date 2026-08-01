@@ -20,7 +20,7 @@ for(const token of [
  'height={compactChart?54:58}',
  'height={compact?54:58}'
 ])need('Ensemble-Datumsachse',panel,token);
-if(!/xAxisHeight=compact\?(64|74):(68|78)/.test(panel))failures.push('Ensemble-Datumsachse: variable X-Achsenhöhe fehlt.');
+if(!/xAxisHeight=compact\?(88|96):(96|106)/.test(panel))failures.push('Ensemble-Datumsachse: variable X-Achsenhöhe fehlt.');
 const tickCount=(panel.match(/tick=\{<EnsembleDateAxisTick/g)||[]).length;
 if(tickCount!==3)failures.push(`Ensemble-Datumsachse: erwartet 3 diagonale X-Achsen, gefunden ${tickCount}`);
 for(const token of [

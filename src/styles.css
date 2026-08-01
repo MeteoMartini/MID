@@ -3293,3 +3293,110 @@ button,input,select,[role="button"]{touch-action:manipulation}
 @media(max-width:420px){
   .ensemble-temp-chart-core{grid-template-rows:minmax(0,1fr) 34px}
 }
+
+
+/* MID v0.8.27.9 · kompakteres Temperatur-Tooltip und freiere X-Achse */
+.compact-trend-tooltip{
+  width:min(308px,calc(100vw - 20px));
+  max-width:min(308px,calc(100vw - 20px));
+  padding:7px 9px;
+  border-radius:10px;
+  gap:2px;
+  font-size:9.6px;
+  line-height:1.14;
+}
+.compact-trend-tooltip strong{margin-bottom:1px;font-size:8.7px;line-height:1.06}
+.compact-trend-tooltip .trend-tooltip-matrix,.compact-trend-tooltip .trend-tooltip-meta{font-size:9px}
+.compact-trend-tooltip .trend-tooltip-matrix>.matrix-head{font-size:7.8px;letter-spacing:.03em}
+.compact-trend-tooltip .trend-tooltip-matrix>.matrix-row{padding:1px 0}
+.compact-trend-tooltip .trend-tooltip-matrix>.matrix-row span{line-height:1.08}
+.compact-trend-tooltip .trend-tooltip-meta{gap:2px;padding-top:4px}
+.compact-trend-tooltip .tooltip-meta-line{grid-template-columns:max-content max-content minmax(max-content,1fr);gap:2px 6px}
+.compact-trend-tooltip .tooltip-meta-line b,.compact-trend-tooltip .tooltip-meta-block b{font-size:7.4px;letter-spacing:.03em}
+.compact-trend-tooltip .tooltip-meta-line span,.compact-trend-tooltip .tooltip-meta-block span{line-height:1.1}
+.compact-trend-tooltip .tooltip-meta-block{gap:1px}
+.compact-trend-tooltip.align-right{transform:translateX(calc(-100% + 8px))}
+.trend-combined .recharts-tooltip-wrapper,.ensemble-chart-export .recharts-tooltip-wrapper{max-width:calc(100vw - 12px)!important}
+.ensemble-temp-chart-core{grid-template-rows:minmax(0,1fr) 46px}
+.ensemble-temp-axis-title-bottom{position:relative;z-index:2;align-items:flex-start;padding-top:16px;line-height:1.02}
+@media(max-width:620px){
+  .compact-trend-tooltip{width:min(286px,calc(100vw - 14px));max-width:min(286px,calc(100vw - 14px));padding:6px 8px;font-size:8.8px}
+  .compact-trend-tooltip strong{font-size:8.1px}
+  .compact-trend-tooltip .trend-tooltip-matrix,.compact-trend-tooltip .trend-tooltip-meta{font-size:8.3px}
+  .compact-trend-tooltip .trend-tooltip-matrix>.matrix-head,.compact-trend-tooltip .tooltip-meta-line b,.compact-trend-tooltip .tooltip-meta-block b{font-size:7.1px}
+  .compact-trend-tooltip .tooltip-meta-line{gap:2px 5px}
+  .compact-trend-tooltip.align-right{transform:translateX(calc(-100% + 4px))}
+  .ensemble-temp-chart-core{grid-template-rows:minmax(0,1fr) 42px}
+  .ensemble-temp-axis-title-bottom{padding-top:12px}
+}
+@media(max-width:420px){
+  .compact-trend-tooltip{width:min(270px,calc(100vw - 12px));max-width:min(270px,calc(100vw - 12px))}
+  .ensemble-temp-chart-core{grid-template-rows:minmax(0,1fr) 40px}
+  .ensemble-temp-axis-title-bottom{padding-top:10px}
+}
+
+/* MID v0.8.27.10 · verdichtetes Ensemble-Tooltip, freie Temperatur-X-Achse und direktere Touch-Interaktion */
+.compact-trend-tooltip{
+  width:min(276px,calc(100vw - 16px))!important;
+  max-width:min(276px,calc(100vw - 16px))!important;
+  min-width:0!important;
+  padding:6px 7px!important;
+  border-radius:10px;
+  gap:3px!important;
+  line-height:1.08;
+}
+.compact-trend-tooltip.align-right{transform:translateX(calc(-100% + 14px))}
+.compact-trend-tooltip .trend-tooltip-head{gap:6px!important;padding-bottom:4px!important}
+.compact-trend-tooltip .trend-tooltip-head strong{font-size:11px!important;line-height:1.05;white-space:nowrap}
+.compact-trend-tooltip .trend-tooltip-head span{font-size:8.4px!important;white-space:nowrap}
+.compact-trend-tooltip .trend-tooltip-matrix,
+.compact-trend-tooltip .trend-tooltip-meta{font-size:8.45px!important}
+.compact-trend-tooltip .trend-tooltip-matrix{grid-template-columns:minmax(56px,.72fr) minmax(0,1fr) minmax(0,1fr)!important;gap:2px 4px!important}
+.compact-trend-tooltip .trend-tooltip-matrix>span{line-height:1.1!important}
+.compact-trend-tooltip .trend-tooltip-matrix>.matrix-head,
+.compact-trend-tooltip .tooltip-meta-line b,
+.compact-trend-tooltip .tooltip-meta-block b{font-size:7.4px!important;letter-spacing:.025em}
+.compact-trend-tooltip .trend-tooltip-meta{gap:2px!important;padding-top:4px!important}
+.compact-trend-tooltip .tooltip-meta-line{grid-template-columns:max-content minmax(0,1fr)!important;gap:1px 6px!important;align-items:start}
+.compact-trend-tooltip .tooltip-meta-line b{grid-column:1/2}
+.compact-trend-tooltip .tooltip-meta-line>span{display:block!important;min-width:0;white-space:normal!important;overflow-wrap:anywhere!important;word-break:normal!important;text-align:left!important}
+.compact-trend-tooltip .tooltip-meta-line>span:last-child{grid-column:2/3;justify-self:start;text-align:left!important}
+.compact-trend-tooltip .tooltip-meta-block{gap:1px!important}
+.compact-trend-tooltip .tooltip-meta-block>span{line-height:1.12!important}
+@media(max-width:420px){
+  .compact-trend-tooltip{width:min(258px,calc(100vw - 14px))!important;max-width:min(258px,calc(100vw - 14px))!important;padding:5px 6px!important}
+  .compact-trend-tooltip.align-right{transform:translateX(calc(-100% + 10px))}
+  .compact-trend-tooltip .trend-tooltip-head strong{font-size:10.4px!important}
+  .compact-trend-tooltip .trend-tooltip-head span{font-size:8px!important}
+  .compact-trend-tooltip .trend-tooltip-matrix,.compact-trend-tooltip .trend-tooltip-meta{font-size:8px!important}
+  .compact-trend-tooltip .trend-tooltip-matrix{grid-template-columns:minmax(52px,.68fr) minmax(0,1fr) minmax(0,1fr)!important}
+}
+
+.ensemble-temp-plot{min-width:0;overflow:visible}
+.ensemble-temp-chart-core{grid-template-rows:minmax(0,1fr) 42px!important;overflow:visible}
+.ensemble-temp-axis-title-bottom{align-items:flex-start!important;padding-top:12px!important;min-height:42px;line-height:1.05}
+.ensemble-temperature-canvas,.ensemble-temperature-canvas .recharts-wrapper,.ensemble-temperature-canvas .recharts-surface{overflow:visible!important}
+.ensemble-temperature-weather-overlay.weather{pointer-events:none}
+.ensemble-temperature-weather-overlay .ensemble-sky-strip{filter:drop-shadow(0 1px 0 rgba(255,255,255,.35))}
+.ensemble-temperature-canvas .recharts-cartesian-axis-tick tspan{font-size:10px}
+@media(max-width:620px){
+  .ensemble-temp-chart-core{grid-template-rows:minmax(0,1fr) 38px!important}
+  .ensemble-temp-axis-title-bottom{padding-top:9px!important;min-height:38px}
+  .ensemble-temperature-canvas .recharts-cartesian-axis-tick tspan{font-size:9px}
+}
+@media(max-width:420px){
+  .ensemble-temp-chart-core{grid-template-rows:minmax(0,1fr) 40px!important}
+  .ensemble-temp-axis-title-bottom{padding-top:10px!important;min-height:40px}
+}
+
+.search input,
+.search>div button,
+.search>section button,
+.short-term-strip>button,
+.short-term-detail>header>button{
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+.search input{caret-color:var(--primary)}
+.short-term-strip>button{user-select:none;-webkit-user-select:none}
+.short-term-strip>button:active{transform:scale(.988)}

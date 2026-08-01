@@ -1,3 +1,23 @@
+## 0.8.27.11
+
+- Veröffentlichungsfehler nach erfolgreichem Produktionsbuild behoben: veraltete Regressionstests an die aktuelle Temperatur-Ensemble-, Tooltip- und Achsengeometrie angepasst
+- Schutztests für Hoch-/Querformat, Exportgeometrie, Datumsachse, Wetter-/Hazardband und Tooltip-Randsicherung auf den aktuellen Vertrag aktualisiert
+- Interaktions-, Referenzdesign-, UI- und Gezeiten-/Tooltip-Layering-Prüfungen mit der neuen responsiven Darstellung synchronisiert
+- Vollständiger Lauf aller automatisch erkannten MID-Regressionen erfolgreich
+
+## 0.8.27.10
+
+- Ensemble-Temperaturtrend weiter verdichtet: Tooltip nochmals deutlich kompakter, mobile X-Achse freier und Wetter-/Hazardband sauberer über der Datumsachse positioniert
+- Temperatur-Ensemble responsiver abgestimmt: mehr vertikale Reserve für Achsentitel, bessere mobile Geometrie und sicherere Tooltip-Auslenkung am rechten Rand
+- Ortssuche spürbar direkter: schnellere Suchauslösung, suchoptimierte Eingabeeigenschaften und direktere Touch-Bedienung
+- Kurzfrist-Kacheln für Touch-Bedienung entschärft: direktere Tap-Reaktion und mobile Interaktion mit weniger Verzögerung
+
+## 0.8.27.9
+- Ensemble-Temperaturtooltip wieder deutlich kompakter und dichter gesetzt.
+- Ensemble-Temperaturdiagramm: zusätzliche Freiräume für Wetterkästchen, Datumsachse und Achsentitel.
+- Wetterkästchen schmaler und höher positioniert, damit die X-Achsenbeschriftung nicht mehr verdeckt wird.
+- Tooltip-Rechtsausrichtung weiter verschärft, damit rechte Inhalte nicht abgeschnitten werden.
+
 ## 0.8.27.8
 - Ensemble-Temperaturdiagramm: Tageskästchen optisch enger und klarer auf die Tagesachsen zentriert.
 - Ensemble-Temperaturdiagramm: mehr vertikale Reserve für Datumsachse und Achsentitel, damit Hoch- und Querformat stabiler aussehen.

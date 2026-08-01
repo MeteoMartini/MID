@@ -65,7 +65,7 @@ requireTokens('Ensemble-Temperaturtooltip v0.7.95.26',panel,[
  '>Tmin °C<',
  '>Tmax °C<',
  "position={compact?{x:0,y:6}:undefined}",
- "maxWidth:'calc(100vw - 16px)'"
+ "maxWidth:'calc(100vw - 12px)'"
 ]);
 requireTokens('Ensemble-CSS v0.7.95.26',styles+v078,[
  '.ensemble-help-toolbar{display:flex;align-items:center;justify-content:flex-end;gap:7px;',
