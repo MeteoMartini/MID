@@ -14,7 +14,7 @@ const [water,panel,styles,pkg,baseline]=await Promise.all([
 const failures=[];const need=(area,text,token)=>{if(!text.includes(token))failures.push(`${area}: fehlt ${token}`)};
 for(const token of ['function solveQuadraticNormalEquation(','radius=step===15?6:3','Math.abs(vertex)<=step*.8','<h3>Gezeiten</h3>','<b>Gezeiten</b>'])need('Gezeiten',water,token);
 if(water.includes('Gezeiten- und Wasserstandswendepunkte'))failures.push('Alte Gezeitenüberschrift ist noch vorhanden.');
-for(const token of ['hazardY=Math.max(plotTop+8,cellY-20)','clipPathUnits="userSpaceOnUse"','clipPath={`url(#${clipId})`}','Math.min(1.24','ensemble-chart-temperature','ensemble-chart-precipitation','ensemble-chart-wind'])need('Ensemble-Overlay',panel,token);
+for(const token of ['hazardY=Math.max(plotTop+8,cellY-16)','clipPathUnits="userSpaceOnUse"','clipPath={`url(#${clipId})`}','Math.min(1.24','ensemble-chart-temperature','ensemble-chart-precipitation','ensemble-chart-wind'])need('Ensemble-Overlay',panel,token);
 for(const token of ['.ensemble-chart-temperature{z-index:30}', '.ensemble-chart-precipitation{z-index:20}', '.ensemble-chart-wind{z-index:10}', '.ensemble-temperature-canvas>.recharts-wrapper{z-index:3}', '.ensemble-chart-export .recharts-tooltip-wrapper{z-index:100!important}', '.ensemble-chart-export:has(.recharts-tooltip-wrapper[style*="visibility: visible"]){z-index:100}'])need('Tooltip-Layering',styles,token);
 const start=water.indexOf('type TideEvent='),end=water.indexOf('function tideAnalysis(');
 if(start<0||end<0)failures.push('Gezeiten-Hilfslogik konnte nicht isoliert werden.');else{

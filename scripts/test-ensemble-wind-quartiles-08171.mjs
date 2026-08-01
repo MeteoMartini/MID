@@ -27,7 +27,7 @@ for(const token of [
   "quartileBandKey=gust?'gustQBandPlot':'windQBandPlot'",
   'stackId="wind-quartile"',
   'fillOpacity={.42}',
-  'row.x<7&&<span>P25–P75:',
+  'advancedMode&&row.x<7&&<div><dt>P25–P75</dt>',
   'P25–P75 <small>Tage 1–7</small>',
   'P25–P75 Tag 1–7 · ENS-Mittel'
 ])need('Winddiagramm P25–P75',panel,token);

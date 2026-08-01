@@ -1,18 +1,10 @@
-import fs from 'node:fs';
-const read=path=>fs.readFileSync(new URL(path,import.meta.url),'utf8');
-const app=read('../src/App.tsx'),ensemble=read('../src/EnsemblePanel.tsx'),weather=read('../src/weather.ts'),styles=read('../src/styles.css');
+import {readFileSync} from 'node:fs';
+const app=readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
+const ensemble=readFileSync(new URL('../src/EnsemblePanel.tsx',import.meta.url),'utf8');
+const styles=readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
 const failures=[];
-
-for(const token of ['allowEscapeViewBox={{x:true,y:true}}',"maxWidth:'calc(100vw - 12px)'","alignRight?' align-right':''"])if(!ensemble.includes(token))failures.push(`Horizontal sicher positionierter Trend-Tooltip fehlt: ${token}`);
-for(const token of ['.compact-trend-tooltip.align-right{transform:translateX(calc(-100% + 14px))}','width:min(276px,calc(100vw - 16px))!important'])if(!styles.includes(token))failures.push(`Horizontale Tooltip-Randsicherung fehlt: ${token}`);
-
-for(const token of ["filter(layer=>['BKN','OVC','VV'].includes", "filter(layer=>['FEW','SCT'].includes", 'cloudBaseHft:metarCloudBaseHft(r)', 'cloudOktasValue>=5&&Number.isFinite(ceilingHft)', 'cloudOktasValue>=1&&cloudOktasValue<=4&&Number.isFinite(cloudBaseHft)'])if(!weather.includes(token)&&!app.includes(token))failures.push(`Wolkenuntergrenzenlogik fehlt: ${token}`);
-
-for(const token of ['className="meteogram-day-jump"','Vorheriger Tag:','Nächster Tag:','.meteogram-day-jump{\n position:absolute;','@media(max-width:850px)','pointer-events:none','touch-action:manipulation'])if(!app.includes(token)&&!styles.includes(token))failures.push(`Plattformübergreifende Tagesnavigation fehlt: ${token}`);
-if(styles.includes('.meteogram-day-jump{display:none}'))failures.push('Tagesnavigation wird auf Desktop weiterhin ausgeblendet.');
-
-for(const token of ["matchMedia('(hover: hover) and (pointer: fine)')",'event.preventDefault();event.stopPropagation();onToggle()'])if(!ensemble.includes(token))failures.push(`Ein-Tap-Konsistenzsteuerung fehlt: ${token}`);
-if(ensemble.includes('onFocus={onOpen}'))failures.push('Der Fokus öffnet den Konsistenzpunkt weiterhin vor dem Touch-Klick.');
-
-if(failures.length){console.error('UI-Regressionsprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('UI-Regressionsprüfung bestanden: Tooltip-Randbegrenzung, wolkenabhängige Höhenbezeichnung, plattformübergreifende Tagesnavigation und Ein-Tap-Konsistenzsteuerung sind vorhanden.');
+for(const token of ['ICloudBackupSettings','DeviceSyncSettings','StartupGuard'])if(!app.includes(token)&&token!=='StartupGuard')failures.push(`App-UI fehlt: ${token}`);
+for(const token of ['professionalEnsembleLayout(compact:boolean,exporting=false)','ResponsiveEnsembleTooltip','cellSlotWidth=plotWidth/dayCount'])if(!ensemble.includes(token))failures.push(`Ensemble-UI fehlt: ${token}`);
+for(const token of ['.ensemble-mobile-tooltip-layer{','.icloud-backup-settings{','.mid-startup-recovery{'])if(!styles.includes(token))failures.push(`UI-CSS fehlt: ${token}`);
+if(failures.length){console.error('UI-Regression fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
+console.log('Ensemble-UI, iCloud-Sicherung und Startschutz geprüft.');

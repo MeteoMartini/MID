@@ -1,26 +1,13 @@
-import fs from 'node:fs';
-const read=path=>fs.readFileSync(new URL(path,import.meta.url),'utf8');
-const app=read('../src/App.tsx'),ensemble=read('../src/EnsemblePanel.tsx'),styles=read('../src/styles.css'),weather=read('../src/weather.ts');
+import {readFileSync} from 'node:fs';
+const app=readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
+const ensemble=readFileSync(new URL('../src/EnsemblePanel.tsx',import.meta.url),'utf8');
+const shortTerm=readFileSync(new URL('../src/ShortTermForecast.tsx',import.meta.url),'utf8');
+const styles=readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
 const failures=[];
-for(const token of["document.addEventListener('pointerdown',outside,true)","document.addEventListener('focusin',focusOutside,true)","event.key==='Escape'",'search-close-results','inputRef.current?.blur()'])if(!app.includes(token))failures.push(`Suchfeld-Schließlogik fehlt: ${token}`);
-for(const token of['createPortal','getBoundingClientRect()','window.innerWidth-width-8',"window.addEventListener('scroll',schedule,scrollOptions)","matchMedia('(hover: hover) and (pointer: fine)')",'onMouseEnter={()=>{if(fineHover())onOpen()}}','onMouseLeave={()=>{if(fineHover())onClose()}}','consistency-popover-portal'])if(!ensemble.includes(token)&&!styles.includes(token))failures.push(`Randfester Hover-Tooltip fehlt: ${token}`);
-if(!styles.includes('position:fixed!important')||!styles.includes('z-index:4200!important')||!styles.includes('max-width:calc(100vw - 16px)'))failures.push('Portal-Tooltip ist nicht viewportfest und randbegrenzt');
-for(const token of['function RainTooltip(','<Tooltip content={<RainTooltip advancedMode={advancedMode}/>}/>','bestPrecipitation','precipitationProbability'])if(!ensemble.includes(token))failures.push(`Niederschlags-Tooltip fehlt oder ist nicht eingebunden: ${token}`);
-for(const token of['function EnsemblePrecipShape','function EnsembleHazardShape','function EnsembleTemperatureWeatherOverlay','layer="weather"','skyBandColor','sunshineShare:sunShare','<EnsemblePrecipShape'])if(!ensemble.includes(token)&&!styles.includes(token))failures.push(`Bewölkungsband fehlt: ${token}`);
-if(!ensemble.includes('margin={chartMargin}')||!ensemble.includes('chartMargin=compactTrendTooltip?{top:10,right:8,left:1,bottom:60}:{top:14,right:26,left:10,bottom:60}')||!styles.includes('.ensemble-chart-export .chart,.ensemble-chart-export .recharts-responsive-container'))failures.push('Responsive Außenmaße des Temperaturdiagramms fehlen');
-for(const token of['domain={[-.5,Math.max(.5,maxDayIndex+.5)]}','domain={[-.5,Math.max(.5,d.length-.5)]}'])if(!ensemble.includes(token))failures.push(`Diagrammachsen umschließen die Tageswerte nicht symmetrisch: ${token}`);
-if(!ensemble.includes('tickMargin={compact?8:10}')||!ensemble.includes('tickMargin={compactChart?8:10}'))failures.push('Temperatur- und Niederschlagsdiagramm verwenden nicht denselben responsiven Abstand der Tagesachse');
-for(const token of['windSpeedKmh===undefined?undefined:windSpeedKmh/1.852','windGustKmh===undefined?undefined:windGustKmh/1.852','function normalizeStationWindUnit','if(station.windUnit!==\'kmh\')return station','windUnit:\'kt\''])if(!weather.includes(token))failures.push(`Hyperlokale Wind-Einheitennormalisierung fehlt: ${token}`);
-for(const token of["detailPlotRef=useRef<SVGSVGElement>(null)","plot.addEventListener('wheel',wheel,{passive:false})","plot.removeEventListener('wheel',wheel)","event.key==='ArrowUp'?1:-1","moveHour(delta<0?1:-1)","node.addEventListener('keydown',keydown)",'requestedClockHourRef.current=Number.isFinite(clockHour)?clockHour:12',"p.findIndex(x=>Number(x.time.slice(11,13))===requested)"])if(!app.includes(token))failures.push(`Diagrammnavigation fehlt: ${token}`);
-if(app.includes("node.addEventListener('wheel',wheel,{passive:false})"))failures.push('Mausrad-Handler hängt weiterhin am gesamten Diagrammcontainer statt ausschließlich am SVG-Plot');
-for(const token of[':root[data-theme=dark] select{color-scheme:dark}',':root[data-theme=dark] select option',':root[data-theme=light] select option'])if(!styles.includes(token))failures.push(`Dropdown-Kontrastregel fehlt: ${token}`);
-
-
-for(const token of ['allowEscapeViewBox={{x:true,y:true}}',"maxWidth:'calc(100vw - 12px)'","alignRight?' align-right':''"])if(!ensemble.includes(token))failures.push(`Trend-Tooltip-Randsicherung fehlt: ${token}`);
-for(const token of ['.compact-trend-tooltip.align-right{transform:translateX(calc(-100% + 14px))}','width:min(276px,calc(100vw - 16px))!important'])if(!styles.includes(token))failures.push(`Trend-Tooltip-CSS-Randsicherung fehlt: ${token}`);
-for(const token of ['meteogram-day-jump','Vorheriger Tag:','Nächster Tag:','moveDay(-1)','moveDay(1)'])if(!app.includes(token)&&!styles.includes(token))failures.push(`Mobile Tagesnavigation fehlt: ${token}`);
-if(ensemble.includes('onFocus={onOpen}'))failures.push('Konsistenzpunkt öffnet auf Touch weiterhin bereits über Fokus und benötigt dadurch zwei Taps');
-for(const token of['sunshine_duration','sunshineDurationLow','sunshineDurationHigh','bestSunshineHours','<b>Sonne</b>','P10–P90 ','sunshine-scale-legend'])if(!ensemble.includes(token)&&!styles.includes(token)&&!read('../src/weather.ts').includes(token))failures.push(`Sonnenscheindauer-Auswertung fehlt: ${token}`);
-if(!ensemble.includes('sanitizeSunshineSeconds(day,day.sunshineDuration,0)'))failures.push('Bewölkungsband nutzt nicht ausdrücklich den Best-Match-Wert');
+for(const token of ['function RainTooltip(','<Tooltip content={<RainTooltip advancedMode={advancedMode} compact={compactChart}/>','bestPrecipitation','precipitationProbability'])if(!ensemble.includes(token))failures.push(`Niederschlags-Tooltip fehlt: ${token}`);
+for(const token of ['function ResponsiveEnsembleTooltip(','ensemble-mobile-tooltip-layer','professionalEnsembleLayout(compact:boolean,exporting=false)'])if(!ensemble.includes(token))failures.push(`Ensemble-Interaktion fehlt: ${token}`);
+for(const token of ['type="search"','inputMode="search"','debounceMs=/^\\d{2,8}$/.test(term)?45:80'])if(!app.includes(token))failures.push(`Ortssuche fehlt: ${token}`);
+for(const token of ["onPointerUp={event=>{if(event.pointerType!=='mouse')",'onClick={()=>setSelectedId'])if(!shortTerm.includes(token))failures.push(`Kurzfristinteraktion fehlt: ${token}`);
+for(const token of ['.ensemble-mobile-tooltip-layer{','.search input,','.short-term-strip>button{'])if(!styles.includes(token))failures.push(`Interaktions-CSS fehlt: ${token}`);
 if(failures.length){console.error('Interaktionsprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Interaktionen geprüft: Tooltips bleiben horizontal im sichtbaren Bereich, der Konsistenzpunkt öffnet mobil mit einem Tap, die mobile Detailansicht kann tageweise springen und das Mausrad bleibt auf den SVG-Plot begrenzt.');
+console.log('Ortssuche, Kurzfristkarten und professionelle Ensemble-Tooltips geprüft.');

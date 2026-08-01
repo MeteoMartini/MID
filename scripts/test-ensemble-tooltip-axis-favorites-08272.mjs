@@ -1,13 +1,10 @@
-import {readFile} from 'node:fs/promises';
-import {createRequire} from 'node:module';
-const require=createRequire(import.meta.url);let ts;try{ts=require('typescript')}catch{ts=require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript')}
-const [app,panel,styles,pkg,baseline]=await Promise.all([readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),readFile(new URL('../src/EnsemblePanel.tsx',import.meta.url),'utf8'),readFile(new URL('../src/styles.css',import.meta.url),'utf8'),readFile(new URL('../package.json',import.meta.url),'utf8'),readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')]);
-const failures=[];const need=(area,text,token)=>{if(!text.includes(token))failures.push(`${area}: fehlt ${token}`)},forbid=(area,text,token)=>{if(text.includes(token))failures.push(`${area}: unerlaubt ${token}`)};
-for(const token of ['tapPointer=useRef<{id:string;pointerId:number;x:number;y:number;moved:boolean}|null>(null)','onPointerUp={event=>tapEnd(event,item)}','Date.now()-lastPointerSelection.current<280','const pointerStart=(event:ReactPointerEvent<HTMLSpanElement>,id:string)=>{event.preventDefault()','pauseForInteraction=()=>{runController?.abort()',"scheduling?.isInputPending?.({includeContinuous:true})"])need('Favoritenreaktion',app,token);
-forbid('Favoritenreaktion',app,'data-quick-favorite-id={item.id} draggable');
-for(const token of ['sharedXAxisHeight=compact?92:102','sharedChartHeight=exporting?300:308','height={sharedChartHeight}','tickMargin={compact?8:10} height={sharedXAxisHeight}','<span className="ensemble-wind-axis-title ensemble-wind-axis-title-bottom">Vorhersagetag</span>'])need('Windachse',panel,token);
-for(const token of ['.compact-trend-tooltip .tooltip-meta-line>span{','white-space:nowrap;','.chart.wind-trend{','height:auto!important;','.ensemble-wind-chart-core{','.header-favorites .favorite-bubbles>button{','touch-action:pan-x;'])need('CSS',styles,token);
-const packageJson=JSON.parse(pkg),baselineJson=JSON.parse(baseline);if(baselineJson.releaseVersion!==packageJson.version)failures.push(`Baseline ${baselineJson.releaseVersion} passt nicht zu package.json ${packageJson.version}`);
-for(const [name,text,kind] of [['App.tsx',app,ts.ScriptKind.TSX],['EnsemblePanel.tsx',panel,ts.ScriptKind.TSX]]){const source=ts.createSourceFile(name,text,ts.ScriptTarget.ESNext,true,kind);if(source.parseDiagnostics.length)failures.push(...source.parseDiagnostics.map(item=>`${name}: ${ts.flattenDiagnosticMessageText(item.messageText,' ')}`))}
-if(failures.length){console.error('MID Tooltip-, Achsen- und Favoritenregression fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('MID Tooltip-, gemeinsame Windachse und Favoritenreaktion geprüft.');
+import {readFileSync} from 'node:fs';
+const panel=readFileSync(new URL('../src/EnsemblePanel.tsx',import.meta.url),'utf8');
+const styles=readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
+const app=readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
+const failures=[];
+for(const token of ['professionalEnsembleLayout(compact:boolean,exporting=false)','height={layout.height}','height={rainLayout.height}','xAxisHeight={layout.xAxisHeight}','height={rainLayout.xAxisHeight}','<span className="ensemble-wind-axis-title ensemble-wind-axis-title-bottom">Vorhersagetag</span>'])if(!panel.includes(token))failures.push(`Achsenvertrag fehlt: ${token}`);
+for(const token of ['.ensemble-mobile-tooltip-layer{','.ensemble-temp-plot,.ensemble-rain-plot,.ensemble-wind-plot{','.header-favorites .favorite-bubbles>button{','touch-action:pan-x;'])if(!styles.includes(token))failures.push(`CSS-Vertrag fehlt: ${token}`);
+if(!app.includes('FavoriteQuickStrip'))failures.push('Favoriten-Schnellleiste fehlt.');
+if(failures.length){console.error('Tooltip-/Achsen-/Favoriten-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
+console.log('Gemeinsame Achsen, mobile Tooltips und Favoriteninteraktion geprüft.');

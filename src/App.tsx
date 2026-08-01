@@ -19,6 +19,7 @@ import {syncPushNotifications,type PushNotificationInterval,type PushRuleFavorit
 import {PushSettingsPanel} from './PushSettingsPanel';
 import {getWebAnalyticsStatus,type WebAnalyticsStatus} from './webAnalytics';
 import {DeviceSyncSettings} from './DeviceSyncSettings';
+import {ICloudBackupSettings} from './ICloudBackupSettings';
 import {WeatherTwinSettings as WeatherTwinSettingsPanel} from './WeatherTwinSettings';
 import {AppleWidgetSettings} from './AppleWidgetSettings';
 import {applyLocalTwinForecastFromReport,applyLocalTwinHours,buildForecastVerificationReport,readWeatherTwinSettings,recordForecastCapture,recordLiveTwinObservation,refreshForecastReferences,restoreForecastVerificationArchive,writeWeatherTwinSettings,type TwinMainForecastStatus,type WeatherTwinSettings} from './forecastVerification';
@@ -532,7 +533,7 @@ function SettingsManager({open,section,setSection,onClose,favorites,setFavorites
   {section==='notifications'&&<PushSettingsPanel favorites={favorites} onRuleChange={patchPushRule} locationTracking={locationTracking} trackedLocation={trackedLocation} trackedRules={trackedPushRules} onTrackedRuleChange={patchTrackedPushRule} modelChangeLocation={currentLocation} modelChangeAvailable={modelChangeSettings.enabled} modelChangeNotificationEnabled={modelChangeSettings.notifyMaterial} onModelChangeNotificationChange={value=>setModelChangeSettings(current=>({...current,notifyMaterial:value}))} notificationIntervalMinutes={pushNotificationInterval} onNotificationIntervalChange={setPushNotificationInterval} advancedMode={layoutMode==='advanced'}/>} 
   {section==='favorites'&&<FavoritesManager open favorites={favorites} setFavorites={setFavorites} current={currentLocation} locationTracking={locationTracking} setLocationTracking={setLocationTracking} onClose={onClose} onSelect={onSelectFavorite} embedded/>}
   {section==='twin'&&<WeatherTwinSettingsPanel advancedMode={layoutMode==='advanced'}/>}
-  {section==='sync'&&<div className="settings-section-stack"><DeviceSyncSettings advancedMode={layoutMode==='advanced'}/>{layoutMode==='advanced'?<AppleWidgetSettings location={currentLocation} unit={unit}/>:<section className="settings-section settings-advanced-note"><header><span>Zusätzliche Integrationen</span><h3>Apple-Widgets</h3><p>Widget- und Komplikationswerkzeuge stehen im Erweiterten Modus bereit.</p></header></section>}</div>}
+  {section==='sync'&&<div className="settings-section-stack"><ICloudBackupSettings advancedMode={layoutMode==='advanced'}/><DeviceSyncSettings advancedMode={layoutMode==='advanced'}/>{layoutMode==='advanced'?<AppleWidgetSettings location={currentLocation} unit={unit}/>:<section className="settings-section settings-advanced-note"><header><span>Zusätzliche Integrationen</span><h3>Apple-Widgets</h3><p>Widget- und Komplikationswerkzeuge stehen im Erweiterten Modus bereit.</p></header></section>}</div>}
   {section==='system'&&<SystemUpdateManager open onClose={onClose} embedded/>}
   {section==='legal'&&<section className="settings-section settings-legal"><header><span>Rechtliche Angaben</span><h3>Impressum</h3><p>Anbieterkennzeichnung und Kontaktmöglichkeit für MID.</p></header><ImprintContent embedded/></section>}
  </div></div></section></div>

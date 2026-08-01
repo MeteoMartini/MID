@@ -1,16 +1,7 @@
-import {readFile} from 'node:fs/promises';
-const [ensemble,frame,styles]=await Promise.all([readFile(new URL('../src/EnsemblePanel.tsx',import.meta.url),'utf8'),readFile(new URL('../src/EnsembleChartFrame.tsx',import.meta.url),'utf8'),readFile(new URL('../src/styles.css',import.meta.url),'utf8')]);
+import {readFileSync} from 'node:fs';
+const panel=readFileSync(new URL('../src/EnsemblePanel.tsx',import.meta.url),'utf8');
 const failures=[];
-for(const token of ["const ENSEMBLE_EXPORT_WIDTH=1180","const ENSEMBLE_RAIN_EXPORT_CHART_WIDTH=992","const ENSEMBLE_TEMP_EXPORT_CHART_WIDTH=992","const ENSEMBLE_WIND_EXPORT_CHART_WIDTH=992","type EnsembleExportKind='temperature'|'precipitation'|'wind'",'function waitForStableExportChart',"target.querySelector('.ensemble-fixed-chart .recharts-wrapper')",'onExportingChange(kind)','[exportingKind,setExportingKind]=useState<EnsembleExportKind|null>(null)',"compactTrendTooltip=exporting?false:viewportCompact","compactChart=exportingKind==='precipitation'?false:viewportCompactChart"])if(!ensemble.includes(token))failures.push(`Feste Export-Geometrie fehlt: ${token}`);
-if(!ensemble.includes('sharedChartHeight=exporting?336:360'))failures.push('Temperatur-Exporthöhe 336 und responsive Livehöhe 360 fehlen.');
-if(!ensemble.includes("sharedChartHeight=exportingKind==='precipitation'?300:308"))failures.push('Niederschlags-Export-/Livehöhe fehlt.');
-if(!ensemble.includes('sharedChartHeight=exporting?300:308'))failures.push('Wind-Export-/Livehöhe fehlt.');
-for(const widthToken of ['exportWidth={ENSEMBLE_TEMP_EXPORT_CHART_WIDTH}','exportWidth={ENSEMBLE_RAIN_EXPORT_CHART_WIDTH}','exportWidth={ENSEMBLE_WIND_EXPORT_CHART_WIDTH}'])if(!ensemble.includes(widthToken))failures.push(`Exportbreite fehlt: ${widthToken}`);
-if((ensemble.match(/height=\{sharedChartHeight\}/g)||[]).length!==3)failures.push('Alle drei Ensemble-Diagramme müssen die gemeinsame lokale Diagrammhöhe verwenden.');
-for(const token of ['export function EnsembleChartFrame','cloneElement(children,{width:exportWidth,height,responsive:false})','className="ensemble-fixed-chart"','className="ensemble-responsive-chart"','ResizeObserver','cloneElement(children,{width,height,responsive:false','style={{height,minHeight}}','minHeight'])if(!frame.includes(token))failures.push(`Modularer Export-/Live-Frame fehlt: ${token}`);
-if(frame.includes('ResponsiveContainer'))failures.push('Der Recharts-3-Livepfad darf nicht vom ResponsiveContainer abhängen.');
-if((ensemble.match(/isAnimationActive=\{false\}/g)||[]).length<16)failures.push('Nicht alle Ensemble-Flächen und -Linien sind animationsfrei.');
-if((ensemble.match(/<EnsembleChartFrame/g)||[]).length!==3)failures.push('Temperatur-, Niederschlags- und Winddiagramm müssen jeweils genau einen Export-Frame verwenden.');
-for(const token of ['MID v0.7.106.2 – feste Export-Geometrie für Ensemble-Diagramme','.ensemble-chart-export.ensemble-exporting{','contain:none!important','.ensemble-chart-export.ensemble-exporting .ensemble-fixed-chart{','width:1096px!important','width:992px!important','overflow:hidden'])if(!styles.includes(token))failures.push(`CSS-Schutz der Export-Geometrie fehlt: ${token}`);
-if(failures.length){console.error('Feste Ensemble-Export-Geometrie fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Ensemble-Exportgeometrie geprüft: alle drei Diagramme besitzen feste Exportbreiten und konsistente lokale Höhen.');
+for(const token of ['const ENSEMBLE_RAIN_EXPORT_CHART_WIDTH=992','const ENSEMBLE_TEMP_EXPORT_CHART_WIDTH=992','const ENSEMBLE_WIND_EXPORT_CHART_WIDTH=992','height:exporting?318:324'])if(!panel.includes(token))failures.push(`Export-Geometrie fehlt: ${token}`);
+const layoutUses=(panel.match(/professionalEnsembleLayout\(/g)||[]).length;if(layoutUses<4)failures.push('Alle drei Charts müssen dieselbe Layout-Engine verwenden.');
+if(failures.length){console.error('Ensemble-Exportgeometrie-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
+console.log('Gleiche Exportbreiten und gemeinsame Chart-Höhe geprüft.');

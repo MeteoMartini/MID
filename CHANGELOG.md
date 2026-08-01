@@ -1,3 +1,10 @@
+## 0.8.28.0
+- Neue iCloud-Drive-Dateisicherung für Favoriten, App-Einstellungen, Profile und vollständige Wetterzwilling-Langzeitdaten einschließlich Wiederherstellung und Integritätsprüfung
+- Vollständiger Neuaufbau der Ensemble-Diagramme auf einer gemeinsamen professionellen Chart-Engine mit identischen Tagespositionen, Achsen, Plotmaßen und responsiven Tooltips
+- Temperatur-Wetterleiste als lückenlose Tageszellen; Tageshilfslinien liegen exakt in den Zellmitten
+- Mehrstufiger PWA-Startschutz gegen weiße Startseiten mit Cache-Reparatur ohne Löschung lokaler Daten
+- Wiederherstellungsoberfläche ermöglicht vor Reparatur eine Datensicherung
+
 ## 0.8.27.14
 - Sämtliche veralteten Ensemble-, Achsen-, Tooltip-, Wetterband-, Export- und Touch-Regressionstests auf den aktuellen Funktionsvertrag synchronisiert
 - GitHub-Installer wird nicht mehr durch Prüfungen der früheren Einzelgeometrien blockiert
