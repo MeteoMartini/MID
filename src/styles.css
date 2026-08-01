@@ -3768,3 +3768,67 @@ button,input,select,[role="button"]{touch-action:manipulation}
     font-size:7.6px!important;
   }
 }
+
+
+/* MID v0.8.30.8 · garantierte mobile Datumsachsen, klickschließende Tooltips und echte Tagesraster */
+.ensemble-rain-chart-core,
+.ensemble-wind-chart-core{
+  grid-template-rows:minmax(0,1fr) 62px!important;
+}
+.ensemble-external-date-axis{
+  grid-row:2;
+  display:grid;
+  grid-template-rows:44px 16px;
+  min-width:0;
+  overflow:visible;
+  color:var(--muted);
+  pointer-events:none;
+}
+.ensemble-external-date-labels{
+  display:grid;
+  grid-template-columns:repeat(var(--ensemble-day-count),minmax(0,1fr));
+  align-items:start;
+  min-width:0;
+  overflow:visible;
+}
+.ensemble-external-date-labels>span{
+  justify-self:center;
+  display:inline-flex;
+  align-items:baseline;
+  gap:2px;
+  transform:translateY(3px) rotate(-32deg);
+  transform-origin:top center;
+  white-space:nowrap;
+  font-size:7.8px;
+  line-height:1;
+  color:var(--muted);
+}
+.ensemble-external-date-labels>span i{font-style:normal;font-weight:900;color:var(--text)}
+.ensemble-external-date-labels>span b{font-weight:740;color:var(--muted)}
+.ensemble-external-date-axis>strong{
+  display:flex;
+  align-items:end;
+  justify-content:center;
+  min-height:16px;
+  font-size:7.5px;
+  line-height:1;
+  font-weight:850;
+  letter-spacing:.03em;
+  text-transform:uppercase;
+}
+.ensemble-day-grid line{
+  stroke:color-mix(in srgb,var(--muted) 48%,transparent)!important;
+  stroke-width:1!important;
+  stroke-dasharray:4 5!important;
+  opacity:1!important;
+  vector-effect:non-scaling-stroke;
+}
+@media(max-width:620px){
+  .ensemble-rain-chart-core,
+  .ensemble-wind-chart-core{grid-template-rows:minmax(0,1fr) 68px!important}
+  .ensemble-external-date-axis{grid-template-rows:50px 16px}
+  .ensemble-external-date-labels>span{font-size:7.2px;transform:translateY(4px) rotate(-36deg)}
+}
+@media(max-width:390px){
+  .ensemble-external-date-labels>span{font-size:6.7px;gap:1px}
+}

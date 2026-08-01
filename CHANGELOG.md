@@ -1,3 +1,8 @@
+## 0.8.30.8
+- Niederschlag und Wind/Böen: robuste externe Datumsachse im Hochformat; alle 14 Tage bleiben sichtbar.
+- Ensemble-Tooltips: Tippen auf die geöffnete Tooltipkarte schließt sie wieder; Außenklick und Escape bleiben erhalten.
+- Niederschlag und Wind/Böen: senkrechte Tageshilfslinien werden direkt vom gemeinsamen Recharts-Tagesraster erzeugt.
+
 ## 0.8.30.7
 - Niederschlagsdiagramm: Zeitachsenbeschriftung im Hochformat wieder dauerhaft sichtbar.
 - Ensemble-Tooltips: Interaktion innerhalb der Tooltipkarte schließt die Auswahl nicht mehr.
