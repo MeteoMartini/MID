@@ -1,3 +1,15 @@
+## 0.8.30.2
+- Synchronisations-Worker: `midwx.app` und `www.midwx.app` dauerhaft als freigegebene Ursprünge ergänzt.
+- Konfigurierte Cloudflare-Originlisten ergänzen nun die MID-Standarddomains, statt sie zu ersetzen.
+- Originwerte werden auf den tatsächlichen URL-Ursprung normalisiert; abschließende Schrägstriche verursachen keine Fehlablehnung mehr.
+- Einstellungsmenü zeigt bei einem noch veralteten Worker eine konkrete Upload-Anweisung.
+
+## 0.8.30.1
+- Temperatur-Ensemble: Sonne-/Wolkenleiste nutzt exakte Tagesintervallgrenzen; die letzte Zelle endet exakt am Plotrand und alle Zellmittel liegen auf den Tagesmarken.
+- Temperatur-Ensemble: Zellfüllungen ohne überstehende Einzelrahmen, mit gemeinsamer Außenkontur und exakt positionierten Tagestrennern.
+- Kurzfristvorhersage: ausschließlich eine Detailkachel gleichzeitig geöffnet; Wechsel auf eine andere Zeit ersetzt die bisherige Auswahl unmittelbar.
+- Kurzfristvorhersage: doppelte Touch-/Click-Auslösung entfernt und Auswahl bei Datenaktualisierung abgesichert.
+
 ## 0.8.30.0
 - Menü „Daten & Synchronisation“ widerspruchsfrei neu geordnet: automatische Web-App-Synchronisation zuerst, manuelle iCloud-Sicherheitskopie als zusätzlicher Notfallschutz.
 - Gemeinsame portable Datenrichtlinie für Sicherung und Synchronisation eingeführt; Ensemble-, Diagramm-, Modul- und weitere App-Einstellungen werden nicht mehr durch zu breite Ausschlüsse übergangen.

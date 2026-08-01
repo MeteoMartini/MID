@@ -7,7 +7,8 @@ const failures=[];
 for(const token of ['function RainTooltip(','content={<RainTooltip advancedMode={advancedMode} compact={compactChart}/>','bestPrecipitation','precipitationProbability'])if(!ensemble.includes(token))failures.push(`Niederschlags-Tooltip fehlt: ${token}`);
 for(const token of ['function ResponsiveEnsembleTooltip(','ensemble-mobile-tooltip-layer','professionalEnsembleLayout(compact:boolean,exporting=false)'])if(!ensemble.includes(token))failures.push(`Ensemble-Interaktion fehlt: ${token}`);
 for(const token of ['type="search"','inputMode="search"','debounceMs=/^\\d{2,8}$/.test(term)?45:80'])if(!app.includes(token))failures.push(`Ortssuche fehlt: ${token}`);
-for(const token of ["onPointerUp={event=>{if(event.pointerType!=='mouse')",'onClick={()=>setSelectedId'])if(!shortTerm.includes(token))failures.push(`Kurzfristinteraktion fehlt: ${token}`);
+for(const token of ["selectPoint=(pointId:string)=>setSelectedId(current=>current===pointId?'':pointId)",'onClick={()=>selectPoint(point.id)}','id="short-term-selected-detail"','aria-controls="short-term-selected-detail"'])if(!shortTerm.includes(token))failures.push(`Kurzfristinteraktion fehlt: ${token}`);
+if(shortTerm.includes('onPointerUp={event=>'))failures.push('Kurzfristinteraktion enthält noch die doppelte PointerUp-/Click-Auslösung.');
 for(const token of ['.ensemble-mobile-tooltip-layer{','.search input,','.short-term-strip>button{'])if(!styles.includes(token))failures.push(`Interaktions-CSS fehlt: ${token}`);
 if(failures.length){console.error('Interaktionsprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
 console.log('Ortssuche, Kurzfristkarten und professionelle Ensemble-Tooltips geprüft.');

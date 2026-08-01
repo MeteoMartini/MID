@@ -3613,3 +3613,9 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .data-sync-overview header{display:grid;gap:3px}.data-sync-overview header>span{color:var(--primary);font-size:8px;font-weight:850;letter-spacing:.07em;text-transform:uppercase}.data-sync-overview h3{margin:0;font-size:14px}.data-sync-overview p,.data-sync-overview small{margin:0;color:var(--muted);font-size:9px;line-height:1.45}.data-sync-overview ol{display:grid;gap:5px;margin:0;padding-left:20px;color:var(--text);font-size:9px;line-height:1.4}
 .device-sync-coverage{display:grid;gap:6px;padding:10px 11px;border:1px solid var(--border);border-radius:12px;background:var(--s2)}.device-sync-coverage>strong{font-size:10px}.device-sync-coverage ul{display:grid;gap:3px;margin:0;padding-left:17px;color:var(--text);font-size:8.5px;line-height:1.35}.device-sync-coverage small{color:var(--muted);font-size:8px;line-height:1.4}
 @media(max-width:600px){.data-sync-overview{padding:12px}.data-sync-overview h3{font-size:13px}.data-sync-overview p,.data-sync-overview small,.data-sync-overview ol{font-size:8.5px}.device-sync-coverage ul{font-size:8px}}
+
+
+/* MID v0.8.30.1 · exakt achsgebundene Wetterleiste */
+.ensemble-temperature-weather-overlay .ensemble-sky-strip-separator{stroke:rgba(88,105,118,.34);stroke-width:.8;shape-rendering:crispEdges}
+.ensemble-temperature-weather-overlay .ensemble-sky-strip-outline{fill:none;stroke:rgba(88,105,118,.46);stroke-width:.8;vector-effect:non-scaling-stroke;pointer-events:none}
+.short-term-detail{scroll-margin-top:12px}

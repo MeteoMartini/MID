@@ -22,7 +22,7 @@ const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const OPEN_METEO_ELEVATION='https://api.open-meteo.com/v1/elevation';
-const WORKER_VERSION='0.8.30.0';
+const WORKER_VERSION='0.8.30.2';
 const CORS={'content-type':'application/json; charset=utf-8','access-control-allow-origin':'*','access-control-allow-methods':'GET,POST,OPTIONS','access-control-allow-headers':'content-type','cache-control':'public, max-age=180'};
 const FEED_SLUGS={
  AD:'andorra',AT:'austria',BE:'belgium',BA:'bosnia-herzegovina',BG:'bulgaria',HR:'croatia',CY:'cyprus',CZ:'czechia',DK:'denmark',EE:'estonia',FI:'finland',FR:'france',DE:'germany',GR:'greece',EL:'greece',HU:'hungary',IS:'iceland',IE:'ireland',IL:'israel',IT:'italy',LV:'latvia',LT:'lithuania',LU:'luxembourg',MT:'malta',MD:'moldova',ME:'montenegro',NL:'netherlands',MK:'republic-of-north-macedonia',NO:'norway',PL:'poland',PT:'portugal',RO:'romania',RS:'serbia',SK:'slovakia',SI:'slovenia',ES:'spain',SE:'sweden',CH:'switzerland',UA:'ukraine',GB:'united-kingdom',UK:'united-kingdom',AM:'armenia'
@@ -867,11 +867,13 @@ async function compositeWmsResponse(request){
 }
 
 
-const PUSH_DEFAULT_ORIGIN='https://meteomartini.github.io';
+const PUSH_DEFAULT_ORIGINS=['https://meteomartini.github.io','https://midwx.app','https://www.midwx.app'];
+const PUSH_DEFAULT_ORIGIN=PUSH_DEFAULT_ORIGINS[0];
 const PUSH_ENCODER=new TextEncoder();
 function pushConfigured(env){return Boolean(env?.MID_PUSH_SUBSCRIPTIONS&&env?.VAPID_PUBLIC_KEY&&env?.VAPID_PRIVATE_KEY&&env?.VAPID_SUBJECT)}
-function pushOrigins(env){return String(env?.MID_ALLOWED_ORIGINS||env?.MID_ALLOWED_ORIGIN||PUSH_DEFAULT_ORIGIN).split(/[\s,;]+/).map(value=>value.trim()).filter(Boolean)}
-function pushOriginAllowed(request,env){const origin=String(request.headers.get('origin')||'');if(!origin)return false;if(/^https?:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?$/i.test(origin))return true;return pushOrigins(env).includes(origin)}
+function pushNormaliseOrigin(value){try{const raw=String(value||'').trim();return raw?new URL(raw).origin.toLowerCase():''}catch{return''}}
+function pushOrigins(env){const configured=String(env?.MID_ALLOWED_ORIGINS||env?.MID_ALLOWED_ORIGIN||'').split(/[\s,;]+/);return[...new Set([...PUSH_DEFAULT_ORIGINS,...configured].map(pushNormaliseOrigin).filter(Boolean))]}
+function pushOriginAllowed(request,env){const origin=pushNormaliseOrigin(request.headers.get('origin'));if(!origin)return false;if(/^https?:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?$/i.test(origin))return true;return pushOrigins(env).includes(origin)}
 function pushB64Decode(value=''){const normalized=String(value).replace(/-/g,'+').replace(/_/g,'/'),padded=normalized+'='.repeat((4-normalized.length%4)%4),raw=atob(padded),bytes=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);return bytes}
 function pushB64Encode(value){const bytes=value instanceof Uint8Array?value:new Uint8Array(value);let raw='';for(let i=0;i<bytes.length;i++)raw+=String.fromCharCode(bytes[i]);return btoa(raw).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
 function pushConcat(...parts){const arrays=parts.map(part=>part instanceof Uint8Array?part:new Uint8Array(part)),length=arrays.reduce((sum,item)=>sum+item.length,0),out=new Uint8Array(length);let offset=0;for(const item of arrays){out.set(item,offset);offset+=item.length}return out}
