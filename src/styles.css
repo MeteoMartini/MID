@@ -3259,3 +3259,22 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .ensemble-temperature-weather-overlay .ensemble-sky-strip{
   shape-rendering:geometricPrecision;
 }
+
+
+/* MID v0.8.27.5 · kompaktere Tagesdetail-Pillen mit UVI-Maximum */
+.quickfacts{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0 12px}
+.quickfacts span{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:7px 11px;border:1px solid var(--border);border-radius:999px;background:var(--s2);font-size:11.5px;line-height:1.15;color:var(--muted)}
+.quickfacts .quickfact.weather{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"icon main" "icon sub";column-gap:8px;row-gap:1px;align-items:center;min-width:min(100%,320px)}
+.quickfacts .quickfact.weather>.mid-weather-pictogram,.quickfacts .quickfact.weather>svg{grid-area:icon;align-self:center}
+.quickfacts .quickfact.weather>b{grid-area:main;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.quickfacts .quickfact.weather>small{grid-area:sub;display:block;margin-top:0;color:var(--muted);font-size:8px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.quickfacts .quickfact.metric{white-space:nowrap}
+.quickfacts .quickfact.metric>svg{flex:none;color:#f5b93d}
+.quickfacts b{color:var(--text)}
+@media(max-width:680px){.quickfacts{gap:6px}.quickfacts span{min-height:36px;padding:6px 10px;font-size:10.5px}.quickfacts .quickfact.weather{min-width:min(100%,280px)}.quickfacts .quickfact.weather>small{font-size:7.6px}}
+@media(max-width:430px){.quickfacts span{padding:6px 9px;font-size:10px}.quickfacts .quickfact.weather{grid-template-columns:auto minmax(0,1fr);width:100%}}
+
+
+/* MID v0.8.27.6 · sichtbare Temperatur-Tagesachse und präziser zentrierte Wetterkacheln */
+.ensemble-temperature-canvas .recharts-cartesian-axis-tick-value,.ensemble-temperature-canvas .ensemble-date-axis-tick{paint-order:stroke fill;stroke:color-mix(in srgb,var(--surface) 92%,transparent);stroke-width:.85px;stroke-linejoin:round}
+.ensemble-temperature-weather-overlay .ensemble-sky-strip{filter:drop-shadow(0 1px 0 rgba(255,255,255,.35))}

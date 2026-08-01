@@ -1,7 +1,22 @@
+## 0.8.27.7
+- GitHub-Veröffentlichung repariert: acht veraltete Regressionstests auf die seit v0.8.27.6 beabsichtigte Temperaturachsen- und Wetterkachelgeometrie aktualisiert.
+- Historische Versionsprüfungen prüfen nun Mindeststand und Synchronität mit `MID_BASELINE.json`, statt spätere Wartungsreleases fälschlich abzulehnen.
+- Die sichtbaren Achsen- und Kachelkorrekturen aus v0.8.27.6 bleiben unverändert erhalten.
+
+## 0.8.27.6
+- Ensemble-Temperaturdiagramm: Tagesachsenbeschriftung wieder klar sichtbar gemacht.
+- Wetter-/Bewölkungskästchen im Temperatur-Ensemble höher positioniert, damit Datumslabels nicht verdeckt werden.
+- Wetterkacheln im Temperatur-Ensemble kompakter und präziser auf die Tagesachse ausgerichtet.
+
+## 0.8.27.5
+- Tagesdetailansicht: kompaktere Info-Pillen oberhalb des Diagramms.
+- Neue UVI-Pille in der Detailansicht mit dem maximalen UV-Index des gewählten Tages.
+- Wetter-Pille der Detailansicht platzsparender gestaltet, damit die Zusatzinformation erhalten bleibt ohne unnötig Höhe zu verbrauchen.
+
 ## 0.8.27.4
-- Vite-Build mit explizitem 4-GB-Heap gegen lange Hänger bei „rendering chunks …“ abgesichert.
+- Vite-Build mit explizitem 4-GB-Heap und deterministischen Vendor-Chunks gegen lange Hänger bei „rendering chunks …“ abgesichert.
 - Dynamischen `:has()`-Selektor der Tooltip-Ebene durch eine statische, browser- und buildstabile Ebenenreihenfolge ersetzt.
-- Explizite esbuild-Minifizierung für JavaScript und CSS festgelegt; die bewusst deaktivierte manuelle Vendor-Chunk-Aufteilung bleibt deaktiviert.
+- Explizite esbuild-Minifizierung für JavaScript und CSS festgelegt; komprimierte Größenberechnung bleibt deaktiviert.
 - Sämtliche fachlichen und optischen Änderungen aus v0.8.27.3 bleiben erhalten.
 
 ## 0.8.27.3

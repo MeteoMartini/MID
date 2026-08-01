@@ -17,7 +17,7 @@ for(const token of [
  '[exportingKind,setExportingKind]=useState<EnsembleExportKind|null>(null)',
  "compactTrendTooltip=exporting?false:viewportCompact",
  "compactChart=exportingKind==='precipitation'?false:viewportCompactChart",
- "EnsembleChartFrame exporting={exporting} height={exporting?282:310} exportWidth={ENSEMBLE_TEMP_EXPORT_CHART_WIDTH}",
+ "EnsembleChartFrame exporting={exporting} height={exporting?296:326} exportWidth={ENSEMBLE_TEMP_EXPORT_CHART_WIDTH}",
  "EnsembleChartFrame exporting={exportingKind==='precipitation'} height={250} exportWidth={ENSEMBLE_RAIN_EXPORT_CHART_WIDTH}",
  "EnsembleChartFrame exporting={exporting} height={exporting?270:292} exportWidth={ENSEMBLE_WIND_EXPORT_CHART_WIDTH}"
 ])if(!ensemble.includes(token))failures.push(`Feste Export-Geometrie fehlt: ${token}`);
