@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.8.30.2",
+  "version": "0.8.30.4",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -149,7 +149,9 @@
     "test:backup-device-sync-completeness": "node scripts/test-backup-device-sync-completeness-08290.mjs",
     "test:sync-settings-consistency": "node scripts/test-sync-settings-consistency-08300.mjs",
     "test:weatherband-shortterm-exclusive": "node scripts/test-weatherband-shortterm-exclusive-08301.mjs",
-    "test:sync-origin-midwx": "node scripts/test-sync-origin-midwx-08302.mjs"
+    "test:sync-origin-midwx": "node scripts/test-sync-origin-midwx-08302.mjs",
+    "test:ensemble-tooltip-grid-performance": "node scripts/test-ensemble-tooltip-grid-performance-08303.mjs",
+    "test:compass-scenario-wording": "node scripts/test-compass-scenario-wording-08304.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

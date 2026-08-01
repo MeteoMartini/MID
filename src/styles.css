@@ -3619,3 +3619,77 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .ensemble-temperature-weather-overlay .ensemble-sky-strip-separator{stroke:rgba(88,105,118,.34);stroke-width:.8;shape-rendering:crispEdges}
 .ensemble-temperature-weather-overlay .ensemble-sky-strip-outline{fill:none;stroke:rgba(88,105,118,.46);stroke-width:.8;vector-effect:non-scaling-stroke;pointer-events:none}
 .short-term-detail{scroll-margin-top:12px}
+
+/* MID v0.8.30.3 · exakte Tageszentren, sichere Querformat-Tooltips und schnellere Chartinteraktion */
+.ensemble-temperature-weather-overlay.weather{z-index:0!important}
+.ensemble-temperature-canvas>.recharts-wrapper{position:relative;z-index:2}
+.ensemble-temperature-weather-overlay.hazards{z-index:4!important}
+.ensemble-weather-day-guide{
+  stroke:color-mix(in srgb,var(--muted) 46%,transparent);
+  stroke-width:.9;
+  stroke-dasharray:3 5;
+  vector-effect:non-scaling-stroke;
+  shape-rendering:geometricPrecision;
+}
+.ensemble-temperature-canvas .recharts-cartesian-grid-horizontal line,
+.ensemble-rain-chart-core .recharts-cartesian-grid line,
+.ensemble-wind-chart-core .recharts-cartesian-grid line{
+  stroke:color-mix(in srgb,var(--muted) 48%,transparent)!important;
+  stroke-width:.95!important;
+  stroke-dasharray:3 5!important;
+  opacity:1!important;
+  shape-rendering:geometricPrecision;
+}
+.ensemble-temperature-weather-overlay .ensemble-sky-strip-separator{
+  stroke:color-mix(in srgb,var(--muted) 52%,transparent)!important;
+  stroke-width:.85!important;
+}
+.ensemble-mobile-tooltip-layer{
+  left:0!important;
+  right:0!important;
+  width:100vw!important;
+  max-width:100vw!important;
+  box-sizing:border-box;
+  contain:layout style;
+}
+.ensemble-mobile-tooltip-layer .ensemble-pro-tooltip{
+  max-height:min(70dvh,360px);
+  overflow:auto;
+  overscroll-behavior:contain;
+  contain:layout paint style;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  box-shadow:0 8px 24px rgba(15,34,53,.2)!important;
+}
+.recharts-tooltip-wrapper{
+  transition:none!important;
+  animation:none!important;
+  will-change:auto!important;
+}
+@media(orientation:landscape) and (pointer:coarse){
+  .ensemble-mobile-tooltip-layer{
+    bottom:max(4px,env(safe-area-inset-bottom))!important;
+    padding:0 max(8px,env(safe-area-inset-right)) 0 max(8px,env(safe-area-inset-left))!important;
+  }
+  .ensemble-mobile-tooltip-layer .ensemble-pro-tooltip{
+    width:min(420px,calc(100vw - 32px))!important;
+    max-width:min(420px,calc(100vw - 32px))!important;
+    max-height:calc(100dvh - 16px)!important;
+  }
+}
+
+/* MID v0.8.30.4 · professioneller Prognose-Kompass und sofort erkennbare Szenarioanteile */
+.ensemble-scenario-probability-overview{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important}
+.ensemble-scenario-probability-overview>span{display:grid;gap:4px;min-width:0;padding:8px 9px;border:1px solid color-mix(in srgb,var(--border) 84%,transparent);border-radius:11px;background:color-mix(in srgb,var(--s2) 86%,transparent)}
+.ensemble-scenario-probability-overview>span.leading{border-color:color-mix(in srgb,var(--primary) 48%,var(--border));background:color-mix(in srgb,var(--primary) 7%,var(--surface))}
+.ensemble-scenario-probability-overview header{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ensemble-scenario-probability-overview header b{display:grid;width:21px;height:21px;place-items:center;border-radius:50%;background:var(--primary);color:#fff;font-size:8px}
+.ensemble-scenario-probability-overview header strong{font-size:15px;line-height:1}
+.ensemble-scenario-probability-overview small{overflow:hidden;color:var(--muted);font-size:7px;text-overflow:ellipsis;white-space:nowrap}
+.ensemble-scenario-probability-overview i,.ensemble-scenario-probability-meter i{display:block;overflow:hidden;height:6px;border-radius:999px;background:color-mix(in srgb,var(--muted) 14%,transparent)}
+.ensemble-scenario-probability-overview i em,.ensemble-scenario-probability-meter i em{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--primary),color-mix(in srgb,var(--primary) 58%,#68d5ff))}
+.ensemble-scenario-cards{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.ensemble-scenario-probability-meter{display:grid!important;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:7px}
+.ensemble-scenario-probability-meter small{color:var(--muted);font-size:6.6px;white-space:nowrap}
+@media(max-width:900px){.ensemble-scenario-probability-overview,.ensemble-scenario-cards{grid-template-columns:1fr!important}}
+@media(max-width:620px){.ensemble-scenario-probability-overview{grid-template-columns:repeat(3,minmax(0,1fr))!important}.ensemble-scenario-probability-overview>span{padding:7px}.ensemble-scenario-probability-overview header strong{font-size:13px}.ensemble-scenario-probability-overview small{font-size:6.4px}}

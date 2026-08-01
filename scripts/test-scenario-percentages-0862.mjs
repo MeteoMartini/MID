@@ -8,6 +8,9 @@ for(const token of [
  "import {apportionScenarioPercentages} from './scenarioMath';",
  'displayPercentages=apportionScenarioPercentages(visible.map(scenario=>scenario.probability))',
  '{displayPercentages[index]} %',
+ 'probabilitySummary=visible.map((_,index)=>',
+ 'ensemble-scenario-probability-overview',
+ 'ensemble-scenario-probability-meter',
  'gemeinsam gerundet und ergeben deshalb stets exakt 100 %'
 ])if(!panel.includes(token))failures.push(`Szenarioanzeige fehlt: ${token}`);
 try{

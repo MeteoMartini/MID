@@ -1,3 +1,8 @@
+## 0.8.30.4
+- TypeScript-Buildfix: ungenutzte `cellSlotWidth`-Deklaration entfernt
+- Prognose-Kompass professioneller und meteorologisch konkreter formuliert
+- Szenario-Cluster mit sofort sichtbarer Prozentübersicht und Anteilsskalen ergänzt
+
 ## 0.8.30.2
 - Synchronisations-Worker: `midwx.app` und `www.midwx.app` dauerhaft als freigegebene Ursprünge ergänzt.
 - Konfigurierte Cloudflare-Originlisten ergänzen nun die MID-Standarddomains, statt sie zu ersetzen.
