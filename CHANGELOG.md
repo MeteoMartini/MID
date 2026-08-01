@@ -1,3 +1,9 @@
+## 0.8.30.9
+- Ensemble-Tooltips schließen zuverlässig durch Antippen/Klicken der geöffneten Tooltipkarte sowie weiterhin durch Außenklick und Escape.
+- Niederschlags- und Wind/Böen-Diagramm verwenden wieder dieselbe Recharts-Datumsachse wie das Temperaturdiagramm; die problematische externe HTML-Achse wurde entfernt.
+- Senkrechte Tageshilfslinien für Niederschlag und Wind/Böen werden als achsgebundene Referenzlinien sichtbar über den Datenflächen gerendert.
+- Hochformat-, Querformat- und Desktop-Geometrie der Ensemble-Achsen durch neue Layoutregression abgesichert.
+
 ## 0.8.30.8
 - Niederschlag und Wind/Böen: robuste externe Datumsachse im Hochformat; alle 14 Tage bleiben sichtbar.
 - Ensemble-Tooltips: Tippen auf die geöffnete Tooltipkarte schließt sie wieder; Außenklick und Escape bleiben erhalten.

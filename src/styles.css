@@ -3832,3 +3832,83 @@ button,input,select,[role="button"]{touch-action:manipulation}
 @media(max-width:390px){
   .ensemble-external-date-labels>span{font-size:6.7px;gap:1px}
 }
+
+/* MID v0.8.30.9 · einheitliche Recharts-X-Achsen, sichere Tooltip-Schließung und sichtbare Tageslinien */
+.ensemble-chart-export .chart.rain,
+.ensemble-chart-export .chart.wind-trend,
+.ensemble-chart-export.ensemble-exporting .chart.rain,
+.ensemble-chart-export.ensemble-exporting .chart.wind-trend{
+  height:auto!important;
+  min-height:0!important;
+  overflow:visible!important;
+}
+.ensemble-rain-chart-core,
+.ensemble-wind-chart-core{
+  display:grid!important;
+  grid-template-rows:auto 30px!important;
+  align-content:start;
+  overflow:visible!important;
+}
+.ensemble-rain-chart-core>.ensemble-responsive-chart,
+.ensemble-wind-chart-core>.ensemble-responsive-chart,
+.ensemble-rain-chart-core>.ensemble-fixed-chart,
+.ensemble-wind-chart-core>.ensemble-fixed-chart{
+  grid-row:1;
+  overflow:visible!important;
+}
+.ensemble-rain-axis-title-bottom,
+.ensemble-wind-axis-title-bottom{
+  grid-row:2!important;
+  display:flex!important;
+  align-items:flex-end!important;
+  justify-content:center!important;
+  min-height:30px!important;
+  padding:7px 0 0!important;
+  font-size:7.8px!important;
+  line-height:1!important;
+  letter-spacing:.035em!important;
+  text-transform:uppercase;
+}
+.ensemble-rain-chart-core .recharts-xAxis,
+.ensemble-wind-chart-core .recharts-xAxis,
+.ensemble-rain-chart-core .recharts-cartesian-axis-ticks,
+.ensemble-wind-chart-core .recharts-cartesian-axis-ticks{
+  overflow:visible!important;
+}
+.ensemble-rain-chart-core .ensemble-date-axis-tick,
+.ensemble-wind-chart-core .ensemble-date-axis-tick{
+  font-size:7.4px!important;
+}
+.ensemble-front-grid-line{
+  pointer-events:none!important;
+  opacity:.62!important;
+}
+.ensemble-pro-tooltip{
+  pointer-events:auto!important;
+  cursor:pointer;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+  user-select:none;
+  -webkit-user-select:none;
+}
+.ensemble-mobile-tooltip-layer{
+  pointer-events:none!important;
+}
+.ensemble-mobile-tooltip-layer .ensemble-pro-tooltip{
+  pointer-events:auto!important;
+}
+.ensemble-pro-tooltip:focus-visible{
+  outline:2px solid var(--primary);
+  outline-offset:2px;
+}
+@media(max-width:620px){
+  .ensemble-rain-chart-core,
+  .ensemble-wind-chart-core{
+    grid-template-rows:auto 34px!important;
+  }
+  .ensemble-rain-axis-title-bottom,
+  .ensemble-wind-axis-title-bottom{
+    min-height:34px!important;
+    padding-top:8px!important;
+  }
+}

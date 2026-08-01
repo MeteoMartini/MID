@@ -19,8 +19,10 @@ for(const token of [
  "portal={typeof document!=='undefined'?document.body:null}",
  "row.precipVisualLabel.replace(/\\s*Best Match/g,'')",
  'angle=compact?-34:-28',
- 'leftAxisWidth={layout.leftAxisWidth}',
- 'rightAxisWidth={layout.rightAxisWidth}'
+ 'width={layout.leftAxisWidth}',
+ 'width={layout.rightAxisWidth}',
+ 'onDismiss={tooltip.dismiss}',
+ 'onDismiss={rainTooltip.dismiss}'
 ])if(!panel.includes(token))failures.push(`Ensemble-Interaktion/Layout fehlt: ${token}`);
 for(const token of [
  'MID v0.8.28.1 · kompakte, breite Ensemble-Diagramme und reaktionsschnelle Klick-Tooltips',
