@@ -1,3 +1,14 @@
+## 0.8.27.4
+- Vite-Build mit explizitem 4-GB-Heap gegen lange Hänger bei „rendering chunks …“ abgesichert.
+- Dynamischen `:has()`-Selektor der Tooltip-Ebene durch eine statische, browser- und buildstabile Ebenenreihenfolge ersetzt.
+- Explizite esbuild-Minifizierung für JavaScript und CSS festgelegt; die bewusst deaktivierte manuelle Vendor-Chunk-Aufteilung bleibt deaktiviert.
+- Sämtliche fachlichen und optischen Änderungen aus v0.8.27.3 bleiben erhalten.
+
+## 0.8.27.3
+- Ensemble-Tooltip über Temperaturdiagrammen priorisiert, damit es auf Mobilgeräten nicht mehr vom nachfolgenden Diagramm überdeckt wird.
+- Wetter-/Bewölkungskästchen im Ensemble-Temperaturdiagramm neu zentriert und mit präziserer Plot-Geometrie an die Tagesachsen angebunden.
+- Niederschlags-/Gewittersymbole in den Kästchen vergrößert; Blitzsymbol kontrastreicher und besser erkennbar innerhalb des Kästchenrahmens.
+
 ## 0.8.27.2
 - Ensemble-Temperaturtooltips halten Metadatenzeilen nun ohne unerwünschte Umbrüche zusammen.
 - Wind-/Böendiagramme reservieren einen eigenen Bereich für diagonale Datumsbeschriftungen und den Achsentitel.

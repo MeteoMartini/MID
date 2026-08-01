@@ -1,13 +1,14 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.8.27.2",
+  "version": "0.8.27.4",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "sync-version": "node scripts/sync-version.mjs",
     "prebuild": "npm run sync-version",
-    "build": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json && vite build",
+    "build": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json && npm run build:vite",
+    "build:vite": "node --max-old-space-size=4096 node_modules/vite/bin/vite.js build",
     "verify": "npm run build && node --check worker/metar-proxy.js && node scripts/run-regressions.mjs",
     "preview": "vite preview",
     "test:updater": "node scripts/test-updater.mjs",
@@ -135,7 +136,9 @@
     "test:short-term-hyperlocal-consistency": "node scripts/test-short-term-hyperlocal-consistency-082619.mjs",
     "test:advanced-progressive-skybar-performance": "node scripts/test-advanced-progressive-skybar-performance-08270.mjs",
     "test:short-term-thunder-sample-buildfix": "node scripts/test-short-term-thunder-sample-buildfix-08271.mjs",
-    "test:ensemble-tooltip-axis-favorites": "node scripts/test-ensemble-tooltip-axis-favorites-08272.mjs"
+    "test:ensemble-tooltip-axis-favorites": "node scripts/test-ensemble-tooltip-axis-favorites-08272.mjs",
+    "test:ensemble-weatherband": "node scripts/test-ensemble-weatherband-08273.mjs",
+    "test:build-render-stability": "node scripts/test-build-render-stability-08274.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

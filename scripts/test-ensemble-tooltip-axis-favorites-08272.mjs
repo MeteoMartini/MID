@@ -12,7 +12,7 @@ const failures=[];const need=(area,text,token)=>{if(!text.includes(token))failur
 for(const token of [
  'tapPointer=useRef<{id:string;pointerId:number;x:number;y:number;moved:boolean}|null>(null)',
  'onPointerUp={event=>tapEnd(event,item)}',
- 'Date.now()-lastPointerSelection.current<500',
+ 'Date.now()-lastPointerSelection.current<280',
  'const pointerStart=(event:ReactPointerEvent<HTMLSpanElement>,id:string)=>{event.preventDefault()',
  'pauseForInteraction=()=>{runController?.abort()',
  "scheduling?.isInputPending?.({includeContinuous:true})"
@@ -34,7 +34,7 @@ for(const token of [
  '.header-favorites .favorite-bubbles>button{',
  'touch-action:pan-x;'
 ])need('CSS',styles,token);
-const packageJson=JSON.parse(pkg),baselineJson=JSON.parse(baseline);if(packageJson.version!=='0.8.27.2')failures.push(`Version package.json: ${packageJson.version}`);if(baselineJson.releaseVersion!=='0.8.27.2')failures.push(`Baseline: ${baselineJson.releaseVersion}`);
+const packageJson=JSON.parse(pkg),baselineJson=JSON.parse(baseline),parts=String(packageJson.version).split('.').map(Number),minimum=[0,8,27,2],atLeastMinimum=parts.every((value,index)=>value===minimum[index])||parts.some((value,index)=>value>minimum[index]&&parts.slice(0,index).every((part,partIndex)=>part===minimum[partIndex]));if(!atLeastMinimum)failures.push(`Version package.json liegt vor 0.8.27.2: ${packageJson.version}`);if(baselineJson.releaseVersion!==packageJson.version)failures.push(`Baseline ${baselineJson.releaseVersion} passt nicht zu package.json ${packageJson.version}`);
 for(const [name,text,kind] of [['App.tsx',app,ts.ScriptKind.TSX],['EnsemblePanel.tsx',panel,ts.ScriptKind.TSX]]){const source=ts.createSourceFile(name,text,ts.ScriptTarget.ESNext,true,kind);if(source.parseDiagnostics.length)failures.push(...source.parseDiagnostics.map(item=>`${name}: ${ts.flattenDiagnosticMessageText(item.messageText,' ')}`))}
 if(failures.length){console.error('MID v0.8.27.2 Regression fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
 console.log('MID v0.8.27.2 Tooltip-, Achsen- und Favoritenregression bestanden.');

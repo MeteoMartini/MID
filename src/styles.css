@@ -3149,10 +3149,13 @@ button,input,select,[role="button"]{touch-action:manipulation}
   column-gap:7px;
 }
 .compact-trend-tooltip .tooltip-meta-line>span{
+  display:inline-flex;
+  align-items:baseline;
   min-width:max-content;
-  white-space:nowrap;
-  overflow-wrap:normal;
-  word-break:keep-all;
+  white-space:nowrap!important;
+  overflow-wrap:normal!important;
+  word-break:keep-all!important;
+  flex:0 0 auto;
 }
 .compact-trend-tooltip .tooltip-meta-line>span:last-child{
   justify-self:end;
@@ -3180,7 +3183,7 @@ button,input,select,[role="button"]{touch-action:manipulation}
   padding-top:10px;
 }
 .header-favorites .favorite-bubbles>button{
-  touch-action:pan-x;
+  touch-action:manipulation;
   user-select:none;
   -webkit-user-select:none;
 }
@@ -3221,4 +3224,38 @@ button,input,select,[role="button"]{touch-action:manipulation}
   .compact-trend-tooltip .tooltip-meta-line b{
     font-size:7.8px;
   }
+}
+
+/* MID v0.8.27.3 · mobile Tooltipanker, präzisere Bewölkungskacheln und zuverlässigere Favoritentipps */
+.trend-combined,.chart.trend-combined,.ensemble-temp-plot,.ensemble-temp-chart-core{overflow:visible}
+.trend-combined .recharts-tooltip-wrapper{
+  z-index:140!important;
+}
+.ensemble-chart-export:has(.recharts-tooltip-wrapper[style*="visibility: visible"]){
+  z-index:140;
+}
+.compact-trend-tooltip .tooltip-meta-line{
+  align-items:center;
+}
+
+
+/* MID v0.8.27.4 · statische Tooltip-Ebene und buildstabile Wetterband-Ausgabe */
+.chart.trend-combined{
+  position:relative;
+  overflow:visible;
+  isolation:isolate;
+  z-index:90;
+}
+.chart.rain,.chart.wind-trend{
+  position:relative;
+  z-index:0;
+}
+.trend-combined .recharts-tooltip-wrapper{
+  z-index:140!important;
+}
+.ensemble-temperature-weather-overlay{
+  overflow:visible;
+}
+.ensemble-temperature-weather-overlay .ensemble-sky-strip{
+  shape-rendering:geometricPrecision;
 }

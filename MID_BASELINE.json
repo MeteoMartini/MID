@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.8.27.2",
+  "releaseVersion": "0.8.27.4",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -111,6 +111,8 @@
     "scripts/test-short-term-hyperlocal-consistency-082619.mjs",
     "scripts/test-advanced-progressive-skybar-performance-08270.mjs",
     "scripts/test-short-term-thunder-sample-buildfix-08271.mjs",
-    "scripts/test-ensemble-tooltip-axis-favorites-08272.mjs"
+    "scripts/test-ensemble-tooltip-axis-favorites-08272.mjs",
+    "scripts/test-ensemble-weatherband-08273.mjs",
+    "scripts/test-build-render-stability-08274.mjs"
   ]
 }

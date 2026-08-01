@@ -3,7 +3,7 @@ import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url);let ts;try{ts=require('typescript')}catch{ts=require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript')}
 const [panel,styles,pkg,baseline]=await Promise.all([readFile(new URL('../src/EnsemblePanel.tsx',import.meta.url),'utf8'),readFile(new URL('../src/styles.css',import.meta.url),'utf8'),readFile(new URL('../package.json',import.meta.url),'utf8'),readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')]);
 const failures=[];const need=(a,t,x)=>{if(!t.includes(x))failures.push(`${a}: ${x}`)};const forbid=(a,t,x)=>{if(t.includes(x))failures.push(`${a}: unerlaubt ${x}`)};
-for(const token of ['plotBottom=height-margin.bottom-xAxisHeight','cellY=plotBottom-cellHeight','hazardY=Math.max(plotTop+8,cellY-16)','cellX=centerX-dayWidth*.46','cellWidth=dayWidth*.92'])need('Hochformat-Plotbindung',panel,token);
+for(const token of ['plotBottom=height-margin.bottom-xAxisHeight','cellY=plotBottom-cellHeight','hazardY=Math.max(plotTop+8,cellY-18)','const centerX=Math.round((plotLeft+(row.x+.5)*dayWidth)*2)/2','cellWidth=Math.max(10,Math.min(dayWidth*.88,dayWidth-2))'])need('Hochformat-Plotbindung',panel,token);
 for(const token of ['<ReferenceArea','<ReferenceDot','function EnsembleLegacyWeatherBand'])forbid('Hochformat-Plotbindung',panel,token);
 for(const token of ['width:min(336px,calc(100vw - 24px));','width:min(286px,calc(100vw - 24px));','width:min(272px,calc(100vw - 20px));'])need('Tooltipgröße',styles,token);
 for(const token of ['row.precipVisualLabel','% Best Match','P10–P90'])need('Tooltipinhalt',panel,token);

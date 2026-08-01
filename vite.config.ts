@@ -7,8 +7,10 @@ export default defineConfig({
   build:{
     target:'es2020',
     cssCodeSplit:true,
+    cssMinify:'esbuild',
+    minify:'esbuild',
     sourcemap:false,
     reportCompressedSize:false,
-    chunkSizeWarningLimit:750
+    chunkSizeWarningLimit:900
   }
 });
