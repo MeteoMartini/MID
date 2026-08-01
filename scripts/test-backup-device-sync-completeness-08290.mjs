@@ -1,0 +1,20 @@
+import {readFileSync} from 'node:fs';
+const backup=readFileSync(new URL('../src/iCloudBackup.ts',import.meta.url),'utf8');
+const backupUi=readFileSync(new URL('../src/ICloudBackupSettings.tsx',import.meta.url),'utf8');
+const sync=readFileSync(new URL('../src/deviceSync.ts',import.meta.url),'utf8');
+const twin=readFileSync(new URL('../src/forecastVerification.ts',import.meta.url),'utf8');
+const main=readFileSync(new URL('../src/main.tsx',import.meta.url),'utf8');
+const pkg=JSON.parse(readFileSync(new URL('../package.json',import.meta.url),'utf8'));
+const baseline=JSON.parse(readFileSync(new URL('../MID_BASELINE.json',import.meta.url),'utf8'));
+const failures=[];
+const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
+for(const token of ["const BACKUP_VERSION=2","syncRecovery?:BackupSyncRecovery","replaceLocalState(bundle.localState.values)",'createDeviceSyncConfig','useDeviceSyncCode','pushWeatherTwinArchive(readDeviceSyncConfig(),true)','mid:backup-restored'])need('Backup v2',backup,token);
+for(const token of ['Geräteübernahme vorbereiten','Übernahmecode für die installierte MID-App','iOS kann eine installierte Web-App nicht automatisch aus Safari öffnen','Einstellungen → Daten &amp; Synchronisation','Zugangsschlüssel'])need('Backup-UI',backupUi,token);
+for(const token of ["const EXCLUDED_KEYS=new Set<string>()","mid:icloud-backup:last","mid:device-sync-applied","mid:weather-twin-archive-changed","window.setInterval(refresh,2*60000)",'850)'])need('Gerätesynchronisation',sync,token);
+need('Wetterzwilling-Ereignis',twin,"window.dispatchEvent(new CustomEvent('mid:weather-twin-archive-changed'");
+for(const token of ['restorePersistentState()','restoreDeviceSyncState()','startDeviceSyncBridge()'])need('Startwiederherstellung',main,token);
+if(pkg.version!=='0.8.29.0')failures.push(`package.json: ${pkg.version}`);
+if(baseline.releaseVersion!==pkg.version)failures.push(`Baseline ${baseline.releaseVersion} passt nicht zu ${pkg.version}`);
+if(!baseline.regressionTests?.includes('scripts/test-backup-device-sync-completeness-08290.mjs'))failures.push('Neue Regression fehlt in der Baseline.');
+if(failures.length){console.error('Backup-/Gerätesynchronisationsprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
+console.log('Vollständige Sicherung, iOS-PWA-Übernahme und optionale Gerätesynchronisation geprüft.');

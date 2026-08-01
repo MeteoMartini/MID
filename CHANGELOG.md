@@ -1,3 +1,14 @@
+## 0.8.29.0
+- Vollständige iCloud-Backup-Wiederherstellung mit exaktem langlebigem App-Zustand und Wetterzwillingarchiv
+- iOS-PWA-Übernahmecode für getrennte Safari-/Home-Bildschirm-Speicher
+- Geräteübergreifender Abgleich erweitert um Standortdaten und automatische Wetterzwilling-Archivsyncs
+- Verlustarme Übernahme entfernter Gerätestände und kontrollierter Reload nach Remote-Änderungen
+
+## 0.8.28.1
+- Ensemble-Diagramme im Hochformat verbreitert und in der Höhe reduziert; Achsen, Legenden und leicht diagonale Tagesbeschriftungen vereinheitlicht.
+- Ensemble-Tooltips auf Klick/Tipp umgestellt, Animation und Blur entfernt und Outside-Dismiss ergänzt, um iOS-Lags zu vermeiden.
+- Temperatur-Tooltip verdichtet; „Best Match“ in der Niederschlagszeile entfernt und Tmin/Tmax-Spalten enger angeordnet.
+
 ## 0.8.28.0
 - Neue iCloud-Drive-Dateisicherung für Favoriten, App-Einstellungen, Profile und vollständige Wetterzwilling-Langzeitdaten einschließlich Wiederherstellung und Integritätsprüfung
 - Vollständiger Neuaufbau der Ensemble-Diagramme auf einer gemeinsamen professionellen Chart-Engine mit identischen Tagespositionen, Achsen, Plotmaßen und responsiven Tooltips

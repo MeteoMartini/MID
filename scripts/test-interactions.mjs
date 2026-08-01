@@ -4,7 +4,7 @@ const ensemble=readFileSync(new URL('../src/EnsemblePanel.tsx',import.meta.url),
 const shortTerm=readFileSync(new URL('../src/ShortTermForecast.tsx',import.meta.url),'utf8');
 const styles=readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
 const failures=[];
-for(const token of ['function RainTooltip(','<Tooltip content={<RainTooltip advancedMode={advancedMode} compact={compactChart}/>','bestPrecipitation','precipitationProbability'])if(!ensemble.includes(token))failures.push(`Niederschlags-Tooltip fehlt: ${token}`);
+for(const token of ['function RainTooltip(','content={<RainTooltip advancedMode={advancedMode} compact={compactChart}/>','bestPrecipitation','precipitationProbability'])if(!ensemble.includes(token))failures.push(`Niederschlags-Tooltip fehlt: ${token}`);
 for(const token of ['function ResponsiveEnsembleTooltip(','ensemble-mobile-tooltip-layer','professionalEnsembleLayout(compact:boolean,exporting=false)'])if(!ensemble.includes(token))failures.push(`Ensemble-Interaktion fehlt: ${token}`);
 for(const token of ['type="search"','inputMode="search"','debounceMs=/^\\d{2,8}$/.test(term)?45:80'])if(!app.includes(token))failures.push(`Ortssuche fehlt: ${token}`);
 for(const token of ["onPointerUp={event=>{if(event.pointerType!=='mouse')",'onClick={()=>setSelectedId'])if(!shortTerm.includes(token))failures.push(`Kurzfristinteraktion fehlt: ${token}`);

@@ -3483,3 +3483,127 @@ button,input,select,[role="button"]{touch-action:manipulation}
  .ensemble-pro-tooltip .trend-tooltip-matrix{grid-template-columns:minmax(62px,.8fr) repeat(2,minmax(0,1fr));font-size:8.2px}
  .ensemble-pro-tooltip .tooltip-meta-line,.ensemble-pro-tooltip .tooltip-meta-block{grid-template-columns:62px minmax(0,1fr)}
 }
+
+/* MID v0.8.28.1 · kompakte, breite Ensemble-Diagramme und reaktionsschnelle Klick-Tooltips */
+.ensemble-chart-export{
+  --ensemble-axis-title:36px;
+  --ensemble-axis-right:44px;
+}
+.trend-combined,.chart.rain,.chart.wind-trend{height:auto!important;min-height:0!important}
+.ensemble-temp-plot,.ensemble-rain-plot,.ensemble-wind-plot{
+  grid-template-columns:var(--ensemble-axis-title) minmax(0,1fr) var(--ensemble-axis-right)!important;
+  width:100%;
+  min-width:0;
+}
+.ensemble-temp-chart-core,.ensemble-rain-chart-core,.ensemble-wind-chart-core{
+  grid-template-rows:minmax(0,1fr) 34px!important;
+  min-width:0;
+}
+.ensemble-temp-axis-title-left,.ensemble-rain-axis-title-left,.ensemble-wind-axis-title-left,
+.ensemble-rain-axis-title-right{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:4px!important;
+  padding:0 3px!important;
+  white-space:nowrap;
+  overflow:visible;
+  font-size:8.5px!important;
+  line-height:1!important;
+}
+.ensemble-temp-axis-title-left b,.ensemble-rain-axis-title-left b,.ensemble-wind-axis-title-left b,
+.ensemble-rain-axis-title-right b,
+.ensemble-temp-axis-title-left small,.ensemble-rain-axis-title-left small,.ensemble-wind-axis-title-left small,
+.ensemble-rain-axis-title-right small{white-space:nowrap;font-size:inherit!important;line-height:1!important}
+.ensemble-temp-axis-title-bottom,.ensemble-rain-axis-title-bottom,.ensemble-wind-axis-title-bottom{
+  min-height:34px!important;
+  padding-top:7px!important;
+  font-size:7.5px!important;
+  letter-spacing:.025em!important;
+}
+.ensemble-date-axis-tick{font-weight:760;letter-spacing:0;stroke-width:.9px}
+.ensemble-date-axis-tick .weekday{font-weight:900}.ensemble-date-axis-tick .date{font-weight:720}
+
+/* Legenden bleiben auf schmalen Geräten in einer sauberen, horizontal scrollbareren Zeile. */
+.trend-legend,.wind-legend,.rain-legend{
+  flex-wrap:nowrap!important;
+  overflow-x:auto;
+  overflow-y:hidden;
+  overscroll-behavior-x:contain;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+  gap:7px 12px!important;
+  padding:2px 2px 5px!important;
+  min-width:0;
+}
+.trend-legend::-webkit-scrollbar,.wind-legend::-webkit-scrollbar,.rain-legend::-webkit-scrollbar{display:none}
+.trend-legend>span,.trend-legend>button,.wind-legend>span,.rain-legend>span,.rain-legend>button{flex:0 0 auto;white-space:nowrap}
+.wind-trend-toolbar{min-width:0}.wind-mode-switch{flex:0 0 auto}.wind-legend{min-width:0}
+
+/* Tooltip-Rendering ohne Blur/Animation: deutlich weniger Arbeit auf iOS. */
+.ensemble-pro-tooltip{
+  min-width:0!important;
+  max-width:min(300px,calc(100vw - 16px))!important;
+  padding:7px 8px!important;
+  border-radius:11px!important;
+  box-shadow:0 8px 24px rgba(15,34,53,.2)!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  contain:content;
+  font-size:9px!important;
+  line-height:1.16!important;
+}
+.ensemble-pro-tooltip.compact-trend-tooltip{
+  width:min(286px,calc(100vw - 16px))!important;
+  max-width:min(286px,calc(100vw - 16px))!important;
+  padding:6px 7px!important;
+}
+.ensemble-pro-tooltip .trend-tooltip-head{gap:6px!important;padding-bottom:4px!important;margin-bottom:4px!important}
+.ensemble-pro-tooltip .trend-tooltip-head strong{font-size:10.5px!important}.ensemble-pro-tooltip .trend-tooltip-head span{font-size:7.8px!important}
+.ensemble-pro-tooltip .trend-tooltip-matrix{
+  grid-template-columns:minmax(58px,.82fr) minmax(48px,.7fr) minmax(48px,.7fr)!important;
+  gap:2px 4px!important;
+  font-size:8.1px!important;
+  line-height:1.08!important;
+}
+.ensemble-pro-tooltip .trend-tooltip-matrix .matrix-head{font-size:7.1px!important}
+.ensemble-pro-tooltip .trend-tooltip-meta{gap:2px!important;padding-top:4px!important;margin-top:4px!important;font-size:7.8px!important}
+.ensemble-pro-tooltip .tooltip-meta-line,.ensemble-pro-tooltip .tooltip-meta-block{
+  grid-template-columns:58px minmax(0,1fr)!important;
+  gap:2px 4px!important;
+}
+.ensemble-pro-tooltip .tooltip-meta-line b,.ensemble-pro-tooltip .tooltip-meta-block b{font-size:6.9px!important}
+.ensemble-mobile-tooltip-layer{padding:0 6px;pointer-events:none}
+.ensemble-mobile-tooltip-layer .ensemble-pro-tooltip{
+  width:min(300px,calc(100vw - 12px))!important;
+  max-width:min(300px,calc(100vw - 12px))!important;
+  pointer-events:auto;
+}
+.ensemble-chart-export .recharts-tooltip-wrapper{
+  transition:none!important;
+  animation:none!important;
+  will-change:auto!important;
+}
+
+@media(max-width:620px){
+  .ensemble-chart-export{--ensemble-axis-title:28px;--ensemble-axis-right:34px}
+  .ensemble-temp-chart-core,.ensemble-rain-chart-core,.ensemble-wind-chart-core{grid-template-rows:minmax(0,1fr) 32px!important}
+  .ensemble-temp-axis-title-left,.ensemble-rain-axis-title-left,.ensemble-wind-axis-title-left,.ensemble-rain-axis-title-right{font-size:7.4px!important;padding-inline:1px!important;gap:2px!important}
+  .ensemble-temp-axis-title-bottom,.ensemble-rain-axis-title-bottom,.ensemble-wind-axis-title-bottom{min-height:32px!important;padding-top:6px!important;font-size:7px!important}
+  .trend-chart-toolbar,.wind-trend-toolbar,.rain-legend{margin-bottom:5px!important}
+  .trend-legend,.wind-legend,.rain-legend{gap:6px 10px!important;font-size:8px!important}
+  .ensemble-pro-tooltip.compact-trend-tooltip{width:min(280px,calc(100vw - 12px))!important;max-width:min(280px,calc(100vw - 12px))!important}
+}
+@media(max-width:390px){
+  .ensemble-chart-export{--ensemble-axis-title:26px;--ensemble-axis-right:32px}
+  .ensemble-pro-tooltip.compact-trend-tooltip{width:min(272px,calc(100vw - 10px))!important;max-width:min(272px,calc(100vw - 10px))!important}
+  .ensemble-pro-tooltip .trend-tooltip-matrix{grid-template-columns:minmax(54px,.78fr) minmax(44px,.66fr) minmax(44px,.66fr)!important;gap:2px 3px!important;font-size:7.8px!important}
+  .ensemble-pro-tooltip .tooltip-meta-line,.ensemble-pro-tooltip .tooltip-meta-block{grid-template-columns:54px minmax(0,1fr)!important;gap:2px 3px!important}
+}
+
+/* MID v0.8.29.0 · vollständige Wiederherstellung und geräteübergreifende Datenübernahme */
+.icloud-backup-sync-option{display:grid;grid-template-columns:auto auto minmax(0,1fr);align-items:start;gap:8px;padding:10px 11px;border:1px solid color-mix(in srgb,#4b8df8 28%,var(--border));border-radius:12px;background:color-mix(in srgb,#4b8df8 5%,var(--surface))}
+.icloud-backup-sync-option input{margin-top:2px}.icloud-backup-sync-option>svg{color:#4b8df8}.icloud-backup-sync-option span{display:grid;gap:2px}.icloud-backup-sync-option b{font-size:9.5px}.icloud-backup-sync-option small{color:var(--muted);font-size:8px;line-height:1.4}
+.icloud-backup-handoff{display:grid;gap:9px;padding:11px;border:1px solid color-mix(in srgb,#20a56b 36%,var(--border));border-radius:13px;background:color-mix(in srgb,#20a56b 7%,var(--surface))}
+.icloud-backup-handoff>header{display:flex;align-items:flex-start;gap:8px}.icloud-backup-handoff>header>svg{color:#20a56b;flex:none}.icloud-backup-handoff>header span{display:grid;gap:2px}.icloud-backup-handoff>header strong{font-size:10px}.icloud-backup-handoff>header small{color:var(--muted);font-size:8px;line-height:1.35}.icloud-backup-handoff code{display:block;padding:9px 10px;border-radius:10px;background:var(--s2);font-size:9px;line-height:1.45;overflow-wrap:anywhere;user-select:all}.icloud-backup-handoff>div{display:flex;flex-wrap:wrap;gap:7px}.icloud-backup-handoff button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:38px;padding:8px 10px;border:1px solid color-mix(in srgb,#20a56b 42%,var(--border));border-radius:10px;background:var(--surface);color:var(--text);font:inherit;font-size:8.8px;font-weight:800}
+@media(max-width:620px){.icloud-backup-handoff>div{display:grid;grid-template-columns:1fr}.icloud-backup-handoff button{width:100%}.icloud-backup-sync-option{grid-template-columns:auto auto minmax(0,1fr)}}
