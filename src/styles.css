@@ -3729,3 +3729,42 @@ button,input,select,[role="button"]{touch-action:manipulation}
   vector-effect:non-scaling-stroke;
   shape-rendering:geometricPrecision;
 }
+
+/* MID v0.8.30.7 · sichtbare Hochformat-Zeitachsen, stabile Tooltip-Interaktion und vordere Tageshilfslinien */
+.ensemble-rain-chart-core,
+.ensemble-wind-chart-core,
+.ensemble-rain-chart-core .ensemble-responsive-chart,
+.ensemble-wind-chart-core .ensemble-responsive-chart,
+.ensemble-rain-chart-core .recharts-wrapper,
+.ensemble-wind-chart-core .recharts-wrapper,
+.ensemble-rain-chart-core .recharts-surface,
+.ensemble-wind-chart-core .recharts-surface{
+  overflow:visible!important;
+}
+.ensemble-rain-chart-core .recharts-xAxis,
+.ensemble-wind-chart-core .recharts-xAxis{
+  position:relative;
+  z-index:5;
+}
+.ensemble-front-grid-line{
+  pointer-events:none;
+}
+.ensemble-pro-tooltip,
+.ensemble-mobile-tooltip-layer,
+.recharts-tooltip-wrapper{
+  pointer-events:auto!important;
+}
+@media(max-width:620px){
+  .ensemble-rain-chart-core,
+  .ensemble-wind-chart-core{
+    grid-template-rows:minmax(0,1fr) 36px!important;
+  }
+  .ensemble-rain-axis-title-bottom,
+  .ensemble-wind-axis-title-bottom{
+    min-height:36px!important;
+    padding-top:7px!important;
+  }
+  .ensemble-date-axis-tick{
+    font-size:7.6px!important;
+  }
+}

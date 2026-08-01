@@ -1,3 +1,8 @@
+## 0.8.30.7
+- Niederschlagsdiagramm: Zeitachsenbeschriftung im Hochformat wieder dauerhaft sichtbar.
+- Ensemble-Tooltips: Interaktion innerhalb der Tooltipkarte schließt die Auswahl nicht mehr.
+- Niederschlag und Wind/Böen: senkrechte Tageshilfslinien als sichtbare Vordergrundebene ergänzt.
+
 ## 0.8.30.6
 - Temperatur-Ensemble: senkrechte Tageshilfslinien wieder sichtbar und direkt aus den tatsächlich gerenderten X-Achsenmarken abgeleitet.
 - Temperatur-Ensemble: Sonne-/Wolkenkästchen verwenden dieselben vermessenen Tageszentren; Zellgrenzen liegen exakt in der Mitte benachbarter Achsmarken – einschließlich des letzten Tages rechts.
