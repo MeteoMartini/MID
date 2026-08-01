@@ -1,3 +1,17 @@
+## 0.8.27.14
+- Sämtliche veralteten Ensemble-, Achsen-, Tooltip-, Wetterband-, Export- und Touch-Regressionstests auf den aktuellen Funktionsvertrag synchronisiert
+- GitHub-Installer wird nicht mehr durch Prüfungen der früheren Einzelgeometrien blockiert
+- Prognose-Kompass bleibt dynamisch: weitgehend gesicherte Prognosedauer statt pauschal drei Tage
+
+## 0.8.27.13
+- GitHub-/CI-Buildfix für gemeinsame Ensemble-Achs- und Diagrammhöhen
+- Prognose-Kompass zeigt jetzt die tatsächlich weitgehend gesicherte Prognosedauer statt pauschal 3 Tage
+
+## 0.8.27.12
+- Ensemble-Tagesleisten und Tagesachsen vereinheitlicht
+- Detailansicht-Pillen verdichtet und UVI kompakter benannt
+- Ortssuche und Kurzfrist-Kacheln reaktionsschneller
+
 ## 0.8.27.11
 
 - Veröffentlichungsfehler nach erfolgreichem Produktionsbuild behoben: veraltete Regressionstests an die aktuelle Temperatur-Ensemble-, Tooltip- und Achsengeometrie angepasst

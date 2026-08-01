@@ -3400,3 +3400,26 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .search input{caret-color:var(--primary)}
 .short-term-strip>button{user-select:none;-webkit-user-select:none}
 .short-term-strip>button:active{transform:scale(.988)}
+
+
+/* MID v0.8.27.12 · vereinheitlichte Ensemble-Tagesachsen, kompakte Detailpillen und direktere Suche/Short-Term-Touchreaktion */
+.quickfacts{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 12px;align-items:flex-start}
+.quickfacts span{display:inline-flex;align-items:center;gap:5px;min-height:34px;padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:var(--s2);font-size:10.8px;line-height:1.1;color:var(--muted);width:auto;max-width:100%}
+.quickfacts .quickfact.weather{display:inline-grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"icon main" "icon sub";column-gap:7px;row-gap:1px;align-items:center;min-width:min(100%,240px);max-width:100%}
+.quickfacts .quickfact.weather>b{grid-area:main;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.quickfacts .quickfact.weather>small{grid-area:sub;display:block;margin-top:0;color:var(--muted);font-size:7.6px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.quickfacts .quickfact.metric{white-space:nowrap;flex:0 1 auto}
+.quickfacts .quickfact.metric>svg{width:14px;height:14px}
+@media(max-width:680px){.quickfacts{gap:5px}.quickfacts span{min-height:32px;padding:5px 9px;font-size:10px}.quickfacts .quickfact.weather{min-width:min(100%,210px)}}
+@media(max-width:430px){.quickfacts{display:grid;grid-template-columns:repeat(2,minmax(0,max-content));justify-content:flex-start}.quickfacts .quickfact.weather{grid-column:1/-1;min-width:0;width:100%}.quickfacts .quickfact.metric{min-width:0}}
+
+.ensemble-temp-chart-core,.ensemble-rain-chart-core,.ensemble-wind-chart-core{grid-template-rows:minmax(0,1fr) 42px!important;overflow:visible;min-width:0}
+.ensemble-temp-axis-title-bottom,.ensemble-rain-axis-title-bottom,.ensemble-wind-axis-title-bottom{align-items:flex-start!important;padding-top:12px!important;min-height:42px;line-height:1.05}
+.ensemble-temperature-canvas .recharts-cartesian-axis-tick tspan,.ensemble-rain-chart-core .recharts-cartesian-axis-tick tspan,.ensemble-wind-chart-core .recharts-cartesian-axis-tick tspan{font-size:10px}
+.ensemble-temperature-weather-overlay .ensemble-sky-strip{filter:drop-shadow(0 1px 0 rgba(255,255,255,.28))}
+@media(max-width:620px){.ensemble-temp-chart-core,.ensemble-rain-chart-core,.ensemble-wind-chart-core{grid-template-rows:minmax(0,1fr) 38px!important}.ensemble-temp-axis-title-bottom,.ensemble-rain-axis-title-bottom,.ensemble-wind-axis-title-bottom{padding-top:9px!important;min-height:38px}.ensemble-temperature-canvas .recharts-cartesian-axis-tick tspan,.ensemble-rain-chart-core .recharts-cartesian-axis-tick tspan,.ensemble-wind-chart-core .recharts-cartesian-axis-tick tspan{font-size:9px}}
+@media(max-width:420px){.ensemble-temp-chart-core,.ensemble-rain-chart-core,.ensemble-wind-chart-core{grid-template-rows:minmax(0,1fr) 40px!important}.ensemble-temp-axis-title-bottom,.ensemble-rain-axis-title-bottom,.ensemble-wind-axis-title-bottom{padding-top:10px!important;min-height:40px}}
+
+.search input,.search>div button,.search>section button,.forecastrow,.short-term-strip>button,.short-term-detail>header>button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.forecastrow,.short-term-strip>button,.search>section button,.search-manage-favorites,.search-close-results{cursor:pointer;user-select:none;-webkit-user-select:none}
+.forecastrow:active,.short-term-strip>button:active{transform:scale(.99)}
