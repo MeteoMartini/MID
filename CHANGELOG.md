@@ -1,3 +1,15 @@
+# Changelog
+
+## 0.8.33.11
+
+- Hauptkarte und Bewölkungskarte verwenden denselben frischen hyperlokalen Himmelszustand.
+- 7/8 Bewölkung wird als „Stark bewölkt“, 8/8 als „Bedeckt“ bezeichnet; lokaler Nebel behält Vorrang.
+
+## 0.8.33.10
+
+- Luftdruckkarte zeigt Werte mit einer Nachkommastelle.
+- Technische Feldbezeichnung `pressure_msl` aus der sichtbaren Quellenzeile entfernt.
+
 ## 0.8.33.9
 
 - Warnfreier Status auf „Keine Warnung“ verkürzt.
