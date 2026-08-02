@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.0.0",
+  "version": "0.9.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -171,7 +171,8 @@
     "test:daily-hourly-precip-allocation": "node scripts/test-daily-hourly-precip-allocation-083313.mjs",
     "test:forecast-precipitation-support": "node scripts/test-forecast-precipitation-support-083317.mjs",
     "test:coherent-weather-bundles": "node scripts/test-coherent-weather-bundles-08340.mjs",
-    "test:synoptic": "node scripts/test-synoptic-module-0900.mjs"
+    "test:synoptic": "node scripts/test-synoptic-module-0900.mjs",
+    "test:synoptic-map-direction": "node scripts/test-synoptic-map-direction-09001.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",
