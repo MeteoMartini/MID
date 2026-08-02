@@ -6,12 +6,12 @@ if(/if\(Number\(mapRate\)===0\)return 0/.test(worker)||/Number\.isFinite\(mapRat
 if(/if\(center>0\).*dwdPointRate/.test(worker))failures.push('DWD-Punktabfrage ist weiterhin an ein sichtbares Kartenecho gebunden');
 if(!worker.includes("source:'feature-info'")||!worker.includes('featureInfoHits')||!worker.includes('analysedFrames'))failures.push('DWD-Punkt-/Fallback-Diagnostik fehlt');
 if(!worker.includes('sample.length<=12'))failures.push('DWD-Subrequest-Begrenzung fehlt');
-if(!app.includes('ageMinutes>35')||!app.includes('arrival>180')||!app.includes('Radarabgleich aktiv'))failures.push('3-h-/Aktualitätsgrenze des Radarabgleichs fehlt');
+if(!app.includes('ageMinutes>35')||!app.includes('arrival>180')||!app.includes('Radar- und Modellabgleich'))failures.push('3-h-/Aktualitätsgrenze des Radarabgleichs fehlt');
 if(!app.includes('5*60*1000')||!app.includes("document.addEventListener('visibilitychange',visibility)"))failures.push('periodische Radaraktualisierung fehlt');
 if(!client.includes("lastGoodKey(purpose)")||!client.includes('36*60*60*1000'))failures.push('zweckspezifischer Worker-Endpunktcache fehlt');
 for(const token of['VITE_RADAR_PROXY_URL','VITE_WORKER_SAME_ORIGIN_PATH','VITE_WORKER_FALLBACK_URLS'])if(!workflow.includes(token))failures.push(`${token} fehlt im Pages-Build`);
 if(failures.length){console.error('Radarprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Radarabgleich geprüft: DWD-Punktwert auch bei trocken wirkendem Kartenpixel, Subrequest-Grenze, 3-h-Korrekturfenster, 5-min-Aktualisierung und explizite Worker-Konfiguration vorhanden.');
+console.log('Radar- und Modellabgleich geprüft: DWD-Punktwert auch bei trocken wirkendem Kartenpixel, Subrequest-Grenze, 3-h-Korrekturfenster, 5-min-Aktualisierung und explizite Worker-Konfiguration vorhanden.');
 
 // Integrationsprüfung des konkreten Fehlers: Die PNG-Farbabtastung meldet 0,
 // GetFeatureInfo liefert jedoch 1,2 mm/h. Der Punktwert muss gewinnen.

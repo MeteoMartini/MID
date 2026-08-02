@@ -210,5 +210,5 @@ export function applyConvectiveNowcastHours(hours:Hour[],thunder:ThunderstormNow
 export function forecastFusionLabel(fusion:ForecastFusionResult|null|undefined){
  if(!fusion?.active)return'';
  const applied=fusion.days.filter(day=>day.applied),confidence=applied.length?Math.round(applied.reduce((sum,day)=>sum+day.confidence,0)/applied.length):0;
- return`MID Mehrquellen${fusion.mosmix?.applied?' + MOSMIX':''} · ${confidence}% Konsens`;
+ return`MID Mehrquellen${fusion.mosmix?.applied?' + MOSMIX':''} · ${confidence} % Modellkonsistenz`;
 }

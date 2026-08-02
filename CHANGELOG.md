@@ -1,3 +1,7 @@
+## 0.8.33.8
+- Stunden-Detailansicht: Niederschlagsart wird in der Niederschlagskachel nicht mehr doppelt wiederholt.
+- Der frei gewordene Platz zeigt bei vorhandener Konvektion das Gewitterrisiko vollständig an.
+
 ## 0.8.33.6
 - Niederschlagswerte zwischen 7-Tage-Karte, Tagesdetail und finaler Stundenreihe konsistent zusammengeführt
 

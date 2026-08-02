@@ -26,7 +26,7 @@ assert.ok(!/UVI[^\n]{0,100}formatNumber\([^\n]*uv/.test(waterSource), 'UVI wird 
 assert.ok(fusionSource.includes('export function dryRadarNowcastProbability'), 'gemeinsame trockene Nowcast-Wahrscheinlichkeitsfunktion fehlt');
 assert.ok(fusionSource.includes('dryBlend=dryRadarNowcastProbability(hour.probability,radar'), 'Stundenprognose nutzt nicht die gemeinsame trockene Nowcast-Wahrscheinlichkeit');
 assert.ok(appSource.includes('dryRadarNowcastProbability(modelProbability,radar,0)'), 'Karte „Aktuelle Niederschlagswahrscheinlichkeit“ nutzt nicht die gemeinsame trockene Nowcast-Wahrscheinlichkeit');
-assert.ok(appSource.includes("nowcastMode=dryBlend?' · trockener Radar-Nowcast':''"), 'Quellenhinweis kennzeichnet den trockenen Radar-Nowcast nicht');
+assert.ok(appSource.includes("radarFinding=dryBlend?' · Radarbefund: kein relevanter Niederschlag im Nahbereich':''"), 'Quellenhinweis kennzeichnet den niederschlagsfreien Radarbefund nicht');
 
 const require=createRequire(import.meta.url);
 let ts;
@@ -55,7 +55,7 @@ try{
  assert.equal(dryHigh.radarWeight,.94);
  assert.ok(dryHigh.probability<=1.21);
  const approaching=fusionCompiled.module.dryRadarNowcastProbability(12,{...dryMedium,arrivalMinutes:30},0);
- assert.equal(approaching,null,'belastbare Radarankunft darf nicht als trockener Nowcast unterdrückt werden');
+ assert.equal(approaching,null,'belastbare Radarankunft darf nicht als niederschlagsfreier Radarbefund unterdrückt werden');
 }finally{fs.rmSync(fusionCompiled.dir,{recursive:true,force:true})}
 
-console.log('UVI-Ganzzahlformat und konsistente trockene Nowcast-Wahrscheinlichkeit ab v0.8.33.5 geprüft.');
+console.log('UVI-Ganzzahlformat und konsistente Radar-Nowcast-Wahrscheinlichkeit ab v0.8.33.5 geprüft.');

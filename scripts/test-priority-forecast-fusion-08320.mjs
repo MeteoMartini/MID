@@ -41,7 +41,7 @@ for(const token of [
  'applyOperationalNowcastHours',
  'applyConvectiveNowcastHours',
  "id:'mid_priority_fusion'",
- 'MID Mehrquellen-Prognose · adaptiv gewichtet'
+ 'MID Mehrquellen-Prognose · qualitätsgewichtet'
 ])need('App-Integration',app,token);
 need('Verifikation',verification,'additional:AdditionalForecastPrediction[]=[]');
 if(!app.includes("label:'MID Prioritätsfusion'")&&!app.includes("'MID Prioritätsfusion + MOSMIX':'MID Prioritätsfusion'"))failures.push('App-Integration: MID Prioritätsfusion-Label fehlt.');

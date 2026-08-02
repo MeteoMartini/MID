@@ -3,10 +3,10 @@ const panel=readFileSync(new URL('../src/EnsemblePanel.tsx',import.meta.url),'ut
 const css=readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
 const failures=[];
 for(const token of [
- '<strong>Wie geht’s weiter?</strong>',
+ '<strong>Prognoseentwicklung</strong>',
  '<small>Belastbarer Zeitraum</small>',
- '<small>Danach am ehesten</small>',
- '<small>Unsicherheit nimmt zu</small>',
+ '<small>Wahrscheinlichste Entwicklung</small>',
+ '<small>Zunehmende Unsicherheit</small>',
  'function forecastOutlook(',
  'function forecastUncertaintyDriver(',
  'probabilitySummary=visible.map((_,index)=>',

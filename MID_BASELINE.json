@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.8.33.6",
+  "releaseVersion": "0.8.33.8",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -138,6 +138,8 @@
     "scripts/test-menu-scroll-stability-08310.mjs",
     "scripts/test-model-meta-source-init-08321.mjs",
     "scripts/test-tooltip-search-favorite-08331.mjs",
-    "scripts/test-ensemble-sunshine-tooltip-offset-08332.mjs"
+    "scripts/test-ensemble-sunshine-tooltip-offset-08332.mjs",
+    "scripts/test-professional-ui-wording-08337.mjs",
+    "scripts/test-detail-precip-thunder-dedup-08338.mjs"
   ]
 }

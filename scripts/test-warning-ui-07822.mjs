@@ -8,7 +8,7 @@ const [app,ensemble,warnings,styles]=await Promise.all([
   read('src/App.tsx'),read('src/EnsemblePanel.tsx'),read('src/dwdWarnings.ts'),read('src/styles.css')
 ]);
 const failures=[];
-for(const token of ['Keine Hazards','no-hazard'])if(!(app+styles).includes(token))failures.push(`Warnfreier 7-Tage-Hinweis fehlt: ${token}`);
+for(const token of ['Keine Warnindikatoren','no-hazard'])if(!(app+styles).includes(token))failures.push(`Warnfreier 7-Tage-Hinweis fehlt: ${token}`);
 for(const token of ['function EnsembleHazardShape','function EnsembleTemperatureWeatherOverlay','layer="hazards"','DWD_WARNING_COLORS'])if(!(ensemble+styles).includes(token))failures.push(`Ensemble-Warnmarker fehlt: ${token}`);
 for(const token of ['<b>Hazards</b>','row.hazards.map'])if(!ensemble.includes(token))failures.push(`Ensemble-Warnungen fehlen im Tooltip: ${token}`);
 for(const token of ['.trend-tooltip,.trend-tooltip *','.trend-tooltip>strong','.tooltip-group span'])if(!styles.includes(token))failures.push(`Vereinheitlichte Tooltip-Schrift fehlt: ${token}`);
