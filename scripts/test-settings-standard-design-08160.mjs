@@ -28,7 +28,7 @@ for(const token of [
  "WeatherTwinSettings({advancedMode=false}",
  'advancedMode&&<ConnectedStationSettings/>',
  "advancedMode&&<><label className={`settings-toggle-card",
- "'Wird nur genutzt, wenn sie nachweislich besser als die normale Vorhersage ist.'"
+ "'Wird nur genutzt, wenn die lokale Korrektur nachweislich belastbar ist.'"
 ])need('Kompakter Wetterzwilling im Standardmodus',twinSettings,token);
 for(const token of [
  'DeviceSyncSettings({advancedMode=false}',

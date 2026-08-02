@@ -13,7 +13,7 @@ const fusionSource=fs.readFileSync(fusionPath,'utf8');
 const appSource=fs.readFileSync(appPath,'utf8');
 const shortTermSource=fs.readFileSync(shortTermPath,'utf8');
 
-for(const token of ['drySignal','dryAdjustedHour','reconcileForecastDaysWithHours','weatherHours',"weatherBundleKind:'coherent-model'"])assert.ok(fusionSource.includes(token),`fehlender Nowcast-/Modellbündelvertrag: ${token}`);
+for(const token of ['drySignal','dryAdjustedHour','reconcileForecastDaysWithHours','weatherHours',"weatherBundleKind:repaired?'coherent-model':'best-match'"])assert.ok(fusionSource.includes(token),`fehlender Nowcast-/Modellbündelvertrag: ${token}`);
 assert.ok(appSource.includes('displayDays=useMemo(()=>reconcileForecastDaysWithHours(baseDisplayDays,displayHours)'), 'Tagesansicht muss aus den finalen Nowcast-Stunden reconciliert werden');
 assert.ok(appSource.includes('totalRain=Number.isFinite(selectedDay.precipitation)'), 'Detailpille muss denselben Tagesniederschlag wie die 7-Tage-Karte verwenden');
 assert.ok(appSource.includes('maxProb=Number.isFinite(selectedDay.probability)'), 'Detailpille muss dieselbe Tageswahrscheinlichkeit wie die 7-Tage-Karte verwenden');

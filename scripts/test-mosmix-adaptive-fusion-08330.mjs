@@ -7,10 +7,10 @@ const pkg=JSON.parse(readFileSync(new URL('../package.json',import.meta.url),'ut
 const baseline=JSON.parse(readFileSync(new URL('../MID_BASELINE.json',import.meta.url),'utf8'));
 const failures=[];const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
 for(const token of [
- "const BRIGHTSKY_WEATHER='https://api.brightsky.dev/weather'",'async function fetchMosmixForecast',"family:'mosmix-postprocessing'",'distanceKm<=55','elevationDifferenceM<=450','quality>=.42','mosmixBase=horizon<=2?.52:horizon<=7?.42:0','confidence>=52','MOSMIX erzeugt keinen Niederschlag','modelDays','version:4',"'dwd-mosmix-postprocessing'",'MOSMIX wird bewusst nur als lokales Postprocessing',"family:'ecmwf'"
+ "const BRIGHTSKY_WEATHER='https://api.brightsky.dev/weather'",'async function fetchMosmixForecast',"family:'mosmix-postprocessing'",'distanceKm<=55','elevationDifferenceM<=450','quality>=.42','mosmixBase=horizon<=2?.52:horizon<=7?.42:0','confidence>=52','MOSMIX lokal','modelDays','version:6',"'dwd-mosmix-postprocessing'",'MOSMIX wird bewusst nur als lokales Postprocessing',"family:'ecmwf'"
 ])need('Worker-MOSMIX',worker,token);
-for(const token of ['modelDays?:ForecastFusionDay[]','weatherHours?:ForecastWeatherBundleHour[]','applyForecastFusionModelDays','fusion?.mosmix?.applied','leadHours<=6?.18','leadHours>168','MOSMIX Temperatur/Wind'])need('Frontend-Fusion',fusion,token);
-for(const token of ['fusionVerificationCandidates',"id:'mid_priority_fusion_model'","label:'MID Prioritätsfusion ohne MOSMIX'",'applyForecastFusionHours(hours,days,fusedDays,forecastFusion)','days={displayDays}','hours={displayHours}'])need('App-Integration',app,token);
+for(const token of ['modelDays?:ForecastFusionDay[]','weatherHours?:ForecastWeatherBundleHour[]','applyForecastFusionModelDays','fusion?.mosmix?.applied','leadHours<=6?.18','leadHours>168','MOSMIX lokal'])need('Frontend-Fusion',fusion,token);
+for(const token of ['fusionVerificationCandidates',"id:'mid_best_match_quality_model'","label:'Best Match geprüft ohne MOSMIX'",'applyForecastFusionHours(hours,days,fusedDays,forecastFusion)','days={displayDays}','hours={displayHours}'])need('App-Integration',app,token);
 need('Kurzfrist-Badge',shortTerm,'<em>{sourceLabel}</em>');
 if(worker.includes('mosmixPrecipStrength')||worker.includes('precipitation=mosmixApplied?'))failures.push('MOSMIX darf Tagesniederschlag nicht mehr parametrisch verändern.');
 if(fusion.includes('precipStrength=Math.max')||fusion.includes('blendToward(next.precipitation,mosmix.precipitation'))failures.push('MOSMIX darf keine Stundenmenge erzeugen oder skalieren.');

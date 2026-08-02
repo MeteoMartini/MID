@@ -1,13 +1,12 @@
-# MID v0.8.34.0
+# MID v0.8.35.0
 
-- Niederschlag, Wahrscheinlichkeit, Wettercode, Bewölkung, Konvektion und Sonnenschein werden je Stunde als unteilbares Wettermodellbündel aus genau einer Quelle übernommen.
-- Deutschland erhält eine horizontabhängige Wetterquellen-Hierarchie: ICON-D2 bis etwa 54 h, ICON-EU bis etwa 132 h, anschließend ECMWF IFS mit geregelten Fallbacks.
-- MOSMIX ist auf Temperatur, Feuchte, Luftdruck und Wind begrenzt; es kann weder Niederschlag noch Wetterphase, Bewölkung oder Sonnenschein verändern.
-- Tagesmengen erzeugen keine künstlichen Stunden mehr; vollständige Tage werden ausschließlich aus den finalen Stunden aggregiert.
-- Schwache deterministische Niederschlagsspuren benötigen mit wachsendem Vorhersagehorizont stärkere probabilistische Stützung; Wahrscheinlichkeiten bleiben ohne Glättung erhalten.
-- Regen und Schauer werden anhand von Schichtbewölkung, tiefer Bewölkung, Feuchte, Sonnenschein und Konvektion physikalisch abgeglichen.
-- Stunden-Detailansicht weist die konkrete Quelle des Wetter-/Niederschlagsbündels aus.
-- Temperatur, Taupunkt und relative Feuchte bleiben nach MOSMIX-Nachkorrekturen thermodynamisch konsistent.
+- Sonnenstunden des aktuellen Tages bleiben die vollständige tägliche Best-Match-Aggregation und werden abends nicht mehr auf die noch verbleibenden Stunden gekürzt.
+- Reine Best-Match-Tage behalten die offizielle Tagesaggregation; nur vollständig abgedeckte Zukunftstage mit tatsächlicher kohärenter Stundenreparatur werden neu summiert.
+- Best Match ist wieder die operative Hauptprognose für Kurzfrist, 7 Tage und alle gemeinsamen Wettersektionen.
+- Multi-Model-Antworten werden über die tatsächlich gelieferten API-Suffixe getrennt und diagnostiziert; ein fehlendes Modell wird gezielt einzeln nachgeladen.
+- Widersprüchliche Best-Match-Stunden werden ausschließlich als vollständiges Wetterbündel aus einem einzigen plausiblen Modell ersetzt.
+- Modellvergleich, MOSMIX und Wetterzwilling korrigieren nur eng begrenzte geeignete Parameter; Niederschlag, Wettercode, Bewölkung und Sonne bleiben gekoppelt.
+- Der lokale Wetterzwilling setzt nun auf den bereits geprüften Fusion-Stunden und -Tagen auf und kann Bündelreparaturen oder MOSMIX nicht mehr umgehen.
 
 # MID v0.8.33.17
 

@@ -7,10 +7,10 @@ import {createRequire} from 'node:module';
 
 const root=new URL('../',import.meta.url),precipitation=await readFile(new URL('src/precipitation.ts',root),'utf8'),fusion=await readFile(new URL('src/forecastFusion.ts',root),'utf8'),app=await readFile(new URL('src/App.tsx',root),'utf8'),worker=await readFile(new URL('worker/metar-proxy.js',root),'utf8');
 for(const token of ['UNSUPPORTED_FORECAST_MAX_PROBABILITY=5','WEAK_FORECAST_AMOUNT_MAX_MM=.35','deterministicSignalMinimumProbability','weak-distant-signal','sky-contradiction'])assert.ok(precipitation.includes(token),`fehlender zentraler Niederschlagsvertrag: ${token}`);
-for(const token of ['weatherHours?:ForecastWeatherBundleHour[]','weatherBundleKind:\'coherent-model\'','Eine Tagesaggregation darf keine bislang nicht vorhandene Niederschlagsstunde','const normalized=hours.map(reconcileForecastHourPrecipitation)'])assert.ok(fusion.includes(token),`fehlender kohärenter Stundenvertrag: ${token}`);
+for(const token of ['weatherHours?:ForecastWeatherBundleHour[]','weatherBundleKind:repaired?\'coherent-model\':\'best-match\'','Eine Tagesaggregation darf keine bislang nicht vorhandene Niederschlagsstunde','const normalized=hours.map(reconcileForecastHourPrecipitation)'])assert.ok(fusion.includes(token),`fehlender kohärenter Stundenvertrag: ${token}`);
 assert.ok(!fusion.includes('distributeDailyPrecipitationDeficit'),'Tagesmengen dürfen nicht mehr zu Stunden umverteilt werden');
 for(const token of ["case'current':return <MemoCurrent key={id} w={w!} hours={displayHours}","case'water':return currentFavorite?.water.enabled?",'weather={w!} hours={displayHours} unit={unit}','combineThunderstormInformation(thunderAnalysis,displayHours,radarAnalysis'])assert.ok(app.includes(token),`Sektion nutzt nicht die final reconcilierten Stunden: ${token}`);
-for(const token of ['supportMinimum=lead<=24?10:lead<=72?15:20','FORECAST_FUSION_HOURLY','weatherHours','MOSMIX erzeugt keinen Niederschlag'])assert.ok(worker.includes(token),`Worker-Vertrag fehlt: ${token}`);
+for(const token of ['supportMinimum=lead<=24?10:lead<=72?15:20','FORECAST_FUSION_HOURLY','weatherHours','MOSMIX wird bewusst nur als lokales Postprocessing'])assert.ok(worker.includes(token),`Worker-Vertrag fehlt: ${token}`);
 
 const require=createRequire(import.meta.url);let ts;try{ts=require('typescript')}catch{ts=require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript')}
 const dir=await mkdtemp(join(tmpdir(),'mid-083317-'));

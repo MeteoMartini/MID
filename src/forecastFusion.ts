@@ -37,9 +37,14 @@ export type ForecastWeatherBundleHour={
  lowCloud?:number;
  cape?:number;
  sunshineDuration?:number;
+ isDay?:boolean;
  sourceId:string;
  sourceLabel:string;
  sourceFamily:string;
+ sourceRole?:'best-match'|'repair';
+ repairReason?:string;
+ originalSourceId?:string;
+ originalSourceLabel?:string;
 };
 export type ForecastFusionMosmix={
  available:boolean;
@@ -87,15 +92,23 @@ export type ForecastFusionResult={
  hours?:ForecastFusionHour[];
  weatherHours?:ForecastWeatherBundleHour[];
  mosmix?:ForecastFusionMosmix;
+ diagnostics?:{bestMatchPreferred?:boolean;repairedHours?:number;repairSources?:string[];multiModelSuffixes?:boolean;modelSuffixes?:Record<string,string[]>};
  error?:string;
  cached?:boolean;
 };
 
-const CACHE_PREFIX='mid:forecast-fusion:v4:';
+const CACHE_PREFIX='mid:forecast-fusion:v6:';
 const FRESH_MS=35*60*1000;
 const STALE_MS=8*60*60*1000;
 
 function clamp(value:number,min:number,max:number){return Math.max(min,Math.min(max,value))}
+function dateKeyInTimezone(epoch:number,timezone:string){
+ try{
+  const parts=new Intl.DateTimeFormat('en',{timeZone:timezone,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(epoch)),values=Object.fromEntries(parts.map(part=>[part.type,part.value]));
+  if(values.year&&values.month&&values.day)return`${values.year}-${values.month}-${values.day}`;
+ }catch{}
+ return new Date(epoch).toISOString().slice(0,10);
+}
 
 /**
  * Bindet den aktuell angezeigten Temperaturwert an die nächstgelegene
@@ -206,7 +219,8 @@ export function applyForecastFusionHours(hours:Hour[],baseDays:Day[],fusedDays:D
   const weather=nearestFusionHour(weatherHours,hour.epoch);
   if(weather){
    const signal=reconcileForecastPrecipitation({precipitation:weather.precipitation,rain:weather.rain,showers:weather.showers,snowfall:weather.snowfall,probability:weather.probability,code:weather.code,cloud:weather.cloud,lowCloud:weather.lowCloud,humidity:hour.humidity,cape:weather.cape,sunshineDuration:weather.sunshineDuration,isDay:hour.isDay,leadHours:(hour.epoch-now)/3600000});
-   next={...next,precipitation:signal.precipitation,rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall,probability:signal.probability,code:signal.code,cloud:Number.isFinite(weather.cloud)?weather.cloud:next.cloud,lowCloud:Number.isFinite(weather.lowCloud)?Number(weather.lowCloud):next.lowCloud,cape:Number.isFinite(weather.cape)?Number(weather.cape):next.cape,sunshineDuration:Number.isFinite(weather.sunshineDuration)?Number(weather.sunshineDuration):next.sunshineDuration,weatherSourceId:weather.sourceId,weatherSourceLabel:weather.sourceLabel,weatherBundleKind:'coherent-model'};changed=true;
+   const repaired=weather.sourceRole==='repair'||weather.sourceId!=='best_match';
+   next={...next,precipitation:signal.precipitation,rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall,probability:signal.probability,code:signal.code,cloud:Number.isFinite(weather.cloud)?weather.cloud:next.cloud,lowCloud:Number.isFinite(weather.lowCloud)?Number(weather.lowCloud):next.lowCloud,cape:Number.isFinite(weather.cape)?Number(weather.cape):next.cape,sunshineDuration:Number.isFinite(weather.sunshineDuration)?Number(weather.sunshineDuration):next.sunshineDuration,weatherSourceId:weather.sourceId,weatherSourceLabel:weather.sourceLabel,weatherBundleKind:repaired?'coherent-model':'best-match'};changed=true;
   }
   if(dayAdjustment&&base&&fused&&base!==fused){
    // Temperatur und Wind dürfen aus eigenen, intern konsistenten Parameterbündeln
@@ -266,22 +280,24 @@ function dailyWeatherCodeFromHours(hours:Hour[]){
 
 export function reconcileForecastDaysWithHours(days:Day[],hours:Hour[]){
  if(days.length===0||hours.length===0)return days;
- const now=Date.now(),futureHours=hours.filter(hour=>hour.epoch>=now-30*60000),nearTermDates=new Set(futureHours.filter(hour=>hour.epoch<=now+6*3600000).map(hour=>hour.time.slice(0,10))),hoursByDate=new Map<string,Hour[]>();
- for(const hour of futureHours){const date=hour.time.slice(0,10),bucket=hoursByDate.get(date);if(bucket)bucket.push(hour);else hoursByDate.set(date,[hour])}
+ const now=Date.now(),timezone=hours.find(hour=>hour.timezone)?.timezone||'UTC',today=dateKeyInTimezone(now,timezone),hoursByDate=new Map<string,Hour[]>();
+ for(const hour of hours){const date=hour.time.slice(0,10),bucket=hoursByDate.get(date);if(bucket)bucket.push(hour);else hoursByDate.set(date,[hour])}
+ const daylightSeconds=(day:Day)=>{const sunrise=Date.parse(String(day.sunrise||'')),sunset=Date.parse(String(day.sunset||''));return Number.isFinite(sunrise)&&Number.isFinite(sunset)&&sunset>sunrise?Math.min(86400,(sunset-sunrise)/1000):86400};
  let changed=false;const result=days.map(day=>{
   const relevant=hoursByDate.get(day.date);if(!relevant?.length)return day;
-  const temperatures=relevant.map(hour=>Number(hour.temperature)).filter(Number.isFinite),hourlyMax=temperatures.length?Math.max(...temperatures):Number.NaN,hourlyMin=temperatures.length?Math.min(...temperatures):Number.NaN,max=Number.isFinite(hourlyMax)?Math.max(day.max,hourlyMax):day.max,min=Number.isFinite(hourlyMin)?Math.min(day.min,hourlyMin):day.min,hourlyPrecipitation=relevant.reduce((sum,hour)=>sum+Math.max(0,Number(hour.precipitation)||0),0),hourlyProbability=Math.max(0,...relevant.map(hour=>clamp(Number(hour.probability)||0,0,100))),nearTerm=nearTermDates.has(day.date),dayPrecipitation=Math.max(0,Number(day.precipitation)||0),dayProbability=clamp(Number(day.probability)||0,0,100);
-  // Im unmittelbaren Nowcast sind die final radarbereinigten Stunden maßgeblich und dürfen einen älteren Tageswert auch absenken.
-  // Bei mindestens 18 vorhandenen künftigen Stunden ist der Kalendertag vollständig genug abgedeckt: Nach der optionalen
-  // Tagesmengenverteilung müssen Tageskopf und sichtbare Stunden exakt dieselbe Menge sowie dasselbe Wahrscheinlichkeitsmaximum zeigen.
-  // Nur bei unvollständiger Stundenabdeckung bleibt der unabhängige Tageswert als Obergrenze erhalten.
-  const completeCoverage=relevant.length>=DAY_HOURLY_FULL_COVERAGE_MIN_HOURS,sunshineValues=relevant.map(hour=>Number(hour.sunshineDuration)).filter(Number.isFinite),sunshineCoverage=sunshineValues.length/Math.max(1,relevant.length),precipitation=nearTerm||completeCoverage?hourlyPrecipitation:Math.max(dayPrecipitation,hourlyPrecipitation),probability=nearTerm||completeCoverage?hourlyProbability:Math.max(dayProbability,hourlyProbability),hourlyCode=nearTerm||completeCoverage?dailyWeatherCodeFromHours(relevant):day.code,hourlySunshine=sunshineValues.reduce((sum,value)=>sum+Math.max(0,value),0),sunshineDuration=(nearTerm||completeCoverage)&&sunshineCoverage>=.7?Math.min(86400,hourlySunshine):day.sunshineDuration,signal=reconcileForecastPrecipitation({precipitation,probability,code:hourlyCode,leadHours:(Date.parse(`${day.date}T12:00:00Z`)-now)/3600000});
+  const isCurrentDay=day.date===today,futureRelevant=relevant.filter(hour=>hour.epoch>=now-30*60000),nearTerm=isCurrentDay&&futureRelevant.some(hour=>hour.epoch<=now+6*3600000),precipitationHours=nearTerm?futureRelevant:relevant,temperatures=relevant.map(hour=>Number(hour.temperature)).filter(Number.isFinite),hourlyMax=temperatures.length?Math.max(...temperatures):Number.NaN,hourlyMin=temperatures.length?Math.min(...temperatures):Number.NaN,max=Number.isFinite(hourlyMax)?Math.max(day.max,hourlyMax):day.max,min=Number.isFinite(hourlyMin)?Math.min(day.min,hourlyMin):day.min,completeCoverage=relevant.length>=DAY_HOURLY_FULL_COVERAGE_MIN_HOURS,hourlyPrecipitation=precipitationHours.reduce((sum,hour)=>sum+Math.max(0,Number(hour.precipitation)||0),0),hourlyProbability=Math.max(0,...precipitationHours.map(hour=>clamp(Number(hour.probability)||0,0,100))),dayPrecipitation=Math.max(0,Number(day.precipitation)||0),dayProbability=clamp(Number(day.probability)||0,0,100),precipitation=nearTerm||completeCoverage?hourlyPrecipitation:Math.max(dayPrecipitation,hourlyPrecipitation),probability=nearTerm||completeCoverage?hourlyProbability:Math.max(dayProbability,hourlyProbability),hourlyCode=nearTerm||completeCoverage?dailyWeatherCodeFromHours(precipitationHours):day.code,sunshineValues=relevant.map(hour=>Number(hour.sunshineDuration)).filter(Number.isFinite),sunshineCoverage=sunshineValues.length/Math.max(1,relevant.length),hourlySunshine=sunshineValues.reduce((sum,value)=>sum+clamp(value,0,3600),0),baseSunshine=clamp(Number(day.sunshineDuration)||0,0,daylightSeconds(day));
+  // Best Match liefert die vollständige Tagesaggregation und bleibt deshalb für reine
+  // Best-Match-Tage maßgeblich. Der aktuelle Tag darf insbesondere niemals aus nur
+  // noch verbleibenden Zukunftsstunden neu summiert werden. Erst wenn mindestens eine
+  // Stunde wegen eines widersprüchlichen Best-Match-Bündels vollständig durch ein
+  // anderes kohärentes Modell ersetzt wurde, wird ein vollständig abgedeckter
+  // Zukunftstag aus genau diesen finalen Stunden neu aggregiert.
+  const repairedSunshineBundle=relevant.some(hour=>hour.weatherBundleKind==='coherent-model'),sunshineDuration=isCurrentDay?baseSunshine:completeCoverage&&sunshineCoverage>=.9&&repairedSunshineBundle?clamp(hourlySunshine,0,daylightSeconds(day)):baseSunshine,signal=reconcileForecastPrecipitation({precipitation,probability,code:hourlyCode,leadHours:(Date.parse(`${day.date}T12:00:00Z`)-now)/3600000});
   if(Math.abs(max-day.max)<.05&&Math.abs(min-day.min)<.05&&Math.abs(signal.precipitation-dayPrecipitation)<.01&&Math.abs(signal.probability-dayProbability)<.5&&signal.code===day.code&&Math.abs(sunshineDuration-day.sunshineDuration)<1)return day;
   changed=true;return{...day,max,min,precipitation:signal.precipitation,probability:signal.probability,code:signal.code,sunshineDuration,weatherSourceId:relevant.find(hour=>hour.weatherSourceId)?.weatherSourceId??day.weatherSourceId,weatherSourceLabel:relevant.find(hour=>hour.weatherSourceLabel)?.weatherSourceLabel??day.weatherSourceLabel};
  });
  return changed?result:days;
 }
-
 
 export function applyConvectiveNowcastHours(hours:Hour[],thunder:ThunderstormNowcast|null|undefined){
  const cell=thunder?.nearest;if(!thunder?.available||!cell||cell.isApproaching===false||!Number.isFinite(cell.arrivalMinutes)||Number(cell.arrivalMinutes)>210)return hours;
@@ -292,6 +308,6 @@ export function applyConvectiveNowcastHours(hours:Hour[],thunder:ThunderstormNow
 
 export function forecastFusionLabel(fusion:ForecastFusionResult|null|undefined){
  if(!fusion?.active)return'';
- const applied=fusion.days.filter(day=>day.applied),confidence=applied.length?Math.round(applied.reduce((sum,day)=>sum+day.confidence,0)/applied.length):0;
- return`MID Modellbündel${fusion.mosmix?.applied?' + MOSMIX Temperatur/Wind':''} · ${confidence} % Vergleichskonsistenz`;
+ const applied=fusion.days.filter(day=>day.applied),confidence=applied.length?Math.round(applied.reduce((sum,day)=>sum+day.confidence,0)/applied.length):0,repaired=Math.max(0,Number(fusion.diagnostics?.repairedHours)||0),repairLabel=repaired?` · ${repaired} h plausibilitätsrepariert`:' · ohne Bündelersatz';
+ return`Best Match geprüft${fusion.mosmix?.applied?' + MOSMIX lokal':''}${repairLabel}${confidence?` · ${confidence} % Modellvergleich`:''}`;
 }

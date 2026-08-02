@@ -14,13 +14,14 @@ const app=fs.readFileSync(path.join(root,'src','App.tsx'),'utf8');
 
 for(const token of [
  'FORECAST_FUSION_HOURLY',
- 'weatherAuthorityCandidates',
- "leadHours<=54?['icon_d2','icon_eu','best_match','ecmwf_ifs','ecmwf_aifs']",
- "leadHours<=132?['icon_eu','ecmwf_ifs','best_match','ecmwf_aifs','icon_global']",
- "['ecmwf_ifs','best_match','ecmwf_aifs','gfs','icon_global']",
+ 'fetchForecastFusionModels',
+ 'forecastModelSeries',
+ 'repairAuthorityCandidates',
+ 'weatherBundleIssues',
  'coherentWeatherHours',
- 'Wetterbündel werden nicht parametrisch gemittelt',
- 'MOSMIX erzeugt keinen Niederschlag und keine Wetterphase.',
+ 'modellspezifische API-Suffixe',
+ 'Best Match bleibt für Kurzfrist, 7-Tage-Vorhersage',
+ 'MOSMIX lokal',
  "family:'ecmwf'"
 ])assert.ok(worker.includes(token),`Worker-Horizont-/Bündelvertrag fehlt: ${token}`);
 assert.ok(!worker.includes("family:'aifs'"),'IFS und AIFS dürfen nicht als unabhängige ECMWF-Familien doppelt gewichtet werden');
@@ -29,10 +30,10 @@ assert.ok(!worker.includes('mosmixProbability('),'MOSMIX darf keine Niederschlag
 for(const token of [
  'ForecastWeatherBundleHour',
  'weatherHours?:ForecastWeatherBundleHour[]',
- "weatherBundleKind:'coherent-model'",
+ "weatherBundleKind:repaired?'coherent-model':'best-match'",
  'Der Wetter-/Niederschlagszustand bleibt vollständig',
  'Eine Tagesaggregation darf keine bislang nicht vorhandene Niederschlagsstunde',
- 'sunshineCoverage>=.7',
+ 'sunshineCoverage>=.9',
  'relativeHumidityFromTemperatureDewPoint'
 ])assert.ok(fusionSource.includes(token),`Frontend-Bündelvertrag fehlt: ${token}`);
 assert.ok(!fusionSource.includes('distributeDailyPrecipitationDeficit'),'Tagesmengen dürfen keine künstlichen Stunden erzeugen');
@@ -75,4 +76,4 @@ try{
   assert.ok(result.humidity>=0&&result.humidity<=100,'relative Feuchte bleibt aus Temperatur und Taupunkt physikalisch konsistent');
  }finally{Date.now=originalNow}
 }finally{fs.rmSync(tempDir,{recursive:true,force:true})}
-console.log('Kohärente Wetterbündel geprüft: horizontabhängige Modellquelle, keine Parameterkreuzung, keine erfundenen Stunden und physikalisch konsistente Regen-/Schauerphase.');
+console.log('Best-Match-zentrierte Wetterbündel geprüft: API-Suffixe, gezielte Reparatur, keine Parameterkreuzung und physikalisch konsistente Regen-/Schauerphase.');

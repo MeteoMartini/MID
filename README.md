@@ -1,3 +1,10 @@
+## Funktionsrelease v0.8.35.0 – Best Match, API-Suffixaudit und vollständige Sonnenstunden
+
+- Open-Meteo Best Match bleibt die operative Leitprognose für Kurzfrist, 7 Tage und alle gemeinsamen Sektionen.
+- Explizite Modelle werden in einem Multi-Model-Request anhand der API-Suffixe getrennt und ersetzen nur tatsächlich widersprüchliche Stunden als vollständiges Wetterbündel.
+- Der aktuelle Tag behält seine vollständige Best-Match-Sonnenstundensumme; ein abendlicher Neuaufbau kann sie nicht mehr auf die verbleibenden Stunden verkürzen.
+- MOSMIX und der lokale Wetterzwilling arbeiten ausschließlich als begrenztes Postprocessing geeigneter Temperatur-/Windparameter; Radar, Blitz und Stationen bleiben die nachgelagerte hyperlokale Kurzfristkorrektur.
+
 
 ## Wartung v0.7.102.1 – Ensembleanzeige wiederhergestellt
 

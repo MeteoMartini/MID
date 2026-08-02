@@ -17,13 +17,13 @@ for(const token of [
  "id:'ecmwf_ifs'",
  "id:'ecmwf_aifs'",
  "family:'ecmwf'",
- 'weatherAuthorityCandidates',
- 'selectWeatherAuthorityHour',
+ 'fetchForecastFusionModels',
+ 'weatherBundleIssues',
  'coherentWeatherHours',
- 'version:4',
+ 'version:6',
  "schema:'mid.forecast-fusion.v1'",
- 'Wetterbündel werden nicht parametrisch gemittelt',
- 'MOSMIX erzeugt keinen Niederschlag und keine Wetterphase.',
+ 'Best Match bleibt für Kurzfrist, 7-Tage-Vorhersage',
+ 'modellspezifische API-Suffixe',
  'MOSMIX wird bewusst nur als lokales Postprocessing'
 ])need('Worker-Fusion',worker,token);
 for(const token of [
@@ -33,11 +33,11 @@ for(const token of [
  'applyForecastFusionDays',
  'applyForecastFusionHours',
  'reconcileForecastDaysWithHours',
- "weatherBundleKind:'coherent-model'",
+ "weatherBundleKind:repaired?'coherent-model':'best-match'",
  'Der Wetter-/Niederschlagszustand bleibt vollständig',
  'leadHours>168',
- 'MID Modellbündel',
- '% Vergleichskonsistenz'
+ 'Best Match geprüft',
+ '% Modellvergleich'
 ])need('Frontend-Fusion',fusion,token);
 for(const token of [
  'requestIdleCallback',
@@ -46,8 +46,8 @@ for(const token of [
  'twinForecastActive?localTwinDays:fusedDays',
  'applyOperationalNowcastHours',
  'applyConvectiveNowcastHours',
- "id:'mid_priority_fusion'",
- 'MID Mehrquellen-Prognose · qualitätsgewichtet',
+ "id:'mid_best_match_quality'",
+ 'Best Match · geprüft und lokal nachkorrigiert',
  'Wetter-/Niederschlagsbündel:'
 ])need('App-Integration',app,token);
 for(const token of [
@@ -60,7 +60,7 @@ for(const token of [
  'ein gemeinsames Wetterbündel',
  'const weatherRepresentative=',
  'weatherCode:Number.isFinite(weather.weatherCode)',
- "weatherSourceId:'mid_local_weighted'"
+ 'Best Match bleibt auch bei aktivem Wetterzwilling das vollständige Wetterbündel'
 ])need('Verifikation',verification,token);
 const setWeather=app.indexOf('setW(fw);'),fusionEffect=app.indexOf('loadForecastFusion(');
 if(setWeather<0||fusionEffect<0||fusionEffect<setWeather)failures.push('Mehrquellen-Fusion darf die erste Best-Match-Darstellung nicht blockieren.');
@@ -72,4 +72,4 @@ if(!atLeast)failures.push(`Version liegt vor 0.8.32.0: ${pkg.version}`);
 if(baseline.releaseVersion!==pkg.version)failures.push(`Baseline ${baseline.releaseVersion} != ${pkg.version}`);
 if(!baseline.requiredRegressionTests?.includes('scripts/test-priority-forecast-fusion-08320.mjs'))failures.push('Baseline enthält Fusionstest nicht.');
 if(failures.length){console.error('MID kohärente Prioritätsfusion fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('MID nutzt eine nicht blockierende, horizontabhängige Mehrquellen-Fusion mit kohärenten Wetterbündeln.');
+console.log('MID nutzt eine nicht blockierende Best-Match-Hauptprognose mit suffixgeprüfter Bündelreparatur und lokaler Nachkorrektur.');

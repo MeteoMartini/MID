@@ -478,7 +478,7 @@ function mainForecastStatus(currentForecasts:LocalWeightedForecast[],weightingRe
  else if(!Number.isFinite(improvement))reason='Der Kontrollvergleich mit Best Match ist noch nicht vollständig berechenbar.';
  else if(Number(improvement)<0)reason=`MID liegt im Kontrollvergleich derzeit ${Math.abs(Number(improvement)).toFixed(1).replace('.',',')} % hinter Best Match.`;
  else reason=`MID ist nach ${validationDays} Kontrolltagen mindestens gleichwertig zu Best Match (${Number(improvement)>=0?'+':''}${Number(improvement).toFixed(1).replace('.',',')} %).`;
- const sourceLabel=dominantModel?`Lokaler Modellmix · Schwerpunkt ${dominantModel.label} ${Math.round(dominantModel.weight)} %`:'Lokaler Modellmix';
+ const sourceLabel=dominantModel?`Best-Match-Nachkorrektur · Diagnose-Schwerpunkt ${dominantModel.label} ${Math.round(dominantModel.weight)} %`:'Best-Match-Nachkorrektur';
  return{eligible,confidence,readyDays:ready.length,modelCount,validationDays,improvement,dominantModel,sourceLabel,reason}
 }
 
@@ -497,8 +497,23 @@ export function buildForecastVerificationReport(locationKey:string,days:Day[]=[]
 }
 
 
-function nowcastAdjustedPrediction(prediction:ForecastPrediction,radar?:RadarNowcast|null){if(!radar||radar.source==='model'||radar.coverage===false)return{prediction,explanation:''};const arrival=finite(radar.arrivalMinutes,999),withinWindow=arrival<=180,radarProbability=clamp(finite(radar.radarProbability,0),0,100);if(!withinWindow&&radarProbability<20)return{prediction,explanation:''};const quality=radar.quality==='high'?.7:radar.quality==='medium'?.5:.3,probability=clamp(prediction.probability*(1-quality)+radarProbability*quality,0,100),rate=Math.max(0,finite(radar.currentRate,finite(radar.peakRate,0))),duration=Math.max(.25,Math.min(2,finite(radar.endMinutes,60)/60)),precipitation=Math.max(prediction.precipitation,rate*duration*.55);return{prediction:{...prediction,probability,precipitation},explanation:`Radar-/Nowcast-Signal (${radar.provider}) wurde für die ersten Stunden mit ${Math.round(quality*100)} % einbezogen.`}}
-export function applyLocalTwinForecastFromReport(days:Day[],report:ForecastVerificationReport,radar?:RadarNowcast|null){const settings=readWeatherTwinSettings();if(!settings.enabled||!settings.useAsMainForecast||!report.mainForecastStatus.eligible)return days;const byDate=new Map(report.currentForecasts.map(row=>[row.date,row]));let changed=false;const result=days.map((day,index)=>{const row=byDate.get(day.date);if(!row?.ready||!row.prediction)return day;const adjusted=index===0&&settings.nowcastAssimilation?nowcastAdjustedPrediction(row.prediction,radar).prediction:row.prediction,gust=Number.isFinite(adjusted.gust)?Math.max(day.wind,Number(adjusted.gust)):day.gust;changed=true;return{...day,max:adjusted.max,min:adjusted.min,precipitation:adjusted.precipitation,probability:adjusted.probability,code:Number.isFinite(adjusted.weatherCode)?Math.round(Number(adjusted.weatherCode)):day.code,gust,sunshineDuration:Number.isFinite(adjusted.sunshineDuration)?clamp(Number(adjusted.sunshineDuration),0,86400):day.sunshineDuration,weatherSourceId:'mid_local_weighted',weatherSourceLabel:adjusted.label}});return changed?result:days}
+export function applyLocalTwinForecastFromReport(days:Day[],report:ForecastVerificationReport,_radar?:RadarNowcast|null){
+ const settings=readWeatherTwinSettings();if(!settings.enabled||!settings.useAsMainForecast||!report.mainForecastStatus.eligible)return days;
+ const byDate=new Map(report.currentForecasts.map(row=>[row.date,row]));let changed=false;
+ const result=days.map(day=>{
+  const row=byDate.get(day.date);if(!row?.ready||!row.prediction)return day;
+  const prediction=row.prediction,max=day.max+clamp(prediction.max-day.max,-2.5,2.5),min=day.min+clamp(prediction.min-day.min,-2.5,2.5),gust=Number.isFinite(prediction.gust)?Math.max(day.wind,day.gust+clamp(Number(prediction.gust)-day.gust,-8,8)):day.gust;
+  if(Math.abs(max-day.max)<.05&&Math.abs(min-day.min)<.05&&Math.abs(gust-day.gust)<.05)return day;
+  changed=true;
+  // Best Match bleibt auch bei aktivem Wetterzwilling das vollständige Wetterbündel:
+  // Niederschlag, Wahrscheinlichkeit, Wettercode und Sonnenschein werden weder
+  // aus einem anderen Modell übernommen noch über mehrere Modelle gemischt.
+  // Der lokale Lernkreis darf ausschließlich belegte thermische und Wind-Biases
+  // begrenzt nachkorrigieren; Radar-/Blitz-Nowcasting erfolgt anschließend stündlich.
+  return{...day,max,min,gust,weatherSourceId:day.weatherSourceId,weatherSourceLabel:day.weatherSourceLabel};
+ });
+ return changed?result:days;
+}
 export function applyLocalTwinForecast(locationKey:string,days:Day[],ensemble:EnsembleDay[],radar?:RadarNowcast|null,location?:Location){const settings=readWeatherTwinSettings();if(!settings.enabled||!settings.useAsMainForecast)return days;const report=buildForecastVerificationReport(locationKey,days,ensemble,location);return applyLocalTwinForecastFromReport(days,report,radar)}
 function reconcileAssimilatedPrecipitation(hour:Hour,target:number){const precipitation=Math.max(0,target);if(precipitation<=hour.precipitation+.001)return{...hour,precipitation};const scale=hour.precipitation>.01?precipitation/hour.precipitation:1,rain=Math.max(0,hour.rain*scale),showers=Math.max(0,hour.showers*scale),snowfall=Math.max(0,hour.snowfall*scale);if(rain+showers+snowfall>.001)return{...hour,precipitation,rain,showers,snowfall};return hour.temperature<=1?{...hour,precipitation,snowfall:Math.max(hour.snowfall,precipitation*.7)}:{...hour,precipitation,rain:Math.max(hour.rain,precipitation)}}
 export function applyLocalTwinHours(locationKey:string,hours:Hour[],rawDays:Day[],adjustedDays:Day[],radar?:RadarNowcast|null){
