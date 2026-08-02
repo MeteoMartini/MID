@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.8.33.17",
+  "version": "0.8.34.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -169,7 +169,8 @@
     "test:current-hyperlocal-sky": "node scripts/test-current-hyperlocal-sky-083311.mjs",
     "test:precip-probability-consistency": "node scripts/test-precipitation-probability-consistency-083312.mjs",
     "test:daily-hourly-precip-allocation": "node scripts/test-daily-hourly-precip-allocation-083313.mjs",
-    "test:forecast-precipitation-support": "node scripts/test-forecast-precipitation-support-083317.mjs"
+    "test:forecast-precipitation-support": "node scripts/test-forecast-precipitation-support-083317.mjs",
+    "test:coherent-weather-bundles": "node scripts/test-coherent-weather-bundles-08340.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

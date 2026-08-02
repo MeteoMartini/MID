@@ -52,6 +52,13 @@ export type ForecastPrecipitationConsistencyInput={
  probability:number;
  code:number;
  cloud?:number;
+ lowCloud?:number;
+ humidity?:number;
+ cape?:number;
+ sunshineDuration?:number;
+ isDay?:boolean;
+ leadHours?:number;
+ observed?:boolean;
 };
 
 export type ForecastPrecipitationConsistency={
@@ -62,9 +69,12 @@ export type ForecastPrecipitationConsistency={
  probability:number;
  code:number;
  traceSuppressed:boolean;
+ suppressionReason?:'probability'|'weak-distant-signal'|'sky-contradiction';
+ phaseAdjusted?:boolean;
 };
 
 const UNSUPPORTED_FORECAST_MAX_PROBABILITY=5;
+const WEAK_FORECAST_AMOUNT_MAX_MM=.35;
 
 function dryForecastWeatherCode(code:number,cloud:unknown){
  if([45,48].includes(code))return code;
@@ -75,23 +85,53 @@ function dryForecastWeatherCode(code:number,cloud:unknown){
  if(cover<=80)return 2;
  return 3;
 }
+function deterministicSignalMinimumProbability(leadHours:unknown){
+ const lead=Math.max(0,Number(leadHours)||0);
+ return lead<=24?10:lead<=72?15:20;
+}
+function stratiformCode(code:number){return[51,53,55,56,57,61,63,65,66,67,68,69,71,73,75,77].includes(code)}
+function showerCode(code:number){return[80,81,82,83,84,85,86,95,96,97,99].includes(code)}
+function showerEquivalentCode(code:number,total:number,snowfall:number){
+ if([71,73,75,77].includes(code)||snowfall>=.05)return snowfall>=2?86:85;
+ if([68,69].includes(code))return total>=2.5?84:83;
+ if([95,96,97,99].includes(code))return code;
+ return total>=10?82:total>=2.5?81:80;
+}
 
 /**
- * Erzwingt für sämtliche Forecast-Darstellungen eine gemeinsame Aussage aus
- * Menge, Niederschlagsart und Eintrittswahrscheinlichkeit. Die Quellen können
- * diese Felder unabhängig voneinander oder zeitlich versetzt liefern. Ein
- * Niederschlagssignal bei höchstens 5 % ist deshalb für die primäre MID-
- * Vorhersage nicht ausreichend gestützt – unabhängig davon, ob nur ein Trace
- * oder bereits eine größere deterministische Menge betroffen ist.
+ * Hält den gesamten Wetterzustand einer Stunde zusammen. Menge, Phase,
+ * Wettercode, Bewölkung und Wahrscheinlichkeit dürfen nicht aus voneinander
+ * unabhängigen Modellpfaden zu einer scheinbar präzisen, aber physikalisch
+ * widersprüchlichen Aussage zusammengesetzt werden.
  *
- * Beobachteter beziehungsweise radargestützter Niederschlag erhält bereits in
- * der jeweiligen Assimilation eine belastbare Wahrscheinlichkeit und bleibt
- * damit erhalten. Es wird niemals eine Wahrscheinlichkeit erfunden.
+ * Kleine deterministische Signale benötigen mit wachsendem Vorhersagehorizont
+ * eine stärkere probabilistische Stützung. Das ist keine zeitliche Glättung:
+ * Die Rohwahrscheinlichkeit bleibt erhalten; nur eine nicht belastbare Menge
+ * und der daraus abgeleitete Niederschlagszustand werden nicht als sicherer
+ * Stundenwert ausgegeben. Beobachtete/radargestützte Werte sind ausgenommen.
  */
 export function reconcileForecastPrecipitation(input:ForecastPrecipitationConsistencyInput):ForecastPrecipitationConsistency{
- const precipitation=Math.max(0,Number(input.precipitation)||0),rain=Math.max(0,Number(input.rain)||0),showers=Math.max(0,Number(input.showers)||0),snowfall=Math.max(0,Number(input.snowfall)||0),probability=Math.max(0,Math.min(100,Number(input.probability)||0)),code=Math.round(Number(input.code)||0),wetCode=Boolean(WMO_PRECIP_TYPE[code]),wetSignal=wetCode||precipitation>=.01||rain>=.01||showers>=.01||snowfall>=.01,traceSuppressed=wetSignal&&probability<=UNSUPPORTED_FORECAST_MAX_PROBABILITY;
- if(!traceSuppressed)return{precipitation,rain,showers,snowfall,probability,code,traceSuppressed:false};
- return{precipitation:0,rain:0,showers:0,snowfall:0,probability,code:dryForecastWeatherCode(code,input.cloud),traceSuppressed:true};
+ let precipitation=Math.max(0,Number(input.precipitation)||0),rain=Math.max(0,Number(input.rain)||0),showers=Math.max(0,Number(input.showers)||0),snowfall=Math.max(0,Number(input.snowfall)||0),probability=Math.max(0,Math.min(100,Number(input.probability)||0)),code=Math.round(Number(input.code)||0);
+ const wetCode=Boolean(WMO_PRECIP_TYPE[code]),wetSignal=wetCode||precipitation>=.01||rain>=.01||showers>=.01||snowfall>=.01;
+ if(!wetSignal)return{precipitation,rain,showers,snowfall,probability,code,traceSuppressed:false};
+ const suppress=(reason:ForecastPrecipitationConsistency['suppressionReason']):ForecastPrecipitationConsistency=>({precipitation:0,rain:0,showers:0,snowfall:0,probability,code:dryForecastWeatherCode(code,input.cloud),traceSuppressed:true,suppressionReason:reason});
+ if(!input.observed&&probability<=UNSUPPORTED_FORECAST_MAX_PROBABILITY)return suppress('probability');
+ const supportMinimum=deterministicSignalMinimumProbability(input.leadHours),weakAmount=Math.max(precipitation,rain,showers,snowfall)<=WEAK_FORECAST_AMOUNT_MAX_MM;
+ if(!input.observed&&weakAmount&&probability<supportMinimum)return suppress('weak-distant-signal');
+ const cloud=Number(input.cloud),lowCloud=Number(input.lowCloud),humidity=Number(input.humidity),cape=Math.max(0,Number(input.cape)||0),rawSunshine=Number(input.sunshineDuration),sunshine=Number.isFinite(rawSunshine)?Math.max(0,rawSunshine):Number.NaN,daylight=input.isDay!==false;
+ const stratiformSupport=(Number.isFinite(cloud)&&cloud>=82)||(Number.isFinite(lowCloud)&&lowCloud>=65)||(Number.isFinite(humidity)&&humidity>=92)||(daylight&&Number.isFinite(sunshine)&&sunshine<=600);
+ const convectiveSupport=showers>=.01||cape>=180||(Number.isFinite(cloud)&&cloud>=25&&cloud<82&&daylight&&Number.isFinite(sunshine)&&sunshine>=900);
+ let phaseAdjusted=false;
+ if(stratiformCode(code)&&!stratiformSupport&&convectiveSupport){
+  const total=Math.max(precipitation,rain+showers,snowfall),nextCode=showerEquivalentCode(code,total,snowfall);
+  if(![83,84,85,86].includes(nextCode)&&snowfall<.05){showers=Math.max(showers,precipitation);rain=0}
+  code=nextCode;phaseAdjusted=true;
+ }else if(!input.observed&&stratiformCode(code)&&!stratiformSupport&&!convectiveSupport&&weakAmount){
+  return suppress('sky-contradiction');
+ }else if(!input.observed&&showerCode(code)&&!convectiveSupport&&!stratiformSupport&&weakAmount){
+  return suppress('sky-contradiction');
+ }
+ return{precipitation,rain,showers,snowfall,probability,code,traceSuppressed:false,phaseAdjusted};
 }
 
 const PRECIP_LABEL:Record<Exclude<PrecipType,'none'>,string>={

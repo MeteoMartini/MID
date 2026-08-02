@@ -11,27 +11,33 @@ const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}
 for(const token of [
  "if(mode==='forecast-fusion')return forecastFusionResponse(u);",
  "'adaptive-priority-forecast-fusion'",
+ 'FORECAST_FUSION_HOURLY',
  "id:'icon_d2'",
+ "id:'icon_eu'",
  "id:'ecmwf_ifs'",
  "id:'ecmwf_aifs'",
- "id:'gfs'",
- "tier:1",
- "tier:2",
- "tier:3",
- "tier:4",
- 'families>=3&&confidence>=48',
- 'capFusionFamilyWeights',
- 'weightedMedian',
- 'safeFusionValue(anchor.max',
- "schema:'mid.forecast-fusion.v1'"
+ "family:'ecmwf'",
+ 'weatherAuthorityCandidates',
+ 'selectWeatherAuthorityHour',
+ 'coherentWeatherHours',
+ 'version:4',
+ "schema:'mid.forecast-fusion.v1'",
+ 'Wetterbündel werden nicht parametrisch gemittelt',
+ 'MOSMIX erzeugt keinen Niederschlag und keine Wetterphase.',
+ 'MOSMIX wird bewusst nur als lokales Postprocessing'
 ])need('Worker-Fusion',worker,token);
 for(const token of [
  'const FRESH_MS=35*60*1000',
+ 'ForecastWeatherBundleHour',
+ 'weatherHours?:ForecastWeatherBundleHour[]',
  'applyForecastFusionDays',
  'applyForecastFusionHours',
- 'applyOperationalNowcastHours',
- 'applyConvectiveNowcastHours',
- "source==='model'"
+ 'reconcileForecastDaysWithHours',
+ "weatherBundleKind:'coherent-model'",
+ 'Der Wetter-/Niederschlagszustand bleibt vollständig',
+ 'leadHours>168',
+ 'MID Modellbündel',
+ '% Vergleichskonsistenz'
 ])need('Frontend-Fusion',fusion,token);
 for(const token of [
  'requestIdleCallback',
@@ -41,17 +47,29 @@ for(const token of [
  'applyOperationalNowcastHours',
  'applyConvectiveNowcastHours',
  "id:'mid_priority_fusion'",
- 'MID Mehrquellen-Prognose · qualitätsgewichtet'
+ 'MID Mehrquellen-Prognose · qualitätsgewichtet',
+ 'Wetter-/Niederschlagsbündel:'
 ])need('App-Integration',app,token);
-need('Verifikation',verification,'additional:AdditionalForecastPrediction[]=[]');
-if(!app.includes("label:'MID Prioritätsfusion'")&&!app.includes("'MID Prioritätsfusion + MOSMIX':'MID Prioritätsfusion'"))failures.push('App-Integration: MID Prioritätsfusion-Label fehlt.');
-need('Modelllaufinfo',weather,"id:'ecmwf_aifs025_single'");
+for(const token of [
+ 'weatherSourceId',
+ 'weatherSourceLabel',
+ "weatherBundleKind:'best-match'"
+])need('Best-Match-Herkunft',weather,token);
+for(const token of [
+ 'additional:AdditionalForecastPrediction[]=[]',
+ 'ein gemeinsames Wetterbündel',
+ 'const weatherRepresentative=',
+ 'weatherCode:Number.isFinite(weather.weatherCode)',
+ "weatherSourceId:'mid_local_weighted'"
+])need('Verifikation',verification,token);
 const setWeather=app.indexOf('setW(fw);'),fusionEffect=app.indexOf('loadForecastFusion(');
 if(setWeather<0||fusionEffect<0||fusionEffect<setWeather)failures.push('Mehrquellen-Fusion darf die erste Best-Match-Darstellung nicht blockieren.');
+if(worker.includes("family:'aifs'"))failures.push('ECMWF AIFS darf nicht als unabhängige Modellfamilie zusätzlich zu IFS übergewichtet werden.');
+if(fusion.includes('distributeDailyPrecipitationDeficit'))failures.push('Tagesmengen dürfen nicht auf künstlich erzeugte Stunden verteilt werden.');
 const parts=String(pkg.version).split('.').map(Number),minimum=[0,8,32,0];
 let atLeast=true;for(let i=0;i<minimum.length;i++){if((parts[i]??0)>minimum[i])break;if((parts[i]??0)<minimum[i]){atLeast=false;break}}
 if(!atLeast)failures.push(`Version liegt vor 0.8.32.0: ${pkg.version}`);
 if(baseline.releaseVersion!==pkg.version)failures.push(`Baseline ${baseline.releaseVersion} != ${pkg.version}`);
-if(!baseline.requiredRegressionTests?.includes('scripts/test-priority-forecast-fusion-08320.mjs'))failures.push('Baseline enthält neuen Fusionstest nicht.');
-if(failures.length){console.error('MID Prioritätsfusion fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('MID Prioritäten 1–4 sind als nicht blockierende, robuste und verifizierbare Mehrquellen-Fusion integriert.');
+if(!baseline.requiredRegressionTests?.includes('scripts/test-priority-forecast-fusion-08320.mjs'))failures.push('Baseline enthält Fusionstest nicht.');
+if(failures.length){console.error('MID kohärente Prioritätsfusion fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
+console.log('MID nutzt eine nicht blockierende, horizontabhängige Mehrquellen-Fusion mit kohärenten Wetterbündeln.');

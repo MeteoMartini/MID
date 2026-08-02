@@ -1,3 +1,14 @@
+# MID v0.8.34.0
+
+- Niederschlag, Wahrscheinlichkeit, Wettercode, Bewölkung, Konvektion und Sonnenschein werden je Stunde als unteilbares Wettermodellbündel aus genau einer Quelle übernommen.
+- Deutschland erhält eine horizontabhängige Wetterquellen-Hierarchie: ICON-D2 bis etwa 54 h, ICON-EU bis etwa 132 h, anschließend ECMWF IFS mit geregelten Fallbacks.
+- MOSMIX ist auf Temperatur, Feuchte, Luftdruck und Wind begrenzt; es kann weder Niederschlag noch Wetterphase, Bewölkung oder Sonnenschein verändern.
+- Tagesmengen erzeugen keine künstlichen Stunden mehr; vollständige Tage werden ausschließlich aus den finalen Stunden aggregiert.
+- Schwache deterministische Niederschlagsspuren benötigen mit wachsendem Vorhersagehorizont stärkere probabilistische Stützung; Wahrscheinlichkeiten bleiben ohne Glättung erhalten.
+- Regen und Schauer werden anhand von Schichtbewölkung, tiefer Bewölkung, Feuchte, Sonnenschein und Konvektion physikalisch abgeglichen.
+- Stunden-Detailansicht weist die konkrete Quelle des Wetter-/Niederschlagsbündels aus.
+- Temperatur, Taupunkt und relative Feuchte bleiben nach MOSMIX-Nachkorrekturen thermodynamisch konsistent.
+
 # MID v0.8.33.17
 
 - Ursache von Niederschlagsmengen bei 0 % behoben: Ein nasser WMO-Code kann keine Tagesmenge mehr auf eine probabilistisch ungestützte Stunde ziehen.

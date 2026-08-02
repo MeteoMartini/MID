@@ -6,5 +6,5 @@ const fusion=await readFile(new URL('../src/forecastFusion.ts',import.meta.url),
 for(const forbidden of ['trockener Radar-Nowcast','Wie geht’s weiter?','Danach am ehesten','Unsicherheit nimmt zu','Keine Hazards','adaptiv gewichtet'])assert.ok(!(app+ensemble+fusion).includes(forbidden),`veraltete oder umgangssprachliche UI-Formulierung vorhanden: ${forbidden}`);
 for(const required of ['Im Radarverbund ist am Standort und im Nahbereich kein relevanter Niederschlag erkennbar','Radarbefund: kein relevanter Niederschlag im Nahbereich','Radar- und Modellabgleich','Radarqualität:','Gewichtung: Radar','MID Mehrquellen-Prognose · qualitätsgewichtet','Keine Warnung'])assert.ok(app.includes(required),`professionelle UI-Formulierung fehlt: ${required}`);
 for(const required of ['Prognoseentwicklung','Wahrscheinlichste Entwicklung','Zunehmende Unsicherheit','kein markanter Übergang erkennbar'])assert.ok(ensemble.includes(required),`professionelle Kompass-Formulierung fehlt: ${required}`);
-assert.ok(fusion.includes('% Modellkonsistenz'), 'professionelle Mehrquellen-Konsistenzangabe fehlt');
+assert.ok(fusion.includes('MID Modellbündel')&&fusion.includes('% Vergleichskonsistenz'), 'professionelle Modellbündel- und Vergleichskonsistenzangabe fehlt');
 console.log('Professionelle UI-Terminologie ab v0.8.33.7 geprüft.');

@@ -4053,3 +4053,4 @@ body,#root{
   }
 }
 
+.hour-tooltip-source{display:block;margin-top:8px;padding:7px 9px;border-radius:10px;background:var(--s2);color:var(--muted);font-size:10px;line-height:1.35;overflow-wrap:anywhere}

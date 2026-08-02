@@ -20,12 +20,26 @@ export type ForecastFusionHour={
  dewPoint?:number;
  humidity?:number;
  pressure?:number;
- precipitation:number;
- probability:number;
  wind:number;
  gust:number;
  direction?:number;
+};
+export type ForecastWeatherBundleHour={
+ time:string;
+ epoch:number;
+ precipitation:number;
+ rain:number;
+ showers:number;
+ snowfall:number;
+ probability:number;
+ code:number;
+ cloud:number;
+ lowCloud?:number;
+ cape?:number;
  sunshineDuration?:number;
+ sourceId:string;
+ sourceLabel:string;
+ sourceFamily:string;
 };
 export type ForecastFusionMosmix={
  available:boolean;
@@ -49,6 +63,9 @@ export type ForecastFusionDay={
  wind:number;
  gust:number;
  sunshineDuration:number;
+ code?:number;
+ weatherSourceId?:string;
+ weatherSourceLabel?:string;
  confidence:number;
  confidenceLabel:ForecastFusionConfidence;
  strength:number;
@@ -68,12 +85,13 @@ export type ForecastFusionResult={
  days:ForecastFusionDay[];
  modelDays?:ForecastFusionDay[];
  hours?:ForecastFusionHour[];
+ weatherHours?:ForecastWeatherBundleHour[];
  mosmix?:ForecastFusionMosmix;
  error?:string;
  cached?:boolean;
 };
 
-const CACHE_PREFIX='mid:forecast-fusion:v2:';
+const CACHE_PREFIX='mid:forecast-fusion:v4:';
 const FRESH_MS=35*60*1000;
 const STALE_MS=8*60*60*1000;
 
@@ -121,9 +139,9 @@ function applyForecastFusionDayRows(baseDays:Day[],rows:ForecastFusionDay[]|unde
   const fused=byDate.get(day.date);if(!fused?.applied||fused.confidence<48)return day;
   const max=Number(fused.max),min=Number(fused.min),precipitation=Number(fused.precipitation),probability=Number(fused.probability),wind=Number(fused.wind),gust=Number(fused.gust),sunshineDuration=Number(fused.sunshineDuration);
   if(![max,min,precipitation].every(Number.isFinite)||max<min)return day;
-  const precipitationSignal=reconcileForecastPrecipitation({precipitation:Math.max(0,precipitation),probability:Number.isFinite(probability)?clamp(probability,0,100):day.probability,code:day.code});
+  const fusedCode=Number.isFinite(Number(fused.code))?Math.round(Number(fused.code)):day.code,leadHours=(Date.parse(`${day.date}T12:00:00Z`)-Date.now())/3600000,precipitationSignal=reconcileForecastPrecipitation({precipitation:Math.max(0,precipitation),probability:Number.isFinite(probability)?clamp(probability,0,100):day.probability,code:fusedCode,leadHours});
   changed=true;
-  return{...day,max,min,precipitation:precipitationSignal.precipitation,probability:precipitationSignal.probability,code:precipitationSignal.code,wind:Number.isFinite(wind)?Math.max(0,wind):day.wind,gust:Number.isFinite(gust)?Math.max(Number.isFinite(wind)?wind:day.wind,gust):day.gust,sunshineDuration:Number.isFinite(sunshineDuration)?clamp(sunshineDuration,0,86400):day.sunshineDuration};
+  return{...day,max,min,precipitation:precipitationSignal.precipitation,probability:precipitationSignal.probability,code:precipitationSignal.code,wind:Number.isFinite(wind)?Math.max(0,wind):day.wind,gust:Number.isFinite(gust)?Math.max(Number.isFinite(wind)?wind:day.wind,gust):day.gust,sunshineDuration:Number.isFinite(sunshineDuration)?clamp(sunshineDuration,0,86400):day.sunshineDuration,weatherSourceId:fused.weatherSourceId??day.weatherSourceId,weatherSourceLabel:fused.weatherSourceLabel??day.weatherSourceLabel};
  });
  return changed?result:baseDays;
 }
@@ -137,8 +155,13 @@ function precipitationParts(hour:Hour,target:number){
  return hour.temperature<=1?{precipitation,rain:0,showers:0,snowfall:precipitation*.7}:{precipitation,rain:precipitation,showers:0,snowfall:0};
 }
 
-function nearestFusionHour(hours:ForecastFusionHour[],epoch:number){let best:ForecastFusionHour|undefined,distance=Infinity;for(const hour of hours){const delta=Math.abs(Number(hour.epoch)-epoch);if(delta<distance){best=hour;distance=delta}}return distance<=35*60000?best:undefined}
+function nearestFusionHour<T extends {epoch:number}>(hours:T[],epoch:number){let best:T|undefined,distance=Infinity;for(const hour of hours){const delta=Math.abs(Number(hour.epoch)-epoch);if(delta<distance){best=hour;distance=delta}}return distance<=35*60000?best:undefined}
 function blendToward(base:number,target:unknown,strength:number,cap:number){const value=Number(target);if(!Number.isFinite(value)||strength<=0)return base;return base+clamp(value-base,-cap,cap)*strength}
+function relativeHumidityFromTemperatureDewPoint(temperature:number,dewPoint:number){
+ if(!Number.isFinite(temperature)||!Number.isFinite(dewPoint))return Number.NaN;
+ const vapor=Math.exp((17.625*dewPoint)/(243.04+dewPoint)),saturation=Math.exp((17.625*temperature)/(243.04+temperature));
+ return clamp(100*vapor/Math.max(.0001,saturation),0,100);
+}
 
 function precipitationWeatherCode(code:number){const value=Math.round(Number(code));return[51,53,55,56,57,61,63,65,66,67,71,73,75,77,80,81,82,85,86,95,96,99].includes(value)}
 function drySkyCode(hour:Hour){
@@ -147,79 +170,56 @@ function drySkyCode(hour:Hour){
  if(cloud<=15)return 0;if(cloud<=45)return 1;if(cloud<=80)return 2;return 3;
 }
 
-const DAY_HOURLY_PRECIPITATION_MIN_MM=.1;
-const DAY_HOURLY_PRECIPITATION_DEFICIT_MIN_MM=.05;
-const DAY_HOURLY_PROBABILITY_SUPPORT_MIN=20;
 const DAY_HOURLY_FULL_COVERAGE_MIN_HOURS=18;
 
-function inferredPrecipitationCode(hour:Hour){
- const code=Math.round(Number(hour.code));if(precipitationWeatherCode(code))return code;
- const convective=Math.max(0,Number(hour.showers)||0)>=.01||Math.max(0,Number(hour.cape)||0)>=250;
- if(Number(hour.temperature)<=.5)return convective?85:71;
- return convective?80:61;
-}
-
-function distributeDailyPrecipitationDeficit(hours:Hour[],day:Day){
- const total=Math.max(0,Number(day.precipitation)||0),existing=hours.reduce((sum,hour)=>sum+Math.max(0,Number(hour.precipitation)||0),0),deficit=total-existing,maxProbability=Math.max(0,...hours.map(hour=>clamp(Number(hour.probability)||0,0,100)));
- if(total<DAY_HOURLY_PRECIPITATION_MIN_MM||deficit<DAY_HOURLY_PRECIPITATION_DEFICIT_MIN_MM||maxProbability<DAY_HOURLY_PROBABILITY_SUPPORT_MIN)return hours;
- // Ein nasser Wettercode darf die Stunde priorisieren, aber niemals allein
- // eine Tagesmenge in eine Stunde mit 0–5 % Wahrscheinlichkeit verschieben.
- const supportThreshold=Math.max(15,maxProbability*.45),ranked=hours.map((hour,index)=>({hour,index,probability:clamp(Number(hour.probability)||0,0,100),wet:precipitationWeatherCode(hour.code)})).filter(item=>item.probability>=supportThreshold).sort((a,b)=>(b.wet?18:0)+b.probability-((a.wet?18:0)+a.probability));
- if(!ranked.length)return hours;
- const count=Math.min(ranked.length,6,Math.max(1,Math.ceil(deficit/.1))),selected=ranked.slice(0,count),weightTotal=selected.reduce((sum,item)=>sum+Math.pow(Math.max(1,item.probability-10)+(item.wet?12:0),1.25),0);let remaining=deficit;
- const additions=new Map<number,number>();
- selected.forEach((item,position)=>{const share=position===selected.length-1?remaining:deficit*Math.pow(Math.max(1,item.probability-10)+(item.wet?12:0),1.25)/Math.max(.001,weightTotal),addition=Math.max(0,Math.min(remaining,share));additions.set(item.index,addition);remaining=Math.max(0,remaining-addition)});
- return hours.map((hour,index)=>{const addition=additions.get(index)||0;if(addition<.001)return hour;const target=Math.max(0,hour.precipitation)+addition,parts=precipitationParts(hour,target),code=inferredPrecipitationCode(hour),phase=[80,81,82].includes(code)&&parts.showers<.001?{...parts,rain:0,showers:target}:parts,signal=reconcileForecastPrecipitation({...phase,probability:hour.probability,code,cloud:hour.cloud});return{...hour,precipitation:signal.precipitation,rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall,probability:signal.probability,code:signal.code}});
-}
-
 /**
- * Tagesmengen und Stundenkurve stammen bei Best Match, Mehrquellenfusion und
- * lokalem Wetterzwilling teilweise aus unterschiedlichen Aggregationen. Ist
- * ein künftiger Tag vollständig stündlich abgedeckt, zeigt eine belastbare
- * Stundenwahrscheinlichkeit aber keine Menge, wird ausschließlich die bislang
- * nicht zugeordnete Tagesmenge auf die wahrscheinlichsten Stunden verteilt.
- * So bleibt die Tagesmenge erhalten, ohne im Detaildiagramm unsichtbar zu sein.
+ * Eine Tagesaggregation darf keine bislang nicht vorhandene Niederschlagsstunde
+ * erfinden. Für vollständig vorhandene Stundenreihen wird deshalb ausschließlich
+ * aus den finalen kohärenten Stunden in den Tageskopf aggregiert – nie umgekehrt.
  */
 function reconcileForecastHourPrecipitation(hour:Hour){
- const signal=reconcileForecastPrecipitation({...hour,cloud:hour.cloud});
+ const signal=reconcileForecastPrecipitation({...hour,cloud:hour.cloud,lowCloud:hour.lowCloud,humidity:hour.humidity,cape:hour.cape,sunshineDuration:hour.sunshineDuration,isDay:hour.isDay,leadHours:(hour.epoch-Date.now())/3600000});
  if(signal.precipitation===hour.precipitation&&signal.rain===hour.rain&&signal.showers===hour.showers&&signal.snowfall===hour.snowfall&&signal.probability===hour.probability&&signal.code===hour.code)return hour;
  return{...hour,precipitation:signal.precipitation,rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall,probability:signal.probability,code:signal.code};
 }
 
-export function reconcileForecastHoursWithDays(hours:Hour[],days:Day[]){
+export function reconcileForecastHoursWithDays(hours:Hour[],_days:Day[]){
  if(hours.length===0)return hours;
  // Letzte gemeinsame Forecast-Stufe: Auch Signale, die nach dem ursprünglichen
- // API-Mapping durch Fusion, Wetterzwilling oder Nowcast entstanden sind,
- // werden hier nochmals einheitlich geprüft.
- const normalized=hours.map(reconcileForecastHourPrecipitation),normalizedChanged=normalized.some((hour,index)=>hour!==hours[index]);
- if(days.length===0)return normalizedChanged?normalized:hours;
- const now=Date.now(),daysByDate=new Map(days.map(day=>[day.date,day])),hoursByDate=new Map<string,{rows:{hour:Hour;index:number}[];allFuture:boolean}>();
- normalized.forEach((hour,index)=>{const date=hour.time.slice(0,10),bucket=hoursByDate.get(date)??{rows:[],allFuture:true};bucket.rows.push({hour,index});bucket.allFuture=bucket.allFuture&&hour.epoch>now;hoursByDate.set(date,bucket)});
- let result=normalized,changed=normalizedChanged;
- for(const[date,bucket]of hoursByDate){const day=daysByDate.get(date);if(!day||!bucket.allFuture||bucket.rows.length<DAY_HOURLY_FULL_COVERAGE_MIN_HOURS)continue;const adjusted=distributeDailyPrecipitationDeficit(bucket.rows.map(item=>item.hour),day);if(adjusted.every((hour,index)=>hour===bucket.rows[index].hour))continue;if(result===normalized)result=[...normalized];adjusted.forEach((hour,index)=>{result[bucket.rows[index].index]=hour});changed=true}
- return changed?result:hours;
+ // API-Mapping durch Modellbündel, Wetterzwilling oder Nowcast entstanden sind,
+ // werden nochmals mit Horizont, Bewölkung und Niederschlagsart abgeglichen.
+ const normalized=hours.map(reconcileForecastHourPrecipitation);
+ return normalized.some((hour,index)=>hour!==hours[index])?normalized:hours;
 }
 
 function dryAdjustedHour(hour:Hour,probability:number,precipitation:number){
- const dry=probability<=12&&precipitation<=.05,parts=precipitationParts(hour,dry?0:precipitation),code=dry&&precipitationWeatherCode(hour.code)?drySkyCode(hour):hour.code,signal=reconcileForecastPrecipitation({...parts,probability,code,cloud:hour.cloud});
+ const dry=probability<=12&&precipitation<=.05,parts=precipitationParts(hour,dry?0:precipitation),code=dry&&precipitationWeatherCode(hour.code)?drySkyCode(hour):hour.code,signal=reconcileForecastPrecipitation({...parts,probability,code,cloud:hour.cloud,lowCloud:hour.lowCloud,humidity:hour.humidity,cape:hour.cape,sunshineDuration:hour.sunshineDuration,isDay:hour.isDay,leadHours:(hour.epoch-Date.now())/3600000});
  return{...hour,precipitation:signal.precipitation,rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall,probability:signal.probability,code:signal.code};
 }
 
 export function applyForecastFusionHours(hours:Hour[],baseDays:Day[],fusedDays:Day[],fusion?:ForecastFusionResult|null){
  if(hours.length===0)return hours;
- const dayAdjustment=baseDays!==fusedDays,mosmixHours=Array.isArray(fusion?.hours)?fusion.hours:[],mosmixQuality=clamp(Number(fusion?.mosmix?.quality)||0,0,1),mosmixUsable=Boolean(fusion?.active&&fusion?.mosmix?.available&&fusion?.mosmix?.applied&&mosmixHours.length&&mosmixQuality>=.42),baseByDate=new Map(baseDays.map(day=>[day.date,day])),fusedByDate=new Map(fusedDays.map(day=>[day.date,day]));let changed=false;
+ const dayAdjustment=baseDays!==fusedDays,mosmixHours=Array.isArray(fusion?.hours)?fusion.hours:[],weatherHours=Array.isArray(fusion?.weatherHours)?fusion.weatherHours:[],mosmixQuality=clamp(Number(fusion?.mosmix?.quality)||0,0,1),mosmixUsable=Boolean(fusion?.active&&fusion?.mosmix?.available&&fusion?.mosmix?.applied&&mosmixHours.length&&mosmixQuality>=.42),baseByDate=new Map(baseDays.map(day=>[day.date,day])),fusedByDate=new Map(fusedDays.map(day=>[day.date,day]));let changed=false;
  const now=Date.now(),result=hours.map(hour=>{
   if(hour.epoch<now-3600000)return hour;
   const date=hour.time.slice(0,10),base=baseByDate.get(date),fused=fusedByDate.get(date);let next=hour;
+  const weather=nearestFusionHour(weatherHours,hour.epoch);
+  if(weather){
+   const signal=reconcileForecastPrecipitation({precipitation:weather.precipitation,rain:weather.rain,showers:weather.showers,snowfall:weather.snowfall,probability:weather.probability,code:weather.code,cloud:weather.cloud,lowCloud:weather.lowCloud,humidity:hour.humidity,cape:weather.cape,sunshineDuration:weather.sunshineDuration,isDay:hour.isDay,leadHours:(hour.epoch-now)/3600000});
+   next={...next,precipitation:signal.precipitation,rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall,probability:signal.probability,code:signal.code,cloud:Number.isFinite(weather.cloud)?weather.cloud:next.cloud,lowCloud:Number.isFinite(weather.lowCloud)?Number(weather.lowCloud):next.lowCloud,cape:Number.isFinite(weather.cape)?Number(weather.cape):next.cape,sunshineDuration:Number.isFinite(weather.sunshineDuration)?Number(weather.sunshineDuration):next.sunshineDuration,weatherSourceId:weather.sourceId,weatherSourceLabel:weather.sourceLabel,weatherBundleKind:'coherent-model'};changed=true;
+  }
   if(dayAdjustment&&base&&fused&&base!==fused){
-   const baseCenter=(base.max+base.min)/2,fusedCenter=(fused.max+fused.min)/2,baseRange=Math.max(2,base.max-base.min),rangeScale=clamp((fused.max-fused.min)/baseRange,.78,1.24),temperature=fusedCenter+(hour.temperature-baseCenter)*rangeScale,temperatureDelta=temperature-hour.temperature,dryDay=fused.precipitation<=.1&&fused.probability<=10,precipScale=dryDay?0:base.precipitation>=.12?clamp(fused.precipitation/base.precipitation,.35,2.6):1,precipitation=hour.precipitation*precipScale,probabilityShift=clamp(fused.probability-base.probability,-25,25),probabilityFactor=hour.probability>=40?1:.65,probability=dryDay?Math.min(hour.probability,Math.max(fused.probability,hour.probability*.28)):clamp(hour.probability+probabilityShift*probabilityFactor,0,100),windScale=base.wind>=2?clamp(fused.wind/base.wind,.72,1.38):1,gustScale=base.gust>=3?clamp(fused.gust/base.gust,.72,1.38):1;
-   next={...dryAdjustedHour(hour,probability,precipitation),temperature,apparent:hour.apparent+temperatureDelta,wind:Math.max(0,hour.wind*windScale),gust:Math.max(Math.max(0,hour.wind*windScale),hour.gust*gustScale)};changed=true;
+   // Temperatur und Wind dürfen aus eigenen, intern konsistenten Parameterbündeln
+   // nachkorrigiert werden. Der Wetter-/Niederschlagszustand bleibt vollständig
+   // beim ausgewählten kohärenten Stundenmodell.
+   const baseCenter=(base.max+base.min)/2,fusedCenter=(fused.max+fused.min)/2,baseRange=Math.max(2,base.max-base.min),rangeScale=clamp((fused.max-fused.min)/baseRange,.78,1.24),temperature=fusedCenter+(next.temperature-baseCenter)*rangeScale,temperatureDelta=temperature-next.temperature,windScale=base.wind>=2?clamp(fused.wind/base.wind,.72,1.38):1,gustScale=base.gust>=3?clamp(fused.gust/base.gust,.72,1.38):1;
+   next={...next,temperature,apparent:next.apparent+temperatureDelta,wind:Math.max(0,next.wind*windScale),gust:Math.max(Math.max(0,next.wind*windScale),next.gust*gustScale)};changed=true;
   }
   if(!mosmixUsable)return next;
   const mosmix=nearestFusionHour(mosmixHours,hour.epoch);if(!mosmix)return next;
-  const leadHours=(hour.epoch-now)/3600000;if(leadHours<-.5||leadHours>240)return next;
-  const leadStrength=leadHours<=6?.18:leadHours<=48?.38:leadHours<=120?.3:.18,temperatureStrength=leadStrength*mosmixQuality,temperature=blendToward(next.temperature,mosmix.temperature,temperatureStrength,3),temperatureDelta=temperature-next.temperature,humidity=blendToward(next.humidity,mosmix.humidity,leadStrength*mosmixQuality*.55,18),dewPoint=blendToward(next.dewPoint,mosmix.dewPoint,leadStrength*mosmixQuality*.7,4),pressure=blendToward(next.pressure,mosmix.pressure,leadStrength*mosmixQuality*.35,5),wind=Math.max(0,blendToward(next.wind,mosmix.wind,leadStrength*mosmixQuality*.58,7)),gust=Math.max(wind,blendToward(next.gust,mosmix.gust,leadStrength*mosmixQuality*.58,10)),mosmixDry=Number(mosmix.probability)<=5&&Number(mosmix.precipitation)<=.03,dailyDry=Boolean(fused&&fused.precipitation<=.1&&fused.probability<=10),dryConsensus=leadHours<=12&&mosmixDry&&dailyDry,probabilityStrength=Math.max(leadStrength*mosmixQuality*.68,dryConsensus?.76*mosmixQuality:0),probability=clamp(blendToward(next.probability,mosmix.probability,probabilityStrength,30),0,100),precipStrength=Math.max((leadHours<=6?.06:leadHours<=48?.18:.22)*mosmixQuality,dryConsensus?.82*mosmixQuality:0),precipitation=Math.max(0,blendToward(next.precipitation,mosmix.precipitation,precipStrength,Math.max(1.5,next.precipitation*1.2))),dryResult=dryAdjustedHour(next,probability,precipitation);
-  changed=true;return{...dryResult,temperature,apparent:next.apparent+temperatureDelta,humidity,dewPoint,pressure,wind,gust};
+  const leadHours=(hour.epoch-now)/3600000;if(leadHours<-.5||leadHours>168)return next;
+  const leadStrength=leadHours<=6?.18:leadHours<=48?.38:leadHours<=120?.3:.16,temperatureStrength=leadStrength*mosmixQuality,temperature=blendToward(next.temperature,mosmix.temperature,temperatureStrength,3),temperatureDelta=temperature-next.temperature,rawDewPoint=blendToward(next.dewPoint,mosmix.dewPoint,leadStrength*mosmixQuality*.7,4),dewPoint=Math.min(temperature,rawDewPoint),derivedHumidity=relativeHumidityFromTemperatureDewPoint(temperature,dewPoint),humidity=Number.isFinite(derivedHumidity)?derivedHumidity:blendToward(next.humidity,mosmix.humidity,leadStrength*mosmixQuality*.55,18),pressure=blendToward(next.pressure,mosmix.pressure,leadStrength*mosmixQuality*.35,5),wind=Math.max(0,blendToward(next.wind,mosmix.wind,leadStrength*mosmixQuality*.58,7)),gust=Math.max(wind,blendToward(next.gust,mosmix.gust,leadStrength*mosmixQuality*.58,10));
+  changed=true;return{...next,temperature,apparent:next.apparent+temperatureDelta,humidity,dewPoint,pressure,wind,gust};
  });
  return changed?result:hours;
 }
@@ -253,6 +253,17 @@ export function applyOperationalNowcastHours(hours:Hour[],radar:RadarNowcast|nul
  return changed?result:hours;
 }
 
+
+function dailyWeatherCodeFromHours(hours:Hour[]){
+ const wet=hours.filter(hour=>precipitationWeatherCode(hour.code)&&(hour.precipitation>=.01||hour.rain>=.01||hour.showers>=.01||hour.snowfall>=.01));
+ if(wet.length){
+  const severity=(code:number)=>[99,96,97,95,86,85,82,84,81,83,80,75,73,71,69,68,67,66,65,63,61,57,56,55,53,51].indexOf(Math.round(code));
+  return[...wet].sort((a,b)=>{const sa=severity(a.code),sb=severity(b.code);if(sa!==sb)return(sa<0?999:sa)-(sb<0?999:sb);return(b.probability+b.precipitation*8)-(a.probability+a.precipitation*8)})[0].code;
+ }
+ const daylight=hours.filter(hour=>hour.isDay),sample=daylight.length?daylight:hours,clouds=sample.map(hour=>Number(hour.cloud)).filter(Number.isFinite),meanCloud=clouds.length?clouds.reduce((sum,value)=>sum+value,0)/clouds.length:Number.NaN;
+ if(!Number.isFinite(meanCloud))return 3;if(meanCloud<=15)return 0;if(meanCloud<=45)return 1;if(meanCloud<=80)return 2;return 3;
+}
+
 export function reconcileForecastDaysWithHours(days:Day[],hours:Hour[]){
  if(days.length===0||hours.length===0)return days;
  const now=Date.now(),futureHours=hours.filter(hour=>hour.epoch>=now-30*60000),nearTermDates=new Set(futureHours.filter(hour=>hour.epoch<=now+6*3600000).map(hour=>hour.time.slice(0,10))),hoursByDate=new Map<string,Hour[]>();
@@ -264,9 +275,9 @@ export function reconcileForecastDaysWithHours(days:Day[],hours:Hour[]){
   // Bei mindestens 18 vorhandenen künftigen Stunden ist der Kalendertag vollständig genug abgedeckt: Nach der optionalen
   // Tagesmengenverteilung müssen Tageskopf und sichtbare Stunden exakt dieselbe Menge sowie dasselbe Wahrscheinlichkeitsmaximum zeigen.
   // Nur bei unvollständiger Stundenabdeckung bleibt der unabhängige Tageswert als Obergrenze erhalten.
-  const completeCoverage=relevant.length>=DAY_HOURLY_FULL_COVERAGE_MIN_HOURS,precipitation=nearTerm||completeCoverage?hourlyPrecipitation:Math.max(dayPrecipitation,hourlyPrecipitation),probability=nearTerm||completeCoverage?hourlyProbability:Math.max(dayProbability,hourlyProbability),signal=reconcileForecastPrecipitation({precipitation,probability,code:day.code});
-  if(Math.abs(max-day.max)<.05&&Math.abs(min-day.min)<.05&&Math.abs(signal.precipitation-dayPrecipitation)<.01&&Math.abs(signal.probability-dayProbability)<.5&&signal.code===day.code)return day;
-  changed=true;return{...day,max,min,precipitation:signal.precipitation,probability:signal.probability,code:signal.code};
+  const completeCoverage=relevant.length>=DAY_HOURLY_FULL_COVERAGE_MIN_HOURS,sunshineValues=relevant.map(hour=>Number(hour.sunshineDuration)).filter(Number.isFinite),sunshineCoverage=sunshineValues.length/Math.max(1,relevant.length),precipitation=nearTerm||completeCoverage?hourlyPrecipitation:Math.max(dayPrecipitation,hourlyPrecipitation),probability=nearTerm||completeCoverage?hourlyProbability:Math.max(dayProbability,hourlyProbability),hourlyCode=nearTerm||completeCoverage?dailyWeatherCodeFromHours(relevant):day.code,hourlySunshine=sunshineValues.reduce((sum,value)=>sum+Math.max(0,value),0),sunshineDuration=(nearTerm||completeCoverage)&&sunshineCoverage>=.7?Math.min(86400,hourlySunshine):day.sunshineDuration,signal=reconcileForecastPrecipitation({precipitation,probability,code:hourlyCode,leadHours:(Date.parse(`${day.date}T12:00:00Z`)-now)/3600000});
+  if(Math.abs(max-day.max)<.05&&Math.abs(min-day.min)<.05&&Math.abs(signal.precipitation-dayPrecipitation)<.01&&Math.abs(signal.probability-dayProbability)<.5&&signal.code===day.code&&Math.abs(sunshineDuration-day.sunshineDuration)<1)return day;
+  changed=true;return{...day,max,min,precipitation:signal.precipitation,probability:signal.probability,code:signal.code,sunshineDuration,weatherSourceId:relevant.find(hour=>hour.weatherSourceId)?.weatherSourceId??day.weatherSourceId,weatherSourceLabel:relevant.find(hour=>hour.weatherSourceLabel)?.weatherSourceLabel??day.weatherSourceLabel};
  });
  return changed?result:days;
 }
@@ -282,5 +293,5 @@ export function applyConvectiveNowcastHours(hours:Hour[],thunder:ThunderstormNow
 export function forecastFusionLabel(fusion:ForecastFusionResult|null|undefined){
  if(!fusion?.active)return'';
  const applied=fusion.days.filter(day=>day.applied),confidence=applied.length?Math.round(applied.reduce((sum,day)=>sum+day.confidence,0)/applied.length):0;
- return`MID Mehrquellen${fusion.mosmix?.applied?' + MOSMIX':''} · ${confidence} % Modellkonsistenz`;
+ return`MID Modellbündel${fusion.mosmix?.applied?' + MOSMIX Temperatur/Wind':''} · ${confidence} % Vergleichskonsistenz`;
 }
