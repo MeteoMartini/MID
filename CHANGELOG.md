@@ -1,15 +1,14 @@
 # Changelog
 
-## 0.8.33.13
+## 0.8.33.14
 
-- Tagesmenge und finale Stundenreihe werden für vollständig abgedeckte künftige Tage in beide Richtungen abgeglichen.
-- Fehlende stündliche Mengen werden nur bei belastbarem Stunden-Wahrscheinlichkeitssignal kompakt auf die wahrscheinlichsten Stunden verteilt.
-- Tagesdetail, Stundenkarten, Piktogramme, Niederschlagskurve, Tooltips und Tageszusammenfassung bleiben dadurch konsistent; bei vollständiger Stundenabdeckung gilt die finale Stundenreihe auch als Rückfallwert für den Tageskopf.
-
-## 0.8.33.12
-
-- Probabilistisch ungestützte Kleinstimpulse bis 0,15 mm bei höchstens 5 % werden nicht mehr als sicherer Niederschlag dargestellt.
-- Niederschlagsmenge, Wettercode, Piktogramm und Wettertext verwenden die zentrale Konsistenzprüfung.
+- Mobile Ersttipper abgesichert: Radar- und Ensembleflächen bleiben auch unmittelbar nach Scrollbewegungen interaktiv; der Fast-Scroll-Modus reduziert nur noch visuelle Effekte.
+- Stündliches Detaildiagramm reagiert direkt über einen bewegungstoleranten Pointer-Tap-Pfad und erzwingt auf Touchgeräten keinen unnötigen Fokus mehr.
+- Ensemble-Tooltips werden bereits beim Pointer-down freigeschaltet, damit ein zuvor geschlossenes Tooltip beim nächsten Tap sofort erscheint.
+- Einstellungsdialog, Schalter und Diagramme erhalten konsistente Touch-Actions; layoutverändernde Hover-Effekte sind auf groben Zeigern deaktiviert.
+- Flugmeteogramm-Tooltips werden pro Animationsframe gebündelt statt bei jeder Pointerbewegung neu gerendert.
+- React-Hook-Reihenfolge der 7-Tage-/Detailkomponente repariert und unzulässigen State-Update aus einem Meteogramm-`useMemo` entfernt.
+- Tageszeilen der 7-Tage-Vorhersage memoisiert, damit die Auswahl einer Detailstunde nicht erneut alle Tages-Hazards und Tagescharaktere berechnet.
 
 ## 0.8.33.11
 

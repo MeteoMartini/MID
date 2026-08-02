@@ -3929,7 +3929,7 @@ button,input,select,[role="button"]{touch-action:manipulation}
 }
 .settings-backdrop{
   overscroll-behavior:contain;
-  touch-action:none;
+  touch-action:pan-y pinch-zoom;
 }
 .settings-dialog{
   transform:translateZ(0);
@@ -3953,10 +3953,6 @@ html.mid-fast-scroll .card,
 html.mid-fast-scroll .top,
 html.mid-fast-scroll .settings-dialog{
   box-shadow:none!important;
-}
-html.mid-fast-scroll .radarmap,
-html.mid-fast-scroll .ensemble-chart-export{
-  pointer-events:none;
 }
 @media(hover:none),(pointer:coarse){
   .viewport-gate{contain:layout style}
@@ -3986,3 +3982,14 @@ html.mid-fast-scroll .ensemble-chart-export{
 @media(max-width:620px){
   .ensemble-pro-tooltip .trend-tooltip-meta .sunshine-tooltip-line.single-value>.tooltip-meta-value{padding-left:6px!important}
 }
+
+/* MID v0.8.33.14 · direkte Touch-/Pointer-Reaktion ohne verschluckten Ersttipper */
+.settings-content{touch-action:pan-y pinch-zoom}
+.settings-toggle-card,.settings-choice-grid button,.settings-unit-grid button,.settings-option-card,.push-rule-grid>label,.detail-legend-toggle,.detaillegend.interactive button,.forecast-detail-toggle,.meteogram-day-jump>button,.hour-chart-tooltip button,.ensemble-chart-collapse,.ensemble-share-button,.wind-mode-switch button,.rain-legend button,.trend-legend button,.current-metrics-toggle,.short-term-strip>button,.composite-switch,.radarlegend-toggle,.module-shell-toggle{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.meteogram-stage,.meteogramsvg,.hour-hit,.meteogram-chart-wrap,.meteogram-chart-wrap svg,.meteogram-hit-cell,.ensemble-temperature-canvas,.ensemble-wind-chart-core,.ensemble-rain-chart-core{touch-action:pan-y;-webkit-tap-highlight-color:transparent}
+.hour-hit,.meteogram-hit-cell{cursor:pointer}
+@media(hover:none),(pointer:coarse){
+ .settings-choice-grid button:hover,.settings-unit-grid button:hover,.settings-toggle-card:hover,.push-rule-grid>label:hover,.detaillegend.interactive button:hover,.short-term-strip>button:hover,.current-metrics-toggle:hover{transform:none!important}
+ .settings-toggle-card:active,.settings-choice-grid button:active,.settings-unit-grid button:active,.detaillegend.interactive button:active,.detail-legend-toggle:active,.forecast-detail-toggle:active,.meteogram-day-jump>button:active,.hour-chart-tooltip button:active,.ensemble-chart-collapse:active,.wind-mode-switch button:active,.rain-legend button:active,.trend-legend button:active,.short-term-strip>button:active,.current-metrics-toggle:active{opacity:.82}
+}
+

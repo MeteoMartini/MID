@@ -1,0 +1,25 @@
+import {readFileSync} from 'node:fs';
+const app=readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
+const ensemble=readFileSync(new URL('../src/EnsemblePanel.tsx',import.meta.url),'utf8');
+const meteogram=readFileSync(new URL('../src/MeteogramPanel.tsx',import.meta.url),'utf8');
+const css=readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
+const pkg=JSON.parse(readFileSync(new URL('../package.json',import.meta.url),'utf8'));
+const baseline=JSON.parse(readFileSync(new URL('../MID_BASELINE.json',import.meta.url),'utf8'));
+const failures=[];
+const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
+const parts=String(pkg.version).split('.').map(Number),minimum=[0,8,33,14];let atLeast=true;for(let index=0;index<minimum.length;index++){if((parts[index]??0)>minimum[index])break;if((parts[index]??0)<minimum[index]){atLeast=false;break}}if(!atLeast)failures.push(`package.json liegt vor 0.8.33.14: ${pkg.version}`);
+if(baseline.releaseVersion!==pkg.version)failures.push(`Baseline ${baseline.releaseVersion} != ${pkg.version}`);
+const forecastStart=app.indexOf('function Forecast('),forecastEnd=app.indexOf('\ntype WidgetStoredSettings',forecastStart),forecast=app.slice(forecastStart,forecastEnd);
+const earlyReturn=forecast.indexOf('if(!p.length)return null;'),precipMemo=forecast.indexOf('const precipSeries=useMemo'),pressureMemo=forecast.indexOf('const pressureValues=useMemo');
+if(earlyReturn<0||precipMemo<0||pressureMemo<0||precipMemo>earlyReturn||pressureMemo>earlyReturn)failures.push('Forecast: Hooks liegen weiterhin hinter dem bedingten Rücksprung.');
+if(forecast.includes('onPointerDownCapture={()=>detailChartRef.current?.focus'))failures.push('Detaildiagramm erzwingt weiterhin Fokus bei jedem mobilen Pointer-down.');
+for(const token of ['detailTapRef=useRef','function beginDetailHourTap','function endDetailHourTap','Math.hypot(event.clientX-start.x,event.clientY-start.y)>12','onPointerDown={event=>beginDetailHourTap(event,i)}','onPointerUp={event=>endDetailHourTap(event,i)}','onPointerCancel={cancelDetailHourTap}','const forecastRows=useMemo'])need('Forecast-Touchpfad',forecast,token);
+for(const token of ['suppressedRef=useRef(false)','onPointerDown={tooltip.prepareOpen}','onPointerDown={rainTooltip.prepareOpen}'])need('Ensemble-Ersttipper',ensemble,token);
+if((ensemble.match(/onPointerDown=\{tooltip\.prepareOpen\}/g)||[]).length<2)failures.push('Temperatur- und Winddiagramm besitzen nicht beide den Pointer-down-Vorlauf.');
+for(const token of ['function useRafTooltip()', 'requestAnimationFrame', 'const normalizedResult=useMemo', 'useEffect(()=>{if(normalizedResult.error)setError(normalizedResult.error)}'])need('Meteogramm',meteogram,token);
+if(meteogram.includes("setTimeout(()=>setError(reason instanceof Error?reason.message:'Meteogrammdaten konnten nicht verarbeitet werden.'),0"))failures.push('Meteogramm setzt weiterhin Zustand aus useMemo per setTimeout.');
+for(const token of ['MID v0.8.33.14 · direkte Touch-/Pointer-Reaktion ohne verschluckten Ersttipper','touch-action:pan-y pinch-zoom','.hour-hit,.meteogram-hit-cell{cursor:pointer}','.ensemble-temperature-canvas,.ensemble-wind-chart-core,.ensemble-rain-chart-core{touch-action:pan-y'])need('Interaktions-CSS',css,token);
+if(/html\.mid-fast-scroll \.radarmap,[\s\S]{0,180}pointer-events\s*:\s*none/.test(css))failures.push('Fast-Scroll deaktiviert weiterhin Radar-/Diagramm-Pointerevents.');
+if(/\.settings-backdrop\s*\{[^}]*touch-action\s*:\s*none/.test(css))failures.push('Einstellungs-Backdrop blockiert weiterhin alle Touchgesten.');
+if(failures.length){console.error('MID v0.8.33.14 mobile Interaktionsprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
+console.log('MID v0.8.33.14 geprüft: Hook-Reihenfolge, Ersttipper, Scrollschutz, Diagramm-Pointerpfade, rAF-Tooltips und mobile Touch-/Hover-Regeln sind abgesichert.');
