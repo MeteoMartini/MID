@@ -1,3 +1,17 @@
+# MID v0.8.33.17
+
+- Ursache von Niederschlagsmengen bei 0 % behoben: Ein nasser WMO-Code kann keine Tagesmenge mehr auf eine probabilistisch ungestützte Stunde ziehen.
+- Forecast-Menge, Niederschlagsart und Wettercode werden bei 0–5 % nun unabhängig von der Mengenhöhe zentral gemeinsam entfernt.
+- Finale Stundenreihe wird nach Fusion, Wetterzwilling, Nowcast und Tages-/Stundenabgleich nochmals vollständig reconciliert.
+- Aktuelles Wetter, Wassersport, Gewitterauswertung, Tagesdetail, 7-Tage-Prognose, Ensemble-Referenz, Widgets und Worker verwenden dieselbe Konsistenzregel.
+
+# MID v0.8.33.16
+
+- iOS-Scrollpfad ohne globale Karten-Neustilisierung und ohne fortlaufende Scroll-rAF-Schleife.
+- Durchgehender Root-Hintergrund und reduzierte mobile Blur-/Compositor-Ebenen gegen weiße Scrollflächen.
+- Viewport-Module aktivieren im Vorladebereich ohne zusätzliche Timer-/Idle-Verzögerung.
+- Aktuelle Temperatur erweitert den heutigen Tagesbereich nach oben oder unten und wird in Stunden-/Tagesansichten konsistent berücksichtigt.
+
 # Changelog
 
 ## 0.8.33.15

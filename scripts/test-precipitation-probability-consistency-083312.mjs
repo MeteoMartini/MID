@@ -16,10 +16,10 @@ const root=new URL('../',import.meta.url),files={
  package:await readFile(new URL('package.json',root),'utf8')
 };
 const required={
- precipitation:['UNSUPPORTED_FORECAST_TRACE_MAX_MM=.15','UNSUPPORTED_FORECAST_TRACE_MAX_PROBABILITY=5','export function reconcileForecastPrecipitation'],
+ precipitation:['UNSUPPORTED_FORECAST_MAX_PROBABILITY=5','export function reconcileForecastPrecipitation'],
  weather:['mapHours(w:Weather)','mapMinutely15(w:Weather)','mapDays(w:Weather)','reconcileForecastPrecipitation({precipitation:n(w.hourly.precipitation','reconcileForecastPrecipitation({precipitation:n(m.precipitation','reconcileForecastPrecipitation({precipitation:n(w.daily.precipitation_sum'],
  fusion:["import {reconcileForecastPrecipitation} from './precipitation';",'function dryAdjustedHour','signal=reconcileForecastPrecipitation({...parts','reconcileForecastDaysWithHours','signal=reconcileForecastPrecipitation({precipitation,probability,code:day.code})'],
- app:['postProcessedHours=useMemo(()=>applyConvectiveNowcastHours','reconcileForecastPrecipitation({...hour,cloud:hour.cloud})','reconcileForecastHoursWithDays(postProcessedHours,baseDisplayDays)'],
+ app:['postProcessedHours=useMemo(()=>applyConvectiveNowcastHours','reconcileForecastPrecipitation({...hour,cloud:hour.cloud})','reconcileForecastHoursWithDays(temperatureObservedHours,baseDisplayDays)'],
  shortTerm:["import {precipitationParts,reconcileForecastPrecipitation} from './precipitation';",'signal=reconcileForecastPrecipitation({precipitation,rain:rawRain'],
  worker:['const FORECAST_PRECIPITATION_CODES=new Set','function reconcileForecastPrecipitation(amount,probability,code,cloud)','signal=reconcileForecastPrecipitation(at(hourly.precipitation','signal=reconcileForecastPrecipitation(at(daily.precipitation_sum','const signal=reconcileForecastPrecipitation(hourPrecip[index],hourProbability[index],3)'],
  package:['test:precip-probability-consistency']
@@ -43,9 +43,10 @@ try{
  assert.equal(supported.code,61);
  assert.equal(supported.traceSuppressed,false);
  const material=reconcileForecastPrecipitation({precipitation:.3,rain:.3,probability:0,code:61,cloud:70});
- assert.equal(material.precipitation,.3,'größere deterministische Mengen bleiben trotz niedriger Wahrscheinlichkeit sichtbar');
- assert.equal(material.code,61);
+ assert.equal(material.precipitation,0,'auch größere deterministische Mengen dürfen bei 0–5 % nicht als Regen dargestellt werden');
+ assert.equal(material.code,2);
+ assert.equal(material.traceSuppressed,true);
  const fog=reconcileForecastPrecipitation({precipitation:.1,probability:0,code:48,cloud:100});
  assert.equal(fog.code,48,'Nebelcode darf durch die Niederschlagskonsistenz nicht entfernt werden');
 }finally{await rm(dir,{recursive:true,force:true})}
-console.log('Niederschlagskonsistenz geprüft: 0,1 mm bei 0–5 % wird zentral als ungestützter Trace entfernt; größere oder probabilistisch gestützte Signale bleiben erhalten.');
+console.log('Niederschlagskonsistenz geprüft: Forecast-Menge, Niederschlagscode und Wahrscheinlichkeit werden zentral gekoppelt; Signale bei 0–5 % werden unabhängig von ihrer Menge entfernt.');

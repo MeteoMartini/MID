@@ -19,13 +19,13 @@ for(const token of [
  assert.ok(source.includes(token),`fehlender Tages-zu-Stunden-Konsistenzvertrag: ${token}`);
 }
 const app=fs.readFileSync(path.join(root,'src','App.tsx'),'utf8');
-assert.ok(app.includes('reconcileForecastHoursWithDays(postProcessedHours,baseDisplayDays)'), 'finale Darstellungsstunden müssen mit dem Tageswert abgeglichen werden');
+assert.ok(app.includes('reconcileForecastHoursWithDays(temperatureObservedHours,baseDisplayDays)'), 'finale Darstellungsstunden müssen mit dem Tageswert abgeglichen werden');
 
 const require=createRequire(import.meta.url);
 let ts;try{ts=require('typescript')}catch{ts=require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript')}
 const executable=source
  .replace("import {fetchWorkerJson} from './workerClient';","const fetchWorkerJson=async()=>{throw new Error('not used')};")
- .replace("import {reconcileForecastPrecipitation} from './precipitation';",`const reconcileForecastPrecipitation=input=>{const precipitation=Math.max(0,Number(input.precipitation)||0),rain=Math.max(0,Number(input.rain)||0),showers=Math.max(0,Number(input.showers)||0),snowfall=Math.max(0,Number(input.snowfall)||0),probability=Math.max(0,Math.min(100,Number(input.probability)||0)),code=Math.round(Number(input.code)||0),wet=[51,53,55,56,57,61,63,65,66,67,71,73,75,77,80,81,82,85,86,95,96,99].includes(code),tiny=Math.max(precipitation,rain,showers,snowfall)<=.15,traceSuppressed=(wet||precipitation>=.01||rain>=.01||showers>=.01||snowfall>=.01)&&tiny&&probability<=5;return traceSuppressed?{precipitation:0,rain:0,showers:0,snowfall:0,probability,code:3,traceSuppressed:true}:{precipitation,rain,showers,snowfall,probability,code,traceSuppressed:false}};`)
+ .replace("import {reconcileForecastPrecipitation} from './precipitation';",`const reconcileForecastPrecipitation=input=>{const precipitation=Math.max(0,Number(input.precipitation)||0),rain=Math.max(0,Number(input.rain)||0),showers=Math.max(0,Number(input.showers)||0),snowfall=Math.max(0,Number(input.snowfall)||0),probability=Math.max(0,Math.min(100,Number(input.probability)||0)),code=Math.round(Number(input.code)||0),wet=[51,53,55,56,57,61,63,65,66,67,71,73,75,77,80,81,82,85,86,95,96,99].includes(code),traceSuppressed=(wet||precipitation>=.01||rain>=.01||showers>=.01||snowfall>=.01)&&probability<=5;return traceSuppressed?{precipitation:0,rain:0,showers:0,snowfall:0,probability,code:3,traceSuppressed:true}:{precipitation,rain,showers,snowfall,probability,code,traceSuppressed:false}};`)
  .replace("import type {Day,Hour,RadarNowcast,ThunderstormNowcast} from './weather';",'');
 const transpiled=ts.transpileModule(executable,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS},reportDiagnostics:true,fileName:'forecastFusion.ts'});
 const diagnostics=(transpiled.diagnostics||[]).filter(item=>item.category===ts.DiagnosticCategory.Error);
@@ -49,6 +49,15 @@ try{
  assert.ok(wet.every(item=>item.probability>=31),'zugeordnete Stunden müssen vom stündlichen Wahrscheinlichkeitssignal getragen sein');
  assert.ok(wet.every(item=>[61,80].includes(item.code)&&item.rain+item.showers>0),'zugeordnete Stunden benötigen Niederschlagsphase, Teilmenge und Piktogrammcode');
  assert.equal(allocated[17].probability,74,'Wahrscheinlichkeiten dürfen bei der Mengenverteilung nicht verändert werden');
+
+ const screenshotProb=index=>index<18?0:index===18?8:index===19?12:index===20?16:index===21?20:index===22?24:18;
+ const screenshotHours=Array.from({length:24},(_,index)=>hour(index,{precipitation:index===10?.4:0,probability:screenshotProb(index)}));
+ const screenshotAllocated=mod.reconcileForecastHoursWithDays(screenshotHours,[day(6.4,24)]);
+ assert.equal(screenshotAllocated[10].precipitation,0,'ein nasser Modellcode bei 0 % darf keine Tagesmenge auf 10 Uhr ziehen');
+ assert.equal(screenshotAllocated[10].code,3,'der ungestützte Stunden-Wettercode muss trocken zurückfallen');
+ assert.ok(Math.abs(screenshotAllocated.reduce((sum,item)=>sum+item.precipitation,0)-6.4)<.000001,'die gestützte Tagesmenge muss vollständig in das Wahrscheinlichkeitsfenster verschoben werden');
+ assert.ok(screenshotAllocated.filter(item=>item.precipitation>=.01).every(item=>item.probability>=15),'jede zugeordnete Stundenmenge benötigt ein eigenes Wahrscheinlichkeitssignal');
+
  const alignedDay=mod.reconcileForecastDaysWithHours([day()],allocated)[0];
  assert.ok(Math.abs(alignedDay.precipitation-.4)<.000001,'Tageskopf und Summe der sichtbaren Stunden müssen übereinstimmen');
 
@@ -74,4 +83,4 @@ try{
  const nowcastProtected=mod.reconcileForecastHoursWithDays(currentHours,[currentDay]);
  assert.equal(nowcastProtected.reduce((sum,item)=>sum+item.precipitation,0),0,'laufender Tag bleibt wegen Vergangenheit und Nowcast von der Verteilung ausgeschlossen');
 }finally{Date.now=originalNow;fs.rmSync(tempDir,{recursive:true,force:true})}
-console.log('Tages-/Stunden-Niederschlagszuordnung ab v0.8.33.13 geprüft: gestützte Tagesmengen werden vollständig und kompakt in der Stundenkurve sichtbar; bei vollständiger Abdeckung wird der Tageskopf aus derselben finalen Stundenreihe gebildet.');
+console.log('Tages-/Stunden-Niederschlagszuordnung geprüft: Tagesmengen werden ausschließlich Stunden mit eigenem Wahrscheinlichkeitssignal zugeordnet; nasse Codes bei 0–5 % können keine Menge mehr anziehen.');

@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.8.33.15",
+  "releaseVersion": "0.8.33.17",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -74,6 +74,7 @@
     "scripts/test-mosmix-adaptive-fusion-08330.mjs",
     "scripts/test-nowcast-daily-consistency-08333.mjs",
     "scripts/test-daily-hourly-precip-allocation-083313.mjs",
+    "scripts/test-forecast-precipitation-support-083317.mjs",
     "scripts/test-mobile-interaction-reliability-083314.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",

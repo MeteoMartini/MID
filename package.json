@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.8.33.15",
+  "version": "0.8.33.17",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -168,7 +168,8 @@
     "test:pressure-card-display": "node scripts/test-pressure-card-display-083310.mjs",
     "test:current-hyperlocal-sky": "node scripts/test-current-hyperlocal-sky-083311.mjs",
     "test:precip-probability-consistency": "node scripts/test-precipitation-probability-consistency-083312.mjs",
-    "test:daily-hourly-precip-allocation": "node scripts/test-daily-hourly-precip-allocation-083313.mjs"
+    "test:daily-hourly-precip-allocation": "node scripts/test-daily-hourly-precip-allocation-083313.mjs",
+    "test:forecast-precipitation-support": "node scripts/test-forecast-precipitation-support-083317.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

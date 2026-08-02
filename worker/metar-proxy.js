@@ -23,7 +23,7 @@ const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const OPEN_METEO_ELEVATION='https://api.open-meteo.com/v1/elevation';
-const WORKER_VERSION='0.8.33.15';
+const WORKER_VERSION='0.8.33.17';
 const CORS={'content-type':'application/json; charset=utf-8','access-control-allow-origin':'*','access-control-allow-methods':'GET,POST,OPTIONS','access-control-allow-headers':'content-type','cache-control':'public, max-age=180'};
 const FEED_SLUGS={
  AD:'andorra',AT:'austria',BE:'belgium',BA:'bosnia-herzegovina',BG:'bulgaria',HR:'croatia',CY:'cyprus',CZ:'czechia',DK:'denmark',EE:'estonia',FI:'finland',FR:'france',DE:'germany',GR:'greece',EL:'greece',HU:'hungary',IS:'iceland',IE:'ireland',IL:'israel',IT:'italy',LV:'latvia',LT:'lithuania',LU:'luxembourg',MT:'malta',MD:'moldova',ME:'montenegro',NL:'netherlands',MK:'republic-of-north-macedonia',NO:'norway',PL:'poland',PT:'portugal',RO:'romania',RS:'serbia',SK:'slovakia',SI:'slovenia',ES:'spain',SE:'sweden',CH:'switzerland',UA:'ukraine',GB:'united-kingdom',UK:'united-kingdom',AM:'armenia'
@@ -54,7 +54,7 @@ const COUNTRY_ALIASES={
 };
 function number(v){if(v===null||v===undefined||v==='')return undefined;const n=Number(v);return Number.isFinite(n)?n:undefined}
 const FORECAST_PRECIPITATION_CODES=new Set([51,53,55,56,57,61,63,65,66,67,68,69,71,73,75,77,80,81,82,83,84,85,86,95,96,97,99]);
-function reconcileForecastPrecipitation(amount,probability,code,cloud){const precipitation=Math.max(0,number(amount)??0),chance=Math.max(0,Math.min(100,number(probability)??0)),weatherCode=Math.round(number(code)??3),wetCode=FORECAST_PRECIPITATION_CODES.has(weatherCode),traceSuppressed=(wetCode||precipitation>=.01)&&precipitation<=.15&&chance<=5;if(!traceSuppressed)return{precipitation,probability:chance,code:weatherCode,traceSuppressed:false};const cover=number(cloud),dryCode=[45,48].includes(weatherCode)?weatherCode:!Number.isFinite(cover)?3:cover<=15?0:cover<=45?1:cover<=80?2:3;return{precipitation:0,probability:chance,code:dryCode,traceSuppressed:true}}
+function reconcileForecastPrecipitation(amount,probability,code,cloud){const precipitation=Math.max(0,number(amount)??0),chance=Math.max(0,Math.min(100,number(probability)??0)),weatherCode=Math.round(number(code)??3),wetCode=FORECAST_PRECIPITATION_CODES.has(weatherCode),traceSuppressed=(wetCode||precipitation>=.01)&&chance<=5;if(!traceSuppressed)return{precipitation,probability:chance,code:weatherCode,traceSuppressed:false};const cover=number(cloud),dryCode=[45,48].includes(weatherCode)?weatherCode:!Number.isFinite(cover)?3:cover<=15?0:cover<=45?1:cover<=80?2:3;return{precipitation:0,probability:chance,code:dryCode,traceSuppressed:true}}
 function distance(lat1,lon1,lat2,lon2){const r=6371000,t=x=>x*Math.PI/180,dLat=t(lat2-lat1),dLon=t(lon2-lon1),a=Math.sin(dLat/2)**2+Math.cos(t(lat1))*Math.cos(t(lat2))*Math.sin(dLon/2)**2;return 2*r*Math.asin(Math.sqrt(a))}
 function bearingTowards(lat1,lon1,lat2,lon2){const toRad=value=>value*Math.PI/180,toDeg=value=>value*180/Math.PI,phi1=toRad(lat1),phi2=toRad(lat2),deltaLon=toRad(lon2-lon1),y=Math.sin(deltaLon)*Math.cos(phi2),x=Math.cos(phi1)*Math.sin(phi2)-Math.sin(phi1)*Math.cos(phi2)*Math.cos(deltaLon);return(toDeg(Math.atan2(y,x))+360)%360}
 function at(v,i){return Array.isArray(v)?v[i]:undefined}

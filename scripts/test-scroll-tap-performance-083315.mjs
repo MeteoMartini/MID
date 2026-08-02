@@ -22,15 +22,13 @@ for(const token of [
  'dayJumpTouchRef=useRef',
  'function beginDayJumpTouch',
  'function endDayJumpTouch',
- 'onTouchEnd={event=>endDayJumpTouch(event,1)}',
- "root.classList.add('mid-fast-scroll')",
- 'requestAnimationFrame(settle)'
+ 'onTouchEnd={event=>endDayJumpTouch(event,1)}'
 ])need('App-Interaktionspfad',app,token);
 const forecastRowsStart=app.indexOf('const forecastRowContents=useMemo');
 const forecastRowsEnd=app.indexOf('\n useEffect(()=>{if(!p.length)',forecastRowsStart);
 const forecastRows=app.slice(forecastRowsStart,forecastRowsEnd);
 if(/\[forecastDays,hours,selected,/.test(forecastRows))failures.push('Tageszeilen hängen weiterhin von der aktiven Auswahl ab.');
-if(app.includes("setTimeout(()=>root.classList.remove('mid-fast-scroll'),150)"))failures.push('Fast-Scroll erzeugt weiterhin pro Scrollereignis einen neuen Timeout.');
+if(app.includes("root.classList.add('mid-fast-scroll')")||app.includes('requestAnimationFrame(settle)'))failures.push('Veraltete globale Fast-Scroll-Umschaltung ist weiterhin aktiv.');
 if(app.includes("onPointerDown={event=>{if((event.target as HTMLElement).closest('button'))return;setOpen(true);if(document.activeElement!==inputRef.current)"))failures.push('Suchfeld verwendet weiterhin nur den alten Pointer-down-Fokuspfad.');
 for(const token of [
  'MID v0.8.33.15 · zuverlässige Aktivierung nach Momentum-Scroll',

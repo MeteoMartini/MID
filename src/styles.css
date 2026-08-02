@@ -3949,11 +3949,6 @@ button,input,select,[role="button"]{touch-action:manipulation}
 }
 .settings-content-loading svg{animation:spin .9s linear infinite}
 html.mid-settings-open{overflow:hidden}
-html.mid-fast-scroll .card,
-html.mid-fast-scroll .top,
-html.mid-fast-scroll .settings-dialog{
-  box-shadow:none!important;
-}
 @media(hover:none),(pointer:coarse){
   .viewport-gate{contain:layout style}
   .settings-dialog{box-shadow:0 10px 32px rgba(0,0,0,.2)}
@@ -4025,7 +4020,36 @@ html.mid-fast-scroll .settings-dialog{
     user-select:none;
   }
 }
-html.mid-fast-scroll .top{
-  backdrop-filter:none!important;
-  -webkit-backdrop-filter:none!important;
+
+/* MID v0.8.33.16 · iOS-Paintstabilität und durchgehender App-Hintergrund */
+html{
+  min-height:100%;
+  background-color:var(--bg);
+  overscroll-behavior-y:none;
 }
+body,#root{
+  min-height:100%;
+  background-color:var(--bg);
+}
+@media(max-width:850px),(hover:none),(pointer:coarse){
+  body{
+    background:var(--bg)!important;
+  }
+  .top,
+  .hero>.hero-day-range,
+  .mid-update-notice,
+  .model-run-popover,
+  .ensemble-pro-tooltip,
+  .mode-info-popover,
+  .composite-info-popover{
+    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;
+  }
+  .top{
+    background:var(--surface)!important;
+  }
+  .hero>.hero-day-range{
+    background:color-mix(in srgb,var(--surface) 94%,var(--s2))!important;
+  }
+}
+

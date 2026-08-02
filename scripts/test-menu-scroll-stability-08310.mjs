@@ -6,18 +6,18 @@ const baseline=JSON.parse(readFileSync(new URL('../MID_BASELINE.json',import.met
 const failures=[];
 const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
 need('ViewportGate',app,"rootMargin='320px'");
-need('ViewportGate',app,'requestIdleCallback');
-need('ViewportGate',app,'cancelPending');
-need('ViewportGate',app,"setVisible(true)");
+need('ViewportGate',app,'window.requestAnimationFrame');
+need('ViewportGate',app,'observer.disconnect();activate()');
+need('ViewportGate',app,'setVisible(true)');
 need('Einstellungen',app,'const[contentReady,setContentReady]=useState(false)');
 need('Einstellungen',app,'Bereich wird vorbereitet …');
 need('Einstellungen',app,"setContentReady(false);setSection(id)");
-need('Scrollschutz',app,"root.classList.add('mid-fast-scroll')");
 need('CSS',css,'.viewport-gate,\n.ensemble-advanced-body,\n.ensemble-export-chart-body{\n  content-visibility:visible!important;');
 need('CSS',css,'.settings-content-loading{');
-need('CSS',css,'html.mid-fast-scroll .card,');
+if(app.includes("root.classList.add('mid-fast-scroll')"))failures.push('Die globale Fast-Scroll-Klasse invalidiert weiterhin alle Karten beim Scrollstart.');
+if(css.includes('html.mid-fast-scroll'))failures.push('Veraltete Fast-Scroll-CSS-Umschaltung ist weiterhin enthalten.');
 if(css.includes('.viewport-gate{\n  content-visibility:auto;')&&!css.includes('content-visibility:visible!important'))failures.push('ViewportGate bleibt effektiv auf content-visibility:auto.');
 const parts=String(pkg.version).split('.').map(Number),minimum=[0,8,31,0];let atLeast=true;for(let index=0;index<minimum.length;index++){if((parts[index]??0)>minimum[index])break;if((parts[index]??0)<minimum[index]){atLeast=false;break}}if(!atLeast)failures.push(`package.json liegt vor 0.8.31.0: ${pkg.version}`);
 if(baseline.releaseVersion!==pkg.version)failures.push(`Baseline ${baseline.releaseVersion} != ${pkg.version}`);
-if(failures.length){console.error('MID v0.8.31.0 Menü-/Scrollstabilität fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('MID v0.8.31.0 Menü-/Scrollstabilität bestanden.');
+if(failures.length){console.error('MID Menü-/Scrollstabilität fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
+console.log('MID Menü-/Scrollstabilität bestanden: ViewportGate aktiviert vorlaufend ohne Idle-Verzögerung und Scrollen invalidiert nicht mehr den gesamten Kartenbaum.');

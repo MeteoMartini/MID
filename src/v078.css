@@ -245,3 +245,8 @@
   line-height:16px;
  }
 }
+
+/* MID v0.8.33.16 · mobile Tagesbereich ohne eigene Blur-Compositor-Ebene */
+@media(max-width:850px),(hover:none),(pointer:coarse){
+ .hero>.hero-day-range{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+}
