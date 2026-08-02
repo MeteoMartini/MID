@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.8.33.13
+
+- Tagesmenge und finale Stundenreihe werden für vollständig abgedeckte künftige Tage in beide Richtungen abgeglichen.
+- Fehlende stündliche Mengen werden nur bei belastbarem Stunden-Wahrscheinlichkeitssignal kompakt auf die wahrscheinlichsten Stunden verteilt.
+- Tagesdetail, Stundenkarten, Piktogramme, Niederschlagskurve, Tooltips und Tageszusammenfassung bleiben dadurch konsistent; bei vollständiger Stundenabdeckung gilt die finale Stundenreihe auch als Rückfallwert für den Tageskopf.
+
+## 0.8.33.12
+
+- Probabilistisch ungestützte Kleinstimpulse bis 0,15 mm bei höchstens 5 % werden nicht mehr als sicherer Niederschlag dargestellt.
+- Niederschlagsmenge, Wettercode, Piktogramm und Wettertext verwenden die zentrale Konsistenzprüfung.
+
 ## 0.8.33.11
 
 - Hauptkarte und Bewölkungskarte verwenden denselben frischen hyperlokalen Himmelszustand.

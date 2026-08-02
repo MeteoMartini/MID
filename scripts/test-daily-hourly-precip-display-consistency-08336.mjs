@@ -7,7 +7,7 @@ import {fileURLToPath} from 'node:url';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const source=fs.readFileSync(path.join(root,'src','forecastFusion.ts'),'utf8');
-for(const token of ['hoursByDate','nearTerm?hourlyPrecipitation:Math.max(dayPrecipitation,hourlyPrecipitation)','Zeigt eine Stunde 0,1 mm, darf der Tag nicht 0,0 mm ausweisen'])assert.ok(source.includes(token),`fehlender Tages-/Stunden-Konsistenzvertrag: ${token}`);
+for(const token of ['hoursByDate','completeCoverage=relevant.length>=DAY_HOURLY_FULL_COVERAGE_MIN_HOURS','nearTerm||completeCoverage?hourlyPrecipitation:Math.max(dayPrecipitation,hourlyPrecipitation)','Nur bei unvollständiger Stundenabdeckung bleibt der unabhängige Tageswert als Obergrenze erhalten'])assert.ok(source.includes(token),`fehlender Tages-/Stunden-Konsistenzvertrag: ${token}`);
 
 const require=createRequire(import.meta.url);
 let ts;try{ts=require('typescript')}catch{ts=require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript')}

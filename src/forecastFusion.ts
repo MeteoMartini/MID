@@ -132,6 +132,47 @@ function drySkyCode(hour:Hour){
  const cloud=Number(hour.cloud);if(!Number.isFinite(cloud))return hour.isDay?2:1;
  if(cloud<=15)return 0;if(cloud<=45)return 1;if(cloud<=80)return 2;return 3;
 }
+
+const DAY_HOURLY_PRECIPITATION_MIN_MM=.1;
+const DAY_HOURLY_PRECIPITATION_DEFICIT_MIN_MM=.05;
+const DAY_HOURLY_PROBABILITY_SUPPORT_MIN=20;
+const DAY_HOURLY_FULL_COVERAGE_MIN_HOURS=18;
+
+function inferredPrecipitationCode(hour:Hour){
+ const code=Math.round(Number(hour.code));if(precipitationWeatherCode(code))return code;
+ const convective=Math.max(0,Number(hour.showers)||0)>=.01||Math.max(0,Number(hour.cape)||0)>=250;
+ if(Number(hour.temperature)<=.5)return convective?85:71;
+ return convective?80:61;
+}
+
+function distributeDailyPrecipitationDeficit(hours:Hour[],day:Day){
+ const total=Math.max(0,Number(day.precipitation)||0),existing=hours.reduce((sum,hour)=>sum+Math.max(0,Number(hour.precipitation)||0),0),deficit=total-existing,maxProbability=Math.max(0,...hours.map(hour=>clamp(Number(hour.probability)||0,0,100)));
+ if(total<DAY_HOURLY_PRECIPITATION_MIN_MM||deficit<DAY_HOURLY_PRECIPITATION_DEFICIT_MIN_MM||maxProbability<DAY_HOURLY_PROBABILITY_SUPPORT_MIN)return hours;
+ const supportThreshold=Math.max(15,maxProbability*.45),ranked=hours.map((hour,index)=>({hour,index,probability:clamp(Number(hour.probability)||0,0,100),wet:precipitationWeatherCode(hour.code)})).filter(item=>item.wet||item.probability>=supportThreshold).sort((a,b)=>(b.wet?18:0)+b.probability-((a.wet?18:0)+a.probability));
+ if(!ranked.length)return hours;
+ const count=Math.min(ranked.length,6,Math.max(1,Math.ceil(deficit/.1))),selected=ranked.slice(0,count),weightTotal=selected.reduce((sum,item)=>sum+Math.pow(Math.max(1,item.probability-10)+(item.wet?12:0),1.25),0);let remaining=deficit;
+ const additions=new Map<number,number>();
+ selected.forEach((item,position)=>{const share=position===selected.length-1?remaining:deficit*Math.pow(Math.max(1,item.probability-10)+(item.wet?12:0),1.25)/Math.max(.001,weightTotal),addition=Math.max(0,Math.min(remaining,share));additions.set(item.index,addition);remaining=Math.max(0,remaining-addition)});
+ return hours.map((hour,index)=>{const addition=additions.get(index)||0;if(addition<.001)return hour;const target=Math.max(0,hour.precipitation)+addition,parts=precipitationParts(hour,target),code=inferredPrecipitationCode(hour),phase=[80,81,82].includes(code)&&parts.showers<.001?{...parts,rain:0,showers:target}:parts,signal=reconcileForecastPrecipitation({...phase,probability:hour.probability,code,cloud:hour.cloud});return{...hour,precipitation:signal.precipitation,rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall,probability:signal.probability,code:signal.code}});
+}
+
+/**
+ * Tagesmengen und Stundenkurve stammen bei Best Match, Mehrquellenfusion und
+ * lokalem Wetterzwilling teilweise aus unterschiedlichen Aggregationen. Ist
+ * ein künftiger Tag vollständig stündlich abgedeckt, zeigt eine belastbare
+ * Stundenwahrscheinlichkeit aber keine Menge, wird ausschließlich die bislang
+ * nicht zugeordnete Tagesmenge auf die wahrscheinlichsten Stunden verteilt.
+ * So bleibt die Tagesmenge erhalten, ohne im Detaildiagramm unsichtbar zu sein.
+ */
+export function reconcileForecastHoursWithDays(hours:Hour[],days:Day[]){
+ if(hours.length===0||days.length===0)return hours;
+ const now=Date.now(),daysByDate=new Map(days.map(day=>[day.date,day])),hoursByDate=new Map<string,{rows:{hour:Hour;index:number}[];allFuture:boolean}>();
+ hours.forEach((hour,index)=>{const date=hour.time.slice(0,10),bucket=hoursByDate.get(date)??{rows:[],allFuture:true};bucket.rows.push({hour,index});bucket.allFuture=bucket.allFuture&&hour.epoch>now;hoursByDate.set(date,bucket)});
+ let result=hours,changed=false;
+ for(const[date,bucket]of hoursByDate){const day=daysByDate.get(date);if(!day||!bucket.allFuture||bucket.rows.length<DAY_HOURLY_FULL_COVERAGE_MIN_HOURS)continue;const adjusted=distributeDailyPrecipitationDeficit(bucket.rows.map(item=>item.hour),day);if(adjusted.every((hour,index)=>hour===bucket.rows[index].hour))continue;if(!changed)result=[...hours];adjusted.forEach((hour,index)=>{result[bucket.rows[index].index]=hour});changed=true}
+ return changed?result:hours;
+}
+
 function dryAdjustedHour(hour:Hour,probability:number,precipitation:number){
  const dry=probability<=12&&precipitation<=.05,parts=precipitationParts(hour,dry?0:precipitation),code=dry&&precipitationWeatherCode(hour.code)?drySkyCode(hour):hour.code,signal=reconcileForecastPrecipitation({...parts,probability,code,cloud:hour.cloud});
  return{...hour,precipitation:signal.precipitation,rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall,probability:signal.probability,code:signal.code};
@@ -193,8 +234,10 @@ export function reconcileForecastDaysWithHours(days:Day[],hours:Hour[]){
   const relevant=hoursByDate.get(day.date);if(!relevant?.length)return day;
   const hourlyPrecipitation=relevant.reduce((sum,hour)=>sum+Math.max(0,Number(hour.precipitation)||0),0),hourlyProbability=Math.max(0,...relevant.map(hour=>clamp(Number(hour.probability)||0,0,100))),nearTerm=nearTermDates.has(day.date),dayPrecipitation=Math.max(0,Number(day.precipitation)||0),dayProbability=clamp(Number(day.probability)||0,0,100);
   // Im unmittelbaren Nowcast sind die final radarbereinigten Stunden maßgeblich und dürfen einen älteren Tageswert auch absenken.
-  // Für spätere Tage bilden sichtbare Stundenwerte mindestens eine Untergrenze: Zeigt eine Stunde 0,1 mm, darf der Tag nicht 0,0 mm ausweisen.
-  const precipitation=nearTerm?hourlyPrecipitation:Math.max(dayPrecipitation,hourlyPrecipitation),probability=nearTerm?hourlyProbability:Math.max(dayProbability,hourlyProbability),signal=reconcileForecastPrecipitation({precipitation,probability,code:day.code});
+  // Bei mindestens 18 vorhandenen künftigen Stunden ist der Kalendertag vollständig genug abgedeckt: Nach der optionalen
+  // Tagesmengenverteilung müssen Tageskopf und sichtbare Stunden exakt dieselbe Menge sowie dasselbe Wahrscheinlichkeitsmaximum zeigen.
+  // Nur bei unvollständiger Stundenabdeckung bleibt der unabhängige Tageswert als Obergrenze erhalten.
+  const completeCoverage=relevant.length>=DAY_HOURLY_FULL_COVERAGE_MIN_HOURS,precipitation=nearTerm||completeCoverage?hourlyPrecipitation:Math.max(dayPrecipitation,hourlyPrecipitation),probability=nearTerm||completeCoverage?hourlyProbability:Math.max(dayProbability,hourlyProbability),signal=reconcileForecastPrecipitation({precipitation,probability,code:day.code});
   if(Math.abs(signal.precipitation-dayPrecipitation)<.01&&Math.abs(signal.probability-dayProbability)<.5&&signal.code===day.code)return day;
   changed=true;return{...day,precipitation:signal.precipitation,probability:signal.probability,code:signal.code};
  });

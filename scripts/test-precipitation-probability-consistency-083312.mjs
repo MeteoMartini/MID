@@ -19,7 +19,7 @@ const required={
  precipitation:['UNSUPPORTED_FORECAST_TRACE_MAX_MM=.15','UNSUPPORTED_FORECAST_TRACE_MAX_PROBABILITY=5','export function reconcileForecastPrecipitation'],
  weather:['mapHours(w:Weather)','mapMinutely15(w:Weather)','mapDays(w:Weather)','reconcileForecastPrecipitation({precipitation:n(w.hourly.precipitation','reconcileForecastPrecipitation({precipitation:n(m.precipitation','reconcileForecastPrecipitation({precipitation:n(w.daily.precipitation_sum'],
  fusion:["import {reconcileForecastPrecipitation} from './precipitation';",'function dryAdjustedHour','signal=reconcileForecastPrecipitation({...parts','reconcileForecastDaysWithHours','signal=reconcileForecastPrecipitation({precipitation,probability,code:day.code})'],
- app:['displayHours=useMemo(()=>applyConvectiveNowcastHours','reconcileForecastPrecipitation({...hour,cloud:hour.cloud})'],
+ app:['postProcessedHours=useMemo(()=>applyConvectiveNowcastHours','reconcileForecastPrecipitation({...hour,cloud:hour.cloud})','reconcileForecastHoursWithDays(postProcessedHours,baseDisplayDays)'],
  shortTerm:["import {precipitationParts,reconcileForecastPrecipitation} from './precipitation';",'signal=reconcileForecastPrecipitation({precipitation,rain:rawRain'],
  worker:['const FORECAST_PRECIPITATION_CODES=new Set','function reconcileForecastPrecipitation(amount,probability,code,cloud)','signal=reconcileForecastPrecipitation(at(hourly.precipitation','signal=reconcileForecastPrecipitation(at(daily.precipitation_sum','const signal=reconcileForecastPrecipitation(hourPrecip[index],hourProbability[index],3)'],
  package:['test:precip-probability-consistency']
