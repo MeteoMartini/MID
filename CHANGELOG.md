@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.8.33.15
+
+- Suchfeld erhält einen bewegungstoleranten Touch-end-Fokuspfad, sodass der erste Tap auch unmittelbar nach einer Momentum-Scrollbewegung aktiviert.
+- Tagespfeile der stündlichen Detailansicht reagieren direkt auf Touch-end, unterdrücken Ghost-Clicks und besitzen mobil 44 × 44 Pixel große Trefferflächen.
+- Aktiver Detailtag aus dem globalen App-State in die Forecast-Komponente verlagert; ein Tageswechsel rendert nicht mehr das gesamte Dashboard neu.
+- Statische Inhalte der sieben Tageszeilen von der aktiven Auswahl entkoppelt, damit Tages-Hazards und Tagescharaktere beim Pfeiltipp nicht erneut berechnet werden.
+- Fast-Scroll-Erkennung von Timeout-Neuanlage je Scrollereignis auf einen einzelnen rAF-Settle-Zyklus umgestellt; Header-Blur bleibt während des Nachlaufs deaktiviert.
+
 ## 0.8.33.14
 
 - Mobile Ersttipper abgesichert: Radar- und Ensembleflächen bleiben auch unmittelbar nach Scrollbewegungen interaktiv; der Fast-Scroll-Modus reduziert nur noch visuelle Effekte.

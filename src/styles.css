@@ -3993,3 +3993,39 @@ html.mid-fast-scroll .settings-dialog{
  .settings-toggle-card:active,.settings-choice-grid button:active,.settings-unit-grid button:active,.detaillegend.interactive button:active,.detail-legend-toggle:active,.forecast-detail-toggle:active,.meteogram-day-jump>button:active,.hour-chart-tooltip button:active,.ensemble-chart-collapse:active,.wind-mode-switch button:active,.rain-legend button:active,.trend-legend button:active,.short-term-strip>button:active,.current-metrics-toggle:active{opacity:.82}
 }
 
+
+/* MID v0.8.33.15 · zuverlässige Aktivierung nach Momentum-Scroll und größere mobile Trefferflächen */
+.search-input-shell{
+  min-height:44px;
+}
+.search-input-shell input{
+  min-height:44px;
+}
+@media(hover:none),(pointer:coarse){
+  .search-input-shell{
+    min-height:48px;
+  }
+  .search-input-shell input{
+    min-height:48px;
+  }
+  .meteogram-day-jump{
+    top:6px;
+    right:6px;
+    left:6px;
+  }
+  .meteogram-day-jump>button{
+    width:44px!important;
+    min-width:44px!important;
+    height:44px!important;
+    min-height:44px!important;
+    padding:0!important;
+    opacity:.9;
+    pointer-events:auto!important;
+    -webkit-user-select:none;
+    user-select:none;
+  }
+}
+html.mid-fast-scroll .top{
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
