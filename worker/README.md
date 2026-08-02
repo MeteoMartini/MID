@@ -1,3 +1,7 @@
+# MID Synoptik-, Daten-, Warnungs-, Radar- und Push-Proxy v0.9.0.0
+
+Der Worker ergänzt die bestehende Infrastruktur um `synoptic-analysis` und `dwd-surface-analysis-image`. Er liefert die unveränderte amtliche DWD-Bodenanalyse als Referenz, objektive Frontkandidaten aus vollständigen ICON-EU-, ECMWF- und GFS-Feldern, Multimodell-Übereinstimmung, stromaufwärtige offizielle/professionelle Stationsplots und eine begrenzte Fronttiming-Assimilation. Die Frontend-Kennzeichnung trennt amtliche DWD-Fronten strikt von „MID-Frontkandidat · objektive Modellanalyse“.
+
 # MID Daten-, Warnungs-, Radar- und Push-Proxy v0.7.95.27
 
 Der Worker-Stand von v0.7.95.26 wurde vollständig wiederhergestellt und auf v0.7.95.27 synchronisiert. Enthalten sind die robusten DWD-/EUMETSAT-WMS-Fallbacks, `composite-diagnostics`, Web-Push-Regeln für Niederschlagsbeginn und sich nähernde Gewitterzellen sowie Benachrichtigungen bei materiellen Prognoseänderungen. Für Push werden die KV-Bindung `MID_PUSH_SUBSCRIPTIONS`, die Secrets `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` und der Cron-Trigger `*/5 * * * *` benötigt. Die Einstiegdatei in `MID-worker.zip` heißt `worker.js`.

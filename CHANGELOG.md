@@ -1,3 +1,12 @@
+# MID v0.9.0.0
+
+- Neues professionelles Synoptik-Modul mit unveränderter amtlicher DWD-Bodenanalyse und klar getrennter objektiver MID-Modellanalyse.
+- Responsive Synoptikkarte mit vorhandenen Isobaren und Druckzentren, zusätzlichen Stationsplots sowie Multimodell-Frontkandidaten.
+- Kompakter nächster Wetterwechsel mit Timingfenster, Vorher–Während–Nachher-Darstellung und Quellenstand.
+- Objektive Frontdiagnostik aus vollständigen ICON-EU-, ECMWF- und GFS-Feldern, Modellübereinstimmung, stromaufwärtigem Beobachtungskorridor und begrenzter Timing-Assimilation.
+- Persistente Ereignisobjekte, ereignisbezogene Verifikation, lokales Analogarchiv, ursachenbezogenes Unsicherheitsbudget und erklärbare Kausalkette.
+- Persönliche Frontauswirkungen verwenden die vorhandenen Wetterzwilling-Aktivitätsprofile und deren Schwellenwerte.
+
 # MID v0.8.35.0
 
 - Sonnenstunden des aktuellen Tages bleiben die vollständige tägliche Best-Match-Aggregation und werden abends nicht mehr auf die noch verbleibenden Stunden gekürzt.

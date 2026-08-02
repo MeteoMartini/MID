@@ -1,5 +1,6 @@
 import {readFile} from 'node:fs/promises';
 import {createRequire} from 'node:module';
+function versionAtLeast(value,minimum){const a=String(value).split('.').map(Number),b=String(minimum).split('.').map(Number);for(let i=0;i<Math.max(a.length,b.length,4);i++){const av=Number.isFinite(a[i])?a[i]:0,bv=Number.isFinite(b[i])?b[i]:0;if(av!==bv)return av>bv}return true}
 const require=createRequire(import.meta.url);let ts;try{ts=require('typescript')}catch{ts=require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript')}
 const [shortTerm,risk,pkgText,baselineText]=await Promise.all([
  readFile(new URL('../src/ShortTermForecast.tsx',import.meta.url),'utf8'),
@@ -28,6 +29,6 @@ if(sampleType&&ts.isTypeLiteralNode(sampleType)&&callArgument&&ts.isObjectLitera
  const unsupported=supplied.filter(name=>!allowed.has(name));if(unsupported.length)failures.push(`Nicht unterstützte Felder: ${unsupported.join(', ')}`);
  for(const required of ['code','cape','liftedIndex','convectiveInhibition','columnWaterVapour','temperature','dewPoint','humidity','precipitation','rain','showers','probability'])if(!supplied.includes(required))failures.push(`Benötigtes Feld fehlt: ${required}`);
 }
-const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText);if(!/^0\.8\.(?:27\.(?:[1-9]|[1-9]\d+)|(?:2[89]|[3-9]\d+)\.\d+)$/.test(pkg.version))failures.push(`Version: ${pkg.version}`);if(baseline.releaseVersion!==pkg.version)failures.push(`Baseline: ${baseline.releaseVersion}`);need('Package-Test',pkgText,'test:short-term-thunder-sample-buildfix');need('Baseline-Test',baselineText,'scripts/test-short-term-thunder-sample-buildfix-08271.mjs');
+const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText);if(!versionAtLeast(pkg.version,'0.8.27.1'))failures.push(`Version: ${pkg.version}`);if(baseline.releaseVersion!==pkg.version)failures.push(`Baseline: ${baseline.releaseVersion}`);need('Package-Test',pkgText,'test:short-term-thunder-sample-buildfix');need('Baseline-Test',baselineText,'scripts/test-short-term-thunder-sample-buildfix-08271.mjs');
 if(failures.length){console.error('Kurzfrist-Gewitterprobe-Buildfix v0.8.27.1 fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
 console.log('Kurzfrist-Gewitterprobe verwendet ausschließlich den typsicheren DetailThunderRiskSample-Vertrag.');
