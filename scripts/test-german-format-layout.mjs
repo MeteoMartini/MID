@@ -11,7 +11,7 @@ const failures=[];
 
 for(const token of ["new Intl.NumberFormat('de-DE'",'formatDecimalFixed','useGrouping:false'])if(!format.includes(token))failures.push(`Zentrale deutsche Zahlenformatierung fehlt: ${token}`);
 for(const [name,source,tokens] of [
- ['Dashboard',app,['formatDecimalFixed(precip,1)','formatDecimal(actualCurrentUv,1)','formatDecimal(airClassification.dominant.value,1,1)','formatDecimal(loc.latitude,2,2)']],
+ ['Dashboard',app,['formatDecimalFixed(precip,1)','formatUvi(actualCurrentUv)','formatDecimal(airClassification.dominant.value,1,1)','formatDecimal(loc.latitude,2,2)']],
  ['Ensemble',ensemble,['formatDecimalFixed(best,1)','formatDecimalFixed(row.minLow,1)','formatDecimal(Number(value),1)']],
  ['Meteogramm',meteogram,['formatDecimalFixed(amount,1)','formatDecimalFixed(depth,1)','formatDecimal(item.values[index]!']],
  ['Niederschlagszusammenfassung',precipitation,['formatDecimalFixed(total,1)','formatDecimalFixed(snowCm,1)']],

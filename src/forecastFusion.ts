@@ -154,14 +154,23 @@ export function applyForecastFusionHours(hours:Hour[],baseDays:Day[],fusedDays:D
  return changed?result:hours;
 }
 
+export type DryRadarNowcastProbabilityBlend={probability:number;radarWeight:number;radarProbability:number};
+export function dryRadarNowcastProbability(modelProbability:number,radar:RadarNowcast|null|undefined,leadMinutes=0):DryRadarNowcastProbabilityBlend|null{
+ if(!radar||radar.source==='model'||radar.coverage===false)return null;
+ const radarProbability=clamp(Number(radar.radarProbability)||0,0,100),hasArrival=Number.isFinite(radar.arrivalMinutes),arrival=hasArrival?Math.max(0,Number(radar.arrivalMinutes)):Number.POSITIVE_INFINITY,rate=Math.max(0,Number(radar.currentRate)||Number(radar.peakRate)||0),dryHorizon=radar.quality==='high'?180:radar.quality==='medium'?135:90,dryThreshold=radar.quality==='high'?12:radar.quality==='medium'?8:4,drySignal=radarProbability<=dryThreshold&&rate<=.08&&(!hasArrival||arrival>dryHorizon),minutes=Math.max(0,Number(leadMinutes)||0);
+ if(!drySignal||minutes>dryHorizon)return null;
+ const leadFactor=clamp(1-minutes/240,.35,1),radarWeight=(radar.quality==='high'?.94:radar.quality==='medium'?.82:.58)*leadFactor,probability=clamp((Number(modelProbability)||0)*(1-radarWeight)+radarProbability*radarWeight,0,100);
+ return{probability,radarWeight,radarProbability};
+}
+
 export function applyOperationalNowcastHours(hours:Hour[],radar:RadarNowcast|null|undefined){
  if(!radar||radar.source==='model'||radar.coverage===false||hours.length===0)return hours;
- const now=Date.now(),quality=radar.quality==='high'?.68:radar.quality==='medium'?.48:.28,radarProbability=clamp(Number(radar.radarProbability)||0,0,100),hasArrival=Number.isFinite(radar.arrivalMinutes),arrival=hasArrival?Math.max(0,Number(radar.arrivalMinutes)):Number.POSITIVE_INFINITY,end=hasArrival?Math.max(arrival+30,Number.isFinite(radar.endMinutes)?Number(radar.endMinutes):arrival+120):Number.NEGATIVE_INFINITY,rate=Math.max(0,Number(radar.currentRate)||Number(radar.peakRate)||0),dryHorizon=radar.quality==='high'?180:radar.quality==='medium'?135:90,dryThreshold=radar.quality==='high'?12:radar.quality==='medium'?8:4,drySignal=radarProbability<=dryThreshold&&rate<=.08&&(!hasArrival||arrival>dryHorizon);let changed=false;
+ const now=Date.now(),quality=radar.quality==='high'?.68:radar.quality==='medium'?.48:.28,radarProbability=clamp(Number(radar.radarProbability)||0,0,100),hasArrival=Number.isFinite(radar.arrivalMinutes),arrival=hasArrival?Math.max(0,Number(radar.arrivalMinutes)):Number.POSITIVE_INFINITY,end=hasArrival?Math.max(arrival+30,Number.isFinite(radar.endMinutes)?Number(radar.endMinutes):arrival+120):Number.NEGATIVE_INFINITY,rate=Math.max(0,Number(radar.currentRate)||Number(radar.peakRate)||0);let changed=false;
  const result=hours.map(hour=>{
   const minutes=(hour.epoch-now)/60000;if(minutes<-30||minutes>210)return hour;
-  const leadFactor=clamp(1-Math.max(0,minutes)/240,.35,1);
-  if(drySignal&&minutes<=dryHorizon){
-   const dryAuthority=(radar.quality==='high'?.94:radar.quality==='medium'?.82:.58)*leadFactor,probability=clamp(hour.probability*(1-dryAuthority)+radarProbability*dryAuthority,0,100),precipitation=hour.precipitation<=.6?hour.precipitation*(1-dryAuthority):hour.precipitation,adjusted=dryAdjustedHour(hour,probability,precipitation<.04?0:precipitation);
+  const leadFactor=clamp(1-Math.max(0,minutes)/240,.35,1),dryBlend=dryRadarNowcastProbability(hour.probability,radar,Math.max(0,minutes));
+  if(dryBlend){
+   const dryAuthority=dryBlend.radarWeight,probability=dryBlend.probability,precipitation=hour.precipitation<=.6?hour.precipitation*(1-dryAuthority):hour.precipitation,adjusted=dryAdjustedHour(hour,probability,precipitation<.04?0:precipitation);
    if(adjusted.code===hour.code&&Math.abs(adjusted.probability-hour.probability)<.1&&Math.abs(adjusted.precipitation-hour.precipitation)<.01)return hour;
    changed=true;return adjusted;
   }
@@ -176,12 +185,15 @@ export function applyOperationalNowcastHours(hours:Hour[],radar:RadarNowcast|nul
 
 export function reconcileForecastDaysWithHours(days:Day[],hours:Hour[]){
  if(days.length===0||hours.length===0)return days;
- const now=Date.now(),nearTermDates=new Set(hours.filter(hour=>hour.epoch>=now-30*60000&&hour.epoch<=now+6*3600000).map(hour=>hour.time.slice(0,10)));if(!nearTermDates.size)return days;
+ const now=Date.now(),futureHours=hours.filter(hour=>hour.epoch>=now-30*60000),nearTermDates=new Set(futureHours.filter(hour=>hour.epoch<=now+6*3600000).map(hour=>hour.time.slice(0,10))),hoursByDate=new Map<string,Hour[]>();
+ for(const hour of futureHours){const date=hour.time.slice(0,10),bucket=hoursByDate.get(date);if(bucket)bucket.push(hour);else hoursByDate.set(date,[hour])}
  let changed=false;const result=days.map(day=>{
-  if(!nearTermDates.has(day.date))return day;
-  const relevant=hours.filter(hour=>hour.time.startsWith(day.date)&&hour.epoch>=now-30*60000);if(!relevant.length)return day;
-  const precipitation=relevant.reduce((sum,hour)=>sum+Math.max(0,Number(hour.precipitation)||0),0),probability=Math.max(0,...relevant.map(hour=>clamp(Number(hour.probability)||0,0,100)));
-  if(Math.abs(precipitation-day.precipitation)<.01&&Math.abs(probability-day.probability)<.5)return day;
+  const relevant=hoursByDate.get(day.date);if(!relevant?.length)return day;
+  const hourlyPrecipitation=relevant.reduce((sum,hour)=>sum+Math.max(0,Number(hour.precipitation)||0),0),hourlyProbability=Math.max(0,...relevant.map(hour=>clamp(Number(hour.probability)||0,0,100))),nearTerm=nearTermDates.has(day.date),dayPrecipitation=Math.max(0,Number(day.precipitation)||0),dayProbability=clamp(Number(day.probability)||0,0,100);
+  // Im unmittelbaren Nowcast sind die final radarbereinigten Stunden maßgeblich und dürfen einen älteren Tageswert auch absenken.
+  // Für spätere Tage bilden sichtbare Stundenwerte mindestens eine Untergrenze: Zeigt eine Stunde 0,1 mm, darf der Tag nicht 0,0 mm ausweisen.
+  const precipitation=nearTerm?hourlyPrecipitation:Math.max(dayPrecipitation,hourlyPrecipitation),probability=nearTerm?hourlyProbability:Math.max(dayProbability,hourlyProbability);
+  if(Math.abs(precipitation-dayPrecipitation)<.01&&Math.abs(probability-dayProbability)<.5)return day;
   changed=true;return{...day,precipitation,probability};
  });
  return changed?result:days;

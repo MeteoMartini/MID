@@ -7,7 +7,7 @@ const fails=[];
 const parts=String(pkg.version).split('.').map(Number),minimum=[0,8,27,5],atLeastMinimum=parts.every((value,index)=>value===minimum[index])||parts.some((value,index)=>value>minimum[index]&&parts.slice(0,index).every((part,partIndex)=>part===minimum[partIndex]));
 if(!atLeastMinimum)fails.push(`package.json liegt vor 0.8.27.5: ${pkg.version}`);
 if(baseline.releaseVersion!==pkg.version)fails.push(`MID_BASELINE.json ${baseline.releaseVersion} passt nicht zu package.json ${pkg.version}`);
-if(!app.includes("<b>UVI {Number.isFinite(maxUvi)?formatDecimal(maxUvi,1):'–'}</b>"))fails.push('Kompakte UVI-Pille fehlt.');
+if(!app.includes("<b>UVI {Number.isFinite(maxUvi)?formatUvi(maxUvi):'–'}</b>"))fails.push('Kompakte UVI-Pille fehlt.');
 if(app.includes('UVI max.'))fails.push('Veraltete Beschriftung „UVI max.“ ist noch vorhanden.');
 if(!app.includes('maxUvi=uviValues.length?Math.max(...uviValues):Number.NaN'))fails.push('Max-UVI-Berechnung fehlt.');
 if(!css.includes('MID v0.8.27.12 · vereinheitlichte Ensemble-Tagesachsen, kompakte Detailpillen'))fails.push('Aktuelle kompakte Quickfacts-CSS-Anpassung fehlt.');

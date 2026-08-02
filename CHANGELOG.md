@@ -1,3 +1,10 @@
+## 0.8.33.6
+- Niederschlagswerte zwischen 7-Tage-Karte, Tagesdetail und finaler Stundenreihe konsistent zusammengeführt
+
+## 0.8.33.5
+- UVI app-weit auf ganze Indexwerte vereinheitlicht
+- Aktuelle Niederschlagswahrscheinlichkeit an die trockene operative Nowcast-Gewichtung angeglichen
+
 ## 0.8.33.4
 - GitHub-CI-Fix für den Nowcast-/Tageskonsistenztest: projektlokale TypeScript-Auflösung statt exklusivem festem NVM-Pfad
 - Keine Änderung der Prognose- oder Nowcast-Logik
