@@ -124,6 +124,17 @@ function precipitationParts(hour:Hour,target:number){
 function nearestFusionHour(hours:ForecastFusionHour[],epoch:number){let best:ForecastFusionHour|undefined,distance=Infinity;for(const hour of hours){const delta=Math.abs(Number(hour.epoch)-epoch);if(delta<distance){best=hour;distance=delta}}return distance<=35*60000?best:undefined}
 function blendToward(base:number,target:unknown,strength:number,cap:number){const value=Number(target);if(!Number.isFinite(value)||strength<=0)return base;return base+clamp(value-base,-cap,cap)*strength}
 
+function precipitationWeatherCode(code:number){const value=Math.round(Number(code));return[51,53,55,56,57,61,63,65,66,67,71,73,75,77,80,81,82,85,86,95,96,99].includes(value)}
+function drySkyCode(hour:Hour){
+ const code=Math.round(Number(hour.code));if([45,48].includes(code))return code;
+ const cloud=Number(hour.cloud);if(!Number.isFinite(cloud))return hour.isDay?2:1;
+ if(cloud<=15)return 0;if(cloud<=45)return 1;if(cloud<=80)return 2;return 3;
+}
+function dryAdjustedHour(hour:Hour,probability:number,precipitation:number){
+ const dry=probability<=12&&precipitation<=.05;
+ return{...hour,...precipitationParts(hour,dry?0:precipitation),probability,code:dry&&precipitationWeatherCode(hour.code)?drySkyCode(hour):hour.code};
+}
+
 export function applyForecastFusionHours(hours:Hour[],baseDays:Day[],fusedDays:Day[],fusion?:ForecastFusionResult|null){
  if(hours.length===0)return hours;
  const dayAdjustment=baseDays!==fusedDays,mosmixHours=Array.isArray(fusion?.hours)?fusion.hours:[],mosmixQuality=clamp(Number(fusion?.mosmix?.quality)||0,0,1),mosmixUsable=Boolean(fusion?.active&&fusion?.mosmix?.available&&fusion?.mosmix?.applied&&mosmixHours.length&&mosmixQuality>=.42),baseByDate=new Map(baseDays.map(day=>[day.date,day])),fusedByDate=new Map(fusedDays.map(day=>[day.date,day]));let changed=false;
@@ -131,31 +142,49 @@ export function applyForecastFusionHours(hours:Hour[],baseDays:Day[],fusedDays:D
   if(hour.epoch<now-3600000)return hour;
   const date=hour.time.slice(0,10),base=baseByDate.get(date),fused=fusedByDate.get(date);let next=hour;
   if(dayAdjustment&&base&&fused&&base!==fused){
-   const baseCenter=(base.max+base.min)/2,fusedCenter=(fused.max+fused.min)/2,baseRange=Math.max(2,base.max-base.min),rangeScale=clamp((fused.max-fused.min)/baseRange,.78,1.24),temperature=fusedCenter+(hour.temperature-baseCenter)*rangeScale,temperatureDelta=temperature-hour.temperature,precipScale=base.precipitation>=.12?clamp(fused.precipitation/base.precipitation,.35,2.6):1,precipitation=hour.precipitation*precipScale,probabilityShift=clamp(fused.probability-base.probability,-25,25),probabilityFactor=hour.probability>=40?1:.65,windScale=base.wind>=2?clamp(fused.wind/base.wind,.72,1.38):1,gustScale=base.gust>=3?clamp(fused.gust/base.gust,.72,1.38):1,parts=precipitationParts(hour,precipitation);
-   next={...hour,...parts,temperature,apparent:hour.apparent+temperatureDelta,probability:clamp(hour.probability+probabilityShift*probabilityFactor,0,100),wind:Math.max(0,hour.wind*windScale),gust:Math.max(Math.max(0,hour.wind*windScale),hour.gust*gustScale)};changed=true;
+   const baseCenter=(base.max+base.min)/2,fusedCenter=(fused.max+fused.min)/2,baseRange=Math.max(2,base.max-base.min),rangeScale=clamp((fused.max-fused.min)/baseRange,.78,1.24),temperature=fusedCenter+(hour.temperature-baseCenter)*rangeScale,temperatureDelta=temperature-hour.temperature,dryDay=fused.precipitation<=.1&&fused.probability<=10,precipScale=dryDay?0:base.precipitation>=.12?clamp(fused.precipitation/base.precipitation,.35,2.6):1,precipitation=hour.precipitation*precipScale,probabilityShift=clamp(fused.probability-base.probability,-25,25),probabilityFactor=hour.probability>=40?1:.65,probability=dryDay?Math.min(hour.probability,Math.max(fused.probability,hour.probability*.28)):clamp(hour.probability+probabilityShift*probabilityFactor,0,100),windScale=base.wind>=2?clamp(fused.wind/base.wind,.72,1.38):1,gustScale=base.gust>=3?clamp(fused.gust/base.gust,.72,1.38):1;
+   next={...dryAdjustedHour(hour,probability,precipitation),temperature,apparent:hour.apparent+temperatureDelta,wind:Math.max(0,hour.wind*windScale),gust:Math.max(Math.max(0,hour.wind*windScale),hour.gust*gustScale)};changed=true;
   }
   if(!mosmixUsable)return next;
   const mosmix=nearestFusionHour(mosmixHours,hour.epoch);if(!mosmix)return next;
   const leadHours=(hour.epoch-now)/3600000;if(leadHours<-.5||leadHours>240)return next;
-  const leadStrength=leadHours<=6?.18:leadHours<=48?.38:leadHours<=120?.3:.18,temperatureStrength=leadStrength*mosmixQuality,temperature=blendToward(next.temperature,mosmix.temperature,temperatureStrength,3),temperatureDelta=temperature-next.temperature,humidity=blendToward(next.humidity,mosmix.humidity,leadStrength*mosmixQuality*.55,18),dewPoint=blendToward(next.dewPoint,mosmix.dewPoint,leadStrength*mosmixQuality*.7,4),pressure=blendToward(next.pressure,mosmix.pressure,leadStrength*mosmixQuality*.35,5),wind= Math.max(0,blendToward(next.wind,mosmix.wind,leadStrength*mosmixQuality*.58,7)),gust=Math.max(wind,blendToward(next.gust,mosmix.gust,leadStrength*mosmixQuality*.58,10)),probability=clamp(blendToward(next.probability,mosmix.probability,leadStrength*mosmixQuality*.68,22),0,100),precipStrength=(leadHours<=6?.06:leadHours<=48?.18:.22)*mosmixQuality,precipitation=Math.max(0,blendToward(next.precipitation,mosmix.precipitation,precipStrength,Math.max(1.5,next.precipitation*1.2))),parts=precipitationParts(next,precipitation);
-  changed=true;return{...next,...parts,temperature,apparent:next.apparent+temperatureDelta,humidity,dewPoint,pressure,probability,wind,gust};
+  const leadStrength=leadHours<=6?.18:leadHours<=48?.38:leadHours<=120?.3:.18,temperatureStrength=leadStrength*mosmixQuality,temperature=blendToward(next.temperature,mosmix.temperature,temperatureStrength,3),temperatureDelta=temperature-next.temperature,humidity=blendToward(next.humidity,mosmix.humidity,leadStrength*mosmixQuality*.55,18),dewPoint=blendToward(next.dewPoint,mosmix.dewPoint,leadStrength*mosmixQuality*.7,4),pressure=blendToward(next.pressure,mosmix.pressure,leadStrength*mosmixQuality*.35,5),wind=Math.max(0,blendToward(next.wind,mosmix.wind,leadStrength*mosmixQuality*.58,7)),gust=Math.max(wind,blendToward(next.gust,mosmix.gust,leadStrength*mosmixQuality*.58,10)),mosmixDry=Number(mosmix.probability)<=5&&Number(mosmix.precipitation)<=.03,dailyDry=Boolean(fused&&fused.precipitation<=.1&&fused.probability<=10),dryConsensus=leadHours<=12&&mosmixDry&&dailyDry,probabilityStrength=Math.max(leadStrength*mosmixQuality*.68,dryConsensus?.76*mosmixQuality:0),probability=clamp(blendToward(next.probability,mosmix.probability,probabilityStrength,30),0,100),precipStrength=Math.max((leadHours<=6?.06:leadHours<=48?.18:.22)*mosmixQuality,dryConsensus?.82*mosmixQuality:0),precipitation=Math.max(0,blendToward(next.precipitation,mosmix.precipitation,precipStrength,Math.max(1.5,next.precipitation*1.2))),dryResult=dryAdjustedHour(next,probability,precipitation);
+  changed=true;return{...dryResult,temperature,apparent:next.apparent+temperatureDelta,humidity,dewPoint,pressure,wind,gust};
  });
  return changed?result:hours;
 }
 
 export function applyOperationalNowcastHours(hours:Hour[],radar:RadarNowcast|null|undefined){
  if(!radar||radar.source==='model'||radar.coverage===false||hours.length===0)return hours;
- const now=Date.now(),quality=radar.quality==='high'?.68:radar.quality==='medium'?.48:.28,radarProbability=clamp(Number(radar.radarProbability)||0,0,100),arrival=Math.max(0,Number.isFinite(radar.arrivalMinutes)?Number(radar.arrivalMinutes):0),end=Math.max(arrival+30,Number.isFinite(radar.endMinutes)?Number(radar.endMinutes):180),rate=Math.max(0,Number(radar.currentRate)||Number(radar.peakRate)||0);let changed=false;
+ const now=Date.now(),quality=radar.quality==='high'?.68:radar.quality==='medium'?.48:.28,radarProbability=clamp(Number(radar.radarProbability)||0,0,100),hasArrival=Number.isFinite(radar.arrivalMinutes),arrival=hasArrival?Math.max(0,Number(radar.arrivalMinutes)):Number.POSITIVE_INFINITY,end=hasArrival?Math.max(arrival+30,Number.isFinite(radar.endMinutes)?Number(radar.endMinutes):arrival+120):Number.NEGATIVE_INFINITY,rate=Math.max(0,Number(radar.currentRate)||Number(radar.peakRate)||0),dryHorizon=radar.quality==='high'?180:radar.quality==='medium'?135:90,dryThreshold=radar.quality==='high'?12:radar.quality==='medium'?8:4,drySignal=radarProbability<=dryThreshold&&rate<=.08&&(!hasArrival||arrival>dryHorizon);let changed=false;
  const result=hours.map(hour=>{
   const minutes=(hour.epoch-now)/60000;if(minutes<-30||minutes>210)return hour;
-  const inWindow=minutes+30>=arrival&&minutes-30<=end,leadFactor=clamp(1-Math.max(0,minutes)/240,.35,1),blend=quality*leadFactor;
-  let probability=hour.probability,precipitation=hour.precipitation;
+  const leadFactor=clamp(1-Math.max(0,minutes)/240,.35,1);
+  if(drySignal&&minutes<=dryHorizon){
+   const dryAuthority=(radar.quality==='high'?.94:radar.quality==='medium'?.82:.58)*leadFactor,probability=clamp(hour.probability*(1-dryAuthority)+radarProbability*dryAuthority,0,100),precipitation=hour.precipitation<=.6?hour.precipitation*(1-dryAuthority):hour.precipitation,adjusted=dryAdjustedHour(hour,probability,precipitation<.04?0:precipitation);
+   if(adjusted.code===hour.code&&Math.abs(adjusted.probability-hour.probability)<.1&&Math.abs(adjusted.precipitation-hour.precipitation)<.01)return hour;
+   changed=true;return adjusted;
+  }
+  const inWindow=hasArrival&&minutes+30>=arrival&&minutes-30<=end,blend=quality*leadFactor;let probability=hour.probability,precipitation=hour.precipitation;
   if(inWindow){probability=clamp(hour.probability*(1-blend)+radarProbability*blend,0,100);if(rate>.02)precipitation=Math.max(hour.precipitation,rate*Math.max(.18,.55*leadFactor)*blend)}
   else if(radar.quality==='high'&&radarProbability<=12&&minutes<=120)probability=clamp(hour.probability*(1-.28*leadFactor),0,100);
   if(Math.abs(probability-hour.probability)<.1&&Math.abs(precipitation-hour.precipitation)<.01)return hour;
-  changed=true;return{...hour,...precipitationParts(hour,precipitation),probability};
+  changed=true;return dryAdjustedHour(hour,probability,precipitation);
  });
  return changed?result:hours;
+}
+
+export function reconcileForecastDaysWithHours(days:Day[],hours:Hour[]){
+ if(days.length===0||hours.length===0)return days;
+ const now=Date.now(),nearTermDates=new Set(hours.filter(hour=>hour.epoch>=now-30*60000&&hour.epoch<=now+6*3600000).map(hour=>hour.time.slice(0,10)));if(!nearTermDates.size)return days;
+ let changed=false;const result=days.map(day=>{
+  if(!nearTermDates.has(day.date))return day;
+  const relevant=hours.filter(hour=>hour.time.startsWith(day.date)&&hour.epoch>=now-30*60000);if(!relevant.length)return day;
+  const precipitation=relevant.reduce((sum,hour)=>sum+Math.max(0,Number(hour.precipitation)||0),0),probability=Math.max(0,...relevant.map(hour=>clamp(Number(hour.probability)||0,0,100)));
+  if(Math.abs(precipitation-day.precipitation)<.01&&Math.abs(probability-day.probability)<.5)return day;
+  changed=true;return{...day,precipitation,probability};
+ });
+ return changed?result:days;
 }
 
 

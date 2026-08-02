@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.8.33.2",
+  "releaseVersion": "0.8.33.4",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -71,7 +71,8 @@
     "scripts/test-detail-thunder-threshold-trend-08198.mjs",
     "scripts/test-thunder-info-wording-081910.mjs",
     "scripts/test-priority-forecast-fusion-08320.mjs",
-    "scripts/test-mosmix-adaptive-fusion-08330.mjs"
+    "scripts/test-mosmix-adaptive-fusion-08330.mjs",
+    "scripts/test-nowcast-daily-consistency-08333.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [

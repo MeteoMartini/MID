@@ -27,7 +27,7 @@ for(const token of [
  'fusion?.mosmix?.applied',
  'leadHours<=6?.18',
  'leadHours>240',
- 'precipStrength=(leadHours<=6?.06',
+ 'precipStrength=Math.max((leadHours<=6?.06',
  "MID Mehrquellen${fusion.mosmix?.applied?' + MOSMIX':''}"
 ])need('Frontend-Fusion',fusion,token);
 for(const token of [

@@ -137,6 +137,7 @@ function precipitationCode(code:number){const rounded=Math.round(Number(code)||0
 function reconciledWeatherCode(forecastCode:number,anchorCode:number|undefined,cloud:number,lowCloud:number,visibility:number,humidity:number,temperature:number,precipitation:number,probability:number,offsetMinutes:number,localAdjustment:number){
  const raw=Math.round(Number(forecastCode)||0),observed=Math.round(Number(anchorCode));
  if(precipitation>=.01||(precipitationCode(raw)&&probability>=30))return raw;
+ if(precipitationCode(raw)&&probability<30)return observedSkyCode(Number.isFinite(observed)?observed:raw,cloud,lowCloud,visibility,humidity,temperature);
  if(localAdjustment<=0)return raw;
  if(Number.isFinite(observed)&&precipitationCode(observed)&&offsetMinutes<=30)return observed;
  return observedSkyCode(Number.isFinite(observed)?observed:raw,cloud,lowCloud,visibility,humidity,temperature);

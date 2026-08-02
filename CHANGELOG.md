@@ -1,3 +1,13 @@
+## 0.8.33.4
+- GitHub-CI-Fix für den Nowcast-/Tageskonsistenztest: projektlokale TypeScript-Auflösung statt exklusivem festem NVM-Pfad
+- Keine Änderung der Prognose- oder Nowcast-Logik
+
+## 0.8.33.3
+- Radar-Nowcast und trockener MOSMIX-/Mehrquellenkonsens im Kurzfristbereich stärker priorisiert
+- Regen-Wettercodes bei belastbar trockenem Nowcast bereinigt
+- 7-Tage-Karte, Tagesdetail und Kurzfristvorhersage auf dieselben finalen Niederschlagswerte vereinheitlicht
+- Heutiger 7-Tage-Trend ignoriert abgelaufene Modellstunden
+
 ## 0.8.33.2
 - Temperatur-Ensembletooltip: Sonne-Wertblock leicht nach rechts versetzt, damit Beschriftung und Werte klar getrennt und vollständig lesbar bleiben
 
