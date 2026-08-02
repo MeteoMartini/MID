@@ -1,4 +1,5 @@
 import {fetchWorkerJson} from './workerClient';
+import {reconcileForecastPrecipitation} from './precipitation';
 import type {Day,Hour,RadarNowcast,ThunderstormNowcast} from './weather';
 
 export type ForecastFusionTier=1|2|3|4;
@@ -106,8 +107,9 @@ function applyForecastFusionDayRows(baseDays:Day[],rows:ForecastFusionDay[]|unde
   const fused=byDate.get(day.date);if(!fused?.applied||fused.confidence<48)return day;
   const max=Number(fused.max),min=Number(fused.min),precipitation=Number(fused.precipitation),probability=Number(fused.probability),wind=Number(fused.wind),gust=Number(fused.gust),sunshineDuration=Number(fused.sunshineDuration);
   if(![max,min,precipitation].every(Number.isFinite)||max<min)return day;
+  const precipitationSignal=reconcileForecastPrecipitation({precipitation:Math.max(0,precipitation),probability:Number.isFinite(probability)?clamp(probability,0,100):day.probability,code:day.code});
   changed=true;
-  return{...day,max,min,precipitation:Math.max(0,precipitation),probability:Number.isFinite(probability)?clamp(probability,0,100):day.probability,wind:Number.isFinite(wind)?Math.max(0,wind):day.wind,gust:Number.isFinite(gust)?Math.max(Number.isFinite(wind)?wind:day.wind,gust):day.gust,sunshineDuration:Number.isFinite(sunshineDuration)?clamp(sunshineDuration,0,86400):day.sunshineDuration};
+  return{...day,max,min,precipitation:precipitationSignal.precipitation,probability:precipitationSignal.probability,code:precipitationSignal.code,wind:Number.isFinite(wind)?Math.max(0,wind):day.wind,gust:Number.isFinite(gust)?Math.max(Number.isFinite(wind)?wind:day.wind,gust):day.gust,sunshineDuration:Number.isFinite(sunshineDuration)?clamp(sunshineDuration,0,86400):day.sunshineDuration};
  });
  return changed?result:baseDays;
 }
@@ -131,8 +133,8 @@ function drySkyCode(hour:Hour){
  if(cloud<=15)return 0;if(cloud<=45)return 1;if(cloud<=80)return 2;return 3;
 }
 function dryAdjustedHour(hour:Hour,probability:number,precipitation:number){
- const dry=probability<=12&&precipitation<=.05;
- return{...hour,...precipitationParts(hour,dry?0:precipitation),probability,code:dry&&precipitationWeatherCode(hour.code)?drySkyCode(hour):hour.code};
+ const dry=probability<=12&&precipitation<=.05,parts=precipitationParts(hour,dry?0:precipitation),code=dry&&precipitationWeatherCode(hour.code)?drySkyCode(hour):hour.code,signal=reconcileForecastPrecipitation({...parts,probability,code,cloud:hour.cloud});
+ return{...hour,precipitation:signal.precipitation,rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall,probability:signal.probability,code:signal.code};
 }
 
 export function applyForecastFusionHours(hours:Hour[],baseDays:Day[],fusedDays:Day[],fusion?:ForecastFusionResult|null){
@@ -192,9 +194,9 @@ export function reconcileForecastDaysWithHours(days:Day[],hours:Hour[]){
   const hourlyPrecipitation=relevant.reduce((sum,hour)=>sum+Math.max(0,Number(hour.precipitation)||0),0),hourlyProbability=Math.max(0,...relevant.map(hour=>clamp(Number(hour.probability)||0,0,100))),nearTerm=nearTermDates.has(day.date),dayPrecipitation=Math.max(0,Number(day.precipitation)||0),dayProbability=clamp(Number(day.probability)||0,0,100);
   // Im unmittelbaren Nowcast sind die final radarbereinigten Stunden maßgeblich und dürfen einen älteren Tageswert auch absenken.
   // Für spätere Tage bilden sichtbare Stundenwerte mindestens eine Untergrenze: Zeigt eine Stunde 0,1 mm, darf der Tag nicht 0,0 mm ausweisen.
-  const precipitation=nearTerm?hourlyPrecipitation:Math.max(dayPrecipitation,hourlyPrecipitation),probability=nearTerm?hourlyProbability:Math.max(dayProbability,hourlyProbability);
-  if(Math.abs(precipitation-dayPrecipitation)<.01&&Math.abs(probability-dayProbability)<.5)return day;
-  changed=true;return{...day,precipitation,probability};
+  const precipitation=nearTerm?hourlyPrecipitation:Math.max(dayPrecipitation,hourlyPrecipitation),probability=nearTerm?hourlyProbability:Math.max(dayProbability,hourlyProbability),signal=reconcileForecastPrecipitation({precipitation,probability,code:day.code});
+  if(Math.abs(signal.precipitation-dayPrecipitation)<.01&&Math.abs(signal.probability-dayProbability)<.5&&signal.code===day.code)return day;
+  changed=true;return{...day,precipitation:signal.precipitation,probability:signal.probability,code:signal.code};
  });
  return changed?result:days;
 }

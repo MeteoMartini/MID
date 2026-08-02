@@ -44,6 +44,53 @@ export const WMO_PRECIP_TYPE:Partial<Record<number,PrecipType>>={
  96:'thunderstormHail',99:'thunderstormHail'
 };
 
+export type ForecastPrecipitationConsistencyInput={
+ precipitation:number;
+ rain?:number;
+ showers?:number;
+ snowfall?:number;
+ probability:number;
+ code:number;
+ cloud?:number;
+};
+
+export type ForecastPrecipitationConsistency={
+ precipitation:number;
+ rain:number;
+ showers:number;
+ snowfall:number;
+ probability:number;
+ code:number;
+ traceSuppressed:boolean;
+};
+
+const UNSUPPORTED_FORECAST_TRACE_MAX_MM=.15;
+const UNSUPPORTED_FORECAST_TRACE_MAX_PROBABILITY=5;
+
+function dryForecastWeatherCode(code:number,cloud:unknown){
+ if([45,48].includes(code))return code;
+ const cover=Number(cloud);
+ if(!Number.isFinite(cover))return 3;
+ if(cover<=15)return 0;
+ if(cover<=45)return 1;
+ if(cover<=80)return 2;
+ return 3;
+}
+
+/**
+ * Beseitigt ausschließlich sehr kleine, probabilistisch ungestützte
+ * Forecast-Impulse. Open-Meteo Best Match kann Menge/Wettercode und
+ * Niederschlagswahrscheinlichkeit aus unterschiedlich kombinierten
+ * Modellfeldern liefern. Ein Trace bis 0,15 mm bei höchstens 5 % wird daher
+ * nicht als sicherer Regen dargestellt. Größere deterministische Signale
+ * bleiben unverändert erhalten und werden nicht künstlich umgedeutet.
+ */
+export function reconcileForecastPrecipitation(input:ForecastPrecipitationConsistencyInput):ForecastPrecipitationConsistency{
+ const precipitation=Math.max(0,Number(input.precipitation)||0),rain=Math.max(0,Number(input.rain)||0),showers=Math.max(0,Number(input.showers)||0),snowfall=Math.max(0,Number(input.snowfall)||0),probability=Math.max(0,Math.min(100,Number(input.probability)||0)),code=Math.round(Number(input.code)||0),wetCode=Boolean(WMO_PRECIP_TYPE[code]),wetSignal=wetCode||precipitation>=.01||rain>=.01||showers>=.01||snowfall>=.01,tinySignal=Math.max(precipitation,rain,showers,snowfall)<=UNSUPPORTED_FORECAST_TRACE_MAX_MM,traceSuppressed=wetSignal&&tinySignal&&probability<=UNSUPPORTED_FORECAST_TRACE_MAX_PROBABILITY;
+ if(!traceSuppressed)return{precipitation,rain,showers,snowfall,probability,code,traceSuppressed:false};
+ return{precipitation:0,rain:0,showers:0,snowfall:0,probability,code:dryForecastWeatherCode(code,input.cloud),traceSuppressed:true};
+}
+
 const PRECIP_LABEL:Record<Exclude<PrecipType,'none'>,string>={
  drizzle:'Sprühregen',
  freezingDrizzle:'Gefrierender Sprühregen',
