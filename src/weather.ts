@@ -625,6 +625,7 @@ export function cloudOktasText(percent:number){
  return`${octas}/8 · ${description}`;
 }
 export type DayWeatherCharacter={code:number;label:string;secondary:string;cloudOktas:number;precipitationDominant:boolean};
+export function dayWeatherCharacterText(character:DayWeatherCharacter){const secondary=String(character.secondary||'').trim();return secondary?`${character.label}, ${secondary.charAt(0).toLocaleLowerCase('de-DE')}${secondary.slice(1)}`:character.label}
 const DAY_LABEL_MAX=30;
 const DAY_SECONDARY_MAX=28;
 type DayPartKey='night'|'morning'|'midday'|'afternoon'|'evening';
@@ -683,7 +684,7 @@ function precipCodeFamily(code:number){
  return'none';
 }
 function representativePrecipCode(hours:Hour[]){
- type FamilyRow={score:number;hours:number;sum:number;snowSum:number;maxProbability:number;probabilitySum:number;probabilitySamples:number;first:number;last:number;codes:Map<number,number>};
+ type FamilyRow={score:number;hours:number;daytimeHours:number;sum:number;snowSum:number;maxProbability:number;probabilitySum:number;probabilitySamples:number;first:number;last:number;codes:Map<number,number>};
  const families=new Map<string,FamilyRow>();
  for(const h of hours){
   let family=plausiblePrecipFamily(h);
@@ -698,9 +699,9 @@ function representativePrecipCode(hours:Hour[]){
   const severity=family==='thunder'?2.4:family==='snow'||family==='showers'?1.25:family==='rain'?1.05:.82;
   const score=dayWeight*probabilityWeight*amountWeight*severity;
   const code=plausiblePrecipCode(h,family);
-  const row=families.get(family)??{score:0,hours:0,sum:0,snowSum:0,maxProbability:0,probabilitySum:0,probabilitySamples:0,first:hour,last:hour,codes:new Map<number,number>()};
+  const row=families.get(family)??{score:0,hours:0,daytimeHours:0,sum:0,snowSum:0,maxProbability:0,probabilitySum:0,probabilitySamples:0,first:hour,last:hour,codes:new Map<number,number>()};
   row.score+=score;
-  if(probability>=30||amount>=.05||snow>=.05)row.hours+=1;
+  if(probability>=30||amount>=.05||snow>=.05){row.hours+=1;if(hour>=6&&hour<20)row.daytimeHours+=1;}
   row.sum+=amount;row.snowSum+=snow;row.maxProbability=Math.max(row.maxProbability,probability);
   row.probabilitySum+=probability;row.probabilitySamples+=1;
   row.first=Math.min(row.first,hour);row.last=Math.max(row.last,hour);
@@ -817,9 +818,11 @@ export function dayWeatherCharacter(day:Day,hours:Hour[]):DayWeatherCharacter{
  const sky=skyFromCloud(effectiveCloud,sunshineForLabel),skyLabel=skyTrend(relevant,sky.label),skyCode=representativeSkyCode(skyLabel,sky.code),candidate=representativePrecipCode(relevant);
  if(!candidate)return{...sky,code:skyCode,label:fitDayLabel(skyLabel,compactSkyFallback(sky.label)),secondary:'',cloudOktas:cloudOktas(effectiveCloud),precipitationDominant:false};
  const severe=candidate.family==='thunder';
+ const lateEveningOnly=candidate.daytimeHours===0&&candidate.first>=20&&candidate.hours<=3;
+ const marginalLateEvent=!severe&&lateEveningOnly&&candidate.maxProbability<50&&candidate.averageProbability<45&&candidate.sum<3&&candidate.snowSum<1;
  const sustained=candidate.hours>=3&&candidate.averageProbability>=40;
  const quantitativelyRelevant=candidate.sum>=1||candidate.snowSum>=1;
- const dominant=severe?(candidate.maxProbability>=30||candidate.sum>=.2):sustained||quantitativelyRelevant;
+ const dominant=severe?(candidate.maxProbability>=30||candidate.sum>=.2):!marginalLateEvent&&(sustained||quantitativelyRelevant);
  const eventLabel=label(candidate.code),event=shortEvent(candidate.family,eventLabel),timing=eventTiming(relevant,candidate.family);
  if(!dominant){
   const secondary=candidate.maxProbability>=25?possibleEventText(event,timing):'';

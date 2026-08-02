@@ -1,3 +1,9 @@
+## 0.8.33.9
+
+- Warnfreier Status auf „Keine Warnung“ verkürzt.
+- Tagespiktogramm und Tagesbeschreibung gewichten den dominierenden Tagesverlauf stärker; ein einzelner schwacher Regenimpuls am späten Abend erscheint nur noch als Zusatz „abends Regen möglich“.
+- 7-Tage-Karte, Detailansicht und 14-Tage-Übersicht verwenden denselben vollständigen Tagescharakter.
+
 ## 0.8.33.8
 - Stunden-Detailansicht: Niederschlagsart wird in der Niederschlagskachel nicht mehr doppelt wiederholt.
 - Der frei gewordene Platz zeigt bei vorhandener Konvektion das Gewitterrisiko vollständig an.

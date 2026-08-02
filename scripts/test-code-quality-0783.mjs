@@ -9,7 +9,7 @@ const [app,ensemble,styles,dismissible,chartMath]=await Promise.all([
 ]);
 const failures=[];
 for(const [token,where] of [
- ['✓ Keine Warnindikatoren',app],
+ ['✓ Keine Warnung',app],
  ['<ForecastHazards hazards={compactHz}/>',app],
  ['tooltip-meta-line sunshine-tooltip-line',ensemble],
  ['<b>Sonne</b>',ensemble],
