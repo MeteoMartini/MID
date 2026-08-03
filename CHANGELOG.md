@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.12.0
+- Radarintensitäten in mm/h werden für Kurzfristkacheln korrekt auf das tatsächliche Bezugsintervall umgerechnet; 15-Minuten-Zeitpunkte erhalten nie mehr fälschlich eine volle Stundenmenge.
+- Fehlende native 15-Minuten-Modellwerte werden aus dem Stundenwert intervallgerecht auf 15 Minuten skaliert.
+- Direkter Radar-Mengenblend ist auf +120 Minuten begrenzt; zwischen +120 und +180 Minuten wirkt Radar nur noch schwach auf Timing und Wahrscheinlichkeit, danach endet der Einfluss.
+- Qualitäts-, Unsicherheits- und Nahbereichsfaktoren begrenzen extreme oder approximierte Radarintensitäten und mischen sie mit der Modellmenge statt sie ungeprüft zu übernehmen.
+- Operative Hauptprognose und lokaler Wetterzwilling verwenden denselben zentralen Radar-/Modell-Blend.
+- Kurzfristdetails trennen Intervallmenge und Radarintensität transparent.
+
 ## 0.9.11.1
 - GitHub-Produktionsbuild repariert: `RadarNowcast | null` wird an den drei neuen Kurzfrist-/Cockpit-Props explizit zu `undefined` normalisiert.
 - Keine fachliche Änderung gegenüber v0.9.11.0.

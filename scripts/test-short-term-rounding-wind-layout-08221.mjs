@@ -24,7 +24,7 @@ for(const token of [
  'direction+180',
  'const NAVIGATION_ICON_BASE_DEGREES=45;',
  'windToDegrees(direction)-NAVIGATION_ICON_BASE_DEGREES',
- "intervalLabel:quarter?'15 min':'1 h'"
+ "intervalLabel:isQuarterInterval?'15 min':'1 h'"
 ])need('Kurzfristlogik',shortTerm,token);
 for(const token of [
  '.short-term-strip>button{display:grid;grid-template-rows:auto auto minmax(0,18px) 31px auto auto;',
@@ -39,7 +39,7 @@ const dir=await mkdtemp(join(tmpdir(),'mid-08221-'));
 try{
  let source=shortTerm;
  source=source.replace(/^import .*$/gm,'');
- source=`const React={createElement:(...args)=>({args})};\nconst useMemo=(factory)=>factory();\nconst useState=(value)=>[value,()=>{}];\nconst CloudLightning=()=>null; const Droplets=()=>null; const Gauge=()=>null; const Navigation=()=>null; const Thermometer=()=>null; const WindIcon=()=>null;\nconst significantHourlyThunderRisk=(hour)=>Number(hour.cape)>=200?{percent:51,label:'erhöht'}:null;\nconst precipitationParts=(input)=>({displayCode:input.code,weatherLabel:'Regen',type:input.precipitation>0?'rain':'none'});\nconst reconcileForecastPrecipitation=input=>({precipitation:Math.max(0,Number(input.precipitation)||0),rain:Math.max(0,Number(input.rain)||0),showers:Math.max(0,Number(input.showers)||0),snowfall:Math.max(0,Number(input.snowfall)||0),probability:Math.max(0,Math.min(100,Number(input.probability)||0)),code:Math.round(Number(input.code)||0),traceSuppressed:false});\nconst icon=()=>''; const label=()=>''; const wind=(value,unit)=>String(Math.round(Number(value)||0))+' '+String(unit); const formatDecimal=(value,digits=1)=>Number(value).toFixed(digits);\n${source}`;
+ source=`const React={createElement:(...args)=>({args})};\nconst useMemo=(factory)=>factory();\nconst useState=(value)=>[value,()=>{}];\nconst CloudLightning=()=>null; const Droplets=()=>null; const Gauge=()=>null; const Navigation=()=>null; const Thermometer=()=>null; const WindIcon=()=>null;\nconst significantHourlyThunderRisk=(hour)=>Number(hour.cape)>=200?{percent:51,label:'erhöht'}:null;\nconst precipitationParts=(input)=>({displayCode:input.code,weatherLabel:'Regen',type:input.precipitation>0?'rain':'none'});\nconst reconcileForecastPrecipitation=input=>({precipitation:Math.max(0,Number(input.precipitation)||0),rain:Math.max(0,Number(input.rain)||0),showers:Math.max(0,Number(input.showers)||0),snowfall:Math.max(0,Number(input.snowfall)||0),probability:Math.max(0,Math.min(100,Number(input.probability)||0)),code:Math.round(Number(input.code)||0),traceSuppressed:false});\nconst icon=()=>''; const label=()=>''; const wind=(value,unit)=>String(Math.round(Number(value)||0))+' '+String(unit); const formatDecimal=(value,digits=1)=>Number(value).toFixed(digits);\nconst DWD_WIND_THRESHOLDS_KMH=[]; const blendRadarAtTarget=()=>null;\n${source}`;
  const out=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022,jsx:ts.JsxEmit.React},fileName:'ShortTermForecast.tsx'});
  const file=join(dir,'ShortTermForecast.mjs');
  await writeFile(file,out.outputText);
@@ -61,7 +61,7 @@ try{
  if(firstSix!=='18:00|18:15|18:30|18:45|19:00|19:15')failures.push(`Zeitstufen: erwartet 18:00|18:15|18:30|18:45|19:00|19:15, erhalten ${firstSix}`);
  if(points[0]?.offsetLabel!=='+7 min')failures.push(`Offset 1: erwartet +7 min, erhalten ${points[0]?.offsetLabel}`);
  if(points[4]?.offsetLabel!=='+1 h 7 min')failures.push(`Offset 5: erwartet +1 h 7 min, erhalten ${points[4]?.offsetLabel}`);
- if(points[0]?.intervalLabel!=='15 min'||points[4]?.intervalLabel!=='1 h')failures.push('Bezugsintervalle: erste Stufen müssen 15 min, ab 19:00 1 h sein.');
+ if(points.slice(0,6).some(point=>point.intervalLabel!=='15 min'))failures.push('Bezugsintervalle: die ersten sechs 90-Minuten-Stufen müssen jeweils 15 min ausweisen.');
  if(points[0]?.direction!==270||points[0]?.wind!==3)failures.push('Windwerte wurden in den Kurzfristpunkten nicht korrekt übernommen.');
 }finally{await rm(dir,{recursive:true,force:true})}
 

@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.11.1",
+  "releaseVersion": "0.9.12.0",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -90,7 +90,8 @@
     "scripts/test-cockpit-responsive-0990.mjs",
     "scripts/test-forecast-cockpit-pictograms-09100.mjs",
     "scripts/test-hyperlocal-shortterm-pictograms-09100.mjs",
-    "scripts/test-radar-nowcast-null-buildfix-091111.mjs"
+    "scripts/test-radar-nowcast-null-buildfix-091111.mjs",
+    "scripts/test-radar-interval-seamless-blend-09120.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [

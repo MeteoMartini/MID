@@ -15,7 +15,7 @@ need(engine,"id:`radar:${radar.source}`",'Radar und Stationsmessung werden nicht
 need(engine,'uniqueDays<5','Lokale Modellgewichtung wird nicht anhand eindeutiger Vergleichstage freigegeben.');
 need(engine,'capPercentages(normalized','Modellgewichte werden nicht gegen Dominanz begrenzt.');
 need(engine,'profile?:TwinSiteProfile,timeZone?:string','Standortprofil und Zeitzone fehlen in der aktuellen lokalen Gewichtung.');
-need(engine,'reconcileAssimilatedPrecipitation','Assimilierter Gesamtniederschlag wird nicht mit Regen-/Schnee-Komponenten abgeglichen.');
+need(engine,'applyOperationalNowcastHours(locallyAdjusted,radar)','Wetterzwilling verwendet nicht den zentralen Radar-/Modell-Blend.');
 need(engine,'endEpoch=(end?.epoch??start?.epoch??Date.now())+3600000','Persönliche Zeitfenster enden nicht am Ende der letzten Prognosestunde.');
 need(panel,'stationDistanceKm(station?.distance)','Räumliche Umfeldanalyse zeigt weiterhin rohe Meterwerte als Kilometer.');
 if(panel.includes('formatDecimal(Number(station!.distance)'))failures.push('Rohe Stationsdistanz wird weiterhin direkt als Kilometer ausgegeben.');

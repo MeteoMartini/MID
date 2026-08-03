@@ -1,4 +1,5 @@
 import type {Day,EnsembleDay,Hour,Location,RadarNowcast,Station} from './weather';
+import {applyOperationalNowcastHours} from './forecastFusion';
 
 const PREFIX='mid:forecast-verification:v3:';
 const LEGACY_PREFIXES=['mid:forecast-verification:v2:','mid:forecast-verification:v1:'];
@@ -515,20 +516,19 @@ export function applyLocalTwinForecastFromReport(days:Day[],report:ForecastVerif
  return changed?result:days;
 }
 export function applyLocalTwinForecast(locationKey:string,days:Day[],ensemble:EnsembleDay[],radar?:RadarNowcast|null,location?:Location){const settings=readWeatherTwinSettings();if(!settings.enabled||!settings.useAsMainForecast)return days;const report=buildForecastVerificationReport(locationKey,days,ensemble,location);return applyLocalTwinForecastFromReport(days,report,radar)}
-function reconcileAssimilatedPrecipitation(hour:Hour,target:number){const precipitation=Math.max(0,target);if(precipitation<=hour.precipitation+.001)return{...hour,precipitation};const scale=hour.precipitation>.01?precipitation/hour.precipitation:1,rain=Math.max(0,hour.rain*scale),showers=Math.max(0,hour.showers*scale),snowfall=Math.max(0,hour.snowfall*scale);if(rain+showers+snowfall>.001)return{...hour,precipitation,rain,showers,snowfall};return hour.temperature<=1?{...hour,precipitation,snowfall:Math.max(hour.snowfall,precipitation*.7)}:{...hour,precipitation,rain:Math.max(hour.rain,precipitation)}}
 export function applyLocalTwinHours(locationKey:string,hours:Hour[],rawDays:Day[],adjustedDays:Day[],radar?:RadarNowcast|null){
- const settings=readWeatherTwinSettings();if(!locationKey||!settings.enabled||!settings.useAsMainForecast||adjustedDays===rawDays)return hours;
- const rawByDate=new Map(rawDays.map(day=>[day.date,day])),adjustedByDate=new Map(adjustedDays.map(day=>[day.date,day])),now=Date.now();
- return hours.map(hour=>{
+ const settings=readWeatherTwinSettings();if(!locationKey||!settings.enabled||!settings.useAsMainForecast)return hours;
+ const now=Date.now(),hasTwinAdjustment=adjustedDays!==rawDays,rawByDate=new Map(rawDays.map(day=>[day.date,day])),adjustedByDate=new Map(adjustedDays.map(day=>[day.date,day]));
+ const locallyAdjusted=hasTwinAdjustment?hours.map(hour=>{
   if(hour.epoch<=now)return hour;const date=hour.time.slice(0,10),raw=rawByDate.get(date),adjusted=adjustedByDate.get(date);if(!raw||!adjusted)return hour;
   const temperatureShift=((adjusted.max-raw.max)+(adjusted.min-raw.min))/2,gustScale=raw.gust>1?clamp(adjusted.gust/raw.gust,.65,1.5):1;
-  // Der Wetterzwilling darf Temperatur und Wind lokal korrigieren. Ohne ein
-  // eigenes kohärentes Stundenmodell skaliert er keine Niederschlagsmenge und
-  // verschiebt keine Regenwahrscheinlichkeit über den gesamten Tag.
-  let next:Hour={...hour,temperature:hour.temperature+temperatureShift,apparent:hour.apparent+temperatureShift,gust:Math.max(hour.wind,hour.gust*gustScale)};
-  if(date===adjustedDays[0]?.date&&settings.nowcastAssimilation&&radar&&radar.source!=='model'&&radar.coverage!==false&&hour.epoch-now<=3*3600000){const quality=radar.quality==='high'?.7:radar.quality==='medium'?.5:.3,radarProbability=clamp(finite(radar.radarProbability,0),0,100);next.probability=clamp(next.probability*(1-quality)+radarProbability*quality,0,100);if(Number.isFinite(radar.currentRate))next=reconcileAssimilatedPrecipitation(next,Math.max(next.precipitation,Math.max(0,Number(radar.currentRate))*.25));next.weatherBundleKind='nowcast'}
-  return next;
- })
+  // Der Wetterzwilling korrigiert ausschließlich lokal belegte Temperatur- und
+  // Wind-Biases und verschiebt keine Regenwahrscheinlichkeit über den gesamten Tag.
+  // Die Niederschlagsassimilation erfolgt anschließend zentral über
+  // denselben radar-/modellbasierten Blend wie in der operativen Hauptprognose.
+  return{...hour,temperature:hour.temperature+temperatureShift,apparent:hour.apparent+temperatureShift,gust:Math.max(hour.wind,hour.gust*gustScale)};
+ }):hours;
+ return settings.nowcastAssimilation?applyOperationalNowcastHours(locallyAdjusted,radar):locallyAdjusted;
 }
 
 function activityLabel(activity:TwinActivity){return({commute:'Arbeitsweg',outdoor:'Outdoor',garden:'Garten',rowing:'Rudern',dog:'Hundespaziergang',ski:'Berg-/Wintersport',heat:'Hitzeschutz'} as Record<TwinActivity,string>)[activity]}

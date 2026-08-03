@@ -19,7 +19,7 @@ for(const token of [
  'const QUARTER_STEP_COUNT=6;',
  'function buildTargetEpochs(now:number)',
  'export function buildShortTermForecast(',
- "offsetMinutes<=60?nearest(minutes15,target,12*60000):undefined",
+ "isQuarterInterval?nearest(minutes15,target,12*60000):undefined",
  'className="short-term-strip"',
  'className="short-term-detail"',
  'Number(point.thunderPercent)>=30',

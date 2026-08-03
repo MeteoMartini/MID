@@ -9,5 +9,5 @@ assert.equal(normalized,3,'Alle drei Radar-Nowcast-Übergaben müssen null auf u
 assert.ok(!app.includes('radarNowcast={radarAnalysis}'),'Unnormalisierte Radar-Nowcast-Übergabe ist noch enthalten.');
 assert.ok(cockpit.includes('radarNowcast?:RadarNowcast'),'Cockpit-Propvertrag für optionales Radar-Nowcast fehlt.');
 assert.ok(shortTerm.includes('radarNowcast?:RadarNowcast'),'Kurzfrist-Propvertrag für optionales Radar-Nowcast fehlt.');
-assert.equal(pkg.version,'0.9.11.1','Buildfix-Version ist nicht synchronisiert.');
-console.log('MID v0.9.11.1 RadarNowcast-Nullability-Buildfix geprüft.');
+const versionParts=String(pkg.version).split('.').map(Number),minimum=[0,9,11,1];let atLeast=true;for(let index=0;index<minimum.length;index++){if((versionParts[index]??0)>minimum[index])break;if((versionParts[index]??0)<minimum[index]){atLeast=false;break}}assert.ok(atLeast,'Buildfix-Version liegt vor 0.9.11.1.');
+console.log(`MID v${pkg.version} RadarNowcast-Nullability-Buildfix geprüft.`);
