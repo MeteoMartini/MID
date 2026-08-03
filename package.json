@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.5.1",
+  "version": "0.9.6.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -175,7 +175,10 @@
     "test:synoptic": "node scripts/test-synoptic-module-0900.mjs",
     "test:synoptic-map-direction": "node scripts/test-synoptic-map-direction-09001.mjs",
     "test:synoptic-wind-isobars": "node scripts/test-synoptic-wind-isobars-09002.mjs",
-    "test:ensemble-cockpit-clarity": "node scripts/test-ensemble-cockpit-clarity-0950.mjs"
+    "test:ensemble-cockpit-clarity": "node scripts/test-ensemble-cockpit-clarity-0950.mjs",
+    "test:cockpit-clarity": "node scripts/test-cockpit-clarity-0960.mjs",
+    "test:precipitation-character": "node scripts/test-precipitation-character-0960.mjs",
+    "test:worker-precipitation-character": "node scripts/test-worker-precipitation-character-0960.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

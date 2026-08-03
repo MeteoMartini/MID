@@ -17,8 +17,8 @@ for(const token of [
  'liftedIndex?:number',
  'convectiveInhibition?:number',
  'columnWaterVapour?:number',
- 'liftedIndex:n(w.hourly.lifted_index?.[i],NaN)',
- 'convectiveInhibition:n(w.hourly.convective_inhibition?.[i],NaN)',
+ 'liftedIndex=n(w.hourly.lifted_index?.[i],NaN)',
+ 'convectiveInhibition=n(w.hourly.convective_inhibition?.[i],NaN)',
  'columnWaterVapour:n(w.hourly.total_column_integrated_water_vapour?.[i],NaN)'
 ])need('Open-Meteo-Datenvertrag',weather,token);
 

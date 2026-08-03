@@ -35,7 +35,10 @@ export type ForecastWeatherBundleHour={
  code:number;
  cloud:number;
  lowCloud?:number;
+ humidity?:number;
  cape?:number;
+ liftedIndex?:number;
+ convectiveInhibition?:number;
  sunshineDuration?:number;
  isDay?:boolean;
  sourceId:string;
@@ -64,6 +67,10 @@ export type ForecastFusionDay={
  max:number;
  min:number;
  precipitation:number;
+ rain?:number;
+ showers?:number;
+ snowfall?:number;
+ precipitationHours?:number;
  probability:number;
  wind:number;
  gust:number;
@@ -152,9 +159,9 @@ function applyForecastFusionDayRows(baseDays:Day[],rows:ForecastFusionDay[]|unde
   const fused=byDate.get(day.date);if(!fused?.applied||fused.confidence<48)return day;
   const max=Number(fused.max),min=Number(fused.min),precipitation=Number(fused.precipitation),probability=Number(fused.probability),wind=Number(fused.wind),gust=Number(fused.gust),sunshineDuration=Number(fused.sunshineDuration);
   if(![max,min,precipitation].every(Number.isFinite)||max<min)return day;
-  const fusedCode=Number.isFinite(Number(fused.code))?Math.round(Number(fused.code)):day.code,leadHours=(Date.parse(`${day.date}T12:00:00Z`)-Date.now())/3600000,precipitationSignal=reconcileForecastPrecipitation({precipitation:Math.max(0,precipitation),probability:Number.isFinite(probability)?clamp(probability,0,100):day.probability,code:fusedCode,leadHours});
+  const fusedCode=Number.isFinite(Number(fused.code))?Math.round(Number(fused.code)):day.code,leadHours=(Date.parse(`${day.date}T12:00:00Z`)-Date.now())/3600000,precipitationSignal=reconcileForecastPrecipitation({precipitation:Math.max(0,precipitation),rain:Number.isFinite(Number(fused.rain))?Math.max(0,Number(fused.rain)):day.rain,showers:Number.isFinite(Number(fused.showers))?Math.max(0,Number(fused.showers)):day.showers,snowfall:Number.isFinite(Number(fused.snowfall))?Math.max(0,Number(fused.snowfall)):day.snowfall,probability:Number.isFinite(probability)?clamp(probability,0,100):day.probability,code:fusedCode,leadHours});
   changed=true;
-  return{...day,max,min,precipitation:precipitationSignal.precipitation,probability:precipitationSignal.probability,code:precipitationSignal.code,wind:Number.isFinite(wind)?Math.max(0,wind):day.wind,gust:Number.isFinite(gust)?Math.max(Number.isFinite(wind)?wind:day.wind,gust):day.gust,sunshineDuration:Number.isFinite(sunshineDuration)?clamp(sunshineDuration,0,86400):day.sunshineDuration,weatherSourceId:fused.weatherSourceId??day.weatherSourceId,weatherSourceLabel:fused.weatherSourceLabel??day.weatherSourceLabel};
+  return{...day,max,min,precipitation:precipitationSignal.precipitation,rain:precipitationSignal.rain,showers:precipitationSignal.showers,snowfall:precipitationSignal.snowfall,precipitationHours:Number.isFinite(Number(fused.precipitationHours))?Math.max(0,Number(fused.precipitationHours)):day.precipitationHours,probability:precipitationSignal.probability,code:precipitationSignal.code,wind:Number.isFinite(wind)?Math.max(0,wind):day.wind,gust:Number.isFinite(gust)?Math.max(Number.isFinite(wind)?wind:day.wind,gust):day.gust,sunshineDuration:Number.isFinite(sunshineDuration)?clamp(sunshineDuration,0,86400):day.sunshineDuration,weatherSourceId:fused.weatherSourceId??day.weatherSourceId,weatherSourceLabel:fused.weatherSourceLabel??day.weatherSourceLabel};
  });
  return changed?result:baseDays;
 }
@@ -191,7 +198,7 @@ const DAY_HOURLY_FULL_COVERAGE_MIN_HOURS=18;
  * aus den finalen kohärenten Stunden in den Tageskopf aggregiert – nie umgekehrt.
  */
 function reconcileForecastHourPrecipitation(hour:Hour){
- const signal=reconcileForecastPrecipitation({...hour,cloud:hour.cloud,lowCloud:hour.lowCloud,humidity:hour.humidity,cape:hour.cape,sunshineDuration:hour.sunshineDuration,isDay:hour.isDay,leadHours:(hour.epoch-Date.now())/3600000});
+ const signal=reconcileForecastPrecipitation({...hour,cloud:hour.cloud,lowCloud:hour.lowCloud,humidity:hour.humidity,cape:hour.cape,liftedIndex:hour.liftedIndex,convectiveInhibition:hour.convectiveInhibition,sunshineDuration:hour.sunshineDuration,isDay:hour.isDay,leadHours:(hour.epoch-Date.now())/3600000});
  if(signal.precipitation===hour.precipitation&&signal.rain===hour.rain&&signal.showers===hour.showers&&signal.snowfall===hour.snowfall&&signal.probability===hour.probability&&signal.code===hour.code)return hour;
  return{...hour,precipitation:signal.precipitation,rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall,probability:signal.probability,code:signal.code};
 }
@@ -206,7 +213,7 @@ export function reconcileForecastHoursWithDays(hours:Hour[],_days:Day[]){
 }
 
 function dryAdjustedHour(hour:Hour,probability:number,precipitation:number){
- const dry=probability<=12&&precipitation<=.05,parts=precipitationParts(hour,dry?0:precipitation),code=dry&&precipitationWeatherCode(hour.code)?drySkyCode(hour):hour.code,signal=reconcileForecastPrecipitation({...parts,probability,code,cloud:hour.cloud,lowCloud:hour.lowCloud,humidity:hour.humidity,cape:hour.cape,sunshineDuration:hour.sunshineDuration,isDay:hour.isDay,leadHours:(hour.epoch-Date.now())/3600000});
+ const dry=probability<=12&&precipitation<=.05,parts=precipitationParts(hour,dry?0:precipitation),code=dry&&precipitationWeatherCode(hour.code)?drySkyCode(hour):hour.code,signal=reconcileForecastPrecipitation({...parts,probability,code,cloud:hour.cloud,lowCloud:hour.lowCloud,humidity:hour.humidity,cape:hour.cape,liftedIndex:hour.liftedIndex,convectiveInhibition:hour.convectiveInhibition,sunshineDuration:hour.sunshineDuration,isDay:hour.isDay,leadHours:(hour.epoch-Date.now())/3600000});
  return{...hour,precipitation:signal.precipitation,rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall,probability:signal.probability,code:signal.code};
 }
 
@@ -218,7 +225,7 @@ export function applyForecastFusionHours(hours:Hour[],baseDays:Day[],fusedDays:D
   const date=hour.time.slice(0,10),base=baseByDate.get(date),fused=fusedByDate.get(date);let next=hour;
   const weather=nearestFusionHour(weatherHours,hour.epoch);
   if(weather){
-   const signal=reconcileForecastPrecipitation({precipitation:weather.precipitation,rain:weather.rain,showers:weather.showers,snowfall:weather.snowfall,probability:weather.probability,code:weather.code,cloud:weather.cloud,lowCloud:weather.lowCloud,humidity:hour.humidity,cape:weather.cape,sunshineDuration:weather.sunshineDuration,isDay:hour.isDay,leadHours:(hour.epoch-now)/3600000});
+   const signal=reconcileForecastPrecipitation({precipitation:weather.precipitation,rain:weather.rain,showers:weather.showers,snowfall:weather.snowfall,probability:weather.probability,code:weather.code,cloud:weather.cloud,lowCloud:weather.lowCloud,humidity:Number.isFinite(weather.humidity)?Number(weather.humidity):hour.humidity,cape:weather.cape,liftedIndex:Number.isFinite(weather.liftedIndex)?Number(weather.liftedIndex):hour.liftedIndex,convectiveInhibition:Number.isFinite(weather.convectiveInhibition)?Number(weather.convectiveInhibition):hour.convectiveInhibition,sunshineDuration:weather.sunshineDuration,isDay:hour.isDay,leadHours:(hour.epoch-now)/3600000});
    const repaired=weather.sourceRole==='repair'||weather.sourceId!=='best_match';
    next={...next,precipitation:signal.precipitation,rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall,probability:signal.probability,code:signal.code,cloud:Number.isFinite(weather.cloud)?weather.cloud:next.cloud,lowCloud:Number.isFinite(weather.lowCloud)?Number(weather.lowCloud):next.lowCloud,cape:Number.isFinite(weather.cape)?Number(weather.cape):next.cape,sunshineDuration:Number.isFinite(weather.sunshineDuration)?Number(weather.sunshineDuration):next.sunshineDuration,weatherSourceId:weather.sourceId,weatherSourceLabel:weather.sourceLabel,weatherBundleKind:repaired?'coherent-model':'best-match'};changed=true;
   }
@@ -292,9 +299,9 @@ export function reconcileForecastDaysWithHours(days:Day[],hours:Hour[]){
   // Stunde wegen eines widersprüchlichen Best-Match-Bündels vollständig durch ein
   // anderes kohärentes Modell ersetzt wurde, wird ein vollständig abgedeckter
   // Zukunftstag aus genau diesen finalen Stunden neu aggregiert.
-  const repairedSunshineBundle=relevant.some(hour=>hour.weatherBundleKind==='coherent-model'),sunshineDuration=isCurrentDay?baseSunshine:completeCoverage&&sunshineCoverage>=.9&&repairedSunshineBundle?clamp(hourlySunshine,0,daylightSeconds(day)):baseSunshine,signal=reconcileForecastPrecipitation({precipitation,probability,code:hourlyCode,leadHours:(Date.parse(`${day.date}T12:00:00Z`)-now)/3600000});
+  const hourlyRain=precipitationHours.reduce((sum,hour)=>sum+Math.max(0,Number(hour.rain)||0),0),hourlyShowers=precipitationHours.reduce((sum,hour)=>sum+Math.max(0,Number(hour.showers)||0),0),hourlySnowfall=precipitationHours.reduce((sum,hour)=>sum+Math.max(0,Number(hour.snowfall)||0),0),rain=nearTerm||completeCoverage?hourlyRain:Math.max(Math.max(0,Number(day.rain)||0),hourlyRain),showers=nearTerm||completeCoverage?hourlyShowers:Math.max(Math.max(0,Number(day.showers)||0),hourlyShowers),snowfall=nearTerm||completeCoverage?hourlySnowfall:Math.max(Math.max(0,Number(day.snowfall)||0),hourlySnowfall),repairedSunshineBundle=relevant.some(hour=>hour.weatherBundleKind==='coherent-model'),sunshineDuration=isCurrentDay?baseSunshine:completeCoverage&&sunshineCoverage>=.9&&repairedSunshineBundle?clamp(hourlySunshine,0,daylightSeconds(day)):baseSunshine,signal=reconcileForecastPrecipitation({precipitation,rain,showers,snowfall,probability,code:hourlyCode,leadHours:(Date.parse(`${day.date}T12:00:00Z`)-now)/3600000});
   if(Math.abs(max-day.max)<.05&&Math.abs(min-day.min)<.05&&Math.abs(signal.precipitation-dayPrecipitation)<.01&&Math.abs(signal.probability-dayProbability)<.5&&signal.code===day.code&&Math.abs(sunshineDuration-day.sunshineDuration)<1)return day;
-  changed=true;return{...day,max,min,precipitation:signal.precipitation,probability:signal.probability,code:signal.code,sunshineDuration,weatherSourceId:relevant.find(hour=>hour.weatherSourceId)?.weatherSourceId??day.weatherSourceId,weatherSourceLabel:relevant.find(hour=>hour.weatherSourceLabel)?.weatherSourceLabel??day.weatherSourceLabel};
+  changed=true;return{...day,max,min,precipitation:signal.precipitation,rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall,probability:signal.probability,code:signal.code,sunshineDuration,weatherSourceId:relevant.find(hour=>hour.weatherSourceId)?.weatherSourceId??day.weatherSourceId,weatherSourceLabel:relevant.find(hour=>hour.weatherSourceLabel)?.weatherSourceLabel??day.weatherSourceLabel};
  });
  return changed?result:days;
 }

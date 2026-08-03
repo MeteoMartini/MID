@@ -19,6 +19,11 @@ export type PrecipSample={
  lowCloud?:number;
  cloudBaseHft?:number;
  ceilingHft?:number;
+ cape?:number;
+ liftedIndex?:number;
+ convectiveInhibition?:number;
+ sunshineDuration?:number;
+ isDay?:boolean;
 };
 
 export type PrecipitationParts={
@@ -55,10 +60,21 @@ export type ForecastPrecipitationConsistencyInput={
  lowCloud?:number;
  humidity?:number;
  cape?:number;
+ liftedIndex?:number;
+ convectiveInhibition?:number;
  sunshineDuration?:number;
  isDay?:boolean;
  leadHours?:number;
  observed?:boolean;
+};
+
+export type PrecipitationCharacter='convective'|'stratiform'|'mixed'|'indeterminate';
+export type PrecipitationCharacterEvidence={
+ character:PrecipitationCharacter;
+ convectiveScore:number;
+ stratiformScore:number;
+ convectiveFraction:number;
+ directPartition:boolean;
 };
 
 export type ForecastPrecipitationConsistency={
@@ -97,6 +113,52 @@ function showerEquivalentCode(code:number,total:number,snowfall:number){
  if([95,96,97,99].includes(code))return code;
  return total>=10?82:total>=2.5?81:80;
 }
+function stratiformEquivalentCode(code:number,total:number,snowfall:number){
+ if([85,86].includes(code)||snowfall>=.05)return snowfall>=2?75:snowfall>=.5?73:71;
+ if([83,84].includes(code))return total>=2.5?69:68;
+ if([95,96,97,99].includes(code))return code;
+ return total>=10?65:total>=2.5?63:61;
+}
+function finiteNumber(value:unknown){const number=Number(value);return Number.isFinite(number)?number:Number.NaN}
+function inhibitionMagnitude(value:unknown){const number=finiteNumber(value);return Number.isFinite(number)?Math.abs(number):Number.NaN}
+
+/**
+ * Trennt konvektive und stratiforme Niederschlagssignale aus mehreren
+ * unabhängigen Modellfamilien. Die explizite Modellaufteilung `showers` zu
+ * `rain` ist das stärkste Signal; CAPE, Lifted Index und CIN dürfen eine
+ * fehlende direkte Aufteilung nur stützen, niemals allein eine Schauerlage
+ * erzwingen. Bewölkung, Feuchte und Sonnenscheindauer stützen großräumigen
+ * stratiformen Niederschlag beziehungsweise eine tiefe Stratuslage.
+ */
+export function classifyPrecipitationCharacter(input:Pick<ForecastPrecipitationConsistencyInput,'rain'|'showers'|'code'|'cloud'|'lowCloud'|'humidity'|'cape'|'liftedIndex'|'convectiveInhibition'|'sunshineDuration'|'isDay'>):PrecipitationCharacterEvidence{
+ const rain=Math.max(0,finiteNumber(input.rain)||0),showers=Math.max(0,finiteNumber(input.showers)||0),liquid=rain+showers,directPartition=liquid>=.03,convectiveFraction=directPartition?showers/liquid:0,code=Math.round(finiteNumber(input.code)||0),cloud=finiteNumber(input.cloud),lowCloud=finiteNumber(input.lowCloud),humidity=finiteNumber(input.humidity),cape=Math.max(0,finiteNumber(input.cape)||0),liftedIndex=finiteNumber(input.liftedIndex),cin=inhibitionMagnitude(input.convectiveInhibition),sunshine=finiteNumber(input.sunshineDuration),daylight=input.isDay!==false;
+ let convectiveScore=0,stratiformScore=0;
+ if(directPartition){
+  if(showers>=.05&&convectiveFraction>=.65)convectiveScore+=6;
+  else if(showers>=.03&&convectiveFraction>=.4)convectiveScore+=4;
+  else if(showers>=.01&&convectiveFraction>=.25)convectiveScore+=2;
+  if(rain>=.05&&convectiveFraction<=.2)stratiformScore+=6;
+  else if(rain>=.03&&convectiveFraction<=.4)stratiformScore+=4;
+  else if(rain>=.01&&convectiveFraction<.65)stratiformScore+=2;
+ }
+ if(showerCode(code))convectiveScore+=2;
+ if(stratiformCode(code))stratiformScore+=2;
+ if(cape>=1500)convectiveScore+=3;else if(cape>=800)convectiveScore+=2;else if(cape>=300)convectiveScore+=1;
+ if(Number.isFinite(liftedIndex)){if(liftedIndex<=-4)convectiveScore+=2;else if(liftedIndex<=-1)convectiveScore+=1;else if(liftedIndex>=2)stratiformScore+=.5}
+ if(Number.isFinite(cin)&&cape>=300){if(cin<=25)convectiveScore+=1;else if(cin<=75)convectiveScore+=.5;else if(cin>=200)convectiveScore-=1.5}
+ const lowStratus=(Number.isFinite(lowCloud)&&lowCloud>=72)||(Number.isFinite(cloud)&&cloud>=88);
+ if(lowStratus)stratiformScore+=1.5;
+ if(Number.isFinite(humidity)&&humidity>=90)stratiformScore+=1;
+ if(daylight&&Number.isFinite(sunshine)&&sunshine<=600)stratiformScore+=.5;
+ if(Number.isFinite(cloud)&&cloud>=25&&cloud<82&&!lowStratus&&cape>=300)convectiveScore+=.5;
+ let character:PrecipitationCharacter='indeterminate';
+ if(directPartition&&rain>=.03&&showers>=.03&&convectiveFraction>=.3&&convectiveFraction<=.7)character='mixed';
+ else if(directPartition&&showers>=.05&&convectiveFraction>=.6&&convectiveScore>=stratiformScore-1)character='convective';
+ else if(directPartition&&rain>=.05&&convectiveFraction<=.25&&stratiformScore>=convectiveScore-1)character='stratiform';
+ else if(convectiveScore>=5&&convectiveScore>=stratiformScore+2)character='convective';
+ else if(stratiformScore>=5&&stratiformScore>=convectiveScore+2)character='stratiform';
+ return{character,convectiveScore:Number(convectiveScore.toFixed(2)),stratiformScore:Number(stratiformScore.toFixed(2)),convectiveFraction:Number(convectiveFraction.toFixed(3)),directPartition};
+}
 
 /**
  * Hält den gesamten Wetterzustand einer Stunde zusammen. Menge, Phase,
@@ -118,13 +180,17 @@ export function reconcileForecastPrecipitation(input:ForecastPrecipitationConsis
  if(!input.observed&&probability<=UNSUPPORTED_FORECAST_MAX_PROBABILITY)return suppress('probability');
  const supportMinimum=deterministicSignalMinimumProbability(input.leadHours),weakAmount=Math.max(precipitation,rain,showers,snowfall)<=WEAK_FORECAST_AMOUNT_MAX_MM;
  if(!input.observed&&weakAmount&&probability<supportMinimum)return suppress('weak-distant-signal');
- const cloud=Number(input.cloud),lowCloud=Number(input.lowCloud),humidity=Number(input.humidity),cape=Math.max(0,Number(input.cape)||0),rawSunshine=Number(input.sunshineDuration),sunshine=Number.isFinite(rawSunshine)?Math.max(0,rawSunshine):Number.NaN,daylight=input.isDay!==false;
- const stratiformSupport=(Number.isFinite(cloud)&&cloud>=82)||(Number.isFinite(lowCloud)&&lowCloud>=65)||(Number.isFinite(humidity)&&humidity>=92)||(daylight&&Number.isFinite(sunshine)&&sunshine<=600);
- const convectiveSupport=showers>=.01||cape>=180||(Number.isFinite(cloud)&&cloud>=25&&cloud<82&&daylight&&Number.isFinite(sunshine)&&sunshine>=900);
+ const evidence=classifyPrecipitationCharacter(input),cloud=Number(input.cloud),lowCloud=Number(input.lowCloud),humidity=Number(input.humidity),rawSunshine=Number(input.sunshineDuration),sunshine=Number.isFinite(rawSunshine)?Math.max(0,rawSunshine):Number.NaN,daylight=input.isDay!==false;
+ const stratiformSupport=evidence.character==='stratiform'||(Number.isFinite(cloud)&&cloud>=82)||(Number.isFinite(lowCloud)&&lowCloud>=65)||(Number.isFinite(humidity)&&humidity>=92)||(daylight&&Number.isFinite(sunshine)&&sunshine<=600);
+ const convectiveSupport=evidence.character==='convective';
  let phaseAdjusted=false;
- if(stratiformCode(code)&&!stratiformSupport&&convectiveSupport){
+ if(stratiformCode(code)&&convectiveSupport&&![56,57,66,67].includes(code)){
   const total=Math.max(precipitation,rain+showers,snowfall),nextCode=showerEquivalentCode(code,total,snowfall);
   if(![83,84,85,86].includes(nextCode)&&snowfall<.05){showers=Math.max(showers,precipitation);rain=0}
+  code=nextCode;phaseAdjusted=true;
+ }else if(showerCode(code)&&evidence.character==='stratiform'&&![95,96,97,99].includes(code)){
+  const total=Math.max(precipitation,rain+showers,snowfall),nextCode=stratiformEquivalentCode(code,total,snowfall);
+  if(![68,69,71,73,75].includes(nextCode)&&snowfall<.05){rain=Math.max(rain,precipitation);showers=0}
   code=nextCode;phaseAdjusted=true;
  }else if(!input.observed&&stratiformCode(code)&&!stratiformSupport&&!convectiveSupport&&weakAmount){
   return suppress('sky-contradiction');
@@ -234,15 +300,22 @@ export function precipitationParts(h:PrecipSample):PrecipitationParts{
  const hasSnow=snowCm>=.05;
  let type:PrecipType;
 
+ const character=classifyPrecipitationCharacter(h);
  if(codedType==='drizzle'){
-  type=drizzlePlausible(h,total)?'drizzle':hasShowers?'showers':'rain';
+  type=drizzlePlausible(h,total)?'drizzle':character.character==='convective'||hasShowers?'showers':'rain';
  }else if(codedType==='freezingDrizzle'){
   type=drizzlePlausible(h,total)?'freezingDrizzle':'freezingRain';
  }else if(codedType==='snowGrains'){
-  type=snowGrainsPlausible(h,total)?'snowGrains':hasShowers?'snowShowers':'snow';
- }else if(codedType){
-  // Die vom Modell gelieferte Niederschlagsphase darf durch Feuchte-, Wolken-
-  // oder Temperaturkriterien nicht verändert werden.
+  type=snowGrainsPlausible(h,total)?'snowGrains':character.character==='convective'||hasShowers?'snowShowers':'snow';
+ }else if(codedType==='rain')type=character.character==='convective'?'showers':'rain';
+ else if(codedType==='showers')type=character.character==='stratiform'?'rain':'showers';
+ else if(codedType==='snow')type=character.character==='convective'?'snowShowers':'snow';
+ else if(codedType==='snowShowers')type=character.character==='stratiform'?'snow':'snowShowers';
+ else if(codedType==='sleet')type=character.character==='convective'?'sleetShowers':'sleet';
+ else if(codedType==='sleetShowers')type=character.character==='stratiform'?'sleet':'sleetShowers';
+ else if(codedType){
+  // Flüssig, gefrierend, gemischt oder fest bleibt phasentreu. Lediglich der
+  // objektiv gestützte Charakter Schauer versus großräumig wird korrigiert.
   type=codedType;
  }else if(hasSnow&&hasShowers)type='sleetShowers';
  else if(hasSnow&&hasRain)type='sleet';

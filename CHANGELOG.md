@@ -1,3 +1,14 @@
+# MID v0.9.6.0
+
+- Prognose-Cockpit auf eine sofort lesbare Stunden-/Tagesübersicht umgestellt; nichtssagende blaue Platzhalter und die unpassende Balkenerklärung entfernt.
+- Kurzfrist-Ribbon zeigt konkrete Schlüsselzeitpunkte, Temperatur, Niederschlag und Böen; die erweiterte Ansicht fasst die drei wichtigsten Wetterfaktoren kompakt zusammen.
+- Sieben-Tage-Darstellung verwendet benannte Wetterkategorien und direkt sichtbare Mengen/Wahrscheinlichkeiten statt schwer interpretierbarer Phasenbalken.
+- App-weite objektive Klassifikation für konvektiven, stratiformen, gemischten und unbestimmten Niederschlag ergänzt.
+- Explizite Modellanteile `rain`/`showers` führen; Wettercode, CAPE, Lifted Index, CIN, Feuchte, Bewölkung und Sonnenschein dienen als konsistente Zusatzbelege.
+- Sprühregen und Schneegriesel bleiben nur bei passender tiefer Schichtbewölkung und Feuchte bestehen.
+- Forecast-Fusion, Tagesaggregation, Kurzfrist, Meteogramm, Widget-/Push-Feed und Worker nutzen dieselbe Niederschlagskonsistenz.
+- 262 automatisch erkannte Regressionstests bestanden.
+
 # MID v0.9.5.1
 
 - GitHub-Buildfehler `TS2345` in der Wind-/Böen-Vorschau behoben.

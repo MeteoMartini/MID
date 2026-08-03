@@ -19,10 +19,10 @@ for(const token of [
 ])if(!radar.includes(token))failures.push(`Einklappbare Komposit-Legende fehlt: ${token}`);
 for(const token of ['.radarlegend.compact.collapsed','.radarlegend.compact.expanded','.radarlegend-toggle','.radarlegend-details'])if(!styles.includes(token))failures.push(`Legenden-CSS fehlt: ${token}`);
 for(const token of [
- "type=drizzlePlausible(h,total)?'drizzle':hasShowers?'showers':'rain'",
- "type=snowGrainsPlausible(h,total)?'snowGrains':hasShowers?'snowShowers':'snow'",
+ "type=drizzlePlausible(h,total)?'drizzle':character.character==='convective'||hasShowers?'showers':'rain'",
+ "type=snowGrainsPlausible(h,total)?'snowGrains':character.character==='convective'||hasShowers?'snowShowers':'snow'",
  "type=codedType;",
- "Die vom Modell gelieferte Niederschlagsphase darf"
+ "Der WMO-Code bleibt für die Phase"
 ])if(!precipitation.includes(token))failures.push(`Phasenerhaltende Plausibilitätslogik fehlt: ${token}`);
 if(precipitation.includes('snowPlausible('))failures.push('Temperaturbasierte Schnee-zu-Regen-Umschaltung ist noch vorhanden.');
 if(!route.includes('Die feste oder flüssige Phase des WMO-Codes bleibt unverändert.'))failures.push('Routenwetter erklärt die phasenerhaltende Logik nicht.');

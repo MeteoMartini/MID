@@ -26,7 +26,7 @@ const MODELS:ModelOption[]=[
  {id:'dwd_icon',label:'DWD ICON Global',hours:180,detail:'ca. 11 km · bis 180 h'}
 ];
 
-const SURFACE_VARS=['temperature_2m','relative_humidity_2m','pressure_msl','wind_speed_10m','wind_direction_10m','wind_gusts_10m','precipitation','rain','showers','snowfall','snow_depth','weather_code','cloud_cover','cloud_cover_low','freezing_level_height'];
+const SURFACE_VARS=['temperature_2m','relative_humidity_2m','pressure_msl','wind_speed_10m','wind_direction_10m','wind_gusts_10m','precipitation','rain','showers','snowfall','snow_depth','weather_code','cloud_cover','cloud_cover_low','freezing_level_height','cape','lifted_index','convective_inhibition','sunshine_duration','is_day'];
 const PROFILE_VARS=PROFILE_LEVELS.flatMap(level=>[`temperature_${level}hPa`,`relative_humidity_${level}hPa`,`cloud_cover_${level}hPa`,`wind_speed_${level}hPa`,`wind_direction_${level}hPa`,`geopotential_height_${level}hPa`]);
 const HOURLY_VARS=[...SURFACE_VARS,...PROFILE_VARS];
 
@@ -100,7 +100,7 @@ function formatTick(value:number,_unit:string,step=1){const decimals=step<.1?2:s
 function precipType(index:number,hourly:HourlyRecord){
  const precip=valueAt(hourly,'precipitation',index)??0,rain=valueAt(hourly,'rain',index)??0,showers=valueAt(hourly,'showers',index)??0,snow=valueAt(hourly,'snowfall',index)??0,temp=valueAt(hourly,'temperature_2m',index),t850=valueAt(hourly,'temperature_850hPa',index),code=valueAt(hourly,'weather_code',index)??0;
  if(temp!==null&&temp<=.5&&t850!==null&&t850>1&&precip>.05)return{short:'FZRA',label:'gefrierender Regen',kind:'freezing'};
- const part=precipitationParts({precipitation:precip,rain,showers,snowfall:snow,probability:0,code,temperature:temp??undefined,dewPoint:valueAt(hourly,'dew_point_2m',index)??undefined,humidity:valueAt(hourly,'relative_humidity_2m',index)??undefined,cloud:valueAt(hourly,'cloud_cover',index)??undefined,lowCloud:valueAt(hourly,'cloud_cover_low',index)??undefined});
+ const part=precipitationParts({precipitation:precip,rain,showers,snowfall:snow,probability:0,code,temperature:temp??undefined,dewPoint:valueAt(hourly,'dew_point_2m',index)??undefined,humidity:valueAt(hourly,'relative_humidity_2m',index)??undefined,cloud:valueAt(hourly,'cloud_cover',index)??undefined,lowCloud:valueAt(hourly,'cloud_cover_low',index)??undefined,cape:valueAt(hourly,'cape',index)??undefined,liftedIndex:valueAt(hourly,'lifted_index',index)??undefined,convectiveInhibition:valueAt(hourly,'convective_inhibition',index)??undefined,sunshineDuration:valueAt(hourly,'sunshine_duration',index)??undefined,isDay:(valueAt(hourly,'is_day',index)??1)>=.5});
  const mapped={
   none:{short:'',label:'kein Niederschlag',kind:'none'},
   drizzle:{short:'DZ',label:part.weatherLabel,kind:'rain'},

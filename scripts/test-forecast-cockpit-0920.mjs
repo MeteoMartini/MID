@@ -24,7 +24,8 @@ for(const token of [
 
 for(const token of [
  'Adaptive 24-Stunden-Zeitleiste',
- 'Blaue Balken: Niederschlag · Höhe = mm · Deckkraft = Wahrscheinlichkeit',
+ 'cockpit-short-highlights',
+ 'compactShortTermPoints',
  'adaptiveShortTermPoints',
  'flowDirection(point.direction)',
  'Böen ${wind(point.gust,unit)}'
@@ -33,7 +34,8 @@ for(const token of [
  'cockpit-seven-grid',
  'temperatureRange',
  'cockpit-day-temp-track',
- 'cockpit-phase-line',
+ 'cockpit-day-regime',
+ 'regimeLabel',
  '7-Tage-Trend',
  'DWD_WIND_THRESHOLDS_KMH'
 ])need('7-Tage-Wetterband',cockpit,token);

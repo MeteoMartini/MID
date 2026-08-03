@@ -51,7 +51,7 @@ try{
  const distant=precip.reconcileForecastPrecipitation({precipitation:.1,rain:.1,probability:10,code:61,cloud:45,lowCloud:10,cape:40,sunshineDuration:2600,isDay:true,leadHours:120});
  assert.equal(distant.precipitation,0,'Tag-5-Spur 0,1 mm/10 % darf nicht als deterministischer Regen erscheinen');
  assert.equal(distant.probability,10,'probabilistische Rohinformation bleibt sichtbar');
- const convective=precip.reconcileForecastPrecipitation({precipitation:.4,rain:.4,probability:35,code:61,cloud:55,lowCloud:15,cape:350,sunshineDuration:1800,isDay:true,leadHours:96});
+ const convective=precip.reconcileForecastPrecipitation({precipitation:.4,rain:.05,showers:.35,probability:35,code:61,cloud:55,lowCloud:15,cape:350,sunshineDuration:1800,isDay:true,leadHours:96});
  assert.ok([80,81,82].includes(convective.code),'aufgelockerte konvektive Lage wird als Schauer statt Dauerregen klassifiziert');
  const stratiform=precip.reconcileForecastPrecipitation({precipitation:.4,rain:.4,probability:35,code:61,cloud:95,lowCloud:85,humidity:94,sunshineDuration:0,isDay:true,leadHours:96});
  assert.equal(stratiform.code,61,'geschlossene feuchte Schichtbewölkung darf Regen tragen');
