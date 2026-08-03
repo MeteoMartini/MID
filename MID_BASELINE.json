@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.12.2",
+  "releaseVersion": "0.9.13.0",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -91,7 +91,8 @@
     "scripts/test-forecast-cockpit-pictograms-09100.mjs",
     "scripts/test-hyperlocal-shortterm-pictograms-09100.mjs",
     "scripts/test-radar-nowcast-null-buildfix-091111.mjs",
-    "scripts/test-radar-interval-seamless-blend-09120.mjs"
+    "scripts/test-radar-interval-seamless-blend-09120.mjs",
+    "scripts/test-cloud-layer-day-night-details-09130.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -166,6 +167,7 @@
     "scripts/test-synoptic-professional-analysis-0940.mjs",
     "scripts/test-ensemble-metric-deck-0940.mjs",
     "scripts/test-cockpit-scroll-drizzle-consistency-0940.mjs",
-    "scripts/test-cockpit-ensemble-usability-0980.mjs"
+    "scripts/test-cockpit-ensemble-usability-0980.mjs",
+    "scripts/test-cloud-layer-day-night-details-09130.mjs"
   ]
 }

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.9.13.0
+- Wetterpiktogramme fachlich erweitert: tiefe, mittelhohe, hohe, mehrschichtige und konvektive Bewölkung werden bei verfügbaren Wolkenschichtdaten unterschiedlich visualisiert.
+- Open-Meteo-Best-Match lädt nun zusätzlich mittelhohe und hohe Wolkenbedeckung für aktuelle und stündliche Prognosen.
+- Tageweise Vorhersagen zeigen ein großes Tages- und ein kleineres Nachtpiktogramm.
+- Antippen eines Tages öffnet unmittelbar die Tagesdetails im 3-Stunden-Raster; ein Schalter wechselt auf stündliche Darstellung.
+- Kurzfrist-, Cockpit-, Tagesdetail-, aktuelle Wetter- und Widget-Piktogramme verwenden denselben professionellen SVG-Satz.
+
 ## 0.9.12.2
 - GitHub-Produktionsbuild repariert: die nach der Radar-Metadatenverdichtung ungenutzte Hilfsfunktion `radarClockRange` wurde entfernt.
 - Radarzeitformatierung, hervorgehobene 2-h-Summe und Info-Popover aus v0.9.12.1 bleiben unverändert.

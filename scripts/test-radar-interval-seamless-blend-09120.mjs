@@ -14,6 +14,7 @@ const fusion=readFileSync(new URL('../src/forecastFusion.ts',import.meta.url),'u
 const twin=readFileSync(new URL('../src/forecastVerification.ts',import.meta.url),'utf8');
 const blendSource=readFileSync(new URL('../src/forecastFusion.ts',import.meta.url),'utf8');
 const pkg=JSON.parse(readFileSync(new URL('../package.json',import.meta.url),'utf8'));
+const baseline=JSON.parse(readFileSync(new URL('../MID_BASELINE.json',import.meta.url),'utf8'));
 
 assert.ok(shortTerm.includes('isQuarterInterval=offsetMinutes<=QUARTER_STEP_COUNT*15'),'15-Minuten-Raster muss unabhängig vom Vorhandensein nativer Viertelstundendaten bestimmt werden.');
 assert.ok(shortTerm.includes("intervalLabel:isQuarterInterval?'15 min':'1 h'"),'Bezugsintervall muss dem Zeitraster entsprechen.');
@@ -24,7 +25,7 @@ assert.ok(fusion.includes('RADAR_TRANSITION_HORIZON_MINUTES'),'Auslaufender Rada
 assert.ok(!fusion.includes('minutes>210'),'Direkte alte 210-Minuten-Radarfortschreibung ist noch vorhanden.');
 assert.ok(twin.includes('applyOperationalNowcastHours(locallyAdjusted,radar)'),'Wetterzwilling nutzt nicht denselben zentralen Radar-Modell-Blend.');
 assert.ok(!twin.includes('Number(radar.currentRate))*.25'),'Wetterzwilling schreibt weiterhin direkte Radarintensität pauschal fort.');
-assert.equal(pkg.version,'0.9.12.2','Releaseversion des Radar-Blend-Buildfixstands stimmt nicht.');
+assert.equal(pkg.version,baseline.releaseVersion,'Releaseversion des Radar-Blend-Buildfixstands stimmt nicht mit der Baseline überein.');
 
 const directory=mkdtempSync(join(tmpdir(),'mid-radar-blend-'));
 try{
