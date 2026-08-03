@@ -6,8 +6,8 @@ import {fileURLToPath} from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const panel=fs.readFileSync(path.join(root,'src/EnsemblePanel.tsx'),'utf8'),app=fs.readFileSync(path.join(root,'src/App.tsx'),'utf8'),cockpit=fs.readFileSync(path.join(root,'src/ForecastCockpit.tsx'),'utf8'),styles=fs.readFileSync(path.join(root,'src/styles.css'),'utf8');
 for(const token of [
- "EnsembleMetricDeck","Temperatur','Tmin/Tmax + ENS-Band","Niederschlag','Menge blau + Wahrscheinlichkeit türkis","Wind/Böen','Wind grün + Böen bräunlich","activeMetric==='temperature'","activeMetric==='precipitation'","activeMetric==='wind'","presentation='full'","presentation?:EnsemblePresentation",
- 'confidenceGradientStops','stopColor={color}','TemperatureValueDot',"presentation==='cockpit'||temperatureOpen","presentation==='cockpit'||rainOpen","presentation==='cockpit'||windOpen",'ensemble-temperature-value','<Cell key={`rain-cell-${row.date}`','uncertaintyOpacity(row'
+ "EnsembleMetricDeck","Abweichung zum Klimamittel","Menge × Wahrscheinlichkeit","Wind dunkelgrün · Böen oliv","activeMetric==='temperature'","activeMetric==='precipitation'","activeMetric==='wind'","presentation='full'","presentation?:EnsemblePresentation",
+ 'combinedPrecipitationPreview','temperatureAnomaly','confidenceGradientStops','stopColor={color}','TemperatureValueDot',"presentation==='cockpit'||temperatureOpen","presentation==='cockpit'||rainOpen","presentation==='cockpit'||windOpen",'ensemble-temperature-value','<Cell key={`rain-cell-${row.date}`','uncertaintyOpacity(row'
 ])assert.ok(panel.includes(token),`Ensemble-Metrikdeck fehlt: ${token}`);
 assert.ok(app.includes('presentation="cockpit"'),'Cockpit verwendet nicht die professionellen Ensemble-Diagramme.');
 assert.ok(app.includes('cockpitDetails={{'),'Separate kompakte Cockpit-Analyse fehlt.');

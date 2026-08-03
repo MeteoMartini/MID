@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.9.8.0
+- Warnungsbereiche für automatische und amtliche Warnungen auf allen Displaygrößen deutlich verdichtet; Titel und Gültigkeit bleiben im eingeklappten Zustand sichtbar.
+- Kurzfrist-Cockpit mit eindeutiger 3-h/1-h-Umschaltung, meteorologisch vollständigem 90-Minuten-Schnellblick, verbesserten Achsen, Wetterpiktogrammen und warnstufenabhängig eingefärbten Windpfeilen.
+- 14-Tage-Schalter fachlich neu aufgebaut: Temperatur relativ zum Klimamittel, ein kombinierter Niederschlagsbalken und Wind/Böen in den Farben der vollständigen Diagramme.
+- Temperaturabweichungen werden in Kelvin, Tmin blau und Tmax rot dargestellt.
+- Niederschlagsdiagramm: P10–P90-Schalter blendet nur die schwarzen Spannen aus; Achsen und Diagrammrahmen bleiben erhalten.
+- Ensemble-Tooltips auf Desktop auf Hover/Fine-Pointer umgestellt; Touchgeräte behalten Klickbedienung.
+- Nutzlose durchschnittliche Ensemble-Mitglieder-Zeile entfernt und Konsistenz-/Modellstatus kompakter dargestellt.
+
 ## 0.9.7.1
 - GitHub-Produktionsbuild repariert: fünf ungenutzte Deklarationen in `ForecastCockpit.tsx` entfernt (`CloudRain`, `Compass`, `GaugeCircle`, `finite`, `circularDelta`).
 - Keine fachliche oder visuelle Änderung gegenüber v0.9.7.0.

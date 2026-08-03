@@ -9,7 +9,7 @@ if(!atLeast)failures.push(`Version liegt vor 0.8.28.1: ${pkg.version}`);
 if(baseline.releaseVersion!==pkg.version)failures.push(`Baseline ${baseline.releaseVersion} passt nicht zu ${pkg.version}.`);
 for(const token of [
  'function useDismissibleChartTooltip()',
- 'trigger="click"',
+ 'trigger={chartTooltipTrigger()}',
  'isAnimationActive={false}',
  'cursor={false}',
  'key={tooltip.tooltipKey}',
@@ -25,11 +25,11 @@ for(const token of [
  'onDismiss={rainTooltip.dismiss}'
 ])if(!panel.includes(token))failures.push(`Ensemble-Interaktion/Layout fehlt: ${token}`);
 for(const token of [
- 'MID v0.8.28.1 · kompakte, breite Ensemble-Diagramme und reaktionsschnelle Klick-Tooltips',
+ 'MID v0.8.28.1 · kompakte, breite Ensemble-Diagramme und reaktionsschnelle adaptive Hover-/Klick-Tooltips',
  '.trend-legend,.wind-legend,.rain-legend{',
  'backdrop-filter:none!important',
  'grid-template-columns:minmax(58px,.82fr) minmax(48px,.7fr) minmax(48px,.7fr)!important',
  '.ensemble-temp-chart-core,.ensemble-rain-chart-core,.ensemble-wind-chart-core{'
 ])if(!css.includes(token))failures.push(`Ensemble-CSS fehlt: ${token}`);
 if(failures.length){console.error('MID v0.8.28.1 Ensemble-Interaktions-/Layoutprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Kompakte gemeinsame Ensemble-Geometrie, Klick-Tooltips und Outside-Dismiss geprüft.');
+console.log('Kompakte gemeinsame Ensemble-Geometrie, adaptive Hover-/Klick-Tooltips und Outside-Dismiss geprüft.');
