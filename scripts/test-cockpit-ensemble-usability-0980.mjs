@@ -36,6 +36,8 @@ assert.match(styles,/\.official-list\{display:grid;grid-template-columns:repeat\
 assert.match(styles,/\.ensemble-metric-mini\.temperature>em>u/,'Temperaturvorschau braucht eine Klimamittel-Nullinie');
 assert.match(styles,/\.ensemble-metric-mini\.precipitation>em>strong\{display:none/,'Niederschlagsschalter darf nur einen Balken pro Tag zeigen');
 
-assert.equal(JSON.parse(pkg).version,'0.9.8.0');
-assert.equal(JSON.parse(baseline).releaseVersion,'0.9.8.0');
-console.log('MID v0.9.8.0 Cockpit-, Warnungs- und Ensemble-Usability geprüft.');
+const versionAtLeast=(value,minimum)=>{const left=String(value).split('.').map(Number),right=String(minimum).split('.').map(Number),length=Math.max(left.length,right.length);for(let index=0;index<length;index++){const a=left[index]||0,b=right[index]||0;if(a>b)return true;if(a<b)return false}return true};
+const packageVersion=JSON.parse(pkg).version,baselineVersion=JSON.parse(baseline).releaseVersion;
+assert.ok(versionAtLeast(packageVersion,'0.9.8.0'),`Cockpit-Usability benötigt mindestens v0.9.8.0, gefunden ${packageVersion}`);
+assert.equal(baselineVersion,packageVersion,'Baseline und Paketversion müssen synchron bleiben');
+console.log(`MID v${packageVersion} Cockpit-, Warnungs- und Ensemble-Usability geprüft.`);

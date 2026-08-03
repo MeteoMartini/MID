@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.9.0
+- Suchmaschinen-Discoverability für `https://www.midwx.app/` ergänzt: Canonical, indexierbare Meta-Tags, Open Graph, strukturierte WebApplication-Daten, robots.txt, XML-Sitemap, CNAME und statischer No-JavaScript-Fallback.
+- Prognose-Cockpit auf Desktop repariert: Icon, Titel, Zusammenfassung und Mini-Ribbon besitzen feste Gridbereiche; kein seitliches Verrutschen oder unkontrolliertes Umbrechen von „7 Tage“.
+- Register- und Ribbon-Cockpit für 1, 2 und 3 aktive Horizonte sowie Desktop, Tablet und Smartphone responsiv abgesichert; klassische Ansicht bleibt unberührt.
+
 ## 0.9.8.0
 - Warnungsbereiche für automatische und amtliche Warnungen auf allen Displaygrößen deutlich verdichtet; Titel und Gültigkeit bleiben im eingeklappten Zustand sichtbar.
 - Kurzfrist-Cockpit mit eindeutiger 3-h/1-h-Umschaltung, meteorologisch vollständigem 90-Minuten-Schnellblick, verbesserten Achsen, Wetterpiktogrammen und warnstufenabhängig eingefärbten Windpfeilen.

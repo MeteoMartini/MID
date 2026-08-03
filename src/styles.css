@@ -4251,3 +4251,121 @@ body,#root{
 
 @media(max-width:760px){.hazards.compact-list,.official-list{grid-template-columns:1fr!important}.hazards.compact-list .hazard-toggle,.official-alert>button{min-height:34px}.cockpit-resolution{width:100%;justify-content:space-between}.cockpit-now90-grid{grid-template-columns:repeat(7,minmax(88px,1fr))!important}.ensemble-metric-deck>button{grid-template-columns:1fr!important}.ensemble-metric-mini{height:29px!important}}
 @media(max-width:420px){.hazards.compact-list .hazard-toggle-head strong,.official-alert-head strong{font-size:10px}.hazards.compact-list .hazard-toggle-head .hazard-validity,.official-validity-pill{font-size:7.5px!important}.cockpit-now90-slot{min-width:86px;padding:5px 6px!important}.cockpit-now90-slot>.mid-weather-pictogram{width:31px!important;height:31px!important}.cockpit-short-chart{min-width:660px!important}.ensemble-metric-deck>button{min-width:110px!important}.ensemble-metric-deck b{font-size:9px!important}}
+
+/* MID v0.9.9.0 · Prognose-Cockpit responsive register repair */
+.cockpit-tabs.tabs-1{grid-template-columns:minmax(0,1fr)}
+.cockpit-tabs.tabs-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.cockpit-tabs.tabs-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.cockpit-tabs>button{
+ grid-template-columns:32px minmax(0,1fr);
+ grid-template-areas:"icon copy" "ribbon ribbon";
+ align-content:start;
+ align-items:start;
+ min-width:0;
+ overflow:hidden;
+}
+.cockpit-tabs>button>.cockpit-tab-icon{
+ grid-area:icon;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ width:32px;
+ height:32px;
+ color:var(--accent);
+}
+.cockpit-tabs>button>.cockpit-tab-copy{
+ grid-area:copy;
+ display:grid;
+ min-width:0;
+ gap:4px;
+ align-self:center;
+}
+.cockpit-tabs>button>.cockpit-tab-copy>b{
+ min-width:0;
+ font-size:15px;
+ line-height:1.1;
+ white-space:nowrap;
+ overflow:hidden;
+ text-overflow:ellipsis;
+}
+.cockpit-tabs>button>.cockpit-tab-copy>small{
+ display:-webkit-box;
+ min-width:0;
+ min-height:2.5em;
+ overflow:hidden;
+ color:var(--muted);
+ font-size:11px;
+ line-height:1.25;
+ white-space:normal;
+ text-overflow:ellipsis;
+ -webkit-box-orient:vertical;
+ -webkit-line-clamp:2;
+ line-clamp:2;
+}
+.cockpit-tabs>button>.cockpit-mini-ribbon{
+ grid-area:ribbon;
+ width:100%;
+ min-width:0;
+ margin-top:5px;
+}
+.mode-cockpit-tabs .cockpit-tabs>button{min-height:88px}
+.mode-cockpit-ribbons .cockpit-tabs>button{min-height:126px}
+.cockpit-header>span{
+ display:-webkit-box;
+ max-width:min(100%,78ch);
+ overflow:hidden;
+ line-height:1.4;
+ -webkit-box-orient:vertical;
+ -webkit-line-clamp:2;
+ line-clamp:2;
+}
+@media (min-width:1100px){
+ .cockpit-tabs{gap:14px}
+ .cockpit-tabs>button{padding:15px 16px}
+ .cockpit-tabs>button>.cockpit-tab-copy>b{font-size:16px}
+ .cockpit-tabs>button>.cockpit-tab-copy>small{font-size:11.5px}
+}
+@media (min-width:681px) and (max-width:980px){
+ .cockpit-tabs{gap:8px;padding-inline:10px}
+ .cockpit-tabs>button{grid-template-columns:26px minmax(0,1fr);padding:11px 10px}
+ .cockpit-tabs>button>.cockpit-tab-icon{width:26px;height:28px}
+ .cockpit-tabs>button>.cockpit-tab-copy>b{font-size:13px}
+ .cockpit-tabs>button>.cockpit-tab-copy>small{font-size:9.5px}
+ .mode-cockpit-tabs .cockpit-tabs>button{min-height:82px}
+ .mode-cockpit-ribbons .cockpit-tabs>button{min-height:116px}
+}
+@media (max-width:680px){
+ .cockpit-tabs{
+  grid-template-columns:repeat(3,minmax(88px,1fr));
+  gap:6px;
+  overflow-x:auto;
+  overscroll-behavior-x:contain;
+  scrollbar-width:none;
+ }
+ .cockpit-tabs::-webkit-scrollbar{display:none}
+ .cockpit-tabs>button{
+  grid-template-columns:1fr;
+  grid-template-areas:"icon" "copy" "ribbon";
+  justify-items:center;
+  padding:9px 7px;
+  text-align:center;
+ }
+ .cockpit-tabs>button>.cockpit-tab-copy{justify-items:center;width:100%}
+ .cockpit-tabs>button>.cockpit-tab-copy>b{font-size:12px}
+ .cockpit-tabs>button>.cockpit-tab-copy>small{
+  min-height:0;
+  width:100%;
+  font-size:9px;
+  -webkit-line-clamp:1;
+  line-clamp:1;
+ }
+ .mode-cockpit-tabs .cockpit-tabs>button{min-height:82px}
+ .mode-cockpit-ribbons .cockpit-tabs>button{min-height:112px}
+ .cockpit-header>span{-webkit-line-clamp:1;line-clamp:1}
+}
+@media (max-width:390px){
+ .cockpit-tabs{grid-template-columns:repeat(3,minmax(82px,1fr));padding-inline:8px}
+ .cockpit-tabs>button>.cockpit-tab-copy>small{display:none}
+ .mode-cockpit-tabs .cockpit-tabs>button{min-height:66px}
+ .mode-cockpit-ribbons .cockpit-tabs>button{min-height:96px}
+}

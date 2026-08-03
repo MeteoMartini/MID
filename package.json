@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.8.0",
+  "version": "0.9.9.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -179,7 +179,9 @@
     "test:cockpit-clarity": "node scripts/test-cockpit-clarity-0960.mjs",
     "test:precipitation-character": "node scripts/test-precipitation-character-0960.mjs",
     "test:worker-precipitation-character": "node scripts/test-worker-precipitation-character-0960.mjs",
-    "test:buildfix-0971": "node scripts/test-buildfix-0971.mjs"
+    "test:buildfix-0971": "node scripts/test-buildfix-0971.mjs",
+    "test:seo": "node scripts/test-seo-discoverability-0990.mjs",
+    "test:cockpit-responsive": "node scripts/test-cockpit-responsive-0990.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",
@@ -188,17 +190,17 @@
     "lucide-react": "^0.468.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-is": "18.3.1",
     "react-leaflet": "^4.2.1",
-    "recharts": "3.8.1",
-    "react-is": "18.3.1"
+    "recharts": "3.8.1"
   },
   "devDependencies": {
     "@types/leaflet": "^1.9.16",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "4.7.0",
     "typescript": "5.9.3",
-    "vite": "6.4.3",
-    "@vitejs/plugin-react": "4.7.0"
+    "vite": "6.4.3"
   },
   "overrides": {
     "@jridgewell/trace-mapping": "0.3.28"
