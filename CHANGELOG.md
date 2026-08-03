@@ -1,3 +1,11 @@
+# MID v0.9.0.2
+
+- Synoptik bewertet beim Frontdurchgang zusätzlich Windrichtung, Drehsinn und Richtungsänderung.
+- Vorher–Während–Nachher zeigt Windpfeil, Himmelsrichtung und Gradwert.
+- Graue und blaue Balken sind als Böen beziehungsweise Regenwahrscheinlichkeit beschriftet.
+- Isobaren erhalten eine kontrastreiche Doppelkontur und deutlichere hPa-Labels.
+- 252 Regressionstests bestanden.
+
 # MID v0.9.0.0
 
 - Neues professionelles Synoptik-Modul mit unveränderter amtlicher DWD-Bodenanalyse und klar getrennter objektiver MID-Modellanalyse.
