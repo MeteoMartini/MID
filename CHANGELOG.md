@@ -1,3 +1,13 @@
+# MID v0.9.2.0
+
+- Zwei zusätzliche optionale Prognoseoberflächen: gemeinsames Register-Cockpit und kompakter Ribbon-Stapel.
+- Die klassische Darstellung von Kurzfrist, 7 Tagen und 14 Tagen bleibt unverändert der Standard.
+- Adaptive 24-Stunden-MeteoRibbon mit priorisierten Wetterwechseln, Temperatur, Niederschlag und Wind.
+- Sieben-Tage-Wetterband mit gemeinsamer Temperaturskala, Wetterphasen und synchronem Tagesfokus.
+- Vierzehn-Tage-Unsicherheitshorizont mit Parameter-Miniaturen, Ensembleband, Konsistenz und Szenarien.
+- Persistente Auswahl über die Einstellungen, Wischbedienung und vollständige alte Analysen als zweite Ebene.
+- 253 bestehende und neue Regressionstests bestanden.
+
 # MID v0.9.0.2
 
 - Synoptik bewertet beim Frontdurchgang zusätzlich Windrichtung, Drehsinn und Richtungsänderung.
