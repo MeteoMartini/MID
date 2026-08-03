@@ -24,7 +24,7 @@ assert.ok(fusion.includes('RADAR_TRANSITION_HORIZON_MINUTES'),'Auslaufender Rada
 assert.ok(!fusion.includes('minutes>210'),'Direkte alte 210-Minuten-Radarfortschreibung ist noch vorhanden.');
 assert.ok(twin.includes('applyOperationalNowcastHours(locallyAdjusted,radar)'),'Wetterzwilling nutzt nicht denselben zentralen Radar-Modell-Blend.');
 assert.ok(!twin.includes('Number(radar.currentRate))*.25'),'Wetterzwilling schreibt weiterhin direkte Radarintensität pauschal fort.');
-assert.equal(pkg.version,'0.9.12.0','Releaseversion des Radar-Blend-Releases stimmt nicht.');
+assert.equal(pkg.version,'0.9.12.2','Releaseversion des Radar-Blend-Buildfixstands stimmt nicht.');
 
 const directory=mkdtempSync(join(tmpdir(),'mid-radar-blend-'));
 try{

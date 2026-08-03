@@ -4385,3 +4385,14 @@ body,#root{
 @media(max-width:420px){.cockpit-fourteen-weather-label{white-space:normal}.cockpit-fourteen-row>small.cockpit-fourteen-wind-meta{white-space:normal;line-height:1.15}.cockpit-fourteen-selected-wind b{white-space:normal}}
 
 .cockpit-local-badge{display:inline-flex;align-items:center;justify-self:start;margin-top:3px;padding:3px 7px;border:1px solid color-mix(in srgb,var(--accent) 32%,var(--border));border-radius:999px;background:color-mix(in srgb,var(--accent) 8%,var(--surface));color:var(--accent);font-size:9px;font-style:normal;font-weight:800;letter-spacing:.02em}
+
+/* MID v0.9.12.1 – kompakter Radar-Nowcast-Metabereich */
+.precip-now-source-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:7px;padding-top:6px;border-top:1px solid color-mix(in srgb,var(--border) 78%,transparent)}
+.precip-now-source-row>em{display:block;min-width:0;margin:0!important;color:var(--muted);font-size:8px!important;font-style:normal;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.precip-now-source-row>.mode-info{flex:0 0 auto}
+.precip-now-source-row>.mode-info>button{width:22px;height:22px}
+.precip-now-info{display:grid;gap:8px}.precip-now-info>strong{font-size:11px}.precip-now-info>p{margin:0;color:var(--muted);font-size:9px;line-height:1.45}.precip-now-info>dl{display:grid;grid-template-columns:minmax(90px,.8fr) minmax(130px,1.2fr);gap:5px 9px;margin:0}.precip-now-info dt{color:var(--muted);font-size:8px;font-weight:800}.precip-now-info dd{margin:0;color:var(--text);font-size:8px;line-height:1.35}
+.radar-nowcast-title .radar-nowcast-total{display:inline-flex!important;align-items:center;gap:5px;padding:3px 7px;border:1px solid color-mix(in srgb,var(--primary) 34%,var(--border));border-radius:999px;background:color-mix(in srgb,var(--primary) 11%,var(--surface));color:var(--text)!important;line-height:1!important;white-space:nowrap}
+.radar-nowcast-title .radar-nowcast-total small{color:var(--muted);font-size:6.7px;font-weight:800;letter-spacing:.02em;text-transform:uppercase}
+.radar-nowcast-title .radar-nowcast-total strong{color:var(--text);font-size:9px;font-weight:900;letter-spacing:0}
+@media(max-width:520px){.precip-now-source-row>em{font-size:7.6px!important}.radar-nowcast-title .radar-nowcast-total{padding:3px 6px}.radar-nowcast-title .radar-nowcast-total small{font-size:6.2px}.radar-nowcast-title .radar-nowcast-total strong{font-size:8.5px}.precip-now-info>dl{grid-template-columns:1fr}}

@@ -18,7 +18,7 @@ const forbid=(area,text,token)=>{if(text.includes(token))failures.push(`${area}:
 
 for(const token of [
  'Niederschlag am Standort voraussichtlich von ${arrivalStart} bis ${end} Uhr',
- 'Möglicher Standorttreffer zwischen ${arrivalWindow.replace',
+ 'Möglicher Standorttreffer zwischen ${arrivalStart} und ${arrivalEnd} Uhr',
  "const nearby=radar.arrivalKind==='nearby'||radar.arrivalKind==='approximate'"
 ])need('Radartext',app,token);
 forbid('Radartext',app,"Radarecho erreicht den Standort voraussichtlich'} in ${minuteText} Minuten");
