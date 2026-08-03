@@ -15,7 +15,9 @@ const [shortTerm,app,pkg,baseline]=await Promise.all([
 const failures=[];
 const need=(area,text,token)=>{if(!text.includes(token))failures.push(`${area}: ${token}`)};
 for(const token of ['shortTermAnchorFromCurrent','observedSkyCode','assimilatedDirection','anchorPrecipitation','localAdjustment','Hyperlokal angepasst','Bewölkung / Sicht'])need('Kurzfrist-Hyperlokalität',shortTerm,token);
-need('App-Anbindung',app,'anchor={shortTermAnchorFromCurrent(st,w!.current)}');
+need('App-Anbindung',app,'shortTermAnchor=useMemo(()=>w?shortTermAnchorFromCurrent(st,w.current):undefined');
+need('Cockpit-Anbindung',app,'shortTermAnchor={shortTermAnchor}');
+need('Kurzfrist-Anbindung',app,'anchor={shortTermAnchor}');
 need('Package-Test',pkg,'test:short-term-hyperlocal-consistency');
 need('Baseline-Test',baseline,'scripts/test-short-term-hyperlocal-consistency-082619.mjs');
 

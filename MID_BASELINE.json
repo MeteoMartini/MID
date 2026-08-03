@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.9.0",
+  "releaseVersion": "0.9.10.1",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -87,7 +87,9 @@
     "scripts/test-buildfix-0971.mjs",
     "scripts/test-cockpit-ensemble-usability-0980.mjs",
     "scripts/test-seo-discoverability-0990.mjs",
-    "scripts/test-cockpit-responsive-0990.mjs"
+    "scripts/test-cockpit-responsive-0990.mjs",
+    "scripts/test-forecast-cockpit-pictograms-09100.mjs",
+    "scripts/test-hyperlocal-shortterm-pictograms-09100.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [

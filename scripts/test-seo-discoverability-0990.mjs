@@ -22,6 +22,7 @@ if((sitemap.match(/<url>/g)||[]).length!==1)failures.push('Sitemap soll genau di
 if(cname.trim()!=='www.midwx.app')failures.push('CNAME muss www.midwx.app enthalten.');
 const manifest=JSON.parse(manifestText),pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText);
 if(manifest.id!=='./'||manifest.start_url!=='./'||manifest.scope!=='./')failures.push('Manifest-ID, Start-URL und Scope müssen GitHub-Pages-kompatibel auf ./ zeigen.');
-if(pkg.version!=='0.9.9.0'||baseline.releaseVersion!=='0.9.9.0')failures.push('SEO-Releaseversion ist nicht synchronisiert.');
+if(!pkg.version||baseline.releaseVersion!==pkg.version)failures.push('SEO-Releaseversion ist nicht synchronisiert.');
+need('HTML Releaseversion',html,`<meta name="mid-version" content="${pkg.version}">`);
 if(failures.length){console.error(failures.join('\n'));process.exit(1)}
-console.log('MID v0.9.9.0 Suchmaschinen-Discoverability geprüft.');
+console.log(`MID v${pkg.version} Suchmaschinen-Discoverability geprüft.`);

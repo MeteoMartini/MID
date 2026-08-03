@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.9.0",
+  "version": "0.9.10.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -112,7 +112,7 @@
     "test:radar-unused-pxfactor-buildfix": "node scripts/test-radar-unused-pxfactor-buildfix-08252.mjs",
     "test:seven-day-night-rain-coherence": "node scripts/test-seven-day-night-rain-coherence-08253.mjs",
     "test:water-tides-full-calendar-day": "node scripts/test-water-tides-full-calendar-day-08254.mjs",
-    "test:forecast-cockpit": "node scripts/test-forecast-cockpit-0920.mjs",
+    "test:forecast-cockpit": "node scripts/test-forecast-cockpit-pictograms-09100.mjs",
     "audit:dependencies": "npm audit --audit-level=high --omit=dev",
     "audit:all": "npm audit --audit-level=high",
     "test:maintenance-08260": "node scripts/test-maintenance-recharts3-cache-ci-08260.mjs",

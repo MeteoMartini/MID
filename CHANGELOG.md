@@ -1,4 +1,15 @@
+# MID v0.9.10.1
+
+- Buildfix: fehlende Hilfsfunktion `windSignalColor()` für warnstufenabhängig eingefärbte SVG-Windpfeile ergänzt.
+- SEO-Metaversion und Regressionstest auf die aktive Paketversion synchronisiert.
+
 # Changelog
+
+## 0.9.10.0
+- 14-Tage-Cockpit um professionelle Wetterpiktogramme je Tag und in der Fokuskarte ergänzt.
+- Windpfeile in Kurzfrist-, 7-Tage- und 14-Tage-Cockpit vereinheitlicht; Richtung und warnstufenabhängige Farbformatierung entsprechen der Kurzfristvorhersage.
+- Hyperlokaler Stationsanker wird gemeinsam auf 90-Minuten-Ultrakurzfrist, Cockpit-Kurzfrist und vollständige Kurzfristvorhersage angewandt.
+- Kurzfristtexte verdichtet: z. B. „Trocken · Böen bis 26 kt um 21:00“ statt der sperrigen bisherigen Formulierung.
 
 ## 0.9.9.0
 - Suchmaschinen-Discoverability für `https://www.midwx.app/` ergänzt: Canonical, indexierbare Meta-Tags, Open Graph, strukturierte WebApplication-Daten, robots.txt, XML-Sitemap, CNAME und statischer No-JavaScript-Fallback.

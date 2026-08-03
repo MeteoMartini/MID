@@ -13,11 +13,12 @@ const [cockpit,ensemble,styles,app,pkg,baseline]=await Promise.all([
 
 assert.match(cockpit,/Nächste 90 Minuten/,'90-Minuten-Schnellblick fehlt');
 assert.match(cockpit,/Wetter · Temperatur · Niederschlag · Wind/,'90-Minuten-Bereich muss mehrere Wetterfaktoren zeigen');
-assert.match(cockpit,/WeatherPictogram code=\{item\.parts\.displayCode\}/,'90-Minuten-Piktogramme müssen die plausibilisierte Wetterart verwenden');
+assert.match(cockpit,/WeatherPictogram code=\{item\.code\}/,'90-Minuten-Piktogramme müssen die plausibilisierte Wetterart verwenden');
 assert.match(cockpit,/aria-label="Auflösung der Kurzfristvorhersage"/,'3h\/1h-Umschalter fehlt');
 assert.match(cockpit,/>3 h<.*>1 h</s,'3h\/1h-Umschalter ist nicht vollständig');
 assert.match(cockpit,/Temperaturmittel/,'Temperatur-Referenzlinie ist nicht erklärt');
 assert.match(cockpit,/windSignalColor\(point\.gust\)/,'Windpfeile müssen warnstufenabhängig eingefärbt werden');
+assert.match(cockpit,/function windSignalColor\(gustKt:number\)/,'Die warnstufenabhängige Windfarbe muss als Hilfsfunktion definiert sein');
 assert.match(cockpit,/formatDecimalFixed\(value,1\)} K/,'Temperaturabweichung muss in Kelvin dargestellt werden');
 assert.match(cockpit,/cockpit-fourteen-temps/,'Tmin\/Tmax-Stil der 14-Tage-Übersicht fehlt');
 
