@@ -15,8 +15,8 @@ for(const token of [
 for(const token of [
  'Amtliche DWD-Bodenanalyse','Interaktive MID-Synoptik','Nächster markanter Wetterwechsel','Vorher','Während','Nachher','Unsicherheitsbudget nach Ursache','Erklärbare Kausalkette','Lokales Analogarchiv und Ereignisverifikation','Beobachtungskorridor stromaufwärts','persönlichen Schwellenwert','SynopticLifecycle','timingErrorMinutes','impactSignature'
 ])assert.ok((panelSource+synopticSource).includes(token),`Synoptik-Ausbaustufe fehlt: ${token}`);
-assert.ok(modules.includes("|'synoptic'")&&modules.includes("id:'synoptic'"),'Synoptikmodul fehlt in der Dashboardkonfiguration');
-assert.ok(app.includes("case'synoptic'")&&app.includes('MemoLazySynoptic'),'Synoptikmodul ist nicht lazy in App integriert');
+assert.ok(!modules.includes("|'synoptic'")&&!modules.includes("id:'synoptic'"),'Die entfernte Synoptiksektion darf nicht mehr in der Dashboardkonfiguration erscheinen');
+assert.ok(!app.includes("case'synoptic'")&&!app.includes('MemoLazySynoptic')&&!app.includes('LazySynoptic'),'Die entfernte Synoptiksektion darf nicht mehr in App integriert sein');
 assert.ok(panelSource.toLowerCase().includes('unveränderte amtliche referenz')&&panelSource.includes('objektive Modellanalyse'),'amtliche und objektive Frontdarstellung müssen ausdrücklich getrennt bleiben');
 for(const token of ['grid-template-columns:repeat(auto-fit','@media(max-width:760px)','@media(max-width:520px)','minmax(0,1fr)','height:clamp'])assert.ok(styles.includes(token),`Responsive Synoptikregel fehlt: ${token}`);
 assert.ok(!styles.includes('.synoptic-panel{width:'),'Synoptikmodul darf keine starre Desktopbreite erzwingen');

@@ -24,7 +24,7 @@ for(const token of [
 
 for(const token of [
  'Adaptive 24-Stunden-Zeitleiste',
- 'Höhe der Niederschlagsbalken = Menge · Deckkraft = Wahrscheinlichkeit',
+ 'Blaue Balken: Niederschlag · Höhe = mm · Deckkraft = Wahrscheinlichkeit',
  'adaptiveShortTermPoints',
  'flowDirection(point.direction)',
  'Böen ${wind(point.gust,unit)}'

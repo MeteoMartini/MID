@@ -6,7 +6,6 @@ export type DashboardModuleId=
  |'short-term'
  |'forecast'
  |'composite'
- |'synoptic'
  |'ensemble'
  |'forecast-verification'
  |'travel-planner'
@@ -36,7 +35,6 @@ export const DASHBOARD_MODULE_DEFINITIONS:DashboardModuleDefinition[]=[
  {id:'short-term',label:'Kurzfristvorhersage',description:'15-Minuten-Schritte und Stundenverlauf bis +24 h'},
  {id:'forecast',label:'7-Tage-Vorhersage',description:'Tagesübersicht und Tagesdetails'},
  {id:'composite',label:'Kompositbild',description:'Radar, Satellit und aktuelle Beobachtungen'},
- {id:'synoptic',label:'Synoptik und Wetterwechsel',description:'DWD-Bodenanalyse, Fronttiming und lokale Auswirkungen'},
  {id:'ensemble',label:'14-Tage-Ensemble',description:'Unsicherheit und mögliche Entwicklung'},
  {id:'forecast-verification',label:'Prognosegüte und Rückblick',description:'Vorhersagekontrolle und lokale Modellgüte',advancedOnly:true},
  {id:'travel-planner',label:'Reisewetter und Reiseplaner',description:'Klimatologie und Reisezeitfenster'},

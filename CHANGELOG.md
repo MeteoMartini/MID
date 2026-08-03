@@ -1,3 +1,9 @@
+# MID v0.9.5.1
+
+- GitHub-Buildfehler `TS2345` in der Wind-/Böen-Vorschau behoben.
+- Interne Einheit auf den zentralen `WindUnit`-Wert `kn` korrigiert; sichtbare Ausgabe bleibt `kt`.
+- Regressionstest für den WindUnit-Vertrag ergänzt.
+
 # MID v0.9.4.1
 
 - GitHub-Produktionsbuild repariert: ungenutzte `quartileFill`-Deklaration entfernt.

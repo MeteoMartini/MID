@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.4.1",
+  "releaseVersion": "0.9.5.1",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -78,7 +78,9 @@
     "scripts/test-mobile-interaction-reliability-083314.mjs",
     "scripts/test-coherent-weather-bundles-08340.mjs",
     "scripts/test-synoptic-module-0900.mjs",
-    "scripts/test-build-unused-symbols-0941.mjs"
+    "scripts/test-build-unused-symbols-0941.mjs",
+    "scripts/test-ensemble-cockpit-clarity-0950.mjs",
+    "scripts/test-ensemble-wind-unit-0951.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
