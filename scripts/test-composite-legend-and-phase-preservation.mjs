@@ -19,8 +19,9 @@ for(const token of [
 ])if(!radar.includes(token))failures.push(`Einklappbare Komposit-Legende fehlt: ${token}`);
 for(const token of ['.radarlegend.compact.collapsed','.radarlegend.compact.expanded','.radarlegend-toggle','.radarlegend-details'])if(!styles.includes(token))failures.push(`Legenden-CSS fehlt: ${token}`);
 for(const token of [
- "type=drizzlePlausible(h,total)?'drizzle':character.character==='convective'||hasShowers?'showers':'rain'",
- "type=snowGrainsPlausible(h,total)?'snowGrains':character.character==='convective'||hasShowers?'snowShowers':'snow'",
+ "const convectiveLean=character.character==='convective'||hasShowers",
+ "type=drizzlePlausible(h,total)?'drizzle':convectiveLean?'showers':'rain'",
+ "type=snowGrainsPlausible(h,total)?'snowGrains':convectiveLean?'snowShowers':'snow'",
  "type=codedType;",
  "Der WMO-Code bleibt für die Phase"
 ])if(!precipitation.includes(token))failures.push(`Phasenerhaltende Plausibilitätslogik fehlt: ${token}`);

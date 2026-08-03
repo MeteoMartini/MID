@@ -242,8 +242,8 @@ function lowStratusSignal(h:PrecipSample,{humidityMinimum,lowCloudMinimum}:{humi
 }
 
 function drizzlePlausible(h:PrecipSample,total:number){
- const weakStratiformRate=total<=.8&&Math.max(0,Number(h.showers)||0)<.03;
- return lowStratusSignal(h,{humidityMinimum:92,lowCloudMinimum:80})&&weakStratiformRate;
+ const weakStratiformRate=total<=.6&&Math.max(0,Number(h.showers)||0)<.02;
+ return lowStratusSignal(h,{humidityMinimum:93,lowCloudMinimum:84})&&weakStratiformRate;
 }
 
 function snowGrainsPlausible(h:PrecipSample,total:number){
@@ -301,13 +301,14 @@ export function precipitationParts(h:PrecipSample):PrecipitationParts{
  let type:PrecipType;
 
  const character=classifyPrecipitationCharacter(h);
+ const convectiveLean=character.character==='convective'||hasShowers||Math.max(0,Number(h.showers)||0)>=.02||((Number(h.cape)||0)>=200&&(Number(h.lowCloud)||0)<75&&total>=.1);
  if(codedType==='drizzle'){
-  type=drizzlePlausible(h,total)?'drizzle':character.character==='convective'||hasShowers?'showers':'rain';
+  type=drizzlePlausible(h,total)?'drizzle':convectiveLean?'showers':'rain';
  }else if(codedType==='freezingDrizzle'){
   type=drizzlePlausible(h,total)?'freezingDrizzle':'freezingRain';
  }else if(codedType==='snowGrains'){
-  type=snowGrainsPlausible(h,total)?'snowGrains':character.character==='convective'||hasShowers?'snowShowers':'snow';
- }else if(codedType==='rain')type=character.character==='convective'?'showers':'rain';
+  type=snowGrainsPlausible(h,total)?'snowGrains':convectiveLean?'snowShowers':'snow';
+ }else if(codedType==='rain')type=convectiveLean?'showers':'rain';
  else if(codedType==='showers')type=character.character==='stratiform'?'rain':'showers';
  else if(codedType==='snow')type=character.character==='convective'?'snowShowers':'snow';
  else if(codedType==='snowShowers')type=character.character==='stratiform'?'snow':'snowShowers';

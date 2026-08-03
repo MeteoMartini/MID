@@ -11,8 +11,8 @@ for(const token of [
 ])assert.ok(panel.includes(token),`Ensemble-Metrikdeck fehlt: ${token}`);
 assert.ok(app.includes('presentation="cockpit"'),'Cockpit verwendet nicht die professionellen Ensemble-Diagramme.');
 assert.ok(app.includes('cockpitDetails={{'),'Separate kompakte Cockpit-Analyse fehlt.');
-assert.ok(cockpit.includes("['wind','Wind/Böen']"),'Cockpit-Vorschau nennt Böen nicht.');
-assert.ok(cockpit.includes("active==='seven-day'"),'7-Tage-Horizont blockiert Swipe-Wechsel nicht.');
+assert.ok(cockpit.includes('cockpit-fourteen-row')&&cockpit.includes('Böen {wind(item.bestGust'), 'Cockpit-14-Tage-Übersicht nennt Wind und Böen nicht.');
+assert.ok(cockpit.includes("activeHorizon==='seven-day'")&&cockpit.includes('data-cockpit-horizontal-scroll="true"'),'7-Tage-Horizont ist nicht als eigener horizontaler Scrollbereich geschützt.');
 for(const token of ['.ensemble-metric-deck','.ensemble-metric-mini.wind>em>strong','.ensemble-presentation-cockpit','.ensemble-temperature-value'])assert.ok(styles.includes(token),`Ensemble-CSS fehlt: ${token}`);
 const require=createRequire(import.meta.url);let ts;try{ts=require('typescript')}catch{ts=require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript')}
 for(const[file,source]of[['EnsemblePanel.tsx',panel],['ForecastCockpit.tsx',cockpit],['App.tsx',app]]){const result=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,jsx:ts.JsxEmit.ReactJSX},fileName:file,reportDiagnostics:true}),errors=(result.diagnostics||[]).filter(item=>item.category===ts.DiagnosticCategory.Error);assert.equal(errors.length,0,`${file}: ${errors.map(item=>ts.flattenDiagnosticMessageText(item.messageText,' ')).join('\n')}`)}

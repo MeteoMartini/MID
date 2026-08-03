@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.6.0",
+  "releaseVersion": "0.9.7.1",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -83,7 +83,8 @@
     "scripts/test-ensemble-wind-unit-0951.mjs",
     "scripts/test-cockpit-clarity-0960.mjs",
     "scripts/test-precipitation-character-0960.mjs",
-    "scripts/test-worker-precipitation-character-0960.mjs"
+    "scripts/test-worker-precipitation-character-0960.mjs",
+    "scripts/test-buildfix-0971.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [

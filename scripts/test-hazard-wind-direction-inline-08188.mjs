@@ -18,7 +18,7 @@ for(const token of [
  'formatDwdWarningDetailWithDirection',
  'text:`${formatDwdWarningDetailWithDirection(signal,unit)} Automatisch aus dem Open-Meteo-Best-Match abgeleitet; keine amtliche Warnung.`'
 ])need('Warnkarten-Daten',weather,token);
-need('Warnkarten-Rendering',app,'<span>{x.text}</span>{validity&&');
+need('Warnkarten-Rendering',app,'<span>{x.text}</span>');
 for(const forbidden of ['x.windDirectionText','className="hazard-wind-direction"','Modellierte Windrichtung im Warnzeitraum'])if(app.includes(forbidden))failures.push(`Separate Richtungsdarstellung nicht entfernt: ${forbidden}`);
 if(styles.includes('.hazard-wind-direction'))failures.push('CSS der separaten Richtungs-Kapsel ist noch vorhanden.');
 need('Package-Test',pkg,'test:hazard-wind-direction-inline');

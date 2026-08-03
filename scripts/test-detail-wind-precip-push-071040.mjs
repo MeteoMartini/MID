@@ -15,7 +15,7 @@ if(!app.includes('<b>{Math.round(currentHour.dewPoint)}° · {Math.round(current
 for(const token of ["label:'Wind / Böen'","detail:`Richtung ${Math.round(windDirection)}°"])
  if(!app.includes(token))failures.push(`Aktuelle Windkachel fehlt: ${token}`);
 if(!app.includes('{wind(displayWindSpeed,unit)} · {wind(displayWindGust,unit)}')&&!app.includes('{wind(windSpeed,unit)} · {wind(windGust,unit)}'))failures.push('Aktuelle Windkachel zeigt Wind/Böen nicht im erwarteten Format oder ohne Normalisierung an.');
-for(const token of ['dewPoint?:number','cloudBaseHft?:number','ceilingHft?:number','estimatedCloudBaseHft','baseHft<=3000','total<=.8','total<=.5'])
+for(const token of ['dewPoint?:number','cloudBaseHft?:number','ceilingHft?:number','estimatedCloudBaseHft','baseHft<=3000','total<=.6','total<=.5'])
  if(!precip.includes(token))failures.push(`Zentrale Niederschlagsplausibilisierung fehlt: ${token}`);
 for(const [name,text] of [['App',app],['Meteogramm',meteogram],['Routenwetter',route]])if(!text.includes('dewPoint:'))failures.push(`${name} übergibt den Taupunkt nicht an die zentrale Plausibilisierung.`);
 for(const token of ['pushVisibleLocationName','pushLocationPhrases','am Standort','bei ${name}','body:thunderPushBody(result,favorite)'])if(!worker.includes(token))failures.push(`Push-Ortsbezug fehlt: ${token}`);

@@ -1,3 +1,27 @@
+# Changelog
+
+## 0.9.7.1
+- GitHub-Produktionsbuild repariert: fünf ungenutzte Deklarationen in `ForecastCockpit.tsx` entfernt (`CloudRain`, `Compass`, `GaugeCircle`, `finite`, `circularDelta`).
+- Keine fachliche oder visuelle Änderung gegenüber v0.9.7.0.
+
+## 0.9.7.0
+- Prognose-Cockpit: Kurzfrist standardmäßig auf 3h-Darstellung mit 1h-Umschaltung und 90-Minuten-Schnellblick erweitert.
+- 7-Tage-Farblogik durch Legende und geschärfte Tagesregime verständlicher gemacht.
+- 14-Tage-Übersicht auf 3-Parameter-Tageskarten umgestellt und Konsistenzformel app-weit harmonisiert.
+- Amtliche Warnungen standardmäßig eingeklappt; sichtbarer Fokus auf Titel und Gültigkeitspille.
+- Niederschlagssystematik für konvektiv vs. stratiform in Frontend und Worker nachgeschärft.
+
+# MID v0.9.7.0
+
+- Kurzfristansicht auf klare 3-Stunden-Standarddarstellung umgestellt; per Umschalter lässt sich stündlich verdichten.
+- Die horizontale Temperatur-Referenzlinie in der Kurzfrist ist nun explizit als 24h-Mittel ausgewiesen; die bisher missverständliche Darstellung wurde ersetzt.
+- Zusätzlicher 90-Minuten-Schnellblick mit kompakten 15-Minuten-Slots für Niederschlag/Wahrscheinlichkeit direkt im Prognose-Cockpit.
+- 7-Tage-Karten inhaltlich entschärft und objektiver gemacht: `Regenreich`/`Windig` werden nicht mehr bei geringen Mengen oder Einzelereignissen ausgelöst.
+- 14-Tage-Übersicht erhält pro Tag drei selbsterklärende Parameterbalken für Temperatur relativ zum Klimamittel, kombinierten Niederschlag sowie Wind/Böen.
+- Konsistenz im 14-Tage-Cockpit an dieselbe Bewertungslogik wie in der vollständigen Analyse angeglichen.
+- Amtliche Warnungen bleiben standardmäßig kompakt eingeklappt; Titel und Gültigkeitspille sind sofort sichtbar.
+- Relevante Regressionen bestanden: Cockpit-Klarheit, optionale Prognose-Cockpits sowie app-weite konvektiv/stratiforme Niederschlagslogik.
+
 # MID v0.9.6.0
 
 - Prognose-Cockpit auf eine sofort lesbare Stunden-/Tagesübersicht umgestellt; nichtssagende blaue Platzhalter und die unpassende Balkenerklärung entfernt.
