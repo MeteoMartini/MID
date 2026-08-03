@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const app=readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
+const cockpit=readFileSync(new URL('../src/ForecastCockpit.tsx',import.meta.url),'utf8');
+const shortTerm=readFileSync(new URL('../src/ShortTermForecast.tsx',import.meta.url),'utf8');
+const pkg=JSON.parse(readFileSync(new URL('../package.json',import.meta.url),'utf8'));
+const normalized=(app.match(/radarNowcast=\{radarAnalysis\?\?undefined\}/g)||[]).length;
+assert.equal(normalized,3,'Alle drei Radar-Nowcast-Übergaben müssen null auf undefined normalisieren.');
+assert.ok(!app.includes('radarNowcast={radarAnalysis}'),'Unnormalisierte Radar-Nowcast-Übergabe ist noch enthalten.');
+assert.ok(cockpit.includes('radarNowcast?:RadarNowcast'),'Cockpit-Propvertrag für optionales Radar-Nowcast fehlt.');
+assert.ok(shortTerm.includes('radarNowcast?:RadarNowcast'),'Kurzfrist-Propvertrag für optionales Radar-Nowcast fehlt.');
+assert.equal(pkg.version,'0.9.11.1','Buildfix-Version ist nicht synchronisiert.');
+console.log('MID v0.9.11.1 RadarNowcast-Nullability-Buildfix geprüft.');

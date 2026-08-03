@@ -17,7 +17,7 @@ const need=(area,text,token)=>{if(!text.includes(token))failures.push(`${area}: 
 const forbid=(area,text,token)=>{if(text.includes(token))failures.push(`${area}: unerlaubt ${token}`)};
 
 for(const token of [
- 'const QUARTER_STEP_COUNT=4;',
+ 'const QUARTER_STEP_COUNT=6;',
  'function nextQuarterEpoch(now:number)',
  'function buildTargetEpochs(now:number)',
  'targets.push(quarter);',
@@ -58,7 +58,7 @@ try{
  }
  const points=mod.buildShortTermForecast(minute15,hours,timezone,now);
  const firstSix=points.slice(0,6).map(point=>point.timeLabel).join('|');
- if(firstSix!=='18:00|18:15|18:30|18:45|19:00|20:00')failures.push(`Zeitstufen: erwartet 18:00|18:15|18:30|18:45|19:00|20:00, erhalten ${firstSix}`);
+ if(firstSix!=='18:00|18:15|18:30|18:45|19:00|19:15')failures.push(`Zeitstufen: erwartet 18:00|18:15|18:30|18:45|19:00|19:15, erhalten ${firstSix}`);
  if(points[0]?.offsetLabel!=='+7 min')failures.push(`Offset 1: erwartet +7 min, erhalten ${points[0]?.offsetLabel}`);
  if(points[4]?.offsetLabel!=='+1 h 7 min')failures.push(`Offset 5: erwartet +1 h 7 min, erhalten ${points[4]?.offsetLabel}`);
  if(points[0]?.intervalLabel!=='15 min'||points[4]?.intervalLabel!=='1 h')failures.push('Bezugsintervalle: erste Stufen müssen 15 min, ab 19:00 1 h sein.');

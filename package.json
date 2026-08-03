@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.10.1",
+  "version": "0.9.11.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -181,7 +181,8 @@
     "test:worker-precipitation-character": "node scripts/test-worker-precipitation-character-0960.mjs",
     "test:buildfix-0971": "node scripts/test-buildfix-0971.mjs",
     "test:seo": "node scripts/test-seo-discoverability-0990.mjs",
-    "test:cockpit-responsive": "node scripts/test-cockpit-responsive-0990.mjs"
+    "test:cockpit-responsive": "node scripts/test-cockpit-responsive-0990.mjs",
+    "test:radar-nowcast-null-buildfix": "node scripts/test-radar-nowcast-null-buildfix-091111.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

@@ -16,7 +16,7 @@ const need=(area,text,token)=>{if(!text.includes(token))failures.push(`${area}: 
 const forbid=(area,text,token)=>{if(text.includes(token))failures.push(`${area}: unerlaubt ${token}`)};
 
 for(const token of [
- 'const QUARTER_STEP_COUNT=4;',
+ 'const QUARTER_STEP_COUNT=6;',
  'function buildTargetEpochs(now:number)',
  'export function buildShortTermForecast(',
  "offsetMinutes<=60?nearest(minutes15,target,12*60000):undefined",

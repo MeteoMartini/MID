@@ -1,9 +1,15 @@
-# MID v0.9.10.1
-
-- Buildfix: fehlende Hilfsfunktion `windSignalColor()` für warnstufenabhängig eingefärbte SVG-Windpfeile ergänzt.
-- SEO-Metaversion und Regressionstest auf die aktive Paketversion synchronisiert.
-
 # Changelog
+
+## 0.9.11.1
+- GitHub-Produktionsbuild repariert: `RadarNowcast | null` wird an den drei neuen Kurzfrist-/Cockpit-Props explizit zu `undefined` normalisiert.
+- Keine fachliche Änderung gegenüber v0.9.11.0.
+
+## 0.9.11.0
+- Kurzfrist-Nowcasting auf die ersten 90 Minuten erweitert: standardmäßig 5–6 15-Minuten-Kacheln statt nur vier, inklusive Radar-/Nowcast-Einfluss auf Niederschlagswahrscheinlichkeit und -signal.
+- Windpfeile im Prognose-Cockpit, in der Kurzfristvorhersage und in den Tageskarten weiter vereinheitlicht; warnstufenabhängige Einfärbung bleibt konsistent.
+- Kurzfrist-Zusammenfassung sprachlich korrigiert: keine irreführenden Formulierungen wie „Klar ab 16:00 Uhr“ mehr, sondern zukunftsbezogene oder laufende Aussagen.
+- Kurzfristdiagramm optisch entzerrt: mehr vertikaler Platz, getrennte Ebenen für Piktogramme, Temperaturwerte, Windpfeile und Uhrzeit, sodass keine Überlagerungen mehr auftreten.
+- Professionelle Wetterpiktogramme werden in den betroffenen Kurzfrist- und Cockpit-Modulen konsistent verwendet.
 
 ## 0.9.10.0
 - 14-Tage-Cockpit um professionelle Wetterpiktogramme je Tag und in der Fokuskarte ergänzt.
