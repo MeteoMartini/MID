@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.2.0",
+  "releaseVersion": "0.9.4.1",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -77,7 +77,8 @@
     "scripts/test-forecast-precipitation-support-083317.mjs",
     "scripts/test-mobile-interaction-reliability-083314.mjs",
     "scripts/test-coherent-weather-bundles-08340.mjs",
-    "scripts/test-synoptic-module-0900.mjs"
+    "scripts/test-synoptic-module-0900.mjs",
+    "scripts/test-build-unused-symbols-0941.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -148,6 +149,9 @@
     "scripts/test-detail-precip-thunder-dedup-08338.mjs",
     "scripts/test-day-character-late-rain-warning-wording-08339.mjs",
     "scripts/test-pressure-card-display-083310.mjs",
-    "scripts/test-forecast-cockpit-0920.mjs"
+    "scripts/test-forecast-cockpit-0920.mjs",
+    "scripts/test-synoptic-professional-analysis-0940.mjs",
+    "scripts/test-ensemble-metric-deck-0940.mjs",
+    "scripts/test-cockpit-scroll-drizzle-consistency-0940.mjs"
   ]
 }

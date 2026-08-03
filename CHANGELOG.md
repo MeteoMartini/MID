@@ -1,3 +1,21 @@
+# MID v0.9.4.1
+
+- GitHub-Produktionsbuild repariert: ungenutzte `quartileFill`-Deklaration entfernt.
+- Nicht mehr verwendete lokale `weatherFamily`-Hilfsfunktion aus dem Prognose-Cockpit entfernt.
+- Überholten `frame`-Parameter aus `mapBounds` und dessen Aufruf entfernt.
+- Meteorologische und visuelle Funktionen von v0.9.4.0 unverändert erhalten.
+- Neuer Regressionstest schützt alle drei `TS6133`-Buildfehler.
+
+# MID v0.9.4.0
+
+- Interaktive Synoptik als fokussierte professionelle Bodenanalyse mit kontrastreichen Isobaren, H/T-Zentren, Frontzone, dominantem Modellcluster und standardisierten Stationsmodellen neu geordnet.
+- Winddarstellung vereinheitlicht: Phasenpfeile und Stationswindfahnen zeigen ohne zusätzliche 180-Grad-Drehung die meteorologische Herkunftsrichtung „Wind aus“.
+- Gemeinsames Temperatur-/Niederschlag-/Wind-Böen-Deck oberhalb der klassischen Ensembleansicht und im 14-Tage-Cockpit.
+- Cockpit verwendet dieselben professionellen Ensemblediagramme wie die vollständige Analyse; Temperaturwerte sind rot/blau beschriftet und späte Tage konsistenzabhängig ausgeblendet.
+- Horizontales Scrollen in der 7-Tage-Matrix löst keinen Cockpit-Horizontwechsel mehr aus.
+- Zentrale Niederschlagsplausibilisierung verhindert ungestützte Sprühregenvisualisierung.
+- 256 automatisch erkannte Regressionstests bestanden.
+
 # MID v0.9.2.0
 
 - Zwei zusätzliche optionale Prognoseoberflächen: gemeinsames Register-Cockpit und kompakter Ribbon-Stapel.

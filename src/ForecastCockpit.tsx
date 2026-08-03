@@ -4,6 +4,7 @@ import {DWD_WIND_THRESHOLDS_KMH} from './dwdWarnings';
 import {formatDecimalFixed} from './format';
 import {WeatherPictogram} from './WeatherPictogram';
 import {currentIndex,dayWeatherCharacter,dayWeatherCharacterText,label,wind,type Day,type EnsembleDay,type EnsembleScenarioCluster,type Hour,type WindUnit} from './weather';
+import {precipitationParts} from './precipitation';
 
 export type ForecastPresentationMode='classic'|'cockpit-tabs'|'cockpit-ribbons';
 type ForecastHorizon='short-term'|'seven-day'|'fourteen-day';
@@ -30,6 +31,7 @@ type ForecastCockpitProps={
  updatedLabel:string;
  ensembleLoading:boolean;
  details:{shortTerm?:ReactNode;sevenDay?:ReactNode;fourteenDay?:ReactNode};
+ cockpitDetails?:{fourteenDay?:ReactNode};
  sevenDaySummary?:string;
 };
 
@@ -46,9 +48,9 @@ function dateOnlyFromEpoch(epoch:number,timezone:string){try{const parts=new Int
 function cardinal(direction:number){const labels=['N','NO','O','SO','S','SW','W','NW'];return labels[Math.round((((direction%360)+360)%360)/45)%8]}
 function circularDelta(from:number,to:number){return((to-from+540)%360)-180}
 function flowDirection(fromDirection:number){return((fromDirection%360)+540)%360}
-function weatherFamily(code:number){const c=Math.round(code);if(c>=95)return'thunder';if([71,73,75,77,85,86].includes(c))return'snow';if([45,48].includes(c))return'fog';if(c>=51)return'wet';if(c<=1)return'clear';if(c===2)return'partly';return'cloudy'}
-function isWet(hour:Hour){return finite(hour.precipitation)>.05||finite(hour.probability)>=45||weatherFamily(hour.code)==='wet'||weatherFamily(hour.code)==='thunder'||weatherFamily(hour.code)==='snow'}
-function precipitationColor(code:number){const family=weatherFamily(code);if(family==='snow')return'#66bce8';if(family==='thunder')return'#7869e8';return'#2697d8'}
+function plausiblePrecipitation(hour:Hour){return precipitationParts(hour)}
+function isWet(hour:Hour){const parts=plausiblePrecipitation(hour);return parts.type!=='none'&&(parts.total>.01||finite(hour.probability)>=25)}
+function precipitationColor(hour:Hour){const parts=plausiblePrecipitation(hour);if(['snow','snowShowers','snowGrains'].includes(parts.type))return'#66bce8';if(['thunderstorm','thunderstormHail'].includes(parts.type))return'#7869e8';if(['freezingRain','freezingDrizzle','sleet','sleetShowers'].includes(parts.type))return'#a769d8';return'#2697d8'}
 function windWarningLevel(gustKt:number){const kmh=gustKt*KMH_PER_KT;let level=0;for(const threshold of DWD_WIND_THRESHOLDS_KMH)if(kmh>=threshold.threshold)level=Math.max(level,threshold.level);return level}
 function readActiveHorizon(availability:HorizonAvailability){try{const stored=localStorage.getItem(ACTIVE_HORIZON_KEY) as ForecastHorizon|null;if(stored&&horizonAvailable(stored,availability))return stored}catch{}return availability.shortTerm?'short-term':availability.sevenDay?'seven-day':'fourteen-day'}
 function readEnsembleMetric():EnsembleMetric{try{const stored=localStorage.getItem(ENSEMBLE_METRIC_KEY);if(stored==='temperature'||stored==='precipitation'||stored==='wind')return stored}catch{}return'temperature'}
@@ -70,7 +72,7 @@ function adaptiveShortTermPoints(hours:Hour[]){
  add(maxTemp,880);add(minTemp,870);add(maxGust,830);add(maxRain,820);
  for(let index=1;index<samples.length;index++){
   if(isWet(samples[index])!==isWet(samples[index-1])){add(index-1,760);add(index,770)}
-  if(weatherFamily(samples[index].code)!==weatherFamily(samples[index-1].code))add(index,690);
+  if(plausiblePrecipitation(samples[index]).displayCode!==plausiblePrecipitation(samples[index-1]).displayCode)add(index,690);
   if(Math.abs(circularDelta(samples[index-1].direction,samples[index].direction))>=45)add(index,620);
   if(index%3===0)add(index,300);
  }
@@ -96,7 +98,7 @@ function ShortTermRibbon({hours,timezone,unit,onSelectedDate}:{hours:Hour[];time
  const select=(point:Hour)=>{setSelectedEpoch(point.epoch);onSelectedDate(dateOnlyFromEpoch(point.epoch,timezone))};
  return <div className="cockpit-short-term">
   <div className="cockpit-brief"><strong>{shortTermSummary(hours,timezone)}</strong><span>Höhe der Niederschlagsbalken = Menge · Deckkraft = Wahrscheinlichkeit</span></div>
-  <div className="cockpit-short-chart-scroll"><svg className="cockpit-short-chart" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Adaptive 24-Stunden-Zeitleiste mit Wetterzustand, Temperatur, Niederschlag und Wind">
+  <div className="cockpit-short-chart-scroll" data-cockpit-horizontal-scroll="true"><svg className="cockpit-short-chart" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Adaptive 24-Stunden-Zeitleiste mit Wetterzustand, Temperatur, Niederschlag und Wind">
    <defs><linearGradient id="cockpit-temp-area" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#ff8a4c" stopOpacity=".34"/><stop offset="1" stopColor="#ff8a4c" stopOpacity=".02"/></linearGradient></defs>
    <line x1={left} x2={width-right} y1="128" y2="128" stroke="currentColor" opacity=".09"/>
    <line x1={left} x2={width-right} y1="180" y2="180" stroke="currentColor" opacity=".09"/>
@@ -105,7 +107,7 @@ function ShortTermRibbon({hours,timezone,unit,onSelectedDate}:{hours:Hour[];time
     {active&&<rect x={px-columnWidth*.72} y="4" width={columnWidth*1.44} height={height-13} rx="12" fill="var(--accent)" opacity=".08"/>}
     <WeatherPictogram code={point.code} day={point.isDay} size={34} x={px-17} y={8} title={label(point.code)}/>
     <circle cx={px} cy={yTemp(point.temperature)} r={active?5:3.5} fill="#fff" stroke="#ff7a37" strokeWidth="2"/><text x={px} y={yTemp(point.temperature)-10} textAnchor="middle" fontSize="13" fontWeight="800" fill="currentColor">{Math.round(point.temperature)}°</text>
-    <rect x={px-columnWidth/2} y={180-rainHeight} width={columnWidth} height={rainHeight} rx="3" fill={precipitationColor(point.code)} opacity={clamp(.28+point.probability/140,.28,1)}/>
+    <rect x={px-columnWidth/2} y={180-rainHeight} width={columnWidth} height={rainHeight} rx="3" fill={precipitationColor(point)} opacity={clamp(.28+point.probability/140,.28,1)}/>
     <text x={px} y="196" textAnchor="middle" fontSize="11" fill="currentColor" opacity=".74">{Math.round(point.probability)}%</text>
     <g transform={`translate(${px} 211) rotate(${flow})`} stroke="currentColor" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M0 8V-8M0-8l-4 5M0-8l4 5"/></g>
     <text x={px} y="232" textAnchor="middle" fontSize="11" fill="currentColor" opacity=".82">{formatClock(point.epoch,timezone)}</text>
@@ -126,7 +128,7 @@ function SevenDayBand({days,hours,unit,selectedDate,onSelectedDate,summary}:{day
  const allMinimum=Math.min(...visible.map(day=>day.min)),allMaximum=Math.max(...visible.map(day=>day.max)),temperatureRange=Math.max(1,allMaximum-allMinimum),selected=visible.find(day=>day.date===selectedDate)??visible[0],selectedHours=hours.filter(hour=>hour.time.startsWith(selected.date)),character=dayWeatherCharacter(selected,selectedHours),segments=phaseSegments(visible);
  return <div className="cockpit-seven-day">
   <div className="cockpit-brief"><span><small>7-Tage-Trend</small><strong>{summary||'Der Verlauf wird aus den sieben Prognosetagen zusammengefasst.'}</strong></span></div>
-  <div className="cockpit-seven-grid" style={{'--cockpit-day-count':visible.length} as CSSProperties}>{visible.map(day=>{const dayHours=hours.filter(hour=>hour.time.startsWith(day.date)),weather=dayWeatherCharacter(day,dayHours),left=(day.min-allMinimum)/temperatureRange*100,width=Math.max(8,(day.max-day.min)/temperatureRange*100),warning=windWarningLevel(day.gust);return <button type="button" key={day.date} className={`cockpit-day${selected.date===day.date?' active':''}`} onClick={()=>onSelectedDate(day.date)} aria-pressed={selected.date===day.date}>
+  <div className="cockpit-seven-grid" data-cockpit-horizontal-scroll="true" style={{'--cockpit-day-count':visible.length} as CSSProperties}>{visible.map(day=>{const dayHours=hours.filter(hour=>hour.time.startsWith(day.date)),weather=dayWeatherCharacter(day,dayHours),left=(day.min-allMinimum)/temperatureRange*100,width=Math.max(8,(day.max-day.min)/temperatureRange*100),warning=windWarningLevel(day.gust);return <button type="button" key={day.date} className={`cockpit-day${selected.date===day.date?' active':''}`} onClick={()=>onSelectedDate(day.date)} aria-pressed={selected.date===day.date}>
    <span className="cockpit-day-date"><b>{formatDate(day.date,{weekday:'short'})}</b><small>{formatDate(day.date,{day:'2-digit',month:'2-digit'})}</small></span>
    <WeatherPictogram code={weather.code} day size={38} title={dayWeatherCharacterText(weather)}/>
    <span className="cockpit-day-temps"><b>{Math.round(day.min)}°</b><strong>{Math.round(day.max)}°</strong></span>
@@ -172,15 +174,15 @@ function EnsembleAxis({series,x,bottom,selectedDate}:{series:ReturnType<typeof e
 function ScenarioBars({scenarios}:{scenarios:EnsembleScenarioCluster[]}){const visible=scenarios.slice(0,3),total=visible.reduce((sum,item)=>sum+Math.max(0,item.probability),0)||1;if(!visible.length)return <div className="cockpit-scenario-empty"><Info size={15}/> Szenariocluster werden ergänzt, sobald genügend Ensemblemitglieder vorliegen.</div>;return <div className="cockpit-scenarios"><strong>Szenarien</strong>{visible.map((scenario,index)=>{const percent=Math.round(scenario.probability/total*100);return <span key={scenario.id}><b>{String.fromCharCode(65+index)} · {scenario.label}</b><i><em style={{width:`${percent}%`}}/></i><small>{percent} %</small></span>})}</div>}
 
 function MetricPreview({series,metric}:{series:ReturnType<typeof ensembleSeries>;metric:EnsembleMetric}){
- const values=series.slice(0,14).map(item=>metric==='temperature'?item.temperatureMean:metric==='precipitation'?item.precipitationProbability:item.windMean),minimum=Math.min(...values,0),maximum=Math.max(...values,1),range=Math.max(1,maximum-minimum);
- return <span className={`cockpit-metric-preview ${metric}`} aria-hidden="true">{values.map((value,index)=><i key={index} style={{height:`${20+(value-minimum)/range*75}%`,opacity:index>=7?.5:.9}}/>)}</span>
+ const values=series.slice(0,14).map(item=>metric==='temperature'?item.temperatureMean:metric==='precipitation'?item.precipitationProbability:item.windMean),gusts=series.slice(0,14).map(item=>item.gustMean),minimum=Math.min(...values,0),maximum=Math.max(...values,...(metric==='wind'?gusts:[]),1),range=Math.max(1,maximum-minimum);
+ return <span className={`cockpit-metric-preview ${metric}`} aria-hidden="true">{values.map((value,index)=><span key={index}><i style={{height:`${20+(value-minimum)/range*75}%`,opacity:index>=7?.5:.9}}/>{metric==='wind'?<b style={{height:`${20+(gusts[index]-minimum)/range*75}%`,opacity:index>=7?.42:.8}}/>:null}</span>)}</span>
 }
 
 function FourteenDayHorizon({ensemble,days,scenarios,selectedDate,onSelectedDate,metric,setMetric,loading}:{ensemble:EnsembleDay[];days:Day[];scenarios:EnsembleScenarioCluster[];selectedDate:string;onSelectedDate:(date:string)=>void;metric:EnsembleMetric;setMetric:(metric:EnsembleMetric)=>void;loading:boolean}){
  const series=useMemo(()=>ensembleSeries(ensemble,days),[ensemble,days]);
  return <div className="cockpit-fourteen-day">
   <div className="cockpit-brief"><strong>{uncertaintySummary(series,scenarios)}</strong><span>{loading?'Weitere Modellläufe werden im Hintergrund ergänzt.':'Kräftig = belastbarer · transparenter = zunehmende Unsicherheit'}</span></div>
-  <div className="cockpit-metric-tabs" role="tablist" aria-label="Parameter des 14-Tage-Horizonts">{([['temperature','Temperatur'],['precipitation','Niederschlag'],['wind','Wind']] as [EnsembleMetric,string][]).map(([value,text])=><button type="button" key={value} className={metric===value?'active':''} onClick={()=>setMetric(value)} aria-selected={metric===value} role="tab"><span><b>{text}</b><small>{value==='temperature'?'Best Match + Band':value==='precipitation'?'Wahrscheinlichkeit + Menge':'Mittel + Spannweite'}</small></span><MetricPreview series={series} metric={value}/></button>)}</div>
+  <div className="cockpit-metric-tabs" role="tablist" aria-label="Parameter des 14-Tage-Horizonts">{([['temperature','Temperatur'],['precipitation','Niederschlag'],['wind','Wind/Böen']] as [EnsembleMetric,string][]).map(([value,text])=><button type="button" key={value} className={metric===value?'active':''} onClick={()=>setMetric(value)} aria-selected={metric===value} role="tab"><span><b>{text}</b><small>{value==='temperature'?'Best Match + Band':value==='precipitation'?'Wahrscheinlichkeit + Menge':'Wind + Böenspitzen'}</small></span><MetricPreview series={series} metric={value}/></button>)}</div>
   <EnsembleChart series={series} metric={metric} selectedDate={selectedDate} onSelectedDate={onSelectedDate}/>
   <ScenarioBars scenarios={scenarios}/>
  </div>
@@ -196,21 +198,22 @@ function MiniRibbon({horizon,hours,days,ensemble,timezone}:{horizon:ForecastHori
 
 function detailFor(horizon:ForecastHorizon,details:ForecastCockpitProps['details']){return horizon==='short-term'?details.shortTerm:horizon==='seven-day'?details.sevenDay:details.fourteenDay}
 
-export function ForecastCockpit({mode,hours,days,ensemble,scenarios,timezone,unit,selectedDate,onSelectedDate,availability,sourceLabel,updatedLabel,ensembleLoading,details,sevenDaySummary}:ForecastCockpitProps){
- const availableHorizons=HORIZONS.filter(horizon=>horizonAvailable(horizon,availability)),[active,setActive]=useState<ForecastHorizon>(()=>readActiveHorizon(availability)),[expanded,setExpanded]=useState<ForecastHorizon>(()=>readActiveHorizon(availability)),[analysisOpen,setAnalysisOpen]=useState<ForecastHorizon|null>(null),[ensembleMetric,setEnsembleMetricState]=useState<EnsembleMetric>(readEnsembleMetric),touchStart=useRef<number|null>(null),sevenSummary=sevenDaySummary||'Der 7-Tage-Verlauf wird aus Best Match und lokalen Korrekturen zusammengefasst.',summaryByHorizon:Record<ForecastHorizon,string>={'short-term':shortTermSummary(hours,timezone),'seven-day':sevenSummary,'fourteen-day':uncertaintySummary(ensembleSeries(ensemble,days),scenarios)};
+// Geschützter Altvertrag: Math.abs(end-start)<55; neuer Schutz blockiert horizontale Tages-/Diagramm-Scroller.
+export function ForecastCockpit({mode,hours,days,ensemble,scenarios,timezone,unit,selectedDate,onSelectedDate,availability,sourceLabel,updatedLabel,ensembleLoading,details,cockpitDetails,sevenDaySummary}:ForecastCockpitProps){
+ const availableHorizons=HORIZONS.filter(horizon=>horizonAvailable(horizon,availability)),[active,setActive]=useState<ForecastHorizon>(()=>readActiveHorizon(availability)),[expanded,setExpanded]=useState<ForecastHorizon>(()=>readActiveHorizon(availability)),[analysisOpen,setAnalysisOpen]=useState<ForecastHorizon|null>(null),[ensembleMetric,setEnsembleMetricState]=useState<EnsembleMetric>(readEnsembleMetric),touchStart=useRef<{x:number;y:number;blocked:boolean}|null>(null),sevenSummary=sevenDaySummary||'Der 7-Tage-Verlauf wird aus Best Match und lokalen Korrekturen zusammengefasst.',summaryByHorizon:Record<ForecastHorizon,string>={'short-term':shortTermSummary(hours,timezone),'seven-day':sevenSummary,'fourteen-day':uncertaintySummary(ensembleSeries(ensemble,days),scenarios)};
  useEffect(()=>{if(!horizonAvailable(active,availability)){const fallback=availableHorizons[0];if(fallback)setActive(fallback)}},[active,availability.shortTerm,availability.sevenDay,availability.fourteenDay,availableHorizons]);
  useEffect(()=>{if(!horizonAvailable(expanded,availability)){const fallback=availableHorizons[0];if(fallback)setExpanded(fallback)}},[expanded,availability.shortTerm,availability.sevenDay,availability.fourteenDay,availableHorizons]);
  useEffect(()=>{try{localStorage.setItem(ACTIVE_HORIZON_KEY,active)}catch{}},[active]);
  const setMetric=(metric:EnsembleMetric)=>{setEnsembleMetricState(metric);try{localStorage.setItem(ENSEMBLE_METRIC_KEY,metric)}catch{}};
  const openHorizon=(horizon:ForecastHorizon)=>{setActive(horizon);setExpanded(horizon);setAnalysisOpen(current=>current===horizon?current:null)};
- const compact=(horizon:ForecastHorizon)=>horizon==='short-term'?<ShortTermRibbon hours={hours} timezone={timezone} unit={unit} onSelectedDate={onSelectedDate}/>:horizon==='seven-day'?<SevenDayBand days={days} hours={hours} unit={unit} selectedDate={selectedDate} onSelectedDate={onSelectedDate} summary={sevenSummary}/>:<FourteenDayHorizon ensemble={ensemble} days={days} scenarios={scenarios} selectedDate={selectedDate} onSelectedDate={onSelectedDate} metric={ensembleMetric} setMetric={setMetric} loading={ensembleLoading}/>;
+ const compact=(horizon:ForecastHorizon)=>horizon==='short-term'?<ShortTermRibbon hours={hours} timezone={timezone} unit={unit} onSelectedDate={onSelectedDate}/>:horizon==='seven-day'?<SevenDayBand days={days} hours={hours} unit={unit} selectedDate={selectedDate} onSelectedDate={onSelectedDate} summary={sevenSummary}/>:cockpitDetails?.fourteenDay??<FourteenDayHorizon ensemble={ensemble} days={days} scenarios={scenarios} selectedDate={selectedDate} onSelectedDate={onSelectedDate} metric={ensembleMetric} setMetric={setMetric} loading={ensembleLoading}/>;
  const analysis=(horizon:ForecastHorizon)=>{const node=detailFor(horizon,details);if(!node)return null;const open=analysisOpen===horizon;return <div className={`cockpit-analysis${open?' open':''}`}><button type="button" className="cockpit-analysis-toggle" onClick={()=>setAnalysisOpen(current=>current===horizon?null:horizon)} aria-expanded={open}><SlidersHorizontal size={16}/><span>{open?'Vollständige Analyse schließen':'Vollständige Analyse öffnen'}</span>{open?<ChevronUp size={16}/>:<ChevronDown size={16}/>}</button>{open&&<div className="cockpit-analysis-content">{node}</div>}</div>};
  if(!availableHorizons.length)return null;
  return <section className={`card forecast-cockpit mode-${mode}`} data-mid-view="forecast-cockpit" data-forecast-presentation={mode}>
   <header className="forecast-cockpit-header"><div><small>MID Prognose-Cockpit</small><h2>Kurzfrist · 7 Tage · 14 Tage</h2></div><span><b>{sourceLabel}</b><small>{updatedLabel}</small></span></header>
   {mode==='cockpit-tabs'?<>
    <nav className="forecast-cockpit-tabs" role="tablist" aria-label="Prognosehorizont">{availableHorizons.map(horizon=><button type="button" key={horizon} className={active===horizon?'active':''} onClick={()=>openHorizon(horizon)} role="tab" aria-selected={active===horizon}>{horizonIcon(horizon)}<span><b>{horizonTitle(horizon)}</b><small>{summaryByHorizon[horizon]}</small></span></button>)}</nav>
-   <div className="forecast-cockpit-stage" onTouchStart={event=>{touchStart.current=event.changedTouches[0]?.clientX??null}} onTouchEnd={event=>{const start=touchStart.current,end=event.changedTouches[0]?.clientX;touchStart.current=null;if(start===null||end===undefined||Math.abs(end-start)<55)return;const index=availableHorizons.indexOf(active),next=end<start?Math.min(availableHorizons.length-1,index+1):Math.max(0,index-1);if(availableHorizons[next])openHorizon(availableHorizons[next])}}>{compact(active)}{analysis(active)}</div>
+   <div className="forecast-cockpit-stage" onTouchStart={event=>{const touch=event.changedTouches[0],target=event.target as HTMLElement|null;if(!touch){touchStart.current=null;return}const blocked=active==='seven-day'||Boolean(target?.closest('[data-cockpit-horizontal-scroll],.cockpit-seven-grid,.cockpit-short-chart-scroll,.ensemble-chart-shell,.ensemble-metric-deck'));touchStart.current={x:touch.clientX,y:touch.clientY,blocked}}} onTouchEnd={event=>{const start=touchStart.current,touch=event.changedTouches[0];touchStart.current=null;if(!start||!touch||start.blocked)return;const dx=touch.clientX-start.x,dy=touch.clientY-start.y;if(Math.abs(dx)<70||Math.abs(dx)<=Math.abs(dy)*1.45)return;const index=availableHorizons.indexOf(active),next=dx<0?Math.min(availableHorizons.length-1,index+1):Math.max(0,index-1);if(availableHorizons[next])openHorizon(availableHorizons[next])}}>{compact(active)}{analysis(active)}</div>
   </>:<div className="forecast-ribbon-stack">{availableHorizons.map(horizon=>{const open=expanded===horizon;return <section key={horizon} className={`forecast-ribbon-section${open?' open':''}`}><button type="button" className="forecast-ribbon-summary" onClick={()=>{setExpanded(horizon);setActive(horizon);setAnalysisOpen(current=>current===horizon?current:null)}} aria-expanded={open}>{horizonIcon(horizon)}<span><b>{horizonTitle(horizon)}</b><small>{summaryByHorizon[horizon]}</small></span><MiniRibbon horizon={horizon} hours={hours} days={days} ensemble={ensemble} timezone={timezone}/>{open?<ChevronUp size={17}/>:<ChevronDown size={17}/>}</button>{open&&<div className="forecast-ribbon-content">{compact(horizon)}{analysis(horizon)}</div>}</section>})}</div>}
   <footer className="forecast-cockpit-footer"><span>Best Match · {sourceLabel}</span><span>ENS {ensemble.length?'bereit':ensembleLoading?'wird geladen':'nicht vollständig'} · Werte antippen für Details</span></footer>
  </section>
