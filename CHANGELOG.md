@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.14.0
+- Tmin/Tmax in Tageskarten werden relativ zum jeweiligen Klimamittel dezent abgestuft; höhere Tmax-Abweichungen erscheinen dunkler rot, deutlich kühlere Tmin dunkler blau.
+- 7-Tage-Cockpit: Tageskarte öffnet direkt den einstündigen klassischen Tagesverlauf als Akkordeon; Rückkehr über „Tagesansicht“.
+- Redundante vollständige Kurzfrist- und 7-Tage-Module aus Cockpit-Untermenüs entfernt; nur die eigenständige Ensemble-Analyse bleibt separat aufklappbar.
+- Register- und Ribbon-Cockpit in den Einstellungen klarer voneinander abgegrenzt.
+
 ## 0.9.13.3
 - SEO-Buildfix: Die statische HTML-Releaseversion wird nun durch `sync-version.mjs` automatisch mit Paket, Baseline, Worker und Service Worker synchronisiert.
 - Der Regressionstest `test-seo-discoverability-0990.mjs` läuft damit wieder erfolgreich.

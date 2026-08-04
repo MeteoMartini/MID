@@ -5,7 +5,7 @@ const cockpit=readFileSync(new URL('../src/ForecastCockpit.tsx',import.meta.url)
 const shortTerm=readFileSync(new URL('../src/ShortTermForecast.tsx',import.meta.url),'utf8');
 const pkg=JSON.parse(readFileSync(new URL('../package.json',import.meta.url),'utf8'));
 const normalized=(app.match(/radarNowcast=\{radarAnalysis\?\?undefined\}/g)||[]).length;
-assert.equal(normalized,3,'Alle drei Radar-Nowcast-Übergaben müssen null auf undefined normalisieren.');
+assert.equal(normalized,2,'Beide verbleibenden Radar-Nowcast-Übergaben müssen null auf undefined normalisieren; der redundante Cockpit-Duplikatpfad ist entfernt.');
 assert.ok(!app.includes('radarNowcast={radarAnalysis}'),'Unnormalisierte Radar-Nowcast-Übergabe ist noch enthalten.');
 assert.ok(cockpit.includes('radarNowcast?:RadarNowcast'),'Cockpit-Propvertrag für optionales Radar-Nowcast fehlt.');
 assert.ok(shortTerm.includes('radarNowcast?:RadarNowcast'),'Kurzfrist-Propvertrag für optionales Radar-Nowcast fehlt.');

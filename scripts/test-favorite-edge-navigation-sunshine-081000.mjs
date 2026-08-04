@@ -12,7 +12,7 @@ need(app,"window.innerWidth*.22",'Wischgeste besitzt keine ausreichend deutliche
 need(app,"if(typeof window==='undefined'||settingsOpen",'Wischgesten werden im Einstellungsdialog nicht zuverlässig deaktiviert.');
 need(app,'pendingViewRestore','Ansichtskontext wird beim Favoritenwechsel nicht gespeichert.');
 need(app,'data-mid-view="forecast-detail"','Tagesdetaildiagramm besitzt keinen stabilen Ansichtsanker.');
-need(app,'data-mid-view="forecast"','7-Tage-Vorhersage besitzt keinen stabilen Ansichtsanker.');
+need(app,'data-mid-view={hourlyDetailOnly?"forecast-hourly-detail":"forecast"}','7-Tage-Vorhersage besitzt keinen stabilen Ansichtsanker.');
 need(app,'selectedDayIndex','Ausgewählter Prognosetag wird beim Favoritenwechsel nicht beibehalten.');
 need(weather,"'weather_code','sunshine_duration'",'15-Minuten-Abruf enthält keine Sonnenscheindauer.');
 need(weather,'export function recentSunshineDuration','Aktuelle 60-Minuten-Sonnenscheinaggregation fehlt.');

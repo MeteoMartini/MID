@@ -13,7 +13,7 @@ for(const token of ["const FORECAST_COCKPIT_MODULES:DashboardModuleId[]=['short-
 for(const token of ['cockpit-now90','SHORT_TERM_RESOLUTION_KEY',"resolution==='3h'",'regularShortTermPoints','SvgWindDirectionArrow','Böen bis'])need('Kurzfrist',cockpit,token);
 for(const token of ['cockpit-seven-grid','temperatureRange','cockpit-day-temp-track','cockpit-day-regime','regimeLabel','7-Tage-Trend'])need('7-Tage',cockpit,token);
 for(const token of ['cockpit-fourteen-grid','cockpit-fourteen-row','precipCombinedScore','climateMean','computeEnsembleConfidence','Konsistenz'])need('14-Tage',cockpit,token);
-for(const token of ['ACTIVE_HORIZON_KEY','MiniRibbon','Vollständige Analyse öffnen','onSelectedDate(day.date)','onSelectedDate(item.date)'])need('Interaktion',cockpit,token);
+for(const token of ['ACTIVE_HORIZON_KEY','MiniRibbon','Ensemble-Analyse öffnen','chooseDay(day.date)','onSelectedDate(item.date)','cockpit-day-hourly-accordion','hourlyDetail={cockpitDetails?.sevenDay}'])need('Interaktion',cockpit,token);
 for(const token of ['.forecast-cockpit','.cockpit-tabs','.cockpit-now90','.cockpit-seven-grid','.cockpit-fourteen-grid','@media(max-width:680px)','@media(max-width:420px)'])need('Responsive Design',css,token);
 need('Package-Skript',pkg,'test:forecast-cockpit');need('Baseline-Vertrag',baseline,'scripts/test-forecast-cockpit-0920.mjs');
 if(failures.length){console.error('Optionale Prognose-Cockpits unvollständig:\n- '+failures.join('\n- '));process.exit(1)}

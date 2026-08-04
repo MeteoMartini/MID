@@ -4408,3 +4408,37 @@ body,#root{
 @media(max-width:1050px){.forecast-icon{grid-template-columns:80px minmax(0,1fr)!important}.weather-period-icons{width:78px;min-width:78px}.detailhead{align-items:center}.detailhead-controls{flex:0 0 auto}}
 @media(max-width:760px){.forecast-icon{grid-template-columns:70px minmax(0,1fr)!important}.weather-period-icons{width:68px;min-width:68px;min-height:43px}.detailhead{display:grid!important;grid-template-columns:minmax(0,1fr) auto;align-items:center}.detailhead-controls{display:flex;align-items:center;justify-content:flex-end}.detailhead-controls>.mode-info{margin-left:0}.quickfact.weather.period-weather>.weather-period-icons{width:61px;min-width:61px}.forecast-inline-detail{padding:10px}.forecast-inline-detail-head{display:grid;gap:8px}.forecast-inline-detail-row{grid-template-columns:32px 78px 60px minmax(0,1fr);gap:7px;padding:7px}.forecast-inline-detail-row>time{font-size:18px}.forecast-inline-detail-temp strong{font-size:21px}}
 @media(max-width:480px){.forecast-icon{grid-template-columns:64px minmax(0,1fr)!important}.weather-period-icons{gap:4px;width:62px;min-width:62px}.detailhead{grid-template-columns:1fr}.detailhead-controls{justify-content:space-between;margin-left:0}.detail-resolution-switch button{min-width:40px;padding:5px 8px}.forecast-inline-detail-row{grid-template-columns:28px 70px 56px minmax(0,1fr);gap:6px;padding:6px 7px}.forecast-inline-detail-weather small{font-size:8px}.forecast-inline-detail-temp strong{font-size:19px}.forecast-inline-detail-temp small,.forecast-inline-detail-metrics small{font-size:9px}.forecast-inline-detail-metrics b{font-size:11px}}
+
+/* MID v0.9.13.4 – Forecast-Cockpit: transparentes Nachtpiktogramm, sichtbarere Icons, kompakte Böenangabe */
+.cockpit-day-weather-pair{position:relative;display:flex;align-items:flex-start;justify-content:flex-end;min-height:46px;padding-right:1px;overflow:visible}
+.cockpit-day-main-icon{flex:none;filter:drop-shadow(0 2px 4px rgba(34,52,74,.18))}
+.cockpit-day-night-icon{position:absolute;top:0;right:0;display:grid;place-items:center;padding:0;border:none;background:transparent;box-shadow:none}
+.cockpit-day-night-glyph{flex:none;opacity:.98;filter:drop-shadow(0 1px 3px rgba(34,52,74,.28))}
+.cockpit-day-wind{display:grid!important;grid-template-columns:auto minmax(0,1fr)!important;align-items:center;justify-content:end!important;gap:6px;min-width:0}
+.cockpit-day-wind small{justify-self:end;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
+@media(max-width:760px){.cockpit-day-weather-pair{min-height:42px}.cockpit-day-main-icon{width:36px!important;height:36px!important}.cockpit-day-night-glyph{width:19px!important;height:19px!important}.cockpit-day-wind small{font-size:10px}}
+@media(max-width:480px){.cockpit-day-weather-pair{min-height:39px}.cockpit-day-main-icon{width:34px!important;height:34px!important}.cockpit-day-night-glyph{width:18px!important;height:18px!important}.cockpit-day-wind{gap:5px}.cockpit-day-wind small{font-size:9.4px}}
+
+/* MID v0.9.14.0 – klimabezogene Tagesfarben, direkte Stundenakkordeons und redundanzfreie Cockpit-Details */
+.climate-tone{display:inline-flex;align-items:center;justify-content:center;min-width:2.35em;padding:.08em .28em;border:1px solid transparent;border-radius:.42em;line-height:1.05;transition:color .16s ease,background .16s ease,border-color .16s ease}
+.forecast-barwrap>.climate-tone{font-variant-numeric:tabular-nums}
+.cockpit-day{grid-template-areas:"date icon" "regime regime" "temps temps" "track track" "rain wind" "hourly hourly"!important}
+.cockpit-day.hourly-open{border-color:color-mix(in srgb,var(--accent) 82%,var(--border));box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 14%,transparent),inset 0 1px 0 rgba(255,255,255,.05)}
+.cockpit-day-temps .climate-tone{font-variant-numeric:tabular-nums}
+.cockpit-day-hourly-cue{grid-area:hourly;display:flex;align-items:center;justify-content:center;gap:4px;margin-top:1px;padding:5px 7px;border-top:1px solid color-mix(in srgb,var(--border) 82%,transparent);color:var(--muted);font-size:8px;font-weight:850;line-height:1;white-space:nowrap}
+.cockpit-day-hourly-accordion{margin-top:10px;padding:12px;border:1px solid color-mix(in srgb,var(--accent) 38%,var(--border));border-radius:20px;background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 7%,var(--surface)),var(--surface));box-shadow:0 16px 38px rgba(12,31,49,.1)}
+.cockpit-day-hourly-accordion>header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px}
+.cockpit-day-hourly-accordion>header>span{display:flex;align-items:center;gap:8px;min-width:0}
+.cockpit-day-hourly-accordion>header>span>span{display:grid;gap:1px;min-width:0}
+.cockpit-day-hourly-accordion>header strong{font-size:13px}
+.cockpit-day-hourly-accordion>header small{color:var(--muted);font-size:9px}
+.cockpit-day-hourly-accordion>header button{display:inline-flex;align-items:center;gap:5px;flex:none;padding:7px 9px;border:1px solid var(--border);border-radius:999px;background:var(--s2);color:var(--text);font-size:9px;font-weight:850}
+.cockpit-day-hourly-content{min-width:0;overflow:hidden}
+.cockpit-hourly-detail-source{min-width:0;margin:0;padding:0;border:0;background:transparent;box-shadow:none}
+.cockpit-hourly-detail-source>.hourdetail{margin:0;padding:0;border:0}
+.cockpit-hourly-detail-source .detail-legend-shell{margin-top:0}
+.cockpit-hourly-detail-source .meteogram-stage{margin-top:7px}
+.cockpit-hourly-detail-source .meteogram-day-jump{margin-bottom:4px}
+.cockpit-analysis-panel>.card,.cockpit-analysis-panel>.ensemble{margin-top:0}
+@media(max-width:760px){.climate-tone{padding:.07em .23em}.cockpit-day-hourly-accordion{padding:9px;border-radius:17px}.cockpit-day-hourly-accordion>header{align-items:flex-start}.cockpit-day-hourly-accordion>header button{padding:6px 8px}.cockpit-day-hourly-content{overflow:hidden}.cockpit-hourly-detail-source{min-width:0}}
+@media(max-width:480px){.cockpit-day-hourly-cue{font-size:7.5px}.cockpit-day-hourly-accordion>header strong{font-size:12px}.cockpit-day-hourly-accordion>header small{font-size:8px}.cockpit-hourly-detail-source{min-width:0}}
