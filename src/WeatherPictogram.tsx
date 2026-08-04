@@ -107,9 +107,9 @@ export function cloudFormDescription(kind:CloudFormKind){
 function SkyPlate({day,kind,form}:{day:boolean;kind:WeatherPictogramKind;form:CloudFormKind}){
  const night=!day,stormy=['thunder','thunder-hail'].includes(kind)||form==='cumulonimbus',foggy=['fog','rime-fog'].includes(kind)||form==='stratus';
  const dayFill=stormy?'rgba(112,158,205,.31)':foggy?'rgba(202,216,228,.34)':form==='altostratus'||form==='layered'?'rgba(170,198,222,.28)':form==='cirrus'?'rgba(181,221,246,.20)':form==='cumulus'?'rgba(157,207,239,.22)':'rgba(170,214,244,.18)';
- const nightFill=stormy?'rgba(4,27,55,.75)':foggy?'rgba(34,51,75,.54)':form==='altostratus'||form==='layered'?'rgba(16,40,69,.62)':form==='cirrus'?'rgba(10,42,79,.48)':form==='cumulus'?'rgba(8,40,75,.52)':'rgba(12,46,84,.46)';
- const fill=night?nightFill:dayFill,stroke=night?'rgba(224,239,255,.18)':'rgba(69,112,149,.20)';
- return <g className={`mid-weather-skyplate ${day?'day':'night'}`}><rect x="2.5" y="2.5" width="63" height="63" rx="12" fill={fill} stroke={stroke} strokeWidth="1"/><path d="M5 49c14-4 27-5 39-2 7 1.7 13 2 19 .5v14H5Z" fill={night?'rgba(4,18,38,.10)':'rgba(255,255,255,.12)'}/></g>;
+ const nightFill=stormy?'rgba(21,53,88,.52)':foggy?'rgba(83,108,138,.40)':form==='altostratus'||form==='layered'?'rgba(56,92,132,.38)':form==='cirrus'?'rgba(74,118,164,.28)':form==='cumulus'?'rgba(62,108,157,.32)':'rgba(58,112,166,.28)';
+ const fill=night?nightFill:dayFill,stroke=night?'rgba(228,241,255,.34)':'rgba(69,112,149,.20)';
+ return <g className={`mid-weather-skyplate ${day?'day':'night'}`}><rect x="2.5" y="2.5" width="63" height="63" rx="12" fill={fill} stroke={stroke} strokeWidth="1.15"/><path d="M5 49c14-4 27-5 39-2 7 1.7 13 2 19 .5v14H5Z" fill={night?'rgba(213,231,250,.10)':'rgba(255,255,255,.12)'}/></g>;
 }
 
 function Sun({gradient}:{gradient:string}){return <g className="mid-weather-sun"><g stroke="#f6ad16" strokeWidth="2.6" strokeLinecap="round" opacity=".94"><path d="M20 5v5"/><path d="M20 30v5"/><path d="M5 20h5"/><path d="M30 20h5"/><path d="m9.4 9.4 3.5 3.5"/><path d="m27.1 27.1 3.5 3.5"/><path d="m30.6 9.4-3.5 3.5"/><path d="m12.9 27.1-3.5 3.5"/></g><circle cx="20" cy="20" r="8.3" fill={`url(#${gradient})`} stroke="#f7b323" strokeWidth="1.2"/></g>}
@@ -132,10 +132,10 @@ function Lightning(){return <path className="mid-weather-lightning" d="M34 43h10
 function Hail(){return <g className="mid-weather-hail" fill="#d8f3ff" stroke="#4fa5cf" strokeWidth="1"><circle cx="20" cy="54" r="2.5"/><circle cx="50" cy="55" r="2.5"/></g>}
 
 export function WeatherPictogram({code,day=true,size='1em',className='',title,x,y,style,cloud,lowCloud,midCloud,highCloud,compact=false}:Props){
- const profile={cloud,lowCloud,midCloud,highCloud},rawId=useId().replace(/[^a-zA-Z0-9_-]/g,''),kind=weatherPictogramKind(code),layer=cloudLayerKind(code,profile),form=cloudFormKind(code,profile),layerText=cloudLayerDescription(layer),formText=cloudFormDescription(form),baseDescription=title||label(code),details=[layerText,formText].filter(Boolean).filter((item,index,array)=>array.indexOf(item)===index),description=details.reduce((current,item)=>current.toLocaleLowerCase('de-DE').includes(item.toLocaleLowerCase('de-DE'))?current:`${current} · ${item}`,baseDescription),sunGradient=`mid-sun-${rawId}`,moonGradient=`mid-moon-${rawId}`,cloudGradient=`mid-cloud-${rawId}`,stormGradient=`mid-storm-${rawId}`,shadow=`mid-shadow-${rawId}`;
+ const profile={cloud,lowCloud,midCloud,highCloud},rawId=useId().replace(/[^a-zA-Z0-9_-]/g,''),kind=weatherPictogramKind(code),layer=cloudLayerKind(code,profile),form=cloudFormKind(code,profile),layerText=cloudLayerDescription(layer),formText=cloudFormDescription(form),baseDescription=title||label(code),details=[layerText,formText].filter(Boolean).filter((item,index,array)=>array.indexOf(item)===index),description=details.reduce((current,item)=>current.toLocaleLowerCase('de-DE').includes(item.toLocaleLowerCase('de-DE'))?current:`${current} · ${item}`,baseDescription),sunGradient=`mid-sun-${rawId}`,moonGradient=`mid-moon-${rawId}`,cloudGradient=`mid-cloud-${rawId}`,nightCloudGradient=`mid-cloud-night-${rawId}`,stormGradient=`mid-storm-${rawId}`,nightStormGradient=`mid-storm-night-${rawId}`,shadow=`mid-shadow-${rawId}`;
  const celestial=day?<Sun gradient={sunGradient}/>:<Moon gradient={moonGradient}/>;
  const showCelestial=['mostly-clear','partly-cloudy','showers','snow-showers'].includes(kind),showVeiledCelestial=kind==='cloudy'&&['cirrus','altostratus'].includes(form),showFogMoon=!day&&['fog','rime-fog'].includes(kind);
- const darkCloud=['thunder','thunder-hail'].includes(kind);
+ const darkCloud=['thunder','thunder-hail'].includes(kind),cloudFillGradient=day?cloudGradient:nightCloudGradient,stormFillGradient=day?stormGradient:nightStormGradient;
  const precipitationCloud=['drizzle','freezing-drizzle','rain','freezing-rain','showers','sleet','snow','snow-grains','snow-showers','fog','rime-fog','thunder','thunder-hail'].includes(kind);
  return <svg className={`mid-weather-pictogram cloud-layer-${layer} cloud-form-${form}${compact?' compact':''} ${className}`.trim()} x={x} y={y} width={size} height={size} viewBox="0 0 68 68" role="img" aria-label={description} style={style} preserveAspectRatio="xMidYMid meet" data-cloud-layer={layer} data-cloud-form={form} data-day-part={day?'day':'night'}>
   <title>{description}</title>
@@ -143,7 +143,9 @@ export function WeatherPictogram({code,day=true,size='1em',className='',title,x,
    <radialGradient id={sunGradient} cx="38%" cy="35%"><stop offset="0" stopColor="#fff5a8"/><stop offset=".58" stopColor="#ffd441"/><stop offset="1" stopColor="#f6a915"/></radialGradient>
    <linearGradient id={moonGradient} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#fff8cf"/><stop offset=".64" stopColor="#f1d57a"/><stop offset="1" stopColor="#d8ac39"/></linearGradient>
    <linearGradient id={cloudGradient} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#ffffff"/><stop offset=".58" stopColor="#eaf0f5"/><stop offset="1" stopColor="#c7d2dd"/></linearGradient>
+   <linearGradient id={nightCloudGradient} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#f9fcff"/><stop offset=".58" stopColor="#e7f0f7"/><stop offset="1" stopColor="#bccbd9"/></linearGradient>
    <linearGradient id={stormGradient} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#8795aa"/><stop offset="1" stopColor="#526073"/></linearGradient>
+   <linearGradient id={nightStormGradient} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#a0afc2"/><stop offset="1" stopColor="#66788e"/></linearGradient>
    <filter id={shadow} x="-28%" y="-28%" width="156%" height="170%"><feDropShadow dx="0" dy="2" stdDeviation="1.9" floodColor="#31435a" floodOpacity=".29"/></filter>
   </defs>
   <SkyPlate day={day} kind={kind} form={form}/>
@@ -152,10 +154,10 @@ export function WeatherPictogram({code,day=true,size='1em',className='',title,x,
    {showCelestial?<g transform={day?"translate(-2 -3) scale(.82)":"translate(-1 -2) scale(.86)"}>{celestial}</g>:null}
    {showVeiledCelestial?<g opacity={day ? .48 : .62} transform={day?"translate(-1 -2) scale(.84)":"translate(0 -1) scale(.88)"}>{celestial}</g>:null}
    {showFogMoon?<g opacity=".34" transform="translate(-1 -1) scale(.86)">{celestial}</g>:null}
-   {kind==='cloudy'?<CloudShape form={form} gradient={cloudGradient} stormGradient={stormGradient}/>:null}
-   {kind==='mostly-clear'?<g transform="translate(14 15) scale(.72)"><CloudShape form={form} gradient={cloudGradient} stormGradient={stormGradient}/></g>:null}
-   {kind==='partly-cloudy'?<g transform="translate(6 8) scale(.9)"><CloudShape form={form} gradient={cloudGradient} stormGradient={stormGradient}/></g>:null}
-   {precipitationCloud?<CloudShape form={form} gradient={cloudGradient} stormGradient={stormGradient} dark={darkCloud}/>:null}
+   {kind==='cloudy'?<CloudShape form={form} gradient={cloudFillGradient} stormGradient={stormFillGradient}/>:null}
+   {kind==='mostly-clear'?<g transform="translate(14 15) scale(.72)"><CloudShape form={form} gradient={cloudFillGradient} stormGradient={stormFillGradient}/></g>:null}
+   {kind==='partly-cloudy'?<g transform="translate(6 8) scale(.9)"><CloudShape form={form} gradient={cloudFillGradient} stormGradient={stormFillGradient}/></g>:null}
+   {precipitationCloud?<CloudShape form={form} gradient={cloudFillGradient} stormGradient={stormFillGradient} dark={darkCloud}/>:null}
    {kind==='fog'?<FogLines/>:null}
    {kind==='rime-fog'?<FogLines rime/>:null}
    {kind==='drizzle'?<Rain count={2} drizzle/>:null}

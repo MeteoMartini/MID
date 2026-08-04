@@ -16,19 +16,19 @@ for(const token of [
   'className="cockpit-day-main-icon"',
   'className="cockpit-day-night-glyph"',
   'size={42}',
-  'size={18}',
+  'size={24}',
   'compactGustLabel(day.gust,unit)'
 ])need('ForecastCockpit.tsx',cockpit,token);
 
 for(const token of [
-  'MID v0.9.13.4 – Forecast-Cockpit',
+  'MID v0.9.14.5 – besser lesbare Nachtpiktogramme',
   '.cockpit-day-main-icon{',
-  '.cockpit-day-night-icon{position:absolute',
+  '.cockpit-day-night-icon{position:static',
   'background:transparent',
   'box-shadow:none',
   '.cockpit-day-night-glyph{',
   '.cockpit-day-wind{display:grid!important',
-  '.cockpit-day-wind small{justify-self:end'
+  '.cockpit-day-wind small{justify-self:end;max-width:none;white-space:nowrap;overflow:visible'
 ])need('styles.css',styles,token);
 
 need('package.json',pkg,'test:forecast-cockpit-daynight-wind');

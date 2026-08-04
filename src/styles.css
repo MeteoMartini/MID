@@ -4452,3 +4452,68 @@ body,#root{
 .mid-weather-pictogram.cloud-form-layered .mid-weather-cloud-layered{filter:drop-shadow(0 2px 3px rgba(43,58,77,.22))}
 .mid-weather-pictogram[data-day-part="night"] .mid-weather-cloud-high{stroke-opacity:.96}
 .mid-weather-pictogram[data-day-part="night"] .mid-weather-fog-lines{opacity:.92}
+
+/* MID v0.9.14.5 – besser lesbare Nachtpiktogramme, getrennte Tag/Nacht-Icons, lesbare Böen und klassisches Stundenlayout */
+.weather-period-icons{position:relative;display:inline-flex!important;align-items:center;justify-content:flex-start;gap:6px;width:auto;min-width:96px;min-height:50px;overflow:visible!important}
+.weather-period-day,.weather-period-night{display:inline-grid!important;place-items:center;min-width:0;align-self:center}
+.weather-period-day{z-index:1}
+.weather-period-night{z-index:2;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;filter:drop-shadow(0 2px 5px rgba(12,28,45,.22))}
+.forecast-icon{grid-template-columns:100px minmax(0,1fr)!important;overflow:visible}
+.quickfact.weather.period-weather>.weather-period-icons{width:auto;min-width:72px;min-height:42px}
+.period-widget-icon>.weather-period-icons{width:auto;min-width:72px;min-height:42px}
+
+.cockpit-seven-grid{grid-template-columns:repeat(var(--cockpit-day-count),minmax(136px,1fr));gap:11px}
+.cockpit-day{min-width:136px;padding:12px 12px 11px}
+.cockpit-day-weather-pair{position:relative;display:flex;align-items:center;justify-content:flex-end;gap:7px;min-height:46px;padding-right:0;overflow:visible}
+.cockpit-day-main-icon{flex:none;filter:drop-shadow(0 2px 4px rgba(34,52,74,.18))}
+.cockpit-day-night-icon{position:static;display:grid;place-items:center;align-self:center;padding:0;border:none;background:transparent;box-shadow:none;filter:drop-shadow(0 2px 5px rgba(12,28,45,.22))}
+.cockpit-day-night-glyph{flex:none;opacity:1;filter:drop-shadow(0 1px 4px rgba(34,52,74,.34))}
+.cockpit-day-wind{display:grid!important;grid-template-columns:auto auto!important;align-items:center;justify-content:end!important;gap:6px;min-width:0}
+.cockpit-day-wind small{justify-self:end;max-width:none;white-space:nowrap;overflow:visible;text-overflow:clip;text-align:right;font-size:10.6px}
+
+.forecast-inline-detail-grid{gap:8px}
+.forecast-inline-detail-row{grid-template-columns:36px minmax(96px,1.15fr) minmax(80px,.9fr) minmax(0,1fr);align-items:stretch;gap:8px;padding:8px 9px}
+.forecast-inline-detail-row>time{display:grid;place-items:center;align-self:center}
+.forecast-inline-detail-weather{justify-items:center;align-content:center;gap:5px;min-width:0;padding:6px 8px;border-radius:14px;background:linear-gradient(180deg,rgba(118,162,214,.16),rgba(118,162,214,.06));text-align:center}
+.forecast-inline-detail-weather small{max-width:100%;color:var(--text);font-size:9px;font-weight:750;line-height:1.22;text-align:center;white-space:normal;overflow:visible;text-overflow:clip;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+.forecast-inline-detail-temp{display:grid;align-content:center;justify-items:center;gap:3px;padding:9px 8px;border:1px solid color-mix(in srgb,#e4a949 42%,var(--border));border-radius:16px;background:linear-gradient(180deg,color-mix(in srgb,#f8d979 30%,var(--surface)),color-mix(in srgb,#efb14d 20%,var(--surface)));color:var(--text);box-shadow:inset 0 1px 0 rgba(255,255,255,.30)}
+.forecast-inline-detail-temp strong{font-size:22px;line-height:1.02}
+.forecast-inline-detail-temp small{font-size:10px;font-weight:800;line-height:1.15;color:color-mix(in srgb,var(--text) 82%,transparent)}
+.forecast-inline-detail-metrics{align-content:center}
+.forecast-inline-detail-metrics b{font-size:11.5px}
+.forecast-inline-detail-metrics small{font-size:9.6px;white-space:normal;overflow:visible;text-overflow:clip;line-height:1.2}
+
+.mid-weather-pictogram[data-day-part="night"]{filter:drop-shadow(0 1px 2px rgba(29,48,71,.20))}
+.mid-weather-pictogram[data-day-part="night"] .mid-weather-cloud,.mid-weather-pictogram[data-day-part="night"] .mid-weather-cloud *{stroke-opacity:1}
+.mid-weather-pictogram[data-day-part="night"] .mid-weather-moon{filter:drop-shadow(0 0 3px rgba(255,239,170,.28))}
+.mid-weather-pictogram[data-day-part="night"] .mid-weather-rain,.mid-weather-pictogram[data-day-part="night"] .mid-weather-snow,.mid-weather-pictogram[data-day-part="night"] .mid-weather-lightning{filter:drop-shadow(0 1px 1px rgba(26,39,58,.18))}
+
+@media(max-width:760px){
+ .forecast-icon{grid-template-columns:88px minmax(0,1fr)!important}
+ .weather-period-icons{min-width:84px;min-height:45px}
+ .quickfact.weather.period-weather>.weather-period-icons,.period-widget-icon>.weather-period-icons{min-width:66px}
+ .cockpit-seven-grid{grid-template-columns:repeat(var(--cockpit-day-count),minmax(126px,1fr));gap:9px}
+ .cockpit-day{min-width:126px;padding:10px}
+ .cockpit-day-weather-pair{min-height:42px;gap:6px}
+ .cockpit-day-main-icon{width:36px!important;height:36px!important}
+ .cockpit-day-night-glyph{width:24px!important;height:24px!important}
+ .cockpit-day-wind small{font-size:10px}
+ .forecast-inline-detail-row{grid-template-columns:32px minmax(84px,1fr) minmax(70px,.86fr) minmax(0,1fr);gap:7px;padding:7px}
+ .forecast-inline-detail-temp strong{font-size:20px}
+}
+@media(max-width:480px){
+ .forecast-icon{grid-template-columns:82px minmax(0,1fr)!important}
+ .weather-period-icons{min-width:78px;min-height:42px;gap:5px}
+ .quickfact.weather.period-weather>.weather-period-icons,.period-widget-icon>.weather-period-icons{min-width:62px}
+ .cockpit-day{min-width:122px;padding:9px}
+ .cockpit-day-weather-pair{min-height:40px;gap:5px}
+ .cockpit-day-main-icon{width:34px!important;height:34px!important}
+ .cockpit-day-night-glyph{width:22px!important;height:22px!important}
+ .cockpit-day-wind{gap:5px}
+ .cockpit-day-wind small{font-size:9.2px}
+ .forecast-inline-detail-row{grid-template-columns:28px minmax(76px,.98fr) minmax(66px,.82fr) minmax(0,1fr);gap:6px;padding:6px 7px}
+ .forecast-inline-detail-weather small{font-size:8.4px}
+ .forecast-inline-detail-temp strong{font-size:18px}
+ .forecast-inline-detail-temp small,.forecast-inline-detail-metrics small{font-size:8.8px}
+ .forecast-inline-detail-metrics b{font-size:10.8px}
+}

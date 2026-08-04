@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.9.14.5
+- Empfehlungen aus den zuletzt gesichteten Wartungs-/UI-Hinweisen werden für kommende Releases als fortlaufende Release-Leitlinie übernommen.
+- Nachtpiktogramme wurden kontrastreicher gemacht: hellere Nacht-Hintergründe, hellere Nachtwolken und stärkere Mond-/Niederschlagskontraste verbessern die Erkennbarkeit auf hellen Karten und in kleinen Größen.
+- Tag- und Nachtpiktogramm stehen in Tageskarten, klassischer 7-Tage-Ansicht und Widget/Quickfacts nun nebeneinander; das Nachticon liegt nicht mehr auf dem Tagesicon.
+- Größenverhältnis von Tages- zu Nachtpiktogrammen harmonisiert; Nachticons bleiben kleiner, aber deutlich besser lesbar.
+- Böenangaben im 7-Tage-Cockpit werden nicht mehr abgeschnitten; das Layout reserviert mehr Platz und die kompakte Beschriftung bleibt vollständig sichtbar.
+- Klassische 7-Tage-Stundenansicht: Wetter-/Bewölkungstext wird nicht mehr hart abgeschnitten und die Temperaturkachel wurde optisch an das übrige App-Design angeglichen.
+- Neuer Regressionstest schützt die UI-Politur für Nachtpiktogramme, Böenlayout und klassische Stundenliste.
+
 ## 0.9.14.4
 - Buildfix im 3-Stunden-Aggregator des Prognose-Cockpits: `wind` ist jetzt im typisierten Mittelwertvertrag enthalten; der GitHub-Fehler TS2345 ist beseitigt.
 - Eigener Regressionstest schützt die Windaggregation im 3-Stunden-Raster.

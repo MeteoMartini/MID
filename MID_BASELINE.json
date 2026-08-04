@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.14.4",
+  "releaseVersion": "0.9.14.5",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -97,7 +97,8 @@
     "scripts/test-forecast-cockpit-daynight-wind-09134.mjs",
     "scripts/test-cockpit-hourly-climate-redundancy-09140.mjs",
     "scripts/test-weather-pictogram-cloud-forms-09143.mjs",
-    "scripts/test-buildfix-shortterm-wind-09144.mjs"
+    "scripts/test-buildfix-shortterm-wind-09144.mjs",
+    "scripts/test-ui-polish-night-icons-09145.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -177,6 +178,7 @@
     "scripts/test-forecast-cockpit-daynight-wind-09134.mjs",
     "scripts/test-cockpit-hourly-climate-redundancy-09140.mjs",
     "scripts/test-weather-pictogram-cloud-forms-09143.mjs",
-    "scripts/test-buildfix-shortterm-wind-09144.mjs"
+    "scripts/test-buildfix-shortterm-wind-09144.mjs",
+    "scripts/test-ui-polish-night-icons-09145.mjs"
   ]
 }
