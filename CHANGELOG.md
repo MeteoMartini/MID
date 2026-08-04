@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.9.15.1
+- Gewitterinformationen weisen jetzt mehrere aktuell vom radarbestimmten Zellbereich erfasste Orte mit „Jetzt“ aus.
+- Auf der prognostizierten Zugbahn liegende Orte erhalten eine individuelle lokale Ankunftszeit beziehungsweise ein Zeitfenster und werden chronologisch sortiert.
+- Vier klar getrennte Ortsstatus verhindern falsche Sicherheit: aktuell betroffen, voraussichtlich auf der Zugbahn, möglicher Treffer und nur im Unsicherheitskorridor.
+- Die Ortsbestimmung kombiniert den geometrischen KONRAD3D-Zell- und Prognosekorridor mit OpenStreetMap/Overpass; ein sparsamer BigDataCloud-Sampling-Fallback bleibt bei Ausfällen verfügbar.
+- Der Bezugsort wird separat gegen aktuelle Zellfläche, Zugachse und Prognoseunsicherheit geprüft und bei Relevanz in die Ortsliste aufgenommen.
+- Direkt in der Gewitterkachel erscheinen die wichtigsten Orte; die vollständige Liste mit Statusbegründung, Zugachsenabstand, Ankunftsfenster und Quellenangabe liegt hinter dem Info-Button.
+- Neue Regression schützt Ortskorridor, Statusklassifizierung, Zeitlokalisierung, vollständige UI-Liste und Worker-/Frontend-Datenvertrag.
+
 ## 0.9.15.0
 - Kurzfristige Temperatur- und Gefühlstemperaturwerte erhalten eine meteorologische Plausibilitätsprüfung gegen isolierte 15-Minuten-Ausreißer. Bei ruhiger, trockener Wetterlage werden einzelne ungestützte Sprünge zeitlich interpoliert und transparent als plausibilisiert gekennzeichnet.
 - Die klassische 7-Tage-Stundenübersicht öffnet den aktuellen Tag direkt an der aktuellen Ortsstunde. Im 3-Stunden-Raster werden alle Zeitschritte gezeigt; im 1-Stunden-Raster zunächst ein sinnvoll zentriertes Zeitfenster und auf Wunsch der vollständige Tag.

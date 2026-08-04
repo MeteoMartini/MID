@@ -4537,3 +4537,33 @@ body,#root{
 .thunder-detail-group .thunder-info-heading{margin:0;color:var(--muted);font-size:.74rem;letter-spacing:.14em;text-transform:uppercase}
 .thunder-detail-group .thunder-detail-list{margin:0}
 @media(max-width:560px){.thunder-detail-groups{gap:13px}.thunder-detail-group+.thunder-detail-group{padding-top:11px}}
+
+/* MID v0.9.15.1 · vollständige Gewitter-Orts- und Zugbahnübersicht */
+.thunder-place-section{display:grid;gap:9px;margin-top:12px;padding:11px 12px;border:1px solid color-mix(in srgb,var(--border) 82%,transparent);border-radius:14px;background:color-mix(in srgb,var(--surface) 92%,transparent)}
+.thunder-place-section>header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.thunder-place-section>header>span{display:grid;gap:2px;min-width:0}
+.thunder-place-section>header strong{font-size:11px;line-height:1.2;color:var(--text)}
+.thunder-place-section>header small{font-size:8.5px;color:var(--muted)}
+.thunder-place-section>header em{flex:0 0 auto;font-size:8px;font-style:normal;color:var(--muted)}
+.thunder-place-list{display:grid;gap:0}
+.thunder-place-row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:34px;padding:6px 0;border-top:1px solid color-mix(in srgb,var(--border) 72%,transparent)}
+.thunder-place-row:first-child{border-top:0}
+.thunder-place-row>span{display:grid;gap:2px;min-width:0}
+.thunder-place-row>span strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--text)}
+.thunder-place-row>span small{font-size:8.5px;line-height:1.3;color:var(--muted)}
+.thunder-place-row>b{flex:0 0 auto;max-width:46%;padding:4px 8px;border-radius:999px;font-size:9px;line-height:1.1;text-align:center;white-space:nowrap;background:color-mix(in srgb,var(--border) 60%,transparent);color:var(--text)}
+.thunder-place-row.now>b{background:#d9f8e4;color:#087a42}
+.thunder-place-row.likely>b{background:#dcecff;color:#145b9f}
+.thunder-place-row.possible>b{background:#fff0bf;color:#8b5b00}
+.thunder-place-row.corridor>b{background:#ececf2;color:#5e6472}
+.thunder-place-section.compact{margin-top:8px;padding:8px 10px;border-radius:12px;background:color-mix(in srgb,var(--surface) 78%,transparent)}
+.thunder-place-section.compact>header strong{font-size:9px;letter-spacing:.05em;text-transform:uppercase}
+.thunder-place-section.compact>header small{font-size:7.5px}
+.thunder-place-section.compact .thunder-place-row{min-height:28px;padding:4px 0}
+.thunder-place-section.compact .thunder-place-row>span strong{font-size:9px}
+.thunder-place-section.compact .thunder-place-row>b{font-size:8px;padding:3px 7px}
+.thunder-place-legend{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 10px;margin:4px 0 0;padding-top:9px;border-top:1px solid color-mix(in srgb,var(--border) 72%,transparent)}
+.thunder-place-legend span{display:flex;align-items:center;gap:5px;font-size:7.5px;line-height:1.25;color:var(--muted)}
+.thunder-place-legend i{display:inline-block;width:8px;height:8px;flex:0 0 auto;border-radius:50%;background:var(--border)}
+.thunder-place-legend i.now{background:#24b469}.thunder-place-legend i.likely{background:#3e8ed0}.thunder-place-legend i.possible{background:#e0a21f}.thunder-place-legend i.corridor{background:#8b90a0}
+@media(max-width:560px){.thunder-place-section{padding:10px}.thunder-place-row{gap:8px}.thunder-place-row>b{max-width:50%;font-size:8.5px}.thunder-place-legend{grid-template-columns:1fr}.thunder-place-section.compact .thunder-place-row:nth-child(n+5){display:none}}
