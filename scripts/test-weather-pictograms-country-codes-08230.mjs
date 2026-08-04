@@ -52,9 +52,9 @@ try{
  const isoModule=await compile('iso3166',iso);
  const cases=[['DE','DEU'],['Deutschland','DEU'],['AT','AUT'],['Niederlande','NLD'],['CH','CHE'],['GBR','GBR']];
  for(const [input,expected] of cases){const actual=isoModule.isoAlpha3(input);if(actual!==expected)failures.push(`ISO-Dynamik: ${input} → ${actual}, erwartet ${expected}`)}
- const kindMatch=pictogram.match(/export function weatherPictogramKind[\s\S]*?\n}\n\nfunction Sun/);
+ const kindMatch=pictogram.match(/export function weatherPictogramKind[\s\S]*?\n}\n\nexport function cloudLayerKind/);
  if(!kindMatch)failures.push('Piktogramm-Dynamik: weatherPictogramKind konnte nicht isoliert werden.');
- const source=String(kindMatch?.[0]||'').replace(/\n\nfunction Sun$/,'');
+ const source=String(kindMatch?.[0]||'').replace(/\n\nexport function cloudLayerKind$/,'');
  const pictureModule=await compile('WeatherPictogramKinds',source);
  const kinds=new Map([[0,'clear'],[1,'mostly-clear'],[2,'partly-cloudy'],[3,'cloudy'],[45,'fog'],[48,'rime-fog'],[51,'drizzle'],[56,'freezing-drizzle'],[61,'rain'],[66,'freezing-rain'],[68,'sleet'],[71,'snow'],[77,'snow-grains'],[80,'showers'],[85,'snow-showers'],[95,'thunder'],[96,'thunder-hail']]);
  for(const [code,expected] of kinds){const actual=pictureModule.weatherPictogramKind(code);if(actual!==expected)failures.push(`Piktogramm-Dynamik: WMO ${code} → ${actual}, erwartet ${expected}`)}

@@ -15,8 +15,8 @@ for(const token of [
   "return`G${Math.round(gustKt)} kt`",
   'className="cockpit-day-main-icon"',
   'className="cockpit-day-night-glyph"',
-  'size={40}',
-  'size={21}',
+  'size={42}',
+  'size={18}',
   'compactGustLabel(day.gust,unit)'
 ])need('ForecastCockpit.tsx',cockpit,token);
 

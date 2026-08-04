@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.14.0",
+  "version": "0.9.14.4",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -186,7 +186,9 @@
     "test:cloud-layer-day-night-details": "node scripts/test-cloud-layer-day-night-details-09130.mjs",
     "test:forecast-inline-precip-types": "node scripts/test-forecast-inline-precip-types-09132.mjs",
     "test:forecast-cockpit-daynight-wind": "node scripts/test-forecast-cockpit-daynight-wind-09134.mjs",
-    "test:cockpit-hourly-climate-redundancy": "node scripts/test-cockpit-hourly-climate-redundancy-09140.mjs"
+    "test:cockpit-hourly-climate-redundancy": "node scripts/test-cockpit-hourly-climate-redundancy-09140.mjs",
+    "test:weather-pictogram-cloud-forms": "node scripts/test-weather-pictogram-cloud-forms-09143.mjs",
+    "test:buildfix-shortterm-wind": "node scripts/test-buildfix-shortterm-wind-09144.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

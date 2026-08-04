@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.9.14.4
+- Buildfix im 3-Stunden-Aggregator des Prognose-Cockpits: `wind` ist jetzt im typisierten Mittelwertvertrag enthalten; der GitHub-Fehler TS2345 ist beseitigt.
+- Eigener Regressionstest schützt die Windaggregation im 3-Stunden-Raster.
+- Der Piktogramm-/ISO-Test isoliert die WMO-Klassifikationsfunktion robust, auch nachdem zusätzliche SVG-Hilfskomponenten ergänzt wurden.
+
+## 0.9.14.3
+- Wolkenformen werden zusätzlich zum Wolkenstockwerk klassifiziert: Stratus/Hochnebel, Altostratus, Cirrus, Cumulus, Cumulonimbus und mehrschichtige Bewölkung besitzen nun klar getrennte SVG-Formen.
+- Flache Schichtbewölkung, mittelhohe Wolkendecken, faserige hohe Wolken, Haufenwolken und hochreichende Gewitterwolken sind in kleinen Tages-, Nacht- und Stundenpiktogrammen deutlicher unterscheidbar.
+- Tag-/Nacht-Hintergründe reagieren jetzt zusätzlich auf die Wolkenform; Nachtnebel, Schichtbewölkung und konvektive Lagen bleiben dadurch auch auf hellen Karten lesbar.
+- Bei hoher bzw. mittelhoher Schichtbewölkung kann Sonne oder Mond gedämpft hinter der Wolkendecke erscheinen; nächtlicher Nebel erhält einen schwach durchscheinenden Mondhinweis.
+- Neuer Regressionstest schützt Wolkenformklassifikation, Tag-/Nacht-Hintergrund und appweite Metadatenattribute der Piktogramme.
+
+## 0.9.14.2
+- Wetterpiktogramme weiter geschärft: klarere visuelle Trennung zwischen Schichtbewölkung, mehrschichtiger Bewölkung und konvektiver Bewölkung.
+- Tages- und Nachtpiktogramme erhalten nun einen dezenten semitransparenten Hintergrund: tagsüber heller, nachts dunkler, damit der Tag-/Nachtcharakter schneller erkennbar bleibt.
+- Nachtpiktogramme sind dadurch auf hellen Karten und in kleinen Darstellungen besser ablesbar, ohne stilistisch aus dem App-Bild zu fallen.
+- Hohe Bewölkung und Quellwolken wurden zeichnerisch kontrastreicher ausgearbeitet, damit die Wolkenstockwerke stärker voneinander unterscheidbar sind.
+
+## 0.9.14.1
+- 3h-/1h-Umschalter im Prognose-Cockpit summieren Niederschlagsmengen im 3-Stunden-Raster jetzt korrekt auf; Wahrscheinlichkeiten und repräsentative Wettercodes werden blockweise neu verdichtet.
+- Tages- und Nachtpiktogramme nutzen nun konsequent die Folgnachtlogik: Das kleine Nachticon eines Tages wertet nur die folgende Nacht aus und nicht mehr die zurückliegende Nacht desselben Kalendertages.
+- Nachtpiktogramme wurden appweit vereinheitlicht (auch im Cockpit, in Widgets und Tageskarten): transparenter Stil ohne weiße Kachel, klarerer Größenunterschied zu Tagesicons und stärkere Erkennbarkeit auf hellem Hintergrund.
+- Klassische Tagesansicht klappt die Stundenliste jetzt auch am Desktop direkt unter dem jeweiligen Tag auf; damit werden redundante Parallelansichten reduziert.
+- Bewölkungsdarstellung der Piktogramme kontrastreicher verfeinert, insbesondere für hohe Bewölkung und klare Nachtlagen.
+
 ## 0.9.14.0
 - Tmin/Tmax in Tageskarten werden relativ zum jeweiligen Klimamittel dezent abgestuft; höhere Tmax-Abweichungen erscheinen dunkler rot, deutlich kühlere Tmin dunkler blau.
 - 7-Tage-Cockpit: Tageskarte öffnet direkt den einstündigen klassischen Tagesverlauf als Akkordeon; Rückkehr über „Tagesansicht“.
