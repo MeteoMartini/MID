@@ -1,3 +1,9 @@
+# MID v0.9.15.2
+
+- 7-Tage-Stundenübersicht: ECMWF-orientierte Temperaturfarben deutlich dezenter und kompakter dargestellt.
+- Ensemble-Diagramme: Desktop-Hover nach dem Schließen oder einem Außenklick zuverlässig reaktiviert; Tooltips stehlen dem Diagramm nicht länger den Mauszeiger.
+- Regressionstest für Temperaturfeld-Geometrie und Desktop-Tooltip-Reaktivierung ergänzt.
+
 # Changelog
 
 ## 0.9.15.1

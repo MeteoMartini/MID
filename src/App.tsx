@@ -1087,7 +1087,7 @@ function ecmwfTemperatureTone(value:number){
  const stops:[number,[number,number,number]][]=[[-40,[49,54,149]],[-25,[63,117,181]],[-10,[116,178,216]],[0,[224,243,248]],[10,[255,235,153]],[20,[253,174,97]],[30,[239,93,62]],[40,[165,15,38]]],temperature=Number(value);
  const mix=(left:[number,number,number],right:[number,number,number],ratio:number)=>left.map((channel,index)=>Math.round(channel+(right[index]-channel)*ratio)) as [number,number,number];let rgb=stops[0][1];
  for(let index=1;index<stops.length;index+=1){if(temperature<=stops[index][0]){const[left,leftRgb]=stops[index-1],[right,rightRgb]=stops[index];rgb=mix(leftRgb,rightRgb,Math.max(0,Math.min(1,(temperature-left)/(right-left))));break}rgb=stops[index][1]}
- const luminance=(.2126*rgb[0]+.7152*rgb[1]+.0722*rgb[2])/255,color=luminance<.56?'#fff':'#172033';return{background:`rgb(${rgb.join(',')})`,border:`rgba(${rgb.join(',')},.86)`,color,title:`ECMWF-orientierte 2-m-Temperaturfarbskala · ${Math.round(temperature)} °C`};
+ const channels=rgb.join(','),background=`linear-gradient(180deg,rgba(${channels},.17),rgba(${channels},.075))`;return{background,border:`rgba(${channels},.30)`,color:'var(--text)',title:`ECMWF-orientierte 2-m-Temperaturfarbskala · ${Math.round(temperature)} °C`};
 }
 function clockHourInZone(timezone:string,epoch=Date.now()){try{return Number(new Intl.DateTimeFormat('en-GB',{timeZone:timezone,hour:'2-digit',hourCycle:'h23'}).format(new Date(epoch)))}catch{return new Date(epoch).getHours()}}
 

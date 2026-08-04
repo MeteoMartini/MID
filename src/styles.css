@@ -4567,3 +4567,34 @@ body,#root{
 .thunder-place-legend i{display:inline-block;width:8px;height:8px;flex:0 0 auto;border-radius:50%;background:var(--border)}
 .thunder-place-legend i.now{background:#24b469}.thunder-place-legend i.likely{background:#3e8ed0}.thunder-place-legend i.possible{background:#e0a21f}.thunder-place-legend i.corridor{background:#8b90a0}
 @media(max-width:560px){.thunder-place-section{padding:10px}.thunder-place-row{gap:8px}.thunder-place-row>b{max-width:50%;font-size:8.5px}.thunder-place-legend{grid-template-columns:1fr}.thunder-place-section.compact .thunder-place-row:nth-child(n+5){display:none}}
+
+/* MID v0.9.15.2 · dezentere ECMWF-Temperaturfelder und Desktop-Ensemble-Hover */
+.forecast-inline-detail-row{
+ grid-template-columns:36px minmax(96px,1.15fr) 60px minmax(0,1fr);
+}
+.forecast-inline-detail-temp{
+ min-width:0;
+ align-self:center;
+ gap:1px;
+ padding:5px 4px;
+ border-width:1px;
+ border-radius:10px;
+ box-shadow:none;
+ text-shadow:none;
+}
+.forecast-inline-detail-temp strong{font-size:18px;line-height:1}
+.forecast-inline-detail-temp small{font-size:8.4px;line-height:1.05;font-weight:760;opacity:.72!important}
+@media(max-width:760px){
+ .forecast-inline-detail-row{grid-template-columns:32px minmax(84px,1fr) 56px minmax(0,1fr)}
+ .forecast-inline-detail-temp strong{font-size:17px}
+}
+@media(max-width:480px){
+ .forecast-inline-detail-row{grid-template-columns:28px minmax(76px,.98fr) 52px minmax(0,1fr)}
+ .forecast-inline-detail-temp{padding:4px 3px;border-radius:9px}
+ .forecast-inline-detail-temp strong{font-size:16px}
+ .forecast-inline-detail-temp small{font-size:7.8px}
+}
+@media(hover:hover) and (pointer:fine){
+ .ensemble-chart-export .recharts-tooltip-wrapper{pointer-events:none!important}
+ .ensemble-chart-export .ensemble-pro-tooltip{pointer-events:none!important;cursor:default}
+}
