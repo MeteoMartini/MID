@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.15.10",
+  "version": "0.9.15.11",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -196,7 +196,8 @@
     "test:storm-place-radar-performance": "node scripts/test-storm-place-resilience-radar-performance-09154.mjs",
     "test:day-following-night-boundaries": "node scripts/test-day-following-night-boundaries-09155.mjs",
     "test:ensemble-desktop-composite-k3d": "node scripts/test-ensemble-desktop-composite-k3d-09156.mjs",
-    "test:hx-projection": "node scripts/test-hx-projection-alignment-09158.mjs"
+    "test:hx-projection": "node scripts/test-hx-projection-alignment-09158.mjs",
+    "test:radar-site-intervals": "node scripts/test-radar-site-intervals-091511.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

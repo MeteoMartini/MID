@@ -71,6 +71,13 @@
 
 # Changelog
 
+## 0.9.15.11
+
+- Niederschlags-Nowcast: vollständige 5-Minuten-DWD-RV-Punktserie bis +120 Minuten.
+- Getrennte Niederschlagsphasen werden mit Unterbrechungen und tatsächlicher letzter Endzeit ausgewiesen.
+- Echos im Kilometerumfeld werden nicht mehr als Standorttreffer oder Standortmenge gewertet.
+- Aktuelle Standortbeobachtung wird mit nativem RADOLAN YW gegengeprüft; OPERA dient nur als Kontrollabgleich.
+
 ## 0.9.15.1
 - Gewitterinformationen weisen jetzt mehrere aktuell vom radarbestimmten Zellbereich erfasste Orte mit „Jetzt“ aus.
 - Auf der prognostizierten Zugbahn liegende Orte erhalten eine individuelle lokale Ankunftszeit beziehungsweise ein Zeitfenster und werden chronologisch sortiert.

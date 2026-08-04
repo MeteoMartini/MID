@@ -26,7 +26,7 @@ assert.ok(!/UVI[^\n]{0,100}formatNumber\([^\n]*uv/.test(waterSource), 'UVI wird 
 assert.ok(fusionSource.includes('export function dryRadarNowcastProbability'), 'gemeinsame trockene Nowcast-Wahrscheinlichkeitsfunktion fehlt');
 assert.ok(fusionSource.includes('dryBlend=dryRadarNowcastProbability(hour.probability,radar'), 'Stundenprognose nutzt nicht die gemeinsame trockene Nowcast-Wahrscheinlichkeit');
 assert.ok(appSource.includes('dryRadarNowcastProbability(modelProbability,radar,0)'), 'Karte „Aktuelle Niederschlagswahrscheinlichkeit“ nutzt nicht die gemeinsame trockene Nowcast-Wahrscheinlichkeit');
-assert.ok(appSource.includes("radarFinding=dryBlend?' · Radarbefund: kein relevanter Niederschlag im Nahbereich':''"), 'Quellenhinweis kennzeichnet den niederschlagsfreien Radarbefund nicht');
+assert.ok(appSource.includes("radarFinding=dryBlend?' · Radarbefund: kein Niederschlag am Standort':nearbyOnly?' · Radarbefund: Echo nur im Umfeld, kein direkter Standorttreffer':''"), 'Quellenhinweis kennzeichnet den niederschlagsfreien Radarbefund nicht');
 
 const require=createRequire(import.meta.url);
 let ts;

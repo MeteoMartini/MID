@@ -9,7 +9,7 @@ for(const token of [
  'onPointerDown={pointerDown}',
  'onPointerMove={pointerMove}',
  'timelineSegments',
- 'nearbyOnly?nearbyRate:siteRate',
+ 'nearbyOnly?Math.min(nearbyRate,scaleNearbyMarker(nearbyRate)):siteRate',
  'radar-nowcast-total',
  'radarHistory={radarHistoryInfo}',
  'radarNowcast(loc.latitude,loc.longitude,loc.country_code||loc.country,radarController.signal,true)',

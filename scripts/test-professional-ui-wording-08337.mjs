@@ -4,7 +4,7 @@ const app=await readFile(new URL('../src/App.tsx',import.meta.url),'utf8');
 const ensemble=await readFile(new URL('../src/EnsemblePanel.tsx',import.meta.url),'utf8');
 const fusion=await readFile(new URL('../src/forecastFusion.ts',import.meta.url),'utf8');
 for(const forbidden of ['trockener Radar-Nowcast','Wie geht’s weiter?','Danach am ehesten','Unsicherheit nimmt zu','Keine Hazards','adaptiv gewichtet'])assert.ok(!(app+ensemble+fusion).includes(forbidden),`veraltete oder umgangssprachliche UI-Formulierung vorhanden: ${forbidden}`);
-for(const required of ['Im Radarverbund ist am Standort und im Nahbereich kein relevanter Niederschlag erkennbar','Radarbefund: kein relevanter Niederschlag im Nahbereich','Radar- und Modellabgleich','Radarqualität:','Gewichtung: Radar','Best Match · geprüft und lokal nachkorrigiert','Keine Warnung'])assert.ok(app.includes(required),`professionelle UI-Formulierung fehlt: ${required}`);
+for(const required of ['Im Radarverbund ist am Standort kein relevanter Niederschlag erkennbar','Radarbefund: kein Niederschlag am Standort','Radar- und Modellabgleich','Radarqualität:','Gewichtung: Radar','Best Match · geprüft und lokal nachkorrigiert','Keine Warnung'])assert.ok(app.includes(required),`professionelle UI-Formulierung fehlt: ${required}`);
 for(const required of ['Prognoseentwicklung','Wahrscheinlichste Entwicklung','Zunehmende Unsicherheit','kein markanter Übergang erkennbar'])assert.ok(ensemble.includes(required),`professionelle Kompass-Formulierung fehlt: ${required}`);
 assert.ok(fusion.includes('Best Match geprüft')&&fusion.includes('% Modellvergleich'), 'professionelle Best-Match-Prüf- und Modellvergleichsangabe fehlt');
 console.log('Professionelle UI-Terminologie ab v0.8.33.7 geprüft.');

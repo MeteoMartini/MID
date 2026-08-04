@@ -15,7 +15,7 @@ for(const token of [
 for(const token of [
  "for(const level of[.2,.4,1,2,4,6,10,20,40,60,100])",
  "function radarAxisLabel(value:number)",
- "forecastAmount=timelineSegments.filter(segment=>segment.rate>0&&segment.end>now).reduce",
+ "forecastAmount=timelineSegments.filter(segment=>segment.rate>0&&!segment.nearby&&segment.end>now).reduce",
  "<small>2-h-Summe</small><strong>{radarAmountLabel(forecastAmount)} mm</strong>",
  "{radarAxisLabel(scale/2)}"
 ])if(!app.includes(token))failures.push(`Nowcast-Skala/Summe fehlt: ${token}`);

@@ -1,7 +1,7 @@
 type H5Node={value?:ArrayLike<number>|unknown;shape?:number[];attrs?:Record<string,unknown>};
 type Projection={kind:'stere'|'laea';lat0:number;latTs:number;lon0:number;x0:number;y0:number;a:number;e2:number};
 export type RadolanRaster={values:ArrayLike<number>;width:number;height:number;gain:number;offset:number;nodata:number;undetect:number;quantity:string;projection:Projection;minX:number;maxY:number;xScale:number;yScale:number};
-export type RadolanPointSample={covered:boolean;amountMm:number;nearbyAmountMm:number;column?:number;row?:number};
+export type RadolanPointSample={covered:boolean;amountMm:number;nearbyAmountMm:number;nearestWetKm?:number;column?:number;row?:number};
 
 const rasterCache=new Map<string,Promise<RadolanRaster>>();
 const MAX_CACHE=84;
@@ -45,9 +45,9 @@ function decoded(raster:RadolanRaster,column:number,row:number):{covered:boolean
  if(column<0||column>=raster.width||row<0||row>=raster.height)return{covered:false,amountMm:0};const raw=Number(raster.values[row*raster.width+column]);if(!Number.isFinite(raw)||raw===raster.nodata)return{covered:false,amountMm:0};if(raw===raster.undetect)return{covered:true,amountMm:0};const physical=raw*raster.gain+raster.offset,amount=/RATE/.test(raster.quantity)?physical/12:physical;return{covered:true,amountMm:Math.max(0,Math.min(250,amount))};
 }
 export function sampleRadolanPoint(raster:RadolanRaster,lat:number,lon:number):RadolanPointSample{
- const projected=forward(lat,lon,raster.projection);if(!projected)return{covered:false,amountMm:0,nearbyAmountMm:0};const column=Math.floor((projected[0]-raster.minX)/raster.xScale),row=Math.floor((raster.maxY-projected[1])/raster.yScale),centre=decoded(raster,column,row);let nearby=0,valid=0,total=0;
- for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const value=decoded(raster,column+dx,row+dy);if(!value.covered)continue;valid++;total+=value.amountMm;nearby=Math.max(nearby,value.amountMm)}
- const amountMm=centre.covered?centre.amountMm:valid?total/valid:0;return{covered:centre.covered||valid>=3,amountMm,nearbyAmountMm:nearby,column,row};
+ const projected=forward(lat,lon,raster.projection);if(!projected)return{covered:false,amountMm:0,nearbyAmountMm:0};const column=Math.floor((projected[0]-raster.minX)/raster.xScale),row=Math.floor((raster.maxY-projected[1])/raster.yScale),centre=decoded(raster,column,row);let nearby=0,valid=0,total=0,nearest=Infinity;
+ for(let dy=-4;dy<=4;dy++)for(let dx=-4;dx<=4;dx++){const value=decoded(raster,column+dx,row+dy);if(!value.covered)continue;if(Math.abs(dx)<=1&&Math.abs(dy)<=1){valid++;total+=value.amountMm;nearby=Math.max(nearby,value.amountMm)}if(value.amountMm>=.005)nearest=Math.min(nearest,Math.hypot(dx*raster.xScale,dy*raster.yScale)/1000)}
+ const amountMm=centre.covered?centre.amountMm:valid?total/valid:0;return{covered:centre.covered||valid>=3,amountMm,nearbyAmountMm:nearby,nearestWetKm:Number.isFinite(nearest)?Number(nearest.toFixed(2)):undefined,column,row};
 }
 async function decodeRadolan(url:string):Promise<RadolanRaster>{
  const response=await fetch(url,{cache:'force-cache'});if(!response.ok)throw new Error(`RADOLAN-YW HDF5 HTTP ${response.status}`);const buffer=await response.arrayBuffer();if(buffer.byteLength<1000)throw new Error('RADOLAN-YW-Datei ist unvollständig.');const hdf5=await import('jsfive'),file=new hdf5.File(buffer,url),where=getNode(file,'where'),{dataset,what,quantity}=findDataset(file),shape=dataset.shape??[],height=Number(shape[0]),width=Number(shape[1]);if(!width||!height||width*height>10_000_000)throw new Error('Ungültige RADOLAN-Rastergröße.');const values=dataset.value as ArrayLike<number>;if(!values||values.length<width*height)throw new Error('RADOLAN-Raster ist unvollständig.');const xScale=Math.abs(scalar(attr(where,'xscale','x_scale'))??1000),yScale=Math.abs(scalar(attr(where,'yscale','y_scale'))??1000),llX=scalar(attr(where,'LL_x','ll_x')),urY=scalar(attr(where,'UR_y','ur_y')),urX=scalar(attr(where,'UR_x','ur_x')),llY=scalar(attr(where,'LL_y','ll_y')),minX=llX??(urX!==undefined?urX-width*xScale:-543196.835),maxY=urY??(llY!==undefined?llY+height*yScale:-3622588.861);return{values,width,height,gain:scalar(attr(what,'gain'))??.01,offset:scalar(attr(what,'offset'))??0,nodata:scalar(attr(what,'nodata'))??65535,undetect:scalar(attr(what,'undetect'))??0,quantity,projection:projectionFrom(where),minX,maxY,xScale,yScale};
