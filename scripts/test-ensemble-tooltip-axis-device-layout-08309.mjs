@@ -17,8 +17,8 @@ for(const token of [
   'onDismiss={tooltip.dismiss}',
   'onDismiss={rainTooltip.dismiss}',
   'tooltipActive:suppressed?false:undefined',
-  'active={tooltip.tooltipActive}',
-  'active={rainTooltip.tooltipActive}',
+  'active={desktop.finePointer?false:tooltip.tooltipActive}',
+  'active={rainDesktop.finePointer?false:rainTooltip.tooltipActive}',
   'onClick={tooltip.prepareOpen}',
   'onClick={rainTooltip.prepareOpen}'
 ])need('Tooltip-Schließung',panel,token);

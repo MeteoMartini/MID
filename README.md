@@ -1,3 +1,13 @@
+## Wartung v0.9.15.7 – KONRAD3D-TypeScript-Buildfix
+
+Der Produktionsbuild akzeptiert nun die Kennzeichnung abgeleiteter K3D-Zugpunkte. Die Prognosespur bleibt funktional unverändert; korrigiert wurde die lokale Typinferenz der veränderlichen Punktliste.
+
+## Wartung v0.9.15.6 – Desktop-Ensemble, 250-m-Radar und KONRAD3D
+
+- Temperatur-, Niederschlags- und Wind-Ensemble besitzen am Desktop eine deterministische Hover-/Klick-Schicht mit Führungslinie und festem Portal-Tooltip; mobile Recharts-Interaktion bleibt separat erhalten.
+- Die 250-m-Ansicht verwendet für Deutschland primär das amtliche HX-Deutschlandkomposit. Reflektivität wird für den visuellen Vergleich mit dem 1-km-Radar in eine äquivalente mm/h-Regenrate übersetzt.
+- KONRAD3D-Prognosepunkte und 1σ-Unsicherheitsellipsen aus dem amtlichen XML werden vollständig geparst und als Zellfläche, Zugbahn, Zeitpunkte und Korridor dargestellt.
+
 ## Funktionsrelease v0.8.35.0 – Best Match, API-Suffixaudit und vollständige Sonnenstunden
 
 - Open-Meteo Best Match bleibt die operative Leitprognose für Kurzfrist, 7 Tage und alle gemeinsamen Sektionen.

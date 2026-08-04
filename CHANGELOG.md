@@ -1,3 +1,18 @@
+# MID v0.9.15.7
+
+- Produktionsbuild repariert: `ResolvedKonradTrackPoint[]` ist für die veränderliche KONRAD3D-Prognosepunktliste nun explizit typisiert.
+- Amtliche und abgeleitete K3D-Punkte können dadurch gemeinsam verarbeitet werden; `derived` ist im TypeScript-Build zulässig.
+- Keine funktionale Änderung an Radar-, Nowcast- oder Worker-Datenlogik.
+
+# MID v0.9.15.6
+
+- Ensemble-Diagramme für Temperatur, Niederschlag und Wind besitzen am Desktop nun eine eigene, von Recharts unabhängige Treffer- und Tooltip-Schicht. Hover, Klick zum Fixieren, Außenklick, Escape sowie Pfeiltasten funktionieren einheitlich; eine senkrechte Führungslinie kennzeichnet den aktiven Tag.
+- Das 250-m-Radar verwendet in Deutschland vorrangig das flächendeckende DWD-HX-Deutschlandkomposit statt eines einzelnen Standortradars. Lokales PX250 bleibt nur als klar gekennzeichneter Fallback erhalten.
+- HX-/PX250-Reflektivität wird für die gemeinsame Darstellung über Z=200·R^1,6 in eine äquivalente Regenrate umgerechnet und mit derselben mm/h-Farbskala wie das 1-km-Radar dargestellt.
+- Der KONRAD3D-XML-Parser verarbeitet die amtlichen `forecast/centroid_forecasts/centroid_forecast`-Elemente einschließlich aller 5-Minuten-Positionen und Unsicherheitsellipsen. Ein fehlerhaft escaptes dynamisches RegExp, das Prognosepunkte verschluckte, wurde korrigiert.
+- Das Kompositbild zeichnet aktuelle Zellfläche, Zugbahn bis +60 Minuten, Prognosepunkte, 1σ-Korridor und Unsicherheitsellipsen oberhalb des Radars. Nur bei fehlenden amtlichen Einzelpunkten wird eine transparent gekennzeichnete Vektor-Spur ergänzt.
+- Neue Regression prüft alle drei Desktop-Ensemble-Interaktionen, HX-Priorisierung, gemeinsame Regenratenskala sowie das echte amtliche KONRAD3D-XML-Schema funktional.
+
 # MID v0.9.15.5
 
 - Tagescharaktere werden appweit ausschließlich aus dem astronomischen beziehungsweise zivilen Tagesfenster abgeleitet; Nachtregen desselben Kalendertags beeinflusst weder Text noch Tagespiktogramm.

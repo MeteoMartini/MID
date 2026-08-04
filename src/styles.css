@@ -4599,3 +4599,24 @@ body,#root{
  .ensemble-chart-export .recharts-tooltip-wrapper{pointer-events:none!important}
  .ensemble-chart-export .ensemble-pro-tooltip{pointer-events:none!important;cursor:default}
 }
+
+/* MID v0.9.15.6: deterministic desktop interaction for ensemble charts */
+[data-mid-ensemble-desktop-hit-area]{position:relative;outline:none;cursor:crosshair}
+[data-mid-ensemble-desktop-hit-area]:focus-visible{outline:2px solid color-mix(in srgb,var(--accent) 74%,#ffffff);outline-offset:3px;border-radius:12px}
+.ensemble-desktop-pointer-guide{position:absolute;z-index:18;width:0;pointer-events:none;transform:translateX(-.5px);border-left:1.5px solid color-mix(in srgb,var(--accent) 82%,#ffffff);filter:drop-shadow(0 0 3px color-mix(in srgb,var(--accent) 40%,transparent))}
+.ensemble-desktop-pointer-guide::before,.ensemble-desktop-pointer-guide::after,.ensemble-desktop-pointer-guide>i{content:"";position:absolute;left:0;transform:translate(-50%,-50%);width:7px;height:7px;border-radius:50%;background:var(--surface);border:2px solid var(--accent);box-shadow:0 1px 5px rgba(15,34,53,.25)}
+.ensemble-desktop-pointer-guide::before{top:0}.ensemble-desktop-pointer-guide::after{top:100%}.ensemble-desktop-pointer-guide>i{top:50%;width:6px;height:6px}
+.ensemble-desktop-tooltip-layer{position:fixed;z-index:2147483100;pointer-events:auto;transform:none;max-width:calc(100vw - 16px)}
+.ensemble-desktop-tooltip-layer.above{transform:translateY(-100%)}
+.ensemble-desktop-tooltip-layer .ensemble-pro-tooltip{width:100%;max-width:100%;pointer-events:auto;cursor:default;padding-right:30px}
+.ensemble-desktop-tooltip-close{position:absolute;right:7px;top:7px;width:22px;height:22px;border:0;border-radius:999px;background:color-mix(in srgb,var(--surface2) 88%,transparent);color:var(--muted);font:800 17px/1 system-ui;display:grid;place-items:center;cursor:pointer}
+.ensemble-desktop-tooltip-close:hover,.ensemble-desktop-tooltip-close:focus-visible{background:color-mix(in srgb,var(--accent) 18%,var(--surface2));color:var(--text);outline:none}
+@media (hover:none),(pointer:coarse){[data-mid-ensemble-desktop-hit-area]{cursor:default}.ensemble-desktop-pointer-guide,.ensemble-desktop-tooltip-layer{display:none!important}}
+
+/* MID v0.9.15.6 · sichtbare KONRAD3D-Zellfläche, Zugbahn und Unsicherheitsellipsen */
+.konrad-footprint-sample{width:13px;height:13px;border:1.5px solid #f2b134;border-radius:50%;background:rgba(242,177,52,.12);box-shadow:0 0 0 2px rgba(255,255,255,.65) inset}
+.leaflet-overlay-pane .konrad-current-footprint,.leaflet-overlay-pane .konrad-probability-corridor,.leaflet-overlay-pane .konrad-track-halo,.leaflet-overlay-pane .konrad-track,.leaflet-overlay-pane .konrad-uncertainty-ellipse,.leaflet-overlay-pane .konrad-forecast-node{vector-effect:non-scaling-stroke}
+.leaflet-overlay-pane .konrad-track-halo{filter:drop-shadow(0 1px 2px rgba(0,0,0,.42))}
+.leaflet-overlay-pane .konrad-track,.leaflet-overlay-pane .konrad-forecast-node{filter:drop-shadow(0 1px 2px rgba(0,0,0,.32))}
+.leaflet-overlay-pane .konrad-probability-corridor,.leaflet-overlay-pane .konrad-uncertainty-ellipse{mix-blend-mode:multiply}
+[data-theme="dark"] .leaflet-overlay-pane .konrad-probability-corridor,[data-theme="dark"] .leaflet-overlay-pane .konrad-uncertainty-ellipse{mix-blend-mode:screen}

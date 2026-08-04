@@ -8,7 +8,7 @@ const parts=String(pkg.version).split('.').map(Number),minimum=[0,8,30,3],atLeas
 if(!atLeast)failures.push(`Version liegt vor 0.8.30.3: ${pkg.version}`);
 if(baseline.releaseVersion!==pkg.version)failures.push(`Baseline ${baseline.releaseVersion} passt nicht zu ${pkg.version}`);
 for(const token of [
- "fixed=compact||(typeof window!=='undefined'&&(window.matchMedia('(pointer: coarse)').matches||window.innerHeight<=620))",
+ "fixed=!forceInline&&(compact||(typeof window!=='undefined'&&(window.matchMedia('(pointer: coarse)').matches||window.innerHeight<=620)))",
  'activeRef=useRef(false)',
  '[tooltipKey,setTooltipKey]=useState(0)',
  'key={tooltip.tooltipKey}',
