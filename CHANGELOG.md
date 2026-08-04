@@ -1,3 +1,12 @@
+# MID v0.9.15.8
+
+- DWD-HX-250-m-Radar wird nicht mehr als rechteckiges WGS84-Bild über die Karte gestreckt, sondern kachelweise und projektionstreu aus der im HDF5 hinterlegten ellipsoidischen Polarstereografie nach Web-Mercator abgebildet.
+- Die HX-Rasterachse wird gemäß Produktmetadaten korrekt behandelt: Pixelzentren beginnen bei x=0/y=0, die y-Koordinate nimmt je Rasterzeile um 250 m ab.
+- Falsche Verortungen gegenüber dem DWD-RV-1-km-Komposit, insbesondere im Westen und Norden Deutschlands, werden dadurch beseitigt.
+- Sichtbare Kartenausschnitte werden als Leaflet-Canvas-Kacheln berechnet; Farb-Lookup, Kachelpuffer und asynchrones Rendering begrenzen Rechenlast und Speicherbedarf.
+- Neues Projektionsmodul verarbeitet `+a`, `+b`, `+x_0`, `+y_0`, `+lat_ts` und `+lon_0` aus `projdef` einschließlich ellipsoidischer Vorwärts- und Rücktransformation.
+- Neue Regression prüft alle vier amtlichen HX-Eckreferenzen auf Zentimetergenauigkeit sowie die Rasterzelle für Münster.
+
 # MID v0.9.15.7
 
 - Produktionsbuild repariert: `ResolvedKonradTrackPoint[]` ist für die veränderliche KONRAD3D-Prognosepunktliste nun explizit typisiert.

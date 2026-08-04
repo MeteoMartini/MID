@@ -1,7 +1,7 @@
 import {readFile} from 'node:fs/promises';
 
-const [app,radar,px,styles,worker,pkg,baseline]=await Promise.all([
- 'src/App.tsx','src/RadarPanel.tsx','src/Px250Overlay.tsx','src/styles.css','worker/metar-proxy.js','package.json','MID_BASELINE.json'
+const [app,radar,px,projection,styles,worker,pkg,baseline]=await Promise.all([
+ 'src/App.tsx','src/RadarPanel.tsx','src/Px250Overlay.tsx','src/radarProjection.ts','src/styles.css','worker/metar-proxy.js','package.json','MID_BASELINE.json'
 ].map(path=>readFile(new URL(`../${path}`,import.meta.url),'utf8')));
 const failures=[];
 const need=(area,text,token)=>{if(!text.includes(token))failures.push(`${area}: ${token}`)};
@@ -41,11 +41,11 @@ for(const token of [
  'function findDataset(file:H5File):DatasetSelection',
  "for(let dataset=1;dataset<=5;dataset++)",
  "for(let data=1;data<=6;data++)",
- "new RegExp(`(?:^|\\\\s)\\\\+${name}=([^\\\\s]+)`",
  'ImageOverlay url={overlay.url}',
  'zIndex={430}',
  'canvas.toDataURL'
 ])need('PX250',px,token);
+need('PX250-Projektion',projection,"new RegExp(`(?:^|\\\\s)\\\\+${name}=([^\\\\s]+)`");
 for(const token of [
  '.leaflet-mid-lightning-points-pane',
  '.leaflet-mid-motion-arrows-pane',
