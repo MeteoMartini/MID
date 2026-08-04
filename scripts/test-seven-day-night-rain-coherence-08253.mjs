@@ -22,8 +22,8 @@ for(const token of [
  'forecastDays[index+1]'
 ])need('7-Tage-Trend',app,token);
 for(const token of [
- 'FOLLOWING_NIGHT_START_HOUR=20',
- 'FOLLOWING_NIGHT_END_HOUR=8',
+ "import {followingNightHoursForDate} from './forecastPeriods';",
+ 'followingNightHoursForDate(day.date,hours)',
  'const fallback=Number(nextDay.min)',
  'minimum>=20'
 ])need('Folgenacht',nightSource,token);
@@ -43,10 +43,12 @@ try{
   const out=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022},fileName:`${name}.ts`});
   const file=join(dir,`${name}.mjs`);await writeFile(file,out.outputText);return import(`${pathToFileURL(file).href}?v=${Date.now()}`);
  };
- const night=await compile('forecastNight',nightSource);
+ const nightStandalone=nightSource.replace("import {followingNightHoursForDate} from './forecastPeriods';",'').replace("import type {Day,Hour} from './weather';",'');
+ const nightHelper=`function followingNightHoursForDate(date,hours){const base=new Date(date+'T12:00:00Z');base.setUTCDate(base.getUTCDate()+1);const nextDate=base.toISOString().slice(0,10);const astronomical=hours.filter(hour=>{const sampleDate=hour.time.slice(0,10),clock=Number(hour.time.slice(11,13));return hour.isDay===false&&(sampleDate===date?clock>=12:sampleDate===nextDate?clock<12:false)});return astronomical.length>=4?astronomical:hours.filter(hour=>{const sampleDate=hour.time.slice(0,10),clock=Number(hour.time.slice(11,13));return sampleDate===date?clock>=19:sampleDate===nextDate?clock<7:false})}`;
+ const night=await compile('forecastNight',nightHelper+nightStandalone);
  const friday={date:'2026-07-31',min:21,max:31},saturday={date:'2026-08-01',min:18,max:29};
  const nightHours=[];
- for(const [date,start,end,base] of [['2026-07-31',20,23,22],['2026-08-01',0,8,19]])for(let hour=start;hour<=end;hour++)nightHours.push({time:`${date}T${String(hour).padStart(2,'0')}:00`,temperature:hour===6?18:base});
+ for(const [date,start,end,base] of [['2026-07-31',20,23,22],['2026-08-01',0,8,19]])for(let hour=start;hour<=end;hour++)nightHours.push({time:`${date}T${String(hour).padStart(2,'0')}:00`,temperature:hour===6?18:base,isDay:false});
  const minimum=night.followingNightMinimum(friday,saturday,nightHours);
  if(minimum!==18)failures.push(`Folgenacht-Minimum: erwartet 18 °C, erhalten ${minimum}`);
  if(night.followingNightIsTropical(friday,saturday,nightHours))failures.push('Tropennacht wurde fälschlich aus dem Freitag-Tagesminimum statt aus der Nacht Freitag/Samstag abgeleitet.');

@@ -7,6 +7,7 @@ import {precipitationParts,reconcileForecastPrecipitation} from './precipitation
 import type {AirQualityStationMeta} from './airQuality';
 import {naturalPossibleEventFallback,naturalPossibleEventText} from './forecastWording';
 import {fieldSiteCompatibility,fieldWeightPolicy,normalisePrecipitationAccumulation,precipitationIntervalMinutes,sourcePolicyFor,type StationAnalysisField} from './sourceQuality';
+import {dayPeriodHoursForDate} from './forecastPeriods';
 export type WindUnit='kn'|'kmh'|'ms'|'mph';
 export type UrbanClass='urban'|'suburban'|'rural'|'unknown';
 export type CloudObservation='cavok'|'clear'|'layers';
@@ -703,7 +704,7 @@ function representativePrecipCode(hours:Hour[]){
   if(family==='none')continue;
   if(probability<20&&amount<.05&&snow<.05)continue;
   const hour=Number(h.time.slice(11,13));
-  const dayWeight=h.isDay?1.12:.78;
+  const dayWeight=h.isDay||hour>=7&&hour<19?1.12:.78;
   const probabilityWeight=.12+probability/100;
   const amountWeight=1+Math.min(2.2,amount*1.4+snow*.18);
   const severity=family==='thunder'?2.4:family==='snow'||family==='showers'?1.25:family==='rain'?1.05:.82;
@@ -732,7 +733,7 @@ function conciseSkyLabel(cloud:number){
  return'Bedeckt';
 }
 function partCloud(hours:Hour[],from:number,to:number){
- const values=hours.filter(h=>h.isDay&&Number(h.time.slice(11,13))>=from&&Number(h.time.slice(11,13))<to);
+ const values=hours.filter(h=>Number(h.time.slice(11,13))>=from&&Number(h.time.slice(11,13))<to);
  if(!values.length)return Number.NaN;
  return values.reduce((sum,h)=>sum+h.cloud,0)/values.length;
 }
@@ -804,14 +805,14 @@ function possibleEventText(event:string,timing:string){
  return fitDaySecondary(full,fallback.length<=DAY_SECONDARY_MAX?fallback:`${event} möglich`);
 }
 export function dayWeatherCharacter(day:Day,hours:Hour[]):DayWeatherCharacter{
- const relevant=hours.filter(h=>h.time.startsWith(day.date));
+ const relevant=dayPeriodHoursForDate(day.date,hours);
  if(!relevant.length){
   const family=precipCodeFamily(day.code),raw=label(day.code),fallbackLabel=family==='none'?compactSkyFallback(raw):shortEvent(family,raw);
   return{code:day.code,label:fitDayLabel(fallbackLabel,family==='none'?'Wechselhaft':fallbackLabel),secondary:'',cloudOktas:0,precipitationDominant:family!=='none'};
  }
- const daylight=relevant.filter(h=>h.isDay);
- const cloudWeight=relevant.reduce((sum,h)=>{const hour=Number(h.time.slice(11,13));return sum+(h.isDay?(hour>=9&&hour<18?1.55:1.15):.35)},0);
- const weightedCloud=relevant.reduce((sum,h)=>{const hour=Number(h.time.slice(11,13));return sum+h.cloud*(h.isDay?(hour>=9&&hour<18?1.55:1.15):.35)},0)/Math.max(.1,cloudWeight);
+ const astronomicalDaylight=relevant.filter(h=>h.isDay),daylight=astronomicalDaylight.length?astronomicalDaylight:relevant;
+ const cloudWeight=relevant.reduce((sum,h)=>{const hour=Number(h.time.slice(11,13));return sum+(hour>=9&&hour<18?1.55:1.15)},0);
+ const weightedCloud=relevant.reduce((sum,h)=>{const hour=Number(h.time.slice(11,13));return sum+h.cloud*(hour>=9&&hour<18?1.55:1.15)},0)/Math.max(.1,cloudWeight);
  const sunshineFraction=Math.max(0,day.sunshineDuration||0)/Math.max(1,daylightDurationSeconds(day));
  const hourlyBrightness=daylight.length?daylight.reduce((sum,h)=>sum+Math.max(0,Math.min(1,(85-h.cloud)/70)),0)/daylight.length:Math.max(0,1-weightedCloud/100);
  const skySignal=Math.max(0,Math.min(1,hourlyBrightness*.9+sunshineFraction*.1));

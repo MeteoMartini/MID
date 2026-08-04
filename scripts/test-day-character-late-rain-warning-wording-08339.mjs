@@ -15,7 +15,7 @@ const [weatherSource,app,ensemble,pkgSource,baselineSource]=await Promise.all([
  readFile(new URL('package.json',root),'utf8'),
  readFile(new URL('MID_BASELINE.json',root),'utf8')
 ]);
-for(const token of ['lateEveningOnly','marginalLateEvent','candidate.daytimeHours===0','dayWeatherCharacterText'])assert.ok(weatherSource.includes(token),`Tagescharakter-Regel fehlt: ${token}`);
+for(const token of ['dayPeriodHoursForDate(day.date,hours)','dayWeatherCharacterText'])assert.ok(weatherSource.includes(token),`Tagescharakter-Regel fehlt: ${token}`);
 assert.ok(app.includes('<strong>Keine Warnung</strong>'),'Hauptwarnkarte verwendet nicht „Keine Warnung“.');
 assert.ok(app.includes('✓ Keine Warnung'),'7-Tage-Karte verwendet nicht „Keine Warnung“.');
 assert.ok(!app.includes('Keine Warnindikatoren'),'Veraltete Warnungsformulierung ist noch vorhanden.');
@@ -32,6 +32,7 @@ const fetchWorkerJson=async()=>({}); const workerBaseCandidates=()=>[]; const fo
 const formatDwdWarningDetailWithDirection=()=>''; const formatDwdWarningValue=()=>''; const summarizeDwdWarnings=()=>[];
 const loadOperaRaster=async()=>null; const analyseOperaRasterNowcast=()=>null;
 function precipitationParts(h){const c=Math.round(Number(h.code)||0),p=Math.max(0,Number(h.precipitation)||0),r=Math.max(0,Number(h.rain)||0),s=Math.max(0,Number(h.showers)||0),sn=Math.max(0,Number(h.snowfall)||0);if(c>=95)return{type:'thunderstorm',displayCode:c,weatherLabel:'Gewitter'};if((c>=80&&c<=84)||s>=.05)return{type:'showers',displayCode:c>=80?c:81,weatherLabel:'Regenschauer'};if((c>=71&&c<=77)||sn>=.05)return{type:'snow',displayCode:c>=71?c:73,weatherLabel:'Schnee'};if(c>=51&&c<=57)return{type:'drizzle',displayCode:c,weatherLabel:'Sprühregen'};if((c>=61&&c<=69)||r>=.05||p>=.05)return{type:'rain',displayCode:c>=61?c:61,weatherLabel:'Regen'};return{type:'none',displayCode:c,weatherLabel:'Trocken'};}
+function dayPeriodHoursForDate(date,hours){const dated=hours.filter(hour=>hour.time.slice(0,10)===date),day=dated.filter(hour=>hour.isDay);return day.length>=2?day:dated.filter(hour=>{const clock=Number(hour.time.slice(11,13));return clock>=7&&clock<19})}
 const naturalPossibleEventText=(event,timing)=>{const text=(timing?timing+' ':'')+event+' möglich';return text.charAt(0).toUpperCase()+text.slice(1)};
 const naturalPossibleEventFallback=(event,timing)=>{const text=timing?timing+' '+event:event+' möglich';return text.charAt(0).toUpperCase()+text.slice(1)};
 const fieldSiteCompatibility=()=>1; const fieldWeightPolicy=()=>({quality:1,sensitiveAllowed:true}); const normalisePrecipitationAccumulation=(v)=>v; const precipitationIntervalMinutes=()=>60; const sourcePolicyFor=()=>({quality:1});
@@ -47,10 +48,10 @@ try{
  const late=weather.dayWeatherCharacter(day,makeHours([22]));
  assert.equal(late.precipitationDominant,false,'Ein einzelner mäßig wahrscheinlicher Regenimpuls um 22 Uhr dominiert weiterhin den Tagescharakter.');
  assert.ok(late.code<50,`Spätes Randereignis verwendet weiterhin ein Niederschlagspiktogramm (${late.code}).`);
- assert.equal(late.secondary,'Abends Regen möglich');
- assert.equal(weather.dayWeatherCharacterText(late),`${late.label}, abends Regen möglich`);
+ assert.equal(late.secondary,'','Nachtregen wird weiterhin als sekundärer Tageshinweis ausgegeben.');
+ assert.ok(!/regen/i.test(weather.dayWeatherCharacterText(late)),'Nachtregen erscheint weiterhin im Tagescharakter.');
  const sustained=weather.dayWeatherCharacter({...day,precipitation:4.4,probability:65},makeHours([14,15,16]));
  assert.equal(sustained.precipitationDominant,true,'Mehrstündiger Tagesregen wird fälschlich nur als Randhinweis behandelt.');
  assert.ok(sustained.code>=50,'Mehrstündiger Tagesregen verliert sein Niederschlagspiktogramm.');
 }finally{await rm(dir,{recursive:true,force:true})}
-console.log('Tagescharakter geprüft: spätes schwaches Regenereignis bleibt Untertitel bei tagesdominantem Himmelszustand; Warnungslabel ist verkürzt.');
+console.log('Tagescharakter geprüft: Niederschlag außerhalb des Tagesfensters bleibt vollständig dem Nachtpiktogramm vorbehalten; echter Tagesregen bleibt dominant.');

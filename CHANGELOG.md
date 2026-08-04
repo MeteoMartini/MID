@@ -1,3 +1,11 @@
+# MID v0.9.15.5
+
+- Tagescharaktere werden appweit ausschließlich aus dem astronomischen beziehungsweise zivilen Tagesfenster abgeleitet; Nachtregen desselben Kalendertags beeinflusst weder Text noch Tagespiktogramm.
+- Die auf einen Tag folgende Nacht wird zentral und datumsübergreifend als Abend des Prognosetags plus Morgen des Folgetags gebildet. Cockpit, klassische Tageskarten, Detailansicht, Widgets und Tropennachtprüfung verwenden dieselbe Grenze.
+- Das 7-Tage-Cockpit weist relevante Tagesschauer auch bei moderater Tageswahrscheinlichkeit als „Schauer“ aus und fällt nicht mehr auf „Ruhig“ zurück.
+- Die 7-Tage-Kurzinterpretation verwendet für Wetterregime und Niederschlagsstärke nur Tagesstunden; kalendernächtliche Mengen können den Tagesabschnitt nicht mehr als regnerisch deklarieren.
+- Neue Regression schützt Tages-/Folgenachtgrenzen, Nachtregen-Ausschluss, Tagesschauerklassifikation und die gemeinsame appweite Periodenlogik.
+
 # MID v0.9.15.4
 
 - Gewitter-Ortslisten werden bei zu wenigen Overpass-Treffern aktiv durch entlang der 60-Minuten-Zugbahn gesampelte Ortsabfragen ergänzt; der Bezugsort bleibt nur ein Eintrag unter mehreren.

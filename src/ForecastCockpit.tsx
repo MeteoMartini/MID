@@ -8,6 +8,7 @@ import {currentIndex,dayWeatherCharacter,dayWeatherCharacterText,label as weathe
 import {precipitationParts} from './precipitation';
 import {computeEnsembleConfidence} from './ensembleConfidence';
 import {dailyTemperatureTone} from './temperatureTone';
+import {dayPeriodHoursForDate,followingNightHoursForDate} from './forecastPeriods';
 
 export type ForecastPresentationMode='classic'|'cockpit-tabs'|'cockpit-ribbons';
 type ForecastHorizon='short-term'|'seven-day'|'fourteen-day';
@@ -51,9 +52,6 @@ function clamp(value:number,minimum:number,maximum:number){return Math.min(maxim
 function formatDate(date:string,options:Intl.DateTimeFormatOptions){try{return new Intl.DateTimeFormat('de-DE',{...options,timeZone:'UTC'}).format(new Date(`${date}T12:00:00Z`))}catch{return date}}
 function formatClock(epoch:number,timezone:string){try{return new Intl.DateTimeFormat('de-DE',{hour:'2-digit',minute:'2-digit',timeZone:timezone}).format(new Date(epoch))}catch{return new Date(epoch).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}}
 function dateOnlyFromEpoch(epoch:number,timezone:string){try{const parts=new Intl.DateTimeFormat('en-CA',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:timezone}).formatToParts(new Date(epoch)),get=(type:string)=>parts.find(part=>part.type===type)?.value;return`${get('year')}-${get('month')}-${get('day')}`}catch{return new Date(epoch).toISOString().slice(0,10)}}
-function addForecastDays(date:string,days:number){const base=new Date(`${date}T12:00:00Z`);if(Number.isNaN(base.getTime()))return date;base.setUTCDate(base.getUTCDate()+days);return base.toISOString().slice(0,10)}
-function dayPeriodHoursForDate(date:string,allHours:Hour[]){return allHours.filter(hour=>hour.time.startsWith(date)).filter(hour=>hour.isDay||(()=>{const clock=Number(hour.time.slice(11,13));return Number.isFinite(clock)&&clock>=7&&clock<=18})())}
-function followingNightHoursForDate(date:string,allHours:Hour[]){const nextDate=addForecastDays(date,1);return allHours.filter(hour=>{const sampleDate=hour.time.slice(0,10),clock=Number(hour.time.slice(11,13));if(!Number.isFinite(clock))return false;return sampleDate===date?clock>=19:sampleDate===nextDate?clock<7:false})}
 function cardinal(direction:number){const labels=['N','NO','O','SO','S','SW','W','NW'];return labels[Math.round((((direction%360)+360)%360)/45)%8]}
 function flowDirection(fromDirection:number){return((fromDirection%360)+540)%360}
 function plausiblePrecipitation(sample:Hour|Minute15){return precipitationParts(sample as Hour)}
@@ -110,17 +108,12 @@ function selectShortTermPoints(points:ShortTermForecastPoint[],resolution:ShortT
 }
 
 function dayRegime(day:Day,hours:Hour[]):DayRegime{
- const text=dayWeatherCharacterText(dayWeatherCharacter(day,hours)).toLocaleLowerCase('de-DE');
- const parts=precipitationParts({precipitation:day.precipitation,rain:day.rain??0,showers:day.showers??0,snowfall:day.snowfall??0,probability:day.probability,code:day.code});
- const convective=parts.type==='showers'||parts.type==='thunderstorm'||parts.type==='thunderstormHail'||hours.some(hour=>[80,81,82,95,96,97,99].includes(Math.round(hour.code))||hour.showers>=.12||hour.cape>=350);
- const sunny=/sonnig|heiter|freundlich/.test(text);
- const cloudy=/bedeckt|stark bewölkt|meist bewölkt/.test(text);
- const warm=day.max>=30;
- const windy=day.wind>=15||(day.gust>=34&&day.wind>=10)||(day.gust>=42);
- const wet=day.precipitation>=5||(day.precipitation>=2&&day.probability>=65)||day.probability>=85;
- const showery=convective&&((day.precipitation>=.6&&day.probability>=35)||day.probability>=45);
- if(wet)return'wet';
- if(showery)return'showery';
+ const daytime=dayPeriodHoursForDate(day.date,hours),character=dayWeatherCharacter(day,daytime),text=dayWeatherCharacterText(character).toLocaleLowerCase('de-DE');
+ const parts=daytime.map(hour=>precipitationParts(hour)),convective=parts.some((part,index)=>['showers','snowShowers','sleetShowers','thunderstorm','thunderstormHail'].includes(part.type)&&((daytime[index]?.probability??0)>=20||(daytime[index]?.precipitation??0)>=.03));
+ const wetFamily=parts.some((part,index)=>['drizzle','freezingDrizzle','rain','freezingRain','sleet','snow','snowGrains'].includes(part.type)&&((daytime[index]?.probability??0)>=25||(daytime[index]?.precipitation??0)>=.05||(daytime[index]?.snowfall??0)>=.05));
+ const sunny=/sonnig|heiter|freundlich/.test(text),cloudy=/bedeckt|stark bewölkt|meist bewölkt/.test(text),warm=day.max>=30,windy=day.wind>=15||(day.gust>=34&&day.wind>=10)||(day.gust>=42);
+ if(convective||/schauer|gewitter/.test(text))return'showery';
+ if(character.precipitationDominant||wetFamily||/regen|sprühregen|schnee/.test(text))return'wet';
  if(windy&&!cloudy)return'windy';
  if(sunny&&warm)return'warm';
  if(sunny)return'sunny';
@@ -168,7 +161,7 @@ function SevenDayBand({days,hours,climate,unit,selectedDate,onSelectedDate,summa
  function chooseDay(date:string){onSelectedDate(date);if(hourlyDetail)setExpandedDate(current=>current===date?null:date)}
  return <div className="cockpit-seven-day">
   <div className="cockpit-brief"><span><small>7-Tage-Trend</small><strong>{summary||'Der Verlauf wird aus den sieben Prognosetagen zusammengefasst.'}</strong></span><small className="cockpit-legend-inline">Tag antippen: stündlicher Verlauf. Farbton der Temperatur = Abweichung vom Tagesklimamittel.</small></div>
-  <div className="cockpit-seven-grid" data-cockpit-horizontal-scroll="true" style={{'--cockpit-day-count':visible.length} as CSSProperties}>{visible.map(day=>{const dayHours=hours.filter(hour=>hour.time.startsWith(day.date)),weather=dayWeatherCharacter(day,dayHours),dayVisual=cockpitPeriodVisual(dayPeriodHoursForDate(day.date,hours),true,weather.code,dayWeatherCharacterText(weather)),nightVisual=cockpitPeriodVisual(followingNightHoursForDate(day.date,hours),false,weather.code,weather.label),left=(day.min-allMinimum)/temperatureRange*100,width=Math.max(8,(day.max-day.min)/temperatureRange*100),warning=windWarningLevel(day.gust),regime=dayRegime(day,dayHours),climateDay=climateByDate.get(day.date),minTone=dailyTemperatureTone(day.min,climateDay?.minMean,'min'),maxTone=dailyTemperatureTone(day.max,climateDay?.maxMean,'max'),isExpanded=expandedDate===day.date;return <button type="button" key={day.date} className={`cockpit-day regime-${regime}${selected.date===day.date?' active':''}${isExpanded?' hourly-open':''}`} data-regime={regimeLabel(regime)} title={`${regimeLabel(regime)} · ${dayWeatherCharacterText(weather)}`} onClick={()=>chooseDay(day.date)} aria-pressed={selected.date===day.date} aria-expanded={hourlyDetail?isExpanded:undefined}>
+  <div className="cockpit-seven-grid" data-cockpit-horizontal-scroll="true" style={{'--cockpit-day-count':visible.length} as CSSProperties}>{visible.map(day=>{const dayHours=dayPeriodHoursForDate(day.date,hours),weather=dayWeatherCharacter(day,dayHours),dayVisual=cockpitPeriodVisual(dayPeriodHoursForDate(day.date,hours),true,weather.code,dayWeatherCharacterText(weather)),nightVisual=cockpitPeriodVisual(followingNightHoursForDate(day.date,hours),false,weather.code,weather.label),left=(day.min-allMinimum)/temperatureRange*100,width=Math.max(8,(day.max-day.min)/temperatureRange*100),warning=windWarningLevel(day.gust),regime=dayRegime(day,dayHours),climateDay=climateByDate.get(day.date),minTone=dailyTemperatureTone(day.min,climateDay?.minMean,'min'),maxTone=dailyTemperatureTone(day.max,climateDay?.maxMean,'max'),isExpanded=expandedDate===day.date;return <button type="button" key={day.date} className={`cockpit-day regime-${regime}${selected.date===day.date?' active':''}${isExpanded?' hourly-open':''}`} data-regime={regimeLabel(regime)} title={`${regimeLabel(regime)} · ${dayWeatherCharacterText(weather)}`} onClick={()=>chooseDay(day.date)} aria-pressed={selected.date===day.date} aria-expanded={hourlyDetail?isExpanded:undefined}>
    <span className="cockpit-day-date"><b>{formatDate(day.date,{weekday:'short'})}</b><small>{formatDate(day.date,{day:'2-digit',month:'2-digit'})}</small></span>
    <span className="cockpit-day-weather-pair"><WeatherPictogram className="cockpit-day-main-icon" code={dayVisual.code} day size={42} title={dayVisual.title} cloud={dayVisual.cloud} lowCloud={dayVisual.lowCloud} midCloud={dayVisual.midCloud} highCloud={dayVisual.highCloud}/>{nightVisual.available&&<span className="cockpit-day-night-icon"><WeatherPictogram className="cockpit-day-night-glyph" code={nightVisual.code} day={false} size={24} compact title={nightVisual.title} cloud={nightVisual.cloud} lowCloud={nightVisual.lowCloud} midCloud={nightVisual.midCloud} highCloud={nightVisual.highCloud}/></span>}</span>
    <span className={`cockpit-day-regime ${regime}`}><i>{regimeSymbol(regime)}</i>{regimeLabel(regime)}</span>
