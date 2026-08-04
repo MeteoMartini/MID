@@ -23,7 +23,7 @@ for(const token of [
   'mid-konrad-marker',
   'function nowcastMixMarkerIcon()',
   'mid-nowcastmix-marker',
-  'zIndexOffset={700}',
+  'zIndexOffset={800}',
   'zIndexOffset={600}'
 ])need(radar,token,'Sichtbare Kartenobjekte fehlen');
 

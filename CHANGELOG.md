@@ -1,3 +1,21 @@
+# MID v0.9.15.13
+
+- Produktionsbuild repariert: `RadarNowcastInterval` wird in `forecastFusion.ts` nun als TypeScript-Typ importiert. Die Intervallauswertung für die appweite DWD-RV-Punkt-Nowcast-Fusion kompiliert dadurch ohne TS2304.
+- Prozentanzeigen werden an der Oberfläche konsequent ganzzahlig ausgegeben. Insbesondere zeigt das Kurzfrist-Cockpit das maximale Niederschlagsrisiko gerundet statt mit langen Fließkommazahlen.
+- Weitere potenziell kontinuierliche Prozentwerte in Wetterzwilling, Modellverifikation, Gewitterrisiko, Ensemble-Konsistenz, Radar-Deckkraft und Synoptik werden vor der Anzeige gerundet; interne Berechnungen behalten ihre volle Genauigkeit.
+- Bestehende Gewitter-Detailregressionen wurden auf die nun ausdrücklich ganzzahlige Prozentdarstellung aktualisiert.
+- Neue Regression schützt den fehlenden `RadarNowcastInterval`-Import und verhindert die erneute Ausgabe ungerundeter Prozentwerte an den betroffenen Oberflächen.
+
+# MID v0.9.15.12
+
+- Die 5-Minuten-DWD-RV-Standortserie aus dem Radar-Nowcast wird zentral in alle Kurzfristdarstellungen übernommen. Standalone-Kurzfrist, Cockpit und Wetterzwilling verwenden damit dieselben direkten Standorttreffer, trockenen Intervalle, Unterbrechungen und reinen Umfeldsignale.
+- Direkte Standorttreffer werden über sämtliche im Zielintervall liegenden 5-Minuten-Schritte mengen- und wahrscheinlichkeitsgewichtet. Unterbrochene Phasen bleiben getrennt; reine Umfeldechos erhöhen keine Standortmenge und dürfen die Standortwahrscheinlichkeit nur begrenzt beeinflussen.
+- Für ältere beziehungsweise reduzierte Radarantworten ohne Punktserie bleibt ein eng begrenzter, standortgebundener Aggregat-Fallback erhalten; als „nearby“ oder „approximate“ gekennzeichnete Echos sind davon ausgeschlossen.
+- KONRAD3D übernimmt die amtliche aktuelle Zellfläche aus den geodätischen Polygonkoordinaten und nutzt deren plausibilisierten Mittelpunkt für Marker, Zellfläche und die konsistent verschobene Prognosespur.
+- K3D-Vektoren und HTML-Marker liegen in getrennten, expliziten Leaflet-Panes. Prognosepunkte werden als robuste HTML-Marker gerendert; nur die relevanteste sichtbare, radarbestätigte Zelle erhält die vollständig beschriftete Zugbahn.
+- Lokale K3D-Zellen werden gegen aktuelle DWD-Radaranker plausibilisiert. Zellen ohne räumlich passende Radarechos werden im Nahbereich nicht mehr über der Karte angezeigt. Zellfläche, Geschwindigkeitseinheiten und Flächenangaben werden aus den amtlichen XML-Feldern normalisiert.
+- Neue Regression schützt die appweite Punkt-Nowcast-Fusion, den Ausschluss reiner Umfeldechos, unterbrochene Standortphasen, K3D-Polygon-/Geschwindigkeitsauswertung, getrennte Pane-Ebenen und die räumliche Echo-Plausibilisierung.
+
 # MID v0.9.15.10
 
 - KONRAD3D-Objekte werden an den aktuell gewählten Radarzeitstand gebunden; außerhalb eines engen Zehn-Minuten-Fensters werden keine zeitlich fremden Zellobjekte über das Radar gelegt.

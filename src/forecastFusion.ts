@@ -1,6 +1,6 @@
 import {fetchWorkerJson} from './workerClient';
 import {reconcileForecastPrecipitation} from './precipitation';
-import type {Day,Hour,RadarNowcast,RadarNowcastFrame,ThunderstormNowcast} from './weather';
+import type {Day,Hour,RadarNowcast,RadarNowcastFrame,RadarNowcastInterval,ThunderstormNowcast} from './weather';
 
 export type ForecastFusionTier=1|2|3|4;
 export type ForecastFusionConfidence='high'|'medium'|'low';
@@ -109,7 +109,8 @@ const FRESH_MS=35*60*1000;
 const STALE_MS=8*60*60*1000;
 
 function clamp(value:number,min:number,max:number){return Math.max(min,Math.min(max,value))}
-export type RadarBlendMode='direct'|'transition'|'dry';
+export type RadarBlendMode='direct'|'transition'|'proximity'|'dry';
+export type RadarHitClass='site'|'nearby'|'dry';
 export type RadarTargetBlend={
  amount:number;
  probability:number;
@@ -118,7 +119,15 @@ export type RadarTargetBlend={
  radarWeight:number;
  probabilityWeight:number;
  mode:RadarBlendMode;
+ hitClass:RadarHitClass;
  nearbyOnly?:boolean;
+ nearestWetKm?:number;
+ siteSupport?:number;
+ frameCount?:number;
+ siteFrameCount?:number;
+ interrupted?:boolean;
+ intervalStartAt?:string;
+ intervalEndAt?:string;
 };
 
 type RadarTargetBlendInput={
@@ -137,8 +146,8 @@ function radarFinite(value:unknown,fallback=0){const numeric=Number(value);retur
 function frameEpoch(frame:RadarNowcastFrame){return Date.parse(frame.time)}
 function siteThreshold(radar:RadarNowcast){return Math.max(.02,radarFinite(radar.siteEchoThreshold,.05))}
 function nearbyThreshold(radar:RadarNowcast){return Math.max(siteThreshold(radar),radarFinite(radar.nearbyEchoThreshold,Math.max(.08,siteThreshold(radar)*1.8)))}
-function qualityBase(radar:RadarNowcast){return radar.quality==='high'?.84:radar.quality==='medium'?.62:.40}
-function probabilityBase(radar:RadarNowcast){return radar.quality==='high'?.90:radar.quality==='medium'?.70:.48}
+function qualityBase(radar:RadarNowcast){return radar.quality==='high'?.92:radar.quality==='medium'?.76:.52}
+function probabilityBase(radar:RadarNowcast){return radar.quality==='high'?.95:radar.quality==='medium'?.80:.58}
 function rateCap(radar:RadarNowcast){
  let cap=radar.quality==='high'?160:radar.quality==='medium'?105:70;
  if(radar.rateApproximate)cap=Math.min(cap,90);
@@ -147,68 +156,61 @@ function rateCap(radar:RadarNowcast){
 }
 function leadAmountFactor(minutes:number){
  if(minutes<=0)return 1;
- if(minutes<=60)return 1-.15*(minutes/60);
- if(minutes<=DIRECT_RADAR_HORIZON_MINUTES)return .85-.60*((minutes-60)/60);
+ if(minutes<=60)return 1-.08*(minutes/60);
+ if(minutes<=DIRECT_RADAR_HORIZON_MINUTES)return .92-.50*((minutes-60)/60);
  return 0;
 }
 function leadProbabilityFactor(minutes:number){
  if(minutes<=0)return 1;
- if(minutes<=60)return 1-.10*(minutes/60);
- if(minutes<=DIRECT_RADAR_HORIZON_MINUTES)return .90-.55*((minutes-60)/60);
- if(minutes<=TRANSITION_RADAR_HORIZON_MINUTES)return .22*(1-(minutes-DIRECT_RADAR_HORIZON_MINUTES)/60);
+ if(minutes<=60)return 1-.06*(minutes/60);
+ if(minutes<=DIRECT_RADAR_HORIZON_MINUTES)return .94-.42*((minutes-60)/60);
+ if(minutes<=TRANSITION_RADAR_HORIZON_MINUTES)return .32*(1-(minutes-DIRECT_RADAR_HORIZON_MINUTES)/60);
  return 0;
 }
 function rateProbability(rate:number,threshold:number,nearbyOnly:boolean){
- const scaled=threshold>0?rate/threshold:0,base=nearbyOnly?24:34,span=nearbyOnly?48:58;
- return clamp(base+scaled*span,0,nearbyOnly?78:96);
+ const scaled=threshold>0?rate/threshold:0,base=nearbyOnly?18:48,span=nearbyOnly?24:46;
+ return clamp(base+Math.log1p(Math.max(0,scaled))*span,0,nearbyOnly?55:98);
 }
-function intervalAmount(rateMmh:number,intervalMinutes:number){return Math.max(0,rateMmh)*Math.max(1,intervalMinutes)/60}
-function arrivalWindow(radar:RadarNowcast){
- const arrival=Number(radar.arrivalMinutes),hasArrival=Number.isFinite(arrival),start=hasArrival?Math.max(0,arrival-10):Number.POSITIVE_INFINITY,rawEnd=Number(radar.endMinutes),end=hasArrival?Math.max(start+15,Number.isFinite(rawEnd)?rawEnd:arrival+75):Number.NEGATIVE_INFINITY;
- return{hasArrival,start,end};
-}
-function matchingFrame(radar:RadarNowcast,targetEpoch:number,intervalMinutes:number){
- const tolerance=Math.max(10,Math.min(30,intervalMinutes/2))*60000;
- return(radar.nowcastSeries??[])
-  .map(frame=>({...frame,epoch:frameEpoch(frame)}))
-  .filter(frame=>Number.isFinite(frame.epoch)&&Math.abs(frame.epoch-targetEpoch)<=tolerance)
-  .sort((a,b)=>Math.abs(a.epoch-targetEpoch)-Math.abs(b.epoch-targetEpoch))[0];
+function intervalBounds(targetEpoch:number,intervalMinutes:number){const half=Math.max(2.5,intervalMinutes/2)*60000;return{start:targetEpoch-half,end:targetEpoch+half}}
+function radarFrames(radar:RadarNowcast){return(radar.nowcastSeries??[]).map(frame=>({...frame,epoch:frameEpoch(frame)})).filter(frame=>Number.isFinite(frame.epoch)).sort((a,b)=>a.epoch-b.epoch)}
+function framesForInterval(radar:RadarNowcast,targetEpoch:number,intervalMinutes:number){const bounds=intervalBounds(targetEpoch,intervalMinutes),padding=2.6*60000;return radarFrames(radar).filter(frame=>frame.epoch>=bounds.start-padding&&frame.epoch<=bounds.end+padding)}
+function radarFrameClass(frame:RadarNowcastFrame,radar:RadarNowcast):RadarHitClass{if(frame.hitClass)return frame.hitClass;const siteRate=Math.max(0,radarFinite(frame.rate)),nearbyRate=Math.max(siteRate,radarFinite(frame.nearbyRate));return siteRate>=siteThreshold(radar)?'site':nearbyRate>=nearbyThreshold(radar)?'nearby':'dry'}
+function median(values:number[]){if(!values.length)return 5;const rows=[...values].sort((a,b)=>a-b),middle=Math.floor(rows.length/2);return rows.length%2?rows[middle]:(rows[middle-1]+rows[middle])/2}
+function sampleMinutes(frames:Array<RadarNowcastFrame&{epoch:number}>){const differences=frames.slice(1).map((frame,index)=>(frame.epoch-frames[index].epoch)/60000).filter(value=>value>=2&&value<=15);return clamp(median(differences),2.5,10)}
+function parseInterval(interval:RadarNowcastInterval):(RadarNowcastInterval&{start:number;end:number})|null{const start=Date.parse(interval.startAt),end=Date.parse(interval.endAt);return Number.isFinite(start)&&Number.isFinite(end)?{...interval,start,end}:null}
+function overlappingSiteIntervals(radar:RadarNowcast,targetEpoch:number,intervalMinutes:number){const bounds=intervalBounds(targetEpoch,intervalMinutes);return(radar.siteIntervals??[]).map(parseInterval).filter((interval):interval is NonNullable<ReturnType<typeof parseInterval>>=>Boolean(interval&&interval.end>=bounds.start&&interval.start<=bounds.end))}
+function intervalIso(targetEpoch:number,intervalMinutes:number){const bounds=intervalBounds(targetEpoch,intervalMinutes);return{startAt:new Date(bounds.start).toISOString(),endAt:new Date(bounds.end).toISOString()}}
+function nearestWetDistance(frames:Array<RadarNowcastFrame&{epoch:number}>,radar:RadarNowcast){const distances=frames.map(frame=>Number(frame.nearestWetKm)).filter(Number.isFinite);const fallback=Number(radar.nearestWetKm);return distances.length?Math.min(...distances):Number.isFinite(fallback)?fallback:undefined}
+function aggregateSiteFallback(radar:RadarNowcast,targetEpoch:number,intervalMinutes:number,now:number,threshold:number){
+ if((radar.nowcastSeries?.length??0)>0||(radar.siteIntervals?.length??0)>0||radar.arrivalKind==='nearby'||radar.arrivalKind==='approximate')return null;
+ const current=Math.max(0,radarFinite(radar.currentRate)),peak=Math.max(current,radarFinite(radar.peakRate)),nearest=Number(radar.nearestWetKm),summary=String(radar.summary||'').toLowerCase(),sitePlausible=(!Number.isFinite(nearest)||nearest<=1.5)&&!/(umfeld|entfernt|kein standorttreffer)/.test(summary);
+ if(!sitePlausible||peak<threshold)return null;
+ const arrival=Math.max(0,radarFinite(radar.arrivalMinutes,current>=threshold?0:Number.NaN)),endRaw=radarFinite(radar.endMinutes,Number.NaN);
+ if(!Number.isFinite(arrival))return null;
+ const end=Number.isFinite(endRaw)?Math.max(arrival,endRaw):Math.max(arrival+Math.max(5,intervalMinutes),current>=threshold?intervalMinutes:arrival+5);
+ const bounds=intervalBounds(targetEpoch,intervalMinutes),wetStart=now+arrival*60000,wetEnd=now+end*60000,overlapMinutes=Math.max(0,(Math.min(bounds.end,wetEnd)-Math.max(bounds.start,wetStart))/60000);
+ if(overlapMinutes<=0)return null;
+ const representativeRate=current>=threshold&&arrival<=0?Math.max(current,peak*.72):peak;
+ return{peak:representativeRate,amount:clamp(representativeRate,0,rateCap(radar))*Math.min(intervalMinutes,overlapMinutes)/60,support:clamp(overlapMinutes/Math.max(5,intervalMinutes),.2,1),frameCount:Math.max(1,Math.round(overlapMinutes/5))};
 }
 
 export function blendRadarAtTarget({radar,targetEpoch,intervalMinutes,modelAmount,modelProbability,now=Date.now()}:RadarTargetBlendInput):RadarTargetBlend|null{
  if(!radar||radar.source==='model'||radar.coverage===false)return null;
  const leadMinutes=(targetEpoch-now)/60000;
  if(leadMinutes<-30||leadMinutes>TRANSITION_RADAR_HORIZON_MINUTES)return null;
- const safeModelAmount=Math.max(0,radarFinite(modelAmount)),safeModelProbability=clamp(radarFinite(modelProbability),0,100),site=siteThreshold(radar),nearby=nearbyThreshold(radar),frame=matchingFrame(radar,targetEpoch,intervalMinutes),window=arrivalWindow(radar);
- let rawRate=0,nearbyOnly=false,wetSignal=false;
- if(frame){
-  const siteRate=Math.max(0,radarFinite(frame.rate)),nearbyRate=Math.max(siteRate,radarFinite(frame.nearbyRate)),siteWet=siteRate>=site,nearbyWet=nearbyRate>=nearby;
-  wetSignal=siteWet||nearbyWet;nearbyOnly=!siteWet&&nearbyWet;rawRate=siteWet?siteRate:nearbyRate;
+ const safeModelAmount=Math.max(0,radarFinite(modelAmount)),safeModelProbability=clamp(radarFinite(modelProbability),0,100),site=siteThreshold(radar),nearby=nearbyThreshold(radar),frames=framesForInterval(radar,targetEpoch,intervalMinutes),classes=frames.map(frame=>radarFrameClass(frame,radar)),siteFrames=frames.filter((_,index)=>classes[index]==='site'),nearbyFrames=frames.filter((_,index)=>classes[index]==='nearby'),dryFrames=frames.filter((_,index)=>classes[index]==='dry'),siteIntervals=overlappingSiteIntervals(radar,targetEpoch,intervalMinutes),iso=intervalIso(targetEpoch,intervalMinutes),lead=Math.max(0,leadMinutes),amountFactor=leadAmountFactor(lead),probabilityFactor=leadProbabilityFactor(lead),nearestWetKm=nearestWetDistance(frames,radar),interrupted=Boolean(radar.interrupted||(radar.siteIntervals?.length??0)>1);
+ const frameStep=sampleMinutes(frames),expectedFrames=Math.max(1,Math.round(intervalMinutes/frameStep)),siteSupport=siteFrames.length?clamp(siteFrames.reduce((sum,frame)=>sum+clamp(radarFinite(frame.siteSupport,1),0,1),0)/expectedFrames,0,1):0;
+ let directAmount=siteFrames.reduce((sum,frame)=>sum+clamp(radarFinite(frame.rate),0,rateCap(radar))*frameStep/60,0),directPeak=siteFrames.reduce((maximum,frame)=>Math.max(maximum,radarFinite(frame.rate)),0),directFrameCount=siteFrames.length,directSupport=siteSupport;
+ if(!directFrameCount&&siteIntervals.length){const intervalAmount=siteIntervals.reduce((sum,interval)=>sum+Math.max(0,radarFinite(interval.amountMm)),0),intervalPeak=siteIntervals.reduce((maximum,interval)=>Math.max(maximum,radarFinite(interval.peakRate)),0),intervalFrames=siteIntervals.reduce((sum,interval)=>sum+Math.max(0,radarFinite(interval.frameCount)),0);directAmount=Math.min(Math.max(intervalAmount,intervalPeak*Math.min(intervalMinutes,5)/60),intervalPeak*intervalMinutes/60);directPeak=intervalPeak;directFrameCount=intervalFrames||1;directSupport=Math.min(1,directFrameCount/expectedFrames)}
+ if(!directFrameCount){const aggregate=aggregateSiteFallback(radar,targetEpoch,intervalMinutes,now,site);if(aggregate){directAmount=aggregate.amount;directPeak=aggregate.peak;directFrameCount=aggregate.frameCount;directSupport=aggregate.support}}
+ if(directFrameCount&&directPeak>=site){
+  const support=Math.max(directSupport,Math.min(1,directFrameCount/expectedFrames)),radarProbability=clamp(Math.max(rateProbability(directPeak,site,false),56+support*40,radarFinite(radar.radarProbability)*.72),0,98),uncertaintyFactor=radar.rateUncertain?.58:radar.rateApproximate?.76:1,amountWeight=clamp(qualityBase(radar)*amountFactor*uncertaintyFactor*(.72+.28*support),0,.95),probabilityWeight=clamp(probabilityBase(radar)*probabilityFactor*(.76+.24*support),0,.97);
+  if(leadMinutes<=DIRECT_RADAR_HORIZON_MINUTES){const radarAmount=Math.max(0,directAmount),amount=safeModelAmount*(1-amountWeight)+radarAmount*amountWeight,probability=safeModelProbability*(1-probabilityWeight)+radarProbability*probabilityWeight;return{amount:Math.max(0,amount),probability:clamp(probability,0,100),radarRateMmh:clamp(directPeak,0,rateCap(radar)),radarAmount,radarWeight:amountWeight,probabilityWeight,mode:'direct',hitClass:'site',siteSupport:support,frameCount:frames.length,siteFrameCount:directFrameCount,nearestWetKm,interrupted,intervalStartAt:iso.startAt,intervalEndAt:iso.endAt}}
+  if(probabilityWeight>0){const probability=safeModelProbability*(1-probabilityWeight)+radarProbability*probabilityWeight;return{amount:safeModelAmount,probability:clamp(probability,0,100),radarRateMmh:clamp(directPeak,0,rateCap(radar)),radarWeight:0,probabilityWeight,mode:'transition',hitClass:'site',siteSupport:support,frameCount:frames.length,siteFrameCount:directFrameCount,nearestWetKm,interrupted,intervalStartAt:iso.startAt,intervalEndAt:iso.endAt}}
  }
- const inArrivalWindow=window.hasArrival&&leadMinutes+intervalMinutes>=window.start&&leadMinutes-intervalMinutes<=window.end;
- if(!wetSignal&&inArrivalWindow){
-  const currentRate=Math.max(0,radarFinite(radar.currentRate)),peakRate=Math.max(0,radarFinite(radar.peakRate));
-  rawRate=currentRate>0?currentRate:peakRate*.55;
-  wetSignal=rawRate>=site||radarFinite(radar.radarProbability)>=15;
- }
- if(!wetSignal&&leadMinutes<=45&&radarFinite(radar.radarProbability)>=45){const currentRate=Math.max(0,radarFinite(radar.currentRate)),peakRate=Math.max(0,radarFinite(radar.peakRate));rawRate=currentRate>0?currentRate:peakRate*.55;wetSignal=true}
- const radarProbability=clamp(Math.max(radarFinite(radar.radarProbability),wetSignal?rateProbability(Math.max(rawRate,site),nearbyOnly?nearby:site,nearbyOnly):0),0,100),amountFactor=leadAmountFactor(Math.max(0,leadMinutes)),probabilityFactor=leadProbabilityFactor(Math.max(0,leadMinutes));
- const uncertaintyFactor=radar.rateUncertain?.50:radar.rateApproximate?.68:1,nearbyFactor=nearbyOnly?.55:1,amountWeight=clamp(qualityBase(radar)*amountFactor*uncertaintyFactor*nearbyFactor,0,.88),probabilityWeight=clamp(probabilityBase(radar)*probabilityFactor*(nearbyOnly?.72:1),0,.92);
- if(wetSignal){
-  if(leadMinutes<=DIRECT_RADAR_HORIZON_MINUTES){
-   const effectiveRate=clamp(rawRate,0,rateCap(radar)),radarAmount=intervalAmount(effectiveRate,intervalMinutes),amount=safeModelAmount*(1-amountWeight)+radarAmount*amountWeight,probability=safeModelProbability*(1-probabilityWeight)+radarProbability*probabilityWeight;
-   return{amount:Math.max(0,amount),probability:clamp(probability,0,100),radarRateMmh:effectiveRate,radarAmount,radarWeight:amountWeight,probabilityWeight,mode:'direct',nearbyOnly};
-  }
-  if(probabilityWeight>0){
-   const probability=safeModelProbability*(1-probabilityWeight)+radarProbability*probabilityWeight;
-   return{amount:safeModelAmount,probability:clamp(probability,0,100),radarWeight:0,probabilityWeight,mode:'transition',nearbyOnly};
-  }
- }
- const lowProbability=radarFinite(radar.radarProbability)<=12,lowRate=Math.max(radarFinite(radar.currentRate),radarFinite(radar.peakRate))<=.08,noNearArrival=!window.hasArrival||window.start>TRANSITION_RADAR_HORIZON_MINUTES;
- if(lowProbability&&lowRate&&noNearArrival&&probabilityWeight>0){
-  const dryWeight=probabilityWeight*(radar.quality==='high'?1:.8),probability=safeModelProbability*(1-dryWeight)+radarFinite(radar.radarProbability)*dryWeight,amount=leadMinutes<=DIRECT_RADAR_HORIZON_MINUTES&&safeModelAmount<=.6?safeModelAmount*(1-dryWeight):safeModelAmount;
-  return{amount:Math.max(0,amount),probability:clamp(probability,0,100),radarWeight:leadMinutes<=DIRECT_RADAR_HORIZON_MINUTES?dryWeight:0,probabilityWeight:dryWeight,mode:'dry'};
- }
+ if(nearbyFrames.length){const nearbyPeak=nearbyFrames.reduce((maximum,frame)=>Math.max(maximum,radarFinite(frame.nearbyRate)),0),localProbability=clamp(Math.min(55,Math.max(rateProbability(nearbyPeak,nearby,true),radarFinite(radar.radarProbability)*.55)),0,55),probabilityWeight=clamp(probabilityBase(radar)*probabilityFactor*.42,0,.48),probability=safeModelProbability*(1-probabilityWeight)+localProbability*probabilityWeight;return{amount:safeModelAmount,probability:clamp(probability,0,100),radarRateMmh:nearbyPeak,radarWeight:0,probabilityWeight,mode:'proximity',hitClass:'nearby',nearbyOnly:true,nearestWetKm,siteSupport:0,frameCount:frames.length,siteFrameCount:0,interrupted,intervalStartAt:iso.startAt,intervalEndAt:iso.endAt}}
+ const exactDryCoverage=frames.length>0&&dryFrames.length===frames.length&&!siteIntervals.length;
+ if(exactDryCoverage&&probabilityFactor>0){const localDryProbability=radar.quality==='high'?3:radar.quality==='medium'?7:13,dryWeight=clamp(probabilityBase(radar)*probabilityFactor*(frames.length>=Math.max(1,expectedFrames-1)?1:.72),0,.95),probability=safeModelProbability*(1-dryWeight)+localDryProbability*dryWeight,amount=leadMinutes<=DIRECT_RADAR_HORIZON_MINUTES&&safeModelAmount<=1?safeModelAmount*(1-dryWeight):safeModelAmount;return{amount:Math.max(0,amount),probability:clamp(probability,0,100),radarWeight:leadMinutes<=DIRECT_RADAR_HORIZON_MINUTES?dryWeight:0,probabilityWeight:dryWeight,mode:'dry',hitClass:'dry',nearestWetKm,siteSupport:0,frameCount:frames.length,siteFrameCount:0,interrupted,intervalStartAt:iso.startAt,intervalEndAt:iso.endAt}}
  return null;
 }
 
@@ -423,5 +425,5 @@ export function applyConvectiveNowcastHours(hours:Hour[],thunder:ThunderstormNow
 export function forecastFusionLabel(fusion:ForecastFusionResult|null|undefined){
  if(!fusion?.active)return'';
  const applied=fusion.days.filter(day=>day.applied),confidence=applied.length?Math.round(applied.reduce((sum,day)=>sum+day.confidence,0)/applied.length):0,repaired=Math.max(0,Number(fusion.diagnostics?.repairedHours)||0),repairLabel=repaired?` · ${repaired} h plausibilitätsrepariert`:' · ohne Bündelersatz';
- return`Best Match geprüft${fusion.mosmix?.applied?' + MOSMIX lokal':''}${repairLabel}${confidence?` · ${confidence} % Modellvergleich`:''}`;
+ return`Best Match geprüft${fusion.mosmix?.applied?' + MOSMIX lokal':''}${repairLabel}${confidence?` · ${Math.round(confidence)} % Modellvergleich`:''}`;
 }

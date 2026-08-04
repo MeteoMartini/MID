@@ -4629,3 +4629,14 @@ body,#root{
 .leaflet-mid-nowcast-objects-pane .konrad-track,.leaflet-mid-nowcast-objects-pane .konrad-forecast-node{filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))}
 .leaflet-tooltip.konrad-forecast-label{padding:2px 5px;border:1px solid rgba(255,255,255,.9);border-radius:7px;background:rgba(16,35,56,.9);color:#fff;font-size:8px;font-weight:850;line-height:1;box-shadow:0 2px 8px rgba(0,0,0,.28)}
 .leaflet-tooltip.konrad-forecast-label:before{display:none}
+
+
+/* MID v0.9.15.12 · K3D-Vektoren und Marker in getrennten, garantiert oberhalb des Radars liegenden Pane-Ebenen */
+.leaflet-mid-nowcast-vectors-pane,.leaflet-mid-nowcast-vectors-pane svg,.leaflet-mid-nowcast-labels-pane{overflow:visible!important}
+.leaflet-mid-nowcast-vectors-pane svg{pointer-events:none!important}
+.leaflet-mid-nowcast-vectors-pane .konrad-current-footprint,.leaflet-mid-nowcast-vectors-pane .konrad-current-footprint-halo,.leaflet-mid-nowcast-vectors-pane .konrad-probability-corridor,.leaflet-mid-nowcast-vectors-pane .konrad-probability-corridor-halo,.leaflet-mid-nowcast-vectors-pane .konrad-track-halo,.leaflet-mid-nowcast-vectors-pane .konrad-track,.leaflet-mid-nowcast-vectors-pane .konrad-uncertainty-ellipse,.leaflet-mid-nowcast-vectors-pane .konrad-uncertainty-ellipse-halo{vector-effect:non-scaling-stroke}
+.mid-konrad-node-div-icon{background:transparent!important;border:0!important;overflow:visible!important}
+.mid-konrad-node{display:flex;align-items:center;gap:5px;width:max-content;min-height:18px;pointer-events:none;transform:translateZ(0)}
+.mid-konrad-node i{display:block;width:13px;height:13px;flex:0 0 13px;border:3px solid #fff8cf;border-radius:50%;background:var(--konrad-color);box-shadow:0 1px 5px rgba(0,0,0,.65),0 0 0 1px rgba(7,23,39,.72)}
+.mid-konrad-node b{display:block;padding:3px 6px;border:1px solid rgba(255,255,255,.92);border-radius:999px;background:rgba(12,31,49,.94);color:#fff;font-size:8px;font-weight:850;line-height:1;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+@media(max-width:700px){.mid-konrad-node b{font-size:7px;padding:3px 5px}.mid-konrad-node i{width:12px;height:12px;flex-basis:12px}}
