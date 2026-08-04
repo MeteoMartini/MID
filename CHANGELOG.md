@@ -1,11 +1,19 @@
 # Changelog
 
-## 0.9.13.0
-- Wetterpiktogramme fachlich erweitert: tiefe, mittelhohe, hohe, mehrschichtige und konvektive Bewölkung werden bei verfügbaren Wolkenschichtdaten unterschiedlich visualisiert.
-- Open-Meteo-Best-Match lädt nun zusätzlich mittelhohe und hohe Wolkenbedeckung für aktuelle und stündliche Prognosen.
-- Tageweise Vorhersagen zeigen ein großes Tages- und ein kleineres Nachtpiktogramm.
-- Antippen eines Tages öffnet unmittelbar die Tagesdetails im 3-Stunden-Raster; ein Schalter wechselt auf stündliche Darstellung.
-- Kurzfrist-, Cockpit-, Tagesdetail-, aktuelle Wetter- und Widget-Piktogramme verwenden denselben professionellen SVG-Satz.
+## 0.9.13.3
+- SEO-Buildfix: Die statische HTML-Releaseversion wird nun durch `sync-version.mjs` automatisch mit Paket, Baseline, Worker und Service Worker synchronisiert.
+- Der Regressionstest `test-seo-discoverability-0990.mjs` läuft damit wieder erfolgreich.
+
+## 0.9.13.2
+- Buildfix für die meteoblue-ähnliche Tagesdetailansicht: `detailListWeatherLabel()` verwendet jetzt korrekt `PrecipitationParts` statt `PrecipSample`.
+- Die dadurch ausgelösten TS2339-/TS2345-Fehler für `type`, `displayCode` und `weatherLabel` sind beseitigt.
+- Neuer Regressionstest schützt den Niederschlagstypvertrag der aufklappbaren Tagesdetails.
+
+## 0.9.13.1
+- Tageskarten zeigen das kleine Nachtpiktogramm jetzt ohne zusätzlichen „Nacht“-Schriftzug; Tages- und Nachticon überlappen dabei nicht mehr.
+- Die tageweise Vorhersage erhält für kompakte Ansichten ein meteoblue-ähnliches Akkordeon: Klick auf einen Tag klappt 3h-Details direkt darunter auf, inklusive Umschalter auf 1h.
+- Das 14-Tage-/Cockpit-Tag-Nacht-Paar übernimmt ebenfalls die schriftzugfreie Nachtpiktogramm-Darstellung.
+- Regressionstests für Wolkenschicht-/Tag-Nacht-Piktogramme und Tagesdetails an die neue UI angepasst.
 
 ## 0.9.12.2
 - GitHub-Produktionsbuild repariert: die nach der Radar-Metadatenverdichtung ungenutzte Hilfsfunktion `radarClockRange` wurde entfernt.

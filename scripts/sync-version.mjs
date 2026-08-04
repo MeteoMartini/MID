@@ -6,6 +6,11 @@ if(!/^\d+\.\d+\.\d+(?:\.\d+)?(?:[-+][0-9A-Za-z.-]+)?$/.test(version))throw new E
 
 await writeFile(new URL('../src/version.ts',import.meta.url),`export const MID_VERSION='${version}';\n`);
 await writeFile(new URL('../public/version.json',import.meta.url),`${JSON.stringify({version},null,2)}\n`);
+const indexUrl=new URL('../index.html',import.meta.url);
+const indexHtml=await readFile(indexUrl,'utf8');
+const nextIndexHtml=indexHtml.replace(/<meta name="mid-version" content="[^"]+">/,`<meta name="mid-version" content="${version}">`);
+if(nextIndexHtml===indexHtml&&!indexHtml.includes(`<meta name="mid-version" content="${version}">`))throw new Error('index.html: MID-Releaseversion konnte nicht synchronisiert werden.');
+await writeFile(indexUrl,nextIndexHtml);
 const lockUrl=new URL('../package-lock.json',import.meta.url);
 const lock=JSON.parse(await readFile(lockUrl,'utf8'));
 lock.version=version;

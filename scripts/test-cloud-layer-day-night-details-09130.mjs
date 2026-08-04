@@ -41,14 +41,18 @@ for(const token of [
 for(const token of [
  'function WeatherPeriodIcons(',
  'className="weather-period-night"',
- '<small>Nacht</small>',
+ 'function windDirectionShort(direction:number)',
+ 'function detailListPrecipLabel(hour:Hour)',
  "function detailHoursByResolution(hours:Hour[],resolution:'3h'|'1h')",
  "if(resolution==='1h')return hours",
  'Math.floor(clock/3)*3',
  "precipitation:sum('precipitation')",
  "probability:maximum('probability')",
- "setDetailResolution('3h');setDetailsOpen(true)",
+ "setDetailsOpen(current=>isActive?!current:true)",
+ "className={`forecast-inline-detail-row ${selectedHour===index?'active':''}`}",
  'className="detail-resolution-switch"',
+ 'className="forecast-inline-detail"',
+ 'Mehr anzeigen',
  '>3 h</button>',
  '>1 h</button>',
  "detailResolution==='3h'?'Dreistündliches':'Stündliches'"
@@ -57,7 +61,6 @@ for(const token of [
 for(const token of [
  'className="cockpit-day-weather-pair"',
  'className="cockpit-day-night-icon"',
- '<small>Nacht</small>',
  'midCloud={dayVisual.midCloud}',
  'highCloud={nightVisual.highCloud}'
 ])need('Cockpit-Tag/Nacht',cockpit,token);
@@ -73,6 +76,8 @@ for(const token of [
  '.weather-period-icons{',
  '.weather-period-night{',
  '.detail-resolution-switch{',
+ '.forecast-inline-detail{',
+ '.forecast-inline-detail-row{',
  '.cockpit-day-weather-pair{',
  '.cockpit-day-night-icon{',
  '@media(max-width:480px)'

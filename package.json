@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.13.0",
+  "version": "0.9.13.3",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -183,7 +183,8 @@
     "test:seo": "node scripts/test-seo-discoverability-0990.mjs",
     "test:cockpit-responsive": "node scripts/test-cockpit-responsive-0990.mjs",
     "test:radar-nowcast-null-buildfix": "node scripts/test-radar-nowcast-null-buildfix-091111.mjs",
-    "test:cloud-layer-day-night-details": "node scripts/test-cloud-layer-day-night-details-09130.mjs"
+    "test:cloud-layer-day-night-details": "node scripts/test-cloud-layer-day-night-details-09130.mjs",
+    "test:forecast-inline-precip-types": "node scripts/test-forecast-inline-precip-types-09132.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",
