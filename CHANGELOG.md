@@ -1,3 +1,9 @@
+# MID v0.9.15.3
+
+- Cockpit-Registeransicht: Die 14-Tage-Angabe zur zunehmenden Unsicherheit nennt neben dem Wochentag nun immer auch das eindeutige Datum im Format dd.mm.
+- Auch die Tooltip-Beschriftung des 14-Tage-Mini-Ribbons kombiniert Wochentag und Datum.
+- Neuer Regressionstest schützt die Datumsangabe in der Registerzusammenfassung.
+
 # MID v0.9.15.2
 
 - 7-Tage-Stundenübersicht: ECMWF-orientierte Temperaturfarben deutlich dezenter und kompakter dargestellt.
