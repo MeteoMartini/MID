@@ -1,3 +1,13 @@
+# MID v0.9.15.10
+
+- KONRAD3D-Objekte werden an den aktuell gewählten Radarzeitstand gebunden; außerhalb eines engen Zehn-Minuten-Fensters werden keine zeitlich fremden Zellobjekte über das Radar gelegt.
+- K3D-Zugbahnen werden nur noch für Zellen gezeichnet, deren aktuelles Zellzentrum im sichtbaren Kartenausschnitt liegt. Beim Verschieben der Karte erscheinen daher keine losgelösten Prognosespuren ohne zugehörige aktuelle Zelle mehr.
+- Vollständige Zugbahn, Prognosepunkte und Unsicherheitsgeometrie werden auf die zwei relevantesten sichtbaren Zellen begrenzt; weitere sichtbare Zellen behalten Marker und aktuelle Zellfläche.
+- Amtliche Prognosepunkte werden räumlich gegen Zellgeschwindigkeit und Vorlauf plausibilisiert. Unplausibel weit versetzte Koordinaten werden verworfen und nur bei belastbarem Zugvektor transparent ersetzt.
+- Unsicherheitsradien und permanente Zeitbeschriftungen wurden begrenzt, damit fehlerhafte Einheiten oder viele benachbarte Zellen keine kartengroßen Ellipsen und Beschriftungsteppiche erzeugen.
+- Der KONRAD3D-Worker liest bei Längenfeldern nun sowohl das amtliche XML-Attribut `unit` als auch `units`; Meterwerte werden dadurch nicht mehr fälschlich als Kilometer interpretiert.
+- Neue Regression schützt Kartenausschnitt-, Zeit- und Geometrieplausibilität sowie die Singularform des DWD-Einheitenattributs.
+
 # MID v0.9.15.9
 
 - Ein Tipp auf eine Push-Benachrichtigung öffnet immer die normale MID-Startansicht im Scope-Root. Von Push-Payloads mitgegebene Deep-Links oder Einstellungs-Hashes werden verworfen; der Benachrichtigungsort bleibt über sichere Standortparameter erhalten.

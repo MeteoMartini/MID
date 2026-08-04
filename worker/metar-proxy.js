@@ -25,7 +25,7 @@ const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const OPEN_METEO_ELEVATION='https://api.open-meteo.com/v1/elevation';
-const WORKER_VERSION='0.9.15.9';
+const WORKER_VERSION='0.9.15.10';
 const CORS={'content-type':'application/json; charset=utf-8','access-control-allow-origin':'*','access-control-allow-methods':'GET,POST,OPTIONS','access-control-allow-headers':'content-type','cache-control':'public, max-age=180'};
 const FEED_SLUGS={
  AD:'andorra',AT:'austria',BE:'belgium',BA:'bosnia-herzegovina',BG:'bulgaria',HR:'croatia',CY:'cyprus',CZ:'czechia',DK:'denmark',EE:'estonia',FI:'finland',FR:'france',DE:'germany',GR:'greece',EL:'greece',HU:'hungary',IS:'iceland',IE:'ireland',IL:'israel',IT:'italy',LV:'latvia',LT:'lithuania',LU:'luxembourg',MT:'malta',MD:'moldova',ME:'montenegro',NL:'netherlands',MK:'republic-of-north-macedonia',NO:'norway',PL:'poland',PT:'portugal',RO:'romania',RS:'serbia',SK:'slovakia',SI:'slovenia',ES:'spain',SE:'sweden',CH:'switzerland',UA:'ukraine',GB:'united-kingdom',UK:'united-kingdom',AM:'armenia'
@@ -408,7 +408,7 @@ function hailSizeCm(value){const numeric=number(value);if(numeric===undefined||n
 function konradFeatureMatches(xml){return[...String(xml).matchAll(/<(?:(?:\w+):)?feature\b([^>]*)>([\s\S]*?)<\/(?:(?:\w+):)?feature>/gi)]}
 function konradAttribute(attrs,name){return decodeXml(String(attrs||'').match(new RegExp(`\\b${name}=["']([^"']+)["']`,'i'))?.[1]||'')}
 function konradLengthKm(block,...tags){
- for(const tag of tags){const match=String(block).match(new RegExp(`<(?:(?:\\w+):)?${tag}\\b([^>]*)>([^<]+)<\\/(?:(?:\\w+):)?${tag}>`,'i'));if(!match)continue;const value=number(decodeXml(match[2]));if(value===undefined||value<0)continue;const units=konradAttribute(match[1],'units').toLowerCase();if(/(^|[^k])m($|[^a-z])|meter/.test(units))return value/1000;if(/km|kilometer/.test(units))return value;return value>100?value/1000:value}
+ for(const tag of tags){const match=String(block).match(new RegExp(`<(?:(?:\\w+):)?${tag}\\b([^>]*)>([^<]+)<\\/(?:(?:\\w+):)?${tag}>`,'i'));if(!match)continue;const value=number(decodeXml(match[2]));if(value===undefined||value<0)continue;const units=(konradAttribute(match[1],'unit')||konradAttribute(match[1],'units')).toLowerCase();if(/(^|[^k])m($|[^a-z])|meter/.test(units))return value/1000;if(/km|kilometer/.test(units))return value;return value>100?value/1000:value}
  return undefined;
 }
 function konradForecasts(feature,lat,lon,referenceMs){
