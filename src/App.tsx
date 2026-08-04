@@ -246,6 +246,7 @@ export default function App(){
  useEffect(()=>{writeDashboardModuleSettings(dashboardModuleSettings);if(!dashboardModuleSettings.enabled.ensemble)setEnsembleRequested(()=>false)},[dashboardModuleSettings]);
  useEffect(()=>{if(forecastPresentationMode!=='classic'&&dashboardModuleSettings.enabled.ensemble)setEnsembleRequested(true)},[forecastPresentationMode,dashboardModuleSettings.enabled.ensemble]);
  useEffect(()=>{if(consumeDeviceSyncTransferFromLocation()){setSettingsSection('sync');setSettingsOpen(true)}},[]);
+ useEffect(()=>{if(!('serviceWorker'in navigator))return;const handleNotificationOpen=(event:MessageEvent)=>{if(event.data?.type!=='MID_NOTIFICATION_OPEN')return;setSettingsOpen(false);setImprintOpen(false);window.requestAnimationFrame(()=>window.scrollTo({top:0,left:0,behavior:'auto'}))};navigator.serviceWorker.addEventListener('message',handleNotificationOpen);return()=>navigator.serviceWorker.removeEventListener('message',handleNotificationOpen)},[]);
  useEffect(()=>{
   const idleWindow=window as Window&{requestIdleCallback?:(callback:()=>void,options?:{timeout:number})=>number;cancelIdleCallback?:(handle:number)=>void};
   favoritesPersistRef.current=favorites;
@@ -271,7 +272,7 @@ export default function App(){
  useEffect(()=>{try{localStorage.setItem(RADAR_DISPLAY_SETTINGS_KEY,JSON.stringify(radarDisplaySettings))}catch{}},[radarDisplaySettings]);
  useEffect(()=>{try{localStorage.setItem(FORECAST_DISPLAY_SETTINGS_KEY,JSON.stringify(forecastDisplaySettings))}catch{}},[forecastDisplaySettings]);
  useEffect(()=>localStorage.setItem(LAYOUT_MODE_STORAGE_KEY,layoutMode),[layoutMode]);
- useEffect(()=>{document.title='MID - Meteorological Information Dashboard';try{const url=new URL(window.location.href);for(const key of['mid-favorite','mid-lat','mid-lon','mid-name','mid-country'])url.searchParams.delete(key);window.history.replaceState(null,'',url.toString())}catch{}},[]);
+ useEffect(()=>{document.title='MID - Meteorological Information Dashboard';try{const url=new URL(window.location.href);url.searchParams.delete('mid-notification');for(const key of['mid-favorite','mid-lat','mid-lon','mid-name','mid-country'])url.searchParams.delete(key);window.history.replaceState(null,'',url.toString())}catch{}},[]);
  function captureCurrentView(){
   if(typeof window==='undefined'||settingsOpen||!w)return null;
   const viewportTop=Math.round(Math.min(180,Math.max(92,window.innerHeight*.16))),probeX=Math.max(1,Math.min(window.innerWidth-1,Math.round(window.innerWidth/2))),hit=document.elementFromPoint(probeX,viewportTop) as HTMLElement|null,node=hit?.closest<HTMLElement>('[data-mid-view]')??null,rect=node?.getBoundingClientRect(),dates=(w.daily.time as string[])??[],selectedDayIndex=Math.max(0,dates.indexOf(selectedDateRef.current||selectedSeed));

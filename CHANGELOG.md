@@ -1,3 +1,11 @@
+# MID v0.9.15.9
+
+- Ein Tipp auf eine Push-Benachrichtigung öffnet immer die normale MID-Startansicht im Scope-Root. Von Push-Payloads mitgegebene Deep-Links oder Einstellungs-Hashes werden verworfen; der Benachrichtigungsort bleibt über sichere Standortparameter erhalten.
+- Bereits geöffnete MID-Fenster erhalten ein eigenes `MID_NOTIFICATION_OPEN`-Signal, schließen Einstellungs- und Impressumsdialoge und springen an den Anfang der Startansicht.
+- KONRAD3D-Vektorelemente verwenden einen expliziten Leaflet-SVG-Renderer im dedizierten Nowcast-Pane. Zellfläche, Zugbahn, Unsicherheitskorridor, Ellipsen und Prognosepunkte liegen dadurch zuverlässig oberhalb des Radarrasters.
+- K3D-Geometrien erhalten kontrastierende Halos und permanente, kompakte Zeitmarken. Bei fehlenden Einzelpunkten kann zusätzlich eine vorhandene prognostizierte Endposition zur transparent abgeleiteten Spur bis +60 Minuten genutzt werden.
+- Neue Regression schützt Startansicht bei Benachrichtigung, Overlay-Schließung, K3D-Pane/Renderer, sichtbare Geometrie und Endpunkt-Fallback.
+
 # MID v0.9.15.8
 
 - DWD-HX-250-m-Radar wird nicht mehr als rechteckiges WGS84-Bild über die Karte gestreckt, sondern kachelweise und projektionstreu aus der im HDF5 hinterlegten ellipsoidischen Polarstereografie nach Web-Mercator abgebildet.
