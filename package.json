@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.15.3",
+  "version": "0.9.15.4",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -192,7 +192,8 @@
     "test:ui-polish-night-icons": "node scripts/test-ui-polish-night-icons-09145.mjs",
     "test:mid-09150": "node scripts/test-mid-09150-shortterm-hourly-thunder-changelog.mjs",
     "test:thunder-route-places": "node scripts/test-thunder-affected-places-route-09151.mjs",
-    "test:cockpit-uncertainty-date": "node scripts/test-cockpit-fourteen-uncertainty-date-09153.mjs"
+    "test:cockpit-uncertainty-date": "node scripts/test-cockpit-fourteen-uncertainty-date-09153.mjs",
+    "test:storm-place-radar-performance": "node scripts/test-storm-place-resilience-radar-performance-09154.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

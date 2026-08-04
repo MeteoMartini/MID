@@ -1,3 +1,12 @@
+# MID v0.9.15.4
+
+- Gewitter-Ortslisten werden bei zu wenigen Overpass-Treffern aktiv durch entlang der 60-Minuten-Zugbahn gesampelte Ortsabfragen ergänzt; der Bezugsort bleibt nur ein Eintrag unter mehreren.
+- Eine fehlende oder zu kurze KONRAD3D-Prognosespur wird aus offizieller Zugrichtung und -geschwindigkeit in 10-Minuten-Schritten transparent ergänzt.
+- Overpass-Endpunkte werden parallel abgefragt, Rückwärtsgeokodierungen gecacht und begrenzt parallelisiert; dadurch bleibt die Gewitterinformation trotz Mehrortanalyse reaktionsfähig.
+- Radar- und Nowcast-Layer bleiben beim Zoomen montiert, behalten Kachelpuffer und laden angrenzende Zeitstände mit minimaler Deckkraft vor. Dadurch sinken Flackern und Nachladen beim Panning, Zoomen und Abspielen.
+- Die Wetterblick-Prüfung wurde als Transfer-Audit dokumentiert: Bedienprinzipien werden eigenständig nachgebaut; proprietärer Code und Wetterblick-Daten werden nicht kopiert oder gescrapt.
+- Neuer Regressionstest schützt Mehrort-Fallback, 60-Minuten-Spur, Quellenkennzeichnung und Layer-Performance.
+
 # MID v0.9.15.3
 
 - Cockpit-Registeransicht: Die 14-Tage-Angabe zur zunehmenden Unsicherheit nennt neben dem Wochentag nun immer auch das eindeutige Datum im Format dd.mm.

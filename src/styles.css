@@ -1017,6 +1017,7 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 .lightning-age-legend.ring-legend{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px 5px}.lightning-age-legend.ring-legend span{min-width:0}
 /* v0.7.29: weiche Kompositframes und schlanke Modellkonturen */
 .composite-card .leaflet-tile{transition:opacity .38s ease-in-out!important}
+.composite-card .leaflet-tile-pane{transform:translateZ(0);backface-visibility:hidden}.composite-card .leaflet-tile-pane .leaflet-layer{transform:translateZ(0);backface-visibility:hidden;will-change:opacity}
 .leaflet-mid-model-lines-pane{z-index:665!important;pointer-events:none!important}.leaflet-mid-model-lines-pane svg{overflow:visible}
 .leaflet-tooltip.mid-contour-label{padding:3px 6px;border:1px solid rgba(255,255,255,.78);border-radius:6px;background:rgba(7,18,30,.94);box-shadow:0 1px 5px rgba(0,0,0,.62);color:#fff;font-size:10px;font-weight:900;line-height:1.1;letter-spacing:.01em;text-shadow:0 1px 1px #000;pointer-events:none;white-space:nowrap}
 .leaflet-tooltip.mid-contour-label:before{display:none}.leaflet-tooltip.mid-contour-label.isoheights{border-color:rgba(255,225,107,.95);color:#ffe16b}
