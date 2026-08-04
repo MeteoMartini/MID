@@ -4517,3 +4517,23 @@ body,#root{
  .forecast-inline-detail-temp small,.forecast-inline-detail-metrics small{font-size:8.8px}
  .forecast-inline-detail-metrics b{font-size:10.8px}
 }
+
+/* v0.9.15.0 · klassische Stundenübersicht */
+.forecast-inline-detail-weather{position:relative;min-height:62px;outline:none;overflow:visible}
+.forecast-inline-detail-weather>svg,.forecast-inline-detail-weather .weather-pictogram{width:52px!important;height:52px!important;max-width:none}
+.forecast-inline-detail-weather::after{content:attr(data-weather-label);position:absolute;z-index:12;left:50%;bottom:calc(100% + 7px);width:max-content;max-width:min(240px,70vw);padding:6px 8px;border:1px solid color-mix(in srgb,var(--border) 88%,transparent);border-radius:9px;background:color-mix(in srgb,var(--surface) 96%,#101827);color:var(--text);box-shadow:0 10px 24px rgba(10,22,38,.22);font-size:10px;font-weight:760;line-height:1.25;text-align:center;white-space:normal;opacity:0;pointer-events:none;transform:translate(-50%,4px);transition:opacity .14s ease,transform .14s ease}
+.forecast-inline-detail-weather:hover::after,.forecast-inline-detail-weather:focus-visible::after,.forecast-inline-detail-weather:focus::after{opacity:1;transform:translate(-50%,0)}
+.forecast-inline-detail-temp{background-image:none!important;text-shadow:0 1px 1px rgba(255,255,255,.12)}
+.forecast-inline-detail-temp small{color:currentColor!important;opacity:.82}
+@media(max-width:560px){.forecast-inline-detail-row{grid-template-columns:30px minmax(72px,.88fr) minmax(68px,.82fr) minmax(0,1fr)!important}.forecast-inline-detail-weather{min-height:58px;padding:3px!important}.forecast-inline-detail-weather>svg,.forecast-inline-detail-weather .weather-pictogram{width:48px!important;height:48px!important}.forecast-inline-detail-weather::after{left:0;transform:translate(0,4px)}.forecast-inline-detail-weather:hover::after,.forecast-inline-detail-weather:focus::after{transform:translate(0,0)}}
+
+/* v0.9.15.0 · erweiterte KONRAD3D-/Mesozykloneninformation */
+.thunder-fact.radar{border-color:color-mix(in srgb,#2d7fb8 48%,var(--line));background:color-mix(in srgb,#2d7fb8 10%,var(--panel))}
+.thunder-fact.rotation{border-color:color-mix(in srgb,#7b55d7 54%,var(--line));background:color-mix(in srgb,#7b55d7 11%,var(--panel))}
+.thunder-fact.environment{border-color:color-mix(in srgb,#3c8d76 48%,var(--line));background:color-mix(in srgb,#3c8d76 10%,var(--panel))}
+.thunder-detail-groups{display:grid;gap:16px;margin-top:14px}
+.thunder-detail-group{display:grid;gap:7px}
+.thunder-detail-group+.thunder-detail-group{padding-top:13px;border-top:1px solid var(--line)}
+.thunder-detail-group .thunder-info-heading{margin:0;color:var(--muted);font-size:.74rem;letter-spacing:.14em;text-transform:uppercase}
+.thunder-detail-group .thunder-detail-list{margin:0}
+@media(max-width:560px){.thunder-detail-groups{gap:13px}.thunder-detail-group+.thunder-detail-group{padding-top:11px}}

@@ -1,10 +1,3 @@
-## Funktionsrelease v0.9.0.0 – professionelle MID-Synoptik
-
-- Amtliche DWD-Bodenanalyse als unveränderte Referenz neben einer klar getrennten objektiven MID-Modellanalyse.
-- Isobaren, Druckzentren, Stationsplots, Multimodell-Frontkandidaten und Fronttiming in einer responsiven Synoptikkarte.
-- Kompakter nächster Wetterwechsel mit Vorher–Während–Nachher, Beobachtungskorridor, Ereignisverifikation und persönlicher Auswirkung.
-- Lokales Analogarchiv, Ereignislebenszyklus, Unsicherheitsbudget nach Ursache und erklärbare Kausalkette.
-
 ## Funktionsrelease v0.8.35.0 – Best Match, API-Suffixaudit und vollständige Sonnenstunden
 
 - Open-Meteo Best Match bleibt die operative Leitprognose für Kurzfrist, 7 Tage und alle gemeinsamen Sektionen.

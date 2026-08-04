@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.15.0
+- Kurzfristige Temperatur- und Gefühlstemperaturwerte erhalten eine meteorologische Plausibilitätsprüfung gegen isolierte 15-Minuten-Ausreißer. Bei ruhiger, trockener Wetterlage werden einzelne ungestützte Sprünge zeitlich interpoliert und transparent als plausibilisiert gekennzeichnet.
+- Die klassische 7-Tage-Stundenübersicht öffnet den aktuellen Tag direkt an der aktuellen Ortsstunde. Im 3-Stunden-Raster werden alle Zeitschritte gezeigt; im 1-Stunden-Raster zunächst ein sinnvoll zentriertes Zeitfenster und auf Wunsch der vollständige Tag.
+- Wettertexte der Stundenkacheln wandern in ein Hover-/Fokus-Overlay; die Piktogramme werden größer. Temperaturfelder verwenden eine ECMWF-orientierte 2-m-Temperaturfarbskala mit kontrastangepasster Schrift.
+- Gewitterinformationen übernehmen zusätzliche KONRAD3D-, HYMEC-, Radar-, Zell-, Zugbahn-, Hagel-, Starkregen-, Wind- und NWP-Parameter. Relevante Auswirkungen stehen direkt in der Kachel; vollständige Detailgruppen einschließlich optionaler DWD-Mesozyklonenerkennung liegen hinter dem Info-Button.
+- Historische Release-Hinweise zu später vollständig entfernten oder stillgelegten Großfunktionen wurden aus der nutzerseitigen Historie bereinigt. Statusmeldungen zur Stilllegung bleiben erhalten; der Wetterstationsanbieter „Synoptic Data“ ist davon ausdrücklich nicht betroffen.
+- Neue Regression schützt Plausibilisierung, Stundenfokus, 3h-/1h-Umfang, Piktogramm-Overlay, Temperaturfarblogik, Gewitterdetails und bereinigte Release-Historie.
+
 ## 0.9.14.5
 - Empfehlungen aus den zuletzt gesichteten Wartungs-/UI-Hinweisen werden für kommende Releases als fortlaufende Release-Leitlinie übernommen.
 - Nachtpiktogramme wurden kontrastreicher gemacht: hellere Nacht-Hintergründe, hellere Nachtwolken und stärkere Mond-/Niederschlagskontraste verbessern die Erkennbarkeit auf hellen Karten und in kleinen Größen.
@@ -135,12 +143,11 @@
 - GitHub-Produktionsbuild repariert: ungenutzte `quartileFill`-Deklaration entfernt.
 - Nicht mehr verwendete lokale `weatherFamily`-Hilfsfunktion aus dem Prognose-Cockpit entfernt.
 - Überholten `frame`-Parameter aus `mapBounds` und dessen Aufruf entfernt.
-- Meteorologische und visuelle Funktionen von v0.9.4.0 unverändert erhalten.
+- Die übrigen meteorologischen und visuellen Funktionen von v0.9.4.0 bleiben unverändert.
 - Neuer Regressionstest schützt alle drei `TS6133`-Buildfehler.
 
 # MID v0.9.4.0
 
-- Interaktive Synoptik als fokussierte professionelle Bodenanalyse mit kontrastreichen Isobaren, H/T-Zentren, Frontzone, dominantem Modellcluster und standardisierten Stationsmodellen neu geordnet.
 - Winddarstellung vereinheitlicht: Phasenpfeile und Stationswindfahnen zeigen ohne zusätzliche 180-Grad-Drehung die meteorologische Herkunftsrichtung „Wind aus“.
 - Gemeinsames Temperatur-/Niederschlag-/Wind-Böen-Deck oberhalb der klassischen Ensembleansicht und im 14-Tage-Cockpit.
 - Cockpit verwendet dieselben professionellen Ensemblediagramme wie die vollständige Analyse; Temperaturwerte sind rot/blau beschriftet und späte Tage konsistenzabhängig ausgeblendet.
@@ -157,23 +164,6 @@
 - Vierzehn-Tage-Unsicherheitshorizont mit Parameter-Miniaturen, Ensembleband, Konsistenz und Szenarien.
 - Persistente Auswahl über die Einstellungen, Wischbedienung und vollständige alte Analysen als zweite Ebene.
 - 253 bestehende und neue Regressionstests bestanden.
-
-# MID v0.9.0.2
-
-- Synoptik bewertet beim Frontdurchgang zusätzlich Windrichtung, Drehsinn und Richtungsänderung.
-- Vorher–Während–Nachher zeigt Windpfeil, Himmelsrichtung und Gradwert.
-- Graue und blaue Balken sind als Böen beziehungsweise Regenwahrscheinlichkeit beschriftet.
-- Isobaren erhalten eine kontrastreiche Doppelkontur und deutlichere hPa-Labels.
-- 252 Regressionstests bestanden.
-
-# MID v0.9.0.0
-
-- Neues professionelles Synoptik-Modul mit unveränderter amtlicher DWD-Bodenanalyse und klar getrennter objektiver MID-Modellanalyse.
-- Responsive Synoptikkarte mit vorhandenen Isobaren und Druckzentren, zusätzlichen Stationsplots sowie Multimodell-Frontkandidaten.
-- Kompakter nächster Wetterwechsel mit Timingfenster, Vorher–Während–Nachher-Darstellung und Quellenstand.
-- Objektive Frontdiagnostik aus vollständigen ICON-EU-, ECMWF- und GFS-Feldern, Modellübereinstimmung, stromaufwärtigem Beobachtungskorridor und begrenzter Timing-Assimilation.
-- Persistente Ereignisobjekte, ereignisbezogene Verifikation, lokales Analogarchiv, ursachenbezogenes Unsicherheitsbudget und erklärbare Kausalkette.
-- Persönliche Frontauswirkungen verwenden die vorhandenen Wetterzwilling-Aktivitätsprofile und deren Schwellenwerte.
 
 # MID v0.8.35.0
 
@@ -601,7 +591,7 @@
 
 - Wetterdarstellung vollständig auf ein transparentes, skalierbares SVG-Piktogrammsystem umgestellt. Alle relevanten WMO-Wettergruppen besitzen eigenständige professionelle Symbole für Tag und Nacht, einschließlich Nebel, Reifnebel, Sprühregen, gefrierendem Niederschlag, Schneeregen, Schneegriesel, Schauern, Gewitter und Hagel.
 - Das bisher plattformabhängig eckig oder intransparent gerenderte Nebel-Emoji wurde durch ein transparentes Vektor-Piktogramm mit Wolken- und Nebelbändern ersetzt.
-- Die neuen Wetterpiktogramme werden konsistent in aktuellem Wetter, Kurzfristvorhersage, 7-Tage-Prognose, Tagesdetail, Ensemble, Widget, Berg-/Wasser-/Reise- und Routenwetter verwendet.
+- Die neuen Wetterpiktogramme werden konsistent in aktuellem Wetter, Kurzfristvorhersage, 7-Tage-Prognose, Tagesdetail, Ensemble, Widget sowie Berg-, Wasser- und Reisewetter verwendet.
 - Gewitterinformation: Bezugsort, aktuelle Zellposition und prognostizierte Zellposition erhalten hinter dem Ortsnamen den dreistelligen ISO-3166-Alpha-3-Ländercode, beispielsweise „Niederkassel, DEU“.
 - Der Ortsnamencache der Gewitterinformation wurde auf eine neue Version migriert, damit vorhandene Einträge ohne Ländercode nicht weiterverwendet werden.
 
@@ -700,13 +690,13 @@
 # MID v0.8.19.4
 
 - GitHub-/TypeScript-Buildfix für die ICAO-Ortssuche: Der Rückgabetyp des neuen Worker-Aufrufs wurde an den bestehenden `fetchWorkerJson`-Vertrag angepasst. Damit ist `Location` nicht mehr fälschlich direkt gegen den optionalen Worker-Fehlerumschlag typisiert.
-- Die ICAO-Suche, ihr 30-Tage-Cache, die NOAA-AviationWeather-Auflösung und die Darstellung in Haupt-, Reise- und Routenwettersuche bleiben funktional unverändert.
+- Die ICAO-Suche, ihr 30-Tage-Cache, die NOAA-AviationWeather-Auflösung und die Darstellung in Haupt- und Reisewettersuche bleiben funktional unverändert.
 - Neuer Regressionstest schützt vor dem konkreten TS2559-Buildfehler.
 
 # MID v0.8.19.3
 
 - Ortssuchen erweitert: Neben Ort, Region, PLZ und POI können nun weltweit exakte vierstellige ICAO Location Indicators wie EDDG, EDDF oder KJFK eingegeben werden.
-- Die gemeinsame Suchfunktion steht damit auch in der Hauptsuche, der Routenwetter-Zielsuche und im Reisewetter-Reiseplaner zur Verfügung. ICAO-Treffer werden als Flughafen gekennzeichnet und mit Koordinaten sowie Höhenlage übernommen.
+- Die gemeinsame Suchfunktion steht damit auch in der Hauptsuche und im Reisewetter-Reiseplaner zur Verfügung. ICAO-Treffer werden als Flughafen gekennzeichnet und mit Koordinaten sowie Höhenlage übernommen.
 - Abrufschutz: Eine ICAO-Abfrage wird nur bei einem exakten vierstelligen Suchmuster und fehlendem gleichnamigem Orts-/PLZ-Treffer ausgelöst. Erfolgreiche Ergebnisse werden 30 Tage lokal gespeichert; parallele identische Abfragen werden zusammengeführt.
 - Der Worker löst ICAO-Kennungen über NOAA AviationWeather auf und speichert erfolgreiche Antworten zusätzlich mit einem 30-Tage-HTTP-Cache.
 - Neuer Regressionstest schützt Datenvertrag, Caching, Worker-Endpunkt und alle drei Suchoberflächen.
@@ -824,53 +814,6 @@
 - Der Worker-Endpunkt `flight-cross-section` ist hart deaktiviert, aus dem Health-Servicekatalog entfernt und antwortet ohne externe Datenabrufe mit HTTP 410. Dadurch entstehen durch diese Funktion keine NOAA-, Open-Meteo- oder Elevation-Subrequests mehr.
 - Druckniveau-Meteogramme bleiben unverändert aktiv. Der Cross-Section-Quellcode wird für eine spätere Weiterentwicklung erhalten, aber nicht in den aktiven Frontendpfad eingebunden.
 - Neuer Regressionstest schützt die UI-Pausierung, den entfernten Frontendpfad und die serverseitige Sperre.
-
-# MID v0.8.18.2
-
-- Cross Section: Wetter-Abtastung deutlich erhöht. Es stehen nun bis zu 49 Wetterstützpunkte entlang der Route zur Verfügung; Standard ist 33 statt bisher sehr grober Stichproben.
-- Cross Section: Topographie vollständig neu aufgesetzt. Das Geländeprofil wird jetzt unabhängig vom Wettermodell über eine separate, hochaufgelöste Elevation-Abfrage entlang der gesamten Route berechnet. Dadurch bleibt der Untergrund von Modellwahl und Wetter-Abtastpunkten entkoppelt.
-- Cross Section: Grafikdarstellung weiter an klassische GRAMET-Vorlagen angenähert, inklusive dichterer Feldrasterung für Wolken, Vereisung und Turbulenz, gelb/oranger Kopfzeile, weicherer Wolkenzeichnung und zusätzlicher Gelände-Kontur.
-- Cross Section: Ergebnisleiste ergänzt um Wetter- und Terrain-Stützpunktzahlen zur transparenten Qualitätskontrolle.
-- Neue Regression sichert das unabhängige Terrain-Profil, die erhöhten Stützpunktzahlen sowie die zugehörige UI-/Worker-Verdrahtung zusätzlich ab.
-
-# MID v0.8.18.1
-
-- Cross Sections: Darstellung von Wolken, Vereisung und Turbulenz deutlich verfeinert. Die Felder werden horizontal und vertikal verdichtet und dadurch wesentlich weniger blockig dargestellt.
-- Cross Sections: Konturlinien wie Nullgradgrenze, Isotachen und Tropopause werden nun geglättet und optisch näher an die GRAMET-Vorlage angenähert.
-- Cross Sections: Das Topographieprofil wird höher aufgelöst aus den vorhandenen Stützpunkten interpoliert und als geglättete Geländeform dargestellt.
-- Cross Sections: Eine obere Zeitachse innerhalb der Grafik verbessert die Lesbarkeit und orientiert sich stärker an klassischen Flugwetter-Schnitten.
-- Neuer Regressionstest schützt die verdichtete Feldaufbereitung, die geglätteten Linien, die Top-Zeitachse und die präzisere SVG-Darstellung.
-
-# MID v0.8.18.0
-
-- Neuer Bereich im Erweiterten Modus: „Flugmeteorologie“ bündelt künftig die neue Untersektion „Cross Section“ und die bisherige eigenständige Meteogramm-Sektion als Untersektion „Meteogramme“.
-- Die Cross-Section-Eingabemaske folgt dem bewährten GRAMET-Prinzip: zwei bis acht ICAO-Punkte in Flugrichtung, UTC-Start und -Ende, detailliertes Flugniveau, Wettermodell und Abtastdichte. Identische Start-/Endzeiten erzeugen einen reinen räumlichen Wetterschnitt; unterschiedliche Zeiten bilden den Flugverlauf entlang der Route ab.
-- Der Cloudflare Worker löst ICAO-Kennungen über die weltweiten Airport-/Stationsinformationen von NOAA AviationWeather auf, interpoliert die Route großkreisnah und lädt für bis zu 19 Stützpunkte konsistente Open-Meteo-Druckniveaudaten.
-- Die neue responsive Cross-Section-Grafik zeigt Geländeprofil, Wolkenschichten, Nullgradgrenze, Tropopause, Isotachen, gewähltes Flugniveau sowie diagnostische Vereisungs-, Turbulenz- und Niederschlagssignale. Unterhalb folgen Daten am gewählten Flugniveau und Wind-/Temperaturangaben an Standardflugflächen.
-- Route, Modell, Flugniveau, Abtastdichte und Zeitwahl werden lokal gespeichert. Die erzeugte Grafik kann als hochauflösendes PNG exportiert werden.
-- Neuer Regressionstest schützt Advanced-Modulstruktur, gruppierte Meteogramme, Eingabemaske, responsive Grafik, Worker-Auflösung und Datenpfad.
-
-# MID v0.8.17.3
-
-- Ensemble-Winddiagramm: Die zuletzt gewählte Ansicht „Wind“ oder „Böen“ wird dauerhaft lokal gespeichert und beim nächsten Öffnen der Ensemble-Sektion wiederhergestellt.
-- Hyperlokale Bewölkungsanalyse korrigiert: Explizite, aktuelle METAR-Sichtmeldungen wie CAVOK beziehungsweise klare Himmelsmeldungen werden nun zusätzlich direkt konsolidiert und können eine unplausible modellbasierte Bedeckung begrenzen. Entgegengesetzte aktuelle BKN-/OVC-Meldungen werden konfliktbewusst berücksichtigt.
-- Hintergrund: Die bisherige Restfeldmethode konnte einen falschen lokalen Modellgradienten erhalten, wenn das Best-Match-Modell am Zielort bedeckt, am Flughafen jedoch klar rechnete; die Stationsabweichung war dann nahe null und korrigierte den Zielwert nicht.
-- Im Erweiterten Modus weist die Bewölkungskachel aus, wenn eine aktuelle METAR-Sicht- oder Wolkenmeldung die lokale Bewölkung korrigiert hat.
-- Neuer Regressionstest schützt die persistente Wind-/Böenauswahl, CAVOK-/Klarmeldungs-Erkennung, konfliktbewusste Wolkenkorrektur und die transparente Quellenangabe.
-
-# MID v0.8.17.2
-
-- Aktuelle Daten: Die UVI-Kachel verwendet nun die offiziellen fünf Gefahrenstufen des DWD/WHO-Schemas: keine bis gering (0–2), mittel (3–5), hoch (6–7), sehr hoch (8–10) und extrem (ab 11).
-- Analog zur Luftqualitätskachel zeigt die UVI-Kachel einen farbigen Stufenindikator und die Gefahrenstufe als Hauptwert; der konkrete UV-Index bleibt als Zahlenwert sichtbar.
-- Eine gleich große Info-Schaltfläche öffnet stufengerechte Handlungsempfehlungen, die kompakte Gesamtübersicht aller Stufen sowie im Erweiterten Modus Angaben zur Bewölkungs- und Höhenkorrektur.
-- Neuer Regressionstest schützt Schwellenwerte, Bezeichnungen, Schutzempfehlungen, Indikator und die einheitliche Info-Schaltfläche.
-
-# MID v0.8.17.1
-
-- Ensemble-Winddiagramm: Für Wind und Böen wird an den Vorhersagetagen 1–7 zusätzlich der engere P25–P75-Kernbereich dargestellt. Er liegt als deutlich dunklere Fläche innerhalb des bisherigen P10–P90-Bereichs und entspricht damit der Quartildarstellung des Temperaturtrends.
-- Die gewichteten Wind- und Böenquartile werden aus denselben plausibilisierten Ensemblemitgliedern wie P10–P90 und ENS-Mittel berechnet. Der lokale Ensemblecache wird wegen der zusätzlichen Quartilfelder einmalig erneuert; Tooltip, Erklärung und PNG-Metadaten weisen P25–P75 für Tage 1–7 aus.
-- Die Wind-/Böenlegende ist nun mittig oberhalb des Diagramms angeordnet; Wind/Böen-Umschaltung und Legende bleiben auch auf schmalen Displays zentriert und umbrechbar.
-- Neuer Regressionstest schützt Quartilberechnung, Begrenzung auf Tage 1–7, dunklere Flächendarstellung und mittige Legendenposition.
 
 # MID v0.8.17.0
 
@@ -1105,7 +1048,7 @@
 - Ensemble-Szenariocluster fachlich und visuell überarbeitet: Die führende Karte verwendet keine globale Primärbutton-Klasse mehr, wodurch alle Texte auch im hellen Design lesbar bleiben. Temperaturspanne, Fünf-Tage-Niederschlag und Böenspitze werden nun getrennt ausgewiesen; die Balken sind ausdrücklich als Tagesniederschlag beschriftet.
 - Isolierte, statistisch unplausible Niederschlagsausreißer einzelner Ensemblefamilien werden mit einer robusten Median-/MAD-Prüfung vor der Szenarioclusterung entfernt. Der Ensemblecache wurde deshalb auf Generation v6 angehoben.
 - Wetterlagenklassifikation korrigiert: Eine Tagesmenge von 5 mm führt nicht mehr pauschal zur „Dauerregenlage“. Dauerregen erfordert nun eine mindestens sechsstündige zusammenhängende Regenphase mit relevanter Menge oder eine DWD-nahe hohe Tagesmenge; Stundenverläufe werden beim Prognosearchiv und aktuellen Rückblick berücksichtigt. Alte gespeicherte Referenzklassifikationen werden neu bewertet.
-- Globale Wetterzwilling-Schalter für Hauptprognose, Nowcast-Assimilation, Bias-Korrektur, Wahrscheinlichkeitskalibrierung und persönliche Empfehlungen wurden zentral unter Einstellungen → MID-System zusammengeführt. Das Rückblicksmodul zeigt nur noch den Betriebsstatus; standortbezogene Profile, Sensoren und Aktivitätsprofile bleiben dort editierbar.
+- Globale Wetterzwilling-Schalter für Hauptprognose, Nowcast-Assimilation, Bias-Korrektur, Wahrscheinlichkeitskalibrierung und persönliche Empfehlungen wurden zentral unter Einstellungen → MID-System zusammengeführt. Das Rückblicksmodul zeigt nur noch den Betriebsstatus; standortbezogene Profile und Aktivitätsprofile bleiben dort editierbar.
 - Neuer Regressionstest schützt Szenarioplausibilität, Kennwertdarstellung, Dauerregenklassifikation und die zentrale Einstellungsstruktur.
 
 # MID v0.8.1.0
@@ -1135,7 +1078,7 @@
 
 - Lokaler Wetterzwilling Stufe 1 – Wahrheits-, Standort- und Archivkern: Unveränderliche Prognosesnapshots, unabhängige Beobachtungshierarchie aus Messung, Radar/Analyse, ERA5-Land-Reanalyse und gekennzeichnetem Modell-Fallback; Quellenqualität, Vertrauen und Abdeckung werden mitgeführt. Langzeitspiegel in IndexedDB und Migration bestehender Rückblicksdaten ergänzt.
 - Dauerhafter Standortfingerabdruck je Favorit mit Geländeform, Exposition, Kaltluft-, Nebel- und Gewässereinfluss. Eine räumliche Umfeldanalyse macht Stationsdistanz, Echozugrichtung und Standortwirkung sichtbar.
-- Optionale private Sensorintegration per JSON-Endpunkt oder manueller Messung mit eigener Herkunfts- und Qualitätskennzeichnung. Wetterzwilling-Archive und Profile bleiben über die vorhandene verschlüsselte Gerätesynchronisation übertragbar.
+- Wetterzwilling-Archive und Profile bleiben über die vorhandene verschlüsselte Gerätesynchronisation übertragbar.
 - Lokaler Wetterzwilling Stufe 2 – Lernkern: Prognosegüte getrennt nach Temperatur, Niederschlag, Regenwahrscheinlichkeit, Böen und Sonnenschein sowie nach Wetterlage und +12/+24/+48/+72 Stunden. Lokale Bias-Korrektur, Brier-Score, Wahrscheinlichkeitskalibrierung, Regularisierung, Mindeststichproben und Vertrauensstufen schützen vor Überanpassung.
 - Kontrollgruppen integriert: Open-Meteo Best Match, einfaches Multimodellmittel und MID lokal gewichtet werden parallel archiviert und nachträglich objektiv verglichen. Modellgewichte werden je Parameter, Wetterlage und Horizont berechnet und begrenzt.
 - Lokaler Wetterzwilling Stufe 3 – aktiver Zwilling: Die lokal gelernte Vorhersage ist in den Einstellungen als Hauptprognose aktivierbar. Ohne ausreichende Datenbasis bleibt unverändert Best Match aktiv. Für die ersten Stunden können Radar-/Nowcast-Signale nachvollziehbar assimiliert werden; Rohprognosen bleiben unverändert im Archiv.
@@ -1342,7 +1285,7 @@
 - Aktuelle Windkachel an die Tagesdetaildarstellung angeglichen: Windrichtungspfeil, Windgeschwindigkeit und Böen stehen gemeinsam im Hauptwert; Richtung und Datenquelle folgen getrennt in der Detailzeile.
 - Zentrale Sprühregen-/Schneegriesel-Plausibilisierung verschärft, ohne die Niederschlagsphase zu verändern. Neben Luftfeuchte und tiefer Bewölkung werden Taupunktspreizung, geschätzte beziehungsweise beobachtete Wolkenbasis, Niederschlagsrate und Schauersignal berücksichtigt.
 - Sprühregen bei geschätzter/erfasster Wolkenbasis über 3000 ft GND wird innerhalb der flüssigen Phase zu Regen verallgemeinert; bei gleichzeitigem Schauersignal zu Regenschauern. Schneegriesel wird unter unplausiblen Bedingungen ausschließlich zu Schnee beziehungsweise Schneeschauern verallgemeinert.
-- Taupunktinformationen werden nun in aktuellem Wetter, Tagesdetail, Meteogramm, Berg-/Wintersport und Routenwetter an dieselbe zentrale Plausibilisierung übergeben.
+- Taupunktinformationen werden nun in aktuellem Wetter, Tagesdetail, Meteogramm sowie Berg-/Wintersport an dieselbe zentrale Plausibilisierung übergeben.
 - Push-Mitteilungen nennen statt des generischen Wortes „Favorit“ den gegebenenfalls manuell geänderten Ortsnamen; beim dynamischen Standort lautet der Bezug **„am Standort“**. Dies gilt für Titel und Texte von Niederschlags- und Gewittermeldungen.
 - Neuer Regressionstest schützt Feldreihenfolge, Winddarstellung, appweite Taupunkt-/Wolkenbasisprüfung und ortsbezogene Push-Texte.
 
@@ -1507,7 +1450,7 @@
 
 # MID v0.7.95.30
 
-- Niederschlags-Plausibilisierung appweit vereinheitlicht: aktuelles Wetter, 7-Tage-Vorhersage, stündliche Detailansicht, Ensemble, Meteogramm, Berg-/Wintersportmodul und Routenwetter verwenden nun dieselbe zentrale Ableitung für Wettertext, Piktogramm und Niederschlagsart.
+- Niederschlags-Plausibilisierung appweit vereinheitlicht: aktuelles Wetter, 7-Tage-Vorhersage, stündliche Detailansicht, Ensemble, Meteogramm und Berg-/Wintersportmodul verwenden nun dieselbe zentrale Ableitung für Wettertext, Piktogramm und Niederschlagsart.
 - Regen/Sprühregen-Prüfung vollständig wiederhergestellt: Sprühregen-Codes werden nur noch bei plausibler feuchter tiefer Stratuslage und schwacher nicht-konvektiver Rate übernommen; andernfalls erfolgt eine konsistente Umstufung zu Regen, Schauer oder trockener Bewölkung.
 - Plausibilitätsprüfung auf Schnee und Schneegriesel erweitert. Bodentemperatur, explizite Schneemenge, Feuchte, tiefe Bewölkung, Niederschlagsrate und konvektiver Anteil verhindern warme oder dynamisch unplausible Schneesymbole; valide nasse Schneefälle mit explizitem Schneefeld bleiben erhalten.
 - Auch trockene Fehlcodes werden korrigiert: Ein unplausibler Niederschlagscode ohne messbaren Niederschlag fällt auf einen zur Bewölkung passenden trockenen WMO-Code zurück.
@@ -1518,8 +1461,7 @@
 # MID v0.7.95.29
 
 - Einstellungsdialog wieder vollständig an das geschützte Design von MID v0.7.95.26 angeglichen: zweispaltiger Desktopdialog, mobile Bereichsnavigation, Auswahlkarten, Einheitenauswahl und eingebettete Detailbereiche.
-- Design der erweiterten Funktionen auf die v0.7.95.26-Kartenstruktur zurückgestellt; Modelllauf-Änderungsradar und Routenwetter besitzen wieder die ursprünglichen Gruppen-, Auswahl- und Konfigurationselemente.
-- Routenwetter-Einstellungen um Standardprofil (Auto, Fahrrad, zu Fuß) und Prüfintervall ergänzt; diese Optionen steuern wieder die Vorbelegung und Zahl der Streckenstichproben.
+- Design der erweiterten Funktionen auf die v0.7.95.26-Kartenstruktur zurückgestellt; das Modelllauf-Änderungsradar besitzt wieder die ursprünglichen Gruppen-, Auswahl- und Konfigurationselemente.
 - Sämtliche Ensemble-Hilfe- und Modellstände-Popover wieder nach v0.7.95.26 umgesetzt: Body-Portale, Außenklick/-tippen, Escape, erneutes Antippen sowie responsive Positionierung.
 - Prognosekonsistenzpunkte verwenden wieder den geschützten v0.7.95.26-Tooltip mit Hover auf Mausgeräten, Ein-Tap-Bedienung und sicherem Außenklick-Schließen.
 - Temperaturtrend-Tooltip wieder als sehr kompakte Tmin/Tmax-Matrix von v0.7.95.26 hergestellt, einschließlich P25–P75, P10–P90, ENS-Mittel, Klima, Sonne, Modellzahl und Hazards.
@@ -1539,7 +1481,6 @@
 - Info-Schaltflächen und Modellstände in Best-Match- und Ensemble-Bereichen als robuste Body-Portale abgesichert; Außenklick/-tippen, Escape, erneutes Antippen, Scrollen und Größenänderungen funktionieren zuverlässig.
 - Tooltips der farbigen Prognosekonsistenzpunkte schließen bei Klick oder Tippen außerhalb; Interaktionen auf Punkt und Tooltip selbst bleiben erhalten.
 - Luftdrucktendenz, Sonne/Mond, Modelllauf-Änderungsradar, Benachrichtigungen, erweitertes Bergprofil, Web-Analytics-Diagnose und die zugehörige Worker-/Service-Worker-Unterstützung wieder vollständig verdrahtet.
-- Routenwetter bleibt als optionale erweiterte Funktion aus v0.7.95.26 erhalten.
 - Automatischer v0.7.95.26-Funktionsvertrag und Popover-Regression ergänzt; alle vorhandenen MID-Regressionstests werden weiterhin automatisch erkannt.
 
 # MID v0.7.90.4
