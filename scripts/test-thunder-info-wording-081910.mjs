@@ -58,7 +58,7 @@ try{
  for(const tone of ['rain','hail','wind','motion'])if(!tones.has(tone))failures.push(`Farbton ${tone} fehlt in den Kernauswirkungen.`);
  const passing={...cell,currentDistanceKm:30,forecastDistanceKm:48,forecastEffectiveDistanceKm:46,isApproaching:false,arrivalMinutes:NaN,heavyRainFlag:0,hailFlag:0,gustFlag:0};
  const passingInfo=module.combineThunderstormInformation({available:true,coverage:true,provider:'DWD KONRAD3D',observedAt:'2026-07-30T12:40:00Z',ageMinutes:5,cellsFound:8,nearbyCells:[passing],nearest:passing,summary:'x'},[],null,null,'Aachen');
- if(passingInfo?.status?.kind!=='passing'||passingInfo?.status?.label!=='Zieht voraussichtlich vorbei')failures.push(`Vorbeizug wird nicht klar priorisiert: ${JSON.stringify(passingInfo?.status)}`);
+ if(passingInfo!==null)failures.push(`Abgezogene, bereits 30 km entfernte Zelle wird weiterhin für den Bezugsort angezeigt: ${JSON.stringify(passingInfo?.status)}`);
 }catch(error){failures.push(`Funktionale Gewitterprüfung nicht ausführbar: ${error instanceof Error?error.message:String(error)}`)}
 try{
  const module=compileModule(wording,'forecastWording.ts');

@@ -31,7 +31,8 @@ for(const token of [
  '.weatherwidget.modern.compact .widgethazards span{padding:4px 5px;font-size:8.5px'
 ])assert.ok(styles.includes(token),`Responsive-/Widget-CSS fehlt: ${token}`);
 
-assert.equal(pkg.version,'0.9.16.1','Paketversion ist nicht v0.9.16.1.');
+const versionParts=String(pkg.version).split('.').map(Number);
+assert.ok(versionParts.length===4&&versionParts.every(Number.isFinite)&&(versionParts[0]>0||versionParts[1]>9||versionParts[2]>16||(versionParts[2]===16&&versionParts[3]>=1)),'Paketversion liegt vor dem geschützten Stand v0.9.16.1.');
 assert.equal(baseline.releaseVersion,pkg.version,'Baseline und Paketversion sind nicht synchron.');
 assert.equal(pkg.scripts?.['test:cockpit-landscape-widget'],'node scripts/test-cockpit-landscape-widget-09161.mjs','Package-Testeintrag fehlt.');
 assert.ok(baseline.regressionTests?.includes('scripts/test-cockpit-landscape-widget-09161.mjs'),'Baseline schützt die neue Regression nicht.');

@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.16.1",
+  "releaseVersion": "0.9.17.0",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -189,6 +189,7 @@
     "scripts/test-mid-09150-shortterm-hourly-thunder-changelog.mjs",
     "scripts/test-day-following-night-boundaries-09155.mjs",
     "scripts/test-precipitation-duration-day-character-09160.mjs",
-    "scripts/test-cockpit-landscape-widget-09161.mjs"
+    "scripts/test-cockpit-landscape-widget-09161.mjs",
+    "scripts/test-cockpit-compass-local-hazards-09170.mjs"
   ]
 }

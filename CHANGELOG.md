@@ -1,3 +1,13 @@
+# MID v0.9.17.0
+
+- Der bereits in der ausführlichen Ensembleanalyse vorhandene **MID Prognose-Kompass** ist nun auch direkt in der 14-Tage-Übersicht beider Cockpit-Darstellungen verfügbar. Belastbarer Zeitraum, wahrscheinlichste Entwicklung und Beginn zunehmender Unsicherheit erscheinen vor den Tageskacheln; der Standardmodus bleibt kompakt, der Erweiterte Modus ergänzt die Konsistenzschwelle.
+- Gewitterzellen werden zentral auf ihre Relevanz für den ausgewählten Standort geprüft. Bereits abziehende Zellen werden nach Verlassen des unmittelbaren 15-km-Nahbereichs ausgeblendet; nicht annähernde Zellen außerhalb von 60 km erzeugen ebenfalls keine Standortinformation mehr.
+- Ein bloß fortbestehendes Modellsignal darf eine abgezogene KONRAD3D-Zelle nicht erneut als lokale Gewitterinformation anzeigen. Ein neues starkes Radar-/CAPE-Signal direkt am Standort bleibt dagegen als eigenständige Modell-/Radarbewertung sichtbar.
+- Die Standortrelevanz gilt auch für KONRAD3D-Anteile des Starkregen-/Sturzflutindikators und die kurzfristige Gewitteranhebung der Niederschlagswahrscheinlichkeit.
+- Unter **Einstellungen → Ansicht** steht der neue, standardmäßig aktive Schalter **„Gewitter- und Sturzfluthinweise“** bereit. Er steuert beide Zusatzkarten gemeinsam und verhindert bei Deaktivierung auch den separaten Starkregen-Datenabruf.
+- Im Standardmodus werden Gewitter- und Sturzfluthinweise bewusst kompakter dargestellt: keine technische Detailansicht oder Ortsliste, höchstens drei Kernauswirkungen und verkürzte Quellen-/Zusammenfassungstexte. Der Erweiterte Modus behält die vollständige Analyse.
+- Neue Regression schützt Cockpit-Kompass, Einstellungs-Persistenz, kompakte Standarddarstellung, Zellabzug, Entfernungsgrenze sowie die Fortführung echter neuer Standortradar-Signale.
+
 # MID v0.9.16.1
 
 - Die 14-Tage-Übersicht verhindert auf Smartphones im Querformat Überlagerungen zwischen benachbarten Karten. Kartenkopf, Konsistenzfeld und Messzeilen besitzen nun feste responsive Raster und bleiben vollständig innerhalb ihrer Kachel.
