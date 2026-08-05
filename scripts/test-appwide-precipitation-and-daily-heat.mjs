@@ -29,7 +29,7 @@ for(const token of [
  'code:part.displayCode',
  'summarizeDwdWarningsForDay(hours,day.date,elevation)',
  'hz=dailyHazards(d,hours,elevation,unit,1)',
- 'hz:dailyHazards(d,hours,elevation??0,unit,1)'
+ 'hz:strongestDailyHazards(dailyHazards(d,hours,elevation??0,unit,1))'
 ])if(!app.includes(token))failures.push(`Appweite Plausibilisierung/Warnlogik fehlt: ${token}`);
 for(const token of ['temperature:hour.temperature','const displayCode=precipitation.displayCode'])if(!route.includes(token))failures.push(`Routenwetter nicht zentral plausibilisiert: ${token}`);
 for(const token of ["import {precipitationParts} from './precipitation';",'const part=precipitationParts({',"snowGrains:{short:'SG'",'cloud_cover_low'])if(!meteogram.includes(token))failures.push(`Meteogramm nicht zentral plausibilisiert: ${token}`);

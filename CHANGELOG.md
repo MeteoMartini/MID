@@ -1,3 +1,11 @@
+# MID v0.9.16.1
+
+- Die 14-Tage-Übersicht verhindert auf Smartphones im Querformat Überlagerungen zwischen benachbarten Karten. Kartenkopf, Konsistenzfeld und Messzeilen besitzen nun feste responsive Raster und bleiben vollständig innerhalb ihrer Kachel.
+- Konsistenzwerte werden stets einzeilig dargestellt. Auf schmalen Displays liegen Messwert und Bezeichnung über dem zugehörigen Balken, sodass Regen- und Windangaben nicht mehr in die nächste Karte ragen.
+- Der Widget-/PNG-Generator erhält eine moderat breitere Exportfläche und größere Schriften für alle wesentlichen Inhalte.
+- Widget-Hazards werden auf die höchste am jeweiligen Tag vorhandene Warnstufe begrenzt; niedrigere Warnstufen werden in dieser kompakten Exportansicht ausgeblendet.
+- Neue Regression schützt Querformatlayout, Konsistenzfelder, Widget-Lesbarkeit und Hazard-Priorisierung.
+
 # MID v0.9.15.14
 
 - KONRAD3D rendert im Kompositbild jetzt die vollständigen Vektorelemente nicht mehr nur für genau eine, sondern für bis zu drei der relevantesten sichtbaren Zellen. Dadurch erscheinen Zugbahn, Unsicherheitskorridor, Ellipsen und Prognosepunkte wieder vollständig, wenn mehrere plausible K3D-Zellen im Kartenausschnitt liegen.

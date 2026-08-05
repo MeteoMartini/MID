@@ -14,9 +14,9 @@ for(const token of [
  'item.stageRank>current.stageRank',
  'compactHz=highestDailyHazardsByKind(hz)',
  '<ForecastHazards hazards={compactHz}/>',
- 'hz:dailyHazards(d,hours,elevation??0,unit,1).slice(0,3)'
+ 'hz:strongestDailyHazards(dailyHazards(d,hours,elevation??0,unit,1))'
 ])need('7-Tage-Warnfilter',app,token);
 need('Package-Test',pkg,'test:forecast-highest-hazard-per-kind');
 need('Baseline-Test',baseline,'scripts/test-forecast-highest-hazard-per-kind-081812.mjs');
 if(failures.length){console.error('7-Tage-Warnfilter-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('7-Tage-Warnfilter geprüft: In der Vorhersage erscheint je Warntyp nur die höchste Stufe; Mehrstufenwarnungen bleiben außerhalb dieser Kompaktansicht erhalten.');
+console.log('7-Tage-Warnfilter geprüft: In der Vorhersage erscheint je Warntyp nur die höchste Stufe; das Widget begrenzt zusätzlich auf die stärkste Tageswarnstufe.');
