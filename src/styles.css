@@ -4704,30 +4704,30 @@ body,#root{
 .cockpit-short-spotlight>b{display:block;font-size:15px;line-height:1.32;letter-spacing:-.01em}
 .cockpit-short-spotlight>span{color:var(--muted);font-size:10px;line-height:1.4}
 .cockpit-short-spotlight.narrative{grid-column:span 2;background:linear-gradient(145deg,color-mix(in srgb,var(--accent) 12%,var(--surface)),color-mix(in srgb,var(--s2) 76%,transparent))}
-.cockpit-hourly-preview-shell{display:grid;gap:10px;padding:12px 12px 10px;border:1px solid color-mix(in srgb,var(--accent) 18%,var(--border));border-radius:22px;background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 96%,white 4%),color-mix(in srgb,var(--s2) 70%,transparent));box-shadow:0 18px 38px rgba(16,33,52,.05)}
+.cockpit-hourly-preview-shell{display:grid;gap:8px;padding:10px;border:1px solid color-mix(in srgb,var(--accent) 18%,var(--border));border-radius:20px;background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 96%,white 4%),color-mix(in srgb,var(--s2) 70%,transparent));box-shadow:0 14px 28px rgba(16,33,52,.05)}
 .cockpit-hourly-preview-head{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
 .cockpit-hourly-preview-head>span{display:grid;gap:3px;min-width:0}.cockpit-hourly-preview-head>span>small{color:var(--accent);font-size:9px;font-weight:900;letter-spacing:.11em;text-transform:uppercase}.cockpit-hourly-preview-head>span>b{font-size:14px;line-height:1.32}.cockpit-hourly-preview-head>em{color:var(--muted);font-size:10px;font-style:normal;white-space:nowrap}
-.cockpit-hourly-preview{display:grid;grid-auto-flow:column;grid-auto-columns:clamp(112px,10vw,128px);gap:8px;overflow-x:auto;overscroll-behavior-x:contain;padding:2px 2px 4px;scrollbar-width:thin;scroll-snap-type:x proximity}
-.cockpit-hourly-chip{position:relative;display:grid;align-content:start;gap:6px;min-width:0;padding:9px 10px;border:1px solid color-mix(in srgb,var(--border) 88%,transparent);border-radius:16px;background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 95%,white 5%),color-mix(in srgb,var(--s2) 82%,transparent));box-shadow:0 10px 22px rgba(16,33,52,.05),inset 0 1px 0 rgba(255,255,255,.28);scroll-snap-align:start}
+.cockpit-hourly-preview{display:grid;grid-auto-flow:column;grid-auto-columns:clamp(92px,9vw,108px);gap:6px;overflow-x:auto;overscroll-behavior-x:contain;padding:2px 2px 4px;scrollbar-width:thin;scroll-snap-type:x proximity}
+.cockpit-hourly-chip{position:relative;display:grid;align-content:start;gap:4px;min-width:0;padding:7px 8px;border:1px solid color-mix(in srgb,var(--border) 88%,transparent);border-radius:14px;background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 95%,white 5%),color-mix(in srgb,var(--s2) 82%,transparent));box-shadow:0 8px 18px rgba(16,33,52,.05),inset 0 1px 0 rgba(255,255,255,.28);scroll-snap-align:start}
 .cockpit-hourly-chip.day{background:linear-gradient(180deg,color-mix(in srgb,#fff6d7 24%,var(--surface)),color-mix(in srgb,var(--surface) 94%,white 6%))}
 .cockpit-hourly-chip.night{background:linear-gradient(180deg,color-mix(in srgb,#dfeaf8 34%,var(--surface)),color-mix(in srgb,var(--surface) 94%,white 6%))}
 .cockpit-hourly-chip.wet{border-color:color-mix(in srgb,#3aa0df 36%,var(--border));box-shadow:0 12px 28px rgba(37,120,177,.08),inset 0 1px 0 rgba(255,255,255,.32)}
-.cockpit-hourly-day-marker{display:inline-flex;align-items:center;justify-content:center;min-height:18px;padding:2px 7px;border-radius:999px;background:color-mix(in srgb,var(--accent) 12%,var(--surface));color:var(--accent);font-size:7px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.cockpit-hourly-day-marker{display:inline-flex;align-items:center;justify-content:center;min-height:16px;padding:2px 6px;border-radius:999px;background:color-mix(in srgb,var(--accent) 12%,var(--surface));color:var(--accent);font-size:6.5px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
 .cockpit-hourly-day-marker.ghost{visibility:hidden}
-.cockpit-hourly-chip-top{display:flex;align-items:flex-start;justify-content:space-between;gap:6px}
-.cockpit-hourly-chip-top>time{font-size:12px;font-weight:900;color:var(--text);font-variant-numeric:tabular-nums}
-.cockpit-hourly-chip-top>b{font-size:24px;line-height:1;color:#18344d;letter-spacing:-.04em;white-space:nowrap}
-.cockpit-hourly-chip-main{display:grid;gap:4px;min-width:0}.cockpit-hourly-chip-main .mid-weather-pictogram{width:24px!important;height:24px!important}.cockpit-hourly-chip-main>small{display:-webkit-box;overflow:hidden;color:var(--text);font-size:9px;line-height:1.15;-webkit-box-orient:vertical;-webkit-line-clamp:1}
-.cockpit-hourly-rain,.cockpit-hourly-wind{display:grid;gap:4px}
-.cockpit-hourly-probability-track{position:relative;display:block;height:5px}.cockpit-hourly-probability-track>i,.cockpit-hourly-probability-track>b{position:absolute;inset:0;border-radius:999px}.cockpit-hourly-probability-track>i{background:color-mix(in srgb,var(--text) 8%,transparent)}.cockpit-hourly-probability-track>b{max-width:100%}
-.cockpit-hourly-meta-row{display:flex;align-items:center;gap:4px;min-width:0;color:var(--muted);font-size:8px;line-height:1.15}.cockpit-hourly-meta-row>svg,.cockpit-hourly-meta-row>i{flex:0 0 auto;color:#4e9f6b}.cockpit-hourly-meta-row>b{font-size:9px;color:var(--text);white-space:nowrap}.cockpit-hourly-meta-row>small{margin-left:auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cockpit-hourly-chip-top{display:flex;align-items:flex-start;justify-content:space-between;gap:4px}
+.cockpit-hourly-chip-top>time{font-size:11px;font-weight:900;color:var(--text);font-variant-numeric:tabular-nums}
+.cockpit-hourly-chip-top>b{font-size:20px;line-height:1;color:#18344d;letter-spacing:-.04em;white-space:nowrap}
+.cockpit-hourly-chip-main{display:grid;gap:3px;min-width:0}.cockpit-hourly-chip-main .mid-weather-pictogram{width:22px!important;height:22px!important}.cockpit-hourly-chip-main>small{display:-webkit-box;overflow:hidden;color:var(--text);font-size:8px;line-height:1.1;-webkit-box-orient:vertical;-webkit-line-clamp:1}
+.cockpit-hourly-rain,.cockpit-hourly-wind{display:grid;gap:3px}
+.cockpit-hourly-probability-track{position:relative;display:block;height:4px}.cockpit-hourly-probability-track>i,.cockpit-hourly-probability-track>b{position:absolute;inset:0;border-radius:999px}.cockpit-hourly-probability-track>i{background:color-mix(in srgb,var(--text) 8%,transparent)}.cockpit-hourly-probability-track>b{max-width:100%}
+.cockpit-hourly-meta-row{display:flex;align-items:center;gap:3px;min-width:0;color:var(--muted);font-size:7px;line-height:1.1}.cockpit-hourly-meta-row>svg,.cockpit-hourly-meta-row>i{flex:0 0 auto;color:#4e9f6b}.cockpit-hourly-meta-row>b{font-size:8px;color:var(--text);white-space:nowrap}.cockpit-hourly-meta-row>small{margin-left:auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cockpit-brief.compact-fourteen{align-items:center}
 .cockpit-brief.compact-fourteen>span{gap:0}
 .cockpit-brief.compact-fourteen strong{display:none}
 @media(max-width:1080px){.cockpit-short-insight-grid.premium{grid-template-columns:repeat(2,minmax(0,1fr))}.cockpit-short-spotlight.narrative{grid-column:1/-1}}
-@media(max-width:760px){.cockpit-hourly-preview-head{flex-direction:column;align-items:flex-start}.cockpit-hourly-preview-head>em{white-space:normal}.cockpit-hourly-preview{grid-auto-columns:minmax(124px,66vw)}}
-@media(max-width:620px){.cockpit-short-insight-grid.premium{grid-template-columns:1fr}.cockpit-short-spotlight{padding:12px 13px}.cockpit-hourly-preview-shell{padding:10px}.cockpit-hourly-preview{grid-auto-columns:minmax(120px,72vw)}.cockpit-hourly-chip-top>b{font-size:22px}}
-@media(max-width:420px){.cockpit-hourly-preview{grid-auto-columns:minmax(116px,76vw)}.cockpit-hourly-chip{padding:8px 9px}.cockpit-hourly-chip-top>time{font-size:11px}.cockpit-hourly-chip-top>b{font-size:20px}.cockpit-hourly-chip-main>small{font-size:8.5px}}
+@media(max-width:760px){.cockpit-hourly-preview-head{flex-direction:column;align-items:flex-start}.cockpit-hourly-preview-head>em{white-space:normal}.cockpit-hourly-preview{grid-auto-columns:minmax(102px,54vw)}}
+@media(max-width:620px){.cockpit-short-insight-grid.premium{grid-template-columns:1fr}.cockpit-short-spotlight{padding:12px 13px}.cockpit-hourly-preview-shell{padding:9px}.cockpit-hourly-preview{grid-auto-columns:minmax(98px,60vw)}.cockpit-hourly-chip-top>b{font-size:18px}}
+@media(max-width:420px){.cockpit-hourly-preview{grid-auto-columns:minmax(94px,62vw)}.cockpit-hourly-chip{padding:7px 8px}.cockpit-hourly-chip-top>time{font-size:10px}.cockpit-hourly-chip-top>b{font-size:17px}.cockpit-hourly-chip-main>small{font-size:7.8px}}
 
 /* MID v0.9.17.3 · interaktive Kurzfristmatrix, ECMWF-Farbtemperaturen und mobile Horizontalfelder */
 .cockpit-now90-slot.active,.cockpit-hourly-chip.active,.cockpit-short-matrix-slot.active{border-color:color-mix(in srgb,var(--accent) 54%,var(--border))!important;box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 15%,transparent),0 16px 34px rgba(16,33,52,.08)!important}
@@ -4904,8 +4904,8 @@ body,#root{
 .cockpit-meteogram-pro__head b{color:var(--mg-text);font-size:clamp(18px,2vw,28px);line-height:1.14}
 .cockpit-meteogram-pro__head span>span{color:var(--mg-muted);font-size:11px;line-height:1.45}
 .cockpit-meteogram-pro__head em{padding:8px 11px;border:1px solid rgba(125,166,201,.22);border-radius:999px;background:rgba(125,166,201,.08);color:var(--mg-muted);font-size:10px;font-style:normal;white-space:nowrap}
-.cockpit-meteogram-pro__stage{width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;touch-action:pan-x;padding:2px 0 6px;scrollbar-width:thin;scrollbar-color:rgba(85,213,255,.36) transparent}
-.cockpit-meteogram-pro__canvas{position:relative;min-width:720px;isolation:isolate}
+.cockpit-meteogram-pro__stage{width:100%;max-width:100%;overflow:hidden;padding:2px 0 4px}
+.cockpit-meteogram-pro__canvas{position:relative;width:100%;min-width:0;max-width:100%;isolation:isolate}
 .cockpit-meteogram-pro__svg{display:block;width:100%;height:100%;overflow:visible}
 .cockpit-meteogram-pro__svg .plot-bg{fill:var(--mg-plot);stroke:var(--mg-plot-border);stroke-width:1}
 .cockpit-meteogram-pro__svg .night-band{fill:var(--mg-night)}
@@ -4926,13 +4926,13 @@ body,#root{
 .cockpit-meteogram-pro__svg .apparent-point.active{stroke-width:2.2}
 .cockpit-meteogram-pro__overlay{position:absolute;inset:0;pointer-events:none;z-index:2}
 .cockpit-meteogram-pro__overlay>span{position:absolute;display:grid;justify-items:center;transform:translateX(-50%)}
-.cockpit-meteogram-pro__overlay.time>span{top:10px;min-width:28px}
-.cockpit-meteogram-pro__overlay.time b{color:var(--mg-muted);font-size:12px;line-height:1;font-variant-numeric:tabular-nums}
+.cockpit-meteogram-pro__overlay.time>span{top:10px;min-width:24px}
+.cockpit-meteogram-pro__overlay.time b{color:var(--mg-muted);font-size:11px;line-height:1;font-variant-numeric:tabular-nums}
 .cockpit-meteogram-pro__overlay.day>span{top:28px;gap:0;text-align:center;color:var(--mg-text)}
 .cockpit-meteogram-pro__overlay.day b{font-size:15px;line-height:1.05}
 .cockpit-meteogram-pro__overlay.day small{color:var(--mg-muted);font-size:8px;line-height:1.1}
-.cockpit-meteogram-pro__overlay.weather>span{top:54px}
-.cockpit-meteogram-pro__overlay.wind>span{bottom:8px;gap:1px;color:#48b57b}
+.cockpit-meteogram-pro__overlay.weather>span{top:40px}
+.cockpit-meteogram-pro__overlay.wind>span{bottom:10px;gap:1px;color:#48b57b}
 .cockpit-meteogram-pro__overlay.wind small{color:currentColor;font-size:9px;font-weight:800;white-space:nowrap}
 .cockpit-meteogram-pro__hitlayer{position:absolute;inset:0;z-index:3}
 .cockpit-meteogram-pro__hitlayer button{position:absolute;top:0;bottom:0;border:0;border-radius:14px;background:transparent;color:inherit;cursor:pointer;transition:background .16s ease,box-shadow .16s ease}
@@ -4967,7 +4967,7 @@ body,#root{
 @media(max-width:760px){
  .cockpit-meteogram-pro{padding:12px;border-radius:22px;gap:10px}
  .cockpit-meteogram-pro__head{gap:9px}.cockpit-meteogram-pro__head b{font-size:19px}.cockpit-meteogram-pro__head span>span{font-size:10px}.cockpit-meteogram-pro__head em{padding:6px 9px;font-size:9px;white-space:normal}
- .cockpit-meteogram-pro__canvas{min-width:720px}
+ .cockpit-meteogram-pro__canvas{min-width:0}
  .cockpit-meteogram-pro__tooltip-content{padding:11px 12px;box-shadow:none}
  .cockpit-meteogram-pro__tooltip-content dl{grid-template-columns:1fr 1fr;gap:5px 12px}
  .cockpit-meteogram-pro__tooltip-content dl>div{grid-template-columns:minmax(72px,1fr) auto;gap:7px}

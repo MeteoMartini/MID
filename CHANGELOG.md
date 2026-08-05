@@ -1,3 +1,10 @@
+## v0.9.18.2
+- Buildfix: acht veraltete Cockpit-Regressionen auf den bewusst entfernten 1-h/3-h-Schalter, das entfernte Zusatzdatenfeld und das nun vollbreit skalierende Meteogramm synchronisiert.
+- Kurzfrist-Meteogramm dauerhaft auf einstündige Darstellung umgestellt; 1 h-/3 h-Schalter entfernt.
+- Diagrammbereich bereinigt: zusätzliche störende Textlayer am/über dem Plot entfernt.
+- Meteogramm auf vollbreit skalierende Darstellung umgestellt, sodass es ohne horizontales Scrollen vollständig sichtbar bleibt.
+- 24-h-Leiste erneut komprimiert und flacher gestaltet.
+
 ## v0.9.18.1
 - Buildfix: ungenutzten Alt-Helfer `shortTermVisibilityText` nach Entfernung der redundanten Detailkarte beseitigt; TS6133 verhindert.
 - Kurzfrist-Meteogramm bereinigt: störenden Detailtext aus dem Diagrammbereich entfernt.

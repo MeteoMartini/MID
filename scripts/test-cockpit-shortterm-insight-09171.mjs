@@ -12,7 +12,7 @@ const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}
 const reject=(label,text,token)=>{if(text.includes(token))failures.push(`${label} sollte fehlen: ${token}`)};
 
 for(const token of [
-  "hourlyPoints=useMemo(()=>selectShortTermPoints(adjusted,'1h')",
+  "points=useMemo(()=>selectShortTermPoints(adjusted,'1h')",
   'className="cockpit-short-insight"',
   'aria-label="Kurzfristkompass für die nächsten Stunden"',
   'className="cockpit-hourly-preview"',
@@ -33,8 +33,8 @@ for(const token of [
 
 need('Package-Test',pkg,'test:cockpit-shortterm-insight');
 need('Baseline-Test',baseline,'scripts/test-cockpit-shortterm-insight-09171.mjs');
-need('Version',pkg,'"version": "0.9.18.1"');
-need('Version',baseline,'"releaseVersion": "0.9.18.1"');
+need('Version',pkg,'"version": "0.9.18.2"');
+need('Version',baseline,'"releaseVersion": "0.9.18.2"');
 
 if(failures.length){
   console.error('Kurzfrist-Insight-Cockpit fehlgeschlagen:\n- '+failures.join('\n- '));

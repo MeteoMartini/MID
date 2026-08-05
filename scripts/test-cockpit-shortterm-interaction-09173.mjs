@@ -16,14 +16,11 @@ for(const token of [
   'className="cockpit-meteogram-pro__canvas"',
   'className="cockpit-meteogram-pro__hitlayer"',
   'onClick={()=>activatePoint(item.point)}',
-  'aria-controls="cockpit-shortterm-selected-detail"',
   'temperatureGradientId=`mid-meteogram-temp-${meteogramId}`',
   'stopColor={ecmwfTemperatureLineColor(item.point.temperature)}',
   'stroke={`url(#${temperatureGradientId})`}',
-  'id="cockpit-shortterm-selected-detail"',
-  'className="cockpit-meteogram-pro__datafield"',
   'className="cockpit-meteogram-pro__overlay wind"',
-  'selectedTooltip'
+  'selectedVisualPoint?.point.id===item.point.id?\'active\':\'\''
 ])need('Kurzfrist-Interaktion',cockpit,token);
 
 for(const token of [
@@ -31,16 +28,18 @@ for(const token of [
   '.cockpit-meteogram-pro__hitlayer button.active{',
   '.cockpit-meteogram-pro__svg .temperature-line{',
   '.cockpit-meteogram-pro__svg .apparent-line{',
-  '.cockpit-meteogram-pro__tooltip-content dl>div{',
-  '.cockpit-meteogram-pro__datafield{width:100%;max-width:none;color:var(--mg-text)}'
+  '.cockpit-meteogram-pro__stage{width:100%;max-width:100%;overflow:hidden;'
 ])need('Kurzfrist-CSS',styles,token);
 
 reject('Alte Kurzfristmatrix',cockpit,'className="cockpit-short-matrix-shell"');
 reject('Altes Diagramm-Markup',cockpit,'cockpit-short-diagram-column');
+reject('Entferntes Zusatzdatenfeld',cockpit,'className="cockpit-meteogram-pro__datafield"');
+reject('Entferntes Detail-Overlay',cockpit,'selectedTooltip');
+reject('Entfernter 1h/3h-Schalter',cockpit,'aria-label="Auflösung der Kurzfristvorhersage"');
 reject('Umgebungsabhängiger TypeScript-Pfad',await readFile(new URL('./test-shortterm-nullish-precedence-buildfix-09176.mjs',import.meta.url),'utf8'),'/opt/nvm/versions/node/');
 need('Package-Test',pkg,'test:cockpit-shortterm-interaction');
 need('Baseline-Test',baseline,'scripts/test-cockpit-shortterm-interaction-09173.mjs');
-need('Version',pkg,'"version": "0.9.18.1"');
-need('Version',baseline,'"releaseVersion": "0.9.18.1"');
+need('Version',pkg,'"version": "0.9.18.2"');
+need('Version',baseline,'"releaseVersion": "0.9.18.2"');
 if(failures.length){console.error('Interaktive Kurzfristdiagrammansicht fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Interaktives hochauflösendes Kurzfrist-Meteogramm mit separatem Datenfeld und sicherer Klick-/Touch-Auswahl erfolgreich geprüft.');
+console.log('Interaktives, vollständig sichtbares Kurzfrist-Meteogramm ohne redundantes Datenfeld geprüft.');
