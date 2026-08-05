@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.17.5",
+  "version": "0.9.18.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -204,7 +204,8 @@
     "test:cockpit-shortterm-insight": "node scripts/test-cockpit-shortterm-insight-09171.mjs",
     "test:cockpit-shortterm-premium": "node scripts/test-cockpit-shortterm-premium-09172.mjs",
     "test:cockpit-shortterm-interaction": "node scripts/test-cockpit-shortterm-interaction-09173.mjs",
-    "test:shortterm-nullish-buildfix": "node scripts/test-shortterm-nullish-precedence-buildfix-09176.mjs"
+    "test:shortterm-nullish-buildfix": "node scripts/test-shortterm-nullish-precedence-buildfix-09176.mjs",
+    "test:cockpit-meteogram-pro": "node scripts/test-cockpit-meteogram-pro-09180.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

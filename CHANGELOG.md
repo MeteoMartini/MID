@@ -1,3 +1,12 @@
+# MID v0.9.18.0
+
+- Kurzfristdiagramm im Cockpit vollständig als eigenständiges, hochauflösendes Meteogramm neu aufgebaut.
+- Dark Mode und Light Mode erhalten nun jeweils eigene, kontraststarke Meteogramm-Farbvariablen.
+- Temperatur wird als ECMWF-Farbverlauf dargestellt; die gefühlte Temperatur bleibt als neutrale gestrichelte Vergleichslinie erkennbar und wird nicht als Tmin/Tmax-Farbcodierung interpretiert.
+- Desktop zeigt ein echtes Overlay, Mobilgeräte eine separate kompakte Detailbox unterhalb des Diagramms.
+- Alte kollidierende Diagramm-CSS-Klassen werden nicht mehr verwendet; dadurch entfallen die schwarze, leere Plotfläche und die seitlich herausgerückte Legende.
+- Der TS5076-Regressionscheck ist jetzt vollständig deterministisch und ohne lokale TypeScript-Pfade.
+
 # MID v0.9.17.5
 
 - Buildfix: ungültige Mischung aus Nullish-Coalescing (`??`) und logischem ODER (`||`) in der Berechnung der Meteogramm-Achsenschritte beseitigt; die Tick-Fallbacks sind nun explizit getrennt. Die dedizierte TS5076-Regression lädt TypeScript portabel aus den Projektabhängigkeiten und verwendet den CAAS-Pfad nur noch als lokalen Fallback.
