@@ -1,3 +1,10 @@
+## v0.9.18.1
+- Buildfix: ungenutzten Alt-Helfer `shortTermVisibilityText` nach Entfernung der redundanten Detailkarte beseitigt; TS6133 verhindert.
+- Kurzfrist-Meteogramm bereinigt: störenden Detailtext aus dem Diagrammbereich entfernt.
+- Zusätzliches Detailfeld zwischen Legende und 24-h-Leiste entfernt.
+- Datenfeld unter dem Diagramm komprimiert (ganzzahlige Temperaturen, Wind inkl. Böenspitze, Luftdruck statt Böen-Zeile).
+- 24-h-Leiste weiter abgeflacht und kompakter gestaltet.
+
 # MID v0.9.18.0
 
 - Kurzfristdiagramm im Cockpit vollständig als eigenständiges, hochauflösendes Meteogramm neu aufgebaut.

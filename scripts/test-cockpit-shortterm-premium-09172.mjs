@@ -16,8 +16,7 @@ for(const token of [
   'className="cockpit-meteogram-pro"',
   'Professionelles 24-h-Meteogramm',
   'Temperaturmittel mit ECMWF-Farbverlauf',
-  'className="cockpit-meteogram-pro__tooltip desktop"',
-  'className="cockpit-meteogram-pro__tooltip mobile"',
+  'className="cockpit-meteogram-pro__datafield"',
   'className="cockpit-hourly-preview-shell"',
   'Kompakte 24-h-Zeitachse',
   'shortTermTrendLabel(previewPoints)'
@@ -27,16 +26,14 @@ for(const token of [
   '.cockpit-meteogram-pro{',
   ':root[data-theme=light] .cockpit-meteogram-pro{',
   '.cockpit-meteogram-pro__stage{width:100%;max-width:100%;overflow-x:auto;',
-  '.cockpit-meteogram-pro__tooltip.desktop{position:absolute;',
-  '.cockpit-meteogram-pro__tooltip.mobile{display:none}',
-  '@media(max-width:760px){',
-  '.cockpit-meteogram-pro__tooltip.mobile{display:block;'
+  '.cockpit-meteogram-pro__datafield{width:100%;max-width:none;color:var(--mg-text)}',
+  '@media(max-width:760px){'
 ])need('CSS',styles,token);
 
 reject('Altes konfliktanfälliges Diagramm-Markup',cockpit,'className="cockpit-short-diagram-shell"');
 need('Package-Test',pkg,'test:cockpit-shortterm-premium');
 need('Baseline-Test',baseline,'scripts/test-cockpit-shortterm-premium-09172.mjs');
-need('Version',pkg,'"version": "0.9.18.0"');
-need('Version',baseline,'"releaseVersion": "0.9.18.0"');
+need('Version',pkg,'"version": "0.9.18.1"');
+need('Version',baseline,'"releaseVersion": "0.9.18.1"');
 if(failures.length){console.error('Kurzfrist-Premium-Layout fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Eigenständiges professionelles Kurzfrist-Meteogramm mit Desktop-Overlay und mobiler Detailbox erfolgreich geprüft.');
+console.log('Eigenständiges professionelles Kurzfrist-Meteogramm mit separatem Datenfeld erfolgreich geprüft.');

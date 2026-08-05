@@ -21,6 +21,7 @@ for(const token of [
   'stopColor={ecmwfTemperatureLineColor(item.point.temperature)}',
   'stroke={`url(#${temperatureGradientId})`}',
   'id="cockpit-shortterm-selected-detail"',
+  'className="cockpit-meteogram-pro__datafield"',
   'className="cockpit-meteogram-pro__overlay wind"',
   'selectedTooltip'
 ])need('Kurzfrist-Interaktion',cockpit,token);
@@ -31,7 +32,7 @@ for(const token of [
   '.cockpit-meteogram-pro__svg .temperature-line{',
   '.cockpit-meteogram-pro__svg .apparent-line{',
   '.cockpit-meteogram-pro__tooltip-content dl>div{',
-  '.cockpit-focus-card.short-term-focus{'
+  '.cockpit-meteogram-pro__datafield{width:100%;max-width:none;color:var(--mg-text)}'
 ])need('Kurzfrist-CSS',styles,token);
 
 reject('Alte Kurzfristmatrix',cockpit,'className="cockpit-short-matrix-shell"');
@@ -39,7 +40,7 @@ reject('Altes Diagramm-Markup',cockpit,'cockpit-short-diagram-column');
 reject('Umgebungsabhängiger TypeScript-Pfad',await readFile(new URL('./test-shortterm-nullish-precedence-buildfix-09176.mjs',import.meta.url),'utf8'),'/opt/nvm/versions/node/');
 need('Package-Test',pkg,'test:cockpit-shortterm-interaction');
 need('Baseline-Test',baseline,'scripts/test-cockpit-shortterm-interaction-09173.mjs');
-need('Version',pkg,'"version": "0.9.18.0"');
-need('Version',baseline,'"releaseVersion": "0.9.18.0"');
+need('Version',pkg,'"version": "0.9.18.1"');
+need('Version',baseline,'"releaseVersion": "0.9.18.1"');
 if(failures.length){console.error('Interaktive Kurzfristdiagrammansicht fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Interaktives hochauflösendes Kurzfrist-Meteogramm mit sicherer Klick-/Touch-Auswahl erfolgreich geprüft.');
+console.log('Interaktives hochauflösendes Kurzfrist-Meteogramm mit separatem Datenfeld und sicherer Klick-/Touch-Auswahl erfolgreich geprüft.');

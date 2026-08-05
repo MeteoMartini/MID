@@ -35,10 +35,11 @@ for(const token of [
 ])need('Theme/Responsive-CSS',styles,token);
 
 reject('Alte zweispaltige Diagrammgrid im neuen Markup',cockpit,'className="cockpit-short-diagram-grid"');
+reject('Ungenutzter Sichtweiten-Helfer',cockpit,'function shortTermVisibilityText');
 reject('Hartcodierte weiße Meteogrammfläche',styles,'.cockpit-meteogram-pro__svg .plot-bg{fill:#fff');
 need('Package-Script',pkg,'test:cockpit-meteogram-pro');
 need('Baseline-Test',baseline,'scripts/test-cockpit-meteogram-pro-09180.mjs');
-need('Version',pkg,'"version": "0.9.18.0"');
-need('Version',baseline,'"releaseVersion": "0.9.18.0"');
+need('Version',pkg,'"version": "0.9.18.1"');
+need('Version',baseline,'"releaseVersion": "0.9.18.1"');
 if(failures.length){console.error('Professionelles Meteogramm fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
 console.log('Hochauflösendes, Dark-/Light-Mode-fähiges Kurzfrist-Meteogramm erfolgreich geprüft.');
