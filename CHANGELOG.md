@@ -1,12 +1,10 @@
-# MID v0.9.17.0
+# MID v0.9.17.1
 
-- Der bereits in der ausführlichen Ensembleanalyse vorhandene **MID Prognose-Kompass** ist nun auch direkt in der 14-Tage-Übersicht beider Cockpit-Darstellungen verfügbar. Belastbarer Zeitraum, wahrscheinlichste Entwicklung und Beginn zunehmender Unsicherheit erscheinen vor den Tageskacheln; der Standardmodus bleibt kompakt, der Erweiterte Modus ergänzt die Konsistenzschwelle.
-- Gewitterzellen werden zentral auf ihre Relevanz für den ausgewählten Standort geprüft. Bereits abziehende Zellen werden nach Verlassen des unmittelbaren 15-km-Nahbereichs ausgeblendet; nicht annähernde Zellen außerhalb von 60 km erzeugen ebenfalls keine Standortinformation mehr.
-- Ein bloß fortbestehendes Modellsignal darf eine abgezogene KONRAD3D-Zelle nicht erneut als lokale Gewitterinformation anzeigen. Ein neues starkes Radar-/CAPE-Signal direkt am Standort bleibt dagegen als eigenständige Modell-/Radarbewertung sichtbar.
-- Die Standortrelevanz gilt auch für KONRAD3D-Anteile des Starkregen-/Sturzflutindikators und die kurzfristige Gewitteranhebung der Niederschlagswahrscheinlichkeit.
-- Unter **Einstellungen → Ansicht** steht der neue, standardmäßig aktive Schalter **„Gewitter- und Sturzfluthinweise“** bereit. Er steuert beide Zusatzkarten gemeinsam und verhindert bei Deaktivierung auch den separaten Starkregen-Datenabruf.
-- Im Standardmodus werden Gewitter- und Sturzfluthinweise bewusst kompakter dargestellt: keine technische Detailansicht oder Ortsliste, höchstens drei Kernauswirkungen und verkürzte Quellen-/Zusammenfassungstexte. Der Erweiterte Modus behält die vollständige Analyse.
-- Neue Regression schützt Cockpit-Kompass, Einstellungs-Persistenz, kompakte Standarddarstellung, Zellabzug, Entfernungsgrenze sowie die Fortführung echter neuer Standortradar-Signale.
+- Das Kurzfrist-Cockpit unterhalb der 90-Minuten-Vorhersage wurde grafisch neu aufgebaut. Die bisherige knappe Kennzahlenleiste wird durch eine responsive Kurzfrist-Insight-Zone mit stündlicher Vorschau, Temperaturspanne, Windspitze und Niederschlagsfenster ersetzt.
+- Die Kurzfristgrafik nutzt kompaktere Proportionen mit weniger Leerraum und bleibt je nach Rasterwahl beziehungsweise Displaybreite besser lesbar. Unterhalb des Diagramms passt sich die Stunden-Vorschau flexibel an schmale und breite Displays an.
+- In den Cockpit-Übersichten wird der zusätzliche 14-Tage-Streuungstext oberhalb des MID-Prognose-Kompasses entfernt, da der Kompass diese Information bereits inhaltlich abdeckt. Die Überschrift bleibt erhalten, die Legende bleibt kompakt sichtbar.
+- Neue Regression schützt die neue Kurzfrist-Insight-Zone, die stündliche Vorschau und das Entfallen des redundanten 14-Tage-Textblocks im Cockpit.
+- CI-Korrektur: Die maximale Niederschlagswahrscheinlichkeit wird im neu gestalteten Bereich weiterhin direkt ganzzahlig aus allen dargestellten Kurzfristpunkten berechnet; der bestehende Schutztest `test-build-percent-integers-091513.mjs` bleibt damit erfüllt.
 
 # MID v0.9.16.1
 

@@ -4694,3 +4694,30 @@ body,#root{
 .local-hazard-setting>svg{color:#d98d39}
 @media(min-width:681px) and (max-width:900px){.cockpit-forecast-compass>div{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:520px){.place-nowcards .thunder-now.standard-compact .thunder-fact-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.place-nowcards .thunder-now.standard-compact .thunder-fact{padding:5px 4px}}
+
+/* MID v0.9.17.1 · grafische Kurzfrist-Neugestaltung unterhalb des 90-Minuten-Nowcasts */
+.cockpit-short-insight{display:grid;gap:10px;margin-top:10px}
+.cockpit-short-insight-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.cockpit-short-spotlight{display:grid;align-content:start;gap:4px;min-width:0;padding:10px 11px;border:1px solid color-mix(in srgb,var(--accent) 18%,var(--border));border-radius:16px;background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 7%,var(--surface)),color-mix(in srgb,var(--s2) 76%,transparent));box-shadow:0 10px 24px rgba(16,33,52,.05)}
+.cockpit-short-spotlight>small{color:var(--accent);font-size:8px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.cockpit-short-spotlight>b{display:block;font-size:12px;line-height:1.35}
+.cockpit-short-spotlight>span{color:var(--muted);font-size:9px;line-height:1.35}
+.cockpit-short-spotlight.narrative{grid-column:span 2}
+.cockpit-hourly-preview{display:grid;grid-template-columns:repeat(auto-fit,minmax(94px,1fr));gap:8px}
+.cockpit-hourly-chip{display:grid;gap:5px;align-content:start;min-width:0;padding:9px 8px;border:1px solid color-mix(in srgb,var(--border) 92%,transparent);border-radius:16px;background:color-mix(in srgb,var(--surface) 94%,transparent);box-shadow:inset 0 1px 0 rgba(255,255,255,.1)}
+.cockpit-hourly-chip>time{font-size:10px;font-weight:900;color:var(--text);font-variant-numeric:tabular-nums}
+.cockpit-hourly-chip-head{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.cockpit-hourly-chip-head>b{font-size:18px;line-height:1;white-space:nowrap}
+.cockpit-hourly-chip>small{overflow:hidden;color:var(--muted);font-size:8px;line-height:1.25;text-overflow:ellipsis;white-space:nowrap}
+.cockpit-hourly-rain{display:grid;grid-template-columns:1fr auto;align-items:center;gap:5px}
+.cockpit-hourly-rain>i{grid-column:1/-1;display:block;height:5px;border-radius:999px;background:color-mix(in srgb,var(--text) 8%,transparent)}
+.cockpit-hourly-rain>b{display:block;height:5px;margin-top:-10px;border-radius:999px;min-width:12%;max-width:100%}
+.cockpit-hourly-rain>small{justify-self:end;color:var(--muted);font-size:8px}
+.cockpit-hourly-wind{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.cockpit-hourly-wind>small{color:var(--muted);font-size:8px;white-space:nowrap}
+.cockpit-brief.compact-fourteen{align-items:center}
+.cockpit-brief.compact-fourteen>span{gap:0}
+.cockpit-brief.compact-fourteen strong{display:none}
+@media(max-width:900px){.cockpit-short-spotlight.narrative{grid-column:auto}}
+@media(max-width:680px){.cockpit-short-insight-grid{grid-template-columns:1fr 1fr}.cockpit-hourly-preview{grid-template-columns:repeat(auto-fit,minmax(84px,1fr))}}
+@media(max-width:480px){.cockpit-short-insight-grid{grid-template-columns:1fr}.cockpit-hourly-preview{grid-template-columns:repeat(2,minmax(0,1fr))}.cockpit-hourly-chip-head>b{font-size:16px}.cockpit-hourly-chip>time{font-size:9px}}

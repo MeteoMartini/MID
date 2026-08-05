@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.17.0",
+  "version": "0.9.17.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -200,7 +200,8 @@
     "test:radar-site-intervals": "node scripts/test-radar-site-intervals-091511.mjs",
     "test:precipitation-duration-day-character": "node scripts/test-precipitation-duration-day-character-09160.mjs",
     "test:cockpit-landscape-widget": "node scripts/test-cockpit-landscape-widget-09161.mjs",
-    "test:cockpit-compass-local-hazards": "node scripts/test-cockpit-compass-local-hazards-09170.mjs"
+    "test:cockpit-compass-local-hazards": "node scripts/test-cockpit-compass-local-hazards-09170.mjs",
+    "test:cockpit-shortterm-insight": "node scripts/test-cockpit-shortterm-insight-09171.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",
