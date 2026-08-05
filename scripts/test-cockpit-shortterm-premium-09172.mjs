@@ -33,8 +33,8 @@ for(const token of [
 reject('Zweispaltige mobile Stundenvorschau',styles,'.cockpit-hourly-preview{grid-template-columns:repeat(2,minmax(0,1fr))}');
 need('Package-Test',pkg,'test:cockpit-shortterm-premium');
 need('Baseline-Test',baseline,'scripts/test-cockpit-shortterm-premium-09172.mjs');
-need('Version',pkg,'"version": "0.9.17.2"');
-need('Version',baseline,'"releaseVersion": "0.9.17.2"');
+need('Version',pkg,'"version": "0.9.17.3"');
+need('Version',baseline,'"releaseVersion": "0.9.17.3"');
 
 if(failures.length){
   console.error('Kurzfrist-Premium-Layout fehlgeschlagen:\n- '+failures.join('\n- '));

@@ -1,3 +1,12 @@
+# MID v0.9.17.3
+
+- Die Cockpit-Kurzfristansicht reagiert nun wirklich auf Klick/Tipp: Sowohl die Kurzfristmatrix als auch 90-Minuten-Slots und 24h-Stundenfelder öffnen bzw. aktualisieren sofort die Kurzfristdetails.
+- Temperaturen in den Kurzfristansichten werden jetzt mit einer ECMWF-orientierten Farbskala dargestellt.
+- Die bisherige Grafik wurde durch eine neue interaktive Kurzfristmatrix ersetzt, die Temperatur, gefühlte Temperatur, Wetter, Niederschlag, Wind/Böen, Bewölkung, Feuchte, Sicht und Gewittersignal direkt pro Zeitpunkt zusammenführt.
+- Für schmale/mobile Displays werden die Kurzfristkacheln gezielt in flache, horizontal gestreckte Felder umgebaut. Damit bleiben Scrollen und Überblick auf kleinen Geräten deutlich besser nutzbar.
+- Die responsive 24h-Vorschau wurde ebenfalls auf echte Interaktion und mobile Einspaltigkeit nachgeschärft. Eine neue Regression prüft Interaktivität, ECMWF-Farben, Matrixdarstellung und mobile Flachfelder.
+- CI-Buildkorrektur: `Gauge`, `Navigation`, `windSignalColor` und `SvgWindDirectionArrow` werden nun tatsächlich in der neuen Kurzfristmatrix beziehungsweise Detailkarte verwendet; die ungenutzte `CloudRain`-Deklaration wurde entfernt. Damit ist die TypeScript-Option `noUnusedLocals` wieder erfüllt.
+
 # MID v0.9.17.2
 
 - Der Kurzfristbereich unterhalb der 90-Minuten-Vorhersage wurde gestalterisch erneut überarbeitet. Statt einer einfachen Kachelmatrix erscheint dort jetzt eine hochwertigere, professionellere Kurzfrist-Sektion mit klarerer Informationshierarchie.

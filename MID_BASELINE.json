@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.17.2",
+  "releaseVersion": "0.9.17.3",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -192,6 +192,7 @@
     "scripts/test-cockpit-landscape-widget-09161.mjs",
     "scripts/test-cockpit-compass-local-hazards-09170.mjs",
     "scripts/test-cockpit-shortterm-insight-09171.mjs",
-    "scripts/test-cockpit-shortterm-premium-09172.mjs"
+    "scripts/test-cockpit-shortterm-premium-09172.mjs",
+    "scripts/test-cockpit-shortterm-interaction-09173.mjs"
   ]
 }
