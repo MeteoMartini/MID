@@ -15,29 +15,30 @@ for(const token of [
   'timelinePoints=hourlyPoints.slice(0,Math.min(24,hourlyPoints.length))',
   'className="cockpit-short-insight-grid premium"',
   'className="cockpit-hourly-preview-shell"',
+  'timelineDateRange=',
+  'Kompakte 24-h-Zeitachse',
+  "Seitlich wischbar – mobil flach verdichtet",
   'className="cockpit-hourly-day-marker"',
-  "cockpit-hourly-chip${point.precipitation>=.05||point.probability>=45?\' wet\':\'\'}${point.isDay?\' day\':\' night\'}",
-  'formatDate(dateOnlyFromEpoch(timelineLead.epoch,timezone)',
+  "className={`cockpit-hourly-chip${point.precipitation>=.05||point.probability>=45?' wet':''}${point.isDay?' day':' night'}${selectedPoint.id===point.id?' active':''}`}",
   'shortTermTrendLabel(previewPoints)'
 ])need('Kurzfrist-Premium-Cockpit',cockpit,token);
 
 for(const token of [
-  '.cockpit-short-insight-grid.premium{grid-template-columns:repeat(4,minmax(0,1fr))}',
   '.cockpit-hourly-preview-shell{',
+  '.cockpit-hourly-preview-head>span>strong{',
   '.cockpit-hourly-preview{display:grid;grid-auto-flow:column;',
-  '.cockpit-hourly-day-marker{',
-  '@media(max-width:620px){.cockpit-short-insight-grid.premium{grid-template-columns:1fr}',
-  '@media(max-width:760px){.cockpit-hourly-preview-head{flex-direction:column;align-items:flex-start}.cockpit-hourly-preview-head>em{white-space:normal}.cockpit-hourly-preview{grid-auto-columns:minmax(132px,68vw)}}'
+  '@media(max-width:620px){.cockpit-short-diagram-shell{padding:11px}',
+  '.cockpit-hourly-chip{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;grid-template-areas:\'day day day day\' \'time temp main wind\' \'rain rain rain rain\''
 ])need('CSS',styles,token);
 
-reject('Zweispaltige mobile Stundenvorschau',styles,'.cockpit-hourly-preview{grid-template-columns:repeat(2,minmax(0,1fr))}');
+reject('Missverständliche alte 24h-Überschrift',cockpit,'{formatDate(dateOnlyFromEpoch(timelineLead.epoch,timezone),{weekday:\'long\',day:\'2-digit\',month:\'2-digit\'})} · {timelineLead.timeLabel}–{timelineTail.timeLabel}');
 need('Package-Test',pkg,'test:cockpit-shortterm-premium');
 need('Baseline-Test',baseline,'scripts/test-cockpit-shortterm-premium-09172.mjs');
-need('Version',pkg,'"version": "0.9.17.3"');
-need('Version',baseline,'"releaseVersion": "0.9.17.3"');
+need('Version',pkg,'"version": "0.9.17.4"');
+need('Version',baseline,'"releaseVersion": "0.9.17.4"');
 
 if(failures.length){
   console.error('Kurzfrist-Premium-Layout fehlgeschlagen:\n- '+failures.join('\n- '));
   process.exit(1);
 }
-console.log('Professioneller Kurzfristbereich mit 24h-Timeline und responsiver Geräteanpassung erfolgreich geprüft.');
+console.log('Professioneller Kurzfristbereich mit eindeutiger 24-h-Zeitachse und verdichteter mobiler Darstellung erfolgreich geprüft.');
