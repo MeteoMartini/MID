@@ -1,5 +1,8 @@
 # MID v0.9.17.5
 
+- Buildfix: ungültige Mischung aus Nullish-Coalescing (`??`) und logischem ODER (`||`) in der Berechnung der Meteogramm-Achsenschritte beseitigt; die Tick-Fallbacks sind nun explizit getrennt. Die dedizierte TS5076-Regression lädt TypeScript portabel aus den Projektabhängigkeiten und verwendet den CAAS-Pfad nur noch als lokalen Fallback.
+- Feinschliff: Achsen, Raster und Tagestrennung des Kurzfrist-Meteogramms optisch näher an einer professionellen Meteogramm-Darstellung ausgerichtet.
+- Tooltip des Kurzfristdiagramms als kompakte Infobox mit Wettericon, klaren Parameterzeilen und besserer Lesbarkeit auf Mobilgeräten überarbeitet.
 - Korrektur: Ganzzahlige maximale Niederschlagswahrscheinlichkeit im Cockpit wieder mit dem bestehenden Build-Regressionstest synchronisiert.
 - Cockpit-Kurzfristbereich als kompaktes Meteogramm neu aufgebaut
 - Tooltip/Overlay passt sich auf schmalen Displays mobil unten an statt Inhalte zu verdecken

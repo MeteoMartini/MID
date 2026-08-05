@@ -203,7 +203,8 @@
     "test:cockpit-compass-local-hazards": "node scripts/test-cockpit-compass-local-hazards-09170.mjs",
     "test:cockpit-shortterm-insight": "node scripts/test-cockpit-shortterm-insight-09171.mjs",
     "test:cockpit-shortterm-premium": "node scripts/test-cockpit-shortterm-premium-09172.mjs",
-    "test:cockpit-shortterm-interaction": "node scripts/test-cockpit-shortterm-interaction-09173.mjs"
+    "test:cockpit-shortterm-interaction": "node scripts/test-cockpit-shortterm-interaction-09173.mjs",
+    "test:shortterm-nullish-buildfix": "node scripts/test-shortterm-nullish-precedence-buildfix-09176.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",
