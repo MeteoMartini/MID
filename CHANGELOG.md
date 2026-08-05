@@ -1,3 +1,10 @@
+# MID v0.9.17.2
+
+- Der Kurzfristbereich unterhalb der 90-Minuten-Vorhersage wurde gestalterisch erneut überarbeitet. Statt einer einfachen Kachelmatrix erscheint dort jetzt eine hochwertigere, professionellere Kurzfrist-Sektion mit klarerer Informationshierarchie.
+- Die stündliche Vorschau zeigt nun bis zu 24 Stunden in einer kompakten, horizontal scrollbaren Timeline-Leiste. Damit entfallen die bislang als unzweckmäßig bewerteten zweispaltigen Stundenkacheln.
+- Die Kurzfrist-Metriken bleiben als Premium-Spotlights sichtbar und passen sich je nach Displaybreite abgestuft an Desktop, Tablet und Smartphone an. Für schmale Geräte werden nur die Kennzahlen gestapelt; die Stundenleiste bleibt einspaltig beziehungsweise horizontal nebeneinander.
+- Die Änderung folgt ausdrücklich dem MID-Grundsatz, neue UI-Bausteine immer displaygrößen- und gerätegerecht auszuarbeiten. Eine neue Regression sichert 24h-Timeline, Premium-Layout und responsive Einspaltigkeit der Kurzfristvorschau ab.
+
 # MID v0.9.17.1
 
 - Das Kurzfrist-Cockpit unterhalb der 90-Minuten-Vorhersage wurde grafisch neu aufgebaut. Die bisherige knappe Kennzahlenleiste wird durch eine responsive Kurzfrist-Insight-Zone mit stündlicher Vorschau, Temperaturspanne, Windspitze und Niederschlagsfenster ersetzt.
