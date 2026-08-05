@@ -815,6 +815,95 @@ function possibleEventText(event:string,timing:string){
  const full=naturalPossibleEventText(event,timing),fallback=naturalPossibleEventFallback(event,timing);
  return fitDaySecondary(full,fallback.length<=DAY_SECONDARY_MAX?fallback:`${event} möglich`);
 }
+
+export type PrecipitationPeriodAssessment={
+ family:'none'|'drizzle'|'rain'|'snow'|'showers'|'thunder';
+ amount:number;
+ maxProbability:number;
+ averageProbability:number;
+ durationHours:number;
+ possibleDurationHours:number;
+ activeIntervals:number;
+ possibleIntervals:number;
+ dominant:boolean;
+ showery:boolean;
+ severe:boolean;
+ timing:string;
+};
+
+type PrecipitationAssessmentSample={epoch:number;durationHours:number;amount:number;snow:number;probability:number;family:PrecipitationPeriodAssessment['family'];precise:boolean;hour?:Hour};
+function minutePrecipitationFamily(sample:Minute15):PrecipitationPeriodAssessment['family']{
+ const family=precipCodeFamily(Math.round(Number(sample.code)||0));
+ if(family!=='none')return family;
+ if(Math.max(0,Number(sample.showers)||0)>=.02)return'showers';
+ if(Math.max(0,Number(sample.snowfall)||0)>=.02)return'snow';
+ if(Math.max(0,Number(sample.rain)||0)>=.02||Math.max(0,Number(sample.precipitation)||0)>=.02)return'rain';
+ return'none';
+}
+function hourlyAssessmentDuration(hour:Hour,intervalHours:number,family:PrecipitationPeriodAssessment['family']){
+ const amount=Math.max(0,Number(hour.precipitation)||0),snow=Math.max(0,Number(hour.snowfall)||0),probability=Math.max(0,Math.min(100,Number(hour.probability)||0));
+ const direct=amount>=.04||snow>=.04,likely=family!=='none'&&probability>=60;
+ if(!direct&&!likely)return 0;
+ if(family==='showers'||family==='thunder'){
+  if(amount<.08&&snow<.08&&probability<55)return Math.min(intervalHours,.25);
+  if(amount<.25&&snow<.25)return Math.min(intervalHours,.5);
+  if(amount<.6&&snow<.6)return Math.min(intervalHours,.75);
+ }
+ return intervalHours;
+}
+function assessmentSampleActive(sample:PrecipitationAssessmentSample){return sample.family!=='none'&&(sample.amount>=.04||sample.snow>=.04||sample.probability>=60)}
+function assessmentSamplePossible(sample:PrecipitationAssessmentSample){return sample.family!=='none'&&(sample.amount>=.02||sample.snow>=.02||sample.probability>=25)}
+function precipitationDominance(family:PrecipitationPeriodAssessment['family'],durationHours:number,maxProbability:number,amount:number){
+ if(family==='thunder')return(durationHours>=.5&&(maxProbability>=35||amount>=.2))||maxProbability>=75||amount>=1;
+ if(family==='showers')return(durationHours>=1.25&&maxProbability>=35&&amount>=.25)||amount>=1.2||(durationHours>=2&&maxProbability>=25);
+ if(family==='rain'||family==='drizzle')return(durationHours>=2&&maxProbability>=35&&amount>=.45)||amount>=1.5||durationHours>=3;
+ if(family==='snow')return(durationHours>=1.5&&maxProbability>=35)||(durationHours>=.75&&amount>=.8)||amount>=1.5;
+ return false;
+}
+export function precipitationDurationLabel(durationHours:number){
+ const hours=Math.max(0,Number(durationHours)||0),minutes=Math.round(hours*60/15)*15;
+ if(minutes<=0)return'0 min';
+ if(minutes<60)return`${minutes} min`;
+ if(minutes%60===0)return`${minutes/60} h`;
+ return`${Math.floor(minutes/60)} h ${minutes%60} min`;
+}
+export function precipitationPeriodAssessment(hours:Hour[],minute15:Minute15[]=[]):PrecipitationPeriodAssessment{
+ const ordered=[...hours].filter(hour=>Number.isFinite(Number(hour.epoch))).sort((a,b)=>a.epoch-b.epoch),samples:PrecipitationAssessmentSample[]=[];
+ for(let index=0;index<ordered.length;index++){
+  const hour=ordered[index],next=ordered[index+1],intervalHours=Math.max(.25,Math.min(1.5,Number.isFinite(next?.epoch)?(next.epoch-hour.epoch)/3600000:1)),end=hour.epoch+intervalHours*3600000;
+  const fine=minute15.filter(sample=>sample.epoch>=hour.epoch&&sample.epoch<end);
+  if(fine.length>=2){
+   for(const sample of fine)samples.push({epoch:sample.epoch,durationHours:.25,amount:Math.max(0,Number(sample.precipitation)||0),snow:Math.max(0,Number(sample.snowfall)||0),probability:Math.max(0,Math.min(100,Number(sample.probability)||0)),family:minutePrecipitationFamily(sample),precise:true,hour});
+   continue;
+  }
+  const family=plausiblePrecipFamily(hour) as PrecipitationPeriodAssessment['family'],duration=hourlyAssessmentDuration(hour,intervalHours,family);
+  samples.push({epoch:hour.epoch,durationHours:duration||intervalHours,amount:Math.max(0,Number(hour.precipitation)||0),snow:Math.max(0,Number(hour.snowfall)||0),probability:Math.max(0,Math.min(100,Number(hour.probability)||0)),family,precise:false,hour});
+ }
+ const possible=samples.filter(assessmentSamplePossible),active=samples.filter(assessmentSampleActive),amount=ordered.reduce((sum,hour)=>sum+Math.max(0,Number(hour.precipitation)||0),0),maxProbability=Math.max(0,...possible.map(sample=>sample.probability));
+ const possibleDurationHours=possible.reduce((sum,sample)=>sum+(sample.precise?sample.durationHours:Math.max(.25,hourlyAssessmentDuration(sample.hour!,sample.durationHours,sample.family))),0),durationHours=active.reduce((sum,sample)=>{
+  if(!sample.precise&&sample.hour)return sum+hourlyAssessmentDuration(sample.hour,sample.durationHours,sample.family);
+  return sum+sample.durationHours;
+ },0),averageProbability=possible.length?possible.reduce((sum,sample)=>sum+sample.probability,0)/possible.length:0;
+ const scores=new Map<PrecipitationPeriodAssessment['family'],number>();
+ for(const sample of possible){const severity=sample.family==='thunder'?2.2:sample.family==='snow'?1.35:sample.family==='showers'?1.25:sample.family==='rain'?1.05:.8,score=sample.durationHours*(.35+sample.probability/100)*severity+(sample.amount+sample.snow*.12)*2.2;scores.set(sample.family,(scores.get(sample.family)??0)+score)}
+ const family=[...scores.entries()].filter(([name])=>name!=='none').sort((a,b)=>b[1]-a[1])[0]?.[0]??'none',showery=family==='showers'||family==='thunder',severe=family==='thunder';
+ const dominant=precipitationDominance(family,durationHours,maxProbability,amount);
+ const timing=family==='none'?'':eventTiming(ordered,family);
+ return{family,amount,maxProbability,averageProbability,durationHours:Math.round(durationHours*4)/4,possibleDurationHours:Math.round(possibleDurationHours*4)/4,activeIntervals:active.length,possibleIntervals:possible.length,dominant,showery,severe,timing};
+}
+function minuteWithinDayPeriod(day:Day,sample:Minute15){
+ if(sample.time.slice(0,10)!==day.date)return false;
+ const clock=Number(sample.time.slice(11,13))*60+Number(sample.time.slice(14,16)),sunrise=sevenDayClockMinutesForWeather(day.sunrise),sunset=sevenDayClockMinutesForWeather(day.sunset);
+ if(Number.isFinite(sunrise)&&Number.isFinite(sunset)&&sunset>sunrise)return clock>=sunrise&&clock<sunset;
+ return clock>=7*60&&clock<19*60;
+}
+function sevenDayClockMinutesForWeather(value?:string){const match=String(value||'').match(/T(\d{2}):(\d{2})/);return match?Number(match[1])*60+Number(match[2]):Number.NaN}
+export function dayPrecipitationAssessment(day:Day,hours:Hour[],minute15:Minute15[]=[]){
+ const relevant=dayPeriodHoursForDate(day.date,hours),fine=minute15.filter(sample=>minuteWithinDayPeriod(day,sample));
+ if(relevant.length)return precipitationPeriodAssessment(relevant,fine);
+ const family=precipCodeFamily(Math.round(Number(day.code)||0)),amount=Math.max(0,Number(day.precipitation)||0),maxProbability=Math.max(0,Math.min(100,Number(day.probability)||0)),reportedDuration=Math.max(0,Number(day.precipitationHours)||0),durationHours=reportedDuration>0?reportedDuration:family==='none'||(amount<.02&&maxProbability<25)?0:family==='showers'||family==='thunder'?amount>=1?.75:.25:amount>=1.5?2:amount>=.45?1:.5,dominant=precipitationDominance(family,durationHours,maxProbability,amount);
+ return{family,amount,maxProbability,averageProbability:maxProbability,durationHours:Math.round(durationHours*4)/4,possibleDurationHours:Math.round(durationHours*4)/4,activeIntervals:durationHours>0?1:0,possibleIntervals:durationHours>0?1:0,dominant,showery:family==='showers'||family==='thunder',severe:family==='thunder',timing:''};
+}
 export function dayWeatherCharacter(day:Day,hours:Hour[]):DayWeatherCharacter{
  const relevant=dayPeriodHoursForDate(day.date,hours);
  if(!relevant.length){
@@ -837,17 +926,11 @@ export function dayWeatherCharacter(day:Day,hours:Hour[]):DayWeatherCharacter{
  if(overcastShare>=.5)sunshineForLabel=Math.min(sunshineForLabel,.09);
  else if(heavyCloudShare>=.65||overcastShare>=.35)sunshineForLabel=Math.min(sunshineForLabel,.18);
  else if(heavyCloudShare>=.45)sunshineForLabel=Math.min(sunshineForLabel,.27);
- const sky=skyFromCloud(effectiveCloud,sunshineForLabel),skyLabel=skyTrend(relevant,sky.label),skyCode=representativeSkyCode(skyLabel,sky.code),candidate=representativePrecipCode(relevant);
- if(!candidate)return{...sky,code:skyCode,label:fitDayLabel(skyLabel,compactSkyFallback(sky.label)),secondary:'',cloudOktas:cloudOktas(effectiveCloud),precipitationDominant:false};
- const severe=candidate.family==='thunder';
- const lateEveningOnly=candidate.daytimeHours===0&&candidate.first>=20&&candidate.hours<=3;
- const marginalLateEvent=!severe&&lateEveningOnly&&candidate.maxProbability<50&&candidate.averageProbability<45&&candidate.sum<3&&candidate.snowSum<1;
- const sustained=candidate.hours>=3&&candidate.averageProbability>=40;
- const quantitativelyRelevant=candidate.sum>=1||candidate.snowSum>=1;
- const dominant=severe?(candidate.maxProbability>=30||candidate.sum>=.2):!marginalLateEvent&&(sustained||quantitativelyRelevant);
- const eventLabel=label(candidate.code),event=shortEvent(candidate.family,eventLabel),timing=eventTiming(relevant,candidate.family);
+ const sky=skyFromCloud(effectiveCloud,sunshineForLabel),skyLabel=skyTrend(relevant,sky.label),skyCode=representativeSkyCode(skyLabel,sky.code),candidate=representativePrecipCode(relevant),assessment=precipitationPeriodAssessment(relevant);
+ if(!candidate||assessment.family==='none')return{...sky,code:skyCode,label:fitDayLabel(skyLabel,compactSkyFallback(sky.label)),secondary:'',cloudOktas:cloudOktas(effectiveCloud),precipitationDominant:false};
+ const severe=assessment.severe,dominant=assessment.dominant,eventFamily=assessment.family,eventCode=candidate.family===eventFamily?candidate.code:(eventFamily==='showers'?81:eventFamily==='thunder'?95:eventFamily==='snow'?73:eventFamily==='drizzle'?53:63),eventLabel=label(eventCode),event=shortEvent(eventFamily,eventLabel),timing=assessment.timing||eventTiming(relevant,eventFamily);
  if(!dominant){
-  const secondary=candidate.maxProbability>=25?possibleEventText(event,timing):'';
+  const secondary=assessment.maxProbability>=25&&assessment.possibleDurationHours>0?possibleEventText(event,timing):'';
   return{...sky,code:skyCode,label:fitDayLabel(skyLabel,compactSkyFallback(sky.label)),secondary,cloudOktas:cloudOktas(effectiveCloud),precipitationDominant:false};
  }
  const lateStart=candidate.first>=10,endsEarly=candidate.last<=13;
@@ -861,7 +944,7 @@ export function dayWeatherCharacter(day:Day,hours:Hour[]):DayWeatherCharacter{
  }else{
   characterLabel=timing?timing==='zeitweise'?fitDayLabel(`Zeitweise ${event}`,event):fitDayLabel(`${event} ${timing}`,event):candidate.hours<6&&!severe?fitDayLabel(`Zeitweise ${event}`,event):event;
  }
- return{code:candidate.code,label:characterLabel,secondary:'',cloudOktas:cloudOktas(effectiveCloud),precipitationDominant:true};
+ return{code:eventCode,label:characterLabel,secondary:'',cloudOktas:cloudOktas(effectiveCloud),precipitationDominant:true};
 }
 
 export function currentIndex(h:Hour[]){const now=Date.now();return h.reduce((b,x,i)=>{const timestamp=Number.isFinite(x.epoch)?x.epoch:Date.parse(`${x.time}Z`),d=Math.abs(timestamp-now);return d<b.d?{i,d}:b},{i:0,d:Infinity}).i}

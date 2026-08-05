@@ -26,7 +26,7 @@ assert.match(radar,/Pane name="mid-nowcast-vectors"/,'dedicated K3D vector pane 
 assert.match(radar,/Pane name="mid-nowcast-labels"/,'dedicated K3D label pane missing');
 assert.match(radar,/konradForecastNodeIcon/,'forecast nodes must use visible HTML markers');
 assert.match(radar,/konradLocalEchoSupported/,'local K3D cells must be checked against current radar echoes');
-assert.match(radar,/const detailedId=visibleCells\[0\]\?\.id/,'only one primary cell may create a full labelled track');
+assert.match(radar,/const detailedIds=useMemo\(\(\)=>new Set\(visibleCells\.slice\(0,Math\.min\(3,visibleCells\.length\)\)\.map\(cell=>cell\.id\)\)/,'only the three highest-ranked visible cells may create full labelled tracks');
 assert.match(styles,/mid-konrad-node/,'K3D HTML node styling missing');
 
 let executable=worker.slice(0,worker.indexOf('export default')).replace(/export\s*\{[^}]+\};?/g,'');

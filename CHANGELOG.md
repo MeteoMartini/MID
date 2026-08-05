@@ -1,3 +1,9 @@
+# MID v0.9.15.14
+
+- KONRAD3D rendert im Kompositbild jetzt die vollständigen Vektorelemente nicht mehr nur für genau eine, sondern für bis zu drei der relevantesten sichtbaren Zellen. Dadurch erscheinen Zugbahn, Unsicherheitskorridor, Ellipsen und Prognosepunkte wieder vollständig, wenn mehrere plausible K3D-Zellen im Kartenausschnitt liegen.
+- Die K3D-Vektorlayer wurden optisch nachgeschärft. Spur, Zellfläche, Ellipsen und Korridor erhalten nun stärkere Konturen beziehungsweise Schatten und nutzen im dedizierten Pane einen normalen Mischmodus, damit sie über Radar- und Satellitenraster auch im Dark-Theme zuverlässig sichtbar bleiben.
+- Die Prognoseellipsen werden bei den hervorgehobenen Zellen dichter dargestellt, sodass fehlende Zwischenelemente im 5-Minuten-Raster nicht mehr wie abgerissene K3D-Spuren wirken.
+
 # MID v0.9.15.13
 
 - Produktionsbuild repariert: `RadarNowcastInterval` wird in `forecastFusion.ts` nun als TypeScript-Typ importiert. Die Intervallauswertung für die appweite DWD-RV-Punkt-Nowcast-Fusion kompiliert dadurch ohne TS2304.

@@ -7,10 +7,10 @@ const [radar,worker]=await Promise.all([
 ]);
 
 assert.match(radar,/function KonradNowcastObjects\(\{data,analysis,timezone,targetMs,referenceLat,referenceLon\}/,'K3D layer must receive radar analysis, location and selected radar time');
-assert.match(radar,/Math\.abs\(targetMs-observedMs\)<=10\*60000/,'K3D objects must be time-aligned with the radar frame');
-assert.match(radar,/map\.getBounds\(\)\.pad\(\.12\)/,'K3D layer must react to the visible map bounds');
+assert.match(radar,/Math\.abs\(targetMs-observedMs\)<=90\*60000/,'K3D objects must remain limited to the supported radar/nowcast time window');
+assert.match(radar,/map\.getBounds\(\)\.pad\(\.22\)/,'K3D layer must react to the visible map bounds');
 assert.match(radar,/bounds\.contains\(position\)/,'forecast tracks must only be rendered for currently visible surface positions');
-assert.match(radar,/const detailedId=visibleCells\[0\]\?\.id/,'full K3D tracks must be limited to one primary visible cell');
+assert.match(radar,/const detailedIds=useMemo\(\(\)=>new Set\(visibleCells\.slice\(0,Math\.min\(3,visibleCells\.length\)\)\.map\(cell=>cell\.id\)\)/,'full K3D tracks must be limited to the three highest-ranked visible cells');
 assert.match(radar,/displacement<=maximum/,'implausibly displaced official forecast positions must be rejected');
 assert.match(radar,/maximumUncertainty=Math\.min\(32/,'K3D uncertainty geometry must be bounded');
 assert.match(radar,/point\.minutes===30\|\|point\.minutes===60/,'permanent K3D labels must be reduced to meaningful lead times');

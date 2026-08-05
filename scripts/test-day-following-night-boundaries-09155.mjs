@@ -23,8 +23,8 @@ for(const [area,text,token] of [
  ['App',appSource,"import {dayPeriodHoursForDate,followingNightHoursForDate} from './forecastPeriods';"],
  ['Cockpit',cockpitSource,"import {dayPeriodHoursForDate,followingNightHoursForDate} from './forecastPeriods';"],
  ['Folgenacht-Minimum',nightSource,"import {followingNightHoursForDate} from './forecastPeriods';"],
- ['Cockpit-Regime',cockpitSource,"if(convective||/schauer|gewitter/.test(text))return'showery';"],
- ['7-Tage-Trend',appSource,'dayPrecipitation=dayHours.reduce'],
+ ['Cockpit-Regime',cockpitSource,"if(assessment.showery&&assessment.dominant)return'showery';"],
+ ['7-Tage-Trend',appSource,'dayPrecipitation=dayAssessment.amount'],
  ['7-Tage-Trend',appSource,'totalPrecip=points.reduce((sum,point)=>sum+point.dayPrecipitation,0)']
 ])assert.ok(text.includes(token),`${area}: ${token}`);
 assert.ok(!appSource.includes('function followingNightHoursForDate('),'App enthält weiterhin eine abweichende lokale Folgenacht-Implementierung.');
