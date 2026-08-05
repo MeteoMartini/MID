@@ -1,3 +1,11 @@
+# MID v0.9.17.5
+
+- Korrektur: Ganzzahlige maximale Niederschlagswahrscheinlichkeit im Cockpit wieder mit dem bestehenden Build-Regressionstest synchronisiert.
+- Cockpit-Kurzfristbereich als kompaktes Meteogramm neu aufgebaut
+- Tooltip/Overlay passt sich auf schmalen Displays mobil unten an statt Inhalte zu verdecken
+- Temperatur- und gefühlte Temperatur im Kurzfristdiagramm farblich konsistent ohne alte Blau/Rot-Gegenüberstellung
+- 24-Stunden-Leiste und Kurzfrist-Insights beibehalten, aber auf das neue Diagramm abgestimmt
+
 # MID v0.9.17.4
 
 - Die Cockpit-Kurzfristansicht ersetzt die bisherige Kurzfristmatrix nun durch eine neue, innovative Parametertimeline. Wetter, ECMWF-Temperatur, Niederschlag, Wind/Böen sowie Wolken- und Sichtsignal werden je Zeitpunkt in einer diagrammatischen Lane-Struktur verdichtet.
