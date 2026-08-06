@@ -47,7 +47,7 @@ reject('1h/3h-Umschalter',cockpit,'aria-label="Auflösung der Kurzfristvorhersag
 reject('Hartcodierte weiße Meteogrammfläche',styles,'.cockpit-meteogram-pro__svg .plot-bg{fill:#fff');
 need('Package-Script',pkg,'test:cockpit-meteogram-pro');
 need('Baseline-Test',baseline,'scripts/test-cockpit-meteogram-pro-09180.mjs');
-need('Version',pkg,'"version": "0.9.18.5"');
-need('Version',baseline,'"releaseVersion": "0.9.18.5"');
+need('Version',pkg,'"version": "0.9.18.6"');
+need('Version',baseline,'"releaseVersion": "0.9.18.6"');
 if(failures.length){console.error('Professionelles Meteogramm fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
 console.log('Vollständig sichtbares, fest einstündiges Dark-/Light-Mode-Meteogramm erfolgreich geprüft.');

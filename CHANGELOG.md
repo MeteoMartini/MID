@@ -1,3 +1,9 @@
+## v0.9.18.6
+- Kurzfrist-Meteogramm optisch an der meteorologischen Vorlage ausgerichtet: Hauptzeitachse jetzt mit sauberer 6-Stunden-Beschriftung bei weiterhin stündlicher Datenauflösung.
+- Overlay-Positionen für Zeit, Tageslabel, Wetterpiktogramme, Windfiedern und Hitlayer auf prozentuale Breiten-Skalierung umgestellt, damit Mobil- und Desktop-Layout korrekt mit dem SVG mitlaufen.
+- Meteorologische Windfiedern im 24-h-Meteogramm präziser an der Zeitachse ausgerichtet; Datum/Zeitachse und Windreihe bleiben nun vollständig sichtbar.
+- Neue Regression: responsive Meteogramm-Overlay-Skalierung und 6h-Hauptzeitachse abgesichert (`scripts/test-cockpit-meteogram-overlay-scale-09186.mjs`).
+
 ## v0.9.18.5
 - Buildfix: Windfiedern verwenden die gültige interne WindUnit `kn`; ungenutzter ForecastCockpit-Windpfeil-Helfer entfernt.
 - Fix: Die Screenreader-Hinweistexte der Kurzfrist-Hitlayer werden wieder korrekt versteckt und erscheinen nicht mehr im 24-h-Meteogramm.
