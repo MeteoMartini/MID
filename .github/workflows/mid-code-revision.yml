@@ -1,5 +1,5 @@
 name: MID automated code revision
-# Installer revision 2: preserves the verified MID lockfile and syncs this workflow to mid-stable.
+# Installer revision 3: preserves the verified MID lockfile, avoids duplicate ZIP runs and recovers pending releases.
 run-name: MID-Revision – ${{ github.event_name }} / ${{ inputs.task || 'automatic' }}
 
 on:
@@ -266,6 +266,33 @@ jobs:
           gh workflow run mid-code-revision.yml --ref mid-stable -f task=ci
           gh workflow run deploy.yml --ref main
           echo "Installierter Stable-Commit: ${{ steps.stable_commit.outputs.sha }}"
+
+      - name: Ausstehendes MID-Release nach Revision starten
+        if: success() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git fetch origin main
+
+          if ! git cat-file -e origin/main:MID-professional-replacement.zip 2>/dev/null; then
+            echo 'Kein ausstehendes MID-professional-replacement.zip auf main gefunden.'
+            exit 0
+          fi
+
+          active_runs="$(
+            gh run list               --workflow install-mid.yml               --branch main               --limit 20               --json status               --jq '[.[] | select(.status == "queued" or .status == "in_progress" or .status == "waiting" or .status == "pending" or .status == "requested")] | length'
+          )"
+
+          if [ "${active_runs:-0}" -gt 0 ]; then
+            echo "Ein MID-Release-Installer ist bereits aktiv oder vorgemerkt (${active_runs})."
+            exit 0
+          fi
+
+          gh workflow run install-mid.yml --ref main
+          echo 'Ausstehendes MID-Release wurde über install-mid.yml gestartet.'
 
   ci:
     name: MID CI verify
