@@ -1,0 +1,489 @@
+name: MID automated code revision
+run-name: MID-Revision – ${{ github.event_name }} / ${{ inputs.task || 'automatic' }}
+
+on:
+  push:
+    branches:
+      - main
+      - mid-stable
+  pull_request:
+    branches:
+      - mid-stable
+  workflow_dispatch:
+    inputs:
+      task:
+        description: Auszuführende Revisionsklasse
+        required: true
+        default: ci
+        type: choice
+        options:
+          - ci
+          - nightly
+          - health
+          - performance
+          - codeql
+          - install
+          - all
+  schedule:
+    - cron: '17 3 * * *'
+    - cron: '23 */6 * * *'
+    - cron: '23 2 * * 0'
+    - cron: '41 1 * * 3'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mid-revision-${{ github.workflow }}-${{ github.ref }}-${{ github.event.schedule || inputs.task || github.event_name }}
+  cancel-in-progress: false
+
+jobs:
+  install:
+    name: Revisionspaket installieren
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch' && (inputs.task == 'install' || inputs.task == 'all'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - name: Main mit vollständiger Historie laden
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Installationsarchiv erkennen
+        id: archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive='MID-code-revision-v0.9.19.0.zip'
+          if [ -f "$archive" ]; then
+            echo 'present=true' >> "$GITHUB_OUTPUT"
+            echo "archive=$archive" >> "$GITHUB_OUTPUT"
+          else
+            echo 'present=false' >> "$GITHUB_OUTPUT"
+            echo 'Kein Revisionsarchiv im Hauptverzeichnis – Installationsjob endet ohne Änderung.'
+          fi
+
+      - name: Revisionsarchiv sicher entpacken
+        if: steps.archive.outputs.present == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/mid-revision-overlay
+          mkdir -p /tmp/mid-revision-overlay
+          ARCHIVE='${{ steps.archive.outputs.archive }}' TARGET='/tmp/mid-revision-overlay' python3 - <<'PY'
+          import os
+          import stat
+          from pathlib import Path
+          from zipfile import ZipFile
+
+          archive=Path(os.environ['ARCHIVE'])
+          target=Path(os.environ['TARGET']).resolve()
+          with ZipFile(archive) as zip_file:
+              for entry in zip_file.infolist():
+                  relative=Path(entry.filename)
+                  if relative.is_absolute() or '..' in relative.parts:
+                      raise SystemExit(f'Unsicherer ZIP-Pfad: {entry.filename}')
+                  if stat.S_ISLNK(entry.external_attr >> 16):
+                      raise SystemExit(f'Links sind nicht zulässig: {entry.filename}')
+                  destination=(target/relative).resolve()
+                  if target != destination and target not in destination.parents:
+                      raise SystemExit(f'ZIP-Pfad verlässt das Ziel: {entry.filename}')
+              zip_file.extractall(target)
+          PY
+          for required in \
+            MID_INSTALL_MANIFEST.json \
+            MID_PERFORMANCE_BASELINE.json \
+            playwright.config.mjs \
+            lighthouserc.cjs \
+            scripts/apply-code-revision-metadata.mjs \
+            scripts/check-api-contracts.mjs \
+            scripts/check-deployed-mid.mjs \
+            scripts/check-build-budget.mjs \
+            scripts/test-code-revision-automation-09190.mjs \
+            tests/smoke/mid-production.spec.mjs; do
+            test -f "/tmp/mid-revision-overlay/$required" || { echo "::error::Pflichtdatei fehlt: $required"; exit 1; }
+          done
+
+      - name: Aktuellen Stable-Stand als getrennten Arbeitsbaum laden
+        if: steps.archive.outputs.present == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main mid-stable
+          rm -rf /tmp/mid-stable
+          git worktree add --detach /tmp/mid-stable origin/mid-stable
+
+      - name: Stable-Basis verifizieren und Overlay anwenden
+        if: steps.archive.outputs.present == 'true'
+        working-directory: /tmp/mid-stable
+        shell: bash
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const pkg=require('./package.json');
+          const baseline=require('./MID_BASELINE.json');
+          if(pkg.version!==baseline.releaseVersion)throw new Error(`package.json und MID_BASELINE.json weichen ab: ${pkg.version} / ${baseline.releaseVersion}`);
+          if(baseline.stableBranch!=='mid-stable')throw new Error(`Unerwarteter Stable-Branch: ${baseline.stableBranch}`);
+          console.log(`Verifizierte Ausgangsbasis: MID v${pkg.version}`);
+          NODE
+          rsync -a --checksum /tmp/mid-revision-overlay/ ./
+          node scripts/apply-code-revision-metadata.mjs 0.9.19.0
+
+      - name: Node.js 22 einrichten
+        if: steps.archive.outputs.present == 'true'
+        uses: actions/setup-node@2951748f4c016b747952f8ca7e75fc64f2f62b53 # v6.2.0
+        with:
+          node-version: 22.16.0
+
+      - name: Lockfile und Abhängigkeiten aktualisieren
+        if: steps.archive.outputs.present == 'true'
+        working-directory: /tmp/mid-stable
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm config set registry https://registry.npmjs.org/
+          npm install --package-lock-only --ignore-scripts --legacy-peer-deps --no-audit --no-fund
+          npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
+
+      - name: Vollständige Regression und Größenbudget ausführen
+        if: steps.archive.outputs.present == 'true'
+        working-directory: /tmp/mid-stable
+        env:
+          VITE_METAR_PROXY_URL: ${{ vars.VITE_METAR_PROXY_URL }}
+          VITE_ALERT_PROXY_URL: ${{ vars.VITE_ALERT_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
+          VITE_RADAR_PROXY_URL: ${{ vars.VITE_RADAR_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
+          VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH }}
+          VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run verify
+          node scripts/check-build-budget.mjs
+
+      - name: Geprüfte Revision nach mid-stable übernehmen
+        id: stable_commit
+        if: steps.archive.outputs.present == 'true'
+        working-directory: /tmp/mid-stable
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- \
+            scripts tests/smoke playwright.config.mjs lighthouserc.cjs \
+            MID_PERFORMANCE_BASELINE.json MID_BRANCH_RULESET.json MID_INSTALL_MANIFEST.json \
+            MID_DEPENDABOT_TEMPLATE.yml CODE_REVISION_README.md CHANGELOG.md \
+            package.json package-lock.json MID_BASELINE.json src/version.ts index.html \
+            public/version.json public/service-worker.js public/sw.js worker/metar-proxy.js
+          if git diff --cached --quiet; then
+            echo '::error::Das Revisionspaket erzeugte keine installierbaren Änderungen.'
+            exit 1
+          fi
+          git commit -m 'feat(ci): install automated MID code revision v0.9.19.0'
+          git push origin HEAD:mid-stable
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Installationsarchiv aus main entfernen
+        if: steps.archive.outputs.present == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          rm -f '${{ steps.archive.outputs.archive }}'
+          git add -- '${{ steps.archive.outputs.archive }}'
+          if ! git diff --cached --quiet; then
+            git commit -m 'chore(ci): remove installed MID revision archive'
+            git push origin HEAD:main
+          fi
+
+      - name: Stable-CI und Pages-Deployment auslösen
+        if: steps.archive.outputs.present == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh workflow run mid-code-revision.yml --ref mid-stable -f task=ci
+          gh workflow run deploy.yml --ref main
+          echo "Installierter Stable-Commit: ${{ steps.stable_commit.outputs.sha }}"
+
+  ci:
+    name: MID CI verify
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/mid-stable') ||
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'workflow_dispatch' && (inputs.task == 'ci' || inputs.task == 'all'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - name: Zu prüfenden MID-Stand laden
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && 'mid-stable' || github.sha }}
+      - name: Installationsstand erkennen
+        id: revision_ready
+        shell: bash
+        run: |
+          if [ -f scripts/check-build-budget.mjs ] && [ -f MID_PERFORMANCE_BASELINE.json ]; then
+            echo 'ready=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'ready=false' >> "$GITHUB_OUTPUT"
+            echo 'Die Bootstrap-Workflowdatei ist vorhanden; das Revisionsoverlay wurde noch nicht installiert.'
+          fi
+      - name: Node.js 22 einrichten
+        if: steps.revision_ready.outputs.ready == 'true'
+        uses: actions/setup-node@2951748f4c016b747952f8ca7e75fc64f2f62b53 # v6.2.0
+        with:
+          node-version: 22.16.0
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Abhängigkeiten reproduzierbar installieren
+        if: steps.revision_ready.outputs.ready == 'true'
+        run: npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
+      - name: Build und sämtliche Regressionen ausführen
+        if: steps.revision_ready.outputs.ready == 'true'
+        env:
+          VITE_METAR_PROXY_URL: ${{ vars.VITE_METAR_PROXY_URL }}
+          VITE_ALERT_PROXY_URL: ${{ vars.VITE_ALERT_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
+          VITE_RADAR_PROXY_URL: ${{ vars.VITE_RADAR_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
+          VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH }}
+          VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}
+        run: npm run verify
+      - name: Produktionsabhängigkeiten prüfen
+        if: steps.revision_ready.outputs.ready == 'true'
+        run: npm run audit:dependencies
+      - name: Build-Größenbudget prüfen
+        if: steps.revision_ready.outputs.ready == 'true'
+        run: node scripts/check-build-budget.mjs
+
+  nightly:
+    name: Nächtliche MID-Revision
+    if: >-
+      (github.event_name == 'schedule' && github.event.schedule == '17 3 * * *') ||
+      (github.event_name == 'workflow_dispatch' && (inputs.task == 'nightly' || inputs.task == 'all'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: MID Stable laden
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: mid-stable
+      - name: Node.js 22 einrichten
+        uses: actions/setup-node@2951748f4c016b747952f8ca7e75fc64f2f62b53 # v6.2.0
+        with:
+          node-version: 22.16.0
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - id: install
+        name: Abhängigkeiten installieren
+        continue-on-error: true
+        run: npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
+      - id: verify
+        name: Vollständige Regression
+        if: steps.install.outcome == 'success'
+        continue-on-error: true
+        run: npm run verify
+      - id: audit
+        name: Vollständiger npm-Audit
+        if: steps.install.outcome == 'success'
+        continue-on-error: true
+        run: npm run audit:all
+      - id: budget
+        name: Build-Budget
+        if: steps.verify.outcome == 'success'
+        continue-on-error: true
+        run: node scripts/check-build-budget.mjs
+      - id: contracts
+        name: Open-Meteo- und Datenverträge
+        continue-on-error: true
+        env:
+          MID_WORKER_HEALTH_URL: ${{ vars.MID_WORKER_HEALTH_URL }}
+        run: node scripts/check-api-contracts.mjs
+      - name: Revisionsbericht erzeugen
+        if: always()
+        run: node scripts/create-revision-report.mjs
+      - name: Befund als dedupliziertes Issue melden
+        if: always() && (steps.install.outcome != 'success' || steps.verify.outcome != 'success' || steps.audit.outcome != 'success' || steps.budget.outcome != 'success' || steps.contracts.outcome != 'success')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          title='[Auto-Revision] Nächtliche MID-Revision fehlgeschlagen'
+          gh label create automated-review --color 6f42c1 --description 'Automatisch erkannte Revisionsbefunde' --force
+          number="$(gh issue list --state open --search "$title in:title" --json number --jq '.[0].number // empty')"
+          body="Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
+          Install: ${{ steps.install.outcome }}
+          Verify: ${{ steps.verify.outcome }}
+          Audit: ${{ steps.audit.outcome }}
+          Budget: ${{ steps.budget.outcome }}
+          API-Verträge: ${{ steps.contracts.outcome }}"
+          if [ -n "$number" ]; then gh issue comment "$number" --body "$body"; else gh issue create --title "$title" --body "$body" --label automated-review; fi
+      - name: Revision bei Befund fehlschlagen lassen
+        if: always() && (steps.install.outcome != 'success' || steps.verify.outcome != 'success' || steps.audit.outcome != 'success' || steps.budget.outcome != 'success' || steps.contracts.outcome != 'success')
+        run: exit 1
+
+  health:
+    name: MID Produktiv- und API-Healthcheck
+    if: >-
+      (github.event_name == 'schedule' && github.event.schedule == '23 */6 * * *') ||
+      (github.event_name == 'workflow_dispatch' && (inputs.task == 'health' || inputs.task == 'all'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: MID Stable laden
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: mid-stable
+      - name: Node.js 22 einrichten
+        uses: actions/setup-node@2951748f4c016b747952f8ca7e75fc64f2f62b53 # v6.2.0
+        with:
+          node-version: 22.16.0
+      - id: site
+        name: www.midwx.app und Weiterleitung prüfen
+        continue-on-error: true
+        env:
+          MID_SITE_URL: https://www.midwx.app/
+          MID_APEX_URL: https://midwx.app/
+        run: node scripts/check-deployed-mid.mjs
+      - id: contracts
+        name: Open-Meteo-Verträge prüfen
+        continue-on-error: true
+        env:
+          MID_WORKER_HEALTH_URL: ${{ vars.MID_WORKER_HEALTH_URL }}
+        run: node scripts/check-api-contracts.mjs
+      - name: Befund als dedupliziertes Issue melden
+        if: always() && (steps.site.outcome != 'success' || steps.contracts.outcome != 'success')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          title='[Auto-Revision] MID-Produktivprüfung fehlgeschlagen'
+          gh label create automated-review --color 6f42c1 --description 'Automatisch erkannte Revisionsbefunde' --force
+          number="$(gh issue list --state open --search "$title in:title" --json number --jq '.[0].number // empty')"
+          body="Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
+          Website: ${{ steps.site.outcome }}
+          API-Verträge: ${{ steps.contracts.outcome }}"
+          if [ -n "$number" ]; then gh issue comment "$number" --body "$body"; else gh issue create --title "$title" --body "$body" --label automated-review; fi
+      - name: Healthcheck bei Befund fehlschlagen lassen
+        if: always() && (steps.site.outcome != 'success' || steps.contracts.outcome != 'success')
+        run: exit 1
+
+  performance:
+    name: MID Browser- und Performance-Revision
+    if: >-
+      (github.event_name == 'schedule' && github.event.schedule == '23 2 * * 0') ||
+      (github.event_name == 'workflow_dispatch' && (inputs.task == 'performance' || inputs.task == 'all'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: MID Stable laden
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: mid-stable
+      - name: Node.js 22 einrichten
+        uses: actions/setup-node@2951748f4c016b747952f8ca7e75fc64f2f62b53 # v6.2.0
+        with:
+          node-version: 22.16.0
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - id: install
+        name: Projektabhängigkeiten installieren
+        continue-on-error: true
+        run: npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
+      - id: build
+        name: Produktionsbuild erstellen
+        if: steps.install.outcome == 'success'
+        continue-on-error: true
+        run: npm run build
+      - id: budget
+        name: Bundlebudget prüfen
+        if: steps.build.outcome == 'success'
+        continue-on-error: true
+        run: node scripts/check-build-budget.mjs
+      - id: browser_install
+        name: Chromium für Playwright installieren
+        if: steps.install.outcome == 'success'
+        continue-on-error: true
+        run: npx playwright install --with-deps chromium
+      - id: playwright
+        name: Vier Geräteprofile mit Playwright prüfen
+        if: steps.browser_install.outcome == 'success'
+        continue-on-error: true
+        env:
+          MID_SITE_URL: https://www.midwx.app/
+        run: npx playwright test --config=playwright.config.mjs
+      - id: lighthouse
+        name: Lighthouse CI ausführen
+        if: steps.install.outcome == 'success'
+        continue-on-error: true
+        env:
+          MID_SITE_URL: https://www.midwx.app/
+        run: npx lhci autorun --config=./lighthouserc.cjs
+      - name: Befund als dedupliziertes Issue melden
+        if: always() && (steps.install.outcome != 'success' || steps.build.outcome != 'success' || steps.budget.outcome != 'success' || steps.browser_install.outcome != 'success' || steps.playwright.outcome != 'success' || steps.lighthouse.outcome != 'success')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          title='[Auto-Revision] MID-Browser- oder Performanceprüfung fehlgeschlagen'
+          gh label create automated-review --color 6f42c1 --description 'Automatisch erkannte Revisionsbefunde' --force
+          number="$(gh issue list --state open --search "$title in:title" --json number --jq '.[0].number // empty')"
+          body="Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
+          Build: ${{ steps.build.outcome }}
+          Budget: ${{ steps.budget.outcome }}
+          Playwright: ${{ steps.playwright.outcome }}
+          Lighthouse: ${{ steps.lighthouse.outcome }}"
+          if [ -n "$number" ]; then gh issue comment "$number" --body "$body"; else gh issue create --title "$title" --body "$body" --label automated-review; fi
+      - name: Performanceprüfung bei Befund fehlschlagen lassen
+        if: always() && (steps.install.outcome != 'success' || steps.build.outcome != 'success' || steps.budget.outcome != 'success' || steps.browser_install.outcome != 'success' || steps.playwright.outcome != 'success' || steps.lighthouse.outcome != 'success')
+        run: exit 1
+
+  codeql:
+    name: CodeQL JavaScript/TypeScript
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/mid-stable') ||
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'schedule' && github.event.schedule == '41 1 * * 3') ||
+      (github.event_name == 'workflow_dispatch' && (inputs.task == 'codeql' || inputs.task == 'all'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    permissions:
+      contents: read
+      security-events: write
+      packages: read
+    steps:
+      - name: Zu analysierenden MID-Stand laden
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 'mid-stable' || github.sha }}
+      - name: CodeQL initialisieren
+        uses: github/codeql-action/init@5595ccaf912efad79be6eef63a5619ff05969be3 # v4.37.6
+        with:
+          languages: javascript-typescript
+          build-mode: none
+          queries: security-extended
+      - name: CodeQL auswerten
+        uses: github/codeql-action/analyze@5595ccaf912efad79be6eef63a5619ff05969be3 # v4.37.6
+        with:
+          category: /language:javascript-typescript
