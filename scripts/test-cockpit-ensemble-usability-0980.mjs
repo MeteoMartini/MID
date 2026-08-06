@@ -16,6 +16,7 @@ assert.match(cockpit,/Wetter · Temperatur · Niederschlag · Wind/,'90-Minuten-
 assert.match(cockpit,/WeatherPictogram code=\{item\.code\}/,'90-Minuten-Piktogramme müssen die plausibilisierte Wetterart verwenden');
 assert.match(cockpit,/points=useMemo\(\(\)=>selectShortTermPoints\(adjusted,'1h'\)/,'Kurzfristdarstellung muss fest einstündig sein');
 assert.match(cockpit,/Stündlich · vollständig sichtbar/,'Meteogramm muss die feste einstündige Vollansicht kennzeichnen');
+assert.match(cockpit,/className="cockpit-meteogram-pro__datafield"/,'Einzeldatenfeld des Meteogramms muss vorhanden sein');
 assert.doesNotMatch(cockpit,/Auflösung der Kurzfristvorhersage|>3 h<|>1 h</,'Entfernter 1h\/3h-Umschalter darf nicht zurückkehren');
 assert.match(cockpit,/Temperaturmittel/,'Temperatur-Referenzlinie ist nicht erklärt');
 assert.match(cockpit,/windSignalColor\(point\.gust\)/,'Windpfeile müssen warnstufenabhängig eingefärbt werden');

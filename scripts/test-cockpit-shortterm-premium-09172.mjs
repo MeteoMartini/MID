@@ -14,7 +14,7 @@ for(const token of [
   'timelinePoints=hourlyPoints.slice(0,Math.min(24,hourlyPoints.length))',
   'className="cockpit-short-insight-grid premium"',
   'className="cockpit-meteogram-pro"',
-  'Professionelles 24-h-Meteogramm',
+  '24-h-Meteogramm',
   'Temperaturmittel mit ECMWF-Farbverlauf',
   'Stündlich · vollständig sichtbar',
   'className="cockpit-hourly-preview-shell"',
@@ -31,12 +31,12 @@ for(const token of [
 ])need('CSS',styles,token);
 
 reject('Altes konfliktanfälliges Diagramm-Markup',cockpit,'className="cockpit-short-diagram-shell"');
-reject('Zusätzliches Detailfeld',cockpit,'className="cockpit-meteogram-pro__datafield"');
+need('Einzeldatenfeld',cockpit,'className="cockpit-meteogram-pro__datafield"');
 reject('Horizontales Meteogramm-Scrollen',styles,'.cockpit-meteogram-pro__stage{width:100%;max-width:100%;overflow-x:auto;');
 reject('1h/3h-Umschalter',cockpit,'aria-label="Auflösung der Kurzfristvorhersage"');
 need('Package-Test',pkg,'test:cockpit-shortterm-premium');
 need('Baseline-Test',baseline,'scripts/test-cockpit-shortterm-premium-09172.mjs');
-need('Version',pkg,'"version": "0.9.18.2"');
-need('Version',baseline,'"releaseVersion": "0.9.18.2"');
+need('Version',pkg,'"version": "0.9.18.3"');
+need('Version',baseline,'"releaseVersion": "0.9.18.3"');
 if(failures.length){console.error('Kurzfrist-Premium-Layout fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Eigenständiges, vollständig sichtbares professionelles Kurzfrist-Meteogramm geprüft.');
+console.log('Eigenständiges, vollständig sichtbares 24-h-Kurzfrist-Meteogramm mit Einzeldatenfeld geprüft.');

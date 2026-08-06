@@ -1,3 +1,8 @@
+## v0.9.18.3
+- Kurzfrist-Meteogramm: Titel auf „24-h-Meteogramm“ verkürzt.
+- Kurzfrist-Meteogramm: überlagernde Auswahlumrandung entfernt und Einzeldatenfeld unter dem Diagramm wiederhergestellt.
+- Kurzfrist-Meteogramm: 24-h-Vollansicht für alle Displaybreiten beibehalten und Beschriftung auf Einzeldatenfokus präzisiert.
+
 ## v0.9.18.2
 - Buildfix: acht veraltete Cockpit-Regressionen auf den bewusst entfernten 1-h/3-h-Schalter, das entfernte Zusatzdatenfeld und das nun vollbreit skalierende Meteogramm synchronisiert.
 - Kurzfrist-Meteogramm dauerhaft auf einstündige Darstellung umgestellt; 1 h-/3 h-Schalter entfernt.

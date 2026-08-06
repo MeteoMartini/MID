@@ -33,8 +33,8 @@ for(const token of [
 
 need('Package-Test',pkg,'test:cockpit-shortterm-insight');
 need('Baseline-Test',baseline,'scripts/test-cockpit-shortterm-insight-09171.mjs');
-need('Version',pkg,'"version": "0.9.18.2"');
-need('Version',baseline,'"releaseVersion": "0.9.18.2"');
+need('Version',pkg,'"version": "0.9.18.3"');
+need('Version',baseline,'"releaseVersion": "0.9.18.3"');
 
 if(failures.length){
   console.error('Kurzfrist-Insight-Cockpit fehlgeschlagen:\n- '+failures.join('\n- '));

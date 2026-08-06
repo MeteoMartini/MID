@@ -33,13 +33,13 @@ for(const token of [
 
 reject('Alte Kurzfristmatrix',cockpit,'className="cockpit-short-matrix-shell"');
 reject('Altes Diagramm-Markup',cockpit,'cockpit-short-diagram-column');
-reject('Entferntes Zusatzdatenfeld',cockpit,'className="cockpit-meteogram-pro__datafield"');
+need('Einzeldatenfeld',cockpit,'className="cockpit-meteogram-pro__datafield"');
 reject('Entferntes Detail-Overlay',cockpit,'selectedTooltip');
 reject('Entfernter 1h/3h-Schalter',cockpit,'aria-label="Auflösung der Kurzfristvorhersage"');
 reject('Umgebungsabhängiger TypeScript-Pfad',await readFile(new URL('./test-shortterm-nullish-precedence-buildfix-09176.mjs',import.meta.url),'utf8'),'/opt/nvm/versions/node/');
 need('Package-Test',pkg,'test:cockpit-shortterm-interaction');
 need('Baseline-Test',baseline,'scripts/test-cockpit-shortterm-interaction-09173.mjs');
-need('Version',pkg,'"version": "0.9.18.2"');
-need('Version',baseline,'"releaseVersion": "0.9.18.2"');
+need('Version',pkg,'"version": "0.9.18.3"');
+need('Version',baseline,'"releaseVersion": "0.9.18.3"');
 if(failures.length){console.error('Interaktive Kurzfristdiagrammansicht fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Interaktives, vollständig sichtbares Kurzfrist-Meteogramm ohne redundantes Datenfeld geprüft.');
+console.log('Interaktives, vollständig sichtbares Kurzfrist-Meteogramm mit wiederhergestelltem Einzeldatenfeld geprüft.');

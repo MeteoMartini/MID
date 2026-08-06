@@ -42,12 +42,12 @@ reject('Ungenutzter Sichtweiten-Helfer',cockpit,'function shortTermVisibilityTex
 reject('Horizontales Meteogramm-Scrollen',styles,'.cockpit-meteogram-pro__stage{width:100%;max-width:100%;overflow-x:auto;');
 reject('Feste mobile Mindestbreite',styles,'.cockpit-meteogram-pro__canvas{min-width:720px}');
 reject('Tages-/Datums-Textlayer am Plot',cockpit,'className="cockpit-meteogram-pro__overlay day"');
-reject('Zusätzliches Datenfeld unter dem Diagramm',cockpit,'className="cockpit-meteogram-pro__datafield"');
+need('Einzeldatenfeld unter dem Diagramm',cockpit,'className="cockpit-meteogram-pro__datafield"');
 reject('1h/3h-Umschalter',cockpit,'aria-label="Auflösung der Kurzfristvorhersage"');
 reject('Hartcodierte weiße Meteogrammfläche',styles,'.cockpit-meteogram-pro__svg .plot-bg{fill:#fff');
 need('Package-Script',pkg,'test:cockpit-meteogram-pro');
 need('Baseline-Test',baseline,'scripts/test-cockpit-meteogram-pro-09180.mjs');
-need('Version',pkg,'"version": "0.9.18.2"');
-need('Version',baseline,'"releaseVersion": "0.9.18.2"');
+need('Version',pkg,'"version": "0.9.18.3"');
+need('Version',baseline,'"releaseVersion": "0.9.18.3"');
 if(failures.length){console.error('Professionelles Meteogramm fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
 console.log('Vollständig sichtbares, fest einstündiges Dark-/Light-Mode-Meteogramm erfolgreich geprüft.');

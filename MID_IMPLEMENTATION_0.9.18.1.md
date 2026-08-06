@@ -4,7 +4,6 @@
 Kurzfrist-Meteogramm bereinigt und die 24-h-Leiste weiter verdichtet.
 
 ## Änderungen
-- Buildfix: den nach dem UI-Umbau ungenutzten Helfer `shortTermVisibilityText` entfernt; damit ist TS6133 im GitHub-Produktionsbuild beseitigt.
 - Überlagernden Detailtext direkt im Meteogramm entfernt; das Diagramm bleibt nun frei von störendem Text im Bereich der Temperaturkurve.
 - Das zusätzliche Detailfeld zwischen Legende und 24-h-Leiste entfernt.
 - Das verbleibende Datenfeld unterhalb des Diagramms neu strukturiert:
