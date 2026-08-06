@@ -2,15 +2,22 @@ version: 2
 updates:
   - package-ecosystem: npm
     directory: /
+    target-branch: mid-stable
     schedule:
       interval: weekly
       day: monday
       time: "05:15"
       timezone: Europe/Berlin
-    open-pull-requests-limit: 4
+    open-pull-requests-limit: 5
     versioning-strategy: increase-if-necessary
     groups:
-      npm-safe-updates:
+      npm-production-minor-patch:
+        dependency-type: production
+        update-types:
+          - minor
+          - patch
+      npm-development-minor-patch:
+        dependency-type: development
         update-types:
           - minor
           - patch
@@ -19,11 +26,13 @@ updates:
       - maintenance
     commit-message:
       prefix: "chore(deps)"
+
   - package-ecosystem: github-actions
     directory: /
+    target-branch: mid-stable
     schedule:
       interval: weekly
-      day: monday
+      day: tuesday
       time: "05:35"
       timezone: Europe/Berlin
     open-pull-requests-limit: 3
