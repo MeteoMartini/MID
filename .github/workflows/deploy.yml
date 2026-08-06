@@ -2,6 +2,9 @@ name: Deploy MID to GitHub Pages
 run-name: Letzte stabile MID-Version manuell prüfen und veröffentlichen
 
 # Der automatische ZIP-Upload wird ausschließlich durch install-mid.yml verarbeitet.
+# Dieser manuelle Fallback baut bewusst den letzten erfolgreichen Stand aus mid-stable.
+# Beide Pages-Deployments verwenden dieselbe Concurrency-Gruppe, damit GitHub Pages
+# niemals gleichzeitig aus install-mid.yml und deploy.yml angesprochen wird.
 # Regressionstest-Kompatibilität:
 # paths-ignore:
 #   - MID-professional-replacement.zip
@@ -11,10 +14,6 @@ on:
 
 permissions:
   contents: read
-
-concurrency:
-  group: mid-pages-manual
-  cancel-in-progress: true
 
 jobs:
   build:
@@ -80,7 +79,6 @@ jobs:
             --legacy-peer-deps \
             --loglevel=notice
 
-
       - name: Produktionsabhängigkeiten auf hohe Risiken prüfen
         shell: bash
         timeout-minutes: 4
@@ -118,6 +116,9 @@ jobs:
     permissions:
       pages: write
       id-token: write
+    concurrency:
+      group: mid-pages-production
+      queue: max
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
