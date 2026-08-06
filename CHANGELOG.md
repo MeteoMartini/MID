@@ -1,9 +1,10 @@
-## v0.9.18.4
+## v0.9.18.5
+- Buildfix: Windfiedern verwenden die gültige interne WindUnit `kn`; ungenutzter ForecastCockpit-Windpfeil-Helfer entfernt.
 - Fix: Die Screenreader-Hinweistexte der Kurzfrist-Hitlayer werden wieder korrekt versteckt und erscheinen nicht mehr im 24-h-Meteogramm.
 - Fix: Die optische Auswahlumrandung im 24-h-Meteogramm wurde entfernt; die Einzeldatenkarte bleibt als primäres Feedback erhalten.
 - UI: Plotgeometrie des 24-h-Meteogramms nachgeschärft, um die Darstellung auf schmalen Displays vollständiger und kompakter auszubalancieren.
 
-## v0.9.18.4
+## v0.9.18.5
 - Kurzfrist-Meteogramm: Titel auf „24-h-Meteogramm“ verkürzt.
 - Kurzfrist-Meteogramm: überlagernde Auswahlumrandung entfernt und Einzeldatenfeld unter dem Diagramm wiederhergestellt.
 - Kurzfrist-Meteogramm: 24-h-Vollansicht für alle Displaybreiten beibehalten und Beschriftung auf Einzeldatenfokus präzisiert.

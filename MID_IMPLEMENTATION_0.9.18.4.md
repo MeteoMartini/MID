@@ -1,4 +1,4 @@
-# MID v0.9.18.4
+# MID v0.9.18.5
 
 - Kurzfrist-Meteogramm: unsichtbare Screenreader-Klasse `.sr-only` ergänzt, damit Hilfstexte nicht mehr in das Diagramm rendern.
 - Interaktive Trefferfläche des 24-h-Meteogramms optisch neutralisiert; Einzeldatenfeld bleibt als alleinige Auswahlrückmeldung erhalten.

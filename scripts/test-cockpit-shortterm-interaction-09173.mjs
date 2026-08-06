@@ -39,7 +39,7 @@ reject('Entfernter 1h/3h-Schalter',cockpit,'aria-label="Auflösung der Kurzfrist
 reject('Umgebungsabhängiger TypeScript-Pfad',await readFile(new URL('./test-shortterm-nullish-precedence-buildfix-09176.mjs',import.meta.url),'utf8'),'/opt/nvm/versions/node/');
 need('Package-Test',pkg,'test:cockpit-shortterm-interaction');
 need('Baseline-Test',baseline,'scripts/test-cockpit-shortterm-interaction-09173.mjs');
-need('Version',pkg,'"version": "0.9.18.4"');
-need('Version',baseline,'"releaseVersion": "0.9.18.4"');
+need('Version',pkg,'"version": "0.9.18.5"');
+need('Version',baseline,'"releaseVersion": "0.9.18.5"');
 if(failures.length){console.error('Interaktive Kurzfristdiagrammansicht fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
 console.log('Interaktives, vollständig sichtbares Kurzfrist-Meteogramm mit wiederhergestelltem Einzeldatenfeld geprüft.');

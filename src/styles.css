@@ -4927,14 +4927,18 @@ body,#root{
 .cockpit-meteogram-pro__svg .apparent-point.active{stroke-width:2.2}
 .cockpit-meteogram-pro__overlay{position:absolute;inset:0;pointer-events:none;z-index:2}
 .cockpit-meteogram-pro__overlay>span{position:absolute;display:grid;justify-items:center;transform:translateX(-50%)}
-.cockpit-meteogram-pro__overlay.time>span{top:10px;min-width:24px}
-.cockpit-meteogram-pro__overlay.time b{color:var(--mg-muted);font-size:11px;line-height:1;font-variant-numeric:tabular-nums}
-.cockpit-meteogram-pro__overlay.day>span{top:28px;gap:0;text-align:center;color:var(--mg-text)}
-.cockpit-meteogram-pro__overlay.day b{font-size:15px;line-height:1.05}
-.cockpit-meteogram-pro__overlay.day small{color:var(--mg-muted);font-size:8px;line-height:1.1}
-.cockpit-meteogram-pro__overlay.weather>span{top:40px}
-.cockpit-meteogram-pro__overlay.wind>span{bottom:10px;gap:1px;color:#48b57b}
+.cockpit-meteogram-pro__overlay.time>span{top:8px;min-width:24px}
+.cockpit-meteogram-pro__overlay.time b{color:var(--mg-muted);font-size:10px;line-height:1;font-variant-numeric:tabular-nums;font-weight:800}
+.cockpit-meteogram-pro__overlay.calendar>span{top:24px;gap:1px;text-align:center;color:var(--mg-text)}
+.cockpit-meteogram-pro__overlay.calendar b{font-size:13px;line-height:1.05;font-weight:900}
+.cockpit-meteogram-pro__overlay.calendar small{color:var(--mg-muted);font-size:8px;line-height:1.1;font-variant-numeric:tabular-nums}
+.cockpit-meteogram-pro__overlay.weather>span{top:43px}
+.cockpit-meteogram-pro__overlay.wind>span{bottom:8px;gap:1px;color:#2a2f35}
 .cockpit-meteogram-pro__overlay.wind small{color:currentColor;font-size:9px;font-weight:800;white-space:nowrap}
+
+.cockpit-meteogram-pro__overlay.wind svg{display:block;overflow:visible}
+.svg-wind-barb{color:currentColor}
+.svg-wind-barb line,.svg-wind-barb path{vector-effect:non-scaling-stroke}
 .cockpit-meteogram-pro__hitlayer{position:absolute;inset:0;z-index:3}
 .cockpit-meteogram-pro__hitlayer button{position:absolute;top:0;bottom:0;border:0;border-radius:14px;background:transparent;color:inherit;cursor:pointer;transition:none;outline:none;-webkit-tap-highlight-color:transparent}
 .cockpit-meteogram-pro__hitlayer button:hover,.cockpit-meteogram-pro__hitlayer button:focus-visible{outline:none;background:transparent;box-shadow:none}
@@ -4974,11 +4978,13 @@ body,#root{
  .cockpit-meteogram-pro__head{gap:9px}.cockpit-meteogram-pro__head b{font-size:19px}.cockpit-meteogram-pro__head span>span{font-size:10px}.cockpit-meteogram-pro__head em{padding:6px 9px;font-size:9px;white-space:normal}
  .cockpit-meteogram-pro__canvas{min-width:0}
  .cockpit-meteogram-pro__svg .axis-label{font-size:11px}
- .cockpit-meteogram-pro__overlay.time b{font-size:10px}
- .cockpit-meteogram-pro__overlay.weather>span:nth-child(2n),.cockpit-meteogram-pro__overlay.wind>span:nth-child(2n){display:none}
- .cockpit-meteogram-pro__overlay.weather>span{top:36px}
- .cockpit-meteogram-pro__overlay.wind>span{bottom:8px}
- .cockpit-meteogram-pro__overlay.wind small{font-size:8px}
+ .cockpit-meteogram-pro__overlay.time b{font-size:9px}
+ .cockpit-meteogram-pro__overlay.calendar b{font-size:12px}
+ .cockpit-meteogram-pro__overlay.calendar small{font-size:7px}
+ .cockpit-meteogram-pro__overlay.weather>span{top:40px}
+ .cockpit-meteogram-pro__overlay.weather svg{width:24px;height:24px}
+ .cockpit-meteogram-pro__overlay.wind>span{bottom:6px}
+ .cockpit-meteogram-pro__overlay.wind svg{width:24px;height:24px}
  .cockpit-meteogram-pro__tooltip-content{padding:11px 12px;box-shadow:none}
  .cockpit-meteogram-pro__tooltip-content dl{grid-template-columns:1fr 1fr;gap:5px 12px}
  .cockpit-meteogram-pro__tooltip-content dl>div{grid-template-columns:minmax(72px,1fr) auto;gap:7px}
@@ -4987,8 +4993,11 @@ body,#root{
 @media(max-width:430px){
  .cockpit-meteogram-pro__head>span{gap:3px}.cockpit-meteogram-pro__head small{font-size:8px}.cockpit-meteogram-pro__head b{font-size:17px}
  .cockpit-meteogram-pro__svg .axis-label{font-size:10px}
- .cockpit-meteogram-pro__overlay.weather>span:nth-child(2n+1),.cockpit-meteogram-pro__overlay.wind>span:nth-child(2n+1){display:none}
- .cockpit-meteogram-pro__overlay.time>span:nth-child(2n){display:none}
+ .cockpit-meteogram-pro__overlay.time b{font-size:8px}
+ .cockpit-meteogram-pro__overlay.calendar b{font-size:11px}
+ .cockpit-meteogram-pro__overlay.calendar small{font-size:7px}
+ .cockpit-meteogram-pro__overlay.weather svg{width:22px;height:22px}
+ .cockpit-meteogram-pro__overlay.wind svg{width:22px;height:22px}
  .cockpit-meteogram-pro__tooltip-content dl,.cockpit-meteogram-pro__datafield .cockpit-meteogram-pro__tooltip-content dl{grid-template-columns:1fr}.cockpit-meteogram-pro__tooltip-content dl>div{grid-template-columns:1fr auto}
  .cockpit-meteogram-pro__legend span{gap:5px}
 }
