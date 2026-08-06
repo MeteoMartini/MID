@@ -1,4 +1,4 @@
-# MID v0.9.18.6
+# MID v0.9.18.7
 
 ## Schwerpunkt
 Korrektur des 24-h-Kurzfrist-Meteogramms im Forecast-Cockpit, damit Datum/Zeitachse, Wetterpiktogramme und meteorologische Windfiedern sich bei responsiver Darstellung exakt mit dem Diagramm skalieren und deutlich näher an der Referenzvorlage liegen.

@@ -4935,6 +4935,8 @@ body,#root{
 .cockpit-meteogram-pro__overlay.weather>span{top:43px}
 .cockpit-meteogram-pro__overlay.wind>span{bottom:8px;gap:1px;color:#2a2f35}
 .cockpit-meteogram-pro__overlay.wind small{color:currentColor;font-size:9px;font-weight:800;white-space:nowrap}
+.cockpit-meteogram-pro__overlay.wind>span{bottom:6px}
+.cockpit-meteogram-pro__overlay.wind>span.offset{transform:translate(-50%,-16px)}
 
 .cockpit-meteogram-pro__overlay.wind svg{display:block;overflow:visible}
 .svg-wind-barb{color:currentColor}

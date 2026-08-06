@@ -21,8 +21,8 @@ reject('Pixelbasierte Kalender-Overlay-Position',cockpit,'style={{left:`${band.c
 reject('Pixelbasierte Hitlayer-Position',cockpit,'style={{left:`${item.columnLeft}px`,width:`${item.columnWidth}px`}}');
 need('Package-Test',pkg,'test:cockpit-meteogram-overlay-scale');
 need('Baseline-Test',baseline,'scripts/test-cockpit-meteogram-overlay-scale-09186.mjs');
-need('Version',pkg,'"version": "0.9.18.6"');
-need('Version',baseline,'"releaseVersion": "0.9.18.6"');
+need('Version',pkg,'"version": "0.9.18.7"');
+need('Version',baseline,'"releaseVersion": "0.9.18.7"');
 
 if(failures.length){
   console.error('Meteogramm-Overlay-Skalierung fehlgeschlagen:\n- '+failures.join('\n- '));

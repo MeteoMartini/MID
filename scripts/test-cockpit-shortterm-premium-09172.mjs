@@ -36,7 +36,7 @@ reject('Horizontales Meteogramm-Scrollen',styles,'.cockpit-meteogram-pro__stage{
 reject('1h/3h-Umschalter',cockpit,'aria-label="Auflösung der Kurzfristvorhersage"');
 need('Package-Test',pkg,'test:cockpit-shortterm-premium');
 need('Baseline-Test',baseline,'scripts/test-cockpit-shortterm-premium-09172.mjs');
-need('Version',pkg,'"version": "0.9.18.6"');
-need('Version',baseline,'"releaseVersion": "0.9.18.6"');
+need('Version',pkg,'"version": "0.9.18.7"');
+need('Version',baseline,'"releaseVersion": "0.9.18.7"');
 if(failures.length){console.error('Kurzfrist-Premium-Layout fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
 console.log('Eigenständiges, vollständig sichtbares 24-h-Kurzfrist-Meteogramm mit Einzeldatenfeld geprüft.');

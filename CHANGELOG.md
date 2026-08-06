@@ -1,4 +1,4 @@
-## v0.9.18.6
+## v0.9.18.7
 - Kurzfrist-Meteogramm optisch an der meteorologischen Vorlage ausgerichtet: Hauptzeitachse jetzt mit sauberer 6-Stunden-Beschriftung bei weiterhin stündlicher Datenauflösung.
 - Overlay-Positionen für Zeit, Tageslabel, Wetterpiktogramme, Windfiedern und Hitlayer auf prozentuale Breiten-Skalierung umgestellt, damit Mobil- und Desktop-Layout korrekt mit dem SVG mitlaufen.
 - Meteorologische Windfiedern im 24-h-Meteogramm präziser an der Zeitachse ausgerichtet; Datum/Zeitachse und Windreihe bleiben nun vollständig sichtbar.
