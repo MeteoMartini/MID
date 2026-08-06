@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "target": "mid-stable",
+  "requiredChecks": [
+    "MID CI verify"
+  ],
+  "notes": "Vorlage für Branch-Schutz; Installation erfolgt weiterhin über den bestehenden MID-Workflow."
+}

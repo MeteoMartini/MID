@@ -33,8 +33,8 @@ for(const token of [
 
 need('Package-Test',pkg,'test:cockpit-shortterm-insight');
 need('Baseline-Test',baseline,'scripts/test-cockpit-shortterm-insight-09171.mjs');
-need('Version',pkg,'"version": "0.9.18.7"');
-need('Version',baseline,'"releaseVersion": "0.9.18.7"');
+const packageVersion=JSON.parse(pkg).version,baselineVersion=JSON.parse(baseline).releaseVersion;
+if(packageVersion!==baselineVersion)failures.push(`Versionen nicht synchron: package ${packageVersion}, baseline ${baselineVersion}`);
 
 if(failures.length){
   console.error('Kurzfrist-Insight-Cockpit fehlgeschlagen:\n- '+failures.join('\n- '));

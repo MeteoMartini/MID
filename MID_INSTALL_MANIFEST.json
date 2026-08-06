@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "releaseVersion": "0.9.19.1",
+  "baseVersion": "0.9.19.0",
+  "stableBranch": "mid-stable",
+  "includes": [
+    "automated-code-revision",
+    "24h-meteogram-hourly-detail"
+  ]
+}

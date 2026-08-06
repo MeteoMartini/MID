@@ -1,3 +1,7 @@
+## v0.9.19.1
+- 24-h-Meteogramm und erweiterte Einzeldaten auf die veröffentlichte Stable-Codeoptimierung v0.9.19.0 portiert.
+- Automatisierte Code-Revisions-, Live-, API-, Browser- und Build-Budget-Prüfungen aus v0.9.19.0 beibehalten.
+
 ## v0.9.18.7
 - Kurzfrist-Meteogramm optisch an der meteorologischen Vorlage ausgerichtet: Hauptzeitachse jetzt mit sauberer 6-Stunden-Beschriftung bei weiterhin stündlicher Datenauflösung.
 - Overlay-Positionen für Zeit, Tageslabel, Wetterpiktogramme, Windfiedern und Hitlayer auf prozentuale Breiten-Skalierung umgestellt, damit Mobil- und Desktop-Layout korrekt mit dem SVG mitlaufen.

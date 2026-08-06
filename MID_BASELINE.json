@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.18.7",
+  "releaseVersion": "0.9.19.1",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -107,7 +107,8 @@
     "scripts/test-radar-site-intervals-091511.mjs",
     "scripts/test-cockpit-windbarb-buildfix-09185.mjs",
     "scripts/test-cockpit-meteogram-overlay-scale-09186.mjs",
-    "scripts/test-cockpit-meteogram-hourly-detail-09187.mjs"
+    "scripts/test-cockpit-meteogram-hourly-detail-09187.mjs",
+    "scripts/test-code-revision-automation-09190.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -200,6 +201,7 @@
     "scripts/test-shortterm-nullish-precedence-buildfix-09176.mjs",
     "scripts/test-cockpit-meteogram-pro-09180.mjs",
     "scripts/test-cockpit-meteogram-overlay-scale-09186.mjs",
-    "scripts/test-cockpit-meteogram-hourly-detail-09187.mjs"
+    "scripts/test-cockpit-meteogram-hourly-detail-09187.mjs",
+    "scripts/test-code-revision-automation-09190.mjs"
   ]
 }

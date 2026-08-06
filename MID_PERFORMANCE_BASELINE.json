@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "description": "Harte Obergrenzen als Sicherheitsnetz. Nach jedem bewusst freigegebenen großen Funktionsausbau anhand eines erfolgreichen Stable-Builds überprüfen.",
+  "limits": {
+    "assetCount": 220,
+    "totalBytes": 18000000,
+    "totalGzipBytes": 5200000,
+    "jsGzipBytes": 4200000,
+    "cssGzipBytes": 650000,
+    "largestJsGzipBytes": 950000
+  }
+}

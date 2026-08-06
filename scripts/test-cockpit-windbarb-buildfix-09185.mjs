@@ -15,8 +15,8 @@ need('Windfieder',cockpit,'function SvgWindBarb(');
 need('Windformatierung in Knoten',cockpit,"wind(point.point.wind,'kn')");
 reject('Ungültige WindUnit',cockpit,"wind(point.point.wind,'kt')");
 reject('Ungenutzter ForecastCockpit-Helfer',cockpit,'function SvgWindDirectionArrow(');
-need('Version',pkg,'"version": "0.9.18.7"');
-need('Version',baseline,'"releaseVersion": "0.9.18.7"');
+const packageVersion=JSON.parse(pkg).version,baselineVersion=JSON.parse(baseline).releaseVersion;
+if(packageVersion!==baselineVersion)failures.push(`Versionen nicht synchron: package ${packageVersion}, baseline ${baselineVersion}`);
 
 if(failures.length){
   console.error(`Windfieder-Buildfix fehlgeschlagen:\n- ${failures.join('\n- ')}`);

@@ -28,8 +28,8 @@ for(const token of [
 
 need('package.json',pkg,'test:cockpit-meteogram-hourly-detail');
 need('MID_BASELINE.json',baseline,'scripts/test-cockpit-meteogram-hourly-detail-09187.mjs');
-need('Version',pkg,'"version": "0.9.18.7"');
-need('Version',baseline,'"releaseVersion": "0.9.18.7"');
+const packageVersion=JSON.parse(pkg).version,baselineVersion=JSON.parse(baseline).releaseVersion;
+if(packageVersion!==baselineVersion)failures.push(`Versionen nicht synchron: package ${packageVersion}, baseline ${baselineVersion}`);
 
 if(failures.length){
   console.error('Stündliches 24-h-Meteogramm / Einzeldaten-Upgrade fehlgeschlagen:\n- '+failures.join('\n- '));

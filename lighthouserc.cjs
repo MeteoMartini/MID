@@ -1,0 +1,1 @@
+module.exports={ci:{collect:{url:[process.env.MID_SITE_URL||'https://www.midwx.app/'],numberOfRuns:2,settings:{preset:'desktop'}},assert:{assertions:{'categories:performance':['warn',{minScore:.65}],'categories:accessibility':['error',{minScore:.85}],'categories:best-practices':['warn',{minScore:.8}]}},upload:{target:'filesystem',outputDir:'artifacts/lighthouse'}}};
