@@ -1,3 +1,14 @@
+## v0.9.22.1
+- Buildfix für das DWD-Niederschlagsarten-Radar: `RadarMeta` und `RadarPointInfo` erfüllen jetzt den `WorkerPayload`-Vertrag von `fetchWorkerJson`, wodurch die TypeScript-Fehler TS2559 im Produktionsbuild beseitigt werden.
+- Neue Regression `test-dwd-radar-worker-payload-buildfix-09221.mjs` sichert die WorkerPayload-Kompatibilität dauerhaft ab.
+
+## v0.9.22.0
+- DWD-Niederschlagsarten-Radar geometrisch neu kalibriert: Standortposition linear an die geografischen Bildgrenzen gekoppelt, um die bisherige systematische Südverschiebung durch eine ungeeignete Web-Mercator-Interpolation zu beseitigen.
+- Radar-Komposit erweitert um Bild-/Kompositzeitstände, semitransparente Legende, transparenten ein-/ausblendbaren Standortmarker und eine Klickanalyse für Niederschlagsklasse sowie Wolkensignal am Bildpunkt.
+- Wetterkartenmodul auf reine DWD-Modell-/Nowcastkarten bereinigt: Meteosat/Satellitenkarte entfernt, explizite Zeitschrittauswahl ergänzt, NowCastMIX-Karten für signifikantes Wetter geprüft/erweitert und die öffentlich verfügbaren ICON-, ICON-EU-, ICON-EPS- sowie AICON-WMS-Serien verbreitert.
+- DWD-WMS-Layerabgleich im Worker namespace-robust gemacht und Radar-Metadaten-/Punktanalyse-Endpunkte ergänzt.
+- Wetterkarten-Regression `test-weather-maps-module-09210.mjs` an die neue reine Modellkartenarchitektur angepasst; zusätzliche Interaktionsregression `test-radar-weather-maps-interaction-09220.mjs` ergänzt.
+
 ## v0.9.21.2
 - Regression-Fix für das Wetterkartenmodul: `test-weather-maps-module-09210.mjs` prüft die Versionskonsistenz nun dynamisch statt die Ursprungsreleaseversion `0.9.21.0` fest zu verdrahten.
 - Package-, Baseline- und Worker-Version müssen übereinstimmen; Folgereleases ab v0.9.21.0 bleiben damit testbar.

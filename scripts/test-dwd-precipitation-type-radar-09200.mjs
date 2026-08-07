@@ -12,6 +12,7 @@ const [component,app,cockpit,shortTerm,worker,styles,pkg,baseline]=await Promise
 ]);
 const failures=[];
 const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
+const reject=(label,text,token)=>{if(text.includes(token))failures.push(`${label} sollte fehlen: ${token}`)};
 
 for(const token of [
  "DWD_PRODUCT_PAGE='https://www.dwd.de/DE/leistungen/wolken_niederschlagsart/wolken_niederschlagsart.html'",
@@ -19,42 +20,31 @@ for(const token of [
  "buildWorkerUrl(base,'dwd-precipitation-type-image'",
  'export function dwdPrecipitationTypeCoverage',
  'Niederschlagsarten-Radar',
- 'Nur innerhalb der Deutschland-Abdeckung',
  'export function dwdPrecipitationTypeImagePosition',
- 'mercatorLatitude',
+ 'IMAGE_BOUNDS.north-latitude',
  'PRECIPITATION_TYPE_LEGEND',
  'großer Hagel',
  'kein Niederschlag',
  'Legende der Niederschlagsarten anzeigen',
- 'transform:`translate(-${position.x.toFixed(6)}%, -${position.y.toFixed(6)}%)`'
+ 'transform:`translate(-${position.x.toFixed(6)}%, -${position.y.toFixed(6)}%)`',
+ "fetchWorkerJson<RadarMeta>('dwd-precipitation-type-meta'",
+ "fetchWorkerJson<RadarPointInfo>('dwd-precipitation-type-info'",
+ 'Radar / Niederschlagsart',
+ 'Satellit / Wolken',
+ 'Standortmarker ausblenden'
 ])need('Radar-Komponente',component,token);
+reject('Radar-Verortung',component,'mercatorLatitude');
 
 for(const token of [
- 'showDwdPrecipitationTypeRadar:boolean',
- 'showDwdPrecipitationTypeRadar:true',
- 'parsed?.showDwdPrecipitationTypeRadar!==false',
- 'DWD Niederschlagsarten-Radar',
- 'showDwdPrecipitationTypeRadar={forecastDisplaySettings.showDwdPrecipitationTypeRadar}'
+ 'showDwdPrecipitationTypeRadar:boolean','showDwdPrecipitationTypeRadar:true','parsed?.showDwdPrecipitationTypeRadar!==false','DWD Niederschlagsarten-Radar','showDwdPrecipitationTypeRadar={forecastDisplaySettings.showDwdPrecipitationTypeRadar}'
 ])need('App-Einstellung',app,token);
-
 need('Cockpit-Ansicht',cockpit,'<DwdPrecipitationTypeRadar location={location} enabled={showDwdPrecipitationTypeRadar}/>');
 need('Klassische Ansicht',shortTerm,'<DwdPrecipitationTypeRadar location={location} enabled={showDwdPrecipitationTypeRadar}/>');
-need('Worker-Funktion',worker,"async function dwdPrecipitationTypeImageResponse()");
-need('Worker-Route',worker,"if(mode==='dwd-precipitation-type-image')return dwdPrecipitationTypeImageResponse();");
-need('Worker-Health',worker,"'dwd-precipitation-type-image'");
-need('Responsive CSS',styles,'.dwd-precip-type-radar__viewport');
-need('Responsive CSS mobil',styles,'.dwd-precip-type-radar__image{width:360%}');
-need('Radar-Legende',styles,'.dwd-precip-type-radar__legend{');
+for(const token of ["async function dwdPrecipitationTypeImageResponse()","async function dwdPrecipitationTypeMeta()","async function dwdPrecipitationTypeInfo(request)","if(mode==='dwd-precipitation-type-image')return dwdPrecipitationTypeImageResponse();","mode==='dwd-precipitation-type-meta'","mode==='dwd-precipitation-type-info'","'dwd-precipitation-type-info'"])need('Worker',worker,token);
+for(const token of ['.dwd-precip-type-radar__viewport','.dwd-precip-type-radar__legend{','.dwd-precip-type-radar__point-info','.dwd-precip-type-radar__timestamps','backdrop-filter:blur(10px)'])need('Radar-CSS',styles,token);
 need('Package-Test',pkg,'test:dwd-precipitation-type-radar');
 need('Baseline-Test',baseline,'scripts/test-dwd-precipitation-type-radar-09200.mjs');
-
 const packageVersion=JSON.parse(pkg).version,baselineVersion=JSON.parse(baseline).releaseVersion;
-const numericVersion=packageVersion.split('.').map(value=>Number.parseInt(value,10));
-if(numericVersion.length<4||numericVersion.some(value=>!Number.isFinite(value))||numericVersion[0]!==0||numericVersion[1]!==9||(numericVersion[2]===20&&numericVersion[3]<0)||numericVersion[2]<20)failures.push(`DWD-Radar setzt mindestens MID 0.9.20.0 voraus, gefunden ${packageVersion}`);
 if(packageVersion!==baselineVersion)failures.push(`Versionen nicht synchron: package ${packageVersion}, baseline ${baselineVersion}`);
-
-if(failures.length){
- console.error('DWD-Niederschlagsarten-Radar fehlgeschlagen:\n- '+failures.join('\n- '));
- process.exit(1);
-}
-console.log('DWD-Niederschlagsarten-Radar, Einstellungen, Classic/Cockpit-Einbindung und Worker-Proxy erfolgreich geprüft.');
+if(failures.length){console.error('DWD-Niederschlagsarten-Radar fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
+console.log('DWD-Niederschlagsarten-Radar inkl. linearer Verortung, Zeitständen, transparenter Markierung und Klickanalyse erfolgreich geprüft.');
