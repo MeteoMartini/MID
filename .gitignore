@@ -1,0 +1,12 @@
+node_modules
+dist
+.DS_Store
+.env*
+
+.precip-test/
+
+# TypeScript/Vite build artefacts
+auto-generated/
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts

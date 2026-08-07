@@ -19,7 +19,7 @@ for(const token of [
  "DWD_DIRECT_IMAGE='https://www.dwd.de/DWD/wetter/sat/satwetter/njob_satrad.png'",
  "buildWorkerUrl(base,'dwd-precipitation-type-image'",
  'export function dwdPrecipitationTypeCoverage',
- 'Niederschlagsarten-Radar',
+ 'Niederschlagsart/Satbild',
  'export function dwdPrecipitationTypeImagePosition',
  'IMAGE_BOUNDS.north-latitude',
  'PRECIPITATION_TYPE_LEGEND',
@@ -30,8 +30,11 @@ for(const token of [
  'markerLeft=(centerX-left)/cropWidth*100',
  "fetchWorkerJson<RadarMeta>('dwd-precipitation-type-meta'",
  "fetchWorkerJson<RadarPointInfo>('dwd-precipitation-type-info'",
- 'Radar / Niederschlagsart',
- 'Satellit / Wolken',
+ '<b>Niederschlagsart</b>',
+ '<b>Satbild</b>',
+ 'IMAGE_MAP_FRAME',
+ 'mapToImageFrame',
+ 'imageToMapFrame',
  'Standortmarker ausblenden',
  'formatCompactTimestamp(meta?.radarAt||meta?.observedAt,timezone)',
  'dwd-precip-type-radar__point-strip'
@@ -52,4 +55,4 @@ need('Baseline-Test',baseline,'scripts/test-dwd-precipitation-type-radar-09200.m
 const packageVersion=JSON.parse(pkg).version,baselineVersion=JSON.parse(baseline).releaseVersion;
 if(packageVersion!==baselineVersion)failures.push(`Versionen nicht synchron: package ${packageVersion}, baseline ${baselineVersion}`);
 if(failures.length){console.error('DWD-Niederschlagsarten-Radar fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('DWD-Niederschlagsarten-Radar mit echtem Ausschnitt-Crop, kompakten Zeitstempeln und oberer Bildpunktleiste erfolgreich geprüft.');
+console.log('DWD Niederschlagsart/Satbild mit kalibriertem Kartenausschnitt, kompakten Zeitstempeln und oberer Bildpunktleiste erfolgreich geprüft.');

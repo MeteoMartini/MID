@@ -14,7 +14,9 @@ const reject=(label,text,token)=>{if(text.includes(token))failures.push(`${label
 for(const token of [
   'function ecmwfTemperatureLineColor(value:number)',
   'chartSourcePoints=points.slice(0,Math.min(points.length,25))',
-  'chartWidth=1040',
+  'chartWidth=Math.max(1040,chartViewportWidth)',
+  'chartViewportRef',
+  'ResizeObserver',
   "points=useMemo(()=>selectShortTermPoints(adjusted,'1h')",
   'className="cockpit-meteogram-pro__svg"',
   '<linearGradient id={temperatureGradientId}',

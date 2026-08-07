@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.23.2",
+  "releaseVersion": "0.9.24.0",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -210,7 +210,8 @@
     "scripts/test-weather-maps-module-09210.mjs",
     "scripts/test-dwd-radar-meteogram-alignment-09211.mjs",
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
-    "scripts/test-dwd-radar-worker-payload-buildfix-09221.mjs"
+    "scripts/test-dwd-radar-worker-payload-buildfix-09221.mjs",
+    "scripts/test-radar-weathermaps-followups-09230.mjs"
   ],
   "requiredFiles": [
     "scripts/test-cockpit-regression-sync-09201.mjs",

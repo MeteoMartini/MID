@@ -25,7 +25,7 @@ const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const OPEN_METEO_ELEVATION='https://api.open-meteo.com/v1/elevation';
-const WORKER_VERSION='0.9.23.2';
+const WORKER_VERSION='0.9.24.0';
 const CORS={'content-type':'application/json; charset=utf-8','access-control-allow-origin':'*','access-control-allow-methods':'GET,POST,OPTIONS','access-control-allow-headers':'content-type','cache-control':'public, max-age=180'};
 const FEED_SLUGS={
  AD:'andorra',AT:'austria',BE:'belgium',BA:'bosnia-herzegovina',BG:'bulgaria',HR:'croatia',CY:'cyprus',CZ:'czechia',DK:'denmark',EE:'estonia',FI:'finland',FR:'france',DE:'germany',GR:'greece',EL:'greece',HU:'hungary',IS:'iceland',IE:'ireland',IL:'israel',IT:'italy',LV:'latvia',LT:'lithuania',LU:'luxembourg',MT:'malta',MD:'moldova',ME:'montenegro',NL:'netherlands',MK:'republic-of-north-macedonia',NO:'norway',PL:'poland',PT:'portugal',RO:'romania',RS:'serbia',SK:'slovakia',SI:'slovenia',ES:'spain',SE:'sweden',CH:'switzerland',UA:'ukraine',GB:'united-kingdom',UK:'united-kingdom',AM:'armenia'
@@ -1165,26 +1165,25 @@ async function modelContours(lat,lon){
  for(let ti=0;ti<times.length;ti++){const pressure=Array.from({length:rows},()=>Array(cols).fill(NaN)),height=Array.from({length:rows},()=>Array(cols).fill(NaN));for(let pi=0;pi<points.length;pi++){const row=Math.floor(pi/cols),col=pi%cols;pressure[row][col]=number(points[pi]?.hourly?.pressure_msl?.[ti])??NaN;height[row][col]=number(points[pi]?.hourly?.geopotential_height_500hPa?.[ti])??NaN}const stamp=safeDate(times[ti]);if(!stamp)continue;const isobarStep=pressureContourStep(pressure,lats,lons);frames.push({time:stamp,isobarStep,isoheightStepGpdm:8,isobars:contourSegments(pressure,lats,lons,isobarStep),isoheights:contourSegments(height,lats,lons,80,35),centers:pressureCenters(pressure,lats,lons)})}
  if(!frames.length)throw new Error('Open-Meteo lieferte keine auswertbaren Modelllinien.');return{frames,provider:'Open-Meteo',model:selected.modelLabel,resolutionNote:`${domain.scope} · einheitliches ${selected.modelLabel} · ${rows}×${cols} Stützraster, bilinear verdichtet und geglättet`,grid:{rows,cols,latSpan:north-south,lonSpan:east-west,scope:domain.scope,bounds:{south,north,west,east}},contours:{isobars:'dynamisch 1/2/4 hPa nach Druckgradient; Zielabstand ungefähr 100 km',isoheights:'8 gpdm'},fallback:primaryError?{from:domain.modelLabel,to:selected.modelLabel,reason:primaryError}:undefined,checkedAt:new Date().toISOString()};
 }
-const WMS_ALLOWED_LAYERS={
- dwd:new Set([...DWD_RADAR_LAYERS,'dwd:Blitzdichte','dwd:NCEW_EU','dwd:Warnungen_Gemeinden_vereinigt','dwd:Icon-d2_reg002_fd_sl_QFF','dwd:Icon-d2_reg002_fd_gl_T','dwd:Icon-d2_reg002_fd_sl_TOTPREC01H','dwd:Icon-d2_reg002_fd_sl_TOTPREC03H','dwd:Icon-d2_reg002_fd_sl_UV10M','dwd:Icon_reg025_fd_sl_PMSL','dwd:Icon_reg025_fd_pl_GH',...SATELLITE_DAY_CANDIDATES.filter(item=>item.provider==='dwd').map(item=>item.layer),...SATELLITE_IR_CANDIDATES.filter(item=>item.provider==='dwd').map(item=>item.layer)]),
- eumetsat:new Set(['mtg_fd:vis06_hrfi','mtg_fd:ir105_hrfi','mtg_fd:li_afa','msg_fes:rgb_eview','msg_fes:ir108',...SATELLITE_PRECIP_CANDIDATES.map(item=>item.layer)])
-};
 const WEATHER_MAP_LAYER_CONFIG=new Map([
  ['dwd:Icon-d2_reg002_fd_sl_QFF',{forecast:true}],
  ['dwd:Icon-d2_reg002_fd_gl_T',{forecast:true,elevation:true}],
  ['dwd:Icon-d2_reg002_fd_sl_TOTPREC01H',{forecast:true}],
  ['dwd:Icon-d2_reg002_fd_sl_TOTPREC03H',{forecast:true}],
  ['dwd:Icon-d2_reg002_fd_sl_UV10M',{forecast:true}],
+ ['dwd:Icon-d2_reg002_fd_sl_WW',{forecast:true}],
  ['dwd:Icon-eu_reg00625_fd_sl_QFF',{forecast:true}],
  ['dwd:Icon-eu_reg00625_fd_gl_T',{forecast:true,elevation:true}],
  ['dwd:Icon-eu_reg00625_fd_sl_TOTPREC01H',{forecast:true}],
  ['dwd:Icon-eu_reg00625_fd_sl_TOTPREC03H',{forecast:true}],
+ ['dwd:Icon-eu_reg00625_fd_sl_WW',{forecast:true}],
  ['dwd:Icon_reg025_fd_sl_PMSL',{forecast:true}],
  ['dwd:Icon_reg025_fd_sl_T2M',{forecast:true}],
  ['dwd:Icon_reg025_fd_sl_TOTPREC',{forecast:true}],
  ['dwd:Icon_reg025_fd_sl_TOTPREC06H',{forecast:true}],
  ['dwd:Icon_reg025_fd_sl_TOTPREC24H',{forecast:true}],
  ['dwd:Icon_reg025_fd_sl_UV10M',{forecast:true}],
+ ['dwd:Icon_reg025_fd_sl_WW',{forecast:true}],
  ['dwd:Icon_reg025_fd_pl_GH',{forecast:true,elevation:true}],
  ['dwd:Icon_reg025_fd_pl_T',{forecast:true,elevation:true}],
  ['dwd:Icon_reg025_fd_pl_RELHUM',{forecast:true,elevation:true}],
@@ -1202,12 +1201,17 @@ const WEATHER_MAP_LAYER_CONFIG=new Map([
  ['dwd:Aicon_reg025_fd_sl_TOTPREC',{forecast:true}],
  ['dwd:Aicon_reg025_fd_sl_TOTPREC06H',{forecast:true}],
  ['dwd:Aicon_reg025_fd_sl_UV10M',{forecast:true}],
+ ['dwd:Aicon_reg025_fd_sl_WW',{forecast:true}],
  ['dwd:Autowarn_Analyse',{forecast:false}],
  ['dwd:Autowarn_Vorhersage',{forecast:true,shortRange:true}],
  ['dwd:Gewitterzellen',{forecast:false}],
  ['dwd:Gewittercluster',{forecast:false}],
  ['dwd:NCEW_EU',{forecast:true,shortRange:true}]
 ]);
+const WMS_ALLOWED_LAYERS={
+ dwd:new Set([...DWD_RADAR_LAYERS,'dwd:Blitzdichte','dwd:NCEW_EU','dwd:Warnungen_Gemeinden_vereinigt',...WEATHER_MAP_LAYER_CONFIG.keys(),...SATELLITE_DAY_CANDIDATES.filter(item=>item.provider==='dwd').map(item=>item.layer),...SATELLITE_IR_CANDIDATES.filter(item=>item.provider==='dwd').map(item=>item.layer)]),
+ eumetsat:new Set(['mtg_fd:vis06_hrfi','mtg_fd:ir105_hrfi','mtg_fd:li_afa','msg_fes:rgb_eview','msg_fes:ir108',...SATELLITE_PRECIP_CANDIDATES.map(item=>item.layer)])
+};
 
 function limitedWeatherMapTimes(times,config,now=Date.now()){const minimum=now-(config?.observed?18:36)*3600000,maximum=now+(config?.shortRange?3:config?.forecast?200:2)*3600000,filtered=[...new Set((times||[]).filter(Number.isFinite).filter(value=>value>=minimum&&value<=maximum))].sort((a,b)=>a-b);if(filtered.length<=260)return filtered;const step=Math.ceil(filtered.length/260),sampled=filtered.filter((_,index)=>index%step===0);if(sampled.at(-1)!==filtered.at(-1))sampled.push(filtered.at(-1));return sampled.slice(-260)}
 async function weatherMapMetadata(request){
