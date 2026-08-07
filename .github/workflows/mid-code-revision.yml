@@ -140,7 +140,7 @@ jobs:
 
       - name: Node.js 22 einrichten
         if: steps.archive.outputs.present == 'true'
-        uses: actions/setup-node@2951748f4c016b747952f8ca7e75fc64f2f62b53 # v6.2.0
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.2.0
         with:
           node-version: 22.16.0
 
@@ -321,7 +321,7 @@ jobs:
           fi
       - name: Node.js 22 einrichten
         if: steps.revision_ready.outputs.ready == 'true'
-        uses: actions/setup-node@2951748f4c016b747952f8ca7e75fc64f2f62b53 # v6.2.0
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.2.0
         with:
           node-version: 22.16.0
           cache: npm
@@ -362,7 +362,7 @@ jobs:
         with:
           ref: mid-stable
       - name: Node.js 22 einrichten
-        uses: actions/setup-node@2951748f4c016b747952f8ca7e75fc64f2f62b53 # v6.2.0
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.2.0
         with:
           node-version: 22.16.0
           cache: npm
@@ -432,7 +432,7 @@ jobs:
         with:
           ref: mid-stable
       - name: Node.js 22 einrichten
-        uses: actions/setup-node@2951748f4c016b747952f8ca7e75fc64f2f62b53 # v6.2.0
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.2.0
         with:
           node-version: 22.16.0
       - id: site
@@ -482,7 +482,7 @@ jobs:
         with:
           ref: mid-stable
       - name: Node.js 22 einrichten
-        uses: actions/setup-node@2951748f4c016b747952f8ca7e75fc64f2f62b53 # v6.2.0
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.2.0
         with:
           node-version: 22.16.0
           cache: npm
