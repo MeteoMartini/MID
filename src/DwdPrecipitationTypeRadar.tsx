@@ -6,28 +6,29 @@ import type {Location} from './weather';
 const DWD_PRODUCT_PAGE='https://www.dwd.de/DE/leistungen/wolken_niederschlagsart/wolken_niederschlagsart.html';
 const DWD_DIRECT_IMAGE='https://www.dwd.de/DWD/wetter/sat/satwetter/njob_satrad.png';
 const COVERAGE={west:5.45,east:15.55,south:47.0,north:55.2};
-type DwdRasterCurve={value:number;intercept:number;slope:number;curvature:number;reference:number};
-// Das Gradnetz im DWD-NinJo-Komposit ist projiziert: sowohl Breitenkreise als auch
-// Meridianlinien weichen im Bild von einer einfachen kartesischen Geraden ab. Die
-// Kalibrierung folgt deshalb direkt den sichtbaren Rasterlinien 6/8/10/12° E und
-// 49/50/51/52° N. Die linearen Grundterme stammen aus den Rasterdurchgängen, die
-// quadratischen Korrekturen aus der sichtbaren Linienkrümmung. Ortsnamen oder die
-// weißen Stadt-Pluszeichen werden ausdrücklich NICHT als Georeferenzierungsanker benutzt.
-// Längengradkurven: x = intercept + slope*y + curvature*(y-reference)^2.
-const DWD_RASTER_LONGITUDE_CURVES:DwdRasterCurve[]=[
- {value:6,intercept:.31098212,slope:-.07044436,curvature:.1620,reference:.53},
- {value:8,intercept:.39703348,slope:-.03395512,curvature:.0607,reference:.53},
- {value:10,intercept:.48378011,slope:0,curvature:-.0406,reference:.53},
- {value:12,intercept:.57130179,slope:.03269307,curvature:-.1420,reference:.53}
+type GridPoint={lon:number;lat:number;x:number;y:number};
+type RasterPolynomial={c0:number;lon:number;lat:number;lon2:number;lonLat:number;lat2:number};
+// Kalibrierung im Koordinatensystem des ORIGINALEN 900×900-DWD-Bildes. Frühere
+// Ansätze haben versehentlich Rasterkoordinaten aus einem bereits gezoomten/cropped
+// Bildschirm-Ausschnitt als Koordinaten des Quellbildes behandelt. Dadurch waren die
+// Marker systematisch verschoben. Die folgenden Gitter-Schnittpunkte sind auf das
+// vollständige DWD-Quellbild zurückgerechnet und bilden das sichtbare projizierte
+// Gradnetz 6/8/10/12° E sowie 49/50/51/52° N ab.
+export const DWD_SOURCE_RASTER_GRID:GridPoint[]=[
+ {lon:6,lat:52,x:.265466500,y:.455080125},{lon:8,lat:52,x:.366218703,y:.460417838},{lon:10,lat:52,x:.466592084,y:.462150922},{lon:12,lat:52,x:.567305360,y:.460293873},
+ {lon:6,lat:51,x:.259702598,y:.535911020},{lon:8,lat:51,x:.363382792,y:.541394591},{lon:10,lat:51,x:.466692392,y:.543175455},{lon:12,lat:51,x:.570256368,y:.541270600},
+ {lon:6,lat:50,x:.253961645,y:.616528550},{lon:8,lat:50,x:.360545777,y:.622190828},{lon:10,lat:50,x:.466862394,y:.624029356},{lon:12,lat:50,x:.573196517,y:.622062497},
+ {lon:6,lat:49,x:.248387011,y:.694914573},{lon:8,lat:49,x:.357782608,y:.700681733},{lon:10,lat:49,x:.467094347,y:.702555457},{lon:12,lat:49,x:.576049027,y:.700554563}
 ];
-// Breitengradkurven: y = intercept + slope*x + curvature*(x-reference)^2.
-// Die Krümmung nimmt mit zunehmender Breite leicht zu, wie im projizierten DWD-Raster.
-const DWD_RASTER_LATITUDE_CURVES:DwdRasterCurve[]=[
- {value:49,intercept:.64651429,slope:.01488340,curvature:-.1640,reference:.484},
- {value:50,intercept:.56749033,slope:.01558506,curvature:-.1680,reference:.484},
- {value:51,intercept:.47778116,slope:.03365028,curvature:-.1720,reference:.484},
- {value:52,intercept:.41065754,slope:.00464844,curvature:-.1770,reference:.484}
-];
+// Zweidimensionale quadratische Projektion, im Least-Squares-Verfahren aus allen
+// 16 DWD-Raster-Schnittpunkten bestimmt. Sie reproduziert das sichtbare Raster mit
+// <0,4 Pixel maximaler Abweichung bei 900 px Quellbildgröße und extrapoliert ohne
+// harte Rand-Clamps über die gesamte Deutschland-Abdeckung.
+const DWD_SOURCE_X:RasterPolynomial={c0:-.7354480432717,lon:.12549183913668,lat:.012466048742646,lon2:-.000013219863941718,lonLat:-.0014413689690892,lat2:.000018447439510929};
+const DWD_SOURCE_Y:RasterPolynomial={c0:2.9928103444278,lon:.010559647295047,lat:-.017335059071548,lon2:-.00046844341939869,lonLat:-.000024194371973134,lat2:-.00061961334982499};
+function rasterPolynomialValue(coefficients:RasterPolynomial,longitude:number,latitude:number){return coefficients.c0+coefficients.lon*longitude+coefficients.lat*latitude+coefficients.lon2*longitude*longitude+coefficients.lonLat*longitude*latitude+coefficients.lat2*latitude*latitude}
+function rasterPolynomialForward(longitude:number,latitude:number){return{x:rasterPolynomialValue(DWD_SOURCE_X,longitude,latitude),y:rasterPolynomialValue(DWD_SOURCE_Y,longitude,latitude)}}
+function rasterPolynomialInverse(x:number,y:number){let longitude=10+(x-.46686)/.0532,latitude=50-(y-.62403)/.0808;for(let iteration=0;iteration<10;iteration++){const point=rasterPolynomialForward(longitude,latitude),rx=point.x-x,ry=point.y-y,dxLon=DWD_SOURCE_X.lon+2*DWD_SOURCE_X.lon2*longitude+DWD_SOURCE_X.lonLat*latitude,dxLat=DWD_SOURCE_X.lat+DWD_SOURCE_X.lonLat*longitude+2*DWD_SOURCE_X.lat2*latitude,dyLon=DWD_SOURCE_Y.lon+2*DWD_SOURCE_Y.lon2*longitude+DWD_SOURCE_Y.lonLat*latitude,dyLat=DWD_SOURCE_Y.lat+DWD_SOURCE_Y.lonLat*longitude+2*DWD_SOURCE_Y.lat2*latitude,det=dxLon*dyLat-dxLat*dyLon;if(Math.abs(det)<1e-10)break;const deltaLon=(rx*dyLat-ry*dxLat)/det,deltaLat=(ry*dxLon-rx*dyLon)/det;longitude=clamp(longitude-deltaLon,2,18);latitude=clamp(latitude-deltaLat,45,58);if(Math.max(Math.abs(deltaLon),Math.abs(deltaLat))<1e-7)break}return{longitude,latitude}}
 const PRECIPITATION_TYPE_LEGEND=[
  {label:'großer Hagel',color:'#b000d6'},{label:'kleiner Hagel',color:'#d000f5'},{label:'Graupel',color:'#ffd633'},{label:'gefrierender Regen',color:'#ff1c00'},{label:'gefr. Sprühregen',color:'#d80000'},{label:'Schnee',color:'#ff21d1'},{label:'Schneeregen',color:'#ff70df'},{label:'Regen',color:'#00c778'},{label:'Sprühregen',color:'#19dca4'},{label:'nicht klassifizierbar',color:'#7f7f7f'},{label:'kein Niederschlag',color:'#c9c9c9'}
 ] as const;
@@ -41,14 +42,9 @@ type PointInspection={loading:boolean;error?:string;info?:RadarPointInfo};
 function clamp(value:number,min:number,max:number){return Math.min(max,Math.max(min,value))}
 function countryCode(location:Location){return String(location.country_code||location.country||'').trim().toUpperCase()}
 export function dwdPrecipitationTypeCoverage(location:Location){const latitude=Number(location.latitude),longitude=Number(location.longitude),code=countryCode(location),within=Number.isFinite(latitude)&&Number.isFinite(longitude)&&latitude>=COVERAGE.south&&latitude<=COVERAGE.north&&longitude>=COVERAGE.west&&longitude<=COVERAGE.east;if(code&&code!=='DE'&&code!=='DEU'&&code!=='GERMANY'&&code!=='DEUTSCHLAND')return false;return within}
-// Polarinterpolation des projizierten Gradnetzes. Sie ist ortsunabhängig und verwendet
-// keine Stadtbeschriftungen oder Beispielorte als Anker.
-function rasterBracket(lines:DwdRasterCurve[],value:number){if(value<=lines[0].value)return[lines[0],lines[1]] as const;const last=lines.length-1;if(value>=lines[last].value)return[lines[last-1],lines[last]] as const;for(let index=0;index<last;index++)if(value>=lines[index].value&&value<=lines[index+1].value)return[lines[index],lines[index+1]] as const;return[lines[0],lines[1]] as const}
-function rasterCurveCoordinate(line:DwdRasterCurve,crossCoordinate:number){const delta=crossCoordinate-line.reference;return line.intercept+line.slope*crossCoordinate+line.curvature*delta*delta}
-function rasterCoordinate(lines:DwdRasterCurve[],value:number,crossCoordinate:number){const[a,b]=rasterBracket(lines,value),first=rasterCurveCoordinate(a,crossCoordinate),second=rasterCurveCoordinate(b,crossCoordinate),span=b.value-a.value,t=span?((value-a.value)/span):0;return first+(second-first)*t}
-function rasterValue(lines:DwdRasterCurve[],coordinate:number,crossCoordinate:number){let nearest:[DwdRasterCurve,DwdRasterCurve]|null=null,nearestDistance=Infinity;for(let index=0;index<lines.length-1;index++){const a=lines[index],b=lines[index+1],first=rasterCurveCoordinate(a,crossCoordinate),second=rasterCurveCoordinate(b,crossCoordinate),minimum=Math.min(first,second),maximum=Math.max(first,second);if(coordinate>=minimum&&coordinate<=maximum){const span=second-first,t=Math.abs(span)>1e-9?(coordinate-first)/span:0;return a.value+(b.value-a.value)*t}const distance=coordinate<minimum?minimum-coordinate:coordinate-maximum;if(distance<nearestDistance){nearestDistance=distance;nearest=[a,b]}}const[a,b]=nearest??[lines[0],lines[1]],first=rasterCurveCoordinate(a,crossCoordinate),second=rasterCurveCoordinate(b,crossCoordinate),span=second-first,t=Math.abs(span)>1e-9?(coordinate-first)/span:0;return a.value+(b.value-a.value)*t}
-export function dwdPrecipitationTypeImagePosition(location:Pick<Location,'latitude'|'longitude'>){const latitude=Number(location.latitude),longitude=Number(location.longitude);let y=rasterCoordinate(DWD_RASTER_LATITUDE_CURVES,latitude,.484),x=rasterCoordinate(DWD_RASTER_LONGITUDE_CURVES,longitude,y);for(let iteration=0;iteration<7;iteration++){y=rasterCoordinate(DWD_RASTER_LATITUDE_CURVES,latitude,x);x=rasterCoordinate(DWD_RASTER_LONGITUDE_CURVES,longitude,y)}return{x:clamp(x,0,1)*100,y:clamp(y,0,1)*100}}
-function geoFromImagePoint(x:number,y:number){let longitude=rasterValue(DWD_RASTER_LONGITUDE_CURVES,x,y),latitude=rasterValue(DWD_RASTER_LATITUDE_CURVES,y,x);for(let iteration=0;iteration<4;iteration++){longitude=rasterValue(DWD_RASTER_LONGITUDE_CURVES,x,y);latitude=rasterValue(DWD_RASTER_LATITUDE_CURVES,y,x)}return{longitude,latitude}}
+// Projektion des geografischen Ortes auf das vollständige DWD-Quellbild.
+export function dwdPrecipitationTypeImagePosition(location:Pick<Location,'latitude'|'longitude'>){const latitude=Number(location.latitude),longitude=Number(location.longitude),point=rasterPolynomialForward(longitude,latitude);return{x:clamp(point.x,0,1)*100,y:clamp(point.y,0,1)*100}}
+function geoFromImagePoint(x:number,y:number){return rasterPolynomialInverse(x,y)}
 function candidateImageUrls(slot:number){const workers=workerBaseCandidates('radar').map(base=>buildWorkerUrl(base,'dwd-precipitation-type-image',{slot}).toString());return[...new Set([...workers,`${DWD_DIRECT_IMAGE}?slot=${slot}`])]}
 function formatDwdSourceTimestamp(value:string|undefined){if(!value)return'–';const stamp=Date.parse(value);if(!Number.isFinite(stamp))return value;const date=new Date(stamp),hour=String(date.getUTCHours()).padStart(2,'0'),minute=String(date.getUTCMinutes()).padStart(2,'0');return`${hour}:${minute} UTC`}
 function radarCropWindow(location:Pick<Location,'latitude'|'longitude'>,viewport:RadarViewport):RadarCrop{const marker=dwdPrecipitationTypeImagePosition(location),centerX=marker.x/100,centerY=marker.y/100,aspect=Math.max(.9,Math.min(2.5,viewport.width/Math.max(1,viewport.height||1)));let cropWidth=viewport.width>=1320?.72:viewport.width>=1080?.67:viewport.width>=860?.61:viewport.width>=660?.55:viewport.width>=540?.49:viewport.width>=420?.44:.40;cropWidth=clamp(cropWidth,.36,.76);let cropHeight=cropWidth/aspect;cropHeight=clamp(cropHeight,.23,.66);if(cropHeight>.64){cropHeight=.64;cropWidth=clamp(cropHeight*aspect,.36,.78)}const left=clamp(centerX-cropWidth/2,0,1-cropWidth),top=clamp(centerY-cropHeight/2,0,1-cropHeight),markerLeft=(centerX-left)/cropWidth*100,markerTop=(centerY-top)/cropHeight*100;return{left,top,width:cropWidth,height:cropHeight,markerLeft,markerTop}}

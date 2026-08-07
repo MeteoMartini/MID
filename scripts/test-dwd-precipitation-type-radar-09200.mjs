@@ -21,8 +21,10 @@ for(const token of [
  'export function dwdPrecipitationTypeCoverage',
  'Wolken + Niederschlagsart',
  'export function dwdPrecipitationTypeImagePosition',
- 'DWD_RASTER_LONGITUDE_CURVES',
- 'DWD_RASTER_LATITUDE_CURVES',
+ 'DWD_SOURCE_RASTER_GRID:GridPoint[]',
+ 'RasterPolynomial',
+ 'rasterPolynomialForward',
+ 'rasterPolynomialInverse',
  'PRECIPITATION_TYPE_LEGEND',
  'großer Hagel',
  'kein Niederschlag',
@@ -56,4 +58,4 @@ need('Baseline-Test',baseline,'scripts/test-dwd-precipitation-type-radar-09200.m
 const packageVersion=JSON.parse(pkg).version,baselineVersion=JSON.parse(baseline).releaseVersion;
 if(packageVersion!==baselineVersion)failures.push(`Versionen nicht synchron: package ${packageVersion}, baseline ${baselineVersion}`);
 if(failures.length){console.error('DWD-Niederschlagsarten-Radar fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('DWD Wolken + Niederschlagsart mit gekrümmtem Gradnetz, UTC-Quellzeitstempeln und oberer Bildpunktleiste erfolgreich geprüft.');
+console.log('DWD Wolken + Niederschlagsart mit rasterbasierter Gradnetz-Verortung, UTC-Quellzeitstempeln und oberer Bildpunktleiste erfolgreich geprüft.');

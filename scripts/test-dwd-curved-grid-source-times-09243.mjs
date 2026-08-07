@@ -6,7 +6,7 @@ const [radar,worker,baseline]=await Promise.all([
 ]);
 const failures=[];
 const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
-for(const token of ['DwdRasterCurve','curvature','rasterCurveCoordinate','for(let iteration=0;iteration<7;iteration++)','Wolken + Niederschlagsart','formatDwdSourceTimestamp','return`${hour}:${minute} UTC`'])need('Raster/UI',radar,token);
+for(const token of ['RasterPolynomial','DWD_SOURCE_RASTER_GRID','rasterPolynomialForward','rasterPolynomialInverse','Wolken + Niederschlagsart','formatDwdSourceTimestamp','return`${hour}:${minute} UTC`'])need('Raster/UI',radar,token);
 for(const token of ['DWD_PRECIPITATION_TYPE_RADAR_INDEX','DWD_PRECIPITATION_TYPE_SATELLITE_INDEX','Promise.allSettled','dwdPrecipitationTypeSourceIndexCache','response.body?.cancel()'])need('Worker-Zeitpfad',worker,token);
 // Reale DWD-Veröffentlichungskadenz nachbilden: Kombinationsbild 06:30 UTC,
 // HG 06:30 wird erst nach dem Cutoff veröffentlicht, NWCSAF 06:15 deutlich später.

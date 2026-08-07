@@ -9,8 +9,9 @@ const failures=[];
 const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
 const reject=(label,text,token)=>{if(text.includes(token))failures.push(`${label} sollte fehlen: ${token}`)};
 for(const token of [
-  'DWD_RASTER_LONGITUDE_CURVES',
-  'DWD_RASTER_LATITUDE_CURVES',
+  'DWD_SOURCE_RASTER_GRID',
+  'DWD_SOURCE_X:RasterPolynomial',
+  'DWD_SOURCE_Y:RasterPolynomial',
   'geoFromImagePoint',
   'formatDwdSourceTimestamp(meta?.radarAt)',
   'formatDwdSourceTimestamp(meta?.satelliteAt)',
