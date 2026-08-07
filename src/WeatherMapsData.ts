@@ -3,12 +3,17 @@ import {buildWorkerUrl,configuredWorkerBase,fetchWorkerJson} from './workerClien
 export type WeatherMapModelId='icon-d2'|'icon-eu'|'icon'|'icon-eps'|'aicon'|'nowcastmix';
 export type WeatherMapCategory='surface'|'upper-air'|'ensemble'|'significant';
 export type WeatherMapLevelKind='pressure'|'height';
+export type WeatherMapSource='wms'|'grid';
+export type WeatherMapGridKind='pressure-thetae'|'pressure-sigwx'|'pressure-precip';
 
 export type WeatherMapProduct={
  id:string;modelId:WeatherMapModelId;category:WeatherMapCategory;label:string;detail:string;layer:string;
- levels?:number[];defaultLevel?:number;levelKind?:WeatherMapLevelKind;timeDependent?:boolean;forecast?:boolean;defaultZoom:number;opacity?:number;disclaimer?:string;
+ source?:WeatherMapSource;gridKind?:WeatherMapGridKind;levels?:number[];defaultLevel?:number;levelKind?:WeatherMapLevelKind;timeDependent?:boolean;forecast?:boolean;defaultZoom:number;opacity?:number;disclaimer?:string;
 };
 export type WeatherMapMetadata={layer:string;times:string[];referenceTimes:string[];elevations:number[];provider?:string;checkedAt?:string;error?:string};
+export type WeatherMapGridContour={level:number;paths:[number,number][][]};
+export type WeatherMapGridFrame={time:string;thetaE:number[];weatherCode:number[];precipitation:number[];isobars:WeatherMapGridContour[]};
+export type WeatherMapGridData={modelId:WeatherMapModelId;modelLabel:string;times:string[];referenceTime?:string;lats:number[];lons:number[];frames:WeatherMapGridFrame[];provider?:string;checkedAt?:string;error?:string};
 
 export const WEATHER_MAP_MODELS:{id:WeatherMapModelId;label:string;detail:string}[]=[
  {id:'icon-d2',label:'DWD ICON-D2',detail:'Deutschland · ca. 2 km · Kurzfrist bis rund +48 h'},
@@ -23,13 +28,10 @@ const PRESSURE_LEVELS=[1000,925,850,700,500,400,300,250,200];
 const HEIGHT_LEVELS=[2,50,100,150,200,250,300,350,400,450,500];
 
 export const WEATHER_MAP_PRODUCTS:WeatherMapProduct[]=[
- // ICON-D2 – hochaufgelöste Deutschland-Serie
- {id:'icon-d2-qff',modelId:'icon-d2',category:'surface',label:'Bodendruck / QFF',detail:'Auf Meereshöhe reduzierter Luftdruck · ICON-D2',layer:'dwd:Icon-d2_reg002_fd_sl_QFF',timeDependent:true,forecast:true,defaultZoom:7,opacity:78},
- {id:'icon-d2-temperature-height',modelId:'icon-d2',category:'upper-air',label:'Temperatur auf Höhen über Grund',detail:'2 bis 500 m über Grund · ICON-D2',layer:'dwd:Icon-d2_reg002_fd_gl_T',levels:HEIGHT_LEVELS,defaultLevel:2,levelKind:'height',timeDependent:true,forecast:true,defaultZoom:7,opacity:76},
- {id:'icon-d2-rain-1h',modelId:'icon-d2',category:'surface',label:'Niederschlag · 1 Stunde',detail:'Stündliche Niederschlagsmenge · ICON-D2',layer:'dwd:Icon-d2_reg002_fd_sl_TOTPREC01H',timeDependent:true,forecast:true,defaultZoom:7,opacity:74},
- {id:'icon-d2-rain-3h',modelId:'icon-d2',category:'surface',label:'Niederschlag · 3 Stunden',detail:'Dreistündliche Niederschlagsmenge · ICON-D2',layer:'dwd:Icon-d2_reg002_fd_sl_TOTPREC03H',timeDependent:true,forecast:true,defaultZoom:7,opacity:74},
- {id:'icon-d2-wind-10m',modelId:'icon-d2',category:'surface',label:'Wind · 10 Meter',detail:'Mittelwind in 10 m über Grund · ICON-D2',layer:'dwd:Icon-d2_reg002_fd_sl_UV10M',timeDependent:true,forecast:true,defaultZoom:7,opacity:82},
- {id:'icon-d2-sigwx',modelId:'icon-d2',category:'significant',label:'SIGWX / Wettercode',detail:'Modelliertes signifikantes Wetter bzw. Wettercode · ICON-D2',layer:'dwd:Icon-d2_reg002_fd_sl_WW',timeDependent:true,forecast:true,defaultZoom:7,opacity:84,disclaimer:'Modelliertes signifikantes Wetter bzw. Wettercode des ICON-D2-Laufs. Je nach WMS-Verfügbarkeit kann der DWD diese Karte zeitweise nicht bereitstellen.'},
+ // ICON-D2 – aktueller Rasterpfad aus DWD ICON-D2 via Open-Meteo; kein nicht verfügbarer DWD-WMS-Layer
+ {id:'icon-d2-pressure-thetae',modelId:'icon-d2',category:'upper-air',label:'Bodendruck + ThetaE 850 hPa',detail:'MSL-Druckkonturen mit äquivalentpotenzieller Temperatur in 850 hPa · ICON-D2',layer:'mid:grid:icon-d2:pressure-thetae',source:'grid',gridKind:'pressure-thetae',timeDependent:true,forecast:true,defaultZoom:7,opacity:82,disclaimer:'DWD ICON-D2-Modellfelder über den aktuellen Open-Meteo-DWD-Datenpfad. ThetaE 850 hPa wird aus Temperatur und relativer Feuchte berechnet; MSL-Druck als Isobaren.'},
+ {id:'icon-d2-pressure-sigwx',modelId:'icon-d2',category:'significant',label:'Bodendruck + SIGWX',detail:'MSL-Druckkonturen mit modelliertem signifikantem Wetter · ICON-D2',layer:'mid:grid:icon-d2:pressure-sigwx',source:'grid',gridKind:'pressure-sigwx',timeDependent:true,forecast:true,defaultZoom:7,opacity:84,disclaimer:'SIGWX wird aus dem ICON-D2-Wettercodefeld dargestellt; MSL-Druckkonturen dienen der synoptischen Einordnung.'},
+ {id:'icon-d2-pressure-precip',modelId:'icon-d2',category:'surface',label:'Bodendruck + Niederschlag',detail:'MSL-Druckkonturen mit stündlichem Niederschlag · ICON-D2',layer:'mid:grid:icon-d2:pressure-precip',source:'grid',gridKind:'pressure-precip',timeDependent:true,forecast:true,defaultZoom:7,opacity:80},
 
  // ICON-EU – komplette auf dem offenen DWD-WMS veröffentlichte ICON-EU-Serie
  {id:'icon-eu-qff',modelId:'icon-eu',category:'surface',label:'Bodendruck / QFF',detail:'Auf Meereshöhe reduzierter Luftdruck',layer:'dwd:Icon-eu_reg00625_fd_sl_QFF',timeDependent:true,forecast:true,defaultZoom:5,opacity:78},
@@ -83,3 +85,5 @@ export function weatherMapModel(modelId:WeatherMapModelId){return WEATHER_MAP_MO
 export function weatherMapWmsProxy(){const configured=configuredWorkerBase('radar');if(!configured)return'';return buildWorkerUrl(configured,'weather-map-wms',{provider:'dwd'}).toString()}
 export async function loadWeatherMapMetadata(layer:string,signal?:AbortSignal){return fetchWorkerJson<WeatherMapMetadata>('weather-map-metadata',{layer},{purpose:'radar',signal,timeoutMs:12000,maxAgeMs:5*60000,staleIfErrorMs:30*60000,cacheKey:layer})}
 export function preferredWeatherMapTimeIndex(times:string[],reference=Date.now()){if(!times.length)return 0;const parsed=times.map(value=>Date.parse(value)),firstCurrent=parsed.findIndex(value=>Number.isFinite(value)&&value>=reference-15*60000);if(firstCurrent>=0)return firstCurrent;let best=0,distance=Infinity;parsed.forEach((value,index)=>{const next=Math.abs(value-reference);if(Number.isFinite(next)&&next<distance){distance=next;best=index}});return best}
+
+export async function loadWeatherMapGrid(modelId:WeatherMapModelId,lat:number,lon:number,signal?:AbortSignal){return fetchWorkerJson<WeatherMapGridData>('weather-map-grid',{model:modelId,lat,lon},{purpose:'radar',signal,timeoutMs:24000,maxAgeMs:10*60000,staleIfErrorMs:30*60000,cacheKey:`weather-map-grid:${modelId}:${lat.toFixed(2)}:${lon.toFixed(2)}`})}

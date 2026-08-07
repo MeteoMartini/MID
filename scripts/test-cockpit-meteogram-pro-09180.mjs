@@ -24,7 +24,10 @@ for(const token of [
   'className="apparent-line"',
   'className="cockpit-meteogram-pro__legend"',
   'Temperatur (ECMWF)',
-  'Stündlich · vollständig sichtbar'
+  'Stündlich · vollständig sichtbar',
+  '<dt><i className="dew"/>Taupunkt</dt><dd>{Math.round(selectedPoint.dewPoint)} °C</dd>',
+  '[hourlyExpanded,setHourlyExpanded]=useState(false)',
+  "hourlyExpanded?'weniger anzeigen':'mehr anzeigen'"
 ])need('Meteogramm',cockpit,token);
 
 for(const token of [
@@ -35,7 +38,9 @@ for(const token of [
   '--mg-plot:#f7f8f8',
   '.cockpit-meteogram-pro__svg .plot-bg{fill:var(--mg-plot)',
   '.cockpit-meteogram-pro__legend i.temperature{width:24px;height:4px;border-radius:999px;background:linear-gradient',
-  '@media(max-width:760px){'
+  '@media(max-width:760px){',
+  '.cockpit-hourly-preview.collapsed>.cockpit-hourly-chip:nth-child(n+7){display:none}',
+  '.cockpit-hourly-more{display:inline-flex}'
 ])need('Theme/Responsive-CSS',styles,token);
 
 needPattern('Theme/Responsive-CSS',styles,/\.cockpit-meteogram-pro__stage\s*\{[^}]*width:100%[^}]*max-width:100%[^}]*overflow:(?:visible|clip)[^}]*\}/s);

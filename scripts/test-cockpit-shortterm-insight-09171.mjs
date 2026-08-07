@@ -14,7 +14,7 @@ const reject=(label,text,token)=>{if(text.includes(token))failures.push(`${label
 for(const token of [
   "points=useMemo(()=>selectShortTermPoints(adjusted,'1h')",
   'className="cockpit-short-insight-grid premium"',
-  'className="cockpit-hourly-preview"',
+  "cockpit-hourly-preview${hourlyExpanded",
   'shortTermCompactWeatherLabel(point.weatherLabel)',
   'className="cockpit-brief compact-fourteen"',
   '<small>Wärmster Zeitpunkt</small>',

@@ -5086,3 +5086,14 @@ body,#root{
 .mid-hymecng-grid{image-rendering:auto}
 @media(max-width:760px){.dwd-precip-type-radar__map-shell{min-height:210px;aspect-ratio:4/3}}
 @media(max-width:430px){.dwd-precip-type-radar__map-shell{min-height:190px}}
+
+/* MID 0.9.25.1 · mobile 24-h-Leiste: sechs Stunden initial, Rest aufklappbar */
+.cockpit-hourly-more{display:none;justify-self:center;align-items:center;justify-content:center;min-height:34px;padding:7px 14px;border:1px solid color-mix(in srgb,var(--accent) 30%,var(--border));border-radius:999px;background:color-mix(in srgb,var(--surface) 94%,var(--accent) 6%);color:var(--text);font-size:10px;font-weight:850;letter-spacing:.01em;cursor:pointer}
+@media(max-width:620px){
+ .cockpit-hourly-preview.collapsed>.cockpit-hourly-chip:nth-child(n+7){display:none}
+ .cockpit-hourly-more{display:inline-flex}
+}
+
+/* MID 0.9.26.0 · Wetterkarten: INIT/Gültigkeit prominent und mobil lesbar */
+.weather-maps-validity{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.weather-maps-validity>span{display:grid;gap:2px;padding:8px 10px;border:1px solid var(--border);border-radius:12px;background:color-mix(in srgb,var(--s2) 82%,transparent);font-variant-numeric:tabular-nums}.weather-maps-validity small{font-size:8px;font-weight:850;letter-spacing:.12em;color:var(--muted)}.weather-maps-validity b{font-size:10px;line-height:1.35;color:var(--text)}
+@media(max-width:520px){.weather-maps-validity{grid-template-columns:1fr}.weather-maps-validity>span{grid-template-columns:58px 1fr;align-items:center}.weather-maps-validity small{font-size:7px}.weather-maps-validity b{font-size:9px}}
