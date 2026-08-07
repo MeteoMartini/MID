@@ -6,10 +6,26 @@ import type {Location} from './weather';
 const DWD_PRODUCT_PAGE='https://www.dwd.de/DE/leistungen/wolken_niederschlagsart/wolken_niederschlagsart.html';
 const DWD_DIRECT_IMAGE='https://www.dwd.de/DWD/wetter/sat/satwetter/njob_satrad.png';
 const COVERAGE={west:5.45,east:15.55,south:47.0,north:55.2};
-const DWD_IMAGE_GEO_AFFINE={
- x:{lon:.05173685,lat:.00499999,bias:-.26893832},
- y:{lon:.000726934962,lat:-.0838234393,bias:4.70885727}
-} as const;
+type DwdRasterLine={value:number;intercept:number;slope:number};
+// Georeferenzierung direkt am im DWD-NinJo-Bild sichtbaren Gradnetz. Die Linien wurden
+// aus den Rasterlinien 6/8/10/12° E sowie 49/50/51/52° N des Originalbildes kalibriert.
+// Wichtig: Die weißen Stadt-Pluszeichen sind kartographische Beschriftungsanker und
+// können zur Kollisionsvermeidung verschoben sein; sie werden ausdrücklich NICHT zur
+// Standortbestimmung verwendet.
+// Längengradlinien: x = intercept + slope * y (normierte Originalbildkoordinaten).
+const DWD_RASTER_LONGITUDE_LINES:DwdRasterLine[]=[
+ {value:6,intercept:.31098212,slope:-.07044436},
+ {value:8,intercept:.39703348,slope:-.03395512},
+ {value:10,intercept:.48378011,slope:0},
+ {value:12,intercept:.57130179,slope:.03269307}
+];
+// Breitengradlinien: y = intercept + slope * x (normierte Originalbildkoordinaten).
+const DWD_RASTER_LATITUDE_LINES:DwdRasterLine[]=[
+ {value:49,intercept:.64651429,slope:.01488340},
+ {value:50,intercept:.56749033,slope:.01558506},
+ {value:51,intercept:.47778116,slope:.03365028},
+ {value:52,intercept:.41065754,slope:.00464844}
+];
 const PRECIPITATION_TYPE_LEGEND=[
  {label:'großer Hagel',color:'#b000d6'},{label:'kleiner Hagel',color:'#d000f5'},{label:'Graupel',color:'#ffd633'},{label:'gefrierender Regen',color:'#ff1c00'},{label:'gefr. Sprühregen',color:'#d80000'},{label:'Schnee',color:'#ff21d1'},{label:'Schneeregen',color:'#ff70df'},{label:'Regen',color:'#00c778'},{label:'Sprühregen',color:'#19dca4'},{label:'nicht klassifizierbar',color:'#7f7f7f'},{label:'kein Niederschlag',color:'#c9c9c9'}
 ] as const;
@@ -23,14 +39,16 @@ type PointInspection={loading:boolean;error?:string;info?:RadarPointInfo};
 function clamp(value:number,min:number,max:number){return Math.min(max,Math.max(min,value))}
 function countryCode(location:Location){return String(location.country_code||location.country||'').trim().toUpperCase()}
 export function dwdPrecipitationTypeCoverage(location:Location){const latitude=Number(location.latitude),longitude=Number(location.longitude),code=countryCode(location),within=Number.isFinite(latitude)&&Number.isFinite(longitude)&&latitude>=COVERAGE.south&&latitude<=COVERAGE.north&&longitude>=COVERAGE.west&&longitude<=COVERAGE.east;if(code&&code!=='DE'&&code!=='DEU'&&code!=='GERMANY'&&code!=='DEUTSCHLAND')return false;return within}
-// Das DWD-NinJo-Komposit ist kein Web-Mercator-Kachellayer. Eine einfache Bounding-
-// Box oder Mercator-Abbildung verschiebt Ortsanker insbesondere in Nord-Süd-Richtung.
-// Die Bildkoordinaten werden deshalb mit einer kalibrierten affinen Abbildung bestimmt,
-// die an dauerhaft sichtbaren DWD-Stadtankern (u.a. Amsterdam, Düsseldorf, Koblenz,
-// Hannover, Frankfurt, Erfurt, Saarbrücken) ausgerichtet ist. Damit wird derselbe
-// Kartenrahmen verwendet, den das DWD-Komposit tatsächlich rendert.
-export function dwdPrecipitationTypeImagePosition(location:Pick<Location,'latitude'|'longitude'>){const latitude=Number(location.latitude),longitude=Number(location.longitude),x=DWD_IMAGE_GEO_AFFINE.x.lon*longitude+DWD_IMAGE_GEO_AFFINE.x.lat*latitude+DWD_IMAGE_GEO_AFFINE.x.bias,y=DWD_IMAGE_GEO_AFFINE.y.lon*longitude+DWD_IMAGE_GEO_AFFINE.y.lat*latitude+DWD_IMAGE_GEO_AFFINE.y.bias;return{x:clamp(x,0,1)*100,y:clamp(y,0,1)*100}}
-function geoFromImagePoint(x:number,y:number){const ax=DWD_IMAGE_GEO_AFFINE.x.lon,bx=DWD_IMAGE_GEO_AFFINE.x.lat,cx=DWD_IMAGE_GEO_AFFINE.x.bias,ay=DWD_IMAGE_GEO_AFFINE.y.lon,by=DWD_IMAGE_GEO_AFFINE.y.lat,cy=DWD_IMAGE_GEO_AFFINE.y.bias,det=ax*by-bx*ay;if(Math.abs(det)<1e-9)return{longitude:NaN,latitude:NaN};const px=x-cx,py=y-cy;return{longitude:(px*by-bx*py)/det,latitude:(ax*py-px*ay)/det}}
+// Das DWD-NinJo-Komposit ist kein Web-Mercator-Kachellayer. Deshalb wird nicht mehr
+// aus einer Bounding-Box oder aus Ortsbeschriftungen interpoliert, sondern direkt
+// zwischen den sichtbaren Gradnetzlinien. Außerhalb des zentral kalibrierten Rasters
+// wird nur über das jeweils äußerste Rasterintervall extrapoliert.
+function rasterBracket(lines:DwdRasterLine[],value:number){if(value<=lines[0].value)return[lines[0],lines[1]] as const;const last=lines.length-1;if(value>=lines[last].value)return[lines[last-1],lines[last]] as const;for(let index=0;index<last;index++)if(value>=lines[index].value&&value<=lines[index+1].value)return[lines[index],lines[index+1]] as const;return[lines[0],lines[1]] as const}
+function rasterLineCoordinate(line:DwdRasterLine,crossCoordinate:number){return line.intercept+line.slope*crossCoordinate}
+function rasterCoordinate(lines:DwdRasterLine[],value:number,crossCoordinate:number){const[a,b]=rasterBracket(lines,value),first=rasterLineCoordinate(a,crossCoordinate),second=rasterLineCoordinate(b,crossCoordinate),span=b.value-a.value,t=span?((value-a.value)/span):0;return first+(second-first)*t}
+function rasterValue(lines:DwdRasterLine[],coordinate:number,crossCoordinate:number){let nearest:[DwdRasterLine,DwdRasterLine]|null=null,nearestDistance=Infinity;for(let index=0;index<lines.length-1;index++){const a=lines[index],b=lines[index+1],first=rasterLineCoordinate(a,crossCoordinate),second=rasterLineCoordinate(b,crossCoordinate),minimum=Math.min(first,second),maximum=Math.max(first,second);if(coordinate>=minimum&&coordinate<=maximum){const span=second-first,t=Math.abs(span)>1e-9?(coordinate-first)/span:0;return a.value+(b.value-a.value)*t}const distance=coordinate<minimum?minimum-coordinate:coordinate-maximum;if(distance<nearestDistance){nearestDistance=distance;nearest=[a,b]}}const[a,b]=nearest??[lines[0],lines[1]],first=rasterLineCoordinate(a,crossCoordinate),second=rasterLineCoordinate(b,crossCoordinate),span=second-first,t=Math.abs(span)>1e-9?(coordinate-first)/span:0;return a.value+(b.value-a.value)*t}
+export function dwdPrecipitationTypeImagePosition(location:Pick<Location,'latitude'|'longitude'>){const latitude=Number(location.latitude),longitude=Number(location.longitude);let y=rasterCoordinate(DWD_RASTER_LATITUDE_LINES,latitude,.5),x=rasterCoordinate(DWD_RASTER_LONGITUDE_LINES,longitude,y);for(let iteration=0;iteration<5;iteration++){y=rasterCoordinate(DWD_RASTER_LATITUDE_LINES,latitude,x);x=rasterCoordinate(DWD_RASTER_LONGITUDE_LINES,longitude,y)}return{x:clamp(x,0,1)*100,y:clamp(y,0,1)*100}}
+function geoFromImagePoint(x:number,y:number){return{longitude:rasterValue(DWD_RASTER_LONGITUDE_LINES,x,y),latitude:rasterValue(DWD_RASTER_LATITUDE_LINES,y,x)}}
 function candidateImageUrls(slot:number){const workers=workerBaseCandidates('radar').map(base=>buildWorkerUrl(base,'dwd-precipitation-type-image',{slot}).toString());return[...new Set([...workers,`${DWD_DIRECT_IMAGE}?slot=${slot}`])]}
 function formatTimestamp(value:string|undefined,timezone='Europe/Berlin'){if(!value)return'–';const stamp=Date.parse(value);if(!Number.isFinite(stamp))return value;try{return new Intl.DateTimeFormat('de-DE',{timeZone:timezone,day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',timeZoneName:'short'}).format(new Date(stamp))}catch{return new Date(stamp).toLocaleString('de-DE')}}
 function formatCompactTimestamp(value:string|undefined,timezone='Europe/Berlin'){if(!value)return'–';const stamp=Date.parse(value);if(!Number.isFinite(stamp))return value;try{return new Intl.DateTimeFormat('de-DE',{timeZone:timezone,hour:'2-digit',minute:'2-digit',timeZoneName:'short'}).format(new Date(stamp))}catch{return formatTimestamp(value,timezone)}}
@@ -45,9 +63,9 @@ export function DwdPrecipitationTypeRadar({location,enabled=true}:{location:Loca
  const imageStyle={width:`${(100/crop.width).toFixed(6)}%`,height:`${(100/crop.height).toFixed(6)}%`,left:`${(-(crop.left/crop.width)*100).toFixed(6)}%`,top:`${(-(crop.top/crop.height)*100).toFixed(6)}%`} as CSSProperties;
  const markerStyle={left:`${crop.markerLeft.toFixed(4)}%`,top:`${crop.markerTop.toFixed(4)}%`} as CSSProperties;
  const inspectPoint=async(event:MouseEvent<HTMLDivElement>)=>{if(!viewportRef.current||loading||failed)return;const viewport=viewportRef.current.getBoundingClientRect(),relativeX=clamp((event.clientX-viewport.left)/Math.max(1,viewport.width),0,1),relativeY=clamp((event.clientY-viewport.top)/Math.max(1,viewport.height),0,1),fullX=clamp(crop.left+relativeX*crop.width,0,1),fullY=clamp(crop.top+relativeY*crop.height,0,1),geo=geoFromImagePoint(fullX,fullY);setPointInfo({loading:true});try{const info=await fetchWorkerJson<RadarPointInfo>('dwd-precipitation-type-info',{x:fullX.toFixed(6),y:fullY.toFixed(6),lat:geo.latitude.toFixed(5),lon:geo.longitude.toFixed(5)},{purpose:'radar',timeoutMs:10000,maxAgeMs:2*60000,staleIfErrorMs:10*60000,cacheKey:`dwd-precip-info:${refreshSlot}:${fullX.toFixed(3)}:${fullY.toFixed(3)}`});setPointInfo({loading:false,info})}catch(error){setPointInfo({loading:false,error:error instanceof Error?error.message:'Punktanalyse nicht verfügbar.'})}};
- return <section className="dwd-precip-type-radar" aria-label="DWD Niederschlagsart und Satbild"><header><span><small>DWD · Satellit + Radar</small><strong>Niederschlagsart/Satbild</strong><em>Ausschnitt um {location.name||'den gewählten Ort'}</em></span><div className="dwd-precip-type-radar__actions"><button type="button" className={`dwd-precip-type-radar__marker-toggle${markerVisible?' active':''}`} onClick={()=>setMarkerVisible(value=>!value)} title={markerVisible?'Standortmarker ausblenden':'Standortmarker einblenden'} aria-pressed={markerVisible}><MapPin size={16}/></button><details className="dwd-precip-type-radar__info"><summary aria-label="Legende der Niederschlagsarten anzeigen" title="Legende"><Info size={16}/></summary><div className="dwd-precip-type-radar__legend" role="group" aria-label="DWD-Legende Niederschlagsarten"><strong>Niederschlagsart</strong>{PRECIPITATION_TYPE_LEGEND.map(item=><span key={item.label}><i style={{background:item.color}}/>{item.label}</span>)}</div></details><a href={DWD_PRODUCT_PAGE} target="_blank" rel="noreferrer" title="DWD-Originalprodukt öffnen"><ExternalLink size={16}/><span>DWD</span></a></div></header>
+ return <section className="dwd-precip-type-radar" aria-label="DWD Wolken und Niederschlagsart"><header><span><small>DWD · Satellit + Radar</small><strong>Wolken + Niederschlagsart</strong><em>Ausschnitt um {location.name||'den gewählten Ort'}</em></span><div className="dwd-precip-type-radar__actions"><button type="button" className={`dwd-precip-type-radar__marker-toggle${markerVisible?' active':''}`} onClick={()=>setMarkerVisible(value=>!value)} title={markerVisible?'Standortmarker ausblenden':'Standortmarker einblenden'} aria-pressed={markerVisible}><MapPin size={16}/></button><details className="dwd-precip-type-radar__info"><summary aria-label="Legende der Niederschlagsarten anzeigen" title="Legende"><Info size={16}/></summary><div className="dwd-precip-type-radar__legend" role="group" aria-label="DWD-Legende Niederschlagsarten"><strong>Niederschlagsart</strong>{PRECIPITATION_TYPE_LEGEND.map(item=><span key={item.label}><i style={{background:item.color}}/>{item.label}</span>)}</div></details><a href={DWD_PRODUCT_PAGE} target="_blank" rel="noreferrer" title="DWD-Originalprodukt öffnen"><ExternalLink size={16}/><span>DWD</span></a></div></header>
  <div className="dwd-precip-type-radar__timestamps"><span><b>Niederschlagsart</b>{formatCompactTimestamp(meta?.radarAt,timezone)}</span><span><b>Satbild</b>{formatCompactTimestamp(meta?.satelliteAt,timezone)}</span>{pointInfo?<span className="dwd-precip-type-radar__point-strip"><b>Bildpunkt</b>{pointInfo.loading?'wird ausgewertet …':pointInfo.error?pointInfo.error:pointInfo.info?`${pointInfo.info.precipitationLabel} · Wolken: ${pointInfo.info.cloudLabel}`:'–'}</span>:<span className="dwd-precip-type-radar__point-strip idle"><b>Bildpunkt</b>Antippen zur Auswertung</span>}{meta?.componentTimeNote?<small title={meta.componentTimeNote}>Zeitstand · DWD-Produktseite</small>:null}</div>
- <div ref={viewportRef} className={`dwd-precip-type-radar__viewport${loading?' loading':''}${failed?' failed':''}`} role="img" aria-label={`Gezoomter Ausschnitt des DWD-Produkts Niederschlagsart und Satbild um ${location.name||'den gewählten Ort'}`} onClick={inspectPoint}>
+ <div ref={viewportRef} className={`dwd-precip-type-radar__viewport${loading?' loading':''}${failed?' failed':''}`} role="img" aria-label={`Gezoomter Ausschnitt des DWD-Produkts Wolken und Niederschlagsart um ${location.name||'den gewählten Ort'}`} onClick={inspectPoint}>
   {!failed&&imageUrl&&<img className="dwd-precip-type-radar__image" src={imageUrl} alt="" aria-hidden="true" draggable={false} style={imageStyle}/>}
   {loading&&<span className="dwd-precip-type-radar__status"><RefreshCw className="spin" size={18}/>DWD-Bild wird geladen …</span>}
   {failed&&<span className="dwd-precip-type-radar__status"><CloudRain size={18}/>DWD-Bild vorübergehend nicht verfügbar.</span>}
