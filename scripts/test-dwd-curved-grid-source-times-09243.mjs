@@ -1,10 +1,10 @@
 import {readFile} from 'node:fs/promises';
 const [radar,map,hymec,worker,baseline]=await Promise.all([readFile(new URL('../src/DwdPrecipitationTypeRadar.tsx',import.meta.url),'utf8'),readFile(new URL('../src/DwdPrecipitationMap.tsx',import.meta.url),'utf8'),readFile(new URL('../src/HymecNgSource.ts',import.meta.url),'utf8'),readFile(new URL('../worker/metar-proxy.js',import.meta.url),'utf8'),readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')]);
 const failures=[];const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};const reject=(label,text,token)=>{if(text.includes(token))failures.push(`${label} sollte fehlen: ${token}`)};
-for(const token of ['Wolken + Niederschlagsart','formatSourceTimestamp','satelliteAt','radarAt','freshHymec','latestRainViewerTime'])need('UI-Quellzeiten',radar,token);
-for(const token of ['closestProductTime','satelliteTime','radarTime','rainFrame!.time'])need('Karten-Zeitbindung',map,token);
+for(const token of ['Wolken + Niederschlagsart','formatSourceTimestamp','satelliteAt','dwdRadarAt','phaseAt','freshVerifiedHymec','radarLatestOnly','dwdReferenceSatelliteProduct'])need('UI-Quellzeiten',radar,token);
+for(const token of ['closestProductTime','satelliteTime','radarTime','radarLatestOnly'])need('Karten-Zeitbindung',map,token);
 for(const token of ['projectWgs84(latitude,longitude,raster.projection)','loadHymecNgRaster'])need('Native HymecNG-Projektion',hymec,token);
-for(const token of ['DWD_HYMECNG_ROOTS','composite_HymecNG_','satelliteProduct(capabilities,SATELLITE_DAY_CANDIDATES,now)','dwdTimesFromCapabilities(dwdXml,layer)'])need('Worker-Zeitpfad',worker,token);
+for(const token of ['DWD_HYMECNG_ROOTS','composite_HymecNG_','DWD_REFERENCE_SATELLITE_CANDIDATES','satelliteProduct(capabilities,DWD_REFERENCE_SATELLITE_CANDIDATES,now)','dwdTimesFromCapabilities(dwdXml,timingLayer)'])need('Worker-Zeitpfad',worker,token);
 reject('Keine statische Quellbild-Zeitbindung',radar,"response.headers.get('x-mid-radar-at')");
 const hymecTime=f=>{const m=f.match(/^composite_HymecNG_(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})_000-hd5$/);return m?Date.UTC(Number(m[1]),Number(m[2])-1,Number(m[3]),Number(m[4]),Number(m[5])):NaN};if(new Date(hymecTime('composite_HymecNG_20260807_1440_000-hd5')).toISOString()!=='2026-08-07T14:40:00.000Z')failures.push('HymecNG-Dateizeit wird nicht korrekt dekodiert.');if(!baseline.includes('scripts/test-dwd-curved-grid-source-times-09243.mjs'))failures.push('Baseline-Test fehlt.');
 if(failures.length){console.error('DWD native Projektions-/Quellzeitprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}console.log('Native HymecNG-Georeferenzierung und Zeitbindung der tatsächlich angezeigten Einzelprodukte geprüft.');

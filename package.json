@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.29.0",
+  "version": "0.9.30.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -221,7 +221,8 @@
     "test:dwd-radar-meteogram-alignment": "node scripts/test-dwd-radar-meteogram-alignment-09211.mjs",
     "test:radar-weather-maps-interaction": "node scripts/test-radar-weather-maps-interaction-09220.mjs",
     "test:dwd-radar-worker-payload-buildfix": "node scripts/test-dwd-radar-worker-payload-buildfix-09221.mjs",
-    "test:mid-single-precip-composite": "node scripts/test-mid-single-precip-composite-09290.mjs"
+    "test:mid-single-precip-composite": "node scripts/test-mid-single-precip-composite-09290.mjs",
+    "test:dwd-composite-source-integrity": "node scripts/test-dwd-composite-source-integrity-09300.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

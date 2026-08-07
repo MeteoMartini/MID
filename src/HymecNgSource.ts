@@ -15,6 +15,8 @@ export type HymecNgMeta={
  georeferencing?:string;
  provider?:string;
  license?:string;
+ classificationVerified?:boolean;
+ classificationNote?:string;
  error?:string;
  reason?:string;
 };
@@ -39,25 +41,21 @@ export type HymecNgRaster={
  nodata:number;
  undetect:number;
  observedAt?:string;
+ classificationVerified:boolean;
  bounds:LatLngBoundsExpression;
 };
 
-// Die DWD-Produktbeschreibung nennt die zehn expliziten Klassen in genau dieser
-// Reihenfolge; "kein Niederschlag" wird im ODIM-Raster als undetect/0 behandelt.
-export const HYMEC_NG_CLASSES:HymecNgClass[]=[
- {code:1,label:'großer Hagel',color:'#b000d6',rgba:[176,0,214,236]},
- {code:2,label:'kleiner Hagel',color:'#d000f5',rgba:[208,0,245,232]},
- {code:3,label:'Graupel',color:'#ffd633',rgba:[255,214,51,225]},
- {code:4,label:'gefrierender Regen',color:'#ff1c00',rgba:[255,28,0,235]},
- {code:5,label:'gefr. Sprühregen',color:'#d80000',rgba:[216,0,0,232]},
- {code:6,label:'Schnee',color:'#ff21d1',rgba:[255,33,209,218]},
- {code:7,label:'Schneeregen',color:'#ff70df',rgba:[255,112,223,212]},
- {code:8,label:'Regen',color:'#00c778',rgba:[0,199,120,210]},
- {code:9,label:'Sprühregen',color:'#19dca4',rgba:[25,220,164,198]},
- {code:10,label:'nicht klassifizierbar',color:'#7f7f7f',rgba:[127,127,127,160]},
-];
-const NO_PRECIP:HymecNgClass={code:0,label:'kein Niederschlag',color:'#c9c9c9',rgba:[0,0,0,0]};
-const CLASS_BY_CODE=new Map(HYMEC_NG_CLASSES.map(item=>[item.code,item]));
+// Der öffentliche DWD-Leistungssteckbrief bestätigt die Klassenbezeichnungen, aber
+// keine belastbare Zuordnung der numerischen HDF5-Rohwerte zu diesen Klassen. MID darf
+// deshalb aus der Reihenfolge der Liste keine Codes ableiten. Die Farben dienen nur der
+// Legende, sobald eine Codetabelle aus einer verifizierten Quelle vorliegt.
+export const HYMEC_NG_CLASS_LEGEND=[
+ {label:'großer Hagel',color:'#b000d6'},{label:'kleiner Hagel',color:'#d000f5'},{label:'Graupel',color:'#ffd633'},
+ {label:'gefrierender Regen',color:'#ff1c00'},{label:'gefr. Sprühregen',color:'#d80000'},{label:'Schnee',color:'#ff21d1'},
+ {label:'Schneeregen',color:'#ff70df'},{label:'Regen',color:'#00c778'},{label:'Sprühregen',color:'#19dca4'},
+ {label:'nicht klassifizierbar',color:'#7f7f7f'},{label:'kein Niederschlag',color:'#c9c9c9'}
+] as const;
+const UNVERIFIED_CLASS:HymecNgClass={code:-1,label:'HymecNG-Klasse nicht verifiziert',color:'#7f7f7f',rgba:[0,0,0,0]};
 const rasterCache=new Map<string,Promise<HymecNgRaster>>();
 
 function text(value:unknown):string{
@@ -105,7 +103,7 @@ function projectedCorner(where:H5Node,projection:RadarProjection,name:'UL'|'UR'|
  const lat=scalar(attr(where,`${name}_lat`,`${name.toLowerCase()}_lat`)),lon=scalar(attr(where,`${name}_lon`,`${name.toLowerCase()}_lon`));
  return Number.isFinite(lat)&&Number.isFinite(lon)?projectWgs84(lat!,lon!,projection):null;
 }
-function rasterGeometry(file:H5File,selection:DatasetSelection,observedAt?:string):HymecNgRaster{
+function rasterGeometry(file:H5File,selection:DatasetSelection,observedAt:string|undefined,classificationVerified:boolean):HymecNgRaster{
  const {where,projection}=projectionFromFile(file),shape=selection.node.shape??[],height=Number(shape[0]),width=Number(shape[1]),values=selection.node.value as ArrayLike<number>;
  if(!width||!height||!values||values.length<width*height)throw new Error('HymecNG-Raster ist unvollständig.');
  const xScale=Math.abs(scalar(attr(where,'xscale','x_scale'))??1000),yScale=Math.abs(scalar(attr(where,'yscale','y_scale'))??1000),ul=projectedCorner(where,projection,'UL'),ur=projectedCorner(where,projection,'UR'),ll=projectedCorner(where,projection,'LL');
@@ -116,7 +114,7 @@ function rasterGeometry(file:H5File,selection:DatasetSelection,observedAt?:strin
  const maxX=minX!+width*xScale,minY=maxY!-height*yScale,corners:[[number,number],[number,number],[number,number],[number,number]]=[[minX!,maxY!],[maxX,maxY!],[minX!,minY],[maxX,minY]],geo=corners.map(([x,y])=>inverseProjectedPoint(x,y,projection)).filter((point):point is [number,number]=>Boolean(point&&Number.isFinite(point[0])&&Number.isFinite(point[1])));
  if(geo.length!==4)throw new Error('HymecNG-Rastergrenzen konnten nicht nach WGS84 transformiert werden.');
  const lats=geo.map(point=>point[0]),lons=geo.map(point=>point[1]),bounds:LatLngBoundsExpression=[[Math.min(...lats),Math.min(...lons)],[Math.max(...lats),Math.max(...lons)]],gain=scalar(attr(selection.what,'gain'))??1,offset=scalar(attr(selection.what,'offset'))??0,nodata=scalar(attr(selection.what,'nodata'))??255,undetect=scalar(attr(selection.what,'undetect'))??0;
- return{projection,width,height,xScale,yScale,minX:minX!,maxY:maxY!,values,gain,offset,nodata,undetect,observedAt,bounds};
+ return{projection,width,height,xScale,yScale,minX:minX!,maxY:maxY!,values,gain,offset,nodata,undetect,observedAt,classificationVerified,bounds};
 }
 
 export async function loadHymecNgMetadata(target?:string,signal?:AbortSignal):Promise<HymecNgMeta>{
@@ -132,17 +130,17 @@ export function loadHymecNgRaster(meta:HymecNgMeta):Promise<HymecNgRaster>{
   const response=await fetch(key,{cache:'no-store'});if(!response.ok)throw new Error(`HymecNG-Datei HTTP ${response.status}`);
   const buffer=await response.arrayBuffer();if(buffer.byteLength<1024)throw new Error('HymecNG-Datei ist unerwartet klein.');
   const hdf5=await import('jsfive'),file=new hdf5.File(buffer,key) as unknown as H5File,selection=findDataset(file);
-  return rasterGeometry(file,selection,meta.observedAt);
+  return rasterGeometry(file,selection,meta.observedAt,meta.classificationVerified===true);
  })().catch(error=>{rasterCache.delete(key);throw error});
  rasterCache.set(key,promise);return promise;
 }
 
 export function hymecNgClassForRaw(raw:number,raster:HymecNgRaster):HymecNgClass{
- if(!Number.isFinite(raw)||raw===raster.nodata)return NO_PRECIP;
- if(raw===raster.undetect)return NO_PRECIP;
- const physical=Math.round(raw*raster.gain+raster.offset);
- if(physical===0)return NO_PRECIP;
- return CLASS_BY_CODE.get(physical)??{code:physical,label:'nicht klassifizierbar',color:'#7f7f7f',rgba:[127,127,127,150]};
+ // Fail-safe: ohne veröffentlichte/verifizierte Codetabelle keine erfundenen Klassen.
+ // Damit kann ein Rohwert niemals fälschlich als Hagel, Graupel, Schnee usw. erscheinen.
+ if(!raster.classificationVerified)return UNVERIFIED_CLASS;
+ if(!Number.isFinite(raw)||raw===raster.nodata||raw===raster.undetect)return{code:0,label:'kein Niederschlag',color:'#c9c9c9',rgba:[0,0,0,0]};
+ return UNVERIFIED_CLASS;
 }
 
 export function hymecNgSourceIndex(raster:HymecNgRaster,latitude:number,longitude:number):number|null{

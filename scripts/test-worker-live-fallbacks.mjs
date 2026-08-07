@@ -9,8 +9,8 @@ for(const token of [
  "const SATELLITE_LATEST_IR={provider:'eumetsat',layer:'mtg_fd:ir105_hrfi'",
  "layer:'mtg_fd:rgb_geocolour'",
  'satelliteProduct(capabilities,SATELLITE_DAY_CANDIDATES,now)',
- 'dwdTimesFromCapabilities(dwdXml,layer)',
- 'result.dwdRadarLatestOnly=!observed.length',
+ 'dwdTimesFromCapabilities(dwdXml,timingLayer)',
+ 'result.dwdRadarLatestOnly=result.dwdRadarLayer===alias||!observed.length',
  'async function compositeDiagnostics()',
  "if(mode==='composite-diagnostics')",
  'async function fetchWithDeadline',
@@ -24,10 +24,10 @@ globalThis.fetch=async(input,init={})=>{const url=new URL(typeof input==='string
 try{
  const module=await import('../worker/metar-proxy.js?composite-live-test='+Date.now());
  const timesResponse=await module.default.fetch(new Request('https://mid.test/?mode=composite-times&lat=50.82&lon=7.04'),{}),times=await timesResponse.json();
- if(!timesResponse.ok||times.satelliteDayProduct?.layer!=='mtg_fd:rgb_geocolour'||times.satelliteDayProduct?.latestOnly||!times.satelliteDayProduct?.latestTime||times.dwdRadarLatestOnly||!times.dwdRadar?.length||!String(times.dwdRadarLayer).includes('Radar_rv_product_1x1km_ger'))failures.push(`Exakte aktuelle Produktzeiten werden nicht korrekt gemeldet: ${JSON.stringify(times)}`);
+ if(!timesResponse.ok||times.satelliteDayProduct?.layer!=='mtg_fd:rgb_geocolour'||times.satelliteDayProduct?.latestOnly||!times.satelliteDayProduct?.latestTime||times.dwdRadarLatestOnly!==true||!times.dwdRadar?.length||times.dwdRadarLayer!=='dwd:Niederschlagsradar')failures.push(`Exakte aktuelle Produktzeiten werden nicht korrekt gemeldet: ${JSON.stringify(times)}`);
  if(captured.length)failures.push('composite-times darf keine WMS-GetMap-Probe benötigen; Capabilities genügen.');
  const diagnostic=await module.default.fetch(new Request('https://mid.test/?mode=composite-diagnostics'),{}),diagnosticData=await diagnostic.json();
  if(!diagnostic.ok||diagnosticData.checks?.length!==3||!diagnosticData.checks.every(item=>item.ok))failures.push(`Quellendiagnose fehlgeschlagen: ${JSON.stringify(diagnosticData)}`);
 }finally{globalThis.fetch=originalFetch}
 if(failures.length){console.error('Komposit-Live-Layer-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Komposit-Live-Layer geprüft: verifizierte WMS-Zeitdimensionen, exakte Produktzeiten und Quellendiagnose sind abgesichert.');
+console.log('Komposit-Live-Layer geprüft: verifizierte WMS-Zeitdimensionen, stabiler DWD-Radaralias, exakte Referenzzeit und Quellendiagnose sind abgesichert.');
