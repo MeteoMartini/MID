@@ -25,7 +25,7 @@ const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const OPEN_METEO_ELEVATION='https://api.open-meteo.com/v1/elevation';
-const WORKER_VERSION='0.9.22.1';
+const WORKER_VERSION='0.9.23.2';
 const CORS={'content-type':'application/json; charset=utf-8','access-control-allow-origin':'*','access-control-allow-methods':'GET,POST,OPTIONS','access-control-allow-headers':'content-type','cache-control':'public, max-age=180'};
 const FEED_SLUGS={
  AD:'andorra',AT:'austria',BE:'belgium',BA:'bosnia-herzegovina',BG:'bulgaria',HR:'croatia',CY:'cyprus',CZ:'czechia',DK:'denmark',EE:'estonia',FI:'finland',FR:'france',DE:'germany',GR:'greece',EL:'greece',HU:'hungary',IS:'iceland',IE:'ireland',IL:'israel',IT:'italy',LV:'latvia',LT:'lithuania',LU:'luxembourg',MT:'malta',MD:'moldova',ME:'montenegro',NL:'netherlands',MK:'republic-of-north-macedonia',NO:'norway',PL:'poland',PT:'portugal',RO:'romania',RS:'serbia',SK:'slovakia',SI:'slovenia',ES:'spain',SE:'sweden',CH:'switzerland',UA:'ukraine',GB:'united-kingdom',UK:'united-kingdom',AM:'armenia'
@@ -1166,10 +1166,15 @@ async function modelContours(lat,lon){
  if(!frames.length)throw new Error('Open-Meteo lieferte keine auswertbaren Modelllinien.');return{frames,provider:'Open-Meteo',model:selected.modelLabel,resolutionNote:`${domain.scope} · einheitliches ${selected.modelLabel} · ${rows}×${cols} Stützraster, bilinear verdichtet und geglättet`,grid:{rows,cols,latSpan:north-south,lonSpan:east-west,scope:domain.scope,bounds:{south,north,west,east}},contours:{isobars:'dynamisch 1/2/4 hPa nach Druckgradient; Zielabstand ungefähr 100 km',isoheights:'8 gpdm'},fallback:primaryError?{from:domain.modelLabel,to:selected.modelLabel,reason:primaryError}:undefined,checkedAt:new Date().toISOString()};
 }
 const WMS_ALLOWED_LAYERS={
- dwd:new Set([...DWD_RADAR_LAYERS,'dwd:Blitzdichte','dwd:NCEW_EU','dwd:Warnungen_Gemeinden_vereinigt','dwd:Icon_reg025_fd_sl_PMSL','dwd:Icon_reg025_fd_pl_GH',...SATELLITE_DAY_CANDIDATES.filter(item=>item.provider==='dwd').map(item=>item.layer),...SATELLITE_IR_CANDIDATES.filter(item=>item.provider==='dwd').map(item=>item.layer)]),
+ dwd:new Set([...DWD_RADAR_LAYERS,'dwd:Blitzdichte','dwd:NCEW_EU','dwd:Warnungen_Gemeinden_vereinigt','dwd:Icon-d2_reg002_fd_sl_QFF','dwd:Icon-d2_reg002_fd_gl_T','dwd:Icon-d2_reg002_fd_sl_TOTPREC01H','dwd:Icon-d2_reg002_fd_sl_TOTPREC03H','dwd:Icon-d2_reg002_fd_sl_UV10M','dwd:Icon_reg025_fd_sl_PMSL','dwd:Icon_reg025_fd_pl_GH',...SATELLITE_DAY_CANDIDATES.filter(item=>item.provider==='dwd').map(item=>item.layer),...SATELLITE_IR_CANDIDATES.filter(item=>item.provider==='dwd').map(item=>item.layer)]),
  eumetsat:new Set(['mtg_fd:vis06_hrfi','mtg_fd:ir105_hrfi','mtg_fd:li_afa','msg_fes:rgb_eview','msg_fes:ir108',...SATELLITE_PRECIP_CANDIDATES.map(item=>item.layer)])
 };
 const WEATHER_MAP_LAYER_CONFIG=new Map([
+ ['dwd:Icon-d2_reg002_fd_sl_QFF',{forecast:true}],
+ ['dwd:Icon-d2_reg002_fd_gl_T',{forecast:true,elevation:true}],
+ ['dwd:Icon-d2_reg002_fd_sl_TOTPREC01H',{forecast:true}],
+ ['dwd:Icon-d2_reg002_fd_sl_TOTPREC03H',{forecast:true}],
+ ['dwd:Icon-d2_reg002_fd_sl_UV10M',{forecast:true}],
  ['dwd:Icon-eu_reg00625_fd_sl_QFF',{forecast:true}],
  ['dwd:Icon-eu_reg00625_fd_gl_T',{forecast:true,elevation:true}],
  ['dwd:Icon-eu_reg00625_fd_sl_TOTPREC01H',{forecast:true}],

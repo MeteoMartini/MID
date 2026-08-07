@@ -20,7 +20,8 @@ for(const token of [
   'Stündlich · vollständig sichtbar',
   'className="cockpit-hourly-preview-shell"',
   'Kompakte 24-h-Zeitachse',
-  'shortTermTrendLabel(previewPoints)'
+  '<small>Wärmster Zeitpunkt</small>',
+  '<small>Niederschlagsspitze</small>'
 ])need('Kurzfrist-Premium-Cockpit',cockpit,token);
 
 for(const token of [
@@ -36,6 +37,8 @@ reject('Altes konfliktanfälliges Diagramm-Markup',cockpit,'className="cockpit-s
 need('Einzeldatenfeld',cockpit,'className="cockpit-meteogram-pro__datafield"');
 reject('Horizontales Meteogramm-Scrollen',styles,'.cockpit-meteogram-pro__stage{width:100%;max-width:100%;overflow-x:auto;');
 reject('1h/3h-Umschalter',cockpit,'aria-label="Auflösung der Kurzfristvorhersage"');
+reject('Entfernter Kurzfristkompass',cockpit,'Kurzfristkompass');
+reject('Entfernter Trendhelfer',cockpit,'shortTermTrendLabel(previewPoints)');
 need('Package-Test',pkg,'test:cockpit-shortterm-premium');
 need('Baseline-Test',baseline,'scripts/test-cockpit-shortterm-premium-09172.mjs');
 const packageVersion=JSON.parse(pkg).version,baselineVersion=JSON.parse(baseline).releaseVersion;

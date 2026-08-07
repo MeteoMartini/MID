@@ -1,6 +1,6 @@
 import {buildWorkerUrl,configuredWorkerBase,fetchWorkerJson} from './workerClient';
 
-export type WeatherMapModelId='icon-eu'|'icon'|'icon-eps'|'aicon'|'nowcastmix';
+export type WeatherMapModelId='icon-d2'|'icon-eu'|'icon'|'icon-eps'|'aicon'|'nowcastmix';
 export type WeatherMapCategory='surface'|'upper-air'|'ensemble'|'significant';
 export type WeatherMapLevelKind='pressure'|'height';
 
@@ -11,6 +11,7 @@ export type WeatherMapProduct={
 export type WeatherMapMetadata={layer:string;times:string[];referenceTimes:string[];elevations:number[];provider?:string;checkedAt?:string;error?:string};
 
 export const WEATHER_MAP_MODELS:{id:WeatherMapModelId;label:string;detail:string}[]=[
+ {id:'icon-d2',label:'DWD ICON-D2',detail:'Deutschland · ca. 2 km · Kurzfrist bis rund +48 h'},
  {id:'icon-eu',label:'DWD ICON-EU',detail:'Europa · 0,0625° · Modellläufe 00/06/12/18 UTC'},
  {id:'icon',label:'DWD ICON Global',detail:'Global · Boden- und Druckflächen'},
  {id:'icon-eps',label:'DWD ICON-EPS',detail:'Globales Ensemble · Wahrscheinlichkeiten und Mittelwerte'},
@@ -22,6 +23,13 @@ const PRESSURE_LEVELS=[1000,925,850,700,500,400,300,250,200];
 const HEIGHT_LEVELS=[2,50,100,150,200,250,300,350,400,450,500];
 
 export const WEATHER_MAP_PRODUCTS:WeatherMapProduct[]=[
+ // ICON-D2 – hochaufgelöste Deutschland-Serie
+ {id:'icon-d2-qff',modelId:'icon-d2',category:'surface',label:'Bodendruck / QFF',detail:'Auf Meereshöhe reduzierter Luftdruck · ICON-D2',layer:'dwd:Icon-d2_reg002_fd_sl_QFF',timeDependent:true,forecast:true,defaultZoom:7,opacity:78},
+ {id:'icon-d2-temperature-height',modelId:'icon-d2',category:'upper-air',label:'Temperatur auf Höhen über Grund',detail:'2 bis 500 m über Grund · ICON-D2',layer:'dwd:Icon-d2_reg002_fd_gl_T',levels:HEIGHT_LEVELS,defaultLevel:2,levelKind:'height',timeDependent:true,forecast:true,defaultZoom:7,opacity:76},
+ {id:'icon-d2-rain-1h',modelId:'icon-d2',category:'surface',label:'Niederschlag · 1 Stunde',detail:'Stündliche Niederschlagsmenge · ICON-D2',layer:'dwd:Icon-d2_reg002_fd_sl_TOTPREC01H',timeDependent:true,forecast:true,defaultZoom:7,opacity:74},
+ {id:'icon-d2-rain-3h',modelId:'icon-d2',category:'surface',label:'Niederschlag · 3 Stunden',detail:'Dreistündliche Niederschlagsmenge · ICON-D2',layer:'dwd:Icon-d2_reg002_fd_sl_TOTPREC03H',timeDependent:true,forecast:true,defaultZoom:7,opacity:74},
+ {id:'icon-d2-wind-10m',modelId:'icon-d2',category:'surface',label:'Wind · 10 Meter',detail:'Mittelwind in 10 m über Grund · ICON-D2',layer:'dwd:Icon-d2_reg002_fd_sl_UV10M',timeDependent:true,forecast:true,defaultZoom:7,opacity:82},
+
  // ICON-EU – komplette auf dem offenen DWD-WMS veröffentlichte ICON-EU-Serie
  {id:'icon-eu-qff',modelId:'icon-eu',category:'surface',label:'Bodendruck / QFF',detail:'Auf Meereshöhe reduzierter Luftdruck',layer:'dwd:Icon-eu_reg00625_fd_sl_QFF',timeDependent:true,forecast:true,defaultZoom:5,opacity:78},
  {id:'icon-eu-temperature-height',modelId:'icon-eu',category:'upper-air',label:'Temperatur auf Höhen über Grund',detail:'2 bis 500 m über Grund',layer:'dwd:Icon-eu_reg00625_fd_gl_T',levels:HEIGHT_LEVELS,defaultLevel:2,levelKind:'height',timeDependent:true,forecast:true,defaultZoom:5,opacity:76},
@@ -58,7 +66,7 @@ export const WEATHER_MAP_PRODUCTS:WeatherMapProduct[]=[
  {id:'aicon-wind-10m',modelId:'aicon',category:'surface',label:'Wind · 10 Meter',detail:'Mittelwind in 10 m aus AICON',layer:'dwd:Aicon_reg025_fd_sl_UV10M',timeDependent:true,forecast:true,defaultZoom:4,opacity:82},
 
  // Signifikantes Wetter / NowCastMIX
- {id:'significant-analysis',modelId:'nowcastmix',category:'significant',label:'Signifikantes Wetter · Analyse',detail:'Autowarn-Polygone für signifikante Wettererscheinungen',layer:'dwd:Autowarn_Analyse',timeDependent:false,defaultZoom:6,opacity:90,disclaimer:'NowCastMIX-Analyse: Polygone erscheinen nur dort, wo aktuell signifikante Wettererscheinungen erkannt werden. Keine amtliche Einzelwarnung.'},
+ {id:'significant-analysis',modelId:'nowcastmix',category:'significant',label:'Signifikantes Wetter',detail:'Autowarn-Polygone für signifikante Wettererscheinungen',layer:'dwd:Autowarn_Analyse',timeDependent:false,defaultZoom:6,opacity:90,disclaimer:'NowCastMIX-Analyse: Polygone erscheinen nur dort, wo aktuell signifikante Wettererscheinungen erkannt werden. Keine amtliche Einzelwarnung.'},
  {id:'significant-forecast',modelId:'nowcastmix',category:'significant',label:'Signifikantes Wetter · +60 Minuten',detail:'Verlagerungsprognose signifikanter Wettererscheinungen',layer:'dwd:Autowarn_Vorhersage',timeDependent:false,forecast:true,defaultZoom:6,opacity:90,disclaimer:'NowCastMIX-Verlagerungsprognose bis +60 min; Polygone erscheinen nur bei erkannten Ereignissen.'},
  {id:'significant-cells',modelId:'nowcastmix',category:'significant',label:'Gewitterzellen',detail:'Automatisch erkannte konvektive Zellen aus NowCastMIX',layer:'dwd:Gewitterzellen',timeDependent:false,defaultZoom:7,opacity:92},
  {id:'significant-clusters',modelId:'nowcastmix',category:'significant',label:'Gewittercluster',detail:'Spuren und Zentroide konvektiver Zellcluster',layer:'dwd:Gewittercluster',timeDependent:false,defaultZoom:7,opacity:92},

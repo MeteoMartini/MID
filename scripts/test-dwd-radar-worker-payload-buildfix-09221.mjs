@@ -16,7 +16,6 @@ need('Package-Test',pkg,'test:dwd-radar-worker-payload-buildfix');
 need('Baseline-Test',baseline,'scripts/test-dwd-radar-worker-payload-buildfix-09221.mjs');
 const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;
 if(pv!==bv)failures.push(`Versionen nicht synchron: package ${pv}, baseline ${bv}`);
-if(pv!=='0.9.22.1')failures.push(`Erwartet v0.9.22.1, gefunden ${pv}`);
 
 if(failures.length){
   console.error('DWD-Radar WorkerPayload Buildfix fehlgeschlagen:\n- '+failures.join('\n- '));
