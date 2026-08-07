@@ -4925,6 +4925,7 @@ body,#root{
 .cockpit-meteogram-pro__svg .temperature-point.active{stroke-width:2.4}
 .cockpit-meteogram-pro__svg .apparent-point{fill:var(--mg-plot);stroke:var(--mg-apparent);stroke-width:1.5}
 .cockpit-meteogram-pro__svg .apparent-point.active{stroke-width:2.2}
+.cockpit-meteogram-pro__svg-weather>.mid-weather-pictogram{overflow:visible;filter:drop-shadow(0 1px 2px rgba(0,0,0,.12));pointer-events:none}
 .cockpit-meteogram-pro__overlay{position:absolute;inset:0;pointer-events:none;z-index:2}
 .cockpit-meteogram-pro__overlay>span{position:absolute;display:grid;justify-items:center;transform:translateX(-50%)}
 .cockpit-meteogram-pro__overlay.time>span{top:8px;min-width:24px}
@@ -4932,13 +4933,11 @@ body,#root{
 .cockpit-meteogram-pro__overlay.calendar>span{top:24px;gap:1px;text-align:center;color:var(--mg-text)}
 .cockpit-meteogram-pro__overlay.calendar b{font-size:13px;line-height:1.05;font-weight:900}
 .cockpit-meteogram-pro__overlay.calendar small{color:var(--mg-muted);font-size:8px;line-height:1.1;font-variant-numeric:tabular-nums}
-.cockpit-meteogram-pro__overlay.weather>span{top:43px;width:24px;height:24px}
 .cockpit-meteogram-pro__overlay.wind>span{bottom:8px;gap:1px;color:#2a2f35}
 .cockpit-meteogram-pro__overlay.wind small{color:currentColor;font-size:9px;font-weight:800;white-space:nowrap}
 .cockpit-meteogram-pro__overlay.wind>span{bottom:6px}
 .cockpit-meteogram-pro__overlay.wind>span.offset{transform:translate(-50%,-16px)}
 
-.cockpit-meteogram-pro__overlay.weather svg{display:block;overflow:visible;filter:drop-shadow(0 1px 2px rgba(0,0,0,.12))}
 .cockpit-meteogram-pro__overlay.wind svg{display:block;overflow:visible}
 .svg-wind-barb{color:currentColor}
 .svg-wind-barb line,.svg-wind-barb path{vector-effect:non-scaling-stroke}
@@ -4984,8 +4983,6 @@ body,#root{
  .cockpit-meteogram-pro__overlay.time b{font-size:9px}
  .cockpit-meteogram-pro__overlay.calendar b{font-size:12px}
  .cockpit-meteogram-pro__overlay.calendar small{font-size:7px}
- .cockpit-meteogram-pro__overlay.weather>span{width:20px;height:20px}
- .cockpit-meteogram-pro__overlay.weather svg{width:20px;height:20px}
  .cockpit-meteogram-pro__overlay.wind>span{bottom:6px}
  .cockpit-meteogram-pro__overlay.wind>span.offset{transform:translate(-50%,-12px)}
  .cockpit-meteogram-pro__overlay.wind svg{width:20px;height:20px}
@@ -5000,8 +4997,6 @@ body,#root{
  .cockpit-meteogram-pro__overlay.time b{font-size:8px}
  .cockpit-meteogram-pro__overlay.calendar b{font-size:11px}
  .cockpit-meteogram-pro__overlay.calendar small{font-size:7px}
- .cockpit-meteogram-pro__overlay.weather>span{width:18px;height:18px}
- .cockpit-meteogram-pro__overlay.weather svg{width:18px;height:18px}
  .cockpit-meteogram-pro__overlay.wind>span.offset{transform:translate(-50%,-10px)}
  .cockpit-meteogram-pro__overlay.wind svg{width:18px;height:18px}
  .cockpit-meteogram-pro__tooltip-content dl,.cockpit-meteogram-pro__datafield .cockpit-meteogram-pro__tooltip-content dl{grid-template-columns:1fr}.cockpit-meteogram-pro__tooltip-content dl>div{grid-template-columns:1fr auto}
@@ -5009,26 +5004,34 @@ body,#root{
 }
 
 /* MID v0.9.20.0 – DWD Wolken- und Niederschlagsarten-Radar */
-.dwd-precip-type-radar{display:grid;gap:9px;margin:12px 0 2px;padding:12px;border:1px solid color-mix(in srgb,var(--border) 78%,#1c8fce 22%);border-radius:20px;background:linear-gradient(145deg,color-mix(in srgb,var(--panel) 94%,#dff4ff 6%),color-mix(in srgb,var(--panel) 97%,transparent));box-shadow:0 10px 24px rgba(22,63,91,.08);overflow:hidden}
-.dwd-precip-type-radar>header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.dwd-precip-type-radar{display:grid;gap:9px;margin:12px 0 2px;padding:12px;border:1px solid color-mix(in srgb,var(--border) 78%,#1c8fce 22%);border-radius:20px;background:linear-gradient(145deg,color-mix(in srgb,var(--panel) 94%,#dff4ff 6%),color-mix(in srgb,var(--panel) 97%,transparent));box-shadow:0 10px 24px rgba(22,63,91,.08);overflow:visible}
+.dwd-precip-type-radar>header{display:flex;align-items:center;justify-content:space-between;gap:12px;position:relative;z-index:6}
 .dwd-precip-type-radar>header>span{display:grid;gap:2px;min-width:0}
 .dwd-precip-type-radar>header small{font-size:9px;font-weight:850;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .dwd-precip-type-radar>header strong{font-size:17px;line-height:1.1;color:var(--text)}
 .dwd-precip-type-radar>header em{font-size:10px;font-style:normal;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dwd-precip-type-radar>header>a{display:inline-flex;align-items:center;gap:5px;padding:7px 9px;border:1px solid var(--border);border-radius:12px;background:color-mix(in srgb,var(--panel) 92%,#fff 8%);color:var(--text);font-size:10px;font-weight:850;text-decoration:none}
-.dwd-precip-type-radar__viewport{position:relative;min-height:230px;aspect-ratio:16/8.7;border-radius:16px;overflow:hidden;background-color:#cad7df;background-repeat:no-repeat;background-size:265% auto;background-position:center;box-shadow:inset 0 0 0 1px rgba(255,255,255,.26),inset 0 -40px 70px rgba(9,29,43,.08)}
-.dwd-precip-type-radar__viewport::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at center,transparent 0 42%,rgba(5,23,34,.07) 100%)}
-.dwd-precip-type-radar__viewport.loading,.dwd-precip-type-radar__viewport.failed{display:grid;place-items:center;background-image:linear-gradient(135deg,color-mix(in srgb,var(--panel) 82%,#bfe8ff 18%),color-mix(in srgb,var(--panel) 91%,#dce8ef 9%))!important}
-.dwd-precip-type-radar__status{position:relative;z-index:2;display:inline-flex;align-items:center;gap:8px;padding:9px 12px;border-radius:13px;background:color-mix(in srgb,var(--panel) 90%,transparent);box-shadow:0 8px 20px rgba(17,39,55,.13);font-size:11px;font-weight:800;color:var(--text)}
+.dwd-precip-type-radar__actions{display:flex;align-items:center;gap:6px;position:relative}
+.dwd-precip-type-radar>header a,.dwd-precip-type-radar__info>summary{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:32px;padding:7px 9px;border:1px solid var(--border);border-radius:12px;background:color-mix(in srgb,var(--panel) 92%,#fff 8%);color:var(--text);font-size:10px;font-weight:850;text-decoration:none;cursor:pointer;list-style:none}
+.dwd-precip-type-radar__info>summary::-webkit-details-marker{display:none}
+.dwd-precip-type-radar__info[open]>summary{border-color:color-mix(in srgb,#1c8fce 55%,var(--border));background:color-mix(in srgb,var(--panel) 86%,#dff4ff 14%)}
+.dwd-precip-type-radar__legend{position:absolute;right:0;top:calc(100% + 7px);z-index:20;display:grid;gap:3px;width:max-content;min-width:190px;padding:9px 10px;border:1px solid var(--border);border-radius:13px;background:color-mix(in srgb,var(--panel) 97%,#fff 3%);box-shadow:0 12px 30px rgba(12,34,50,.24);color:var(--text)}
+.dwd-precip-type-radar__legend>strong{font-size:10px;margin-bottom:2px}
+.dwd-precip-type-radar__legend>span{display:grid;grid-template-columns:28px 1fr;align-items:center;gap:7px;font-size:9px;font-weight:720;line-height:1.15;white-space:nowrap}
+.dwd-precip-type-radar__legend>span>i{display:block;width:28px;height:12px;border:1px solid rgba(0,0,0,.66)}
+.dwd-precip-type-radar__viewport{position:relative;min-height:230px;aspect-ratio:16/8.7;border-radius:16px;overflow:hidden;background:#cad7df;box-shadow:inset 0 0 0 1px rgba(255,255,255,.26),inset 0 -40px 70px rgba(9,29,43,.08)}
+.dwd-precip-type-radar__image{position:absolute;z-index:0;width:265%;max-width:none;height:auto;user-select:none;pointer-events:none;will-change:transform;transform-origin:0 0}
+.dwd-precip-type-radar__viewport::after{content:"";position:absolute;z-index:1;inset:0;pointer-events:none;background:radial-gradient(circle at center,transparent 0 42%,rgba(5,23,34,.07) 100%)}
+.dwd-precip-type-radar__viewport.loading,.dwd-precip-type-radar__viewport.failed{display:grid;place-items:center;background:linear-gradient(135deg,color-mix(in srgb,var(--panel) 82%,#bfe8ff 18%),color-mix(in srgb,var(--panel) 91%,#dce8ef 9%))}
+.dwd-precip-type-radar__status{position:relative;z-index:4;display:inline-flex;align-items:center;gap:8px;padding:9px 12px;border-radius:13px;background:color-mix(in srgb,var(--panel) 90%,transparent);box-shadow:0 8px 20px rgba(17,39,55,.13);font-size:11px;font-weight:800;color:var(--text)}
 .dwd-precip-type-radar__marker{position:absolute;z-index:3;left:50%;top:50%;display:grid;place-items:center;width:34px;height:34px;transform:translate(-50%,-70%);border-radius:50%;background:rgba(255,255,255,.92);color:#e23434;box-shadow:0 4px 16px rgba(0,0,0,.35)}
 .dwd-precip-type-radar__marker i{position:absolute;left:50%;top:100%;width:10px;height:10px;transform:translate(-50%,-45%) rotate(45deg);background:rgba(255,255,255,.92);border-radius:0 0 3px 0}
 .dwd-precip-type-radar__marker svg{position:relative;z-index:1;fill:currentColor;stroke:#fff;stroke-width:1.4}
 .dwd-precip-type-radar>footer{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;color:var(--muted)}
-.dwd-precip-type-radar>footer span{font-size:10px;font-weight:700}
+.dwd-precip-type-radar>footer span{font-size:10px;font-weight:700}.dwd-precip-type-radar>footer span b{font-weight:900;color:var(--text)}
 .dwd-precip-type-radar>footer small{font-size:9px;text-align:right;white-space:nowrap}
 .short-term-forecast>.dwd-precip-type-radar{margin:12px 0 0;background:color-mix(in srgb,var(--panel) 94%,#dff4ff 6%)}
-@media(max-width:760px){.dwd-precip-type-radar{padding:10px;border-radius:18px}.dwd-precip-type-radar__viewport{min-height:210px;aspect-ratio:4/3;background-size:325% auto}.dwd-precip-type-radar>footer{display:grid;gap:3px}.dwd-precip-type-radar>footer small{text-align:left;white-space:normal}}
-@media(max-width:430px){.dwd-precip-type-radar>header strong{font-size:15px}.dwd-precip-type-radar>header>a span{display:none}.dwd-precip-type-radar__viewport{min-height:190px;background-size:360% auto}.dwd-precip-type-radar__marker{width:31px;height:31px}}
+@media(max-width:760px){.dwd-precip-type-radar{padding:10px;border-radius:18px}.dwd-precip-type-radar__viewport{min-height:210px;aspect-ratio:4/3}.dwd-precip-type-radar__image{width:325%}.dwd-precip-type-radar>footer{display:grid;gap:3px}.dwd-precip-type-radar>footer small{text-align:left;white-space:normal}.dwd-precip-type-radar__legend{right:-38px;max-width:min(240px,calc(100vw - 34px));min-width:182px}}
+@media(max-width:430px){.dwd-precip-type-radar>header strong{font-size:15px}.dwd-precip-type-radar>header a span{display:none}.dwd-precip-type-radar__viewport{min-height:190px}.dwd-precip-type-radar__image{width:360%}.dwd-precip-type-radar__marker{width:31px;height:31px}.dwd-precip-type-radar__legend{right:-34px}.dwd-precip-type-radar__legend>span{grid-template-columns:25px 1fr}.dwd-precip-type-radar__legend>span>i{width:25px}}
 
 /* v0.9.21.0 · optionales Wetterkartenmodul */
 .weather-maps-panel{display:grid;gap:14px;padding:16px;border:1px solid var(--border);border-radius:22px;background:linear-gradient(145deg,color-mix(in srgb,var(--surface) 94%,#0d78c8 6%),var(--surface));box-shadow:0 16px 44px rgba(17,54,86,.08);overflow:hidden}

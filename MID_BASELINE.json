@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.21.0",
+  "releaseVersion": "0.9.21.2",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -207,12 +207,14 @@
     "scripts/test-cockpit-regression-sync-09201.mjs",
     "scripts/test-dwd-precipitation-type-radar-09200.mjs",
     "scripts/test-code-revision-automation-09190.mjs",
-    "scripts/test-weather-maps-module-09210.mjs"
+    "scripts/test-weather-maps-module-09210.mjs",
+    "scripts/test-dwd-radar-meteogram-alignment-09211.mjs"
   ],
   "requiredFiles": [
     "scripts/test-cockpit-regression-sync-09201.mjs",
     "src/WeatherMapsData.ts",
     "src/WeatherMapsPanel.tsx",
-    "scripts/test-weather-maps-module-09210.mjs"
+    "scripts/test-weather-maps-module-09210.mjs",
+    "scripts/test-dwd-radar-meteogram-alignment-09211.mjs"
   ]
 }

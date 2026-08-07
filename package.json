@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.21.0",
+  "version": "0.9.21.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -217,7 +217,8 @@
     "test:browser-smoke": "playwright test --config=playwright.config.mjs",
     "test:lighthouse": "lhci autorun --config=./lighthouserc.cjs",
     "test:cockpit-regression-sync": "node scripts/test-cockpit-regression-sync-09201.mjs",
-    "test:weather-maps-module": "node scripts/test-weather-maps-module-09210.mjs"
+    "test:weather-maps-module": "node scripts/test-weather-maps-module-09210.mjs",
+    "test:dwd-radar-meteogram-alignment": "node scripts/test-dwd-radar-meteogram-alignment-09211.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

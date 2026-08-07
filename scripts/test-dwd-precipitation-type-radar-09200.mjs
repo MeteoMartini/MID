@@ -19,7 +19,14 @@ for(const token of [
  "buildWorkerUrl(base,'dwd-precipitation-type-image'",
  'export function dwdPrecipitationTypeCoverage',
  'Niederschlagsarten-Radar',
- 'Nur innerhalb der Deutschland-Abdeckung'
+ 'Nur innerhalb der Deutschland-Abdeckung',
+ 'export function dwdPrecipitationTypeImagePosition',
+ 'mercatorLatitude',
+ 'PRECIPITATION_TYPE_LEGEND',
+ 'großer Hagel',
+ 'kein Niederschlag',
+ 'Legende der Niederschlagsarten anzeigen',
+ 'transform:`translate(-${position.x.toFixed(6)}%, -${position.y.toFixed(6)}%)`'
 ])need('Radar-Komponente',component,token);
 
 for(const token of [
@@ -36,7 +43,8 @@ need('Worker-Funktion',worker,"async function dwdPrecipitationTypeImageResponse(
 need('Worker-Route',worker,"if(mode==='dwd-precipitation-type-image')return dwdPrecipitationTypeImageResponse();");
 need('Worker-Health',worker,"'dwd-precipitation-type-image'");
 need('Responsive CSS',styles,'.dwd-precip-type-radar__viewport');
-need('Responsive CSS mobil',styles,'background-size:360% auto');
+need('Responsive CSS mobil',styles,'.dwd-precip-type-radar__image{width:360%}');
+need('Radar-Legende',styles,'.dwd-precip-type-radar__legend{');
 need('Package-Test',pkg,'test:dwd-precipitation-type-radar');
 need('Baseline-Test',baseline,'scripts/test-dwd-precipitation-type-radar-09200.mjs');
 

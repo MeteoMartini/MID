@@ -16,10 +16,13 @@ need('Vollbreite Graph-Geometrie',cockpit,'columnLeft=index?((previousX+x)/2):ch
 need('Vollbreite Graph-Geometrie',cockpit,'columnRight=index<chartXPositions.length-1?((x+nextX)/2):chartWidth-chartPaddingRight');
 need('Zeit-Overlay Prozentposition',cockpit,'style={{left:positionPct(item.x)}}');
 need('Kalender-Overlay Prozentposition',cockpit,'style={{left:positionPct(band.centerX)}}');
-need('Weather-Overlay auf Graphhöhe',cockpit,'style={{left:positionPct(item.x),top:`${item.weatherY}px`}}');
+need('Weather-Piktogramme im SVG-Koordinatensystem',cockpit,'className="cockpit-meteogram-pro__svg-weather"');
+need('Weather-Piktogramm X direkt aus Graphpunkt',cockpit,'x={item.x-11}');
+need('Weather-Piktogramm Y direkt aus Graphpunkt',cockpit,'y={item.weatherY}');
 need('Wind-Overlay Prozentposition',cockpit,'style={{left:positionPct(point.x),color:windSignalColor(point.gust)}}');
 need('Hitlayer Prozentposition',cockpit,'style={{left:positionPct(item.columnLeft),width:widthPct(item.columnWidth)}}');
 need('3h-Hauptzeitmarken',cockpit,'/^(00|03|06|09|12|15|18|21):/.test(point.timeLabel)');
+reject('Veraltetes HTML-Wetteroverlay',cockpit,'cockpit-meteogram-pro__overlay weather');
 reject('Pixelbasierte Zeit-Overlay-Position',cockpit,'style={{left:`${item.x}px`}}');
 reject('Pixelbasierte Kalender-Overlay-Position',cockpit,'style={{left:`${band.centerX}px`}}');
 reject('Pixelbasierte Hitlayer-Position',cockpit,'style={{left:`${item.columnLeft}px`,width:`${item.columnWidth}px`}}');

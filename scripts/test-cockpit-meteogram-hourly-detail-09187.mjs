@@ -24,7 +24,9 @@ for(const token of [
   'Gewitterrisiko',
   'Wind</dt><dd>{shortTermWindDetail(selectedPoint,unit)}</dd>',
   'shortTermVisibilityLabel(selectedPoint.visibility)',
-  'style={{left:positionPct(item.x),top:`${item.weatherY}px`}}',
+  'className="cockpit-meteogram-pro__svg-weather"',
+  'x={item.x-11}',
+  'y={item.weatherY}',
   "className={index%2?'offset':''}",
   'style={{left:positionPct(point.x),color:windSignalColor(point.gust)}}'
  ])need('ForecastCockpit.tsx',cockpit,token);

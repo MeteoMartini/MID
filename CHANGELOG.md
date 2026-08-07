@@ -1,3 +1,13 @@
+## v0.9.21.2
+- Regression-Fix für das Wetterkartenmodul: `test-weather-maps-module-09210.mjs` prüft die Versionskonsistenz nun dynamisch statt die Ursprungsreleaseversion `0.9.21.0` fest zu verdrahten.
+- Package-, Baseline- und Worker-Version müssen übereinstimmen; Folgereleases ab v0.9.21.0 bleiben damit testbar.
+- Behebt den GitHub-Actions-Abbruch beim Installieren von v0.9.21.1.
+
+## v0.9.21.1
+- DWD-Niederschlagsarten-Radar: Ortsausschnitt und Standortmarker verwenden jetzt dieselbe ungerundete Mercator-/Bounding-Box-Projektion. Das Bild wird über eine echte Bildtransformation exakt auf den aktiven Ort zentriert; die bisherige CSS-Background-Positionierung mit systematischem Versatz entfällt.
+- DWD-Niederschlagsarten-Radar: vollständige Klassenlegende gemäß DWD-Produkt hinter einem kompakten `(i)` ergänzt (großer/kleiner Hagel, Graupel, gefrierender Regen/Sprühregen, Schnee/Schneeregen, Regen/Sprühregen, nicht klassifizierbar, kein Niederschlag).
+- Kurzfristmeteogramm: Wetterpiktogramme liegen nun direkt im SVG-Koordinatensystem des Temperaturgraphen und verwenden exakt dieselben X-Punkte. Dadurch laufen Piktogramme bei responsiver Skalierung nicht mehr vom Graphen auseinander.
+
 ## v0.9.21.0
 - Start-/Splashscreen mit deutlich größerem, responsivem MID-Logo und ruhigerem Startbildschirm überarbeitet.
 - Optionales Wetterkartenmodul für den erweiterten Modus ergänzt; standardmäßig deaktiviert und über die Dashboard-Einstellungen aktivierbar.

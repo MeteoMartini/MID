@@ -23,9 +23,14 @@ need('Responsive CSS',files.styles,'@media(max-width:620px)');
 need('Worker Allowlist',files.worker,'WEATHER_MAP_LAYER_CONFIG');
 need('Worker WMS',files.worker,"mode==='weather-map-wms'");
 need('Worker Metadaten',files.worker,"mode==='weather-map-metadata'");
-need('Worker Version',files.worker,"WORKER_VERSION='0.9.21.0'");
-need('Package Version',files.pkg,'"version": "0.9.21.0"');
-need('Baseline Version',files.baseline,'"releaseVersion": "0.9.21.0"');
+const packageVersion=JSON.parse(files.pkg).version;
+const baselineVersion=JSON.parse(files.baseline).releaseVersion;
+const workerVersion=files.worker.match(/const WORKER_VERSION='([^']+)';/)?.[1]??'';
+const versionParts=value=>String(value).split('.').map(part=>Number.parseInt(part,10)||0);
+const versionAtLeast=(value,minimum)=>{const left=versionParts(value),right=versionParts(minimum);for(let index=0;index<Math.max(left.length,right.length);index+=1){const a=left[index]??0,b=right[index]??0;if(a>b)return true;if(a<b)return false}return true};
+if(packageVersion!==baselineVersion)failures.push(`Versionen nicht synchron: package ${packageVersion}, baseline ${baselineVersion}`);
+if(packageVersion!==workerVersion)failures.push(`Versionen nicht synchron: package ${packageVersion}, worker ${workerVersion}`);
+if(!versionAtLeast(packageVersion,'0.9.21.0'))failures.push(`Wetterkartenmodul erwartet mindestens MID v0.9.21.0, gefunden: v${packageVersion}`);
 need('Baseline Test',files.baseline,'scripts/test-weather-maps-module-09210.mjs');
 
 if(failures.length){console.error('Splashscreen-/Wetterkartenprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
