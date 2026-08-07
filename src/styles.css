@@ -5097,3 +5097,10 @@ body,#root{
 /* MID 0.9.26.0 · Wetterkarten: INIT/Gültigkeit prominent und mobil lesbar */
 .weather-maps-validity{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.weather-maps-validity>span{display:grid;gap:2px;padding:8px 10px;border:1px solid var(--border);border-radius:12px;background:color-mix(in srgb,var(--s2) 82%,transparent);font-variant-numeric:tabular-nums}.weather-maps-validity small{font-size:8px;font-weight:850;letter-spacing:.12em;color:var(--muted)}.weather-maps-validity b{font-size:10px;line-height:1.35;color:var(--text)}
 @media(max-width:520px){.weather-maps-validity{grid-template-columns:1fr}.weather-maps-validity>span{grid-template-columns:58px 1fr;align-items:center}.weather-maps-validity small{font-size:7px}.weather-maps-validity b{font-size:9px}}
+
+/* MID 0.9.26.1 · amtliches DWD-Kombinationsbild unverändert anzeigen */
+.dwd-precip-type-radar__source-frame{position:relative;min-height:220px;border-radius:16px;overflow:hidden;background:#cad7df;box-shadow:inset 0 0 0 1px rgba(255,255,255,.26)}
+.dwd-precip-type-radar__source-frame.loading,.dwd-precip-type-radar__source-frame.failed{display:grid;place-items:center}
+.dwd-precip-type-radar__source-image{display:block;width:100%;height:auto;max-width:none;cursor:crosshair;user-select:none;-webkit-user-drag:none}
+.dwd-precip-type-radar__location-note{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:-2px;padding:6px 8px;border-radius:10px;background:color-mix(in srgb,var(--s2) 80%,transparent);color:var(--muted);font-size:8px;font-variant-numeric:tabular-nums}.dwd-precip-type-radar__location-note svg{color:#d92929}.dwd-precip-type-radar__location-note span{font-weight:800;color:var(--text)}.dwd-precip-type-radar__location-note small{font-size:7px}
+@media(max-width:760px){.dwd-precip-type-radar__source-frame{min-height:190px}.dwd-precip-type-radar__source-image{width:100%}}

@@ -10,9 +10,8 @@ const [radar,map,cockpit,maps,data,styles,worker,baseline]=await Promise.all([
  readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')
 ]);
 const failures=[];const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};const reject=(label,text,token)=>{if(text.includes(token))failures.push(`${label} sollte fehlen: ${token}`)};
-for(const token of ['loadCompositeTimes(latitude,longitude)','bestSatelliteProduct(composite?.satelliteDayProduct,composite?.satelliteIrProduct,source?.satelliteAt)','offsetMinutes<=15'])need('Live-Quellenprüfung',radar,token);
-for(const token of ['compositeWmsProxy','closestProductTime','distance<=45*60000','opacity={canShowSatellite?.46:.84}','opacity={.78}'])need('Satellitenkarte',map,token);
-reject('Kein hart codierter leerer Satellitenlayer',map,"const DWD_SATELLITE_LAYER=");
+for(const token of ["buildWorkerUrl(base,'dwd-precipitation-type-image'","response.headers.get('x-mid-radar-at')","response.headers.get('x-mid-satellite-at')",'Originales DWD-Kombinationsbild · unverändert'])need('Live-Quellenprüfung',radar,token);
+reject('Kein rekonstruierter Satellitenlayer',radar,'loadCompositeTimes');
 for(const token of ['minimum=Number.isFinite(target)?target-15*60000:now-90*60000','ageMinutes>90','Kein frischer HymecNG-Datensatz verfügbar'])need('HymecNG-Freshness',worker,token);
 reject('Kein beliebiger alter HymecNG-Fallback',worker,"selected=Number.isFinite(target)?eligible.sort((a,b)=>Math.abs(a.dataTime-target)-Math.abs(b.dataTime-target))[0]:entries.at(-1)");
 for(const token of ['[hourlyExpanded,setHourlyExpanded]=useState(false)',"hourlyExpanded?'weniger anzeigen':'mehr anzeigen'",'<dt><i className="dew"/>Taupunkt</dt><dd>{Math.round(selectedPoint.dewPoint)} °C</dd>'])need('24h mobil/Taupunkt',cockpit,token);
