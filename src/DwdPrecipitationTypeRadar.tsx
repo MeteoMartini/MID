@@ -1,69 +1,44 @@
-import {useEffect,useMemo,useRef,useState,type CSSProperties,type MouseEvent} from 'react';
-import {CloudRain,ExternalLink,Info,MapPin,RefreshCw} from 'lucide-react';
-import {buildWorkerUrl,fetchWorkerJson,workerBaseCandidates} from './workerClient';
+import {lazy,Suspense,useCallback,useEffect,useState} from 'react';
+import {ExternalLink,Info,MapPin,RefreshCw} from 'lucide-react';
+import {fetchWorkerJson} from './workerClient';
+import {HYMEC_NG_CLASSES,loadHymecNgMetadata,sampleHymecNg,type HymecNgMeta,type HymecNgSample} from './HymecNgSource';
+import type {HymecNgOverlayStatus} from './HymecNgOverlay';
 import type {Location} from './weather';
 
+const LazyDwdPrecipitationMap=lazy(()=>import('./DwdPrecipitationMap'));
 const DWD_PRODUCT_PAGE='https://www.dwd.de/DE/leistungen/wolken_niederschlagsart/wolken_niederschlagsart.html';
-const DWD_DIRECT_IMAGE='https://www.dwd.de/DWD/wetter/sat/satwetter/njob_satrad.png';
 const COVERAGE={west:5.45,east:15.55,south:47.0,north:55.2};
-type GridPoint={lon:number;lat:number;x:number;y:number};
-type RasterPolynomial={c0:number;lon:number;lat:number;lon2:number;lonLat:number;lat2:number};
-// Kalibrierung im Koordinatensystem des ORIGINALEN 900×900-DWD-Bildes. Frühere
-// Ansätze haben versehentlich Rasterkoordinaten aus einem bereits gezoomten/cropped
-// Bildschirm-Ausschnitt als Koordinaten des Quellbildes behandelt. Dadurch waren die
-// Marker systematisch verschoben. Die folgenden Gitter-Schnittpunkte sind auf das
-// vollständige DWD-Quellbild zurückgerechnet und bilden das sichtbare projizierte
-// Gradnetz 6/8/10/12° E sowie 49/50/51/52° N ab.
-export const DWD_SOURCE_RASTER_GRID:GridPoint[]=[
- {lon:6,lat:52,x:.265466500,y:.455080125},{lon:8,lat:52,x:.366218703,y:.460417838},{lon:10,lat:52,x:.466592084,y:.462150922},{lon:12,lat:52,x:.567305360,y:.460293873},
- {lon:6,lat:51,x:.259702598,y:.535911020},{lon:8,lat:51,x:.363382792,y:.541394591},{lon:10,lat:51,x:.466692392,y:.543175455},{lon:12,lat:51,x:.570256368,y:.541270600},
- {lon:6,lat:50,x:.253961645,y:.616528550},{lon:8,lat:50,x:.360545777,y:.622190828},{lon:10,lat:50,x:.466862394,y:.624029356},{lon:12,lat:50,x:.573196517,y:.622062497},
- {lon:6,lat:49,x:.248387011,y:.694914573},{lon:8,lat:49,x:.357782608,y:.700681733},{lon:10,lat:49,x:.467094347,y:.702555457},{lon:12,lat:49,x:.576049027,y:.700554563}
-];
-// Zweidimensionale quadratische Projektion, im Least-Squares-Verfahren aus allen
-// 16 DWD-Raster-Schnittpunkten bestimmt. Sie reproduziert das sichtbare Raster mit
-// <0,4 Pixel maximaler Abweichung bei 900 px Quellbildgröße und extrapoliert ohne
-// harte Rand-Clamps über die gesamte Deutschland-Abdeckung.
-const DWD_SOURCE_X:RasterPolynomial={c0:-.7354480432717,lon:.12549183913668,lat:.012466048742646,lon2:-.000013219863941718,lonLat:-.0014413689690892,lat2:.000018447439510929};
-const DWD_SOURCE_Y:RasterPolynomial={c0:2.9928103444278,lon:.010559647295047,lat:-.017335059071548,lon2:-.00046844341939869,lonLat:-.000024194371973134,lat2:-.00061961334982499};
-function rasterPolynomialValue(coefficients:RasterPolynomial,longitude:number,latitude:number){return coefficients.c0+coefficients.lon*longitude+coefficients.lat*latitude+coefficients.lon2*longitude*longitude+coefficients.lonLat*longitude*latitude+coefficients.lat2*latitude*latitude}
-function rasterPolynomialForward(longitude:number,latitude:number){return{x:rasterPolynomialValue(DWD_SOURCE_X,longitude,latitude),y:rasterPolynomialValue(DWD_SOURCE_Y,longitude,latitude)}}
-function rasterPolynomialInverse(x:number,y:number){let longitude=10+(x-.46686)/.0532,latitude=50-(y-.62403)/.0808;for(let iteration=0;iteration<10;iteration++){const point=rasterPolynomialForward(longitude,latitude),rx=point.x-x,ry=point.y-y,dxLon=DWD_SOURCE_X.lon+2*DWD_SOURCE_X.lon2*longitude+DWD_SOURCE_X.lonLat*latitude,dxLat=DWD_SOURCE_X.lat+DWD_SOURCE_X.lonLat*longitude+2*DWD_SOURCE_X.lat2*latitude,dyLon=DWD_SOURCE_Y.lon+2*DWD_SOURCE_Y.lon2*longitude+DWD_SOURCE_Y.lonLat*latitude,dyLat=DWD_SOURCE_Y.lat+DWD_SOURCE_Y.lonLat*longitude+2*DWD_SOURCE_Y.lat2*latitude,det=dxLon*dyLat-dxLat*dyLon;if(Math.abs(det)<1e-10)break;const deltaLon=(rx*dyLat-ry*dxLat)/det,deltaLat=(ry*dxLon-rx*dyLon)/det;longitude=clamp(longitude-deltaLon,2,18);latitude=clamp(latitude-deltaLat,45,58);if(Math.max(Math.abs(deltaLon),Math.abs(deltaLat))<1e-7)break}return{longitude,latitude}}
-const PRECIPITATION_TYPE_LEGEND=[
- {label:'großer Hagel',color:'#b000d6'},{label:'kleiner Hagel',color:'#d000f5'},{label:'Graupel',color:'#ffd633'},{label:'gefrierender Regen',color:'#ff1c00'},{label:'gefr. Sprühregen',color:'#d80000'},{label:'Schnee',color:'#ff21d1'},{label:'Schneeregen',color:'#ff70df'},{label:'Regen',color:'#00c778'},{label:'Sprühregen',color:'#19dca4'},{label:'nicht klassifizierbar',color:'#7f7f7f'},{label:'kein Niederschlag',color:'#c9c9c9'}
-] as const;
+const PRECIPITATION_TYPE_LEGEND=[...HYMEC_NG_CLASSES,{code:0,label:'kein Niederschlag',color:'#c9c9c9'}] as const;
 
-type RadarMeta={error?:string;observedAt?:string;publishedAt?:string;radarAt?:string;satelliteAt?:string;componentTimeNote?:string;width?:number;height?:number;checkedAt?:string};
-type RadarPointInfo={error?:string;precipitationLabel:string;precipitationColor?:string;cloudLabel:string;confidence?:'high'|'medium'|'low';observedAt?:string;latitude?:number;longitude?:number;rgb?:[number,number,number];note?:string};
-type RadarViewport={width:number;height:number};
-type RadarCrop={left:number;top:number;width:number;height:number;markerLeft:number;markerTop:number};
-type PointInspection={loading:boolean;error?:string;info?:RadarPointInfo};
+type RadarMeta={error?:string;observedAt?:string;publishedAt?:string;radarAt?:string;satelliteAt?:string;componentTimeNote?:string;checkedAt?:string};
+type PointInspection={loading:boolean;error?:string;sample?:HymecNgSample};
 
-function clamp(value:number,min:number,max:number){return Math.min(max,Math.max(min,value))}
 function countryCode(location:Location){return String(location.country_code||location.country||'').trim().toUpperCase()}
 export function dwdPrecipitationTypeCoverage(location:Location){const latitude=Number(location.latitude),longitude=Number(location.longitude),code=countryCode(location),within=Number.isFinite(latitude)&&Number.isFinite(longitude)&&latitude>=COVERAGE.south&&latitude<=COVERAGE.north&&longitude>=COVERAGE.west&&longitude<=COVERAGE.east;if(code&&code!=='DE'&&code!=='DEU'&&code!=='GERMANY'&&code!=='DEUTSCHLAND')return false;return within}
-// Projektion des geografischen Ortes auf das vollständige DWD-Quellbild.
-export function dwdPrecipitationTypeImagePosition(location:Pick<Location,'latitude'|'longitude'>){const latitude=Number(location.latitude),longitude=Number(location.longitude),point=rasterPolynomialForward(longitude,latitude);return{x:clamp(point.x,0,1)*100,y:clamp(point.y,0,1)*100}}
-function geoFromImagePoint(x:number,y:number){return rasterPolynomialInverse(x,y)}
-function candidateImageUrls(slot:number){const workers=workerBaseCandidates('radar').map(base=>buildWorkerUrl(base,'dwd-precipitation-type-image',{slot}).toString());return[...new Set([...workers,`${DWD_DIRECT_IMAGE}?slot=${slot}`])]}
 function formatDwdSourceTimestamp(value:string|undefined){if(!value)return'–';const stamp=Date.parse(value);if(!Number.isFinite(stamp))return value;const date=new Date(stamp),hour=String(date.getUTCHours()).padStart(2,'0'),minute=String(date.getUTCMinutes()).padStart(2,'0');return`${hour}:${minute} UTC`}
-function radarCropWindow(location:Pick<Location,'latitude'|'longitude'>,viewport:RadarViewport):RadarCrop{const marker=dwdPrecipitationTypeImagePosition(location),centerX=marker.x/100,centerY=marker.y/100,aspect=Math.max(.9,Math.min(2.5,viewport.width/Math.max(1,viewport.height||1)));let cropWidth=viewport.width>=1320?.72:viewport.width>=1080?.67:viewport.width>=860?.61:viewport.width>=660?.55:viewport.width>=540?.49:viewport.width>=420?.44:.40;cropWidth=clamp(cropWidth,.36,.76);let cropHeight=cropWidth/aspect;cropHeight=clamp(cropHeight,.23,.66);if(cropHeight>.64){cropHeight=.64;cropWidth=clamp(cropHeight*aspect,.36,.78)}const left=clamp(centerX-cropWidth/2,0,1-cropWidth),top=clamp(centerY-cropHeight/2,0,1-cropHeight),markerLeft=(centerX-left)/cropWidth*100,markerTop=(centerY-top)/cropHeight*100;return{left,top,width:cropWidth,height:cropHeight,markerLeft,markerTop}}
+function coordinateLabel(latitude:number,longitude:number){return `${Math.abs(latitude).toFixed(5)}° ${latitude>=0?'N':'S'} · ${Math.abs(longitude).toFixed(6)}° ${longitude>=0?'E':'W'}`}
 
 export function DwdPrecipitationTypeRadar({location,enabled=true}:{location:Location;enabled?:boolean}){
- const covered=dwdPrecipitationTypeCoverage(location),viewportRef=useRef<HTMLDivElement|null>(null),[refreshSlot,setRefreshSlot]=useState(()=>Math.floor(Date.now()/300000)),[imageUrl,setImageUrl]=useState(''),[loading,setLoading]=useState(false),[failed,setFailed]=useState(false),[meta,setMeta]=useState<RadarMeta|null>(null),[markerVisible,setMarkerVisible]=useState(true),[viewportSize,setViewportSize]=useState<RadarViewport>({width:960,height:520}),[pointInfo,setPointInfo]=useState<PointInspection|null>(null),urls=useMemo(()=>candidateImageUrls(refreshSlot),[refreshSlot]),crop=useMemo(()=>radarCropWindow(location,viewportSize),[location.latitude,location.longitude,viewportSize.width,viewportSize.height]);
+ const covered=dwdPrecipitationTypeCoverage(location),latitude=Number(location.latitude),longitude=Number(location.longitude),[refreshSlot,setRefreshSlot]=useState(()=>Math.floor(Date.now()/300000)),[meta,setMeta]=useState<RadarMeta|null>(null),[hymecMeta,setHymecMeta]=useState<HymecNgMeta|null>(null),[loading,setLoading]=useState(false),[markerVisible,setMarkerVisible]=useState(true),[pointInfo,setPointInfo]=useState<PointInspection|null>(null),[hymecStatus,setHymecStatus]=useState<{status:HymecNgOverlayStatus;message?:string}>({status:'idle'});
  useEffect(()=>{const timer=window.setInterval(()=>setRefreshSlot(Math.floor(Date.now()/300000)),60000);return()=>window.clearInterval(timer)},[]);
- useEffect(()=>{const node=viewportRef.current;if(!node||typeof ResizeObserver==='undefined')return;let frame=0;const update=()=>{if(frame)return;frame=window.requestAnimationFrame(()=>{frame=0;const next={width:Math.max(280,Math.round(node.clientWidth||280)),height:Math.max(180,Math.round(node.clientHeight||180))};setViewportSize(current=>current.width===next.width&&current.height===next.height?current:next)})},observer=new ResizeObserver(update);update();observer.observe(node);return()=>{if(frame)window.cancelAnimationFrame(frame);observer.disconnect()}},[enabled,covered]);
- useEffect(()=>{if(!enabled||!covered){setImageUrl('');setFailed(false);setLoading(false);setMeta(null);return}let cancelled=false,index=0,probe:HTMLImageElement|undefined;setLoading(true);setFailed(false);setPointInfo(null);const next=()=>{if(cancelled)return;const url=urls[index++];if(!url){setLoading(false);setFailed(true);return}probe=new Image();probe.referrerPolicy='no-referrer';probe.onload=()=>{if(cancelled)return;setImageUrl(url);setLoading(false);setFailed(false)};probe.onerror=next;probe.src=url};next();void fetchWorkerJson<RadarMeta>('dwd-precipitation-type-meta',{}, {purpose:'radar',timeoutMs:16000,maxAgeMs:4*60000,staleIfErrorMs:20*60000,cacheKey:`dwd-precip-type-meta:${refreshSlot}`}).then(value=>{if(!cancelled)setMeta(value)}).catch(()=>{if(!cancelled)setMeta(null)});return()=>{cancelled=true;if(probe){probe.onload=null;probe.onerror=null}}},[enabled,covered,urls,refreshSlot]);
+ const handleHymecStatus=useCallback((status:HymecNgOverlayStatus,message?:string)=>setHymecStatus({status,message}),[]);
+ useEffect(()=>{
+  if(!enabled||!covered){setMeta(null);setHymecMeta(null);setLoading(false);return}
+  let cancelled=false;setLoading(true);setPointInfo(null);
+  void fetchWorkerJson<RadarMeta>('dwd-precipitation-type-meta',{}, {purpose:'radar',timeoutMs:16000,maxAgeMs:4*60000,staleIfErrorMs:20*60000,cacheKey:`dwd-precip-type-meta:${refreshSlot}`}).then(async source=>{
+   if(cancelled)return;setMeta(source);
+   const native=await loadHymecNgMetadata(source.radarAt);
+   if(cancelled)return;setHymecMeta(native);setLoading(false)
+  }).catch(async()=>{if(cancelled)return;setMeta(null);const native=await loadHymecNgMetadata();if(cancelled)return;setHymecMeta(native);setLoading(false)});
+  return()=>{cancelled=true}
+ },[enabled,covered,refreshSlot]);
  if(!enabled||!covered)return null;
- const imageStyle={width:`${(100/crop.width).toFixed(6)}%`,height:`${(100/crop.height).toFixed(6)}%`,left:`${(-(crop.left/crop.width)*100).toFixed(6)}%`,top:`${(-(crop.top/crop.height)*100).toFixed(6)}%`} as CSSProperties;
- const markerStyle={left:`${crop.markerLeft.toFixed(4)}%`,top:`${crop.markerTop.toFixed(4)}%`} as CSSProperties;
- const inspectPoint=async(event:MouseEvent<HTMLDivElement>)=>{if(!viewportRef.current||loading||failed)return;const viewport=viewportRef.current.getBoundingClientRect(),relativeX=clamp((event.clientX-viewport.left)/Math.max(1,viewport.width),0,1),relativeY=clamp((event.clientY-viewport.top)/Math.max(1,viewport.height),0,1),fullX=clamp(crop.left+relativeX*crop.width,0,1),fullY=clamp(crop.top+relativeY*crop.height,0,1),geo=geoFromImagePoint(fullX,fullY);setPointInfo({loading:true});try{const info=await fetchWorkerJson<RadarPointInfo>('dwd-precipitation-type-info',{x:fullX.toFixed(6),y:fullY.toFixed(6),lat:geo.latitude.toFixed(5),lon:geo.longitude.toFixed(5)},{purpose:'radar',timeoutMs:10000,maxAgeMs:2*60000,staleIfErrorMs:10*60000,cacheKey:`dwd-precip-info:${refreshSlot}:${fullX.toFixed(3)}:${fullY.toFixed(3)}`});setPointInfo({loading:false,info})}catch(error){setPointInfo({loading:false,error:error instanceof Error?error.message:'Punktanalyse nicht verfügbar.'})}};
+ const inspectPoint=async(pointLat:number,pointLon:number)=>{if(!hymecMeta?.available){setPointInfo({loading:false,error:hymecMeta?.error||'HymecNG-Punktanalyse derzeit nicht verfügbar.'});return}setPointInfo({loading:true});try{const sample=await sampleHymecNg(hymecMeta,pointLat,pointLon);setPointInfo({loading:false,sample})}catch(error){setPointInfo({loading:false,error:error instanceof Error?error.message:'Punktanalyse nicht verfügbar.'})}};
+ const statusText=hymecStatus.status==='error'?hymecStatus.message:hymecMeta?.available?'HymecNG · native 1-km-Georeferenzierung':'HymecNG wird geladen …';
  return <section className="dwd-precip-type-radar" aria-label="DWD Wolken und Niederschlagsart"><header><span><small>DWD · Satellit + Radar</small><strong>Wolken + Niederschlagsart</strong><em>Ausschnitt um {location.name||'den gewählten Ort'}</em></span><div className="dwd-precip-type-radar__actions"><button type="button" className={`dwd-precip-type-radar__marker-toggle${markerVisible?' active':''}`} onClick={()=>setMarkerVisible(value=>!value)} title={markerVisible?'Standortmarker ausblenden':'Standortmarker einblenden'} aria-pressed={markerVisible}><MapPin size={16}/></button><details className="dwd-precip-type-radar__info"><summary aria-label="Legende der Niederschlagsarten anzeigen" title="Legende"><Info size={16}/></summary><div className="dwd-precip-type-radar__legend" role="group" aria-label="DWD-Legende Niederschlagsarten"><strong>Niederschlagsart</strong>{PRECIPITATION_TYPE_LEGEND.map(item=><span key={item.label}><i style={{background:item.color}}/>{item.label}</span>)}</div></details><a href={DWD_PRODUCT_PAGE} target="_blank" rel="noreferrer" title="DWD-Originalprodukt öffnen"><ExternalLink size={16}/><span>DWD</span></a></div></header>
- <div className="dwd-precip-type-radar__timestamps"><span><b>Radar</b>{formatDwdSourceTimestamp(meta?.radarAt)}</span><span><b>Sat</b>{formatDwdSourceTimestamp(meta?.satelliteAt)}</span>{pointInfo?<span className="dwd-precip-type-radar__point-strip"><b>Bildpunkt</b>{pointInfo.loading?'wird ausgewertet …':pointInfo.error?pointInfo.error:pointInfo.info?`${pointInfo.info.precipitationLabel} · Wolken: ${pointInfo.info.cloudLabel}`:'–'}</span>:<span className="dwd-precip-type-radar__point-strip idle"><b>Bildpunkt</b>Antippen zur Auswertung</span>}{meta?.componentTimeNote?<small title={meta.componentTimeNote}>Zeitstand · DWD-Quelldaten</small>:null}</div>
- <div ref={viewportRef} className={`dwd-precip-type-radar__viewport${loading?' loading':''}${failed?' failed':''}`} role="img" aria-label={`Gezoomter Ausschnitt des DWD-Produkts Wolken und Niederschlagsart um ${location.name||'den gewählten Ort'}`} onClick={inspectPoint}>
-  {!failed&&imageUrl&&<img className="dwd-precip-type-radar__image" src={imageUrl} alt="" aria-hidden="true" draggable={false} style={imageStyle}/>}
-  {loading&&<span className="dwd-precip-type-radar__status"><RefreshCw className="spin" size={18}/>DWD-Bild wird geladen …</span>}
-  {failed&&<span className="dwd-precip-type-radar__status"><CloudRain size={18}/>DWD-Bild vorübergehend nicht verfügbar.</span>}
-  {!loading&&!failed&&markerVisible?<button type="button" className="dwd-precip-type-radar__marker" style={markerStyle} onClick={event=>{event.stopPropagation();setMarkerVisible(false)}} title="Standortmarker ausblenden" aria-label="Standortmarker ausblenden"><MapPin size={22}/><i/></button>:null}
- </div><footer><span>Antippen wertet den gewählten Bildpunkt aus und zeigt Niederschlagsart sowie Wolkensignal direkt oberhalb an.</span><small>Quelle: Deutscher Wetterdienst · Deutschland-Abdeckung</small></footer></section>;
+ <div className="dwd-precip-type-radar__timestamps"><span><b>Radar</b>{formatDwdSourceTimestamp(meta?.radarAt||hymecMeta?.observedAt)}</span><span><b>Sat</b>{formatDwdSourceTimestamp(meta?.satelliteAt)}</span>{pointInfo?<span className="dwd-precip-type-radar__point-strip"><b>Bildpunkt</b>{pointInfo.loading?'wird ausgewertet …':pointInfo.error?pointInfo.error:pointInfo.sample?`${pointInfo.sample.label} · ${coordinateLabel(pointInfo.sample.latitude,pointInfo.sample.longitude)}`:'–'}</span>:<span className="dwd-precip-type-radar__point-strip idle"><b>Bildpunkt</b>Antippen zur Auswertung</span>}<small title={meta?.componentTimeNote}>{statusText}</small></div>
+ <div className={`dwd-precip-type-radar__map-shell${loading?' loading':''}`}>
+  {loading?<span className="dwd-precip-type-radar__status"><RefreshCw className="spin" size={18}/>Georeferenzierte DWD-Daten werden geladen …</span>:null}
+  <Suspense fallback={<span className="dwd-precip-type-radar__status"><RefreshCw className="spin" size={18}/>Karte wird vorbereitet …</span>}><LazyDwdPrecipitationMap latitude={latitude} longitude={longitude} satelliteAt={meta?.satelliteAt} hymecMeta={hymecMeta} markerVisible={markerVisible} onPoint={inspectPoint} onHymecStatus={handleHymecStatus}/></Suspense>
+ </div><footer><span>Standortmarker direkt aus WGS84-Koordinaten; Antippen wertet HymecNG am gewählten Kartenpunkt aus.</span><small>Standort: {coordinateLabel(latitude,longitude)} · DWD HymecNG + Satellit</small></footer></section>;
 }

@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.24.6",
+  "releaseVersion": "0.9.25.0",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -215,7 +215,8 @@
     "scripts/test-dwd-source-georef-timestamps-09241.mjs",
     "scripts/test-dwd-raster-georef-09242.mjs",
     "scripts/test-dwd-curved-grid-source-times-09243.mjs",
-    "scripts/test-dwd-unused-timezone-buildfix-09244.mjs"
+    "scripts/test-dwd-unused-timezone-buildfix-09244.mjs",
+    "scripts/test-dwd-native-georef-09250.mjs"
   ],
   "requiredFiles": [
     "scripts/test-cockpit-regression-sync-09201.mjs",
@@ -224,10 +225,15 @@
     "scripts/test-weather-maps-module-09210.mjs",
     "scripts/test-dwd-radar-meteogram-alignment-09211.mjs",
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
-    "scripts/test-dwd-radar-worker-payload-buildfix-09221.mjs"
+    "scripts/test-dwd-radar-worker-payload-buildfix-09221.mjs",
+    "src/DwdPrecipitationMap.tsx",
+    "src/HymecNgSource.ts",
+    "src/HymecNgOverlay.tsx",
+    "scripts/test-dwd-native-georef-09250.mjs"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
-    "scripts/test-dwd-radar-worker-payload-buildfix-09221.mjs"
+    "scripts/test-dwd-radar-worker-payload-buildfix-09221.mjs",
+    "scripts/test-dwd-native-georef-09250.mjs"
   ]
 }
