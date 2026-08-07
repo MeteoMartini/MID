@@ -21,7 +21,7 @@ for(const token of [
  'export function dwdPrecipitationTypeCoverage',
  'Niederschlagsart/Satbild',
  'export function dwdPrecipitationTypeImagePosition',
- 'IMAGE_BOUNDS.north-latitude',
+ 'DWD_IMAGE_GEO_AFFINE',
  'PRECIPITATION_TYPE_LEGEND',
  'großer Hagel',
  'kein Niederschlag',
@@ -32,11 +32,10 @@ for(const token of [
  "fetchWorkerJson<RadarPointInfo>('dwd-precipitation-type-info'",
  '<b>Niederschlagsart</b>',
  '<b>Satbild</b>',
- 'IMAGE_MAP_FRAME',
- 'mapToImageFrame',
- 'imageToMapFrame',
+ 'geoFromImagePoint',
  'Standortmarker ausblenden',
- 'formatCompactTimestamp(meta?.radarAt||meta?.observedAt,timezone)',
+ 'formatCompactTimestamp(meta?.radarAt,timezone)',
+ 'formatCompactTimestamp(meta?.satelliteAt,timezone)',
  'dwd-precip-type-radar__point-strip'
  ])need('Radar-Komponente',component,token);
 reject('Radar-Verortung',component,'mercatorLatitude');
@@ -47,7 +46,8 @@ for(const token of [
 ])need('App-Einstellung',app,token);
 need('Cockpit-Ansicht',cockpit,'<DwdPrecipitationTypeRadar location={location} enabled={showDwdPrecipitationTypeRadar}/>');
 need('Klassische Ansicht',shortTerm,'<DwdPrecipitationTypeRadar location={location} enabled={showDwdPrecipitationTypeRadar}/>');
-for(const token of ["async function dwdPrecipitationTypeImageResponse()","async function dwdPrecipitationTypeMeta()","async function dwdPrecipitationTypeInfo(request)","if(mode==='dwd-precipitation-type-image')return dwdPrecipitationTypeImageResponse();","mode==='dwd-precipitation-type-meta'","mode==='dwd-precipitation-type-info'","'dwd-precipitation-type-info'","radarAt:observedAt","satelliteAt:observedAt"])need('Worker',worker,token);
+for(const token of ["async function dwdPrecipitationTypeImageResponse()","async function dwdPrecipitationTypeMeta()","async function dwdPrecipitationTypeInfo(request)","if(mode==='dwd-precipitation-type-image')return dwdPrecipitationTypeImageResponse();","mode==='dwd-precipitation-type-meta'","mode==='dwd-precipitation-type-info'","'dwd-precipitation-type-info'","DWD_PRECIPITATION_TYPE_PAGE","dwdPrecipitationTypeSourceTimesFromHtml","radarAt:sourceTimes.radarAt","satelliteAt:sourceTimes.satelliteAt"])need('Worker',worker,token);
+reject('Worker-Zeitfallback',worker,'radarAt:observedAt');
 for(const token of ['.dwd-precip-type-radar__viewport','.dwd-precip-type-radar__legend{','.dwd-precip-type-radar__point-strip','.dwd-precip-type-radar__timestamps','backdrop-filter:blur(10px)'])need('Radar-CSS',styles,token);
 reject('Radar-CSS Popup',styles,'.dwd-precip-type-radar__point-info');
 need('Package-Test',pkg,'test:dwd-precipitation-type-radar');
