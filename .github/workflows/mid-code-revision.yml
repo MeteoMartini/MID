@@ -54,7 +54,7 @@ jobs:
       actions: write
     steps:
       - name: Main mit vollständiger Historie laden
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: main
           fetch-depth: 0
@@ -306,7 +306,7 @@ jobs:
       contents: read
     steps:
       - name: Zu prüfenden MID-Stand laden
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && 'mid-stable' || github.sha }}
       - name: Installationsstand erkennen
@@ -358,7 +358,7 @@ jobs:
       issues: write
     steps:
       - name: MID Stable laden
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: mid-stable
       - name: Node.js 22 einrichten
@@ -428,7 +428,7 @@ jobs:
       issues: write
     steps:
       - name: MID Stable laden
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: mid-stable
       - name: Node.js 22 einrichten
@@ -478,7 +478,7 @@ jobs:
       issues: write
     steps:
       - name: MID Stable laden
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: mid-stable
       - name: Node.js 22 einrichten
@@ -561,7 +561,7 @@ jobs:
       packages: read
     steps:
       - name: Zu analysierenden MID-Stand laden
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 'mid-stable' || github.sha }}
       - name: CodeQL initialisieren
