@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.19.1",
+  "version": "0.9.21.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -209,12 +209,15 @@
     "test:cockpit-windbarb-buildfix": "node scripts/test-cockpit-windbarb-buildfix-09185.mjs",
     "test:cockpit-meteogram-overlay-scale": "node scripts/test-cockpit-meteogram-overlay-scale-09186.mjs",
     "test:cockpit-meteogram-hourly-detail": "node scripts/test-cockpit-meteogram-hourly-detail-09187.mjs",
+    "test:dwd-precipitation-type-radar": "node scripts/test-dwd-precipitation-type-radar-09200.mjs",
     "test:code-revision-automation": "node scripts/test-code-revision-automation-09190.mjs",
     "test:deployed-health": "node scripts/check-deployed-mid.mjs",
     "test:api-contracts": "node scripts/check-api-contracts.mjs",
     "test:build-budget": "node scripts/check-build-budget.mjs",
     "test:browser-smoke": "playwright test --config=playwright.config.mjs",
-    "test:lighthouse": "lhci autorun --config=./lighthouserc.cjs"
+    "test:lighthouse": "lhci autorun --config=./lighthouserc.cjs",
+    "test:cockpit-regression-sync": "node scripts/test-cockpit-regression-sync-09201.mjs",
+    "test:weather-maps-module": "node scripts/test-weather-maps-module-09210.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

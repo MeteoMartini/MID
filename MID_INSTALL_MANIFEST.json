@@ -1,10 +1,11 @@
 {
   "schema": 1,
-  "releaseVersion": "0.9.19.1",
-  "baseVersion": "0.9.19.0",
+  "releaseVersion": "0.9.21.0",
+  "baseVersion": "0.9.20.1",
   "stableBranch": "mid-stable",
   "includes": [
-    "automated-code-revision",
-    "24h-meteogram-hourly-detail"
+    "splashscreen-logo-enlargement",
+    "advanced-weather-maps-module",
+    "dwd-weather-map-wms-proxy"
   ]
 }

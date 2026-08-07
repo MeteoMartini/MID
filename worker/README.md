@@ -341,3 +341,13 @@ KONRAD3D-Zellobjekte liefern zusätzlich den Richtungswinkel vom abgefragten Sta
 ## Flugmeteorologischer Cross Section – vorerst deaktiviert (v0.8.18.3)
 
 Der Endpunkt `?mode=flight-cross-section` ist bis auf Weiteres deaktiviert und antwortet mit HTTP 410 sowie `status: "to-be-continued"`. Dabei werden keine NOAA-, Open-Meteo- oder Elevation-Abrufe ausgelöst. Der vorhandene Implementierungscode bleibt ausschließlich für eine spätere Weiterentwicklung erhalten.
+
+
+## v0.9.21.0 – DWD-Wetterkartenmodul
+
+Das optionale Wetterkartenmodul der erweiterten MID-Ansicht verwendet zwei neue Worker-Modi:
+
+- `?mode=weather-map-metadata&layer=...` liest Zeit-, Modelllauf- und Druckflächendimensionen aus den DWD-WMS-Capabilities.
+- `?mode=weather-map-wms&provider=dwd&...` liefert ausschließlich freigegebene DWD-WMS-Layer als CORS-sichere Kartenbilder.
+
+Die Layer sind serverseitig auf eine feste Allowlist beschränkt. Unterstützt werden ausgewählte ICON-EU-, ICON-, ICON-EPS-, NowCastMIX- und Meteosat-Produkte, darunter Bodendruck, Niederschlag, Temperatur, Geopotential, Höhenwind und signifikante Wettererscheinungen. Modelllauf-, Zeit- und Druckflächenparameter werden validiert; fremde WMS-Layer oder Zeitpunkte außerhalb des jeweiligen Produktfensters werden abgewiesen.

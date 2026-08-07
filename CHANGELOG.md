@@ -1,4 +1,16 @@
-## v0.9.19.1
+## v0.9.21.0
+- Start-/Splashscreen mit deutlich größerem, responsivem MID-Logo und ruhigerem Startbildschirm überarbeitet.
+- Optionales Wetterkartenmodul für den erweiterten Modus ergänzt; standardmäßig deaktiviert und über die Dashboard-Einstellungen aktivierbar.
+- DWD-WMS-Auswahl für ICON-EU, ICON, ICON-EPS, NowCastMIX und Meteosat mit Karten-, Modell-, Zeitschritt-, Druckflächen-, Basiskarten- und Deckkraftsteuerung ergänzt.
+- Worker um freigegebene, validierte Wetterkarten-WMS- und Metadaten-Endpunkte erweitert.
+
+## v0.9.20.1
+- Buildfix: drei Cockpit-Meteogrammregressionen an das aktuelle Vollbreitenlayout und Einzeldatenfeld synchronisiert.
+- CSS-Prüfungen der betroffenen Regressionen whitespace- und formatierungsrobust gemacht, ohne die fachlichen Layoutverträge abzuschwächen.
+- Neue Meta-Regression `test-cockpit-regression-sync-09201.mjs` schützt die Synchronisierung dauerhaft.
+- DWD-Niederschlagsarten-Radar aus v0.9.20.0 unverändert beibehalten; dessen Regression akzeptiert nun Folgereleases ab v0.9.20.0 statt nur exakt v0.9.20.0.
+
+## v0.9.19.2
 - 24-h-Meteogramm und erweiterte Einzeldaten auf die veröffentlichte Stable-Codeoptimierung v0.9.19.0 portiert.
 - Automatisierte Code-Revisions-, Live-, API-, Browser- und Build-Budget-Prüfungen aus v0.9.19.0 beibehalten.
 

@@ -10,6 +10,7 @@ export type DashboardModuleId=
  |'forecast-verification'
  |'travel-planner'
  |'flight-meteorology'
+ |'weather-maps'
  |'widget';
 
 export type DashboardModuleDefinition={
@@ -39,12 +40,13 @@ export const DASHBOARD_MODULE_DEFINITIONS:DashboardModuleDefinition[]=[
  {id:'forecast-verification',label:'Prognosegüte und Rückblick',description:'Vorhersagekontrolle und lokale Modellgüte',advancedOnly:true},
  {id:'travel-planner',label:'Reisewetter und Reiseplaner',description:'Klimatologie und Reisezeitfenster'},
  {id:'flight-meteorology',label:'Flugmeteorologie',description:'Meteogramme und Flugwetterwerkzeuge',advancedOnly:true},
+ {id:'weather-maps',label:'Wetterkarten',description:'DWD Modell-, Höhen- und Signifikanzkarten mit Zeitschritten',advancedOnly:true},
  {id:'widget',label:'Widget- und PNG-Generator',description:'Konfigurierbare Exportansicht',advancedOnly:true}
 ];
 
 export const DEFAULT_DASHBOARD_MODULE_ORDER:DashboardModuleId[]=DASHBOARD_MODULE_DEFINITIONS.map(item=>item.id);
 
-function defaultEnabled(){return Object.fromEntries(DEFAULT_DASHBOARD_MODULE_ORDER.map(id=>[id,true])) as Record<DashboardModuleId,boolean>}
+function defaultEnabled(){return Object.fromEntries(DEFAULT_DASHBOARD_MODULE_ORDER.map(id=>[id,id==='weather-maps'?false:true])) as Record<DashboardModuleId,boolean>}
 
 export function defaultDashboardModuleSettings():DashboardModuleSettings{return{order:[...DEFAULT_DASHBOARD_MODULE_ORDER],enabled:defaultEnabled()}}
 

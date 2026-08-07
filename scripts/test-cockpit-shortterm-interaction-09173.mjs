@@ -8,6 +8,7 @@ const [cockpit,styles,pkg,baseline]=await Promise.all([
 ]);
 const failures=[];
 const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
+const needPattern=(label,text,pattern)=>{if(!pattern.test(text))failures.push(`${label}: ${pattern}`)};
 const reject=(label,text,token)=>{if(text.includes(token))failures.push(`${label} sollte fehlen: ${token}`)};
 
 for(const token of [
@@ -28,8 +29,9 @@ for(const token of [
   '.cockpit-meteogram-pro__hitlayer button.active{',
   '.cockpit-meteogram-pro__svg .temperature-line{',
   '.cockpit-meteogram-pro__svg .apparent-line{',
-  '.cockpit-meteogram-pro__stage{width:100%;max-width:100%;overflow:hidden;'
 ])need('Kurzfrist-CSS',styles,token);
+
+needPattern('Kurzfrist-CSS',styles,/\.cockpit-meteogram-pro__stage\s*\{[^}]*width:100%[^}]*max-width:100%[^}]*overflow:(?:visible|clip)[^}]*\}/s);
 
 reject('Alte Kurzfristmatrix',cockpit,'className="cockpit-short-matrix-shell"');
 reject('Altes Diagramm-Markup',cockpit,'cockpit-short-diagram-column');

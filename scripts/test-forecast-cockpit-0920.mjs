@@ -7,7 +7,7 @@ const pkg=readFileSync(new URL('../package.json',import.meta.url),'utf8');
 const baseline=readFileSync(new URL('../MID_BASELINE.json',import.meta.url),'utf8');
 const failures=[];const need=(area,text,token)=>{if(!text.includes(token))failures.push(`${area}: fehlt ${token}`)};
 need('Cockpit-Datei',cockpit,"export type ForecastPresentationMode='classic'|'cockpit-tabs'|'cockpit-ribbons'");
-need('Klassischer Standard',app,'const DEFAULT_FORECAST_DISPLAY_SETTINGS:ForecastDisplaySettings={showSevenDaySummary:true}');
+need('Klassischer Standard',app,'const DEFAULT_FORECAST_DISPLAY_SETTINGS:ForecastDisplaySettings={showSevenDaySummary:true,showDwdPrecipitationTypeRadar:true}');
 for(const token of ['Klassisch','Cockpit · Register','Cockpit · Ribbons','Die klassische Ansicht bleibt Standard'])need('Einstellungen',app,token);
 for(const token of ["const FORECAST_COCKPIT_MODULES:DashboardModuleId[]=['short-term','forecast','ensemble']","forecastPresentationMode!=='classic'&&FORECAST_COCKPIT_MODULES.includes(id)","if(id!==forecastCockpitAnchor)return null"])need('Keine Doppelmodule',app,token);
 for(const token of ['cockpit-now90',"points=useMemo(()=>selectShortTermPoints(adjusted,'1h')",'Darstellung durchgängig einstündig.','regularShortTermPoints','SvgWindBarb','Böen bis'])need('Kurzfrist',cockpit,token);
