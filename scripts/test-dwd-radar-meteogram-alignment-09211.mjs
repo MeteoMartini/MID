@@ -9,8 +9,9 @@ const [radar,cockpit,styles,pkg,baseline]=await Promise.all([
 const failures=[];const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};const reject=(label,text,token)=>{if(text.includes(token))failures.push(`${label} sollte fehlen: ${token}`)};
 for(const token of [
  'export function dwdPrecipitationTypeImagePosition',
- 'DWD_RASTER_LONGITUDE_LINES',
- 'DWD_RASTER_LATITUDE_LINES',
+ 'DWD_RASTER_LONGITUDE_CURVES',
+ 'DWD_RASTER_LATITUDE_CURVES',
+ 'rasterCurveCoordinate',
  'function radarCropWindow(',
  'markerLeft=(centerX-left)/cropWidth*100',
  'PRECIPITATION_TYPE_LEGEND',"label:'großer Hagel'","label:'kleiner Hagel'","label:'Graupel'","label:'gefrierender Regen'","label:'gefr. Sprühregen'","label:'Schnee'","label:'Schneeregen'","label:'Regen'","label:'Sprühregen'","label:'nicht klassifizierbar'","label:'kein Niederschlag'",'Legende der Niederschlagsarten anzeigen'

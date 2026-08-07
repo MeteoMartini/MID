@@ -21,10 +21,8 @@ for(const token of [
  'export function dwdPrecipitationTypeCoverage',
  'Wolken + Niederschlagsart',
  'export function dwdPrecipitationTypeImagePosition',
- 'DWD_RASTER_LONGITUDE_LINES',
- 'DWD_RASTER_LATITUDE_LINES',
- 'rasterCoordinate',
- 'rasterValue',
+ 'DWD_RASTER_LONGITUDE_CURVES',
+ 'DWD_RASTER_LATITUDE_CURVES',
  'PRECIPITATION_TYPE_LEGEND',
  'großer Hagel',
  'kein Niederschlag',
@@ -33,16 +31,15 @@ for(const token of [
  'markerLeft=(centerX-left)/cropWidth*100',
  "fetchWorkerJson<RadarMeta>('dwd-precipitation-type-meta'",
  "fetchWorkerJson<RadarPointInfo>('dwd-precipitation-type-info'",
- '<b>Niederschlagsart</b>',
- '<b>Satbild</b>',
+ '<b>Radar</b>',
+ '<b>Sat</b>',
  'geoFromImagePoint',
  'Standortmarker ausblenden',
- 'formatCompactTimestamp(meta?.radarAt,timezone)',
- 'formatCompactTimestamp(meta?.satelliteAt,timezone)',
+ 'formatDwdSourceTimestamp(meta?.radarAt)',
+ 'formatDwdSourceTimestamp(meta?.satelliteAt)',
  'dwd-precip-type-radar__point-strip'
  ])need('Radar-Komponente',component,token);
 reject('Radar-Verortung',component,'mercatorLatitude');
-reject('Radar-Verortung',component,'DWD_IMAGE_GEO_AFFINE');
 reject('Radar-Popup',component,'pointPopup');
 
 for(const token of [
@@ -59,4 +56,4 @@ need('Baseline-Test',baseline,'scripts/test-dwd-precipitation-type-radar-09200.m
 const packageVersion=JSON.parse(pkg).version,baselineVersion=JSON.parse(baseline).releaseVersion;
 if(packageVersion!==baselineVersion)failures.push(`Versionen nicht synchron: package ${packageVersion}, baseline ${baselineVersion}`);
 if(failures.length){console.error('DWD-Niederschlagsarten-Radar fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('DWD Wolken + Niederschlagsart mit Gradnetz-Georeferenzierung, kompakten Zeitstempeln und oberer Bildpunktleiste erfolgreich geprüft.');
+console.log('DWD Wolken + Niederschlagsart mit gekrümmtem Gradnetz, UTC-Quellzeitstempeln und oberer Bildpunktleiste erfolgreich geprüft.');
