@@ -1,26 +1,15 @@
 import {readFile} from 'node:fs/promises';
-const [component,app,cockpit,shortTerm,worker,styles,pkg,baseline]=await Promise.all([
- readFile(new URL('../src/DwdPrecipitationTypeRadar.tsx',import.meta.url),'utf8'),
- readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
- readFile(new URL('../src/ForecastCockpit.tsx',import.meta.url),'utf8'),
- readFile(new URL('../src/ShortTermForecast.tsx',import.meta.url),'utf8'),
- readFile(new URL('../worker/metar-proxy.js',import.meta.url),'utf8'),
- readFile(new URL('../src/styles.css',import.meta.url),'utf8'),
- readFile(new URL('../package.json',import.meta.url),'utf8'),
- readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')
+const [component,map,app,cockpit,shortTerm,worker,styles,pkg,baseline]=await Promise.all([
+ readFile(new URL('../src/DwdPrecipitationTypeRadar.tsx',import.meta.url),'utf8'),readFile(new URL('../src/DwdPrecipitationMap.tsx',import.meta.url),'utf8'),readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),readFile(new URL('../src/ForecastCockpit.tsx',import.meta.url),'utf8'),readFile(new URL('../src/ShortTermForecast.tsx',import.meta.url),'utf8'),readFile(new URL('../worker/metar-proxy.js',import.meta.url),'utf8'),readFile(new URL('../src/styles.css',import.meta.url),'utf8'),readFile(new URL('../package.json',import.meta.url),'utf8'),readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')
 ]);
 const failures=[];const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};const reject=(label,text,token)=>{if(text.includes(token))failures.push(`${label} sollte fehlen: ${token}`)};
-for(const token of [
- "DWD_PRODUCT_PAGE='https://www.dwd.de/DE/leistungen/wolken_niederschlagsart/wolken_niederschlagsart.html'",
- 'Wolken + Niederschlagsart',"buildWorkerUrl(base,'dwd-precipitation-type-image'","response.headers.get('x-mid-radar-at')","response.headers.get('x-mid-satellite-at')",'formatDwdSourceTimestamp(meta?.radarAt)','formatDwdSourceTimestamp(meta?.satelliteAt)','DwdLocationLocator location={location}',"layers:'dwd:Satellite_meteosat_1km_euat_rgb_clouds_day_and_night'","layers:'dwd:Niederschlagsradar'",'dwd-precip-type-radar__source-image','Originales DWD-Kombinationsbild · unverändert'
-])need('Radar-Komponente',component,token);
-for(const token of ["headers.set('x-mid-radar-at',sourceTimes.radarAt)","headers.set('x-mid-satellite-at',sourceTimes.satelliteAt)",'radarAt=pageTimes.radarAt||','satelliteAt=pageTimes.satelliteAt||'])need('Worker',worker,token);
-for(const token of ['loadCompositeTimes','loadHymecNgMetadata','LazyDwdPrecipitationMap','dwdPrecipitationTypeImagePosition','radarCropWindow'])reject('Keine rekonstruierte Ersatzdarstellung',component,token);
+for(const token of ["DWD_PRODUCT_PAGE='https://www.dwd.de/DE/leistungen/wolken_niederschlagsart/wolken_niederschlagsart.html'",'Wolken + Niederschlagsart','MID-Komposit · aktuelle Einzelprodukte','loadCompositeTimes','loadRainViewer','loadHymecNgMetadata','freshHymec','<b>Niederschlag</b>','<b>Sat</b>','<DwdPrecipitationMap','markerVisible={markerVisible}','dwd-precip-type-radar__source-summary'])need('Gesamtkarte',component,token);
+for(const token of ['DwdLocationLocator','dwd-precip-type-radar__source-image',"buildWorkerUrl(base,'dwd-precipitation-type-image'",'Originales DWD-Kombinationsbild · unverändert'])reject('Keine zweite/statische Karte',component,token);
+for(const token of ['rastertiles/voyager','Marker position={[latitude,longitude]}','<HymecNgOverlay','rainViewer.host','/512/{z}/{x}/{y}/2/1_1.png',"precipSource==='dwd-radar'",'<WMSTileLayer'])need('Georeferenzierte Komposition',map,token);
+for(const token of ["layer:'mtg_fd:rgb_geocolour'",'satelliteProduct(capabilities,SATELLITE_DAY_CANDIDATES,now)','dwdTimesFromCapabilities(dwdXml,layer)','result.dwdRadar=observed.map','cf:{cacheTtl:180,cacheEverything:true}'])need('Aktuelle Worker-Quellen',worker,token);
 for(const token of ['showDwdPrecipitationTypeRadar:boolean','showDwdPrecipitationTypeRadar={forecastDisplaySettings.showDwdPrecipitationTypeRadar}'])need('App-Einstellung',app,token);
 need('Cockpit',cockpit,'<DwdPrecipitationTypeRadar location={location} enabled={showDwdPrecipitationTypeRadar}/>');need('Klassische Ansicht',shortTerm,'<DwdPrecipitationTypeRadar location={location} enabled={showDwdPrecipitationTypeRadar}/>');
-for(const token of ['.dwd-precip-type-radar__source-frame','.dwd-precip-type-radar__source-image'])need('CSS',styles,token);
-for(const token of ['DWD_DIRECT_IMAGE','dwdPrecipitationTypeImagePosition','radarCropWindow','geoFromImagePoint','DWD_SOURCE_RASTER_GRID','RasterPolynomial'])reject('Statische PNG-Georeferenzierung',component,token);
-need('Package-Test',pkg,'test:dwd-precipitation-type-radar');need('Baseline-Test',baseline,'scripts/test-dwd-precipitation-type-radar-09200.mjs');
-const packageVersion=JSON.parse(pkg).version,baselineVersion=JSON.parse(baseline).releaseVersion;if(packageVersion!==baselineVersion)failures.push(`Versionen nicht synchron: package ${packageVersion}, baseline ${baselineVersion}`);
+for(const token of ['.dwd-precip-type-radar__map-shell','.dwd-precip-type-radar__source-summary','.mid-dwd-location-pin'])need('CSS',styles,token);
+need('Package-Test',pkg,'test:dwd-precipitation-type-radar');need('Baseline-Test',baseline,'scripts/test-dwd-precipitation-type-radar-09200.mjs');const packageVersion=JSON.parse(pkg).version,baselineVersion=JSON.parse(baseline).releaseVersion;if(packageVersion!==baselineVersion)failures.push(`Versionen nicht synchron: package ${packageVersion}, baseline ${baselineVersion}`);
 if(failures.length){console.error('DWD Wolken + Niederschlagsart fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('DWD Wolken + Niederschlagsart: unverändertes amtliches Kombinationsbild plus exakter WGS84-Locator mit DWD Radar/Sat erfolgreich geprüft.');
+console.log('Eine einzige georeferenzierte Wolken-/Niederschlagsart-Gesamtkarte mit aktueller Quellenkaskade erfolgreich geprüft.');

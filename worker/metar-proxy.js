@@ -26,7 +26,7 @@ const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const OPEN_METEO_ELEVATION='https://api.open-meteo.com/v1/elevation';
-const WORKER_VERSION='0.9.28.0';
+const WORKER_VERSION='0.9.29.0';
 const CORS={'content-type':'application/json; charset=utf-8','access-control-allow-origin':'*','access-control-allow-methods':'GET,POST,OPTIONS','access-control-allow-headers':'content-type','cache-control':'public, max-age=180'};
 const FEED_SLUGS={
  AD:'andorra',AT:'austria',BE:'belgium',BA:'bosnia-herzegovina',BG:'bulgaria',HR:'croatia',CY:'cyprus',CZ:'czechia',DK:'denmark',EE:'estonia',FI:'finland',FR:'france',DE:'germany',GR:'greece',EL:'greece',HU:'hungary',IS:'iceland',IE:'ireland',IL:'israel',IT:'italy',LV:'latvia',LT:'lithuania',LU:'luxembourg',MT:'malta',MD:'moldova',ME:'montenegro',NL:'netherlands',MK:'republic-of-north-macedonia',NO:'norway',PL:'poland',PT:'portugal',RO:'romania',RS:'serbia',SK:'slovakia',SI:'slovenia',ES:'spain',SE:'sweden',CH:'switzerland',UA:'ukraine',GB:'united-kingdom',UK:'united-kingdom',AM:'armenia'
@@ -1070,10 +1070,11 @@ async function bestLightningPoints(lat,lon,env){
 
 const EUMETSAT_WMS='https://view.eumetsat.int/geoserver/wms';
 const SATELLITE_DAY_CANDIDATES=[
- {provider:'eumetsat',layer:'mtg_fd:vis06_hrfi',label:'MTG FCI VIS 0,6 HRFI',resolutionKm:.5},
- {provider:'eumetsat',layer:'msg_fes:rgb_eview',label:'MSG European HRV RGB',resolutionKm:1},
- {provider:'dwd',layer:'dwd:Satellite_meteosat_1km_euat_rgb_clouds_day_and_night',label:'DWD Meteosat Europa RGB/IR',resolutionKm:1},
- {provider:'dwd',layer:'dwd:SAT_EU_RGB',label:'DWD Meteosat Europa RGB',resolutionKm:1}
+ {provider:'eumetsat',layer:'mtg_fd:rgb_geocolour',label:'MTG FCI GeoColour',resolutionKm:1,priority:100},
+ {provider:'dwd',layer:'dwd:Satellite_meteosat_1km_euat_rgb_clouds_day_and_night',label:'DWD Meteosat Europa RGB/IR',resolutionKm:1,priority:90},
+ {provider:'eumetsat',layer:'mtg_fd:vis06_hrfi',label:'MTG FCI VIS 0,6 HRFI',resolutionKm:.5,priority:60},
+ {provider:'eumetsat',layer:'msg_fes:rgb_eview',label:'MSG European HRV RGB',resolutionKm:1,priority:50},
+ {provider:'dwd',layer:'dwd:SAT_EU_RGB',label:'DWD Meteosat Europa RGB',resolutionKm:1,priority:40}
 ];
 const SATELLITE_IR_CANDIDATES=[
  {provider:'eumetsat',layer:'mtg_fd:ir105_hrfi',label:'MTG FCI IR 10,5 HRFI',resolutionKm:1},
@@ -1091,7 +1092,7 @@ const SATELLITE_PRECIP_CANDIDATES=[
  {provider:'eumetsat',layer:'mtg_fd:precipitation_rate',label:'MTG FCI Niederschlagsrate',resolutionKm:2},
  {provider:'eumetsat',layer:'msg_fes:h60b',label:'H SAF Satelliten-Niederschlagsrate',resolutionKm:3}
 ];
-async function wmsCapabilitiesText(base,label){const response=await fetchWithDeadline(dwdCapabilitiesUrl(base),{headers:{Accept:'application/xml,text/xml,*/*','Cache-Control':'no-cache'},cache:'no-store'},6000);if(!response.ok)throw new Error(`${label} Capabilities HTTP ${response.status}`);return response.text()}
+async function wmsCapabilitiesText(base,label){const response=await fetchWithDeadline(dwdCapabilitiesUrl(base),{headers:{Accept:'application/xml,text/xml,*/*'},cf:{cacheTtl:180,cacheEverything:true}},6000);if(!response.ok)throw new Error(`${label} Capabilities HTTP ${response.status}`);return response.text()}
 async function firstWmsCapabilities(bases,label){const errors=[];for(const base of bases){try{return await wmsCapabilitiesText(base,label)}catch(error){errors.push(error instanceof Error?error.message:String(error))}}throw new Error(errors.join(' | ')||`${label} Capabilities nicht verfügbar`)}
 function recentObservedTimes(times,now=Date.now(),historyMinutes=135,maxFrames=28,futureMinutes=10){const unique=[...new Set((times||[]).filter(Number.isFinite).filter(time=>time>=now-historyMinutes*60000&&time<=now+futureMinutes*60000))].sort((a,b)=>a-b);if(unique.length<=maxFrames)return unique;const step=Math.max(1,Math.ceil(unique.length/maxFrames)),selected=unique.filter((_,index)=>index%step===0);if(selected.at(-1)!==unique.at(-1))selected.push(unique.at(-1));return selected.slice(-maxFrames)}
 function hasWmsLayer(xml,layer){return tagValues(xml,'Name').some(value=>wmsLayerNameMatches(value,layer))}
@@ -1103,13 +1104,25 @@ function satelliteProduct(capabilities,candidates,now=Date.now()){
   if(Number.isFinite(latest)&&latest>=now-190*60000&&latest<=now+15*60000){const times=recentObservedTimes(all,now,150,30,15);if(times.length)products.push({...candidate,times:times.map(time=>new Date(time).toISOString()),latest,fresh:latest>=now-80*60000})}
   else latestOnly.push({...candidate,times:[],latestOnly:true,fresh:false});
  }
- products.sort((a,b)=>Number(b.fresh)-Number(a.fresh)||Number(b.provider==='eumetsat')-Number(a.provider==='eumetsat')||(a.resolutionKm??99)-(b.resolutionKm??99)||b.latest-a.latest);let chosen=products[0];
- if(!chosen){latestOnly.sort((a,b)=>Number(b.provider==='eumetsat')-Number(a.provider==='eumetsat')||(a.resolutionKm??99)-(b.resolutionKm??99));chosen=latestOnly[0]}
+ products.sort((a,b)=>Number(b.fresh)-Number(a.fresh)||(b.priority??0)-(a.priority??0)||Number(b.provider==='eumetsat')-Number(a.provider==='eumetsat')||(a.resolutionKm??99)-(b.resolutionKm??99)||b.latest-a.latest);let chosen=products[0];
+ if(!chosen){latestOnly.sort((a,b)=>(b.priority??0)-(a.priority??0)||Number(b.provider==='eumetsat')-Number(a.provider==='eumetsat')||(a.resolutionKm??99)-(b.resolutionKm??99));chosen=latestOnly[0]}
  if(!chosen)return undefined;const{latest,...product}=chosen;return{...product,latestTime:Number.isFinite(latest)?new Date(latest).toISOString():undefined,fallback:product.provider!=='eumetsat'||(!product.layer.startsWith('mtg_fd:')&&product.layer!=='msg_fes:h60b')}
 }
-async function compositeTimes(lat,lon){const serverTime=new Date().toISOString(),result={satelliteDay:[],satelliteIr:[],satellitePrecip:[],mtgLightning:[],dwdLightning:[],dwdRadar:[],dwdRadarLayer:'',dwdRadarLatestOnly:false,mtgLightningLatestOnly:false,checkedAt:serverTime,serverTime,errors:[]};
- if(mtgLightningApplies(lat,lon)){result.satelliteDayProduct={...SATELLITE_LATEST_DAY};result.satelliteIrProduct={...SATELLITE_LATEST_IR};result.mtgLightningLatestOnly=true}
- if(inGermanyBounds(lat,lon)){result.dwdRadarLayer='dwd:Niederschlagsradar';result.dwdRadarLatestOnly=true}
+async function compositeTimes(lat,lon){
+ const now=Date.now(),serverTime=new Date(now).toISOString(),result={satelliteDay:[],satelliteIr:[],satellitePrecip:[],mtgLightning:[],dwdLightning:[],dwdRadar:[],dwdRadarLayer:'',dwdRadarLatestOnly:false,mtgLightningLatestOnly:false,checkedAt:serverTime,serverTime,errors:[]},capabilities={};
+ const tasks=[];
+ if(mtgLightningApplies(lat,lon))tasks.push(firstWmsCapabilities([EUMETSAT_WMS],'EUMETSAT Satellit').then(xml=>{capabilities.eumetsat=xml}).catch(error=>{result.errors.push(`EUMETSAT: ${error instanceof Error?error.message:String(error)}`)}));
+ if(inGermanyBounds(lat,lon)||mtgLightningApplies(lat,lon))tasks.push(firstWmsCapabilities(DWD_RADAR_WMS_BASES,'DWD Geodienst').then(xml=>{capabilities.dwd=xml}).catch(error=>{result.errors.push(`DWD: ${error instanceof Error?error.message:String(error)}`)}));
+ if(tasks.length)await Promise.all(tasks);
+ if(mtgLightningApplies(lat,lon)){
+  result.satelliteDayProduct=satelliteProduct(capabilities,SATELLITE_DAY_CANDIDATES,now)||{...SATELLITE_LATEST_DAY};
+  result.satelliteIrProduct=satelliteProduct(capabilities,SATELLITE_IR_CANDIDATES,now)||{...SATELLITE_LATEST_IR};
+  result.satelliteDay=result.satelliteDayProduct?.times||[];result.satelliteIr=result.satelliteIrProduct?.times||[];result.mtgLightningLatestOnly=true;
+ }
+ if(inGermanyBounds(lat,lon)){
+  const dwdXml=capabilities.dwd||'',layer=DWD_RADAR_LAYERS.find(candidate=>hasWmsLayer(dwdXml,candidate))||'dwd:Niederschlagsradar',all=dwdXml?dwdTimesFromCapabilities(dwdXml,layer):[],observed=recentObservedTimes(all.filter(time=>time<=now+90000),now,75,20,2);
+  result.dwdRadarLayer=layer;result.dwdRadar=observed.map(time=>new Date(time).toISOString());result.dwdRadarLatestOnly=!observed.length;
+ }
  return result;
 }
 function diagnosticMapUrl(base,layer,version,bbox){const url=new URL(base),params={service:'WMS',request:'GetMap',version,layers:layer,styles:'',format:'image/png',transparent:'true',bbox,width:'64',height:'64',[version==='1.3.0'?'crs':'srs']:'EPSG:3857'};for(const[key,value]of Object.entries(params))url.searchParams.set(key,value);return url.toString()}
@@ -1223,7 +1236,7 @@ const WEATHER_MAP_LAYER_CONFIG=new Map([
 ]);
 const WMS_ALLOWED_LAYERS={
  dwd:new Set([...DWD_RADAR_LAYERS,'dwd:Blitzdichte','dwd:NCEW_EU','dwd:Warnungen_Gemeinden_vereinigt',...WEATHER_MAP_LAYER_CONFIG.keys(),...SATELLITE_DAY_CANDIDATES.filter(item=>item.provider==='dwd').map(item=>item.layer),...SATELLITE_IR_CANDIDATES.filter(item=>item.provider==='dwd').map(item=>item.layer)]),
- eumetsat:new Set(['mtg_fd:vis06_hrfi','mtg_fd:ir105_hrfi','mtg_fd:li_afa','msg_fes:rgb_eview','msg_fes:ir108',...SATELLITE_PRECIP_CANDIDATES.map(item=>item.layer)])
+ eumetsat:new Set(['mtg_fd:li_afa',...SATELLITE_DAY_CANDIDATES.filter(item=>item.provider==='eumetsat').map(item=>item.layer),...SATELLITE_IR_CANDIDATES.filter(item=>item.provider==='eumetsat').map(item=>item.layer),...SATELLITE_PRECIP_CANDIDATES.map(item=>item.layer)])
 };
 
 function limitedWeatherMapTimes(times,config,now=Date.now()){const minimum=now-(config?.observed?18:36)*3600000,maximum=now+(config?.shortRange?3:config?.forecast?200:2)*3600000,filtered=[...new Set((times||[]).filter(Number.isFinite).filter(value=>value>=minimum&&value<=maximum))].sort((a,b)=>a-b);if(filtered.length<=260)return filtered;const step=Math.ceil(filtered.length/260),sampled=filtered.filter((_,index)=>index%step===0);if(sampled.at(-1)!==filtered.at(-1))sampled.push(filtered.at(-1));return sampled.slice(-260)}
