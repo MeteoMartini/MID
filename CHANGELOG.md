@@ -1,3 +1,14 @@
+## v0.9.32.4
+
+- 24-h-Wetterprofil: Info-Schaltfläche bereinigt; nur noch das eigentliche Informationssymbol wird angezeigt.
+- Responsivitätsfix für das 24-h-Wetterprofil: Canvas-Höhe passt sich der real verfügbaren Breite an; übergroßer Leerraum auf mobilen Displays entfällt.
+- Touch-Bedienung des Wetterprofils robuster gemacht; Zeitschritte reagieren direkter auf Taps/Touches.
+- Zeitlabels oberhalb des Profils folgen jetzt einem regelmäßigen Raster statt ungleichmäßiger Abstände.
+- Tages-Tmin/Tmax werden je Kalendertag als Zahlenwert am Verlauf markiert, jedoch nur innerhalb des tatsächlich sichtbaren Anzeigeintervalls.
+- Wetterpiktogramme im Profil ohne querlaufenden Hintergrundstreifen; Windpfeile etwas dezenter.
+- Wolkenbänder H/M/L ohne zusätzlichen kontrastreichen Hintergrund; Kontrast entsteht nur noch durch echte Bewölkungsanteile.
+- Versions- und Regressionsstand vollständig auf v0.9.32.4 synchronisiert; 329/329 Tests bestanden.
+
 ## v0.9.32.3
 
 - 24-h-Wetterprofil: vertikale Abstände oberhalb des Diagramms reduziert; Stunden-, Kalender- und Piktogramme rücken näher an die Grafik.

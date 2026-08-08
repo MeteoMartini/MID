@@ -40,10 +40,10 @@ for(const token of [
   'gap:7px',
   '.cockpit-weather-profile .cockpit-meteogram-pro__stage{padding:0}',
   '.cockpit-weather-profile .cockpit-meteogram-pro__legend{margin-top:-1px}',
-  'filter:contrast(1.18)'
+  '.cockpit-weather-profile .cloud-band{stroke:color-mix(in srgb,var(--mg-text) 12%,transparent);stroke-width:.4;shape-rendering:geometricPrecision}'
 ])need('Wetterprofil-Styles',styles,token);
 
 const packageVersion=JSON.parse(pkg).version,baselineVersion=JSON.parse(baseline).releaseVersion;
 if(packageVersion!==baselineVersion)failures.push(`Versionen nicht synchron: ${packageVersion}/${baselineVersion}`);
-if(failures.length){console.error(`MID v0.9.32.1 Thermik-/Hazard-Klarheit fehlgeschlagen:\n- ${failures.join('\n- ')}`);process.exit(1)}
-console.log('MID v0.9.32.1: Schwüle, klare Hazards, kompaktere Abstände und kontrastreichere Wolken geprüft.');
+if(failures.length){console.error(`MID v0.9.32.4 Thermik-/Hazard-Klarheit fehlgeschlagen:\n- ${failures.join('\n- ')}`);process.exit(1)}
+console.log('MID v0.9.32.4: Schwüle, klare Hazards und wolkengetriebene Kontraste ohne Zusatzhintergrund geprüft.');

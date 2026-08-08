@@ -22,6 +22,7 @@ type Props=WeatherPictogramCloudProfile&{
  y?:number;
  style?:CSSProperties;
  compact?:boolean;
+ plain?:boolean;
 };
 
 function finiteCloud(value:unknown){const number=Number(value);return Number.isFinite(number)?Math.max(0,Math.min(100,number)):undefined}
@@ -131,7 +132,7 @@ function IceCrystal(){return <g className="mid-weather-ice" transform="translate
 function Lightning(){return <path className="mid-weather-lightning" d="M34 43h10l-6 8h7L31 63l4-10h-7l6-10Z" fill="#ffc928" stroke="#e69b00" strokeWidth="1.1" strokeLinejoin="round"/>}
 function Hail(){return <g className="mid-weather-hail" fill="#d8f3ff" stroke="#4fa5cf" strokeWidth="1"><circle cx="20" cy="54" r="2.5"/><circle cx="50" cy="55" r="2.5"/></g>}
 
-export function WeatherPictogram({code,day=true,size='1em',className='',title,x,y,style,cloud,lowCloud,midCloud,highCloud,compact=false}:Props){
+export function WeatherPictogram({code,day=true,size='1em',className='',title,x,y,style,cloud,lowCloud,midCloud,highCloud,compact=false,plain=false}:Props){
  const profile={cloud,lowCloud,midCloud,highCloud},rawId=useId().replace(/[^a-zA-Z0-9_-]/g,''),kind=weatherPictogramKind(code),layer=cloudLayerKind(code,profile),form=cloudFormKind(code,profile),layerText=cloudLayerDescription(layer),formText=cloudFormDescription(form),baseDescription=title||label(code),details=[layerText,formText].filter(Boolean).filter((item,index,array)=>array.indexOf(item)===index),description=details.reduce((current,item)=>current.toLocaleLowerCase('de-DE').includes(item.toLocaleLowerCase('de-DE'))?current:`${current} · ${item}`,baseDescription),sunGradient=`mid-sun-${rawId}`,moonGradient=`mid-moon-${rawId}`,cloudGradient=`mid-cloud-${rawId}`,nightCloudGradient=`mid-cloud-night-${rawId}`,stormGradient=`mid-storm-${rawId}`,nightStormGradient=`mid-storm-night-${rawId}`,shadow=`mid-shadow-${rawId}`;
  const celestial=day?<Sun gradient={sunGradient}/>:<Moon gradient={moonGradient}/>;
  const showCelestial=['mostly-clear','partly-cloudy','showers','snow-showers'].includes(kind),showVeiledCelestial=kind==='cloudy'&&['cirrus','altostratus'].includes(form),showFogMoon=!day&&['fog','rime-fog'].includes(kind);
@@ -148,7 +149,7 @@ export function WeatherPictogram({code,day=true,size='1em',className='',title,x,
    <linearGradient id={nightStormGradient} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#a0afc2"/><stop offset="1" stopColor="#66788e"/></linearGradient>
    <filter id={shadow} x="-28%" y="-28%" width="156%" height="170%"><feDropShadow dx="0" dy="2" stdDeviation="1.9" floodColor="#31435a" floodOpacity=".29"/></filter>
   </defs>
-  <SkyPlate day={day} kind={kind} form={form}/>
+  {!plain?<SkyPlate day={day} kind={kind} form={form}/>:null}
   <g filter={`url(#${shadow})`}>
    {kind==='clear'?<g transform={day?"translate(12 12) scale(1.12)":"translate(10 10) scale(1.16)"}>{celestial}</g>:null}
    {showCelestial?<g transform={day?"translate(-2 -3) scale(.82)":"translate(-1 -2) scale(.86)"}>{celestial}</g>:null}
