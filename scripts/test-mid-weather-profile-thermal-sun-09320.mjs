@@ -21,7 +21,7 @@ for(const token of [
   "else if(felt>=-26){label='kühl'",
   "else if(felt>=-39){label='kalt'",
   "label='sehr kalt'",
-  "reason:'Sicht / Nebel'",
+  'function shortTermFogRisk(point:ShortTermForecastPoint)',
   'className="selected-time-line"',
   "dateValue!==chartPoints[0]?.dateValue?'other-day':''",
   "<small>{formatDate(item.dateValue,{day:'2-digit',month:'2-digit'})}</small>",
@@ -38,7 +38,7 @@ for(const token of [
   'Thermisches Empfinden',
   'Δ zur Lufttemperatur',
   ' K</dd>',
-  'T–Td {formatDecimalFixed',
+  'Schwüle',
   'Wolken H/M/L',
   'Wetter-Hazards',
   'Thermische Einordnung nach den DWD-Klassen der Gefühlten Temperatur'

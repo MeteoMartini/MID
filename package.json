@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.32.0",
+  "version": "0.9.32.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -224,7 +224,9 @@
     "test:mid-single-precip-composite": "node scripts/test-mid-single-precip-composite-09290.mjs",
     "test:dwd-composite-source-integrity": "node scripts/test-dwd-composite-source-integrity-09300.mjs",
     "test:mid-original-dwd-weather-profile": "node scripts/test-mid-original-dwd-weather-profile-09310.mjs",
-    "test:weather-profile-thermal-sun": "node scripts/test-mid-weather-profile-thermal-sun-09320.mjs"
+    "test:weather-profile-thermal-sun": "node scripts/test-mid-weather-profile-thermal-sun-09320.mjs",
+    "test:weather-profile-thermal-hazards": "node scripts/test-mid-weather-profile-thermal-hazards-09321.mjs",
+    "test:weather-profile-axes": "node scripts/test-mid-weather-profile-axes-09322.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

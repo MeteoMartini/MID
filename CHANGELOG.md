@@ -1,3 +1,9 @@
+## v0.9.32.2
+
+- 24-h-Wetterprofil: Achsen optisch und funktional verfeinert.
+- Temperatur links mit sauberer °C-Skala und Tickmarken; Niederschlag und Wind rechts mit eigenen Einheiten/Skalen.
+- Zeitachse mit Grundlinie, Ticks und klareren Tageswechseln; Rasterlinien ruhiger abgestimmt.
+
 ## v0.9.32.0
 - 24-h-Wetterprofil mit klickgebundener senkrechter Zeitschrittmarkierung erweitert; Zeitangaben nach Tageswechsel tragen zusätzlich das Datum.
 - Wolkenbasis-Näherung entfernt. Temperaturdifferenzen werden fachgerecht in Kelvin ausgewiesen.
