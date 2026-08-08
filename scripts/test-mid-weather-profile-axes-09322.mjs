@@ -29,14 +29,13 @@ for(const token of [
   '.cockpit-weather-profile .profile-axis-unit',
   '.cockpit-weather-profile .profile-time-axis',
   '.cockpit-weather-profile .profile-time-tick.major',
-  '.cockpit-weather-profile .cockpit-meteogram-pro__overlay.time>span{top:5px',
-  'background:color-mix(in srgb,var(--mg-shell) 72%,transparent)',
+  '.cockpit-weather-profile .cockpit-meteogram-pro__overlay.time>span{top:3px',
+  'background:color-mix(in srgb,var(--mg-shell) 76%,transparent)',
   '.cockpit-weather-profile .cockpit-meteogram-pro__svg .day-separator'
 ])need('Achsen-Styles',styles,token);
 
 const packageVersion=JSON.parse(pkg).version,baselineVersion=JSON.parse(baseline).releaseVersion;
 if(packageVersion!==baselineVersion)failures.push(`Versionen nicht synchron: ${packageVersion}/${baselineVersion}`);
-if(packageVersion!=='0.9.32.2')failures.push(`unerwartete Version ${packageVersion}`);
-if(failures.length){console.error(`MID v0.9.32.2 Achsen-Politur fehlgeschlagen:
+if(failures.length){console.error(`MID 24-h-Achsen-Politur fehlgeschlagen:
 - ${failures.join('\n- ')}`);process.exit(1)}
-console.log('MID v0.9.32.2: 24-h-Achsen mit Skalen, Tickmarken, Einheiten und ruhiger Zeitachse geprüft.');
+console.log('MID: 24-h-Achsen mit Skalen, Tickmarken, Einheiten und ruhiger Zeitachse geprüft.');

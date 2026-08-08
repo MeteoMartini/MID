@@ -1,3 +1,14 @@
+## v0.9.32.3
+
+- 24-h-Wetterprofil: vertikale Abstände oberhalb des Diagramms reduziert; Stunden-, Kalender- und Piktogramme rücken näher an die Grafik.
+- Temperaturachse auf runde Tickwerte umgestellt; Tagesmaximum und -minimum im sichtbaren Zeitraum werden direkt im Temperaturverlauf markiert.
+- Stündliche Wetterpiktogramme vollständig dargestellt; Zeitlabels oberhalb des Diagramms auf kleinen Viewports entzerrt.
+- Wolkenbänder optisch neutralisiert: gleicher Hintergrund für H/M/L und kontrastreichere Bewölkung, damit die tatsächliche Ausprägung klarer erkennbar bleibt.
+- 24-h-Signalkarten nur noch bei fachlichem Bedarf sichtbar; „Ruhiges Fenster“ verständlich in „Wetterberuhigung“ umbenannt.
+- Legende jetzt ein-/ausblendbar; Erklärtexte über ein (i) erreichbar.
+- Einzeldaten kompakter gefasst: Temperatur+gefühlt, Taupunkt+Schwüle sowie Sichtweite+Nebelrisiko jeweils kombiniert.
+- CI-/Regression-Verträge auf den neuen v0.9.32.3-Sollstand synchronisiert; kein Test pinnt mehr die Vorgängerversion v0.9.32.2. Neue Layout-Schutzregression ergänzt.
+
 ## v0.9.32.2
 
 - 24-h-Wetterprofil: Achsen optisch und funktional verfeinert.

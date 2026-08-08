@@ -18,11 +18,11 @@ for(const token of [
   "'keine signifikanten Wettergefahren'",
   "reason:'Gewitterrisiko'",
   'reason:fog.reason',
-  '<small>Nebelrisiko</small>',
-  '<dt><i className="impact"/>Nebelrisiko</dt>',
+  'Nebel/Sicht',
+  'Sichtweite + Nebelrisiko',
   "'kein signifikantes Risiko'",
   'rate>=15?90:rate>=10?72:rate>=5?50:0',
-  'chartHeight=474'
+  'chartHeight=446'
 ])need('24-h-Wetterprofil',cockpit,token);
 
 for(const token of [
@@ -39,8 +39,8 @@ for(const token of [
   ':root[data-theme=light] .cockpit-weather-profile{--profile-low:#52697a;--profile-mid:#7d94a5;--profile-high:#a9b9c5}',
   'gap:7px',
   '.cockpit-weather-profile .cockpit-meteogram-pro__stage{padding:0}',
-  '.cockpit-weather-profile .cockpit-meteogram-pro__legend{margin-top:-3px}',
-  'filter:contrast(1.08)'
+  '.cockpit-weather-profile .cockpit-meteogram-pro__legend{margin-top:-1px}',
+  'filter:contrast(1.18)'
 ])need('Wetterprofil-Styles',styles,token);
 
 const packageVersion=JSON.parse(pkg).version,baselineVersion=JSON.parse(baseline).releaseVersion;
