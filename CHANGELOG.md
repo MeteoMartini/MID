@@ -1,3 +1,8 @@
+## v0.9.32.14
+- `MID-ribbons-ui-text-cleanup.patch` angewendet: redundante Erklärtexte in Kurzfrist-, 7-/14-Tage-Ribbons und 24-h-Wetterprofil entfernt bzw. gekürzt; Drucktrend-/Nebel-Signalkarten ohne zusätzliche Erklärungssätze.
+- DWD „Wolken + Niederschlagsart“: Zoom in festen 100-%-Schritten von 100 bis 500 % erweitert.
+- Zoom-Sicherheit auf Touchgeräten verbessert: vertikales Overscroll-Chaining zurück zur App und stets erreichbarer 100-%-Reset über dem Bildfenster verhindern ein Festhängen im vergrößerten Originalbild.
+
 ## v0.9.32.13
 - CI-/Regression-Fix für die in v0.9.32.12 bewusst auf 5-Minuten-Niederschlagsmengen umgestellte Radar-Nowcast-Skala.
 - Drei ältere Schutztests auf den neuen Sollvertrag synchronisiert: Achse `mm/5 min`, Balkenhöhe aus der jeweiligen 5-Minuten-Menge und aktuelle Releaseversion.

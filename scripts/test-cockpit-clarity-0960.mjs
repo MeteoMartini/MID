@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const root=new URL('../',import.meta.url),cockpit=readFileSync(new URL('src/ForecastCockpit.tsx',root),'utf8'),css=readFileSync(new URL('src/styles.css',root),'utf8');
-for(const token of ['regularShortTermPoints','cockpit-now90','Darstellung durchgängig einstündig.','cockpit-meteogram-pro','WeatherPictogram code={point.code}','cockpit-day-regime','regimeLabel(regime)','formatDecimalFixed(day.precipitation,1)} mm','cockpit-fourteen-row'])assert.ok(cockpit.includes(token),`Klarheitsbaustein fehlt: ${token}`);
+for(const token of ['regularShortTermPoints','cockpit-now90','cockpit-meteogram-pro','WeatherPictogram code={point.code}','cockpit-day-regime','regimeLabel(regime)','formatDecimalFixed(day.precipitation,1)} mm','cockpit-fourteen-row'])assert.ok(cockpit.includes(token),`Klarheitsbaustein fehlt: ${token}`);
 assert.ok(!cockpit.includes('Blaue Balken: Niederschlag'),'Nicht zum Diagramm passende Balkenerklärung darf nicht mehr erscheinen.');
+assert.ok(!cockpit.includes('Darstellung durchgängig einstündig.'),'Redundanter Kurzfrist-Erklärtext darf nicht zurückkehren.');
 assert.ok(!cockpit.includes('cockpit-short-legend'),'Die veraltete Kurzfristlegende darf nicht mehr gerendert werden.');
 assert.ok(!cockpit.includes('cockpit-phase-line'),'Die uneindeutige 7-Tage-Phasenleiste darf nicht mehr gerendert werden.');
 assert.ok(!cockpit.includes('aria-label="Auflösung der Kurzfristvorhersage"'),'Der entfernte 1h/3h-Umschalter darf nicht zurückkehren.');

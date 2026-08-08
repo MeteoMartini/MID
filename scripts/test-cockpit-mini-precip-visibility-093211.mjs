@@ -21,9 +21,9 @@ for(const token of [
 ]) if(!styles.includes(token)) failures.push(`Styles fehlen erwarteter Baustein: ${token}`);
 const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;
 if(pv!==bv) failures.push(`Versionen nicht synchron: ${pv}/${bv}`);
-if(pv!=='0.9.32.13') failures.push(`Erwartete Version 0.9.32.13, erhalten ${pv}`);
+if(pv!=='0.9.32.14') failures.push(`Erwartete Version 0.9.32.14, erhalten ${pv}`);
 if(failures.length){
- console.error(`MID v0.9.32.13 Mini-Niederschlags- und Zeitbarkeits-Regressionsprüfung fehlgeschlagen:\n- ${failures.join('\n- ')}`);
+ console.error(`MID v0.9.32.14 Mini-Niederschlags- und Zeitbarkeits-Regressionsprüfung fehlgeschlagen:\n- ${failures.join('\n- ')}`);
  process.exit(1);
 }
-console.log('MID v0.9.32.13: Mini-Niederschlagskombination und sichtbare Zeitangaben im 24-h-Wetterprofil geprüft.');
+console.log('MID v0.9.32.14: Mini-Niederschlagskombination und sichtbare Zeitangaben im 24-h-Wetterprofil geprüft.');
