@@ -18,8 +18,8 @@ assert.match(cockpit,/points=useMemo\(\(\)=>selectShortTermPoints\(adjusted,'1h'
 assert.match(cockpit,/Stündlich · ein Blick/,'24-h-Wetterprofil muss die feste einstündige Gesamtansicht kennzeichnen');
 assert.match(cockpit,/className="cockpit-meteogram-pro__datafield"/,'Einzeldatenfeld des Meteogramms muss vorhanden sein');
 assert.doesNotMatch(cockpit,/Auflösung der Kurzfristvorhersage|>3 h<|>1 h</,'Entfernter 1h\/3h-Umschalter darf nicht zurückkehren');
-assert.match(cockpit,/Thermik, Taupunkt, Niederschlag, Wind\/Böen, Wolkenschichten/,'24-h-Wetterprofil erklärt die zentralen Wetterebenen nicht');
-assert.match(cockpit,/windSignalColor\(item\.point\.gust\)/,'Windfiedern müssen warnstufenabhängig eingefärbt werden');
+assert.match(cockpit,/Temperatur, gefühlte Temperatur, thermisches Empfinden, Niederschlag, Wind\/Böen, Wolkenschichten und Wetter-Hazards/,'24-h-Wetterprofil erklärt die zentralen Wetterebenen nicht');
+assert.match(cockpit,/windSignalColor\(gust\)/,'Windrichtungspfeile müssen warnstufenabhängig eingefärbt werden');
 assert.match(cockpit,/function windSignalColor\(gustKt:number\)/,'Die warnstufenabhängige Windfarbe muss als Hilfsfunktion definiert sein');
 assert.match(cockpit,/formatDecimalFixed\(value,1\)} K/,'Temperaturabweichung muss in Kelvin dargestellt werden');
 assert.match(cockpit,/cockpit-fourteen-temps/,'Tmin\/Tmax-Stil der 14-Tage-Übersicht fehlt');

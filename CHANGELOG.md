@@ -1,3 +1,13 @@
+## v0.9.32.0
+- 24-h-Wetterprofil mit klickgebundener senkrechter Zeitschrittmarkierung erweitert; Zeitangaben nach Tageswechsel tragen zusätzlich das Datum.
+- Wolkenbasis-Näherung entfernt. Temperaturdifferenzen werden fachgerecht in Kelvin ausgewiesen.
+- Neues Band „Thermisches Empfinden“: Best-Match-Gefühlte-Temperatur wird nach den DWD-Klassen von sehr kalt bis sehr heiß eingeordnet; Einflussfaktoren wie Windkühlung, Feuchte und Sonneneinstrahlung werden transparent benannt.
+- Thermische Belastung und Wetter-Hazards fachlich getrennt; Nebel/Sichteinschränkung, Gewitter, Niederschlagsgefahren und Wind/Böen verbleiben im Hazard-Band.
+- Windrichtungspfeile für jeden 24-h-Zeitschritt ergänzt und analog zur bestehenden MID-Warnlogik grün bzw. nach Warnstufe eingefärbt.
+- Wolkenschichten als lückenlose H/M/L-Bänder (H oben, L unten) mit zeitlichem Fading dargestellt; markante sprunghafte Bewölkungsänderungen bleiben als schärferer Übergang erhalten.
+- Ensemble-Temperaturdiagramm: Sonnenscheinband neu kalibriert; ≤ 50 % der astronomisch möglichen Sonnenscheindauer entspricht bereits Grau, 50–100 % bildet den Verlauf bis Gelb ab.
+- Neue Regression `test-mid-weather-profile-thermal-sun-09320.mjs`; v0.9.31.0-Wetterprofilregression auf die bewusst entfernte Wolkenbasis synchronisiert.
+
 ## v0.9.31.0
 - Wolken + Niederschlagsart: im DWD-Abdeckungsgebiet wieder das amtliche DWD-Kombinationsbild als unveränderte Quelle; 100–300 % Zoom mit verschiebbarem Bildfenster und bildgebundenen Radar-/Satellitenzeitständen.
 - 24-h-Meteogramm durch ein gemeinsames Wetterprofil für Temperatur/Gefühlt/Taupunkt, Niederschlag/Wahrscheinlichkeit, Wind/Böen, Wolkenschichten und Wetterbelastung ersetzt.

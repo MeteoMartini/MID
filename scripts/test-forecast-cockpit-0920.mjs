@@ -10,7 +10,7 @@ need('Cockpit-Datei',cockpit,"export type ForecastPresentationMode='classic'|'co
 need('Klassischer Standard',app,'const DEFAULT_FORECAST_DISPLAY_SETTINGS:ForecastDisplaySettings={showSevenDaySummary:true,showDwdPrecipitationTypeRadar:true}');
 for(const token of ['Klassisch','Cockpit · Register','Cockpit · Ribbons','Die klassische Ansicht bleibt Standard'])need('Einstellungen',app,token);
 for(const token of ["const FORECAST_COCKPIT_MODULES:DashboardModuleId[]=['short-term','forecast','ensemble']","forecastPresentationMode!=='classic'&&FORECAST_COCKPIT_MODULES.includes(id)","if(id!==forecastCockpitAnchor)return null"])need('Keine Doppelmodule',app,token);
-for(const token of ['cockpit-now90',"points=useMemo(()=>selectShortTermPoints(adjusted,'1h')",'Darstellung durchgängig einstündig.','regularShortTermPoints','SvgWindBarb','Böen bis'])need('Kurzfrist',cockpit,token);
+for(const token of ['cockpit-now90',"points=useMemo(()=>selectShortTermPoints(adjusted,'1h')",'Darstellung durchgängig einstündig.','regularShortTermPoints','SvgProfileWindDirectionArrow','Böen bis'])need('Kurzfrist',cockpit,token);
 if(cockpit.includes('SHORT_TERM_RESOLUTION_KEY')||cockpit.includes('aria-label="Auflösung der Kurzfristvorhersage"'))failures.push('Kurzfrist: entfernter 1h/3h-Umschalter ist wieder enthalten');
 for(const token of ['cockpit-seven-grid','temperatureRange','cockpit-day-temp-track','cockpit-day-regime','regimeLabel','7-Tage-Trend'])need('7-Tage',cockpit,token);
 for(const token of ['cockpit-fourteen-grid','cockpit-fourteen-row','precipCombinedScore','climateMean','computeEnsembleConfidence','Konsistenz'])need('14-Tage',cockpit,token);

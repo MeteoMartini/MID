@@ -11,9 +11,9 @@ const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}
 const reject=(label,text,token)=>{if(text.includes(token))failures.push(`${label} sollte fehlen: ${token}`)};
 
 need('WindUnit-Vertrag',weather,"export type WindUnit='kn'|'kmh'|'ms'|'mph'");
-need('Windfieder',cockpit,'function SvgWindBarb(');
-need('Windfieder-Speed',cockpit,'speed={item.point.wind}');
-need('Windfieder-Farbe',cockpit,'color={windSignalColor(item.point.gust)}');
+need('Windrichtungspfeil',cockpit,'function SvgProfileWindDirectionArrow(');
+need('Vollständige Windrichtungspfeile',cockpit,'chartPoints.map(item=><SvgProfileWindDirectionArrow');
+need('Warnstufenfarbe',cockpit,'color=windSignalColor(gust)');
 reject('Ungültige WindUnit',cockpit,"wind(point.point.wind,'kt')");
 reject('Ungenutzter ForecastCockpit-Helfer',cockpit,'function SvgWindDirectionArrow(');
 const packageVersion=JSON.parse(pkg).version,baselineVersion=JSON.parse(baseline).releaseVersion;
@@ -23,4 +23,4 @@ if(failures.length){
   console.error(`Windfieder-Buildfix fehlgeschlagen:\n- ${failures.join('\n- ')}`);
   process.exit(1);
 }
-console.log('Windfieder-Buildfix geprüft: gültige WindUnit und kein ungenutzter ForecastCockpit-Helfer.');
+console.log('Winddarstellungs-Buildfix geprüft: gültige WindUnit, vollständige Warnfarben-Windrichtungspfeile und kein ungenutzter Alt-Helfer.');
