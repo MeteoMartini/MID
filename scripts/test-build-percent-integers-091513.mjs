@@ -11,8 +11,8 @@ if(!fusion.includes('RadarNowcastFrame,RadarNowcastInterval,ThunderstormNowcast'
 if(!fusion.includes('function parseInterval(interval:RadarNowcastInterval)'))fail('RadarNowcastInterval wird nicht mehr für die Intervallauswertung verwendet.');
 
 const cockpit=await read('src/ForecastCockpit.tsx');
-if(cockpit.includes('{Math.max(...points.map(item=>item.probability))} %'))fail('Maximales Niederschlagsrisiko wird weiterhin unge­rundet ausgegeben.');
-if(!cockpit.includes('{Math.round(Math.max(...points.map(item=>item.probability)))} %'))fail('Ganzzahlige Cockpit-Prozentanzeige fehlt.');
+if(cockpit.includes('{peakRainPoint.probability} %'))fail('Niederschlagsrisiko wird weiterhin ungerundet ausgegeben.');
+if(!cockpit.includes('{Math.round(peakRainPoint.probability)} %'))fail('Ganzzahlige Cockpit-Prozentanzeige fehlt.');
 
 const verification=await read('src/forecastVerification.ts');
 if(/toFixed\(1\)[^\n]{0,120}%/.test(verification))fail('Forecast-Verifikation enthält noch Prozentangaben mit einer Nachkommastelle.');

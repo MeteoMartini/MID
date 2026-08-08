@@ -1,3 +1,8 @@
+## v0.9.32.16
+- 24-h-Kurzfristkacheln vollständig auf denselben 24-Stunden-Datensatz wie die sichtbare 24-h-Leiste umgestellt; keine 12-h-/Gesamtdatensatz-Mischung mehr.
+- Favoriten-Synchronisation mit eigener Favoritenrevision abgesichert: ältere Favoritenlisten aus anderen verbundenen Safari-/PWA-Instanzen können neuere lokale Favoriten nicht mehr zurücksetzen.
+- POI-Favoriten erkennen nahe Namensvarianten mit gemeinsamen Kernbegriffen robuster, z. B. Sponsorenpräfixe bei Stadien.
+
 ## v0.9.32.15
 - Favoriten-Dauerhaftigkeit: Hinzufügen/Entfernen über den Stern wird jetzt sofort in `mid:favorites` persistiert, statt erst nach dem verzögerten Idle-Speicherfenster. Das schließt insbesondere unter iOS/PWA eine Suspend-/Reload-Lücke.
 - Favoritenidentität für POIs präzisiert: gespeicherte Orte werden über exakte Koordinaten/stabile ID bzw. gleichen Namen mit enger Toleranz (POI 120 m, sonst 450 m) erkannt. Die bisherige allgemeine 350/900-m-Nahbereichslogik bleibt nur für GPS-/Standorttracking erhalten.

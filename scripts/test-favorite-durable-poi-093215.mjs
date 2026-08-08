@@ -10,7 +10,9 @@ const need=(token,label=token)=>{if(!app.includes(token))failures.push(`App fehl
 
 need('function normalizedFavoriteIdentityName(loc:Location|undefined|null)','normalisierte Favoritenidentität');
 need('function favoriteLocationsIdentical(a:Location|undefined|null,b:Location|undefined|null)','identitätsscharfer Favoritenvergleich');
-need('limit=poi?120:450','enge POI-Toleranz');
+need('limit=poi?180:450','enge POI-Toleranz');
+need('function favoriteIdentityNamesEquivalent(a:Location|undefined|null,b:Location|undefined|null)','robuster POI-Namensabgleich');
+need("const FAVORITES_UPDATED_AT_KEY='mid:favorites:updated-at'",'Favoriten-Revision');
 need('function matchingStoredFavorite(favorites:Favorite[],location:Location|undefined|null)','strikter gespeicherter Favoritenabgleich');
 need('return matchingStoredFavorite(favorites,location)??favorites.find(item=>locationsNearlyEquivalent(item.location,location))','getrennte GPS-Nahbereichszuordnung');
 need('currentFavorite=useMemo(()=>matchingStoredFavorite(favorites,loc)','strikter aktiver Favorit');
