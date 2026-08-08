@@ -1,3 +1,12 @@
+## v0.9.32.5
+
+- 24-h-Einzeldaten: Füllwort „signifikant“ aus den negativen Risiko-/Hazard-Angaben entfernt („kein Risiko“, „keine Wettergefahren“).
+- Schwüle wird nur noch bei tatsächlich erfüllter Mehrfaktorenlage angezeigt; bei unauffälliger Lage heißt das Feld ausschließlich „Taupunkt“.
+- Die frühere starre Schwüleprüfung `Td ≥ 17 °C` wurde durch eine DWD-orientierte Mehrfaktorenbewertung ersetzt: Wasserdampfdruck aus Taupunkt/Feuchte als Feuchtekern, Luft- und gefühlte Temperatur, Windentlastung sowie Strahlungsproxy aus Sonnenscheindauer/Bewölkung.
+- Kräftiger Wind kann grenznahe Schwülelagen abschwächen; starke Feuchte bleibt dabei robust berücksichtigt.
+- Fachhinweis hinter (i) auf die Grenzen gegenüber dem vollständigen Klima-Michel-Verfahren präzisiert.
+- Neue Regression `test-mid-weather-profile-sultry-09325.mjs`; ältere Wetterprofil-Verträge entsprechend synchronisiert.
+
 ## v0.9.32.4
 
 - 24-h-Wetterprofil: Info-Schaltfläche bereinigt; nur noch das eigentliche Informationssymbol wird angezeigt.

@@ -11,15 +11,23 @@ const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}
 const reject=(label,text,token)=>{if(text.includes(token))failures.push(`${label}: unerwartet ${token}`)};
 
 for(const token of [
-  'sultry=Number(point.dewPoint)>=17',
-  'Schwülegrenze erreicht',
-  'Td ≥ 17 °C',
-  '≈ 18,8 hPa Dampfdruck',
+  'function shortTermSultryAssessment(point:ShortTermForecastPoint)',
+  'shortTermSaturationVaporPressureHpa',
+  'coreMoisture=vaporPressure>=18.8',
+  'windRelief=clamp((windMs-1.5)/6.5,0,1)',
+  'radiationLoad=point.isDay?',
+  'sultryAssessment=shortTermSultryAssessment(point)',
+  '18,8 hPa',
+  'Strahlungsproxy aus Sonnenscheindauer und Bewölkung',
   "'keine signifikanten Wettergefahren'",
   "reason:'Gewitterrisiko'",
   'reason:fog.reason',
   'Nebel/Sicht',
   'Sichtweite + Nebelrisiko',
+  "{selectedThermal.sultry?'Taupunkt + Schwüle':'Taupunkt'}",
+  "{selectedThermal.sultry?' · schwül':''}",
+  "replace('kein signifikantes Risiko','kein Risiko')",
+  "'keine Wettergefahren'",
   "'kein signifikantes Risiko'",
   'rate>=15?90:rate>=10?72:rate>=5?50:0',
   'chartHeight=446'
@@ -29,7 +37,10 @@ for(const token of [
   'prägend:',
   '<dt><i className="dew"/>Feuchte</dt>',
   "kind==='rain'?64",
-  "reason:'Sicht / Nebel'"
+  "reason:'Sicht / Nebel'",
+  'sultry=Number(point.dewPoint)>=17',
+  "'Schwülegrenze erreicht'",
+  "'nicht schwül'"
 ])reject('24-h-Wetterprofil',cockpit,token);
 
 for(const token of [
@@ -45,5 +56,5 @@ for(const token of [
 
 const packageVersion=JSON.parse(pkg).version,baselineVersion=JSON.parse(baseline).releaseVersion;
 if(packageVersion!==baselineVersion)failures.push(`Versionen nicht synchron: ${packageVersion}/${baselineVersion}`);
-if(failures.length){console.error(`MID v0.9.32.4 Thermik-/Hazard-Klarheit fehlgeschlagen:\n- ${failures.join('\n- ')}`);process.exit(1)}
-console.log('MID v0.9.32.4: Schwüle, klare Hazards und wolkengetriebene Kontraste ohne Zusatzhintergrund geprüft.');
+if(failures.length){console.error(`MID Thermik-/Hazard-Klarheit fehlgeschlagen:\n- ${failures.join('\n- ')}`);process.exit(1)}
+console.log('MID: Mehrfaktoren-Schwüle, klare Hazards und wolkengetriebene Kontraste ohne Zusatzhintergrund geprüft.');

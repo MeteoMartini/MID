@@ -36,6 +36,6 @@ for(const token of [
  '.cockpit-weather-profile .temperature-extreme.max',
  '.cockpit-weather-profile .temperature-extreme.min'
 ])need('Styles v0.9.32.4',styles,token);
-const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;if(pv!==bv)failures.push(`Versionen nicht synchron: ${pv}/${bv}`);if(pv!=='0.9.32.4')failures.push(`unerwartete Version ${pv}`);
-if(failures.length){console.error('MID v0.9.32.4 Wetterprofil-Layoutprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('MID v0.9.32.4: responsiveres Wetterprofil, Tagesextreme je Kalendertag, tap-sichere Trefferflächen und bereinigte Info-Icons geprüft.');
+const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;if(pv!==bv)failures.push(`Versionen nicht synchron: ${pv}/${bv}`);if(!/^0\.9\.32\.[4-9]$/.test(pv))failures.push(`unerwartete Version ${pv}`);
+if(failures.length){console.error('MID Wetterprofil-Layoutprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
+console.log('MID: responsiveres Wetterprofil, Tagesextreme je Kalendertag, tap-sichere Trefferflächen und bereinigte Info-Icons geprüft.');
