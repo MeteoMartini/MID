@@ -12,7 +12,8 @@ const reject=(label,text,token)=>{if(text.includes(token))failures.push(`${label
 
 need('WindUnit-Vertrag',weather,"export type WindUnit='kn'|'kmh'|'ms'|'mph'");
 need('Windfieder',cockpit,'function SvgWindBarb(');
-need('Windformatierung in Knoten',cockpit,"wind(point.point.wind,'kn')");
+need('Windfieder-Speed',cockpit,'speed={item.point.wind}');
+need('Windfieder-Farbe',cockpit,'color={windSignalColor(item.point.gust)}');
 reject('Ungültige WindUnit',cockpit,"wind(point.point.wind,'kt')");
 reject('Ungenutzter ForecastCockpit-Helfer',cockpit,'function SvgWindDirectionArrow(');
 const packageVersion=JSON.parse(pkg).version,baselineVersion=JSON.parse(baseline).releaseVersion;

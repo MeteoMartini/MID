@@ -1,3 +1,9 @@
+## v0.9.31.0
+- Wolken + Niederschlagsart: im DWD-Abdeckungsgebiet wieder das amtliche DWD-Kombinationsbild als unveränderte Quelle; 100–300 % Zoom mit verschiebbarem Bildfenster und bildgebundenen Radar-/Satellitenzeitständen.
+- 24-h-Meteogramm durch ein gemeinsames Wetterprofil für Temperatur/Gefühlt/Taupunkt, Niederschlag/Wahrscheinlichkeit, Wind/Böen, Wolkenschichten und Wetterbelastung ersetzt.
+- Abgeleitete Nutzersignale ergänzt: ruhiges Wetterfenster, 6-h-Drucktrend, Feuchte-/Nebelhinweis, Wetterbelastungsindex und gekennzeichnete T–Td-Wolkenbasis-Näherung.
+- Betroffene Altregressionen auf die neue Sollarchitektur synchronisiert; zusätzliche Regression `test-mid-original-dwd-weather-profile-09310.mjs`.
+
 ## v0.9.22.1
 - Buildfix für das DWD-Niederschlagsarten-Radar: `RadarMeta` und `RadarPointInfo` erfüllen jetzt den `WorkerPayload`-Vertrag von `fetchWorkerJson`, wodurch die TypeScript-Fehler TS2559 im Produktionsbuild beseitigt werden.
 - Neue Regression `test-dwd-radar-worker-payload-buildfix-09221.mjs` sichert die WorkerPayload-Kompatibilität dauerhaft ab.

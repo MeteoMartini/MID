@@ -1,12 +1,5 @@
 import {readFile} from 'node:fs/promises';
-const [radar,map,hymec,baseline]=await Promise.all([
- readFile(new URL('../src/DwdPrecipitationTypeRadar.tsx',import.meta.url),'utf8'),readFile(new URL('../src/DwdPrecipitationMap.tsx',import.meta.url),'utf8'),readFile(new URL('../src/HymecNgSource.ts',import.meta.url),'utf8'),readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')
-]);
-const failures=[];const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};const reject=(label,text,token)=>{if(text.includes(token))failures.push(`${label} sollte fehlen: ${token}`)};
-for(const token of ['Marker position={[latitude,longitude]}','map.setView([latitude,longitude]','center={[latitude,longitude]} zoom={8}'])need('Direkter WGS84-Marker',map,token);
-for(const token of ['projectWgs84(latitude,longitude,raster.projection)','(projected[0]-raster.minX)/raster.xScale','(raster.maxY-projected[1])/raster.yScale'])need('Native Raster-Georeferenzierung',hymec,token);
-for(const token of ['DWD_SOURCE_RASTER_GRID','RasterPolynomial','rasterPolynomialForward','rasterPolynomialInverse','dwdPrecipitationTypeImagePosition','radarCropWindow'])reject('Pixel-Georeferenzierung',radar,token);
-for(const token of ['50.78362','7.059056','Wiesbaden','Mondorf']){reject('Keine Beispielort-Kalibrierung',map,token);reject('Keine Beispielort-Kalibrierung',hymec,token)}
-if(!baseline.includes('scripts/test-dwd-raster-georef-09242.mjs'))failures.push('Baseline-Test fehlt.');
-if(failures.length){console.error('DWD native Georeferenzierung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('DWD-Georeferenzierung geprüft: Standort bleibt unverändert WGS84; HymecNG wird ausschließlich über seine native Projektion abgetastet.');
+const [radar,worker,styles,pkg,baseline]=await Promise.all([readFile(new URL('../src/DwdPrecipitationTypeRadar.tsx',import.meta.url),'utf8'),readFile(new URL('../worker/metar-proxy.js',import.meta.url),'utf8'),readFile(new URL('../src/styles.css',import.meta.url),'utf8'),readFile(new URL('../package.json',import.meta.url),'utf8'),readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')]);
+const failures=[];const need=(l,t,x)=>{if(!t.includes(x))failures.push(`${l}: ${x}`)};const reject=(l,t,x)=>{if(t.includes(x))failures.push(`${l} sollte fehlen: ${x}`)};
+for(const token of ['Originalbild · zoombar','Zoomen verändert ausschließlich die Ansicht','Bildpunkt-Auswertung bleibt an den Originalpixel gebunden'])need('Keine falsche Ortsprojektion',radar,token);for(const token of ['dwdPrecipitationTypeImagePosition','radarCropWindow','RasterPolynomial','DWD_SOURCE_RASTER_GRID','Marker position={[latitude,longitude]}'])reject('Keine geschätzte Bild-Georeferenzierung',radar,token);need('Baseline',baseline,'scripts/test-dwd-raster-georef-09242.mjs');
+const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;if(pv!==bv)failures.push(`Versionen nicht synchron: ${pv}/${bv}`);if(failures.length){console.error('DWD-Originalproduktprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}console.log('Statisches DWD-Originalbild wird ohne künstliche Standortprojektion verwendet.');

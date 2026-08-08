@@ -16,17 +16,24 @@ const failures=[];
 const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
 
 scripts.forEach((script,index)=>{
-  need(paths[index],script,'const needPattern=');
-  need(paths[index],script,'overflow:(?:visible|clip)');
+  need(paths[index],script,'packageVersion!==baselineVersion');
 });
-need('ForecastCockpit',cockpit,'className="cockpit-meteogram-pro__datafield"');
-need('ForecastCockpit',cockpit,'chartSourcePoints=points.slice(0,Math.min(points.length,25))');
-need('Styles',styles,'.cockpit-meteogram-pro__stage{');
-need('Styles',styles,'.cockpit-meteogram-pro__canvas{');
+for(const token of [
+  '24-h-Wetterprofil',
+  'chartSourcePoints=points.slice(0,Math.min(points.length,25))',
+  'chartWidth=Math.max(980,chartViewportWidth)',
+  'className="cockpit-meteogram-pro__datafield"',
+  'className="cockpit-weather-profile__signals"'
+])need('ForecastCockpit',cockpit,token);
+for(const token of [
+  '.cockpit-meteogram-pro__stage{width:100%;max-width:100%;overflow:visible',
+  '.cockpit-meteogram-pro__canvas{position:relative;width:100%;min-width:0;max-width:100%;',
+  '.cockpit-weather-profile__signals{'
+])need('Styles',styles,token);
 const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText);
 if(pkg.version!==baseline.releaseVersion)failures.push(`Versionsabweichung: ${pkg.version} / ${baseline.releaseVersion}`);
 if(failures.length){
   console.error('Cockpit-Regressionsynchronisierung fehlgeschlagen:\n- '+failures.join('\n- '));
   process.exit(1);
 }
-console.log('Cockpit-Meteogrammregressionen robust mit dem aktuellen Vollbreitenlayout synchronisiert.');
+console.log('Cockpit-Regressionsynchronisierung auf das responsive 24-h-Wetterprofil geprüft.');
