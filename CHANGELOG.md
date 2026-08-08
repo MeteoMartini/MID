@@ -1,3 +1,13 @@
+## v0.9.32.13
+- CI-/Regression-Fix für die in v0.9.32.12 bewusst auf 5-Minuten-Niederschlagsmengen umgestellte Radar-Nowcast-Skala.
+- Drei ältere Schutztests auf den neuen Sollvertrag synchronisiert: Achse `mm/5 min`, Balkenhöhe aus der jeweiligen 5-Minuten-Menge und aktuelle Releaseversion.
+- Die neue Radar-Nowcast-Darstellung selbst bleibt unverändert.
+
+## v0.9.32.12
+- Radar-Nowcast-Leiste: y-Achse auf Niederschlagsmenge je 5-Minuten-Balken umgestellt (`mm/5 min`) statt auf stündliche Rate.
+- Balkenhöhen orientieren sich nun direkt an der prognostizierten bzw. beobachteten 5-Minuten-Menge je Balken; dadurch bleiben schwache Signale sichtbar, ohne überhöht zu wirken.
+- Umfeld-/Nahbereichsechos ohne direkten Standorttreffer bleiben weiterhin erkennbar, werden aber deutlich zurückhaltender dargestellt.
+
 ## v0.9.32.10
 - Buildfix für die kombinierten Kurzfrist-/7-Tage-Mini-Diagramme: `tempMin` wird in beiden Temperatur-Skalierungen wieder korrekt definiert.
 - Regression ergänzt, die diesen TypeScript-Buildfehler künftig verhindert.

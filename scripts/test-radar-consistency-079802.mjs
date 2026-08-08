@@ -19,12 +19,14 @@ for(const token of [
  'const FIVE_MINUTES=5*60000',
  'observedArrivalCovered=rawSegments.some',
  "radar.arrivalKind!=='site'",
- 'function radarRateScale(',
+ 'function radarAmountScale(',
  'radar-nowcast-yaxis',
+ '<em>mm/5 min</em>',
+ 'height:radarBarHeight(segment.amount,scale,segment.nearby)',
  '5-Minuten-Menge',
  '<PortalPopover anchorRef={anchorRef}'
 ])if(!app.includes(token))failures.push(`Nowcast-Leiste: ${token}`);
-for(const forbidden of ['Die y-Achse und Balkenhöhe zeigen die Intensität','radar-nowcast-events','5–15-minütig'])if(app.includes(forbidden))failures.push(`Veraltete Nowcast-Leiste: ${forbidden}`);
+for(const forbidden of ['Die y-Achse und Balkenhöhe zeigen die Intensität','function radarRateScale(','radar-nowcast-events','5–15-minütig'])if(app.includes(forbidden))failures.push(`Veraltete Nowcast-Leiste: ${forbidden}`);
 for(const token of ['.radar-nowcast-wet.expected{','.radar-nowcast-wet.expected.uncertain{','.radar-nowcast-wet.nearby{'])if(!styles.includes(token))failures.push(`Nowcast-CSS: ${token}`);
 for(const token of ['function projectedBounds(',"projectionFrom(where)",'inverseProjected(','boundsFromFile(file,meta,dataset)'])if(!pixel.includes(token))failures.push(`PX250-Georeferenz: ${token}`);
 const metadataStart=worker.indexOf('async function px250Metadata(request,lat,lon){'),metadataEnd=worker.indexOf('async function px250FileResponse',metadataStart),metadata=worker.slice(metadataStart,metadataEnd);
@@ -57,4 +59,4 @@ try{
 }catch(error){failures.push(`Funktionaler Modelllauf-Test nicht ausführbar: ${error instanceof Error?error.message:String(error)}`)}
 
 if(failures.length){console.error('Radar-/Modelllauf-Konsistenzprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Radar-/Modelllauf-Konsistenz geprüft: Ankunftsfenster, Intensitätshöhen, PX250-Georeferenz, Mehrframe-Zugrichtung und alter/neuer Niederschlagsbeginn sind geschützt.');
+console.log('Radar-/Modelllauf-Konsistenz geprüft: Ankunftsfenster, 5-Minuten-Mengenhöhen, PX250-Georeferenz, Mehrframe-Zugrichtung und alter/neuer Niederschlagsbeginn sind geschützt.');
