@@ -1,60 +1,39 @@
 import {readFile} from 'node:fs/promises';
-
 const [cockpit,styles,pkg,baseline]=await Promise.all([
-  readFile(new URL('../src/ForecastCockpit.tsx',import.meta.url),'utf8'),
-  readFile(new URL('../src/styles.css',import.meta.url),'utf8'),
-  readFile(new URL('../package.json',import.meta.url),'utf8'),
-  readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')
+ readFile(new URL('../src/ForecastCockpit.tsx',import.meta.url),'utf8'),
+ readFile(new URL('../src/styles.css',import.meta.url),'utf8'),
+ readFile(new URL('../package.json',import.meta.url),'utf8'),
+ readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')
 ]);
-const failures=[];
-const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
-const reject=(label,text,token)=>{if(text.includes(token))failures.push(`${label}: unerwartet ${token}`)};
-
+const failures=[];const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};const reject=(label,text,token)=>{if(text.includes(token))failures.push(`${label}: unerwartet ${token}`)};
 for(const token of [
-  'function shortTermSultryAssessment(point:ShortTermForecastPoint)',
-  'shortTermSaturationVaporPressureHpa',
-  'coreMoisture=vaporPressure>=18.8',
-  'windRelief=clamp((windMs-1.5)/6.5,0,1)',
-  'radiationLoad=point.isDay?',
-  'sultryAssessment=shortTermSultryAssessment(point)',
-  '18,8 hPa',
-  'Strahlungsproxy aus Sonnenscheindauer und Bewölkung',
-  "'keine signifikanten Wettergefahren'",
-  "reason:'Gewitterrisiko'",
-  'reason:fog.reason',
-  'Nebel/Sicht',
-  'Sichtweite + Nebelrisiko',
-  "{selectedThermal.sultry?'Taupunkt + Schwüle':'Taupunkt'}",
-  "{selectedThermal.sultry?' · schwül':''}",
-  "replace('kein signifikantes Risiko','kein Risiko')",
-  "'keine Wettergefahren'",
-  "'kein signifikantes Risiko'",
-  'rate>=15?90:rate>=10?72:rate>=5?50:0',
-  'chartHeight=446'
+ 'DWD_WARNING_COLORS',
+ 'dwdWarningSignalsAt',
+ 'type DwdWarningSample',
+ 'function shortTermWarningSample(point:ShortTermForecastPoint)',
+ 'function shortTermImpact(points:ShortTermForecastPoint[],index:number,elevation=0)',
+ 'signals=dwdWarningSignalsAt(samples,index,elevation)',
+ 'color=DWD_WARNING_COLORS[level]',
+ "label:'Stärkste Einschränkung'",
+ "className:`impact-level-${maxImpact.level}`",
+ "selectedImpact.level>0?selectedImpact.summary:'keine Wettergefahren'",
+ 'Sichtweite + Nebelrisiko',
+ 'chartHeight=446'
 ])need('24-h-Wetterprofil',cockpit,token);
-
 for(const token of [
-  'prägend:',
-  '<dt><i className="dew"/>Feuchte</dt>',
-  "kind==='rain'?64",
-  "reason:'Sicht / Nebel'",
-  'sultry=Number(point.dewPoint)>=17',
-  "'Schwülegrenze erreicht'",
-  "'nicht schwül'"
-])reject('24-h-Wetterprofil',cockpit,token);
-
+ 'candidates=[{value:thunder',
+ "windScore=gustKmh>=105",
+ "rate>=15?90:rate>=10?72:rate>=5?50:0",
+ 'Max. Wetter-Hazard',
+ 'Wetterberuhigung'
+])reject('Eigene Hazard-Sonderlogik',cockpit,token);
 for(const token of [
-  '--profile-low:#50697c',
-  '--profile-mid:#849eae',
-  '--profile-high:#e0e8ed',
-  ':root[data-theme=light] .cockpit-weather-profile{--profile-low:#52697a;--profile-mid:#7d94a5;--profile-high:#a9b9c5}',
-  'gap:7px',
-  '.cockpit-weather-profile .cockpit-meteogram-pro__stage{padding:0}',
-  '.cockpit-weather-profile .cockpit-meteogram-pro__legend{margin-top:-1px}',
-  '.cockpit-weather-profile .cloud-band{stroke:color-mix(in srgb,var(--mg-text) 12%,transparent);stroke-width:.4;shape-rendering:geometricPrecision}'
-])need('Wetterprofil-Styles',styles,token);
-
-const packageVersion=JSON.parse(pkg).version,baselineVersion=JSON.parse(baseline).releaseVersion;
-if(packageVersion!==baselineVersion)failures.push(`Versionen nicht synchron: ${packageVersion}/${baselineVersion}`);
-if(failures.length){console.error(`MID Thermik-/Hazard-Klarheit fehlgeschlagen:\n- ${failures.join('\n- ')}`);process.exit(1)}
-console.log('MID: Mehrfaktoren-Schwüle, klare Hazards und wolkengetriebene Kontraste ohne Zusatzhintergrund geprüft.');
+ '.cockpit-weather-profile__signals .impact-level-1{border-color:#e6c229}',
+ '.cockpit-weather-profile__signals .impact-level-2{border-color:#ef8d32}',
+ '.cockpit-weather-profile__signals .impact-level-3{border-color:#e74a4a}',
+ '.cockpit-weather-profile__signals .impact-level-4{border-color:#9b59c6}',
+ 'linear-gradient(90deg,#48a96f,#e6c229,#ef8d32,#e74a4a,#9b59c6)'
+])need('Warnfarben',styles,token);
+const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;if(pv!==bv)failures.push(`Versionen nicht synchron: ${pv}/${bv}`);
+if(failures.length){console.error('MID appweite Hazard-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
+console.log('MID: 24-h-Hazards verwenden appweite DWD/MID-Warnschwellen und Warnfarben.');

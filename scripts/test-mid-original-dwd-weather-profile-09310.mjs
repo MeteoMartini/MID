@@ -24,9 +24,8 @@ for(const token of ['./DwdPrecipitationMap','./HymecNgOverlay','./HymecNgSource'
 
 for(const token of [
   '24-h-Wetterprofil',
-  'function shortTermImpact(point:ShortTermForecastPoint)',
+  'function shortTermImpact(points:ShortTermForecastPoint[],index:number,elevation=0)',
   'function shortTermPressureTrend(',
-  'function shortTermCalmWindow(',
   'chartWidth=Math.max(980,chartViewportWidth)',
   'className="dewpoint-line"',
   'className="wind-line"',
@@ -36,7 +35,7 @@ for(const token of [
   'className="cloud-band low"',
   'impact-band',
   'cockpit-weather-profile__signals',
-  'selectedImpact.label'
+  'selectedImpact.summary'
 ])need('24-h-Wetterprofil',cockpit,token);
 for(const token of ['shortTermCloudBaseApprox','Wolkenbasis*'])reject('24-h-Wetterprofil',cockpit,token);
 for(const token of [

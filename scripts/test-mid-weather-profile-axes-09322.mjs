@@ -20,6 +20,9 @@ for(const token of [
   '>mm</text>',
   "unit==='kmh'?'km/h':unit==='ms'?'m/s':unit==='mph'?'mph':'kt'",
   'textAnchor="end" x={chartPaddingLeft-10}',
+  'className="profile-axis precipitation-axis"><line className="profile-axis-spine" x1={chartPaddingLeft}',
+  'className="profile-axis wind-axis"><line className="profile-axis-spine" x1={chartPaddingLeft}',
+  'profile-axis-unit left',
   '100 %'
 ])need('24-h-Wetterprofil',cockpit,token);
 

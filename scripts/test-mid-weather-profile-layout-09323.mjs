@@ -8,34 +8,31 @@ const [cockpit,styles,pkg,baseline]=await Promise.all([
 const failures=[];const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};const reject=(label,text,token)=>{if(text.includes(token))failures.push(`${label}: unerwartet ${token}`)};
 for(const token of [
  'chartHeight=446',
- 'function shortTermTickStep(range:number){if(range<=8)return 2;if(range<=18)return 5;if(range<=34)return 10;return 10}',
  'chartCanvasHeight=Math.max(300,Math.round(chartHeight*Math.min(1,chartViewportWidth/chartWidth)))',
  'timeLabelStep=chartViewportWidth<=560?6:chartViewportWidth<=860?4:3',
  'chartPoints.map(item=><WeatherPictogram',
- 'dailyTemperatureExtremes=chartDayBands.flatMap',
+ 'dailyMaxMarkers=chartDayBands.flatMap',
+ 'nightMinMarkers=nightSegments.flatMap',
+ 'temperatureExtremes=[...dailyMaxMarkers,...nightMinMarkers]',
  'className={`temperature-extreme ${extreme.kind}`}',
- 'profileLegendVisible',
+ 'PROFILE_LEGEND_KEY',
+ 'useState(readProfileLegendVisible)',
+ "localStorage.setItem(PROFILE_LEGEND_KEY,profileLegendVisible?'1':'0')",
  "profileLegendVisible?'Legende ausblenden':'Legende einblenden'",
- 'cockpit-weather-profile__icon-toggle',
- 'Temperatur + gefühlt',
- 'Taupunkt + Schwüle',
- 'Sichtweite + Nebelrisiko',
- 'calmWindowRelevant=Boolean(calmWindow&&calmWindow.hours>=3',
- "label:'Wetterberuhigung'",
- 'formatProfilePointTime(maxImpactPoint)',
- 'Math.abs(currentCloud-previousCloud)>=35',
+ 'cockpit-weather-profile__icon-toggle compact',
+ 'Stärkste Einschränkung',
+ 'relativePointTime=(point:ShortTermForecastPoint)',
  'plain/>',
- 'onPointerDown={()=>activatePoint(item.point)}',
- 'title="Erklärtexte anzeigen"'
-])need('24-h-Wetterprofil v0.9.32.4',cockpit,token);
-for(const token of ['Ruhiges Fenster','chartHeight=474','timeLabelStep=chartViewportWidth<=1100?6:3','<span>(i)</span>'])reject('Altvertrag',cockpit,token);
+ 'onPointerDown={()=>activatePoint(item.point)}'
+])need('24-h-Wetterprofil',cockpit,token);
+for(const token of ['Wetterberuhigung','Max. Wetter-Hazard','Stündlich · ein Blick','Seitlich wischbar','shortTermCalmWindow(','dailyTemperatureExtremes=chartDayBands.flatMap'])reject('Altvertrag',cockpit,token);
 for(const token of [
  '.cockpit-weather-profile .cockpit-meteogram-pro__canvas{height:auto;min-height:0}',
- '.cockpit-weather-profile__icon-toggle{min-width:32px;width:32px;padding:5px 0}',
- '.cockpit-weather-profile__toolbar{',
- '.cockpit-weather-profile .temperature-extreme.max',
- '.cockpit-weather-profile .temperature-extreme.min'
-])need('Styles v0.9.32.4',styles,token);
-const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;if(pv!==bv)failures.push(`Versionen nicht synchron: ${pv}/${bv}`);if(!/^0\.9\.32\.[4-9]$/.test(pv))failures.push(`unerwartete Version ${pv}`);
+ '.cockpit-weather-profile__icon-toggle.compact{',
+ '.cockpit-weather-profile__data-title{',
+ '.cockpit-weather-profile__signals .impact-level-1{border-color:#e6c229}',
+ '.cockpit-weather-profile__signals .impact-level-4{border-color:#9b59c6}'
+])need('Styles',styles,token);
+const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;if(pv!==bv)failures.push(`Versionen nicht synchron: ${pv}/${bv}`);
 if(failures.length){console.error('MID Wetterprofil-Layoutprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('MID: responsiveres Wetterprofil, Tagesextreme je Kalendertag, tap-sichere Trefferflächen und bereinigte Info-Icons geprüft.');
+console.log('MID: responsives Wetterprofil, persistente Legende, Nacht-Tmin, Tages-Tmax und kompakte Info-Schaltflächen geprüft.');

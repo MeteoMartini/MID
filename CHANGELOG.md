@@ -1,3 +1,16 @@
+## v0.9.32.6
+
+- 24-h-Wetterprofil: „Wetterberuhigung“ vollständig entfernt; stärkstes Warnsignal wird als „Stärkste Einschränkung“ ausgewiesen.
+- Wetter-Hazards verwenden nun direkt die zentrale appweite MID/DWD-Warnauswertung samt identischen Warnschwellen und Warnfarben.
+- Zustand der 24-h-Legende wird favoritenübergreifend in `localStorage` gespeichert und beim nächsten Standort/Favoriten wiederhergestellt.
+- Header-Pille „Stündlich · ein Blick“ entfernt; 24-h-Leiste ohne Hinweis „Seitlich wischbar …“.
+- Sämtliche y-Achsenbeschriftungen und Einheiten des Wetterprofils auf die linke Diagrammseite verlegt.
+- Temperaturkurve: Tagesmaximum nur bei tatsächlich im Anzeigeintervall liegendem Tagesmaximum; nächtliches Minimum nur einmal je zusammenhängender Nacht.
+- Info-Schaltfläche der Einzeldaten platzsparend direkt in die Titelzeile integriert.
+- Kurzfrist-Spotlights kennzeichnen Uhrzeiten jetzt explizit mit „heute“ bzw. „morgen“.
+- Neue Regression `test-mid-weather-profile-ux-hazards-09326.mjs`; bestehende Wetterprofil-Verträge auf den neuen Sollstand synchronisiert.
+- Vollständige Regression: 331/331 Tests bestanden.
+
 ## v0.9.32.5
 
 - 24-h-Einzeldaten: Füllwort „signifikant“ aus den negativen Risiko-/Hazard-Angaben entfernt („kein Risiko“, „keine Wettergefahren“).
