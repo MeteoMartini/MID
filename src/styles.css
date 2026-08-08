@@ -4314,7 +4314,7 @@ body,#root{
 .cockpit-mini-ribbon.combo svg{display:block;width:100%;height:100%;overflow:visible}
 .cockpit-mini-ribbon.combo .combo-grid{fill:none;stroke:color-mix(in srgb,var(--text) 10%,transparent);stroke-width:1}
 .cockpit-mini-ribbon.combo .combo-grid-strong{stroke:color-mix(in srgb,var(--text) 14%,transparent)}
-.cockpit-mini-ribbon.combo .combo-bar{opacity:.96}
+.cockpit-mini-ribbon.combo .combo-bar{opacity:1}
 .cockpit-mini-ribbon.combo .combo-line{fill:none;stroke:#ef7f39;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 1px 1px rgba(0,0,0,.08))}
 .cockpit-mini-ribbon.combo .combo-dot{fill:color-mix(in srgb,var(--panel) 96%,#fff 4%);stroke:#ef7f39;stroke-width:1.4}
 .mode-cockpit-ribbons .cockpit-tabs>button>.cockpit-mini-ribbon.combo{height:42px}
@@ -5132,9 +5132,9 @@ body,#root{
 .cockpit-weather-profile{--profile-dew:#68a4c4;--profile-wind:#38a56d;--profile-gust:#a66ac9;--profile-low:#50697c;--profile-mid:#849eae;--profile-high:#e0e8ed;--profile-prob:#2c95d2;gap:7px}
 :root[data-theme=light] .cockpit-weather-profile{--profile-low:#52697a;--profile-mid:#7d94a5;--profile-high:#a9b9c5}
 .cockpit-weather-profile__signals{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
-.cockpit-weather-profile__signals>span{display:grid;gap:2px;min-width:0;padding:8px 10px;border:1px solid color-mix(in srgb,var(--mg-plot-border) 75%,transparent);border-radius:12px;background:color-mix(in srgb,var(--mg-plot) 88%,transparent)}
+.cockpit-weather-profile__signals>span{display:grid;align-content:start;gap:2px;min-width:0;padding:8px 10px;border:1px solid color-mix(in srgb,var(--mg-plot-border) 75%,transparent);border-radius:12px;background:color-mix(in srgb,var(--mg-plot) 88%,transparent)}
 .cockpit-weather-profile__signals small{color:var(--mg-muted);font-size:8px;font-weight:850;letter-spacing:.04em;text-transform:uppercase}
-.cockpit-weather-profile__signals b{overflow:hidden;color:var(--mg-text);font-size:11px;line-height:1.2;text-overflow:ellipsis;white-space:nowrap}.cockpit-weather-profile__signals em{color:var(--mg-muted);font-size:8px;font-style:normal}
+.cockpit-weather-profile__signals b{display:block;overflow:visible;color:var(--mg-text);font-size:11px;line-height:1.18;text-overflow:clip;white-space:normal;word-break:break-word}.cockpit-weather-profile__signals .signal-time{color:var(--mg-text);font-size:9px;font-weight:780;line-height:1.1;font-variant-numeric:tabular-nums}.cockpit-weather-profile__signals em{color:var(--mg-muted);font-size:8px;font-style:normal;line-height:1.28}
 .cockpit-weather-profile__signals .impact-level-1{border-color:#e6c229}.cockpit-weather-profile__signals .impact-level-2{border-color:#ef8d32}.cockpit-weather-profile__signals .impact-level-3{border-color:#e74a4a}.cockpit-weather-profile__signals .impact-level-4{border-color:#9b59c6}
 .cockpit-weather-profile .cockpit-meteogram-pro__stage{padding:0}.cockpit-weather-profile .cockpit-meteogram-pro__canvas{height:auto;min-height:0}.cockpit-weather-profile .cockpit-meteogram-pro__legend{margin-top:-1px}
 .cockpit-weather-profile .cockpit-meteogram-pro__svg .lane-bg{fill:var(--mg-plot);stroke:var(--mg-plot-border);stroke-width:1}.cockpit-weather-profile .cockpit-meteogram-pro__svg .lane-bg.thermal-feel,.cockpit-weather-profile .cockpit-meteogram-pro__svg .lane-bg.precip,.cockpit-weather-profile .cockpit-meteogram-pro__svg .lane-bg.wind,.cockpit-weather-profile .cockpit-meteogram-pro__svg .lane-bg.cloud,.cockpit-weather-profile .cockpit-meteogram-pro__svg .lane-bg.impact{fill:color-mix(in srgb,var(--mg-plot) 92%,transparent)}
