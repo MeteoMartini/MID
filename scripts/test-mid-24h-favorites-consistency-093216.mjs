@@ -22,6 +22,6 @@ need(sync,'preserveLocalFavorites=localFavorites!==null&&Number.isFinite(localFa
 need(sync,'if(applied.preservedLocalFavorites)await pushDeviceSync(readDeviceSyncConfig())','geschützter Favoritenstand wird zurückpubliziert');
 const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;
 if(pv!==bv)failures.push(`Versionen nicht synchron: ${pv}/${bv}`);
-if(pv!=='0.9.32.16')failures.push(`unerwartete Version ${pv}`);
-if(failures.length){console.error('MID v0.9.32.16 24-h-/Favoritenkonsistenz fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('MID v0.9.32.16: 24-h-Kacheln und revisionsgeschützte Favoriten geprüft.');
+if(pv!=='0.9.32.18')failures.push(`unerwartete Version ${pv}`);
+if(failures.length){console.error('MID v0.9.32.18 24-h-/Favoritenkonsistenz fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
+console.log('MID v0.9.32.18: 24-h-Kacheln und revisionsgeschützte Favoriten geprüft.');

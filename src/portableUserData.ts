@@ -1,3 +1,4 @@
+import {storageFallbackEntries} from './storageSafety';
 export type PortableUserState={values:Record<string,string>};
 
 const ROOT_KEYS=new Set(['theme','windUnit']);
@@ -7,6 +8,8 @@ const TRANSIENT_PREFIXES=[
  'mid:climatology:',
  'mid:travel-climate:',
  'mid:travel-snow-depth:',
+ 'mid:forecast-fusion:',
+ 'mid:synoptic-snapshot:',
  'mid:icao-location-cache:',
  'mid:eea-station-cache:',
  'mid:thunder-place-cache:',
@@ -57,17 +60,19 @@ export function collectPortableUserData(storage:Storage=localStorage):PortableUs
   const value=storage.getItem(key);
   if(value!==null)values[key]=value;
  }
+ if(storage===localStorage)for(const[key,value]of storageFallbackEntries())if(isPortableUserDataKey(key))values[key]=value;
  return{values};
 }
 
 export function replacePortableUserData(values:Record<string,string>,storage:Storage=localStorage,removeMissing=true){
  let changed=false;
  if(removeMissing){
-  const remove:string[]=[];
+  const remove=new Set<string>();
   for(let index=0;index<storage.length;index++){
    const key=storage.key(index);
-   if(key&&isPortableUserDataKey(key)&&!(key in values))remove.push(key);
+   if(key&&isPortableUserDataKey(key)&&!(key in values))remove.add(key);
   }
+  if(storage===localStorage)for(const key of storageFallbackEntries().keys())if(isPortableUserDataKey(key)&&!(key in values))remove.add(key);
   for(const key of remove){storage.removeItem(key);changed=true}
  }
  for(const[key,value]of Object.entries(values)){

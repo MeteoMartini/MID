@@ -1,16 +1,17 @@
+import {storageFallbackEntries} from './storageSafety';
 const DB_NAME='mid-persistent-state';
 const STORE='snapshots';
 const SNAPSHOT_KEY='current';
 const CACHE_NAME='mid-state-backup-v1';
 const CACHE_URL='./__mid_state_backup__.json';
-const TRANSIENT_PREFIXES=['mid:analysis-cache:','mid:ensemble:','mid:worker:lastGood','mid:update','mid:runtime','mid:state-restored'];
+const TRANSIENT_PREFIXES=['mid:analysis-cache:','mid:ensemble:','mid:climatology:','mid:travel-climate:','mid:travel-snow-depth:','mid:forecast-fusion:','mid:icao-location-cache:','mid:eea-station-cache:','mid:thunder-place-cache:','mid:synoptic-snapshot:','mid:worker:lastGood','mid:update','mid:runtime','mid:state-restored','mid:twin-background','mid:web-analytics-status'];
 const INCLUDED_KEYS=(key:string)=>(key.startsWith('mid:')||['theme','windUnit'].includes(key))&&!TRANSIENT_PREFIXES.some(prefix=>key.startsWith(prefix));
 
 type Snapshot={schema:'mid-state';version:1;savedAt:string;values:Record<string,string>};
 type IdleWindow=Window&{requestIdleCallback?:(callback:()=>void,options?:{timeout:number})=>number;cancelIdleCallback?:(handle:number)=>void};
 
 function openDb():Promise<IDBDatabase>{return new Promise((resolve,reject)=>{const request=indexedDB.open(DB_NAME,1);request.onupgradeneeded=()=>{if(!request.result.objectStoreNames.contains(STORE))request.result.createObjectStore(STORE)};request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error)})}
-function collect():Snapshot{const values:Record<string,string>={};for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key&&INCLUDED_KEYS(key)){const value=localStorage.getItem(key);if(value!==null)values[key]=value}}return{schema:'mid-state',version:1,savedAt:new Date().toISOString(),values}}
+function collect():Snapshot{const values:Record<string,string>={};for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key&&INCLUDED_KEYS(key)){const value=localStorage.getItem(key);if(value!==null)values[key]=value}}for(const[key,value]of storageFallbackEntries())if(INCLUDED_KEYS(key))values[key]=value;return{schema:'mid-state',version:1,savedAt:new Date().toISOString(),values}}
 async function writeDb(snapshot:Snapshot){const db=await openDb();await new Promise<void>((resolve,reject)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).put(snapshot,SNAPSHOT_KEY);tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error)});db.close()}
 async function readDb():Promise<Snapshot|null>{const db=await openDb();const result=await new Promise<Snapshot|null>((resolve,reject)=>{const tx=db.transaction(STORE,'readonly');const request=tx.objectStore(STORE).get(SNAPSHOT_KEY);request.onsuccess=()=>resolve(request.result??null);request.onerror=()=>reject(request.error)});db.close();return result}
 async function writeCache(snapshot:Snapshot){if(!('caches'in window))return;const cache=await caches.open(CACHE_NAME);await cache.put(new URL(CACHE_URL,document.baseURI).toString(),new Response(JSON.stringify(snapshot),{headers:{'content-type':'application/json','cache-control':'no-store'}}))}

@@ -1,3 +1,12 @@
+## v0.9.32.18
+- Buildfix der quota-sicheren Wetterzwilling-Archivwarteschlange: `mirrorStore()` behält seinen Erfolgsstatus für Sicherheitsentscheidungen, die Queue verwirft diesen Rückgabewert jedoch korrekt und bleibt `Promise<void>`-kompatibel.
+- Keine funktionale Rücknahme der in v0.9.32.17 eingeführten Storage-/Quota-Sicherung.
+
+## v0.9.32.17
+- Nachhaltige Quota-Sicherung: zentrale lokale Speicherverwaltung mit automatischer Bereinigung ausschließlich rekonstruierbarer Caches, Retry des ursprünglichen Schreibvorgangs und zusätzlicher IndexedDB-Spiegelung dauerhafter Nutzerdaten.
+- Favoriten und andere dauerhafte Einstellungen bleiben auch dann erhalten, wenn Safari/iOS `localStorage` vorübergehend nicht mehr beschreiben kann.
+- Wetterzwilling-Langzeitdaten bleiben vollständig in IndexedDB/Sync erhalten; nur die redundante lokale Schnellstartkopie wurde platzsparend begrenzt.
+
 ## v0.9.32.16
 - 24-h-Kurzfristkacheln vollständig auf denselben 24-Stunden-Datensatz wie die sichtbare 24-h-Leiste umgestellt; keine 12-h-/Gesamtdatensatz-Mischung mehr.
 - Favoriten-Synchronisation mit eigener Favoritenrevision abgesichert: ältere Favoritenlisten aus anderen verbundenen Safari-/PWA-Instanzen können neuere lokale Favoriten nicht mehr zurücksetzen.

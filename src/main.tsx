@@ -8,6 +8,8 @@ import {markMidRuntimeHealthy,registerMidServiceWorker} from './pwa';
 import {startWebAnalyticsDiagnostics} from './webAnalytics';
 import {restoreDeviceSyncState,startDeviceSyncBridge} from './deviceSync';
 import {StartupGuard} from './StartupGuard';
+import {initializeStorageSafety} from './storageSafety';
+import {compactForecastVerificationLocalStorage} from './forecastVerification';
 
 const BOOT_MARKER='mid:runtime:boot-marker:v1';
 function timeout<T>(promise:Promise<T>,ms:number){return Promise.race([promise,new Promise<T>((_,reject)=>window.setTimeout(()=>reject(new Error('Startschritt hat das Zeitlimit überschritten.')),ms))])}
@@ -17,6 +19,8 @@ function nativeFailure(error:unknown){const root=document.getElementById('root')
 async function signalHealthy(){await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));window.dispatchEvent(new Event('mid:runtime-healthy'));await markMidRuntimeHealthy();markBootHealthy()}
 async function start(){
  markBootStart();
+ await timeout(initializeStorageSafety(),3500).catch(()=>false);
+ await timeout(compactForecastVerificationLocalStorage(),5000).catch(()=>false);
  await timeout(restorePersistentState(),4500).catch(()=>false);
  await timeout(restoreDeviceSyncState(),6500).catch(()=>false);
  try{startPersistenceBridge()}catch{}
