@@ -66,7 +66,7 @@ for(const token of [
  'validCoordinates=Number.isFinite(latitude)',
  "queryName||closeFavorite?.alias||closeFavorite?.location.name||'Benachrichtigungsort'",
  'locationsMatchFavoriteSelection',
- 'currentFavorite=useMemo(()=>matchingFavorite(favorites,loc)',
+ 'currentFavorite=useMemo(()=>matchingStoredFavorite(favorites,loc)',
  'const active=item.id===activeFavoriteId'
 ])requireToken('Push/Favoriten-App',app,token);
 for(const token of ['function pushLocationPayload','...pushLocationPayload(favorite)','locationName:String(favorite?.name'])requireToken('Push-Worker',worker,token);

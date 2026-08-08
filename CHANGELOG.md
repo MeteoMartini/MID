@@ -1,3 +1,9 @@
+## v0.9.32.15
+- Favoriten-Dauerhaftigkeit: Hinzufügen/Entfernen über den Stern wird jetzt sofort in `mid:favorites` persistiert, statt erst nach dem verzögerten Idle-Speicherfenster. Das schließt insbesondere unter iOS/PWA eine Suspend-/Reload-Lücke.
+- Favoritenidentität für POIs präzisiert: gespeicherte Orte werden über exakte Koordinaten/stabile ID bzw. gleichen Namen mit enger Toleranz (POI 120 m, sonst 450 m) erkannt. Die bisherige allgemeine 350/900-m-Nahbereichslogik bleibt nur für GPS-/Standorttracking erhalten.
+- Dadurch können nahe, aber unterschiedliche POIs nicht mehr gegenseitig als derselbe Favorit behandelt oder versehentlich entfernt werden.
+- Neue Regression `test-favorite-durable-poi-093215.mjs`; ältere Favoriten-Navigationstests auf die Trennung zwischen Favoritenidentität und GPS-Nähe synchronisiert.
+
 ## v0.9.32.14
 - `MID-ribbons-ui-text-cleanup.patch` angewendet: redundante Erklärtexte in Kurzfrist-, 7-/14-Tage-Ribbons und 24-h-Wetterprofil entfernt bzw. gekürzt; Drucktrend-/Nebel-Signalkarten ohne zusätzliche Erklärungssätze.
 - DWD „Wolken + Niederschlagsart“: Zoom in festen 100-%-Schritten von 100 bis 500 % erweitert.
