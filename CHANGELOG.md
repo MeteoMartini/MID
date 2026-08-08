@@ -1,3 +1,8 @@
+## v0.9.32.7
+
+- 24-h-Wetterprofil: Zeitangaben in den oberen Signalkarten verwenden jetzt wie die unteren Kurzfristfelder „heute“ bzw. „morgen“ vor der Uhrzeit.
+- Betrifft insbesondere Nebel-/Sichtsignal und „Stärkste Einschränkung“; Datumsanhänge hinter der Uhrzeit entfallen dort.
+
 ## v0.9.32.6
 
 - 24-h-Wetterprofil: „Wetterberuhigung“ vollständig entfernt; stärkstes Warnsignal wird als „Stärkste Einschränkung“ ausgewiesen.
