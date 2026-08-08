@@ -1,3 +1,13 @@
+## v0.9.32.10
+- Buildfix für die kombinierten Kurzfrist-/7-Tage-Mini-Diagramme: `tempMin` wird in beiden Temperatur-Skalierungen wieder korrekt definiert.
+- Regression ergänzt, die diesen TypeScript-Buildfehler künftig verhindert.
+
+## v0.9.32.9
+- Cockpit-Registerkarten „Kurzfrist“ und „7 Tage“: Mini-Diagramme zu einem kombinierten Verlauf zusammengeführt. Temperaturtrend und Niederschlagsbalken werden nun jeweils in einem gemeinsamen, kompakteren Mini-Chart dargestellt und ersetzen die getrennten Darstellungen.
+
+## v0.9.32.8
+- 24-h-Wetterprofil: Tmin- und Tmax-Markierungen im Temperaturfeld vergrößert, mit stärkerem Kontrast/Halo versehen und vertikal etwas weiter vom Kurvenverlauf abgesetzt, damit die Werte auf mobilen Displays besser lesbar sind.
+
 ## v0.9.32.7
 
 - 24-h-Wetterprofil: Zeitangaben in den oberen Signalkarten verwenden jetzt wie die unteren Kurzfristfelder „heute“ bzw. „morgen“ vor der Uhrzeit.
