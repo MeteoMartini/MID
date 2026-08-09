@@ -1,3 +1,9 @@
+## v0.9.36.2
+- 14-Tage-Ensemble-Niederschlag, Modus „kumuliert“: zusätzliches inneres P25–P75-Unsicherheitsband ergänzt, bewusst dunkler als der äußere P10–P90-Bereich.
+- P25/P75 werden bereits in der täglichen gewichteten Niederschlags-Ensembleverteilung berechnet und anschließend analog zu P10/P90 kumuliert.
+- Kumulierte Legende, Tooltip, Erklärung und Export-Metadaten um P25–P75 erweitert; die normale Tagesansicht bleibt unverändert.
+- Neue Regression `test-ensemble-cumulative-rain-quartiles-09362.mjs`; Navigationsregression releasefest gemacht.
+
 ## v0.9.36.1
 - Navigationskonzept umgesetzt: Mobile Schnellnavigation „Heute · Kurzfrist · 7 Tage · Mehr“, vollständiger Sektionen-Drawer, einklappbare Desktop/Tablet-Seitenleiste und fachliche Gruppen.
 - Navigation nutzt weiterhin ausschließlich die bestehende Dashboard-Modulkonfiguration für Sichtbarkeit/Reihenfolge; bedingte Berg-/Wasser- sowie Profi-Module werden automatisch berücksichtigt.

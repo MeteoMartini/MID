@@ -44,6 +44,6 @@ for(const token of [
 ]) need(styles,'Styles',token);
 const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;
 if(pv!==bv)failures.push(`Versionen nicht synchron: ${pv}/${bv}`);
-if(pv!=='0.9.36.1')failures.push(`Erwartet v0.9.36.1, erhalten ${pv}`);
-if(failures.length){console.error(`MID v0.9.36.1 Navigation/24-h-Inset-Regressionsprüfung fehlgeschlagen:\n- ${failures.join('\n- ')}`);process.exit(1)}
-console.log('MID v0.9.36.1: Sektionen-Drawer/Seitenleiste, Hash-Navigation, Auto-Expand und 24-h-Datenabstand geprüft.');
+const parts=pv.split('.').map(Number),minimum=[0,9,36,1];const atLeast=parts.some((value,index)=>value>minimum[index])||parts.every((value,index)=>value===minimum[index]);if(!atLeast)failures.push(`Erwartet mindestens v0.9.36.1, erhalten ${pv}`);
+if(failures.length){console.error(`MID Navigation/24-h-Inset-Regressionsprüfung fehlgeschlagen:\n- ${failures.join('\n- ')}`);process.exit(1)}
+console.log(`MID ${pv}: Sektionen-Drawer/Seitenleiste, Hash-Navigation, Auto-Expand und 24-h-Datenabstand geprüft.`);
