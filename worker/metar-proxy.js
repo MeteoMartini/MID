@@ -26,7 +26,7 @@ const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const OPEN_METEO_ELEVATION='https://api.open-meteo.com/v1/elevation';
-const WORKER_VERSION='0.9.32.20';
+const WORKER_VERSION='0.9.32.21';
 const CORS={'content-type':'application/json; charset=utf-8','access-control-allow-origin':'*','access-control-allow-methods':'GET,POST,OPTIONS','access-control-allow-headers':'content-type','cache-control':'public, max-age=180'};
 const FEED_SLUGS={
  AD:'andorra',AT:'austria',BE:'belgium',BA:'bosnia-herzegovina',BG:'bulgaria',HR:'croatia',CY:'cyprus',CZ:'czechia',DK:'denmark',EE:'estonia',FI:'finland',FR:'france',DE:'germany',GR:'greece',EL:'greece',HU:'hungary',IS:'iceland',IE:'ireland',IL:'israel',IT:'italy',LV:'latvia',LT:'lithuania',LU:'luxembourg',MT:'malta',MD:'moldova',ME:'montenegro',NL:'netherlands',MK:'republic-of-north-macedonia',NO:'norway',PL:'poland',PT:'portugal',RO:'romania',RS:'serbia',SK:'slovakia',SI:'slovenia',ES:'spain',SE:'sweden',CH:'switzerland',UA:'ukraine',GB:'united-kingdom',UK:'united-kingdom',AM:'armenia'
@@ -1103,7 +1103,7 @@ const SATELLITE_PRECIP_CANDIDATES=[
  {provider:'eumetsat',layer:'mtg_fd:precipitation_rate',label:'MTG FCI Niederschlagsrate',resolutionKm:2},
  {provider:'eumetsat',layer:'msg_fes:h60b',label:'H SAF Satelliten-Niederschlagsrate',resolutionKm:3}
 ];
-async function wmsCapabilitiesText(base,label){const response=await fetchWithDeadline(dwdCapabilitiesUrl(base),{headers:{Accept:'application/xml,text/xml,*/*'},cf:{cacheTtl:180,cacheEverything:true}},6000);if(!response.ok)throw new Error(`${label} Capabilities HTTP ${response.status}`);return response.text()}
+async function wmsCapabilitiesText(base,label){const cacheTtl=base===EUMETSAT_WMS?60:180,response=await fetchWithDeadline(dwdCapabilitiesUrl(base),{headers:{Accept:'application/xml,text/xml,*/*','Cache-Control':'no-cache'},cf:{cacheTtl,cacheEverything:true}},6000);if(!response.ok)throw new Error(`${label} Capabilities HTTP ${response.status}`);return response.text()}
 async function firstWmsCapabilities(bases,label){const errors=[];for(const base of bases){try{return await wmsCapabilitiesText(base,label)}catch(error){errors.push(error instanceof Error?error.message:String(error))}}throw new Error(errors.join(' | ')||`${label} Capabilities nicht verfügbar`)}
 function recentObservedTimes(times,now=Date.now(),historyMinutes=135,maxFrames=28,futureMinutes=10){const unique=[...new Set((times||[]).filter(Number.isFinite).filter(time=>time>=now-historyMinutes*60000&&time<=now+futureMinutes*60000))].sort((a,b)=>a-b);if(unique.length<=maxFrames)return unique;const step=Math.max(1,Math.ceil(unique.length/maxFrames)),selected=unique.filter((_,index)=>index%step===0);if(selected.at(-1)!==unique.at(-1))selected.push(unique.at(-1));return selected.slice(-maxFrames)}
 function hasWmsLayer(xml,layer){return tagValues(xml,'Name').some(value=>wmsLayerNameMatches(value,layer))}

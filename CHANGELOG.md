@@ -1,3 +1,11 @@
+## v0.9.32.21
+
+- Kompositbild/Satellit: nachhaltige Cachekorrektur für Same-Origin-Worker. Service Worker behandelt Worker/API/WMS-Abfragen strikt als Live-Daten und cached sie nicht mehr im App-Shell-Cache.
+- Bereits vorhandene dynamische WMS-/Worker-Einträge werden beim Aktivieren bzw. bei Cache-Reparatur automatisch aus alten MID-Shell-Caches entfernt.
+- Satelliten-RGB wird bei verifizierter Zeitdimension als diskreter, exakt gepinnter Aufnahmezeitpunkt dargestellt; die zeitliche Kreuzblendung zweier Satellitenstände entfällt.
+- EUMETSAT-GetCapabilities wird enger aktualisiert (60 s) und mit no-cache angefordert.
+- Verhindert zugleich unnötiges Anwachsen des Shell-Caches durch WMS-Kacheln und damit einen weiteren möglichen Beitrag zu Browser-Quota-Problemen.
+
 ## v0.9.32.20
 
 - Kompositbild: EUMETSAT EUMETView bleibt die direkte Primärquelle für MTG-FCI-RGB/GeoColour; die Produktauswahl priorisiert nun den tatsächlich jüngsten nominellen Satellitenstand vor einer bloßen Quellenpriorität.

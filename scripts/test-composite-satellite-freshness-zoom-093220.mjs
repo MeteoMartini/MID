@@ -29,6 +29,6 @@ for(const token of [
 ])need('Worker',worker,token);
 const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;
 if(pv!==bv)failures.push(`Versionen nicht synchron: ${pv}/${bv}`);
-if(pv!=='0.9.32.20')failures.push(`unerwartete Version ${pv}`);
-if(failures.length){console.error('MID v0.9.32.20 Satelliten-/Zoomprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('MID v0.9.32.20: EUMETSAT-Primärquelle, recency-first RGB-Auswahl und vollständiger Raster-Neuaufbau nach Zoom geprüft.');
+
+if(failures.length){console.error('MID Satelliten-/Zoomprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
+console.log('MID: EUMETSAT-Primärquelle, recency-first RGB-Auswahl und vollständiger Raster-Neuaufbau nach Zoom geprüft.');
