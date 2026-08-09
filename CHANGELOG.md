@@ -1,3 +1,7 @@
+## v0.9.33.1
+- Buildfix für die neue Langfrist-Sektion: Achsenfunktionen in `LongRangePanel.tsx` explizit mit `number` typisiert; die GitHub-Fehler TS7006 für `value` und `index` sind damit behoben.
+- Eigene Schutzregression gegen ein erneutes `noImplicitAny` in den Langfristdiagrammen ergänzt.
+
 ## v0.9.32.22
 
 - Niederschlagsformen appweit konsolidiert: Tageskarten verwenden die zentrale phasentreue Niederschlagsart statt pauschal „Regen“/„Schauer“.

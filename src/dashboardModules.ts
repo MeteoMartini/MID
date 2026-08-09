@@ -7,6 +7,7 @@ export type DashboardModuleId=
  |'forecast'
  |'composite'
  |'ensemble'
+ |'long-range'
  |'forecast-verification'
  |'travel-planner'
  |'flight-meteorology'
@@ -37,6 +38,7 @@ export const DASHBOARD_MODULE_DEFINITIONS:DashboardModuleDefinition[]=[
  {id:'forecast',label:'7-Tage-Vorhersage',description:'Tagesübersicht und Tagesdetails'},
  {id:'composite',label:'Kompositbild',description:'Radar, Satellit und aktuelle Beobachtungen'},
  {id:'ensemble',label:'14-Tage-Ensemble',description:'Unsicherheit und mögliche Entwicklung'},
+ {id:'long-range',label:'Langfrist',description:'Monatliche Temperatur- und Niederschlagsanomalien im saisonalen Modellvergleich'},
  {id:'forecast-verification',label:'Prognosegüte und Rückblick',description:'Vorhersagekontrolle und lokale Modellgüte',advancedOnly:true},
  {id:'travel-planner',label:'Reisewetter und Reiseplaner',description:'Klimatologie und Reisezeitfenster'},
  {id:'flight-meteorology',label:'Flugmeteorologie',description:'Meteogramme und Flugwetterwerkzeuge',advancedOnly:true},
