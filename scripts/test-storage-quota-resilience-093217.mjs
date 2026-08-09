@@ -34,6 +34,6 @@ for(const token of [
  'const compact=localCompactStore(updated)'
 ])if(!twin.includes(token))failures.push(`Wetterzwilling-Quota-Schutz fehlt: ${token}`);
 for(const forbidden of ["localStorage.removeItem('mid:favorites')","localStorage.removeItem(FAVORITES_STORAGE_KEY)"])if(safety.includes(forbidden))failures.push('Favoriten dürfen niemals als Quota-Bereinigung entfernt werden.');
-const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;if(pv!==bv)failures.push(`Versionen nicht synchron: ${pv}/${bv}`);if(pv!=='0.9.32.18')failures.push(`unerwartete Version ${pv}`);
-if(failures.length){console.error('MID v0.9.32.18 Storage-Quota-Regressionsprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('MID v0.9.32.18: quota-sichere Persistenz, Cache-Bereinigung und vollständiger Wetterzwilling-Erhalt geprüft.');
+const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;if(pv!==bv)failures.push(`Versionen nicht synchron: ${pv}/${bv}`);
+if(failures.length){console.error('MID Storage-Quota-Regressionsprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
+console.log('MID: quota-sichere Persistenz, Cache-Bereinigung und vollständiger Wetterzwilling-Erhalt geprüft.');

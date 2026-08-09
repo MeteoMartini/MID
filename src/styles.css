@@ -5182,3 +5182,38 @@ body,#root{
  .cockpit-weather-profile .profile-axis-unit{font-size:6.5px}
  .cockpit-weather-profile .cockpit-meteogram-pro__overlay.time>span{padding:2px 3px}
 }
+
+/* MID v0.9.32.19 · flachere 24-h-Leiste auf Handydisplays */
+@media(max-width:620px){
+ .cockpit-hourly-preview-shell{gap:5px;padding:7px 8px 6px;border-radius:16px}
+ .cockpit-hourly-preview-head{gap:3px}
+ .cockpit-hourly-preview-head>span{gap:1px}
+ .cockpit-hourly-preview-head>span>small{font-size:7.5px;letter-spacing:.09em}
+ .cockpit-hourly-preview-head>span>b{font-size:12px;line-height:1.15}
+ .cockpit-hourly-preview-head>span>strong{font-size:9.5px;line-height:1.2}
+ .cockpit-hourly-preview{gap:4px}
+ .cockpit-hourly-chip{grid-template-columns:43px 42px minmax(0,1fr) auto;grid-template-areas:'day day day day' 'time temp main wind' 'rain rain rain rain';gap:2px 5px;padding:4px 6px;border-radius:12px}
+ .cockpit-hourly-day-marker{min-height:10px;padding:0 4px;font-size:5.8px;line-height:1.1}
+ .cockpit-hourly-chip-top{gap:1px}
+ .cockpit-hourly-chip-top>time{font-size:9.5px;line-height:1}
+ .cockpit-hourly-chip-top>b{font-size:14px;line-height:1;padding:.08em .28em}
+ .cockpit-hourly-chip-main{gap:4px}
+ .cockpit-hourly-chip-main .mid-weather-pictogram{width:20px!important;height:20px!important}
+ .cockpit-hourly-chip-main>small{font-size:7.6px;line-height:1}
+ .cockpit-hourly-rain{gap:2px}
+ .cockpit-hourly-probability-track{height:3px}
+ .cockpit-hourly-meta-row{gap:3px;font-size:7px;line-height:1}
+ .cockpit-hourly-meta-row>b{font-size:8px}
+ .cockpit-hourly-meta-row>small{font-size:7px}
+ .cockpit-hourly-wind .cockpit-hourly-meta-row{justify-content:flex-end}
+ .cockpit-hourly-wind .cockpit-hourly-meta-row>svg{width:12px;height:12px}
+ .cockpit-hourly-more{margin-top:0}
+}
+@media(max-width:420px){
+ .cockpit-hourly-preview-shell{padding:6px 7px 5px}
+ .cockpit-hourly-chip{grid-template-columns:40px 39px minmax(0,1fr) auto;padding:4px 5px;gap:2px 4px}
+ .cockpit-hourly-chip-top>time{font-size:9px}
+ .cockpit-hourly-chip-top>b{font-size:13.5px}
+ .cockpit-hourly-chip-main .mid-weather-pictogram{width:19px!important;height:19px!important}
+ .cockpit-hourly-chip-main>small{font-size:7.2px}
+}

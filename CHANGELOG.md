@@ -1,3 +1,7 @@
+## v0.9.32.19
+- 24-h-Wetterprofil: UVI platzsparend in die bestehende Einzeldatenzeile „Wolken H/M/L + UVI“ integriert; der UVI wird aus demselben Best-Match-Zeitschritt wie die übrigen Einzeldaten übernommen.
+- 24-Stunden-Leiste auf Handydisplays deutlich flacher konsolidiert: kleinere Abstände, kompaktere Tages-/Zeit-/Temperaturdarstellung, kleinere Piktogramme und engere Niederschlags-/Windzeilen, ohne Wetterparameter zu entfernen.
+
 ## v0.9.32.18
 - Buildfix der quota-sicheren Wetterzwilling-Archivwarteschlange: `mirrorStore()` behält seinen Erfolgsstatus für Sicherheitsentscheidungen, die Queue verwirft diesen Rückgabewert jedoch korrekt und bleibt `Promise<void>`-kompatibel.
 - Keine funktionale Rücknahme der in v0.9.32.17 eingeführten Storage-/Quota-Sicherung.
