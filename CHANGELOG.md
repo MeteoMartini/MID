@@ -1,3 +1,7 @@
+## v0.9.36.0
+- 14-Tage-Ensemble-Niederschlag: neue optionale kumulierte Ansicht mit monoton ansteigender Best-Match-Kurve, kumuliertem P10–P90-Unsicherheitsband und optionalem kumuliertem ENS-Mittel. Die bestehende Tagesansicht bleibt Standard.
+- Navigationskonzept für die wachsende Zahl an MID-Sektionen ergänzt: Dashboard beibehalten, zusätzlich Sektionen-Drawer mit fachlichen Gruppen und bestehender Modulverwaltung als Single Source of Truth.
+
 ## v0.9.35.2
 - 24-h-Wetterprofil: Diagramm verwendet wieder ausschließlich stündliche Werte und beginnt mit der aktuellen Stunde; die 15-Minuten-Schritte bleiben auf Kurzfrist/Nowcast beschränkt.
 - Schneefallgrenzen-Ensemble: fehlende API-Werte werden nicht mehr durch `Number(null)` fälschlich als 0 m interpretiert; der Nullgradgrenzen-Fallback greift wieder korrekt.
