@@ -1,10 +1,9 @@
-## v0.9.32.21
+## v0.9.32.22
 
-- Kompositbild/Satellit: nachhaltige Cachekorrektur für Same-Origin-Worker. Service Worker behandelt Worker/API/WMS-Abfragen strikt als Live-Daten und cached sie nicht mehr im App-Shell-Cache.
-- Bereits vorhandene dynamische WMS-/Worker-Einträge werden beim Aktivieren bzw. bei Cache-Reparatur automatisch aus alten MID-Shell-Caches entfernt.
-- Satelliten-RGB wird bei verifizierter Zeitdimension als diskreter, exakt gepinnter Aufnahmezeitpunkt dargestellt; die zeitliche Kreuzblendung zweier Satellitenstände entfällt.
-- EUMETSAT-GetCapabilities wird enger aktualisiert (60 s) und mit no-cache angefordert.
-- Verhindert zugleich unnötiges Anwachsen des Shell-Caches durch WMS-Kacheln und damit einen weiteren möglichen Beitrag zu Browser-Quota-Problemen.
+- Niederschlagsformen appweit konsolidiert: Tageskarten verwenden die zentrale phasentreue Niederschlagsart statt pauschal „Regen“/„Schauer“.
+- Schneefall wird bei vorhandenem Modellfeld zusätzlich kompakt in cm angegeben (`mm · ❄ x,x cm`) und ersetzt die Niederschlagsmenge in mm nicht.
+- Kurzfrist-, 24-h-, Tages-, Detail-, Meteogramm-, Ensemble-, Wasserwetter- und Widgetausgaben auf die gemeinsame Mengenformatierung umgestellt, soweit Schneefalldaten verfügbar sind.
+- Neue Regression schützt Schnee, Schneeschauer, Schneeregen, Schneeregenschauer, Schneegriesel, gefrierende Formen und die zusätzliche cm-Ausgabe.
 
 ## v0.9.32.20
 

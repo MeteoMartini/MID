@@ -11,7 +11,7 @@ import {clamp,niceTemperatureScale} from './chartMath';
 import {buildModelChangeSnapshot,updateModelChangeRadar,type ModelChangeReport,type ModelChangeRunDifference} from './modelRunChanges';
 import {MID_VERSION} from './version';
 import {apportionScenarioPercentages} from './scenarioMath';
-import {precipitationParts} from './precipitation';
+import {precipitationAmountLabel,precipitationParts} from './precipitation';
 import {computeEnsembleConfidence} from './ensembleConfidence';
 
 function dateOnlyUtc(value:string){const match=String(value||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return match?new Date(Date.UTC(Number(match[1]),Number(match[2])-1,Number(match[3]),12)):new Date(Number.NaN)}
@@ -249,18 +249,18 @@ function isFiniteNumber(value:unknown):value is number{return typeof value==='nu
 const sunshineHoursFormatter=new Intl.NumberFormat('de-DE',{minimumFractionDigits:0,maximumFractionDigits:1});
 function precipitationVisualType(code:number):'none'|'rain'|'snow'|'mixed'{
  if(!Number.isFinite(code))return'none';
- if([66,67].includes(code))return'mixed';
+ if([56,57,66,67,68,69,83,84].includes(code))return'mixed';
  if((code>=71&&code<=77)||code===85||code===86)return'snow';
- if((code>=51&&code<=65)||(code>=80&&code<=82)||(code>=95&&code<=99))return'rain';
+ if(([51,53,55,61,63,65,80,81,82,95,96,97,99] as number[]).includes(code))return'rain';
  return'none';
 }
 function precipitationVisualDescriptor(code:number,precipitation:number,probability:number,hours:Hour[]=[]){
- const plausible=hours.map(hour=>precipitationParts(hour)).filter(parts=>parts.type!=='none').sort((a,b)=>b.total-a.total)[0],amount=Math.max(0,Number.isFinite(precipitation)?precipitation:0),chance=Math.max(0,Number.isFinite(probability)?probability:0),rawCode=Math.round(code),unsupportedDrizzle=hours.length>0&&rawCode>=51&&rawCode<=57&&!plausible,displayCode=plausible?.displayCode??(unsupportedDrizzle?(amount>=.1&&chance>=25?61:3):code),type=precipitationVisualType(displayCode),thunder=displayCode>=95&&displayCode<=99;
+ const plausible=hours.map(hour=>precipitationParts(hour)).filter(parts=>parts.type!=='none').sort((a,b)=>b.total-a.total)[0],amount=Math.max(0,Number.isFinite(precipitation)?precipitation:0),snowfall=hours.reduce((sum,hour)=>sum+Math.max(0,Number(hour.snowfall)||0),0),amountLabel=precipitationAmountLabel({precipitation:amount,snowfall}),chance=Math.max(0,Number.isFinite(probability)?probability:0),rawCode=Math.round(code),unsupportedDrizzle=hours.length>0&&rawCode>=51&&rawCode<=57&&!plausible,displayCode=plausible?.displayCode??(unsupportedDrizzle?(amount>=.1&&chance>=25?61:3):code),type=precipitationVisualType(displayCode),thunder=displayCode>=95&&displayCode<=99;
  const active=amount>=0.1||chance>=35||thunder||type==='snow'||type==='mixed';
  if(!active||type==='none')return{type:'none' as const,size:'small' as const,thunder:false,label:'Trocken'};
  const largeThreshold=type==='snow'?1:type==='mixed'?1.2:2;
  const size=amount>=largeThreshold?'large' as const:'small' as const;
- const label=thunder?`Gewitter${amount>0?`, ${formatDecimalFixed(amount,1)} mm Best Match`:''}`:type==='snow'?`Schnee, ${formatDecimalFixed(amount,1)} mm Best Match`:type==='mixed'?`Gemischter oder gefrierender Niederschlag, ${formatDecimalFixed(amount,1)} mm Best Match`:`Regen, ${formatDecimalFixed(amount,1)} mm Best Match`;
+ const label=thunder?`Gewitter${amount>0?`, ${amountLabel} Best Match`:''}`:type==='snow'?`Schnee, ${amountLabel} Best Match`:type==='mixed'?`Gemischter oder gefrierender Niederschlag, ${amountLabel} Best Match`:`Regen, ${amountLabel} Best Match`;
  return{type,size,thunder,label};
 }
 function PrecipitationGlyph({type,size,thunder}:{type:'rain'|'snow'|'mixed';size:'small'|'large';thunder:boolean}){

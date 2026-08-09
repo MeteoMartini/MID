@@ -32,7 +32,7 @@ for(const token of [
  'hz:strongestDailyHazards(dailyHazards(d,hours,elevation??0,unit,1))'
 ])if(!app.includes(token))failures.push(`Appweite Plausibilisierung/Warnlogik fehlt: ${token}`);
 for(const token of ['temperature:hour.temperature','const displayCode=precipitation.displayCode'])if(!route.includes(token))failures.push(`Routenwetter nicht zentral plausibilisiert: ${token}`);
-for(const token of ["import {precipitationParts} from './precipitation';",'const part=precipitationParts({',"snowGrains:{short:'SG'",'cloud_cover_low'])if(!meteogram.includes(token))failures.push(`Meteogramm nicht zentral plausibilisiert: ${token}`);
+for(const token of ["from './precipitation';",'precipitationParts','precipitationAmountLabel','const part=precipitationParts({',"snowGrains:{short:'SG'",'cloud_cover_low'])if(!meteogram.includes(token))failures.push(`Meteogramm nicht zentral plausibilisiert: ${token}`);
 for(const token of ['return rawWeatherPriority(Math.round(Number(parts.displayCode)||0));','return parts.displayCode;'])if(!pictograms.includes(token))failures.push(`Detailpiktogramme umgehen den korrigierten Code: ${token}`);
 if(!worker.includes("'weather_code','cloud_cover','cloud_cover_low','freezing_level_height'"))failures.push('Worker-Meteogramm fordert Wolkensignale für die Plausibilisierung nicht an.');
 if(!ensemble.includes('summarizeDwdWarningsForDay(hours,x.date,elevation)'))failures.push('Ensemble-Hazards verwenden nicht die tagesbezogene Warnzusammenfassung.');

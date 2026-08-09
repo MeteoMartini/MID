@@ -11,7 +11,7 @@ const required={
  weather:['mapHours(w:Weather)','mapMinutely15(w:Weather)','mapDays(w:Weather)','leadHours:(epoch-Date.now())/3600000','sunshineDuration,weatherSourceId:\'best_match\''],
  fusion:["import {reconcileForecastPrecipitation} from './precipitation';",'function dryAdjustedHour','weatherHours?:ForecastWeatherBundleHour[]','dailyWeatherCodeFromHours','reconcileForecastDaysWithHours'],
  app:['postProcessedHours=useMemo(()=>applyConvectiveNowcastHours','reconcileForecastHoursWithDays(temperatureObservedHours,baseDisplayDays)','hour-tooltip-source'],
- shortTerm:["import {precipitationParts,reconcileForecastPrecipitation} from './precipitation';"],
+ shortTerm:["from './precipitation';",'precipitationParts','reconcileForecastPrecipitation','precipitationAmountLabel'],
  worker:['const FORECAST_PRECIPITATION_CODES=new Set','supportMinimum=lead<=24?10:lead<=72?15:20','FORECAST_FUSION_HOURLY','weatherHours'],
  package:['test:precip-probability-consistency']
 };

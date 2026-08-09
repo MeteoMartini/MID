@@ -781,8 +781,18 @@ function skyTrend(hours:Hour[],fallback:string){
  return base;
 }
 function shortEvent(family:string,eventLabel:string){
- if(family==='showers')return eventLabel.toLowerCase().includes('schnee')?'Schneeschauer':'Schauer';
- if(family==='thunder')return'Gewitter';
+ const text=eventLabel.toLocaleLowerCase('de-DE');
+ if(text.includes('schneeregenschauer'))return'Schneeregenschauer';
+ if(text.includes('schneeschauer'))return'Schneeschauer';
+ if(text.includes('schneeregen'))return'Schneeregen';
+ if(text.includes('schneegriesel'))return'Schneegriesel';
+ if(text.includes('schneefall'))return'Schnee';
+ if(text.includes('gefrierenden sprühregen')||text.includes('gefrierender sprühregen'))return'Gefrierender Sprühregen';
+ if(text.includes('gefrierenden regen')||text.includes('gefrierender regen'))return'Gefrierender Regen';
+ if(text.includes('regenschauer'))return'Regenschauer';
+ if(text.includes('sprühregen'))return'Sprühregen';
+ if(family==='showers')return'Schauer';
+ if(family==='thunder')return text.includes('hagel')?'Gewitter mit Hagel':'Gewitter';
  if(family==='snow')return'Schnee';
  if(family==='drizzle')return'Sprühregen';
  if(family==='rain')return'Regen';

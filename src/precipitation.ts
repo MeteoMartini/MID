@@ -326,11 +326,9 @@ export function precipitationParts(h:PrecipSample):PrecipitationParts{
  else type='none';
 
  if(type==='none')return{total,type,label:'kein Niederschlag',weatherLabel:'kein Niederschlag',code,displayCode:code};
- const amount=type==='snow'||type==='snowShowers'||type==='snowGrains'
-  ?`${formatDecimalFixed(snowCm,1)} cm`
-  :type==='sleet'||type==='sleetShowers'
-   ?`${formatDecimalFixed(total,1)} mm · ${formatDecimalFixed(snowCm,1)} cm`
-   :`${formatDecimalFixed(total,1)} mm`;
+ const amount=type==='snow'||type==='snowShowers'||type==='snowGrains'||type==='sleet'||type==='sleetShowers'
+  ?precipitationAmountLabel({precipitation:total,snowfall:snowCm})
+  :`${formatDecimalFixed(total,1)} mm`;
  const weatherLabel=type==='rain'
   ?`${rainIntensity(total)} Regen`
   :type==='drizzle'
@@ -347,4 +345,40 @@ const PRECIP_TYPE_ORDER:PrecipType[]=['drizzle','freezingDrizzle','rain','freezi
 
 export function presentPrecipTypes(series:{type:PrecipType}[]){
  return PRECIP_TYPE_ORDER.filter(type=>series.some(item=>item.type===type)) as Exclude<PrecipType,'none'>[];
+}
+
+export function precipitationAmountLabel(input:{precipitation?:number;snowfall?:number},{snowSymbol=true}:{snowSymbol?:boolean}={}){
+ const precipitation=Math.max(0,Number(input.precipitation)||0),snowfall=Math.max(0,Number(input.snowfall)||0),base=`${formatDecimalFixed(precipitation,1)} mm`;
+ return snowfall>=.05?`${base} · ${snowSymbol?'❄ ':''}${formatDecimalFixed(snowfall,1)} cm`:base;
+}
+
+export function compactPrecipitationTypeLabel(type:PrecipType){
+ if(type==='drizzle')return'Sprühregen';
+ if(type==='freezingDrizzle')return'Gefr. Sprühregen';
+ if(type==='rain')return'Regen';
+ if(type==='freezingRain')return'Gefr. Regen';
+ if(type==='showers')return'Regenschauer';
+ if(type==='snow')return'Schnee';
+ if(type==='snowGrains')return'Schneegriesel';
+ if(type==='snowShowers')return'Schneeschauer';
+ if(type==='sleet')return'Schneeregen';
+ if(type==='sleetShowers')return'Schneeregenschauer';
+ if(type==='thunderstormHail')return'Hagelgewitter';
+ if(type==='thunderstorm')return'Gewitter';
+ return'Kein Niederschlag';
+}
+
+export function dominantPrecipitationForm(samples:PrecipSample[]){
+ const scored=new Map<Exclude<PrecipType,'none'>,{score:number;code:number}>();
+ for(const sample of samples){
+  const part=precipitationParts(sample);if(part.type==='none')continue;
+  const type=part.type as Exclude<PrecipType,'none'>,probability=Math.max(0,Math.min(100,Number(sample.probability)||0)),liquid=Math.max(0,Number(sample.precipitation)||0),snow=Math.max(0,Number(sample.snowfall)||0);
+  if(probability<20&&liquid<.05&&snow<.05)continue;
+  const phaseWeight=type==='thunderstormHail'||type==='thunderstorm'?1.6:type==='freezingRain'||type==='freezingDrizzle'?1.45:type==='sleet'||type==='sleetShowers'?1.35:type==='snow'||type==='snowShowers'||type==='snowGrains'?1.3:type==='showers'?1.15:1;
+  const score=(.25+probability/100)*(1+Math.min(3,liquid*1.25+snow*.28))*phaseWeight,current=scored.get(type);
+  if(current)current.score+=score;else scored.set(type,{score,code:part.displayCode});
+ }
+ const winner=[...scored.entries()].sort((a,b)=>b[1].score-a[1].score)[0];
+ if(!winner)return null;
+ return{type:winner[0],label:compactPrecipitationTypeLabel(winner[0]),code:winner[1].code};
 }

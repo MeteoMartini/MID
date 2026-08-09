@@ -29,6 +29,6 @@ need('Worker',worker,"const cacheTtl=base===EUMETSAT_WMS?60:180");
 need('Worker',worker,"'Cache-Control':'no-cache'");
 const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;
 if(pv!==bv)failures.push(`Versionen nicht synchron: ${pv}/${bv}`);
-if(pv!=='0.9.32.21')failures.push(`unerwartete Version ${pv}`);
-if(failures.length){console.error('MID v0.9.32.21 Satelliten-Snapshot-/Cacheprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('MID v0.9.32.21: dynamische WMS-Anfragen network-only, Altcache-Bereinigung und diskrete EUMETSAT-Zeitstände geprüft.');
+if(pv!=='0.9.32.22')failures.push(`unerwartete Version ${pv}`);
+if(failures.length){console.error('MID v0.9.32.22 Satelliten-Snapshot-/Cacheprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
+console.log('MID v0.9.32.22: dynamische WMS-Anfragen network-only, Altcache-Bereinigung und diskrete EUMETSAT-Zeitstände geprüft.');
