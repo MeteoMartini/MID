@@ -26,7 +26,7 @@ const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const OPEN_METEO_ELEVATION='https://api.open-meteo.com/v1/elevation';
-const WORKER_VERSION='0.9.32.19';
+const WORKER_VERSION='0.9.32.20';
 const CORS={'content-type':'application/json; charset=utf-8','access-control-allow-origin':'*','access-control-allow-methods':'GET,POST,OPTIONS','access-control-allow-headers':'content-type','cache-control':'public, max-age=180'};
 const FEED_SLUGS={
  AD:'andorra',AT:'austria',BE:'belgium',BA:'bosnia-herzegovina',BG:'bulgaria',HR:'croatia',CY:'cyprus',CZ:'czechia',DK:'denmark',EE:'estonia',FI:'finland',FR:'france',DE:'germany',GR:'greece',EL:'greece',HU:'hungary',IS:'iceland',IE:'ireland',IL:'israel',IT:'italy',LV:'latvia',LT:'lithuania',LU:'luxembourg',MT:'malta',MD:'moldova',ME:'montenegro',NL:'netherlands',MK:'republic-of-north-macedonia',NO:'norway',PL:'poland',PT:'portugal',RO:'romania',RS:'serbia',SK:'slovakia',SI:'slovenia',ES:'spain',SE:'sweden',CH:'switzerland',UA:'ukraine',GB:'united-kingdom',UK:'united-kingdom',AM:'armenia'
@@ -1112,10 +1112,13 @@ function satelliteProduct(capabilities,candidates,now=Date.now()){
  for(const candidate of candidates){const xml=capabilities[candidate.provider];if(!xml||!hasWmsLayer(xml,candidate.layer))continue;const all=dwdTimesFromCapabilities(xml,candidate.layer),latest=all.at(-1);
   // Satellitenprodukte erscheinen häufig einige Minuten nach ihrem nominellen
   // Aufnahmezeitpunkt. Deshalb gilt ein großzügiger Publikationspuffer.
-  if(Number.isFinite(latest)&&latest>=now-190*60000&&latest<=now+15*60000){const times=recentObservedTimes(all,now,150,30,15);if(times.length)products.push({...candidate,times:times.map(time=>new Date(time).toISOString()),latest,fresh:latest>=now-80*60000})}
+  if(Number.isFinite(latest)&&latest>=now-190*60000&&latest<=now+15*60000){const times=recentObservedTimes(all,now,150,30,15);if(times.length)products.push({...candidate,times:times.map(time=>new Date(time).toISOString()),latest,fresh:latest>=now-35*60000})}
   else latestOnly.push({...candidate,times:[],latestOnly:true,fresh:false});
  }
- products.sort((a,b)=>Number(b.fresh)-Number(a.fresh)||(b.priority??0)-(a.priority??0)||Number(b.provider==='eumetsat')-Number(a.provider==='eumetsat')||(a.resolutionKm??99)-(b.resolutionKm??99)||b.latest-a.latest);let chosen=products[0];
+ // Für das aktuelle Komposit zählt zuerst der tatsächlich jüngste nominelle
+ // Satellitenstand. Innerhalb desselben Zeitstands entscheidet die Produktqualität.
+ // So verdrängt ein älteres, nur höher priorisiertes RGB kein jüngeres Bild.
+ products.sort((a,b)=>Number(b.fresh)-Number(a.fresh)||(b.latest-a.latest)||(b.priority??0)-(a.priority??0)||Number(b.provider==='eumetsat')-Number(a.provider==='eumetsat')||(a.resolutionKm??99)-(b.resolutionKm??99));let chosen=products[0];
  if(!chosen){latestOnly.sort((a,b)=>(b.priority??0)-(a.priority??0)||Number(b.provider==='eumetsat')-Number(a.provider==='eumetsat')||(a.resolutionKm??99)-(b.resolutionKm??99));chosen=latestOnly[0]}
  if(!chosen)return undefined;const{latest,...product}=chosen;return{...product,latestTime:Number.isFinite(latest)?new Date(latest).toISOString():undefined,fallback:product.provider!=='eumetsat'||(!product.layer.startsWith('mtg_fd:')&&product.layer!=='msg_fes:h60b')}
 }

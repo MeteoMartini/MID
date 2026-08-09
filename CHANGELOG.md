@@ -1,3 +1,10 @@
+## v0.9.32.20
+
+- Kompositbild: EUMETSAT EUMETView bleibt die direkte Primärquelle für MTG-FCI-RGB/GeoColour; die Produktauswahl priorisiert nun den tatsächlich jüngsten nominellen Satellitenstand vor einer bloßen Quellenpriorität.
+- Satelliten-/Radar-/Blitz-WMS-Raster werden während eines Zoomvorgangs wieder vollständig ausgehängt und nach `zoomend` mit einem neuen Cache-/Layer-Schlüssel aufgebaut. Damit wird eine frühere Schutzlogik aus v0.7.34/v0.7.35 wiederhergestellt, die im aktuellen Code versehentlich zu `tileRevision=0` / `rasterZooming=false` zurückgefallen war.
+- Satelliten-Layer behalten keine WMS-Kacheln über Zoomstufen hinweg (`keepBuffer=0`, kein Update während Zoom).
+- Für EUMETView-Produkte ohne belastbare Zeitdimension wird kein alter `latestTime` mehr als `TIME` erzwungen. Stattdessen wird der offizielle WMS-Default „latest“ genutzt und bei jedem Metadatenrefresh mit einem neuen MID-Token neu geladen.
+
 ## v0.9.32.19
 - 24-h-Wetterprofil: UVI platzsparend in die bestehende Einzeldatenzeile „Wolken H/M/L + UVI“ integriert; der UVI wird aus demselben Best-Match-Zeitschritt wie die übrigen Einzeldaten übernommen.
 - 24-Stunden-Leiste auf Handydisplays deutlich flacher konsolidiert: kleinere Abstände, kompaktere Tages-/Zeit-/Temperaturdarstellung, kleinere Piktogramme und engere Niederschlags-/Windzeilen, ohne Wetterparameter zu entfernen.
