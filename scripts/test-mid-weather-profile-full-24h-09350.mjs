@@ -13,7 +13,7 @@ for(const token of [
  'chartStartEpoch=chartSourcePoints[0]?.epoch??0',
  'chartEndEpoch=chartSourcePoints.at(-1)?.epoch??chartStartEpoch',
  'chartTimeSpan=Math.max(1,chartEndEpoch-chartStartEpoch)',
- 'chartPaddingLeft+((point.epoch-chartStartEpoch)/chartTimeSpan)*chartPlotWidth'
+ 'chartDataLeft+((point.epoch-chartStartEpoch)/chartTimeSpan)*chartDataWidth'
 ])need(token);
 reject('chartSourcePoints=adjusted.filter(point=>point.offsetMinutes<=24*60)');
 reject('chartSourcePoints=points.slice(0,Math.min(points.length,25))');

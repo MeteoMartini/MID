@@ -1,3 +1,10 @@
+## v0.9.36.1
+- Navigationskonzept umgesetzt: Mobile Schnellnavigation „Heute · Kurzfrist · 7 Tage · Mehr“, vollständiger Sektionen-Drawer, einklappbare Desktop/Tablet-Seitenleiste und fachliche Gruppen.
+- Navigation nutzt weiterhin ausschließlich die bestehende Dashboard-Modulkonfiguration für Sichtbarkeit/Reihenfolge; bedingte Berg-/Wasser- sowie Profi-Module werden automatisch berücksichtigt.
+- Abschnittsanker, Browser-Zurück, Auto-Expand eingeklappter Module und direkte Cockpit-Horizontumschaltung für Kurzfrist/7/14 Tage ergänzt.
+- 24-h-Wetterprofil: erster Stundenpunkt erhält einen zusätzlichen inneren X-Abstand zur linken Y-Achse; Achsenbeschriftung und erster Datenpunkt überdecken sich nicht mehr.
+- Neue Regression `test-section-navigation-profile-inset-09361.mjs`; ältere Geometrie-/Dashboard-Verträge auf die neue Anker- und Innenabstandslogik synchronisiert.
+
 ## v0.9.36.0
 - 14-Tage-Ensemble-Niederschlag: neue optionale kumulierte Ansicht mit monoton ansteigender Best-Match-Kurve, kumuliertem P10–P90-Unsicherheitsband und optionalem kumuliertem ENS-Mittel. Die bestehende Tagesansicht bleibt Standard.
 - Navigationskonzept für die wachsende Zahl an MID-Sektionen ergänzt: Dashboard beibehalten, zusätzlich Sektionen-Drawer mit fachlichen Gruppen und bestehender Modulverwaltung als Single Source of Truth.

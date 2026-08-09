@@ -48,7 +48,7 @@ for(const token of [
  'type="checkbox"'
 ])need('Dashboard-Einstellungen',moduleSettings,token);
 for(const token of [
- 'dashboardModuleSettings.order.map(renderDashboardModule)',
+ 'dashboardModuleSettings.order.map(id=>{const module=renderDashboardModule(id);',
  "case'short-term':return <ShortTermForecast",
  "case'warnings':return",
  'dashboardModuleSettings.enabled[id]',

@@ -8,7 +8,7 @@ assert.match(pwa,/localStorage\.setItem\(PWA_HINT_DISMISSED_KEY,'1'\)/,'Schließ
 assert.match(pwa,/hintReady&&!hintDismissed&&!installed&&!open/,'Installationshinweis muss nur einmalig außerhalb der installierten App erscheinen');
 assert.match(pwa,/className="pwa-install-hint-close"/,'dauerhaft schließbares X am Installationshinweis fehlt');
 assert.match(pwa,/className={`header-install-button\$\{installed\?' installed':''\}`}/,'kompakter App-Status in der Kopfzeile fehlt');
-assert.match(app,/<div className="actions compact-actions"><PwaInstallButton\/><button className="settings-button"/,'App-Status muss links neben dem Einstellungsbutton stehen');
+assert.match(app,/<div className="actions compact-actions">[\s\S]{0,260}<PwaInstallButton\/>[\s\S]{0,220}<button className="settings-button"/,'App-Status muss weiterhin links neben dem Einstellungsbutton stehen; der Sektionen-Button darf davor liegen.');
 assert.doesNotMatch(app,/<footer>[\s\S]{0,350}<PwaInstallButton\/>/,'alter breiter Installationsbutton darf nicht im Footer bleiben');
 assert.match(app,/DEFAULT_FORECAST_DISPLAY_SETTINGS:ForecastDisplaySettings=\{showSevenDaySummary:true,showDwdPrecipitationTypeRadar:true\}/,'7-Tage-Trend ist nicht als Standard aktiviert');
 assert.match(app,/showSevenDaySummary:parsed\?\.showSevenDaySummary!==false/,'nur eine ausdrückliche Deaktivierung darf den 7-Tage-Trend ausschalten');

@@ -64,3 +64,6 @@ Berg-/Wintersport und Wassersport erscheinen im Menü nur, wenn das jeweilige Fa
 3. Phase 3 optional: „Fokusansicht“, die nur eine gewählte Sektion groß zeigt, während das Dashboard unverändert als Standard erhalten bleibt.
 
 Diese Architektur nutzt die bereits vorhandene MID-Modulverwaltung und benötigt keine zweite Seiten-/Datenarchitektur.
+## Umsetzungsstatus v0.9.36.1
+Die Phasen 1 und 2 sind umgesetzt: Drawer/Seitenleiste, Hash-/Back-Navigation, Auto-Expand, Cockpit-Horizontsprung und mobile Schnellnavigation sind produktiv integriert. Phase 3 „Fokusansicht“ bleibt bewusst optional und ist noch nicht Bestandteil der Standardnavigation.
+
