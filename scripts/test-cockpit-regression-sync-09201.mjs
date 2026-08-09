@@ -20,7 +20,7 @@ scripts.forEach((script,index)=>{
 });
 for(const token of [
   '24-h-Wetterprofil',
-  'chartSourcePoints=adjusted.filter(point=>point.offsetMinutes<=24*60)',
+  'const chartSourcePoints=profileHourlyPoints',
   'chartWidth=Math.max(980,chartViewportWidth)',
   'className="cockpit-meteogram-pro__datafield"',
   'className="cockpit-weather-profile__signals"'

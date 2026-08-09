@@ -1,3 +1,9 @@
+## v0.9.35.2
+- 24-h-Wetterprofil: Diagramm verwendet wieder ausschließlich stündliche Werte und beginnt mit der aktuellen Stunde; die 15-Minuten-Schritte bleiben auf Kurzfrist/Nowcast beschränkt.
+- Schneefallgrenzen-Ensemble: fehlende API-Werte werden nicht mehr durch `Number(null)` fälschlich als 0 m interpretiert; der Nullgradgrenzen-Fallback greift wieder korrekt.
+- Schneefallgrenzendiagramm: feste Y-Achse 0–4,5 km, bestehende Multi-Modell-/10–90-%-Unsicherheitsdarstellung bleibt erhalten.
+- Schneefallgrenzendiagramm: Zeitschritte mit erwartbarem Niederschlag werden dezent als vertikale Hintergrundmarkierungen angezeigt und im gewählten Zeitschritt kompakt quantifiziert.
+
 ## v0.9.35.1
 - 24-h-Wetterprofil: Diagramm startet nun bereits mit dem ersten verfügbaren Kurzfrist-Zeitschritt (15-Minuten-Raster) statt erst nach dem 90-Minuten-Block mit dem ersten reinen Stundenpunkt.
 - 24-h-Wetterprofil: X-Achse auf echte Zeitabstände umgestellt, damit 15-Minuten-Punkte am Anfang und spätere Stundenpunkte proportional korrekt verteilt werden.
