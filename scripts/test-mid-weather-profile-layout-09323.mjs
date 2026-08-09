@@ -9,7 +9,7 @@ const failures=[];const need=(label,text,token)=>{if(!text.includes(token))failu
 for(const token of [
  'chartHeight=446',
  'chartCanvasHeight=Math.max(300,Math.round(chartHeight*Math.min(1,chartViewportWidth/chartWidth)))',
- 'timeLabelStep=chartViewportWidth<=560?6:chartViewportWidth<=860?4:3',
+ 'timeLabelStepMs=(chartViewportWidth<=560?6:chartViewportWidth<=860?4:3)*3600000',
  'chartPoints.map(item=><WeatherPictogram',
  'dailyMaxMarkers=chartDayBands.flatMap',
  'nightMinMarkers=nightSegments.flatMap',

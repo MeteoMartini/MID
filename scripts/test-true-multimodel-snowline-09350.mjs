@@ -1,0 +1,11 @@
+import {readFile} from 'node:fs/promises';
+const [seasonal,panel,mountain,app,worker,styles]=await Promise.all([readFile(new URL('../src/seasonalForecast.ts',import.meta.url),'utf8'),readFile(new URL('../src/LongRangePanel.tsx',import.meta.url),'utf8'),readFile(new URL('../src/mountainSports.ts',import.meta.url),'utf8'),readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),readFile(new URL('../worker/metar-proxy.js',import.meta.url),'utf8'),readFile(new URL('../src/styles.css',import.meta.url),'utf8')]);
+const failures=[],need=(scope,text,token)=>{if(!text.includes(token))failures.push(`${scope}: fehlt ${token}`)};
+for(const token of ["id:'ecmwf-seasonal',family:'ECMWF'","id:'noaa-cfsv2',family:'NOAA CFSv2'",'fetchCfsv2','gewichtet Modellfamilien gleich'])need('seasonal',seasonal,token);
+if(seasonal.includes("apiModel:'ecmwf_seas5'")||seasonal.includes("apiModel:'ecmwf_ec46'"))failures.push('seasonal: ECMWF-Varianten werden weiterhin als separate Multi-Modell-Familien behandelt');
+for(const token of ['Echtes Multi-Modell','models.map((item:SeasonalPointModel)=>item.family)','buildCombinedMonths','gleichgewichteten Multi-Modell-Mittel'])need('panel',panel,token);
+for(const token of ['snowfall_height_spread','freezing_level_height_spread','SNOWLINE_ENSEMBLE_MODELS','combineSnowLineModels','memberEquivalent'])need('mountain',mountain,token);
+for(const token of ['MountainSnowLineHorizon','1,3,7,14','mountain-snowline-selected','mountain-snowline-selection','Ensemble · Multi-Modell'])need('app',app,token);
+for(const token of ['glbT2mMon.nc','glbPrecMon.nc','dataInd1','dataInd2','dataInd3','parseNetcdfClassic'])need('worker',worker,token);
+for(const token of ['.mountain-snowline-zone.snow{','.mountain-snowline-zone.rain{','.mountain-snowline-band.outer{','.mountain-snowline-horizons{'])need('styles',styles,token);
+if(failures.length){console.error('MID echtes Multi-Modell/Schneefallgrenze fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}console.log('MID: unabhängiges ECMWF+NOAA-Langfrist-Multi-Modell sowie Schneegrenzen-Multi-Modell 1/3/7/14 Tage geprüft.');

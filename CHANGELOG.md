@@ -1,3 +1,18 @@
+## v0.9.35.1
+- 24-h-Wetterprofil: Diagramm startet nun bereits mit dem ersten verfügbaren Kurzfrist-Zeitschritt (15-Minuten-Raster) statt erst nach dem 90-Minuten-Block mit dem ersten reinen Stundenpunkt.
+- 24-h-Wetterprofil: X-Achse auf echte Zeitabstände umgestellt, damit 15-Minuten-Punkte am Anfang und spätere Stundenpunkte proportional korrekt verteilt werden.
+- 24-h-Wetterprofil: Achsenbeschriftung zeitbasiert statt indexbasiert; volle Kurzfristserie bis zum 24-h-Horizont fließt in Diagramm, Hazards und Einzeldaten ein.
+
+## v0.9.35.0
+- Langfrist: echtes numerisches Multi-Modell statt mehrerer ECMWF-Varianten. ECMWF EC46/SEAS5 wird mit allen im aktuellsten verfügbaren NOAA-NMME-ENSMEAN-Lauf direkt numerisch verfügbaren unabhängigen Modellfamilien kombiniert; CFSv2-E1/E2/E3 bleibt als Fallback erhalten.
+- Langfrist: Multi-Modell-Rauchfahne gewichtet Modellfamilien gleich. Temperatur zeigt Ensemble-/Intermodell-Spanne in K; Niederschlag wird im gemeinsamen Modellvergleich als Anomalie in mm/Tag relativ zum jeweiligen Modellklima dargestellt. Einzelmodelle bleiben separat auswählbar.
+- Langfrist: Monatspositionen mit zusätzlichem linken Innenabstand, damit der erste Monat nicht mit der Y-Achsenbeschriftung kollidiert.
+- Berg-/Wintersport: Schneefallgrenze als einklappbare Multi-Modell-Ensemble-Schnellübersicht neu aufgebaut. Auswahl 1/3/7/14 Tage, kompakter selektierter Zeitschritt, vertikale Auswahlmarke, Modell-/Memberzahl sowie 25–75- und 10–90-%-Unsicherheitsband.
+- Schneefallgrenze: Bereich oberhalb der Medianlinie blau, darunter grün; konfiguriertes Tal/Mitte/Berg als kontrastreiche Höhenlinien direkt im Diagramm.
+- Schneefallgrenzen-Ensemble nutzt Open-Meteo Ensemble Mean/Spread für mehrere Systeme (u. a. ICON-EPS, ECMWF IFS/AIFS, GEFS, GEM/GEPS, WeatherNext soweit am Standort verfügbar); Best Match bleibt als Fallback erhalten.
+- Neuer Worker-Endpunkt für NOAA-NMME/CFSv2-Monatsanomalien mit NetCDF-Classic-Punktparser und 6-h-Edge-Cache.
+- Neue Regression `test-true-multimodel-snowline-09350.mjs`; bestehende Langfrist-Verträge auf echtes Modellfamilien-Multi-Modell aktualisiert.
+
 ## v0.9.34.1
 - Buildfix Langfrist: drei ältere Regressionstests prüften fälschlich exakt auf v0.9.33.2 und blockierten dadurch jede spätere Releaseversion. Die Verträge prüfen jetzt Baseline-Synchronität und mindestens den Einführungsstand v0.9.33.2.
 - Neuer Schutztest sichert die releasefeste Langfristprüfung, die Multi-Modell-Rauchfahne und die Schneefallgrenzen-Schnellübersicht ab.
