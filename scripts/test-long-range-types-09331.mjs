@@ -9,6 +9,6 @@ for(const token of ['y=(value:number)=>','x=(index:number)=>'])if(!panel.include
 for(const token of ['y=value=>','x=index=>'])if(panel.includes(token))failures.push(`LongRangePanel enthält wieder implizites any: ${token}`);
 const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;
 if(pv!==bv)failures.push(`Versionen nicht synchron: ${pv}/${bv}`);
-if(pv!=='0.9.33.1')failures.push(`unerwartete Version ${pv}`);
-if(failures.length){console.error(`MID v0.9.33.1 Langfrist-TypeScript-Buildfix fehlgeschlagen:\n- ${failures.join('\n- ')}`);process.exit(1)}
-console.log('MID v0.9.33.1: Langfrist-Diagrammachsen ohne implizites any geprüft.');
+if(pv!=='0.9.33.2')failures.push(`unerwartete Version ${pv}`);
+if(failures.length){console.error(`MID v0.9.33.2 Langfrist-TypeScript-Buildfix fehlgeschlagen:\n- ${failures.join('\n- ')}`);process.exit(1)}
+console.log('MID v0.9.33.2: Langfrist-Diagrammachsen ohne implizites any geprüft.');

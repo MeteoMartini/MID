@@ -1,3 +1,9 @@
+## v0.9.33.2
+- Langfrist: saisonale Punktdaten verwenden jetzt ausdrücklich den nächstgelegenen Modellgitterpunkt (`cell_selection=nearest`) statt einer landoptimierten Auswahl; tatsächlicher ECMWF-Gitterpunkt und Distanz zum Favoriten werden angezeigt.
+- Langfrist: ECMWF-51-Member-Daten werden als echtes Ensemble ausgewertet; 10–90-%-Spannen für Temperatur- und Niederschlagsanomalien sind in den Monatsdiagrammen sichtbar.
+- Langfrist: Datenmodell und UI sind für mehrere numerische saisonale Modelle parallel ausgelegt; C3S-Komponenten werden als ensemblefähige Quellen auf dem gemeinsamen 1°-Vergleichsgitter inklusive nächstgelegenem Gitterpunkt geführt.
+- Langfrist: meteorologisch typische divergierende Farbskalen eingeführt – blau→rot für kälter/wärmer und braun→türkis/blau für trockener/feuchter, jeweils nach Anomaliestärke abgestuft.
+
 ## v0.9.33.1
 - Buildfix für die neue Langfrist-Sektion: Achsenfunktionen in `LongRangePanel.tsx` explizit mit `number` typisiert; die GitHub-Fehler TS7006 für `value` und `index` sind damit behoben.
 - Eigene Schutzregression gegen ein erneutes `noImplicitAny` in den Langfristdiagrammen ergänzt.
