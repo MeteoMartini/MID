@@ -69,6 +69,22 @@ type SeasonalApiPayload={
  monthly_units?:Record<string,string>;
 };
 
+type SeasonalFetchProfile={
+ id:string;
+ apiModel?:string;
+ label:string;
+ provider:string;
+ source:string;
+ defaultMembers:number;
+};
+
+const SEASONAL_FETCH_PROFILES:SeasonalFetchProfile[]=[
+ {id:'ecmwf-seamless',apiModel:'ecmwf_seamless',label:'ECMWF Seasonal · EC46 + SEAS5',provider:'ECMWF · Open-Meteo Seasonal API',source:'51-köpfiges ECMWF-Saisonensemble am nächstgelegenen verfügbaren Modellgitterpunkt; EC46 für die ersten 46 Tage, anschließend SEAS5.',defaultMembers:51},
+ {id:'ecmwf-seas5',apiModel:'ecmwf_seas5',label:'ECMWF SEAS5',provider:'ECMWF · Open-Meteo Seasonal API',source:'51-köpfiges ECMWF-SEAS5-Ensemble am nächstgelegenen verfügbaren Modellgitterpunkt.',defaultMembers:51},
+ {id:'ecmwf-ec46',apiModel:'ecmwf_ec46',label:'ECMWF EC46',provider:'ECMWF · Open-Meteo Seasonal API',source:'51-köpfiges ECMWF-EC46-Ensemble am nächstgelegenen verfügbaren Modellgitterpunkt.',defaultMembers:51},
+ {id:'ecmwf-default',label:'ECMWF Seasonal · EC46 + SEAS5',provider:'ECMWF · Open-Meteo Seasonal API',source:'51-köpfiges ECMWF-Saisonensemble am nächstgelegenen verfügbaren Modellgitterpunkt; EC46 für die ersten 46 Tage, anschließend SEAS5.',defaultMembers:51}
+];
+
 function finite(value:unknown):number|null{const numeric=Number(value);return Number.isFinite(numeric)?numeric:null}
 function memberKeys(payload:Record<string,unknown>,base:string){return Object.keys(payload).filter(key=>key.startsWith(`${base}_member`)&&Array.isArray(payload[key])).sort()}
 function memberValuesAt(payload:Record<string,unknown>,base:string,index:number){return memberKeys(payload,base).map(key=>finite((payload[key] as unknown[])[index])).filter((value):value is number=>value!==null)}
@@ -105,24 +121,36 @@ export function c3sSeasonalModels(latitude:number,longitude:number,now=new Date(
  ];
 }
 
-function parsePointModel(payload:SeasonalApiPayload,requestedLatitude:number,requestedLongitude:number):SeasonalPointModel|null{
+function parsePointModel(payload:SeasonalApiPayload,requestedLatitude:number,requestedLongitude:number,profile:SeasonalFetchProfile):SeasonalPointModel|null{
  const monthly=payload.monthly??{},time=Array.isArray(monthly.time)?monthly.time.map(String):[];
  if(!time.length)return null;
- const temperatureMean=averageSeries(monthly,'temperature_2m_mean',time.length),temperatureAnomaly=averageSeries(monthly,'temperature_2m_anomaly',time.length),temperatureAnomalyLow=quantileSeries(monthly,'temperature_2m_anomaly',time.length,.1),temperatureAnomalyHigh=quantileSeries(monthly,'temperature_2m_anomaly',time.length,.9),precipitationMean=averageSeries(monthly,'precipitation_mean',time.length),precipitationAnomaly=averageSeries(monthly,'precipitation_anomaly',time.length),precipitationAnomalyLow=quantileSeries(monthly,'precipitation_anomaly',time.length,.1),precipitationAnomalyHigh=quantileSeries(monthly,'precipitation_anomaly',time.length,.9),ensembleMembers=Math.max(memberKeys(monthly,'temperature_2m_anomaly').length,memberKeys(monthly,'precipitation_anomaly').length,1);
+ const temperatureMean=averageSeries(monthly,'temperature_2m_mean',time.length),temperatureAnomaly=averageSeries(monthly,'temperature_2m_anomaly',time.length),temperatureAnomalyLow=quantileSeries(monthly,'temperature_2m_anomaly',time.length,.1),temperatureAnomalyHigh=quantileSeries(monthly,'temperature_2m_anomaly',time.length,.9),precipitationMean=averageSeries(monthly,'precipitation_mean',time.length),precipitationAnomaly=averageSeries(monthly,'precipitation_anomaly',time.length),precipitationAnomalyLow=quantileSeries(monthly,'precipitation_anomaly',time.length,.1),precipitationAnomalyHigh=quantileSeries(monthly,'precipitation_anomaly',time.length,.9),ensembleMembers=Math.max(memberKeys(monthly,'temperature_2m_anomaly').length,memberKeys(monthly,'precipitation_anomaly').length,profile.defaultMembers,1);
  const months=time.map((date,index)=>{
   const tMean=temperatureMean[index],tAnomaly=temperatureAnomaly[index],pMean=precipitationMean[index],pAnomaly=precipitationAnomaly[index],climateTemperature=tMean!==null&&tAnomaly!==null?tMean-tAnomaly:null,climatePrecipitation=pMean!==null&&pAnomaly!==null?pMean-pAnomaly:null,toPercent=(value:number|null)=>value!==null&&climatePrecipitation!==null&&Math.abs(climatePrecipitation)>.03?Math.max(-300,Math.min(300,value/climatePrecipitation*100)):null,precipitationAnomalyPercent=toPercent(pAnomaly),precipitationAnomalyPercentLow=toPercent(precipitationAnomalyLow[index]),precipitationAnomalyPercentHigh=toPercent(precipitationAnomalyHigh[index]);
   return{date,label:monthLabel(date),temperatureMean:tMean,temperatureAnomaly:tAnomaly,temperatureAnomalyLow:temperatureAnomalyLow[index],temperatureAnomalyHigh:temperatureAnomalyHigh[index],precipitationMean:pMean,precipitationAnomaly:pAnomaly,precipitationAnomalyPercent,precipitationAnomalyPercentLow,precipitationAnomalyPercentHigh,climateTemperature,climatePrecipitation};
  }).slice(0,7);
  const gridLatitude=finite(payload.latitude),gridLongitude=finite(payload.longitude),gridPoint=gridLatitude!==null&&gridLongitude!==null?{latitude:gridLatitude,longitude:gridLongitude,distanceKm:distanceKm(requestedLatitude,requestedLongitude,gridLatitude,gridLongitude),selection:'nearest' as const,gridLabel:'ECMWF O320 · ca. 36 km'}:null;
- return{id:'ecmwf-seasonal',label:'ECMWF Seasonal · EC46 + SEAS5',provider:'ECMWF · Open-Meteo Seasonal API',horizonMonths:months.length,runLabel:modelRunLabel(),source:'51-köpfiges ECMWF-Saisonensemble am nächstgelegenen verfügbaren Modellgitterpunkt; EC46 für die ersten 46 Tage, anschließend SEAS5.',ensembleMembers,gridPoint,months};
+ return{id:profile.id,label:profile.label,provider:profile.provider,horizonMonths:months.length,runLabel:modelRunLabel(),source:profile.source,ensembleMembers,gridPoint,months};
 }
 
 async function fetchPayload(latitude:number,longitude:number,signal:AbortSignal,model?:string){
  const params=new URLSearchParams({latitude:String(latitude),longitude:String(longitude),timezone:'GMT',forecast_days:'217',monthly:MONTHLY_VARIABLES.join(','),cell_selection:'nearest'});if(model)params.set('models',model);
  const response=await fetch(`${ENDPOINT}?${params}`,{signal,cache:'no-store'});if(!response.ok)throw new Error(`Seasonal API HTTP ${response.status}`);return await response.json() as SeasonalApiPayload;
 }
+function modelSignature(model:SeasonalPointModel){return JSON.stringify(model.months.map(month=>[month.date,month.temperatureAnomaly,month.precipitationAnomalyPercent]))}
 
 export async function loadSeasonalForecast(latitude:number,longitude:number,signal:AbortSignal):Promise<SeasonalForecastBundle>{
- const pointModel=parsePointModel(await fetchPayload(latitude,longitude,signal),latitude,longitude);
- return{generatedAt:new Date().toISOString(),pointModels:pointModel?[pointModel]:[],c3sModels:c3sSeasonalModels(latitude,longitude),c3sReferencePeriod:'C3S: gemeinsamer Hindcast-Referenzzeitraum 1993–2016; ECMWF/Open-Meteo: modellkonsistente SEAS5-/EC46-Hindcast-Klimatologie.',c3sCatalogueUrl:C3S_CATALOGUE,notes:['Saisonvorhersagen beschreiben großräumige Monatsabweichungen, keine lokale Wetterabfolge.','MID verwendet bewusst den nächstgelegenen verfügbaren Modellgitterpunkt; eine lokale Interpolation würde bei saisonalen Trends zusätzliche Scheinpräzision erzeugen.','Die Datenstruktur und Diagramme sind multi-modell- und ensemblefähig. Aktuell ist ECMWF EC46/SEAS5 öffentlich direkt als numerisches 51-Member-Punktensemble angebunden; alle C3S-Komponenten sind als Ensemblequellen auf dem gemeinsamen 1°-Vergleichsgitter vorbereitet.']};
+ const settled=await Promise.allSettled(SEASONAL_FETCH_PROFILES.map(async profile=>({profile,payload:await fetchPayload(latitude,longitude,signal,profile.apiModel)})));
+ const pointModels:SeasonalPointModel[]=[];
+ const signatures=new Set<string>();
+ for(const result of settled){
+  if(result.status!=='fulfilled')continue;
+  const parsed=parsePointModel(result.value.payload,latitude,longitude,result.value.profile);
+  if(!parsed)continue;
+  const signature=modelSignature(parsed);
+  if(signatures.has(signature))continue;
+  signatures.add(signature);
+  pointModels.push(parsed);
+ }
+ return{generatedAt:new Date().toISOString(),pointModels,c3sModels:c3sSeasonalModels(latitude,longitude),c3sReferencePeriod:'C3S: gemeinsamer Hindcast-Referenzzeitraum 1993–2016; ECMWF/Open-Meteo: modellkonsistente SEAS5-/EC46-Hindcast-Klimatologie.',c3sCatalogueUrl:C3S_CATALOGUE,notes:['Saisonvorhersagen beschreiben großräumige Monatsabweichungen, keine lokale Wetterabfolge.','MID verwendet bewusst den nächstgelegenen verfügbaren Modellgitterpunkt; eine lokale Interpolation würde bei saisonalen Trends zusätzliche Scheinpräzision erzeugen.','Die Datenstruktur und Diagramme sind multi-modell- und ensemblefähig. Aktuell werden öffentlich verfügbare ECMWF-Varianten (Seamless, SEAS5, EC46) soweit numerisch abrufbar parallel eingelesen; zusätzliche C3S-Komponenten bleiben als Ensemblequellen vorbereitet.']};
 }
