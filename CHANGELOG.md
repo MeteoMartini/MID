@@ -1,3 +1,23 @@
+## v0.9.37.3
+
+- CI-/Performance-Fix für HymecNG: die historisch gesperrten Module `HymecNgSource.ts` und `HymecNgOverlay.tsx` bleiben dormant.
+- Der echte DWD-HymecNG-Kompositlayer läuft jetzt über einen separaten lazy geladenen Pfad (`CompositeHymecNgSource.ts` / `CompositeHymecNgOverlay.tsx`).
+- Regression `test-interaction-performance-cleanup-08155.mjs` und HymecNG-Schutztest entsprechend abgesichert.
+
+## v0.9.37.2
+
+- Kompositbild: neuer echter DWD-HymecNG-Layer für "Niederschlagsart" statt recyceltem WN/Cloud-PNG.
+- HymecNG wird im Komposit nativ aus dem aktuellen DWD-HDF5 gerendert, inklusive ODIM-Georeferenzierung und eigener Deckkraftregelung.
+- Quellenhinweise, Legende und Komposit-Infos auf HymecNG aktualisiert.
+
+## v0.9.37.1
+- Kompositbild: den irreführenden Layer „Niederschlagsart“ vollständig entfernt. Er verwendete kein WN-/HymecNG-Radarraster, sondern recycelte das kombinierte DWD-Webbild „Wolken + Niederschlagsart“ und spannte es über feste Kartenbounds.
+- Fachliche Produktkorrektur: DWD WN ist ein Reflektivitätskomposit und darf nicht als Niederschlagsart bezeichnet werden. Das aktuelle echte DWD-Produkt für die bodennahe Hydrometeorklasse ist HymecNG (HDF5).
+- HymecNG wird im Komposit bewusst noch nicht aktiviert: Die vorhandene MID-Implementierung besitzt weder eine verifizierte HDF5-Klassencodetabelle noch einen anhand aktueller Dateien nachgewiesenen vollständigen Renderpfad. Es werden keine Klassen oder Georeferenzierungen geraten.
+- HymecNG-Parser gehärtet: fehlende native ODIM-Projektionsdefinition führt jetzt zum Abbruch; der historische Kugel-/RADOLAN-Fallback ist entfernt.
+- Das eigenständige DWD-Originalbild „Wolken + Niederschlagsart“ bleibt als separat gekennzeichnete optionale Darstellung erhalten, wird aber nicht mehr als Kartenlayer missbraucht.
+- Regression `test-composite-precipitation-type-layer-09366.mjs` prüft nun explizit gegen PNG-Recycling, WN-Fehlbezeichnung und Legacy-Georeferenzierung.
+
 ## v0.9.37.0
 - Radar-Nowcast: DWD-RS wird in der Enrichment-Stufe als amtlicher 1-h-Mengenanker für die ersten zwei Stunden eingebunden; RV bleibt für 5-Minuten-Timing und Intensitätsstruktur maßgeblich. Abwärtskorrekturen sind vollständig möglich, Aufwärtskorrekturen werden begrenzt.
 - Radar-Nowcast: DWD-HX 250 m wird ausschließlich bei unsicheren Randtreffern zur Standorttrefferprüfung genutzt und verändert keine Niederschlagsmenge eigenständig.

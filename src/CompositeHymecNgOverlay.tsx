@@ -1,7 +1,7 @@
 import {useEffect,useRef} from 'react';
 import {GridLayer as LeafletGridLayer,type Coords} from 'leaflet';
 import {useMap} from 'react-leaflet';
-import {hymecNgClassForRaw,loadHymecNgRaster,type HymecNgMeta,type HymecNgRaster} from './HymecNgSource';
+import {hymecNgClassForRaw,loadHymecNgRaster,type HymecNgMeta,type HymecNgRaster} from './CompositeHymecNgSource';
 import {projectWgs84} from './radarProjection';
 
 export type HymecNgOverlayStatus='idle'|'loading'|'ready'|'error';
