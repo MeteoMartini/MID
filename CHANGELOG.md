@@ -1,3 +1,10 @@
+## v0.9.36.3
+- 14-Tage-Ensemble-Niederschlag „kumuliert“: P10/P25/P75/P90 und ENS-Mittel werden jetzt statistisch korrekt aus den **kumulierten Niederschlagssummen jedes einzelnen Ensemblemitglieds** berechnet. Die in v0.9.36.2 verwendete Addition täglicher Quantile wurde entfernt.
+- Dadurch bleibt das innere P25–P75-Band auch bei tageweise stark null-inflationiertem Niederschlag aussagekräftig und kann nicht mehr allein deshalb auf `0,0–0,0 mm` kollabieren, weil die täglichen Quartile jeweils null waren.
+- Bestehende Ensemble-Caches ohne memberbasierte kumulierte Quantile werden automatisch verworfen und einmalig frisch berechnet; sonstige Cache-/Favoriten-/Nutzerdaten bleiben unangetastet.
+- Tooltip, P10–P90- und P25–P75-Flächen sowie ENS-Mittel verwenden denselben kumulierten Member-Datensatz.
+- Neue Regression `test-ensemble-cumulative-member-quantiles-09363.mjs`; die bisherigen kumulierten Niederschlagsverträge auf die fachlich korrekte Member-Trajektorien-Methode aktualisiert.
+
 ## v0.9.36.2
 - 14-Tage-Ensemble-Niederschlag, Modus „kumuliert“: zusätzliches inneres P25–P75-Unsicherheitsband ergänzt, bewusst dunkler als der äußere P10–P90-Bereich.
 - P25/P75 werden bereits in der täglichen gewichteten Niederschlags-Ensembleverteilung berechnet und anschließend analog zu P10/P90 kumuliert.
