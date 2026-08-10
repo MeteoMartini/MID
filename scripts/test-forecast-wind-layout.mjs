@@ -10,21 +10,20 @@ for(const token of ['forecast-meta-rain','forecast-meta-sun','forecast-meta-wind
   if(!app.includes(token))failures.push(`Semantische Klasse fehlt: ${token}`);
 }
 for(const token of [
-  'v0.7.90.3 – Niederschlag, Sonne und Wind',
-  'flex-wrap:nowrap',
-  'grid-column:2 / -1',
-  '.forecast-meta-wind{',
+  'MID v0.9.39.4 · keine abgeschnittenen Wetterwerte',
+  'flex-wrap:wrap!important',
+  '.forecast-meta-rain{',
   'display:inline-flex!important',
-  'white-space:nowrap!important',
+  '.forecast-meta-wind{',
+  'flex-wrap:wrap',
   '.forecast-meta-wind .wind-direction-arrow'
 ]){
-  if(!styles.includes(token))failures.push(`Einzeiliges Metadatenlayout fehlt: ${token}`);
+  if(!styles.includes(token))failures.push(`Responsives Metadatenlayout fehlt: ${token}`);
 }
-if(styles.includes('flex:0 0 100%')){
-  failures.push('Windangabe wird weiterhin erzwungen in eine eigene zweite Zeile verschoben.');
-}
+if(!app.includes('<b>💧 {precipitationAmountLabel(d)}</b><small>'))failures.push('Niederschlagsmenge und kompakte PoP-Zusatzinformation sind nicht getrennt umbrechbar.');
+if(styles.includes('.cockpit-day-rain b,.cockpit-day-rain small,.forecast-meta-rain,.widgetmeta>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'))failures.push('Veralteter Ellipsis-Schutz schneidet Wetterwerte weiterhin ab.');
 if(failures.length){
-  console.error(`7-Tage-Windlayout-Prüfung fehlgeschlagen:\n- ${failures.join('\n- ')}`);
+  console.error(`7-Tage-Metadatenlayout-Prüfung fehlgeschlagen:\n- ${failures.join('\n- ')}`);
   process.exit(1);
 }
-console.log('7-Tage-Windlayout geprüft: Niederschlag, Sonnenschein, Windsymbol, Richtung, Geschwindigkeit und Böen bleiben gemeinsam in einer Zeile.');
+console.log('7-Tage-Metadatenlayout geprüft: Niederschlag, Sonne und Wind bleiben kompakt gruppiert, dürfen bei Platzmangel aber vollständig umbrechen statt abgeschnitten zu werden.');

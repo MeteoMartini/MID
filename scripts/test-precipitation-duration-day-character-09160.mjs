@@ -21,12 +21,13 @@ for(const [area,text,token] of [
  ['Zentrale Bewertung',weatherSource,'export function precipitationPeriodAssessment'],
  ['Tagesbewertung',weatherSource,'export function dayPrecipitationAssessment'],
  ['Dauerformat',weatherSource,'export function precipitationDurationLabel'],
+ ['Kompaktdauer',weatherSource,'export function precipitationDurationCompactLabel'],
  ['Tagescharakter',weatherSource,'assessment=precipitationPeriodAssessment(relevant)'],
  ['7-Tage-Trend',appSource,'trendHours=[...dayHours,...followingNightHours]'],
  ['7-Tage-Trend',appSource,'hazards=summarizeDwdWarnings(trendHours,elevation)'],
  ['Folgenacht',appSource,'function sevenDayFollowingNightClause'],
- ['7-Tage-Karten',appSource,'{precipitationDuration}</span>'],
- ['Cockpit',cockpitSource,'{dailyPrecipitationProbabilityCompact(day)} · {precipitationDuration}'],
+ ['7-Tage-Karten',appSource,'precipitationDurationCompactLabel(precipitationAssessment.durationHours)'],
+ ['Cockpit',cockpitSource,'className="cockpit-day-pop"'],
  ['Ensemble',ensembleSource,"{row.precipitationDuration?` · ${row.precipitationDuration}`:''}"]
  ])assert.ok(text.includes(token),`${area}: ${token}`);
 assert.ok(!appSource.includes('hazards=summarizeDwdWarningsForDay(allHours,day.date,elevation)'),'7-Tage-Trend greift weiterhin auf das komplette Kalenderdatum einschließlich vorangegangener Nacht zu.');
@@ -58,7 +59,10 @@ try{
  assert.equal(shortAssessment.durationHours,.25,'Ein einzelner 15-Minuten-Schauer wird nicht als 15 Minuten erkannt.');
  assert.equal(shortAssessment.dominant,false,'Ein einzelner 15-Minuten-Schauer bestimmt weiterhin den gesamten Tagescharakter.');
  assert.equal(shortAssessment.showery,true,'Das verbleibende Schauerrisiko wird vollständig herausgeglättet.');
- assert.equal(weather.precipitationDurationLabel(shortAssessment.durationHours),'15 min','Kompakte Niederschlagsdauer ist falsch formatiert.');
+ assert.equal(weather.precipitationDurationLabel(shortAssessment.durationHours),'15 min','Niederschlagsdauer ist falsch formatiert.');
+ assert.equal(weather.precipitationDurationCompactLabel(shortAssessment.durationHours),'15m','Kompakte Niederschlagsdauer ist falsch formatiert.');
+ assert.equal(weather.precipitationDurationCompactLabel(1.5),'1½h','Kompakte 90-Minuten-Dauer ist falsch formatiert.');
+ assert.equal(weather.precipitationDurationCompactLabel(0),'','Nullminuten duerfen in Kompaktkarten keinen redundanten Text erzeugen.');
  const shortCharacter=weather.dayWeatherCharacter(day,hours);
  assert.equal(shortCharacter.precipitationDominant,false,'Kurzer Schauerschwerpunkt dominiert weiterhin den Tagescharakter.');
  assert.ok(/schauer/i.test(weather.dayWeatherCharacterText(shortCharacter)),'Das kurze Schauerrisiko wird im sekundären Hinweis nicht mehr genannt.');

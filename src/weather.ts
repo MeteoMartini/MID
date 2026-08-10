@@ -662,6 +662,7 @@ export function applyEnsembleDailyPrecipitationProbability(days:Day[],ensemble:E
 
 export function peakDwdPrecipitationProbabilityWindow(windows?:PrecipitationProbabilityWindow[]){return [...(windows??[])].filter(window=>Number.isFinite(window.probability)&&window.memberCount>=2).sort((a,b)=>b.probability-a.probability||a.startHour-b.startHour)[0]}
 function precipitationProbabilityWindowLabel(window:PrecipitationProbabilityWindow){return `${String(window.startHour).padStart(2,'0')}–${String(window.endHour).padStart(2,'0')} h`}
+export function precipitationProbabilityWindowCompactLabel(window:PrecipitationProbabilityWindow){return `${String(window.startHour).padStart(2,'0')}–${String(window.endHour).padStart(2,'0')}h`}
 export function dwdPrecipitationProbabilityWindowsTitle(windows?:PrecipitationProbabilityWindow[]){return (windows??[]).filter(window=>Number.isFinite(window.probability)&&window.memberCount>=2).map(window=>`${precipitationProbabilityWindowLabel(window)}: >0,2 mm ${Math.round(window.probability)} % / >5 mm ${Math.round(window.probabilitySignificant)} %`).join(' · ')}
 
 export function dailyPrecipitationProbabilityTitle(day:Pick<Day,'probability'|'probabilitySignificant'|'probabilityWindows'|'probabilitySource'|'probabilityMemberCount'>){
@@ -672,8 +673,8 @@ export function dailyPrecipitationProbabilityTitle(day:Pick<Day,'probability'|'p
 
 export function dailyPrecipitationProbabilityCompact(day:Pick<Day,'probability'|'probabilityWindows'|'probabilitySource'>){
  const primary=Math.round(Math.max(0,Math.min(100,Number(day.probability)||0))),peak=peakDwdPrecipitationProbabilityWindow(day.probabilityWindows);
- if(day.probabilitySource==='ensemble-members-dwd'&&peak)return `${precipitationProbabilityWindowLabel(peak)} · ${Math.round(peak.probability)}%`;
- return `zeitw. bis ${primary}%`;
+ if(day.probabilitySource==='ensemble-members-dwd'&&peak)return `${precipitationProbabilityWindowCompactLabel(peak)} · ${Math.round(peak.probability)}%`;
+ return `bis ${primary}%`;
 }
 
 export function cloudOktas(percent:number){return Math.max(0,Math.min(8,Math.round((Number.isFinite(percent)?percent:0)/12.5)))}
@@ -912,6 +913,14 @@ export function precipitationDurationLabel(durationHours:number){
  if(minutes<60)return`${minutes} min`;
  if(minutes%60===0)return`${minutes/60} h`;
  return`${Math.floor(minutes/60)} h ${minutes%60} min`;
+}
+export function precipitationDurationCompactLabel(durationHours:number){
+ const hours=Math.max(0,Number(durationHours)||0),minutes=Math.round(hours*60/15)*15;
+ if(minutes<=0)return'';
+ if(minutes<60)return`${minutes}m`;
+ if(minutes%60===0)return`${minutes/60}h`;
+ const whole=Math.floor(minutes/60),fraction=minutes%60===15?'¼':minutes%60===30?'½':'¾';
+ return`${whole}${fraction}h`;
 }
 export function precipitationPeriodAssessment(hours:Hour[],minute15:Minute15[]=[]):PrecipitationPeriodAssessment{
  const ordered=[...hours].filter(hour=>Number.isFinite(Number(hour.epoch))).sort((a,b)=>a.epoch-b.epoch),samples:PrecipitationAssessmentSample[]=[];

@@ -1,12 +1,12 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.39.3",
+  "version": "0.9.39.11",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "sync-version": "node scripts/sync-version.mjs",
-    "prebuild": "npm run sync-version",
+    "prebuild": "npm run prepare:release-repository && npm run sync-version",
     "build": "npm run verify:types && npm run verify:vite",
     "build:vite": "node --max-old-space-size=4096 node_modules/vite/bin/vite.js build",
     "verify": "npm run build && node --check worker/metar-proxy.js && npm run test:regressions",
@@ -237,7 +237,11 @@
     "test:maplibre-precip-09390": "node scripts/test-maplibre-precip-probability-09390.mjs",
     "test:dwd-precip-thresholds-09391": "node scripts/test-dwd-precip-probability-thresholds-09391.mjs",
     "test:dwd-precip-periods-09392": "node scripts/test-dwd-precip-probability-periods-09392.mjs",
-    "test:maplibre-precip-buildfix": "node scripts/test-maplibre-precip-buildfix-09393.mjs"
+    "test:maplibre-precip-buildfix": "node scripts/test-maplibre-precip-buildfix-09393.mjs",
+    "test:no-clipped-weather-values": "node scripts/test-no-clipped-weather-values-09394.mjs",
+    "prepare:release-repository": "node scripts/prepare-release-repository.mjs",
+    "test:install-node-modules-directory-bootstrap": "node scripts/test-install-node-modules-directory-bootstrap-09397.mjs",
+    "test:no-actions-workflow-self-modification": "node scripts/test-no-actions-workflow-self-modification-093911.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

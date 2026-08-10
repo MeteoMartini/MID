@@ -5093,7 +5093,6 @@ body,#root{
 .mid-dwd-location-pin svg{display:block;width:26px;height:34px;overflow:visible;filter:drop-shadow(0 2px 2px rgba(0,0,0,.34))}
 .mid-dwd-location-pin path{fill:rgba(255,255,255,.16);stroke:#df3030;stroke-width:2.1;vector-effect:non-scaling-stroke}
 .mid-dwd-location-pin circle{fill:#df3030;stroke:#fff;stroke-width:1.2}
-.mid-hymecng-grid{image-rendering:auto}
 @media(max-width:760px){.dwd-precip-type-radar__map-shell{min-height:210px;aspect-ratio:4/3}}
 @media(max-width:430px){.dwd-precip-type-radar__map-shell{min-height:190px}}
 
@@ -5312,8 +5311,180 @@ body,#root{
 .cockpit-weather-profile__stepper>button:disabled{opacity:.36;cursor:default}
 @media(min-width:851px){.cockpit-weather-profile .cockpit-meteogram-pro__canvas{cursor:crosshair;overscroll-behavior:contain}}
 
-/* MID 0.9.39.0: kompakte app-weite Tages-PoP-Darstellung ohne Karten-/Kachelüberlauf. */
-.cockpit-day-rain,.forecast-meta-rain,.widgetmeta>span{min-width:0;max-width:100%}
-.cockpit-day-rain b,.cockpit-day-rain small,.forecast-meta-rain,.widgetmeta>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.forecast-meta{min-width:0}
-.widgetmeta{min-width:0;max-width:100%;overflow:hidden}
+
+/* MID v0.9.39.4 · keine abgeschnittenen Wetterwerte: kompakte Notation + responsive Umbrueche statt Ellipsis. */
+.cockpit-day{
+  grid-template-areas:"date icon" "regime regime" "temps temps" "track track" "rain wind" "pop pop" "hourly hourly"!important;
+}
+.cockpit-day-rain{
+  display:flex!important;
+  align-items:center!important;
+  min-width:0;
+  height:auto!important;
+}
+.cockpit-day-rain b{
+  display:block;
+  max-width:100%;
+  overflow:visible!important;
+  color:#237ac2;
+  font-size:12px;
+  font-variant-numeric:tabular-nums;
+  line-height:1.05;
+  text-overflow:clip!important;
+  white-space:nowrap!important;
+}
+.cockpit-day-pop{
+  grid-area:pop;
+  display:block;
+  min-width:0;
+  max-width:100%;
+  overflow:visible;
+  color:var(--muted);
+  font-size:8.4px;
+  font-weight:720;
+  line-height:1.2;
+  text-align:left;
+  text-overflow:clip;
+  white-space:normal;
+  overflow-wrap:break-word;
+}
+@media(max-width:480px){
+  .cockpit-day-rain b{font-size:11px}
+  .cockpit-day-pop{font-size:8px}
+}
+
+.forecast-meta{
+  min-width:0;
+  max-width:100%;
+  flex-wrap:wrap!important;
+}
+.forecast-meta-rain{
+  display:inline-flex!important;
+  flex:1 1 170px!important;
+  align-items:baseline;
+  flex-wrap:wrap;
+  gap:1px 5px;
+  min-width:0;
+  max-width:100%;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  white-space:normal!important;
+}
+.forecast-meta-rain b,.forecast-meta-rain small{
+  overflow:visible!important;
+  font-size:inherit;
+  line-height:1.18;
+  text-overflow:clip!important;
+  white-space:nowrap!important;
+}
+.forecast-meta-rain b{font-weight:820}
+.forecast-meta-rain small{color:var(--muted);font-size:.94em}
+.forecast-meta-sun,.forecast-meta-wind{
+  max-width:100%;
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+}
+.forecast-meta-wind{
+  min-width:0!important;
+  flex-wrap:wrap;
+}
+
+.widgetmeta{
+  min-width:0;
+  max-width:100%;
+  overflow:visible!important;
+}
+.widgetmeta>span{
+  display:grid!important;
+  gap:1px;
+  min-width:0;
+  max-width:100%;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  white-space:normal!important;
+}
+.widgetmeta>span b,.widgetmeta>span small{
+  min-width:0;
+  overflow:visible;
+  line-height:1.2;
+  text-overflow:clip;
+  white-space:normal;
+}
+.widgetmeta>span small{color:inherit;opacity:.78;font-size:.92em}
+.widgetmeta-wind b{display:flex;align-items:center;gap:2px;flex-wrap:wrap}
+.weatherwidget.modern.compact .widgetlabel{
+  min-height:2.5em;
+  overflow:visible!important;
+  line-height:1.2;
+  text-overflow:clip!important;
+  white-space:normal!important;
+  overflow-wrap:break-word;
+}
+
+/* Wetterfachliche Inhalte duerfen nicht durch CSS-Ellipsis verloren gehen. Navigation, Dateinamen und Ortslisten bleiben davon bewusst ausgenommen. */
+.forecast-icon em,
+.forecast-hazards .compact-hazard em,
+.forecast-hazards .no-hazard,
+.radarlegend-toggle small,
+.composite-switch b,
+.composite-switch small,
+.ensemble-scenarios article>header strong,
+.ensemble-scenario-metrics small,
+.ensemble-scenario-models b,
+.weather-twin-model-badge,
+.mountain-matrix-weather small,
+.flight-point-cards strong,
+.travel-selected-destination strong,
+.hour-tooltip-precipitation em,
+.ensemble-advanced-toggle em,
+.quickfacts .quickfact.weather>b,
+.quickfacts .quickfact.weather>small,
+.ensemble-scenario-probability-overview small,
+.synoptic-phase-values b,
+.synoptic-impact-chip small,
+.synoptic-station-chips b,
+.synoptic-station-chips small,
+.cockpit-focus-card b,
+.cockpit-phase-line b,
+.cockpit-scenarios b,
+.forecast-ribbon-summary small,
+.synoptic-analysis-stamp small,
+.synoptic-field-analysis article>span,
+.ensemble-metric-deck small,
+.cockpit-short-highlights b,
+.cockpit-short-highlights em,
+.cockpit-mini-ribbon.informative em,
+.cockpit-day-wind small,
+.hazards.compact-list .hazard-toggle-head strong,
+.official-alert-head strong,
+.cockpit-now90-weather,
+.cockpit-fourteen-weather-label,
+.cockpit-fourteen-row>small,
+.precip-now-source-row>em,
+.forecast-inline-detail-weather small,
+.forecast-inline-detail-metrics b,
+.forecast-inline-detail-metrics small,
+.thunder-place-row>span strong,
+.cockpit-hourly-meta-row>small,
+.cockpit-short-matrix-lane>small,
+.dwd-precip-type-radar>header em,
+.weather-maps-meta small,
+.mountain-snowline-summary em,
+.mountain-snowline-content>header>small{
+  overflow:visible!important;
+  max-width:100%;
+  text-overflow:clip!important;
+  white-space:normal!important;
+  overflow-wrap:break-word;
+}
+.forecast-hazards .compact-hazard{align-items:flex-start;white-space:normal}
+.quickfacts .quickfact.weather{height:auto;min-height:0}
+.cockpit-hourly-meta-row>small,.cockpit-short-matrix-lane>small{flex:0 1 auto;min-width:0;text-align:right}
+.weather-maps-meta>span{align-content:start}
+.dwd-precip-type-radar>header{align-items:flex-start;flex-wrap:wrap}
+.dwd-precip-type-radar>header>span{flex:1 1 220px}
+.mountain-snowline-summary>span:first-child{min-width:0;flex:1 1 auto}
+.ens-rainprob{max-width:100%;overflow:visible;text-overflow:clip;white-space:normal;line-height:1.2}
+.ensemble-pro-tooltip>header{align-items:flex-start;flex-wrap:wrap}
+.ensemble-pro-tooltip>header span{max-width:100%;white-space:normal;overflow-wrap:break-word}

@@ -1,3 +1,32 @@
+# MID v0.9.39.9
+
+- CI-Regressionsfix: der historische node_modules-Bootstrap-Test untersucht nach `npm ci` nicht mehr das live befuellte Projektverzeichnis.
+- Der alte Installervertrag wird isoliert in einem temporaeren Checkout mit `minimist/.git`-Rest reproduziert.
+- Der einmalige leere `node_modules/minimist/`-Bootstrap bleibt fuer den noch alten Installer auf `main` erhalten.
+
+## v0.9.39.6
+
+- GitHub-Installer gegen versehentlich versioniertes `node_modules/` gehärtet; lokale Paketinstallation wird vor dem Releasevergleich entfernt bzw. ausgeschlossen.
+- `.gitignore` schützt `node_modules/` dauerhaft, und der CI-Prebuild entfernt historische Node-Pakete aus dem Git-Index, ohne die lokale Installation zu löschen.
+- Verwaltete GitHub-Workflows werden vor dem Build aus `ci/github` synchronisiert, damit der korrigierte Installer im selben Release-Commit dauerhaft übernommen wird.
+- Ein einmaliger ZIP-Bootstrap-Platzhalter erlaubt v0.9.39.6 auch mit dem noch auf `main` aktiven alten Installer zu installieren; `npm ci` entfernt ihn vor dem Build.
+- Neue Regression reproduziert den v0.9.39.5-Fehler und schützt die Repository-Hygiene.
+
+## v0.9.39.5
+
+- Komposit-Niederschlagsart: DWD HymecNG vollständig aus dem aktiven Layerpfad entfernt; einzige aktive Variante ist beobachtetes OPERA-CIRRUS-Echo + zeitnahes ICON-D2-Phasenfeld.
+- Radar-/Modellfusion gehärtet: konservative Zeitprüfung, mindestens 90 % vollständige Modellstichpunkte, verdichtetes lokales Phasenraster ohne künstliche Unterteilung und transparente Grenzfälle statt erfundener Klassifikation.
+- Hagel wird nicht mehr allein aus einem Modell-Wettercode als beobachtete Niederschlagsart ausgegeben.
+- 15-minütige ICON-D2-Phasenfelder werden clientseitig zeitlich normalisiert und wiederverwendet, damit 5-min-Radarscrubbing keine redundanten Modellraster lädt.
+- 7-Tage-Trend sprachlich korrigiert: vollständige Mischwetter-Sätze, korrekt flektierte Tropennacht-Formulierung und großgeschriebene Wetterereignisse mit finitem Verb (z. B. „In der Nacht zum Sonntag sind Schauer möglich.“).
+- Neue Regression schützt exklusiven Radar-/ICON-D2-Pfad und Trend-Grammatik.
+
+## v0.9.39.4
+
+- Fachliche Wetterwerte in kompakten Karten werden nicht mehr per Ellipsis abgeschnitten; enge Ansichten nutzen kürzere Notation, Umbruch und volle verfügbare Breite.
+- DWD-nahe 6-h-Niederschlagswahrscheinlichkeit in Tageskarten kompakter dargestellt; redundante `0 min` entfallen, echte Niederschlagsdauer bleibt vollständig sichtbar.
+- Appweiter Audit für Warnungen, Wettertexte, Quickfacts, Ensemble-Szenarien, Synoptik-, Radar-/Karten- und Detailwerte; Ellipsis bleibt nur für Navigation bzw. technische Namen zulässig.
+
 ## v0.9.39.3
 
 - TypeScript-Buildfix für die MapLibre-Migration: dynamische GeoJSON-Layer werden als `maplibregl.AddLayerObject` an `Map.addLayer()` übergeben.
@@ -3198,3 +3227,11 @@
 ## 0.3.8
 
 - 14-Tage-Ensemble-Kachelübersicht mit Konsistenzpunkten
+
+## 0.9.39.10
+- Installer erkennt leere, falsche oder CRC-beschädigte Release-ZIPs vor dem Entpacken und protokolliert Größe/SHA-256.
+
+## 0.9.39.11
+- Release-Prebuild verändert `.github/workflows` nicht mehr automatisch; damit blockiert GitHub den Release-Push nicht mehr wegen fehlender Workflow-Schreibberechtigung.
+- Workflow-Synchronisierung bleibt ausschließlich als expliziter Maintainer-Befehl verfügbar.
+- Kanonischer Installer schließt `.github/**` zusätzlich ausdrücklich aus automatischen Release-Commits aus.

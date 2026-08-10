@@ -16,7 +16,7 @@ need('Tagesdaten',weather,'probabilitySignificant?:number');
 need('Titel',weather,'DWD-Ereigniswahrscheinlichkeit · 24 h: >0,2 mm');
 need('Sechs-Stunden',weather,'6-h-Zeitfenster');
 need('Sechs-Stunden',weather,'windowRainProbabilityVals');
-need('Kompakt',weather,'precipitationProbabilityWindowLabel(peak)');
+need('Kompakt',weather,'precipitationProbabilityWindowCompactLabel(peak)');
 need('Fallback',weather,'Zeitweise bis ${probability}');
 need('App',app,'dailyPrecipitationProbabilityCompact(d)');
 need('Cockpit',cockpit,'dailyPrecipitationProbabilityCompact(day)');
