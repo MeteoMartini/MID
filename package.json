@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.36.10",
+  "version": "0.9.37.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -228,7 +228,8 @@
     "test:weather-profile-thermal-hazards": "node scripts/test-mid-weather-profile-thermal-hazards-09321.mjs",
     "test:weather-profile-axes": "node scripts/test-mid-weather-profile-axes-09322.mjs",
     "test:regressions": "node scripts/run-regressions.mjs",
-    "test:regression-runner-local-bin": "node scripts/test-regression-runner-local-bin-09365.mjs"
+    "test:regression-runner-local-bin": "node scripts/test-regression-runner-local-bin-09365.mjs",
+    "test:radar-calibration": "node scripts/test-radar-nowcast-calibration-09370.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

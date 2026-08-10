@@ -32,7 +32,7 @@ for(const token of ['function projectedBounds(',"projectionFrom(where)",'inverse
 const metadataStart=worker.indexOf('async function px250Metadata(request,lat,lon){'),metadataEnd=worker.indexOf('async function px250FileResponse',metadataStart),metadata=worker.slice(metadataStart,metadataEnd);
 const hxIndex=metadata.indexOf("productName:'DWD HX 250-m-Deutschlandkomposit'"),localFallbackIndex=metadata.indexOf("productName:'DWD PX250 Standortradar · Fallback'");
 if(hxIndex<0||localFallbackIndex<0||hxIndex>localFallbackIndex)failures.push('Amtliches HX-Deutschlandkomposit wird nicht vor dem lokalen PX250-Fallback bevorzugt.');
-for(const token of ["motionSource:'multi-frame-grid-correlation'","motionDirectionConvention:'towards'",'observedMotionTimes=',"method:'DWD RV GetFeatureInfo am exakten Standort in allen verfügbaren 5-Minuten-Schritten; GetMap nur für Umfeld und Bewegungsdiagnostik'"])if(!worker.includes(token))failures.push(`Mehrframe-Zugrichtung: ${token}`);
+for(const token of ["motionSource:'multi-frame-grid-correlation'","motionDirectionConvention:'towards'",'observedMotionTimes=',"method:'DWD RV GetFeatureInfo am exakten Standort in allen verfügbaren 5-Minuten-Schritten; GetMap nur für Umfeld, lokale/regional gekoppelte Bewegungsdiagnostik und Wachstum/Zerfall'"])if(!worker.includes(token))failures.push(`Mehrframe-Zugrichtung: ${token}`);
 for(const token of ["motionAvailable=showRadar&&Number.isFinite(motionDirection)&&Number.isFinite(motionSpeed)&&motionSpeed>=2","showMotion=showMotionOverlay&&motionAvailable",'motionLabel=motionAvailable?`Zug nach ${Math.round(motionDirection)}°','Zugrichtung nach {Math.round(motionDirection)}°'])if(!radar.includes(token))failures.push(`Zugrichtungsbeschriftung: ${token}`);
 for(const token of ['secondaryDetail?:string',"detail:`${onsetClock(previous.precipitationOnset)} → ${onsetClock(current.precipitationOnset)}`","secondaryDetail:`${Math.abs(Math.round(onsetDelta))} h ${later?'später':'früher'}`"])if(!changes.includes(token))failures.push(`Modelllauf-Zeitvergleich: ${token}`);
 if(!ensemble.includes('item.secondaryDetail&&<small className="model-change-secondary">'))failures.push('Getrennte zweite Zeile für Zeitverschiebung fehlt.');
@@ -40,7 +40,7 @@ if(!ensemble.includes('item.secondaryDetail&&<small className="model-change-seco
 // Funktionaler Test: eine nach Osten wandernde Rasterstruktur muss als Zug nach Osten erscheinen.
 try{
  const begin=worker.indexOf('function gridMotionPair('),end=worker.indexOf('async function dwdMotionField',begin),snippet=worker.slice(begin,end);
- const factory=new Function(`${snippet}; return {radarMotionFromFields};`),{radarMotionFromFields}=factory();
+ const factory=new Function(`const clamp=(value,min,max)=>Math.max(min,Math.min(max,value)); ${snippet}; return {radarMotionFromFields};`),{radarMotionFromFields}=factory();
  const size=31,make=(offset,time)=>{const values=new Array(size*size).fill(0);for(let y=12;y<=17;y++)for(let x=7+offset;x<=12+offset;x++)values[y*size+x]=2;return{time,lat:51,lon:7,latDelta:1,lonDelta:1,grid:{size,values}}};
  const base=Date.UTC(2026,6,26,14,0),result=radarMotionFromFields([make(0,base),make(1,base+15*60000),make(2,base+30*60000),make(3,base+45*60000)]);
  if(!Number.isFinite(result.motionDirectionDeg)||Math.abs(result.motionDirectionDeg-90)>30)failures.push(`Mehrframe-Bewegung ist nicht ostwärts: ${JSON.stringify(result)}`);

@@ -1,3 +1,11 @@
+## v0.9.37.0
+- Radar-Nowcast: DWD-RS wird in der Enrichment-Stufe als amtlicher 1-h-Mengenanker für die ersten zwei Stunden eingebunden; RV bleibt für 5-Minuten-Timing und Intensitätsstruktur maßgeblich. Abwärtskorrekturen sind vollständig möglich, Aufwärtskorrekturen werden begrenzt.
+- Radar-Nowcast: DWD-HX 250 m wird ausschließlich bei unsicheren Randtreffern zur Standorttrefferprüfung genutzt und verändert keine Niederschlagsmenge eigenständig.
+- Radar-Nowcast: leichtgewichtiges Wachstum-/Zerfallsmodell und lokales Bewegungsfeld aus den bereits geladenen Radarframes ergänzt; dadurch entstehen keine zusätzlichen Radarrequests für diese beiden Schritte.
+- Radar-Nowcast: 9-Member-Mikroensemble aus Timing- und Intensitätsvarianten liefert Trefferwahrscheinlichkeit sowie P25/Median/P75 der 2-h-Menge. Die Nowcast-Leiste summiert kalibrierte 5-Minuten-Mengen statt roher mm/h-Werte.
+- Radar-Nowcast: frische, nahe DWD-Niederschlagsstationen dürfen die Kurzfristmenge vorsichtig nachkalibrieren; Einfluss sinkt mit Distanz, Alter, Lead Time und Konvektivität.
+- Ladezeit: schneller Radar-Erstpfad bleibt unverändert; RS und Stationsabgleich laufen erst im verzögerten Enrichment, HX nur bei tatsächlichen Grenzfällen.
+
 ## v0.9.36.9
 - Kompositbild: zusätzlicher Layer "Niederschlagsart" ergänzt. MID prüft jetzt vorrangig DWD HymecNG und blendet – solange keine verifizierte Klassenabbildung vorliegt – automatisch das amtliche DWD-WN-Originalprodukt als sichere Ersatzdarstellung ein.
 - Für den neuen Layer gibt es einen eigenen Schalter, eine separate Deckkraftregelung sowie eine über die Komposit-Legende ausblendbare Niederschlagsart-Legende.

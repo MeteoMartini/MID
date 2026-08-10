@@ -5290,3 +5290,6 @@ body,#root{
  .dashboard-section-rail.expanded .dashboard-section-nav-list.rail button em{overflow-wrap:anywhere}
  .dashboard-section-rail:not(.expanded) .dashboard-section-config.rail-config{width:42px;min-width:42px;margin-inline:auto}
 }
+/* MID v0.9.37.0 – kalibrierte Radar-Nowcast-Mengenspanne */
+.radar-nowcast-title .radar-nowcast-total em{display:inline-flex;align-items:center;margin-left:1px;padding-left:5px;border-left:1px solid color-mix(in srgb,var(--border) 78%,transparent);color:var(--muted);font-size:6.6px;font-style:normal;font-weight:780;letter-spacing:0;white-space:nowrap}
+@media(max-width:520px){.radar-nowcast-title .radar-nowcast-total em{font-size:5.9px;padding-left:4px}}

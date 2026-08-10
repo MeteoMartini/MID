@@ -351,3 +351,10 @@ Das optionale Wetterkartenmodul der erweiterten MID-Ansicht verwendet zwei neue 
 - `?mode=weather-map-wms&provider=dwd&...` liefert ausschließlich freigegebene DWD-WMS-Layer als CORS-sichere Kartenbilder.
 
 Die Layer sind serverseitig auf eine feste Allowlist beschränkt. Unterstützt werden ausgewählte ICON-EU-, ICON-, ICON-EPS-, NowCastMIX- und Meteosat-Produkte, darunter Bodendruck, Niederschlag, Temperatur, Geopotential, Höhenwind und signifikante Wettererscheinungen. Modelllauf-, Zeit- und Druckflächenparameter werden validiert; fremde WMS-Layer oder Zeitpunkte außerhalb des jeweiligen Produktfensters werden abgewiesen.
+
+
+### Radar-Nowcast v0.9.37.0
+
+Der vollständige DWD-Enrichment-Pfad ergänzt den schnellen RV-Punktabruf um DWD RS als einstündigen Mengenanker. Der Worker liest den aktuellen `composite_rs_*.tar`-Container serverseitig und liefert für den Client nur die benötigten HDF5-Vorhersageglieder (+60/+120 min). DWD HX 250 m wird clientseitig ausschließlich bei diagnostizierten Randtreffern zur Standortstützung ausgewertet, nicht zur Mengenschätzung.
+
+Das DWD-RV-Bewegungsfeld wird ohne zusätzliche Kartenabrufe gleichzeitig regional und auf einem zentrierten lokalen Teilraster ausgewertet. Aus denselben beobachteten Frames wird ein Wachstum-/Zerfallstrend bestimmt. Eine nahe DWD-Niederschlagsstation wird mit genau einem Bright-Sky-Current-Abruf gesucht; akzeptiert wird ausschließlich ein frischer `precipitation_10`-Wert innerhalb 15 km.

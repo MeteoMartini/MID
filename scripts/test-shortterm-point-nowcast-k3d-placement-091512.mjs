@@ -14,7 +14,7 @@ const [fusion,shortTerm,cockpit,radar,weather,worker,styles]=await Promise.all([
 assert.match(fusion,/mode:'proximity',hitClass:'nearby'/,'nearby echo must remain a proximity signal');
 assert.match(fusion,/amount:safeModelAmount,probability:/,'nearby-only echo must not create site precipitation amount');
 assert.match(fusion,/siteIntervals=overlappingSiteIntervals/,'short-term fusion must use exact interrupted site phases');
-assert.match(fusion,/siteFrames\.reduce\(\(sum,frame\)=>sum\+clamp\(radarFinite\(frame\.rate\)/,'5-minute site frames must be accumulated');
+assert.match(fusion,/siteFrames\.reduce\(\(sum,frame\)=>\{const calibrated=Number\(frame\.amountMm\);return sum\+\(Number\.isFinite\(calibrated\)&&calibrated>=0\?calibrated:clamp\(radarFinite\(frame\.rate\)/,'5-minute site frames must prefer calibrated amounts and retain rate integration only as fallback');
 assert.match(shortTerm,/DWD-RV-Standorttreffer/,'standalone short-term details must expose direct site hits');
 assert.match(shortTerm,/kein Standorttreffer; nur als Umfeldsignal gewichtet/,'standalone short-term details must explain nearby echoes');
 assert.match(cockpit,/radarSiteFrameCount:group\.reduce/,'cockpit aggregation must keep exact radar support metadata');
