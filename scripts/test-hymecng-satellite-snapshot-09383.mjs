@@ -20,11 +20,11 @@ for(const token of [
  'onHymecStatus=useCallback',
  'onStatus={onHymecStatus}',
  'hymecMeta?.fresh!==false',
- 'const snapshotToken=`snapshot:${iso}`',
+ 'snapshotToken=satelliteUntimed?`latest:${revision}`:`snapshot:${iso}`',
  'time:iso',
  'der amtliche DWD-3h-Satellitenstand bleibt bis zum nächsten regulären Termin zulässig.'
 ])need('RadarPanel',panel,token);
-for(const token of ['onStatus={(status,message=', 'satelliteRenderBlend=withAdjacentPreload','satelliteProduct.latestOnly?'])reject('RadarPanel',panel,token);
+for(const token of ['onStatus={(status,message=', 'satelliteRenderBlend=withAdjacentPreload'])reject('RadarPanel',panel,token);
 for(const token of [
  'Promise.allSettled(DWD_HYMECNG_ROOTS.map',
  'sort((a,b)=>b.latestTime-a.latestTime)',
@@ -32,10 +32,12 @@ for(const token of [
  'fresh:true',
  'const SATELLITE_MAX_AGE_MINUTES=75',
  'const DWD_SATELLITE_MAX_AGE_MINUTES=210',
- 'latest<now-maxAgeMinutes*60000',
- 'latestOnly:false'
+ 'latest>=now-maxAgeMinutes*60000',
+ 'latestOnly:false',
+ 'latestOnly:true',
+ 'timeVerified:false'
 ])need('Worker',worker,token);
-for(const token of ['SATELLITE_LATEST_DAY','SATELLITE_LATEST_IR','latestOnly:true'])reject('Worker',worker,token);
+for(const token of ['SATELLITE_LATEST_DAY','SATELLITE_LATEST_IR'])reject('Worker',worker,token);
 need('Baseline',baseline,'scripts/test-hymecng-satellite-snapshot-09383.mjs');
 const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;if(pv!==bv)failures.push(`Versionen nicht synchron: ${pv}/${bv}`);
 
@@ -50,4 +52,4 @@ try{
 }finally{globalThis.fetch=originalFetch}
 
 if(failures.length){console.error('HymecNG-/Satelliten-Snapshot-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('HymecNG-Lifecycle, gain/offset-Klassendekodierung, frischer Root und einheitlicher zeitgestempelter Satelliten-Snapshot geprüft.');
+console.log('HymecNG-Lifecycle, gain/offset-Klassendekodierung, frischer Root sowie zeitgestempelter Satellit mit kontrolliertem DWD-Latest-Fallback geprüft.');

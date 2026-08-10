@@ -25,8 +25,12 @@ export function projectionFromDefinition(definition:string):RadarProjection|null
  if(!normalized)return null;
  const kind=/\+proj=laea\b/i.test(normalized)?'laea':/\+proj=stere\b/i.test(normalized)?'stere':null;
  if(!kind)return null;
- const a=parameter(normalized,'a',parameter(normalized,'R',6378137));
- const b=parameter(normalized,'b',a);
+ const ellipsoid=(normalized.match(/(?:^|\s)\+ellps=([^\s]+)/i)?.[1]||(/\+datum=WGS84\b/i.test(normalized)?'WGS84':'')).toUpperCase();
+ const ellipsoidA=ellipsoid==='WGS84'||ellipsoid==='GRS80'?6378137:6378137;
+ const inverseFlattening=ellipsoid==='WGS84'?298.257223563:ellipsoid==='GRS80'?298.257222101:Infinity;
+ const ellipsoidB=Number.isFinite(inverseFlattening)?ellipsoidA*(1-1/inverseFlattening):ellipsoidA;
+ const a=parameter(normalized,'a',parameter(normalized,'R',ellipsoidA));
+ const b=parameter(normalized,'b',parameter(normalized,'R',Number.isFinite(inverseFlattening)?a*(1-1/inverseFlattening):ellipsoidB));
  const eccentricity=Math.sqrt(Math.max(0,1-(b*b)/(a*a)));
  const latTs=parameter(normalized,'lat_ts',60);
  const phiC=latTs*RAD;

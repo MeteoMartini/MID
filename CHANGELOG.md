@@ -1,3 +1,11 @@
+## v0.9.38.6
+
+- Kompositbild: HymecNG-Projektion wertet ODIM `+ellps=WGS84` und `+ellps=GRS80` nun als echtes Ellipsoid statt als Kugel aus; dadurch wird das aktuelle DWD-HDF5 korrekt in Leaflet/WebMercator zurückprojiziert.
+- Satellit: kontrollierter DWD-RGB/IR-Live-Snapshot als Fallback, wenn der offene 3-h-WMS-Layer keine auswertbare TIME-Dimension liefert; EUMETSAT bleibt TIME-pflichtig.
+- Satelliten-Live-Snapshot erhält eine eigene Revision und wird über den Worker mit `no-store`/Cache-Buster geladen, ohne benachbarte Frames zu mischen.
+- Legacy-HG (BUFR/BZip2) bleibt ausschließlich Diagnosepfad; das kartierte Niederschlagsartenprodukt bleibt das offizielle HymecNG-HDF5.
+- Regressionen für WGS84/GRS80-HymecNG und DWD-Satellit ohne TIME-Dimension ergänzt bzw. bestehende Live-/Performance-Verträge angepasst.
+
 ## v0.9.38.5
 
 - Komposit-Satellitenbild: produktspezifische Frischefenster statt pauschaler 55-Minuten-Sperre.

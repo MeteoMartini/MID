@@ -15,24 +15,28 @@ for(const token of [
  'handleRasterZoomStart=useCallback(()=>setRasterZooming(true)',
  'setTileRevision(value=>value+1);setRasterZooming(false)',
  '<RasterZoomLifecycle onStart={handleRasterZoomStart} onEnd={handleRasterZoomEnd}/>',
- 'const satelliteBlend=blendTimedFrames(satelliteTimeline,targetSeconds',
- 'const snapshotToken=`snapshot:${iso}`',
+ 'satelliteUntimed=Boolean(satelliteProduct?.latestOnly)',
+ 'satelliteBlend=satelliteUntimed?',
+ 'snapshotToken=satelliteUntimed?`latest:${revision}`:`snapshot:${iso}`',
  'time:iso',
  'keepBuffer={0}',
  'updateWhenZooming={false}'
 ])need('RadarPanel',panel,token);
-for(const token of ['satelliteRenderBlend=withAdjacentPreload','satelliteProduct.latestOnly?','latestToken=satelliteProduct.latestOnly','const tileRevision=0,rasterZooming=false'])reject('RadarPanel',panel,token);
+for(const token of ['satelliteRenderBlend=withAdjacentPreload','latestToken=satelliteProduct.latestOnly','const tileRevision=0,rasterZooming=false'])reject('RadarPanel',panel,token);
 for(const token of [
  "const EUMETSAT_WMS='https://view.eumetsat.int/geoserver/wms'",
  "{provider:'eumetsat',layer:'mtg_fd:rgb_geocolour'",
  'const SATELLITE_MAX_AGE_MINUTES=75',
  'const DWD_SATELLITE_MAX_AGE_MINUTES=210',
- 'latest<now-maxAgeMinutes*60000',
+ 'latest>=now-maxAgeMinutes*60000',
  'latestOnly:false',
- 'products.sort((a,b)=>(b.latest-a.latest)'
+ 'latestOnly:true',
+ 'timeVerified:false',
+ 'untimedDwd.sort',
+ 'timed.sort((a,b)=>(b.latest-a.latest)'
 ])need('Worker',worker,token);
-for(const token of ['SATELLITE_LATEST_DAY','SATELLITE_LATEST_IR','latestOnly:true'])reject('Worker',worker,token);
+for(const token of ['SATELLITE_LATEST_DAY','SATELLITE_LATEST_IR'])reject('Worker',worker,token);
 const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;
 if(pv!==bv)failures.push(`Versionen nicht synchron: ${pv}/${bv}`);
 if(failures.length){console.error('MID Satelliten-/Zoomprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('MID: Satellitenbild nutzt nur einen expliziten, frischen WMS-Snapshot; unzeitgestempelte Latest-Mosaike und alte Tile-Mischung sind gesperrt.');
+console.log('MID: Satellitenbild nutzt bevorzugt explizite TIME-Snapshots; DWD-Layer ohne auswertbare TIME-Dimension erhalten einen kontrollierten, cache-busted Latest-Snapshot statt auszufallen.');

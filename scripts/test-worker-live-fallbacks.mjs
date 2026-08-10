@@ -9,7 +9,8 @@ for(const token of [
  "const DWD_SATELLITE_MAX_AGE_MINUTES=210",
  "layer:'mtg_fd:rgb_geocolour'",
  'satelliteProduct(capabilities,SATELLITE_DAY_CANDIDATES,now)',
- 'latest<now-maxAgeMinutes*60000',
+ 'latest>=now-maxAgeMinutes*60000',
+ "if(candidate.provider==='dwd')untimedDwd.push",
  'dwdTimesFromCapabilities(dwdXml,timingLayer)',
  'result.dwdRadarLatestOnly=result.dwdRadarLayer===alias||!observed.length',
  'async function compositeDiagnostics()',
@@ -17,7 +18,9 @@ for(const token of [
  'async function fetchWithDeadline',
  'cf:{cacheTtl:180,cacheEverything:true}'
 ])if(!worker.includes(token))failures.push(`Live-WMS-Schutz fehlt: ${token}`);
-for(const token of ['SATELLITE_LATEST_DAY','SATELLITE_LATEST_IR','latestOnly:true'])if(worker.includes(token))failures.push(`Veralteter unzeitgestempelter Satelliten-Fallback bleibt aktiv: ${token}`);
+for(const token of ['SATELLITE_LATEST_DAY','SATELLITE_LATEST_IR'])if(worker.includes(token))failures.push(`Veralteter unzeitgestempelter Satelliten-Fallback bleibt aktiv: ${token}`);
+if(!worker.includes("candidate.provider==='dwd'")||!worker.includes('timeVerified:false')||!worker.includes('snapshotRevision'))failures.push('Kontrollierter DWD-only Live-Snapshot ohne TIME-Dimension ist nicht ausreichend begrenzt.');
+if(/provider:\s*'eumetsat'[^\n]{0,300}latestOnly:true/.test(worker))failures.push('EUMETSAT darf nicht unzeitgestempelt als latestOnly-Fallback freigegeben werden.');
 const originalFetch=globalThis.fetch,tinyPng=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M/wHwAF/gL+5qJ3WQAAAABJRU5ErkJggg==','base64'),captured=[];
 const now=Date.now(),stamp=offset=>new Date(now+offset*60000).toISOString().replace('.000Z','Z');
 const eumetsatXml=`<WMS_Capabilities><Capability><Layer><Layer><Name>mtg_fd:rgb_geocolour</Name><Dimension name="time">${stamp(-30)},${stamp(-20)},${stamp(-10)}</Dimension></Layer><Layer><Name>mtg_fd:ir105_hrfi</Name><Dimension name="time">${stamp(-30)},${stamp(-20)},${stamp(-10)}</Dimension></Layer></Layer></Capability></WMS_Capabilities>`;
