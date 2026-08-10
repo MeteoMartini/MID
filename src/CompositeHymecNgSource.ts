@@ -20,6 +20,10 @@ export type HymecNgMeta={
  ageMinutes?:number;
  fresh?:boolean;
  sourceRoot?:string;
+ sourceMode?:'latest-hdf5'|'dated-hdf5'|'unavailable';
+ legacyHgAvailable?:boolean;
+ legacyHgPublishedAt?:string;
+ legacyHgFormat?:string;
  error?:string;
  reason?:string;
 };
@@ -45,6 +49,7 @@ export type HymecNgRaster={
  undetect:number;
  observedAt?:string;
  classificationVerified:boolean;
+ classEncoding:'dry-zero'|'listed-order';
  bounds:LatLngBoundsExpression;
 };
 
@@ -69,8 +74,23 @@ export const HYMEC_NG_CLASSES:HymecNgClass[]=[
  {code:10,label:'nicht klassifizierbar',color:'#7f7f7f',rgba:hexToRgba('#7f7f7f',.92)},
  {code:0,label:'kein Niederschlag',color:'#c9c9c9',rgba:[0,0,0,0]}
 ];
+const HYMEC_NG_LISTED_ORDER_CLASSES:HymecNgClass[]=[
+ {code:0,label:'großer Hagel',color:'#b000d6',rgba:hexToRgba('#b000d6')},
+ {code:1,label:'kleiner Hagel',color:'#d000f5',rgba:hexToRgba('#d000f5')},
+ {code:2,label:'Graupel',color:'#ffd633',rgba:hexToRgba('#ffd633')},
+ {code:3,label:'gefrierender Regen',color:'#ff1c00',rgba:hexToRgba('#ff1c00')},
+ {code:4,label:'gefr. Sprühregen',color:'#d80000',rgba:hexToRgba('#d80000')},
+ {code:5,label:'Schnee',color:'#ff21d1',rgba:hexToRgba('#ff21d1')},
+ {code:6,label:'Schneeregen',color:'#ff70df',rgba:hexToRgba('#ff70df')},
+ {code:7,label:'Regen',color:'#00c778',rgba:hexToRgba('#00c778')},
+ {code:8,label:'Sprühregen',color:'#19dca4',rgba:hexToRgba('#19dca4')},
+ {code:9,label:'nicht klassifizierbar',color:'#7f7f7f',rgba:hexToRgba('#7f7f7f',.92)},
+ {code:10,label:'kein Niederschlag',color:'#c9c9c9',rgba:[0,0,0,0]}
+];
 export const HYMEC_NG_CLASS_LEGEND=HYMEC_NG_CLASSES.map(item=>({label:item.label,color:item.color,code:item.code}));
 const HYMEC_NG_CLASS_BY_CODE=new Map<number,HymecNgClass>(HYMEC_NG_CLASSES.map(item=>[item.code,item]));
+const HYMEC_NG_LISTED_BY_CODE=new Map<number,HymecNgClass>(HYMEC_NG_LISTED_ORDER_CLASSES.map(item=>[item.code,item]));
+const NO_PRECIPITATION:HymecNgClass={code:0,label:'kein Niederschlag',color:'#c9c9c9',rgba:[0,0,0,0]};
 const UNKNOWN_CLASS:HymecNgClass={code:-1,label:'unbekannte HymecNG-Klasse',color:'#7f7f7f',rgba:[0,0,0,0]};
 const rasterCache=new Map<string,Promise<HymecNgRaster>>();
 
@@ -120,6 +140,19 @@ function projectedCorner(where:H5Node,projection:RadarProjection,name:'UL'|'UR'|
  const lat=scalar(attr(where,`${name}_lat`,`${name.toLowerCase()}_lat`)),lon=scalar(attr(where,`${name}_lon`,`${name.toLowerCase()}_lon`));
  return Number.isFinite(lat)&&Number.isFinite(lon)?projectWgs84(lat!,lon!,projection):null;
 }
+export function hdf5ObservedAt(file:H5File,fallback?:string):string|undefined{
+ const nodes=['what','dataset1/what','dataset1/data1/what'].map(path=>safeGet(file,path)).filter(Boolean) as H5Node[];
+ for(const node of nodes){
+  const date=text(attr(node,'date','startdate')).replace(/\D/g,''),time=text(attr(node,'time','starttime')).replace(/\D/g,'').padStart(6,'0');
+  if(/^\d{8}$/.test(date)&&/^\d{6}$/.test(time)){const stamp=Date.UTC(Number(date.slice(0,4)),Number(date.slice(4,6))-1,Number(date.slice(6,8)),Number(time.slice(0,2)),Number(time.slice(2,4)),Number(time.slice(4,6)));if(Number.isFinite(stamp))return new Date(stamp).toISOString()}
+ }
+ return fallback;
+}
+export function detectHymecNgClassEncoding(values:ArrayLike<number>,gain:number,offset:number,nodata:number,undetect:number):'dry-zero'|'listed-order'{
+ const length=values.length,step=Math.max(1,Math.floor(length/150000));let zero=0,ten=0,valid=0;
+ for(let index=0;index<length;index+=step){const raw=Number(values[index]);if(!Number.isFinite(raw)||raw===nodata||raw===undetect)continue;const code=Math.round(raw*gain+offset);if(code<0||code>10)continue;valid++;if(code===0)zero++;else if(code===10)ten++}
+ if(valid<20)return'dry-zero';if(ten>zero*2&&ten/valid>.2)return'listed-order';if(zero>ten*2&&zero/valid>.2)return'dry-zero';return ten>zero?'listed-order':'dry-zero';
+}
 function rasterGeometry(file:H5File,selection:DatasetSelection,observedAt:string|undefined,classificationVerified:boolean):HymecNgRaster{
  const {where,projection}=projectionFromFile(file),shape=selection.node.shape??[],height=Number(shape[0]),width=Number(shape[1]),values=selection.node.value as ArrayLike<number>;
  if(!width||!height||!values||values.length<width*height)throw new Error('HymecNG-Raster ist unvollständig.');
@@ -131,7 +164,8 @@ function rasterGeometry(file:H5File,selection:DatasetSelection,observedAt:string
  const maxX=minX!+width*xScale,minY=maxY!-height*yScale,corners:[[number,number],[number,number],[number,number],[number,number]]=[[minX!,maxY!],[maxX,maxY!],[minX!,minY],[maxX,minY]],geo=corners.map(([x,y])=>inverseProjectedPoint(x,y,projection)).filter((point):point is [number,number]=>Boolean(point&&Number.isFinite(point[0])&&Number.isFinite(point[1])));
  if(geo.length!==4)throw new Error('HymecNG-Rastergrenzen konnten nicht nach WGS84 transformiert werden.');
  const lats=geo.map(point=>point[0]),lons=geo.map(point=>point[1]),bounds:LatLngBoundsExpression=[[Math.min(...lats),Math.min(...lons)],[Math.max(...lats),Math.max(...lons)]],gain=scalar(attr(selection.what,'gain'))??1,offset=scalar(attr(selection.what,'offset'))??0,nodata=scalar(attr(selection.what,'nodata'))??255,undetect=scalar(attr(selection.what,'undetect'))??0;
- return{projection,width,height,xScale,yScale,minX:minX!,maxY:maxY!,values,gain,offset,nodata,undetect,observedAt,classificationVerified,bounds};
+ const actualObservedAt=hdf5ObservedAt(file,observedAt),classEncoding=detectHymecNgClassEncoding(values,gain,offset,nodata,undetect);
+ return{projection,width,height,xScale,yScale,minX:minX!,maxY:maxY!,values,gain,offset,nodata,undetect,observedAt:actualObservedAt,classificationVerified,classEncoding,bounds};
 }
 
 export async function loadHymecNgMetadata(target?:string,signal?:AbortSignal):Promise<HymecNgMeta>{
@@ -146,21 +180,23 @@ export function loadHymecNgRaster(meta:HymecNgMeta):Promise<HymecNgRaster>{
  const promise=(async()=>{
   const response=await fetch(key,{cache:'no-store'});if(!response.ok)throw new Error(`HymecNG-Datei HTTP ${response.status}`);
   const buffer=await response.arrayBuffer();if(buffer.byteLength<1024)throw new Error('HymecNG-Datei ist unerwartet klein.');
-  const hdf5=await import('jsfive'),file=new hdf5.File(buffer,key) as unknown as H5File,selection=findDataset(file);
-  return rasterGeometry(file,selection,meta.observedAt,meta.classificationVerified===true);
+  const hdf5=await import('jsfive'),file=new hdf5.File(buffer,key) as unknown as H5File,selection=findDataset(file),raster=rasterGeometry(file,selection,meta.observedAt,meta.classificationVerified===true),internalMs=Date.parse(String(raster.observedAt||'')),metaMs=Date.parse(String(meta.observedAt||''));
+  if(Number.isFinite(internalMs)&&Date.now()-internalMs>35*60000)throw new Error(`HymecNG-HDF5 ist intern ${Math.round((Date.now()-internalMs)/60000)} min alt; möglicher DWD-/Proxy-Cache.`);
+  if(Number.isFinite(internalMs)&&Number.isFinite(metaMs)&&Math.abs(internalMs-metaMs)>20*60000)throw new Error('HymecNG-HDF5-Zeit weicht deutlich von der Quelldiagnose ab; Snapshot wird nicht gemischt.');
+  return raster;
  })().catch(error=>{rasterCache.delete(key);throw error});
  rasterCache.set(key,promise);return promise;
 }
 
 export function hymecNgClassForRaw(raw:number,raster:HymecNgRaster):HymecNgClass{
- if(!Number.isFinite(raw)||raw===raster.nodata)return HYMEC_NG_CLASS_BY_CODE.get(0)!;
- if(raw===raster.undetect)return HYMEC_NG_CLASS_BY_CODE.get(0)!;
+ if(!Number.isFinite(raw)||raw===raster.nodata||raw===raster.undetect)return NO_PRECIPITATION;
  if(!raster.classificationVerified)return UNKNOWN_CLASS;
- // ODIM-HDF5 speichert Rasterwerte als Rohwert; die physikalische/Klassen-Codierung
- // entsteht erst aus gain und offset. Ein direktes Runden des Rohwerts kann deshalb
- // sämtliche HymecNG-Niederschlagsklassen unsichtbar machen.
+ // ODIM-HDF5 speichert Rasterwerte als Rohwert; die Klassencodierung entsteht erst
+ // aus gain und offset. Zusätzlich toleriert MID beide 0..10-Konventionen, weil der
+ // öffentliche HymecNG-Kurzsteckbrief zwar elf Klassen, aber keine Rohwerttabelle nennt.
  const code=Math.round(raw*raster.gain+raster.offset);
- return HYMEC_NG_CLASS_BY_CODE.get(code)||UNKNOWN_CLASS;
+ const table=raster.classEncoding==='listed-order'?HYMEC_NG_LISTED_BY_CODE:HYMEC_NG_CLASS_BY_CODE;
+ return table.get(code)||UNKNOWN_CLASS;
 }
 
 export type HymecNgRasterDiagnostics={sampled:number;knownPrecipitation:number;dry:number;unknown:number;unknownShare:number};
@@ -169,7 +205,7 @@ export function hymecNgRasterDiagnostics(raster:HymecNgRaster):HymecNgRasterDiag
  let sampled=0,knownPrecipitation=0,dry=0,unknown=0;
  for(let index=0;index<length;index+=step){
   const raw=Number(raster.values[index]),classification=hymecNgClassForRaw(raw,raster);sampled++;
-  if(classification.code<0)unknown++;else if(classification.code===0)dry++;else knownPrecipitation++;
+  if(classification.code<0)unknown++;else if(classification.label==='kein Niederschlag')dry++;else knownPrecipitation++;
  }
  const classified=Math.max(1,knownPrecipitation+unknown),unknownShare=unknown/classified;
  return{sampled,knownPrecipitation,dry,unknown,unknownShare};

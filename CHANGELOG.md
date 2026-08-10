@@ -1,3 +1,9 @@
+## v0.9.38.4
+
+- Komposit/HymecNG: direkter offizieller `composite_HymecNG_LATEST_000-hd5`-Pfad vor Directory-Index, mit Root-Frischevergleich und Cache-Busting.
+- HymecNG: interner HDF5-Zeitstempel, defensive 0–10-Klassencodierung und bounds-freies natives Leaflet-Tile-Rendering.
+- Legacy-HG (`HG_LATEST_000.bz2`) wird nur diagnostisch geprüft; kein ungeoreferenzierter/undekodierter Ersatzlayer.
+
 ## v0.9.38.3
 
 - Kompositbild: HymecNG-Layer-Lifecycle stabilisiert; ODIM-HDF5-Klassencodes werden mit gain/offset dekodiert und vor dem Rendern plausibilisiert.

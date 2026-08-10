@@ -30,7 +30,7 @@ function renderTile(canvas:HTMLCanvasElement,coords:Coords,raster:HymecNgRaster,
  context.putImageData(image,0,0);
 }
 function createLayer(raster:HymecNgRaster,opacity:number):LeafletGridLayer{
- const layer=new LeafletGridLayer({tileSize:256,opacity:1,zIndex:430,noWrap:true,bounds:raster.bounds,updateWhenIdle:true,updateWhenZooming:false,keepBuffer:2,className:'mid-hymecng-grid'}) as RasterGridLayer;
+ const layer=new LeafletGridLayer({tileSize:256,opacity:1,zIndex:430,noWrap:true,updateWhenIdle:true,updateWhenZooming:false,keepBuffer:2,className:'mid-hymecng-grid'}) as RasterGridLayer;
  layer.createTile=(coords,done)=>{
   const canvas=document.createElement('canvas');canvas.width=256;canvas.height=256;canvas.setAttribute('role','presentation');
   const render=()=>{try{renderTile(canvas,coords,raster,opacity);done(undefined,canvas)}catch(error){done(error instanceof Error?error:new Error(String(error)),canvas)}};
@@ -45,7 +45,7 @@ export default function HymecNgOverlay({meta,opacity=.88,onStatus}:{meta:HymecNg
  const map=useMap(),layerRef=useRef<LeafletGridLayer|null>(null);
  useEffect(()=>{
   let alive=true,layer:LeafletGridLayer|null=null;onStatus?.('loading');
-  void loadHymecNgRaster(meta).then(raster=>{if(!alive)return;const diagnostics=hymecNgRasterDiagnostics(raster);if(diagnostics.unknown>=20&&diagnostics.knownPrecipitation===0)throw new Error(`HymecNG-Klassencodierung nicht plausibel (${diagnostics.unknown} unbekannte Stichproben).`);if(diagnostics.unknownShare>.72&&diagnostics.unknown>diagnostics.knownPrecipitation*2)throw new Error(`HymecNG-Klassencodierung überwiegend unbekannt (${Math.round(diagnostics.unknownShare*100)} %).`);layer=createLayer(raster,opacity);layer.addTo(map);layerRef.current=layer;const message=diagnostics.knownPrecipitation>0?`DWD HymecNG · ${raster.width}×${raster.height} · ${Math.round(raster.xScale)} m · klassifizierte Niederschlagsflächen vorhanden`:`DWD HymecNG · ${raster.width}×${raster.height} · ${Math.round(raster.xScale)} m · aktuell keine klassifizierten Niederschlagsflächen`;onStatus?.('ready',message) }).catch(error=>{if(alive)onStatus?.('error',error instanceof Error?error.message:String(error))});
+  void loadHymecNgRaster(meta).then(raster=>{if(!alive)return;const diagnostics=hymecNgRasterDiagnostics(raster);if(diagnostics.unknown>=20&&diagnostics.knownPrecipitation===0)throw new Error(`HymecNG-Klassencodierung nicht plausibel (${diagnostics.unknown} unbekannte Stichproben).`);if(diagnostics.unknownShare>.72&&diagnostics.unknown>diagnostics.knownPrecipitation*2)throw new Error(`HymecNG-Klassencodierung überwiegend unbekannt (${Math.round(diagnostics.unknownShare*100)} %).`);layer=createLayer(raster,opacity);layer.addTo(map);layerRef.current=layer;const message=diagnostics.knownPrecipitation>0?`DWD HymecNG · ${raster.width}×${raster.height} · ${Math.round(raster.xScale)} m · ${raster.classEncoding} · klassifizierte Niederschlagsflächen vorhanden`:`DWD HymecNG · ${raster.width}×${raster.height} · ${Math.round(raster.xScale)} m · ${raster.classEncoding} · aktuell keine klassifizierten Niederschlagsflächen`;onStatus?.('ready',message) }).catch(error=>{if(alive)onStatus?.('error',error instanceof Error?error.message:String(error))});
   return()=>{alive=false;if(layer){map.removeLayer(layer);if(layerRef.current===layer)layerRef.current=null}}
  },[map,meta.fileUrl,opacity,onStatus]);
  return null;

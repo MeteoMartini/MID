@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.38.3",
+  "releaseVersion": "0.9.38.4",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -127,7 +127,8 @@
     "scripts/test-stable-audit-20260810.mjs",
     "scripts/test-device-sync-startup-route-09381.mjs",
     "scripts/test-detail-thermal-profile-navigation-09382.mjs",
-    "scripts/test-hymecng-satellite-snapshot-09383.mjs"
+    "scripts/test-hymecng-satellite-snapshot-09383.mjs",
+    "scripts/test-hymecng-direct-latest-hg-fallback-09384.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
