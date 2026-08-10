@@ -20,7 +20,7 @@ for(const [group,values] of [['dependencies',pkg.dependencies??{}],['devDependen
 if(pkg.dependencies?.recharts!=='3.8.1'||lock.packages?.['node_modules/recharts']?.version!=='3.8.1')failures.push('Recharts 3.8.1 ist nicht reproduzierbar festgeschrieben.');
 if(pkg.dependencies?.['react-is']!=='18.3.1'||lock.packages?.['node_modules/react-is']?.version!=='18.3.1')failures.push('react-is 18.3.1 ist nicht reproduzierbar festgeschrieben.');
 if(pkg.devDependencies?.typescript!=='5.9.3'||pkg.devDependencies?.vite!=='6.4.3'||pkg.devDependencies?.['@vitejs/plugin-react']!=='4.7.0')failures.push('Werkzeugversionen sind nicht exakt festgeschrieben.');
-if(!pkg.scripts?.build?.includes('tsc --noEmit -p tsconfig.app.json')||pkg.scripts?.build?.includes('tsc -b'))failures.push('Artefaktfreie TypeScript-Prüfung fehlt im Buildvertrag.');
+if(!pkg.scripts?.['verify:types']?.includes('tsc --noEmit -p tsconfig.app.json')||!pkg.scripts?.['verify:types']?.includes('tsc --noEmit -p tsconfig.node.json')||!pkg.scripts?.build?.includes('npm run verify:types')||pkg.scripts?.['verify:types']?.includes('tsc -b'))failures.push('Artefaktfreie TypeScript-Prüfung fehlt im expliziten finalen Buildvertrag.');
 
 const panel=files['src/EnsemblePanel.tsx'],frame=files['src/EnsembleChartFrame.tsx'];
 need('Recharts-3-Migration',panel,"from 'recharts'");

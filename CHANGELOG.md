@@ -1,3 +1,12 @@
+## v0.9.38.0
+
+- Stable-Audit 10.08.2026 vollständig umgesetzt: explizite finale TypeScript- und Vite-Produktionsbuildphasen im Releasevertrag.
+- Langfrist/Saisonmodelle: gemeinsamer 4-h-Cache, bis 36 h Stale-if-error und bewusster manueller Refresh für ECMWF sowie NOAA NMME/CFSv2.
+- Druckniveau-Meteogramm: 15-min-TTL, 3-h-Stale-Fallback, expliziter Refresh, Memoisierung und Offscreen-Rendering-Containment.
+- OPERA-Raster: begrenzter Cache fertig projizierter Viewport-Canvases nach Frame, Zoom, Bounds und Größe zur Vermeidung identischer Neuberechnungen.
+- Dependency-Policy: React 18.3.1, Recharts 3.8.1, TypeScript 5.9.3 und Vite 6.4.3 reproduzierbar geschützt; größere Upgrades nur isoliert bzw. als getrennte Kompatibilitätsmigration.
+- Bestehende mid-stable-Schedule-Pins und HymecNG-Dormant-/Performance-Verträge bleiben erhalten.
+
 ## v0.9.37.3
 
 - CI-/Performance-Fix für HymecNG: die historisch gesperrten Module `HymecNgSource.ts` und `HymecNgOverlay.tsx` bleiben dormant.

@@ -1,13 +1,13 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.37.3",
+  "version": "0.9.38.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "sync-version": "node scripts/sync-version.mjs",
     "prebuild": "npm run sync-version",
-    "build": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json && npm run build:vite",
+    "build": "npm run verify:types && npm run verify:vite",
     "build:vite": "node --max-old-space-size=4096 node_modules/vite/bin/vite.js build",
     "verify": "npm run build && node --check worker/metar-proxy.js && npm run test:regressions",
     "preview": "vite preview",
@@ -113,8 +113,8 @@
     "test:seven-day-night-rain-coherence": "node scripts/test-seven-day-night-rain-coherence-08253.mjs",
     "test:water-tides-full-calendar-day": "node scripts/test-water-tides-full-calendar-day-08254.mjs",
     "test:forecast-cockpit": "node scripts/test-forecast-cockpit-pictograms-09100.mjs",
-    "audit:dependencies": "npm audit --audit-level=high --omit=dev",
-    "audit:all": "npm audit --audit-level=high",
+    "audit:dependencies": "npm audit --audit-level=high --omit=dev && node scripts/check-dependency-upgrade-policy.mjs",
+    "audit:all": "npm audit --audit-level=high && node scripts/check-dependency-upgrade-policy.mjs",
     "test:maintenance-08260": "node scripts/test-maintenance-recharts3-cache-ci-08260.mjs",
     "test:recharts3-reference-dot-buildfix": "node scripts/test-recharts3-reference-dot-buildfix-08261.mjs",
     "test:ci-regression-determinism": "node scripts/test-ci-regression-determinism-08262.mjs",
@@ -229,15 +229,18 @@
     "test:weather-profile-axes": "node scripts/test-mid-weather-profile-axes-09322.mjs",
     "test:regressions": "node scripts/run-regressions.mjs",
     "test:regression-runner-local-bin": "node scripts/test-regression-runner-local-bin-09365.mjs",
-    "test:radar-calibration": "node scripts/test-radar-nowcast-calibration-09370.mjs"
+    "test:radar-calibration": "node scripts/test-radar-nowcast-calibration-09370.mjs",
+    "verify:types": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
+    "verify:vite": "node --max-old-space-size=4096 node_modules/vite/bin/vite.js build",
+    "test:stable-audit-20260810": "node scripts/test-stable-audit-20260810.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",
     "jsfive": "^0.4.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.468.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
     "react-is": "18.3.1",
     "react-leaflet": "^4.2.1",
     "recharts": "3.8.1"

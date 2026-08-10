@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.37.3",
+  "releaseVersion": "0.9.38.0",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -123,7 +123,8 @@
     "scripts/test-mid-weather-profile-axes-09322.mjs",
     "scripts/test-mid-weather-profile-layout-09323.mjs",
     "scripts/test-composite-precipitation-type-layer-09366.mjs",
-    "scripts/test-radar-nowcast-calibration-09370.mjs"
+    "scripts/test-radar-nowcast-calibration-09370.mjs",
+    "scripts/test-stable-audit-20260810.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -237,7 +238,8 @@
     "scripts/test-mid-weather-profile-axes-09322.mjs",
     "scripts/test-mid-weather-profile-layout-09323.mjs",
     "scripts/test-ensemble-cumulative-ens-mean-09364.mjs",
-    "scripts/test-regression-runner-local-bin-09365.mjs"
+    "scripts/test-regression-runner-local-bin-09365.mjs",
+    "scripts/test-stable-audit-20260810.mjs"
   ],
   "requiredFiles": [
     "scripts/test-cockpit-regression-sync-09201.mjs",
