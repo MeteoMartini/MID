@@ -6,7 +6,11 @@ const current=(await readdir(path.join(root,'scripts'))).filter(name=>/^test-.*\
 const pkg=JSON.parse(await readFile(path.join(root,'package.json'),'utf8'));
 const runner=await readFile(path.join(root,'scripts','run-regressions.mjs'),'utf8');
 const failures=[];
-if(!String(pkg.scripts?.verify||'').includes('node scripts/run-regressions.mjs'))failures.push('verify verwendet nicht den automatischen Regressionstest-Runner.');
+const verify=String(pkg.scripts?.verify||'');
+const regressionEntry=String(pkg.scripts?.['test:regressions']||'');
+const verifyRunsDirect=verify.includes('node scripts/run-regressions.mjs');
+const verifyRunsScript=verify.includes('npm run test:regressions')&&regressionEntry.includes('node scripts/run-regressions.mjs');
+if(!verifyRunsDirect&&!verifyRunsScript)failures.push('verify verwendet nicht den automatischen Regressionstest-Runner.');
 for(const token of ["/^test-.*\\.mjs$/i",'tests.length','spawnSync(process.execPath'])if(!runner.includes(token))failures.push(`Automatischer Runner unvollständig: ${token}`);
 if(current.length<50)failures.push(`Unerwartet wenige geschützte Tests: ${current.length}`);
 for(const required of ['test-baseline-079526-contract.mjs','test-popover-regression.mjs','test-consistency-tooltip-dismiss.mjs','test-push-notifications.mjs','test-web-analytics.mjs'])if(!current.includes(required))failures.push(`Referenzschutz fehlt: ${required}`);

@@ -5275,3 +5275,18 @@ body,#root{
 @media(max-width:430px){.dashboard-section-quick{gap:3px;padding:4px}.dashboard-section-quick button{min-height:34px;padding:5px 3px;font-size:8px}.dashboard-section-drawer{width:min(92vw,350px)}}
 /* v0.9.36.4: kumuliertes Niederschlagsdiagramm – ENS-Mittel immer sichtbar */
 .rain-legend i.line.cumulative-mean{width:18px;height:0;border-top:2px dashed #71cbe8}
+
+/* MID v0.9.36.6 · Desktop-Sektionsleiste: kein Horizontal-Scrollen, ausreichende Breite, oberhalb der Top-Leiste */
+@media(min-width:851px){
+ .with-section-navigation{padding-left:86px}
+ .dashboard-section-rail{z-index:1060;width:64px;overflow:hidden}
+ .dashboard-section-rail.expanded{z-index:1120;width:286px}
+ .dashboard-section-nav-list.rail{min-width:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+ .dashboard-section-rail:not(.expanded) .dashboard-section-nav-list.rail{padding-inline:6px}
+ .dashboard-section-rail:not(.expanded) .dashboard-section-nav-list.rail button{width:42px;grid-template-columns:34px;gap:0;justify-content:center;margin-inline:auto;padding:4px}
+ .dashboard-section-rail:not(.expanded) .dashboard-section-nav-list.rail button>i{width:34px;height:34px}
+ .dashboard-section-rail.expanded .dashboard-section-nav-list.rail button{width:100%;grid-template-columns:32px minmax(0,1fr);gap:9px}
+ .dashboard-section-rail.expanded .dashboard-section-nav-list.rail button>span{min-width:0}
+ .dashboard-section-rail.expanded .dashboard-section-nav-list.rail button em{overflow-wrap:anywhere}
+ .dashboard-section-rail:not(.expanded) .dashboard-section-config.rail-config{width:42px;min-width:42px;margin-inline:auto}
+}

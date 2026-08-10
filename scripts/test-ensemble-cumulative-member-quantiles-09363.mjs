@@ -23,8 +23,8 @@ for(const token of [
  'row.cumulativePrecipitationQ25',
  'row.cumulativePrecipitationQ75',
  'row.cumulativePrecipitationMean',
- 'cumulativeQ25Plot:q25',
- 'cumulativeQBandPlot:Math.max(0,q75-q25)'
+ 'cumulativeQ25Plot:index<7?q25:undefined',
+ 'cumulativeQBandPlot:index<7?Math.max(0,q75-q25):undefined'
 ]) if(!panel.includes(token)) failures.push(`EnsemblePanel.tsx fehlt: ${token}`);
 if(panel.includes('q25Total+=dailyQ25')||panel.includes('q75Total+=dailyQ75')) failures.push('Kumulierte Quartile werden weiterhin fälschlich aus täglichen Quartilen aufsummiert.');
 const version=JSON.parse(pkg).version,base=JSON.parse(baseline).releaseVersion;

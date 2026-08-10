@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.36.4",
+  "version": "0.9.36.8",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,7 +9,7 @@
     "prebuild": "npm run sync-version",
     "build": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json && npm run build:vite",
     "build:vite": "node --max-old-space-size=4096 node_modules/vite/bin/vite.js build",
-    "verify": "npm run build && node --check worker/metar-proxy.js && node scripts/run-regressions.mjs",
+    "verify": "npm run build && node --check worker/metar-proxy.js && npm run test:regressions",
     "preview": "vite preview",
     "test:updater": "node scripts/test-updater.mjs",
     "test:radar": "node scripts/test-radar.mjs",
@@ -226,7 +226,9 @@
     "test:mid-original-dwd-weather-profile": "node scripts/test-mid-original-dwd-weather-profile-09310.mjs",
     "test:weather-profile-thermal-sun": "node scripts/test-mid-weather-profile-thermal-sun-09320.mjs",
     "test:weather-profile-thermal-hazards": "node scripts/test-mid-weather-profile-thermal-hazards-09321.mjs",
-    "test:weather-profile-axes": "node scripts/test-mid-weather-profile-axes-09322.mjs"
+    "test:weather-profile-axes": "node scripts/test-mid-weather-profile-axes-09322.mjs",
+    "test:regressions": "node scripts/run-regressions.mjs",
+    "test:regression-runner-local-bin": "node scripts/test-regression-runner-local-bin-09365.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

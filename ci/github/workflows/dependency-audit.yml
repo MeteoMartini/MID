@@ -47,4 +47,4 @@ jobs:
         run: |
           set -euo pipefail
           npm run test:maintenance-08260
-          node scripts/run-regressions.mjs
+          npm run test:regressions
