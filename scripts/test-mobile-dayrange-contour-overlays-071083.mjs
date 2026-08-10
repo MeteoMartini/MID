@@ -12,8 +12,8 @@ for(const token of [
  "haloColor=type==='isobars'?'#061521':'#261d00'"
 ])if(!radar.includes(token))failures.push(`SVG-Konturfix fehlt: ${token}`);
 for(const token of [
- '.leaflet-mid-model-lines-pane',
- '.leaflet-mid-model-lines-pane svg',
+ '.maplibre-mid-model-lines-pane',
+ '.maplibre-mid-model-lines-pane svg',
  '.radarlegend.compact.collapsed .radarlegend-toggle',
  '.composite-map-interaction{\n  right:auto;\n  left:8px;'
 ])if(!styles.includes(token))failures.push(`Komposit-Overlay-Styling fehlt: ${token}`);

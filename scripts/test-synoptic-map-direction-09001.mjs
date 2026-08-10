@@ -9,8 +9,8 @@ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=name=>fs.readFileSync(path.join(root,name),'utf8');
 const panel=read('src/SynopticPanel.tsx'),styles=read('src/styles.css'),workerSource=read('worker/metar-proxy.js'),synoptic=read('src/synoptic.ts');
 
-for(const token of ['MapContainer','TileLayer','basemaps.cartocdn.com','synoptic-station-plot','synoptic-front-marker','corridorBearing','→ zur Front','Kartengrundlage'])assert.ok(panel.includes(token),`Verbesserte Synoptikkarte fehlt: ${token}`);
-for(const token of ['synoptic-leaflet-map','synoptic-station-marker','synoptic-phase-flow','synoptic-corridor-graphic','@media(max-width:520px)','@media(max-width:360px)'])assert.ok(styles.includes(token),`Responsive Synoptikdarstellung fehlt: ${token}`);
+for(const token of ['MidMapLibre','RasterTileLayer','basemaps.cartocdn.com','synoptic-station-plot','synoptic-front-marker','corridorBearing','→ zur Front','Kartengrundlage'])assert.ok(panel.includes(token),`Verbesserte Synoptikkarte fehlt: ${token}`);
+for(const token of ['synoptic-maplibre-map','synoptic-station-marker','synoptic-phase-flow','synoptic-corridor-graphic','@media(max-width:520px)','@media(max-width:360px)'])assert.ok(styles.includes(token),`Responsive Synoptikdarstellung fehlt: ${token}`);
 assert.ok(workerSource.includes('approachBearingDeg:'),'Worker muss die Annäherungsrichtung separat ausgeben');
 assert.ok(workerSource.includes('motionDirectionDeg:((('),'Worker muss die Bewegungsrichtung getrennt ausgeben');
 assert.ok(synoptic.includes('approachBearingDeg?:number'),'Frontendvertrag für Annäherungsrichtung fehlt');

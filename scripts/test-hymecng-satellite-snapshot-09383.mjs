@@ -15,7 +15,7 @@ for(const token of [
  'hymecNgRasterDiagnostics',
  "rgba:[0,0,0,0]"
 ])need('HymecNG-Decoder',source,token);
-for(const token of ['hymecNgRasterDiagnostics(raster)','klassifizierte Niederschlagsflächen vorhanden','aktuell keine klassifizierten Niederschlagsflächen'])need('HymecNG-Overlay',overlay,token);
+for(const token of ['hymecNgRasterDiagnostics(value)','klassifizierte Niederschlagsflächen vorhanden','aktuell keine klassifizierten Niederschlagsflächen'])need('HymecNG-Overlay',overlay,token);
 for(const token of [
  'onHymecStatus=useCallback',
  'onStatus={onHymecStatus}',

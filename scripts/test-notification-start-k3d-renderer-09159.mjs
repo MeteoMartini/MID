@@ -27,7 +27,7 @@ assert.match(radar,/konrad-current-footprint-halo/,'visible K3D cell footprint h
 assert.match(radar,/konrad-probability-corridor-halo/,'visible K3D corridor halo missing');
 assert.match(radar,/konradForecastNodeIcon\(point,color,showLabel,timezone\)/,'K3D forecast time labels are not rendered');
 assert.match(radar,/else\{const geometry=forecastConeGeometry\(cell\)/,'endpoint-only K3D fallback track missing');
-assert.match(styles,/leaflet-mid-nowcast-vectors-pane/,'dedicated K3D vector pane styling missing');
+assert.match(styles,/maplibre-mid-nowcast-vectors-pane/,'dedicated K3D vector pane styling missing');
 assert.match(styles,/konrad-forecast-label/,'K3D permanent forecast label styling missing');
 
 console.log('MID v0.9.15.9 notification start and K3D renderer regression passed.');

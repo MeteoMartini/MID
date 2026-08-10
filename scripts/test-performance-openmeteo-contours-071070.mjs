@@ -11,7 +11,7 @@ for(const token of [
  "'ecmwf_aifs_europe_ensemble'",
  "'ecmwf_ifs_europe_ensemble_mean'",
  "'ecmwf_aifs_europe_ensemble_mean'",
- "ENSEMBLE_CACHE_PREFIX='mid:ensemble:v9:'",
+ "ENSEMBLE_CACHE_PREFIX='mid:ensemble:v11:'",
  'ENSEMBLE_FRESH_CACHE_MS=20*60*1000',
  'withoutGlobalEcmwfDuplicates',
  'selectedMeanModels(lat,lon)',
@@ -27,7 +27,7 @@ for(const token of [
  "setTimeout(()=>{try{localStorage.setItem"
 ])if(!radar.includes(token))failures.push(`Komposit-/Performance-Optimierung fehlt: ${token}`);
 if(radar.includes("modelFrameBlend.map(({frame,weight})"))failures.push('Modellkonturen werden weiterhin doppelt über mehrere Überblendframes gerendert.');
-for(const token of ['.leaflet-mid-model-lines-pane','.mid-model-contour.halo','.mid-model-contour.foreground'])if(!styles.includes(token))failures.push(`Sichtbarkeits-CSS der Modellkonturen fehlt: ${token}`);
+for(const token of ['.maplibre-mid-model-lines-pane','.mid-model-contour.halo','.mid-model-contour.foreground'])if(!styles.includes(token))failures.push(`Sichtbarkeits-CSS der Modellkonturen fehlt: ${token}`);
 for(const token of ['cacheTtl:1800',"max-age=1800"])if(!worker.includes(token))failures.push(`Worker-Cache für Modellkonturen fehlt: ${token}`);
 if(failures.length){console.error('Performance/Open-Meteo/Komposit-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
 console.log('Performance, Open-Meteo-Modellstand und sichtbare Isobaren/Isohypsen geprüft.');

@@ -1,11 +1,11 @@
-import {useEffect,useRef,useState} from 'react';
-import {GridLayer as LeafletGridLayer,type Coords,type LatLngBoundsExpression} from 'leaflet';
-import {ImageOverlay,useMap} from 'react-leaflet';
+import {useEffect,useMemo,useState} from 'react';
+import {CanvasOverlay,ImageQuadLayer,type MidMap} from './MapLibreCore';
 import type {Px250Meta} from './Px250Source';
 import {inverseProjectedPoint,projectionFromDefinition,stereographicRadius,type RadarProjection} from './radarProjection';
 
 type Status='idle'|'loading'|'ready'|'error';
-type OverlayState={url:string;bounds:LatLngBoundsExpression};
+type Bounds=[[number,number],[number,number]];
+type OverlayState={url:string;bounds:Bounds};
 type H5Node={value?:ArrayLike<number>|unknown;shape?:number[];attrs?:Record<string,unknown>};
 type H5File={get(path:string):H5Node};
 type DatasetSelection={node:H5Node;path:string;what?:H5Node;quantity:string};
@@ -21,11 +21,10 @@ type ProjectedRaster={
  nodata:number;
  undetect:number;
  isRate:boolean;
- bounds:LatLngBoundsExpression;
+ bounds:Bounds;
  colourLookup:Uint8ClampedArray;
  colourLookupMax:number;
 };
-type RasterGridLayer=LeafletGridLayer&{createTile:(coords:Coords,done:(error:Error|undefined,tile:HTMLElement)=>void)=>HTMLElement};
 
 function text(value:unknown):string{
  if(typeof value==='string')return value.replace(/\0/g,'').trim();
@@ -45,7 +44,7 @@ function attr(node:H5Node|undefined,...names:string[]):unknown{
 function safeGet(file:H5File,path:string){try{return file.get(path)}catch{return undefined}}
 function projectionFrom(where:H5Node|undefined):RadarProjection|null{return projectionFromDefinition(text(attr(where,'projdef','projection_definition','proj4')))}
 function inverseProjected(x:number,y:number,projection:RadarProjection):[number,number]|null{return inverseProjectedPoint(x,y,projection)}
-function projectedBounds(file:H5File,dataset:H5Node):LatLngBoundsExpression|null{
+function projectedBounds(file:H5File,dataset:H5Node):Bounds|null{
  const where=['where','dataset1/where','dataset1/data1/where','dataset1/data2/where','dataset2/where'].map(path=>safeGet(file,path)).find(Boolean),projection=projectionFrom(where),shape=dataset.shape??[],height=Number(shape[0]),width=Number(shape[1]);
  if(!projection||!width||!height)return null;
  const xScale=Math.abs(scalar(attr(where,'xscale','x_scale'))??250),yScale=Math.abs(scalar(attr(where,'yscale','y_scale'))??250),llX=scalar(attr(where,'LL_x','ll_x')),ulX=scalar(attr(where,'UL_x','ul_x')),urX=scalar(attr(where,'UR_x','ur_x')),llY=scalar(attr(where,'LL_y','ll_y')),ulY=scalar(attr(where,'UL_y','ul_y')),urY=scalar(attr(where,'UR_y','ur_y'));
@@ -56,8 +55,8 @@ function projectedBounds(file:H5File,dataset:H5Node):LatLngBoundsExpression|null
  if(north-south<=0||east-west<=0||north-south>30||east-west>45)return null;
  return[[south,west],[north,east]];
 }
-function approximateBounds(lat:number,lon:number,rangeKm:number):LatLngBoundsExpression{if(!Number.isFinite(lat)||!Number.isFinite(lon))return[[46.55,4.2],[55.95,15.95]];const dy=rangeKm/111.32,dx=rangeKm/(111.32*Math.max(.25,Math.cos(lat*Math.PI/180)));return[[lat-dy,lon-dx],[lat+dy,lon+dx]]}
-function geographicBounds(where:H5Node|undefined):LatLngBoundsExpression|null{
+function approximateBounds(lat:number,lon:number,rangeKm:number):Bounds{if(!Number.isFinite(lat)||!Number.isFinite(lon))return[[46.55,4.2],[55.95,15.95]];const dy=rangeKm/111.32,dx=rangeKm/(111.32*Math.max(.25,Math.cos(lat*Math.PI/180)));return[[lat-dy,lon-dx],[lat+dy,lon+dx]]}
+function geographicBounds(where:H5Node|undefined):Bounds|null{
  const points=[
   [scalar(attr(where,'LL_lat','ll_lat')),scalar(attr(where,'LL_lon','ll_lon'))],
   [scalar(attr(where,'LR_lat','lr_lat')),scalar(attr(where,'LR_lon','lr_lon'))],
@@ -68,8 +67,8 @@ function geographicBounds(where:H5Node|undefined):LatLngBoundsExpression|null{
  const lats=points.map(point=>point[0]),lons=points.map(point=>point[1]);
  return[[Math.min(...lats),Math.min(...lons)],[Math.max(...lats),Math.max(...lons)]];
 }
-function boundsFromFile(file:H5File,meta:Px250Meta,dataset:H5Node):LatLngBoundsExpression{
- const nodes=['where','dataset1/where','dataset1/data1/where','dataset1/data2/where','dataset2/where'].map(path=>safeGet(file,path)).filter(Boolean) as H5Node[],readBounds=(where:H5Node|undefined)=>{const llLat=scalar(attr(where,'LL_lat','ll_lat')),llLon=scalar(attr(where,'LL_lon','ll_lon')),urLat=scalar(attr(where,'UR_lat','ur_lat')),urLon=scalar(attr(where,'UR_lon','ur_lon')),ulLat=scalar(attr(where,'UL_lat','ul_lat')),ulLon=scalar(attr(where,'UL_lon','ul_lon')),lrLat=scalar(attr(where,'LR_lat','lr_lat')),lrLon=scalar(attr(where,'LR_lon','lr_lon')),south=scalar(attr(where,'south','min_lat','lat_min')),west=scalar(attr(where,'west','min_lon','lon_min')),north=scalar(attr(where,'north','max_lat','lat_max')),east=scalar(attr(where,'east','max_lon','lon_max'));if([llLat,llLon,urLat,urLon].every(Number.isFinite))return[[llLat!,llLon!],[urLat!,urLon!]] as LatLngBoundsExpression;if([ulLat,ulLon,lrLat,lrLon].every(Number.isFinite))return[[lrLat!,ulLon!],[ulLat!,lrLon!]] as LatLngBoundsExpression;if([south,west,north,east].every(Number.isFinite))return[[south!,west!],[north!,east!]] as LatLngBoundsExpression;return null};
+function boundsFromFile(file:H5File,meta:Px250Meta,dataset:H5Node):Bounds{
+ const nodes=['where','dataset1/where','dataset1/data1/where','dataset1/data2/where','dataset2/where'].map(path=>safeGet(file,path)).filter(Boolean) as H5Node[],readBounds=(where:H5Node|undefined)=>{const llLat=scalar(attr(where,'LL_lat','ll_lat')),llLon=scalar(attr(where,'LL_lon','ll_lon')),urLat=scalar(attr(where,'UR_lat','ur_lat')),urLon=scalar(attr(where,'UR_lon','ur_lon')),ulLat=scalar(attr(where,'UL_lat','ul_lat')),ulLon=scalar(attr(where,'UL_lon','ul_lon')),lrLat=scalar(attr(where,'LR_lat','lr_lat')),lrLon=scalar(attr(where,'LR_lon','lr_lon')),south=scalar(attr(where,'south','min_lat','lat_min')),west=scalar(attr(where,'west','min_lon','lon_min')),north=scalar(attr(where,'north','max_lat','lat_max')),east=scalar(attr(where,'east','max_lon','lon_max'));if([llLat,llLon,urLat,urLon].every(Number.isFinite))return[[llLat!,llLon!],[urLat!,urLon!]] as Bounds;if([ulLat,ulLon,lrLat,lrLon].every(Number.isFinite))return[[lrLat!,ulLon!],[ulLat!,lrLon!]] as Bounds;if([south,west,north,east].every(Number.isFinite))return[[south!,west!],[north!,east!]] as Bounds;return null};
  for(const node of nodes){const candidate=readBounds(node);if(candidate)return candidate}
  const projected=projectedBounds(file,dataset);if(projected)return projected;
  if(meta.product==='hx')return[[45.68,1.46],[55.87,18.74]];
@@ -129,56 +128,16 @@ function paintRaw(pixels:Uint8ClampedArray,pixel:number,raw:number,raster:Projec
  if(Number.isInteger(raw)&&raw>=0&&raw<=raster.colourLookupMax){const index=raw*4;pixels[pixel]=raster.colourLookup[index];pixels[pixel+1]=raster.colourLookup[index+1];pixels[pixel+2]=raster.colourLookup[index+2];pixels[pixel+3]=raster.colourLookup[index+3];return}
  const rgba=rawColour(raw,raster.gain,raster.offset,raster.isRate,raster.nodata,raster.undetect);pixels[pixel]=rgba[0];pixels[pixel+1]=rgba[1];pixels[pixel+2]=rgba[2];pixels[pixel+3]=rgba[3];
 }
-function renderProjectedTile(canvas:HTMLCanvasElement,coords:Coords,raster:ProjectedRaster){
- const size=256,context=canvas.getContext('2d',{alpha:true});if(!context)throw new Error('Canvas nicht verfügbar.');
- const image=context.createImageData(size,size),pixels=image.data,worldSize=size*Math.pow(2,coords.z),startX=coords.x*size,startY=coords.y*size,longitude0=raster.projection.lon0*Math.PI/180,sinDelta=new Float64Array(size),cosDelta=new Float64Array(size);
- for(let tileX=0;tileX<size;tileX++){
-  const worldX=startX+tileX+.5,longitude=worldX/worldSize*2*Math.PI-Math.PI,delta=longitude-longitude0;
-  sinDelta[tileX]=Math.sin(delta);cosDelta[tileX]=Math.cos(delta);
- }
- for(let tileY=0;tileY<size;tileY++){
-  const worldY=startY+tileY+.5,latitude=Math.atan(Math.sinh(Math.PI*(1-2*worldY/worldSize)))*180/Math.PI,radius=stereographicRadius(latitude,raster.projection);
-  if(radius===null)continue;
-  for(let tileX=0;tileX<size;tileX++){
-   const projectedX=raster.projection.x0+radius*sinDelta[tileX],projectedY=raster.projection.y0-radius*cosDelta[tileX],sourceX=Math.round(projectedX/raster.xScale),sourceY=Math.round(-projectedY/raster.yScale);
-   if(sourceX<0||sourceX>=raster.width||sourceY<0||sourceY>=raster.height)continue;
-   const raw=Number(raster.values[sourceY*raster.width+sourceX]),pixel=(tileY*size+tileX)*4;paintRaw(pixels,pixel,raw,raster);
-  }
- }
+function renderProjectedViewport(map:MidMap,canvas:HTMLCanvasElement,raster:ProjectedRaster){
+ const box=map.getContainer().getBoundingClientRect(),cssWidth=Math.max(1,Math.round(box.width)),cssHeight=Math.max(1,Math.round(box.height)),memory=Number((navigator as Navigator&{deviceMemory?:number}).deviceMemory)||4,coarse=typeof matchMedia==='function'&&matchMedia('(pointer:coarse)').matches,step=coarse||memory<=4||cssWidth*cssHeight>250000?2:1,ratio=Math.min(1.25,window.devicePixelRatio||1),width=Math.max(1,Math.round(cssWidth/step*ratio)),height=Math.max(1,Math.round(cssHeight/step*ratio));
+ canvas.width=width;canvas.height=height;canvas.style.width=`${cssWidth}px`;canvas.style.height=`${cssHeight}px`;const context=canvas.getContext('2d',{alpha:true});if(!context)return;const image=context.createImageData(width,height),pixels=image.data,scaleX=cssWidth/width,scaleY=cssHeight/height,longitude0=raster.projection.lon0*Math.PI/180;
+ for(let y=0;y<height;y++)for(let x=0;x<width;x++){const ll=map.unproject([(x+.5)*scaleX,(y+.5)*scaleY]),radius=stereographicRadius(ll.lat,raster.projection);if(radius===null)continue;const delta=ll.lng*Math.PI/180-longitude0,projectedX=raster.projection.x0+radius*Math.sin(delta),projectedY=raster.projection.y0-radius*Math.cos(delta),sourceX=Math.round(projectedX/raster.xScale),sourceY=Math.round(-projectedY/raster.yScale);if(sourceX<0||sourceX>=raster.width||sourceY<0||sourceY>=raster.height)continue;const raw=Number(raster.values[sourceY*raster.width+sourceX]),pixel=(y*width+x)*4;paintRaw(pixels,pixel,raw,raster)}
  context.putImageData(image,0,0);
-}
-function createProjectedLayer(raster:ProjectedRaster,opacity:number):LeafletGridLayer{
- const layer=new LeafletGridLayer({tileSize:256,opacity,zIndex:430,noWrap:true,bounds:raster.bounds,updateWhenIdle:true,updateWhenZooming:false,keepBuffer:2,className:'mid-hx-projected-grid'}) as RasterGridLayer;
- layer.createTile=(coords,done)=>{
-  const canvas=document.createElement('canvas');canvas.width=256;canvas.height=256;canvas.setAttribute('role','presentation');
-  const render=()=>{try{renderProjectedTile(canvas,coords,raster);done(undefined,canvas)}catch(error){done(error instanceof Error?error:new Error(String(error)),canvas)}};
-  const idle=(window as Window&{requestIdleCallback?:(callback:()=>void,options?:{timeout:number})=>number}).requestIdleCallback;
-  if(idle)idle(render,{timeout:80});else window.setTimeout(render,0);
-  return canvas;
- };
- return layer;
 }
 
 export default function Px250Overlay({meta,opacity,onStatus}:{meta:Px250Meta;opacity:number;onStatus?:(status:Status,message?:string)=>void}){
- const map=useMap(),[overlay,setOverlay]=useState<OverlayState|null>(null),projectedLayerRef=useRef<LeafletGridLayer|null>(null),opacityRef=useRef(opacity);
- useEffect(()=>{opacityRef.current=opacity;projectedLayerRef.current?.setOpacity(opacity)},[opacity]);
- useEffect(()=>{
-  let alive=true,objectUrl='',projectedLayer:LeafletGridLayer|null=null;
-  setOverlay(null);onStatus?.('loading');
-  (async()=>{
-   if(!meta.fileUrl)throw new Error(meta.reason||'Keine 250-m-Radardatei verfügbar.');
-   const response=await fetch(meta.fileUrl,{cache:'no-store'});if(!response.ok)throw new Error(`250-m-Radardatei HTTP ${response.status}`);
-   const buffer=await response.arrayBuffer();if(buffer.byteLength<1024)throw new Error('250-m-Radardatei ist unerwartet klein.');
-   const hdf5=await import('jsfive'),file=new hdf5.File(buffer,meta.fileUrl) as unknown as H5File,selection=findDataset(file),dataset=selection.node;
-   if(meta.product==='hx'){
-    const raster=projectedRaster(file,selection);if(!raster)throw new Error('HX-Projektionsmetadaten fehlen oder sind nicht stereografisch.');
-    if(!alive)return;projectedLayer=createProjectedLayer(raster,opacityRef.current);projectedLayer.addTo(map);projectedLayerRef.current=projectedLayer;
-    onStatus?.('ready',`${selection.quantity||'Radar'} · projektionstreu nach Web-Mercator · ${raster.width}×${raster.height}`);return;
-   }
-   const canvas=renderDataset(selection),blob=await canvasBlob(canvas);if(!alive)return;
-   objectUrl=URL.createObjectURL(blob);setOverlay({url:objectUrl,bounds:boundsFromFile(file,meta,dataset)});onStatus?.('ready',`${selection.quantity||'Radar'} → äquivalente Regenrate · ${selection.node.shape?.join('×')||'Raster'}`);
-  })().catch(error=>{if(alive)onStatus?.('error',error instanceof Error?error.message:String(error))});
-  return()=>{alive=false;if(projectedLayer){map.removeLayer(projectedLayer);if(projectedLayerRef.current===projectedLayer)projectedLayerRef.current=null}if(objectUrl)URL.revokeObjectURL(objectUrl)};
- },[map,meta.fileUrl,meta.reason,meta.radarLat,meta.radarLon,meta.rangeKm,meta.product,onStatus]);
- return overlay?<ImageOverlay url={overlay.url} bounds={overlay.bounds} opacity={opacity} zIndex={430}/>:null;
+ const[overlay,setOverlay]=useState<OverlayState|null>(null),[projected,setProjected]=useState<ProjectedRaster|null>(null);
+ useEffect(()=>{let alive=true,objectUrl='';setOverlay(null);setProjected(null);onStatus?.('loading');(async()=>{if(!meta.fileUrl)throw new Error(meta.reason||'Keine 250-m-Radardatei verfügbar.');const response=await fetch(meta.fileUrl,{cache:'no-store'});if(!response.ok)throw new Error(`250-m-Radardatei HTTP ${response.status}`);const buffer=await response.arrayBuffer();if(buffer.byteLength<1024)throw new Error('250-m-Radardatei ist unerwartet klein.');const hdf5=await import('jsfive'),file=new hdf5.File(buffer,meta.fileUrl) as unknown as H5File,selection=findDataset(file),dataset=selection.node;if(meta.product==='hx'){const raster=projectedRaster(file,selection);if(!raster)throw new Error('HX-Projektionsmetadaten fehlen oder sind nicht stereografisch.');if(!alive)return;setProjected(raster);onStatus?.('ready',`${selection.quantity||'Radar'} · projektionstreu via MapLibre · ${raster.width}×${raster.height}`);return}const canvas=renderDataset(selection),blob=await canvasBlob(canvas);if(!alive)return;objectUrl=URL.createObjectURL(blob);setOverlay({url:objectUrl,bounds:boundsFromFile(file,meta,dataset)});onStatus?.('ready',`${selection.quantity||'Radar'} → äquivalente Regenrate · ${selection.node.shape?.join('×')||'Raster'}`)})().catch(error=>{if(alive)onStatus?.('error',error instanceof Error?error.message:String(error))});return()=>{alive=false;if(objectUrl)URL.revokeObjectURL(objectUrl)}},[meta.fileUrl,meta.reason,meta.radarLat,meta.radarLon,meta.rangeKm,meta.product,onStatus]);
+ const draw=useMemo(()=>projected?(map:MidMap,canvas:HTMLCanvasElement)=>renderProjectedViewport(map,canvas,projected):null,[projected]);
+ if(draw)return <CanvasOverlay id="px250-projected" opacity={opacity} zIndex={430} render={draw}/>;return overlay?<ImageQuadLayer id="px250-image" url={overlay.url} bounds={overlay.bounds} opacity={opacity} zIndex={430}/>:null;
 }

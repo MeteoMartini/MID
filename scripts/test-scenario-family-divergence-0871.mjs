@@ -11,7 +11,7 @@ assert.match(weather,/function scenarioDivergenceDate\(/,'persistente Divergenze
 assert.match(weather,/for\(let index=1;index<dates\.length;index\+\+\)/,'heutiger Tag wird bei der normalen Divergenzerkennung nicht übersprungen');
 assert.match(weather,/current\.normal&&next\?\.normal/,'normale Divergenz muss mindestens zwei Tage anhalten');
 assert.match(weather,/current\.exceptional/,'außergewöhnlich starke eintägige Trennung fehlt');
-assert.match(weather,/const ENSEMBLE_CACHE_PREFIX='mid:ensemble:v9:'/,'Szenariocache wurde nicht invalidiert');
+assert.match(weather,/const ENSEMBLE_CACHE_PREFIX='mid:ensemble:v11:'/,'Szenariocache wurde nicht invalidiert');
 assert.match(panel,/Eine Modellfamilie kann in mehreren Szenarien erscheinen/,'Erklärung zur Mehrfachvertretung einer Modellfamilie fehlt');
 assert.match(panel,/von \$\{share\.familyMemberCount\} Mitgliedern · \$\{Math\.round\(share\.familyShare\)\} % der Modellfamilie/,'Mitgliederverteilung je Modellfamilie wird nicht angezeigt');
 assert.match(panel,/kein stabiler markanter Trennungszeitpunkt erkennbar/,'Fallback bei fehlender belastbarer Divergenz fehlt');

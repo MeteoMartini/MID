@@ -1,8 +1,6 @@
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {AlertTriangle,CloudRain,MapPinned,Navigation,Route as RouteIcon,Search,Wind} from 'lucide-react';
-import L from 'leaflet';
-import {CircleMarker,MapContainer,Marker,Polyline,TileLayer,Tooltip,useMap} from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
+import {GeoJsonLayers,HtmlMarker,MapFitBounds,MidMapLibre,RasterTileLayer} from './MapLibreCore';
 import {searchLocations,type Location} from './weather';
 import {formatDecimal} from './format';
 import {formatLocalIso,formatRouteWind,loadRouteWeather,routeLevelClass,routeLevelColor,type RouteCheckpoint,type RouteMapMode,type RouteProfile,type RouteWeatherResult} from './routeWeather';
@@ -25,29 +23,13 @@ function defaultDepartureInput(){
  return formatLocalIso(date.toISOString());
 }
 
-function RouteBounds({points}:{points:[number,number][]}){
- const map=useMap();
- useEffect(()=>{
-  if(!points.length)return;
-  const bounds=L.latLngBounds(points.map(point=>L.latLng(point[0],point[1])));
-  map.fitBounds(bounds.pad(0.25),{padding:[24,24]});
- },[map,JSON.stringify(points)]);
- return null;
-}
-
-function windIcon(direction:number,color:string){
- return L.divIcon({
-  className:'route-wind-marker',
-  html:`<span class="route-wind-glyph" style="color:${color};transform:rotate(${direction}deg)">↑</span>`,
-  iconSize:[18,18],
-  iconAnchor:[9,9]
- });
-}
-
+function htmlEscape(value:string){return value.replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]||char))}
 function RouteMap({result,mode}:{result:RouteWeatherResult;mode:RouteMapMode}){
- const points=result.checkpoints.map(point=>[point.latitude,point.longitude] as [number,number]);
- const segmentWeight=mode==='corridor'?5:4;
- return <div className="route-weather-map"><MapContainer center={points[0]} zoom={7} className="leafletmap" scrollWheelZoom={false} fadeAnimation={false} zoomAnimation={false}><RouteBounds points={points}/><TileLayer attribution='&copy; OpenStreetMap-Mitwirkende' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" keepBuffer={1}/>{mode==='line'&&<Polyline positions={points} pathOptions={{color:'#1e78ff',weight:5,opacity:.92}}/>}{result.checkpoints.slice(1).map((point,index)=>{const previous=result.checkpoints[index],positions:[[number,number],[number,number]]=[[previous.latitude,previous.longitude],[point.latitude,point.longitude]],color=routeLevelColor(point.restriction.level);if(mode==='segments')return <Polyline key={`segment-${point.id}`} positions={positions} pathOptions={{color,weight:segmentWeight,opacity:.94}}/>;if(mode==='corridor')return [<Polyline key={`corridor-wide-${point.id}`} positions={positions} pathOptions={{color,weight:18,opacity:.18,lineCap:'round'}}/>,<Polyline key={`corridor-line-${point.id}`} positions={positions} pathOptions={{color,weight:segmentWeight,opacity:.94}}/>];return null})}{result.checkpoints.map(point=>{const color=routeLevelColor(point.restriction.level);return <CircleMarker key={`point-${point.id}`} center={[point.latitude,point.longitude]} radius={8} pathOptions={{color:'#ffffff',weight:2,fillColor:color,fillOpacity:.94}}><Tooltip direction="top" offset={[0,-6]}><div className="route-map-tooltip"><strong>{point.name}</strong><span>{formatDateTime(point.etaIso)}</span><span><WeatherPictogram code={point.weather.displayCode} day={point.weather.isDay} title={point.weather.label}/> {point.weather.label}</span><span>{Math.round(point.weather.temperature)} °C · {Math.round(point.weather.precipitationProbability)} %</span><span>{formatRouteWind(point.weather.direction,point.weather.wind,point.weather.gust)}</span></div></Tooltip></CircleMarker>})}{result.checkpoints.map(point=>{const color=routeLevelColor(point.restriction.level);return <Marker key={`wind-${point.id}`} position={[point.latitude,point.longitude]} icon={windIcon(point.weather.direction,color)}><Tooltip direction="bottom" offset={[0,10]}>{formatRouteWind(point.weather.direction,point.weather.wind,point.weather.gust)}</Tooltip></Marker>})}</MapContainer></div>;
+ const points=result.checkpoints.map(point=>[point.latitude,point.longitude] as [number,number]),lats=points.map(point=>point[0]),lons=points.map(point=>point[1]),south=Math.min(...lats),north=Math.max(...lats),west=Math.min(...lons),east=Math.max(...lons),dy=Math.max(.08,(north-south)*.25),dx=Math.max(.08,(east-west)*.25),lineFeatures:any[]=[];
+ if(mode==='line')lineFeatures.push({type:'Feature',properties:{color:'#1e78ff',width:5,opacity:.92},geometry:{type:'LineString',coordinates:points.map(([lat,lon])=>[lon,lat])}});
+ result.checkpoints.slice(1).forEach((point,index)=>{const previous=result.checkpoints[index],coordinates=[[previous.longitude,previous.latitude],[point.longitude,point.latitude]],color=routeLevelColor(point.restriction.level);if(mode==='segments')lineFeatures.push({type:'Feature',properties:{color,width:4,opacity:.94},geometry:{type:'LineString',coordinates}});if(mode==='corridor'){lineFeatures.push({type:'Feature',properties:{color,width:18,opacity:.18},geometry:{type:'LineString',coordinates}});lineFeatures.push({type:'Feature',properties:{color,width:5,opacity:.94},geometry:{type:'LineString',coordinates}})}});
+ const pointFeatures=result.checkpoints.map(point=>({type:'Feature',properties:{color:routeLevelColor(point.restriction.level),popup:`<div class="route-map-tooltip"><strong>${htmlEscape(point.name)}</strong><span>${htmlEscape(formatDateTime(point.etaIso))}</span><span>${htmlEscape(point.weather.label)}</span><span>${Math.round(point.weather.temperature)} °C · ${Math.round(point.weather.precipitationProbability)} %</span><span>${htmlEscape(formatRouteWind(point.weather.direction,point.weather.wind,point.weather.gust))}</span></div>`},geometry:{type:'Point',coordinates:[point.longitude,point.latitude]}}));
+ return <div className="route-weather-map"><MidMapLibre center={points[0]} zoom={7} className="route-maplibre" scrollZoom={false}><MapFitBounds south={south-dy} north={north+dy} west={west-dx} east={east+dx} padding={24}/><RasterTileLayer id="route-osm" attribution="© OpenStreetMap-Mitwirkende" url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"/><GeoJsonLayers id={`route-lines-${mode}`} data={{type:'FeatureCollection',features:lineFeatures}} layers={[{id:'segments',type:'line',paint:{'line-color':['get','color'],'line-width':['get','width'],'line-opacity':['get','opacity'],'line-cap':'round','line-join':'round'}}]}/><GeoJsonLayers id="route-checkpoints" data={{type:'FeatureCollection',features:pointFeatures}} layers={[{id:'points',type:'circle',paint:{'circle-radius':8,'circle-color':['get','color'],'circle-opacity':.94,'circle-stroke-color':'#ffffff','circle-stroke-width':2}}]} hoverProperty="popup"/>{result.checkpoints.map(point=><HtmlMarker key={`wind-${point.id}`} latitude={point.latitude} longitude={point.longitude} html={`<span class="route-wind-glyph" style="color:${routeLevelColor(point.restriction.level)};transform:rotate(${point.weather.direction}deg)">↑</span>`} className="route-wind-marker" anchor="center" popupHtml={htmlEscape(formatRouteWind(point.weather.direction,point.weather.wind,point.weather.gust))}/>)}</MidMapLibre></div>;
 }
 
 function profileSpeed(profile:RouteProfile){return profile==='bike'?20:profile==='foot'?5:90}

@@ -1,0 +1,49 @@
+import {readFile,readdir} from 'node:fs/promises';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+const read=relative=>readFile(path.join(root,relative),'utf8');
+const [pkgText,lockText,baselineText,core,compat,weather,app,fusion,cockpit,radar,phase,worker,styles]=await Promise.all([
+ read('package.json'),read('package-lock.json'),read('MID_BASELINE.json'),read('src/MapLibreCore.tsx'),read('src/MapLibreLegacyCompat.tsx'),read('src/weather.ts'),read('src/App.tsx'),read('src/forecastFusion.ts'),read('src/ForecastCockpit.tsx'),read('src/RadarPanel.tsx'),read('src/RadarModelPrecipTypeOverlay.tsx'),read('worker/metar-proxy.js'),read('src/styles.css')
+]);
+const pkg=JSON.parse(pkgText),lock=JSON.parse(lockText),baseline=JSON.parse(baselineText),failures=[];
+const need=(area,text,token)=>{if(!text.includes(token))failures.push(`${area}: ${token}`)};
+const forbid=(area,text,token)=>{if(text.includes(token))failures.push(`${area}: unerlaubt ${token}`)};
+if(pkg.dependencies?.['maplibre-gl']!=='5.24.0')failures.push('Package: maplibre-gl 5.24.0 ist nicht fest gepinnt.');
+for(const name of ['leaflet','react-leaflet'])if(pkg.dependencies?.[name])failures.push(`Package: ${name} ist weiterhin Runtime-Abhängigkeit.`);
+if(pkg.devDependencies?.['@types/leaflet'])failures.push('Package: @types/leaflet ist weiterhin Dev-Abhängigkeit.');
+if(lock.packages?.['node_modules/leaflet']||lock.packages?.['node_modules/react-leaflet']||lock.packages?.['node_modules/@react-leaflet/core'])failures.push('Lockfile enthält weiterhin Leaflet-Pakete.');
+if(lock.packages?.['node_modules/maplibre-gl']?.version!=='5.24.0')failures.push('Lockfile enthält nicht MapLibre GL JS 5.24.0.');
+need('MapLibre-Kern',core,"import * as maplibregl from 'maplibre-gl'");
+need('MapLibre-WMS',core,"'{bbox-epsg-3857}'");
+need('MapLibre-Layerreihenfolge',core,'registerMapLayerOrder');
+need('MapLibre-Layerreihenfolge',compat,'PANE_Z_INDEX');
+need('MapLibre-Layerreihenfolge',compat,'paneZIndex');
+const sourceFiles=[];async function walk(dir){for(const entry of await readdir(dir,{withFileTypes:true})){const absolute=path.join(dir,entry.name);if(entry.isDirectory())await walk(absolute);else if(/\.(ts|tsx)$/.test(entry.name))sourceFiles.push(absolute)}}await walk(path.join(root,'src'));
+for(const file of sourceFiles){const text=await readFile(file,'utf8');if(/from\s+['"]leaflet['"]|from\s+['"]react-leaflet['"]|import\(['"]leaflet['"]\)|import\(['"]react-leaflet['"]\)/.test(text))failures.push(`Leaflet-Import verbleibt: ${path.relative(root,file)}`)}
+need('Tages-PoP',weather,"probabilitySource?:'ensemble-members-dwd'|'hourly-max-fallback'");
+need('Tages-PoP',weather,'precipitationProbability:weightedProbability(rainProbabilityVals,DWD_PRECIPITATION_PROBABILITY_THRESHOLD_MM,true)');
+need('Tages-PoP',weather,'precipitationProbabilitySignificant:weightedProbability(rainProbabilityVals,DWD_SIGNIFICANT_PRECIPITATION_PROBABILITY_THRESHOLD_MM,true)');
+need('Tages-PoP',weather,'applyEnsembleDailyPrecipitationProbability');
+need('Tages-PoP',weather,'DWD-Ereigniswahrscheinlichkeit · 24 h: >0,2 mm');
+need('Tages-PoP',weather,'precipitationProbabilityWindows');
+need('Tages-PoP-Fallback',weather,"probabilitySource:'hourly-max-fallback'");
+need('Tages-PoP-Anwendung',app,'applyEnsembleDailyPrecipitationProbability(baseDisplayDaysUnweighted,ens)');
+need('Tages-PoP-Fusion',fusion,"day.probabilitySource==='ensemble-members-dwd'?dayProbability");
+need('Tages-PoP-UI',app,'dailyPrecipitationProbabilityTitle(d)');
+need('Tages-PoP-Cockpit',cockpit,'dailyPrecipitationProbabilityTitle(day)');
+for(const token of ['.cockpit-day-rain,.forecast-meta-rain,.widgetmeta>span{min-width:0;max-width:100%}','overflow:hidden;text-overflow:ellipsis;white-space:nowrap'])need('Kompakte PoP-Darstellung',styles,token);
+need('Radar-Modell-Phase',radar,"import('./RadarModelPrecipTypeOverlay')");
+need('Radar-Modell-Phase',radar,"precipitationTypeMode:'none'|'hymecng'|'radar-model'");
+need('Radar-Modell-Phase',radar,'OPERA-Echomaske + ICON-D2 als radar-/modellgestützte Phasenklassifikation');
+need('Radar-Modell-Phase',phase,'operaRasterPoint');
+need('Radar-Modell-Phase',phase,'wetBulbStull');
+need('Radar-Modell-Phase',phase,'Number(echo.dbz)<5');
+need('Radar-Modell-Phase',phase,'Math.abs(targetMs-operaMs)>30*60000');
+need('Radar-Modell-Phase',phase,'nearest.distanceMs>75*60000');
+for(const token of ["fields='pressure_msl,temperature_850hPa,relative_humidity_850hPa,temperature_2m,relative_humidity_2m,weather_code,precipitation,snowfall'",'temperature2m.push(','relativeHumidity2m.push(','snowfall.push(','frames.push({time:stamp,thetaE,temperature2m,relativeHumidity2m,weatherCode,precipitation,snowfall,isobars})'])need('Worker-Phasenfelder',worker,token);
+need('OPERA-Sichtbarkeit',radar,"activeSource==='opera'&&operaDisplayFrame");
+forbid('OPERA-Sichtbarkeit',radar,"activeSource!=='rainviewer'&&operaDisplayFrame");
+if(pkg.version!==baseline.releaseVersion)failures.push(`Versionen nicht synchron: package ${pkg.version} / baseline ${baseline.releaseVersion}`);
+if(failures.length){console.error('MapLibre-/Niederschlagswahrscheinlichkeits-/Radarphasen-Regression fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
+console.log('MapLibre app-weit, DWD-schwellenbasierte 24-h-/6-h-PoP und beobachtungsgebundene OPERA + ICON-D2-Niederschlagsart geprüft.');

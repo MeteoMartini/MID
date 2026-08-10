@@ -26,7 +26,7 @@ for(const [area,text,token] of [
  ['7-Tage-Trend',appSource,'hazards=summarizeDwdWarnings(trendHours,elevation)'],
  ['Folgenacht',appSource,'function sevenDayFollowingNightClause'],
  ['7-Tage-Karten',appSource,'{precipitationDuration}</span>'],
- ['Cockpit',cockpitSource,'{Math.round(day.probability)} % · {precipitationDuration}'],
+ ['Cockpit',cockpitSource,'{dailyPrecipitationProbabilityCompact(day)} · {precipitationDuration}'],
  ['Ensemble',ensembleSource,"{row.precipitationDuration?` · ${row.precipitationDuration}`:''}"]
  ])assert.ok(text.includes(token),`${area}: ${token}`);
 assert.ok(!appSource.includes('hazards=summarizeDwdWarningsForDay(allHours,day.date,elevation)'),'7-Tage-Trend greift weiterhin auf das komplette Kalenderdatum einschließlich vorangegangener Nacht zu.');

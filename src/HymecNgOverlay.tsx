@@ -1,52 +1,17 @@
-import {useEffect,useRef} from 'react';
-import {GridLayer as LeafletGridLayer,type Coords} from 'leaflet';
-import {useMap} from 'react-leaflet';
-import {hymecNgClassForRaw,loadHymecNgRaster,type HymecNgMeta,type HymecNgRaster} from './HymecNgSource';
-import {projectWgs84} from './radarProjection';
+import {useEffect,useMemo,useState} from 'react';
+import {CanvasOverlay,type MidMap} from './MapLibreCore';
+import {hymecNgClassForRaw,hymecNgSourceIndex,loadHymecNgRaster,type HymecNgMeta,type HymecNgRaster} from './HymecNgSource';
 
 export type HymecNgOverlayStatus='idle'|'loading'|'ready'|'error';
-type RasterGridLayer=LeafletGridLayer&{createTile:(coords:Coords,done:(error:Error|undefined,tile:HTMLElement)=>void)=>HTMLElement};
-
-function paintPixel(pixels:Uint8ClampedArray,pixel:number,raw:number,raster:HymecNgRaster,opacity:number){
- const classification=hymecNgClassForRaw(raw,raster),rgba=classification.rgba,alpha=Math.round(rgba[3]*Math.max(0,Math.min(1,opacity)));
- pixels[pixel]=rgba[0];pixels[pixel+1]=rgba[1];pixels[pixel+2]=rgba[2];pixels[pixel+3]=alpha;
-}
-function renderTile(canvas:HTMLCanvasElement,coords:Coords,raster:HymecNgRaster,opacity:number){
- const size=256,context=canvas.getContext('2d',{alpha:true});if(!context)throw new Error('Canvas nicht verfügbar.');
- const image=context.createImageData(size,size),pixels=image.data,worldSize=size*Math.pow(2,coords.z),startX=coords.x*size,startY=coords.y*size,longitudes=new Float64Array(size);
- for(let tileX=0;tileX<size;tileX++){
-  const worldX=startX+tileX+.5;
-  longitudes[tileX]=worldX/worldSize*360-180;
- }
- for(let tileY=0;tileY<size;tileY++){
-  const worldY=startY+tileY+.5,latitude=Math.atan(Math.sinh(Math.PI*(1-2*worldY/worldSize)))*180/Math.PI;
-  for(let tileX=0;tileX<size;tileX++){
-   const projected=projectWgs84(latitude,longitudes[tileX],raster.projection);if(!projected)continue;
-   const sourceX=Math.floor((projected[0]-raster.minX)/raster.xScale),sourceY=Math.floor((raster.maxY-projected[1])/raster.yScale);
-   if(sourceX<0||sourceX>=raster.width||sourceY<0||sourceY>=raster.height)continue;
-   const raw=Number(raster.values[sourceY*raster.width+sourceX]),pixel=(tileY*size+tileX)*4;paintPixel(pixels,pixel,raw,raster,opacity);
-  }
- }
+function drawRaster(map:MidMap,canvas:HTMLCanvasElement,raster:HymecNgRaster,opacity:number){
+ const box=map.getContainer().getBoundingClientRect(),cssWidth=Math.max(1,Math.round(box.width)),cssHeight=Math.max(1,Math.round(box.height)),memory=Number((navigator as Navigator&{deviceMemory?:number}).deviceMemory)||4,coarse=typeof matchMedia==='function'&&matchMedia('(pointer:coarse)').matches,step=coarse||memory<=4||cssWidth*cssHeight>260000?2:1,ratio=Math.min(1.35,window.devicePixelRatio||1),width=Math.max(1,Math.round(cssWidth/step*ratio)),height=Math.max(1,Math.round(cssHeight/step*ratio));
+ canvas.width=width;canvas.height=height;canvas.style.width=`${cssWidth}px`;canvas.style.height=`${cssHeight}px`;const context=canvas.getContext('2d',{alpha:true});if(!context)return;const image=context.createImageData(width,height),pixels=image.data,scaleX=cssWidth/width,scaleY=cssHeight/height,alphaScale=Math.max(0,Math.min(1,opacity));
+ for(let y=0;y<height;y++){for(let x=0;x<width;x++){const ll=map.unproject([(x+.5)*scaleX,(y+.5)*scaleY]),index=hymecNgSourceIndex(raster,ll.lat,ll.lng);if(index===null)continue;const classification=hymecNgClassForRaw(Number(raster.values[index]),raster),rgba=classification.rgba;if(rgba[3]<=0)continue;const pixel=(y*width+x)*4;pixels[pixel]=rgba[0];pixels[pixel+1]=rgba[1];pixels[pixel+2]=rgba[2];pixels[pixel+3]=Math.round(rgba[3]*alphaScale)}}
  context.putImageData(image,0,0);
 }
-function createLayer(raster:HymecNgRaster,opacity:number):LeafletGridLayer{
- const layer=new LeafletGridLayer({tileSize:256,opacity:1,zIndex:430,noWrap:true,bounds:raster.bounds,updateWhenIdle:true,updateWhenZooming:false,keepBuffer:2,className:'mid-hymecng-grid'}) as RasterGridLayer;
- layer.createTile=(coords,done)=>{
-  const canvas=document.createElement('canvas');canvas.width=256;canvas.height=256;canvas.setAttribute('role','presentation');
-  const render=()=>{try{renderTile(canvas,coords,raster,opacity);done(undefined,canvas)}catch(error){done(error instanceof Error?error:new Error(String(error)),canvas)}};
-  const idle=(window as Window&{requestIdleCallback?:(callback:()=>void,options?:{timeout:number})=>number}).requestIdleCallback;
-  if(idle)idle(render,{timeout:80});else window.setTimeout(render,0);
-  return canvas;
- };
- return layer;
-}
-
 export default function HymecNgOverlay({meta,opacity=.88,onStatus}:{meta:HymecNgMeta;opacity?:number;onStatus?:(status:HymecNgOverlayStatus,message?:string)=>void}){
- const map=useMap(),layerRef=useRef<LeafletGridLayer|null>(null);
- useEffect(()=>{
-  let alive=true,layer:LeafletGridLayer|null=null;onStatus?.('loading');
-  void loadHymecNgRaster(meta).then(raster=>{if(!alive)return;layer=createLayer(raster,opacity);layer.addTo(map);layerRef.current=layer;onStatus?.('ready',`DWD HymecNG · ${raster.width}×${raster.height} · ${Math.round(raster.xScale)} m`) }).catch(error=>{if(alive)onStatus?.('error',error instanceof Error?error.message:String(error))});
-  return()=>{alive=false;if(layer){map.removeLayer(layer);if(layerRef.current===layer)layerRef.current=null}}
- },[map,meta.fileUrl,opacity,onStatus]);
- return null;
+ const[raster,setRaster]=useState<HymecNgRaster|null>(null);
+ useEffect(()=>{let active=true;setRaster(null);onStatus?.('loading');void loadHymecNgRaster(meta).then(value=>{if(!active)return;setRaster(value);onStatus?.('ready',`DWD HymecNG · ${value.width}×${value.height} · ${Math.round(value.xScale)} m · Radar-Niederschlagsart`) }).catch(error=>{if(active)onStatus?.('error',error instanceof Error?error.message:String(error))});return()=>{active=false}},[meta.fileUrl,meta.observedAt,onStatus]);
+ const render=useMemo(()=>raster?(map:MidMap,canvas:HTMLCanvasElement)=>drawRaster(map,canvas,raster,1):null,[raster]);
+ return render?<CanvasOverlay id="hymecng-raster" opacity={opacity} zIndex={450} render={render}/>:null;
 }

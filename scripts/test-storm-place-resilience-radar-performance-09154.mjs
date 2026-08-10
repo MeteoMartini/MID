@@ -39,7 +39,7 @@ need('Ruckelfreie Karte',radar,[
 ]);
 if(radar.includes('RasterCacheRevision'))failures.push('Rasterlayer werden beim Zoom weiterhin vollständig cache-invalidiert.');
 need('GPU-schonende Überblendung',styles,[
- '.composite-card .leaflet-tile-pane{transform:translateZ(0);backface-visibility:hidden}',
+ '.composite-card .maplibregl-canvas-container{transform:translateZ(0);backface-visibility:hidden}',
  'will-change:opacity'
 ]);
 need('Package-Test',pkg,['test:storm-place-radar-performance']);

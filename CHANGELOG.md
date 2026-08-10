@@ -1,3 +1,36 @@
+## v0.9.39.3
+
+- TypeScript-Buildfix für die MapLibre-Migration: dynamische GeoJSON-Layer werden als `maplibregl.AddLayerObject` an `Map.addLayer()` übergeben.
+- Marker-Anchor-Typ von nicht vorhandenem `maplibregl.Anchor` auf den in MapLibre 5.24 exportierten `maplibregl.PositionAnchor` korrigiert.
+- Ensemble-Mean/Spread-Fallback erzeugt nun ebenfalls die vier 6-h-Niederschlagsfenster 00–06, 06–12, 12–18 und 18–24 Uhr und erfüllt damit den vollständigen `MemberDay`-Vertrag.
+- Neue Pflichtregression schützt die drei GitHub-CI-Buildfehler aus v0.9.39.2 dauerhaft.
+
+## v0.9.39.2
+
+- Niederschlagswahrscheinlichkeit DWD-nah zeitbezogen umgesetzt: Ereignisschwellen > 0,2 mm und > 5,0 mm werden für 24 h sowie die vier Ortszeitfenster 00–06, 06–12, 12–18 und 18–24 Uhr aus Ensemble-Membern berechnet.
+- Kompakte Tagesdarstellung zeigt das relevanteste 6-h-Fenster (z. B. `12–18 h · 70%`) statt eines irreführenden Stundenmaximums als Tageswahrscheinlichkeit; vollständige 24-h-/6-h-Aufschlüsselung im Tooltip.
+- Ohne Ensembleauswertung wird das Best-Match-Stundenmaximum nur noch als `zeitw. bis … %` gekennzeichnet und ausdrücklich nicht als DWD-Tagesereigniswahrscheinlichkeit ausgegeben.
+- Ereigniswahrscheinlichkeiten werden vor der robusten Mengen-Ausreißerfilterung aus allen plausiblen Ensemble-Membern berechnet; Mengenquantile und Eintrittswahrscheinlichkeit sind statistisch getrennt.
+- Ensemble-Cache auf v11 invalidiert, damit alte Tages-PoP-Datensätze ohne 6-h-Zeitfenster nicht weiterverwendet werden.
+
+## v0.9.39.1
+
+- Tages-Niederschlagswahrscheinlichkeit auf DWD-Ereignisschwellen > 0,2 mm und > 5,0 mm umgestellt.
+- Eigene >= 0,1-mm-Tagesdefinition aus v0.9.39.0 entfernt.
+- Zweite DWD-Wahrscheinlichkeit (> 5,0 mm) in Tages-/Ensembleinformationen ergänzt.
+- Prognoseverifikation auf dasselbe > 0,2-mm-Ereignis synchronisiert.
+- Ensemble-Cache invalidiert (v10), damit alte PoP-Werte nicht fortgeschrieben werden.
+
+## v0.9.39.0
+
+- Kartenengine: MID app-weit von Leaflet/react-leaflet auf MapLibre GL JS 5.24.0 migriert; gemeinsamer Kartenkern für Raster/WMS, GeoJSON, Marker, projektionstreue Canvas-Raster und deterministische Layerreihenfolge.
+- Kompositbild: OPERA wird bei verfügbarem DWD-Radar nicht mehr optisch über das DWD-Bild gemischt, sondern als Kontroll- und Phasenquelle genutzt; als sichtbares Radar erscheint OPERA nur, wenn es selbst die aktive Radarquelle ist.
+- Niederschlagsart: frisches DWD HymecNG bleibt Primärklassifikation; fehlt es, kombiniert MID beobachtete OPERA-Echos mit zeitnahem ICON-D2 (WMO-Code, Schneefall, bodennahe Temperatur/Feuchte und Feuchtkugeltemperatur). Außerhalb realer Radarechos wird keine Niederschlagsart erzeugt.
+- Niederschlagswahrscheinlichkeit: Tageswerte verwenden bei verfügbarer Ensembleauswertung den modellgewichteten Anteil nasser Ensemble-Member ab 0,1 mm/Tag statt des höchsten Stundenwerts; `precipitation_probability_max` bleibt klar gekennzeichneter Fallback. Stündliche und 15-Minuten-Ansichten behalten ihre zeitintervallspezifischen Wahrscheinlichkeiten.
+- Tages-PoP in Vorhersage, 7-Tage-Cockpit und Widget kompakt/überlaufsicher integriert; Herkunft ist per Tooltip nachvollziehbar.
+- Worker: ICON-D2-Wetterkartenraster liefert zusätzlich 2-m-Temperatur, 2-m-relative Feuchte, Wettercode, Niederschlag und Schneefall für die Radar-Modell-Phasenklassifikation.
+- Regressionen: rendererabhängige Leaflet-Prüfungen auf identische MapLibre-Fachverträge migriert und neuer kombinierter Schutztest für Kartenengine, Tages-PoP und Radar-Modell-Niederschlagsart ergänzt.
+
 ## v0.9.38.6
 
 - Kompositbild: HymecNG-Projektion wertet ODIM `+ellps=WGS84` und `+ellps=GRS80` nun als echtes Ellipsoid statt als Kugel aus; dadurch wird das aktuelle DWD-HDF5 korrekt in Leaflet/WebMercator zurückprojiziert.

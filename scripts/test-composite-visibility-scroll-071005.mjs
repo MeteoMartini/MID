@@ -44,7 +44,7 @@ for(const token of [
   '.mid-motion-arrow-marker{',
   '.mid-konrad-marker{',
   '.mid-nowcastmix-marker{',
-  '.radarmap.touch-scroll-mode .leaflet-container{touch-action:pan-y!important}',
+  '.radarmap.touch-scroll-mode .maplibregl-map{touch-action:pan-y!important}',
   '.composite-map-interaction{',
   '.composite-card{contain:layout paint style;isolation:isolate}'
 ])need(styles,token,'Komposit-CSS fehlt');

@@ -24,7 +24,8 @@ for(const token of [
  'Math.round(raw*raster.gain+raster.offset)',
  'möglicher DWD-/Proxy-Cache'
 ])need('HymecNG-HDF5',source,token);
-need('Overlay',overlay,'classEncoding');
+need('HymecNG-HDF5',source,'classEncoding');
+need('Overlay',overlay,'hymecNgClassForRaw');
 reject('Overlay',overlay,'bounds:raster.bounds');
 need('Baseline',baseline,'scripts/test-hymecng-direct-latest-hg-fallback-09384.mjs');
 

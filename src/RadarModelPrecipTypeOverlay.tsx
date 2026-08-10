@@ -1,0 +1,31 @@
+import {useEffect,useMemo,useState} from 'react';
+import {GeoJsonLayers} from './MapLibreCore';
+import type {OperaRasterFrame} from './CompositeData';
+import {loadOperaRasterData,operaRasterPoint,type OperaRaster} from './OperaRasterSource';
+import {loadWeatherMapGrid,type WeatherMapGridData,type WeatherMapGridFrame} from './WeatherMapsData';
+
+export type RadarModelPhaseStatus='idle'|'loading'|'ready'|'error';
+type Phase='rain'|'mixed'|'snow'|'freezing'|'convective';
+type PhaseResult={phase:Phase;label:string;color:string;confidence:'hoch'|'mittel'|'eingeschränkt'};
+function wetBulbStull(t:number,rh:number){if(!Number.isFinite(t)||!Number.isFinite(rh))return NaN;const humidity=Math.max(1,Math.min(100,rh));return t*Math.atan(.151977*Math.sqrt(humidity+8.313659))+Math.atan(t+humidity)-Math.atan(humidity-1.676331)+.00391838*Math.pow(humidity,1.5)*Math.atan(.023101*humidity)-4.686035}
+function phaseFor(frame:WeatherMapGridFrame,index:number):PhaseResult{
+ const code=Math.round(Number(frame.weatherCode[index])||0),temperature=Number(frame.temperature2m?.[index]),humidity=Number(frame.relativeHumidity2m?.[index]),snowfall=Math.max(0,Number(frame.snowfall?.[index])||0),wetBulb=wetBulbStull(temperature,humidity),explicitFreezing=[56,57,66,67].includes(code),explicitSnow=[71,73,75,77,85,86].includes(code),explicitMixed=[68,69].includes(code),convective=[96,99].includes(code);
+ if(explicitFreezing)return{phase:'freezing',label:'gefrierender Niederschlag',color:'#f02d44',confidence:'hoch'};
+ if(explicitSnow)return{phase:'snow',label:'Schnee',color:'#e96adf',confidence:'hoch'};
+ if(explicitMixed)return{phase:'mixed',label:'Schneeregen / Mischphase',color:'#a66be8',confidence:'hoch'};
+ if(snowfall>.02&&Number.isFinite(wetBulb)){if(wetBulb<=.5)return{phase:'snow',label:'Schneephase wahrscheinlich',color:'#e96adf',confidence:'mittel'};if(wetBulb<=1.6)return{phase:'mixed',label:'Mischphase möglich',color:'#a66be8',confidence:'mittel'}}
+ if(Number.isFinite(temperature)&&temperature<=0&&code>=51)return{phase:'freezing',label:'unterkühlter/gefrierender Niederschlag möglich',color:'#f02d44',confidence:'eingeschränkt'};
+ if(convective)return{phase:'convective',label:'konvektiver Niederschlag · Hagel möglich',color:'#d67b25',confidence:'eingeschränkt'};
+ return{phase:'rain',label:'flüssiger Niederschlag',color:'#18c287',confidence:Number.isFinite(wetBulb)?'mittel':'eingeschränkt'};
+}
+function nearestFrame(data:WeatherMapGridData,targetMs:number){let best:WeatherMapGridFrame|undefined,distance=Infinity;for(const frame of data.frames){const stamp=Date.parse(frame.time),delta=Math.abs(stamp-targetMs);if(Number.isFinite(delta)&&delta<distance){best=frame;distance=delta}}return{frame:best,distanceMs:distance}}
+function buildPhaseGeoJson(data:WeatherMapGridData,frame:WeatherMapGridFrame,raster:OperaRaster){
+ const features:any[]=[],latStep=data.lats.length>1?Math.abs(data.lats[1]-data.lats[0]):.4,lonStep=data.lons.length>1?Math.abs(data.lons[1]-data.lons[0]):.6,subdivisions=3;
+ for(let row=0;row<data.lats.length;row++)for(let col=0;col<data.lons.length;col++){const index=row*data.lons.length+col,phase=phaseFor(frame,index),centerLat=data.lats[row],centerLon=data.lons[col];for(let sy=0;sy<subdivisions;sy++)for(let sx=0;sx<subdivisions;sx++){const south=centerLat-latStep/2+sy*latStep/subdivisions,north=south+latStep/subdivisions,west=centerLon-lonStep/2+sx*lonStep/subdivisions,east=west+lonStep/subdivisions,lat=(south+north)/2,lon=(west+east)/2,echo=operaRasterPoint(raster,lat,lon);if(!echo.covered||!Number.isFinite(echo.dbz)||Number(echo.dbz)<5)continue;const dbz=Number(echo.dbz),alpha=dbz>=50?.4:dbz>=35?.31:dbz>=20?.24:.18,label=`Radar + ICON-D2 · ${phase.label} · ${Math.round(dbz)} dBZ · Phasensicherheit ${phase.confidence}`;features.push({type:'Feature',properties:{phase:phase.phase,color:phase.color,alpha,label,dbz},geometry:{type:'Polygon',coordinates:[[[west,south],[east,south],[east,north],[west,north],[west,south]]]}})}}
+ return{type:'FeatureCollection',features};
+}
+export default function RadarModelPrecipTypeOverlay({latitude,longitude,targetTime,operaFrame,opacity=.9,onStatus}:{latitude:number;longitude:number;targetTime?:string;operaFrame?:OperaRasterFrame|null;opacity?:number;onStatus?:(status:RadarModelPhaseStatus,message?:string)=>void}){
+ const[data,setData]=useState<WeatherMapGridData|null>(null),[raster,setRaster]=useState<OperaRaster|null>(null),[frame,setFrame]=useState<WeatherMapGridFrame|null>(null);
+ useEffect(()=>{const controller=new AbortController();setData(null);setRaster(null);setFrame(null);if(!operaFrame?.fileUrl){onStatus?.('error','OPERA-Echomaske fehlt; Radar-Modell-Niederschlagsart bleibt aus.');return()=>controller.abort()}const targetMs=Date.parse(targetTime||operaFrame.time),operaMs=Date.parse(operaFrame.time);if(!Number.isFinite(targetMs)||!Number.isFinite(operaMs)||Math.abs(targetMs-operaMs)>30*60000){onStatus?.('error','OPERA-Echomaske liegt zeitlich zu weit vom gewählten Radarbild entfernt.');return()=>controller.abort()}onStatus?.('loading','OPERA-Echomaske und ICON-D2-Phasenfeld werden kombiniert.');Promise.all([loadWeatherMapGrid('icon-d2',latitude,longitude,controller.signal),loadOperaRasterData(operaFrame.fileUrl,controller.signal)]).then(([grid,nextRaster])=>{if(controller.signal.aborted)return;const nearest=nearestFrame(grid,targetMs);if(!nearest.frame||nearest.distanceMs>75*60000)throw new Error('Kein zeitnaher ICON-D2-Zeitschritt für die Radarphase.');setData(grid);setRaster(nextRaster);setFrame(nearest.frame);onStatus?.('ready',`Radar + ICON-D2 · OPERA-Echomaske ${operaFrame.time.slice(11,16)} UTC · Modell ${nearest.frame.time.slice(11,16)} UTC`) }).catch(error=>{if(!controller.signal.aborted)onStatus?.('error',error instanceof Error?error.message:String(error))});return()=>controller.abort()},[latitude,longitude,targetTime,operaFrame?.fileUrl,operaFrame?.time,onStatus]);
+ const geojson=useMemo(()=>data&&frame&&raster?buildPhaseGeoJson(data,frame,raster):null,[data,frame,raster]);if(!geojson||!geojson.features.length)return null;return <GeoJsonLayers id="radar-model-precip-type" data={geojson} layers={[{id:'phase',type:'fill',paint:{'fill-color':['get','color'],'fill-opacity':['*',['get','alpha'],Math.max(.2,Math.min(1,opacity))],'fill-outline-color':['get','color']}}]} hoverProperty="label" zIndex={450}/>;
+}

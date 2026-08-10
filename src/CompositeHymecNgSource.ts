@@ -1,4 +1,3 @@
-import type {LatLngBoundsExpression} from 'leaflet';
 import {fetchWorkerJson} from './workerClient';
 import {inverseProjectedPoint,projectWgs84,projectionFromDefinition,type RadarProjection} from './radarProjection';
 
@@ -50,7 +49,7 @@ export type HymecNgRaster={
  observedAt?:string;
  classificationVerified:boolean;
  classEncoding:'dry-zero'|'listed-order';
- bounds:LatLngBoundsExpression;
+ bounds:[[number,number],[number,number]];
 };
 
 const hexToRgba=(hex:string,alpha=1):[number,number,number,number]=>{
@@ -163,7 +162,7 @@ function rasterGeometry(file:H5File,selection:DatasetSelection,observedAt:string
  if(!Number.isFinite(minX)||!Number.isFinite(maxY))throw new Error('HymecNG-Rasterursprung konnte nicht aus den ODIM-Koordinaten bestimmt werden.');
  const maxX=minX!+width*xScale,minY=maxY!-height*yScale,corners:[[number,number],[number,number],[number,number],[number,number]]=[[minX!,maxY!],[maxX,maxY!],[minX!,minY],[maxX,minY]],geo=corners.map(([x,y])=>inverseProjectedPoint(x,y,projection)).filter((point):point is [number,number]=>Boolean(point&&Number.isFinite(point[0])&&Number.isFinite(point[1])));
  if(geo.length!==4)throw new Error('HymecNG-Rastergrenzen konnten nicht nach WGS84 transformiert werden.');
- const lats=geo.map(point=>point[0]),lons=geo.map(point=>point[1]),bounds:LatLngBoundsExpression=[[Math.min(...lats),Math.min(...lons)],[Math.max(...lats),Math.max(...lons)]],gain=scalar(attr(selection.what,'gain'))??1,offset=scalar(attr(selection.what,'offset'))??0,nodata=scalar(attr(selection.what,'nodata'))??255,undetect=scalar(attr(selection.what,'undetect'))??0;
+ const lats=geo.map(point=>point[0]),lons=geo.map(point=>point[1]),bounds:[[number,number],[number,number]]=[[Math.min(...lats),Math.min(...lons)],[Math.max(...lats),Math.max(...lons)]],gain=scalar(attr(selection.what,'gain'))??1,offset=scalar(attr(selection.what,'offset'))??0,nodata=scalar(attr(selection.what,'nodata'))??255,undetect=scalar(attr(selection.what,'undetect'))??0;
  const actualObservedAt=hdf5ObservedAt(file,observedAt),classEncoding=detectHymecNgClassEncoding(values,gain,offset,nodata,undetect);
  return{projection,width,height,xScale,yScale,minX:minX!,maxY:maxY!,values,gain,offset,nodata,undetect,observedAt:actualObservedAt,classificationVerified,classEncoding,bounds};
 }

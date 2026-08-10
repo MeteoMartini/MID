@@ -41,14 +41,14 @@ for(const token of [
  'function findDataset(file:H5File):DatasetSelection',
  "for(let dataset=1;dataset<=5;dataset++)",
  "for(let data=1;data<=6;data++)",
- 'ImageOverlay url={overlay.url}',
+ 'ImageQuadLayer id="px250-image"',
  'zIndex={430}',
  'canvas.toDataURL'
 ])need('PX250',px,token);
 need('PX250-Projektion',projection,"new RegExp(`(?:^|\\\\s)\\\\+${name}=([^\\\\s]+)`");
 for(const token of [
- '.leaflet-mid-lightning-points-pane',
- '.leaflet-mid-motion-arrows-pane',
+ '.maplibre-mid-lightning-points-pane',
+ '.maplibre-mid-motion-arrows-pane',
  '.radar-location-marker.selected-location',
  '.mid-motion-arrow-marker .core{stroke:rgba(255,255,255,.88)'
 ])need('Darstellung',styles,token);

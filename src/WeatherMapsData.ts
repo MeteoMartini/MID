@@ -12,7 +12,7 @@ export type WeatherMapProduct={
 };
 export type WeatherMapMetadata={layer:string;times:string[];referenceTimes:string[];elevations:number[];provider?:string;checkedAt?:string;error?:string};
 export type WeatherMapGridContour={level:number;paths:[number,number][][]};
-export type WeatherMapGridFrame={time:string;thetaE:number[];weatherCode:number[];precipitation:number[];isobars:WeatherMapGridContour[]};
+export type WeatherMapGridFrame={time:string;thetaE:number[];temperature2m?:number[];relativeHumidity2m?:number[];weatherCode:number[];precipitation:number[];snowfall?:number[];isobars:WeatherMapGridContour[]};
 export type WeatherMapGridData={modelId:WeatherMapModelId;modelLabel:string;times:string[];referenceTime?:string;lats:number[];lons:number[];frames:WeatherMapGridFrame[];provider?:string;checkedAt?:string;error?:string};
 
 export const WEATHER_MAP_MODELS:{id:WeatherMapModelId;label:string;detail:string}[]=[

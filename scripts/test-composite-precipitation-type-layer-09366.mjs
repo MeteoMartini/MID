@@ -21,7 +21,7 @@ for(const token of [
   "import('./CompositeHymecNgOverlay')",
   "from './CompositeHymecNgSource'",
   'Niederschlagsart',
-  'DWD HymecNG als echter Niederschlagsarten-Layer'
+  'DWD HymecNG als direkte Radarklassifikation'
 ]) need('RadarPanel',radarPanel,token);
 for(const token of [
   'dwd-precipitation-type-image',
@@ -54,4 +54,6 @@ need('Baseline',baseline,'scripts/test-composite-precipitation-type-layer-09366.
 const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;
 if(pv!==bv)failures.push(`Versionen nicht synchron: ${pv}/${bv}`);
 if(failures.length){console.error('Komposit-Niederschlagsart-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Kompositbild nutzt jetzt einen echten DWD-HymecNG-Layer für Niederschlagsarten; das WN/Cloud-PNG bleibt nur noch der eigenständigen Originalbild-Karte vorbehalten.');
+need('Radar-Modell-Fallback',radarPanel,"import('./RadarModelPrecipTypeOverlay')");
+need('Radar-Modell-Fallback',radarPanel,'OPERA-Echomaske + ICON-D2 als radar-/modellgestützte Phasenklassifikation');
+console.log('Kompositbild nutzt DWD HymecNG primär und OPERA + ICON-D2 als beobachtungsgebundenen Niederschlagsarten-Fallback.');

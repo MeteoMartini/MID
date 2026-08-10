@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.38.6",
+  "version": "0.9.39.3",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -233,21 +233,23 @@
     "verify:types": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
     "verify:vite": "node --max-old-space-size=4096 node_modules/vite/bin/vite.js build",
     "test:stable-audit-20260810": "node scripts/test-stable-audit-20260810.mjs",
-    "test:hymecng-satellite-snapshot": "node scripts/test-hymecng-satellite-snapshot-09383.mjs"
+    "test:hymecng-satellite-snapshot": "node scripts/test-hymecng-satellite-snapshot-09383.mjs",
+    "test:maplibre-precip-09390": "node scripts/test-maplibre-precip-probability-09390.mjs",
+    "test:dwd-precip-thresholds-09391": "node scripts/test-dwd-precip-probability-thresholds-09391.mjs",
+    "test:dwd-precip-periods-09392": "node scripts/test-dwd-precip-probability-periods-09392.mjs",
+    "test:maplibre-precip-buildfix": "node scripts/test-maplibre-precip-buildfix-09393.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",
     "jsfive": "^0.4.0",
-    "leaflet": "^1.9.4",
     "lucide-react": "^0.468.0",
+    "maplibre-gl": "5.24.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-is": "18.3.1",
-    "react-leaflet": "^4.2.1",
     "recharts": "3.8.1"
   },
   "devDependencies": {
-    "@types/leaflet": "^1.9.16",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "4.7.0",

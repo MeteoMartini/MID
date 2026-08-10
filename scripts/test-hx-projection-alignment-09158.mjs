@@ -9,11 +9,11 @@ const [projectionSource,overlaySource]=await Promise.all([
 ]);
 
 assert.match(overlaySource,/meta\.product==='hx'/,'HX-specific rendering branch missing');
-assert.match(overlaySource,/createProjectedLayer\(raster,opacityRef\.current\)/,'HX must use a projection-aware Leaflet grid layer');
-assert.match(overlaySource,/stereographicRadius\(latitude,raster\.projection\)/,'Web-Mercator tile rows are not transformed into the HX projection');
+assert.match(overlaySource,/renderProjectedViewport\(map,canvas,projected\)/,'HX must use a projection-aware MapLibre viewport renderer');
+assert.match(overlaySource,/stereographicRadius\(ll\.lat,raster\.projection\)/,'MapLibre viewport coordinates are not transformed into the HX projection');
 assert.match(overlaySource,/sourceX=Math\.round\(projectedX\/raster\.xScale\)/,'HX x coordinate is not mapped to the source raster');
 assert.match(overlaySource,/sourceY=Math\.round\(-projectedY\/raster\.yScale\)/,'HX y axis must decrease from the upper-left source row');
-assert.doesNotMatch(overlaySource,/if\(meta\.product==='hx'\)[\s\S]{0,500}boundsFromFile\(/,'HX must not be stretched into a geographic rectangle');
+assert.match(overlaySource,/if\(draw\)return <CanvasOverlay id="px250-projected"/,'HX must stay on the projection-aware MapLibre canvas instead of a geographic image quad');
 
 const js=ts.transpileModule(projectionSource,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
 const module={exports:{}};
