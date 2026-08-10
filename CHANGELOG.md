@@ -1,3 +1,9 @@
+## v0.9.36.4
+- 14-Tage-Ensemble-Niederschlag „kumuliert“: ENS-Mittel ist jetzt unabhängig vom Standard-/Erweitert-Modus immer als eigene gestrichelte kumulierte Linie sichtbar.
+- Kumulierte Legende und Tooltip zeigen ENS-Mittel ebenfalls immer; Export-Metadaten enthalten es verbindlich.
+- CI-Analyse: der gemeldete Wartungstest ist auf den exakten v0.9.36.2- und v0.9.36.3-Ständen sowie nach allen 188 davor laufenden Regressionen unter simuliertem GitHub-Actions-Umfeld reproduzierbar grün. Der zeitgleiche Dependabot-PR für Recharts 3.10.1 erklärt den roten PR-CI-Lauf, weil der Stable-Vertrag bewusst Recharts 3.8.1 festschreibt. Stable-Code wird deshalb nicht aufgeweicht.
+- Neue Regression `test-ensemble-cumulative-ens-mean-09364.mjs`.
+
 ## v0.9.36.3
 - 14-Tage-Ensemble-Niederschlag „kumuliert“: P10/P25/P75/P90 und ENS-Mittel werden jetzt statistisch korrekt aus den **kumulierten Niederschlagssummen jedes einzelnen Ensemblemitglieds** berechnet. Die in v0.9.36.2 verwendete Addition täglicher Quantile wurde entfernt.
 - Dadurch bleibt das innere P25–P75-Band auch bei tageweise stark null-inflationiertem Niederschlag aussagekräftig und kann nicht mehr allein deshalb auf `0,0–0,0 mm` kollabieren, weil die täglichen Quartile jeweils null waren.
