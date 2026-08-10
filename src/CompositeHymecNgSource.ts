@@ -17,6 +17,9 @@ export type HymecNgMeta={
  license?:string;
  classificationVerified?:boolean;
  classificationNote?:string;
+ ageMinutes?:number;
+ fresh?:boolean;
+ sourceRoot?:string;
  error?:string;
  reason?:string;
 };
@@ -68,7 +71,7 @@ export const HYMEC_NG_CLASSES:HymecNgClass[]=[
 ];
 export const HYMEC_NG_CLASS_LEGEND=HYMEC_NG_CLASSES.map(item=>({label:item.label,color:item.color,code:item.code}));
 const HYMEC_NG_CLASS_BY_CODE=new Map<number,HymecNgClass>(HYMEC_NG_CLASSES.map(item=>[item.code,item]));
-const UNKNOWN_CLASS:HymecNgClass={code:-1,label:'unbekannte HymecNG-Klasse',color:'#7f7f7f',rgba:hexToRgba('#7f7f7f',.75)};
+const UNKNOWN_CLASS:HymecNgClass={code:-1,label:'unbekannte HymecNG-Klasse',color:'#7f7f7f',rgba:[0,0,0,0]};
 const rasterCache=new Map<string,Promise<HymecNgRaster>>();
 
 function text(value:unknown):string{
@@ -153,7 +156,23 @@ export function hymecNgClassForRaw(raw:number,raster:HymecNgRaster):HymecNgClass
  if(!Number.isFinite(raw)||raw===raster.nodata)return HYMEC_NG_CLASS_BY_CODE.get(0)!;
  if(raw===raster.undetect)return HYMEC_NG_CLASS_BY_CODE.get(0)!;
  if(!raster.classificationVerified)return UNKNOWN_CLASS;
- return HYMEC_NG_CLASS_BY_CODE.get(Math.round(raw))||UNKNOWN_CLASS;
+ // ODIM-HDF5 speichert Rasterwerte als Rohwert; die physikalische/Klassen-Codierung
+ // entsteht erst aus gain und offset. Ein direktes Runden des Rohwerts kann deshalb
+ // sämtliche HymecNG-Niederschlagsklassen unsichtbar machen.
+ const code=Math.round(raw*raster.gain+raster.offset);
+ return HYMEC_NG_CLASS_BY_CODE.get(code)||UNKNOWN_CLASS;
+}
+
+export type HymecNgRasterDiagnostics={sampled:number;knownPrecipitation:number;dry:number;unknown:number;unknownShare:number};
+export function hymecNgRasterDiagnostics(raster:HymecNgRaster):HymecNgRasterDiagnostics{
+ const length=Math.min(raster.values.length,raster.width*raster.height),step=Math.max(1,Math.floor(length/120000));
+ let sampled=0,knownPrecipitation=0,dry=0,unknown=0;
+ for(let index=0;index<length;index+=step){
+  const raw=Number(raster.values[index]),classification=hymecNgClassForRaw(raw,raster);sampled++;
+  if(classification.code<0)unknown++;else if(classification.code===0)dry++;else knownPrecipitation++;
+ }
+ const classified=Math.max(1,knownPrecipitation+unknown),unknownShare=unknown/classified;
+ return{sampled,knownPrecipitation,dry,unknown,unknownShare};
 }
 
 export function hymecNgSourceIndex(raster:HymecNgRaster,latitude:number,longitude:number):number|null{

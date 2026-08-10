@@ -1,7 +1,7 @@
 import {useEffect,useRef} from 'react';
 import {GridLayer as LeafletGridLayer,type Coords} from 'leaflet';
 import {useMap} from 'react-leaflet';
-import {hymecNgClassForRaw,loadHymecNgRaster,type HymecNgMeta,type HymecNgRaster} from './CompositeHymecNgSource';
+import {hymecNgClassForRaw,hymecNgRasterDiagnostics,loadHymecNgRaster,type HymecNgMeta,type HymecNgRaster} from './CompositeHymecNgSource';
 import {projectWgs84} from './radarProjection';
 
 export type HymecNgOverlayStatus='idle'|'loading'|'ready'|'error';
@@ -45,7 +45,7 @@ export default function HymecNgOverlay({meta,opacity=.88,onStatus}:{meta:HymecNg
  const map=useMap(),layerRef=useRef<LeafletGridLayer|null>(null);
  useEffect(()=>{
   let alive=true,layer:LeafletGridLayer|null=null;onStatus?.('loading');
-  void loadHymecNgRaster(meta).then(raster=>{if(!alive)return;layer=createLayer(raster,opacity);layer.addTo(map);layerRef.current=layer;onStatus?.('ready',`DWD HymecNG · ${raster.width}×${raster.height} · ${Math.round(raster.xScale)} m`) }).catch(error=>{if(alive)onStatus?.('error',error instanceof Error?error.message:String(error))});
+  void loadHymecNgRaster(meta).then(raster=>{if(!alive)return;const diagnostics=hymecNgRasterDiagnostics(raster);if(diagnostics.unknown>=20&&diagnostics.knownPrecipitation===0)throw new Error(`HymecNG-Klassencodierung nicht plausibel (${diagnostics.unknown} unbekannte Stichproben).`);if(diagnostics.unknownShare>.72&&diagnostics.unknown>diagnostics.knownPrecipitation*2)throw new Error(`HymecNG-Klassencodierung überwiegend unbekannt (${Math.round(diagnostics.unknownShare*100)} %).`);layer=createLayer(raster,opacity);layer.addTo(map);layerRef.current=layer;const message=diagnostics.knownPrecipitation>0?`DWD HymecNG · ${raster.width}×${raster.height} · ${Math.round(raster.xScale)} m · klassifizierte Niederschlagsflächen vorhanden`:`DWD HymecNG · ${raster.width}×${raster.height} · ${Math.round(raster.xScale)} m · aktuell keine klassifizierten Niederschlagsflächen`;onStatus?.('ready',message) }).catch(error=>{if(alive)onStatus?.('error',error instanceof Error?error.message:String(error))});
   return()=>{alive=false;if(layer){map.removeLayer(layer);if(layerRef.current===layer)layerRef.current=null}}
  },[map,meta.fileUrl,opacity,onStatus]);
  return null;

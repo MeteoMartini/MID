@@ -42,7 +42,7 @@ need('Standalone DWD-Originalbild',standalone,"'dwd-precipitation-type-image'");
 // HymecNG muss nativ georeferenziert und aktiv freigegeben sein.
 need('HymecNG-Quelle',worker,"product:'HymecNG'");
 need('HymecNG-Quelle',worker,'classificationVerified:true');
-need('HymecNG-Quelle',worker,'echte DWD-HDF5-Produkt nativ georeferenziert');
+need('HymecNG-Quelle',worker,'Aktueller DWD-HymecNG-HDF5-Snapshot');
 need('HymecNG-Georeferenzierung',hymecSource,'HYMEC_NG_CLASSES');
 need('HymecNG-Georeferenzierung',hymecSource,'MID verwendet keinen Legacy-/Kugel-Fallback');
 need('HymecNG-Georeferenzierung',hymecSource,'projectWgs84');

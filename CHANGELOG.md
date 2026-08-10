@@ -1,3 +1,10 @@
+## v0.9.38.3
+
+- Kompositbild: HymecNG-Layer-Lifecycle stabilisiert; ODIM-HDF5-Klassencodes werden mit gain/offset dekodiert und vor dem Rendern plausibilisiert.
+- HymecNG: beide offiziellen DWD-Open-Data-Roots werden geprüft; nur der jüngste Stand und maximal 25 Minuten alte Live-Daten werden angezeigt.
+- Satellit: ausschließlich ein explizit zeitgestempelter, frischer WMS-Snapshot; unzeitgestempeltes latest und Nachbarframe-Preloading entfernt, um alte/neue Tile-Mosaike auszuschließen.
+- Neue Regression schützt HymecNG-Frische/Klassendekodierung und Satelliten-Snapshot-Konsistenz.
+
 ## v0.9.38.2
 
 - Tagesdetaildiagramm: schlanke Leiste „Thermisches Empfinden“ zwischen Temperatur und Luftdruck, mit denselben Belastungsklassen/Farben wie im 24-h-Wetterprofil.

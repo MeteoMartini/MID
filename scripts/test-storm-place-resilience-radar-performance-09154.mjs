@@ -28,7 +28,7 @@ need('Ruckelfreie Karte',radar,[
  'function withAdjacentPreload',
  'dwdRenderBlend=withAdjacentPreload',
  'rainRenderBlend=withAdjacentPreload',
- 'satelliteRenderBlend=withAdjacentPreload',
+ 'const snapshotToken=`snapshot:${iso}`',
  'keepBuffer={2}',
  'keepBuffer={1}',
  'updateWhenIdle={touchDevice}',

@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.38.2",
+  "version": "0.9.38.3",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -232,7 +232,8 @@
     "test:radar-calibration": "node scripts/test-radar-nowcast-calibration-09370.mjs",
     "verify:types": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
     "verify:vite": "node --max-old-space-size=4096 node_modules/vite/bin/vite.js build",
-    "test:stable-audit-20260810": "node scripts/test-stable-audit-20260810.mjs"
+    "test:stable-audit-20260810": "node scripts/test-stable-audit-20260810.mjs",
+    "test:hymecng-satellite-snapshot": "node scripts/test-hymecng-satellite-snapshot-09383.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",
