@@ -5294,3 +5294,20 @@ body,#root{
 /* MID v0.9.37.0 – kalibrierte Radar-Nowcast-Mengenspanne */
 .radar-nowcast-title .radar-nowcast-total em{display:inline-flex;align-items:center;margin-left:1px;padding-left:5px;border-left:1px solid color-mix(in srgb,var(--border) 78%,transparent);color:var(--muted);font-size:6.6px;font-style:normal;font-weight:780;letter-spacing:0;white-space:nowrap}
 @media(max-width:520px){.radar-nowcast-title .radar-nowcast-total em{font-size:5.9px;padding-left:4px}}
+
+/* MID v0.9.38.2 · Tagesdetail: schlanke Thermisches-Empfinden-Leiste */
+.detail-thermal-feel-bg{fill:color-mix(in srgb,var(--surface) 88%,transparent);stroke:color-mix(in srgb,var(--border) 82%,transparent);stroke-width:1;vector-effect:non-scaling-stroke}
+.detail-thermal-feel-label{fill:var(--muted);font-weight:800;letter-spacing:.01em}
+.detail-thermal-feel-band{stroke:rgba(255,255,255,.12);stroke-width:.45;vector-effect:non-scaling-stroke}
+.detail-thermal-feel-band.active{stroke:#fff;stroke-width:1.6;filter:drop-shadow(0 0 2px rgba(255,255,255,.38))}
+.hour-tooltip-grid.compact .hour-tooltip-thermal-feel{display:flex;align-items:flex-start;gap:5px;margin-top:5px;padding-top:5px;border-top:1px solid color-mix(in srgb,var(--border) 72%,transparent);font-size:9px;line-height:1.25}
+.hour-tooltip-thermal-feel>i{display:inline-block;flex:0 0 auto;width:8px;height:8px;margin-top:2px;border-radius:3px;box-shadow:0 0 0 1px rgba(255,255,255,.2)}
+
+/* MID v0.9.38.2 · 24-h-Wetterprofil: Tagesdetail-Bedienlogik */
+.cockpit-weather-profile .cockpit-meteogram-pro__canvas:focus{outline:none}
+.cockpit-weather-profile .cockpit-meteogram-pro__canvas:focus-visible{outline:2px solid color-mix(in srgb,var(--primary) 78%,white);outline-offset:3px;border-radius:12px}
+.cockpit-weather-profile__stepper{display:grid;grid-template-columns:28px minmax(0,1fr) 28px;align-items:center;gap:6px;min-width:0;flex:1}
+.cockpit-weather-profile__stepper>strong{min-width:0;text-align:center;font-size:12px}
+.cockpit-weather-profile__stepper>button{display:grid;place-items:center;width:28px;height:28px;padding:0;border:1px solid var(--border);border-radius:9px;background:var(--s2);color:var(--text);cursor:pointer}
+.cockpit-weather-profile__stepper>button:disabled{opacity:.36;cursor:default}
+@media(min-width:851px){.cockpit-weather-profile .cockpit-meteogram-pro__canvas{cursor:crosshair;overscroll-behavior:contain}}

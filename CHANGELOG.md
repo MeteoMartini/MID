@@ -1,3 +1,16 @@
+## v0.9.38.2
+
+- Tagesdetaildiagramm: schlanke Leiste „Thermisches Empfinden“ zwischen Temperatur und Luftdruck, mit denselben Belastungsklassen/Farben wie im 24-h-Wetterprofil.
+- Tagesdetail-Einzeldaten: thermisches Empfinden direkt unter „Temperatur / gefühlt“.
+- 24-h-Wetterprofil: sichtbare Stunde-zurück/-vor-Steuerung sowie Desktop-Bedienung per Pfeil links/rechts und Mausrad über der Diagrammfläche.
+- 24-h-Wetterprofil: dynamische Böen-/Hazard-Details folgen konsequent der gewählten Windeinheit.
+
+## v0.9.38.1
+
+- App-Neustart nach Update korrigiert: normale `midwx.app`-, Update-, Refresh- und Rollback-URLs werden nicht mehr fälschlich als Geräte-Synchronisationscode interpretiert.
+- Nur explizite `#mid-sync=…`, `?mid-sync=…`, `mid-sync:…` oder eigenständige Synchronisationscodes öffnen weiterhin Einstellungen → Synchronisation.
+- Neuer Regressionstest schützt den normalen Startpfad nach Service-Worker-/Update-Neustarts.
+
 ## v0.9.38.0
 
 - Stable-Audit 10.08.2026 vollständig umgesetzt: explizite finale TypeScript- und Vite-Produktionsbuildphasen im Releasevertrag.

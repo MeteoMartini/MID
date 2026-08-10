@@ -42,9 +42,18 @@ export function normaliseDeviceSyncCode(value:string){return String(value||'').r
 export function formatDeviceSyncCode(value:string){const clean=normaliseDeviceSyncCode(value);return clean.match(/.{1,8}/g)?.join('-')||clean}
 export function parseDeviceSyncTransfer(value:string){
  const raw=String(value||'').trim();if(!raw)return'';
- try{const url=new URL(raw,typeof location!=='undefined'?location.href:'https://mid.invalid/'),params=new URLSearchParams(url.hash.replace(/^#/,'')),hashCode=params.get(DEVICE_SYNC_HASH_KEY)||'';if(hashCode)return normaliseDeviceSyncCode(hashCode)}catch{}
- const prefixed=raw.match(/(?:^|[?#&])mid-sync=([^&#]+)/i)?.[1]||raw.replace(/^mid-sync:/i,'');
- return normaliseDeviceSyncCode(decodeURIComponent(prefixed));
+ const decode=(candidate:string)=>{try{return normaliseDeviceSyncCode(decodeURIComponent(candidate))}catch{return normaliseDeviceSyncCode(candidate)}};
+ try{
+  const url=new URL(raw,typeof location!=='undefined'?location.href:'https://mid.invalid/'),hashParams=new URLSearchParams(url.hash.replace(/^#/,'')),explicit=hashParams.get(DEVICE_SYNC_HASH_KEY)||url.searchParams.get(DEVICE_SYNC_HASH_KEY)||'';
+  if(explicit)return decode(explicit);
+ }catch{}
+ const marked=raw.match(/(?:^|[?#&])mid-sync=([^&#]+)/i)?.[1]||raw.match(/^mid-sync:(.+)$/i)?.[1]||'';
+ if(marked)return decode(marked);
+ // Nur ein eigenständig übergebener Synchronisationscode darf ohne Marker akzeptiert
+ // werden. Normale App-/Update-URLs dürfen niemals durch Entfernen ihrer Sonderzeichen
+ // versehentlich zu einem vermeintlichen Gerätecode werden.
+ if(/^[A-Za-z0-9_-]{32,}$/.test(raw))return normaliseDeviceSyncCode(raw);
+ return'';
 }
 export function buildDeviceSyncTransferUrl(syncKey:string){
  const clean=normaliseDeviceSyncCode(syncKey);if(clean.length<32)throw new Error('Der Synchronisationscode ist unvollständig.');
