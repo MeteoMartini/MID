@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.36.8",
+  "releaseVersion": "0.9.36.10",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -121,7 +121,8 @@
     "scripts/test-mid-weather-profile-thermal-sun-09320.mjs",
     "scripts/test-mid-weather-profile-thermal-hazards-09321.mjs",
     "scripts/test-mid-weather-profile-axes-09322.mjs",
-    "scripts/test-mid-weather-profile-layout-09323.mjs"
+    "scripts/test-mid-weather-profile-layout-09323.mjs",
+    "scripts/test-composite-precipitation-type-layer-09366.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -258,6 +259,7 @@
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
     "scripts/test-dwd-radar-worker-payload-buildfix-09221.mjs",
     "scripts/test-dwd-native-georef-09250.mjs",
-    "scripts/test-sports-section-collapse-09280.mjs"
+    "scripts/test-sports-section-collapse-09280.mjs",
+    "scripts/test-composite-precipitation-type-layer-09366.mjs"
   ]
 }

@@ -325,6 +325,42 @@ function dryAdjustedHour(hour:Hour,probability:number,precipitation:number){
  return{...hour,precipitation:signal.precipitation,rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall,probability:signal.probability,code:signal.code};
 }
 
+type GroundLayerState='saturated'|'moist'|'normal'|'dry'|'very-dry';
+function groundLayerState(hour:Hour){
+ const humidityRaw=Number(hour.humidity),dewSpread=Number.isFinite(hour.temperature)&&Number.isFinite(hour.dewPoint)?Math.max(0,Number(hour.temperature)-Number(hour.dewPoint)):Number.NaN,humidity=Number.isFinite(humidityRaw)?clamp(humidityRaw,0,100):Number.isFinite(dewSpread)?relativeHumidityFromTemperatureDewPoint(Number(hour.temperature),Number(hour.dewPoint)):Number.NaN;
+ if(Number.isFinite(humidity)&&humidity>=94||Number.isFinite(dewSpread)&&dewSpread<=.8)return{saturation:1,state:'saturated' as GroundLayerState,humidity,dewSpread};
+ if(Number.isFinite(humidity)&&humidity>=84||Number.isFinite(dewSpread)&&dewSpread<=2.2)return{saturation:.92,state:'moist' as GroundLayerState,humidity,dewSpread};
+ if(Number.isFinite(humidity)&&humidity>=72||Number.isFinite(dewSpread)&&dewSpread<=4.5)return{saturation:.82,state:'normal' as GroundLayerState,humidity,dewSpread};
+ if(Number.isFinite(humidity)&&humidity>=60||Number.isFinite(dewSpread)&&dewSpread<=7)return{saturation:.7,state:'dry' as GroundLayerState,humidity,dewSpread};
+ return{saturation:.58,state:'very-dry' as GroundLayerState,humidity,dewSpread};
+}
+function convectivePersistenceFactor(hour:Hour,blend:RadarTargetBlend,leadMinutes:number){
+ const showers=Math.max(0,Number(hour.showers)||0),rain=Math.max(0,Number(hour.rain)||0),snowfall=Math.max(0,Number(hour.snowfall)||0),precipitation=Math.max(.01,Number(hour.precipitation)||showers+rain+snowfall),convectiveShare=showers/precipitation,cape=Math.max(0,Number(hour.cape)||0),siteSupport=clamp(Number(blend.siteSupport)||0,0,1);
+ let factor=1;
+ if((convectiveShare>=.35||cape>=250)&&leadMinutes>20)factor*=siteSupport>=.75?.96:siteSupport>=.5?.9:.82;
+ if((convectiveShare>=.55||cape>=500)&&leadMinutes>55)factor*=siteSupport>=.6?.9:.8;
+ if((blend.interrupted||siteSupport<.3)&&leadMinutes>25)factor*=.88;
+ if(snowfall>.01||Number(hour.temperature)<=1)factor=Math.min(1,factor+.06);
+ return clamp(factor,.72,1);
+}
+function refineOperationalRadarBlend(hour:Hour,radar:RadarNowcast,blend:RadarTargetBlend,leadMinutes:number){
+ if(blend.mode==='dry')return blend;
+ const layer=groundLayerState(hour),
+  lowCloud=clamp(Number(hour.lowCloud)||0,0,100),
+  cloud=clamp(Number(hour.cloud)||0,0,100),
+  snowAware=Math.max(0,Number(hour.snowfall)||0)>.01||Number(hour.temperature)<=1,
+  lowCloudBonus=lowCloud>=65?.05:cloud>=88?.03:0,
+  evaporationGuard=layer.state==='very-dry'&&lowCloud<25&&cloud<60&&!snowAware ? .92 : 1,
+  rateConfidenceGuard=radar.rateUncertain ? .92 : radar.rateApproximate ? .96 : 1,
+  groundFactor=clamp(layer.saturation+lowCloudBonus,snowAware ? .62 : .55,1),
+  persistenceFactor=convectivePersistenceFactor(hour,blend,leadMinutes),
+  amountFactor=clamp(groundFactor*persistenceFactor*evaporationGuard*rateConfidenceGuard,snowAware ? .62 : .5,1),
+  probabilityFactor=clamp(1-(1-amountFactor)*.42,.68,1);
+ const baseAmount=Math.max(0,Number(hour.precipitation)||0)*(1-clamp(blend.radarWeight,0,1)),amountIncrement=blend.amount-baseAmount,amount=amountIncrement>0?baseAmount+amountIncrement*amountFactor:blend.amount;
+ const baseProbability=clamp(Number(hour.probability)||0,0,100)*(1-clamp(blend.probabilityWeight,0,1)),probabilityIncrement=blend.probability-baseProbability,probability=probabilityIncrement>0?baseProbability+probabilityIncrement*probabilityFactor:blend.probability;
+ return{...blend,amount:Math.max(0,amount),probability:clamp(probability,0,100)};
+}
+
 export function applyForecastFusionHours(hours:Hour[],baseDays:Day[],fusedDays:Day[],fusion?:ForecastFusionResult|null){
  if(hours.length===0)return hours;
  const dayAdjustment=baseDays!==fusedDays,mosmixHours=Array.isArray(fusion?.hours)?fusion.hours:[],weatherHours=Array.isArray(fusion?.weatherHours)?fusion.weatherHours:[],mosmixQuality=clamp(Number(fusion?.mosmix?.quality)||0,0,1),mosmixUsable=Boolean(fusion?.active&&fusion?.mosmix?.available&&fusion?.mosmix?.applied&&mosmixHours.length&&mosmixQuality>=.42),baseByDate=new Map(baseDays.map(day=>[day.date,day])),fusedByDate=new Map(fusedDays.map(day=>[day.date,day]));let changed=false;
@@ -376,7 +412,8 @@ export function applyOperationalNowcastHours(hours:Hour[],radar:RadarNowcast|nul
   }
   const blend=blendRadarAtTarget({radar,targetEpoch:hour.epoch,intervalMinutes:60,modelAmount:hour.precipitation,modelProbability:hour.probability,now});
   if(!blend)return hour;
-  const adjusted=dryAdjustedHour(hour,blend.probability,blend.amount),next=blend.mode==='direct'?{...adjusted,weatherBundleKind:'nowcast' as const}:adjusted;
+  const refinedBlend=refineOperationalRadarBlend(hour,radar,blend,Math.max(0,minutes));
+  const adjusted=dryAdjustedHour(hour,refinedBlend.probability,refinedBlend.amount),next=refinedBlend.mode==='direct'?{...adjusted,weatherBundleKind:'nowcast' as const}:adjusted;
   if(next.code===hour.code&&Math.abs(next.probability-hour.probability)<.1&&Math.abs(next.precipitation-hour.precipitation)<.01)return hour;
   changed=true;return next;
  });

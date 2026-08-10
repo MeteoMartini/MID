@@ -13,7 +13,7 @@ const fusionSource=fs.readFileSync(fusionPath,'utf8');
 const appSource=fs.readFileSync(appPath,'utf8');
 const shortTermSource=fs.readFileSync(shortTermPath,'utf8');
 
-for(const token of ['drySignal','dryAdjustedHour','reconcileForecastDaysWithHours','weatherHours',"weatherBundleKind:repaired?'coherent-model':'best-match'"])assert.ok(fusionSource.includes(token),`fehlender Nowcast-/Modellbündelvertrag: ${token}`);
+for(const token of ['drySignal','dryAdjustedHour','groundLayerState','convectivePersistenceFactor','refineOperationalRadarBlend','reconcileForecastDaysWithHours','weatherHours',"weatherBundleKind:repaired?'coherent-model':'best-match'"])assert.ok(fusionSource.includes(token),`fehlender Nowcast-/Modellbündelvertrag: ${token}`);
 assert.ok(appSource.includes('displayDays=useMemo(()=>reconcileForecastDaysWithHours(baseDisplayDays,displayHours)'), 'Tagesansicht muss aus den finalen Nowcast-Stunden reconciliert werden');
 assert.ok(appSource.includes('totalRain=Number.isFinite(selectedDay.precipitation)'), 'Detailpille muss denselben Tagesniederschlag wie die 7-Tage-Karte verwenden');
 assert.ok(appSource.includes('maxProb=Number.isFinite(selectedDay.probability)'), 'Detailpille muss dieselbe Tageswahrscheinlichkeit wie die 7-Tage-Karte verwenden');
@@ -60,6 +60,13 @@ try{
  const wet=mod.applyOperationalNowcastHours([baseHour],radarWet)[0];
  assert.ok(wet.probability>baseHour.probability,'nasses Radar muss Regenwahrscheinlichkeit erhöhen statt unterdrücken');
  assert.ok(wet.precipitation>=baseHour.precipitation,'nasses Radar muss vorhandene Menge erhalten oder erhöhen');
+
+ const dryBoundaryHour={...baseHour,epoch:now+70*60000,time:'2026-08-02T08:40',temperature:23,dewPoint:8,humidity:36,precipitation:.15,rain:.05,showers:.1,probability:18,cloud:44,lowCloud:8,cape:650};
+ const dryBoundaryRadar={source:'dwd',provider:'DWD Radar',quality:'high',radarProbability:96,currentRate:4.2,peakRate:5,coverage:true,summary:'Schauer über der Umgebung',rateUncertain:true,motionConfidence:'medium',nowcastSeries:[{time:new Date(now).toISOString(),rate:1.4,nearbyRate:2.2,future:false},{time:new Date(now+60*60000).toISOString(),rate:3.8,nearbyRate:4.2,future:true},{time:new Date(now+65*60000).toISOString(),rate:4.2,nearbyRate:4.5,future:true},{time:new Date(now+70*60000).toISOString(),rate:4.6,nearbyRate:4.8,future:true}],siteIntervals:[{startAt:new Date(now+58*60000).toISOString(),endAt:new Date(now+80*60000).toISOString(),peakRate:4.8,frameCount:5}]};
+ const dryBoundaryWet=mod.applyOperationalNowcastHours([dryBoundaryHour],dryBoundaryRadar)[0];
+ assert.ok(dryBoundaryWet.precipitation<1.45,'trockene Grundschicht darf Radar-Schauermengen nicht ungebremst bis zum Boden durchreichen');
+ assert.ok(dryBoundaryWet.probability<78,'trockene Grundschicht muss auch die Wahrscheinlichkeitsanhebung moderat dämpfen');
+ assert.ok(dryBoundaryWet.probability>dryBoundaryHour.probability,'trotz Dämpfung muss erfasstes Radarecho die Wahrscheinlichkeit weiterhin erhöhen');
 }finally{Date.now=originalNow;fs.rmSync(tempDir,{recursive:true,force:true})}
 
 console.log('Nowcast-/Tageskonsistenz ab v0.8.33.3 geprüft.');

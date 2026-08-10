@@ -1,3 +1,9 @@
+## v0.9.36.9
+- Kompositbild: zusätzlicher Layer "Niederschlagsart" ergänzt. MID prüft jetzt vorrangig DWD HymecNG und blendet – solange keine verifizierte Klassenabbildung vorliegt – automatisch das amtliche DWD-WN-Originalprodukt als sichere Ersatzdarstellung ein.
+- Für den neuen Layer gibt es einen eigenen Schalter, eine separate Deckkraftregelung sowie eine über die Komposit-Legende ausblendbare Niederschlagsart-Legende.
+- Quellen-/Hinweistext des Kompositbilds und die globale Quellenliste wurden um DWD HymecNG bzw. DWD WN erweitert.
+- Neue Regression `test-composite-precipitation-type-layer-09366.mjs`.
+
 ## v0.9.36.4
 - 14-Tage-Ensemble-Niederschlag „kumuliert“: ENS-Mittel ist jetzt unabhängig vom Standard-/Erweitert-Modus immer als eigene gestrichelte kumulierte Linie sichtbar.
 - Kumulierte Legende und Tooltip zeigen ENS-Mittel ebenfalls immer; Export-Metadaten enthalten es verbindlich.
