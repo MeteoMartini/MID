@@ -30,7 +30,7 @@ const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const OPEN_METEO_ELEVATION='https://api.open-meteo.com/v1/elevation';
-const WORKER_VERSION='0.9.38.4';
+const WORKER_VERSION='0.9.38.5';
 const CORS={'content-type':'application/json; charset=utf-8','access-control-allow-origin':'*','access-control-allow-methods':'GET,POST,OPTIONS','access-control-allow-headers':'content-type','cache-control':'public, max-age=180'};
 const FEED_SLUGS={
  AD:'andorra',AT:'austria',BE:'belgium',BA:'bosnia-herzegovina',BG:'bulgaria',HR:'croatia',CY:'cyprus',CZ:'czechia',DK:'denmark',EE:'estonia',FI:'finland',FR:'france',DE:'germany',GR:'greece',EL:'greece',HU:'hungary',IS:'iceland',IE:'ireland',IL:'israel',IT:'italy',LV:'latvia',LT:'lithuania',LU:'luxembourg',MT:'malta',MD:'moldova',ME:'montenegro',NL:'netherlands',MK:'republic-of-north-macedonia',NO:'norway',PL:'poland',PT:'portugal',RO:'romania',RS:'serbia',SK:'slovakia',SI:'slovenia',ES:'spain',SE:'sweden',CH:'switzerland',UA:'ukraine',GB:'united-kingdom',UK:'united-kingdom',AM:'armenia'
@@ -1113,12 +1113,12 @@ async function bestLightningPoints(lat,lon,env){
 
 const EUMETSAT_WMS='https://view.eumetsat.int/geoserver/wms';
 const SATELLITE_DAY_CANDIDATES=[
- {provider:'eumetsat',layer:'mtg_fd:rgb_geocolour',label:'MTG FCI GeoColour',resolutionKm:1,priority:100},
- {provider:'dwd',layer:'dwd:Satellite_meteosat_1km_euat_rgb_clouds_day_and_night',label:'DWD Meteosat Europa Wolken Tag/Nacht',resolutionKm:1,priority:95},
- {provider:'dwd',layer:'dwd:Satellite_meteosat_1km_euat_rgb_day_hrv_and_night_ir108_3h',label:'DWD Meteosat Europa RGB/IR · 3 h',resolutionKm:1,priority:90},
- {provider:'eumetsat',layer:'mtg_fd:vis06_hrfi',label:'MTG FCI VIS 0,6 HRFI',resolutionKm:.5,priority:60},
+ {provider:'eumetsat',layer:'mtg_fd:rgb_geocolour',label:'MTG FCI GeoColour',resolutionKm:1,priority:100,maxAgeMinutes:75},
+ {provider:'dwd',layer:'dwd:Satellite_meteosat_1km_euat_rgb_clouds_day_and_night',label:'DWD Meteosat Europa Wolken Tag/Nacht',resolutionKm:1,priority:95,maxAgeMinutes:210},
+ {provider:'dwd',layer:'dwd:Satellite_meteosat_1km_euat_rgb_day_hrv_and_night_ir108_3h',label:'DWD Meteosat Europa RGB/IR · 3 h',resolutionKm:1,priority:90,maxAgeMinutes:210},
+ {provider:'eumetsat',layer:'mtg_fd:vis06_hrfi',label:'MTG FCI VIS 0,6 HRFI',resolutionKm:.5,priority:60,maxAgeMinutes:75},
  {provider:'eumetsat',layer:'msg_fes:rgb_eview',label:'MSG European HRV RGB',resolutionKm:1,priority:50},
- {provider:'dwd',layer:'dwd:SAT_EU_RGB',label:'DWD Meteosat Europa RGB',resolutionKm:1,priority:40}
+ {provider:'dwd',layer:'dwd:SAT_EU_RGB',label:'DWD Meteosat Europa RGB',resolutionKm:1,priority:40,maxAgeMinutes:210}
 ];
 // Für das MID-Produkt "Wolken + Niederschlagsart" wird bewusst zuerst die
 // DWD-nahe Meteosat-Darstellung gewählt. GeoColour bleibt ein aktueller Fallback,
@@ -1127,7 +1127,7 @@ const DWD_REFERENCE_SATELLITE_CANDIDATES=[
  {provider:'dwd',layer:'dwd:Satellite_meteosat_1km_euat_rgb_clouds_day_and_night',label:'DWD Meteosat Europa Wolken Tag/Nacht',resolutionKm:1,priority:150},
  {provider:'dwd',layer:'dwd:Satellite_meteosat_1km_euat_rgb_day_hrv_and_night_ir108_3h',label:'DWD Meteosat Europa RGB/IR · 3 h',resolutionKm:1,priority:135},
  {provider:'dwd',layer:'dwd:SAT_EU_RGB',label:'DWD Meteosat Europa RGB',resolutionKm:1,priority:120},
- {provider:'eumetsat',layer:'mtg_fd:rgb_geocolour',label:'MTG FCI GeoColour',resolutionKm:1,priority:100},
+ {provider:'eumetsat',layer:'mtg_fd:rgb_geocolour',label:'MTG FCI GeoColour',resolutionKm:1,priority:100,maxAgeMinutes:75},
  {provider:'eumetsat',layer:'msg_fes:rgb_eview',label:'MSG European HRV RGB',resolutionKm:1,priority:70}
 ];
 const SATELLITE_IR_CANDIDATES=[
@@ -1136,7 +1136,8 @@ const SATELLITE_IR_CANDIDATES=[
  {provider:'dwd',layer:'dwd:Satellite_meteosat_1km_euat_rgb_clouds_day_and_night',label:'DWD Meteosat Europa Tag/Nacht',resolutionKm:1},
  {provider:'dwd',layer:'dwd:SAT_EU_RGB',label:'DWD Meteosat Europa RGB',resolutionKm:1}
 ];
-const SATELLITE_MAX_AGE_MINUTES=55;
+const SATELLITE_MAX_AGE_MINUTES=75;
+const DWD_SATELLITE_MAX_AGE_MINUTES=210;
 // H40B ist das operative MTG-FCI-Niederschlagsprodukt. Es wird automatisch
 // bevorzugt, sobald EUMETView einen entsprechenden WMS-Layer veröffentlicht.
 // Bis dahin ist das öffentlich verfügbare MSG/H SAF H60B der belastbare WMS-Fallback.
@@ -1157,8 +1158,9 @@ function satelliteProduct(capabilities,candidates,now=Date.now()){
   // Sichtbare Satellitenkacheln dürfen ausschließlich aus einem explizit zeitgestempelten
   // Snapshot stammen. Ein untimestamped "latest" kann während eines Tile-Abrufs umspringen
   // und dadurch alte/neue Satellitenstände in einer Karte mischen.
-  if(!Number.isFinite(latest)||latest<now-SATELLITE_MAX_AGE_MINUTES*60000||latest>now+15*60000)continue;
-  const times=recentObservedTimes(all,now,150,30,15);if(!times.length)continue;
+  const maxAgeMinutes=Math.max(30,Number(candidate.maxAgeMinutes)||(candidate.provider==='dwd'?DWD_SATELLITE_MAX_AGE_MINUTES:SATELLITE_MAX_AGE_MINUTES));
+  if(!Number.isFinite(latest)||latest<now-maxAgeMinutes*60000||latest>now+15*60000)continue;
+  const times=recentObservedTimes(all,now,maxAgeMinutes+15,30,15);if(!times.length)continue;
   products.push({...candidate,times:times.map(time=>new Date(time).toISOString()),latest,fresh:true});
  }
  products.sort((a,b)=>(b.latest-a.latest)||(b.priority??0)-(a.priority??0)||Number(b.provider==='eumetsat')-Number(a.provider==='eumetsat')||(a.resolutionKm??99)-(b.resolutionKm??99));

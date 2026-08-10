@@ -5,10 +5,11 @@ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const worker=await readFile(path.join(root,'worker','metar-proxy.js'),'utf8');
 const failures=[];
 for(const token of [
- "const SATELLITE_MAX_AGE_MINUTES=55",
+ "const SATELLITE_MAX_AGE_MINUTES=75",
+ "const DWD_SATELLITE_MAX_AGE_MINUTES=210",
  "layer:'mtg_fd:rgb_geocolour'",
  'satelliteProduct(capabilities,SATELLITE_DAY_CANDIDATES,now)',
- 'latest<now-SATELLITE_MAX_AGE_MINUTES*60000',
+ 'latest<now-maxAgeMinutes*60000',
  'dwdTimesFromCapabilities(dwdXml,timingLayer)',
  'result.dwdRadarLatestOnly=result.dwdRadarLayer===alias||!observed.length',
  'async function compositeDiagnostics()',
@@ -31,4 +32,4 @@ try{
  if(!diagnostic.ok||diagnosticData.checks?.length!==3||!diagnosticData.checks.every(item=>item.ok))failures.push(`Quellendiagnose fehlgeschlagen: ${JSON.stringify(diagnosticData)}`);
 }finally{globalThis.fetch=originalFetch}
 if(failures.length){console.error('Komposit-Live-Layer-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Komposit-Live-Layer geprüft: Satellit nur mit frischer Zeitdimension; stabiler DWD-Radaralias, exakte Referenzzeit und Quellendiagnose sind abgesichert.');
+console.log('Komposit-Live-Layer geprüft: Satellit mit produktspezifischer Frischezeit; stabiler DWD-Radaralias, exakte Referenzzeit und Quellendiagnose sind abgesichert.');

@@ -1,3 +1,9 @@
+## v0.9.38.5
+
+- Komposit-Satellitenbild: produktspezifische Frischefenster statt pauschaler 55-Minuten-Sperre.
+- Amtlicher DWD-Meteosat-3h-Layer bleibt bis zum nächsten regulären 3h-Termin als explizit zeitgestempelter Fallback sichtbar.
+- EUMETSAT-NRT bleibt streng auf aktuelle explizite Zeitstände begrenzt; Snapshot-Schutz gegen Mischkacheln bleibt erhalten.
+
 ## v0.9.38.4
 
 - Komposit/HymecNG: direkter offizieller `composite_HymecNG_LATEST_000-hd5`-Pfad vor Directory-Index, mit Root-Frischevergleich und Cache-Busting.

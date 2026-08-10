@@ -25,8 +25,9 @@ for(const token of ['satelliteRenderBlend=withAdjacentPreload','satelliteProduct
 for(const token of [
  "const EUMETSAT_WMS='https://view.eumetsat.int/geoserver/wms'",
  "{provider:'eumetsat',layer:'mtg_fd:rgb_geocolour'",
- 'const SATELLITE_MAX_AGE_MINUTES=55',
- 'latest<now-SATELLITE_MAX_AGE_MINUTES*60000',
+ 'const SATELLITE_MAX_AGE_MINUTES=75',
+ 'const DWD_SATELLITE_MAX_AGE_MINUTES=210',
+ 'latest<now-maxAgeMinutes*60000',
  'latestOnly:false',
  'products.sort((a,b)=>(b.latest-a.latest)'
 ])need('Worker',worker,token);

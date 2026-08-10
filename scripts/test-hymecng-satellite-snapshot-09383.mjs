@@ -22,7 +22,7 @@ for(const token of [
  'hymecMeta?.fresh!==false',
  'const snapshotToken=`snapshot:${iso}`',
  'time:iso',
- 'Alte oder unzeitgestempelte Kacheln werden bewusst nicht dargestellt.'
+ 'der amtliche DWD-3h-Satellitenstand bleibt bis zum nächsten regulären Termin zulässig.'
 ])need('RadarPanel',panel,token);
 for(const token of ['onStatus={(status,message=', 'satelliteRenderBlend=withAdjacentPreload','satelliteProduct.latestOnly?'])reject('RadarPanel',panel,token);
 for(const token of [
@@ -30,8 +30,9 @@ for(const token of [
  'sort((a,b)=>b.latestTime-a.latestTime)',
  'ageMinutes>25',
  'fresh:true',
- 'const SATELLITE_MAX_AGE_MINUTES=55',
- 'latest<now-SATELLITE_MAX_AGE_MINUTES*60000',
+ 'const SATELLITE_MAX_AGE_MINUTES=75',
+ 'const DWD_SATELLITE_MAX_AGE_MINUTES=210',
+ 'latest<now-maxAgeMinutes*60000',
  'latestOnly:false'
 ])need('Worker',worker,token);
 for(const token of ['SATELLITE_LATEST_DAY','SATELLITE_LATEST_IR','latestOnly:true'])reject('Worker',worker,token);
