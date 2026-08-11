@@ -5603,3 +5603,39 @@ html[data-mid-density="comfortable"]{
     column-gap:7px!important;
   }
 }
+
+/* MID v0.9.41.3 · mobile Temperatur-Ensemble-Metazeilen rechtsbündig und kollisionsfrei */
+@media(max-width:620px){
+  .compact-trend-tooltip .trend-tooltip-meta .tooltip-meta-line{
+    grid-template-columns:76px minmax(0,1fr)!important;
+    column-gap:8px!important;
+    row-gap:1px!important;
+    align-items:baseline!important;
+  }
+  .compact-trend-tooltip .trend-tooltip-meta .tooltip-meta-line>b{
+    grid-column:1/2;
+    justify-self:end!important;
+    min-width:0;
+    white-space:nowrap!important;
+    overflow:visible!important;
+    text-align:right!important;
+  }
+  .compact-trend-tooltip .trend-tooltip-meta .tooltip-meta-line>.tooltip-meta-value,
+  .compact-trend-tooltip .trend-tooltip-meta .tooltip-meta-line>span:last-child{
+    grid-column:2/3;
+    justify-self:stretch!important;
+    min-width:0;
+    white-space:nowrap!important;
+    overflow-wrap:normal!important;
+    word-break:normal!important;
+    hyphens:none;
+    text-align:right!important;
+    line-height:1.18!important;
+  }
+}
+@media(max-width:360px){
+  .compact-trend-tooltip .trend-tooltip-meta .tooltip-meta-line{
+    grid-template-columns:72px minmax(0,1fr)!important;
+    column-gap:7px!important;
+  }
+}
