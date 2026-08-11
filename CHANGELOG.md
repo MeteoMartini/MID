@@ -1,3 +1,11 @@
+# MID v0.9.40.9
+
+- Niederschlagswahrscheinlichkeit app-weit vereinheitlicht: Ensemble-Tageswerte werden explizit als 00–24-h-Ereigniswahrscheinlichkeit bezeichnet und zusammen mit dem stärksten 6-h-Zeitfenster angezeigt.
+- Mathematische Konsistenz abgesichert: Die 00–24-h-Wahrscheinlichkeit kann nicht unter der Wahrscheinlichkeit eines darin enthaltenen 6-h-Fensters liegen; Entsprechendes gilt für die >5-mm-Schwelle.
+- Best-Match-Fallback eindeutig gekennzeichnet: statt eines scheinbaren Tageswerts erscheint „max. Std.“ für das Stundenmaximum.
+- Ensembleübersicht, 7-Tage-/Cockpit-Tageskarten, klassische Vorhersage sowie Widget/PNG nutzen denselben 00–24-h-/6-h-Vertrag.
+- Alle Komposit-/Radaränderungen aus v0.9.40.8 bleiben vollständig enthalten.
+
 # MID v0.9.40.6
 
 - TypeScript-Buildfix: `RadarPhase` wird wieder als Union-Typ aus `radarColorTables.ts` exportiert; dadurch sind die festen Niederschlagsartfarben ohne `any`-Indexierung typisiert.
@@ -3281,3 +3289,19 @@
 - Release-Prebuild verändert `.github/workflows` nicht mehr automatisch; damit blockiert GitHub den Release-Push nicht mehr wegen fehlender Workflow-Schreibberechtigung.
 - Workflow-Synchronisierung bleibt ausschließlich als expliziter Maintainer-Befehl verfügbar.
 - Kanonischer Installer schließt `.github/**` zusätzlich ausdrücklich aus automatischen Release-Commits aus.
+
+## 0.9.40.8
+- Kompositbild: „Stand“ der Satellitenebene nutzt bei DWD-Live-Snapshots jetzt den tatsächlichen Produktzeitstempel statt der aktuellen Gerätezeit.
+- Niederschlagsart-Radar/Kompositphase robuster gemacht: leichte und grenzwertige Echos werden vorsichtig mitberücksichtigt, die Radar-/Modellfusion sampelt dichter und blendet Signale dadurch deutlich seltener fälschlich aus.
+- Radar-Farbtabellen für 1-km-/250-m-Radar erweitert: zusätzliche professionelle Varianten (u. a. DWD Standard, DWD Starkregen, NEXRAD Classic, Canada 14-stufig, Europa Spektrum) mit Vorschau und Auswahl in den Einstellungen.
+
+## 0.9.40.10
+- CI-Fix für den v0.9.40.9-Release: die drei fehlgeschlagenen Regressionen für Komposit-Phasensicherheit, MapLibre-Niederschlagswahrscheinlichkeit und kompakte Wetterwerte sind wieder erfüllt.
+- Niederschlagsart-Radar: Unsichere/„eingeschränkte“ Phasen bleiben transparent und das Modellraster bleibt ohne künstliche Unterteilung. Die Echoerkennung prüft stattdessen mehrere OPERA-Radarpunkte innerhalb jeder Modellzelle; bei starken Echos kann eine eindeutig warme bzw. kalte thermische Phase konservativ ergänzt werden.
+- Niederschlagswahrscheinlichkeit: Ensemble-Tageswerte bleiben kompakt als 00–24 h sichtbar; der ausführliche Titel verwendet wieder die geschützte DWD-24-h-Terminologie und nennt 00–24 h explizit als Zeitraum.
+- Best-Match-Fallback in engen Karten wieder auf die kurze Darstellung „bis x %“ zurückgeführt.
+
+## 0.9.40.11
+- CI-Fix für die app-weite Niederschlagswahrscheinlichkeit: der Ensemble-Tageswert trägt wieder exakt den geschützten Titel „DWD-Ereigniswahrscheinlichkeit · 00–24 h“.
+- Der Best-Match-Stundenfallback ist wieder eindeutig als „max. Std.“ gekennzeichnet; damit wird ein Stundenmaximum nicht als 24-h-Ereigniswahrscheinlichkeit missverstanden.
+- Die in v0.9.40.9/10 eingeführte app-weite 00–24-h-/6-h-Logik bleibt unverändert erhalten; ausschließlich die geschützte Semantik der Titel und Fallback-Kurztexte wurde repariert.

@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.40.6",
+  "releaseVersion": "0.9.40.11",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -141,7 +141,10 @@
     "scripts/test-install-minimist-diff-bootstrap-09398.mjs",
     "scripts/test-radar-model-phase-request-budget-093913.mjs",
     "scripts/test-ruc-rapid-update-policy-09400.mjs",
-    "scripts/test-ruc-time-robustness-09401.mjs"
+    "scripts/test-ruc-time-robustness-09401.mjs",
+    "scripts/test-composite-satellite-timestamp-09405.mjs",
+    "scripts/test-radar-phase-echo-recovery-09406.mjs",
+    "scripts/test-daily-precip-probability-appwide-09407.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -262,7 +265,10 @@
     "scripts/test-maplibre-precip-buildfix-09393.mjs",
     "scripts/test-no-clipped-weather-values-09394.mjs",
     "scripts/test-install-minimist-diff-bootstrap-09398.mjs",
-    "scripts/test-no-actions-workflow-self-modification-093911.mjs"
+    "scripts/test-no-actions-workflow-self-modification-093911.mjs",
+    "scripts/test-composite-satellite-timestamp-09405.mjs",
+    "scripts/test-radar-phase-echo-recovery-09406.mjs",
+    "scripts/test-daily-precip-probability-appwide-09407.mjs"
   ],
   "requiredFiles": [
     "scripts/test-cockpit-regression-sync-09201.mjs",

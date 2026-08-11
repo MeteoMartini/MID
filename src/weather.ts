@@ -667,7 +667,7 @@ export const DWD_SIGNIFICANT_PRECIPITATION_PROBABILITY_THRESHOLD_MM=5;
 export function applyEnsembleDailyPrecipitationProbability(days:Day[],ensemble:EnsembleDay[]){
  if(!days.length||!ensemble.length)return days;
  const byDate=new Map(ensemble.map(day=>[day.date,day]));let changed=false;
- const result=days.map(day=>{const row=byDate.get(day.date),probability=Number(row?.precipitationProbability),significant=Number(row?.precipitationProbabilitySignificant),members=Math.max(0,Math.round(Number(row?.memberCount)||0)),windows=(row?.precipitationProbabilityWindows??[]).filter(window=>Number.isFinite(window.probability)&&window.memberCount>=2).map(window=>({...window,probability:Math.max(0,Math.min(100,window.probability)),probabilitySignificant:Math.max(0,Math.min(window.probability,window.probabilitySignificant))}));if(!row||!Number.isFinite(probability)||!Number.isFinite(significant)||members<2)return day;const next=Math.max(0,Math.min(100,probability)),nextSignificant=Math.max(0,Math.min(next,significant)),sameWindows=JSON.stringify(day.probabilityWindows??[])===JSON.stringify(windows);if(Math.abs(next-day.probability)<.05&&Math.abs(nextSignificant-Number(day.probabilitySignificant))<.05&&sameWindows&&day.probabilitySource==='ensemble-members-dwd'&&day.probabilityMemberCount===members)return day;changed=true;return{...day,probability:next,probabilitySignificant:nextSignificant,probabilityWindows:windows,probabilitySource:'ensemble-members-dwd' as const,probabilityMemberCount:members}});
+ const result=days.map(day=>{const row=byDate.get(day.date),probability=Number(row?.precipitationProbability),significant=Number(row?.precipitationProbabilitySignificant),members=Math.max(0,Math.round(Number(row?.memberCount)||0)),windows=(row?.precipitationProbabilityWindows??[]).filter(window=>Number.isFinite(window.probability)&&window.memberCount>=2).map(window=>({...window,probability:Math.max(0,Math.min(100,window.probability)),probabilitySignificant:Math.max(0,Math.min(window.probability,window.probabilitySignificant))}));if(!row||!Number.isFinite(probability)||!Number.isFinite(significant)||members<2)return day;const peakWindow=Math.max(0,...windows.map(window=>window.probability)),peakSignificantWindow=Math.max(0,...windows.map(window=>window.probabilitySignificant)),next=Math.max(peakWindow,Math.max(0,Math.min(100,probability))),nextSignificant=Math.min(next,Math.max(peakSignificantWindow,Math.max(0,Math.min(100,significant)))),sameWindows=JSON.stringify(day.probabilityWindows??[])===JSON.stringify(windows);if(Math.abs(next-day.probability)<.05&&Math.abs(nextSignificant-Number(day.probabilitySignificant))<.05&&sameWindows&&day.probabilitySource==='ensemble-members-dwd'&&day.probabilityMemberCount===members)return day;changed=true;return{...day,probability:next,probabilitySignificant:nextSignificant,probabilityWindows:windows,probabilitySource:'ensemble-members-dwd' as const,probabilityMemberCount:members}});
  return changed?result:days;
 }
 
@@ -678,14 +678,14 @@ export function dwdPrecipitationProbabilityWindowsTitle(windows?:PrecipitationPr
 
 export function dailyPrecipitationProbabilityTitle(day:Pick<Day,'probability'|'probabilitySignificant'|'probabilityWindows'|'probabilitySource'|'probabilityMemberCount'>){
  const probability=`${Math.round(Math.max(0,Math.min(100,Number(day.probability)||0)))} %`;
- if(day.probabilitySource==='ensemble-members-dwd'){const significant=`${Math.round(Math.max(0,Math.min(100,Number(day.probabilitySignificant)||0)))} %`,members=Math.max(0,Math.round(Number(day.probabilityMemberCount)||0)),periods=dwdPrecipitationProbabilityWindowsTitle(day.probabilityWindows);return `DWD-Ereigniswahrscheinlichkeit · 24 h: >0,2 mm ${probability} · >5,0 mm ${significant}${periods?` · 6-h-Zeitfenster: ${periods}`:''}${members?` · ${members} Ensemble-Member`:''}`}
- return `Zeitweise bis ${probability} · Fallback: höchste stündliche Best-Match-Wahrscheinlichkeit; keine aus Ensemble-Membern berechnete DWD-Ereigniswahrscheinlichkeit für 6 h oder 24 h`;
+ if(day.probabilitySource==='ensemble-members-dwd'){const significant=`${Math.round(Math.max(0,Math.min(100,Number(day.probabilitySignificant)||0)))} %`,members=Math.max(0,Math.round(Number(day.probabilityMemberCount)||0)),periods=dwdPrecipitationProbabilityWindowsTitle(day.probabilityWindows);return `DWD-Ereigniswahrscheinlichkeit · 00–24 h: >0,2 mm ${probability} · >5,0 mm ${significant}${periods?` · 6-h-Zeitfenster: ${periods}`:''}${members?` · ${members} Ensemble-Member`:''}`}
+ return `Max. Stundenwahrscheinlichkeit ${probability} · Fallback: höchste stündliche Best-Match-Wahrscheinlichkeit; keine aus Ensemble-Membern berechnete DWD-Ereigniswahrscheinlichkeit für 6 h oder 00–24 h`;
 }
 
 export function dailyPrecipitationProbabilityCompact(day:Pick<Day,'probability'|'probabilityWindows'|'probabilitySource'>){
  const primary=Math.round(Math.max(0,Math.min(100,Number(day.probability)||0))),peak=peakDwdPrecipitationProbabilityWindow(day.probabilityWindows);
- if(day.probabilitySource==='ensemble-members-dwd'&&peak)return `${precipitationProbabilityWindowCompactLabel(peak)} · ${Math.round(peak.probability)}%`;
- return `bis ${primary}%`;
+ if(day.probabilitySource==='ensemble-members-dwd')return `00–24h ${primary}%${peak?` · ${precipitationProbabilityWindowCompactLabel(peak)} ${Math.round(peak.probability)}%`:''}`;
+ return `max. Std. ${primary}%`;
 }
 
 export function cloudOktas(percent:number){return Math.max(0,Math.min(8,Math.round((Number.isFinite(percent)?percent:0)/12.5)))}

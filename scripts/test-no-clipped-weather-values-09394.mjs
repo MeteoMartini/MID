@@ -14,7 +14,7 @@ assert.ok(weather.includes('export function precipitationProbabilityWindowCompac
 assert.ok(weather.includes("return `${String(window.startHour).padStart(2,'0')}–${String(window.endHour).padStart(2,'0')}h`"),'6-h-Kompaktnotation verschwendet weiterhin Platz durch abgesetztes „ h“.');
 assert.ok(weather.includes('export function precipitationDurationCompactLabel'),'Kompakte Niederschlagsdauer fehlt.');
 assert.ok(weather.includes("if(minutes<=0)return''"),'0 Minuten werden in Kompaktkarten weiterhin redundant ausgegeben.');
-assert.ok(weather.includes('return `bis ${primary}%`'),'Best-Match-Fallback ist für enge Karten noch unnötig lang.');
+assert.ok(weather.includes('return `max. Std. ${primary}%`'),'Best-Match-Fallback muss als Stundenmaximum gekennzeichnet bleiben.');
 
 assert.ok(cockpit.includes('className="cockpit-day-pop"'),'Die PoP-Zeile besitzt im 7-Tage-Cockpit keine eigene volle Kartenbreite.');
 assert.ok(cockpit.includes("precipitationCompactMeta=[precipitationProbabilityCompact,precipitationDurationCompact].filter(Boolean).join(' · ')"),'Cockpit kombiniert PoP und Dauer nicht platzsparend.');

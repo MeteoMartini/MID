@@ -13,14 +13,14 @@ need('DWD-strikt',weather,'strict?x.value>threshold:x.value>=threshold');
 forbid('Alt-Schwelle',weather,'precipitationProbability:weightedProbability(rainVals,.1)');
 need('Tagesdaten',weather,"probabilitySource?:'ensemble-members-dwd'|'hourly-max-fallback'");
 need('Tagesdaten',weather,'probabilitySignificant?:number');
-need('Titel',weather,'DWD-Ereigniswahrscheinlichkeit · 24 h: >0,2 mm');
+need('Titel',weather,'DWD-Ereigniswahrscheinlichkeit · 00–24 h: >0,2 mm');
 need('Sechs-Stunden',weather,'6-h-Zeitfenster');
 need('Sechs-Stunden',weather,'windowRainProbabilityVals');
 need('Kompakt',weather,'precipitationProbabilityWindowCompactLabel(peak)');
-need('Fallback',weather,'Zeitweise bis ${probability}');
+need('Fallback',weather,'Max. Stundenwahrscheinlichkeit ${probability}');
 need('App',app,'dailyPrecipitationProbabilityCompact(d)');
 need('Cockpit',cockpit,'dailyPrecipitationProbabilityCompact(day)');
 need('Ensemble',ensemble,'precipitationProbabilitySignificant');
 need('Verifikation',verification,'reference.precipitation>DWD_PRECIPITATION_PROBABILITY_THRESHOLD_MM?1:0');
 if(failures.length){console.error('DWD-Niederschlagswahrscheinlichkeits-Regression fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('DWD-Schwellen >0,2 mm / >5,0 mm für 24 h und 6-h-Zeitfenster app-weit geprüft.');
+console.log('DWD-Schwellen >0,2 mm / >5,0 mm für 00–24 h und 6-h-Zeitfenster app-weit geprüft.');

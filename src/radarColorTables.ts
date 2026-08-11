@@ -1,4 +1,4 @@
-export type RadarColorTableId='dwd-standard'|'dwd-starkregen';
+export type RadarColorTableId='dwd-standard'|'dwd-starkregen'|'nexrad-classic'|'eccc-14'|'eumetnet-spectrum';
 export type RadarPhase='rain'|'mixed'|'snow'|'freezing'|'uncertain';
 export type RadarIntensityColorTable={
  id:RadarColorTableId;
@@ -13,21 +13,52 @@ export const RADAR_COLOR_TABLES:RadarIntensityColorTable[]=[
  {
   id:'dwd-standard',
   label:'DWD Standard',
-  detail:'universelle Niederschlagsintensität',
+  detail:'klassische universelle DWD-Anmutung für Niederschlagsintensität',
   wmsStyle:'',
   rateStops:[
-   {value:.1,color:'#d9f3ff'},{value:.5,color:'#72c9ff'},{value:1,color:'#2f91e3'},{value:2.5,color:'#43c879'},
-   {value:5,color:'#f0d447'},{value:10,color:'#f59b3d'},{value:20,color:'#e34b4b'},{value:50,color:'#b83fc8'}
+   {value:.1,color:'#dff3ff'},{value:.3,color:'#9bd6ff'},{value:.6,color:'#57b1f2'},{value:1,color:'#2f8ae0'},
+   {value:2.5,color:'#34c36d'},{value:5,color:'#dfd34a'},{value:10,color:'#f2a03a'},{value:20,color:'#df533b'},{value:50,color:'#b23fc3'}
   ]
  },
  {
   id:'dwd-starkregen',
   label:'DWD Starkregen',
-  detail:'stärkere Hervorhebung hoher Intensitäten',
+  detail:'offizieller DWD-WMS-Stil mit stärkerem Fokus auf hohe Intensitäten',
   wmsStyle:'Starkregen',
   rateStops:[
-   {value:.1,color:'#e7f4ff'},{value:.5,color:'#9dd7ff'},{value:1,color:'#5bb5f5'},{value:2.5,color:'#48c77b'},
-   {value:5,color:'#e9d13d'},{value:10,color:'#ff9d2e'},{value:20,color:'#f14d35'},{value:50,color:'#9d1cb4'}
+   {value:.1,color:'#edf7ff'},{value:.3,color:'#b7e0ff'},{value:.6,color:'#73bef8'},{value:1,color:'#4aa3eb'},
+   {value:2.5,color:'#4bc679'},{value:5,color:'#ead03f'},{value:10,color:'#ff9d2f'},{value:20,color:'#f24d37'},{value:50,color:'#9f20b4'}
+  ]
+ },
+ {
+  id:'nexrad-classic',
+  label:'NEXRAD Classic',
+  detail:'klassische NOAA-/NEXRAD-Reflektivitätsanmutung in kräftigen Kontraststufen',
+  wmsStyle:'',
+  rateStops:[
+   {value:.1,color:'#0ea7ff'},{value:.3,color:'#27d7ff'},{value:.6,color:'#00c36e'},{value:1,color:'#00a14b'},
+   {value:2.5,color:'#c9dc33'},{value:5,color:'#ffd64a'},{value:10,color:'#ff992d'},{value:20,color:'#eb4a3a'},{value:50,color:'#d01db0'}
+  ]
+ },
+ {
+  id:'eccc-14',
+  label:'Canada 14-stufig',
+  detail:'an die 14-Farben-Radarlegende von Environment Canada angelehnte Staffelung',
+  wmsStyle:'',
+  rateStops:[
+   {value:.1,color:'#d8f4ff'},{value:.2,color:'#a6e6ff'},{value:.35,color:'#6fd3ff'},{value:.5,color:'#36bbff'},
+   {value:.8,color:'#1f9fe8'},{value:1.2,color:'#20c06a'},{value:2,color:'#69d84f'},{value:3,color:'#b6dc3f'},
+   {value:5,color:'#f1d94d'},{value:8,color:'#f5b543'},{value:12,color:'#f58a3b'},{value:20,color:'#ef5f3d'},{value:35,color:'#d73653'},{value:50,color:'#8b3fd0'}
+  ]
+ },
+ {
+  id:'eumetnet-spectrum',
+  label:'Europa Spektrum',
+  detail:'ruhigere europäische Blau‑Gelb‑Rot-Skala mit guter Differenzierung schwacher Echos',
+  wmsStyle:'',
+  rateStops:[
+   {value:.1,color:'#dff7ff'},{value:.25,color:'#9de7ff'},{value:.5,color:'#59c8ff'},{value:1,color:'#3f9bf0'},
+   {value:2,color:'#5fc85b'},{value:4,color:'#b7d746'},{value:7,color:'#efca45'},{value:12,color:'#ef9442'},{value:20,color:'#e05b44'},{value:35,color:'#c43b6d'},{value:50,color:'#7f4acb'}
   ]
  }
 ];
@@ -39,7 +70,7 @@ export function radarRateColor(rate:number,id:string|undefined|null):[number,num
  if(!Number.isFinite(rate)||rate<.08)return[0,0,0,0];
  const table=radarColorTable(id),stops=table.rateStops;let color=stops[0].color;
  for(const stop of stops){if(rate>=stop.value)color=stop.color;else break}
- const hex=color.replace('#',''),r=parseInt(hex.slice(0,2),16),g=parseInt(hex.slice(2,4),16),b=parseInt(hex.slice(4,6),16),alpha=rate<.5?155:rate<1?190:rate<2.5?214:rate<5?226:rate<10?238:rate<20?242:rate<50?246:249;
+ const hex=color.replace('#',''),r=parseInt(hex.slice(0,2),16),g=parseInt(hex.slice(2,4),16),b=parseInt(hex.slice(4,6),16),alpha=rate<.3?145:rate<.6?168:rate<1?188:rate<2.5?208:rate<5?224:rate<10?236:rate<20?243:rate<50?247:250;
  return[r,g,b,alpha];
 }
 export function radarDbzColor(dbz:number,id:string|undefined|null):[number,number,number,number]{

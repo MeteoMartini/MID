@@ -25,7 +25,7 @@ need('Tages-PoP',weather,"probabilitySource?:'ensemble-members-dwd'|'hourly-max-
 need('Tages-PoP',weather,'precipitationProbability:weightedProbability(rainProbabilityVals,DWD_PRECIPITATION_PROBABILITY_THRESHOLD_MM,true)');
 need('Tages-PoP',weather,'precipitationProbabilitySignificant:weightedProbability(rainProbabilityVals,DWD_SIGNIFICANT_PRECIPITATION_PROBABILITY_THRESHOLD_MM,true)');
 need('Tages-PoP',weather,'applyEnsembleDailyPrecipitationProbability');
-need('Tages-PoP',weather,'DWD-Ereigniswahrscheinlichkeit · 24 h: >0,2 mm');
+need('Tages-PoP',weather,'DWD-Ereigniswahrscheinlichkeit · 00–24 h: >0,2 mm');
 need('Tages-PoP',weather,'precipitationProbabilityWindows');
 need('Tages-PoP-Fallback',weather,"probabilitySource:'hourly-max-fallback'");
 need('Tages-PoP-Anwendung',app,'applyEnsembleDailyPrecipitationProbability(baseDisplayDaysUnweighted,ens)');
