@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.40.15",
+  "releaseVersion": "0.9.40.17",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -146,7 +146,8 @@
     "scripts/test-radar-phase-echo-recovery-09406.mjs",
     "scripts/test-daily-precip-probability-appwide-09407.mjs",
     "scripts/test-time-display-mode-09413.mjs",
-    "scripts/test-radar-phase-solid-symbols-09414.mjs"
+    "scripts/test-radar-phase-solid-symbols-09414.mjs",
+    "scripts/test-mid-ui-longrange-09416.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -272,7 +273,8 @@
     "scripts/test-radar-phase-echo-recovery-09406.mjs",
     "scripts/test-daily-precip-probability-appwide-09407.mjs",
     "scripts/test-time-display-mode-09413.mjs",
-    "scripts/test-radar-phase-solid-symbols-09414.mjs"
+    "scripts/test-radar-phase-solid-symbols-09414.mjs",
+    "scripts/test-mid-ui-longrange-09416.mjs"
   ],
   "requiredFiles": [
     "scripts/test-cockpit-regression-sync-09201.mjs",

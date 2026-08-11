@@ -1,3 +1,14 @@
+# MID v0.9.40.16
+
+- Favoritenleiste in den Einstellungen auf **Auto / Dauerhaft / Aus** umstellbar; Auto bewahrt das bisherige Verhalten.
+- Dashboard-Sektionskonfiguration erhält **Standard wiederherstellen** und setzt Reihenfolge sowie Sichtbarkeit auf die MID-Defaults zurück.
+- Auf-/Zuklappen von Modulen, insbesondere des Kompositbilds, auf Touchgeräten robuster: Bewegungsfilter und Unterdrückung des nachlaufenden Klicks verhindern Doppel-/Fehlauslösungen beim Scrollen.
+- Niederschlagsart-Layer nutzt kompakte meteorologische Schwarzweiß-SVG-Symbole nach der gelieferten Vorlage. Unterstützt werden Schnee, Schneekörner, Schneeregen/Mischphase, gefrierender (Sprüh-)Regen, Graupel/Eiskörner und Hagel; reiner Regen bleibt ohne Zusatzsymbol.
+- Technischer Fehlertext im Niederschlagsart-Schalter wird zu **Phasendaten nicht erreichbar** verkürzt; Details bleiben im Status-/Info-Bereich.
+- Langfristansicht zu echter Rauchfahnen-Darstellung erweitert: P10–P90 über den gesamten Horizont, P25–P75 in der ersten Hälfte. ECMWF nutzt echte Memberquantile; alle im aktuellen NOAA-NMME-ENSMEAN-Lauf lesbaren unabhängigen Modellfamilien fließen gleichgewichtet in das Multi-Modell ein, CFSv2 E1/E2/E3 bleibt Fallback.
+- Niederschlagsanomalien erhalten auch in mm/Tag echte P10/P25/P75/P90-Felder, soweit die Quelle Ensemble-/Initialisierungsdaten liefert.
+- C3S-Modellkatalog bleibt als Ausbaupfad für ECMWF, UKMO, Météo-France, DWD, CMCC, NCEP, JMA, ECCC und BOM sichtbar; keine Rekonstruktion numerischer Punktwerte aus Kartenfarben.
+
 # MID v0.9.40.15
 
 - CI-/Regressionsbereinigung: drei veraltete Schutztests wurden auf den aktuellen Niederschlagsart-Vertrag mit Hagel und Graupel/Eiskörnern sowie den aktuellen Rapid-Update-Statuspfad migriert.

@@ -31,11 +31,12 @@ for(const token of [
   'Niederschlagsart · DWD WN'
 ]) forbid('Aktiver RadarPanel-Pfad',radarPanel,token);
 
-// Die Kompositphase ist ab v0.9.40.13 ein reines Symboloverlay; ab v0.9.40.14 inklusive Hagel und Graupel/Eiskörner.
+// Die Kompositphase ist ab v0.9.40.13 ein reines Symboloverlay; ab v0.9.40.16 inklusive sauber getrennter Schneekörner sowie Hagel und konservativ abgeleitetem Graupel/Eiskörnern.
 need('Symboloverlay',overlay,'HtmlMarker');
 need('Symboloverlay',overlay,'asSymbolPhase(phase.phase)');
 need('Symboloverlay',overlay,"explicitHail=[96,99].includes(code)");
-need('Symboloverlay',overlay,"explicitGraupel=[77].includes(code)");
+need('Symboloverlay',overlay,"explicitSnowGrains=[77].includes(code)");
+need('Symboloverlay',overlay,"phase:'graupel'");
 forbid('Symboloverlay',overlay,'GeoJsonLayers');
 forbid('Symboloverlay',overlay,'fill-opacity');
 

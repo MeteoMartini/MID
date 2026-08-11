@@ -7,6 +7,7 @@ const phase=readFileSync(new URL('../src/RadarModelPrecipTypeOverlay.tsx',import
 const px=readFileSync(new URL('../src/Px250Overlay.tsx',import.meta.url),'utf8');
 const opera=readFileSync(new URL('../src/OperaRasterOverlay.tsx',import.meta.url),'utf8');
 const tables=readFileSync(new URL('../src/radarColorTables.ts',import.meta.url),'utf8');
+const symbols=readFileSync(new URL('../src/precipitationTypeSymbols.ts',import.meta.url),'utf8');
 
 assert.match(tables,/export type RadarColorTableId='dwd-standard'/,'normal radar must expose only the fixed standard palette');
 assert.match(tables,/wmsStyle:''/,'DWD 1-km WMS must use the native default style');
@@ -24,9 +25,8 @@ assert.match(opera,/radarDbzColor\(dbz,colorTable\)/,'OPERA fallback standard co
 
 assert.match(phase,/HtmlMarker/,'precipitation type must now be rendered as symbols, not a colour table');
 assert.doesNotMatch(phase,/colorTable\?:RadarColorTableId|GeoJsonLayers|fill-color/,'precipitation-type overlay must be independent of radar palettes and polygon fills');
-assert.match(tables,/symbol:'🌨️'/,'mixed precipitation symbol missing');
-assert.match(tables,/symbol:'❄️'/,'snow symbol missing');
-assert.match(tables,/symbol:'🧊'/,'freezing precipitation symbol missing');
+for(const phaseName of ["phase==='mixed'","phase==='snow'","phase==='snow-grains'","phase==='graupel'","phase==='hail'"])assert.match(symbols,new RegExp(phaseName.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')),`meteorological SVG phase missing: ${phaseName}`);
+assert.match(symbols,/else content='<g fill="none" stroke="currentColor"/,'freezing precipitation swirl symbol missing');
 assert.doesNotMatch(tables,/\{phase:'rain',label:'Regen'.*symbol/,'pure rain must not get an extra phase symbol');
 
 assert.match(panel,/showRadar&&!highResolution&&activeSource==='dwd'&&dwdRenderBlend\.map/,'1-km DWD radar render path missing');

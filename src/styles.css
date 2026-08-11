@@ -5511,3 +5511,23 @@ body,#root{
 .radar-phase-symbol>span{display:block;font-size:15px;line-height:1;filter:drop-shadow(0 1px 2px rgba(255,255,255,.9)) drop-shadow(0 1px 2px rgba(0,0,0,.42));transition:opacity .12s ease}
 .radar-phase-mixed>span{font-size:16px}.radar-phase-snow>span{font-size:15px}.radar-phase-freezing>span{font-size:15px}
 .precipitation-type-legend.symbol-legend span>b{display:inline-grid;place-items:center;width:14px;height:14px;font-size:11px;line-height:1}
+
+/* MID v0.9.40.16 · Favoriten-/Sektionsdarstellung */
+.favorite-strip-display-settings{display:grid;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+.favorite-strip-display-settings>header{display:grid;gap:3px}.favorite-strip-display-settings>header span{color:var(--accent);font-size:10px;font-weight:850;letter-spacing:.08em;text-transform:uppercase}.favorite-strip-display-settings>header small{color:var(--muted)}
+.dashboard-module-settings>header .dashboard-module-reset{display:inline-flex;align-items:center;gap:7px;width:max-content;margin-top:10px;padding:7px 10px;border:1px solid var(--border);border-radius:10px;background:var(--s2);color:var(--text);font-size:12px;font-weight:800}
+.module-shell-toggle{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+
+/* MID v0.9.40.16 · meteorologische Niederschlagsart-Symbole */
+.radar-phase-symbol{pointer-events:none;user-select:none;transform:translateZ(0);color:#0a1018}
+.radar-phase-symbol>span,.radar-phase-symbol-shape{display:block;width:19px;height:15px;line-height:1;filter:drop-shadow(0 0 1.4px rgba(255,255,255,.98)) drop-shadow(0 1px 1.4px rgba(255,255,255,.9)) drop-shadow(0 1px 1.5px rgba(0,0,0,.46));transition:opacity .12s ease}
+.radar-phase-symbol svg{display:block;width:100%;height:100%;overflow:visible}
+.precipitation-type-symbol-preview{display:inline-grid!important;width:25px!important;height:19px!important;place-items:center;color:var(--text);background:transparent!important;border:0!important;border-radius:0!important}
+.precipitation-type-symbol-preview svg{display:block;width:25px;height:19px;overflow:visible}
+@media(max-width:520px){.radar-phase-symbol>span,.radar-phase-symbol-shape{width:18px;height:14px}.precipitation-type-symbol-preview{width:23px!important;height:18px!important}.precipitation-type-symbol-preview svg{width:23px;height:18px}}
+
+/* MID v0.9.40.16 · Langfrist-Rauchfahnen wie Ensembleansicht */
+.long-range-chart .anomaly-plume.outer{opacity:.62}
+.long-range-chart .anomaly-plume.inner{opacity:.78;stroke-width:1.25}
+.long-range-chart.temperature .anomaly-plume.inner{fill:color-mix(in srgb,#d1495b 18%,#2f6cc5 18%,transparent)}
+.long-range-chart.precipitation .anomaly-plume.inner{fill:color-mix(in srgb,#35978f 21%,#bf812d 16%,transparent)}

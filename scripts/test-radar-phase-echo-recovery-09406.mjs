@@ -11,12 +11,12 @@ assert.match(phase,/samplesPerAxis=3/,'phase overlay must sample several radar p
 assert.match(phase,/function radarBackedThermalPhase\(/,'conservative radar-backed thermal recovery must remain');
 assert.match(phase,/asSymbolPhase\(phase\.phase\)/,'only explicitly released non-liquid precipitation phases may become symbols');
 assert.match(phase,/phase\.confidence==='eingeschränkt'\)continue/,'restricted-confidence phase must stay hidden');
-assert.match(phase,/function phaseMinimumDbz\(phase:SymbolPhase\)\{return phase==='hail'\?15:phase==='graupel'\?9:\(phase==='snow'\|\|phase==='freezing'\?5:7\)\}/,'echo thresholds for non-liquid symbols must remain protected');
+assert.match(phase,/function phaseMinimumDbz\(phase:SymbolPhase\)\{return phase==='hail'\?15:phase==='graupel'\?9:phase==='snow-grains'\?4:\(phase==='snow'\|\|phase==='freezing'\?5:7\)\}/,'echo thresholds for non-liquid symbols must remain protected');
 assert.match(phase,/distanceKm\(existing,item\)<spacing/,'phase symbols must be spatially thinned');
 assert.match(phase,/HtmlMarker/,'phase overlay must render point symbols');
 assert.match(phase,/opacity:\$\{safeOpacity\.toFixed\(2\)\}/,'user opacity must control phase symbols');
 assert.doesNotMatch(phase,/GeoJsonLayers|fill-opacity|Polygon/,'old filled phase polygons must stay removed');
 assert.match(panel,/if\(next&&!showRadar\)setShowRadar\(true\)/,'enabling precipitation type must preserve/show the selected radar underneath');
 assert.match(panel,/precipitationTypeOpacity/,'phase opacity slider must remain available below the image');
-assert.match(styles,/\.radar-phase-symbol>span\{display:block;font-size:15px/,'phase symbols must remain small');
+assert.match(styles,/\.radar-phase-symbol>span,\.radar-phase-symbol-shape\{display:block;width:19px;height:15px/,'phase symbols must remain compact enough to preserve radar gradations');
 console.log('ok - non-liquid precipitation is rendered as small semi-transparent symbols over the selected radar');
