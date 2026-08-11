@@ -1,3 +1,17 @@
+# MID v0.9.40.15
+
+- CI-/Regressionsbereinigung: drei veraltete Schutztests wurden auf den aktuellen Niederschlagsart-Vertrag mit Hagel und Graupel/Eiskörnern sowie den aktuellen Rapid-Update-Statuspfad migriert.
+- Die neue Symbolerweiterung aus v0.9.40.14 bleibt unverändert erhalten; es wird keine Funktion zurückgenommen.
+- Der neue Regressionstest für Layerstatus, Hagel und Graupel/Eiskörner ist nun Bestandteil des Baseline-Vertrags.
+- Versionssynchronisierung umfasst jetzt auch package-lock, Service-Worker-Cache, public/version.json, Baseline und Worker.
+
+# MID v0.9.40.14
+
+- Komposit-Niederschlagsart gibt jetzt im Layerstatus eindeutig Rückmeldung, ob der Layer aktiv ist und ob im aktuell sichtbaren Ausschnitt momentan überhaupt feste, gemischte oder gefrierende Niederschlagsarten erkannt werden. So ist auch bei rein flüssigem Niederschlag nachvollziehbar, dass der Layer funktioniert.
+- Die Symbolik wurde erweitert: zusätzlich zu Schnee, Mischphase und gefrierendem Niederschlag werden nun auch Hagel sowie Graupel/Eiskörner als kleine semitransparente meteorologische Symbole auf dem ausgewählten Radarbild dargestellt.
+- Die Symbolgrößen bleiben bewusst klein, damit Staffelungen der Radarechos erkennbar bleiben; Hagel- und Graupelsymbole erhalten zugleich etwas stärkere Abstandsregeln, damit sie lesbar bleiben.
+- Die Legende im Kompositbild erklärt nun auch, dass ein fehlendes Symbol bei aktivem Layer schlicht bedeuten kann, dass im aktuellen Ausschnitt keine feste bzw. gemischte Niederschlagsphase vorliegt.
+
 # MID v0.9.40.9
 
 - Niederschlagswahrscheinlichkeit app-weit vereinheitlicht: Ensemble-Tageswerte werden explizit als 00–24-h-Ereigniswahrscheinlichkeit bezeichnet und zusammen mit dem stärksten 6-h-Zeitfenster angezeigt.

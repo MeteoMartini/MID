@@ -20,8 +20,9 @@ assert(/maxTimeDelta=grid\.stale\?45\*60000:20\*60000/.test(overlay),'Modell-Zei
 assert(/Number\(grid\.modelAgeHours\)>16/.test(overlay),'Modell-Laufalter muss zusätzlich im Frontend begrenzt sein.');
 assert(/phase\.confidence==='eingeschränkt'\)continue/.test(overlay),'Unsichere Phasen müssen ausgeblendet bleiben.');
 assert(/HtmlMarker/.test(overlay)&&!/GeoJsonLayers|fill-opacity/.test(overlay),'Niederschlagsarten müssen als kleine Symbole statt als flächige Rasterpolygone erscheinen.');
-assert(/\['mixed','snow','freezing'\]\.includes\(phase\.phase\)/.test(overlay),'Reiner flüssiger Niederschlag darf kein zusätzliches Symbol erhalten.');
-assert(!/phase:'hail'/.test(overlay),'Hagel darf ohne beobachtungsbasierte Phasenerkennung nicht als eigene Phase gerendert werden.');
+assert(/asSymbolPhase\(phase\.phase\)/.test(overlay),'Nur explizit freigegebene nichtflüssige bzw. gemischte Phasen dürfen Symbole erhalten.');
+assert(/explicitHail=\[96,99\]\.includes\(code\)/.test(overlay)&&/explicitGraupel=\[77\]\.includes\(code\)/.test(overlay),'Hagel und Graupel/Eiskörner müssen aus beobachtungsnahen Signalen ableitbar sein.');
+assert(/if\(!typed\|\|phase\.confidence==='eingeschränkt'\)continue/.test(overlay),'Reiner flüssiger Niederschlag und unsichere Phasen dürfen kein zusätzliches Symbol erhalten.');
 
 assert(/loadWeatherPhaseGrid/.test(weatherMaps)&&/precipitation-phase-grid/.test(weatherMaps),'Eigener Phasenraster-Endpunkt fehlt.');
 assert(/const rows=13,cols=19/.test(worker),'Phasenraster muss das rate-limit-sichere lokale 13×19-Raster verwenden.');

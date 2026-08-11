@@ -35,7 +35,7 @@ need('App RUC Label',weather,"label:'DWD ICON-D2-RUC'");
 need('App KNMI Europe',weather,"id:'knmi_harmonie_arome_europe'");
 need('Phasenmodell dynamischer Typ',phaseData,'export type WeatherPhaseGridData={modelId:string;');
 need('Dynamischer Phasenmodellname',overlay,"data.modelLabel||'Regionalmodell'");
-need('Radar Rapid Status',overlay,"grid.rapidUpdate?' · Rapid Update':''");
+need('Radar Rapid Status',overlay,"data.rapidUpdate?' · Rapid Update':''");
 need('Fusion Source-Provenienz',worker,'rapidUpdate:Boolean(result.rapidUpdate)');
 need('Fusion Label',fusion,'Rapid Update einbezogen');
 need('Cockpit RUC Badge',cockpit,'cockpit-model-rapid-badge');

@@ -9,10 +9,10 @@ const [phase,panel,styles]=await Promise.all([
 assert.match(phase,/function cellEchoSummary\(/,'phase overlay must sample radar echoes');
 assert.match(phase,/samplesPerAxis=3/,'phase overlay must sample several radar points inside each model cell');
 assert.match(phase,/function radarBackedThermalPhase\(/,'conservative radar-backed thermal recovery must remain');
-assert.match(phase,/\['mixed','snow','freezing'\]\.includes\(phase\.phase\)/,'only non-liquid precipitation phases may become symbols');
+assert.match(phase,/asSymbolPhase\(phase\.phase\)/,'only explicitly released non-liquid precipitation phases may become symbols');
 assert.match(phase,/phase\.confidence==='eingeschränkt'\)continue/,'restricted-confidence phase must stay hidden');
-assert.match(phase,/minimumDbz=typed==='snow'\|\|typed==='freezing'\?5:7/,'echo thresholds for non-liquid symbols must remain protected');
-assert.match(phase,/distanceKm\(existing,item\)<14/,'phase symbols must be spatially thinned');
+assert.match(phase,/function phaseMinimumDbz\(phase:SymbolPhase\)\{return phase==='hail'\?15:phase==='graupel'\?9:\(phase==='snow'\|\|phase==='freezing'\?5:7\)\}/,'echo thresholds for non-liquid symbols must remain protected');
+assert.match(phase,/distanceKm\(existing,item\)<spacing/,'phase symbols must be spatially thinned');
 assert.match(phase,/HtmlMarker/,'phase overlay must render point symbols');
 assert.match(phase,/opacity:\$\{safeOpacity\.toFixed\(2\)\}/,'user opacity must control phase symbols');
 assert.doesNotMatch(phase,/GeoJsonLayers|fill-opacity|Polygon/,'old filled phase polygons must stay removed');

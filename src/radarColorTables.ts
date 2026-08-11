@@ -41,9 +41,11 @@ export const RADAR_COLOR_TABLE_EVENT='mid:radar-color-table-change';
 export function readRadarColorTableSetting():RadarColorTableId{return DEFAULT_RADAR_COLOR_TABLE}
 export function writeRadarColorTableSetting(_id:RadarColorTableId){try{localStorage.removeItem(RADAR_COLOR_TABLE_STORAGE_KEY)}catch{};return DEFAULT_RADAR_COLOR_TABLE}
 
-export const PRECIPITATION_TYPE_COLORS={rain:'#21b65b',mixed:'#d45ac6',snow:'#4d9fff',freezing:'#ef4b43',uncertain:'#7f8794'} as const;
+export const PRECIPITATION_TYPE_COLORS={rain:'#21b65b',mixed:'#d45ac6',snow:'#4d9fff',graupel:'#7e86ff',hail:'#36a9e1',freezing:'#ef4b43',uncertain:'#7f8794'} as const;
 export const PRECIPITATION_TYPE_LEGEND=[
  {phase:'mixed',label:'Mischphase / Schneeregen',color:PRECIPITATION_TYPE_COLORS.mixed,symbol:'🌨️'},
  {phase:'snow',label:'Schnee',color:PRECIPITATION_TYPE_COLORS.snow,symbol:'❄️'},
+ {phase:'graupel',label:'Graupel / Eiskörner',color:PRECIPITATION_TYPE_COLORS.graupel,symbol:'❆'},
+ {phase:'hail',label:'Hagel',color:PRECIPITATION_TYPE_COLORS.hail,symbol:'◆'},
  {phase:'freezing',label:'gefrierender Niederschlag',color:PRECIPITATION_TYPE_COLORS.freezing,symbol:'🧊'}
 ] as const;
