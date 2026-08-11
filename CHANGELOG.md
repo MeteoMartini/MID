@@ -1,7 +1,3 @@
-## 0.9.41.3
-
-- Mobile Temperatur-Ensemble-Tooltip: Sonne, Niederschlag und Modelle teilen jetzt eine gemeinsame Label-/Wertspalte und sind rechtsbündig ausgerichtet; Tooltip-Größe unverändert.
-
 # MID v0.9.41.2
 
 - Mobiles Temperatur-Ensemble-Tooltip korrigiert: Sonne, Niederschlag und Modelle verwenden eine gemeinsame Beschriftungsspalte mit sauber getrennter flexibler Wertspalte.

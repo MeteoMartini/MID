@@ -3,6 +3,7 @@ import {AlertTriangle,CalendarRange,CheckCircle2,CloudRain,MapPin,RefreshCw,Sear
 import {label,searchLocations,type Location} from './weather';
 import {WeatherPictogram} from './WeatherPictogram';
 import {addDays,bestTravelWindows,dateRange,fetchTravelClimatology,summarizeTravelPeriod,travelNarrative,travelPeriod,type TravelConstraints,type TravelPreference,type TravelWindowResult} from './travelPlanner';
+import EventPlannerPanel from './EventPlannerPanel';
 
 type Props={initialLocation:Location;advancedMode:boolean};
 type PlannerMode='fixed'|'flexible';
@@ -101,5 +102,7 @@ export default function TravelPlannerPanel({initialLocation,advancedMode}:Props)
    <div className="travel-daily-climate"><header><div><span>KLIMAVERLAUF</span><h5>Typische Bedingungen im Zeitraum</h5></div><small>horizontal scrollbar</small></header><div className="travel-day-strip">{active.points.map(point=><article key={point.date}><time>{formatDate(point.date)}</time><span className="travel-day-icon"><WeatherPictogram code={point.weatherCode} day title={label(point.weatherCode)}/></span><strong>{number(point.maxMean,0)}°</strong><small>{number(point.minMean,0)}°</small><span className="travel-day-rain"><CloudRain size={12}/>{number(point.wetProbability,0)} %</span><span className="travel-day-sun"><Sun size={12}/>{number(point.sunshineMeanHours)} h</span>{analysis.snowDepthIncluded&&Number.isFinite(point.snowDepthMean)&&<span className="travel-day-snow"><Snowflake size={12}/>{number(Number(point.snowDepthMean),0)} cm</span>}</article>)}</div></div>
    <footer><span>Quelle: {analysis.source} · Referenzperiode {analysis.referencePeriod}</span><small>{advancedMode?'Tageswerte sind Mittel beziehungsweise Eintrittswahrscheinlichkeiten aus der ERA5-Land-Reanalyse; lokale Effekte, einzelne Extremjahre und künftige Klimaänderungen bleiben unsicher.':'Klimamittel beschreiben typische Bedingungen, nicht das Wetter eines einzelnen Jahres.'}</small></footer>
   </section>}
+
+  <EventPlannerPanel initialLocation={destination} advancedMode={advancedMode}/>
  </section>;
 }
