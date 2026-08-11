@@ -1,3 +1,9 @@
+# MID v0.9.41.2
+
+- Mobiles Temperatur-Ensemble-Tooltip korrigiert: Sonne, Niederschlag und Modelle verwenden eine gemeinsame Beschriftungsspalte mit sauber getrennter flexibler Wertspalte.
+- Lange Metawerte umbrechen nur rechts und an natürlichen Trennstellen; insbesondere „Niederschlag“ läuft nicht mehr in den Werttext.
+- Tooltip-Größe, Padding, Schriftgrößen, Temperaturmatrix und Desktop-Darstellung bleiben unverändert.
+
 # MID v0.9.41.1
 
 - CI-Kompatibilitätsfix: Die Langfrist-Methodik formuliert die gleichgewichtete Modellfamilienlogik wieder vertragskompatibel als „gewichtet Modellfamilien gleich“, ohne die fachliche Einschränkung auf unabhängige Modellfamilien zu verlieren.
