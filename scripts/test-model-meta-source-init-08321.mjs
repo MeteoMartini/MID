@@ -12,7 +12,8 @@ forbid('AIFS-Modell-ID',weather,"{id:'ecmwf_aifs025',label:'ECMWF AIFS 0,25°',k
 need('Frischeprüfung',weather,'function modelMetaIsFresh(data:any)');
 need('Frischeprüfung',weather,'now-initMs<=maximumAgeMs');
 need('Metadatenquelle',weather,"metadataSource:'Open-Meteo Metadata API'");
-need('Best-Match-Wording',weather,'belegen daher nicht, dass Best Match genau dieses Modell verwendet');
+need('Best-Match-Wording',weather,'Die konkrete Best-Match-Quelle kann je Variable und Zeitraum wechseln.');
+need('RUC-Verfügbarkeitsgrenze',weather,'er wird erst dann direkt in numerische Open-Meteo-Bündel aufgenommen, wenn der entsprechende API-Modelladapter verfügbar ist');
 need('Best-Match-Kandidaten',app,'Am Standort potenziell relevante Regionalmodelle:');
 forbid('Best-Match-Kandidaten',app,'Wahrscheinliche Kette:');
 need('Worker-Alias',worker,"ecmwf_aifs025:['ecmwf_aifs025_single','ecmwf_aifs025']");

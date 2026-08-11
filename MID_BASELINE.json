@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.39.11",
+  "releaseVersion": "0.9.40.2",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -138,7 +138,10 @@
     "scripts/test-no-clipped-weather-values-09394.mjs",
     "scripts/test-composite-phase-grammar-09395.mjs",
     "scripts/test-radar-model-phase-reliability-09395.mjs",
-    "scripts/test-install-minimist-diff-bootstrap-09398.mjs"
+    "scripts/test-install-minimist-diff-bootstrap-09398.mjs",
+    "scripts/test-radar-model-phase-request-budget-093913.mjs",
+    "scripts/test-ruc-rapid-update-policy-09400.mjs",
+    "scripts/test-ruc-time-robustness-09401.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [

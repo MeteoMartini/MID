@@ -1,3 +1,26 @@
+# MID v0.9.40.2
+
+- 24-h-Wetterprofil: Tmin/Tmax verwenden jetzt exakt dieselben zentral reconcilierten Tageswerte (`displayDays[].min/max`) wie 7-Tage-Ansicht, 14-Tage-Best-Match, Widget und klassische Vorhersage.
+- Stundenwerte dienen im Wetterprofil nur noch zur zeitlichen Positionierung des jeweiligen Tagesextrems auf der Kurve; sie erzeugen keine abweichenden Extremwert-Zahlen mehr.
+- Tagesminimum/-maximum werden weiterhin nur eingeblendet, wenn der zugehörige Stunden-Proxy des betreffenden Kalendertags innerhalb des sichtbaren 24-h-Intervalls liegt; das sichtbare Fenster selbst wird nicht als falsches Tages-Tmin/Tmax interpretiert.
+- Neue Regression `test-weather-profile-daily-extremes-consistency-09402.mjs` schützt die app-weite Konsistenz der Extremwerte.
+
+# MID v0.9.40.0
+
+- App-weite Rapid-Update-Policy: hochauflösende stündliche Regionalmodelle werden im Kurzfristbereich nach Standort, Frische, Auflösung und Datenlatenz priorisiert; mit zunehmendem Vorlauf sinkt ihr Gewicht.
+- DWD ICON-D2-RUC/RUC-EPS werden über DWD Open Data als echte Rapid-Läufe erkannt; numerische Verwendung bleibt ehrlich capability-gated, solange kein JSON-/GRIB2-Adapter verfügbar ist.
+- Radar-/Modell-Niederschlagsart wählt dynamisch das frischeste geeignete Rapid-/Regionalmodell; Météo-France AROME 15-min nutzt den dedizierten API-Endpunkt, HRRR die dokumentierte Modell-ID.
+- Forecast-Fusion reicht Rapid-Provenienz bis ins Frontend durch; KNMI HARMONIE Europe/NL, UKV, MET Nordic, HRRR/NBM werden standort- und vorlaufabhängig berücksichtigt.
+- Meteogramme um KNMI HARMONIE Europe und UKV ergänzt; UKMO UK Ensemble 2 km innerhalb seiner Domain höher priorisiert.
+- Konservative Phase-/Rate-Limit-Schutzmechanismen aus v0.9.39.13 bleiben bestehen und wurden um laufaltersabhängige Rapid-Freshness ergänzt.
+
+# MID v0.9.39.12
+
+- 7- und 14-Tage-Cockpit: dezente, touch-taugliche Schaltfläche „Modellstand“ mit Best-Match- bzw. Ensemble-Laufmetadaten.
+- 14-Tage-Cockpit: Konsistenz-Prozentpillen öffnen per Klick/Tipp einen randfesten Tooltip analog zur klassischen Ensembleansicht mit Klassifikation, Modellzahl, Mitgliederzahl und Streuungshinweis.
+- 14-Tage-Tageskarten semantisch entkoppelt, damit die interaktive Konsistenzpille kein verschachtelter Button ist und beim Öffnen nicht gleichzeitig den Tag wechselt.
+- Temporäre Regressionstest-Verzeichnisse werden nicht mehr als Releaseinhalt bzw. Commit-Artefakte mitgeführt.
+
 # MID v0.9.39.9
 
 - CI-Regressionsfix: der historische node_modules-Bootstrap-Test untersucht nach `npm ci` nicht mehr das live befuellte Projektverzeichnis.

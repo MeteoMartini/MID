@@ -12,8 +12,8 @@ for(const token of [
  'timeLabelStepMs=(chartViewportWidth<=560?6:chartViewportWidth<=860?4:3)*3600000',
  'chartPoints.map(item=><WeatherPictogram',
  'dailyMaxMarkers=chartDayBands.flatMap',
- 'nightMinMarkers=nightSegments.flatMap',
- 'temperatureExtremes=[...dailyMaxMarkers,...nightMinMarkers]',
+ 'dailyMinMarkers=chartDayBands.flatMap',
+ 'temperatureExtremes=[...dailyMaxMarkers,...dailyMinMarkers]',
  'className={`temperature-extreme ${extreme.kind}`}',
  'PROFILE_LEGEND_KEY',
  'useState(readProfileLegendVisible)',
@@ -35,4 +35,4 @@ for(const token of [
 ])need('Styles',styles,token);
 const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;if(pv!==bv)failures.push(`Versionen nicht synchron: ${pv}/${bv}`);
 if(failures.length){console.error('MID Wetterprofil-Layoutprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('MID: responsives Wetterprofil, persistente Legende, Nacht-Tmin, Tages-Tmax und kompakte Info-Schaltflächen geprüft.');
+console.log('MID: responsives Wetterprofil, persistente Legende, zentrale Tages-Tmin/Tmax und kompakte Info-Schaltflächen geprüft.');

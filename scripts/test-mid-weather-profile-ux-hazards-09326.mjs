@@ -15,9 +15,8 @@ for(const token of [
  'dwdWarningSignalsAt(samples,index,elevation)',
  'DWD_WARNING_COLORS[level]',
  'dailyMaxMarkers=chartDayBands.flatMap',
- 'nightSegments=hours.reduce',
- 'nightMinMarkers=nightSegments.flatMap',
- 'temperatureExtremes=[...dailyMaxMarkers,...nightMinMarkers]',
+ 'dailyMinMarkers=chartDayBands.flatMap',
+ 'temperatureExtremes=[...dailyMaxMarkers,...dailyMinMarkers]',
  'profile-axis precipitation-axis"><line className="profile-axis-spine" x1={chartPaddingLeft}',
  'profile-axis wind-axis"><line className="profile-axis-spine" x1={chartPaddingLeft}',
  'cockpit-weather-profile__data-title',
@@ -40,4 +39,4 @@ for(const token of [
 ])need('Styles',styles,token);
 const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;if(pv!==bv)failures.push(`Versionen nicht synchron: ${pv}/${bv}`);
 if(failures.length){console.error('MID v0.9.32.6 Wetterprofil-UX/Hazard-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('MID v0.9.32.6: persistente Legende, zentrale Warnschwellen/-farben, linke Achsen, Nacht-Tmin und bereinigte 24-h-Texte geprüft.');
+console.log('MID: persistente Legende, zentrale Warnschwellen/-farben, linke Achsen, appweit konsistente Tages-Tmin/Tmax und bereinigte 24-h-Texte geprüft.');

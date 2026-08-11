@@ -12,6 +12,10 @@ export type ForecastFusionSource={
  provider:string;
  successful:boolean;
  reason?:string;
+ rapidUpdate?:boolean;
+ updateHours?:number;
+ resolutionKm?:number;
+ maxHours?:number;
 };
 export type ForecastFusionHour={
  time:string;
@@ -467,6 +471,6 @@ export function applyConvectiveNowcastHours(hours:Hour[],thunder:ThunderstormNow
 
 export function forecastFusionLabel(fusion:ForecastFusionResult|null|undefined){
  if(!fusion?.active)return'';
- const applied=fusion.days.filter(day=>day.applied),confidence=applied.length?Math.round(applied.reduce((sum,day)=>sum+day.confidence,0)/applied.length):0,repaired=Math.max(0,Number(fusion.diagnostics?.repairedHours)||0),repairLabel=repaired?` · ${repaired} h plausibilitätsrepariert`:' · ohne Bündelersatz';
- return`Best Match geprüft${fusion.mosmix?.applied?' + MOSMIX lokal':''}${repairLabel}${confidence?` · ${Math.round(confidence)} % Modellvergleich`:''}`;
+ const applied=fusion.days.filter(day=>day.applied),confidence=applied.length?Math.round(applied.reduce((sum,day)=>sum+day.confidence,0)/applied.length):0,repaired=Math.max(0,Number(fusion.diagnostics?.repairedHours)||0),repairLabel=repaired?` · ${repaired} h plausibilitätsrepariert`:' · ohne Bündelersatz',rapidChecked=fusion.sources?.some(source=>source.successful&&source.rapidUpdate);
+ return`Best Match geprüft${rapidChecked?' · Rapid Update einbezogen':''}${fusion.mosmix?.applied?' + MOSMIX lokal':''}${repairLabel}${confidence?` · ${Math.round(confidence)} % Modellvergleich`:''}`;
 }

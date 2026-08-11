@@ -16,8 +16,8 @@ for(const token of [
   'showPrecipitationType',
   'precipitationTypeOpacity',
   "import('./RadarModelPrecipTypeOverlay')",
-  'Niederschlagsart · Radar+ICON-D2',
-  'OPERA-CIRRUS-Echomaske + ICON-D2 als radar-/modellgestützte Phasenklassifikation',
+  'Niederschlagsart · Radar+Modell',
+  'OPERA-CIRRUS-Echomaske + frischestes geeignetes Rapid-/Regionalmodell als radar-/modellgestützte Phasenklassifikation',
   'verwendet ausschließlich die Fusion aus beobachteter OPERA-CIRRUS-Echofläche'
 ]) need('RadarPanel',radarPanel,token);
 for(const token of [
@@ -41,4 +41,4 @@ need('Baseline',baseline,'scripts/test-composite-precipitation-type-layer-09366.
 const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;
 if(pv!==bv)failures.push(`Versionen nicht synchron: ${pv}/${bv}`);
 if(failures.length){console.error('Komposit-Niederschlagsart-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Kompositbild nutzt für Niederschlagsart ausschließlich beobachtete OPERA-Echos + zeitnahes ICON-D2; HymecNG/WN sind kein aktiver Komposit-Fallback.');
+console.log('Kompositbild nutzt für Niederschlagsart ausschließlich beobachtete OPERA-Echos + dynamisches Rapid-/Regionalmodell; HymecNG/WN sind kein aktiver Komposit-Fallback.');

@@ -15,7 +15,7 @@ for(const token of [
 ])need('Worker-HymecNG-Diagnose',worker,token);
 for(const token of ['Hymec','hymec'])reject('RadarPanel',panel,token);
 need('RadarPanel',panel,"precipitationTypeMode:'none'|'radar-model'");
-need('RadarPanel',panel,'OPERA-CIRRUS-Echomaske + ICON-D2 als radar-/modellgestützte Phasenklassifikation');
+need('RadarPanel',panel,'OPERA-CIRRUS-Echomaske + frischestes geeignetes Rapid-/Regionalmodell als radar-/modellgestützte Phasenklassifikation');
 need('Baseline',baseline,'scripts/test-hymecng-direct-latest-hg-fallback-09384.mjs');
 if(failures.length){console.error('HymecNG-Diagnose/Radar-Modell-Exklusivität fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
 console.log('HymecNG ist nur noch diagnostischer Worker-Altpfad; die Komposit-Niederschlagsart bleibt exklusiv OPERA + ICON-D2.');

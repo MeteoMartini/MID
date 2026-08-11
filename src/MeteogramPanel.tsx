@@ -25,6 +25,8 @@ type ModelOption={id:string;label:string;hours:number;detail:string;bbox?:[numbe
 const MODELS:ModelOption[]=[
  {id:'best_match',label:'Best Match',hours:168,detail:'ortsabhängig · bis 168 h'},
  {id:'dwd_icon_d2',label:'DWD ICON-D2',hours:48,detail:'ca. 2 km · bis 48 h',bbox:[-6,43,26,58]},
+ {id:'knmi_harmonie_arome_europe',label:'KNMI HARMONIE Europe',hours:60,detail:'Rapid Update · ca. 5,5 km · stündlicher Lauf · bis 60 h',bbox:[-12,40,32,68]},
+ {id:'ukmo_uk_deterministic_2km',label:'UKMO UKV',hours:48,detail:'Rapid Update · ca. 2 km · stündlicher Lauf · Open-Data-Verzögerung',bbox:[-12,48,4,62]},
  {id:'dwd_icon_eu',label:'DWD ICON-EU',hours:120,detail:'ca. 7 km · bis 120 h',bbox:[-25,30,45,72]},
  {id:'meteofrance_arpege_europe',label:'Météo-France ARPEGE Europa',hours:114,detail:'ca. 10 km · bis 114 h',bbox:[-25,30,45,72]},
  {id:'ecmwf_ifs',label:'ECMWF IFS HRES',hours:168,detail:'ca. 9 km · bis 168 h'},

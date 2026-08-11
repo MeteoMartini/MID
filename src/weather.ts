@@ -30,7 +30,7 @@ export type ClimateDay={date:string;maxMean:number;minMean:number;years:number};
 export type Station={name:string;provider?:string;stationId?:string;latitude?:number;longitude?:number;distance?:number;height?:number;timestamp?:string;temperature?:number;humidity?:number;dewPoint?:number;pressure?:number;pressureReference?:'QFF'|'MSL'|'QNH'|'station';windSpeed?:number;windDirection?:number;windGust?:number;windUnit?:'kt'|'kmh';visibility?:number;cloudCover?:number;ceilingHft?:number;cloudBaseHft?:number;precipitation?:number;precipitationMinutes?:number;cloudObservation?:CloudObservation;cloudAnalysisMethod?:string;stationCount?:number;sourceProviders?:string[];blended?:boolean;temperatureSpread?:number;trustFactor?:number;networkClass?:'official'|'professional'|'pws'|'citizen'|'unknown';siteClass?:UrbanClass;analysisMethod?:string;uncertainty?:number;effectiveResolutionKm?:number;candidateCount?:number;rejectedCount?:number;localCorrection?:number;backgroundModel?:string;urbanClass?:UrbanClass;staleFallback?:boolean;cacheAgeMinutes?:number};
 export type OfficialAlertLevel='yellow'|'orange'|'red'|'purple'|'unknown';
 export type OfficialAlert={id:string;headline:string;description:string;instruction?:string;level:OfficialAlertLevel;severity?:string;event?:string;source:string;area?:string;effective?:string;onset?:string;expires?:string;url?:string};
-export type ModelRunMeta={id:string;label:string;kind:'forecast'|'ensemble';initialisationTime?:string;availabilityTime?:string;updateIntervalSeconds?:number;temporalResolutionSeconds?:number;metadataModelId?:string;metadataSource?:string};
+export type ModelRunMeta={id:string;label:string;kind:'forecast'|'ensemble';initialisationTime?:string;availabilityTime?:string;updateIntervalSeconds?:number;temporalResolutionSeconds?:number;metadataModelId?:string;metadataSource?:string;rapidUpdate?:boolean;resolutionKm?:number;forecastHorizonHours?:number;members?:number;availabilityOnly?:boolean};
 export type BestMatchModelInfo={summary:string;likelyChain:string;candidateModels?:string;runs:ModelRunMeta[]};
 export type RadarNowcastQuality='high'|'medium'|'low';
 export type RadarMotionAnchor={lat:number;lon:number;rate?:number};
@@ -94,7 +94,7 @@ const ensembleModels:EnsembleModel[]=[
  {id:'google_weathernext2_ensemble',label:'Google WeatherNext 2',metaId:'google_weathernext2_ensemble',resolutionKm:25,updateHours:12,maxDays:15}
 ];
 type EnsembleMeanModel=EnsembleModel;
-const ensemblePriority=['icon_d2_eps','icon_eu_eps','icon_seamless_eps','ecmwf_ifs_europe_ensemble','ecmwf_aifs_europe_ensemble','ecmwf_ifs025_ensemble','ecmwf_aifs025_ensemble','ncep_gefs05','gem_global_ensemble','google_weathernext2_ensemble'];
+const ensemblePriority=['ukmo_uk_ensemble_2km','icon_d2_eps','icon_eu_eps','icon_seamless_eps','ecmwf_ifs_europe_ensemble','ecmwf_aifs_europe_ensemble','ecmwf_ifs025_ensemble','ecmwf_aifs025_ensemble','ncep_gefs05','gem_global_ensemble','google_weathernext2_ensemble'];
 const meanPriority=['dwd_icon_eps_ensemble_mean_seamless','ecmwf_ifs_europe_ensemble_mean','ecmwf_aifs_europe_ensemble_mean','ecmwf_ifs025_ensemble_mean','ecmwf_aifs025_ensemble_mean','ncep_gefs_ensemble_mean_seamless','cmc_gem_geps_ensemble_mean','google_weathernext2_ensemble_mean'];
 const meanModels:EnsembleMeanModel[]=[
  {id:'dwd_icon_eps_ensemble_mean_seamless',label:'DWD ICON EPS Mittel',metaId:'dwd_icon_eps',resolutionKm:8,updateHours:3,maxDays:7.5},
@@ -131,27 +131,31 @@ function urbanClassFromPlace(featureCode?:string,population?:number,osmKey?:stri
 function photonLocation(feature:PhotonFeature,index:number):Location|null{const coordinates=feature.geometry?.coordinates,properties=feature.properties??{},lon=Number(coordinates?.[0]),lat=Number(coordinates?.[1]);if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180)return null;const name=String(properties.name||properties.city||properties.locality||'').trim();if(!name)return null;const extra=properties.extra??{},elevation=numeric(extra.ele??extra.elevation??properties.ele??properties.elevation),category=poiCategory(properties.osm_key,properties.osm_value),admin1=properties.state||properties.region,admin2=properties.county||properties.district||properties.city,urbanClass=urbanClassFromPlace(undefined,undefined,properties.osm_key,properties.osm_value);return{id:photonId(properties,index),name,latitude:lat,longitude:lon,elevation,country:properties.country,country_code:String(properties.countrycode||'').toUpperCase()||undefined,admin1:admin1?String(admin1):undefined,admin2:admin2&&String(admin2)!==String(admin1)?String(admin2):undefined,postcodes:properties.postcode?[String(properties.postcode)]:undefined,source:'OpenStreetMap/Photon',poiType:[properties.osm_key,properties.osm_value].filter(Boolean).join('='),poiCategory:category,urbanClass}}
 function similarLocation(a:Location,b:Location){if(a.name.trim().toLocaleLowerCase('de-DE')!==b.name.trim().toLocaleLowerCase('de-DE'))return false;return haversine(a.latitude,a.longitude,b.latitude,b.longitude)<2500}
 
-type ModelMetaCandidate={id:string;label:string;kind:'forecast'|'ensemble';metaIds?:string[]};
+type ModelMetaCandidate={id:string;label:string;kind:'forecast'|'ensemble';metaIds?:string[];metaSource?:'open-meteo'|'dwd-ruc';rapidUpdate?:boolean;resolutionKm?:number;forecastHorizonHours?:number;members?:number;availabilityOnly?:boolean};
 type ForecastCandidate=ModelMetaCandidate&{countries?:string[];bbox?:[number,number,number,number]};
 const forecastCandidates:ForecastCandidate[]=[
- {id:'dwd_icon_d2',label:'DWD ICON-D2',kind:'forecast',countries:['DE','CH','AT'],bbox:[-6,43,26,58]},
+ {id:'icon-d2-ruc',label:'DWD ICON-D2-RUC',kind:'forecast',metaSource:'dwd-ruc',rapidUpdate:true,resolutionKm:2,forecastHorizonHours:14,availabilityOnly:true,countries:['DE','CH','AT'],bbox:[-6,43,26,58]},
+ {id:'dwd_icon_d2',label:'DWD ICON-D2',kind:'forecast',resolutionKm:2,forecastHorizonHours:48,countries:['DE','CH','AT'],bbox:[-6,43,26,58]},
+ {id:'knmi_harmonie_arome_europe',label:'KNMI HARMONIE Europe',kind:'forecast',rapidUpdate:true,resolutionKm:5.5,forecastHorizonHours:60,bbox:[-14,35,32,66]},
  {id:'meteoswiss_icon_ch1',label:'MeteoSwiss ICON-CH1',kind:'forecast',countries:['CH']},
  {id:'meteoswiss_icon_ch2',label:'MeteoSwiss ICON-CH2',kind:'forecast',countries:['CH']},
  {id:'geosphere_arome_austria',label:'GeoSphere AROME Austria',kind:'forecast',countries:['AT']},
  {id:'chmi_aladin_cz_1km',label:'CHMI ALADIN Tschechien 1 km',kind:'forecast',countries:['CZ']},
  {id:'chmi_aladin_central_europe_2km',label:'CHMI ALADIN Mitteleuropa 2,3 km',kind:'forecast',bbox:[-12,35,35,62]},
  {id:'chmi_aladin_seamless',label:'CHMI ALADIN Seamless',kind:'forecast',bbox:[-12,35,35,62]},
- {id:'meteofrance_arome_france_hd',label:'Météo-France AROME HD',kind:'forecast',countries:['FR']},
- {id:'meteofrance_arome_france0025',label:'Météo-France AROME',kind:'forecast',countries:['FR']},
- {id:'knmi_harmonie_arome_netherlands',label:'KNMI Harmonie Niederlande',kind:'forecast',countries:['NL','BE']},
- {id:'ukmo_uk_deterministic_2km',label:'UKMO UKV 2 km',kind:'forecast',countries:['GB','IE']},
- {id:'metno_nordic_pp',label:'MET Nordic PP',kind:'forecast',countries:['NO','SE','DK','FI']},
+ {id:'meteofrance_arome_france_hd_15min',label:'Météo-France AROME HD 15 min',kind:'forecast',rapidUpdate:true,resolutionKm:1.5,forecastHorizonHours:6,countries:['FR']},
+ {id:'meteofrance_arome_france_15min',label:'Météo-France AROME 15 min',kind:'forecast',rapidUpdate:true,resolutionKm:2.5,forecastHorizonHours:6,countries:['FR']},
+ {id:'meteofrance_arome_france_hd',label:'Météo-France AROME HD',kind:'forecast',resolutionKm:1.5,forecastHorizonHours:48,countries:['FR']},
+ {id:'meteofrance_arome_france0025',label:'Météo-France AROME',kind:'forecast',resolutionKm:2.5,forecastHorizonHours:48,countries:['FR']},
+ {id:'knmi_harmonie_arome_netherlands',label:'KNMI HARMONIE Niederlande',kind:'forecast',rapidUpdate:true,resolutionKm:2,forecastHorizonHours:60,countries:['NL','BE']},
+ {id:'ukmo_uk_deterministic_2km',label:'UKMO UKV 2 km',kind:'forecast',rapidUpdate:true,resolutionKm:2,forecastHorizonHours:54,countries:['GB','IE']},
+ {id:'metno_nordic_pp',label:'MET Nordic PP',kind:'forecast',rapidUpdate:true,resolutionKm:1,forecastHorizonHours:60,countries:['NO','SE','DK','FI']},
  {id:'dmi_harmonie_arome_europe',label:'DMI Harmonie Europe',kind:'forecast',countries:['DK','DE','NL','BE','NO','SE']},
  {id:'italia_meteo_arpae_icon_2i',label:'ItaliaMeteo ICON-2I',kind:'forecast',countries:['IT']},
- {id:'ncep_hrrr_conus',label:'NOAA HRRR',kind:'forecast',countries:['US','CA']},
- {id:'ncep_nbm_conus',label:'NOAA NBM',kind:'forecast',countries:['US','CA']},
+ {id:'ncep_hrrr_conus',label:'NOAA HRRR',kind:'forecast',rapidUpdate:true,resolutionKm:3,forecastHorizonHours:48,countries:['US','CA']},
+ {id:'ncep_nbm_conus',label:'NOAA NBM',kind:'forecast',rapidUpdate:true,resolutionKm:2.5,forecastHorizonHours:264,countries:['US','CA']},
  {id:'jma_msm',label:'JMA MSM',kind:'forecast',countries:['JP']},
- {id:'dwd_icon_eu',label:'DWD ICON-EU',kind:'forecast',bbox:[-25,30,45,72]},
+ {id:'dwd_icon_eu',label:'DWD ICON-EU',kind:'forecast',resolutionKm:7,forecastHorizonHours:120,bbox:[-25,30,45,72]},
  {id:'meteofrance_arpege_europe',label:'Météo-France ARPEGE Europe',kind:'forecast',bbox:[-25,30,45,72]}
 ];
 const globalForecastCandidates:ForecastCandidate[]=[
@@ -167,6 +171,13 @@ function candidateApplies(candidate:ForecastCandidate,lat:number,lon:number,coun
 function modelMetaEpochMs(value:unknown){const numberValue=Number(value);if(!Number.isFinite(numberValue))return Number.NaN;return numberValue>10_000_000_000?numberValue:numberValue*1000}
 function modelMetaIsFresh(data:any){const initMs=modelMetaEpochMs(data?.last_run_initialisation_time),updateSeconds=Math.max(3600,Number(data?.update_interval_seconds)||21600),maximumAgeMs=Math.max(18*3600000,Math.min(72*3600000,updateSeconds*4000+6*3600000)),now=Date.now();return Number.isFinite(initMs)&&initMs<=now+2*3600000&&now-initMs<=maximumAgeMs}
 async function modelRunMeta(candidate:ModelMetaCandidate,signal?:AbortSignal):Promise<ModelRunMeta|null>{
+ if(candidate.metaSource==='dwd-ruc'){
+  try{
+   const data=await fetchWorkerJson<any>('rapid-model-meta',{model:candidate.id},{purpose:'general',signal,timeoutMs:9000,cache:'no-store'}),initMs=modelMetaEpochMs(data?.last_run_initialisation_time),availableMs=modelMetaEpochMs(data?.last_run_availability_time);
+   if(!modelMetaIsFresh(data)||!Number.isFinite(initMs))return null;
+   return{id:candidate.id,label:candidate.label,kind:candidate.kind,initialisationTime:new Date(initMs).toISOString(),availabilityTime:Number.isFinite(availableMs)?new Date(availableMs).toISOString():undefined,updateIntervalSeconds:Number(data.update_interval_seconds)||3600,temporalResolutionSeconds:Number(data.temporal_resolution_seconds)||undefined,metadataModelId:candidate.id,metadataSource:'DWD Open Data · ICON-D2-RUC',rapidUpdate:true,resolutionKm:Number(data._mid_resolution_km)||candidate.resolutionKm,forecastHorizonHours:Number(data._mid_forecast_horizon_hours)||candidate.forecastHorizonHours,members:Number(data._mid_members)||candidate.members,availabilityOnly:true};
+  }catch{return null}
+ }
  const host=candidate.kind==='ensemble'?'https://ensemble-api.open-meteo.com':'https://api.open-meteo.com',metaIds=candidate.metaIds?.length?candidate.metaIds:[candidate.id];
  for(const metadataModelId of metaIds){
   try{
@@ -174,8 +185,8 @@ async function modelRunMeta(candidate:ModelMetaCandidate,signal?:AbortSignal):Pr
    if(workerBaseCandidates('general').length){try{const proxied=await fetchWorkerJson<any>('model-meta',{model:metadataModelId,kind:candidate.kind},{purpose:'general',signal,timeoutMs:9000,cache:'no-store'});if(modelMetaIsFresh(proxied))data=proxied}catch{}}
    if(!data){const direct=await j<any>(`${host}/data/${metadataModelId}/static/meta.json?cache_buster=${Date.now()}`,signal);if(modelMetaIsFresh(direct))data=direct}
    if(!data)continue;
-   const initMs=modelMetaEpochMs(data.last_run_initialisation_time),availableMs=modelMetaEpochMs(data.last_run_availability_time),availableValid=Number.isFinite(availableMs)&&availableMs>=initMs-3600000&&availableMs<=Date.now()+2*3600000;
-   return{id:candidate.id,label:candidate.label,kind:candidate.kind,initialisationTime:new Date(initMs).toISOString(),availabilityTime:availableValid?new Date(availableMs).toISOString():undefined,updateIntervalSeconds:Number(data.update_interval_seconds)||undefined,temporalResolutionSeconds:Number(data.temporal_resolution_seconds)||undefined,metadataModelId,metadataSource:'Open-Meteo Metadata API'};
+   const initMs=modelMetaEpochMs(data.last_run_initialisation_time),availableMs=modelMetaEpochMs(data.last_run_availability_time),availableValid=Number.isFinite(availableMs)&&availableMs>=initMs-3600000&&availableMs<=Date.now()+2*3600000,updateIntervalSeconds=Number(data.update_interval_seconds)||undefined;
+   return{id:candidate.id,label:candidate.label,kind:candidate.kind,initialisationTime:new Date(initMs).toISOString(),availabilityTime:availableValid?new Date(availableMs).toISOString():undefined,updateIntervalSeconds,temporalResolutionSeconds:Number(data.temporal_resolution_seconds)||undefined,metadataModelId,metadataSource:'Open-Meteo Metadata API',rapidUpdate:Boolean(candidate.rapidUpdate||(updateIntervalSeconds&&updateIntervalSeconds<=3600)),resolutionKm:candidate.resolutionKm,forecastHorizonHours:candidate.forecastHorizonHours,members:candidate.members,availabilityOnly:candidate.availabilityOnly};
   }catch{}
  }
  return null
@@ -186,9 +197,9 @@ async function modelRunMetas(candidates:ModelMetaCandidate[],signal?:AbortSignal
  return settled.filter((x):x is PromiseFulfilledResult<ModelRunMeta|null>=>x.status==='fulfilled').map(x=>x.value).filter(Boolean) as ModelRunMeta[];
 }
 export async function bestMatchModelInfo(lat:number,lon:number,country?:string,signal?:AbortSignal):Promise<BestMatchModelInfo>{
- const code=countryCodeFromLocation(country),applicable=forecastCandidates.filter(x=>candidateApplies(x,lat,lon,code)),locals=[...applicable.filter(x=>x.countries?.includes(code)),...applicable.filter(x=>!x.countries?.includes(code)&&!x.id.includes('seamless')),...applicable.filter(x=>x.id.includes('seamless'))].filter((candidate,index,rows)=>rows.findIndex(row=>row.id===candidate.id)===index).slice(0,4),selected=[...locals,...globalForecastCandidates.slice(0,3)],candidateModels=locals.length?locals.map(x=>x.label).join(' · '):'höchstaufgelöstes am Standort verfügbares Regionalmodell';
- const runs=await modelRunMetas(selected,signal);
- return{summary:'Best Match stammt aus der Open-Meteo Forecast API. Die konkrete Modellquelle kann je Variable und Zeitraum wechseln und wird von der Best-Match-Antwort nicht ausgewiesen. Die unten genannten Läufe stammen separat aus der Open-Meteo Metadata API und belegen daher nicht, dass Best Match genau dieses Modell verwendet.',likelyChain:'',candidateModels,runs};
+ const code=countryCodeFromLocation(country),applicable=forecastCandidates.filter(x=>candidateApplies(x,lat,lon,code)),ordered=[...applicable.filter(x=>x.rapidUpdate&&x.countries?.includes(code)),...applicable.filter(x=>x.rapidUpdate),...applicable.filter(x=>!x.rapidUpdate&&x.countries?.includes(code)),...applicable.filter(x=>!x.rapidUpdate&&!x.id.includes('seamless')),...applicable.filter(x=>x.id.includes('seamless'))],locals=ordered.filter((candidate,index,rows)=>rows.findIndex(row=>row.id===candidate.id)===index).slice(0,6),selected=[...locals,...globalForecastCandidates.slice(0,3)],candidateModels=locals.length?locals.map(x=>`${x.label}${x.rapidUpdate?' · Rapid Update':''}`).join(' · '):'höchstaufgelöstes am Standort verfügbares Regionalmodell';
+ const runs=await modelRunMetas(selected,signal),rapidAvailable=runs.filter(run=>run.rapidUpdate).map(run=>run.label);
+ return{summary:`Best Match stammt aus der Open-Meteo Forecast API. MID prüft für den Kurzfristbereich zusätzlich verfügbare Rapid-Update-/Regionalmodelle${rapidAvailable.length?` (${rapidAvailable.join(', ')})`:''}. Ein separat erkannter DWD ICON-D2-RUC-Lauf belegt dessen Verfügbarkeit; er wird erst dann direkt in numerische Open-Meteo-Bündel aufgenommen, wenn der entsprechende API-Modelladapter verfügbar ist. Die konkrete Best-Match-Quelle kann je Variable und Zeitraum wechseln.`,likelyChain:'',candidateModels,runs};
 }
 const ICAO_LOCATION_CACHE_KEY='mid:icao-location-cache:v1';
 const ICAO_LOCATION_CACHE_TTL=30*86400000;
@@ -1161,7 +1172,7 @@ async function meanFallback(lat:number,lon:number,signal?:AbortSignal){
  const settled=await settledMapLimited(selectedMeanModels(lat,lon),2,async definition=>pseudoModelFromMeanSpread(await fetchEnsembleWeather(lat,lon,definition.maxDays,definition.id,signal,'temperature_2m,temperature_2m_spread,precipitation,precipitation_spread'),definition));
  if(signal?.aborted)throw new DOMException('Abgebrochen','AbortError');
  const results=settled.filter(x=>x.status==='fulfilled').map(x=>(x as PromiseFulfilledResult<ModelResult|null>).value).filter(Boolean) as ModelResult[];
- const days=aggregateMembers(results),scenarios=buildEnsembleScenarios(results,days),activeModels=results.map(result=>result.model),runs=await modelRunMetas(activeModels.map(model=>({id:model.metaId,label:model.label,kind:'ensemble' as const})),signal);
+ const days=aggregateMembers(results),scenarios=buildEnsembleScenarios(results,days),activeModels=results.map(result=>result.model),runs=await modelRunMetas(activeModels.map(model=>({id:model.metaId,label:model.label,kind:'ensemble' as const,rapidUpdate:model.updateHours<=1,resolutionKm:model.resolutionKm,forecastHorizonHours:model.maxDays*24})),signal);
  return{days,models:activeModels.map(model=>model.label),runs,scenarios};
 }
 export async function ensembles(lat:number,lon:number,signal?:AbortSignal){
@@ -1170,7 +1181,7 @@ export async function ensembles(lat:number,lon:number,signal?:AbortSignal){
  const settled=await settledMapLimited(selected,2,async model=>parseModelMembers(await fetchEnsembleWeather(lat,lon,model.maxDays,model.id,signal),model));
  if(signal?.aborted)throw new DOMException('Abgebrochen','AbortError');
  const results=settled.filter(x=>x.status==='fulfilled').map(x=>(x as PromiseFulfilledResult<ModelResult|null>).value).filter(Boolean) as ModelResult[],failedCount=settled.filter(x=>x.status==='rejected').length;
- const activeModels=results.map(x=>x.model),days=aggregateMembers(results),scenarios=buildEnsembleScenarios(results,days),runs=await modelRunMetas(activeModels.map(x=>({id:x.metaId,label:x.label,kind:'ensemble' as const})),signal);
+ const activeModels=results.map(x=>x.model),days=aggregateMembers(results),scenarios=buildEnsembleScenarios(results,days),runs=await modelRunMetas(activeModels.map(x=>({id:x.metaId,label:x.label,kind:'ensemble' as const,rapidUpdate:x.updateHours<=1,resolutionKm:x.resolutionKm,forecastHorizonHours:x.maxDays*24})),signal);
  if(days.length>=7){const value={days:days.slice(0,14),models:activeModels.map(x=>x.label),runs,scenarios};writeEnsembleCache(lat,lon,value);return value}
  const fallback=await meanFallback(lat,lon,signal);
  if(fallback.days.length>=5){writeEnsembleCache(lat,lon,fallback);return fallback}
