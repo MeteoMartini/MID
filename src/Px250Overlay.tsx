@@ -2,6 +2,7 @@ import {useEffect,useMemo,useState} from 'react';
 import {CanvasOverlay,ImageQuadLayer,type MidMap} from './MapLibreCore';
 import type {Px250Meta} from './Px250Source';
 import {inverseProjectedPoint,projectionFromDefinition,stereographicRadius,type RadarProjection} from './radarProjection';
+import {radarRateColor,type RadarColorTableId} from './radarColorTables';
 
 type Status='idle'|'loading'|'ready'|'error';
 type Bounds=[[number,number],[number,number]];
@@ -24,6 +25,7 @@ type ProjectedRaster={
  bounds:Bounds;
  colourLookup:Uint8ClampedArray;
  colourLookupMax:number;
+ colorTable:RadarColorTableId;
 };
 
 function text(value:unknown):string{
@@ -85,14 +87,14 @@ function findDataset(file:H5File):DatasetSelection{
  const score=(item:DatasetSelection)=>/DBZH|TH|DBZ/.test(item.quantity)?4:/RATE|RR/.test(item.quantity)?3:/VRAD/.test(item.quantity)?-2:1;
  return candidates.sort((a,b)=>score(b)-score(a))[0];
 }
-function rateColour(rate:number):[number,number,number,number]{if(!Number.isFinite(rate)||rate<.08)return[0,0,0,0];if(rate<.5)return[217,243,255,155];if(rate<1)return[114,201,255,190];if(rate<2.5)return[47,145,227,214];if(rate<5)return[67,200,121,226];if(rate<10)return[240,212,71,238];if(rate<20)return[245,155,61,242];if(rate<50)return[227,75,75,246];return[184,63,200,249]}
+function rateColour(rate:number,colorTable:RadarColorTableId):[number,number,number,number]{return radarRateColor(rate,colorTable)}
 function radarRate(raw:number,selection:DatasetSelection){const gain=scalar(attr(selection.what,'gain'))??0.5,offset=scalar(attr(selection.what,'offset'))??-32.5,value=raw*gain+offset;if(/RATE|RR/.test(selection.quantity))return Math.max(0,value);const dbz=value,z=Math.pow(10,dbz/10);return Math.pow(Math.max(0,z/200),1/1.6)}
-function rawColour(raw:number,gain:number,offset:number,isRate:boolean,nodata:number,undetect:number):[number,number,number,number]{
+function rawColour(raw:number,gain:number,offset:number,isRate:boolean,nodata:number,undetect:number,colorTable:RadarColorTableId):[number,number,number,number]{
  if(!Number.isFinite(raw)||raw===nodata||raw===undetect)return[0,0,0,0];
  const value=raw*gain+offset,rate=isRate?Math.max(0,value):Math.pow(Math.max(0,Math.pow(10,value/10)/200),1/1.6);
- return rateColour(rate);
+ return rateColour(rate,colorTable);
 }
-function renderDataset(selection:DatasetSelection):HTMLCanvasElement{
+function renderDataset(selection:DatasetSelection,colorTable:RadarColorTableId):HTMLCanvasElement{
  const dataset=selection.node,shape=dataset.shape??[],height=Number(shape[0]),width=Number(shape[1]),sourcePixels=width*height;
  if(!width||!height||sourcePixels>35_000_000)throw new Error('Ungültige 250-m-Rastergröße.');
  const nodata=scalar(attr(selection.what,'nodata'))??65535,undetect=scalar(attr(selection.what,'undetect'))??0,source=dataset.value as ArrayLike<number>;
@@ -103,30 +105,30 @@ function renderDataset(selection:DatasetSelection):HTMLCanvasElement{
  const image=context.createImageData(outWidth,outHeight),pixels=image.data;let visible=0;
  for(let y=0;y<outHeight;y++)for(let x=0;x<outWidth;x++){
   const sourceX=Math.min(width-1,Math.floor(x/scale)),sourceY=Math.min(height-1,Math.floor(y/scale)),raw=Number(source[sourceY*width+sourceX]);
-  const rgba=!Number.isFinite(raw)||raw===nodata||raw===undetect?[0,0,0,0] as [number,number,number,number]:rateColour(radarRate(raw,selection));
+  const rgba=!Number.isFinite(raw)||raw===nodata||raw===undetect?[0,0,0,0] as [number,number,number,number]:rateColour(radarRate(raw,selection),colorTable);
   if(rgba[3]>0)visible++;
   const pixel=(y*outWidth+x)*4;pixels[pixel]=rgba[0];pixels[pixel+1]=rgba[1];pixels[pixel+2]=rgba[2];pixels[pixel+3]=rgba[3];
  }
  context.putImageData(image,0,0);if(!visible)console.info('MID PX250: aktuelles Raster enthält im sichtbaren Wertebereich keine Echos.');return canvas;
 }
 async function canvasBlob(canvas:HTMLCanvasElement){const blob=await new Promise<Blob|null>(resolve=>canvas.toBlob(resolve,'image/png'));if(blob)return blob;const response=await fetch(canvas.toDataURL('image/png'));return response.blob()}
-function colourLookup(selection:DatasetSelection,nodata:number,undetect:number){
+function colourLookup(selection:DatasetSelection,nodata:number,undetect:number,colorTable:RadarColorTableId){
  const gain=scalar(attr(selection.what,'gain'))??0.5,offset=scalar(attr(selection.what,'offset'))??-32.5,isRate=/RATE|RR/.test(selection.quantity),maxCode=Math.max(255,Math.min(65535,Math.ceil(Math.max(nodata,undetect,255)))),lookup=new Uint8ClampedArray((maxCode+1)*4);
- for(let raw=0;raw<=maxCode;raw++){const rgba=rawColour(raw,gain,offset,isRate,nodata,undetect),index=raw*4;lookup[index]=rgba[0];lookup[index+1]=rgba[1];lookup[index+2]=rgba[2];lookup[index+3]=rgba[3]}
+ for(let raw=0;raw<=maxCode;raw++){const rgba=rawColour(raw,gain,offset,isRate,nodata,undetect,colorTable),index=raw*4;lookup[index]=rgba[0];lookup[index+1]=rgba[1];lookup[index+2]=rgba[2];lookup[index+3]=rgba[3]}
  return{gain,offset,isRate,lookup,maxCode};
 }
-function projectedRaster(file:H5File,selection:DatasetSelection):ProjectedRaster|null{
+function projectedRaster(file:H5File,selection:DatasetSelection,colorTable:RadarColorTableId):ProjectedRaster|null{
  const where=safeGet(file,'where'),projection=projectionFrom(where),shape=selection.node.shape??[],height=Number(shape[0]),width=Number(shape[1]),values=selection.node.value as ArrayLike<number>;
  if(!projection||projection.kind!=='stere'||!width||!height||!values||values.length<width*height)return null;
  const xScale=Math.abs(scalar(attr(where,'xscale','x_scale'))??250),yScale=Math.abs(scalar(attr(where,'yscale','y_scale'))??250),xSize=scalar(attr(where,'xsize')),ySize=scalar(attr(where,'ysize'));
  if(Number.isFinite(xSize)&&Math.abs(Number(xSize)-width)>1)throw new Error(`HX-xsize ${xSize} passt nicht zum Raster ${width}.`);
  if(Number.isFinite(ySize)&&Math.abs(Number(ySize)-height)>1)throw new Error(`HX-ysize ${ySize} passt nicht zum Raster ${height}.`);
- const nodata=scalar(attr(selection.what,'nodata'))??65535,undetect=scalar(attr(selection.what,'undetect'))??0,physical=colourLookup(selection,nodata,undetect),bounds=geographicBounds(where)??projectedBounds(file,selection.node)??[[45.68,1.46],[55.87,18.74]];
- return{projection,width,height,xScale,yScale,values,gain:physical.gain,offset:physical.offset,nodata,undetect,isRate:physical.isRate,bounds,colourLookup:physical.lookup,colourLookupMax:physical.maxCode};
+ const nodata=scalar(attr(selection.what,'nodata'))??65535,undetect=scalar(attr(selection.what,'undetect'))??0,physical=colourLookup(selection,nodata,undetect,colorTable),bounds=geographicBounds(where)??projectedBounds(file,selection.node)??[[45.68,1.46],[55.87,18.74]];
+ return{projection,width,height,xScale,yScale,values,gain:physical.gain,offset:physical.offset,nodata,undetect,isRate:physical.isRate,bounds,colourLookup:physical.lookup,colourLookupMax:physical.maxCode,colorTable};
 }
 function paintRaw(pixels:Uint8ClampedArray,pixel:number,raw:number,raster:ProjectedRaster){
  if(Number.isInteger(raw)&&raw>=0&&raw<=raster.colourLookupMax){const index=raw*4;pixels[pixel]=raster.colourLookup[index];pixels[pixel+1]=raster.colourLookup[index+1];pixels[pixel+2]=raster.colourLookup[index+2];pixels[pixel+3]=raster.colourLookup[index+3];return}
- const rgba=rawColour(raw,raster.gain,raster.offset,raster.isRate,raster.nodata,raster.undetect);pixels[pixel]=rgba[0];pixels[pixel+1]=rgba[1];pixels[pixel+2]=rgba[2];pixels[pixel+3]=rgba[3];
+ const rgba=rawColour(raw,raster.gain,raster.offset,raster.isRate,raster.nodata,raster.undetect,raster.colorTable);pixels[pixel]=rgba[0];pixels[pixel+1]=rgba[1];pixels[pixel+2]=rgba[2];pixels[pixel+3]=rgba[3];
 }
 function renderProjectedViewport(map:MidMap,canvas:HTMLCanvasElement,raster:ProjectedRaster){
  const box=map.getContainer().getBoundingClientRect(),cssWidth=Math.max(1,Math.round(box.width)),cssHeight=Math.max(1,Math.round(box.height)),memory=Number((navigator as Navigator&{deviceMemory?:number}).deviceMemory)||4,coarse=typeof matchMedia==='function'&&matchMedia('(pointer:coarse)').matches,step=coarse||memory<=4||cssWidth*cssHeight>250000?2:1,ratio=Math.min(1.25,window.devicePixelRatio||1),width=Math.max(1,Math.round(cssWidth/step*ratio)),height=Math.max(1,Math.round(cssHeight/step*ratio));
@@ -135,9 +137,9 @@ function renderProjectedViewport(map:MidMap,canvas:HTMLCanvasElement,raster:Proj
  context.putImageData(image,0,0);
 }
 
-export default function Px250Overlay({meta,opacity,onStatus}:{meta:Px250Meta;opacity:number;onStatus?:(status:Status,message?:string)=>void}){
+export default function Px250Overlay({meta,opacity,colorTable='dwd-standard',onStatus}:{meta:Px250Meta;opacity:number;colorTable?:RadarColorTableId;onStatus?:(status:Status,message?:string)=>void}){
  const[overlay,setOverlay]=useState<OverlayState|null>(null),[projected,setProjected]=useState<ProjectedRaster|null>(null);
- useEffect(()=>{let alive=true,objectUrl='';setOverlay(null);setProjected(null);onStatus?.('loading');(async()=>{if(!meta.fileUrl)throw new Error(meta.reason||'Keine 250-m-Radardatei verfügbar.');const response=await fetch(meta.fileUrl,{cache:'no-store'});if(!response.ok)throw new Error(`250-m-Radardatei HTTP ${response.status}`);const buffer=await response.arrayBuffer();if(buffer.byteLength<1024)throw new Error('250-m-Radardatei ist unerwartet klein.');const hdf5=await import('jsfive'),file=new hdf5.File(buffer,meta.fileUrl) as unknown as H5File,selection=findDataset(file),dataset=selection.node;if(meta.product==='hx'){const raster=projectedRaster(file,selection);if(!raster)throw new Error('HX-Projektionsmetadaten fehlen oder sind nicht stereografisch.');if(!alive)return;setProjected(raster);onStatus?.('ready',`${selection.quantity||'Radar'} · projektionstreu via MapLibre · ${raster.width}×${raster.height}`);return}const canvas=renderDataset(selection),blob=await canvasBlob(canvas);if(!alive)return;objectUrl=URL.createObjectURL(blob);setOverlay({url:objectUrl,bounds:boundsFromFile(file,meta,dataset)});onStatus?.('ready',`${selection.quantity||'Radar'} → äquivalente Regenrate · ${selection.node.shape?.join('×')||'Raster'}`)})().catch(error=>{if(alive)onStatus?.('error',error instanceof Error?error.message:String(error))});return()=>{alive=false;if(objectUrl)URL.revokeObjectURL(objectUrl)}},[meta.fileUrl,meta.reason,meta.radarLat,meta.radarLon,meta.rangeKm,meta.product,onStatus]);
+ useEffect(()=>{let alive=true,objectUrl='';setOverlay(null);setProjected(null);onStatus?.('loading');(async()=>{if(!meta.fileUrl)throw new Error(meta.reason||'Keine 250-m-Radardatei verfügbar.');const response=await fetch(meta.fileUrl,{cache:'no-store'});if(!response.ok)throw new Error(`250-m-Radardatei HTTP ${response.status}`);const buffer=await response.arrayBuffer();if(buffer.byteLength<1024)throw new Error('250-m-Radardatei ist unerwartet klein.');const hdf5=await import('jsfive'),file=new hdf5.File(buffer,meta.fileUrl) as unknown as H5File,selection=findDataset(file),dataset=selection.node;if(meta.product==='hx'){const raster=projectedRaster(file,selection,colorTable);if(!raster)throw new Error('HX-Projektionsmetadaten fehlen oder sind nicht stereografisch.');if(!alive)return;setProjected(raster);onStatus?.('ready',`${selection.quantity||'Radar'} · projektionstreu via MapLibre · ${raster.width}×${raster.height}`);return}const canvas=renderDataset(selection,colorTable),blob=await canvasBlob(canvas);if(!alive)return;objectUrl=URL.createObjectURL(blob);setOverlay({url:objectUrl,bounds:boundsFromFile(file,meta,dataset)});onStatus?.('ready',`${selection.quantity||'Radar'} → äquivalente Regenrate · ${selection.node.shape?.join('×')||'Raster'}`)})().catch(error=>{if(alive)onStatus?.('error',error instanceof Error?error.message:String(error))});return()=>{alive=false;if(objectUrl)URL.revokeObjectURL(objectUrl)}},[colorTable,meta.fileUrl,meta.reason,meta.radarLat,meta.radarLon,meta.rangeKm,meta.product,onStatus]);
  const draw=useMemo(()=>projected?(map:MidMap,canvas:HTMLCanvasElement)=>renderProjectedViewport(map,canvas,projected):null,[projected]);
  if(draw)return <CanvasOverlay id="px250-projected" opacity={opacity} zIndex={430} render={draw}/>;return overlay?<ImageQuadLayer id="px250-image" url={overlay.url} bounds={overlay.bounds} opacity={opacity} zIndex={430}/>:null;
 }

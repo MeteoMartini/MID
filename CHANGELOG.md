@@ -1,3 +1,26 @@
+# MID v0.9.40.6
+
+- TypeScript-Buildfix: `RadarPhase` wird wieder als Union-Typ aus `radarColorTables.ts` exportiert; dadurch sind die festen Niederschlagsartfarben ohne `any`-Indexierung typisiert.
+- Farbtabellen-Scope unverändert: Auswahl ausschließlich für 1-km-/250-m-Radar, feste klassische Phasefarben im Niederschlagsartmodellradar.
+
+## 0.9.40.5
+- Korrektur der Radar-Farbtabellen: Auswahl gilt ausschließlich für das normale 1-km-Radar und das 250-m-PX/HX-Radar.
+- Einstellungen enthalten dafür DWD Standard und DWD Starkregen mit kleiner Farbvorschau; beim 1-km-DWD-RV wird der offiziell dokumentierte WMS-Stil `Starkregen` verwendet.
+- Das Niederschlagsartmodellradar besitzt keine Farbtabelle-Auswahl mehr und nutzt fest die klassischen meteorologischen Phasenfarben: Regen grün, Mischphase pink/violett, Schnee blau, gefrierender Niederschlag rot.
+- Der temporäre v0.9.40.3-Latest-only-Eingriff in den normalen 1-km-Radarpfad wurde zurückgenommen; 1-km-DWD-Zeitframes und 250-m-PX/HX-Pfade bleiben wie im bewährten v0.9.40.2-Vertrag erhalten.
+
+## 0.9.40.4
+- Niederschlagsart-Radar erhält wählbare professionelle Farbtabellen (Meteo klassisch, Meteo kräftig, Barrierearm) inklusive kleiner Vorschau in den Komposit-Einstellungen.
+- Legende des Niederschlagsart-Layers zeigt jetzt die aktive Farbtabelle samt Vorschau und Phasenfarben direkt im Kompositbild.
+- Die Anpassung bleibt auf das Niederschlagsart-Radar begrenzt; die bestehenden 1-km-DWD-, OPERA- und 250-m-PX/HX-Radarpfade bleiben unverändert aktiv.
+
+# MID v0.9.40.3
+
+- Kompositbild: der DWD-Radarpfad behandelt den `dwd:Niederschlagsradar`-Alias jetzt wieder korrekt als Latest-only-WMS-Layer und erzwingt dort keinen fehlerhaften `TIME`-Parameter mehr; dadurch werden die Radarechos im Komposit wieder angezeigt.
+- Für Latest-only-DWD-Radar rendert MID genau einen Snapshot mit stabiler Fehlerbehandlung, statt denselben Alias mehrfach als zeitgebundene Frames anzufragen.
+- Die Komposit-Legende wird mit aktiven Overlays nun direkt geöffnet und blendet die Niederschlags-/Radar-Skala zuverlässig im Panel ein.
+- Neue Regression `test-composite-radar-legend-buildfix-09403.mjs` schützt DWD-Radar-Snapshot und Legendenverhalten dauerhaft.
+
 # MID v0.9.40.2
 
 - 24-h-Wetterprofil: Tmin/Tmax verwenden jetzt exakt dieselben zentral reconcilierten Tageswerte (`displayDays[].min/max`) wie 7-Tage-Ansicht, 14-Tage-Best-Match, Widget und klassische Vorhersage.
