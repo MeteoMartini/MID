@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.40.17",
+  "version": "0.9.41.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -241,7 +241,8 @@
     "test:no-clipped-weather-values": "node scripts/test-no-clipped-weather-values-09394.mjs",
     "prepare:release-repository": "node scripts/prepare-release-repository.mjs",
     "test:install-node-modules-directory-bootstrap": "node scripts/test-install-node-modules-directory-bootstrap-09397.mjs",
-    "test:no-actions-workflow-self-modification": "node scripts/test-no-actions-workflow-self-modification-093911.mjs"
+    "test:no-actions-workflow-self-modification": "node scripts/test-no-actions-workflow-self-modification-093911.mjs",
+    "test:seasonal-c3s-dwd-ui": "node scripts/test-seasonal-c3s-dwd-ui-09410.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

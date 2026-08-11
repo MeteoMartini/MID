@@ -1,3 +1,25 @@
+# MID Saisonadapter / Langfrist-Proxy v0.9.41.1
+
+Der Worker besitzt zwei neue numerische Langfrist-Endpunkte:
+
+- `mode=c3s-seasonal-point` – C3S-CDS-Punktdaten für ECMWF, UK Met Office, Météo-France, DWD, CMCC, NCEP, JMA, ECCC und BOM. Der Browser erhält ausschließlich normalisierte Zahlenwerte/Ensemble-Member. Kartenfarben werden nicht ausgewertet.
+- `mode=dwd-gcfs-episodes-point` – eigenständige Deutschland-Perspektive für DWD `GCFS2.2 / EPISODES` mit 3-Monats-Anomalien, Referenz 1991–2020 und Qualitätsmaßen (MSESS/RPSS/Korrelation, soweit vom Adapter geliefert). Archivierte GCFS2.1-QA-Karten werden nicht als aktuelle GCFS2.2-Werte verwendet.
+
+## Serverseitige Konfiguration
+
+Die Worker-Routen sind absichtlich als sichere Gateways zu einem serverseitigen numerischen Decoder gebaut. CDS-Zugangsdaten oder DWD-/ESGF-Zugangsdaten gehören **nicht** in das Frontend. Ohne Adapter bleibt die bisherige ECMWF-/NOAA-Langfristdarstellung funktionsfähig und MID kennzeichnet C3S bzw. DWD als „noch nicht konfiguriert“, ohne Ersatz- oder Mockwerte zu erzeugen.
+
+Optionale Worker-Variablen/Secrets:
+
+- `MID_C3S_SEASONAL_POINT_ENDPOINT` – feste HTTPS-URL des C3S/CDS-Decoders.
+- `MID_C3S_SEASONAL_POINT_TOKEN` – optionales Bearer-Secret für diesen Decoder.
+- `MID_DWD_GCFS_EPISODES_POINT_ENDPOINT` – feste HTTPS-URL des DWD-GCFS2.2/EPISODES-Decoders.
+- `MID_DWD_GCFS_EPISODES_POINT_TOKEN` – optionales Bearer-Secret.
+
+Die Adapter erhalten POST-JSON mit den Schemas `mid-seasonal-point-v1` bzw. `mid-dwd-episodes-point-v1`, Zielkoordinate, „nearest-grid-point“, Modell-/Variablenliste und Aktualisierungsflag. Der C3S-Adapter soll die CDS-Datensätze serverseitig abrufen, GRIB/NetCDF dekodieren und `models[]` mit Monatswerten sowie echten Ensemble-Quantilen zurückgeben. Der DWD-Adapter liefert `periods[]` mit Temperatur-/Niederschlagsanomalien sowie zugehörigen Qualitätsmaßen.
+
+Für die GCFS2.2/EPISODES-Deutschlandperspektive erwartet MID die 3-monatige `seasonal qa`-Auswertung auf `DE-015x01` (0,15° × 0,1°, etwa 10 km) für `tasAnom`/`prAnom`. Die Roh-QA-Maße `mse` und `corr_pea` können direkt übernommen werden; MSESS/RPSS dürfen zusätzlich geliefert werden, wenn der Adapter die entsprechende DWD-Skill-Auswertung numerisch bezieht. Die konkrete Gitterkoordinate und Rasterbezeichnung werden vom Adapter zurückgegeben und im Frontend transparent angezeigt.
+
 # MID Synoptik-, Daten-, Warnungs-, Radar- und Push-Proxy v0.9.0.0
 
 Der Worker ergänzt die bestehende Infrastruktur um `synoptic-analysis` und `dwd-surface-analysis-image`. Er liefert die unveränderte amtliche DWD-Bodenanalyse als Referenz, objektive Frontkandidaten aus vollständigen ICON-EU-, ECMWF- und GFS-Feldern, Multimodell-Übereinstimmung, stromaufwärtige offizielle/professionelle Stationsplots und eine begrenzte Fronttiming-Assimilation. Die Frontend-Kennzeichnung trennt amtliche DWD-Fronten strikt von „MID-Frontkandidat · objektive Modellanalyse“.

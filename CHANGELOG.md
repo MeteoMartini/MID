@@ -1,3 +1,23 @@
+# MID v0.9.41.1
+
+- CI-Kompatibilitätsfix: Die Langfrist-Methodik formuliert die gleichgewichtete Modellfamilienlogik wieder vertragskompatibel als „gewichtet Modellfamilien gleich“, ohne die fachliche Einschränkung auf unabhängige Modellfamilien zu verlieren.
+- Keine Änderung an C3S-/DWD-Datenpfaden, Ensembleberechnung oder UI-Funktionalität gegenüber v0.9.41.0.
+
+# MID v0.9.41.0
+
+- **C3S numerisch vorbereitet:** Die neun aktuellen C3S-Zentren bleiben als Modellkatalog sichtbar; ein neuer serverseitiger CDS-/Worker-Pfad kann echte lokale monatliche Ensemblewerte von ECMWF, UK Met Office, Météo-France, DWD, CMCC, NCEP, JMA, ECCC und BOM dekodieren. Nicht konfigurierte Zentren bleiben ausdrücklich „Katalog“ und liefern keine Ersatzwerte; Kartenfarben werden niemals zu Zahlen rekonstruiert.
+- Für echte C3S-Rauchfahnen ist `seasonal-monthly-single-levels` als numerischer Memberpfad vorgesehen; `seasonal-postprocessed-single-levels` kann die monatliche Anomalie-/Bias-Referenz liefern. Der Browser erhält ausschließlich normalisierte Punktwerte und Verteilungen.
+- **DWD GCFS2.2 / EPISODES:** eigener Deutschland-Pfad für 3-Monats-Anomalien (Monate 1–3, 2–4, 3–5, 4–6), `tasAnom`/`prAnom`, Referenz 1991–2020 und `DE-015x01` (~10 km). Roh-QA `mse`/`corr_pea` sowie optional numerisch bezogene MSESS/RPSS werden unterstützt; GCFS2.1-Karten werden nicht als GCFS2.2 ausgegeben.
+- Langfristansicht zeigt den Live-/Konfigurationsstatus der neuen Datenpfade, trennt C3S-Rauchfahnen von der DWD-Deutschlandperspektive und kennzeichnet C3S-Zentren eindeutig als **Numerisch** oder **Katalog**.
+- Neue globale Einstellung **Informationsdichte: Auto / Kompakt / Komfortabel**. Auto reagiert auf Displaybreite und Hoch-/Querformat; die Einstellung wird über den bestehenden MID-Einstellungs-/Sync-Pfad persistiert.
+- Mobile Bedienlogik vereinheitlicht: zentrale Popover reagieren auf Outside-Tap, Escape und Swipe-down; Touchflächen und Abstände folgen gemeinsamen MID-Größenvariablen.
+- Dynamische Langfristlegenden: im Standardmodus zunächst kompakt, Details per Tippen; der erweiterte Modus zeigt die vollständige Diagnostik.
+- Section-local Sticky Controls für Langfrist, Ensemble-Trend/Wind/Niederschlag und Wetterkarten halten Modell-/Zeitraum-/Layersteuerung in langen Ansichten erreichbar.
+- Progressive Disclosure bleibt konsequent erhalten: technische Adapter-/Quellendetails erscheinen im erweiterten Modus statt in primären Bedienflächen.
+- Sichtbarkeitsgesteuertes Rendering baut auf dem vorhandenen `ViewportGate` auf und umfasst nun zusätzlich Berg-/Wintersport; vorhandene iOS-Stabilitätsregeln werden nicht durch aggressives `content-visibility` überschrieben.
+- Prognose-Cockpit bewahrt horizont-/sektionseigene Scrollpositionen beim Wechsel Kurzfrist/7/14 Tage; bestehende Tages-/Modellauswahlen werden nicht unnötig zurückgesetzt. Langfristmodell und Modellstreifenposition werden standortbezogen gespeichert.
+- Release auf **v0.9.41.0** synchronisiert; neuer Regressionstest schützt C3S/DWD-Datenverträge, Informationsdichte, Sticky Controls, Gesten und Scroll-Restore.
+
 # MID v0.9.40.16
 
 - Favoritenleiste in den Einstellungen auf **Auto / Dauerhaft / Aus** umstellbar; Auto bewahrt das bisherige Verhalten.

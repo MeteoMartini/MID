@@ -1,0 +1,29 @@
+import {readFile} from 'node:fs/promises';
+const [seasonal,panel,worker,workerReadme,app,cockpit,ensemble,maps,styles,pkg,baseline]=await Promise.all([
+ readFile(new URL('../src/seasonalForecast.ts',import.meta.url),'utf8'),
+ readFile(new URL('../src/LongRangePanel.tsx',import.meta.url),'utf8'),
+ readFile(new URL('../worker/metar-proxy.js',import.meta.url),'utf8'),
+ readFile(new URL('../worker/README.md',import.meta.url),'utf8'),
+ readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
+ readFile(new URL('../src/ForecastCockpit.tsx',import.meta.url),'utf8'),
+ readFile(new URL('../src/EnsemblePanel.tsx',import.meta.url),'utf8'),
+ readFile(new URL('../src/WeatherMapsPanel.tsx',import.meta.url),'utf8'),
+ readFile(new URL('../src/styles.css',import.meta.url),'utf8'),
+ readFile(new URL('../package.json',import.meta.url),'utf8'),
+ readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')
+]);
+const failures=[],need=(scope,text,token)=>{if(!text.includes(token))failures.push(`${scope}: fehlt ${token}`)};
+for(const token of ["SEASONAL_STORAGE_PREFIX='mid:seasonal-bundle:v2:'",'c3sNumericStatus','dwdEpisodesStatus','dwdPerspective',"fetchC3sNumerical","'c3s-seasonal-point'","fetchDwdEpisodes","'dwd-gcfs-episodes-point'",'Kartenfarben werden niemals zu Zahlen zurückgerechnet'])need('seasonalForecast',seasonal,token);
+for(const label of ['ECMWF','UK Met Office','Météo-France','DWD','CMCC','NCEP','JMA','ECCC','BOM'])need('Worker C3S catalog',worker,`label:'${label}'`);
+for(const token of ['MID_C3S_SEASONAL_POINT_ENDPOINT','MID_C3S_SEASONAL_POINT_TOKEN','seasonal-monthly-single-levels','seasonal-postprocessed-single-levels',"representation:['ensemble-members','monthly-anomalies']",'MID_DWD_GCFS_EPISODES_POINT_ENDPOINT','MID_DWD_GCFS_EPISODES_POINT_TOKEN',"experiment:'seasonal qa'","drivingModel:'GCFS22'","downscaling:'EPISODES'","domain:'DE-015x01'","forecastPeriods:['1-3','2-4','3-5','4-6']","qualityMetrics:['mse','corr_pea','MSESS','RPSS']","referencePeriod:'1991–2020'",'Archivierte GCFS2.1-QA-Karten werden nicht als aktuelle GCFS2.2-Werte ausgegeben'])need('Worker',worker,token);
+for(const token of ['mid-seasonal-point-v1','mid-dwd-episodes-point-v1','CDS-Zugangsdaten','ohne Ersatz- oder Mockwerte'])need('Worker README',workerReadme,token);
+for(const token of ['DWD DEUTSCHLAND-PERSPEKTIVE','GCFS2.2 / EPISODES','MSESS','RPSS','Numerisch','Katalog','mid:long-range:selected-model','mid:long-range:model-scroll','mid:long-range:legend-details','section-sticky-controls'])need('LongRangePanel',panel,token);
+for(const token of ["UI_DENSITY_STORAGE_KEY='mid:ui-density'",'readUiDensityPreference','resolvedUiDensity','Informationsdichte','Kompakt','Komfortabel','className="mountain-gate"'])need('App/UI density',app+await readFile(new URL('../src/uiDensity.ts',import.meta.url),'utf8'),token);
+for(const token of ['horizonScrollRef','captureHorizonScroll','switchHorizon','data-cockpit-horizontal-scroll'])need('ForecastCockpit',cockpit,token);
+if(cockpit.includes("scrollTo({top:0,left:0,behavior:'smooth'})"))failures.push('ForecastCockpit: alter Scrollreset ist noch aktiv');
+for(const token of ['useSwipeDownDismiss','section-sticky-controls','{...swipe}'])need('Ensemble mobile/sticky',ensemble,token);
+need('WeatherMaps sticky',maps,'weather-maps-toolbar section-sticky-controls');
+for(const token of ['--mid-ui-touch','data-mid-density="compact"','section-sticky-controls','long-range-gateway-status','long-range-dwd-periods','app-portal-gesture'])need('Styles',styles,token);
+const packageVersion=JSON.parse(pkg).version,base=JSON.parse(baseline);if(packageVersion!==base.releaseVersion)failures.push(`Versionen nicht synchron: ${packageVersion}/${base.releaseVersion}`);if(!base.requiredRegressionTests?.includes('scripts/test-seasonal-c3s-dwd-ui-09410.mjs'))failures.push('Baseline requiredRegressionTests: neuer Schutztest fehlt');if(!base.regressionTests?.includes('scripts/test-seasonal-c3s-dwd-ui-09410.mjs'))failures.push('Baseline regressionTests: neuer Schutztest fehlt');
+if(failures.length){console.error('MID C3S/DWD/UI-Ausbauprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
+console.log(`MID ${packageVersion}: C3S/CDS- und DWD-GCFS2.2/EPISODES-Pfade sowie UI-Dichte, Sticky Controls, Gesten und Scroll-Restore geschützt.`);
