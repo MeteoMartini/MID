@@ -17,7 +17,8 @@ need('Primärwahrscheinlichkeit unverzerrt',weather,'weightedProbability(rainPro
 need('6-h-Wahrscheinlichkeit',weather,'weightedProbability(values,DWD_PRECIPITATION_PROBABILITY_THRESHOLD_MM,true)');
 need('6-h-Starkmengenschwelle',weather,'weightedProbability(values,DWD_SIGNIFICANT_PRECIPITATION_PROBABILITY_THRESHOLD_MM,true)');
 need('Peakfenster',weather,'peakDwdPrecipitationProbabilityWindow');
-need('Kompakt',weather,"if(day.probabilitySource==='ensemble-members-dwd')return `00–24h ${primary}%");
+need('Erhöhtes Fenster',weather,'elevatedDwdPrecipitationProbabilityWindow');
+need('Kompakt exklusiv',weather,"if(day.probabilitySource==='ensemble-members-dwd')return elevated?`${precipitationProbabilityWindowCompactLabel(elevated)} · ${Math.round(elevated.probability)}%`:`00–24h · ${primary}%`");
 need('Fallback-Semantik',weather,'return `max. Std. ${primary}%`');
 need('Fallback-Erklärung',weather,'keine aus Ensemble-Membern berechnete DWD-Ereigniswahrscheinlichkeit für 6 h oder 00–24 h');
 forbid('Kein falscher Tagesfallback',weather,'return `Tageswahrscheinlichkeit ${probability}');
@@ -31,4 +32,4 @@ need('Cockpit-PoP-Zeile',cockpit,'className="cockpit-day-pop"');
 need('Umbruch statt Ellipsis',styles,'.cockpit-day-pop{');
 forbid('PoP nicht abschneiden',styles,'.cockpit-day-rain b,.cockpit-day-rain small,.forecast-meta-rain,.widgetmeta>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}');
 if(failures.length){console.error('DWD-6-h-Niederschlagswahrscheinlichkeits-Regression fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('DWD-nahe Niederschlagswahrscheinlichkeit geprüft: >0,2/>5 mm als 00–24-h-Ereignis und in vier 6-h-Zeitfenstern; Stundenmaximum nur als klarer Fallback.');
+console.log('DWD-nahe Niederschlagswahrscheinlichkeit geprüft: intern 00–24 h plus vier 6-h-Fenster; kompakt exklusiv nur erhöhtes Fenster oder 00–24 h.');

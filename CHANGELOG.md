@@ -3305,3 +3305,8 @@
 - CI-Fix für die app-weite Niederschlagswahrscheinlichkeit: der Ensemble-Tageswert trägt wieder exakt den geschützten Titel „DWD-Ereigniswahrscheinlichkeit · 00–24 h“.
 - Der Best-Match-Stundenfallback ist wieder eindeutig als „max. Std.“ gekennzeichnet; damit wird ein Stundenmaximum nicht als 24-h-Ereigniswahrscheinlichkeit missverstanden.
 - Die in v0.9.40.9/10 eingeführte app-weite 00–24-h-/6-h-Logik bleibt unverändert erhalten; ausschließlich die geschützte Semantik der Titel und Fallback-Kurztexte wurde repariert.
+
+## 0.9.40.12
+- Tagesübersichten vereinfacht: Niederschlagswahrscheinlichkeit zeigt entweder den 00–24-h-Wert oder – ausschließlich bei einem klar um mindestens 10 Prozentpunkte erhöhten 6-h-Fenster – nur dieses Zeitfenster. Keine Doppelanzeige mehr.
+- Dieselbe exklusive 00–24-h-/6-h-Logik gilt in klassischer Prognose, Cockpit, Widget und Ensemble-Tagesübersichten.
+- Niederschlagsdauer wird in Tagesübersichten auf ganze Stunden gerundet; Detailansichten behalten die feinere 15-Minuten-Auflösung.

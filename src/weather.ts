@@ -672,6 +672,8 @@ export function applyEnsembleDailyPrecipitationProbability(days:Day[],ensemble:E
 }
 
 export function peakDwdPrecipitationProbabilityWindow(windows?:PrecipitationProbabilityWindow[]){return [...(windows??[])].filter(window=>Number.isFinite(window.probability)&&window.memberCount>=2).sort((a,b)=>b.probability-a.probability||a.startHour-b.startHour)[0]}
+/** Für kompakte Tagesübersichten wird ein 6-h-Fenster nur dann hervorgehoben, wenn es gegenüber allen anderen Fenstern klar erhöht ist. */
+export function elevatedDwdPrecipitationProbabilityWindow(windows?:PrecipitationProbabilityWindow[]){const valid=(windows??[]).filter(window=>Number.isFinite(window.probability)&&window.memberCount>=2);if(valid.length<2)return undefined;const ranked=[...valid].sort((a,b)=>b.probability-a.probability||a.startHour-b.startHour),highest=Math.round(Math.max(0,Math.min(100,ranked[0].probability))),second=Math.round(Math.max(0,Math.min(100,ranked[1].probability)));return highest-second>=10?ranked[0]:undefined}
 function precipitationProbabilityWindowLabel(window:PrecipitationProbabilityWindow){return `${String(window.startHour).padStart(2,'0')}–${String(window.endHour).padStart(2,'0')} h`}
 export function precipitationProbabilityWindowCompactLabel(window:PrecipitationProbabilityWindow){return `${String(window.startHour).padStart(2,'0')}–${String(window.endHour).padStart(2,'0')}h`}
 export function dwdPrecipitationProbabilityWindowsTitle(windows?:PrecipitationProbabilityWindow[]){return (windows??[]).filter(window=>Number.isFinite(window.probability)&&window.memberCount>=2).map(window=>`${precipitationProbabilityWindowLabel(window)}: >0,2 mm ${Math.round(window.probability)} % / >5 mm ${Math.round(window.probabilitySignificant)} %`).join(' · ')}
@@ -683,8 +685,8 @@ export function dailyPrecipitationProbabilityTitle(day:Pick<Day,'probability'|'p
 }
 
 export function dailyPrecipitationProbabilityCompact(day:Pick<Day,'probability'|'probabilityWindows'|'probabilitySource'>){
- const primary=Math.round(Math.max(0,Math.min(100,Number(day.probability)||0))),peak=peakDwdPrecipitationProbabilityWindow(day.probabilityWindows);
- if(day.probabilitySource==='ensemble-members-dwd')return `00–24h ${primary}%${peak?` · ${precipitationProbabilityWindowCompactLabel(peak)} ${Math.round(peak.probability)}%`:''}`;
+ const primary=Math.round(Math.max(0,Math.min(100,Number(day.probability)||0))),elevated=elevatedDwdPrecipitationProbabilityWindow(day.probabilityWindows);
+ if(day.probabilitySource==='ensemble-members-dwd')return elevated?`${precipitationProbabilityWindowCompactLabel(elevated)} · ${Math.round(elevated.probability)}%`:`00–24h · ${primary}%`;
  return `max. Std. ${primary}%`;
 }
 
@@ -933,6 +935,9 @@ export function precipitationDurationCompactLabel(durationHours:number){
  const whole=Math.floor(minutes/60),fraction=minutes%60===15?'¼':minutes%60===30?'½':'¾';
  return`${whole}${fraction}h`;
 }
+/** Tagesübersichten zeigen bewusst nur ganze Stunden; detaillierte Ansichten behalten die 15-Minuten-Auflösung. */
+export function precipitationDurationDayOverviewLabel(durationHours:number){const rounded=Math.max(0,Math.round(Math.max(0,Number(durationHours)||0)));return`${rounded} h`}
+export function precipitationDurationDayOverviewCompactLabel(durationHours:number){const rounded=Math.max(0,Math.round(Math.max(0,Number(durationHours)||0)));return rounded>0?`${rounded}h`:''}
 export function precipitationPeriodAssessment(hours:Hour[],minute15:Minute15[]=[]):PrecipitationPeriodAssessment{
  const ordered=[...hours].filter(hour=>Number.isFinite(Number(hour.epoch))).sort((a,b)=>a.epoch-b.epoch),samples:PrecipitationAssessmentSample[]=[];
  for(let index=0;index<ordered.length;index++){

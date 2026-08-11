@@ -26,7 +26,7 @@ for(const [area,text,token] of [
  ['7-Tage-Trend',appSource,'trendHours=[...dayHours,...followingNightHours]'],
  ['7-Tage-Trend',appSource,'hazards=summarizeDwdWarnings(trendHours,elevation)'],
  ['Folgenacht',appSource,'function sevenDayFollowingNightClause'],
- ['7-Tage-Karten',appSource,'precipitationDurationCompactLabel(precipitationAssessment.durationHours)'],
+ ['7-Tage-Karten',appSource,'precipitationDurationDayOverviewCompactLabel(precipitationAssessment.durationHours)'],
  ['Cockpit',cockpitSource,'className="cockpit-day-pop"'],
  ['Ensemble',ensembleSource,"{row.precipitationDuration?` · ${row.precipitationDuration}`:''}"]
  ])assert.ok(text.includes(token),`${area}: ${token}`);
@@ -63,6 +63,8 @@ try{
  assert.equal(weather.precipitationDurationCompactLabel(shortAssessment.durationHours),'15m','Kompakte Niederschlagsdauer ist falsch formatiert.');
  assert.equal(weather.precipitationDurationCompactLabel(1.5),'1½h','Kompakte 90-Minuten-Dauer ist falsch formatiert.');
  assert.equal(weather.precipitationDurationCompactLabel(0),'','Nullminuten duerfen in Kompaktkarten keinen redundanten Text erzeugen.');
+ assert.equal(weather.precipitationDurationDayOverviewLabel(1.5),'2 h','Tagesübersicht muss Niederschlagsdauer auf volle Stunden runden.');
+ assert.equal(weather.precipitationDurationDayOverviewCompactLabel(1.5),'2h','Kompakte Tagesübersicht muss Niederschlagsdauer auf volle Stunden runden.');
  const shortCharacter=weather.dayWeatherCharacter(day,hours);
  assert.equal(shortCharacter.precipitationDominant,false,'Kurzer Schauerschwerpunkt dominiert weiterhin den Tagescharakter.');
  assert.ok(/schauer/i.test(weather.dayWeatherCharacterText(shortCharacter)),'Das kurze Schauerrisiko wird im sekundären Hinweis nicht mehr genannt.');
@@ -77,4 +79,4 @@ try{
  assert.equal(nightCharacter.precipitationDominant,false,'Niederschlag der vorangegangenen Nacht dominiert weiterhin den Tag.');
  assert.ok(!/regen|schauer/i.test(weather.dayWeatherCharacterText(nightCharacter)),'Niederschlag der vorangegangenen Nacht erscheint weiterhin im Tagescharakter.');
 }finally{await rm(dir,{recursive:true,force:true})}
-console.log('Niederschlagscharakter geprüft: Menge, Wahrscheinlichkeit, Zeitpunkt und Dauer wirken gemeinsam; 15-Minuten-Schauer bleiben Risiko statt Tagescharakter; Dauer ist appweit kompakt integriert.');
+console.log('Niederschlagscharakter geprüft: Detaildauer bleibt 15-minütig; Tagesübersichten runden die Niederschlagsdauer auf volle Stunden.');
