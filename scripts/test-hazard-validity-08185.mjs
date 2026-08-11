@@ -28,7 +28,7 @@ for(const token of [
 
 for(const token of [
  'Clock3',
- '<MemoHazards data={hz} timezone={w.timezone}/>',
+ '<MemoHazards data={hz} timezone={displayTimezone}/>',
  'function hazardValidityLabel(',
  'Gültig: {validity}',
  'className="hazard-validity"',

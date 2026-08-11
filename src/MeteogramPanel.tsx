@@ -5,6 +5,7 @@ import {fetchWorkerJson,workerBaseCandidates} from './workerClient';
 import {MID_VERSION as VERSION} from './version';
 import {formatDecimal,formatDecimalFixed} from './format';
 import {precipitationAmountLabel,precipitationParts} from './precipitation';
+import {displayTimeZone,formatDisplayDateTime} from './timeDisplay';
 
 const LEVELS=[1000,975,950,925,900,850,800,700,600,500,400,300] as const;
 const UPPER_LEVELS=[250,200,150,100] as const;
@@ -88,8 +89,8 @@ function normalize(raw:MeteogramRaw,elevationInput:number,maxHours=168):Normaliz
  const rows:ProfileRow[]=[surface];for(const level of LEVELS){const heights=map(`geopotential_height_${level}hPa`),mask=heights.map(height=>height!==null&&height>elevation+35),masked=(key:string)=>map(key).map((value,index)=>mask[index]?value:null),temperature=masked(`temperature_${level}hPa`),humidity=masked(`relative_humidity_${level}hPa`),cloud=masked(`cloud_cover_${level}hPa`),windSpeed=nonNegative(masked(`wind_speed_${level}hPa`)),windDirection=masked(`wind_direction_${level}hPa`),usable=temperature.some(value=>value!==null)||humidity.some(value=>value!==null)||windSpeed.some(value=>value!==null),validHeights=heights.filter((height,index):height is number=>mask[index]&&height!==null),meanHeight=validHeights.length?validHeights.reduce((sum,height)=>sum+height,0)/validHeights.length:null,heightLabel=meanHeight===null?'':` · ${aviationHeightLabel(meanHeight)}`;if(usable)rows.push({key:String(level),label:`${level} hPa${heightLabel}`,pressure:level,heights:heights.map((height,index)=>mask[index]?height:null),temperature,humidity,cloud,windSpeed,windDirection})}
  return{times,surface,rows,hourly:trimmedHourly,elevation}
 }
-function formatInZone(time:number,timeZone:string,options:Intl.DateTimeFormatOptions){try{return new Intl.DateTimeFormat('de-DE',{...options,timeZone}).format(new Date(time))}catch{return new Intl.DateTimeFormat('de-DE',options).format(new Date(time))}}
-function formatUtcZulu(iso:string){const time=Date.parse(iso);if(!Number.isFinite(time))return '';const d=new Date(time);const yyyy=d.getUTCFullYear(),mm=String(d.getUTCMonth()+1).padStart(2,'0'),dd=String(d.getUTCDate()).padStart(2,'0'),hh=String(d.getUTCHours()).padStart(2,'0');return `${yyyy}-${mm}-${dd} ${hh}Z`}
+function formatInZone(time:number,timeZone:string,options:Intl.DateTimeFormatOptions){try{return new Intl.DateTimeFormat('de-DE',{...options,timeZone:displayTimeZone(timeZone)}).format(new Date(time))}catch{return new Intl.DateTimeFormat('de-DE',options).format(new Date(time))}}
+function formatUtcZulu(iso:string){return formatDisplayDateTime(iso,undefined,{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'})}
 function localDayKey(time:number,timeZone:string){return formatInZone(time,timeZone,{year:'numeric',month:'2-digit',day:'2-digit'})}
 function dayMarkers(times:number[],timeZone:string){const markers:{index:number;label:string}[]=[];let last='';times.forEach((time,index)=>{const key=localDayKey(time,timeZone);if(key!==last){markers.push({index,label:formatInZone(time,timeZone,{weekday:'short',day:'2-digit',month:'2-digit'})});last=key}});return markers}
 function mix(a:[number,number,number],b:[number,number,number],t:number){const value=Math.max(0,Math.min(1,t));return`rgb(${Math.round(a[0]+(b[0]-a[0])*value)},${Math.round(a[1]+(b[1]-a[1])*value)},${Math.round(a[2]+(b[2]-a[2])*value)})`}

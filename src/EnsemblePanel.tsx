@@ -13,11 +13,12 @@ import {MID_VERSION} from './version';
 import {apportionScenarioPercentages} from './scenarioMath';
 import {precipitationAmountLabel,precipitationParts} from './precipitation';
 import {computeEnsembleConfidence} from './ensembleConfidence';
+import {formatDisplayDateTime} from './timeDisplay';
 
 function dateOnlyUtc(value:string){const match=String(value||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return match?new Date(Date.UTC(Number(match[1]),Number(match[2])-1,Number(match[3]),12)):new Date(Number.NaN)}
 function formatDateOnly(value:string,options:Intl.DateTimeFormatOptions){const date=dateOnlyUtc(value);return Number.isFinite(date.getTime())?new Intl.DateTimeFormat('de-DE',{...options,timeZone:'UTC'}).format(date):value}
-function formatModelRunTime(value?:string){if(!value)return'–';const d=new Date(value);return Number.isFinite(d.getTime())?`${d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',timeZone:'UTC'})} ${String(d.getUTCHours()).padStart(2,'0')}Z`:'–'}
-function formatAvailabilityTime(value?:string){if(!value)return'–';const d=new Date(value);if(!Number.isFinite(d.getTime()))return'–';const recent=Date.now()-d.getTime()<18*3600000;return recent?`${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')}Z`:`${d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',timeZone:'UTC'})} ${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')}Z`}
+function formatModelRunTime(value?:string){return value?formatDisplayDateTime(value,undefined,{day:'2-digit',month:'2-digit',hour:'2-digit',hourCycle:'h23'}):'–'}
+function formatAvailabilityTime(value?:string){if(!value)return'–';const d=new Date(value);if(!Number.isFinite(d.getTime()))return'–';const recent=Date.now()-d.getTime()<18*3600000;return formatDisplayDateTime(d,undefined,recent?{hour:'2-digit',minute:'2-digit',hourCycle:'h23'}:{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'})}
 
 export type EnsembleDisplayMetric='temperature'|'precipitation'|'wind';
 type EnsemblePresentation='full'|'cockpit';

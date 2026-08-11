@@ -2,6 +2,7 @@ import {useMemo,useRef,useState} from 'react';
 import {AlertTriangle,Download,Plane,RefreshCw,Route as RouteIcon} from 'lucide-react';
 import {toBlob} from 'html-to-image';
 import {fetchWorkerJson} from './workerClient';
+import {displayInputFromUtc,displayTimeLabel,formatDisplayDateTime,utcInputFromDisplay} from './timeDisplay';
 
 const ROUTE_KEY='mid:flightCrossSection:route';
 const MODEL_KEY='mid:flightCrossSection:model';
@@ -54,9 +55,9 @@ function mixDirection(a:number|null,b:number|null,f:number){if(a===null&&b===nul
 function xAt(fraction:number){return PLOT_LEFT+clamp(fraction,0,1)*(PLOT_RIGHT-PLOT_LEFT)}
 function yAtHft(value:number){return PLOT_TOP+(MAX_HFT-clamp(value,0,MAX_HFT))/MAX_HFT*(PLOT_BOTTOM-PLOT_TOP)}
 function routeCodes(value:string){return value.toUpperCase().split(/[^A-Z0-9]+/).map(item=>item.trim()).filter(Boolean)}
-function timeLabel(value:string){const date=new Date(value);return Number.isFinite(date.getTime())?new Intl.DateTimeFormat('de-DE',{timeZone:'UTC',hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit',hourCycle:'h23'}).format(date)+' UTC':'–'}
-function shortTimeLabel(value:string){const date=new Date(value);return Number.isFinite(date.getTime())?new Intl.DateTimeFormat('de-DE',{timeZone:'UTC',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(date):'–'}
-function dateTimeLabel(value:string){const date=new Date(value);return Number.isFinite(date.getTime())?new Intl.DateTimeFormat('de-DE',{timeZone:'UTC',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(date)+' UTC':'–'}
+function timeLabel(value:string){return formatDisplayDateTime(value,undefined,{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit',hourCycle:'h23'})}
+function shortTimeLabel(value:string){return formatDisplayDateTime(value,undefined,{hour:'2-digit',minute:'2-digit',hourCycle:'h23'})}
+function dateTimeLabel(value:string){return formatDisplayDateTime(value,undefined,{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',hourCycle:'h23'})}
 function levelByPressure(levels:CrossLevel[],pressure:number){return levels.find(level=>level.pressure===pressure)??null}
 function interpolateLevel(levels:CrossLevel[],targetHft:number,key:'temperature'|'humidity'|'cloud'|'windSpeed'|'windDirection'){
  const rows=levels.map(level=>({height:hft(level.height),value:finite(level[key])})).filter((row):row is {height:number;value:number}=>row.height!==null&&row.value!==null).sort((a,b)=>a.height-b.height);
@@ -222,8 +223,8 @@ export default function CrossSectionPanel(){
   <header className="flight-section-head"><div><span>Flugmeteorologie</span><h3>Cross Section</h3><p>Räumlich-zeitlicher Vertikalschnitt entlang einer ICAO-Route.</p></div><span className="flight-source-badge">Open-Meteo · NOAA AWC</span></header>
   <form className="flight-cross-form" onSubmit={event=>{event.preventDefault();void generate()}}>
    <label className="flight-route-input"><span>Route · ICAO-Kennungen</span><div><RouteIcon size={16}/><input value={route} onChange={event=>setRoute(event.target.value.toUpperCase())} placeholder="EDDG_EDDL_EDDF" autoCapitalize="characters" spellCheck={false}/></div><small>2–8 Punkte in Flugrichtung; Trennung durch Leerzeichen, „-“ oder „_“.</small></label>
-   <label><span>Start · UTC</span><input type="datetime-local" value={start} onChange={event=>setStart(event.target.value)} step="3600"/></label>
-   <label><span>Ende · UTC</span><input type="datetime-local" value={end} onChange={event=>setEnd(event.target.value)} step="3600"/></label>
+   <label><span>Start · {displayTimeLabel()}</span><input type="datetime-local" value={displayInputFromUtc(start)} onChange={event=>setStart(utcInputFromDisplay(event.target.value))} step="3600"/></label>
+   <label><span>Ende · {displayTimeLabel()}</span><input type="datetime-local" value={displayInputFromUtc(end)} onChange={event=>setEnd(utcInputFromDisplay(event.target.value))} step="3600"/></label>
    <label><span>Detailliertes Flugniveau</span><div className="flight-number-field"><b>FL</b><input type="number" min="0" max="550" step="10" value={flightLevel} onChange={event=>setFlightLevel(Math.max(0,Math.min(550,Number(event.target.value)||0)))}/></div></label>
    <label><span>Modell</span><select value={model} onChange={event=>setModel(event.target.value)}>{MODELS.map(item=><option key={item.id} value={item.id}>{item.label}</option>)}</select><small>{modelOption.detail}</small></label>
    <label><span>Abtastpunkte</span><select value={samples} onChange={event=>setSamples(Number(event.target.value))}><option value="17">17 · schnell</option><option value="25">25 · ausgewogen</option><option value="33">33 · detailliert</option><option value="41">41 · hoch</option><option value="49">49 · maximal</option></select><small>Das Geländeprofil wird separat und deutlich höher aufgelöst berechnet.</small></label>

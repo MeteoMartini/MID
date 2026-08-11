@@ -5,9 +5,10 @@ import {searchLocations,type Location} from './weather';
 import {formatDecimal} from './format';
 import {formatLocalIso,formatRouteWind,loadRouteWeather,routeLevelClass,routeLevelColor,type RouteCheckpoint,type RouteMapMode,type RouteProfile,type RouteWeatherResult} from './routeWeather';
 import {WeatherPictogram} from './WeatherPictogram';
+import {formatDisplayDateTime} from './timeDisplay';
 
 function formatDateTime(value:string){
- return new Date(value).toLocaleString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+ return formatDisplayDateTime(value,undefined,{weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
 }
 function formatDuration(minutes:number){
  const hours=Math.floor(minutes/60),mins=minutes%60;

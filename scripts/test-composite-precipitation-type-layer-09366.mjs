@@ -1,6 +1,7 @@
 import {readFile} from 'node:fs/promises';
-const [radarPanel,standalone,worker,app,pkg,baseline]=await Promise.all([
+const [radarPanel,overlay,standalone,worker,app,pkg,baseline]=await Promise.all([
   readFile(new URL('../src/RadarPanel.tsx',import.meta.url),'utf8'),
+  readFile(new URL('../src/RadarModelPrecipTypeOverlay.tsx',import.meta.url),'utf8'),
   readFile(new URL('../src/DwdPrecipitationTypeRadar.tsx',import.meta.url),'utf8'),
   readFile(new URL('../worker/metar-proxy.js',import.meta.url),'utf8'),
   readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
@@ -18,7 +19,7 @@ for(const token of [
   "import('./RadarModelPrecipTypeOverlay')",
   'Niederschlagsart · Radar+Modell',
   'OPERA-CIRRUS-Echomaske + frischestes geeignetes Rapid-/Regionalmodell als radar-/modellgestützte Phasenklassifikation',
-  'verwendet ausschließlich die Fusion aus beobachteter OPERA-CIRRUS-Echofläche'
+  'ausschließlich bei festem, gemischtem oder gefrierendem Niederschlag um kleine semitransparente Wettersymbole'
 ]) need('RadarPanel',radarPanel,token);
 for(const token of [
   "import('./CompositeHymecNgOverlay')",
@@ -29,6 +30,12 @@ for(const token of [
   'dwd-precipitation-type-image',
   'Niederschlagsart · DWD WN'
 ]) forbid('Aktiver RadarPanel-Pfad',radarPanel,token);
+
+// Die Kompositphase ist ab v0.9.40.13 ein reines Symboloverlay: nur feste/gemischte/gefrierende Phase.
+need('Symboloverlay',overlay,'HtmlMarker');
+need('Symboloverlay',overlay,"['mixed','snow','freezing'].includes(phase.phase)");
+forbid('Symboloverlay',overlay,'GeoJsonLayers');
+forbid('Symboloverlay',overlay,'fill-opacity');
 
 // Das eigenständige DWD-Originalbild bleibt eine getrennte Ansicht und darf nicht als Komposit-Phasenlayer recycelt werden.
 need('Standalone DWD-Originalbild',standalone,'Wolken + Niederschlagsart');

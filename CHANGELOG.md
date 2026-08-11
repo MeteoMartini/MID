@@ -3310,3 +3310,9 @@
 - Tagesübersichten vereinfacht: Niederschlagswahrscheinlichkeit zeigt entweder den 00–24-h-Wert oder – ausschließlich bei einem klar um mindestens 10 Prozentpunkte erhöhten 6-h-Fenster – nur dieses Zeitfenster. Keine Doppelanzeige mehr.
 - Dieselbe exklusive 00–24-h-/6-h-Logik gilt in klassischer Prognose, Cockpit, Widget und Ensemble-Tagesübersichten.
 - Niederschlagsdauer wird in Tagesübersichten auf ganze Stunden gerundet; Detailansichten behalten die feinere 15-Minuten-Auflösung.
+
+## 0.9.40.13
+- Kompositbild: DWD-Satelliten-Live-Snapshots erhalten ihren angezeigten Stand aus dem tatsächlichen DWD-OpenData-Satellitenquellzeitpunkt statt aus der Abfrage-/Gerätezeit; eine künstliche 3-Stunden-Abrundung entfällt.
+- Radar-Farbtabellenwahl aus den Einstellungen entfernt. 1-km-WMS sowie lokal gerendertes 250-m-/OPERA-Radar verwenden wieder ihre fest vorgegebenen Standardfarben.
+- Neue appweite Zeitbasis unter Einstellungen: Lokalzeit (Standard) oder Z-Zeit/UTC. Wetter-, Radar-, Warn-, Diagramm-, Wasser-, Berg-, Meteogramm- und technische Zeitangaben folgen der Auswahl; die Ortszeit im Standortkopf bleibt bewusst lokal.
+- Niederschlagsart im Kompositbild auf ein semitransparentes Symboloverlay umgestellt: kleine Symbole markieren nur Mischphase, Schnee und gefrierenden Niederschlag auf dem jeweils aktiven Radarbild; reiner Regen erhält kein Zusatzsymbol. Die vorhandene Deckkraftregelung unter der Karte steuert die Symboltransparenz.

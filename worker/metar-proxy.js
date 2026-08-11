@@ -30,7 +30,7 @@ const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const OPEN_METEO_ELEVATION='https://api.open-meteo.com/v1/elevation';
-const WORKER_VERSION='0.9.40.12';
+const WORKER_VERSION='0.9.40.13';
 const CORS={'content-type':'application/json; charset=utf-8','access-control-allow-origin':'*','access-control-allow-methods':'GET,POST,OPTIONS','access-control-allow-headers':'content-type','cache-control':'public, max-age=180'};
 const FEED_SLUGS={
  AD:'andorra',AT:'austria',BE:'belgium',BA:'bosnia-herzegovina',BG:'bulgaria',HR:'croatia',CY:'cyprus',CZ:'czechia',DK:'denmark',EE:'estonia',FI:'finland',FR:'france',DE:'germany',GR:'greece',EL:'greece',HU:'hungary',IS:'iceland',IE:'ireland',IL:'israel',IT:'italy',LV:'latvia',LT:'lithuania',LU:'luxembourg',MT:'malta',MD:'moldova',ME:'montenegro',NL:'netherlands',MK:'republic-of-north-macedonia',NO:'norway',PL:'poland',PT:'portugal',RO:'romania',RS:'serbia',SK:'slovakia',SI:'slovenia',ES:'spain',SE:'sweden',CH:'switzerland',UA:'ukraine',GB:'united-kingdom',UK:'united-kingdom',AM:'armenia'
@@ -1211,6 +1211,10 @@ function satelliteProduct(capabilities,candidates,now=Date.now()){
  untimedDwd.sort((a,b)=>(b.priority??0)-(a.priority??0)||(a.resolutionKm??99)-(b.resolutionKm??99));
  const fallback=untimedDwd[0];return fallback?{...fallback,fallback:true}:undefined;
 }
+async function latestDwdSatelliteProductTime(){
+ const indexes=await dwdPrecipitationTypeSourceIndexes(),now=Date.now(),entries=dwdSourceIndexEntries(indexes.satellite,'satellite').filter(row=>row.dataTime<=now+5*60000&&row.dataTime>=now-6*3600000),latest=entries.at(-1);return latest&&Number.isFinite(latest.dataTime)?latest.dataTime:NaN
+}
+function enrichUntimedDwdSatellite(product,sourceTime){if(!product||product.provider!=='dwd'||!product.latestOnly||!Number.isFinite(sourceTime))return product;const frameTime=sourceTime;return{...product,latestTime:new Date(frameTime).toISOString(),sourceSatelliteTime:new Date(sourceTime).toISOString(),timeVerified:true,snapshotRevision:new Date(frameTime).toISOString()}}
 async function compositeTimes(lat,lon){
  const now=Date.now(),serverTime=new Date(now).toISOString(),result={satelliteDay:[],satelliteIr:[],satellitePrecip:[],mtgLightning:[],dwdLightning:[],dwdRadar:[],dwdRadarLayer:'',dwdRadarLatestOnly:false,dwdReferenceSatelliteProduct:undefined,mtgLightningLatestOnly:false,checkedAt:serverTime,serverTime,errors:[]},capabilities={};
  const tasks=[];
@@ -1221,6 +1225,7 @@ async function compositeTimes(lat,lon){
   result.satelliteDayProduct=satelliteProduct(capabilities,SATELLITE_DAY_CANDIDATES,now);
   result.satelliteIrProduct=satelliteProduct(capabilities,SATELLITE_IR_CANDIDATES,now);
   result.dwdReferenceSatelliteProduct=satelliteProduct(capabilities,DWD_REFERENCE_SATELLITE_CANDIDATES,now)||result.satelliteDayProduct;
+  if([result.satelliteDayProduct,result.satelliteIrProduct,result.dwdReferenceSatelliteProduct].some(product=>product?.provider==='dwd'&&product?.latestOnly))try{const sourceTime=await latestDwdSatelliteProductTime();result.satelliteDayProduct=enrichUntimedDwdSatellite(result.satelliteDayProduct,sourceTime);result.satelliteIrProduct=enrichUntimedDwdSatellite(result.satelliteIrProduct,sourceTime);result.dwdReferenceSatelliteProduct=enrichUntimedDwdSatellite(result.dwdReferenceSatelliteProduct,sourceTime)}catch(error){result.errors.push(`DWD Satellitenzeit: ${error instanceof Error?error.message:String(error)}`)}
   result.satelliteDay=result.satelliteDayProduct?.times||[];result.satelliteIr=result.satelliteIrProduct?.times||[];result.mtgLightningLatestOnly=true;
  }
  if(inGermanyBounds(lat,lon)){

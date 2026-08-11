@@ -1,12 +1,22 @@
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 
-const phase=await readFile(new URL('../src/RadarModelPrecipTypeOverlay.tsx',import.meta.url),'utf8');
-assert.match(phase,/function cellEchoSummary\(/,'radar/model phase overlay must sample echo coverage per cell');
-assert.match(phase,/samplesPerAxis=3/,'phase overlay should sample several radar points inside each model cell');
-assert.match(phase,/function radarBackedThermalPhase\(/,'strong radar echoes need a conservative thermal phase recovery path');
-assert.match(phase,/wetBulb>=2/,'warm, radar-backed liquid phase recovery missing');
-assert.match(phase,/subdivisions=1/,'model grid must not be visually subdivided');
-assert.match(phase,/minimumDbz=phase\.phase==='snow'\|\|phase\.phase==='freezing'\?5:7/,'established echo thresholds must remain protected');
-assert.match(phase,/phase\.phase==='uncertain'\|\|phase\.confidence==='eingeschränkt'/,'truly uncertain phases must remain transparent');
-console.log('ok - precipitation-type echo recovery keeps phase safety while sampling radar echoes more robustly');
+const [phase,panel,styles]=await Promise.all([
+ readFile(new URL('../src/RadarModelPrecipTypeOverlay.tsx',import.meta.url),'utf8'),
+ readFile(new URL('../src/RadarPanel.tsx',import.meta.url),'utf8'),
+ readFile(new URL('../src/styles.css',import.meta.url),'utf8')
+]);
+assert.match(phase,/function cellEchoSummary\(/,'phase overlay must sample radar echoes');
+assert.match(phase,/samplesPerAxis=3/,'phase overlay must sample several radar points inside each model cell');
+assert.match(phase,/function radarBackedThermalPhase\(/,'conservative radar-backed thermal recovery must remain');
+assert.match(phase,/\['mixed','snow','freezing'\]\.includes\(phase\.phase\)/,'only non-liquid precipitation phases may become symbols');
+assert.match(phase,/phase\.confidence==='eingeschränkt'\)continue/,'restricted-confidence phase must stay hidden');
+assert.match(phase,/minimumDbz=typed==='snow'\|\|typed==='freezing'\?5:7/,'echo thresholds for non-liquid symbols must remain protected');
+assert.match(phase,/distanceKm\(existing,item\)<14/,'phase symbols must be spatially thinned');
+assert.match(phase,/HtmlMarker/,'phase overlay must render point symbols');
+assert.match(phase,/opacity:\$\{safeOpacity\.toFixed\(2\)\}/,'user opacity must control phase symbols');
+assert.doesNotMatch(phase,/GeoJsonLayers|fill-opacity|Polygon/,'old filled phase polygons must stay removed');
+assert.match(panel,/if\(next&&!showRadar\)setShowRadar\(true\)/,'enabling precipitation type must preserve/show the selected radar underneath');
+assert.match(panel,/precipitationTypeOpacity/,'phase opacity slider must remain available below the image');
+assert.match(styles,/\.radar-phase-symbol>span\{display:block;font-size:15px/,'phase symbols must remain small');
+console.log('ok - non-liquid precipitation is rendered as small semi-transparent symbols over the selected radar');

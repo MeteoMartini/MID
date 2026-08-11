@@ -2,6 +2,7 @@ import {useEffect,useMemo,useRef,useState,type MouseEvent} from 'react';
 import {ExternalLink,Info,RotateCcw,ZoomIn,ZoomOut} from 'lucide-react';
 import {buildWorkerUrl,fetchWorkerJson,workerBaseCandidates} from './workerClient';
 import type {Location} from './weather';
+import {formatDisplayDateTime} from './timeDisplay';
 
 const DWD_PRODUCT_PAGE='https://www.dwd.de/DE/leistungen/wolken_niederschlagsart/wolken_niederschlagsart.html';
 const COVERAGE={west:5.45,east:15.55,south:47.0,north:55.2};
@@ -16,7 +17,7 @@ type PointInspection={loading:boolean;error?:string;info?:RadarPointInfo};
 
 function countryCode(location:Location){return String(location.country_code||location.country||'').trim().toUpperCase()}
 export function dwdPrecipitationTypeCoverage(location:Location){const latitude=Number(location.latitude),longitude=Number(location.longitude),code=countryCode(location),within=Number.isFinite(latitude)&&Number.isFinite(longitude)&&latitude>=COVERAGE.south&&latitude<=COVERAGE.north&&longitude>=COVERAGE.west&&longitude<=COVERAGE.east;if(code&&code!=='DE'&&code!=='DEU'&&code!=='GERMANY'&&code!=='DEUTSCHLAND')return false;return within}
-function formatDwdSourceTimestamp(value:string|undefined){if(!value)return'–';const stamp=Date.parse(value);if(!Number.isFinite(stamp))return value;const date=new Date(stamp),hour=String(date.getUTCHours()).padStart(2,'0'),minute=String(date.getUTCMinutes()).padStart(2,'0');return`${hour}:${minute} UTC`}
+function formatDwdSourceTimestamp(value:string|undefined){return value?formatDisplayDateTime(value,undefined,{hour:'2-digit',minute:'2-digit',hourCycle:'h23'}):'–'}
 function exactProductUrls(slot:number){return workerBaseCandidates('radar').map(base=>buildWorkerUrl(base,'dwd-precipitation-type-image',{slot}).toString())}
 
 export function DwdPrecipitationTypeRadar({location,enabled=true}:{location:Location;enabled?:boolean}){

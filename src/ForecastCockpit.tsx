@@ -11,6 +11,7 @@ import {dominantPrecipitationForm,precipitationAmountLabel,precipitationParts} f
 import {computeEnsembleConfidence} from './ensembleConfidence';
 import {dailyTemperatureTone} from './temperatureTone';
 import {dayPeriodHoursForDate,followingNightHoursForDate} from './forecastPeriods';
+import {formatDisplayDateTime} from './timeDisplay';
 
 export type ForecastPresentationMode='classic'|'cockpit-tabs'|'cockpit-ribbons';
 type ForecastHorizon='short-term'|'seven-day'|'fourteen-day';
@@ -77,8 +78,8 @@ function horizonAvailable(horizon:ForecastHorizon,availability:HorizonAvailabili
 function horizonTitle(horizon:ForecastHorizon){return horizon==='short-term'?'Kurzfrist':horizon==='seven-day'?'7 Tage':'14 Tage'}
 function horizonIcon(horizon:ForecastHorizon){return horizon==='short-term'?<Clock3 size={17}/>:horizon==='seven-day'?<ThermometerSun size={17}/>:<SlidersHorizontal size={17}/>}
 
-function formatCockpitModelRunTime(value?:string){if(!value)return'–';const d=new Date(value);return Number.isFinite(d.getTime())?`${d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',timeZone:'UTC'})} ${String(d.getUTCHours()).padStart(2,'0')}Z`:'–'}
-function formatCockpitAvailabilityTime(value?:string){if(!value)return'–';const d=new Date(value);if(!Number.isFinite(d.getTime()))return'–';const recent=Date.now()-d.getTime()<18*3600000;return recent?`${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')}Z`:`${d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',timeZone:'UTC'})} ${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')}Z`}
+function formatCockpitModelRunTime(value?:string){return value?formatDisplayDateTime(value,undefined,{day:'2-digit',month:'2-digit',hour:'2-digit',hourCycle:'h23'}):'–'}
+function formatCockpitAvailabilityTime(value?:string){if(!value)return'–';const d=new Date(value);if(!Number.isFinite(d.getTime()))return'–';const recent=Date.now()-d.getTime()<18*3600000;return formatDisplayDateTime(d,undefined,recent?{hour:'2-digit',minute:'2-digit',hourCycle:'h23'}:{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'})}
 function cockpitModelRunDetail(row:ModelRunMeta){const cadence=row.updateIntervalSeconds&&row.updateIntervalSeconds<=3600?'stündlich':row.updateIntervalSeconds?`alle ${Math.max(1,Math.round(row.updateIntervalSeconds/3600))} h`:'';const resolutionKm=Number(row.resolutionKm),horizonHours=Number(row.forecastHorizonHours);const resolution=Number.isFinite(resolutionKm)?`${formatDecimalFixed(resolutionKm,resolutionKm<2?1:0)} km`:'';const horizon=Number.isFinite(horizonHours)?`bis +${Math.round(horizonHours)} h`:'';return [row.rapidUpdate?'Rapid Update':'',cadence,resolution,horizon,row.availabilityOnly?'Verfügbarkeit erkannt':''].filter(Boolean).join(' · ')}
 function CockpitModelRunDetails({kind,info,runs=[]}:{kind:'best'|'ensemble';info?:BestMatchModelInfo|null;runs?:ModelRunMeta[]}){
  const triggerRef=useRef<HTMLButtonElement>(null),popoverRef=useRef<HTMLDivElement>(null),[open,setOpen]=useState(false),[position,setPosition]=useState({left:8,top:8,width:320,above:false}),id=`cockpit-model-run-${useId().replace(/:/g,'')}`;

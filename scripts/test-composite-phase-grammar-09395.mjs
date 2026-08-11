@@ -11,15 +11,16 @@ function assert(condition,message){if(!condition)throw new Error(message)}
 // Composite precipitation type must have exactly one active implementation: observed OPERA echo + dynamically selected Rapid/Regional model phase.
 assert(!/Hymec|hymec/.test(radar),'RadarPanel darf HymecNG nicht mehr als Niederschlagsart-Option, Import oder Fallback enthalten.');
 assert(/precipitationTypeMode:'none'\|'radar-model'/.test(radar),'Niederschlagsart muss ausschließlich none/radar-model kennen.');
-assert(/LazyRadarModelPrecipTypeOverlay/.test(radar)&&/Niederschlagsart · Radar \+ Rapid-\/Regionalmodell/.test(radar),'Radar-/Rapidmodell-Overlay und eindeutige Kennzeichnung fehlen.');
+assert(/LazyRadarModelPrecipTypeOverlay/.test(radar)&&/Niederschlagsart-Symbole · Radar \+ Rapid-\/Regionalmodell/.test(radar),'Radar-/Rapidmodell-Symboloverlay und eindeutige Kennzeichnung fehlen.');
 assert(!/Hagelsignal im Modell/.test(radar),'Ein unbestätigtes Modell-Hagelsignal darf nicht als Niederschlagsart-Legendenklasse erscheinen.');
 
 assert(/loadOperaRasterData/.test(overlay)&&/loadWeatherPhaseGrid/.test(overlay),'Phasenlayer muss Beobachtungsradar und dynamisches Regionalmodell gemeinsam verwenden.');
 assert(/Math\.abs\(targetMs-operaMs\)>12\*60000/.test(overlay),'OPERA-Zeitabstand muss begrenzt sein.');
 assert(/maxTimeDelta=grid\.stale\?45\*60000:20\*60000/.test(overlay),'Modell-Zeitabstand muss für Frisch- und Ersatzfelder begrenzt sein.');
 assert(/Number\(grid\.modelAgeHours\)>16/.test(overlay),'Modell-Laufalter muss zusätzlich im Frontend begrenzt sein.');
-assert(/phase\.phase==='uncertain'\|\|phase\.confidence==='eingeschränkt'/.test(overlay),'Unsichere Phasen müssen transparent bleiben.');
-assert(/subdivisions=1/.test(overlay),'Das Phasenraster darf keine künstliche optische Unterteilung vortäuschen.');
+assert(/phase\.confidence==='eingeschränkt'\)continue/.test(overlay),'Unsichere Phasen müssen ausgeblendet bleiben.');
+assert(/HtmlMarker/.test(overlay)&&!/GeoJsonLayers|fill-opacity/.test(overlay),'Niederschlagsarten müssen als kleine Symbole statt als flächige Rasterpolygone erscheinen.');
+assert(/\['mixed','snow','freezing'\]\.includes\(phase\.phase\)/.test(overlay),'Reiner flüssiger Niederschlag darf kein zusätzliches Symbol erhalten.');
 assert(!/phase:'hail'/.test(overlay),'Hagel darf ohne beobachtungsbasierte Phasenerkennung nicht als eigene Phase gerendert werden.');
 
 assert(/loadWeatherPhaseGrid/.test(weatherMaps)&&/precipitation-phase-grid/.test(weatherMaps),'Eigener Phasenraster-Endpunkt fehlt.');
