@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.42.0",
+  "releaseVersion": "0.9.43.0",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -153,7 +153,8 @@
     "scripts/test-event-center-buildfix-09414.mjs",
     "scripts/test-event-planner-module-09415.mjs",
     "scripts/test-model-family-consistency-09416.mjs",
-    "scripts/test-event-center-topbar-planner-group-09420.mjs"
+    "scripts/test-event-center-topbar-planner-group-09420.mjs",
+    "scripts/test-event-center-flight-multifavorite-09430.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -282,7 +283,8 @@
     "scripts/test-radar-phase-solid-symbols-09414.mjs",
     "scripts/test-mid-ui-longrange-09416.mjs",
     "scripts/test-seasonal-c3s-dwd-ui-09410.mjs",
-    "scripts/test-model-family-consistency-09416.mjs"
+    "scripts/test-model-family-consistency-09416.mjs",
+    "scripts/test-event-center-flight-multifavorite-09430.mjs"
   ],
   "requiredFiles": [
     "scripts/test-cockpit-regression-sync-09201.mjs",
@@ -299,7 +301,9 @@
     "scripts/test-sports-section-collapse-09280.mjs",
     "scripts/test-mid-weather-profile-thermal-sun-09320.mjs",
     "scripts/test-mid-weather-profile-thermal-hazards-09321.mjs",
-    "scripts/test-mid-weather-profile-layout-09323.mjs"
+    "scripts/test-mid-weather-profile-layout-09323.mjs",
+    "src/eventAviation.ts",
+    "scripts/test-event-center-flight-multifavorite-09430.mjs"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",

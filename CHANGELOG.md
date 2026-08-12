@@ -1,3 +1,14 @@
+# MID v0.9.43.0
+
+- **Event-Center mit echten Mehrfachfavoriten:** mehrere gespeicherte Events können gleichzeitig favorisiert und gemeinsam nacheinander aktualisiert werden; ein zuvor geladenes Event überschreibt beim Anlegen eines neuen Termins keinen anderen Favoriten mehr.
+- Event-Center und Eventplaner für **helles und dunkles Design** neu abgestimmt; Status-, Änderungs- und Favoritenfarben verwenden theme-adaptive Kontraste.
+- Primäransicht deutlich verdichtet: erklärende Hintergrundtexte, Modellmethodik und Update-Hinweise liegen hinter kompakten Info-Bedienelementen.
+- Texte und Statusbezeichnungen vereinheitlicht und professioneller formuliert; unnötige Wiederholungen in Ergebnis- und Eventkarten entfernt.
+- Eventparameter an die appweiten Formatregeln angeglichen: gewählte **Windeinheit** wird übernommen, **UVI wird ganzzahlig** dargestellt, Niederschlagswahrscheinlichkeit und Sicht bleiben konsistent formatiert.
+- Neue Aktivität **Flug**. Zusätzlich zum normalen Event-Wetter führt MID ein Flugwetter-Screening aus Druckniveau-Daten durch: Gewitter/Konvektion, Vereisung, Turbulenz, CAT, Wolkenuntergrenze, Sicht und Böen; Nullgradgrenze wird ergänzend ausgewiesen.
+- Flugwetter-Hazards sind ausdrücklich diagnostische MID-Indikatoren und keine amtliche Flugwetterberatung oder Navigationsgrundlage.
+- Neuer Regressionstest `test-event-center-flight-multifavorite-09430.mjs` schützt Mehrfachfavoriten, Flugaktivität, Flugwetter-Hazards, Theme-Kontrast, Info-Verdichtung sowie appweite UVI-/Windeinheiten.
+
 # MID v0.9.42.0
 
 - **Event-Center deutlich unauffälliger:** der große Dashboard-Block entfällt; gespeicherte Events sind jetzt über eine kompakte Glocke in der Top-Leiste erreichbar.

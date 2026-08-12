@@ -1,10 +1,11 @@
 import type {BestMatchModelInfo,Location} from './weather'
+import type {EventFlightHazardSummary} from './eventAviation'
 
 export type EventEnvironment='indoor'|'outdoor'|'covered'
-export type EventActivity='general'|'running'|'cycling'|'hiking'|'skiing'|'climbing'|'football'|'tennis'|'golf'|'gym'|'yoga'|'watersports'|'city'|'concert'
+export type EventActivity='general'|'running'|'cycling'|'hiking'|'skiing'|'climbing'|'football'|'tennis'|'golf'|'gym'|'yoga'|'watersports'|'city'|'concert'|'flight'
 export type EventStatus='good'|'watch'|'caution'
 export type EventTimelinePoint={time:string;temperature:number|null;apparent:number|null;precipitationProbability:number|null;precipitation:number|null;rain?:number|null;showers?:number|null;snowfall?:number|null;weatherCode:number|null;weatherLabel?:string;wind:number|null;gust:number|null;uv:number|null;visibility:number|null;humidity?:number|null;cloud?:number|null;lowCloud?:number|null;cape?:number|null;liftedIndex?:number|null;convectiveInhibition?:number|null;sunshineDuration?:number|null;isDay?:boolean;weatherSourceId?:string;weatherSourceLabel?:string}
-export type EventSummary={hours:number;temperatureAvg:number|null;temperatureMin:number|null;temperatureMax:number|null;apparentAvg:number|null;precipitationProbabilityMax:number|null;precipitationTotal:number|null;windMax:number|null;gustMax:number|null;uvMax:number|null;visibilityMin:number|null;weatherCode:number|null;weatherLabel?:string;weatherSourceLabel?:string;isDay?:boolean;modelFamilyCount?:number;rapidCycleUsed?:boolean}
+export type EventSummary={hours:number;temperatureAvg:number|null;temperatureMin:number|null;temperatureMax:number|null;apparentAvg:number|null;precipitationProbabilityMax:number|null;precipitationTotal:number|null;windMax:number|null;gustMax:number|null;uvMax:number|null;visibilityMin:number|null;weatherCode:number|null;weatherLabel?:string;weatherSourceLabel?:string;isDay?:boolean;modelFamilyCount?:number;rapidCycleUsed?:boolean;flightHazards?:EventFlightHazardSummary}
 export type EventAdvice={status:EventStatus;headline:string;summary:string;tips:string[];behavior:string[]}
 export type EventPlan={location:Location;title:string;date:string;startTime:string;endTime:string;environment:EventEnvironment;activity:EventActivity;timeline:EventTimelinePoint[];summary:EventSummary;advice:EventAdvice;modelInfo:BestMatchModelInfo|null;refreshedAt:number;source:string}
 export type EventChangeLevel='none'|'model'|'minor'|'major'
@@ -26,7 +27,7 @@ export function buildEventModelSignature(modelInfo:BestMatchModelInfo|null|undef
 export function buildEventConditionsSignature(plan:EventPlan|null|undefined){
  if(!plan)return'none'
  const summary=plan.summary
- return [plan.advice.status,summary.weatherCode??'na',rounded(summary.temperatureAvg,1),rounded(summary.precipitationProbabilityMax),rounded(summary.windMax),rounded(summary.uvMax,1)].join('|')
+ return [plan.advice.status,summary.weatherCode??'na',rounded(summary.temperatureAvg,1),rounded(summary.precipitationProbabilityMax),rounded(summary.windMax),rounded(summary.uvMax),summary.flightHazards?.overall??'na'].join('|')
 }
 export function buildEventRunHeadline(modelInfo:BestMatchModelInfo|null|undefined){
  const primary=modelInfo?.runs?.[0]?.label||modelInfo?.likelyChain||'Best Match'
@@ -38,7 +39,7 @@ export function compareEventPlans(previous:EventPlan|null|undefined,next:EventPl
  const modelSignature=buildEventModelSignature(next.modelInfo)
  const conditionsSignature=buildEventConditionsSignature(next)
  const runHeadline=buildEventRunHeadline(next.modelInfo)
- if(!previous)return{level:'major',badge:'Neu',summary:'Neu im Event-Center gespeichert.',updatedAt:Date.now(),modelSignature,conditionsSignature,runHeadline}
+ if(!previous)return{level:'major',badge:'Neu',summary:'Event neu gespeichert.',updatedAt:Date.now(),modelSignature,conditionsSignature,runHeadline}
  const previousModelSignature=buildEventModelSignature(previous.modelInfo)
  const previousConditionsSignature=buildEventConditionsSignature(previous)
  const rainDelta=rounded((next.summary.precipitationProbabilityMax??0)-(previous.summary.precipitationProbabilityMax??0))
@@ -50,20 +51,20 @@ export function compareEventPlans(previous:EventPlan|null|undefined,next:EventPl
  const changes:string[]=[]
  let level:EventChangeLevel='none'
  if(statusChanged){level='major';changes.push(statusChangeSummary(previous.advice.status,next.advice.status))}
- if(rainDelta>=15){level=level==='major'?'major':'minor';changes.push('Niederschlagsrisiko höher.')}
- else if(rainDelta<=-15){level=level==='major'?'major':'minor';changes.push('Niederschlagsrisiko niedriger.')}
+ if(rainDelta>=15){level=level==='major'?'major':'minor';changes.push('Niederschlagsrisiko gestiegen.')}
+ else if(rainDelta<=-15){level=level==='major'?'major':'minor';changes.push('Niederschlagsrisiko gesunken.')}
  if(windDelta>=6){level=level==='major'?'major':'minor';changes.push('Wind deutlich stärker.')}
  else if(windDelta<=-6){level=level==='major'?'major':'minor';changes.push('Wind deutlich schwächer.')}
  if(Math.abs(tempDelta)>=3){level=level==='major'?'major':'minor';changes.push(tempDelta>0?'Temperaturtrend milder.':'Temperaturtrend kühler.')}
- if(weatherChanged&&level==='none'){level='minor';changes.push('Leitwetter aktualisiert.')}
- if(modelChanged&&level==='none'){level='model';changes.push('Neuer Modelllauf ohne größere Abweichung.')}
+ if(weatherChanged&&level==='none'){level='minor';changes.push('Wettercharakter geändert.')}
+ if(modelChanged&&level==='none'){level='model';changes.push('Neuer Modelllauf ohne relevante Abweichung.')}
  if(level==='none'&&previousConditionsSignature!==conditionsSignature){level='minor';changes.push('Kleinere Anpassungen im Zeitfenster.')}
  if(level==='none'){changes.push('Keine wesentliche Änderung gegenüber dem letzten Stand.')}
- const badge=level==='major'?'Tendenz neu':level==='minor'?'Update':level==='model'?'Modell neu':'Stabil'
+ const badge=level==='major'?'Relevant':level==='minor'?'Geändert':level==='model'?'Neuer Lauf':'Stabil'
  return{level,badge,summary:changes.join(' '),updatedAt:Date.now(),modelSignature,conditionsSignature,runHeadline}
 }
 
-function statusLabel(value:EventStatus){return value==='good'?'Passt':value==='watch'?'Beobachten':'Achtung'}
+function statusLabel(value:EventStatus){return value==='good'?'Günstig':value==='watch'?'Beobachten':'Achtung'}
 function statusRank(value:EventStatus){return value==='good'?0:value==='watch'?1:2}
 function statusChangeSummary(previous:EventStatus,next:EventStatus){const direction=statusRank(next)>statusRank(previous)?'verschärft':'verbessert';return `Bewertung ${direction}: jetzt „${statusLabel(next)}“ (zuvor „${statusLabel(previous)}“).`}
 function normalizeLegacyChangeSummary(summary:string){return summary.replace(/Einschätzung jetzt (passt|beobachten|Achtung) statt (passt|beobachten|Achtung)\./gi,(_match,nextLabel:string,previousLabel:string)=>{const parse=(label:string):EventStatus=>label.toLocaleLowerCase('de-DE')==='achtung'?'caution':label.toLocaleLowerCase('de-DE')==='beobachten'?'watch':'good';return statusChangeSummary(parse(previousLabel),parse(nextLabel))})}
