@@ -1,3 +1,10 @@
+# MID v0.9.45.0
+
+- Neue sichtbare Dashboard-Sektion **Planer** bündelt Eventplaner und Reiseplaner.
+- Beide Planer bleiben in den Einstellungen weiterhin separat aktivier- und deaktivierbar.
+- Eventplaner: **Rahmen** und **Aktivität** jetzt deutlich kompakter als platzsparende, umbrechende Chips statt großflächiger Kacheln.
+- Neuer Regressionstest `test-planner-section-compact-event-controls-09450.mjs`.
+
 # MID v0.9.44.0
 
 - Event-Center: chronologische Standardsortierung plus wählbare Sortierung.
