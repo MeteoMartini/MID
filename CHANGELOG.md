@@ -1,3 +1,13 @@
+# MID v0.9.42.0
+
+- **Event-Center deutlich unauffälliger:** der große Dashboard-Block entfällt; gespeicherte Events sind jetzt über eine kompakte Glocke in der Top-Leiste erreichbar.
+- Bei ungesehenen Änderungen erhält die Glocke einen dezenten roten Statuspunkt und Akzent. Das Popover zeigt die nächsten Events und führt direkt zum jeweiligen Eintrag im Eventplaner.
+- Technisches Status-Wording korrigiert: statt „Einschätzung jetzt Achtung statt beobachten“ erscheinen natürliche Formulierungen wie „Bewertung verschärft: jetzt „Achtung“ (zuvor „Beobachten“).“
+- Bereits gespeicherte alte Event-Center-Texte werden beim Einlesen automatisch in die neue Form migriert.
+- Navigation neu geordnet: Berg-/Wintersport und Wassersport liegen unter **Profile**; **Eventplaner** und **Reiseplaner** gemeinsam unter der neuen Oberkategorie **Planer**.
+- Eventplaner und Reiseplaner bleiben in den Dashboard-Einstellungen jeweils separat aktivier- und deaktivierbar.
+- Neuer Regressionstest `test-event-center-topbar-planner-group-09420.mjs` schützt die neue Topbar-, Text- und Planerstruktur.
+
 # MID v0.9.41.7
 
 - CI-/Regressionsfix für den fehlgeschlagenen v0.9.41.6-Installerlauf: zehn veraltete Testverträge auf den tatsächlich bereits in v0.9.41.5/v0.9.41.6 eingeführten Stand synchronisiert.

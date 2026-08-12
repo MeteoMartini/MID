@@ -49,7 +49,7 @@ export function compareEventPlans(previous:EventPlan|null|undefined,next:EventPl
  const modelChanged=modelSignature!==previousModelSignature
  const changes:string[]=[]
  let level:EventChangeLevel='none'
- if(statusChanged){level='major';changes.push(`Einschätzung jetzt ${statusLabel(next.advice.status)} statt ${statusLabel(previous.advice.status)}.`)}
+ if(statusChanged){level='major';changes.push(statusChangeSummary(previous.advice.status,next.advice.status))}
  if(rainDelta>=15){level=level==='major'?'major':'minor';changes.push('Niederschlagsrisiko höher.')}
  else if(rainDelta<=-15){level=level==='major'?'major':'minor';changes.push('Niederschlagsrisiko niedriger.')}
  if(windDelta>=6){level=level==='major'?'major':'minor';changes.push('Wind deutlich stärker.')}
@@ -63,7 +63,10 @@ export function compareEventPlans(previous:EventPlan|null|undefined,next:EventPl
  return{level,badge,summary:changes.join(' '),updatedAt:Date.now(),modelSignature,conditionsSignature,runHeadline}
 }
 
-function statusLabel(value:EventStatus){return value==='good'?'passt':value==='watch'?'beobachten':'Achtung'}
+function statusLabel(value:EventStatus){return value==='good'?'Passt':value==='watch'?'Beobachten':'Achtung'}
+function statusRank(value:EventStatus){return value==='good'?0:value==='watch'?1:2}
+function statusChangeSummary(previous:EventStatus,next:EventStatus){const direction=statusRank(next)>statusRank(previous)?'verschärft':'verbessert';return `Bewertung ${direction}: jetzt „${statusLabel(next)}“ (zuvor „${statusLabel(previous)}“).`}
+function normalizeLegacyChangeSummary(summary:string){return summary.replace(/Einschätzung jetzt (passt|beobachten|Achtung) statt (passt|beobachten|Achtung)\./gi,(_match,nextLabel:string,previousLabel:string)=>{const parse=(label:string):EventStatus=>label.toLocaleLowerCase('de-DE')==='achtung'?'caution':label.toLocaleLowerCase('de-DE')==='beobachten'?'watch':'good';return statusChangeSummary(parse(previousLabel),parse(nextLabel))})}
 function parseDateStamp(value:string,time='00:00'){const stamp=Date.parse(`${value}T${time}:00`);return Number.isFinite(stamp)?stamp:0}
 
 export function sortEventCenterRecords(records:EventCenterRecord[]){
@@ -87,7 +90,9 @@ export function normalizeEventCenterRecord(value:unknown):EventCenterRecord|null
  const endTime=String(record.endTime||planRecord?.endTime||'')
  const environment=String(record.environment||planRecord?.environment||'outdoor') as EventEnvironment
  const activity=String(record.activity||planRecord?.activity||'general') as EventActivity
- return{ id,title,location,date,startTime,endTime,environment,activity,isFavorite:Boolean(record.isFavorite),createdAt:safeNumber(record.createdAt as number|undefined,Date.now()),updatedAt:safeNumber(record.updatedAt as number|undefined,Date.now()),lastOpenedAt:safeNumber(record.lastOpenedAt as number|undefined,0),plan:(record.plan??null) as EventPlan|null,change:(record.change??null) as EventChangeMeta|null }
+ const rawChange=(record.change??null) as EventChangeMeta|null
+ const change=rawChange?{...rawChange,summary:normalizeLegacyChangeSummary(String(rawChange.summary||''))}:null
+ return{ id,title,location,date,startTime,endTime,environment,activity,isFavorite:Boolean(record.isFavorite),createdAt:safeNumber(record.createdAt as number|undefined,Date.now()),updatedAt:safeNumber(record.updatedAt as number|undefined,Date.now()),lastOpenedAt:safeNumber(record.lastOpenedAt as number|undefined,0),plan:(record.plan??null) as EventPlan|null,change }
 }
 
 export function readEventCenterRecords(){

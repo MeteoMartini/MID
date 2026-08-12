@@ -9,6 +9,8 @@ if(/\bprecipitations\s*=/.test(planner))failures.push('EventPlannerPanel deklari
 if(/import\s+EventPlannerPanel\s+from\s+['"]\.\/EventPlannerPanel['"]/.test(travel)||/<EventPlannerPanel\b/.test(travel))failures.push('EventPlannerPanel ist weiterhin versteckt in den Reiseplaner eingebettet.');
 if(/\.primaryModel\b/.test(center))failures.push('eventCenter greift weiterhin auf das nicht vorhandene BestMatchModelInfo.primaryModel zu.');
 if(!/modelInfo\?\.runs\?\.\[0\]\?\.label/.test(center))failures.push('Event-Center verwendet den realen BestMatchModelInfo.runs-Vertrag nicht für den Lauf-Headline.');
-if(!/navigateToDashboardSection\('event-planner'\);if\(recordId\)window\.setTimeout/.test(app))failures.push('Startseiten-Event öffnet das eigenständige Wetterplaner-Modul nicht vor dem Detail-Event.');
+if(!/onOpenEventPlanner=\{recordId=>\{navigateToDashboardSection\('event-planner'\);if\(recordId\)window\.setTimeout/.test(app))failures.push('Topbar-Event-Center öffnet das eigenständige Eventplaner-Modul nicht vor dem Detail-Event.');
+if(!app.includes('function EventCenterHeaderButton('))failures.push('Event-Center fehlt als kompakte Topbar-Benachrichtigungsoption.');
+if(app.includes('DashboardEventCenterTeaser'))failures.push('Großflächiger Event-Center-Teaser ist weiterhin auf dem Dashboard aktiv.');
 if(failures.length){console.error('Event-Center-Buildfix fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Event-Center-Buildfix geprüft: TS6133/TS2304/TS2339-Ursachen entfernt und Startseiten-Deep-Link abgesichert.');
+console.log('Event-Center-Buildfix geprüft: Topbar-Event-Center, Deep-Link und Buildvertrag sind abgesichert.');

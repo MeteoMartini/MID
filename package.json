@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.41.7",
+  "version": "0.9.42.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -244,7 +244,8 @@
     "test:no-actions-workflow-self-modification": "node scripts/test-no-actions-workflow-self-modification-093911.mjs",
     "test:seasonal-c3s-dwd-ui": "node scripts/test-seasonal-c3s-dwd-ui-09410.mjs",
     "test:event-center-buildfix": "node scripts/test-event-center-buildfix-09414.mjs",
-    "test:event-planner-module": "node scripts/test-event-planner-module-09415.mjs"
+    "test:event-planner-module": "node scripts/test-event-planner-module-09415.mjs",
+    "test:event-center-topbar-planner": "node scripts/test-event-center-topbar-planner-group-09420.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",
