@@ -1,3 +1,19 @@
+# MID v0.9.45.2
+
+## Sonne / Mond
+
+- Nächste standortrelevante Sonnen- oder Mondfinsternis mit zukünftigem Maximum, Datum, Detailzeiten und sinnvoller Verdeckungsangabe ergänzt.
+- Sonnenfinsternisse werden lokal berechnet; reine Halbschatten-Mondfinsternisse werden ohne irreführende 0-%-Angabe ausgewiesen.
+
+# MID v0.9.45.2
+
+- **Events & Aktivitäten kompakter:** gespeicherte Events zeigen zunächst nur Titel, Rahmen/Aktivität, Termin, Ort und Wetter-Kernwerte.
+- Analyseheadline, Bewertung, Änderungsdetails sowie Bearbeiten/Aktualisieren/Löschen liegen jetzt in einer gezielt aufklappbaren Detailansicht.
+- Der Favoritenstern bleibt direkt in der Kurzansicht erreichbar; Mehrfachfavoriten bleiben unverändert unterstützt.
+- Das Event-Center unter der Glocke nutzt dieselbe progressive Darstellung: kompakte Eventzeile, aufklappbare Zusatzinfo und eindeutiger Sprung in den vollständigen Eventplaner.
+- Abstände, Kartenhöhen, Aktionsflächen und Mobile-Layout wurden weiter verdichtet; Hell-/Dunkel-Design bleibt über die bestehenden MID-Themevariablen konsistent.
+- Neuer Regressionstest `test-event-progressive-disclosure-09451.mjs`.
+
 # MID v0.9.45.0
 
 - Neue sichtbare Dashboard-Sektion **Planer** bündelt Eventplaner und Reiseplaner.

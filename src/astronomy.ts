@@ -1,4 +1,5 @@
 import type {Weather} from './weather';
+import {NextLocalSolarEclipse,NextLunarEclipse,Observer,SearchLocalSolarEclipse,SearchLunarEclipse} from 'astronomy-engine';
 
 const RAD=Math.PI/180;
 const DAY_MS=86400000;
@@ -8,6 +9,18 @@ const E=RAD*23.4397;
 const MOON_CYCLE_DAYS=29.530588853;
 
 type ZonedDateParts={year:number;month:number;day:number;hour:number;minute:number;second:number};
+export type AstronomyEclipseEvent={
+ type:'solar'|'lunar';
+ kind:'partial'|'annular'|'total'|'penumbral';
+ label:string;
+ compactLabel:string;
+ icon:string;
+ start:Date;
+ peak:Date;
+ end:Date;
+ obscuration?:number;
+ altitude:number;
+};
 export type AstronomySummary={
  sunrise?:Date;
  sunset?:Date;
@@ -37,6 +50,7 @@ export type AstronomySummary={
  moonPhaseFraction:number;
  daysUntilNewMoon:number;
  daysUntilFullMoon:number;
+ nextEclipse?:AstronomyEclipseEvent;
  timezone:string;
 };
 
@@ -83,6 +97,61 @@ function moonTimesForDate(parts:{year:number;month:number;day:number},lat:number
  return{moonrise:rise,moonset:set,alwaysUp:!rise&&!set&&min>0,alwaysDown:!rise&&!set&&max<0};
 }
 function moonIllumination(date:Date){const d=toDays(date),sunM=solarMeanAnomaly(d),sunL=eclipticLongitude(sunM),sun={dec:declination(sunL,0),ra:rightAscension(sunL,0)},moon=moonCoords(d),sunDistance=149598000,phi=Math.acos(Math.sin(sun.dec)*Math.sin(moon.dec)+Math.cos(sun.dec)*Math.cos(moon.dec)*Math.cos(sun.ra-moon.ra)),incidence=Math.atan2(sunDistance*Math.sin(phi),moon.dist-sunDistance*Math.cos(phi)),angle=Math.atan2(Math.cos(sun.dec)*Math.sin(sun.ra-moon.ra),Math.sin(sun.dec)*Math.cos(moon.dec)-Math.cos(sun.dec)*Math.sin(moon.dec)*Math.cos(sun.ra-moon.ra)),fraction=(1+Math.cos(incidence))/2,phase=.5+.5*incidence*(angle<0?-1:1)/Math.PI;return{fraction:Math.max(0,Math.min(1,fraction)),phase:(phase%1+1)%1}}
+
+function eclipseKind(value:unknown):AstronomyEclipseEvent['kind']{
+ const normalized=String(value??'').toLowerCase();
+ if(normalized.includes('annular'))return'annular';
+ if(normalized.includes('total'))return'total';
+ if(normalized.includes('penumbral'))return'penumbral';
+ return'partial';
+}
+function eclipseLabels(type:AstronomyEclipseEvent['type'],kind:AstronomyEclipseEvent['kind']){
+ if(type==='solar'){
+  if(kind==='total')return{label:'Totale Sonnenfinsternis',compactLabel:'Totale Sonnenfinsternis',icon:'🌑'};
+  if(kind==='annular')return{label:'Ringförmige Sonnenfinsternis',compactLabel:'Ringförmige Sonnenfinsternis',icon:'⭕'};
+  return{label:'Partielle Sonnenfinsternis',compactLabel:'Partielle Sonnenfinsternis',icon:'🌘'};
+ }
+ if(kind==='total')return{label:'Totale Mondfinsternis',compactLabel:'Totale Mondfinsternis',icon:'🌕'};
+ if(kind==='penumbral')return{label:'Halbschatten-Mondfinsternis',compactLabel:'Halbschatten-Mondfinsternis',icon:'🌕'};
+ return{label:'Partielle Mondfinsternis',compactLabel:'Partielle Mondfinsternis',icon:'🌕'};
+}
+function nextVisibleSolarEclipse(at:Date,lat:number,lon:number,height:number):AstronomyEclipseEvent|undefined{
+ try{
+  const observer=new Observer(lat,lon,Math.max(0,Number.isFinite(height)?height:0));
+  let eclipse=SearchLocalSolarEclipse(new Date(at.getTime()-12*3600000),observer);
+  for(let index=0;index<8;index++){
+   const peak=eclipse.peak.time.date,start=eclipse.partial_begin.time.date,end=eclipse.partial_end.time.date;
+   if(peak.getTime()>at.getTime()&&eclipse.peak.altitude>0){
+    const kind=eclipseKind(eclipse.kind),labels=eclipseLabels('solar',kind);
+    return{type:'solar',kind,...labels,start,peak,end,obscuration:Math.max(0,Math.min(1,eclipse.obscuration)),altitude:eclipse.peak.altitude};
+   }
+   eclipse=NextLocalSolarEclipse(eclipse.peak.time,observer);
+  }
+ }catch{}
+ return undefined;
+}
+function nextVisibleLunarEclipse(at:Date,lat:number,lon:number):AstronomyEclipseEvent|undefined{
+ try{
+  let eclipse=SearchLunarEclipse(new Date(at.getTime()-12*3600000));
+  for(let index=0;index<12;index++){
+   const peak=eclipse.peak.date,altitude=moonAltitude(peak,lat,lon)/RAD;
+   if(peak.getTime()>at.getTime()&&altitude>0){
+    const kind=eclipseKind(eclipse.kind),labels=eclipseLabels('lunar',kind),halfMinutes=Math.max(0,eclipse.sd_penum);
+    return{type:'lunar',kind,...labels,start:new Date(peak.getTime()-halfMinutes*60000),peak,end:new Date(peak.getTime()+halfMinutes*60000),obscuration:kind==='penumbral'?undefined:Math.max(0,Math.min(1,eclipse.obscuration)),altitude};
+   }
+   eclipse=NextLunarEclipse(eclipse.peak);
+  }
+ }catch{}
+ return undefined;
+}
+const eclipseCache=new Map<string,{expires:number;event?:AstronomyEclipseEvent}>();
+function nextEclipseForLocation(at:Date,lat:number,lon:number,height:number){
+ const bucket=Math.floor(at.getTime()/(15*60*1000)),key=`${lat.toFixed(3)}:${lon.toFixed(3)}:${Math.round(height/25)}:${bucket}`,cached=eclipseCache.get(key);
+ if(cached&&cached.expires>Date.now())return cached.event;
+ const solar=nextVisibleSolarEclipse(at,lat,lon,height),lunar=nextVisibleLunarEclipse(at,lat,lon),event=!solar?lunar:!lunar?solar:solar.peak.getTime()<=lunar.peak.getTime()?solar:lunar;
+ eclipseCache.clear();eclipseCache.set(key,{expires:Date.now()+15*60*1000,event});
+ return event;
+}
 function moonDescriptor(phase:number){
  const icon=phase<.0625||phase>=.9375?'🌑':phase<.1875?'🌒':phase<.3125?'🌓':phase<.4375?'🌔':phase<.5625?'🌕':phase<.6875?'🌖':phase<.8125?'🌗':'🌘';
  const age=phase*MOON_CYCLE_DAYS;
@@ -91,8 +160,8 @@ function moonDescriptor(phase:number){
 }
 
 export function astronomySummary(w:Weather,at=new Date()):AstronomySummary{
- const timezone=w.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC',today=localDateParts(at,timezone),yesterday=shiftDate(today,-1),sunToday=sunTimesForDate(today,w.latitude,w.longitude,timezone),sunYesterday=sunTimesForDate(yesterday,w.latitude,w.longitude,timezone),dayLength=dayLengthSeconds(sunToday.sunrise,sunToday.sunset),previousLength=dayLengthSeconds(sunYesterday.sunrise,sunYesterday.sunset),moonTimes=moonTimesForDate(today,w.latitude,w.longitude,timezone),illumination=moonIllumination(at),descriptor=moonDescriptor(illumination.phase),daysUntilNewMoon=((1-illumination.phase)%1)*MOON_CYCLE_DAYS,daysUntilFullMoon=((.5-illumination.phase+1)%1)*MOON_CYCLE_DAYS;
- return{...sunToday,dayLengthSeconds:dayLength,dayLengthChangeSeconds:Number.isFinite(dayLength)&&Number.isFinite(previousLength)?dayLength-previousLength:Number.NaN,moonrise:moonTimes.moonrise,moonset:moonTimes.moonset,moonAlwaysUp:moonTimes.alwaysUp,moonAlwaysDown:moonTimes.alwaysDown,moonIcon:descriptor.icon,moonPhase:descriptor.phaseName,moonIllumination:illumination.fraction,moonAgeDays:descriptor.age,moonPhaseFraction:illumination.phase,daysUntilNewMoon,daysUntilFullMoon,timezone};
+ const timezone=w.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC',today=localDateParts(at,timezone),yesterday=shiftDate(today,-1),sunToday=sunTimesForDate(today,w.latitude,w.longitude,timezone),sunYesterday=sunTimesForDate(yesterday,w.latitude,w.longitude,timezone),dayLength=dayLengthSeconds(sunToday.sunrise,sunToday.sunset),previousLength=dayLengthSeconds(sunYesterday.sunrise,sunYesterday.sunset),moonTimes=moonTimesForDate(today,w.latitude,w.longitude,timezone),illumination=moonIllumination(at),descriptor=moonDescriptor(illumination.phase),daysUntilNewMoon=((1-illumination.phase)%1)*MOON_CYCLE_DAYS,daysUntilFullMoon=((.5-illumination.phase+1)%1)*MOON_CYCLE_DAYS,nextEclipse=nextEclipseForLocation(at,w.latitude,w.longitude,Number(w.elevation)||0);
+ return{...sunToday,dayLengthSeconds:dayLength,dayLengthChangeSeconds:Number.isFinite(dayLength)&&Number.isFinite(previousLength)?dayLength-previousLength:Number.NaN,moonrise:moonTimes.moonrise,moonset:moonTimes.moonset,moonAlwaysUp:moonTimes.alwaysUp,moonAlwaysDown:moonTimes.alwaysDown,moonIcon:descriptor.icon,moonPhase:descriptor.phaseName,moonIllumination:illumination.fraction,moonAgeDays:descriptor.age,moonPhaseFraction:illumination.phase,daysUntilNewMoon,daysUntilFullMoon,nextEclipse,timezone};
 }
 
 export function formatAstronomyTime(value:Date|undefined,timezone:string){return value?new Intl.DateTimeFormat('de-DE',{timeZone:timezone,hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(value):'–'}
