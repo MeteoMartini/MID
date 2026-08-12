@@ -1,3 +1,30 @@
+# MID v0.9.47.1
+
+- Build-Hotfix für v0.9.47.0: die parameterbezogene Messquellenanzeige gibt ihre Quellenzeilen jetzt explizit als `StationFieldSource[]` zurück.
+- Dadurch sind `rows`, `rows.length`, `rows[0]` und `group.rows.map(...)` unter TypeScript `strictNullChecks` nicht mehr fälschlich als möglicherweise `undefined` typisiert.
+- Keine fachliche Wetter-, Quellen-, Ensemble-, UI- oder Worker-Logik gegenüber v0.9.47.0 geändert; der Worker ist nur versionssynchronisiert.
+- Neue Regression `test-current-source-info-type-safety-09471.mjs` schützt den Buildvertrag.
+
+# MID v0.9.47.0
+
+- „Aktuelles Wetter“ nutzt für Deutschland direkte DWD-SYNOP/POI-Beobachtungen vor dem bisherigen Bright-Sky-Rückfall.
+- Länderabhängiger amtlicher Beobachtungsbroker ergänzt: direkte Pfade für SMHI, FMI, NWS/MADIS und ECCC/SWOB-GeoMet; GeoSphere bleibt für Österreich erhalten; AEMET ist mit Worker-Secret nutzbar. MeteoSwiss, KNMI, Météo-France und DWD-Straßenwetter besitzen explizite numerische Punktadapter.
+- Quellenbewertung bleibt parameterbezogen. Straßenwetter/GMA ist als `road-weather` spezialisiert und darf allgemeine Wind-, Sicht-, Wolken- oder Niederschlagswerte nicht wegen bloßer Nähe dominieren.
+- Hyperlokale Analyse führt nun je Parameter konkrete Herkunftsmetadaten (Quelle, Station, Entfernung, Messzeit und QC); die erweiterten Info-Popover von „Aktuelles Wetter“ zeigen diese Herkunft an.
+- Ensemblekatalog erweitert: HGEFS ausschließlich als Mittel/Spread; KNMI HARMONIE-AROME Cy43 EPS und ECCC REPS als regionale, gebiets- und horizontbegrenzte Ensemblequellen mit Familien-/Abhängigkeitsgruppen.
+- Regionale Direktmodelle werden ausschließlich über numerische Punktadapter geladen; es gibt keinen stillen Open-Meteo-Fallback mit unbekannten Modellkennungen und keine erfundenen Einzelmitglieder.
+- Bewusst kein allgemeiner BUFR-/GRIB-Decoder im Worker; binäre amtliche Produkte werden nur über dokumentierte numerische Adapter angebunden.
+- Worker funktional erweitert; Deployment des neuen Workers ist erforderlich.
+
+# MID v0.9.46.0
+
+- Events & Aktivitäten: kompakte Böenabkürzung **G** statt **B**.
+- Aktivität Flug nutzt amtliche ICAO-SIGMET/TAF, bei Nahterminen METAR/SPECI und PIREP/AIREP sowie regionale AWC-Hazardprodukte.
+- WAFS-SIGWX beider WAFC wird über den autorisierten WIFS-API-Pfad standort- und zeitbezogen ausgewertet; Polygon- und Punktgeometrien sowie Hazard-/Intensitätskennungen aus IWXXM-Attributen werden berücksichtigt.
+- Optionaler direkter KNMI-AIRMET-/SIGMET-Pfad für die Amsterdam FIR ergänzt; weitere nationale SWC-Spezialprodukte werden nur bei dokumentierter API-/Nutzungsfreigabe angebunden.
+- Quellenstatus und technische Hintergründe liegen hinter dem Info-Button; die Hauptansicht bleibt kompakt.
+- Neuer Worker-Modus `aviation-hazards`; Worker-Deployment ist erforderlich.
+
 # MID v0.9.45.5
 
 - CI-/Regression-Hotfix für den fehlgeschlagenen v0.9.45.4-Installerlauf.

@@ -25,7 +25,7 @@ assert.ok(worker.includes('fusionDailyPrecipitation'),'Teilweise verfügbare Glo
 assert.ok(worker.includes('weatherBundleReady:hours.length>=12'),'Tageskonsens und Wetterbündel-Reparatur müssen getrennte Verfügbarkeitskriterien haben.');
 
 // Frontend Ensemble: mehrere Auflösungen derselben Familie dürfen die Verteilung nicht vervielfachen.
-assert.ok(weather.includes("const ENSEMBLE_CACHE_PREFIX='mid:ensemble:v12:'"),'Ensemblecache muss nach Familiengewichtungsänderung invalidiert werden.');
+assert.ok(weather.includes("const ENSEMBLE_CACHE_PREFIX='mid:ensemble:v13:'"),'Ensemblecache muss nach Familiengewichtungsänderung invalidiert werden.');
 assert.ok(weather.includes('groupDivisor=Math.max(1,groupCounts.get(r.model.independenceGroup)'), 'Ensemble-Member müssen innerhalb einer Unabhängigkeitsgruppe geteilt gewichtet werden.');
 assert.ok(weather.includes('independentModelSummaries'), 'Ensemble-Modellübersicht muss Familien deduplizieren.');
 assert.ok(weather.includes('modelId:result.model.independenceGroup'), 'Szenario-Clustering muss Modellanteile familienbasiert ausweisen.');

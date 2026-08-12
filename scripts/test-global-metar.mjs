@@ -23,7 +23,7 @@ for(const token of [
   'return[Math.max(-89.9,lat-dLat),Math.max(-180,lon-dLon),Math.min(89.9,lat+dLat),Math.min(180,lon+dLon)]',
   'hours=3&bbox=',
   'metarRadiusKm=inGermany?140:220',
-  'metarStations(lat,lon,metarRadiusKm,signal)'
+  'metarStations(lat,lon,metarRadiusKm,signal,false,c)'
 ])if(!weather.includes(token))failures.push(`Frontend-METAR-Logik fehlt: ${token}`);
 
 if(weather.includes('hoursBeforeNow=2&bbox='))failures.push('Frontend nutzt weiterhin den alten zweistündigen METAR-Abruf.');

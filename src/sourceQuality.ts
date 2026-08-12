@@ -16,6 +16,7 @@ export type StationSourcePolicy={
 
 const OFFICIAL:StationSourcePolicy={quality:1.55,temperatureDistanceKm:32,temperatureAgeMinutes:105,windDistanceKm:46,windAgeMinutes:95,sensitiveDistanceKm:42,sensitiveAgeMinutes:75,precipitationMinutes:10,sensitiveAllowed:true};
 const GENERIC_OFFICIAL:StationSourcePolicy={...OFFICIAL,quality:1.46,precipitationMinutes:60};
+const ROAD_WEATHER:StationSourcePolicy={quality:1.32,temperatureDistanceKm:18,temperatureAgeMinutes:50,windDistanceKm:5,windAgeMinutes:35,sensitiveDistanceKm:5,sensitiveAgeMinutes:30,precipitationMinutes:15,sensitiveAllowed:false};
 const AVIATION:StationSourcePolicy={quality:1.24,temperatureDistanceKm:38,temperatureAgeMinutes:105,windDistanceKm:58,windAgeMinutes:110,sensitiveDistanceKm:52,sensitiveAgeMinutes:90,precipitationMinutes:60,sensitiveAllowed:true};
 const PROFESSIONAL:StationSourcePolicy={quality:1.14,temperatureDistanceKm:28,temperatureAgeMinutes:90,windDistanceKm:40,windAgeMinutes:85,sensitiveDistanceKm:32,sensitiveAgeMinutes:70,precipitationMinutes:60,sensitiveAllowed:true};
 const PWS:StationSourcePolicy={quality:.88,temperatureDistanceKm:13,temperatureAgeMinutes:65,windDistanceKm:18,windAgeMinutes:60,sensitiveDistanceKm:10,sensitiveAgeMinutes:40,precipitationMinutes:60,sensitiveAllowed:false};
@@ -24,7 +25,8 @@ const DEFAULT:StationSourcePolicy={quality:.9,temperatureDistanceKm:22,temperatu
 
 export function sourcePolicyFor(provider='',networkClass:SourceNetworkClass='unknown'):StationSourcePolicy{
  const value=provider.toLowerCase();
- if(/\bdwd\b|geosphere|hydromet|meteo swiss|meteoswiss/.test(value))return OFFICIAL;
+ if(/road-weather|straßenwetter|strassenwetter|gma|swsmos|sws\b/.test(value))return ROAD_WEATHER;
+ if(/\bdwd\b|geosphere|hydromet|meteo swiss|meteoswiss|smhi|fmi|environment canada|eccc|aemet|knmi/.test(value))return OFFICIAL;
  if(/metar|aviationweather|airport observation/.test(value))return AVIATION;
  if(networkClass==='official')return GENERIC_OFFICIAL;
  if(networkClass==='professional'||/synoptic|mesowest|madis|xweather/.test(value))return PROFESSIONAL;
@@ -34,7 +36,11 @@ export function sourcePolicyFor(provider='',networkClass:SourceNetworkClass='unk
 }
 
 export function fieldWeightPolicy(provider:string|undefined,networkClass:SourceNetworkClass,field:StationAnalysisField){
- const source=sourcePolicyFor(provider,networkClass);
+ const source=sourcePolicyFor(provider,networkClass),road=/road-weather|straßenwetter|strassenwetter|gma|swsmos|sws\b/i.test(String(provider||''));
+ // Straßenwetter ist für Fahrbahn-/Glätterisiken hervorragend, darf aber allgemeine
+ // Wind-, Sicht-, Wolken- oder Niederschlagsfelder nicht wegen bloßer Nähe dominieren.
+ if(road&&(field==='windSpeed'||field==='windDirection'||field==='windGust'||field==='visibility'||field==='cloudCover'||field==='ceilingHft'||field==='cloudBaseHft'||field==='precipitation'))return{quality:.08,distanceScaleKm:3,ageScaleMinutes:25,sensitiveAllowed:false};
+ if(road&&field==='pressure')return{quality:.35,distanceScaleKm:5,ageScaleMinutes:30,sensitiveAllowed:false};
  if(field==='windSpeed'||field==='windDirection'||field==='windGust')return{quality:source.quality,distanceScaleKm:source.windDistanceKm,ageScaleMinutes:source.windAgeMinutes,sensitiveAllowed:source.sensitiveAllowed};
  if(field==='visibility'||field==='cloudCover'||field==='ceilingHft'||field==='cloudBaseHft'||field==='precipitation')return{quality:source.quality,distanceScaleKm:source.sensitiveDistanceKm,ageScaleMinutes:source.sensitiveAgeMinutes,sensitiveAllowed:source.sensitiveAllowed};
  return{quality:source.quality,distanceScaleKm:source.temperatureDistanceKm,ageScaleMinutes:source.temperatureAgeMinutes,sensitiveAllowed:source.sensitiveAllowed};

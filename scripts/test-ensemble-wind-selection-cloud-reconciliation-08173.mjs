@@ -35,7 +35,7 @@ for(const token of [
 ])need('Hyperlokale Wolkenkorrektur',weather,token);
 
 for(const token of [
-  'cloudSource=advancedMode&&fresh&&st?.cloudAnalysisMethod?st.cloudAnalysisMethod:',
+  'cloudSource=advancedMode&&fresh&&st?.cloudAnalysisMethod?',
   'detail:`${cloudBaseDetail}${cloudOktasText(cloud).split(\' · \')[1]} · ${cloudSource}`'
 ])need('Transparente Bewölkungsquelle',app,token);
 

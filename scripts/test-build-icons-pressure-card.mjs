@@ -9,7 +9,7 @@ const failures=[];
 const lucideImport=radar.match(/import\s*\{([^}]+)\}\s*from ['"]lucide-react['"]/s)?.[1]||'';
 if(!/\bRadioTower\b/.test(lucideImport))failures.push('RadioTower fehlt im lucide-react-Import.');
 if((radar.match(/<RadioTower\b/g)||[]).length<2)failures.push('Die beiden Radar-Ladehinweise verwenden RadioTower nicht mehr.');
-for(const token of ['className="pressure-detail"','className="pressure-tendency"','className="pressure-source"',"value:`${formatDecimalFixed(pressure,1)} hPa`","source(qffStationPressure,'Best Match')"]){
+for(const token of ['className="pressure-detail"','className="pressure-tendency"','className="pressure-source"',"value:`${formatDecimalFixed(pressure,1)} hPa`","sourceFor(['pressure'],qffStationPressure,'Best Match')"]){
  if(!app.includes(token))failures.push(`Luftdruckkarten-Struktur fehlt: ${token}`);
 }
 for(const token of ['.metrics .pressure-detail','.metrics .pressure-tendency','.metrics .pressure-source']){

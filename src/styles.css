@@ -1779,6 +1779,16 @@ button,input,select,textarea{font:inherit}
 .uvi-segments{flex:1 1 auto;display:grid;grid-template-columns:repeat(5,minmax(3px,1fr));gap:3px;min-width:42px;height:7px}
 .uvi-segments>i{display:block;height:4px;align-self:center;border-radius:2px;opacity:.24}
 .uvi-segments>i.active{height:6px;opacity:1;box-shadow:0 0 0 1px color-mix(in srgb,currentColor 18%,transparent)}
+
+.metric-source-info{display:grid;gap:7px;min-width:0}
+.metric-source-info>strong{font-size:11px}
+.metric-source-info>p{margin:0;color:var(--muted);font-size:9px;line-height:1.45}
+.metric-source-info>div{display:grid;gap:3px;padding-top:6px;border-top:1px solid var(--border)}
+.metric-source-info>div>b{font-size:9px;color:var(--text)}
+.metric-source-info>div>small{display:block;color:var(--muted);font-size:8px;line-height:1.4;overflow-wrap:anywhere}
+.metric-source-info>div>small>b{color:var(--text);font-size:inherit}
+@media(max-width:620px){.metric-source-info>p{font-size:10px}.metric-source-info>div>b{font-size:10px}.metric-source-info>div>small{font-size:9px}}
+
 .uvi-popover-content{display:grid;gap:8px;min-width:0}
 .uvi-popover-content>strong{font-size:11px}
 .uvi-popover-content>p{margin:0;color:var(--text);font-size:9px;line-height:1.45}
@@ -5845,3 +5855,6 @@ html[data-mid-density="comfortable"]{
  .event-guide-tags{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}.event-guide-pill{justify-content:center}.event-guide-pill:last-child{grid-column:1/-1}.event-guide-topbar{display:grid}.event-guide-status-wrap{justify-items:start}.event-metrics-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.event-metrics-grid strong{font-size:14px}.event-metrics-grid span{font-size:8px}.event-guide-quickstats span{width:auto!important;justify-content:flex-start!important}.event-flight-hazard-grid{grid-template-columns:1fr}
  .event-center-card-details>footer{grid-template-columns:1fr auto auto}.event-center-card-details>footer .secondary:not(.icon-only){display:none}
 }
+
+/* v0.9.46.0 · official aviation source disclosure */
+.event-flight-source-list{display:grid;gap:6px;margin:9px 0}.event-flight-source-list>span{display:grid;gap:1px;padding:6px 8px;border:1px solid color-mix(in srgb,var(--border) 78%,transparent);border-radius:8px;background:color-mix(in srgb,var(--surface-2) 76%,transparent)}.event-flight-source-list b{font-size:.76rem}.event-flight-source-list small{font-size:.7rem;color:var(--muted)}.event-flight-source-list>span.used{border-color:color-mix(in srgb,#2aa876 46%,var(--border))}.event-flight-source-list>span.unavailable{border-color:color-mix(in srgb,#d45b58 42%,var(--border))}
