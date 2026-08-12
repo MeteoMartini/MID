@@ -1,3 +1,24 @@
+# MID v0.9.41.7
+
+- CI-/Regressionsfix für den fehlgeschlagenen v0.9.41.6-Installerlauf: zehn veraltete Testverträge auf den tatsächlich bereits in v0.9.41.5/v0.9.41.6 eingeführten Stand synchronisiert.
+- Forecast-Fusion-Cache v7 und Ensemble-Cache v12 sind nun auch in allen historischen Schutztests konsistent hinterlegt; die beabsichtigte Cache-Migration bleibt unverändert.
+- Navigationstest erwartet jetzt `Profile & Planung`; AIFS-Metadatenprüfung nutzt die exakte aktuelle `ecmwf_aifs025_single`-ID.
+- Ensemble-Modellprüfung behandelt `bom_access_global` korrekt als gültige deterministische Modellkennung und verwechselt sie nicht mehr mit einer veralteten Ensemble-ID.
+- Keine funktionale Wetter-/UI-Änderung gegenüber v0.9.41.6; ausschließlich Build-/CI-Stabilisierung.
+
+# MID v0.9.41.6
+
+- **Wetterplaner auf gemeinsamen MID-Vorhersagepfad umgestellt:** Event-Auswertungen verwenden dieselbe Mehrmodell-Fusion, Radar-/Nowcast-Korrektur, konvektive Plausibilisierung und zentrale `precipitationParts()`-Logik wie Kurzfrist, 7-Tage und Dashboard. Sprühregen, Schauer und konvektiver Niederschlag werden dadurch nicht mehr in einer separaten Parallel-Logik bewertet.
+- Wettertitel, Piktogramme und Niederschlagsbeschreibung im Event-Center werden aus dem plausibilisierten Stundenpfad abgeleitet; für Termine im Nowcast-Fenster fließen vorhandene Radar-/Gewittersignale ein.
+- **App-weite Modellfamilienprüfung:** Forecast-Fusion, Ensemble und Schneefallgrenze unterscheiden jetzt Modellvarianten/auflösungen von unabhängigen Modellfamilien. Mehrere Varianten derselben Unabhängigkeitsgruppe bleiben als Datenquellen/Fallback sichtbar, erhalten im Konsens aber nicht mehrfaches Gewicht.
+- Rapid-Cycle-Modelle werden innerhalb ihrer tatsächlichen Vorhersagereichweite priorisiert. DWD ICON-D2-RUC/RUC-EPS bleiben als Verfügbarkeits-/Ausbaupfad gekennzeichnet, solange kein numerischer Adapter verfügbar ist; es werden keine Ersatzwerte erzeugt.
+- NOAA-NBM und DWD-MOSMIX werden als Postprocessing behandelt und nicht als zusätzliche unabhängige Modellstimme gewertet.
+- Ensemblegewichtung gruppiert DWD-, NOAA-, ECMWF-, CMC-, UKMO- und MeteoSwiss-Varianten nach Unabhängigkeitsgruppe; Szenarioanteile und Modellzahlen folgen derselben Familienlogik. Ensemblecache auf v12 angehoben.
+- Schneefallgrenze gruppiert ECMWF IFS/AIFS und andere Varianten familienweise; die Varianten bleiben sichtbar, verdoppeln aber nicht das Familiengewicht.
+- Saison-/Langfristpfad behält die bereits vorhandene Deduplizierung nach Modellfamilie bei.
+- Forecast-Fusion-Cache auf v7 angehoben, damit alte Ergebnisse mit früherer Gewichtungslogik nicht wiederverwendet werden.
+- Neuer Regressionstest `test-model-family-consistency-09416.mjs` schützt Wetterplaner-Plausibilisierung, Rapid-Cycle-Reichweiten, unabhängige Modellgruppen, Postprocessing-Ausschluss, Ensemble-/Schneefallgrenzengewichtung und saisonale Familiendeduplizierung.
+
 # MID v0.9.41.2
 
 - Mobiles Temperatur-Ensemble-Tooltip korrigiert: Sonne, Niederschlag und Modelle verwenden eine gemeinsame Beschriftungsspalte mit sauber getrennter flexibler Wertspalte.

@@ -1,8 +1,10 @@
 import {useEffect,useMemo,useRef,useState,type FormEvent} from 'react'
 import {BellRing,CalendarRange,CloudRain,MapPin,RefreshCw,Search,ShieldCheck,ShieldAlert,Star,Sun,Thermometer,Trash2,Wind} from 'lucide-react'
 import {WeatherPictogram} from './WeatherPictogram'
-import {bestMatchModelInfo,forecast,label,searchLocations,type Location,type Weather} from './weather'
+import {bestMatchModelInfo,forecast,label,localIsoEpoch,mapDays,mapHours,radarNowcast,searchLocations,thunderstormNowcast,type Hour,type Location} from './weather'
 import {EVENT_CENTER_OPEN_EVENT,EVENT_CENTER_UPDATED_EVENT,buildEventCenterId,compareEventPlans,deleteEventCenterRecord,markEventCenterOpened,readEventCenterRecords,toggleEventCenterFavorite,upsertEventCenterRecord,type EventActivity,type EventAdvice,type EventCenterRecord,type EventEnvironment,type EventPlan,type EventStatus,type EventSummary,type EventTimelinePoint} from './eventCenter'
+import {applyConvectiveNowcastHours,applyForecastFusionDays,applyForecastFusionHours,applyOperationalNowcastHours,forecastFusionLabel,loadForecastFusion,type ForecastFusionResult} from './forecastFusion'
+import {precipitationParts} from './precipitation'
 
 type Props={initialLocation:Location;advancedMode:boolean}
 type ValueEvent={target:{value:string}}
@@ -49,16 +51,16 @@ function parseStoredValues(){try{return JSON.parse(storageGet(EVENT_VALUES_KEY)|
 function unique<T>(values:(T|null|undefined)[]){return values.filter((value,index,array)=>value!=null&&array.indexOf(value)===index) as T[]}
 function environmentLabel(value:EventEnvironment){return ENVIRONMENT_OPTIONS.find(item=>item.id===value)?.label??value}
 function activityLabel(value:EventActivity){return ACTIVITY_OPTIONS.find(item=>item.id===value)?.label??value}
-function hourlyNumber(source:Weather['hourly'],key:string,index:number){const raw=(source[key]??[])[index],value=Number(raw);return Number.isFinite(value)?value:null}
 function majorWeatherCode(codes:(number|null)[]){const ranked=unique(codes).sort((a,b)=>weatherSeverity(b)-weatherSeverity(a));return ranked[0]??null}
 function weatherSeverity(code:number|null){if(code==null)return 0;if([95,96,99].includes(code))return 6;if([71,73,75,77,85,86].includes(code))return 5;if([65,67,82].includes(code))return 4;if([63,66,81].includes(code))return 3;if([61,80,51,53,55,56,57].includes(code))return 2;if([45,48].includes(code))return 1;return 0}
 function mean(values:(number|null)[]){const usable=values.filter((value):value is number=>value!=null);if(!usable.length)return null;return usable.reduce((sum,value)=>sum+value,0)/usable.length}
 function max(values:(number|null)[]){const usable=values.filter((value):value is number=>value!=null);return usable.length?Math.max(...usable):null}
 function min(values:(number|null)[]){const usable=values.filter((value):value is number=>value!=null);return usable.length?Math.min(...usable):null}
 
-function summarizeTimeline(timeline:EventTimelinePoint[]):EventSummary{
- const temperatures=timeline.map(point=>point.temperature),apparents=timeline.map(point=>point.apparent),precipitationProbabilities=timeline.map(point=>point.precipitationProbability),winds=timeline.map(point=>point.wind),gusts=timeline.map(point=>point.gust),uvValues=timeline.map(point=>point.uv),visibilities=timeline.map(point=>point.visibility),codes=timeline.map(point=>point.weatherCode)
- return{hours:timeline.length,temperatureAvg:mean(temperatures),temperatureMin:min(temperatures),temperatureMax:max(temperatures),apparentAvg:mean(apparents),precipitationProbabilityMax:max(precipitationProbabilities),precipitationTotal:timeline.reduce((sum,point)=>sum+(point.precipitation??0),0),windMax:max(winds),gustMax:max(gusts),uvMax:max(uvValues),visibilityMin:min(visibilities),weatherCode:majorWeatherCode(codes)}
+function eventWeatherPart(point:EventTimelinePoint){return precipitationParts({time:point.time,precipitation:point.precipitation??0,rain:point.rain??0,showers:point.showers??0,snowfall:point.snowfall??0,probability:point.precipitationProbability??0,code:point.weatherCode??0,temperature:point.temperature??undefined,humidity:point.humidity??undefined,cloud:point.cloud??undefined,lowCloud:point.lowCloud??undefined,cape:point.cape??undefined,liftedIndex:point.liftedIndex??undefined,convectiveInhibition:point.convectiveInhibition??undefined,sunshineDuration:point.sunshineDuration??undefined,isDay:point.isDay})}
+function summarizeTimeline(timeline:EventTimelinePoint[],fusion:ForecastFusionResult|null):EventSummary{
+ const temperatures=timeline.map(point=>point.temperature),apparents=timeline.map(point=>point.apparent),precipitationProbabilities=timeline.map(point=>point.precipitationProbability),winds=timeline.map(point=>point.wind),gusts=timeline.map(point=>point.gust),uvValues=timeline.map(point=>point.uv),visibilities=timeline.map(point=>point.visibility),parts=timeline.map(point=>({point,part:eventWeatherPart(point)})),wet=parts.filter(row=>row.part.type!=='none'),representative=(wet.length?wet:parts).sort((a,b)=>weatherSeverity(b.part.displayCode)-weatherSeverity(a.part.displayCode)||((b.point.precipitationProbability??0)+(b.point.precipitation??0)*8)-((a.point.precipitationProbability??0)+(a.point.precipitation??0)*8))[0],groups=new Set((fusion?.sources??[]).filter(source=>source.successful&&source.consensusRole!=='postprocessing').map(source=>source.independenceGroup||source.family));
+ return{hours:timeline.length,temperatureAvg:mean(temperatures),temperatureMin:min(temperatures),temperatureMax:max(temperatures),apparentAvg:mean(apparents),precipitationProbabilityMax:max(precipitationProbabilities),precipitationTotal:timeline.reduce((sum,point)=>sum+(point.precipitation??0),0),windMax:max(winds),gustMax:max(gusts),uvMax:max(uvValues),visibilityMin:min(visibilities),weatherCode:representative?.part.displayCode??majorWeatherCode(timeline.map(point=>point.weatherCode)),weatherLabel:representative?.part.type==='none'?label(representative.part.displayCode):representative?.part.weatherLabel,weatherSourceLabel:representative?.point.weatherSourceLabel,isDay:representative?.point.isDay,modelFamilyCount:groups.size||undefined,rapidCycleUsed:Boolean(fusion?.sources?.some(source=>source.successful&&source.rapidUpdate))}
 }
 
 function evaluateEvent(summary:EventSummary,environment:EventEnvironment,activity:EventActivity):EventAdvice{
@@ -67,8 +69,8 @@ function evaluateEvent(summary:EventSummary,environment:EventEnvironment,activit
  let severity=0
  const thunder=[95,96,99].includes(summary.weatherCode??-1)
  if(thunder){severity+=5;tips.push('Gewitter oder konvektiv geprägte Schauer sind möglich.');behavior.push('Outdoor- oder Wasseraktivitäten nur mit klarer Ausweichoption planen.')}
- if((summary.precipitationProbabilityMax??0)>=75||(summary.precipitationTotal??0)>=5){severity+=environment==='indoor'?1:3;tips.push('Hohe Regenwahrscheinlichkeit im gewählten Zeitraum.');behavior.push(environment==='indoor'?'Zusätzliche Wegezeit und Regenschutz für An- und Abreise einplanen.':'Regenfeste Kleidung und möglichst geschützte Aufenthaltsbereiche vorsehen.')}
- else if((summary.precipitationProbabilityMax??0)>=40||(summary.precipitationTotal??0)>=1.5){severity+=environment==='indoor'?0:2;tips.push('Zeitweise Schauer sind möglich.');behavior.push('Leichte Regenjacke oder Schirm bereithalten.')}
+ if((summary.precipitationProbabilityMax??0)>=75||(summary.precipitationTotal??0)>=5){severity+=environment==='indoor'?1:3;tips.push('Hohe Niederschlagswahrscheinlichkeit im gewählten Zeitraum.');behavior.push(environment==='indoor'?'Zusätzliche Wegezeit und Regenschutz für An- und Abreise einplanen.':'Regenfeste Kleidung und möglichst geschützte Aufenthaltsbereiche vorsehen.')}
+ else if((summary.precipitationProbabilityMax??0)>=40||(summary.precipitationTotal??0)>=1.5){severity+=environment==='indoor'?0:2;tips.push(summary.weatherLabel?.includes('Sprühregen')?'Zeitweise Sprühregen ist möglich.':'Zeitweise Schauer oder Niederschlag sind möglich.');behavior.push('Leichte Regenjacke oder Schirm bereithalten.')}
  if((summary.windMax??0)>=22||(summary.gustMax??0)>=34){severity+=environment==='indoor'?1:3;tips.push('Frischer bis starker Wind kann die Aktivität beeinflussen.');behavior.push(activity==='watersports'?'Lokale Sicherheitsvorgaben und Materialwahl wegen Wind kritisch prüfen.':'Windempfindliche Ausrüstung sichern und exponierte Bereiche meiden.')}
  else if((summary.windMax??0)>=14||(summary.gustMax??0)>=24){severity+=1;tips.push('Mäßiger Wind spürbar.');behavior.push('Windchill und Böen bei Kleidung beziehungsweise Streckenwahl mitdenken.')}
  if((summary.temperatureMax??summary.temperatureAvg??0)>=29){severity+=2;tips.push('Warme bis heiße Bedingungen.');behavior.push('Viel trinken, Schatten nutzen und Belastung in der Mittagszeit reduzieren.')}
@@ -93,16 +95,13 @@ function evaluateEvent(summary:EventSummary,environment:EventEnvironment,activit
  }
 }
 
-function timelineForWindow(data:Weather,date:string,startTime:string,endTime:string){
- const times=(data.hourly.time??[]) as (string|null)[]
+function timelineForWindow(hours:Hour[],date:string,startTime:string,endTime:string){
  const startStamp=parseMinuteStamp(`${date}T${startTime}`)
  let endStamp=parseMinuteStamp(`${date}T${endTime}`)
  if(!Number.isFinite(startStamp)||!Number.isFinite(endStamp))return[] as EventTimelinePoint[]
  if(endStamp<startStamp)endStamp=startStamp+60*60000
- const firstHour=Math.min(...times.map(value=>parseMinuteStamp(String(value))).filter(Number.isFinite)),lastHour=Math.max(...times.map(value=>parseMinuteStamp(String(value))).filter(Number.isFinite))
- if(startStamp<firstHour||startStamp>lastHour)return[] as EventTimelinePoint[]
- const indices=times.map((value,index)=>({index,stamp:parseMinuteStamp(String(value))})).filter(row=>Number.isFinite(row.stamp)&&row.stamp>=startStamp-30*60000&&row.stamp<=endStamp+30*60000)
- return indices.map(({index})=>({time:String(times[index]).slice(11,16),temperature:hourlyNumber(data.hourly,'temperature_2m',index),apparent:hourlyNumber(data.hourly,'apparent_temperature',index),precipitationProbability:hourlyNumber(data.hourly,'precipitation_probability',index),precipitation:hourlyNumber(data.hourly,'precipitation',index),weatherCode:hourlyNumber(data.hourly,'weather_code',index),wind:hourlyNumber(data.hourly,'wind_speed_10m',index),gust:hourlyNumber(data.hourly,'wind_gusts_10m',index),uv:hourlyNumber(data.hourly,'uv_index',index),visibility:hourlyNumber(data.hourly,'visibility',index)}))
+ const rows=hours.map(hour=>({hour,stamp:parseMinuteStamp(hour.time)})).filter(row=>Number.isFinite(row.stamp)&&row.stamp>=startStamp-30*60000&&row.stamp<=endStamp+30*60000)
+ return rows.map(({hour})=>{const part=precipitationParts({time:hour.time,epoch:hour.epoch,timezone:hour.timezone,precipitation:hour.precipitation,rain:hour.rain,showers:hour.showers,snowfall:hour.snowfall,probability:hour.probability,code:hour.code,temperature:hour.temperature,dewPoint:hour.dewPoint,humidity:hour.humidity,cloud:hour.cloud,lowCloud:hour.lowCloud,cape:hour.cape,liftedIndex:hour.liftedIndex,convectiveInhibition:hour.convectiveInhibition,sunshineDuration:hour.sunshineDuration,isDay:hour.isDay});return{time:hour.time.slice(11,16),temperature:hour.temperature,apparent:hour.apparent,precipitationProbability:hour.probability,precipitation:hour.precipitation,rain:hour.rain,showers:hour.showers,snowfall:hour.snowfall,weatherCode:part.displayCode,weatherLabel:part.type==='none'?label(part.displayCode):part.weatherLabel,wind:hour.wind,gust:hour.gust,uv:hour.uvIndex,visibility:hour.visibility,humidity:hour.humidity,cloud:hour.cloud,lowCloud:hour.lowCloud,cape:hour.cape,liftedIndex:hour.liftedIndex,convectiveInhibition:hour.convectiveInhibition,sunshineDuration:hour.sunshineDuration,isDay:hour.isDay,weatherSourceId:hour.weatherSourceId,weatherSourceLabel:hour.weatherSourceLabel} satisfies EventTimelinePoint})
 }
 
 function statusLabel(value:EventStatus){return value==='good'?'passt':'watch'===value?'beobachten':'achtung'}
@@ -123,7 +122,7 @@ function buildTimingHint(summary:EventSummary){
  return'gute Planbarkeit im gewählten Zeitfenster'
 }
 function eventCompactRange(record:EventCenterRecord){return`${formatDate(record.date)} · ${formatClock(record.startTime)}–${formatClock(record.endTime)}`}
-function eventMetricLine(plan:EventPlan|null){if(!plan)return'Noch keine Analyse gespeichert.';return`${formatNumber(plan.summary.temperatureAvg)} °C · Regen ${formatNumber(plan.summary.precipitationProbabilityMax)} % · Wind ${formatNumber(plan.summary.windMax)} kt`}
+function eventMetricLine(plan:EventPlan|null){if(!plan)return'Noch keine Analyse gespeichert.';return`${formatNumber(plan.summary.temperatureAvg)} °C · Niederschlag ${formatNumber(plan.summary.precipitationProbabilityMax)} % · Wind ${formatNumber(plan.summary.windMax)} kt`}
 
 export default function EventPlannerPanel({initialLocation,advancedMode}:Props){
  const stored=useMemo(()=>parseStoredValues(),[])
@@ -191,11 +190,18 @@ export default function EventPlannerPanel({initialLocation,advancedMode}:Props){
  }
  function chooseLocation(location:Location){setDestination(location);setSearchResults([]);setQuery('');setSearchError('');storageSet(EVENT_LOCATION_KEY,JSON.stringify(location))}
  async function buildPlan(location:Location,eventDate:string,eventStartTime:string,eventEndTime:string,eventEnvironment:EventEnvironment,eventActivity:EventActivity,eventTitle:string,signal:AbortSignal){
-  const [weather,modelInfo]=await Promise.all([forecast(location.latitude,location.longitude,signal),bestMatchModelInfo(location.latitude,location.longitude,location.country_code||location.country,signal).catch(()=>null)])
-  const timeline=timelineForWindow(weather,eventDate,eventStartTime,eventEndTime)
+  const country=location.country_code||location.country,[weather,modelInfo,fusion]=await Promise.all([forecast(location.latitude,location.longitude,signal),bestMatchModelInfo(location.latitude,location.longitude,country,signal).catch(()=>null),loadForecastFusion(location.latitude,location.longitude,country,location.elevation,signal).catch(()=>null)])
+  const baseHours=mapHours(weather),baseDays=mapDays(weather),fusedDays=applyForecastFusionDays(baseDays,fusion);let finalHours=applyForecastFusionHours(baseHours,baseDays,fusedDays,fusion),now=Date.now(),startEpoch=localIsoEpoch(`${eventDate}T${eventStartTime}`,weather.timezone,Number(weather.utc_offset_seconds)||0),endEpoch=localIsoEpoch(`${eventDate}T${eventEndTime}`,weather.timezone,Number(weather.utc_offset_seconds)||0);if(Number.isFinite(startEpoch)&&Number.isFinite(endEpoch)&&endEpoch<startEpoch)endEpoch=startEpoch+3600000
+  const nearNow=Number.isFinite(startEpoch)&&Number.isFinite(endEpoch)&&endEpoch>=now-30*60000&&startEpoch<=now+4*3600000;let nowcastApplied=false,thunderApplied=false
+  if(nearNow){
+   const [radarResult,thunderResult]=await Promise.allSettled([radarNowcast(location.latitude,location.longitude,country,signal,true),thunderstormNowcast(location.latitude,location.longitude,country,signal)]),radar=radarResult.status==='fulfilled'?radarResult.value:null,thunder=thunderResult.status==='fulfilled'?thunderResult.value:null,before=finalHours
+   finalHours=applyOperationalNowcastHours(finalHours,radar);nowcastApplied=finalHours!==before
+   const beforeThunder=finalHours;finalHours=applyConvectiveNowcastHours(finalHours,thunder);thunderApplied=finalHours!==beforeThunder
+  }
+  const timeline=timelineForWindow(finalHours,eventDate,eventStartTime,eventEndTime)
   if(!timeline.length)throw new Error('Für den gewählten Zeitraum sind noch keine Stundendaten verfügbar. Bitte Datum oder Uhrzeit anpassen.')
-  const summary=summarizeTimeline(timeline),advice=evaluateEvent(summary,eventEnvironment,eventActivity)
-  return{location,title:eventTitle.trim(),date:eventDate,startTime:eventStartTime,endTime:eventEndTime,environment:eventEnvironment,activity:eventActivity,timeline,summary,advice,modelInfo,refreshedAt:Date.now(),source:'Open-Meteo Forecast API · best_match'} satisfies EventPlan
+  const summary=summarizeTimeline(timeline,fusion),advice=evaluateEvent(summary,eventEnvironment,eventActivity),fusionState=forecastFusionLabel(fusion),source=[fusionState||'Open-Meteo Best Match · gemeinsame MID-Plausibilisierung',nowcastApplied?'Radar-Nowcast':'' ,thunderApplied?'Konvektiv-/Gewitter-Nowcast':''].filter(Boolean).join(' · ')
+  return{location,title:eventTitle.trim(),date:eventDate,startTime:eventStartTime,endTime:eventEndTime,environment:eventEnvironment,activity:eventActivity,timeline,summary,advice,modelInfo,refreshedAt:Date.now(),source} satisfies EventPlan
  }
  function validateInputs(location:Location|null,eventDate:string,eventStartTime:string,eventEndTime:string){
   if(!location){setError('Bitte zuerst einen Ort auswählen.');return false}
@@ -362,10 +368,10 @@ export default function EventPlannerPanel({initialLocation,advancedMode}:Props){
      <aside className="event-guide-weatherpanel">
       <small>Leitwetter</small>
       <div className="event-guide-weatherrow">
-       <WeatherPictogram code={plan.summary.weatherCode??0} day title={label(plan.summary.weatherCode??0)}/>
+       <WeatherPictogram code={plan.summary.weatherCode??0} day={plan.summary.isDay!==false} title={plan.summary.weatherLabel||label(plan.summary.weatherCode??0)}/>
        <div>
         <strong>{formatNumber(plan.summary.temperatureAvg)}°</strong>
-        <span>{label(plan.summary.weatherCode??0)}</span>
+        <span>{plan.summary.weatherLabel||label(plan.summary.weatherCode??0)}</span>
        </div>
       </div>
       <p>{outfitHint}</p>
@@ -395,13 +401,13 @@ export default function EventPlannerPanel({initialLocation,advancedMode}:Props){
     <article><strong>Konkrete Empfehlungen</strong><ul>{plan.advice.behavior.map(item=><li key={item}>{item}</li>)}</ul></article>
    </div>
 
-   <div className="event-timeline-card"><header><div><span>ZEITFENSTER</span><h6>Stündlicher Verlauf</h6></div><small>{advancedMode?'Stundendaten aus dem Best-Match-Modell.':'Kompakte Übersicht der wichtigsten Stundenwerte.'}</small></header><div className="event-timeline">{plan.timeline.map(point=><article key={point.time}><time>{point.time}</time><WeatherPictogram code={point.weatherCode??0} day title={label(point.weatherCode??0)}/><strong>{formatNumber(point.temperature)}°</strong><small>Regen {formatNumber(point.precipitationProbability)} %</small><small>Wind {formatNumber(point.wind)} kt</small></article>)}</div></div>
+   <div className="event-timeline-card"><header><div><span>ZEITFENSTER</span><h6>Stündlicher Verlauf</h6></div><small>{advancedMode?'Gemeinsamer MID-Pfad: Best Match, unabhängige Modellfamilien, Plausibilisierung und bei Nahterminen Nowcast.':'Dieselbe plausibilisierte Stundenprognose wie in den übrigen MID-Bereichen.'}</small></header><div className="event-timeline">{plan.timeline.map(point=><article key={point.time}><time>{point.time}</time><WeatherPictogram code={point.weatherCode??0} day={point.isDay!==false} title={point.weatherLabel||label(point.weatherCode??0)}/><strong>{formatNumber(point.temperature)}°</strong><small>{point.weatherLabel||label(point.weatherCode??0)} · {formatNumber(point.precipitationProbability)} %</small><small>Wind {formatNumber(point.wind)} kt</small></article>)}</div></div>
 
    <div className="event-model-updates">
     <header><div><span>MODELL-UPDATES</span><h6>Aktuelle Laufstände</h6></div><small>Zuletzt aktualisiert {lastUpdateText}</small></header>
-    <div className="event-model-update-lead"><BellRing size={16}/><span>{plan.modelInfo?.summary||'Die Best-Match-Kette nutzt das am Standort verfügbare Modellsetup. MID aktualisiert diese Einschätzung bei geöffnetem Panel regelmäßig.'}</span></div>
+    <div className="event-model-update-lead"><BellRing size={16}/><span>{plan.modelInfo?.summary||'Die Best-Match-Kette nutzt das am Standort verfügbare Modellsetup. MID aktualisiert diese Einschätzung bei geöffnetem Panel regelmäßig.'}{plan.summary.modelFamilyCount?` · ${plan.summary.modelFamilyCount} unabhängige Modellgruppen numerisch geprüft.`:''}{plan.summary.rapidCycleUsed?' · Rapid-Cycle-Läufe wurden dort einbezogen, wo sie für den Vorhersagehorizont gültig sind.':''}</span></div>
     {latestRuns.length>0&&<div className="event-run-grid">{latestRuns.map(run=><article key={`${run.id}:${run.initialisationTime}`}><strong>{run.label}</strong><small>Init {modelStamp(run.initialisationTime)}</small><small>Verfügbar {modelStamp(run.availabilityTime||run.initialisationTime)}</small>{run.updateIntervalSeconds&&<span>Updateintervall ca. {Math.round(run.updateIntervalSeconds/3600*10)/10} h</span>}</article>)}</div>}
-    <footer><span>Quelle: {plan.source}</span><small>{advancedMode?'Die Kandidatenliste zeigt relevante Best-Match-/Regionalmodelle für diesen Standort.':'Die Modellkette kann je Zeitraum und Variable wechseln.'}</small></footer>
+    <footer><span>Quelle: {plan.source}</span><small>{advancedMode?'Die Modellübersicht dient der Transparenz. In kombinierte Aussagen geht pro Unabhängigkeitsgruppe nur eine volle Stimme ein; Varianten derselben Familie werden nicht mehrfach gewichtet.':'Die Modellkette kann je Zeitraum und Variable wechseln; Varianten derselben Familie werden nicht doppelt gewichtet.'}</small></footer>
    </div>
   </section>}
  </section>

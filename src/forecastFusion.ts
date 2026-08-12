@@ -8,6 +8,8 @@ export type ForecastFusionSource={
  id:string;
  label:string;
  family:string;
+ independenceGroup?:string;
+ consensusRole?:'independent'|'postprocessing'|'diagnostic';
  tier:ForecastFusionTier;
  provider:string;
  successful:boolean;
@@ -108,7 +110,7 @@ export type ForecastFusionResult={
  cached?:boolean;
 };
 
-const CACHE_PREFIX='mid:forecast-fusion:v6:';
+const CACHE_PREFIX='mid:forecast-fusion:v7:';
 const FRESH_MS=35*60*1000;
 const STALE_MS=8*60*60*1000;
 

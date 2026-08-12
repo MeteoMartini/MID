@@ -10,6 +10,7 @@ export type DashboardModuleId=
  |'long-range'
  |'forecast-verification'
  |'travel-planner'
+ |'event-planner'
  |'flight-meteorology'
  |'weather-maps'
  |'widget';
@@ -41,6 +42,7 @@ export const DASHBOARD_MODULE_DEFINITIONS:DashboardModuleDefinition[]=[
  {id:'long-range',label:'Langfrist',description:'Monatliche Temperatur- und Niederschlagsanomalien im saisonalen Modellvergleich'},
  {id:'forecast-verification',label:'Prognosegüte und Rückblick',description:'Vorhersagekontrolle und lokale Modellgüte',advancedOnly:true},
  {id:'travel-planner',label:'Reisewetter und Reiseplaner',description:'Klimatologie und Reisezeitfenster'},
+ {id:'event-planner',label:'Wetterplaner & Events',description:'Termine und Aktivitäten mit Wettercheck, Tipps und Modellupdates'},
  {id:'flight-meteorology',label:'Flugmeteorologie',description:'Meteogramme und Flugwetterwerkzeuge',advancedOnly:true},
  {id:'weather-maps',label:'Wetterkarten',description:'DWD Modell-, Höhen- und Signifikanzkarten mit Zeitschritten',advancedOnly:true},
  {id:'widget',label:'Widget- und PNG-Generator',description:'Konfigurierbare Exportansicht',advancedOnly:true}

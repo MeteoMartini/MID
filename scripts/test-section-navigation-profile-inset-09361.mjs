@@ -12,7 +12,7 @@ for(const token of [
  'const DASHBOARD_NAV_GROUPS:DashboardNavGroup[]=',
  "label:'Überblick'",
  "label:'Analyse & Trend'",
- "label:'Profile'",
+ "label:'Profile & Planung'",
  "label:'Profi'",
  "label:'Werkzeuge'",
  'function DashboardSectionNavigation(',

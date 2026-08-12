@@ -17,7 +17,7 @@ need('RUC-Verfügbarkeitsgrenze',weather,'er wird erst dann direkt in numerische
 need('Best-Match-Kandidaten',app,'Am Standort potenziell relevante Regionalmodelle:');
 forbid('Best-Match-Kandidaten',app,'Wahrscheinliche Kette:');
 need('Worker-Alias',worker,"ecmwf_aifs025:['ecmwf_aifs025_single','ecmwf_aifs025']");
-need('Worker-Fusion',worker,"apiIds:['ecmwf_aifs025_single','ecmwf_aifs025','ecmwf_aifs']");
+need('Worker-Fusion',worker,"apiIds:['ecmwf_aifs025_single']");
 need('Worker-Frischeprüfung',worker,'function modelMetaFresh(payload)');
 if(pkg.version!==baseline.releaseVersion)failures.push(`Versionsabweichung: package ${pkg.version}, baseline ${baseline.releaseVersion}`);
 if(failures.length){console.error('Modellmetadaten-/Init-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}

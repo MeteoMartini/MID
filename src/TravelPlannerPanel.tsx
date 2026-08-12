@@ -3,7 +3,6 @@ import {AlertTriangle,CalendarRange,CheckCircle2,CloudRain,MapPin,RefreshCw,Sear
 import {label,searchLocations,type Location} from './weather';
 import {WeatherPictogram} from './WeatherPictogram';
 import {addDays,bestTravelWindows,dateRange,fetchTravelClimatology,summarizeTravelPeriod,travelNarrative,travelPeriod,type TravelConstraints,type TravelPreference,type TravelWindowResult} from './travelPlanner';
-import EventPlannerPanel from './EventPlannerPanel';
 
 type Props={initialLocation:Location;advancedMode:boolean};
 type PlannerMode='fixed'|'flexible';
@@ -103,6 +102,5 @@ export default function TravelPlannerPanel({initialLocation,advancedMode}:Props)
    <footer><span>Quelle: {analysis.source} · Referenzperiode {analysis.referencePeriod}</span><small>{advancedMode?'Tageswerte sind Mittel beziehungsweise Eintrittswahrscheinlichkeiten aus der ERA5-Land-Reanalyse; lokale Effekte, einzelne Extremjahre und künftige Klimaänderungen bleiben unsicher.':'Klimamittel beschreiben typische Bedingungen, nicht das Wetter eines einzelnen Jahres.'}</small></footer>
   </section>}
 
-  <EventPlannerPanel initialLocation={destination} advancedMode={advancedMode}/>
  </section>;
 }

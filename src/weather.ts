@@ -21,7 +21,7 @@ export type Hour={time:string;epoch:number;timezone:string;temperature:number;ap
 export type Minute15={time:string;epoch:number;timezone:string;precipitation:number;rain:number;showers:number;snowfall:number;probability:number;code:number};
 export type PrecipitationProbabilityWindow={startHour:number;endHour:number;probability:number;probabilitySignificant:number;memberCount:number};
 export type Day={date:string;code:number;max:number;min:number;sunrise?:string;sunset?:string;sunshineDuration:number;precipitation:number;rain?:number;showers?:number;snowfall?:number;precipitationHours?:number;probability:number;probabilitySignificant?:number;probabilityWindows?:PrecipitationProbabilityWindow[];probabilitySource?:'ensemble-members-dwd'|'hourly-max-fallback';probabilityMemberCount?:number;wind:number;gust:number;gustAdjusted?:boolean;direction:number;uvMax:number;weatherSourceId?:string;weatherSourceLabel?:string};
-export type EnsembleModelDay={id:string;label:string;max:number;min:number;precipitation:number;precipitationProbability:number;precipitationProbabilitySignificant?:number;memberCount:number;wind?:number;gust?:number;sunshineDuration?:number;weatherCode?:number};
+export type EnsembleModelDay={id:string;label:string;family?:string;independenceGroup?:string;max:number;min:number;precipitation:number;precipitationProbability:number;precipitationProbabilitySignificant?:number;memberCount:number;wind?:number;gust?:number;sunshineDuration?:number;weatherCode?:number};
 export type EnsembleScenarioPoint={date:string;max:number;min:number;precipitation:number;sunshineDuration:number;gust:number};
 export type EnsembleScenarioModelShare={id:string;label:string;memberCount:number;familyMemberCount:number;familyShare:number};
 export type EnsembleScenarioCluster={id:string;label:string;summary:string;probability:number;memberCount:number;modelLabels:string[];modelShares?:EnsembleScenarioModelShare[];divergenceDate?:string;points:EnsembleScenarioPoint[]};
@@ -70,47 +70,47 @@ export function countryCodeFromLocation(value?:string){
  const key=raw.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]/g,'');return COUNTRY_CODE_ALIASES[key]||'';
 }
 
-type EnsembleModel={id:string;label:string;metaId:string;resolutionKm:number;updateHours:number;maxDays:number;bbox?:[number,number,number,number]};
+type EnsembleModel={id:string;label:string;metaId:string;family:string;independenceGroup:string;resolutionKm:number;updateHours:number;maxDays:number;bbox?:[number,number,number,number]};
 const EUROPE_ENSEMBLE_BBOX:[number,number,number,number]=[-11,33,37,71];
 const ensembleModels:EnsembleModel[]=[
- {id:'icon_seamless_eps',label:'DWD ICON EPS Seamless',metaId:'dwd_icon_eps',resolutionKm:8,updateHours:3,maxDays:7.5,bbox:[-25,30,45,72]},
- {id:'icon_global_eps',label:'DWD ICON EPS Global',metaId:'dwd_icon_eps',resolutionKm:26,updateHours:12,maxDays:7.5},
- {id:'icon_eu_eps',label:'DWD ICON EPS EU',metaId:'dwd_icon_eu_eps',resolutionKm:13,updateHours:6,maxDays:5,bbox:[-25,30,45,72]},
- {id:'icon_d2_eps',label:'DWD ICON EPS D2',metaId:'dwd_icon_d2_eps',resolutionKm:2,updateHours:3,maxDays:2,bbox:[-6,43,26,58]},
- {id:'ncep_gefs_seamless',label:'NOAA GFS Ensemble Seamless',metaId:'ncep_gefs025',resolutionKm:32,updateHours:6,maxDays:35},
- {id:'ncep_gefs025',label:'NOAA GFS Ensemble 0.25°',metaId:'ncep_gefs025',resolutionKm:25,updateHours:6,maxDays:10},
- {id:'ncep_gefs05',label:'NOAA GFS Ensemble 0.5°',metaId:'ncep_gefs05',resolutionKm:50,updateHours:6,maxDays:35},
- {id:'ncep_aigefs025',label:'NOAA AIGEFS 0.25°',metaId:'ncep_aigefs025',resolutionKm:25,updateHours:6,maxDays:16},
- {id:'ecmwf_ifs_europe_ensemble',label:'ECMWF IFS ENS Europa 9 km',metaId:'ecmwf_ifs_europe_ensemble',resolutionKm:9,updateHours:6,maxDays:15,bbox:EUROPE_ENSEMBLE_BBOX},
- {id:'ecmwf_aifs_europe_ensemble',label:'ECMWF AIFS ENS Europa 31 km',metaId:'ecmwf_aifs_europe_ensemble',resolutionKm:31,updateHours:6,maxDays:15,bbox:EUROPE_ENSEMBLE_BBOX},
- {id:'ecmwf_ifs025_ensemble',label:'ECMWF IFS Ensemble',metaId:'ecmwf_ifs025_ensemble',resolutionKm:25,updateHours:6,maxDays:15},
- {id:'ecmwf_aifs025_ensemble',label:'ECMWF AIFS Ensemble',metaId:'ecmwf_aifs025_ensemble',resolutionKm:25,updateHours:6,maxDays:15},
- {id:'gem_global_ensemble',label:'GEM Global Ensemble',metaId:'cmc_gem_geps',resolutionKm:25,updateHours:12,maxDays:16},
- {id:'bom_access_global_ensemble',label:'BOM ACCESS Global Ensemble',metaId:'bom_access_global_ensemble',resolutionKm:40,updateHours:6,maxDays:10},
- {id:'ukmo_global_ensemble_20km',label:'UKMO Global Ensemble',metaId:'ukmo_global_ensemble_20km',resolutionKm:20,updateHours:6,maxDays:8},
- {id:'ukmo_uk_ensemble_2km',label:'UKMO UK Ensemble',metaId:'ukmo_uk_ensemble_2km',resolutionKm:2,updateHours:1,maxDays:5,bbox:[-12,48,4,62]},
- {id:'meteoswiss_icon_ch1_ensemble',label:'MeteoSwiss ICON CH1',metaId:'meteoswiss_icon_ch1_ensemble',resolutionKm:1,updateHours:3,maxDays:1.4,bbox:[3,43,18,50]},
- {id:'meteoswiss_icon_ch2_ensemble',label:'MeteoSwiss ICON CH2',metaId:'meteoswiss_icon_ch2_ensemble',resolutionKm:2,updateHours:6,maxDays:.5,bbox:[3,43,18,50]},
- {id:'google_weathernext2_ensemble',label:'Google WeatherNext 2',metaId:'google_weathernext2_ensemble',resolutionKm:25,updateHours:12,maxDays:15}
+ {id:'icon_seamless_eps',label:'DWD ICON EPS Seamless',metaId:'dwd_icon_eps',family:'dwd-icon-eps',independenceGroup:'dwd-ensemble',resolutionKm:8,updateHours:3,maxDays:7.5,bbox:[-25,30,45,72]},
+ {id:'icon_global_eps',label:'DWD ICON EPS Global',metaId:'dwd_icon_eps',family:'dwd-icon-eps',independenceGroup:'dwd-ensemble',resolutionKm:26,updateHours:12,maxDays:7.5},
+ {id:'icon_eu_eps',label:'DWD ICON EPS EU',metaId:'dwd_icon_eu_eps',family:'dwd-icon-eps',independenceGroup:'dwd-ensemble',resolutionKm:13,updateHours:6,maxDays:5,bbox:[-25,30,45,72]},
+ {id:'icon_d2_eps',label:'DWD ICON EPS D2',metaId:'dwd_icon_d2_eps',family:'dwd-icon-eps',independenceGroup:'dwd-ensemble',resolutionKm:2,updateHours:3,maxDays:2,bbox:[-6,43,26,58]},
+ {id:'ncep_gefs_seamless',label:'NOAA GFS Ensemble Seamless',metaId:'ncep_gefs025',family:'noaa-gefs',independenceGroup:'noaa-ensemble',resolutionKm:32,updateHours:6,maxDays:35},
+ {id:'ncep_gefs025',label:'NOAA GFS Ensemble 0.25°',metaId:'ncep_gefs025',family:'noaa-gefs',independenceGroup:'noaa-ensemble',resolutionKm:25,updateHours:6,maxDays:10},
+ {id:'ncep_gefs05',label:'NOAA GFS Ensemble 0.5°',metaId:'ncep_gefs05',family:'noaa-gefs',independenceGroup:'noaa-ensemble',resolutionKm:50,updateHours:6,maxDays:35},
+ {id:'ncep_aigefs025',label:'NOAA AIGEFS 0.25°',metaId:'ncep_aigefs025',family:'noaa-aigefs',independenceGroup:'noaa-ensemble',resolutionKm:25,updateHours:6,maxDays:16},
+ {id:'ecmwf_ifs_europe_ensemble',label:'ECMWF IFS ENS Europa 9 km',metaId:'ecmwf_ifs_europe_ensemble',family:'ecmwf-ifs-ens',independenceGroup:'ecmwf-ensemble',resolutionKm:9,updateHours:6,maxDays:15,bbox:EUROPE_ENSEMBLE_BBOX},
+ {id:'ecmwf_aifs_europe_ensemble',label:'ECMWF AIFS ENS Europa 31 km',metaId:'ecmwf_aifs_europe_ensemble',family:'ecmwf-aifs-ens',independenceGroup:'ecmwf-ensemble',resolutionKm:31,updateHours:6,maxDays:15,bbox:EUROPE_ENSEMBLE_BBOX},
+ {id:'ecmwf_ifs025_ensemble',label:'ECMWF IFS Ensemble',metaId:'ecmwf_ifs025_ensemble',family:'ecmwf-ifs-ens',independenceGroup:'ecmwf-ensemble',resolutionKm:25,updateHours:6,maxDays:15},
+ {id:'ecmwf_aifs025_ensemble',label:'ECMWF AIFS Ensemble',metaId:'ecmwf_aifs025_ensemble',family:'ecmwf-aifs-ens',independenceGroup:'ecmwf-ensemble',resolutionKm:25,updateHours:6,maxDays:15},
+ {id:'gem_global_ensemble',label:'GEM Global Ensemble',metaId:'cmc_gem_geps',family:'cmc-geps',independenceGroup:'cmc-ensemble',resolutionKm:25,updateHours:12,maxDays:16},
+ {id:'bom_access_global_ensemble',label:'BOM ACCESS Global Ensemble',metaId:'bom_access_global_ensemble',family:'bom-access-ens',independenceGroup:'bom-ensemble',resolutionKm:40,updateHours:6,maxDays:10},
+ {id:'ukmo_global_ensemble_20km',label:'UKMO Global Ensemble',metaId:'ukmo_global_ensemble_20km',family:'ukmo-ens',independenceGroup:'ukmo-ensemble',resolutionKm:20,updateHours:6,maxDays:8},
+ {id:'ukmo_uk_ensemble_2km',label:'UKMO UK Ensemble',metaId:'ukmo_uk_ensemble_2km',family:'ukmo-ens',independenceGroup:'ukmo-ensemble',resolutionKm:2,updateHours:1,maxDays:5,bbox:[-12,48,4,62]},
+ {id:'meteoswiss_icon_ch1_ensemble',label:'MeteoSwiss ICON CH1',metaId:'meteoswiss_icon_ch1_ensemble',family:'meteoswiss-icon-ens',independenceGroup:'meteoswiss-ensemble',resolutionKm:1,updateHours:3,maxDays:1.4,bbox:[3,43,18,50]},
+ {id:'meteoswiss_icon_ch2_ensemble',label:'MeteoSwiss ICON CH2',metaId:'meteoswiss_icon_ch2_ensemble',family:'meteoswiss-icon-ens',independenceGroup:'meteoswiss-ensemble',resolutionKm:2,updateHours:6,maxDays:.5,bbox:[3,43,18,50]},
+ {id:'google_weathernext2_ensemble',label:'Google WeatherNext 2',metaId:'google_weathernext2_ensemble',family:'google-weathernext2',independenceGroup:'google-weathernext2',resolutionKm:25,updateHours:12,maxDays:15}
 ];
 type EnsembleMeanModel=EnsembleModel;
 const ensemblePriority=['ukmo_uk_ensemble_2km','icon_d2_eps','icon_eu_eps','icon_seamless_eps','ecmwf_ifs_europe_ensemble','ecmwf_aifs_europe_ensemble','ecmwf_ifs025_ensemble','ecmwf_aifs025_ensemble','ncep_gefs05','gem_global_ensemble','google_weathernext2_ensemble'];
 const meanPriority=['dwd_icon_eps_ensemble_mean_seamless','ecmwf_ifs_europe_ensemble_mean','ecmwf_aifs_europe_ensemble_mean','ecmwf_ifs025_ensemble_mean','ecmwf_aifs025_ensemble_mean','ncep_gefs_ensemble_mean_seamless','cmc_gem_geps_ensemble_mean','google_weathernext2_ensemble_mean'];
 const meanModels:EnsembleMeanModel[]=[
- {id:'dwd_icon_eps_ensemble_mean_seamless',label:'DWD ICON EPS Mittel',metaId:'dwd_icon_eps',resolutionKm:8,updateHours:3,maxDays:7.5},
- {id:'ecmwf_ifs_europe_ensemble_mean',label:'ECMWF IFS ENS Europa Mittel',metaId:'ecmwf_ifs_europe_ensemble_mean',resolutionKm:9,updateHours:6,maxDays:15,bbox:EUROPE_ENSEMBLE_BBOX},
- {id:'ecmwf_aifs_europe_ensemble_mean',label:'ECMWF AIFS ENS Europa Mittel',metaId:'ecmwf_aifs_europe_ensemble_mean',resolutionKm:31,updateHours:6,maxDays:15,bbox:EUROPE_ENSEMBLE_BBOX},
- {id:'ncep_gefs_ensemble_mean_seamless',label:'NOAA GEFS Mittel',metaId:'ncep_gefs05',resolutionKm:32,updateHours:6,maxDays:14},
- {id:'ecmwf_ifs025_ensemble_mean',label:'ECMWF IFS ENS Mittel',metaId:'ecmwf_ifs025_ensemble',resolutionKm:25,updateHours:6,maxDays:14},
- {id:'ecmwf_aifs025_ensemble_mean',label:'ECMWF AIFS ENS Mittel',metaId:'ecmwf_aifs025_ensemble',resolutionKm:25,updateHours:6,maxDays:14},
- {id:'cmc_gem_geps_ensemble_mean',label:'GEM GEPS Mittel',metaId:'cmc_gem_geps',resolutionKm:25,updateHours:12,maxDays:14},
- {id:'google_weathernext2_ensemble_mean',label:'Google WeatherNext 2 Mittel',metaId:'google_weathernext2_ensemble',resolutionKm:25,updateHours:12,maxDays:14}
+ {id:'dwd_icon_eps_ensemble_mean_seamless',label:'DWD ICON EPS Mittel',metaId:'dwd_icon_eps',family:'dwd-icon-eps',independenceGroup:'dwd-ensemble',resolutionKm:8,updateHours:3,maxDays:7.5},
+ {id:'ecmwf_ifs_europe_ensemble_mean',label:'ECMWF IFS ENS Europa Mittel',metaId:'ecmwf_ifs_europe_ensemble_mean',family:'ecmwf-ifs-ens',independenceGroup:'ecmwf-ensemble',resolutionKm:9,updateHours:6,maxDays:15,bbox:EUROPE_ENSEMBLE_BBOX},
+ {id:'ecmwf_aifs_europe_ensemble_mean',label:'ECMWF AIFS ENS Europa Mittel',metaId:'ecmwf_aifs_europe_ensemble_mean',family:'ecmwf-aifs-ens',independenceGroup:'ecmwf-ensemble',resolutionKm:31,updateHours:6,maxDays:15,bbox:EUROPE_ENSEMBLE_BBOX},
+ {id:'ncep_gefs_ensemble_mean_seamless',label:'NOAA GEFS Mittel',metaId:'ncep_gefs05',family:'noaa-gefs',independenceGroup:'noaa-ensemble',resolutionKm:32,updateHours:6,maxDays:14},
+ {id:'ecmwf_ifs025_ensemble_mean',label:'ECMWF IFS ENS Mittel',metaId:'ecmwf_ifs025_ensemble',family:'ecmwf-ifs-ens',independenceGroup:'ecmwf-ensemble',resolutionKm:25,updateHours:6,maxDays:14},
+ {id:'ecmwf_aifs025_ensemble_mean',label:'ECMWF AIFS ENS Mittel',metaId:'ecmwf_aifs025_ensemble',family:'ecmwf-aifs-ens',independenceGroup:'ecmwf-ensemble',resolutionKm:25,updateHours:6,maxDays:14},
+ {id:'cmc_gem_geps_ensemble_mean',label:'GEM GEPS Mittel',metaId:'cmc_gem_geps',family:'cmc-geps',independenceGroup:'cmc-ensemble',resolutionKm:25,updateHours:12,maxDays:14},
+ {id:'google_weathernext2_ensemble_mean',label:'Google WeatherNext 2 Mittel',metaId:'google_weathernext2_ensemble',family:'google-weathernext2',independenceGroup:'google-weathernext2',resolutionKm:25,updateHours:12,maxDays:14}
 ];
-const ENSEMBLE_CACHE_PREFIX='mid:ensemble:v11:';
+const ENSEMBLE_CACHE_PREFIX='mid:ensemble:v12:';
 const ENSEMBLE_FRESH_CACHE_MS=20*60*1000;
 function modelApplies(m:EnsembleModel,lat:number,lon:number){if(!m.bbox)return true;const[minLon,minLat,maxLon,maxLat]=m.bbox;return lon>=minLon&&lon<=maxLon&&lat>=minLat&&lat<=maxLat}
 function withoutGlobalEcmwfDuplicates(models:EnsembleModel[]){const ids=new Set(models.map(model=>model.id));return models.filter(model=>!(model.id==='ecmwf_ifs025_ensemble'&&ids.has('ecmwf_ifs_europe_ensemble'))&&!(model.id==='ecmwf_aifs025_ensemble'&&ids.has('ecmwf_aifs_europe_ensemble'))&&!(model.id==='ecmwf_ifs025_ensemble_mean'&&ids.has('ecmwf_ifs_europe_ensemble_mean'))&&!(model.id==='ecmwf_aifs025_ensemble_mean'&&ids.has('ecmwf_aifs_europe_ensemble_mean')))}
-function rankModels(models:EnsembleModel[],priority:string[],limit:number){const rank=new Map(priority.map((id,index)=>[id,index]));return models.sort((a,b)=>(rank.get(a.id)??99)-(rank.get(b.id)??99)||a.resolutionKm-b.resolutionKm).slice(0,limit)}
+function rankModels(models:EnsembleModel[],priority:string[],limit:number){const rank=new Map(priority.map((id,index)=>[id,index])),ordered=[...models].sort((a,b)=>(rank.get(a.id)??99)-(rank.get(b.id)??99)||a.resolutionKm-b.resolutionKm),first:EnsembleModel[]=[],fallback:EnsembleModel[]=[],seen=new Set<string>();for(const model of ordered){if(seen.has(model.independenceGroup))fallback.push(model);else{seen.add(model.independenceGroup);first.push(model)}}return[...first,...fallback].slice(0,limit)}
 function selectedEnsembleModels(lat:number,lon:number){return rankModels(withoutGlobalEcmwfDuplicates(ensembleModels.filter(model=>modelApplies(model,lat,lon))),ensemblePriority,8)}
 function selectedMeanModels(lat:number,lon:number){return rankModels(withoutGlobalEcmwfDuplicates(meanModels.filter(model=>modelApplies(model,lat,lon))),meanPriority,6)}
 function ensembleCacheKey(lat:number,lon:number){return`${ENSEMBLE_CACHE_PREFIX}${(Math.round(lat*20)/20).toFixed(2)}:${(Math.round(lon*20)/20).toFixed(2)}`}
@@ -135,6 +135,7 @@ type ModelMetaCandidate={id:string;label:string;kind:'forecast'|'ensemble';metaI
 type ForecastCandidate=ModelMetaCandidate&{countries?:string[];bbox?:[number,number,number,number]};
 const forecastCandidates:ForecastCandidate[]=[
  {id:'icon-d2-ruc',label:'DWD ICON-D2-RUC',kind:'forecast',metaSource:'dwd-ruc',rapidUpdate:true,resolutionKm:2,forecastHorizonHours:14,availabilityOnly:true,countries:['DE','CH','AT'],bbox:[-6,43,26,58]},
+ {id:'icon-d2-ruc-eps',label:'DWD ICON-D2-RUC-EPS',kind:'ensemble',metaSource:'dwd-ruc',rapidUpdate:true,resolutionKm:2,forecastHorizonHours:14,members:20,availabilityOnly:true,countries:['DE','CH','AT'],bbox:[-6,43,26,58]},
  {id:'dwd_icon_d2',label:'DWD ICON-D2',kind:'forecast',resolutionKm:2,forecastHorizonHours:48,countries:['DE','CH','AT'],bbox:[-6,43,26,58]},
  {id:'knmi_harmonie_arome_europe',label:'KNMI HARMONIE Europe',kind:'forecast',rapidUpdate:true,resolutionKm:5.5,forecastHorizonHours:60,bbox:[-14,35,32,66]},
  {id:'meteoswiss_icon_ch1',label:'MeteoSwiss ICON-CH1',kind:'forecast',countries:['CH']},
@@ -153,16 +154,28 @@ const forecastCandidates:ForecastCandidate[]=[
  {id:'dmi_harmonie_arome_europe',label:'DMI Harmonie Europe',kind:'forecast',countries:['DK','DE','NL','BE','NO','SE']},
  {id:'italia_meteo_arpae_icon_2i',label:'ItaliaMeteo ICON-2I',kind:'forecast',countries:['IT']},
  {id:'ncep_hrrr_conus',label:'NOAA HRRR',kind:'forecast',rapidUpdate:true,resolutionKm:3,forecastHorizonHours:48,countries:['US','CA']},
+ {id:'ncep_nam_conus',label:'NOAA NAM',kind:'forecast',resolutionKm:12,forecastHorizonHours:84,countries:['US','CA']},
  {id:'ncep_nbm_conus',label:'NOAA NBM',kind:'forecast',rapidUpdate:true,resolutionKm:2.5,forecastHorizonHours:264,countries:['US','CA']},
- {id:'jma_msm',label:'JMA MSM',kind:'forecast',countries:['JP']},
+ {id:'cmc_gem_hrdps',label:'GEM HRDPS 2,5 km',kind:'forecast',resolutionKm:2.5,forecastHorizonHours:48,countries:['CA','US'],bbox:[-150,35,-45,72]},
+ {id:'cmc_gem_rdps',label:'GEM RDPS 10 km',kind:'forecast',resolutionKm:10,forecastHorizonHours:84,countries:['CA','US'],bbox:[-170,20,-35,90]},
+ {id:'jma_msm',label:'JMA MSM 5 km',kind:'forecast',resolutionKm:5,forecastHorizonHours:96,countries:['JP','KR'],bbox:[118,20,155,52]},
+ {id:'kma_ldps',label:'KMA LDPS 1,5 km',kind:'forecast',resolutionKm:1.5,forecastHorizonHours:48,countries:['KR'],bbox:[120,30,134,42]},
  {id:'dwd_icon_eu',label:'DWD ICON-EU',kind:'forecast',resolutionKm:7,forecastHorizonHours:120,bbox:[-25,30,45,72]},
  {id:'meteofrance_arpege_europe',label:'Météo-France ARPEGE Europe',kind:'forecast',bbox:[-25,30,45,72]}
 ];
 const globalForecastCandidates:ForecastCandidate[]=[
- {id:'ecmwf_ifs',label:'ECMWF IFS HRES 9 km',kind:'forecast'},
- {id:'ecmwf_aifs025_single',label:'ECMWF AIFS Single 0,25°',kind:'forecast',metaIds:['ecmwf_aifs025_single']},
- {id:'ncep_gfs013',label:'NOAA GFS 0.11°',kind:'forecast'},
- {id:'dwd_icon',label:'DWD ICON Global',kind:'forecast'}
+ {id:'ecmwf_ifs',label:'ECMWF IFS HRES 9 km',kind:'forecast',resolutionKm:9,forecastHorizonHours:360},
+ {id:'ecmwf_aifs025_single',label:'ECMWF AIFS Single 0,25°',kind:'forecast',metaIds:['ecmwf_aifs025_single'],resolutionKm:25,forecastHorizonHours:360},
+ {id:'ncep_gfs_global',label:'NOAA GFS Global',kind:'forecast',metaIds:['ncep_gfs_global','ncep_gfs013','ncep_gfs025'],resolutionKm:13,forecastHorizonHours:384},
+ {id:'ncep_aigfs025',label:'NOAA AIGFS 0,25°',kind:'forecast',resolutionKm:25,forecastHorizonHours:384},
+ {id:'dwd_icon',label:'DWD ICON Global',kind:'forecast',resolutionKm:11,forecastHorizonHours:180},
+ {id:'ukmo_global_deterministic_10km',label:'UKMO Global 10 km',kind:'forecast',resolutionKm:10,forecastHorizonHours:168},
+ {id:'cmc_gem_gdps',label:'GEM Global 15 km',kind:'forecast',resolutionKm:15,forecastHorizonHours:240},
+ {id:'jma_gsm',label:'JMA GSM 55 km',kind:'forecast',resolutionKm:55,forecastHorizonHours:264},
+ {id:'kma_gdps',label:'KMA GDPS 13 km',kind:'forecast',resolutionKm:13,forecastHorizonHours:288},
+ {id:'bom_access_global',label:'BOM ACCESS Global 15 km',kind:'forecast',resolutionKm:15,forecastHorizonHours:240},
+ {id:'cma_grapes_global',label:'CMA GRAPES Global 15 km',kind:'forecast',resolutionKm:15,forecastHorizonHours:240},
+ {id:'meteofrance_arpege_world',label:'Météo-France ARPEGE World',kind:'forecast',resolutionKm:25,forecastHorizonHours:96}
 ];
 function candidateApplies(candidate:ForecastCandidate,lat:number,lon:number,country:string){
  if(candidate.countries?.includes(country))return true;
@@ -197,9 +210,9 @@ async function modelRunMetas(candidates:ModelMetaCandidate[],signal?:AbortSignal
  return settled.filter((x):x is PromiseFulfilledResult<ModelRunMeta|null>=>x.status==='fulfilled').map(x=>x.value).filter(Boolean) as ModelRunMeta[];
 }
 export async function bestMatchModelInfo(lat:number,lon:number,country?:string,signal?:AbortSignal):Promise<BestMatchModelInfo>{
- const code=countryCodeFromLocation(country),applicable=forecastCandidates.filter(x=>candidateApplies(x,lat,lon,code)),ordered=[...applicable.filter(x=>x.rapidUpdate&&x.countries?.includes(code)),...applicable.filter(x=>x.rapidUpdate),...applicable.filter(x=>!x.rapidUpdate&&x.countries?.includes(code)),...applicable.filter(x=>!x.rapidUpdate&&!x.id.includes('seamless')),...applicable.filter(x=>x.id.includes('seamless'))],locals=ordered.filter((candidate,index,rows)=>rows.findIndex(row=>row.id===candidate.id)===index).slice(0,6),selected=[...locals,...globalForecastCandidates.slice(0,3)],candidateModels=locals.length?locals.map(x=>`${x.label}${x.rapidUpdate?' · Rapid Update':''}`).join(' · '):'höchstaufgelöstes am Standort verfügbares Regionalmodell';
+ const code=countryCodeFromLocation(country),applicable=forecastCandidates.filter(x=>candidateApplies(x,lat,lon,code)),ordered=[...applicable.filter(x=>x.rapidUpdate&&x.countries?.includes(code)),...applicable.filter(x=>x.rapidUpdate),...applicable.filter(x=>!x.rapidUpdate&&x.countries?.includes(code)),...applicable.filter(x=>!x.rapidUpdate&&!x.id.includes('seamless')),...applicable.filter(x=>x.id.includes('seamless'))],locals=ordered.filter((candidate,index,rows)=>rows.findIndex(row=>row.id===candidate.id)===index).slice(0,8),selected=[...locals,...globalForecastCandidates],candidateModels=locals.length?locals.map(x=>`${x.label}${x.rapidUpdate?' · Rapid Update':''}`).join(' · '):'höchstaufgelöstes am Standort verfügbares Regionalmodell';
  const runs=await modelRunMetas(selected,signal),rapidAvailable=runs.filter(run=>run.rapidUpdate).map(run=>run.label);
- return{summary:`Best Match stammt aus der Open-Meteo Forecast API. MID prüft für den Kurzfristbereich zusätzlich verfügbare Rapid-Update-/Regionalmodelle${rapidAvailable.length?` (${rapidAvailable.join(', ')})`:''}. Ein separat erkannter DWD ICON-D2-RUC-Lauf belegt dessen Verfügbarkeit; er wird erst dann direkt in numerische Open-Meteo-Bündel aufgenommen, wenn der entsprechende API-Modelladapter verfügbar ist. Die konkrete Best-Match-Quelle kann je Variable und Zeitraum wechseln.`,likelyChain:'',candidateModels,runs};
+ return{summary:`Best Match stammt aus der Open-Meteo Forecast API. MID prüft zusätzlich verfügbare Rapid-Update-, Regional- und unabhängige Globalmodelle${rapidAvailable.length?` (${rapidAvailable.join(', ')})`:''}. Ein separat erkannter DWD ICON-D2-RUC-Lauf belegt dessen Verfügbarkeit; er wird erst dann direkt in numerische Open-Meteo-Bündel aufgenommen, wenn der entsprechende API-Modelladapter verfügbar ist. Die konkrete Best-Match-Quelle kann je Variable und Zeitraum wechseln.`,likelyChain:'',candidateModels,runs};
 }
 const ICAO_LOCATION_CACHE_KEY='mid:icao-location-cache:v1';
 const ICAO_LOCATION_CACHE_TTL=30*86400000;
@@ -1062,7 +1075,7 @@ function scenarioDivergenceDate(clusters:EnsembleScenarioCluster[],dates:string[
 function buildEnsembleScenarios(results:ModelResult[],days:EnsembleDay[]):EnsembleScenarioCluster[]{
  const dates=days.slice(0,7).map(day=>day.date);if(dates.length<4)return[];
  const collected:ScenarioTrajectory[]=[];
- for(const result of results){const memberCount=Math.max(1,result.members.size),weight=1/memberCount;for(const[memberId,rows]of result.members){const complete=dates.map(date=>rows.find(row=>row.date===date)).filter(Boolean) as MemberDay[];if(complete.length!==dates.length)continue;const vector=scenarioTrajectoryVector(complete,dates);if(vector.length)collected.push({id:`${result.model.id}:${memberId}`,modelId:result.model.id,modelLabel:result.model.label,weight,rows:complete,vector})}}
+ const groupCounts=new Map<string,number>();for(const result of results)groupCounts.set(result.model.independenceGroup,(groupCounts.get(result.model.independenceGroup)??0)+1);for(const result of results){const memberCount=Math.max(1,result.members.size),groupDivisor=Math.max(1,groupCounts.get(result.model.independenceGroup)??1),weight=1/(memberCount*groupDivisor);for(const[memberId,rows]of result.members){const complete=dates.map(date=>rows.find(row=>row.date===date)).filter(Boolean) as MemberDay[];if(complete.length!==dates.length)continue;const vector=scenarioTrajectoryVector(complete,dates);if(vector.length)collected.push({id:`${result.model.id}:${memberId}`,modelId:result.model.independenceGroup,modelLabel:result.model.label,weight,rows:complete,vector})}}
  const trajectories=filterScenarioRainOutliers(collected,dates);if(trajectories.length<10)return[];
  const normalized=standardizeScenarioVectors(trajectories),count=normalized.length>=28?3:2,{assignments}=clusterScenarioItems(normalized,count),groups=Array.from({length:count},(_,index)=>trajectories.filter((_,itemIndex)=>assignments[itemIndex]===index)),totalWeight=trajectories.reduce((sum,item)=>sum+item.weight,0)||1;
  const clusters=groups.map((group,index)=>{const probability=100*group.reduce((sum,item)=>sum+item.weight,0)/totalWeight,points=dates.map(date=>weightedScenarioPoint(group,date)),modelShares=scenarioModelShares(group,trajectories),models=modelShares.map(item=>item.label);return{id:`scenario-${index+1}`,label:'',summary:'',probability,memberCount:group.length,modelLabels:models,modelShares,points}}).filter(cluster=>cluster.probability>=6).sort((a,b)=>b.probability-a.probability);
@@ -1106,24 +1119,25 @@ function aggregateMembers(results:ModelResult[]){
  for(let lead=0;lead<allDates.length;lead++){
   const date=allDates[lead];
   let maxVals:{value:number;weight:number}[]=[],minVals:{value:number;weight:number}[]=[],rainVals:{value:number;weight:number}[]=[],rainProbabilityVals:{value:number;weight:number}[]=[],windowRainProbabilityVals:Array<{value:number;weight:number}[]>=Array.from({length:4},()=>[]),cumulativeRainVals:{value:number;weight:number}[]=[],sunVals:{value:number;weight:number}[]=[],windVals:{value:number;weight:number}[]=[],gustVals:{value:number;weight:number}[]=[],modelSummaries:EnsembleModelDay[]=[];
-  const modelsUsed=new Set<string>();let memberCount=0;
+  const groupsUsed=new Set<string>();let memberCount=0;
+  const groupCounts=new Map<string,number>();for(const result of results){const hasDate=[...result.members.values()].some(rows=>rows.some(row=>row.date===date));if(hasDate)groupCounts.set(result.model.independenceGroup,(groupCounts.get(result.model.independenceGroup)??0)+1)}
   for(const r of results){
    const memberRows=[...r.members.values()].map(rows=>rows.find(x=>x.date===date)).filter(Boolean) as MemberDay[];
    if(!memberRows.length)continue;
-   const medMax=quantile(memberRows.map(x=>x.max),.5),medMin=quantile(memberRows.map(x=>x.min),.5),filtered=memberRows.filter(x=>Math.abs(x.max-medMax)<=8&&Math.abs(x.min-medMin)<=8),rows=filtered.length>=Math.max(3,Math.ceil(memberRows.length*.55))?filtered:memberRows,weight=modelDayWeight(r.model,lead,rows.length);
+   const medMax=quantile(memberRows.map(x=>x.max),.5),medMin=quantile(memberRows.map(x=>x.min),.5),filtered=memberRows.filter(x=>Math.abs(x.max-medMax)<=8&&Math.abs(x.min-medMin)<=8),rows=filtered.length>=Math.max(3,Math.ceil(memberRows.length*.55))?filtered:memberRows,groupDivisor=Math.max(1,groupCounts.get(r.model.independenceGroup)??1),weight=modelDayWeight(r.model,lead,rows.length)/groupDivisor;
    if(!rows.length||weight<=0)continue;
-   modelsUsed.add(r.model.id);memberCount+=rows.length;
-   modelSummaries.push({id:r.model.id,label:r.model.label,max:quantile(rows.map(item=>item.max),.5),min:quantile(rows.map(item=>item.min),.5),precipitation:quantile(rows.map(item=>item.precipitation),.5),precipitationProbability:100*rows.filter(item=>item.precipitation>DWD_PRECIPITATION_PROBABILITY_THRESHOLD_MM).length/Math.max(1,rows.length),precipitationProbabilitySignificant:100*rows.filter(item=>item.precipitation>DWD_SIGNIFICANT_PRECIPITATION_PROBABILITY_THRESHOLD_MM).length/Math.max(1,rows.length),memberCount:rows.length,wind:rows.some(item=>Number.isFinite(item.wind))?quantile(rows.map(item=>item.wind).filter(Number.isFinite),.5):undefined,gust:rows.some(item=>Number.isFinite(item.gust))?quantile(rows.map(item=>item.gust).filter(Number.isFinite),.5):undefined,sunshineDuration:rows.some(item=>Number.isFinite(item.sunshineDuration))?quantile(rows.map(item=>item.sunshineDuration).filter(Number.isFinite),.5):undefined});
+   groupsUsed.add(r.model.independenceGroup);memberCount+=rows.length;
+   modelSummaries.push({id:r.model.id,label:r.model.label,family:r.model.family,independenceGroup:r.model.independenceGroup,max:quantile(rows.map(item=>item.max),.5),min:quantile(rows.map(item=>item.min),.5),precipitation:quantile(rows.map(item=>item.precipitation),.5),precipitationProbability:100*rows.filter(item=>item.precipitation>DWD_PRECIPITATION_PROBABILITY_THRESHOLD_MM).length/Math.max(1,rows.length),precipitationProbabilitySignificant:100*rows.filter(item=>item.precipitation>DWD_SIGNIFICANT_PRECIPITATION_PROBABILITY_THRESHOLD_MM).length/Math.max(1,rows.length),memberCount:rows.length,wind:rows.some(item=>Number.isFinite(item.wind))?quantile(rows.map(item=>item.wind).filter(Number.isFinite),.5):undefined,gust:rows.some(item=>Number.isFinite(item.gust))?quantile(rows.map(item=>item.gust).filter(Number.isFinite),.5):undefined,sunshineDuration:rows.some(item=>Number.isFinite(item.sunshineDuration))?quantile(rows.map(item=>item.sunshineDuration).filter(Number.isFinite),.5):undefined});
    for(const row of rows){maxVals.push({value:row.max,weight});minVals.push({value:row.min,weight});rainVals.push({value:row.precipitation,weight});rainProbabilityVals.push({value:row.precipitation,weight});row.precipitationWindows.forEach((value,index)=>{if(Number.isFinite(value))windowRainProbabilityVals[index].push({value,weight})});if(Number.isFinite(row.sunshineDuration))sunVals.push({value:row.sunshineDuration,weight});if(Number.isFinite(row.wind))windVals.push({value:row.wind,weight});if(Number.isFinite(row.gust))gustVals.push({value:row.gust,weight})}
-   const cumulativeTargetDates=new Set(allDates.slice(0,lead+1)),cumulativeMemberTotals=[...r.members.values()].map(memberDays=>{const covered=memberDays.filter(item=>cumulativeTargetDates.has(item.date));if(covered.length!==cumulativeTargetDates.size)return NaN;return covered.reduce((sum,item)=>sum+(Number.isFinite(item.precipitation)?Math.max(0,item.precipitation):0),0)}).filter(Number.isFinite),cumulativeWeight=modelDayWeight(r.model,lead,cumulativeMemberTotals.length);
+   const cumulativeTargetDates=new Set(allDates.slice(0,lead+1)),cumulativeMemberTotals=[...r.members.values()].map(memberDays=>{const covered=memberDays.filter(item=>cumulativeTargetDates.has(item.date));if(covered.length!==cumulativeTargetDates.size)return NaN;return covered.reduce((sum,item)=>sum+(Number.isFinite(item.precipitation)?Math.max(0,item.precipitation):0),0)}).filter(Number.isFinite),cumulativeWeight=modelDayWeight(r.model,lead,cumulativeMemberTotals.length)/Math.max(1,groupCounts.get(r.model.independenceGroup)??1);
    if(cumulativeWeight>0)for(const total of cumulativeMemberTotals)cumulativeRainVals.push({value:total,weight:cumulativeWeight});
   }
   maxVals=robustWeighted(maxVals,9);minVals=robustWeighted(minVals,9);rainVals=robustWeighted(rainVals,25);cumulativeRainVals=robustWeighted(cumulativeRainVals,25*Math.sqrt(lead+1));sunVals=robustWeighted(sunVals,21600);windVals=robustWeighted(windVals,35);gustVals=robustWeighted(gustVals,45);
-  if(modelsUsed.size<2||memberCount<10||maxVals.length<6||minVals.length<6)continue;
+  if(groupsUsed.size<2||memberCount<10||maxVals.length<6||minVals.length<6)continue;
   const maxLow=weightedQuantile(maxVals,.1),maxHigh=weightedQuantile(maxVals,.9),maxQ25=weightedQuantile(maxVals,.25),maxQ75=weightedQuantile(maxVals,.75),minLow=weightedQuantile(minVals,.1),minHigh=weightedQuantile(minVals,.9),minQ25=weightedQuantile(minVals,.25),minQ75=weightedQuantile(minVals,.75),precipitationLow=weightedQuantile(rainVals,.1),precipitationHigh=weightedQuantile(rainVals,.9),precipitationQ25=weightedQuantile(rainVals,.25),precipitationQ75=weightedQuantile(rainVals,.75),cumulativePrecipitationLow=weightedQuantile(cumulativeRainVals,.1),cumulativePrecipitationHigh=weightedQuantile(cumulativeRainVals,.9),cumulativePrecipitationQ25=weightedQuantile(cumulativeRainVals,.25),cumulativePrecipitationQ75=weightedQuantile(cumulativeRainVals,.75),cumulativePrecipitationMean=weightedMean(cumulativeRainVals),sunshineDurationLow=sunVals.length>=6?weightedQuantile(sunVals,.1):NaN,sunshineDurationHigh=sunVals.length>=6?weightedQuantile(sunVals,.9):NaN,sunshineDurationMean=sunVals.length>=6?weightedMean(sunVals):NaN,windLow=windVals.length>=6?weightedQuantile(windVals,.1):NaN,windHigh=windVals.length>=6?weightedQuantile(windVals,.9):NaN,windQ25=windVals.length>=6?weightedQuantile(windVals,.25):NaN,windQ75=windVals.length>=6?weightedQuantile(windVals,.75):NaN,windMean=windVals.length>=6?weightedMean(windVals):NaN,gustLow=gustVals.length>=6?weightedQuantile(gustVals,.1):NaN,gustHigh=gustVals.length>=6?weightedQuantile(gustVals,.9):NaN,gustQ25=gustVals.length>=6?weightedQuantile(gustVals,.25):NaN,gustQ75=gustVals.length>=6?weightedQuantile(gustVals,.75):NaN,gustMean=gustVals.length>=6?weightedMean(gustVals):NaN;
   if(![maxLow,maxHigh,maxQ25,maxQ75,minLow,minHigh,minQ25,minQ75].every(Number.isFinite)||maxHigh<maxLow||minHigh<minLow)continue;
   const precipitationProbabilityWindows=windowRainProbabilityVals.map((values,index)=>({startHour:index*6,endHour:(index+1)*6,probability:weightedProbability(values,DWD_PRECIPITATION_PROBABILITY_THRESHOLD_MM,true),probabilitySignificant:weightedProbability(values,DWD_SIGNIFICANT_PRECIPITATION_PROBABILITY_THRESHOLD_MM,true),memberCount:values.length})).filter(window=>window.memberCount>=2);
-  days.push({date,maxMean:weightedMean(maxVals),maxLow,maxHigh,maxQ25,maxQ75,minMean:weightedMean(minVals),minLow,minHigh,minQ25,minQ75,precipitationMean:weightedMean(rainVals),precipitationLow:Number.isFinite(precipitationLow)?precipitationLow:0,precipitationHigh:Number.isFinite(precipitationHigh)?precipitationHigh:0,precipitationQ25:Number.isFinite(precipitationQ25)?precipitationQ25:0,precipitationQ75:Number.isFinite(precipitationQ75)?precipitationQ75:0,cumulativePrecipitationMean:Number.isFinite(cumulativePrecipitationMean)?cumulativePrecipitationMean:0,cumulativePrecipitationLow:Number.isFinite(cumulativePrecipitationLow)?cumulativePrecipitationLow:0,cumulativePrecipitationHigh:Number.isFinite(cumulativePrecipitationHigh)?cumulativePrecipitationHigh:0,cumulativePrecipitationQ25:Number.isFinite(cumulativePrecipitationQ25)?cumulativePrecipitationQ25:0,cumulativePrecipitationQ75:Number.isFinite(cumulativePrecipitationQ75)?cumulativePrecipitationQ75:0,precipitationProbability:weightedProbability(rainProbabilityVals,DWD_PRECIPITATION_PROBABILITY_THRESHOLD_MM,true),precipitationProbabilitySignificant:weightedProbability(rainProbabilityVals,DWD_SIGNIFICANT_PRECIPITATION_PROBABILITY_THRESHOLD_MM,true),precipitationProbabilityWindows,sunshineDurationMean,sunshineDurationLow,sunshineDurationHigh,windMean,windLow,windHigh,windQ25,windQ75,gustMean,gustLow,gustHigh,gustQ25,gustQ75,modelCount:modelsUsed.size,memberCount,modelSummaries:modelSummaries.filter(item=>[item.max,item.min,item.precipitation,item.precipitationProbability].every(Number.isFinite))});
+  const validModelSummaries=modelSummaries.filter(item=>[item.max,item.min,item.precipitation,item.precipitationProbability].every(Number.isFinite)),independentModelSummaries=[...new Map(validModelSummaries.map(item=>[item.independenceGroup??item.family??item.id,item])).values()],effectiveMemberCount=independentModelSummaries.reduce((sum,item)=>sum+Math.max(0,item.memberCount),0);days.push({date,maxMean:weightedMean(maxVals),maxLow,maxHigh,maxQ25,maxQ75,minMean:weightedMean(minVals),minLow,minHigh,minQ25,minQ75,precipitationMean:weightedMean(rainVals),precipitationLow:Number.isFinite(precipitationLow)?precipitationLow:0,precipitationHigh:Number.isFinite(precipitationHigh)?precipitationHigh:0,precipitationQ25:Number.isFinite(precipitationQ25)?precipitationQ25:0,precipitationQ75:Number.isFinite(precipitationQ75)?precipitationQ75:0,cumulativePrecipitationMean:Number.isFinite(cumulativePrecipitationMean)?cumulativePrecipitationMean:0,cumulativePrecipitationLow:Number.isFinite(cumulativePrecipitationLow)?cumulativePrecipitationLow:0,cumulativePrecipitationHigh:Number.isFinite(cumulativePrecipitationHigh)?cumulativePrecipitationHigh:0,cumulativePrecipitationQ25:Number.isFinite(cumulativePrecipitationQ25)?cumulativePrecipitationQ25:0,cumulativePrecipitationQ75:Number.isFinite(cumulativePrecipitationQ75)?cumulativePrecipitationQ75:0,precipitationProbability:weightedProbability(rainProbabilityVals,DWD_PRECIPITATION_PROBABILITY_THRESHOLD_MM,true),precipitationProbabilitySignificant:weightedProbability(rainProbabilityVals,DWD_SIGNIFICANT_PRECIPITATION_PROBABILITY_THRESHOLD_MM,true),precipitationProbabilityWindows,sunshineDurationMean,sunshineDurationLow,sunshineDurationHigh,windMean,windLow,windHigh,windQ25,windQ75,gustMean,gustLow,gustHigh,gustQ25,gustQ75,modelCount:independentModelSummaries.length,memberCount:effectiveMemberCount,modelSummaries:independentModelSummaries});
  }
  return days;
 }
@@ -1170,7 +1184,7 @@ function pseudoModelFromMeanSpread(w:Weather,definition:EnsembleMeanModel):Model
   if(rows.length>=5)members.set(`spread_${member+1}`,rows);
  }
  if(members.size<3)return null;
- const model:EnsembleModel={id:definition.id,label:definition.label,metaId:definition.metaId,resolutionKm:definition.resolutionKm,updateHours:definition.updateHours,maxDays:definition.maxDays};
+ const model:EnsembleModel={id:definition.id,label:definition.label,metaId:definition.metaId,family:definition.family,independenceGroup:definition.independenceGroup,resolutionKm:definition.resolutionKm,updateHours:definition.updateHours,maxDays:definition.maxDays};
  return{model,members};
 }
 async function meanFallback(lat:number,lon:number,signal?:AbortSignal){
