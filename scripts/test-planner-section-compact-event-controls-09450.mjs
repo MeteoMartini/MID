@@ -15,8 +15,8 @@ assert.match(app,/plannerModuleOrder\.map\(plannerId=>/,'Event- und Reiseplaner 
 assert.match(modules,/{id:'event-planner',label:'Eventplaner'/,'Eventplaner fehlt im Modulkatalog.');
 assert.match(modules,/{id:'travel-planner',label:'Reiseplaner'/,'Reiseplaner fehlt im Modulkatalog.');
 assert.match(settings,/checked=\{settings\.enabled\[id\]\}/,'Module sind in den Einstellungen nicht separat schaltbar.');
-assert.match(planner,/<div className="event-choice-block"><span>Rahmen<\/span><div className="event-chip-row">/,'Rahmen-Auswahl fehlt.');
-assert.match(planner,/<div className="event-choice-block"><span>Aktivität<\/span><div className="event-chip-grid">/,'Aktivitäts-Auswahl fehlt.');
+assert.match(planner,/<div className="event-choice-block(?: compact)?"><span>Rahmen<\/span><div className="event-chip-row">/,'Rahmen-Auswahl fehlt.');
+assert.match(planner,/<div className="event-choice-block(?: compact)?(?: activity)?"><span>Aktivität<\/span><div className="event-chip-grid">/,'Aktivitäts-Auswahl fehlt.');
 assert.match(styles,/\.event-chip-row,\.event-chip-grid\{display:flex;flex-wrap:wrap/,'Rahmen/Aktivität sind nicht als platzsparende Flex-Chips gestaltet.');
 assert.match(styles,/\.event-chip-row button,\.event-chip-grid button\{display:inline-flex[\s\S]*?min-height:36px[\s\S]*?border-radius:999px/,'Event-Auswahlflächen sind nicht deutlich kompakt ausgeführt.');
 assert.doesNotMatch(styles,/\.event-chip-row\{grid-template-columns:repeat\(3/,'Altes großflächiges Rahmen-Grid ist noch aktiv.');

@@ -11,7 +11,7 @@ for(const token of [
  'className={`event-center-header-button${hasUpdate?',
  "label:'Planer',modules:['event-planner','travel-planner']",
  "label:'Profile',modules:['mountain','water']",
- '<EventCenterHeaderButton onOpenPlanner={onOpenEventPlanner}/>',
+ '<EventCenterHeaderButton onOpenPlanner={onOpenEventPlanner} unit={unit}/>',
  "navigateToDashboardSection('event-planner')"
 ])need(app,'App',token);
 if(app.includes('DashboardEventCenterTeaser'))failures.push('Großer Dashboard-Event-Center-Teaser ist noch aktiv.');
@@ -24,7 +24,7 @@ for(const token of [
  'function statusChangeSummary(previous:EventStatus,next:EventStatus)',
  'Bewertung ${direction}: jetzt „${statusLabel(next)}“ (zuvor „${statusLabel(previous)}“).',
  'function normalizeLegacyChangeSummary(summary:string)',
- 'summary:normalizeLegacyChangeSummary'
+ 'const normalizedSummary=rawChange?normalizeLegacyChangeSummary'
 ])need(center,'Event-Center-Text',token);
 for(const token of [
  '.event-center-header-button.has-update{',

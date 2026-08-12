@@ -1,5 +1,5 @@
 import {useEffect,useMemo,useRef,useState,type FormEvent} from 'react'
-import {ArrowUpDown,BellRing,CalendarRange,ChevronDown,CloudRain,Info,MapPin,Pencil,Plane,RefreshCw,Search,ShieldCheck,ShieldAlert,Star,Sun,Thermometer,Trash2,Wind} from 'lucide-react'
+import {ArrowUpDown,BellRing,CalendarRange,ChevronDown,ChevronLeft,CloudRain,Info,MapPin,Pencil,Plane,RefreshCw,Search,ShieldCheck,ShieldAlert,Star,Sun,Thermometer,Trash2,Wind} from 'lucide-react'
 import {WeatherPictogram} from './WeatherPictogram'
 import {bestMatchModelInfo,forecast,label,localIsoEpoch,mapDays,mapHours,radarNowcast,searchLocations,thunderstormNowcast,wind,type Hour,type Location,type WindUnit} from './weather'
 import {EVENT_CENTER_OPEN_EVENT,EVENT_CENTER_UPDATED_EVENT,buildEventCenterId,compareEventPlans,deleteEventCenterRecord,markEventCenterOpened,readEventCenterRecords,toggleEventCenterFavorite,upsertEventCenterRecord,type EventActivity,type EventAdvice,type EventCenterRecord,type EventEnvironment,type EventPlan,type EventStatus,type EventSummary,type EventTimelinePoint} from './eventCenter'
@@ -7,6 +7,7 @@ import {applyConvectiveNowcastHours,applyForecastFusionDays,applyForecastFusionH
 import {compactPrecipitationTypeLabel,precipitationParts} from './precipitation'
 import {formatUvi} from './format'
 import {loadEventFlightHazards} from './eventAviation'
+import {AppInfoHint} from './AppInfoPopover'
 
 type Props={initialLocation:Location;advancedMode:boolean;unit:WindUnit}
 type ValueEvent={target:{value:string}}
@@ -16,6 +17,7 @@ const EVENT_VALUES_KEY='mid:event-planner:values'
 const AUTO_REFRESH_MS=30*60*1000
 const EVENT_SORT_KEY='mid:event-center:sort'
 type EventSortMode='chronological'|'favorites'|'updated'|'title'
+type EventWorkspaceView='overview'|'editor'|'detail'
 
 const ENVIRONMENT_OPTIONS:{id:EventEnvironment;label:string;detail:string}[]=[
  {id:'indoor',label:'Indoor',detail:'Wetter wirkt vor allem auf An- und Abreise'},
@@ -168,6 +170,8 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit}:Pr
  const [editingRecordId,setEditingRecordId]=useState('')
  const [refreshingIds,setRefreshingIds]=useState<string[]>([])
  const [bulkRefreshing,setBulkRefreshing]=useState(false)
+ const [workspaceView,setWorkspaceView]=useState<EventWorkspaceView>(()=>readEventCenterRecords().length?'overview':'editor')
+ const [locationSearchOpen,setLocationSearchOpen]=useState(false)
  const searchController=useRef<AbortController|null>(null)
  const analysisController=useRef<AbortController|null>(null)
  const forecastWindowHint=`Vorhersage aktuell bis ${formatDate(addDays(localToday(),13))}`
@@ -188,7 +192,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit}:Pr
  },[plan,destination,date,startTime,endTime,environment,activity,title])
  useEffect(()=>{
   const sync=()=>setSavedEvents(readEventCenterRecords())
-  const openSaved=(event:Event)=>{const detail=(event as CustomEvent<{id?:string}>).detail,id=String(detail?.id||'');if(!id)return;const record=readEventCenterRecords().find(item=>item.id===id);if(record)loadRecord(record)}
+  const openSaved=(event:Event)=>{const detail=(event as CustomEvent<{id?:string}>).detail,id=String(detail?.id||'');if(!id)return;const record=readEventCenterRecords().find(item=>item.id===id);if(record)loadRecord(record,'detail')}
   window.addEventListener(EVENT_CENTER_UPDATED_EVENT,sync)
   window.addEventListener(EVENT_CENTER_OPEN_EVENT,openSaved as EventListener)
   window.addEventListener('storage',sync)
@@ -277,6 +281,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit}:Pr
    const nextPlan=await buildPlan(destination,date,startTime,endTime,environment,activity,title,controller.signal)
    setPlan(nextPlan)
    if(currentSavedRecord)savePlanRecord(nextPlan)
+   if(!silent)setWorkspaceView('detail')
   }catch(reason){if(!controller.signal.aborted)setError(reason instanceof Error?reason.message:'Event-Auswertung fehlgeschlagen.')}
   finally{if(analysisController.current===controller&&!controller.signal.aborted)setLoading(false)}
  }
@@ -298,7 +303,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit}:Pr
   setBulkRefreshing(true)
   try{for(const item of targets)await refreshStoredEvent(item,favoritesOnly)}finally{setBulkRefreshing(false)}
  }
- function loadRecord(record:EventCenterRecord){
+ function loadRecord(record:EventCenterRecord,target:EventWorkspaceView='detail'){
   chooseLocation(record.location)
   setTitle(record.title)
   setDate(record.date)
@@ -309,7 +314,18 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit}:Pr
   setPlan(record.plan)
   setSelectedRecordId(record.id)
   setEditingRecordId(record.id)
+  setLocationSearchOpen(false)
+  setWorkspaceView(target)
   markEventCenterOpened(record.id)
+ }
+ function startNewEvent(){
+  setEditingRecordId('')
+  setSelectedRecordId('')
+  setPlan(null)
+  setError('')
+  setTitle('')
+  setLocationSearchOpen(false)
+  setWorkspaceView('editor')
  }
  function saveCurrentPlan(asFavorite=false){
   if(!plan){setError('Bitte zuerst eine Event-Auswertung erzeugen.');return}
@@ -336,10 +352,16 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit}:Pr
  const favoriteEvents=savedEvents.filter(item=>item.isFavorite)
 
  return <section className="event-planner">
-  <header className="event-planner-head"><div><span>EVENTPLANER</span><h4>Events & Aktivitäten</h4><p>Wettercheck für Termin, Ort und Aktivität.</p></div><div className="event-head-actions"><span className="travel-climate-badge">{forecastWindowHint}</span><details className="event-info-disclosure"><summary aria-label="Informationen zum Eventplaner" title="Informationen"><Info size={16}/></summary><div><strong>Eventplaner</strong><p>MID verwendet dieselben plausibilisierten Wetterpfade und Einheiten wie die übrige App. Gespeicherte Favoriten können unabhängig voneinander aktualisiert werden. Flugwetter-Hazards sind automatisierte MID-Diagnosen und keine amtliche Flugwetterberatung.</p></div></details></div></header>
+  <header className="event-planner-head"><div><span>EVENTPLANER</span><h4>Events & Aktivitäten</h4><p>Termin anlegen, Wetterlage erfassen und relevante Hinweise schnell abrufen.</p></div><div className="event-head-actions"><span className="travel-climate-badge">{forecastWindowHint}</span><AppInfoHint label="Informationen zum Eventplaner" width={390}><strong>Eventplaner</strong><p>MID verwendet dieselben plausibilisierten Wetterpfade, Einheiten und Qualitätsregeln wie die übrige App. Gespeicherte Events werden nur bei relevanten Wetteränderungen hervorgehoben; ein neuer Modelllauf allein erzeugt keine Warnmarkierung.</p><p>Flugwetter-Hazards sind automatisierte MID-Diagnosen und keine amtliche Flugwetterberatung.</p></AppInfoHint></div></header>
 
-  <section className="event-center-shelf">
-   <header><div><span>EVENT-CENTER</span><h5>Gespeicherte Events</h5><small>{savedEvents.length} gespeichert · {favoriteEvents.length} Favorit{favoriteEvents.length===1?'':'en'}</small></div><div className="event-center-actions"><label className="event-center-sort"><ArrowUpDown size={14}/><span>Sortierung</span><select value={sortMode} onChange={(event:ValueEvent)=>setSortMode(event.target.value as EventSortMode)} aria-label="Events sortieren"><option value="chronological">Chronologisch</option><option value="favorites">Favoriten zuerst</option><option value="updated">Zuletzt geändert</option><option value="title">Titel A–Z</option></select></label><button type="button" className="secondary" onClick={()=>void refreshStoredEvents(true)} disabled={bulkRefreshing||!favoriteEvents.length}>{bulkRefreshing?<RefreshCw className="spin" size={15}/>:<BellRing size={15}/>} Favoriten prüfen</button><button type="button" className="secondary" onClick={()=>void refreshStoredEvents(false)} disabled={bulkRefreshing||!savedEvents.length}>{bulkRefreshing?<RefreshCw className="spin" size={15}/>:<RefreshCw size={15}/>} Alle prüfen</button><details className="event-info-disclosure compact"><summary aria-label="Informationen zum Event-Center" title="Informationen"><Info size={15}/></summary><div><strong>Gespeicherte Events</strong><p>Standardmäßig chronologisch. Favoriten, Änderungen und Titel können alternativ als Sortierung gewählt werden.</p></div></details></div></header>
+  <nav className="event-workspace-nav" aria-label="Eventplaner-Bereiche">
+   <button type="button" className={workspaceView==='overview'?'active':''} onClick={()=>setWorkspaceView('overview')}><span>Übersicht</span><small>{savedEvents.length} gespeichert</small></button>
+   <button type="button" className={workspaceView==='editor'?'active':''} onClick={()=>{if(workspaceView!=='editor'&&editingRecordId)setWorkspaceView('editor');else if(workspaceView!=='editor')startNewEvent()}}><span>{editingRecordId?'Bearbeiten':'Neu planen'}</span><small>{editingRecordId?'Event anpassen':'Aktivität anlegen'}</small></button>
+   <button type="button" className={workspaceView==='detail'?'active':''} disabled={!plan} onClick={()=>plan&&setWorkspaceView('detail')}><span>Details & Rat</span><small>{plan?'Auswertung öffnen':'nach Wettercheck'}</small></button>
+  </nav>
+
+  {workspaceView==='overview'&&<section className="event-center-shelf">
+   <header><div><span>EVENT-CENTER</span><h5>Kompakte Übersicht</h5><small>{savedEvents.length} gespeichert · {favoriteEvents.length} Favorit{favoriteEvents.length===1?'':'en'}</small></div><div className="event-center-actions"><button type="button" className="primary event-new-button" onClick={startNewEvent}><CalendarRange size={15}/> Neu</button><label className="event-center-sort"><ArrowUpDown size={14}/><span>Sortierung</span><select value={sortMode} onChange={(event:ValueEvent)=>setSortMode(event.target.value as EventSortMode)} aria-label="Events sortieren"><option value="chronological">Chronologisch</option><option value="favorites">Favoriten zuerst</option><option value="updated">Zuletzt geändert</option><option value="title">Titel A–Z</option></select></label><button type="button" className="secondary" onClick={()=>void refreshStoredEvents(true)} disabled={bulkRefreshing||!favoriteEvents.length}>{bulkRefreshing?<RefreshCw className="spin" size={15}/>:<BellRing size={15}/>} Favoriten</button><button type="button" className="secondary" onClick={()=>void refreshStoredEvents(false)} disabled={bulkRefreshing||!savedEvents.length}>{bulkRefreshing?<RefreshCw className="spin" size={15}/>:<RefreshCw size={15}/>} Alle</button><AppInfoHint label="Informationen zum Event-Center"><strong>Event-Center</strong><p>Standardmäßig chronologisch. Die Karten zeigen zuerst nur Termin, Ort und meteorologische Eckdaten. Aufklappen liefert eine Kurzbewertung; „Details & Ratschläge“ öffnet die vollständige Auswertung.</p></AppInfoHint></div></header>
    {savedEvents.length?<div className="event-center-grid compact">{displayedEvents.map(record=>{const active=record.id===selectedRecordId||record.id===currentSavedRecord?.id,recordPlan=record.plan,refreshing=refreshingIds.includes(record.id);return <article key={record.id} className={`event-center-card compact${active?' active':''}`}>
     <button type="button" className={`event-center-favorite${record.isFavorite?' active':''}`} onClick={()=>toggleFavorite(record)} aria-label={record.isFavorite?'Favorit entfernen':'Als Favorit markieren'} title={record.isFavorite?'Favorit entfernen':'Als Favorit markieren'}><Star size={15} fill={record.isFavorite?'currentColor':'none'}/></button>
     <details className="event-center-card-disclosure">
@@ -349,47 +371,49 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit}:Pr
        <span className="event-center-card-meta"><span>{eventCompactRange(record)}</span><span>{record.location.name}</span></span>
        <span className="event-center-card-quick-weather"><WeatherPictogram code={recordPlan?.summary.weatherCode??0} day title={label(recordPlan?.summary.weatherCode??0)}/><span>{eventMetricLine(recordPlan,unit)}</span></span>
       </span>
-      <span className="event-center-disclosure-hint"><span>Details</span><ChevronDown size={15}/></span>
+      <span className="event-center-disclosure-hint"><span>Vorschau</span><ChevronDown size={15}/></span>
      </summary>
      <div className="event-center-card-details">
       <div className="event-center-card-weather"><WeatherPictogram code={recordPlan?.summary.weatherCode??0} day title={label(recordPlan?.summary.weatherCode??0)}/><div><b>{recordPlan?.advice.headline||'Noch keine Analyse'}</b><span>{recordPlan?.advice.summary||destinationLabel(record.location)}</span></div></div>
       {record.change?.level&&record.change.level!=='none'?<div className={`event-center-change ${record.change.level}`}><BellRing size={14}/><span>{record.change.summary}</span></div>:null}
-      <footer><button type="button" className="secondary" onClick={()=>loadRecord(record)}><Pencil size={15}/> Bearbeiten</button><button type="button" className="secondary" onClick={()=>void refreshStoredEvent(record)} disabled={refreshing}>{refreshing?<RefreshCw className="spin" size={15}/>:<RefreshCw size={15}/>} Aktualisieren</button><button type="button" className="secondary danger-lite" onClick={()=>removeRecord(record)}><Trash2 size={15}/> Löschen</button></footer>
+      <footer><button type="button" className="primary" onClick={()=>loadRecord(record,'detail')}><ShieldCheck size={15}/> Details & Ratschläge</button><button type="button" className="secondary" onClick={()=>loadRecord(record,'editor')}><Pencil size={15}/> Bearbeiten</button><button type="button" className="secondary icon-only" onClick={()=>void refreshStoredEvent(record)} disabled={refreshing} aria-label="Event aktualisieren" title="Aktualisieren">{refreshing?<RefreshCw className="spin" size={15}/>:<RefreshCw size={15}/>}</button><button type="button" className="secondary danger-lite icon-only" onClick={()=>removeRecord(record)} aria-label="Event löschen" title="Löschen"><Trash2 size={15}/></button></footer>
      </div>
     </details>
-   </article>})}</div>:<div className="event-center-empty"><CalendarRange size={18}/><span>Noch keine Events gespeichert.</span></div>}
-  </section>
+   </article>})}</div>:<div className="event-center-empty"><CalendarRange size={18}/><span>Noch keine Events gespeichert.</span><button type="button" className="primary" onClick={startNewEvent}>Erstes Event anlegen</button></div>}
+  </section>}
 
-  <div className="event-planner-card">
-   <div className="event-selected-destination"><MapPin size={18}/><span><small>Event-Ort</small><strong>{destinationLabel(destination)}</strong><em>{selectedEnvironment.label} · {selectedActivity.label}</em></span><button type="button" className="secondary" onClick={()=>chooseLocation(initialLocation)}>MID-Ort</button></div>
-   <form className="travel-location-search" onSubmit={runSearch}><label><span>Anderen Ort suchen</span><div><Search size={16}/><input value={query} onChange={(event:ValueEvent)=>setQuery(event.target.value)} placeholder="Ort, Venue oder ICAO"/></div></label><button type="submit" className="secondary" disabled={searching}>{searching?<RefreshCw className="spin" size={16}/>:<Search size={16}/>} Suchen</button></form>
-   {searchError&&<small className="travel-search-error">{searchError}</small>}
-   {searchResults.length>0&&<div className="travel-search-results" role="listbox" aria-label="Event-Orte">{searchResults.slice(0,8).map(location=><button type="button" key={`${location.id}:${location.latitude}:${location.longitude}`} onClick={()=>chooseLocation(location)}><MapPin size={15}/><span><strong>{location.icao?`${location.icao} · ${location.name}`:location.name}</strong><small>{[location.poiCategory,location.admin1,location.country].filter(Boolean).join(' · ')||`${formatNumber(location.latitude,2)}°, ${formatNumber(location.longitude,2)}°`}</small></span></button>)}</div>}
-  </div>
-
-  <form className="event-plan-form" onSubmit={analyseEvent}>
-   <div className="event-form-grid">
-    <label className="event-title-field"><span>Event / Anlass</span><input value={title} onChange={(event:ValueEvent)=>setTitle(event.target.value)} placeholder="z. B. Spiel, Ausflug, Flug"/></label>
-    <label><span>Datum</span><input type="date" min={localToday()} max={addDays(localToday(),13)} value={date} onChange={(event:ValueEvent)=>setDate(event.target.value)}/></label>
-    <label><span>Beginn</span><input type="time" step="900" value={startTime} onChange={(event:ValueEvent)=>setStartTime(event.target.value)}/></label>
-    <label><span>Ende</span><input type="time" step="900" value={endTime} onChange={(event:ValueEvent)=>setEndTime(event.target.value)}/></label>
+  {workspaceView==='editor'&&<section className="event-editor-stack">
+   <div className="event-planner-card compact-location-card">
+    <div className="event-selected-destination compact"><MapPin size={17}/><span><small>Event-Ort</small><strong>{destinationLabel(destination)}</strong><em>{selectedEnvironment.label} · {selectedActivity.label}</em></span><div className="event-location-actions"><button type="button" className="secondary" onClick={()=>setLocationSearchOpen(value=>!value)}><Search size={15}/>{locationSearchOpen?'Suche schließen':'Ort ändern'}</button><button type="button" className="secondary icon-only" onClick={()=>{chooseLocation(initialLocation);setLocationSearchOpen(false)}} aria-label="MID-Ort übernehmen" title="MID-Ort"><MapPin size={15}/></button></div></div>
+    {locationSearchOpen&&<div className="event-location-search-panel"><form className="travel-location-search compact" onSubmit={runSearch}><label><span>Anderen Ort suchen</span><div><Search size={16}/><input value={query} onChange={(event:ValueEvent)=>setQuery(event.target.value)} placeholder="Ort, Venue oder ICAO" autoFocus/></div></label><button type="submit" className="secondary" disabled={searching}>{searching?<RefreshCw className="spin" size={16}/>:<Search size={16}/>} Suchen</button></form>{searchError&&<small className="travel-search-error">{searchError}</small>}{searchResults.length>0&&<div className="travel-search-results" role="listbox" aria-label="Event-Orte">{searchResults.slice(0,8).map(location=><button type="button" key={`${location.id}:${location.latitude}:${location.longitude}`} onClick={()=>{chooseLocation(location);setLocationSearchOpen(false)}}><MapPin size={15}/><span><strong>{location.icao?`${location.icao} · ${location.name}`:location.name}</strong><small>{[location.poiCategory,location.admin1,location.country].filter(Boolean).join(' · ')||`${formatNumber(location.latitude,2)}°, ${formatNumber(location.longitude,2)}°`}</small></span></button>)}</div>}</div>}
    </div>
-   <div className="event-choice-block"><span>Rahmen</span><div className="event-chip-row">{ENVIRONMENT_OPTIONS.map(option=><button type="button" key={option.id} className={environment===option.id?'active':''} onClick={()=>setEnvironment(option.id)} title={option.detail}><strong>{option.label}</strong></button>)}</div></div>
-   <div className="event-choice-block"><span>Aktivität</span><div className="event-chip-grid">{ACTIVITY_OPTIONS.map(option=><button type="button" key={option.id} className={activity===option.id?'active':''} onClick={()=>setActivity(option.id)} title={option.detail}><strong>{option.id==='flight'?<><Plane size={14}/> {option.label}</>:option.label}</strong></button>)}</div></div>
-   <div className="event-plan-actions"><details className="event-info-disclosure inline"><summary aria-label="Informationen zur Aktualisierung"><Info size={15}/><span>Automatische Aktualisierung</span></summary><div><p>Geöffnete Events werden etwa alle 30 Minuten neu bewertet. Favoriten lassen sich gemeinsam nacheinander prüfen.</p></div></details><button type="submit" className="primary travel-analyse" disabled={loading}>{loading?<RefreshCw className="spin" size={17}/>:<CalendarRange size={17}/>} {loading?'Wird geprüft …':editingRecordId?'Änderungen prüfen':'Wetter prüfen'}</button></div>
-  </form>
+
+   <form className="event-plan-form compact" onSubmit={analyseEvent}>
+    <header className="event-editor-head"><div><span>{editingRecordId?'EVENT BEARBEITEN':'NEUES EVENT'}</span><strong>{editingRecordId?'Termin und Aktivität anpassen':'Wenige Angaben – danach direkt zum Wettercheck'}</strong></div>{editingRecordId&&<button type="button" className="secondary" onClick={()=>plan?setWorkspaceView('detail'):setWorkspaceView('overview')}>Abbrechen</button>}</header>
+    <div className="event-form-grid compact">
+     <label className="event-title-field"><span>Event / Anlass</span><input value={title} onChange={(event:ValueEvent)=>setTitle(event.target.value)} placeholder="z. B. Spiel, Ausflug, Flug"/></label>
+     <label><span>Datum</span><input type="date" min={localToday()} max={addDays(localToday(),13)} value={date} onChange={(event:ValueEvent)=>setDate(event.target.value)}/></label>
+     <label><span>Beginn</span><input type="time" step="900" value={startTime} onChange={(event:ValueEvent)=>setStartTime(event.target.value)}/></label>
+     <label><span>Ende</span><input type="time" step="900" value={endTime} onChange={(event:ValueEvent)=>setEndTime(event.target.value)}/></label>
+    </div>
+    <div className="event-choice-block compact"><span>Rahmen</span><div className="event-chip-row">{ENVIRONMENT_OPTIONS.map(option=><button type="button" key={option.id} className={environment===option.id?'active':''} onClick={()=>setEnvironment(option.id)} title={option.detail}><strong>{option.label}</strong></button>)}</div></div>
+    <div className="event-choice-block compact activity"><span>Aktivität</span><div className="event-chip-grid">{ACTIVITY_OPTIONS.map(option=><button type="button" key={option.id} className={activity===option.id?'active':''} onClick={()=>setActivity(option.id)} title={option.detail}><strong>{option.id==='flight'?<><Plane size={14}/> {option.label}</>:option.label}</strong></button>)}</div></div>
+    <div className="event-plan-actions compact"><span className="event-auto-update-note"><RefreshCw size={13}/> Automatische Neubewertung <AppInfoHint label="Informationen zur automatischen Aktualisierung" width={340}><strong>Automatische Aktualisierung</strong><p>Geöffnete Events werden etwa alle 30 Minuten neu bewertet. Die Glocke reagiert nur auf deutlich veränderte meteorologische Eckdaten, nicht auf jeden neuen Modelllauf.</p></AppInfoHint></span><button type="submit" className="primary travel-analyse" disabled={loading}>{loading?<RefreshCw className="spin" size={17}/>:<CalendarRange size={17}/>} {loading?'Wird geprüft …':editingRecordId?'Änderungen prüfen':'Wetter prüfen'}</button></div>
+   </form>
+  </section>}
 
   {error&&<div className="error">{error}</div>}
   {loading&&<div className="travel-loading"><RefreshCw className="spin" size={20}/><div><strong>Analyse läuft</strong><span>{activity==='flight'?'Wetter und Druckniveau-Hazards werden geprüft.':'Stundenwerte und relevante Wetterfaktoren werden geprüft.'}</span></div></div>}
 
-  {plan&&<section className={`event-plan-result status-${plan.advice.status}`}>
+  {workspaceView==='detail'&&plan&&<section className={`event-plan-result status-${plan.advice.status}`}>
+   <div className="event-detail-toolbar"><button type="button" className="secondary" onClick={()=>setWorkspaceView('overview')}><ChevronLeft size={15}/> Übersicht</button><button type="button" className="secondary" onClick={()=>setWorkspaceView('editor')}><Pencil size={15}/> Bearbeiten</button><button type="button" className="secondary" onClick={startNewEvent}><CalendarRange size={15}/> Neu</button></div>
    <div className="event-guide-hero">
     <div className="event-guide-topbar">
      <div className="event-guide-tags"><span className="event-guide-pill fill">{environmentLabel(plan.environment)}</span><span className="event-guide-pill">{activityLabel(plan.activity)}</span><span className="event-guide-pill">{formatDate(plan.date)} · {formatClock(plan.startTime)}–{formatClock(plan.endTime)}</span></div>
      <div className="event-guide-status-wrap"><div className={`event-status-badge ${plan.advice.status}`}>{plan.advice.status==='good'?<ShieldCheck size={16}/>:<ShieldAlert size={16}/>}<strong>{statusLabel(plan.advice.status)}</strong></div>{currentSavedRecord?.change&&currentSavedRecord.change.level!=='none'?<small className={`event-inline-update ${currentSavedRecord.change.level}`}>{currentSavedRecord.change.summary}</small>:null}</div>
     </div>
     <div className="event-guide-main">
-     <div className="event-guide-copy"><span>EVENT-CHECK</span><h5>{currentTitle}</h5><p>{destinationLabel(plan.location)}</p><strong>{plan.advice.headline}</strong><p>{plan.advice.summary}</p><div className="event-guide-inline-notes"><article><MapPin size={15}/><span>{timingHint}</span></article><article><BellRing size={15}/><span>{lastUpdateText}</span></article></div><div className="event-result-toolbar"><button type="button" className="secondary" onClick={()=>saveCurrentPlan(false)}><Star size={15} fill={currentSavedRecord?'currentColor':'none'}/>{currentSavedRecord?'Event aktualisieren':'Event speichern'}</button>{currentSavedRecord?<button type="button" className="secondary" onClick={()=>toggleFavorite(currentSavedRecord)}><Star size={15} fill={currentSavedRecord.isFavorite?'currentColor':'none'}/>{currentSavedRecord.isFavorite?'Favorit entfernen':'Favorit'}</button>:<button type="button" className="secondary" onClick={()=>saveCurrentPlan(true)}><Star size={15}/>Als Favorit speichern</button>}</div></div>
+     <div className="event-guide-copy"><span>EVENT-CHECK</span><h5>{currentTitle}</h5><p>{destinationLabel(plan.location)}</p><strong>{plan.advice.headline}</strong><p>{plan.advice.summary}</p><div className="event-guide-inline-notes"><article><MapPin size={15}/><span>{timingHint}</span></article><article><BellRing size={15}/><span>Stand {lastUpdateText}</span></article></div><div className="event-result-toolbar"><button type="button" className="secondary" onClick={()=>saveCurrentPlan(false)}><Star size={15} fill={currentSavedRecord?'currentColor':'none'}/>{currentSavedRecord?'Event aktualisieren':'Event speichern'}</button>{currentSavedRecord?<button type="button" className="secondary" onClick={()=>toggleFavorite(currentSavedRecord)}><Star size={15} fill={currentSavedRecord.isFavorite?'currentColor':'none'}/>{currentSavedRecord.isFavorite?'Favorit entfernen':'Favorit'}</button>:<button type="button" className="secondary" onClick={()=>saveCurrentPlan(true)}><Star size={15}/>Als Favorit speichern</button>}</div></div>
      <aside className="event-guide-weatherpanel"><small>Leitwetter</small><div className="event-guide-weatherrow"><WeatherPictogram code={plan.summary.weatherCode??0} day={plan.summary.isDay!==false} title={plan.summary.weatherLabel||label(plan.summary.weatherCode??0)}/><div><strong>{formatNumber(plan.summary.temperatureAvg)}°</strong><span>{plan.summary.weatherLabel||label(plan.summary.weatherCode??0)}</span></div></div><p>{outfitHint}</p><div className="event-guide-quickstats"><span><CloudRain size={14}/>{eventPrecipLabel(plan.summary)} {formatNumber(eventPrecipProbability(plan.summary))} %</span><span><Wind size={14}/>{wind(plan.summary.windMax??Number.NaN,unit)} · Böen {wind(plan.summary.gustMax??Number.NaN,unit)}</span><span><Sun size={14}/>UVI {formatUvi(plan.summary.uvMax??Number.NaN)}</span></div></aside>
     </div>
    </div>
@@ -401,13 +425,17 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit}:Pr
     <article><Sun size={17}/><small>UVI / Sicht</small><strong>UVI {formatUvi(plan.summary.uvMax??Number.NaN)}</strong><span>Sicht min. {plan.summary.visibilityMin!=null?`${formatNumber(plan.summary.visibilityMin/1000,1)} km`:'–'}</span></article>
    </div>
 
-   {plan.activity==='flight'&&plan.summary.flightHazards?<section className={`event-flight-hazards ${plan.summary.flightHazards.overall}`}><header><div><Plane size={18}/><span><small>FLUGMETEOROLOGIE</small><strong>Hazard-Screening</strong></span></div><details className="event-info-disclosure compact"><summary aria-label="Informationen zum Flugwetter-Screening"><Info size={15}/></summary><div><strong>Automatisierte MID-Diagnose</strong><p>Vereisung, Turbulenz und CAT werden aus Druckniveau-Temperatur, Feuchte und Windscherung abgeleitet. Gewitter, Sicht, Wolkenuntergrenze und Böen ergänzen das Screening. Keine amtliche Flugwetterberatung oder Navigationsgrundlage.</p><small>{plan.summary.flightHazards.source}</small></div></details></header>{plan.summary.flightHazards.available?<div className="event-flight-hazard-grid">{plan.summary.flightHazards.items.map(item=><article key={item.id} className={item.level}><small>{item.label}</small><strong>{item.level==='caution'?'kritisch':item.level==='watch'?'beachten':'unauffällig'}</strong><span>{item.detail}</span></article>)}</div>:<div className="event-flight-unavailable">{plan.summary.flightHazards.note||'Flugprofildaten derzeit nicht verfügbar.'}</div>}{plan.summary.flightHazards.freezingLevelMin!=null?<footer>Nullgradgrenze im Zeitfenster: ca. {Math.round(plan.summary.flightHazards.freezingLevelMin/50)*50} m</footer>:null}</section>:null}
+   <section className="event-guidance-section"><header><div><span>RATSCHLÄGE</span><strong>Was für dieses Event wichtig ist</strong></div></header><div className="event-guidance-grid"><article><strong>Wichtig</strong><ul>{plan.advice.tips.map(item=><li key={item}>{item}</li>)}</ul></article><article><strong>Empfehlung</strong><ul>{plan.advice.behavior.map(item=><li key={item}>{item}</li>)}</ul></article></div></section>
 
-   <div className="event-guidance-grid"><article><strong>Wichtig</strong><ul>{plan.advice.tips.map(item=><li key={item}>{item}</li>)}</ul></article><article><strong>Empfehlung</strong><ul>{plan.advice.behavior.map(item=><li key={item}>{item}</li>)}</ul></article></div>
+   {plan.activity==='flight'&&plan.summary.flightHazards?<section className={`event-flight-hazards ${plan.summary.flightHazards.overall}`}><header><div><Plane size={18}/><span><small>FLUGMETEOROLOGIE</small><strong>Hazard-Screening</strong></span></div><AppInfoHint label="Informationen zum Flugwetter-Screening" width={430}><strong>Automatisierte MID-Diagnose</strong><p>Vereisung, Turbulenz und CAT werden aus Druckniveau-Temperatur, Feuchte und Windscherung abgeleitet. Gewitter, Sicht, Wolkenuntergrenze und Böen ergänzen das Screening.</p><p>Keine amtliche Flugwetterberatung oder Navigationsgrundlage.</p><small>{plan.summary.flightHazards.source}</small></AppInfoHint></header>{plan.summary.flightHazards.available?<div className="event-flight-hazard-grid">{plan.summary.flightHazards.items.map(item=><article key={item.id} className={item.level}><small>{item.label}</small><strong>{item.level==='caution'?'kritisch':item.level==='watch'?'beachten':'unauffällig'}</strong><span>{item.detail}</span></article>)}</div>:<div className="event-flight-unavailable">{plan.summary.flightHazards.note||'Flugprofildaten derzeit nicht verfügbar.'}</div>}{plan.summary.flightHazards.freezingLevelMin!=null?<footer>Nullgradgrenze im Zeitfenster: ca. {Math.round(plan.summary.flightHazards.freezingLevelMin/50)*50} m</footer>:null}</section>:null}
 
-   <div className="event-timeline-card"><header><div><span>ZEITFENSTER</span><h6>Stündlicher Verlauf</h6></div><details className="event-info-disclosure compact"><summary aria-label="Informationen zum Stundenverlauf"><Info size={15}/></summary><div><p>{advancedMode?'Best Match, unabhängige Modellfamilien und MID-Plausibilisierung; bei Nahterminen zusätzlich Nowcast.':'Dieselbe plausibilisierte Stundenprognose wie in der übrigen App.'}</p></div></details></header><div className="event-timeline">{plan.timeline.map(point=><article key={point.time}><time>{point.time}</time><WeatherPictogram code={point.weatherCode??0} day={point.isDay!==false} title={point.weatherLabel||label(point.weatherCode??0)}/><strong>{formatNumber(point.temperature)}°</strong><small>{point.weatherLabel||label(point.weatherCode??0)} · {formatNumber(point.precipitationProbability)} %</small><small>Wind {wind(point.wind??Number.NaN,unit)} · Böen {wind(point.gust??Number.NaN,unit)}</small></article>)}</div></div>
-
-   <details className="event-info-disclosure event-model-disclosure"><summary><Info size={16}/><span>Daten & Modellstand</span></summary><div className="event-model-updates"><header><div><span>MODELLSTAND</span><h6>Aktuelle Laufstände</h6></div><small>{lastUpdateText}</small></header>{plan.modelInfo?.summary?<div className="event-model-update-lead"><BellRing size={16}/><span>{plan.modelInfo.summary}</span></div>:null}{latestRuns.length>0&&<div className="event-run-grid">{latestRuns.map(run=><article key={`${run.id}:${run.initialisationTime}`}><strong>{run.label}</strong><small>Init {modelStamp(run.initialisationTime)}</small><small>Verfügbar {modelStamp(run.availabilityTime||run.initialisationTime)}</small></article>)}</div>}<footer><span>Quelle: {plan.source}</span><small>{plan.summary.modelFamilyCount?`${plan.summary.modelFamilyCount} unabhängige Modellgruppen geprüft. `:''}{plan.summary.rapidCycleUsed?'Rapid-Cycle-Läufe einbezogen. ':''}{advancedMode?'Varianten derselben Modellfamilie werden nicht mehrfach gewichtet.':''}</small></footer></div></details>
+   <details className="event-detail-disclosure">
+    <summary><span><small>MEHR DETAILS</small><strong>Stündlicher Verlauf & Datenbasis</strong></span><ChevronDown size={18}/></summary>
+    <div className="event-detail-disclosure-body">
+     <div className="event-timeline-card"><header><div><span>ZEITFENSTER</span><h6>Stündlicher Verlauf</h6></div><AppInfoHint label="Informationen zum Stundenverlauf" width={390}><strong>Stündlicher Verlauf</strong><p>{advancedMode?'Best Match, unabhängige Modellfamilien und MID-Plausibilisierung; bei Nahterminen zusätzlich Nowcast.':'Dieselbe plausibilisierte Stundenprognose wie in der übrigen App.'}</p></AppInfoHint></header><div className="event-timeline">{plan.timeline.map(point=><article key={point.time}><time>{point.time}</time><WeatherPictogram code={point.weatherCode??0} day={point.isDay!==false} title={point.weatherLabel||label(point.weatherCode??0)}/><strong>{formatNumber(point.temperature)}°</strong><small>{point.weatherLabel||label(point.weatherCode??0)} · {formatNumber(point.precipitationProbability)} %</small><small>Wind {wind(point.wind??Number.NaN,unit)} · Böen {wind(point.gust??Number.NaN,unit)}</small></article>)}</div></div>
+     <details className="event-model-disclosure"><summary><Info size={16}/><span>Daten & Modellstand</span><ChevronDown size={15}/></summary><div className="event-model-updates"><header><div><span>MODELLSTAND</span><h6>Aktuelle Laufstände</h6></div><small>{lastUpdateText}</small></header>{plan.modelInfo?.summary?<div className="event-model-update-lead"><BellRing size={16}/><span>{plan.modelInfo.summary}</span></div>:null}{latestRuns.length>0&&<div className="event-run-grid">{latestRuns.map(run=><article key={`${run.id}:${run.initialisationTime}`}><strong>{run.label}</strong><small>Init {modelStamp(run.initialisationTime)}</small><small>Verfügbar {modelStamp(run.availabilityTime||run.initialisationTime)}</small></article>)}</div>}<footer><span>Quelle: {plan.source}</span><small>{plan.summary.modelFamilyCount?`${plan.summary.modelFamilyCount} unabhängige Modellgruppen geprüft. `:''}{plan.summary.rapidCycleUsed?'Rapid-Cycle-Läufe einbezogen. ':''}{advancedMode?'Varianten derselben Modellfamilie werden nicht mehrfach gewichtet.':''}</small></footer></div></details>
+    </div>
+   </details>
   </section>}
  </section>
 }

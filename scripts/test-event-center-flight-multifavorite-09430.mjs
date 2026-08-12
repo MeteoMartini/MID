@@ -18,7 +18,7 @@ assert.match(panel,/formatUvi\(plan\.summary\.uvMax/,'UVI ist im Eventplaner nic
 assert.doesNotMatch(panel,/summary\.uvMax,1/,'Veraltete UVI-Nachkommastelle ist noch aktiv');
 assert.match(panel,/wind\(plan\.summary\.windMax.*unit\)/,'Windeinheit wird nicht appweit übernommen');
 assert.match(app,/MemoLazyEventPlanner[^>]+unit=\{unit\}/,'App-Windeinheit wird nicht an Eventplaner übergeben');
-assert.match(panel,/event-info-disclosure/,'Hintergrundinformationen sind nicht hinter Info-Bedienelementen gebündelt');
+assert.match(panel,/AppInfoHint/,'Hintergrundinformationen sind nicht hinter appweiten Info-Bedienelementen gebündelt');
 assert.match(css,/:root\[data-theme=light\] \.event-plan-result/,'Helles Eventplaner-Design ist nicht explizit optimiert');
 assert.match(css,/--event-danger:/,'Theme-adaptive Event-Signalfarben fehlen');
 assert.doesNotMatch(center,/Tendenz neu/,'Unprofessioneller alter Änderungsbadge ist noch aktiv');

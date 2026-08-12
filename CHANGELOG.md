@@ -1,3 +1,10 @@
+# MID v0.9.45.5
+
+- CI-/Regression-Hotfix für den fehlgeschlagenen v0.9.45.4-Installerlauf.
+- Historische Funktionssuite `test-feature-suite-0797.mjs` auf den aktuellen Standortvertrag synchronisiert: der veraltete Quellcode-Zwang `locate(false)` wurde entfernt.
+- Die aktive Standortlogik bleibt unverändert: gespeicherter/manueller Ort bleibt geschützt; die separate aktuelle GPS-Standortermittlung wird weiterhin durch die neueren Standort-/Favoriten-Regressionen abgesichert.
+- Keine fachliche Wetter-, Event-, Planer-, UI- oder Worker-Änderung gegenüber v0.9.45.4.
+
 # MID v0.9.45.2
 
 ## Sonne / Mond

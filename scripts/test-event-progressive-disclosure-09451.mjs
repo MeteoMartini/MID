@@ -17,7 +17,8 @@ assert.match(planner,/className={`event-center-favorite\$\{record\.isFavorite\?'
 
 assert.match(app,/className="event-center-header-popover compact"/,'Glocken-Popover ist nicht als kompakte Variante markiert.');
 assert.match(app,/className="event-center-header-list compact"/,'Glocken-Liste ist nicht kompakt.');
-assert.match(app,/records\.map\(record=><details key=\{record\.id\}/,'Events unter der Glocke sind nicht einzeln aufklappbar.');
+assert.match(app,/records\.map\(record=>\{const meaningfulUpdate=.*return <details key=\{record\.id\}/,'Events unter der Glocke sind nicht einzeln aufklappbar.');
+assert.match(app,/className="event-center-header-metrics"/,'Meteorologische Eckdaten fehlen in der kompakten Glockenansicht.');
 assert.match(app,/className="event-center-header-entry-details"/,'Detailbereich unter der Glocke fehlt.');
 assert.match(app,/>Details öffnen<\/span>/,'Eindeutiger Sprung zum vollständigen Eventplaner fehlt.');
 
@@ -27,4 +28,4 @@ assert.match(styles,/\.event-center-card-disclosure\[open\] \.event-center-discl
 assert.match(styles,/\.event-center-header-entry>summary\{/,'Kompakte Glocken-Summary fehlt.');
 assert.match(styles,/:root\[data-theme=dark\]|var\(--surface\)|color-mix/,'Theme-kompatible Farbvariablen fehlen.');
 
-console.log('MID v0.9.45.1: kompakte Events-&-Aktivitäten-Übersicht mit progressiven Details in Sektion und Glocken-Popover geprüft.');
+console.log('MID v0.9.45.3: kompakte Events-&-Aktivitäten-Übersicht mit Wetter-Eckdaten und progressiven Details in Sektion und Glocken-Popover geprüft.');

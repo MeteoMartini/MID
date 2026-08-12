@@ -39,30 +39,46 @@ export function compareEventPlans(previous:EventPlan|null|undefined,next:EventPl
  const modelSignature=buildEventModelSignature(next.modelInfo)
  const conditionsSignature=buildEventConditionsSignature(next)
  const runHeadline=buildEventRunHeadline(next.modelInfo)
- if(!previous)return{level:'major',badge:'Neu',summary:'Event neu gespeichert.',updatedAt:Date.now(),modelSignature,conditionsSignature,runHeadline}
+ if(!previous)return{level:'none',badge:'Stabil',summary:'Event gespeichert. Änderungen werden erst bei deutlich veränderten Wetter-Eckdaten gemeldet.',updatedAt:Date.now(),modelSignature,conditionsSignature,runHeadline}
  const previousModelSignature=buildEventModelSignature(previous.modelInfo)
- const previousConditionsSignature=buildEventConditionsSignature(previous)
  const rainDelta=rounded((next.summary.precipitationProbabilityRelevant??next.summary.precipitationProbabilityMax??0)-(previous.summary.precipitationProbabilityRelevant??previous.summary.precipitationProbabilityMax??0))
+ const precipitationDelta=rounded((next.summary.precipitationTotal??0)-(previous.summary.precipitationTotal??0),1)
  const windDelta=rounded((next.summary.windMax??0)-(previous.summary.windMax??0))
  const gustDelta=rounded((next.summary.gustMax??0)-(previous.summary.gustMax??0))
  const tempDelta=rounded((next.summary.temperatureAvg??0)-(previous.summary.temperatureAvg??0),1)
  const statusChanged=previous.advice.status!==next.advice.status
- const weatherChanged=previous.summary.weatherCode!==next.summary.weatherCode
+ const weatherChanged=eventWeatherImpactKey(previous.summary)!==eventWeatherImpactKey(next.summary)
  const modelChanged=modelSignature!==previousModelSignature
  const changes:string[]=[]
  let level:EventChangeLevel='none'
  if(statusChanged){level='major';changes.push(statusChangeSummary(previous.advice.status,next.advice.status))}
- if(rainDelta>=15){level=level==='major'?'major':'minor';changes.push('Niederschlagsrisiko gestiegen.')}
- else if(rainDelta<=-15){level=level==='major'?'major':'minor';changes.push('Niederschlagsrisiko gesunken.')}
+ if(rainDelta>=20){level=level==='major'?'major':'minor';changes.push(`Niederschlagsrisiko deutlich gestiegen (+${rainDelta} %-P.).`)}
+ else if(rainDelta<=-20){level=level==='major'?'major':'minor';changes.push(`Niederschlagsrisiko deutlich gesunken (${rainDelta} %-P.).`)}
+ if(precipitationDelta>=1.5){level=level==='major'?'major':'minor';changes.push(`Erwartete Niederschlagsmenge höher (+${precipitationDelta.toLocaleString('de-DE')} mm).`)}
+ else if(precipitationDelta<=-1.5){level=level==='major'?'major':'minor';changes.push(`Erwartete Niederschlagsmenge geringer (${precipitationDelta.toLocaleString('de-DE')} mm).`)}
  if(windDelta>=6||gustDelta>=8){level=level==='major'?'major':'minor';changes.push('Wind/Böen deutlich stärker.')}
  else if(windDelta<=-6||gustDelta<=-8){level=level==='major'?'major':'minor';changes.push('Wind/Böen deutlich schwächer.')}
- if(Math.abs(tempDelta)>=3){level=level==='major'?'major':'minor';changes.push(tempDelta>0?'Temperaturtrend milder.':'Temperaturtrend kühler.')}
- if(weatherChanged&&level==='none'){level='minor';changes.push('Wettercharakter geändert.')}
- if(modelChanged&&level==='none'){level='model';changes.push('Neuer Modelllauf ohne relevante Abweichung.')}
- if(level==='none'&&previousConditionsSignature!==conditionsSignature){level='minor';changes.push('Kleinere Anpassungen im Zeitfenster.')}
- if(level==='none'){changes.push('Keine wesentliche Änderung gegenüber dem letzten Stand.')}
- const badge=level==='major'?'Relevant':level==='minor'?'Geändert':level==='model'?'Neuer Lauf':'Stabil'
+ if(Math.abs(tempDelta)>=3){level=level==='major'?'major':'minor';changes.push(tempDelta>0?'Temperaturtrend deutlich milder.':'Temperaturtrend deutlich kühler.')}
+ if(weatherChanged){level=level==='major'?'major':'minor';changes.push('Wettercharakter deutlich geändert.')}
+ if(level==='none'){changes.push(modelChanged?'Neuer Modelllauf, meteorologische Eckdaten im bisherigen Erwartungsbereich.':'Meteorologische Eckdaten im bisherigen Erwartungsbereich.')}
+ const badge=level==='major'?'Relevant':level==='minor'?'Geändert':'Stabil'
  return{level,badge,summary:changes.join(' '),updatedAt:Date.now(),modelSignature,conditionsSignature,runHeadline}
+}
+
+function eventWeatherImpactKey(summary:EventSummary){
+ const text=`${summary.precipitationTypeLabel||''} ${summary.weatherLabel||''}`.toLocaleLowerCase('de-DE')
+ if(/kein(?:e|en)?\s+niederschlag|trocken/.test(text)&&!/(regen|schauer|sprühregen|schnee|graupel|eisregen|gewitter|hagel)/.test(text))return'dry'
+ if(/gewitter|hagel/.test(text))return'thunder'
+ if(/eisregen|gefrier|glatteis/.test(text))return'freezing'
+ if(/schnee|graupel/.test(text))return'snow'
+ if(/regen|schauer|sprühregen|niederschlag/.test(text))return'rain'
+ const code=Number(summary.weatherCode)
+ if([95,96,99].includes(code))return'thunder'
+ if([56,57,66,67].includes(code))return'freezing'
+ if([71,73,75,77,85,86].includes(code))return'snow'
+ if([51,53,55,61,63,65,80,81,82].includes(code))return'rain'
+ if([45,48].includes(code))return'fog'
+ return'dry'
 }
 
 function statusLabel(value:EventStatus){return value==='good'?'Günstig':value==='watch'?'Beobachten':'Achtung'}
@@ -93,7 +109,9 @@ export function normalizeEventCenterRecord(value:unknown):EventCenterRecord|null
  const environment=String(record.environment||planRecord?.environment||'outdoor') as EventEnvironment
  const activity=String(record.activity||planRecord?.activity||'general') as EventActivity
  const rawChange=(record.change??null) as EventChangeMeta|null
- const change=rawChange?{...rawChange,summary:normalizeLegacyChangeSummary(String(rawChange.summary||''))}:null
+ const normalizedSummary=rawChange?normalizeLegacyChangeSummary(String(rawChange.summary||'')):''
+ const legacyNonMaterial=Boolean(rawChange&&(rawChange.level==='model'||/Event neu gespeichert|Kleinere Anpassungen im Zeitfenster|Neuer Modelllauf ohne relevante Abweichung/i.test(normalizedSummary)))
+ const change=rawChange?{...rawChange,level:legacyNonMaterial?'none':rawChange.level,badge:legacyNonMaterial?'Stabil':rawChange.badge,summary:legacyNonMaterial?'Meteorologische Eckdaten im bisherigen Erwartungsbereich.':normalizedSummary}:null
  return{ id,title,location,date,startTime,endTime,environment,activity,isFavorite:Boolean(record.isFavorite),createdAt:safeNumber(record.createdAt as number|undefined,Date.now()),updatedAt:safeNumber(record.updatedAt as number|undefined,Date.now()),lastOpenedAt:safeNumber(record.lastOpenedAt as number|undefined,0),plan:(record.plan??null) as EventPlan|null,change }
 }
 
