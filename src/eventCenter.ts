@@ -5,7 +5,7 @@ export type EventEnvironment='indoor'|'outdoor'|'covered'
 export type EventActivity='general'|'running'|'cycling'|'hiking'|'skiing'|'climbing'|'football'|'tennis'|'golf'|'gym'|'yoga'|'watersports'|'city'|'concert'|'flight'
 export type EventStatus='good'|'watch'|'caution'
 export type EventTimelinePoint={time:string;temperature:number|null;apparent:number|null;precipitationProbability:number|null;precipitation:number|null;rain?:number|null;showers?:number|null;snowfall?:number|null;weatherCode:number|null;weatherLabel?:string;wind:number|null;gust:number|null;uv:number|null;visibility:number|null;humidity?:number|null;cloud?:number|null;lowCloud?:number|null;cape?:number|null;liftedIndex?:number|null;convectiveInhibition?:number|null;sunshineDuration?:number|null;isDay?:boolean;weatherSourceId?:string;weatherSourceLabel?:string}
-export type EventSummary={hours:number;temperatureAvg:number|null;temperatureMin:number|null;temperatureMax:number|null;apparentAvg:number|null;precipitationProbabilityMax:number|null;precipitationTotal:number|null;windMax:number|null;gustMax:number|null;uvMax:number|null;visibilityMin:number|null;weatherCode:number|null;weatherLabel?:string;weatherSourceLabel?:string;isDay?:boolean;modelFamilyCount?:number;rapidCycleUsed?:boolean;flightHazards?:EventFlightHazardSummary}
+export type EventSummary={hours:number;temperatureAvg:number|null;temperatureMin:number|null;temperatureMax:number|null;apparentAvg:number|null;precipitationProbabilityMax:number|null;precipitationProbabilityRelevant?:number|null;precipitationTypeLabel?:string;precipitationTotal:number|null;windMax:number|null;gustMax:number|null;uvMax:number|null;visibilityMin:number|null;weatherCode:number|null;weatherLabel?:string;weatherSourceLabel?:string;isDay?:boolean;modelFamilyCount?:number;rapidCycleUsed?:boolean;flightHazards?:EventFlightHazardSummary}
 export type EventAdvice={status:EventStatus;headline:string;summary:string;tips:string[];behavior:string[]}
 export type EventPlan={location:Location;title:string;date:string;startTime:string;endTime:string;environment:EventEnvironment;activity:EventActivity;timeline:EventTimelinePoint[];summary:EventSummary;advice:EventAdvice;modelInfo:BestMatchModelInfo|null;refreshedAt:number;source:string}
 export type EventChangeLevel='none'|'model'|'minor'|'major'
@@ -27,7 +27,7 @@ export function buildEventModelSignature(modelInfo:BestMatchModelInfo|null|undef
 export function buildEventConditionsSignature(plan:EventPlan|null|undefined){
  if(!plan)return'none'
  const summary=plan.summary
- return [plan.advice.status,summary.weatherCode??'na',rounded(summary.temperatureAvg,1),rounded(summary.precipitationProbabilityMax),rounded(summary.windMax),rounded(summary.uvMax),summary.flightHazards?.overall??'na'].join('|')
+ return [plan.advice.status,summary.weatherCode??'na',rounded(summary.temperatureAvg,1),rounded(summary.precipitationProbabilityRelevant??summary.precipitationProbabilityMax),rounded(summary.windMax),rounded(summary.gustMax),rounded(summary.uvMax),summary.flightHazards?.overall??'na'].join('|')
 }
 export function buildEventRunHeadline(modelInfo:BestMatchModelInfo|null|undefined){
  const primary=modelInfo?.runs?.[0]?.label||modelInfo?.likelyChain||'Best Match'
@@ -42,8 +42,9 @@ export function compareEventPlans(previous:EventPlan|null|undefined,next:EventPl
  if(!previous)return{level:'major',badge:'Neu',summary:'Event neu gespeichert.',updatedAt:Date.now(),modelSignature,conditionsSignature,runHeadline}
  const previousModelSignature=buildEventModelSignature(previous.modelInfo)
  const previousConditionsSignature=buildEventConditionsSignature(previous)
- const rainDelta=rounded((next.summary.precipitationProbabilityMax??0)-(previous.summary.precipitationProbabilityMax??0))
+ const rainDelta=rounded((next.summary.precipitationProbabilityRelevant??next.summary.precipitationProbabilityMax??0)-(previous.summary.precipitationProbabilityRelevant??previous.summary.precipitationProbabilityMax??0))
  const windDelta=rounded((next.summary.windMax??0)-(previous.summary.windMax??0))
+ const gustDelta=rounded((next.summary.gustMax??0)-(previous.summary.gustMax??0))
  const tempDelta=rounded((next.summary.temperatureAvg??0)-(previous.summary.temperatureAvg??0),1)
  const statusChanged=previous.advice.status!==next.advice.status
  const weatherChanged=previous.summary.weatherCode!==next.summary.weatherCode
@@ -53,8 +54,8 @@ export function compareEventPlans(previous:EventPlan|null|undefined,next:EventPl
  if(statusChanged){level='major';changes.push(statusChangeSummary(previous.advice.status,next.advice.status))}
  if(rainDelta>=15){level=level==='major'?'major':'minor';changes.push('Niederschlagsrisiko gestiegen.')}
  else if(rainDelta<=-15){level=level==='major'?'major':'minor';changes.push('Niederschlagsrisiko gesunken.')}
- if(windDelta>=6){level=level==='major'?'major':'minor';changes.push('Wind deutlich stärker.')}
- else if(windDelta<=-6){level=level==='major'?'major':'minor';changes.push('Wind deutlich schwächer.')}
+ if(windDelta>=6||gustDelta>=8){level=level==='major'?'major':'minor';changes.push('Wind/Böen deutlich stärker.')}
+ else if(windDelta<=-6||gustDelta<=-8){level=level==='major'?'major':'minor';changes.push('Wind/Böen deutlich schwächer.')}
  if(Math.abs(tempDelta)>=3){level=level==='major'?'major':'minor';changes.push(tempDelta>0?'Temperaturtrend milder.':'Temperaturtrend kühler.')}
  if(weatherChanged&&level==='none'){level='minor';changes.push('Wettercharakter geändert.')}
  if(modelChanged&&level==='none'){level='model';changes.push('Neuer Modelllauf ohne relevante Abweichung.')}
@@ -72,9 +73,9 @@ function parseDateStamp(value:string,time='00:00'){const stamp=Date.parse(`${val
 
 export function sortEventCenterRecords(records:EventCenterRecord[]){
  return [...records].sort((a,b)=>{
-  if(a.isFavorite!==b.isFavorite)return a.isFavorite?-1:1
   const aDate=parseDateStamp(a.date,a.startTime),bDate=parseDateStamp(b.date,b.startTime)
   if(aDate&&bDate&&aDate!==bDate)return aDate-bDate
+  if(aDate!==bDate)return aDate? -1:1
   return (b.updatedAt||0)-(a.updatedAt||0)
  })
 }

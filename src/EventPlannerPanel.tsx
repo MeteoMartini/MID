@@ -1,10 +1,10 @@
 import {useEffect,useMemo,useRef,useState,type FormEvent} from 'react'
-import {BellRing,CalendarRange,CloudRain,Info,MapPin,Plane,RefreshCw,Search,ShieldCheck,ShieldAlert,Star,Sun,Thermometer,Trash2,Wind} from 'lucide-react'
+import {ArrowUpDown,BellRing,CalendarRange,CloudRain,Info,MapPin,Pencil,Plane,RefreshCw,Search,ShieldCheck,ShieldAlert,Star,Sun,Thermometer,Trash2,Wind} from 'lucide-react'
 import {WeatherPictogram} from './WeatherPictogram'
 import {bestMatchModelInfo,forecast,label,localIsoEpoch,mapDays,mapHours,radarNowcast,searchLocations,thunderstormNowcast,wind,type Hour,type Location,type WindUnit} from './weather'
 import {EVENT_CENTER_OPEN_EVENT,EVENT_CENTER_UPDATED_EVENT,buildEventCenterId,compareEventPlans,deleteEventCenterRecord,markEventCenterOpened,readEventCenterRecords,toggleEventCenterFavorite,upsertEventCenterRecord,type EventActivity,type EventAdvice,type EventCenterRecord,type EventEnvironment,type EventPlan,type EventStatus,type EventSummary,type EventTimelinePoint} from './eventCenter'
 import {applyConvectiveNowcastHours,applyForecastFusionDays,applyForecastFusionHours,applyOperationalNowcastHours,forecastFusionLabel,loadForecastFusion,type ForecastFusionResult} from './forecastFusion'
-import {precipitationParts} from './precipitation'
+import {compactPrecipitationTypeLabel,precipitationParts} from './precipitation'
 import {formatUvi} from './format'
 import {loadEventFlightHazards} from './eventAviation'
 
@@ -14,6 +14,8 @@ type ValueEvent={target:{value:string}}
 const EVENT_LOCATION_KEY='mid:event-planner:location'
 const EVENT_VALUES_KEY='mid:event-planner:values'
 const AUTO_REFRESH_MS=30*60*1000
+const EVENT_SORT_KEY='mid:event-center:sort'
+type EventSortMode='chronological'|'favorites'|'updated'|'title'
 
 const ENVIRONMENT_OPTIONS:{id:EventEnvironment;label:string;detail:string}[]=[
  {id:'indoor',label:'Indoor',detail:'Wetter wirkt vor allem auf An- und Abreise'},
@@ -51,6 +53,9 @@ function destinationLabel(location:Location){return[location.icao?`${location.ic
 function modelStamp(value?:string){if(!value)return'–';const date=new Date(value);return Number.isFinite(date.getTime())?new Intl.DateTimeFormat('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(date):value}
 function parseMinuteStamp(value:string){const match=value.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);if(!match)return Number.NaN;return Date.UTC(Number(match[1]),Number(match[2])-1,Number(match[3]),Number(match[4]),Number(match[5]))}
 function parseStoredValues(){try{return JSON.parse(storageGet(EVENT_VALUES_KEY)||'{}') as Partial<{title:string;date:string;startTime:string;endTime:string;environment:EventEnvironment;activity:EventActivity}>}catch{return{}}}
+function storedSortMode():EventSortMode{const value=storageGet(EVENT_SORT_KEY);return value==='favorites'||value==='updated'||value==='title'?value:'chronological'}
+function eventStartStamp(record:EventCenterRecord){const stamp=Date.parse(`${record.date}T${record.startTime||'00:00'}:00`);return Number.isFinite(stamp)?stamp:Number.MAX_SAFE_INTEGER}
+function sortEvents(records:EventCenterRecord[],mode:EventSortMode){const chronological=(a:EventCenterRecord,b:EventCenterRecord)=>eventStartStamp(a)-eventStartStamp(b)||(b.updatedAt||0)-(a.updatedAt||0);return [...records].sort((a,b)=>{if(mode==='favorites'&&a.isFavorite!==b.isFavorite)return a.isFavorite?-1:1;if(mode==='updated')return(b.updatedAt||0)-(a.updatedAt||0)||chronological(a,b);if(mode==='title')return(a.title||a.location.name).localeCompare(b.title||b.location.name,'de-DE',{sensitivity:'base'})||chronological(a,b);return chronological(a,b)})}
 function unique<T>(values:(T|null|undefined)[]){return values.filter((value,index,array)=>value!=null&&array.indexOf(value)===index) as T[]}
 function environmentLabel(value:EventEnvironment){return ENVIRONMENT_OPTIONS.find(item=>item.id===value)?.label??value}
 function activityLabel(value:EventActivity){return ACTIVITY_OPTIONS.find(item=>item.id===value)?.label??value}
@@ -63,8 +68,14 @@ function min(values:(number|null)[]){const usable=values.filter((value):value is
 function eventWeatherPart(point:EventTimelinePoint){return precipitationParts({time:point.time,precipitation:point.precipitation??0,rain:point.rain??0,showers:point.showers??0,snowfall:point.snowfall??0,probability:point.precipitationProbability??0,code:point.weatherCode??0,temperature:point.temperature??undefined,humidity:point.humidity??undefined,cloud:point.cloud??undefined,lowCloud:point.lowCloud??undefined,cape:point.cape??undefined,liftedIndex:point.liftedIndex??undefined,convectiveInhibition:point.convectiveInhibition??undefined,sunshineDuration:point.sunshineDuration??undefined,isDay:point.isDay})}
 function summarizeTimeline(timeline:EventTimelinePoint[],fusion:ForecastFusionResult|null):EventSummary{
  const temperatures=timeline.map(point=>point.temperature),apparents=timeline.map(point=>point.apparent),precipitationProbabilities=timeline.map(point=>point.precipitationProbability),winds=timeline.map(point=>point.wind),gusts=timeline.map(point=>point.gust),uvValues=timeline.map(point=>point.uv),visibilities=timeline.map(point=>point.visibility),parts=timeline.map(point=>({point,part:eventWeatherPart(point)})),wet=parts.filter(row=>row.part.type!=='none'),representative=(wet.length?wet:parts).sort((a,b)=>weatherSeverity(b.part.displayCode)-weatherSeverity(a.part.displayCode)||((b.point.precipitationProbability??0)+(b.point.precipitation??0)*8)-((a.point.precipitationProbability??0)+(a.point.precipitation??0)*8))[0],groups=new Set((fusion?.sources??[]).filter(source=>source.successful&&source.consensusRole!=='postprocessing').map(source=>source.independenceGroup||source.family));
- return{hours:timeline.length,temperatureAvg:mean(temperatures),temperatureMin:min(temperatures),temperatureMax:max(temperatures),apparentAvg:mean(apparents),precipitationProbabilityMax:max(precipitationProbabilities),precipitationTotal:timeline.reduce((sum,point)=>sum+(point.precipitation??0),0),windMax:max(winds),gustMax:max(gusts),uvMax:max(uvValues),visibilityMin:min(visibilities),weatherCode:representative?.part.displayCode??majorWeatherCode(timeline.map(point=>point.weatherCode)),weatherLabel:representative?.part.type==='none'?label(representative.part.displayCode):representative?.part.weatherLabel,weatherSourceLabel:representative?.point.weatherSourceLabel,isDay:representative?.point.isDay,modelFamilyCount:groups.size||undefined,rapidCycleUsed:Boolean(fusion?.sources?.some(source=>source.successful&&source.rapidUpdate))}
+ const probabilityWinner=[...wet].sort((a,b)=>(b.point.precipitationProbability??0)-(a.point.precipitationProbability??0)||b.part.total-a.part.total||weatherSeverity(b.part.displayCode)-weatherSeverity(a.part.displayCode))[0];
+ const precipitationProbabilityRelevant=probabilityWinner?.point.precipitationProbability??max(precipitationProbabilities);
+ const precipitationTypeLabel=probabilityWinner?compactPrecipitationTypeLabel(probabilityWinner.part.type):undefined;
+ return{hours:timeline.length,temperatureAvg:mean(temperatures),temperatureMin:min(temperatures),temperatureMax:max(temperatures),apparentAvg:mean(apparents),precipitationProbabilityMax:max(precipitationProbabilities),precipitationProbabilityRelevant,precipitationTypeLabel,precipitationTotal:timeline.reduce((sum,point)=>sum+(point.precipitation??0),0),windMax:max(winds),gustMax:max(gusts),uvMax:max(uvValues),visibilityMin:min(visibilities),weatherCode:representative?.part.displayCode??majorWeatherCode(timeline.map(point=>point.weatherCode)),weatherLabel:representative?.part.type==='none'?label(representative.part.displayCode):representative?.part.weatherLabel,weatherSourceLabel:representative?.point.weatherSourceLabel,isDay:representative?.point.isDay,modelFamilyCount:groups.size||undefined,rapidCycleUsed:Boolean(fusion?.sources?.some(source=>source.successful&&source.rapidUpdate))}
 }
+
+function eventPrecipProbability(summary:EventSummary){return summary.precipitationProbabilityRelevant??summary.precipitationProbabilityMax}
+function eventPrecipLabel(summary:EventSummary){return summary.precipitationTypeLabel||'Niederschlag'}
 
 function evaluateEvent(summary:EventSummary,environment:EventEnvironment,activity:EventActivity):EventAdvice{
  const tips:string[]=[]
@@ -72,8 +83,8 @@ function evaluateEvent(summary:EventSummary,environment:EventEnvironment,activit
  let severity=0
  const thunder=[95,96,99].includes(summary.weatherCode??-1)
  if(thunder){severity+=5;tips.push('Gewitterrisiko im Zeitfenster.');behavior.push(activity==='flight'?'Flugplanung gegen aktuelle METAR/TAF und amtliche Flugwetterberatung abgleichen.':'Outdoor-Ablauf mit belastbarer Ausweichoption planen.')}
- if((summary.precipitationProbabilityMax??0)>=75||(summary.precipitationTotal??0)>=5){severity+=environment==='indoor'?1:3;tips.push('Hohes Niederschlagsrisiko.');behavior.push(environment==='indoor'?'An- und Abreise mit Zeitpuffer planen.':'Regenschutz und geschützte Alternative vorsehen.')}
- else if((summary.precipitationProbabilityMax??0)>=40||(summary.precipitationTotal??0)>=1.5){severity+=environment==='indoor'?0:2;tips.push(summary.weatherLabel?.includes('Sprühregen')?'Sprühregen zeitweise möglich.':'Niederschlag zeitweise möglich.');behavior.push('Leichten Wetterschutz einplanen.')}
+ if((eventPrecipProbability(summary)??0)>=75||(summary.precipitationTotal??0)>=5){severity+=environment==='indoor'?1:3;tips.push('Hohes Niederschlagsrisiko.');behavior.push(environment==='indoor'?'An- und Abreise mit Zeitpuffer planen.':'Regenschutz und geschützte Alternative vorsehen.')}
+ else if((eventPrecipProbability(summary)??0)>=40||(summary.precipitationTotal??0)>=1.5){severity+=environment==='indoor'?0:2;tips.push(summary.weatherLabel?.includes('Sprühregen')?'Sprühregen zeitweise möglich.':'Niederschlag zeitweise möglich.');behavior.push('Leichten Wetterschutz einplanen.')}
  if((summary.windMax??0)>=22||(summary.gustMax??0)>=34){severity+=environment==='indoor'?1:3;tips.push('Wind/Böen können den Ablauf deutlich beeinflussen.');behavior.push(activity==='watersports'?'Gewässer- und Materialgrenzen prüfen.':activity==='flight'?'Start-/Landephase und lokale Windgrenzen gesondert prüfen.':'Windempfindliche Ausrüstung sichern.')}
  else if((summary.windMax??0)>=14||(summary.gustMax??0)>=24){severity+=1;tips.push('Spürbarer Wind.');behavior.push(activity==='flight'?'Böen und lokale Windrichtung vor Abflug prüfen.':'Wind bei Kleidung und Streckenwahl berücksichtigen.')}
  if((summary.temperatureMax??summary.temperatureAvg??0)>=29){severity+=2;tips.push('Hohe Wärmebelastung.');behavior.push('Trinkpausen und Schatten einplanen.')}
@@ -120,20 +131,20 @@ function buildOutfitHint(summary:EventSummary,environment:EventEnvironment,activ
  if((summary.temperatureMax??summary.temperatureAvg??0)>=27)layers.push('leichte, luftige Kleidung')
  else if((summary.temperatureMin??summary.temperatureAvg??99)<=4)layers.push('warme, winddichte Schichten')
  else layers.push('wetterangepasste Übergangskleidung')
- if((summary.precipitationProbabilityMax??0)>=40||(summary.precipitationTotal??0)>=1)layers.push('Regenschutz')
+ if((eventPrecipProbability(summary)??0)>=40||(summary.precipitationTotal??0)>=1)layers.push('Regenschutz')
  if((summary.uvMax??0)>=6&&environment!=='indoor')layers.push('Sonnen- und Hitzeschutz')
  if((summary.windMax??0)>=16||(summary.gustMax??0)>=24)layers.push('etwas Windschutz')
  return layers.join(' · ')
 }
 function buildTimingHint(summary:EventSummary,activity:EventActivity){
  if(activity==='flight')return summary.flightHazards?.overall==='caution'?'Flugwetterprodukte vor Durchführung zwingend neu prüfen':summary.flightHazards?.overall==='watch'?'Flugwetterlage vor Abflug gezielt verifizieren':'METAR/TAF vor Abflug aktualisieren'
- if((summary.precipitationProbabilityMax??0)>=75)return'Puffer für Schauer einplanen'
+ if((eventPrecipProbability(summary)??0)>=75)return'Puffer für Schauer einplanen'
  if((summary.windMax??0)>=18||(summary.gustMax??0)>=28)return'exponierte Phasen möglichst kurz halten'
  if((summary.temperatureMax??summary.temperatureAvg??0)>=29)return'Pausen und Wasserstellen einplanen'
  return'gute Planbarkeit im gewählten Zeitfenster'
 }
 function eventCompactRange(record:EventCenterRecord){return`${formatDate(record.date)} · ${formatClock(record.startTime)}–${formatClock(record.endTime)}`}
-function eventMetricLine(plan:EventPlan|null,unit:WindUnit){if(!plan)return'Noch keine Analyse.';return`${formatNumber(plan.summary.temperatureAvg)} °C · Regen ${formatNumber(plan.summary.precipitationProbabilityMax)} % · ${wind(plan.summary.windMax??Number.NaN,unit)}`}
+function eventMetricLine(plan:EventPlan|null,unit:WindUnit){if(!plan)return'Noch keine Analyse.';return`${formatNumber(plan.summary.temperatureAvg)} °C · ${eventPrecipLabel(plan.summary)} ${formatNumber(eventPrecipProbability(plan.summary))} % · Wind ${wind(plan.summary.windMax??Number.NaN,unit)} · Böen ${wind(plan.summary.gustMax??Number.NaN,unit)}`}
 
 export default function EventPlannerPanel({initialLocation,advancedMode,unit}:Props){
  const stored=useMemo(()=>parseStoredValues(),[])
@@ -152,7 +163,9 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit}:Pr
  const [error,setError]=useState('')
  const [plan,setPlan]=useState<EventPlan|null>(null)
  const [savedEvents,setSavedEvents]=useState<EventCenterRecord[]>(()=>readEventCenterRecords())
+ const [sortMode,setSortMode]=useState<EventSortMode>(()=>storedSortMode())
  const [selectedRecordId,setSelectedRecordId]=useState('')
+ const [editingRecordId,setEditingRecordId]=useState('')
  const [refreshingIds,setRefreshingIds]=useState<string[]>([])
  const [bulkRefreshing,setBulkRefreshing]=useState(false)
  const searchController=useRef<AbortController|null>(null)
@@ -160,10 +173,13 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit}:Pr
  const forecastWindowHint=`Vorhersage aktuell bis ${formatDate(addDays(localToday(),13))}`
  const currentEventId=buildEventCenterId(destination,date,startTime,title.trim()||destination.name)
  const selectedRecord=savedEvents.find(item=>item.id===selectedRecordId)||null
- const currentSavedRecord=(selectedRecord?.id===currentEventId?selectedRecord:null)||savedEvents.find(item=>item.id===currentEventId)||null
+ const editingRecord=savedEvents.find(item=>item.id===editingRecordId)||null
+ const currentSavedRecord=editingRecord||(selectedRecord?.id===currentEventId?selectedRecord:null)||savedEvents.find(item=>item.id===currentEventId)||null
+ const displayedEvents=useMemo(()=>sortEvents(savedEvents,sortMode),[savedEvents,sortMode])
 
  useEffect(()=>()=>{searchController.current?.abort();analysisController.current?.abort()},[])
  useEffect(()=>{storageSet(EVENT_VALUES_KEY,JSON.stringify({title,date,startTime,endTime,environment,activity}))},[title,date,startTime,endTime,environment,activity])
+ useEffect(()=>{storageSet(EVENT_SORT_KEY,sortMode)},[sortMode])
  useEffect(()=>{if(plan||storedLocation())return;setDestination(initialLocation)},[initialLocation,plan])
  useEffect(()=>{
   if(!plan)return
@@ -224,7 +240,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit}:Pr
   return true
  }
  function savePlanRecord(nextPlan:EventPlan,forceFavorite?:boolean){
-  const id=currentSavedRecord?.id||buildEventCenterId(nextPlan.location,nextPlan.date,nextPlan.startTime,nextPlan.title||nextPlan.location.name)
+  const id=editingRecordId||currentSavedRecord?.id||buildEventCenterId(nextPlan.location,nextPlan.date,nextPlan.startTime,nextPlan.title||nextPlan.location.name)
   const previous=savedEvents.find(item=>item.id===id)||null
   const change=compareEventPlans(previous?.plan,nextPlan)
   const record:EventCenterRecord={
@@ -245,6 +261,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit}:Pr
   }
   upsertEventCenterRecord(record)
   setSelectedRecordId(record.id)
+  if(editingRecordId)setEditingRecordId(record.id)
   return record
  }
  async function analyseEvent(event?:FormEvent,silent=false){
@@ -291,6 +308,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit}:Pr
   setActivity(record.activity)
   setPlan(record.plan)
   setSelectedRecordId(record.id)
+  setEditingRecordId(record.id)
   markEventCenterOpened(record.id)
  }
  function saveCurrentPlan(asFavorite=false){
@@ -302,6 +320,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit}:Pr
  function removeRecord(record:EventCenterRecord){
   deleteEventCenterRecord(record.id)
   if(selectedRecordId===record.id)setSelectedRecordId('')
+  if(editingRecordId===record.id)setEditingRecordId('')
   if(currentSavedRecord?.id===record.id)setPlan(null)
   setSavedEvents(readEventCenterRecords())
  }
@@ -320,15 +339,15 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit}:Pr
   <header className="event-planner-head"><div><span>EVENTPLANER</span><h4>Events & Aktivitäten</h4><p>Wettercheck für Termin, Ort und Aktivität.</p></div><div className="event-head-actions"><span className="travel-climate-badge">{forecastWindowHint}</span><details className="event-info-disclosure"><summary aria-label="Informationen zum Eventplaner" title="Informationen"><Info size={16}/></summary><div><strong>Eventplaner</strong><p>MID verwendet dieselben plausibilisierten Wetterpfade und Einheiten wie die übrige App. Gespeicherte Favoriten können unabhängig voneinander aktualisiert werden. Flugwetter-Hazards sind automatisierte MID-Diagnosen und keine amtliche Flugwetterberatung.</p></div></details></div></header>
 
   <section className="event-center-shelf">
-   <header><div><span>EVENT-CENTER</span><h5>Gespeicherte Events</h5><small>{savedEvents.length} gespeichert · {favoriteEvents.length} Favorit{favoriteEvents.length===1?'':'en'}</small></div><div className="event-center-actions"><button type="button" className="secondary" onClick={()=>void refreshStoredEvents(true)} disabled={bulkRefreshing||!favoriteEvents.length}>{bulkRefreshing?<RefreshCw className="spin" size={15}/>:<BellRing size={15}/>} Favoriten prüfen</button><button type="button" className="secondary" onClick={()=>void refreshStoredEvents(false)} disabled={bulkRefreshing||!savedEvents.length}>{bulkRefreshing?<RefreshCw className="spin" size={15}/>:<RefreshCw size={15}/>} Alle prüfen</button><details className="event-info-disclosure compact"><summary aria-label="Informationen zum Event-Center" title="Informationen"><Info size={15}/></summary><div><strong>Mehrere Favoriten</strong><p>Beliebig viele gespeicherte Events können gleichzeitig als Favorit markiert werden. Die Prüfung erfolgt nacheinander, damit Modell- und Nowcast-Abfragen nicht unnötig parallelisiert werden.</p></div></details></div></header>
-   {savedEvents.length?<div className="event-center-grid">{savedEvents.map(record=>{const active=record.id===selectedRecordId||record.id===currentSavedRecord?.id,recordPlan=record.plan,refreshing=refreshingIds.includes(record.id);return <article key={record.id} className={`event-center-card${active?' active':''}`}>
+   <header><div><span>EVENT-CENTER</span><h5>Gespeicherte Events</h5><small>{savedEvents.length} gespeichert · {favoriteEvents.length} Favorit{favoriteEvents.length===1?'':'en'}</small></div><div className="event-center-actions"><label className="event-center-sort"><ArrowUpDown size={14}/><span>Sortierung</span><select value={sortMode} onChange={(event:ValueEvent)=>setSortMode(event.target.value as EventSortMode)} aria-label="Events sortieren"><option value="chronological">Chronologisch</option><option value="favorites">Favoriten zuerst</option><option value="updated">Zuletzt geändert</option><option value="title">Titel A–Z</option></select></label><button type="button" className="secondary" onClick={()=>void refreshStoredEvents(true)} disabled={bulkRefreshing||!favoriteEvents.length}>{bulkRefreshing?<RefreshCw className="spin" size={15}/>:<BellRing size={15}/>} Favoriten prüfen</button><button type="button" className="secondary" onClick={()=>void refreshStoredEvents(false)} disabled={bulkRefreshing||!savedEvents.length}>{bulkRefreshing?<RefreshCw className="spin" size={15}/>:<RefreshCw size={15}/>} Alle prüfen</button><details className="event-info-disclosure compact"><summary aria-label="Informationen zum Event-Center" title="Informationen"><Info size={15}/></summary><div><strong>Gespeicherte Events</strong><p>Standardmäßig chronologisch. Favoriten, Änderungen und Titel können alternativ als Sortierung gewählt werden.</p></div></details></div></header>
+   {savedEvents.length?<div className="event-center-grid">{displayedEvents.map(record=>{const active=record.id===selectedRecordId||record.id===currentSavedRecord?.id,recordPlan=record.plan,refreshing=refreshingIds.includes(record.id);return <article key={record.id} className={`event-center-card${active?' active':''}`}>
     <div className="event-center-card-top"><div className="event-center-card-tags"><span className="event-center-card-pill fill">{environmentLabel(record.environment)}</span><span className="event-center-card-pill">{activityLabel(record.activity)}</span>{record.change&&record.change.level!=='none'&&<span className={`event-center-card-pill signal-${record.change.level}`}>{record.change.badge}</span>}</div><button type="button" className={`event-center-favorite${record.isFavorite?' active':''}`} onClick={()=>toggleFavorite(record)} aria-label={record.isFavorite?'Favorit entfernen':'Als Favorit markieren'} title={record.isFavorite?'Favorit entfernen':'Als Favorit markieren'}><Star size={15} fill={record.isFavorite?'currentColor':'none'}/></button></div>
     <strong>{record.title||record.location.name}</strong>
     <p>{destinationLabel(record.location)}</p>
     <small>{eventCompactRange(record)}</small>
     <div className="event-center-card-weather"><WeatherPictogram code={recordPlan?.summary.weatherCode??0} day title={label(recordPlan?.summary.weatherCode??0)}/><div><b>{recordPlan?.advice.headline||'Noch keine Analyse'}</b><span>{eventMetricLine(recordPlan,unit)}</span></div></div>
     {record.change?.level&&record.change.level!=='none'?<div className={`event-center-change ${record.change.level}`}><BellRing size={14}/><span>{record.change.summary}</span></div>:null}
-    <footer><button type="button" className="secondary" onClick={()=>loadRecord(record)}>Öffnen</button><button type="button" className="secondary" onClick={()=>void refreshStoredEvent(record)} disabled={refreshing}>{refreshing?<RefreshCw className="spin" size={15}/>:<RefreshCw size={15}/>} Aktualisieren</button><button type="button" className="secondary danger-lite" onClick={()=>removeRecord(record)}><Trash2 size={15}/> Löschen</button></footer>
+    <footer><button type="button" className="secondary" onClick={()=>loadRecord(record)}><Pencil size={15}/> Bearbeiten</button><button type="button" className="secondary" onClick={()=>void refreshStoredEvent(record)} disabled={refreshing}>{refreshing?<RefreshCw className="spin" size={15}/>:<RefreshCw size={15}/>} Aktualisieren</button><button type="button" className="secondary danger-lite" onClick={()=>removeRecord(record)}><Trash2 size={15}/> Löschen</button></footer>
    </article>})}</div>:<div className="event-center-empty"><CalendarRange size={18}/><span>Noch keine Events gespeichert.</span></div>}
   </section>
 
@@ -348,7 +367,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit}:Pr
    </div>
    <div className="event-choice-block"><span>Rahmen</span><div className="event-chip-row">{ENVIRONMENT_OPTIONS.map(option=><button type="button" key={option.id} className={environment===option.id?'active':''} onClick={()=>setEnvironment(option.id)} title={option.detail}><strong>{option.label}</strong></button>)}</div></div>
    <div className="event-choice-block"><span>Aktivität</span><div className="event-chip-grid">{ACTIVITY_OPTIONS.map(option=><button type="button" key={option.id} className={activity===option.id?'active':''} onClick={()=>setActivity(option.id)} title={option.detail}><strong>{option.id==='flight'?<><Plane size={14}/> {option.label}</>:option.label}</strong></button>)}</div></div>
-   <div className="event-plan-actions"><details className="event-info-disclosure inline"><summary aria-label="Informationen zur Aktualisierung"><Info size={15}/><span>Automatische Aktualisierung</span></summary><div><p>Geöffnete Events werden etwa alle 30 Minuten neu bewertet. Favoriten lassen sich gemeinsam nacheinander prüfen.</p></div></details><button type="submit" className="primary travel-analyse" disabled={loading}>{loading?<RefreshCw className="spin" size={17}/>:<CalendarRange size={17}/>} {loading?'Wird geprüft …':'Wetter prüfen'}</button></div>
+   <div className="event-plan-actions"><details className="event-info-disclosure inline"><summary aria-label="Informationen zur Aktualisierung"><Info size={15}/><span>Automatische Aktualisierung</span></summary><div><p>Geöffnete Events werden etwa alle 30 Minuten neu bewertet. Favoriten lassen sich gemeinsam nacheinander prüfen.</p></div></details><button type="submit" className="primary travel-analyse" disabled={loading}>{loading?<RefreshCw className="spin" size={17}/>:<CalendarRange size={17}/>} {loading?'Wird geprüft …':editingRecordId?'Änderungen prüfen':'Wetter prüfen'}</button></div>
   </form>
 
   {error&&<div className="error">{error}</div>}
@@ -362,13 +381,13 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit}:Pr
     </div>
     <div className="event-guide-main">
      <div className="event-guide-copy"><span>EVENT-CHECK</span><h5>{currentTitle}</h5><p>{destinationLabel(plan.location)}</p><strong>{plan.advice.headline}</strong><p>{plan.advice.summary}</p><div className="event-guide-inline-notes"><article><MapPin size={15}/><span>{timingHint}</span></article><article><BellRing size={15}/><span>{lastUpdateText}</span></article></div><div className="event-result-toolbar"><button type="button" className="secondary" onClick={()=>saveCurrentPlan(false)}><Star size={15} fill={currentSavedRecord?'currentColor':'none'}/>{currentSavedRecord?'Event aktualisieren':'Event speichern'}</button>{currentSavedRecord?<button type="button" className="secondary" onClick={()=>toggleFavorite(currentSavedRecord)}><Star size={15} fill={currentSavedRecord.isFavorite?'currentColor':'none'}/>{currentSavedRecord.isFavorite?'Favorit entfernen':'Favorit'}</button>:<button type="button" className="secondary" onClick={()=>saveCurrentPlan(true)}><Star size={15}/>Als Favorit speichern</button>}</div></div>
-     <aside className="event-guide-weatherpanel"><small>Leitwetter</small><div className="event-guide-weatherrow"><WeatherPictogram code={plan.summary.weatherCode??0} day={plan.summary.isDay!==false} title={plan.summary.weatherLabel||label(plan.summary.weatherCode??0)}/><div><strong>{formatNumber(plan.summary.temperatureAvg)}°</strong><span>{plan.summary.weatherLabel||label(plan.summary.weatherCode??0)}</span></div></div><p>{outfitHint}</p><div className="event-guide-quickstats"><span><CloudRain size={14}/>{formatNumber(plan.summary.precipitationProbabilityMax)} %</span><span><Wind size={14}/>{wind(plan.summary.windMax??Number.NaN,unit)}</span><span><Sun size={14}/>UVI {formatUvi(plan.summary.uvMax??Number.NaN)}</span></div></aside>
+     <aside className="event-guide-weatherpanel"><small>Leitwetter</small><div className="event-guide-weatherrow"><WeatherPictogram code={plan.summary.weatherCode??0} day={plan.summary.isDay!==false} title={plan.summary.weatherLabel||label(plan.summary.weatherCode??0)}/><div><strong>{formatNumber(plan.summary.temperatureAvg)}°</strong><span>{plan.summary.weatherLabel||label(plan.summary.weatherCode??0)}</span></div></div><p>{outfitHint}</p><div className="event-guide-quickstats"><span><CloudRain size={14}/>{eventPrecipLabel(plan.summary)} {formatNumber(eventPrecipProbability(plan.summary))} %</span><span><Wind size={14}/>{wind(plan.summary.windMax??Number.NaN,unit)} · Böen {wind(plan.summary.gustMax??Number.NaN,unit)}</span><span><Sun size={14}/>UVI {formatUvi(plan.summary.uvMax??Number.NaN)}</span></div></aside>
     </div>
    </div>
 
    <div className="event-metrics-grid">
     <article><Thermometer size={17}/><small>Temperatur</small><strong>{formatNumber(plan.summary.temperatureAvg)} °C</strong><span>{formatNumber(plan.summary.temperatureMin)}–{formatNumber(plan.summary.temperatureMax)} °C · gefühlt Ø {formatNumber(plan.summary.apparentAvg)} °C</span></article>
-    <article><CloudRain size={17}/><small>Niederschlag</small><strong>{formatNumber(plan.summary.precipitationProbabilityMax)} %</strong><span>{formatNumber(plan.summary.precipitationTotal,1)} mm</span></article>
+    <article><CloudRain size={17}/><small>Niederschlag</small><strong>{eventPrecipLabel(plan.summary)} {formatNumber(eventPrecipProbability(plan.summary))} %</strong><span>{formatNumber(plan.summary.precipitationTotal,1)} mm</span></article>
     <article><Wind size={17}/><small>Wind</small><strong>{wind(plan.summary.windMax??Number.NaN,unit)}</strong><span>Böen {wind(plan.summary.gustMax??Number.NaN,unit)}</span></article>
     <article><Sun size={17}/><small>UVI / Sicht</small><strong>UVI {formatUvi(plan.summary.uvMax??Number.NaN)}</strong><span>Sicht min. {plan.summary.visibilityMin!=null?`${formatNumber(plan.summary.visibilityMin/1000,1)} km`:'–'}</span></article>
    </div>
@@ -377,7 +396,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit}:Pr
 
    <div className="event-guidance-grid"><article><strong>Wichtig</strong><ul>{plan.advice.tips.map(item=><li key={item}>{item}</li>)}</ul></article><article><strong>Empfehlung</strong><ul>{plan.advice.behavior.map(item=><li key={item}>{item}</li>)}</ul></article></div>
 
-   <div className="event-timeline-card"><header><div><span>ZEITFENSTER</span><h6>Stündlicher Verlauf</h6></div><details className="event-info-disclosure compact"><summary aria-label="Informationen zum Stundenverlauf"><Info size={15}/></summary><div><p>{advancedMode?'Best Match, unabhängige Modellfamilien und MID-Plausibilisierung; bei Nahterminen zusätzlich Nowcast.':'Dieselbe plausibilisierte Stundenprognose wie in der übrigen App.'}</p></div></details></header><div className="event-timeline">{plan.timeline.map(point=><article key={point.time}><time>{point.time}</time><WeatherPictogram code={point.weatherCode??0} day={point.isDay!==false} title={point.weatherLabel||label(point.weatherCode??0)}/><strong>{formatNumber(point.temperature)}°</strong><small>{point.weatherLabel||label(point.weatherCode??0)} · {formatNumber(point.precipitationProbability)} %</small><small>{wind(point.wind??Number.NaN,unit)}</small></article>)}</div></div>
+   <div className="event-timeline-card"><header><div><span>ZEITFENSTER</span><h6>Stündlicher Verlauf</h6></div><details className="event-info-disclosure compact"><summary aria-label="Informationen zum Stundenverlauf"><Info size={15}/></summary><div><p>{advancedMode?'Best Match, unabhängige Modellfamilien und MID-Plausibilisierung; bei Nahterminen zusätzlich Nowcast.':'Dieselbe plausibilisierte Stundenprognose wie in der übrigen App.'}</p></div></details></header><div className="event-timeline">{plan.timeline.map(point=><article key={point.time}><time>{point.time}</time><WeatherPictogram code={point.weatherCode??0} day={point.isDay!==false} title={point.weatherLabel||label(point.weatherCode??0)}/><strong>{formatNumber(point.temperature)}°</strong><small>{point.weatherLabel||label(point.weatherCode??0)} · {formatNumber(point.precipitationProbability)} %</small><small>Wind {wind(point.wind??Number.NaN,unit)} · Böen {wind(point.gust??Number.NaN,unit)}</small></article>)}</div></div>
 
    <details className="event-info-disclosure event-model-disclosure"><summary><Info size={16}/><span>Daten & Modellstand</span></summary><div className="event-model-updates"><header><div><span>MODELLSTAND</span><h6>Aktuelle Laufstände</h6></div><small>{lastUpdateText}</small></header>{plan.modelInfo?.summary?<div className="event-model-update-lead"><BellRing size={16}/><span>{plan.modelInfo.summary}</span></div>:null}{latestRuns.length>0&&<div className="event-run-grid">{latestRuns.map(run=><article key={`${run.id}:${run.initialisationTime}`}><strong>{run.label}</strong><small>Init {modelStamp(run.initialisationTime)}</small><small>Verfügbar {modelStamp(run.availabilityTime||run.initialisationTime)}</small></article>)}</div>}<footer><span>Quelle: {plan.source}</span><small>{plan.summary.modelFamilyCount?`${plan.summary.modelFamilyCount} unabhängige Modellgruppen geprüft. `:''}{plan.summary.rapidCycleUsed?'Rapid-Cycle-Läufe einbezogen. ':''}{advancedMode?'Varianten derselben Modellfamilie werden nicht mehrfach gewichtet.':''}</small></footer></div></details>
   </section>}

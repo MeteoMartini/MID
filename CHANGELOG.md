@@ -1,3 +1,10 @@
+# MID v0.9.44.0
+
+- Event-Center: chronologische Standardsortierung plus wählbare Sortierung.
+- Gespeicherte Events sind nun eindeutig bearbeitbar.
+- Wind wird zusammen mit Böen ausgegeben.
+- Niederschlags-% werden an die dominante plausibilisierte Niederschlagsform gekoppelt.
+
 # MID v0.9.43.0
 
 - **Event-Center mit echten Mehrfachfavoriten:** mehrere gespeicherte Events können gleichzeitig favorisiert und gemeinsam nacheinander aktualisiert werden; ein zuvor geladenes Event überschreibt beim Anlegen eines neuen Termins keinen anderen Favoriten mehr.
