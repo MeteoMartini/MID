@@ -5858,3 +5858,60 @@ html[data-mid-density="comfortable"]{
 
 /* v0.9.46.0 · official aviation source disclosure */
 .event-flight-source-list{display:grid;gap:6px;margin:9px 0}.event-flight-source-list>span{display:grid;gap:1px;padding:6px 8px;border:1px solid color-mix(in srgb,var(--border) 78%,transparent);border-radius:8px;background:color-mix(in srgb,var(--surface-2) 76%,transparent)}.event-flight-source-list b{font-size:.76rem}.event-flight-source-list small{font-size:.7rem;color:var(--muted)}.event-flight-source-list>span.used{border-color:color-mix(in srgb,#2aa876 46%,var(--border))}.event-flight-source-list>span.unavailable{border-color:color-mix(in srgb,#d45b58 42%,var(--border))}
+
+/* MID v0.9.52.3 · appweiter Touch-/Responsivitäts-Cleanup ohne Funktionsabbau */
+button,[role="button"],summary{
+ touch-action:manipulation;
+ -webkit-tap-highlight-color:transparent;
+}
+@media(hover:none),(pointer:coarse){
+ button,[role="button"],summary{
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
+ }
+ /* Kompakte Bedienelemente behalten ihre optische Dichte, erhalten aber verlässlichere Touchflächen. */
+ .search-input-shell>button,
+ .mode-info>button,
+ .metrics .air-quality-card header>.mode-info>button,
+ .metrics .uvi-card header>.mode-info>button,
+ .metrics .sun-moon-card header>.mode-info>button,
+ .nowcard-label-row .mode-info>button,
+ .precip-now-source-row>.mode-info>button,
+ .event-auto-update-note .mode-info>button,
+ .hour-chart-tooltip>header button,
+ .short-term-detail>header button,
+ .dashboard-module-order-actions button,
+ .weather-twin-recommendations footer button,
+ .long-range-head-actions>button,
+ .cockpit-weather-profile__stepper>button,
+ .actions .event-center-header-popover>header>button{
+  min-width:36px!important;
+  min-height:36px!important;
+ }
+ .model-run-button,
+ .radarlegend-toggle,
+ .weather-twin-site-status>button,
+ .mountain-matrix-controls button,
+ .detail-legend-toggle,
+ .wind-mode-switch button,
+ .current-metrics-toggle,
+ .cockpit-weather-profile__toggle,
+ .rain-cumulative-toggle,
+ .cockpit-model-run-button,
+ .cockpit-consistency-pill,
+ .event-choice-block.compact button{
+  min-height:36px!important;
+ }
+ .cockpit-weather-profile__icon-toggle.compact{
+  min-width:36px!important;
+  min-height:36px!important;
+  width:36px!important;
+  height:36px!important;
+ }
+ /* Verhindert, dass rein dekorative SVG-/Icon-Ebenen selbst das Tap-Ziel werden. */
+ button>svg,
+ [role="button"]>svg{
+  pointer-events:none;
+ }
+}

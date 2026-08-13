@@ -23,8 +23,9 @@ for(const token of [
  'Stärkste Einschränkung',
  'relativePointTime=(point:ShortTermForecastPoint)',
  'plain/>',
- 'onPointerDown={()=>activatePoint(item.point)}'
+ 'onClick={()=>activatePoint(item.point)}'
 ])need('24-h-Wetterprofil',cockpit,token);
+for(const token of ['onPointerDown={()=>activatePoint(item.point)}','onTouchStart={()=>activatePoint(item.point)}'])reject('Mehrfachaktivierung',cockpit,token);
 for(const token of ['Wetterberuhigung','Max. Wetter-Hazard','Stündlich · ein Blick','Seitlich wischbar','Darstellung durchgängig einstündig.','Tag antippen: stündlicher Verlauf.','Kompakt pro Tag: Temperaturabweichung · Niederschlagssignal · Wind/Böen · Konsistenz.','Temperatur, gefühlte Temperatur, thermisches Empfinden, Niederschlag, Wind/Böen, Wolkenschichten und Wetter-Hazards in einer gemeinsamen Zeitachse.','Tendenz des Luftdrucks im kurzfristigen Verlauf.','Höchstes Nebel- oder Sichtsignal im dargestellten Zeitraum.','shortTermCalmWindow(','dailyTemperatureExtremes=chartDayBands.flatMap'])reject('Altvertrag',cockpit,token);
 for(const token of [
  '.cockpit-weather-profile .cockpit-meteogram-pro__canvas{height:auto;min-height:0}',

@@ -11,7 +11,8 @@ const [app,moduleSettings,symbols,overlay,panel,seasonal,longRange,styles,baseli
  readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')
 ]);
 const failures=[],need=(scope,text,token)=>{if(!text.includes(token))failures.push(`${scope}: fehlt ${token}`)};
-for(const token of ["type FavoriteStripMode='auto'|'always'|'hidden'","favoriteStripMode==='always'","favoriteStripMode!=='hidden'","<strong>Dauerhaft</strong>","<strong>Aus</strong>","Math.hypot(event.clientX-gesture.x,event.clientY-gesture.y)>12","Date.now()-lastTouchToggle.current<450"])need('App',app,token);
+for(const token of ["type FavoriteStripMode='auto'|'always'|'hidden'","favoriteStripMode==='always'","favoriteStripMode!=='hidden'","<strong>Dauerhaft</strong>","<strong>Aus</strong>",'className="module-shell-toggle" onClick={toggle}'])need('App',app,token);
+for(const legacy of ["Math.hypot(event.clientX-gesture.x,event.clientY-gesture.y)>12","Date.now()-lastTouchToggle.current<450","touchGesture=useRef"])if(app.includes(legacy))failures.push(`App: veraltete parallele Modul-Touchlogik vorhanden ${legacy}`);
 for(const token of ['defaultDashboardModuleSettings','Standard wiederherstellen'])need('Dashboard defaults',moduleSettings,token);
 for(const token of ["graupel:{label:'Graupel / Eiskörner'","'snow-grains':{label:'Schneekörner'","hail:{label:'Hagel'",'const hex=','const star=','const drop='])need('Niederschlagssymbole',symbols,token);
 for(const token of ['precipitationTypeSymbolSvg(item.phase)','Layer aktiv · aktuell keine festen/gemischten Niederschlagsarten im sichtbaren Ausschnitt'])need('Phasenoverlay',overlay,token);

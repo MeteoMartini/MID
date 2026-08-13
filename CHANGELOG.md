@@ -1,6 +1,16 @@
 # MID Changelog
 
 
+## 0.9.52.3
+
+- Appweiter Responsivitäts-/Touch-Cleanup ohne Funktionsabbau: native Einzelaktivierung für einklappbare Dashboardmodule statt paralleler Pointer-/Click-Umschaltung.
+- Forecast-Cockpit-Hitflächen lösen die Auswahl nur noch einmal über den nativen Click-Pfad aus; redundante PointerDown-/TouchStart-State-Updates entfallen.
+- Ortssuche auf iOS stabilisiert: Treffer bleiben beim Fokusverlust des Eingabefelds erhalten und werden erst über den bestehenden Außenklick-/Fokuswechsel-Mechanismus geschlossen, sodass der erste Tap auf einen Treffer zuverlässig ankommt.
+- Appweiter Touchvertrag ergänzt (`touch-action: manipulation`, unterdrückte Tap-Highlights/Touch-Callouts, dekorative SVGs ohne eigenes Hit-Target).
+- Kompakte Touch-Controls erhalten auf groben Zeigern mindestens 36 px Trefferhöhe/-breite, ohne Desktop-Dichte oder Funktionen zu verändern.
+- Neue Required-Regression `test-appwide-touch-responsiveness-09523.mjs`.
+- Worker fachlich unverändert; nur Versionssynchronisation.
+
 ## 0.9.52.2
 
 - Regression-Hotfix: `test-hyperlocal-quality-audit-08200.mjs` an den seit v0.9.52.0 verpflichtenden Oberflächenkontext angepasst.
