@@ -275,10 +275,10 @@ function readCache(lat:number,lon:number,maxAge=STALE_MS){
 }
 function writeCache(lat:number,lon:number,value:ForecastFusionResult){try{localStorage.setItem(cacheKey(lat,lon),JSON.stringify({at:Date.now(),value}))}catch{}}
 
-export async function loadForecastFusion(lat:number,lon:number,country:string|undefined,elevation:number|undefined,signal?:AbortSignal):Promise<ForecastFusionResult|null>{
- const fresh=readCache(lat,lon,FRESH_MS);if(fresh)return fresh;
+export async function loadForecastFusion(lat:number,lon:number,country:string|undefined,elevation:number|undefined,signal?:AbortSignal,forceRefresh=false):Promise<ForecastFusionResult|null>{
+ const fresh=forceRefresh?null:readCache(lat,lon,FRESH_MS);if(fresh)return fresh;
  try{
-  const value=await fetchWorkerJson<ForecastFusionResult>('forecast-fusion',{lat,lon,country,elevation:Number.isFinite(elevation)?Math.round(Number(elevation)):undefined},{purpose:'general',signal,timeoutMs:24000,cache:'default',maxAgeMs:FRESH_MS,staleIfErrorMs:STALE_MS,cacheKey:`forecast-fusion:${cacheKey(lat,lon)}`});
+  const value=await fetchWorkerJson<ForecastFusionResult>('forecast-fusion',{lat,lon,country,elevation:Number.isFinite(elevation)?Math.round(Number(elevation)):undefined,refresh:forceRefresh?1:undefined},{purpose:'general',signal,timeoutMs:24000,cache:forceRefresh?'no-store':'default',maxAgeMs:forceRefresh?0:FRESH_MS,staleIfErrorMs:STALE_MS,cacheKey:`forecast-fusion:${cacheKey(lat,lon)}`});
   if(value.schema!=='mid.forecast-fusion.v1'||!Array.isArray(value.days)||Number(value.version)<1)throw new Error('Ungültige Mehrquellen-Prognose.');
   writeCache(lat,lon,value);return value;
  }catch(error){

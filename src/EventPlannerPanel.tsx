@@ -205,7 +205,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
  useEffect(()=>{if(plan||storedLocation())return;setDestination(initialLocation)},[initialLocation,plan])
  useEffect(()=>{
   if(!plan)return
-  const timer=window.setInterval(()=>{void analyseEvent(undefined,true)},AUTO_REFRESH_MS)
+  const timer=window.setInterval(()=>{void analyseEvent(undefined,true,true)},AUTO_REFRESH_MS)
   return()=>window.clearInterval(timer)
  },[plan,destination,date,startTime,endTime,environment,activity,title])
  useEffect(()=>{
@@ -234,9 +234,9 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
   finally{if(searchController.current===controller&&!controller.signal.aborted)setSearching(false)}
  }
  function chooseLocation(location:Location){setDestination(location);setSearchResults([]);setQuery('');setSearchError('');storageSet(EVENT_LOCATION_KEY,JSON.stringify(location))}
- async function buildPlan(location:Location,eventDate:string,eventStartTime:string,eventEndTime:string,eventEnvironment:EventEnvironment,eventActivity:EventActivity,eventTitle:string,signal:AbortSignal){
-  const country=location.country_code||location.country,[weather,modelInfo,fusion,eventEnsemble]=await Promise.all([forecast(location.latitude,location.longitude,signal),bestMatchModelInfo(location.latitude,location.longitude,country,signal).catch(()=>null),loadForecastFusion(location.latitude,location.longitude,country,location.elevation,signal).catch(()=>null),eventEnsembleForecast(location.latitude,location.longitude,eventDate,eventStartTime,eventEndTime,signal).catch(()=>({days:[],models:[],precipitationProbability:null}))])
-  const baseHours=mapHours(weather),baseDays=mapDays(weather),fusedDays=applyForecastFusionDays(baseDays,fusion),canonical=sameForecastLocation(location,initialLocation)&&canonicalHours.length>0,ensembleDays=eventEnsemble.days??[],eventProbability=eventEnsemble.precipitationProbability??null;let finalHours=canonical?canonicalHours:applyForecastFusionHours(baseHours,baseDays,fusedDays,fusion),now=Date.now(),startEpoch=localIsoEpoch(`${eventDate}T${eventStartTime}`,weather.timezone,Number(weather.utc_offset_seconds)||0),endEpoch=localIsoEpoch(`${eventDate}T${eventEndTime}`,weather.timezone,Number(weather.utc_offset_seconds)||0);if(Number.isFinite(startEpoch)&&Number.isFinite(endEpoch)&&endEpoch<startEpoch)endEpoch=startEpoch+3600000
+ async function buildPlan(location:Location,eventDate:string,eventStartTime:string,eventEndTime:string,eventEnvironment:EventEnvironment,eventActivity:EventActivity,eventTitle:string,signal:AbortSignal,forceFresh=false){
+  const country=location.country_code||location.country,[weather,modelInfo,fusion,eventEnsemble]=await Promise.all([forecast(location.latitude,location.longitude,signal),bestMatchModelInfo(location.latitude,location.longitude,country,signal).catch(()=>null),loadForecastFusion(location.latitude,location.longitude,country,location.elevation,signal,forceFresh).catch(()=>null),eventEnsembleForecast(location.latitude,location.longitude,eventDate,eventStartTime,eventEndTime,signal,forceFresh).catch(()=>({days:[],models:[],precipitationProbability:null}))])
+  const baseHours=mapHours(weather),baseDays=mapDays(weather),fusedDays=applyForecastFusionDays(baseDays,fusion),canonical=!forceFresh&&sameForecastLocation(location,initialLocation)&&canonicalHours.length>0,ensembleDays=eventEnsemble.days??[],eventProbability=eventEnsemble.precipitationProbability??null;let finalHours=canonical?canonicalHours:applyForecastFusionHours(baseHours,baseDays,fusedDays,fusion),now=Date.now(),startEpoch=localIsoEpoch(`${eventDate}T${eventStartTime}`,weather.timezone,Number(weather.utc_offset_seconds)||0),endEpoch=localIsoEpoch(`${eventDate}T${eventEndTime}`,weather.timezone,Number(weather.utc_offset_seconds)||0);if(Number.isFinite(startEpoch)&&Number.isFinite(endEpoch)&&endEpoch<startEpoch)endEpoch=startEpoch+3600000
   const nearNow=Number.isFinite(startEpoch)&&Number.isFinite(endEpoch)&&endEpoch>=now-30*60000&&startEpoch<=now+4*3600000;let nowcastApplied=false,thunderApplied=false,weatherTwinApplied=canonical&&canonicalWeatherTwinApplied
   if(!canonical){
    const twinSettings=readWeatherTwinSettings(),locationKey=`${Number(location.latitude).toFixed(5)}:${Number(location.longitude).toFixed(5)}`,twinReport=twinSettings.enabled&&twinSettings.useAsMainForecast&&ensembleDays.length?buildForecastVerificationReport(locationKey,fusedDays,ensembleDays,location,baseHours):null,localTwinDays=twinReport?applyLocalTwinForecastFromReport(fusedDays,twinReport):fusedDays,twinEligible=Boolean(twinReport?.mainForecastStatus.eligible&&localTwinDays!==fusedDays),displayBaseDays=applyEnsembleDailyPrecipitationProbability(twinEligible?localTwinDays:fusedDays,ensembleDays);if(twinEligible){finalHours=applyLocalTwinHours(locationKey,finalHours,fusedDays,localTwinDays);weatherTwinApplied=true}
@@ -284,7 +284,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
   if(editingRecordId)setEditingRecordId(record.id)
   return record
  }
- async function analyseEvent(event?:FormEvent,silent=false){
+ async function analyseEvent(event?:FormEvent,silent=false,forceFresh=false){
   event?.preventDefault()
   setError('')
   if(!silent)setPlan(null)
@@ -294,7 +294,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
   analysisController.current=controller
   setLoading(true)
   try{
-   const nextPlan=await buildPlan(destination,date,startTime,endTime,environment,activity,title,controller.signal)
+   const nextPlan=await buildPlan(destination,date,startTime,endTime,environment,activity,title,controller.signal,forceFresh)
    setPlan(nextPlan)
    if(currentSavedRecord)savePlanRecord(nextPlan)
    if(!silent)setWorkspaceView('detail')
@@ -305,7 +305,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
   setRefreshingIds(current=>current.includes(record.id)?current:[...current,record.id])
   const controller=new AbortController()
   try{
-   const nextPlan=await buildPlan(record.location,record.date,record.startTime,record.endTime,record.environment,record.activity,record.title,controller.signal)
+   const nextPlan=await buildPlan(record.location,record.date,record.startTime,record.endTime,record.environment,record.activity,record.title,controller.signal,true)
    const change=compareEventPlans(record.plan,nextPlan)
    const updated:EventCenterRecord={...record,location:record.location,title:record.title,date:record.date,startTime:record.startTime,endTime:record.endTime,environment:record.environment,activity:record.activity,isFavorite:markAsFavoritePass?true:record.isFavorite,updatedAt:Date.now(),plan:nextPlan,change}
    upsertEventCenterRecord(updated)
@@ -448,7 +448,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
      <div className="event-guide-status-wrap"><div className={`event-status-badge ${plan.advice.status}`}>{plan.advice.status==='good'?<ShieldCheck size={16}/>:<ShieldAlert size={16}/>}<strong>{statusLabel(plan.advice.status)}</strong></div>{currentSavedRecord?.change&&currentSavedRecord.change.level!=='none'?<small className={`event-inline-update ${currentSavedRecord.change.level}`}>{currentSavedRecord.change.summary}</small>:null}</div>
     </div>
     <div className="event-guide-main">
-     <div className="event-guide-copy"><span>EVENT-CHECK</span><h5>{currentTitle}</h5><p>{destinationLabel(plan.location)}</p><strong>{plan.advice.headline}</strong><p>{plan.advice.summary}</p><div className="event-guide-inline-notes"><article><MapPin size={15}/><span>{timingHint}</span></article><article><BellRing size={15}/><span>Stand {lastUpdateText}</span></article></div><div className="event-result-toolbar"><button type="button" className="secondary" onClick={()=>currentSavedRecord?void analyseEvent(undefined,true):saveCurrentPlan(false)} disabled={loading}>{currentSavedRecord?<RefreshCw className={loading?'spin':undefined} size={15}/>:<Star size={15}/>} {currentSavedRecord?(loading?'Aktualisiere …':'Event aktualisieren'):'Event speichern'}</button>{currentSavedRecord?<button type="button" className="secondary" onClick={()=>toggleFavorite(currentSavedRecord)}><Star size={15} fill={currentSavedRecord.isFavorite?'currentColor':'none'}/>{currentSavedRecord.isFavorite?'Favorit entfernen':'Favorit'}</button>:<button type="button" className="secondary" onClick={()=>saveCurrentPlan(true)}><Star size={15}/>Als Favorit speichern</button>}</div></div>
+     <div className="event-guide-copy"><span>EVENT-CHECK</span><h5>{currentTitle}</h5><p>{destinationLabel(plan.location)}</p><strong>{plan.advice.headline}</strong><p>{plan.advice.summary}</p><div className="event-guide-inline-notes"><article><MapPin size={15}/><span>{timingHint}</span></article><article><BellRing size={15}/><span>Stand {lastUpdateText}</span></article></div><div className="event-result-toolbar"><button type="button" className="secondary" onClick={()=>currentSavedRecord?void analyseEvent(undefined,true,true):saveCurrentPlan(false)} disabled={loading}>{currentSavedRecord?<RefreshCw className={loading?'spin':undefined} size={15}/>:<Star size={15}/>} {currentSavedRecord?(loading?'Aktualisiere …':'Event aktualisieren'):'Event speichern'}</button>{currentSavedRecord?<button type="button" className="secondary" onClick={()=>toggleFavorite(currentSavedRecord)}><Star size={15} fill={currentSavedRecord.isFavorite?'currentColor':'none'}/>{currentSavedRecord.isFavorite?'Favorit entfernen':'Favorit'}</button>:<button type="button" className="secondary" onClick={()=>saveCurrentPlan(true)}><Star size={15}/>Als Favorit speichern</button>}</div></div>
      <aside className="event-guide-weatherpanel"><small>Leitwetter</small><div className="event-guide-weatherrow"><WeatherPictogram code={plan.summary.weatherCode??0} day={plan.summary.isDay!==false} title={plan.summary.weatherLabel||label(plan.summary.weatherCode??0)}/><div><strong>{formatNumber(plan.summary.temperatureAvg)}°</strong><span>{plan.summary.weatherLabel||label(plan.summary.weatherCode??0)}</span></div></div><p>{outfitHint}</p><div className="event-guide-quickstats"><span><EventSummaryPrecipitationIcon summary={plan.summary}/>{eventPrecipLabel(plan.summary)} · {formatNumber(eventPrecipProbability(plan.summary))} %</span><span><Wind size={14}/>{wind(plan.summary.windMax??Number.NaN,unit)} · G {wind(plan.summary.gustMax??Number.NaN,unit)}</span><span><Sun size={14}/>UVI {formatUvi(plan.summary.uvMax??Number.NaN)}</span></div></aside>
     </div>
    </div>

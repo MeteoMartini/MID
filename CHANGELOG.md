@@ -1,3 +1,11 @@
+# 0.9.53.4
+
+- Events & Aktivitäten: alle Reload-Schaltflächen erzwingen jetzt eine echte Neuberechnung statt Wiederverwendung der bereits gerenderten Ortsvorhersage.
+- Forecast-Fusion und Event-Ensemble umgehen beim expliziten Reload lokale Fresh-Caches; der Worker unterstützt `refresh=1` und umgeht dabei den 20-Minuten-Upstream-Cache.
+- Automatischer 30-Minuten-Eventrefresh nutzt denselben Fresh-Pfad.
+- Hyperlokaler Info-Button rechts innerhalb der bestehenden Analysekarte positioniert, ohne zusätzliche Kartenhöhe.
+- Worker funktional geändert; Cloudflare-Upload erforderlich.
+
 # 0.9.53.3
 
 - Tages-Niederschlagswahrscheinlichkeit wieder mit 00–24-h- bzw. klar erhöhtem 6-h-Zeitfenster.

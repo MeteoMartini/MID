@@ -47,7 +47,7 @@ assert.ok(app.includes("°C{temperatureFresh?"),'Die Haupttemperatur kennzeichne
 assert.ok(app.includes('className="hyperlocal-analysis-compact"'),'Die Hyperlokal-Ergebniszeile ist nicht kompakt.');
 assert.ok(app.includes('<b>Modellhintergrund:</b> {st.backgroundModel}'),'Der verwendete Regionalmodell-Hintergrund fehlt im Info-Popover.');
 assert.ok(app.includes('<b>Dynamische Windexposition:</b>'),'Die vollständige dynamische Windexposition fehlt im Info-Popover.');
-assert.ok(app.includes('{stationDynamicStatus}{fresh?<InfoHint label="Hyperlokale Analyse erklären">'),'Dynamische Hyperlokal-Ergebnisse liegen weiterhin vollständig hinter dem Info-Popover.');
+assert.ok(app.includes('{stationDynamicStatus}{fresh?<InfoHint className="current-analysis-trigger" label="Hyperlokale Analyse erklären">'),'Dynamische Hyperlokal-Ergebnisse liegen weiterhin vollständig hinter dem Info-Popover.');
 assert.ok(eventPanel.includes("stationFieldObservationUsable(observation,'temperature'"),'Event-Temperaturanker ist nicht feldweise qualitätsgesichert.');
 assert.ok(shortTerm.includes('stationFieldObservationUsable(station,field,now)'),'Kurzfristanker sind nicht feldweise qualitätsgesichert.');
 assert.ok(!shortTerm.includes('STATION_FRESHNESS_MS=150*60000'),'Alter pauschaler 150-Minuten-Vertrag ist noch aktiv.');
