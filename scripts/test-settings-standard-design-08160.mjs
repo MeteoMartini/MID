@@ -43,7 +43,7 @@ for(const token of [
  'className="settings-option-list"',
  "summary={layoutMode==='advanced'?'Radar, Satellit, Blitz und Modellkonturen':'Radar und aktuelle Wetterbeobachtungen'}",
  "summary={layoutMode==='advanced'?'Unsicherheit, Konsistenz, Quartile und Klimavergleich':'Mögliche Entwicklung der nächsten 14 Tage'}",
- "available&&fresh?'mit Messwert geprüft':'Vorhersage'",
+ "available?'mit Messwert geprüft':'Vorhersage'",
  "advancedMode?' · Open-Meteo/CAMS':''"
 ])need('Standardmodus und App-Texte',app,token);
 

@@ -2,7 +2,7 @@ import {useEffect,useMemo,useState} from 'react';
 import {CloudFog,CloudLightning,Droplets,Gauge,Navigation,Thermometer,Wind as WindIcon} from 'lucide-react';
 import {significantHourlyThunderRisk} from './detailThunderRisk';
 import {precipitationAmountLabel,precipitationParts,reconcileForecastPrecipitation} from './precipitation';
-import {label,wind,type Hour,type Location,type Minute15,type RadarNowcast,type Station,type Weather,type WindUnit} from './weather';
+import {label,stationFieldObservationUsable,wind,type Hour,type Location,type Minute15,type RadarNowcast,type Station,type Weather,type WindUnit} from './weather';
 import {blendRadarAtTarget,type RadarBlendMode} from './forecastFusion';
 import {WeatherPictogram} from './WeatherPictogram';
 import {formatDecimal} from './format';
@@ -87,12 +87,10 @@ const HOUR_MS=60*60000;
 const SHORT_TERM_HORIZON_MS=24*HOUR_MS;
 const QUARTER_STEP_COUNT=6;
 const NAVIGATION_ICON_BASE_DEGREES=45;
-const STATION_FRESHNESS_MS=150*60000;
 
 function finite(value:unknown){const number=Number(value);return Number.isFinite(number)?number:undefined}
 function clampValue(value:number,minimum:number,maximum:number){return Math.min(maximum,Math.max(minimum,value))}
 function currentNumber(current:Weather['current'],key:string){return finite(current[key])}
-function stationIsFresh(station:Station|undefined|null,now:number){if(!station)return false;if(!station.timestamp)return true;const timestamp=new Date(station.timestamp).getTime();return Number.isFinite(timestamp)&&now-timestamp>=0&&now-timestamp<STATION_FRESHNESS_MS}
 function stationWindKnots(value:number|undefined,unit:Station['windUnit']){const number=finite(value);return number===undefined?undefined:unit==='kmh'?number/1.852:number}
 function observedSkyCode(fallback:number,cloud:number|undefined,lowCloud:number|undefined,visibility:number|undefined,humidity:number|undefined,temperature:number|undefined){
  const code=Math.round(Number(fallback)||0),vis=Number(visibility),hum=Number(humidity),temp=Number(temperature),cover=Math.max(Number(cloud)||0,Number(lowCloud)||0);
@@ -105,24 +103,22 @@ function observedSkyCode(fallback:number,cloud:number|undefined,lowCloud:number|
 }
 
 export function shortTermAnchorFromCurrent(station:Station|null|undefined,current:Weather['current'],now=Date.now()):ShortTermAnchor{
- const fresh=stationIsFresh(station,now),observed:Partial<Record<ShortTermAnchorField,boolean>>={};
- const useStation=(field:ShortTermAnchorField,value:unknown)=>{const available=fresh&&finite(value)!==undefined;observed[field]=available;return available?finite(value):undefined};
- const modelTemperature=currentNumber(current,'temperature_2m'),stationTemperature=useStation('temperature',station?.temperature),temperature=stationTemperature??modelTemperature;
- const apparent=currentNumber(current,'apparent_temperature');observed.apparent=Boolean(apparent!==undefined&&fresh);
- const stationHumidity=useStation('humidity',station?.humidity),humidity=stationHumidity??currentNumber(current,'relative_humidity_2m');
- const stationDewPoint=useStation('dewPoint',station?.dewPoint),dewPoint=stationDewPoint??currentNumber(current,'dew_point_2m');
- const qffPressure=Boolean(fresh&&(station?.pressureReference==='QFF'||station?.pressureReference==='MSL')&&Number(station?.pressure)>=870&&Number(station?.pressure)<=1085),pressure=qffPressure?Number(station?.pressure):currentNumber(current,'pressure_msl');observed.pressure=qffPressure;
- const stationWind=stationWindKnots(station?.windSpeed,station?.windUnit),stationGust=stationWindKnots(station?.windGust,station?.windUnit),wind=fresh&&stationWind!==undefined?stationWind:currentNumber(current,'wind_speed_10m'),gust=fresh&&stationGust!==undefined?stationGust:currentNumber(current,'wind_gusts_10m');observed.wind=Boolean(fresh&&stationWind!==undefined);observed.gust=Boolean(fresh&&stationGust!==undefined);
- const stationDirection=useStation('direction',station?.windDirection),direction=stationDirection??currentNumber(current,'wind_direction_10m');
- const stationCloud=useStation('cloud',station?.cloudCover),cloud=stationCloud??currentNumber(current,'cloud_cover'),modelLowCloud=currentNumber(current,'cloud_cover_low'),lowLayerObserved=Boolean(fresh&&stationCloud!==undefined&&((Number.isFinite(Number(station?.ceilingHft))&&Number(station?.ceilingHft)<=30)||(Number.isFinite(Number(station?.cloudBaseHft))&&Number(station?.cloudBaseHft)<=30)||(Number(humidity)>=92&&Number(cloud)>=87.5))),lowCloud=lowLayerObserved?Math.max(Number(stationCloud),Number(modelLowCloud)||0):modelLowCloud;observed.lowCloud=lowLayerObserved;
- const stationVisibility=useStation('visibility',station?.visibility),visibility=stationVisibility??currentNumber(current,'visibility');
- const stationPrecipitation=useStation('precipitation',station?.precipitation),precipitation=stationPrecipitation??currentNumber(current,'precipitation'),precipitationMinutes=fresh&&stationPrecipitation!==undefined?Math.max(1,Number(station?.precipitationMinutes)||60):60;
+ const observed:Partial<Record<ShortTermAnchorField,boolean>>={},usable=(field:Parameters<typeof stationFieldObservationUsable>[1])=>stationFieldObservationUsable(station,field,now),useStation=(displayField:ShortTermAnchorField,analysisField:Parameters<typeof stationFieldObservationUsable>[1],value:unknown)=>{const available=usable(analysisField)&&finite(value)!==undefined;observed[displayField]=available;return available?finite(value):undefined};
+ const modelTemperature=currentNumber(current,'temperature_2m'),stationTemperature=useStation('temperature','temperature',station?.temperature),temperature=stationTemperature??modelTemperature;
+ const apparent=currentNumber(current,'apparent_temperature');observed.apparent=false;
+ const stationHumidity=useStation('humidity','humidity',station?.humidity),humidity=stationHumidity??currentNumber(current,'relative_humidity_2m');
+ const stationDewPoint=useStation('dewPoint','dewPoint',station?.dewPoint),dewPoint=stationDewPoint??currentNumber(current,'dew_point_2m');
+ const qffPressure=Boolean(usable('pressure')&&(station?.pressureReference==='QFF'||station?.pressureReference==='MSL')&&Number(station?.pressure)>=870&&Number(station?.pressure)<=1085),pressure=qffPressure?Number(station?.pressure):currentNumber(current,'pressure_msl');observed.pressure=qffPressure;
+ const stationWind=stationWindKnots(station?.windSpeed,station?.windUnit),stationGust=stationWindKnots(station?.windGust,station?.windUnit),windUsable=usable('windSpeed'),gustUsable=usable('windGust'),wind=windUsable&&stationWind!==undefined?stationWind:currentNumber(current,'wind_speed_10m'),gust=gustUsable&&stationGust!==undefined?stationGust:currentNumber(current,'wind_gusts_10m');observed.wind=Boolean(windUsable&&stationWind!==undefined);observed.gust=Boolean(gustUsable&&stationGust!==undefined);
+ const stationDirection=useStation('direction','windDirection',station?.windDirection),direction=stationDirection??currentNumber(current,'wind_direction_10m');
+ const stationCloud=useStation('cloud','cloudCover',station?.cloudCover),cloud=stationCloud??currentNumber(current,'cloud_cover'),modelLowCloud=currentNumber(current,'cloud_cover_low'),ceilingUsable=usable('ceilingHft'),cloudBaseUsable=usable('cloudBaseHft'),lowLayerObserved=Boolean(stationCloud!==undefined&&((ceilingUsable&&Number(station?.ceilingHft)<=30)||(cloudBaseUsable&&Number(station?.cloudBaseHft)<=30)||(Number(humidity)>=92&&Number(cloud)>=87.5))),lowCloud=lowLayerObserved?Math.max(Number(stationCloud),Number(modelLowCloud)||0):modelLowCloud;observed.lowCloud=lowLayerObserved;
+ const stationVisibility=useStation('visibility','visibility',station?.visibility),visibility=stationVisibility??currentNumber(current,'visibility');
+ const stationPrecipitation=useStation('precipitation','precipitation',station?.precipitation),precipitation=stationPrecipitation??currentNumber(current,'precipitation'),precipitationMinutes=stationPrecipitation!==undefined?Math.max(1,Number(station?.precipitationMinutes)||60):60;
  const rain=currentNumber(current,'rain')??0,showers=currentNumber(current,'showers')??0,snowfall=currentNumber(current,'snowfall')??0,baseCode=currentNumber(current,'weather_code')??0;
- const parts=precipitationParts({precipitation:precipitation??0,rain,showers,snowfall,probability:0,code:baseCode,temperature,dewPoint,humidity,cloud,lowCloud,cloudBaseHft:fresh?finite(station?.cloudBaseHft):undefined,ceilingHft:fresh?finite(station?.ceilingHft):undefined}),code=parts.type==='none'?observedSkyCode(parts.displayCode,cloud,lowCloud,visibility,humidity,temperature):parts.displayCode;
- observed.code=Boolean(fresh&&(observed.cloud||observed.lowCloud||observed.visibility||observed.precipitation));
- const active=Boolean(fresh&&Object.entries(observed).some(([field,value])=>field!=='apparent'&&value));
- const ownStation=Boolean(station?.provider?.startsWith('Eigene ')||station?.analysisMethod?.startsWith('Eigene ')),sourceLabel=active?(ownStation?'Eigene Station · lokal angepasst':station?.analysisMethod?'Hyperlokal angepasst':'Stationsgestützt angepasst'):'Best Match';
- return{active,sourceLabel,observed,temperature,apparent,humidity,dewPoint,pressure,wind,gust,direction,cloud,lowCloud,visibility,precipitation,precipitationMinutes,rain,showers,snowfall,cloudBaseHft:fresh?finite(station?.cloudBaseHft):undefined,ceilingHft:fresh?finite(station?.ceilingHft):undefined,code,isDay:Number(current.is_day)===1};
+ const parts=precipitationParts({precipitation:precipitation??0,rain,showers,snowfall,probability:0,code:baseCode,temperature,dewPoint,humidity,cloud,lowCloud,cloudBaseHft:cloudBaseUsable?finite(station?.cloudBaseHft):undefined,ceilingHft:ceilingUsable?finite(station?.ceilingHft):undefined}),code=parts.type==='none'?observedSkyCode(parts.displayCode,cloud,lowCloud,visibility,humidity,temperature):parts.displayCode;
+ observed.code=Boolean(observed.cloud||observed.lowCloud||observed.visibility||observed.precipitation);
+ const active=Object.entries(observed).some(([field,value])=>field!=='apparent'&&value),ownStation=Boolean(station?.provider?.startsWith('Eigene ')||station?.analysisMethod?.startsWith('Eigene ')),sourceLabel=active?(ownStation?'Eigene Station · lokal angepasst':station?.analysisMethod?'Hyperlokal angepasst':'Stationsgestützt angepasst'):'Best Match';
+ return{active,sourceLabel,observed,temperature,apparent,humidity,dewPoint,pressure,wind,gust,direction,cloud,lowCloud,visibility,precipitation,precipitationMinutes,rain,showers,snowfall,cloudBaseHft:cloudBaseUsable?finite(station?.cloudBaseHft):undefined,ceilingHft:ceilingUsable?finite(station?.ceilingHft):undefined,code,isDay:Number(current.is_day)===1};
 }
 
 function nearest<T extends{epoch:number}>(items:T[],epoch:number,maxDistance:number){let best:T|undefined,distance=Infinity;for(const item of items){const current=Math.abs(item.epoch-epoch);if(current<distance){best=item;distance=current}}return distance<=maxDistance?best:undefined}

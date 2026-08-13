@@ -24,7 +24,7 @@ for(const token of [
 ])need('Temperaturkonsistenz',fusion,token);
 for(const token of [
  'finalizeForecastHours',
- 'stationTemperatureFresh=Boolean',
+ "stationTemperatureFresh=stationFieldObservationUsable(st,'temperature'",
  'observedTemperature:currentObservedTemperature',
  'finalizedHours=useMemo',
  'currentRange=currentDay?{min:Math.min(currentDay.min,temp),max:Math.max(currentDay.max,temp)}:null',

@@ -38,7 +38,8 @@ assert.match(weather,/export type StationFieldSource=/);
 assert.match(weather,/fieldSources\?:StationFieldSources/);
 assert.match(weather,/stationFieldSourcesFromAnalysis/);
 assert.match(app,/Messwertquellen/);
-assert.match(app,/const fieldSourceInfo=.*if\(!fresh\)return undefined/);
+assert.match(app,/fieldFresh=\(field:StationAnalysisField\)=>stationFieldObservationUsable/);
+assert.match(app,/const fieldSourceInfo=.*fieldSourceRows\(group\.fields\)/);
 assert.match(app,/amtliche Bodenbeobachtung/);
 assert.match(app,/Straßenwetter/);
 

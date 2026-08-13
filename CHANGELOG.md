@@ -1,5 +1,41 @@
 # MID Changelog
 
+
+## 0.9.52.2
+
+- Regression-Hotfix: `test-hyperlocal-quality-audit-08200.mjs` an den seit v0.9.52.0 verpflichtenden Oberflächenkontext angepasst.
+- Eine hochwertige Stationsanalyse gilt nur dann als vollständig, wenn `surfaceClass` vorhanden ist; fehlender Oberflächenkontext löst weiterhin bewusst die DGM-/Landnutzungs-/Rauigkeitsanreicherung aus.
+- Keine Änderung an meteorologischer Hyperlokal-, DWD-10-Minuten-, DGM-, Versiegelungs-, UHI-, Rauigkeits- oder Wetterzwilling-Logik.
+
+## 0.9.52.1
+
+- Build-Hotfix: `LocalSurfaceContext` erfüllt jetzt den Fehlervertrag von `fetchWorkerJson<T extends WorkerPayload>`.
+- Keine Änderung an Hyperlokal-, DGM-, DWD-10-Minuten-, Versiegelungs-, Rauigkeits- oder Wetterzwilling-Logik.
+- Neue Required-Regression `test-local-surface-worker-payload-type-09521.mjs`.
+
+## 0.9.52.0
+
+- Hyperlokale Qualitätsstufe 2: direkte DWD-CDC-10-Minuten-Netze für Temperatur/Feuchte, Mittelwind/Windrichtung, Böenspitzen und Niederschlag; zusätzlich das DWD-Stadtklima-10-Minuten-Netz für urbane Thermodynamik.
+- Kleine CDC-ZIP-Produkte werden im Worker nativ per `DecompressionStream('deflate-raw')` gelesen; Feldzeitstempel und native 10-Minuten-Auflösung bleiben erhalten.
+- Copernicus-DEM-GLO-90-Mikroreliefprofil für Ziel und Stationskandidaten: Hangneigung, Exposition/Aspekt, lokales Relief sowie Kuppen-/Senkenposition beeinflussen parameterabhängig die Restfeldübertragung.
+- Oberflächenkontext ergänzt: exakter GIS-Punktadapter für Versiegelung, LCZ, Bebauungsanteil und Rauigkeitslänge; ohne Adapter ausschließlich klar gekennzeichneter OpenStreetMap-Morphologieproxy.
+- Thermische Standortähnlichkeit berücksichtigt bei echten GIS-Daten Versiegelungsunterschiede stärker nachts und bei schwachem Wind; kein pauschaler UHI-Temperaturzuschlag.
+- Wind-Restfelder werden bei stark unterschiedlicher Oberflächenrauigkeit bzw. Kuppen-/Abschirmungslage deutlicher gedämpft; kein blindes logarithmisches Windprofil ohne bekannte Modell-/Stationsrauigkeit.
+- Keine doppelte pauschale Höhenkorrektur: der bereits höhen-downskalierte hochaufgelöste Modellhintergrund bleibt Basis; DEM dient zur Morphologie- und Übertragbarkeitsbewertung.
+- Fast-Analyse wird bei fehlendem Oberflächenkontext automatisch durch eine vollständige Qualitätsanalyse angereichert.
+- Neuer verbindlicher `MID_HYPERLOCAL_DOWNSCALING_CONTRACT.md` und Required-Regression `test-hyperlocal-downscaling-09520.mjs`.
+
+## 0.9.51.0
+
+- Hyperlokale Analyse konsequent parameterbezogen: harte Alters-, Distanz- und Höhengrenzen verhindern übermäßigen Einfluss alter/weiter Messwerte.
+- Feldzeitstempel und native Datenintervalle werden getrennt transportiert; kein künstliches Verjüngen alter Temperatur durch aktuellere andere Stationsfelder.
+- Restfeldkorrektur ohne festen Mindestanteil; hochaufgelöste Regionalmodelle dienen landesabhängig als Hintergrund vor Best Match.
+- Stadt/Land/Suburban- und Höhenanpassung präzisiert; generische PPL-Orte werden nicht mehr pauschal urban gewertet.
+- Hochfrequente amtliche Beobachtungen ausgebaut: DWD/GeoSphere/KNMI/MeteoSwiss-Metadaten sowie SMHI-Minutenparameter.
+- Aktuelles Wetter, Kurzfrist und Event-Anker auf gemeinsame feldbezogene Frische-/Repräsentativitätsprüfung umgestellt; die Haupttemperatur gilt nur bei selbst frischer Temperaturquelle als stationsgeprüft.
+- Wetterzwilling-Lernreferenzen ebenfalls feldweise abgesichert: alte Temperatur/Niederschlag/Böe/Bewölkung werden nicht mehr über einen jüngeren fremden Stationsparameter mitarchiviert.
+- Neuer verbindlicher `MID_HYPERLOCAL_ANALYSIS_CONTRACT.md` und Required-Regression `test-hyperlocal-parameter-relevance-09510.mjs`.
+
 ## 0.9.50.0
 - UI-/Architekturstandardisierung ohne Funktionsabbau: gemeinsame `AppPortalPopover`-Primitive für appweite verankerte Popover und Forecast-Cockpit.
 - `AppInfoHint` nutzt nur noch die gemeinsame Body-Portal-/Außenklick-/Escape-/Scroll-Positionierungslogik.

@@ -29,13 +29,13 @@ for(const token of [
   'nearestClear<=45000',
   'clearWeight>=Math.max(.08,cloudyWeight*1.25)',
   "Aktuelle METAR-Sichtmeldung (CAVOK) berücksichtigt",
-  'cloudReconciliation=reconcileHyperlocalCloudCover(ranked,cloudCover.value,direct?.cloudCover,target.cloudCover)',
+  'cloudReconciliation=reconcileHyperlocalCloudCover(ranked,cloudCover.value,direct?.cloudCover,target.cloudCover,elevation)',
   'cloudCover:cloudReconciliation.value',
   'cloudAnalysisMethod:cloudReconciliation.method'
 ])need('Hyperlokale Wolkenkorrektur',weather,token);
 
 for(const token of [
-  'cloudSource=advancedMode&&fresh&&st?.cloudAnalysisMethod?',
+  "cloudSource=advancedMode&&fieldFresh('cloudCover')&&st?.cloudAnalysisMethod?",
   'detail:`${cloudBaseDetail}${cloudOktasText(cloud).split(\' · \')[1]} · ${cloudSource}`'
 ])need('Transparente Bewölkungsquelle',app,token);
 

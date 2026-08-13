@@ -24,7 +24,7 @@ for(const token of [
  'GENERIC_OFFICIAL'
 ])need('Quellenregister',quality,token);
 for(const token of [
- "fieldWeightPolicy(s.provider,s.networkClass,field)",
+ "fieldWeightPolicy(observation.provider??s.provider,observation.networkClass??s.networkClass,field)",
  'fieldSiteCompatibility(field,targetUrban,candidateSiteClass(s))',
  'normalisePrecipitationAccumulation(value,precipitationIntervalMinutes(',
  'const localBackgroundCache=new Map',
@@ -48,7 +48,7 @@ for(const token of [
 ])need('Workerzugriff',workerClient,token);
 for(const token of [
  'precipitationMinutes:w?.precipitation_10',
- 'precipitationMinutes:10,provider:\'GeoSphere Austria / TAWES\'',
+ "fieldTemporalResolutionMinutes:{temperature:10,dewPoint:10,humidity:10,pressure:10",
  'precipitationMinutes:60,provider:`Synoptic Data / MesoWest-MADIS',
  "'cache-control':'public, max-age=120, stale-while-revalidate=300'"
 ])need('Worker-Quellenvertrag',worker,token);
@@ -65,7 +65,7 @@ try{
   if(dwd.precipitationMinutes!==10||generic.precipitationMinutes!==60)failures.push('Explizite DWD- und generische amtliche Niederschlagsintervalle sind fehlerhaft.');
   if(!(wind.distanceScaleKm>temperature.distanceScaleKm))failures.push('Wind erhält keine größere räumliche Repräsentativität als Temperatur.');
   if(Math.abs(module.normalisePrecipitationAccumulation(1,10,60)-6)>.001)failures.push('10-Minuten-Niederschlag wird nicht korrekt auf 60 Minuten normalisiert.');
-  if(Math.abs(module.fieldSiteCompatibility('temperature','urban','rural')-.72)>.001)failures.push('Standorttyp-Kompatibilität wird nicht korrekt gewichtet.');
+  if(Math.abs(module.fieldSiteCompatibility('temperature','urban','rural')-.58)>.001)failures.push('Standorttyp-Kompatibilität wird nicht korrekt gewichtet.');
  }
 }catch(error){failures.push(error instanceof Error?error.message:String(error))}
 

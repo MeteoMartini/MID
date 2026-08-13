@@ -10,7 +10,7 @@ const [helper,app,pkg]=await Promise.all([
  readFile(new URL('../package.json',import.meta.url),'utf8')
 ]);
 const failures=[];
-for(const token of ["import {hyperlocalSkyCondition} from './currentConditions';","currentPrecip.type==='none'?hyperlocalSkyCondition({","cloudObserved:fresh&&Number.isFinite(st?.cloudCover)","if(localSky){currentWeatherCode=localSky.code;currentWeatherLabel=localSky.label}"]){if(!app.includes(token))failures.push(`App-Anbindung fehlt: ${token}`)}
+for(const token of ["import {hyperlocalSkyCondition} from './currentConditions';","currentPrecip.type==='none'?hyperlocalSkyCondition({","cloudObserved:fieldFresh('cloudCover')&&Number.isFinite(st?.cloudCover)","if(localSky){currentWeatherCode=localSky.code;currentWeatherLabel=localSky.label}"]){if(!app.includes(token))failures.push(`App-Anbindung fehlt: ${token}`)}
 if(!pkg.includes('test:current-hyperlocal-sky'))failures.push('Package-Test fehlt.');
 const dir=await mkdtemp(join(tmpdir(),'mid-083311-'));
 try{

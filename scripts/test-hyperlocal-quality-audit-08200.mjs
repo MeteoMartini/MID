@@ -66,8 +66,9 @@ try{
   if(module.equivalentStationCandidate(nearA,{...nearB,latitude:48.35,longitude:11.78}))failures.push('Entfernte Stationen mit gleicher Kennung werden fälschlich zusammengeführt.');
   if(Math.abs(module.angularDifference(5,355)-10)>.001||Math.abs(module.angularDifference(355,5)+10)>.001)failures.push('360°-Windrichtungsdifferenz ist fehlerhaft.');
   const thermo=module.reconcileThermodynamics(20,95,24);if(!(thermo.dewPoint<=20&&thermo.humidity>=0&&thermo.humidity<=100))failures.push('Thermodynamische Endkontrolle ist fehlerhaft.');
-  if(module.stationNeedsEnrichment({candidateCount:6,sourceProviders:['A','B'],uncertainty:.7,effectiveResolutionKm:12})!==false)failures.push('Gute Stationsanalyse löst unnötige Anreicherung aus.');
-  if(module.stationNeedsEnrichment({candidateCount:2,sourceProviders:['A'],uncertainty:2,effectiveResolutionKm:42})!==true)failures.push('Schwache Stationsanalyse löst keine Anreicherung aus.');
+  if(module.stationNeedsEnrichment({candidateCount:6,sourceProviders:['A','B'],uncertainty:.7,effectiveResolutionKm:12,surfaceClass:'mixed'})!==false)failures.push('Gute Stationsanalyse mit Oberflächenkontext löst unnötige Anreicherung aus.');
+  if(module.stationNeedsEnrichment({candidateCount:6,sourceProviders:['A','B'],uncertainty:.7,effectiveResolutionKm:12})!==true)failures.push('Fehlender Oberflächenkontext löst keine erforderliche Anreicherung aus.');
+  if(module.stationNeedsEnrichment({candidateCount:2,sourceProviders:['A'],uncertainty:2,effectiveResolutionKm:42,surfaceClass:'mixed'})!==true)failures.push('Schwache Stationsanalyse löst keine Anreicherung aus.');
  }
 }catch(error){failures.push(error instanceof Error?error.message:String(error))}
 

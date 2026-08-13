@@ -14,14 +14,47 @@ export type StationSourcePolicy={
  sensitiveAllowed:boolean;
 };
 
-const OFFICIAL:StationSourcePolicy={quality:1.55,temperatureDistanceKm:32,temperatureAgeMinutes:105,windDistanceKm:46,windAgeMinutes:95,sensitiveDistanceKm:42,sensitiveAgeMinutes:75,precipitationMinutes:10,sensitiveAllowed:true};
+export type FieldRelevanceLimits={
+ preferredDistanceKm:number;
+ hardDistanceKm:number;
+ preferredAgeMinutes:number;
+ hardAgeMinutes:number;
+ heightScaleM:number;
+ hardHeightDifferenceM:number;
+ minimumAnchorRelevance:number;
+};
+
+// Quellenqualität ist nicht gleich räumliche/zeitliche Repräsentativität. Auch eine
+// amtliche Station darf bei dynamischen Feldern nicht wegen ihres Namens lange oder
+// über große Distanzen dominieren. Die eigentliche Härtegrenze liegt deshalb separat
+// im parameterbezogenen Relevanzvertrag weiter unten.
+const OFFICIAL:StationSourcePolicy={quality:1.55,temperatureDistanceKm:18,temperatureAgeMinutes:42,windDistanceKm:28,windAgeMinutes:38,sensitiveDistanceKm:22,sensitiveAgeMinutes:32,precipitationMinutes:10,sensitiveAllowed:true};
 const GENERIC_OFFICIAL:StationSourcePolicy={...OFFICIAL,quality:1.46,precipitationMinutes:60};
 const ROAD_WEATHER:StationSourcePolicy={quality:1.32,temperatureDistanceKm:18,temperatureAgeMinutes:50,windDistanceKm:5,windAgeMinutes:35,sensitiveDistanceKm:5,sensitiveAgeMinutes:30,precipitationMinutes:15,sensitiveAllowed:false};
-const AVIATION:StationSourcePolicy={quality:1.24,temperatureDistanceKm:38,temperatureAgeMinutes:105,windDistanceKm:58,windAgeMinutes:110,sensitiveDistanceKm:52,sensitiveAgeMinutes:90,precipitationMinutes:60,sensitiveAllowed:true};
-const PROFESSIONAL:StationSourcePolicy={quality:1.14,temperatureDistanceKm:28,temperatureAgeMinutes:90,windDistanceKm:40,windAgeMinutes:85,sensitiveDistanceKm:32,sensitiveAgeMinutes:70,precipitationMinutes:60,sensitiveAllowed:true};
-const PWS:StationSourcePolicy={quality:.88,temperatureDistanceKm:13,temperatureAgeMinutes:65,windDistanceKm:18,windAgeMinutes:60,sensitiveDistanceKm:10,sensitiveAgeMinutes:40,precipitationMinutes:60,sensitiveAllowed:false};
-const CITIZEN:StationSourcePolicy={quality:.42,temperatureDistanceKm:6,temperatureAgeMinutes:38,windDistanceKm:8,windAgeMinutes:35,sensitiveDistanceKm:5,sensitiveAgeMinutes:25,precipitationMinutes:10,sensitiveAllowed:false};
-const DEFAULT:StationSourcePolicy={quality:.9,temperatureDistanceKm:22,temperatureAgeMinutes:80,windDistanceKm:28,windAgeMinutes:75,sensitiveDistanceKm:24,sensitiveAgeMinutes:60,precipitationMinutes:60,sensitiveAllowed:false};
+const AVIATION:StationSourcePolicy={quality:1.24,temperatureDistanceKm:20,temperatureAgeMinutes:48,windDistanceKm:32,windAgeMinutes:45,sensitiveDistanceKm:30,sensitiveAgeMinutes:42,precipitationMinutes:60,sensitiveAllowed:true};
+const PROFESSIONAL:StationSourcePolicy={quality:1.14,temperatureDistanceKm:16,temperatureAgeMinutes:40,windDistanceKm:24,windAgeMinutes:38,sensitiveDistanceKm:18,sensitiveAgeMinutes:32,precipitationMinutes:60,sensitiveAllowed:true};
+const PWS:StationSourcePolicy={quality:.88,temperatureDistanceKm:8,temperatureAgeMinutes:30,windDistanceKm:12,windAgeMinutes:28,sensitiveDistanceKm:7,sensitiveAgeMinutes:22,precipitationMinutes:60,sensitiveAllowed:false};
+const CITIZEN:StationSourcePolicy={quality:.42,temperatureDistanceKm:4,temperatureAgeMinutes:22,windDistanceKm:5,windAgeMinutes:20,sensitiveDistanceKm:4,sensitiveAgeMinutes:16,precipitationMinutes:10,sensitiveAllowed:false};
+const DEFAULT:StationSourcePolicy={quality:.9,temperatureDistanceKm:13,temperatureAgeMinutes:36,windDistanceKm:18,windAgeMinutes:34,sensitiveDistanceKm:14,sensitiveAgeMinutes:28,precipitationMinutes:60,sensitiveAllowed:false};
+
+const FIELD_RELEVANCE:Record<StationAnalysisField,FieldRelevanceLimits>={
+ // 90 min bzw. 50 km sind für 2-m-Temperatur kein hyperlokaler Anker mehr.
+ temperature:{preferredDistanceKm:10,hardDistanceKm:45,preferredAgeMinutes:22,hardAgeMinutes:75,heightScaleM:480,hardHeightDifferenceM:850,minimumAnchorRelevance:.14},
+ humidity:{preferredDistanceKm:13,hardDistanceKm:48,preferredAgeMinutes:28,hardAgeMinutes:85,heightScaleM:560,hardHeightDifferenceM:950,minimumAnchorRelevance:.12},
+ dewPoint:{preferredDistanceKm:13,hardDistanceKm:48,preferredAgeMinutes:28,hardAgeMinutes:85,heightScaleM:560,hardHeightDifferenceM:950,minimumAnchorRelevance:.12},
+ // QFF ist räumlich wesentlich glatter und darf daher länger/weiter stützen.
+ pressure:{preferredDistanceKm:65,hardDistanceKm:180,preferredAgeMinutes:85,hardAgeMinutes:210,heightScaleM:1800,hardHeightDifferenceM:2600,minimumAnchorRelevance:.07},
+ windSpeed:{preferredDistanceKm:15,hardDistanceKm:58,preferredAgeMinutes:20,hardAgeMinutes:70,heightScaleM:900,hardHeightDifferenceM:1500,minimumAnchorRelevance:.13},
+ windDirection:{preferredDistanceKm:15,hardDistanceKm:58,preferredAgeMinutes:20,hardAgeMinutes:70,heightScaleM:900,hardHeightDifferenceM:1500,minimumAnchorRelevance:.13},
+ windGust:{preferredDistanceKm:12,hardDistanceKm:48,preferredAgeMinutes:16,hardAgeMinutes:55,heightScaleM:850,hardHeightDifferenceM:1400,minimumAnchorRelevance:.15},
+ visibility:{preferredDistanceKm:10,hardDistanceKm:38,preferredAgeMinutes:18,hardAgeMinutes:55,heightScaleM:650,hardHeightDifferenceM:1100,minimumAnchorRelevance:.16},
+ cloudCover:{preferredDistanceKm:18,hardDistanceKm:58,preferredAgeMinutes:25,hardAgeMinutes:75,heightScaleM:720,hardHeightDifferenceM:1200,minimumAnchorRelevance:.12},
+ // Flughafen-/METAR-Decken besitzen etwas größere räumliche Aussagekraft als Sicht.
+ ceilingHft:{preferredDistanceKm:28,hardDistanceKm:82,preferredAgeMinutes:34,hardAgeMinutes:95,heightScaleM:900,hardHeightDifferenceM:1500,minimumAnchorRelevance:.10},
+ cloudBaseHft:{preferredDistanceKm:28,hardDistanceKm:82,preferredAgeMinutes:34,hardAgeMinutes:95,heightScaleM:900,hardHeightDifferenceM:1500,minimumAnchorRelevance:.10},
+ // Punktniederschlag ist besonders lokal und altert schnell; Radar/Nowcast bleibt führend.
+ precipitation:{preferredDistanceKm:7,hardDistanceKm:28,preferredAgeMinutes:12,hardAgeMinutes:40,heightScaleM:600,hardHeightDifferenceM:950,minimumAnchorRelevance:.18}
+};
 
 export function sourcePolicyFor(provider='',networkClass:SourceNetworkClass='unknown'):StationSourcePolicy{
  const value=provider.toLowerCase();
@@ -51,18 +84,32 @@ export function fieldWeightPolicy(provider:string|undefined,networkClass:SourceN
  return{quality:source.quality,distanceScaleKm:source.temperatureDistanceKm,ageScaleMinutes:source.temperatureAgeMinutes,sensitiveAllowed:source.sensitiveAllowed};
 }
 
+export function fieldRelevanceLimits(field:StationAnalysisField):FieldRelevanceLimits{return FIELD_RELEVANCE[field]}
+
+export function fieldObservationRelevance(field:StationAnalysisField,ageMinutes:number,distanceKm:number,heightDifferenceM=0,temporalResolutionMinutes?:number){
+ const limits=fieldRelevanceLimits(field),age=Math.max(0,Number(ageMinutes)||0),distance=Math.max(0,Number(distanceKm)||0),height=Math.max(0,Number(heightDifferenceM)||0);
+ if(age>=limits.hardAgeMinutes||distance>=limits.hardDistanceKm||height>=limits.hardHeightDifferenceM)return 0;
+ const ageFactor=Math.exp(-Math.pow(age/Math.max(1,limits.preferredAgeMinutes),1.45)),distanceFactor=Math.exp(-Math.pow(distance/Math.max(1,limits.preferredDistanceKm),1.38)),heightFactor=Math.exp(-Math.pow(height/Math.max(100,limits.heightScaleM),1.18));
+ const resolution=Number(temporalResolutionMinutes),dynamic=field!=='pressure'&&field!=='ceilingHft'&&field!=='cloudBaseHft',resolutionFactor=!Number.isFinite(resolution)||resolution<=0?1:resolution<=10?(dynamic?1.12:1.05):resolution<=20?(dynamic?1.06:1.03):resolution<=60?(dynamic ? .94 : 1):(dynamic ? .82 : .94);
+ return ageFactor*distanceFactor*heightFactor*resolutionFactor;
+}
+
+export function fieldObservationCanAnchor(field:StationAnalysisField,ageMinutes:number,distanceKm:number,heightDifferenceM=0,temporalResolutionMinutes?:number){return fieldObservationRelevance(field,ageMinutes,distanceKm,heightDifferenceM,temporalResolutionMinutes)>=fieldRelevanceLimits(field).minimumAnchorRelevance}
+
 export function fieldSiteCompatibility(field:StationAnalysisField,target:SourceSiteClass,station:SourceSiteClass){
  if(target==='unknown'||station==='unknown'||!target||!station)return 1;
- if(target===station)return field==='windSpeed'||field==='windDirection'||field==='windGust'?1.08:1.18;
- if((target==='urban'&&station==='suburban')||(target==='suburban'&&station==='urban'))return 1.05;
+ if(target===station)return field==='windSpeed'||field==='windDirection'||field==='windGust'?1.1:1.2;
+ if(field==='pressure')return (target==='urban'&&station==='rural'||target==='rural'&&station==='urban') ? .96 : .98;
+ if((target==='urban'&&station==='suburban')||(target==='suburban'&&station==='urban'))return (field==='temperature'||field==='humidity'||field==='dewPoint') ? .98 : 1.03;
+ if((target==='rural'&&station==='suburban')||(target==='suburban'&&station==='rural'))return (field==='temperature'||field==='humidity'||field==='dewPoint') ? .9 : .98;
  if(field==='windSpeed'||field==='windDirection'||field==='windGust'){
-  if(station==='rural')return target==='urban'?.92:1.04;
-  if(station==='urban'&&target==='rural')return .78;
-  return .9;
+  if(station==='rural')return target==='urban'?.82:1.04;
+  if(station==='urban'&&target==='rural')return .68;
+  return .86;
  }
- if(target==='rural'&&station==='urban')return .68;
- if(target==='urban'&&station==='rural')return .72;
- return .88;
+ if(target==='rural'&&station==='urban')return .55;
+ if(target==='urban'&&station==='rural')return .58;
+ return .84;
 }
 
 export function precipitationIntervalMinutes(provider:string|undefined,networkClass:SourceNetworkClass,explicit?:number){

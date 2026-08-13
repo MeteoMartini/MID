@@ -22,7 +22,7 @@ assert.match(eventPanel,/canonical\?canonicalHours:applyForecastFusionHours/,'Id
 assert.match(eventPanel,/finalizeForecastHours\(finalHours,displayBaseDays/,'Abweichende Eventorte verwenden die gemeinsame MID-Endstufe nicht.');
 assert.match(eventPanel,/applyEnsembleDailyPrecipitationProbability\(/,'Eventorte führen die appweite Tages-PoP-Logik nicht in die gemeinsame Endstufe ein.');
 assert.match(eventPanel,/station\(location\.latitude,location\.longitude/,'Eventorte nutzen für kurzfristige Anker keine Stationsanalyse.');
-assert.match(eventPanel,/150\*60000/,'Stationsaktualität im Eventplaner weicht vom regulären 150-Minuten-Vertrag ab.');
+assert.match(eventPanel,/stationFieldObservationUsable\(observation,'temperature'/,'Eventplaner verwendet keine parameterbezogene Temperaturaktualität.');
 assert.match(eventPanel,/Aktive Ortsvorhersage · identische MID-Endstufe/,'Transparenz über identische Event-/Ortsprognose fehlt.');
 
 // II. Sonne/Mond/Finsternisse müssen aus einer einheitlichen Ephemeridenbasis stammen.
