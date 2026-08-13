@@ -1,3 +1,16 @@
+## 0.9.48.1
+
+- Release-Pipeline: veraltete versionsfeste TS18048-Regression auf fortlaufenden Schutzvertrag umgestellt.
+- Wetterzwilling-Regression an die zentrale finale Forecast-Pipeline von v0.9.48.0 angepasst.
+- Keine fachliche Änderung an Event-, Astronomie- oder Hyperlokallogik.
+
+## 0.9.48.0
+
+- Event-Wetter nutzt app-weit dieselbe finale MID-Prognosekette wie die reguläre Ortsvorhersage; am identischen aktiven Ort werden exakt dieselben finalisierten Stundenwerte übernommen.
+- Sonne/Mond-Astronomie vollständig auf Astronomy Engine 2.1.19 vereinheitlicht: Auf-/Untergänge, Dämmerung, Mondphase/-beleuchtung/-alter und Finsternis-Sichtbarkeit aus einer gemeinsamen Ephemeridenbasis.
+- Hyperlokale Stationsanalyse nach v0.9.47-Quellenausbau neu kalibriert: GMA/Straßenwetter für allgemeine Luftwerte deutlich gedämpft und nahe geeignete Stationen mit sanftem Lokalitätsbonus versehen.
+- Neue Regression `test-event-astronomy-hyperlocal-consistency-09480.mjs`; v0.9.47-Quellenbroker-Regression versionsfortschreibungsfest gemacht.
+
 # MID v0.9.47.1
 
 - Build-Hotfix für v0.9.47.0: die parameterbezogene Messquellenanzeige gibt ihre Quellenzeilen jetzt explizit als `StationFieldSource[]` zurück.

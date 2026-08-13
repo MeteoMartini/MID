@@ -1,15 +1,15 @@
 import {useEffect,useMemo,useRef,useState,type FormEvent} from 'react'
 import {ArrowUpDown,BellRing,CalendarRange,ChevronDown,ChevronLeft,CloudRain,Info,MapPin,Pencil,Plane,RefreshCw,Search,ShieldCheck,ShieldAlert,Star,Sun,Thermometer,Trash2,Wind} from 'lucide-react'
 import {WeatherPictogram} from './WeatherPictogram'
-import {bestMatchModelInfo,forecast,label,localIsoEpoch,mapDays,mapHours,radarNowcast,searchLocations,thunderstormNowcast,wind,type Hour,type Location,type WindUnit} from './weather'
+import {bestMatchModelInfo,forecast,label,localIsoEpoch,mapDays,mapHours,radarNowcast,searchLocations,station,thunderstormNowcast,wind,type Hour,type Location,type WindUnit} from './weather'
 import {EVENT_CENTER_OPEN_EVENT,EVENT_CENTER_UPDATED_EVENT,buildEventCenterId,compareEventPlans,deleteEventCenterRecord,markEventCenterOpened,readEventCenterRecords,toggleEventCenterFavorite,upsertEventCenterRecord,type EventActivity,type EventAdvice,type EventCenterRecord,type EventEnvironment,type EventPlan,type EventStatus,type EventSummary,type EventTimelinePoint} from './eventCenter'
-import {applyConvectiveNowcastHours,applyForecastFusionDays,applyForecastFusionHours,applyOperationalNowcastHours,forecastFusionLabel,loadForecastFusion,type ForecastFusionResult} from './forecastFusion'
+import {applyForecastFusionDays,applyForecastFusionHours,finalizeForecastHours,forecastFusionLabel,loadForecastFusion,type ForecastFusionResult} from './forecastFusion'
 import {compactPrecipitationTypeLabel,precipitationParts} from './precipitation'
 import {formatUvi} from './format'
 import {loadEventFlightHazards} from './eventAviation'
 import {AppInfoHint} from './AppInfoPopover'
 
-type Props={initialLocation:Location;advancedMode:boolean;unit:WindUnit}
+type Props={initialLocation:Location;advancedMode:boolean;unit:WindUnit;canonicalHours?:Hour[];canonicalFusion?:ForecastFusionResult|null}
 type ValueEvent={target:{value:string}}
 
 const EVENT_LOCATION_KEY='mid:event-planner:location'
@@ -52,6 +52,7 @@ function formatNumber(value:number|null|undefined,digits=0){if(!Number.isFinite(
 function formatDate(value:string){const date=new Date(`${value}T12:00:00Z`);return Number.isFinite(date.getTime())?new Intl.DateTimeFormat('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'}).format(date):value}
 function formatClock(value:string){return value.slice(0,5)}
 function destinationLabel(location:Location){return[location.icao?`${location.icao} · ${location.name}`:location.name,location.admin1,location.country].filter(Boolean).join(', ')}
+function sameForecastLocation(a:Location,b:Location){const meanLat=(a.latitude+b.latitude)*Math.PI/360,dLat=(a.latitude-b.latitude)*111.32,dLon=(a.longitude-b.longitude)*111.32*Math.cos(meanLat);return Math.hypot(dLat,dLon)<=.35}
 function modelStamp(value?:string){if(!value)return'–';const date=new Date(value);return Number.isFinite(date.getTime())?new Intl.DateTimeFormat('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(date):value}
 function parseMinuteStamp(value:string){const match=value.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);if(!match)return Number.NaN;return Date.UTC(Number(match[1]),Number(match[2])-1,Number(match[3]),Number(match[4]),Number(match[5]))}
 function parseStoredValues(){try{return JSON.parse(storageGet(EVENT_VALUES_KEY)||'{}') as Partial<{title:string;date:string;startTime:string;endTime:string;environment:EventEnvironment;activity:EventActivity}>}catch{return{}}}
@@ -148,7 +149,7 @@ function buildTimingHint(summary:EventSummary,activity:EventActivity){
 function eventCompactRange(record:EventCenterRecord){return`${formatDate(record.date)} · ${formatClock(record.startTime)}–${formatClock(record.endTime)}`}
 function eventMetricLine(plan:EventPlan|null,unit:WindUnit){if(!plan)return'Noch keine Analyse.';return`${formatNumber(plan.summary.temperatureAvg)} °C · ${eventPrecipLabel(plan.summary)} ${formatNumber(eventPrecipProbability(plan.summary))} % · Wind ${wind(plan.summary.windMax??Number.NaN,unit)} · G ${wind(plan.summary.gustMax??Number.NaN,unit)}`}
 
-export default function EventPlannerPanel({initialLocation,advancedMode,unit}:Props){
+export default function EventPlannerPanel({initialLocation,advancedMode,unit,canonicalHours=[],canonicalFusion=null}:Props){
  const stored=useMemo(()=>parseStoredValues(),[])
  const [destination,setDestination]=useState<Location>(()=>storedLocation()??initialLocation)
  const [query,setQuery]=useState('')
@@ -223,18 +224,20 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit}:Pr
  function chooseLocation(location:Location){setDestination(location);setSearchResults([]);setQuery('');setSearchError('');storageSet(EVENT_LOCATION_KEY,JSON.stringify(location))}
  async function buildPlan(location:Location,eventDate:string,eventStartTime:string,eventEndTime:string,eventEnvironment:EventEnvironment,eventActivity:EventActivity,eventTitle:string,signal:AbortSignal){
   const country=location.country_code||location.country,[weather,modelInfo,fusion]=await Promise.all([forecast(location.latitude,location.longitude,signal),bestMatchModelInfo(location.latitude,location.longitude,country,signal).catch(()=>null),loadForecastFusion(location.latitude,location.longitude,country,location.elevation,signal).catch(()=>null)])
-  const baseHours=mapHours(weather),baseDays=mapDays(weather),fusedDays=applyForecastFusionDays(baseDays,fusion);let finalHours=applyForecastFusionHours(baseHours,baseDays,fusedDays,fusion),now=Date.now(),startEpoch=localIsoEpoch(`${eventDate}T${eventStartTime}`,weather.timezone,Number(weather.utc_offset_seconds)||0),endEpoch=localIsoEpoch(`${eventDate}T${eventEndTime}`,weather.timezone,Number(weather.utc_offset_seconds)||0);if(Number.isFinite(startEpoch)&&Number.isFinite(endEpoch)&&endEpoch<startEpoch)endEpoch=startEpoch+3600000
+  const baseHours=mapHours(weather),baseDays=mapDays(weather),fusedDays=applyForecastFusionDays(baseDays,fusion),canonical=sameForecastLocation(location,initialLocation)&&canonicalHours.length>0;let finalHours=canonical?canonicalHours:applyForecastFusionHours(baseHours,baseDays,fusedDays,fusion),now=Date.now(),startEpoch=localIsoEpoch(`${eventDate}T${eventStartTime}`,weather.timezone,Number(weather.utc_offset_seconds)||0),endEpoch=localIsoEpoch(`${eventDate}T${eventEndTime}`,weather.timezone,Number(weather.utc_offset_seconds)||0);if(Number.isFinite(startEpoch)&&Number.isFinite(endEpoch)&&endEpoch<startEpoch)endEpoch=startEpoch+3600000
   const nearNow=Number.isFinite(startEpoch)&&Number.isFinite(endEpoch)&&endEpoch>=now-30*60000&&startEpoch<=now+4*3600000;let nowcastApplied=false,thunderApplied=false
-  if(nearNow){
-   const [radarResult,thunderResult]=await Promise.allSettled([radarNowcast(location.latitude,location.longitude,country,signal,true),thunderstormNowcast(location.latitude,location.longitude,country,signal)]),radar=radarResult.status==='fulfilled'?radarResult.value:null,thunder=thunderResult.status==='fulfilled'?thunderResult.value:null,before=finalHours
-   finalHours=applyOperationalNowcastHours(finalHours,radar);nowcastApplied=finalHours!==before
-   const beforeThunder=finalHours;finalHours=applyConvectiveNowcastHours(finalHours,thunder);thunderApplied=finalHours!==beforeThunder
+  if(!canonical){
+   let radar:Awaited<ReturnType<typeof radarNowcast>>=null,thunder:Awaited<ReturnType<typeof thunderstormNowcast>>=null,observedTemperature=Number(weather.current?.temperature_2m),observedAt=now;
+   if(nearNow){
+    const [radarResult,thunderResult,stationResult]=await Promise.allSettled([radarNowcast(location.latitude,location.longitude,country,signal,true),thunderstormNowcast(location.latitude,location.longitude,country,signal),station(location.latitude,location.longitude,country,location.elevation??weather.elevation,location,signal,true)]);radar=radarResult.status==='fulfilled'?radarResult.value:null;thunder=thunderResult.status==='fulfilled'?thunderResult.value:null;const observation=stationResult.status==='fulfilled'?stationResult.value:null,stamp=observation?.timestamp?Date.parse(observation.timestamp):Number.NaN,fresh=Boolean(observation&&Number.isFinite(observation.temperature)&&(!Number.isFinite(stamp)||now-stamp<150*60000));if(fresh){observedTemperature=Number(observation!.temperature);observedAt=Number.isFinite(stamp)?stamp:now}
+   }
+   const finalized=finalizeForecastHours(finalHours,fusedDays,{radar,thunder,observedTemperature,observedAt,applyOperationalRadar:nearNow});finalHours=finalized.hours;nowcastApplied=finalized.radarApplied;thunderApplied=finalized.thunderApplied
   }
   const timeline=timelineForWindow(finalHours,eventDate,eventStartTime,eventEndTime)
   if(!timeline.length)throw new Error('Für den gewählten Zeitraum sind noch keine Stundendaten verfügbar. Bitte Datum oder Uhrzeit anpassen.')
-  const summary=summarizeTimeline(timeline,fusion)
+  const summary=summarizeTimeline(timeline,canonical?canonicalFusion:fusion)
   if(eventActivity==='flight'&&Number.isFinite(startEpoch)&&Number.isFinite(endEpoch))summary.flightHazards=await loadEventFlightHazards(location.latitude,location.longitude,location.elevation??weather.elevation??0,startEpoch,endEpoch,signal)
-  const advice=evaluateEvent(summary,eventEnvironment,eventActivity),fusionState=forecastFusionLabel(fusion),source=[fusionState||'Open-Meteo Best Match · gemeinsame MID-Plausibilisierung',nowcastApplied?'Radar-Nowcast':'' ,thunderApplied?'Konvektiv-/Gewitter-Nowcast':'',eventActivity==='flight'&&summary.flightHazards?.available?'Druckniveau-Flugwetterdiagnose':''].filter(Boolean).join(' · ')
+  const advice=evaluateEvent(summary,eventEnvironment,eventActivity),fusionState=forecastFusionLabel(canonical?canonicalFusion:fusion),source=[canonical?'Aktive Ortsvorhersage · identische MID-Endstufe':fusionState||'Open-Meteo Best Match · gemeinsame MID-Plausibilisierung',nowcastApplied?'Radar-Nowcast':'' ,thunderApplied?'Konvektiv-/Gewitter-Nowcast':'',eventActivity==='flight'&&summary.flightHazards?.available?'Druckniveau-Flugwetterdiagnose':''].filter(Boolean).join(' · ')
   return{location,title:eventTitle.trim(),date:eventDate,startTime:eventStartTime,endTime:eventEndTime,environment:eventEnvironment,activity:eventActivity,timeline,summary,advice,modelInfo,refreshedAt:Date.now(),source} satisfies EventPlan
  }
  function validateInputs(location:Location|null,eventDate:string,eventStartTime:string,eventEndTime:string){

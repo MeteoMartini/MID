@@ -244,6 +244,27 @@ export function reconcileCurrentTemperatureObservation(hours:Hour[],temperature:
  const current=hours[bestIndex];if(Math.abs(current.temperature-temperature)<.05)return hours;
  const result=[...hours];result[bestIndex]={...current,temperature};return result;
 }
+
+export type ForecastHourFinalizationOptions={
+ radar?:RadarNowcast|null;
+ thunder?:ThunderstormNowcast|null;
+ observedTemperature?:number;
+ observedAt?:number;
+ applyOperationalRadar?:boolean;
+};
+export type ForecastHourFinalization={hours:Hour[];radarApplied:boolean;thunderApplied:boolean;observationApplied:boolean;reconciled:boolean};
+/**
+ * Gemeinsame letzte MID-Prognosestufe für Ortsansicht, Events und weitere
+ * standortbezogene Ableitungen. Damit gelten Nowcast-, Konvektiv-, Beobachtungs-
+ * und Niederschlags-Plausibilisierung app-weit in derselben Reihenfolge.
+ */
+export function finalizeForecastHours(hours:Hour[],days:Day[],options:ForecastHourFinalizationOptions={}):ForecastHourFinalization{
+ const radarHours=options.applyOperationalRadar===false?hours:applyOperationalNowcastHours(hours,options.radar),radarApplied=radarHours!==hours;
+ const thunderHours=applyConvectiveNowcastHours(radarHours,options.thunder),thunderApplied=thunderHours!==radarHours;
+ const observationHours=Number.isFinite(options.observedTemperature)?reconcileCurrentTemperatureObservation(thunderHours,Number(options.observedTemperature),Number.isFinite(options.observedAt)?Number(options.observedAt):Date.now()):thunderHours,observationApplied=observationHours!==thunderHours;
+ const reconciledHours=reconcileForecastHoursWithDays(observationHours,days);
+ return{hours:reconciledHours,radarApplied,thunderApplied,observationApplied,reconciled:reconciledHours!==observationHours};
+}
 function cacheKey(lat:number,lon:number){return`${CACHE_PREFIX}${(Math.round(lat*20)/20).toFixed(2)}:${(Math.round(lon*20)/20).toFixed(2)}`}
 function readCache(lat:number,lon:number,maxAge=STALE_MS){
  try{

@@ -10,7 +10,8 @@ const seasonal=fs.readFileSync('src/seasonalForecast.ts','utf8');
 
 // Wetterplaner darf keine eigene rohe Wetterlogik führen, sondern nutzt denselben
 // MID-Fusions-/Nowcast-/Niederschlagscharakter-Pfad wie das Dashboard.
-for(const token of ['loadForecastFusion','applyForecastFusionDays','applyForecastFusionHours','applyOperationalNowcastHours','applyConvectiveNowcastHours','precipitationParts'])assert.ok(event.includes(token),`Wetterplaner ohne gemeinsamen MID-Pfad: ${token}`);
+for(const token of ['loadForecastFusion','applyForecastFusionDays','applyForecastFusionHours','finalizeForecastHours','precipitationParts'])assert.ok(event.includes(token),`Wetterplaner ohne gemeinsamen MID-Pfad: ${token}`);
+for(const token of ['applyOperationalNowcastHours','applyConvectiveNowcastHours','reconcileCurrentTemperatureObservation','reconcileForecastHoursWithDays'])assert.ok(fusion.includes(token),`Gemeinsame MID-Endstufe ohne ${token}`);
 assert.ok(event.includes("weatherLabel:part.type==='none'?label(part.displayCode):part.weatherLabel"),'Wetterplaner muss plausibilisierte Niederschlags-/Wettertitel verwenden.');
 assert.ok(event.includes("summary.weatherLabel?.includes('Sprühregen')"),'Sprühregen muss im Wetterplaner explizit aus der zentralen Plausibilisierung ableitbar sein.');
 

@@ -17,7 +17,8 @@ assert.ok(!source.includes('distributeDailyPrecipitationDeficit'),'Tagesmengen d
 assert.ok(!source.includes('DAY_HOURLY_PRECIPITATION_DEFICIT_MIN_MM'),'alte Tagesdefizit-Verteilung muss vollständig entfernt sein');
 
 const app=fs.readFileSync(path.join(root,'src','App.tsx'),'utf8');
-assert.ok(app.includes('reconcileForecastHoursWithDays(temperatureObservedHours,baseDisplayDays)'), 'finale Darstellungsstunden müssen zentral geprüft werden');
+assert.ok(app.includes('finalizeForecastHours(twinHours,baseDisplayDays'), 'finale Darstellungsstunden müssen über die gemeinsame MID-Endstufe zentral geprüft werden');
+assert.ok(source.includes('reconcileForecastHoursWithDays(observationHours,days)'), 'gemeinsame MID-Endstufe muss den Tages-/Stundenabgleich ausführen');
 assert.ok(app.includes('reconcileForecastDaysWithHours(baseDisplayDays,displayHours)'), 'Tageskopf muss aus finalen Stunden abgeleitet werden');
 
 const require=createRequire(import.meta.url);let ts;try{ts=require('typescript')}catch{ts=require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript')}

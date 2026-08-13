@@ -40,7 +40,12 @@ export function fieldWeightPolicy(provider:string|undefined,networkClass:SourceN
  // Straßenwetter ist für Fahrbahn-/Glätterisiken hervorragend, darf aber allgemeine
  // Wind-, Sicht-, Wolken- oder Niederschlagsfelder nicht wegen bloßer Nähe dominieren.
  if(road&&(field==='windSpeed'||field==='windDirection'||field==='windGust'||field==='visibility'||field==='cloudCover'||field==='ceilingHft'||field==='cloudBaseHft'||field==='precipitation'))return{quality:.08,distanceScaleKm:3,ageScaleMinutes:25,sensitiveAllowed:false};
- if(road&&field==='pressure')return{quality:.35,distanceScaleKm:5,ageScaleMinutes:30,sensitiveAllowed:false};
+ // GMA/Straßenwetter misst zwar auch die Luftschicht, ist aber standorttypisch stark
+ // durch Fahrbahn, Einschnitt, Brücke oder Straßenrand geprägt. Diese Werte dienen
+ // deshalb nur als lokale Stütze und dürfen das allgemeine hyperlokale Luftfeld nicht
+ // gegenüber repräsentativeren SYNOP-/Stationsnetzen verdrängen.
+ if(road&&(field==='temperature'||field==='humidity'||field==='dewPoint'))return{quality:.42,distanceScaleKm:7,ageScaleMinutes:35,sensitiveAllowed:false};
+ if(road&&field==='pressure')return{quality:.28,distanceScaleKm:5,ageScaleMinutes:30,sensitiveAllowed:false};
  if(field==='windSpeed'||field==='windDirection'||field==='windGust')return{quality:source.quality,distanceScaleKm:source.windDistanceKm,ageScaleMinutes:source.windAgeMinutes,sensitiveAllowed:source.sensitiveAllowed};
  if(field==='visibility'||field==='cloudCover'||field==='ceilingHft'||field==='cloudBaseHft'||field==='precipitation')return{quality:source.quality,distanceScaleKm:source.sensitiveDistanceKm,ageScaleMinutes:source.sensitiveAgeMinutes,sensitiveAllowed:source.sensitiveAllowed};
  return{quality:source.quality,distanceScaleKm:source.temperatureDistanceKm,ageScaleMinutes:source.temperatureAgeMinutes,sensitiveAllowed:source.sensitiveAllowed};

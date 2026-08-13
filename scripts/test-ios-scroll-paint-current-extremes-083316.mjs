@@ -23,9 +23,10 @@ for(const token of [
  'return{...day,max,min,precipitation:signal.precipitation'
 ])need('Temperaturkonsistenz',fusion,token);
 for(const token of [
- 'reconcileCurrentTemperatureObservation',
+ 'finalizeForecastHours',
  'stationTemperatureFresh=Boolean',
- 'temperatureObservedHours=useMemo',
+ 'observedTemperature:currentObservedTemperature',
+ 'finalizedHours=useMemo',
  'currentRange=currentDay?{min:Math.min(currentDay.min,temp),max:Math.max(currentDay.max,temp)}:null',
  'Tagesbereich aus Vorhersage und aktuellem Wert'
 ])need('App-Einbindung',app,token);

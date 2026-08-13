@@ -44,12 +44,12 @@ for(const token of [
  'isInputPending',
  'loadForecastFusion(',
  'twinForecastActive?localTwinDays:fusedDays',
- 'applyOperationalNowcastHours',
- 'applyConvectiveNowcastHours',
+ 'finalizeForecastHours',
  "id:'mid_best_match_quality'",
  'Best Match · geprüft und lokal nachkorrigiert',
  'Wetter-/Niederschlagsbündel:'
 ])need('App-Integration',app,token);
+for(const token of ['applyOperationalNowcastHours','applyConvectiveNowcastHours','reconcileCurrentTemperatureObservation','reconcileForecastHoursWithDays'])need('Gemeinsame Endstufe',fusion,token);
 for(const token of [
  'weatherSourceId',
  'weatherSourceLabel',

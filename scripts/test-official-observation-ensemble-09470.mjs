@@ -6,7 +6,10 @@ const [pkgText,baselineText,weather,quality,app,worker,env,change]=await Promise
  read('package.json'),read('MID_BASELINE.json'),read('src/weather.ts'),read('src/sourceQuality.ts'),read('src/App.tsx'),read('worker/metar-proxy.js'),read('.env.example'),read('CHANGELOG.md')
 ]);
 const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText);
-assert.match(pkg.version,/^0\.9\.47\.\d+$/);
+const versionParts=String(pkg.version).split('.').map(Number);
+assert.ok(versionParts.length===4&&versionParts.every(Number.isFinite),'Ungültige MID-Version.');
+const minimum=[0,9,47,0];
+assert.ok(versionParts.some((value,index)=>value>minimum[index]&&versionParts.slice(0,index).every((part,partIndex)=>part===minimum[partIndex]))||versionParts.every((value,index)=>value===minimum[index]),'Der amtliche Beobachtungs-/Ensemblevertrag gilt ab MID v0.9.47.0.');
 assert.equal(baseline.releaseVersion,pkg.version);
 
 // Direkter DWD-SYNOP-Pfad und echter Bright-Sky-Rückfall.
