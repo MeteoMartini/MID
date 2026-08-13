@@ -14,7 +14,7 @@ for(const token of [
   'function tideEventsForDate(data:MarineForecast|undefined,date:string)',
   'function WaterTideRow({points,events}',
   '>Gezeiten<',
-  "event.kind==='high'?'Hochpunkt':'Tiefpunkt'",
+  "event.kind==='high'?'Flut':'Ebbe'",
   'timeLabel(event.time)} · {seaLevelText(event.level)',
   '<WaterTideRow points={points} events={tideEventsForDate(marine,window.date)}/>',
   'Gezeiten werden unabhängig vom angezeigten Aktivitätszeitfenster für den gesamten jeweiligen Kalendertag aufgeführt.',

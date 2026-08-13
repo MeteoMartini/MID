@@ -36,7 +36,7 @@ for(const token of [
  'morphologyCompatibility(field',
  '*morphologyCompatibility(field,s,morphology)',
  "morphologyCompatibility('windDirection',station,morphology)",
- "'Copernicus DEM GLO-90'"
+ "'Copernicus DEM GLO-90 · 8-Sektor-Exposition'"
 ])assert.ok(weather.includes(token),`DEM-/Morphologievertrag fehlt: ${token}`);
 
 // Land surface / roughness: exact GIS adapter or explicitly lower-confidence OSM proxy.

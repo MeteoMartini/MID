@@ -15,6 +15,8 @@ export type EventCenterRecord={id:string;title:string;location:Location;date:str
 export const EVENT_CENTER_STORAGE_KEY='mid:event-center:v1'
 export const EVENT_CENTER_UPDATED_EVENT='mid:event-center-updated'
 export const EVENT_CENTER_OPEN_EVENT='mid:event-center-open'
+export const EVENT_CENTER_REFRESH_EVENT='mid:event-center-refresh'
+export const EVENT_CENTER_REFRESH_DONE_EVENT='mid:event-center-refresh-done'
 
 function safeNumber(value:number|null|undefined,fallback=0){return Number.isFinite(Number(value))?Number(value):fallback}
 function rounded(value:number|null|undefined,digits=0){const factor=10**digits;return Math.round(safeNumber(value)*factor)/factor}

@@ -1,8 +1,8 @@
 import {useEffect,useMemo,useRef,useState,type FormEvent} from 'react'
-import {ArrowUpDown,BellRing,CalendarRange,ChevronDown,ChevronLeft,CloudRain,Info,MapPin,Pencil,Plane,RefreshCw,Search,ShieldCheck,ShieldAlert,Star,Sun,Thermometer,Trash2,Wind} from 'lucide-react'
+import {ArrowUpDown,BellRing,CalendarRange,ChevronDown,ChevronLeft,CloudLightning,CloudRain,Info,MapPin,Pencil,Plane,RefreshCw,Search,ShieldCheck,ShieldAlert,Snowflake,Star,Sun,Thermometer,Trash2,Wind} from 'lucide-react'
 import {WeatherPictogram} from './WeatherPictogram'
 import {applyEnsembleDailyPrecipitationProbability,bestMatchModelInfo,eventEnsembleForecast,forecast,label,localIsoEpoch,mapDays,mapHours,radarNowcast,searchLocations,station,stationFieldObservationUsable,thunderstormNowcast,wind,type EventPrecipitationProbabilityAssessment,type Hour,type Location,type WindUnit} from './weather'
-import {EVENT_CENTER_OPEN_EVENT,EVENT_CENTER_UPDATED_EVENT,buildEventCenterId,compareEventPlans,deleteEventCenterRecord,markEventCenterOpened,readEventCenterRecords,toggleEventCenterFavorite,upsertEventCenterRecord,type EventActivity,type EventAdvice,type EventCenterRecord,type EventEnvironment,type EventPlan,type EventStatus,type EventSummary,type EventTimelinePoint} from './eventCenter'
+import {EVENT_CENTER_OPEN_EVENT,EVENT_CENTER_REFRESH_DONE_EVENT,EVENT_CENTER_REFRESH_EVENT,EVENT_CENTER_UPDATED_EVENT,buildEventCenterId,compareEventPlans,deleteEventCenterRecord,markEventCenterOpened,readEventCenterRecords,toggleEventCenterFavorite,upsertEventCenterRecord,type EventActivity,type EventAdvice,type EventCenterRecord,type EventEnvironment,type EventPlan,type EventStatus,type EventSummary,type EventTimelinePoint} from './eventCenter'
 import {applyForecastFusionDays,applyForecastFusionHours,finalizeForecastHours,forecastFusionLabel,loadForecastFusion,type ForecastFusionResult} from './forecastFusion'
 import {compactPrecipitationTypeLabel,precipitationParts} from './precipitation'
 import {formatUvi} from './format'
@@ -10,7 +10,7 @@ import {loadEventFlightHazards} from './eventAviation'
 import {AppInfoHint} from './AppInfoPopover'
 import {applyLocalTwinForecastFromReport,applyLocalTwinHours,buildForecastVerificationReport,readWeatherTwinSettings} from './forecastVerification'
 
-type Props={initialLocation:Location;advancedMode:boolean;unit:WindUnit;canonicalHours?:Hour[];canonicalFusion?:ForecastFusionResult|null;canonicalWeatherTwinApplied?:boolean}
+type Props={initialLocation:Location;advancedMode:boolean;unit:WindUnit;canonicalHours?:Hour[];canonicalFusion?:ForecastFusionResult|null;canonicalWeatherTwinApplied?:boolean;backgroundOnly?:boolean}
 type ValueEvent={target:{value:string}}
 
 const EVENT_LOCATION_KEY='mid:event-planner:location'
@@ -70,6 +70,7 @@ function max(values:(number|null)[]){const usable=values.filter((value):value is
 function min(values:(number|null)[]){const usable=values.filter((value):value is number=>value!=null);return usable.length?Math.min(...usable):null}
 
 function eventWeatherPart(point:EventTimelinePoint){return precipitationParts({time:point.time,precipitation:point.precipitation??0,rain:point.rain??0,showers:point.showers??0,snowfall:point.snowfall??0,probability:point.precipitationProbability??0,code:point.weatherCode??0,temperature:point.temperature??undefined,humidity:point.humidity??undefined,cloud:point.cloud??undefined,lowCloud:point.lowCloud??undefined,cape:point.cape??undefined,liftedIndex:point.liftedIndex??undefined,convectiveInhibition:point.convectiveInhibition??undefined,sunshineDuration:point.sunshineDuration??undefined,isDay:point.isDay})}
+function EventTimelinePrecipitationProbability({point}:{point:EventTimelinePoint}){const type=eventWeatherPart(point).type,title=type==='snow'||type==='snowGrains'||type==='snowShowers'?'Schneewahrscheinlichkeit':type==='sleet'||type==='sleetShowers'?'Schnee-/Schneeregenwahrscheinlichkeit':type==='thunderstorm'||type==='thunderstormHail'?'Gewitter-/Niederschlagswahrscheinlichkeit':type==='freezingRain'||type==='freezingDrizzle'?'Wahrscheinlichkeit gefrierenden Niederschlags':'Niederschlagswahrscheinlichkeit',icon=type==='snow'||type==='snowGrains'||type==='snowShowers'||type==='sleet'||type==='sleetShowers'?<Snowflake size={12}/>:type==='thunderstorm'||type==='thunderstormHail'?<CloudLightning size={12}/>:<CloudRain size={12}/>;return <span className="event-timeline-pop" title={title} aria-label={`${title} ${formatNumber(point.precipitationProbability)} Prozent`}>{icon}<b>{formatNumber(point.precipitationProbability)} %</b></span>}
 function summarizeTimeline(timeline:EventTimelinePoint[],fusion:ForecastFusionResult|null,eventProbability?:EventPrecipitationProbabilityAssessment|null,weatherTwinApplied=false):EventSummary{
  const temperatures=timeline.map(point=>point.temperature),apparents=timeline.map(point=>point.apparent),precipitationProbabilities=timeline.map(point=>point.precipitationProbability),winds=timeline.map(point=>point.wind),gusts=timeline.map(point=>point.gust),uvValues=timeline.map(point=>point.uv),visibilities=timeline.map(point=>point.visibility),parts=timeline.map(point=>({point,part:eventWeatherPart(point)})),wet=parts.filter(row=>row.part.type!=='none'),representative=(wet.length?wet:parts).sort((a,b)=>weatherSeverity(b.part.displayCode)-weatherSeverity(a.part.displayCode)||((b.point.precipitationProbability??0)+(b.point.precipitation??0)*8)-((a.point.precipitationProbability??0)+(a.point.precipitation??0)*8))[0],groups=new Set((fusion?.sources??[]).filter(source=>source.successful&&source.consensusRole!=='postprocessing').map(source=>source.independenceGroup||source.family));
  const probabilityWinner=[...wet].sort((a,b)=>(b.point.precipitationProbability??0)-(a.point.precipitationProbability??0)||b.part.total-a.part.total||weatherSeverity(b.part.displayCode)-weatherSeverity(a.part.displayCode))[0];
@@ -80,6 +81,7 @@ function summarizeTimeline(timeline:EventTimelinePoint[],fusion:ForecastFusionRe
 
 function eventPrecipProbability(summary:EventSummary){return summary.precipitationProbabilityRelevant??summary.precipitationProbabilityMax}
 function eventPrecipLabel(summary:EventSummary){return summary.precipitationTypeLabel||'Niederschlag'}
+function EventSummaryPrecipitationIcon({summary,size=14}:{summary:EventSummary;size?:number}){const text=`${summary.precipitationTypeLabel||''} ${summary.weatherLabel||''}`.toLocaleLowerCase('de-DE'),code=Number(summary.weatherCode);if(/schnee|graupel|schneeregen/.test(text)||[71,73,75,77,85,86].includes(code))return <Snowflake size={size}/>;if(/gewitter|hagel/.test(text)||[95,96,97,99].includes(code))return <CloudLightning size={size}/>;return <CloudRain size={size}/>}
 
 function evaluateEvent(summary:EventSummary,environment:EventEnvironment,activity:EventActivity):EventAdvice{
  const tips:string[]=[]
@@ -156,9 +158,9 @@ function buildTimingHint(summary:EventSummary,activity:EventActivity){
  return'gute Planbarkeit im gewählten Zeitfenster'
 }
 function eventCompactRange(record:EventCenterRecord){return`${formatDate(record.date)} · ${formatClock(record.startTime)}–${formatClock(record.endTime)}`}
-function eventMetricLine(plan:EventPlan|null,unit:WindUnit){if(!plan)return'Noch keine Analyse.';return`${formatNumber(plan.summary.temperatureAvg)} °C · ${eventPrecipLabel(plan.summary)} Zeitraum ${formatNumber(eventPrecipProbability(plan.summary))} % · Wind ${wind(plan.summary.windMax??Number.NaN,unit)} · G ${wind(plan.summary.gustMax??Number.NaN,unit)}`}
+function eventMetricLine(plan:EventPlan|null,unit:WindUnit){if(!plan)return'Noch keine Analyse.';return`${formatNumber(plan.summary.temperatureAvg)} °C · ${eventPrecipLabel(plan.summary)} ${formatNumber(eventPrecipProbability(plan.summary))} % · Wind ${wind(plan.summary.windMax??Number.NaN,unit)} · G ${wind(plan.summary.gustMax??Number.NaN,unit)}`}
 
-export default function EventPlannerPanel({initialLocation,advancedMode,unit,canonicalHours=[],canonicalFusion=null,canonicalWeatherTwinApplied=false}:Props){
+export default function EventPlannerPanel({initialLocation,advancedMode,unit,canonicalHours=[],canonicalFusion=null,canonicalWeatherTwinApplied=false,backgroundOnly=false}:Props){
  const stored=useMemo(()=>parseStoredValues(),[])
  const [destination,setDestination]=useState<Location>(()=>storedLocation()??initialLocation)
  const [query,setQuery]=useState('')
@@ -182,6 +184,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
  const [bulkRefreshing,setBulkRefreshing]=useState(false)
  const [workspaceView,setWorkspaceView]=useState<EventWorkspaceView>(()=>readEventCenterRecords().length?'overview':'editor')
  const [locationSearchOpen,setLocationSearchOpen]=useState(false)
+ const savedEventsRef=useRef(savedEvents)
  const searchController=useRef<AbortController|null>(null)
  const analysisController=useRef<AbortController|null>(null)
  const forecastWindowHint=`Vorhersage aktuell bis ${formatDate(addDays(localToday(),13))}`
@@ -192,6 +195,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
  const displayedEvents=useMemo(()=>sortEvents(savedEvents,sortMode),[savedEvents,sortMode])
 
  useEffect(()=>()=>{searchController.current?.abort();analysisController.current?.abort()},[])
+ useEffect(()=>{savedEventsRef.current=savedEvents},[savedEvents])
  useEffect(()=>{storageSet(EVENT_VALUES_KEY,JSON.stringify({title,date,startTime,endTime,environment,activity}))},[title,date,startTime,endTime,environment,activity])
  useEffect(()=>{storageSet(EVENT_SORT_KEY,sortMode)},[sortMode])
  useEffect(()=>{if(plan||storedLocation())return;setDestination(initialLocation)},[initialLocation,plan])
@@ -202,17 +206,12 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
  },[plan,destination,date,startTime,endTime,environment,activity,title])
  useEffect(()=>{
   const sync=()=>setSavedEvents(readEventCenterRecords())
-  const openSaved=(event:Event)=>{const detail=(event as CustomEvent<{id?:string}>).detail,id=String(detail?.id||'');if(!id)return;const record=readEventCenterRecords().find(item=>item.id===id);if(record)loadRecord(record,'detail')}
+  const openSaved=(event:Event)=>{if(backgroundOnly)return;const detail=(event as CustomEvent<{id?:string}>).detail,id=String(detail?.id||'');if(!id)return;const record=readEventCenterRecords().find(item=>item.id===id);if(record)loadRecord(record,'detail')}
   window.addEventListener(EVENT_CENTER_UPDATED_EVENT,sync)
-  window.addEventListener(EVENT_CENTER_OPEN_EVENT,openSaved as EventListener)
+  if(!backgroundOnly)window.addEventListener(EVENT_CENTER_OPEN_EVENT,openSaved as EventListener)
   window.addEventListener('storage',sync)
-  return()=>{window.removeEventListener(EVENT_CENTER_UPDATED_EVENT,sync);window.removeEventListener(EVENT_CENTER_OPEN_EVENT,openSaved as EventListener);window.removeEventListener('storage',sync)}
- },[])
- useEffect(()=>{
-  if(!savedEvents.some(item=>item.isFavorite))return
-  const timer=window.setInterval(()=>{void refreshStoredEvents(true)},AUTO_REFRESH_MS)
-  return()=>window.clearInterval(timer)
- },[savedEvents])
+  return()=>{window.removeEventListener(EVENT_CENTER_UPDATED_EVENT,sync);if(!backgroundOnly)window.removeEventListener(EVENT_CENTER_OPEN_EVENT,openSaved as EventListener);window.removeEventListener('storage',sync)}
+ },[backgroundOnly])
 
  async function runSearch(event:FormEvent){
   event.preventDefault()
@@ -247,7 +246,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
   if(!timeline.length)throw new Error('Für den gewählten Zeitraum sind noch keine Stundendaten verfügbar. Bitte Datum oder Uhrzeit anpassen.')
   const summary=summarizeTimeline(timeline,canonical?canonicalFusion:fusion,eventProbability,weatherTwinApplied)
   if(eventActivity==='flight'&&Number.isFinite(startEpoch)&&Number.isFinite(endEpoch))summary.flightHazards=await loadEventFlightHazards(location.latitude,location.longitude,location.elevation??weather.elevation??0,startEpoch,endEpoch,signal)
-  const advice=evaluateEvent(summary,eventEnvironment,eventActivity),fusionState=forecastFusionLabel(canonical?canonicalFusion:fusion),source=[canonical?'Aktive Ortsvorhersage · identische MID-Endstufe':fusionState||'Open-Meteo Best Match · gemeinsame MID-Plausibilisierung',weatherTwinApplied?'Wetterzwilling · lokal validierte Temperatur-/Böenkorrektur':'',eventProbability?`Event-PoP ${eventStartTime}–${eventEndTime} · Ensemble-Member >0,2 mm`:'PoP · Stundenfallback',nowcastApplied?'Radar-Nowcast':'' ,thunderApplied?'Konvektiv-/Gewitter-Nowcast':'',eventActivity==='flight'&&summary.flightHazards?.available?'Druckniveau-Flugwetterdiagnose':''].filter(Boolean).join(' · ')
+  const advice=evaluateEvent(summary,eventEnvironment,eventActivity),fusionState=forecastFusionLabel(canonical?canonicalFusion:fusion),source=[canonical?'Aktive Ortsvorhersage · identische MID-Endstufe':fusionState||'Open-Meteo Best Match · gemeinsame MID-Plausibilisierung',weatherTwinApplied?'Wetterzwilling · lokal validierte Temperatur-/Böenkorrektur':'',eventProbability?`Event-Niederschlagswahrscheinlichkeit ${eventStartTime}–${eventEndTime} · Ensemble-Member >0,2 mm`:'Niederschlagswahrscheinlichkeit · Stundenfallback',nowcastApplied?'Radar-Nowcast':'' ,thunderApplied?'Konvektiv-/Gewitter-Nowcast':'',eventActivity==='flight'&&summary.flightHazards?.available?'Druckniveau-Flugwetterdiagnose':''].filter(Boolean).join(' · ')
   return{location,title:eventTitle.trim(),date:eventDate,startTime:eventStartTime,endTime:eventEndTime,environment:eventEnvironment,activity:eventActivity,timeline,summary,advice,modelInfo,refreshedAt:Date.now(),source} satisfies EventPlan
  }
  function validateInputs(location:Location|null,eventDate:string,eventStartTime:string,eventEndTime:string){
@@ -298,7 +297,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
   }catch(reason){if(!controller.signal.aborted)setError(reason instanceof Error?reason.message:'Event-Auswertung fehlgeschlagen.')}
   finally{if(analysisController.current===controller&&!controller.signal.aborted)setLoading(false)}
  }
- async function refreshStoredEvent(record:EventCenterRecord,markAsFavoritePass=false){
+ async function refreshStoredEvent(record:EventCenterRecord,markAsFavoritePass=false,silentFailure=false){
   setRefreshingIds(current=>current.includes(record.id)?current:[...current,record.id])
   const controller=new AbortController()
   try{
@@ -306,16 +305,33 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
    const change=compareEventPlans(record.plan,nextPlan)
    const updated:EventCenterRecord={...record,location:record.location,title:record.title,date:record.date,startTime:record.startTime,endTime:record.endTime,environment:record.environment,activity:record.activity,isFavorite:markAsFavoritePass?true:record.isFavorite,updatedAt:Date.now(),plan:nextPlan,change}
    upsertEventCenterRecord(updated)
-   if(selectedRecordId===record.id||currentEventId===record.id){setPlan(nextPlan);setSelectedRecordId(record.id)}
-  }catch(reason){setError(reason instanceof Error?reason.message:'Gespeichertes Event konnte nicht aktualisiert werden.')}
+   if(!backgroundOnly&&(selectedRecordId===record.id||currentEventId===record.id)){setPlan(nextPlan);setSelectedRecordId(record.id)}
+   return true
+  }catch(reason){if(!silentFailure)setError(reason instanceof Error?reason.message:'Gespeichertes Event konnte nicht aktualisiert werden.');return false}
   finally{setRefreshingIds(current=>current.filter(id=>id!==record.id))}
  }
- async function refreshStoredEvents(favoritesOnly=false){
-  const targets=favoritesOnly?savedEvents.filter(item=>item.isFavorite):savedEvents.slice(0,12)
-  if(!targets.length)return
+ async function refreshStoredEvents(favoritesOnly=false,silentFailure=false){
+  const records=savedEventsRef.current,now=Date.now(),active=records.filter(item=>{const end=Date.parse(`${item.date}T${item.endTime||item.startTime||'23:59'}:00`);return !Number.isFinite(end)||end>=now-6*3600000}),targets=favoritesOnly?active.filter(item=>item.isFavorite):active.slice(0,20)
+  if(!targets.length)return 0
   setBulkRefreshing(true)
-  try{for(const item of targets)await refreshStoredEvent(item,favoritesOnly)}finally{setBulkRefreshing(false)}
+  let refreshed=0
+  try{for(const item of targets)if(await refreshStoredEvent(item,favoritesOnly,silentFailure))refreshed++}finally{setBulkRefreshing(false)}
+  return refreshed
  }
+ useEffect(()=>{
+  if(!backgroundOnly)return
+  let running=false,timer=0
+  const isStale=()=>savedEventsRef.current.some(item=>!item.plan||Date.now()-Number(item.plan.refreshedAt||item.updatedAt||0)>=AUTO_REFRESH_MS)
+  const refresh=async(source:'manual'|'auto')=>{if(running)return;running=true;let refreshed=0;try{refreshed=await refreshStoredEvents(false,true)}finally{running=false;window.dispatchEvent(new CustomEvent(EVENT_CENTER_REFRESH_DONE_EVENT,{detail:{source,refreshed,at:Date.now()}}))}}
+  const request=()=>{void refresh('manual')}
+  const resume=()=>{if(document.visibilityState!=='hidden'&&isStale())void refresh('auto')}
+  window.addEventListener(EVENT_CENTER_REFRESH_EVENT,request)
+  document.addEventListener('visibilitychange',resume)
+  window.addEventListener('focus',resume)
+  timer=window.setInterval(()=>{if(document.visibilityState!=='hidden')void refresh('auto')},AUTO_REFRESH_MS)
+  const initial=window.setTimeout(()=>{if(isStale())void refresh('auto')},1200)
+  return()=>{window.removeEventListener(EVENT_CENTER_REFRESH_EVENT,request);document.removeEventListener('visibilitychange',resume);window.removeEventListener('focus',resume);window.clearInterval(timer);window.clearTimeout(initial)}
+ },[backgroundOnly])
  function loadRecord(record:EventCenterRecord,target:EventWorkspaceView='detail'){
   chooseLocation(record.location)
   setTitle(record.title)
@@ -354,6 +370,8 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
   setSavedEvents(readEventCenterRecords())
  }
  function toggleFavorite(record:EventCenterRecord){toggleEventCenterFavorite(record.id);setSavedEvents(readEventCenterRecords())}
+
+ if(backgroundOnly)return null
 
  const selectedEnvironment=ENVIRONMENT_OPTIONS.find(item=>item.id===environment)??ENVIRONMENT_OPTIONS[0]
  const selectedActivity=ACTIVITY_OPTIONS.find(item=>item.id===activity)??ACTIVITY_OPTIONS[0]
@@ -427,13 +445,13 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
     </div>
     <div className="event-guide-main">
      <div className="event-guide-copy"><span>EVENT-CHECK</span><h5>{currentTitle}</h5><p>{destinationLabel(plan.location)}</p><strong>{plan.advice.headline}</strong><p>{plan.advice.summary}</p><div className="event-guide-inline-notes"><article><MapPin size={15}/><span>{timingHint}</span></article><article><BellRing size={15}/><span>Stand {lastUpdateText}</span></article></div><div className="event-result-toolbar"><button type="button" className="secondary" onClick={()=>saveCurrentPlan(false)}><Star size={15} fill={currentSavedRecord?'currentColor':'none'}/>{currentSavedRecord?'Event aktualisieren':'Event speichern'}</button>{currentSavedRecord?<button type="button" className="secondary" onClick={()=>toggleFavorite(currentSavedRecord)}><Star size={15} fill={currentSavedRecord.isFavorite?'currentColor':'none'}/>{currentSavedRecord.isFavorite?'Favorit entfernen':'Favorit'}</button>:<button type="button" className="secondary" onClick={()=>saveCurrentPlan(true)}><Star size={15}/>Als Favorit speichern</button>}</div></div>
-     <aside className="event-guide-weatherpanel"><small>Leitwetter</small><div className="event-guide-weatherrow"><WeatherPictogram code={plan.summary.weatherCode??0} day={plan.summary.isDay!==false} title={plan.summary.weatherLabel||label(plan.summary.weatherCode??0)}/><div><strong>{formatNumber(plan.summary.temperatureAvg)}°</strong><span>{plan.summary.weatherLabel||label(plan.summary.weatherCode??0)}</span></div></div><p>{outfitHint}</p><div className="event-guide-quickstats"><span><CloudRain size={14}/>{eventPrecipLabel(plan.summary)} · Zeitraum {formatNumber(eventPrecipProbability(plan.summary))} %</span><span><Wind size={14}/>{wind(plan.summary.windMax??Number.NaN,unit)} · G {wind(plan.summary.gustMax??Number.NaN,unit)}</span><span><Sun size={14}/>UVI {formatUvi(plan.summary.uvMax??Number.NaN)}</span></div></aside>
+     <aside className="event-guide-weatherpanel"><small>Leitwetter</small><div className="event-guide-weatherrow"><WeatherPictogram code={plan.summary.weatherCode??0} day={plan.summary.isDay!==false} title={plan.summary.weatherLabel||label(plan.summary.weatherCode??0)}/><div><strong>{formatNumber(plan.summary.temperatureAvg)}°</strong><span>{plan.summary.weatherLabel||label(plan.summary.weatherCode??0)}</span></div></div><p>{outfitHint}</p><div className="event-guide-quickstats"><span><EventSummaryPrecipitationIcon summary={plan.summary}/>{eventPrecipLabel(plan.summary)} · {formatNumber(eventPrecipProbability(plan.summary))} %</span><span><Wind size={14}/>{wind(plan.summary.windMax??Number.NaN,unit)} · G {wind(plan.summary.gustMax??Number.NaN,unit)}</span><span><Sun size={14}/>UVI {formatUvi(plan.summary.uvMax??Number.NaN)}</span></div></aside>
     </div>
    </div>
 
    <div className="event-metrics-grid">
     <article><Thermometer size={17}/><small>Temperatur</small><strong>{formatNumber(plan.summary.temperatureAvg)} °C</strong><span>{formatNumber(plan.summary.temperatureMin)}–{formatNumber(plan.summary.temperatureMax)} °C · gefühlt Ø {formatNumber(plan.summary.apparentAvg)} °C</span></article>
-    <article><CloudRain size={17}/><small>Niederschlag</small><strong>{eventPrecipLabel(plan.summary)} · Zeitraum {formatNumber(eventPrecipProbability(plan.summary))} %</strong><span>{formatClock(plan.startTime)}–{formatClock(plan.endTime)} · {formatNumber(plan.summary.precipitationTotal,1)} mm{plan.summary.precipitationProbabilitySource==='ensemble-members-dwd-event'&&plan.summary.precipitationProbabilitySignificant!=null?` · >5 mm ${formatNumber(plan.summary.precipitationProbabilitySignificant)} %`:''}</span></article>
+    <article><EventSummaryPrecipitationIcon summary={plan.summary} size={17}/><small>Niederschlag</small><strong><span className="event-precip-detail-symbol" title={eventPrecipLabel(plan.summary)} aria-label={eventPrecipLabel(plan.summary)}><EventSummaryPrecipitationIcon summary={plan.summary}/></span> {formatNumber(eventPrecipProbability(plan.summary))} %</strong><span>{formatNumber(plan.summary.precipitationTotal,1)} mm{plan.summary.precipitationProbabilitySource==='ensemble-members-dwd-event'&&plan.summary.precipitationProbabilitySignificant!=null?` · >5 mm ${formatNumber(plan.summary.precipitationProbabilitySignificant)} %`:''}</span></article>
     <article><Wind size={17}/><small>Wind</small><strong>{wind(plan.summary.windMax??Number.NaN,unit)}</strong><span>Böen {wind(plan.summary.gustMax??Number.NaN,unit)}</span></article>
     <article><Sun size={17}/><small>UVI / Sicht</small><strong>UVI {formatUvi(plan.summary.uvMax??Number.NaN)}</strong><span>Sicht min. {plan.summary.visibilityMin!=null?`${formatNumber(plan.summary.visibilityMin/1000,1)} km`:'–'}</span></article>
    </div>
@@ -445,7 +463,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
    <details className="event-detail-disclosure">
     <summary><span><small>MEHR DETAILS</small><strong>Stündlicher Verlauf & Datenbasis</strong></span><ChevronDown size={18}/></summary>
     <div className="event-detail-disclosure-body">
-     <div className="event-timeline-card"><header><div><span>ZEITFENSTER</span><h6>Stündlicher Verlauf</h6></div><AppInfoHint label="Informationen zum Stundenverlauf" width={390}><strong>Stündlicher Verlauf</strong><p>{advancedMode?'Best Match, unabhängige Modellfamilien und MID-Plausibilisierung; bei Nahterminen zusätzlich Nowcast. Die große Niederschlagswahrscheinlichkeit gilt separat für das gesamte Eventfenster. Die Prozentwerte in den Karten gelten für das jeweils angegebene Stundenintervall; Open-Meteo weist Niederschlagswerte als Summe bzw. Wahrscheinlichkeit der vorangehenden Stunde aus, daher schneidet MID diese Intervalle exakt auf Start und Ende des Events zu.':'Dieselbe plausibilisierte Stundenprognose wie in der übrigen App. Die große Niederschlagswahrscheinlichkeit gilt für den gesamten Eventzeitraum; die Karten zeigen nur die tatsächlich überlappenden Stundenintervalle.'}</p></AppInfoHint></header><div className="event-timeline">{plan.timeline.map(point=><article key={`${point.periodLabel||point.time}:${point.time}`}><time>{point.periodLabel||point.time}</time><WeatherPictogram code={point.weatherCode??0} day={point.isDay!==false} title={point.weatherLabel||label(point.weatherCode??0)}/><strong>{formatNumber(point.temperature)}°</strong><small>{point.weatherLabel||label(point.weatherCode??0)} · PoP {formatNumber(point.precipitationProbability)} %</small><small>Wind {wind(point.wind??Number.NaN,unit)} · G {wind(point.gust??Number.NaN,unit)}</small></article>)}</div></div>
+     <div className="event-timeline-card"><header><div><span>ZEITFENSTER</span><h6>Stündlicher Verlauf</h6></div><AppInfoHint label="Informationen zum Stundenverlauf" width={390}><strong>Stündlicher Verlauf</strong><p>{advancedMode?'Best Match, unabhängige Modellfamilien und MID-Plausibilisierung; bei Nahterminen zusätzlich Nowcast. Die große Niederschlagswahrscheinlichkeit gilt separat für das gesamte Eventfenster. Die Prozentwerte in den Karten gelten für das jeweils angegebene Stundenintervall; Open-Meteo weist Niederschlagswerte als Summe bzw. Wahrscheinlichkeit der vorangehenden Stunde aus, daher schneidet MID diese Intervalle exakt auf Start und Ende des Events zu.':'Dieselbe plausibilisierte Stundenprognose wie in der übrigen App. Die große Niederschlagswahrscheinlichkeit gilt für den gesamten Eventzeitraum; die Karten zeigen nur die tatsächlich überlappenden Stundenintervalle.'}</p></AppInfoHint></header><div className="event-timeline">{plan.timeline.map(point=><article key={`${point.periodLabel||point.time}:${point.time}`}><time>{point.periodLabel||point.time}</time><WeatherPictogram code={point.weatherCode??0} day={point.isDay!==false} title={point.weatherLabel||label(point.weatherCode??0)}/><strong>{formatNumber(point.temperature)}°</strong><small className="event-timeline-weather-meta"><span>{point.weatherLabel||label(point.weatherCode??0)}</span><span aria-hidden="true"> · </span><EventTimelinePrecipitationProbability point={point}/></small><small>Wind {wind(point.wind??Number.NaN,unit)} · G {wind(point.gust??Number.NaN,unit)}</small></article>)}</div></div>
      <details className="event-model-disclosure"><summary><Info size={16}/><span>Daten & Modellstand</span><ChevronDown size={15}/></summary><div className="event-model-updates"><header><div><span>MODELLSTAND</span><h6>Aktuelle Laufstände</h6></div><small>{lastUpdateText}</small></header>{plan.modelInfo?.summary?<div className="event-model-update-lead"><BellRing size={16}/><span>{plan.modelInfo.summary}</span></div>:null}{latestRuns.length>0&&<div className="event-run-grid">{latestRuns.map(run=><article key={`${run.id}:${run.initialisationTime}`}><strong>{run.label}</strong><small>Init {modelStamp(run.initialisationTime)}</small><small>Verfügbar {modelStamp(run.availabilityTime||run.initialisationTime)}</small></article>)}</div>}<footer><span>Quelle: {plan.source}</span><small>{plan.summary.modelFamilyCount?`${plan.summary.modelFamilyCount} unabhängige Modellgruppen geprüft. `:''}{plan.summary.rapidCycleUsed?'Rapid-Cycle-Läufe einbezogen. ':''}{advancedMode?'Varianten derselben Modellfamilie werden nicht mehrfach gewichtet.':''}</small></footer></div></details>
     </div>
    </details>

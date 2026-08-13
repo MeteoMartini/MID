@@ -25,8 +25,9 @@ for(const token of [
  'scaled(hour.snowfall)'
 ])assert.ok(planner.includes(token),`Event-Zeitintervallvertrag fehlt: ${token}`)
 assert.ok(!planner.includes('row.stamp>=startStamp-30*60000&&row.stamp<=endStamp+30*60000'),'Die alte punktbasierte ±30-Minuten-Auswahl darf Niederschlagsintervalle nicht mehr bestimmen')
-assert.ok(planner.includes('· Zeitraum {formatNumber(eventPrecipProbability(plan.summary))} %'),'Die Event-PoP muss sichtbar als Zeitraumwahrscheinlichkeit gekennzeichnet sein')
-assert.ok(planner.includes('{formatClock(plan.startTime)}–{formatClock(plan.endTime)} · {formatNumber(plan.summary.precipitationTotal,1)} mm'),'Die Niederschlagskachel muss den ausgewerteten Eventzeitraum zeigen')
+assert.ok(!planner.includes('· Zeitraum {formatNumber(eventPrecipProbability(plan.summary))} %'),'Die kompakte Eventdarstellung darf das Wort Zeitraum nicht mehr zusätzlich anzeigen')
+assert.ok(planner.includes('<small>Niederschlag</small><strong><span className="event-precip-detail-symbol"'),'Die Niederschlagskachel muss die Zeitraum-PoP platzsparend mit Niederschlagsart-Symbol darstellen')
+assert.ok(!planner.includes('{formatClock(plan.startTime)}–{formatClock(plan.endTime)} · {formatNumber(plan.summary.precipitationTotal,1)} mm'),'Die Niederschlagskachel darf den bereits im Kopf sichtbaren Eventzeitraum nicht doppelt anzeigen')
 assert.ok(planner.includes('<time>{point.periodLabel||point.time}</time>'),'Stundenkarten müssen ihre tatsächlichen Niederschlagsintervalle anzeigen')
 assert.ok(planner.includes('Die große Niederschlagswahrscheinlichkeit gilt für den gesamten Eventzeitraum'),'Infohilfe muss Zeitraum-PoP und Stunden-PoP unterscheiden')
 console.log(`${pkg.version}: Event-Zeitraum-PoP und vorangehende Stundenintervalle semantisch ausgerichtet.`)

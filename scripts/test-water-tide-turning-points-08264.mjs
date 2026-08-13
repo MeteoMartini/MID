@@ -45,7 +45,7 @@ else{
   const data={hourly:{time:hourlyTimes,sea_level_height_msl:hourlyLevels},minutely_15:{time:minuteTimes,sea_level_height_msl:minuteLevels}};
   const events=tideEventsForDate(data,date);
   if(events.length<3)failures.push(`Niedrige Tidenamplitude: nur ${events.length} Wendepunkte erkannt.`);
-  if(!events.some(event=>event.kind==='high')||!events.some(event=>event.kind==='low'))failures.push('Niedrige Tidenamplitude: Hoch- oder Tiefpunkt fehlt.');
+  if(!events.some(event=>event.kind==='high')||!events.some(event=>event.kind==='low'))failures.push('Niedrige Tidenamplitude: Flut- oder Ebbe-Wendepunkt fehlt.');
   if(events.some(event=>event.time.slice(0,10)!==date))failures.push('Niedrige Tidenamplitude: Ereignis außerhalb des Tages enthalten.');
 
   const flatMinute={...data,minutely_15:{time:minuteTimes,sea_level_height_msl:minuteTimes.map(()=>.1)}};

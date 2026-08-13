@@ -9,7 +9,7 @@ const baseline=JSON.parse(readFileSync(new URL('../MID_BASELINE.json',import.met
 const failures=[];
 const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
 for(const token of [
- "if(mode==='forecast-fusion')return forecastFusionResponse(u);",
+ "if(mode==='forecast-fusion')return forecastFusionResponse(u,env);",
  "'adaptive-priority-forecast-fusion'",
  'FORECAST_FUSION_HOURLY',
  "id:'icon_d2'",

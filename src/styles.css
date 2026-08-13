@@ -5915,3 +5915,7 @@ button,[role="button"],summary{
   pointer-events:none;
  }
 }
+
+
+.event-center-header-popover>footer{gap:7px;flex-wrap:wrap}.actions .event-center-header-popover>footer .event-center-header-reload{margin-right:auto}.event-center-header-reload .spin{animation:mid-spin .8s linear infinite}.event-precip-detail-symbol{display:inline-flex;align-items:center;justify-content:center;vertical-align:-2px}.hyperlocal-analysis-info{display:grid;gap:5px;max-width:min(420px,78vw)}.hyperlocal-analysis-info>span,.hyperlocal-analysis-info>small{display:block;line-height:1.4}.hyperlocal-analysis-info>strong{margin-bottom:2px}
+@keyframes mid-spin{to{transform:rotate(360deg)}}

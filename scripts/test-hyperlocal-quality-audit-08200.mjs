@@ -19,7 +19,7 @@ for(const token of [
  'function mergeEquivalentStationCandidates(',
  'function residualCircularField(',
  'function reconcileThermodynamics(',
- 'validateWindPair(Number(rawWind),Number(rawGust))',
+ 'validateWindPair(Number(windExposure.value),Number(gustExposure.value))',
  "ranked.filter(authoritative),'ceilingHft'",
  "residualField(ranked,backgrounds,target,'visibility','visibility'",
  "residualField(ranked,backgrounds,target,'cloudCover','cloudCover'",

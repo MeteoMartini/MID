@@ -1,5 +1,30 @@
 # MID Changelog
 
+## 0.9.53.1
+
+- CI-/Regressions-Hotfix für v0.9.53.0: vier veraltete bzw. durch die neue Architektur überholte Assertions an den aktuellen Funktionsvertrag angepasst.
+- Event Center: Favoritenlauf prüft alle aktiven Favoriten; die 20er-Grenze gilt nur für den allgemeinen Hintergrundlauf.
+- Hyperlokale Analyse: dynamische Ergebniswerte (Modellhintergrund, lokale Korrektur, Gelände, Windexposition und Oberflächenkontext) bleiben im erweiterten Modus direkt sichtbar; nur Methodik/Erklärung liegt hinter dem Info-Hinweis.
+- ICON-D2-RUC-Regression an den optionalen Worker-Punktadapter und den weiterhin gültigen Availability-only-Rohdatenpfad angepasst.
+- Forecast-Fusion-Regression an den env-fähigen Worker-Aufruf `forecastFusionResponse(u,env)` angepasst.
+- Keine neue kostenpflichtige RUC-Infrastruktur und keine Aktivierung eines RUC-Punktdecoders.
+- Worker fachlich unverändert; kein Worker-Upload erforderlich.
+
+
+## 0.9.53.0
+
+- Event Center: automatische Neubewertung aktiver Events bei sichtbarer App sowie Catch-up nach Wiederaufnahme/Fokus; zusätzlicher `Neu laden`-Button direkt im Glocken-Popover.
+- Bergwetter: zentrale DWD-Näherung der Schneefallgrenze aus T850 und tatsächlichem Z850 mit 0,65 K/100 m und +2-°C-Schneefallgrenzenansatz; Ensemble-Spread wird in Höhenunsicherheit übertragen.
+- Gezeiten: `Flut`/`Ebbe` statt `Hochpunkt`/`Tiefpunkt`.
+- Eventplaner: kompakter Niederschlagsblock ohne Zusatzwort `Zeitraum`; Niederschlagsart-Symbol statt `PoP` in den Details.
+- Hyperlokale Analyse: statische/methodische Erklärungen der erweiterten Ansicht in appweites Info-Popover verschoben.
+- ICON-D2-RUC: optionaler numerischer Worker-Punktadapter (`MID_DWD_RUC_POINT_ENDPOINT`) ergänzt; direkte DWD-Verfügbarkeitsprüfung bleibt erhalten.
+- Copernicus CLMS: direkte LCM10-Abfrage über CDSE/Sentinel-Hub Statistical API mit OAuth-Client-Credentials; GIS-Oberflächenkontext vor OSM-Proxy priorisiert.
+- Hyperlokale Exposition: acht richtungsabhängige DEM-Sektoren, Interpolation zur aktuellen Modellwindrichtung und konservative dynamische Wind-/Böenkorrektur unter Einbezug der Rauigkeit.
+- Synoptik: aktuelle DWD-Synoptische Übersichten Kurz-/Mittelfrist als kontrollierte Fachvokabularquelle; keine Übernahme fremder Textpassagen.
+- Neue Required-Regression `test-mid-nine-step-integration-09530.mjs`.
+- Worker funktional geändert; Worker-Upload erforderlich.
+
 
 ## 0.9.52.3
 
@@ -3556,3 +3581,7 @@
 - Radar-Farbtabellenwahl aus den Einstellungen entfernt. 1-km-WMS sowie lokal gerendertes 250-m-/OPERA-Radar verwenden wieder ihre fest vorgegebenen Standardfarben.
 - Neue appweite Zeitbasis unter Einstellungen: Lokalzeit (Standard) oder Z-Zeit/UTC. Wetter-, Radar-, Warn-, Diagramm-, Wasser-, Berg-, Meteogramm- und technische Zeitangaben folgen der Auswahl; die Ortszeit im Standortkopf bleibt bewusst lokal.
 - Niederschlagsart im Kompositbild auf ein semitransparentes Symboloverlay umgestellt: kleine Symbole markieren nur Mischphase, Schnee und gefrierenden Niederschlag auf dem jeweils aktiven Radarbild; reiner Regen erhält kein Zusatzsymbol. Die vorhandene Deckkraftregelung unter der Karte steuert die Symboltransparenz.
+
+## 0.9.52.4
+- CodeQL-Cleanup: letzter produktiver `Math.random()`-Fallback in der Favoriten-ID-Erzeugung durch Web-Crypto ersetzt.
+- Neue Regression verhindert unsichere Zufallsquellen im Produktionscode.

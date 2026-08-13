@@ -34,7 +34,7 @@ for(const token of [
  'buildForecastVerificationReport(locationKey,fusedDays,ensembleDays,location,baseHours)',
  'applyLocalTwinHours(locationKey,finalHours,fusedDays,localTwinDays)',
  'finalizeForecastHours(finalHours,displayBaseDays',
- 'Event-PoP ${eventStartTime}–${eventEndTime}'
+ 'Event-Niederschlagswahrscheinlichkeit ${eventStartTime}–${eventEndTime}'
 ])assert.ok(eventPlanner.includes(token),`Eventplaner-Konsistenz fehlt: ${token}`);
 
 assert.ok(eventCenter.includes("precipitationProbabilitySource?:'ensemble-members-dwd-event'|'hourly-max-fallback'"),'EventSummary speichert die Herkunft der Zeitraum-PoP nicht.');

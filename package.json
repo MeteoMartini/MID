@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.52.3",
+  "version": "0.9.53.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -253,7 +253,8 @@
     "test:event-astronomy-hyperlocal-consistency": "node scripts/test-event-astronomy-hyperlocal-consistency-09480.mjs",
     "test:ui-architecture-contract": "node scripts/test-ui-architecture-contract-09500.mjs",
     "test:hyperlocal-parameter-relevance": "node scripts/test-hyperlocal-parameter-relevance-09510.mjs",
-    "test:appwide-touch-responsiveness": "node scripts/test-appwide-touch-responsiveness-09523.mjs"
+    "test:appwide-touch-responsiveness": "node scripts/test-appwide-touch-responsiveness-09523.mjs",
+    "test:mid-nine-step-09530": "node scripts/test-mid-nine-step-integration-09530.mjs"
   },
   "dependencies": {
     "astronomy-engine": "^2.1.19",

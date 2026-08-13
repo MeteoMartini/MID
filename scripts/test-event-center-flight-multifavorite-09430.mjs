@@ -12,7 +12,7 @@ assert.match(panel,/id:'flight',label:'Flug'/,'Flugauswahl fehlt im Eventplaner'
 assert.match(panel,/loadEventFlightHazards/,'Flugwetter-Hazardanalyse ist nicht verdrahtet');
 for(const term of ['Vereisung','Turbulenz','CAT','Wolkenuntergrenze','Sicht'])assert.match(aviation,new RegExp(term),`Flugwetter-Hazard fehlt: ${term}`);
 assert.match(aviation,/Richardson|ri=/i,'Turbulenzdiagnose nutzt keine Scherungs-/Stabilitätsbewertung');
-assert.match(panel,/const targets=favoritesOnly\?savedEvents\.filter\(item=>item\.isFavorite\):savedEvents\.slice\(0,12\)/,'Mehrere Favoriten werden nicht vollständig gemeinsam geprüft');
+assert.match(panel,/targets=favoritesOnly\?active\.filter\(item=>item\.isFavorite\):active\.slice\(0,20\)/,'Mehrere Favoriten werden nicht vollständig gemeinsam geprüft; die Begrenzung darf nur den Nicht-Favoriten-Lauf betreffen');
 assert.match(panel,/selectedRecord\?\.id===currentEventId\?selectedRecord:null/,'Ein geladenes Event kann weiterhin neue Favoriten überschreiben');
 assert.match(panel,/formatUvi\(plan\.summary\.uvMax/,'UVI ist im Eventplaner nicht appweit ganzzahlig formatiert');
 assert.doesNotMatch(panel,/summary\.uvMax,1/,'Veraltete UVI-Nachkommastelle ist noch aktiv');
