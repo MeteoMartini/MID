@@ -1,3 +1,11 @@
+## 0.9.49.1
+
+- Event-PoP visuell eindeutig als **Zeitraumwahrscheinlichkeit** gekennzeichnet; ausgewerteter Start-/Endzeitraum steht direkt an der Niederschlagskachel.
+- Stündliche Event-Niederschlagswerte an die Open-Meteo-Semantik „vorangehende Stunde“ angepasst: nur tatsächlich mit dem Event überlappende Intervalle werden dargestellt und summiert.
+- Teilstunden werden für Mengen zeitanteilig zugeschnitten; Einzelstunden-PoP bleibt als Wahrscheinlichkeit des jeweils ausgewiesenen Stundenintervalls erhalten.
+- Der bisherige ±30-Minuten-Punktfilter wurde für Event-Niederschlag entfernt, damit z. B. die 12:00-PoP (11–12 Uhr) nicht fälschlich in ein ab 12:00 Uhr beginnendes Event einfließt.
+- Neue Regression `test-event-period-pop-alignment-09491.mjs`.
+
 ## 0.9.49.0
 
 - Event-Niederschlagswahrscheinlichkeit jetzt für den **exakten Start-/Endzeitraum** aus echten Ensemble-Mitgliedern mit den appweiten DWD-nahen Schwellen >0,2 mm und >5,0 mm berechnet; Modellfamilien werden entkorreliert, Stunden nur nach tatsächlicher Zeitüberdeckung gewertet.
