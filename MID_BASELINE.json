@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.53.1",
+  "releaseVersion": "0.9.53.3",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -165,7 +165,8 @@
     "scripts/test-hyperlocal-downscaling-09520.mjs",
     "scripts/test-local-surface-worker-payload-type-09521.mjs",
     "scripts/test-appwide-touch-responsiveness-09523.mjs",
-    "scripts/test-codeql-insecure-randomness-09524.mjs"
+    "scripts/test-codeql-insecure-randomness-09524.mjs",
+    "scripts/test-daily-pop-period-fallback-09533.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -296,7 +297,8 @@
     "scripts/test-seasonal-c3s-dwd-ui-09410.mjs",
     "scripts/test-model-family-consistency-09416.mjs",
     "scripts/test-event-center-flight-multifavorite-09430.mjs",
-    "scripts/test-event-aviation-official-sources-09460.mjs"
+    "scripts/test-event-aviation-official-sources-09460.mjs",
+    "scripts/test-daily-pop-period-fallback-09533.mjs"
   ],
   "requiredFiles": [
     "scripts/test-cockpit-regression-sync-09201.mjs",

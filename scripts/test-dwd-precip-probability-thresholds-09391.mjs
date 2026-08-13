@@ -19,8 +19,8 @@ need('Sechs-Stunden',weather,'windowRainProbabilityVals');
 need('Kompakt',weather,'precipitationProbabilityWindowCompactLabel(elevated)');
 need('Erhöhtes Fenster',weather,'elevatedDwdPrecipitationProbabilityWindow');
 need('Fallback',weather,'Max. Stundenwahrscheinlichkeit ${probability}');
-need('App',app,'dailyPrecipitationProbabilityCompact(d)');
-need('Cockpit',cockpit,'dailyPrecipitationProbabilityCompact(day)');
+need('App',app,'dailyPrecipitationProbabilityCompact(d,allDayHoursForDate)');
+need('Cockpit',cockpit,'dailyPrecipitationProbabilityCompact(day,probabilityHours)');
 need('Ensemble',ensemble,'precipitationProbabilitySignificant');
 need('Verifikation',verification,'reference.precipitation>DWD_PRECIPITATION_PROBABILITY_THRESHOLD_MM?1:0');
 if(failures.length){console.error('DWD-Niederschlagswahrscheinlichkeits-Regression fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}

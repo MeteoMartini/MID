@@ -19,6 +19,10 @@ assert.doesNotMatch(panel,/summary\.uvMax,1/,'Veraltete UVI-Nachkommastelle ist 
 assert.match(panel,/wind\(plan\.summary\.windMax.*unit\)/,'Windeinheit wird nicht appweit übernommen');
 assert.match(app,/MemoLazyEventPlanner[^>]+unit=\{unit\}/,'App-Windeinheit wird nicht an Eventplaner übergeben');
 assert.match(panel,/AppInfoHint/,'Hintergrundinformationen sind nicht hinter appweiten Info-Bedienelementen gebündelt');
+
+assert.match(panel,/currentSavedRecord\?void analyseEvent\(undefined,true\):saveCurrentPlan\(false\)/,'„Event aktualisieren“ berechnet das Event nicht wirklich neu');
+assert.match(panel,/editingRecordIdRef=useRef\(editingRecordId\)/,'Aktives Event besitzt keinen stabilen Refresh-Ref');
+assert.match(panel,/if\(active\?\.plan\)setPlan\(current=>/,'Extern aktualisierte Eventdaten werden nicht in die geöffnete Detailansicht übernommen');
 assert.match(css,/:root\[data-theme=light\] \.event-plan-result/,'Helles Eventplaner-Design ist nicht explizit optimiert');
 assert.match(css,/--event-danger:/,'Theme-adaptive Event-Signalfarben fehlen');
 assert.doesNotMatch(center,/Tendenz neu/,'Unprofessioneller alter Änderungsbadge ist noch aktiv');

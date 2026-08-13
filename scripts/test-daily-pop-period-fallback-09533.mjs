@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+const [weather,app,cockpit]=await Promise.all([readFile(new URL('../src/weather.ts',import.meta.url),'utf8'),readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),readFile(new URL('../src/ForecastCockpit.tsx',import.meta.url),'utf8')]);
+assert.match(weather,/function fallbackHourlyProbabilityWindow\(hours:Hour\[\]\)/);
+assert.match(weather,/Math\.floor\(clock\/6\)/);
+assert.match(weather,/Math\.round\(ranked\[0\]\.probability\)-Math\.round\(ranked\[1\]\.probability\)>=10/);
+assert.match(weather,/return `\$\{period\} · max \$\{primary\}%`/);
+assert.match(weather,/der Zeitraum ordnet das Stundenmaximum nur zeitlich ein/);
+assert.match(app,/dailyPrecipitationProbabilityCompact\(d,allDayHoursForDate\)/);
+assert.match(app,/dailyPrecipitationProbabilityCompact\(d,d\.probabilityHours\)/);
+assert.match(cockpit,/probabilityHours=hours\.filter\(hour=>hour\.time\.startsWith\(day\.date\)\)/);
+assert.match(cockpit,/precipitationCompactMeta=\[precipitationProbabilityCompact,precipitationDurationCompact\]\.filter\(Boolean\)\.join\(' · '\)/);
+console.log('MID v0.9.53.3: Tages-PoP zeigt wieder Zeitraum und bei Bedarf Dauer; Stundenfallback bleibt semantisch als Maximum gekennzeichnet.');

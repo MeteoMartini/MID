@@ -185,6 +185,8 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
  const [workspaceView,setWorkspaceView]=useState<EventWorkspaceView>(()=>readEventCenterRecords().length?'overview':'editor')
  const [locationSearchOpen,setLocationSearchOpen]=useState(false)
  const savedEventsRef=useRef(savedEvents)
+ const selectedRecordIdRef=useRef(selectedRecordId)
+ const editingRecordIdRef=useRef(editingRecordId)
  const searchController=useRef<AbortController|null>(null)
  const analysisController=useRef<AbortController|null>(null)
  const forecastWindowHint=`Vorhersage aktuell bis ${formatDate(addDays(localToday(),13))}`
@@ -196,6 +198,8 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
 
  useEffect(()=>()=>{searchController.current?.abort();analysisController.current?.abort()},[])
  useEffect(()=>{savedEventsRef.current=savedEvents},[savedEvents])
+ useEffect(()=>{selectedRecordIdRef.current=selectedRecordId},[selectedRecordId])
+ useEffect(()=>{editingRecordIdRef.current=editingRecordId},[editingRecordId])
  useEffect(()=>{storageSet(EVENT_VALUES_KEY,JSON.stringify({title,date,startTime,endTime,environment,activity}))},[title,date,startTime,endTime,environment,activity])
  useEffect(()=>{storageSet(EVENT_SORT_KEY,sortMode)},[sortMode])
  useEffect(()=>{if(plan||storedLocation())return;setDestination(initialLocation)},[initialLocation,plan])
@@ -205,7 +209,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
   return()=>window.clearInterval(timer)
  },[plan,destination,date,startTime,endTime,environment,activity,title])
  useEffect(()=>{
-  const sync=()=>setSavedEvents(readEventCenterRecords())
+  const sync=()=>{const records=readEventCenterRecords();setSavedEvents(records);if(!backgroundOnly){const activeId=editingRecordIdRef.current||selectedRecordIdRef.current,active=activeId?records.find(item=>item.id===activeId):null;if(active?.plan)setPlan(current=>!current||Number(active.plan!.refreshedAt)>=Number(current.refreshedAt||0)?active.plan:current)}}
   const openSaved=(event:Event)=>{if(backgroundOnly)return;const detail=(event as CustomEvent<{id?:string}>).detail,id=String(detail?.id||'');if(!id)return;const record=readEventCenterRecords().find(item=>item.id===id);if(record)loadRecord(record,'detail')}
   window.addEventListener(EVENT_CENTER_UPDATED_EVENT,sync)
   if(!backgroundOnly)window.addEventListener(EVENT_CENTER_OPEN_EVENT,openSaved as EventListener)
@@ -444,7 +448,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
      <div className="event-guide-status-wrap"><div className={`event-status-badge ${plan.advice.status}`}>{plan.advice.status==='good'?<ShieldCheck size={16}/>:<ShieldAlert size={16}/>}<strong>{statusLabel(plan.advice.status)}</strong></div>{currentSavedRecord?.change&&currentSavedRecord.change.level!=='none'?<small className={`event-inline-update ${currentSavedRecord.change.level}`}>{currentSavedRecord.change.summary}</small>:null}</div>
     </div>
     <div className="event-guide-main">
-     <div className="event-guide-copy"><span>EVENT-CHECK</span><h5>{currentTitle}</h5><p>{destinationLabel(plan.location)}</p><strong>{plan.advice.headline}</strong><p>{plan.advice.summary}</p><div className="event-guide-inline-notes"><article><MapPin size={15}/><span>{timingHint}</span></article><article><BellRing size={15}/><span>Stand {lastUpdateText}</span></article></div><div className="event-result-toolbar"><button type="button" className="secondary" onClick={()=>saveCurrentPlan(false)}><Star size={15} fill={currentSavedRecord?'currentColor':'none'}/>{currentSavedRecord?'Event aktualisieren':'Event speichern'}</button>{currentSavedRecord?<button type="button" className="secondary" onClick={()=>toggleFavorite(currentSavedRecord)}><Star size={15} fill={currentSavedRecord.isFavorite?'currentColor':'none'}/>{currentSavedRecord.isFavorite?'Favorit entfernen':'Favorit'}</button>:<button type="button" className="secondary" onClick={()=>saveCurrentPlan(true)}><Star size={15}/>Als Favorit speichern</button>}</div></div>
+     <div className="event-guide-copy"><span>EVENT-CHECK</span><h5>{currentTitle}</h5><p>{destinationLabel(plan.location)}</p><strong>{plan.advice.headline}</strong><p>{plan.advice.summary}</p><div className="event-guide-inline-notes"><article><MapPin size={15}/><span>{timingHint}</span></article><article><BellRing size={15}/><span>Stand {lastUpdateText}</span></article></div><div className="event-result-toolbar"><button type="button" className="secondary" onClick={()=>currentSavedRecord?void analyseEvent(undefined,true):saveCurrentPlan(false)} disabled={loading}>{currentSavedRecord?<RefreshCw className={loading?'spin':undefined} size={15}/>:<Star size={15}/>} {currentSavedRecord?(loading?'Aktualisiere …':'Event aktualisieren'):'Event speichern'}</button>{currentSavedRecord?<button type="button" className="secondary" onClick={()=>toggleFavorite(currentSavedRecord)}><Star size={15} fill={currentSavedRecord.isFavorite?'currentColor':'none'}/>{currentSavedRecord.isFavorite?'Favorit entfernen':'Favorit'}</button>:<button type="button" className="secondary" onClick={()=>saveCurrentPlan(true)}><Star size={15}/>Als Favorit speichern</button>}</div></div>
      <aside className="event-guide-weatherpanel"><small>Leitwetter</small><div className="event-guide-weatherrow"><WeatherPictogram code={plan.summary.weatherCode??0} day={plan.summary.isDay!==false} title={plan.summary.weatherLabel||label(plan.summary.weatherCode??0)}/><div><strong>{formatNumber(plan.summary.temperatureAvg)}°</strong><span>{plan.summary.weatherLabel||label(plan.summary.weatherCode??0)}</span></div></div><p>{outfitHint}</p><div className="event-guide-quickstats"><span><EventSummaryPrecipitationIcon summary={plan.summary}/>{eventPrecipLabel(plan.summary)} · {formatNumber(eventPrecipProbability(plan.summary))} %</span><span><Wind size={14}/>{wind(plan.summary.windMax??Number.NaN,unit)} · G {wind(plan.summary.gustMax??Number.NaN,unit)}</span><span><Sun size={14}/>UVI {formatUvi(plan.summary.uvMax??Number.NaN)}</span></div></aside>
     </div>
    </div>

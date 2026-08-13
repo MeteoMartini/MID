@@ -25,8 +25,9 @@ assert.match(cockpit,/precipitationDurationDayOverviewCompactLabel\(precipitatio
 assert.match(ensemble,/precipitationDurationDayOverviewLabel\(dayPrecipitationAssessment\(day,dayHours\)\.durationHours\)/,'ensemble daily overview must round precipitation duration to whole hours');
 
 assert.match(app,/applyEnsembleDailyPrecipitationProbability\(baseDisplayDaysUnweighted,ens\)/,'central displayDays must receive ensemble daily probabilities');
-assert.match(app,/dailyPrecipitationProbabilityCompact\(d\)/,'classic forecast and widget paths must use the central compact formatter');
-assert.match(cockpit,/dailyPrecipitationProbabilityCompact\(day\)/,'7-day cockpit must use the same compact formatter');
+assert.match(app,/dailyPrecipitationProbabilityCompact\(d,allDayHoursForDate\)/,'classic forecast must pass the full calendar-day hours into the central compact formatter');
+assert.match(app,/dailyPrecipitationProbabilityCompact\(d,d\.probabilityHours\)/,'widget must pass the full calendar-day hours into the central compact formatter');
+assert.match(cockpit,/dailyPrecipitationProbabilityCompact\(day,probabilityHours\)/,'7-day cockpit must pass the full calendar-day hours into the same compact formatter');
 assert.match(ensemble,/elevatedDwdPrecipitationProbabilityWindow\(row\.precipitationProbabilityWindows\)/,'ensemble overview must use the same elevated-window logic');
 assert.match(ensemble,/return elevated\?`\$\{precipitationProbabilityWindowCompactLabel\(elevated\)\} · \$\{Math\.round\(elevated\.probability\)\}%`:`00–24h · \$\{primary\}%`/,'ensemble overview must choose exactly one period');
 assert.match(ensemble,/00–24-h-Niederschlagswahrscheinlichkeit/,'ensemble chart explanation must identify the plotted daily period');

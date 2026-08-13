@@ -65,9 +65,11 @@ assert.ok(!planner.includes('· Zeitraum {formatNumber(eventPrecipProbability(pl
 for(const token of [
  'label="Hyperlokale Analyse erklären"',
  'const stationDynamicStatus=',
- '<b>Hintergrund:</b> {st.backgroundModel}',
- 'Die Ergebniswerte stehen in der erweiterten Ansicht direkt sichtbar; hier wird nur die Methodik erläutert.'
+ 'className="hyperlocal-analysis-compact"',
+ '<b>Modellhintergrund:</b> {st.backgroundModel}',
+ 'In der Hauptkarte bleibt davon nur eine kompakte Ergebniszeile sichtbar'
 ])assert.ok(app.includes(token),`Hyperlokale Ergebnis-/Info-Struktur fehlt: ${token}`);
+assert.ok(styles.includes('.hyperlocal-analysis-compact{display:flex!important'),'Kompakte Hyperlokal-Ergebniszeile fehlt.');
 assert.ok(styles.includes('.hyperlocal-analysis-info{display:grid'),'Hyperlokale Info-Darstellung fehlt.');
 
 // VI – ICON-D2-RUC: DWD-Verfügbarkeit plus optionaler numerischer Punktadapter.

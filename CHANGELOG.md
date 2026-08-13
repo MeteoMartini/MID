@@ -1,3 +1,14 @@
+# 0.9.53.3
+
+- Tages-Niederschlagswahrscheinlichkeit wieder mit 00–24-h- bzw. klar erhöhtem 6-h-Zeitfenster.
+- Best-Match-Fallback bleibt als stündliches Maximum transparent gekennzeichnet.
+- Niederschlagsdauer wird bei vorhandener Dauer kompakt in ganzen Stunden ergänzt.
+
+# 0.9.53.2
+
+- Hyperlokale Analyse platzsparend verdichtet; Details hinter Info.
+- Event-Aktualisierung repariert: echte Neuberechnung und sofortige Synchronisierung des sichtbaren Stand-Zeitpunkts.
+
 # MID Changelog
 
 ## 0.9.53.1

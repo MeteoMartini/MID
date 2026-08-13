@@ -44,7 +44,9 @@ assert.ok(app.includes("stationFieldObservationUsable(st,'temperature'"),'Aktuel
 assert.ok(app.includes("fieldFresh=(field:StationAnalysisField)=>stationFieldObservationUsable"),'Aktuelles Wetter ist nicht feldweise qualitätsgesichert.');
 assert.ok(app.includes("temperatureFresh=fieldFresh('temperature')"),'Die Haupttemperatur besitzt keinen eigenen Aktualitätsstatus.');
 assert.ok(app.includes("°C{temperatureFresh?"),'Die Haupttemperatur kennzeichnet sich weiterhin durch irgendeinen frischen Stationsparameter als stationsgeprüft.');
-assert.ok(app.includes('<b>Hintergrund:</b> {st.backgroundModel}'),'Der verwendete Regionalmodell-Hintergrund ist in der erweiterten Diagnose nicht sichtbar.');
+assert.ok(app.includes('className="hyperlocal-analysis-compact"'),'Die Hyperlokal-Ergebniszeile ist nicht kompakt.');
+assert.ok(app.includes('<b>Modellhintergrund:</b> {st.backgroundModel}'),'Der verwendete Regionalmodell-Hintergrund fehlt im Info-Popover.');
+assert.ok(app.includes('<b>Dynamische Windexposition:</b>'),'Die vollständige dynamische Windexposition fehlt im Info-Popover.');
 assert.ok(app.includes('{stationDynamicStatus}{fresh?<InfoHint label="Hyperlokale Analyse erklären">'),'Dynamische Hyperlokal-Ergebnisse liegen weiterhin vollständig hinter dem Info-Popover.');
 assert.ok(eventPanel.includes("stationFieldObservationUsable(observation,'temperature'"),'Event-Temperaturanker ist nicht feldweise qualitätsgesichert.');
 assert.ok(shortTerm.includes('stationFieldObservationUsable(station,field,now)'),'Kurzfristanker sind nicht feldweise qualitätsgesichert.');

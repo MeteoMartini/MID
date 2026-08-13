@@ -739,15 +739,27 @@ function precipitationProbabilityWindowLabel(window:PrecipitationProbabilityWind
 export function precipitationProbabilityWindowCompactLabel(window:PrecipitationProbabilityWindow){return `${String(window.startHour).padStart(2,'0')}–${String(window.endHour).padStart(2,'0')}h`}
 export function dwdPrecipitationProbabilityWindowsTitle(windows?:PrecipitationProbabilityWindow[]){return (windows??[]).filter(window=>Number.isFinite(window.probability)&&window.memberCount>=2).map(window=>`${precipitationProbabilityWindowLabel(window)}: >0,2 mm ${Math.round(window.probability)} % / >5 mm ${Math.round(window.probabilitySignificant)} %`).join(' · ')}
 
-export function dailyPrecipitationProbabilityTitle(day:Pick<Day,'probability'|'probabilitySignificant'|'probabilityWindows'|'probabilitySource'|'probabilityMemberCount'>){
+type HourlyProbabilityWindow={startHour:number;endHour:number;probability:number};
+/** Wenn nur stündliche Best-Match-Wahrscheinlichkeiten vorliegen, wird für die kompakte Darstellung ein klarer 6-h-Schwerpunkt markiert. Das ändert die Semantik nicht: der Prozentwert bleibt ein Stundenmaximum. */
+function fallbackHourlyProbabilityWindow(hours:Hour[]){
+ const buckets=new Map<number,number>();
+ for(const hour of hours){const clock=Number(String(hour.time).slice(11,13)),probability=Math.max(0,Math.min(100,Number(hour.probability)));if(!Number.isFinite(clock)||!Number.isFinite(probability))continue;const bucket=Math.max(0,Math.min(3,Math.floor(clock/6)));buckets.set(bucket,Math.max(buckets.get(bucket)??0,probability))}
+ const ranked=[...buckets.entries()].map(([bucket,probability])=>({startHour:bucket*6,endHour:(bucket+1)*6,probability})).sort((a,b)=>b.probability-a.probability||a.startHour-b.startHour);if(ranked.length<2)return undefined;return Math.round(ranked[0].probability)-Math.round(ranked[1].probability)>=10?ranked[0]:undefined;
+}
+function hourlyProbabilityWindowCompactLabel(window:HourlyProbabilityWindow){return `${String(window.startHour).padStart(2,'0')}–${String(window.endHour).padStart(2,'0')}h`}
+function hourlyProbabilityWindowLabel(window:HourlyProbabilityWindow){return `${String(window.startHour).padStart(2,'0')}–${String(window.endHour).padStart(2,'0')} h`}
+
+export function dailyPrecipitationProbabilityTitle(day:Pick<Day,'probability'|'probabilitySignificant'|'probabilityWindows'|'probabilitySource'|'probabilityMemberCount'>,hours:Hour[]=[]){
  const probability=`${Math.round(Math.max(0,Math.min(100,Number(day.probability)||0)))} %`;
  if(day.probabilitySource==='ensemble-members-dwd'){const significant=`${Math.round(Math.max(0,Math.min(100,Number(day.probabilitySignificant)||0)))} %`,members=Math.max(0,Math.round(Number(day.probabilityMemberCount)||0)),periods=dwdPrecipitationProbabilityWindowsTitle(day.probabilityWindows);return `DWD-Ereigniswahrscheinlichkeit · 00–24 h: >0,2 mm ${probability} · >5,0 mm ${significant}${periods?` · 6-h-Zeitfenster: ${periods}`:''}${members?` · ${members} Ensemble-Member`:''}`}
- return `Max. Stundenwahrscheinlichkeit ${probability} · Fallback: höchste stündliche Best-Match-Wahrscheinlichkeit; keine aus Ensemble-Membern berechnete DWD-Ereigniswahrscheinlichkeit für 6 h oder 00–24 h`;
+ const elevated=fallbackHourlyProbabilityWindow(hours),period=elevated?hourlyProbabilityWindowLabel(elevated):hours.length?'00–24 h':'';
+ return `Max. Stundenwahrscheinlichkeit ${probability}${period?` · Zeitraum ${period}`:''} · Fallback: höchste stündliche Best-Match-Wahrscheinlichkeit; der Zeitraum ordnet das Stundenmaximum nur zeitlich ein; keine aus Ensemble-Membern berechnete DWD-Ereigniswahrscheinlichkeit für 6 h oder 00–24 h`;
 }
 
-export function dailyPrecipitationProbabilityCompact(day:Pick<Day,'probability'|'probabilityWindows'|'probabilitySource'>){
+export function dailyPrecipitationProbabilityCompact(day:Pick<Day,'probability'|'probabilityWindows'|'probabilitySource'>,hours:Hour[]=[]){
  const primary=Math.round(Math.max(0,Math.min(100,Number(day.probability)||0))),elevated=elevatedDwdPrecipitationProbabilityWindow(day.probabilityWindows);
  if(day.probabilitySource==='ensemble-members-dwd')return elevated?`${precipitationProbabilityWindowCompactLabel(elevated)} · ${Math.round(elevated.probability)}%`:`00–24h · ${primary}%`;
+ if(hours.length){const hourlyPeak=fallbackHourlyProbabilityWindow(hours),period=hourlyPeak?hourlyProbabilityWindowCompactLabel(hourlyPeak):'00–24h';return `${period} · max ${primary}%`}
  return `max. Std. ${primary}%`;
 }
 
