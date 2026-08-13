@@ -19,7 +19,8 @@ assert.match(app,/finalizeForecastHours\(twinHours,baseDisplayDays/,'Reguläre O
 assert.match(app,/canonicalHours=\{displayHours\}/,'Eventplaner erhält nicht die bereits finalisierte aktive Ortsvorhersage.');
 assert.match(eventPanel,/sameForecastLocation\(location,initialLocation\)&&canonicalHours\.length>0/,'Eventplaner erkennt identische aktive Orte nicht.');
 assert.match(eventPanel,/canonical\?canonicalHours:applyForecastFusionHours/,'Identische Eventorte verwenden nicht exakt die reguläre Ortsvorhersage.');
-assert.match(eventPanel,/finalizeForecastHours\(finalHours,fusedDays/,'Abweichende Eventorte verwenden die gemeinsame MID-Endstufe nicht.');
+assert.match(eventPanel,/finalizeForecastHours\(finalHours,displayBaseDays/,'Abweichende Eventorte verwenden die gemeinsame MID-Endstufe nicht.');
+assert.match(eventPanel,/applyEnsembleDailyPrecipitationProbability\(/,'Eventorte führen die appweite Tages-PoP-Logik nicht in die gemeinsame Endstufe ein.');
 assert.match(eventPanel,/station\(location\.latitude,location\.longitude/,'Eventorte nutzen für kurzfristige Anker keine Stationsanalyse.');
 assert.match(eventPanel,/150\*60000/,'Stationsaktualität im Eventplaner weicht vom regulären 150-Minuten-Vertrag ab.');
 assert.match(eventPanel,/Aktive Ortsvorhersage · identische MID-Endstufe/,'Transparenz über identische Event-/Ortsprognose fehlt.');
@@ -44,6 +45,7 @@ assert.match(weather,/policy\.quality\*trust\*site\*locality/,'Lokalitätsfaktor
 
 const packageJson=JSON.parse(pkg),baselineJson=JSON.parse(baseline);
 assert.equal(packageJson.version,baselineJson.releaseVersion,'package.json und Baseline müssen versionsgleich sein.');
-assert.match(packageJson.version,/^0\.9\.48\./,'Diese Regression schützt die v0.9.48.x-Konsistenzlinie.');
+const versionParts=packageJson.version.split('.').map(Number);
+assert.ok(versionParts[0]>0||versionParts[1]>9||(versionParts[1]===9&&versionParts[2]>=48),'Diese Regression schützt die Prognose-Konsistenz ab v0.9.48.0.');
 
 console.log(`MID v${packageJson.version}: Event-/Ortsprognose, Astronomy-Engine-Ephemeriden und hyperlokale Stationsgewichtung konsistent geprüft.`);

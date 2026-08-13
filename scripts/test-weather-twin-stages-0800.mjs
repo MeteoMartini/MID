@@ -16,7 +16,7 @@ requireTokens('Stufe 2 · Lernkern',engine,[
  'parameterMetrics','type ProbabilityCalibrationBin=','type BiasCorrection=','calibrationBins(','modelBiases(','regularizedWeights(','equal_weighted','mid_local_weighted','best_match','confidenceFromSamples('
 ]);
 requireTokens('Stufe 3 · aktiver Wetterzwilling',engine,[
- 'applyLocalTwinForecast(','applyLocalTwinHours(','applyOperationalNowcastHours(locallyAdjusted,radar)','settings.nowcastAssimilation','privateSensorUrl','PRIVATE_SENSOR_INTEGRATION_ENABLED=false'
+ 'applyLocalTwinForecast(','applyLocalTwinHours(','return locallyAdjusted;','settings.nowcastAssimilation&&radar','privateSensorUrl','PRIVATE_SENSOR_INTEGRATION_ENABLED=false'
 ]);
 requireTokens('Stufe 4 · Entscheidungszwilling',engine,[
  'buildTwinRecommendations(','recordTwinRecommendationFeedback(','TwinActivity','bestActivityWindow(','Arbeitsweg','Berg-/Wintersport'
@@ -26,7 +26,7 @@ requireTokens('Wetterzwilling-Oberfläche',panel,[
 ]);
 
 if(panel.includes('Eigene Sensoren')||panel.includes('weather-twin-sensors'))failures.push('Eigene Sensoren sind entgegen der vorläufigen Deaktivierung noch in der Oberfläche aktiv.');
-requireTokens('Systemeinstellungen',settings,['Lokaler Wetterzwilling','Best Match lokal nachkorrigieren','Radar-/Nowcast-Assimilation']);
+requireTokens('Systemeinstellungen',settings,['Lokaler Wetterzwilling','Best Match lokal nachkorrigieren','Radar-/Nowcast im Lernkreis']);
 requireTokens('App-Integration',app,['WeatherTwinSettingsPanel','finalizedHours=useMemo(()=>finalizeForecastHours(','displayHours=finalizedHours.hours','displayDays=useMemo','recordForecastCapture(','recordLiveTwinObservation(','twinActive={twinForecastActive}']);
 requireTokens('Ensembleparameter',weather,['gust?:number','sunshineDuration?:number','wind_gusts_10m','sunshine_duration']);
 requireTokens('Wetterzwilling-Styling',styles,['.weather-twin-panel','.weather-twin-health','.weather-twin-spatial','.weather-twin-personal','.weather-twin-active-badge']);

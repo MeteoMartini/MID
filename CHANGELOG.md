@@ -1,3 +1,11 @@
+## 0.9.49.0
+
+- Event-Niederschlagswahrscheinlichkeit jetzt für den **exakten Start-/Endzeitraum** aus echten Ensemble-Mitgliedern mit den appweiten DWD-nahen Schwellen >0,2 mm und >5,0 mm berechnet; Modellfamilien werden entkorreliert, Stunden nur nach tatsächlicher Zeitüberdeckung gewertet.
+- Bei unzureichender Ensembleabdeckung bleibt das bisherige Stundenmaximum ausschließlich als klarer Fallback erhalten.
+- Wetterzwilling geprüft und an v0.9.48.x-Endstufe angepasst: lokal validierte Temperatur-/Böen-Biases gelten nun auch für abweichende Eventorte mit vorhandenem Lernstand; Events am aktiven Ort übernehmen den bereits angewandten Twin-Status korrekt.
+- Doppelten Wetterzwilling-Radarblend entfernt: operativer Radar-/Konvektiv-Nowcast läuft ausschließlich über die gemeinsame `finalizeForecastHours(...)`-Endstufe; der Twin-Schalter steuert nur noch Radarlernen/Rückblick.
+- Neue Regression `test-event-pop-weather-twin-09490.mjs`; bestehende Event-/PoP-/Twin-/Radarverträge fortgeschrieben.
+
 ## 0.9.48.1
 
 - Release-Pipeline: veraltete versionsfeste TS18048-Regression auf fortlaufenden Schutzvertrag umgestellt.

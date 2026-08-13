@@ -12,6 +12,7 @@ const root=new URL('../',import.meta.url);
 const shortTerm=readFileSync(new URL('../src/ShortTermForecast.tsx',import.meta.url),'utf8');
 const fusion=readFileSync(new URL('../src/forecastFusion.ts',import.meta.url),'utf8');
 const twin=readFileSync(new URL('../src/forecastVerification.ts',import.meta.url),'utf8');
+const app=readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
 const blendSource=readFileSync(new URL('../src/forecastFusion.ts',import.meta.url),'utf8');
 const pkg=JSON.parse(readFileSync(new URL('../package.json',import.meta.url),'utf8'));
 const baseline=JSON.parse(readFileSync(new URL('../MID_BASELINE.json',import.meta.url),'utf8'));
@@ -23,7 +24,8 @@ assert.ok(!shortTerm.includes('intervalMinutes=quarter?15:60'),'Alte fehlerhafte
 assert.ok(fusion.includes('blendRadarAtTarget'),'Operativer Stunden-Nowcast nutzt nicht den zentralen Radar-Modell-Blend.');
 assert.ok(fusion.includes('RADAR_TRANSITION_HORIZON_MINUTES'),'Auslaufender Radar-Timing-Übergang fehlt.');
 assert.ok(!fusion.includes('minutes>210'),'Direkte alte 210-Minuten-Radarfortschreibung ist noch vorhanden.');
-assert.ok(twin.includes('applyOperationalNowcastHours(locallyAdjusted,radar)'),'Wetterzwilling nutzt nicht denselben zentralen Radar-Modell-Blend.');
+assert.ok(!twin.includes('applyOperationalNowcastHours(locallyAdjusted,radar)'),'Wetterzwilling darf Radar nicht mehr in einem separaten Parallelpfad anwenden.');
+assert.ok(app.includes('finalizeForecastHours(twinHours,baseDisplayDays,{radar:radarAnalysis,thunder:thunderAnalysis,observedTemperature:currentObservedTemperature})'),'Aktive Wetterzwilling-Stunden laufen nicht durch dieselbe zentrale Radar-/Modell-Endstufe wie die Ortsvorhersage.');
 assert.ok(!twin.includes('Number(radar.currentRate))*.25'),'Wetterzwilling schreibt weiterhin direkte Radarintensität pauschal fort.');
 assert.equal(pkg.version,baseline.releaseVersion,'Releaseversion des Radar-Blend-Buildfixstands stimmt nicht mit der Baseline überein.');
 
