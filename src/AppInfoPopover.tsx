@@ -1,20 +1,8 @@
-import {createPortal} from 'react-dom'
-import {useEffect,useLayoutEffect,useRef,useState,type CSSProperties,type PointerEvent as ReactPointerEvent,type ReactNode,type RefObject} from 'react'
-import {Info} from 'lucide-react'
+import {useRef,useState,type ReactNode} from 'react';
+import {Info} from 'lucide-react';
+import {AppPortalPopover} from './AppPortalPopover';
 
-type PortalPosition={left:number;top:number;width:number;above:boolean}
-const clamp=(value:number,min:number,max:number)=>Math.min(max,Math.max(min,value))
-
-function AppPortalPopover({anchorRef,open,onClose,className,children,width=360,positionKey}:{anchorRef:RefObject<HTMLElement|null>;open:boolean;onClose:()=>void;className:string;children:ReactNode;width?:number;positionKey?:unknown}){
- const layerRef=useRef<HTMLSpanElement>(null),swipeRef=useRef<{pointerId:number;x:number;y:number}|null>(null),[position,setPosition]=useState<PortalPosition>({left:8,top:8,width:Math.min(width,360),above:false})
- useLayoutEffect(()=>{if(!open||typeof window==='undefined')return;let frame=0;const update=()=>{frame=0;const anchor=anchorRef.current;if(!anchor)return;const rect=anchor.getBoundingClientRect(),actualWidth=Math.min(width,Math.max(220,window.innerWidth-16)),height=layerRef.current?.offsetHeight??160;let left=rect.left+rect.width/2-actualWidth/2;left=clamp(left,8,Math.max(8,window.innerWidth-actualWidth-8));let top=rect.bottom+8,above=false;if(top+height>window.innerHeight-8&&rect.top-height-8>=8){top=rect.top-height-8;above=true}else top=clamp(top,8,Math.max(8,window.innerHeight-height-8));setPosition(current=>current.left===left&&current.top===top&&current.width===actualWidth&&current.above===above?current:{left,top,width:actualWidth,above})},schedule=()=>{if(!frame)frame=window.requestAnimationFrame(update)};schedule();window.addEventListener('resize',schedule);window.addEventListener('scroll',schedule,true);return()=>{if(frame)window.cancelAnimationFrame(frame);window.removeEventListener('resize',schedule);window.removeEventListener('scroll',schedule,true)}},[anchorRef,open,width,positionKey])
- useEffect(()=>{if(!open)return;const dismiss=(event:PointerEvent)=>{const target=event.target as Node|null;if(!target||anchorRef.current?.contains(target)||layerRef.current?.contains(target))return;onClose()},escape=(event:KeyboardEvent)=>{if(event.key==='Escape')onClose()};document.addEventListener('pointerdown',dismiss,true);document.addEventListener('keydown',escape);return()=>{document.removeEventListener('pointerdown',dismiss,true);document.removeEventListener('keydown',escape)}},[anchorRef,onClose,open])
- if(!open||typeof document==='undefined')return null
- const style:CSSProperties={left:position.left,top:position.top,width:position.width},pointerDown=(event:ReactPointerEvent<HTMLSpanElement>)=>{if(event.pointerType!=='touch')return;swipeRef.current={pointerId:event.pointerId,x:event.clientX,y:event.clientY}},pointerUp=(event:ReactPointerEvent<HTMLSpanElement>)=>{const start=swipeRef.current;swipeRef.current=null;if(!start||start.pointerId!==event.pointerId)return;const dx=event.clientX-start.x,dy=event.clientY-start.y;if(dy>72&&Math.abs(dy)>Math.abs(dx)*1.35)onClose()}
- return createPortal(<span ref={layerRef} className={`${className} app-portal-popover${position.above?' above':''}`} role="tooltip" style={style} onPointerDown={pointerDown} onPointerUp={pointerUp} onPointerCancel={()=>{swipeRef.current=null}}>{children}</span>,document.body)
-}
-
-export function AppInfoHint({label='Hinweis',children,width=360,className='',iconSize=14}:{label?:string;children:ReactNode;width?:number;className?:string;iconSize?:number}){
- const buttonRef=useRef<HTMLButtonElement>(null),[open,setOpen]=useState(false)
- return <span className={`mode-info event-app-info${open?' open':''}${className?` ${className}`:''}`}><button ref={buttonRef} type="button" onClick={event=>{event.preventDefault();event.stopPropagation();setOpen(value=>!value)}} aria-expanded={open} aria-label={label} title={label}><Info size={iconSize}/></button><AppPortalPopover anchorRef={buttonRef} open={open} onClose={()=>setOpen(false)} className="mode-info-popover event-info-popover" width={width}>{children}</AppPortalPopover></span>
+export function AppInfoHint({label='Hinweis',children,width=360,className='',iconSize=14,trigger,showClose=false,popoverClassName=''}:{label?:string;children:ReactNode;width?:number;className?:string;iconSize?:number;trigger?:ReactNode;showClose?:boolean;popoverClassName?:string}){
+ const buttonRef=useRef<HTMLButtonElement>(null),[open,setOpen]=useState(false);
+ return <span className={`mode-info event-app-info${open?' open':''}${className?` ${className}`:''}`}><button ref={buttonRef} type="button" onClick={event=>{event.preventDefault();event.stopPropagation();setOpen(value=>!value)}} aria-expanded={open} aria-haspopup="dialog" aria-label={label} title={label}>{trigger??<Info size={iconSize}/>}</button><AppPortalPopover anchorRef={buttonRef} open={open} onClose={()=>setOpen(false)} className={`mode-info-popover event-info-popover ${popoverClassName}`.trim()} width={width} role="dialog" ariaLabel={label}>{children}{showClose&&<button type="button" className="thunder-info-close" onClick={()=>setOpen(false)}>Schließen</button>}</AppPortalPopover></span>;
 }

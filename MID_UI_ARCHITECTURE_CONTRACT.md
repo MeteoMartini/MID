@@ -1,0 +1,76 @@
+# MID UI- und Architekturvertrag
+
+Dieser Vertrag ist für neue MID-Sektionen, neue Interaktionen und größere Überarbeitungen verbindlich. Er ergänzt `MID_SOURCE_OF_TRUTH.md`; er darf keine bestehende Funktion entfernen oder fachliche Datenlogik vereinfachen.
+
+## 1. Grundsatz: eine Funktion – ein kanonischer Pfad
+
+- Fachliche Wetterwerte werden nicht pro Sektion neu zusammengesetzt. Neue Verbraucher verwenden die bereits finalisierte MID-Prognose bzw. die dafür vorgesehene zentrale Fachfunktion.
+- Niederschlagsart, Niederschlagswahrscheinlichkeit, Nowcast, Wetterzwilling, Stationskorrekturen, Zeitbasis und Einheiten dürfen nicht in einer UI-Sektion mit abweichender Nebenlogik nachgebaut werden.
+- Fallbacks müssen transparent bleiben. Eine Ersatzquelle darf nicht als ursprüngliche Quelle bezeichnet werden.
+
+## 2. Info-Schaltflächen, Popover und verankerte Menüs
+
+Für neue nicht-modale, an einem Steuerelement verankerte Ebenen gilt:
+
+1. Body-Portal verwenden, damit Karten, `overflow`, `contain` oder mobile Sektionen die Ebene nicht abschneiden.
+2. Standardprimitive ist `AppPortalPopover`; Info-Schaltflächen verwenden `AppInfoHint`.
+3. Schließen muss über erneuten Trigger, Außenklick/-tippen und `Escape` möglich sein.
+4. Beim Scrollen und bei Größenänderung wird die Position rAF-gedrosselt neu bestimmt.
+5. Der Trigger verwendet mindestens `aria-expanded`; dialogartige Inhalte zusätzlich `aria-haspopup="dialog"` und eine verständliche Bezeichnung.
+6. Kritische Information darf nie ausschließlich per Hover erreichbar sein. Touch, Klick und Tastatur müssen funktionieren.
+7. Längere Infoinhalte dürfen eine sichtbare Schließen-Aktion erhalten; mobile Ebenen bleiben scrollbar und dürfen den Viewport nicht verlassen.
+8. Neue Dateien dürfen keine eigene Kopie der Portal-/Außenklick-/Escape-Engine anlegen. Spezialisierte Diagrammtooltips sind nur zulässig, wenn die gemeinsame Primitive fachlich ungeeignet ist und die Ausnahme regressionsgeschützt wird.
+
+## 3. Tooltips und Diagramminteraktion
+
+- Desktop-Hover darf Komfortfunktion sein, aber nicht der einzige Informationszugang.
+- Touch/Klick muss einen stabilen Zustand erzeugen; Außeninteraktion und `Escape` schließen ihn wieder.
+- Persistente Diagrammtooltips dürfen nicht bei normalem Scrollen unkontrolliert springen oder die Diagrammgröße verändern.
+- Achsen-, Tooltip- und Exportdarstellung verwenden dieselben zentralen Werte und Einheiten.
+
+## 4. Auf-/Zuklappen und Sektionen
+
+- Nutzerseitig relevante Module haben einen eindeutigen Toggle mit `aria-expanded`.
+- Ein gespeicherter Offen-/Geschlossen-Zustand ist nur für echte Ansichtspräferenzen zulässig; temporäre Lade- oder Fehlerzustände werden nicht als Nutzerpräferenz persistiert.
+- Deep-Links bzw. Navigation zu einer Sektion müssen die Zielsektion bei Bedarf sichtbar/aufgeklappt machen.
+- Ein eingeklappter Zustand darf keine Hintergrundberechnung unnötig erzwingen, wenn die Daten erst beim Öffnen benötigt werden.
+- Neue Sektionen folgen den bestehenden MID-Dichtevariablen (`--mid-ui-touch`, `--mid-ui-gap`, `--mid-ui-card-pad`, `--mid-ui-radius`) statt eigene globale Maße einzuführen.
+
+## 5. Menüs, Drawer und modale Dialoge
+
+- Menüs/Drawer schließen über eindeutige Schließen-Aktion und `Escape`; ein nicht-destruktiver Backdrop darf schließen.
+- Modale Ebenen sperren den Hintergrundscroll nur solange sie geöffnet sind und stellen den vorherigen Zustand beim Schließen wieder her.
+- Navigation und Einstellungen dürfen keine Wettersektion überdecken oder dauerhaft Scrollpositionen verlieren.
+- Neue Hauptnavigation wird in die bestehende Sektionen-/Einstellungsstruktur eingegliedert; keine parallele zweite Navigation.
+
+## 6. Formatierung, Einheiten und Zeit
+
+- Sichtbare Zahlen verwenden die zentralen Formatfunktionen; keine neuen lokal erfundenen Dezimal-/Einheitenformate.
+- Die appweite Lokal-/Z-Zeit-Einstellung gilt auch für neue Sektionen; ausgenommen bleibt nur die bewusst lokale Ortszeit im Standortkopf.
+- Wind, Böen, Niederschlag, Temperatur, Druck, Sicht und Höhen verwenden dieselben appweiten Einheitenregeln.
+- Zeitintervalle werden fachlich als Intervalle behandelt, wenn die Quelle Intervallwerte liefert; ein Zeitstempel darf nicht irreführend als Punktwert dargestellt werden.
+
+## 7. Responsive und barrierearme Bedienung
+
+- Neue primäre Bedienelemente verwenden die MID-Touchgröße und `touch-action: manipulation`, soweit kein Drag/Scroll erforderlich ist.
+- Wichtige Texte dürfen nicht mit Ellipsis abgeschnitten werden, wenn dadurch Wetterinformation verloren geht.
+- Zustände dürfen nicht ausschließlich über Farbe vermittelt werden.
+- Interaktive `div`/`span` sind zu vermeiden; bevorzugt werden semantische `button`, `a`, `input`, `select` oder passende ARIA-Rollen mit Tastaturbedienung.
+
+## 8. Performance und Lebenszyklus
+
+- Neue teure Sektionen werden lazy/viewport-gesteuert geladen, wenn sie nicht für den Erstbildschirm benötigt werden.
+- Scroll-/Resize-Listener werden rAF-gedrosselt und beim Unmount entfernt.
+- Abrufe müssen abbrechbar oder gegen veraltete Antworten geschützt sein, wenn Ort, Zeitraum oder Ansicht wechseln.
+- Es wird kein zweiter Hintergrund-Lern-/Pollingpfad angelegt, wenn bereits ein zentraler Scheduler existiert.
+
+## 9. Regression als verbindliche Durchsetzung
+
+Neue Funktionen müssen ihre Interaktions- und Fachverträge in der Regression-Suite festschreiben. Insbesondere dürfen neue Dateien nicht:
+
+- eine zweite generische Body-Portal-Engine implementieren,
+- eigene generische Außenklick-/Escape-Listener für verankerte Popover kopieren,
+- appweite Wetter-/Zeit-/Einheitenlogik lokal neu definieren,
+- bestehende geschützte Funktionen beim Aufräumen entfernen.
+
+Bestehende historisch spezialisierte Ensemble-Tooltips bleiben vorerst als eng begrenzte Ausnahme bestehen. Eine spätere Migration ist zulässig, darf aber keine Diagrammfunktionalität verlieren.

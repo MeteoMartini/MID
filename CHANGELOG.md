@@ -1,3 +1,11 @@
+# MID Changelog
+
+## 0.9.50.0
+- UI-/Architekturstandardisierung ohne Funktionsabbau: gemeinsame `AppPortalPopover`-Primitive für appweite verankerte Popover und Forecast-Cockpit.
+- `AppInfoHint` nutzt nur noch die gemeinsame Body-Portal-/Außenklick-/Escape-/Scroll-Positionierungslogik.
+- Neuer verbindlicher `MID_UI_ARCHITECTURE_CONTRACT.md` für neue Sektionen, Menüs, Tooltips, Drawer, Zeit-/Einheitenformatierung, Responsive-Verhalten und kanonische Fachpfade.
+- Neue Regression verhindert künftig generische Portal-/Dismiss-Kopien in neuen Dateien; spezialisierte Ensemble-Charttooltips bleiben eng begrenzte Ausnahme.
+
 ## 0.9.49.1
 
 - Event-PoP visuell eindeutig als **Zeitraumwahrscheinlichkeit** gekennzeichnet; ausgewerteter Start-/Endzeitraum steht direkt an der Niederschlagskachel.

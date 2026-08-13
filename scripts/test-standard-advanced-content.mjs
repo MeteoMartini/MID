@@ -4,6 +4,7 @@ import path from 'node:path';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const app=await readFile(path.join(root,'src','App.tsx'),'utf8');
+const portal=await readFile(path.join(root,'src','AppPortalPopover.tsx'),'utf8');
 const flight=await readFile(path.join(root,'src','FlightMeteorologyPanel.tsx'),'utf8');
 const styles=await readFile(path.join(root,'src','styles.css'),'utf8');
 const failures=[];
@@ -17,11 +18,8 @@ for(const token of [
  'title="Widget- und PNG-Generator"',
  'label="Quellen anzeigen"',
  'trigger={<><Info size={13}/><span>Quellen</span></>}',
- "document.addEventListener('pointerdown',dismiss,true)",
- "document.addEventListener('keydown',escape)",
- 'anchorRef.current?.contains(target)||layerRef.current?.contains(target)',
- 'createPortal(<span ref={layerRef}'
 ])if(!app.includes(token))failures.push(`Erwartete Umsetzung fehlt: ${token}`);
+for(const token of ["document.addEventListener('pointerdown',dismiss,true)","document.addEventListener('keydown',escape)",'anchorRef.current?.contains(target)||layerRef.current?.contains(target)','createPortal(<div ref={layerRef}'])if(!portal.includes(token))failures.push(`Gemeinsame Portalumsetzung fehlt: ${token}`);
 for(const token of ['function CrossSectionFuture()','To be continued','title="Meteogramme"',"lazy(()=>import('./MeteogramPanel'))"])if(!flight.includes(token))failures.push(`Flugmeteorologie-Gruppierung fehlt: ${token}`);
 if(flight.includes("import CrossSectionPanel from './CrossSectionPanel'")||flight.includes('<CrossSectionPanel/>'))failures.push('Cross Section ist trotz Pausierung weiterhin aktiv eingebunden.');
 

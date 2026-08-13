@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.49.1",
+  "releaseVersion": "0.9.50.0",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -159,7 +159,8 @@
     "scripts/test-event-aviation-official-sources-09460.mjs",
     "scripts/test-official-observation-ensemble-09470.mjs",
     "scripts/test-event-astronomy-hyperlocal-consistency-09480.mjs",
-    "scripts/test-event-pop-weather-twin-09490.mjs"
+    "scripts/test-event-pop-weather-twin-09490.mjs",
+    "scripts/test-ui-architecture-contract-09500.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -310,7 +311,11 @@
     "scripts/test-mid-weather-profile-layout-09323.mjs",
     "src/eventAviation.ts",
     "scripts/test-event-center-flight-multifavorite-09430.mjs",
-    "scripts/test-event-aviation-official-sources-09460.mjs"
+    "scripts/test-event-aviation-official-sources-09460.mjs",
+    "src/AppPortalPopover.tsx",
+    "MID_UI_ARCHITECTURE_CONTRACT.md",
+    "scripts/test-ui-architecture-contract-09500.mjs",
+    "MID_IMPLEMENTATION_0.9.50.0.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",

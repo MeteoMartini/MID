@@ -13,7 +13,8 @@ const [weather,eventPlanner,eventCenter,twin,app,settings,pkg,baseline]=await Pr
 ]);
 const packageJson=JSON.parse(pkg),baselineJson=JSON.parse(baseline);
 assert.equal(packageJson.version,baselineJson.releaseVersion,'Releaseversion und Baseline müssen übereinstimmen.');
-assert.match(packageJson.version,/^0\.9\.49(?:\.\d+)?$/,'Event-PoP-/Wetterzwilling-Funktionsstand muss zur v0.9.49.x-Linie gehören.');
+const [major,minor,feature]=packageJson.version.split('.').map(Number);
+assert.ok(major>0||minor>9||(minor===9&&feature>=49),'Event-PoP-/Wetterzwilling-Funktionsstand darf nicht vor v0.9.49 liegen.');
 
 for(const token of [
  'export async function eventEnsembleForecast(',
@@ -45,4 +46,4 @@ assert.ok(twin.includes('return locallyAdjusted;'),'Wetterzwilling-Stundenkorrek
 assert.ok(app.includes('finalizeForecastHours(twinHours,baseDisplayDays,{radar:radarAnalysis,thunder:thunderAnalysis,observedTemperature:currentObservedTemperature})'),'Ortsprognose führt Wetterzwilling nicht durch dieselbe zentrale Endstufe.');
 assert.ok(settings.includes('Radar-/Nowcast im Lernkreis'),'Wetterzwilling-Einstellung erklärt die neue zentrale Nowcast-Architektur nicht.');
 
-console.log('MID v0.9.49.x: Event-Zeitraum-PoP und Wetterzwilling-Endstufe appweit konsistent geprüft.');
+console.log(`MID v${packageJson.version}: Event-Zeitraum-PoP und Wetterzwilling-Endstufe appweit konsistent geprüft.`);

@@ -2,8 +2,9 @@ import {readFile,readdir} from 'node:fs/promises';
 import {resolve,dirname,extname,join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
-const [app,styles,stationClient,routePanel]=await Promise.all([
+const [app,portal,styles,stationClient,routePanel]=await Promise.all([
   readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
+  readFile(new URL('../src/AppPortalPopover.tsx',import.meta.url),'utf8'),
   readFile(new URL('../src/styles.css',import.meta.url),'utf8'),
   readFile(new URL('../src/connectedStation.ts',import.meta.url),'utf8'),
   readFile(new URL('../src/RouteWeatherPanel.tsx',import.meta.url),'utf8')
@@ -49,10 +50,10 @@ for(const token of [
 ])need('Favoritenziehen auf einen Updatezyklus pro Frame begrenzt',app,token);
 
 for(const token of [
-  "window.addEventListener('scroll',schedule,true)",
+  "window.addEventListener('scroll',schedule,scrollOptions)",
   'if(!frame)frame=window.requestAnimationFrame(update)',
   'setPosition(current=>current.left===left'
-])need('Popover-Positionierung gedrosselt',app,token);
+])need('Popover-Positionierung gedrosselt',portal,token);
 
 need('Deaktivierte Stationsintegration bleibt im Quellstand gesperrt',stationClient,'export const CONNECTED_STATION_INTEGRATION_ENABLED=false;');
 need('Aktiver Dashboardpfad nutzt nur öffentliche Station',app,'const effectiveStation=st;');

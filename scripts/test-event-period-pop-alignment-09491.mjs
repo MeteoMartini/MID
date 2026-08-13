@@ -6,8 +6,9 @@ const eventCenter=fs.readFileSync(new URL('../src/eventCenter.ts',import.meta.ur
 const pkg=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url),'utf8'))
 const baseline=JSON.parse(fs.readFileSync(new URL('../MID_BASELINE.json',import.meta.url),'utf8'))
 
-assert.equal(pkg.version,'0.9.49.1','Event-PoP-Zeitintervallfix muss als v0.9.49.1 ausgeliefert werden')
 assert.equal(baseline.releaseVersion,pkg.version,'Baseline und Paketversion müssen übereinstimmen')
+const [major,minor,feature,maintenance=0]=pkg.version.split('.').map(Number)
+assert.ok(major>0||minor>9||(minor===9&&(feature>49||(feature===49&&maintenance>=1))),'Event-PoP-Zeitintervallfix darf nicht vor v0.9.49.1 liegen')
 assert.ok(eventCenter.includes('periodLabel?:string'),'Event-Zeitleiste benötigt eine eindeutige Intervallbeschriftung')
 for(const token of [
  "if(endStamp<=startStamp)endStamp=startStamp+60*60000",
@@ -28,4 +29,4 @@ assert.ok(planner.includes('· Zeitraum {formatNumber(eventPrecipProbability(pla
 assert.ok(planner.includes('{formatClock(plan.startTime)}–{formatClock(plan.endTime)} · {formatNumber(plan.summary.precipitationTotal,1)} mm'),'Die Niederschlagskachel muss den ausgewerteten Eventzeitraum zeigen')
 assert.ok(planner.includes('<time>{point.periodLabel||point.time}</time>'),'Stundenkarten müssen ihre tatsächlichen Niederschlagsintervalle anzeigen')
 assert.ok(planner.includes('Die große Niederschlagswahrscheinlichkeit gilt für den gesamten Eventzeitraum'),'Infohilfe muss Zeitraum-PoP und Stunden-PoP unterscheiden')
-console.log('MID v0.9.49.1: Event-Zeitraum-PoP und vorangehende Stundenintervalle semantisch ausgerichtet.')
+console.log(`${pkg.version}: Event-Zeitraum-PoP und vorangehende Stundenintervalle semantisch ausgerichtet.`)
