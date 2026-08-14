@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
-const [app,planner,eventCenter,mountain,water,weather,synoptic,worker,styles,env,pkg,baseline]=await Promise.all([
+const [app,planner,eventCenter,eventRefresh,mountain,water,weather,synoptic,worker,styles,env,pkg,baseline]=await Promise.all([
  readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/EventPlannerPanel.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/eventCenter.ts',import.meta.url),'utf8'),
+ readFile(new URL('../src/eventWeatherRefresh.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/mountainSports.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/WaterSportsPanel.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/weather.ts',import.meta.url),'utf8'),
@@ -27,17 +28,18 @@ for(const token of [
 ])assert.ok(eventCenter.includes(token),`Event-Center Refresh-Vertrag fehlt: ${token}`);
 for(const token of [
  'className="secondary event-center-header-reload"',
- 'EVENT_CENTER_REFRESH_EVENT',
  'EVENT_CENTER_REFRESH_DONE_EVENT',
- "title=\"Gespeicherte Events jetzt mit den aktuellen Wetterdaten neu berechnen\""
+ 'refreshAllEventWeather',
+ 'title="Gespeicherte Events jetzt mit den aktuellen Wetterdaten neu berechnen"'
 ])assert.ok(app.includes(token),`Glocken-Reload fehlt: ${token}`);
 for(const token of [
  'const AUTO_REFRESH_MS=30*60*1000',
  "window.addEventListener(EVENT_CENTER_REFRESH_EVENT,request)",
  "document.addEventListener('visibilitychange',resume)",
  "window.addEventListener('focus',resume)",
- "window.setInterval(()=>{if(document.visibilityState!=='hidden')void refresh('auto')},AUTO_REFRESH_MS)"
-])assert.ok(planner.includes(token),`Automatische Event-Aktualisierung fehlt: ${token}`);
+ "const forcedTimer=window.setInterval(()=>void catchup('auto-interval',true),AUTO_REFRESH_MS)"
+])assert.ok(eventRefresh.includes(token),`Automatische Event-Aktualisierung fehlt: ${token}`);
+assert.ok(planner.includes("refreshStoredEvents(false,false,'overview')"),'Event-Übersichtsreload fehlt.');
 
 // II – DWD-Schneefallgrenze aus 850-hPa-Temperatur + tatsächlichem Geopotential.
 for(const token of [

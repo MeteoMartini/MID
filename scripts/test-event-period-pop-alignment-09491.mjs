@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 
 const planner=fs.readFileSync(new URL('../src/EventPlannerPanel.tsx',import.meta.url),'utf8')
+const engine=fs.readFileSync(new URL('../src/eventWeatherEngine.ts',import.meta.url),'utf8')
 const eventCenter=fs.readFileSync(new URL('../src/eventCenter.ts',import.meta.url),'utf8')
 const pkg=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url),'utf8'))
 const baseline=JSON.parse(fs.readFileSync(new URL('../MID_BASELINE.json',import.meta.url),'utf8'))
@@ -23,8 +24,8 @@ for(const token of [
  'scaled(hour.rain)',
  'scaled(hour.showers)',
  'scaled(hour.snowfall)'
-])assert.ok(planner.includes(token),`Event-Zeitintervallvertrag fehlt: ${token}`)
-assert.ok(!planner.includes('row.stamp>=startStamp-30*60000&&row.stamp<=endStamp+30*60000'),'Die alte punktbasierte ±30-Minuten-Auswahl darf Niederschlagsintervalle nicht mehr bestimmen')
+])assert.ok(engine.includes(token),`Event-Zeitintervallvertrag fehlt in der zentralen Event-Engine: ${token}`)
+assert.ok(!engine.includes('row.stamp>=startStamp-30*60000&&row.stamp<=endStamp+30*60000'),'Die alte punktbasierte ±30-Minuten-Auswahl darf Niederschlagsintervalle nicht mehr bestimmen')
 assert.ok(!planner.includes('· Zeitraum {formatNumber(eventPrecipProbability(plan.summary))} %'),'Die kompakte Eventdarstellung darf das Wort Zeitraum nicht mehr zusätzlich anzeigen')
 assert.ok(planner.includes('<small>Niederschlag</small><strong><span className="event-precip-detail-symbol"'),'Die Niederschlagskachel muss die Zeitraum-PoP platzsparend mit Niederschlagsart-Symbol darstellen')
 assert.ok(!planner.includes('{formatClock(plan.startTime)}–{formatClock(plan.endTime)} · {formatNumber(plan.summary.precipitationTotal,1)} mm'),'Die Niederschlagskachel darf den bereits im Kopf sichtbaren Eventzeitraum nicht doppelt anzeigen')

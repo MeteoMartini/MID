@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-const [panel,center,aviation,app,css]=await Promise.all([
+const [panel,engine,refresh,center,aviation,app,css]=await Promise.all([
  readFile(new URL('../src/EventPlannerPanel.tsx',import.meta.url),'utf8'),
+ readFile(new URL('../src/eventWeatherEngine.ts',import.meta.url),'utf8'),
+ readFile(new URL('../src/eventWeatherRefresh.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/eventCenter.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/eventAviation.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
@@ -9,10 +11,11 @@ const [panel,center,aviation,app,css]=await Promise.all([
 ]);
 assert.match(center,/\|'flight'/,'Flug fehlt als Event-Aktivität');
 assert.match(panel,/id:'flight',label:'Flug'/,'Flugauswahl fehlt im Eventplaner');
-assert.match(panel,/loadEventFlightHazards/,'Flugwetter-Hazardanalyse ist nicht verdrahtet');
+assert.match(engine,/loadEventFlightHazards/,'Flugwetter-Hazardanalyse ist nicht in der zentralen Event-Engine verdrahtet');
 for(const term of ['Vereisung','Turbulenz','CAT','Wolkenuntergrenze','Sicht'])assert.match(aviation,new RegExp(term),`Flugwetter-Hazard fehlt: ${term}`);
 assert.match(aviation,/Richardson|ri=/i,'Turbulenzdiagnose nutzt keine Scherungs-/Stabilitätsbewertung');
-assert.match(panel,/targets=favoritesOnly\?active\.filter\(item=>item\.isFavorite\):active\.slice\(0,20\)/,'Mehrere Favoriten werden nicht vollständig gemeinsam geprüft; die Begrenzung darf nur den Nicht-Favoriten-Lauf betreffen');
+assert.match(refresh,/if\(options\.favoritesOnly\)targets=targets\.filter\(record=>record\.isFavorite\)/,'Favoritenfilter fehlt im zentralen Refresh-Broker');
+assert.match(refresh,/if\(!options\.favoritesOnly&&!ids\)targets=targets\.slice\(0,20\)/,'Mehrere Favoriten werden nicht vollständig gemeinsam geprüft; die Begrenzung darf nur allgemeine Sammelläufe betreffen');
 assert.match(panel,/selectedRecord\?\.id===currentEventId\?selectedRecord:null/,'Ein geladenes Event kann weiterhin neue Favoriten überschreiben');
 assert.match(panel,/formatUvi\(plan\.summary\.uvMax/,'UVI ist im Eventplaner nicht appweit ganzzahlig formatiert');
 assert.doesNotMatch(panel,/summary\.uvMax,1/,'Veraltete UVI-Nachkommastelle ist noch aktiv');
@@ -20,9 +23,11 @@ assert.match(panel,/wind\(plan\.summary\.windMax.*unit\)/,'Windeinheit wird nich
 assert.match(app,/MemoLazyEventPlanner[^>]+unit=\{unit\}/,'App-Windeinheit wird nicht an Eventplaner übergeben');
 assert.match(panel,/AppInfoHint/,'Hintergrundinformationen sind nicht hinter appweiten Info-Bedienelementen gebündelt');
 
-assert.match(panel,/currentSavedRecord\?void analyseEvent\(undefined,true,true\):saveCurrentPlan\(false\)/,'„Event aktualisieren“ berechnet das Event nicht wirklich frisch neu');
+assert.match(panel,/currentSavedRecord\?void analyseEvent\(undefined,true,true\):saveCurrentPlan\(false\)/,'„Event aktualisieren“ muss weiterhin den Fresh-Pfad aufrufen');
+assert.match(panel,/refreshEventWeather\(currentSavedRecord\.id,\{reason:'detail'\}\)/,'Der Detail-Reload ist nicht an den zentralen dauerhaften Refresh-Broker gekoppelt');
 assert.match(panel,/editingRecordIdRef=useRef\(editingRecordId\)/,'Aktives Event besitzt keinen stabilen Refresh-Ref');
 assert.match(panel,/if\(active\?\.plan\)setPlan\(current=>/,'Extern aktualisierte Eventdaten werden nicht in die geöffnete Detailansicht übernommen');
+assert.match(panel,/compareEventPlanFreshness\(active\.plan,current\)>=0/,'Die geöffnete Detailansicht schützt die Quellenfrische nicht gegen spätere alte Snapshots');
 assert.match(css,/:root\[data-theme=light\] \.event-plan-result/,'Helles Eventplaner-Design ist nicht explizit optimiert');
 assert.match(css,/--event-danger:/,'Theme-adaptive Event-Signalfarben fehlen');
 assert.doesNotMatch(center,/Tendenz neu/,'Unprofessioneller alter Änderungsbadge ist noch aktiv');

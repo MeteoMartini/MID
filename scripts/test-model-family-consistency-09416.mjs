@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-const event=fs.readFileSync('src/EventPlannerPanel.tsx','utf8');
+const event=fs.readFileSync('src/eventWeatherEngine.ts','utf8');
 const weather=fs.readFileSync('src/weather.ts','utf8');
 const fusion=fs.readFileSync('src/forecastFusion.ts','utf8');
 const worker=fs.readFileSync('worker/metar-proxy.js','utf8');
@@ -12,7 +12,7 @@ const seasonal=fs.readFileSync('src/seasonalForecast.ts','utf8');
 // MID-Fusions-/Nowcast-/Niederschlagscharakter-Pfad wie das Dashboard.
 for(const token of ['loadForecastFusion','applyForecastFusionDays','applyForecastFusionHours','finalizeForecastHours','precipitationParts'])assert.ok(event.includes(token),`Wetterplaner ohne gemeinsamen MID-Pfad: ${token}`);
 for(const token of ['applyOperationalNowcastHours','applyConvectiveNowcastHours','reconcileCurrentTemperatureObservation','reconcileForecastHoursWithDays'])assert.ok(fusion.includes(token),`Gemeinsame MID-Endstufe ohne ${token}`);
-assert.ok(event.includes("weatherLabel:part.type==='none'?label(part.displayCode):part.weatherLabel"),'Wetterplaner muss plausibilisierte Niederschlags-/Wettertitel verwenden.');
+assert.ok(event.includes("weatherLabel:representative?.part.type==='none'?label(representative.part.displayCode):representative?.part.weatherLabel"),'Wetterplaner muss plausibilisierte Niederschlags-/Wettertitel verwenden.');
 assert.ok(event.includes("summary.weatherLabel?.includes('Sprühregen')"),'Sprühregen muss im Wetterplaner explizit aus der zentralen Plausibilisierung ableitbar sein.');
 
 // Forecast fusion: Modellvarianten sind sichtbar, aber nur eine Stimme je unabhängiger Gruppe.

@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
-const [app,eventPanel,fusion,astronomy,quality,weather,pkg,baseline]=await Promise.all([
+const [app,eventEngine,fusion,astronomy,quality,weather,pkg,baseline]=await Promise.all([
  readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
- readFile(new URL('../src/EventPlannerPanel.tsx',import.meta.url),'utf8'),
+ readFile(new URL('../src/eventWeatherEngine.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/forecastFusion.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/astronomy.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/sourceQuality.ts',import.meta.url),'utf8'),
@@ -17,13 +17,13 @@ assert.match(fusion,/export function finalizeForecastHours\(/,'Gemeinsame MID-Pr
 for(const token of ['applyOperationalNowcastHours','applyConvectiveNowcastHours','reconcileCurrentTemperatureObservation','reconcileForecastHoursWithDays'])assert.match(fusion,new RegExp(token),`Gemeinsame Endstufe enthält ${token} nicht.`);
 assert.match(app,/finalizeForecastHours\(twinHours,baseDisplayDays/,'Reguläre Ortsvorhersage nutzt die gemeinsame Endstufe nicht.');
 assert.match(app,/canonicalHours=\{displayHours\}/,'Eventplaner erhält nicht die bereits finalisierte aktive Ortsvorhersage.');
-assert.match(eventPanel,/sameForecastLocation\(location,initialLocation\)&&canonicalHours\.length>0/,'Eventplaner erkennt identische aktive Orte nicht.');
-assert.match(eventPanel,/canonical\?canonicalHours:applyForecastFusionHours/,'Identische Eventorte verwenden nicht exakt die reguläre Ortsvorhersage.');
-assert.match(eventPanel,/finalizeForecastHours\(finalHours,displayBaseDays/,'Abweichende Eventorte verwenden die gemeinsame MID-Endstufe nicht.');
-assert.match(eventPanel,/applyEnsembleDailyPrecipitationProbability\(/,'Eventorte führen die appweite Tages-PoP-Logik nicht in die gemeinsame Endstufe ein.');
-assert.match(eventPanel,/station\(location\.latitude,location\.longitude/,'Eventorte nutzen für kurzfristige Anker keine Stationsanalyse.');
-assert.match(eventPanel,/stationFieldObservationUsable\(observation,'temperature'/,'Eventplaner verwendet keine parameterbezogene Temperaturaktualität.');
-assert.match(eventPanel,/Aktive Ortsvorhersage · identische MID-Endstufe/,'Transparenz über identische Event-/Ortsprognose fehlt.');
+assert.match(eventEngine,/canonicalActive=Boolean\(!forceFresh&&canonical&&sameForecastLocation\(location,canonical\.initialLocation\)&&canonical\.hours\.length>0\)/,'Event-Engine erkennt identische aktive Orte nicht bzw. umgeht den Canonical-Pfad bei Force-Fresh nicht.');
+assert.match(eventEngine,/finalHours=canonicalActive\?canonical!\.hours:applyForecastFusionHours/,'Identische Eventorte verwenden nicht exakt die reguläre Ortsvorhersage.');
+assert.match(eventEngine,/finalizeForecastHours\(finalHours,displayBaseDays/,'Abweichende Eventorte verwenden die gemeinsame MID-Endstufe nicht.');
+assert.match(eventEngine,/applyEnsembleDailyPrecipitationProbability\(/,'Eventorte führen die appweite Tages-PoP-Logik nicht in die gemeinsame Endstufe ein.');
+assert.match(eventEngine,/station\(location\.latitude,location\.longitude/,'Eventorte nutzen für kurzfristige Anker keine Stationsanalyse.');
+assert.match(eventEngine,/stationFieldObservationUsable\(observation,'temperature'/,'Event-Engine verwendet keine parameterbezogene Temperaturaktualität.');
+assert.match(eventEngine,/Aktive Ortsvorhersage · identische MID-Endstufe/,'Transparenz über identische Event-/Ortsprognose fehlt.');
 
 // II. Sonne/Mond/Finsternisse müssen aus einer einheitlichen Ephemeridenbasis stammen.
 for(const token of ['SearchRiseSet','SearchAltitude','SearchHourAngle','MoonPhase','Illumination','SearchMoonPhase','Equator','Horizon'])assert.match(astronomy,new RegExp(`\\b${token}\\b`),`Astronomie Engine: ${token} fehlt.`);

@@ -1,38 +1,25 @@
 import {useEffect,useMemo,useRef,useState,type FormEvent} from 'react'
 import {ArrowUpDown,BellRing,CalendarRange,ChevronDown,ChevronLeft,CloudLightning,CloudRain,Info,MapPin,Pencil,Plane,RefreshCw,Search,ShieldCheck,ShieldAlert,Snowflake,Star,Sun,Thermometer,Trash2,Wind} from 'lucide-react'
 import {WeatherPictogram} from './WeatherPictogram'
-import {applyEnsembleDailyPrecipitationProbability,bestMatchModelInfo,eventEnsembleForecast,forecast,label,localIsoEpoch,mapDays,mapHours,radarNowcast,searchLocations,station,stationFieldObservationUsable,thunderstormNowcast,wind,type EventPrecipitationProbabilityAssessment,type Hour,type Location,type WindUnit} from './weather'
-import {EVENT_CENTER_OPEN_EVENT,EVENT_CENTER_REFRESH_DONE_EVENT,EVENT_CENTER_REFRESH_EVENT,EVENT_CENTER_UPDATED_EVENT,buildEventCenterId,compareEventPlans,completeEventCenterRefreshRequest,deleteEventCenterRecord,markEventCenterOpened,pendingEventCenterRefreshRequest,readEventCenterRecords,toggleEventCenterFavorite,upsertEventCenterRecord,type EventActivity,type EventAdvice,type EventCenterRecord,type EventEnvironment,type EventPlan,type EventStatus,type EventSummary,type EventTimelinePoint} from './eventCenter'
-import {applyForecastFusionDays,applyForecastFusionHours,finalizeForecastHours,forecastFusionLabel,loadForecastFusion,type ForecastFusionResult} from './forecastFusion'
-import {compactPrecipitationTypeLabel,precipitationParts} from './precipitation'
+import {label,searchLocations,wind,type Hour,type Location,type WindUnit} from './weather'
+import {EVENT_CENTER_OPEN_EVENT,EVENT_CENTER_UPDATED_EVENT,buildEventCenterId,compareEventPlanFreshness,compareEventPlans,deleteEventCenterRecord,markEventCenterOpened,readEventCenterRecords,toggleEventCenterFavorite,upsertEventCenterRecord,type EventActivity,type EventCenterRecord,type EventEnvironment,type EventPlan,type EventStatus,type EventSummary,type EventTimelinePoint} from './eventCenter'
+import type {ForecastFusionResult} from './forecastFusion'
+import {precipitationParts} from './precipitation'
 import {formatUvi} from './format'
-import {loadEventFlightHazards} from './eventAviation'
 import {AppInfoHint} from './AppInfoPopover'
-import {applyLocalTwinForecastFromReport,applyLocalTwinHours,buildForecastVerificationReport,readWeatherTwinSettings} from './forecastVerification'
+import {buildEventPlan} from './eventWeatherEngine'
+import {refreshAllEventWeather,refreshEventWeather,type EventWeatherRefreshReason} from './eventWeatherRefresh'
 
 type Props={initialLocation:Location;advancedMode:boolean;unit:WindUnit;canonicalHours?:Hour[];canonicalFusion?:ForecastFusionResult|null;canonicalWeatherTwinApplied?:boolean;backgroundOnly?:boolean}
 type ValueEvent={target:{value:string}}
 
 const EVENT_LOCATION_KEY='mid:event-planner:location'
 const EVENT_VALUES_KEY='mid:event-planner:values'
-const AUTO_REFRESH_MS=30*60*1000
 const EVENT_SORT_KEY='mid:event-center:sort'
 type EventSortMode='chronological'|'favorites'|'updated'|'title'
 type EventWorkspaceView='overview'|'editor'|'detail'
 
 type EventRefreshMode='auto'|'manual'|'overview'|'detail'
-type ManagedEventRefresh={token:number;priority:number;controller:AbortController}
-let eventRefreshSequence=0
-const activeEventRefreshes=new Map<string,ManagedEventRefresh>()
-function eventRefreshPriority(mode:EventRefreshMode){return mode==='auto'?1:mode==='manual'?2:mode==='overview'?3:4}
-function beginManagedEventRefresh(recordId:string,mode:EventRefreshMode){
- const priority=eventRefreshPriority(mode),current=activeEventRefreshes.get(recordId)
- if(current&&current.priority>priority)return null
- current?.controller.abort(new DOMException('Durch neuere Event-Aktualisierung ersetzt','AbortError'))
- const managed={token:++eventRefreshSequence,priority,controller:new AbortController()};activeEventRefreshes.set(recordId,managed);return managed
-}
-function managedEventRefreshCurrent(recordId:string,managed:ManagedEventRefresh){return activeEventRefreshes.get(recordId)?.token===managed.token&&!managed.controller.signal.aborted}
-function finishManagedEventRefresh(recordId:string,managed:ManagedEventRefresh){if(activeEventRefreshes.get(recordId)?.token===managed.token)activeEventRefreshes.delete(recordId)}
 
 const ENVIRONMENT_OPTIONS:{id:EventEnvironment;label:string;detail:string}[]=[
  {id:'indoor',label:'Indoor',detail:'Wetter wirkt vor allem auf An- und Abreise'},
@@ -67,98 +54,18 @@ function formatNumber(value:number|null|undefined,digits=0){if(!Number.isFinite(
 function formatDate(value:string){const date=new Date(`${value}T12:00:00Z`);return Number.isFinite(date.getTime())?new Intl.DateTimeFormat('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'}).format(date):value}
 function formatClock(value:string){return value.slice(0,5)}
 function destinationLabel(location:Location){return[location.icao?`${location.icao} · ${location.name}`:location.name,location.admin1,location.country].filter(Boolean).join(', ')}
-function sameForecastLocation(a:Location,b:Location){const meanLat=(a.latitude+b.latitude)*Math.PI/360,dLat=(a.latitude-b.latitude)*111.32,dLon=(a.longitude-b.longitude)*111.32*Math.cos(meanLat);return Math.hypot(dLat,dLon)<=.35}
 function modelStamp(value?:string){if(!value)return'–';const date=new Date(value);return Number.isFinite(date.getTime())?new Intl.DateTimeFormat('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(date):value}
-function parseMinuteStamp(value:string){const match=value.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);if(!match)return Number.NaN;return Date.UTC(Number(match[1]),Number(match[2])-1,Number(match[3]),Number(match[4]),Number(match[5]))}
 function parseStoredValues(){try{return JSON.parse(storageGet(EVENT_VALUES_KEY)||'{}') as Partial<{title:string;date:string;startTime:string;endTime:string;environment:EventEnvironment;activity:EventActivity}>}catch{return{}}}
 function storedSortMode():EventSortMode{const value=storageGet(EVENT_SORT_KEY);return value==='favorites'||value==='updated'||value==='title'?value:'chronological'}
 function eventStartStamp(record:EventCenterRecord){const stamp=Date.parse(`${record.date}T${record.startTime||'00:00'}:00`);return Number.isFinite(stamp)?stamp:Number.MAX_SAFE_INTEGER}
 function sortEvents(records:EventCenterRecord[],mode:EventSortMode){const chronological=(a:EventCenterRecord,b:EventCenterRecord)=>eventStartStamp(a)-eventStartStamp(b)||(b.updatedAt||0)-(a.updatedAt||0);return [...records].sort((a,b)=>{if(mode==='favorites'&&a.isFavorite!==b.isFavorite)return a.isFavorite?-1:1;if(mode==='updated')return(b.updatedAt||0)-(a.updatedAt||0)||chronological(a,b);if(mode==='title')return(a.title||a.location.name).localeCompare(b.title||b.location.name,'de-DE',{sensitivity:'base'})||chronological(a,b);return chronological(a,b)})}
-function unique<T>(values:(T|null|undefined)[]){return values.filter((value,index,array)=>value!=null&&array.indexOf(value)===index) as T[]}
 function environmentLabel(value:EventEnvironment){return ENVIRONMENT_OPTIONS.find(item=>item.id===value)?.label??value}
 function activityLabel(value:EventActivity){return ACTIVITY_OPTIONS.find(item=>item.id===value)?.label??value}
-function majorWeatherCode(codes:(number|null)[]){const ranked=unique(codes).sort((a,b)=>weatherSeverity(b)-weatherSeverity(a));return ranked[0]??null}
-function weatherSeverity(code:number|null){if(code==null)return 0;if([95,96,99].includes(code))return 6;if([71,73,75,77,85,86].includes(code))return 5;if([65,67,82].includes(code))return 4;if([63,66,81].includes(code))return 3;if([61,80,51,53,55,56,57].includes(code))return 2;if([45,48].includes(code))return 1;return 0}
-function mean(values:(number|null)[]){const usable=values.filter((value):value is number=>value!=null);if(!usable.length)return null;return usable.reduce((sum,value)=>sum+value,0)/usable.length}
-function max(values:(number|null)[]){const usable=values.filter((value):value is number=>value!=null);return usable.length?Math.max(...usable):null}
-function min(values:(number|null)[]){const usable=values.filter((value):value is number=>value!=null);return usable.length?Math.min(...usable):null}
-async function eventSourceWithin<T>(parent:AbortSignal,timeoutMs:number,load:(signal:AbortSignal)=>Promise<T>,fallback:T):Promise<T>{
- const controller=new AbortController(),abort=()=>controller.abort(parent.reason)
- if(parent.aborted){abort();throw parent.reason??new DOMException('Abgebrochen','AbortError')}
- parent.addEventListener('abort',abort,{once:true})
- let timer=0
- const timeout=new Promise<never>((_,reject)=>{timer=window.setTimeout(()=>{const reason=new DOMException('Zeitüberschreitung','TimeoutError');controller.abort(reason);reject(reason)},timeoutMs)})
- try{return await Promise.race([load(controller.signal),timeout])}catch(reason){if(parent.aborted)throw reason;return fallback}finally{window.clearTimeout(timer);parent.removeEventListener('abort',abort)}
-}
-
 function eventWeatherPart(point:EventTimelinePoint){return precipitationParts({time:point.time,precipitation:point.precipitation??0,rain:point.rain??0,showers:point.showers??0,snowfall:point.snowfall??0,probability:point.precipitationProbability??0,code:point.weatherCode??0,temperature:point.temperature??undefined,humidity:point.humidity??undefined,cloud:point.cloud??undefined,lowCloud:point.lowCloud??undefined,cape:point.cape??undefined,liftedIndex:point.liftedIndex??undefined,convectiveInhibition:point.convectiveInhibition??undefined,sunshineDuration:point.sunshineDuration??undefined,isDay:point.isDay})}
 function EventTimelinePrecipitationProbability({point}:{point:EventTimelinePoint}){const type=eventWeatherPart(point).type,title=type==='snow'||type==='snowGrains'||type==='snowShowers'?'Schneewahrscheinlichkeit':type==='sleet'||type==='sleetShowers'?'Schnee-/Schneeregenwahrscheinlichkeit':type==='thunderstorm'||type==='thunderstormHail'?'Gewitter-/Niederschlagswahrscheinlichkeit':type==='freezingRain'||type==='freezingDrizzle'?'Wahrscheinlichkeit gefrierenden Niederschlags':'Niederschlagswahrscheinlichkeit',icon=type==='snow'||type==='snowGrains'||type==='snowShowers'||type==='sleet'||type==='sleetShowers'?<Snowflake size={12}/>:type==='thunderstorm'||type==='thunderstormHail'?<CloudLightning size={12}/>:<CloudRain size={12}/>;return <span className="event-timeline-pop" title={title} aria-label={`${title} ${formatNumber(point.precipitationProbability)} Prozent`}>{icon}<b>{formatNumber(point.precipitationProbability)} %</b></span>}
-function summarizeTimeline(timeline:EventTimelinePoint[],fusion:ForecastFusionResult|null,eventProbability?:EventPrecipitationProbabilityAssessment|null,weatherTwinApplied=false):EventSummary{
- const temperatures=timeline.map(point=>point.temperature),apparents=timeline.map(point=>point.apparent),precipitationProbabilities=timeline.map(point=>point.precipitationProbability),winds=timeline.map(point=>point.wind),gusts=timeline.map(point=>point.gust),uvValues=timeline.map(point=>point.uv),visibilities=timeline.map(point=>point.visibility),parts=timeline.map(point=>({point,part:eventWeatherPart(point)})),wet=parts.filter(row=>row.part.type!=='none'),representative=(wet.length?wet:parts).sort((a,b)=>weatherSeverity(b.part.displayCode)-weatherSeverity(a.part.displayCode)||((b.point.precipitationProbability??0)+(b.point.precipitation??0)*8)-((a.point.precipitationProbability??0)+(a.point.precipitation??0)*8))[0],groups=new Set((fusion?.sources??[]).filter(source=>source.successful&&source.consensusRole!=='postprocessing').map(source=>source.independenceGroup||source.family));
- const probabilityWinner=[...wet].sort((a,b)=>(b.point.precipitationProbability??0)-(a.point.precipitationProbability??0)||b.part.total-a.part.total||weatherSeverity(b.part.displayCode)-weatherSeverity(a.part.displayCode))[0];
- const precipitationProbabilityRelevant=eventProbability?.probability??probabilityWinner?.point.precipitationProbability??max(precipitationProbabilities);
- const precipitationTypeLabel=probabilityWinner?compactPrecipitationTypeLabel(probabilityWinner.part.type):undefined;
- return{hours:timeline.length,temperatureAvg:mean(temperatures),temperatureMin:min(temperatures),temperatureMax:max(temperatures),apparentAvg:mean(apparents),precipitationProbabilityMax:max(precipitationProbabilities),precipitationProbabilityRelevant,precipitationProbabilitySignificant:eventProbability?.probabilitySignificant,precipitationProbabilitySource:eventProbability?'ensemble-members-dwd-event':'hourly-max-fallback',precipitationProbabilityMemberCount:eventProbability?.memberCount,precipitationProbabilityModelFamilies:eventProbability?.modelFamilyCount,precipitationTypeLabel,precipitationTotal:timeline.reduce((sum,point)=>sum+(point.precipitation??0),0),windMax:max(winds),gustMax:max(gusts),uvMax:max(uvValues),visibilityMin:min(visibilities),weatherCode:representative?.part.displayCode??majorWeatherCode(timeline.map(point=>point.weatherCode)),weatherLabel:representative?.part.type==='none'?label(representative.part.displayCode):representative?.part.weatherLabel,weatherSourceLabel:representative?.point.weatherSourceLabel,isDay:representative?.point.isDay,modelFamilyCount:groups.size||undefined,rapidCycleUsed:Boolean(fusion?.sources?.some(source=>source.successful&&source.rapidUpdate)),weatherTwinApplied}
-}
-
 function eventPrecipProbability(summary:EventSummary){return summary.precipitationProbabilityRelevant??summary.precipitationProbabilityMax}
 function eventPrecipLabel(summary:EventSummary){return summary.precipitationTypeLabel||'Niederschlag'}
 function EventSummaryPrecipitationIcon({summary,size=14}:{summary:EventSummary;size?:number}){const text=`${summary.precipitationTypeLabel||''} ${summary.weatherLabel||''}`.toLocaleLowerCase('de-DE'),code=Number(summary.weatherCode);if(/schnee|graupel|schneeregen/.test(text)||[71,73,75,77,85,86].includes(code))return <Snowflake size={size}/>;if(/gewitter|hagel/.test(text)||[95,96,97,99].includes(code))return <CloudLightning size={size}/>;return <CloudRain size={size}/>}
-
-function evaluateEvent(summary:EventSummary,environment:EventEnvironment,activity:EventActivity):EventAdvice{
- const tips:string[]=[]
- const behavior:string[]=[]
- let severity=0
- const thunder=[95,96,99].includes(summary.weatherCode??-1)
- if(thunder){severity+=5;tips.push('Gewitterrisiko im Zeitfenster.');behavior.push(activity==='flight'?'Flugplanung gegen aktuelle METAR/TAF und amtliche Flugwetterberatung abgleichen.':'Outdoor-Ablauf mit belastbarer Ausweichoption planen.')}
- if((eventPrecipProbability(summary)??0)>=75||(summary.precipitationTotal??0)>=5){severity+=environment==='indoor'?1:3;tips.push('Hohes Niederschlagsrisiko.');behavior.push(environment==='indoor'?'An- und Abreise mit Zeitpuffer planen.':'Regenschutz und geschützte Alternative vorsehen.')}
- else if((eventPrecipProbability(summary)??0)>=40||(summary.precipitationTotal??0)>=1.5){severity+=environment==='indoor'?0:2;tips.push(summary.weatherLabel?.includes('Sprühregen')?'Sprühregen zeitweise möglich.':'Niederschlag zeitweise möglich.');behavior.push('Leichten Wetterschutz einplanen.')}
- if((summary.windMax??0)>=22||(summary.gustMax??0)>=34){severity+=environment==='indoor'?1:3;tips.push('Wind/Böen können den Ablauf deutlich beeinflussen.');behavior.push(activity==='watersports'?'Gewässer- und Materialgrenzen prüfen.':activity==='flight'?'Start-/Landephase und lokale Windgrenzen gesondert prüfen.':'Windempfindliche Ausrüstung sichern.')}
- else if((summary.windMax??0)>=14||(summary.gustMax??0)>=24){severity+=1;tips.push('Spürbarer Wind.');behavior.push(activity==='flight'?'Böen und lokale Windrichtung vor Abflug prüfen.':'Wind bei Kleidung und Streckenwahl berücksichtigen.')}
- if((summary.temperatureMax??summary.temperatureAvg??0)>=29){severity+=2;tips.push('Hohe Wärmebelastung.');behavior.push('Trinkpausen und Schatten einplanen.')}
- if((summary.temperatureMin??summary.temperatureAvg??99)<=3){severity+=2;tips.push('Kalte Bedingungen.');behavior.push('Wärmeschutz und Aufwärmzeit berücksichtigen.')}
- if((summary.uvMax??0)>=6&&environment!=='indoor'&&activity!=='flight'){severity+=1;tips.push('Erhöhte UV-Belastung.');behavior.push('Sonnenschutz einplanen.')}
- if((summary.visibilityMin??99999)<1000){severity+=2;tips.push('Deutlich eingeschränkte Sicht möglich.');behavior.push(activity==='flight'?'Sichtminima und Alternates gesondert prüfen.':'Anfahrt und Wegführung mit Reserve planen.')}
- if(activity==='cycling'||activity==='running'||activity==='hiking')behavior.push('Untergrund auf Nässe und Rutschgefahr prüfen.')
- if(activity==='skiing')behavior.push('Bergwetter, Höhenwind und Schneefallgrenze zusätzlich prüfen.')
- if(activity==='golf'||activity==='tennis'||activity==='football')behavior.push('Flexible Unterbrechung bei Böen oder Schauern vorsehen.')
- if(activity==='concert'||activity==='city')behavior.push('Aufenthaltsdauer im Freien an die Wetterlage anpassen.')
- if(activity==='gym'||activity==='yoga'||environment==='indoor')behavior.push('Wetter wirkt hier vor allem auf An- und Abreise.')
- if(activity==='watersports')behavior.push('Wassertemperatur, Gewässerstatus und lokale Hinweise ergänzend prüfen.')
- if(activity==='flight'&&summary.flightHazards){
-  const flight=summary.flightHazards
-  if(flight.overall==='caution')severity=Math.max(severity,7)
-  else if(flight.overall==='watch')severity=Math.max(severity,4)
-  for(const item of flight.items.filter(item=>item.level!=='none').slice(0,3))tips.push(`${item.label}: ${item.detail}.`)
-  behavior.push('Vereisung, Turbulenz/CAT, Wolkenuntergrenze und Sicht gegen aktuelle Flugwetterprodukte verifizieren.')
- }
- const status:EventStatus=severity>=6?'caution':severity>=3?'watch':'good'
- if(!tips.length)tips.push(activity==='flight'?'Keine markante flugmeteorologische Einschränkung im MID-Screening.':'Keine markante Wettereinschränkung im Zeitfenster.')
- if(!behavior.length)behavior.push('Normale Vorbereitung ist voraussichtlich ausreichend.')
- const headline=activity==='flight'
-  ?status==='good'?'Flugmeteorologisch unauffällig':status==='watch'?'Flugmeteorologische Einschränkungen prüfen':'Flugmeteorologisch kritisch'
-  :status==='good'?'Günstige Bedingungen':status==='watch'?'Einzelne Einschränkungen beachten':'Wetterkritische Bedingungen'
- const summaryText=activity==='flight'
-  ?status==='good'?'Das MID-Screening zeigt aktuell keine markante flugmeteorologische Einschränkung.':status==='watch'?'Mindestens ein flugmeteorologischer Faktor verdient vor Abflug eine gezielte Prüfung.':'Mehrere oder markante flugmeteorologische Faktoren können die Durchführung einschränken.'
-  :status==='good'?'Der Termin ist nach aktuellem Stand gut planbar.':status==='watch'?'Der Termin bleibt planbar, einzelne Wetterfaktoren sollten berücksichtigt werden.':'Wetterfaktoren können den Ablauf deutlich beeinträchtigen.'
- return{status,headline,summary:summaryText,tips:unique(tips).slice(0,4),behavior:unique(behavior).slice(0,4)}
-}
-function clockFromCivilStamp(stamp:number){const date=new Date(stamp);return`${String(date.getUTCHours()).padStart(2,'0')}:${String(date.getUTCMinutes()).padStart(2,'0')}`}
-function timelineForWindow(hours:Hour[],date:string,startTime:string,endTime:string){
- const startStamp=parseMinuteStamp(`${date}T${startTime}`)
- let endStamp=parseMinuteStamp(`${date}T${endTime}`)
- if(!Number.isFinite(startStamp)||!Number.isFinite(endStamp))return[] as EventTimelinePoint[]
- if(endStamp<=startStamp)endStamp=startStamp+60*60000
- const rows=hours.map(hour=>({hour,stamp:parseMinuteStamp(hour.time)})).filter(row=>Number.isFinite(row.stamp)).sort((a,b)=>a.stamp-b.stamp),result:EventTimelinePoint[]=[]
- for(let index=0;index<rows.length;index++){
-  const {hour,stamp:intervalEnd}=rows[index],previous=index>0?rows[index-1].stamp:intervalEnd-3600000,rawStep=intervalEnd-previous,step=Number.isFinite(rawStep)&&rawStep>=15*60000&&rawStep<=3*3600000?rawStep:3600000,intervalStart=intervalEnd-step,overlapStart=Math.max(intervalStart,startStamp),overlapEnd=Math.min(intervalEnd,endStamp)
-  if(overlapEnd<=overlapStart)continue
-  const fraction=(overlapEnd-overlapStart)/step,scaled=(value:number|null|undefined)=>Number.isFinite(Number(value))?Number(value)*fraction:null,precipitation=scaled(hour.precipitation),rain=scaled(hour.rain),showers=scaled(hour.showers),snowfall=scaled(hour.snowfall),sunshineDuration=scaled(hour.sunshineDuration)
-  const part=precipitationParts({time:hour.time,epoch:hour.epoch,timezone:hour.timezone,precipitation:precipitation??0,rain:rain??0,showers:showers??0,snowfall:snowfall??0,probability:hour.probability,code:hour.code,temperature:hour.temperature,dewPoint:hour.dewPoint,humidity:hour.humidity,cloud:hour.cloud,lowCloud:hour.lowCloud,cape:hour.cape,liftedIndex:hour.liftedIndex,convectiveInhibition:hour.convectiveInhibition,sunshineDuration:sunshineDuration??undefined,isDay:hour.isDay})
-  result.push({time:clockFromCivilStamp(overlapEnd),periodLabel:`${clockFromCivilStamp(overlapStart)}–${clockFromCivilStamp(overlapEnd)}`,temperature:hour.temperature,apparent:hour.apparent,precipitationProbability:hour.probability,precipitation,rain,showers,snowfall,weatherCode:part.displayCode,weatherLabel:part.type==='none'?label(part.displayCode):part.weatherLabel,wind:hour.wind,gust:hour.gust,uv:hour.uvIndex,visibility:hour.visibility,humidity:hour.humidity,cloud:hour.cloud,lowCloud:hour.lowCloud,cape:hour.cape,liftedIndex:hour.liftedIndex,convectiveInhibition:hour.convectiveInhibition,sunshineDuration,isDay:hour.isDay,weatherSourceId:hour.weatherSourceId,weatherSourceLabel:hour.weatherSourceLabel})
- }
- return result
-}
 
 function statusLabel(value:EventStatus){return value==='good'?'Günstig':'watch'===value?'Beobachten':'Achtung'}
 function buildOutfitHint(summary:EventSummary,environment:EventEnvironment,activity:EventActivity){
@@ -226,12 +133,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
  useEffect(()=>{storageSet(EVENT_SORT_KEY,sortMode)},[sortMode])
  useEffect(()=>{if(plan||storedLocation())return;setDestination(initialLocation)},[initialLocation,plan])
  useEffect(()=>{
-  if(!plan)return
-  const timer=window.setInterval(()=>{void analyseEvent(undefined,true,true)},AUTO_REFRESH_MS)
-  return()=>window.clearInterval(timer)
- },[plan,destination,date,startTime,endTime,environment,activity,title])
- useEffect(()=>{
-  const sync=()=>{const records=readEventCenterRecords();setSavedEvents(records);if(!backgroundOnly){const activeId=editingRecordIdRef.current||selectedRecordIdRef.current,active=activeId?records.find(item=>item.id===activeId):null;if(active?.plan)setPlan(current=>!current||Number(active.plan!.refreshedAt)>=Number(current.refreshedAt||0)?active.plan:current)}}
+  const sync=()=>{const records=readEventCenterRecords();setSavedEvents(records);if(!backgroundOnly){const activeId=editingRecordIdRef.current||selectedRecordIdRef.current,active=activeId?records.find(item=>item.id===activeId):null;if(active?.plan)setPlan(current=>!current||compareEventPlanFreshness(active.plan,current)>=0?active.plan:current)}}
   const openSaved=(event:Event)=>{if(backgroundOnly)return;const detail=(event as CustomEvent<{id?:string}>).detail,id=String(detail?.id||'');if(!id)return;const record=readEventCenterRecords().find(item=>item.id===id);if(record)loadRecord(record,'detail')}
   window.addEventListener(EVENT_CENTER_UPDATED_EVENT,sync)
   if(!backgroundOnly)window.addEventListener(EVENT_CENTER_OPEN_EVENT,openSaved as EventListener)
@@ -257,23 +159,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
  }
  function chooseLocation(location:Location){setDestination(location);setSearchResults([]);setQuery('');setSearchError('');storageSet(EVENT_LOCATION_KEY,JSON.stringify(location))}
  async function buildPlan(location:Location,eventDate:string,eventStartTime:string,eventEndTime:string,eventEnvironment:EventEnvironment,eventActivity:EventActivity,eventTitle:string,signal:AbortSignal,forceFresh=false){
-  const country=location.country_code||location.country,[weather,modelInfo,fusion,eventEnsemble]=await Promise.all([forecast(location.latitude,location.longitude,signal),eventSourceWithin(signal,12000,sourceSignal=>bestMatchModelInfo(location.latitude,location.longitude,country,sourceSignal),null),eventSourceWithin(signal,26000,sourceSignal=>loadForecastFusion(location.latitude,location.longitude,country,location.elevation,sourceSignal,forceFresh),null),eventSourceWithin(signal,22000,()=>eventEnsembleForecast(location.latitude,location.longitude,eventDate,eventStartTime,eventEndTime,signal,forceFresh),{days:[],models:[],precipitationProbability:null})])
-  const baseHours=mapHours(weather),baseDays=mapDays(weather),fusedDays=applyForecastFusionDays(baseDays,fusion),canonical=!forceFresh&&sameForecastLocation(location,initialLocation)&&canonicalHours.length>0,ensembleDays=eventEnsemble.days??[],eventProbability=eventEnsemble.precipitationProbability??null;let finalHours=canonical?canonicalHours:applyForecastFusionHours(baseHours,baseDays,fusedDays,fusion),now=Date.now(),startEpoch=localIsoEpoch(`${eventDate}T${eventStartTime}`,weather.timezone,Number(weather.utc_offset_seconds)||0),endEpoch=localIsoEpoch(`${eventDate}T${eventEndTime}`,weather.timezone,Number(weather.utc_offset_seconds)||0);if(Number.isFinite(startEpoch)&&Number.isFinite(endEpoch)&&endEpoch<startEpoch)endEpoch=startEpoch+3600000
-  const nearNow=Number.isFinite(startEpoch)&&Number.isFinite(endEpoch)&&endEpoch>=now-30*60000&&startEpoch<=now+4*3600000;let nowcastApplied=false,thunderApplied=false,weatherTwinApplied=canonical&&canonicalWeatherTwinApplied
-  if(!canonical){
-   const twinSettings=readWeatherTwinSettings(),locationKey=`${Number(location.latitude).toFixed(5)}:${Number(location.longitude).toFixed(5)}`,twinReport=twinSettings.enabled&&twinSettings.useAsMainForecast&&ensembleDays.length?buildForecastVerificationReport(locationKey,fusedDays,ensembleDays,location,baseHours):null,localTwinDays=twinReport?applyLocalTwinForecastFromReport(fusedDays,twinReport):fusedDays,twinEligible=Boolean(twinReport?.mainForecastStatus.eligible&&localTwinDays!==fusedDays),displayBaseDays=applyEnsembleDailyPrecipitationProbability(twinEligible?localTwinDays:fusedDays,ensembleDays);if(twinEligible){finalHours=applyLocalTwinHours(locationKey,finalHours,fusedDays,localTwinDays);weatherTwinApplied=true}
-   let radar:Awaited<ReturnType<typeof radarNowcast>>=null,thunder:Awaited<ReturnType<typeof thunderstormNowcast>>=null,observedTemperature=Number(weather.current?.temperature_2m),observedAt=now;
-   if(nearNow){
-    const [radarResult,thunderResult,stationResult]=await Promise.allSettled([radarNowcast(location.latitude,location.longitude,country,signal,true),thunderstormNowcast(location.latitude,location.longitude,country,signal),station(location.latitude,location.longitude,country,location.elevation??weather.elevation,location,signal,true)]);radar=radarResult.status==='fulfilled'?radarResult.value:null;thunder=thunderResult.status==='fulfilled'?thunderResult.value:null;const observation=stationResult.status==='fulfilled'?stationResult.value:null,temperatureSource=observation?.fieldSources?.temperature?.[0],stamp=temperatureSource?.observedAt?Date.parse(temperatureSource.observedAt):observation?.timestamp?Date.parse(observation.timestamp):Number.NaN,fresh=stationFieldObservationUsable(observation,'temperature',now,location.elevation??weather.elevation);if(fresh){observedTemperature=Number(observation!.temperature);observedAt=Number.isFinite(stamp)?stamp:now}
-   }
-   const finalized=finalizeForecastHours(finalHours,displayBaseDays,{radar,thunder,observedTemperature,observedAt,applyOperationalRadar:nearNow});finalHours=finalized.hours;nowcastApplied=finalized.radarApplied;thunderApplied=finalized.thunderApplied
-  }
-  const timeline=timelineForWindow(finalHours,eventDate,eventStartTime,eventEndTime)
-  if(!timeline.length)throw new Error('Für den gewählten Zeitraum sind noch keine Stundendaten verfügbar. Bitte Datum oder Uhrzeit anpassen.')
-  const summary=summarizeTimeline(timeline,canonical?canonicalFusion:fusion,eventProbability,weatherTwinApplied)
-  if(eventActivity==='flight'&&Number.isFinite(startEpoch)&&Number.isFinite(endEpoch))summary.flightHazards=await loadEventFlightHazards(location.latitude,location.longitude,location.elevation??weather.elevation??0,startEpoch,endEpoch,signal)
-  const advice=evaluateEvent(summary,eventEnvironment,eventActivity),fusionState=forecastFusionLabel(canonical?canonicalFusion:fusion),source=[canonical?'Aktive Ortsvorhersage · identische MID-Endstufe':fusionState||'Open-Meteo Best Match · gemeinsame MID-Plausibilisierung',weatherTwinApplied?'Wetterzwilling · lokal validierte Temperatur-/Böenkorrektur':'',eventProbability?`Event-Niederschlagswahrscheinlichkeit ${eventStartTime}–${eventEndTime} · Ensemble-Member >0,2 mm`:'Niederschlagswahrscheinlichkeit · Stundenfallback',nowcastApplied?'Radar-Nowcast':'' ,thunderApplied?'Konvektiv-/Gewitter-Nowcast':'',eventActivity==='flight'&&summary.flightHazards?.available?'Druckniveau-Flugwetterdiagnose':''].filter(Boolean).join(' · ')
-  return{location,title:eventTitle.trim(),date:eventDate,startTime:eventStartTime,endTime:eventEndTime,environment:eventEnvironment,activity:eventActivity,timeline,summary,advice,modelInfo,refreshedAt:Date.now(),source} satisfies EventPlan
+  return buildEventPlan({location,eventDate,eventStartTime,eventEndTime,eventEnvironment,eventActivity,eventTitle,signal,forceFresh,canonical:{initialLocation,hours:canonicalHours,fusion:canonicalFusion,weatherTwinApplied:canonicalWeatherTwinApplied}})
  }
  function validateInputs(location:Location|null,eventDate:string,eventStartTime:string,eventEndTime:string){
   if(!location){setError('Bitte zuerst einen Ort auswählen.');return false}
@@ -311,76 +197,46 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
  async function analyseEvent(event?:FormEvent,silent=false,forceFresh=false){
   event?.preventDefault()
   setError('')
-  if(!silent)setPlan(null)
   if(!validateInputs(destination,date,startTime,endTime))return
+  if(forceFresh&&currentSavedRecord){
+   setLoading(true)
+   try{
+    const result=await refreshEventWeather(currentSavedRecord.id,{reason:'detail'})
+    const latest=readEventCenterRecords().find(item=>item.id===currentSavedRecord.id)
+    if(result.refreshed>0&&latest?.plan){setPlan(latest.plan);setSavedEvents(readEventCenterRecords());setSelectedRecordId(latest.id);if(!silent)setWorkspaceView('detail')}
+    else if(!silent)setError('Event-Wetter konnte nicht dauerhaft aktualisiert werden. Bitte Verbindung und Datenquellen prüfen.')
+   }finally{setLoading(false)}
+   return
+  }
+  if(!silent)setPlan(null)
   analysisController.current?.abort()
-  const refreshRecordId=forceFresh?currentSavedRecord?.id||'': '',managed=refreshRecordId?beginManagedEventRefresh(refreshRecordId,'detail'):null
-  if(refreshRecordId&&!managed)return
-  const controller=managed?.controller??new AbortController()
-  analysisController.current=controller
-  setLoading(true)
-  try{
-   const nextPlan=await buildPlan(destination,date,startTime,endTime,environment,activity,title,controller.signal,forceFresh)
-   if(managed&&!managedEventRefreshCurrent(refreshRecordId,managed))return
-   setPlan(nextPlan)
-   if(currentSavedRecord)savePlanRecord(nextPlan)
-   if(!silent)setWorkspaceView('detail')
-  }catch(reason){if(!controller.signal.aborted)setError(reason instanceof Error?reason.message:'Event-Auswertung fehlgeschlagen.')}
-  finally{if(managed)finishManagedEventRefresh(refreshRecordId,managed);if(analysisController.current===controller){if(!controller.signal.aborted)setLoading(false);analysisController.current=null}}
+  const controller=new AbortController();analysisController.current=controller;setLoading(true)
+  try{const nextPlan=await buildPlan(destination,date,startTime,endTime,environment,activity,title,controller.signal,forceFresh);setPlan(nextPlan);if(currentSavedRecord)savePlanRecord(nextPlan);if(!silent)setWorkspaceView('detail')}
+  catch(reason){if(!controller.signal.aborted)setError(reason instanceof Error?reason.message:'Event-Auswertung fehlgeschlagen.')}
+  finally{if(analysisController.current===controller){if(!controller.signal.aborted)setLoading(false);analysisController.current=null}}
  }
+ function refreshReason(mode:EventRefreshMode):EventWeatherRefreshReason{return mode==='detail'?'detail':mode==='overview'?'overview':mode==='manual'?'header':'auto-stale'}
  async function refreshStoredEvent(record:EventCenterRecord,markAsFavoritePass=false,silentFailure=false,mode:EventRefreshMode='manual'){
-  const managed=beginManagedEventRefresh(record.id,mode)
-  if(!managed)return false
   setRefreshingIds(current=>current.includes(record.id)?current:[...current,record.id])
-  const controller=managed.controller
   try{
-   const nextPlan=await buildPlan(record.location,record.date,record.startTime,record.endTime,record.environment,record.activity,record.title,controller.signal,true)
-   if(!managedEventRefreshCurrent(record.id,managed))return false
-   const latest=readEventCenterRecords().find(item=>item.id===record.id)??record,change=compareEventPlans(latest.plan,nextPlan)
-   const updated:EventCenterRecord={...latest,location:latest.location,title:latest.title,date:latest.date,startTime:latest.startTime,endTime:latest.endTime,environment:latest.environment,activity:latest.activity,isFavorite:markAsFavoritePass?true:latest.isFavorite,updatedAt:Date.now(),plan:nextPlan,change}
-   const records=upsertEventCenterRecord(updated)
-   savedEventsRef.current=records
-   setSavedEvents(records)
-   if(!backgroundOnly&&(selectedRecordId===record.id||currentEventId===record.id)){setPlan(nextPlan);setSelectedRecordId(record.id)}
-   return true
-  }catch(reason){if(!controller.signal.aborted&&!silentFailure)setError(reason instanceof Error?reason.message:'Gespeichertes Event konnte nicht aktualisiert werden.');return false}
-  finally{finishManagedEventRefresh(record.id,managed);setRefreshingIds(current=>current.filter(id=>id!==record.id))}
+   if(markAsFavoritePass&&!record.isFavorite)toggleEventCenterFavorite(record.id)
+   const result=await refreshEventWeather(record.id,{reason:refreshReason(mode)}),records=readEventCenterRecords(),latest=records.find(item=>item.id===record.id)
+   savedEventsRef.current=records;setSavedEvents(records)
+   if(latest?.plan&&!backgroundOnly&&(selectedRecordId===record.id||currentEventId===record.id)){setPlan(latest.plan);setSelectedRecordId(record.id)}
+   if(result.refreshed<1&&!silentFailure)setError('Gespeichertes Event konnte nicht dauerhaft aktualisiert werden.')
+   return result.refreshed>0
+  }finally{setRefreshingIds(current=>current.filter(id=>id!==record.id))}
  }
  async function refreshStoredEvents(favoritesOnly=false,silentFailure=false,mode:EventRefreshMode='manual'){
   if(!silentFailure)setError('')
-  const records=readEventCenterRecords();savedEventsRef.current=records
-  const now=Date.now(),active=records.filter(item=>{const end=Date.parse(`${item.date}T${item.endTime||item.startTime||'23:59'}:00`);return !Number.isFinite(end)||end>=now-6*3600000}),targets=favoritesOnly?active.filter(item=>item.isFavorite):active.slice(0,20)
-  if(!targets.length)return 0
   setBulkRefreshing(true)
-  let refreshed=0
-  try{for(const item of targets)if(await refreshStoredEvent(item,favoritesOnly,silentFailure,mode))refreshed++}finally{setBulkRefreshing(false)}
-  return refreshed
+  try{
+   const result=await refreshAllEventWeather({reason:refreshReason(mode),favoritesOnly}),records=readEventCenterRecords()
+   savedEventsRef.current=records;setSavedEvents(records)
+   if(result.failed>0&&!silentFailure)setError(`${result.failed} Event${result.failed===1?'':'s'} konnte${result.failed===1?'':'n'} nicht dauerhaft aktualisiert werden.`)
+   return result.refreshed
+  }finally{setBulkRefreshing(false)}
  }
- useEffect(()=>{
-  if(!backgroundOnly)return
-  let autoRunning=false,manualRunning=false,timer=0,staleTimer=0,initial=0
-  const isStale=()=>{const records=readEventCenterRecords();savedEventsRef.current=records;return records.some(item=>!item.plan||Date.now()-Number(item.plan.refreshedAt||item.updatedAt||0)>=AUTO_REFRESH_MS)}
-  const refresh=async(source:'manual'|'auto',requestedAt=0)=>{
-   if(source==='auto'&&autoRunning||source==='manual'&&manualRunning)return
-   if(source==='auto')autoRunning=true;else manualRunning=true
-   let refreshed=0
-   try{refreshed=await refreshStoredEvents(false,true,source)}finally{
-    if(source==='auto')autoRunning=false;else{manualRunning=false;if(requestedAt>0)completeEventCenterRefreshRequest(requestedAt)}
-    window.dispatchEvent(new CustomEvent(EVENT_CENTER_REFRESH_DONE_EVENT,{detail:{source,refreshed,at:Date.now(),requestedAt}}))
-    if(source==='manual'){const pending=pendingEventCenterRefreshRequest();if(pending)window.setTimeout(()=>void refresh('manual',pending.at),0)}
-   }
-  }
-  const request=(event:Event)=>{const detail=(event as CustomEvent<{requestedAt?:number}>).detail,pending=pendingEventCenterRefreshRequest(),requestedAt=Number(detail?.requestedAt)||pending?.at||0;void refresh('manual',requestedAt)}
-  const resume=()=>{if(document.visibilityState==='hidden')return;const pending=pendingEventCenterRefreshRequest();if(pending)void refresh('manual',pending.at);else if(isStale())void refresh('auto')}
-  window.addEventListener(EVENT_CENTER_REFRESH_EVENT,request)
-  document.addEventListener('visibilitychange',resume)
-  window.addEventListener('focus',resume)
-  window.addEventListener('online',resume)
-  timer=window.setInterval(()=>{if(document.visibilityState!=='hidden')void refresh('auto')},AUTO_REFRESH_MS)
-  staleTimer=window.setInterval(()=>{if(document.visibilityState!=='hidden'&&isStale())void refresh('auto')},5*60*1000)
-  initial=window.setTimeout(()=>{const pending=pendingEventCenterRefreshRequest();if(pending)void refresh('manual',pending.at);else if(isStale())void refresh('auto')},500)
-  return()=>{window.removeEventListener(EVENT_CENTER_REFRESH_EVENT,request);document.removeEventListener('visibilitychange',resume);window.removeEventListener('focus',resume);window.removeEventListener('online',resume);window.clearInterval(timer);window.clearInterval(staleTimer);window.clearTimeout(initial)}
- },[backgroundOnly])
  function loadRecord(record:EventCenterRecord,target:EventWorkspaceView='detail'){
   chooseLocation(record.location)
   setTitle(record.title)

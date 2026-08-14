@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 const eventCenter=await readFile(new URL('../src/eventCenter.ts',import.meta.url),'utf8');
 const planner=await readFile(new URL('../src/EventPlannerPanel.tsx',import.meta.url),'utf8');
+const engine=await readFile(new URL('../src/eventWeatherEngine.ts',import.meta.url),'utf8');
 const styles=await readFile(new URL('../src/styles.css',import.meta.url),'utf8');
 
 assert.match(eventCenter,/export function sortEventCenterRecords\([\s\S]*?aDate-bDate/,'Event-Center muss standardmäßig chronologisch sortieren.');
@@ -20,8 +21,8 @@ assert.match(planner,/setEditingRecordId\(record\.id\)/,'Geladenes Event wird ni
 assert.match(planner,/<Pencil size=\{15\}\/> Bearbeiten/,'Explizite Bearbeiten-Aktion fehlt.');
 assert.match(planner,/editingRecordId\?'Änderungen prüfen':'Wetter prüfen'/,'Bearbeitungs-CTA fehlt.');
 
-assert.match(planner,/compactPrecipitationTypeLabel/,'Appweite Niederschlagsart-Beschriftung wird nicht verwendet.');
-assert.match(planner,/const probabilityWinner=\[\.\.\.wet\]\.sort\(\(a,b\)=>\(b\.point\.precipitationProbability/,'Die angezeigte Niederschlagsart muss aus der höchsten plausiblen Wahrscheinlichkeit des Event-Zeitfensters stammen.');
+assert.match(engine,/compactPrecipitationTypeLabel/,'Appweite Niederschlagsart-Beschriftung wird in der Event-Engine nicht verwendet.');
+assert.match(engine,/const probabilityWinner=\[\.\.\.wet\]\.sort\(\(a,b\)=>\(b\.point\.precipitationProbability/,'Die angezeigte Niederschlagsart muss aus der höchsten plausiblen Wahrscheinlichkeit des Event-Zeitfensters stammen.');
 assert.match(eventCenter,/precipitationProbabilityRelevant\?:number\|null/,'Relevante Niederschlagswahrscheinlichkeit fehlt im EventSummary.');
 assert.match(eventCenter,/precipitationTypeLabel\?:string/,'Niederschlagsart-Label fehlt im EventSummary.');
 assert.match(planner,/eventPrecipLabel\(plan\.summary\).*eventPrecipProbability\(plan\.summary\).*%/s,'Niederschlagsart und passende Wahrscheinlichkeit werden nicht gemeinsam ausgegeben.');

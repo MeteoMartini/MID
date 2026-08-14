@@ -1,3 +1,20 @@
+# 0.9.53.9
+
+- Event-Wetteraktualisierung vollständig aus der lazy EventPlanner-UI herausgelöst: zentraler appweiter Refresh-Broker und eigenständige Event-Wetterengine.
+- Alle Reload-Wege (App-Kopfzeile, Event-Center-Popover, Event-Übersicht, Einzelkarte und Detail) verwenden denselben awaitbaren Fresh-Refresh und lesen nach dem Commit den persistenten Stand neu ein.
+- Serielle Per-Event-Queue plus 55-s-Transaktionsgrenze verhindert verspätete Rückschreibungen und dauerhaft blockierende Hintergrundrequests.
+- Event-Persistenz, geöffnete Details und Geräte-Sync priorisieren Modell-/Quellenrevision und Refresh-Start vor einem bloß späteren `refreshedAt`.
+- Event-Monitor startet unabhängig von der geöffneten Sektion; Start/Resume/Fokus/Online, 5-Minuten-Stale-Check, neue Modellläufe und 30-Minuten-Fallback lösen passende Neubewertungen aus.
+- Favoriten-Sammelläufe bleiben vollständig; allgemeine 20-Event-Grenze gilt nicht für Favoriten oder explizite Modelllauf-Ziele.
+- Neue Required-Regression `test-event-refresh-broker-model-runs-09539.mjs`; bestehende Event-/Modell-/Hyperlokal-Verträge auf die UI-unabhängige Engine umgestellt.
+- Worker fachlich unverändert; kein Worker-Upload erforderlich.
+
+# 0.9.53.8
+
+- Aktuelles Wetter: Piktogramme wechseln am standortbezogenen Sonnenauf-/untergang und werden bei Resume/Fokus neu bewertet.
+- Event-Refresh-Aufträge werden persistent nachgeführt; 5-Minuten-Fälligkeitsprüfung und geschützter 30-Minuten-Autorefresh ergänzt.
+- Frühere Event-Refresh-Koordination blieb noch an einer versteckten/lazy EventPlanner-Instanz gekoppelt und wird mit v0.9.53.9 vollständig ersetzt.
+
 # 0.9.53.7
 
 - Event-Center: verhindert Rücksprung auf alte Wetterstände nach erfolgreichem Reload.

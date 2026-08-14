@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
-const [weather,eventPlanner,eventCenter,twin,app,settings,pkg,baseline]=await Promise.all([
+const [weather,eventEngine,eventCenter,twin,app,settings,pkg,baseline]=await Promise.all([
  readFile(new URL('../src/weather.ts',import.meta.url),'utf8'),
- readFile(new URL('../src/EventPlannerPanel.tsx',import.meta.url),'utf8'),
+ readFile(new URL('../src/eventWeatherEngine.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/eventCenter.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/forecastVerification.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
@@ -35,7 +35,7 @@ for(const token of [
  'applyLocalTwinHours(locationKey,finalHours,fusedDays,localTwinDays)',
  'finalizeForecastHours(finalHours,displayBaseDays',
  'Event-Niederschlagswahrscheinlichkeit ${eventStartTime}–${eventEndTime}'
-])assert.ok(eventPlanner.includes(token),`Eventplaner-Konsistenz fehlt: ${token}`);
+])assert.ok(eventEngine.includes(token),`Event-Engine-Konsistenz fehlt: ${token}`);
 
 assert.ok(eventCenter.includes("precipitationProbabilitySource?:'ensemble-members-dwd-event'|'hourly-max-fallback'"),'EventSummary speichert die Herkunft der Zeitraum-PoP nicht.');
 assert.ok(eventCenter.includes('weatherTwinApplied?:boolean'),'EventSummary dokumentiert die Wetterzwilling-Anwendung nicht.');

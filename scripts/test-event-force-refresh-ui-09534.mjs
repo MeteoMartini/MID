@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
-const [panel,fusion,weather,app,css,worker,pkgRaw,baselineRaw]=await Promise.all([
+const [panel,engine,refresh,fusion,weather,app,css,worker,pkgRaw,baselineRaw]=await Promise.all([
  readFile(new URL('../src/EventPlannerPanel.tsx',import.meta.url),'utf8'),
+ readFile(new URL('../src/eventWeatherEngine.ts',import.meta.url),'utf8'),
+ readFile(new URL('../src/eventWeatherRefresh.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/forecastFusion.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/weather.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
@@ -13,11 +15,11 @@ const [panel,fusion,weather,app,css,worker,pkgRaw,baselineRaw]=await Promise.all
 ]);
 
 // Ein explizites Event-Reload darf nicht die bereits gerenderte Ortsvorhersage erneut verwenden.
-assert.match(panel,/buildPlan\([^\n]+signal:AbortSignal,forceFresh=false\)/,'Event-Plan besitzt keinen expliziten Fresh-Reload-Vertrag.');
-assert.match(panel,/canonical=!forceFresh&&sameForecastLocation\(location,initialLocation\)&&canonicalHours\.length>0/,'Fresh-Reload kann weiterhin stale canonicalHours wiederverwenden.');
-assert.match(panel,/buildPlan\(record\.location,record\.date,record\.startTime,record\.endTime,record\.environment,record\.activity,record\.title,controller\.signal,true\)/,'Gespeicherte Events erzwingen keine frische Neubewertung.');
-assert.match(panel,/currentSavedRecord\?void analyseEvent\(undefined,true,true\):saveCurrentPlan\(false\)/,'Detail-Reload erzwingt keine frische Neubewertung.');
-assert.match(panel,/setInterval\(\(\)=>\{void analyseEvent\(undefined,true,true\)\},AUTO_REFRESH_MS\)/,'Automatischer Event-Refresh verwendet weiterhin den alten Forecast-Snapshot.');
+assert.match(engine,/forceFresh\?:boolean/,'Event-Plan besitzt keinen expliziten Fresh-Reload-Vertrag.');
+assert.match(engine,/canonicalActive=Boolean\(!forceFresh&&canonical&&sameForecastLocation/,'Fresh-Reload kann weiterhin stale canonicalHours wiederverwenden.');
+assert.match(refresh,/buildEventPlan\(\{location:record\.location[\s\S]*forceFresh:true\}\)/,'Gespeicherte Events erzwingen keine frische Neubewertung.');
+assert.match(panel,/refreshEventWeather\(currentSavedRecord\.id,\{reason:'detail'\}\)/,'Detail-Reload nutzt nicht den zentralen Fresh-Refresh.');
+assert.match(refresh,/const forcedTimer=window\.setInterval\(\(\)=>void catchup\('auto-interval',true\),AUTO_REFRESH_MS\)/,'Automatischer Event-Refresh verwendet keinen echten Fresh-Refresh.');
 
 // Fusion und Event-Ensemble müssen ihre Client-Caches bei explizitem Reload umgehen.
 assert.match(fusion,/forceRefresh\?null:readCache\(lat,lon,FRESH_MS\)/,'Forecast-Fusion umgeht den lokalen Fresh-Cache nicht.');
@@ -32,11 +34,10 @@ assert.match(worker,/fetchMosmixForecast\(lat,lon,elevation,country,refresh\)/,'
 assert.match(worker,/cf:refresh\?\{cacheEverything:false\}:\{cacheTtl:1200,cacheEverything:true\}/,'Worker umgeht bei Fresh-Reload den 20-Minuten-Upstream-Cache nicht.');
 assert.match(worker,/forceRefreshed:refresh/,'Worker diagnostiziert einen erzwungenen Refresh nicht.');
 
-// Info-Button der hyperlokalen Analyse bleibt rechts im bestehenden Kartenraum.
 assert.match(app,/className="current-analysis-trigger" label="Hyperlokale Analyse erklären"/,'Hyperlokaler Info-Trigger besitzt keine platzsparende Positionsklasse.');
 assert.match(css,/\.hero aside>span>\.current-analysis-trigger\{position:absolute;top:50%;right:9px;/,'Hyperlokaler Info-Button ist nicht rechts im bestehenden Kartenraum positioniert.');
 
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw);
 assert.equal(pkg.version,baseline.releaseVersion,'Version und Baseline müssen übereinstimmen.');
 assert.ok(baseline.requiredRegressionTests.includes('scripts/test-event-force-refresh-ui-09534.mjs'),'Fresh-Reload-Regression muss Required sein.');
-console.log(`MID v${pkg.version}: Event-Fresh-Reload und platzsparender Hyperlokal-Info-Trigger geprüft.`);
+console.log(`MID v${pkg.version}: zentraler Event-Fresh-Reload und platzsparender Hyperlokal-Info-Trigger geprüft.`);
