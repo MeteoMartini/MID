@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const app=readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
-assert.match(app,/const MODULE_OPEN_CONTRACT_KEY='mid:module-open-contract:v2'/,'Einheitlicher Modul-Offenvertrag fehlt');
+assert.match(app,/const MODULE_OPEN_CONTRACT_KEY='mid:module-open-contract:v3'/,'Einheitlicher Modul-Offenvertrag fehlt');
 assert.match(app,/function moduleOpenKey\(id:string\)/,'Zentraler Modul-State-Key fehlt');
 assert.match(app,/function storedModuleOpen\(id:string,defaultOpen=false\)/,'Zentrales Lesen des Modulzustands fehlt');
 assert.match(app,/function persistModuleOpen\(id:string,open:boolean\)/,'Zentrales Speichern des Modulzustands fehlt');

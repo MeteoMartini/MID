@@ -1,3 +1,19 @@
+## 0.9.53.24
+
+- Aktuelles Wetter wieder kompakter: marginale Temperatur-/Gelände-Windkorrekturen werden als „Temp./Wind nahe Modell“ zusammengefasst; relevante Abweichungen bleiben numerisch sichtbar.
+- Einzelparameter-Kacheln von redundanten Modell-/Korrekturhinweisen entlastet.
+- Datenbasis-Infos erweitert: Modellhintergrund, Analyseverfahren, Kontextquellen und parameterbezogene Messwertquellen bleiben über die Info-Dialoge vollständig nachvollziehbar.
+- Ohne geeignete aktuelle Messwertquelle kennzeichnet MID ausdrücklich den Modellhintergrund als Datenbasis.
+- Buildfix: `forecastSourceLabel` wird vor der Hyperlokal-Datenbasis deklariert; die Required-Regression schützt diese Deklarationsreihenfolge künftig ausdrücklich.
+
+## 0.9.53.23
+
+- Hauptmodul-Öffnungszustand auf v3 migriert; insbesondere `Langfrist` wird nicht mehr durch einen alten gespeicherten Offen-Zustand als Standard geöffnet.
+- Eventhinweise sachlicher formuliert und in Lagehinweise sowie empfohlene Maßnahmen gegliedert; Hitzehinweise nennen Trinkwasserversorgung, Erholungspausen und reduzierte direkte Sonnenexposition.
+- 7-Tage-PoP: DWD-6-h-Zeitfenster nur bei klarer Abweichung vom Mittel der Tagesfenster; 0 % weiterhin ohne Zeitfenster, ansonsten 00–24 h ohne markanten Schwerpunkt.
+- Events: Niederschlagswahrscheinlichkeit gilt über das vollständige Eventfenster; Ensemble-Member werden über den Zeitraum aufsummiert, der Stundenfallback ist zeitgewichtet statt Maximum einer Einzelstunde.
+- Aktuelles Wetter und Parameterkacheln zeigen den hyperlokalen Modellhintergrund (z. B. DWD ICON-D2) sowie Temperatur- und Gelände-/Oberflächen-Windkorrekturen wieder transparent an.
+
 ## 0.9.53.22
 
 - AQI-Erklärung sprachlich neutralisiert: sichtbare Prompt-/Gestaltungsbegriffe entfernt.

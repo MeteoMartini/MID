@@ -23,6 +23,6 @@ assert.match(portal,/document\.addEventListener\('pointerdown',dismiss,true\)/,'
 assert.match(portal,/document\.addEventListener\('keydown',escape\)/,'Escape-Dismiss fehlt.');
 assert.match(portal,/window\.addEventListener\('scroll',schedule,scrollOptions\)/,'Popover wird beim Scrollen nicht neu positioniert.');
 assert.match(styles,/\.event-detail-disclosure/,'Progressive Detailansicht für Stundenverlauf/Daten fehlt.');
-assert.match(planner,/Was für dieses Event wichtig ist/,'Ratschläge sind nicht direkt in der Detailansicht priorisiert.');
+assert.match(planner,/Wetterbedingte Hinweise und Maßnahmen/,'Wetterbedingte Hinweise sind nicht direkt in der Detailansicht priorisiert.');
 
 console.log('MID v0.9.45.4: kompakter Event-Ort, gestufter Workflow und appweite Portal-Info-Logik geprüft.');

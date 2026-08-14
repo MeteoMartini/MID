@@ -45,7 +45,8 @@ assert.ok(app.includes("fieldFresh=(field:StationAnalysisField)=>stationFieldObs
 assert.ok(app.includes("temperatureFresh=fieldFresh('temperature')"),'Die Haupttemperatur besitzt keinen eigenen Aktualitätsstatus.');
 assert.ok(app.includes("°C{temperatureFresh?"),'Die Haupttemperatur kennzeichnet sich weiterhin durch irgendeinen frischen Stationsparameter als stationsgeprüft.');
 assert.ok(app.includes('className="hyperlocal-analysis-compact"'),'Die Hyperlokal-Ergebniszeile ist nicht kompakt.');
-assert.ok(app.includes('<b>Modellhintergrund:</b> {st.backgroundModel}'),'Der verwendete Regionalmodell-Hintergrund fehlt im Info-Popover.');
+assert.ok(app.includes('<b>Datenbasis:</b> Modellhintergrund {st?.backgroundModel||forecastSourceLabel}'),'Der verwendete Regionalmodell-Hintergrund fehlt im Info-Popover.');
+assert.ok(app.indexOf("const forecastSourceLabel='Best Match';")>=0&&app.indexOf("const forecastSourceLabel='Best Match';")<app.indexOf('<b>Datenbasis:</b> Modellhintergrund {st?.backgroundModel||forecastSourceLabel}'),'forecastSourceLabel muss vor seiner ersten Verwendung im Hyperlokal-Info-Popover deklariert sein.');
 assert.ok(app.includes('<b>Dynamische Windexposition:</b>'),'Die vollständige dynamische Windexposition fehlt im Info-Popover.');
 assert.ok(app.includes('{stationDynamicStatus}{fresh?<InfoHint className="current-analysis-trigger" label="Hyperlokale Analyse erklären">'),'Dynamische Hyperlokal-Ergebnisse liegen weiterhin vollständig hinter dem Info-Popover.');
 assert.ok(eventEngine.includes("stationFieldObservationUsable(observation,'temperature'"),'Event-Temperaturanker ist in der zentralen Event-Engine nicht feldweise qualitätsgesichert.');

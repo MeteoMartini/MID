@@ -13,7 +13,10 @@ assert.equal(pkg.version,baseline.releaseVersion,'Feature-Regression muss auf de
 const versionParts=String(pkg.version).split('.').map(Number);assert.ok(versionParts[0]>0||versionParts[1]>9||(versionParts[1]===9&&(versionParts[2]>53||(versionParts[2]===53&&versionParts[3]>=19))),'Featurevertrag gilt ab v0.9.53.19.');
 assert.match(app,/Math\.abs\(localTemperatureCorrection\)>=\.2/,'Kompakte Temperaturkorrektur muss erst ab 0,2 K hervorgehoben werden.');
 assert.match(app,/Math\.abs\(terrainWindCorrection\)>=1/,'Kompakte Gelände-Windkorrektur muss erst ab 1 % hervorgehoben werden.');
-assert.match(app,/Temp\.\/Wind nahe Modell/,'Bei marginalen T-/Windkorrekturen muss die Modellnähe statt Scheingenauigkeit sichtbar sein.');
+assert.match(app,/st\?\.backgroundModel\?<span>\{st\.backgroundModel\}<\/span>/,'Kompakte Hyperlokalzeile muss den Modellhintergrund wieder sichtbar machen.');
+assert.match(app,/localTemperatureCorrectionSignificant\?<span>ΔT/,'Nur relevante Temperaturkorrekturen sollen kompakt numerisch hervorgehoben werden.');
+assert.match(app,/terrainWindCorrectionSignificant\?<span>Gelände-Wind/,'Nur relevante Gelände-Windkorrekturen sollen kompakt numerisch hervorgehoben werden.');
+assert.match(app,/temperatureAndWindNearModel\?<span>Temp\.\/Wind nahe Modell/,'Marginale Temperatur-/Windkorrekturen sollen kompakt zusammengefasst werden.');
 assert.match(app,/meteorologisch vernachlässigbar/,'Detailinfo muss kleine Temperaturkorrekturen fachlich einordnen.');
 assert.match(app,/event-center-header-weather-icon[\s\S]*WeatherPictogram/,'Glockenliste muss vor jedem Event ein Wetterpiktogramm zeigen.');
 assert.match(app,/day=\{summary\?\.isDay!==false\}/,'Glockenpiktogramm muss den gespeicherten Event-Tag-/Nachtstatus verwenden.');

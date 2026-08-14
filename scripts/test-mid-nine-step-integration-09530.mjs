@@ -71,7 +71,7 @@ for(const token of [
  'label="Hyperlokale Analyse erklären"',
  'const stationDynamicStatus=',
  'className="hyperlocal-analysis-compact"',
- '<b>Modellhintergrund:</b> {st.backgroundModel}',
+ '<b>Datenbasis:</b> Modellhintergrund {st?.backgroundModel||forecastSourceLabel}',
  'In der Hauptkarte bleibt davon nur eine kompakte Ergebniszeile sichtbar'
 ])assert.ok(app.includes(token),`Hyperlokale Ergebnis-/Info-Struktur fehlt: ${token}`);
 assert.ok(styles.includes('.hyperlocal-analysis-compact{display:flex!important'),'Kompakte Hyperlokal-Ergebniszeile fehlt.');
