@@ -43,6 +43,7 @@ assert.doesNotMatch(guard,/acquire\(priority,init\.signal\)/);
 // Kernvorhersage: kurzer Fresh-Cache + langer Stale-if-rate-limit verhindert Favoriten-429 nach Resume.
 assert.match(weather,/FORECAST_CORE_FRESH_MS=8\*60\*1000/);
 assert.match(weather,/FORECAST_CORE_STALE_MS=18\*3600000/);
+assert.match(weather,/FORECAST_CORE_(?:LEGACY_)?CACHE_PREFIX/);
 assert.match(weather,/cached&&\(isOpenMeteoRateLimitError\(error\)\|\|priority==='foreground'\)\)return cached\.value/);
 assert.match(app,/forecast\(loc\.latitude,loc\.longitude,forecastController\.signal,\{priority:'foreground',forceFresh:options\.forceFresh===true\}\)/);
 assert.match(app,/load\(\{forceFresh:true\}\)/);

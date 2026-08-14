@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.53.14",
+  "releaseVersion": "0.9.53.15",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -177,7 +177,8 @@
     "scripts/test-nightly-audit-dependencies-09311.mjs",
     "scripts/test-event-durable-storage-fallback-095312.mjs",
     "scripts/test-event-favorite-search-independence-095313.mjs",
-    "scripts/test-dwd-pop-and-openmeteo-rate-guard-095314.mjs"
+    "scripts/test-dwd-pop-and-openmeteo-rate-guard-095314.mjs",
+    "scripts/test-core-forecast-resilience-095315.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -310,7 +311,8 @@
     "scripts/test-event-center-flight-multifavorite-09430.mjs",
     "scripts/test-event-aviation-official-sources-09460.mjs",
     "scripts/test-daily-pop-period-fallback-09533.mjs",
-    "scripts/test-event-refresh-device-sync-09537.mjs"
+    "scripts/test-event-refresh-device-sync-09537.mjs",
+    "scripts/test-core-forecast-resilience-095315.mjs"
   ],
   "requiredFiles": [
     "scripts/test-cockpit-regression-sync-09201.mjs",

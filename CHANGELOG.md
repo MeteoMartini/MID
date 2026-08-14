@@ -1,3 +1,9 @@
+## 0.9.53.15
+
+- Kernvorhersage gegen anhaltende Open-Meteo-HTTP-429 nach App-Reaktivierung gehärtet: foreground-first Worker-Proxy mit Edge-Cache und 18-h-Stale-Fallback.
+- Forecast-Cache toleriert GPS-Jitter und migriert vorhandene v1-Cacheeinträge; ein Neustart verliert den letzten belastbaren Stand nicht mehr wegen geringfügig veränderter Standortkoordinaten.
+- Direkter Open-Meteo-Zugriff bleibt als Rückfallpfad erhalten.
+
 # 0.9.53.14
 
 - Buildfix nach fehlgeschlagenem Installerlauf: TravelPlanner-Regressions lösen den neu zentralisierten `openMeteoGuard` im temporär kompilierten ESM-Test korrekt als `.js` auf; Produktionscode und Open-Meteo-Guard bleiben unverändert.
