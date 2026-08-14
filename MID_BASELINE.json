@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.53.11",
+  "releaseVersion": "0.9.53.12",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -174,7 +174,8 @@
     "scripts/test-current-solar-event-background-09538.mjs",
     "scripts/test-event-refresh-broker-model-runs-09539.mjs",
     "scripts/test-event-refresh-transaction-authority-095311.mjs",
-    "scripts/test-nightly-audit-dependencies-09311.mjs"
+    "scripts/test-nightly-audit-dependencies-09311.mjs",
+    "scripts/test-event-durable-storage-fallback-095312.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [

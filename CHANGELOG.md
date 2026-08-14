@@ -1,3 +1,11 @@
+# 0.9.53.12
+
+- Event-Persistenz an der eigentlichen Speicherursache korrigiert: quota-sicherer Durable-Store ist für Eventdaten und Refresh-Marker nun direkt maßgeblich, statt von einer überschreibbaren `localStorage`-Methode abzuhängen.
+- Bei iOS/Safari konnte ein Quota-Fallback bereits den neuen Eventplan in IndexedDB/Fallback speichern, während ein älterer nativer `localStorage`-Wert weiter bevorzugt gelesen wurde. Dadurch erschien dauerhaft z. B. „Stand 13.08., 07:41“, obwohl Refreshes tatsächlich liefen.
+- Durable Reads priorisieren jetzt den gespiegelt neuesten Wert; Event-Center liest und schreibt seine Daten explizit über diese Schicht. Cross-Tab-Storage-Änderungen synchronisieren den Fallback mit.
+- Alle bisherigen Reload-, Modelllauf-, Hintergrund- und Geräte-Sync-Regeln bleiben bestehen; neue Required-Regression `test-event-durable-storage-fallback-095312.mjs`.
+- Worker fachlich unverändert.
+
 # 0.9.53.11
 
 - Event-Refresh grundlegend korrigiert: ein erfolgreich später gestarteter Fresh-Reload ist nun die maßgebliche Persistenzfrische; optionale/partielle Modellmetadaten dürfen einen neuen Plan nicht mehr wegen einer niedrigeren Quellenrevision blockieren.

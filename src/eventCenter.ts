@@ -1,5 +1,6 @@
 import type {BestMatchModelInfo,Location} from './weather'
 import type {EventFlightHazardSummary} from './eventAviation'
+import {readDurableStorageValue,writeDurableStorageValue} from './storageSafety'
 
 export type EventEnvironment='indoor'|'outdoor'|'covered'
 export type EventActivity='general'|'running'|'cycling'|'hiking'|'skiing'|'climbing'|'football'|'tennis'|'golf'|'gym'|'yoga'|'watersports'|'city'|'concert'|'flight'
@@ -22,12 +23,12 @@ const EVENT_CENTER_REFRESH_DONE_KEY='mid:event-center:refresh-done:v1'
 export type EventCenterRefreshRequest={at:number;source:string}
 
 export function persistEventCenterRefreshRequest(source:string){
- const at=Date.now();try{if(!readEventCenterRecords().length)return 0;localStorage.setItem(EVENT_CENTER_REFRESH_REQUEST_KEY,JSON.stringify({at,source}))}catch{return 0}return at
+ const at=Date.now();try{if(!readEventCenterRecords().length)return 0;writeDurableStorageValue(EVENT_CENTER_REFRESH_REQUEST_KEY,JSON.stringify({at,source}))}catch{return 0}return at
 }
 export function pendingEventCenterRefreshRequest():EventCenterRefreshRequest|null{
- try{const request=JSON.parse(localStorage.getItem(EVENT_CENTER_REFRESH_REQUEST_KEY)||'null') as EventCenterRefreshRequest|null,done=Number(localStorage.getItem(EVENT_CENTER_REFRESH_DONE_KEY)||0);return request&&Number.isFinite(Number(request.at))&&Number(request.at)>done?{at:Number(request.at),source:String(request.source||'manual')}:null}catch{return null}
+ try{const request=JSON.parse(readDurableStorageValue(EVENT_CENTER_REFRESH_REQUEST_KEY)||'null') as EventCenterRefreshRequest|null,done=Number(readDurableStorageValue(EVENT_CENTER_REFRESH_DONE_KEY)||0);return request&&Number.isFinite(Number(request.at))&&Number(request.at)>done?{at:Number(request.at),source:String(request.source||'manual')}:null}catch{return null}
 }
-export function completeEventCenterRefreshRequest(requestedAt:number){try{if(Number.isFinite(requestedAt)&&requestedAt>0){const previous=Number(localStorage.getItem(EVENT_CENTER_REFRESH_DONE_KEY)||0);if(requestedAt>previous)localStorage.setItem(EVENT_CENTER_REFRESH_DONE_KEY,String(requestedAt))}}catch{}}
+export function completeEventCenterRefreshRequest(requestedAt:number){try{if(Number.isFinite(requestedAt)&&requestedAt>0){const previous=Number(readDurableStorageValue(EVENT_CENTER_REFRESH_DONE_KEY)||0);if(requestedAt>previous)writeDurableStorageValue(EVENT_CENTER_REFRESH_DONE_KEY,String(requestedAt))}}catch{}}
 
 function safeNumber(value:number|null|undefined,fallback=0){return Number.isFinite(Number(value))?Number(value):fallback}
 function rounded(value:number|null|undefined,digits=0){const factor=10**digits;return Math.round(safeNumber(value)*factor)/factor}
@@ -130,14 +131,14 @@ export function normalizeEventCenterRecord(value:unknown):EventCenterRecord|null
 
 export function readEventCenterRecords(){
  try{
-  const raw=JSON.parse(localStorage.getItem(EVENT_CENTER_STORAGE_KEY)||'[]')
+  const raw=JSON.parse(readDurableStorageValue(EVENT_CENTER_STORAGE_KEY)||'[]')
   const list=Array.isArray(raw)?raw.map(normalizeEventCenterRecord).filter((item):item is EventCenterRecord=>Boolean(item)):[ ]
   return sortEventCenterRecords(list)
  }catch{return[]}
 }
 export function writeEventCenterRecords(records:EventCenterRecord[]){
  const sorted=sortEventCenterRecords(records)
- try{localStorage.setItem(EVENT_CENTER_STORAGE_KEY,JSON.stringify(sorted))}catch{}
+ writeDurableStorageValue(EVENT_CENTER_STORAGE_KEY,JSON.stringify(sorted))
  if(typeof window!=='undefined')window.dispatchEvent(new CustomEvent(EVENT_CENTER_UPDATED_EVENT,{detail:sorted}))
  return sorted
 }
