@@ -10,6 +10,8 @@ Der Stable-Channel erhält keine ungeprüften Major-/Toolchain-Sprünge. Der rep
 - Vite: 6.4.3
 - @vitejs/plugin-react: 4.7.0
 
+Sicherheits-Patches innerhalb kompatibler Transitivreihen werden im Stable-Channel unmittelbar angehoben, sobald `npm audit` einen Befund meldet und die vollständige Regression grün bleibt. Aktueller Mindestvertrag: `nanoid >=3.3.18` im 3.x-Pfad sowie `protocol-buffers-schema >=3.6.1`.
+
 Recharts ist der früheste isolierte Upgrade-Kandidat, weil MID dafür bereits umfangreiche Diagrammregressionen besitzt. Ein Kandidat wie 3.10.x darf erst nach vollständigem Build, sämtlichen Ensemble-/Tooltip-/Export-/Responsive-Regressionen und Browserprüfung übernommen werden.
 
 React 19, TypeScript 7 und Vite 8 werden nicht einzeln in `mid-stable` angehoben. Sie gehören in einen getrennten Kompatibilitätszweig mit vollständiger visueller, funktionaler, Performance-, PWA- und CI-Regression. Erst ein vollständig grüner Lauf darf den Stable-Vertrag ändern.

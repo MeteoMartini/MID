@@ -9,11 +9,12 @@ const [sync,eventCenter,pkgRaw,baselineRaw]=await Promise.all([
 ]);
 
 // Ein neuer Event-Wetterstand darf bei Geräteabgleich nie durch denselben Event-Datensatz
-// mit älterer Modellquellenrevision oder älterem Refresh zurückgesetzt werden.
+// mit einer älteren Refresh-Transaktion zurückgesetzt werden. Modellrevision ist Provenienz
+// und nur bei identischer Transaktionsfrische ein Tie-Breaker.
 assert.match(sync,/const EVENT_CENTER_KEY='mid:event-center:v1'/,'Event-Center wird beim Geräteabgleich nicht gezielt geschützt.');
 assert.match(sync,/function eventPlanRevision\(value:unknown\).*sourceRevision.*refreshedAt/s,'Event-Wetterstand besitzt keine mehrstufige Frischebewertung.');
 assert.match(sync,/function localEventPlanIsNewer\(local:unknown,remote:unknown\)/,'Geräte-Sync besitzt keinen lexikographischen Eventplan-Frischevergleich.');
-assert.match(sync,/a\.sourceRevision>0&&b\.sourceRevision>0&&a\.sourceRevision!==b\.sourceRevision/,'Modellquellenrevision wird beim Sync nicht vor dem Abschlusszeitpunkt bewertet.');
+assert.match(sync,/if\(a\.transactionAt!==b\.transactionAt\)return a\.transactionAt>b\.transactionAt;if\(a\.refreshedAt!==b\.refreshedAt\)return a\.refreshedAt>b\.refreshedAt;return a\.sourceRevision>b\.sourceRevision/,'Geräte-Sync priorisiert nicht die tatsächlich neuere Refresh-Transaktion vor Modellmetadaten.');
 assert.match(sync,/function mergeEventCenterSnapshots\(remoteRaw:string\|undefined,localRaw:string\|null\)/,'Event-Center-Snapshots werden nicht konfliktfest zusammengeführt.');
 assert.match(sync,/localEventPlanIsNewer\(localItem,item\)/,'Neuere lokale Event-Pläne gewinnen nicht gegen ältere Remote-Pläne.');
 assert.match(sync,/plan:localItem\.plan,change:localItem\.change/,'Beim Schutz eines neueren Event-Plans werden Plan und Änderungsbewertung nicht zusammen erhalten.');
@@ -27,7 +28,7 @@ assert.match(sync,/latestConfig=readDeviceSyncConfig\(\);if\(latestConfig\.syncK
 assert.match(sync,/hasNewerPending=.*latestPending>snapshotTime/,'Push erkennt keine Änderungen, die nach Snapshot-Erstellung entstanden sind.');
 assert.match(sync,/pendingChangedAt:hasNewerPending\?latestConfig\.pendingChangedAt:undefined/,'Push löscht einen neueren lokalen Pending-Stand.');
 
-// Lokale Persistenz nutzt denselben Grundsatz: Quellenrevision -> Startzeit -> refreshedAt.
+// Lokale Persistenz nutzt denselben Grundsatz: Refresh-Transaktion -> Abschlusszeit -> Quellenrevision als Tie-Breaker.
 assert.match(eventCenter,/export function eventPlanFreshness\(plan:EventPlan\|null\|undefined\)/,'Lokaler Event-Store bewertet Planfrische nicht.');
 assert.match(eventCenter,/export function compareEventPlanFreshness/,'Lokaler Event-Store besitzt keinen gemeinsamen Frischevergleich.');
 assert.match(eventCenter,/compareEventPlanFreshness\(existing\.plan,record\.plan\)>0.*plan:existing\.plan,change:existing\.change/s,'Ein verspäteter lokaler Schreibvorgang kann weiterhin einen neueren Plan überschreiben.');

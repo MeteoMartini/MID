@@ -1,6 +1,6 @@
 import {bestMatchModelInfo,type BestMatchModelInfo} from './weather'
 import {buildEventPlan} from './eventWeatherEngine'
-import {EVENT_CENTER_REFRESH_DONE_EVENT,EVENT_CENTER_REFRESH_EVENT,buildEventModelSignature,compareEventPlans,completeEventCenterRefreshRequest,pendingEventCenterRefreshRequest,readEventCenterRecords,upsertEventCenterRecord,type EventCenterRecord,type EventPlan} from './eventCenter'
+import {EVENT_CENTER_REFRESH_DONE_EVENT,EVENT_CENTER_REFRESH_EVENT,buildEventModelSignature,compareEventPlanFreshness,compareEventPlans,completeEventCenterRefreshRequest,eventPlanFreshness,pendingEventCenterRefreshRequest,readEventCenterRecords,upsertEventCenterRecord,type EventCenterRecord,type EventPlan} from './eventCenter'
 
 export type EventWeatherRefreshReason='dashboard'|'header'|'overview'|'detail'|'auto-start'|'auto-stale'|'auto-interval'|'auto-resume'|'model-run'
 export type EventWeatherRefreshResult={requested:number;refreshed:number;failed:number;skipped:number;reason:EventWeatherRefreshReason;at:number}
@@ -34,10 +34,11 @@ export function hasNewEventModelRun(previous:BestMatchModelInfo|null|undefined,c
  const oldRuns=new Map(previous.runs.map(run=>[run.id,modelRunEpoch(run.initialisationTime)||modelRunEpoch(run.availabilityTime)]))
  return current.runs.some(run=>{const next=modelRunEpoch(run.initialisationTime)||modelRunEpoch(run.availabilityTime),old=oldRuns.get(run.id);return next>0&&(!old||next>old+1000)})
 }
-function sourceAllowsCommit(previous:EventPlan|null|undefined,next:EventPlan){
- const previousRevision=eventPlanSourceRevision(previous),nextRevision=eventPlanSourceRevision(next)
- if(previousRevision>0&&nextRevision>0&&nextRevision+1000<previousRevision)return false
- return true
+function refreshTransactionAllowsCommit(previous:EventPlan|null|undefined,next:EventPlan){
+ // Persistenz folgt der tatsächlich neueren Refresh-Transaktion. Modellmetadaten sind Provenienz
+ // und Auslöser für Hintergrundupdates, dürfen aber einen erfolgreich frisch berechneten Plan
+ // nicht allein wegen einer vorübergehend älteren/partiellen Metadatenantwort blockieren.
+ return !previous||compareEventPlanFreshness(previous,next)<=0
 }
 function broadcast(result:EventWeatherRefreshResult,requestedAt=0){
  if(typeof window==='undefined')return
@@ -53,10 +54,14 @@ async function executeEventRefresh(recordId:string,reason:EventWeatherRefreshRea
   const latest=readEventCenterRecords().find(item=>item.id===recordId)
   if(!latest)return false
   const nextPlan:EventPlan={...built,refreshStartedAt:startedAt,refreshReason:reason,sourceRevisionAt:eventModelRevision(built.modelInfo)}
-  if(!sourceAllowsCommit(latest.plan,nextPlan))return false
+  if(!refreshTransactionAllowsCommit(latest.plan,nextPlan))return false
   const change=compareEventPlans(latest.plan,nextPlan)
   upsertEventCenterRecord({...latest,updatedAt:Date.now(),plan:nextPlan,change})
-  return true
+  const persisted=readEventCenterRecords().find(item=>item.id===recordId)?.plan,persistedFreshness=eventPlanFreshness(persisted)
+  // Erst ein tatsächlich im Store sichtbarer neuer Transaktionsstand gilt als erfolgreicher Reload.
+  // So kann ein LocalStorage-/Sync-Konflikt nicht mehr als Erfolg gemeldet werden, während die UI
+  // anschließend wieder den alten „Stand“ liest.
+  return Boolean(persisted&&persistedFreshness.transactionAt>=startedAt&&compareEventPlanFreshness(persisted,nextPlan)>=0)
  }catch{return false}finally{if(timeout&&typeof window!=='undefined')window.clearTimeout(timeout)}
 }
 

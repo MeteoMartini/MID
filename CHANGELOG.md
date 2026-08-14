@@ -1,3 +1,20 @@
+# 0.9.53.11
+
+- Event-Refresh grundlegend korrigiert: ein erfolgreich später gestarteter Fresh-Reload ist nun die maßgebliche Persistenzfrische; optionale/partielle Modellmetadaten dürfen einen neuen Plan nicht mehr wegen einer niedrigeren Quellenrevision blockieren.
+- Der konkrete Rücksprung auf alte Event-Stände (z. B. 13.08., 07:41) wird damit an der eigentlichen Ursache behoben: Quellenrevision ist nur noch Provenienz/Tie-Breaker, nicht Commit-Autorität.
+- Nach jedem Event-Refresh wird der Plan aus LocalStorage erneut gelesen; erst ein tatsächlich dauerhaft gespeicherter neuer Transaktionsstand gilt als erfolgreicher Reload.
+- Geräte-Sync und geöffnete Eventdetails verwenden dieselbe transaktionsbasierte Frischeordnung, sodass ältere Remote-/UI-Snapshots den neuen Stand nicht zurücksetzen können.
+- Modelllaufüberwachung bleibt vollständig aktiv: neue Läufe lösen weiterhin die zentrale Event-Neuberechnung aus, ohne selbst die Persistenzreihenfolge zu dominieren.
+- Neue Required-Regression `test-event-refresh-transaction-authority-095311.mjs`; bestehende Event-Refresh-/Sync-Regressionen auf den korrigierten Frischevertrag aktualisiert.
+- Security-Patches aus v0.9.53.10 (nanoid 3.3.18, protocol-buffers-schema 3.6.1) bleiben enthalten. Worker fachlich unverändert.
+
+# 0.9.53.10
+
+- Security-Wartung nach nächtlichem Dependency-Audit: nanoid im kompatiblen 3.x-Pfad auf 3.3.18 und protocol-buffers-schema auf 3.6.1 angehoben.
+- Bestehende nächtliche Dependency-Regression verschärft und um protocol-buffers-schema ergänzt; keine Major-/Toolchain-Migration.
+- Dependency-Upgrade-Policy um sofortige kompatible Security-Patches ergänzt.
+- Worker fachlich unverändert; kein funktionaler Worker-Upload erforderlich.
+
 # 0.9.53.9
 
 - Event-Wetteraktualisierung vollständig aus der lazy EventPlanner-UI herausgelöst: zentraler appweiter Refresh-Broker und eigenständige Event-Wetterengine.

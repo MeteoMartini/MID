@@ -27,7 +27,7 @@ assert.match(refresh,/previous\.catch\(\(\)=>false\)\.then\(\(\)=>executeEventRe
 assert.match(refresh,/REFRESH_TRANSACTION_TIMEOUT_MS=55\*1000/,'Ein blockierter Hintergrundrequest kann die Event-Queue weiterhin unbegrenzt sperren.');
 assert.match(refresh,/controller\.abort\(new DOMException\('Event-Aktualisierung überschritt das Zeitlimit'/,'Die Transaktionsfrist bricht blockierte Event-Aktualisierungen nicht ab.');
 assert.match(refresh,/const latest=readEventCenterRecords\(\)\.find\(item=>item\.id===recordId\)/,'Commit liest den aktuellen Record nicht erneut.');
-assert.match(refresh,/if\(!sourceAllowsCommit\(latest\.plan,nextPlan\)\)return false/,'Ältere Modellquellen können weiterhin einen neueren Plan überschreiben.');
+assert.match(refresh,/if\(!refreshTransactionAllowsCommit\(latest\.plan,nextPlan\)\)return false/,'Eine ältere Refresh-Transaktion kann weiterhin einen neueren Eventplan überschreiben.');
 
 // Manuelle Aufträge werden nur nach echtem vollständigem Erfolg quittiert.
 assert.match(refresh,/if\(requestedAt>0&&failed===0&&refreshed===targets\.length\)completeEventCenterRefreshRequest\(requestedAt\)/,'Manueller Reload wird auch bei Teilfehlern als erledigt markiert.');
@@ -44,10 +44,10 @@ assert.match(refresh,/const modelTimer=window\.setInterval\(\(\)=>void models\(\
 assert.match(refresh,/const forcedTimer=window\.setInterval\(\(\)=>void catchup\('auto-interval',true\),AUTO_REFRESH_MS\)/,'Zeitbasierter 30-Minuten-Fallback fehlt.');
 for(const token of ["window.addEventListener('pageshow',resume)","window.addEventListener('focus',resume)","window.addEventListener('online',resume)"])assert.ok(refresh.includes(token),`Resume-Überwachung fehlt: ${token}`);
 
-// Persistenz und Geräte-Sync priorisieren Quellenrevision vor bloßem Abschlusszeitpunkt.
+// Persistenz und Geräte-Sync priorisieren die neuere Refresh-Transaktion; Modellrevision bleibt Provenienz/Tie-Breaker.
 assert.match(center,/sourceRevisionAt\?:number;refreshStartedAt\?:number;refreshReason\?:string/,'EventPlan speichert keine Quellen-/Transaktionsfrische.');
 assert.match(center,/export function compareEventPlanFreshness/,'Persistenz besitzt keinen gemeinsamen Frischevergleich.');
-assert.match(center,/a\.sourceRevision>0&&b\.sourceRevision>0&&a\.sourceRevision!==b\.sourceRevision/,'Quellenrevision hat bei Persistenz keine Priorität.');
+assert.match(center,/if\(a\.transactionAt!==b\.transactionAt\)return a\.transactionAt-b\.transactionAt;if\(a\.refreshedAt!==b\.refreshedAt\)return a\.refreshedAt-b\.refreshedAt;if\(a\.sourceRevision!==b\.sourceRevision\)return a\.sourceRevision-b\.sourceRevision/,'Persistenz priorisiert nicht die tatsächlich neuere Refresh-Transaktion.');
 assert.match(sync,/function localEventPlanIsNewer/,'Geräte-Sync nutzt keinen Eventplan-Frischevergleich.');
 assert.match(sync,/sourceRevisionAt/,'Geräte-Sync berücksichtigt die Modellquellenrevision nicht.');
 assert.match(panel,/compareEventPlanFreshness\(active\.plan,current\)>=0/,'Geöffnete Eventdetails können weiterhin durch einen spät eintreffenden älteren UI-Snapshot zurückspringen.');
