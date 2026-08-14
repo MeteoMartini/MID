@@ -1,3 +1,8 @@
+## 0.9.53.19
+
+- Hyperlokale Analyse fachlich geprüft: sehr kleine Restfeldkorrekturen sind zulässig und bedeuten, dass Messung und Modellhintergrund bereits eng übereinstimmen. Die kompakte Ergebniszeile hebt deshalb Temperaturkorrekturen erst ab 0,2 K und Gelände-/Oberflächen-Windkorrekturen erst ab 1 % hervor; kleinere Werte werden als „Temp./Wind nahe Modell“ zusammengefasst. Die Detailinfo behält die exakten Werte und kennzeichnet sie als vernachlässigbar.
+- Event-Glocke: jedem Eintrag ist nun dasselbe Wetterpiktogramm wie im Event-Center vorangestellt. Glocke und Event-Center verwenden dabei den gespeicherten Tag-/Nachtstatus des repräsentativen Event-Wetters.
+
 ## 0.9.53.18
 
 - Datenabruf wieder foreground-first stabilisiert: sichtbare Best-Match-Kernvorhersage erhält exklusiven Vorrang; automatische Event-/Favoritenjobs warten auf einen erfolgreichen Core-Forecast und eine ruhige Netzwerkphase.
