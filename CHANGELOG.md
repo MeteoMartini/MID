@@ -1,3 +1,9 @@
+# 0.9.53.7
+
+- Event-Center: verhindert Rücksprung auf alte Wetterstände nach erfolgreichem Reload.
+- Geräte-Sync führt Event-Pläne konfliktfest nach `plan.refreshedAt` zusammen und schützt lokale Änderungen, die während eines laufenden Pull/Push entstehen.
+- Lokaler Event-Store verwirft verspätete ältere Plan-Schreibvorgänge.
+
 # 0.9.53.6
 
 - Hyperlokale 2-m-Temperatur erkennt stabile, schwachwindige Nächte nur bei tatsächlich erhöhter räumlicher Temperatur-/Residualstreuung.

@@ -34,7 +34,7 @@ export const PORTABLE_USER_DATA_INCLUDED=[
  'Favoriten, Gruppen, Profile und Standardort',
  'Darstellung, Einheiten, Standard-/Erweitert-Modus und Theme',
  'Modul-, Diagramm-, Legenden- und Detailansicht-Einstellungen',
- 'Radar-, Meteogramm-, Reiseplaner- und Benachrichtigungsregeln',
+ 'Radar-, Meteogramm-, Event-/Reiseplaner- und Benachrichtigungsregeln',
  'Wetterzwilling-Einstellungen, Standortprofile und Langzeitarchiv'
 ] as const;
 export const PORTABLE_USER_DATA_EXCLUDED=[

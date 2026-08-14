@@ -130,9 +130,10 @@ export function writeEventCenterRecords(records:EventCenterRecord[]){
  if(typeof window!=='undefined')window.dispatchEvent(new CustomEvent(EVENT_CENTER_UPDATED_EVENT,{detail:sorted}))
  return sorted
 }
+function eventPlanFreshness(record:EventCenterRecord|null|undefined){return Number(record?.plan?.refreshedAt)||0}
 export function upsertEventCenterRecord(record:EventCenterRecord){
  const current=readEventCenterRecords(),index=current.findIndex(item=>item.id===record.id)
- if(index>=0)current[index]=record
+ if(index>=0){const existing=current[index];current[index]=existing.plan&&record.plan&&eventPlanFreshness(existing)>eventPlanFreshness(record)?{...record,updatedAt:Math.max(Number(record.updatedAt)||0,Number(existing.updatedAt)||0),plan:existing.plan,change:existing.change}:record}
  else current.unshift(record)
  return writeEventCenterRecords(current)
 }
