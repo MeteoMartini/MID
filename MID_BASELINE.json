@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.53.4",
+  "releaseVersion": "0.9.53.5",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -167,7 +167,8 @@
     "scripts/test-appwide-touch-responsiveness-09523.mjs",
     "scripts/test-codeql-insecure-randomness-09524.mjs",
     "scripts/test-daily-pop-period-fallback-09533.mjs",
-    "scripts/test-event-force-refresh-ui-09534.mjs"
+    "scripts/test-event-force-refresh-ui-09534.mjs",
+    "scripts/test-event-refresh-propagation-09535.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [

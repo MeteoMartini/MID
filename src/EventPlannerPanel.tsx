@@ -68,6 +68,14 @@ function weatherSeverity(code:number|null){if(code==null)return 0;if([95,96,99].
 function mean(values:(number|null)[]){const usable=values.filter((value):value is number=>value!=null);if(!usable.length)return null;return usable.reduce((sum,value)=>sum+value,0)/usable.length}
 function max(values:(number|null)[]){const usable=values.filter((value):value is number=>value!=null);return usable.length?Math.max(...usable):null}
 function min(values:(number|null)[]){const usable=values.filter((value):value is number=>value!=null);return usable.length?Math.min(...usable):null}
+async function eventSourceWithin<T>(parent:AbortSignal,timeoutMs:number,load:(signal:AbortSignal)=>Promise<T>,fallback:T):Promise<T>{
+ const controller=new AbortController(),abort=()=>controller.abort(parent.reason)
+ if(parent.aborted){abort();throw parent.reason??new DOMException('Abgebrochen','AbortError')}
+ parent.addEventListener('abort',abort,{once:true})
+ let timer=0
+ const timeout=new Promise<never>((_,reject)=>{timer=window.setTimeout(()=>{const reason=new DOMException('Zeitüberschreitung','TimeoutError');controller.abort(reason);reject(reason)},timeoutMs)})
+ try{return await Promise.race([load(controller.signal),timeout])}catch(reason){if(parent.aborted)throw reason;return fallback}finally{window.clearTimeout(timer);parent.removeEventListener('abort',abort)}
+}
 
 function eventWeatherPart(point:EventTimelinePoint){return precipitationParts({time:point.time,precipitation:point.precipitation??0,rain:point.rain??0,showers:point.showers??0,snowfall:point.snowfall??0,probability:point.precipitationProbability??0,code:point.weatherCode??0,temperature:point.temperature??undefined,humidity:point.humidity??undefined,cloud:point.cloud??undefined,lowCloud:point.lowCloud??undefined,cape:point.cape??undefined,liftedIndex:point.liftedIndex??undefined,convectiveInhibition:point.convectiveInhibition??undefined,sunshineDuration:point.sunshineDuration??undefined,isDay:point.isDay})}
 function EventTimelinePrecipitationProbability({point}:{point:EventTimelinePoint}){const type=eventWeatherPart(point).type,title=type==='snow'||type==='snowGrains'||type==='snowShowers'?'Schneewahrscheinlichkeit':type==='sleet'||type==='sleetShowers'?'Schnee-/Schneeregenwahrscheinlichkeit':type==='thunderstorm'||type==='thunderstormHail'?'Gewitter-/Niederschlagswahrscheinlichkeit':type==='freezingRain'||type==='freezingDrizzle'?'Wahrscheinlichkeit gefrierenden Niederschlags':'Niederschlagswahrscheinlichkeit',icon=type==='snow'||type==='snowGrains'||type==='snowShowers'||type==='sleet'||type==='sleetShowers'?<Snowflake size={12}/>:type==='thunderstorm'||type==='thunderstormHail'?<CloudLightning size={12}/>:<CloudRain size={12}/>;return <span className="event-timeline-pop" title={title} aria-label={`${title} ${formatNumber(point.precipitationProbability)} Prozent`}>{icon}<b>{formatNumber(point.precipitationProbability)} %</b></span>}
@@ -235,7 +243,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
  }
  function chooseLocation(location:Location){setDestination(location);setSearchResults([]);setQuery('');setSearchError('');storageSet(EVENT_LOCATION_KEY,JSON.stringify(location))}
  async function buildPlan(location:Location,eventDate:string,eventStartTime:string,eventEndTime:string,eventEnvironment:EventEnvironment,eventActivity:EventActivity,eventTitle:string,signal:AbortSignal,forceFresh=false){
-  const country=location.country_code||location.country,[weather,modelInfo,fusion,eventEnsemble]=await Promise.all([forecast(location.latitude,location.longitude,signal),bestMatchModelInfo(location.latitude,location.longitude,country,signal).catch(()=>null),loadForecastFusion(location.latitude,location.longitude,country,location.elevation,signal,forceFresh).catch(()=>null),eventEnsembleForecast(location.latitude,location.longitude,eventDate,eventStartTime,eventEndTime,signal,forceFresh).catch(()=>({days:[],models:[],precipitationProbability:null}))])
+  const country=location.country_code||location.country,[weather,modelInfo,fusion,eventEnsemble]=await Promise.all([forecast(location.latitude,location.longitude,signal),eventSourceWithin(signal,12000,sourceSignal=>bestMatchModelInfo(location.latitude,location.longitude,country,sourceSignal),null),eventSourceWithin(signal,26000,sourceSignal=>loadForecastFusion(location.latitude,location.longitude,country,location.elevation,sourceSignal,forceFresh),null),eventSourceWithin(signal,22000,()=>eventEnsembleForecast(location.latitude,location.longitude,eventDate,eventStartTime,eventEndTime,signal,forceFresh),{days:[],models:[],precipitationProbability:null})])
   const baseHours=mapHours(weather),baseDays=mapDays(weather),fusedDays=applyForecastFusionDays(baseDays,fusion),canonical=!forceFresh&&sameForecastLocation(location,initialLocation)&&canonicalHours.length>0,ensembleDays=eventEnsemble.days??[],eventProbability=eventEnsemble.precipitationProbability??null;let finalHours=canonical?canonicalHours:applyForecastFusionHours(baseHours,baseDays,fusedDays,fusion),now=Date.now(),startEpoch=localIsoEpoch(`${eventDate}T${eventStartTime}`,weather.timezone,Number(weather.utc_offset_seconds)||0),endEpoch=localIsoEpoch(`${eventDate}T${eventEndTime}`,weather.timezone,Number(weather.utc_offset_seconds)||0);if(Number.isFinite(startEpoch)&&Number.isFinite(endEpoch)&&endEpoch<startEpoch)endEpoch=startEpoch+3600000
   const nearNow=Number.isFinite(startEpoch)&&Number.isFinite(endEpoch)&&endEpoch>=now-30*60000&&startEpoch<=now+4*3600000;let nowcastApplied=false,thunderApplied=false,weatherTwinApplied=canonical&&canonicalWeatherTwinApplied
   if(!canonical){
@@ -279,7 +287,9 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
    plan:nextPlan,
    change
   }
-  upsertEventCenterRecord(record)
+  const records=upsertEventCenterRecord(record)
+  savedEventsRef.current=records
+  setSavedEvents(records)
   setSelectedRecordId(record.id)
   if(editingRecordId)setEditingRecordId(record.id)
   return record
@@ -308,13 +318,16 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
    const nextPlan=await buildPlan(record.location,record.date,record.startTime,record.endTime,record.environment,record.activity,record.title,controller.signal,true)
    const change=compareEventPlans(record.plan,nextPlan)
    const updated:EventCenterRecord={...record,location:record.location,title:record.title,date:record.date,startTime:record.startTime,endTime:record.endTime,environment:record.environment,activity:record.activity,isFavorite:markAsFavoritePass?true:record.isFavorite,updatedAt:Date.now(),plan:nextPlan,change}
-   upsertEventCenterRecord(updated)
+   const records=upsertEventCenterRecord(updated)
+   savedEventsRef.current=records
+   setSavedEvents(records)
    if(!backgroundOnly&&(selectedRecordId===record.id||currentEventId===record.id)){setPlan(nextPlan);setSelectedRecordId(record.id)}
    return true
   }catch(reason){if(!silentFailure)setError(reason instanceof Error?reason.message:'Gespeichertes Event konnte nicht aktualisiert werden.');return false}
   finally{setRefreshingIds(current=>current.filter(id=>id!==record.id))}
  }
  async function refreshStoredEvents(favoritesOnly=false,silentFailure=false){
+  if(!silentFailure)setError('')
   const records=savedEventsRef.current,now=Date.now(),active=records.filter(item=>{const end=Date.parse(`${item.date}T${item.endTime||item.startTime||'23:59'}:00`);return !Number.isFinite(end)||end>=now-6*3600000}),targets=favoritesOnly?active.filter(item=>item.isFavorite):active.slice(0,20)
   if(!targets.length)return 0
   setBulkRefreshing(true)
