@@ -1,6 +1,15 @@
+## 0.9.53.22
+
+- AQI-Erklärung sprachlich neutralisiert: sichtbare Prompt-/Gestaltungsbegriffe entfernt.
+- Standort-Rückkehr appweit auf Request-Reuse umgestellt: Stationsanalyse, Luftqualität, Radar, Radarhistorie, amtliche Warnungen, Gewitter- und Starkregenbasis werden innerhalb fachlich geeigneter Frischefenster räumlich tolerant wiederverwendet, statt beim Zurückwechseln unnötig komplett neu geladen zu werden.
+- Automatische Standortbestimmung nutzt einen 14-Tage-Cache für Reverse-Geocoding mit GPS-Jitter-Toleranz; Open-Meteo/CAMS-Luftqualität erhält 15 Minuten Fresh-Cache plus 2 Stunden Stale-if-error.
+- EEA-Messstationsmetadaten sind cache-first; Push-Abonnementssync erfolgt nur noch bei tatsächlich geändertem Payload.
+- Manueller Reload bleibt ausdrücklich force-fresh; periodische Hazard-Aktualisierung und alle Funktionen bleiben erhalten.
+- Neue Required-Regression `test-location-return-request-reuse-095322.mjs`.
+
 ## 0.9.53.21
 
-- EU-AQI-Detaildialog erweitert: Jeder Einzelparameter (PM2,5, PM10, NO₂, O₃, SO₂) zeigt jetzt eine dezente horizontale Vergleichsskala mit offizieller sechsstufiger EU-AQI-Einteilung.
+- EU-AQI-Detaildialog erweitert: Jeder Einzelparameter (PM2,5, PM10, NO₂, O₃, SO₂) zeigt jetzt eine kompakte horizontale Vergleichsskala mit offizieller sechsstufiger EU-AQI-Einteilung.
 - Ein Positionsmarker verdeutlicht zusätzlich die relative Lage des Messwerts innerhalb der jeweiligen Stufe; die aktive Belastungsstufe wird visuell hervorgehoben.
 - Luftqualitätsdialog auf schmaleren Ansichten responsiv verdichtet.
 
