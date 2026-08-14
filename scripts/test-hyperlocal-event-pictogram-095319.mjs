@@ -9,8 +9,8 @@ const [app,panel,styles,pkgRaw,baselineRaw]=await Promise.all([
  readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw);
-assert.equal(pkg.version,'0.9.53.19');
-assert.equal(baseline.releaseVersion,'0.9.53.19');
+assert.equal(pkg.version,baseline.releaseVersion,'Feature-Regression muss auf der aktuellen Releaseversion laufen.');
+const versionParts=String(pkg.version).split('.').map(Number);assert.ok(versionParts[0]>0||versionParts[1]>9||(versionParts[1]===9&&(versionParts[2]>53||(versionParts[2]===53&&versionParts[3]>=19))),'Featurevertrag gilt ab v0.9.53.19.');
 assert.match(app,/Math\.abs\(localTemperatureCorrection\)>=\.2/,'Kompakte Temperaturkorrektur muss erst ab 0,2 K hervorgehoben werden.');
 assert.match(app,/Math\.abs\(terrainWindCorrection\)>=1/,'Kompakte Gelände-Windkorrektur muss erst ab 1 % hervorgehoben werden.');
 assert.match(app,/Temp\.\/Wind nahe Modell/,'Bei marginalen T-/Windkorrekturen muss die Modellnähe statt Scheingenauigkeit sichtbar sein.');

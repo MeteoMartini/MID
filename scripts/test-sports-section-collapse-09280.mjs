@@ -11,7 +11,7 @@ for(const token of [
  "case'water':return currentFavorite?.water.enabled?<CollapsibleModule",
  'id="water" title="Wassersport"',
  'summary="Wasserwetter, Gezeiten und Bedingungen" defaultOpen={true}',
- 'localStorage.setItem(key,open?\'1\':\'0\')'
+ 'persistModuleOpen(id,open)'
 ])need('Sportsektionen',app,token);
 need('Baseline',baseline,'scripts/test-sports-section-collapse-09280.mjs');
 if(failures.length){console.error('Einklappbare Sportsektionen fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}

@@ -1,3 +1,9 @@
+## 0.9.53.20
+
+- Hauptmodule verwenden einen einheitlichen persistenten Öffnen-/Schließen-Vertrag. Ein beim letzten Navigieren verbliebener `#mid-section-*`-Hash öffnet beim App-Neustart kein Modul mehr automatisch.
+- Einmalige Migration bereinigt den aus älteren Versionen potenziell erzwungenen Offen-Zustand der standardmäßig geschlossenen großen Module; danach gilt ausschließlich die jeweilige Nutzerauswahl.
+- Modulzustände werden über denselben zentralen Schlüsselvertrag gespeichert und optional zwischen offenen Tabs synchronisiert.
+
 ## 0.9.53.19
 
 - Hyperlokale Analyse fachlich geprüft: sehr kleine Restfeldkorrekturen sind zulässig und bedeuten, dass Messung und Modellhintergrund bereits eng übereinstimmen. Die kompakte Ergebniszeile hebt deshalb Temperaturkorrekturen erst ab 0,2 K und Gelände-/Oberflächen-Windkorrekturen erst ab 1 % hervor; kleinere Werte werden als „Temp./Wind nahe Modell“ zusammengefasst. Die Detailinfo behält die exakten Werte und kennzeichnet sie als vernachlässigbar.
