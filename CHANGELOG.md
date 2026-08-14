@@ -1,3 +1,21 @@
+# 0.9.53.6
+
+- Hyperlokale 2-m-Temperatur erkennt stabile, schwachwindige Nächte nur bei tatsächlich erhöhter räumlicher Temperatur-/Residualstreuung.
+- Temperaturresiduen werden dann dynamisch enger lokalisiert; nahe standortähnliche Messpunkte gewinnen, entfernte bzw. thermisch unähnliche Stationen werden stärker gedämpft.
+- Entfernte Flugplatz-/METAR-Temperaturen werden für urbane/suburbane Zielpunkte im stabilen Nachtregime konservativer gewichtet, ohne METAR-Wind/Sicht/Wolken abzuwerten.
+- Kein pauschaler Nachtabschlag: Korrekturen bleiben vollständig beobachtungs- und modellresidualgestützt.
+- Hyperlokal-Info zeigt aktives thermisches Nachtregime, Gewichtungsreichweite und Stationsstreuung.
+- Neue Required-Regression `test-stable-night-hyperlocal-temperature-09536.mjs`; Tages-, Wind-, Bewölkungs- und Homogenitäts-Gegenproben enthalten.
+- Worker fachlich unverändert; kein Worker-Upload erforderlich.
+
+# 0.9.53.5
+
+- Appweiter Reload aktualisiert gespeicherte Events bis zum sichtbar neuen `Stand`; Event-Refresh hängt nicht mehr von einem bereits vollständig geladenen Ortsforecast ab.
+- Optionale langsame Zusatzquellen können den Kern-Eventrefresh nicht mehr unbegrenzt blockieren.
+- LocalStorage, Event-Ref und sichtbarer Event-State werden nach erfolgreicher Neuberechnung gemeinsam aktualisiert.
+- Glockenlogik bleibt meteorologisch relevant: ein neuer Zeitstempel allein erzeugt keine rote Änderung.
+- Worker fachlich unverändert; kein Worker-Upload erforderlich.
+
 # 0.9.53.4
 
 - Events & Aktivitäten: alle Reload-Schaltflächen erzwingen jetzt eine echte Neuberechnung statt Wiederverwendung der bereits gerenderten Ortsvorhersage.
