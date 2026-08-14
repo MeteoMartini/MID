@@ -1,3 +1,13 @@
+## 0.9.53.18
+
+- Datenabruf wieder foreground-first stabilisiert: sichtbare Best-Match-Kernvorhersage erhält exklusiven Vorrang; automatische Event-/Favoritenjobs warten auf einen erfolgreichen Core-Forecast und eine ruhige Netzwerkphase.
+- Aggressive Event-Hintergrundlogik aus v0.9.53.8 zurückgebaut: kein 5-Minuten-Modellmetadatenpolling je Eventort und kein erzwungener 30-Minuten-Fullrefresh mehr. Events werden passiv stündlich fällig, alle 15 Minuten geprüft, höchstens vier pro Hintergrundzyklus und strikt seriell aktualisiert.
+- Nur manuelle Event-Reloads erzwingen `forceFresh`; automatische Pflege nutzt Cache-/Freshness-Verträge.
+- Best-Match-Modellmetadaten werden als Aggregat 20 Minuten gecacht (6 h stale-if-error), statt bei jedem Eventlauf erneut viele Einzelabfragen auszulösen.
+- Open-Meteo-429-Cooldown wird PWA-neustartfest gespeichert; während eines aktiven Cooldowns versucht der sichtbare Forecast zuerst Worker/Cache statt den limitierten Direktpfad erneut zu belasten.
+- Automatisches Wetterzwilling-Lernen aller Favoriten ist wieder Opt-in und läuft bei Aktivierung über dieselbe globale Hintergrund-Netzwerkbremse.
+- Neue Required-Regression `test-background-fetch-stability-095318.mjs`; ältere Event-Regressionen auf den ressourcenschonenden Vertrag aktualisiert.
+
 # 0.9.53.17
 
 - Vollständige Best-Match-Vorhersage und etablierte Kacheldarstellung wiederhergestellt: kein feldärmerer Fremdprovider mehr als Ersatz für die Standard-Kernprognose.

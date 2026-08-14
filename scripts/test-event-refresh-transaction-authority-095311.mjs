@@ -33,7 +33,8 @@ assert.match(sync,/if\(a\.transactionAt!==b\.transactionAt\)return a\.transactio
 assert.match(panel,/compareEventPlanFreshness\(active\.plan,current\)>=0/,'Geöffnete Details übernehmen den persistent neueren Stand nicht.');
 assert.match(app,/refreshAllEventWeather\(\{reason:'header',requestedAt\}\)/,'Topbar-Reload umgeht den zentralen Broker.');
 assert.match(app,/refreshAllEventWeather\(\{reason:'dashboard',requestedAt\}\)/,'Appweiter Reload umgeht den zentralen Broker.');
-assert.match(refresh,/if\(changed\.length\)await refreshAllEventWeather\(\{reason:'model-run',recordIds:changed\}\)/,'Neue Modellläufe lösen keine Event-Neuberechnung mehr aus.');
+assert.match(refresh,/modelMonitoring:'passive-refresh'/,'Event-Monitor übernimmt Modelländerungen nicht mehr über die passive regelmäßige Neuberechnung.');
+assert.doesNotMatch(refresh,/const modelTimer=/,'Transaktionsschutz darf nicht wieder mit aggressivem Modellpolling gekoppelt werden.');
 
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw);
 assert.equal(pkg.version,baseline.releaseVersion,'Version und Baseline müssen übereinstimmen.');

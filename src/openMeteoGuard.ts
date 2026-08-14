@@ -9,6 +9,7 @@ type QueueItem={
 };
 
 const OPEN_METEO_SUFFIX='.open-meteo.com';
+const COOLDOWN_STORAGE_KEY='mid:open-meteo-cooldown:v1';
 const MAX_ACTIVE=2;
 const START_GAP_MS=220;
 const DEFAULT_429_COOLDOWN_MS=8_000;
@@ -18,7 +19,9 @@ const PRIORITY_WEIGHT:Record<OpenMeteoPriority,number>={foreground:0,normal:1,ba
 let queueId=0;
 let active=0;
 let nextStartAt=0;
-let cooldownUntil=0;
+function readPersistedCooldown(){try{const value=Number(localStorage.getItem(COOLDOWN_STORAGE_KEY));return Number.isFinite(value)&&value>Date.now()&&value-Date.now()<=10*60*1000?value:0}catch{return 0}}
+function persistCooldown(){try{if(cooldownUntil>Date.now())localStorage.setItem(COOLDOWN_STORAGE_KEY,String(cooldownUntil));else localStorage.removeItem(COOLDOWN_STORAGE_KEY)}catch{}}
+let cooldownUntil=readPersistedCooldown();
 let pumpTimer:ReturnType<typeof setTimeout>|undefined;
 const queue:QueueItem[]=[];
 const jsonInflight=new Map<string,Promise<unknown>>();
@@ -33,12 +36,14 @@ export class OpenMeteoRateLimitError extends Error{
 export function isOpenMeteoUrl(value:string|URL){try{const host=(value instanceof URL?value:new URL(value)).hostname.toLowerCase();return host==='open-meteo.com'||host.endsWith(OPEN_METEO_SUFFIX)}catch{return false}}
 export function isOpenMeteoRateLimitError(value:unknown):value is OpenMeteoRateLimitError{return value instanceof OpenMeteoRateLimitError||Boolean(value&&typeof value==='object'&&(value as {name?:string}).name==='OpenMeteoRateLimitError')}
 export function openMeteoGuardStatus(){return{active,queued:queue.length,cooldownUntil,nextStartAt}}
-export function registerOpenMeteoCooldown(retryAt:number){const next=Number(retryAt);if(Number.isFinite(next)&&next>Date.now())cooldownUntil=Math.max(cooldownUntil,next);else cooldownUntil=Math.max(cooldownUntil,Date.now()+60_000);schedulePump();return cooldownUntil}
+export function openMeteoCooldownRetryAt(){return cooldownUntil>Date.now()?cooldownUntil:0}
+export function openMeteoCooldownRemainingMs(){return Math.max(0,openMeteoCooldownRetryAt()-Date.now())}
+export function registerOpenMeteoCooldown(retryAt:number){const next=Number(retryAt);if(Number.isFinite(next)&&next>Date.now())cooldownUntil=Math.max(cooldownUntil,next);else cooldownUntil=Math.max(cooldownUntil,Date.now()+60_000);persistCooldown();schedulePump();return cooldownUntil}
 
 function abortError(signal?:AbortSignal){const reason=signal?.reason;return reason instanceof Error?reason:new DOMException('Abgebrochen','AbortError')}
 function wait(ms:number,signal?:AbortSignal){return new Promise<void>((resolve,reject)=>{if(signal?.aborted){reject(abortError(signal));return}let done=false;const finish=(callback:()=>void)=>{if(done)return;done=true;signal?.removeEventListener('abort',onAbort);callback()},timer=setTimeout(()=>finish(resolve),Math.max(0,ms)),onAbort=()=>{clearTimeout(timer);finish(()=>reject(abortError(signal)))};signal?.addEventListener('abort',onAbort,{once:true})})}
 function retryAfterMs(response:Response){const value=String(response.headers.get('retry-after')||'').trim();if(!value)return 0;const seconds=Number(value);if(Number.isFinite(seconds))return Math.max(0,seconds*1000);const stamp=Date.parse(value);return Number.isFinite(stamp)?Math.max(0,stamp-Date.now()):0}
-function setCooldown(response?:Response,attempt=0){const header=response?retryAfterMs(response):0,exponential=DEFAULT_429_COOLDOWN_MS*Math.max(1,attempt+1),delay=Math.min(MAX_429_COOLDOWN_MS,Math.max(DEFAULT_429_COOLDOWN_MS,header,exponential));cooldownUntil=Math.max(cooldownUntil,Date.now()+delay);schedulePump();return cooldownUntil}
+function setCooldown(response?:Response,attempt=0){const header=response?retryAfterMs(response):0,exponential=DEFAULT_429_COOLDOWN_MS*Math.max(1,attempt+1),delay=Math.min(MAX_429_COOLDOWN_MS,Math.max(DEFAULT_429_COOLDOWN_MS,header,exponential));cooldownUntil=Math.max(cooldownUntil,Date.now()+delay);persistCooldown();schedulePump();return cooldownUntil}
 function schedulePump(delay=0){if(pumpTimer!==undefined)return;pumpTimer=setTimeout(()=>{pumpTimer=undefined;pump()},Math.max(0,delay))}
 function removeQueued(item:QueueItem){const index=queue.indexOf(item);if(index>=0)queue.splice(index,1)}
 function acquire(priority:OpenMeteoPriority,signal?:AbortSignal){return new Promise<()=>void>((resolve,reject)=>{if(signal?.aborted){reject(abortError(signal));return}const item:QueueItem={id:++queueId,priority,signal,resolve,reject},onAbort=()=>{removeQueued(item);reject(abortError(signal))};signal?.addEventListener('abort',onAbort,{once:true});const originalResolve=item.resolve;item.resolve=release=>{signal?.removeEventListener('abort',onAbort);originalResolve(release)};queue.push(item);pump()})}

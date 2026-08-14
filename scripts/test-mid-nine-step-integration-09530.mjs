@@ -33,12 +33,15 @@ for(const token of [
  'title="Gespeicherte Events jetzt mit den aktuellen Wetterdaten neu berechnen"'
 ])assert.ok(app.includes(token),`Glocken-Reload fehlt: ${token}`);
 for(const token of [
- 'const AUTO_REFRESH_MS=30*60*1000',
+ 'const EVENT_STALE_AFTER_MS=60*60*1000',
+ 'const STALE_CHECK_MS=15*60*1000',
  "window.addEventListener(EVENT_CENTER_REFRESH_EVENT,request)",
  "document.addEventListener('visibilitychange',resume)",
  "window.addEventListener('focus',resume)",
- "const forcedTimer=window.setInterval(()=>void catchup('auto-interval',true),AUTO_REFRESH_MS)"
-])assert.ok(eventRefresh.includes(token),`Automatische Event-Aktualisierung fehlt: ${token}`);
+ "runBackgroundNetworkTask('event-weather-auto'",
+ 'const forceFresh=isManualReason(reason)'
+])assert.ok(eventRefresh.includes(token),`Ressourcenschonende Event-Aktualisierung fehlt: ${token}`);
+assert.ok(!eventRefresh.includes('const forcedTimer='),'Der frühere erzwungene 30-Minuten-Fullrefresh darf den Wetterdienst nicht mehr belasten.');
 assert.ok(planner.includes("refreshStoredEvents(false,false,'overview')"),'Event-Übersichtsreload fehlt.');
 
 // II – DWD-Schneefallgrenze aus 850-hPa-Temperatur + tatsächlichem Geopotential.

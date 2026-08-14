@@ -17,9 +17,11 @@ const [panel,engine,refresh,fusion,weather,app,css,worker,pkgRaw,baselineRaw]=aw
 // Ein explizites Event-Reload darf nicht die bereits gerenderte Ortsvorhersage erneut verwenden.
 assert.match(engine,/forceFresh\?:boolean/,'Event-Plan besitzt keinen expliziten Fresh-Reload-Vertrag.');
 assert.match(engine,/canonicalActive=Boolean\(!forceFresh&&canonical&&sameForecastLocation/,'Fresh-Reload kann weiterhin stale canonicalHours wiederverwenden.');
-assert.match(refresh,/buildEventPlan\(\{location:record\.location[\s\S]*forceFresh:true\}\)/,'Gespeicherte Events erzwingen keine frische Neubewertung.');
+assert.match(refresh,/const forceFresh=isManualReason\(reason\)/,'Broker unterscheidet manuelle Fresh-Reloads nicht von automatischer Hintergrundpflege.');
+assert.match(refresh,/buildEventPlan\(\{location:record\.location[\s\S]*forceFresh\}\)/,'Event-Build übernimmt den manuellen Fresh-Status nicht.');
 assert.match(panel,/refreshEventWeather\(currentSavedRecord\.id,\{reason:'detail'\}\)/,'Detail-Reload nutzt nicht den zentralen Fresh-Refresh.');
-assert.match(refresh,/const forcedTimer=window\.setInterval\(\(\)=>void catchup\('auto-interval',true\),AUTO_REFRESH_MS\)/,'Automatischer Event-Refresh verwendet keinen echten Fresh-Refresh.');
+assert.doesNotMatch(refresh,/const forcedTimer=/,'Automatische Eventpflege darf keinen erzwungenen Full-Fresh-Timer mehr besitzen.');
+assert.match(refresh,/isManualReason\(reason:EventWeatherRefreshReason\)/,'Manuelle Reload-Ursachen sind nicht explizit geschützt.');
 
 // Fusion und Event-Ensemble müssen ihre Client-Caches bei explizitem Reload umgehen.
 assert.match(fusion,/forceRefresh\?null:readCache\(lat,lon,FRESH_MS\)/,'Forecast-Fusion umgeht den lokalen Fresh-Cache nicht.');

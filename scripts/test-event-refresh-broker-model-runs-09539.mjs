@@ -32,16 +32,21 @@ assert.match(refresh,/if\(!refreshTransactionAllowsCommit\(latest\.plan,nextPlan
 // Manuelle Aufträge werden nur nach echtem vollständigem Erfolg quittiert.
 assert.match(refresh,/if\(requestedAt>0&&failed===0&&refreshed===targets\.length\)completeEventCenterRefreshRequest\(requestedAt\)/,'Manueller Reload wird auch bei Teilfehlern als erledigt markiert.');
 assert.match(refresh,/if\(options\.favoritesOnly\)targets=targets\.filter\(record=>record\.isFavorite\)/,'Favoriten-Sammelprüfung fehlt.');
-assert.match(refresh,/if\(!options\.favoritesOnly&&!ids\)targets=targets\.slice\(0,20\)/,'Favoriten werden weiterhin durch die allgemeine 20-Event-Grenze abgeschnitten.');
-assert.match(refresh,/forceFresh:true/,'Broker fordert keinen echten Fresh-Build an.');
+assert.match(refresh,/if\(!manual&&!ids\)targets=targets\.slice\(0,BACKGROUND_BATCH_LIMIT\)/,'Automatische Eventläufe besitzen keine Lastgrenze.');
+assert.match(refresh,/else if\(!options\.favoritesOnly&&!ids\)targets=targets\.slice\(0,20\)/,'Manuelle allgemeine Sammelläufe besitzen keine Sicherheitsgrenze.');
+assert.match(refresh,/const forceFresh=isManualReason\(reason\)/,'Broker schützt den manuellen Fresh-Vertrag nicht.');
 assert.match(engine,/loadForecastFusion\([^\n]+forceFresh\)/,'Event-Engine reicht Fresh-Refresh nicht an Forecast-Fusion weiter.');
 
-// Neue Modellläufe lösen unabhängig vom 30-Minuten-Alter eine Neubewertung aus.
-assert.match(refresh,/export function hasNewEventModelRun/,'Modelllaufvergleich fehlt.');
-assert.match(refresh,/bestMatchModelInfo\(sample\.location\.latitude,sample\.location\.longitude/,'Hintergrundmonitor prüft keine aktuellen Modellmetadaten.');
-assert.match(refresh,/if\(changed\.length\)await refreshAllEventWeather\(\{reason:'model-run',recordIds:changed\}\)/,'Neue Modellläufe lösen keinen Event-Refresh aus.');
-assert.match(refresh,/const modelTimer=window\.setInterval\(\(\)=>void models\(\),MODEL_CHECK_MS\)/,'Modelllaufüberwachung läuft nicht periodisch.');
-assert.match(refresh,/const forcedTimer=window\.setInterval\(\(\)=>void catchup\('auto-interval',true\),AUTO_REFRESH_MS\)/,'Zeitbasierter 30-Minuten-Fallback fehlt.');
+// Modellstandsänderungen werden seit v0.9.53.18 passiv mit der nächsten stündlichen
+// Event-Neuberechnung übernommen. Eigenständiges 5-Minuten-Metadatenpolling war die
+// Ursache für den Request-Sturm ab v0.9.53.8 und darf nicht wieder eingeführt werden.
+assert.match(refresh,/export function hasNewEventModelRun/,'Modelllaufvergleich für Plan-/Syncdiagnose fehlt.');
+assert.match(refresh,/modelMonitoring:'passive-refresh'/,'Passive Modelllaufüberwachung ist nicht ausgewiesen.');
+assert.match(refresh,/const EVENT_STALE_AFTER_MS=60\*60\*1000/,'Eventwetter wird nicht in einem schonenden Stundenintervall nachgeführt.');
+assert.match(refresh,/const STALE_CHECK_MS=15\*60\*1000/,'Fällige Events werden nicht regelmäßig passiv geprüft.');
+assert.doesNotMatch(refresh,/bestMatchModelInfo\(sample\.location/,'Eventmonitor pollt weiterhin Modellmetadaten je Eventort.');
+assert.doesNotMatch(refresh,/const modelTimer=/,'5-Minuten-Modellpolling ist weiterhin aktiv.');
+assert.doesNotMatch(refresh,/const forcedTimer=/,'Erzwungener 30-Minuten-Fullrefresh ist weiterhin aktiv.');
 for(const token of ["window.addEventListener('pageshow',resume)","window.addEventListener('focus',resume)","window.addEventListener('online',resume)"])assert.ok(refresh.includes(token),`Resume-Überwachung fehlt: ${token}`);
 
 // Persistenz und Geräte-Sync priorisieren die neuere Refresh-Transaktion; Modellrevision bleibt Provenienz/Tie-Breaker.

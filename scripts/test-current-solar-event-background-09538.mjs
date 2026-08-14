@@ -32,9 +32,11 @@ assert.doesNotMatch(app,/MemoLazyEventPlanner backgroundOnly/,'Hintergrundowner 
 
 assert.match(refresh,/window\.addEventListener\('online',resume\)/,'Event-Hintergrundaktualisierung reagiert nicht auf wiederhergestellte Verbindung.');
 assert.match(refresh,/window\.addEventListener\('pageshow',resume\)/,'Event-Hintergrundaktualisierung reagiert nicht auf PWA-/Seiten-Rückkehr.');
-assert.match(refresh,/const staleTimer=window\.setInterval\(\(\)=>void catchup\('auto-stale'\),MODEL_CHECK_MS\)/,'Hintergrundowner prüft stale Events nicht regelmäßig.');
-assert.match(refresh,/const forcedTimer=window\.setInterval\(\(\)=>void catchup\('auto-interval',true\),AUTO_REFRESH_MS\)/,'30-Minuten-Fresh-Fallback der Eventüberwachung fehlt.');
-assert.match(refresh,/await runPendingManualRequest\(\)/,'Persistente manuelle Reloads werden beim Hintergrund-Catch-up nicht priorisiert.');
+assert.match(refresh,/const staleTimer=window\.setInterval\(\(\)=>autoCatchup\('auto-stale'\),STALE_CHECK_MS\)/,'Hintergrundowner prüft stale Events nicht regelmäßig.');
+assert.match(refresh,/runBackgroundNetworkTask\('event-weather-auto'/,'Automatische Eventupdates umgehen die zentrale Hintergrund-Netzwerkbremse.');
+assert.match(refresh,/const forceFresh=isManualReason\(reason\)/,'Automatische Eventupdates erzwingen weiterhin ungebremste Fresh-Abrufe.');
+assert.doesNotMatch(refresh,/const forcedTimer=/,'Der frühere 30-Minuten-Fullrefresh ist noch aktiv.');
+assert.match(refresh,/void runPendingManualRequest\(\)/,'Persistente manuelle Reloads werden beim Start nicht priorisiert.');
 
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw);
 assert.equal(pkg.version,baseline.releaseVersion,'Version und Baseline müssen übereinstimmen.');
