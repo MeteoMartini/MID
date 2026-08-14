@@ -1,3 +1,11 @@
+# 0.9.53.17
+
+- Vollständige Best-Match-Vorhersage und etablierte Kacheldarstellung wiederhergestellt: kein feldärmerer Fremdprovider mehr als Ersatz für die Standard-Kernprognose.
+- Foreground-Prognose wieder direkt Best-Match-priorisiert; appweiter Open-Meteo-Guard, 429-Cooldown und gestaffelte Hintergrundabrufe bleiben erhalten.
+- Worker dient für `forecast-core` nur noch als Cache/Resilienzpfad für vollständiges Open-Meteo Best Match; alte MET-Norway-Fallback-Caches werden verworfen.
+- Standard-Herkunft der Stunden-/Tagesdaten, PoP, Sichtweite und Kachelsemantik wiederhergestellt; DWD-nahe Tages-PoP-Zeitfenster aus 0.9.53.14 bleiben erhalten.
+- Neue Required-Regression `test-core-forecast-restoration-095317.mjs`.
+
 ## 0.9.53.16
 
 - Kernvorhersage ohne Single-Provider-Ausfallpunkt: alle Core-Abrufe worker-first; Open-Meteo bleibt Primärquelle, MET Norway Locationforecast dient bei 429/5xx/Timeout und fehlendem Cache als unabhängiger globaler Ersatzpfad.
