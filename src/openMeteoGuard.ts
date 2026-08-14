@@ -33,6 +33,7 @@ export class OpenMeteoRateLimitError extends Error{
 export function isOpenMeteoUrl(value:string|URL){try{const host=(value instanceof URL?value:new URL(value)).hostname.toLowerCase();return host==='open-meteo.com'||host.endsWith(OPEN_METEO_SUFFIX)}catch{return false}}
 export function isOpenMeteoRateLimitError(value:unknown):value is OpenMeteoRateLimitError{return value instanceof OpenMeteoRateLimitError||Boolean(value&&typeof value==='object'&&(value as {name?:string}).name==='OpenMeteoRateLimitError')}
 export function openMeteoGuardStatus(){return{active,queued:queue.length,cooldownUntil,nextStartAt}}
+export function registerOpenMeteoCooldown(retryAt:number){const next=Number(retryAt);if(Number.isFinite(next)&&next>Date.now())cooldownUntil=Math.max(cooldownUntil,next);else cooldownUntil=Math.max(cooldownUntil,Date.now()+60_000);schedulePump();return cooldownUntil}
 
 function abortError(signal?:AbortSignal){const reason=signal?.reason;return reason instanceof Error?reason:new DOMException('Abgebrochen','AbortError')}
 function wait(ms:number,signal?:AbortSignal){return new Promise<void>((resolve,reject)=>{if(signal?.aborted){reject(abortError(signal));return}let done=false;const finish=(callback:()=>void)=>{if(done)return;done=true;signal?.removeEventListener('abort',onAbort);callback()},timer=setTimeout(()=>finish(resolve),Math.max(0,ms)),onAbort=()=>{clearTimeout(timer);finish(()=>reject(abortError(signal)))};signal?.addEventListener('abort',onAbort,{once:true})})}

@@ -1,3 +1,11 @@
+## 0.9.53.16
+
+- Kernvorhersage ohne Single-Provider-Ausfallpunkt: alle Core-Abrufe worker-first; Open-Meteo bleibt Primärquelle, MET Norway Locationforecast dient bei 429/5xx/Timeout und fehlendem Cache als unabhängiger globaler Ersatzpfad.
+- Worker-Fallback wird transparent als tatsächliche Kernquelle ausgewiesen; Zeitzone/Höhe werden appweit an sichtbare, Event- und Favoriten-Core-Abrufe weitergegeben.
+- Fehlende Niederschlagswahrscheinlichkeit des unabhängigen Ersatzproviders wird als `–` statt als künstliche `0 %` dargestellt; deterministische Niederschlags-/Wetterdaten bleiben nutzbar und die Quelle wird transparent ausgewiesen.
+- Open-Meteo-429 aus dem Worker setzt zugleich den zentralen Browser-Cooldown, damit Hintergrundmodule den limitierten Dienst nicht weiter belasten.
+- Neue Runtime-Regression simuliert ausdrücklich Cold Start ohne Cache bei Open-Meteo-429 und verlangt trotzdem einen nutzbaren Kernforecast.
+
 ## 0.9.53.15
 
 - Kernvorhersage gegen anhaltende Open-Meteo-HTTP-429 nach App-Reaktivierung gehärtet: foreground-first Worker-Proxy mit Edge-Cache und 18-h-Stale-Fallback.

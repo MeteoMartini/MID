@@ -45,13 +45,13 @@ assert.match(weather,/FORECAST_CORE_FRESH_MS=8\*60\*1000/);
 assert.match(weather,/FORECAST_CORE_STALE_MS=18\*3600000/);
 assert.match(weather,/FORECAST_CORE_(?:LEGACY_)?CACHE_PREFIX/);
 assert.match(weather,/cached&&\(isOpenMeteoRateLimitError\(error\)\|\|priority==='foreground'\)\)return cached\.value/);
-assert.match(app,/forecast\(loc\.latitude,loc\.longitude,forecastController\.signal,\{priority:'foreground',forceFresh:options\.forceFresh===true\}\)/);
+assert.match(app,/forecast\(loc\.latitude,loc\.longitude,forecastController\.signal,\{priority:'foreground',forceFresh:options\.forceFresh===true,timeZone:[^}]+,elevation:loc\.elevation\}\)/);
 assert.match(app,/load\(\{forceFresh:true\}\)/);
 assert.match(app,/isOpenMeteoRateLimitError\(reason\)/);
 assert.doesNotMatch(app,/setError\('HTTP 429'\)/);
 
 // Hintergrundlernprozess darf bei Rate Limit nicht weiter alle Favoriten abarbeiten.
-assert.match(twin,/forecast\([^\n]+\{priority:'background'\}\)/);
+assert.match(twin,/forecast\([^\n]+\{priority:'background',timeZone:location\.timezone,elevation:location\.elevation\}\)/);
 assert.match(twin,/ensembles\([^\n]+,'background'\)/);
 assert.match(twin,/BETWEEN_FAVORITES_MS=3500/);
 assert.match(twin,/isOpenMeteoRateLimitError\(error\)/);
@@ -64,4 +64,4 @@ assert.doesNotMatch(verification,/await fetch\(url\.toString\(\),\{signal,cache:
 assert.doesNotMatch(aviation,/await fetch\(endpoint\(/);
 assert.doesNotMatch(meteogram,/await fetch\(directEndpoint\(/);
 
-console.log('MID v0.9.53.14: DWD-nahe Tages-PoP-Zeitfenster und appweiter Open-Meteo-429-Schutz geprüft.');
+console.log('MID v0.9.53.14+: DWD-nahe Tages-PoP-Zeitfenster, appweiter Open-Meteo-429-Schutz und quellensicherer Core-Requestvertrag geprüft.');

@@ -102,7 +102,7 @@ function timelineForWindow(hours:Hour[],date:string,startTime:string,endTime:str
 export async function buildEventPlan(options:BuildEventPlanOptions):Promise<EventPlan>{
  const {location,eventDate,eventStartTime,eventEndTime,eventEnvironment,eventActivity,eventTitle,signal,forceFresh=false,canonical}=options
  const country=location.country_code||location.country,[weather,modelInfo,fusion,eventEnsemble]=await Promise.all([
-  forecast(location.latitude,location.longitude,signal),
+  forecast(location.latitude,location.longitude,signal,{priority:'normal',forceFresh,timeZone:location.timezone,elevation:location.elevation}),
   eventSourceWithin(signal,12000,sourceSignal=>bestMatchModelInfo(location.latitude,location.longitude,country,sourceSignal),null),
   eventSourceWithin(signal,26000,sourceSignal=>loadForecastFusion(location.latitude,location.longitude,country,location.elevation,sourceSignal,forceFresh),null),
   eventSourceWithin(signal,22000,()=>eventEnsembleForecast(location.latitude,location.longitude,eventDate,eventStartTime,eventEndTime,signal,forceFresh),{days:[],models:[],precipitationProbability:null})

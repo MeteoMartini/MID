@@ -8,7 +8,7 @@ const require=createRequire(import.meta.url);let ts;try{ts=require('typescript')
 const root=new URL('../',import.meta.url),files={precipitation:await readFile(new URL('src/precipitation.ts',root),'utf8'),weather:await readFile(new URL('src/weather.ts',root),'utf8'),fusion:await readFile(new URL('src/forecastFusion.ts',root),'utf8'),app:await readFile(new URL('src/App.tsx',root),'utf8'),shortTerm:await readFile(new URL('src/ShortTermForecast.tsx',root),'utf8'),worker:await readFile(new URL('worker/metar-proxy.js',root),'utf8'),package:await readFile(new URL('package.json',root),'utf8')};
 const required={
  precipitation:['UNSUPPORTED_FORECAST_MAX_PROBABILITY=5','WEAK_FORECAST_AMOUNT_MAX_MM=.35','export function reconcileForecastPrecipitation','deterministicSignalMinimumProbability'],
- weather:['mapHours(w:Weather)','mapMinutely15(w:Weather)','mapDays(w:Weather)','leadHours:(epoch-Date.now())/3600000','sunshineDuration,weatherSourceId:\'best_match\''],
+ weather:['mapHours(w:Weather)','mapMinutely15(w:Weather)','mapDays(w:Weather)','leadHours:(epoch-Date.now())/3600000',"sunshineDuration,weatherSourceId:fallbackSource?'met-norway-locationforecast':'best_match'"],
  fusion:["import {reconcileForecastPrecipitation} from './precipitation';",'function dryAdjustedHour','weatherHours?:ForecastWeatherBundleHour[]','dailyWeatherCodeFromHours','finalizeForecastHours','reconcileForecastHoursWithDays','reconcileForecastDaysWithHours'],
  app:['finalizeForecastHours(twinHours,baseDisplayDays','observedTemperature:currentObservedTemperature','hour-tooltip-source'],
  shortTerm:["from './precipitation';",'precipitationParts','reconcileForecastPrecipitation','precipitationAmountLabel'],

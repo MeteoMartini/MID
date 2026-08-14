@@ -37,7 +37,7 @@ export async function learnWeatherTwinsForFavorites(locations:Location[],activeL
   if(signal?.aborted)throw abortError();const key=locationKey(location),label=locationLabel(location);writeNumber(`${LAST_ATTEMPT_PREFIX}${key}`,Date.now());status.current=label;status.message=`Wetterzwilling für ${label} wird aktualisiert.`;writeStatus({...status});
   try{
    await restoreForecastVerificationArchive(key);
-   const weather=await forecast(location.latitude,location.longitude,signal,{priority:'background'}),learningLocation:Location={...location,timezone:weather.timezone||location.timezone,elevation:Number.isFinite(location.elevation)?location.elevation:weather.elevation},days=mapDays(weather),hours=mapHours(weather);
+   const weather=await forecast(location.latitude,location.longitude,signal,{priority:'background',timeZone:location.timezone,elevation:location.elevation}),learningLocation:Location={...location,timezone:weather.timezone||location.timezone,elevation:Number.isFinite(location.elevation)?location.elevation:weather.elevation},days=mapDays(weather),hours=mapHours(weather);
    let ensembleDays:EnsembleDay[]=[];try{ensembleDays=(await ensembles(location.latitude,location.longitude,signal,'background')).days}catch(error){if(isOpenMeteoRateLimitError(error))throw error;ensembleDays=[]}
    recordForecastCapture(key,days,ensembleDays,learningLocation,hours);
    try{await refreshForecastReferences(key,learningLocation,signal)}catch(error){if(isOpenMeteoRateLimitError(error))throw error}

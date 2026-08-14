@@ -66,6 +66,7 @@ export type ForecastPrecipitationConsistencyInput={
  isDay?:boolean;
  leadHours?:number;
  observed?:boolean;
+ probabilityUnavailable?:boolean;
 };
 
 export type PrecipitationCharacter='convective'|'stratiform'|'mixed'|'indeterminate';
@@ -177,9 +178,9 @@ export function reconcileForecastPrecipitation(input:ForecastPrecipitationConsis
  const wetCode=Boolean(WMO_PRECIP_TYPE[code]),wetSignal=wetCode||precipitation>=.01||rain>=.01||showers>=.01||snowfall>=.01;
  if(!wetSignal)return{precipitation,rain,showers,snowfall,probability,code,traceSuppressed:false};
  const suppress=(reason:ForecastPrecipitationConsistency['suppressionReason']):ForecastPrecipitationConsistency=>({precipitation:0,rain:0,showers:0,snowfall:0,probability,code:dryForecastWeatherCode(code,input.cloud),traceSuppressed:true,suppressionReason:reason});
- if(!input.observed&&probability<=UNSUPPORTED_FORECAST_MAX_PROBABILITY)return suppress('probability');
+ if(!input.observed&&!input.probabilityUnavailable&&probability<=UNSUPPORTED_FORECAST_MAX_PROBABILITY)return suppress('probability');
  const supportMinimum=deterministicSignalMinimumProbability(input.leadHours),weakAmount=Math.max(precipitation,rain,showers,snowfall)<=WEAK_FORECAST_AMOUNT_MAX_MM;
- if(!input.observed&&weakAmount&&probability<supportMinimum)return suppress('weak-distant-signal');
+ if(!input.observed&&!input.probabilityUnavailable&&weakAmount&&probability<supportMinimum)return suppress('weak-distant-signal');
  const evidence=classifyPrecipitationCharacter(input),cloud=Number(input.cloud),lowCloud=Number(input.lowCloud),humidity=Number(input.humidity),rawSunshine=Number(input.sunshineDuration),sunshine=Number.isFinite(rawSunshine)?Math.max(0,rawSunshine):Number.NaN,daylight=input.isDay!==false;
  const stratiformSupport=evidence.character==='stratiform'||(Number.isFinite(cloud)&&cloud>=82)||(Number.isFinite(lowCloud)&&lowCloud>=65)||(Number.isFinite(humidity)&&humidity>=92)||(daylight&&Number.isFinite(sunshine)&&sunshine<=600);
  const convectiveSupport=evidence.character==='convective';

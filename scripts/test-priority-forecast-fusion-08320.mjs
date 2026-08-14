@@ -53,7 +53,7 @@ for(const token of ['applyOperationalNowcastHours','applyConvectiveNowcastHours'
 for(const token of [
  'weatherSourceId',
  'weatherSourceLabel',
- "weatherBundleKind:'best-match'"
+ "weatherBundleKind:fallbackSource?'provider-fallback' as const:'best-match' as const"
 ])need('Best-Match-Herkunft',weather,token);
 for(const token of [
  'additional:AdditionalForecastPrediction[]=[]',

@@ -21,13 +21,15 @@ need('MapLibre-Layerreihenfolge',compat,'PANE_Z_INDEX');
 need('MapLibre-Layerreihenfolge',compat,'paneZIndex');
 const sourceFiles=[];async function walk(dir){for(const entry of await readdir(dir,{withFileTypes:true})){const absolute=path.join(dir,entry.name);if(entry.isDirectory())await walk(absolute);else if(/\.(ts|tsx)$/.test(entry.name))sourceFiles.push(absolute)}}await walk(path.join(root,'src'));
 for(const file of sourceFiles){const text=await readFile(file,'utf8');if(/from\s+['"]leaflet['"]|from\s+['"]react-leaflet['"]|import\(['"]leaflet['"]\)|import\(['"]react-leaflet['"]\)/.test(text))failures.push(`Leaflet-Import verbleibt: ${path.relative(root,file)}`)}
-need('Tages-PoP',weather,"probabilitySource?:'ensemble-members-dwd'|'hourly-max-fallback'");
+need('Tages-PoP',weather,"probabilitySource?:'ensemble-members-dwd'|'hourly-max-fallback'|'provider-no-probability'");
 need('Tages-PoP',weather,'precipitationProbability:weightedProbability(rainProbabilityVals,DWD_PRECIPITATION_PROBABILITY_THRESHOLD_MM,true)');
 need('Tages-PoP',weather,'precipitationProbabilitySignificant:weightedProbability(rainProbabilityVals,DWD_SIGNIFICANT_PRECIPITATION_PROBABILITY_THRESHOLD_MM,true)');
 need('Tages-PoP',weather,'applyEnsembleDailyPrecipitationProbability');
 need('Tages-PoP',weather,"DWD-Ereigniswahrscheinlichkeit${period?` · ${period}`:''}: >0,2 mm");
 need('Tages-PoP',weather,'precipitationProbabilityWindows');
-need('Tages-PoP-Fallback',weather,"probabilitySource:'hourly-max-fallback'");
+need('Tages-PoP-Fallback',weather,"probabilitySource:(probabilityAvailable?'hourly-max-fallback':'provider-no-probability') as Day['probabilitySource']");
+need('Tages-PoP-Fallback ohne erfundene 0 %',weather,"probabilityAvailable");
+need('Tages-PoP-Fallback ohne erfundene 0 %',weather,"provider-no-probability");
 need('Tages-PoP-Anwendung',app,'applyEnsembleDailyPrecipitationProbability(baseDisplayDaysUnweighted,ens)');
 need('Tages-PoP-Fusion',fusion,"day.probabilitySource==='ensemble-members-dwd'?dayProbability");
 need('Tages-PoP-UI',app,'dailyPrecipitationProbabilityTitle(d,allDayHoursForDate)');
