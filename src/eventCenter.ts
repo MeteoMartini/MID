@@ -17,6 +17,17 @@ export const EVENT_CENTER_UPDATED_EVENT='mid:event-center-updated'
 export const EVENT_CENTER_OPEN_EVENT='mid:event-center-open'
 export const EVENT_CENTER_REFRESH_EVENT='mid:event-center-refresh'
 export const EVENT_CENTER_REFRESH_DONE_EVENT='mid:event-center-refresh-done'
+const EVENT_CENTER_REFRESH_REQUEST_KEY='mid:event-center:refresh-request:v1'
+const EVENT_CENTER_REFRESH_DONE_KEY='mid:event-center:refresh-done:v1'
+export type EventCenterRefreshRequest={at:number;source:string}
+
+export function persistEventCenterRefreshRequest(source:string){
+ const at=Date.now();try{if(!readEventCenterRecords().length)return 0;localStorage.setItem(EVENT_CENTER_REFRESH_REQUEST_KEY,JSON.stringify({at,source}))}catch{return 0}return at
+}
+export function pendingEventCenterRefreshRequest():EventCenterRefreshRequest|null{
+ try{const request=JSON.parse(localStorage.getItem(EVENT_CENTER_REFRESH_REQUEST_KEY)||'null') as EventCenterRefreshRequest|null,done=Number(localStorage.getItem(EVENT_CENTER_REFRESH_DONE_KEY)||0);return request&&Number.isFinite(Number(request.at))&&Number(request.at)>done?{at:Number(request.at),source:String(request.source||'manual')}:null}catch{return null}
+}
+export function completeEventCenterRefreshRequest(requestedAt:number){try{if(Number.isFinite(requestedAt)&&requestedAt>0){const previous=Number(localStorage.getItem(EVENT_CENTER_REFRESH_DONE_KEY)||0);if(requestedAt>previous)localStorage.setItem(EVENT_CENTER_REFRESH_DONE_KEY,String(requestedAt))}}catch{}}
 
 function safeNumber(value:number|null|undefined,fallback=0){return Number.isFinite(Number(value))?Number(value):fallback}
 function rounded(value:number|null|undefined,digits=0){const factor=10**digits;return Math.round(safeNumber(value)*factor)/factor}

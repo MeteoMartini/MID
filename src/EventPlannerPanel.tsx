@@ -2,7 +2,7 @@ import {useEffect,useMemo,useRef,useState,type FormEvent} from 'react'
 import {ArrowUpDown,BellRing,CalendarRange,ChevronDown,ChevronLeft,CloudLightning,CloudRain,Info,MapPin,Pencil,Plane,RefreshCw,Search,ShieldCheck,ShieldAlert,Snowflake,Star,Sun,Thermometer,Trash2,Wind} from 'lucide-react'
 import {WeatherPictogram} from './WeatherPictogram'
 import {applyEnsembleDailyPrecipitationProbability,bestMatchModelInfo,eventEnsembleForecast,forecast,label,localIsoEpoch,mapDays,mapHours,radarNowcast,searchLocations,station,stationFieldObservationUsable,thunderstormNowcast,wind,type EventPrecipitationProbabilityAssessment,type Hour,type Location,type WindUnit} from './weather'
-import {EVENT_CENTER_OPEN_EVENT,EVENT_CENTER_REFRESH_DONE_EVENT,EVENT_CENTER_REFRESH_EVENT,EVENT_CENTER_UPDATED_EVENT,buildEventCenterId,compareEventPlans,deleteEventCenterRecord,markEventCenterOpened,readEventCenterRecords,toggleEventCenterFavorite,upsertEventCenterRecord,type EventActivity,type EventAdvice,type EventCenterRecord,type EventEnvironment,type EventPlan,type EventStatus,type EventSummary,type EventTimelinePoint} from './eventCenter'
+import {EVENT_CENTER_OPEN_EVENT,EVENT_CENTER_REFRESH_DONE_EVENT,EVENT_CENTER_REFRESH_EVENT,EVENT_CENTER_UPDATED_EVENT,buildEventCenterId,compareEventPlans,completeEventCenterRefreshRequest,deleteEventCenterRecord,markEventCenterOpened,pendingEventCenterRefreshRequest,readEventCenterRecords,toggleEventCenterFavorite,upsertEventCenterRecord,type EventActivity,type EventAdvice,type EventCenterRecord,type EventEnvironment,type EventPlan,type EventStatus,type EventSummary,type EventTimelinePoint} from './eventCenter'
 import {applyForecastFusionDays,applyForecastFusionHours,finalizeForecastHours,forecastFusionLabel,loadForecastFusion,type ForecastFusionResult} from './forecastFusion'
 import {compactPrecipitationTypeLabel,precipitationParts} from './precipitation'
 import {formatUvi} from './format'
@@ -19,6 +19,20 @@ const AUTO_REFRESH_MS=30*60*1000
 const EVENT_SORT_KEY='mid:event-center:sort'
 type EventSortMode='chronological'|'favorites'|'updated'|'title'
 type EventWorkspaceView='overview'|'editor'|'detail'
+
+type EventRefreshMode='auto'|'manual'|'overview'|'detail'
+type ManagedEventRefresh={token:number;priority:number;controller:AbortController}
+let eventRefreshSequence=0
+const activeEventRefreshes=new Map<string,ManagedEventRefresh>()
+function eventRefreshPriority(mode:EventRefreshMode){return mode==='auto'?1:mode==='manual'?2:mode==='overview'?3:4}
+function beginManagedEventRefresh(recordId:string,mode:EventRefreshMode){
+ const priority=eventRefreshPriority(mode),current=activeEventRefreshes.get(recordId)
+ if(current&&current.priority>priority)return null
+ current?.controller.abort(new DOMException('Durch neuere Event-Aktualisierung ersetzt','AbortError'))
+ const managed={token:++eventRefreshSequence,priority,controller:new AbortController()};activeEventRefreshes.set(recordId,managed);return managed
+}
+function managedEventRefreshCurrent(recordId:string,managed:ManagedEventRefresh){return activeEventRefreshes.get(recordId)?.token===managed.token&&!managed.controller.signal.aborted}
+function finishManagedEventRefresh(recordId:string,managed:ManagedEventRefresh){if(activeEventRefreshes.get(recordId)?.token===managed.token)activeEventRefreshes.delete(recordId)}
 
 const ENVIRONMENT_OPTIONS:{id:EventEnvironment;label:string;detail:string}[]=[
  {id:'indoor',label:'Indoor',detail:'Wetter wirkt vor allem auf An- und Abreise'},
@@ -269,7 +283,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
  }
  function savePlanRecord(nextPlan:EventPlan,forceFavorite?:boolean){
   const id=editingRecordId||currentSavedRecord?.id||buildEventCenterId(nextPlan.location,nextPlan.date,nextPlan.startTime,nextPlan.title||nextPlan.location.name)
-  const previous=savedEvents.find(item=>item.id===id)||null
+  const previous=readEventCenterRecords().find(item=>item.id===id)??savedEvents.find(item=>item.id===id)??null
   const change=compareEventPlans(previous?.plan,nextPlan)
   const record:EventCenterRecord={
    id,
@@ -300,54 +314,72 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
   if(!silent)setPlan(null)
   if(!validateInputs(destination,date,startTime,endTime))return
   analysisController.current?.abort()
-  const controller=new AbortController()
+  const refreshRecordId=forceFresh?currentSavedRecord?.id||'': '',managed=refreshRecordId?beginManagedEventRefresh(refreshRecordId,'detail'):null
+  if(refreshRecordId&&!managed)return
+  const controller=managed?.controller??new AbortController()
   analysisController.current=controller
   setLoading(true)
   try{
    const nextPlan=await buildPlan(destination,date,startTime,endTime,environment,activity,title,controller.signal,forceFresh)
+   if(managed&&!managedEventRefreshCurrent(refreshRecordId,managed))return
    setPlan(nextPlan)
    if(currentSavedRecord)savePlanRecord(nextPlan)
    if(!silent)setWorkspaceView('detail')
   }catch(reason){if(!controller.signal.aborted)setError(reason instanceof Error?reason.message:'Event-Auswertung fehlgeschlagen.')}
-  finally{if(analysisController.current===controller&&!controller.signal.aborted)setLoading(false)}
+  finally{if(managed)finishManagedEventRefresh(refreshRecordId,managed);if(analysisController.current===controller){if(!controller.signal.aborted)setLoading(false);analysisController.current=null}}
  }
- async function refreshStoredEvent(record:EventCenterRecord,markAsFavoritePass=false,silentFailure=false){
+ async function refreshStoredEvent(record:EventCenterRecord,markAsFavoritePass=false,silentFailure=false,mode:EventRefreshMode='manual'){
+  const managed=beginManagedEventRefresh(record.id,mode)
+  if(!managed)return false
   setRefreshingIds(current=>current.includes(record.id)?current:[...current,record.id])
-  const controller=new AbortController()
+  const controller=managed.controller
   try{
    const nextPlan=await buildPlan(record.location,record.date,record.startTime,record.endTime,record.environment,record.activity,record.title,controller.signal,true)
-   const change=compareEventPlans(record.plan,nextPlan)
-   const updated:EventCenterRecord={...record,location:record.location,title:record.title,date:record.date,startTime:record.startTime,endTime:record.endTime,environment:record.environment,activity:record.activity,isFavorite:markAsFavoritePass?true:record.isFavorite,updatedAt:Date.now(),plan:nextPlan,change}
+   if(!managedEventRefreshCurrent(record.id,managed))return false
+   const latest=readEventCenterRecords().find(item=>item.id===record.id)??record,change=compareEventPlans(latest.plan,nextPlan)
+   const updated:EventCenterRecord={...latest,location:latest.location,title:latest.title,date:latest.date,startTime:latest.startTime,endTime:latest.endTime,environment:latest.environment,activity:latest.activity,isFavorite:markAsFavoritePass?true:latest.isFavorite,updatedAt:Date.now(),plan:nextPlan,change}
    const records=upsertEventCenterRecord(updated)
    savedEventsRef.current=records
    setSavedEvents(records)
    if(!backgroundOnly&&(selectedRecordId===record.id||currentEventId===record.id)){setPlan(nextPlan);setSelectedRecordId(record.id)}
    return true
-  }catch(reason){if(!silentFailure)setError(reason instanceof Error?reason.message:'Gespeichertes Event konnte nicht aktualisiert werden.');return false}
-  finally{setRefreshingIds(current=>current.filter(id=>id!==record.id))}
+  }catch(reason){if(!controller.signal.aborted&&!silentFailure)setError(reason instanceof Error?reason.message:'Gespeichertes Event konnte nicht aktualisiert werden.');return false}
+  finally{finishManagedEventRefresh(record.id,managed);setRefreshingIds(current=>current.filter(id=>id!==record.id))}
  }
- async function refreshStoredEvents(favoritesOnly=false,silentFailure=false){
+ async function refreshStoredEvents(favoritesOnly=false,silentFailure=false,mode:EventRefreshMode='manual'){
   if(!silentFailure)setError('')
-  const records=savedEventsRef.current,now=Date.now(),active=records.filter(item=>{const end=Date.parse(`${item.date}T${item.endTime||item.startTime||'23:59'}:00`);return !Number.isFinite(end)||end>=now-6*3600000}),targets=favoritesOnly?active.filter(item=>item.isFavorite):active.slice(0,20)
+  const records=readEventCenterRecords();savedEventsRef.current=records
+  const now=Date.now(),active=records.filter(item=>{const end=Date.parse(`${item.date}T${item.endTime||item.startTime||'23:59'}:00`);return !Number.isFinite(end)||end>=now-6*3600000}),targets=favoritesOnly?active.filter(item=>item.isFavorite):active.slice(0,20)
   if(!targets.length)return 0
   setBulkRefreshing(true)
   let refreshed=0
-  try{for(const item of targets)if(await refreshStoredEvent(item,favoritesOnly,silentFailure))refreshed++}finally{setBulkRefreshing(false)}
+  try{for(const item of targets)if(await refreshStoredEvent(item,favoritesOnly,silentFailure,mode))refreshed++}finally{setBulkRefreshing(false)}
   return refreshed
  }
  useEffect(()=>{
   if(!backgroundOnly)return
-  let running=false,timer=0
-  const isStale=()=>savedEventsRef.current.some(item=>!item.plan||Date.now()-Number(item.plan.refreshedAt||item.updatedAt||0)>=AUTO_REFRESH_MS)
-  const refresh=async(source:'manual'|'auto')=>{if(running)return;running=true;let refreshed=0;try{refreshed=await refreshStoredEvents(false,true)}finally{running=false;window.dispatchEvent(new CustomEvent(EVENT_CENTER_REFRESH_DONE_EVENT,{detail:{source,refreshed,at:Date.now()}}))}}
-  const request=()=>{void refresh('manual')}
-  const resume=()=>{if(document.visibilityState!=='hidden'&&isStale())void refresh('auto')}
+  let autoRunning=false,manualRunning=false,timer=0,staleTimer=0,initial=0
+  const isStale=()=>{const records=readEventCenterRecords();savedEventsRef.current=records;return records.some(item=>!item.plan||Date.now()-Number(item.plan.refreshedAt||item.updatedAt||0)>=AUTO_REFRESH_MS)}
+  const refresh=async(source:'manual'|'auto',requestedAt=0)=>{
+   if(source==='auto'&&autoRunning||source==='manual'&&manualRunning)return
+   if(source==='auto')autoRunning=true;else manualRunning=true
+   let refreshed=0
+   try{refreshed=await refreshStoredEvents(false,true,source)}finally{
+    if(source==='auto')autoRunning=false;else{manualRunning=false;if(requestedAt>0)completeEventCenterRefreshRequest(requestedAt)}
+    window.dispatchEvent(new CustomEvent(EVENT_CENTER_REFRESH_DONE_EVENT,{detail:{source,refreshed,at:Date.now(),requestedAt}}))
+    if(source==='manual'){const pending=pendingEventCenterRefreshRequest();if(pending)window.setTimeout(()=>void refresh('manual',pending.at),0)}
+   }
+  }
+  const request=(event:Event)=>{const detail=(event as CustomEvent<{requestedAt?:number}>).detail,pending=pendingEventCenterRefreshRequest(),requestedAt=Number(detail?.requestedAt)||pending?.at||0;void refresh('manual',requestedAt)}
+  const resume=()=>{if(document.visibilityState==='hidden')return;const pending=pendingEventCenterRefreshRequest();if(pending)void refresh('manual',pending.at);else if(isStale())void refresh('auto')}
   window.addEventListener(EVENT_CENTER_REFRESH_EVENT,request)
   document.addEventListener('visibilitychange',resume)
   window.addEventListener('focus',resume)
+  window.addEventListener('online',resume)
   timer=window.setInterval(()=>{if(document.visibilityState!=='hidden')void refresh('auto')},AUTO_REFRESH_MS)
-  const initial=window.setTimeout(()=>{if(isStale())void refresh('auto')},1200)
-  return()=>{window.removeEventListener(EVENT_CENTER_REFRESH_EVENT,request);document.removeEventListener('visibilitychange',resume);window.removeEventListener('focus',resume);window.clearInterval(timer);window.clearTimeout(initial)}
+  staleTimer=window.setInterval(()=>{if(document.visibilityState!=='hidden'&&isStale())void refresh('auto')},5*60*1000)
+  initial=window.setTimeout(()=>{const pending=pendingEventCenterRefreshRequest();if(pending)void refresh('manual',pending.at);else if(isStale())void refresh('auto')},500)
+  return()=>{window.removeEventListener(EVENT_CENTER_REFRESH_EVENT,request);document.removeEventListener('visibilitychange',resume);window.removeEventListener('focus',resume);window.removeEventListener('online',resume);window.clearInterval(timer);window.clearInterval(staleTimer);window.clearTimeout(initial)}
  },[backgroundOnly])
  function loadRecord(record:EventCenterRecord,target:EventWorkspaceView='detail'){
   chooseLocation(record.location)
@@ -409,7 +441,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
   </nav>
 
   {workspaceView==='overview'&&<section className="event-center-shelf">
-   <header><div><span>EVENT-CENTER</span><h5>Kompakte Übersicht</h5><small>{savedEvents.length} gespeichert · {favoriteEvents.length} Favorit{favoriteEvents.length===1?'':'en'}</small></div><div className="event-center-actions"><button type="button" className="primary event-new-button" onClick={startNewEvent}><CalendarRange size={15}/> Neu</button><label className="event-center-sort"><ArrowUpDown size={14}/><span>Sortierung</span><select value={sortMode} onChange={(event:ValueEvent)=>setSortMode(event.target.value as EventSortMode)} aria-label="Events sortieren"><option value="chronological">Chronologisch</option><option value="favorites">Favoriten zuerst</option><option value="updated">Zuletzt geändert</option><option value="title">Titel A–Z</option></select></label><button type="button" className="secondary" onClick={()=>void refreshStoredEvents(true)} disabled={bulkRefreshing||!favoriteEvents.length}>{bulkRefreshing?<RefreshCw className="spin" size={15}/>:<BellRing size={15}/>} Favoriten</button><button type="button" className="secondary" onClick={()=>void refreshStoredEvents(false)} disabled={bulkRefreshing||!savedEvents.length}>{bulkRefreshing?<RefreshCw className="spin" size={15}/>:<RefreshCw size={15}/>} Alle</button><AppInfoHint label="Informationen zum Event-Center"><strong>Event-Center</strong><p>Standardmäßig chronologisch. Die Karten zeigen zuerst nur Termin, Ort und meteorologische Eckdaten. Aufklappen liefert eine Kurzbewertung; „Details & Ratschläge“ öffnet die vollständige Auswertung.</p></AppInfoHint></div></header>
+   <header><div><span>EVENT-CENTER</span><h5>Kompakte Übersicht</h5><small>{savedEvents.length} gespeichert · {favoriteEvents.length} Favorit{favoriteEvents.length===1?'':'en'}</small></div><div className="event-center-actions"><button type="button" className="primary event-new-button" onClick={startNewEvent}><CalendarRange size={15}/> Neu</button><label className="event-center-sort"><ArrowUpDown size={14}/><span>Sortierung</span><select value={sortMode} onChange={(event:ValueEvent)=>setSortMode(event.target.value as EventSortMode)} aria-label="Events sortieren"><option value="chronological">Chronologisch</option><option value="favorites">Favoriten zuerst</option><option value="updated">Zuletzt geändert</option><option value="title">Titel A–Z</option></select></label><button type="button" className="secondary" onClick={()=>void refreshStoredEvents(true,false,'overview')} disabled={bulkRefreshing||!favoriteEvents.length}>{bulkRefreshing?<RefreshCw className="spin" size={15}/>:<BellRing size={15}/>} Favoriten</button><button type="button" className="secondary" onClick={()=>void refreshStoredEvents(false,false,'overview')} disabled={bulkRefreshing||!savedEvents.length}>{bulkRefreshing?<RefreshCw className="spin" size={15}/>:<RefreshCw size={15}/>} Alle</button><AppInfoHint label="Informationen zum Event-Center"><strong>Event-Center</strong><p>Standardmäßig chronologisch. Die Karten zeigen zuerst nur Termin, Ort und meteorologische Eckdaten. Aufklappen liefert eine Kurzbewertung; „Details & Ratschläge“ öffnet die vollständige Auswertung.</p></AppInfoHint></div></header>
    {savedEvents.length?<div className="event-center-grid compact">{displayedEvents.map(record=>{const active=record.id===selectedRecordId||record.id===currentSavedRecord?.id,recordPlan=record.plan,refreshing=refreshingIds.includes(record.id);return <article key={record.id} className={`event-center-card compact${active?' active':''}`}>
     <button type="button" className={`event-center-favorite${record.isFavorite?' active':''}`} onClick={()=>toggleFavorite(record)} aria-label={record.isFavorite?'Favorit entfernen':'Als Favorit markieren'} title={record.isFavorite?'Favorit entfernen':'Als Favorit markieren'}><Star size={15} fill={record.isFavorite?'currentColor':'none'}/></button>
     <details className="event-center-card-disclosure">
@@ -424,7 +456,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
      <div className="event-center-card-details">
       <div className="event-center-card-weather"><WeatherPictogram code={recordPlan?.summary.weatherCode??0} day title={label(recordPlan?.summary.weatherCode??0)}/><div><b>{recordPlan?.advice.headline||'Noch keine Analyse'}</b><span>{recordPlan?.advice.summary||destinationLabel(record.location)}</span></div></div>
       {record.change?.level&&record.change.level!=='none'?<div className={`event-center-change ${record.change.level}`}><BellRing size={14}/><span>{record.change.summary}</span></div>:null}
-      <footer><button type="button" className="primary" onClick={()=>loadRecord(record,'detail')}><ShieldCheck size={15}/> Details & Ratschläge</button><button type="button" className="secondary" onClick={()=>loadRecord(record,'editor')}><Pencil size={15}/> Bearbeiten</button><button type="button" className="secondary icon-only" onClick={()=>void refreshStoredEvent(record)} disabled={refreshing} aria-label="Event aktualisieren" title="Aktualisieren">{refreshing?<RefreshCw className="spin" size={15}/>:<RefreshCw size={15}/>}</button><button type="button" className="secondary danger-lite icon-only" onClick={()=>removeRecord(record)} aria-label="Event löschen" title="Löschen"><Trash2 size={15}/></button></footer>
+      <footer><button type="button" className="primary" onClick={()=>loadRecord(record,'detail')}><ShieldCheck size={15}/> Details & Ratschläge</button><button type="button" className="secondary" onClick={()=>loadRecord(record,'editor')}><Pencil size={15}/> Bearbeiten</button><button type="button" className="secondary icon-only" onClick={()=>void refreshStoredEvent(record,false,false,'overview')} disabled={refreshing} aria-label="Event aktualisieren" title="Aktualisieren">{refreshing?<RefreshCw className="spin" size={15}/>:<RefreshCw size={15}/>}</button><button type="button" className="secondary danger-lite icon-only" onClick={()=>removeRecord(record)} aria-label="Event löschen" title="Löschen"><Trash2 size={15}/></button></footer>
      </div>
     </details>
    </article>})}</div>:<div className="event-center-empty"><CalendarRange size={18}/><span>Noch keine Events gespeichert.</span><button type="button" className="primary" onClick={startNewEvent}>Erstes Event anlegen</button></div>}
