@@ -10,6 +10,7 @@ const TRANSIENT_PREFIXES=[
  'mid:travel-climate:',
  'mid:travel-snow-depth:',
  'mid:forecast-fusion:',
+ 'mid:forecast-core:',
  'mid:icao-location-cache:',
  'mid:eea-station-cache:',
  'mid:thunder-place-cache:',

@@ -6,6 +6,7 @@ import {MID_VERSION as VERSION} from './version';
 import {formatDecimal,formatDecimalFixed} from './format';
 import {precipitationAmountLabel,precipitationParts} from './precipitation';
 import {displayTimeZone,formatDisplayDateTime} from './timeDisplay';
+import {guardedOpenMeteoFetch} from './openMeteoGuard';
 
 const LEVELS=[1000,975,950,925,900,850,800,700,600,500,400,300] as const;
 const UPPER_LEVELS=[250,200,150,100] as const;
@@ -73,7 +74,7 @@ async function loadMeteogram(lat:number,lon:number,elevation:number,model:string
  if(workerBaseCandidates('meteogram').length){try{return await fetchWorkerJson<MeteogramResponse>('meteogram',{lat,lon,elevation:Math.round(elevation),model,refresh:force?1:undefined},{purpose:'meteogram',signal,timeoutMs:16000,maxAgeMs:force?0:METEOGRAM_CACHE_TTL_MS,staleIfErrorMs:METEOGRAM_STALE_IF_ERROR_MS,cacheKey:`meteogram:${key}`})}catch(error){if(signal?.aborted)throw error}}
  if(!force&&cached&&age<=METEOGRAM_CACHE_TTL_MS)return cached.value;
  try{
-  const response=await fetch(directEndpoint(lat,lon,elevation,model).toString(),{signal,cache:force?'reload':'default'}),raw=await response.json().catch(()=>({}));if(!response.ok)throw new Error(raw?.error||raw?.reason||`Meteogramm HTTP ${response.status}`);const result=raw?.data?raw as MeteogramResponse:{data:raw as MeteogramRaw,requestedModel:model,modelLabel:model==='best_match'?'Best Match':MODELS.find(item=>item.id===model)?.label,forecastHours:MODELS.find(item=>item.id===model)?.hours??168,checkedAt:new Date().toISOString(),version:VERSION};rememberDirectMeteogram(key,result);return result;
+  const response=await guardedOpenMeteoFetch(directEndpoint(lat,lon,elevation,model).toString(),{signal,cache:force?'reload':'default'},{priority:'normal'}),raw=await response.json().catch(()=>({}));if(!response.ok)throw new Error(raw?.error||raw?.reason||`Meteogramm HTTP ${response.status}`);const result=raw?.data?raw as MeteogramResponse:{data:raw as MeteogramRaw,requestedModel:model,modelLabel:model==='best_match'?'Best Match':MODELS.find(item=>item.id===model)?.label,forecastHours:MODELS.find(item=>item.id===model)?.hours??168,checkedAt:new Date().toISOString(),version:VERSION};rememberDirectMeteogram(key,result);return result;
  }catch(error){if(signal?.aborted)throw error;if(cached&&age<=METEOGRAM_STALE_IF_ERROR_MS)return cached.value;throw error}
 }
 function normalize(raw:MeteogramRaw,elevationInput:number,maxHours=168):Normalized{

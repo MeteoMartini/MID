@@ -43,7 +43,9 @@ try{
  if(compile.status!==0)failures.push(`TypeScript: ${compile.stdout||compile.stderr}`);
  else{
   const compiledPath=path.join(compileDir,'travelPlanner.js');
-  const compiledSource=(await readFile(compiledPath,'utf8')).replace("from './cachePolicy'","from './cachePolicy.js'");
+  const compiledSource=(await readFile(compiledPath,'utf8'))
+   .replace("from './cachePolicy'","from './cachePolicy.js'")
+   .replace("from './openMeteoGuard'","from './openMeteoGuard.js'");
   await writeFile(compiledPath,compiledSource);
   const module=await import(`${pathToFileURL(compiledPath).href}?v=${Date.now()}`);
   let fetchCount=0,lastUrl='';

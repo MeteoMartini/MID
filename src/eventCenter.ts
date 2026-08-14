@@ -1,6 +1,7 @@
 import type {BestMatchModelInfo,Location} from './weather'
 import type {EventFlightHazardSummary} from './eventAviation'
 import {readDurableStorageValue,writeDurableStorageValue} from './storageSafety'
+import {mergeEventFavoritePreference} from './eventFavoriteState'
 
 export type EventEnvironment='indoor'|'outdoor'|'covered'
 export type EventActivity='general'|'running'|'cycling'|'hiking'|'skiing'|'climbing'|'football'|'tennis'|'golf'|'gym'|'yoga'|'watersports'|'city'|'concert'|'flight'
@@ -11,7 +12,7 @@ export type EventAdvice={status:EventStatus;headline:string;summary:string;tips:
 export type EventPlan={location:Location;title:string;date:string;startTime:string;endTime:string;environment:EventEnvironment;activity:EventActivity;timeline:EventTimelinePoint[];summary:EventSummary;advice:EventAdvice;modelInfo:BestMatchModelInfo|null;refreshedAt:number;source:string;sourceRevisionAt?:number;refreshStartedAt?:number;refreshReason?:string}
 export type EventChangeLevel='none'|'model'|'minor'|'major'
 export type EventChangeMeta={level:EventChangeLevel;badge:string;summary:string;updatedAt:number;modelSignature:string;conditionsSignature:string;runHeadline:string}
-export type EventCenterRecord={id:string;title:string;location:Location;date:string;startTime:string;endTime:string;environment:EventEnvironment;activity:EventActivity;isFavorite:boolean;createdAt:number;updatedAt:number;lastOpenedAt:number;plan:EventPlan|null;change:EventChangeMeta|null}
+export type EventCenterRecord={id:string;title:string;location:Location;date:string;startTime:string;endTime:string;environment:EventEnvironment;activity:EventActivity;isFavorite:boolean;favoriteUpdatedAt?:number;createdAt:number;updatedAt:number;lastOpenedAt:number;plan:EventPlan|null;change:EventChangeMeta|null}
 
 export const EVENT_CENTER_STORAGE_KEY='mid:event-center:v1'
 export const EVENT_CENTER_UPDATED_EVENT='mid:event-center-updated'
@@ -126,7 +127,8 @@ export function normalizeEventCenterRecord(value:unknown):EventCenterRecord|null
  const normalizedSummary=rawChange?normalizeLegacyChangeSummary(String(rawChange.summary||'')):''
  const legacyNonMaterial=Boolean(rawChange&&(rawChange.level==='model'||/Event neu gespeichert|Kleinere Anpassungen im Zeitfenster|Neuer Modelllauf ohne relevante Abweichung/i.test(normalizedSummary)))
  const change=rawChange?{...rawChange,level:legacyNonMaterial?'none':rawChange.level,badge:legacyNonMaterial?'Stabil':rawChange.badge,summary:legacyNonMaterial?'Meteorologische Eckdaten im bisherigen Erwartungsbereich.':normalizedSummary}:null
- return{ id,title,location,date,startTime,endTime,environment,activity,isFavorite:Boolean(record.isFavorite),createdAt:safeNumber(record.createdAt as number|undefined,Date.now()),updatedAt:safeNumber(record.updatedAt as number|undefined,Date.now()),lastOpenedAt:safeNumber(record.lastOpenedAt as number|undefined,0),plan:(record.plan??null) as EventPlan|null,change }
+ const createdAt=safeNumber(record.createdAt as number|undefined,Date.now()),isFavorite=Boolean(record.isFavorite),favoriteUpdatedAt=safeNumber(record.favoriteUpdatedAt as number|undefined,isFavorite?createdAt:0)
+ return{ id,title,location,date,startTime,endTime,environment,activity,isFavorite,favoriteUpdatedAt,createdAt,updatedAt:safeNumber(record.updatedAt as number|undefined,Date.now()),lastOpenedAt:safeNumber(record.lastOpenedAt as number|undefined,0),plan:(record.plan??null) as EventPlan|null,change }
 }
 
 export function readEventCenterRecords(){
@@ -147,12 +149,12 @@ export function eventPlanFreshness(plan:EventPlan|null|undefined){const refreshe
 export function compareEventPlanFreshness(left:EventPlan|null|undefined,right:EventPlan|null|undefined){const a=eventPlanFreshness(left),b=eventPlanFreshness(right);if(a.transactionAt!==b.transactionAt)return a.transactionAt-b.transactionAt;if(a.refreshedAt!==b.refreshedAt)return a.refreshedAt-b.refreshedAt;if(a.sourceRevision!==b.sourceRevision)return a.sourceRevision-b.sourceRevision;return 0}
 export function upsertEventCenterRecord(record:EventCenterRecord){
  const current=readEventCenterRecords(),index=current.findIndex(item=>item.id===record.id)
- if(index>=0){const existing=current[index];current[index]=existing.plan&&record.plan&&compareEventPlanFreshness(existing.plan,record.plan)>0?{...record,updatedAt:Math.max(Number(record.updatedAt)||0,Number(existing.updatedAt)||0),plan:existing.plan,change:existing.change}:record}
+ if(index>=0){const existing=current[index],favorite=mergeEventFavoritePreference(existing,record),base=existing.plan&&record.plan&&compareEventPlanFreshness(existing.plan,record.plan)>0?{...record,updatedAt:Math.max(Number(record.updatedAt)||0,Number(existing.updatedAt)||0),plan:existing.plan,change:existing.change}:record;current[index]={...base,...favorite}}
  else current.unshift(record)
  return writeEventCenterRecords(current)
 }
 export function deleteEventCenterRecord(id:string){return writeEventCenterRecords(readEventCenterRecords().filter(item=>item.id!==id))}
-export function toggleEventCenterFavorite(id:string){return writeEventCenterRecords(readEventCenterRecords().map(item=>item.id===id?{...item,isFavorite:!item.isFavorite,updatedAt:Date.now()}:item))}
+export function toggleEventCenterFavorite(id:string){const at=Date.now();return writeEventCenterRecords(readEventCenterRecords().map(item=>item.id===id?{...item,isFavorite:!item.isFavorite,favoriteUpdatedAt:at,updatedAt:at}:item))}
 export function markEventCenterOpened(id:string){return writeEventCenterRecords(readEventCenterRecords().map(item=>item.id===id?{...item,lastOpenedAt:Date.now(),change:item.change?{...item.change,level:'none',badge:'Gesehen'}:item.change}:item))}
 export function buildEventCenterId(location:Location,date:string,startTime:string,title:string){
  const slug=`${String(title||location.name||'event').trim().toLowerCase().replace(/[^a-z0-9äöüß]+/gi,'-').replace(/^-+|-+$/g,'').slice(0,42)||'event'}`

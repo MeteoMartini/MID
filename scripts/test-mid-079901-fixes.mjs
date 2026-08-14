@@ -26,7 +26,7 @@ for(const token of [
  "if(/mid|middle|mittel|intermediate|zwischen/.test(role))return'middle'"
 ])requireToken('Skigebietsprofil',mountainSource,token);
 
-const mountainJs=ts.transpileModule(mountainSource.replace("import {fetchWorkerJson} from './workerClient';","const fetchWorkerJson=async()=>({});"),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText;
+const mountainJs=ts.transpileModule(mountainSource.replace("import {fetchWorkerJson} from './workerClient';","const fetchWorkerJson=async()=>({});").replace("import {guardedOpenMeteoFetch,guardedOpenMeteoJson} from './openMeteoGuard';","const guardedOpenMeteoFetch=async()=>new Response('{}',{status:200}); const guardedOpenMeteoJson=async()=>({});"),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText;
 const mountain=await import(`data:text/javascript;base64,${Buffer.from(mountainJs).toString('base64')}`);
 const loc={id:1,name:'Sölden',latitude:46.969,longitude:11.010,elevation:1377};
 const candidate=(name,elevation,latitude,longitude,distanceM,kind='lift-end',role=undefined,liftId=undefined)=>({name,elevation,latitude,longitude,distanceM,kind,role,liftId,source:'Test'});

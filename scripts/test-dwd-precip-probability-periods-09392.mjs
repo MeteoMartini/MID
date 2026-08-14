@@ -19,6 +19,8 @@ need('6-h-Starkmengenschwelle',weather,'weightedProbability(values,DWD_SIGNIFICA
 need('Peakfenster',weather,'peakDwdPrecipitationProbabilityWindow');
 need('Erhöhtes Fenster',weather,'elevatedDwdPrecipitationProbabilityWindow');
 need('Kompakt exklusiv',weather,"if(day.probabilitySource==='ensemble-members-dwd')return elevated?`${precipitationProbabilityWindowCompactLabel(elevated)} · ${Math.round(elevated.probability)}%`:`00–24h · ${primary}%`");
+need('Null ohne Zeitfenster',weather,"if(primary<=0)return'0%'");
+need('Deutlicher Schwerpunkt',weather,'highest-second>=15&&highest-restMean>=20');
 need('Fallback-Semantik',weather,'return `max. Std. ${primary}%`');
 need('Fallback-Erklärung',weather,'keine aus Ensemble-Membern berechnete DWD-Ereigniswahrscheinlichkeit für 6 h oder 00–24 h');
 forbid('Kein falscher Tagesfallback',weather,'return `Tageswahrscheinlichkeit ${probability}');

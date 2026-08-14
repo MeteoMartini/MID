@@ -1,11 +1,13 @@
 import {ensembles,forecast,mapDays,mapHours,type EnsembleDay,type Location} from './weather';
 import {recordForecastCapture,refreshForecastReferences,restoreForecastVerificationArchive} from './forecastVerification';
+import {isOpenMeteoRateLimitError} from './openMeteoGuard';
 
 const LAST_SUCCESS_PREFIX='mid:twin-background-success:';
 const LAST_ATTEMPT_PREFIX='mid:twin-background-attempt:';
 const STATUS_KEY='mid:twin-background-status';
 const SUCCESS_COOLDOWN_MS=6*3600000;
 const FAILURE_COOLDOWN_MS=45*60000;
+const BETWEEN_FAVORITES_MS=3500;
 
 export type TwinBackgroundLearningStatus={
  running:boolean;
@@ -35,14 +37,14 @@ export async function learnWeatherTwinsForFavorites(locations:Location[],activeL
   if(signal?.aborted)throw abortError();const key=locationKey(location),label=locationLabel(location);writeNumber(`${LAST_ATTEMPT_PREFIX}${key}`,Date.now());status.current=label;status.message=`Wetterzwilling für ${label} wird aktualisiert.`;writeStatus({...status});
   try{
    await restoreForecastVerificationArchive(key);
-   const weather=await forecast(location.latitude,location.longitude,signal),learningLocation:Location={...location,timezone:weather.timezone||location.timezone,elevation:Number.isFinite(location.elevation)?location.elevation:weather.elevation},days=mapDays(weather),hours=mapHours(weather);
-   let ensembleDays:EnsembleDay[]=[];try{ensembleDays=(await ensembles(location.latitude,location.longitude,signal)).days}catch{ensembleDays=[]}
+   const weather=await forecast(location.latitude,location.longitude,signal,{priority:'background'}),learningLocation:Location={...location,timezone:weather.timezone||location.timezone,elevation:Number.isFinite(location.elevation)?location.elevation:weather.elevation},days=mapDays(weather),hours=mapHours(weather);
+   let ensembleDays:EnsembleDay[]=[];try{ensembleDays=(await ensembles(location.latitude,location.longitude,signal,'background')).days}catch(error){if(isOpenMeteoRateLimitError(error))throw error;ensembleDays=[]}
    recordForecastCapture(key,days,ensembleDays,learningLocation,hours);
-   try{await refreshForecastReferences(key,learningLocation,signal)}catch{}
+   try{await refreshForecastReferences(key,learningLocation,signal)}catch(error){if(isOpenMeteoRateLimitError(error))throw error}
    writeNumber(`${LAST_SUCCESS_PREFIX}${key}`,Date.now());status.succeeded++;
-  }catch(error){if(signal?.aborted){removeKey(`${LAST_ATTEMPT_PREFIX}${key}`);throw error}status.failed++}
+  }catch(error){if(signal?.aborted){removeKey(`${LAST_ATTEMPT_PREFIX}${key}`);throw error}status.failed++;if(isOpenMeteoRateLimitError(error)){status.completed++;const deferred=Math.max(0,status.total-status.completed);const finalStatus={...status,running:false,current:undefined,lastRunAt:Date.now(),message:`Wetterdienst schützt vor zu vielen Abrufen. ${deferred?`${deferred} Favoriten werden später weitergeführt.`:'Der Favoritenabgleich wird später erneut versucht.'}`};writeStatus(finalStatus);return finalStatus}}
   status.completed++;status.message=`${status.completed} von ${status.total} Favoriten verarbeitet.`;writeStatus({...status});
-  if(status.completed<status.total)await delay(650,signal);
+  if(status.completed<status.total)await delay(BETWEEN_FAVORITES_MS,signal);
  }
  const finalStatus={...status,running:false,current:undefined,lastRunAt:Date.now(),message:status.failed?`${status.succeeded} Favoriten aktualisiert, ${status.failed} vorübergehend nicht erreichbar.`:`Alle ${status.succeeded} Favoriten wurden aktualisiert.`};writeStatus(finalStatus);return finalStatus;
 }

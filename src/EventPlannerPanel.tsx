@@ -117,6 +117,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
  const selectedRecordIdRef=useRef(selectedRecordId)
  const editingRecordIdRef=useRef(editingRecordId)
  const searchController=useRef<AbortController|null>(null)
+ const searchDebounce=useRef(0)
  const analysisController=useRef<AbortController|null>(null)
  const forecastWindowHint=`Vorhersage aktuell bis ${formatDate(addDays(localToday(),13))}`
  const currentEventId=buildEventCenterId(destination,date,startTime,title.trim()||destination.name)
@@ -125,7 +126,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
  const currentSavedRecord=editingRecord||(selectedRecord?.id===currentEventId?selectedRecord:null)||savedEvents.find(item=>item.id===currentEventId)||null
  const displayedEvents=useMemo(()=>sortEvents(savedEvents,sortMode),[savedEvents,sortMode])
 
- useEffect(()=>()=>{searchController.current?.abort();analysisController.current?.abort()},[])
+ useEffect(()=>()=>{window.clearTimeout(searchDebounce.current);searchController.current?.abort();analysisController.current?.abort()},[])
  useEffect(()=>{savedEventsRef.current=savedEvents},[savedEvents])
  useEffect(()=>{selectedRecordIdRef.current=selectedRecordId},[selectedRecordId])
  useEffect(()=>{editingRecordIdRef.current=editingRecordId},[editingRecordId])
@@ -140,11 +141,18 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
   window.addEventListener('storage',sync)
   return()=>{window.removeEventListener(EVENT_CENTER_UPDATED_EVENT,sync);if(!backgroundOnly)window.removeEventListener(EVENT_CENTER_OPEN_EVENT,openSaved as EventListener);window.removeEventListener('storage',sync)}
  },[backgroundOnly])
-
- async function runSearch(event:FormEvent){
-  event.preventDefault()
+ useEffect(()=>{
+  window.clearTimeout(searchDebounce.current)
+  searchController.current?.abort()
+  if(!locationSearchOpen){setSearching(false);return}
   const value=query.trim()
-  if(value.length<2){setSearchError('Bitte mindestens zwei Zeichen eingeben.');return}
+  if(value.length<2){setSearching(false);setSearchResults([]);setSearchError('');return}
+  const debounceMs=/^\d{2,8}$/.test(value)?45:80
+  searchDebounce.current=window.setTimeout(()=>{searchDebounce.current=0;void executeLocationSearch(value)},debounceMs)
+  return()=>window.clearTimeout(searchDebounce.current)
+ },[query,locationSearchOpen])
+
+ async function executeLocationSearch(value:string){
   searchController.current?.abort()
   const controller=new AbortController()
   searchController.current=controller
@@ -152,12 +160,20 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
   setSearchError('')
   try{
    const results=await searchLocations(value,controller.signal)
+   if(searchController.current!==controller||controller.signal.aborted)return
    setSearchResults(results)
-   if(!results.length)setSearchError('Kein passender Ort gefunden.')
-  }catch(reason){if(!controller.signal.aborted)setSearchError(reason instanceof Error?reason.message:'Ortssuche fehlgeschlagen.')}
+   if(!results.length)setSearchError('Kein passender Ort oder POI gefunden.')
+  }catch(reason){if(!controller.signal.aborted&&searchController.current===controller)setSearchError(reason instanceof Error?reason.message:'Ortssuche fehlgeschlagen.')}
   finally{if(searchController.current===controller&&!controller.signal.aborted)setSearching(false)}
  }
- function chooseLocation(location:Location){setDestination(location);setSearchResults([]);setQuery('');setSearchError('');storageSet(EVENT_LOCATION_KEY,JSON.stringify(location))}
+ function runSearch(event:FormEvent){
+  event.preventDefault()
+  window.clearTimeout(searchDebounce.current);searchDebounce.current=0
+  const value=query.trim()
+  if(value.length<2){searchController.current?.abort();setSearching(false);setSearchResults([]);setSearchError('Bitte mindestens zwei Zeichen eingeben.');return}
+  void executeLocationSearch(value)
+ }
+ function chooseLocation(location:Location){window.clearTimeout(searchDebounce.current);searchController.current?.abort();setSearching(false);setDestination(location);setSearchResults([]);setQuery('');setSearchError('');storageSet(EVENT_LOCATION_KEY,JSON.stringify(location))}
  async function buildPlan(location:Location,eventDate:string,eventStartTime:string,eventEndTime:string,eventEnvironment:EventEnvironment,eventActivity:EventActivity,eventTitle:string,signal:AbortSignal,forceFresh=false){
   return buildEventPlan({location,eventDate,eventStartTime,eventEndTime,eventEnvironment,eventActivity,eventTitle,signal,forceFresh,canonical:{initialLocation,hours:canonicalHours,fusion:canonicalFusion,weatherTwinApplied:canonicalWeatherTwinApplied}})
  }
@@ -171,6 +187,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
   const id=editingRecordId||currentSavedRecord?.id||buildEventCenterId(nextPlan.location,nextPlan.date,nextPlan.startTime,nextPlan.title||nextPlan.location.name)
   const previous=readEventCenterRecords().find(item=>item.id===id)??savedEvents.find(item=>item.id===id)??null
   const change=compareEventPlans(previous?.plan,nextPlan)
+  const isFavorite=forceFavorite??previous?.isFavorite??Boolean(currentSavedRecord?.isFavorite),favoriteChanged=previous?previous.isFavorite!==isFavorite:false
   const record:EventCenterRecord={
    id,
    title:nextPlan.title.trim()||nextPlan.location.name,
@@ -180,7 +197,8 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
    endTime:nextPlan.endTime,
    environment:nextPlan.environment,
    activity:nextPlan.activity,
-   isFavorite:forceFavorite??previous?.isFavorite??Boolean(currentSavedRecord?.isFavorite),
+   isFavorite,
+   favoriteUpdatedAt:favoriteChanged||(!previous&&isFavorite)?Date.now():previous?.favoriteUpdatedAt,
    createdAt:previous?.createdAt??Date.now(),
    updatedAt:Date.now(),
    lastOpenedAt:Date.now(),
@@ -288,7 +306,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
  const favoriteEvents=savedEvents.filter(item=>item.isFavorite)
 
  return <section className="event-planner">
-  <header className="event-planner-head"><div><span>EVENTPLANER</span><h4>Events & Aktivitäten</h4><p>Termin anlegen, Wetterlage erfassen und relevante Hinweise schnell abrufen.</p></div><div className="event-head-actions"><span className="travel-climate-badge">{forecastWindowHint}</span><AppInfoHint label="Informationen zum Eventplaner" width={390}><strong>Eventplaner</strong><p>MID verwendet dieselben plausibilisierten Wetterpfade, Einheiten und Qualitätsregeln wie die übrige App. Gespeicherte Events werden nur bei relevanten Wetteränderungen hervorgehoben; ein neuer Modelllauf allein erzeugt keine Warnmarkierung.</p><p>Flugwetter-Hazards sind automatisierte MID-Diagnosen und keine amtliche Flugwetterberatung.</p></AppInfoHint></div></header>
+  <header className="event-planner-head"><div><span>EVENTPLANER</span><h4>Events & Aktivitäten</h4><p>Termin anlegen, Wetterlage erfassen und relevante Hinweise schnell abrufen.</p></div><div className="event-head-actions"><span className="travel-climate-badge">{forecastWindowHint}</span><AppInfoHint label="Informationen zum Eventplaner" width={390}><strong>Eventplaner</strong><p>MID verwendet dieselben plausibilisierten Wetterpfade, Einheiten und Qualitätsregeln wie die übrige App. Gespeicherte Events werden nur bei relevanten Wetteränderungen hervorgehoben; ein neuer Modelllauf allein erzeugt keine Warnmarkierung.</p><p>Event-Favoriten sind vollständig unabhängig von den normalen Ortsfavoriten. Derselbe Ort kann gleichzeitig Ortsfavorit und Event-Favorit sein; das Ändern des einen Status verändert den anderen nicht.</p><p>Flugwetter-Hazards sind automatisierte MID-Diagnosen und keine amtliche Flugwetterberatung.</p></AppInfoHint></div></header>
 
   <nav className="event-workspace-nav" aria-label="Eventplaner-Bereiche">
    <button type="button" className={workspaceView==='overview'?'active':''} onClick={()=>setWorkspaceView('overview')}><span>Übersicht</span><small>{savedEvents.length} gespeichert</small></button>
@@ -299,7 +317,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
   {workspaceView==='overview'&&<section className="event-center-shelf">
    <header><div><span>EVENT-CENTER</span><h5>Kompakte Übersicht</h5><small>{savedEvents.length} gespeichert · {favoriteEvents.length} Favorit{favoriteEvents.length===1?'':'en'}</small></div><div className="event-center-actions"><button type="button" className="primary event-new-button" onClick={startNewEvent}><CalendarRange size={15}/> Neu</button><label className="event-center-sort"><ArrowUpDown size={14}/><span>Sortierung</span><select value={sortMode} onChange={(event:ValueEvent)=>setSortMode(event.target.value as EventSortMode)} aria-label="Events sortieren"><option value="chronological">Chronologisch</option><option value="favorites">Favoriten zuerst</option><option value="updated">Zuletzt geändert</option><option value="title">Titel A–Z</option></select></label><button type="button" className="secondary" onClick={()=>void refreshStoredEvents(true,false,'overview')} disabled={bulkRefreshing||!favoriteEvents.length}>{bulkRefreshing?<RefreshCw className="spin" size={15}/>:<BellRing size={15}/>} Favoriten</button><button type="button" className="secondary" onClick={()=>void refreshStoredEvents(false,false,'overview')} disabled={bulkRefreshing||!savedEvents.length}>{bulkRefreshing?<RefreshCw className="spin" size={15}/>:<RefreshCw size={15}/>} Alle</button><AppInfoHint label="Informationen zum Event-Center"><strong>Event-Center</strong><p>Standardmäßig chronologisch. Die Karten zeigen zuerst nur Termin, Ort und meteorologische Eckdaten. Aufklappen liefert eine Kurzbewertung; „Details & Ratschläge“ öffnet die vollständige Auswertung.</p></AppInfoHint></div></header>
    {savedEvents.length?<div className="event-center-grid compact">{displayedEvents.map(record=>{const active=record.id===selectedRecordId||record.id===currentSavedRecord?.id,recordPlan=record.plan,refreshing=refreshingIds.includes(record.id);return <article key={record.id} className={`event-center-card compact${active?' active':''}`}>
-    <button type="button" className={`event-center-favorite${record.isFavorite?' active':''}`} onClick={()=>toggleFavorite(record)} aria-label={record.isFavorite?'Favorit entfernen':'Als Favorit markieren'} title={record.isFavorite?'Favorit entfernen':'Als Favorit markieren'}><Star size={15} fill={record.isFavorite?'currentColor':'none'}/></button>
+    <button type="button" className={`event-center-favorite${record.isFavorite?' active':''}`} onClick={()=>toggleFavorite(record)} aria-label={record.isFavorite?'Event-Favorit entfernen':'Als Event-Favorit markieren'} title={record.isFavorite?'Event-Favorit entfernen':'Als Event-Favorit markieren'}><Star size={15} fill={record.isFavorite?'currentColor':'none'}/></button>
     <details className="event-center-card-disclosure">
      <summary>
       <span className="event-center-card-overview">
@@ -321,7 +339,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
   {workspaceView==='editor'&&<section className="event-editor-stack">
    <div className="event-planner-card compact-location-card">
     <div className="event-selected-destination compact"><MapPin size={17}/><span><small>Event-Ort</small><strong>{destinationLabel(destination)}</strong><em>{selectedEnvironment.label} · {selectedActivity.label}</em></span><div className="event-location-actions"><button type="button" className="secondary" onClick={()=>setLocationSearchOpen(value=>!value)}><Search size={15}/>{locationSearchOpen?'Suche schließen':'Ort ändern'}</button><button type="button" className="secondary icon-only" onClick={()=>{chooseLocation(initialLocation);setLocationSearchOpen(false)}} aria-label="MID-Ort übernehmen" title="MID-Ort"><MapPin size={15}/></button></div></div>
-    {locationSearchOpen&&<div className="event-location-search-panel"><form className="travel-location-search compact" onSubmit={runSearch}><label><span>Anderen Ort suchen</span><div><Search size={16}/><input value={query} onChange={(event:ValueEvent)=>setQuery(event.target.value)} placeholder="Ort, Venue oder ICAO" autoFocus/></div></label><button type="submit" className="secondary" disabled={searching}>{searching?<RefreshCw className="spin" size={16}/>:<Search size={16}/>} Suchen</button></form>{searchError&&<small className="travel-search-error">{searchError}</small>}{searchResults.length>0&&<div className="travel-search-results" role="listbox" aria-label="Event-Orte">{searchResults.slice(0,8).map(location=><button type="button" key={`${location.id}:${location.latitude}:${location.longitude}`} onClick={()=>{chooseLocation(location);setLocationSearchOpen(false)}}><MapPin size={15}/><span><strong>{location.icao?`${location.icao} · ${location.name}`:location.name}</strong><small>{[location.poiCategory,location.admin1,location.country].filter(Boolean).join(' · ')||`${formatNumber(location.latitude,2)}°, ${formatNumber(location.longitude,2)}°`}</small></span></button>)}</div>}</div>}
+    {locationSearchOpen&&<div className="event-location-search-panel"><form className="travel-location-search compact" onSubmit={runSearch}><label><span>Anderen Ort suchen</span><div><Search size={16}/><input type="search" inputMode="search" enterKeyHint="search" autoCapitalize="none" autoCorrect="off" spellCheck={false} autoComplete="off" value={query} onChange={(event:ValueEvent)=>setQuery(event.target.value)} placeholder="Ort, PLZ, ICAO oder POI" aria-label="Event-Ort suchen" aria-busy={searching} autoFocus/></div></label><button type="submit" className="secondary" disabled={searching||query.trim().length<2}>{searching?<RefreshCw className="spin" size={16}/>:<Search size={16}/>} Suchen</button></form>{searchError&&<small className="travel-search-error">{searchError}</small>}{searchResults.length>0&&<div className="travel-search-results" role="listbox" aria-label="Event-Orte">{searchResults.slice(0,8).map(location=><button type="button" key={`${location.id}:${location.latitude}:${location.longitude}`} onClick={()=>{chooseLocation(location);setLocationSearchOpen(false)}}><MapPin size={15}/><span><strong>{location.icao?`${location.icao} · ${location.name}`:location.name}</strong><small>{[location.poiCategory,location.admin1,location.country].filter(Boolean).join(' · ')||`${formatNumber(location.latitude,2)}°, ${formatNumber(location.longitude,2)}°`}</small></span></button>)}</div>}</div>}
    </div>
 
    <form className="event-plan-form compact" onSubmit={analyseEvent}>
@@ -349,7 +367,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
      <div className="event-guide-status-wrap"><div className={`event-status-badge ${plan.advice.status}`}>{plan.advice.status==='good'?<ShieldCheck size={16}/>:<ShieldAlert size={16}/>}<strong>{statusLabel(plan.advice.status)}</strong></div>{currentSavedRecord?.change&&currentSavedRecord.change.level!=='none'?<small className={`event-inline-update ${currentSavedRecord.change.level}`}>{currentSavedRecord.change.summary}</small>:null}</div>
     </div>
     <div className="event-guide-main">
-     <div className="event-guide-copy"><span>EVENT-CHECK</span><h5>{currentTitle}</h5><p>{destinationLabel(plan.location)}</p><strong>{plan.advice.headline}</strong><p>{plan.advice.summary}</p><div className="event-guide-inline-notes"><article><MapPin size={15}/><span>{timingHint}</span></article><article><BellRing size={15}/><span>Stand {lastUpdateText}</span></article></div><div className="event-result-toolbar"><button type="button" className="secondary" onClick={()=>currentSavedRecord?void analyseEvent(undefined,true,true):saveCurrentPlan(false)} disabled={loading}>{currentSavedRecord?<RefreshCw className={loading?'spin':undefined} size={15}/>:<Star size={15}/>} {currentSavedRecord?(loading?'Aktualisiere …':'Event aktualisieren'):'Event speichern'}</button>{currentSavedRecord?<button type="button" className="secondary" onClick={()=>toggleFavorite(currentSavedRecord)}><Star size={15} fill={currentSavedRecord.isFavorite?'currentColor':'none'}/>{currentSavedRecord.isFavorite?'Favorit entfernen':'Favorit'}</button>:<button type="button" className="secondary" onClick={()=>saveCurrentPlan(true)}><Star size={15}/>Als Favorit speichern</button>}</div></div>
+     <div className="event-guide-copy"><span>EVENT-CHECK</span><h5>{currentTitle}</h5><p>{destinationLabel(plan.location)}</p><strong>{plan.advice.headline}</strong><p>{plan.advice.summary}</p><div className="event-guide-inline-notes"><article><MapPin size={15}/><span>{timingHint}</span></article><article><BellRing size={15}/><span>Stand {lastUpdateText}</span></article></div><div className="event-result-toolbar"><button type="button" className="secondary" onClick={()=>currentSavedRecord?void analyseEvent(undefined,true,true):saveCurrentPlan(false)} disabled={loading}>{currentSavedRecord?<RefreshCw className={loading?'spin':undefined} size={15}/>:<Star size={15}/>} {currentSavedRecord?(loading?'Aktualisiere …':'Event aktualisieren'):'Event speichern'}</button>{currentSavedRecord?<button type="button" className="secondary" onClick={()=>toggleFavorite(currentSavedRecord)}><Star size={15} fill={currentSavedRecord.isFavorite?'currentColor':'none'}/>{currentSavedRecord.isFavorite?'Event-Favorit entfernen':'Event-Favorit'}</button>:<button type="button" className="secondary" onClick={()=>saveCurrentPlan(true)}><Star size={15}/>Als Event-Favorit speichern</button>}</div></div>
      <aside className="event-guide-weatherpanel"><small>Leitwetter</small><div className="event-guide-weatherrow"><WeatherPictogram code={plan.summary.weatherCode??0} day={plan.summary.isDay!==false} title={plan.summary.weatherLabel||label(plan.summary.weatherCode??0)}/><div><strong>{formatNumber(plan.summary.temperatureAvg)}°</strong><span>{plan.summary.weatherLabel||label(plan.summary.weatherCode??0)}</span></div></div><p>{outfitHint}</p><div className="event-guide-quickstats"><span><EventSummaryPrecipitationIcon summary={plan.summary}/>{eventPrecipLabel(plan.summary)} · {formatNumber(eventPrecipProbability(plan.summary))} %</span><span><Wind size={14}/>{wind(plan.summary.windMax??Number.NaN,unit)} · G {wind(plan.summary.gustMax??Number.NaN,unit)}</span><span><Sun size={14}/>UVI {formatUvi(plan.summary.uvMax??Number.NaN)}</span></div></aside>
     </div>
    </div>

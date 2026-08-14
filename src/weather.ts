@@ -1,4 +1,6 @@
 import {fetchWorkerJson,workerBaseCandidates} from './workerClient';
+import {writeBoundedStorage} from './cachePolicy';
+import {guardedOpenMeteoJson,isOpenMeteoRateLimitError,type OpenMeteoPriority} from './openMeteoGuard';
 import {formatDecimal} from './format';
 import {formatDwdWarningDetailWithDirection,formatDwdWarningValue,summarizeDwdWarnings,type DwdWarningKind,type DwdWarningLevel} from './dwdWarnings';
 import {loadOperaRaster} from './CompositeData';
@@ -131,7 +133,7 @@ function ensembleCacheKey(lat:number,lon:number){return`${ENSEMBLE_CACHE_PREFIX}
 function readEnsembleCache(lat:number,lon:number){try{const raw=localStorage.getItem(ensembleCacheKey(lat,lon));if(!raw)return null;const parsed=JSON.parse(raw) as {created:number;days:EnsembleDay[];models:string[];runs:ModelRunMeta[];scenarios?:EnsembleScenarioCluster[]},ageMs=Date.now()-Number(parsed.created);if(!Array.isArray(parsed.days)||parsed.days.length<5||!parsed.days.every(day=>Array.isArray(day.precipitationProbabilityWindows)&&[day.cumulativePrecipitationMean,day.cumulativePrecipitationLow,day.cumulativePrecipitationHigh,day.cumulativePrecipitationQ25,day.cumulativePrecipitationQ75].every(Number.isFinite))||!Number.isFinite(ageMs)||ageMs<0||ageMs>24*3600000)return null;return{...parsed,scenarios:Array.isArray(parsed.scenarios)?parsed.scenarios:[],ageMs}}catch{return null}}
 function writeEnsembleCache(lat:number,lon:number,value:{days:EnsembleDay[];models:string[];runs:ModelRunMeta[];scenarios?:EnsembleScenarioCluster[]}){try{localStorage.setItem(ensembleCacheKey(lat,lon),JSON.stringify({created:Date.now(),...value}))}catch{}}
 
-async function j<T>(url:string,signal?:AbortSignal):Promise<T>{const r=await fetch(url,{signal,cache:'no-store'});if(!r.ok)throw new Error(`HTTP ${r.status}`);return r.json()}
+async function j<T>(url:string,signal?:AbortSignal,priority:OpenMeteoPriority='normal'):Promise<T>{if(/(?:^|\.)open-meteo\.com$/i.test(new URL(url).hostname))return guardedOpenMeteoJson<T>(url,{signal,cache:'no-store'},{priority});const r=await fetch(url,{signal,cache:'no-store'});if(!r.ok)throw new Error(`HTTP ${r.status}`);return r.json()}
 
 function parseLocalIso(value:string){const match=String(value||'').match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?/);if(!match)return null;return{year:Number(match[1]),month:Number(match[2]),day:Number(match[3]),hour:Number(match[4]),minute:Number(match[5]),second:Number(match[6]||0)}}
 function partsAtEpoch(epoch:number,timeZone:string){try{const parts=new Intl.DateTimeFormat('en-CA',{timeZone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(new Date(epoch)),get=(type:string)=>Number(parts.find(x=>x.type===type)?.value);const year=get('year'),month=get('month'),day=get('day'),hour=get('hour'),minute=get('minute'),second=get('second');return[year,month,day,hour,minute,second].every(Number.isFinite)?{year,month,day,hour,minute,second}:null}catch{return null}}
@@ -257,7 +259,16 @@ export async function reverseLocation(lat:number,lon:number,elevation?:number,si
   return{id:Date.now(),name,latitude:lat,longitude:lon,elevation,country:country||undefined,country_code:String(d.countryCode||'').toUpperCase()||undefined,city:city||undefined,locality:locality||undefined,admin1:admin1||undefined,admin2,postcodes:d.postcode?[String(d.postcode)]:undefined,autolocated:true};
  }catch{return{id:Date.now(),name:`${formatDecimal(lat,2,2)}°, ${formatDecimal(lon,2,2)}°`,latitude:lat,longitude:lon,elevation,autolocated:true}}
 }
-export async function forecast(lat:number,lon:number,signal?:AbortSignal){const p=new URLSearchParams({latitude:String(lat),longitude:String(lon),timezone:'auto',forecast_days:'14',forecast_minutely_15:'24',past_minutely_15:'4',models:'best_match',wind_speed_unit:'kn',current:['temperature_2m','relative_humidity_2m','dew_point_2m','apparent_temperature','is_day','precipitation','rain','showers','snowfall','weather_code','cloud_cover','cloud_cover_low','cloud_cover_mid','cloud_cover_high','pressure_msl','wind_speed_10m','wind_direction_10m','wind_gusts_10m','visibility','cape','sunshine_duration'].join(','),minutely_15:['precipitation_probability','precipitation','rain','showers','snowfall','weather_code','sunshine_duration'].join(','),hourly:['temperature_2m','relative_humidity_2m','dew_point_2m','apparent_temperature','precipitation_probability','precipitation','rain','showers','snowfall','weather_code','cloud_cover','cloud_cover_low','cloud_cover_mid','cloud_cover_high','pressure_msl','wind_speed_10m','wind_direction_10m','wind_gusts_10m','uv_index','visibility','cape','lifted_index','convective_inhibition','total_column_integrated_water_vapour','is_day','sunshine_duration'].join(','),daily:['weather_code','temperature_2m_max','temperature_2m_min','sunrise','sunset','precipitation_sum','rain_sum','showers_sum','snowfall_sum','precipitation_hours','precipitation_probability_max','wind_speed_10m_max','wind_gusts_10m_max','wind_direction_10m_dominant','uv_index_max','sunshine_duration'].join(',')});return j<Weather>(`https://api.open-meteo.com/v1/forecast?${p}`,signal)}
+const FORECAST_CORE_CACHE_PREFIX='mid:forecast-core:v1:';
+const FORECAST_CORE_FRESH_MS=8*60*1000;
+const FORECAST_CORE_STALE_MS=18*3600000;
+type ForecastRequestOptions={forceFresh?:boolean;priority?:OpenMeteoPriority};
+type ForecastCoreCache={time:number;value:Weather};
+function forecastCoreCacheKey(lat:number,lon:number){return`${FORECAST_CORE_CACHE_PREFIX}${Number(lat).toFixed(4)}:${Number(lon).toFixed(4)}`}
+function readForecastCoreCache(lat:number,lon:number){try{const raw=localStorage.getItem(forecastCoreCacheKey(lat,lon));if(!raw)return null;const parsed=JSON.parse(raw) as ForecastCoreCache,age=Date.now()-Number(parsed?.time);if(!parsed?.value||!Number.isFinite(age)||age<0||age>FORECAST_CORE_STALE_MS)return null;return{...parsed,age}}catch{return null}}
+function writeForecastCoreCache(lat:number,lon:number,value:Weather){try{writeBoundedStorage(localStorage,forecastCoreCacheKey(lat,lon),{time:Date.now(),value},[FORECAST_CORE_CACHE_PREFIX],8,FORECAST_CORE_STALE_MS)}catch{}}
+export async function forecast(lat:number,lon:number,signal?:AbortSignal,options:ForecastRequestOptions={}){const cached=readForecastCoreCache(lat,lon),priority=options.priority??'normal';if(!options.forceFresh&&cached&&cached.age<=FORECAST_CORE_FRESH_MS)return cached.value;const p=new URLSearchParams({latitude:String(lat),longitude:String(lon),timezone:'auto',forecast_days:'14',forecast_minutely_15:'24',past_minutely_15:'4',models:'best_match',wind_speed_unit:'kn',current:['temperature_2m','relative_humidity_2m','dew_point_2m','apparent_temperature','is_day','precipitation','rain','showers','snowfall','weather_code','cloud_cover','cloud_cover_low','cloud_cover_mid','cloud_cover_high','pressure_msl','wind_speed_10m','wind_direction_10m','wind_gusts_10m','visibility','cape','sunshine_duration'].join(','),minutely_15:['precipitation_probability','precipitation','rain','showers','snowfall','weather_code','sunshine_duration'].join(','),hourly:['temperature_2m','relative_humidity_2m','dew_point_2m','apparent_temperature','precipitation_probability','precipitation','rain','showers','snowfall','weather_code','cloud_cover','cloud_cover_low','cloud_cover_mid','cloud_cover_high','pressure_msl','wind_speed_10m','wind_direction_10m','wind_gusts_10m','uv_index','visibility','cape','lifted_index','convective_inhibition','total_column_integrated_water_vapour','is_day','sunshine_duration'].join(','),daily:['weather_code','temperature_2m_max','temperature_2m_min','sunrise','sunset','precipitation_sum','rain_sum','showers_sum','snowfall_sum','precipitation_hours','precipitation_probability_max','wind_speed_10m_max','wind_gusts_10m_max','wind_direction_10m_dominant','uv_index_max','sunshine_duration'].join(',')});try{const value=await j<Weather>(`https://api.open-meteo.com/v1/forecast?${p}`,signal,priority);writeForecastCoreCache(lat,lon,value);return value}catch(error){if(signal?.aborted)throw error;if(cached&&(isOpenMeteoRateLimitError(error)||priority==='foreground'))return cached.value;throw error}}
+
 export async function airQuality(lat:number,lon:number,signal?:AbortSignal){const p=new URLSearchParams({latitude:String(lat),longitude:String(lon),timezone:'auto',current:['european_aqi','european_aqi_pm2_5','european_aqi_pm10','european_aqi_nitrogen_dioxide','european_aqi_ozone','european_aqi_sulphur_dioxide','pm10','pm2_5','nitrogen_dioxide','sulphur_dioxide','ozone','uv_index'].join(',')});return j<{current?:Record<string,number|string>}>(`https://air-quality-api.open-meteo.com/v1/air-quality?${p}`,signal)}
 const EEA_STATION_DIRECT_ENDPOINTS=['https://air.discomap.eea.europa.eu/arcgis/rest/services/AirQuality/AirQualityDownloadServiceEUMonitoringStations/MapServer/0/query','https://eeha.discomap.eea.europa.eu/arcgis/rest/services/AirQuality/AirQualityDownloadServiceEUMonitoringStations/MapServer/0/query'];
 const EEA_STATION_CACHE_KEY='mid:eea-station-cache:v2';
@@ -745,7 +756,7 @@ export function applyEnsembleDailyPrecipitationProbability(days:Day[],ensemble:E
 
 export function peakDwdPrecipitationProbabilityWindow(windows?:PrecipitationProbabilityWindow[]){return [...(windows??[])].filter(window=>Number.isFinite(window.probability)&&window.memberCount>=2).sort((a,b)=>b.probability-a.probability||a.startHour-b.startHour)[0]}
 /** Für kompakte Tagesübersichten wird ein 6-h-Fenster nur dann hervorgehoben, wenn es gegenüber allen anderen Fenstern klar erhöht ist. */
-export function elevatedDwdPrecipitationProbabilityWindow(windows?:PrecipitationProbabilityWindow[]){const valid=(windows??[]).filter(window=>Number.isFinite(window.probability)&&window.memberCount>=2);if(valid.length<2)return undefined;const ranked=[...valid].sort((a,b)=>b.probability-a.probability||a.startHour-b.startHour),highest=Math.round(Math.max(0,Math.min(100,ranked[0].probability))),second=Math.round(Math.max(0,Math.min(100,ranked[1].probability)));return highest-second>=10?ranked[0]:undefined}
+export function elevatedDwdPrecipitationProbabilityWindow(windows?:PrecipitationProbabilityWindow[]){const valid=(windows??[]).filter(window=>Number.isFinite(window.probability)&&window.memberCount>=2);if(valid.length<2)return undefined;const ranked=[...valid].sort((a,b)=>b.probability-a.probability||a.startHour-b.startHour),highest=Math.round(Math.max(0,Math.min(100,ranked[0].probability))),second=Math.round(Math.max(0,Math.min(100,ranked[1].probability))),rest=ranked.slice(1).map(window=>Math.round(Math.max(0,Math.min(100,window.probability)))),restMean=rest.reduce((sum,value)=>sum+value,0)/Math.max(1,rest.length);return highest>0&&highest-second>=15&&highest-restMean>=20?ranked[0]:undefined}
 function precipitationProbabilityWindowLabel(window:PrecipitationProbabilityWindow){return `${String(window.startHour).padStart(2,'0')}–${String(window.endHour).padStart(2,'0')} h`}
 export function precipitationProbabilityWindowCompactLabel(window:PrecipitationProbabilityWindow){return `${String(window.startHour).padStart(2,'0')}–${String(window.endHour).padStart(2,'0')}h`}
 export function dwdPrecipitationProbabilityWindowsTitle(windows?:PrecipitationProbabilityWindow[]){return (windows??[]).filter(window=>Number.isFinite(window.probability)&&window.memberCount>=2).map(window=>`${precipitationProbabilityWindowLabel(window)}: >0,2 mm ${Math.round(window.probability)} % / >5 mm ${Math.round(window.probabilitySignificant)} %`).join(' · ')}
@@ -755,20 +766,23 @@ type HourlyProbabilityWindow={startHour:number;endHour:number;probability:number
 function fallbackHourlyProbabilityWindow(hours:Hour[]){
  const buckets=new Map<number,number>();
  for(const hour of hours){const clock=Number(String(hour.time).slice(11,13)),probability=Math.max(0,Math.min(100,Number(hour.probability)));if(!Number.isFinite(clock)||!Number.isFinite(probability))continue;const bucket=Math.max(0,Math.min(3,Math.floor(clock/6)));buckets.set(bucket,Math.max(buckets.get(bucket)??0,probability))}
- const ranked=[...buckets.entries()].map(([bucket,probability])=>({startHour:bucket*6,endHour:(bucket+1)*6,probability})).sort((a,b)=>b.probability-a.probability||a.startHour-b.startHour);if(ranked.length<2)return undefined;return Math.round(ranked[0].probability)-Math.round(ranked[1].probability)>=10?ranked[0]:undefined;
+ const ranked=[...buckets.entries()].map(([bucket,probability])=>({startHour:bucket*6,endHour:(bucket+1)*6,probability})).sort((a,b)=>b.probability-a.probability||a.startHour-b.startHour);if(ranked.length<2)return undefined;const highest=Math.round(ranked[0].probability),second=Math.round(ranked[1].probability),rest=ranked.slice(1).map(row=>Math.round(row.probability)),restMean=rest.reduce((sum,value)=>sum+value,0)/Math.max(1,rest.length);return highest>0&&highest-second>=15&&highest-restMean>=20?ranked[0]:undefined;
 }
 function hourlyProbabilityWindowCompactLabel(window:HourlyProbabilityWindow){return `${String(window.startHour).padStart(2,'0')}–${String(window.endHour).padStart(2,'0')}h`}
 function hourlyProbabilityWindowLabel(window:HourlyProbabilityWindow){return `${String(window.startHour).padStart(2,'0')}–${String(window.endHour).padStart(2,'0')} h`}
 
 export function dailyPrecipitationProbabilityTitle(day:Pick<Day,'probability'|'probabilitySignificant'|'probabilityWindows'|'probabilitySource'|'probabilityMemberCount'>,hours:Hour[]=[]){
- const probability=`${Math.round(Math.max(0,Math.min(100,Number(day.probability)||0)))} %`;
- if(day.probabilitySource==='ensemble-members-dwd'){const significant=`${Math.round(Math.max(0,Math.min(100,Number(day.probabilitySignificant)||0)))} %`,members=Math.max(0,Math.round(Number(day.probabilityMemberCount)||0)),periods=dwdPrecipitationProbabilityWindowsTitle(day.probabilityWindows);return `DWD-Ereigniswahrscheinlichkeit · 00–24 h: >0,2 mm ${probability} · >5,0 mm ${significant}${periods?` · 6-h-Zeitfenster: ${periods}`:''}${members?` · ${members} Ensemble-Member`:''}`}
- const elevated=fallbackHourlyProbabilityWindow(hours),period=elevated?hourlyProbabilityWindowLabel(elevated):hours.length?'00–24 h':'';
+ const primary=Math.round(Math.max(0,Math.min(100,Number(day.probability)||0))),probability=`${primary} %`;
+ if(day.probabilitySource==='ensemble-members-dwd'){
+  const significant=`${Math.round(Math.max(0,Math.min(100,Number(day.probabilitySignificant)||0)))} %`,members=Math.max(0,Math.round(Number(day.probabilityMemberCount)||0)),periods=dwdPrecipitationProbabilityWindowsTitle(day.probabilityWindows),elevated=primary>0?elevatedDwdPrecipitationProbabilityWindow(day.probabilityWindows):undefined,period=primary<=0?'':elevated?precipitationProbabilityWindowLabel(elevated):'00–24 h';
+  return `DWD-Ereigniswahrscheinlichkeit${period?` · ${period}`:''}: >0,2 mm ${probability} · >5,0 mm ${significant}${periods?` · 6-h-Zeitfenster: ${periods}`:''}${members?` · ${members} Ensemble-Member`:''}`
+ }
+ const elevated=primary>0?fallbackHourlyProbabilityWindow(hours):undefined,period=elevated?hourlyProbabilityWindowLabel(elevated):primary>0&&hours.length?'00–24 h':'';
  return `Max. Stundenwahrscheinlichkeit ${probability}${period?` · Zeitraum ${period}`:''} · Fallback: höchste stündliche Best-Match-Wahrscheinlichkeit; der Zeitraum ordnet das Stundenmaximum nur zeitlich ein; keine aus Ensemble-Membern berechnete DWD-Ereigniswahrscheinlichkeit für 6 h oder 00–24 h`;
 }
 
 export function dailyPrecipitationProbabilityCompact(day:Pick<Day,'probability'|'probabilityWindows'|'probabilitySource'>,hours:Hour[]=[]){
- const primary=Math.round(Math.max(0,Math.min(100,Number(day.probability)||0))),elevated=elevatedDwdPrecipitationProbabilityWindow(day.probabilityWindows);
+ const primary=Math.round(Math.max(0,Math.min(100,Number(day.probability)||0)));if(primary<=0)return'0%';const elevated=elevatedDwdPrecipitationProbabilityWindow(day.probabilityWindows);
  if(day.probabilitySource==='ensemble-members-dwd')return elevated?`${precipitationProbabilityWindowCompactLabel(elevated)} · ${Math.round(elevated.probability)}%`:`00–24h · ${primary}%`;
  if(hours.length){const hourlyPeak=fallbackHourlyProbabilityWindow(hours),period=hourlyPeak?hourlyProbabilityWindowCompactLabel(hourlyPeak):'00–24h';return `${period} · max ${primary}%`}
  return `max. Std. ${primary}%`;
@@ -1219,30 +1233,16 @@ async function settledMapLimited<T,R>(items:T[],limit:number,task:(item:T,index:
  await Promise.all(Array.from({length:Math.min(Math.max(1,limit),items.length)},worker));return results;
 }
 function ensembleRetryDelay(ms:number,signal?:AbortSignal){return new Promise<void>((resolve,reject)=>{if(signal?.aborted){reject(new DOMException('Abgebrochen','AbortError'));return}const timer=setTimeout(resolve,ms);signal?.addEventListener('abort',()=>{clearTimeout(timer);reject(new DOMException('Abgebrochen','AbortError'))},{once:true})})}
-async function fetchEnsembleRequest(url:string,signal?:AbortSignal){
- let lastError:unknown;
- for(let attempt=0;attempt<3;attempt++){
-  try{
-   const response=await fetch(url,{signal,cache:'no-store'});
-   if(response.ok)return await response.json() as Weather;
-   const error=new Error(`HTTP ${response.status}`);lastError=error;
-   if(![429,500,502,503,504].includes(response.status)||attempt===2)throw error;
-  }catch(error){
-   lastError=error;if(signal?.aborted)throw error;
-   const status=Number(String(error instanceof Error?error.message:error).match(/HTTP (\d+)/)?.[1]);
-   if(Number.isFinite(status)&&![429,500,502,503,504].includes(status))throw error;
-   if(attempt===2)throw error;
-  }
-  await ensembleRetryDelay(450*(attempt+1),signal);
- }
- throw lastError;
+async function fetchEnsembleRequest(url:string,signal?:AbortSignal,priority:OpenMeteoPriority='normal'){
+ try{return await guardedOpenMeteoJson<Weather>(url,{signal,cache:'no-store'},{priority,maxRetries:priority==='background'?0:1})}
+ catch(error){if(signal?.aborted)throw error;if(isOpenMeteoRateLimitError(error))throw error;await ensembleRetryDelay(450,signal);return guardedOpenMeteoJson<Weather>(url,{signal,cache:'no-store'},{priority,maxRetries:0,dedupe:false})}
 }
-async function fetchEnsembleWeather(lat:number,lon:number,forecastDays:number,modelId:string,signal?:AbortSignal,hourly='temperature_2m,precipitation,wind_speed_10m,wind_gusts_10m,sunshine_duration'){
+async function fetchEnsembleWeather(lat:number,lon:number,forecastDays:number,modelId:string,signal?:AbortSignal,hourly='temperature_2m,precipitation,wind_speed_10m,wind_gusts_10m,sunshine_duration',priority:OpenMeteoPriority='normal'){
  const forecast_days=Math.max(1,Math.min(14,Math.ceil(forecastDays))),request=async(variables:string)=>{
   const parameters={lat,lon,model:modelId,forecast_days,variables},directRegional=DIRECT_REGIONAL_ENSEMBLE_MODELS.has(modelId);let proxyError:unknown;
   if(workerBaseCandidates('general').length){try{const proxied=await fetchWorkerJson<Weather&{error?:string}>('ensemble-proxy',parameters,{purpose:'general',signal,timeoutMs:18000,cache:'no-store'});if(Array.isArray(proxied?.hourly?.time)&&proxied.hourly.time.length>=12)return proxied;proxyError=new Error(`${modelId}: Regionalensemble-Adapter lieferte keine nutzbare Zeitreihe`)}catch(error){proxyError=error}}
   if(directRegional)throw proxyError instanceof Error?proxyError:new Error(`${modelId}: numerischer Regionalensemble-Adapter nicht verfügbar`);
-  const p=new URLSearchParams({latitude:String(lat),longitude:String(lon),timezone:'auto',forecast_days:String(forecast_days),models:modelId,hourly:variables,wind_speed_unit:'kn'});return fetchEnsembleRequest(`https://ensemble-api.open-meteo.com/v1/ensemble?${p}`,signal)
+  const p=new URLSearchParams({latitude:String(lat),longitude:String(lon),timezone:'auto',forecast_days:String(forecast_days),models:modelId,hourly:variables,wind_speed_unit:'kn'});return fetchEnsembleRequest(`https://ensemble-api.open-meteo.com/v1/ensemble?${p}`,signal,priority)
  };
  const attempts=[hourly,hourly.split(',').filter(value=>value!=='sunshine_duration').join(','),'temperature_2m,precipitation,wind_speed_10m,wind_gusts_10m','temperature_2m,precipitation'].filter((value,index,list)=>value&&list.indexOf(value)===index);let lastError:unknown;for(const variables of attempts){try{return await request(variables)}catch(error){lastError=error;if(signal?.aborted)throw error}}throw lastError;
 }
@@ -1263,8 +1263,8 @@ function pseudoModelFromMeanSpread(w:Weather,definition:EnsembleMeanModel):Model
  const model:EnsembleModel={id:definition.id,label:definition.label,metaId:definition.metaId,family:definition.family,independenceGroup:definition.independenceGroup,resolutionKm:definition.resolutionKm,updateHours:definition.updateHours,maxDays:definition.maxDays,distributionMode:'mean-spread'};
  return{model,members};
 }
-async function meanFallback(lat:number,lon:number,signal?:AbortSignal){
- const settled=await settledMapLimited(selectedMeanModels(lat,lon),2,async definition=>pseudoModelFromMeanSpread(await fetchEnsembleWeather(lat,lon,definition.maxDays,definition.id,signal,'temperature_2m,temperature_2m_spread,precipitation,precipitation_spread'),definition));
+async function meanFallback(lat:number,lon:number,signal?:AbortSignal,priority:OpenMeteoPriority='normal'){
+ const settled=await settledMapLimited(selectedMeanModels(lat,lon),2,async definition=>pseudoModelFromMeanSpread(await fetchEnsembleWeather(lat,lon,definition.maxDays,definition.id,signal,'temperature_2m,temperature_2m_spread,precipitation,precipitation_spread',priority),definition));
  if(signal?.aborted)throw new DOMException('Abgebrochen','AbortError');
  const results=settled.filter(x=>x.status==='fulfilled').map(x=>(x as PromiseFulfilledResult<ModelResult|null>).value).filter(Boolean) as ModelResult[];
  const days=aggregateMembers(results),scenarios:EnsembleScenarioCluster[]=[],activeModels=results.map(result=>result.model),runs=await modelRunMetas(activeModels.map(model=>({id:model.metaId,label:model.label,kind:'ensemble' as const,rapidUpdate:model.updateHours<=1,resolutionKm:model.resolutionKm,forecastHorizonHours:model.maxDays*24})),signal);
@@ -1297,15 +1297,16 @@ export async function eventEnsembleForecast(lat:number,lon:number,date:string,st
  if(days.length||precipitationProbability){writeEventEnsembleCache(lat,lon,date,startTime,endTime,value);return value}const stale=readEventEnsembleCache(lat,lon,date,startTime,endTime);if(stale)return stale;return value;
 }
 
-export async function ensembles(lat:number,lon:number,signal?:AbortSignal){
+export async function ensembles(lat:number,lon:number,signal?:AbortSignal,priority:OpenMeteoPriority='normal'){
  const cache=readEnsembleCache(lat,lon);if(cache&&cache.ageMs<=ENSEMBLE_FRESH_CACHE_MS)return{days:cache.days,models:cache.models,runs:cache.runs,scenarios:cache.scenarios??[]};
  const selected=selectedEnsembleModels(lat,lon);
- const settled=await settledMapLimited(selected,2,async model=>parseModelMembers(await fetchEnsembleWeather(lat,lon,model.maxDays,model.id,signal),model));
+ const settled=await settledMapLimited(selected,2,async model=>parseModelMembers(await fetchEnsembleWeather(lat,lon,model.maxDays,model.id,signal,undefined,priority),model));
  if(signal?.aborted)throw new DOMException('Abgebrochen','AbortError');
- const results=settled.filter(x=>x.status==='fulfilled').map(x=>(x as PromiseFulfilledResult<ModelResult|null>).value).filter(Boolean) as ModelResult[],failedCount=settled.filter(x=>x.status==='rejected').length;
+ const results=settled.filter(x=>x.status==='fulfilled').map(x=>(x as PromiseFulfilledResult<ModelResult|null>).value).filter(Boolean) as ModelResult[],failedCount=settled.filter(x=>x.status==='rejected').length,rateLimitFailure=settled.find(x=>x.status==='rejected'&&isOpenMeteoRateLimitError((x as PromiseRejectedResult).reason)) as PromiseRejectedResult|undefined;
+ if(!results.length&&rateLimitFailure)throw rateLimitFailure.reason;
  const activeModels=results.map(x=>x.model),days=aggregateMembers(results),scenarios=buildEnsembleScenarios(results,days),runs=await modelRunMetas(activeModels.map(x=>({id:x.metaId,label:x.label,kind:'ensemble' as const,rapidUpdate:x.updateHours<=1,resolutionKm:x.resolutionKm,forecastHorizonHours:x.maxDays*24})),signal);
  if(days.length>=7){const value={days:days.slice(0,14),models:activeModels.map(x=>x.label),runs,scenarios};writeEnsembleCache(lat,lon,value);return value}
- const fallback=await meanFallback(lat,lon,signal);
+ const fallback=await meanFallback(lat,lon,signal,priority);
  if(fallback.days.length>=5){writeEnsembleCache(lat,lon,fallback);return fallback}
  if(days.length){const value={days,models:activeModels.map(x=>x.label),runs,scenarios};writeEnsembleCache(lat,lon,value);return value}
  if(cache)return{days:cache.days,models:[...cache.models,'lokaler letzter erfolgreicher Stand'],runs:cache.runs,scenarios:cache.scenarios??[]};

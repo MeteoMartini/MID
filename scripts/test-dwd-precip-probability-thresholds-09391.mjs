@@ -13,7 +13,7 @@ need('DWD-strikt',weather,'strict?x.value>threshold:x.value>=threshold');
 forbid('Alt-Schwelle',weather,'precipitationProbability:weightedProbability(rainVals,.1)');
 need('Tagesdaten',weather,"probabilitySource?:'ensemble-members-dwd'|'hourly-max-fallback'");
 need('Tagesdaten',weather,'probabilitySignificant?:number');
-need('Titel',weather,'DWD-Ereigniswahrscheinlichkeit · 00–24 h: >0,2 mm');
+need('Titel',weather,"DWD-Ereigniswahrscheinlichkeit${period?` · ${period}`:''}: >0,2 mm");
 need('Sechs-Stunden',weather,'6-h-Zeitfenster');
 need('Sechs-Stunden',weather,'windowRainProbabilityVals');
 need('Kompakt',weather,'precipitationProbabilityWindowCompactLabel(elevated)');

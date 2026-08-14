@@ -1,3 +1,22 @@
+# 0.9.53.14
+
+- Buildfix nach fehlgeschlagenem Installerlauf: TravelPlanner-Regressions lösen den neu zentralisierten `openMeteoGuard` im temporär kompilierten ESM-Test korrekt als `.js` auf; Produktionscode und Open-Meteo-Guard bleiben unverändert.
+
+- TypeScript-Buildfix für den Open-Meteo-Guard: `RequestInit.signal` wird vor Queue-/Wait-Helfern von `AbortSignal | null | undefined` auf `AbortSignal | undefined` normalisiert; behebt den GitHub-TS2345-Produktionsbuild ohne funktionale Änderung der Rate-Limit-Logik.
+
+- 7-Tage-PoP wieder DWD-nah: 00–24 h oder nur bei klar isoliertem Schwerpunkt ein klassisches 6-h-Fenster; bei 0 % ohne Zeitfenster.
+- Appweiter Open-Meteo-Request-Guard mit Priorisierung, Deduplizierung, begrenzter Parallelität und gemeinsamem 429-Cooldown.
+- Favoriten-/Resume-Resilienz: Kernvorhersage mit Fresh-/Stale-Cache; bei Rate Limit bleibt die letzte erfolgreiche Wetterlage sichtbar und MID versucht automatisch erneut, statt rohes `HTTP 429` als Vollfehler zu zeigen.
+- Wetterzwilling, Event-Flugwetter, Meteogramm, Berg-/Wintersport, Referenzdaten, Saison- und Reise-Klimadaten auf denselben Open-Meteo-Schutzpfad gezogen.
+- Neue Required-Regression `test-dwd-pop-and-openmeteo-rate-guard-095314.mjs`; Worker fachlich unverändert.
+
+# 0.9.53.13
+
+- Event-Favoriten und normale Ortsfavoriten strikt getrennt; gleiche Orte dürfen gleichzeitig in beiden Favoritenarten geführt werden.
+- Geräte-Sync führt Event-Favoritenrevision und Wetterplan unabhängig zusammen.
+- Event-Ortssuche auf appweite Live-Suche mit Debounce, Request-Abbruch, PLZ/ICAO/POI und mobiler Search-Semantik umgestellt.
+- Neue Required-Regression `test-event-favorite-search-independence-095313.mjs`; Worker fachlich unverändert.
+
 # 0.9.53.12
 
 - Event-Persistenz an der eigentlichen Speicherursache korrigiert: quota-sicherer Durable-Store ist für Eventdaten und Refresh-Marker nun direkt maßgeblich, statt von einer überschreibbaren `localStorage`-Methode abzuhängen.

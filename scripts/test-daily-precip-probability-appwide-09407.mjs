@@ -10,10 +10,11 @@ const [weather,app,cockpit,ensemble]=await Promise.all([
 
 assert.match(weather,/peakWindow=Math\.max\(0,\.\.\.windows\.map\(window=>window\.probability\)\)/,'00–24-h probability must be reconciled against every 6-h window');
 assert.match(weather,/next=Math\.max\(peakWindow,Math\.max\(0,Math\.min\(100,probability\)\)\)/,'daily probability must never fall below a contained 6-h probability');
-assert.match(weather,/DWD-Ereigniswahrscheinlichkeit · 00–24 h:/,'daily title must name the calendar-day period explicitly');
+assert.match(weather,/period=primary<=0\?'':elevated\?precipitationProbabilityWindowLabel\(elevated\):'00–24 h'/,'daily title must use 00–24 h unless a clearly elevated 6-h period exists, and no period at 0 %');
 assert.match(weather,/export function elevatedDwdPrecipitationProbabilityWindow/,'central elevated-window selector missing');
-assert.match(weather,/highest-second>=10\?ranked\[0\]:undefined/,'a 6-h window must only replace the day label when it is clearly elevated');
+assert.match(weather,/highest>0&&highest-second>=15&&highest-restMean>=20\?ranked\[0\]:undefined/,'a 6-h window must only replace the day label when it is clearly elevated against the rest of the day');
 assert.match(weather,/return elevated\?`\$\{precipitationProbabilityWindowCompactLabel\(elevated\)\} · \$\{Math\.round\(elevated\.probability\)\}%`:`00–24h · \$\{primary\}%`/,'compact daily display must choose exactly one period: elevated 6-h window or 00–24 h');
+assert.match(weather,/if\(primary<=0\)return'0%'/,'zero probability must not show a time window');
 assert.doesNotMatch(weather,/`00–24h \$\{primary\}%\$\{peak\?/,'compact daily display must not concatenate day and 6-h probabilities');
 assert.match(weather,/return `max\. Std\. \$\{primary\}%`/,'hourly fallback must be clearly labelled and not masquerade as a daily probability');
 

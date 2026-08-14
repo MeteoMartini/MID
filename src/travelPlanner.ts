@@ -1,4 +1,5 @@
 import {pruneStorageEntries,touchMapEntry,writeBoundedMapEntry,writeBoundedStorage} from './cachePolicy';
+import {guardedOpenMeteoFetch} from './openMeteoGuard';
 export type TravelPreference='balanced'|'dry'|'warm'|'cold'|'sunny'|'snow'|'calm';
 
 export type TravelClimateDay={
@@ -137,7 +138,7 @@ function dateKey(value:string){return String(value).slice(5,10)}
 function emptyBucket():Bucket{return{max:[],min:[],mean:[],precipitation:[],wet:0,sunshine:[],daylight:[],wind:[],snowfall:[],cloud:[],codes:new Map()}}
 function addFinite(array:number[],value:number){if(Number.isFinite(value))array.push(value)}
 function abortError(){return new DOMException('Abgebrochen','AbortError')}
-async function fetchJson<T>(url:string):Promise<T>{const response=await fetch(url,{cache:'force-cache',headers:{Accept:'application/json'}});const payload=await response.json().catch(()=>({}));if(!response.ok||(payload as {error?:boolean}).error)throw new Error(String((payload as {reason?:string}).reason||`Open-Meteo HTTP ${response.status}`));return payload as T}
+async function fetchJson<T>(url:string):Promise<T>{const response=await guardedOpenMeteoFetch(url,{cache:'force-cache',headers:{Accept:'application/json'}},{priority:'normal'});const payload=await response.json().catch(()=>({}));if(!response.ok||(payload as {error?:boolean}).error)throw new Error(String((payload as {reason?:string}).reason||`Open-Meteo HTTP ${response.status}`));return payload as T}
 
 export function aggregateTravelClimate(payload:HistoricalDailyPayload):TravelClimateDataset{
  const daily=payload.daily??{},times=(daily.time??[]) as string[],buckets=new Map<string,Bucket>();

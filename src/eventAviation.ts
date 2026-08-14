@@ -1,5 +1,6 @@
 import {fetchWorkerJson,workerBaseCandidates} from './workerClient'
 import {MID_VERSION as VERSION} from './version'
+import {guardedOpenMeteoFetch} from './openMeteoGuard'
 
 const LEVELS=[1000,925,850,700,500,300] as const
 const HOURLY=[
@@ -32,7 +33,7 @@ async function load(lat:number,lon:number,elevation:number,signal?:AbortSignal):
  const key=`${lat.toFixed(3)}:${lon.toFixed(3)}:${Math.round(elevation)}`,cached=cache.get(key)
  if(cached&&Date.now()-cached.at<=TTL)return cached.value
  if(workerBaseCandidates('meteogram').length){try{const value=await fetchWorkerJson<Response>('meteogram',{lat,lon,elevation:Math.round(elevation),model:'best_match'},{purpose:'meteogram',signal,timeoutMs:16000,maxAgeMs:TTL,staleIfErrorMs:3*60*60*1000,cacheKey:`event-flight:${key}`});cache.set(key,{at:Date.now(),value});return value}catch(error){if(signal?.aborted)throw error}}
- const response=await fetch(endpoint(lat,lon,elevation).toString(),{signal}),raw=await response.json().catch(()=>({}));if(!response.ok)throw new Error(raw?.error||raw?.reason||`Flugprofil HTTP ${response.status}`);const value:Response=raw?.data?raw:{data:raw,requestedModel:'best_match',modelLabel:'Best Match',version:VERSION};cache.set(key,{at:Date.now(),value});return value
+ const response=await guardedOpenMeteoFetch(endpoint(lat,lon,elevation).toString(),{signal},{priority:'background',maxRetries:0}),raw=await response.json().catch(()=>({}));if(!response.ok)throw new Error(raw?.error||raw?.reason||`Flugprofil HTTP ${response.status}`);const value:Response=raw?.data?raw:{data:raw,requestedModel:'best_match',modelLabel:'Best Match',version:VERSION};cache.set(key,{at:Date.now(),value});return value
 }
 async function loadOfficial(lat:number,lon:number,startEpoch:number,endEpoch:number,signal?:AbortSignal):Promise<OfficialResponse>{
  if(!workerBaseCandidates('meteogram').length)return{signals:[],sources:[{id:'official',label:'Amtliche Flugwetterquellen',status:'not-configured',detail:'Worker nicht konfiguriert'}]}
