@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.53.24",
+  "releaseVersion": "0.9.53.25",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -186,7 +186,8 @@
     "scripts/test-module-open-state-095320.mjs",
     "scripts/test-location-return-request-reuse-095322.mjs",
     "scripts/test-mid-followups-095323.mjs",
-    "scripts/test-current-data-basis-compact-095324.mjs"
+    "scripts/test-current-data-basis-compact-095324.mjs",
+    "scripts/test-current-hyperlocal-restart-095325.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [

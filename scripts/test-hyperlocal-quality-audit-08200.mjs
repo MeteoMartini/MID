@@ -26,7 +26,7 @@ for(const token of [
  'workerStationsAvailable=workerBaseCandidates(\'metar\').length>0',
  'if(!workerStationsAvailable&&inGermany)tasks.push(brightSkyStation'
 ])need('Hyperlokale Qualitätslogik',weather,token);
-for(const token of ['function stationNeedsEnrichment(', 'if(stationNeedsEnrichment(value))'])need('Abrufbudget',app,token);
+for(const token of ['function stationNeedsEnrichment(', 'if(stationNeedsEnrichment(value)||stationAnalysisRank(value)<4)', "writeAnalysisCache('station-provisional'", "stationCacheEntryForLocation("])need('Abrufbudget',app,token);
 for(const token of ['SFTP, HTTPS und SOAP', 'Kein Scraping von LINET view', 'direkter DWD-Open-Data-Fallback', 'Quellenregister zentralisieren'])need('Audit',audit,token);
 need('Package-Test',pkg,'test:hyperlocal-quality-audit');
 need('Baseline-Test',baseline,'scripts/test-hyperlocal-quality-audit-08200.mjs');

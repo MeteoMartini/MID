@@ -11,7 +11,8 @@ const need=(text,token,label)=>{if(!text.includes(token))failures.push(`${label}
 for(const token of [
  'readAnalysisCacheEntry',
  'nearbyRadiusM=450',
- "readAnalysisCache<Station>('station'",
+ 'stationCacheEntryForLocation',
+ "readAnalysisCache<Station>('station-provisional'",
  "readAnalysisCache<any>('air-quality'",
  "readAnalysisCache<RadarNowcast>('radar'",
  "readAnalysisCache<RadarHistory>('radar-history'",
