@@ -1,3 +1,9 @@
+## 0.9.53.21
+
+- EU-AQI-Detaildialog erweitert: Jeder Einzelparameter (PM2,5, PM10, NO₂, O₃, SO₂) zeigt jetzt eine dezente horizontale Vergleichsskala mit offizieller sechsstufiger EU-AQI-Einteilung.
+- Ein Positionsmarker verdeutlicht zusätzlich die relative Lage des Messwerts innerhalb der jeweiligen Stufe; die aktive Belastungsstufe wird visuell hervorgehoben.
+- Luftqualitätsdialog auf schmaleren Ansichten responsiv verdichtet.
+
 ## 0.9.53.20
 
 - Hauptmodule verwenden einen einheitlichen persistenten Öffnen-/Schließen-Vertrag. Ein beim letzten Navigieren verbliebener `#mid-section-*`-Hash öffnet beim App-Neustart kein Modul mehr automatisch.

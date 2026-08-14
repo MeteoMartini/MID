@@ -1768,7 +1768,18 @@ button,input,select,textarea{font:inherit}
 }
 .aqi-segments>i.active{height:6px;opacity:1;box-shadow:0 0 0 1px color-mix(in srgb,currentColor 18%,transparent)}
 .aqi-good,.aqi-fair,.aqi-moderate,.aqi-poor,.aqi-very-poor,.aqi-extremely-poor{color:var(--aqi-color)}
-.aqi-tooltip-values{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin:7px 0 2px}.aqi-tooltip-values>span{display:grid;grid-template-columns:auto 1fr;gap:2px 7px;padding:6px 7px;border:1px solid var(--border);border-radius:9px;background:var(--s2)}.aqi-tooltip-values b{font-size:10px}.aqi-tooltip-values em{justify-self:end;font-style:normal;font-size:9px;font-variant-numeric:tabular-nums}.aqi-tooltip-values small{grid-column:1/-1;color:var(--muted);font-size:8px}
+.aqi-tooltip-scale-caption{display:block;margin:4px 0 7px;color:var(--muted);font-size:8px;line-height:1.35}
+.aqi-tooltip-values{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin:7px 0 2px}
+.aqi-tooltip-values>span{display:grid;grid-template-columns:auto 1fr;gap:2px 7px;padding:6px 7px;border:1px solid var(--border);border-radius:9px;background:var(--s2)}
+.aqi-tooltip-values b{font-size:10px}
+.aqi-tooltip-values em{justify-self:end;font-style:normal;font-size:9px;font-variant-numeric:tabular-nums}
+.aqi-tooltip-values small{grid-column:1/-1;color:var(--muted);font-size:8px}
+.aqi-pollutant-scale{grid-column:1/-1;position:relative;display:block;margin-top:2px;padding-top:2px;color:var(--aqi-color,#50ccaa)}
+.aqi-pollutant-scale-track{display:grid;grid-template-columns:repeat(6,minmax(3px,1fr));gap:2px;min-width:42px;height:7px}
+.aqi-pollutant-scale-track>i{display:block;height:4px;align-self:center;border-radius:999px;opacity:.2}
+.aqi-pollutant-scale-track>i.active{height:6px;opacity:.95;box-shadow:0 0 0 1px color-mix(in srgb,currentColor 14%,transparent)}
+.aqi-pollutant-scale-marker{position:absolute;left:var(--aqi-position,0%);top:0;width:7px;height:7px;border-radius:50%;background:currentColor;transform:translateX(-50%);box-shadow:0 0 0 1px var(--card,white),0 0 0 3px color-mix(in srgb,currentColor 12%,transparent)}
+@media(max-width:620px){.aqi-tooltip-values{grid-template-columns:minmax(0,1fr)}}
 
 /* MID v0.8.17.2 – offizieller UV-Gefahrenindex in den aktuellen Daten */
 .metrics .uvi-card header{align-items:center;padding-right:1px}

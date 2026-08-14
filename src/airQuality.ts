@@ -3,6 +3,8 @@ export type EuropeanAqiPollutantKey='pm2_5'|'pm10'|'nitrogen_dioxide'|'ozone'|'s
 export type EuropeanAqiBand={key:EuropeanAqiBandKey;label:string;index:number;color:string;health:string};
 export type EuropeanAqiPollutantResult={key:EuropeanAqiPollutantKey;label:string;formula:string;value:number;unit:'µg/m³';band:EuropeanAqiBand};
 export type EuropeanAirQualityResult={band:EuropeanAqiBand;dominant:EuropeanAqiPollutantResult;pollutants:EuropeanAqiPollutantResult[]};
+export type EuropeanAqiPollutantScaleSegment={band:EuropeanAqiBand;min:number;max:number|null};
+export type EuropeanAqiPollutantScale={segments:EuropeanAqiPollutantScaleSegment[];positionPct:number};
 export type AirQualityStationMeta={available:boolean;name?:string;stationCode?:string;eoiCode?:string;country?:string;countryCode?:string;stationClass?:string;latitude?:number;longitude?:number;distanceKm?:number;provider?:string;checkedAt?:string;reason?:string;error?:string;sourceHost?:string;cached?:boolean;cachedAt?:string;diagnostics?:unknown};
 
 export const EUROPEAN_AQI_BANDS:EuropeanAqiBand[]=[
@@ -36,6 +38,16 @@ export function classifyEuropeanAirQuality(current:Record<string,number|string>|
  if(!pollutants.length)return null;
  const dominant=[...pollutants].sort((a,b)=>b.band.index-a.band.index||b.value-a.value)[0];
  return{band:dominant.band,dominant,pollutants};
+}
+
+
+export function describeEuropeanAqiPollutantScale(key:EuropeanAqiPollutantKey,value:unknown):EuropeanAqiPollutantScale|null{
+ const number=Number(value),definition=EUROPEAN_AQI_POLLUTANTS.find(item=>item.key===key),classification=classifyEuropeanAqiPollutant(key,value);
+ if(!definition||!classification||!Number.isFinite(number)||number<0)return null;
+ const thresholds=[0,...definition.thresholds],lastThreshold=definition.thresholds[definition.thresholds.length-1],previousThreshold=definition.thresholds[definition.thresholds.length-2]??0,tailSpan=Math.max(1,lastThreshold-previousThreshold),displayCeiling=lastThreshold+tailSpan;
+ const segments=EUROPEAN_AQI_BANDS.map((band,index)=>({band,min:thresholds[index]??0,max:index<definition.thresholds.length?definition.thresholds[index]:null}));
+ const bandIndex=classification.band.index,lower=thresholds[bandIndex]??0,upper=bandIndex<definition.thresholds.length?definition.thresholds[bandIndex]:displayCeiling,span=Math.max(1,upper-lower),relative=Math.max(0,Math.min(1,(number-lower)/span)),positionPct=Math.max(0,Math.min(100,((bandIndex+relative)/EUROPEAN_AQI_BANDS.length)*100));
+ return{segments,positionPct};
 }
 
 export function stationClassLabel(value?:string){
