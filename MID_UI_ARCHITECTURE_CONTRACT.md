@@ -105,3 +105,8 @@ Bestehende historisch spezialisierte Ensemble-Tooltips bleiben vorerst als eng b
 - Tag gilt exakt ab Sonnenaufgang bis unmittelbar vor Sonnenuntergang; ab Sonnenuntergang wird das Nachtpiktogramm verwendet. Dämmerungsphasen verändern diese Symbolfamilie nicht.
 - Provider-`is_day` darf nur Fallback bei fehlender astronomischer Bestimmbarkeit sein. Eine Stundenklassifikation darf insbesondere nicht auf 15-Minuten-Zwischenzeiten übertragen werden.
 - Tagesaggregate ohne konkreten Zeitpunkt dürfen weiterhin ein repräsentatives Tagespiktogramm verwenden; explizite Nachtaggregate verwenden ein Nachtpiktogramm.
+
+## MID v0.9.53.34 – Event-Lebenszyklus und Startbildschirm
+- Der Event-Lebenszyklus und der Theme-konforme Splashscreen folgen verbindlich `MID_EVENT_LIFECYCLE_STARTUP_CONTRACT.md`.
+- Abgelaufene Events bleiben kompakt erkennbar und direkt entfernbar; laufende/zukünftige Events werden in Übersichten priorisiert.
+- Der Splashscreen zeigt das vollständige MID-Logo prominent und darf Startdaten nur über die kanonischen MID-Datenpfade vorladen.

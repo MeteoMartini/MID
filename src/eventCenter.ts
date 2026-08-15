@@ -2,6 +2,7 @@ import type {BestMatchModelInfo,Location} from './weather'
 import type {EventFlightHazardSummary} from './eventAviation'
 import {readDurableStorageValue,writeDurableStorageValue} from './storageSafety'
 import {mergeEventFavoritePreference} from './eventFavoriteState'
+import {localIsoToEpoch} from './timeDisplay'
 
 export type EventEnvironment='indoor'|'outdoor'|'covered'
 export type EventActivity='general'|'running'|'cycling'|'hiking'|'skiing'|'climbing'|'football'|'tennis'|'golf'|'gym'|'yoga'|'watersports'|'city'|'concert'|'flight'
@@ -100,13 +101,22 @@ function statusLabel(value:EventStatus){return value==='good'?'Günstig':value==
 function statusRank(value:EventStatus){return value==='good'?0:value==='watch'?1:2}
 function statusChangeSummary(previous:EventStatus,next:EventStatus){const direction=statusRank(next)>statusRank(previous)?'verschärft':'verbessert';return `Bewertung ${direction}: jetzt „${statusLabel(next)}“ (zuvor „${statusLabel(previous)}“).`}
 function normalizeLegacyChangeSummary(summary:string){return summary.replace(/Einschätzung jetzt (passt|beobachten|Achtung) statt (passt|beobachten|Achtung)\./gi,(_match,nextLabel:string,previousLabel:string)=>{const parse=(label:string):EventStatus=>label.toLocaleLowerCase('de-DE')==='achtung'?'caution':label.toLocaleLowerCase('de-DE')==='beobachten'?'watch':'good';return statusChangeSummary(parse(previousLabel),parse(nextLabel))})}
-function parseDateStamp(value:string,time='00:00'){const stamp=Date.parse(`${value}T${time}:00`);return Number.isFinite(stamp)?stamp:0}
+export type EventLifecycleState='upcoming'|'ongoing'|'expired'
+function eventLocalEpoch(record:EventCenterRecord,time:string){const value=`${record.date}T${time}:00`,stamp=localIsoToEpoch(value,record.location.timezone);return Number.isFinite(stamp)?stamp:0}
+function shiftedEventDate(value:string,days:number){const date=new Date(`${value}T12:00:00Z`);if(!Number.isFinite(date.getTime()))return value;date.setUTCDate(date.getUTCDate()+days);return date.toISOString().slice(0,10)}
+export function eventCenterStartEpoch(record:EventCenterRecord){return eventLocalEpoch(record,record.startTime||'00:00')}
+export function eventCenterEndEpoch(record:EventCenterRecord){const endTime=record.endTime||record.startTime||'23:59',startTime=record.startTime||'00:00',sameDay=eventLocalEpoch(record,endTime);if(endTime>=startTime)return sameDay;const nextDate={...record,date:shiftedEventDate(record.date,1)};return eventLocalEpoch(nextDate,endTime)}
+export function eventCenterLifecycle(record:EventCenterRecord,now=Date.now()):EventLifecycleState{const start=eventCenterStartEpoch(record),end=eventCenterEndEpoch(record);if(end>0&&end<now)return'expired';if(start>0&&start<=now&&(end<=0||end>=now))return'ongoing';return'upcoming'}
+export function isEventCenterRecordExpired(record:EventCenterRecord,now=Date.now()){return eventCenterLifecycle(record,now)==='expired'}
 
-export function sortEventCenterRecords(records:EventCenterRecord[]){
+export function sortEventCenterRecords(records:EventCenterRecord[],now=Date.now()){
  return [...records].sort((a,b)=>{
-  const aDate=parseDateStamp(a.date,a.startTime),bDate=parseDateStamp(b.date,b.startTime)
+  const aState=eventCenterLifecycle(a,now),bState=eventCenterLifecycle(b,now),aExpired=aState==='expired',bExpired=bState==='expired'
+  if(aExpired!==bExpired)return aExpired?1:-1
+  const aDate=eventCenterStartEpoch(a),bDate=eventCenterStartEpoch(b)
+  if(aExpired&&bExpired){const aEnd=eventCenterEndEpoch(a),bEnd=eventCenterEndEpoch(b);if(aEnd&&bEnd&&aEnd!==bEnd)return bEnd-aEnd}
   if(aDate&&bDate&&aDate!==bDate)return aDate-bDate
-  if(aDate!==bDate)return aDate? -1:1
+  if(aDate!==bDate)return aDate?-1:1
   return (b.updatedAt||0)-(a.updatedAt||0)
  })
 }

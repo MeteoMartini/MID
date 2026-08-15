@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.53.33",
+  "releaseVersion": "0.9.53.35",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -196,7 +196,9 @@
     "scripts/test-push-reliability-095330.mjs",
     "scripts/test-favorite-event-coexistence-touch-095331.mjs",
     "scripts/test-module-open-recovery-isolation-095332.mjs",
-    "scripts/test-solar-symbol-contract-095333.mjs"
+    "scripts/test-solar-symbol-contract-095333.mjs",
+    "scripts/test-event-lifecycle-startup-095334.mjs",
+    "scripts/test-event-refresh-buildfix-095335.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [

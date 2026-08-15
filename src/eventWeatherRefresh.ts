@@ -1,7 +1,7 @@
 import type {BestMatchModelInfo} from './weather'
 import {runBackgroundNetworkTask} from './backgroundNetwork'
 import {buildEventPlan} from './eventWeatherEngine'
-import {EVENT_CENTER_REFRESH_DONE_EVENT,EVENT_CENTER_REFRESH_EVENT,buildEventModelSignature,compareEventPlanFreshness,compareEventPlans,completeEventCenterRefreshRequest,eventPlanFreshness,pendingEventCenterRefreshRequest,readEventCenterRecords,upsertEventCenterRecord,type EventCenterRecord,type EventPlan} from './eventCenter'
+import {EVENT_CENTER_REFRESH_DONE_EVENT,EVENT_CENTER_REFRESH_EVENT,buildEventModelSignature,compareEventPlanFreshness,compareEventPlans,completeEventCenterRefreshRequest,eventCenterEndEpoch,eventCenterStartEpoch,eventPlanFreshness,pendingEventCenterRefreshRequest,readEventCenterRecords,upsertEventCenterRecord,type EventPlan} from './eventCenter'
 
 export type EventWeatherRefreshReason='dashboard'|'header'|'overview'|'detail'|'auto-start'|'auto-stale'|'auto-interval'|'auto-resume'|'model-run'
 export type EventWeatherRefreshResult={requested:number;refreshed:number;failed:number;skipped:number;reason:EventWeatherRefreshReason;at:number}
@@ -23,14 +23,11 @@ const BACKGROUND_QUIET_MS=45*1000
 const BACKGROUND_BATCH_LIMIT=4
 const BACKGROUND_EVENT_GAP_MS=1400
 const REFRESH_TRANSACTION_TIMEOUT_MS=55*1000
-const ACTIVE_EVENT_PAST_GRACE_MS=6*3600000
 const ACTIVE_EVENT_FUTURE_MS=14*86400000
 
-function eventEndStamp(record:EventCenterRecord){const stamp=Date.parse(`${record.date}T${record.endTime||record.startTime||'23:59'}:00`);return Number.isFinite(stamp)?stamp:Number.MAX_SAFE_INTEGER}
-function eventStartStamp(record:EventCenterRecord){const stamp=Date.parse(`${record.date}T${record.startTime||'00:00'}:00`);return Number.isFinite(stamp)?stamp:0}
 function activeRecords(records=readEventCenterRecords()){
  const now=Date.now()
- return records.filter(record=>eventEndStamp(record)>=now-ACTIVE_EVENT_PAST_GRACE_MS&&eventStartStamp(record)<=now+ACTIVE_EVENT_FUTURE_MS)
+ return records.filter(record=>eventCenterEndEpoch(record)>=now&&eventCenterStartEpoch(record)<=now+ACTIVE_EVENT_FUTURE_MS)
 }
 function modelRunEpoch(value?:string){const stamp=value?Date.parse(value):Number.NaN;return Number.isFinite(stamp)?stamp:0}
 export function eventModelRevision(modelInfo:BestMatchModelInfo|null|undefined){return Math.max(0,...(modelInfo?.runs??[]).map(run=>Math.max(modelRunEpoch(run.initialisationTime),modelRunEpoch(run.availabilityTime))))}
@@ -84,7 +81,7 @@ export async function refreshEventWeather(recordId:string,options:{reason?:Event
 
 export async function refreshAllEventWeather(options:{reason?:EventWeatherRefreshReason;requestedAt?:number;favoritesOnly?:boolean;staleOnly?:boolean;recordIds?:string[]}={}):Promise<EventWeatherRefreshResult>{
  const reason=options.reason??'overview',requestedAt=Number(options.requestedAt)||0,now=Date.now(),ids=options.recordIds?new Set(options.recordIds):null,manual=isManualReason(reason)
- let targets=activeRecords().sort((a,b)=>eventStartStamp(a)-eventStartStamp(b))
+ let targets=activeRecords().sort((a,b)=>eventCenterStartEpoch(a)-eventCenterStartEpoch(b))
  if(ids)targets=targets.filter(record=>ids.has(record.id))
  if(options.favoritesOnly)targets=targets.filter(record=>record.isFavorite)
  if(options.staleOnly)targets=targets.filter(record=>!record.plan||now-Number(record.plan.refreshedAt||record.updatedAt||0)>=EVENT_STALE_AFTER_MS)

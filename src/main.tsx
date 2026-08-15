@@ -10,19 +10,28 @@ import {restoreDeviceSyncState,startDeviceSyncBridge} from './deviceSync';
 import {StartupGuard} from './StartupGuard';
 import {initializeStorageSafety} from './storageSafety';
 import {compactForecastVerificationLocalStorage} from './forecastVerification';
+import {beginStartupDashboardPreload} from './startupPreload';
 
 const BOOT_MARKER='mid:runtime:boot-marker:v1';
 function timeout<T>(promise:Promise<T>,ms:number){return Promise.race([promise,new Promise<T>((_,reject)=>window.setTimeout(()=>reject(new Error('Startschritt hat das Zeitlimit überschritten.')),ms))])}
 function markBootStart(){try{sessionStorage.setItem(BOOT_MARKER,JSON.stringify({at:Date.now(),version:document.querySelector('meta[name="mid-version"]')?.getAttribute('content')||''}))}catch{}}
+function setBootStage(message:string){const node=document.getElementById('mid-boot-stage');if(node)node.textContent=message}
+function wait(ms:number){return new Promise<void>(resolve=>window.setTimeout(resolve,ms))}
 function markBootHealthy(){try{sessionStorage.removeItem(BOOT_MARKER);localStorage.removeItem('mid:runtime:last-start-error')}catch{}}
 function nativeFailure(error:unknown){const root=document.getElementById('root');if(!root)return;const message=error instanceof Error?error.message:String(error||'Unbekannter Startfehler');root.innerHTML=`<main class="mid-native-start-failure"><section><h1>MID konnte nicht starten</h1><p>Lokale Daten wurden nicht gelöscht. Bitte lade MID erneut oder repariere den App-Cache.</p><div><button id="mid-native-reload">Neu laden</button><button id="mid-native-repair">App-Cache reparieren</button></div><details><summary>Technische Information</summary><code></code></details></section></main>`;const code=root.querySelector('code');if(code)code.textContent=message;root.querySelector('#mid-native-reload')?.addEventListener('click',()=>location.reload());root.querySelector('#mid-native-repair')?.addEventListener('click',async()=>{try{const registrations=await navigator.serviceWorker?.getRegistrations?.()||[];await Promise.all(registrations.map(item=>item.unregister().catch(()=>false)));if('caches'in window){const names=await caches.keys();await Promise.all(names.filter(name=>name.startsWith('mid-shell-v')||name==='mid-system-meta-v1').map(name=>caches.delete(name)))}}finally{location.reload()}})}
 async function signalHealthy(){await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));window.dispatchEvent(new Event('mid:runtime-healthy'));await markMidRuntimeHealthy();markBootHealthy()}
 async function start(){
  markBootStart();
+ setBootStage('Lokale Daten werden geprüft …');
  await timeout(initializeStorageSafety(),3500).catch(()=>false);
  await timeout(compactForecastVerificationLocalStorage(),5000).catch(()=>false);
+ setBootStage('Einstellungen und Favoriten werden wiederhergestellt …');
  await timeout(restorePersistentState(),4500).catch(()=>false);
+ setBootStage('Gerätestand wird abgeglichen …');
  await timeout(restoreDeviceSyncState(),6500).catch(()=>false);
+ setBootStage('Aktuelle Startdaten werden vorbereitet …');
+ const preload=beginStartupDashboardPreload();
+ if(preload)await Promise.race([preload.promise.then(()=>undefined),wait(550)]).catch(()=>undefined);
  try{startPersistenceBridge()}catch{}
  try{startDeviceSyncBridge()}catch{}
  const root=document.getElementById('root');if(!root)throw new Error('MID-Startcontainer fehlt.');

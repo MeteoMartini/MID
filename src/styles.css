@@ -5953,3 +5953,16 @@ button,[role="button"],summary{
 
 /* v0.9.53.30 push end-to-end diagnostics */
 .push-settings-panel .push-status-card.warning{border-color:color-mix(in srgb,#e6a23c 55%,var(--border))!important;background:color-mix(in srgb,#e6a23c 8%,var(--s2))!important}.push-settings-panel .push-status-card.warning>div>svg{color:#e6a23c}
+
+/* MID v0.9.53.34 · Event-Lifecycle: abgelaufene Termine klar, kompakt und direkt entfernbar */
+.event-center-card.compact.expired{opacity:.72;border-style:dashed;background:color-mix(in srgb,var(--s2) 74%,var(--surface))}
+.event-center-card.compact.expired>.event-center-favorite{right:43px}
+.event-center-card.compact.expired .event-center-card-disclosure>summary{padding-right:76px}
+.event-center-expired-delete{position:absolute;z-index:4;top:8px;right:8px;display:grid;place-items:center;width:30px;height:30px;padding:0;border:1px solid color-mix(in srgb,#c93c35 30%,var(--border));border-radius:10px;background:color-mix(in srgb,#c93c35 8%,var(--surface));color:var(--event-danger);cursor:pointer}
+.event-center-expired-delete:hover{background:color-mix(in srgb,#c93c35 14%,var(--surface))}
+.event-center-card-pill.expired{border-color:color-mix(in srgb,var(--muted) 34%,var(--border));background:color-mix(in srgb,var(--muted) 9%,var(--surface));color:var(--muted)}
+.event-center-header-entry.expired{opacity:.72}
+.event-center-header-entry-top em.expired{background:color-mix(in srgb,var(--muted) 10%,var(--surface));color:var(--muted)}
+.event-center-header-detail-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.actions .event-center-header-detail-actions .secondary{justify-self:auto}
+.event-expired-detail-badge{display:inline-flex;align-items:center;min-height:24px;padding:3px 8px;border:1px solid color-mix(in srgb,var(--muted) 30%,var(--border));border-radius:999px;background:color-mix(in srgb,var(--muted) 8%,var(--surface));color:var(--muted);font-size:9px;font-weight:800}

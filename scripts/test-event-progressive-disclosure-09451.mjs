@@ -17,7 +17,7 @@ assert.match(planner,/className={`event-center-favorite\$\{record\.isFavorite\?'
 
 assert.match(app,/className="event-center-header-popover compact"/,'Glocken-Popover ist nicht als kompakte Variante markiert.');
 assert.match(app,/className="event-center-header-list compact"/,'Glocken-Liste ist nicht kompakt.');
-assert.match(app,/records\.map\(record=>\{const meaningfulUpdate=.*return <details key=\{record\.id\}/,'Events unter der Glocke sind nicht einzeln aufklappbar.');
+assert.match(app,/visibleRecords\.map\(record=>\{const expired=.*return <details key=\{record\.id\}/,'Events unter der Glocke sind nicht einzeln aufklappbar.');
 assert.match(app,/className="event-center-header-metrics"/,'Meteorologische Eckdaten fehlen in der kompakten Glockenansicht.');
 assert.match(app,/className="event-center-header-entry-details"/,'Detailbereich unter der Glocke fehlt.');
 assert.match(app,/>Details öffnen<\/span>/,'Eindeutiger Sprung zum vollständigen Eventplaner fehlt.');

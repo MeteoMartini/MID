@@ -3829,3 +3829,11 @@
 ## 0.9.52.4
 - CodeQL-Cleanup: letzter produktiver `Math.random()`-Fallback in der Favoriten-ID-Erzeugung durch Web-Crypto ersetzt.
 - Neue Regression verhindert unsichere Zufallsquellen im Produktionscode.
+
+## 0.9.53.34
+- Abgelaufene Events appweit erkennbar, ortszeitzonengerecht sortiert und direkt entfernbar; automatische Wetteraktualisierung endet mit Event-Ende.
+- Theme-gerechter Splashscreen mit deutlich größerem vollständigem MID-Logo und kurzer kanonischer Startdaten-Vorladung.
+
+## 0.9.53.35
+- Produktionsbuild-Fix für v0.9.53.34: unbenutzten `EventCenterRecord`-Typimport in `eventWeatherRefresh.ts` entfernt (`TS6133`).
+- Event-Lifecycle und Splashscreen-Funktionen aus v0.9.53.34 bleiben unverändert erhalten.
