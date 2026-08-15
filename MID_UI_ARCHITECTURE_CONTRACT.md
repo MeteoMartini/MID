@@ -97,3 +97,11 @@ Bestehende historisch spezialisierte Ensemble-Tooltips bleiben vorerst als eng b
 - Ein lokales Browser-Abonnement ohne Worker-Registrierung wird als reparaturbedürftig dargestellt; die Registrierung muss ohne versteckten Datenverlust erneuerbar sein.
 - Für registrierte Geräte steht eine echte Ende-zu-Ende-Testmitteilung zur Verfügung.
 - Technische Diagnose bleibt kompakt; Detailzeitpunkte wie der letzte Scheduler-Lauf werden bevorzugt im erweiterten Modus angezeigt.
+
+## 12. Astronomische Tag-/Nachtsymbole
+
+- Ergänzend ist `MID_SOLAR_SYMBOL_CONTRACT.md` verbindlich.
+- Jedes einem konkreten Zeitpunkt zugeordnete Wetterpiktogramm verwendet die astronomische Sonnenaufgangs-/Sonnenuntergangsgrenze des tatsächlichen Prognoseortes und der dortigen Zeitzone.
+- Tag gilt exakt ab Sonnenaufgang bis unmittelbar vor Sonnenuntergang; ab Sonnenuntergang wird das Nachtpiktogramm verwendet. Dämmerungsphasen verändern diese Symbolfamilie nicht.
+- Provider-`is_day` darf nur Fallback bei fehlender astronomischer Bestimmbarkeit sein. Eine Stundenklassifikation darf insbesondere nicht auf 15-Minuten-Zwischenzeiten übertragen werden.
+- Tagesaggregate ohne konkreten Zeitpunkt dürfen weiterhin ein repräsentatives Tagespiktogramm verwenden; explizite Nachtaggregate verwenden ein Nachtpiktogramm.

@@ -11,7 +11,8 @@ const need=(text,token,message)=>{if(!text.includes(token))failures.push(message
 need(pictogram,"if(c===2)return'partly-cloudy'",'Teilweise bewölktes Wetter braucht ein eigenes professionelles Piktogramm.');
 need(pictogram,"const celestial=day?<Sun",'Das Piktogrammsystem muss Tag und Nacht getrennt rendern.');
 need(app,"<WeatherPictogram code={point.code} day={point.isDay}",'Der Höhenwetter-Verlauf muss Tages-/Nachtpiktogramme verwenden.');
-need(app,"isDay:value('is_day')>=.5",'Der Höhenwetter-Verlauf muss den Tagesstatus je Zeitpunkt übernehmen.');
+need(app,"isDay:astronomicalIsDayAt(sample.epoch",'Der Höhenwetter-Verlauf muss den Tagesstatus je Zeitpunkt astronomisch aus Sonnenaufgang/Sonnenuntergang bestimmen.');
+need(astronomy,'export function astronomicalIsDayAt','Die zentrale astronomische Tag-/Nachtentscheidung fehlt.');
 need(astronomy,'civilDawn?:Date','Bürgerliche Dämmerung fehlt im Astronomiekern.');
 need(astronomy,'blueHourMorningStart?:Date','Blaue Stunde fehlt im Astronomiekern.');
 need(astronomy,'goldenHourEveningStart?:Date','Goldene Stunde fehlt im Astronomiekern.');

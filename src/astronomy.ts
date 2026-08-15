@@ -70,7 +70,7 @@ function bodyAltitude(body:Body,date:Date,observer:Observer,refraction:'normal'|
 function riseSetWithin(body:Body,observer:Observer,direction:1|-1,start:Date,end:Date,limitDays:number){try{return inWindow(SearchRiseSet(body,observer,direction,start,limitDays,0)?.date,start,end)}catch{return undefined}}
 function altitudeWithin(body:Body,observer:Observer,direction:1|-1,altitude:number,start:Date,end:Date,limitDays:number){try{return inWindow(SearchAltitude(body,observer,direction,start,limitDays,altitude)?.date,start,end)}catch{return undefined}}
 
-function sunTimesForDate(parts:{year:number;month:number;day:number},lat:number,lon:number,height:number,timezone:string){
+export function sunTimesForDate(parts:{year:number;month:number;day:number},lat:number,lon:number,height:number,timezone:string){
  const observer=observerFor(lat,lon,height),{start,end,limitDays}=localDayWindow(parts,timezone),noonEvent=(()=>{try{return SearchHourAngle(Body.Sun,observer,0,start,1).time.date}catch{return undefined}})();
  return{
   sunrise:riseSetWithin(Body.Sun,observer,1,start,end,limitDays),sunset:riseSetWithin(Body.Sun,observer,-1,start,end,limitDays),solarNoon:inWindow(noonEvent,start,end),
@@ -82,6 +82,25 @@ function sunTimesForDate(parts:{year:number;month:number;day:number},lat:number,
   goldenHourMorningEnd:altitudeWithin(Body.Sun,observer,1,6,start,end,limitDays),goldenHourEveningStart:altitudeWithin(Body.Sun,observer,-1,6,start,end,limitDays)
  };
 }
+
+export type SolarDaylightLocation={latitude:number;longitude:number;elevation?:number;timezone?:string};
+export type SolarDaylightWindow={sunrise?:Date;sunset?:Date;timezone:string};
+const solarDaylightCache=new Map<string,SolarDaylightWindow>();
+function solarDaylightCacheKey(parts:{year:number;month:number;day:number},location:SolarDaylightLocation,timezone:string){return`${parts.year}-${String(parts.month).padStart(2,'0')}-${String(parts.day).padStart(2,'0')}|${Number(location.latitude).toFixed(5)}|${Number(location.longitude).toFixed(5)}|${Math.round(Number(location.elevation)||0)}|${timezone}`}
+/**
+ * Kanonische astronomische Tag/Nacht-Grenze für alle zeitbezogenen MID-Wettersymbole.
+ * Tag beginnt exakt mit Sonnenaufgang und endet mit Sonnenuntergang. Bürgerliche
+ * Dämmerung verändert die Symbolfamilie bewusst nicht.
+ */
+export function solarDaylightWindowAt(at:Date|number,location:SolarDaylightLocation):SolarDaylightWindow{
+ const date=at instanceof Date?at:new Date(at),timezone=location.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';
+ if(!Number.isFinite(date.getTime())||!Number.isFinite(Number(location.latitude))||!Number.isFinite(Number(location.longitude)))return{timezone};
+ const parts=localDateParts(date,timezone),key=solarDaylightCacheKey(parts,location,timezone),cached=solarDaylightCache.get(key);if(cached)return cached;
+ const times=sunTimesForDate(parts,Number(location.latitude),Number(location.longitude),Number(location.elevation)||0,timezone),window={sunrise:times.sunrise,sunset:times.sunset,timezone};
+ solarDaylightCache.set(key,window);if(solarDaylightCache.size>96){const first=solarDaylightCache.keys().next().value;if(first)solarDaylightCache.delete(first)}return window;
+}
+export function astronomicalIsDayAt(at:Date|number,location:SolarDaylightLocation,fallback=false){const date=at instanceof Date?at:new Date(at),window=solarDaylightWindowAt(date,location),sunrise=window.sunrise?.getTime(),sunset=window.sunset?.getTime();return Number.isFinite(sunrise)&&Number.isFinite(sunset)&&Number(sunset)>Number(sunrise)?date.getTime()>=Number(sunrise)&&date.getTime()<Number(sunset):fallback}
+
 function dayLengthSeconds(sunrise?:Date,sunset?:Date){if(!sunrise||!sunset)return Number.NaN;const seconds=(sunset.getTime()-sunrise.getTime())/1000;return seconds>0&&seconds<DAY_MS/1000?seconds:Number.NaN}
 function moonTimesForDate(parts:{year:number;month:number;day:number},lat:number,lon:number,height:number,timezone:string){
  const observer=observerFor(lat,lon,height),{start,end,limitDays}=localDayWindow(parts,timezone),moonrise=riseSetWithin(Body.Moon,observer,1,start,end,limitDays),moonset=riseSetWithin(Body.Moon,observer,-1,start,end,limitDays),altitudeAtStart=bodyAltitude(Body.Moon,new Date(start.getTime()+1000),observer,'normal'),noCrossing=!moonrise&&!moonset;

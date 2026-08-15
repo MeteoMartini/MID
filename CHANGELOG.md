@@ -1,3 +1,11 @@
+# MID v0.9.53.33
+
+- App-weiter astronomischer Tag-/Nachtsymbolvertrag: zeitpunktbezogene Wetterpiktogramme wechseln exakt an Sonnenaufgang/Sonnenuntergang des jeweiligen Prognoseortes.
+- 90-Minuten-/15-Minuten-Punkte übernehmen nicht mehr blind `is_day` der nächstgelegenen vollen Stunde; minutengenaue Sonnenstandsgrenzen werden in den kanonischen Forecast-Reihen mitgeführt.
+- Aktuelles Wetter, Komposit/Radar, Kurzfrist-/Stundenpfade und Berg-/Höhenwetter auf denselben zentralen `astronomicalIsDayAt()`-Entscheider vereinheitlicht.
+- Native Widgets verwenden `sunrise`/`sunset` statt Provider-`is_day` als primäre Symbolgrenze; Worker-Update erforderlich.
+- Neuer verbindlicher `MID_SOLAR_SYMBOL_CONTRACT.md` und Required Regression `test-solar-symbol-contract-095333.mjs`.
+
 # MID v0.9.53.32
 
 - Langfrist-/Hauptsektions-Startzustand nachhaltig repariert: Modul-Offenzustände sind jetzt aus Recovery-Snapshot und StorageSafety-IndexedDB-Spiegel ausgeschlossen.
