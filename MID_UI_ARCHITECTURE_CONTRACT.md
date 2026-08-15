@@ -34,7 +34,7 @@ Für neue nicht-modale, an einem Steuerelement verankerte Ebenen gilt:
 - Hauptsektionen sind bei erstmaliger Initialisierung bzw. dokumentierter Vertragsmigration geschlossen; danach wird ausschließlich die letzte lokale Nutzerentscheidung der jeweiligen Sektion wiederhergestellt.
 - Ein gespeicherter Offen-/Geschlossen-Zustand ist nur für echte Ansichtspräferenzen zulässig; temporäre Lade- oder Fehlerzustände werden nicht als Nutzerpräferenz persistiert.
 - Deep-Links bzw. bewusste Navigation zu einer Sektion dürfen die Zielsektion für die aktuelle Navigation sichtbar/aufgeklappt machen. Ein alter `#mid-section-*`-Hash ist jedoch kein Startzustand und wird bei jedem App-Bootstrap neutralisiert.
-- Hauptmodul-Offenzustände sind gerätelokale Ansichtspräferenzen und dürfen nicht durch Geräte-Sync, Eventdaten oder Datenaktualisierungen überschrieben werden.
+- Hauptmodul-Offenzustände sind gerätelokale Ansichtspräferenzen und dürfen nicht durch Geräte-Sync, Eventdaten, Datenaktualisierungen oder einen älteren Recovery-/StorageSafety-Spiegel überschrieben werden. Sie werden nicht in IndexedDB-/Cache-Recovery-Snapshots gespiegelt.
 - Öffnen/Schließen einer Hauptsektion darf keine andere Hauptsektion implizit öffnen oder schließen. Sektionsspezifische Parallel-Persistenz ist unzulässig.
 - Ein eingeklappter Zustand darf keine Hintergrundberechnung unnötig erzwingen, wenn die Daten erst beim Öffnen benötigt werden.
 - Neue Sektionen folgen den bestehenden MID-Dichtevariablen (`--mid-ui-touch`, `--mid-ui-gap`, `--mid-ui-card-pad`, `--mid-ui-radius`) statt eigene globale Maße einzuführen.

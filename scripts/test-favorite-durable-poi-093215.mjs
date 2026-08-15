@@ -14,7 +14,7 @@ need('limit=poi?180:450','enge POI-Toleranz');
 need('function favoriteIdentityNamesEquivalent(a:Location|undefined|null,b:Location|undefined|null)','robuster POI-Namensabgleich');
 need("const FAVORITES_UPDATED_AT_KEY='mid:favorites:updated-at'",'Favoriten-Revision');
 need('function matchingStoredFavorite(favorites:Favorite[],location:Location|undefined|null)','strikter gespeicherter Favoritenabgleich');
-need('return matchingStoredFavorite(favorites,location)??favorites.find(item=>locationsNearlyEquivalent(item.location,location))','getrennte GPS-Nahbereichszuordnung');
+need('return matchingStoredFavorite(favorites,location)??favorites.find(item=>favoriteLocationsEquivalentForSelection(item.location,location))??favorites.find(item=>locationsNearlyEquivalent(item.location,location))','getrennte GPS-/Auswahl-Nahbereichszuordnung');
 need('currentFavorite=useMemo(()=>matchingStoredFavorite(favorites,loc)','strikter aktiver Favorit');
 need("activeFavoriteId=matchingStoredFavorite(favorites,current)?.id??''",'strikter Schnellzugriff');
 need("currentFavoriteId=matchingStoredFavorite(favorites,current)?.id??''",'strikte Favoritenverwaltung/-suche');

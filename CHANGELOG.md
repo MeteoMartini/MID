@@ -1,3 +1,18 @@
+# MID v0.9.53.32
+
+- Langfrist-/Hauptsektions-Startzustand nachhaltig repariert: Modul-Offenzustände sind jetzt aus Recovery-Snapshot und StorageSafety-IndexedDB-Spiegel ausgeschlossen.
+- Alte Spiegelwerte werden beim Start verworfen; `mid:module-open-contract:v5` setzt alle Hauptsektionen einmalig geschlossen.
+- Öffnen/Schließen wird synchron mit der Nutzeraktion gespeichert, nicht erst in einem nachgelagerten React-Effect.
+- Neue Required Regression `test-module-open-recovery-isolation-095332.mjs`.
+
+# MID v0.9.53.31
+
+- Favoritenstern auf einen einzigen semantischen Click-Pfad umgestellt; verspätete iOS-Synthetic-Clicks können einen neu gespeicherten Favoriten nicht mehr unmittelbar wieder entfernen.
+- Mutierende Favoritenidentität von großzügiger Navigationsnähe getrennt; Koordinaten-/Namensnähe darf keine Löschung auslösen.
+- Derselbe Ort kann ausdrücklich gleichzeitig Event/Event-Favorit und Ortsfavorit sein. Event-Metadaten werden aus Ortsfavoriten defensiv entfernt.
+- Favoriten-Authoritätsref wird nur noch commit-sicher synchronisiert, nicht während des Renderns zurückgesetzt.
+- Neue Required Regression `test-favorite-event-coexistence-touch-095331.mjs`.
+
 # MID Changelog
 
 ## v0.9.53.30

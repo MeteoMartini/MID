@@ -13,7 +13,7 @@ const [app,weather,eventEngine,eventCenter,eventPanel,pkgRaw,baselineRaw]=await 
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw);
 assert.equal(pkg.version,baseline.releaseVersion,'Release und Baseline müssen synchron sein.');
 
-assert.match(app,/mid:module-open-contract:v4/,'Modulzustandsmigration v4 fehlt.');
+assert.match(app,/mid:module-open-contract:v5/,'Modulzustandsmigration v5 fehlt.');
 assert.match(app,/MODULES_DEFAULT_CLOSED=\['mountain','water','composite','ensemble','long-range'/,'Langfrist muss Teil des einheitlich standardmäßig geschlossenen Hauptmodulvertrags sein.');
 assert.match(app,/id="long-range"[\s\S]{0,180}defaultOpen=\{false\}/,'Langfrist muss standardmäßig geschlossen sein.');
 

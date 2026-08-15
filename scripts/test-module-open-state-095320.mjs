@@ -1,14 +1,14 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const app=readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
-assert.match(app,/const MODULE_OPEN_CONTRACT_KEY='mid:module-open-contract:v4'/,'Einheitlicher Modul-Offenvertrag fehlt');
+assert.match(app,/const MODULE_OPEN_CONTRACT_KEY='mid:module-open-contract:v5'/,'Einheitlicher Modul-Offenvertrag fehlt');
 assert.match(app,/function moduleOpenKey\(id:string\)/,'Zentraler Modul-State-Key fehlt');
 assert.match(app,/function storedModuleOpen\(id:string,defaultOpen=false\)/,'Zentrales Lesen des Modulzustands fehlt');
 assert.match(app,/function persistModuleOpen\(id:string,open:boolean\)/,'Zentrales Speichern des Modulzustands fehlt');
 assert.match(app,/const MODULES_DEFAULT_CLOSED=\['mountain','water','composite','ensemble','long-range','forecast-verification','travel-planner','event-planner','flight-meteorology','weather-maps','widget'\]/,'Große Standardmodule müssen bei der Vertragsmigration konsistent geschlossen initialisiert werden');
 assert.match(app,/function initializedLayoutMode\(\):LayoutMode\{initializeModuleOpenContract\(\);/,'Modulzustandsmigration muss vor Layout-Initialisierung laufen');
 assert.match(app,/const\[open,setOpen\]=useState\(\(\)=>storedModuleOpen\(id,defaultOpen\)\)/,'CollapsibleModule muss denselben persistenten Zustand verwenden');
-assert.match(app,/persistModuleOpen\(id,open\)/,'CollapsibleModule muss Änderungen zentral speichern');
+assert.match(app,/persistModuleOpen\(id,resolved\)/,'CollapsibleModule muss Änderungen synchron im zentralen State-Übergang speichern');
 assert.match(app,/window\.addEventListener\('storage',sync\)/,'Modulzustand soll tabübergreifend konsistent bleiben');
 assert.doesNotMatch(app,/if\(w&&location\.hash\)window\.setTimeout\(handleHistory,80\)/,'Ein alter URL-Hash darf beim App-Neustart kein Modul erneut aufklappen');
 assert.match(app,/history\.replaceState\(null,'',`\$\{location\.pathname\}\$\{location\.search\}`\)/,'Stale Dashboard-Hash muss bei jedem Bootstrap entfernt werden');
