@@ -48,7 +48,7 @@ const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const OPEN_METEO_ELEVATION='https://api.open-meteo.com/v1/elevation';
 const MET_NORWAY_LOCATIONFORECAST='https://api.met.no/weatherapi/locationforecast/2.0/complete';
-const WORKER_VERSION='0.9.53.35';
+const WORKER_VERSION='0.9.53.36';
 const C3S_SEASONAL_POINT_SYSTEMS=[
  {centreId:'ecmwf',originatingCentre:'ecmwf',system:'51',label:'ECMWF'},
  {centreId:'ukmo',originatingCentre:'ukmo',system:'610',label:'UK Met Office'},
@@ -124,6 +124,7 @@ const REGIONAL_ENSEMBLE_ADAPTERS={
  knmi_harmonie_arome_cy43_eps:{endpoint:'MID_KNMI_HARMONIE_EPS_POINT_ENDPOINT',token:'MID_KNMI_HARMONIE_EPS_POINT_TOKEN',label:'KNMI HARMONIE-AROME Cy43 EPS'},
  eccc_reps:{endpoint:'MID_ECCC_REPS_POINT_ENDPOINT',token:'MID_ECCC_REPS_POINT_TOKEN',label:'ECCC REPS'}
 };
+function regionalEnsembleCapabilities(env){return Object.fromEntries(Object.entries(REGIONAL_ENSEMBLE_ADAPTERS).map(([id,definition])=>[id,{label:definition.label,configured:Boolean(adapterEndpoint(env,definition.endpoint)),required:[definition.endpoint,`optional ${definition.token}`]}]))}
 async function regionalEnsembleAdapterPayload(model,lat,lon,days,variables,env){const definition=REGIONAL_ENSEMBLE_ADAPTERS[model];if(!definition)return null;const endpoint=adapterEndpoint(env,definition.endpoint);if(!endpoint){const error=new Error(`${definition.label}: numerischer Punktadapter nicht konfiguriert`);error.midStatus=503;error.midRequired=[definition.endpoint,`optional ${definition.token}`];throw error}endpoint.searchParams.set('lat',String(lat));endpoint.searchParams.set('lon',String(lon));endpoint.searchParams.set('forecast_days',String(days));endpoint.searchParams.set('variables',variables.join(','));endpoint.searchParams.set('model',model);const headers={Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},token=String(env?.[definition.token]||'').trim();if(token)headers.Authorization=`Bearer ${token}`;const response=await fetchWithDeadline(endpoint.toString(),{headers},30000),text=await response.text();let payload;try{payload=JSON.parse(text)}catch{throw new Error(`${definition.label}: ungültige JSON-Antwort`)}if(!response.ok)throw new Error(String(payload?.error||payload?.detail||`${definition.label} Adapter HTTP ${response.status}`));if(!Array.isArray(payload?.hourly?.time)||payload.hourly.time.length<12)throw new Error(`${definition.label}: keine vollständige stündliche Punktzeitreihe`);return{...payload,_mid_source:definition.label,_mid_adapter:true}}
 const CORE_FORECAST_CURRENT='temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,is_day,precipitation,rain,showers,snowfall,weather_code,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,visibility,cape,sunshine_duration';
 const CORE_FORECAST_MINUTELY='precipitation_probability,precipitation,rain,showers,snowfall,weather_code,sunshine_duration';
@@ -2181,6 +2182,7 @@ export default{async fetch(request,env){
  if(mode==='netatmo-disconnect'){if(request.method!=='POST')return json({error:'POST erforderlich',version:WORKER_VERSION},405,{'cache-control':'no-store'});return netatmoDisconnect(request,env)}
  if(mode==='forecast-core')return openMeteoCoreForecast(u);
  if(mode==='forecast-fusion')return forecastFusionResponse(u,env);
+ if(mode==='ensemble-capabilities')return json({ok:true,version:WORKER_VERSION,models:regionalEnsembleCapabilities(env)},200,{'cache-control':'no-store'});
  if(mode==='ensemble-proxy')return openMeteoEnsembleProxy(u,env);
  if(mode==='model-meta')return openMeteoModelMeta(u);
  if(mode==='rapid-model-meta')return dwdRapidModelMeta(u);

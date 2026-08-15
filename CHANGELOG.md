@@ -1,3 +1,11 @@
+# MID v0.9.53.36
+
+- Ensemble-Modellauswahl success-driven: fehlgeschlagene Quellen und nicht konfigurierte optionale Regionaladapter verbrauchen keinen Erfolgsplatz.
+- ECMWF IFS/AIFS ENS verwenden in Europa einen Native-Europe→Global-Fallback innerhalb derselben Variantengruppe, ohne Doppelgewichtung.
+- Modellstanddiagnose zeigt numerisch aktive Modelle auch bei fehlenden Laufmetadaten und kennzeichnet Aktiv, Fallback, Nicht verfügbar, Adapter fehlt und Reserve.
+- Open-Meteo Mean/Spread-Reserve um NOAA AIGEFS, UKMO Global/UK, MeteoSwiss CH1/CH2 und BOM ACCESS erweitert.
+- Worker-Capability-Endpunkt für KNMI HARMONIE-AROME EPS und ECCC REPS sowie verbindlicher Modellquellen-/Adaptervertrag ergänzt.
+
 # MID v0.9.53.33
 
 - App-weiter astronomischer Tag-/Nachtsymbolvertrag: zeitpunktbezogene Wetterpiktogramme wechseln exakt an Sonnenaufgang/Sonnenuntergang des jeweiligen Prognoseortes.

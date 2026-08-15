@@ -9,12 +9,12 @@ const [weather,app,thunder,worker,styles]=await Promise.all([
 const failures=[];
 for(const token of [
  "const ensemblePriority=",
- "rankModels(",
- "settledMapLimited(selected,2",
+ "orderedModels(",
+ "loadEnsembleUnits(selected,8",
  "fetchWorkerJson<Weather&{error?:string}>('ensemble-proxy'",
  "temperature_2m_spread,precipitation,precipitation_spread",
  "pseudoModelFromMeanSpread",
- "ENSEMBLE_CACHE_PREFIX='mid:ensemble:v13:'",
+ "ENSEMBLE_CACHE_PREFIX='mid:ensemble:v14:'",
  "lokaler letzter erfolgreicher Stand"
 ])if(!weather.includes(token))failures.push(`Ensemble-Recovery fehlt: ${token}`);
 for(const token of [
