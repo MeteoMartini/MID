@@ -1,9 +1,10 @@
 import {applyEnsembleDailyPrecipitationProbability,bestMatchModelInfo,eventEnsembleForecast,forecast,label,localIsoEpoch,mapDays,mapHours,radarNowcast,station,stationFieldObservationUsable,thunderstormNowcast,type EventPrecipitationProbabilityAssessment,type Hour,type Location} from './weather'
-import {applyForecastFusionDays,applyForecastFusionHours,finalizeForecastHours,forecastFusionLabel,loadForecastFusion,type ForecastFusionResult} from './forecastFusion'
+import {applyForecastFusionDays,applyForecastFusionHours,applyHyperlocalForecastHours,finalizeForecastHours,forecastFusionLabel,loadForecastFusion,type ForecastFusionResult,type ForecastLocalAnchor} from './forecastFusion'
 import {compactPrecipitationTypeLabel,precipitationParts} from './precipitation'
 import {loadEventFlightHazards} from './eventAviation'
 import {applyLocalTwinForecastFromReport,applyLocalTwinHours,buildForecastVerificationReport,readWeatherTwinSettings} from './forecastVerification'
 import type {EventActivity,EventAdvice,EventEnvironment,EventPlan,EventStatus,EventSummary,EventTimelinePoint} from './eventCenter'
+import {forecastLocalAnchorFromCurrent} from './forecastLocalAnchor'
 
 export type BuildEventPlanOptions={
  location:Location
@@ -116,14 +117,14 @@ export async function buildEventPlan(options:BuildEventPlanOptions):Promise<Even
  if(!canonicalActive){
   const twinSettings=readWeatherTwinSettings(),locationKey=`${Number(location.latitude).toFixed(5)}:${Number(location.longitude).toFixed(5)}`,twinReport=twinSettings.enabled&&twinSettings.useAsMainForecast&&ensembleDays.length?buildForecastVerificationReport(locationKey,fusedDays,ensembleDays,location,baseHours):null,localTwinDays=twinReport?applyLocalTwinForecastFromReport(fusedDays,twinReport):fusedDays,twinEligible=Boolean(twinReport?.mainForecastStatus.eligible&&localTwinDays!==fusedDays),displayBaseDays=applyEnsembleDailyPrecipitationProbability(twinEligible?localTwinDays:fusedDays,ensembleDays)
   if(twinEligible){finalHours=applyLocalTwinHours(locationKey,finalHours,fusedDays,localTwinDays);weatherTwinApplied=true}
-  let radar:Awaited<ReturnType<typeof radarNowcast>>=null,thunder:Awaited<ReturnType<typeof thunderstormNowcast>>=null,observedTemperature=Number(weather.current?.temperature_2m),observedAt=now
+  let radar:Awaited<ReturnType<typeof radarNowcast>>=null,thunder:Awaited<ReturnType<typeof thunderstormNowcast>>=null,observedTemperature=Number(weather.current?.temperature_2m),observedAt=now,localAnchor:ForecastLocalAnchor|undefined
   if(nearNow){
    const [radarResult,thunderResult,stationResult]=await Promise.allSettled([radarNowcast(location.latitude,location.longitude,country,signal,true),thunderstormNowcast(location.latitude,location.longitude,country,signal),station(location.latitude,location.longitude,country,location.elevation??weather.elevation,location,signal,true)])
    radar=radarResult.status==='fulfilled'?radarResult.value:null;thunder=thunderResult.status==='fulfilled'?thunderResult.value:null
    const observation=stationResult.status==='fulfilled'?stationResult.value:null,temperatureSource=observation?.fieldSources?.temperature?.[0],stamp=temperatureSource?.observedAt?Date.parse(temperatureSource.observedAt):observation?.timestamp?Date.parse(observation.timestamp):Number.NaN,fresh=stationFieldObservationUsable(observation,'temperature',now,location.elevation??weather.elevation)
-   if(fresh){observedTemperature=Number(observation!.temperature);observedAt=Number.isFinite(stamp)?stamp:now}
+   if(fresh){observedTemperature=Number(observation!.temperature);observedAt=Number.isFinite(stamp)?stamp:now}localAnchor=forecastLocalAnchorFromCurrent(observation,weather.current,now,location.elevation??weather.elevation)
   }
-  const finalized=finalizeForecastHours(finalHours,displayBaseDays,{radar,thunder,observedTemperature,observedAt,applyOperationalRadar:nearNow});finalHours=finalized.hours;nowcastApplied=finalized.radarApplied;thunderApplied=finalized.thunderApplied
+  const referenceHours=finalHours,finalized=finalizeForecastHours(finalHours,displayBaseDays,{radar,thunder,observedTemperature,observedAt,applyOperationalRadar:nearNow});finalHours=applyHyperlocalForecastHours(finalized.hours,localAnchor,now,referenceHours);nowcastApplied=finalized.radarApplied;thunderApplied=finalized.thunderApplied
  }
  const timeline=timelineForWindow(finalHours,eventDate,eventStartTime,eventEndTime)
  if(!timeline.length)throw new Error('Für den gewählten Zeitraum sind noch keine Stundendaten verfügbar. Bitte Datum oder Uhrzeit anpassen.')

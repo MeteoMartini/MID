@@ -4,12 +4,13 @@ import {createRequire} from 'node:module';
 
 const require=createRequire(import.meta.url);
 const ts=require('typescript');
-const [quality,weather,app,eventEngine,shortTerm,twin,worker,pkgRaw,baselineRaw]=await Promise.all([
+const [quality,weather,app,eventEngine,shortTerm,anchorCore,twin,worker,pkgRaw,baselineRaw]=await Promise.all([
  readFile(new URL('../src/sourceQuality.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/weather.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/eventWeatherEngine.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/ShortTermForecast.tsx',import.meta.url),'utf8'),
+ readFile(new URL('../src/forecastLocalAnchor.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/forecastVerification.ts',import.meta.url),'utf8'),
  readFile(new URL('../worker/metar-proxy.js',import.meta.url),'utf8'),
  readFile(new URL('../package.json',import.meta.url),'utf8'),
@@ -50,7 +51,8 @@ assert.ok(app.indexOf("const forecastSourceLabel='Best Match';")>=0&&app.indexOf
 assert.ok(app.includes('<b>Dynamische Windexposition:</b>'),'Die vollständige dynamische Windexposition fehlt im Info-Popover.');
 assert.ok(app.includes('{stationDynamicStatus}{fresh?<InfoHint className="current-analysis-trigger" label="Hyperlokale Analyse erklären">'),'Dynamische Hyperlokal-Ergebnisse liegen weiterhin vollständig hinter dem Info-Popover.');
 assert.ok(eventEngine.includes("stationFieldObservationUsable(observation,'temperature'"),'Event-Temperaturanker ist in der zentralen Event-Engine nicht feldweise qualitätsgesichert.');
-assert.ok(shortTerm.includes('stationFieldObservationUsable(station,field,now)'),'Kurzfristanker sind nicht feldweise qualitätsgesichert.');
+assert.ok(anchorCore.includes('stationFieldObservationUsable(station,field,now,elevation)'),'Gemeinsamer Forecast-/Kurzfristanker ist nicht feldweise qualitätsgesichert.');
+assert.ok(shortTerm.includes("forecastLocalAnchorFromCurrent as buildForecastLocalAnchor"),'Kurzfristmodul verwendet nicht den gemeinsamen feldweise qualitätsgesicherten Forecast-Anker.');
 assert.ok(!shortTerm.includes('STATION_FRESHNESS_MS=150*60000'),'Alter pauschaler 150-Minuten-Vertrag ist noch aktiv.');
 for(const field of ['temperature','precipitation','windGust','cloudCover'])assert.ok(twin.includes(`stationFieldObservationUsable(station,'${field}'`),`Wetterzwilling archiviert ${field} noch ohne feldbezogene Frischeprüfung.`);
 

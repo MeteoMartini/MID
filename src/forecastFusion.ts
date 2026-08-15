@@ -1,6 +1,6 @@
 import {fetchWorkerJson} from './workerClient';
 import {reconcileForecastPrecipitation} from './precipitation';
-import type {Day,Hour,RadarNowcast,RadarNowcastFrame,RadarNowcastInterval,ThunderstormNowcast} from './weather';
+import type {Day,Hour,Minute15,RadarNowcast,RadarNowcastFrame,RadarNowcastInterval,ThunderstormNowcast} from './weather';
 
 export type ForecastFusionTier=1|2|3|4;
 export type ForecastFusionConfidence='high'|'medium'|'low';
@@ -91,6 +91,33 @@ export type ForecastFusionDay={
  applied:boolean;
  contributors:string[];
  mosmixApplied?:boolean;
+};
+
+export type ForecastLocalAnchorField='temperature'|'apparent'|'humidity'|'dewPoint'|'pressure'|'wind'|'gust'|'direction'|'cloud'|'lowCloud'|'visibility'|'precipitation'|'code';
+export type ForecastLocalAnchor={
+ active?:boolean;
+ sourceLabel?:string;
+ observed?:Partial<Record<ForecastLocalAnchorField,boolean>>;
+ temperature?:number;
+ apparent?:number;
+ humidity?:number;
+ dewPoint?:number;
+ pressure?:number;
+ wind?:number;
+ gust?:number;
+ direction?:number;
+ cloud?:number;
+ lowCloud?:number;
+ visibility?:number;
+ precipitation?:number;
+ precipitationMinutes?:number;
+ rain?:number;
+ showers?:number;
+ snowfall?:number;
+ cloudBaseHft?:number;
+ ceilingHft?:number;
+ code?:number;
+ isDay?:boolean;
 };
 export type ForecastFusionResult={
  schema:'mid.forecast-fusion.v1';
@@ -218,6 +245,62 @@ export function blendRadarAtTarget({radar,targetEpoch,intervalMinutes,modelAmoun
  const exactDryCoverage=frames.length>0&&dryFrames.length===frames.length&&!siteIntervals.length;
  if(exactDryCoverage&&probabilityFactor>0){const localDryProbability=radar.quality==='high'?3:radar.quality==='medium'?7:13,dryWeight=clamp(probabilityBase(radar)*probabilityFactor*(frames.length>=Math.max(1,expectedFrames-1)?1:.72),0,.95),probability=safeModelProbability*(1-dryWeight)+localDryProbability*dryWeight,amount=leadMinutes<=DIRECT_RADAR_HORIZON_MINUTES&&safeModelAmount<=1?safeModelAmount*(1-dryWeight):safeModelAmount;return{amount:Math.max(0,amount),probability:clamp(probability,0,100),radarWeight:leadMinutes<=DIRECT_RADAR_HORIZON_MINUTES?dryWeight:0,probabilityWeight:dryWeight,mode:'dry',hitClass:'dry',nearestWetKm,siteSupport:0,frameCount:frames.length,siteFrameCount:0,interrupted,intervalStartAt:iso.startAt,intervalEndAt:iso.endAt}}
  return null;
+}
+
+
+function localAnchorFinite(value:unknown){const numeric=Number(value);return Number.isFinite(numeric)?numeric:undefined}
+function localAnchorField(anchor:ForecastLocalAnchor|undefined,key:ForecastLocalAnchorField){if(!anchor||anchor.active===false)return undefined;if(anchor.observed)return anchor.observed[key]?localAnchorFinite(anchor[key]):undefined;return localAnchorFinite(anchor[key])}
+function localAdjustmentWeight(offsetMinutes:number,horizonMinutes:number){return clamp(1-offsetMinutes/Math.max(1,horizonMinutes),0,1)}
+function localAssimilatedValue(observed:number|undefined,modelNow:number|undefined,base:number,offsetMinutes:number,horizonMinutes:number,minimum:number,maximum:number,maxCorrection=Infinity){
+ const anchor=Number(observed),model=Number(modelNow);if(!Number.isFinite(anchor)||!Number.isFinite(base))return clamp(Number(base)||0,minimum,maximum);if(!Number.isFinite(model))return clamp(base,minimum,maximum);const correction=clamp(anchor-model,-maxCorrection,maxCorrection);return clamp(base+correction*localAdjustmentWeight(offsetMinutes,horizonMinutes),minimum,maximum)
+}
+function localAssimilatedDirection(observed:number|undefined,modelNow:number|undefined,base:number,offsetMinutes:number){const anchor=Number(observed),model=Number(modelNow);if(!Number.isFinite(anchor)||!Number.isFinite(model)||!Number.isFinite(base))return((Number(base)||0)%360+360)%360;const correction=((anchor-model+540)%360)-180;return((base+correction*localAdjustmentWeight(offsetMinutes,90))%360+360)%360}
+function localPrecipitationCode(code:number){const rounded=Math.round(Number(code)||0);return rounded>=51&&rounded<=99}
+function localObservedSkyCode(fallback:number,cloud:number|undefined,lowCloud:number|undefined,visibility:number|undefined,humidity:number|undefined,temperature:number|undefined){
+ const code=Math.round(Number(fallback)||0),vis=Number(visibility),hum=Number(humidity),temp=Number(temperature),cover=Math.max(Number(cloud)||0,Number(lowCloud)||0);if(Number.isFinite(vis)&&vis<=1000&&Number.isFinite(hum)&&hum>=92)return Number.isFinite(temp)&&temp<=0?48:45;if((code===45||code===48)&&Number.isFinite(vis)&&vis<=2500)return code;if(cover>=87.5)return 3;if(cover>=37.5)return 2;if(cover>=12.5)return 1;return 0
+}
+function localReconciledWeatherCode(forecastCode:number,anchorCode:number|undefined,cloud:number,lowCloud:number,visibility:number,humidity:number,temperature:number,precipitation:number,probability:number,offsetMinutes:number,localAdjustment:number){
+ const raw=Math.round(Number(forecastCode)||0),observed=Math.round(Number(anchorCode));if([95,96,99].includes(raw)&&probability>=30)return raw;if(precipitation>=.01||(localPrecipitationCode(raw)&&probability>=30))return raw;if(localPrecipitationCode(raw)&&probability<30)return localObservedSkyCode(Number.isFinite(observed)?observed:raw,cloud,lowCloud,visibility,humidity,temperature);if(localAdjustment<=0)return raw;if(Number.isFinite(observed)&&localPrecipitationCode(observed)&&offsetMinutes<=30)return observed;return localObservedSkyCode(Number.isFinite(observed)?observed:raw,cloud,lowCloud,visibility,humidity,temperature)
+}
+function nearestForecastHour<T extends {epoch:number}>(items:T[],epoch:number,maxDistance=90*60000){let best:T|undefined,distance=Infinity;for(const item of items){const current=Math.abs(Number(item.epoch)-epoch);if(current<distance){best=item;distance=current}}return distance<=maxDistance?best:undefined}
+
+/**
+ * Einziger appweiter Pfad für kurzfristige hyperlokale Beobachtungskorrekturen.
+ * Die Korrekturen sind feldbezogen, zeitlich ausblendend und dürfen von
+ * Darstellungsmodulen nicht noch einmal separat berechnet werden.
+ */
+export function applyHyperlocalForecastHours(hours:Hour[],anchor:ForecastLocalAnchor|undefined,now=Date.now(),referenceHours:Hour[]=hours){
+ if(!hours.length||!anchor?.active)return hours;
+ const modelNow=nearestForecastHour(referenceHours,now,90*60000);if(!modelNow)return hours;
+ const anchorTemperature=localAnchorField(anchor,'temperature'),anchorHumidity=localAnchorField(anchor,'humidity'),anchorDewPoint=localAnchorField(anchor,'dewPoint'),anchorPressure=localAnchorField(anchor,'pressure'),anchorWind=localAnchorField(anchor,'wind'),anchorGust=localAnchorField(anchor,'gust'),anchorDirection=localAnchorField(anchor,'direction'),anchorCloud=localAnchorField(anchor,'cloud'),anchorLowCloud=localAnchorField(anchor,'lowCloud'),anchorVisibility=localAnchorField(anchor,'visibility'),anchorPrecipitation=localAnchorField(anchor,'precipitation'),anchorCode=localAnchorField(anchor,'code'),sourceLabel=anchor.sourceLabel||'Hyperlokal angepasst';let changed=false;
+ const result=hours.map(hour=>{
+  const offsetMinutes=(hour.epoch-now)/60000;if(offsetMinutes<-30||offsetMinutes>180)return hour;
+  const temperature=localAssimilatedValue(anchorTemperature,modelNow.temperature,hour.temperature,Math.max(0,offsetMinutes),120,-80,65,8),temperatureShift=temperature-hour.temperature,apparent=Number.isFinite(hour.apparent)?hour.apparent+temperatureShift:temperature,humidity=localAssimilatedValue(anchorHumidity,modelNow.humidity,hour.humidity,Math.max(0,offsetMinutes),120,0,100,45),dewPoint=localAssimilatedValue(anchorDewPoint,modelNow.dewPoint,hour.dewPoint,Math.max(0,offsetMinutes),120,-90,50,10),pressure=localAssimilatedValue(anchorPressure,modelNow.pressure,hour.pressure,Math.max(0,offsetMinutes),180,850,1100,15),wind=localAssimilatedValue(anchorWind,modelNow.wind,hour.wind,Math.max(0,offsetMinutes),90,0,180,35),gustRaw=localAssimilatedValue(anchorGust,modelNow.gust,hour.gust,Math.max(0,offsetMinutes),90,0,220,45),gust=Math.max(wind,gustRaw),direction=localAssimilatedDirection(anchorDirection,modelNow.direction,hour.direction,Math.max(0,offsetMinutes)),cloud=localAssimilatedValue(anchorCloud,modelNow.cloud,hour.cloud,Math.max(0,offsetMinutes),90,0,100,100),lowCloud=localAssimilatedValue(anchorLowCloud,modelNow.lowCloud,hour.lowCloud,Math.max(0,offsetMinutes),90,0,100,100),visibility=localAssimilatedValue(anchorVisibility,modelNow.visibility,hour.visibility,Math.max(0,offsetMinutes),90,50,100000,80000),observedRate=Number(anchorPrecipitation)*60/Math.max(1,Number(anchor.precipitationMinutes)||60),observedHourAmount=Number.isFinite(observedRate)?Math.max(0,observedRate):undefined,precipitation=localAssimilatedValue(observedHourAmount,modelNow.precipitation,hour.precipitation,Math.max(0,offsetMinutes),45,0,250,50),probability=Number(anchorPrecipitation)>.01?Math.max(hour.probability,90*localAdjustmentWeight(Math.max(0,offsetMinutes),45)):hour.probability,localAdjustment=Math.max(localAdjustmentWeight(Math.max(0,offsetMinutes),120)*(anchorTemperature!==undefined?1:0),localAdjustmentWeight(Math.max(0,offsetMinutes),90)*([anchorCloud,anchorVisibility,anchorWind,anchorDirection].some(value=>value!==undefined)?1:0),localAdjustmentWeight(Math.max(0,offsetMinutes),45)*(anchorPrecipitation!==undefined?1:0));
+  if(localAdjustment<=0)return hour;
+  const ratio=hour.precipitation>.001?precipitation/hour.precipitation:1,rawRain=Math.max(0,hour.rain)*ratio,rawShowers=Math.max(0,hour.showers)*ratio,rawSnowfall=Math.max(0,hour.snowfall)*ratio,code=localReconciledWeatherCode(hour.code,anchorCode,cloud,lowCloud,visibility,humidity,temperature,precipitation,probability,Math.max(0,offsetMinutes),localAdjustment),signal=reconcileForecastPrecipitation({precipitation,rain:rawRain,showers:rawShowers,snowfall:rawSnowfall,probability,code,cloud,lowCloud,humidity,cape:hour.cape,liftedIndex:hour.liftedIndex,convectiveInhibition:hour.convectiveInhibition,sunshineDuration:hour.sunshineDuration,isDay:hour.isDay,leadHours:(hour.epoch-now)/3600000});
+  const next={...hour,temperature,apparent,humidity,dewPoint,pressure,wind,gust,direction,cloud,lowCloud,visibility,precipitation:signal.precipitation,rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall,probability:signal.probability,code:signal.code,localAdjustment,localAdjustmentSourceLabel:sourceLabel};
+  if(Math.abs(next.temperature-hour.temperature)<.01&&Math.abs(next.probability-hour.probability)<.1&&Math.abs(next.precipitation-hour.precipitation)<.001&&Math.abs(next.wind-hour.wind)<.01&&Math.abs(next.cloud-hour.cloud)<.1&&Math.abs(next.visibility-hour.visibility)<1)return hour;changed=true;return next
+ });
+ return changed?result:hours
+}
+
+export type ForecastMinute15FinalizationOptions={radar?:RadarNowcast|null;localAnchor?:ForecastLocalAnchor;now?:number};
+/**
+ * Finalisiert die 15-Minuten-Reihe vor jeder sichtbaren Verwendung. Sie übernimmt
+ * die Änderungen der kanonischen Stunden als Rahmen, wendet Radar mit derselben
+ * Blend-Engine in 15-Minuten-Auflösung an und berücksichtigt beobachteten lokalen
+ * Niederschlag. 90-Minuten-Karten und Tagesauswertungen sehen damit dieselbe
+ * operative Prognose wie Stundenprofil, Hazards und Events.
+ */
+export function finalizeForecastMinute15(minutes15:Minute15[],baseHours:Hour[],finalHours:Hour[],options:ForecastMinute15FinalizationOptions={}):Minute15[]{
+ if(!minutes15.length)return minutes15;const now=Number.isFinite(options.now)?Number(options.now):Date.now(),anchor=options.localAnchor,anchorPrecipitation=localAnchorField(anchor,'precipitation'),anchorCode=localAnchorField(anchor,'code');let changed=false;
+ const result=minutes15.map(row=>{
+  const baseHour=nearestForecastHour(baseHours,row.epoch,45*60000),finalHour=nearestForecastHour(finalHours,row.epoch,45*60000);let precipitation=Math.max(0,Number(row.precipitation)||0),rain=Math.max(0,Number(row.rain)||0),showers=Math.max(0,Number(row.showers)||0),snowfall=Math.max(0,Number(row.snowfall)||0),probability=clamp(Number(row.probability)||0,0,100),code=Math.round(Number(row.code)||0);
+  if(baseHour&&finalHour){const probabilityDelta=Number(finalHour.probability)-Number(baseHour.probability);if(Number.isFinite(probabilityDelta)){if(probabilityDelta>=0)probability=clamp(probability+probabilityDelta,0,100);else if(baseHour.probability>0)probability=clamp(probability*(Math.max(0,finalHour.probability)/baseHour.probability),0,100)}if(finalHour.code!==baseHour.code&&finalHour.probability>=Math.max(30,probability-5))code=finalHour.code}
+  const radarBlend=blendRadarAtTarget({radar:options.radar,targetEpoch:row.epoch,intervalMinutes:15,modelAmount:precipitation,modelProbability:probability,now});if(radarBlend){const componentTotal=rain+showers+snowfall,scale=componentTotal>.001?radarBlend.amount/componentTotal:1;precipitation=radarBlend.amount;probability=radarBlend.probability;if(componentTotal>.001){rain*=scale;showers*=scale;snowfall*=scale}else if(finalHour?.temperature!=null&&finalHour.temperature<=1)snowfall=precipitation;else rain=precipitation}
+  if(Number(anchorPrecipitation)>.01){const offsetMinutes=Math.max(0,(row.epoch-now)/60000),weight=localAdjustmentWeight(offsetMinutes,45),observedRate=Number(anchorPrecipitation)*60/Math.max(1,Number(anchor?.precipitationMinutes)||60),observedAmount=Math.max(0,observedRate*.25),modelNow=baseHour?Math.max(0,baseHour.precipitation*.25):precipitation,localAmount=localAssimilatedValue(observedAmount,modelNow,precipitation,offsetMinutes,45,0,80,20);if(localAmount>precipitation){const total=rain+showers+snowfall,scale=total>.001?localAmount/total:1;precipitation=localAmount;if(total>.001){rain*=scale;showers*=scale;snowfall*=scale}else if(finalHour?.temperature!=null&&finalHour.temperature<=1)snowfall=localAmount;else rain=localAmount}probability=Math.max(probability,90*weight);if(Number.isFinite(Number(anchorCode))&&offsetMinutes<=30)code=Math.round(Number(anchorCode))}
+  const signal=reconcileForecastPrecipitation({precipitation,rain,showers,snowfall,probability,code,humidity:finalHour?.humidity,cloud:finalHour?.cloud,lowCloud:finalHour?.lowCloud,cape:finalHour?.cape,liftedIndex:finalHour?.liftedIndex,convectiveInhibition:finalHour?.convectiveInhibition,sunshineDuration:finalHour?.sunshineDuration,isDay:finalHour?.isDay,leadHours:(row.epoch-now)/3600000}),next={...row,precipitation:signal.precipitation,rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall,probability:signal.probability,code:signal.code};if(Math.abs(next.precipitation-row.precipitation)<.001&&Math.abs(next.probability-row.probability)<.1&&next.code===row.code)return row;changed=true;return next
+ });return changed?result:minutes15
 }
 
 export const RADAR_DIRECT_HORIZON_MINUTES=DIRECT_RADAR_HORIZON_MINUTES;

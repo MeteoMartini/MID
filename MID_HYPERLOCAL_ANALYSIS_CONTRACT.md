@@ -32,3 +32,8 @@ Aktuelles Wetter, Kurzfristprognose, Events und neue Module müssen für Station
 Die `(i)`-Herkunft zeigt je Feld soweit verfügbar Quelle, Station, Entfernung, Beobachtungsstand, Datenintervall und Gewicht. Das verwendete Modell des hyperlokalen Hintergrunds bleibt als Diagnoseinformation erhalten.
 
 Der Required-Test `scripts/test-hyperlocal-parameter-relevance-09510.mjs` schützt diese Regeln gegen spätere Regressionen.
+
+## 10. Operative Prognosewirkung und Konsistenz aus einem Guss
+Eine fachlich verwendbare hyperlokale Beobachtung ist nicht auf die Karte „Aktuelles Wetter“ beschränkt. Soweit der jeweilige Parameter und sein zeitlicher Gültigkeitshorizont eine Extrapolation erlauben, wird die Korrektur zentral in die operative Forecast-Zeitreihe übernommen und wirkt dadurch in 90-Minuten-Ansicht, Kurzfristprognose, Stunden-/Tagesgrafiken, Hazards, Widgets, Events und Aktivitäten konsistent mit.
+
+Hierfür gilt zusätzlich verbindlich `MID_FORECAST_CONSISTENCY_CONTRACT.md`. Sichtbare Module dürfen Stationsanker, Radar-/Nowcast- oder andere hyperlokale Korrekturen nicht eigenständig erneut anwenden oder rohe 15-Minuten-/Stundenwerte an der kanonischen Endstufe vorbei anzeigen.

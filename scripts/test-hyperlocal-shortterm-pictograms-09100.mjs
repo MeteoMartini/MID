@@ -6,7 +6,6 @@ const failures=[];
 for(const token of [
  "buildShortTermForecast(minutes15,hours,timezone,Date.now(),anchor,radarNowcast)",
  "shortTermAnchor?:ShortTermAnchor",
- "anchor={shortTermAnchor}",
  "Bis auf Weiteres trocken · ${gustPart}",
  "cockpit-local-badge",
  "<WeatherPictogram code={item.weatherCode}",
@@ -14,9 +13,10 @@ for(const token of [
  "<InlineWindArrow direction={selected.direction}"
 ]) if(!cockpit.includes(token))failures.push(`Forecast-Cockpit-Vertrag fehlt: ${token}`);
 for(const token of [
- "shortTermAnchor=useMemo(()=>w?shortTermAnchorFromCurrent(st,w.current):undefined",
- "shortTermAnchor={shortTermAnchor}",
- "anchor={shortTermAnchor}"
+ "shortTermAnchor=useMemo(()=>w?shortTermAnchorFromCurrent(st,w.current,Date.now(),w.elevation??loc?.elevation):undefined",
+ "applyHyperlocalForecastHours(core.hours,shortTermAnchor,Date.now(),twinHours)",
+ "displayMinutes15=useMemo(()=>finalizeForecastMinute15(minutes15,twinHours,displayHours,{radar:radarAnalysis,localAnchor:shortTermAnchor})",
+ "<ShortTermForecast key={id} minutes15={displayMinutes15} hours={displayHours}"
 ]) if(!app.includes(token))failures.push(`App-Datenpfad fehlt: ${token}`);
 for(const kind of ["'clear'","'mostly-clear'","'partly-cloudy'","'cloudy'","'fog'","'rime-fog'","'drizzle'","'freezing-drizzle'","'rain'","'freezing-rain'","'showers'","'sleet'","'snow'","'snow-grains'","'snow-showers'","'thunder'","'thunder-hail'"]) if(!pictograms.includes(kind))failures.push(`Piktogrammtyp fehlt: ${kind}`);
 if(/kein Niederschlag voraussichtlich markant/i.test(cockpit))failures.push('Alte unpräzise Kurzfristformulierung ist noch enthalten.');

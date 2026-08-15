@@ -1,3 +1,11 @@
+## 0.9.53.26
+
+- Verbindlicher appweiter Prognose-Konsistenzvertrag: sichtbare Forecastmodule verwenden die kanonischen Reihen `displayHours` und `displayMinutes15`.
+- Hyperlokale Beobachtungskorrekturen werden feldbezogen und zeitlich abklingend zentral in die operative Stundenprognose übernommen.
+- Erhöhte lokale Niederschlagswahrscheinlichkeit, Radar-/Nowcast- und Konvektivsignale fließen konsistent in 90-Minuten-, Kurzfrist-, Stunden-/Tagesdarstellungen, Widget, Hazards sowie Event-/Aktivitätsauswertungen ein.
+- 15-Minuten-Daten werden vor der sichtbaren Verwendung zentral finalisiert; ansichtsspezifische Doppel-Assimilation von Radar oder Stationsankern ist entfernt.
+- Architekturregel dauerhaft in `MID_FORECAST_CONSISTENCY_CONTRACT.md`, Hyperlokalvertrag und Source-of-Truth verankert; Required-Regression ergänzt.
+
 ## 0.9.53.24
 
 - Aktuelles Wetter wieder kompakter: marginale Temperatur-/Gelände-Windkorrekturen werden als „Temp./Wind nahe Modell“ zusammengefasst; relevante Abweichungen bleiben numerisch sichtbar.
