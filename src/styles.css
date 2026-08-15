@@ -5940,3 +5940,13 @@ button,[role="button"],summary{
 .event-center-header-entry>summary>small{grid-area:meta}
 .event-center-header-entry>summary>.event-center-header-metrics{grid-area:metrics}
 @media(max-width:430px){.event-center-header-entry>summary{grid-template-columns:27px minmax(0,1fr);column-gap:6px}.event-center-header-weather-icon{width:27px;height:27px}.event-center-header-weather-icon>.mid-weather-pictogram{width:25px!important;height:25px!important}}
+
+
+/* MID v0.9.53.28 – platzneutrale Wetter-Ampel für Eventdarstellungen */
+.event-feasibility-dot{display:inline-block;width:7px;height:7px;min-width:7px;border:1px solid color-mix(in srgb,var(--surface) 78%,transparent);border-radius:50%;background:var(--muted);box-shadow:0 0 0 1px color-mix(in srgb,var(--text) 20%,transparent);vertical-align:middle}
+.event-feasibility-dot.good{background:#35b86f}.event-feasibility-dot.watch{background:#e3ad35;box-shadow:0 0 0 1px color-mix(in srgb,var(--text) 24%,transparent),inset 0 0 0 1px rgba(255,255,255,.48)}.event-feasibility-dot.caution{position:relative;background:#d95048}.event-feasibility-dot.caution::after{position:absolute;inset:2px;border-radius:50%;background:rgba(255,255,255,.88);content:''}.event-feasibility-dot.unknown{background:transparent;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--muted) 78%,transparent)}
+.event-center-header-weather-icon,.event-center-card-weather-visual{position:relative}
+.event-center-header-weather-icon>.event-feasibility-dot,.event-center-card-weather-visual>.event-feasibility-dot{position:absolute;right:-1px;bottom:-1px;z-index:2;width:7px;height:7px;min-width:7px;pointer-events:none}
+.event-center-card-weather-visual{display:grid;width:22px;height:22px;place-items:center}
+.event-center-card-weather-visual>.mid-weather-pictogram{max-width:22px;max-height:22px}
+.event-status-badge>.event-feasibility-dot{width:6px;height:6px;min-width:6px;box-shadow:none}

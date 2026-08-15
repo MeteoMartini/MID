@@ -7,12 +7,12 @@ const failures=[];const need=(label,text,token)=>{if(!text.includes(token))failu
 for(const token of [
  "case'mountain':return currentFavorite?.mountain.enabled?<CollapsibleModule",
  'id="mountain" title="Berg-/Wintersport"',
- 'summary="Höhenprofil, Bergwetter und Bedingungen" defaultOpen={true}',
+ 'summary="Höhenprofil, Bergwetter und Bedingungen" defaultOpen={false}',
  "case'water':return currentFavorite?.water.enabled?<CollapsibleModule",
  'id="water" title="Wassersport"',
- 'summary="Wasserwetter, Gezeiten und Bedingungen" defaultOpen={true}',
+ 'summary="Wasserwetter, Gezeiten und Bedingungen" defaultOpen={false}',
  'persistModuleOpen(id,open)'
 ])need('Sportsektionen',app,token);
 need('Baseline',baseline,'scripts/test-sports-section-collapse-09280.mjs');
 if(failures.length){console.error('Einklappbare Sportsektionen fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Wasser- und Bergsportsektionen sind einklappbar und speichern ihren Zustand über die bestehende Modul-Persistenz.');
+console.log('Wasser- und Bergsportsektionen folgen dem einheitlichen Default-closed-Vertrag und speichern danach ihren Zustand über die bestehende Modul-Persistenz.');

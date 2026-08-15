@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.53.26",
+  "releaseVersion": "0.9.53.29",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -188,7 +188,10 @@
     "scripts/test-mid-followups-095323.mjs",
     "scripts/test-current-data-basis-compact-095324.mjs",
     "scripts/test-current-hyperlocal-restart-095325.mjs",
-    "scripts/test-forecast-consistency-contract-095326.mjs"
+    "scripts/test-forecast-consistency-contract-095326.mjs",
+    "scripts/test-state-integrity-contract-095327.mjs",
+    "scripts/test-event-feasibility-indicator-095328.mjs",
+    "scripts/test-device-sync-nullability-buildfix-095329.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [

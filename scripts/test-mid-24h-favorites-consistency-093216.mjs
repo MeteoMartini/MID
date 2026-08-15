@@ -18,9 +18,11 @@ need(app,'function favoriteIdentityNamesEquivalent(a:Location|undefined|null,b:L
 need(app,'if(changed||!localStorage.getItem(FAVORITES_UPDATED_AT_KEY))localStorage.setItem(FAVORITES_UPDATED_AT_KEY,new Date().toISOString())','Favoritenrevision wird persistiert');
 need(sync,"const FAVORITES_UPDATED_AT_KEY='mid:favorites:updated-at'",'Sync kennt Favoritenrevision');
 need(sync,'function prepareSnapshotForApply(snapshot:SyncSnapshot)','favoritensicheres Snapshot-Merge');
-need(sync,'preserveLocalFavorites=localFavorites!==null&&Number.isFinite(localFavoriteRevision)','neuere lokale Favoriten geschützt');
+need(sync,'function mergeFavoriteSnapshots(','verlustfreier Favoriten-Snapshot-Merge');
+need(sync,'mergeFavoriteTombstones(remoteTombstonesRaw,localTombstonesRaw)','explizite Favoriten-Löschungen über Tombstones');
+need(sync,'for(const rows of[primary,secondary])','konkurrierende Favoritenstände werden vereinigt');
 need(sync,'if(applied.preservedLocalFavorites)await pushDeviceSync(readDeviceSyncConfig())','geschützter Favoritenstand wird zurückpubliziert');
 const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;
 if(pv!==bv)failures.push(`Versionen nicht synchron: ${pv}/${bv}`);
 if(failures.length){console.error('MID 24-h-/Favoritenkonsistenz fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('MID: 24-h-Kacheln und revisionsgeschützte Favoriten geprüft.');
+console.log('MID: 24-h-Kacheln sowie verlustfreier Favoriten-Union-/Tombstone-Sync geprüft.');

@@ -33,20 +33,22 @@ export const PORTABLE_USER_DATA_EXAMPLES=['mid:ensemble:advanced','mid:ensemble:
 export const PORTABLE_USER_DATA_INCLUDED=[
  'Favoriten, Gruppen, Profile und Standardort',
  'Darstellung, Einheiten, Standard-/Erweitert-Modus und Theme',
- 'Modul-, Diagramm-, Legenden- und Detailansicht-Einstellungen',
+ 'Diagramm-, Legenden- und Detailansicht-Einstellungen; Hauptmodul-Offenzustand bleibt gerätelokal',
  'Radar-, Meteogramm-, Event-/Reiseplaner- und Benachrichtigungsregeln',
  'Wetterzwilling-Einstellungen, Standortprofile und Langzeitarchiv'
 ] as const;
 export const PORTABLE_USER_DATA_EXCLUDED=[
  'Push-Abonnements des jeweiligen Geräts',
  'Stationspasswörter, Bearer-Token und externe Zugangsschlüssel',
- 'temporäre Wetter-, Karten-, Modell- und Diagnostik-Caches'
+ 'temporäre Wetter-, Karten-, Modell- und Diagnostik-Caches',
+ 'Hauptmodul-Offenzustände (`mid:module:<id>:open`) des jeweiligen Geräts'
 ] as const;
 
 export function isPortableUserDataKey(key:string){
  if(ROOT_KEYS.has(key))return true;
  if(!key.startsWith('mid:'))return false;
  if(DEVICE_LOCAL_KEYS.has(key))return false;
+ if(/^mid:module:[^:]+:open$/.test(key))return false;
  if(TRANSIENT_PREFIXES.some(prefix=>key.startsWith(prefix)))return false;
  if(DEVICE_LOCAL_PREFIXES.some(prefix=>key.startsWith(prefix)))return false;
  return true;

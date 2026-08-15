@@ -30,11 +30,15 @@ Für neue nicht-modale, an einem Steuerelement verankerte Ebenen gilt:
 
 ## 4. Auf-/Zuklappen und Sektionen
 
-- Nutzerseitig relevante Module haben einen eindeutigen Toggle mit `aria-expanded`.
+- Nutzerseitig relevante Hauptmodule haben einen eindeutigen Toggle mit `aria-expanded` und verwenden app-weit denselben `CollapsibleModule`-/`mid:module:<id>:open`-Vertrag.
+- Hauptsektionen sind bei erstmaliger Initialisierung bzw. dokumentierter Vertragsmigration geschlossen; danach wird ausschließlich die letzte lokale Nutzerentscheidung der jeweiligen Sektion wiederhergestellt.
 - Ein gespeicherter Offen-/Geschlossen-Zustand ist nur für echte Ansichtspräferenzen zulässig; temporäre Lade- oder Fehlerzustände werden nicht als Nutzerpräferenz persistiert.
-- Deep-Links bzw. Navigation zu einer Sektion müssen die Zielsektion bei Bedarf sichtbar/aufgeklappt machen.
+- Deep-Links bzw. bewusste Navigation zu einer Sektion dürfen die Zielsektion für die aktuelle Navigation sichtbar/aufgeklappt machen. Ein alter `#mid-section-*`-Hash ist jedoch kein Startzustand und wird bei jedem App-Bootstrap neutralisiert.
+- Hauptmodul-Offenzustände sind gerätelokale Ansichtspräferenzen und dürfen nicht durch Geräte-Sync, Eventdaten oder Datenaktualisierungen überschrieben werden.
+- Öffnen/Schließen einer Hauptsektion darf keine andere Hauptsektion implizit öffnen oder schließen. Sektionsspezifische Parallel-Persistenz ist unzulässig.
 - Ein eingeklappter Zustand darf keine Hintergrundberechnung unnötig erzwingen, wenn die Daten erst beim Öffnen benötigt werden.
 - Neue Sektionen folgen den bestehenden MID-Dichtevariablen (`--mid-ui-touch`, `--mid-ui-gap`, `--mid-ui-card-pad`, `--mid-ui-radius`) statt eigene globale Maße einzuführen.
+- Ergänzend ist `MID_STATE_INTEGRITY_CONTRACT.md` verbindlich.
 
 ## 5. Menüs, Drawer und modale Dialoge
 
@@ -74,3 +78,13 @@ Neue Funktionen müssen ihre Interaktions- und Fachverträge in der Regression-S
 - bestehende geschützte Funktionen beim Aufräumen entfernen.
 
 Bestehende historisch spezialisierte Ensemble-Tooltips bleiben vorerst als eng begrenzte Ausnahme bestehen. Eine spätere Migration ist zulässig, darf aber keine Diagrammfunktionalität verlieren.
+
+
+## 10. Event-Wetterbewertung in kompakten Darstellungen
+
+- Gespeicherte Events zeigen in kompakten Übersichten eine dezente, platzneutrale Wetterbewertung direkt am vorhandenen Wetterpiktogramm.
+- Die Bewertung darf **keinen zweiten Wetterscore** berechnen. Maßgeblich ist ausschließlich der bereits zentral aus Wetterlage und Aktivität erzeugte `EventAdvice.status` (`good`, `watch`, `caution`).
+- Darstellung: grün = gut umsetzbar, gelb/amber = Beeinträchtigungen möglich bzw. beobachten, rot = deutlich beeinträchtigt/kritisch. Ohne Wetteranalyse bleibt der Punkt neutral.
+- Der Punkt wird als Overlay innerhalb der vorhandenen Piktogrammfläche dargestellt und darf weder Kartenhöhe noch Zeilenanzahl oder die Kompaktheit des Event-Centers vergrößern.
+- Farbe ist nicht die einzige Information: die Zustände besitzen eine zugängliche Textbezeichnung (`aria-label`/Titel) und kritische/ungeklärte Zustände zusätzlich eine visuelle Muster-/Füllungsunterscheidung.
+- Glocken-Popover, Event-Center-Kurzkarte und ausführliche Eventbewertung verwenden dieselbe Komponente und damit denselben fachlichen Status.

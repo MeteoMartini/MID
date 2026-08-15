@@ -3,6 +3,7 @@ import {ArrowUpDown,BellRing,CalendarRange,ChevronDown,ChevronLeft,CloudLightnin
 import {WeatherPictogram} from './WeatherPictogram'
 import {label,searchLocations,wind,type Hour,type Location,type WindUnit} from './weather'
 import {EVENT_CENTER_OPEN_EVENT,EVENT_CENTER_UPDATED_EVENT,buildEventCenterId,compareEventPlanFreshness,compareEventPlans,deleteEventCenterRecord,markEventCenterOpened,readEventCenterRecords,toggleEventCenterFavorite,upsertEventCenterRecord,type EventActivity,type EventCenterRecord,type EventEnvironment,type EventPlan,type EventStatus,type EventSummary,type EventTimelinePoint} from './eventCenter'
+import {EventFeasibilityDot} from './EventFeasibilityDot'
 import type {ForecastFusionResult} from './forecastFusion'
 import {precipitationParts} from './precipitation'
 import {formatUvi} from './format'
@@ -323,7 +324,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
       <span className="event-center-card-overview">
        <span className="event-center-card-overview-head"><strong>{record.title||record.location.name}</strong><span className="event-center-card-tags"><span className="event-center-card-pill fill">{environmentLabel(record.environment)}</span><span className="event-center-card-pill">{activityLabel(record.activity)}</span>{record.change&&record.change.level!=='none'&&<span className={`event-center-card-pill signal-${record.change.level}`}>{record.change.badge}</span>}</span></span>
        <span className="event-center-card-meta"><span>{eventCompactRange(record)}</span><span>{record.location.name}</span></span>
-       <span className="event-center-card-quick-weather"><WeatherPictogram code={recordPlan?.summary.weatherCode??0} day={recordPlan?.summary.isDay!==false} title={recordPlan?.summary.weatherLabel||label(recordPlan?.summary.weatherCode??0)}/><span>{eventMetricLine(recordPlan,unit)}</span></span>
+       <span className="event-center-card-quick-weather"><span className="event-center-card-weather-visual"><WeatherPictogram code={recordPlan?.summary.weatherCode??0} day={recordPlan?.summary.isDay!==false} title={recordPlan?.summary.weatherLabel||label(recordPlan?.summary.weatherCode??0)}/><EventFeasibilityDot plan={recordPlan}/></span><span>{eventMetricLine(recordPlan,unit)}</span></span>
       </span>
       <span className="event-center-disclosure-hint"><span>Vorschau</span><ChevronDown size={15}/></span>
      </summary>
@@ -364,7 +365,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
    <div className="event-guide-hero">
     <div className="event-guide-topbar">
      <div className="event-guide-tags"><span className="event-guide-pill fill">{environmentLabel(plan.environment)}</span><span className="event-guide-pill">{activityLabel(plan.activity)}</span><span className="event-guide-pill">{formatDate(plan.date)} · {formatClock(plan.startTime)}–{formatClock(plan.endTime)}</span></div>
-     <div className="event-guide-status-wrap"><div className={`event-status-badge ${plan.advice.status}`}>{plan.advice.status==='good'?<ShieldCheck size={16}/>:<ShieldAlert size={16}/>}<strong>{statusLabel(plan.advice.status)}</strong></div>{currentSavedRecord?.change&&currentSavedRecord.change.level!=='none'?<small className={`event-inline-update ${currentSavedRecord.change.level}`}>{currentSavedRecord.change.summary}</small>:null}</div>
+     <div className="event-guide-status-wrap"><div className={`event-status-badge ${plan.advice.status}`}><EventFeasibilityDot plan={plan}/>{plan.advice.status==='good'?<ShieldCheck size={16}/>:<ShieldAlert size={16}/>}<strong>{statusLabel(plan.advice.status)}</strong></div>{currentSavedRecord?.change&&currentSavedRecord.change.level!=='none'?<small className={`event-inline-update ${currentSavedRecord.change.level}`}>{currentSavedRecord.change.summary}</small>:null}</div>
     </div>
     <div className="event-guide-main">
      <div className="event-guide-copy"><span>EVENT-CHECK</span><h5>{currentTitle}</h5><p>{destinationLabel(plan.location)}</p><strong>{plan.advice.headline}</strong><p>{plan.advice.summary}</p><div className="event-guide-inline-notes"><article><MapPin size={15}/><span>{timingHint}</span></article><article><BellRing size={15}/><span>Stand {lastUpdateText}</span></article></div><div className="event-result-toolbar"><button type="button" className="secondary" onClick={()=>currentSavedRecord?void analyseEvent(undefined,true,true):saveCurrentPlan(false)} disabled={loading}>{currentSavedRecord?<RefreshCw className={loading?'spin':undefined} size={15}/>:<Star size={15}/>} {currentSavedRecord?(loading?'Aktualisiere …':'Event aktualisieren'):'Event speichern'}</button>{currentSavedRecord?<button type="button" className="secondary" onClick={()=>toggleFavorite(currentSavedRecord)}><Star size={15} fill={currentSavedRecord.isFavorite?'currentColor':'none'}/>{currentSavedRecord.isFavorite?'Event-Favorit entfernen':'Event-Favorit'}</button>:<button type="button" className="secondary" onClick={()=>saveCurrentPlan(true)}><Star size={15}/>Als Event-Favorit speichern</button>}</div></div>

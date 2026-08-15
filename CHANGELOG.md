@@ -1,3 +1,27 @@
+## 0.9.53.29
+
+- Produktionsbuild-Fix für den verlustfreien Favoriten-/Geräte-Sync: `mergeFavoriteSnapshots` akzeptiert einen fehlenden Remote-Snapshot nun explizit als `null`.
+- Behebt GitHub Actions `TS2345` in `src/deviceSync.ts` aus v0.9.53.28, ohne Favoriten-Union, Shadow-Recovery, Tombstones oder Event-/Ortsfavoriten-Trennung zu verändern.
+- Neue Required Regression `test-device-sync-nullability-buildfix-095329.mjs` typecheckt genau den zuvor fehlerhaften Nullability-Pfad.
+
+## 0.9.53.28
+
+- Dezente, platzneutrale Wetter-Ampel in den kompakten Eventdarstellungen ergänzt: grün = gut umsetzbar, gelb/amber = mögliche Beeinträchtigung, rot = deutlich beeinträchtigt/kritisch, neutral = noch nicht analysiert.
+- Glocken-Popover und Event-Center-Kurzkarte zeigen den Punkt als Overlay direkt am bestehenden Wetterpiktogramm; Kartenhöhe und Zeilenanzahl bleiben unverändert.
+- Ausführliche Eventbewertung nutzt dieselbe gemeinsame Komponente in der vorhandenen Statusplakette.
+- Die Ampel verwendet ausschließlich den zentralen `EventAdvice.status`; kein zusätzlicher paralleler Wetterscore oder neue Schwellenwertlogik.
+- Barrierearme Textbeschreibung sowie zusätzliche Musterunterscheidung für kritische/ungeklärte Zustände ergänzt.
+- Dauerhaft im UI-Architekturvertrag und als Required Regression `test-event-feasibility-indicator-095328.mjs` geschützt.
+
+## 0.9.53.27
+
+- Favoritenintegrität app-weit verschärft: keine stille 20er-Kappung oder Verdrängung beim Hinzufügen, Laden oder Import.
+- Ortsfavoriten und Event-Favoriten dauerhaft getrennt; Event-artige Datensätze können `mid:favorites` nicht ersetzen oder überlagern.
+- Ortsfavoriten erhalten Shadow-Recovery sowie explizite Lösch-Tombstones; Geräte-Sync vereinigt konkurrierende Favoritenstände statt komplette Listen gegeneinander auszutauschen.
+- Einheitlicher Hauptsektionsvertrag v4: alle großen `CollapsibleModule`-Sektionen starten bei Vertragsmigration geschlossen und bewahren danach nur die jeweilige lokale Nutzerentscheidung.
+- Alte `#mid-section-*`-Hashes werden bei jedem App-Bootstrap neutralisiert; Hauptmodul-Offenzustände sind bewusst gerätelokal und werden nicht über Geräte-Sync überschrieben.
+- Neuer verbindlicher `MID_STATE_INTEGRITY_CONTRACT.md` sowie Required Regression `test-state-integrity-contract-095327.mjs`.
+
 ## 0.9.53.26
 
 - Verbindlicher appweiter Prognose-Konsistenzvertrag: sichtbare Forecastmodule verwenden die kanonischen Reihen `displayHours` und `displayMinutes15`.
