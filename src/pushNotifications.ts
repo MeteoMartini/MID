@@ -9,10 +9,10 @@ export type PushRuleFavorite={
  rules:{precipitationStart:boolean;thunderstormApproach:boolean;forecastMaterialChange:boolean};
 };
 export type PushNotificationInterval=15|30|60|120|180;
-export type PushStatus={supported:boolean;permission:NotificationPermission|'unsupported';configured:boolean;subscribed:boolean;workerUrl:string;message:string};
+export type PushStatus={supported:boolean;permission:NotificationPermission|'unsupported';configured:boolean;subscribed:boolean;serverRegistered:boolean;schedulerHealthy:boolean;schedulerLastRunAt?:string;workerCheckedAt?:string;activeFavorites:number;activeRules:number;operational:boolean;workerUrl:string;message:string};
 
 type PushConfig={enabled?:boolean;publicKey?:string;version?:string;error?:string};
-type WorkerReply={ok?:boolean;error?:string;favorites?:number;version?:string};
+type WorkerReply={ok?:boolean;error?:string;favorites?:number;version?:string;registered?:boolean;schedulerHealthy?:boolean;schedulerLastRunAt?:string;checkedAt?:string;activeFavorites?:number;activeRules?:number;lastNotificationAt?:string;lastError?:string};
 
 function supportsPush(){return typeof window!=='undefined'&&'serviceWorker'in navigator&&'PushManager'in window&&'Notification'in window}
 function base64UrlToBytes(value:string){const normalized=value.replace(/-/g,'+').replace(/_/g,'/'),padded=normalized+'='.repeat((4-normalized.length%4)%4),raw=atob(padded),bytes=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);return bytes}
@@ -25,12 +25,13 @@ function activeFavorites(favorites:PushRuleFavorite[]){return favorites.filter(i
 async function saveSubscription(subscription:PushSubscription,favorites:PushRuleFavorite[],notificationIntervalMinutes:PushNotificationInterval){return workerPost<WorkerReply>('push-subscribe',{subscription:serialiseSubscription(subscription),favorites:activeFavorites(favorites),notificationIntervalMinutes,appUrl:new URL('./',document.baseURI).toString(),userAgent:navigator.userAgent})}
 
 export async function getPushStatus():Promise<PushStatus>{
- if(!supportsPush())return{supported:false,permission:'unsupported',configured:false,subscribed:false,workerUrl:'',message:'Web Push wird von diesem Browser oder dieser Installationsart nicht unterstützt.'};
+ if(!supportsPush())return{supported:false,permission:'unsupported',configured:false,subscribed:false,serverRegistered:false,schedulerHealthy:false,activeFavorites:0,activeRules:0,operational:false,workerUrl:'',message:'Web Push wird von diesem Browser oder dieser Installationsart nicht unterstützt.'};
  let configured=false,workerUrl='',configError='';try{const result=await workerGet<PushConfig>('push-config');configured=Boolean(result.data.enabled&&result.data.publicKey);workerUrl=result.base;if(!configured)configError='Der Cloudflare Worker ist für Push noch nicht vollständig eingerichtet.'}catch(error){configError=error instanceof Error?error.message:String(error)}
- let subscribed=false;try{const registration=await readyRegistration();subscribed=Boolean(await registration.pushManager.getSubscription())}catch{}
- const permission=Notification.permission;
- const message=permission==='denied'?'Benachrichtigungen sind im Betriebssystem oder Browser blockiert.':subscribed?'Push-Benachrichtigungen sind auf diesem Gerät aktiv.':configured?'Push ist bereit und kann auf diesem Gerät aktiviert werden.':configError||'Push ist noch nicht eingerichtet.';
- return{supported:true,permission,configured,subscribed,workerUrl,message};
+ let subscription:PushSubscription|null=null;try{const registration=await readyRegistration();subscription=await registration.pushManager.getSubscription()}catch{}
+ const subscribed=Boolean(subscription),permission=Notification.permission;let serverRegistered=false,schedulerHealthy=false,schedulerLastRunAt:string|undefined,workerCheckedAt:string|undefined,activeFavorites=0,activeRules=0,statusError='';
+ if(configured&&subscription)try{const result=await workerPost<WorkerReply>('push-status',{endpoint:subscription.endpoint});workerUrl=result.base;serverRegistered=Boolean(result.data.registered);schedulerHealthy=Boolean(result.data.schedulerHealthy);schedulerLastRunAt=result.data.schedulerLastRunAt;workerCheckedAt=result.data.checkedAt;activeFavorites=Number(result.data.activeFavorites)||0;activeRules=Number(result.data.activeRules)||0;if(result.data.lastError)statusError=result.data.lastError}catch(error){statusError=error instanceof Error?error.message:String(error)}
+ const operational=Boolean(subscribed&&serverRegistered&&schedulerHealthy),message=permission==='denied'?'Benachrichtigungen sind im Betriebssystem oder Browser blockiert.':subscribed&&!serverRegistered?`Browser-Push ist vorhanden, aber im MID-Worker nicht registriert.${statusError?` ${statusError}`:' Bitte erneut aktivieren.'}`:subscribed&&serverRegistered&&!schedulerHealthy?`Push ist im Worker registriert, aber der regelmäßige Prüfzeitplan ist noch nicht bestätigt.${schedulerLastRunAt?` Letzter Worker-Lauf: ${new Date(schedulerLastRunAt).toLocaleString('de-DE')}.`:' Cloudflare-Cron prüfen.'}`:operational?`Push ist vollständig betriebsbereit${activeRules?` · ${activeRules} aktive Regel${activeRules===1?'':'n'}`:''}.`:configured?'Push ist bereit und kann auf diesem Gerät aktiviert werden.':configError||'Push ist noch nicht eingerichtet.';
+ return{supported:true,permission,configured,subscribed,serverRegistered,schedulerHealthy,schedulerLastRunAt,workerCheckedAt,activeFavorites,activeRules,operational,workerUrl,message};
 }
 
 export async function enablePushNotifications(favorites:PushRuleFavorite[],notificationIntervalMinutes:PushNotificationInterval){
@@ -44,6 +45,13 @@ export async function enablePushNotifications(favorites:PushRuleFavorite[],notif
 export async function syncPushNotifications(favorites:PushRuleFavorite[],notificationIntervalMinutes:PushNotificationInterval){
  if(!supportsPush()||Notification.permission!=='granted')return false;
  const registration=await readyRegistration(),subscription=await registration.pushManager.getSubscription();if(!subscription)return false;await saveSubscription(subscription,favorites,notificationIntervalMinutes);return true;
+}
+
+
+export async function sendPushTestNotification(){
+ if(!supportsPush())throw new Error('Web Push wird von diesem Browser nicht unterstützt.');
+ const registration=await readyRegistration(),subscription=await registration.pushManager.getSubscription();if(!subscription)throw new Error('Auf diesem Gerät ist kein Push-Abonnement vorhanden.');
+ const result=await workerPost<WorkerReply>('push-test',{endpoint:subscription.endpoint});if(!result.data.ok)throw new Error(result.data.error||'Testmitteilung konnte nicht gesendet werden.');return true;
 }
 
 export async function disablePushNotifications(){

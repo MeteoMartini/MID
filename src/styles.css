@@ -5950,3 +5950,6 @@ button,[role="button"],summary{
 .event-center-card-weather-visual{display:grid;width:22px;height:22px;place-items:center}
 .event-center-card-weather-visual>.mid-weather-pictogram{max-width:22px;max-height:22px}
 .event-status-badge>.event-feasibility-dot{width:6px;height:6px;min-width:6px;box-shadow:none}
+
+/* v0.9.53.30 push end-to-end diagnostics */
+.push-settings-panel .push-status-card.warning{border-color:color-mix(in srgb,#e6a23c 55%,var(--border))!important;background:color-mix(in srgb,#e6a23c 8%,var(--s2))!important}.push-settings-panel .push-status-card.warning>div>svg{color:#e6a23c}

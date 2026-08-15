@@ -31,9 +31,11 @@ Der Geräteabgleich arbeitet für Ortsfavoriten mengen-erhaltend:
 
 - konkurrierende Neuanlagen auf verschiedenen Geräten werden vereinigt,
 - das Fehlen eines Favoriten auf einem Gerät ist für sich allein kein Löschbefehl,
-- eine Löschung wird nur über einen expliziten, zeitgestempelten Tombstone übertragen,
+- eine Löschung wird nur über einen expliziten, zeitgestempelten Tombstone übertragen; Tombstones werden nicht zeit- oder mengenbasiert still verworfen,
 - Event-Favoriten werden weiterhin unabhängig nach ihrem Event-Vertrag zusammengeführt,
-- der zusammengeführte Ortsfavoritenstand wird zugleich als Shadow-Snapshot gesichert.
+- der zusammengeführte Ortsfavoritenstand wird zugleich als Shadow-Snapshot gesichert,
+- jede Favoritenmutation wird synchron und atomar in Primär- und Shadow-Snapshot geschrieben, bevor ein Geräteabgleich sie überholen kann,
+- besitzt das lokale Gerät noch ungesendete Änderungen, werden entfernte Favoriten/Tombstones und zusätzliche Remote-Favoriten vor dem nächsten Push trotzdem mengen-erhaltend in den lokalen Favoritenstand gemergt; „lokal neuer“ darf keinen Favoriten-Bypass bedeuten.
 
 Wenn im Zweifel zwischen Duplikat und möglichem Datenverlust entschieden werden muss, hat Datenerhalt Vorrang. Eine automatische Bereinigung darf erst erfolgen, wenn die Identität eindeutig nachgewiesen ist.
 
@@ -68,6 +70,8 @@ Jeder Release muss automatisiert prüfen, dass:
 - Event- und Ortsfavoriten getrennt bleiben,
 - Favoriten-Sync Union + Tombstones verwendet,
 - Shadow-Recovery vorhanden bleibt,
+- Favoritenänderungen ohne Idle-/Timeout-Verzögerung sofort persistiert werden und Start-Recovery Tombstones zwingend anwendet,
+- Tombstones weder zeitlich noch per fester Mengenbegrenzung still verfallen,
 - alle Hauptsektionen denselben persistenten Default-closed-Vertrag verwenden,
 - Dashboard-Hashes bei jedem Bootstrap neutralisiert werden,
 - Hauptmodul-Offenzustände vom Geräteabgleich ausgeschlossen bleiben.

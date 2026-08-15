@@ -23,7 +23,7 @@ assert.match(sync,/preservedLocalEvents/,'Geschützte lokale Event-Stände werde
 assert.match(sync,/else if\(applied\.preservedLocalEvents\)await pushDeviceSync\(readDeviceSyncConfig\(\)\)/,'Ein geschützter lokaler Event-Stand wird nicht zurück in den Geräteverbund gespiegelt.');
 
 assert.match(sync,/snapshot=await decryptSnapshot\(reply\.blob,config\.syncKey\),remoteTime=.*latestConfig=readDeviceSyncConfig\(\),localPending=Date\.parse\(latestConfig\.pendingChangedAt\|\|config\.pendingChangedAt/s,'Pull prüft nach der Netzantwort nicht erneut auf zwischenzeitliche lokale Änderungen.');
-assert.match(sync,/await pushDeviceSync\(latestConfig\);return\{found:true,applied:false\}/,'Zwischenzeitlich neuere lokale Daten werden bei Pull nicht priorisiert.');
+assert.match(sync,/mergeRemoteFavoriteStateIntoLocal\(snapshot\);await pushDeviceSync\(latestConfig\)/,'Zwischenzeitlich neuere lokale Daten müssen Favoriten konfliktfest mergen und danach priorisiert zurückspiegeln.');
 assert.match(sync,/latestConfig=readDeviceSyncConfig\(\);if\(latestConfig\.syncKey!==config\.syncKey\)return true/,'Push berücksichtigt keinen während des Uploads veränderten lokalen Zustand.');
 assert.match(sync,/hasNewerPending=.*latestPending>snapshotTime/,'Push erkennt keine Änderungen, die nach Snapshot-Erstellung entstanden sind.');
 assert.match(sync,/pendingChangedAt:hasNewerPending\?latestConfig\.pendingChangedAt:undefined/,'Push löscht einen neueren lokalen Pending-Stand.');

@@ -29,8 +29,8 @@ for(const token of [
  '<small>Bewölkung / UVI</small>'
 ])need('Tagesdetail-Luftdruck/Legende',app,token);
 
-if(app.includes("if('cancelIdleCallback'in window)"))failures.push('Die fehleranfällige Window-Narrowing-Prüfung für cancelIdleCallback ist noch vorhanden.');
-for(const token of ['idleWindow.cancelIdleCallback?.','if(!idleWindow.cancelIdleCallback)window.clearTimeout'])need('Favoriten-Persistenz-Buildfix',app,token);
+if(/requestIdleCallback[\s\S]{0,500}persistFavoriteSnapshot/.test(app))failures.push('Favoritenpersistenz darf nicht mehr auf requestIdleCallback warten.');
+for(const token of ['const setFavorites=useCallback<FavoriteSetter>','persistFavoriteSnapshot(cleaned);setFavoritesState(cleaned)'])need('Favoriten-Persistenz-Buildfix',app,token);
 if(app.includes('<small>Bewölkung</small>')&&app.includes('<small>UVI</small>'))failures.push('Bewölkung und UVI sind weiterhin als getrennte Tagesdetail-Kacheln vorhanden.');
 
 for(const token of [

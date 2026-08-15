@@ -17,7 +17,7 @@ for(const token of [
 ])need('Persönliche Regeln standardmäßig aus',app,token);
 for(const token of [
   'favoritesPersistRef=useRef(favorites)',
-  'requestIdle?requestIdle(save,{timeout:900})',
+  'persistFavoriteSnapshot(cleaned);setFavoritesState(cleaned)',
   "window.addEventListener('pagehide',flush)",
   "document.addEventListener('visibilitychange',visibility)",
   'const pushFavoriteSignature=useMemo',
@@ -36,4 +36,4 @@ if(app.includes('timers=[0,70,180,360,650].map'))failures.push('Alte Timer-Kaska
 for(const token of ['content-visibility:auto','contain:layout paint style','contain-intrinsic-size:auto 320px','.favorite-rule-toggle'])need('Favoritenlisten-Rendering',styles,token);
 if(app.includes("const DEFAULT_FAVORITE_RULES:FavoriteRules={rainProbability"))failures.push('Alte automatisch aktive Favoritenregeln sind weiterhin als Standard vorhanden.');
 if(failures.length){console.error('Favoritenregeln-/Navigation-/Performance-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Favoritenregeln, direkter Menüsprung und Performance geprüft: neue Regeln sind aus, Persistenz läuft verzögert, aktive Favoriten werden robust zentriert und lange Listen layoutseitig isoliert.');
+console.log('Favoritenregeln, direkter Menüsprung und Performance geprüft: neue Regeln sind aus, Favoriten persistieren sofort, aktive Favoriten werden robust zentriert und lange Listen layoutseitig isoliert.');

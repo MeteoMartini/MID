@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.53.29",
+  "releaseVersion": "0.9.53.30",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -191,7 +191,9 @@
     "scripts/test-forecast-consistency-contract-095326.mjs",
     "scripts/test-state-integrity-contract-095327.mjs",
     "scripts/test-event-feasibility-indicator-095328.mjs",
-    "scripts/test-device-sync-nullability-buildfix-095329.mjs"
+    "scripts/test-device-sync-nullability-buildfix-095329.mjs",
+    "scripts/test-favorite-authoritative-persistence-095330.mjs",
+    "scripts/test-push-reliability-095330.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -330,7 +332,9 @@
     "scripts/test-core-forecast-restoration-095317.mjs",
     "scripts/test-background-fetch-stability-095318.mjs",
     "scripts/test-hyperlocal-event-pictogram-095319.mjs",
-    "scripts/test-module-open-state-095320.mjs"
+    "scripts/test-module-open-state-095320.mjs",
+    "scripts/test-favorite-authoritative-persistence-095330.mjs",
+    "scripts/test-push-reliability-095330.mjs"
   ],
   "requiredFiles": [
     "scripts/test-cockpit-regression-sync-09201.mjs",

@@ -88,3 +88,12 @@ Bestehende historisch spezialisierte Ensemble-Tooltips bleiben vorerst als eng b
 - Der Punkt wird als Overlay innerhalb der vorhandenen Piktogrammfläche dargestellt und darf weder Kartenhöhe noch Zeilenanzahl oder die Kompaktheit des Event-Centers vergrößern.
 - Farbe ist nicht die einzige Information: die Zustände besitzen eine zugängliche Textbezeichnung (`aria-label`/Titel) und kritische/ungeklärte Zustände zusätzlich eine visuelle Muster-/Füllungsunterscheidung.
 - Glocken-Popover, Event-Center-Kurzkarte und ausführliche Eventbewertung verwenden dieselbe Komponente und damit denselben fachlichen Status.
+
+
+## 11. Benachrichtigungsstatus und Push-Diagnose
+
+- Ergänzend ist `MID_NOTIFICATION_RELIABILITY_CONTRACT.md` verbindlich.
+- Die UI darf den Zustand „Aktiv“ nur anzeigen, wenn Browser-Abonnement, Worker-Registrierung und periodischer Worker-Prüfzyklus bestätigt sind.
+- Ein lokales Browser-Abonnement ohne Worker-Registrierung wird als reparaturbedürftig dargestellt; die Registrierung muss ohne versteckten Datenverlust erneuerbar sein.
+- Für registrierte Geräte steht eine echte Ende-zu-Ende-Testmitteilung zur Verfügung.
+- Technische Diagnose bleibt kompakt; Detailzeitpunkte wie der letzte Scheduler-Lauf werden bevorzugt im erweiterten Modus angezeigt.

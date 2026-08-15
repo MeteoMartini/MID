@@ -20,12 +20,12 @@ assert.match(app,/const FAVORITES_SHADOW_KEY='mid:favorites:shadow:v1'/,'Favorit
 assert.match(app,/const FAVORITES_TOMBSTONES_KEY='mid:favorites:tombstones:v1'/,'Favoriten-Tombstones fehlen.');
 assert.match(app,/function looksLikeEventFavoriteRecord\(/,'Event-/Ortsfavoriten-Domänentrennung fehlt.');
 assert.match(app,/function normaliseFavoriteCollection\(values:any\[\]\):Favorite\[\]/,'Zentrale Favoritennormalisierung fehlt.');
-assert.match(app,/return\[\.\.\.favorites,added\]/,'Neue Favoriten müssen verlustfrei angehängt werden.');
+assert.match(app,/return\[\.\.\.current,added\]/,'Neue Favoriten müssen verlustfrei angehängt werden.');
 assert.doesNotMatch(app,/favorites\.length\s*>=\s*20/,'Favoriten dürfen nicht wegen eines 20er-Limits verdrängt werden.');
 assert.doesNotMatch(app,/slice\(0,\s*19\)/,'Alter 20er-Verdrängungspfad ist noch vorhanden.');
 assert.doesNotMatch(app,/result\.length\s*>=\s*20/,'Normalisierung darf Favoriten nicht bei 20 kappen.');
 assert.match(app,/if\(primary\.rejectedEventRecords\)\{/,'Kontaminierter Ortsfavoritenstand muss bereinigt werden.');
-assert.match(app,/persistFavoriteSnapshot\(recovered\)/,'Bereinigter Favoritenstand muss dauerhaft wiederhergestellt werden.');
+assert.match(app,/persistFavoriteSnapshot\(cleaned\)/,'Bereinigter Favoritenstand muss dauerhaft wiederhergestellt werden.');
 assert.match(app,/markFavoriteRemoved\(existing\)/,'Explizites Entfernen über Schnellfavorit muss Tombstone setzen.');
 assert.match(app,/markFavoriteRemoved\(removed\)/,'Explizites Entfernen im Manager muss Tombstone setzen.');
 

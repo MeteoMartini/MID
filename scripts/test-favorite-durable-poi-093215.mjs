@@ -18,8 +18,8 @@ need('return matchingStoredFavorite(favorites,location)??favorites.find(item=>lo
 need('currentFavorite=useMemo(()=>matchingStoredFavorite(favorites,loc)','strikter aktiver Favorit');
 need("activeFavoriteId=matchingStoredFavorite(favorites,current)?.id??''",'strikter Schnellzugriff');
 need("currentFavoriteId=matchingStoredFavorite(favorites,current)?.id??''",'strikte Favoritenverwaltung/-suche');
-need('existing=matchingStoredFavorite(favorites,normalized)','striktes Hinzufügen/Entfernen');
-need('favoritesPersistRef.current=next;persistFavoriteSnapshot(next);setFavorites(next)','sofortige persistente Favoritenaktion');
+need('existing=matchingStoredFavorite(current,normalized)','striktes Hinzufügen/Entfernen');
+need('favoritesPersistRef.current=cleaned;persistFavoriteSnapshot(cleaned);setFavoritesState(cleaned)','sofortige persistente Favoritenaktion');
 
 if(app.includes('existing=matchingFavorite(current,normalized)')||app.includes('existing=matchingFavorite(favorites,normalized)'))failures.push('Favoriten-Toggle verwendet weiterhin die großzügige GPS-Nahbereichszuordnung.');
 

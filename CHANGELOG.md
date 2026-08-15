@@ -1,3 +1,14 @@
+# MID Changelog
+
+## v0.9.53.30
+
+- Favoriten werden bei jeder Änderung sofort und atomar in Primär-/Shadow-Snapshot geschrieben; Start-Recovery wendet Lösch-Tombstones zwingend an.
+- Tombstones verfallen nicht mehr still und Geräte-Sync arbeitet bei Pending-Änderungen mit Favoriten-pull/merge/push.
+- Push-Status prüft Browser, Workerregistrierung und Scheduler-Heartbeat statt nur das lokale Browser-Abonnement.
+- Ende-zu-Ende-Testmitteilung und Reparatur der Workerregistrierung ergänzt.
+- Niederschlagsbeginn auf kanonische 15-Minuten-Reconciliation inkl. Wahrscheinlichkeit und 45-Minuten-Vorwarnfenster umgestellt.
+- Push-Scheduler paginiert alle KV-Empfänger; stilles 24-Favoriten-Limit entfernt.
+
 ## 0.9.53.29
 
 - Produktionsbuild-Fix für den verlustfreien Favoriten-/Geräte-Sync: `mergeFavoriteSnapshots` akzeptiert einen fehlenden Remote-Snapshot nun explizit als `null`.

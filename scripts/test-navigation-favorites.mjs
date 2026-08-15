@@ -14,7 +14,7 @@ if(tabletMedia<0||navBase>tabletMedia)failures.push('Die Tagespfeile sind weiter
 if(styles.includes('.meteogram-day-jump{display:none}'))failures.push('Die Tagespfeile werden auf Desktop weiterhin ausgeblendet.');
 for(const token of ['Vorheriger Tag:','Nächster Tag:','Handy, Tablet und Desktop tageweise'])if(!app.includes(token))failures.push(`Tagesnavigation unvollständig: ${token}`);
 
-if(!app.includes('return[...favorites,added]'))failures.push('Neu angelegte Favoriten werden nicht verlustfrei am Ende einsortiert.');
+if(!app.includes('return[...current,added]'))failures.push('Neu angelegte Favoriten werden nicht verlustfrei am Ende einsortiert.');
 if(/favorites\.length\s*>=\s*20|slice\(0,\s*19\)|slice\(0,\s*20\)/.test(app))failures.push('Ortsfavoriten enthalten weiterhin einen stillen 20er-Verdrängungs-/Kappungspfad.');
 if(!app.includes('normaliseFavoriteCollection([...current,...incoming])'))failures.push('Importierte Favoriten werden nicht hinter den vorhandenen Favoriten angefügt.');
 if(app.includes('[{id:favoriteId()')&&app.includes('},...current].slice(0,20)'))failures.push('Alte Favoriten-Voranstellung ist weiterhin vorhanden.');
