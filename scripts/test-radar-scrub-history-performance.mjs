@@ -13,7 +13,7 @@ for(const token of [
  'radar-nowcast-total',
  'radarHistory={radarHistoryInfo}',
  'radarNowcast(loc.latitude,loc.longitude,loc.country_code||loc.country,radarController.signal,true)',
- 'station(loc.latitude,loc.longitude,loc.country_code||loc.country,loc.elevation??fw.elevation,loc,stationController.signal,true)'
+ 'station(loc.latitude,loc.longitude,loc.country_code||loc.country,loc.elevation??fw.elevation,loc,stationController.signal,true,forceFresh)'
 ])assert.ok(app.includes(token),`App-Funktion fehlt: ${token}`);
 for(const token of ['radolan-history-meta','loadAndSampleRadolan','RadarHistory'])assert.ok(history.includes(token),`RADOLAN-Historie fehlt: ${token}`);
 for(const token of ["mode==='radolan-history-meta'","mode==='radolan-history-file'","product:'RW'","product:'RY'","product:'SF'",'fastStations'])assert.ok(worker.includes(token),`Worker-Pfad fehlt: ${token}`);

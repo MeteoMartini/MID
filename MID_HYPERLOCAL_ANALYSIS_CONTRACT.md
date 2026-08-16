@@ -57,3 +57,17 @@ Der insgesamt resultierende Temperatur-Offset – Restfeld plus ggf. Messkonsens
 Die UI muss Temperaturstützung separat ausweisen. Ein globaler Wert wie „7 Messpunkte“ aus der Vereinigung von Wind-, Druck-, Wolken- und Temperaturquellen darf nicht suggerieren, dass alle diese Punkte die Temperatur bestimmt haben. Für Temperatur werden tatsächliche Temperatur-Messpunktzahl, gewichteter Radius, Quellen/Intervalle und ggf. die zusätzliche Messkonsens-Rückführung transparent diagnostiziert.
 
 Required Regressionen: `scripts/test-hyperlocal-direct-temperature-consensus-095337.mjs` und `scripts/test-hyperlocal-source-freshness-095338.mjs`.
+
+## 12. Current-Übergang, Analysecache und Kurzfristtemperatur (ab v0.9.53.39)
+
+Der schnelle Beobachtungspfad (Fast-Pass) und die nachgelagerte modellgestützte Hyperlokalanalyse (Full-Pass) dürfen keinen künstlichen Temperatursprung erzeugen. Ein später eintreffender, formal reichhaltigerer Analysezustand darf eine feldbezogen jüngere Temperaturbeobachtung nicht allein aufgrund seines höheren Analyseumfangs verdrängen. Bei einem frischen, engen und kohärenten Mehrstationskonsens muss die aktuelle 2-m-Temperatur auch tagsüber ausreichend stark in Richtung der Beobachtungen zurückgeführt werden; schwache, alte, weit entfernte oder widersprüchliche Stützung bleibt konservativ begrenzt.
+
+Stations-Analysecache-Generationen sind bei Änderungen der Hyperlokal-/Fusionslogik zu versionieren. Ein neuer Release darf dadurch keine fachlich inkompatiblen `station`-/`station-provisional`-Einträge eines Vorgängeralgorithmus als aktuellen Full-Pass wiederverwenden. Dies betrifft ausschließlich transiente Analysedaten und niemals Favoriten oder andere dauerhaft geschützte Nutzerdaten.
+
+Ein expliziter `forceFresh`-Lauf umgeht sowohl den persistenten Stationsanalysecache als auch den kurzlebigen In-Memory-Analysecache. Netzwerk- und Worker-Caches werden dadurch nicht pauschal verkürzt; unnötiger zusätzlicher Dauertraffic ist weiterhin verboten. Bei echtem Quellenausfall darf ein klar gekennzeichneter letzter belastbarer Stand als Fallback erhalten bleiben.
+
+Die daraus resultierende aktuelle Temperatur bleibt derselbe kanonische Stationsanker für die operative Forecast-Zeitreihe. Die ersten sechs 15-Minuten-Schritte (= 90 Minuten) und die anschließende 24-h-Leiste müssen ihre Temperatur daher aus den bereits hyperlokal finalisierten Stunden ableiten und die Korrektur zeitlich ausblenden; rohe Modelltemperaturen dürfen nicht parallel an diesem Pfad vorbeigerendert werden. Die gefühlte Temperatur folgt derselben lokalen Temperaturverschiebung, solange kein eigener beobachteter Apparent-Temperature-Anker existiert.
+
+Temperaturspezifische Diagnosehinweise wie `Messkonsens aktiv`, `ΔT` oder ein direkter Messkonsens dürfen nur erscheinen, wenn die Temperatur selbst feldbezogen aktuell und als Beobachtungsanker verwendbar ist. Sind nur andere Messfelder frisch, muss die Oberfläche für die Temperatur ausdrücklich den Best-Match-Fallback kennzeichnen und darf keine alte Temperaturkorrektur als aktuell darstellen.
+
+Required Regression: `scripts/test-current-temperature-cache-transition-095339.mjs`.

@@ -3850,3 +3850,9 @@
 - Hyperlokale 2-m-Temperatur um einen robusten, begrenzten direkten Messkonsens gegen fehlerhafte Zielpunktgradienten ergänzt; kein Einzelstations-/Flughafen-Zwang und kein pauschaler Nachtabschlag.
 - Current-Diagnose zeigt tatsächliche Temperatur-Messpunkte, temperaturbezogenen Radius, Quellenintervalle und ggf. die zusätzliche Messkonsens-Rückführung.
 - Verbindlicher Kosten-Governance-Vertrag: keine kostenpflichtigen MID-Schritte ohne vorherige transparente Kosteninformation und ausdrückliche Freigabe; Free/Open first.
+
+## 0.9.53.39
+- Current-Temperatur gegen Rücksprünge zwischen schnellem Beobachtungs- und nachgelagertem Hyperlokal-Full-Pass abgesichert; jüngere feldbezogene Temperaturbeobachtungen werden nicht mehr durch ältere, nur formal reichhaltigere Analysezustände verdrängt.
+- Fast-/Full-Stationscaches übergeben frische Rohkandidaten kurzzeitig im Speicher und verwenden eine neue Stationsanalyse-Cachegeneration; `forceFresh` umgeht auch die transienten Stationsanalysecaches, ohne Quellen-TTLs oder periodischen Traffic zu erhöhen.
+- Starker, frischer und räumlich kohärenter Mehrstationskonsens darf einen deutlichen Tages-Gradientenfehler stärker korrigieren; schwache/alte/weite oder widersprüchliche Evidenz sowie Einzelstationen bleiben konservativ begrenzt.
+- Current-, 90-Minuten- und 24-Stunden-Temperaturpfad explizit vereinheitlicht und regressionsgeschützt. Die gefühlte Current-Temperatur folgt dem lokalen Temperaturversatz; temperaturbezogene Diagnosechips erscheinen nur bei tatsächlich frischem Temperaturanker.

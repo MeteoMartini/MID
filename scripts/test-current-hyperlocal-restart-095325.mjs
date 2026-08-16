@@ -11,7 +11,7 @@ for(const token of [
  'if(stationNeedsEnrichment(value)||stationAnalysisRank(value)<4)',
  'else if(cachedStation){runFullStationAnalysis()}',
  'cachedStationAge<=2*60000',
- 'warmStation=stationCacheEntryForLocation(',
+ 'warmStation=forceFresh?null:stationCacheEntryForLocation(',
  "warmAir=readAnalysisCache<any>('air-quality'",
  "warmRadar=readAnalysisCache<RadarNowcast>('radar'",
  "warmRadarHistory=readAnalysisCache<RadarHistory>('radar-history'",

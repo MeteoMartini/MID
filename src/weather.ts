@@ -669,13 +669,24 @@ async function metarStations(lat:number,lon:number,radiusKm=140,signal?:AbortSig
  if(workerBaseCandidates('metar').length){try{const data=await fetchWorkerJson<any>('',{lat,lon,radius_km:radiusKm,fast:fast?1:0,country:countryCodeFromLocation(country)||country},{purpose:'metar',signal,timeoutMs:fast?6000:10000,maxAgeMs:fast?180000:300000,staleIfErrorMs:fast?600000:1200000,cacheKey:`stations:${lat.toFixed(3)}:${lon.toFixed(3)}:${radiusKm}:${fast?1:0}:${countryCodeFromLocation(country)||country}`}),stations=parseMetarStations(parseMetarRows(data),lat,lon);if(stations.length)return stations}catch{}}
  try{const data=await j<any>(`https://aviationweather.gov/api/data/metar?format=json&hours=3&bbox=${encodeURIComponent(bbox)}`,signal);return parseMetarStations(parseMetarRows(data),lat,lon)}catch{return[]}
 }
+const stationCandidateSnapshots=new Map<string,{at:number;rows:Station[]}>();
+function stationCandidateSnapshotKey(lat:number,lon:number,country?:string){return`${lat.toFixed(3)}:${lon.toFixed(3)}:${countryCodeFromLocation(country)||String(country||'')}`}
+function rememberStationCandidates(key:string,rows:Station[]){if(!rows.length)return;stationCandidateSnapshots.set(key,{at:Date.now(),rows});if(stationCandidateSnapshots.size>12){const remove=[...stationCandidateSnapshots.entries()].sort((a,b)=>a[1].at-b[1].at).slice(0,stationCandidateSnapshots.size-12);for(const[item]of remove)stationCandidateSnapshots.delete(item)}}
+function recentStationCandidates(key:string,maxAgeMs=6*60000){const snapshot=stationCandidateSnapshots.get(key);return snapshot&&Date.now()-snapshot.at<=maxAgeMs?snapshot.rows:[]}
 async function stationUncached(lat:number,lon:number,country?:string,elevation?:number,context?:Location,signal?:AbortSignal,fast=false):Promise<Station|null>{
- const c=countryCodeFromLocation(country),inGermany=c==='DE'||(!c&&lat>=47.2&&lat<=55.2&&lon>=5.5&&lon<=15.6),metarRadiusKm=inGermany?140:220,workerStationsAvailable=workerBaseCandidates('metar').length>0,metarTask=fast?metarStations(lat,lon,metarRadiusKm,signal,true,c):metarStations(lat,lon,metarRadiusKm,signal,false,c),tasks:Promise<Station[]|Station|null>[]=[metarTask];
+ const c=countryCodeFromLocation(country),snapshotKey=stationCandidateSnapshotKey(lat,lon,c),inGermany=c==='DE'||(!c&&lat>=47.2&&lat<=55.2&&lon>=5.5&&lon<=15.6),metarRadiusKm=inGermany?140:220,workerStationsAvailable=workerBaseCandidates('metar').length>0,metarTask=fast?metarStations(lat,lon,metarRadiusKm,signal,true,c):metarStations(lat,lon,metarRadiusKm,signal,false,c),tasks:Promise<Station[]|Station|null>[]=[metarTask];
  if(!workerStationsAvailable&&geoSphereApplies(lat,lon,c))tasks.push(geoSphereStation(lat,lon,elevation,signal));
  if(!workerStationsAvailable&&inGermany)tasks.push(brightSkyStation(lat,lon,elevation,signal));
  const settled=await Promise.allSettled(tasks);let results=settled.filter((x):x is PromiseFulfilledResult<Station[]|Station|null>=>x.status==='fulfilled').flatMap(x=>Array.isArray(x.value)?x.value:x.value?[x.value]:[]);
  if(workerStationsAvailable){const fallbacks:Promise<Station|null>[]=[];if(geoSphereApplies(lat,lon,c)&&!results.some(item=>/geosphere/i.test(String(item.provider||''))))fallbacks.push(geoSphereStation(lat,lon,elevation,signal));if(inGermany&&!results.some(item=>/dwd synop|dwd open data|bright sky/i.test(String(item.provider||''))))fallbacks.push(brightSkyStation(lat,lon,elevation,signal));if(fallbacks.length){const extra=await Promise.allSettled(fallbacks);results=[...results,...extra.filter((item):item is PromiseFulfilledResult<Station|null>=>item.status==='fulfilled').flatMap(item=>item.value?[item.value]:[])]}}
  if(!results.length)return null;
+ // Fast- und Full-Pass besitzen absichtlich getrennte Antwortcaches, weil nur der
+ // Full-Pass optionale private/professionelle Netze ergänzt. Dadurch darf aber ein
+ // wenige Minuten älterer Full-Cache niemals frischere amtliche Messungen des gerade
+ // sichtbaren Fast-Passes zurückdrehen. Die frischen Rohkandidaten werden deshalb nur
+ // im Speicher kurz weitergereicht und vor der Full-Analyse dedupliziert; kein weiterer
+ // Netzwerkabruf ist nötig.
+ if(fast)rememberStationCandidates(snapshotKey,results);else{const recent=recentStationCandidates(snapshotKey);if(recent.length)results=dedupeStationCandidates([...results,...recent])}
  const nonCitizen=results.filter(item=>!isCitizenNetwork(item.provider)),direct=robustBlendStations(nonCitizen.length?results:results.length>=3?results:[],elevation)??nonCitizen[0]??results[0]??null;
  // Der schnelle Startpfad liefert ausschließlich aktuelle Beobachtungen/Stationsmittel.
  // Modellhintergrund, Gelände- und Oberflächenanalyse folgen erst im Full-Pass, damit
@@ -688,10 +699,10 @@ async function stationUncached(lat:number,lon:number,country?:string,elevation?:
 
 const stationAnalysisCache=new Map<string,{at:number;value:Station}>();
 function stationAnalysisCacheKey(lat:number,lon:number,country:string|undefined,elevation:number|undefined,context:Location|undefined,fast:boolean){return`${lat.toFixed(3)}:${lon.toFixed(3)}:${countryCodeFromLocation(country)||String(country||'')}:${Number.isFinite(elevation)?Math.round(Number(elevation)/10)*10:'x'}:${contextUrbanClass(context)}:${fast?1:0}`}
-export async function station(lat:number,lon:number,country?:string,elevation?:number,context?:Location,signal?:AbortSignal,fast=false):Promise<Station|null>{
+export async function station(lat:number,lon:number,country?:string,elevation?:number,context?:Location,signal?:AbortSignal,fast=false,forceFresh=false):Promise<Station|null>{
  if(signal?.aborted)throw signal.reason??new DOMException('Vorgang abgebrochen.','AbortError');
  const key=stationAnalysisCacheKey(lat,lon,country,elevation,context,fast),cached=stationAnalysisCache.get(key),freshMs=fast?4*60000:6*60000,age=cached?Date.now()-cached.at:Infinity;
- if(cached&&age<=freshMs)return cached.value;
+ if(!forceFresh&&cached&&age<=freshMs)return cached.value;
  const value=await stationUncached(lat,lon,country,elevation,context,signal,fast).catch(error=>{if(signal?.aborted)throw error;return null});
  if(value){stationAnalysisCache.set(key,{at:Date.now(),value});if(stationAnalysisCache.size>18){const remove=[...stationAnalysisCache.entries()].sort((a,b)=>a[1].at-b[1].at).slice(0,stationAnalysisCache.size-18);for(const[item]of remove)stationAnalysisCache.delete(item)}return value}
  if(cached&&age<=20*60000)return{...cached.value,staleFallback:true,cacheAgeMinutes:Math.round(age/60000),analysisMethod:`${cached.value.analysisMethod||'Stationsanalyse'} · letzter belastbarer Stand`};
