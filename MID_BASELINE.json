@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.53.42",
+  "releaseVersion": "0.9.53.44",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -207,7 +207,9 @@
     "scripts/test-current-temperature-cache-transition-095339.mjs",
     "scripts/test-current-shortterm-temperature-consistency-095340.mjs",
     "scripts/test-forecast-cockpit-build-hygiene-095342.mjs",
-    "scripts/test-ui-interaction-standardization-095342.mjs"
+    "scripts/test-ui-interaction-standardization-095342.mjs",
+    "scripts/test-ui-design-system-095343.mjs",
+    "scripts/test-ui-disclosure-buildfix-095344.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [

@@ -6014,3 +6014,66 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 @media(forced-colors:active){
  :is(button,[role="button"],summary,a,input,select,textarea):focus-visible{outline:2px solid Highlight;outline-offset:2px}
 }
+
+/* MID v0.9.53.43 · Designsystem: semantische Farben, Typografie, Radien, Abstände und gemeinsame UI-Primitiven */
+:root{
+ --mid-space-1:4px;--mid-space-2:6px;--mid-space-3:8px;--mid-space-4:10px;--mid-space-5:12px;--mid-space-6:14px;--mid-space-7:16px;--mid-space-8:20px;--mid-space-9:24px;
+ --mid-radius-compact:10px;--mid-radius-control:12px;--mid-radius-panel:16px;--mid-radius-card:20px;--mid-radius-pill:999px;
+ --mid-text-micro:8.5px;--mid-text-xs:9px;--mid-text-sm:10px;--mid-text-meta:11px;--mid-text-body:12px;--mid-text-label:13px;--mid-line-compact:1.25;
+ --mid-status-good:#57d58a;--mid-status-watch:#ffd37a;--mid-status-caution:#ff9b92;--mid-status-info:#91d8ff;--mid-status-neutral:var(--muted);
+ --mid-status-good-bg:color-mix(in srgb,var(--mid-status-good) 12%,var(--surface));
+ --mid-status-watch-bg:color-mix(in srgb,var(--mid-status-watch) 12%,var(--surface));
+ --mid-status-caution-bg:color-mix(in srgb,var(--mid-status-caution) 11%,var(--surface));
+ --mid-status-info-bg:color-mix(in srgb,var(--mid-status-info) 10%,var(--surface));
+ --event-danger:var(--mid-status-caution);--event-watch:var(--mid-status-watch);--event-info:var(--mid-status-info);--event-good:var(--mid-status-good);
+}
+:root[data-theme=light]{
+ --mid-status-good:#167749;--mid-status-watch:#7b5600;--mid-status-caution:#a8322a;--mid-status-info:#006f9f;
+}
+.density-compact{--mid-text-micro:8.5px;--mid-text-xs:9px;--mid-text-sm:10px;--mid-text-meta:11px}
+.density-comfortable{--mid-text-micro:9px;--mid-text-xs:9.5px;--mid-text-sm:10.5px;--mid-text-meta:11.5px}
+
+/* Gemeinsame Oberflächenhierarchie: große Karten, Panels und Controls behalten bewusst verschiedene Radienstufen. */
+.card,.forecast-cockpit,.event-center-shelf{border-radius:var(--mid-radius-card)}
+:is(.metrics article,.module-shell-content>.viewport-gate>.card,.short-term-detail,.advanced-feature-group,.event-detail-disclosure,.event-model-disclosure,.app-portal-popover){border-radius:var(--mid-radius-panel)}
+:is(.secondary,.primary,.search>div,.search button,.actions button,.settings-choice-grid button,.settings-unit-grid button,.settings-toggle-card,.hour-tooltip-grid>span){border-radius:var(--mid-radius-control)!important}
+
+/* Badge-/Pill-Primitiv: gemeinsame Geometrie und Typografie, fachliche Farben bleiben über Zustandsklassen steuerbar. */
+:is(.official-validity-pill,.travel-climate-badge,.weather-twin-active-badge,.weather-twin-model-badge,.cockpit-local-badge,.cockpit-model-rapid-badge,.model-rapid-badge,.model-usage-badge,.event-center-card-pill,.event-guide-pill,.event-status-badge,.event-expired-detail-badge){
+ border-radius:var(--mid-radius-pill)!important;
+ line-height:var(--mid-line-compact);
+}
+.official-validity-pill{font-size:var(--mid-text-micro)!important}
+.travel-climate-badge,.weather-twin-active-badge,.model-usage-badge{font-size:var(--mid-text-micro)}
+.cockpit-local-badge,.event-center-card-pill,.event-guide-pill,.event-expired-detail-badge{font-size:var(--mid-text-xs)}
+
+/* Modulweise Typografie-Normalisierung: dichte Fachmetadaten verwenden zentrale Tokens statt lokaler Kleinstwerte. */
+.metrics header{font-size:var(--mid-text-sm)}
+.metrics article>small,.days button>small,.days button>i,.hours small,.short-term-detail small{font-size:var(--mid-text-xs)}
+.weatherwidget.modern.compact>header span,.weatherwidget.modern.compact>header small,.weatherwidget.modern.compact .widgetday-head small,.weatherwidget.modern.compact .widgetlabel{font-size:var(--mid-text-xs)}
+.weatherwidget.modern.compact .widgetmeta span,.weatherwidget.modern.compact .widgethazards span,.weatherwidget.modern.compact footer{font-size:var(--mid-text-micro)}
+.event-detail-disclosure>summary small,.event-center-disclosure-hint,.model-usage-badge{font-size:var(--mid-text-micro)}
+.event-model-disclosure>summary,.hyperlocal-analysis-compact{font-size:var(--mid-text-xs)}
+
+/* Gemeinsame Disclosure-Semantik für die migrierten Detailkarten. */
+[data-mid-ui="disclosure"]>summary{list-style:none}
+[data-mid-ui="disclosure"]>summary::-webkit-details-marker{display:none}
+[data-mid-ui="disclosure"]>summary::marker{content:""}
+[data-mid-ui="disclosure"]>summary>svg:last-child{transition:transform .16s ease}
+[data-mid-ui="disclosure"][open]>summary>svg:last-child{transform:rotate(180deg)}
+
+/* Semantische Statusfarben statt lokaler Grün/Gelb/Rot-Varianten. */
+.hazard.clear{border-color:color-mix(in srgb,var(--mid-status-good) 30%,var(--border));background:var(--mid-status-good-bg);color:var(--mid-status-good)}
+.hazards .yellow{border-color:color-mix(in srgb,var(--mid-status-watch) 40%,var(--border));background:var(--mid-status-watch-bg);color:var(--mid-status-watch)}
+.hazards .red{border-color:color-mix(in srgb,var(--mid-status-caution) 42%,var(--border));background:var(--mid-status-caution-bg);color:var(--mid-status-caution)}
+.event-feasibility-dot.good{background:var(--mid-status-good)}
+.event-feasibility-dot.watch{background:var(--mid-status-watch)}
+.event-feasibility-dot.caution{background:var(--mid-status-caution)}
+.model-usage-badge.status-active{border-color:color-mix(in srgb,var(--mid-status-good) 50%,var(--border));color:var(--mid-status-good)}
+.model-usage-badge.status-fallback{border-color:color-mix(in srgb,var(--mid-status-info) 50%,var(--border));color:var(--mid-status-info)}
+.push-settings-panel .push-status-card.warning{border-color:color-mix(in srgb,var(--mid-status-watch) 50%,var(--border))!important;background:var(--mid-status-watch-bg)!important}
+.push-settings-panel .push-status-card.warning>div>svg{color:var(--mid-status-watch)}
+.weather-twin-active-badge{border-color:color-mix(in srgb,var(--mid-status-good) 42%,var(--border));background:var(--mid-status-good-bg);color:var(--mid-status-good)}
+.event-status-badge.good{background:var(--mid-status-good-bg);border-color:color-mix(in srgb,var(--mid-status-good) 30%,var(--border));color:var(--mid-status-good)}
+.event-status-badge.watch{background:var(--mid-status-watch-bg);border-color:color-mix(in srgb,var(--mid-status-watch) 32%,var(--border));color:var(--mid-status-watch)}
+.event-status-badge.caution{background:var(--mid-status-caution-bg);border-color:color-mix(in srgb,var(--mid-status-caution) 30%,var(--border));color:var(--mid-status-caution)}

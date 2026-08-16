@@ -3866,3 +3866,14 @@
 - Produktionsbuild-Fix: verwaisten `bridgeObservedTemperature`-Import aus `ForecastCockpit.tsx` entfernt; verhindert `TS6133` bei aktiviertem `noUnusedLocals`, ohne den kanonischen Current-/90-Minuten-Temperaturpfad zu verändern.
 - Appweite Interaktionsstandardisierung ergänzt: konsistente mobile Textskalierung, Touch-/Tap-Verhalten, Disabled-Zustände, native Akzentfarbe sowie Reduced-Motion- und Forced-Colors-Unterstützung.
 - Neue Required Regressionen schützen Build-Hygiene und die gemeinsamen UI-Grundregeln; keine zusätzlichen Wetterabrufe oder Worker-Funktionsänderungen.
+
+## 0.9.53.43
+- Appweites Designsystem mit zentralen Tokens für Abstände, Radien, dichte Typografie und semantische Statusfarben eingeführt.
+- Wiederkehrende Pills/Badges geometrisch vereinheitlicht; Event-, Warn-, Modellquellen-, Wetterzwilling- und Push-Status auf gemeinsame Bedeutungsfarben abgebildet.
+- Gemeinsames `MidDisclosure`-Primitiv eingeführt und für Analysewerkzeuge sowie Event-Detail-/Modellstandansichten verwendet; geschützte Spezial-Disclosures bleiben unverändert.
+- Keine Wetterdaten-, Cache- oder Worker-Funktionsänderung und keine zusätzlichen Requests.
+## 0.9.53.44
+- Produktionsbuild-Fix für das gemeinsame `MidDisclosure`: `defaultOpen` wird nicht mehr als ungültiges DOM-Attribut an `<details>` weitergereicht.
+- Initialer Öffnungszustand läuft über React-State; `open` und `onToggle` halten native Nutzerinteraktion und React-Zustand synchron.
+- Neue Required Regression schützt den konkreten `TS2322`-Rückfall; keine Wetterdaten-, Cache- oder Worker-Funktionsänderung.
+

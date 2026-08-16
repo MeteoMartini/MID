@@ -132,3 +132,14 @@ Required Regression: `scripts/test-ui-standardization-095338.mjs`.
 - Appweite Interaktionsstandards gehören in die gemeinsame Styleschicht; neue Module dürfen dafür keine konkurrierenden lokalen Grundregeln anlegen.
 
 Required Regression: `scripts/test-ui-interaction-standardization-095342.mjs`.
+
+## 15. Appweites Designsystem (ab v0.9.53.43)
+
+- Wiederkehrende Abstände, Radien und dichte Metatypografie verwenden zentrale `--mid-*`-Design-Tokens. Neue Module dürfen nicht ohne fachlichen Grund weitere nahezu identische lokale Grundwerte einführen.
+- Semantische Statusfarben sind appweit nach Bedeutung (`good`, `watch`, `caution`, `info`, `neutral`) definiert. Event-, Warn-, Quellen- oder Diagnosemodule dürfen für dieselbe Bedeutung keine konkurrierende Grün-/Gelb-/Rot-Semantik etablieren.
+- Pills und Badges teilen eine gemeinsame Grundgeometrie aus Radius-, Zeilenhöhen- und Typografie-Tokens; fachliche Zustandsfarben und notwendige Kompaktheit bleiben komponentenspezifisch.
+- Sehr kleine Fachmetadaten werden modulweise auf zentrale Typografie-Tokens migriert. Eine globale Mindestschriftgröße ist ausdrücklich nicht zulässig, wenn dadurch Diagramme, Matrizen oder meteorologische Fachansichten umbrechen.
+- Für neue generische `details/summary`-Interaktionen ist `MidDisclosure` das gemeinsame Disclosure-Primitiv. Bestehende geschützte Spezial-Disclosures dürfen bestehen bleiben, bis eine Migration ihre DOM-/Interaktionsverträge nachweislich erhält.
+- Designstandardisierung darf keine zusätzlichen Wetterrequests, Hintergrundjobs oder Cacheverkürzungen erzeugen.
+
+Required Regression: `scripts/test-ui-design-system-095343.mjs`.
