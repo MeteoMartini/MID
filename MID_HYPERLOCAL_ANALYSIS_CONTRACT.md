@@ -50,10 +50,10 @@ Für 2-m-Temperatur gilt deshalb zusätzlich eine begrenzte direkte Beobachtungs
 - zusätzliche Dämpfung einer Flughafen-/Aviation-Messung bei nicht-ruralem Zielort,
 - keine Aktivierung durch einen einzelnen Flughafen, eine einzelne Privatstation oder einen einzelnen Messpunkt,
 - keine pauschale Nachtkorrektur; Richtung und Betrag müssen aus den tatsächlich eingehenden Beobachtungen stammen,
-- begrenzte Rückführung auf den direkten Messkonsens, damit lokale Modellinformation erhalten bleibt.
+- evidenzadaptive Rückführung auf den direkten Messkonsens: bei schwacher oder widersprüchlicher Stützung bleibt die Korrektur eng begrenzt; bei mehreren frischen, nahen und kohärenten Messpunkten darf ein klarer Zielpunkt-Gradientenfehler mehrere Kelvin korrigiert werden, ohne den Messkonsens vollständig zu übernehmen.
 
 Der insgesamt resultierende Temperatur-Offset – Restfeld plus ggf. Messkonsens-Rückführung – ist die appweit kanonische lokale Temperaturkorrektur und wird über den bestehenden Forecast-Konsistenzvertrag in die betroffenen Kurzfrist-/Forecastpfade übernommen.
 
 Die UI muss Temperaturstützung separat ausweisen. Ein globaler Wert wie „7 Messpunkte“ aus der Vereinigung von Wind-, Druck-, Wolken- und Temperaturquellen darf nicht suggerieren, dass alle diese Punkte die Temperatur bestimmt haben. Für Temperatur werden tatsächliche Temperatur-Messpunktzahl, gewichteter Radius, Quellen/Intervalle und ggf. die zusätzliche Messkonsens-Rückführung transparent diagnostiziert.
 
-Required Regression: `scripts/test-hyperlocal-direct-temperature-consensus-095337.mjs`.
+Required Regressionen: `scripts/test-hyperlocal-direct-temperature-consensus-095337.mjs` und `scripts/test-hyperlocal-source-freshness-095338.mjs`.

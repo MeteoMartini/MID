@@ -5968,3 +5968,32 @@ button,[role="button"],summary{
 .event-expired-detail-badge{display:inline-flex;align-items:center;min-height:24px;padding:3px 8px;border:1px solid color-mix(in srgb,var(--muted) 30%,var(--border));border-radius:999px;background:color-mix(in srgb,var(--muted) 8%,var(--surface));color:var(--muted);font-size:9px;font-weight:800}
 /* MID v0.9.53.36 — Modellquellenstatus */
 .model-usage-badge{display:inline-flex;align-items:center;justify-content:center;margin-left:5px;padding:1px 5px;border:1px solid var(--border);border-radius:999px;background:var(--s2);color:var(--muted);font-style:normal;font-size:8px;font-weight:900;line-height:1.3;letter-spacing:.02em;white-space:nowrap}.model-usage-badge.status-active{border-color:color-mix(in srgb,#49c980 50%,var(--border));color:#49c980}.model-usage-badge.status-fallback{border-color:color-mix(in srgb,var(--accent) 55%,var(--border));color:var(--accent)}.model-usage-badge.status-adapter-not-configured,.model-usage-badge.status-unavailable{opacity:.82}.model-usage-badge.status-reserve{opacity:.68}
+
+
+/* MID v0.9.53.38 · appweite Portal-, Fokus- und Touch-Standardisierung */
+:root{--mid-ui-compact-touch:36px;--mid-ui-popover-max-height:min(72dvh,620px)}
+.app-portal-popover{
+ max-height:min(var(--mid-ui-popover-max-height),var(--mid-popover-viewport-max-height,100dvh))!important;
+ overscroll-behavior:contain;
+ scrollbar-gutter:stable;
+ -webkit-overflow-scrolling:touch;
+ overflow:auto;
+}
+.app-portal-popover :is(p,small,dd,span){overflow-wrap:anywhere}
+:is(button,[role="button"],summary,a,input,select,textarea):focus-visible{
+ outline:2px solid color-mix(in srgb,var(--primary) 72%,white 8%);
+ outline-offset:2px;
+}
+@media(hover:none),(pointer:coarse){
+ .mode-info>button,
+ .metrics .air-quality-card header>.mode-info>button,
+ .metrics .uvi-card header>.mode-info>button,
+ .metrics .sun-moon-card header>.mode-info>button,
+ .nowcard-label-row .mode-info>button,
+ .precip-now-source-row>.mode-info>button,
+ .event-auto-update-note .mode-info>button{min-width:var(--mid-ui-compact-touch)!important;min-height:var(--mid-ui-compact-touch)!important}
+}
+@media(max-width:620px){
+ :root{--mid-ui-popover-max-height:min(64dvh,560px)}
+ .app-portal-popover{max-width:calc(100vw - 16px)!important}
+}

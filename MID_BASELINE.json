@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.53.37",
+  "releaseVersion": "0.9.53.38",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -201,7 +201,9 @@
     "scripts/test-event-refresh-buildfix-095335.mjs",
     "scripts/test-model-source-capability-contract-095336.mjs",
     "scripts/test-hyperlocal-direct-temperature-consensus-095337.mjs",
-    "scripts/test-cost-governance-contract-095337.mjs"
+    "scripts/test-cost-governance-contract-095337.mjs",
+    "scripts/test-hyperlocal-source-freshness-095338.mjs",
+    "scripts/test-ui-standardization-095338.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [

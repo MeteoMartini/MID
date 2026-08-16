@@ -110,3 +110,14 @@ Bestehende historisch spezialisierte Ensemble-Tooltips bleiben vorerst als eng b
 - Der Event-Lebenszyklus und der Theme-konforme Splashscreen folgen verbindlich `MID_EVENT_LIFECYCLE_STARTUP_CONTRACT.md`.
 - Abgelaufene Events bleiben kompakt erkennbar und direkt entfernbar; laufende/zukünftige Events werden in Übersichten priorisiert.
 - Der Splashscreen zeigt das vollständige MID-Logo prominent und darf Startdaten nur über die kanonischen MID-Datenpfade vorladen.
+
+## 13. Appweite Popover-, Fokus- und Viewport-Standardisierung (ab v0.9.53.38)
+
+- `AppPortalPopover` richtet sich nicht nur am Layout-Viewport, sondern auch am mobilen `visualViewport` aus. Browserleisten, Zoom, Bildschirmtastatur und verschobene iOS-Viewports dürfen ein Popover nicht außerhalb des tatsächlich sichtbaren Bereichs positionieren.
+- Portal-Popover besitzen eine gemeinsame, dichteabhängige Maximalhöhe, internes Scrollen, `overscroll-behavior: contain` und stabile Scrollbar-Geometrie. Auf Smartphones bleibt ausreichend Wetterkontext außerhalb des Popovers sichtbar.
+- Tastaturfokus wird appweit sichtbar dargestellt. Lokale Komponenten dürfen `outline:none` nicht so verwenden, dass `:focus-visible` ohne gleichwertigen Ersatz verschwindet.
+- Kompakte Info-Schaltflächen behalten ihre optische Größe; auf Touchgeräten wird die tatsächliche Mindest-Touchfläche über die gemeinsame Variable `--mid-ui-compact-touch` abgesichert.
+- Spezialisierte Ensemble-Diagrammtooltips bleiben die bereits dokumentierte Ausnahme; neue generische Portal- oder Fokuslogik darf nicht parallel eingeführt werden.
+
+Required Regression: `scripts/test-ui-standardization-095338.mjs`.
+

@@ -34,8 +34,8 @@ const consensus=module.constrainTemperatureWithDirectObservations({
  ]
 });
 assert.equal(consensus.applied,true,'Mehrere kohärente frische Messungen müssen einen fehlerhaften Zielpunktgradienten begrenzt korrigieren dürfen.');
-assert.ok(consensus.value<24.45&&consensus.value>22.9,`Messkonsens soll den 25-°C-Zielwert plausibel begrenzt absenken, nicht direkt ersetzen: ${consensus.value}`);
-assert.ok(consensus.correction>=-1.8&&consensus.correction<-.5,'Zusatzkorrektur muss begrenzt, aber meteorologisch wirksam sein.');
+assert.ok(consensus.value<24.45&&consensus.value>22.0,`Messkonsens soll den 25-°C-Zielwert evidenzabhängig absenken, aber nicht direkt ersetzen: ${consensus.value}`);
+assert.ok(consensus.correction>=-4.65&&consensus.correction<-.5,'Zusatzkorrektur muss evidenzadaptiv begrenzt, aber meteorologisch wirksam sein.');
 assert.ok(consensus.sampleCount>=2&&consensus.effectiveN>=1.35,'Messkonsens braucht echte Mehrpunktstützung.');
 
 const singleAirport=module.constrainTemperatureWithDirectObservations({modelTarget:25,residualValue:25,isDay:0,windKt:2.5,samples:[{temperature:21.5,weight:1,distanceKm:10,ageMinutes:4,aviation:true}]});
@@ -49,7 +49,7 @@ const alreadyClose=module.constrainTemperatureWithDirectObservations({modelTarge
 assert.equal(alreadyClose.applied,false,'Es darf keine Mindestkorrektur erzeugt werden, wenn Modell/Analyse und Messkonsens bereits nahe beieinander liegen.');
 
 const day=module.constrainTemperatureWithDirectObservations({modelTarget:26,residualValue:26,isDay:1,windKt:5,samples:[{temperature:23,weight:1,distanceKm:3,ageMinutes:5},{temperature:23.4,weight:1,distanceKm:7,ageMinutes:6},{temperature:23.5,weight:.8,distanceKm:12,ageMinutes:8}]});
-assert.ok(!day.applied||Math.abs(day.correction)<=1.15+.001,'Tagsüber muss die direkte Rückführung stärker begrenzt bleiben.');
+assert.ok(!day.applied||Math.abs(day.correction)<=3.0+.001,'Tagsüber muss die direkte Rückführung weiterhin stärker als nachts begrenzt bleiben.');
 
 for(const token of [
  'constrainTemperatureWithDirectObservations',

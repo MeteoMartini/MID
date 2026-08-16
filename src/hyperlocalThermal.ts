@@ -122,7 +122,13 @@ export function constrainTemperatureWithDirectObservations(input:{
  // Stützung. Weit verteilte, alte oder stark widersprüchliche Messungen bleiben Diagnose.
  if(sampleCount<2||effectiveN<1.35||weightedDistanceKm>25||weightedAgeMinutes>48||spreadK>2.6||spanK>3.5)return base;
  const gap=estimate-residual,threshold=isNight?.70:.95;if(Math.abs(gap)<threshold)return base;
- const supportN=clamp((effectiveN-1.25)/1.9,0,1),supportDistance=clamp((27-weightedDistanceKm)/20,0,1),supportAge=clamp((50-weightedAgeMinutes)/38,0,1),coherence=clamp(1-spreadK/3,0,1),calm=Number.isFinite(wind)?clamp((8-wind)/7,0,1):.35,nightBonus=isNight?.12:0,rawStrength=.22+.24*supportN+.18*supportDistance+.12*supportAge+.12*coherence+nightBonus+(isNight?.08*calm:.03*calm),strength=clamp(rawStrength,isNight?.24:.20,isNight?.68:.48),maxCorrection=isNight?(Number.isFinite(wind)&&wind<=6.5?1.8:1.55):1.15,correction=clamp(gap*strength,-maxCorrection,maxCorrection),value=residual+correction;
+ const supportN=clamp((effectiveN-1.25)/1.9,0,1),supportDistance=clamp((27-weightedDistanceKm)/20,0,1),supportAge=clamp((50-weightedAgeMinutes)/38,0,1),coherence=clamp(1-spreadK/3,0,1),calm=Number.isFinite(wind)?clamp((8-wind)/7,0,1):.35,nightBonus=isNight?.12:0,evidence=clamp(.34*supportN+.24*supportDistance+.18*supportAge+.24*coherence,0,1),largeGradientSignal=clamp((Math.abs(gap)-1.45)/3.55,0,1),rawStrength=.22+.24*supportN+.18*supportDistance+.12*supportAge+.12*coherence+nightBonus+(isNight?.08*calm:.03*calm)+largeGradientSignal*evidence*(isNight?.16:.09),strength=clamp(rawStrength,isNight?.24:.20,isNight?.88:.64);
+ // Die Korrekturgrenze wächst nur dann deutlich, wenn mehrere frische, nahe und
+ // kohärente Messpunkte gemeinsam einen großen Zielpunkt-Gradientenfehler stützen.
+ // Damit bleibt der Schutz bei schwacher Evidenz praktisch auf dem bisherigen Niveau,
+ // während ein klarer Mehrstationskonsens mehrere Kelvin korrigieren darf. Selbst bei
+ // sehr starker Evidenz wird der Messkonsens nicht vollständig übernommen.
+ const adaptiveEligibility=clamp((Math.min(supportN,supportDistance,supportAge,coherence)-.18)/.62,0,1),baseCap=isNight?(Number.isFinite(wind)&&wind<=6.5?1.8:1.55):1.15,adaptiveExtra=(isNight?3.05:1.85)*Math.pow(evidence,1.45)*Math.pow(adaptiveEligibility,1.25)*largeGradientSignal*(isNight?(.78+.22*calm):1),evidenceCap=baseCap+adaptiveExtra,closureCap=Math.abs(gap)*(isNight?(.72+.14*evidence):(.58+.10*evidence)),maxCorrection=Math.max(baseCap,Math.min(isNight?4.65:3.0,evidenceCap,closureCap)),correction=clamp(gap*strength,-maxCorrection,maxCorrection),value=residual+correction;
  if(Math.abs(correction)<.15)return{...base,strength};
  return{...base,value,correction,applied:true,strength};
 }
