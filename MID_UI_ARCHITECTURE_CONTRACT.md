@@ -121,3 +121,14 @@ Bestehende historisch spezialisierte Ensemble-Tooltips bleiben vorerst als eng b
 
 Required Regression: `scripts/test-ui-standardization-095338.mjs`.
 
+## 14. Appweite Interaktions-, Motion- und iOS-Standardisierung (ab v0.9.53.42)
+
+- Die Browser-Textskalierung bleibt auf iOS und anderen mobilen Browsern kontrolliert (`text-size-adjust: 100 %`); Komponenten dürfen keine lokale Gegensteuerung einführen, die Schrift unerwartet vergrößert oder verkleinert.
+- Interaktive Standardprimitive (`button`, semantische `role=button`, `summary`, Links) verwenden appweit ein einheitliches Touch-Verhalten ohne browserabhängigen Tap-Highlight. Drag-/Scroll-Flächen bleiben ausgenommen, wenn `touch-action: manipulation` fachlich ungeeignet ist.
+- Deaktivierte Bedienelemente besitzen einen einheitlichen, visuell und per Cursor erkennbaren Disabled-Zustand. `aria-disabled=true` darf dabei nicht als rein dekoratives Attribut verwendet werden.
+- Checkboxen, Radiobuttons, Range-Regler und Progress-Elemente verwenden, soweit nicht fachlich speziell gestaltet, die zentrale Primärfarbe als System-Akzent.
+- Bei `prefers-reduced-motion: reduce` werden appweit nicht notwendige Animationen, Übergänge und Smooth-Scrolling praktisch deaktiviert. Wetterdaten, Radarframes und fachliche Zustände dürfen dadurch nicht verloren gehen; nur die Bewegung wird reduziert.
+- Bei aktiviertem Forced-Colors-/Hochkontrastmodus bleibt der Tastaturfokus explizit sichtbar.
+- Appweite Interaktionsstandards gehören in die gemeinsame Styleschicht; neue Module dürfen dafür keine konkurrierenden lokalen Grundregeln anlegen.
+
+Required Regression: `scripts/test-ui-interaction-standardization-095342.mjs`.

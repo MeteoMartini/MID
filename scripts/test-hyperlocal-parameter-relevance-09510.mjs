@@ -41,7 +41,7 @@ assert.ok(weather.includes("support=Math.min(.98,(1-Math.exp"),'Restfeldstützun
 assert.ok(!weather.includes(".45+.55*(1-Math.exp"),'Alter 45-%-Mindeststützanteil darf nicht zurückkehren.');
 
 // App, Kurzfrist und Event dürfen nicht mehr einen globalen 150-Minuten-Stationsstempel für alle Felder verwenden.
-assert.ok(app.includes("stationFieldObservationUsable(st,'temperature'"),'Aktuelle Temperatur nutzt keine parameterbezogene Aktualität.');
+assert.ok(app.includes("finalizationObservedTemperature=shortTermAnchor?.observed?.temperature?undefined:"),'Aktuelle Temperatur nutzt keinen feldbezogen freigegebenen kanonischen Stationsanker.');
 assert.ok(app.includes("fieldFresh=(field:StationAnalysisField)=>stationFieldObservationUsable"),'Aktuelles Wetter ist nicht feldweise qualitätsgesichert.');
 assert.ok(app.includes("temperatureFresh=fieldFresh('temperature')"),'Die Haupttemperatur besitzt keinen eigenen Aktualitätsstatus.');
 assert.ok(app.includes("°C{temperatureFresh?"),'Die Haupttemperatur kennzeichnet sich weiterhin durch irgendeinen frischen Stationsparameter als stationsgeprüft.');

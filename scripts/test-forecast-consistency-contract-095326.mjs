@@ -18,7 +18,7 @@ for(const token of [
  "observed.code=Boolean(observed.cloud||observed.lowCloud||observed.visibility||observed.precipitation)"
 ])need(anchor,token,'gemeinsamer hyperlokaler Beobachtungsanker');
 for(const token of [
- 'finalizeForecastHours(twinHours,baseDisplayDays,{radar:radarAnalysis,thunder:thunderAnalysis,observedTemperature:currentObservedTemperature})',
+ 'finalizeForecastHours(twinHours,baseDisplayDays,{radar:radarAnalysis,thunder:thunderAnalysis,observedTemperature:finalizationObservedTemperature})',
  'applyHyperlocalForecastHours(core.hours,shortTermAnchor,Date.now(),twinHours)',
  'displayMinutes15=useMemo(()=>finalizeForecastMinute15(minutes15,twinHours,displayHours,{radar:radarAnalysis,localAnchor:shortTermAnchor})',
  'precipitationNowSummary(displayMinutes15,displayHours,displayTimezone)',
@@ -34,7 +34,7 @@ need(cockpit,'locallyAdjusted=adjusted.some(point=>point.localAdjustment>0)','90
 for(const token of [
  'forecastLocalAnchorFromCurrent(observation,weather.current,now,location.elevation??weather.elevation)',
  'applyHyperlocalForecastHours(finalized.hours,localAnchor,now,referenceHours)',
- 'finalizeForecastHours(finalHours,displayBaseDays,{radar,thunder,observedTemperature,observedAt,applyOperationalRadar:nearNow})'
+ 'finalizeForecastHours(finalHours,displayBaseDays,{radar,thunder,observedTemperature:localAnchor?.observed?.temperature?undefined:observedTemperature,observedAt,applyOperationalRadar:nearNow})'
 ])need(event,token,'Eventpfad derselben Endstufe');
 for(const token of ['displayHours','displayMinutes15','Keine doppelte Assimilation','Events und Aktivitäten'])need(contract,token,'Forecast-Konsistenzvertrag');
 need(hyperlocal,'MID_FORECAST_CONSISTENCY_CONTRACT.md','Hyperlokalvertrag verweist auf Forecastvertrag');

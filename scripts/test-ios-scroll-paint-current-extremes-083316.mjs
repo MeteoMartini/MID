@@ -24,8 +24,8 @@ for(const token of [
 ])need('Temperaturkonsistenz',fusion,token);
 for(const token of [
  'finalizeForecastHours',
- "stationTemperatureFresh=stationFieldObservationUsable(st,'temperature'",
- 'observedTemperature:currentObservedTemperature',
+ "finalizationObservedTemperature=shortTermAnchor?.observed?.temperature?undefined:",
+ 'observedTemperature:finalizationObservedTemperature',
  'finalizedHours=useMemo',
  'currentRange=currentDay?{min:Math.min(currentDay.min,temp),max:Math.max(currentDay.max,temp)}:null',
  'Tagesbereich aus Vorhersage und aktuellem Wert'

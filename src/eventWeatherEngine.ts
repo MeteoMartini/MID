@@ -122,9 +122,9 @@ export async function buildEventPlan(options:BuildEventPlanOptions):Promise<Even
    const [radarResult,thunderResult,stationResult]=await Promise.allSettled([radarNowcast(location.latitude,location.longitude,country,signal,true),thunderstormNowcast(location.latitude,location.longitude,country,signal),station(location.latitude,location.longitude,country,location.elevation??weather.elevation,location,signal,true)])
    radar=radarResult.status==='fulfilled'?radarResult.value:null;thunder=thunderResult.status==='fulfilled'?thunderResult.value:null
    const observation=stationResult.status==='fulfilled'?stationResult.value:null,temperatureSource=observation?.fieldSources?.temperature?.[0],stamp=temperatureSource?.observedAt?Date.parse(temperatureSource.observedAt):observation?.timestamp?Date.parse(observation.timestamp):Number.NaN,fresh=stationFieldObservationUsable(observation,'temperature',now,location.elevation??weather.elevation)
-   if(fresh){observedTemperature=Number(observation!.temperature);observedAt=Number.isFinite(stamp)?stamp:now}localAnchor=forecastLocalAnchorFromCurrent(observation,weather.current,now,location.elevation??weather.elevation)
+   if(fresh&&Number.isFinite(stamp))observedAt=stamp;localAnchor=forecastLocalAnchorFromCurrent(observation,weather.current,now,location.elevation??weather.elevation)
   }
-  const referenceHours=finalHours,finalized=finalizeForecastHours(finalHours,displayBaseDays,{radar,thunder,observedTemperature,observedAt,applyOperationalRadar:nearNow});finalHours=applyHyperlocalForecastHours(finalized.hours,localAnchor,now,referenceHours);nowcastApplied=finalized.radarApplied;thunderApplied=finalized.thunderApplied
+  const referenceHours=finalHours,finalized=finalizeForecastHours(finalHours,displayBaseDays,{radar,thunder,observedTemperature:localAnchor?.observed?.temperature?undefined:observedTemperature,observedAt,applyOperationalRadar:nearNow});finalHours=applyHyperlocalForecastHours(finalized.hours,localAnchor,now,referenceHours);nowcastApplied=finalized.radarApplied;thunderApplied=finalized.thunderApplied
  }
  const timeline=timelineForWindow(finalHours,eventDate,eventStartTime,eventEndTime)
  if(!timeline.length)throw new Error('Für den gewählten Zeitraum sind noch keine Stundendaten verfügbar. Bitte Datum oder Uhrzeit anpassen.')

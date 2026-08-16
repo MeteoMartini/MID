@@ -3856,3 +3856,13 @@
 - Fast-/Full-Stationscaches übergeben frische Rohkandidaten kurzzeitig im Speicher und verwenden eine neue Stationsanalyse-Cachegeneration; `forceFresh` umgeht auch die transienten Stationsanalysecaches, ohne Quellen-TTLs oder periodischen Traffic zu erhöhen.
 - Starker, frischer und räumlich kohärenter Mehrstationskonsens darf einen deutlichen Tages-Gradientenfehler stärker korrigieren; schwache/alte/weite oder widersprüchliche Evidenz sowie Einzelstationen bleiben konservativ begrenzt.
 - Current-, 90-Minuten- und 24-Stunden-Temperaturpfad explizit vereinheitlicht und regressionsgeschützt. Die gefühlte Current-Temperatur folgt dem lokalen Temperaturversatz; temperaturbezogene Diagnosechips erscheinen nur bei tatsächlich frischem Temperaturanker.
+
+## 0.9.53.41
+- CI-Fix für v0.9.53.40: vier veraltete Regressionserwartungen mit dem einmaligen Current-/Hyperlokalpfad synchronisiert.
+- 24-h-Wetterprofil verwendet wieder exakt 24 bereits finalisierte Stunden ab der aktuellen Stunde und wendet keinen zweiten synthetischen Current-/Stationsanker an.
+- Current, 90-Minuten-Leiste, Kurzfrist und 24-h-Profil bleiben dadurch auf derselben kanonischen Temperaturreihe; Folgetag-Zeitkontext und Cockpit-Redundanzbereinigung aus v0.9.53.40 bleiben erhalten.
+
+## 0.9.53.42
+- Produktionsbuild-Fix: verwaisten `bridgeObservedTemperature`-Import aus `ForecastCockpit.tsx` entfernt; verhindert `TS6133` bei aktiviertem `noUnusedLocals`, ohne den kanonischen Current-/90-Minuten-Temperaturpfad zu verändern.
+- Appweite Interaktionsstandardisierung ergänzt: konsistente mobile Textskalierung, Touch-/Tap-Verhalten, Disabled-Zustände, native Akzentfarbe sowie Reduced-Motion- und Forced-Colors-Unterstützung.
+- Neue Required Regressionen schützen Build-Hygiene und die gemeinsamen UI-Grundregeln; keine zusätzlichen Wetterabrufe oder Worker-Funktionsänderungen.

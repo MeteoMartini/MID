@@ -48,7 +48,8 @@ for(const token of [
  "startupStationController.signal,true,forceFresh",
  "enrichController.signal,false,forceFresh",
  "stationController.signal,true,forceFresh",
- "observedTemperature:currentObservedTemperature",
+ "finalizationObservedTemperature=shortTermAnchor?.observed?.temperature?undefined:",
+ "observedTemperature:finalizationObservedTemperature",
  "applyHyperlocalForecastHours(core.hours,shortTermAnchor",
  "minutes15={displayMinutes15} hours={displayHours}",
  "localTemperatureCorrectionSignificant=temperatureFresh&&",
@@ -68,7 +69,8 @@ for(const token of [
  'const SHORT_TERM_HORIZON_MS=24*HOUR_MS',
  'const QUARTER_STEP_COUNT=6',
  'base=interpolatedHour(hours,target)',
- 'temperature=assimilatedValue('
+ 'canonicalLocal=Number(base.localAdjustment)>0',
+ 'bridgeObservedTemperature(anchorTemperature,assimilatedTemperature'
 ])assert.ok(shortTerm.includes(token),`90-min-/24-h-Temperaturpfad ist nicht kanonisch: ${token}`);
 assert.ok(contract.includes('Analysecache-Generationen'),'Der Hyperlokalvertrag muss alte Stationsanalyse-Caches bei Algorithmuswechseln ausschließen.');
 assert.ok(contract.includes('Fast-Pass')&&contract.includes('Full-Pass'),'Der Übergang zwischen Beobachtungs- und Full-Pass muss vertraglich geschützt sein.');

@@ -5997,3 +5997,20 @@ button,[role="button"],summary{
  :root{--mid-ui-popover-max-height:min(64dvh,560px)}
  .app-portal-popover{max-width:calc(100vw - 16px)!important}
 }
+
+/* MID v0.9.53.42 · appweite Interaktions-, Motion- und iOS-Standardisierung */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+:is(button,[role="button"],summary,a){-webkit-tap-highlight-color:transparent}
+:is(button,[role="button"],summary){user-select:none;-webkit-user-select:none}
+:is(button,input,select,textarea):disabled,:is(button,[role="button"],a,input,select,textarea)[aria-disabled="true"]{cursor:not-allowed;opacity:.52}
+:is(input[type="checkbox"],input[type="radio"],input[type="range"],progress){accent-color:var(--primary)}
+@media(hover:none),(pointer:coarse){
+ :is(button,[role="button"],summary,a){touch-action:manipulation}
+}
+@media(prefers-reduced-motion:reduce){
+ html:focus-within{scroll-behavior:auto}
+ *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+@media(forced-colors:active){
+ :is(button,[role="button"],summary,a,input,select,textarea):focus-visible{outline:2px solid Highlight;outline-offset:2px}
+}

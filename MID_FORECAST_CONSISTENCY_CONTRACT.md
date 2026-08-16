@@ -57,6 +57,8 @@ Erhöht oder senkt die zentrale Kurzfristlogik die Niederschlagswahrscheinlichke
 
 Radar, Konvektion, Stationsanker, Wetterzwilling oder andere lokale Korrekturen dürfen in einer UI-Komponente nicht erneut auf bereits finalisierte Werte angewendet werden. Darstellungskomponenten erhalten finale Werte und visualisieren sie lediglich.
 
+Das 24-h-Wetterprofil ist eine solche Darstellungskomponente: Es verwendet exakt die bereits finalisierten stündlichen `displayHours` ab der aktuellen Stunde. Es erzeugt keinen zweiten synthetischen Current-Punkt und wendet den Stationsanker nicht nochmals lokal an. Dadurch bleiben Current, 90-Minuten-Leiste, Kurzfrist und 24-h-Profil auf derselben kanonischen Temperaturreihe.
+
 ## 7. Tageswerte folgen finalen Stunden
 
 Wo ausreichend Stundenabdeckung vorliegt, werden Niederschlag, Wettercode und kurzfristig relevante Tageskennwerte aus den finalen Stunden abgeleitet. Ein Tageswert darf keine lokale oder Nowcast-Korrektur wieder verlieren, die in den zugrunde liegenden Stunden bereits fachlich wirksam ist.
