@@ -3903,6 +3903,13 @@
 - Ortssuche priorisiert und gegen leere Zwischenzustände/verspätete Antworten gehärtet; Zwei-Zeichen-POI-Suche und Kurzzeitcache ergänzt.
 - Netatmo-Verbindung liefert bei fehlender Worker-Konfiguration sofort sichtbares Setup-Feedback statt eines stumm deaktivierten Buttons.
 
+## 0.9.53.50
+
+- Netatmo OAuth-Start korrigiert: `response_type=code` wird nun explizit an den Autorisierungsendpunkt übergeben. Ohne diesen Parameter konnte die externe Netatmo-Freigabeseite übersprungen bzw. der Flow sofort zur App zurückgeführt werden.
+- OAuth-Rückkehr wird app-weit erkannt: bei `mid_station` öffnet MID automatisch **Einstellungen → Lokaler Wetterzwilling**, damit Erfolgs-/Fehlermeldung und verbundene Station sichtbar sind, statt nur auf der Startseite zu landen.
+- Quellenhinweis zur privaten Stationsintegration an den aktiven Stand angepasst.
+- Neue Regression `test-netatmo-oauth-navigation-095350.mjs` sichert Authorization-Code-Parameter, externe Weiterleitung und Rückkehr in den Stationsbereich ab.
+
 ## 0.9.53.49
 - CI-Fix: veraltete feste Debounce-Erwartung in `test-interactions.mjs` durch einen semantischen Responsivitätsvertrag ersetzt. Die produktive Ortssuche bleibt unverändert bei 35/60 ms.
 - Keine Wetter-, Netatmo-, Lüftungs- oder Worker-Funktionsänderung.
