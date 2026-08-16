@@ -3845,3 +3845,8 @@
 ## 0.9.53.35
 - Produktionsbuild-Fix für v0.9.53.34: unbenutzten `EventCenterRecord`-Typimport in `eventWeatherRefresh.ts` entfernt (`TS6133`).
 - Event-Lifecycle und Splashscreen-Funktionen aus v0.9.53.34 bleiben unverändert erhalten.
+
+## 0.9.53.37
+- Hyperlokale 2-m-Temperatur um einen robusten, begrenzten direkten Messkonsens gegen fehlerhafte Zielpunktgradienten ergänzt; kein Einzelstations-/Flughafen-Zwang und kein pauschaler Nachtabschlag.
+- Current-Diagnose zeigt tatsächliche Temperatur-Messpunkte, temperaturbezogenen Radius, Quellenintervalle und ggf. die zusätzliche Messkonsens-Rückführung.
+- Verbindlicher Kosten-Governance-Vertrag: keine kostenpflichtigen MID-Schritte ohne vorherige transparente Kosteninformation und ausdrückliche Freigabe; Free/Open first.

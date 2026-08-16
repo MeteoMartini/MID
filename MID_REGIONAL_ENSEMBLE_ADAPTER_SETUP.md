@@ -79,3 +79,7 @@ In MID bzw. der Datenquellen-/Infoansicht sollte bei Nutzung stehen:
 ## Betriebsprüfung
 
 v0.9.53.36 bietet am Worker `mode=ensemble-capabilities`. Dort müssen für die beiden Modelle nach Einrichtung `configured: true` erscheinen. In der Modellstandanzeige verschwindet anschließend `Adapter fehlt`; bei erfolgreichem numerischem Abruf erscheint die Quelle als `Aktiv` oder – falls eine bevorzugte Variante scheiterte – `Fallback`.
+
+## Kosten-Governance ab v0.9.53.37
+
+Der hier beschriebene GRIB-Punktadapter bleibt optional. Die Datenquellen selbst können kostenfrei/Open-Data sein, für einen dauerhaft erreichbaren externen Containerhost können jedoch Hostingkosten anfallen. Nach `MID_COST_GOVERNANCE_CONTRACT.md` darf deshalb kein VPS/Container-Tarif oder anderes kostenpflichtiges Hosting ohne vorherige transparente Kostenangabe und ausdrückliche Nutzerfreigabe beschafft oder aktiviert werden. Solange kein bereits vorhandener kostenfreier Host zur Verfügung steht, bleibt der Adapter unkonfiguriert; die success-driven Ensemblelogik rückt automatisch mit den vorhandenen kostenlosen Modellfamilien nach.

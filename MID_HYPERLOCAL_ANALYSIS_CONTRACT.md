@@ -37,3 +37,23 @@ Der Required-Test `scripts/test-hyperlocal-parameter-relevance-09510.mjs` schüt
 Eine fachlich verwendbare hyperlokale Beobachtung ist nicht auf die Karte „Aktuelles Wetter“ beschränkt. Soweit der jeweilige Parameter und sein zeitlicher Gültigkeitshorizont eine Extrapolation erlauben, wird die Korrektur zentral in die operative Forecast-Zeitreihe übernommen und wirkt dadurch in 90-Minuten-Ansicht, Kurzfristprognose, Stunden-/Tagesgrafiken, Hazards, Widgets, Events und Aktivitäten konsistent mit.
 
 Hierfür gilt zusätzlich verbindlich `MID_FORECAST_CONSISTENCY_CONTRACT.md`. Sichtbare Module dürfen Stationsanker, Radar-/Nowcast- oder andere hyperlokale Korrekturen nicht eigenständig erneut anwenden oder rohe 15-Minuten-/Stundenwerte an der kanonischen Endstufe vorbei anzeigen.
+
+## 11. Direkter Temperatur-Messkonsens gegen fehlerhafte Zielpunktgradienten (ab v0.9.53.37)
+
+Die modellgestützte Restfeldanalyse bleibt der Primärpfad. Sie darf jedoch nicht fälschlich eine Nullkorrektur als Bestätigung des Zielpunktwerts interpretieren, wenn das Regionalmodell an den umliegenden Messstationen jeweils nahe an den Beobachtungen liegt, aber der räumliche Modellgradient zum Zielpunkt selbst erkennbar unplausibel ist.
+
+Für 2-m-Temperatur gilt deshalb zusätzlich eine begrenzte direkte Beobachtungs-Stütze:
+
+- mindestens zwei bereits räumlich/identitär deduplizierte, feldbezogen frische und hinreichend nahe Temperaturmesspunkte,
+- robuste Konsistenzprüfung gegen Ausreißer und starke räumliche Streuung,
+- parameterbezogene Gewichtung nach Aktualität, Distanz, Höhe, Standorttyp, zeitlicher Auflösung und Gelände-/Oberflächenkompatibilität,
+- zusätzliche Dämpfung einer Flughafen-/Aviation-Messung bei nicht-ruralem Zielort,
+- keine Aktivierung durch einen einzelnen Flughafen, eine einzelne Privatstation oder einen einzelnen Messpunkt,
+- keine pauschale Nachtkorrektur; Richtung und Betrag müssen aus den tatsächlich eingehenden Beobachtungen stammen,
+- begrenzte Rückführung auf den direkten Messkonsens, damit lokale Modellinformation erhalten bleibt.
+
+Der insgesamt resultierende Temperatur-Offset – Restfeld plus ggf. Messkonsens-Rückführung – ist die appweit kanonische lokale Temperaturkorrektur und wird über den bestehenden Forecast-Konsistenzvertrag in die betroffenen Kurzfrist-/Forecastpfade übernommen.
+
+Die UI muss Temperaturstützung separat ausweisen. Ein globaler Wert wie „7 Messpunkte“ aus der Vereinigung von Wind-, Druck-, Wolken- und Temperaturquellen darf nicht suggerieren, dass alle diese Punkte die Temperatur bestimmt haben. Für Temperatur werden tatsächliche Temperatur-Messpunktzahl, gewichteter Radius, Quellen/Intervalle und ggf. die zusätzliche Messkonsens-Rückführung transparent diagnostiziert.
+
+Required Regression: `scripts/test-hyperlocal-direct-temperature-consensus-095337.mjs`.
