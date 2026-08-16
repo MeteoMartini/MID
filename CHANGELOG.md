@@ -1,3 +1,10 @@
+## 0.9.53.52
+
+- Netatmo-OAuth-Start für iOS/PWA synchronisiert: der Nutzer-Tap navigiert ohne vorgeschaltetes `await` unmittelbar zum Worker; der bereits geladene Worker-Status entscheidet vor dem Tap über die Verfügbarkeit.
+- Jeder OAuth-Versuch erhält einen eindeutigen Cache-Buster; Worker- und Callback-302-Antworten tragen explizit `no-store/no-cache`, damit Safari bzw. Edge keine frühere Fehlweiterleitung wiederverwenden.
+- OAuth-Rückkehr wird vor dem Öffnen der Einstellungen in `sessionStorage` gesichert; Fehler/Erfolg gehen dadurch auch bei verzögertem Mount des Stationsbereichs nicht verloren.
+- Netatmo-Status liefert die tatsächlich laufende Worker-Version zur sichtbaren Diagnose in den Einstellungen.
+
 ## 0.9.53.51
 
 - Netatmo OAuth auf browserfeste direkte Worker-Weiterleitung (HTTP 302) umgestellt; damit wird die externe Netatmo-Seite insbesondere auf iOS/PWA nicht mehr von asynchronen UI-Schritten abhängig.

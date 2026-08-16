@@ -1,0 +1,16 @@
+import {readFile} from 'node:fs/promises';
+const station=await readFile(new URL('../src/connectedStation.ts',import.meta.url),'utf8');
+const settings=await readFile(new URL('../src/ConnectedStationSettings.tsx',import.meta.url),'utf8');
+const app=await readFile(new URL('../src/App.tsx',import.meta.url),'utf8');
+const worker=await readFile(new URL('../worker/metar-proxy.js',import.meta.url),'utf8');
+function need(source,needle,message){if(!source.includes(needle))throw new Error(message)}
+need(station,"url.searchParams.set('attempt'",'OAuth-Navigation erhält keinen eindeutigen Versuchsschlüssel.');
+need(station,'window.location.href=target','OAuth-Navigation wird nicht synchron im aktuellen Tab gestartet.');
+if(/const connect=async\(\)=>[\s\S]{0,900}await connectedStationStatus/.test(settings))throw new Error('Netatmo-Klick wartet weiterhin asynchron vor der externen Navigation.');
+need(settings,"if(!status){setMessage('Der Worker-Status wird noch geprüft.", 'Netatmo-Start ist ohne bekannten Worker-Status nicht geschützt.');
+need(worker,"'Cache-Control':'no-store, no-cache, must-revalidate, max-age=0'",'OAuth-302-Redirects sind nicht explizit no-store.');
+need(worker,'function netatmoRedirectResponse','Gemeinsame cachefreie OAuth-Redirect-Antwort fehlt.');
+need(worker,'version:WORKER_VERSION','Worker-Version fehlt in der Netatmo-Diagnose.');
+need(app,"sessionStorage.setItem('mid:netatmo:callback'",'OAuth-Callback wird vor dem Einstellungs-Mount nicht gesichert.');
+need(settings,"sessionStorage.getItem('mid:netatmo:callback')",'Stationsbereich kann gesicherten OAuth-Callback nicht übernehmen.');
+console.log('Netatmo iOS/PWA Navigation: synchroner Start, Cache-Buster, no-store Redirects und Callback-Persistenz geprüft.');

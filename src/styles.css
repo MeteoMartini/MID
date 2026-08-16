@@ -6104,3 +6104,6 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .search-query-state.error-state>svg{color:var(--warning,#d79a16)}
 .connected-station-primary-card button.needs-setup{background:color-mix(in srgb,var(--warning,#d79a16) 15%,var(--surface));border-color:color-mix(in srgb,var(--warning,#d79a16) 45%,var(--border));color:var(--text);box-shadow:none}
 .connected-station-primary-card button.needs-setup:active{transform:scale(.99)}
+
+/* v0.9.53.52 – Netatmo OAuth Deployment-/Workerdiagnose */
+.connected-station-worker-version{display:block;margin:.35rem .15rem 0;color:var(--muted);font-size:.72rem;font-weight:650;letter-spacing:.01em}
