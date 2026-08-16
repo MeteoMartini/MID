@@ -1,5 +1,6 @@
 export type DashboardModuleId=
  |'current'
+ |'ventilation'
  |'mountain'
  |'water'
  |'warnings'
@@ -32,6 +33,7 @@ export const DASHBOARD_MODULE_SETTINGS_KEY='mid:dashboard-modules:v1';
 
 export const DASHBOARD_MODULE_DEFINITIONS:DashboardModuleDefinition[]=[
  {id:'current',label:'Aktuelles Wetter',description:'Aktuelle Werte und Messwertkacheln'},
+ {id:'ventilation',label:'Lüftungsassistent',description:'Innenraumsensoren und prognosegestützte Lüftungsfenster'},
  {id:'mountain',label:'Berg- und Wintersport',description:'Höhenprofil und Bergwetter',conditional:'nur bei aktivem Favoritenprofil'},
  {id:'water',label:'Wassersport',description:'Wasserwetter, Gezeiten und Bedingungen',conditional:'nur bei aktivem Favoritenprofil'},
  {id:'warnings',label:'Warnungen und Gefahren',description:'Eigene Warnindikatoren und amtliche Warnungen'},

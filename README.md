@@ -909,6 +909,22 @@ Ohne diese Secrets funktionieren METAR, Bright Sky/DWD und GeoSphere weiterhin. 
 
 **Netatmo-Hinweis:** Der aktuelle Worker akzeptiert einen gültigen OAuth-Access-Token. Netatmo-Access-Tokens sind nicht als dauerhaftes statisches Secret gedacht und müssen entsprechend dem OAuth-Verfahren erneuert werden. MID speichert oder erschleicht keine Zugangsdaten und greift nur auf öffentlich freigegebene Außenmessungen zu.
 
+### Private Netatmo-Station und Lüftungsassistent (v0.9.53.45)
+
+Die private Stationsanbindung ist davon getrennt: In MID wird **Netatmo verbinden** gewählt, anschließend erfolgt Login und `read_station`-Freigabe direkt bei Netatmo. Nutzer müssen weder Access- noch Refresh-Token kopieren. Der Worker speichert die OAuth-Tokens verschlüsselt in der bestehenden KV-Bindung und erneuert sie bei Bedarf über den Refresh-Token.
+
+Dafür sind im Worker erforderlich:
+
+```text
+MID_PUSH_SUBSCRIPTIONS     # bestehende KV-Bindung
+NETATMO_CLIENT_ID
+NETATMO_CLIENT_SECRET
+MID_STATION_TOKEN_KEY      # langes zufälliges Secret für die AES-GCM-Schlüsselableitung
+```
+
+Der neue Lüftungsassistent Stufe 1 erkennt das Netatmo-Hauptmodul und zusätzliche Innenmodule als Räume. Er kombiniert Temperatur, relative/absolute Feuchte und CO₂ mit dem prognostizierten Außenwetter sowie erlaubten Lüftungszeiten. Er gibt ausschließlich Empfehlungen bzw. – bei eingerichtetem MID-Web-Push – Benachrichtigungen aus; Fenster, Lüfter oder Anlagen werden nicht gesteuert. Für Push gelten zusätzlich die vorhandenen VAPID-Secrets und der Worker-Cron-Trigger.
+
+
 Stationsdiagnose, beispielsweise für Cagliari:
 
 ```text

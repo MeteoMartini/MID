@@ -317,7 +317,7 @@ type ParamAccumulator={sum:number;count:number};
 type RawStat={id:string;label:string;days:number;parameters:Record<ForecastParameter,ParamAccumulator>};
 type FeedbackStore=Record<string,{helpful:number;notHelpful:number;lastAt?:string}>;
 
-export const PRIVATE_SENSOR_INTEGRATION_ENABLED=false;
+export const PRIVATE_SENSOR_INTEGRATION_ENABLED=true;
 const DB_NAME='mid-weather-twin-archive';
 const DB_STORE='locations';
 const ARCHIVE_MEMORY=new Map<string,Store>();

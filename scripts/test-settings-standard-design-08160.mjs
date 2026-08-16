@@ -26,7 +26,8 @@ need('Push-Texte unterscheiden Standard und Erweitert',pushPanel,"advancedMode?'
 
 for(const token of [
  "WeatherTwinSettings({advancedMode=false}",
- 'advancedMode&&<ConnectedStationSettings/>',
+ '<ConnectedStationSettings advancedMode={advancedMode}/>',
+ '<VentilationAssistantSettings/>',
  "advancedMode&&<><label className={`settings-toggle-card",
  "'Wird nur genutzt, wenn die lokale Korrektur nachweislich belastbar ist.'"
 ])need('Kompakter Wetterzwilling im Standardmodus',twinSettings,token);

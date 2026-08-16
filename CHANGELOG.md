@@ -1,3 +1,24 @@
+# v0.9.53.47
+
+- CI-Regressionsvertrag gehärtet: `test-mid-followups-095323.mjs` prüft Default-Closed-Hauptmodule jetzt mengenbasiert statt über eine fragile feste Array-Reihenfolge.
+- Veraltete Sensor-Deaktivierungsannahme aus `test-weather-twin-stages-0800.mjs` entfernt; eigene Sensoren sind seit der reaktivierten Stations-/Lüftungsintegration wieder zulässig und werden durch dedizierte Funktionsregressionen abgesichert.
+- Keine Änderung an Wetter-, OAuth-, Stations-, Wetterzwilling- oder Lüftungslogik.
+
+# v0.9.53.46
+
+- GitHub-Actions-Regressionsfix: zwei veraltete Testverträge an die bereits beabsichtigten Änderungen aus v0.9.53.45 angepasst.
+- `test-mid-followups-095323.mjs` akzeptiert den neuen default-closed Hauptmodulvertrag mit vorangestelltem Lüftungsassistenten.
+- `test-weather-twin-stages-0800.mjs` erwartet wieder die bewusst reaktivierte private Sensorintegration statt des historischen Deaktivierungszustands.
+- Keine funktionale Änderung an Wetter-, Stations-, OAuth-, Wetterzwilling- oder Lüftungslogik.
+
+# v0.9.53.45
+
+- Eigene Wetterstationen wieder aktiviert: Netatmo wird per OAuth/Login statt manueller Token-Eingabe verbunden; Tokens bleiben Worker-seitig verschlüsselt.
+- Netatmo-Innenraumsensoren werden als Räume erkannt und liefern Temperatur, Feuchte und CO₂ für den neuen Lüftungsassistenten.
+- Neuer Lüftungsassistent Stufe 1: pro Raum erlaubte Zeiten, absolute-Feuchte-/Kühlpotenzial, CO₂-Dringlichkeit sowie Wetter-Sicherheitsprüfung aus Niederschlag, Gewitter und Böen.
+- Lüftungsfenster erscheinen im Dashboard und können über den bestehenden Web-Push angekündigt werden. Stufe 1 steuert ausdrücklich keine Fenster, Lüfter oder Anlagen.
+- Plausible private Außenmessungen können wieder „Aktuelles Wetter“ ergänzen und in die lokale Wetterzwilling-Verifikation einfließen.
+
 # MID v0.9.53.36
 
 - Ensemble-Modellauswahl success-driven: fehlgeschlagene Quellen und nicht konfigurierte optionale Regionaladapter verbrauchen keinen Erfolgsplatz.

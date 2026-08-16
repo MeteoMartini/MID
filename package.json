@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.53.44",
+  "version": "0.9.53.47",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -259,7 +259,8 @@
     "test:favorite-authoritative-persistence": "node scripts/test-favorite-authoritative-persistence-095330.mjs",
     "test:push-reliability": "node scripts/test-push-reliability-095330.mjs",
     "test:favorite-event-coexistence-touch": "node scripts/test-favorite-event-coexistence-touch-095331.mjs",
-    "test:module-open-recovery-isolation": "node scripts/test-module-open-recovery-isolation-095332.mjs"
+    "test:module-open-recovery-isolation": "node scripts/test-module-open-recovery-isolation-095332.mjs",
+    "test:ventilation-assistant": "node scripts/test-ventilation-assistant-095345.mjs"
   },
   "dependencies": {
     "astronomy-engine": "^2.1.19",

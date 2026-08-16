@@ -14,7 +14,10 @@ const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw);
 assert.equal(pkg.version,baseline.releaseVersion,'Release und Baseline müssen synchron sein.');
 
 assert.match(app,/mid:module-open-contract:v5/,'Modulzustandsmigration v5 fehlt.');
-assert.match(app,/MODULES_DEFAULT_CLOSED=\['mountain','water','composite','ensemble','long-range'/,'Langfrist muss Teil des einheitlich standardmäßig geschlossenen Hauptmodulvertrags sein.');
+const defaultClosedMatch=app.match(/MODULES_DEFAULT_CLOSED=\[([^\]]+)\]/);
+assert.ok(defaultClosedMatch,'Einheitlicher Hauptmodulvertrag MODULES_DEFAULT_CLOSED fehlt.');
+const defaultClosedModules=new Set([...defaultClosedMatch[1].matchAll(/'([^']+)'/g)].map(match=>match[1]));
+for(const id of ['ventilation','mountain','water','composite','ensemble','long-range'])assert.ok(defaultClosedModules.has(id),`Hauptmodul ${id} fehlt im standardmäßig geschlossenen Modulvertrag.`);
 assert.match(app,/id="long-range"[\s\S]{0,180}defaultOpen=\{false\}/,'Langfrist muss standardmäßig geschlossen sein.');
 
 assert.ok(!eventPanel.includes('Pausen und Wasserstellen einplanen'),'Umgangssprachlicher Hitzeratschlag darf nicht mehr erscheinen.');

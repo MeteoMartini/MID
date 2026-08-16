@@ -199,6 +199,10 @@ Alle Secrets sind optional. Ohne sie bleiben NOAA-METAR, DWD Open Data/Bright Sk
 - Die Xweather-Zugangsdaten werden zusätzlich für den weltweiten Lightning-Endpunkt genutzt. Der Standardzugang liefert die letzten fünf Minuten; mit `XWEATHER_LIGHTNING_ENTERPRISE=true` fordert MID eine auf 2.500 Treffer begrenzte Historie bis 60 Minuten an. Ohne passenden Tarif bleibt die globale Punktquelle deaktiviert; MID fällt transparent auf die freien regionalen Quellen zurück.
 - `SYNOPTIC_TOKEN` ist ein Synoptic-Weather-API-Token.
 - Netatmo benötigt einen gültigen OAuth-Access-Token. Ein statisch hinterlegter Access-Token muss nach Ablauf erneuert werden; der Worker führt ohne zusätzliche persistente OAuth-Infrastruktur keine automatische Tokenrotation durch.
+
+- **Private Netatmo-Verbindung (MID v0.9.53.45):** Für den Login-basierten Zugriff auf die eigene Wetterstation zusätzlich `NETATMO_CLIENT_ID`, `NETATMO_CLIENT_SECRET`, `MID_STATION_TOKEN_KEY` und die KV-Bindung `MID_PUSH_SUBSCRIPTIONS` setzen. Dieser Pfad speichert Access-/Refresh-Tokens AES-GCM-verschlüsselt und rotiert sie automatisch; er ist vom optionalen statischen `NETATMO_ACCESS_TOKEN` für öffentliche Stationssuche getrennt.
+- **Lüftungsassistent Stufe 1:** Für Benachrichtigungen außerdem die vorhandenen `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` sowie den Worker-Cron-Trigger verwenden. Es werden keine Aktoren angesteuert.
+
 - Secrets niemals als öffentliche GitHub-Variable oder `VITE_*`-Variable eintragen.
 
 ## Diagnose

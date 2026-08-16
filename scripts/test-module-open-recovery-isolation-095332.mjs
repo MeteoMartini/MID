@@ -15,7 +15,7 @@ assert.equal(pkg.version,baseline.releaseVersion,'Release und Baseline müssen s
 
 // Einmalige Heilungsmigration: alle Hauptsektionen werden geschlossen, einschließlich Langfrist.
 assert.match(app,/const MODULE_OPEN_CONTRACT_KEY='mid:module-open-contract:v5'/,'Modulvertrag v5 fehlt.');
-assert.match(app,/MODULES_DEFAULT_CLOSED=\['mountain','water','composite','ensemble','long-range'/,'Langfrist fehlt in der v5-Heilungsmigration.');
+assert.match(app,/MODULES_DEFAULT_CLOSED=\['ventilation','mountain','water','composite','ensemble','long-range'/,'Langfrist fehlt in der v5-Heilungsmigration.');
 assert.match(app,/for\(const id of MODULES_DEFAULT_CLOSED\)persistModuleOpen\(id,false\)/,'v5 muss bestehende kontaminierte Offenstände einmalig schließen.');
 assert.match(app,/mid:module-open-contract:v4/,'v4 muss als Legacy-Vertrag migriert werden.');
 

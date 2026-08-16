@@ -55,9 +55,8 @@ for(const token of [
   'setPosition(current=>current.left===left'
 ])need('Popover-Positionierung gedrosselt',portal,token);
 
-need('Deaktivierte Stationsintegration bleibt im Quellstand gesperrt',stationClient,'export const CONNECTED_STATION_INTEGRATION_ENABLED=false;');
-need('Aktiver Dashboardpfad nutzt nur öffentliche Station',app,'const effectiveStation=st;');
-if(app.includes("from './connectedStation'")||app.includes('personalSt')||app.includes('mid:connected-station-settings'))failures.push('Deaktivierte Privatstationslogik belastet weiterhin App-Initialisierung oder Re-Renders.');
+need('Stationsintegration ist ausdrücklich reaktiviert',stationClient,'export const CONNECTED_STATION_INTEGRATION_ENABLED=true;');
+need('Aktiver Dashboardpfad übernimmt plausible Privatstation',app,'const effectiveStation=useMemo(()=>connectedObservation?.station?');
 if(!routePanel.includes('function RouteMap'))failures.push('Das deaktivierte Routenwetter wurde statt nur aus dem Laufzeitpfad vollständig entfernt.');
 if(app.includes("lazy(()=>import('./RouteWeatherPanel'))")||app.includes("from './RouteWeatherPanel'"))failures.push('Das deaktivierte Routenwetter wird unerwartet in den aktiven App-Bundlepfad aufgenommen.');
 
@@ -68,9 +67,9 @@ for(const token of [
 
 const srcDir=resolve(dirname(fileURLToPath(import.meta.url)),'../src'),sourceNames=(await readdir(srcDir)).filter(name=>['.ts','.tsx'].includes(extname(name))&&!name.endsWith('.d.ts')),sourcePaths=new Set(sourceNames.map(name=>join(srcDir,name))),reachable=new Set(),pending=[join(srcDir,'main.tsx')],importPattern=/(?:import|export)\s+(?:[^'"]*?\s+from\s+)?['"](\.[^'"]+)['"]|import\(\s*['"](\.[^'"]+)['"]\s*\)/g;
 while(pending.length){const file=pending.pop();if(!file||reachable.has(file)||!sourcePaths.has(file))continue;reachable.add(file);const text=await readFile(file,'utf8');for(const match of text.matchAll(importPattern)){const spec=match[1]||match[2],base=resolve(dirname(file),spec),candidates=[base,`${base}.ts`,`${base}.tsx`,join(base,'index.ts'),join(base,'index.tsx')],target=candidates.find(candidate=>sourcePaths.has(candidate));if(target&&!reachable.has(target))pending.push(target)}}
-const expectedDormant=new Set(['RouteWeatherPanel.tsx','CrossSectionPanel.tsx','connectedStation.ts','routeWeather.ts','SynopticPanel.tsx','synoptic.ts','DwdPrecipitationMap.tsx','HymecNgOverlay.tsx','HymecNgSource.ts']),unexpectedDormant=sourceNames.filter(name=>!reachable.has(join(srcDir,name))&&!expectedDormant.has(name)),unexpectedActive=[...expectedDormant].filter(name=>reachable.has(join(srcDir,name)));
+const expectedDormant=new Set(['RouteWeatherPanel.tsx','CrossSectionPanel.tsx','routeWeather.ts','SynopticPanel.tsx','synoptic.ts','DwdPrecipitationMap.tsx','HymecNgOverlay.tsx','HymecNgSource.ts']),unexpectedDormant=sourceNames.filter(name=>!reachable.has(join(srcDir,name))&&!expectedDormant.has(name)),unexpectedActive=[...expectedDormant].filter(name=>reachable.has(join(srcDir,name)));
 if(unexpectedDormant.length)failures.push(`Unerwartete, nicht erreichbare Laufzeitmodule gefunden: ${unexpectedDormant.join(', ')}`);
 if(unexpectedActive.length)failures.push(`Bewusst deaktivierte Module sind wieder im aktiven Bundlepfad: ${unexpectedActive.join(', ')}`);
 
 if(failures.length){console.error('Interaktions-/Performancebereinigung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Interaktionsperformance geprüft: Randwischen blockiert normales Scrollen nicht mehr, Favoritenpositionierung und Drag-Reorder sind rAF-gedrosselt, Ansichtswechsel vermeiden Voll-Layoutmessungen; deaktivierte Altmodule einschließlich der verworfenen DWD-Rekonstruktionspipeline bleiben dormant; das amtliche DWD-Originalbild benötigt diese Zusatzmodule nicht.');
+console.log('Interaktionsperformance geprüft: Randwischen blockiert normales Scrollen nicht mehr, Favoritenpositionierung und Drag-Reorder sind rAF-gedrosselt, Ansichtswechsel vermeiden Voll-Layoutmessungen; deaktivierte Altmodule einschließlich der verworfenen DWD-Rekonstruktionspipeline bleiben dormant; die Stationsintegration ist bewusst wieder aktiv; das amtliche DWD-Originalbild benötigt diese Zusatzmodule nicht.');

@@ -11,7 +11,7 @@ const failures=[];
 for(const token of [
  "const PUSH_NOTIFICATION_INTERVAL_KEY='mid:pushNotificationIntervalMinutes';",
  'useState<PushNotificationInterval>(storedPushNotificationInterval)',
- 'syncPushNotifications(pushFavorites,pushNotificationInterval)',
+ 'syncPushNotifications(pushFavorites,pushNotificationInterval,ventilation)',
  'notificationIntervalMinutes={pushNotificationInterval}',
  'onNotificationIntervalChange={setPushNotificationInterval}'
 ])if(!app.includes(token))failures.push(`App-Persistenz/Sync fehlt: ${token}`);
@@ -28,8 +28,8 @@ for(const token of [
 for(const token of [
  'export type PushNotificationInterval=15|30|60|120|180;',
  'notificationIntervalMinutes:PushNotificationInterval',
- 'notificationIntervalMinutes,appUrl',
- 'saveSubscription(subscription,favorites,notificationIntervalMinutes)'
+ 'notificationIntervalMinutes,ventilation,appUrl',
+ 'saveSubscription(subscription,favorites,notificationIntervalMinutes,ventilation)'
 ])if(!client.includes(token))failures.push(`Push-Client-Übertragung fehlt: ${token}`);
 for(const token of [
  'const PUSH_NOTIFICATION_INTERVALS=[15,30,60,120,180];',

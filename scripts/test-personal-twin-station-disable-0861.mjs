@@ -10,11 +10,9 @@ need(panel,'{settings.personalRecommendations&&<section className="weather-twin-
 need(panel,"outdoor:'Outdoor'",'Aktivitätsbezeichnung „Outdoor“ fehlt im Panel.');
 need(engine,"outdoor:'Outdoor'",'Aktivitätsbezeichnung „Outdoor“ fehlt in der Empfehlungsausgabe.');
 if(panel.includes('Draußenaktivität')||engine.includes('Draußenaktivität'))failures.push('Alte Bezeichnung „Draußenaktivität“ ist noch vorhanden.');
-need(engine,'export const PRIVATE_SENSOR_INTEGRATION_ENABLED=false;','Private Sensorübernahme ist im Lernkern nicht deaktiviert.');
-need(stationClient,'export const CONNECTED_STATION_INTEGRATION_ENABLED=false;','Vernetzte Stationsübernahme ist nicht hart deaktiviert.');
-need(stationClient,'if(!CONNECTED_STATION_INTEGRATION_ENABLED)return null;','Stationsabruf ist trotz Sperre noch möglich.');
-need(stationClient,'enabled:false,connectionId:','Alte aktivierte Stationskonfiguration wird nicht sicher deaktiviert eingelesen.');
-need(stationSettings,'Datenübernahme vorübergehend deaktiviert','Deaktivierter Zustand fehlt in den Einstellungen.');
-need(stationSettings,'MID fragt keine privaten Stationswerte ab','Hinweis zur unterbundenen Nutzung fehlt.');
+need(engine,'export const PRIVATE_SENSOR_INTEGRATION_ENABLED=true;','Private Sensorübernahme ist im Lernkern nicht reaktiviert.');
+need(stationClient,'export const CONNECTED_STATION_INTEGRATION_ENABLED=true;','Vernetzte Stationsübernahme ist nicht reaktiviert.');
+need(stationClient,'fetchConnectedStation','Aktiver Stationsabruf fehlt.');
+need(stationSettings,'Mit Netatmo verbinden','Netatmo-Verbindung fehlt in den Einstellungen.');
 if(failures.length){console.error('Persönlicher Zwilling/Stationssperre fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Persönlicher Entscheidungszwilling wird nur bei Aktivierung angezeigt; Outdoor-Wording und vollständige Stationssperre sind geprüft.');
+console.log('Persönlicher Entscheidungszwilling, Outdoor-Wording und bewusst reaktivierte Stationsanbindung sind geprüft.');

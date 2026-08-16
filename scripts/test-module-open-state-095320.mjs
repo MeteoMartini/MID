@@ -5,7 +5,7 @@ assert.match(app,/const MODULE_OPEN_CONTRACT_KEY='mid:module-open-contract:v5'/,
 assert.match(app,/function moduleOpenKey\(id:string\)/,'Zentraler Modul-State-Key fehlt');
 assert.match(app,/function storedModuleOpen\(id:string,defaultOpen=false\)/,'Zentrales Lesen des Modulzustands fehlt');
 assert.match(app,/function persistModuleOpen\(id:string,open:boolean\)/,'Zentrales Speichern des Modulzustands fehlt');
-assert.match(app,/const MODULES_DEFAULT_CLOSED=\['mountain','water','composite','ensemble','long-range','forecast-verification','travel-planner','event-planner','flight-meteorology','weather-maps','widget'\]/,'Große Standardmodule müssen bei der Vertragsmigration konsistent geschlossen initialisiert werden');
+assert.match(app,/const MODULES_DEFAULT_CLOSED=\['ventilation','mountain','water','composite','ensemble','long-range','forecast-verification','travel-planner','event-planner','flight-meteorology','weather-maps','widget'\]/,'Große Standardmodule müssen bei der Vertragsmigration konsistent geschlossen initialisiert werden');
 assert.match(app,/function initializedLayoutMode\(\):LayoutMode\{initializeModuleOpenContract\(\);/,'Modulzustandsmigration muss vor Layout-Initialisierung laufen');
 assert.match(app,/const\[open,setOpen\]=useState\(\(\)=>storedModuleOpen\(id,defaultOpen\)\)/,'CollapsibleModule muss denselben persistenten Zustand verwenden');
 assert.match(app,/persistModuleOpen\(id,resolved\)/,'CollapsibleModule muss Änderungen synchron im zentralen State-Übergang speichern');
