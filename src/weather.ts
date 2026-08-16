@@ -270,14 +270,25 @@ async function icaoLocation(code:string,signal?:AbortSignal){
  if(!request){request=fetchWorkerJson<Location&{error?:string}>('icao-location',{icao:code},{purpose:'general',timeoutMs:9000,cache:'default'}).then(location=>{const normalized={...location,icao:String(location.icao||code).toUpperCase(),source:location.source||'NOAA AviationWeather / ICAO',poiType:location.poiType||'airport',poiCategory:location.poiCategory||'Flughafen'};writeIcaoLocationCache(code,normalized);return normalized}).catch(()=>null).finally(()=>icaoLocationRequests.delete(code));icaoLocationRequests.set(code,request)}
  const location=await request;if(signal?.aborted)throw signal.reason??new DOMException('Abgebrochen','AbortError');return location;
 }
+const LOCATION_SEARCH_CACHE_TTL_MS=10*60*1000;
+const LOCATION_SEARCH_CACHE_LIMIT=40;
+const locationSearchCache=new Map<string,{at:number;results:Location[]}>();
+function locationSearchCacheKey(query:string){return query.trim().normalize('NFKC').toLocaleLowerCase('de-DE')}
+function readLocationSearchCache(query:string){const key=locationSearchCacheKey(query),entry=locationSearchCache.get(key);if(!entry||Date.now()-entry.at>LOCATION_SEARCH_CACHE_TTL_MS){if(entry)locationSearchCache.delete(key);return null}return entry.results.map(item=>({...item}))}
+function writeLocationSearchCache(query:string,results:Location[]){const key=locationSearchCacheKey(query);locationSearchCache.delete(key);locationSearchCache.set(key,{at:Date.now(),results:results.map(item=>({...item}))});while(locationSearchCache.size>LOCATION_SEARCH_CACHE_LIMIT){const oldest=locationSearchCache.keys().next().value;if(!oldest)break;locationSearchCache.delete(oldest)}}
 export async function searchLocations(q:string,signal?:AbortSignal){
- const query=q.trim(),openParams=new URLSearchParams({name:query,count:'8',language:'de',format:'json'}),photonParams=new URLSearchParams({q:query,lang:'de',limit:'8'});
- const tasks:Promise<Location[]>[]=[j<{results?:any[]}>(`https://geocoding-api.open-meteo.com/v1/search?${openParams}`,signal).then(x=>(x.results??[]).map((location:any)=>({...location,featureCode:String(location.feature_code||'')||undefined,population:Number.isFinite(Number(location.population))?Number(location.population):undefined,urbanClass:urbanClassFromPlace(location.feature_code,location.population),source:'Open-Meteo'} as Location))).catch(()=>[])];
- if(query.length>=3)tasks.push(j<{features?:PhotonFeature[]}>(`https://photon.komoot.io/api/?${photonParams}`,signal).then(x=>(x.features??[]).map(photonLocation).filter((location):location is Location=>!!location)).catch(()=>[]));
+ const query=q.trim();if(query.length<2)return[];
+ const cached=readLocationSearchCache(query);if(cached)return cached;
+ const openParams=new URLSearchParams({name:query,count:'10',language:'de',format:'json'}),photonParams=new URLSearchParams({q:query,lang:'de',limit:'8'});
+ // Ortssuche ist eine direkte Nutzerinteraktion und darf nicht hinter laufenden Forecast-/Ensemble-Abrufen warten.
+ const tasks:Promise<Location[]>[]=[j<{results?:any[]}>(`https://geocoding-api.open-meteo.com/v1/search?${openParams}`,signal,'foreground').then(x=>(x.results??[]).map((location:any)=>({...location,featureCode:String(location.feature_code||'')||undefined,population:Number.isFinite(Number(location.population))?Number(location.population):undefined,urbanClass:urbanClassFromPlace(location.feature_code,location.population),source:'Open-Meteo'} as Location))).catch(error=>{if(signal?.aborted)throw error;return[]})];
+ // Photon ergänzt POIs und Teiltreffer bereits ab zwei Zeichen; Open-Meteo fuzzy-matched erst ab drei Zeichen.
+ if(query.length>=2)tasks.push(j<{features?:PhotonFeature[]}>(`https://photon.komoot.io/api/?${photonParams}`,signal).then(x=>(x.features??[]).map(photonLocation).filter((location):location is Location=>!!location)).catch(error=>{if(signal?.aborted)throw error;return[]}));
  const groups=await Promise.all(tasks),combined=groups.flat(),code=normalizedSearchToken(query),looksLikeIcao=/^[A-Z]{4}$/.test(code)&&query.replace(/\s/g,'').length===4,exactPlace=combined.some(location=>normalizedSearchToken(location.name)===code||location.postcodes?.some(postcode=>normalizedSearchToken(postcode)===code));
  if(looksLikeIcao&&!exactPlace){const airport=await icaoLocation(code,signal);if(airport)combined.unshift(airport)}
  const result:Location[]=[];
  for(const location of combined){if(result.some(existing=>similarLocation(existing,location)))continue;result.push(location);if(result.length>=12)break}
+ if(result.length)writeLocationSearchCache(query,result);
  return result;
 }
 const REVERSE_LOCATION_CACHE_PREFIX='mid:reverse-location:v1:';

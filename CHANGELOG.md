@@ -3898,3 +3898,11 @@
 - Initialer Öffnungszustand läuft über React-State; `open` und `onToggle` halten native Nutzerinteraktion und React-Zustand synchron.
 - Neue Required Regression schützt den konkreten `TS2322`-Rückfall; keine Wetterdaten-, Cache- oder Worker-Funktionsänderung.
 
+
+## 0.9.53.48
+- Ortssuche priorisiert und gegen leere Zwischenzustände/verspätete Antworten gehärtet; Zwei-Zeichen-POI-Suche und Kurzzeitcache ergänzt.
+- Netatmo-Verbindung liefert bei fehlender Worker-Konfiguration sofort sichtbares Setup-Feedback statt eines stumm deaktivierten Buttons.
+
+## 0.9.53.49
+- CI-Fix: veraltete feste Debounce-Erwartung in `test-interactions.mjs` durch einen semantischen Responsivitätsvertrag ersetzt. Die produktive Ortssuche bleibt unverändert bei 35/60 ms.
+- Keine Wetter-, Netatmo-, Lüftungs- oder Worker-Funktionsänderung.

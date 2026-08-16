@@ -1,0 +1,25 @@
+import {readFileSync} from 'node:fs';
+const app=readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
+const weather=readFileSync(new URL('../src/weather.ts',import.meta.url),'utf8');
+const station=readFileSync(new URL('../src/ConnectedStationSettings.tsx',import.meta.url),'utf8');
+const css=readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
+const failures=[];
+const need=(text,token,message)=>{if(!text.includes(token))failures.push(message)};
+need(weather,"signal,'foreground'",'Geocoding wird nicht als interaktive Open-Meteo-Anfrage priorisiert.');
+need(weather,'LOCATION_SEARCH_CACHE_TTL_MS','Kurzzeit-Cache für wiederholte Ortssuchen fehlt.');
+need(weather,'if(query.length>=2)tasks.push','Photon ergänzt Zwei-Zeichen-/POI-Suchen nicht früh genug.');
+need(weather,"count:'10'",'Open-Meteo-Suche liefert nicht genügend Kandidaten.');
+need(app,'[searching,setSearching]','Expliziter Such-Ladezustand fehlt.');
+need(app,'searchRequestRef=useRef(0)','Schutz vor verspäteten Suchantworten fehlt.');
+need(app,'Orte werden gesucht …','Nutzerfeedback während der Ortssuche fehlt.');
+need(app,'setOpen(true)}}).catch','Suchfeld wird bei einem Fehler weiterhin geschlossen.');
+need(station,'latest=await connectedStationStatus(next)','Netatmo-Verbindung prüft die Worker-Bereitschaft nicht beim Klick neu.');
+need(station,"latest.configured===false",'Netatmo-Setupfehler wird beim Klick nicht abgefangen.');
+need(station,"disabled={busy!==''}",'Netatmo-Schaltfläche wird bei fehlender Worker-Konfiguration weiterhin stumm deaktiviert.');
+need(station,'Netatmo-Einrichtung prüfen','Fehlende Worker-Einrichtung ist am Button nicht erkennbar.');
+need(station,'Danach genügt hier ausschließlich Netatmo-Login und Freigabe.','Tokenfreie Nutzerführung nach Betreiber-Setup ist nicht erklärt.');
+need(css,'.search-query-state','Such-Lade-/Fehlerzustand ist nicht gestaltet.');
+need(css,'button.needs-setup','Netatmo-Setupzustand ist visuell nicht unterschieden.');
+if(/disabled=\{busy!==''\|\|!configured\}/.test(station))failures.push('Netatmo bleibt bei fehlender Worker-Konfiguration stumm deaktiviert.');
+if(failures.length){console.error('Ortssuche-/Netatmo-Zuverlässigkeitsprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
+console.log('Responsive Ortssuche und eindeutiges Netatmo-Setup-/OAuth-Feedback geprüft.');
