@@ -1,3 +1,9 @@
+## 0.9.53.54
+
+- Netatmo OAuth-Rücksprung auf iOS/PWA gehärtet: Callback bleibt als sichtbare Erfolgs-/Fehlerseite stehen statt sofort zur App zurückzuspringen.
+- Letztes OAuth-Ergebnis wird 30 Minuten serverseitig je MID-Verbindung gespeichert und vom Stationsstatus zurückgegeben; Fehler gehen beim Wechsel zwischen Safari und installierter PWA nicht mehr verloren.
+- Callback-Information wird zusätzlich in sessionStorage und localStorage gespiegelt.
+
 ## 0.9.53.53
 
 - Netatmo OAuth auf iOS/PWA: Autorisierungs-URL wird vor dem Nutzertap vorbereitet und in Standalone-PWAs direkt in einem externen Browserkontext geöffnet.

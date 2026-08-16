@@ -12,5 +12,9 @@ need(settings,"Netatmo-Anmeldung wird vorbereitet",'UI zeigt die OAuth-Vorbereit
 need(settings,"visibilitychange",'Rückkehr aus dem externen OAuth-Browser wird nicht automatisch erkannt.');
 need(settings,"mid_station_connection",'Callback-Verbindungskennung wird in den Einstellungen nicht übernommen.');
 need(app,"connectionId:url.searchParams.get('mid_station_connection')",'App sichert die OAuth-Verbindungskennung nicht beim Rücksprung.');
+need(app,"localStorage.setItem('mid:netatmo:callback'",'OAuth-Rücksprung wird nicht zusätzlich PWA-übergreifend persistent gesichert.');
+need(settings,"next.oauthResult",'Stationsstatus wertet serverseitiges OAuth-Ergebnis nicht aus.');
+need(worker,"netatmoSaveOAuthResult",'Worker speichert das letzte OAuth-Ergebnis nicht serverseitig.');
+need(worker,"netatmoCallbackPage",'Worker hält den OAuth-Callback nicht als sichtbare Rücksprungseite offen.');
 need(worker,"target.searchParams.set('mid_station_connection',String(entry.connectionId))",'Worker gibt die OAuth-Verbindungskennung beim Rücksprung nicht zurück.');
 console.log('Netatmo iOS/PWA Browser-OAuth geprüft: Autorisierungs-URL ist vorab vorbereitet, externe Browsernavigation erfolgt direkt aus dem Tap und connectionId überlebt Browser-/PWA-Kontextwechsel.');

@@ -10,8 +10,8 @@ if(authorize.searchParams.get('client_id')!=='client-id'||authorize.searchParams
 if(authorize.searchParams.get('redirect_uri')!=='https://worker.test/?mode=netatmo-callback')throw new Error('Callback-URI des direkten OAuth-Redirects ist falsch.');
 const state=authorize.searchParams.get('state');if(!state)throw new Error('OAuth-State fehlt.');
 response=await worker.fetch(new Request(`https://worker.test/?mode=netatmo-callback&state=${encodeURIComponent(state)}&error=invalid_request&error_description=${encodeURIComponent('redirect uri mismatch')}`),env);
-if(response.status!==302)throw new Error('Fehler-Callback leitet nicht zur App zurück.');
-if(!/no-store/i.test(response.headers.get('cache-control')||''))throw new Error('OAuth-Callback-Redirect ist nicht gegen Caching geschützt.');
-const target=new URL(response.headers.get('location')||'');
-if(target.searchParams.get('mid_station')!=='netatmo-error'||target.searchParams.get('mid_station_stage')!=='authorize'||target.searchParams.get('mid_station_detail')!=='redirect uri mismatch')throw new Error('OAuth-Fehlerdetails gehen beim Rücksprung verloren.');
+if(response.status!==200)throw new Error('Fehler-Callback zeigt keine stabile Rücksprungseite.');
+if(!/no-store/i.test(response.headers.get('cache-control')||''))throw new Error('OAuth-Callback-Seite ist nicht gegen Caching geschützt.');
+const callbackHtml=await response.text();if(!callbackHtml.includes('Netatmo-Verbindung nicht abgeschlossen')||!callbackHtml.includes('redirect uri mismatch')||!callbackHtml.includes('mid_station=netatmo-error'))throw new Error('OAuth-Fehlerdetails gehen auf der Rücksprungseite verloren.');
+response=await worker.fetch(new Request('https://worker.test/?mode=netatmo-status',{method:'POST',headers:{Origin:'https://app.test','Content-Type':'application/json'},body:JSON.stringify({connectionId})}),env);const status=await response.json();if(status.oauthResult?.result!=='error'||status.oauthResult?.stage!=='authorize'||status.oauthResult?.detail!=='redirect uri mismatch')throw new Error('Serverseitiger OAuth-Fehlerstatus fehlt.');
 console.log('Netatmo Direkt-Redirect und sichtbare OAuth-Fehlerdiagnose geprüft.');

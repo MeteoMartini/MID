@@ -20,7 +20,8 @@ export type ConnectedStationModule={id:string;name:string;type:string;kind?:'ind
 export type ConnectedStationDevice={id:string;name:string;latitude?:number;longitude?:number;elevation?:number;modules:ConnectedStationModule[]};
 export type ConnectedEnvironmentSensor={id:string;name:string;kind:'indoor'|'outdoor';temperature?:number;humidity?:number;co2?:number;noise?:number;pressure?:number;timestamp?:string};
 export type ConnectedEnvironment={provider:string;stationName:string;latitude?:number;longitude?:number;elevation?:number;outdoor?:ConnectedEnvironmentSensor;rooms:ConnectedEnvironmentSensor[];updatedAt?:string};
-export type ConnectedStationStatus={configured:boolean;connected:boolean;provider?:string;devices?:ConnectedStationDevice[];environment?:ConnectedEnvironment;message?:string;redirectUri?:string;version?:string;requires?:string[];missing?:string[];error?:string};
+export type NetatmoOAuthResult={result:'connected'|'error'|'denied';stage?:string;detail?:string;at?:string};
+export type ConnectedStationStatus={configured:boolean;connected:boolean;provider?:string;devices?:ConnectedStationDevice[];environment?:ConnectedEnvironment;message?:string;redirectUri?:string;version?:string;requires?:string[];missing?:string[];oauthResult?:NetatmoOAuthResult;error?:string};
 export type NetatmoAuthorizationStart={authorizeUrl:string;redirectUri?:string;version?:string;error?:string};
 export type ConnectedStationObservation={station:Station;quality:number;issues:string[];accepted:string[];rejected:string[]};
 

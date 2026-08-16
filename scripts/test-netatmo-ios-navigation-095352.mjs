@@ -14,5 +14,5 @@ need(worker,"'Cache-Control':'no-store, no-cache, must-revalidate, max-age=0'",'
 need(worker,'function netatmoRedirectResponse','Gemeinsame cachefreie OAuth-Redirect-Antwort fehlt.');
 need(worker,'version:WORKER_VERSION','Worker-Version fehlt in der Netatmo-Diagnose.');
 need(app,"sessionStorage.setItem('mid:netatmo:callback'",'OAuth-Callback wird vor dem Einstellungs-Mount nicht gesichert.');
-need(settings,"sessionStorage.getItem('mid:netatmo:callback')",'Stationsbereich kann gesicherten OAuth-Callback nicht übernehmen.');
+need(settings,"storage.getItem('mid:netatmo:callback')",'Stationsbereich kann gesicherten OAuth-Callback nicht aus Session-/LocalStorage übernehmen.');
 console.log('Netatmo iOS/PWA Navigation: synchroner Start, Cache-Buster, no-store Redirects und Callback-Persistenz geprüft.');
