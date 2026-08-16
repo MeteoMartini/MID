@@ -1,3 +1,9 @@
+## 0.9.53.51
+
+- Netatmo OAuth auf browserfeste direkte Worker-Weiterleitung (HTTP 302) umgestellt; damit wird die externe Netatmo-Seite insbesondere auf iOS/PWA nicht mehr von asynchronen UI-Schritten abhängig.
+- OAuth-Fehler werden nach dem Rücksprung mit Phase und sanitisiertem Netatmo-Fehlertext sichtbar statt still durch den Status-Refresh überschrieben.
+- Neue Regression für Direkt-Redirect und Callback-Fehlerdiagnose.
+
 # v0.9.53.47
 
 - CI-Regressionsvertrag gehärtet: `test-mid-followups-095323.mjs` prüft Default-Closed-Hauptmodule jetzt mengenbasiert statt über eine fragile feste Array-Reihenfolge.
