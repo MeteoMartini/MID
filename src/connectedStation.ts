@@ -7,6 +7,7 @@ export const CONNECTED_STATION_INTEGRATION_ENABLED=true;
 export type ConnectedStationProvider='none'|'netatmo'|'generic-json';
 export type ConnectedStationConfig={
  enabled:boolean;
+ authorized:boolean;
  provider:ConnectedStationProvider;
  connectionId:string;
  selectedDeviceId:string;
@@ -26,11 +27,11 @@ export type NetatmoAuthorizationStart={authorizeUrl:string;redirectUri?:string;v
 export type ConnectedStationObservation={station:Station;quality:number;issues:string[];accepted:string[];rejected:string[]};
 
 type NetatmoObservationReply={ok?:boolean;error?:string;observation?:any;device?:ConnectedStationDevice;quality?:number;issues?:string[]};
-const DEFAULT_CONFIG:ConnectedStationConfig={enabled:false,provider:'none',connectionId:'',selectedDeviceId:'',selectedModuleId:'',genericUrl:'',genericLabel:'Eigene Wetterstation',genericBearerToken:'',maxDistanceKm:15};
+const DEFAULT_CONFIG:ConnectedStationConfig={enabled:false,authorized:false,provider:'none',connectionId:'',selectedDeviceId:'',selectedModuleId:'',genericUrl:'',genericLabel:'Eigene Wetterstation',genericBearerToken:'',maxDistanceKm:15};
 
 function randomId(){const bytes=crypto.getRandomValues(new Uint8Array(24));let raw='';for(const byte of bytes)raw+=String.fromCharCode(byte);return btoa(raw).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
-export function readConnectedStationConfig():ConnectedStationConfig{try{const parsed=JSON.parse(localStorage.getItem(CONNECTED_STATION_SETTINGS_KEY)||'{}') as Partial<ConnectedStationConfig>;return{...DEFAULT_CONFIG,...parsed,enabled:Boolean(parsed.enabled),provider:parsed.provider==='netatmo'||parsed.provider==='generic-json'?parsed.provider:'none',connectionId:String(parsed.connectionId||randomId()),maxDistanceKm:Math.max(1,Math.min(100,Number(parsed.maxDistanceKm)||15))}}catch{return{...DEFAULT_CONFIG,connectionId:randomId()}}}
-export function writeConnectedStationConfig(change:Partial<ConnectedStationConfig>){const next={...readConnectedStationConfig(),...change};if(next.provider==='none')next.enabled=false;localStorage.setItem(CONNECTED_STATION_SETTINGS_KEY,JSON.stringify(next));window.dispatchEvent(new CustomEvent('mid:connected-station-settings',{detail:next}));return next}
+export function readConnectedStationConfig():ConnectedStationConfig{try{const parsed=JSON.parse(localStorage.getItem(CONNECTED_STATION_SETTINGS_KEY)||'{}') as Partial<ConnectedStationConfig>;return{...DEFAULT_CONFIG,...parsed,enabled:Boolean(parsed.enabled),authorized:Boolean(parsed.authorized||parsed.enabled),provider:parsed.provider==='netatmo'||parsed.provider==='generic-json'?parsed.provider:'none',connectionId:String(parsed.connectionId||randomId()),maxDistanceKm:Math.max(1,Math.min(100,Number(parsed.maxDistanceKm)||15))}}catch{return{...DEFAULT_CONFIG,connectionId:randomId()}}}
+export function writeConnectedStationConfig(change:Partial<ConnectedStationConfig>){const next={...readConnectedStationConfig(),...change};if(next.provider==='none'){next.enabled=false;next.authorized=false}localStorage.setItem(CONNECTED_STATION_SETTINGS_KEY,JSON.stringify(next));window.dispatchEvent(new CustomEvent('mid:connected-station-settings',{detail:next}));return next}
 
 async function workerPost<T extends{error?:string}>(mode:string,body:unknown):Promise<T>{const candidates=workerBaseCandidates('general');if(!candidates.length)throw new Error('Cloudflare Worker ist nicht konfiguriert.');const errors:string[]=[];for(const base of candidates){try{const response=await fetch(buildWorkerUrl(base,mode),{method:'POST',cache:'no-store',headers:{Accept:'application/json','Content-Type':'application/json','Cache-Control':'no-cache'},body:JSON.stringify(body)}),text=await response.text();let data:T;try{data=JSON.parse(text) as T}catch{throw new Error(`Ungültige Worker-Antwort (HTTP ${response.status}).`)}if(!response.ok||data.error)throw new Error(data.error||`HTTP ${response.status}`);return data}catch(error){errors.push(error instanceof Error?error.message:String(error))}}throw new Error(errors.at(-1)||'Stationsdienst nicht erreichbar.')}
 
@@ -42,7 +43,7 @@ export function netatmoConnectionRedirectUrl(config=readConnectedStationConfig()
 function isStandaloneWebApp(){return Boolean(window.matchMedia?.('(display-mode: standalone)').matches||(navigator as Navigator&{standalone?:boolean}).standalone)}
 export function startPreparedNetatmoAuthorization(authorizeUrl:string){const target=validateNetatmoAuthorizeUrl(authorizeUrl);if(isStandaloneWebApp()){const opened=window.open(target,'_blank');if(opened)return'external-browser'}window.location.assign(target);return'same-window'}
 export function startNetatmoConnection(config=readConnectedStationConfig(),redirectUri=''){const target=netatmoConnectionRedirectUrl(config,redirectUri);window.location.assign(target)}
-export async function disconnectNetatmo(config=readConnectedStationConfig()){await workerPost<{ok?:boolean;error?:string}>('netatmo-disconnect',{connectionId:config.connectionId});return writeConnectedStationConfig({enabled:false,selectedDeviceId:'',selectedModuleId:''})}
+export async function disconnectNetatmo(config=readConnectedStationConfig()){await workerPost<{ok?:boolean;error?:string}>('netatmo-disconnect',{connectionId:config.connectionId});return writeConnectedStationConfig({enabled:false,authorized:false,selectedDeviceId:'',selectedModuleId:''})}
 
 function distanceKm(aLat:number,aLon:number,bLat:number,bLon:number){const rad=Math.PI/180,dLat=(bLat-aLat)*rad,dLon=(bLon-aLon)*rad,lat1=aLat*rad,lat2=bLat*rad,h=Math.sin(dLat/2)**2+Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLon/2)**2;return 12742*Math.asin(Math.min(1,Math.sqrt(h)))}
 function finite(value:unknown){const number=Number(value);return Number.isFinite(number)?number:undefined}

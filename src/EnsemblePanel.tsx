@@ -281,7 +281,7 @@ function precipitationVisualDescriptor(code:number,precipitation:number,probabil
 function PrecipitationGlyph({type,size,thunder}:{type:'rain'|'snow'|'mixed';size:'small'|'large';thunder:boolean}){
  const scale=size==='large'?1.08:.9,precipitationOffset=thunder?-4.4:0,boltOffset=thunder?7.1:0;
  const drop=<path d="M0 -6.7 C2.8 -3.1 4.5 -1 4.5 2.1 C4.5 5.2 2.2 7.2 0 7.2 C-2.2 7.2 -4.5 5.2 -4.5 2.1 C-4.5 -1 -2.8 -3.1 0 -6.7 Z" fill="#4a8ef4" stroke="rgba(255,255,255,.95)" strokeWidth="0.9"/>;
- const snow=<g stroke="#ffffff" strokeWidth="1.35" strokeLinecap="round"><line x1="0" y1="-5" x2="0" y2="5"/><line x1="-4.2" y1="0" x2="4.2" y2="0"/><line x1="-3.1" y1="-3.1" x2="3.1" y2="3.1"/><line x1="-3.1" y1="3.1" x2="3.1" y2="-3.1"/></g>;
+ const snowPaths=<><line x1="0" y1="-5" x2="0" y2="5"/><line x1="-4.2" y1="0" x2="4.2" y2="0"/><line x1="-3.1" y1="-3.1" x2="3.1" y2="3.1"/><line x1="-3.1" y1="3.1" x2="3.1" y2="-3.1"/></>,snow=<g strokeLinecap="round"><g stroke="rgba(5,12,18,.86)" strokeWidth="2.15">{snowPaths}</g><g stroke="#ffffff" strokeWidth="1.35">{snowPaths}</g></g>;
  const precipitation=type==='rain'?drop:type==='snow'?snow:<g><g transform="translate(-3.1,0) scale(.82)">{drop}</g><g transform="translate(3.4,0) scale(.82)">{snow}</g></g>;
  return <g><g transform={`translate(${precipitationOffset},0) scale(${scale})`}>{precipitation}</g>{thunder&&<path d="M1.9 -8.8 L-3.3 -0.6 H0.2 L-3.5 8.6 L6.3 -2 H2.5 Z" fill="#ffd84a" stroke="#a65800" strokeWidth="1.3" strokeLinejoin="round" transform={`translate(${boltOffset},0) scale(1.08)`}/>}</g>;
 }
