@@ -4,8 +4,10 @@ const settings=await readFile(new URL('../src/ConnectedStationSettings.tsx',impo
 const app=await readFile(new URL('../src/App.tsx',import.meta.url),'utf8');
 const worker=await readFile(new URL('../worker/metar-proxy.js',import.meta.url),'utf8');
 function need(source,needle,message){if(!source.includes(needle))throw new Error(message)}
-need(station,"url.searchParams.set('attempt'",'OAuth-Navigation erhält keinen eindeutigen Versuchsschlüssel.');
-need(station,'window.location.href=target','OAuth-Navigation wird nicht synchron im aktuellen Tab gestartet.');
+need(station,"url.searchParams.set('attempt'",'OAuth-Fallback erhält keinen eindeutigen Versuchsschlüssel.');
+need(station,"window.open(target,'_blank')",'Standalone-PWA öffnet OAuth nicht synchron in einem externen Browserkontext.');
+need(station,'window.location.assign(target)','Same-Window-Fallback der OAuth-Navigation fehlt.');
+need(station,"workerPost<NetatmoAuthorizationStart>('netatmo-auth-start'",'OAuth-Autorisierungsadresse wird nicht vor dem Nutzertap vorbereitet.');
 if(/const connect=async\(\)=>[\s\S]{0,900}await connectedStationStatus/.test(settings))throw new Error('Netatmo-Klick wartet weiterhin asynchron vor der externen Navigation.');
 need(settings,"if(!status){setMessage('Der Worker-Status wird noch geprüft.", 'Netatmo-Start ist ohne bekannten Worker-Status nicht geschützt.');
 need(worker,"'Cache-Control':'no-store, no-cache, must-revalidate, max-age=0'",'OAuth-302-Redirects sind nicht explizit no-store.');

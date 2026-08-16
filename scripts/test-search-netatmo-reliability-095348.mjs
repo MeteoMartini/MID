@@ -15,7 +15,7 @@ need(app,'Orte werden gesucht …','Nutzerfeedback während der Ortssuche fehlt.
 need(app,'setOpen(true)}}).catch','Suchfeld wird bei einem Fehler weiterhin geschlossen.');
 need(station,'if(status?.configured===false)','Netatmo-Setupfehler wird vor der Navigation nicht abgefangen.');
 need(station,'if(!status){setMessage','Netatmo-Start ist ohne fertig geladenen Worker-Status nicht geschützt.');
-need(station,"disabled={busy!==''||!statusReady}",'Netatmo-Schaltfläche ist während der initialen Worker-Prüfung nicht gesperrt.');
+need(station,"disabled={busy!==''||!statusReady||!authorizationReady}",'Netatmo-Schaltfläche ist während der Worker-/OAuth-Vorbereitung nicht gesperrt.');
 if(/const connect=async\(\)=>[\s\S]{0,900}await connectedStationStatus/.test(station))failures.push('Netatmo-Klick enthält erneut eine asynchrone Statusprüfung vor der externen Navigation.');
 need(station,'Netatmo-Einrichtung prüfen','Fehlende Worker-Einrichtung ist am Button nicht erkennbar.');
 need(station,'Danach genügt hier ausschließlich Netatmo-Login und Freigabe.','Tokenfreie Nutzerführung nach Betreiber-Setup ist nicht erklärt.');

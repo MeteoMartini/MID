@@ -1,3 +1,9 @@
+## 0.9.53.53
+
+- Netatmo OAuth auf iOS/PWA: Autorisierungs-URL wird vor dem Nutzertap vorbereitet und in Standalone-PWAs direkt in einem externen Browserkontext geöffnet.
+- OAuth-Callback transportiert die `connectionId`, damit die Verbindung auch bei getrennten Safari-/PWA-Storage-Kontexten korrekt zugeordnet wird.
+- Rückkehr aus dem OAuth-Browser aktualisiert den Netatmo-Status automatisch.
+
 ## 0.9.53.52
 
 - Netatmo-OAuth-Start für iOS/PWA synchronisiert: der Nutzer-Tap navigiert ohne vorgeschaltetes `await` unmittelbar zum Worker; der bereits geladene Worker-Status entscheidet vor dem Tap über die Verfügbarkeit.

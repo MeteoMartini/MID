@@ -8,12 +8,14 @@ need(worker,"authorize.searchParams.set('response_type','code')",'Netatmo OAuth-
 need(worker,"authorize.searchParams.set('scope','read_station')",'Netatmo OAuth-Start fordert read_station nicht an.');
 need(worker,"authorize.searchParams.set('redirect_uri',netatmoRedirectUri(request))",'Netatmo OAuth-Redirect URI fehlt.');
 need(worker,"mode==='netatmo-auth-redirect'",'Direkter browserfester OAuth-Redirect-Endpunkt fehlt.');
-need(station,"url.searchParams.set('mode','netatmo-auth-redirect')",'MID navigiert nicht über den direkten Worker-OAuth-Redirect.');
-need(station,"url.searchParams.set('attempt'",'Netatmo OAuth-Start besitzt keinen Cache-Buster.');
-need(station,'window.location.href=target','MID startet die Netatmo-Navigation nicht synchron im aktuellen Tab.');
+need(station,"workerPost<NetatmoAuthorizationStart>('netatmo-auth-start'",'MID bereitet die Netatmo-Autorisierungsadresse nicht serverseitig vor.');
+need(station,"url.searchParams.set('mode','netatmo-auth-redirect')",'Direkter Worker-OAuth-Redirect als Fallback fehlt.');
+need(station,"url.searchParams.set('attempt'",'Netatmo OAuth-Fallback besitzt keinen Cache-Buster.');
+need(station,"window.open(target,'_blank')",'MID öffnet Netatmo in Standalone-PWAs nicht synchron im externen Browser.');
+need(station,'window.location.assign(target)','MID besitzt keinen synchronen Same-Window-Fallback für die Netatmo-Navigation.');
 need(worker,"target.searchParams.set('mid_station_detail'",'OAuth-Fehlerdetails werden beim Rücksprung nicht transportiert.');
 need(settings,"mid_station_detail",'OAuth-Fehlerdetails werden in den Einstellungen nicht ausgewertet.');
-need(settings,"void refresh(config,true)",'OAuth-Fehlermeldung kann nach Rückkehr von Status-Refresh überschrieben werden.');
+need(settings,"void refresh(callbackConfig,true)",'OAuth-Fehlermeldung kann nach Rückkehr von Status-Refresh überschrieben werden.');
 need(app,"url.searchParams.get('mid_station')",'OAuth-Rückkehr wird auf App-Ebene nicht erkannt.');
 need(app,"sessionStorage.setItem('mid:netatmo:callback'",'OAuth-Rückkehr wird vor dem Öffnen der Einstellungen nicht zwischengespeichert.');
 need(app,"setSettingsSection('twin');setSettingsOpen(true)",'OAuth-Rückkehr öffnet den Wetterzwilling/Stationsbereich nicht.');
