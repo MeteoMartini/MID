@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.57.2",
+  "version": "0.9.58.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -271,7 +271,9 @@
     "test:composite-time-arrow": "node scripts/test-composite-time-arrow-09561.mjs",
     "test:approved-dependency-upgrades": "node scripts/test-approved-dependency-upgrades-09570.mjs",
     "test:github-actions-v7-sync": "node scripts/test-github-actions-v7-sync-09570.mjs",
-    "test:install-main-race": "node scripts/test-install-main-race-09572.mjs"
+    "test:install-main-race": "node scripts/test-install-main-race-09572.mjs",
+    "test:stable-quality-status-retry": "node scripts/test-stable-quality-status-retry-095573.mjs",
+    "test:pages-codeload-resilience": "node scripts/test-pages-codeload-resilience-09580.mjs"
   },
   "dependencies": {
     "astronomy-engine": "^2.1.19",

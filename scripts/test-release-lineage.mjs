@@ -15,6 +15,6 @@ for(const file of baseline.requiredRegressionTests??[])if(!fs.existsSync(new URL
 if(!install.includes('MID_BASELINE.json'))failures.push('Installer verlangt die Baseline-Datei nicht');
 if(!install.includes('needs.install_build.outputs.commit_sha'))failures.push('Erfolgreicher Installationscommit wird nicht an den Deploy-Job übergeben');
 if(!install.includes('HEAD:refs/heads/mid-stable'))failures.push('mid-stable wird nach erfolgreichem Deployment nicht aktualisiert');
-if(!deploy.includes('ref: mid-stable'))failures.push('Manueller Deploy verwendet nicht die stabile Basis');
+if(!deploy.includes('fetch --no-tags --depth=1 origin mid-stable'))failures.push('Manueller Deploy verwendet nicht die stabile Basis');
 if(failures.length){console.error('MID-Quellbasis-Schutz fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
 console.log(`MID-Quellbasis geschützt: ${baseline.lineage}, Release ${pkg.version}, stabiler Zweig ${baseline.stableBranch}.`);

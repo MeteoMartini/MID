@@ -39,7 +39,7 @@ for(const token of ['writeBoundedMapEntry','pruneStorageEntries','writeBoundedSt
 // unabhängig vom Anwendungscode aktualisiert. Die eigentlichen Workflow-Verträge besitzen
 // separate Regressionen (u. a. test-github-actions-runtime.mjs / 08262).
 const workflows=[files['ci/github/workflows/install-mid.yml'],files['ci/github/workflows/deploy.yml'],files['ci/github/workflows/dependency-audit.yml']].join('\n');
-for(const action of ['actions/checkout','actions/setup-node','actions/configure-pages','actions/upload-pages-artifact','actions/deploy-pages'])if(!new RegExp(`${action.replace('/','\\/')}@[0-9a-f]{40}`).test(workflows))warnings.push(`Workflow-SHA diagnostisch nicht gefunden: ${action}`);
+for(const action of ['actions/checkout','actions/setup-node','actions/upload-pages-artifact','actions/deploy-pages'])if(!new RegExp(`${action.replace('/','\\/')}@[0-9a-f]{40}`).test(workflows))warnings.push(`Workflow-SHA diagnostisch nicht gefunden: ${action}`);
 if(!baseline.regressionTests?.includes('scripts/test-maintenance-recharts3-cache-ci-08260.mjs'))failures.push('Wartungsregression fehlt in MID_BASELINE.json.');
 
 // Rein speicherinterner Dynamiktest ohne npm-Unterprozess, TypeScript-Runtime, Dateisystemstatus

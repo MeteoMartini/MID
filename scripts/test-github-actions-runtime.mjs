@@ -28,7 +28,7 @@ for(const [name,source] of Object.entries(workflows)){
  if(source.includes('fetch-retry-maxtimeout 120000'))failures.push(`${name}: veraltete zweiminütige npm-Retry-Wartezeit gefunden`);
 }
 
-for(const action of ['actions/checkout','actions/setup-node','actions/configure-pages','actions/upload-pages-artifact','actions/deploy-pages']){
+for(const action of ['actions/checkout','actions/setup-node','actions/upload-pages-artifact','actions/deploy-pages']){
  if(!actionRefs.some(entry=>entry.action===action&&/^[0-9a-f]{40}$/i.test(entry.ref)))failures.push(`${action} mit vollständigem Commit-SHA fehlt`);
 }
 
@@ -36,6 +36,7 @@ const install=workflows['install-mid.yml']||'';
 const deploy=workflows['deploy.yml']||'';
 const audit=workflows['dependency-audit.yml']||'';
 for(const token of ['MID-professional-replacement.zip','npm run verify','npm run audit:dependencies','git push origin HEAD:main'])if(!install.includes(token))failures.push(`install-mid.yml: ${token} fehlt`);
+if(install.includes('actions/configure-pages@')||deploy.includes('actions/configure-pages@'))failures.push('configure-pages ist wieder aktiv; MID muss Pages ohne diesen zusätzlichen Codeload-Download veröffentlichen.');
 if(install.includes('Geprüfte MID-Workflows aktualisieren')||install.includes('rsync -a --delete --checksum "$source_dir/" .github/'))failures.push('install-mid.yml versucht weiterhin, Workflowdateien mit dem GITHUB_TOKEN selbst zu überschreiben.');
 if(!deploy.includes('paths-ignore:')||!deploy.includes('MID-professional-replacement.zip'))failures.push('deploy.yml: reiner ZIP-Upload wird nicht vom vorzeitigen Parallel-Deployment ausgeschlossen');
 if(!audit.includes('npm run audit:all'))failures.push('dependency-audit.yml: vollständiger regelmäßiger npm-Audit fehlt');

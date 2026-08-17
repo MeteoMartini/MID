@@ -1,3 +1,21 @@
+# v0.9.58.0
+
+- Release-Pipeline gegen GitHub-Codeload-429 gehärtet: configure-pages entfernt; Pages-Deployment vom Release-Build entkoppelt und mit drei frischen Runner-Versuchen sowie 75/180-s-Backoff abgesichert.
+- Pages-Artefakte je Versuch eindeutig benannt; fehlgeschlagene Versuche 1/2 sind recoverable, Versuch 3 bleibt harter Fehler.
+- Stable-Finalisierung läuft erst nach tatsächlich erfolgreichem Pages-Versuch; Status-API bleibt 429/5xx-resilient.
+- Manueller Stable-Deploy erhält denselben Pages-Retry-Vertrag.
+
+# v0.9.57.4
+
+- Installer: Release-ZIP wird vor dem Entpacken auf Dateigröße, SHA-256, ZIP-Signatur und CRC-Integrität geprüft.
+- Wartung: kanonische Worker-Teilquelle auf denselben Release-Stand synchronisiert, damit `maintain:aggregates` die Worker-Version nicht zurückstuft.
+- Regression: Installer-ZIP-Schutz wird sowohl im Workflow-Patch als auch in der kanonischen Workflowquelle geprüft.
+
+# v0.9.57.3
+
+- Stable-Release-Abschluss gegen temporäre GitHub-API-/Transport-5xx gehärtet: harter mid-stable-SHA-Vertrag mit Retry sowie Quality-Status mit fünf Backoff-Versuchen.
+- Ein ausschließlich temporärer GitHub-Status-API-5xx markiert einen bereits gebauten, deployten und SHA-verifizierten Release nicht mehr fälschlich als fehlgeschlagen; 4xx/Auth-Fehler und SHA-Abweichungen bleiben harte Fehler.
+
 # v0.9.57.2
 
 - Installer gegen paralleles Weiterlaufen von `main` gehärtet: eventgebundener Checkout, sicherer Fetch/Rebase nur für `.github`, Abbruch bei neueren fachlichen Änderungen und Push-Retry ohne Force-Push.

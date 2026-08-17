@@ -10,9 +10,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
-  pages: write
-  id-token: write
+  contents: read
 
 concurrency:
   group: mid-install-${{ github.ref }}
@@ -26,6 +24,8 @@ jobs:
     if: github.actor != 'github-actions[bot]' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: write
 
     steps:
       - name: Repository laden
@@ -62,18 +62,16 @@ jobs:
           target = Path(os.environ['TARGET']).resolve()
           size = archive.stat().st_size
           digest = hashlib.sha256(archive.read_bytes()).hexdigest()
-          print(f'Release-ZIP: {size} Byte, SHA-256 {digest}')
-
+          print(f'Release-ZIP: {size} Byte · SHA-256 {digest}')
           if size == 0:
-              raise SystemExit('Release-ZIP ist leer (0 Byte). Datei vollständig herunterladen und erneut nach GitHub hochladen.')
+              raise SystemExit('Release-ZIP ist leer (0 Byte)')
           if not is_zipfile(archive):
-              signature = archive.read_bytes()[:16].hex() or '(leer)'
-              raise SystemExit(f'Release-Datei ist kein gültiges ZIP ({size} Byte, Signatur {signature}). Upload prüfen und erneut hochladen.')
+              raise SystemExit('Release-Datei ist kein gültiges ZIP')
 
           with ZipFile(archive) as zip_file:
               corrupt = zip_file.testzip()
               if corrupt is not None:
-                  raise SystemExit(f'Release-ZIP ist beschädigt (CRC-Fehler in {corrupt}). Datei erneut herunterladen und hochladen.')
+                  raise SystemExit(f'Release-ZIP enthält einen beschädigten Eintrag: {corrupt}')
               for entry in zip_file.infolist():
                   relative = Path(entry.filename)
                   if relative.is_absolute() or '..' in relative.parts:
@@ -128,12 +126,13 @@ jobs:
           fi
 
           rm -f MID-professional-replacement.zip
-          echo "MID-Projektdateien wurden inhaltlich vollständig ersetzt; die Repository-Workflows bleiben erhalten."
+          echo "MID-Projektdateien wurden inhaltlich vollständig ersetzt."
+
 
       - name: Node.js 22 mit npm-Cache einrichten
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22
+          node-version: 22.16.0
           cache: npm
           cache-dependency-path: package-lock.json
 
@@ -183,6 +182,14 @@ jobs:
             --prefer-offline \
             --legacy-peer-deps \
             --loglevel=notice
+
+
+      - name: Produktionsabhängigkeiten auf hohe Risiken prüfen
+        shell: bash
+        timeout-minutes: 4
+        run: |
+          set -euo pipefail
+          npm run audit:dependencies
 
       - name: Produktionsbuild und Regressionstests ausführen
         shell: bash
@@ -264,22 +271,17 @@ jobs:
 
           echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-      - name: GitHub Pages konfigurieren
-        uses: actions/configure-pages@v6
-
-      - name: Produktionsbuild für Pages hochladen
-        uses: actions/upload-pages-artifact@v5
-        with:
-          path: ./dist
-
-  deploy:
-    name: MID auf GitHub Pages veröffentlichen
+  deploy_pages_1:
+    continue-on-error: true
+    outputs:
+      deployed: ${{ steps.mark_deployed.outputs.deployed }}
+    name: MID auf GitHub Pages veröffentlichen · Versuch 1
     needs: install_build
     if: success()
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
-      contents: write
+      contents: read
       pages: write
       id-token: write
     concurrency:
@@ -290,18 +292,276 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      - name: GitHub-Pages-Deployment ausführen
-        id: deployment
-        uses: actions/deploy-pages@v5
+      - name: Geprüften Release-Baum ohne Checkout-Action laden
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ needs.install_build.outputs.commit_sha }}
+        run: |
+          set -euo pipefail
+          auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+          git init .
+          git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" fetch --no-tags --depth=1 origin "$RELEASE_SHA"
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
+          test -f dist/index.html
 
-      - name: Erfolgreichen Release-Commit laden
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Pages-Artefakt hochladen · Versuch 1
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
-          ref: ${{ needs.install_build.outputs.commit_sha }}
-          fetch-depth: 0
+          name: github-pages-${{ github.run_id }}-1
+          path: ./dist
+
+      - name: GitHub-Pages-Deployment · Versuch 1
+        id: deployment
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
+        with:
+          artifact_name: github-pages-${{ github.run_id }}-1
+      - name: Erfolgreichen Pages-Versuch markieren
+        id: mark_deployed
+        shell: bash
+        run: echo 'deployed=true' >> "$GITHUB_OUTPUT"
+
+  pages_cooldown_1:
+    name: GitHub-Codeload-Rate-Limit abkühlen · 1
+    needs:
+      - install_build
+      - deploy_pages_1
+    if: always() && needs.install_build.result == 'success' && needs.deploy_pages_1.outputs.deployed != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Vor erneutem Pages-Action-Download warten
+        shell: bash
+        run: |
+          echo "Erster Pages-Deploymentversuch scheiterte. 75 s Backoff vor einem frischen Runner/Action-Download."
+          sleep 75
+
+  deploy_pages_2:
+    continue-on-error: true
+    outputs:
+      deployed: ${{ steps.mark_deployed.outputs.deployed }}
+    name: MID auf GitHub Pages veröffentlichen · Versuch 2
+    needs:
+      - install_build
+      - deploy_pages_1
+      - pages_cooldown_1
+    if: always() && needs.install_build.result == 'success' && needs.deploy_pages_1.outputs.deployed != 'true' && needs.pages_cooldown_1.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    concurrency:
+      group: mid-pages
+      cancel-in-progress: true
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Geprüften Release-Baum ohne Checkout-Action laden
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ needs.install_build.outputs.commit_sha }}
+        run: |
+          set -euo pipefail
+          auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+          git init .
+          git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" fetch --no-tags --depth=1 origin "$RELEASE_SHA"
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
+          test -f dist/index.html
+
+      - name: Pages-Artefakt hochladen · Versuch 2
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          name: github-pages-${{ github.run_id }}-2
+          path: ./dist
+
+      - name: GitHub-Pages-Deployment · Versuch 2
+        id: deployment
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
+        with:
+          artifact_name: github-pages-${{ github.run_id }}-2
+      - name: Erfolgreichen Pages-Versuch markieren
+        id: mark_deployed
+        shell: bash
+        run: echo 'deployed=true' >> "$GITHUB_OUTPUT"
+
+  pages_cooldown_2:
+    name: GitHub-Codeload-Rate-Limit abkühlen · 2
+    needs:
+      - install_build
+      - deploy_pages_1
+      - deploy_pages_2
+    if: always() && needs.install_build.result == 'success' && needs.deploy_pages_1.outputs.deployed != 'true' && needs.deploy_pages_2.outputs.deployed != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Vor letztem Pages-Action-Download länger warten
+        shell: bash
+        run: |
+          echo "Zweiter Pages-Deploymentversuch scheiterte. 180 s Backoff vor dem letzten frischen Runner."
+          sleep 180
+
+  deploy_pages_3:
+    outputs:
+      deployed: ${{ steps.mark_deployed.outputs.deployed }}
+    name: MID auf GitHub Pages veröffentlichen · Versuch 3
+    needs:
+      - install_build
+      - deploy_pages_1
+      - deploy_pages_2
+      - pages_cooldown_2
+    if: always() && needs.install_build.result == 'success' && needs.deploy_pages_1.outputs.deployed != 'true' && needs.deploy_pages_2.outputs.deployed != 'true' && needs.pages_cooldown_2.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    concurrency:
+      group: mid-pages
+      cancel-in-progress: true
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Geprüften Release-Baum ohne Checkout-Action laden
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ needs.install_build.outputs.commit_sha }}
+        run: |
+          set -euo pipefail
+          auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+          git init .
+          git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" fetch --no-tags --depth=1 origin "$RELEASE_SHA"
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
+          test -f dist/index.html
+
+      - name: Pages-Artefakt hochladen · Versuch 3
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          name: github-pages-${{ github.run_id }}-3
+          path: ./dist
+
+      - name: GitHub-Pages-Deployment · Versuch 3
+        id: deployment
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
+        with:
+          artifact_name: github-pages-${{ github.run_id }}-3
+      - name: Erfolgreichen Pages-Versuch markieren
+        id: mark_deployed
+        shell: bash
+        run: echo 'deployed=true' >> "$GITHUB_OUTPUT"
+
+  finalize_release:
+    name: Erfolgreichen Pages-Release finalisieren
+    needs:
+      - install_build
+      - deploy_pages_1
+      - deploy_pages_2
+      - deploy_pages_3
+    if: always() && needs.install_build.result == 'success' && (needs.deploy_pages_1.outputs.deployed == 'true' || needs.deploy_pages_2.outputs.deployed == 'true' || needs.deploy_pages_3.outputs.deployed == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: write
+      statuses: write
+
+    steps:
+      - name: Erfolgreichen Release-Commit ohne Checkout-Action laden
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ needs.install_build.outputs.commit_sha }}
+        run: |
+          set -euo pipefail
+          auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+          git init .
+          git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" fetch --no-tags --depth=1 origin "$RELEASE_SHA"
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
 
       - name: Letzten erfolgreichen Stand als stabile MID-Basis markieren
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          git push --force origin HEAD:refs/heads/mid-stable
+          auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" push --force origin HEAD:refs/heads/mid-stable
+
+      - name: Finalen Stable-SHA verifizieren und Qualitätsstatus setzen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          stable_sha="$(git rev-parse HEAD)"
+          auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+
+          remote_sha=''
+          for attempt in 1 2 3 4; do
+            remote_sha="$(git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" ls-remote --heads origin refs/heads/mid-stable 2>/tmp/mid-stable-lsremote.err | awk '{print $1}')" && [ -n "$remote_sha" ] && break
+            echo "::warning::mid-stable konnte temporär nicht gelesen werden (Versuch ${attempt}/4)."
+            cat /tmp/mid-stable-lsremote.err || true
+            sleep $((attempt * 2))
+          done
+          if [ "$remote_sha" != "$stable_sha" ]; then
+            echo "::error::mid-stable zeigt auf ${remote_sha:-<leer>} statt auf den geprüften Release ${stable_sha}."
+            exit 1
+          fi
+
+          status_payload="$(python3 - <<PY
+          import json, os
+          print(json.dumps({
+              'state': 'success',
+              'context': 'MID / stable-release-quality',
+              'description': 'Build, Dependency-Audit, Regressionen und Pages-Deployment bestanden',
+              'target_url': f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}",
+          }))
+          PY
+          )"
+
+          status_written=false
+          for attempt in 1 2 3 4 5; do
+            http_code="$(curl --silent --show-error --output /tmp/mid-status-response.json --write-out '%{http_code}' \
+              --connect-timeout 10 --max-time 30 \
+              --request POST \
+              --header 'Accept: application/vnd.github+json' \
+              --header 'X-GitHub-Api-Version: 2022-11-28' \
+              --header "Authorization: Bearer ${GH_TOKEN}" \
+              --data "$status_payload" \
+              "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/statuses/${stable_sha}" || printf '000')"
+
+            if [ "$http_code" = 201 ] || [ "$http_code" = 200 ]; then
+              status_written=true
+              echo "Qualitätsstatus für ${stable_sha} gesetzt."
+              break
+            fi
+
+            cat /tmp/mid-status-response.json || true
+            if [ "$http_code" = 429 ] || [[ "$http_code" =~ ^5[0-9][0-9]$ ]] || [ "$http_code" = 000 ]; then
+              echo "::warning::GitHub Status API temporär nicht verfügbar (HTTP ${http_code}, Versuch ${attempt}/5)."
+              sleep $((attempt * 3))
+              continue
+            fi
+
+            echo "::error::Qualitätsstatus konnte wegen eines nicht-temporären GitHub-API-Fehlers (HTTP ${http_code}) nicht gesetzt werden."
+            exit 1
+          done
+
+          if [ "$status_written" != true ]; then
+            echo "::warning::GitHub Status API blieb nach fünf Versuchen temporär nicht verfügbar. Build, Regressionen, Pages-Deployment und finaler mid-stable-SHA sind dennoch erfolgreich verifiziert; der Release bleibt gültig."
+          fi

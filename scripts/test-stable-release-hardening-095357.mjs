@@ -16,7 +16,7 @@ const need=(area,text,token)=>{if(!text.includes(token))failures.push(area+': '+
 for(const token of ['manualChunks:midVendorChunk',"return 'ReactVendor'","return 'ChartsVendor'"])need('Vite-Chunking',vite,token);
 if(/return ['"]MapLibre/i.test(vite))failures.push('Vite-Chunking: MapLibre wurde in einen erzwungenen Vendor-Chunk verschoben; die bestehende Lazy-Grenze muss erhalten bleiben.');
 for(const token of ['npm-audit-full.json','if: always()','actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f','npm run audit:all'])need('Dependency-Audit',audit,token);
-for(const token of ['statuses: write','git ls-remote --heads origin refs/heads/mid-stable',"context='MID / stable-release-quality'",'/statuses/${stable_sha}'])need('Stable-SHA',install,token);
+for(const token of ['statuses: write','ls-remote --heads origin refs/heads/mid-stable',"'context': 'MID / stable-release-quality'",'/statuses/${stable_sha}'])need('Stable-SHA',install,token);
 if(rechartsTest.includes('Recharts 3.8.1 ist nicht reproduzierbar festgeschrieben.'))failures.push('Recharts-Wartungstest blockiert weiterhin kompatible 3.x-Patch-/Minor-Updates durch einen historischen Versionsliteral.');
 need('Recharts-Wartungstest',rechartsTest,'lockedRechartsVersion!==rechartsVersion');
 if(!baseline.regressionTests?.includes('scripts/test-stable-release-hardening-095357.mjs'))failures.push('Stable-Hardening-Regression fehlt im Baseline-Vertrag.');
