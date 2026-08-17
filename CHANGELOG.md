@@ -1,3 +1,10 @@
+# v0.9.57.0
+
+- Kompositbild auf einen einzelnen langen Zeitpfeil mit Zielspitze am gewählten Ort umgestellt.
+- Lucide React auf 1.30.0 und Recharts kontrolliert auf 3.10.1 aktualisiert.
+- GitHub Actions checkout auf 7.0.1 und setup-node auf 7.0.0 angehoben und SHA-gepinnt.
+- React 19, TypeScript 7 und Vite/plugin-react 8/6 bleiben zurückgestellt.
+
 # v0.9.56.0
 
 - Funktionsneutrales Wartungsrelease: 7-Tage-Trend und App-Laufzeitcaches aus `App.tsx` ausgelagert.

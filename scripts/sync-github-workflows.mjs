@@ -1,9 +1,18 @@
-import {mkdir,readFile,writeFile} from 'node:fs/promises';
+import {mkdir,readFile,readdir,writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
 const modulePath=fileURLToPath(import.meta.url);
 const defaultRoot=path.resolve(path.dirname(modulePath),'..');
+
+const CHECKOUT_V7_SHA='3d3c42e5aac5ba805825da76410c181273ba90b1';
+const SETUP_NODE_V7_SHA='820762786026740c76f36085b0efc47a31fe5020';
+function pinApprovedActions(source){
+ return source
+  .replace(/actions\/checkout@[^\s#]+(?:\s*#\s*v[^\n]*)?/g,`actions/checkout@${CHECKOUT_V7_SHA} # v7.0.1`)
+  .replace(/actions\/setup-node@[^\s#]+(?:\s*#\s*v[^\n]*)?/g,`actions/setup-node@${SETUP_NODE_V7_SHA} # v7.0.0`);
+}
+
 const managedFiles=[
  ['workflows/install-mid.yml','workflows/install-mid.yml'],
  ['workflows/deploy.yml','workflows/deploy.yml'],
@@ -26,7 +35,7 @@ export async function syncGithubConfiguration({root=defaultRoot,sourceRoot=path.
  for(const [sourceRelative,targetRelative] of managedFiles){
   const sourcePath=path.join(sourceRoot,sourceRelative);
   const targetPath=path.join(githubRoot,targetRelative);
-  const source=await readFile(sourcePath,'utf8');
+  const source=pinApprovedActions(await readFile(sourcePath,'utf8'));
   validateWorkflow(sourceRelative,source);
   let current='';
   try{current=await readFile(targetPath,'utf8')}catch{}
@@ -34,6 +43,21 @@ export async function syncGithubConfiguration({root=defaultRoot,sourceRoot=path.
   await mkdir(path.dirname(targetPath),{recursive:true});
   await writeFile(targetPath,source);
   updated.push(targetRelative);
+ }
+ // Die zwei historischen, nicht kanonisch gespiegelten Workflows (u. a.
+ // apply-private-analytics und mid-code-revision) bleiben inhaltlich unverändert.
+ // Beim ausdrücklich administrativ gestarteten Sync werden dort ausschließlich
+ // die freigegebenen checkout/setup-node-Action-Refs auf die gepinnten v7-SHAs angehoben.
+ const workflowsRoot=path.join(githubRoot,'workflows');
+ let workflowNames=[];
+ try{workflowNames=(await readdir(workflowsRoot)).filter(name=>/\.ya?ml$/i.test(name))}catch{}
+ for(const name of workflowNames){
+  const targetRelative=path.join('workflows',name),targetPath=path.join(githubRoot,targetRelative);
+  const current=await readFile(targetPath,'utf8'),next=pinApprovedActions(current);
+  validateWorkflow(targetRelative,next);
+  if(current===next)continue;
+  await writeFile(targetPath,next);
+  if(!updated.includes(targetRelative))updated.push(targetRelative);
  }
  return updated;
 }

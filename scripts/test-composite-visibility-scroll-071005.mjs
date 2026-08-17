@@ -10,7 +10,7 @@ const need=(source,token,label)=>{if(!source.includes(token))failures.push(`${la
 for(const token of [
   "label=\"Radar · 1 km\"",
   "label=\"K3D / MIX\"",
-  "label=\"Zugbahn\"",
+  "label=\"Zeitpfeil\"",
   'radarButtonDetail=',
   'nowcastButtonDetail=`${k3dButtonState} · ${mixButtonState}`'
 ])need(radar,token,'Kompakte Layerbuttons fehlen');
@@ -53,4 +53,4 @@ if(failures.length){
   console.error('Komposit-Sichtbarkeit/Scroll-Regression fehlgeschlagen:\n- '+failures.join('\n- '));
   process.exit(1);
 }
-console.log('Kompositbild geprüft: kompaktes Layerband, sichtbare K3D-/NowCastMIX-Symbole und einzelne weiße Zugspur sowie touchfreundliches Scrollen sind aktiv.');
+console.log('Kompositbild geprüft: kompaktes Layerband, sichtbare K3D-/NowCastMIX-Symbole und einzelner weißer Zeitpfeil sowie touchfreundliches Scrollen sind aktiv.');

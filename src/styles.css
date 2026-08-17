@@ -6125,7 +6125,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 @media(max-width:760px){.push-precip-alert-settings{grid-template-columns:auto minmax(0,1fr)}.push-precip-alert-settings>label{grid-column:1/-1}}
 
 /* MID v0.9.55.0 · oberste Referenzkarte und einzelne Zugspur */
-.mid-motion-track-arrowhead{display:block;width:62px;height:62px;pointer-events:none;transform:translateZ(0)}
+.mid-motion-track-arrowhead{display:block;width:82px;height:82px;pointer-events:none;transform:translateZ(0)}
 .mid-motion-track-arrowhead svg{display:block;width:100%;height:100%;overflow:visible;transform-origin:50% 50%}
 .mid-motion-track-arrowhead path{fill:none;stroke-linecap:round;stroke-linejoin:round}
 .mid-motion-track-arrowhead .shaft-halo{stroke:rgba(8,20,32,.72);stroke-width:10}

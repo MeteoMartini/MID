@@ -1035,7 +1035,7 @@ Im Erweiterten Modus enthält das Modul „Flugmeteorologie“ weiterhin die Dru
 
 ## Technische Wartung ab MID v0.8.26.0
 
-MID verwendet für die Ensemble-Diagramme Recharts 3.8.1 mit einem gemeinsamen responsiven Bildschirm- und fest dimensionierten Exportpfad. Sämtliche Temperatur-, Niederschlags- und Winddarstellungen bleiben animationsfrei exportierbar und erhalten ihre bisherigen Tooltips, Spannweiten, Fehlerbalken und Warnmarker.
+MID verwendet für die Ensemble-Diagramme Recharts 3.10.1 mit einem gemeinsamen responsiven Bildschirm- und fest dimensionierten Exportpfad. Sämtliche Temperatur-, Niederschlags- und Winddarstellungen bleiben animationsfrei exportierbar und erhalten ihre bisherigen Tooltips, Spannweiten, Fehlerbalken und Warnmarker.
 
 Der Build prüft TypeScript ohne generierte Quellartefakte. `npm run sync-version` hält Paket, Lockfile, Baseline, Frontend, Worker und Service Worker synchron. Die CI führt reproduzierbare Installationen, Produktionsbuild, sämtliche Regressionstests und einen Audit der Produktionsabhängigkeiten aus. Ein zusätzlicher Wochenlauf prüft auch Entwicklungsabhängigkeiten; Dependabot erstellt nur überprüfbare Aktualisierungsvorschläge.
 

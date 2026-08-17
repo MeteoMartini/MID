@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.56.0",
+  "releaseVersion": "0.9.57.0",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -216,7 +216,10 @@
     "scripts/test-radar-motion-track-buildfix-09551.mjs",
     "scripts/test-event-flight-units-09553.mjs",
     "scripts/test-seven-day-today-precipitation-09554.mjs",
-    "scripts/test-maintenance-modularization-09560.mjs"
+    "scripts/test-maintenance-modularization-09560.mjs",
+    "scripts/test-composite-time-arrow-09561.mjs",
+    "scripts/test-approved-dependency-upgrades-09570.mjs",
+    "scripts/test-github-actions-v7-sync-09570.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -365,7 +368,10 @@
     "scripts/test-radar-motion-track-buildfix-09551.mjs",
     "scripts/test-event-flight-units-09553.mjs",
     "scripts/test-seven-day-today-precipitation-09554.mjs",
-    "scripts/test-maintenance-modularization-09560.mjs"
+    "scripts/test-maintenance-modularization-09560.mjs",
+    "scripts/test-composite-time-arrow-09561.mjs",
+    "scripts/test-approved-dependency-upgrades-09570.mjs",
+    "scripts/test-github-actions-v7-sync-09570.mjs"
   ],
   "requiredFiles": [
     "scripts/test-cockpit-regression-sync-09201.mjs",
