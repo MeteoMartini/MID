@@ -11,7 +11,7 @@ const failures=[];
 for(const token of [
  "const PUSH_NOTIFICATION_INTERVAL_KEY='mid:pushNotificationIntervalMinutes';",
  'useState<PushNotificationInterval>(storedPushNotificationInterval)',
- 'syncPushNotifications(pushFavorites,pushNotificationInterval,ventilation)',
+ 'syncPushNotifications(pushFavorites,pushNotificationInterval,pushPrecipitationAlert,ventilation)',
  'notificationIntervalMinutes={pushNotificationInterval}',
  'onNotificationIntervalChange={setPushNotificationInterval}'
 ])if(!app.includes(token))failures.push(`App-Persistenz/Sync fehlt: ${token}`);
@@ -28,11 +28,11 @@ for(const token of [
 for(const token of [
  'export type PushNotificationInterval=15|30|60|120|180;',
  'notificationIntervalMinutes:PushNotificationInterval',
- 'notificationIntervalMinutes,ventilation,appUrl',
- 'saveSubscription(subscription,favorites,notificationIntervalMinutes,ventilation)'
+ 'notificationIntervalMinutes,precipitationAlert,ventilation,appUrl',
+ 'saveSubscription(subscription,favorites,notificationIntervalMinutes,precipitationAlert,ventilation)'
 ])if(!client.includes(token))failures.push(`Push-Client-Übertragung fehlt: ${token}`);
 for(const token of [
- 'const PUSH_NOTIFICATION_INTERVALS=[15,30,60,120,180];',
+ 'const PUSH_NOTIFICATION_INTERVALS=[15,30,60,120,180],PUSH_PRECIPITATION_LEADS=[15,30,45,60,90,120],PUSH_PRECIPITATION_AMOUNTS=[.1,.2,.5,1,2,5];',
  'function pushNotificationReady(',
  'notificationIntervalMinutes=validPushNotificationInterval(body?.notificationIntervalMinutes)',
  'lastNotificationAt:existing?.lastNotificationAt',

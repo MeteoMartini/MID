@@ -3025,6 +3025,11 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .mid-motion-arrow-marker .halo{stroke:rgba(8,20,32,.58);stroke-width:5.2}
 .mid-motion-arrow-marker .core{stroke:rgba(255,255,255,.88);stroke-width:2.35}
 .mid-motion-arrow-marker.low .core{stroke:rgba(238,248,255,.72)}
+.mid-motion-time-label{--mid-intensity:.45;display:flex;flex-direction:column;gap:1px;min-width:52px;padding:4px 7px 4px 8px;border-radius:10px;background:rgba(238,244,250,.94);border:1px solid rgba(19,47,74,.16);box-shadow:0 5px 14px rgba(11,31,49,.22),inset 0 0 0 1px rgba(255,255,255,.55);position:relative;transform:translateZ(0)}
+.mid-motion-time-label::before{content:"";position:absolute;left:-6px;top:50%;width:8px;height:8px;border-radius:50%;background:rgba(18,92,155,calc(.28 + var(--mid-intensity)*.5));box-shadow:0 0 0 2px rgba(255,255,255,.92),0 0 0 3px rgba(14,43,68,.14);transform:translateY(-50%)}
+.mid-motion-time-label b{display:block;font-size:12px;line-height:1.05;color:#10233a;white-space:nowrap}
+.mid-motion-time-label small{display:block;font-size:9px;line-height:1.05;color:#476177;white-space:nowrap}
+.mid-motion-time-div-icon{background:transparent!important;border:0!important}
 .radar-location-marker.selected-location{height:19px!important}
 .radar-location-marker.selected-location .radar-location-ring{top:2px!important}
 .radar-location-marker.actual-location .radar-location-bearing.unavailable{opacity:.5;filter:saturate(.72)}
@@ -6107,3 +6112,14 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 
 /* v0.9.53.52 – Netatmo OAuth Deployment-/Workerdiagnose */
 .connected-station-worker-version{display:block;margin:.35rem .15rem 0;color:var(--muted);font-size:.72rem;font-weight:650;letter-spacing:.01em}
+
+/* MID v0.9.53.56 · vorlaufende Niederschlagswarnung */
+.push-precip-alert-settings{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(150px,auto) minmax(150px,auto);align-items:center;gap:10px;padding:13px 14px!important}
+.push-precip-alert-settings>svg{color:var(--primary)}
+.push-precip-alert-settings>span,.push-precip-alert-settings>span strong,.push-precip-alert-settings>span small{display:block}
+.push-precip-alert-settings>span small{margin-top:3px;color:var(--muted);font-size:9px;line-height:1.4}
+.push-precip-alert-settings>label{display:grid;gap:4px;color:var(--muted);font-size:8px;font-weight:800}
+.push-precip-alert-settings>label b{color:var(--muted);font-size:8px}
+.push-precip-alert-settings select{min-width:0;width:100%;height:42px;padding:7px 30px 7px 10px;border:1px solid color-mix(in srgb,var(--primary) 42%,var(--border));border-radius:11px;background:var(--surface);color:var(--text);font-weight:800}
+.push-precip-alert-settings select:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+@media(max-width:760px){.push-precip-alert-settings{grid-template-columns:auto minmax(0,1fr)}.push-precip-alert-settings>label{grid-column:1/-1}}

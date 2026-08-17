@@ -10,6 +10,10 @@ export type PushRuleFavorite={
  rules:{precipitationStart:boolean;thunderstormApproach:boolean;forecastMaterialChange:boolean};
 };
 export type PushNotificationInterval=15|30|60|120|180;
+export type PushPrecipitationLeadMinutes=15|30|45|60|90|120;
+export type PushPrecipitationThresholdMm=.1|.2|.5|1|2|5;
+export type PushPrecipitationAlertSettings={leadMinutes:PushPrecipitationLeadMinutes;minimumAmountMm:PushPrecipitationThresholdMm};
+export const DEFAULT_PUSH_PRECIPITATION_ALERT:PushPrecipitationAlertSettings={leadMinutes:60,minimumAmountMm:.1};
 export type PushStatus={supported:boolean;permission:NotificationPermission|'unsupported';configured:boolean;subscribed:boolean;serverRegistered:boolean;schedulerHealthy:boolean;schedulerLastRunAt?:string;workerCheckedAt?:string;activeFavorites:number;activeRules:number;operational:boolean;workerUrl:string;message:string};
 
 type PushConfig={enabled?:boolean;publicKey?:string;version?:string;error?:string};
@@ -23,7 +27,7 @@ async function workerPost<T>(mode:string,body:unknown){const candidates=workerBa
 function serialiseSubscription(subscription:PushSubscription){const json=subscription.toJSON();return{endpoint:subscription.endpoint,expirationTime:subscription.expirationTime,keys:{p256dh:String(json.keys?.p256dh||''),auth:String(json.keys?.auth||'')}}}
 async function readyRegistration(){const registration=await navigator.serviceWorker.ready;if(!registration.active)throw new Error('Der MID-Service-Worker ist noch nicht aktiv. App bitte neu öffnen.');return registration}
 function activeFavorites(favorites:PushRuleFavorite[]){return favorites.filter(item=>item.rules.precipitationStart||item.rules.thunderstormApproach||item.rules.forecastMaterialChange).map(item=>({id:item.id,name:item.name,latitude:item.latitude,longitude:item.longitude,country:item.country||'',rules:item.rules}))}
-async function saveSubscription(subscription:PushSubscription,favorites:PushRuleFavorite[],notificationIntervalMinutes:PushNotificationInterval,ventilation:VentilationPushConfig|null=ventilationPushConfig()){return workerPost<WorkerReply>('push-subscribe',{subscription:serialiseSubscription(subscription),favorites:activeFavorites(favorites),notificationIntervalMinutes,ventilation,appUrl:new URL('./',document.baseURI).toString(),userAgent:navigator.userAgent})}
+async function saveSubscription(subscription:PushSubscription,favorites:PushRuleFavorite[],notificationIntervalMinutes:PushNotificationInterval,precipitationAlert:PushPrecipitationAlertSettings=DEFAULT_PUSH_PRECIPITATION_ALERT,ventilation:VentilationPushConfig|null=ventilationPushConfig()){return workerPost<WorkerReply>('push-subscribe',{subscription:serialiseSubscription(subscription),favorites:activeFavorites(favorites),notificationIntervalMinutes,precipitationAlert,ventilation,appUrl:new URL('./',document.baseURI).toString(),userAgent:navigator.userAgent})}
 
 export async function getPushStatus():Promise<PushStatus>{
  if(!supportsPush())return{supported:false,permission:'unsupported',configured:false,subscribed:false,serverRegistered:false,schedulerHealthy:false,activeFavorites:0,activeRules:0,operational:false,workerUrl:'',message:'Web Push wird von diesem Browser oder dieser Installationsart nicht unterstützt.'};
@@ -43,13 +47,13 @@ export async function preparePushNotifications(){
  return{workerUrl:configResult.base,subscription};
 }
 
-export async function enablePushNotifications(favorites:PushRuleFavorite[],notificationIntervalMinutes:PushNotificationInterval,ventilation:VentilationPushConfig|null=ventilationPushConfig()){
- const prepared=await preparePushNotifications();await saveSubscription(prepared.subscription,favorites,notificationIntervalMinutes,ventilation);return prepared;
+export async function enablePushNotifications(favorites:PushRuleFavorite[],notificationIntervalMinutes:PushNotificationInterval,precipitationAlert:PushPrecipitationAlertSettings=DEFAULT_PUSH_PRECIPITATION_ALERT,ventilation:VentilationPushConfig|null=ventilationPushConfig()){
+ const prepared=await preparePushNotifications();await saveSubscription(prepared.subscription,favorites,notificationIntervalMinutes,precipitationAlert,ventilation);return prepared;
 }
 
-export async function syncPushNotifications(favorites:PushRuleFavorite[],notificationIntervalMinutes:PushNotificationInterval,ventilation:VentilationPushConfig|null=ventilationPushConfig()){
+export async function syncPushNotifications(favorites:PushRuleFavorite[],notificationIntervalMinutes:PushNotificationInterval,precipitationAlert:PushPrecipitationAlertSettings=DEFAULT_PUSH_PRECIPITATION_ALERT,ventilation:VentilationPushConfig|null=ventilationPushConfig()){
  if(!supportsPush()||Notification.permission!=='granted')return false;
- const registration=await readyRegistration(),subscription=await registration.pushManager.getSubscription();if(!subscription)return false;await saveSubscription(subscription,favorites,notificationIntervalMinutes,ventilation);return true;
+ const registration=await readyRegistration(),subscription=await registration.pushManager.getSubscription();if(!subscription)return false;await saveSubscription(subscription,favorites,notificationIntervalMinutes,precipitationAlert,ventilation);return true;
 }
 
 

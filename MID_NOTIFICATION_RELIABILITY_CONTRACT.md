@@ -29,7 +29,7 @@ Niederschlagsbenachrichtigungen verwenden keine isolierte Rohschwelle einer einz
 - Regen-/Schauer-/Schneeanteile,
 - zentrale `reconcileForecastPrecipitation`-Logik.
 
-Ein bevorstehender Niederschlagsbeginn wird in einem ausreichend breiten Vorwarnfenster erkannt. Ein bereits vorab gemeldetes Ereignis darf beim eigentlichen Beginn nicht als zweites neues Ereignis gemeldet werden. Erst nach einem zwischenzeitlich trockenen/ereignisfreien Zustand darf ein neuer Niederschlagszyklus erneut auslösen.
+Ein bevorstehender Niederschlagsbeginn wird im vom Nutzer gewählten Vorwarnfenster erkannt. Der Vorlauf muss mindestens 15, 30, 45, 60, 90 und 120 Minuten unterstützen; zusätzlich muss eine Mindest-Ereignismenge einstellbar sein. Eine Beginnwarnung darf **nicht erst bei bereits laufendem Niederschlag** ausgelöst werden. Ist das gewählte Vorwarnfenster wegen einer übergeordneten Meldungspause verstrichen, wird keine verspätete „Beginn“-Meldung nachgeschoben. Ein bereits vorab gemeldetes Ereignis darf beim eigentlichen Beginn nicht als zweites neues Ereignis gemeldet werden. Erst nach einem zwischenzeitlich trockenen/ereignisfreien Zustand darf ein neuer Niederschlagszyklus erneut auslösen. Die geräteweite Meldungspause bleibt für Niederschlag, Gewitter, Lüftung und Vorhersageänderungen übergeordnet verbindlich.
 
 ## 4. Keine stillen Regelverluste
 
@@ -53,7 +53,8 @@ Jeder Release muss automatisiert prüfen, dass:
 - Push-Status Worker-Registrierung und Scheduler-Heartbeat auswertet,
 - eine echte Worker-Testmitteilung verfügbar ist,
 - Niederschlagsbeginn die zentrale Niederschlags-Reconciliation einschließlich 15-Minuten-Wahrscheinlichkeit verwendet,
-- Vorwarnung und Beginn desselben Niederschlagsereignisses dedupliziert werden,
+- Vorwarnzeit und Mindestmenge persistiert und an den Worker übertragen werden,
+- keine verspätete Beginnwarnung erst bei bereits laufendem Niederschlag erfolgt und die geräteweite Meldungspause Vorrang behält,
 - Push-Favoriten nicht still auf eine feste Anzahl gekappt werden,
 - der Scheduler paginierte KV-Ergebnisse vollständig verarbeitet.
 

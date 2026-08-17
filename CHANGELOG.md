@@ -1,3 +1,8 @@
+# v0.9.53.56
+
+- Niederschlagswarnungen: einstellbare Vorwarnzeit (15–120 min) und Mindestmenge (0,1–5,0 mm); keine verspätete Beginnwarnung erst bei bereits laufendem Niederschlag. Bestehende Meldungspause bleibt verbindlich.
+- Aktuelle Niederschlagswahrscheinlichkeit: textlicher Hinweis auf erwarteten Niederschlag jenseits des betrachteten +2-h-Nowcastfensters.
+
 ## 0.9.53.54
 
 - Netatmo OAuth-Rücksprung auf iOS/PWA gehärtet: Callback bleibt als sichtbare Erfolgs-/Fehlerseite stehen statt sofort zur App zurückzuspringen.
