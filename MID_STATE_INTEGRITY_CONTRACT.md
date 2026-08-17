@@ -87,3 +87,8 @@ Jeder Release muss automatisiert prüfen, dass:
 - Nutzer-Toggles den lokalen Modulzustand synchron vor einem möglichen App-Hintergrundwechsel persistieren.
 
 Eine Änderung, die einen dieser Punkte verletzt, ist eine Regression und darf nicht als neuer MID-Stand ausgeliefert werden.
+
+## Favoritenreihenfolge
+- Die vom Nutzer festgelegte Reihenfolge der Ortsfavoriten ist dauerhafter Nutzerdatenzustand und wird separat unter `mid:favorites:order:v1` mit eigener Revision gesichert.
+- Reorder-Aktionen werden synchron mit dem Favoritensnapshot persistiert; ein App-Neustart, Shadow-Recovery oder Geräte-Sync darf die Reihenfolge nicht auf einen älteren Stand zurücksetzen.
+- Vor dem ersten Geräte-Pull nach einer Migration wird aus dem vorhandenen lokalen Favoritenarray ein Order-Snapshot erzeugt. Beim Sync darf nur eine strikt neuere Order-Revision die lokale Reihenfolge ersetzen; fehlende/neue Favoriten werden mengen-erhaltend ergänzt.

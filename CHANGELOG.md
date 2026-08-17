@@ -1,3 +1,8 @@
+# v0.9.58.4
+
+- Ortsfavoriten-Reihenfolge erhält eine eigene persistente Order-Revision und wird bei Appstart/Shadow-Recovery wiederhergestellt.
+- Geräte-Sync migriert die lokale Reihenfolge vor dem ersten Pull und merged konkurrierende Reihenfolgen nach eigener Revision, ohne Favoriten zu verlieren.
+
 # v0.9.58.3
 
 - Regression-Hardening: zwei historische Radar-/Zeitpfeiltests auf den aktuellen Schwerpunktströmungs-Vertrag migriert.
