@@ -1576,6 +1576,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .mid-motion-track-arrowhead .core{stroke:rgba(255,255,255,.98);stroke-width:4}
 .mid-motion-axis-div-icon,.mid-motion-time-div-icon{background:transparent!important;border:0!important}
 .mid-motion-axis-label{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:96px;padding:4px 8px;border-radius:999px;background:rgba(243,247,251,.93);border:1px solid rgba(18,44,68,.18);box-shadow:0 6px 16px rgba(10,24,39,.16),inset 0 0 0 1px rgba(255,255,255,.48)}
+.mid-motion-axis-label.subtle{min-width:unset;padding:3px 8px;background:rgba(244,248,252,.9);box-shadow:0 3px 10px rgba(10,24,39,.12),inset 0 0 0 1px rgba(255,255,255,.48)}
 .mid-motion-axis-label b{display:block;font-size:11px;line-height:1.05;color:#10233a;white-space:nowrap;letter-spacing:.01em}
 .mid-motion-axis-label small{display:block;font-size:9px;line-height:1.05;color:#476177;white-space:nowrap}
 .model-run-group-title{display:block;margin:10px 0 5px;font-size:.78rem;color:var(--muted)}

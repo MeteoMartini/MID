@@ -19,7 +19,10 @@ for(const token of [
   "unit?:'kt'|'m'|'ft'",
   "detail:aviationVisibility(visibilityMin)",
   "ft AGL",
-  "visibilityMinM:visibilityMin,gustMaxKt:gustMax"
+  "resolvedCeilingMinFt=hazardValue(items,'ceiling')??ceilingMinFt",
+  "resolvedVisibilityMinM=hazardValue(items,'visibility')??visibilityMin",
+  "resolvedGustMaxKt=hazardValue(items,'wind')??gustMax",
+  "ceilingMinFt:resolvedCeilingMinFt,visibilityMinM:resolvedVisibilityMinM,gustMaxKt:resolvedGustMaxKt"
 ])assert.ok(aviation.includes(token),`Flug-Hazard-Rohwertvertrag fehlt: ${token}`);
 for(const token of [
   'function aviationVisibilityMetersText(value)',
@@ -34,4 +37,4 @@ const baseline=JSON.parse(baselineText),pkg=JSON.parse(pkgText);
 assert.ok(baseline.requiredRegressionTests.includes('scripts/test-event-flight-units-09553.mjs'));
 assert.ok(baseline.regressionTests.includes('scripts/test-event-flight-units-09553.mjs'));
 assert.equal(pkg.scripts['test:event-flight-units'],'node scripts/test-event-flight-units-09553.mjs');
-console.log('Flug-Events geprüft: Wind folgt der gewählten Einheit, Sicht nutzt m/km und Wolkenuntergrenze ft AGL; amtliche METAR/TAF-Signale liefern strukturierte Rohwerte.');
+console.log('Flug-Events geprüft: Wind folgt der gewählten Einheit, Sicht nutzt m/km, Wolkenuntergrenze ft AGL und amtliche METAR/TAF-Rohwerte haben vor der Modell-Diagnose Vorrang.');

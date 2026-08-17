@@ -1,3 +1,13 @@
+# v0.9.57.2
+
+- Installer gegen paralleles Weiterlaufen von `main` gehärtet: eventgebundener Checkout, sicherer Fetch/Rebase nur für `.github`, Abbruch bei neueren fachlichen Änderungen und Push-Retry ohne Force-Push.
+
+# v0.9.57.1
+
+- Regressionsverträge für den finalen Komposit-Zeitpfeil auf lange sichtbare Achse, Zielspitze am Standort und reduzierte Zeitlabels aktualisiert.
+- Flug-Event-Einheitenregression auf die amtliche METAR/TAF-Priorisierung vor der Modell-Diagnose aktualisiert.
+- Keine fachliche Rücknahme der Funktionen aus v0.9.57.0.
+
 # v0.9.57.0
 
 - Kompositbild auf einen einzelnen langen Zeitpfeil mit Zielspitze am gewählten Ort umgestellt.

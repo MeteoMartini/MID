@@ -61,6 +61,7 @@ function mergeOfficial(items:EventFlightHazardItem[],signals:OfficialSignal[]){
  const baseOrder:EventFlightHazardId[]=['thunderstorm','icing','turbulence','cat','ceiling','visibility','wind'],specialOrder:EventFlightHazardId[]=['llws','mountain-wave','freezing-rain','volcanic-ash','tropical-cyclone','dust-sand','radiological']
  return[...baseOrder,...specialOrder].map(id=>byId.get(id)).filter((item):item is EventFlightHazardItem=>Boolean(item)).filter(item=>baseOrder.includes(item.id)||item.level!=='none')
 }
+function hazardValue(items:EventFlightHazardItem[],id:EventFlightHazardId){const value=items.find(item=>item.id===id&&item.value!==undefined&&item.value!==null)?.value;return Number.isFinite(Number(value))?Number(value):null}
 function officialOnlySummary(official:OfficialResponse,note:string):EventFlightHazardSummary{
  const signals=official.signals??[],items=mergeOfficial([],signals),sources=official.sources??[],used=sourceLabels(sources)
  return{available:items.length>0,overall:overall(items),items,freezingLevelMin:null,ceilingMinFt:null,visibilityMinM:null,gustMaxKt:null,source:used.slice(0,4).join(' · ')||'Amtliche Flugwetterquellen',sources,officialSignalCount:signals.length,note:items.length?`${note} Amtliche Hazardprodukte bleiben verfügbar.`:note}
@@ -86,7 +87,7 @@ export async function loadEventFlightHazards(lat:number,lon:number,elevation:num
    {id:'visibility',label:'Sicht',level:visibilityLevel,detail:aviationVisibility(visibilityMin),value:visibilityMin??undefined,unit:'m'},
    {id:'wind',label:'Böen',level:windLevel,detail:gustMax===null?'nicht verfügbar':`bis ${Math.round(gustMax)} kt`,value:gustMax??undefined,unit:'kt'}
   ]
-  const officialSignals=official.signals??[],items=mergeOfficial(diagnosed,officialSignals),sources:EventFlightSourceStatus[]=[{id:'model-profile',label:`${response.modelLabel||'Best Match'} / MID-Druckniveau`,status:'used'},...(official.sources??[])],used=sourceLabels(sources),source=[response.modelLabel||'Best Match',...used.filter(label=>!label.startsWith(response.modelLabel||'Best Match'))].filter(Boolean).slice(0,4).join(' · ')
-  return{available:true,overall:overall(items),items,freezingLevelMin:minNumber(freezing),ceilingMinFt,visibilityMinM:visibilityMin,gustMaxKt:gustMax,source, sources,officialSignalCount:officialSignals.length}
+  const officialSignals=official.signals??[],items=mergeOfficial(diagnosed,officialSignals),sources:EventFlightSourceStatus[]=[{id:'model-profile',label:`${response.modelLabel||'Best Match'} / MID-Druckniveau`,status:'used'},...(official.sources??[])],used=sourceLabels(sources),source=[response.modelLabel||'Best Match',...used.filter(label=>!label.startsWith(response.modelLabel||'Best Match'))].filter(Boolean).slice(0,4).join(' · '),resolvedCeilingMinFt=hazardValue(items,'ceiling')??ceilingMinFt,resolvedVisibilityMinM=hazardValue(items,'visibility')??visibilityMin,resolvedGustMaxKt=hazardValue(items,'wind')??gustMax
+  return{available:true,overall:overall(items),items,freezingLevelMin:minNumber(freezing),ceilingMinFt:resolvedCeilingMinFt,visibilityMinM:resolvedVisibilityMinM,gustMaxKt:resolvedGustMaxKt,source,sources,officialSignalCount:officialSignals.length}
  }catch(error){if(signal?.aborted)throw error;const official=await loadOfficial(lat,lon,startEpoch,endEpoch,signal);return officialOnlySummary(official,error instanceof Error?`Druckniveau-Diagnose nicht verfügbar: ${error.message}`:'Druckniveau-Diagnose nicht verfügbar.')}
 }

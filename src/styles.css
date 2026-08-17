@@ -3025,10 +3025,12 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .mid-motion-arrow-marker .halo{stroke:rgba(8,20,32,.58);stroke-width:5.2}
 .mid-motion-arrow-marker .core{stroke:rgba(255,255,255,.88);stroke-width:2.35}
 .mid-motion-arrow-marker.low .core{stroke:rgba(238,248,255,.72)}
-.mid-motion-time-label{--mid-intensity:.45;display:flex;flex-direction:column;gap:1px;min-width:52px;padding:4px 7px 4px 8px;border-radius:10px;background:rgba(238,244,250,.94);border:1px solid rgba(19,47,74,.16);box-shadow:0 5px 14px rgba(11,31,49,.22),inset 0 0 0 1px rgba(255,255,255,.55);position:relative;transform:translateZ(0)}
-.mid-motion-time-label::before{content:"";position:absolute;left:-6px;top:50%;width:8px;height:8px;border-radius:50%;background:rgba(18,92,155,calc(.28 + var(--mid-intensity)*.5));box-shadow:0 0 0 2px rgba(255,255,255,.92),0 0 0 3px rgba(14,43,68,.14);transform:translateY(-50%)}
+.mid-motion-time-label{--mid-intensity:.45;display:flex;flex-direction:column;align-items:center;gap:1px;min-width:58px;padding:4px 8px;border-radius:10px;background:rgba(241,246,251,.95);border:1px solid rgba(19,47,74,.16);box-shadow:0 5px 14px rgba(11,31,49,.18),inset 0 0 0 1px rgba(255,255,255,.55);position:relative;transform:translateZ(0)}
+.mid-motion-time-label::after{content:"";position:absolute;left:50%;width:2px;height:12px;border-radius:999px;background:rgba(20,54,82,.42);transform:translateX(-50%)}
+.mid-motion-time-label.above::after{bottom:-10px}
+.mid-motion-time-label.below::after{top:-10px}
 .mid-motion-time-label b{display:block;font-size:12px;line-height:1.05;color:#10233a;white-space:nowrap}
-.mid-motion-time-label small{display:block;font-size:9px;line-height:1.05;color:#476177;white-space:nowrap}
+.mid-motion-time-label small{display:block;font-size:8.5px;line-height:1.05;color:#476177;white-space:nowrap}
 .mid-motion-time-div-icon{background:transparent!important;border:0!important}
 .radar-location-marker.selected-location{height:19px!important}
 .radar-location-marker.selected-location .radar-location-ring{top:2px!important}
@@ -6134,6 +6136,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .mid-motion-track-arrowhead .core{stroke:rgba(255,255,255,.98);stroke-width:4}
 .mid-motion-axis-div-icon,.mid-motion-time-div-icon{background:transparent!important;border:0!important}
 .mid-motion-axis-label{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:96px;padding:4px 8px;border-radius:999px;background:rgba(243,247,251,.93);border:1px solid rgba(18,44,68,.18);box-shadow:0 6px 16px rgba(10,24,39,.16),inset 0 0 0 1px rgba(255,255,255,.48)}
+.mid-motion-axis-label.subtle{min-width:unset;padding:3px 8px;background:rgba(244,248,252,.9);box-shadow:0 3px 10px rgba(10,24,39,.12),inset 0 0 0 1px rgba(255,255,255,.48)}
 .mid-motion-axis-label b{display:block;font-size:11px;line-height:1.05;color:#10233a;white-space:nowrap;letter-spacing:.01em}
 .mid-motion-axis-label small{display:block;font-size:9px;line-height:1.05;color:#476177;white-space:nowrap}
 .model-run-group-title{display:block;margin:10px 0 5px;font-size:.78rem;color:var(--muted)}

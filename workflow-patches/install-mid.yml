@@ -31,7 +31,7 @@ jobs:
       - name: Repository laden
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: main
+          ref: ${{ github.sha }}
           fetch-depth: 0
 
       - name: Release-ZIP sicher entpacken
@@ -225,8 +225,42 @@ jobs:
           fi
 
           version=$(node -p "require('./package.json').version")
+          install_base_sha="$GITHUB_SHA"
           git commit -m "Install MID v${version}"
-          git push origin HEAD:main
+
+          # main kann zwischen Workflow-Start und Release-Commit weiterlaufen.
+          # Nur reine .github-Änderungen dürfen transparent übernommen werden;
+          # Anwendungs-, Dependency- oder ein neuer ZIP-Upload brechen den alten
+          # Lauf sicher ab, damit nie ein neuerer Release-Stand überschrieben wird.
+          pushed=false
+          for attempt in 1 2 3; do
+            git fetch --no-tags origin main
+            remote_sha="$(git rev-parse origin/main)"
+
+            if ! git merge-base --is-ancestor "$remote_sha" HEAD; then
+              changed="$(git diff --name-only "$install_base_sha..$remote_sha" || true)"
+              unsafe="$(printf '%s\n' "$changed" | sed '/^$/d' | grep -Ev '^\.github/' || true)"
+              if [ -n "$unsafe" ]; then
+                echo "::error::main wurde während der Installation durch fachliche Dateien weitergeführt. Dieser Lauf überschreibt den neueren Stand nicht."
+                printf '%s\n' "$unsafe"
+                exit 1
+              fi
+              echo "main enthält nur neuere .github-Änderungen; Release-Commit wird sicher darauf rebaset."
+              git rebase origin/main
+            fi
+
+            if git push origin HEAD:main; then
+              pushed=true
+              break
+            fi
+            echo "Push wurde parallel überholt; erneuter sicherer Versuch ${attempt}/3."
+            sleep $((attempt * 2))
+          done
+
+          if [ "$pushed" != true ]; then
+            echo "::error::Release-Commit konnte nach drei race-sicheren Versuchen nicht nach main übertragen werden."
+            exit 1
+          fi
 
           echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 

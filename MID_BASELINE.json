@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.57.0",
+  "releaseVersion": "0.9.57.2",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -219,7 +219,8 @@
     "scripts/test-maintenance-modularization-09560.mjs",
     "scripts/test-composite-time-arrow-09561.mjs",
     "scripts/test-approved-dependency-upgrades-09570.mjs",
-    "scripts/test-github-actions-v7-sync-09570.mjs"
+    "scripts/test-github-actions-v7-sync-09570.mjs",
+    "scripts/test-install-main-race-09572.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -371,7 +372,8 @@
     "scripts/test-maintenance-modularization-09560.mjs",
     "scripts/test-composite-time-arrow-09561.mjs",
     "scripts/test-approved-dependency-upgrades-09570.mjs",
-    "scripts/test-github-actions-v7-sync-09570.mjs"
+    "scripts/test-github-actions-v7-sync-09570.mjs",
+    "scripts/test-install-main-race-09572.mjs"
   ],
   "requiredFiles": [
     "scripts/test-cockpit-regression-sync-09201.mjs",
