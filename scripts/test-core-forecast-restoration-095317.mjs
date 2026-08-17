@@ -10,7 +10,8 @@ const [weather,app,worker,guard,baselineRaw,pkgRaw]=await Promise.all([
  readFile(new URL('package.json',root),'utf8')
 ]);
 const baseline=JSON.parse(baselineRaw),pkg=JSON.parse(pkgRaw);
-assert.ok(/^0\.9\.53\.(?:17|1[8-9]|[2-9]\d|\d{3,})$/.test(pkg.version));
+const versionAtLeast=(value,minimum)=>{const a=String(value).split('.').map(Number),b=String(minimum).split('.').map(Number);for(let i=0;i<Math.max(a.length,b.length,4);i++){const av=Number.isFinite(a[i])?a[i]:0,bv=Number.isFinite(b[i])?b[i]:0;if(av!==bv)return av>bv}return true};
+assert.ok(versionAtLeast(pkg.version,'0.9.53.17'));
 assert.equal(baseline.releaseVersion,pkg.version);
 assert.ok(baseline.requiredRegressionTests.includes('scripts/test-core-forecast-restoration-095317.mjs'));
 

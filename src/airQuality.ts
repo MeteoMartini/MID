@@ -1,7 +1,7 @@
 export type EuropeanAqiBandKey='good'|'fair'|'moderate'|'poor'|'very-poor'|'extremely-poor';
 export type EuropeanAqiPollutantKey='pm2_5'|'pm10'|'nitrogen_dioxide'|'ozone'|'sulphur_dioxide';
 export type EuropeanAqiBand={key:EuropeanAqiBandKey;label:string;index:number;color:string;health:string};
-export type EuropeanAqiPollutantResult={key:EuropeanAqiPollutantKey;label:string;formula:string;value:number;unit:'µg/m³';band:EuropeanAqiBand};
+export type EuropeanAqiPollutantResult={key:EuropeanAqiPollutantKey;label:string;formula:string;value:number;unit:'µg/m³';band:EuropeanAqiBand;aqi?:number};
 export type EuropeanAirQualityResult={band:EuropeanAqiBand;dominant:EuropeanAqiPollutantResult;pollutants:EuropeanAqiPollutantResult[]};
 export type EuropeanAqiPollutantScaleSegment={band:EuropeanAqiBand;min:number;max:number|null};
 export type EuropeanAqiPollutantScale={segments:EuropeanAqiPollutantScaleSegment[];positionPct:number};
@@ -15,6 +15,11 @@ export const EUROPEAN_AQI_BANDS:EuropeanAqiBand[]=[
  {key:'very-poor',label:'Sehr schlecht',index:4,color:'#960032',health:'Gesundheitliche Auswirkungen sind möglich; körperliche Belastung im Freien reduzieren.'},
  {key:'extremely-poor',label:'Äußerst schlecht',index:5,color:'#7D2181',health:'Gesundheitsrisiko: anstrengende Aktivitäten im Freien vermeiden.'}
 ];
+
+
+export const EUROPEAN_AQI_INDEX_THRESHOLDS=[20,40,60,80,100] as const;
+const EUROPEAN_AQI_FIELD_BY_POLLUTANT:Record<EuropeanAqiPollutantKey,string>={pm2_5:'european_aqi_pm2_5',pm10:'european_aqi_pm10',nitrogen_dioxide:'european_aqi_nitrogen_dioxide',ozone:'european_aqi_ozone',sulphur_dioxide:'european_aqi_sulphur_dioxide'};
+export function europeanAqiBandFromIndex(value:unknown):EuropeanAqiBand|null{const number=Number(value);if(!Number.isFinite(number)||number<0)return null;const index=EUROPEAN_AQI_INDEX_THRESHOLDS.findIndex(max=>number<=max);return EUROPEAN_AQI_BANDS[index<0?5:index]}
 
 type PollutantDefinition={key:EuropeanAqiPollutantKey;label:string;formula:string;thresholds:[number,number,number,number,number]};
 export const EUROPEAN_AQI_POLLUTANTS:PollutantDefinition[]=[
@@ -34,10 +39,15 @@ export function classifyEuropeanAqiPollutant(key:EuropeanAqiPollutantKey,value:u
 
 export function classifyEuropeanAirQuality(current:Record<string,number|string>|undefined|null):EuropeanAirQualityResult|null{
  if(!current)return null;
- const pollutants=EUROPEAN_AQI_POLLUTANTS.map(item=>classifyEuropeanAqiPollutant(item.key,current[item.key])).filter((item):item is EuropeanAqiPollutantResult=>Boolean(item));
+ const pollutants:EuropeanAqiPollutantResult[]=EUROPEAN_AQI_POLLUTANTS.flatMap(item=>{
+  const concentration=classifyEuropeanAqiPollutant(item.key,current[item.key]);if(!concentration)return[];
+  const aqiValue=Number(current[EUROPEAN_AQI_FIELD_BY_POLLUTANT[item.key]]),aqiBand=europeanAqiBandFromIndex(aqiValue),result:EuropeanAqiPollutantResult={...concentration,band:aqiBand??concentration.band};
+  if(Number.isFinite(aqiValue)&&aqiValue>=0)result.aqi=aqiValue;
+  return[result];
+ });
  if(!pollutants.length)return null;
- const dominant=[...pollutants].sort((a,b)=>b.band.index-a.band.index||b.value-a.value)[0];
- return{band:dominant.band,dominant,pollutants};
+ const dominant=[...pollutants].sort((a,b)=>b.band.index-a.band.index||(b.aqi??-1)-(a.aqi??-1)||b.value-a.value)[0],overallBand=europeanAqiBandFromIndex(current.european_aqi);
+ return{band:overallBand??dominant.band,dominant,pollutants};
 }
 
 

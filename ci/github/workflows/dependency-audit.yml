@@ -37,7 +37,20 @@ jobs:
           set -euo pipefail
           npm config set registry https://registry.npmjs.org/
           npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
-      - name: Sicherheitsprüfung ausführen
+      - name: Vollständigen Auditbericht erzeugen
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm audit --audit-level=high --json > npm-audit-full.json || true
+      - name: Auditbericht auch bei Befund als Artefakt sichern
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: mid-dependency-audit-${{ github.run_id }}
+          path: npm-audit-full.json
+          if-no-files-found: error
+          retention-days: 30
+      - name: Sicherheitsprüfung als hartes Release-Gate ausführen
         shell: bash
         run: |
           set -euo pipefail

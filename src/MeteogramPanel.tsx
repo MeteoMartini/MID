@@ -30,7 +30,10 @@ const MODELS:ModelOption[]=[
  {id:'knmi_harmonie_arome_europe',label:'KNMI HARMONIE Europe',hours:60,detail:'Rapid Update · ca. 5,5 km · stündlicher Lauf · bis 60 h',bbox:[-12,40,32,68]},
  {id:'ukmo_uk_deterministic_2km',label:'UKMO UKV',hours:48,detail:'Rapid Update · ca. 2 km · stündlicher Lauf · Open-Data-Verzögerung',bbox:[-12,48,4,62]},
  {id:'dwd_icon_eu',label:'DWD ICON-EU',hours:120,detail:'ca. 7 km · bis 120 h',bbox:[-25,30,45,72]},
- {id:'meteofrance_arpege_europe',label:'Météo-France ARPEGE Europa',hours:114,detail:'ca. 10 km · bis 114 h',bbox:[-25,30,45,72]},
+ {id:'meteofrance_arpege_europe',label:'Météo-France ARPEGE Europa',hours:96,detail:'ca. 11 km · bis 96 h',bbox:[-25,30,45,72]},
+ {id:'jma_msm',label:'JMA MSM',hours:96,detail:'ca. 5 km · Druckniveaus ca. 11 km · bis 96 h',bbox:[118,20,155,52]},
+ {id:'jma_seamless',label:'JMA Seamless',hours:168,detail:'MSM/GSM · Best-Match-Pfad für Japan',bbox:[118,20,155,52]},
+ {id:'jma_gsm',label:'JMA GSM',hours:168,detail:'ca. 55 km · bis 168 h',bbox:[118,20,155,52]},
  {id:'ecmwf_ifs',label:'ECMWF IFS HRES',hours:168,detail:'ca. 9 km · bis 168 h'},
  {id:'ncep_gfs025',label:'NOAA GFS 0,25°',hours:168,detail:'global · bis 168 h'},
  {id:'dwd_icon',label:'DWD ICON Global',hours:180,detail:'ca. 11 km · bis 180 h'}
@@ -39,10 +42,14 @@ const MODELS:ModelOption[]=[
 const SURFACE_VARS=['temperature_2m','relative_humidity_2m','pressure_msl','wind_speed_10m','wind_direction_10m','wind_gusts_10m','precipitation','rain','showers','snowfall','snow_depth','weather_code','cloud_cover','cloud_cover_low','freezing_level_height','cape','lifted_index','convective_inhibition','sunshine_duration','is_day'];
 const PROFILE_VARS=PROFILE_LEVELS.flatMap(level=>[`temperature_${level}hPa`,`relative_humidity_${level}hPa`,`cloud_cover_${level}hPa`,`wind_speed_${level}hPa`,`wind_direction_${level}hPa`,`geopotential_height_${level}hPa`]);
 const HOURLY_VARS=[...SURFACE_VARS,...PROFILE_VARS];
+const JMA_METEOGRAM_BBOX:[number,number,number,number]=[118,20,155,52];
+function inJmaMeteogramArea(lat:number,lon:number){const[minLon,minLat,maxLon,maxLat]=JMA_METEOGRAM_BBOX;return lon>=minLon&&lon<=maxLon&&lat>=minLat&&lat<=maxLat}
+function effectiveMeteogramModel(model:string,lat:number,lon:number){return model==='best_match'&&inJmaMeteogramArea(lat,lon)?'jma_seamless':model}
+function meteogramHourlyVars(model:string){if(!model.startsWith('jma_'))return HOURLY_VARS;const unsupported=new Set(['wind_gusts_10m','cape','lifted_index','convective_inhibition','sunshine_duration']);return HOURLY_VARS.filter(variable=>!unsupported.has(variable))}
 
 type HourlyRecord={time:(number|string)[];[key:string]:(number|string|null)[]};
 type MeteogramRaw={latitude?:number;longitude?:number;elevation?:number;timezone?:string;timezone_abbreviation?:string;utc_offset_seconds?:number;hourly?:HourlyRecord;hourly_units?:Record<string,string>;model?:string;model_id?:string;generationtime_ms?:number};
-type MeteogramResponse={data:MeteogramRaw;requestedModel:string;modelLabel?:string;forecastHours?:number;runInitialisationTime?:string;runAvailabilityTime?:string;checkedAt?:string;version?:string;error?:string};
+type MeteogramResponse={data:MeteogramRaw;requestedModel:string;effectiveModel?:string;modelLabel?:string;forecastHours?:number;runInitialisationTime?:string;runAvailabilityTime?:string;checkedAt?:string;version?:string;error?:string};
 type ProfileRow={key:string;label:string;pressure?:number;heights:(number|null)[];temperature:(number|null)[];humidity:(number|null)[];cloud:(number|null)[];windSpeed:(number|null)[];windDirection:(number|null)[]};
 type Normalized={times:number[];surface:ProfileRow;rows:ProfileRow[];hourly:HourlyRecord;elevation:number};
 type RiskCell=0|1|2;
@@ -68,13 +75,13 @@ function storedBoolean(key:string,fallback=false){try{const value=localStorage.g
 function storedModel(){try{const value=localStorage.getItem(MODEL_KEY)||'best_match';return MODELS.some(model=>model.id===value)?value:'best_match'}catch{return'best_match'}}
 function modelApplies(model:ModelOption,lat:number,lon:number){if(!model.bbox)return true;const[minLon,minLat,maxLon,maxLat]=model.bbox;return lon>=minLon&&lon<=maxLon&&lat>=minLat&&lat<=maxLat}
 function modelLabel(id:string){return MODELS.find(item=>item.id===id)?.label||id}
-function directEndpoint(lat:number,lon:number,elevation:number,model:string){const forecastHours=MODELS.find(item=>item.id===model)?.hours??168,url=new URL('https://api.open-meteo.com/v1/forecast');url.searchParams.set('latitude',String(lat));url.searchParams.set('longitude',String(lon));url.searchParams.set('elevation',String(Math.round(elevation)));url.searchParams.set('hourly',HOURLY_VARS.join(','));url.searchParams.set('forecast_hours',String(forecastHours));url.searchParams.set('models',model);url.searchParams.set('timezone','GMT');url.searchParams.set('timeformat','unixtime');url.searchParams.set('wind_speed_unit','kn');url.searchParams.set('precipitation_unit','mm');url.searchParams.set('cell_selection','nearest');return url}
+function directEndpoint(lat:number,lon:number,elevation:number,model:string){const effective=effectiveMeteogramModel(model,lat,lon),forecastHours=MODELS.find(item=>item.id===model)?.hours??168,url=new URL('https://api.open-meteo.com/v1/forecast');url.searchParams.set('latitude',String(lat));url.searchParams.set('longitude',String(lon));url.searchParams.set('elevation',String(Math.round(elevation)));url.searchParams.set('hourly',meteogramHourlyVars(effective).join(','));url.searchParams.set('forecast_hours',String(forecastHours));url.searchParams.set('models',effective);url.searchParams.set('timezone','GMT');url.searchParams.set('timeformat','unixtime');url.searchParams.set('wind_speed_unit','kn');url.searchParams.set('precipitation_unit','mm');url.searchParams.set('cell_selection','nearest');return url}
 async function loadMeteogram(lat:number,lon:number,elevation:number,model:string,signal?:AbortSignal,force=false):Promise<MeteogramResponse>{
  const key=meteogramCacheKey(lat,lon,elevation,model),cached=directMeteogramCache.get(key),age=cached?Date.now()-cached.at:Infinity;
  if(workerBaseCandidates('meteogram').length){try{return await fetchWorkerJson<MeteogramResponse>('meteogram',{lat,lon,elevation:Math.round(elevation),model,refresh:force?1:undefined},{purpose:'meteogram',signal,timeoutMs:16000,maxAgeMs:force?0:METEOGRAM_CACHE_TTL_MS,staleIfErrorMs:METEOGRAM_STALE_IF_ERROR_MS,cacheKey:`meteogram:${key}`})}catch(error){if(signal?.aborted)throw error}}
  if(!force&&cached&&age<=METEOGRAM_CACHE_TTL_MS)return cached.value;
  try{
-  const response=await guardedOpenMeteoFetch(directEndpoint(lat,lon,elevation,model).toString(),{signal,cache:force?'reload':'default'},{priority:'normal'}),raw=await response.json().catch(()=>({}));if(!response.ok)throw new Error(raw?.error||raw?.reason||`Meteogramm HTTP ${response.status}`);const result=raw?.data?raw as MeteogramResponse:{data:raw as MeteogramRaw,requestedModel:model,modelLabel:model==='best_match'?'Best Match':MODELS.find(item=>item.id===model)?.label,forecastHours:MODELS.find(item=>item.id===model)?.hours??168,checkedAt:new Date().toISOString(),version:VERSION};rememberDirectMeteogram(key,result);return result;
+  const response=await guardedOpenMeteoFetch(directEndpoint(lat,lon,elevation,model).toString(),{signal,cache:force?'reload':'default'},{priority:'normal'}),raw=await response.json().catch(()=>({}));if(!response.ok)throw new Error(raw?.error||raw?.reason||`Meteogramm HTTP ${response.status}`);const effective=effectiveMeteogramModel(model,lat,lon),result=raw?.data?raw as MeteogramResponse:{data:raw as MeteogramRaw,requestedModel:model,effectiveModel:effective,modelLabel:model==='best_match'?(effective==='jma_seamless'?'Best Match · JMA Seamless':'Best Match'):MODELS.find(item=>item.id===model)?.label,forecastHours:MODELS.find(item=>item.id===model)?.hours??168,checkedAt:new Date().toISOString(),version:VERSION};rememberDirectMeteogram(key,result);return result;
  }catch(error){if(signal?.aborted)throw error;if(cached&&age<=METEOGRAM_STALE_IF_ERROR_MS)return cached.value;throw error}
 }
 function normalize(raw:MeteogramRaw,elevationInput:number,maxHours=168):Normalized{

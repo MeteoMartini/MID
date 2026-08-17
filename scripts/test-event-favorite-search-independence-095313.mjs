@@ -11,7 +11,8 @@ const [center,favoriteState,panel,sync,styles,baselineRaw,pkgRaw]=await Promise.
  readFile(new URL('../package.json',import.meta.url),'utf8')
 ]);
 const baseline=JSON.parse(baselineRaw),pkg=JSON.parse(pkgRaw);
-assert.ok(/^0\.9\.53\.(?:1[3-9]|[2-9]\d|\d{3,})$/.test(pkg.version),`Unerwartete Version ${pkg.version}; erwartet wird mindestens 0.9.53.13 innerhalb der stabilen 0.9.53-Reihe.`);
+const versionAtLeast=(value,minimum)=>{const a=String(value).split('.').map(Number),b=String(minimum).split('.').map(Number);for(let i=0;i<Math.max(a.length,b.length,4);i++){const av=Number.isFinite(a[i])?a[i]:0,bv=Number.isFinite(b[i])?b[i]:0;if(av!==bv)return av>bv}return true};
+assert.ok(versionAtLeast(pkg.version,'0.9.53.13'),`Unerwartete Version ${pkg.version}; erwartet wird mindestens 0.9.53.13.`);
 assert.equal(baseline.releaseVersion,pkg.version);
 assert.match(center,/favoriteUpdatedAt\?:number/,'Event-Favoriten benötigen eine eigene Revisionszeit.');
 assert.match(center,/toggleEventCenterFavorite\(id:string\).*favoriteUpdatedAt:at/s,'Das Umschalten eines Event-Favoriten muss nur den Event-Datensatz mit eigener Revision aktualisieren.');

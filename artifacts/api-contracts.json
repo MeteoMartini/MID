@@ -1,0 +1,18 @@
+{
+  "schema": 2,
+  "checkedAt": "2026-08-17T07:29:26.401Z",
+  "ok": false,
+  "failures": [
+    "Open-Meteo Best Match + Mond: fetch failed",
+    "ECMWF AIFS Europe Ensemble: fetch failed",
+    "Météo-France meteofrance_arome_france: fetch failed",
+    "Météo-France meteofrance_seamless: fetch failed",
+    "Météo-France meteofrance_arpege_europe: fetch failed",
+    "JMA jma_msm: fetch failed",
+    "JMA jma_gsm: fetch failed",
+    "JMA jma_seamless: fetch failed",
+    "EU-AQI stündlich: fetch failed",
+    "Hourly Min/Max Aggregation: fetch failed"
+  ],
+  "checks": []
+}

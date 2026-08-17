@@ -9,7 +9,11 @@ if(!atLeastMinimum)fail.push(`package.json liegt vor 0.8.27.4: ${pkg.version}`);
 if(baseline.releaseVersion!==pkg.version)fail.push(`MID_BASELINE.json ${baseline.releaseVersion} passt nicht zu package.json ${pkg.version}`);
 if(pkg.scripts?.['build:vite']!=='node --max-old-space-size=4096 node_modules/vite/bin/vite.js build')fail.push('Speicherschonender Vite-Start fehlt.');
 for(const token of ["minify:'esbuild'","cssMinify:'esbuild'","reportCompressedSize:false"])if(!vite.includes(token))fail.push(`Vite-Konfiguration fehlt: ${token}`);
-if(vite.includes('manualChunks'))fail.push('Riskante manuelle Vendor-Chunk-Aufteilung ist aktiv.');
+if(vite.includes('manualChunks')){
+  const auditedVendorSplit=vite.includes('manualChunks:midVendorChunk')&&vite.includes("return 'ReactVendor'")&&vite.includes("return 'ChartsVendor'");
+  if(!auditedVendorSplit)fail.push('Riskante oder nicht auditierte manuelle Vendor-Chunk-Aufteilung ist aktiv.');
+  if(/return ['"]MapLibre/i.test(vite))fail.push('MapLibre darf nicht in einen erzwungenen Vendor-Chunk verschoben werden.');
+}
 if(css.includes('.chart.trend-combined:has('))fail.push('Dynamischer Tooltip-:has()-Selektor ist noch enthalten.');
 if(!css.includes('z-index:90;'))fail.push('Statische Tooltip-Ebene fehlt.');
 if(fail.length){console.error('MID Buildstabilitätsregression ab v0.8.27.4 fehlgeschlagen:\n- '+fail.join('\n- '));process.exit(1)}

@@ -1,3 +1,26 @@
+# v0.9.54.2
+
+- CI-Regressionsfix für den in v0.9.54.1 übernommenen Vendor-Chunking-Vertrag: `test-performance-budget.mjs` akzeptiert jetzt ausschließlich die auditierte `ReactVendor`-/`ChartsVendor`-Aufteilung.
+- Generisches oder zusätzliches manuelles Vendor-Chunking bleibt gesperrt; MapLibre darf weiterhin nicht manuell gechunkt werden und behält seine bestehende Lazy-Importgrenze.
+- Keine Änderung an Open-Meteo-, AQI-, JMA-, Météo-France-, Ensemble-, Favoriten-, Event- oder Worker-Wetterlogik.
+
+# v0.9.54.1
+
+- Audit-Nachtrag aus v0.9.53.57 übernommen: React sowie Recharts/D3 werden als stabile Vendor-Chunks vom Hauptbundle getrennt; die bestehende MapLibre-Lazy-Grenze bleibt erhalten.
+- Dependency-Audit sichert den vollständigen npm-Auditbericht auch bei Befund für 30 Tage als Artefakt; das High-Severity-Gate bleibt hart.
+- Release-CI verifiziert nach Pages-Deployment den tatsächlich veröffentlichten `mid-stable`-SHA und setzt darauf `MID / stable-release-quality`.
+- Recharts-Wartungsvertrag verlangt weiterhin einen exakt reproduzierbaren 3.x-Lockstand, blockiert kompatible 3.x-Minor-/Patch-Kandidaten aber nicht mehr durch einen historischen 3.8.1-Literal.
+- Eigene Stable-Hardening-Regression schützt Vendor-Chunking, Audit-Artefakt, Stable-SHA-Status und Recharts-3-Kompatibilitätsvertrag dauerhaft.
+- Historischer Buildstabilitätsvertrag akzeptiert nur die auditierte React-/Charts-Aufteilung; generisches Vendor-Chunking und erzwungenes MapLibre-Chunking bleiben verboten.
+
+# v0.9.54.0
+
+- Open-Meteo-Audit 17.08.2026 übernommen: AIFS-Europe-Ensemble mit Cloud-/Niederschlags-Plausibilitätsgate.
+- Météo-France-Migrationsvertrag aktualisiert: AROME/ARPEGE, Seamless, 15-Minuten-Varianten sowie Niederschlag/Wind/Bewölkung/Sonnenschein regressionsgeschützt.
+- JMA MSM/GSM/Seamless ergänzt; japanischer Meteogramm-Best-Match-, Höhen- und Druckniveaupfad vereinheitlicht.
+- EU-AQI auf Open-Meteo-Gesamt-/Teilindizes erweitert; stündliche PM-/AQI-Reihen werden mitgeführt, Konzentrationsschwellen bleiben Fallback.
+- API-Regression für getrennte 6-h-Min/Max-Aggregationen, Mondfelder und DWD-ICON-Begleitverträge ergänzt.
+
 # v0.9.53.56
 
 - Niederschlagswarnungen: einstellbare Vorwarnzeit (15–120 min) und Mindestmenge (0,1–5,0 mm); keine verspätete Beginnwarnung erst bei bereits laufendem Niederschlag. Bestehende Meldungspause bleibt verbindlich.

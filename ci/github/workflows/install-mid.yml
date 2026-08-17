@@ -244,6 +244,7 @@ jobs:
       contents: write
       pages: write
       id-token: write
+      statuses: write
     concurrency:
       group: mid-pages
       cancel-in-progress: true
@@ -267,3 +268,25 @@ jobs:
         run: |
           set -euo pipefail
           git push --force origin HEAD:refs/heads/mid-stable
+
+
+      - name: Finalen Stable-SHA verifizieren und Qualitätsstatus setzen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          stable_sha="$(git rev-parse HEAD)"
+          remote_sha="$(git ls-remote --heads origin refs/heads/mid-stable | awk '{print $1}')"
+          if [ "$remote_sha" != "$stable_sha" ]; then
+            echo "::error::mid-stable zeigt auf ${remote_sha:-<leer>} statt auf den geprüften Release ${stable_sha}."
+            exit 1
+          fi
+          gh api \
+            --method POST \
+            -H 'Accept: application/vnd.github+json' \
+            "/repos/${GITHUB_REPOSITORY}/statuses/${stable_sha}" \
+            -f state='success' \
+            -f context='MID / stable-release-quality' \
+            -f description='Build, Dependency-Audit, Regressionen und Pages-Deployment bestanden' \
+            -f target_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"

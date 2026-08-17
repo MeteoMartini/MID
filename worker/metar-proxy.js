@@ -48,7 +48,7 @@ const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const OPEN_METEO_ELEVATION='https://api.open-meteo.com/v1/elevation';
 const MET_NORWAY_LOCATIONFORECAST='https://api.met.no/weatherapi/locationforecast/2.0/complete';
-const WORKER_VERSION='0.9.53.56';
+const WORKER_VERSION='0.9.54.2';
 const C3S_SEASONAL_POINT_SYSTEMS=[
  {centreId:'ecmwf',originatingCentre:'ecmwf',system:'51',label:'ECMWF'},
  {centreId:'ukmo',originatingCentre:'ukmo',system:'610',label:'UK Met Office'},
@@ -220,7 +220,7 @@ const FORECAST_FUSION_MODELS=[
  {id:'knmi_harmonie',apiIds:['knmi_harmonie_arome_netherlands','knmi_seamless'],label:'KNMI HARMONIE-AROME NL',family:'knmi-harmonie-nl',independenceGroup:'knmi-harmonie',provider:'KNMI',tier:1,maxDays:3,rapidUpdate:true,updateHours:1,resolutionKm:2,countries:['NL','BE','LU'],bbox:[-2,48,12,56]},
  {id:'meteoswiss_icon_ch',apiIds:['meteoswiss_icon_ch1','meteoswiss_icon_ch2'],label:'MeteoSwiss ICON-CH',family:'meteoswiss-icon-ch',independenceGroup:'meteoswiss-icon',provider:'MeteoSwiss',tier:1,maxDays:5,updateHours:3,resolutionKm:1,countries:['CH']},
  {id:'geosphere_arome',apiIds:['geosphere_arome_austria'],label:'GeoSphere AROME Austria',family:'geosphere-arome',independenceGroup:'geosphere-arome',provider:'GeoSphere Austria',tier:1,maxDays:3,updateHours:3,resolutionKm:2.5,countries:['AT'],bbox:[8,45,18,50]},
- {id:'meteofrance_arome',apiIds:['meteofrance_arome_france_hd','meteofrance_arome_france'],label:'Météo-France AROME',family:'meteofrance-arome',independenceGroup:'meteofrance',provider:'Météo-France',tier:1,maxDays:2,updateHours:3,resolutionKm:1.5,countries:['FR'],bbox:[-6,41,11,52]},
+ {id:'meteofrance_arome',apiIds:['meteofrance_arome_france_hd','meteofrance_arome_france','meteofrance_seamless'],label:'Météo-France AROME / Seamless',family:'meteofrance-arome',independenceGroup:'meteofrance',provider:'Météo-France',tier:1,maxDays:2,updateHours:3,resolutionKm:1.5,countries:['FR'],bbox:[-6,41,11,52]},
  {id:'ukmo_ukv',apiIds:['ukmo_uk_deterministic_2km'],label:'UKMO UKV',family:'ukmo-ukv',independenceGroup:'ukmo',provider:'UK Met Office',tier:1,maxDays:2,rapidUpdate:true,updateHours:1,resolutionKm:2,latencyHours:4,countries:['GB','IE'],bbox:[-12,48,4,62]},
  {id:'metno_nordic',apiIds:['metno_nordic','metno_nordic_pp'],label:'MET Nordic',family:'metno-nordic',independenceGroup:'metno',provider:'MET Norway',tier:1,maxDays:3,rapidUpdate:true,updateHours:1,resolutionKm:1,countries:['NO','SE','DK','FI'],bbox:[0,53,32,72]},
  {id:'hrrr',apiIds:['ncep_hrrr_conus'],label:'NOAA HRRR',family:'noaa-hrrr',independenceGroup:'noaa-nwp',provider:'NOAA/NCEP',tier:1,maxDays:2,rapidUpdate:true,updateHours:1,resolutionKm:3,countries:['US','CA'],bbox:[-130,20,-60,55]},
@@ -232,7 +232,7 @@ const FORECAST_FUSION_MODELS=[
  {id:'chmi_aladin_cz',apiIds:['chmi_aladin_cz_1km'],label:'CHMI ALADIN CZ',family:'chmi-aladin-cz',independenceGroup:'chmi-aladin',provider:'CHMI',tier:1,maxDays:3,updateHours:6,resolutionKm:1,countries:['CZ'],bbox:[11,47,20,52],optionalCapability:true},
  {id:'chmi_aladin_ce',apiIds:['chmi_aladin_central_europe_2km','chmi_aladin_seamless'],label:'CHMI ALADIN Mitteleuropa',family:'chmi-aladin-ce',independenceGroup:'chmi-aladin',provider:'CHMI',tier:2,maxDays:3,updateHours:6,resolutionKm:2.3,bbox:[-12,35,35,62],optionalCapability:true},
  {id:'italiameteo_icon2i',apiIds:['italia_meteo_arpae_icon_2i'],label:'ItaliaMeteo ICON-2I',family:'italiameteo-icon2i',independenceGroup:'italiameteo-icon2i',provider:'ItaliaMeteo',tier:1,maxDays:3,updateHours:12,resolutionKm:2,countries:['IT'],bbox:[5,35,20,49]},
- {id:'jma_msm',apiIds:['jma_msm'],label:'JMA MSM',family:'jma-msm',independenceGroup:'jma',provider:'JMA',tier:1,maxDays:4,updateHours:3,resolutionKm:5,countries:['JP','KR'],bbox:[118,20,155,52],consensusOnly:true},
+ {id:'jma_msm',apiIds:['jma_msm','jma_seamless'],label:'JMA MSM / Seamless',family:'jma-msm',independenceGroup:'jma',provider:'JMA',tier:1,maxDays:4,updateHours:3,resolutionKm:5,countries:['JP','KR'],bbox:[118,20,155,52],consensusOnly:true},
  {id:'kma_ldps',apiIds:['kma_ldps'],label:'KMA LDPS',family:'kma-ldps',independenceGroup:'kma',provider:'KMA',tier:1,maxDays:2,updateHours:6,resolutionKm:1.5,countries:['KR'],bbox:[120,30,134,42],consensusOnly:true},
  {id:'gem_hrdps',apiIds:['cmc_gem_hrdps'],label:'GEM HRDPS',family:'gem-hrdps',independenceGroup:'cmc-gem',provider:'Environment Canada',tier:1,maxDays:2,updateHours:6,resolutionKm:2.5,countries:['CA','US'],bbox:[-150,35,-45,72]},
  {id:'gem_rdps',apiIds:['cmc_gem_rdps'],label:'GEM RDPS',family:'gem-rdps',independenceGroup:'cmc-gem',provider:'Environment Canada',tier:2,maxDays:3.5,updateHours:6,resolutionKm:10,countries:['CA','US'],bbox:[-170,20,-35,90]},
@@ -1516,15 +1516,22 @@ const METEOGRAM_MODELS=new Map([
  ['knmi_harmonie_arome_europe',{label:'KNMI HARMONIE-AROME Europe · Rapid Update',hours:60}],
  ['ukmo_uk_deterministic_2km',{label:'UKMO UKV · Rapid Update',hours:48}],
  ['dwd_icon_eu',{label:'DWD ICON-EU',hours:120}],
- ['meteofrance_arpege_europe',{label:'Météo-France ARPEGE Europa',hours:114}],
+ ['meteofrance_arpege_europe',{label:'Météo-France ARPEGE Europa',hours:96}],
+ ['jma_msm',{label:'JMA MSM',hours:96}],
+ ['jma_seamless',{label:'JMA Seamless',hours:168}],
+ ['jma_gsm',{label:'JMA GSM',hours:168}],
  ['ecmwf_ifs',{label:'ECMWF IFS HRES',hours:168}],
  ['ncep_gfs025',{label:'NOAA GFS 0,25°',hours:168}],
  ['dwd_icon',{label:'DWD ICON Global',hours:180}]
 ]);
 const METEOGRAM_SURFACE=['temperature_2m','relative_humidity_2m','pressure_msl','wind_speed_10m','wind_direction_10m','wind_gusts_10m','precipitation','rain','showers','snowfall','snow_depth','weather_code','cloud_cover','cloud_cover_low','freezing_level_height'];
+const JMA_METEOGRAM_BBOX=[118,20,155,52];
+function inJmaMeteogramArea(lat,lon){const[minLon,minLat,maxLon,maxLat]=JMA_METEOGRAM_BBOX;return lon>=minLon&&lon<=maxLon&&lat>=minLat&&lat<=maxLat}
+function effectiveMeteogramModel(requested,lat,lon){return requested==='best_match'&&inJmaMeteogramArea(lat,lon)?'jma_seamless':requested}
+function meteogramSurfaceVariables(model){if(!String(model).startsWith('jma_'))return METEOGRAM_SURFACE;const unsupported=new Set(['wind_gusts_10m','cape','lifted_index','convective_inhibition','sunshine_duration']);return METEOGRAM_SURFACE.filter(variable=>!unsupported.has(variable))}
 const METEOGRAM_PROFILE=METEOGRAM_LEVELS.flatMap(level=>[`temperature_${level}hPa`,`relative_humidity_${level}hPa`,`cloud_cover_${level}hPa`,`wind_speed_${level}hPa`,`wind_direction_${level}hPa`,`geopotential_height_${level}hPa`]);
 async function meteogramData(lat,lon,model,elevation,refresh=false){const meteogramTtl=refresh?0:900;
- const requested=METEOGRAM_MODELS.has(model)?model:'best_match',effective=requested==='best_match'?'ecmwf_ifs':requested,modelConfig=METEOGRAM_MODELS.get(effective),forecastHours=requested==='best_match'?168:modelConfig?.hours??168,url=new URL('https://api.open-meteo.com/v1/forecast');url.searchParams.set('latitude',String(lat));url.searchParams.set('longitude',String(lon));if(Number.isFinite(elevation))url.searchParams.set('elevation',String(Math.max(-500,Math.min(9000,elevation))));url.searchParams.set('hourly',[...METEOGRAM_SURFACE,...METEOGRAM_PROFILE].join(','));url.searchParams.set('forecast_hours',String(forecastHours));url.searchParams.set('models',effective);url.searchParams.set('timezone','GMT');url.searchParams.set('timeformat','unixtime');url.searchParams.set('wind_speed_unit','kn');url.searchParams.set('precipitation_unit','mm');url.searchParams.set('temperature_unit','celsius');url.searchParams.set('cell_selection','nearest');
+ const requested=METEOGRAM_MODELS.has(model)?model:'best_match',effective=effectiveMeteogramModel(requested,lat,lon)==='best_match'?'ecmwf_ifs':effectiveMeteogramModel(requested,lat,lon),modelConfig=METEOGRAM_MODELS.get(effective),forecastHours=requested==='best_match'?168:modelConfig?.hours??168,url=new URL('https://api.open-meteo.com/v1/forecast');url.searchParams.set('latitude',String(lat));url.searchParams.set('longitude',String(lon));if(Number.isFinite(elevation))url.searchParams.set('elevation',String(Math.max(-500,Math.min(9000,elevation))));url.searchParams.set('hourly',[...meteogramSurfaceVariables(effective),...METEOGRAM_PROFILE].join(','));url.searchParams.set('forecast_hours',String(forecastHours));url.searchParams.set('models',effective);url.searchParams.set('timezone','GMT');url.searchParams.set('timeformat','unixtime');url.searchParams.set('wind_speed_unit','kn');url.searchParams.set('precipitation_unit','mm');url.searchParams.set('temperature_unit','celsius');url.searchParams.set('cell_selection','nearest');
  const response=await fetch(url.toString(),{headers:{Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},cf:{cacheTtl:meteogramTtl,cacheEverything:true}}),text=await response.text();let data={};try{data=JSON.parse(text)}catch{}if(!response.ok||data?.error)throw new Error(data?.reason||data?.error||`Open-Meteo Meteogramm HTTP ${response.status}`);
  let meta=null;try{const metaResponse=await fetch(`https://api.open-meteo.com/data/${effective}/static/meta.json`,{headers:{Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},cf:{cacheTtl:meteogramTtl,cacheEverything:true}});if(metaResponse.ok)meta=await metaResponse.json()}catch{}
  const initial=number(meta?.last_run_initialisation_time),available=number(meta?.last_run_availability_time),label=requested==='best_match'?`Best Match · ${modelConfig?.label||effective}`:modelConfig?.label;return{data,requestedModel:requested,effectiveModel:effective,modelLabel:label,forecastHours,runInitialisationTime:Number.isFinite(initial)?new Date(initial*1000).toISOString():undefined,runAvailabilityTime:Number.isFinite(available)?new Date(available*1000).toISOString():undefined,checkedAt:new Date().toISOString()};
