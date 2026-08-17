@@ -1,3 +1,18 @@
+# v0.9.55.1
+
+- Produktions-Typecheck des Kompositbilds repariert: ungenutzte Altpfade `motionTimeMarkers`/`displayMotionAnchors` samt ausschließlich dafür benötigter Hilfstypen entfernt.
+- Die neue einzelne Zugspur aus v0.9.55.0 bleibt unverändert aktiv: Pfeilspitze am gewählten Ort, Zeitmarken stromaufwärts entgegen der Zugrichtung.
+- Neue Buildfix-Regression verhindert künftig die Rückkehr toter Motion-Altpfade.
+- Keine funktionale Worker-Änderung; Worker nur versionssynchronisiert.
+
+# v0.9.55.0
+
+- 14-Tage-Modellstand zeigt Ensemblemodelle und deterministische Best-Match-/Kontrollmodelle getrennt; JMA MSM/Seamless/GSM werden dort fachlich korrekt als deterministische Modelle statt als nicht existentes JMA-Ensemble geführt.
+- Ensemble-/Mean-Spread-Katalog app-weit vervollständigt: zusätzliche DWD-ICON-EPS- und GEFS-Mean/Spread-Reservevarianten sowie regionale MeteoSwiss-ICON-CH-Ensembles in der alpinen Schneefallgrenzenanalyse.
+- Kompositbild besitzt eine oberste transparente Referenzkartenebene für Grenzen und Ortsnamen mit eigenem Deckkraftregler.
+- Das bisherige Mehrpfeilfeld wurde durch genau eine Zugspur ersetzt: Pfeilspitze am gewählten Ort, Zeitlabels entgegen der Zugrichtung stromaufwärts.
+- Die Stable-/Dependency-/Recharts-Hardening-Verträge aus v0.9.53.57 und die Open-Meteo-Auditverträge aus v0.9.54.x bleiben Bestandteil der Regression.
+
 # v0.9.54.2
 
 - CI-Regressionsfix für den in v0.9.54.1 übernommenen Vendor-Chunking-Vertrag: `test-performance-budget.mjs` akzeptiert jetzt ausschließlich die auditierte `ReactVendor`-/`ChartsVendor`-Aufteilung.

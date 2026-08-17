@@ -39,7 +39,7 @@ for(const token of [
  'applyLocalTwinForecastFromReport(fusedDays,twinForecastReport,radarAnalysis)',
  'applyLocalTwinHours(favoriteKey(loc),fusionHours,fusedDays,localTwinDays,radarAnalysis)'
 ])assert.ok(app.includes(token),`Lokale Nachkorrektur muss auf der bereits geprüften Best-Match-Prognose aufsetzen: ${token}`);
-for(const token of ['<MemoCurrent key={id} w={w!} hours={displayHours} days={displayDays}','<MemoForecast key={`forecast:${layoutMode}:${layoutRevision}:${weatherTwinSettings.useAsMainForecast}`} days={displayDays} hours={displayHours}','<MemoLazyEnsembles data={ens} scenarios={ensembleScenarios} models={models} runs={ensembleRuns} days={displayDays} hours={displayHours}','<Widget loc={loc!} days={displayDays} hours={displayHours}'])assert.ok(app.includes(token),`Sektion verwendet nicht die zentral abgeglichenen Sonnenstunden: ${token}`);
+for(const token of ['<MemoCurrent key={id} w={w!} hours={displayHours} days={displayDays}','<MemoForecast key={`forecast:${layoutMode}:${layoutRevision}:${weatherTwinSettings.useAsMainForecast}`} days={displayDays} hours={displayHours}','<MemoLazyEnsembles data={ens} scenarios={ensembleScenarios} models={models} runs={modelStatusRuns} days={displayDays} hours={displayHours}','<Widget loc={loc!} days={displayDays} hours={displayHours}'])assert.ok(app.includes(token),`Sektion verwendet nicht die zentral abgeglichenen Sonnenstunden: ${token}`);
 
 const require=createRequire(import.meta.url);let ts;try{ts=require('typescript')}catch{ts=require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript')}
 const tempDir=fs.mkdtempSync(path.join(os.tmpdir(),'mid-sunshine-best-match-'));

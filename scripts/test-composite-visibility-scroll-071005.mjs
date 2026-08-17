@@ -16,9 +16,9 @@ for(const token of [
 ])need(radar,token,'Kompakte Layerbuttons fehlen');
 
 for(const token of [
-  'function motionArrowIcon(',
-  'mid-motion-arrow-marker',
-  "<Pane name=\"mid-motion-arrows\" style={{zIndex:525,pointerEvents:'none'}}>",
+  'function motionTrackArrowheadIcon(',
+  'mid-motion-track-arrowhead',
+  "<Pane name=\"mid-motion-track\" style={{zIndex:850,pointerEvents:'none'}}>",
   'function konradMarkerIcon(',
   'mid-konrad-marker',
   'function nowcastMixMarkerIcon()',
@@ -41,7 +41,7 @@ if(radar.includes('radar-motion-chip')||radar.includes('radar-site-motion-label'
 
 for(const token of [
   '.composite-switch.compact{',
-  '.mid-motion-arrow-marker{',
+  '.mid-motion-track-arrowhead{',
   '.mid-konrad-marker{',
   '.mid-nowcastmix-marker{',
   '.radarmap.touch-scroll-mode .maplibregl-map{touch-action:pan-y!important}',
@@ -53,4 +53,4 @@ if(failures.length){
   console.error('Komposit-Sichtbarkeit/Scroll-Regression fehlgeschlagen:\n- '+failures.join('\n- '));
   process.exit(1);
 }
-console.log('Kompositbild geprüft: kompaktes Layerband, sichtbare K3D-/NowCastMIX-Symbole und weiße Zugpfeile sowie touchfreundliches Scrollen sind aktiv.');
+console.log('Kompositbild geprüft: kompaktes Layerband, sichtbare K3D-/NowCastMIX-Symbole und einzelne weiße Zugspur sowie touchfreundliches Scrollen sind aktiv.');

@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.54.2",
+  "releaseVersion": "0.9.55.1",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -210,7 +210,10 @@
     "scripts/test-ui-interaction-standardization-095342.mjs",
     "scripts/test-ui-design-system-095343.mjs",
     "scripts/test-ui-disclosure-buildfix-095344.mjs",
-    "scripts/test-openmeteo-update-audit-09540.mjs"
+    "scripts/test-openmeteo-update-audit-09540.mjs",
+    "scripts/test-model-family-completeness-09550.mjs",
+    "scripts/test-composite-top-reference-motion-track-09550.mjs",
+    "scripts/test-radar-motion-track-buildfix-09551.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -353,7 +356,10 @@
     "scripts/test-favorite-authoritative-persistence-095330.mjs",
     "scripts/test-push-reliability-095330.mjs",
     "scripts/test-favorite-event-coexistence-touch-095331.mjs",
-    "scripts/test-stable-release-hardening-095357.mjs"
+    "scripts/test-stable-release-hardening-095357.mjs",
+    "scripts/test-model-family-completeness-09550.mjs",
+    "scripts/test-composite-top-reference-motion-track-09550.mjs",
+    "scripts/test-radar-motion-track-buildfix-09551.mjs"
   ],
   "requiredFiles": [
     "scripts/test-cockpit-regression-sync-09201.mjs",

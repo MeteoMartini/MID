@@ -21,8 +21,10 @@ for(const token of [
  "modelLines!=='off'&&dominantModelFrame&&<Pane name=\"mid-model-lines\"",
  'name="mid-lightning-points"',
  "fillOpacity:.72*lightningOpacity/100",
- 'name="mid-motion-arrows"',
- 'point.x>margin&&point.x<size.x-margin',
+ 'name="mid-motion-track"',
+ 'px.x>margin&&px.x<size.x-margin',
+ 'referenceUrl',
+ 'mapOverlayOpacity',
  'Number(anchor.rate)>=Math.max(.2',
  'const pxDisplayAvailable=highResolution&&pxFresh;',
  'showPxAtTime=showRadar&&pxDisplayAvailable',
@@ -48,7 +50,7 @@ for(const token of [
 need('PX250-Projektion',projection,"new RegExp(`(?:^|\\\\s)\\\\+${name}=([^\\\\s]+)`");
 for(const token of [
  '.maplibre-mid-lightning-points-pane',
- '.maplibre-mid-motion-arrows-pane',
+ '.mid-motion-track-arrowhead',
  '.radar-location-marker.selected-location',
  '.mid-motion-arrow-marker .core{stroke:rgba(255,255,255,.88)'
 ])need('Darstellung',styles,token);

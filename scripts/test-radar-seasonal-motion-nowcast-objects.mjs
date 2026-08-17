@@ -22,14 +22,14 @@ requireTokens('Nowcast-Objekt-API',worker,["mode==='nowcastmix-points'",'dwdLigh
 requireTokens('Komposit-Option',radar,[
  'showNowcastObjects:boolean','label="K3D / MIX"','nowcastButtonDetail=`${k3dButtonState} · ${mixButtonState}`','function KonradNowcastObjects(','loadNowcastMixPoints(','visibleNowcastMix','<MemoKonradNowcastObjects data={thunder}'
 ]);
-requireTokens('Wiederhergestellte Zugpfeile',radar,[
- 'motionAvailable=showRadar&&Number.isFinite(motionDirection)&&Number.isFinite(motionSpeed)&&motionSpeed>=2','showMotion=showMotionOverlay&&motionAvailable','displayMotionAnchors=motionAnchors','showMotionField=showMotion&&displayMotionAnchors.length>0','confidence={analysis?.motionConfidence||\'low\'}',"confidence==='low'?'5 4':''"
+requireTokens('Einzelne Zugspur',radar,[
+ 'motionAvailable=showRadar&&Number.isFinite(motionDirection)&&Number.isFinite(motionSpeed)&&motionSpeed>=2','showMotion=showMotionOverlay&&motionAvailable','showMotionField=showMotion','function PrecipitationMotionTrack','motionTrackArrowheadIcon','(direction+180)%360','<MemoPrecipitationMotionTrack site={[lat,lon]}'
 ]);
 requireTokens('App-Schwellen',app,['function radarSiteThreshold(','function radarNearbyThreshold(','seasonalEchoLabel']);
 requireTokens('OPERA-Saisonprofil',opera,['function operaSeasonalEchoProfile(','winter-sensitive','summer-filter','echoProfile.siteThreshold','echoProfile.anchorThreshold','seasonalEchoLabel:echoProfile.label']);
 requireTokens('Radar-Typvertrag',weather,['seasonalEchoProfile?:','steeringDirectionDeg?:number','forecastLatitude?:number','motionDirectionDeg?:number']);
 requireTokens('Frontend-Workerclient',composite,["loadNowcastMixPoints","'nowcastmix-points'"]);
-requireTokens('Objekt-Styling',styles,['.konrad-track','.mid-konrad-marker{','.mid-nowcastmix-marker{','.mid-motion-arrow-marker.low']);
+requireTokens('Objekt-Styling',styles,['.konrad-track','.mid-konrad-marker{','.mid-nowcastmix-marker{','.mid-motion-track-arrowhead']);
 
 // Saisonale Schwellen müssen schwache Echos im Winter sensibler behandeln als im Sommer.
 try{
@@ -50,4 +50,4 @@ try{
 }catch(error){failures.push(`Funktionaler Schwerpunktströmungstest nicht ausführbar: ${error instanceof Error?error.message:String(error)}`)}
 
 if(failures.length){console.error('Saisonale Radar-/Zugvektor-/Nowcastobjekt-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Saisonale Radarbewertung, meteorologischer Hybrid-Zugvektor, wiederhergestellte Pfeile sowie optionale KONRAD3D-/NowCastMIX-Objekte sind geprüft.');
+console.log('Saisonale Radarbewertung, meteorologischer Hybrid-Zugvektor, einzelne Zugspur sowie optionale KONRAD3D-/NowCastMIX-Objekte sind geprüft.');

@@ -6123,3 +6123,11 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .push-precip-alert-settings select{min-width:0;width:100%;height:42px;padding:7px 30px 7px 10px;border:1px solid color-mix(in srgb,var(--primary) 42%,var(--border));border-radius:11px;background:var(--surface);color:var(--text);font-weight:800}
 .push-precip-alert-settings select:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
 @media(max-width:760px){.push-precip-alert-settings{grid-template-columns:auto minmax(0,1fr)}.push-precip-alert-settings>label{grid-column:1/-1}}
+
+/* MID v0.9.55.0 · oberste Referenzkarte und einzelne Zugspur */
+.mid-motion-track-arrowhead{display:block;width:42px;height:42px;pointer-events:none;transform:translateZ(0)}
+.mid-motion-track-arrowhead svg{display:block;width:100%;height:100%;overflow:visible;transform-origin:50% 50%}
+.mid-motion-track-arrowhead path{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.mid-motion-track-arrowhead .halo{stroke:rgba(8,20,32,.78);stroke-width:7}
+.mid-motion-track-arrowhead .core{stroke:rgba(255,255,255,.98);stroke-width:3}
+.model-run-group-title{display:block;margin:10px 0 5px;font-size:.78rem;color:var(--muted)}

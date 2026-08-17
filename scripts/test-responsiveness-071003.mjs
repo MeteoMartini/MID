@@ -17,7 +17,7 @@ requireToken(app,"now-lastRun<60000",'Starkregen-Abrufe werden nicht entdoppelt'
 if(app.includes('setClockTick')||app.includes('setInterval(()=>setClockTick'))failures.push('Die gesamte App wird weiterhin durch einen globalen Uhrentakt neu gerendert.');
 
 requireToken(radar,'preferCanvas','Leaflet-Canvasrenderer fehlt');
-requireToken(radar,'const MemoPrecipitationMotionArrows=memo(PrecipitationMotionArrows);','Verlagerungspfeile sind nicht memoisiert');
+requireToken(radar,'const MemoPrecipitationMotionTrack=memo(PrecipitationMotionTrack);','Verlagerungs-Zugspur ist nicht memoisiert');
 requireToken(radar,'const MemoKonradNowcastObjects=memo(KonradNowcastObjects);','KONRAD3D-Objekte sind nicht memoisiert');
 requireToken(radar,'const visibleLightning=useMemo','Blitzfilter wird bei jedem Render vollständig neu berechnet');
 requireToken(radar,"document.visibilityState==='hidden'",'Radar-Hintergrundabrufe werden nicht pausiert');

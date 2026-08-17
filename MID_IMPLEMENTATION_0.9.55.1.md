@@ -1,0 +1,3 @@
+# MID v0.9.55.1 – Komposit-Zugspur TypeScript-Buildfix
+
+Der Produktions-Typecheck von v0.9.55.0 scheiterte mit TS6133 an zwei nach dem Umbau auf die einzelne Zugspur verbliebenen, nicht mehr genutzten Altpfaden. Entfernt wurden `motionTimeMarkers`, der zugehörige Typ/Helper sowie die ungenutzte `motionAnchors`-/`displayMotionAnchors`-Deklaration. Die aktive `PrecipitationMotionTrack`-Logik bleibt unverändert: genau eine Zugspur, Pfeilspitze am gewählten Ort und Zeitmarken entgegen der Zugrichtung stromaufwärts. Ein eigener Regressionstest schützt den Buildfix. Keine funktionale Worker-Änderung; nur Versionssynchronisierung.
