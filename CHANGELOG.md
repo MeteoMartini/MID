@@ -1,3 +1,20 @@
+# v0.9.58.3
+
+- Regression-Hardening: zwei historische Radar-/Zeitpfeiltests auf den aktuellen Schwerpunktströmungs-Vertrag migriert.
+- Keine funktionale Änderung an Zeitpfeil, Radar-Nowcast oder Workerlogik.
+
+# v0.9.58.2
+
+- TypeScript-Fix für den neuen Komposit-Zeitpfeil: `CompatBounds` stellt nun Südwest-/Nordost-Ecken typisiert bereit.
+- Keine fachliche Änderung an Zeitpfeil, Schwerpunktströmung oder Radar-/Nowcast-Logik.
+- Neue Regression gegen erneute TS2339-Fehler im MapLibre-Kompatibilitätsadapter.
+
+# v0.9.58.1
+
+- Komposit-Zeitpfeil vollständig neu aufgebaut: lange viewportbezogene Achse, kleine nordreferenzierte Zielpfeilspitze am gewählten Ort, zwei dezente Zeitmarken und Schwerpunktströmung aus der OPERA-Mehrframe-Regressionsbewegung; der frühere 90°-Darstellungsversatz der Pfeilspitze ist ausgeschlossen.
+- Kurzfrist-Nebelrisiko verschärft: ein 2-K-Spread allein erzeugt tagsüber/bei guter Sicht kein erhöhtes Nebelrisiko; echte Sichtbeschränkung, WMO-Nebelcode und schwachwindige Nachtsättigung bleiben wirksam.
+- lucide-react kontrolliert auf 1.31.0 aktualisiert; React 19, Vite/plugin-react 6 und TypeScript 7 bleiben zurückgestellt.
+
 # v0.9.58.0
 
 - Release-Pipeline gegen GitHub-Codeload-429 gehärtet: configure-pages entfernt; Pages-Deployment vom Release-Build entkoppelt und mit drei frischen Runner-Versuchen sowie 75/180-s-Backoff abgesichert.

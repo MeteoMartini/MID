@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+const root=new URL('../',import.meta.url),source=await readFile(new URL('src/shortTermFogRisk.ts',root),'utf8'),compiled=source.replace(/export type ShortTermFogRiskPoint=[\s\S]*?};\n\n/,'').replace(/export type ShortTermFogRiskResult=[\s\S]*?};\n\n/,'').replace('function clamp(value:number,minimum:number,maximum:number)','function clamp(value,minimum,maximum)').replace('export function shortTermFogRisk(point:ShortTermFogRiskPoint):ShortTermFogRiskResult','export function shortTermFogRisk(point)'),moduleUrl=`data:text/javascript;base64,${Buffer.from(compiled).toString('base64')}`,mod=await import(moduleUrl),risk=mod.shortTermFogRisk;
+const augustMorning={code:3,visibility:8000,temperature:18,dewPoint:16,humidity:92,wind:5,cloud:100,lowCloud:97,isDay:true,epoch:Date.UTC(2026,7,18,8),precipitation:2.6};
+assert.ok(risk(augustMorning).score<20,`2-K-Spread bei 8 km Sicht am Augustvormittag darf kein erhöhtes Nebelrisiko ergeben: ${JSON.stringify(risk(augustMorning))}`);
+const denseFog={...augustMorning,code:45,visibility:700,humidity:98,temperature:12,dewPoint:11.5,wind:2,isDay:false,epoch:Date.UTC(2026,9,18,4)};
+assert.ok(risk(denseFog).score>=60,'Expliziter dichter Nebel muss hohes Risiko bleiben.');
+const calmNight={...augustMorning,code:2,visibility:9000,humidity:98,temperature:13,dewPoint:12.3,wind:2,isDay:false,epoch:Date.UTC(2026,7,18,2),cloud:25,lowCloud:10};
+assert.ok(risk(calmNight).score>=20,'Nahe Sättigung in schwachwindiger Nacht muss als mögliches Nebelrisiko erhalten bleiben.');
+const pkg=JSON.parse(await readFile(new URL('package.json',root),'utf8')),baseline=JSON.parse(await readFile(new URL('MID_BASELINE.json',root),'utf8')),test='scripts/test-short-term-fog-risk-09581.mjs';
+assert.equal(pkg.scripts?.['test:short-term-fog-risk'],`node ${test}`);
+assert.ok(baseline.requiredRegressionTests?.includes(test));assert.ok(baseline.regressionTests?.includes(test));
+console.log('Kurzfrist-Nebelrisiko geprüft: 2-K-Spread tagsüber reicht nicht, echte Sicht-/Nebelbeobachtung und schwachwindige Nachtsättigung bleiben wirksam.');

@@ -6,12 +6,19 @@ assert.ok(radar.includes('label="Zeitpfeil"'),'Der Komposit-Schalter „Zeitpfei
 assert.ok(!radar.includes('label="Zugbahn"'),'Der alte Komposit-Schalter „Zugbahn“ ist noch vorhanden.');
 assert.ok(!radar.includes('label={`Zeit · '),'Der separate Zeitmodus-Schalter ist noch vorhanden.');
 for(const token of [
- 'motionAxisMetaIcon(directionLabel)',
  '<Marker position={site} icon={motionTrackArrowheadIcon',
- 'const trackCandidates=visible.length>=2?visible:points',
- 'trackStart=[trackCandidates.at(-1)!.lat,trackCandidates.at(-1)!.lon] as [number,number]',
- 'labelCandidates=visible.filter(point=>point.arrivalMinutes>=45&&(point.arrivalMinutes===45||point.arrivalMinutes%60===0))'
+ 'd="M19 19L9 30M19 19L29 30"',
+ 'style="transform:rotate(${direction}deg)"',
+ 'viewportDiagonalKm=Math.max(12,segmentKm(southWest,northEast))',
+ 'shaftKm=Math.max(22,Math.min(190,viewportDiagonalKm*.54))',
+ 'trackStart=destinationPoint(site,upstreamBearing,shaftKm)',
+ 'tickFractions=shaftKm>=70?[.43,.78]:[.38,.72]',
+ 'geometry.ticks.map(tick=>',
+ 'positions={tick.cross}',
+ "resolvedMotion.source==='centroid'?' · Schwerpunktströmung'"
 ]) assert.ok(radar.includes(token),`Zeitpfeil-Vertrag fehlt: ${token}`);
+assert.ok(!radar.includes('motionAxisMetaIcon'),'Der alte schwebende Achsen-Badge darf nicht zurückkehren.');
+assert.ok(!radar.includes('weightedAnchorApproachBearing'),'Ein statischer Echo-Schwerpunkt darf die zeitliche Schwerpunktströmung nicht mehr verdrehen.');
 const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText),test='scripts/test-composite-time-arrow-09561.mjs';
 assert.equal(pkg.scripts?.['test:composite-time-arrow'],`node ${test}`);
 assert.ok(baseline.requiredRegressionTests?.includes(test),'Required Regression fehlt.');

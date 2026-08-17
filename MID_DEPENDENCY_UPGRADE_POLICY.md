@@ -9,7 +9,7 @@ Der Stable-Channel erhält keine ungeprüften Major-/Toolchain-Sprünge. Der rep
 - TypeScript: 5.9.3
 - Vite: 6.4.3
 - @vitejs/plugin-react: 4.7.0
-- Lucide React: 1.30.0 (React 18.3.1 bleibt unverändert)
+- Lucide React: 1.31.0 (React 18.3.1 bleibt unverändert)
 - GitHub Actions: checkout 7.0.1 und setup-node 7.0.0, jeweils SHA-gepinnt
 
 Sicherheits-Patches innerhalb kompatibler Transitivreihen werden im Stable-Channel unmittelbar angehoben, sobald `npm audit` einen Befund meldet und die vollständige Regression grün bleibt. Aktueller Mindestvertrag: `nanoid >=3.3.18` im 3.x-Pfad sowie `protocol-buffers-schema >=3.6.1`.

@@ -7,12 +7,8 @@
 .mid-motion-arrow-marker .halo{stroke:rgba(8,20,32,.58);stroke-width:5.2}
 .mid-motion-arrow-marker .core{stroke:rgba(255,255,255,.88);stroke-width:2.35}
 .mid-motion-arrow-marker.low .core{stroke:rgba(238,248,255,.72)}
-.mid-motion-time-label{--mid-intensity:.45;display:flex;flex-direction:column;align-items:center;gap:1px;min-width:58px;padding:4px 8px;border-radius:10px;background:rgba(241,246,251,.95);border:1px solid rgba(19,47,74,.16);box-shadow:0 5px 14px rgba(11,31,49,.18),inset 0 0 0 1px rgba(255,255,255,.55);position:relative;transform:translateZ(0)}
-.mid-motion-time-label::after{content:"";position:absolute;left:50%;width:2px;height:12px;border-radius:999px;background:rgba(20,54,82,.42);transform:translateX(-50%)}
-.mid-motion-time-label.above::after{bottom:-10px}
-.mid-motion-time-label.below::after{top:-10px}
-.mid-motion-time-label b{display:block;font-size:12px;line-height:1.05;color:#10233a;white-space:nowrap}
-.mid-motion-time-label small{display:block;font-size:8.5px;line-height:1.05;color:#476177;white-space:nowrap}
+.mid-motion-time-label{display:flex;align-items:center;justify-content:center;min-width:48px;padding:2px 5px;border-radius:5px;background:rgba(244,244,244,.94);border:1px solid rgba(65,70,75,.42);box-shadow:0 1px 4px rgba(0,0,0,.12);position:relative;transform:translateZ(0)}
+.mid-motion-time-label b{display:block;font-size:12px;line-height:1;color:#2f3438;font-weight:700;white-space:nowrap}
 .mid-motion-time-div-icon{background:transparent!important;border:0!important}
 .radar-location-marker.selected-location{height:19px!important}
 .radar-location-marker.selected-location .radar-location-ring{top:2px!important}

@@ -1,8 +1,9 @@
 import {readFile} from 'node:fs/promises';
 
-const [cockpit,shortTerm,ensemble,styles]=await Promise.all([
+const [cockpit,shortTerm,fogRisk,ensemble,styles]=await Promise.all([
   readFile(new URL('../src/ForecastCockpit.tsx',import.meta.url),'utf8'),
   readFile(new URL('../src/ShortTermForecast.tsx',import.meta.url),'utf8'),
+  readFile(new URL('../src/shortTermFogRisk.ts',import.meta.url),'utf8'),
   readFile(new URL('../src/EnsemblePanel.tsx',import.meta.url),'utf8'),
   readFile(new URL('../src/styles.css',import.meta.url),'utf8')
 ]);
@@ -21,7 +22,7 @@ for(const token of [
   "else if(felt>=-26){label='kühl'",
   "else if(felt>=-39){label='kalt'",
   "label='sehr kalt'",
-  'function shortTermFogRisk(point:ShortTermForecastPoint)',
+  "import {shortTermFogRisk} from './shortTermFogRisk';",
   'className="selected-time-line"',
   "dateValue!==chartPoints[0]?.dateValue?'other-day':''",
   "<small>{formatDate(item.dateValue,{day:'2-digit',month:'2-digit'})}</small>",
@@ -44,6 +45,8 @@ for(const token of [
   'Thermische Einordnung nach den DWD-Klassen der Gefühlten Temperatur'
 ])need('24-h-Wetterprofil',cockpit,token);
 for(const token of ['shortTermCloudBaseApprox','Wolkenbasis*'])reject('24-h-Wetterprofil',cockpit,token);
+need('Nebelrisiko',fogRisk,'export function shortTermFogRisk(point:ShortTermFogRiskPoint):ShortTermFogRiskResult');
+need('Nebelrisiko',fogRisk,'if(point.isDay&&!explicitFog&&!restrictedVisibility)score=Math.min(score,14)');
 
 need('Kurzfristdaten',shortTerm,'sunshineDuration?:number;');
 need('Kurzfristdaten',shortTerm,'sunshineDuration:base.sunshineDuration');

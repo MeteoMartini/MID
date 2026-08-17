@@ -22,7 +22,8 @@ for(const token of [
  'name="mid-lightning-points"',
  "fillOpacity:.72*lightningOpacity/100",
  'name="mid-motion-track"',
- 'px.x>margin&&px.x<size.x-margin',
+ 'viewportDiagonalKm=Math.max(12,segmentKm(southWest,northEast))',
+ 'trackStart=destinationPoint(site,upstreamBearing,shaftKm)',
  'referenceUrl',
  'mapOverlayOpacity',
  'Number(anchor.rate)>=Math.max(.2',
@@ -58,4 +59,4 @@ need('Package-Test',pkg,'test:composite-visibility-quality');
 need('Baseline-Test',baseline,'scripts/test-composite-visibility-quality-08251.mjs');
 
 if(failures.length){console.error('Komposit-Sichtbarkeits-/Qualitätsprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Standortmarker, geglättete Modelllinien, PX250, sichtbare Blitzpunkte und randfreie dezente Zugpfeile geprüft.');
+console.log('Standortmarker, geglättete Modelllinien, PX250, sichtbare Blitzpunkte und viewportbezogener Zeitpfeil geprüft.');

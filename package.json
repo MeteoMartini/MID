@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.58.0",
+  "version": "0.9.58.3",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -273,13 +273,15 @@
     "test:github-actions-v7-sync": "node scripts/test-github-actions-v7-sync-09570.mjs",
     "test:install-main-race": "node scripts/test-install-main-race-09572.mjs",
     "test:stable-quality-status-retry": "node scripts/test-stable-quality-status-retry-095573.mjs",
-    "test:pages-codeload-resilience": "node scripts/test-pages-codeload-resilience-09580.mjs"
+    "test:pages-codeload-resilience": "node scripts/test-pages-codeload-resilience-09580.mjs",
+    "test:short-term-fog-risk": "node scripts/test-short-term-fog-risk-09581.mjs",
+    "test:maplibre-compat-bounds": "node scripts/test-maplibre-compat-bounds-09582.mjs"
   },
   "dependencies": {
     "astronomy-engine": "^2.1.19",
     "html-to-image": "^1.11.13",
     "jsfive": "^0.4.0",
-    "lucide-react": "^1.30.0",
+    "lucide-react": "^1.31.0",
     "maplibre-gl": "5.24.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
