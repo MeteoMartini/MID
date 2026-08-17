@@ -2,9 +2,10 @@ import {readFile} from 'node:fs/promises';
 import {createRequire} from 'node:module';
 
 const require=createRequire(import.meta.url),ts=require('typescript');
-const [thunder,app,styles,weather,wording,pkg,baseline]=await Promise.all([
+const [thunder,app,thunderCache,styles,weather,wording,pkg,baseline]=await Promise.all([
  readFile(new URL('../src/thunderstorm.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
+ readFile(new URL('../src/thunderPlaceCache.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/styles.css',import.meta.url),'utf8'),
  readFile(new URL('../src/weather.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/forecastWording.ts',import.meta.url),'utf8'),
@@ -25,12 +26,8 @@ for(const token of [
  'currentPlaceName:thunderPlaceNames.current',
  'forecastPlaceName:thunderPlaceNames.forecast'
 ])need('Gewitter-Orts-/Zeitbezug',thunder+app,token);
-for(const token of [
- "const THUNDER_PLACE_CACHE_KEY='mid:thunder-place-cache:v3'",
- 'resolveThunderPlace(cell.latitude,cell.longitude,controller.signal)',
- 'resolveThunderPlace(cell.forecastLatitude,cell.forecastLongitude,controller.signal)',
- '.slice(0,4)'
-])need('Kompakte Gewitterkarte',app,token);
+need('Kompakte Gewitterkarte · Cache',thunderCache,"const THUNDER_PLACE_CACHE_KEY='mid:thunder-place-cache:v3'");
+for(const token of ['resolveThunderPlace(cell.latitude,cell.longitude,controller.signal)','resolveThunderPlace(cell.forecastLatitude,cell.forecastLongitude,controller.signal)','.slice(0,4)'])need('Kompakte Gewitterkarte',app,token);
 if(app.includes('<span>{thunderInfo.summary}</span>'))failures.push('Die doppelte freie Gewitter-Zusammenfassung wird weiterhin außerhalb der Unterfelder angezeigt.');
 for(const token of ['.place-nowcards .thunder-now{padding:11px 12px!important', '.thunder-fact-grid:not(.thunder-fact-grid-expanded)', '.thunder-status{margin-top:6px'])need('Kompakt-CSS',styles,token);
 for(const token of [

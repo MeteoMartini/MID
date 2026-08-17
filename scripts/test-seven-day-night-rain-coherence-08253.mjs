@@ -6,8 +6,8 @@ import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url);
 let ts;try{ts=require('typescript')}catch{ts=require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript')}
 
-const [app,nightSource,warningSource,pkg,baseline]=await Promise.all([
- readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
+const [sevenDay,nightSource,warningSource,pkg,baseline]=await Promise.all([
+ readFile(new URL('../src/SevenDayForecastSummary.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/forecastNight.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/dwdWarnings.ts',import.meta.url),'utf8'),
  readFile(new URL('../package.json',import.meta.url),'utf8'),
@@ -20,7 +20,7 @@ for(const token of [
  'sevenDayPoint(day:Day,nextDay:Day|undefined',
  'tropicalNight:followingNightIsTropical(day,nextDay,allHours)',
  'forecastDays[index+1]'
-])need('7-Tage-Trend',app,token);
+])need('7-Tage-Trend',sevenDay,token);
 for(const token of [
  "import {followingNightHoursForDate} from './forecastPeriods';",
  'followingNightHoursForDate(day.date,hours)',

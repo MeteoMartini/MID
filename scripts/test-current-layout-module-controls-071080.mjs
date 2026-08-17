@@ -1,6 +1,7 @@
 import {readFileSync} from 'node:fs';
 import assert from 'node:assert/strict';
 const app=readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
+const sevenDay=readFileSync(new URL('../src/SevenDayForecastSummary.tsx',import.meta.url),'utf8');
 const water=readFileSync(new URL('../src/WaterSportsPanel.tsx',import.meta.url),'utf8');
 const css=readFileSync(new URL('../src/v078.css',import.meta.url),'utf8');
 assert.match(app,/<\/article>\{currentRange&&<span className="hero-day-range"/,'Tmin/Tmax muss als eigener geordneter Hero-Gridbereich außerhalb der Textspalte stehen');
@@ -8,9 +9,9 @@ assert.doesNotMatch(app,/hero-kicker-row"><span>Aktuelles Wetter<\/span>\{curren
 assert.match(css,/\.hero\{grid-template-columns:115px minmax\(260px,1fr\) minmax\(225px,245px\) minmax\(280px,400px\)\}/,'Desktop-Hero braucht eine feste eigene Tmin/Tmax-Spalte');
 assert.match(app,/className="wind-value-nowrap"/,'Wind/Böen-Wert braucht einen umbrechungsfesten Wrapper');
 assert.match(css,/\.metrics \.wind-gust-card>strong[\s\S]*white-space:nowrap/,'Wind/Böen-Einheit darf in der aktuellen Wetterkachel nicht umbrechen');
-assert.match(app,/function sevenDayHazardPhrase/,'Rechtschreibungsbehandlung für Trend-Hazards fehlt');
-assert.match(app,/return \/\^\(Schwere\|Orkanartige\|Extreme\|Starke\|Leichte\|Mäßige\)/,'Nur führende Adjektive dürfen kleingeschrieben werden');
-assert.match(app,/title=sevenDayHazardPhrase\(candidate\.signal\.title\)/,'7-Tage-Trend muss die rechtschreibungsbewusste Hazard-Phrase verwenden');
+assert.match(sevenDay,/function sevenDayHazardPhrase/,'Rechtschreibungsbehandlung für Trend-Hazards fehlt');
+assert.match(sevenDay,/return \/\^\(Schwere\|Orkanartige\|Extreme\|Starke\|Leichte\|Mäßige\)/,'Nur führende Adjektive dürfen kleingeschrieben werden');
+assert.match(sevenDay,/title=sevenDayHazardPhrase\(candidate\.signal\.title\)/,'7-Tage-Trend muss die rechtschreibungsbewusste Hazard-Phrase verwenden');
 assert.match(app,/onConfigChange:\(change:Partial<MountainConfig>\)=>void/,'Berg-/Wintersport braucht eine direkte Konfigurationsschnittstelle');
 assert.match(app,/aria-label="Saisonprofil"[\s\S]*Auto[\s\S]*Sommer[\s\S]*Winter/,'Saisonumschalter muss im Berg-/Wintersportbereich sichtbar sein');
 assert.match(app,/updateCurrentMountain=useCallback[\s\S]*setFavorites/,'Saisonumschalter muss das Favoritenprofil aktualisieren');

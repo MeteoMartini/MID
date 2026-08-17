@@ -8,9 +8,10 @@ const require=createRequire(import.meta.url);
 let ts;try{ts=require('typescript')}catch{ts=require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript')}
 
 const root=new URL('../',import.meta.url);
-const [weatherSource,appSource,cockpitSource,ensembleSource,pkgSource,baselineSource]=await Promise.all([
+const [weatherSource,appSource,sevenDaySource,cockpitSource,ensembleSource,pkgSource,baselineSource]=await Promise.all([
  readFile(new URL('src/weather.ts',root),'utf8'),
  readFile(new URL('src/App.tsx',root),'utf8'),
+ readFile(new URL('src/SevenDayForecastSummary.tsx',root),'utf8'),
  readFile(new URL('src/ForecastCockpit.tsx',root),'utf8'),
  readFile(new URL('src/EnsemblePanel.tsx',root),'utf8'),
  readFile(new URL('package.json',root),'utf8'),
@@ -23,14 +24,14 @@ for(const [area,text,token] of [
  ['Dauerformat',weatherSource,'export function precipitationDurationLabel'],
  ['Kompaktdauer',weatherSource,'export function precipitationDurationCompactLabel'],
  ['Tagescharakter',weatherSource,'assessment=precipitationPeriodAssessment(relevant)'],
- ['7-Tage-Trend',appSource,'trendHours=[...dayHours,...followingNightHours]'],
- ['7-Tage-Trend',appSource,'hazards=summarizeDwdWarnings(trendHours,elevation)'],
- ['Folgenacht',appSource,'function sevenDayFollowingNightClause'],
+ ['7-Tage-Trend',sevenDaySource,'trendHours=[...dayHours,...followingNightHours]'],
+ ['7-Tage-Trend',sevenDaySource,'hazards=summarizeDwdWarnings(trendHours,elevation)'],
+ ['Folgenacht',sevenDaySource,'function sevenDayFollowingNightClause'],
  ['7-Tage-Karten',appSource,'precipitationDurationDayOverviewCompactLabel(precipitationAssessment.durationHours)'],
  ['Cockpit',cockpitSource,'className="cockpit-day-pop"'],
  ['Ensemble',ensembleSource,"{row.precipitationDuration?` · ${row.precipitationDuration}`:''}"]
  ])assert.ok(text.includes(token),`${area}: ${token}`);
-assert.ok(!appSource.includes('hazards=summarizeDwdWarningsForDay(allHours,day.date,elevation)'),'7-Tage-Trend greift weiterhin auf das komplette Kalenderdatum einschließlich vorangegangener Nacht zu.');
+assert.ok(!sevenDaySource.includes('hazards=summarizeDwdWarningsForDay(allHours,day.date,elevation)'),'7-Tage-Trend greift weiterhin auf das komplette Kalenderdatum einschließlich vorangegangener Nacht zu.');
 assert.ok(JSON.parse(pkgSource).scripts['test:precipitation-duration-day-character'],'Package-Skript für Niederschlagsdauer und Tagescharakter fehlt.');
 assert.ok(JSON.parse(baselineSource).regressionTests.includes('scripts/test-precipitation-duration-day-character-09160.mjs'),'Baseline enthält die neue Niederschlagsdauer-Regression nicht.');
 

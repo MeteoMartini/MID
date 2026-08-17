@@ -8,10 +8,11 @@ const require=createRequire(import.meta.url);
 let ts;try{ts=require('typescript')}catch{ts=require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript')}
 
 const root=new URL('../',import.meta.url);
-const [periodSource,weatherSource,appSource,cockpitSource,nightSource,pkgSource,baselineSource]=await Promise.all([
+const [periodSource,weatherSource,appSource,sevenDaySource,cockpitSource,nightSource,pkgSource,baselineSource]=await Promise.all([
  readFile(new URL('src/forecastPeriods.ts',root),'utf8'),
  readFile(new URL('src/weather.ts',root),'utf8'),
  readFile(new URL('src/App.tsx',root),'utf8'),
+ readFile(new URL('src/SevenDayForecastSummary.tsx',root),'utf8'),
  readFile(new URL('src/ForecastCockpit.tsx',root),'utf8'),
  readFile(new URL('src/forecastNight.ts',root),'utf8'),
  readFile(new URL('package.json',root),'utf8'),
@@ -24,8 +25,8 @@ for(const [area,text,token] of [
  ['Cockpit',cockpitSource,"import {dayPeriodHoursForDate,followingNightHoursForDate} from './forecastPeriods';"],
  ['Folgenacht-Minimum',nightSource,"import {followingNightHoursForDate} from './forecastPeriods';"],
  ['Cockpit-Regime',cockpitSource,"if(assessment.showery&&assessment.dominant)return'showery';"],
- ['7-Tage-Trend',appSource,'dayPrecipitation=dayAssessment.amount'],
- ['7-Tage-Trend',appSource,'totalPrecip=points.reduce((sum,point)=>sum+point.dayPrecipitation,0)']
+ ['7-Tage-Trend',sevenDaySource,'dayPrecipitation=Math.max(dayAssessment.amount,index===0?Math.max(0,Number(day.precipitation)||0):0)'],
+ ['7-Tage-Trend',sevenDaySource,'totalPrecip=points.reduce((sum,point)=>sum+point.dayPrecipitation,0)']
 ])assert.ok(text.includes(token),`${area}: ${token}`);
 assert.ok(!appSource.includes('function followingNightHoursForDate('),'App enthält weiterhin eine abweichende lokale Folgenacht-Implementierung.');
 assert.ok(!cockpitSource.includes('function followingNightHoursForDate('),'Cockpit enthält weiterhin eine abweichende lokale Folgenacht-Implementierung.');

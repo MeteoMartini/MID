@@ -6,9 +6,9 @@ import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url);
 let ts;try{ts=require('typescript')}catch{ts=require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript')}
 
-const files=['src/WeatherPictogram.tsx','src/App.tsx','src/EnsemblePanel.tsx','src/ShortTermForecast.tsx','src/WaterSportsPanel.tsx','src/TravelPlannerPanel.tsx','src/RouteWeatherPanel.tsx','src/iso3166.ts','src/styles.css','package.json','MID_BASELINE.json'];
+const files=['src/WeatherPictogram.tsx','src/App.tsx','src/thunderPlaceCache.ts','src/EnsemblePanel.tsx','src/ShortTermForecast.tsx','src/WaterSportsPanel.tsx','src/TravelPlannerPanel.tsx','src/RouteWeatherPanel.tsx','src/iso3166.ts','src/styles.css','package.json','MID_BASELINE.json'];
 const values=await Promise.all(files.map(path=>readFile(new URL(`../${path}`,import.meta.url),'utf8')));
-const [pictogram,app,ensemble,shortTerm,water,travel,route,iso,styles,pkg,baseline]=values;
+const [pictogram,app,thunderCache,ensemble,shortTerm,water,travel,route,iso,styles,pkg,baseline]=values;
 const failures=[];
 const need=(area,text,token)=>{if(!text.includes(token))failures.push(`${area}: ${token}`)};
 const forbid=(area,text,token)=>{if(text.includes(token))failures.push(`${area}: unerlaubt ${token}`)};
@@ -32,12 +32,8 @@ forbid('Piktogrammsystem',pictogram,'background');
 for(const [area,text] of [['App',app],['Ensemble',ensemble],['Kurzfrist',shortTerm],['Wasser',water],['Reise',travel],['Route',route]])need(area,text,"from './WeatherPictogram'");
 for(const [area,text] of [['App',app],['Ensemble',ensemble],['Kurzfrist',shortTerm],['Wasser',water],['Reise',travel],['Route',route]])forbid(area,text,'{icon(');
 
-for(const token of [
- "const THUNDER_PLACE_CACHE_KEY='mid:thunder-place-cache:v3'",
- 'function appendIsoCountry(',
- 'thunderLocationName=thunderPlaceNames.site||appendIsoCountry(',
- 'return candidate?appendIsoCountry(candidate,location.country_code||location.country)'
-])need('Gewitter-Ortsnamen',app,token);
+for(const token of ["const THUNDER_PLACE_CACHE_KEY='mid:thunder-place-cache:v3'",'export function appendIsoCountry(','return candidate?appendIsoCountry(candidate,location.country_code||location.country)'])need('Gewitter-Ortsnamen · Cache',thunderCache,token);
+need('Gewitter-Ortsnamen · App',app,'thunderLocationName=thunderPlaceNames.site||appendIsoCountry(');
 need('ISO-Modul',iso,'export function isoAlpha3');
 need('ISO-Modul',iso,'"DE":"DEU"');
 need('ISO-Modul',iso,'"AT":"AUT"');

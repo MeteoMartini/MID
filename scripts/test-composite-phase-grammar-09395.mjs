@@ -5,6 +5,7 @@ const overlay=await readFile(new URL('../src/RadarModelPrecipTypeOverlay.tsx',im
 const weatherMaps=await readFile(new URL('../src/WeatherMapsData.ts',import.meta.url),'utf8');
 const worker=await readFile(new URL('../worker/metar-proxy.js',import.meta.url),'utf8');
 const app=await readFile(new URL('../src/App.tsx',import.meta.url),'utf8');
+const sevenDay=await readFile(new URL('../src/SevenDayForecastSummary.tsx',import.meta.url),'utf8');
 
 function assert(condition,message){if(!condition)throw new Error(message)}
 
@@ -32,9 +33,9 @@ assert(/valid<coordinates\.length\*\.9/.test(worker),'Unvollständige Modellfeld
 assert(/maxRunAgeMs=model\.rapidUpdate\?Math\.max\(5\*3600000/.test(worker),'Worker muss Rapid-Update-Läufe konservativ nach Laufalter begrenzen.');
 
 // Grammar protection for the generated 7-day prose.
-assert(app.includes("mit einer möglichen Tropennacht"),'Tropennacht-Formulierung muss vollständig flektiert sein.');
-assert(app.includes("wechselnd bewölkt mit sonnigen Abschnitten und überwiegend trocken"),'Mischwetter-Satz darf nicht mit „Am … mit …“ fragmentieren.');
-assert(app.includes("${plural?'sind':'ist'} ${event} möglich"),'Nachtzusatz braucht ein finites Verb.');
-assert(!app.includes("event.toLocaleLowerCase('de-DE')"),'Wetterereignisse wie Schauer dürfen nicht kleingeschrieben werden.');
+assert(sevenDay.includes("mit einer möglichen Tropennacht"),'Tropennacht-Formulierung muss vollständig flektiert sein.');
+assert(sevenDay.includes("wechselnd bewölkt mit sonnigen Abschnitten und überwiegend trocken"),'Mischwetter-Satz darf nicht mit „Am … mit …“ fragmentieren.');
+assert(sevenDay.includes("${plural?'sind':'ist'} ${event} möglich"),'Nachtzusatz braucht ein finites Verb.');
+assert(!sevenDay.includes("event.toLocaleLowerCase('de-DE')"),'Wetterereignisse wie Schauer dürfen nicht kleingeschrieben werden.');
 
 console.log('Komposit-Phasenfusion, Rate-Limit-Schutz und 7-Tage-Grammatik geschützt.');

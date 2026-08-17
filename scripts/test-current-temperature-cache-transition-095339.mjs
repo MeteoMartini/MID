@@ -3,10 +3,11 @@ import {readFile} from 'node:fs/promises';
 import {createRequire} from 'node:module';
 
 const require=createRequire(import.meta.url),ts=require('typescript'),test='scripts/test-current-temperature-cache-transition-095339.mjs';
-const [thermal,weather,app,shortTerm,contract,pkgRaw,baselineRaw]=await Promise.all([
+const [thermal,weather,app,analysisCache,shortTerm,contract,pkgRaw,baselineRaw]=await Promise.all([
  readFile(new URL('../src/hyperlocalThermal.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/weather.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
+ readFile(new URL('../src/analysisCache.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/ShortTermForecast.tsx',import.meta.url),'utf8'),
  readFile(new URL('../MID_HYPERLOCAL_ANALYSIS_CONTRACT.md',import.meta.url),'utf8'),
  readFile(new URL('../package.json',import.meta.url),'utf8'),
@@ -37,9 +38,8 @@ const weak=module.constrainTemperatureWithDirectObservations({modelTarget:22.8,r
 ]});
 assert.ok(!weak.applied||Math.abs(weak.correction)<=1.3,'Alte/weite Tagesbeobachtungen dürfen nicht wie ein starker Current-Konsens behandelt werden.');
 
+for(const token of ["const STATION_ANALYSIS_CACHE_SCHEMA='v2'","function analysisCacheStorageKind(kind:string)"])assert.ok(analysisCache.includes(token),`Analysecache-Vertrag fehlt: ${token}`);
 for(const token of [
- "const STATION_ANALYSIS_CACHE_SCHEMA='v2'",
- "function analysisCacheStorageKind(kind:string)",
  "function stationTemperatureObservedEpoch(",
  "currentEpoch>nextEpoch+5*60000",
  "warmStation=forceFresh?null:stationCacheEntryForLocation",

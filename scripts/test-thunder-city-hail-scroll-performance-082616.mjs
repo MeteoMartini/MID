@@ -2,8 +2,9 @@ import {readFile} from 'node:fs/promises';
 import {createRequire} from 'node:module';
 
 const require=createRequire(import.meta.url);let ts;try{ts=require('typescript')}catch{ts=require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript')}
-const [app,weather,thunder,enhancer,frame,styles,pkgRaw,baselineRaw]=await Promise.all([
+const [app,thunderCache,weather,thunder,enhancer,frame,styles,pkgRaw,baselineRaw]=await Promise.all([
  readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
+ readFile(new URL('../src/thunderPlaceCache.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/weather.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/thunderstorm.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/v078.ts',import.meta.url),'utf8'),
@@ -26,10 +27,9 @@ for(const token of [
  'const city=String(location.city||\'\').trim()',
  'blocked=new Set([country,admin1]',
  'candidate=[city,admin2,name,locality].find(usable)',
- "type ThunderPlaceNames={site?:string;current?:string;forecast?:string}",
- 'thunderLocationName=thunderPlaceNames.site||appendIsoCountry(displayLocationName',
- 'resolveThunderPlace(loc.latitude,loc.longitude,controller.signal)'
-])need('Gewitter-Ortsauflösung',app,token);
+ "export type ThunderPlaceNames={site?:string;current?:string;forecast?:string}"
+])need('Gewitter-Ortsauflösung · Cache',thunderCache,token);
+for(const token of ['thunderLocationName=thunderPlaceNames.site||appendIsoCountry(displayLocationName','resolveThunderPlace(loc.latitude,loc.longitude,controller.signal)'])need('Gewitter-Ortsauflösung · App',app,token);
 
 for(const token of [
  'type HailSizeAssessment=',

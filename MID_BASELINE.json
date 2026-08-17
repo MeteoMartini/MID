@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.55.1",
+  "releaseVersion": "0.9.56.0",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -213,7 +213,10 @@
     "scripts/test-openmeteo-update-audit-09540.mjs",
     "scripts/test-model-family-completeness-09550.mjs",
     "scripts/test-composite-top-reference-motion-track-09550.mjs",
-    "scripts/test-radar-motion-track-buildfix-09551.mjs"
+    "scripts/test-radar-motion-track-buildfix-09551.mjs",
+    "scripts/test-event-flight-units-09553.mjs",
+    "scripts/test-seven-day-today-precipitation-09554.mjs",
+    "scripts/test-maintenance-modularization-09560.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -359,7 +362,10 @@
     "scripts/test-stable-release-hardening-095357.mjs",
     "scripts/test-model-family-completeness-09550.mjs",
     "scripts/test-composite-top-reference-motion-track-09550.mjs",
-    "scripts/test-radar-motion-track-buildfix-09551.mjs"
+    "scripts/test-radar-motion-track-buildfix-09551.mjs",
+    "scripts/test-event-flight-units-09553.mjs",
+    "scripts/test-seven-day-today-precipitation-09554.mjs",
+    "scripts/test-maintenance-modularization-09560.mjs"
   ],
   "requiredFiles": [
     "scripts/test-cockpit-regression-sync-09201.mjs",
@@ -388,7 +394,25 @@
     "scripts/test-hyperlocal-parameter-relevance-09510.mjs",
     "MID_IMPLEMENTATION_0.9.51.0.md",
     "MID_SOLAR_SYMBOL_CONTRACT.md",
-    "scripts/test-solar-symbol-contract-095333.mjs"
+    "scripts/test-solar-symbol-contract-095333.mjs",
+    "src/SevenDayForecastSummary.tsx",
+    "src/analysisCache.ts",
+    "src/thunderPlaceCache.ts",
+    "src/styles-src/00-foundation.css",
+    "src/styles-src/10-features.css",
+    "src/styles-src/20-ensemble-composite.css",
+    "src/styles-src/30-modern.css",
+    "worker-src/00-core-observations.js",
+    "worker-src/10-radar-nowcast.js",
+    "worker-src/20-composite-models.js",
+    "worker-src/30-push-events.js",
+    "worker-src/40-aviation-router.js",
+    "scripts/build-maintenance-aggregates.mjs",
+    "scripts/test-maintenance-modularization-09560.mjs",
+    "src/weather-src/00-types-models-search.tsfrag",
+    "src/weather-src/10-observations-specialized.tsfrag",
+    "src/weather-src/20-mapping-day-character.tsfrag",
+    "src/weather-src/30-ensemble-climate-hazards.tsfrag"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",

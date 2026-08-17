@@ -6125,9 +6125,15 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 @media(max-width:760px){.push-precip-alert-settings{grid-template-columns:auto minmax(0,1fr)}.push-precip-alert-settings>label{grid-column:1/-1}}
 
 /* MID v0.9.55.0 · oberste Referenzkarte und einzelne Zugspur */
-.mid-motion-track-arrowhead{display:block;width:42px;height:42px;pointer-events:none;transform:translateZ(0)}
+.mid-motion-track-arrowhead{display:block;width:62px;height:62px;pointer-events:none;transform:translateZ(0)}
 .mid-motion-track-arrowhead svg{display:block;width:100%;height:100%;overflow:visible;transform-origin:50% 50%}
 .mid-motion-track-arrowhead path{fill:none;stroke-linecap:round;stroke-linejoin:round}
-.mid-motion-track-arrowhead .halo{stroke:rgba(8,20,32,.78);stroke-width:7}
-.mid-motion-track-arrowhead .core{stroke:rgba(255,255,255,.98);stroke-width:3}
+.mid-motion-track-arrowhead .shaft-halo{stroke:rgba(8,20,32,.72);stroke-width:10}
+.mid-motion-track-arrowhead .shaft-core{stroke:rgba(255,255,255,.98);stroke-width:4.6}
+.mid-motion-track-arrowhead .halo{stroke:rgba(8,20,32,.78);stroke-width:8.2}
+.mid-motion-track-arrowhead .core{stroke:rgba(255,255,255,.98);stroke-width:4}
+.mid-motion-axis-div-icon,.mid-motion-time-div-icon{background:transparent!important;border:0!important}
+.mid-motion-axis-label{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:96px;padding:4px 8px;border-radius:999px;background:rgba(243,247,251,.93);border:1px solid rgba(18,44,68,.18);box-shadow:0 6px 16px rgba(10,24,39,.16),inset 0 0 0 1px rgba(255,255,255,.48)}
+.mid-motion-axis-label b{display:block;font-size:11px;line-height:1.05;color:#10233a;white-space:nowrap;letter-spacing:.01em}
+.mid-motion-axis-label small{display:block;font-size:9px;line-height:1.05;color:#476177;white-space:nowrap}
 .model-run-group-title{display:block;margin:10px 0 5px;font-size:.78rem;color:var(--muted)}

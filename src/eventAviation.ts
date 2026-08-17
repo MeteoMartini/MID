@@ -13,11 +13,11 @@ type Raw={hourly?:HourlyRecord;timezone?:string;utc_offset_seconds?:number}
 type Response={data:Raw;requestedModel?:string;modelLabel?:string;version?:string;error?:string}
 export type EventFlightHazardLevel='none'|'watch'|'caution'
 export type EventFlightHazardId='thunderstorm'|'icing'|'turbulence'|'cat'|'ceiling'|'visibility'|'wind'|'mountain-wave'|'freezing-rain'|'volcanic-ash'|'tropical-cyclone'|'dust-sand'|'radiological'|'llws'
-export type EventFlightHazardItem={id:EventFlightHazardId;label:string;level:EventFlightHazardLevel;detail:string;source?:string}
+export type EventFlightHazardItem={id:EventFlightHazardId;label:string;level:EventFlightHazardLevel;detail:string;source?:string;value?:number;unit?:'kt'|'m'|'ft'}
 export type EventFlightSourceStatus={id:string;label:string;status:'used'|'available'|'unavailable'|'not-configured';detail?:string}
-export type EventFlightHazardSummary={available:boolean;overall:EventFlightHazardLevel;items:EventFlightHazardItem[];freezingLevelMin:number|null;ceilingMinFt:number|null;source:string;sources?:EventFlightSourceStatus[];officialSignalCount?:number;note?:string}
+export type EventFlightHazardSummary={available:boolean;overall:EventFlightHazardLevel;items:EventFlightHazardItem[];freezingLevelMin:number|null;ceilingMinFt:number|null;visibilityMinM?:number|null;gustMaxKt?:number|null;source:string;sources?:EventFlightSourceStatus[];officialSignalCount?:number;note?:string}
 
-type OfficialSignal={kind:EventFlightHazardId;label:string;level:Exclude<EventFlightHazardLevel,'none'>;detail:string;source:string;issuer?:string;validFrom?:string;validTo?:string;distanceKm?:number}
+type OfficialSignal={kind:EventFlightHazardId;label:string;level:Exclude<EventFlightHazardLevel,'none'>;detail:string;source:string;issuer?:string;validFrom?:string;validTo?:string;distanceKm?:number;value?:number;unit?:'kt'|'m'|'ft'}
 type OfficialResponse={signals?:OfficialSignal[];sources?:EventFlightSourceStatus[];error?:string}
 type ProfilePoint={pressure:number;height:number|null;temperature:number|null;humidity:number|null;cloud:number|null;windSpeed:number|null;windDirection:number|null}
 
@@ -53,16 +53,17 @@ function icingAt(point:ProfilePoint){const t=point.temperature,rh=point.humidity
 function ceilingFor(points:ProfilePoint[],elevation:number){const layer=points.filter(point=>point.height!==null&&point.height!>=elevation&&((point.humidity??0)>=88||(point.cloud??0)>=72)).sort((a,b)=>a.height!-b.height!)[0];if(!layer?.height)return null;return Math.max(0,(layer.height-elevation)*3.28084)}
 function hazardLevel(maxRisk:number):EventFlightHazardLevel{return maxRisk>=2?'caution':maxRisk>=1?'watch':'none'}
 function detailLevel(level:EventFlightHazardLevel,none:string,watch:string,caution:string){return level==='caution'?caution:level==='watch'?watch:none}
+function aviationVisibility(value:number|null){if(value===null||!Number.isFinite(value))return'nicht verfügbar';if(value<1000)return`${Math.max(50,Math.round(value/50)*50)} m`;if(value<10000)return`${new Intl.NumberFormat('de-DE',{minimumFractionDigits:value<3000?1:0,maximumFractionDigits:1}).format(value/1000)} km`;return'≥ 10 km'}
 function sourceLabels(sources:EventFlightSourceStatus[]){return sources.filter(source=>source.status==='used').map(source=>source.label)}
 function mergeOfficial(items:EventFlightHazardItem[],signals:OfficialSignal[]){
  const byId=new Map(items.map(item=>[item.id,item]))
- for(const signal of signals){const current=byId.get(signal.kind);if(current){const level=stronger(current.level,signal.level),officialWins=levelRank(signal.level)>=levelRank(current.level);byId.set(signal.kind,{...current,level,detail:officialWins?signal.detail:current.detail,source:officialWins?signal.source:current.source})}else byId.set(signal.kind,{id:signal.kind,label:signal.label,level:signal.level,detail:signal.detail,source:signal.source})}
+ for(const signal of signals){const current=byId.get(signal.kind);if(current){const level=stronger(current.level,signal.level),officialWins=levelRank(signal.level)>=levelRank(current.level);byId.set(signal.kind,officialWins?{...current,level,detail:signal.detail,source:signal.source,value:signal.value,unit:signal.unit}:{...current,level})}else byId.set(signal.kind,{id:signal.kind,label:signal.label,level:signal.level,detail:signal.detail,source:signal.source,value:signal.value,unit:signal.unit})}
  const baseOrder:EventFlightHazardId[]=['thunderstorm','icing','turbulence','cat','ceiling','visibility','wind'],specialOrder:EventFlightHazardId[]=['llws','mountain-wave','freezing-rain','volcanic-ash','tropical-cyclone','dust-sand','radiological']
  return[...baseOrder,...specialOrder].map(id=>byId.get(id)).filter((item):item is EventFlightHazardItem=>Boolean(item)).filter(item=>baseOrder.includes(item.id)||item.level!=='none')
 }
 function officialOnlySummary(official:OfficialResponse,note:string):EventFlightHazardSummary{
  const signals=official.signals??[],items=mergeOfficial([],signals),sources=official.sources??[],used=sourceLabels(sources)
- return{available:items.length>0,overall:overall(items),items,freezingLevelMin:null,ceilingMinFt:null,source:used.slice(0,4).join(' · ')||'Amtliche Flugwetterquellen',sources,officialSignalCount:signals.length,note:items.length?`${note} Amtliche Hazardprodukte bleiben verfügbar.`:note}
+ return{available:items.length>0,overall:overall(items),items,freezingLevelMin:null,ceilingMinFt:null,visibilityMinM:null,gustMaxKt:null,source:used.slice(0,4).join(' · ')||'Amtliche Flugwetterquellen',sources,officialSignalCount:signals.length,note:items.length?`${note} Amtliche Hazardprodukte bleiben verfügbar.`:note}
 }
 
 export async function loadEventFlightHazards(lat:number,lon:number,elevation:number,startEpoch:number,endEpoch:number,signal?:AbortSignal):Promise<EventFlightHazardSummary>{
@@ -81,11 +82,11 @@ export async function loadEventFlightHazards(lat:number,lon:number,elevation:num
    {id:'icing',label:'Vereisung',level:icingLevel,detail:detailLevel(icingLevel,'kein signifikantes Signal','Vereisung diagnostisch möglich','markantes Vereisungssignal')},
    {id:'turbulence',label:'Turbulenz',level:turbulenceLevel,detail:detailLevel(turbulenceLevel,'kein signifikantes Signal','mäßiges Turbulenzsignal','starkes Turbulenzsignal')},
    {id:'cat',label:'CAT',level:catLevel,detail:detailLevel(catLevel,'kein signifikantes Signal','mäßiges CAT-Signal','starkes CAT-Signal')},
-   {id:'ceiling',label:'Wolkenuntergrenze',level:ceilingLevel,detail:ceilingMinFt===null?'nicht belastbar':`min. ca. ${Math.round(ceilingMinFt/100)*100} ft AGL`},
-   {id:'visibility',label:'Sicht',level:visibilityLevel,detail:visibilityMin===null?'nicht verfügbar':`${visibilityMin>=10000?Math.round(visibilityMin/1000):Math.round(visibilityMin/100)/10} km`},
-   {id:'wind',label:'Böen',level:windLevel,detail:gustMax===null?'nicht verfügbar':`bis ${Math.round(gustMax)} kt`}
+   {id:'ceiling',label:'Wolkenuntergrenze',level:ceilingLevel,detail:ceilingMinFt===null?'nicht belastbar':`min. ca. ${Math.round(ceilingMinFt/100)*100} ft AGL`,value:ceilingMinFt??undefined,unit:'ft'},
+   {id:'visibility',label:'Sicht',level:visibilityLevel,detail:aviationVisibility(visibilityMin),value:visibilityMin??undefined,unit:'m'},
+   {id:'wind',label:'Böen',level:windLevel,detail:gustMax===null?'nicht verfügbar':`bis ${Math.round(gustMax)} kt`,value:gustMax??undefined,unit:'kt'}
   ]
   const officialSignals=official.signals??[],items=mergeOfficial(diagnosed,officialSignals),sources:EventFlightSourceStatus[]=[{id:'model-profile',label:`${response.modelLabel||'Best Match'} / MID-Druckniveau`,status:'used'},...(official.sources??[])],used=sourceLabels(sources),source=[response.modelLabel||'Best Match',...used.filter(label=>!label.startsWith(response.modelLabel||'Best Match'))].filter(Boolean).slice(0,4).join(' · ')
-  return{available:true,overall:overall(items),items,freezingLevelMin:minNumber(freezing),ceilingMinFt,source, sources,officialSignalCount:officialSignals.length}
+  return{available:true,overall:overall(items),items,freezingLevelMin:minNumber(freezing),ceilingMinFt,visibilityMinM:visibilityMin,gustMaxKt:gustMax,source, sources,officialSignalCount:officialSignals.length}
  }catch(error){if(signal?.aborted)throw error;const official=await loadOfficial(lat,lon,startEpoch,endEpoch,signal);return officialOnlySummary(official,error instanceof Error?`Druckniveau-Diagnose nicht verfügbar: ${error.message}`:'Druckniveau-Diagnose nicht verfügbar.')}
 }

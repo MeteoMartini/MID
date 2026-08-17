@@ -48,7 +48,7 @@ const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const OPEN_METEO_ELEVATION='https://api.open-meteo.com/v1/elevation';
 const MET_NORWAY_LOCATIONFORECAST='https://api.met.no/weatherapi/locationforecast/2.0/complete';
-const WORKER_VERSION='0.9.55.1';
+const WORKER_VERSION='0.9.56.0';
 const C3S_SEASONAL_POINT_SYSTEMS=[
  {centreId:'ecmwf',originatingCentre:'ecmwf',system:'51',label:'ECMWF'},
  {centreId:'ukmo',originatingCentre:'ukmo',system:'610',label:'UK Met Office'},
@@ -2098,17 +2098,18 @@ function aviationSignalDetail(kind,source,properties,text,distanceKm){
 }
 function aviationEpoch(value){const iso=safeDate(value);return iso?Date.parse(iso):NaN}
 function aviationVisibilitySm(value){if(value===null||value===undefined)return undefined;const text=String(value).trim();if(!text)return undefined;if(/^\d+(?:\.\d+)?\+$/.test(text))return Number.parseFloat(text);const n=Number(text);return Number.isFinite(n)?n:undefined}
+function aviationVisibilityMetersText(value){if(!Number.isFinite(value))return'nicht verfügbar';if(value<1000)return`${Math.max(50,Math.round(value/50)*50)} m`;if(value<10000)return`${new Intl.NumberFormat('de-DE',{minimumFractionDigits:value<3000?1:0,maximumFractionDigits:1}).format(value/1000)} km`;return'≥ 10 km'}
 function aviationCeilingFt(clouds){if(!Array.isArray(clouds))return undefined;const bases=clouds.filter(cloud=>/^(?:BKN|OVC|VV)$/i.test(String(cloud?.cover||''))).map(cloud=>number(cloud?.base)).filter(value=>value!==undefined);return bases.length?Math.min(...bases):undefined}
 function aviationTerminalPeriodSignals(period,{source,label,issuer,distanceKm,startEpoch,endEpoch}){
  const from=aviationEpoch(period?.timeFrom??period?.validTimeFrom??period?.obsTime??period?.reportTime),to=aviationEpoch(period?.timeTo??period?.validTimeTo),now=Date.now();
  const periodFrom=Number.isFinite(from)?from:source==='metar'?now-3*3600000:NaN,periodTo=Number.isFinite(to)?to:Number.isFinite(from)?from+(source==='metar'?90:6*60)*60000:NaN;
  if(Number.isFinite(periodFrom)&&Number.isFinite(periodTo)&&(periodTo<startEpoch-30*60000||periodFrom>endEpoch+30*60000))return[];
  const raw=[period?.wxString,period?.notDecoded,Array.isArray(period?.icgTurb)?period.icgTurb.join(' '):period?.icgTurb].filter(Boolean).join(' '),signals=[],probability=number(period?.probability),probabilistic=source==='taf'&&probability!==undefined&&probability<=40;
- const add=(kind,level,detail)=>signals.push({kind,label:AVIATION_HAZARD_LABELS[kind]||kind,level:probabilistic&&level==='caution'?'watch':level,detail:`${source==='taf'?'TAF':'METAR/SPECI'}${issuer?` ${issuer}`:''} · ${detail}${probability!==undefined?` · ${Math.round(probability)} %`:''}`,source:label,issuer:issuer||undefined,validFrom:Number.isFinite(periodFrom)?new Date(periodFrom).toISOString():undefined,validTo:Number.isFinite(periodTo)?new Date(periodTo).toISOString():undefined,distanceKm:Number.isFinite(distanceKm)?Number(distanceKm.toFixed(1)):undefined});
+ const add=(kind,level,detail,measurement={})=>signals.push({kind,label:AVIATION_HAZARD_LABELS[kind]||kind,level:probabilistic&&level==='caution'?'watch':level,detail:`${source==='taf'?'TAF':'METAR/SPECI'}${issuer?` ${issuer}`:''} · ${detail}${probability!==undefined?` · ${Math.round(probability)} %`:''}`,source:label,issuer:issuer||undefined,validFrom:Number.isFinite(periodFrom)?new Date(periodFrom).toISOString():undefined,validTo:Number.isFinite(periodTo)?new Date(periodTo).toISOString():undefined,distanceKm:Number.isFinite(distanceKm)?Number(distanceKm.toFixed(1)):undefined,...measurement});
  for(const kind of aviationHazardKinds(raw))add(kind,aviationLevel(raw,source),AVIATION_HAZARD_LABELS[kind]||kind);
- const gust=number(period?.wgst);if(gust!==undefined&&gust>=25)add('wind',gust>=35?'caution':'watch',`Böen ${Math.round(gust)} kt`);
- const visibility=aviationVisibilitySm(period?.visib);if(visibility!==undefined&&visibility<3)add('visibility',visibility<1?'caution':'watch',`Sicht ${visibility.toFixed(visibility<1?1:0)} SM`);
- const ceiling=aviationCeilingFt(period?.clouds);if(ceiling!==undefined&&ceiling<3000)add('ceiling',ceiling<1000?'caution':'watch',`Ceiling ${Math.round(ceiling/100)*100} ft`);
+ const gust=number(period?.wgst);if(gust!==undefined&&gust>=25)add('wind',gust>=35?'caution':'watch',`Böen ${Math.round(gust)} kt`,{value:gust,unit:'kt'});
+ const visibility=aviationVisibilitySm(period?.visib),visibilityM=visibility===undefined?undefined:visibility*1609.344;if(visibility!==undefined&&visibility<3)add('visibility',visibility<1?'caution':'watch',`Sicht ${aviationVisibilityMetersText(visibilityM)}`,{value:Number(visibilityM.toFixed(0)),unit:'m'});
+ const ceiling=aviationCeilingFt(period?.clouds);if(ceiling!==undefined&&ceiling<3000)add('ceiling',ceiling<1000?'caution':'watch',`Wolkenuntergrenze ${Math.round(ceiling/100)*100} ft`,{value:ceiling,unit:'ft'});
  if(number(period?.wshearHgt)!==undefined||number(period?.wshearSpd)!==undefined)add('llws','caution','Low-Level Windshear');
  return signals;
 }

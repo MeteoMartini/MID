@@ -10,7 +10,7 @@ const need=(source,token,label)=>{if(!source.includes(token))failures.push(`${la
 for(const token of [
   "label=\"Radar · 1 km\"",
   "label=\"K3D / MIX\"",
-  "label=\"Zugpfeile\"",
+  "label=\"Zugbahn\"",
   'radarButtonDetail=',
   'nowcastButtonDetail=`${k3dButtonState} · ${mixButtonState}`'
 ])need(radar,token,'Kompakte Layerbuttons fehlen');

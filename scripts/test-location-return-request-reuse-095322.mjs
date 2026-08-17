@@ -1,16 +1,18 @@
 import {readFile} from 'node:fs/promises';
 
-const [app,weather,baseline]=await Promise.all([
+const [app,analysisCache,weather,baseline]=await Promise.all([
  readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
+ readFile(new URL('../src/analysisCache.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/weather.ts',import.meta.url),'utf8'),
  readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')
 ]);
 const failures=[];
 const need=(text,token,label)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
 
+need(analysisCache,'nearbyRadiusM=450','Analysecache-Nahbereich fehlt');
+
 for(const token of [
  'readAnalysisCacheEntry',
- 'nearbyRadiusM=450',
  'stationCacheEntryForLocation',
  "readAnalysisCache<Station>('station-provisional'",
  "readAnalysisCache<any>('air-quality'",

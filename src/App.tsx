@@ -5,12 +5,12 @@ import {AppInfoHint as InfoHint} from './AppInfoPopover';
 import {AppPortalPopover as PortalPopover} from './AppPortalPopover';
 import {MID_VERSION as VERSION} from './version';
 import {formatDecimal,formatDecimalFixed,formatUvi} from './format';
-import {airQuality,airQualityStation,applyEnsembleDailyPrecipitationProbability,bestMatchModelInfo,climatology,cloudOktas,countryCodeFromLocation,cloudOktasText,currentIndex,dayPrecipitationAssessment,dayWeatherCharacter,dayWeatherCharacterText,dailyPrecipitationProbabilityCompact,dailyPrecipitationProbabilityTitle,ensembles,forecast,hazards,label,mapDays,mapHours,mapMinutely15,precipitationDurationDayOverviewCompactLabel,precipitationDurationDayOverviewLabel,precipitationDurationLabel,precipitationPeriodAssessment,recentSunshineDuration,validateWindPair,officialWarnings,radarNowcast,thunderstormNowcast,searchLocations,reverseLocation,station,stationFieldObservationUsable,uvAltitudeFactor,wind,type BestMatchModelInfo,type ClimateDay,type Day,type EnsembleDay,type EnsembleScenarioCluster,type Hour,type Location,type Minute15,type ModelRunMeta,type OfficialAlert,type RadarNowcast,type Station,type StationFieldSource,type ThunderstormNowcast,type Weather,type WindUnit} from './weather';
+import {airQuality,airQualityStation,applyEnsembleDailyPrecipitationProbability,bestMatchModelInfo,climatology,cloudOktas,countryCodeFromLocation,cloudOktasText,currentIndex,dayPrecipitationAssessment,dayWeatherCharacter,dayWeatherCharacterText,dailyPrecipitationProbabilityCompact,dailyPrecipitationProbabilityTitle,ensembles,forecast,hazards,label,mapDays,mapHours,mapMinutely15,precipitationDurationDayOverviewCompactLabel,precipitationDurationDayOverviewLabel,precipitationDurationLabel,recentSunshineDuration,validateWindPair,officialWarnings,radarNowcast,thunderstormNowcast,searchLocations,reverseLocation,station,stationFieldObservationUsable,uvAltitudeFactor,wind,type BestMatchModelInfo,type ClimateDay,type Day,type EnsembleDay,type EnsembleScenarioCluster,type Hour,type Location,type Minute15,type ModelRunMeta,type OfficialAlert,type RadarNowcast,type Station,type StationFieldSource,type ThunderstormNowcast,type Weather,type WindUnit} from './weather';
 import {precipitationAmountLabel,precipitationParts,presentPrecipTypes,type PrecipitationParts,type PrecipSample,type PrecipType} from './precipitation';
 import type {StationAnalysisField} from './sourceQuality';
 import {representativeDetailPictograms} from './detailPictograms';
 import {getMidUpdateStatus,repairMidCache,resetMidServiceWorker,rollbackMidVersion,type MidUpdateStatus} from './pwa';
-import {DWD_WARNING_COLORS,DWD_WIND_THRESHOLDS_KMH,formatDwdWarningCompactValue,formatDwdWarningDetail,formatDwdWarningDirection,formatDwdWindValue,summarizeDwdWarnings,summarizeDwdWarningsForDay,type DwdWarningKind,type DwdWarningLevel} from './dwdWarnings';
+import {DWD_WARNING_COLORS,DWD_WIND_THRESHOLDS_KMH,formatDwdWarningCompactValue,formatDwdWarningDetail,formatDwdWarningDirection,formatDwdWindValue,summarizeDwdWarningsForDay,type DwdWarningKind,type DwdWarningLevel} from './dwdWarnings';
 import {clamp,nicePositiveRange,niceRange} from './chartMath';
 import {combineThunderstormInformation,type ThunderInfoPlace} from './thunderstorm';
 import {combineHeavyRain,loadHeavyRainBase,type HeavyRainBase} from './heavyRain';
@@ -32,15 +32,14 @@ import {applyLocalTwinForecastFromReport,applyLocalTwinHours,buildForecastVerifi
 import {classifyEuropeanAirQuality,describeEuropeanAqiPollutantScale,EUROPEAN_AQI_BANDS,stationClassLabel,type AirQualityStationMeta,type EuropeanAqiPollutantResult,type EuropeanAirQualityResult} from './airQuality';
 import {learnWeatherTwinsForFavorites} from './twinBackgroundLearning';
 import {isOpenMeteoRateLimitError} from './openMeteoGuard';
-import {DETAIL_THUNDER_RISK_DISPLAY_THRESHOLD,significantHourlyThunderRisk} from './detailThunderRisk';
+import {significantHourlyThunderRisk} from './detailThunderRisk';
 import {ShortTermForecast,shortTermAnchorFromCurrent} from './ShortTermForecast';
 import {hyperlocalSkyCondition} from './currentConditions';
 import {WeatherPictogram,weatherPictogramKind,type WeatherPictogramCloudProfile} from './WeatherPictogram';
-import {isoAlpha3} from './iso3166';
 import {DashboardModuleSettingsPanel} from './DashboardModuleSettings';
 import {DASHBOARD_MODULE_DEFINITIONS,readDashboardModuleSettings,writeDashboardModuleSettings,type DashboardModuleId,type DashboardModuleSettings} from './dashboardModules';
 import {consumeDeviceSyncTransferFromLocation} from './deviceSync';
-import {followingNightIsTropical} from './forecastNight';
+import {SevenDayForecastSummary,buildSevenDayForecastSummary} from './SevenDayForecastSummary';
 import {dayPeriodHoursForDate,followingNightHoursForDate} from './forecastPeriods';
 import {applyForecastFusionDays,applyForecastFusionHours,applyForecastFusionModelDays,applyHyperlocalForecastHours,dryRadarNowcastProbability,finalizeForecastHours,finalizeForecastMinute15,reconcileForecastDaysWithHours,forecastFusionLabel,loadForecastFusion,type ForecastFusionResult} from './forecastFusion';
 import {ForecastCockpit,type ForecastPresentationMode} from './ForecastCockpit';
@@ -53,32 +52,13 @@ import {refreshAllEventWeather,startEventWeatherMonitor} from './eventWeatherRef
 import {markForegroundNetworkBusy,markForegroundNetworkReady,runBackgroundNetworkTask} from './backgroundNetwork';
 import {startupForecastForLocation} from './startupPreload';
 import {MidDisclosure} from './UiPrimitives';
+import {readAnalysisCache,readAnalysisCacheEntry,writeAnalysisCache} from './analysisCache';
+import {appendIsoCountry,conciseThunderPlace,readThunderPlaceCache,resolveThunderPlace,thunderPlaceGridKey,type ThunderPlaceNames} from './thunderPlaceCache';
+export {buildSevenDayForecastSummary} from './SevenDayForecastSummary';
 
 const LOGO_PATH='./mid-logo.png';
 const LOCATION_STORAGE_KEY='mid:lastLocation';
-const ANALYSIS_CACHE_PREFIX='mid:analysis-cache:';
-const STATION_ANALYSIS_CACHE_SCHEMA='v2';
-type AnalysisCacheEntry<T>={savedAt:number;value:T;distanceM:number};
-function analysisCacheStorageKind(kind:string){return kind==='station'||kind==='station-provisional'?`${kind}:${STATION_ANALYSIS_CACHE_SCHEMA}`:kind}
-function analysisCacheKey(kind:string,latitude:number,longitude:number){const storageKind=analysisCacheStorageKind(kind);return`${ANALYSIS_CACHE_PREFIX}${storageKind}:${latitude.toFixed(3)}:${longitude.toFixed(3)}`}
-function analysisCacheCoordinates(kind:string,key:string){const storageKind=analysisCacheStorageKind(kind),prefix=`${ANALYSIS_CACHE_PREFIX}${storageKind}:`;if(!key.startsWith(prefix))return null;const match=key.slice(prefix.length).match(/^(-?\d+(?:\.\d+)?):(-?\d+(?:\.\d+)?)$/);return match?{latitude:Number(match[1]),longitude:Number(match[2])}:null}
-function analysisDistanceMeters(latitude:number,longitude:number,otherLatitude:number,otherLongitude:number){const rad=Math.PI/180,dLat=(otherLatitude-latitude)*rad,dLon=(otherLongitude-longitude)*rad,lat1=latitude*rad,lat2=otherLatitude*rad,h=Math.sin(dLat/2)**2+Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLon/2)**2;return 12742000*Math.asin(Math.min(1,Math.sqrt(h)))}
-function parseAnalysisCacheEntry<T>(raw:string|null,maxAgeMs:number,distanceM=0):AnalysisCacheEntry<T>|null{try{if(!raw)return null;const parsed=JSON.parse(raw) as{savedAt?:number;value?:T},savedAt=Number(parsed.savedAt),age=Date.now()-savedAt;if(!Number.isFinite(savedAt)||age<0||age>maxAgeMs||parsed.value===undefined||parsed.value===null)return null;return{savedAt,value:parsed.value,distanceM}}catch{return null}}
-function readAnalysisCacheEntry<T>(kind:string,latitude:number,longitude:number,maxAgeMs:number,nearbyRadiusM=450):AnalysisCacheEntry<T>|null{try{const exact=parseAnalysisCacheEntry<T>(localStorage.getItem(analysisCacheKey(kind,latitude,longitude)),maxAgeMs);if(exact)return exact;let best:AnalysisCacheEntry<T>|null=null;const storageKind=analysisCacheStorageKind(kind),prefix=`${ANALYSIS_CACHE_PREFIX}${storageKind}:`;for(let index=0;index<localStorage.length;index++){const key=localStorage.key(index)||'';if(!key.startsWith(prefix))continue;const coordinates=analysisCacheCoordinates(kind,key);if(!coordinates)continue;const distanceM=analysisDistanceMeters(latitude,longitude,coordinates.latitude,coordinates.longitude);if(distanceM>nearbyRadiusM)continue;const entry=parseAnalysisCacheEntry<T>(localStorage.getItem(key),maxAgeMs,distanceM);if(!entry)continue;if(!best||entry.savedAt>best.savedAt||entry.savedAt===best.savedAt&&entry.distanceM<best.distanceM)best=entry}return best}catch{return null}}
-function readAnalysisCache<T>(kind:string,latitude:number,longitude:number,maxAgeMs:number,nearbyRadiusM=450):T|null{return readAnalysisCacheEntry<T>(kind,latitude,longitude,maxAgeMs,nearbyRadiusM)?.value??null}
-function writeAnalysisCache<T>(kind:string,latitude:number,longitude:number,value:T|null|undefined){if(value===undefined||value===null)return;try{localStorage.setItem(analysisCacheKey(kind,latitude,longitude),JSON.stringify({savedAt:Date.now(),value}));const storageKind=analysisCacheStorageKind(kind),prefix=`${ANALYSIS_CACHE_PREFIX}${storageKind}:`,entries:Array<{key:string;savedAt:number}>=[];for(let index=0;index<localStorage.length;index++){const key=localStorage.key(index)||'';if(!key.startsWith(prefix))continue;try{const savedAt=Number(JSON.parse(localStorage.getItem(key)||'null')?.savedAt)||0;entries.push({key,savedAt})}catch{entries.push({key,savedAt:0})}}if(entries.length>24)for(const entry of entries.sort((a,b)=>b.savedAt-a.savedAt).slice(24))localStorage.removeItem(entry.key)}catch{}}
-type ThunderPlaceNames={site?:string;current?:string;forecast?:string};
-const THUNDER_PLACE_CACHE_KEY='mid:thunder-place-cache:v3';
-const THUNDER_PLACE_CACHE_TTL=12*3600000;
-function thunderPlaceGridKey(latitude:number|undefined,longitude:number|undefined){if(!Number.isFinite(Number(latitude))||!Number.isFinite(Number(longitude)))return'';return`${Math.round(Number(latitude)*25)/25}:${Math.round(Number(longitude)*25)/25}`}
-function appendIsoCountry(name:string,countryValue?:string){const place=String(name||'').trim(),country=isoAlpha3(countryValue);if(!place||!country||new RegExp(`,\\s*${country}$`,'i').test(place))return place;return`${place}, ${country}`}
-function conciseThunderPlace(location:Location){
- const city=String(location.city||'').trim(),name=String(location.name||'').trim(),locality=String(location.locality||'').trim(),admin2=String(location.admin2||'').trim(),admin1=String(location.admin1||'').trim(),country=String(location.country||'').trim(),normalise=(value:string)=>value.toLocaleLowerCase('de-DE').replace(/[^a-zäöüß0-9]/g,''),blocked=new Set([country,admin1].filter(Boolean).map(normalise)),looksGeneric=(value:string)=>/\b(kreis|county|district|bezirk|department|arrondissement|province|provincia|powiat|oblast|region|staat|land)\b/i.test(value),usable=(value:string)=>Boolean(value&&!value.includes('°')&&!blocked.has(normalise(value))&&!looksGeneric(value)),candidate=[city,admin2,name,locality].find(usable)||'';
- return candidate?appendIsoCountry(candidate,location.country_code||location.country):'';
-}
-function readThunderPlaceCache(key:string){if(!key)return'';try{const cache=JSON.parse(localStorage.getItem(THUNDER_PLACE_CACHE_KEY)||'{}') as Record<string,{at:number;name:string}>,entry=cache[key];return entry&&Number.isFinite(entry.at)&&Date.now()-entry.at<=THUNDER_PLACE_CACHE_TTL?String(entry.name||''):''}catch{return''}}
-function writeThunderPlaceCache(key:string,name:string){if(!key||!name)return;try{const raw=JSON.parse(localStorage.getItem(THUNDER_PLACE_CACHE_KEY)||'{}') as Record<string,{at:number;name:string}>,entries=Object.entries(raw).filter(([,entry])=>Number.isFinite(entry?.at)&&Date.now()-entry.at<=THUNDER_PLACE_CACHE_TTL).sort((a,b)=>b[1].at-a[1].at).slice(0,39);localStorage.setItem(THUNDER_PLACE_CACHE_KEY,JSON.stringify(Object.fromEntries([[key,{at:Date.now(),name}],...entries.filter(([entryKey])=>entryKey!==key)])))}catch{}}
-async function resolveThunderPlace(latitude:number|undefined,longitude:number|undefined,signal:AbortSignal){const key=thunderPlaceGridKey(latitude,longitude),cached=readThunderPlaceCache(key);if(cached)return cached;if(!key)return'';const location=await reverseLocation(Number(latitude),Number(longitude),undefined,signal),name=conciseThunderPlace(location);writeThunderPlaceCache(key,name);return name}
+
 const FAVORITES_STORAGE_KEY='mid:favorites';
 const FAVORITES_UPDATED_AT_KEY='mid:favorites:updated-at';
 const FAVORITES_SHADOW_KEY='mid:favorites:shadow:v1';
@@ -1127,107 +1107,6 @@ function combineRadarAndModel(model:PrecipNowResult,radar:RadarNowcast|null,load
  const radarText=radarSummary(radar,timezone)||model.summary,continuation=model.continuation&&!radarText.includes(model.continuation)?model.continuation:'';return{probability,summary:[radarText,continuation].filter(Boolean).join(' '),source:`Radar- und Modellabgleich${radarFinding} · ${radar.provider}${radar.observationProvider?` · Beobachtung: ${radar.observationProvider}`:''}${observed?` · Datenstand ${observed} Uhr`:''} · Aktualität ${ageMinutes} min · Radarqualität: ${quality}${seasonal} · Gewichtung: Radar ${Math.round(radarWeight*100)} % / Modell ${Math.round((1-radarWeight)*100)} %`,continuation:model.continuation};
 }
 
-type SevenDayWeatherRegime='sunny'|'mixed'|'cloudy'|'wet'|'storm'|'snow';
-type SevenDayThermalClass='extreme-hot'|'very-hot'|'hot'|'summer'|'ice'|'frost'|'above-normal'|'below-normal'|'neutral';
-type SevenDayWeatherPoint={index:number;day:Day;regime:SevenDayWeatherRegime;sunHours:number;sunShare:number;dayPrecipitation:number;dayProbability:number;precipitationDurationHours:number;showery:boolean;thunderRiskPercent:number;thunderDirect:boolean;followingNightFamily:ReturnType<typeof precipitationPeriodAssessment>['family'];followingNightDurationHours:number;followingNightProbability:number;followingNightDominant:boolean;thermal:SevenDayThermalClass;climateDelta:number;tropicalNight:boolean;hazards:ReturnType<typeof summarizeDwdWarnings>};
-type SevenDayWeatherSegment={regime:SevenDayWeatherRegime;start:number;end:number;points:SevenDayWeatherPoint[]};
-// DWD-Kenntage: Sommertag ab 25 °C, Heißer Tag ab 30 °C, sehr heiß ab 35 °C, extrem heiß ab 40 °C, Tropennacht ab Tmin 20 °C und Eistag bei Tmax < 0 °C.
-const SEVEN_DAY_TREND_WEIGHTS=[1.8,1.5,1.25,1,.82,.68,.55] as const;
-function sevenDayWeight(index:number){return SEVEN_DAY_TREND_WEIGHTS[Math.min(index,SEVEN_DAY_TREND_WEIGHTS.length-1)]??.5}
-function sevenDayClockMinutes(value?:string){const match=String(value||'').match(/T(\d{2}):(\d{2})/);return match?Number(match[1])*60+Number(match[2]):Number.NaN}
-function sevenDayDaylightHours(day:Day){const sunrise=sevenDayClockMinutes(day.sunrise),sunset=sevenDayClockMinutes(day.sunset);if(Number.isFinite(sunrise)&&Number.isFinite(sunset)){const minutes=sunset>=sunrise?sunset-sunrise:sunset+1440-sunrise;if(minutes>0)return minutes/60}return 12}
-function sevenDayThermalClass(day:Day,climate?:ClimateDay){
- const max=Number(day.max),min=Number(day.min),delta=climate&&Number.isFinite(climate.maxMean)?max-climate.maxMean:Number.NaN;
- if(max>=40)return'extreme-hot';
- if(max>=35)return'very-hot';
- if(max>=30)return'hot';
- if(max>=25)return'summer';
- if(max<0)return'ice';
- if(min<0)return'frost';
- if(Number.isFinite(delta)&&delta>=4.5)return'above-normal';
- if(Number.isFinite(delta)&&delta<=-4.5)return'below-normal';
- return'neutral';
-}
-function sevenDayPoint(day:Day,nextDay:Day|undefined,dayHours:Hour[],allHours:Hour[],index:number,climate:ClimateDay|undefined,elevation:number):SevenDayWeatherPoint{
- dayHours=dayPeriodHoursForDate(day.date,dayHours.length?dayHours:allHours);
- const dayAssessment=dayPrecipitationAssessment(day,dayHours),followingNightHours=followingNightHoursForDate(day.date,allHours).filter(hour=>index>0||hour.epoch>=Date.now()-30*60000),followingNightAssessment=precipitationPeriodAssessment(followingNightHours),trendHours=[...dayHours,...followingNightHours].sort((a,b)=>a.epoch-b.epoch),character=dayWeatherCharacter(day,dayHours),codes=dayHours.map(hour=>hour.code).filter(Number.isFinite).map(value=>Math.round(Number(value))),has=(values:number[])=>codes.some(code=>values.includes(code)),text=`${character.label} ${character.secondary||''}`.toLocaleLowerCase('de-DE'),sunHours=Math.max(0,Number(day.sunshineDuration)||0)/3600,sunShare=Math.max(0,Math.min(1,sunHours/Math.max(1,sevenDayDaylightHours(day)))),dayPrecipitation=dayAssessment.amount,dayProbability=dayAssessment.maxProbability,showery=dayAssessment.showery&&dayAssessment.dominant,wetDominant=dayAssessment.dominant,hazards=summarizeDwdWarnings(trendHours,elevation),hourlyThunderRisks=dayHours.map(hour=>significantHourlyThunderRisk(hour)).filter((risk):risk is NonNullable<ReturnType<typeof significantHourlyThunderRisk>>=>Boolean(risk)),thunderRiskPercent=Math.max(0,...hourlyThunderRisks.map(risk=>risk.percent)),thunderDirect=has([95,96,97,99]),stormy=thunderRiskPercent>=DETAIL_THUNDER_RISK_DISPLAY_THRESHOLD||thunderDirect,snowy=has([71,73,75,77,85,86])&&dayAssessment.dominant,sunnyText=/sonnig|heiter|wolkenlos/.test(text),denseCloudText=/stark bewölkt|meist bewölkt|bedeckt|trüb/.test(text),mixedText=/sonne und wolken|wechselnd bewölkt|aufgelockert|teils bewölkt|zeitweise wolkig|später wolkig/.test(text);
- let regime:SevenDayWeatherRegime;
- if(snowy)regime='snow';else if(stormy)regime='storm';else if(wetDominant)regime='wet';else if(sunnyText&&denseCloudText||mixedText)regime='mixed';else if(denseCloudText)regime='cloudy';else if(sunnyText)regime='sunny';else if(codes.includes(0)||codes.includes(1))regime=sunShare>=.35?'sunny':'mixed';else if(codes.includes(2))regime='mixed';else if(codes.includes(3))regime='cloudy';else regime=sunShare>=.65?'sunny':sunShare>=.3?'mixed':'cloudy';
- return{index,day,regime,sunHours,sunShare,dayPrecipitation,dayProbability,precipitationDurationHours:dayAssessment.durationHours,showery,thunderRiskPercent,thunderDirect,followingNightFamily:followingNightAssessment.family,followingNightDurationHours:followingNightAssessment.durationHours,followingNightProbability:followingNightAssessment.maxProbability,followingNightDominant:followingNightAssessment.dominant,thermal:sevenDayThermalClass(day,climate),climateDelta:climate&&Number.isFinite(climate.maxMean)?Number(day.max)-climate.maxMean:Number.NaN,tropicalNight:followingNightIsTropical(day,nextDay,allHours),hazards};
-}
-function sevenDayThermalPhrase(segment:SevenDayWeatherSegment){
- const points=segment.points,totalWeight=points.reduce((sum,point)=>sum+sevenDayWeight(point.index),0),score=(classes:SevenDayThermalClass[])=>points.reduce((sum,point)=>sum+(classes.includes(point.thermal)?sevenDayWeight(point.index):0),0),first=points[0],last=points[points.length-1],risingHeat=points.length>=2&&Number(first.day.max)<30&&Number(last.day.max)>=30&&Number(last.day.max)-Number(first.day.max)>=4,tropicalNights=points.filter(point=>point.tropicalNight).length,nightSuffix=tropicalNights===1?' mit einer möglichen Tropennacht':tropicalNights>1?' mit möglichen Tropennächten':'';
- if(points.some(point=>point.thermal==='extreme-hot'))return`extrem heiß${nightSuffix}`;
- if(points.some(point=>point.thermal==='very-hot')&&score(['very-hot','extreme-hot'])/totalWeight>=.22)return`sehr heiß${nightSuffix}`;
- if(risingHeat)return`zunehmend heiß${nightSuffix}`;
- if(score(['hot','very-hot','extreme-hot'])/totalWeight>=.42)return`heiß${nightSuffix}`;
- if(score(['summer','hot','very-hot','extreme-hot'])/totalWeight>=.48)return`sommerlich warm${nightSuffix}`;
- if(score(['ice'])/totalWeight>=.35)return'mit Dauerfrost';
- if(score(['frost','ice'])/totalWeight>=.5)return'mit Nachtfrost';
- const climatePoints=points.filter(point=>Number.isFinite(point.climateDelta)),climateWeight=climatePoints.reduce((sum,point)=>sum+sevenDayWeight(point.index),0),weightedDelta=climateWeight?climatePoints.reduce((sum,point)=>sum+point.climateDelta*sevenDayWeight(point.index),0)/climateWeight:Number.NaN;
- if(weightedDelta>=4.5)return'deutlich wärmer als im Klimamittel';
- if(weightedDelta<=-4.5)return'deutlich kühler als im Klimamittel';
- return'';
-}
-function sevenDaySegmentDescription(segment:SevenDayWeatherSegment){
- const points=segment.points,totalPrecip=points.reduce((sum,point)=>sum+point.dayPrecipitation,0),showeryScore=points.reduce((sum,point)=>sum+(point.showery?sevenDayWeight(point.index):0),0),weight=points.reduce((sum,point)=>sum+sevenDayWeight(point.index),0),thermal=sevenDayThermalPhrase(segment),maxThunderRisk=Math.max(0,...points.map(point=>point.thunderRiskPercent)),directThunder=points.some(point=>point.thunderDirect);
- let base='';
- if(segment.regime==='snow')base='winterlich mit Schnee';
- else if(segment.regime==='storm')base=directThunder||maxThunderRisk>=70?'wechselhaft mit Gewittern':maxThunderRisk>=50?'wechselhaft mit erhöhtem Gewitterrisiko':'wechselhaft mit Gewitterrisiko';
- else if(segment.regime==='wet')base=showeryScore>=weight*.45&&totalPrecip<10?'wechselhaft mit Schauern':totalPrecip>=8?'regnerisch':'zeitweise regnerisch';
- else if(segment.regime==='cloudy')base='überwiegend bewölkt, aber meist trocken';
- else if(segment.regime==='mixed')base='wechselnd bewölkt mit sonnigen Abschnitten und überwiegend trocken';
- else base='heiter bis sonnig und trocken';
- if(!thermal)return base;
- if(thermal.startsWith('mit '))return`${base} ${thermal}`;
- if(segment.regime==='sunny')return`heiter bis sonnig und ${thermal}`;
- if(segment.regime==='cloudy')return`überwiegend bewölkt, aber meist trocken; dabei ${thermal}`;
- return`${base}, dabei ${thermal}`;
-}
-function sevenDayWeekday(day:Day){return formatDateOnly(day.date,{weekday:'long'})}
-function sevenDayClause(segment:SevenDayWeatherSegment,forecastDays:Day[],index:number,total:number){
- const description=sevenDaySegmentDescription(segment),startDay=forecastDays[segment.start],endDay=forecastDays[segment.end];
- if(index===0){
-  if(segment.start===0&&segment.end===0)return`Heute ${description}`;
-  if(segment.start===0&&segment.end===1)return`Heute und morgen ${description}`;
-  if(segment.end<=3)return`Bis ${sevenDayWeekday(endDay)} ${description}`;
-  return`Zunächst ${description}`;
- }
- if(segment.start===1)return segment.start===segment.end?`Morgen ${description}`:`Ab morgen ${description}`;
- if(segment.start===segment.end)return`Am ${sevenDayWeekday(startDay)} ${description}`;
- if(index===total-1)return`Ab ${sevenDayWeekday(startDay)} ${description}`;
- return`Danach ${description}`;
-}
-function sevenDaySegmentScore(segment:SevenDayWeatherSegment){const base=segment.points.reduce((sum,point)=>sum+sevenDayWeight(point.index),0),hazard=Math.max(0,...segment.points.flatMap(point=>point.hazards.map(signal=>signal.level))),weather=['wet','storm','snow'].includes(segment.regime)?1.4:0,thermal=segment.points.some(point=>['extreme-hot','very-hot','hot','ice'].includes(point.thermal))?1:0;return base+hazard*1.2+weather+thermal}
-function sevenDaySegmentSignificant(segment:SevenDayWeatherSegment){return['wet','storm','snow'].includes(segment.regime)||segment.points.some(point=>point.hazards.some(signal=>signal.level>=2)||['extreme-hot','very-hot','ice'].includes(point.thermal))||sevenDaySegmentScore(segment)>=1.8}
-function selectSevenDaySegments(segments:SevenDayWeatherSegment[]){
- if(segments.length<=3)return segments;
- const selected=[segments[0]];
- if(segments[0].end<2&&segments[1])selected.push(segments[1]);
- const remaining=segments.filter(segment=>!selected.includes(segment)).filter(sevenDaySegmentSignificant).sort((a,b)=>sevenDaySegmentScore(b)-sevenDaySegmentScore(a)||a.start-b.start);
- if(remaining[0])selected.push(remaining[0]);
- return selected.sort((a,b)=>a.start-b.start).slice(0,3);
-}
-function sevenDayHazardPhrase(title:string){const value=String(title||'').trim();if(!value)return'';return /^(Schwere|Orkanartige|Extreme|Starke|Leichte|Mäßige)\b/.test(value)?value.charAt(0).toLocaleLowerCase('de-DE')+value.slice(1):value}
-function sevenDayHazardClause(points:SevenDayWeatherPoint[]){
- const candidates=points.flatMap(point=>point.hazards.filter(signal=>signal.level>=2).map(signal=>({point,signal}))).sort((a,b)=>b.signal.level-a.signal.level||a.point.index-b.point.index||sevenDayWeight(b.point.index)-sevenDayWeight(a.point.index));
- const candidate=candidates[0];if(!candidate)return'';
- const prefix=candidate.point.index===0?'Heute':candidate.point.index===1?'Morgen':`Am ${sevenDayWeekday(candidate.point.day)}`,title=sevenDayHazardPhrase(candidate.signal.title);
- return`${prefix} ${title} möglich`;
-}
-function sevenDayFollowingNightClause(points:SevenDayWeatherPoint[]){
- const candidate=points.find(point=>point.followingNightDominant&&point.followingNightFamily!=='none'&&point.followingNightDurationHours>=.5);if(!candidate)return'';
- const event=candidate.followingNightFamily==='thunder'?'Gewitter':candidate.followingNightFamily==='showers'?'Schauer':candidate.followingNightFamily==='snow'?'Schnee':candidate.followingNightFamily==='drizzle'?'Sprühregen':'Regen',plural=candidate.followingNightFamily==='thunder'||candidate.followingNightFamily==='showers',nextDate=new Date(`${candidate.day.date}T12:00:00Z`);nextDate.setUTCDate(nextDate.getUTCDate()+1);const nextWeekday=new Intl.DateTimeFormat('de-DE',{weekday:'long',timeZone:'UTC'}).format(nextDate),prefix=candidate.index===0?'In der kommenden Nacht':`In der Nacht zum ${nextWeekday}`;
- return`${prefix} ${plural?'sind':'ist'} ${event} möglich`;
-}
-export function buildSevenDayForecastSummary(days:Day[],hours:Hour[],climate:ClimateDay[]=[],elevation=0){
- const forecastDays=days.slice(0,7);if(!forecastDays.length)return'';
- const climateMap=new Map(climate.map(day=>[day.date,day])),points=forecastDays.map((day,index)=>{const allDayHours=hours.filter(hour=>hour.time.startsWith(day.date)),futureHours=index===0?allDayHours.filter(hour=>hour.epoch>=Date.now()-30*60000):allDayHours,dayHours=dayPeriodHoursForDate(day.date,futureHours.length?futureHours:allDayHours),fallbackDayHours=dayHours.length?dayHours:dayPeriodHoursForDate(day.date,allDayHours);return sevenDayPoint(day,forecastDays[index+1],fallbackDayHours,hours,index,climateMap.get(day.date),elevation)}),segments:SevenDayWeatherSegment[]=[];
- for(const point of points){const current=segments[segments.length-1];if(current?.regime===point.regime){current.end=point.index;current.points.push(point)}else segments.push({regime:point.regime,start:point.index,end:point.index,points:[point]})}
- const effectiveSegments=selectSevenDaySegments(segments),clauses=effectiveSegments.map((segment,index)=>sevenDayClause(segment,forecastDays,index,effectiveSegments.length)),hazardClause=sevenDayHazardClause(points),followingNightClause=hazardClause?'':sevenDayFollowingNightClause(points),supplementalClause=hazardClause||followingNightClause,weatherClauses=supplementalClause?clauses.slice(0,2):clauses.slice(0,3),text=[...weatherClauses,supplementalClause].filter(Boolean).join('. ');
- return`${text}.`;
-}
-function SevenDayForecastSummary({days,hours,climate,elevation}:{days:Day[];hours:Hour[];climate:ClimateDay[];elevation:number}){const summary=useMemo(()=>buildSevenDayForecastSummary(days,hours,climate,elevation),[days,hours,climate,elevation]);if(!summary)return null;return <aside className="seven-day-forecast-summary" aria-label="Kurzinterpretation der nächsten sieben Tage"><small>7-Tage-Trend</small><strong>{summary}</strong></aside>}
 
 function TwinForecastActivationOffer({status,onActivate}:{status:TwinMainForecastStatus;onActivate:()=>void}){const improvement=Number.isFinite(status.improvement)?`${Number(status.improvement)>=0?'+':''}${Math.round(Number(status.improvement))} %`:'mindestens gleichwertig';return <section className="weather-twin-activation-offer" aria-label="Lokale Best-Match-Nachkorrektur aktivieren"><BadgeCheck size={22}/><span><strong>Lokale Best-Match-Nachkorrektur ist freigegeben</strong><small>{status.sourceLabel} · {status.validationDays} Kontrolltage · gegenüber Best Match {improvement}</small></span><button type="button" onClick={onActivate}>Für Best Match anwenden</button></section>}
 

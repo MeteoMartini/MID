@@ -15,7 +15,7 @@ const failures=[];
 const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
 
 for(const token of [
- "import {DETAIL_THUNDER_RISK_DISPLAY_THRESHOLD,significantHourlyThunderRisk} from './detailThunderRisk';",
+ "import {significantHourlyThunderRisk} from './detailThunderRisk';",
  'currentThunderRisk=significantHourlyThunderRisk(currentHour)',
  'className="hour-tooltip-precipitation"',
  'className={`hourly-thunder-risk ${currentThunderRisk.level}`}',

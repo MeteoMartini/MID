@@ -2,8 +2,9 @@ import {readFile} from 'node:fs/promises';
 import {createRequire} from 'node:module';
 
 const require=createRequire(import.meta.url),ts=require('typescript');
-const [app,thunder,pkg,baseline]=await Promise.all([
+const [app,sevenDay,thunder,pkg,baseline]=await Promise.all([
  readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
+ readFile(new URL('../src/SevenDayForecastSummary.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/detailThunderRisk.ts',import.meta.url),'utf8'),
  readFile(new URL('../package.json',import.meta.url),'utf8'),
  readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')
@@ -22,8 +23,8 @@ for(const token of [
  'stormy=thunderRiskPercent>=DETAIL_THUNDER_RISK_DISPLAY_THRESHOLD||thunderDirect',
  "directThunder||maxThunderRisk>=70?'wechselhaft mit Gewittern'",
  "maxThunderRisk>=50?'wechselhaft mit erhöhtem Gewitterrisiko':'wechselhaft mit Gewitterrisiko'"
-])need('Trend-Konsistenz',app,token);
-if(app.includes('maxCape>=700&&day.probability>=45'))failures.push('Die alte CAPE-/Tageswahrscheinlichkeits-Ersatzregel ist weiterhin aktiv.');
+])need('Trend-Konsistenz',sevenDay,token);
+if(sevenDay.includes('maxCape>=700&&day.probability>=45'))failures.push('Die alte CAPE-/Tageswahrscheinlichkeits-Ersatzregel ist weiterhin aktiv.');
 need('Package-Test',pkg,'test:detail-thunder-threshold-trend');
 need('Baseline-Test',baseline,'scripts/test-detail-thunder-threshold-trend-08198.mjs');
 const compiled=ts.transpileModule(thunder,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022},reportDiagnostics:true,fileName:'detailThunderRisk.ts'});

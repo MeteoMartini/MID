@@ -12,13 +12,14 @@ const shortTermPath=path.join(root,'src','ShortTermForecast.tsx');
 const fusionSource=fs.readFileSync(fusionPath,'utf8');
 const appSource=fs.readFileSync(appPath,'utf8');
 const shortTermSource=fs.readFileSync(shortTermPath,'utf8');
+const sevenDaySource=fs.readFileSync(path.join(root,'src','SevenDayForecastSummary.tsx'),'utf8');
 
 for(const token of ['drySignal','dryAdjustedHour','groundLayerState','convectivePersistenceFactor','refineOperationalRadarBlend','reconcileForecastDaysWithHours','weatherHours',"weatherBundleKind:repaired?'coherent-model':'best-match'"])assert.ok(fusionSource.includes(token),`fehlender Nowcast-/Modellbündelvertrag: ${token}`);
 assert.ok(appSource.includes('displayDays=useMemo(()=>reconcileForecastDaysWithHours(baseDisplayDays,displayHours)'), 'Tagesansicht muss aus den finalen Nowcast-Stunden reconciliert werden');
 assert.ok(appSource.includes('totalRain=Number.isFinite(selectedDay.precipitation)'), 'Detailpille muss denselben Tagesniederschlag wie die 7-Tage-Karte verwenden');
 assert.ok(appSource.includes('maxProb=Number.isFinite(selectedDay.probability)'), 'Detailpille muss dieselbe Tageswahrscheinlichkeit wie die 7-Tage-Karte verwenden');
 assert.ok(appSource.includes('characterHours=presentationHours.length?presentationHours:p'), 'heutige Wetterbeschreibung muss abgelaufene Stunden ausblenden');
-assert.ok(appSource.includes('futureHours=index===0?allDayHours.filter(hour=>hour.epoch>=Date.now()-30*60000):allDayHours'), '7-Tage-Trend muss für heute nur noch relevante Forecast-Stunden bewerten');
+assert.ok(sevenDaySource.includes('futureHours=index===0?allDayHours.filter(hour=>hour.epoch>=Date.now()-30*60000):allDayHours'), '7-Tage-Trend muss für heute nur noch relevante Forecast-Stunden bewerten');
 assert.ok(shortTermSource.includes('if(precipitationCode(raw)&&probability<30)return observedSkyCode'), 'Kurzfristkarten dürfen trockene Niederschlags-Wettercodes nicht als Regen darstellen');
 
 const require=createRequire(import.meta.url);

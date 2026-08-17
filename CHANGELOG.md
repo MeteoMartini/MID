@@ -1,3 +1,27 @@
+# v0.9.56.0
+
+- Funktionsneutrales Wartungsrelease: 7-Tage-Trend und App-Laufzeitcaches aus `App.tsx` ausgelagert.
+- Styles, `weather.ts` und Worker besitzen nun kanonische, kleinere Quellfragmente; die bisherigen Aggregate werden vor Typecheck/Regression bytegleich generiert, sodass CSS-Kaskade, Weather-Importoberfläche, Cloudflare-Deployment und bestehende Verträge unverändert bleiben.
+- Veraltete Regressionen für heutigen Niederschlag und die neue einzelne Radar-Zugbahn auf den aktuellen Vertrag migriert.
+- Keine Datenquellen-, UI-, Persistenz- oder Wetterlogikänderung.
+
+# v0.9.55.4
+
+- 7-Tage-Trend: Der aktuelle Kalendertag berücksichtigt Niederschlag aus 00–24 Uhr, auch wenn Niederschlagsphasen bereits vor „Jetzt“ liegen.
+- Für die Wettercharakteristik bleibt der verbleibende Tagesverlauf maßgeblich; vergangener Tagesniederschlag wird jedoch nicht mehr aus der Trendklassifikation entfernt.
+
+# v0.9.55.3
+
+- Flug-Events verwenden konsistente flugmeteorologische Einheiten: Wind/Böen folgen der gewählten MID-Windeinheit, Sicht wird in m bzw. km dargestellt und Wolkenuntergrenzen in ft AGL.
+- Die kompakte Flug-Event-Übersicht zeigt Sicht und Wolkenuntergrenze statt des für Flugplanung weniger relevanten UVI-Felds.
+- Amtliche METAR/TAF-Wind-, Sicht- und Ceiling-Signale liefern zusätzlich strukturierte Rohwerte; Sicht wird nicht mehr in Statute Miles ausgegeben.
+
+# v0.9.55.2
+
+- Kompositbild: Zugpfeile in „Zugbahn“ umbenannt.
+- Deutlicher Zielpfeil mit lesbarer Achsenbeschriftung ergänzt; Pfeil wird nun oberhalb des Standortmarkers gerendert.
+- Zugrichtung gegen das aktuelle Echofeld verifiziert und bei deutlichen Abweichungen aus den lokalen Bewegungsankern korrigiert bzw. gemischt.
+
 # v0.9.55.1
 
 - Produktions-Typecheck des Kompositbilds repariert: ungenutzte Altpfade `motionTimeMarkers`/`displayMotionAnchors` samt ausschließlich dafür benötigter Hilfstypen entfernt.
