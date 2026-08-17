@@ -29,9 +29,9 @@ jobs:
 
     steps:
       - name: Repository laden
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: main
+          ref: ${{ github.sha }}
           fetch-depth: 0
 
       - name: Release-ZIP sicher entpacken
@@ -89,18 +89,25 @@ jobs:
         run: |
           set -euo pipefail
 
+          # node_modules ist eine lokale Installationsausgabe und darf nie Teil des
+          # Release-Spiegels oder des Repository-Inhalts sein. Alte versehentlich
+          # versionierte Bestände werden vor dem inhaltlichen Vergleich entfernt.
+          rm -rf node_modules
+
           rsync -a \
             --delete \
             --checksum \
             --itemize-changes \
             --exclude='.git/' \
             --exclude='.github/' \
+            --exclude='node_modules' \
             --exclude='MID-professional-replacement.zip' \
             /tmp/mid-new/ ./
 
           if ! diff -qr \
             --exclude='.git' \
             --exclude='.github' \
+            --exclude='node_modules' \
             --exclude='MID-professional-replacement.zip' \
             /tmp/mid-new/ ./; then
             echo "::error::Das entpackte MID-Release wurde nicht vollständig in den Arbeitsbaum übernommen."
@@ -112,7 +119,7 @@ jobs:
 
 
       - name: Node.js 22 mit npm-Cache einrichten
-        uses: actions/setup-node@2951748f4c016b747952f8ca7e75fc64f2f62b53 # v6.2.0
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22.16.0
           cache: npm
@@ -196,7 +203,17 @@ jobs:
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
+
+          # Ein laufender GitHub-Actions-App-Token darf keine Workflowdateien
+          # selbst aktualisieren. .github bleibt deshalb grundsätzlich außerhalb
+          # des automatischen Release-Commits. Kanonische Workflow-Patches liegen
+          # unter ci/github und werden nur explizit synchronisiert.
+          git reset -- .github >/dev/null 2>&1 || true
+          git add -A -- . ':(exclude).github/**'
+
+          if ! git diff --quiet -- .github; then
+            echo "::notice::.github enthält lokale Änderungen, die bewusst nicht in den automatischen Release-Commit aufgenommen werden."
+          fi
 
           if git diff --cached --quiet; then
             echo "::error::Das Release-ZIP führte zu keinen installierbaren Änderungen."
@@ -204,8 +221,42 @@ jobs:
           fi
 
           version=$(node -p "require('./package.json').version")
+          install_base_sha="$GITHUB_SHA"
           git commit -m "Install MID v${version}"
-          git push origin HEAD:main
+
+          # main kann zwischen Workflow-Start und Release-Commit weiterlaufen.
+          # Nur reine .github-Änderungen dürfen transparent übernommen werden;
+          # Anwendungs-, Dependency- oder ein neuer ZIP-Upload brechen den alten
+          # Lauf sicher ab, damit nie ein neuerer Release-Stand überschrieben wird.
+          pushed=false
+          for attempt in 1 2 3; do
+            git fetch --no-tags origin main
+            remote_sha="$(git rev-parse origin/main)"
+
+            if ! git merge-base --is-ancestor "$remote_sha" HEAD; then
+              changed="$(git diff --name-only "$install_base_sha..$remote_sha" || true)"
+              unsafe="$(printf '%s\n' "$changed" | sed '/^$/d' | grep -Ev '^\.github/' || true)"
+              if [ -n "$unsafe" ]; then
+                echo "::error::main wurde während der Installation durch fachliche Dateien weitergeführt. Dieser Lauf überschreibt den neueren Stand nicht."
+                printf '%s\n' "$unsafe"
+                exit 1
+              fi
+              echo "main enthält nur neuere .github-Änderungen; Release-Commit wird sicher darauf rebaset."
+              git rebase origin/main
+            fi
+
+            if git push origin HEAD:main; then
+              pushed=true
+              break
+            fi
+            echo "Push wurde parallel überholt; erneuter sicherer Versuch ${attempt}/3."
+            sleep $((attempt * 2))
+          done
+
+          if [ "$pushed" != true ]; then
+            echo "::error::Release-Commit konnte nach drei race-sicheren Versuchen nicht nach main übertragen werden."
+            exit 1
+          fi
 
           echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
@@ -227,9 +278,10 @@ jobs:
       contents: write
       pages: write
       id-token: write
+      statuses: write
     concurrency:
-      group: mid-pages-production
-      queue: max
+      group: mid-pages
+      cancel-in-progress: true
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -240,7 +292,7 @@ jobs:
         uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
 
       - name: Erfolgreichen Release-Commit laden
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.install_build.outputs.commit_sha }}
           fetch-depth: 0
@@ -250,3 +302,25 @@ jobs:
         run: |
           set -euo pipefail
           git push --force origin HEAD:refs/heads/mid-stable
+
+
+      - name: Finalen Stable-SHA verifizieren und Qualitätsstatus setzen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          stable_sha="$(git rev-parse HEAD)"
+          remote_sha="$(git ls-remote --heads origin refs/heads/mid-stable | awk '{print $1}')"
+          if [ "$remote_sha" != "$stable_sha" ]; then
+            echo "::error::mid-stable zeigt auf ${remote_sha:-<leer>} statt auf den geprüften Release ${stable_sha}."
+            exit 1
+          fi
+          gh api \
+            --method POST \
+            -H 'Accept: application/vnd.github+json' \
+            "/repos/${GITHUB_REPOSITORY}/statuses/${stable_sha}" \
+            -f state='success' \
+            -f context='MID / stable-release-quality' \
+            -f description='Build, Dependency-Audit, Regressionen und Pages-Deployment bestanden' \
+            -f target_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
