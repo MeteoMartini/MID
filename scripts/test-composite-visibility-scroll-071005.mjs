@@ -18,7 +18,7 @@ for(const token of [
 for(const token of [
   'function motionTrackArrowheadIcon(',
   'mid-motion-track-arrowhead',
-  "<Pane name=\"mid-motion-track\" style={{zIndex:850,pointerEvents:'none'}}>",
+  "<Pane name=\"mid-motion-track\" style={{zIndex:850,pointerEvents:'none',overflow:'visible'}}/>",
   'function konradMarkerIcon(',
   'mid-konrad-marker',
   'function nowcastMixMarkerIcon()',

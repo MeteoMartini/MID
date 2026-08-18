@@ -16,7 +16,7 @@ requireTokens('Saisonale Worker-Echoauswertung',worker,[
  'function seasonalEchoProfile(',"'winter-sensitive'","'summer-filter'",'wet_bulb_temperature_2m','siteThreshold','nearbyThreshold','motionThreshold','anchorThreshold','seasonalEchoLabel'
 ]);
 requireTokens('Meteorologischer Zugvektor',worker,[
- 'function radarMeteorologicalContext(','wind_speed_925hPa','wind_speed_850hPa','wind_speed_700hPa','wind_speed_500hPa','function steeringMotionFromContext(','function hybridRadarMotion(','KONRAD3D+Schwerpunktströmung','motionDirectionConvention:\'towards\''
+ 'function radarMeteorologicalContext(','profileLevels=[950,925,900,850,800,700,600,500,400,300]','`wind_speed_${level}hPa`','`cloud_cover_${level}hPa`','`relative_humidity_${level}hPa`','function steeringMotionFromContext(','function hybridRadarMotion(','KONRAD3D+Schwerpunktströmung','motionDirectionConvention:\'towards\''
 ]);
 requireTokens('Nowcast-Objekt-API',worker,["mode==='nowcastmix-points'",'dwdLightningPoints(lat,lon)',"'dwd-nowcastmix-lightning'"]);
 requireTokens('Komposit-Option',radar,[
@@ -44,7 +44,7 @@ try{
 // Ein einheitlicher Westwind (meteorologisch 270°) muss als Zug nach Osten (ca. 90°) erscheinen.
 try{
  const start=worker.indexOf('function vectorFromTowards('),end=worker.indexOf('function radarMotionFromFrames(',start),snippet=worker.slice(start,end);
- const api=new Function(`${snippet};return{steeringMotionFromContext,hybridRadarMotion}`)(),steering=api.steeringMotionFromContext({cape:80,weatherCode:3,levels:[{level:925,speed:30,directionFrom:270},{level:850,speed:40,directionFrom:270},{level:700,speed:45,directionFrom:270},{level:500,speed:50,directionFrom:270}]},1),resolved=api.hybridRadarMotion({},steering,null);
+ const api=new Function(`const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));${snippet};return{steeringMotionFromContext,hybridRadarMotion}`)(),steering=api.steeringMotionFromContext({cape:80,weatherCode:3,levels:[{level:925,speed:30,directionFrom:270,cloud:90,humidity:95},{level:850,speed:40,directionFrom:270,cloud:90,humidity:95},{level:700,speed:45,directionFrom:270,cloud:80,humidity:90},{level:500,speed:50,directionFrom:270,cloud:60,humidity:85}]},1),resolved=api.hybridRadarMotion({},steering,null);
  if(!Number.isFinite(resolved.motionDirectionDeg)||Math.abs(resolved.motionDirectionDeg-90)>5)failures.push(`Schwerpunktströmung zeigt nicht nach Osten: ${JSON.stringify(resolved)}`);
  if(resolved.motionDirectionConvention!=='towards')failures.push('Schwerpunktströmung ist nicht als Zielrichtung gekennzeichnet.');
 }catch(error){failures.push(`Funktionaler Schwerpunktströmungstest nicht ausführbar: ${error instanceof Error?error.message:String(error)}`)}

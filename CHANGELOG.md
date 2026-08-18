@@ -1,3 +1,10 @@
+# v0.9.59.1
+
+- Flugmeteorologie: Cross Section als nicht-grafisches Streckenbriefing für 2–8 Flugplätze reaktiviert; Route, Flight Level sowie Start-/Landezeiten steuern orts- und zeitbezogene Gefahrenhinweise.
+- Flugstrecke: Modellprofil-Diagnosen für Vereisung, Windscherung/Turbulenz, Konvektion, Höhenwind, Niederschlag, Sicht und Wolkenuntergrenze plus verfügbare amtliche/operative Signale an Start, En-route und Ziel.
+- Kompositbild: Zeitpfeil verwendet primär eine wolkengewichtete vertikale Schwerpunktströmung aus dem 950–300-hPa-Profil; Radar-/KONRAD-Verlagerung dient als Plausibilisierung/Fallback.
+- Kompositbild: Bewegungsachse und Pfeilspitze werden explizit in eigenen Leaflet/MapLibre-Kompatibilitätspane gerendert, damit der Zeitpfeil oberhalb der Wetter-/Referenzlayer sichtbar bleibt.
+
 # v0.9.58.4
 
 - Ortsfavoriten-Reihenfolge erhält eine eigene persistente Order-Revision und wird bei Appstart/Shadow-Recovery wiederhergestellt.

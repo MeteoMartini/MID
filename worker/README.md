@@ -364,9 +364,9 @@ Das Frontend überträgt `notificationIntervalMinutes` mit dem Push-Abonnement. 
 
 KONRAD3D-Zellobjekte liefern zusätzlich den Richtungswinkel vom abgefragten Standort zur aktuellen Zelle sowie den Unsicherheitsradius der ausgewählten Prognoseposition. Frontend und Worker trennen damit aktuelle Distanz, prognostizierten Rohabstand und um die Unsicherheitsellipse verminderten wirksamen Mindestabstand eindeutig.
 
-## Flugmeteorologischer Cross Section – vorerst deaktiviert (v0.8.18.3)
+## Flugmeteorologisches Streckenbriefing (ab v0.9.59.1)
 
-Der Endpunkt `?mode=flight-cross-section` ist bis auf Weiteres deaktiviert und antwortet mit HTTP 410 sowie `status: "to-be-continued"`. Dabei werden keine NOAA-, Open-Meteo- oder Elevation-Abrufe ausgelöst. Der vorhandene Implementierungscode bleibt ausschließlich für eine spätere Weiterentwicklung erhalten.
+Der Endpunkt `?mode=flight-cross-section` ist wieder aktiv, liefert aber keine grafische Cross Section. Er berechnet für zwei bis acht ICAO-Orte eine zeitlich interpolierte Route mit Druckniveauprofilen, Sicht, Niederschlag, CAPE und Gefriergrenze. Zusätzlich werden an Start, einem En-route-Schwerpunkt und Ziel verfügbare amtliche Luftfahrtmeldungen über den bestehenden Aviation-Hazard-Aggregator abgefragt. Das Frontend verdichtet diese Daten zu orts-, zeit- und höhenbezogenen Hinweisen auf Vereisung, Turbulenz/Windscherung, Konvektion, Höhenwind sowie Start-/Landebedingungen. Cachezeit: 10 Minuten.
 
 
 ## v0.9.21.0 – DWD-Wetterkartenmodul

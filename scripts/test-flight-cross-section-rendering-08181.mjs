@@ -8,33 +8,46 @@ const [cross,styles,pkg,baseline]=await Promise.all([
 ]);
 const failures=[];
 const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
+const forbid=(label,text,token)=>{if(text.includes(token))failures.push(`${label}: Altvertrag noch vorhanden: ${token}`)};
 
 for(const token of [
-  'const HORIZONTAL_DENSITY=12;',
-  'const VERTICAL_SUBDIVISIONS=7;',
-  'type TerrainPoint=',
+  'className="flight-cross-section flight-route-briefing"',
+  '<h3>Cross Section · Streckenbriefing</h3>',
+  'Gefahren entlang der Route, am gewählten Flugniveau und passend zu Start- und Landezeit.',
+  'Start- und Landezeit müssen gültig sein',
+  '<span>Flughöhe</span>',
+  "fetchWorkerJson<CrossSectionData>('flight-cross-section'",
+  'function pointHazards(',
+  'function hazardRuns(',
+  'function officialSignals(',
+  'Wann und wo ist etwas zu erwarten?',
+  'AMTLICHE / OPERATIVE SIGNALE',
+  'Wolkenuntergrenze Start',
+  'Wolkenuntergrenze Landung',
+  'Turbulenz / vertikale Windscherung',
+  'Konvektion / Gewitter',
+  'Die frühere Cross-Section-Grafik wurde bewusst durch ein handlungsorientiertes Streckenbriefing ersetzt'
+])need('Cross-Section-Streckenbriefing',cross,token);
+
+for(const token of [
+  '.flight-route-briefing{',
+  '.flight-briefing-overview{',
+  '.flight-route-hazards,',
+  '.flight-route-hazard-list{'
+])need('Flight-Briefing-CSS',styles,token);
+
+for(const legacy of [
+  'const HORIZONTAL_DENSITY=',
+  'const VERTICAL_SUBDIVISIONS=',
   'terrainProfile?:TerrainPoint[]',
-  'function densifyPoints(points:CrossPoint[],subdivisions=HORIZONTAL_DENSITY)',
-  'function terrainOutlinePath(points:TerrainPoint[])',
-  'const terrainPoints=useMemo(()=>data.terrainProfile?.length?data.terrainProfile',
-  'const terrainPath=useMemo(()=>terrainAreaPath(terrainPoints),[terrainPoints]);',
-  'const terrainRidge=useMemo(()=>terrainOutlinePath(terrainPoints),[terrainPoints]);',
   'filter="url(#softCloud)"',
   'filter="url(#cloudShadow)"',
-  'className="flight-banner-text"',
-  'className="flight-origin-tag"',
-  'className="flight-time-top-label"'
-])need('Cross-Section-Rendering',cross,token);
-
-for(const token of [
-  'shape-rendering:geometricPrecision',
-  '.flight-banner-text{',
-  '.flight-origin-tag{',
-  '.flight-time-top-label{'
-])need('Flight-CSS',styles,token);
+  'terrainAreaPath(',
+  'terrainOutlinePath('
+])forbid('Grafische Cross Section',cross,legacy);
 
 need('Package-Test',pkg,'test:flight-cross-section-rendering');
 need('Baseline-Test',baseline,'scripts/test-flight-cross-section-rendering-08181.mjs');
 
-if(failures.length){console.error('Cross-Section-Rendering-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Cross-Section-Rendering geprüft: dichtere Wolken-/Risiko-Felder, Banner/Zeitleiste und geglättete, separate Topographie vorhanden.');
+if(failures.length){console.error('Cross-Section-Streckenbriefing-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
+console.log('Cross Section geprüft: textuelles Streckenbriefing mit Route, FL, Start/Landung, Zeit-/Ortshinweisen und amtlichen Signalen aktiv; alte Grafik bleibt entfernt.');
