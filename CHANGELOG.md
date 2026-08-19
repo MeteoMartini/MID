@@ -4103,8 +4103,15 @@
 - Die Button-Detailanzeige weist den aktiven Zeitmodus (absolut/relativ/aus) direkt aus.
 
 
-## 0.9.60.6
+## 0.9.60.7
 - Regressionen des Komposit-Zeitpfeils auf den aktuellen sichtbaren Polyline-Vertrag migriert; alte Canvas-/Custom-Pane-Erwartungen entfernt.
 - Flug-Korridor- und wolkengewichtete Schwerpunktströmungs-Regressionen auf denselben Zeitpfeil-Vertrag synchronisiert.
 - Kanonische Worker-Teilquelle auf den aktuellen Release-Stand synchronisiert, damit `maintain:aggregates` den Worker nicht mehr auf v0.9.60.2 zurückstuft.
 - Radar-Niederschlagsart- und Wetterkarten-Verträge bleiben funktional unverändert und bestehen wieder nach dem CI-Aggregat-Vorlauf.
+
+
+## 0.9.60.8
+- Standort-/Blickrichtungsmarker strikt getrennt: Der Richtungs-/Standortpfeil erscheint ausschließlich am echten Gerätestandort.
+- Favoriten und manuell gewählte Orte verwenden im Kompositbild nur noch eine neutrale Ortsmarkierung ohne Sichtrichtungsanteil.
+- Der meteorologische Zeitpfeil bleibt davon unabhängig und endet weiterhin am aktuell ausgewählten Ort.
+- Neuer Pflichtvertrag `test-location-heading-favorites-09608.mjs` schützt die Trennung dauerhaft.

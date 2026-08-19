@@ -13,8 +13,8 @@ for(const token of [
 for(const token of [
  'actualLocation=false',
  'useDeviceHeading(actualLocation)',
- 'locationHeadingIcon(actualLocation?deviceHeading.heading:null,actualLocation)',
- "showBearing?' actual-location':' selected-location'",
+ 'actualLocation?locationHeadingIcon(deviceHeading.heading):selectedPlaceIcon()',
+ 'function selectedPlaceIcon()',
  "actualLocation?'Aktueller Standort':'Gewählter Ort'",
  'function chaikinContour(',
  "type==='isoheights'?3:2",
@@ -53,7 +53,7 @@ need('PX250-Projektion',projection,'const match=definition.match');
 for(const token of [
  '.maplibre-mid-lightning-points-pane',
  '.mid-motion-track-arrowhead',
- '.radar-location-marker.selected-location',
+ '.radar-selected-place-marker',
  '.mid-motion-arrow-marker .core{stroke:rgba(255,255,255,.88)'
 ])need('Darstellung',styles,token);
 need('Package-Test',pkg,'test:composite-visibility-quality');
