@@ -18,7 +18,7 @@ for(const token of [
 for(const token of [
   'function motionTrackArrowheadIcon(',
   'mid-motion-track-arrowhead',
-  "<Pane name=\"mid-motion-track\" style={{zIndex:850,pointerEvents:'none',overflow:'visible'}}/>",
+  "<Polyline pane=\"overlayPane\" positions={[geometry.trackStart,site] as any} interactive={false}",
   'function konradMarkerIcon(',
   'mid-konrad-marker',
   'function nowcastMixMarkerIcon()',

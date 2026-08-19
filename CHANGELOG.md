@@ -4081,3 +4081,30 @@
 ## 0.9.53.49
 - CI-Fix: veraltete feste Debounce-Erwartung in `test-interactions.mjs` durch einen semantischen Responsivitätsvertrag ersetzt. Die produktive Ortssuche bleibt unverändert bei 35/60 ms.
 - Keine Wetter-, Netatmo-, Lüftungs- oder Worker-Funktionsänderung.
+
+
+## 0.9.60.3
+- Kompositbild-Zeitpfeil dauerhaft sichtbar gemacht: Schaft, Querstriche und die Verbindung zu den Zeitlabels werden nicht mehr über ein Canvas-Overlay, sondern als robuste Karten-Polylinien gerendert.
+- Zusätzlich erhält jedes Zeitlabel wieder eine klar sichtbare Verbindungsmarke zum Zeitpfeil, damit Linie/Strich auch im mobilen Kompositbild zuverlässig erkennbar bleibt.
+- Die vorhandene Zielspitze am gewählten Ort, die wolkengewichtete Schwerpunktströmung und die reduzierte Zeitlabel-Logik bleiben unverändert erhalten.
+
+
+## 0.9.60.4
+- Kompositbild-Zeitpfeil erneut korrigiert: Zeiten beziehen sich jetzt auf den aktuell angezeigten Filmzeitpunkt statt auf eine potenziell abweichende Analysestempelzeit.
+- Die Zeitlabels nutzen standardmäßig nachvollziehbare relative Zeiten (z. B. +30m, +1h), absolute Zeiten bleiben intern weiter unterstützt.
+- Für langsame Verlagerungen wurde die Pfeilgeometrie auf zeitbasierte Lead-Zeiten umgestellt, damit keine unrealistischen Mehrstunden-Labels mehr entstehen.
+- Pfeilschaft, Tick-Marken und Label-Verbindungen wurden farblich deutlich verstärkt und die Labels an echte Label-Anker verlegt, damit der Zeitpfeil im Kompositbild klar sichtbar bleibt.
+
+
+## 0.9.60.5
+- Kompositbild-Zeitpfeil erneut nachgeschärft: Die sichtbare Pfeillinie wird jetzt im regulären Overlay-Pane gerendert, damit der Schaft im Kartenbild zuverlässig tatsächlich sichtbar bleibt.
+- Der Zeitpfeil-Schalter wurde auf einen Drei-Stufen-Zyklus umgestellt: erster Tap absolute Zeiten, nächster Tap relative Zeiten, dritter Tap Layer aus.
+- Der gespeicherte Zeitmodus wird wieder korrekt als React-State geführt; damit funktionieren Persistenz und zyklisches Umschalten belastbar auch mobil.
+- Die Button-Detailanzeige weist den aktiven Zeitmodus (absolut/relativ/aus) direkt aus.
+
+
+## 0.9.60.6
+- Regressionen des Komposit-Zeitpfeils auf den aktuellen sichtbaren Polyline-Vertrag migriert; alte Canvas-/Custom-Pane-Erwartungen entfernt.
+- Flug-Korridor- und wolkengewichtete Schwerpunktströmungs-Regressionen auf denselben Zeitpfeil-Vertrag synchronisiert.
+- Kanonische Worker-Teilquelle auf den aktuellen Release-Stand synchronisiert, damit `maintain:aggregates` den Worker nicht mehr auf v0.9.60.2 zurückstuft.
+- Radar-Niederschlagsart- und Wetterkarten-Verträge bleiben funktional unverändert und bestehen wieder nach dem CI-Aggregat-Vorlauf.

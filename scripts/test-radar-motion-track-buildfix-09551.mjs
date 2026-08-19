@@ -3,7 +3,7 @@ import {readFile} from 'node:fs/promises';
 const root=new URL('../',import.meta.url);
 const [radar,pkgText,baselineText]=await Promise.all(['src/RadarPanel.tsx','package.json','MID_BASELINE.json'].map(p=>readFile(new URL(p,root),'utf8')));
 for(const dead of ['function motionTimeMarkers','type MotionTimeMarker','function localVectorKm','displayMotionAnchors=','motionAnchors=Array.isArray(analysis?.motionAnchors)']) assert.ok(!radar.includes(dead),`Veralteter/ungenutzter Zugspurpfad ist zurückgekehrt: ${dead}`);
-for(const active of ['function PrecipitationMotionTrack','upstreamBearing=(resolved.direction+180)%360','<MemoPrecipitationMotionTrack','<Marker pane="mid-motion-labels" position={site} icon={motionTrackArrowheadIcon','viewportDiagonalKm=Math.max(12,segmentKm(southWest,northEast))','trackStart=destinationPoint(site,upstreamBearing,shaftKm)','geometry.ticks.map(tick=>']) assert.ok(radar.includes(active),`Aktiver Einzelzugspur-Vertrag fehlt: ${active}`);
+for(const active of ['function PrecipitationMotionTrack','upstreamBearing=(resolved.direction+180)%360','<MemoPrecipitationMotionTrack','<Marker pane="mid-motion-labels" position={site} icon={motionTrackArrowheadIcon','viewportDiagonalKm=Math.max(12,segmentKm(southWest,northEast))','trackStart=destinationPoint(site,upstreamBearing,resolved.speed*shaftLeadMinutes/60)','geometry.ticks.map(tick=>']) assert.ok(radar.includes(active),`Aktiver Einzelzugspur-Vertrag fehlt: ${active}`);
 assert.equal((radar.match(/<MemoPrecipitationMotionTrack/g)||[]).length,1,'Genau eine Zugspur muss gerendert werden.');
 const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText);
 assert.equal(pkg.scripts?.['test:radar-motion-track-buildfix'],'node scripts/test-radar-motion-track-buildfix-09551.mjs');

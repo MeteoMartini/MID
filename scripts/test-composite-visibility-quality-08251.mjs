@@ -18,12 +18,13 @@ for(const token of [
  "actualLocation?'Aktueller Standort':'Gewählter Ort'",
  'function chaikinContour(',
  "type==='isoheights'?3:2",
- "modelLines!=='off'&&dominantModelFrame&&<Pane name=\"mid-model-lines\"",
+ "modelLines!==\'off\'&&dominantModelFrame&&<Pane name=\"mid-model-lines\"",
  'name="mid-lightning-points"',
  "fillOpacity:.72*lightningOpacity/100",
- 'name="mid-motion-track"',
  'viewportDiagonalKm=Math.max(12,segmentKm(southWest,northEast))',
- 'trackStart=destinationPoint(site,upstreamBearing,shaftKm)',
+ 'trackStart=destinationPoint(site,upstreamBearing,resolved.speed*shaftLeadMinutes/60)',
+ '<Polyline pane="overlayPane" positions={[geometry.trackStart,site] as any} interactive={false}',
+ `cycleMotionOverlay=()=>{if(!showRadar)setShowRadar(true);if(!showMotionOverlay){setMotionTimeMode('absolute');setShowMotionOverlay(true);return}if(motionTimeMode==='absolute'){setMotionTimeMode('relative');return}setShowMotionOverlay(false);setMotionTimeMode('absolute')}`,
  'referenceUrl',
  'mapOverlayOpacity',
  'Number(anchor.rate)>=Math.max(.2',
@@ -48,7 +49,7 @@ for(const token of [
  'zIndex={430}',
  'canvas.toDataURL'
 ])need('PX250',px,token);
-need('PX250-Projektion',projection,"new RegExp(`(?:^|\\\\s)\\\\+${name}=([^\\\\s]+)`");
+need('PX250-Projektion',projection,'const match=definition.match');
 for(const token of [
  '.maplibre-mid-lightning-points-pane',
  '.mid-motion-track-arrowhead',
@@ -59,4 +60,4 @@ need('Package-Test',pkg,'test:composite-visibility-quality');
 need('Baseline-Test',baseline,'scripts/test-composite-visibility-quality-08251.mjs');
 
 if(failures.length){console.error('Komposit-Sichtbarkeits-/Qualitätsprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Standortmarker, geglättete Modelllinien, PX250, sichtbare Blitzpunkte und viewportbezogener Zeitpfeil geprüft.');
+console.log('Standortmarker, geglättete Modelllinien, PX250, sichtbare Blitzpunkte und sichtbar gerenderter Zeitpfeil geprüft.');
