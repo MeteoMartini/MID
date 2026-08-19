@@ -25,7 +25,7 @@ for(const level of ['1000','925','850','700','500','300','250','200','150','100'
 assert.ok(airQuality.includes('EUROPEAN_AQI_INDEX_THRESHOLDS=[20,40,60,80,100]'));
 for(const token of ['european_aqi_pm2_5','european_aqi_pm10','european_aqi_nitrogen_dioxide','european_aqi_ozone','european_aqi_sulphur_dioxide'])assert.ok(weather.includes(token)&&airQuality.includes(token),`EU-AQI-Teilindex fehlt: ${token}`);
 assert.match(weather,/hourly:\[\.\.\.pollutantAqi,\.\.\.pollutants\]\.join\(','\)/);
-for(const token of ["thresholds:[5,15,50,90,140]","thresholds:[15,45,120,195,270]","thresholds:[10,25,60,100,150]","thresholds:[60,100,120,160,180]","thresholds:[20,40,125,190,275]"])assert.ok(airQuality.includes(token),`EU-AQI-Konzentrationsschwelle fehlt: ${token}`);
+for(const token of ["thresholds:[10,20,25,50,75]","thresholds:[20,40,50,100,150]","thresholds:[40,90,120,230,340]","thresholds:[50,100,130,240,380]","thresholds:[100,200,350,500,750]"])assert.ok(airQuality.includes(token),`EU-AQI-Konzentrationsschwelle fehlt: ${token}`);
 
 // Min-/Max-Aggregationsmetadaten: MID bleibt JSON-basiert; der Online-Vertrag prüft die beiden Aggregationen getrennt.
 assert.ok(!weather.toLowerCase().includes('flatbuffers'),'MID darf wegen des Open-Meteo-Metadatenfixes keinen FlatBuffers-Laufzeitpfad einführen.');

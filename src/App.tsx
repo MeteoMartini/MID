@@ -718,7 +718,7 @@ function AqiIndicator({result}:{result:EuropeanAirQualityResult|null}){
  return <span className={`aqi-indicator aqi-${band.key}`} style={{'--aqi-color':band.color} as CSSProperties} role="img" aria-label={`Luftqualität ${band.label}, europäische AQI-Stufe ${band.index+1} von 6`}><span className="aqi-marker" aria-hidden="true"/><span className="aqi-segments" aria-hidden="true">{EUROPEAN_AQI_BANDS.map((entry,index)=><i key={entry.key} className={index===band.index?'active':''} style={{background:entry.color}}/>)}</span></span>
 }
 function AqiPollutantScale({pollutant}:{pollutant:EuropeanAqiPollutantResult}){
- const scale=describeEuropeanAqiPollutantScale(pollutant.key,pollutant.value);
+ const scale=describeEuropeanAqiPollutantScale(pollutant.key,pollutant.value,pollutant.aqi);
  if(!scale)return null;
  return <span className={`aqi-pollutant-scale aqi-${pollutant.band.key}`} style={{'--aqi-color':pollutant.band.color,'--aqi-position':`${scale.positionPct}%`} as CSSProperties} role="img" aria-label={`${pollutant.formula}: ${pollutant.band.label}, europäische AQI-Stufe ${pollutant.band.index+1} von 6`}><span className="aqi-pollutant-scale-marker" aria-hidden="true"/><span className="aqi-pollutant-scale-track" aria-hidden="true">{scale.segments.map((segment,index)=><i key={`${pollutant.key}:${segment.band.key}:${index}`} className={index===pollutant.band.index?'active':''} style={{background:segment.band.color}}/>)}</span></span>
 }

@@ -23,11 +23,11 @@ export function europeanAqiBandFromIndex(value:unknown):EuropeanAqiBand|null{con
 
 type PollutantDefinition={key:EuropeanAqiPollutantKey;label:string;formula:string;thresholds:[number,number,number,number,number]};
 export const EUROPEAN_AQI_POLLUTANTS:PollutantDefinition[]=[
- {key:'pm2_5',label:'Feinstaub PM2,5',formula:'PM2,5',thresholds:[5,15,50,90,140]},
- {key:'pm10',label:'Feinstaub PM10',formula:'PM10',thresholds:[15,45,120,195,270]},
- {key:'nitrogen_dioxide',label:'Stickstoffdioxid',formula:'NO₂',thresholds:[10,25,60,100,150]},
- {key:'ozone',label:'Ozon',formula:'O₃',thresholds:[60,100,120,160,180]},
- {key:'sulphur_dioxide',label:'Schwefeldioxid',formula:'SO₂',thresholds:[20,40,125,190,275]}
+ {key:'pm2_5',label:'Feinstaub PM2,5',formula:'PM2,5',thresholds:[10,20,25,50,75]},
+ {key:'pm10',label:'Feinstaub PM10',formula:'PM10',thresholds:[20,40,50,100,150]},
+ {key:'nitrogen_dioxide',label:'Stickstoffdioxid',formula:'NO₂',thresholds:[40,90,120,230,340]},
+ {key:'ozone',label:'Ozon',formula:'O₃',thresholds:[50,100,130,240,380]},
+ {key:'sulphur_dioxide',label:'Schwefeldioxid',formula:'SO₂',thresholds:[100,200,350,500,750]}
 ];
 
 export function classifyEuropeanAqiPollutant(key:EuropeanAqiPollutantKey,value:unknown):EuropeanAqiPollutantResult|null{
@@ -51,12 +51,17 @@ export function classifyEuropeanAirQuality(current:Record<string,number|string>|
 }
 
 
-export function describeEuropeanAqiPollutantScale(key:EuropeanAqiPollutantKey,value:unknown):EuropeanAqiPollutantScale|null{
+export function describeEuropeanAqiPollutantScale(key:EuropeanAqiPollutantKey,value:unknown,aqiValue?:unknown):EuropeanAqiPollutantScale|null{
  const number=Number(value),definition=EUROPEAN_AQI_POLLUTANTS.find(item=>item.key===key),classification=classifyEuropeanAqiPollutant(key,value);
  if(!definition||!classification||!Number.isFinite(number)||number<0)return null;
  const thresholds=[0,...definition.thresholds],lastThreshold=definition.thresholds[definition.thresholds.length-1],previousThreshold=definition.thresholds[definition.thresholds.length-2]??0,tailSpan=Math.max(1,lastThreshold-previousThreshold),displayCeiling=lastThreshold+tailSpan;
  const segments=EUROPEAN_AQI_BANDS.map((band,index)=>({band,min:thresholds[index]??0,max:index<definition.thresholds.length?definition.thresholds[index]:null}));
- const bandIndex=classification.band.index,lower=thresholds[bandIndex]??0,upper=bandIndex<definition.thresholds.length?definition.thresholds[bandIndex]:displayCeiling,span=Math.max(1,upper-lower),relative=Math.max(0,Math.min(1,(number-lower)/span)),positionPct=Math.max(0,Math.min(100,((bandIndex+relative)/EUROPEAN_AQI_BANDS.length)*100));
+ const aqi=Number(aqiValue),aqiBand=Number.isFinite(aqi)&&aqi>=0?europeanAqiBandFromIndex(aqi):null;
+ if(aqiBand){
+  const aqiBounds=[0,...EUROPEAN_AQI_INDEX_THRESHOLDS],bandIndex=aqiBand.index,lower=aqiBounds[bandIndex]??0,upper=bandIndex<EUROPEAN_AQI_INDEX_THRESHOLDS.length?EUROPEAN_AQI_INDEX_THRESHOLDS[bandIndex]:120,span=Math.max(1,upper-lower),relative=Math.max(0,Math.min(.999,(aqi-lower)/span)),positionPct=Math.max(0,Math.min(100,((bandIndex+relative)/EUROPEAN_AQI_BANDS.length)*100));
+  return{segments,positionPct};
+ }
+ const bandIndex=classification.band.index,lower=thresholds[bandIndex]??0,upper=bandIndex<definition.thresholds.length?definition.thresholds[bandIndex]:displayCeiling,span=Math.max(1,upper-lower),relative=Math.max(0,Math.min(.999,(number-lower)/span)),positionPct=Math.max(0,Math.min(100,((bandIndex+relative)/EUROPEAN_AQI_BANDS.length)*100));
  return{segments,positionPct};
 }
 

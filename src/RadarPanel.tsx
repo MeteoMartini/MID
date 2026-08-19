@@ -167,12 +167,26 @@ function resolveMotionDirection(_site:[number,number],analysis:RadarNowcast|unde
  return{direction:Number.NaN,speed:Number.NaN,source:'unavailable' as const};
 }
 function motionTimeIcon(label:string,side:'above'|'below'){return L.divIcon({className:'mid-motion-time-div-icon',iconSize:[72,34],iconAnchor:[36,side==='above'?41:-7],html:`<span class="mid-motion-time-label template ${side}"><b>${label}</b></span>`})}
-type MotionArrowTick={id:string;position:[number,number];arrivalEpochMs:number;side:'above'|'below'};
-const MOTION_AXIS_LEAD_MINUTES=60;
-const MOTION_AXIS_TICK_MINUTES=[15,30,45,60] as const;
-function motionTrackGraphicIcon(lengthPx:number,angleDeg:number,confidence:'high'|'medium'|'low'){
- const length=Math.max(56,Math.min(1800,Math.round(lengthPx))),pad=28,height=76,lineY=38,startX=pad,endX=pad+length,opacity=confidence==='low'?.76:confidence==='medium'?.88:.96;
- const ticks=MOTION_AXIS_TICK_MINUTES.map(minutes=>{const fraction=1-minutes/MOTION_AXIS_LEAD_MINUTES,x=startX+length*fraction;return`<line class="tick halo" x1="${x}" y1="17" x2="${x}" y2="59"/><line class="tick core" x1="${x}" y1="19" x2="${x}" y2="57"/>`}).join('');
+type MotionArrowTick={id:string;minutes:number;position:[number,number];arrivalEpochMs:number;side:'above'|'below'};
+const MOTION_AXIS_NICE_STEPS=[2,5,10,15,20,30,45,60] as const;
+function nearestMotionStep(rawMinutes:number){
+ const raw=Math.max(1,rawMinutes);return MOTION_AXIS_NICE_STEPS.reduce((best,candidate)=>Math.abs(Math.log(candidate/raw))<Math.abs(Math.log(best/raw))?candidate:best,MOTION_AXIS_NICE_STEPS[0]);
+}
+function fittedMotionStep(rawMinutes:number,pxPerMinute:number,availablePx:number){
+ let index=MOTION_AXIS_NICE_STEPS.indexOf(nearestMotionStep(rawMinutes));if(index<0)index=0;
+ while(index>0&&MOTION_AXIS_NICE_STEPS[index]*pxPerMinute*2>availablePx)index--;
+ while(index<MOTION_AXIS_NICE_STEPS.length-1&&MOTION_AXIS_NICE_STEPS[index+1]*pxPerMinute<=availablePx*.52&&Math.abs(Math.log(MOTION_AXIS_NICE_STEPS[index+1]/Math.max(1,rawMinutes)))<Math.abs(Math.log(MOTION_AXIS_NICE_STEPS[index]/Math.max(1,rawMinutes))))index++;
+ return MOTION_AXIS_NICE_STEPS[index];
+}
+function motionViewportEdgeDistance(sitePx:{x:number;y:number},unit:{x:number;y:number},width:number,height:number,margin:number){
+ const left=margin,right=Math.max(left+1,width-margin),top=margin,bottom=Math.max(top+1,height-margin),candidates:number[]=[];
+ if(unit.x>1e-6)candidates.push((right-sitePx.x)/unit.x);else if(unit.x<-1e-6)candidates.push((left-sitePx.x)/unit.x);
+ if(unit.y>1e-6)candidates.push((bottom-sitePx.y)/unit.y);else if(unit.y<-1e-6)candidates.push((top-sitePx.y)/unit.y);
+ const positive=candidates.filter(value=>Number.isFinite(value)&&value>0);return positive.length?Math.min(...positive):Math.max(80,Math.min(width,height)*.45);
+}
+function motionTrackGraphicIcon(lengthPx:number,angleDeg:number,confidence:'high'|'medium'|'low',tickMinutes:number[],leadMinutes:number){
+ const length=Math.max(56,Math.round(lengthPx)),pad=28,height=76,lineY=38,startX=pad,endX=pad+length,opacity=confidence==='low'?.76:confidence==='medium'?.88:.96;
+ const ticks=tickMinutes.map(minutes=>{const fraction=1-minutes/leadMinutes,x=startX+length*fraction;return`<line class="tick halo" x1="${x}" y1="17" x2="${x}" y2="59"/><line class="tick core" x1="${x}" y1="19" x2="${x}" y2="57"/>`}).join('');
  return L.divIcon({className:'mid-motion-track-graphic-div-icon',iconSize:[length+pad*2,height],iconAnchor:[pad+length/2,lineY],html:`<span class="mid-motion-track-graphic ${confidence}" style="opacity:${opacity};transform:rotate(${angleDeg}deg)"><svg viewBox="0 0 ${length+pad*2} ${height}" aria-hidden="true"><line class="shaft halo" x1="${startX}" y1="${lineY}" x2="${endX-13}" y2="${lineY}"/><line class="shaft core" x1="${startX}" y1="${lineY}" x2="${endX-13}" y2="${lineY}"/>${ticks}<path class="arrow halo" d="M${endX} ${lineY}L${endX-29} ${lineY-18}M${endX} ${lineY}L${endX-29} ${lineY+18}"/><path class="arrow core" d="M${endX} ${lineY}L${endX-28} ${lineY-17}M${endX} ${lineY}L${endX-28} ${lineY+17}"/></svg></span>`})
 }
 function PrecipitationMotionTrack({site,analysis,timezone,mode,referenceMs}:{site:[number,number];analysis:RadarNowcast;timezone?:string;mode:MotionTimeMode;referenceMs:number}){
@@ -182,16 +196,15 @@ function PrecipitationMotionTrack({site,analysis,timezone,mode,referenceMs}:{sit
  const geometry=useMemo(()=>{
   void viewRevision;
   if(!Number.isFinite(resolved.direction)||!Number.isFinite(resolved.speed)||resolved.speed<2)return null;
-  const trackKm=Math.max(.5,resolved.speed*MOTION_AXIS_LEAD_MINUTES/60);
-  const upstreamBearing=(resolved.direction+180)%360;
-  const trackStart=destinationPoint(site,upstreamBearing,trackKm),trackMid=destinationPoint(site,upstreamBearing,trackKm/2),startPx=map.latLngToContainerPoint(trackStart),sitePx=map.latLngToContainerPoint(site),screenLengthPx=Math.max(1,Math.hypot(sitePx.x-startPx.x,sitePx.y-startPx.y)),screenAngleDeg=Math.atan2(sitePx.y-startPx.y,sitePx.x-startPx.x)*180/Math.PI;
-  const ticks:MotionArrowTick[]=MOTION_AXIS_TICK_MINUTES.map((minutes,index)=>{const position=destinationPoint(site,upstreamBearing,trackKm*minutes/MOTION_AXIS_LEAD_MINUTES),side:'above'|'below'=index%2===0?'above':'below';return{id:`${minutes}`,position,arrivalEpochMs:referenceMs+minutes*60000,side}});
-  return{trackMid,screenLengthPx,screenAngleDeg,ticks};
+  const upstreamBearing=(resolved.direction+180)%360,sitePx=map.latLngToContainerPoint(site),probeKm=Math.max(1,Math.min(12,resolved.speed/6)),probe=destinationPoint(site,upstreamBearing,probeKm),probePx=map.latLngToContainerPoint(probe),probeDx=probePx.x-sitePx.x,probeDy=probePx.y-sitePx.y,probeLength=Math.max(.1,Math.hypot(probeDx,probeDy)),pxPerKm=probeLength/probeKm,unit={x:probeDx/probeLength,y:probeDy/probeLength},size=map.getSize(),minSide=Math.max(180,Math.min(size.x,size.y)),dpr=Math.max(1,Math.min(3,Number(globalThis.devicePixelRatio)||1)),margin=Math.max(44,Math.min(92,minSide*.11)),edgePx=motionViewportEdgeDistance(sitePx,unit,size.x,size.y,margin),availablePx=Math.max(110,edgePx*.86),targetTickPx=Math.max(76,Math.min(126,88+(dpr-1)*8+Math.max(0,(440-minSide)*.05))),targetTicks=Math.max(2,Math.min(5,Math.round(availablePx/targetTickPx))),pxPerMinute=Math.max(.01,pxPerKm*resolved.speed/60),rawStepMinutes=availablePx/targetTicks/pxPerMinute,stepMinutes=fittedMotionStep(rawStepMinutes,pxPerMinute,availablePx),tickSpacingPx=stepMinutes*pxPerMinute,maxTicks=Math.max(2,Math.floor(availablePx/Math.max(1,tickSpacingPx))),tickCount=Math.max(2,Math.min(5,targetTicks,maxTicks,Math.max(2,Math.floor(120/stepMinutes))));
+  const leadMinutes=Math.min(120,stepMinutes*tickCount),trackKm=Math.max(.5,resolved.speed*leadMinutes/60),trackStart=destinationPoint(site,upstreamBearing,trackKm),trackMid=destinationPoint(site,upstreamBearing,trackKm/2),startPx=map.latLngToContainerPoint(trackStart),screenLengthPx=Math.max(1,Math.hypot(sitePx.x-startPx.x,sitePx.y-startPx.y)),screenAngleDeg=Math.atan2(sitePx.y-startPx.y,sitePx.x-startPx.x)*180/Math.PI,tickMinutes=Array.from({length:tickCount},(_,index)=>stepMinutes*(index+1));
+  const ticks:MotionArrowTick[]=tickMinutes.map((minutes,index)=>{const position=destinationPoint(site,upstreamBearing,resolved.speed*minutes/60),side:'above'|'below'=index%2===0?'above':'below';return{id:`${minutes}`,minutes,position,arrivalEpochMs:referenceMs+minutes*60000,side}});
+  return{trackMid,screenLengthPx,screenAngleDeg,ticks,tickMinutes,leadMinutes,stepMinutes};
  },[map,referenceMs,resolved.direction,resolved.speed,site[0],site[1],viewRevision]);
  if(!geometry)return null;
  const confidence=analysis.motionConfidence||'low';
  return <>
-  <Marker pane="mid-motion-labels" position={geometry.trackMid} icon={motionTrackGraphicIcon(geometry.screenLengthPx,geometry.screenAngleDeg,confidence)} interactive={false} zIndexOffset={930}/>
+  <Marker pane="mid-motion-labels" position={geometry.trackMid} icon={motionTrackGraphicIcon(geometry.screenLengthPx,geometry.screenAngleDeg,confidence,geometry.tickMinutes,geometry.leadMinutes)} interactive={false} zIndexOffset={930}/>
   {geometry.ticks.map(tick=><Marker key={`motion-tick-${tick.id}`} pane="mid-motion-labels" position={tick.position} icon={motionTimeIcon(motionTimeLabel(tick.arrivalEpochMs,referenceMs,timezone,mode),tick.side)} interactive={false} zIndexOffset={944}/>) }
  </>;
 }

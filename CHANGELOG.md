@@ -4129,3 +4129,10 @@
 - Die Pfeilachse wächst beim Hineinzoomen und schrumpft beim Herauszoomen entsprechend der Karte; die bisherige feste Bildschirm-Länge wurde entfernt.
 - +15/+30/+45/+60-min-Unterteilungen bleiben meteorologisch an derselben geographischen Zugstrecke verankert; Richtung und Geschwindigkeit stammen weiterhin primär aus der wolkengewichteten Vertikalprofil-Schwerpunktströmung.
 - Neue Regression schützt ausdrücklich gegen einen Rückfall auf feste Pixel-Längen.
+
+
+## 0.9.60.11
+- EU-AQI-Einzelwertskalen korrigiert: Markerposition und aktiver Farbbereich verwenden nun denselben Open-Meteo-EU-AQI-Vertrag; die Fallback-Konzentrationsschwellen wurden auf den aktuellen Open-Meteo/CAMS-Stand synchronisiert.
+- Zeitpfeil-Skala vollständig dynamisiert: runde Zeitstufen werden aus Schwerpunktströmungs-Geschwindigkeit, sichtbarer Strecke bis zum Kartenrand, Zoom, Kartenabmessungen und Displaydichte gewählt.
+- Tickanzahl und Gesamtzeitfenster passen sich automatisch an; extreme Zoomstufen erzeugen weder übergroße Pfeile noch überlagerte 15/30/45/60-Minuten-Labels.
+- Die Zeitachse bleibt auf maximal zwei Stunden begrenzt und verwendet nur runde Schritte (2/5/10/15/20/30/45/60 min).

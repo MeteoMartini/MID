@@ -6,9 +6,9 @@ assert.ok(radar.includes('label="Zeitpfeil"'),'Der Komposit-Schalter „Zeitpfei
 assert.ok(!radar.includes('label="Zugbahn"'),'Der alte Komposit-Schalter „Zugbahn“ ist noch vorhanden.');
 for(const token of [
  'function motionTrackGraphicIcon(',
- 'const MOTION_AXIS_LEAD_MINUTES=60;',
- 'const MOTION_AXIS_TICK_MINUTES=[15,30,45,60] as const;',
- 'const upstreamBearing=(resolved.direction+180)%360;',
+ 'const MOTION_AXIS_NICE_STEPS=[2,5,10,15,20,30,45,60] as const;','function fittedMotionStep(rawMinutes:number,pxPerMinute:number,availablePx:number)',
+ 'tickMinutes=Array.from({length:tickCount},(_,index)=>stepMinutes*(index+1));',
+ 'upstreamBearing=(resolved.direction+180)%360',
  'trackStart=destinationPoint(site,upstreamBearing,trackKm)',
  'trackMid=destinationPoint(site,upstreamBearing,trackKm/2)',
  'screenAngleDeg=Math.atan2(sitePx.y-startPx.y,sitePx.x-startPx.x)*180/Math.PI',
@@ -29,4 +29,4 @@ const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText),test='scripts/te
 assert.equal(pkg.scripts?.['test:composite-time-arrow'],`node ${test}`);
 assert.ok(baseline.requiredRegressionTests?.includes(test),'Required Regression fehlt.');
 assert.ok(baseline.regressionTests?.includes(test),'Regression fehlt.');
-console.log('Komposit-Zeitpfeil geprüft: zusammenhängendes SVG-Symbol, Zeitlabels nur an 15-min-Unterteilungen, absolute/relative/aus-Zyklus und Schwerpunktströmung aus dem Vertikalprofil.');
+console.log('Komposit-Zeitpfeil geprüft: zusammenhängendes SVG-Symbol, Zeitlabels nur an dynamischen runden Zeitunterteilungen, absolute/relative/aus-Zyklus und Schwerpunktströmung aus dem Vertikalprofil.');

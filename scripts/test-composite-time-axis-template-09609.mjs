@@ -4,9 +4,9 @@ const root=new URL('../',import.meta.url);
 const [radar,styles,pkgText,baselineText,worker]=await Promise.all(['src/RadarPanel.tsx','src/styles.css','package.json','MID_BASELINE.json','worker/metar-proxy.js'].map(path=>readFile(new URL(path,root),'utf8')));
 for(const token of [
  'function motionTrackGraphicIcon(',
- 'const MOTION_AXIS_LEAD_MINUTES=60;',
- 'const MOTION_AXIS_TICK_MINUTES=[15,30,45,60] as const;',
- 'const upstreamBearing=(resolved.direction+180)%360;',
+ 'const MOTION_AXIS_NICE_STEPS=[2,5,10,15,20,30,45,60] as const;','function fittedMotionStep(rawMinutes:number,pxPerMinute:number,availablePx:number)',
+ 'tickMinutes=Array.from({length:tickCount},(_,index)=>stepMinutes*(index+1));',
+ 'upstreamBearing=(resolved.direction+180)%360',
  'trackStart=destinationPoint(site,upstreamBearing,trackKm)',
  'trackMid=destinationPoint(site,upstreamBearing,trackKm/2)',
  'screenAngleDeg=Math.atan2(sitePx.y-startPx.y,sitePx.x-startPx.x)*180/Math.PI',
@@ -26,4 +26,4 @@ const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText),test='scripts/te
 assert.equal(pkg.scripts?.['test:composite-time-axis-template'],`node ${test}`);
 assert.ok(baseline.requiredRegressionTests?.includes(test),'Required Regression fehlt.');
 assert.ok(baseline.regressionTests?.includes(test),'Regression fehlt.');
-console.log('Komposit-Zeitachse geprüft: durchgehende SVG-Pfeilachse, 15-min-Unterteilungen mit Labels nur an Ticks, kein Label am Ort und primäre wolkengewichtete Vertikalprofil-Steuerung.');
+console.log('Komposit-Zeitachse geprüft: durchgehende SVG-Pfeilachse, dynamischen runden Zeitunterteilungen mit Labels nur an Ticks, kein Label am Ort und primäre wolkengewichtete Vertikalprofil-Steuerung.');

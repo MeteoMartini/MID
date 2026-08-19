@@ -21,7 +21,7 @@ for(const token of [
  "modelLines!==\'off\'&&dominantModelFrame&&<Pane name=\"mid-model-lines\"",
  'name="mid-lightning-points"',
  "fillOpacity:.72*lightningOpacity/100",
- 'const trackKm=Math.max(.5,resolved.speed*MOTION_AXIS_LEAD_MINUTES/60)',
+ 'trackKm=Math.max(.5,resolved.speed*leadMinutes/60)',
  'trackStart=destinationPoint(site,upstreamBearing,trackKm)',
  '<Marker pane="mid-motion-labels" position={geometry.trackMid} icon={motionTrackGraphicIcon',
  `cycleMotionOverlay=()=>{if(!showRadar)setShowRadar(true);if(!showMotionOverlay){setMotionTimeMode('absolute');setShowMotionOverlay(true);return}if(motionTimeMode==='absolute'){setMotionTimeMode('relative');return}setShowMotionOverlay(false);setMotionTimeMode('absolute')}`,
