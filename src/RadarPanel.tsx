@@ -171,7 +171,7 @@ type MotionArrowTick={id:string;position:[number,number];arrivalEpochMs:number;s
 const MOTION_AXIS_LEAD_MINUTES=60;
 const MOTION_AXIS_TICK_MINUTES=[15,30,45,60] as const;
 function motionTrackGraphicIcon(lengthPx:number,angleDeg:number,confidence:'high'|'medium'|'low'){
- const length=Math.max(180,Math.min(520,Math.round(lengthPx))),pad=28,height=76,lineY=38,startX=pad,endX=pad+length,opacity=confidence==='low'?.76:confidence==='medium'?.88:.96;
+ const length=Math.max(56,Math.min(1800,Math.round(lengthPx))),pad=28,height=76,lineY=38,startX=pad,endX=pad+length,opacity=confidence==='low'?.76:confidence==='medium'?.88:.96;
  const ticks=MOTION_AXIS_TICK_MINUTES.map(minutes=>{const fraction=1-minutes/MOTION_AXIS_LEAD_MINUTES,x=startX+length*fraction;return`<line class="tick halo" x1="${x}" y1="17" x2="${x}" y2="59"/><line class="tick core" x1="${x}" y1="19" x2="${x}" y2="57"/>`}).join('');
  return L.divIcon({className:'mid-motion-track-graphic-div-icon',iconSize:[length+pad*2,height],iconAnchor:[pad+length/2,lineY],html:`<span class="mid-motion-track-graphic ${confidence}" style="opacity:${opacity};transform:rotate(${angleDeg}deg)"><svg viewBox="0 0 ${length+pad*2} ${height}" aria-hidden="true"><line class="shaft halo" x1="${startX}" y1="${lineY}" x2="${endX-13}" y2="${lineY}"/><line class="shaft core" x1="${startX}" y1="${lineY}" x2="${endX-13}" y2="${lineY}"/>${ticks}<path class="arrow halo" d="M${endX} ${lineY}L${endX-29} ${lineY-18}M${endX} ${lineY}L${endX-29} ${lineY+18}"/><path class="arrow core" d="M${endX} ${lineY}L${endX-28} ${lineY-17}M${endX} ${lineY}L${endX-28} ${lineY+17}"/></svg></span>`})
 }
@@ -182,12 +182,9 @@ function PrecipitationMotionTrack({site,analysis,timezone,mode,referenceMs}:{sit
  const geometry=useMemo(()=>{
   void viewRevision;
   if(!Number.isFinite(resolved.direction)||!Number.isFinite(resolved.speed)||resolved.speed<2)return null;
-  const bounds=map.getBounds(),size=map.getSize();
-  const southWest:[number,number]=[bounds.getSouthWest().lat,bounds.getSouthWest().lng],northEast:[number,number]=[bounds.getNorthEast().lat,bounds.getNorthEast().lng];
-  const viewportDiagonalKm=Math.max(12,segmentKm(southWest,northEast)),viewportDiagonalPx=Math.max(1,Math.hypot(size.x,size.y));
-  const desiredLengthPx=Math.max(220,Math.min(460,Math.min(size.x*.72,size.y*.58))),trackKm=Math.max(4,viewportDiagonalKm*desiredLengthPx/viewportDiagonalPx);
+  const trackKm=Math.max(.5,resolved.speed*MOTION_AXIS_LEAD_MINUTES/60);
   const upstreamBearing=(resolved.direction+180)%360;
-  const trackStart=destinationPoint(site,upstreamBearing,trackKm),trackMid=destinationPoint(site,upstreamBearing,trackKm/2),startPx=map.latLngToContainerPoint(trackStart),sitePx=map.latLngToContainerPoint(site),screenLengthPx=Math.max(180,Math.hypot(sitePx.x-startPx.x,sitePx.y-startPx.y)),screenAngleDeg=Math.atan2(sitePx.y-startPx.y,sitePx.x-startPx.x)*180/Math.PI;
+  const trackStart=destinationPoint(site,upstreamBearing,trackKm),trackMid=destinationPoint(site,upstreamBearing,trackKm/2),startPx=map.latLngToContainerPoint(trackStart),sitePx=map.latLngToContainerPoint(site),screenLengthPx=Math.max(1,Math.hypot(sitePx.x-startPx.x,sitePx.y-startPx.y)),screenAngleDeg=Math.atan2(sitePx.y-startPx.y,sitePx.x-startPx.x)*180/Math.PI;
   const ticks:MotionArrowTick[]=MOTION_AXIS_TICK_MINUTES.map((minutes,index)=>{const position=destinationPoint(site,upstreamBearing,trackKm*minutes/MOTION_AXIS_LEAD_MINUTES),side:'above'|'below'=index%2===0?'above':'below';return{id:`${minutes}`,position,arrivalEpochMs:referenceMs+minutes*60000,side}});
   return{trackMid,screenLengthPx,screenAngleDeg,ticks};
  },[map,referenceMs,resolved.direction,resolved.speed,site[0],site[1],viewRevision]);

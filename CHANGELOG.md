@@ -4122,3 +4122,10 @@
 - Zeitlabels nur noch an den vier 15-min-Unterteilungen; keine Zeitmarke direkt am Standort/Favoritenort.
 - Pfeilspitze endet am gewählten Ort, Anströmrichtung weiterhin primär aus der wolkengewichteten Vertikalprofil-Schwerpunktströmung.
 - Neuer Pflichtvertrag `test-composite-time-axis-template-09609.mjs`.
+
+
+## 0.9.60.10
+- Kompositbild-Zeitpfeil zoomabhängig gemacht: die 60-min-Anströmungsstrecke besitzt nun eine feste geographische Länge aus Schwerpunktströmungs-Geschwindigkeit × 60 min und wird bei jedem Zoom neu in Bildschirmkoordinaten projiziert.
+- Die Pfeilachse wächst beim Hineinzoomen und schrumpft beim Herauszoomen entsprechend der Karte; die bisherige feste Bildschirm-Länge wurde entfernt.
+- +15/+30/+45/+60-min-Unterteilungen bleiben meteorologisch an derselben geographischen Zugstrecke verankert; Richtung und Geschwindigkeit stammen weiterhin primär aus der wolkengewichteten Vertikalprofil-Schwerpunktströmung.
+- Neue Regression schützt ausdrücklich gegen einen Rückfall auf feste Pixel-Längen.
