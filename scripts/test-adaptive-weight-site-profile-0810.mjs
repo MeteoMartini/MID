@@ -8,7 +8,7 @@ const failures=[];
 const need=(text,token,message)=>{if(!text.includes(token))failures.push(message)};
 need(engine,'function adaptiveWeightCap(','Adaptive, vertrauensabhängige Gewichtsobergrenze fehlt.');
 need(engine,'globalDays<6?48:globalDays<12?52:globalDays<18?56:globalDays<36?60:62','Datenmengenabhängige Grundstaffel der Obergrenze fehlt.');
-need(engine,'validation.samples<6','Kontrollgruppen-Freigabe der Gewichtsobergrenze fehlt.');
+need(engine,'validation.days<6','Kontrollgruppen-Freigabe der Gewichtsobergrenze fehlt.');
 need(engine,'clamp(Math.round(max),48,65)','Adaptive Obergrenze ist nicht sicher auf 48–65 % begrenzt.');
 need(engine,'parameterWeightCap(','Parameterbezogene Vertrauensgrenze fehlt.');
 if(engine.includes('max=58'))failures.push('Die alte starre 58-%-Standardgrenze ist noch aktiv.');

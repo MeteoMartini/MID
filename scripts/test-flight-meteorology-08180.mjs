@@ -30,7 +30,7 @@ for(const token of [
  "const ROUTE_KEY='mid:flightCrossSection:route'",
  "fetchWorkerJson<CrossSectionData>('flight-cross-section'",
  'Streckenbriefing erstellen',
- 'Wann und wo ist etwas zu erwarten?',
+ 'Wann und in welchem größeren Raum ist etwas zu erwarten?',
  'AMTLICHE / OPERATIVE SIGNALE',
  'Flughöhe',
  'Landung'

@@ -1,4 +1,16 @@
-# v0.9.59.1
+# v0.9.60.2
+
+- CI/TypeScript: TS7006 im eventbezogenen Ensemble-Frischecallback dauerhaft in der kanonischen weather-Teilquelle behoben.
+- Regression schützt, dass `maintain:aggregates` die Typisierung nicht wieder entfernt.
+
+# v0.9.60.1
+
+- Wetterzwilling: stabile Modellfamilien, gruppengeteilte Modellbudgets und effektive Stichprobengröße aus eindeutigen Zieltagen.
+- P0: abgeleitete MID-Fusionen aus dem Modelllernen ausgeschlossen und tägliche Niederschlagswahrscheinlichkeit semantisch vereinheitlicht.
+- P1: tatsächliche Lauf-Frische, horizonweise Variantenwahl und MeteoSwiss-CH1/CH2-Reichweiten konsolidiert.
+- P2: Auflösungsprior gedämpft/parameterspezifisch; Mean/Spread klar von nativer Member-PoP getrennt.
+
+# v0.9.59.2
 
 - Flugmeteorologie: Cross Section als nicht-grafisches Streckenbriefing für 2–8 Flugplätze reaktiviert; Route, Flight Level sowie Start-/Landezeiten steuern orts- und zeitbezogene Gefahrenhinweise.
 - Flugstrecke: Modellprofil-Diagnosen für Vereisung, Windscherung/Turbulenz, Konvektion, Höhenwind, Niederschlag, Sicht und Wolkenuntergrenze plus verfügbare amtliche/operative Signale an Start, En-route und Ziel.

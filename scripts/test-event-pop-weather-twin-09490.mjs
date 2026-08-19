@@ -22,7 +22,9 @@ for(const token of [
  'DWD_PRECIPITATION_PROBABILITY_THRESHOLD_MM,true',
  'DWD_SIGNIFICANT_PRECIPITATION_PROBABILITY_THRESHOLD_MM,true',
  'groupCounts.get(row.model.independenceGroup)',
- 'modelDayWeight(row.model,lead,row.totals.length)',
+ "modelDayWeight(row.model,lead,row.totals.length,'precipitation',freshness(row.model))/divisor",
+ 'representativeResultsForDate',
+ 'effectiveModelFreshness',
  "source:'ensemble-members-dwd-event'"
 ])assert.ok(weather.includes(token),`Event-Ensemble-PoP fehlt: ${token}`);
 

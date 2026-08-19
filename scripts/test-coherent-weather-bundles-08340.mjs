@@ -22,7 +22,7 @@ for(const token of [
  'modellspezifische API-Suffixe',
  'Best Match bleibt für Kurzfrist, 7-Tage-Vorhersage',
  'MOSMIX lokal',
- "family:'ecmwf'"
+ "family:'ecmwf-ifs'","family:'ecmwf-aifs'","independenceGroup:'ecmwf'"
 ])assert.ok(worker.includes(token),`Worker-Horizont-/Bündelvertrag fehlt: ${token}`);
 assert.ok(!worker.includes("family:'aifs'"),'IFS und AIFS dürfen nicht als unabhängige ECMWF-Familien doppelt gewichtet werden');
 assert.ok(worker.includes('MOSMIX wird bewusst nur als lokales Postprocessing'),'MOSMIX-Parametergrenze fehlt');

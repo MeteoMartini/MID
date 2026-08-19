@@ -49,7 +49,9 @@ const meanModelBlock=weather.slice(weather.indexOf('const meanModels:'),weather.
 assert.ok(!fullModelBlock.includes('ncep_hgefs025_ensemble_mean'),'HGEFS darf nicht als Full-Member-Modell geführt werden');
 assert.ok(meanModelBlock.includes('ncep_hgefs025_ensemble_mean'));
 assert.match(weather,/distributionMode:'mean-spread'/);
-assert.match(weather,/memberCount:r\.model\.distributionMode==='mean-spread'\?0:rows\.length/);
+assert.match(weather,/probabilityQuality=native\?'native-members'.*:'estimated-spread'/s);
+assert.match(weather,/memberCount:native\?rows\.length:0/);
+assert.match(weather,/precipitationProbabilityQuality:probabilityQuality/);
 assert.match(weather,/scenarios:EnsembleScenarioCluster\[\]=\[\]/);
 assert.match(weather,/knmi_harmonie_arome_cy43_eps.*uwc-west-harmonie-eps.*maxDays:2\.5/);
 assert.match(weather,/eccc_reps.*eccc-reps.*maxDays:3/);

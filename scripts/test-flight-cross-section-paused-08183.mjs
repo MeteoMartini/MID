@@ -14,7 +14,7 @@ const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}
 need('App',app,'summary="Streckenbriefing · Meteogramme · Flughöhe/Zeiten"');
 for(const token of ["lazy(()=>import('./CrossSectionPanel'))",'title="Cross Section · Streckenbriefing"','<LazyCrossSection/>'])need('Reaktivierung',flight,token);
 if(flight.includes('To be continued')||flight.includes('flight-future-feature'))failures.push('Pausenkarte ist trotz Reaktivierung noch vorhanden.');
-for(const token of ['Streckenbriefing erstellen','Wann und wo ist etwas zu erwarten?','AMTLICHE / OPERATIVE SIGNALE'])need('Briefing',cross,token);
+for(const token of ['Streckenbriefing erstellen','Wann und in welchem größeren Raum ist etwas zu erwarten?','AMTLICHE / OPERATIVE SIGNALE'])need('Briefing',cross,token);
 if(cross.includes('CrossSectionGraphic')||cross.includes('PNG')||cross.includes('flight-cross-stage'))failures.push('Grafischer Cross-Section-Vertrag ist wieder aktiv.');
 for(const token of ['const FLIGHT_CROSS_SECTION_ENABLED=true;',"flightCrossSection(u,env)","'flight-route-hazard-briefing'"])need('Worker',worker,token);
 need('Design',styles,'.flight-route-briefing{');

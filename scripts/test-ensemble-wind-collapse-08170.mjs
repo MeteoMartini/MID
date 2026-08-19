@@ -39,7 +39,7 @@ if(panel.includes("compact=exporting?false:useCompactEnsembleChart()"))failures.
 for(const token of [
   'wind?:number;gust?:number;',
   'windMean:number;windLow:number;windHigh:number;windQ25:number;windQ75:number;gustMean:number;gustLow:number;gustHigh:number;gustQ25:number;gustQ75:number;',
-  "const ENSEMBLE_CACHE_PREFIX='mid:ensemble:v14:'",
+  "const ENSEMBLE_CACHE_PREFIX='mid:ensemble:v15:'",
   "windKeys=keys.filter(k=>/^wind_speed_10m",
   "gustKeys=keys.filter(k=>/^wind_gusts_10m",
   'wind=d.w.length?Math.max(...d.w):NaN',

@@ -18,7 +18,7 @@ assert.ok(event.includes("summary.weatherLabel?.includes('Sprühregen')"),'Sprü
 // Forecast fusion: Modellvarianten sind sichtbar, aber nur eine Stimme je unabhängiger Gruppe.
 for(const token of ['independenceGroup','independentFusionRows','consensusRole'])assert.ok(worker.includes(token),`Forecast-Fusion ohne ${token}`);
 assert.ok(worker.includes("result.consensusRole!=='postprocessing'"),'Postprocessing darf nicht als unabhängige Stimme gewertet werden.');
-assert.ok(worker.includes("items.sort((a,b)=>b.weight-a.weight"),'Pro Horizont muss ein geeigneter Vertreter je Familie gewählt werden.');
+assert.ok(worker.includes('const families=new Map()')&&worker.includes('budget=Math.max(...representatives.map(row=>row.weight))'),'Pro Horizont muss ein geeigneter Vertreter je Familie gewählt und ein gemeinsames Gruppenbudget geteilt werden.');
 assert.ok(worker.includes("maxHours:14,rapidUpdate:true"),'ICON-D2-RUC muss auf seine Rapid-Cycle-Reichweite begrenzt bleiben.');
 for(const token of ['knmi_harmonie_europe','ukmo_ukv','metno_nordic','hrrr','nam','nbm','chmi_aladin_ce','ecmwf_ifs','ecmwf_aifs','gfs','aigfs','ukmo_global','gem_global','jma_gsm','kma_gdps','bom_access_global','cma_grapes_global','arpege_world'])assert.ok(worker.includes(`id:'${token}'`),`Modellfamilie fehlt im Worker-Katalog: ${token}`);
 assert.ok(worker.includes("return chosen.slice(0,20)"),'Multi-Modell-Auswahl muss genug Platz für unabhängige Familien plus Fallbackvarianten lassen.');
@@ -26,10 +26,10 @@ assert.ok(worker.includes('fusionDailyPrecipitation'),'Teilweise verfügbare Glo
 assert.ok(worker.includes('weatherBundleReady:hours.length>=12'),'Tageskonsens und Wetterbündel-Reparatur müssen getrennte Verfügbarkeitskriterien haben.');
 
 // Frontend Ensemble: mehrere Auflösungen derselben Familie dürfen die Verteilung nicht vervielfachen.
-assert.ok(weather.includes("const ENSEMBLE_CACHE_PREFIX='mid:ensemble:v14:'"),'Ensemblecache muss nach Familiengewichtungsänderung invalidiert werden.');
-assert.ok(weather.includes('groupDivisor=Math.max(1,groupCounts.get(r.model.independenceGroup)'), 'Ensemble-Member müssen innerhalb einer Unabhängigkeitsgruppe geteilt gewichtet werden.');
-assert.ok(weather.includes('independentModelSummaries'), 'Ensemble-Modellübersicht muss Familien deduplizieren.');
-assert.ok(weather.includes('modelId:result.model.independenceGroup'), 'Szenario-Clustering muss Modellanteile familienbasiert ausweisen.');
+assert.ok(weather.includes("const ENSEMBLE_CACHE_PREFIX='mid:ensemble:v15:'"),'Ensemblecache muss nach Familien-/Frischegewichtungsänderung invalidiert werden.');
+assert.ok(weather.includes('representativeResultsForDate')&&weather.includes('groupDivisor=Math.max(1,groupCounts.get(r.model.independenceGroup)'), 'Ensemble-Member müssen zuerst je Architektur/Horizont dedupliziert und danach innerhalb einer Unabhängigkeitsgruppe geteilt gewichtet werden.');
+assert.ok(weather.includes('representativeResultsForDate')&&weather.includes('modelSummaries.push({id:r.model.id'), 'Ensemble-Modellübersicht muss horizonweise Familienvertreter verwenden.');
+assert.ok(weather.includes('modelId:`${result.model.independenceGroup}::${result.model.family}`'), 'Szenario-Clustering muss Modellanteile gruppen- und architekturbasiert ausweisen.');
 for(const token of ['ncep_aigefs025','ecmwf_aifs_europe_ensemble','google_weathernext2_ensemble','ukmo_global_ensemble_20km'])assert.ok(weather.includes(token),`Ensemblefamilie fehlt: ${token}`);
 
 // Schneefallgrenze: IFS/AIFS bleiben sichtbar, ECMWF bekommt aber nur ein Familiengewicht.
@@ -41,7 +41,7 @@ assert.ok(mountain.includes('unabhängige Modellfamilien gleich gewichtet'),'Sch
 assert.ok(seasonal.includes('freshDeduped=[...new Map(freshModels.map(model=>[model.family,model])).values()]'),'Saisonmodelle müssen pro Familie dedupliziert bleiben.');
 
 // Frontendvertrag des Workers muss Gruppen/Rollen transportieren.
-assert.ok(fusion.includes("const CACHE_PREFIX='mid:forecast-fusion:v7:'"),'Forecast-Fusion-Cache muss nach Familiengewichtungsänderung invalidiert werden.');
+assert.ok(fusion.includes("const CACHE_PREFIX='mid:forecast-fusion:v8:'"),'Forecast-Fusion-Cache muss nach Familien-/Frischegewichtungsänderung invalidiert werden.');
 assert.ok(fusion.includes('independenceGroup?:string'),'ForecastFusionSource muss independenceGroup transportieren.');
 assert.ok(fusion.includes("consensusRole?:'independent'|'postprocessing'|'diagnostic'"),'ForecastFusionSource muss Postprocessing von unabhängigen Modellen trennen.');
 

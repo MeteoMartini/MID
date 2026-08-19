@@ -1,4 +1,3 @@
-import {mkdir,writeFile} from 'node:fs/promises';
 const failures=[],checks=[];
 async function jsonCheck(name,url,validate){
  try{const response=await fetch(url,{headers:{Accept:'application/json'}}),payload=await response.json().catch(()=>null);checks.push({name,status:response.status,ok:response.ok});if(!response.ok||!validate(payload))failures.push(`${name}: Vertrag ungültig (HTTP ${response.status})`)}
@@ -23,5 +22,4 @@ await jsonCheck('EU-AQI stündlich',`https://air-quality-api.open-meteo.com/v1/a
 const aggregation=new URLSearchParams({latitude:'50.815',longitude:'7.037',timezone:'auto',forecast_days:'2',hourly:'temperature_2m_min,temperature_2m_max',temporal_resolution:'hourly_6'});
 await jsonCheck('Hourly Min/Max Aggregation',`https://api.open-meteo.com/v1/forecast?${aggregation}`,payload=>finiteSeries(payload,'temperature_2m_min',2)&&finiteSeries(payload,'temperature_2m_max',2)&&payload.hourly.temperature_2m_min.some((value,index)=>Number(value)!==Number(payload.hourly.temperature_2m_max[index])));
 
-await mkdir('artifacts',{recursive:true});await writeFile('artifacts/api-contracts.json',JSON.stringify({schema:2,checkedAt:new Date().toISOString(),ok:!failures.length,failures,checks},null,2)+'\n');
 if(failures.length){console.error(failures.join('\n'));process.exit(1)}console.log(`API-Vertragsprüfung bestanden (${checks.length} Prüfungen).`);

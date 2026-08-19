@@ -1,6 +1,7 @@
 import {Fragment,lazy,memo,Suspense,useCallback,useEffect,useMemo,useRef,useState,type ReactNode} from 'react';
 import {ChevronDown,Info,Layers3,LocateFixed,Lock,Pause,Play,RadioTower,SkipBack,SkipForward,Unlock} from 'lucide-react';
 import {Circle,CircleMarker,MapContainer,Marker,Pane,Polygon,Polyline,Popup,TileLayer,Tooltip,WMSTileLayer,useMap,useMapEvents,L} from './MapLibreLegacyCompat';
+import {CanvasOverlay} from './MapLibreCore';
 import type {Konrad3dCell,RadarNowcast,ThunderstormNowcast} from './weather';
 import {formatDecimal} from './format';
 import {loadPx250Metadata,type Px250Meta} from './Px250Source';
@@ -40,6 +41,7 @@ type RadarModelPhaseStatus='idle'|'loading'|'ready'|'error';
 type BasemapId='osm'|'positron'|'dark';
 type ModelLineMode='off'|'isobars'|'isoheights'|'both';
 type MotionTimeMode='absolute'|'relative';
+const MOTION_CANVAS_EVENTS=['moveend','zoomend','resize','render'] as const;
 type CompositeSettings={basemap:BasemapId;showRadar:boolean;highResolution:boolean;showPrecipitationType:boolean;showSatellite:boolean;showLightning:boolean;showNowcastObjects:boolean;showMotionOverlay:boolean;motionTimeMode:MotionTimeMode;showWarnings:boolean;modelLines:ModelLineMode;radarOpacity:number;radarColorTable:RadarColorTableId;precipitationTypeOpacity:number;satelliteOpacity:number;lightningOpacity:number;warningOpacity:number;modelOpacity:number;mapOverlayOpacity:number};
 const SETTINGS_KEY='mid:composite-settings:v3';
 const LAYERS_KEY='mid:composite-layers:v3';
@@ -192,9 +194,10 @@ function PrecipitationMotionTrack({site,analysis,timezone,mode}:{site:[number,nu
   });
   return{trackStart,ticks};
  },[map,referenceMs,resolved.direction,resolved.speed,site[0],site[1],viewRevision]);
+ const drawTimeArrow=useCallback((rawMap:any,canvas:HTMLCanvasElement)=>{if(!geometry)return;const container=rawMap.getCanvasContainer(),rect=container.getBoundingClientRect(),dpr=Math.max(1,Math.min(3,Number(globalThis.devicePixelRatio)||1)),width=Math.max(1,Math.round(rect.width)),height=Math.max(1,Math.round(rect.height));if(canvas.width!==Math.round(width*dpr)||canvas.height!==Math.round(height*dpr)){canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);canvas.style.width=`${width}px`;canvas.style.height=`${height}px`}const ctx=canvas.getContext('2d');if(!ctx)return;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,width,height);const project=(point:[number,number])=>rawMap.project([point[1],point[0]]),start=project(geometry.trackStart),target=project(site),drawLine=(a:any,b:any,color:string,lineWidth:number)=>{ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.strokeStyle=color;ctx.lineWidth=lineWidth;ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke()};drawLine(start,target,'rgba(250,250,250,.96)',9);drawLine(start,target,'rgba(48,54,61,.96)',4.8);for(const tick of geometry.ticks){const left=project(tick.cross[0]),right=project(tick.cross[1]);drawLine(left,right,'rgba(250,250,250,.94)',5.2);drawLine(left,right,'rgba(48,54,61,.9)',2.4)}},[geometry,site[0],site[1]]);
  if(!geometry)return null;
  const confidence=analysis.motionConfidence||'low';
- return <><Polyline positions={[geometry.trackStart,site]} pathOptions={{pane:'mid-motion-track',color:'rgba(250,250,250,.88)',weight:8.2,opacity:1,lineCap:'round',lineJoin:'round'} as any} interactive={false}/><Polyline positions={[geometry.trackStart,site]} pathOptions={{pane:'mid-motion-track',color:'rgba(55,60,66,.9)',weight:4.1,opacity:1,lineCap:'round',lineJoin:'round'} as any} interactive={false}/>{geometry.ticks.map(tick=><Fragment key={`motion-tick-${tick.id}`}><Polyline positions={tick.cross} pathOptions={{pane:'mid-motion-track',color:'rgba(55,60,66,.82)',weight:2.4,opacity:1,lineCap:'round'} as any} interactive={false}/><Marker pane="mid-motion-labels" position={tick.position} icon={motionTimeIcon(motionTimeLabel(tick.arrivalEpochMs,referenceMs,timezone,mode),tick.side)} interactive={false} zIndexOffset={944}/></Fragment>)}<Marker pane="mid-motion-labels" position={site} icon={motionTrackArrowheadIcon(resolved.direction,confidence)} interactive={false} zIndexOffset={968}/></>;
+ return <><CanvasOverlay id="mid-motion-time-arrow-shaft" zIndex={860} render={drawTimeArrow} events={MOTION_CANVAS_EVENTS}/>{geometry.ticks.map(tick=><Marker key={`motion-tick-${tick.id}`} pane="mid-motion-labels" position={tick.position} icon={motionTimeIcon(motionTimeLabel(tick.arrivalEpochMs,referenceMs,timezone,mode),tick.side)} interactive={false} zIndexOffset={944}/>) }<Marker pane="mid-motion-labels" position={site} icon={motionTrackArrowheadIcon(resolved.direction,confidence)} interactive={false} zIndexOffset={968}/></>;
 }
 function konradColor(cell:Konrad3dCell){return cell.severity>=3?'#c62828':cell.severity>=2?'#f05b3d':cell.severity>=1?'#f2b134':'#4ca8e8'}
 function konradSeverityLabel(value:number){return['schwach','moderat','stark','extrem'][Math.max(0,Math.min(3,Math.round(Number(value)||0)))]}

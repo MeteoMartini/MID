@@ -40,10 +40,10 @@ const originalFetch=globalThis.fetch,originalCaches=globalThis.caches;
 let openMeteoCalls=0,metCalls=0;
 globalThis.caches={default:{match:async()=>undefined,put:async()=>undefined}};
 globalThis.fetch=async input=>{
- const url=String(input instanceof Request?input.url:input);
- if(url.includes('api.open-meteo.com')){openMeteoCalls++;return new Response(JSON.stringify({error:true,reason:'Too Many Requests'}),{status:429,headers:{'content-type':'application/json','retry-after':'60'}})}
- if(url.includes('api.met.no/weatherapi/locationforecast/2.0/complete')){metCalls++;return new Response(JSON.stringify({properties:{timeseries:[]}}),{status:200,headers:{'content-type':'application/json'}})}
- throw new Error(`unexpected network call: ${url}`);
+ const url=new URL(input instanceof Request?input.url:String(input));
+ if(url.protocol==='https:'&&url.hostname==='api.open-meteo.com'){openMeteoCalls++;return new Response(JSON.stringify({error:true,reason:'Too Many Requests'}),{status:429,headers:{'content-type':'application/json','retry-after':'60'}})}
+ if(url.protocol==='https:'&&url.hostname==='api.met.no'&&url.pathname==='/weatherapi/locationforecast/2.0/complete'){metCalls++;return new Response(JSON.stringify({properties:{timeseries:[]}}),{status:200,headers:{'content-type':'application/json'}})}
+ throw new Error(`unexpected network call: ${url.origin}${url.pathname}`);
 };
 try{
  const workerPath=new URL('worker/metar-proxy.js',root);

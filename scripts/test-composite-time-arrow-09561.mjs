@@ -14,11 +14,12 @@ for(const token of [
  'trackStart=destinationPoint(site,upstreamBearing,shaftKm)',
  'tickFractions=shaftKm>=70?[.43,.78]:[.38,.72]',
  'geometry.ticks.map(tick=>',
- 'positions={tick.cross}',
+ 'drawLine(left,right',
  "resolvedMotion.source==='steering'" ,
  'steeringCloudCenterHpa',
  'steeringProfileMode',
- "pane:'mid-motion-track'",
+ 'mid-motion-time-arrow-shaft',
+ 'CanvasOverlay',
  'pane="mid-motion-labels"'
 ]) assert.ok(radar.includes(token),`Zeitpfeil-Vertrag fehlt: ${token}`);
 assert.ok(!radar.includes('motionAxisMetaIcon'),'Der alte schwebende Achsen-Badge darf nicht zurückkehren.');

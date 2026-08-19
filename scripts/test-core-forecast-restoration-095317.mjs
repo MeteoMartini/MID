@@ -16,9 +16,9 @@ assert.equal(baseline.releaseVersion,pkg.version);
 assert.ok(baseline.requiredRegressionTests.includes('scripts/test-core-forecast-restoration-095317.mjs'));
 
 // Normal presentation contract: full Best Match data remain the canonical structure for all forecast tiles.
-assert.match(weather,/probabilitySource\?:'ensemble-members-dwd'\|'hourly-max-fallback'/);
+assert.match(weather,/probabilitySource\?:'ensemble-members-dwd'\|'daily-wet-derived'\|'hourly-max-fallback'/);
 assert.match(weather,/weatherSourceId:'best_match',weatherSourceLabel:'Open-Meteo Best Match',weatherBundleKind:'best-match' as const/);
-assert.match(weather,/probabilitySource:'hourly-max-fallback' as const/);
+assert.match(weather,/probabilitySource:Number\.isFinite\(derivedDailyProbability\)\?'daily-wet-derived' as const:'hourly-max-fallback' as const/);
 assert.doesNotMatch(weather,/provider-no-probability|weatherBundleKind:fallbackSource\?'provider-fallback'/);
 assert.match(app,/stationLoading\?'Prüfung läuft':'Best Match'/);
 assert.match(app,/Fallback auf Best Match/);

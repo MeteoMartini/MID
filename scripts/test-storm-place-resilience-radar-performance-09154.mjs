@@ -56,8 +56,8 @@ try{
  const transformed=worker.replace(/export\s*\{[^}]+\};?/g,'').replace(/export default\s*\{/, 'const __workerDefault={')+"\nmodule.exports={stormTrackPoints,enrichStormAffectedPlaces};";
  const mockFetch=async input=>{
   const url=String(input);
-  if(url.includes('overpass'))return new Response(JSON.stringify({elements:[{type:'node',lat:50,lon:7,tags:{name:'Startstadt',place:'town',population:'20000'}}]}),{status:200,headers:{'content-type':'application/json'}});
-  if(url.includes('bigdatacloud')){const parsed=new URL(url),longitude=Number(parsed.searchParams.get('longitude')),name=longitude<7.08?'Startstadt':longitude<7.2?'Ort A':longitude<7.35?'Ort B':'Ort C';return new Response(JSON.stringify({locality:name,countryCode:'DE'}),{status:200,headers:{'content-type':'application/json'}})}
+  if(new URL(url).hostname==='overpass-api.de')return new Response(JSON.stringify({elements:[{type:'node',lat:50,lon:7,tags:{name:'Startstadt',place:'town',population:'20000'}}]}),{status:200,headers:{'content-type':'application/json'}});
+  if(new URL(url).hostname==='api.bigdatacloud.net'){const parsed=new URL(url),longitude=Number(parsed.searchParams.get('longitude')),name=longitude<7.08?'Startstadt':longitude<7.2?'Ort A':longitude<7.35?'Ort B':'Ort C';return new Response(JSON.stringify({locality:name,countryCode:'DE'}),{status:200,headers:{'content-type':'application/json'}})}
   throw new Error(`Unerwartete Test-URL ${url}`);
  };
  const module={exports:{}};new Function('module','exports','fetch',transformed)(module,module.exports,mockFetch);

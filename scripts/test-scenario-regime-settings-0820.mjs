@@ -10,7 +10,7 @@ const [weather,ensemble,verification,panel,settings,styles,app]=await Promise.al
 ]);
 const failures=[];
 const need=(text,token,message)=>{if(!text.includes(token))failures.push(message)};
-need(weather,"const ENSEMBLE_CACHE_PREFIX='mid:ensemble:v14:'",'Alter Ensemblecache wird nicht invalidiert.');
+need(weather,"const ENSEMBLE_CACHE_PREFIX='mid:ensemble:v15:'",'Alter Ensemblecache wird nicht invalidiert.');
 need(weather,'function filterScenarioRainOutliers(','Robuste Filterung isolierter Niederschlagsausreißer fehlt.');
 need(weather,'median+Math.max(60,8*mad,median*3+25)','Szenario-Ausreißergrenze ist nicht robust an Median und MAD gekoppelt.');
 need(weather,'gust:mean(row=>row.gust)','Böen werden in den Szenariokennwerten nicht fortgeführt.');

@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.59.1",
+  "releaseVersion": "0.9.60.2",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -226,7 +226,11 @@
     "scripts/test-short-term-fog-risk-09581.mjs",
     "scripts/test-maplibre-compat-bounds-09582.mjs",
     "scripts/test-favorite-order-persistence-09584.mjs",
-    "scripts/test-flight-route-briefing-cloud-steering-09590.mjs"
+    "scripts/test-flight-route-briefing-cloud-steering-09590.mjs",
+    "scripts/test-flight-corridor-time-arrow-09592.mjs",
+    "scripts/test-model-skill-twin-consistency-09600.mjs",
+    "scripts/test-codeql-security-hardening-09601.mjs",
+    "scripts/test-weather-aggregate-type-contract-09602.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -385,7 +389,11 @@
     "scripts/test-short-term-fog-risk-09581.mjs",
     "scripts/test-maplibre-compat-bounds-09582.mjs",
     "scripts/test-favorite-order-persistence-09584.mjs",
-    "scripts/test-flight-route-briefing-cloud-steering-09590.mjs"
+    "scripts/test-flight-route-briefing-cloud-steering-09590.mjs",
+    "scripts/test-flight-corridor-time-arrow-09592.mjs",
+    "scripts/test-model-skill-twin-consistency-09600.mjs",
+    "scripts/test-codeql-security-hardening-09601.mjs",
+    "scripts/test-weather-aggregate-type-contract-09602.mjs"
   ],
   "requiredFiles": [
     "scripts/test-cockpit-regression-sync-09201.mjs",

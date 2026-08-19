@@ -25,8 +25,9 @@ for(const token of [
  'function flightRouteGeometry(airports){',
  'function flightRoutePointAtDistance(airports,segmentKm,totalDistanceKm,targetKm){',
  'function flightRouteSamples(airports,count){',
+ 'function flightCorridorQueryPoints(route,corridorKm){',
  'const route=flightRouteSamples(airports,samples)',
- 'weatherSampleCount:route.points.length',
+ 'weatherSampleCount:queryPoints.length',
  'officialBriefing'
 ])need('Worker-Streckenbriefing',worker,token);
 

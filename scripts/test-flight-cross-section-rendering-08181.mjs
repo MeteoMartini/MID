@@ -20,13 +20,13 @@ for(const token of [
   'function pointHazards(',
   'function hazardRuns(',
   'function officialSignals(',
-  'Wann und wo ist etwas zu erwarten?',
+  'Wann und in welchem größeren Raum ist etwas zu erwarten?',
   'AMTLICHE / OPERATIVE SIGNALE',
   'Wolkenuntergrenze Start',
   'Wolkenuntergrenze Landung',
   'Turbulenz / vertikale Windscherung',
   'Konvektion / Gewitter',
-  'Die frühere Cross-Section-Grafik wurde bewusst durch ein handlungsorientiertes Streckenbriefing ersetzt'
+  'Die frühere Cross-Section-Grafik bleibt durch das handlungsorientierte Streckenbriefing ersetzt'
 ])need('Cross-Section-Streckenbriefing',cross,token);
 
 for(const token of [

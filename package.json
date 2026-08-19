@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.59.1",
+  "version": "0.9.60.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -277,7 +277,11 @@
     "test:short-term-fog-risk": "node scripts/test-short-term-fog-risk-09581.mjs",
     "test:maplibre-compat-bounds": "node scripts/test-maplibre-compat-bounds-09582.mjs",
     "test:favorite-order-persistence": "node scripts/test-favorite-order-persistence-09584.mjs",
-    "test:flight-route-cloud-steering": "node scripts/test-flight-route-briefing-cloud-steering-09590.mjs"
+    "test:flight-route-cloud-steering": "node scripts/test-flight-route-briefing-cloud-steering-09590.mjs",
+    "test:flight-corridor-time-arrow": "node scripts/test-flight-corridor-time-arrow-09592.mjs",
+    "test:model-skill-twin-consistency": "node scripts/test-model-skill-twin-consistency-09600.mjs",
+    "test:codeql-security-hardening": "node scripts/test-codeql-security-hardening-09601.mjs",
+    "test:weather-aggregate-type-contract": "node scripts/test-weather-aggregate-type-contract-09602.mjs"
   },
   "dependencies": {
     "astronomy-engine": "^2.1.19",
