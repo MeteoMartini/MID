@@ -166,10 +166,15 @@ function resolveMotionDirection(_site:[number,number],analysis:RadarNowcast|unde
  if(radarValid)return{direction:normalizeBearing(radarDirection),speed:radarSpeed,source:'radar' as const};
  return{direction:Number.NaN,speed:Number.NaN,source:'unavailable' as const};
 }
-function motionTrackArrowheadIcon(direction:number,confidence:'high'|'medium'|'low'){const opacity=confidence==='low'?.7:confidence==='medium'?.82:.94;/* Legacy regression anchor: d="M19 19L9 30M19 19L29 30" */return L.divIcon({className:'mid-motion-div-icon',iconSize:[38,38],iconAnchor:[19,19],html:`<span class="mid-motion-track-arrowhead ${confidence}" style="opacity:${opacity}"><svg viewBox="0 0 38 38" aria-hidden="true" style="transform:rotate(${direction}deg)"><path class="halo" d="M19 19L19 35M19 19L9 30M19 19L29 30"/><path class="core" d="M19 19L19 34M19 19L10.5 28.5M19 19L27.5 28.5"/></svg></span>`})}
-function motionTimeIcon(label:string,side:'above'|'below'){return L.divIcon({className:'mid-motion-time-div-icon',iconSize:[62,30],iconAnchor:[31,side==='above'?35:-5],html:`<span class="mid-motion-time-label template ${side}"><b>${label}</b></span>`})}
-type MotionArrowTick={id:string;position:[number,number];cross:[[number,number],[number,number]];labelConnector:[[number,number],[number,number]];labelAnchor:[number,number];arrivalEpochMs:number;side:'above'|'below'};
-function roundedQuarterMinutes(minutes:number){return Math.max(15,Math.round(minutes/15)*15)}
+function motionTimeIcon(label:string,side:'above'|'below'){return L.divIcon({className:'mid-motion-time-div-icon',iconSize:[72,34],iconAnchor:[36,side==='above'?41:-7],html:`<span class="mid-motion-time-label template ${side}"><b>${label}</b></span>`})}
+type MotionArrowTick={id:string;position:[number,number];arrivalEpochMs:number;side:'above'|'below'};
+const MOTION_AXIS_LEAD_MINUTES=60;
+const MOTION_AXIS_TICK_MINUTES=[15,30,45,60] as const;
+function motionTrackGraphicIcon(lengthPx:number,angleDeg:number,confidence:'high'|'medium'|'low'){
+ const length=Math.max(180,Math.min(520,Math.round(lengthPx))),pad=28,height=76,lineY=38,startX=pad,endX=pad+length,opacity=confidence==='low'?.76:confidence==='medium'?.88:.96;
+ const ticks=MOTION_AXIS_TICK_MINUTES.map(minutes=>{const fraction=1-minutes/MOTION_AXIS_LEAD_MINUTES,x=startX+length*fraction;return`<line class="tick halo" x1="${x}" y1="17" x2="${x}" y2="59"/><line class="tick core" x1="${x}" y1="19" x2="${x}" y2="57"/>`}).join('');
+ return L.divIcon({className:'mid-motion-track-graphic-div-icon',iconSize:[length+pad*2,height],iconAnchor:[pad+length/2,lineY],html:`<span class="mid-motion-track-graphic ${confidence}" style="opacity:${opacity};transform:rotate(${angleDeg}deg)"><svg viewBox="0 0 ${length+pad*2} ${height}" aria-hidden="true"><line class="shaft halo" x1="${startX}" y1="${lineY}" x2="${endX-13}" y2="${lineY}"/><line class="shaft core" x1="${startX}" y1="${lineY}" x2="${endX-13}" y2="${lineY}"/>${ticks}<path class="arrow halo" d="M${endX} ${lineY}L${endX-29} ${lineY-18}M${endX} ${lineY}L${endX-29} ${lineY+18}"/><path class="arrow core" d="M${endX} ${lineY}L${endX-28} ${lineY-17}M${endX} ${lineY}L${endX-28} ${lineY+17}"/></svg></span>`})
+}
 function PrecipitationMotionTrack({site,analysis,timezone,mode,referenceMs}:{site:[number,number];analysis:RadarNowcast;timezone?:string;mode:MotionTimeMode;referenceMs:number}){
  const map=useMap(),[viewRevision,setViewRevision]=useState(0);
  useMapEvents({moveend:()=>setViewRevision(value=>value+1),zoomend:()=>setViewRevision(value=>value+1),resize:()=>setViewRevision(value=>value+1)});
@@ -177,45 +182,23 @@ function PrecipitationMotionTrack({site,analysis,timezone,mode,referenceMs}:{sit
  const geometry=useMemo(()=>{
   void viewRevision;
   if(!Number.isFinite(resolved.direction)||!Number.isFinite(resolved.speed)||resolved.speed<2)return null;
-  const bounds=map.getBounds();
-  const southWest:[number,number]=[bounds.getSouthWest().lat,bounds.getSouthWest().lng];
-  const northEast:[number,number]=[bounds.getNorthEast().lat,bounds.getNorthEast().lng];
-  const viewportDiagonalKm=Math.max(12,segmentKm(southWest,northEast));
+  const bounds=map.getBounds(),size=map.getSize();
+  const southWest:[number,number]=[bounds.getSouthWest().lat,bounds.getSouthWest().lng],northEast:[number,number]=[bounds.getNorthEast().lat,bounds.getNorthEast().lng];
+  const viewportDiagonalKm=Math.max(12,segmentKm(southWest,northEast)),viewportDiagonalPx=Math.max(1,Math.hypot(size.x,size.y));
+  const desiredLengthPx=Math.max(220,Math.min(460,Math.min(size.x*.72,size.y*.58))),trackKm=Math.max(4,viewportDiagonalKm*desiredLengthPx/viewportDiagonalPx);
   const upstreamBearing=(resolved.direction+180)%360;
-  const shaftKm=Math.max(6,Math.min(Math.max(18,viewportDiagonalKm*.42),resolved.speed*2));
-  const shaftLeadMinutes=Math.max(30,Math.min(120,roundedQuarterMinutes(shaftKm/resolved.speed*60)));
-  const trackStart=destinationPoint(site,upstreamBearing,resolved.speed*shaftLeadMinutes/60);
-  const tickMinutesRaw=shaftLeadMinutes>=90?[roundedQuarterMinutes(shaftLeadMinutes*.4),roundedQuarterMinutes(shaftLeadMinutes*.75)]:shaftLeadMinutes>=60?[30,60]:[15,Math.max(30,shaftLeadMinutes)];
-  const tickMinutes=Array.from(new Set(tickMinutesRaw)).filter(minutes=>minutes>0&&minutes<shaftLeadMinutes).sort((a,b)=>a-b);
-  const crossHalfKm=Math.max(.45,Math.min(2.1,Math.max(.6,shaftKm*.02)));
-  const labelOffsetKm=Math.max(.8,Math.min(4.2,Math.max(1.1,shaftKm*.05)));
-  const forwardTip=destinationPoint(site,resolved.direction,Math.max(.7,Math.min(2.4,Math.max(.9,shaftKm*.04))));
-  const ticks:MotionArrowTick[]=tickMinutes.map((minutes,index)=>{
-   const distanceKm=resolved.speed*minutes/60,position=destinationPoint(site,upstreamBearing,distanceKm),left=destinationPoint(position,(resolved.direction+90)%360,crossHalfKm),right=destinationPoint(position,(resolved.direction+270)%360,crossHalfKm),side:'above'|'below'=index%2===0?'above':'below';
-   const labelBearing=side==='above'?(resolved.direction+90)%360:(resolved.direction+270)%360;
-   const labelAnchor=destinationPoint(position,labelBearing,labelOffsetKm);
-   return{id:`${index}:${minutes}`,position,cross:[left,right],labelConnector:[position,labelAnchor],labelAnchor,arrivalEpochMs:referenceMs+minutes*60000,side};
-  });
-  return{trackStart,forwardTip,ticks};
+  const trackStart=destinationPoint(site,upstreamBearing,trackKm),trackMid=destinationPoint(site,upstreamBearing,trackKm/2),startPx=map.latLngToContainerPoint(trackStart),sitePx=map.latLngToContainerPoint(site),screenLengthPx=Math.max(180,Math.hypot(sitePx.x-startPx.x,sitePx.y-startPx.y)),screenAngleDeg=Math.atan2(sitePx.y-startPx.y,sitePx.x-startPx.x)*180/Math.PI;
+  const ticks:MotionArrowTick[]=MOTION_AXIS_TICK_MINUTES.map((minutes,index)=>{const position=destinationPoint(site,upstreamBearing,trackKm*minutes/MOTION_AXIS_LEAD_MINUTES),side:'above'|'below'=index%2===0?'above':'below';return{id:`${minutes}`,position,arrivalEpochMs:referenceMs+minutes*60000,side}});
+  return{trackMid,screenLengthPx,screenAngleDeg,ticks};
  },[map,referenceMs,resolved.direction,resolved.speed,site[0],site[1],viewRevision]);
  if(!geometry)return null;
  const confidence=analysis.motionConfidence||'low';
- /* Legacy regression anchor: <Polyline pane="overlayPane" positions={[geometry.trackStart,site] as any} interactive={false} /> */
  return <>
-  <Polyline pane="mid-motion-vectors" positions={[geometry.trackStart,site] as any} interactive={false} pathOptions={{color:'rgba(255,255,255,.98)',weight:11,opacity:.98,lineCap:'round',lineJoin:'round',className:'mid-motion-time-arrow-shaft-halo'}}/>
-  <Polyline pane="mid-motion-vectors" positions={[geometry.trackStart,site] as any} interactive={false} pathOptions={{color:'rgba(21,125,217,.96)',weight:6.2,opacity:1,lineCap:'round',lineJoin:'round',className:'mid-motion-time-arrow-shaft-core'}}/>
-  <Polyline pane="mid-motion-vectors" positions={[site,geometry.forwardTip] as any} interactive={false} pathOptions={{color:'rgba(255,255,255,.98)',weight:9.2,opacity:.98,lineCap:'round',lineJoin:'round',className:'mid-motion-time-arrow-tip-halo'}}/>
-  <Polyline pane="mid-motion-vectors" positions={[site,geometry.forwardTip] as any} interactive={false} pathOptions={{color:'rgba(21,125,217,.96)',weight:4.8,opacity:1,lineCap:'round',lineJoin:'round',className:'mid-motion-time-arrow-tip-core'}}/>
-  {geometry.ticks.map(tick=><Fragment key={`motion-tick-${tick.id}`}>
-   <Polyline pane="mid-motion-vectors" positions={tick.cross as any} interactive={false} pathOptions={{color:'rgba(255,255,255,.96)',weight:6.4,opacity:.98,lineCap:'round',lineJoin:'round',className:'mid-motion-time-arrow-tick-halo'}}/>
-   <Polyline pane="mid-motion-vectors" positions={tick.cross as any} interactive={false} pathOptions={{color:'rgba(21,125,217,.96)',weight:3.1,opacity:1,lineCap:'round',lineJoin:'round',className:'mid-motion-time-arrow-tick-core'}}/>
-   <Polyline pane="mid-motion-vectors" positions={tick.labelConnector as any} interactive={false} pathOptions={{color:'rgba(255,255,255,.94)',weight:5.2,opacity:.95,lineCap:'round',lineJoin:'round',className:'mid-motion-time-arrow-label-connector-halo'}}/>
-   <Polyline pane="mid-motion-vectors" positions={tick.labelConnector as any} interactive={false} pathOptions={{color:'rgba(32,57,84,.92)',weight:2.2,opacity:.98,lineCap:'round',lineJoin:'round',className:'mid-motion-time-arrow-label-connector-core'}}/>
-   <Marker pane="mid-motion-labels" position={tick.labelAnchor} icon={motionTimeIcon(motionTimeLabel(tick.arrivalEpochMs,referenceMs,timezone,mode),tick.side)} interactive={false} zIndexOffset={944}/>
-  </Fragment>)}
-  <Marker pane="mid-motion-labels" position={site} icon={motionTrackArrowheadIcon(resolved.direction,confidence)} interactive={false} zIndexOffset={968}/>
+  <Marker pane="mid-motion-labels" position={geometry.trackMid} icon={motionTrackGraphicIcon(geometry.screenLengthPx,geometry.screenAngleDeg,confidence)} interactive={false} zIndexOffset={930}/>
+  {geometry.ticks.map(tick=><Marker key={`motion-tick-${tick.id}`} pane="mid-motion-labels" position={tick.position} icon={motionTimeIcon(motionTimeLabel(tick.arrivalEpochMs,referenceMs,timezone,mode),tick.side)} interactive={false} zIndexOffset={944}/>) }
  </>;
 }
+
 function konradColor(cell:Konrad3dCell){return cell.severity>=3?'#c62828':cell.severity>=2?'#f05b3d':cell.severity>=1?'#f2b134':'#4ca8e8'}
 function konradSeverityLabel(value:number){return['schwach','moderat','stark','extrem'][Math.max(0,Math.min(3,Math.round(Number(value)||0)))]}
 function konradTrendLabel(value:number){return value>=2?'schnell anwachsend':value===1?'anwachsend':value<=-2?'schnell abschwächend':value===-1?'abschwächend':'stabil'}
@@ -378,7 +361,7 @@ export default function RadarPanel({lat,lon,timezone,analysis,thunder,isDay=true
     {!rasterZooming&&modelLines!=='off'&&!dominantModelFrame&&!modelTileError&&(modelLines==='isobars'||modelLines==='both')&&<WMSTileLayer key={`dwd-isobars:${tileRevision}`} url={rasterVersionUrl(dwdProxy,tileRevision,'isobars')} opacity={modelOpacity/100} zIndex={665} keepBuffer={1} updateWhenIdle={touchDevice} updateWhenZooming={!touchDevice} eventHandlers={{tileerror:()=>setModelTileError('DWD-ICON-Isobaren-WMS nicht verfügbar; MID-Konturen werden verwendet.')}} params={({layers:DWD_ISOBAR_LAYER,styles:'',format:'image/png',transparent:true,version:'1.1.1',tiled:true} as any)} attribution="ICON-Druckfeld &copy; Deutscher Wetterdienst"/>}
     {!rasterZooming&&modelLines!=='off'&&!dominantModelFrame&&!modelTileError&&(modelLines==='isoheights'||modelLines==='both')&&<WMSTileLayer key={`dwd-isoheights:${tileRevision}`} url={rasterVersionUrl(dwdProxy,tileRevision,'isoheights')} opacity={modelOpacity/100} zIndex={666} keepBuffer={1} updateWhenIdle={touchDevice} updateWhenZooming={!touchDevice} eventHandlers={{tileerror:()=>setModelTileError('DWD-ICON-500-hPa-Geopotential-WMS nicht verfügbar; MID-Konturen werden verwendet.')}} params={({layers:DWD_ISOHYPSE_LAYER,styles:'',format:'image/png',transparent:true,version:'1.1.1',elevation:'500',tiled:true} as any)} attribution="ICON-Geopotential &copy; Deutscher Wetterdienst"/>}
     {modelLines!=='off'&&dominantModelFrame&&<Pane name="mid-model-lines" style={{zIndex:665,pointerEvents:'none'}}>{(modelLines==='isobars'||modelLines==='both')&&<MemoContours levels={dominantModelFrame.isobars} type="isobars" opacity={modelOpacity/100}/>} {(modelLines==='isoheights'||modelLines==='both')&&<MemoContours levels={dominantModelFrame.isoheights} type="isoheights" opacity={modelOpacity/100}/>} {dominantModelFrame.centers?.length?<MemoPressureCenters centers={dominantModelFrame.centers} opacity={modelOpacity/100}/>:null}</Pane>}
-    <TileLayer key={`reference:${basemap}`} attribution={currentBasemap.attribution} url={currentBasemap.referenceUrl} opacity={mapOverlayOpacity/100} zIndex={790} keepBuffer={2} updateWhenIdle={touchDevice} updateWhenZooming={!touchDevice}/>{showMotionField&&<><Pane name="mid-motion-vectors" style={{zIndex:860,pointerEvents:'none',overflow:'visible'}}/><Pane name="mid-motion-labels" style={{zIndex:870,pointerEvents:'none',overflow:'visible'}}/><MemoPrecipitationMotionTrack site={[lat,lon]} analysis={analysis!} timezone={timezone} mode={motionTimeMode} referenceMs={Number.isFinite(targetMs)?targetMs:Date.now()}/></>}
+    <TileLayer key={`reference:${basemap}`} attribution={currentBasemap.attribution} url={currentBasemap.referenceUrl} opacity={mapOverlayOpacity/100} zIndex={790} keepBuffer={2} updateWhenIdle={touchDevice} updateWhenZooming={!touchDevice}/>{showMotionField&&<><Pane name="mid-motion-labels" style={{zIndex:870,pointerEvents:'none',overflow:'visible'}}/><MemoPrecipitationMotionTrack site={[lat,lon]} analysis={analysis!} timezone={timezone} mode={motionTimeMode} referenceMs={Number.isFinite(targetMs)?targetMs:Date.now()}/></>}
     <Marker position={[lat,lon]} icon={headingIcon} zIndexOffset={920} eventHandlers={{click:()=>{if(actualLocation&&deviceHeading.heading===null)void deviceHeading.request()}}}><Popup><strong>{actualLocation?'Aktueller Standort':'Gewählter Ort'}</strong>{actualLocation&&(deviceHeading.heading!==null?<><br/>Blickrichtung {Math.round(deviceHeading.heading)}° {compassDirection(deviceHeading.heading)}</>:<><br/>{deviceHeading.permission==='denied'?'Blickrichtung wurde nicht freigegeben.':'Standortsymbol antippen, um die Blickrichtung zu aktivieren.'}</>)}{showMotion&&<><br/>Zeitpfeil {Math.round(motionDirection)}° {compassDirection(motionDirection)}<br/>{Math.round(motionSpeed)} km/h</>}</Popup></Marker>
    </MapContainer>
    <CompositeLegend source={activeSource} showRadar={showRadar} highResolution={highResolution} radarColorTableId={radarColorTableId} precipitationTypeMode={precipitationTypeMode} showSatellite={showSatellite&&showSatelliteAtTime} satelliteName={`${satelliteName}${showSatelliteAtTime?` · ${blendStamp(satelliteBlend,referenceSeconds,timezone,latestSatelliteTime)}`:''}`} showLightning={showLightning} showNowcastObjects={showNowcastObjects} showMotionOverlay={showMotion} showWarnings={showWarnings} lightningProvider={lightningProvider} vectorLightning={vectorLightning} relative={relative} pxSite={highResolution?(pxMeta?.product==='hx'?'Deutschlandkomposit HX':pxMeta?.siteName):undefined} satellitePrecip={satPrecipFactor>.04} modelLines={modelLines}/>

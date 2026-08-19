@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.60.8",
+  "version": "0.9.60.9",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -282,7 +282,8 @@
     "test:model-skill-twin-consistency": "node scripts/test-model-skill-twin-consistency-09600.mjs",
     "test:codeql-security-hardening": "node scripts/test-codeql-security-hardening-09601.mjs",
     "test:weather-aggregate-type-contract": "node scripts/test-weather-aggregate-type-contract-09602.mjs",
-    "test:location-heading-favorites": "node scripts/test-location-heading-favorites-09608.mjs"
+    "test:location-heading-favorites": "node scripts/test-location-heading-favorites-09608.mjs",
+    "test:composite-time-axis-template": "node scripts/test-composite-time-axis-template-09609.mjs"
   },
   "dependencies": {
     "astronomy-engine": "^2.1.19",

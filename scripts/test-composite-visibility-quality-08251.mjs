@@ -22,8 +22,8 @@ for(const token of [
  'name="mid-lightning-points"',
  "fillOpacity:.72*lightningOpacity/100",
  'viewportDiagonalKm=Math.max(12,segmentKm(southWest,northEast))',
- 'trackStart=destinationPoint(site,upstreamBearing,resolved.speed*shaftLeadMinutes/60)',
- '<Polyline pane="overlayPane" positions={[geometry.trackStart,site] as any} interactive={false}',
+ 'trackStart=destinationPoint(site,upstreamBearing,trackKm)',
+ '<Marker pane="mid-motion-labels" position={geometry.trackMid} icon={motionTrackGraphicIcon',
  `cycleMotionOverlay=()=>{if(!showRadar)setShowRadar(true);if(!showMotionOverlay){setMotionTimeMode('absolute');setShowMotionOverlay(true);return}if(motionTimeMode==='absolute'){setMotionTimeMode('relative');return}setShowMotionOverlay(false);setMotionTimeMode('absolute')}`,
  'referenceUrl',
  'mapOverlayOpacity',
@@ -52,9 +52,9 @@ for(const token of [
 need('PX250-Projektion',projection,'const match=definition.match');
 for(const token of [
  '.maplibre-mid-lightning-points-pane',
- '.mid-motion-track-arrowhead',
+ '.mid-motion-track-graphic',
  '.radar-selected-place-marker',
- '.mid-motion-arrow-marker .core{stroke:rgba(255,255,255,.88)'
+ '.mid-motion-track-graphic .arrow.core{'
 ])need('Darstellung',styles,token);
 need('Package-Test',pkg,'test:composite-visibility-quality');
 need('Baseline-Test',baseline,'scripts/test-composite-visibility-quality-08251.mjs');

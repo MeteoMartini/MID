@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.60.8",
+  "releaseVersion": "0.9.60.9",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -231,7 +231,8 @@
     "scripts/test-model-skill-twin-consistency-09600.mjs",
     "scripts/test-codeql-security-hardening-09601.mjs",
     "scripts/test-weather-aggregate-type-contract-09602.mjs",
-    "scripts/test-location-heading-favorites-09608.mjs"
+    "scripts/test-location-heading-favorites-09608.mjs",
+    "scripts/test-composite-time-axis-template-09609.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -395,7 +396,8 @@
     "scripts/test-model-skill-twin-consistency-09600.mjs",
     "scripts/test-codeql-security-hardening-09601.mjs",
     "scripts/test-weather-aggregate-type-contract-09602.mjs",
-    "scripts/test-location-heading-favorites-09608.mjs"
+    "scripts/test-location-heading-favorites-09608.mjs",
+    "scripts/test-composite-time-axis-template-09609.mjs"
   ],
   "requiredFiles": [
     "scripts/test-cockpit-regression-sync-09201.mjs",

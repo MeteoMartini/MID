@@ -4115,3 +4115,10 @@
 - Favoriten und manuell gewählte Orte verwenden im Kompositbild nur noch eine neutrale Ortsmarkierung ohne Sichtrichtungsanteil.
 - Der meteorologische Zeitpfeil bleibt davon unabhängig und endet weiterhin am aktuell ausgewählten Ort.
 - Neuer Pflichtvertrag `test-location-heading-favorites-09608.mjs` schützt die Trennung dauerhaft.
+
+
+## 0.9.60.9
+- Kompositbild-Zeitpfeil nach bestätigter Referenzvorlage von Grund auf als zusammenhängendes SVG-Symbol neu erstellt.
+- Zeitlabels nur noch an den vier 15-min-Unterteilungen; keine Zeitmarke direkt am Standort/Favoritenort.
+- Pfeilspitze endet am gewählten Ort, Anströmrichtung weiterhin primär aus der wolkengewichteten Vertikalprofil-Schwerpunktströmung.
+- Neuer Pflichtvertrag `test-composite-time-axis-template-09609.mjs`.
