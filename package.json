@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.60.11",
+  "version": "0.9.60.13",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -285,7 +285,8 @@
     "test:location-heading-favorites": "node scripts/test-location-heading-favorites-09608.mjs",
     "test:composite-time-axis-template": "node scripts/test-composite-time-axis-template-09609.mjs",
     "test:composite-time-arrow-zoom-scale": "node scripts/test-composite-time-arrow-zoom-scale-09610.mjs",
-    "test:aqi-pollutant-scale-alignment": "node scripts/test-aqi-pollutant-scale-alignment-09611.mjs"
+    "test:aqi-pollutant-scale-alignment": "node scripts/test-aqi-pollutant-scale-alignment-09611.mjs",
+    "test:aggregate-version-contract": "node scripts/test-aggregate-version-contract-09613.mjs"
   },
   "dependencies": {
     "astronomy-engine": "^2.1.19",

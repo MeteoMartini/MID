@@ -4136,3 +4136,8 @@
 - Zeitpfeil-Skala vollständig dynamisiert: runde Zeitstufen werden aus Schwerpunktströmungs-Geschwindigkeit, sichtbarer Strecke bis zum Kartenrand, Zoom, Kartenabmessungen und Displaydichte gewählt.
 - Tickanzahl und Gesamtzeitfenster passen sich automatisch an; extreme Zoomstufen erzeugen weder übergroße Pfeile noch überlagerte 15/30/45/60-Minuten-Labels.
 - Die Zeitachse bleibt auf maximal zwei Stunden begrenzt und verwendet nur runde Schritte (2/5/10/15/20/30/45/60 min).
+
+
+## 0.9.60.13
+- CI-Härtung: veraltete `geometry.trackMid`-Regressionen auf den aktuellen direkt am gewählten Ort verankerten Zeitpfeil-Vertrag migriert.
+- Kanonische Worker-Teilquelle und Baseline versionsfest synchronisiert; neuer Aggregate-Versionstest verhindert Rückfälle durch `maintain:aggregates`.

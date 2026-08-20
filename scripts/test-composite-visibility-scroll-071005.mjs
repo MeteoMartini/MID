@@ -18,7 +18,7 @@ for(const token of [
 for(const token of [
   'function motionTrackGraphicIcon(',
   'mid-motion-track-graphic',
-  "<Marker pane=\"mid-motion-labels\" position={geometry.trackMid} icon={motionTrackGraphicIcon",
+  "<Marker pane=\"mid-motion-labels\" position={site} icon={motionTrackGraphicIcon",
   'function konradMarkerIcon(',
   'mid-konrad-marker',
   'function nowcastMixMarkerIcon()',

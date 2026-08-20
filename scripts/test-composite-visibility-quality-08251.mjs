@@ -23,7 +23,7 @@ for(const token of [
  "fillOpacity:.72*lightningOpacity/100",
  'trackKm=Math.max(.5,resolved.speed*leadMinutes/60)',
  'trackStart=destinationPoint(site,upstreamBearing,trackKm)',
- '<Marker pane="mid-motion-labels" position={geometry.trackMid} icon={motionTrackGraphicIcon',
+ '<Marker pane="mid-motion-labels" position={site} icon={motionTrackGraphicIcon',
  `cycleMotionOverlay=()=>{if(!showRadar)setShowRadar(true);if(!showMotionOverlay){setMotionTimeMode('absolute');setShowMotionOverlay(true);return}if(motionTimeMode==='absolute'){setMotionTimeMode('relative');return}setShowMotionOverlay(false);setMotionTimeMode('absolute')}`,
  'referenceUrl',
  'mapOverlayOpacity',
