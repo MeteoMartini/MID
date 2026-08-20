@@ -16,9 +16,9 @@ for(const token of [
 ])need(radar,token,'Kompakte Layerbuttons fehlen');
 
 for(const token of [
-  'function motionTrackGraphicIcon(',
-  'mid-motion-track-graphic',
-  "<Marker pane=\"mid-motion-labels\" position={site} icon={motionTrackGraphicIcon",
+  'function motionTrackArrowheadIcon(',
+  'mid-motion-track-arrowhead',
+  "<Marker pane=\"mid-motion-labels\" position={site} icon={motionTrackArrowheadIcon",
   'function konradMarkerIcon(',
   'mid-konrad-marker',
   'function nowcastMixMarkerIcon()',
@@ -41,7 +41,7 @@ if(radar.includes('radar-motion-chip')||radar.includes('radar-site-motion-label'
 
 for(const token of [
   '.composite-switch.compact{',
-  '.mid-motion-track-graphic{',
+  '.mid-motion-track-arrowhead{',
   '.mid-konrad-marker{',
   '.mid-nowcastmix-marker{',
   '.radarmap.touch-scroll-mode .maplibregl-map{touch-action:pan-y!important}',

@@ -4141,3 +4141,10 @@
 ## 0.9.60.13
 - CI-Härtung: veraltete `geometry.trackMid`-Regressionen auf den aktuellen direkt am gewählten Ort verankerten Zeitpfeil-Vertrag migriert.
 - Kanonische Worker-Teilquelle und Baseline versionsfest synchronisiert; neuer Aggregate-Versionstest verhindert Rückfälle durch `maintain:aggregates`.
+
+
+## 0.9.60.14
+- Komposit-Zeitpfeil-Rollback-Schutz: Das zoominstabile Komplett-DivIcon wurde entfernt. Schaft und Unterteilungen werden wieder als echte geographische MapLibre-Vektoren in einer eigenen Pane oberhalb der Referenzkarte gerendert; die Pfeilspitze bleibt als separater Marker exakt am gewählten Ort.
+- Die dynamische runde Zeitskala aus Schwerpunktströmungs-Geschwindigkeit, Zoom, verfügbarer Kartenstrecke und Displaydichte bleibt erhalten.
+- Standort-/Favoriten-Vertrag verschärft: Der Sichtrichtungspfeil wird nur noch über die tatsächlich aktive Geräteort-Auswahl (`locationSelectionSource === tracked`) freigegeben; ein manuell geöffneter Favorit kann ihn nicht mehr über ein historisches `autolocated`-Flag erben.
+- Bestehende Zeitpfeil-/Zoom-/Flug-/Radar-Regressionen auf den geographischen Vektorvertrag migriert.

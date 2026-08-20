@@ -1,4 +1,4 @@
-import{c as Xf}from"./index-BYXVrMSG.js";import{r as hi,j as wd}from"./ReactVendor-vKsizCg5.js";/**
+import{c as Xf}from"./index-DI4XtR9R.js";import{r as hi,j as wd}from"./ReactVendor-vKsizCg5.js";/**
  * @license lucide-react v1.31.0 - ISC
  *
  * This source code is licensed under the ISC license.
