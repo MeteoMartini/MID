@@ -50,7 +50,8 @@ try{
  assert.match(firstDay[0]?.description||'',/Ausführlichere Fassung/,'Bei Dubletten wurde nicht die vollständigere/aktuellere Meldung behalten.');
  assert.deepEqual(payload.alerts[0]?.areaCodes,['emma_id:gr123'],'MeteoAlarm-Gebietskennung wird nicht erhalten.');
  assert.equal(payload.sourceStatus?.strategy,'single-canonical-provider','Mehrprovider-Mischung ist nicht ausdrücklich ausgeschlossen.');
- assert.deepEqual(calls,['https://feeds.meteoalarm.org/feeds/meteoalarm-legacy-atom-greece'],'Zusätzlicher Provider wurde trotz kanonischer amtlicher Quelle abgefragt.');
+ assert.ok(calls.includes('https://feeds.meteoalarm.org/feeds/meteoalarm-legacy-atom-greece'),'Kanonischer MeteoAlarm-Atomfeed wurde nicht abgefragt.');
+ assert.ok(calls.every(url=>/^https:\/\/(?:feeds|visservice)\.meteoalarm\.org\//.test(url)),'Zusätzlicher Provider wurde trotz kanonischer amtlicher Quelle abgefragt.');
 }finally{globalThis.fetch=originalFetch}
 
 const compileModule=(source,fileName)=>{const output=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022},reportDiagnostics:true,fileName});if(output.diagnostics?.length)throw new Error(output.diagnostics.map(item=>ts.flattenDiagnosticMessageText(item.messageText,'\n')).join(' | '));const module={exports:{}};new Function('module','exports','require',output.outputText)(module,module.exports,()=>({}));return module.exports};

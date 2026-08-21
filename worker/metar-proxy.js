@@ -7,6 +7,7 @@ const DWD_WFS_PRIMARY='https://maps.dwd.de/geoserver/dwd/ows';
 const DWD_WFS_BACKUP='https://brz-maps.dwd.de/geoserver/dwd/ows';
 const DWD_CAP_FEED='https://www.dwd.de/DWD/warnungen/cap-feed/de/atom.xml';
 const METEOALARM_FEEDS='https://feeds.meteoalarm.org/feeds/';
+const METEOALARM_VIS='https://visservice.meteoalarm.org/api/v1/';
 const TWC_NEAR='https://api.weather.com/v3/location/near';
 const TWC_PWS='https://api.weather.com/v2/pws/observations/current';
 const BIGDATA_REVERSE='https://api.bigdatacloud.net/data/reverse-geocode-client';
@@ -47,7 +48,7 @@ const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const MET_NORWAY_LOCATIONFORECAST='https://api.met.no/weatherapi/locationforecast/2.0/complete';
-const WORKER_VERSION='0.9.64.5';
+const WORKER_VERSION='0.9.64.6';
 const C3S_SEASONAL_POINT_SYSTEMS=[
  {centreId:'ecmwf',originatingCentre:'ecmwf',system:'51',label:'ECMWF'},
  {centreId:'ukmo',originatingCentre:'ukmo',system:'610',label:'UK Met Office'},
@@ -513,7 +514,7 @@ const AREA_TERM_GROUPS=[
  ['sardegna','sardinia','sardinien'],
  ['dodekanisa','dodecanese','dodekanes','dodekanisos','rhodes','rodos','rhodos']
 ];
-const AREA_TERM_STOP_WORDS=new Set(['stadt','gemeinde','bezirk','landkreis','kreis','region','bundesland','province','prefecture','municipality','district','county','island','islands','north','northern','south','southern','east','eastern','west','western','nord','norden','sud','sueden','ost','osten','westen']);
+const AREA_TERM_STOP_WORDS=new Set(['stadt','gemeinde','bezirk','landkreis','kreis','region','bundesland','province','prefecture','municipality','district','county','island','islands','north','northern','south','southern','east','eastern','west','western','nord','norden','sud','sueden','ost','osten','westen','aegean','agais','aigaio']);
 function termsFor(...values){
  const terms=values.flatMap(value=>{const phrase=normalize(value),words=phrase.split(/\s+/).filter(x=>x.length>=3&&!AREA_TERM_STOP_WORDS.has(x));return phrase?[phrase,...words]:[]}).filter(x=>x.length>=3&&!AREA_TERM_STOP_WORDS.has(x));
  const expanded=new Set(terms);for(const group of AREA_TERM_GROUPS)if(group.some(x=>expanded.has(x)))for(const x of group)expanded.add(x);return[...expanded];
@@ -526,15 +527,17 @@ function pointInPolygonCoords(lat,lon,rings){if(!Array.isArray(rings)||!rings.le
 function pointInGeometry(lat,lon,g){if(!g)return false;if(g.type==='Polygon')return pointInPolygonCoords(lat,lon,g.coordinates);if(g.type==='MultiPolygon')return(g.coordinates||[]).some(p=>pointInPolygonCoords(lat,lon,p));if(g.type==='GeometryCollection')return(g.geometries||[]).some(x=>pointInGeometry(lat,lon,x));return false}
 function parseCapPolygon(value){return String(value).trim().split(/\s+/).map(pair=>pair.split(',').map(Number)).filter(x=>x.length>=2&&x.every(Number.isFinite)).map(([lat,lon])=>[lon,lat])}
 function parseCircle(value){const m=String(value).trim().match(/^(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)\s+([\d.]+)$/);return m?{lat:Number(m[1]),lon:Number(m[2]),radiusKm:Number(m[3])}:null}
-function localAreaMatch(areaXml,lat,lon,terms){
+function officialAreaDescriptionMatches(areaXml,officialAreaNames){const descriptions=tagValues(areaXml,'areaDesc').map(cleanText).filter(Boolean);if(!Array.isArray(officialAreaNames))return undefined;if(!descriptions.length||!officialAreaNames.length)return false;return descriptions.some(description=>officialAreaNames.some(name=>{const left=normalize(description),right=normalize(name);return left===right||areaDescriptionMatches(description,termsFor(name))||areaDescriptionMatches(name,termsFor(description))}))}
+function localAreaMatch(areaXml,lat,lon,terms,officialAreaNames){
  const polygons=tagValues(areaXml,'polygon').map(parseCapPolygon).filter(x=>x.length>=3);if(polygons.some(p=>pointInRing(lat,lon,p)))return true;
  const circles=tagValues(areaXml,'circle').map(parseCircle).filter(Boolean);if(circles.some(c=>distance(lat,lon,c.lat,c.lon)<=c.radiusKm*1000))return true;
  if(polygons.length||circles.length)return false;
+ const officialMatch=officialAreaDescriptionMatches(areaXml,officialAreaNames);if(officialMatch!==undefined)return officialMatch;
  return areaDescriptionMatches(tagValues(areaXml,'areaDesc').join(' '),terms);
 }
-function localMatch(xml,lat,lon,name='',region='',district=''){
- const terms=termsFor(name,region,district),areas=blocks(xml,'area');if(areas.length)return areas.some(area=>localAreaMatch(area,lat,lon,terms));
- return localAreaMatch(xml,lat,lon,terms);
+function localMatch(xml,lat,lon,name='',region='',district='',officialAreaNames){
+ const terms=termsFor(name,region,district),areas=blocks(xml,'area');if(areas.length)return areas.some(area=>localAreaMatch(area,lat,lon,terms,officialAreaNames));
+ return localAreaMatch(xml,lat,lon,terms,officialAreaNames);
 }
 function awarenessLevel(xml,severity,explicit){
  const direct=String(explicit??'').toLowerCase();if(['purple','red','orange','yellow'].includes(direct))return direct;
@@ -551,12 +554,14 @@ function capGeocodes(xml){const codes=new Set();for(const item of blocks(xml,'ge
 function capReferences(xml){const ids=[];for(const value of tagValues(xml,'references'))for(const item of value.split(/\s+/)){const parts=item.split(',');const id=String(parts.length>=2?parts[1]:parts[0]||'').trim();if(id)ids.push(id)}return[...new Set(ids)]}
 const EMPTY_ALERT_DESCRIPTION='Für diese amtliche Warnung liegt kein zusätzlicher Meldungstext vor.';
 function alertHasOfficialText(alert){const description=cleanText(String(alert?.description||''));return Boolean(description&&description!==EMPTY_ALERT_DESCRIPTION)||Boolean(cleanText(String(alert?.instruction||'')))}
-function parseCap(xml,source,url,lat,lon,name,region,district,language='de'){
+function preferredCapHeadline(info,xml){const headline=tagValue(info,'headline'),event=tagValue(info,'event');return event&&/^(?:yellow|orange|red|purple)\s+warning\s+for\b/i.test(headline)?event:headline||event||tagValue(xml,'title')}
+function linkedWarningIdentifier(url=''){try{const parsed=new URL(String(url)),parts=parsed.pathname.split('/').filter(Boolean);return parts.includes('warnings')?decodeURIComponent(parts.at(-1)||''):''}catch{return''}}
+function parseCap(xml,source,url,lat,lon,name,region,district,language='de',officialAreaNames){
  const status=tagValue(xml,'status'),msgType=tagValue(xml,'msgType');if(status&&status.toLowerCase()!=='actual')return null;if(msgType&&['cancel','error'].includes(msgType.toLowerCase()))return null;
  const info=bestInfo(xml,language),expires=safeDate(tagValue(info,'expires')||tagValue(xml,'expires'));if(expires&&new Date(expires).getTime()<Date.now())return null;
- if(!localMatch(info,lat,lon,name,region,district))return null;
- const headline=tagValue(info,'headline')||tagValue(info,'event')||tagValue(xml,'title');if(!headline)return null;
- const severity=tagValue(info,'severity'),description=cleanText(tagValue(info,'description')||tagValue(xml,'description')||tagValue(xml,'summary')),instruction=cleanText(tagValue(info,'instruction')),areaCodes=capGeocodes(info),references=capReferences(xml),messageLanguage=tagValue(info,'language');
+ if(!localMatch(info,lat,lon,name,region,district,officialAreaNames))return null;
+ const headline=preferredCapHeadline(info,xml);if(!headline)return null;
+ const severity=tagValue(info,'severity'),description=cleanText(tagValue(info,'description')||tagValue(xml,'description')||tagValue(xml,'summary')),instruction=cleanText(tagValue(info,'instruction')),areaCodes=capGeocodes(info),references=[...new Set([...capReferences(xml),linkedWarningIdentifier(url)].filter(Boolean))],messageLanguage=tagValue(info,'language');
  return{id:tagValue(xml,'identifier')||tagValue(xml,'guid')||url||headline,headline,description:description||EMPTY_ALERT_DESCRIPTION,instruction:instruction||undefined,language:messageLanguage||undefined,level:awarenessLevel(info,severity),severity:severity||undefined,event:tagValue(info,'event')||undefined,source:tagValue(info,'senderName')||source,area:tagValues(info,'areaDesc').join(', ')||undefined,areaCodes:areaCodes.length?areaCodes:undefined,references:references.length?references:undefined,effective:safeDate(tagValue(info,'effective')),onset:safeDate(tagValue(info,'onset')),expires,updatedAt:safeDate(tagValue(xml,'sent')||tagValue(xml,'updated')),url:tagValue(info,'web')||url||undefined};
 }
 function linkObjects(block){const out=[];for(const m of String(block).matchAll(/<(?:(?:\w+):)?link\b([^>]*)\/?\s*>/gi)){const attrs={};for(const a of m[1].matchAll(/([\w:-]+)=["']([^"']*)["']/g))attrs[a[1].toLowerCase()]=decodeXml(a[2]);if(attrs.href)out.push(attrs)}return out}
@@ -569,6 +574,27 @@ function embeddedCap(block){
 }
 async function fetchText(url,headers={}){const r=await fetch(url,{headers:{'User-Agent':`MID-weather-dashboard/${WORKER_VERSION} (+https://github.com/MeteoMartini/MID)`,...headers},redirect:'follow'});if(!r.ok)throw new Error(`${url} HTTP ${r.status}`);return r.text()}
 async function fetchJson(url,headers={}){const r=await fetch(url,{headers:{'User-Agent':`MID-weather-dashboard/${WORKER_VERSION} (+https://github.com/MeteoMartini/MID)`,'Accept':'application/json',...headers},redirect:'follow'});if(!r.ok)throw new Error(`${url} HTTP ${r.status}`);return r.json()}
+function meteoalarmVisCountryCode(countryCode){return String(countryCode||'').toUpperCase()==='GB'?'UK':String(countryCode||'').toUpperCase()}
+function meteoalarmBoxContains(bb,lat,lon){const west=number(bb?.[0]?.[0]),south=number(bb?.[0]?.[1]),east=number(bb?.[1]?.[0]),north=number(bb?.[1]?.[1]);return[west,south,east,north].every(Number.isFinite)&&lon>=west&&lon<=east&&lat>=south&&lat<=north}
+function meteoalarmBoxArea(bb){const west=number(bb?.[0]?.[0]),south=number(bb?.[0]?.[1]),east=number(bb?.[1]?.[0]),north=number(bb?.[1]?.[1]);return[west,south,east,north].every(Number.isFinite)?Math.max(0,east-west)*Math.max(0,north-south):Number.POSITIVE_INFINITY}
+async function meteoalarmPointContext(countryCode,lat,lon){
+ const code=meteoalarmVisCountryCode(countryCode),referenceDate=new Date().toISOString(),url=new URL(`stream-buffers/live/hazards/${encodeURIComponent(code)}`,METEOALARM_VIS);url.searchParams.set('preset','timeline');url.searchParams.set('referenceDate',referenceDate);url.searchParams.set('language','en');
+ const payload=await fetchJson(url.toString()),allAreas=Array.isArray(payload?.areas)?payload.areas:[],allHazards=Array.isArray(payload?.hazards)?payload.hazards:[],hazardFeatures=new Set(allHazards.map(item=>String(item?.featureId||'')).filter(Boolean)),byFeature=new Map();
+ for(const area of allAreas){const featureId=String(area?.featureId||'');if(!featureId||!hazardFeatures.has(featureId)||!meteoalarmBoxContains(area?.bb,lat,lon))continue;const current=byFeature.get(featureId);if(!current||meteoalarmBoxArea(area?.bb)<meteoalarmBoxArea(current?.bb))byFeature.set(featureId,area)}
+ const areas=[...byFeature.values()].sort((a,b)=>meteoalarmBoxArea(a?.bb)-meteoalarmBoxArea(b?.bb)),featureIds=new Set(areas.map(item=>String(item.featureId))),hazards=[],seen=new Set();for(const item of allHazards){const featureId=String(item?.featureId||''),typeId=number(item?.typeId),levelId=number(item?.levelId),key=`${featureId}:${typeId}:${levelId}`;if(!featureIds.has(featureId)||typeId===undefined||levelId===undefined||seen.has(key))continue;seen.add(key);hazards.push({featureId,typeId,levelId})}
+ return{code,referenceDate,endpoint:url.toString(),resolved:allAreas.length>0,areas,hazards:hazards.slice(0,12)};
+}
+function meteoalarmLanguageOrder(language,value){const requested=String(language||'de').toLowerCase(),base=requested.split('-')[0],keys=value&&typeof value==='object'&&!Array.isArray(value)?Object.keys(value):[];return[...new Set([requested,base,'de','en',...keys].filter(Boolean))]}
+function meteoalarmLocalized(value,language){if(typeof value==='string')return{text:cleanText(value),language:undefined};if(!value||typeof value!=='object')return{text:'',language:undefined};for(const key of meteoalarmLanguageOrder(language,value)){const direct=value[key]??Object.entries(value).find(([candidate])=>candidate.toLowerCase()===key||candidate.toLowerCase().startsWith(`${key}-`))?.[1],text=cleanText(String(direct||''));if(text)return{text,language:key}}return{text:'',language:undefined}}
+function meteoalarmVisLevel(levelId){return({1:'red',2:'orange',3:'yellow'})[Number(levelId)]||'unknown'}
+function meteoalarmVisSeverity(levelId){return({1:'Extreme',2:'Severe',3:'Moderate'})[Number(levelId)]||undefined}
+function meteoalarmDirectAlert(warning,area,language){
+ const expires=safeDate(warning?.endDate);if(expires&&Date.parse(expires)<Date.now())return null;const description=meteoalarmLocalized(warning?.description,language),headline=meteoalarmLocalized(warning?.headline,description.language||language),instruction=meteoalarmLocalized(warning?.instruction,description.language||language),id=String(warning?.id||`${warning?.featureId||area?.featureId||''}:${warning?.typeId||''}:${warning?.startDate||''}`),featureId=String(warning?.featureId||area?.featureId||''),areaName=cleanText(String(warning?.name||area?.name||''));if(!headline.text&&!description.text)return null;
+ return{id,headline:headline.text||'Amtliche Wetterwarnung',description:description.text||EMPTY_ALERT_DESCRIPTION,instruction:instruction.text||undefined,language:description.language||headline.language||undefined,level:meteoalarmVisLevel(warning?.levelId),severity:meteoalarmVisSeverity(warning?.levelId),event:headline.text||undefined,source:cleanText(String(warning?.originator?.name||'MeteoAlarm / nationale Wetterbehörde')),area:areaName||undefined,areaCodes:featureId?[`meteoalarm_feature:${normalize(featureId)}`]:undefined,references:[id],effective:safeDate(warning?.startDate),onset:safeDate(warning?.startDate),expires,updatedAt:safeDate(warning?.sent),url:String(warning?.originator?.url||'https://www.meteoalarm.org/')};
+}
+async function meteoalarmPointAlerts(context,language){
+ if(!context?.areas?.length||!context?.hazards?.length)return[];const areaByFeature=new Map(context.areas.map(area=>[String(area.featureId),area])),requests=context.hazards.map(async hazard=>{const url=new URL(`stream-buffers/live/features/${encodeURIComponent(hazard.featureId)}/warnings`,METEOALARM_VIS);url.searchParams.set('typeId',String(hazard.typeId));url.searchParams.set('levelId',String(hazard.levelId));url.searchParams.set('language','en');url.searchParams.set('referenceDate',context.referenceDate);url.searchParams.set('preset','timeline');const payload=await fetchJson(url.toString());return(Array.isArray(payload?.warnings)?payload.warnings:[]).map(warning=>meteoalarmDirectAlert(warning,areaByFeature.get(hazard.featureId),language)).filter(Boolean)}),settled=await Promise.allSettled(requests);return dedupeAlerts(settled.flatMap(result=>result.status==='fulfilled'?result.value:[]));
+}
 function alertAreaSignature(alert){if(Array.isArray(alert?.areaCodes)&&alert.areaCodes.length)return alert.areaCodes.map(normalize).sort().join(',');return String(alert?.area||'').split(',').map(normalize).filter(Boolean).sort().join(',')}
 function alertTimeSignature(value){const date=safeDate(value);return date?date.slice(0,16):''}
 function alertSemanticKey(alert){return['semantic',normalize(alert?.event||alert?.headline),alertAreaSignature(alert),alertTimeSignature(alert?.onset||alert?.effective),alertTimeSignature(alert?.expires)].join('|')}
@@ -592,18 +618,18 @@ async function dwdWfsFrom(base,lat,lon){
 }
 async function dwdWfsAlerts(lat,lon){let lastError;for(const base of[DWD_WFS_PRIMARY,DWD_WFS_BACKUP]){try{return{alerts:await dwdWfsFrom(base,lat,lon),endpoint:base}}catch(e){lastError=e}}throw lastError||new Error('DWD-WFS nicht erreichbar')}
 function entryScore(item,name,region,district){const text=normalize(cleanText(item)),terms=termsFor(name,district,region);let score=0;for(const t of terms){if(text.includes(t))score+=t===normalize(name)?12:5}if(tagValues(item,'polygon').length||tagValues(item,'circle').length)score+=20;const updated=safeDate(tagValue(item,'updated')||tagValue(item,'published')||tagValue(item,'sent'));if(updated)score+=Math.max(0,5-(Date.now()-new Date(updated).getTime())/86400000);return score}
-async function capFeedAlerts(feedUrl,source,lat,lon,name,region,district,language='de',maxDocuments=24){
+async function capFeedAlerts(feedUrl,source,lat,lon,name,region,district,language='de',maxDocuments=24,officialAreaNames){
  const xml=await fetchText(feedUrl),rawItems=blocks(xml,'entry').length?blocks(xml,'entry'):blocks(xml,'item'),items=rawItems.map((item,index)=>({item,index,score:entryScore(item,name,region,district),link:capLink(item,feedUrl),embedded:embeddedCap(item)})).sort((a,b)=>b.score-a.score||a.index-b.index),alerts=[],candidates=[];
  for(const x of items){
-  const directXml=x.embedded||x.item,fallback=parseCap(directXml,source,x.link,lat,lon,name,region,district,language);
+  const directXml=x.embedded||x.item,fallback=parseCap(directXml,source,x.link,lat,lon,name,region,district,language,officialAreaNames);
   // MeteoAlarm-Atom-Einträge enthalten häufig nur Kennung, Gebiet, Ereignis und
   // Gültigkeit. Der eigentliche amtliche Meldungs- und Verhaltenstext steht im
   // verlinkten CAP-Dokument. Ein passender Indexeintrag darf den CAP-Abruf daher
   // nicht vorzeitig beenden; bei einem Abruffehler bleibt er nur als Fallback.
-  if(x.link&&(!x.embedded||!alertHasOfficialText(fallback))){candidates.push({...x,fallback});continue}
+  if(x.link&&(!x.embedded||!alertHasOfficialText(fallback))){if(Array.isArray(officialAreaNames)&&!fallback)continue;candidates.push({...x,fallback});continue}
   if(fallback)alerts.push(fallback);
  }
- for(let i=0;i<Math.min(candidates.length,maxDocuments);i+=6){const batch=candidates.slice(i,i+6);const results=await Promise.allSettled(batch.map(async x=>{const capXml=await fetchText(x.link);return parseCap(embeddedCap(capXml)||capXml,source,x.link,lat,lon,name,region,district,language)}));for(let index=0;index<results.length;index++){const r=results[index];if(r.status==='fulfilled'&&r.value)alerts.push(r.value);else if(batch[index].fallback)alerts.push(batch[index].fallback)}}
+ for(let i=0;i<Math.min(candidates.length,maxDocuments);i+=6){const batch=candidates.slice(i,i+6);const results=await Promise.allSettled(batch.map(async x=>{const capXml=await fetchText(x.link);return parseCap(embeddedCap(capXml)||capXml,source,x.link,lat,lon,name,region,district,language,officialAreaNames)}));for(let index=0;index<results.length;index++){const r=results[index];if(r.status==='fulfilled'&&r.value)alerts.push(r.value);else if(batch[index].fallback)alerts.push(batch[index].fallback)}}
  return dedupeAlerts(alerts);
 }
 async function dwdAlerts(lat,lon,name,region,district,language){
@@ -617,7 +643,10 @@ async function nwsAlerts(lat,lon){
 async function officialAlerts(lat,lon,country,name,region,district,language){
  const c=await resolveCountryCode(country,lat,lon,name,region);if(c==='DE'){const result=await dwdAlerts(lat,lon,name,region,district,language);return{...result,countryCode:c}}
  if(c==='US'){const alerts=await nwsAlerts(lat,lon);return{alerts:dedupeAlerts(alerts),provider:'NOAA / National Weather Service',coverage:'USA · amtliche CAP-Warnungen',countryCode:c,sourceStatus:{strategy:'single-canonical-provider',primary:'NOAA/NWS',deduplication:'Kennung sowie Ereignis, Gebiet und Gültigkeit'}}}
- const slug=FEED_SLUGS[c];if(slug){const url=`${METEOALARM_FEEDS}meteoalarm-legacy-atom-${slug}`,alerts=await capFeedAlerts(url,'MeteoAlarm / nationale Wetterbehörde',lat,lon,name,region,district,language,30);return{alerts,provider:'MeteoAlarm / nationale Wetterbehörde',coverage:`Europa · amtliche CAP-Warnungen des nationalen Wetterdienstes · ${c}`,countryCode:c,sourceStatus:{strategy:'single-canonical-provider',primary:'MeteoAlarm Atom/CAP',endpoint:url,deduplication:'CAP-Kennung/Referenzen sowie Ereignis, Gebiet und Gültigkeit'}}}
+ const slug=FEED_SLUGS[c];if(slug){
+  const url=`${METEOALARM_FEEDS}meteoalarm-legacy-atom-${slug}`;let pointContext,pointContextError;try{pointContext=await meteoalarmPointContext(c,lat,lon)}catch(error){pointContextError=error instanceof Error?error.message:String(error)}const officialAreaNames=pointContext?.resolved?pointContext.areas.map(area=>String(area?.name||'')).filter(Boolean):undefined,[capResult,pointResult]=await Promise.allSettled([capFeedAlerts(url,'MeteoAlarm / nationale Wetterbehörde',lat,lon,name,region,district,language,30,officialAreaNames),meteoalarmPointAlerts(pointContext,language)]),capAlerts=capResult.status==='fulfilled'?capResult.value:[],pointAlerts=pointResult.status==='fulfilled'?pointResult.value:[],alerts=dedupeAlerts([...capAlerts,...pointAlerts]);if(!alerts.length&&capResult.status==='rejected'&&pointResult.status==='rejected')throw capResult.reason;
+  return{alerts,provider:'MeteoAlarm / nationale Wetterbehörde',coverage:`Europa · amtliche Warnungen des nationalen Wetterdienstes · koordinatengeprüft · ${c}`,countryCode:c,sourceStatus:{strategy:'single-canonical-provider',primary:'MeteoAlarm Live-Warngebiete + Atom/CAP',endpoint:url,areaEndpoint:pointContext?.endpoint||`${METEOALARM_VIS}stream-buffers/live/hazards/${meteoalarmVisCountryCode(c)}`,coordinateAssignment:pointContext?.resolved?'amtliches Warngebiet am Standortkoordinatenpunkt':'CAP-Geometrie bzw. vorsichtiger Ortsnamensabgleich (Fallback)',areaResolutionError:pointContextError,deduplication:'MeteoAlarm-Warnungskennung/CAP-Referenzen sowie Ereignis, Gebiet und Gültigkeit'}}
+ }
  return{alerts:[],provider:'CAP',coverage:'Das Land konnte nicht sicher bestimmt werden oder besitzt keinen im öffentlichen MID-Proxy hinterlegten amtlichen CAP-Feed.',countryCode:c||undefined};
 }
 

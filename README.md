@@ -1,3 +1,11 @@
+## MID v0.9.64.6 – koordinatengeprüfte MeteoAlarm-Warngebiete
+
+- Für europäische MeteoAlarm-Länder wird das amtliche Live-Warngebiet am Standortkoordinatenpunkt bestimmt, bevor Atom-/CAP-Meldungen lokal zugeordnet werden.
+- Stegna/Rhodos erhält damit die HNMS-Warnung für „Dodekanisa Islands“ auch dann, wenn beim gespeicherten oder per GPS bestimmten Ort die Verwaltungsebene `admin2` fehlt.
+- Der vollständige amtliche CAP-Text bleibt maßgeblich; der MeteoAlarm-Live-Datensatz sichert Text und Gültigkeit bei einem CAP-Detailfehler ab. Warnungskennungen verhindern Doppelanzeigen.
+- Die interaktive Warnroute ist nicht vom Cloudflare-Workers-KV abhängig. Ein ausgeschöpftes KV-Schreibkontingent betrifft schreibende Push-, Synchronisations- und Verbindungsfunktionen, nicht den MeteoAlarm-Abruf.
+- Die Korrektur erfordert den gemeinsamen Rollout der Professional-App und des Workers.
+
 ## MID v0.9.64.1 – Tagesdetail direkt am Tag und kompakte Sonnenstunden
 
 - Im Hochformat öffnet sich der stündliche Tagesverlauf unmittelbar unter dem gewählten Tag; alle folgenden Tage bleiben darunter in ihrer bisherigen Reihenfolge.
@@ -966,7 +974,7 @@ Das Klimamittel wird standort- und höhenbezogen aus Open-Meteo ERA5-Land für d
 ## Amtliche Wetterwarnungen
 
 - **Deutschland:** DWD-WFS auf Gemeindeebene, DWD-CAP als Rückfallquelle
-- **Europa:** die aktuell veröffentlichten MeteoAlarm-Atom-/CAP-Feeds der nationalen Wetterdienste; Gebietspolygone/-kreise sowie administrative Namensvarianten werden standortbezogen abgeglichen
+- **Europa:** die aktuell veröffentlichten MeteoAlarm-Live-Warngebiete und Atom-/CAP-Feeds der nationalen Wetterdienste; der Koordinatenpunkt, vorhandene Gebietspolygone/-kreise und erst danach administrative Namensvarianten werden standortbezogen abgeglichen
 - **USA:** NOAA/National Weather Service Active Alerts
 
 MID zeigt zunächst nur die Überschriften. Der vollständige Meldungstext und vorhandene Handlungshinweise öffnen sich per Klick. Bei MeteoAlarm wird dazu nach dem knappen Atom-Indexeintrag stets das verlinkte CAP-Detaildokument geladen. Deutsch wird bevorzugt; ist nur eine englische oder andere Originalfassung vorhanden, zeigt MID diese mit Sprachkennzeichnung an.

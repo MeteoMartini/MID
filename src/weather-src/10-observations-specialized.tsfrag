@@ -348,7 +348,7 @@ export async function station(lat:number,lon:number,country?:string,elevation?:n
 }
 
 export async function officialWarnings(lat:number,lon:number,country?:string,name?:string,region?:string,district?:string,signal?:AbortSignal):Promise<{alerts:OfficialAlert[];provider?:string;coverage?:string}> {
- const result=await fetchWorkerJson<{alerts?:OfficialAlert[];provider?:string;coverage?:string;error?:string}>('alerts',{lat,lon,country:countryCodeFromLocation(country)||String(country||''),language:'de',name,region,district},{purpose:'alerts',signal,timeoutMs:12000,maxAgeMs:180000,staleIfErrorMs:1800000,cacheKey:`alerts:${lat.toFixed(3)}:${lon.toFixed(3)}:${countryCodeFromLocation(country)||String(country||'')}:${String(name||'').toLowerCase()}:${String(region||'').toLowerCase()}:${String(district||'').toLowerCase()}`});
+ const result=await fetchWorkerJson<{alerts?:OfficialAlert[];provider?:string;coverage?:string;error?:string}>('alerts',{lat,lon,country:countryCodeFromLocation(country)||String(country||''),language:'de',name,region,district},{purpose:'alerts',signal,timeoutMs:12000,maxAgeMs:180000,staleIfErrorMs:1800000,cacheKey:`alerts:v2:${lat.toFixed(3)}:${lon.toFixed(3)}:${countryCodeFromLocation(country)||String(country||'')}:${String(name||'').toLowerCase()}:${String(region||'').toLowerCase()}:${String(district||'').toLowerCase()}`});
  return{alerts:(result.alerts??[]).filter(a=>a&&a.id&&a.headline),provider:result.provider,coverage:result.coverage};
 }
 

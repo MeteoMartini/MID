@@ -51,7 +51,7 @@ for(const token of ['availableModelCount:maxModelCount','{modelCount}/{reference
 for(const token of ['referenceModelCount:number','Math.max(1,...data.map(item=>Math.max(1,item.modelCount||1)))','von {referenceModelCount} Modellfamilien'])assert.ok(ensemble.includes(token),`Ensemble-Beitragsvertrag fehlt: ${token}`);
 
 const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText),test='scripts/test-warning-text-warm-phase-model-coverage-09645.mjs';
-assert.equal(pkg.version,'0.9.64.5');
+assert.ok(pkg.version.localeCompare('0.9.64.5',undefined,{numeric:true,sensitivity:'base'})>=0,'Korrektur benötigt mindestens Wartungsrelease v0.9.64.5.');
 assert.equal(pkg.scripts?.['test:warning-text-warm-phase-model-coverage'],`node ${test}`);
 assert.equal(baseline.releaseVersion,pkg.version);
 assert.ok(baseline.requiredRegressionTests?.includes(test)&&baseline.regressionTests?.includes(test),'Neue Regression ist nicht verbindlich registriert.');
