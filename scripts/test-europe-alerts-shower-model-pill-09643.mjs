@@ -78,7 +78,7 @@ for(const [name,styles]of[['Quell-CSS',sourceStyles],['Aggregat-CSS',builtStyles
  assert.ok(section.indexOf('grid-template-columns:minmax(0,1fr) max-content!important')<section.indexOf('.cockpit-model-run-button'),`${name}: Überschrift reserviert den Pillenplatz nicht vor der Schaltflächenregel.`);
 }
 
-assert.equal(pkg.version,'0.9.64.3','Korrektur benötigt Wartungsrelease v0.9.64.3.');
+assert.ok(pkg.version.localeCompare('0.9.64.3',undefined,{numeric:true,sensitivity:'base'})>=0,'Korrektur benötigt mindestens Wartungsrelease v0.9.64.3.');
 assert.equal(pkg.scripts?.['test:europe-alerts-shower-model-pill'],`node ${test}`,'Package-Testeintrag fehlt.');
 assert.equal(baseline.releaseVersion,pkg.version,'Baseline und Paketversion sind nicht synchron.');
 assert.ok(baseline.requiredRegressionTests?.includes(test),'Verbindliche Baseline-Regression fehlt.');

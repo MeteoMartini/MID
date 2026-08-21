@@ -47,7 +47,7 @@ const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const MET_NORWAY_LOCATIONFORECAST='https://api.met.no/weatherapi/locationforecast/2.0/complete';
-const WORKER_VERSION='0.9.64.3';
+const WORKER_VERSION='0.9.64.5';
 const C3S_SEASONAL_POINT_SYSTEMS=[
  {centreId:'ecmwf',originatingCentre:'ecmwf',system:'51',label:'ECMWF'},
  {centreId:'ukmo',originatingCentre:'ukmo',system:'610',label:'UK Met Office'},
@@ -549,13 +549,15 @@ function bestInfo(xml,language='de'){
 }
 function capGeocodes(xml){const codes=new Set();for(const item of blocks(xml,'geocode')){const name=normalize(tagValue(item,'valueName')).replace(/ /g,'_'),value=normalize(tagValue(item,'value')).replace(/ /g,'_');if(value)codes.add(`${name||'code'}:${value}`)}return[...codes].sort()}
 function capReferences(xml){const ids=[];for(const value of tagValues(xml,'references'))for(const item of value.split(/\s+/)){const parts=item.split(',');const id=String(parts.length>=2?parts[1]:parts[0]||'').trim();if(id)ids.push(id)}return[...new Set(ids)]}
+const EMPTY_ALERT_DESCRIPTION='Für diese amtliche Warnung liegt kein zusätzlicher Meldungstext vor.';
+function alertHasOfficialText(alert){const description=cleanText(String(alert?.description||''));return Boolean(description&&description!==EMPTY_ALERT_DESCRIPTION)||Boolean(cleanText(String(alert?.instruction||'')))}
 function parseCap(xml,source,url,lat,lon,name,region,district,language='de'){
  const status=tagValue(xml,'status'),msgType=tagValue(xml,'msgType');if(status&&status.toLowerCase()!=='actual')return null;if(msgType&&['cancel','error'].includes(msgType.toLowerCase()))return null;
  const info=bestInfo(xml,language),expires=safeDate(tagValue(info,'expires')||tagValue(xml,'expires'));if(expires&&new Date(expires).getTime()<Date.now())return null;
  if(!localMatch(info,lat,lon,name,region,district))return null;
  const headline=tagValue(info,'headline')||tagValue(info,'event')||tagValue(xml,'title');if(!headline)return null;
- const severity=tagValue(info,'severity'),description=tagValue(info,'description')||tagValue(xml,'description')||tagValue(xml,'summary'),instruction=tagValue(info,'instruction'),areaCodes=capGeocodes(info),references=capReferences(xml);
- return{id:tagValue(xml,'identifier')||tagValue(xml,'guid')||url||headline,headline,description:description||'Für diese amtliche Warnung liegt kein zusätzlicher Meldungstext vor.',instruction:instruction||undefined,level:awarenessLevel(info,severity),severity:severity||undefined,event:tagValue(info,'event')||undefined,source:tagValue(info,'senderName')||source,area:tagValues(info,'areaDesc').join(', ')||undefined,areaCodes:areaCodes.length?areaCodes:undefined,references:references.length?references:undefined,effective:safeDate(tagValue(info,'effective')),onset:safeDate(tagValue(info,'onset')),expires,updatedAt:safeDate(tagValue(xml,'sent')||tagValue(xml,'updated')),url:tagValue(info,'web')||url||undefined};
+ const severity=tagValue(info,'severity'),description=cleanText(tagValue(info,'description')||tagValue(xml,'description')||tagValue(xml,'summary')),instruction=cleanText(tagValue(info,'instruction')),areaCodes=capGeocodes(info),references=capReferences(xml),messageLanguage=tagValue(info,'language');
+ return{id:tagValue(xml,'identifier')||tagValue(xml,'guid')||url||headline,headline,description:description||EMPTY_ALERT_DESCRIPTION,instruction:instruction||undefined,language:messageLanguage||undefined,level:awarenessLevel(info,severity),severity:severity||undefined,event:tagValue(info,'event')||undefined,source:tagValue(info,'senderName')||source,area:tagValues(info,'areaDesc').join(', ')||undefined,areaCodes:areaCodes.length?areaCodes:undefined,references:references.length?references:undefined,effective:safeDate(tagValue(info,'effective')),onset:safeDate(tagValue(info,'onset')),expires,updatedAt:safeDate(tagValue(xml,'sent')||tagValue(xml,'updated')),url:tagValue(info,'web')||url||undefined};
 }
 function linkObjects(block){const out=[];for(const m of String(block).matchAll(/<(?:(?:\w+):)?link\b([^>]*)\/?\s*>/gi)){const attrs={};for(const a of m[1].matchAll(/([\w:-]+)=["']([^"']*)["']/g))attrs[a[1].toLowerCase()]=decodeXml(a[2]);if(attrs.href)out.push(attrs)}return out}
 function capLink(block,base=''){
@@ -593,10 +595,15 @@ function entryScore(item,name,region,district){const text=normalize(cleanText(it
 async function capFeedAlerts(feedUrl,source,lat,lon,name,region,district,language='de',maxDocuments=24){
  const xml=await fetchText(feedUrl),rawItems=blocks(xml,'entry').length?blocks(xml,'entry'):blocks(xml,'item'),items=rawItems.map((item,index)=>({item,index,score:entryScore(item,name,region,district),link:capLink(item,feedUrl),embedded:embeddedCap(item)})).sort((a,b)=>b.score-a.score||a.index-b.index),alerts=[],candidates=[];
  for(const x of items){
-  const directXml=x.embedded||x.item,direct=parseCap(directXml,source,x.link,lat,lon,name,region,district,language);if(direct){alerts.push(direct);continue}
-  if(x.link)candidates.push(x);
+  const directXml=x.embedded||x.item,fallback=parseCap(directXml,source,x.link,lat,lon,name,region,district,language);
+  // MeteoAlarm-Atom-Einträge enthalten häufig nur Kennung, Gebiet, Ereignis und
+  // Gültigkeit. Der eigentliche amtliche Meldungs- und Verhaltenstext steht im
+  // verlinkten CAP-Dokument. Ein passender Indexeintrag darf den CAP-Abruf daher
+  // nicht vorzeitig beenden; bei einem Abruffehler bleibt er nur als Fallback.
+  if(x.link&&(!x.embedded||!alertHasOfficialText(fallback))){candidates.push({...x,fallback});continue}
+  if(fallback)alerts.push(fallback);
  }
- for(let i=0;i<Math.min(candidates.length,maxDocuments);i+=6){const batch=candidates.slice(i,i+6);const results=await Promise.allSettled(batch.map(async x=>{const capXml=await fetchText(x.link,{'Accept':'application/cap+xml, application/xml, text/xml, application/atom+xml;q=0.8, */*;q=0.5'});return parseCap(embeddedCap(capXml)||capXml,source,x.link,lat,lon,name,region,district,language)}));for(const r of results)if(r.status==='fulfilled'&&r.value)alerts.push(r.value)}
+ for(let i=0;i<Math.min(candidates.length,maxDocuments);i+=6){const batch=candidates.slice(i,i+6);const results=await Promise.allSettled(batch.map(async x=>{const capXml=await fetchText(x.link);return parseCap(embeddedCap(capXml)||capXml,source,x.link,lat,lon,name,region,district,language)}));for(let index=0;index<results.length;index++){const r=results[index];if(r.status==='fulfilled'&&r.value)alerts.push(r.value);else if(batch[index].fallback)alerts.push(batch[index].fallback)}}
  return dedupeAlerts(alerts);
 }
 async function dwdAlerts(lat,lon,name,region,district,language){

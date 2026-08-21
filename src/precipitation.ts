@@ -56,6 +56,8 @@ export type ForecastPrecipitationConsistencyInput={
  snowfall?:number;
  probability:number;
  code:number;
+ temperature?:number;
+ dewPoint?:number;
  cloud?:number;
  lowCloud?:number;
  humidity?:number;
@@ -122,6 +124,17 @@ function stratiformEquivalentCode(code:number,total:number,snowfall:number){
 }
 function finiteNumber(value:unknown){const number=Number(value);return Number.isFinite(number)?number:Number.NaN}
 function inhibitionMagnitude(value:unknown){const number=finiteNumber(value);return Number.isFinite(number)?Math.abs(number):Number.NaN}
+function relativeHumidityFromDewPoint(temperature:number,dewPoint:number){const saturation=(value:number)=>Math.exp(17.625*value/(243.04+value));return Math.max(1,Math.min(100,100*saturation(dewPoint)/saturation(temperature)))}
+function approximateWetBulbTemperature(input:Pick<ForecastPrecipitationConsistencyInput,'temperature'|'dewPoint'|'humidity'>){
+ const temperature=finiteNumber(input.temperature);if(!Number.isFinite(temperature))return Number.NaN;
+ const dewPoint=finiteNumber(input.dewPoint),providedHumidity=finiteNumber(input.humidity),humidity=Number.isFinite(providedHumidity)?Math.max(1,Math.min(100,providedHumidity)):Number.isFinite(dewPoint)?relativeHumidityFromDewPoint(temperature,dewPoint):Number.NaN;
+ if(!Number.isFinite(humidity))return Number.NaN;
+ // Stull-Näherung (°C) reicht hier ausschließlich zum Erkennen grober warmer
+ // Phasenwidersprüche; Grenzlagen werden bewusst nicht umklassifiziert.
+ return temperature*Math.atan(.151977*Math.sqrt(humidity+8.313659))+Math.atan(temperature+humidity)-Math.atan(humidity-1.676331)+.00391838*humidity**1.5*Math.atan(.023101*humidity)-4.686035;
+}
+function warmSurfaceRejectsFrozenPhase(input:Pick<ForecastPrecipitationConsistencyInput,'temperature'|'dewPoint'|'humidity'>){const temperature=finiteNumber(input.temperature);if(!Number.isFinite(temperature))return false;const wetBulb=approximateWetBulbTemperature(input);return temperature>=12||(Number.isFinite(wetBulb)?wetBulb>=4:temperature>=8)}
+function warmLiquidEquivalentCode(code:number,total:number,showery:boolean){if(showery)return total>=10?82:total>=2.5?81:80;if([56,57].includes(code))return total>=.5?55:total>=.1?53:51;return total>=10?65:total>=2.5?63:61}
 
 /**
  * Trennt konvektive und stratiforme Niederschlagssignale aus mehreren
@@ -181,10 +194,17 @@ export function reconcileForecastPrecipitation(input:ForecastPrecipitationConsis
  if(!input.observed&&!input.probabilityUnavailable&&probability<=UNSUPPORTED_FORECAST_MAX_PROBABILITY)return suppress('probability');
  const supportMinimum=deterministicSignalMinimumProbability(input.leadHours),weakAmount=Math.max(precipitation,rain,showers,snowfall)<=WEAK_FORECAST_AMOUNT_MAX_MM;
  if(!input.observed&&!input.probabilityUnavailable&&weakAmount&&probability<supportMinimum)return suppress('weak-distant-signal');
- const evidence=classifyPrecipitationCharacter(input),cloud=Number(input.cloud),lowCloud=Number(input.lowCloud),humidity=Number(input.humidity),rawSunshine=Number(input.sunshineDuration),sunshine=Number.isFinite(rawSunshine)?Math.max(0,rawSunshine):Number.NaN,daylight=input.isDay!==false;
+ let phaseAdjusted=false;
+ const frozenCode=[56,57,66,67,68,69,71,73,75,77,83,84,85,86].includes(code),frozenSignal=frozenCode||snowfall>=.05;
+ if(!input.observed&&frozenSignal&&warmSurfaceRejectsFrozenPhase(input)){
+  const total=Math.max(precipitation,rain+showers),showery=[83,84,85,86].includes(code)||showers>Math.max(.02,rain);
+  code=warmLiquidEquivalentCode(code,total,showery);snowfall=0;
+  if(showery){showers=Math.max(showers,precipitation);rain=0}else{rain=Math.max(rain,precipitation);showers=0}
+  phaseAdjusted=true;
+ }
+ const evidence=classifyPrecipitationCharacter({...input,rain,showers,code}),cloud=Number(input.cloud),lowCloud=Number(input.lowCloud),humidity=Number(input.humidity),rawSunshine=Number(input.sunshineDuration),sunshine=Number.isFinite(rawSunshine)?Math.max(0,rawSunshine):Number.NaN,daylight=input.isDay!==false;
  const stratiformSupport=evidence.character==='stratiform'||(Number.isFinite(cloud)&&cloud>=82)||(Number.isFinite(lowCloud)&&lowCloud>=65)||(Number.isFinite(humidity)&&humidity>=92)||(daylight&&Number.isFinite(sunshine)&&sunshine<=600);
  const convectiveSupport=evidence.character==='convective';
- let phaseAdjusted=false;
  if(stratiformCode(code)&&convectiveSupport&&![56,57,66,67].includes(code)){
   const total=Math.max(precipitation,rain+showers,snowfall),nextCode=showerEquivalentCode(code,total,snowfall);
   if(![83,84,85,86].includes(nextCode)&&snowfall<.05){showers=Math.max(showers,precipitation);rain=0}
@@ -293,9 +313,10 @@ export function precipitationParts(h:PrecipSample):PrecipitationParts{
  const total=Math.max(0,Number(h.precipitation)||0);
  const rainValue=Math.max(0,Number(h.rain)||0);
  const showerValue=Math.max(0,Number(h.showers)||0);
- const snowCm=Math.max(0,Number(h.snowfall)||0);
+ const rawSnowCm=Math.max(0,Number(h.snowfall)||0);
  const code=Math.round(Number(h.code)||0);
- const codedType=WMO_PRECIP_TYPE[code];
+ const rawCodedType=WMO_PRECIP_TYPE[code],frozenSignal=['freezingDrizzle','freezingRain','sleet','sleetShowers','snow','snowGrains','snowShowers'].includes(String(rawCodedType))||rawSnowCm>=.05,warmPhaseAdjusted=frozenSignal&&warmSurfaceRejectsFrozenPhase(h),showeryWarmPhase=['sleetShowers','snowShowers'].includes(String(rawCodedType))||showerValue>Math.max(.02,rainValue),effectiveCode=warmPhaseAdjusted?warmLiquidEquivalentCode(code,total,showeryWarmPhase):code,snowCm=warmPhaseAdjusted?0:rawSnowCm;
+ const codedType=WMO_PRECIP_TYPE[effectiveCode];
  const hasRain=rainValue>=.05;
  const hasShowers=showerValue>=.05;
  const hasSnow=snowCm>=.05;
@@ -336,7 +357,7 @@ export function precipitationParts(h:PrecipSample):PrecipitationParts{
    ?`${drizzleIntensity(total)} Sprühregen`
    :PRECIP_LABEL[type];
  const displayCode=codedType===type
-  ?code
+  ?effectiveCode
   :representativePrecipitationCode(type,total,snowCm);
  const label=`${weatherLabel} ${amount}`;
  return{total,type,label,weatherLabel,code,displayCode};

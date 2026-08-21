@@ -670,8 +670,9 @@ Die Anzeige nennt den effektiven Radius, die geschätzte Temperaturunsicherheit,
 
 - Der Wassersport wird je Favorit im Favoritenmenü aktiviert und als eigenes, verzögert geladenes Modul aufgebaut. Gewässertyp und Aktivitätsprofil lassen sich getrennt konfigurieren.
 - Für Küsten- und Meeresstandorte nutzt MID die Open-Meteo Marine API mit Wassertemperatur, signifikanter Wellenhöhe, Wellenrichtung und -periode, Peak-Periode, Windsee, Dünung, Strömung sowie modelliertem Wasserstand einschließlich Tide.
-- Gezeitenwendepunkte werden aus der Wasserstandszeitreihe abgeleitet. Die Anzeige nennt Hoch-/Tiefpunkte, aktuelle Tendenz und die modellierte 24-Stunden-Spanne. Bezug ist das globale mittlere Meeresspiegelniveau, nicht das nautische Kartennull.
-- Wetterseitig werden Wind/Böen, Luft- und gefühlte Temperatur, UV, Niederschlagswahrscheinlichkeit, Sicht und Gewittersignale ergänzt. Persönliche Schwellen für Wellen, Böen und Kaltwasser erzeugen eine kompakte Eignungsbewertung.
+- Gezeitenwendepunkte werden aus der Wasserstandszeitreihe abgeleitet. Als Tidenhub wird ausschließlich die absolute Differenz des nächsten vollständigen Hoch-/Niedrigwasserpaars ausgegeben; aktueller Wasserstand, Tendenz, kompakte Verlaufskurve und Hoch-/Tiefpunkte bleiben separat sichtbar. Bezug ist das globale mittlere Meeresspiegelniveau, nicht das nautische Kartennull.
+- Wetterseitig werden Wind/Böen, Luft- und gefühlte Temperatur, UV, Niederschlagswahrscheinlichkeit, Sicht und Gewitterrisiko ergänzt. „Aktuell“ und „Wassersport“ verwenden dabei exakt dieselbe Mehrparameteranalyse für die nächsten sechs Stunden; CAPE allein reicht nicht aus. Persönliche Schwellen für Wellen, Böen und Kaltwasser erzeugen eine kompakte, farbig klassifizierte Eignungsbewertung.
+- Die Übersicht gruppiert die vollständigen Werte in „Wasser & Wellen“, „Strömung & Tide“ und „Wetter am Wasser“. Das responsive Zwei-Spalten-Raster hält auch auf schmalen Displays alle Werte ohne horizontales Abschneiden lesbar.
 - Ein standardmäßig eingeklappter Wasserwetter-Verlauf stellt die Bedingungen in 1- oder 3-Stunden-Auflösung über bis zu drei Tage dar; an Meeresstandorten werden Wetter- und Marineparameter zeitlich gemeinsam gegenübergestellt.
 - Für See- und Flussprofile werden nicht verfügbare Wasserparameter bewusst ausgeblendet. Entfernte Meeresgitter werden nicht als Binnengewässerdaten ausgegeben.
 - Marine- und Gezeitendaten werden nur geladen, wenn das Profil aktiv ist und der Bereich in die Nähe des sichtbaren Ausschnitts kommt. Favoritenexporte verwenden Schema-Version 4 und migrieren ältere Profile automatisch.
@@ -958,6 +959,8 @@ Im Diagramm **Temperaturtrend und Prognoseunsicherheit** sind folgende Darstellu
 
 Die Legendenpunkte sind Schaltflächen. Best Match, ENS-Spannen, ENS-Mittel und Klimamittel lassen sich einzeln ein- oder ausblenden; die Auswahl wird lokal gespeichert. Die Y-Achse berücksichtigt die sichtbaren Reihen.
 
+Die Modellangabe in der Konsistenzpille ist eine tagesbezogene Beitragszahl. `5/6 M` bedeutet: Fünf von sechs in diesem Abruf maximal auswertbaren unabhängigen Modellfamilien liefern für genau diesen Gültigkeitstag eine vollständige Reihe. Beim bereits laufenden aktuellen Tag kann die Zahl wegen unvollständiger Laufabdeckung zunächst kleiner sein als am ersten vollständigen Folgetag; mit wachsendem Horizont sinkt sie entsprechend den unterschiedlichen Modellreichweiten.
+
 Das Klimamittel wird standort- und höhenbezogen aus Open-Meteo ERA5-Land für die Referenzperiode **1991–2020** berechnet. Verwendet werden die Mittel der täglichen Höchst- und Tiefsttemperatur für den jeweiligen Kalendertag. Die auf 366 Kalendertage verdichteten Ergebnisse werden lokal für 180 Tage zwischengespeichert. Es handelt sich um Reanalyse-Klimatologie mit ungefähr 0,1° Rasterweite, nicht um ein Mittel einer einzelnen Ortsstation.
 
 ## Amtliche Wetterwarnungen
@@ -966,7 +969,7 @@ Das Klimamittel wird standort- und höhenbezogen aus Open-Meteo ERA5-Land für d
 - **Europa:** die aktuell veröffentlichten MeteoAlarm-Atom-/CAP-Feeds der nationalen Wetterdienste; Gebietspolygone/-kreise sowie administrative Namensvarianten werden standortbezogen abgeglichen
 - **USA:** NOAA/National Weather Service Active Alerts
 
-MID zeigt zunächst nur die Überschriften. Der vollständige Meldungstext und vorhandene Handlungshinweise öffnen sich per Klick.
+MID zeigt zunächst nur die Überschriften. Der vollständige Meldungstext und vorhandene Handlungshinweise öffnen sich per Klick. Bei MeteoAlarm wird dazu nach dem knappen Atom-Indexeintrag stets das verlinkte CAP-Detaildokument geladen. Deutsch wird bevorzugt; ist nur eine englische oder andere Originalfassung vorhanden, zeigt MID diese mit Sprachkennzeichnung an.
 Pro Standortantwort wird genau die kanonische amtliche Quelle verwendet (in Deutschland DWD, sonst im unterstützten Europa MeteoAlarm); alternative Aggregatoren werden nicht zugemischt. Technische Dubletten werden über CAP-Kennung/Referenzen sowie Ereignis, Gebiet und Gültigkeit zusammengeführt, während tatsächlich getrennte Warnzeiträume erhalten bleiben.
 
 Warnungstest für Niederkassel:

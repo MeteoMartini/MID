@@ -6734,3 +6734,51 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 @media (orientation:landscape) and (max-width:1300px){
  .cockpit-fourteen-day>.cockpit-brief.compact-fourteen{grid-template-columns:minmax(0,1fr) max-content!important;gap:2px 6px!important}
 }
+
+/* MID v0.9.64.4 · gruppierte Wassersport-Übersicht, einheitliches Gewitterrisiko und vollständiger Tidenhub. */
+.water-overview{display:grid;gap:12px;min-width:0;overflow:hidden}
+.water-panel-toolbar{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,.8fr);align-items:end;gap:10px 18px;min-width:0}
+.water-profile-eyebrow{align-self:center;color:#1688c8;font-size:9px;font-weight:900;letter-spacing:.16em;line-height:1.25;text-transform:uppercase}
+.water-inline-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;min-width:0}
+.water-inline-options label{display:grid;gap:4px;min-width:0}.water-inline-options label>span{color:var(--muted);font-size:7px;font-weight:850;letter-spacing:.09em;text-transform:uppercase}
+.water-inline-options select{width:100%;min-width:0;min-height:34px;padding:6px 28px 6px 9px;border:1px solid var(--border);border-radius:10px;background-color:var(--s2);color:var(--text);font-size:10px;font-weight:750}
+.water-overview .water-assessment{--water-tone:#f5a524;grid-template-columns:72px minmax(0,1fr);gap:14px;margin:0;padding:12px 16px;border-color:color-mix(in srgb,var(--water-tone) 46%,var(--border));border-radius:16px;background:linear-gradient(115deg,color-mix(in srgb,var(--water-tone) 11%,var(--surface)),color-mix(in srgb,var(--water-tone) 3%,var(--surface)))}
+.water-overview .water-assessment.günstig{--water-tone:#2cb978}.water-overview .water-assessment.eingeschränkt{--water-tone:#f5a524}.water-overview .water-assessment.ungünstig{--water-tone:#ef5350}
+.water-score-ring{position:relative;display:grid;grid-template-columns:auto auto;place-content:center;align-items:baseline;width:66px;height:66px;border-radius:50%;color:var(--water-tone);isolation:isolate}
+.water-score-ring::before{position:absolute;inset:0;border-radius:inherit;background:conic-gradient(var(--water-tone) var(--water-score-angle),color-mix(in srgb,var(--water-tone) 13%,var(--surface)) 0);content:"";z-index:-2}
+.water-score-ring::after{position:absolute;inset:6px;border-radius:inherit;background:var(--surface);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--water-tone) 12%,var(--border));content:"";z-index:-1}
+.water-overview .water-score-ring>strong{margin:0;color:inherit;font-size:20px;line-height:1}.water-overview .water-score-ring>small{color:inherit;font-size:8px;font-weight:850;opacity:.82}
+.water-overview .water-assessment>div:last-child{min-width:0}.water-overview .water-assessment>div:last-child>small{color:var(--muted);font-size:8px}.water-overview .water-assessment>div:last-child>strong{margin-top:2px;color:var(--water-tone);font-size:18px;text-transform:capitalize}.water-overview .water-assessment>div:last-child>span{margin-top:3px;color:var(--muted);font-size:9px;line-height:1.35;overflow-wrap:anywhere}
+.water-metric-group{display:grid;gap:7px;min-width:0}
+.water-metric-group>header{display:flex;align-items:center;gap:7px;padding:0 2px;color:#1688c8}.water-metric-group>header>span{display:grid;place-items:center}.water-metric-group>header svg{width:15px;height:15px}.water-metric-group>header h3{margin:0;font-size:9px;font-weight:900;letter-spacing:.13em;text-transform:uppercase}
+.water-metric-group>div{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;min-width:0}
+.water-flow-group>div{grid-template-columns:minmax(150px,.8fr) minmax(260px,2.2fr)}
+.water-weather-group>div{grid-template-columns:repeat(5,minmax(0,1fr))}
+.water-metric-card{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"icon copy chip" "detail detail detail";align-items:center;gap:4px 8px;min-width:0;min-height:74px;padding:10px 11px;border:1px solid color-mix(in srgb,#38bdf8 18%,var(--border));border-radius:13px;background:linear-gradient(145deg,color-mix(in srgb,#38bdf8 4%,var(--surface)),var(--surface));box-sizing:border-box;overflow:hidden}
+.water-metric-icon{grid-area:icon;display:grid;place-items:center;color:#27afe4}.water-metric-icon svg{width:19px;height:19px}
+.water-metric-copy{grid-area:copy;display:grid;gap:1px;min-width:0}.water-metric-copy>small{color:var(--muted);font-size:8px;line-height:1.15;overflow-wrap:anywhere}.water-metric-copy>strong{color:var(--text);font-size:14px;line-height:1.12;overflow-wrap:anywhere}
+.water-metric-card>em{grid-area:chip;align-self:start;max-width:84px;padding:3px 6px;border:1px solid color-mix(in srgb,#38bdf8 34%,var(--border));border-radius:999px;background:color-mix(in srgb,#38bdf8 10%,var(--surface));color:#1688c8;font-size:7px;font-style:normal;font-weight:900;line-height:1.05;white-space:normal;overflow-wrap:anywhere;text-transform:lowercase}
+.water-metric-detail{grid-area:detail;align-self:end;min-width:0;color:var(--muted);font-size:8px;line-height:1.3;overflow-wrap:anywhere}
+.water-metric-card.risk{border-color:color-mix(in srgb,#f5a524 44%,var(--border));background:linear-gradient(145deg,color-mix(in srgb,#f5a524 10%,var(--surface)),var(--surface))}.water-metric-card.risk .water-metric-icon,.water-metric-card.risk .water-metric-copy>strong{color:#e99714}.water-metric-card.risk>em{border-color:color-mix(in srgb,#f5a524 42%,var(--border));background:color-mix(in srgb,#f5a524 12%,var(--surface));color:#d98909}
+.water-metric-card.clear .water-metric-icon{color:#2cb978}
+.water-tide-card{grid-template-columns:auto minmax(110px,.8fr) minmax(150px,1.15fr);grid-template-areas:"icon copy curve" "current current curve" "detail detail detail";min-height:92px}
+.water-current-level{grid-area:current;min-width:0;color:var(--muted);font-size:8px;line-height:1.25}.water-current-level>b{color:var(--text)}
+.water-tide-sparkline{grid-area:curve;width:100%;height:45px;min-width:0;overflow:visible}.water-tide-sparkline line{stroke:color-mix(in srgb,#38bdf8 25%,var(--border));stroke-width:1;stroke-dasharray:4 4}.water-tide-sparkline path{fill:none;stroke:#27afe4;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.thunder-risk-card{border-color:color-mix(in srgb,#f5a524 25%,var(--border))!important}.thunder-risk-card.risk{background:linear-gradient(145deg,color-mix(in srgb,#f5a524 10%,var(--surface)),var(--surface))!important}.thunder-risk-card.risk>strong{color:#e99714}.thunder-risk-card.clear>strong{color:#2ca36c}
+.mountain-indicators article>em{grid-column:1/-1;margin-top:2px;color:var(--muted);font-size:7.5px;font-style:normal;line-height:1.25;overflow-wrap:anywhere}.mountain-thunder-risk.risk{border-color:color-mix(in srgb,#f5a524 40%,var(--border));background:color-mix(in srgb,#f5a524 8%,var(--s2))}.mountain-thunder-risk.risk>svg,.mountain-thunder-risk.risk>strong{color:#e99714}.mountain-thunder-risk.clear>svg{color:#2cb978}
+@media(max-width:900px){
+ .water-panel-toolbar{grid-template-columns:minmax(0,1fr)}.water-profile-eyebrow{font-size:8px}
+ .water-weather-group>div{grid-template-columns:repeat(3,minmax(0,1fr))}.water-weather-group .water-metric-card:nth-child(4),.water-weather-group .water-metric-card:nth-child(5){grid-column:span 1}
+}
+@media(max-width:700px){
+ .water-overview{gap:10px}.water-inline-options{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .water-overview .water-assessment{grid-template-columns:60px minmax(0,1fr);gap:11px;padding:10px 12px}.water-score-ring{width:56px;height:56px}.water-score-ring::after{inset:5px}.water-overview .water-score-ring>strong{font-size:17px}
+ .water-metric-group>div,.water-weather-group>div{grid-template-columns:repeat(2,minmax(0,1fr))}.water-flow-group>div{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .water-flow-group .water-tide-card{grid-column:1/-1}.water-weather-group .water-metric-card:nth-child(5){grid-column:1/-1}
+ .water-metric-card{min-height:70px;padding:9px}.water-metric-copy>strong{font-size:13px}.water-tide-card{grid-template-columns:auto minmax(0,.9fr) minmax(105px,1.1fr)}
+}
+@media(max-width:430px){
+ .water-profile-eyebrow{letter-spacing:.1em}.water-inline-options{gap:5px}.water-inline-options select{min-height:32px;padding-left:7px;font-size:9px}
+ .water-metric-group>div,.water-weather-group>div{gap:6px}.water-metric-card{gap:3px 6px;min-height:68px;padding:8px;border-radius:11px}.water-metric-icon svg{width:17px;height:17px}.water-metric-copy>small,.water-metric-detail{font-size:7.3px}.water-metric-copy>strong{font-size:12px}.water-metric-card>em{max-width:65px;padding:2px 5px;font-size:6.5px}
+ .water-tide-card{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"icon copy" "current current" "curve curve" "detail detail"}.water-tide-sparkline{height:34px}.water-tide-card .water-metric-detail{margin-top:-2px}
+}

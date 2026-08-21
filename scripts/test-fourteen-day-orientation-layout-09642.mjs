@@ -18,7 +18,7 @@ for(const token of [
  'data-regime={item.regimeText}',
  'regimeText=regimeLabel(regime,precipitationForm?.label)',
  'className={`cockpit-fourteen-regime ${item.regime}`}',
- '<small>{modelCount} M</small>',
+ '<small>{modelCount}/{reference} M</small>',
  'className="cockpit-fourteen-row temperature"',
  'className="cockpit-fourteen-row precipitation"',
  'className="cockpit-fourteen-row wind"',

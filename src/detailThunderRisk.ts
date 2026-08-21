@@ -15,6 +15,14 @@ export type DetailThunderRiskSample={
  showers?:number;
  probability?:number;
 };
+export type TimedDetailThunderRiskSample=DetailThunderRiskSample&{time?:string;epoch?:number};
+export type PeriodThunderRisk=DetailThunderRisk&{
+ horizonHours:number;
+ peakIndex:number;
+ peakTime?:string;
+ peakEpoch?:number;
+ directThunder:boolean;
+};
 
 function finite(value:unknown,fallback=Number.NaN){const number=Number(value);return Number.isFinite(number)?number:fallback}
 function points(value:number,thresholds:[number,number][],descending=false){if(!Number.isFinite(value))return 0;for(const [threshold,score] of thresholds){if(descending?value<=threshold:value>=threshold)return score}return 0}
@@ -87,4 +95,17 @@ export function significantHourlyThunderRisk(sample:DetailThunderRiskSample):Det
  if(!stronglyCapped&&instability>=2.5&&moisture>=1&&trigger>=1&&score>=5.5)return{level:'elevated',shortLabel:'erhöht',label:'Erhöhtes Gewitterrisiko aus mehreren Best-Match-Stabilitäts- und Feuchteparametern',score,percent:thunderRiskPercent('elevated',score,false,false),signals};
  if(!stronglyCapped&&instability>=1.5&&moisture>=1&&trigger>=1&&score>=2.8){const percent=thunderRiskPercent('elevated',score,false,false);if(percent>=DETAIL_THUNDER_RISK_DISPLAY_THRESHOLD)return{level:'elevated',shortLabel:'möglich',label:'Modelliertes Gewitterrisiko aus kombinierter Instabilität, Feuchte und Auslösung',score,percent,signals};}
  return null;
+}
+
+/**
+ * Canonical risk for a forecast window. Every location view uses the same
+ * hourly multi-parameter diagnosis and receives the strongest supported hour;
+ * CAPE alone can therefore never create a period risk in a special module.
+ */
+export function significantPeriodThunderRisk(samples:TimedDetailThunderRiskSample[],horizonHours=6):PeriodThunderRisk|null{
+ const evaluated=samples.map((sample,index)=>({sample,index,risk:significantHourlyThunderRisk(sample)})).filter((row):row is typeof row&{risk:DetailThunderRisk}=>Boolean(row.risk));
+ if(!evaluated.length)return null;
+ const strongest=evaluated.reduce((best,row)=>row.risk.percent>best.risk.percent||(row.risk.percent===best.risk.percent&&row.risk.score>best.risk.score)?row:best,evaluated[0]);
+ const directThunder=samples.some(sample=>[95,96,97,99].includes(Math.round(finite(sample.code,-1))));
+ return{...strongest.risk,horizonHours:Math.max(1,Math.round(finite(horizonHours,6))),peakIndex:strongest.index,peakTime:strongest.sample.time,peakEpoch:Number.isFinite(strongest.sample.epoch)?Number(strongest.sample.epoch):undefined,directThunder};
 }

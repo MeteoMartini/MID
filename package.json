@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.64.3",
+  "version": "0.9.64.5",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -296,7 +296,9 @@
     "test:seven-day-orientation-layout": "node scripts/test-seven-day-orientation-layout-09640.mjs",
     "test:seven-day-inline-detail-sunshine": "node scripts/test-seven-day-inline-detail-sunshine-09641.mjs",
     "test:fourteen-day-orientation-layout": "node scripts/test-fourteen-day-orientation-layout-09642.mjs",
-    "test:europe-alerts-shower-model-pill": "node scripts/test-europe-alerts-shower-model-pill-09643.mjs"
+    "test:europe-alerts-shower-model-pill": "node scripts/test-europe-alerts-shower-model-pill-09643.mjs",
+    "test:location-thunder-water-tide-layout": "node scripts/test-location-thunder-water-tide-layout-09644.mjs",
+    "test:warning-text-warm-phase-model-coverage": "node scripts/test-warning-text-warm-phase-model-coverage-09645.mjs"
   },
   "dependencies": {
     "astronomy-engine": "^2.1.19",

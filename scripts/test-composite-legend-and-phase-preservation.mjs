@@ -36,7 +36,7 @@ const {precipitationParts}=await import(`${pathToFileURL(path.join(outDir,'preci
 const sample=(overrides={})=>({precipitation:0,rain:0,showers:0,snowfall:0,probability:0,code:0,...overrides});
 const cases=[
  ['warmer Schneefall',sample({code:73,temperature:7,precipitation:1,rain:1}), 'snow'],
- ['warmer Schneeschauer',sample({code:85,temperature:8,precipitation:1,showers:1}), 'snowShowers'],
+ ['warmer Schneeschauer',sample({code:85,temperature:8,precipitation:1,showers:1}), 'showers'],
  ['unplausibler Schneegriesel',sample({code:77,temperature:6,humidity:55,lowCloud:10,cloud:30,precipitation:.4,rain:.4}), 'snow'],
  ['unplausibler Sprühregen',sample({code:53,temperature:-4,humidity:60,lowCloud:15,cloud:40,precipitation:.4,snowfall:.5}), 'rain']
 ];
