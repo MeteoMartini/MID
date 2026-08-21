@@ -1,3 +1,11 @@
+## MID v0.9.64.7 – eindeutige Strömungs-Zielrichtung
+
+- Die Marine-API liefert die Strömungsrichtung als Zielrichtung: 0° bedeutet nach Norden, 90° nach Osten. MID übernimmt diese Konvention ohne 180°-Umkehr.
+- Der Pfeil der Strömungskarte wird nun aus dem jeweiligen Gradwert gedreht. Damit zeigt er bei „Zielrichtung SSW · 211°“ tatsächlich nach Südsüdwest.
+- „Zielrichtung“ unterscheidet die Strömung ausdrücklich von Wellenrichtungen, die weiterhin als Herkunft mit „aus …“ angegeben werden.
+- Das Gruppensymbol „Strömung & Tide“ ist ein neutraler Kompass und kann nicht mehr als zweite, widersprüchliche Richtungsangabe missverstanden werden.
+- Die Änderung ist clientseitig; ein funktionales Worker-Update ist nicht erforderlich.
+
 ## MID v0.9.64.6 – koordinatengeprüfte MeteoAlarm-Warngebiete
 
 - Für europäische MeteoAlarm-Länder wird das amtliche Live-Warngebiet am Standortkoordinatenpunkt bestimmt, bevor Atom-/CAP-Meldungen lokal zugeordnet werden.
@@ -678,6 +686,7 @@ Die Anzeige nennt den effektiven Radius, die geschätzte Temperaturunsicherheit,
 
 - Der Wassersport wird je Favorit im Favoritenmenü aktiviert und als eigenes, verzögert geladenes Modul aufgebaut. Gewässertyp und Aktivitätsprofil lassen sich getrennt konfigurieren.
 - Für Küsten- und Meeresstandorte nutzt MID die Open-Meteo Marine API mit Wassertemperatur, signifikanter Wellenhöhe, Wellenrichtung und -periode, Peak-Periode, Windsee, Dünung, Strömung sowie modelliertem Wasserstand einschließlich Tide.
+- Strömungsrichtungen werden als Zielrichtung dargestellt: Der Gradwert, die Himmelsrichtung und der dynamisch gedrehte Pfeil zeigen gemeinsam dorthin, wohin das Wasser fließt. Wellenrichtungen bezeichnen dagegen weiterhin die Herkunft.
 - Gezeitenwendepunkte werden aus der Wasserstandszeitreihe abgeleitet. Als Tidenhub wird ausschließlich die absolute Differenz des nächsten vollständigen Hoch-/Niedrigwasserpaars ausgegeben; aktueller Wasserstand, Tendenz, kompakte Verlaufskurve und Hoch-/Tiefpunkte bleiben separat sichtbar. Bezug ist das globale mittlere Meeresspiegelniveau, nicht das nautische Kartennull.
 - Wetterseitig werden Wind/Böen, Luft- und gefühlte Temperatur, UV, Niederschlagswahrscheinlichkeit, Sicht und Gewitterrisiko ergänzt. „Aktuell“ und „Wassersport“ verwenden dabei exakt dieselbe Mehrparameteranalyse für die nächsten sechs Stunden; CAPE allein reicht nicht aus. Persönliche Schwellen für Wellen, Böen und Kaltwasser erzeugen eine kompakte, farbig klassifizierte Eignungsbewertung.
 - Die Übersicht gruppiert die vollständigen Werte in „Wasser & Wellen“, „Strömung & Tide“ und „Wetter am Wasser“. Das responsive Zwei-Spalten-Raster hält auch auf schmalen Displays alle Werte ohne horizontales Abschneiden lesbar.

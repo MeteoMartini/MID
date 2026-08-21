@@ -46,7 +46,7 @@ assert.equal(alertRoute.includes('MID_PUSH_SUBSCRIPTIONS'),false,'Interaktive Wa
 for(const token of ['METEOALARM_VIS','meteoalarmPointContext','meteoalarmPointAlerts','officialAreaDescriptionMatches','aegean','linkedWarningIdentifier','MeteoAlarm Live-Warngebiete + Atom/CAP'])assert.ok(workerSource.includes(token),`Koordinaten-/Deduplizierungsvertrag fehlt: ${token}`);
 
 const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText),test='scripts/test-greece-coordinate-warnings-kv-isolation-09646.mjs';
-assert.equal(pkg.version,'0.9.64.6');
+assert.ok(pkg.version.localeCompare('0.9.64.6',undefined,{numeric:true,sensitivity:'base'})>=0,'Griechenland-Korrektur benötigt mindestens Wartungsrelease v0.9.64.6.');
 assert.equal(pkg.scripts?.['test:greece-coordinate-warnings-kv-isolation'],`node ${test}`);
 assert.equal(baseline.releaseVersion,pkg.version);
 assert.ok(baseline.requiredRegressionTests?.includes(test)&&baseline.regressionTests?.includes(test),'Neue Griechenland-Regression ist nicht verbindlich registriert.');

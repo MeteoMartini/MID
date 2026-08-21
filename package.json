@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.64.6",
+  "version": "0.9.64.7",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -299,7 +299,8 @@
     "test:europe-alerts-shower-model-pill": "node scripts/test-europe-alerts-shower-model-pill-09643.mjs",
     "test:location-thunder-water-tide-layout": "node scripts/test-location-thunder-water-tide-layout-09644.mjs",
     "test:warning-text-warm-phase-model-coverage": "node scripts/test-warning-text-warm-phase-model-coverage-09645.mjs",
-    "test:greece-coordinate-warnings-kv-isolation": "node scripts/test-greece-coordinate-warnings-kv-isolation-09646.mjs"
+    "test:greece-coordinate-warnings-kv-isolation": "node scripts/test-greece-coordinate-warnings-kv-isolation-09646.mjs",
+    "test:water-current-direction-arrow": "node scripts/test-water-current-direction-arrow-09647.mjs"
   },
   "dependencies": {
     "astronomy-engine": "^2.1.19",

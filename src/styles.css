@@ -6756,6 +6756,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .water-weather-group>div{grid-template-columns:repeat(5,minmax(0,1fr))}
 .water-metric-card{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"icon copy chip" "detail detail detail";align-items:center;gap:4px 8px;min-width:0;min-height:74px;padding:10px 11px;border:1px solid color-mix(in srgb,#38bdf8 18%,var(--border));border-radius:13px;background:linear-gradient(145deg,color-mix(in srgb,#38bdf8 4%,var(--surface)),var(--surface));box-sizing:border-box;overflow:hidden}
 .water-metric-icon{grid-area:icon;display:grid;place-items:center;color:#27afe4}.water-metric-icon svg{width:19px;height:19px}
+.water-current-direction-icon{transform-box:view-box;transform-origin:center}
 .water-metric-copy{grid-area:copy;display:grid;gap:1px;min-width:0}.water-metric-copy>small{color:var(--muted);font-size:8px;line-height:1.15;overflow-wrap:anywhere}.water-metric-copy>strong{color:var(--text);font-size:14px;line-height:1.12;overflow-wrap:anywhere}
 .water-metric-card>em{grid-area:chip;align-self:start;max-width:84px;padding:3px 6px;border:1px solid color-mix(in srgb,#38bdf8 34%,var(--border));border-radius:999px;background:color-mix(in srgb,#38bdf8 10%,var(--surface));color:#1688c8;font-size:7px;font-style:normal;font-weight:900;line-height:1.05;white-space:normal;overflow-wrap:anywhere;text-transform:lowercase}
 .water-metric-detail{grid-area:detail;align-self:end;min-width:0;color:var(--muted);font-size:8px;line-height:1.3;overflow-wrap:anywhere}
