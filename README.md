@@ -1,3 +1,10 @@
+## MID v0.9.64.1 – Tagesdetail direkt am Tag und kompakte Sonnenstunden
+
+- Im Hochformat öffnet sich der stündliche Tagesverlauf unmittelbar unter dem gewählten Tag; alle folgenden Tage bleiben darunter in ihrer bisherigen Reihenfolge.
+- Beim Zuklappen kehrt die vollständige kompakte Sieben-Tage-Liste ohne Positionslücke zurück.
+- Die Sonnenscheindauer steht platzneutral und auf volle Stunden gerundet als „☀ x h“ in jeder Tageskarte.
+- Die Änderung ist clientseitig; ein funktionales Worker-Update ist nicht erforderlich.
+
 ## MID v0.9.64.0 – mobile 7-Tage-Ansicht nach Geräteausrichtung
 
 - Hochformat zeigt sieben vollständige, kompakte Tageszeilen ohne horizontales Scrollen.

@@ -1860,3 +1860,52 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
   white-space:normal;
  }
 }
+
+/* MID v0.9.64.1 · Tagesdetail folgt dem gewählten Tag; Sonnenscheindauer nutzt den vorhandenen Metadatenplatz. */
+.cockpit-seven-grid>.cockpit-day{
+ grid-column:var(--cockpit-day-column);
+ grid-row:1;
+}
+.cockpit-seven-grid>.cockpit-day-hourly-accordion{
+ grid-column:1/-1;
+ grid-row:2;
+ min-width:0;
+ margin-top:4px;
+}
+.cockpit-day-pop{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:4px;
+}
+.cockpit-day-pop>span:first-child{min-width:0}
+.cockpit-day-sun{
+ display:inline-flex;
+ align-items:center;
+ gap:2px;
+ flex:0 0 auto;
+ color:#a96f00;
+ font-size:inherit;
+ line-height:inherit;
+ white-space:nowrap;
+}
+.cockpit-day-sun>b{font:inherit;font-weight:850;color:inherit}
+
+@media (orientation:portrait) and (max-width:900px){
+ .cockpit-seven-grid>.cockpit-day{
+  grid-column:1!important;
+  grid-row:auto!important;
+ }
+ .cockpit-seven-grid>.cockpit-day-hourly-accordion{
+  grid-column:1!important;
+  grid-row:auto!important;
+  margin:0 0 2px;
+ }
+ .cockpit-day-pop{
+  flex-direction:column;
+  align-items:flex-start;
+  justify-content:center;
+  gap:0;
+ }
+ .cockpit-day-sun{font-size:clamp(6.8px,1.95vw,8.2px)}
+}
