@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.63.1",
+  "releaseVersion": "0.9.64.0",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -241,7 +241,8 @@
     "scripts/test-flight-text-vertical-briefing-09620.mjs",
     "scripts/test-maintenance-user-contracts-09630.mjs",
     "scripts/test-worker-kv-operations-budget-09631.mjs",
-    "scripts/test-seven-day-landscape-density-09632.mjs"
+    "scripts/test-seven-day-landscape-density-09632.mjs",
+    "scripts/test-seven-day-orientation-layout-09640.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -415,7 +416,8 @@
     "scripts/test-flight-text-vertical-briefing-09620.mjs",
     "scripts/test-maintenance-user-contracts-09630.mjs",
     "scripts/test-worker-kv-operations-budget-09631.mjs",
-    "scripts/test-seven-day-landscape-density-09632.mjs"
+    "scripts/test-seven-day-landscape-density-09632.mjs",
+    "scripts/test-seven-day-orientation-layout-09640.mjs"
   ],
   "requiredFiles": [
     "scripts/test-cockpit-regression-sync-09201.mjs",
@@ -471,6 +473,7 @@
     "MID_IMPLEMENTATION_0.9.62.0.md",
     "MID_IMPLEMENTATION_0.9.63.0.md",
     "MID_IMPLEMENTATION_0.9.63.1.md",
+    "MID_IMPLEMENTATION_0.9.64.0.md",
     "MID_CLOUDFLARE_KV_OPERATIONS_AUDIT_0.9.63.0.md"
   ],
   "requiredTests": [

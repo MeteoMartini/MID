@@ -1655,3 +1655,208 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
   white-space:normal;
  }
 }
+
+/* MID v0.9.64.0 · 7-Tage-Cockpit folgt der Geräteausrichtung: Zeilen im Hochformat, sieben Spalten im Querformat. */
+.cockpit-day-weekday-long{display:none}
+.cockpit-day-rain-icon{flex:0 0 auto;color:#237ac2}
+.cockpit-day-wind-sustained{min-width:0;color:var(--text);font-size:10px;font-weight:850;line-height:1.12;white-space:nowrap}
+.cockpit-day-regime.wet{--cockpit-regime-color:#2471a7}
+.cockpit-day-regime.showery{--cockpit-regime-color:#24849f}
+.cockpit-day-regime.sunny{--cockpit-regime-color:#9c7410}
+.cockpit-day-regime.windy{--cockpit-regime-color:#347a57}
+.cockpit-day-regime.warm{--cockpit-regime-color:#a75b18}
+.cockpit-day-regime.quiet{--cockpit-regime-color:var(--muted)}
+.cockpit-day-regime{
+ color:var(--cockpit-regime-color,currentColor);
+ border:1px solid color-mix(in srgb,var(--cockpit-regime-color,currentColor) 24%,transparent);
+ background:color-mix(in srgb,var(--cockpit-regime-color,currentColor) 12%,var(--surface));
+}
+
+@media (orientation:portrait) and (max-width:900px){
+ .cockpit-seven-day{min-width:0}
+ .cockpit-seven-grid{
+  width:100%;
+  min-width:0;
+  grid-template-columns:minmax(0,1fr);
+  gap:6px;
+  overflow-x:visible;
+  overscroll-behavior-x:auto;
+  padding-bottom:2px;
+ }
+ .cockpit-day{
+  width:100%;
+  min-width:0!important;
+  grid-template-columns:minmax(62px,.75fr) 48px minmax(0,1.35fr) minmax(66px,.8fr);
+  grid-template-areas:
+   "date icon regime temps"
+   "date icon track track"
+   "rain pop wind hourly"!important;
+  align-items:center;
+  align-content:center;
+  gap:5px 7px;
+  min-height:78px;
+  padding:8px 9px;
+  border-radius:16px;
+ }
+ .cockpit-day-date{grid-area:date;align-self:start;min-width:0}
+ .cockpit-day-weekday-short{display:none}
+ .cockpit-day-weekday-long{display:inline}
+ .cockpit-day-date b{font-size:clamp(9.5px,2.65vw,11.5px);line-height:1.15;white-space:normal}
+ .cockpit-day-date small{font-size:clamp(7.5px,2.15vw,9px)}
+ .cockpit-day-weather-pair{
+  grid-area:icon;
+  align-self:start;
+  justify-content:flex-start;
+  gap:2px;
+  min-height:34px;
+  overflow:visible;
+ }
+ .cockpit-day-main-icon{width:32px!important;height:32px!important}
+ .cockpit-day-night-icon{position:static;align-self:flex-end}
+ .cockpit-day-night-glyph{width:18px!important;height:18px!important}
+ .cockpit-day-regime{
+  grid-area:regime;
+  justify-self:start;
+  min-width:0;
+  max-width:100%;
+  padding:3px 6px;
+  border-radius:999px;
+  font-size:clamp(8px,2.25vw,9.5px);
+  line-height:1.15;
+  white-space:normal;
+  overflow-wrap:break-word;
+ }
+ .cockpit-day-temps{grid-area:temps;justify-content:flex-end;gap:5px;min-width:0}
+ .cockpit-day-temps b{font-size:clamp(12px,3.35vw,15px)}
+ .cockpit-day-temps strong{font-size:clamp(17px,4.7vw,21px)}
+ .cockpit-day-temp-track{grid-area:track;height:7px;min-width:0}
+ .cockpit-day-temp-track>i{top:0;bottom:0}
+ .cockpit-day-rain{
+  grid-area:rain;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-start;
+  gap:3px;
+  min-width:0;
+ }
+ .cockpit-day-rain-icon{width:11px;height:11px}
+ .cockpit-day-rain b{font-size:clamp(8.4px,2.35vw,10px);white-space:nowrap!important}
+ .cockpit-day-pop{
+  grid-area:pop;
+  align-self:center;
+  font-size:clamp(6.8px,1.95vw,8.2px);
+  line-height:1.12;
+  white-space:normal;
+  overflow-wrap:break-word;
+ }
+ .cockpit-day-wind{
+  grid-area:wind;
+  display:grid!important;
+  grid-template-columns:auto minmax(0,1fr)!important;
+  grid-template-areas:"arrow sustained" "arrow gust";
+  align-items:center;
+  justify-content:stretch!important;
+  gap:1px 4px;
+  min-width:0;
+ }
+ .cockpit-day-wind>.cockpit-inline-wind-arrow{grid-area:arrow}
+ .cockpit-day-wind-sustained{grid-area:sustained;font-size:clamp(7.2px,2.05vw,8.8px);white-space:normal}
+ .cockpit-day-wind small{grid-area:gust;justify-self:start;font-size:clamp(6.8px,1.9vw,8.2px);line-height:1.05;text-align:left;white-space:normal!important}
+ .cockpit-day-hourly-cue{
+  grid-area:hourly;
+  align-self:stretch;
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  align-items:center;
+  justify-content:stretch;
+  gap:2px;
+  margin:0;
+  padding:3px 2px;
+  border-top:0;
+  font-size:clamp(6.7px,1.9vw,8px);
+  line-height:1.1;
+  white-space:normal;
+ }
+}
+
+@media (orientation:landscape) and (max-width:1300px){
+ .cockpit-seven-day{min-width:0}
+ .cockpit-seven-grid{
+  width:100%;
+  min-width:0;
+  grid-template-columns:repeat(var(--cockpit-day-count),minmax(0,1fr));
+  gap:clamp(3px,.52vw,7px);
+  overflow-x:visible;
+  overscroll-behavior-x:auto;
+  padding-bottom:2px;
+ }
+ .cockpit-day{
+  width:auto;
+  min-width:0!important;
+  grid-template-columns:minmax(0,1fr) auto;
+  grid-template-areas:
+   "date icon"
+   "regime regime"
+   "temps temps"
+   "track track"
+   "rain rain"
+   "pop pop"
+   "wind wind"
+   "hourly hourly"!important;
+  align-content:start;
+  gap:clamp(3px,.48vw,6px);
+  padding:clamp(6px,.72vw,10px);
+  border-radius:clamp(13px,1.6vw,20px);
+ }
+ .cockpit-day-date,.cockpit-day-weather-pair,.cockpit-day-regime,.cockpit-day-temps,
+ .cockpit-day-temp-track,.cockpit-day-rain,.cockpit-day-wind,.cockpit-day-pop,
+ .cockpit-day-hourly-cue{min-width:0;max-width:100%}
+ .cockpit-day-weekday-short{display:inline}
+ .cockpit-day-weekday-long{display:none}
+ .cockpit-day-date b{font-size:clamp(8px,1.12vw,12px)}
+ .cockpit-day-date small{font-size:clamp(6.4px,.9vw,9.5px)}
+ .cockpit-day-weather-pair{grid-area:icon;justify-content:flex-end;gap:clamp(1px,.35vw,4px);min-height:clamp(29px,3.8vw,42px)}
+ .cockpit-day-main-icon{width:clamp(27px,3.4vw,38px)!important;height:clamp(27px,3.4vw,38px)!important}
+ .cockpit-day-night-icon{position:static;align-self:flex-end}
+ .cockpit-day-night-glyph{width:clamp(15px,1.9vw,21px)!important;height:clamp(15px,1.9vw,21px)!important}
+ .cockpit-day-regime{
+  grid-area:regime;
+  justify-self:start;
+  gap:3px;
+  padding:2px 4px;
+  border-radius:999px;
+  font-size:clamp(6.6px,.92vw,9.5px);
+  line-height:1.14;
+  white-space:normal;
+  overflow-wrap:break-word;
+ }
+ .cockpit-day-temps{grid-area:temps;gap:3px;flex-wrap:wrap}
+ .cockpit-day-temps b{font-size:clamp(10px,1.35vw,15px)}
+ .cockpit-day-temps strong{font-size:clamp(14px,1.85vw,21px)}
+ .cockpit-day-temp-track{grid-area:track;height:clamp(8px,1.15vw,13px)}
+ .cockpit-day-rain{grid-area:rain;justify-content:flex-start!important;gap:3px}
+ .cockpit-day-rain-icon{width:clamp(9px,1vw,12px);height:clamp(9px,1vw,12px)}
+ .cockpit-day-rain b{font-size:clamp(7.5px,1.02vw,10.8px);white-space:normal!important}
+ .cockpit-day-pop{grid-area:pop;font-size:clamp(6px,.75vw,8px);line-height:1.14;white-space:normal;overflow-wrap:break-word}
+ .cockpit-day-wind{
+  grid-area:wind;
+  display:grid!important;
+  grid-template-columns:auto minmax(0,1fr)!important;
+  grid-template-areas:"arrow sustained" "arrow gust";
+  justify-content:stretch!important;
+  gap:1px 3px;
+ }
+ .cockpit-day-wind>.cockpit-inline-wind-arrow{grid-area:arrow}
+ .cockpit-day-wind-sustained{grid-area:sustained;font-size:clamp(6.5px,.85vw,9px);white-space:normal}
+ .cockpit-day-wind small{grid-area:gust;justify-self:start;font-size:clamp(6px,.76vw,8.2px);line-height:1.08;text-align:left;white-space:normal!important;overflow-wrap:break-word}
+ .cockpit-day-hourly-cue{
+  grid-area:hourly;
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  gap:2px;
+  padding:4px 2px;
+  font-size:clamp(6px,.76vw,8px);
+  line-height:1.1;
+  white-space:normal;
+ }
+}

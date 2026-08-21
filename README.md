@@ -1,3 +1,10 @@
+## MID v0.9.64.0 – mobile 7-Tage-Ansicht nach Geräteausrichtung
+
+- Hochformat zeigt sieben vollständige, kompakte Tageszeilen ohne horizontales Scrollen.
+- Querformat zeigt sieben vollständige Schmalspalten ohne abgeschnittene Wetterwerte.
+- Die farbigen Regimeklassifizierungen – unter anderem Heiß, Ruhig, Sonnig, Wind und Niederschlagsarten – bleiben vollständig erhalten.
+- Die Änderung ist clientseitig; ein Worker-Update ist nicht erforderlich.
+
 ## Wartung v0.9.15.7 – KONRAD3D-TypeScript-Buildfix
 
 Der Produktionsbuild akzeptiert nun die Kennzeichnung abgeleiteter K3D-Zugpunkte. Die Prognosespur bleibt funktional unverändert; korrigiert wurde die lokale Typinferenz der veränderlichen Punktliste.

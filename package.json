@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.63.1",
+  "version": "0.9.64.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -292,7 +292,8 @@
     "test:flight-text-vertical-briefing": "node scripts/test-flight-text-vertical-briefing-09620.mjs",
     "test:maintenance-user-contracts": "node scripts/test-maintenance-user-contracts-09630.mjs",
     "test:worker-kv-operations-budget": "node scripts/test-worker-kv-operations-budget-09631.mjs",
-    "test:seven-day-landscape-density": "node scripts/test-seven-day-landscape-density-09632.mjs"
+    "test:seven-day-landscape-density": "node scripts/test-seven-day-landscape-density-09632.mjs",
+    "test:seven-day-orientation-layout": "node scripts/test-seven-day-orientation-layout-09640.mjs"
   },
   "dependencies": {
     "astronomy-engine": "^2.1.19",
