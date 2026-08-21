@@ -26,7 +26,8 @@ for(const token of [
 ])if(!worker.includes(token))failures.push(`Worker-/KONRAD-Korrektur fehlt: ${token}`);
 for(const token of [
  "centerGetsCloser=Number.isFinite(currentDistance)&&Number.isFinite(forecastDistance)&&forecastDistance+2<currentDistance",
- "Gewitterzelle zieht voraussichtlich vorbei",
+ "withLightning?'Gewitterzelle':'Schauerzelle'",
+ '`${cell} zieht voraussichtlich vorbei`',
  "und damit nicht näher"
 ])if(!thunder.includes(token))failures.push(`Gewitter-Plausibilisierung fehlt: ${token}`);
 for(const token of [

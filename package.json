@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.64.2",
+  "version": "0.9.64.3",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -295,7 +295,8 @@
     "test:seven-day-landscape-density": "node scripts/test-seven-day-landscape-density-09632.mjs",
     "test:seven-day-orientation-layout": "node scripts/test-seven-day-orientation-layout-09640.mjs",
     "test:seven-day-inline-detail-sunshine": "node scripts/test-seven-day-inline-detail-sunshine-09641.mjs",
-    "test:fourteen-day-orientation-layout": "node scripts/test-fourteen-day-orientation-layout-09642.mjs"
+    "test:fourteen-day-orientation-layout": "node scripts/test-fourteen-day-orientation-layout-09642.mjs",
+    "test:europe-alerts-shower-model-pill": "node scripts/test-europe-alerts-shower-model-pill-09643.mjs"
   },
   "dependencies": {
     "astronomy-engine": "^2.1.19",

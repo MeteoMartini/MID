@@ -2118,3 +2118,46 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
  .forecast-cockpit:has(.cockpit-fourteen-day) .cockpit-analysis{margin-top:4px}.forecast-cockpit:has(.cockpit-fourteen-day) .cockpit-analysis-toggle{min-height:27px;padding:4px 8px;border-radius:9px;font-size:7px}
  .forecast-cockpit:has(.cockpit-fourteen-day)>footer{flex-direction:row;gap:5px;padding:5px 8px;font-size:6px}.forecast-cockpit:has(.cockpit-fourteen-day) .cockpit-footer-info{gap:2px}.forecast-cockpit:has(.cockpit-fourteen-day) .cockpit-footer-info>svg{width:9px;height:9px}
 }
+
+/* MID v0.9.64.3 · Modellstand-Pille kollisionsfrei neben der 14-Tage-Überschrift. */
+.cockpit-fourteen-day>.cockpit-brief.compact-fourteen{
+ position:static!important;
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr) max-content!important;
+ align-items:center!important;
+ gap:3px 8px!important;
+ width:100%!important;
+ min-width:0;
+ box-sizing:border-box;
+ isolation:isolate;
+}
+.cockpit-fourteen-day>.cockpit-brief.compact-fourteen>span:first-child{
+ display:grid!important;
+ grid-column:1;
+ min-width:0;
+ gap:1px;
+}
+.cockpit-fourteen-day>.cockpit-brief.compact-fourteen>span:first-child>small,
+.cockpit-fourteen-day>.cockpit-brief.compact-fourteen>span:first-child>strong{max-width:100%;white-space:normal;overflow-wrap:anywhere}
+.cockpit-fourteen-day>.cockpit-brief.compact-fourteen>.cockpit-brief-tools{
+ grid-column:2;
+ align-self:center;
+ justify-self:end;
+ width:auto!important;
+ min-width:max-content;
+ margin:0!important;
+ flex:0 0 auto;
+}
+.cockpit-fourteen-day>.cockpit-brief.compact-fourteen .cockpit-model-run-button{
+ position:relative;
+ z-index:1;
+ min-height:36px!important;
+ max-width:100%;
+ box-sizing:border-box;
+}
+@media (orientation:portrait) and (max-width:900px){
+ .cockpit-fourteen-day>.cockpit-brief.compact-fourteen{grid-template-columns:minmax(0,1fr) max-content!important;gap:3px 6px!important}
+}
+@media (orientation:landscape) and (max-width:1300px){
+ .cockpit-fourteen-day>.cockpit-brief.compact-fourteen{grid-template-columns:minmax(0,1fr) max-content!important;gap:2px 6px!important}
+}

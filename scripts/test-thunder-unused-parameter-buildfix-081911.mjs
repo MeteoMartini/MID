@@ -10,8 +10,8 @@ const [thunder,pkg,baseline]=await Promise.all([
 const failures=[];
 const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
 
-need('Buildfix',thunder,"function threatHeadline(nearNow:boolean,atSite:boolean,approaching:boolean,movingAway:boolean)");
-need('Buildfix',thunder,'legacyHeadline=threatHeadline(nearNow,atSite,approaching,movingAway)');
+need('Buildfix',thunder,"function threatHeadline(nearNow:boolean,atSite:boolean,approaching:boolean,movingAway:boolean,withLightning:boolean)");
+need('Buildfix',thunder,'legacyHeadline=threatHeadline(nearNow,atSite,approaching,movingAway,withLightning)');
 if(/function threatHeadline\(\s*_?cell\b/.test(thunder))failures.push('threatHeadline enthält weiterhin den ungenutzten Parameter cell.');
 if(/threatHeadline\(cell,nearNow/.test(thunder))failures.push('Der alte Aufruf mit cell ist weiterhin vorhanden.');
 need('Package-Test',pkg,'test:thunder-buildfix');
@@ -24,8 +24,8 @@ source.forEachChild(node=>{if(ts.isFunctionDeclaration(node)&&node.name?.text===
 if(!helper)failures.push('threatHeadline wurde nicht gefunden.');
 else{
  const names=helper.parameters.map(parameter=>parameter.name.getText(source));
- if(names.join(',')!=='nearNow,atSite,approaching,movingAway')failures.push(`Unerwartete Parameter: ${names.join(',')}`);
+ if(names.join(',')!=='nearNow,atSite,approaching,movingAway,withLightning')failures.push(`Unerwartete Parameter: ${names.join(',')}`);
 }
 
 if(failures.length){console.error('Gewitter-Buildfix fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Gewitter-Buildfix geprüft: ungenutzter cell-Parameter vollständig entfernt.');
+console.log('Zellbezeichnungs-Buildfix geprüft: ungenutzter cell-Parameter bleibt entfernt; der Blitzstatus steuert Gewitter-/Schauerzelle.');

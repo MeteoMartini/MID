@@ -963,10 +963,11 @@ Das Klimamittel wird standort- und höhenbezogen aus Open-Meteo ERA5-Land für d
 ## Amtliche Wetterwarnungen
 
 - **Deutschland:** DWD-WFS auf Gemeindeebene, DWD-CAP als Rückfallquelle
-- **Europa:** MeteoAlarm-Atom-/CAP-Feeds der nationalen Wetterdienste
+- **Europa:** die aktuell veröffentlichten MeteoAlarm-Atom-/CAP-Feeds der nationalen Wetterdienste; Gebietspolygone/-kreise sowie administrative Namensvarianten werden standortbezogen abgeglichen
 - **USA:** NOAA/National Weather Service Active Alerts
 
 MID zeigt zunächst nur die Überschriften. Der vollständige Meldungstext und vorhandene Handlungshinweise öffnen sich per Klick.
+Pro Standortantwort wird genau die kanonische amtliche Quelle verwendet (in Deutschland DWD, sonst im unterstützten Europa MeteoAlarm); alternative Aggregatoren werden nicht zugemischt. Technische Dubletten werden über CAP-Kennung/Referenzen sowie Ereignis, Gebiet und Gültigkeit zusammengeführt, während tatsächlich getrennte Warnzeiträume erhalten bleiben.
 
 Warnungstest für Niederkassel:
 

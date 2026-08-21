@@ -55,7 +55,7 @@ for(const [name,styles] of [['Quell-CSS',sourceStyles],['Aggregat-CSS',builtStyl
  assert.ok(!section.includes('overflow-x:auto'),`${name}: 14-Tage-Layout darf keinen horizontalen Scrollcontainer erneut einführen.`);
 }
 
-assert.equal(pkg.version,'0.9.64.2','Responsive 14-Tage-Darstellung benötigt Wartungsrelease v0.9.64.2.');
+assert.ok(pkg.version.split('.').slice(0,3).join('.')==='0.9.64'&&Number(pkg.version.split('.')[3])>=2,'Responsive 14-Tage-Darstellung benötigt mindestens Wartungsrelease v0.9.64.2.');
 assert.equal(pkg.scripts?.['test:fourteen-day-orientation-layout'],`node ${test}`,'Package-Testeintrag fehlt.');
 assert.equal(baseline.releaseVersion,pkg.version,'Baseline und Paketversion sind nicht synchron.');
 assert.ok(baseline.requiredRegressionTests?.includes(test),'Verbindliche Baseline-Regression fehlt.');
