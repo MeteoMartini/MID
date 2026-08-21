@@ -1,3 +1,9 @@
+# v0.9.63.1
+
+- CI-Kompatibilität: die Flugbriefing- und Wartungsvertragsregressionen werden unter dem festgelegten Node.js 22.16.0 über das projektlokale TypeScript transpiliert statt `.ts`-Dateien direkt zu importieren.
+- Wartungsregressionen: isolierte Forecast-Fusion-Tests berücksichtigen den gemeinsamen Cachevertrag; historische Persistenz- und Radar-Zeitpfeilprüfungen validieren die ausgelagerten Nutzerverträge statt frühere Quelltextformen.
+- Keine Änderung an Wetterzwilling, Modellfusion, Radar-/Nowcast-Fachlogik, Kompositdarstellung, Persistenzsemantik oder Worker-Datenquellen gegenüber v0.9.63.0.
+
 # v0.9.60.2
 
 - CI/TypeScript: TS7006 im eventbezogenen Ensemble-Frischecallback dauerhaft in der kanonischen weather-Teilquelle behoben.
@@ -4148,3 +4154,28 @@
 - Die dynamische runde Zeitskala aus Schwerpunktströmungs-Geschwindigkeit, Zoom, verfügbarer Kartenstrecke und Displaydichte bleibt erhalten.
 - Standort-/Favoriten-Vertrag verschärft: Der Sichtrichtungspfeil wird nur noch über die tatsächlich aktive Geräteort-Auswahl (`locationSelectionSource === tracked`) freigegeben; ein manuell geöffneter Favorit kann ihn nicht mehr über ein historisches `autolocated`-Flag erben.
 - Bestehende Zeitpfeil-/Zoom-/Flug-/Radar-Regressionen auf den geographischen Vektorvertrag migriert.
+
+
+## 0.9.60.15
+- Komposit-Zeitpfeil: Schaft, Ticks, Zeitlabels und Pfeilspitze werden nun gemeinsam in einem dynamisch aus Geo-Projektionen erzeugten DOM/SVG-Marker gerendert. Dadurch kann die Linie nicht mehr unabhängig von den sichtbaren Labels verschwinden.
+- Das SVG wird bei Zoom/Move/Resize aus den aktuellen Kartenprojektionen neu aufgebaut; die Pfeilspitze bleibt exakt am ausgewählten Ort und Zeitlabels stehen ausschließlich an den Ticks.
+
+
+## 0.9.61.0
+- Wetterzwilling/Fusion konsolidiert: serverseitige Gewichte berücksichtigen Wetterlage, Horizont, Region, Auflösung, Laufaktualität und Latenz; die lokal gemessene Prognosegüte bleibt eine datensparsame Gerätestufe.
+- Rapid-Cycle-Varianten derselben Modellfamilie teilen sich ein Unabhängigkeitsbudget und können die Fusion nicht durch Doppelgewichtung dominieren.
+- Erweiterte Quellen-/Gewichtungsdiagnose weist Tagesfaktoren, Gruppenbudgets, lokale Skill-Gewichte und die nachgelagerte Nowcast-Stufe aus.
+- Alle Wetteransichten bleiben an die kanonischen `displayHours`/`displayMinutes15` und daraus abgeglichene Tageswerte gebunden.
+
+
+## 0.9.62.0
+- Flugmeteorologie als textuelles Streckenbriefing erweitert: zwei bis acht Wegpunkte, Korridor, Flughöhe sowie Start-/Landezeit bilden einen gemeinsamen Routenvertrag.
+- Hazard-Orte werden als größere Räume/Streckenabschnitte mit gerundeten Entfernungen und Eintritts-/Austrittsfenstern beschrieben.
+- Neues vertikales Textbriefing für Bewölkung, Vereisung, Turbulenz/Windscherung, Konvektion und Wind; keine Rückkehr zur alten Cross-Section-Grafik.
+
+
+## 0.9.63.0
+- Große Flug-, Radar-/Komposit- und Wetterdiagnosepfade in eigene Fachmodule aufgeteilt; gemeinsame Cache- und Persistenzverträge eingeführt.
+- Komposit-Layer-Zustand einschließlich Aktivierung, Kartenstil, Transparenzen und Bewegungszeitmodus bleibt unter dem bestehenden v3-Vertrag dauerhaft erhalten.
+- Cloudflare-KV-Last reduziert: regelabhängige Kadenzen, metadata-only Scheduling, zustandsabhängige Writes und gedrosselte Heartbeats ohne Wegfall von Regeln oder Datenquellen.
+- Regressionen prüfen die kanonische Prognose, das textuelle Flugbriefing, dauerhafte Nutzerzustände und das KV-Operationsbudget.

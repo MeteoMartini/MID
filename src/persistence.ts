@@ -1,12 +1,11 @@
 import {storageFallbackEntries} from './storageSafety';
+import {isPersistentBackupKey} from './storageContracts';
 const DB_NAME='mid-persistent-state';
 const STORE='snapshots';
 const SNAPSHOT_KEY='current';
 const CACHE_NAME='mid-state-backup-v1';
 const CACHE_URL='./__mid_state_backup__.json';
-const TRANSIENT_PREFIXES=['mid:analysis-cache:','mid:ensemble:','mid:climatology:','mid:travel-climate:','mid:travel-snow-depth:','mid:forecast-fusion:','mid:forecast-core:','mid:icao-location-cache:','mid:eea-station-cache:','mid:thunder-place-cache:','mid:synoptic-snapshot:','mid:worker:lastGood','mid:update','mid:runtime','mid:state-restored','mid:twin-background','mid:web-analytics-status'];
-function isMainModuleViewStateKey(key:string){return /^mid:module:[^:]+:open$/.test(key)||key.startsWith('mid:module-open-contract:')}
-const INCLUDED_KEYS=(key:string)=>(key.startsWith('mid:')||['theme','windUnit'].includes(key))&&!TRANSIENT_PREFIXES.some(prefix=>key.startsWith(prefix))&&!isMainModuleViewStateKey(key);
+const INCLUDED_KEYS=isPersistentBackupKey;
 
 type Snapshot={schema:'mid-state';version:1;savedAt:string;values:Record<string,string>};
 type IdleWindow=Window&{requestIdleCallback?:(callback:()=>void,options?:{timeout:number})=>number;cancelIdleCallback?:(handle:number)=>void};

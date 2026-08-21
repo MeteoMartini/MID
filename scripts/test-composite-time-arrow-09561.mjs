@@ -1,21 +1,21 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 const root=new URL('../',import.meta.url);
-const [radar,pkgText,baselineText]=await Promise.all(['src/RadarPanel.tsx','package.json','MID_BASELINE.json'].map(path=>readFile(new URL(path,root),'utf8')));
+const [radar,settings,pkgText,baselineText]=await Promise.all(['src/RadarPanel.tsx','src/compositeSettings.ts','package.json','MID_BASELINE.json'].map(path=>readFile(new URL(path,root),'utf8'))),contractSource=`${radar}\n${settings}`;
 assert.ok(radar.includes('label="Zeitpfeil"'),'Der Komposit-Schalter „Zeitpfeil“ fehlt.');
 assert.ok(!radar.includes('label="Zugbahn"'),'Der alte Komposit-Schalter „Zugbahn“ ist noch vorhanden.');
 for(const token of [
- 'function motionTrackArrowheadIcon(',
+ 'function motionTrackCompositeIcon(',
  'const MOTION_AXIS_NICE_STEPS=[2,5,10,15,20,30,45,60] as const;',
  'function fittedMotionStep(rawMinutes:number,pxPerMinute:number,availablePx:number)',
  'tickMinutes=Array.from({length:tickCount},(_,index)=>stepMinutes*(index+1))',
  'upstreamBearing=(resolved.direction+180)%360',
  'trackStart=destinationPoint(site,upstreamBearing,trackKm)',
- "renderer=useMemo(()=>L.svg({pane:'mid-motion-vectors',padding:.85} as any),[])",
- '<Polyline renderer={renderer} pane="mid-motion-vectors" positions={[geometry.trackStart,site] as any}',
- '<Marker pane="mid-motion-labels" position={site} icon={motionTrackArrowheadIcon(resolved.direction,confidence)}',
- 'geometry.ticks.map(tick=><Fragment',
- 'position={tick.position} icon={motionTimeIcon(',
+ "const confidence=analysis.motionConfidence||'low',icon=motionTrackCompositeIcon(map,site,geometry,referenceMs,timezone,mode,confidence)",
+ 'return <Marker pane="mid-motion-labels" position={site} icon={icon}',
+ '<Marker pane="mid-motion-labels" position={site} icon={icon}',
+ 'geometry.ticks.map((tick,index)=>',
+ 'label=motionTimeLabel(',
  'arrivalEpochMs:referenceMs+minutes*60000',
  'referenceMs={Number.isFinite(targetMs)?targetMs:Date.now()}',
  "motionTimeMode:MotionTimeMode=raw.motionTimeMode==='relative'?'relative':'absolute'",
@@ -23,9 +23,9 @@ for(const token of [
  "if(steeringValid)return{direction:normalizeBearing(steeringDirection)",
  'steeringCloudCenterHpa',
  'steeringProfileMode'
-]) assert.ok(radar.includes(token),`Zeitpfeil-Vertrag fehlt: ${token}`);
-assert.ok(!radar.includes('position={site} icon={motionTimeIcon'),'Direkt am Ort darf keine Zeitmarke liegen.');
-assert.ok(!radar.includes('motionTrackGraphicIcon'),'Der Zeitpfeil darf nicht auf das zoominstabile Komplett-DivIcon zurückfallen.');
+]) assert.ok(contractSource.includes(token),`Zeitpfeil-Vertrag fehlt: ${token}`);
+assert.ok(!radar.includes('position={site} icon={motionTimeIcon'),'Direkt am Ort darf keine separate Zeitmarke erzeugt werden.');
+assert.ok(radar.includes('iconAnchor:[-minX,-minY]'),'Das dynamische Komplett-SVG muss exakt am Zielort verankert sein.');
 assert.ok(!radar.includes('CanvasOverlay'),'Der Zeitpfeil darf nicht auf den früher unsichtbaren Canvas-Pfad zurückfallen.');
 const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText),test='scripts/test-composite-time-arrow-09561.mjs';
 assert.equal(pkg.scripts?.['test:composite-time-arrow'],`node ${test}`);

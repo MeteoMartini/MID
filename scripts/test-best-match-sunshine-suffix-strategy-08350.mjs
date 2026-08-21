@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import {createRequire} from 'node:module';
+import {createRequire,stripTypeScriptTypes} from 'node:module';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
@@ -21,7 +21,7 @@ for(const token of [
  'selectWeatherRepair',
  "sourceRole:repaired?'repair':'best-match'",
  'Best Match bleibt für Kurzfrist, 7-Tage-Vorhersage',
- 'modellspezifische API-Suffixe',
+ 'suffixFields',
  'MOSMIX wird bewusst nur als lokales Postprocessing'
 ])assert.ok(worker.includes(token),`Best-Match-/Suffixstrategie fehlt im Worker: ${token}`);
 
@@ -31,7 +31,7 @@ for(const token of [
  "weatherBundleKind:repaired?'coherent-model':'best-match'",
  'repairedHours',
  'multiModelSuffixes',
- "const CACHE_PREFIX='mid:forecast-fusion:v8:'",
+ "const CACHE_PREFIX='mid:forecast-fusion:v9:'",
  'Math.min(86400,(sunset-sunrise)/1000)'
 ])assert.ok(fusionSource.includes(token),`Sonnenstunden-/Bündelvertrag fehlt im Frontend: ${token}`);
 assert.ok(app.includes('Best Match · geprüft und lokal nachkorrigiert'),'7-Tage-Ansicht muss Best Match als Primärprognose benennen');
@@ -41,17 +41,18 @@ for(const token of [
 ])assert.ok(app.includes(token),`Lokale Nachkorrektur muss auf der bereits geprüften Best-Match-Prognose aufsetzen: ${token}`);
 for(const token of ['<MemoCurrent key={id} w={w!} hours={displayHours} days={displayDays}','<MemoForecast key={`forecast:${layoutMode}:${layoutRevision}:${weatherTwinSettings.useAsMainForecast}`} days={displayDays} hours={displayHours}','<MemoLazyEnsembles data={ens} scenarios={ensembleScenarios} models={models} runs={modelStatusRuns} days={displayDays} hours={displayHours}','<Widget loc={loc!} days={displayDays} hours={displayHours}'])assert.ok(app.includes(token),`Sektion verwendet nicht die zentral abgeglichenen Sonnenstunden: ${token}`);
 
-const require=createRequire(import.meta.url);let ts;try{ts=require('typescript')}catch{ts=require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript')}
+const require=createRequire(import.meta.url);let ts;try{ts=require('typescript')}catch{}
 const tempDir=fs.mkdtempSync(path.join(os.tmpdir(),'mid-sunshine-best-match-'));
 try{
  const executable=fusionSource
   .replace("import {fetchWorkerJson} from './workerClient';","const fetchWorkerJson=async()=>{throw new Error('not used')};")
   .replace("import {reconcileForecastPrecipitation} from './precipitation';",`const reconcileForecastPrecipitation=input=>({precipitation:Math.max(0,Number(input.precipitation)||0),rain:Math.max(0,Number(input.rain)||0),showers:Math.max(0,Number(input.showers)||0),snowfall:Math.max(0,Number(input.snowfall)||0),probability:Math.max(0,Math.min(100,Number(input.probability)||0)),code:Math.round(Number(input.code)||0),traceSuppressed:false});`)
+  .replace("import {readStoredJsonCache,writeStoredJsonCache} from './cachePolicy';","const readStoredJsonCache=()=>undefined;const writeStoredJsonCache=()=>false;")
   .replace("import type {Day,Hour,RadarNowcast,ThunderstormNowcast} from './weather';",'');
- const out=ts.transpileModule(executable,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS},fileName:'forecastFusion.ts',reportDiagnostics:true});
- const errors=(out.diagnostics||[]).filter(item=>item.category===ts.DiagnosticCategory.Error);
- assert.equal(errors.length,0,errors.map(item=>ts.flattenDiagnosticMessageText(item.messageText,' ')).join('\n'));
- const modulePath=path.join(tempDir,'forecastFusion.cjs');fs.writeFileSync(modulePath,out.outputText);const fusion=require(modulePath);
+ const out=ts?ts.transpileModule(executable,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022},fileName:'forecastFusion.ts',reportDiagnostics:true}):{outputText:stripTypeScriptTypes(executable,{mode:'transform'}),diagnostics:[]};
+ const errors=(out.diagnostics||[]).filter(item=>item.category===ts?.DiagnosticCategory?.Error);
+ assert.equal(errors.length,0,errors.map(item=>ts?.flattenDiagnosticMessageText(item.messageText,' ')??String(item.messageText)).join('\n'));
+ const modulePath=path.join(tempDir,'forecastFusion.mjs');fs.writeFileSync(modulePath,out.outputText);const fusion=await import(`${pathToFileURL(modulePath).href}?v=${Date.now()}`);
 
  const originalNow=Date.now;Date.now=()=>Date.UTC(2026,7,2,18,22);
  try{

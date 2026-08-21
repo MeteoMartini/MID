@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {createRequire} from 'node:module';
+import {createRequire,stripTypeScriptTypes} from 'node:module';
 
-const require=createRequire(import.meta.url),ts=require('typescript'),test='scripts/test-current-shortterm-temperature-consistency-095340.mjs';
+const require=createRequire(import.meta.url);let ts;try{ts=require('typescript')}catch{}const test='scripts/test-current-shortterm-temperature-consistency-095340.mjs';
 const [presentation,app,shortTerm,cockpit,eventEngine,forecastContract,hyperlocalContract,pkgRaw,baselineRaw]=await Promise.all([
  readFile(new URL('../src/forecastPresentation.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
@@ -14,8 +14,8 @@ const [presentation,app,shortTerm,cockpit,eventEngine,forecastContract,hyperloca
  readFile(new URL('../package.json',import.meta.url),'utf8'),
  readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')
 ]);
-const compiled=ts.transpileModule(presentation,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022,strict:true},reportDiagnostics:true,fileName:'forecastPresentation.ts'});
-assert.equal(compiled.diagnostics?.length??0,0,'forecastPresentation.ts muss transpilerbar bleiben.');
+const compiled=ts?ts.transpileModule(presentation,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022,strict:true},reportDiagnostics:true,fileName:'forecastPresentation.ts'}):{outputText:stripTypeScriptTypes(presentation,{mode:'transform'}),diagnostics:[]};
+assert.equal(compiled.diagnostics?.filter(item=>item.category===ts?.DiagnosticCategory?.Error).length??0,0,'forecastPresentation.ts muss transpilerbar bleiben.');
 const module=await import(`data:text/javascript;base64,${Buffer.from(compiled.outputText).toString('base64')}`);
 
 // Screenshot-Regressionsfall: Current 21 °C um 09:37 darf in der unmittelbar folgenden

@@ -1,6 +1,7 @@
 import {readFile} from 'node:fs/promises';
-const [radar,weather,styles,worker]=await Promise.all([
+const [radar,composite,weather,styles,worker]=await Promise.all([
  readFile(new URL('../src/RadarPanel.tsx',import.meta.url),'utf8'),
+ readFile(new URL('../src/compositeSettings.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/weather.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/styles.css',import.meta.url),'utf8'),
  readFile(new URL('../worker/metar-proxy.js',import.meta.url),'utf8')
@@ -25,8 +26,9 @@ for(const token of [
  "Pane name=\"mid-model-lines\"",
  'dominantModelFrame&&<Pane',
  "window.setInterval(load,60*60000)",
- "setTimeout(()=>{try{localStorage.setItem"
+ 'writeCompositeSettings('
 ])if(!radar.includes(token))failures.push(`Komposit-/Performance-Optimierung fehlt: ${token}`);
+for(const token of ['COMPOSITE_SETTINGS_KEY','COMPOSITE_LAYERS_KEY','localStorage.setItem(COMPOSITE_SETTINGS_KEY','localStorage.setItem(COMPOSITE_LAYERS_KEY'])if(!composite.includes(token))failures.push(`Ausgelagerte Komposit-Persistenz fehlt: ${token}`);
 if(radar.includes("modelFrameBlend.map(({frame,weight})"))failures.push('Modellkonturen werden weiterhin doppelt über mehrere Überblendframes gerendert.');
 for(const token of ['.maplibre-mid-model-lines-pane','.mid-model-contour.halo','.mid-model-contour.foreground'])if(!styles.includes(token))failures.push(`Sichtbarkeits-CSS der Modellkonturen fehlt: ${token}`);
 for(const token of ['cacheTtl:1800',"max-age=1800"])if(!worker.includes(token))failures.push(`Worker-Cache für Modellkonturen fehlt: ${token}`);

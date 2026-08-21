@@ -15,8 +15,8 @@ for(const token of [
  'tickMinutes=Array.from({length:tickCount},(_,index)=>stepMinutes*(index+1))',
  'trackKm=Math.max(.5,resolved.speed*leadMinutes/60)',
  'crossHalfKm=Math.max(.08,Math.min(8,16/Math.max(.1,pxPerKm)))',
- "renderer=useMemo(()=>L.svg({pane:'mid-motion-vectors',padding:.85} as any),[])",
- '<Polyline renderer={renderer} pane="mid-motion-vectors" positions={[geometry.trackStart,site] as any}',
+ "const confidence=analysis.motionConfidence||'low',icon=motionTrackCompositeIcon(map,site,geometry,referenceMs,timezone,mode,confidence)",
+ 'return <Marker pane="mid-motion-labels" position={site} icon={icon}',
  'useMapEvents({moveend:()=>setViewRevision(value=>value+1),zoomend:()=>setViewRevision(value=>value+1),resize:()=>setViewRevision(value=>value+1)})'
 ]) assert.ok(radar.includes(token),`Dynamischer Zoom-/Skalenvertrag fehlt: ${token}`);
 for(const forbidden of ['const MOTION_AXIS_LEAD_MINUTES=60;','const MOTION_AXIS_TICK_MINUTES=[15,30,45,60] as const;','motionTrackGraphicIcon']) assert.ok(!radar.includes(forbidden),`Zeitpfeil darf nicht auf starre/zoominstabile Skala zurückfallen: ${forbidden}`);

@@ -1,13 +1,14 @@
 import {readFile} from 'node:fs/promises';
 import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url),ts=require('typescript');
-const [app,thunder,radar,weather,worker,styles]=await Promise.all([
+const [app,thunder,radar,weather,worker,styles,composite]=await Promise.all([
  readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/thunderstorm.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/RadarPanel.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/weather.ts',import.meta.url),'utf8'),
  readFile(new URL('../worker/metar-proxy.js',import.meta.url),'utf8'),
- readFile(new URL('../src/styles.css',import.meta.url),'utf8')
+ readFile(new URL('../src/styles.css',import.meta.url),'utf8'),
+ readFile(new URL('../src/compositeSettings.ts',import.meta.url),'utf8')
 ]);
 const failures=[];
 const need=(label,text,tokens)=>{for(const token of tokens)if(!text.includes(token))failures.push(`${label}: ${token}`)};
@@ -15,7 +16,8 @@ need('KONRAD3D-Ortsbezug Worker',worker,['siteBearingDeg:Number(bearingTowards(l
 need('KONRAD3D-Typvertrag',weather,['siteBearingDeg?:number','forecastUncertaintyKm?:number']);
 need('Gewitterkarte',app,["displayLocationName=currentFavorite?favoriteLabel(currentFavorite):loc?.name??'Standort'",'combineThunderstormInformation(thunderAnalysis,hours,radarAnalysis,st,displayLocationName)','KONRAD3D-Zellinformationen anzeigen','thunder-detail-list']);
 need('Gewitterauswertung',thunder,['Aktuell ${Math.max(1,Math.round(currentDistance))} km','größte berechnete Annäherung','Aktuelle Entfernung / Richtung','Wirksamer Mindestabstand','Unsicherheitsradius','Datenstand']);
-need('Optionale Verlagerung',radar,['showMotionOverlay:boolean','showMotionOverlay:true','showMotion=showMotionOverlay&&motionAvailable','label="Zeitpfeil"','motionButtonDetail=motionAvailable?']);
+need('Optionale Verlagerung',radar,['showMotionOverlay:boolean','showMotion=showMotionOverlay&&motionAvailable','label="Zeitpfeil"','motionButtonDetail=motionAvailable?']);
+need('Standardzustand Zeitpfeil',composite,['showMotionOverlay:true']);
 need('Objektlegende',radar,['function NowcastObjectLegend()','KONRAD3D schwach','NowCastMIX-Blitzgeometrie','Zellprognose','showNowcastObjects&&<NowcastObjectLegend/>']);
 need('Objekt- und Tooltip-Styling',styles,['.thunder-detail-list{','.nowcast-object-legend{','.konrad-dot.weak{','.konrad-track-sample{','.nowcastmix-dot{','.konrad-popup{']);
 

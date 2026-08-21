@@ -38,8 +38,10 @@ for(const token of [
  'lastNotificationAt:existing?.lastNotificationAt',
  'const canNotify=()=>pushNotificationReady(lastNotificationAt,notificationIntervalMinutes)',
  'if(trigger&&canNotify())',
- 'lastNotificationAt,state,checkedAt'
+ 'lastNotificationAt,state},after=JSON.stringify'
 ])if(!worker.includes(token))failures.push(`Worker-Cooldown fehlt: ${token}`);
+const evaluatorStart=worker.indexOf('async function evaluatePushEntry'),evaluator=worker.slice(evaluatorStart,worker.indexOf('\nfunction deviceSyncConfigured',evaluatorStart));
+if(evaluator.includes('checkedAt:new Date().toISOString()'))failures.push('Unveränderte Schedulerprüfungen dürfen keinen checkedAt-Write mehr erzeugen.');
 for(const token of ['.push-frequency-group','.push-interval-setting','.push-interval-setting select'])if(!styles.includes(token))failures.push(`Intervall-Styling fehlt: ${token}`);
 
 try{

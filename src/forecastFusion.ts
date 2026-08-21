@@ -1,5 +1,6 @@
 import {fetchWorkerJson} from './workerClient';
 import {reconcileForecastPrecipitation} from './precipitation';
+import {readStoredJsonCache,writeStoredJsonCache} from './cachePolicy';
 import type {Day,Hour,Minute15,RadarNowcast,RadarNowcastFrame,RadarNowcastInterval,ThunderstormNowcast} from './weather';
 
 export type ForecastFusionTier=1|2|3|4;
@@ -92,6 +93,9 @@ export type ForecastFusionDay={
  contributors:string[];
  mosmixApplied?:boolean;
 };
+export type ForecastFusionWeightFactors={tierFactor:number;horizonFactor:number;regionalFactor:number;regimeFactor:number;rapidFactor:number;latencyFactor:number;freshnessFactor:number};
+export type ForecastFusionWeightContributor={id:string;label:string;independenceGroup:string;normalizedWeight:number;rawWeight:number;groupBudget:number;rapidUpdate:boolean;tier:ForecastFusionTier;resolutionKm?:number;factors:ForecastFusionWeightFactors};
+export type ForecastFusionWeighting={date:string;horizonDays:number;regime:string;independentFamilies:number;contributors:ForecastFusionWeightContributor[]};
 
 export type ForecastLocalAnchorField='temperature'|'apparent'|'humidity'|'dewPoint'|'pressure'|'wind'|'gust'|'direction'|'cloud'|'lowCloud'|'visibility'|'precipitation'|'code';
 export type ForecastLocalAnchor={
@@ -132,12 +136,12 @@ export type ForecastFusionResult={
  hours?:ForecastFusionHour[];
  weatherHours?:ForecastWeatherBundleHour[];
  mosmix?:ForecastFusionMosmix;
- diagnostics?:{bestMatchPreferred?:boolean;repairedHours?:number;repairSources?:string[];multiModelSuffixes?:boolean;modelSuffixes?:Record<string,string[]>};
+ diagnostics?:{bestMatchPreferred?:boolean;repairedHours?:number;repairSources?:string[];multiModelSuffixes?:boolean;modelSuffixes?:Record<string,string[]>;forceRefreshed?:boolean;weightingByDate?:ForecastFusionWeighting[];independenceBudget?:string;localSkillStage?:string};
  error?:string;
  cached?:boolean;
 };
 
-const CACHE_PREFIX='mid:forecast-fusion:v8:';
+const CACHE_PREFIX='mid:forecast-fusion:v9:';
 const FRESH_MS=35*60*1000;
 const STALE_MS=8*60*60*1000;
 
@@ -350,13 +354,9 @@ export function finalizeForecastHours(hours:Hour[],days:Day[],options:ForecastHo
 }
 function cacheKey(lat:number,lon:number){return`${CACHE_PREFIX}${(Math.round(lat*20)/20).toFixed(2)}:${(Math.round(lon*20)/20).toFixed(2)}`}
 function readCache(lat:number,lon:number,maxAge=STALE_MS){
- try{
-  const parsed=JSON.parse(localStorage.getItem(cacheKey(lat,lon))||'null') as {at?:number;value?:ForecastFusionResult}|null;
-  if(!parsed?.value||!Number.isFinite(parsed.at)||Date.now()-Number(parsed.at)>maxAge)return null;
-  return{...parsed.value,cached:true} satisfies ForecastFusionResult;
- }catch{return null}
+ try{const value=readStoredJsonCache<ForecastFusionResult>(localStorage,cacheKey(lat,lon),maxAge);return value?{...value,cached:true} satisfies ForecastFusionResult:null}catch{return null}
 }
-function writeCache(lat:number,lon:number,value:ForecastFusionResult){try{localStorage.setItem(cacheKey(lat,lon),JSON.stringify({at:Date.now(),value}))}catch{}}
+function writeCache(lat:number,lon:number,value:ForecastFusionResult){try{writeStoredJsonCache(localStorage,cacheKey(lat,lon),value,[CACHE_PREFIX],12,STALE_MS)}catch{}}
 
 export async function loadForecastFusion(lat:number,lon:number,country:string|undefined,elevation:number|undefined,signal?:AbortSignal,forceRefresh=false):Promise<ForecastFusionResult|null>{
  const fresh=forceRefresh?null:readCache(lat,lon,FRESH_MS);if(fresh)return fresh;

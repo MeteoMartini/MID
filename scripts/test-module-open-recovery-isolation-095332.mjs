@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
-const [app,persistence,storageSafety,portable,stateContract,pkgRaw,baselineRaw]=await Promise.all([
+const [app,persistence,storageSafety,storageContracts,portable,stateContract,pkgRaw,baselineRaw]=await Promise.all([
  readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/persistence.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/storageSafety.ts',import.meta.url),'utf8'),
+ readFile(new URL('../src/storageContracts.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/portableUserData.ts',import.meta.url),'utf8'),
  readFile(new URL('../MID_STATE_INTEGRITY_CONTRACT.md',import.meta.url),'utf8'),
  readFile(new URL('../package.json',import.meta.url),'utf8'),
@@ -24,10 +25,10 @@ assert.match(app,/const commitOpen=useCallback\(\(next:boolean\|\(\(value:boolea
 assert.doesNotMatch(app,/useEffect\(\(\)=>\{persistModuleOpen\(id,open\)\}/,'Modulzustand darf nicht ausschließlich über einen nachgelagerten Effect gespeichert werden.');
 
 // Recovery-Snapshot und StorageSafety-Spiegel dürfen Hauptmodulzustände nie wieder als durable User-Daten behandeln.
-assert.match(persistence,/function isMainModuleViewStateKey\(key:string\)/,'Recovery-Isolationsfilter fehlt in persistence.ts.');
-assert.match(persistence,/!isMainModuleViewStateKey\(key\)/,'Recovery-Snapshot schließt Hauptmodulzustände nicht aus.');
-assert.match(storageSafety,/export function isMainModuleViewStateKey\(key:string\)/,'StorageSafety-Isolationsfilter fehlt.');
-assert.match(storageSafety,/return !isMainModuleViewStateKey\(key\)&&/,'StorageSafety behandelt Hauptmodulzustände weiterhin als durable.');
+assert.match(storageContracts,/export function isMainModuleViewStateKey\(key:string\)/,'Gemeinsamer Recovery-Isolationsfilter fehlt.');
+assert.match(storageContracts,/!isMainModuleViewStateKey\(key\)/,'Gemeinsamer Recovery-Snapshotvertrag schließt Hauptmodulzustände nicht aus.');
+assert.match(persistence,/import \{isPersistentBackupKey\} from '.\/storageContracts'/,'Recovery-Snapshot nutzt nicht den gemeinsamen Schlüsselvertrag.');
+assert.match(storageSafety,/export \{isDurableStorageKey,isMainModuleViewStateKey,isTransientStorageKey\} from '.\/storageContracts'/,'StorageSafety exportiert den gemeinsamen Isolationsvertrag nicht.');
 assert.match(storageSafety,/if\(isMainModuleViewStateKey\(key\)\)\{queueDelete\(key\);continue\}/,'Alte IndexedDB-Spiegelstände werden nicht aktiv entfernt.');
 assert.match(storageSafety,/isMainModuleViewStateKey\(key\)\?native\?\.get\(key\)\?\?null/,'Nicht-durable Modulzustände dürfen nicht aus dem Fallback-Spiegel gelesen werden.');
 

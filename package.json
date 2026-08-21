@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.60.14",
+  "version": "0.9.63.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -286,7 +286,12 @@
     "test:composite-time-axis-template": "node scripts/test-composite-time-axis-template-09609.mjs",
     "test:composite-time-arrow-zoom-scale": "node scripts/test-composite-time-arrow-zoom-scale-09610.mjs",
     "test:aqi-pollutant-scale-alignment": "node scripts/test-aqi-pollutant-scale-alignment-09611.mjs",
-    "test:aggregate-version-contract": "node scripts/test-aggregate-version-contract-09613.mjs"
+    "test:aggregate-version-contract": "node scripts/test-aggregate-version-contract-09613.mjs",
+    "test:composite-time-arrow-dom-render": "node scripts/test-composite-time-arrow-dom-render-09615.mjs",
+    "test:forecast-fusion-canonical-weighting": "node scripts/test-forecast-fusion-canonical-weighting-09610.mjs",
+    "test:flight-text-vertical-briefing": "node scripts/test-flight-text-vertical-briefing-09620.mjs",
+    "test:maintenance-user-contracts": "node scripts/test-maintenance-user-contracts-09630.mjs",
+    "test:worker-kv-operations-budget": "node scripts/test-worker-kv-operations-budget-09631.mjs"
   },
   "dependencies": {
     "astronomy-engine": "^2.1.19",

@@ -31,7 +31,7 @@ assert.equal(pkg.version,baseline.releaseVersion,'Releaseversion des Radar-Blend
 
 const directory=mkdtempSync(join(tmpdir(),'mid-radar-blend-'));
 try{
- const executable=blendSource.replace("import {fetchWorkerJson} from './workerClient';","const fetchWorkerJson=async()=>{throw new Error('not used')};").replace("import {reconcileForecastPrecipitation} from './precipitation';","const reconcileForecastPrecipitation=input=>input;").replace("import type {Day,Hour,RadarNowcast,RadarNowcastFrame,ThunderstormNowcast} from './weather';",'');
+ const executable=blendSource.replace("import {fetchWorkerJson} from './workerClient';","const fetchWorkerJson=async()=>{throw new Error('not used')};").replace("import {reconcileForecastPrecipitation} from './precipitation';","const reconcileForecastPrecipitation=input=>input;").replace("import {readStoredJsonCache,writeStoredJsonCache} from './cachePolicy';","const readStoredJsonCache=()=>undefined;const writeStoredJsonCache=()=>false;").replace("import type {Day,Hour,RadarNowcast,RadarNowcastFrame,ThunderstormNowcast} from './weather';",'');
  const compiled=ts.transpileModule(executable,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext},fileName:'forecastFusion.ts'}).outputText;
  const modulePath=join(directory,'radarBlend.mjs');writeFileSync(modulePath,compiled);
  const {blendRadarAtTarget}=await import(`${pathToFileURL(modulePath).href}?v=${Date.now()}`);

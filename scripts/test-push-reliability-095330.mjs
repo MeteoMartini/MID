@@ -13,7 +13,8 @@ const [worker,client,panel,contract,source,sw,sw2,baselineRaw]=await Promise.all
 const baseline=JSON.parse(baselineRaw);
 for(const route of ["mode==='push-status'","mode==='push-test'"])assert.ok(worker.includes(route),`Workerroute fehlt: ${route}`);
 assert.ok(worker.includes("PUSH_SCHEDULER_HEARTBEAT_KEY='meta:push-scheduler:v1'"),'Scheduler-Heartbeat fehlt.');
-assert.match(worker,/runPushSchedule[\s\S]{0,1800}do\{const listed=await env\.MID_PUSH_SUBSCRIPTIONS\.list[\s\S]{0,500}while\(!complete&&cursor\)/,'Scheduler muss KV paginiert vollständig lesen.');
+assert.match(worker,/async function pushSubscriptionKeyList\(env\)\{[\s\S]{0,500}do\{const listed=await env\.MID_PUSH_SUBSCRIPTIONS\.list[\s\S]{0,500}while\(!complete&&cursor\)/,'Gemeinsamer KV-Listener muss alle Subscription-Seiten paginiert lesen.');
+assert.match(worker,/async function runPushSchedule\(env\)[\s\S]{0,600}pushSubscriptionKeyList\(env\)/,'Scheduler muss den vollständigen paginierten Subscription-Listener verwenden.');
 assert.doesNotMatch(worker,/function validPushFavorites\(value\)[\s\S]{0,300}slice\(0,24\)/,'Push-Favoriten dürfen nicht still auf 24 gekappt werden.');
 assert.match(worker,/minutely_15',CORE_FORECAST_MINUTELY/,'Niederschlags-Push muss die kanonischen 15-Minuten-Felder einschließlich Wahrscheinlichkeit anfordern.');
 assert.match(worker,/pushWeatherState[\s\S]{0,1800}reconcileForecastPrecipitation\(/,'Niederschlags-Push muss zentrale Reconciliation verwenden.');

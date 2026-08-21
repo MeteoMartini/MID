@@ -1,7 +1,8 @@
 import {readFile} from 'node:fs/promises';
 
-const [cross,styles,pkg,baseline]=await Promise.all([
+const [cross,briefing,styles,pkg,baseline]=await Promise.all([
   readFile(new URL('../src/CrossSectionPanel.tsx',import.meta.url),'utf8'),
+  readFile(new URL('../src/flightRouteBriefing.ts',import.meta.url),'utf8'),
   readFile(new URL('../src/styles.css',import.meta.url),'utf8'),
   readFile(new URL('../package.json',import.meta.url),'utf8'),
   readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')
@@ -17,17 +18,13 @@ for(const token of [
   'Start- und Landezeit müssen gültig sein',
   '<span>Flughöhe</span>',
   "fetchWorkerJson<CrossSectionData>('flight-cross-section'",
-  'function pointHazards(',
-  'function hazardRuns(',
-  'function officialSignals(',
   'Wann und in welchem größeren Raum ist etwas zu erwarten?',
   'AMTLICHE / OPERATIVE SIGNALE',
-  'Wolkenuntergrenze Start',
-  'Wolkenuntergrenze Landung',
-  'Turbulenz / vertikale Windscherung',
-  'Konvektion / Gewitter',
+  'VERTIKALPROFIL · TEXTBRIEFING',
   'Die frühere Cross-Section-Grafik bleibt durch das handlungsorientierte Streckenbriefing ersetzt'
 ])need('Cross-Section-Streckenbriefing',cross,token);
+
+for(const token of ['function pointHazards(','function hazardRuns(','function officialSignals(','Wolkenuntergrenze Start','Wolkenuntergrenze Landung','Turbulenz / vertikale Windscherung','Konvektion / Gewitter','hazardTransitionWindow','verticalHazardRuns'])need('Cross-Section-Fachvertrag',briefing,token);
 
 for(const token of [
   '.flight-route-briefing{',

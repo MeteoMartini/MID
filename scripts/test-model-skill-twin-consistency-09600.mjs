@@ -33,7 +33,7 @@ assert.ok(weatherSrc.includes("return{id:model.id,label:model.label,kind:'ensemb
 for(const token of ['effectiveModelFreshness','representativeResultsForDate',"parameter:EnsembleWeightParameter='general'",'variantSelectionScore','groupDivisor=Math.max(1,groupCounts.get(r.model.independenceGroup)'])assert.ok(weather.includes(token),`Ensemblegewichtung fehlt: ${token}`);
 assert.ok(weather.includes("const ENSEMBLE_CACHE_PREFIX='mid:ensemble:v15:'")&&weather.includes("const EVENT_ENSEMBLE_CACHE_PREFIX='mid:event-ensemble:v3:'"),'Ensemble-Caches wurden nach Gewichtsänderung nicht invalidiert.');
 for(const token of ['forecastFusionFreshness','runFreshness','freshnessTargets=successful.slice(0,12)','const families=new Map()','budget=Math.max(...representatives.map(row=>row.weight))'])assert.ok(worker.includes(token),`Deterministische Fusions-Frische/Familienbudget fehlt: ${token}`);
-assert.ok(fusion.includes("const CACHE_PREFIX='mid:forecast-fusion:v8:'"),'Forecast-Fusion-Cache wurde nicht invalidiert.');
+assert.ok(fusion.includes("const CACHE_PREFIX='mid:forecast-fusion:v9:'"),'Forecast-Fusion-Cache wurde nicht invalidiert.');
 
 // MeteoSwiss horizonrichtig.
 assert.match(worker,/id:'meteoswiss_icon_ch1'.*maxDays:1\.4/s);assert.match(worker,/id:'meteoswiss_icon_ch2'.*maxDays:5/s);

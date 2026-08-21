@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.60.14",
+  "releaseVersion": "0.9.63.1",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -235,7 +235,12 @@
     "scripts/test-composite-time-axis-template-09609.mjs",
     "scripts/test-composite-time-arrow-zoom-scale-09610.mjs",
     "scripts/test-aqi-pollutant-scale-alignment-09611.mjs",
-    "scripts/test-aggregate-version-contract-09613.mjs"
+    "scripts/test-aggregate-version-contract-09613.mjs",
+    "scripts/test-composite-time-arrow-dom-render-09615.mjs",
+    "scripts/test-forecast-fusion-canonical-weighting-09610.mjs",
+    "scripts/test-flight-text-vertical-briefing-09620.mjs",
+    "scripts/test-maintenance-user-contracts-09630.mjs",
+    "scripts/test-worker-kv-operations-budget-09631.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -403,7 +408,12 @@
     "scripts/test-composite-time-axis-template-09609.mjs",
     "scripts/test-composite-time-arrow-zoom-scale-09610.mjs",
     "scripts/test-aqi-pollutant-scale-alignment-09611.mjs",
-    "scripts/test-aggregate-version-contract-09613.mjs"
+    "scripts/test-aggregate-version-contract-09613.mjs",
+    "scripts/test-composite-time-arrow-dom-render-09615.mjs",
+    "scripts/test-forecast-fusion-canonical-weighting-09610.mjs",
+    "scripts/test-flight-text-vertical-briefing-09620.mjs",
+    "scripts/test-maintenance-user-contracts-09630.mjs",
+    "scripts/test-worker-kv-operations-budget-09631.mjs"
   ],
   "requiredFiles": [
     "scripts/test-cockpit-regression-sync-09201.mjs",
@@ -450,7 +460,16 @@
     "src/weather-src/00-types-models-search.tsfrag",
     "src/weather-src/10-observations-specialized.tsfrag",
     "src/weather-src/20-mapping-day-character.tsfrag",
-    "src/weather-src/30-ensemble-climate-hazards.tsfrag"
+    "src/weather-src/30-ensemble-climate-hazards.tsfrag",
+    "src/storageContracts.ts",
+    "src/compositeSettings.ts",
+    "src/flightRouteBriefing.ts",
+    "src/ForecastSourceDiagnostics.tsx",
+    "MID_IMPLEMENTATION_0.9.61.0.md",
+    "MID_IMPLEMENTATION_0.9.62.0.md",
+    "MID_IMPLEMENTATION_0.9.63.0.md",
+    "MID_IMPLEMENTATION_0.9.63.1.md",
+    "MID_CLOUDFLARE_KV_OPERATIONS_AUDIT_0.9.63.0.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",

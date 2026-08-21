@@ -23,13 +23,13 @@ requireTokens('Komposit-Option',radar,[
  'showNowcastObjects:boolean','label="K3D / MIX"','nowcastButtonDetail=`${k3dButtonState} · ${mixButtonState}`','function KonradNowcastObjects(','loadNowcastMixPoints(','visibleNowcastMix','<MemoKonradNowcastObjects data={thunder}'
 ]);
 requireTokens('Einzelne Zugspur',radar,[
- 'motionAvailable=showRadar&&Number.isFinite(motionDirection)&&Number.isFinite(motionSpeed)&&motionSpeed>=2','showMotion=showMotionOverlay&&motionAvailable','showMotionField=showMotion','function PrecipitationMotionTrack','motionTrackArrowheadIcon','const upstreamBearing=(resolved.direction+180)%360','<MemoPrecipitationMotionTrack site={[lat,lon]}'
+ 'motionAvailable=showRadar&&Number.isFinite(motionDirection)&&Number.isFinite(motionSpeed)&&motionSpeed>=2','showMotion=showMotionOverlay&&motionAvailable','showMotionField=showMotion','function PrecipitationMotionTrack','motionTrackCompositeIcon','const upstreamBearing=(resolved.direction+180)%360','<MemoPrecipitationMotionTrack site={[lat,lon]}'
 ]);
 requireTokens('App-Schwellen',app,['function radarSiteThreshold(','function radarNearbyThreshold(','seasonalEchoLabel']);
 requireTokens('OPERA-Saisonprofil',opera,['function operaSeasonalEchoProfile(','winter-sensitive','summer-filter','echoProfile.siteThreshold','echoProfile.anchorThreshold','seasonalEchoLabel:echoProfile.label']);
 requireTokens('Radar-Typvertrag',weather,['seasonalEchoProfile?:','steeringDirectionDeg?:number','forecastLatitude?:number','motionDirectionDeg?:number']);
 requireTokens('Frontend-Workerclient',composite,["loadNowcastMixPoints","'nowcastmix-points'"]);
-requireTokens('Objekt-Styling',styles,['.konrad-track','.mid-konrad-marker{','.mid-nowcastmix-marker{','.mid-motion-track-arrowhead']);
+requireTokens('Objekt-Styling',styles,['.konrad-track','.mid-konrad-marker{','.mid-nowcastmix-marker{','.mid-motion-track-composite-svg']);
 
 // Saisonale Schwellen müssen schwache Echos im Winter sensibler behandeln als im Sommer.
 try{

@@ -1,8 +1,19 @@
 export type TimedCacheEntry<T>={time:number;value:T};
+export type StoredJsonCacheEntry<T>={at:number;value:T};
 
-type Timestamped={createdAt?:number;time?:number};
+type Timestamped={at?:number;createdAt?:number;time?:number};
 
 function finiteTime(value:unknown){const time=Number(value);return Number.isFinite(time)?time:0}
+
+/** Shared JSON cache reader used by feature caches with identical TTL semantics. */
+export function readStoredJsonCache<T>(storage:Storage,key:string,maxAgeMs:number,now=Date.now()):T|undefined{
+ try{const parsed=JSON.parse(storage.getItem(key)||'null') as StoredJsonCacheEntry<T>|null;if(!parsed||!Number.isFinite(parsed.at)||now-Number(parsed.at)>maxAgeMs)return undefined;return parsed.value}catch{return undefined}
+}
+
+/** Shared bounded JSON cache writer. User data must not use this reconstructible-cache helper. */
+export function writeStoredJsonCache<T>(storage:Storage,key:string,value:T,prefixes:string[],maxEntries:number,maxAgeMs:number,now=Date.now()){
+ return writeBoundedStorage(storage,key,{at:now,value},prefixes,maxEntries,maxAgeMs,now);
+}
 
 /** Reads a cache entry, removes expired values and refreshes its LRU position. */
 export function readFreshMapEntry<K,V>(cache:Map<K,TimedCacheEntry<V>>,key:K,maxAgeMs:number,now=Date.now()):V|undefined{
@@ -22,7 +33,7 @@ export function touchMapEntry<K,V>(cache:Map<K,V>,key:K):V|undefined{
  const value=cache.get(key);if(value===undefined)return undefined;cache.delete(key);cache.set(key,value);return value;
 }
 
-function storageEntryTime(raw:string){try{const parsed=JSON.parse(raw) as Timestamped;return Math.max(finiteTime(parsed.createdAt),finiteTime(parsed.time))}catch{return 0}}
+function storageEntryTime(raw:string){try{const parsed=JSON.parse(raw) as Timestamped;return Math.max(finiteTime(parsed.at),finiteTime(parsed.createdAt),finiteTime(parsed.time))}catch{return 0}}
 
 /** Removes malformed, expired and least-recent entries for selected storage prefixes. */
 export function pruneStorageEntries(storage:Storage,prefixes:string[],maxEntries:number,maxAgeMs:number,now=Date.now()){
@@ -34,10 +45,10 @@ export function pruneStorageEntries(storage:Storage,prefixes:string[],maxEntries
 }
 
 /** Writes with one cleanup-and-retry pass for quota-constrained mobile browsers. */
-export function writeBoundedStorage(storage:Storage,key:string,value:unknown,prefixes:string[],maxEntries:number,maxAgeMs:number){
- pruneStorageEntries(storage,prefixes,Math.max(1,maxEntries-1),maxAgeMs);
+export function writeBoundedStorage(storage:Storage,key:string,value:unknown,prefixes:string[],maxEntries:number,maxAgeMs:number,now=Date.now()){
+ pruneStorageEntries(storage,prefixes,Math.max(1,maxEntries-1),maxAgeMs,now);
  const serialized=JSON.stringify(value);
  try{storage.setItem(key,serialized);return true}catch{}
- pruneStorageEntries(storage,prefixes,Math.max(1,Math.floor(maxEntries/2)),maxAgeMs);
+ pruneStorageEntries(storage,prefixes,Math.max(1,Math.floor(maxEntries/2)),maxAgeMs,now);
  try{storage.setItem(key,serialized);return true}catch{return false}
 }

@@ -1,8 +1,9 @@
 import {readFile} from 'node:fs/promises';
-const [app,styles,persistence,sync]=await Promise.all([
+const [app,styles,persistence,storageContracts,sync]=await Promise.all([
  readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/styles.css',import.meta.url),'utf8'),
  readFile(new URL('../src/persistence.ts',import.meta.url),'utf8'),
+ readFile(new URL('../src/storageContracts.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/deviceSync.ts',import.meta.url),'utf8')
 ]);
 const failures=[];
@@ -33,12 +34,12 @@ const captureStart=app.indexOf('function captureCurrentView()'),captureEnd=app.i
 if(captureStart<0||captureEnd<0||app.slice(captureStart,captureEnd).includes('querySelectorAll'))failures.push('Ansichtswechsel misst weiterhin synchron sämtliche Dashboardmodule.');
 if(app.includes('queueMicrotask(()=>void persistStateNow())'))failures.push('Favoritenänderungen lösen weiterhin eine doppelte unmittelbare Vollsicherung aus.');
 for(const token of [
- "const TRANSIENT_PREFIXES=['mid:analysis-cache:','mid:ensemble:'",
  'persistPromise:Promise<void>|null=null',
  'if(persistPromise){persistAgain=true;return persistPromise}',
  'requestIdleCallback',
  'if(localStorage.getItem(key)===value)return'
 ])need('Persistenz-Performance',persistence,token);
+for(const token of ['TRANSIENT_STORAGE_PREFIXES','mid:analysis-cache:','mid:ensemble:'])need('Gemeinsamer Persistenzvertrag',storageContracts,token);
 for(const token of [
  'lastArchiveRevision?:string',
  'sameRevision=Boolean(config.lastArchiveRevision&&manifest.revision===config.lastArchiveRevision)',

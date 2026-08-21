@@ -41,7 +41,7 @@ assert.ok(mountain.includes('unabhängige Modellfamilien gleich gewichtet'),'Sch
 assert.ok(seasonal.includes('freshDeduped=[...new Map(freshModels.map(model=>[model.family,model])).values()]'),'Saisonmodelle müssen pro Familie dedupliziert bleiben.');
 
 // Frontendvertrag des Workers muss Gruppen/Rollen transportieren.
-assert.ok(fusion.includes("const CACHE_PREFIX='mid:forecast-fusion:v8:'"),'Forecast-Fusion-Cache muss nach Familien-/Frischegewichtungsänderung invalidiert werden.');
+assert.ok(fusion.includes("const CACHE_PREFIX='mid:forecast-fusion:v9:'"),'Forecast-Fusion-Cache muss nach Lage-/Horizont-/Regionalgewichtungsänderung invalidiert werden.');
 assert.ok(fusion.includes('independenceGroup?:string'),'ForecastFusionSource muss independenceGroup transportieren.');
 assert.ok(fusion.includes("consensusRole?:'independent'|'postprocessing'|'diagnostic'"),'ForecastFusionSource muss Postprocessing von unabhängigen Modellen trennen.');
 

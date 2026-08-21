@@ -22,10 +22,10 @@ for(const token of [
  'fetchForecastFusionModels',
  'weatherBundleIssues',
  'coherentWeatherHours',
- 'version:6',
+ 'version:7',
  "schema:'mid.forecast-fusion.v1'",
  'Best Match bleibt für Kurzfrist, 7-Tage-Vorhersage',
- 'modellspezifische API-Suffixe',
+ 'suffixFields',
  'MOSMIX wird bewusst nur als lokales Postprocessing'
 ])need('Worker-Fusion',worker,token);
 for(const token of [

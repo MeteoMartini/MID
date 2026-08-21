@@ -15,7 +15,7 @@ if(!baseline.requiredRegressionTests?.includes(testName))throw new Error('RUC/Ra
 const need=(label,text,token)=>{if(!text.includes(token))throw new Error(`${label}: ${token} fehlt.`)};
 need('RUC Forecast Fusion',worker,"id:'icon_d2_ruc'");
 need('RUC optional capability',worker,'optionalCapability:true');
-need('RUC Gewichtung',worker,'rapidBoost');
+need('RUC Gewichtung',worker,'rapidFactor');
 need('RUC Reparaturpriorität',worker,"'icon_d2_ruc','knmi_harmonie_europe','icon_d2'");
 need('KNMI Europe Rapid',worker,"id:'knmi_harmonie_europe'");
 need('HRRR Rapid',worker,"id:'hrrr'");
