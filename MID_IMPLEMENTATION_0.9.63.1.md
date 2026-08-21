@@ -13,4 +13,12 @@ Der Produktionscode von v0.9.63.0 war typ- und buildfähig. Im vollständigen Gi
 
 ## Fachlicher Umfang
 
-Dies ist ein reines Wartungsrelease. Wetterzwilling/Fusion, Flugbriefing, Komposit-Zeitpfeil, Radar-/Nowcast-Logik, Persistenz, Cacheverhalten und Worker-Fachlogik bleiben gegenüber v0.9.63.0 unverändert.
+Wetterzwilling/Fusion, Flugbriefing, Komposit-Zeitpfeil, Radar-/Nowcast-Logik, Persistenz, Cacheverhalten und Worker-Fachlogik bleiben gegenüber v0.9.63.0 unverändert.
+
+## Nachtrag: kompakte 7-Tage-Ansicht im Querformat
+
+- Im Tablet-Querformat nutzt das Cockpit sieben gleich breite, schrumpfbare Spalten, sodass alle sieben Tageskarten ohne horizontales Scrollen in die verfügbare Breite passen.
+- Abstände, Symbole und Schriftgrößen werden innerhalb eines begrenzten Landscape-Fensters moderat verdichtet. Datum, Tag-/Nachtpiktogramme, Wetterregime, Minimum/Maximum, Temperaturspanne, Niederschlagsmenge, Wahrscheinlichkeit/Dauer, Wind/Böen und Stundenaufruf bleiben vollständig erhalten.
+- Lange Fachwerte brechen innerhalb ihrer Karten um; Ellipsis, abgeschnittene Inhalte und Text außerhalb der Karten sind für diesen Pfad ausgeschlossen.
+- Hochformat und schmale Telefone behalten den etablierten horizontalen Scroll- und Gestenvertrag.
+- Die Änderung ist ausschließlich clientseitig; ein Worker-Update ist dafür nicht erforderlich.

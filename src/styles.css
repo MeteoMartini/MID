@@ -6160,3 +6160,71 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 /* MID v0.9.60.15: dynamic composite time-arrow lives in one projected DOM/SVG marker. */
 .mid-motion-track-composite-div-icon{background:transparent!important;border:0!important;box-shadow:none!important;pointer-events:none!important;overflow:visible!important}
 .mid-motion-track-composite-svg{display:block;overflow:visible;pointer-events:none}
+
+/* MID v0.9.63.1 · sieben vollstaendige Tageskarten im Tablet-Querformat ohne Informationsverlust */
+@media (orientation:landscape) and (min-width:840px) and (max-width:1300px){
+ .cockpit-seven-day{min-width:0}
+ .cockpit-seven-grid{
+  width:100%;
+  min-width:0;
+  grid-template-columns:repeat(var(--cockpit-day-count),minmax(0,1fr));
+  gap:clamp(4px,.55vw,7px);
+  overflow-x:visible;
+  padding-bottom:2px;
+ }
+ .cockpit-day{
+  width:auto;
+  min-width:0!important;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:clamp(5px,.58vw,7px);
+  padding:clamp(7px,.76vw,10px);
+  border-radius:clamp(15px,1.7vw,20px);
+ }
+ .cockpit-day-date,.cockpit-day-weather-pair,.cockpit-day-regime,.cockpit-day-temps,
+ .cockpit-day-temp-track,.cockpit-day-rain,.cockpit-day-wind,.cockpit-day-pop,
+ .cockpit-day-hourly-cue{min-width:0;max-width:100%}
+ .cockpit-day-date b{font-size:clamp(10.5px,1.18vw,12px)}
+ .cockpit-day-date small{font-size:clamp(8.5px,.98vw,10px)}
+ .cockpit-day-weather-pair{gap:clamp(3px,.42vw,5px);min-height:clamp(36px,4vw,42px)}
+ .cockpit-day-main-icon{width:clamp(31px,3.55vw,38px)!important;height:clamp(31px,3.55vw,38px)!important}
+ .cockpit-day-night-glyph{width:clamp(18px,2.05vw,22px)!important;height:clamp(18px,2.05vw,22px)!important}
+ .cockpit-day-regime{
+  gap:3px;
+  padding:2px 4px;
+  font-size:clamp(8.5px,.96vw,10px);
+  line-height:1.18;
+  white-space:normal;
+  overflow-wrap:break-word;
+ }
+ .cockpit-day-temps{gap:4px;flex-wrap:wrap}
+ .cockpit-day-temps b{font-size:clamp(13px,1.42vw,15px)}
+ .cockpit-day-temps strong{font-size:clamp(18px,1.92vw,21px)}
+ .cockpit-day-temp-track{height:clamp(11px,1.25vw,14px)}
+ .cockpit-day-rain,.cockpit-day-wind{gap:3px}
+ .cockpit-day-rain b{
+  font-size:clamp(9.5px,1.08vw,11.5px);
+  white-space:normal!important;
+  overflow-wrap:normal;
+ }
+ .cockpit-day-wind{
+  grid-template-columns:auto minmax(0,1fr)!important;
+  justify-content:stretch!important;
+ }
+ .cockpit-day-wind small{
+  justify-self:stretch;
+  font-size:clamp(8px,.9vw,9.8px);
+  line-height:1.12;
+  white-space:normal!important;
+  overflow-wrap:break-word;
+ }
+ .cockpit-day-pop{font-size:clamp(7.2px,.78vw,8.2px);line-height:1.16;overflow-wrap:break-word}
+ .cockpit-day-hourly-cue{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  gap:3px;
+  padding:5px 3px;
+  font-size:clamp(7.2px,.8vw,8.2px);
+  line-height:1.14;
+  white-space:normal;
+ }
+}
