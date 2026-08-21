@@ -15,7 +15,7 @@ for(const token of [
  'function FourteenDayHorizon({ensemble,days,hours,scenarios,climate',
  'ensembleSeries(ensemble,days,climate,hours)',
  '<FourteenDayHorizon ensemble={ensemble} days={days} hours={hours}',
- '<Droplets size={12}/> Niederschlag</label>'
+ '<Droplets size={12}/><span>Niederschlag</span></label>'
 ])assert.ok(cockpit.includes(token),`14-Tage-Cockpit-Vertrag fehlt: ${token}`);
 for(const token of [
  'character=dayWeatherCharacter(day,dayHours)',

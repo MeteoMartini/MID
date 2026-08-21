@@ -24,7 +24,7 @@ for(const token of [
 
 const marker='/* MID v0.9.64.1 · Tagesdetail folgt dem gewählten Tag; Sonnenscheindauer nutzt den vorhandenen Metadatenplatz. */';
 for(const [name,styles] of [['Quell-CSS',sourceStyles],['Aggregat-CSS',builtStyles]]){
- const section=styles.slice(styles.lastIndexOf(marker));
+ const start=styles.lastIndexOf(marker),next=styles.indexOf('/* MID v0.9.64.2',start+marker.length),section=styles.slice(start,next>=0?next:undefined);
  assert.ok(section.startsWith(marker),`${name}: v0.9.64.1-Vertrag fehlt oder wird überschrieben.`);
  for(const token of [
   '.cockpit-seven-grid>.cockpit-day{',
@@ -48,7 +48,7 @@ for(const [name,styles] of [['Quell-CSS',sourceStyles],['Aggregat-CSS',builtStyl
  assert.ok(!section.includes('min-height:'),`${name}: v0.9.64.1 darf die Kartenhöhe nicht vergrößern.`);
 }
 
-assert.equal(pkg.version,'0.9.64.1','Direktes Tagesdetail benötigt Wartungsrelease v0.9.64.1.');
+assert.match(pkg.version,/^0\.9\.64\.(?:[1-9]\d*)$/,'Direktes Tagesdetail benötigt mindestens Wartungsrelease v0.9.64.1.');
 assert.equal(pkg.scripts?.['test:seven-day-inline-detail-sunshine'],`node ${test}`,'Package-Testeintrag fehlt.');
 assert.equal(baseline.releaseVersion,pkg.version,'Baseline und Paketversion sind nicht synchron.');
 assert.ok(baseline.requiredRegressionTests?.includes(test),'Verbindliche Baseline-Regression fehlt.');

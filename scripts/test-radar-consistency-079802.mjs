@@ -55,7 +55,8 @@ try{
  const previous={version:1,createdAt:'2026-07-26T09:00:00Z',runKey:'a',signature:'a',precipitationOnset:'2026-07-26T15:00:00Z',days:[]};
  const current={version:1,createdAt:'2026-07-26T10:00:00Z',runKey:'b',signature:'b',precipitationOnset:'2026-07-26T14:00:00Z',days:[]};
  const report=module.exports.compareModelChangeSnapshots(previous,current),item=report.items.find(row=>row.metric==='onset');
- if(!item?.detail.includes('15:00')||!item.detail.includes('14:00')||item.secondaryDetail!=='1 h früher')failures.push(`Niederschlagsbeginn nicht vollständig: ${JSON.stringify(item)}`);
+ const formatOnset=value=>new Intl.DateTimeFormat('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(new Date(value)).replace(',', ' ·')+' Uhr',expectedDetail=`${formatOnset(previous.precipitationOnset)} → ${formatOnset(current.precipitationOnset)}`;
+ if(item?.detail!==expectedDetail||item.secondaryDetail!=='1 h früher')failures.push(`Niederschlagsbeginn nicht vollständig: ${JSON.stringify(item)}`);
 }catch(error){failures.push(`Funktionaler Modelllauf-Test nicht ausführbar: ${error instanceof Error?error.message:String(error)}`)}
 
 if(failures.length){console.error('Radar-/Modelllauf-Konsistenzprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
