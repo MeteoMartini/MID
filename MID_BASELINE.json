@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.64.7",
+  "releaseVersion": "0.9.64.9",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -249,7 +249,9 @@
     "scripts/test-location-thunder-water-tide-layout-09644.mjs",
     "scripts/test-warning-text-warm-phase-model-coverage-09645.mjs",
     "scripts/test-greece-coordinate-warnings-kv-isolation-09646.mjs",
-    "scripts/test-water-current-direction-arrow-09647.mjs"
+    "scripts/test-water-current-direction-arrow-09647.mjs",
+    "scripts/test-austria-local-warning-scope-09648.mjs",
+    "scripts/test-location-view-kv-write-savings-09649.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -431,7 +433,9 @@
     "scripts/test-location-thunder-water-tide-layout-09644.mjs",
     "scripts/test-warning-text-warm-phase-model-coverage-09645.mjs",
     "scripts/test-greece-coordinate-warnings-kv-isolation-09646.mjs",
-    "scripts/test-water-current-direction-arrow-09647.mjs"
+    "scripts/test-water-current-direction-arrow-09647.mjs",
+    "scripts/test-austria-local-warning-scope-09648.mjs",
+    "scripts/test-location-view-kv-write-savings-09649.mjs"
   ],
   "requiredFiles": [
     "scripts/test-cockpit-regression-sync-09201.mjs",
@@ -495,7 +499,10 @@
     "MID_IMPLEMENTATION_0.9.64.5.md",
     "MID_IMPLEMENTATION_0.9.64.6.md",
     "MID_IMPLEMENTATION_0.9.64.7.md",
-    "MID_CLOUDFLARE_KV_OPERATIONS_AUDIT_0.9.63.0.md"
+    "MID_CLOUDFLARE_KV_OPERATIONS_AUDIT_0.9.63.0.md",
+    "MID_IMPLEMENTATION_0.9.64.8.md",
+    "MID_CLOUDFLARE_KV_OPERATIONS_AUDIT_0.9.64.8.md",
+    "MID_IMPLEMENTATION_0.9.64.9.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",

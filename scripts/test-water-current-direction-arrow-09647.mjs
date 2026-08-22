@@ -24,6 +24,8 @@ const cardinal=value=>labels[Math.round(normalize(value)/22.5)%16];
 if(normalize(211)!==211||cardinal(211)!=='SSW')failures.push('Kontrollwert 211° wird nicht als Zielrichtung SSW abgebildet.');
 if(normalize(-149)!==211||cardinal(-149)!=='SSW')failures.push('Negative äquivalente Winkel werden nicht robust normalisiert.');
 const version=JSON.parse(pkg).version,baselineVersion=JSON.parse(baseline).releaseVersion,workerVersion=worker.match(/const WORKER_VERSION='([^']+)'/)?.[1];
-if(version!=='0.9.64.7'||baselineVersion!==version||workerVersion!==version)failures.push(`Versionsabweichung: ${version}/${baselineVersion}/${workerVersion}`);
+const versionParts=value=>String(value||'').split('.').map(part=>Number.parseInt(part,10)||0);
+const versionAtLeast=(candidate,minimum)=>{const a=versionParts(candidate),b=versionParts(minimum),length=Math.max(a.length,b.length);for(let i=0;i<length;i++){const av=a[i]??0,bv=b[i]??0;if(av!==bv)return av>bv}return true};
+if(!versionAtLeast(version,'0.9.64.7')||baselineVersion!==version||workerVersion!==version)failures.push(`Versionsabweichung: ${version}/${baselineVersion}/${workerVersion}`);
 if(failures.length){console.error(`MID-Strömungsrichtungsprüfung fehlgeschlagen:\n- ${failures.join('\n- ')}`);process.exit(1)}
-console.log('MID v0.9.64.7: Strömungstext, Zielkonvention und dynamischer Richtungspfeil stimmen für 211°/SSW überein.');
+console.log(`MID ${version}: Strömungstext, Zielkonvention und dynamischer Richtungspfeil stimmen seit v0.9.64.7 für 211°/SSW überein.`);

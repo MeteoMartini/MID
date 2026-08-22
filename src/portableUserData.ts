@@ -27,7 +27,7 @@ const DEVICE_LOCAL_PREFIXES=[
  'mid:push-subscription',
  'mid:web-push'
 ];
-const DEVICE_LOCAL_KEYS=new Set(['mid:pwaInstallHintDismissed']);
+const DEVICE_LOCAL_KEYS=new Set(['mid:pwaInstallHintDismissed','mid:last-dashboard-section:v1','mid:forecastCockpit:activeHorizon']);
 
 export const PORTABLE_USER_DATA_EXAMPLES=['mid:ensemble:advanced','mid:ensemble:chart-open:temperature','mid:layoutMode','mid:favorites','mid:weather-twin:settings:v1'] as const;
 export const PORTABLE_USER_DATA_INCLUDED=[

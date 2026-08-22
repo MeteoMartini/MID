@@ -446,4 +446,4 @@ const PUSH_DEFAULT_ORIGINS=['https://meteomartini.github.io','https://midwx.app'
 const PUSH_DEFAULT_ORIGIN=PUSH_DEFAULT_ORIGINS[0];
 const PUSH_ENCODER=new TextEncoder();
 const PUSH_SCHEDULER_HEARTBEAT_KEY='meta:push-scheduler:v1';
-const PUSH_SCHEDULER_HEALTH_MS=16*60*1000;
+const PUSH_SCHEDULER_HEALTH_MS=41*60*1000;

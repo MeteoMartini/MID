@@ -9,7 +9,7 @@ assert.match(push,/const due=all\.filter\(item=>pushScheduleItemDue\(item\)\).*p
 assert.ok(push.includes('metadataMissing||changed&&after!==before'),'KV-Eintrag darf nur bei Zustandsänderung oder einmaliger Migration geschrieben werden.');
 assert.ok(!push.includes("checkedAt:new Date().toISOString()}))"),'Scheduler darf nicht allein für checkedAt jeden Eintrag schreiben.');
 assert.ok(!/const startedAt=.*MID_PUSH_SUBSCRIPTIONS\.put\(PUSH_SCHEDULER_HEARTBEAT_KEY/s.test(push),'Heartbeat darf nicht mehr am Start und Ende jedes Laufs geschrieben werden.');
-for(const token of ["return 5","return 15","return 60","return 720","heartbeatWritesPerDayCeiling:144","keine Alarmregel entfernt","keine Datenquelle entfernt"])assert.ok(push.includes(token),`KV-Einspar-/Funktionsvertrag fehlt: ${token}`);
+for(const token of ["return 5","return 15","return 60","return 720","heartbeatWritesPerDayCeiling:48","keine Alarmregel entfernt","keine Datenquelle entfernt"])assert.ok(push.includes(token),`KV-Einspar-/Funktionsvertrag fehlt: ${token}`);
 assert.ok(router.includes("mode==='push-kv-operations-audit'")&&router.includes("request.method!=='POST'"));assert.equal(worker.includes('push-kv-operations-audit'),true);
 const forecastOnly=10,oldReads=forecastOnly*288,newReads=forecastOnly*24;assert.ok(newReads/oldReads<=1/12,'Reine Prognoseänderungsregeln müssen die Abo-Leseoperationen um mindestens 90 % reduzieren.');
 for(const essential of ['pushWeatherState','pushRadarPrecipitationState','dwdKonrad3dNowcast','pushForecastState','ventilationAdvice','sendWebPush'])assert.ok(push.includes(essential),`Wesentliche Push-Funktion/Datenquelle entfernt: ${essential}`);
