@@ -48,7 +48,7 @@ for(const [name,styles] of [['Quell-CSS',sourceStyles],['Aggregat-CSS',builtStyl
  assert.ok(!section.includes('min-height:'),`${name}: v0.9.64.1 darf die Kartenhöhe nicht vergrößern.`);
 }
 
-assert.match(pkg.version,/^0\.9\.64\.(?:[1-9]\d*)$/,'Direktes Tagesdetail benötigt mindestens Wartungsrelease v0.9.64.1.');
+assert.ok(pkg.version.localeCompare('0.9.64.1',undefined,{numeric:true,sensitivity:'base'})>=0,'Direktes Tagesdetail benötigt mindestens Wartungsrelease v0.9.64.1.');
 assert.equal(pkg.scripts?.['test:seven-day-inline-detail-sunshine'],`node ${test}`,'Package-Testeintrag fehlt.');
 assert.equal(baseline.releaseVersion,pkg.version,'Baseline und Paketversion sind nicht synchron.');
 assert.ok(baseline.requiredRegressionTests?.includes(test),'Verbindliche Baseline-Regression fehlt.');

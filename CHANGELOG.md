@@ -1,3 +1,18 @@
+# v0.9.65.1
+
+- Installations-Hotfix für die drei in v0.9.65.0 aufgedeckten Regressionen.
+- Benannte Worker-Testexports für synoptische Richtungsprüfung und Gewitter-Push-Konsistenz wiederhergestellt, ohne Produktionslogik zu verändern.
+- 36-px-Touchvertrag bleibt erhalten, wird bei Info-Buttons aber ausschließlich über eine unsichtbare Trefferfläche erfüllt; sichtbare Buttons bleiben kompakt.
+- Sämtliche KV-/Sync-/Wetterzwilling-Einsparungen aus v0.9.65.0 bleiben unverändert bestehen.
+
+# v0.9.65.0
+
+- KV-Scheduler-Index reduziert reguläre `list()`-Operationen bei unveränderter 5-Minuten-Push-Kadenz auf vier automatische Reconciliations pro Tag plus Bootstrap/Recovery.
+- Wetterzwilling speichert fachlich identische Beobachtungs-/Capture-/Referenzstände nicht erneut und bündelt Cloud-Vollarchive über zehn Minuten.
+- Geräte-Sync erhält SHA-256-Inhaltssignaturen und 3-s-Burst-Deduplizierung; identische portable Zustände bleiben write-frei.
+- Touch-Regressionsfix: sichtbare Info-Buttons wieder kompakt, Trefferfläche weiterhin groß und layoutneutral.
+- Push-Unsubscribe-Routerpfad ist nun vollständig implementiert und bereinigt den Scheduler-Index.
+
 # v0.9.63.1
 
 - CI-Kompatibilität: die Flugbriefing- und Wartungsvertragsregressionen werden unter dem festgelegten Node.js 22.16.0 über das projektlokale TypeScript transpiliert statt `.ts`-Dateien direkt zu importieren.

@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.64.9",
+  "releaseVersion": "0.9.65.1",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -251,7 +251,9 @@
     "scripts/test-greece-coordinate-warnings-kv-isolation-09646.mjs",
     "scripts/test-water-current-direction-arrow-09647.mjs",
     "scripts/test-austria-local-warning-scope-09648.mjs",
-    "scripts/test-location-view-kv-write-savings-09649.mjs"
+    "scripts/test-location-view-kv-write-savings-09649.mjs",
+    "scripts/test-kv-archive-ui-efficiency-09650.mjs",
+    "scripts/test-release-hotfix-09651.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -435,7 +437,9 @@
     "scripts/test-greece-coordinate-warnings-kv-isolation-09646.mjs",
     "scripts/test-water-current-direction-arrow-09647.mjs",
     "scripts/test-austria-local-warning-scope-09648.mjs",
-    "scripts/test-location-view-kv-write-savings-09649.mjs"
+    "scripts/test-location-view-kv-write-savings-09649.mjs",
+    "scripts/test-kv-archive-ui-efficiency-09650.mjs",
+    "scripts/test-release-hotfix-09651.mjs"
   ],
   "requiredFiles": [
     "scripts/test-cockpit-regression-sync-09201.mjs",
@@ -502,7 +506,10 @@
     "MID_CLOUDFLARE_KV_OPERATIONS_AUDIT_0.9.63.0.md",
     "MID_IMPLEMENTATION_0.9.64.8.md",
     "MID_CLOUDFLARE_KV_OPERATIONS_AUDIT_0.9.64.8.md",
-    "MID_IMPLEMENTATION_0.9.64.9.md"
+    "MID_IMPLEMENTATION_0.9.64.9.md",
+    "MID_IMPLEMENTATION_0.9.65.0.md",
+    "MID_IMPLEMENTATION_0.9.65.1.md",
+    "MID_CLOUDFLARE_KV_OPERATIONS_AUDIT_0.9.65.0.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",

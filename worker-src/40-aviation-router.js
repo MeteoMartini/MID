@@ -241,3 +241,5 @@ export default{async fetch(request,env){
  },
  async scheduled(_controller,env,ctx){ctx.waitUntil(runPushSchedule(env))}
 };
+export {pushThunderState,thunderPushBody};
+export {synopticUpstreamBearing};

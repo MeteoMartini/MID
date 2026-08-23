@@ -1330,13 +1330,6 @@ button,[role="button"],summary{
  }
  /* Kompakte Bedienelemente behalten ihre optische Dichte, erhalten aber verlässlichere Touchflächen. */
  .search-input-shell>button,
- .mode-info>button,
- .metrics .air-quality-card header>.mode-info>button,
- .metrics .uvi-card header>.mode-info>button,
- .metrics .sun-moon-card header>.mode-info>button,
- .nowcard-label-row .mode-info>button,
- .precip-now-source-row>.mode-info>button,
- .event-auto-update-note .mode-info>button,
  .hour-chart-tooltip>header button,
  .short-term-detail>header button,
  .dashboard-module-order-actions button,
@@ -1430,15 +1423,6 @@ button,[role="button"],summary{
 :is(button,[role="button"],summary,a,input,select,textarea):focus-visible{
  outline:2px solid color-mix(in srgb,var(--primary) 72%,white 8%);
  outline-offset:2px;
-}
-@media(hover:none),(pointer:coarse){
- .mode-info>button,
- .metrics .air-quality-card header>.mode-info>button,
- .metrics .uvi-card header>.mode-info>button,
- .metrics .sun-moon-card header>.mode-info>button,
- .nowcard-label-row .mode-info>button,
- .precip-now-source-row>.mode-info>button,
- .event-auto-update-note .mode-info>button{min-width:var(--mid-ui-compact-touch)!important;min-height:var(--mid-ui-compact-touch)!important}
 }
 @media(max-width:620px){
  :root{--mid-ui-popover-max-height:min(64dvh,560px)}
@@ -2209,4 +2193,23 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
  .water-profile-eyebrow{letter-spacing:.1em}.water-inline-options{gap:5px}.water-inline-options select{min-height:32px;padding-left:7px;font-size:9px}
  .water-metric-group>div,.water-weather-group>div{gap:6px}.water-metric-card{gap:3px 6px;min-height:68px;padding:8px;border-radius:11px}.water-metric-icon svg{width:17px;height:17px}.water-metric-copy>small,.water-metric-detail{font-size:7.3px}.water-metric-copy>strong{font-size:12px}.water-metric-card>em{max-width:65px;padding:2px 5px;font-size:6.5px}
  .water-tide-card{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"icon copy" "current current" "curve curve" "detail detail"}.water-tide-sparkline{height:34px}.water-tide-card .water-metric-detail{margin-top:-2px}
+}
+
+/* MID v0.9.65.0 · Info-Button-Regressionsfix: sichtbare Dichte getrennt von Touchfläche */
+.metrics article>header>.mode-info{margin-left:auto}
+.mode-info>button{position:relative}
+@media(hover:none),(pointer:coarse){
+ .mode-info>button{min-width:0!important;min-height:0!important}
+ .mode-info>button::before{content:"";position:absolute;inset:-7px;border-radius:999px}
+}
+
+/* MID v0.9.65.1 · Touchvertrag-Hotfix: sichtbare Info-Dichte bleibt kompakt, 36-px-Trefferfläche bleibt regressionskompatibel */
+@media(hover:none),(pointer:coarse){
+ .mode-info>button::before{
+  min-width:var(--mid-ui-compact-touch)!important;
+  min-height:var(--mid-ui-compact-touch)!important;
+  width:var(--mid-ui-compact-touch);
+  height:var(--mid-ui-compact-touch);
+  inset:auto;left:50%;top:50%;transform:translate(-50%,-50%);
+ }
 }

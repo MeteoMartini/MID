@@ -1,3 +1,18 @@
+## MID v0.9.65.1 – Regression-Hotfix
+
+- Behebt die drei im Installationslauf von v0.9.65.0 sichtbar gewordenen Regressionen, ohne die dortigen KV-/Sync-Einsparungen zurückzunehmen.
+- Synoptik- und Gewitter-Push-Diagnosefunktionen sind wieder als benannte Testexports verfügbar.
+- Info-Buttons bleiben optisch kompakt; die 36-px-Touchfläche liegt layoutneutral im unsichtbaren Pseudoelement.
+- Professional-App und Worker müssen gemeinsam aktualisiert werden.
+
+## MID v0.9.65.0 – KV-/Sync-Effizienz und kompakte Info-Controls
+
+- Push-Scheduler nutzt im Normalbetrieb einen kleinen KV-Index; echte `KV.list()`-Reconciliations bleiben auf vier automatische Zeitpunkte pro Tag plus Bootstrap/Recovery begrenzt. Die 5-Minuten-Warnprüfung bleibt unverändert.
+- Wetterzwilling-Vollarchive werden nur bei fachlich verändertem Inhalt erzeugt und in einem 10-Minuten-Fenster gebündelt; lokale Archivpersistenz bleibt sofortig.
+- Geräte-Sync verwendet Inhalts-Hashes und 3-s-Burst-Deduplizierung; identische Snapshots verursachen keinen KV-Write.
+- Info-Buttons behalten eine große Touchfläche, werden optisch aber wieder kompakt und in aktuellen Messwertkacheln rechts im Header ausgerichtet.
+- Professional-App und Worker müssen gemeinsam aktualisiert werden.
+
 ## MID v0.9.64.7 – eindeutige Strömungs-Zielrichtung
 
 - Die Marine-API liefert die Strömungsrichtung als Zielrichtung: 0° bedeutet nach Norden, 90° nach Osten. MID übernimmt diese Konvention ohne 180°-Umkehr.

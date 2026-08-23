@@ -14,7 +14,7 @@ assert.doesNotMatch(app,/writeFavoriteTombstones[\s\S]{0,500}slice\(0,/,'Tombsto
 assert.doesNotMatch(app,/writeFavoriteTombstones[\s\S]{0,500}365\s*\*\s*24/,'Tombstones dürfen nicht nach einem Jahr still verfallen.');
 assert.match(sync,/function mergeRemoteFavoriteStateIntoLocal\(snapshot:SyncSnapshot\)/,'Pending-Sync braucht einen eigenen Favoriten-Merge.');
 assert.match(sync,/localPending[\s\S]{0,500}mergeRemoteFavoriteStateIntoLocal\(snapshot\)[\s\S]{0,250}pushDeviceSync\(latestConfig\)/,'Ein lokaler Pending-Stand muss Remote-Favoriten/Tombstones vor dem Push mergen.');
-assert.match(sync,/function syncPortableDeviceState\(\)[\s\S]{0,420}pullDeviceSync\(config,true\)[\s\S]{0,220}pushDeviceSync\(current\)/,'Lokale Änderungen müssen pull-merge-push statt blindem Push verwenden.');
+assert.match(sync,/function syncPortableDeviceState\(\)[\s\S]{0,520}pullDeviceSync\(config,true\)[\s\S]{0,320}if\(!pulled\.found\)await pushDeviceSync\(current,true\);else if\(current\.pendingChangedAt\)await pushDeviceSync\(current,false\)/,'Lokale Änderungen müssen pull-merge-push statt blindem Push verwenden; nur ein fehlender Remote-Stand darf den initialen Push erzwingen.');
 assert.match(sync,/syncTimer=window\.setTimeout\(\(\)=>void syncPortableDeviceState\(\)/,'Bridge muss den konfliktfesten Sync-Pfad verwenden.');
 assert.doesNotMatch(sync,/parseFavoriteTombstones[\s\S]{0,400}365\s*\*\s*24/,'Sync darf Tombstones nicht zeitlich verwerfen.');
 for(const token of ['synchron und atomar','Start-Recovery Tombstones','Tombstones weder zeitlich'])assert.ok(state.includes(token),`State-Vertrag fehlt: ${token}`);

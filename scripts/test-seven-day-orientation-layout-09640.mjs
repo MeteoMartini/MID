@@ -53,7 +53,7 @@ for(const [name,styles] of [['Quell-CSS',sourceStyles],['Aggregat-CSS',builtStyl
  for(const token of ['.cockpit-day-regime.wet{','showery{','sunny{','windy{','warm{','quiet{'])assert.ok(section.includes(token),`${name}: farbige Regimeklasse fehlt: ${token}`);
 }
 
-assert.match(pkg.version,/^0\.9\.64\.\d+$/,'Responsive Orientierungsdarstellung benötigt einen Release der Linie v0.9.64.x.');
+assert.ok(pkg.version.localeCompare('0.9.64.0',undefined,{numeric:true,sensitivity:'base'})>=0,'Responsive Orientierungsdarstellung benötigt mindestens v0.9.64.0.');
 assert.equal(pkg.scripts?.['test:seven-day-orientation-layout'],`node ${test}`,'Package-Testeintrag fehlt.');
 assert.equal(baseline.releaseVersion,pkg.version,'Baseline und Paketversion sind nicht synchron.');
 assert.ok(baseline.requiredRegressionTests?.includes(test),'Verbindliche Baseline-Regression fehlt.');
