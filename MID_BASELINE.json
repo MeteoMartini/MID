@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.65.1",
+  "releaseVersion": "0.9.65.2",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -64,6 +64,7 @@
     "scripts/test-water-tide-matrix-081815.mjs",
     "scripts/test-travel-planner-08190.mjs",
     "scripts/test-travel-planner-request-budget-08191.mjs",
+    "scripts/test-travel-planner-era5-seamless-units-09652.mjs",
     "scripts/test-icao-location-search-08193.mjs",
     "scripts/test-icao-location-buildfix-08194.mjs",
     "scripts/test-detail-thunder-ensemble-precip-08195.mjs",
@@ -439,7 +440,8 @@
     "scripts/test-austria-local-warning-scope-09648.mjs",
     "scripts/test-location-view-kv-write-savings-09649.mjs",
     "scripts/test-kv-archive-ui-efficiency-09650.mjs",
-    "scripts/test-release-hotfix-09651.mjs"
+    "scripts/test-release-hotfix-09651.mjs",
+    "scripts/test-travel-planner-era5-seamless-units-09652.mjs"
   ],
   "requiredFiles": [
     "scripts/test-cockpit-regression-sync-09201.mjs",
@@ -520,5 +522,9 @@
     "scripts/test-radar-nowcast-calibration-09370.mjs",
     "scripts/test-composite-phase-grammar-09395.mjs",
     "scripts/test-radar-model-phase-reliability-09395.mjs"
+  ],
+  "protectedFiles": [
+    "scripts/test-travel-planner-era5-seamless-units-09652.mjs",
+    "MID_IMPLEMENTATION_0.9.65.2.md"
   ]
 }

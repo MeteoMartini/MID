@@ -30,7 +30,7 @@ for(const token of [
  'Detaillierte Schneehöhe laden',
  'Optionaler zusätzlicher Abruf',
  "const includeSnowDepth=mode==='flexible'&&(detailedSnow||Number.isFinite(constraints.minSnowDepthCm))",
- 'Pro etwa 10-km-Klimaraster erfolgt höchstens ein direkter Basisabruf',
+ 'Pro gerastertem Klimapunkt erfolgt höchstens ein direkter Basisabruf',
  'Der MID-Worker wird dafür nicht verwendet.'
 ])need('Abrufbudget-Oberfläche',panel,token);
 need('Abrufbudget-Design',styles,'.travel-preference .travel-snow-detail{');
@@ -52,8 +52,8 @@ try{
   globalThis.fetch=async url=>{
    fetchCount++;lastUrl=String(url);
    const daily={time:[],weather_code:[],temperature_2m_max:[],temperature_2m_min:[],precipitation_sum:[],sunshine_duration:[],daylight_duration:[],wind_speed_10m_max:[],snowfall_sum:[]};
-   for(let year=1991;year<=2020;year++){
-    daily.time.push(`${year}-07-01`);daily.weather_code.push(1);daily.temperature_2m_max.push(25);daily.temperature_2m_min.push(15);daily.precipitation_sum.push(0);daily.sunshine_duration.push(8*3600);daily.daylight_duration.push(16*3600);daily.wind_speed_10m_max.push(18);daily.snowfall_sum.push(0);
+   for(let year=1991;year<=2020;year++)for(let day=0;day<365;day++){
+    const date=new Date(Date.UTC(year,0,1+day)).toISOString().slice(0,10);daily.time.push(date);daily.weather_code.push(1);daily.temperature_2m_max.push(25);daily.temperature_2m_min.push(15);daily.precipitation_sum.push(day%17===0?2:0);daily.sunshine_duration.push(8*3600);daily.daylight_duration.push(12*3600);daily.wind_speed_10m_max.push(10);daily.snowfall_sum.push(0);
    }
    return{ok:true,status:200,json:async()=>({latitude:50.8,longitude:7,elevation:0,timezone:'Europe/Berlin',daily})};
   };
@@ -63,7 +63,10 @@ try{
   await module.fetchTravelClimatology(nearby,false);
   if(fetchCount!==1)failures.push(`Nahes Ziel nutzte Klimaraster-Cache nicht (${fetchCount})`);
   if(!a.days['07-01']||!b.days['07-01'])failures.push('Klimadatensatz aus Sparabruf unvollständig.');
-  const query=new URL(lastUrl).searchParams.get('daily')||'';
+  const parsedUrl=new URL(lastUrl),query=parsedUrl.searchParams.get('daily')||'';
+  if(parsedUrl.searchParams.get('models')!=='era5_seamless')failures.push(`Falsches Klimamodell: ${parsedUrl.searchParams.get('models')}`);
+  if(parsedUrl.searchParams.get('wind_speed_unit')!=='kn')failures.push(`Wind nicht in kanonischen MID-Knoten angefordert: ${parsedUrl.searchParams.get('wind_speed_unit')}`);
+  if(parsedUrl.searchParams.get('temperature_unit')!=='celsius'||parsedUrl.searchParams.get('precipitation_unit')!=='mm')failures.push('Explizite kanonische Temperatur-/Niederschlagseinheiten fehlen.');
   for(const forbidden of ['temperature_2m_mean','precipitation_hours','cloud_cover_mean','relative_humidity_2m_mean'])if(query.includes(forbidden))failures.push(`Unnötige Variable tatsächlich angefordert: ${forbidden}`);
  }
 }finally{await rm(compileDir,{recursive:true,force:true})}

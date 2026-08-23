@@ -65,7 +65,11 @@ export type TravelConstraints={
  maxAvgMax?:number;
  maxWetDays?:number;
  minSunHoursPerDay?:number;
+ /** Canonical MID wind unit: knots. */
+ maxWindKt?:number;
+ /** Legacy compatibility for pre-v0.9.65.2 callers. */
  maxWindKmh?:number;
+ maxWindLabel?:string;
  minSnowDepthCm?:number;
 };
 
@@ -109,8 +113,8 @@ type Bucket={
  codes:Map<number,number>;
 };
 
-const BASE_CACHE_PREFIX='mid:travel-climate:1991-2020:v2:';
-const SNOW_CACHE_PREFIX='mid:travel-snow-depth:1991-2020:v2:';
+const BASE_CACHE_PREFIX='mid:travel-climate:1991-2020:v3:';
+const SNOW_CACHE_PREFIX='mid:travel-snow-depth:1991-2020:v3:';
 const CACHE_MAX_AGE=3*365*86400000;
 const CLIMATE_GRID_DEGREES=.1;
 const CLIMATE_ELEVATION_STEP=250;
@@ -130,7 +134,7 @@ function readCache<T>(key:string):T|null{prepareStorage();const memory=touchMapE
 function writeCache(key:string,value:unknown){writeBoundedMapEntry(memoryCache,key,value,TRAVEL_MEMORY_CACHE_LIMIT);try{writeBoundedStorage(localStorage,key,value,TRAVEL_CACHE_PREFIXES,TRAVEL_STORAGE_CACHE_LIMIT,CACHE_MAX_AGE)}catch{}}
 async function sharedRequest<T>(key:string,load:()=>Promise<T>):Promise<T>{const active=touchMapEntry(inFlightRequests,key) as Promise<T>|undefined;if(active)return active;const request=load().finally(()=>inFlightRequests.delete(key));writeBoundedMapEntry(inFlightRequests,key,request,TRAVEL_MEMORY_CACHE_LIMIT);return request}
 async function waitForShared<T>(promise:Promise<T>,signal?:AbortSignal):Promise<T>{if(!signal)return promise;if(signal.aborted)throw abortError();return new Promise<T>((resolve,reject)=>{const abort=()=>reject(abortError());signal.addEventListener('abort',abort,{once:true});promise.then(value=>{signal.removeEventListener('abort',abort);resolve(value)},error=>{signal.removeEventListener('abort',abort);reject(error)})})}
-function numberAt(values:unknown[],index:number){const value=Number(values[index]);return Number.isFinite(value)?value:Number.NaN}
+function numberAt(values:unknown[],index:number){const raw=values[index];if(raw===null||raw===undefined||raw==='')return Number.NaN;const value=Number(raw);return Number.isFinite(value)?value:Number.NaN}
 function mean(values:number[]){const finite=values.filter(Number.isFinite);return finite.length?finite.reduce((sum,value)=>sum+value,0)/finite.length:Number.NaN}
 function quantile(values:number[],q:number){const finite=values.filter(Number.isFinite).sort((a,b)=>a-b);if(!finite.length)return Number.NaN;const position=(finite.length-1)*q,lower=Math.floor(position),upper=Math.ceil(position);return lower===upper?finite[lower]:finite[lower]+(finite[upper]-finite[lower])*(position-lower)}
 function mode(codes:Map<number,number>){let best=3,count=-1;for(const[code,next]of codes)if(next>count){best=code;count=next}return best}
@@ -139,6 +143,17 @@ function emptyBucket():Bucket{return{max:[],min:[],mean:[],precipitation:[],wet:
 function addFinite(array:number[],value:number){if(Number.isFinite(value))array.push(value)}
 function abortError(){return new DOMException('Abgebrochen','AbortError')}
 async function fetchJson<T>(url:string):Promise<T>{const response=await guardedOpenMeteoFetch(url,{cache:'force-cache',headers:{Accept:'application/json'}},{priority:'normal'});const payload=await response.json().catch(()=>({}));if(!response.ok||(payload as {error?:boolean}).error)throw new Error(String((payload as {reason?:string}).reason||`Open-Meteo HTTP ${response.status}`));return payload as T}
+
+const REQUIRED_DAILY_FIELDS=['weather_code','temperature_2m_max','temperature_2m_min','precipitation_sum','sunshine_duration','daylight_duration','wind_speed_10m_max','snowfall_sum'] as const;
+function finiteShare(values:unknown[],count:number){if(!count)return 0;let finite=0;for(let index=0;index<count;index++){const raw=values[index];if(raw!==null&&raw!==undefined&&raw!==''&&Number.isFinite(Number(raw)))finite++}return finite/count}
+function assertTravelHistoricalPayload(payload:HistoricalDailyPayload){
+ const daily=payload.daily??{},times=(daily.time??[]) as unknown[],count=times.length;if(count<9000)throw new Error('Die historische Klimareihe ist unvollständig. Bitte später erneut versuchen.');
+ for(const field of REQUIRED_DAILY_FIELDS){const values=(daily[field]??[]) as unknown[];if(values.length<count*.95||finiteShare(values,count)<.9)throw new Error(`Historische Klimadaten unvollständig (${field}).`)}
+ const sunshine=(daily.sunshine_duration??[]) as unknown[],daylight=(daily.daylight_duration??[]) as unknown[],wind=(daily.wind_speed_10m_max??[]) as unknown[];
+ const hasDaylight=daylight.some(value=>Number(value)>6*3600),hasSunshine=sunshine.some(value=>Number(value)>0),hasWind=wind.some(value=>Number(value)>.05);
+ if(hasDaylight&&!hasSunshine)throw new Error('Historische Sonnenscheindauer ist für diese Quelle unplausibel (durchgehend 0 h).');
+ if(!hasWind)throw new Error('Historische Windreihe ist für diese Quelle unplausibel (durchgehend 0).');
+}
 
 export function aggregateTravelClimate(payload:HistoricalDailyPayload):TravelClimateDataset{
  const daily=payload.daily??{},times=(daily.time??[]) as string[],buckets=new Map<string,Bucket>();
@@ -156,13 +171,13 @@ export function aggregateTravelClimate(payload:HistoricalDailyPayload):TravelCli
   if(years<20)continue;
   days[key]={key,maxMean:mean(bucket.max),minMean:mean(bucket.min),meanMean:mean(bucket.mean),maxP25:quantile(bucket.max,.25),maxP75:quantile(bucket.max,.75),minP25:quantile(bucket.min,.25),minP75:quantile(bucket.min,.75),precipitationMean:mean(bucket.precipitation),wetProbability:years?bucket.wet/years*100:0,sunshineMeanHours:mean(bucket.sunshine),daylightMeanHours:mean(bucket.daylight),windMaxMean:mean(bucket.wind),snowfallMean:mean(bucket.snowfall),cloudMean:mean(bucket.cloud),weatherCode:mode(bucket.codes),years};
  }
- return{createdAt:Date.now(),latitude:Number(payload.latitude),longitude:Number(payload.longitude),elevation:Number.isFinite(Number(payload.elevation))?Number(payload.elevation):undefined,timezone:String(payload.timezone||'auto'),source:'Open-Meteo ERA5-Land-Reanalyse',referencePeriod:'1991–2020',days,snowDepthIncluded:false};
+ return{createdAt:Date.now(),latitude:Number(payload.latitude),longitude:Number(payload.longitude),elevation:Number.isFinite(Number(payload.elevation))?Number(payload.elevation):undefined,timezone:String(payload.timezone||'auto'),source:'Open-Meteo ERA5-Seamless · ERA5-Land + ERA5',referencePeriod:'1991–2020',days,snowDepthIncluded:false};
 }
 
 function aggregateSnowDepth(payload:HistoricalHourlyPayload){
  const hourly=payload.hourly??{},times=(hourly.time??[]) as string[],values=(hourly.snow_depth??[]) as (number|null)[],dailyMax=new Map<string,number>();
  for(let index=0;index<times.length;index++){
-  const value=Number(values[index]);if(!Number.isFinite(value))continue;const date=String(times[index]).slice(0,10),centimetres=Math.max(0,value*100),current=dailyMax.get(date);if(current===undefined||centimetres>current)dailyMax.set(date,centimetres);
+  const raw=values[index];if(raw===null||raw===undefined)continue;const value=Number(raw);if(!Number.isFinite(value))continue;const date=String(times[index]).slice(0,10),centimetres=Math.max(0,value*100),current=dailyMax.get(date);if(current===undefined||centimetres>current)dailyMax.set(date,centimetres);
  }
  const buckets=new Map<string,number[]>();for(const[date,value]of dailyMax){const key=dateKey(date),rows=buckets.get(key)??[];rows.push(value);buckets.set(key,rows)}
  const result:Record<string,{mean:number;probability:number;years:number}>={};for(const[key,valuesForDay]of buckets){const finite=valuesForDay.filter(Number.isFinite);if(finite.length<15)continue;result[key]={mean:mean(finite),probability:finite.filter(value=>value>=1).length/finite.length*100,years:finite.length}}
@@ -172,14 +187,14 @@ function aggregateSnowDepth(payload:HistoricalHourlyPayload){
 export async function fetchTravelClimatology(location:{latitude:number;longitude:number;elevation?:number},includeSnowDepth:boolean,signal?:AbortSignal):Promise<TravelClimateDataset>{
  const climateLocation=normalizedClimateLocation(location),baseKey=cacheKey(BASE_CACHE_PREFIX,climateLocation.latitude,climateLocation.longitude,climateLocation.elevation);let dataset=readCache<TravelClimateDataset>(baseKey);
  if(!dataset){
-  const request=sharedRequest<TravelClimateDataset>(baseKey,async()=>{const cached=readCache<TravelClimateDataset>(baseKey);if(cached)return cached;const params=new URLSearchParams({latitude:String(climateLocation.latitude),longitude:String(climateLocation.longitude),start_date:'1991-01-01',end_date:'2020-12-31',daily:DAILY_VARIABLES,timezone:'auto',models:'era5_land',cell_selection:'land',wind_speed_unit:'kmh'});if(Number.isFinite(climateLocation.elevation))params.set('elevation',String(climateLocation.elevation));const result=aggregateTravelClimate(await fetchJson<HistoricalDailyPayload>(`https://archive-api.open-meteo.com/v1/archive?${params}`));writeCache(baseKey,result);return result});
+  const request=sharedRequest<TravelClimateDataset>(baseKey,async()=>{const cached=readCache<TravelClimateDataset>(baseKey);if(cached)return cached;const params=new URLSearchParams({latitude:String(climateLocation.latitude),longitude:String(climateLocation.longitude),start_date:'1991-01-01',end_date:'2020-12-31',daily:DAILY_VARIABLES,timezone:'auto',models:'era5_seamless',cell_selection:'land',temperature_unit:'celsius',precipitation_unit:'mm',wind_speed_unit:'kn'});if(Number.isFinite(climateLocation.elevation))params.set('elevation',String(climateLocation.elevation));const payload=await fetchJson<HistoricalDailyPayload>(`https://archive-api.open-meteo.com/v1/archive?${params}`);assertTravelHistoricalPayload(payload);const result=aggregateTravelClimate(payload);writeCache(baseKey,result);return result});
   dataset=await waitForShared(request,signal);
  }
  if(!includeSnowDepth)return dataset;
  const snowKey=cacheKey(SNOW_CACHE_PREFIX,climateLocation.latitude,climateLocation.longitude,climateLocation.elevation),cachedSnow=readCache<{createdAt:number;values:Record<string,{mean:number;probability:number;years:number}>}>(snowKey);let snow=cachedSnow?.values;
  if(!snow){
   try{
-   const request=sharedRequest<{createdAt:number;values:Record<string,{mean:number;probability:number;years:number}>}>(snowKey,async()=>{const cached=readCache<{createdAt:number;values:Record<string,{mean:number;probability:number;years:number}>}>(snowKey);if(cached)return cached;const params=new URLSearchParams({latitude:String(climateLocation.latitude),longitude:String(climateLocation.longitude),start_date:'1991-01-01',end_date:'2020-12-31',hourly:'snow_depth',timezone:'auto',models:'era5_land',cell_selection:'land'});if(Number.isFinite(climateLocation.elevation))params.set('elevation',String(climateLocation.elevation));const value={createdAt:Date.now(),values:aggregateSnowDepth(await fetchJson<HistoricalHourlyPayload>(`https://archive-api.open-meteo.com/v1/archive?${params}`))};writeCache(snowKey,value);return value});snow=(await waitForShared(request,signal)).values;
+   const request=sharedRequest<{createdAt:number;values:Record<string,{mean:number;probability:number;years:number}>}>(snowKey,async()=>{const cached=readCache<{createdAt:number;values:Record<string,{mean:number;probability:number;years:number}>}>(snowKey);if(cached)return cached;const params=new URLSearchParams({latitude:String(climateLocation.latitude),longitude:String(climateLocation.longitude),start_date:'1991-01-01',end_date:'2020-12-31',hourly:'snow_depth',timezone:'auto',models:'era5_land',cell_selection:'land',temperature_unit:'celsius',precipitation_unit:'mm'});if(Number.isFinite(climateLocation.elevation))params.set('elevation',String(climateLocation.elevation));const value={createdAt:Date.now(),values:aggregateSnowDepth(await fetchJson<HistoricalHourlyPayload>(`https://archive-api.open-meteo.com/v1/archive?${params}`))};writeCache(snowKey,value);return value});snow=(await waitForShared(request,signal)).values;
   }catch(error){if(signal?.aborted)throw abortError();return{...dataset,snowDepthIncluded:false,snowDepthWarning:error instanceof Error?`Historische Schneehöhe nicht verfügbar: ${error.message}`:'Historische Schneehöhe nicht verfügbar.'}}
  }
  const days={...dataset.days};for(const[key,value]of Object.entries(snow)){const day=days[key];if(day)days[key]={...day,snowDepthMean:value.mean,snowCoverProbability:value.probability,years:Math.min(day.years,value.years)}}
@@ -207,8 +222,8 @@ function scoreSummary(summary:TravelSummary,preference:TravelPreference){
   case'cold':return-summary.avgMax*4+(summary.snowDepthMean??0)*1.5+summary.snowfallTotal;
   case'sunny':return summary.sunshinePerDay*10-summary.cloudMean*.12-summary.wetDaysExpected*1.5;
   case'snow':return(summary.snowDepthMean??0)*4+(summary.snowCoverDaysExpected??0)*2+summary.snowfallTotal*1.5-summary.avgMax;
-  case'calm':return-summary.windMaxMean*3-summary.wetDaysExpected+summary.sunshinePerDay*.25;
-  default:return-Math.abs(summary.avgMax-24)*2-summary.wetDaysExpected*3+summary.sunshinePerDay*5-summary.windMaxMean*.3;
+  case'calm':return-summary.windMaxMean*1.852*3-summary.wetDaysExpected+summary.sunshinePerDay*.25;
+  default:return-Math.abs(summary.avgMax-24)*2-summary.wetDaysExpected*3+summary.sunshinePerDay*5-summary.windMaxMean*1.852*.3;
  }
 }
 
@@ -218,7 +233,8 @@ function constraintResult(summary:TravelSummary,constraints:TravelConstraints){
  if(Number.isFinite(constraints.maxAvgMax)&&summary.avgMax>Number(constraints.maxAvgMax))unmet.push(`Ø Höchsttemperatur über ${constraints.maxAvgMax} °C`);
  if(Number.isFinite(constraints.maxWetDays)&&summary.wetDaysExpected>Number(constraints.maxWetDays))unmet.push(`mehr als ${constraints.maxWetDays} erwartete Regentage`);
  if(Number.isFinite(constraints.minSunHoursPerDay)&&summary.sunshinePerDay<Number(constraints.minSunHoursPerDay))unmet.push(`weniger als ${constraints.minSunHoursPerDay} Sonnenstunden pro Tag`);
- if(Number.isFinite(constraints.maxWindKmh)&&summary.windMaxMean>Number(constraints.maxWindKmh))unmet.push(`Ø Windmaximum über ${constraints.maxWindKmh} km/h`);
+ const maxWindKt=Number.isFinite(constraints.maxWindKt)?Number(constraints.maxWindKt):Number.isFinite(constraints.maxWindKmh)?Number(constraints.maxWindKmh)/1.852:Number.NaN;
+ if(Number.isFinite(maxWindKt)&&summary.windMaxMean>maxWindKt)unmet.push(`Ø Windmaximum über ${constraints.maxWindLabel||`${Math.round(maxWindKt)} kt`}`);
  if(Number.isFinite(constraints.minSnowDepthCm)&&(!Number.isFinite(summary.snowDepthMean)||Number(summary.snowDepthMean)<Number(constraints.minSnowDepthCm)))unmet.push(`mittlere Schneehöhe unter ${constraints.minSnowDepthCm} cm`);
  return unmet;
 }
@@ -236,7 +252,7 @@ export function bestTravelWindows(dataset:TravelClimateDataset,searchStart:strin
 }
 
 export function travelNarrative(summary:TravelSummary,preference:TravelPreference,snowDepthIncluded:boolean){
- const thermal=summary.avgMax>=30?'sehr warm bis heiß':summary.avgMax>=25?'warm':summary.avgMax>=20?'mild bis warm':summary.avgMax>=15?'mild':summary.avgMax>=10?'kühl':'kalt',wetShare=summary.days?summary.wetDaysExpected/summary.days:0,moisture=wetShare<=.2?'überwiegend trocken':wetShare<=.4?'eher trocken':wetShare<=.6?'wechselhaft':'häufig niederschlagsanfällig',sun=summary.sunshinePerDay>=8?'sehr sonnig':summary.sunshinePerDay>=5?'sonnig':summary.sunshinePerDay>=3?'mit mäßigem Sonnenschein':'eher sonnenarm',wind=summary.windMaxMean>=40?'oft windig':summary.windMaxMean>=25?'zeitweise windig':'meist mäßig windig';
+ const thermal=summary.avgMax>=30?'sehr warm bis heiß':summary.avgMax>=25?'warm':summary.avgMax>=20?'mild bis warm':summary.avgMax>=15?'mild':summary.avgMax>=10?'kühl':'kalt',wetShare=summary.days?summary.wetDaysExpected/summary.days:0,moisture=wetShare<=.2?'überwiegend trocken':wetShare<=.4?'eher trocken':wetShare<=.6?'wechselhaft':'häufig niederschlagsanfällig',sun=summary.sunshinePerDay>=8?'sehr sonnig':summary.sunshinePerDay>=5?'sonnig':summary.sunshinePerDay>=3?'mit mäßigem Sonnenschein':'eher sonnenarm',wind=summary.windMaxMean>=40/1.852?'oft windig':summary.windMaxMean>=25/1.852?'zeitweise windig':'meist mäßig windig';
  const parts=[`Klimatologisch ist der Zeitraum ${thermal}, ${moisture} und ${sun}.`,`${wind[0].toUpperCase()}${wind.slice(1)}; erwartet werden im Mittel ${summary.wetDaysExpected.toFixed(1).replace('.',',')} Niederschlagstage.`];
  if(preference==='snow')parts.push(snowDepthIncluded&&Number.isFinite(summary.snowDepthMean)?`Die mittlere modellierte Schneehöhe liegt bei rund ${Math.round(Number(summary.snowDepthMean))} cm.`:`Die Schneebewertung stützt sich ersatzweise auf den historischen Schneefall.`);
  return parts.join(' ');

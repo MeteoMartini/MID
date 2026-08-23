@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.65.1",
+  "version": "0.9.65.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -302,7 +302,8 @@
     "test:greece-coordinate-warnings-kv-isolation": "node scripts/test-greece-coordinate-warnings-kv-isolation-09646.mjs",
     "test:water-current-direction-arrow": "node scripts/test-water-current-direction-arrow-09647.mjs",
     "test:austria-local-warning-scope": "node scripts/test-austria-local-warning-scope-09648.mjs",
-    "test:location-view-kv-write-savings": "node scripts/test-location-view-kv-write-savings-09649.mjs"
+    "test:location-view-kv-write-savings": "node scripts/test-location-view-kv-write-savings-09649.mjs",
+    "test:travel-era5-seamless-units": "node scripts/test-travel-planner-era5-seamless-units-09652.mjs"
   },
   "dependencies": {
     "astronomy-engine": "^2.1.19",

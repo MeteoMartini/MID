@@ -45,13 +45,13 @@ for(const token of [
  "type TravelPreference='balanced'|'dry'|'warm'|'cold'|'sunny'|'snow'|'calm'",
  "start_date:'1991-01-01'",
  "end_date:'2020-12-31'",
- "models:'era5_land'",
+ "models:'era5_seamless'",
  "hourly:'snow_depth'",
  'export function bestTravelWindows(',
  'export function summarizeTravelPeriod(',
  'export function travelNarrative(',
  'Klimatologisch ist der Zeitraum',
- "source:'Open-Meteo ERA5-Land-Reanalyse'",
+ "source:'Open-Meteo ERA5-Seamless · ERA5-Land + ERA5'",
  'CACHE_MAX_AGE=3*365*86400000',
  'CLIMATE_GRID_DEGREES=.1',
  'sharedRequest<T>',
@@ -96,4 +96,4 @@ try{
 }finally{await rm(compileDir,{recursive:true,force:true})}
 
 if(failures.length){console.error('Reiseplaner-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Reiseplaner geprüft: eingeklappte Sektion, Zielortsuche, Festzeitraum, flexible Zeitfenster, Bedingungen, ERA5-Land-Klimatologie und optionale Schneehöhe vorhanden.');
+console.log('Reiseplaner geprüft: eingeklappte Sektion, Zielortsuche, Festzeitraum, flexible Zeitfenster, Bedingungen, ERA5-Seamless-Klimatologie und optionale ERA5-Land-Schneehöhe vorhanden.');

@@ -1,3 +1,11 @@
+# v0.9.65.2
+
+- Reiseplaner-Klimatologie von einem fachlich unvollständigen ERA5-Land-Basisabruf auf Open-Meteo ERA5-Seamless umgestellt: ERA5-Land liefert die feinere Landtemperatur, ERA5 ergänzt Niederschlag, Solarstrahlung/Sonnenschein und Wind; optionale historische Schneehöhe bleibt separat auf ERA5-Land.
+- Reise-Klimacache auf v3 migriert, damit bereits lokal gespeicherte fehlerhafte 0-h-/0-Wind-Datensätze nicht wiederverwendet werden.
+- Nullwerte historischer API-Felder werden nicht länger per `Number(null)` als meteorologische 0 interpretiert; Plausibilitätsguards verwerfen unvollständige Reihen sowie unmögliche durchgehende 0-h-Sonnenschein- bzw. 0-Wind-Serien statt daraus Texte wie „eher sonnenarm“ abzuleiten.
+- Appweiter Einheitenvertrag auf den Reiseplaner übertragen: Wind wird intern wie im übrigen MID in Knoten geführt, Ausgabe und Wind-Grenzwerte folgen der globalen Auswahl kt/km/h/m/s/mph; Temperatur bleibt °C, Niederschlag mm und Schnee cm.
+- Quellen-/Methodentexte auf ERA5-Seamless standardisiert und irreführende reine ERA5-Land-/10-km-Aussagen entfernt. Worker-Fachlogik bleibt unverändert.
+
 # v0.9.65.1
 
 - Installations-Hotfix für die drei in v0.9.65.0 aufgedeckten Regressionen.
