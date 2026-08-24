@@ -14,6 +14,7 @@ import {apportionScenarioPercentages} from './scenarioMath';
 import {precipitationAmountLabel,precipitationParts} from './precipitation';
 import {computeEnsembleConfidence} from './ensembleConfidence';
 import {formatDisplayDateTime} from './timeDisplay';
+import {precipitationOutlookText} from './forecastWording';
 
 function dateOnlyUtc(value:string){const match=String(value||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return match?new Date(Date.UTC(Number(match[1]),Number(match[2])-1,Number(match[3]),12)):new Date(Number.NaN)}
 function formatDateOnly(value:string,options:Intl.DateTimeFormatOptions){const date=dateOnlyUtc(value);return Number.isFinite(date.getTime())?new Intl.DateTimeFormat('de-DE',{...options,timeZone:'UTC'}).format(date):value}
@@ -369,9 +370,9 @@ function trendSum(rows:TrendRow[],selector:(row:TrendRow)=>number){return rows.m
 function forecastOutlook(data:TrendRow[],secureCount:number){
  const early=data.slice(0,Math.min(3,data.length)),start=Math.min(Math.max(secureCount,3),Math.max(0,data.length-1)),candidate=data.slice(start,Math.min(data.length,start+4)),later=candidate.length?candidate:data.slice(Math.min(3,data.length),Math.min(7,data.length));
  if(!early.length||!later.length)return{headline:'noch keine belastbare Folgetendenz',detail:'Für den anschließenden Zeitraum liegen noch zu wenige vergleichbare Tage vor.'};
- const earlyTemperature=trendAverage(early,row=>(row.bestMax+row.bestMin)/2),laterTemperature=trendAverage(later,row=>(row.bestMax+row.bestMin)/2),temperatureDelta=laterTemperature-earlyTemperature,earlyRain=trendSum(early,row=>row.bestPrecipitation),laterRain=trendSum(later,row=>row.bestPrecipitation),laterRainProbability=trendAverage(later,row=>row.bestPrecipitationProbability),earlyGust=trendAverage(early,row=>row.bestGust),laterGust=trendAverage(later,row=>row.bestGust),gustDelta=laterGust-earlyGust;
+ const earlyTemperature=trendAverage(early,row=>(row.bestMax+row.bestMin)/2),laterTemperature=trendAverage(later,row=>(row.bestMax+row.bestMin)/2),temperatureDelta=laterTemperature-earlyTemperature,earlyRain=trendSum(early,row=>row.bestPrecipitation),laterRain=trendSum(later,row=>row.bestPrecipitation),laterRainProbability=trendAverage(later,row=>row.bestPrecipitationProbability),laterRainProbabilityMax=Math.max(0,...later.map(row=>clamp(Number(row.bestPrecipitationProbability)||0,0,100))),earlyGust=trendAverage(early,row=>row.bestGust),laterGust=trendAverage(later,row=>row.bestGust),gustDelta=laterGust-earlyGust;
  const temperatureText=temperatureDelta>=3?'deutlich wärmer':temperatureDelta>=1?'etwas wärmer':temperatureDelta<=-3?'deutlich kühler':temperatureDelta<=-1?'etwas kühler':'Temperaturen ähnlich';
- const precipitationText=laterRainProbability>=60||laterRain>=Math.max(4,earlyRain+2.5)?'mit erhöhter Regenneigung':laterRainProbability<=25&&laterRain<1?'überwiegend trocken':'mit wechselhaftem Niederschlagsrisiko';
+ const precipitationText=precipitationOutlookText({totalAmount:laterRain,averageProbability:laterRainProbability,maximumProbability:laterRainProbabilityMax,elevatedAmountThreshold:Math.max(4,earlyRain+2.5)});
  const windText=gustDelta>=6?', zudem windiger':gustDelta<=-6?', zudem ruhiger':'';
  return{headline:`${temperatureText}, ${precipitationText}${windText}`,detail:`Tendenz aus ${later.length} Folgetagen gegenüber dem frühen Prognoseabschnitt.`};
 }

@@ -1389,8 +1389,8 @@ body,#root{
 }
 
 /* MID v0.9.10.0 – forecast cockpit pictogram + wind arrow harmonisation */
-.cockpit-inline-wind-arrow{display:inline-grid;place-items:center;width:var(--arrow-size,16px);height:var(--arrow-size,16px);min-width:var(--arrow-size,16px);flex:none;color:#58c889}
-.cockpit-inline-wind-arrow>span{display:block;line-height:1;font-size:calc(var(--arrow-size,16px) * .94);font-style:normal;transform-origin:center}
+.cockpit-inline-wind-arrow{display:inline-grid;place-items:center;width:var(--arrow-size,17px);height:var(--arrow-size,17px);min-width:var(--arrow-size,17px);flex:none;color:#7ae1a3;filter:drop-shadow(0 0 2px rgba(9,32,22,.55))}
+.cockpit-inline-wind-arrow>span{display:block;line-height:1;font-size:calc(var(--arrow-size,17px) * 1.02);font-style:normal;transform-origin:center;font-weight:800}
 .cockpit-inline-wind-arrow.warning-1{color:#e6c229}.cockpit-inline-wind-arrow.warning-2{color:#ef8d32}.cockpit-inline-wind-arrow.warning-3{color:#e74a4a}.cockpit-inline-wind-arrow.warning-4{color:#9b59c6}
 .cockpit-day-wind{align-items:center}.cockpit-day-wind small.noticeable,.cockpit-fourteen-selected-wind em.noticeable,.cockpit-fourteen-wind-meta.noticeable{color:#ef8d32!important;font-weight:800}.cockpit-day-wind small.marked,.cockpit-fourteen-selected-wind em.marked,.cockpit-fourteen-wind-meta.marked{color:#e74a4a!important;font-weight:800}.cockpit-day-wind small.severe,.cockpit-fourteen-selected-wind em.severe,.cockpit-fourteen-wind-meta.severe{color:#9b59c6!important;font-weight:800}
 .cockpit-now90-wind,.cockpit-fourteen-wind-meta,.cockpit-fourteen-selected-wind b{display:inline-flex;align-items:center;gap:5px}

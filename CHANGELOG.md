@@ -1,3 +1,11 @@
+# v0.9.65.10
+
+- Appweiter Niederschlagswahrscheinlichkeitsvertrag korrigiert: Es gibt keine künstliche 5-%-Untergrenze mehr. 0 %, 1 %, 2 %, 3 % und 4 % bleiben als echte Modell-/Fusionswerte erhalten und werden entsprechend angezeigt.
+- Kurzfristfusion und 24-h-Wetterprofil übernehmen die kanonische PoP unverfälscht; Darstellungslogik darf niedrige Wahrscheinlichkeiten weder anheben noch als Niederschlagssignal erfinden.
+- Prognose-Kompass und Ensemble-Kompass verwenden eine gemeinsame Trockenheitsformulierung: Bei höchstens 0,1 mm im betrachteten Folgeabschnitt und maximal 5 % PoP lautet die Tendenz eindeutig „trocken“ statt „überwiegend trocken“.
+- Geringes, aber reales Restniederschlagsrisiko behält die abgestufte Formulierung „überwiegend trocken“; erhöhte Regenneigung und wechselhaftes Risiko bleiben unverändert abgestuft.
+- Neue Regression schützt Nullboden und Wortlaut appweit; Professional-/Worker-Versionen bleiben synchron.
+
 # v0.9.65.6
 
 - Das rollierende 24-h-Wetterprofil ergänzt zwischen Wind und Wolken eine sehr kompakte Luftdruckspur mit dynamischer hPa-Skala, Verlaufslinie und selektiertem Wert. Die Gesamt-SVG-Höhe bleibt unverändert.
