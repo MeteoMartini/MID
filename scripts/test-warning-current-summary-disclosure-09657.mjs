@@ -13,9 +13,9 @@ const [app,styleSource,styles,pkgRaw,baselineRaw]=await Promise.all([
 // Geschlossen wird ausschließlich der aktuelle automatische Warnzustand gezeigt.
 for(const token of [
  "const[open,setOpen]=useState<string>(''),[expanded,setExpanded]=useState(false)",
- 'hazardCurrentItems(data)',
+ 'hazardCurrentItems(sortedData)',
  'hazardCurrentLevel(current)',
- 'summaryData=current.length?current:data',
+ 'summaryData=current.length?current:sortedData',
  'className="hazards-responsive-head hazards-responsive-summary"',
  'onClick={()=>setExpanded(value=>!value)}',
  'aria-expanded={expanded}',

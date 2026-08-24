@@ -18,10 +18,10 @@ for(const token of [
 need('Package-Test',pkg,'test:hazard-validity-date');
 need('Baseline-Test',baseline,'scripts/test-hazard-validity-date-08186.mjs');
 
-const match=app.match(/function hazardValidityLabel\([\s\S]*?\n}\nfunction Hazards/);
+const match=app.match(/function hazardValidityLabel\([\s\S]*?\n}\n(?=function )/);
 if(!match)failures.push('hazardValidityLabel konnte nicht extrahiert werden.');
 else{
-  const source=match[0].replace(/\nfunction Hazards[\s\S]*$/,'').replace(/validFrom:string\|undefined/g,'validFrom').replace(/validTo:string\|undefined/g,'validTo').replace(/timezone\?:string/g,'timezone').replace(/value:number/g,'value');
+  const source=match[0].replace(/validFrom:string\|undefined/g,'validFrom').replace(/validTo:string\|undefined/g,'validTo').replace(/timezone\?:string/g,'timezone').replace(/value:number/g,'value');
   const formatInZone=(value,timeZone,options)=>new Intl.DateTimeFormat('de-DE',{...options,timeZone:timeZone||undefined}).format(new Date(value));
   const label=new Function('formatInZone',`${source};return hazardValidityLabel;`)(formatInZone);
   const originalNow=Date.now;
