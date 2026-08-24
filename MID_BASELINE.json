@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.65.6",
+  "releaseVersion": "0.9.65.7",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -258,7 +258,8 @@
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
     "scripts/test-current-warning-compact-responsive-09654.mjs",
     "scripts/test-sunshine-duration-contract-09655.mjs",
-    "scripts/test-weather-profile-pressure-hazards-09656.mjs"
+    "scripts/test-weather-profile-pressure-hazards-09656.mjs",
+    "scripts/test-warning-current-summary-disclosure-09657.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -448,7 +449,8 @@
     "scripts/test-travel-planner-era5-seamless-units-09652.mjs",
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
     "scripts/test-current-warning-compact-responsive-09654.mjs",
-    "scripts/test-weather-profile-pressure-hazards-09656.mjs"
+    "scripts/test-weather-profile-pressure-hazards-09656.mjs",
+    "scripts/test-warning-current-summary-disclosure-09657.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -528,7 +530,9 @@
     "scripts/test-sunshine-duration-contract-09655.mjs",
     "MID_IMPLEMENTATION_0.9.65.5.md",
     "scripts/test-weather-profile-pressure-hazards-09656.mjs",
-    "MID_IMPLEMENTATION_0.9.65.6.md"
+    "MID_IMPLEMENTATION_0.9.65.6.md",
+    "scripts/test-warning-current-summary-disclosure-09657.mjs",
+    "MID_IMPLEMENTATION_0.9.65.7.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -549,6 +553,8 @@
     "MID_IMPLEMENTATION_0.9.65.4.md",
     "src/sunshineDuration.ts",
     "scripts/test-sunshine-duration-contract-09655.mjs",
-    "MID_IMPLEMENTATION_0.9.65.5.md"
+    "MID_IMPLEMENTATION_0.9.65.5.md",
+    "MID_IMPLEMENTATION_0.9.65.7.md",
+    "scripts/test-warning-current-summary-disclosure-09657.mjs"
   ]
 }
