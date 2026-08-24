@@ -1,3 +1,10 @@
+# v0.9.65.6
+
+- Das rollierende 24-h-Wetterprofil ergänzt zwischen Wind und Wolken eine sehr kompakte Luftdruckspur mit dynamischer hPa-Skala, Verlaufslinie und selektiertem Wert. Die Gesamt-SVG-Höhe bleibt unverändert.
+- Wetter-Hazards werden aus derselben finalen Stundenreihe und mit derselben `summarizeDwdWarnings(..., 24)`-Logik wie die appweite Warnübersicht abgeleitet. 1 h/3 h verdichtet nur die Anzeige.
+- Hazardfarben sind an die zentralen DWD-Stufen gekoppelt; warnungsfreie Stunden werden grün dargestellt.
+- Keine zusätzlichen API-, Radar-, Cache- oder KV-Zugriffe. Worker-Fachlogik unverändert; Worker nur auf 0.9.65.6 synchronisiert.
+
 # v0.9.65.5
 
 - Appweiter Sunshine-Duration-Contract: 15-Minuten-Werte bilden vollständige Stunden; vollständige lokale Stunden bilden den Kalendertag. Daily bleibt Fallback und Qualitätsreferenz.

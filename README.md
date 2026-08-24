@@ -1,3 +1,10 @@
+## MID v0.9.65.6 – 24-h-Luftdruck & Hazard-Konsistenz
+
+- Das rollierende 24-h-Wetterprofil enthält jetzt eine kompakte Luftdruckkurve mit dynamischer hPa-Skala, ohne die bisherige SVG-Höhe zu vergrößern; Hoch- und Querformat bleiben platzsparend.
+- Die Hazard-Zeile verwendet die appweite DWD-Warnzusammenfassung auf der finalen Stundenreihe. 1 h/3 h verändert ausschließlich die Darstellung und nicht Warnzeitfenster oder Schwellen.
+- Warnungsfreie Abschnitte bleiben grün; DWD-Stufen folgen konsistent gelb/orange/rot/violett. Es entstehen keine zusätzlichen Wetter-, Cache- oder KV-Abfragen.
+- Die Änderung ist clientseitig; ein funktionales Worker-Update ist nicht erforderlich. Der Worker wird auf v0.9.65.6 versionssynchronisiert.
+
 ## MID v0.9.65.5 – appweiter Sunshine-Duration-Contract
 
 - Einheitliche Verarbeitung von 15 Minuten über Stunde und lokalen Kalendertag bis zu Ensemble-/Eventzeiträumen; Daily dient nur als Fallback und Qualitätsreferenz.

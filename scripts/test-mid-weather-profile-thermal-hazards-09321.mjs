@@ -8,11 +8,13 @@ const [cockpit,styles,pkg,baseline]=await Promise.all([
 const failures=[];const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};const reject=(label,text,token)=>{if(text.includes(token))failures.push(`${label}: unerwartet ${token}`)};
 for(const token of [
  'DWD_WARNING_COLORS',
- 'dwdWarningSignalsAt',
+ 'summarizeDwdWarnings',
  'type DwdWarningSample',
- 'function shortTermWarningSample(point:ShortTermForecastPoint)',
- 'function shortTermImpact(points:ShortTermForecastPoint[],index:number,elevation=0)',
- 'signals=dwdWarningSignalsAt(samples,index,elevation)',
+ 'type DwdWarningSignal',
+ 'function shortTermHourWarningSample(hour:Hour)',
+ 'function shortTermHazardSignals(hours:Hour[],elevation=0)',
+ 'summarizeDwdWarnings(horizon.map(shortTermHourWarningSample),elevation,24)',
+ 'function shortTermImpactForInterval(signals:DwdWarningSignal[],startEpoch:number,endEpoch:number)',
  'color=DWD_WARNING_COLORS[level]',
  "label:'Stärkste Einschränkung'",
  "className:`impact-level-${maxImpact.level}`",
@@ -36,4 +38,4 @@ for(const token of [
 ])need('Warnfarben',styles,token);
 const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;if(pv!==bv)failures.push(`Versionen nicht synchron: ${pv}/${bv}`);
 if(failures.length){console.error('MID appweite Hazard-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('MID: 24-h-Hazards verwenden appweite DWD/MID-Warnschwellen und Warnfarben.');
+console.log('MID: 24-h-Hazards verwenden appweite DWD/MID-Warnschwellen, Gültigkeitsintervalle und Warnfarben.');

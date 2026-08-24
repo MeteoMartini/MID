@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.65.5",
+  "version": "0.9.65.6",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -306,7 +306,8 @@
     "test:travel-era5-seamless-units": "node scripts/test-travel-planner-era5-seamless-units-09652.mjs",
     "test:weather-profile-rolling-openmeteo-audit": "node scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
     "test:current-warning-compact-responsive": "node scripts/test-current-warning-compact-responsive-09654.mjs",
-    "test:sunshine-duration-contract": "node scripts/test-sunshine-duration-contract-09655.mjs"
+    "test:sunshine-duration-contract": "node scripts/test-sunshine-duration-contract-09655.mjs",
+    "test:weather-profile-pressure-hazards": "node scripts/test-weather-profile-pressure-hazards-09656.mjs"
   },
   "dependencies": {
     "astronomy-engine": "^2.1.19",
