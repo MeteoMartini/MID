@@ -3,6 +3,7 @@ import fs,{readFileSync} from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {createRequire} from 'node:module';
+import {inlineSunshineDurationContract} from './sunshine-duration-regression-helper.mjs';
 const app=readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
 const fusion=readFileSync(new URL('../src/forecastFusion.ts',import.meta.url),'utf8');
 const css=readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
@@ -45,7 +46,7 @@ if(app.includes('activationTimer=')||app.includes('requestIdle(run,{timeout:260}
 if(failures.length){console.error('MID v0.8.33.16 iOS-Scroll-/Temperaturprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
 
 const require=createRequire(import.meta.url);let ts;try{ts=require('typescript')}catch{ts=require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript')}
-const executable=fusion
+const executable=inlineSunshineDurationContract(fusion)
  .replace("import {fetchWorkerJson} from './workerClient';","const fetchWorkerJson=async()=>{throw new Error('not used')};")
  .replace("import {reconcileForecastPrecipitation} from './precipitation';",`const reconcileForecastPrecipitation=input=>({precipitation:Math.max(0,Number(input.precipitation)||0),rain:Math.max(0,Number(input.rain)||0),showers:Math.max(0,Number(input.showers)||0),snowfall:Math.max(0,Number(input.snowfall)||0),probability:Math.max(0,Math.min(100,Number(input.probability)||0)),code:Math.round(Number(input.code)||0),traceSuppressed:false});`)
  .replace("import {readStoredJsonCache,writeStoredJsonCache} from './cachePolicy';","const readStoredJsonCache=()=>undefined;const writeStoredJsonCache=()=>false;")

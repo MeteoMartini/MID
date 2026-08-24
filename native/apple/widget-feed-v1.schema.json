@@ -10,10 +10,10 @@
     "generatedAt": {"type": "string", "format": "date-time"},
     "expiresAt": {"type": "string", "format": "date-time"},
     "location": {"type": "object"},
-    "units": {"type": "object"},
-    "current": {"type": "object"},
-    "hourly": {"type": "array", "maxItems": 12},
-    "daily": {"type": "array", "maxItems": 5},
+    "units": {"type": "object", "properties": {"sunshineDuration": {"const": "s"}}},
+    "current": {"type": "object", "properties": {"sunshineDurationSeconds": {"type": ["number", "null"], "minimum": 0}}},
+    "hourly": {"type": "array", "maxItems": 12, "items": {"type": "object", "properties": {"sunshineDurationSeconds": {"type": ["number", "null"], "minimum": 0, "maximum": 3600}}}},
+    "daily": {"type": "array", "maxItems": 5, "items": {"type": "object", "properties": {"sunshineDurationSeconds": {"type": ["number", "null"], "minimum": 0, "maximum": 86400}}}},
     "source": {"type": "object"}
   }
 }

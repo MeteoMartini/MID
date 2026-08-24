@@ -48,8 +48,8 @@ for(const token of ['shortTermCloudBaseApprox','Wolkenbasis*'])reject('24-h-Wett
 need('Nebelrisiko',fogRisk,'export function shortTermFogRisk(point:ShortTermFogRiskPoint):ShortTermFogRiskResult');
 need('Nebelrisiko',fogRisk,'if(point.isDay&&!explicitFog&&!restrictedVisibility)score=Math.min(score,14)');
 
-need('Kurzfristdaten',shortTerm,'sunshineDuration?:number;');
-need('Kurzfristdaten',shortTerm,'sunshineDuration:base.sunshineDuration');
+need('Kurzfristdaten',shortTerm,'sunshineDuration?:number|null;');
+need('Kurzfristdaten',shortTerm,'const sunshineDuration=isQuarterInterval?');
 
 for(const token of [
   'const value=clamp((clamp(sunShare,0,1)-.5)/.5,0,1)',

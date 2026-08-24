@@ -1,3 +1,17 @@
+## MID v0.9.65.5 – appweiter Sunshine-Duration-Contract
+
+- Einheitliche Verarbeitung von 15 Minuten über Stunde und lokalen Kalendertag bis zu Ensemble-/Eventzeiträumen; Daily dient nur als Fallback und Qualitätsreferenz.
+- Fehlende Werte bleiben fehlend. Viertelstunden, Stunden und Tage werden auf ihre physikalisch mögliche Dauer beziehungsweise die astronomische Tageslänge begrenzt.
+- Tageskacheln, Detailansichten, 7 Tage, 14 Tage/Ensemble, Events/Aktivitäten sowie Web- und Apple-Widgets zeigen konsistente Werte: stündlich in min, täglich/Ensemble in h.
+- Best Match bleibt Hauptwert, P10–P90 die Ensemblebandbreite. Professional-App und Worker müssen gemeinsam aktualisiert werden.
+
+## MID v0.9.65.4 – Compact-Kopf und responsive Warnkarte
+
+- Aktuelles Wetter, Tagesbereich, Niederschlagswahrscheinlichkeit, Radarstatus und Datenbasis stehen in einer gemeinsamen platzsparenden Karte; „mehr/weniger“ ist in die Quellenzeile integriert.
+- Gewitter-/Starker-Schauer- sowie Starkregen-/Sturzflutkarten bleiben als kompakte Aufklapper mit vollständigen Orts-, Zugbahn-, Detail- und Quelleninformationen verfügbar.
+- Automatische Warnhinweise sind nach Tagen gruppiert, öffnen direkt unter ihrem Zeitfenster und verwenden appweit die DWD-Stufenfarben. Amtliche CAP-Meldungen schließen direkt an und behalten Originaltext sowie Handlungsanweisung.
+- Hoch- und Querformat sind ausdrücklich abgedeckt. Die Darstellung erzeugt keine zusätzlichen API- oder KV-Zugriffe; Professional-App und Worker werden gemeinsam aktualisiert.
+
 ## MID v0.9.65.3 – rollierendes 24-h-Wetterprofil
 
 - Exaktes 24-h-Fenster ab aktueller Zeit mit persistenter 1-h-/3-h-Darstellungswahl.

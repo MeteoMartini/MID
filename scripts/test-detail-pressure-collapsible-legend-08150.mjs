@@ -26,7 +26,7 @@ for(const token of [
  'stroke="#c48cff"',
  '<small>Luftdruck</small>',
  'pressureTrendLabel',
- '<small>Bewölkung / UVI</small>'
+ '<small>Bewölkung / UVI / Sonnenscheindauer</small>'
 ])need('Tagesdetail-Luftdruck/Legende',app,token);
 
 if(/requestIdleCallback[\s\S]{0,500}persistFavoriteSnapshot/.test(app))failures.push('Favoritenpersistenz darf nicht mehr auf requestIdleCallback warten.');

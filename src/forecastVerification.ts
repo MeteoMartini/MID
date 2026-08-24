@@ -49,7 +49,7 @@ export type ForecastPrediction={
  precipitation:number;
  probability:number;
  gust?:number;
- sunshineDuration?:number;
+ sunshineDuration?:number|null;
  weatherCode?:number;
  family?:string;
  independenceGroup?:string;
@@ -88,7 +88,7 @@ export type ForecastReference={
  source:string;
  weatherCode?:number;
  gust?:number;
- sunshineDuration?:number;
+ sunshineDuration?:number|null;
  regime:WeatherRegime;
  quality:number;
  confidence:TwinConfidence;
@@ -376,7 +376,7 @@ export function updateTwinSiteProfile(locationKey:string,location:Location,chang
 
 type RegimeDurationContext={wetHours?:number;longestWetHours?:number;convectiveHours?:number};
 function dayRegimeDuration(hours:Hour[],date:string):RegimeDurationContext{const relevant=hours.filter(hour=>hour.time.startsWith(date)).sort((a,b)=>a.epoch-b.epoch);let wetHours=0,longestWetHours=0,currentWet=0,convectiveHours=0;for(const hour of relevant){const code=Math.round(finite(hour.code,-1)),wet=Math.max(0,finite(hour.precipitation))>=.1||([51,53,55,61,63,65,80,81,82].includes(code)&&finite(hour.probability,0)>=35);if(wet){wetHours++;currentWet++;longestWetHours=Math.max(longestWetHours,currentWet)}else currentWet=0;if([80,81,82,95,96,97,99].includes(code))convectiveHours++}return{wetHours,longestWetHours,convectiveHours}}
-function inferRegime(value:{weatherCode?:number;precipitation:number;gust?:number;sunshineDuration?:number;min?:number;max?:number;wind?:number},profile?:TwinSiteProfile,duration:RegimeDurationContext={}):WeatherRegime{const code=Math.round(finite(value.weatherCode,-1)),precipitation=Math.max(0,finite(value.precipitation)),gust=finite(value.gust,0),sunshine=finite(value.sunshineDuration,NaN),minimum=finite(value.min,10),maximum=finite(value.max,minimum),wind=finite(value.wind,0),longestWet=Math.max(0,finite(duration.longestWetHours,0)),convectiveHours=Math.max(0,finite(duration.convectiveHours,0)),sustainedRain=(longestWet>=6&&precipitation>=8&&convectiveHours<=1)||(precipitation>=25&&[61,63,65].includes(code));if([95,96,97,99].includes(code))return'gewitter';if(gust>=34)return'sturm';if([71,73,75,77,85,86].includes(code)||(minimum<=1&&precipitation>=.2))return'winterlich';if(sustainedRain)return'dauerregen';if([80,81,82].includes(code))return'konvektiv';if([51,53,55,61,63,65].includes(code)||precipitation>=.5)return wind>=12?'front':'schauer';if(profile?.terrain==='valley'&&minimum<=5&&maximum-minimum>=10&&precipitation<.1)return'inversion';if(profile&&['slope','valley'].includes(profile.terrain)&&gust>=22&&precipitation<.2&&maximum-minimum>=9)return'foehn';if((Number.isFinite(sunshine)&&sunshine>=7*3600&&precipitation<.2)||[0,1].includes(code)&&precipitation<.2)return'hochdruck';return'wechselhaft'}
+function inferRegime(value:{weatherCode?:number;precipitation:number;gust?:number;sunshineDuration?:number|null;min?:number;max?:number;wind?:number},profile?:TwinSiteProfile,duration:RegimeDurationContext={}):WeatherRegime{const code=Math.round(finite(value.weatherCode,-1)),precipitation=Math.max(0,finite(value.precipitation)),gust=finite(value.gust,0),sunshine=finite(value.sunshineDuration,NaN),minimum=finite(value.min,10),maximum=finite(value.max,minimum),wind=finite(value.wind,0),longestWet=Math.max(0,finite(duration.longestWetHours,0)),convectiveHours=Math.max(0,finite(duration.convectiveHours,0)),sustainedRain=(longestWet>=6&&precipitation>=8&&convectiveHours<=1)||(precipitation>=25&&[61,63,65].includes(code));if([95,96,97,99].includes(code))return'gewitter';if(gust>=34)return'sturm';if([71,73,75,77,85,86].includes(code)||(minimum<=1&&precipitation>=.2))return'winterlich';if(sustainedRain)return'dauerregen';if([80,81,82].includes(code))return'konvektiv';if([51,53,55,61,63,65].includes(code)||precipitation>=.5)return wind>=12?'front':'schauer';if(profile?.terrain==='valley'&&minimum<=5&&maximum-minimum>=10&&precipitation<.1)return'inversion';if(profile&&['slope','valley'].includes(profile.terrain)&&gust>=22&&precipitation<.2&&maximum-minimum>=9)return'foehn';if((Number.isFinite(sunshine)&&sunshine>=7*3600&&precipitation<.2)||[0,1].includes(code)&&precipitation<.2)return'hochdruck';return'wechselhaft'}
 export function weatherRegimeLabel(regime:WeatherRegime){return({hochdruck:'Hochdruck / sonnig',wechselhaft:'wechselhaft',front:'Frontdurchgang',konvektiv:'konvektive Schauerlage',schauer:'Schauerlage',dauerregen:'Dauerregenlage',gewitter:'Gewitterlage',sturm:'Sturmlage',winterlich:'winterliche Lage',inversion:'Inversionslage',foehn:'Föhn-/Staulage'} as Record<WeatherRegime,string>)[regime]}
 
 function migrateObservationSource(value:any):ObservationSource{const label=String(value?.label||value?.id||'Quelle'),rawDistance=finite(value?.distanceKm,NaN),distanceKm=Number.isFinite(rawDistance)?(rawDistance>500?rawDistance/1000:rawDistance):undefined,rawKind=String(value?.kind||'model-fallback') as ObservationKind,analysed=/hyperlokal|stationsmittel|analyse/i.test(`${label} ${value?.detail||''}`),kind:ObservationKind=rawKind==='measured'&&analysed?'analysed':rawKind,rawQuality=finite(value?.quality,.3),quality=clamp(rawQuality>1?rawQuality/100:rawQuality,0,1);return{id:String(value?.id||kind),label,kind,quality,timestamp:value?.timestamp?String(value.timestamp):undefined,distanceKm,detail:value?.detail?String(value.detail):undefined}}

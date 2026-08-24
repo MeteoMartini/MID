@@ -4,14 +4,15 @@ import os from 'node:os';
 import path from 'node:path';
 import {createRequire} from 'node:module';
 import {fileURLToPath} from 'node:url';
+import {inlineSunshineDurationContract} from './sunshine-duration-regression-helper.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const source=fs.readFileSync(path.join(root,'src','forecastFusion.ts'),'utf8');
-for(const token of ['hoursByDate','completeCoverage=relevant.length>=DAY_HOURLY_FULL_COVERAGE_MIN_HOURS','precipitation=nearTerm||completeCoverage?hourlyPrecipitation:Math.max(dayPrecipitation,hourlyPrecipitation)','Best Match liefert die vollständige Tagesaggregation'])assert.ok(source.includes(token),`fehlender Tages-/Stunden-Konsistenzvertrag: ${token}`);
+for(const token of ['hoursByDate','completeCoverage=relevant.length>=DAY_HOURLY_FULL_COVERAGE_MIN_HOURS','precipitation=nearTerm||completeCoverage?hourlyPrecipitation:Math.max(dayPrecipitation,hourlyPrecipitation)','Der Sunshine-Contract aggregiert jeden lokalen Kalendertag'])assert.ok(source.includes(token),`fehlender Tages-/Stunden-Konsistenzvertrag: ${token}`);
 
 const require=createRequire(import.meta.url);
 let ts;try{ts=require('typescript')}catch{ts=require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript')}
-const executable=source.replace("import {fetchWorkerJson} from './workerClient';","const fetchWorkerJson=async()=>{throw new Error('not used')};").replace("import {reconcileForecastPrecipitation} from './precipitation';","const reconcileForecastPrecipitation=input=>({precipitation:Math.max(0,Number(input.precipitation)||0),rain:Math.max(0,Number(input.rain)||0),showers:Math.max(0,Number(input.showers)||0),snowfall:Math.max(0,Number(input.snowfall)||0),probability:Math.max(0,Math.min(100,Number(input.probability)||0)),code:Math.round(Number(input.code)||0),traceSuppressed:false});").replace("import {readStoredJsonCache,writeStoredJsonCache} from './cachePolicy';","const readStoredJsonCache=()=>undefined;const writeStoredJsonCache=()=>false;").replace("import type {Day,Hour,RadarNowcast,ThunderstormNowcast} from './weather';",'');
+const executable=inlineSunshineDurationContract(source).replace("import {fetchWorkerJson} from './workerClient';","const fetchWorkerJson=async()=>{throw new Error('not used')};").replace("import {reconcileForecastPrecipitation} from './precipitation';","const reconcileForecastPrecipitation=input=>({precipitation:Math.max(0,Number(input.precipitation)||0),rain:Math.max(0,Number(input.rain)||0),showers:Math.max(0,Number(input.showers)||0),snowfall:Math.max(0,Number(input.snowfall)||0),probability:Math.max(0,Math.min(100,Number(input.probability)||0)),code:Math.round(Number(input.code)||0),traceSuppressed:false});").replace("import {readStoredJsonCache,writeStoredJsonCache} from './cachePolicy';","const readStoredJsonCache=()=>undefined;const writeStoredJsonCache=()=>false;").replace("import type {Day,Hour,RadarNowcast,ThunderstormNowcast} from './weather';",'');
 const transpiled=ts.transpileModule(executable,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS},reportDiagnostics:true,fileName:'forecastFusion.ts'});
 const diagnostics=(transpiled.diagnostics||[]).filter(item=>item.category===ts.DiagnosticCategory.Error);
 assert.equal(diagnostics.length,0,diagnostics.map(item=>ts.flattenDiagnosticMessageText(item.messageText,' ')).join('\n'));

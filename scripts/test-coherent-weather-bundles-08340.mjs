@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {createRequire,stripTypeScriptTypes} from 'node:module';
 import {fileURLToPath,pathToFileURL} from 'node:url';
+import {inlineSunshineDurationContract} from './sunshine-duration-regression-helper.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const worker=fs.readFileSync(path.join(root,'worker','metar-proxy.js'),'utf8');
@@ -35,7 +36,8 @@ for(const token of [
  "weatherBundleKind:repaired?'coherent-model':'best-match'",
  'Der Wetter-/Niederschlagszustand bleibt vollständig',
  'Eine Tagesaggregation darf keine bislang nicht vorhandene Niederschlagsstunde',
- 'sunshineCoverage>=.9',
+ 'canonicalSunshineDaySeconds',
+ 'boundedSunshineSeconds(weather.sunshineDuration,3600)',
  'relativeHumidityFromTemperatureDewPoint'
 ])assert.ok(fusionSource.includes(token),`Frontend-Bündelvertrag fehlt: ${token}`);
 assert.ok(!fusionSource.includes('distributeDailyPrecipitationDeficit'),'Tagesmengen dürfen keine künstlichen Stunden erzeugen');
@@ -58,7 +60,7 @@ try{
  const stratiform=precip.reconcileForecastPrecipitation({precipitation:.4,rain:.4,probability:35,code:61,cloud:95,lowCloud:85,humidity:94,sunshineDuration:0,isDay:true,leadHours:96});
  assert.equal(stratiform.code,61,'geschlossene feuchte Schichtbewölkung darf Regen tragen');
 
- const executable=fusionSource
+ const executable=inlineSunshineDurationContract(fusionSource)
  .replace("import {fetchWorkerJson} from './workerClient';","const fetchWorkerJson=async()=>{throw new Error('not used')};")
  .replace("import {reconcileForecastPrecipitation} from './precipitation';",`const reconcileForecastPrecipitation=input=>{const precipitation=Math.max(0,Number(input.precipitation)||0),rain=Math.max(0,Number(input.rain)||0),showers=Math.max(0,Number(input.showers)||0),snowfall=Math.max(0,Number(input.snowfall)||0),probability=Math.max(0,Math.min(100,Number(input.probability)||0)),code=Math.round(Number(input.code)||0),wet=[51,53,55,56,57,61,63,65,66,67,68,69,71,73,75,77,80,81,82,83,84,85,86,95,96,97,99].includes(code),lead=Math.max(0,Number(input.leadHours)||0),minimum=lead<=24?10:lead<=72?15:20,weak=Math.max(precipitation,rain,showers,snowfall)<=.35,suppress=(wet||precipitation>=.01||rain>=.01||showers>=.01||snowfall>=.01)&&(probability<=5||weak&&probability<minimum);return suppress?{precipitation:0,rain:0,showers:0,snowfall:0,probability,code:3,traceSuppressed:true}:{precipitation,rain,showers,snowfall,probability,code,traceSuppressed:false}};`)
   .replace("import {readStoredJsonCache,writeStoredJsonCache} from './cachePolicy';","const readStoredJsonCache=()=>undefined;const writeStoredJsonCache=()=>false;")

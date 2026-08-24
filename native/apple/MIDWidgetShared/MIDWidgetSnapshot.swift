@@ -13,6 +13,7 @@ struct MIDWidgetSnapshot: Codable, Sendable {
         let temperature: String
         let precipitation: String
         let wind: String
+        let sunshineDuration: String?
     }
 
     struct Current: Codable, Sendable {
@@ -26,6 +27,7 @@ struct MIDWidgetSnapshot: Codable, Sendable {
         let windSpeed: Double
         let windGust: Double
         let windDirection: Double
+        let sunshineDurationSeconds: Double?
         let isDay: Bool
     }
 
@@ -40,6 +42,7 @@ struct MIDWidgetSnapshot: Codable, Sendable {
         let windSpeed: Double
         let windGust: Double
         let windDirection: Double
+        let sunshineDurationSeconds: Double?
         let isDay: Bool
     }
 
@@ -54,6 +57,7 @@ struct MIDWidgetSnapshot: Codable, Sendable {
         let condition: String
         let symbolName: String
         let windGustMax: Double
+        let sunshineDurationSeconds: Double?
         let sunrise: String?
         let sunset: String?
     }

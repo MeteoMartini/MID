@@ -12,7 +12,7 @@ for(const [token,where] of [
  ['✓ Keine Warnung',app],
  ['<ForecastHazards hazards={compactHz}/>',app],
  ['tooltip-meta-line sunshine-tooltip-line',ensemble],
- ['<b>Sonne</b>',ensemble],
+ ['<b>Sonnenscheindauer</b>',ensemble],
  ['<b>Hazards</b>',ensemble],
  ["import {useDismissibleLayer} from './useDismissibleLayer';",app+await read('src/RadarPanel.tsx')],
  ["document.addEventListener('pointerdown',onPointerDown,true)",dismissible],

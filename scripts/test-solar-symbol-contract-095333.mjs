@@ -31,7 +31,7 @@ assert.match(weather,/mapMinutely15[\s\S]*sunriseEpoch[\s\S]*sunsetEpoch[\s\S]*i
 
 assert.match(shortTerm,/function daylightFromBoundaries[\s\S]*epoch>=Number\(sunriseEpoch\)&&epoch<Number\(sunsetEpoch\)/,'Kurzfristinterpolation hat keine minutengenaue Sonnenstandsgrenze.');
 assert.match(shortTerm,/interpolatedHour[\s\S]*daylightFromBoundaries\(epoch,near\.sunriseEpoch,near\.sunsetEpoch,near\.isDay\)/,'Interpolierte Stunden übernehmen weiterhin blind den Nachbarstundenstatus.');
-assert.match(shortTerm,/const targetIsDay=quarter\?\.isDay\?\?daylightFromBoundaries/,'15-Minuten-/90-Minuten-Zielpunkte verwenden nicht den exakten Sonnenstatus.');
+assert.match(shortTerm,/targetIsDay=quarter\?\.isDay\?\?daylightFromBoundaries\(target,base\.sunriseEpoch,base\.sunsetEpoch,base\.isDay\)/,'15-Minuten-/90-Minuten-Zielpunkte verwenden nicht den exakten Sonnenstatus.');
 assert.match(fusion,/isDay:row\.isDay\?\?finalHour\?\.isDay/,'Forecast-Finalisierung überschreibt den 15-Minuten-Sonnenstatus.');
 
 assert.match(cockpit,/WeatherPictogram code=\{item\.code\} day=\{item\.isDay\}/,'90-Minuten-Cockpit verwendet den finalen Sonnenstatus nicht.');

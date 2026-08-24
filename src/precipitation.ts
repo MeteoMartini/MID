@@ -22,7 +22,7 @@ export type PrecipSample={
  cape?:number;
  liftedIndex?:number;
  convectiveInhibition?:number;
- sunshineDuration?:number;
+ sunshineDuration?:number|null;
  isDay?:boolean;
 };
 
@@ -64,7 +64,7 @@ export type ForecastPrecipitationConsistencyInput={
  cape?:number;
  liftedIndex?:number;
  convectiveInhibition?:number;
- sunshineDuration?:number;
+ sunshineDuration?:number|null;
  isDay?:boolean;
  leadHours?:number;
  observed?:boolean;

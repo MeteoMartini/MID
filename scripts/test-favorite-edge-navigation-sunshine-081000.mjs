@@ -18,7 +18,7 @@ need(weather,"'weather_code','sunshine_duration'",'15-Minuten-Abruf enthält kei
 need(weather,'export function recentSunshineDuration','Aktuelle 60-Minuten-Sonnenscheinaggregation fehlt.');
 need(weather,'rows.length>=3','Sonnenscheindauer wird nicht aus mehreren 15-Minuten-Intervallen gebildet.');
 need(weather,'localCloud>=87.5&&modelCloud>=80','Hyperlokaler Bewölkungs-Plausibilitätscheck für das aktuelle Viertel fehlt.');
-need(app,'sunshineMinutesPerHourLabel(sunshineRecent.seconds,sunshineRecent.coverageMinutes)','Aktuelle Wetterkachel nutzt nicht die aggregierte Sonnenscheindauer in Minuten je Stundenfenster.');
+need(app,'sunshineMinutesLabel(sunshineRecent.seconds,sunshineRecent.coverageMinutes)','Aktuelle Wetterkachel nutzt nicht die aggregierte Sonnenscheindauer über den zentralen Minutenvertrag.');
 need(app,"'in den letzten 60 Minuten'",'Zeitraumbezug der Sonnenscheindauer ist nicht eindeutig.');
 need(styles,'overscroll-behavior-x:none','Mobile Randnavigation ist nicht gegen horizontales Browser-Overscrollen abgesichert.');
 if(app.includes("value:sunshineDurationLabel(Number(c.sunshine_duration))"))failures.push('Alte 15-Minuten-Direktanzeige der Sonnenscheindauer ist noch aktiv.');

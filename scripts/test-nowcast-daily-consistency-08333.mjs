@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {createRequire,stripTypeScriptTypes} from 'node:module';
 import {fileURLToPath,pathToFileURL} from 'node:url';
+import {inlineSunshineDurationContract} from './sunshine-duration-regression-helper.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const fusionPath=path.join(root,'src','forecastFusion.ts');
@@ -26,7 +27,7 @@ const require=createRequire(import.meta.url);
 let ts;
 try{ts=require('typescript')}catch{}
 
-let executable=fusionSource
+let executable=inlineSunshineDurationContract(fusionSource)
  .replace("import {fetchWorkerJson} from './workerClient';","const fetchWorkerJson=async()=>{throw new Error('not used in regression')};")
  .replace("import {reconcileForecastPrecipitation} from './precipitation';","const reconcileForecastPrecipitation=input=>({precipitation:Math.max(0,Number(input.precipitation)||0),rain:Math.max(0,Number(input.rain)||0),showers:Math.max(0,Number(input.showers)||0),snowfall:Math.max(0,Number(input.snowfall)||0),probability:Math.max(0,Math.min(100,Number(input.probability)||0)),code:Math.round(Number(input.code)||0),traceSuppressed:false});")
  .replace("import {readStoredJsonCache,writeStoredJsonCache} from './cachePolicy';","const readStoredJsonCache=()=>undefined;const writeStoredJsonCache=()=>false;")

@@ -14,10 +14,10 @@ export type NativeWidgetFeed={
  generatedAt:string;
  expiresAt:string;
  location:{name:string;latitude:number;longitude:number;elevation?:number;timezone:string};
- units:{temperature:'°C';precipitation:'mm';wind:string};
- current:{time:string;temperature:number;apparentTemperature:number;precipitation:number;weatherCode:number;condition:string;symbolName:string;windSpeed:number;windGust:number;windDirection:number;isDay:boolean};
- hourly:Array<{time:string;temperature:number;precipitationProbability:number;weatherCode:number;condition:string;symbolName:string;windSpeed:number;windGust:number;windDirection:number;isDay:boolean}>;
- daily:Array<{date:string;temperatureMax:number;temperatureMin:number;precipitationSum:number;precipitationProbabilityMax:number;weatherCode:number;condition:string;symbolName:string;windGustMax:number;sunrise?:string;sunset?:string}>;
+ units:{temperature:'°C';precipitation:'mm';wind:string;sunshineDuration?:'s'};
+ current:{time:string;temperature:number;apparentTemperature:number;precipitation:number;weatherCode:number;condition:string;symbolName:string;windSpeed:number;windGust:number;windDirection:number;sunshineDurationSeconds?:number|null;isDay:boolean};
+ hourly:Array<{time:string;temperature:number;precipitationProbability:number;weatherCode:number;condition:string;symbolName:string;windSpeed:number;windGust:number;windDirection:number;sunshineDurationSeconds?:number|null;isDay:boolean}>;
+ daily:Array<{date:string;temperatureMax:number;temperatureMin:number;precipitationSum:number;precipitationProbabilityMax:number;weatherCode:number;condition:string;symbolName:string;windGustMax:number;sunshineDurationSeconds?:number|null;sunrise?:string;sunset?:string}>;
  source:{provider:string;model:string;license:string};
 };
 

@@ -1,3 +1,19 @@
+# v0.9.65.5
+
+- Appweiter Sunshine-Duration-Contract: 15-Minuten-Werte bilden vollständige Stunden; vollständige lokale Stunden bilden den Kalendertag. Daily bleibt Fallback und Qualitätsreferenz.
+- Physikalische Grenzen gelten zentral: höchstens 15 min je Viertelstunde, 60 min je Stunde und je Tag höchstens die astronomische Zeit zwischen Sonnenauf- und -untergang. Fehlende Werte bleiben fehlend statt 0.
+- Tageskacheln, Detailansicht, 7 Tage, 14 Tage/Ensemble, Events/Aktivitäten sowie Web- und Apple-Widgets verwenden dieselbe kanonische Sonnenscheindauer. Stündliche Darstellungen zeigen Minuten, Tages-/Ensemblewerte Stunden.
+- Best Match bleibt in der Ensembleansicht der Hauptwert; P10–P90 zeigt die Modellbandbreite. Tooltips verwenden die vollständige Bezeichnung „Sonnenscheindauer“.
+- Der Worker-Widgetfeed liefert optionale Sonnenscheinwerte mit Intervall-/Tageslichtbegrenzung. Professional-App und Worker bilden gemeinsam Release 0.9.65.5.
+
+# v0.9.65.4
+
+- Der Ortskopf verwendet die freigegebene Compact-Variante: aktuelles Wetter, Tmin/Tmax, Niederschlagswahrscheinlichkeit, Radarkurzlage und Datenbasis sind in einer gemeinsamen responsiven Karte zusammengeführt; der Detailschalter sitzt platzsparend in der Quellenzeile.
+- Lokale Gewitter-/Starker-Schauer- und Starkregen-/Sturzflutkarten sind generische Compact-Disclosures. Alle bisherigen Status-, Orts-, Zugbahn-, Fakten-, technischen Detail- und Quelleninformationen bleiben erreichbar.
+- Die automatische Warnübersicht ist eine gemeinsame, nach Tagen gruppierte Karte. Zeitfenster öffnen ihre Details unmittelbar unter der jeweiligen Zeile und kehren beim Zuklappen zur kompakten Ansicht zurück; DWD-Stufenfarben und Kennwerte bleiben erhalten.
+- Amtliche CAP-Warnungen sind optisch direkt angebunden, ohne Textverlust: Originalbeschreibung, Handlungsanweisung, Gebiet, Sprache, Quelle und Gültigkeit werden weiterhin vollständig dargestellt.
+- Eigene Hoch-/Querformatregeln verhindern abgeschnittene Information. Wetter-, Radar-, Warn- und KV-Abfragebudgets bleiben unverändert; Professional-App und Worker bilden gemeinsam Release 0.9.65.4.
+
 # v0.9.65.3
 
 - Das Wetterprofil verwendet ein exakt ab der aktuellen Zeit laufendes 24-h-Fenster; die Ansicht aktualisiert den Zeitanker automatisch und bietet eine persistente 1-h-/3-h-Darstellungswahl, ohne die stündlichen Rohdaten zu verändern.

@@ -26,13 +26,14 @@ for(const token of [
 ])assert.ok(worker.includes(token),`Best-Match-/Suffixstrategie fehlt im Worker: ${token}`);
 
 for(const token of [
- 'Der aktuelle Tag darf insbesondere niemals aus nur',
- "sunshineDuration=isCurrentDay?baseSunshine",
+ 'canonicalSunshineDaySeconds',
+ 'daylightSecondsFromLocalTimes',
+ 'Der Sunshine-Contract aggregiert jeden lokalen Kalendertag immer aus der vollständigen finalen Stundenreihe',
+ 'dailySunshineReference=day.sunshineDurationMeta?day.sunshineDurationMeta.dailyReferenceSeconds:day.sunshineDuration',
  "weatherBundleKind:repaired?'coherent-model':'best-match'",
  'repairedHours',
  'multiModelSuffixes',
- "const CACHE_PREFIX='mid:forecast-fusion:v9:'",
- 'Math.min(86400,(sunset-sunrise)/1000)'
+ "const CACHE_PREFIX='mid:forecast-fusion:v9:'"
 ])assert.ok(fusionSource.includes(token),`Sonnenstunden-/Bündelvertrag fehlt im Frontend: ${token}`);
 assert.ok(app.includes('Best Match · geprüft und lokal nachkorrigiert'),'7-Tage-Ansicht muss Best Match als Primärprognose benennen');
 for(const token of [
@@ -46,8 +47,9 @@ const tempDir=fs.mkdtempSync(path.join(os.tmpdir(),'mid-sunshine-best-match-'));
 try{
  const executable=fusionSource
   .replace("import {fetchWorkerJson} from './workerClient';","const fetchWorkerJson=async()=>{throw new Error('not used')};")
-  .replace("import {reconcileForecastPrecipitation} from './precipitation';",`const reconcileForecastPrecipitation=input=>({precipitation:Math.max(0,Number(input.precipitation)||0),rain:Math.max(0,Number(input.rain)||0),showers:Math.max(0,Number(input.showers)||0),snowfall:Math.max(0,Number(input.snowfall)||0),probability:Math.max(0,Math.min(100,Number(input.probability)||0)),code:Math.round(Number(input.code)||0),traceSuppressed:false});`)
+ .replace("import {reconcileForecastPrecipitation} from './precipitation';",`const reconcileForecastPrecipitation=input=>({precipitation:Math.max(0,Number(input.precipitation)||0),rain:Math.max(0,Number(input.rain)||0),showers:Math.max(0,Number(input.showers)||0),snowfall:Math.max(0,Number(input.snowfall)||0),probability:Math.max(0,Math.min(100,Number(input.probability)||0)),code:Math.round(Number(input.code)||0),traceSuppressed:false});`)
   .replace("import {readStoredJsonCache,writeStoredJsonCache} from './cachePolicy';","const readStoredJsonCache=()=>undefined;const writeStoredJsonCache=()=>false;")
+  .replace("import {boundedSunshineSeconds,canonicalSunshineDaySeconds,daylightSecondsFromLocalTimes} from './sunshineDuration';",`const boundedSunshineSeconds=(value,maximum)=>value===null||value===undefined||value===''||!Number.isFinite(Number(value))?null:Math.min(Math.max(0,Number(maximum)||0),Math.max(0,Number(value)));const daylightSecondsFromLocalTimes=(sunrise,sunset)=>{const seconds=value=>{const match=String(value??'').match(/T(\\d{2}):(\\d{2})(?::(\\d{2}))?/);return match?Number(match[1])*3600+Number(match[2])*60+Number(match[3]||0):NaN},rise=seconds(sunrise),set=seconds(sunset);return Number.isFinite(rise)&&Number.isFinite(set)?Math.min(86400,set>=rise?set-rise:set+86400-rise):43200};const canonicalSunshineDaySeconds=({hourValues,dailyValue,daylightSeconds})=>{const valid=hourValues.map(value=>boundedSunshineSeconds(value,3600)),complete=hourValues.length>=18&&valid.every(value=>value!==null),daily=boundedSunshineSeconds(dailyValue,daylightSeconds),value=complete?Math.min(daylightSeconds,valid.reduce((sum,value)=>sum+value,0)):daily;return{valueSeconds:value,source:complete?'hourly':value===null?'missing':'daily-fallback',quality:complete?'consistent':value===null?'missing':'fallback',daylightSeconds,hourlySamples:valid.filter(value=>value!==null).length,expectedHourlySamples:hourValues.length,dailyReferenceSeconds:daily,deviationSeconds:complete&&daily!==null?value-daily:null}};`)
   .replace("import type {Day,Hour,RadarNowcast,ThunderstormNowcast} from './weather';",'');
  const out=ts?ts.transpileModule(executable,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022},fileName:'forecastFusion.ts',reportDiagnostics:true}):{outputText:stripTypeScriptTypes(executable,{mode:'transform'}),diagnostics:[]};
  const errors=(out.diagnostics||[]).filter(item=>item.category===ts?.DiagnosticCategory?.Error);
@@ -61,11 +63,11 @@ try{
 
   const currentHours=Array.from({length:24},(_,index)=>hour('2026-08-02',index,index>=19&&index<=21?2280:0)); // 1,9 h im verbleibenden Abendfenster
   const current=fusion.reconcileForecastDaysWithHours([day('2026-08-02',46800)],currentHours)[0];
-  assert.equal(current.sunshineDuration,46800,'heutige Best-Match-Tagesdauer darf abends nicht auf nur verbleibende 1,9 h schrumpfen');
+  assert.equal(current.sunshineDuration,6840,'auch der aktuelle lokale Kalendertag muss bei vollständiger Stundenreihe aus genau diesen Stunden aggregiert werden');
 
   const futureBestMatchHours=Array.from({length:24},(_,index)=>({...hour('2026-08-03',index,index>=6&&index<18?3600:0),weatherBundleKind:'best-match'}));
   const futureBestMatch=fusion.reconcileForecastDaysWithHours([day('2026-08-03',46800)],futureBestMatchHours)[0];
-  assert.equal(futureBestMatch.sunshineDuration,46800,'vollständige reine Best-Match-Stunden ersetzen die offizielle Best-Match-Tagesaggregation nicht');
+  assert.equal(futureBestMatch.sunshineDuration,43200,'vollständige Best-Match-Stunden müssen unabhängig von einer Reparatur den lokalen Tageswert bilden');
 
   const futureRepairHours=futureBestMatchHours.map(item=>({...item,weatherBundleKind:'coherent-model'}));
   const futureRepair=fusion.reconcileForecastDaysWithHours([day('2026-08-03',46800)],futureRepairHours)[0];
@@ -77,4 +79,4 @@ try{
  }finally{Date.now=originalNow}
 }finally{fs.rmSync(tempDir,{recursive:true,force:true})}
 
-console.log('Best Match, API-Suffixaudit und Sonnenstundenaggregation geprüft: heutige Tagesdauer bleibt vollständig, Zukunftstage werden nur bei vollständiger reparierter Stundenabdeckung neu aggregiert.');
+console.log('Best Match, API-Suffixaudit und Sunshine-Contract geprüft: vollständige lokale Stunden bilden jeden Tageswert; Daily bleibt Fallback und Qualitätsreferenz.');

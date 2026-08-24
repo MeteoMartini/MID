@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.65.3",
+  "releaseVersion": "0.9.65.5",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -255,7 +255,9 @@
     "scripts/test-location-view-kv-write-savings-09649.mjs",
     "scripts/test-kv-archive-ui-efficiency-09650.mjs",
     "scripts/test-release-hotfix-09651.mjs",
-    "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs"
+    "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
+    "scripts/test-current-warning-compact-responsive-09654.mjs",
+    "scripts/test-sunshine-duration-contract-09655.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -443,10 +445,12 @@
     "scripts/test-kv-archive-ui-efficiency-09650.mjs",
     "scripts/test-release-hotfix-09651.mjs",
     "scripts/test-travel-planner-era5-seamless-units-09652.mjs",
-    "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs"
+    "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
+    "scripts/test-current-warning-compact-responsive-09654.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
+    "scripts/test-current-warning-compact-responsive-09654.mjs",
     "scripts/test-cockpit-regression-sync-09201.mjs",
     "src/WeatherMapsData.ts",
     "src/WeatherMapsPanel.tsx",
@@ -515,7 +519,12 @@
     "MID_IMPLEMENTATION_0.9.65.0.md",
     "MID_IMPLEMENTATION_0.9.65.1.md",
     "MID_CLOUDFLARE_KV_OPERATIONS_AUDIT_0.9.65.0.md",
-    "MID_IMPLEMENTATION_0.9.65.3.md"
+    "MID_IMPLEMENTATION_0.9.65.3.md",
+    "scripts/test-current-warning-compact-responsive-09654.mjs",
+    "MID_IMPLEMENTATION_0.9.65.4.md",
+    "src/sunshineDuration.ts",
+    "scripts/test-sunshine-duration-contract-09655.mjs",
+    "MID_IMPLEMENTATION_0.9.65.5.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -531,6 +540,11 @@
     "scripts/test-travel-planner-era5-seamless-units-09652.mjs",
     "MID_IMPLEMENTATION_0.9.65.2.md",
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
-    "MID_IMPLEMENTATION_0.9.65.3.md"
+    "MID_IMPLEMENTATION_0.9.65.3.md",
+    "scripts/test-current-warning-compact-responsive-09654.mjs",
+    "MID_IMPLEMENTATION_0.9.65.4.md",
+    "src/sunshineDuration.ts",
+    "scripts/test-sunshine-duration-contract-09655.mjs",
+    "MID_IMPLEMENTATION_0.9.65.5.md"
   ]
 }

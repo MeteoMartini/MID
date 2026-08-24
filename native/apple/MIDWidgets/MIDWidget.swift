@@ -5,6 +5,17 @@ struct MIDWidgetEntryView: View {
     @Environment(\.widgetFamily) private var family
     let entry: MIDWidgetEntry
 
+    private func sunshineMinutes(_ seconds: Double?) -> String {
+        guard let seconds, seconds.isFinite else { return "–" }
+        return "\(max(0, Int((seconds / 60).rounded()))) min"
+    }
+
+    private func sunshineHours(_ seconds: Double?) -> String {
+        guard let seconds, seconds.isFinite else { return "–" }
+        let value = max(0, seconds) / 3600
+        return value.rounded() == value ? "\(Int(value)) h" : String(format: "%.1f h", value).replacingOccurrences(of: ".", with: ",")
+    }
+
     var body: some View {
         Group {
             if let snapshot = entry.snapshot {
@@ -38,7 +49,7 @@ struct MIDWidgetEntryView: View {
                 VStack(alignment: .leading) {
                     Text(snapshot.location.name).font(.caption).bold()
                     Text("\(Int(snapshot.current.temperature.rounded()))° · Regen \(Int((snapshot.hourly.first?.precipitationProbability ?? 0).rounded())) %")
-                    Text("Böen \(Int(snapshot.current.windGust.rounded())) \(snapshot.units.wind)").font(.caption2)
+                    Text("Böen \(Int(snapshot.current.windGust.rounded())) \(snapshot.units.wind) · ☀ \(sunshineMinutes(snapshot.hourly.first?.sunshineDurationSeconds))").font(.caption2)
                 }
             }
         default:
@@ -50,7 +61,7 @@ struct MIDWidgetEntryView: View {
                 Text("\(Int(snapshot.current.temperature.rounded()))°").font(.system(size: 34, weight: .bold))
                 Text(snapshot.current.condition).font(.caption).lineLimit(1)
                 if let day = snapshot.daily.first {
-                    Text("\(Int(day.temperatureMin.rounded()))° / \(Int(day.temperatureMax.rounded()))° · Regen \(Int(day.precipitationProbabilityMax.rounded())) %")
+                    Text("\(Int(day.temperatureMin.rounded()))° / \(Int(day.temperatureMax.rounded()))° · Regen \(Int(day.precipitationProbabilityMax.rounded())) % · ☀ \(sunshineHours(day.sunshineDurationSeconds))")
                         .font(.caption2)
                 }
             }
