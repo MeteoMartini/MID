@@ -1,3 +1,11 @@
+# v0.9.65.3
+
+- Das Wetterprofil verwendet ein exakt ab der aktuellen Zeit laufendes 24-h-Fenster; die Ansicht aktualisiert den Zeitanker automatisch und bietet eine persistente 1-h-/3-h-Darstellungswahl, ohne die stündlichen Rohdaten zu verändern.
+- Nachtstunden, Tageswechsel sowie Sonnenauf- und -untergang werden dezent, aber eindeutig markiert. Eigene vertikale Bahnen und responsive Hoch-/Querformatlayouts verhindern das Überdecken von Zeittexten, Wettersymbolen, Pfeilen und Messwerten.
+- Temperatur, gefühlte Temperatur und Taupunkt stehen gemeinsam auf einer Skala; das thermische Empfinden verwendet zentral dieselben DWD-Farben wie die übrige App.
+- Niederschlagsmenge und -wahrscheinlichkeit besitzen getrennte Balken-/Kurvendarstellungen. Hohe, mittelhohe und tiefe Bewölkung bleibt mit eigenständigen 0–100-%-Zellen und selektierten Prozentwerten klar erkennbar.
+- Sämtliche Warngebiets-, KV-/Sync-, Info-Button- und ERA5-Seamless-Reiseplaneränderungen aus v0.9.64.8 bis v0.9.65.2 bleiben erhalten. Der Open-Meteo-Audit ergänzt lediglich den aktuellen UKMO-Seamless-Fallback; zusätzliche Kernabfragen oder KV-Schreibvorgänge entstehen nicht.
+
 # v0.9.65.2
 
 - Reiseplaner-Klimatologie von einem fachlich unvollständigen ERA5-Land-Basisabruf auf Open-Meteo ERA5-Seamless umgestellt: ERA5-Land liefert die feinere Landtemperatur, ERA5 ergänzt Niederschlag, Solarstrahlung/Sonnenschein und Wind; optionale historische Schneehöhe bleibt separat auf ERA5-Land.

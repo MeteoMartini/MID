@@ -18,7 +18,7 @@ for(const token of [
  "className:`impact-level-${maxImpact.level}`",
  "selectedImpact.level>0?selectedImpact.summary:'keine Wettergefahren'",
  'Sichtweite + Nebelrisiko',
- 'chartHeight=446'
+ 'chartHeight=500'
 ])need('24-h-Wetterprofil',cockpit,token);
 for(const token of [
  'candidates=[{value:thunder',

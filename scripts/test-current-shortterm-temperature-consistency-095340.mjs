@@ -50,10 +50,11 @@ for(const token of [
 for(const token of [
  'relativeForecastTimeLabel(',
  'function shortTermProfileHourlyPoints(hours:Hour[],timezone:string,now=Date.now())',
- 'hours.slice(startIndex,startIndex+24)',
+ 'const windowEnd=now+PROFILE_WINDOW_MS',
+ '.filter(hour=>Number(hour.epoch)<=windowEnd).slice(0,26)',
  "intervalLabel:'1 h'",
  'localAdjustment:Number(hour.localAdjustment)||0',
- 'shortTermProfileHourlyPoints(hours,timezone,Date.now())',
+ 'shortTermProfileHourlyPoints(hours,timezone,profileNow)',
  '<span className="cockpit-tab-copy"><b>{horizonTitle(horizon)}</b><small>{summary}</small></span>'
 ])assert.ok(cockpit.includes(token),`Cockpit-Konsistenz-/Zeitkontext fehlt: ${token}`);
 assert.ok(!cockpit.includes('const headerSummary='),'Redundante Cockpit-Kopfzusammenfassung darf nicht erneut aufgebaut werden.');

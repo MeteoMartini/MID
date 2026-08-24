@@ -4,7 +4,7 @@ const app=readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
 const pictograms=readFileSync(new URL('../src/WeatherPictogram.tsx',import.meta.url),'utf8');
 const failures=[];
 for(const token of [
- "buildShortTermForecast(minutes15,hours,timezone,Date.now(),anchor,radarNowcast)",
+ "buildShortTermForecast(minutes15,hours,timezone,profileNow,anchor,radarNowcast)",
  "shortTermAnchor?:ShortTermAnchor",
  "Bis auf Weiteres trocken · ${gustPart}",
  "cockpit-local-badge",

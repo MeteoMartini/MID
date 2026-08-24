@@ -39,7 +39,8 @@ for(const token of [
 need('App-Einheitenweitergabe',app,"<MemoLazyTravelPlanner initialLocation={loc!} advancedMode={layoutMode==='advanced'} unit={unit}/>");
 
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw);
-if(pkg.version!=='0.9.65.2')failures.push(`Version erwartet 0.9.65.2, ist ${pkg.version}`);
+const versionAtLeast=(value,minimum)=>{const current=String(value).split('.').map(Number),floor=String(minimum).split('.').map(Number),length=Math.max(current.length,floor.length);for(let index=0;index<length;index++){const delta=(current[index]||0)-(floor[index]||0);if(delta)return delta>0}return true};
+if(!versionAtLeast(pkg.version,'0.9.65.2'))failures.push(`Version erwartet mindestens 0.9.65.2, ist ${pkg.version}`);
 if(baseline.releaseVersion!==pkg.version)failures.push('Baseline-Version nicht synchron.');
 if(!(baseline.requiredRegressionTests||[]).includes('scripts/test-travel-planner-era5-seamless-units-09652.mjs'))failures.push('Neue Reiseplaner-Regression fehlt in der Baseline.');
 

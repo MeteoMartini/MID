@@ -274,7 +274,7 @@ const RAPID_PHASE_MODELS=[
  {id:'knmi-harmonie-europe',label:'KNMI HARMONIE-AROME Europe',apiIds:['knmi_harmonie_arome_europe','knmi_seamless'],metaIds:['knmi_harmonie_arome_europe'],bbox:[-12,40,32,68],resolutionKm:5.5,rapidUpdate:true,native15:false,maxHours:60},
  {id:'knmi-harmonie-nl',label:'KNMI HARMONIE-AROME NL',apiIds:['knmi_harmonie_arome_netherlands','knmi_seamless'],metaIds:['knmi_harmonie_arome_netherlands'],bbox:[-2,48,12,56],resolutionKm:2,rapidUpdate:true,native15:false,maxHours:60},
  {id:'met-nordic-ruc',label:'MET Nordic PP',apiIds:['metno_nordic','metno_nordic_pp'],metaIds:['metno_nordic_pp','metno_nordic'],bbox:[0,53,32,72],resolutionKm:1,rapidUpdate:true,native15:false,maxHours:60},
- {id:'ukv-ruc',label:'UKMO UKV',apiIds:['ukmo_uk_deterministic_2km'],metaIds:['ukmo_uk_deterministic_2km'],bbox:[-12,48,4,62],resolutionKm:2,rapidUpdate:true,native15:false,maxHours:48,latencyHours:4},
+ {id:'ukv-ruc',label:'UKMO UKV / Seamless',apiIds:['ukmo_uk_deterministic_2km','ukmo_seamless'],metaIds:['ukmo_uk_deterministic_2km','ukmo_seamless'],bbox:[-12,48,4,62],resolutionKm:2,rapidUpdate:true,native15:false,maxHours:48,latencyHours:4},
  {id:'icon-d2',label:'DWD ICON-D2',apiIds:['dwd_icon_d2','icon_d2'],metaIds:['dwd_icon_d2','icon_d2'],bbox:[-6,43,26,58],resolutionKm:2,rapidUpdate:false,native15:true,maxHours:48},
  {id:'geosphere-arome',label:'GeoSphere AROME Austria',apiIds:['geosphere_arome_austria'],metaIds:['geosphere_arome_austria'],bbox:[8,45,18,50],resolutionKm:2.5,rapidUpdate:false,native15:false,maxHours:60},
  {id:'dmi-harmonie',label:'DMI HARMONIE Europe',apiIds:['dmi_harmonie_arome_europe'],metaIds:['dmi_harmonie_arome_europe'],bbox:[-15,35,32,72],resolutionKm:5.5,rapidUpdate:false,native15:false,maxHours:60}

@@ -17,7 +17,7 @@ assert.match(cockpit,/WeatherPictogram code=\{item\.code\}/,'90-Minuten-Piktogra
 assert.match(cockpit,/points=useMemo\(\(\)=>selectShortTermPoints\(adjusted,'1h'\)/,'Kurzfristdarstellung muss fest einstündig sein');
 assert.doesNotMatch(cockpit,/Stündlich · ein Blick/,'Entfernte Wetterprofil-Pille darf nicht zurückkehren');
 assert.match(cockpit,/className="cockpit-meteogram-pro__datafield"/,'Einzeldatenfeld des Meteogramms muss vorhanden sein');
-assert.doesNotMatch(cockpit,/Auflösung der Kurzfristvorhersage|>3 h<|>1 h</,'Entfernter 1h\/3h-Umschalter darf nicht zurückkehren');
+assert.match(cockpit,/aria-label="Zeitauflösung"[\s\S]*?>1 h<[\s\S]*?>3 h</,'Das 24-h-Wetterprofil braucht den geforderten 1h\/3h-Darstellungsschalter');
 assert.match(cockpit,/24-h-Wetterprofil/,'24-h-Wetterprofil fehlt');
 assert.doesNotMatch(cockpit,/Temperatur, gefühlte Temperatur, thermisches Empfinden, Niederschlag, Wind\/Böen, Wolkenschichten und Wetter-Hazards/,'Redundanter Wetterprofil-Erklärtext darf nicht zurückkehren');
 assert.match(cockpit,/windSignalColor\(gust\)/,'Windrichtungspfeile müssen warnstufenabhängig eingefärbt werden');

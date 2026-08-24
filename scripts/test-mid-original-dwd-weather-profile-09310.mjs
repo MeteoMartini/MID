@@ -26,7 +26,7 @@ for(const token of [
   '24-h-Wetterprofil',
   'function shortTermImpact(points:ShortTermForecastPoint[],index:number,elevation=0)',
   'function shortTermPressureTrend(',
-  'chartWidth=Math.max(980,chartViewportWidth)',
+  'chartWidth=Math.max(chartMinimumWidth,chartViewportWidth)',
   'className="dewpoint-line"',
   'className="wind-line"',
   'className="gust-line"',

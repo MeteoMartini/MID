@@ -21,6 +21,17 @@ export type DwdDisplayWindUnit='kn'|'kt'|'kmh'|'ms'|'mph';
 export type DwdWarningSignal={kind:DwdWarningKind;level:DwdWarningLevel;title:string;symbol:string;detail:string;value:number;unit:string;windowHours?:number;secondaryValue?:number;secondaryUnit?:string;validFrom?:string;validTo?:string;windDirection?:number;windDirectionText?:string;stageRank?:number;thresholdValue?:number;lowerIntensity?:boolean};
 
 export const DWD_WARNING_COLORS:Record<DwdWarningLevel,string>={1:'#e6c229',2:'#ef8d32',3:'#e74a4a',4:'#9b59c6'};
+export const DWD_THERMAL_FEEL_COLORS={
+ veryCold:'#67489b',
+ cold:'#406db6',
+ cool:'#4c96d7',
+ slightlyCool:'#72b7e5',
+ comfortable:'#48a96f',
+ slightlyWarm:'#e7c744',
+ warm:'#ef963b',
+ hot:'#e34d4d',
+ veryHot:'#9b59c6'
+} as const;
 export const DWD_WIND_THRESHOLDS_KMH=[
  {threshold:50,level:1 as const,label:'Windböen'},
  {threshold:65,level:2 as const,label:'Sturmböen'},

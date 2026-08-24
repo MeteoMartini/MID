@@ -184,7 +184,7 @@ const forecastCandidates:ForecastCandidate[]=[
  {id:'meteofrance_arome_france',label:'Météo-France AROME',kind:'forecast',resolutionKm:2.5,forecastHorizonHours:48,countries:['FR']},
  {id:'meteofrance_seamless',label:'Météo-France Seamless',kind:'forecast',resolutionKm:2.5,forecastHorizonHours:96,countries:['FR'],bbox:[-25,30,45,72]},
  {id:'knmi_harmonie_arome_netherlands',label:'KNMI HARMONIE Niederlande',kind:'forecast',rapidUpdate:true,resolutionKm:2,forecastHorizonHours:60,countries:['NL','BE']},
- {id:'ukmo_uk_deterministic_2km',label:'UKMO UKV 2 km',kind:'forecast',rapidUpdate:true,resolutionKm:2,forecastHorizonHours:54,countries:['GB','IE']},
+ {id:'ukmo_uk_deterministic_2km',label:'UKMO UKV / Seamless',kind:'forecast',metaIds:['ukmo_uk_deterministic_2km','ukmo_seamless'],rapidUpdate:true,resolutionKm:2,forecastHorizonHours:54,countries:['GB','IE']},
  {id:'metno_nordic_pp',label:'MET Nordic PP',kind:'forecast',rapidUpdate:true,resolutionKm:1,forecastHorizonHours:60,countries:['NO','SE','DK','FI']},
  {id:'dmi_harmonie_arome_europe',label:'DMI Harmonie Europe',kind:'forecast',countries:['DK','DE','NL','BE','NO','SE']},
  {id:'italia_meteo_arpae_icon_2i',label:'ItaliaMeteo ICON-2I',kind:'forecast',countries:['IT']},

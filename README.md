@@ -1,3 +1,10 @@
+## MID v0.9.65.3 – rollierendes 24-h-Wetterprofil
+
+- Exaktes 24-h-Fenster ab aktueller Zeit mit persistenter 1-h-/3-h-Darstellungswahl.
+- Dezente Nacht-, Tageswechsel-, Sonnenaufgangs- und Sonnenuntergangsmarken ohne Überdeckung von Symbolen, Pfeilen oder Werten.
+- Gemeinsame Temperatur-/Gefühlt-/Taupunktdarstellung, appweite DWD-Thermikfarben, getrennte Niederschlagsmenge/-wahrscheinlichkeit und klare Wolkenschichten H/M/L.
+- Alle KV-/Sync-, Warngebiets-, Info-Button- und Reiseplanerverträge bis v0.9.65.2 bleiben erhalten; Professional-App und Worker werden gemeinsam aktualisiert.
+
 ## MID v0.9.65.1 – Regression-Hotfix
 
 - Behebt die drei im Installationslauf von v0.9.65.0 sichtbar gewordenen Regressionen, ohne die dortigen KV-/Sync-Einsparungen zurückzunehmen.

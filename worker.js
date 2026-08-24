@@ -48,7 +48,7 @@ const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const MET_NORWAY_LOCATIONFORECAST='https://api.met.no/weatherapi/locationforecast/2.0/complete';
-const WORKER_VERSION='0.9.65.2';
+const WORKER_VERSION='0.9.65.3';
 const C3S_SEASONAL_POINT_SYSTEMS=[
  {centreId:'ecmwf',originatingCentre:'ecmwf',system:'51',label:'ECMWF'},
  {centreId:'ukmo',originatingCentre:'ukmo',system:'610',label:'UK Met Office'},
@@ -222,7 +222,7 @@ const FORECAST_FUSION_MODELS=[
  {id:'meteoswiss_icon_ch2',apiIds:['meteoswiss_icon_ch2'],label:'MeteoSwiss ICON-CH2',family:'meteoswiss-icon',independenceGroup:'meteoswiss-icon',provider:'MeteoSwiss',tier:1,maxDays:5,updateHours:6,resolutionKm:2,countries:['CH']},
  {id:'geosphere_arome',apiIds:['geosphere_arome_austria'],label:'GeoSphere AROME Austria',family:'geosphere-arome',independenceGroup:'geosphere-arome',provider:'GeoSphere Austria',tier:1,maxDays:3,updateHours:3,resolutionKm:2.5,countries:['AT'],bbox:[8,45,18,50]},
  {id:'meteofrance_arome',apiIds:['meteofrance_arome_france_hd','meteofrance_arome_france','meteofrance_seamless'],label:'Météo-France AROME / Seamless',family:'meteofrance-arome',independenceGroup:'meteofrance',provider:'Météo-France',tier:1,maxDays:2,updateHours:3,resolutionKm:1.5,countries:['FR'],bbox:[-6,41,11,52]},
- {id:'ukmo_ukv',apiIds:['ukmo_uk_deterministic_2km'],label:'UKMO UKV',family:'ukmo-ukv',independenceGroup:'ukmo',provider:'UK Met Office',tier:1,maxDays:2,rapidUpdate:true,updateHours:1,resolutionKm:2,latencyHours:4,countries:['GB','IE'],bbox:[-12,48,4,62]},
+ {id:'ukmo_ukv',apiIds:['ukmo_uk_deterministic_2km','ukmo_seamless'],label:'UKMO UKV / Seamless',family:'ukmo-ukv',independenceGroup:'ukmo',provider:'UK Met Office',tier:1,maxDays:2,rapidUpdate:true,updateHours:1,resolutionKm:2,latencyHours:4,countries:['GB','IE'],bbox:[-12,48,4,62]},
  {id:'metno_nordic',apiIds:['metno_nordic','metno_nordic_pp'],label:'MET Nordic',family:'metno-nordic',independenceGroup:'metno',provider:'MET Norway',tier:1,maxDays:3,rapidUpdate:true,updateHours:1,resolutionKm:1,countries:['NO','SE','DK','FI'],bbox:[0,53,32,72]},
  {id:'hrrr',apiIds:['ncep_hrrr_conus'],label:'NOAA HRRR',family:'noaa-hrrr',independenceGroup:'noaa-nwp',provider:'NOAA/NCEP',tier:1,maxDays:2,rapidUpdate:true,updateHours:1,resolutionKm:3,countries:['US','CA'],bbox:[-130,20,-60,55]},
  {id:'nam',apiIds:['ncep_nam_conus'],label:'NOAA NAM',family:'noaa-nam',independenceGroup:'noaa-nwp',provider:'NOAA/NCEP',tier:2,maxDays:3.5,updateHours:6,resolutionKm:12,countries:['US','CA'],bbox:[-130,20,-60,55],consensusOnly:true},
@@ -1547,7 +1547,7 @@ const RAPID_PHASE_MODELS=[
  {id:'knmi-harmonie-europe',label:'KNMI HARMONIE-AROME Europe',apiIds:['knmi_harmonie_arome_europe','knmi_seamless'],metaIds:['knmi_harmonie_arome_europe'],bbox:[-12,40,32,68],resolutionKm:5.5,rapidUpdate:true,native15:false,maxHours:60},
  {id:'knmi-harmonie-nl',label:'KNMI HARMONIE-AROME NL',apiIds:['knmi_harmonie_arome_netherlands','knmi_seamless'],metaIds:['knmi_harmonie_arome_netherlands'],bbox:[-2,48,12,56],resolutionKm:2,rapidUpdate:true,native15:false,maxHours:60},
  {id:'met-nordic-ruc',label:'MET Nordic PP',apiIds:['metno_nordic','metno_nordic_pp'],metaIds:['metno_nordic_pp','metno_nordic'],bbox:[0,53,32,72],resolutionKm:1,rapidUpdate:true,native15:false,maxHours:60},
- {id:'ukv-ruc',label:'UKMO UKV',apiIds:['ukmo_uk_deterministic_2km'],metaIds:['ukmo_uk_deterministic_2km'],bbox:[-12,48,4,62],resolutionKm:2,rapidUpdate:true,native15:false,maxHours:48,latencyHours:4},
+ {id:'ukv-ruc',label:'UKMO UKV / Seamless',apiIds:['ukmo_uk_deterministic_2km','ukmo_seamless'],metaIds:['ukmo_uk_deterministic_2km','ukmo_seamless'],bbox:[-12,48,4,62],resolutionKm:2,rapidUpdate:true,native15:false,maxHours:48,latencyHours:4},
  {id:'icon-d2',label:'DWD ICON-D2',apiIds:['dwd_icon_d2','icon_d2'],metaIds:['dwd_icon_d2','icon_d2'],bbox:[-6,43,26,58],resolutionKm:2,rapidUpdate:false,native15:true,maxHours:48},
  {id:'geosphere-arome',label:'GeoSphere AROME Austria',apiIds:['geosphere_arome_austria'],metaIds:['geosphere_arome_austria'],bbox:[8,45,18,50],resolutionKm:2.5,rapidUpdate:false,native15:false,maxHours:60},
  {id:'dmi-harmonie',label:'DMI HARMONIE Europe',apiIds:['dmi_harmonie_arome_europe'],metaIds:['dmi_harmonie_arome_europe'],bbox:[-15,35,32,72],resolutionKm:5.5,rapidUpdate:false,native15:false,maxHours:60}

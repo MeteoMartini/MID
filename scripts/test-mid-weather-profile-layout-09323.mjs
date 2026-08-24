@@ -7,10 +7,11 @@ const [cockpit,styles,pkg,baseline]=await Promise.all([
 ]);
 const failures=[];const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};const reject=(label,text,token)=>{if(text.includes(token))failures.push(`${label}: unerwartet ${token}`)};
 for(const token of [
- 'chartHeight=446',
- 'chartCanvasHeight=Math.max(300,Math.round(chartHeight*Math.min(1,chartViewportWidth/chartWidth)))',
+ 'chartHeight=500',
+ 'chartCanvasHeight=Math.max(252,Math.round(chartHeight*Math.min(1,chartViewportWidth/chartWidth)))',
  'timeLabelStepMs=(chartViewportWidth<=560?6:chartViewportWidth<=860?4:3)*3600000',
- 'chartPoints.map(item=><WeatherPictogram',
+ "weatherPictogramStep=profileResolution==='3h'||chartViewportWidth>560?1:2",
+ 'y={84}',
  'dailyMaxMarkers=chartDayBands.flatMap',
  'dailyMinMarkers=chartDayBands.flatMap',
  'temperatureExtremes=[...dailyMaxMarkers,...dailyMinMarkers]',

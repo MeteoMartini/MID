@@ -37,10 +37,10 @@ for(const token of [
   'className="cloud-band mid"',
   'className="cloud-band low"',
   'Thermisches Empfinden',
-  'Temperatur + gefühlt',
+  'Temperatur / gefühlt / Taupunkt',
   ' K</dd>',
   'Schwüle',
-  'Wolken H/M/L',
+  'Wolken hoch / mittel / tief + UVI',
   'Wetter-Hazards',
   'Thermische Einordnung nach den DWD-Klassen der Gefühlten Temperatur'
 ])need('24-h-Wetterprofil',cockpit,token);

@@ -9,7 +9,7 @@ const [cockpit,mountain,app,styles,pkg,baseline]=await Promise.all([
 ]);
 const failures=[];
 const need=(scope,text,token)=>{if(!text.includes(token))failures.push(`${scope}: fehlt ${token}`)};
-for(const token of ['function shortTermProfileHourlyPoints(hours:Hour[],timezone:string,now=Date.now())','hours.slice(startIndex,startIndex+24)','intervalLabel:\'1 h\'','const chartSourcePoints=profileHourlyPoints'])need('24-h-Profil',cockpit,token);
+for(const token of ['function shortTermProfileHourlyPoints(hours:Hour[],timezone:string,now=Date.now())','const windowEnd=now+PROFILE_WINDOW_MS','.filter(hour=>Number(hour.epoch)<=windowEnd).slice(0,26)','intervalLabel:\'1 h\'','const chartSourcePoints=profileDisplayPoints.length?profileDisplayPoints:hourlyPoints.slice(0,25)'])need('24-h-Profil',cockpit,token);
 if(cockpit.includes('const chartSourcePoints=adjusted.filter(point=>point.offsetMinutes<=24*60)'))failures.push('24-h-Profil verwendet weiterhin 15-Minuten-Punkte.');
 for(const token of ['function snowLineNumber(value:unknown)','const temperature850=snowLineNumber(t850[index])','height850=snowLineNumber(z850[index])','freeze=snowLineNumber(freezing[index])','let mean=dwdSnowfallLimit({temperature850,geopotentialHeight850:height850,freezingLevelHeight:freeze})','if(!Number.isFinite(mean))mean=snowLineNumber(snow[index])'])need('Schneefallgrenze',mountain,token);
 if(mountain.includes('let mean=Number(snow[index]),spread=Number(snowSpread[index])'))failures.push('Schneefallgrenze konvertiert null weiterhin zu 0 m.');
