@@ -1,3 +1,12 @@
+# v0.9.65.11
+
+- Aktuelle Niederschlagskarte: Bei trockenem Radar-/Modellkonsens und höchstens 5 % Rest-PoP wird kein künstlicher 5-%-Wert mehr angezeigt, sondern 0 %. Echte niedrige Prognosewahrscheinlichkeiten außerhalb dieses klar trockenen Nowcast-Falls bleiben erhalten.
+- Reisewetter: erwartete Niederschlagstage werden in der Oberfläche und im Narrativ auf ganze Tage gerundet; die interne kontinuierliche Erwartung bleibt für Bewertung und Optimierung erhalten.
+- Küstenreiseziele erhalten eine klimatologische Wassertemperatur für den tatsächlich gewählten Reisezeitraum. MID bildet dazu aus historischen ERA5-Stundenwerten der Meeresoberflächentemperatur 1991–2020 Tagesklimatologien am nächsten geeigneten Meeresgitter; aktuelle Marinewerte werden dafür nicht verwendet.
+- Reisebeginn, Reiseende und Reisedauer bleiben lokal gespeichert; nach Änderung des Startdatums kann das Enddatum weder per Picker noch per Zustandslogik vor dem Start liegen.
+- Der aktuelle automatische Warnkopf bleibt strikt gültigkeitszeitbezogen: Ein erst künftig beginnendes Warnfenster ist bis zu seinem `validFrom` keine aktuelle Warnlage.
+- Neue Regression schützt trockenen Nowcast, Reise-SST, ganze Niederschlagstage und den zeitstrengen Warnkopf; Professional- und Worker-Version sind synchron.
+
 # v0.9.65.10
 
 - Appweiter Niederschlagswahrscheinlichkeitsvertrag korrigiert: Es gibt keine künstliche 5-%-Untergrenze mehr. 0 %, 1 %, 2 %, 3 % und 4 % bleiben als echte Modell-/Fusionswerte erhalten und werden entsprechend angezeigt.

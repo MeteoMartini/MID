@@ -1,0 +1,72 @@
+import assert from 'node:assert/strict';
+import {mkdtemp,readFile,rm,writeFile} from 'node:fs/promises';
+import {spawnSync} from 'node:child_process';
+import {tmpdir} from 'node:os';
+import path from 'node:path';
+import {pathToFileURL} from 'node:url';
+
+const root=path.resolve('.');
+const [app,fusion,panel,travel,pkgRaw,baselineRaw]=await Promise.all([
+ readFile('src/App.tsx','utf8'),
+ readFile('src/forecastFusion.ts','utf8'),
+ readFile('src/TravelPlannerPanel.tsx','utf8'),
+ readFile('src/travelPlanner.ts','utf8'),
+ readFile('package.json','utf8'),
+ readFile('MID_BASELINE.json','utf8')
+]);
+
+// Aktuelle Niederschlagswahrscheinlichkeit: kein synthetischer 5-%-Boden.
+assert.ok(app.includes("probability=maxProb<=5&&!continuation?0:Number(nearest.probability)||0"),'Trockene aktuelle Kurzfristlage wird nicht auf 0 % zurückgeführt.');
+assert.ok(fusion.includes('safeModelProbability<=5&&radarProbability<=5?0:'),'Radar-/Modell-Trockenkonsens bis 5 % wird nicht auf 0 % gesetzt.');
+assert.ok(fusion.includes('probability=safeModelProbability<=5?0:blendedProbability'),'Vollständig trockene Radarabdeckung behält einen künstlichen Restwert.');
+
+// Reisewetter: erwartete Regentage werden nur in der Anzeige gerundet; interne Erwartungswerte bleiben kontinuierlich.
+assert.ok(panel.includes('rund ${Math.round(active.summary.wetDaysExpected)} Tage mit ≥ 1 mm'),'Reiseplaner rundet erwartete Niederschlagstage nicht auf ganze Tage.');
+assert.ok(travel.includes('const roundedWetDays=Math.round(summary.wetDaysExpected)'),'Reisenarrativ rundet Niederschlagstage nicht auf ganze Tage.');
+
+// Küsten-Wassertemperatur: echte historische ERA5-SST statt aktuellem Marinewert.
+for(const token of [
+ "const WATER_CACHE_PREFIX='mid:travel-water-climate:1991-2020:v1:'",
+ "hourly:'sea_surface_temperature'",
+ "models:'era5'",
+ "cell_selection:'sea'",
+ "start_date:'1991-01-01'",
+ "end_date:'2020-12-31'",
+ 'export async function fetchTravelWaterClimatology('
+])assert.ok(travel.includes(token),`Klimatologische Wassertemperatur fehlt: ${token}`);
+assert.ok(panel.includes('fetchTravelWaterClimatology(destination,active.start,active.end,controller.signal)'),'Reisezeitraum wird nicht an die SST-Klimatologie gebunden.');
+assert.ok(!panel.includes('marineForecast('),'Reiseplaner verwendet wieder aktuelle Marine-Wassertemperaturen.');
+assert.ok(!panel.includes('sea_surface_temperature_mean'),'Nicht unterstützte tägliche SST-Aggregation ist wieder aktiv.');
+
+// Aktuelle Warnlage bleibt streng an die Gültigkeitszeit gebunden: ein ab 23:00 gültiges Signal ist um 22:51 noch nicht aktuell.
+assert.ok(app.includes('start<=now&&end>now'),'Warnkopf trennt zukünftige von aktuell gültigen Warnfenstern nicht mehr sauber.');
+
+// Dynamischer SST-Test: Küstenprobe + 1991–2020-Historie, anschließend Mittelwert exakt für den geplanten Zeitraum.
+const compileDir=await mkdtemp(path.join(tmpdir(),'mid-travel-water-'));
+try{
+ const compile=spawnSync('tsc',['--pretty','false','--target','ES2022','--module','ESNext','--moduleResolution','Bundler','--strict','--skipLibCheck','--outDir',compileDir,path.resolve('src/travelPlanner.ts')],{cwd:root,encoding:'utf8'});
+ assert.equal(compile.status,0,`TypeScript travelPlanner: ${compile.stdout||compile.stderr}`);
+ const compiledPath=path.join(compileDir,'travelPlanner.js');
+ const compiledSource=(await readFile(compiledPath,'utf8')).replace("from './cachePolicy'","from './cachePolicy.js'").replace("from './openMeteoGuard'","from './openMeteoGuard.js'");
+ await writeFile(compiledPath,compiledSource);
+ const module=await import(`${pathToFileURL(compiledPath).href}?v=${Date.now()}`);
+ let fetchCount=0;const urls=[];
+ globalThis.fetch=async url=>{
+  fetchCount++;urls.push(String(url));const parsed=new URL(String(url));
+  if(parsed.searchParams.get('start_date')==='2000-01-15')return{ok:true,status:200,json:async()=>({latitude:35.5,longitude:24.75,hourly:{time:[],sea_surface_temperature:[]}})};
+  const time=[],sea_surface_temperature=[];
+  for(let date=new Date(Date.UTC(1991,0,1,12));date<=new Date(Date.UTC(2020,11,31,12));date.setUTCDate(date.getUTCDate()+1)){time.push(`${date.toISOString().slice(0,10)}T12:00`);sea_surface_temperature.push(20+date.getUTCMonth()*.7)}
+  return{ok:true,status:200,json:async()=>({latitude:35.5,longitude:24.75,hourly:{time,sea_surface_temperature}})};
+ };
+ const water=await module.fetchTravelWaterClimatology({latitude:35.4,longitude:24.65},'2026-08-24','2026-08-30');
+ assert.equal(fetchCount,2,'Küsten-SST soll aus kleiner Meeresgitterprüfung plus einmaligem 1991–2020-Abruf entstehen.');
+ assert.ok(urls[0].includes('hourly=sea_surface_temperature')&&urls[1].includes('hourly=sea_surface_temperature'),'SST-Variable fehlt im historischen Abruf.');
+ assert.ok(urls[1].includes('models=era5')&&urls[1].includes('cell_selection=sea'),'ERA5-/Meeresgittervertrag fehlt im SST-Hauptabruf.');
+ assert.ok(water&&water.days===7&&water.referencePeriod==='1991–2020'&&water.temperature>24&&water.temperature<26,`Klimatologische SST für Reisezeitraum unplausibel: ${JSON.stringify(water)}`);
+}finally{await rm(compileDir,{recursive:true,force:true})}
+
+const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-current-dry-pop-travel-water-096511.mjs';
+const versionParts=String(pkg.version).split('.').map(Number);assert.ok(versionParts[0]>0||versionParts[1]>9||versionParts[2]>65||(versionParts[2]===65&&(versionParts[3]??0)>=11),`Version muss mindestens 0.9.65.11 sein: ${pkg.version}`);
+assert.equal(baseline.releaseVersion,pkg.version,'Baseline-Version nicht synchron.');
+for(const key of ['requiredRegressionTests','regressionTests','requiredFiles'])assert.ok(baseline[key].includes(test),`${test} fehlt in ${key}.`);
+console.log(`MID v${pkg.version}: trockener Nowcast 0 %, klimatologische ERA5-SST, ganze Niederschlagstage und zeitstrenger Warnkopf geprüft.`);

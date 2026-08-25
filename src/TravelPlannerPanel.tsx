@@ -2,13 +2,13 @@ import {useEffect,useMemo,useRef,useState,type FormEvent,type ReactNode} from 'r
 import {AlertTriangle,CalendarRange,CheckCircle2,CloudRain,Droplets,MapPin,RefreshCw,Search,Snowflake,Sparkles,Sun,Thermometer,Wind} from 'lucide-react';
 import {label,searchLocations,wind,type Location,type WindUnit} from './weather';
 import {WeatherPictogram} from './WeatherPictogram';
-import {addDays,bestTravelWindows,dateRange,daysBetween,fetchTravelClimatology,summarizeTravelPeriod,travelNarrative,travelPeriod,type TravelConstraints,type TravelPreference,type TravelWindowResult} from './travelPlanner';
+import {addDays,bestTravelWindows,dateRange,daysBetween,fetchTravelClimatology,fetchTravelWaterClimatology,summarizeTravelPeriod,travelNarrative,travelPeriod,type TravelConstraints,type TravelPreference,type TravelWaterClimatology,type TravelWindowResult} from './travelPlanner';
 
 type Props={initialLocation:Location;advancedMode:boolean;unit:WindUnit};
 type PlannerMode='fixed'|'flexible';
 type AnalysisState={windows:TravelWindowResult[];snowDepthIncluded:boolean;snowDepthWarning?:string;referencePeriod:string;source:string};
 type ValueEvent={target:{value:string}};
-type TravelWaterInfo={temperature:number;gridDistanceKm:number;referencePeriod:string;days:number};
+type TravelWaterInfo=TravelWaterClimatology;
 
 const LOCATION_KEY='mid:travel-planner:location';
 const MODE_KEY='mid:travel-planner:mode';
@@ -17,7 +17,6 @@ const START_KEY='mid:travel-planner:start';
 const END_KEY='mid:travel-planner:end';
 const TRIP_DAYS_KEY='mid:travel-planner:trip-days';
 const SNOW_DETAIL_KEY='mid:travel-planner:detailed-snow';
-const COASTAL_WATER_MAX_DISTANCE_KM=45;
 
 const PREFERENCES:{id:TravelPreference;label:string;detail:string}[]=[
  {id:'balanced',label:'Ausgewogen',detail:'mild, trocken, sonnig und nicht zu windig'},
@@ -44,10 +43,6 @@ function destinationLabel(location:Location){return[location.icao?`${location.ic
 function preferenceLabel(value:TravelPreference){return PREFERENCES.find(item=>item.id===value)?.label??value}
 function windUnitLabel(unit:WindUnit){return unit==='kn'?'kt':unit==='kmh'?'km/h':unit==='ms'?'m/s':'mph'}
 function windInputToKnots(value:number|undefined,unit:WindUnit){if(!Number.isFinite(value))return undefined;const numeric=Number(value);if(unit==='kmh')return numeric/1.852;if(unit==='ms')return numeric/0.514444;if(unit==='mph')return numeric/1.15078;return numeric}
-function haversineKm(lat1:number,lon1:number,lat2:number,lon2:number){const r=6371,toRad=(value:number)=>value*Math.PI/180,dLat=toRad(lat2-lat1),dLon=toRad(lon2-lon1),a=Math.sin(dLat/2)**2+Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;return 2*r*Math.asin(Math.sqrt(a))}
-type MarineArchivePayload={latitude?:number;longitude?:number;daily?:Record<string,(string|number|null)[]>;error?:boolean;reason?:string}
-async function fetchClimatologicalWaterInfo(location:Location,start:string,end:string,signal:AbortSignal):Promise<TravelWaterInfo|null>{const params=new URLSearchParams({latitude:String(location.latitude),longitude:String(location.longitude),start_date:'1991-01-01',end_date:'2020-12-31',daily:'sea_surface_temperature_mean',timezone:'auto',cell_selection:'sea'}),response=await fetch(`https://archive-api.open-meteo.com/v1/archive?${params}`,{signal,headers:{Accept:'application/json'}}),payload=await response.json().catch(()=>({} as MarineArchivePayload)) as MarineArchivePayload;if(!response.ok||payload.error)throw new Error(String(payload.reason||`HTTP ${response.status}`));const gridLat=Number(payload.latitude),gridLon=Number(payload.longitude),gridDistanceKm=haversineKm(location.latitude,location.longitude,gridLat,gridLon);if(!Number.isFinite(gridLat)||!Number.isFinite(gridLon)||!Number.isFinite(gridDistanceKm)||gridDistanceKm>COASTAL_WATER_MAX_DISTANCE_KM)return null;const daily=payload.daily??{},times=(daily.time??[]) as string[],values=(daily.sea_surface_temperature_mean??[]) as (number|string|null)[],byKey=new Map<string,{sum:number;count:number}>();for(let index=0;index<times.length;index+=1){const raw=values[index],numeric=raw===null||raw===undefined||raw===''?Number.NaN:Number(raw);if(!Number.isFinite(numeric))continue;const key=String(times[index]).slice(5,10),bucket=byKey.get(key)??{sum:0,count:0};bucket.sum+=numeric;bucket.count+=1;byKey.set(key,bucket)}const range=dateRange(start,end),temperatures=range.map(date=>{const bucket=byKey.get(date.slice(5,10));return bucket&&bucket.count?bucket.sum/bucket.count:Number.NaN}).filter(Number.isFinite);if(!temperatures.length)return null;const temperature=temperatures.reduce((sum,value)=>sum+Number(value),0)/temperatures.length;return{temperature,gridDistanceKm,referencePeriod:'1991–2020',days:temperatures.length}}
-
 function Metric({iconNode,labelText,value,detail}:{iconNode:ReactNode;labelText:string;value:string;detail:string}){return <article>{iconNode}<small>{labelText}</small><strong>{value}</strong><span>{detail}</span></article>}
 
 export default function TravelPlannerPanel({initialLocation,advancedMode,unit}:Props){
@@ -63,7 +58,7 @@ export default function TravelPlannerPanel({initialLocation,advancedMode,unit}:P
  useEffect(()=>{
   if(!analysis||!active){setWaterInfo(null);return}
   const controller=new AbortController();let cancelled=false;
-  fetchClimatologicalWaterInfo(destination,active.start,active.end,controller.signal).then(info=>{if(cancelled||controller.signal.aborted)return;setWaterInfo(info)}).catch(()=>{if(!cancelled&&!controller.signal.aborted)setWaterInfo(null)});
+  fetchTravelWaterClimatology(destination,active.start,active.end,controller.signal).then(info=>{if(cancelled||controller.signal.aborted)return;setWaterInfo(info)}).catch(()=>{if(!cancelled&&!controller.signal.aborted)setWaterInfo(null)});
   return()=>{cancelled=true;controller.abort()}
  },[analysis,active?.start,active?.end,destination.latitude,destination.longitude,destination.id]);
 
@@ -105,7 +100,7 @@ export default function TravelPlannerPanel({initialLocation,advancedMode,unit}:P
    <button type="submit" className="primary travel-analyse" disabled={loading}>{loading?<RefreshCw className="spin" size={17}/>:mode==='flexible'?<Sparkles size={17}/>:<CalendarRange size={17}/>} {loading?'Klimatologie wird ausgewertet …':mode==='flexible'?'Bestes Reisezeitfenster finden':'Reisewetter auswerten'}</button>
   </form>
 
-  <div className="travel-method-note"><AlertTriangle size={15}/><span>Das Ergebnis ist eine klimatologische Erwartung aus vergangenen Jahren und keine Wettervorhersage für den konkreten Reisetermin. Küstennahe Wassertemperaturen werden – falls verfügbar – ebenfalls klimatologisch für den geplanten Zeitraum gemittelt und nicht als aktuelle Einzelmessung dargestellt. Pro gerastertem Klimapunkt erfolgt höchstens ein direkter Basisabruf; ERA5-Seamless kombiniert die feinere ERA5-Land-Temperatur mit ERA5 für Niederschlag, Sonne und Wind. Das Ergebnis bleibt drei Jahre lokal gespeichert. Die Schneehöhe ist ein optionaler Zusatzabruf. Der MID-Worker wird dafür nicht verwendet.</span></div>
+  <div className="travel-method-note"><AlertTriangle size={15}/><span>Das Ergebnis ist eine klimatologische Erwartung aus vergangenen Jahren und keine Wettervorhersage für den konkreten Reisetermin. Küstennahe Wassertemperaturen werden – falls verfügbar – ebenfalls klimatologisch für den geplanten Zeitraum gemittelt und nicht als aktuelle Einzelmessung dargestellt. Pro gerastertem Klimapunkt erfolgt höchstens ein direkter Basisabruf für die atmosphärische Klimatologie; ERA5-Seamless kombiniert die feinere ERA5-Land-Temperatur mit ERA5 für Niederschlag, Sonne und Wind. Für Küstenorte prüft MID zusätzlich ein historisches Meeresgitter und lädt bei passender Küstenlage einmalig die ERA5-SST-Klimatologie 1991–2020; die abgeleitete Tagesklimatologie wird ebenfalls drei Jahre lokal gespeichert. Die Schneehöhe ist ein optionaler Zusatzabruf. Der MID-Worker wird dafür nicht verwendet.</span></div>
   {error&&<div className="error">{error}</div>}
   {loading&&<div className="travel-loading"><RefreshCw className="spin" size={20}/><div><strong>Langjährige Klimadaten werden ausgewertet</strong><span>{mode==='flexible'&&(detailedSnow||Number.isFinite(constraints.minSnowDepthCm))?'Für die ausdrücklich aktivierte Schneehöhe wird einmalig ein zusätzlicher Datensatz verarbeitet.':'Es wird höchstens ein kompakter Basisdatensatz geladen; Wiederholungen nutzen den lokalen Klimacache.'}</span></div></div>}
 
@@ -117,11 +112,11 @@ export default function TravelPlannerPanel({initialLocation,advancedMode,unit}:P
    {analysis.snowDepthWarning&&<div className="travel-snow-warning"><Snowflake size={15}/><span>{analysis.snowDepthWarning} Die Bewertung nutzt ersatzweise den langjährigen Schneefall.</span></div>}
    <div className="travel-metrics">
     <Metric iconNode={<Thermometer/>} labelText="Temperatur" value={`${number(active.summary.avgMax)} / ${number(active.summary.avgMin)} °C`} detail={`Ø Höchst / Tiefst · häufig ${number(active.summary.avgMaxP25)}–${number(active.summary.avgMaxP75)} °C`}/>
-    <Metric iconNode={<CloudRain/>} labelText="Niederschlag" value={`${number(active.summary.precipitationTotal)} mm`} detail={`rund ${number(active.summary.wetDaysExpected)} Tage mit ≥ 1 mm`}/>
+    <Metric iconNode={<CloudRain/>} labelText="Niederschlag" value={`${number(active.summary.precipitationTotal)} mm`} detail={`rund ${Math.round(active.summary.wetDaysExpected)} Tage mit ≥ 1 mm`}/>
     <Metric iconNode={<Sun/>} labelText="Sonnenschein" value={`${number(active.summary.sunshinePerDay)} h/Tag`} detail={`${number(active.summary.sunshineTotal)} h im Zeitraum`}/>
     <Metric iconNode={<Wind/>} labelText="Wind" value={wind(active.summary.windMaxMean,unit)} detail="Ø tägliches Windmaximum"/>
     <Metric iconNode={<Snowflake/>} labelText={analysis.snowDepthIncluded?'Schneehöhe':'Schneefall'} value={analysis.snowDepthIncluded&&Number.isFinite(active.summary.snowDepthMean)?`${number(Number(active.summary.snowDepthMean),0)} cm`:`${number(active.summary.snowfallTotal)} cm`} detail={analysis.snowDepthIncluded&&Number.isFinite(active.summary.snowCoverDaysExpected)?`Schneedecke an etwa ${number(Number(active.summary.snowCoverDaysExpected))} Tagen`:'langjähriger Schneefall im Zeitraum'}/>
-    {waterInfo&&<Metric iconNode={<Droplets/>} labelText="Wassertemperatur" value={`${number(waterInfo.temperature)} °C`} detail={`klimatologisches Mittel für ${waterInfo.days} Tage · ${waterInfo.referencePeriod} · nächstes Meeresgitter ${number(waterInfo.gridDistanceKm,0)} km`}/>}
+    {waterInfo&&<Metric iconNode={<Droplets/>} labelText="Wassertemperatur" value={`${number(waterInfo.temperature)} °C`} detail={`klimatologisches Mittel für den Reisezeitraum · ${waterInfo.referencePeriod} · nächstes Meeresgitter ${number(waterInfo.gridDistanceKm,0)} km`}/>}
    </div>
    <div className="travel-daily-climate"><header><div><span>KLIMAVERLAUF</span><h5>Typische Bedingungen im Zeitraum</h5></div><small>horizontal wischen</small></header><div className="travel-day-strip">{active.points.map(point=><article key={point.date}><time>{formatDate(point.date)}</time><span className="travel-day-icon"><WeatherPictogram code={point.weatherCode} day title={label(point.weatherCode)}/></span><strong>{number(point.maxMean,0)}°</strong><small>{number(point.minMean,0)}°</small><span className="travel-day-rain"><CloudRain size={12}/>{number(point.wetProbability,0)} %</span><span className="travel-day-sun"><Sun size={12}/>{number(point.sunshineMeanHours)} h</span>{analysis.snowDepthIncluded&&Number.isFinite(point.snowDepthMean)&&<span className="travel-day-snow"><Snowflake size={12}/>{number(Number(point.snowDepthMean),0)} cm</span>}</article>)}</div></div>
    <footer><span>Quelle: {analysis.source} · Referenzperiode {analysis.referencePeriod}</span><small>{advancedMode?'Tageswerte sind Mittel beziehungsweise Eintrittswahrscheinlichkeiten aus ERA5-Seamless (ERA5-Land für Landtemperatur, ERA5 für Niederschlag, Solarstrahlung und Wind); lokale Effekte, einzelne Extremjahre und künftige Klimaänderungen bleiben unsicher.':'Klimamittel beschreiben typische Bedingungen, nicht das Wetter eines einzelnen Jahres.'}</small></footer>

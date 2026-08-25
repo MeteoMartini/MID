@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.65.10",
+  "releaseVersion": "0.9.65.11",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -261,7 +261,8 @@
     "scripts/test-weather-profile-pressure-hazards-09656.mjs",
     "scripts/test-warning-current-summary-disclosure-09657.mjs",
     "scripts/test-warning-chronological-order-09658.mjs",
-    "scripts/test-precipitation-zero-floor-wording-096510.mjs"
+    "scripts/test-precipitation-zero-floor-wording-096510.mjs",
+    "scripts/test-current-dry-pop-travel-water-096511.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -454,7 +455,8 @@
     "scripts/test-weather-profile-pressure-hazards-09656.mjs",
     "scripts/test-warning-current-summary-disclosure-09657.mjs",
     "scripts/test-warning-chronological-order-09658.mjs",
-    "scripts/test-precipitation-zero-floor-wording-096510.mjs"
+    "scripts/test-precipitation-zero-floor-wording-096510.mjs",
+    "scripts/test-current-dry-pop-travel-water-096511.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -538,7 +540,9 @@
     "scripts/test-warning-current-summary-disclosure-09657.mjs",
     "MID_IMPLEMENTATION_0.9.65.7.md",
     "scripts/test-warning-chronological-order-09658.mjs",
-    "MID_IMPLEMENTATION_0.9.65.8.md"
+    "MID_IMPLEMENTATION_0.9.65.8.md",
+    "scripts/test-current-dry-pop-travel-water-096511.mjs",
+    "MID_IMPLEMENTATION_0.9.65.11.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
