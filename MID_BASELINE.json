@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.66.1",
+  "releaseVersion": "0.9.66.2",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -268,7 +268,8 @@
     "scripts/test-flight-altitude-input-096515.mjs",
     "scripts/test-weather-profile-wind-arrow-096516.mjs",
     "scripts/test-dach-extreme-outlook-09660.mjs",
-    "scripts/test-extreme-outlook-startup-format-09661.mjs"
+    "scripts/test-extreme-outlook-startup-format-09661.mjs",
+    "scripts/test-extreme-outlook-area-rendering-09662.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -467,7 +468,8 @@
     "scripts/test-flight-altitude-input-096515.mjs",
     "scripts/test-weather-profile-wind-arrow-096516.mjs",
     "scripts/test-dach-extreme-outlook-09660.mjs",
-    "scripts/test-extreme-outlook-startup-format-09661.mjs"
+    "scripts/test-extreme-outlook-startup-format-09661.mjs",
+    "scripts/test-extreme-outlook-area-rendering-09662.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -568,7 +570,11 @@
     "scripts/test-dach-extreme-outlook-09660.mjs",
     "MID_IMPLEMENTATION_0.9.66.0.md",
     "scripts/test-extreme-outlook-startup-format-09661.mjs",
-    "MID_IMPLEMENTATION_0.9.66.1.md"
+    "MID_IMPLEMENTATION_0.9.66.1.md",
+    "src/ExtremeOutlookAreaOverlay.tsx",
+    "src/extremeOutlookAreaCanvas.ts",
+    "scripts/test-extreme-outlook-area-rendering-09662.mjs",
+    "MID_IMPLEMENTATION_0.9.66.2.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",

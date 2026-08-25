@@ -1,3 +1,10 @@
+## 0.9.66.2
+
+- DACH-Extremwetterkarte zeigt die Gefahrenfelder nun zuverlässig als flächig eingefärbtes Regionalraster: Intensität bestimmt die Farbe, Wahrscheinlichkeit die Deckkraft; klare farbgleiche Konturen erhalten die räumliche Abgrenzung.
+- Die Flächen werden über ein eigenes, mit Zoom, Bewegung und Größenänderung synchronisiertes Karten-Canvas gerendert und hängen damit nicht mehr von der Sichtbarkeit des MapLibre-Vektorfülllayers ab.
+- Prozent-/Intensitätsmarker sind auf höchstens sechs regionale Maxima begrenzt. Sie verdecken damit nicht mehr nahezu jede Rasterfläche, während alle betroffenen Felder und die vollständige Rangliste erhalten bleiben.
+- Keine Änderung an DACH-Raster, Modellen, Schwellen, Wahrscheinlichkeiten, Intensitäten, Datenquellen oder Einheiten. Professional-App und Worker sind gemeinsam auf 0.9.66.2 synchronisiert.
+
 ## 0.9.66.1
 
 - Startfehler des neuen DACH-Extremwetter-Ausblicks behoben: Dezimalwerte für Niederschlag, Schnee, Glatteis, Schichtung, Scherung und Aufwind verwenden nun die korrekte Reihenfolge der appweiten Nachkommastellenparameter.

@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.66.1",
+  "version": "0.9.66.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -221,6 +221,7 @@
     "test:weather-maps-module": "node scripts/test-weather-maps-module-09210.mjs",
     "test:dach-extreme-outlook": "node scripts/test-dach-extreme-outlook-09660.mjs",
     "test:extreme-outlook-startup-format": "node scripts/test-extreme-outlook-startup-format-09661.mjs",
+    "test:extreme-outlook-area-rendering": "node scripts/test-extreme-outlook-area-rendering-09662.mjs",
     "test:dwd-radar-meteogram-alignment": "node scripts/test-dwd-radar-meteogram-alignment-09211.mjs",
     "test:radar-weather-maps-interaction": "node scripts/test-radar-weather-maps-interaction-09220.mjs",
     "test:dwd-radar-worker-payload-buildfix": "node scripts/test-dwd-radar-worker-payload-buildfix-09221.mjs",

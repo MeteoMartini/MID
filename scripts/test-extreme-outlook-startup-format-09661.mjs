@@ -8,7 +8,8 @@ const [formatSource,panel,pkgRaw,baselineRaw,changelog,implementation,workerSour
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-extreme-outlook-startup-format-09661.mjs';
 
-assert.equal(pkg.version,'0.9.66.1');
+const versionParts=String(pkg.version).split('.').map(Number);
+assert.ok(versionParts[0]>0||versionParts[1]>9||versionParts[2]>66||versionParts[2]===66&&(versionParts[3]??0)>=1,`Release ${pkg.version} liegt vor dem Startformat-Hotfix 0.9.66.1.`);
 assert.equal(baseline.releaseVersion,pkg.version);
 assert.equal(pkg.scripts?.['test:extreme-outlook-startup-format'],`node ${test}`);
 assert.ok(baseline.requiredRegressionTests?.includes(test)&&baseline.regressionTests?.includes(test),'Startformat-Regression ist nicht verbindlich registriert.');
@@ -26,7 +27,7 @@ assert.ok(!panel.includes(',0,1)'), 'Der DACH-Ausblick enthält weiterhin einen 
 assert.ok((panel.match(/,1,0\)/g)||[]).length>=10,'Die Extremwetter-Kennwerte sind nicht vollständig auf maximal eine Nachkommastelle korrigiert.');
 assert.ok(formatSource.includes('safeMinimum=Math.min(normalizedMinimum,normalizedMaximum)'));
 assert.ok(formatSource.includes('safeMaximum=Math.max(normalizedMinimum,normalizedMaximum)'));
-assert.ok(changelog.startsWith('## 0.9.66.1'));
+assert.ok(changelog.includes('## 0.9.66.1'));
 assert.ok(implementation.includes('minimumFractionDigits: 1'));
 assert.ok(implementation.includes('meteorologische Fachlogik ändert sich nicht'));
 
