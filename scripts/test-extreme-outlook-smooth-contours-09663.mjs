@@ -8,7 +8,7 @@ const [canvasSource,overlay,panel,pkgRaw,baselineRaw,changelog,implementation,wo
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-extreme-outlook-smooth-contours-09663.mjs';
 
-assert.equal(pkg.version,'0.9.66.3');
+assert.ok(pkg.version.startsWith('0.9.66.')&&Number(pkg.version.split('.')[3])>=3,'Konturfix benötigt mindestens MID 0.9.66.3.');
 assert.equal(baseline.releaseVersion,pkg.version);
 assert.equal(pkg.scripts?.['test:extreme-outlook-smooth-contours'],`node ${test}`);
 assert.ok(baseline.requiredRegressionTests?.includes(test)&&baseline.regressionTests?.includes(test),'Konturflächen-Regression ist nicht verbindlich registriert.');
@@ -41,7 +41,7 @@ const calls={fill:0,stroke:0,clip:0,move:0,line:0},context={beginPath(){},moveTo
 canvasModule.drawExtremeOutlookContours(map,canvas,contours);
 assert.equal(calls.fill,2);assert.equal(calls.clip,1,'Nur das Gebiet unter 60 % wird schraffiert.');assert.ok(calls.stroke>4&&calls.move>4&&calls.line>80,'Füllung, Schraffur und doppelte geglättete Kontur müssen tatsächlich gezeichnet werden.');
 
-assert.ok(changelog.startsWith('## 0.9.66.3'));
+assert.ok(changelog.includes('## 0.9.66.3'));
 assert.ok(implementation.includes('keine amtlichen Warnpolygone'));
 assert.ok(implementation.includes('meteorologischen Schwellen und Diagnosen bleiben unverändert'));
 

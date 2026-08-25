@@ -26,7 +26,7 @@ assert.ok(app.includes('<ViewportGate'));
 assert.ok(app.includes('unit={unit}'));
 assert.ok(app.includes('timezone={displayTimezone}'));
 
-for(const token of ["'overall'","'thunderstorm'","'rain'","'wind'","'snow'","'ice'",'overviewMin:number','hazardMin:number','extremeExceptionMin:number','timeoutMs:48000','staleIfErrorMs:2*60*60*1000'])assert.ok(data.includes(token),`Client-Datenvertrag fehlt: ${token}`);
+for(const token of ["'overall'","'thunderstorm'","'rain'","'wind'","'snow'","'ice'",'overviewMin:number','hazardMin:number','extremeExceptionMin:number','timeoutMs:48000','staleIfErrorMs:6*60*60*1000'])assert.ok(data.includes(token),`Client-Datenvertrag fehlt: ${token}`);
 for(const token of ['formatDwdWindValue','formatDisplayDateTime','displayTimeLabel','aria-pressed','role="img"','MapFitBounds','GeoJsonLayers','HtmlMarker','MID Extremwetter-Ausblick · DACH','Eigene MID-Prognose','keine amtliche Warnung','Schwellen, Parameter und Methodik','signalMetricSummary(signal,unit)'])assert.ok(panel.includes(token),`Oberflächenvertrag fehlt: ${token}`);
 for(const token of ['.extreme-main-grid{','.extreme-map{','.extreme-map-legend{','.extreme-region-list{','.extreme-threshold-table','@media(max-width:480px)'])assert.ok(styles.includes(token),`Responsive DACH-CSS fehlt: ${token}`);
 

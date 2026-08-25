@@ -1,3 +1,19 @@
+/* Generated from worker-src/25-dach-extreme-outlook.js. Do not edit directly. */
+import {guardedOpenMeteoFetch} from './openMeteoGuard';
+import {MID_VERSION} from './version';
+
+const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
+const WORKER_VERSION=MID_VERSION;
+let directRequestSignal;
+function number(value){if(value===null||value===undefined||value==='')return undefined;const parsed=Number(value);return Number.isFinite(parsed)?parsed:undefined}
+function clamp(value,minimum,maximum){return Math.max(minimum,Math.min(maximum,value))}
+function openMeteoRows(data){return Array.isArray(data)?data:Array.isArray(data?.results)?data.results:[data]}
+function directAbortReason(signal){return signal?.reason instanceof Error?signal.reason:new DOMException('Vorgang abgebrochen.','AbortError')}
+async function fetchWithDeadline(url,init={},timeoutMs=22000){
+ const controller=new AbortController(),parent=directRequestSignal,onAbort=()=>controller.abort(directAbortReason(parent)),timer=setTimeout(()=>controller.abort(new DOMException('Direktabruf-Zeitüberschreitung.','TimeoutError')),timeoutMs),headers=new Headers(init.headers||{}),{cf:unusedCf,...safeInit}=init;void unusedCf;headers.delete('User-Agent');
+ if(parent?.aborted)onAbort();else parent?.addEventListener('abort',onAbort,{once:true});
+ try{return await guardedOpenMeteoFetch(url,{...safeInit,headers,cache:'no-store',signal:controller.signal},{priority:'normal',maxRetries:0})}finally{clearTimeout(timer);parent?.removeEventListener('abort',onAbort)}
+}
 
 /* MID DACH extreme-weather outlook: independent, regional EPS assessment. */
 const DACH_EXTREME_BOUNDS={south:45.55,west:5.15,north:55.25,east:17.25};
@@ -64,4 +80,10 @@ function dachExtremeDominant(hazards){return Object.entries(hazards).sort((a,b)=
 async function dachExtremeOutlookData(){
  const now=Date.now();if(dachExtremeOutlookCache&&now-dachExtremeOutlookCache.storedAt<30*60000)return dachExtremeOutlookCache.data;
  try{const grid=dachExtremeGrid(),batches=[];for(let index=0;index<grid.points.length;index+=60)batches.push(grid.points.slice(index,index+60));const fetched=await Promise.all(batches.map(dachExtremeFetchBatch)),ensembleRows=fetched.flatMap(item=>item.ensemble),diagnosticRows=fetched.flatMap(item=>item.diagnostic),times=ensembleRows[0]?.hourly?.time||[];if(times.length<48)throw new Error('ICON-D2-EPS stellt weniger als 48 auswertbare Vorhersagestunden bereit.');const startEpoch=Date.parse(`${times[0]}Z`),periods=DACH_EXTREME_PERIOD_SPECS.map(period=>({...period,start:new Date(startEpoch+period.startHour*3600000).toISOString(),end:new Date(startEpoch+period.endHour*3600000).toISOString()})),cells=[];let diagnosticPoints=0;for(let pointIndex=0;pointIndex<grid.points.length;pointIndex++){const point=grid.points[pointIndex],ensemble=ensembleRows[pointIndex],diagnostic=diagnosticRows[pointIndex],elevation=Math.round(number(ensemble?.elevation)??number(diagnostic?.elevation)??0);if(diagnostic?.hourly)diagnosticPoints++;const periodHazards={};for(const period of periods){const start=period.startHour,end=period.endHour,hazards={},thunder=dachExtremeThunder(ensemble,diagnostic,start,end,elevation),rain=dachExtremeRain(ensemble,start,end,elevation),wind=dachExtremeWind(ensemble,start,end,elevation),snow=dachExtremeSnow(ensemble,start,end,elevation),ice=dachExtremeIce(ensemble,diagnostic,start,end,elevation);if(thunder)hazards.thunderstorm=thunder;if(rain)hazards.rain=rain;if(wind)hazards.wind=wind;if(snow)hazards.snow=snow;if(ice)hazards.ice=ice;periodHazards[period.id]={hazards,dominant:dachExtremeDominant(hazards)}}cells.push({...point,elevationM:elevation,periods:periodHazards})}const modelRun=await dachExtremeModelRun(),data={scope:'DACH',provider:'Eigene MID-Prognose',model:'DWD ICON-D2-EPS + ICON-D2',modelRun,checkedAt:new Date().toISOString(),periods,cells,grid:{rows:grid.rows,cols:grid.cols,latStep:Number(grid.latStep.toFixed(4)),lonStep:Number(grid.lonStep.toFixed(4)),bounds:DACH_EXTREME_BOUNDS,pointCount:grid.points.length},thresholds:DACH_EXTREME_THRESHOLDS,quality:{ensembleMembers:20,probabilityMethod:'Kalibrierte Überschreitungswahrscheinlichkeit aus EPS-Mittel und EPS-Streuung; zeitliche Abhängigkeit wird konservativ korreliert.',modelResolution:'ICON-D2 / ICON-D2-EPS etwa 2 km',displayGrid:'Regionales DACH-Analyseraster etwa 55–90 km',diagnosticCoveragePct:Math.round(diagnosticPoints/Math.max(1,grid.points.length)*100),limitations:['Regionaler Ausblick, keine ortsscharfe Warnung.','Wahrscheinlichkeiten werden aus Ensemble-Mittel und -Streuung angenähert und auf 5 Prozentpunkte gerundet.','Hagel, Downbursts und Eisregen sind Umfeld- bzw. Wirkungsindikatoren, keine direkten Beobachtungen.']},officialWarning:false};dachExtremeOutlookCache={storedAt:Date.now(),data};return data}catch(error){if(dachExtremeOutlookCache&&now-dachExtremeOutlookCache.storedAt<2*3600000)return{...dachExtremeOutlookCache.data,stale:true,staleReason:error instanceof Error?error.message:String(error)};throw error}
+}
+
+export async function loadDirectDachExtremeOutlook(signal){
+ if(signal?.aborted)throw directAbortReason(signal);
+ directRequestSignal=signal;
+ try{return{...await dachExtremeOutlookData(),version:MID_VERSION,delivery:'browser-direct'}}finally{if(directRequestSignal===signal)directRequestSignal=undefined}
 }

@@ -1,3 +1,11 @@
+## 0.9.66.4
+
+- Der DACH-Extremwetter-Ausblick bleibt auch bei ausgeschöpftem täglichem Cloudflare-Worker-Kontingent verfügbar: Nach dem bevorzugten Worker-Abruf berechnet die App dieselbe Prognose kostenfrei direkt im Browser aus DWD ICON-D2-EPS und ICON-D2.
+- Die Direktberechnung wird automatisch aus derselben kanonischen Worker-Fachquelle erzeugt. Raster, Schwellen, Mehrparameterdiagnosen, Wahrscheinlichkeiten, Intensitäten, appweite Einheiten und Zeitdarstellung bleiben daher identisch.
+- Ein persistenter lokaler Ausfallcache hält gültige Prognosen über App-Neustarts hinweg vor. Erkanntes Worker-Tageslimit wird bis zum Tageswechsel lokal vorgemerkt; aussichtslose Wiederholungsaufrufe entfallen.
+- Datenweg und Ausfallstatus werden verständlich auf Deutsch ausgewiesen. Die pauschale DNS-/CORS-/Netzwerkdiagnose erscheint nicht mehr als Endzustand des Moduls.
+- Worker-Fachcache und Antwortcache wurden auf 30 Minuten verlängert; Browser-Direktabruf und bestehende Open-Meteo-Schutzlogik verursachen keine zusätzlichen Kosten oder kostenpflichtigen Abhängigkeiten.
+
 ## 0.9.66.3
 
 - Rechteckige DACH-Rasterzellen durch geglättete, georeferenzierte Isoplethenflächen ersetzt. Direkt und diagonal benachbarte Stützfelder gleicher Intensität verschmelzen zu unregelmäßigen, zusammenhängenden Gefahrengebieten; isolierte Signale erhalten abgerundete Konturen.
