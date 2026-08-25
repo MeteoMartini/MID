@@ -8,7 +8,8 @@ const [app,modules,panel,data,styles,workerSource,worker,router,buildScript,pkgT
 ]);
 const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText),test='scripts/test-dach-extreme-outlook-09660.mjs';
 
-assert.equal(pkg.version,'0.9.66.0');
+const versionParts=String(pkg.version).split('.').map(Number);
+assert.ok(versionParts[0]>0||versionParts[1]>9||versionParts[2]>66||versionParts[2]===66&&(versionParts[3]??0)>=0,`Release ${pkg.version} liegt vor dem DACH-Ausblick 0.9.66.0.`);
 assert.equal(baseline.releaseVersion,pkg.version);
 assert.equal(pkg.scripts?.['test:dach-extreme-outlook'],`node ${test}`);
 assert.ok(baseline.requiredRegressionTests?.includes(test));

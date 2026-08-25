@@ -1,3 +1,9 @@
+## 0.9.66.1
+
+- Startfehler des neuen DACH-Extremwetter-Ausblicks behoben: Dezimalwerte für Niederschlag, Schnee, Glatteis, Schichtung, Scherung und Aufwind verwenden nun die korrekte Reihenfolge der appweiten Nachkommastellenparameter.
+- Der zentrale deutsche Zahlenformatierer normalisiert ungültige oder vertauschte Nachkommastellenbereiche defensiv. Ein einzelner fehlerhafter Aufruf kann MID dadurch nicht mehr mit `minimumFractionDigits > maximumFractionDigits` am Start hindern.
+- Keine Änderung an Modellen, Schwellen, Wahrscheinlichkeiten, Intensitäten, Datenquellen oder appweiten Einheiten. Professional-App und Worker sind gemeinsam auf 0.9.66.1 synchronisiert.
+
 ## 0.9.66.0
 
 - Neuer „MID Extremwetter-Ausblick · DACH“ als eigener, konfigurierbarer Hauptbereich direkt nach den Warnungen: Gesamtlage sowie Gewitter, Stark-/Dauerregen, Sturm, Schnee und Glätte/Eisregen für 0–6, +6–12, +12–24 und +24–48 Stunden.
