@@ -1,3 +1,13 @@
+## 0.9.65.15
+
+- Streckenbriefing: Höheneingabe mit expliziter Wahl zwischen FL und ft AGL repariert; keine Einheitssprünge während der Eingabe.
+- Unter FL050 sind 100-ft-genaue AGL-Eingaben möglich; ab FL050 wird erst beim Commit auf 10-FL-Schritte gerundet.
+- Neue Regression schützt die Flugniveau-Eingabe.
+
+
+## 0.9.65.14
+
+- Reiseplaner: historische Wassertemperatur auf die korrekte Open-Meteo Marine API / ERA5-Ocean umgestellt; fehlerhaften SST-Archive-Pfad entfernt und Wasserklima-Cache auf v3 migriert.
 # v0.9.65.13
 
 - Reiseplaner: Wassertemperatur wird bei Küstenzielen nicht mehr über einen sehr großen 30-Jahres-Stundenabruf nachgeladen. Stattdessen nutzt MID kleine, exakt auf die Kalendertage des geplanten Reisezeitraums begrenzte historische ERA5-SST-Ausschnitte aus gleichmäßig über 1991–2020 verteilten Referenzjahren. Der alte v1-Wasserklimacache wird invalidiert.

@@ -15,7 +15,9 @@ export type HazardTransitionWindow={entryFrom:string;entryTo:string;exitFrom:str
 
 export function finite(value:unknown):number|null{const parsed=Number(value);return value===null||value===undefined||value===''||!Number.isFinite(parsed)?null:parsed}
 export function hft(metres:number|null){return metres===null?null:metres*3.28084/100}
-export function normalizeFlightLevel(value:number){return Math.max(0,Math.round(value/10)*10)}
+export function normalizeFlightLevel(value:number){const safe=Math.max(0,Math.min(550,Number.isFinite(value)?value:0));return safe<50?Math.round(safe):Math.round(safe/10)*10}
+export function flightLevelFromAltitudeInput(mode:'fl'|'agl',value:number){if(!Number.isFinite(value))return null;if(mode==='agl')return normalizeFlightLevel(Math.max(0,Math.min(4900,value))/100);return normalizeFlightLevel(Math.max(50,Math.min(550,value)))}
+export function altitudeInputFromFlightLevel(mode:'fl'|'agl',flightLevel:number){const normalized=normalizeFlightLevel(flightLevel);return mode==='agl'?String(Math.min(49,normalized)*100):String(Math.max(50,normalized))}
 export function formatSelectedAltitudeLabel(flightLevel:number){const normalized=normalizeFlightLevel(flightLevel);return normalized<50?`${normalized<=0?'SFC':`${normalized*100} ft AGL`}`:`FL${String(normalized).padStart(3,'0')}`}
 function formatAltitudeBand(baseFl:number,topFl:number){const base=normalizeFlightLevel(Math.max(0,baseFl)),top=Math.max(base,normalizeFlightLevel(Math.max(baseFl,topFl)));const baseLabel=base<=0?'SFC':base<50?`${base*100} ft AGL`:`FL${String(base).padStart(3,'0')}`,topLabel=top<=0?'SFC':top<50?`${top*100} ft AGL`:`FL${String(top).padStart(3,'0')}`;return `${baseLabel}–${topLabel}`}
 function mixDirection(a:number,b:number,f:number){const delta=((b-a+540)%360)-180;return(a+delta*f+360)%360}

@@ -9,9 +9,9 @@ const [travel,panel,eventPanel,pkgRaw,baselineRaw]=await Promise.all([
  readFile('MID_BASELINE.json','utf8')
 ]);
 
-assert.ok(travel.includes("const WATER_CACHE_PREFIX='mid:travel-water-climate:1991-2020:v2:'"),'Alte negative SST-Caches werden nicht invalidiert.');
+assert.ok(travel.includes("const WATER_CACHE_PREFIX='mid:travel-water-climate:1991-2020:v3:'"),'Alte negative SST-Caches werden nicht invalidiert.');
 assert.ok(travel.includes('WATER_REFERENCE_YEARS=[1991,1995,1999,2003,2007,2011,2015,2020]'),'Referenzjahre für kompakte SST-Klimastichprobe fehlen.');
-assert.ok(travel.includes("hourly:'sea_surface_temperature'")&&travel.includes("cell_selection:'sea'")&&travel.includes("models:'era5'"),'Historische ERA5-SST-/Meeresgitterquelle fehlt.');
+assert.ok(travel.includes("hourly:'sea_surface_temperature'")&&travel.includes("cell_selection:'sea'")&&travel.includes("models:'era5_ocean'"),'Historische ERA5-Ocean-SST-/Meeresgitterquelle fehlt.');
 assert.ok(panel.includes('const initialWater=await fetchTravelWaterClimatology(destination,windows[0].start,windows[0].end,controller.signal).catch(()=>null);setWaterInfo(initialWater);setAnalysis('),'Erste Reiseergebnis-Karte wird vor der Wassertemperatur gerendert.');
 assert.ok(panel.includes('Wassertemperatur')&&panel.includes('klimatologisches Mittel für den Reisezeitraum'),'Wassertemperatur-Metrik fehlt im Reiseergebnis.');
 

@@ -26,16 +26,18 @@ assert.ok(travel.includes('const roundedWetDays=Math.round(summary.wetDaysExpect
 
 // Küsten-Wassertemperatur: echte historische ERA5-SST statt aktuellem Marinewert.
 for(const token of [
- "const WATER_CACHE_PREFIX='mid:travel-water-climate:1991-2020:v2:'",
+ "const WATER_CACHE_PREFIX='mid:travel-water-climate:1991-2020:v3:'",
  "const WATER_REFERENCE_YEARS=[1991,1995,1999,2003,2007,2011,2015,2020] as const",
  "hourly:'sea_surface_temperature'",
- "models:'era5'",
+ "models:'era5_ocean'",
  "cell_selection:'sea'",
  'export async function fetchTravelWaterClimatology('
 ])assert.ok(travel.includes(token),`Klimatologische Wassertemperatur fehlt: ${token}`);
 assert.ok(panel.includes('fetchTravelWaterClimatology(destination,active.start,active.end,controller.signal)'),'Reisezeitraum wird nicht an die SST-Klimatologie gebunden.');
 assert.ok(!panel.includes('marineForecast('),'Reiseplaner verwendet wieder aktuelle Marine-Wassertemperaturen.');
 assert.ok(!panel.includes('sea_surface_temperature_mean'),'Nicht unterstützte tägliche SST-Aggregation ist wieder aktiv.');
+assert.ok(travel.includes("const MARINE_ARCHIVE_ENDPOINT='https://marine-api.open-meteo.com/v1/marine'"),'Historische SST wird nicht über die Marine API abgerufen.');
+assert.ok(!travel.includes("payload=await fetchJson<HistoricalHourlyPayload>(`https://archive-api.open-meteo.com/v1/archive?${params}`)"),'SST wird weiterhin fälschlich über die atmosphärische Archive API abgefragt.');
 
 // Aktuelle Warnlage bleibt streng an die Gültigkeitszeit gebunden: ein ab 23:00 gültiges Signal ist um 22:51 noch nicht aktuell.
 assert.ok(app.includes('start<=now&&end>now'),'Warnkopf trennt zukünftige von aktuell gültigen Warnfenstern nicht mehr sauber.');
@@ -57,7 +59,8 @@ try{
  };
  const water=await module.fetchTravelWaterClimatology({latitude:35.4,longitude:24.65},'2026-08-24','2026-08-30');
  assert.equal(fetchCount,8,'Küsten-SST soll aus acht kleinen, über 1991–2020 verteilten Referenzjahres-Ausschnitten entstehen.');
- assert.ok(urls.every(url=>url.includes('hourly=sea_surface_temperature')&&url.includes('models=era5')&&url.includes('cell_selection=sea')),'ERA5-/SST-/Meeresgittervertrag fehlt in mindestens einem Referenzjahr.');
+ assert.ok(urls.every(url=>new URL(url).hostname==='marine-api.open-meteo.com'),'SST-Klimatologie nutzt nicht durchgehend die historische Marine API.');
+ assert.ok(urls.every(url=>url.includes('hourly=sea_surface_temperature')&&url.includes('models=era5_ocean')&&url.includes('cell_selection=sea')),'ERA5-Ocean-/SST-/Meeresgittervertrag fehlt in mindestens einem Referenzjahr.');
  assert.ok(urls.every(url=>/start_date=\d{4}-08-24/.test(url)&&/end_date=\d{4}-08-30/.test(url)),'SST-Abrufe sind nicht auf die Kalendertage des Reisezeitraums begrenzt.');
  assert.ok(water&&water.days===7&&/1991–2020/.test(water.referencePeriod)&&/8 Referenzjahre/.test(water.referencePeriod)&&water.temperature>25&&water.temperature<26,`Klimatologische SST für Reisezeitraum unplausibel: ${JSON.stringify(water)}`);
 }finally{await rm(compileDir,{recursive:true,force:true})}
