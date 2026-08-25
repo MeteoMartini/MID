@@ -26,12 +26,11 @@ assert.ok(travel.includes('const roundedWetDays=Math.round(summary.wetDaysExpect
 
 // Küsten-Wassertemperatur: echte historische ERA5-SST statt aktuellem Marinewert.
 for(const token of [
- "const WATER_CACHE_PREFIX='mid:travel-water-climate:1991-2020:v1:'",
+ "const WATER_CACHE_PREFIX='mid:travel-water-climate:1991-2020:v2:'",
+ "const WATER_REFERENCE_YEARS=[1991,1995,1999,2003,2007,2011,2015,2020] as const",
  "hourly:'sea_surface_temperature'",
  "models:'era5'",
  "cell_selection:'sea'",
- "start_date:'1991-01-01'",
- "end_date:'2020-12-31'",
  'export async function fetchTravelWaterClimatology('
 ])assert.ok(travel.includes(token),`Klimatologische Wassertemperatur fehlt: ${token}`);
 assert.ok(panel.includes('fetchTravelWaterClimatology(destination,active.start,active.end,controller.signal)'),'Reisezeitraum wird nicht an die SST-Klimatologie gebunden.');
@@ -41,7 +40,7 @@ assert.ok(!panel.includes('sea_surface_temperature_mean'),'Nicht unterstützte t
 // Aktuelle Warnlage bleibt streng an die Gültigkeitszeit gebunden: ein ab 23:00 gültiges Signal ist um 22:51 noch nicht aktuell.
 assert.ok(app.includes('start<=now&&end>now'),'Warnkopf trennt zukünftige von aktuell gültigen Warnfenstern nicht mehr sauber.');
 
-// Dynamischer SST-Test: Küstenprobe + 1991–2020-Historie, anschließend Mittelwert exakt für den geplanten Zeitraum.
+// Dynamischer SST-Test: kleine ERA5-SST-Ausschnitte aus gleichmäßig verteilten Referenzjahren, exakt auf den geplanten Kalenderzeitraum zugeschnitten.
 const compileDir=await mkdtemp(path.join(tmpdir(),'mid-travel-water-'));
 try{
  const compile=spawnSync('tsc',['--pretty','false','--target','ES2022','--module','ESNext','--moduleResolution','Bundler','--strict','--skipLibCheck','--outDir',compileDir,path.resolve('src/travelPlanner.ts')],{cwd:root,encoding:'utf8'});
@@ -52,17 +51,15 @@ try{
  const module=await import(`${pathToFileURL(compiledPath).href}?v=${Date.now()}`);
  let fetchCount=0;const urls=[];
  globalThis.fetch=async url=>{
-  fetchCount++;urls.push(String(url));const parsed=new URL(String(url));
-  if(parsed.searchParams.get('start_date')==='2000-01-15')return{ok:true,status:200,json:async()=>({latitude:35.5,longitude:24.75,hourly:{time:[],sea_surface_temperature:[]}})};
-  const time=[],sea_surface_temperature=[];
-  for(let date=new Date(Date.UTC(1991,0,1,12));date<=new Date(Date.UTC(2020,11,31,12));date.setUTCDate(date.getUTCDate()+1)){time.push(`${date.toISOString().slice(0,10)}T12:00`);sea_surface_temperature.push(20+date.getUTCMonth()*.7)}
-  return{ok:true,status:200,json:async()=>({latitude:35.5,longitude:24.75,hourly:{time,sea_surface_temperature}})};
+  fetchCount++;urls.push(String(url));const parsed=new URL(String(url)),start=String(parsed.searchParams.get('start_date')),end=String(parsed.searchParams.get('end_date')),time=[],sea_surface_temperature=[];
+  for(let date=new Date(`${start}T12:00:00Z`),stop=new Date(`${end}T12:00:00Z`);date<=stop;date.setUTCDate(date.getUTCDate()+1)){time.push(`${date.toISOString().slice(0,10)}T12:00`);sea_surface_temperature.push(25+date.getUTCMonth()*.05)}
+  return{ok:true,status:200,json:async()=>({latitude:35.4,longitude:24.7,hourly:{time,sea_surface_temperature}})};
  };
  const water=await module.fetchTravelWaterClimatology({latitude:35.4,longitude:24.65},'2026-08-24','2026-08-30');
- assert.equal(fetchCount,2,'Küsten-SST soll aus kleiner Meeresgitterprüfung plus einmaligem 1991–2020-Abruf entstehen.');
- assert.ok(urls[0].includes('hourly=sea_surface_temperature')&&urls[1].includes('hourly=sea_surface_temperature'),'SST-Variable fehlt im historischen Abruf.');
- assert.ok(urls[1].includes('models=era5')&&urls[1].includes('cell_selection=sea'),'ERA5-/Meeresgittervertrag fehlt im SST-Hauptabruf.');
- assert.ok(water&&water.days===7&&water.referencePeriod==='1991–2020'&&water.temperature>24&&water.temperature<26,`Klimatologische SST für Reisezeitraum unplausibel: ${JSON.stringify(water)}`);
+ assert.equal(fetchCount,8,'Küsten-SST soll aus acht kleinen, über 1991–2020 verteilten Referenzjahres-Ausschnitten entstehen.');
+ assert.ok(urls.every(url=>url.includes('hourly=sea_surface_temperature')&&url.includes('models=era5')&&url.includes('cell_selection=sea')),'ERA5-/SST-/Meeresgittervertrag fehlt in mindestens einem Referenzjahr.');
+ assert.ok(urls.every(url=>/start_date=\d{4}-08-24/.test(url)&&/end_date=\d{4}-08-30/.test(url)),'SST-Abrufe sind nicht auf die Kalendertage des Reisezeitraums begrenzt.');
+ assert.ok(water&&water.days===7&&/1991–2020/.test(water.referencePeriod)&&/8 Referenzjahre/.test(water.referencePeriod)&&water.temperature>25&&water.temperature<26,`Klimatologische SST für Reisezeitraum unplausibel: ${JSON.stringify(water)}`);
 }finally{await rm(compileDir,{recursive:true,force:true})}
 
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-current-dry-pop-travel-water-096511.mjs';

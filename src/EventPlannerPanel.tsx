@@ -11,7 +11,7 @@ import {AppInfoHint} from './AppInfoPopover'
 import {buildEventPlan} from './eventWeatherEngine'
 import {refreshAllEventWeather,refreshEventWeather,type EventWeatherRefreshReason} from './eventWeatherRefresh'
 import {MidDisclosure} from './UiPrimitives'
-import {sunshineMinutesLabel} from './sunshineDuration'
+import {sunshineHoursLabel,sunshineMinutesLabel} from './sunshineDuration'
 
 type Props={initialLocation:Location;advancedMode:boolean;unit:WindUnit;canonicalHours?:Hour[];canonicalFusion?:ForecastFusionResult|null;canonicalWeatherTwinApplied?:boolean;backgroundOnly?:boolean}
 type ValueEvent={target:{value:string}}
@@ -54,7 +54,7 @@ function storedLocation(){try{const parsed=JSON.parse(storageGet(EVENT_LOCATION_
 function localToday(){try{const parts=new Intl.DateTimeFormat('en-CA',{year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()),get=(type:string)=>parts.find(part=>part.type===type)?.value;return`${get('year')}-${get('month')}-${get('day')}`}catch{return new Date().toISOString().slice(0,10)}}
 function addDays(value:string,days:number){const match=value.match(/^(\d{4})-(\d{2})-(\d{2})$/);if(!match)return value;const date=new Date(Date.UTC(Number(match[1]),Number(match[2])-1,Number(match[3]),12));date.setUTCDate(date.getUTCDate()+days);return date.toISOString().slice(0,10)}
 function formatNumber(value:number|null|undefined,digits=0){if(!Number.isFinite(Number(value)))return'–';return new Intl.NumberFormat('de-DE',{minimumFractionDigits:digits,maximumFractionDigits:digits}).format(Number(value))}
-function eventSunshineLabel(seconds:number|null|undefined){return seconds==null||!Number.isFinite(seconds)?'–':`${Math.max(0,Math.round(seconds/60))} min`}
+function eventSunshineLabel(seconds:number|null|undefined){return sunshineHoursLabel(seconds)}
 function formatDate(value:string){const date=new Date(`${value}T12:00:00Z`);return Number.isFinite(date.getTime())?new Intl.DateTimeFormat('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'}).format(date):value}
 function formatClock(value:string){return value.slice(0,5)}
 function destinationLabel(location:Location){return[location.icao?`${location.icao} · ${location.name}`:location.name,location.admin1,location.country].filter(Boolean).join(', ')}
@@ -93,7 +93,7 @@ function eventCompactRange(record:EventCenterRecord){return`${formatDate(record.
 function aviationVisibility(value:number|null|undefined){const n=Number(value);if(!Number.isFinite(n))return'–';if(n<1000)return`${Math.max(50,Math.round(n/50)*50)} m`;if(n<10000)return`${new Intl.NumberFormat('de-DE',{minimumFractionDigits:n<3000?1:0,maximumFractionDigits:1}).format(n/1000)} km`;return'≥ 10 km'}
 function aviationCeiling(value:number|null|undefined){const n=Number(value);if(!Number.isFinite(n))return'–';if(n<100)return'unter 100 ft AGL';return`${Math.round(n/100)*100} ft AGL`} 
 function flightHazardDetail(item:{id:string;detail:string;source?:string;value?:number;unit?:'kt'|'m'|'ft'},summary:EventSummary,unit:WindUnit){if(item.id==='wind'){const gust=item.unit==='kt'&&Number.isFinite(item.value)?Number(item.value):summary.flightHazards?.gustMaxKt??summary.gustMax;if(gust==null)return item.detail||'nicht verfügbar';const formatted=wind(gust,unit);return item.source?item.detail.replace(/Böen\s+\d+(?:[.,]\d+)?\s*kt/i,`Böen ${formatted}`):`bis ${formatted}`}if(item.id==='visibility'){const value=item.unit==='m'&&Number.isFinite(item.value)?Number(item.value):summary.flightHazards?.visibilityMinM??summary.visibilityMin;return item.source&&item.value==null?item.detail:aviationVisibility(value)}if(item.id==='ceiling'){const value=item.unit==='ft'&&Number.isFinite(item.value)?Number(item.value):summary.flightHazards?.ceilingMinFt;return item.source&&item.value==null?item.detail:value==null?'nicht belastbar':`min. ca. ${aviationCeiling(value)}`}return item.detail}
-function eventMetricLine(plan:EventPlan|null,unit:WindUnit){if(!plan)return'Noch keine Analyse.';return`${formatNumber(plan.summary.temperatureAvg)} °C · ${eventPrecipLabel(plan.summary)} ${formatNumber(eventPrecipProbability(plan.summary))} % · ☀ ${eventSunshineLabel(plan.summary.sunshineDurationTotal)} · Wind ${wind(plan.summary.windMax??Number.NaN,unit)} · G ${wind(plan.summary.gustMax??Number.NaN,unit)}`}
+function eventMetricLine(plan:EventPlan|null,unit:WindUnit){if(!plan)return'Noch keine Analyse.';return`${formatNumber(plan.summary.temperatureAvg)} °C · ${eventPrecipLabel(plan.summary)} ${formatNumber(eventPrecipProbability(plan.summary))} % · Wind ${wind(plan.summary.windMax??Number.NaN,unit)} · G ${wind(plan.summary.gustMax??Number.NaN,unit)}`}
 
 export default function EventPlannerPanel({initialLocation,advancedMode,unit,canonicalHours=[],canonicalFusion=null,canonicalWeatherTwinApplied=false,backgroundOnly=false}:Props){
  const stored=useMemo(()=>parseStoredValues(),[])

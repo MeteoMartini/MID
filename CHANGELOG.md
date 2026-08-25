@@ -1,3 +1,11 @@
+# v0.9.65.13
+
+- Reiseplaner: Wassertemperatur wird bei Küstenzielen nicht mehr über einen sehr großen 30-Jahres-Stundenabruf nachgeladen. Stattdessen nutzt MID kleine, exakt auf die Kalendertage des geplanten Reisezeitraums begrenzte historische ERA5-SST-Ausschnitte aus gleichmäßig über 1991–2020 verteilten Referenzjahren. Der alte v1-Wasserklimacache wird invalidiert.
+- Das erste Reiseergebnis wartet auf die klimatologische Wassertemperatur-Auswertung, sodass die Wassertemperatur-Kachel bei erfolgreicher Küstenprüfung direkt mit dem Ergebnis erscheint statt erst nachträglich. Aktuelle Marinewerte bleiben ausgeschlossen.
+- Event-Center: Sonnenscheindauer wird wieder aus der kompakten Übersichtszeile entfernt. Die Übersicht bleibt bei Temperatur, Niederschlag/PoP, Wind und Böen.
+- Sunshine-Duration-Contract präzisiert: stündliche Event-Zeitfenster zeigen Sonnenscheindauer in Minuten; die über ein mehrstündiges Event aggregierte Sonnenscheindauer erscheint in Detail-/Ratansichten in Stunden.
+- Neue Regression schützt Reise-SST-Sichtbarkeit, Cachemigration und Event-Sunshine-Einheiten.
+
 # v0.9.65.12
 
 - Automatische Warnlage: laufende Stundenwarnungen werden nicht mehr nach der halben Stunde durch den nächstgelegenen Folgestundenwert verdrängt.

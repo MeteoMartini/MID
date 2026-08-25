@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.65.12",
+  "version": "0.9.65.13",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -310,7 +310,8 @@
     "test:weather-profile-pressure-hazards": "node scripts/test-weather-profile-pressure-hazards-09656.mjs",
     "test:warning-chronological-order": "node scripts/test-warning-chronological-order-09658.mjs",
     "test:precip-zero-floor-wording": "node scripts/test-precipitation-zero-floor-wording-096510.mjs",
-    "test:current-dry-pop-travel-water": "node scripts/test-current-dry-pop-travel-water-096511.mjs"
+    "test:current-dry-pop-travel-water": "node scripts/test-current-dry-pop-travel-water-096511.mjs",
+    "test:travel-water-event-sunshine": "node scripts/test-travel-water-event-sunshine-096513.mjs"
   },
   "dependencies": {
     "astronomy-engine": "^2.1.19",

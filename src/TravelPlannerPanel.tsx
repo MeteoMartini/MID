@@ -66,7 +66,7 @@ export default function TravelPlannerPanel({initialLocation,advancedMode,unit}:P
  function chooseLocation(location:Location){setDestination(location);setSearchResults([]);setQuery('');setSearchError('');storageSet(LOCATION_KEY,JSON.stringify(location))}
  function changeMode(next:PlannerMode){setMode(next);storageSet(MODE_KEY,next);setAnalysis(null);setError('')}
  async function analyse(event:FormEvent){
-  event.preventDefault();setError('');setAnalysis(null);setActiveIndex(0);
+  event.preventDefault();setError('');setAnalysis(null);setWaterInfo(null);setActiveIndex(0);
   if(!destination){setError('Bitte zuerst einen Zielort auswählen.');return}
   if(!span||span<1){setError('Der gewählte Zeitraum ist ungültig.');return}
   if(span>120){setError('Der auswertbare Zeitraum ist auf 120 Tage begrenzt.');return}
@@ -78,7 +78,7 @@ export default function TravelPlannerPanel({initialLocation,advancedMode,unit}:P
    if(mode==='fixed'){
     const points=travelPeriod(dataset,start,end);if(points.length!==span)throw new Error('Für den gewählten Zeitraum fehlen klimatologische Tageswerte.');const summary=summarizeTravelPeriod(points);windows=[{start,end,points,summary,score:0,meetsAll:true,unmet:[]}];
    }else windows=bestTravelWindows(dataset,start,end,tripDays,preference,constraints,3);
-   if(!windows.length)throw new Error('Innerhalb des Suchzeitraums konnte kein vollständiges Reisezeitfenster gebildet werden.');setAnalysis({windows,snowDepthIncluded:dataset.snowDepthIncluded,snowDepthWarning:dataset.snowDepthWarning,referencePeriod:dataset.referencePeriod,source:dataset.source});
+   if(!windows.length)throw new Error('Innerhalb des Suchzeitraums konnte kein vollständiges Reisezeitfenster gebildet werden.');const initialWater=await fetchTravelWaterClimatology(destination,windows[0].start,windows[0].end,controller.signal).catch(()=>null);setWaterInfo(initialWater);setAnalysis({windows,snowDepthIncluded:dataset.snowDepthIncluded,snowDepthWarning:dataset.snowDepthWarning,referencePeriod:dataset.referencePeriod,source:dataset.source});
   }catch(reason){if(!controller.signal.aborted)setError(reason instanceof Error?reason.message:'Klimatologische Auswertung fehlgeschlagen.')}finally{if(analysisController.current===controller&&!controller.signal.aborted)setLoading(false)}
  }
  return <section className="travel-planner">
@@ -100,7 +100,7 @@ export default function TravelPlannerPanel({initialLocation,advancedMode,unit}:P
    <button type="submit" className="primary travel-analyse" disabled={loading}>{loading?<RefreshCw className="spin" size={17}/>:mode==='flexible'?<Sparkles size={17}/>:<CalendarRange size={17}/>} {loading?'Klimatologie wird ausgewertet …':mode==='flexible'?'Bestes Reisezeitfenster finden':'Reisewetter auswerten'}</button>
   </form>
 
-  <div className="travel-method-note"><AlertTriangle size={15}/><span>Das Ergebnis ist eine klimatologische Erwartung aus vergangenen Jahren und keine Wettervorhersage für den konkreten Reisetermin. Küstennahe Wassertemperaturen werden – falls verfügbar – ebenfalls klimatologisch für den geplanten Zeitraum gemittelt und nicht als aktuelle Einzelmessung dargestellt. Pro gerastertem Klimapunkt erfolgt höchstens ein direkter Basisabruf für die atmosphärische Klimatologie; ERA5-Seamless kombiniert die feinere ERA5-Land-Temperatur mit ERA5 für Niederschlag, Sonne und Wind. Für Küstenorte prüft MID zusätzlich ein historisches Meeresgitter und lädt bei passender Küstenlage einmalig die ERA5-SST-Klimatologie 1991–2020; die abgeleitete Tagesklimatologie wird ebenfalls drei Jahre lokal gespeichert. Die Schneehöhe ist ein optionaler Zusatzabruf. Der MID-Worker wird dafür nicht verwendet.</span></div>
+  <div className="travel-method-note"><AlertTriangle size={15}/><span>Das Ergebnis ist eine klimatologische Erwartung aus vergangenen Jahren und keine Wettervorhersage für den konkreten Reisetermin. Küstennahe Wassertemperaturen werden – falls verfügbar – ebenfalls klimatologisch für den geplanten Zeitraum gemittelt und nicht als aktuelle Einzelmessung dargestellt. Pro gerastertem Klimapunkt erfolgt höchstens ein direkter Basisabruf für die atmosphärische Klimatologie; ERA5-Seamless kombiniert die feinere ERA5-Land-Temperatur mit ERA5 für Niederschlag, Sonne und Wind. Für Küstenorte prüft MID zusätzlich ein historisches ERA5-Meeresgitter. Die Wassertemperatur wird ausschließlich aus den Kalendertagen des geplanten Reisezeitraums über gleichmäßig in 1991–2020 verteilte Referenzjahre klimatologisch gemittelt; aktuelle Marinewerte werden nicht verwendet. Das Ergebnis wird lokal gespeichert. Die Schneehöhe ist ein optionaler Zusatzabruf. Der MID-Worker wird dafür nicht verwendet.</span></div>
   {error&&<div className="error">{error}</div>}
   {loading&&<div className="travel-loading"><RefreshCw className="spin" size={20}/><div><strong>Langjährige Klimadaten werden ausgewertet</strong><span>{mode==='flexible'&&(detailedSnow||Number.isFinite(constraints.minSnowDepthCm))?'Für die ausdrücklich aktivierte Schneehöhe wird einmalig ein zusätzlicher Datensatz verarbeitet.':'Es wird höchstens ein kompakter Basisdatensatz geladen; Wiederholungen nutzen den lokalen Klimacache.'}</span></div></div>}
 
