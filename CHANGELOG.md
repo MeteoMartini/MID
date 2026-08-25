@@ -1,3 +1,9 @@
+# v0.9.65.12
+
+- Automatische Warnlage: laufende Stundenwarnungen werden nicht mehr nach der halben Stunde durch den nächstgelegenen Folgestundenwert verdrängt.
+- Warnhorizont verwendet jetzt den letzten bereits begonnenen Stundenwert (`epoch <= jetzt`); Wechsel erst zum tatsächlichen Beginn der nächsten Stunde.
+- Neue Regression für Warnzustände an Stunden-/Halbstundengrenzen.
+
 # v0.9.65.11
 
 - Aktuelle Niederschlagskarte: Bei trockenem Radar-/Modellkonsens und höchstens 5 % Rest-PoP wird kein künstlicher 5-%-Wert mehr angezeigt, sondern 0 %. Echte niedrige Prognosewahrscheinlichkeiten außerhalb dieses klar trockenen Nowcast-Falls bleiben erhalten.

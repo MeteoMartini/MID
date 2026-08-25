@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.65.11",
+  "releaseVersion": "0.9.65.12",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -262,7 +262,8 @@
     "scripts/test-warning-current-summary-disclosure-09657.mjs",
     "scripts/test-warning-chronological-order-09658.mjs",
     "scripts/test-precipitation-zero-floor-wording-096510.mjs",
-    "scripts/test-current-dry-pop-travel-water-096511.mjs"
+    "scripts/test-current-dry-pop-travel-water-096511.mjs",
+    "scripts/test-warning-current-hour-boundary-096512.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -542,7 +543,8 @@
     "scripts/test-warning-chronological-order-09658.mjs",
     "MID_IMPLEMENTATION_0.9.65.8.md",
     "scripts/test-current-dry-pop-travel-water-096511.mjs",
-    "MID_IMPLEMENTATION_0.9.65.11.md"
+    "MID_IMPLEMENTATION_0.9.65.11.md",
+    "MID_IMPLEMENTATION_0.9.65.12.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -565,6 +567,7 @@
     "scripts/test-sunshine-duration-contract-09655.mjs",
     "MID_IMPLEMENTATION_0.9.65.5.md",
     "MID_IMPLEMENTATION_0.9.65.7.md",
-    "scripts/test-warning-current-summary-disclosure-09657.mjs"
+    "scripts/test-warning-current-summary-disclosure-09657.mjs",
+    "MID_IMPLEMENTATION_0.9.65.12.md"
   ]
 }

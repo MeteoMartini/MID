@@ -179,6 +179,7 @@ export function dwdWarningSignalsAt(samples:DwdWarningSample[],index:number,elev
 type WarningOccurrence={signal:DwdWarningSignal;index:number;start:number;end:number};
 type WarningInterval={start:number;end:number;members:WarningOccurrence[]};
 function warningSampleEpoch(sample:DwdWarningSample){const raw=Number(sample.epoch);if(Number.isFinite(raw))return raw<1e12?raw*1000:raw;const parsed=Date.parse(String(sample.time??''));return Number.isFinite(parsed)?parsed:Number.NaN}
+export function warningCurrentStartIndex(samples:DwdWarningSample[],now=Date.now()){let currentIndex=-1,currentEpoch=Number.NEGATIVE_INFINITY,futureIndex=-1,futureEpoch=Number.POSITIVE_INFINITY;for(let index=0;index<samples.length;index++){const epoch=warningSampleEpoch(samples[index]);if(!Number.isFinite(epoch))continue;if(epoch<=now&&epoch>currentEpoch){currentEpoch=epoch;currentIndex=index}else if(epoch>now&&epoch<futureEpoch){futureEpoch=epoch;futureIndex=index}}return currentIndex>=0?currentIndex:futureIndex>=0?futureIndex:0}
 function warningOccurrence(signal:DwdWarningSignal,index:number,sample:DwdWarningSample):WarningOccurrence{const start=warningSampleEpoch(sample),durationHours=Math.max(1,Math.round(Number(signal.windowHours)||1));return{signal,index,start,end:Number.isFinite(start)?start+durationHours*3600000:Number.NaN}}
 function warningIntervals(occurrences:WarningOccurrence[]){
  const timed=occurrences.filter(item=>Number.isFinite(item.start)&&Number.isFinite(item.end)).sort((a,b)=>a.start-b.start);const merged:WarningInterval[]=[];

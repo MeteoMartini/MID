@@ -2,7 +2,7 @@ import {fetchWorkerJson,workerBaseCandidates} from './workerClient';
 import {writeBoundedStorage} from './cachePolicy';
 import {guardedOpenMeteoJson,isOpenMeteoRateLimitError,openMeteoCooldownRetryAt,registerOpenMeteoCooldown,OpenMeteoRateLimitError,type OpenMeteoPriority} from './openMeteoGuard';
 import {formatDecimal} from './format';
-import {formatDwdWarningDetailWithDirection,formatDwdWarningValue,summarizeDwdWarnings,type DwdWarningKind,type DwdWarningLevel} from './dwdWarnings';
+import {formatDwdWarningDetailWithDirection,formatDwdWarningValue,summarizeDwdWarnings,warningCurrentStartIndex,type DwdWarningKind,type DwdWarningLevel} from './dwdWarnings';
 import {loadOperaRaster} from './CompositeData';
 import {analyseOperaRasterNowcast} from './OperaRasterSource';
 import {precipitationParts,reconcileForecastPrecipitation} from './precipitation';
@@ -1451,6 +1451,6 @@ const levelOrder:{[k in HazardLevel]:number}={purple:4,red:3,orange:2,yellow:1};
 function dwdHazardClass(level:DwdWarningLevel):HazardLevel{return level===4?'purple':level===3?'red':level===2?'orange':'yellow'}
 
 export function hazards(h:Hour[],_currentUv?:number,elevation=0,unit:WindUnit='kn'){
- const start=currentIndex(h),horizon=h.slice(start,start+96);if(!horizon.length)return[] as HazardItem[];
+ const start=warningCurrentStartIndex(h),horizon=h.slice(start,start+96);if(!horizon.length)return[] as HazardItem[];
  return summarizeDwdWarnings(horizon,elevation,24).map(signal=>({level:dwdHazardClass(signal.level),title:signal.title,metric:formatDwdWarningValue(signal,unit),text:`${formatDwdWarningDetailWithDirection(signal,unit)} Automatisch aus dem Open-Meteo-Best-Match abgeleitet; keine amtliche Warnung.`,validFrom:signal.validFrom,validTo:signal.validTo,kind:signal.kind,lowerIntensity:signal.lowerIntensity})).sort((a,b)=>levelOrder[b.level]-levelOrder[a.level]);
 }
