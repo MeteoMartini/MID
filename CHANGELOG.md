@@ -1,3 +1,18 @@
+## 0.9.66.6
+
+- Wiederholt gleichförmige Sechseck-/Stützkernflächen im DACH-Extremwetter-Ausblick entfernt. Gefahrengebiete entstehen nun als Schwellenkonturen aus dem vollständigen räumlichen I1–I4-Wahrscheinlichkeitsfeld und nicht mehr als Puffer um ausschließlich sichtbare Stützpunkte.
+- Der Datenvertrag liefert für jedes Rasterfeld auch Wahrscheinlichkeiten unterhalb der Darstellungsschwelle. Dadurch bestimmen reale Modellgradienten Lage, Ausrichtung, Ausdehnung und Rand der Gebiete; benachbarte Signale verschmelzen fachlich, stärkere Intensitätskerne können innerhalb größerer Flächen liegen.
+- Die bestehenden Schwellen bleiben unverändert: 40 % in der Gesamtlage, 10 % je Einzelgefahr und 5 % für I4-Ausnahmesignale. Farbe, Deckkraft, Schraffur, appweite Einheiten, Mehrparameterdiagnostik und Trennung von amtlichen Warnungen bleiben erhalten.
+- Worker und kostenloser Browser-Direktweg nutzen dieselbe erweiterte Feldberechnung ohne zusätzliche Modellabrufe. Ein älterer Worker bleibt kompatibel; die volle durch Unterschwellenwerte geformte Geometrie setzt Worker 0.9.66.6 oder den Direktweg voraus.
+- Vollständig auf MID 0.9.66.5 aufgebaut: Die dort reparierte klimatologische Reise-Wassertemperatur und ihre SST-v4-Regression bleiben unverändert Bestandteil beider neuen Builds.
+
+## 0.9.66.5
+
+- Reiseplaner: klimatologische Wassertemperatur für Küstenziele robust gemacht. Alle acht ERA5-Ocean-Referenzjahre werden unabhängig geprüft; 1991 ist kein harter Gatekeeper mehr.
+- Alte SST-Negativcaches werden durch den neuen v4-Cachevertrag invalidiert; negative/unvollständige Ergebnisse werden nicht mehr über Jahre gespeichert und können sich beim nächsten Abruf erholen.
+- Küstenradius an das native ERA5-Ocean-0,5°-Raster angepasst (80 km statt 45 km), ohne binnenländische Ersatzwerte zu erfinden. Technische SST-Ausfälle werden im Reiseergebnis sichtbar, während die übrige Klimatologie verfügbar bleibt.
+- Neue dynamische Regression prüft fehlendes Referenzjahr, grobe gültige Meereszelle und Wiederherstellung nach einem negativen SST-Versuch.
+
 ## 0.9.66.4
 
 - Der DACH-Extremwetter-Ausblick bleibt auch bei ausgeschöpftem täglichem Cloudflare-Worker-Kontingent verfügbar: Nach dem bevorzugten Worker-Abruf berechnet die App dieselbe Prognose kostenfrei direkt im Browser aus DWD ICON-D2-EPS und ICON-D2.

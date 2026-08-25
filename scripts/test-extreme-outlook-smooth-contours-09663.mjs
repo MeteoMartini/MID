@@ -15,11 +15,12 @@ assert.ok(baseline.requiredRegressionTests?.includes(test)&&baseline.regressionT
 assert.ok(baseline.requiredFiles?.includes(test)&&baseline.requiredFiles?.includes('MID_IMPLEMENTATION_0.9.66.3.md'),'Konturflächen-Dateien fehlen im Baseline-Vertrag.');
 assert.ok(workerSource.includes(`const WORKER_VERSION='${pkg.version}';`),'Professional- und Worker-Version sind nicht gekoppelt.');
 
-for(const token of ['SAMPLE_SUBDIVISIONS=9','KERNEL_RADIUS_STEPS=.8','FIELD_THRESHOLD=.09','connectedComponents','supportAt','smoothRing','traceMask','buildExtremeOutlookContours','probability<60',"context.clip('evenodd')"])assert.ok(canvasSource.includes(token),`Professioneller Konturvertrag fehlt: ${token}`);
+for(const token of ['FIELD_SUBDIVISIONS=10','COVERAGE_THRESHOLD=.28','bilinear','fieldComponents','smoothRing','traceMask','buildExtremeOutlookContours','probability<60',"context.clip('evenodd')"])assert.ok(canvasSource.includes(token),`Professioneller Konturvertrag fehlt: ${token}`);
+assert.ok(!canvasSource.includes('KERNEL_RADIUS_STEPS')&&!canvasSource.includes('supportAt('),'Der gleichförmige radiale Stützkern darf nicht wieder eingeführt werden.');
 assert.ok(!canvasSource.includes('grid.latStep*.515')&&!canvasSource.includes('grid.lonStep*.515'),'Rechteckige Rasterzellen dürfen nicht mehr sichtbar gezeichnet werden.');
-assert.ok(overlay.includes('buildExtremeOutlookContours(paintAreas,data.grid)')&&overlay.includes('drawExtremeOutlookContours(map,canvas,contours)'),'Vorbemessene Konturen sind nicht in das Kartenoverlay eingebunden.');
+assert.ok(overlay.includes('buildExtremeOutlookContours(paintAreas,data.grid,{minimumProbability')&&overlay.includes('drawExtremeOutlookContours(map,canvas,contours)'),'Vorbemessene Konturen sind nicht in das Kartenoverlay eingebunden.');
 assert.ok(panel.includes('cellHitRing')&&panel.includes('Array.from({length:24}'),'Interaktionsflächen müssen der geglätteten Geometrie folgen.');
-assert.ok(panel.includes('Geglättete Isoplethenflächen aus dem Regionalraster'));
+assert.ok(panel.includes('Geglättete Isoplethenflächen aus den vollständigen I1–I4-Wahrscheinlichkeitsfeldern'));
 assert.ok(panel.includes('unter 60 % schraffiert'));
 
 const compiled=ts.transpileModule(canvasSource,{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText,canvasModule=await import(`data:text/javascript;base64,${Buffer.from(compiled).toString('base64')}`),grid={latStep:.8,lonStep:.75},areas=[
@@ -31,7 +32,7 @@ const compiled=ts.transpileModule(canvasSource,{compilerOptions:{module:ts.Modul
 
 assert.equal(contours.length,2,'Benachbarte I1-Stützfelder müssen zu einem Gebiet verschmelzen; das getrennte I2-Gebiet bleibt eigenständig.');
 const merged=contours.find(contour=>contour.intensity===1),isolated=contours.find(contour=>contour.intensity===2);
-assert.ok(merged&&isolated);assert.equal(merged.probability,50);assert.equal(merged.rings.length,1);assert.equal(isolated.rings.length,1);
+assert.ok(merged&&isolated);assert.equal(merged.probability,55);assert.equal(merged.rings.length,1);assert.equal(isolated.rings.length,1);
 const ring=merged.rings[0],uniqueLon=new Set(ring.map(point=>point.lon.toFixed(5))),uniqueLat=new Set(ring.map(point=>point.lat.toFixed(5)));
 assert.ok(ring.length>40&&uniqueLon.size>10&&uniqueLat.size>10,'Die zusammengeführte Gefahrenfläche muss eine geglättete, unregelmäßige Kontur statt vier Rechteckecken besitzen.');
 const west=Math.min(...ring.map(point=>point.lon)),east=Math.max(...ring.map(point=>point.lon)),south=Math.min(...ring.map(point=>point.lat)),north=Math.max(...ring.map(point=>point.lat));

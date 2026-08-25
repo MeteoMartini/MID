@@ -9,10 +9,10 @@ const [travel,panel,eventPanel,pkgRaw,baselineRaw]=await Promise.all([
  readFile('MID_BASELINE.json','utf8')
 ]);
 
-assert.ok(travel.includes("const WATER_CACHE_PREFIX='mid:travel-water-climate:1991-2020:v3:'"),'Alte negative SST-Caches werden nicht invalidiert.');
+assert.ok(travel.includes("const WATER_CACHE_PREFIX='mid:travel-water-climate:1991-2020:v4:'"),'Alte negative SST-Caches werden nicht invalidiert.');
 assert.ok(travel.includes('WATER_REFERENCE_YEARS=[1991,1995,1999,2003,2007,2011,2015,2020]'),'Referenzjahre für kompakte SST-Klimastichprobe fehlen.');
 assert.ok(travel.includes("hourly:'sea_surface_temperature'")&&travel.includes("cell_selection:'sea'")&&travel.includes("models:'era5_ocean'"),'Historische ERA5-Ocean-SST-/Meeresgitterquelle fehlt.');
-assert.ok(panel.includes('const initialWater=await fetchTravelWaterClimatology(destination,windows[0].start,windows[0].end,controller.signal).catch(()=>null);setWaterInfo(initialWater);setAnalysis('),'Erste Reiseergebnis-Karte wird vor der Wassertemperatur gerendert.');
+assert.ok(panel.includes('let initialWater:TravelWaterInfo|null=null;try{initialWater=await fetchTravelWaterClimatology(destination,windows[0].start,windows[0].end,controller.signal)'),'Erste Reiseauswertung versucht die Wassertemperatur weiterhin vor dem Ergebnisrendering zu laden.');
 assert.ok(panel.includes('Wassertemperatur')&&panel.includes('klimatologisches Mittel für den Reisezeitraum'),'Wassertemperatur-Metrik fehlt im Reiseergebnis.');
 
 assert.ok(eventPanel.includes("import {sunshineHoursLabel,sunshineMinutesLabel} from './sunshineDuration'"),'Sunshine-Formatter für Ereignis-/Stundenvertrag fehlen.');

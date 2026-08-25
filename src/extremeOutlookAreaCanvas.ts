@@ -1,6 +1,27 @@
 export type ExtremeAreaIntensity=1|2|3|4;
-export type ExtremeAreaPaintCell={lat:number;lon:number;color:string;opacity:number;probability:number;intensity:ExtremeAreaIntensity};
-export type ExtremeAreaCanvasGrid={latStep:number;lonStep:number};
+export type ExtremeAreaPaintCell={
+ row?:number;
+ col?:number;
+ lat:number;
+ lon:number;
+ color?:string;
+ opacity?:number;
+ probability?:number;
+ intensity?:0|ExtremeAreaIntensity;
+ probabilityLevels?:[number,number,number,number];
+};
+export type ExtremeAreaCanvasGrid={
+ rows?:number;
+ cols?:number;
+ latStep:number;
+ lonStep:number;
+ bounds?:{south:number;west:number;north:number;east:number};
+};
+export type ExtremeAreaContourOptions={
+ minimumProbability?:number;
+ extremeMinimumProbability?:number;
+ colors?:Partial<Record<ExtremeAreaIntensity,string>>;
+};
 export type ExtremeAreaProjection={getCanvas:()=>{clientWidth:number;clientHeight:number};project:(coordinate:[number,number])=>{x:number;y:number}};
 export type ExtremeAreaGeoPoint={lon:number;lat:number};
 export type ExtremeAreaContour={intensity:ExtremeAreaIntensity;color:string;opacity:number;probability:number;rings:ExtremeAreaGeoPoint[][]};
@@ -9,26 +30,39 @@ type GridPoint={x:number;y:number};
 type GridEdge={start:GridPoint;end:GridPoint};
 type ProjectedPoint={x:number;y:number};
 type ProjectedContour=Omit<ExtremeAreaContour,'rings'>&{rings:ProjectedPoint[][]};
+type IndexedCell=ExtremeAreaPaintCell&{row:number;col:number};
+type IndexedField={cells:IndexedCell[];rows:number;cols:number;north:number;west:number};
 
-const SAMPLE_SUBDIVISIONS=9;
-const KERNEL_RADIUS_STEPS=.8;
-const FIELD_THRESHOLD=.09;
-const COMPONENT_DISTANCE_STEPS=1.5;
+const FIELD_SUBDIVISIONS=10;
+const FIELD_PADDING_STEPS=1;
+const COVERAGE_THRESHOLD=.28;
+const MIN_REGION_FINE_CELLS=3;
+const DEFAULT_COLORS:Record<ExtremeAreaIntensity,string>={1:'#269b83',2:'#e7b92f',3:'#e87824',4:'#bd2340'};
 
 function rgba(hex:string,alpha:number){const value=hex.replace('#',''),expanded=value.length===3?value.split('').map(character=>character+character).join(''):value,number=Number.parseInt(expanded,16);if(!Number.isFinite(number))return`rgba(38,155,131,${alpha})`;return`rgba(${number>>16&255},${number>>8&255},${number&255},${alpha})`}
 function pointKey(point:GridPoint){return`${point.x}:${point.y}`}
-function normalizedDistance(a:ExtremeAreaPaintCell,b:ExtremeAreaPaintCell,grid:ExtremeAreaCanvasGrid){return Math.hypot((a.lat-b.lat)/grid.latStep,(a.lon-b.lon)/grid.lonStep)}
+function finite(value:unknown,fallback=0){const number=Number(value);return Number.isFinite(number)?number:fallback}
+function probabilityOpacity(probability:number){return probability>=80?.82:probability>=60?.7:probability>=30?.54:probability>=10?.4:.3}
 
-function connectedComponents(areas:ExtremeAreaPaintCell[],grid:ExtremeAreaCanvasGrid){
- const remaining=new Set(areas.map((_,index)=>index)),components:ExtremeAreaPaintCell[][]=[];
- while(remaining.size){const first=remaining.values().next().value as number,queue=[first],component:ExtremeAreaPaintCell[]=[];remaining.delete(first);while(queue.length){const index=queue.shift()!,area=areas[index];component.push(area);for(const candidate of [...remaining])if(normalizedDistance(area,areas[candidate],grid)<=COMPONENT_DISTANCE_STEPS){remaining.delete(candidate);queue.push(candidate)}}components.push(component)}
- return components;
+function indexField(areas:ExtremeAreaPaintCell[],grid:ExtremeAreaCanvasGrid):IndexedField|null{
+ if(!areas.length||!(grid.latStep>0)||!(grid.lonStep>0))return null;
+ const indexed=areas.every(area=>Number.isInteger(area.row)&&Number.isInteger(area.col));
+ const north=grid.bounds?.north??(indexed?areas.reduce((sum,area)=>sum+area.lat+finite(area.row)*grid.latStep,0)/areas.length:Math.max(...areas.map(area=>area.lat)));
+ const west=grid.bounds?.west??(indexed?areas.reduce((sum,area)=>sum+area.lon-finite(area.col)*grid.lonStep,0)/areas.length:Math.min(...areas.map(area=>area.lon)));
+ const cells=areas.map(area=>({...area,row:indexed?finite(area.row):Math.round((north-area.lat)/grid.latStep),col:indexed?finite(area.col):Math.round((area.lon-west)/grid.lonStep)})).filter(area=>area.row>=0&&area.col>=0);
+ if(!cells.length)return null;
+ const rows=Math.max(grid.rows||0,...cells.map(area=>area.row+1)),cols=Math.max(grid.cols||0,...cells.map(area=>area.col+1));
+ return{cells,rows,cols,north,west};
 }
 
-function supportAt(lat:number,lon:number,areas:ExtremeAreaPaintCell[],grid:ExtremeAreaCanvasGrid){
- let outside=1;
- for(const area of areas){const dx=(lon-area.lon)/(grid.lonStep*KERNEL_RADIUS_STEPS),dy=(lat-area.lat)/(grid.latStep*KERNEL_RADIUS_STEPS),distanceSquared=dx*dx+dy*dy;if(distanceSquared>=1)continue;const kernel=(1-distanceSquared)**2;outside*=1-kernel}
- return 1-outside;
+function probabilityForLevel(cell:IndexedCell,level:ExtremeAreaIntensity,explicitLevels:boolean){
+ if(explicitLevels)return Math.max(0,Math.min(100,finite(cell.probabilityLevels?.[level-1])));
+ return cell.intensity===level?Math.max(0,Math.min(100,finite(cell.probability))):0;
+}
+
+function bilinear(matrix:number[][],row:number,col:number){
+ const row0=Math.floor(row),col0=Math.floor(col),rowFraction=row-row0,colFraction=col-col0;
+ return finite(matrix[row0]?.[col0])*(1-rowFraction)*(1-colFraction)+finite(matrix[row0]?.[col0+1])*(1-rowFraction)*colFraction+finite(matrix[row0+1]?.[col0])*rowFraction*(1-colFraction)+finite(matrix[row0+1]?.[col0+1])*rowFraction*colFraction;
 }
 
 function smoothRing(points:ExtremeAreaGeoPoint[],passes=2){let result=points;for(let pass=0;pass<passes;pass++){const next:ExtremeAreaGeoPoint[]=[];for(let index=0;index<result.length;index++){const current=result[index],following=result[(index+1)%result.length];next.push({lon:current.lon*.75+following.lon*.25,lat:current.lat*.75+following.lat*.25},{lon:current.lon*.25+following.lon*.75,lat:current.lat*.25+following.lat*.75})}result=next}return result}
@@ -42,15 +76,31 @@ function traceMask(mask:boolean[][],west:number,north:number,lonStep:number,latS
  return rings;
 }
 
-function contoursForComponent(component:ExtremeAreaPaintCell[],grid:ExtremeAreaCanvasGrid):ExtremeAreaContour|null{
- const padding=KERNEL_RADIUS_STEPS+.18,minLat=Math.min(...component.map(area=>area.lat))-padding*grid.latStep,maxLat=Math.max(...component.map(area=>area.lat))+padding*grid.latStep,minLon=Math.min(...component.map(area=>area.lon))-padding*grid.lonStep,maxLon=Math.max(...component.map(area=>area.lon))+padding*grid.lonStep,rows=Math.max(8,Math.ceil((maxLat-minLat)/grid.latStep*SAMPLE_SUBDIVISIONS)),cols=Math.max(8,Math.ceil((maxLon-minLon)/grid.lonStep*SAMPLE_SUBDIVISIONS)),latStep=(maxLat-minLat)/rows,lonStep=(maxLon-minLon)/cols,mask=Array.from({length:rows},(_,row)=>Array.from({length:cols},(_,col)=>supportAt(maxLat-(row+.5)*latStep,minLon+(col+.5)*lonStep,component,grid)>=FIELD_THRESHOLD)),rings=traceMask(mask,minLon,maxLat,lonStep,latStep);if(!rings.length)return null;
- const probability=Math.round(component.reduce((sum,area)=>sum+area.probability,0)/component.length),opacity=component.reduce((sum,area)=>sum+area.opacity,0)/component.length;
- return{intensity:component[0].intensity,color:component[0].color,probability,opacity:Math.max(.38,Math.min(.82,opacity)),rings};
+function fieldComponents(mask:boolean[][],values:number[][]){
+ const rows=mask.length,cols=mask[0]?.length||0,visited=Array.from({length:rows},()=>Array(cols).fill(false)),components:Array<{cells:GridPoint[];probability:number}>=[];
+ for(let row=0;row<rows;row++)for(let col=0;col<cols;col++){if(!mask[row][col]||visited[row][col])continue;const queue=[{x:col,y:row}],cells:GridPoint[]=[];let probability=0;visited[row][col]=true;for(let cursor=0;cursor<queue.length;cursor++){const point=queue[cursor];cells.push(point);probability=Math.max(probability,finite(values[point.y]?.[point.x]));for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){const x=point.x+dx,y=point.y+dy;if(y<0||y>=rows||x<0||x>=cols||visited[y][x]||!mask[y][x])continue;visited[y][x]=true;queue.push({x,y})}}if(cells.length>=MIN_REGION_FINE_CELLS)components.push({cells,probability})}
+ return components;
 }
 
-export function buildExtremeOutlookContours(areas:ExtremeAreaPaintCell[],grid:ExtremeAreaCanvasGrid){
- const contours:ExtremeAreaContour[]=[];
- for(const intensity of[1,2,3,4] as const){const sameIntensity=areas.filter(area=>area.intensity===intensity);for(const component of connectedComponents(sameIntensity,grid)){const contour=contoursForComponent(component,grid);if(contour)contours.push(contour)}}
+function componentRings(component:{cells:GridPoint[]},globalWest:number,globalNorth:number,lonStep:number,latStep:number){
+ const minX=Math.max(0,Math.min(...component.cells.map(point=>point.x))-1),maxX=Math.max(...component.cells.map(point=>point.x))+1,minY=Math.max(0,Math.min(...component.cells.map(point=>point.y))-1),maxY=Math.max(...component.cells.map(point=>point.y))+1,mask=Array.from({length:maxY-minY+1},()=>Array(maxX-minX+1).fill(false));
+ for(const point of component.cells)mask[point.y-minY][point.x-minX]=true;
+ return traceMask(mask,globalWest+minX*lonStep,globalNorth-minY*latStep,lonStep,latStep);
+}
+
+export function buildExtremeOutlookContours(areas:ExtremeAreaPaintCell[],grid:ExtremeAreaCanvasGrid,options:ExtremeAreaContourOptions={}){
+ const indexed=indexField(areas,grid);if(!indexed)return[];
+ const explicitLevels=indexed.cells.some(area=>Array.isArray(area.probabilityLevels)),minimumProbability=Math.max(0,Math.min(100,finite(options.minimumProbability,40))),extremeMinimumProbability=Math.max(0,Math.min(minimumProbability,finite(options.extremeMinimumProbability,5))),coverage=Array.from({length:indexed.rows},()=>Array(indexed.cols).fill(0));
+ for(const cell of indexed.cells)coverage[cell.row][cell.col]=1;
+ const subdivisions=FIELD_SUBDIVISIONS,fineRows=(indexed.rows+FIELD_PADDING_STEPS*2)*subdivisions,fineCols=(indexed.cols+FIELD_PADDING_STEPS*2)*subdivisions,fineLatStep=grid.latStep/subdivisions,fineLonStep=grid.lonStep/subdivisions,globalNorth=indexed.north+FIELD_PADDING_STEPS*grid.latStep,globalWest=indexed.west-FIELD_PADDING_STEPS*grid.lonStep,contours:ExtremeAreaContour[]=[];
+ for(const level of[1,2,3,4] as const){
+  const threshold=level===4?extremeMinimumProbability:minimumProbability,nodeValues=Array.from({length:indexed.rows},()=>Array(indexed.cols).fill(0));
+  for(const cell of indexed.cells)nodeValues[cell.row][cell.col]=probabilityForLevel(cell,level,explicitLevels);
+  if(!indexed.cells.some(cell=>probabilityForLevel(cell,level,explicitLevels)>=threshold))continue;
+  const values=Array.from({length:fineRows},()=>Array(fineCols).fill(0)),mask=Array.from({length:fineRows},()=>Array(fineCols).fill(false));
+  for(let row=0;row<fineRows;row++)for(let col=0;col<fineCols;col++){const fieldRow=-FIELD_PADDING_STEPS+(row+.5)/subdivisions,fieldCol=-FIELD_PADDING_STEPS+(col+.5)/subdivisions,coverageValue=bilinear(coverage,fieldRow,fieldCol);if(coverageValue<COVERAGE_THRESHOLD)continue;const probability=bilinear(nodeValues,fieldRow,fieldCol)/coverageValue;values[row][col]=probability;mask[row][col]=probability>=threshold}
+  for(const component of fieldComponents(mask,values)){const rings=componentRings(component,globalWest,globalNorth,fineLonStep,fineLatStep);if(!rings.length)continue;const probability=Math.max(threshold,Math.min(100,Math.round(component.probability/5)*5)),color=options.colors?.[level]||DEFAULT_COLORS[level];contours.push({intensity:level,color,probability,opacity:Math.max(.38,Math.min(.82,probabilityOpacity(probability)+.08)),rings})}
+ }
  return contours.sort((a,b)=>a.intensity-b.intensity||a.probability-b.probability);
 }
 
@@ -65,4 +115,4 @@ export function drawExtremeOutlookContours(map:ExtremeAreaProjection,canvas:HTML
  for(const contour of projected){traceProjected(context,contour);context.strokeStyle='rgba(255,255,255,.78)';context.lineWidth=3.4;context.stroke();traceProjected(context,contour);context.strokeStyle=rgba(contour.color,.98);context.lineWidth=1.45;context.stroke()}
 }
 
-export function drawExtremeOutlookAreas(map:ExtremeAreaProjection,canvas:HTMLCanvasElement,areas:ExtremeAreaPaintCell[],grid:ExtremeAreaCanvasGrid){drawExtremeOutlookContours(map,canvas,buildExtremeOutlookContours(areas,grid))}
+export function drawExtremeOutlookAreas(map:ExtremeAreaProjection,canvas:HTMLCanvasElement,areas:ExtremeAreaPaintCell[],grid:ExtremeAreaCanvasGrid,options:ExtremeAreaContourOptions={}){drawExtremeOutlookContours(map,canvas,buildExtremeOutlookContours(areas,grid,options))}

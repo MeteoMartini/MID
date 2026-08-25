@@ -137,13 +137,17 @@ type Bucket={
 
 const BASE_CACHE_PREFIX='mid:travel-climate:1991-2020:v3:';
 const SNOW_CACHE_PREFIX='mid:travel-snow-depth:1991-2020:v3:';
-const WATER_CACHE_PREFIX='mid:travel-water-climate:1991-2020:v3:';
+const WATER_CACHE_PREFIX='mid:travel-water-climate:1991-2020:v4:';
 const CACHE_MAX_AGE=3*365*86400000;
 const CLIMATE_GRID_DEGREES=.1;
 const WATER_GRID_DEGREES=.1;
 const WATER_REFERENCE_YEARS=[1991,1995,1999,2003,2007,2011,2015,2020] as const;
 const WATER_MIN_REFERENCE_YEARS=4;
-const COASTAL_WATER_MAX_DISTANCE_KM=45;
+// ERA5-Ocean uses a 0.5° (~50 km) native grid. A 45-km cutoff can reject a valid
+// sea cell even for a destination directly on the coast, especially after coordinate
+// normalization. 80 km still prevents implausible inland SST cards while allowing
+// the nearest native ocean cell at exposed/coarsely gridded coastlines.
+const COASTAL_WATER_MAX_DISTANCE_KM=80;
 const MARINE_ARCHIVE_ENDPOINT='https://marine-api.open-meteo.com/v1/marine';
 const CLIMATE_ELEVATION_STEP=250;
 const DAILY_VARIABLES=['weather_code','temperature_2m_max','temperature_2m_min','precipitation_sum','sunshine_duration','daylight_duration','wind_speed_10m_max','snowfall_sum'].join(',');
@@ -240,10 +244,18 @@ function waterPayloadPeriodMean(payload:HistoricalHourlyPayload){const hourly=pa
 async function loadTravelWaterPeriod(location:{latitude:number;longitude:number},start:string,end:string,signal?:AbortSignal):Promise<TravelWaterPeriodCache>{
  const normalized=normalizedWaterLocation(location),signature=travelWaterPeriodSignature(start,end),key=`${cacheKey(WATER_CACHE_PREFIX,normalized.latitude,normalized.longitude)}:${signature}`,cached=readCache<TravelWaterPeriodCache>(key);if(cached)return cached;
  const request=sharedRequest<TravelWaterPeriodCache>(key,async()=>{const existing=readCache<TravelWaterPeriodCache>(key);if(existing)return existing;const startParts=validDateParts(start),endParts=validDateParts(end);if(!startParts||!endParts)return{createdAt:Date.now(),latitude:normalized.latitude,longitude:normalized.longitude,available:false,gridDistanceKm:Number.POSITIVE_INFINITY,temperature:null,days:0,sampleYears:0};
-  const crosses=periodCrossesYear(start,end),base={latitude:String(normalized.latitude),longitude:String(normalized.longitude),hourly:'sea_surface_temperature',timezone:'GMT',models:'era5_ocean',cell_selection:'sea'},loadYear=async(year:number)=>{const startDate=referenceDate(year,startParts.monthDay),endDate=referenceDate(year+(crosses?1:0),endParts.monthDay),params=new URLSearchParams({...base,start_date:startDate,end_date:endDate}),payload=await fetchJson<HistoricalHourlyPayload>(`${MARINE_ARCHIVE_ENDPOINT}?${params}`),period=waterPayloadPeriodMean(payload),gridLat=Number(payload.latitude),gridLon=Number(payload.longitude),gridDistanceKm=Number.isFinite(gridLat)&&Number.isFinite(gridLon)?haversineKm(location.latitude,location.longitude,gridLat,gridLon):Number.POSITIVE_INFINITY;return period&&Number.isFinite(gridDistanceKm)&&gridDistanceKm<=COASTAL_WATER_MAX_DISTANCE_KM?{...period,gridLat,gridLon,gridDistanceKm,year}:null},first=await loadYear(WATER_REFERENCE_YEARS[0]);
-  if(!first){const unavailable={createdAt:Date.now(),latitude:normalized.latitude,longitude:normalized.longitude,available:false,gridDistanceKm:Number.POSITIVE_INFINITY,temperature:null,days:dateRange(start,end).length,sampleYears:0} satisfies TravelWaterPeriodCache;writeCache(key,unavailable);return unavailable}
-  const settled=await Promise.allSettled(WATER_REFERENCE_YEARS.slice(1).map(loadYear)),rows=[first,...settled.flatMap(result=>result.status==='fulfilled'&&result.value?[result.value]:[])];
-  if(rows.length<WATER_MIN_REFERENCE_YEARS){const unavailable={createdAt:Date.now(),latitude:normalized.latitude,longitude:normalized.longitude,available:false,gridDistanceKm:rows.length?Math.min(...rows.map(row=>row.gridDistanceKm)):Number.POSITIVE_INFINITY,temperature:null,days:dateRange(start,end).length,sampleYears:rows.length} satisfies TravelWaterPeriodCache;writeCache(key,unavailable);return unavailable}
+  const crosses=periodCrossesYear(start,end),base={latitude:String(normalized.latitude),longitude:String(normalized.longitude),hourly:'sea_surface_temperature',timezone:'GMT',models:'era5_ocean',cell_selection:'sea'},loadYear=async(year:number)=>{const startDate=referenceDate(year,startParts.monthDay),endDate=referenceDate(year+(crosses?1:0),endParts.monthDay),params=new URLSearchParams({...base,start_date:startDate,end_date:endDate}),payload=await fetchJson<HistoricalHourlyPayload>(`${MARINE_ARCHIVE_ENDPOINT}?${params}`),period=waterPayloadPeriodMean(payload),gridLat=Number(payload.latitude),gridLon=Number(payload.longitude),gridDistanceKm=Number.isFinite(gridLat)&&Number.isFinite(gridLon)?haversineKm(location.latitude,location.longitude,gridLat,gridLon):Number.POSITIVE_INFINITY;return period&&Number.isFinite(gridDistanceKm)&&gridDistanceKm<=COASTAL_WATER_MAX_DISTANCE_KM?{...period,gridLat,gridLon,gridDistanceKm,year}:null};
+  // No individual reference year is a hard gate. v3 stopped after a missing/erroring
+  // 1991 sample and then persisted that negative result for the generic three-year cache
+  // lifetime. Evaluate every sample independently and keep only successful sea cells.
+  const settled=await Promise.allSettled(WATER_REFERENCE_YEARS.map(loadYear)),rows=settled.flatMap(result=>result.status==='fulfilled'&&result.value?[result.value]:[]),rejected=settled.filter(result=>result.status==='rejected');
+  if(rows.length<WATER_MIN_REFERENCE_YEARS){
+   // Never persist a negative SST result. A transient API/data issue must be retried on
+   // the next analysis instead of suppressing the water card for years. Distinguish a
+   // technical partial failure from a clean non-coastal/no-data result for the UI.
+   if(rejected.length)throw new Error(`Historische Wassertemperatur vorübergehend nicht vollständig verfügbar (${rows.length}/${WATER_REFERENCE_YEARS.length} Referenzjahre).`);
+   return{createdAt:Date.now(),latitude:normalized.latitude,longitude:normalized.longitude,available:false,gridDistanceKm:rows.length?Math.min(...rows.map(row=>row.gridDistanceKm)):Number.POSITIVE_INFINITY,temperature:null,days:dateRange(start,end).length,sampleYears:rows.length};
+  }
   const gridDistanceKm=Math.min(...rows.map(row=>row.gridDistanceKm)),temperature=mean(rows.map(row=>row.mean)),value={createdAt:Date.now(),latitude:rows[0].gridLat,longitude:rows[0].gridLon,available:Number.isFinite(temperature),gridDistanceKm,temperature:Number.isFinite(temperature)?temperature:null,days:dateRange(start,end).length,sampleYears:rows.length} satisfies TravelWaterPeriodCache;writeCache(key,value);return value});
  return waitForShared(request,signal);
 }

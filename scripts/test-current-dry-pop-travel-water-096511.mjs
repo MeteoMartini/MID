@@ -26,7 +26,7 @@ assert.ok(travel.includes('const roundedWetDays=Math.round(summary.wetDaysExpect
 
 // Küsten-Wassertemperatur: echte historische ERA5-SST statt aktuellem Marinewert.
 for(const token of [
- "const WATER_CACHE_PREFIX='mid:travel-water-climate:1991-2020:v3:'",
+ "const WATER_CACHE_PREFIX='mid:travel-water-climate:1991-2020:v4:'",
  "const WATER_REFERENCE_YEARS=[1991,1995,1999,2003,2007,2011,2015,2020] as const",
  "hourly:'sea_surface_temperature'",
  "models:'era5_ocean'",

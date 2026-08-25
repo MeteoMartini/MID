@@ -17,6 +17,7 @@ export type ExtremeOutlookSignal={
 
 export type ExtremeOutlookCellPeriod={
  hazards:Partial<Record<ExtremeHazardKind,ExtremeOutlookSignal>>;
+ probabilityFields?:Partial<Record<ExtremeHazardKind,[number,number,number,number]>>;
  dominant?:ExtremeHazardKind;
 };
 
@@ -86,7 +87,7 @@ export const EXTREME_INTENSITY_LABELS:Record<1|2|3|4,string>={1:'markant',2:'sta
 
 const OUTLOOK_CACHE_PREFIX='mid:extreme-outlook:';
 const OUTLOOK_PAYLOAD_PREFIX=`${OUTLOOK_CACHE_PREFIX}payload:`;
-const OUTLOOK_CACHE_KEY=`${OUTLOOK_PAYLOAD_PREFIX}v2`;
+const OUTLOOK_CACHE_KEY=`${OUTLOOK_PAYLOAD_PREFIX}v3`;
 const WORKER_LIMIT_KEY=`${OUTLOOK_CACHE_PREFIX}worker-limit-until:v1`;
 const OUTLOOK_FRESH_MS=20*60*1000;
 const OUTLOOK_STALE_MS=12*60*60*1000;
@@ -110,7 +111,7 @@ export async function loadExtremeWeatherOutlook(signal?:AbortSignal):Promise<Ext
  const workerSkipped=storedWorkerLimitUntil()>Date.now();let workerError:unknown=workerSkipped?new Error('MID-Worker-Tageskontingent lokal vorgemerkt.'):undefined;
  if(!workerSkipped){
   try{
-   const worker=await fetchWorkerJson<ExtremeWeatherOutlook>('dach-extreme-outlook',{}, {purpose:'general',signal,timeoutMs:48000,maxAgeMs:30*60*1000,staleIfErrorMs:6*60*60*1000,cacheKey:'dach-extreme-outlook:v2'});
+   const worker=await fetchWorkerJson<ExtremeWeatherOutlook>('dach-extreme-outlook',{}, {purpose:'general',signal,timeoutMs:48000,maxAgeMs:30*60*1000,staleIfErrorMs:6*60*60*1000,cacheKey:'dach-extreme-outlook:v3'});
    if(worker.error)throw new Error(worker.error);if(!validOutlook(worker))throw new Error('Der MID-Worker lieferte keinen vollständigen DACH-Ausblick.');
    const result={...worker,delivery:'worker' as const};clearWorkerLimit();writeOutlookCache(result);return result;
   }catch(error){throwIfAborted(signal);workerError=error;if(dailyWorkerLimit(error))rememberWorkerLimit()}
@@ -136,6 +137,16 @@ export function extremeSignalVisible(signal:ResolvedExtremeSignal|null,hazard:Ex
  if(!signal)return false;
  const minimum=hazard==='overall'?thresholds.probability.overviewMin:thresholds.probability.hazardMin;
  return signal.probability>=minimum||signal.intensity===4&&signal.probability>=thresholds.probability.extremeExceptionMin;
+}
+
+export function extremeProbabilityLevelsForCell(cell:ExtremeOutlookCell,periodId:string,hazard:ExtremeHazardId):[number,number,number,number]{
+ const period=cell.periods?.[periodId],fields=period?.probabilityFields;
+ if(fields){
+  const values=hazard==='overall'?([0,1,2,3].map(index=>Math.max(0,...Object.values(fields).map(levels=>Number(levels?.[index])||0))) as [number,number,number,number]):fields[hazard];
+  if(values){const monotone=[...values].map(value=>Math.max(0,Math.min(100,Number(value)||0))) as [number,number,number,number];for(let index=1;index<monotone.length;index++)monotone[index]=Math.min(monotone[index-1],monotone[index]);return monotone}
+ }
+ const signal=extremeSignalForCell(cell,periodId,hazard);if(!signal)return[0,0,0,0];
+ return[1,2,3,4].map(level=>level<=signal.intensity?signal.probability:0) as [number,number,number,number];
 }
 
 export function extremeProbabilityOpacity(probability:number){return probability>=80?.82:probability>=60?.7:probability>=30?.54:probability>=10?.4:.3}
