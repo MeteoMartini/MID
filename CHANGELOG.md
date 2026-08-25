@@ -1,3 +1,10 @@
+## 0.9.66.3
+
+- Rechteckige DACH-Rasterzellen durch geglättete, georeferenzierte Isoplethenflächen ersetzt. Direkt und diagonal benachbarte Stützfelder gleicher Intensität verschmelzen zu unregelmäßigen, zusammenhängenden Gefahrengebieten; isolierte Signale erhalten abgerundete Konturen.
+- Farbe bleibt an I1–I4 gekoppelt, Deckkraft und Prozentmarker bleiben an die Wahrscheinlichkeit gekoppelt. Gebiete unter 60 % werden zusätzlich dezent schraffiert; eine helle Außen- und farbige Innenkontur hält die Abgrenzung auf der Basiskarte lesbar.
+- Auch die unsichtbaren Popup-Trefferflächen sind nicht mehr rechteckig. Kartenlegende und Erläuterung unterscheiden die geglättete Regionalprognose ausdrücklich von amtlichen Warnpolygonen und gemeindescharfen Aussagen.
+- Keine Änderung an DACH-Raster, Modellen, meteorologischen Schwellen, Diagnosen, Datenquellen, Abrufzahl oder appweiten Einheiten. Professional-App und Worker sind gemeinsam auf 0.9.66.3 synchronisiert.
+
 ## 0.9.66.2
 
 - DACH-Extremwetterkarte zeigt die Gefahrenfelder nun zuverlässig als flächig eingefärbtes Regionalraster: Intensität bestimmt die Farbe, Wahrscheinlichkeit die Deckkraft; klare farbgleiche Konturen erhalten die räumliche Abgrenzung.
