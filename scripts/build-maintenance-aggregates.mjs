@@ -1,11 +1,11 @@
 import {readFile,writeFile} from 'node:fs/promises';
 const root=new URL('../',import.meta.url);
 const concat=async(paths)=>{const parts=await Promise.all(paths.map(path=>readFile(new URL(path,root),'utf8')));return parts.join('')};
-const styles=await concat(['src/styles-src/00-foundation.css','src/styles-src/10-features.css','src/styles-src/20-ensemble-composite.css','src/styles-src/30-modern.css']);
+const styles=await concat(['src/styles-src/00-foundation.css','src/styles-src/10-features.css','src/styles-src/20-ensemble-composite.css','src/styles-src/25-extreme-outlook.css','src/styles-src/30-modern.css']);
 await writeFile(new URL('src/styles.css',root),styles);
 const weather=await concat(['src/weather-src/00-types-models-search.tsfrag','src/weather-src/10-observations-specialized.tsfrag','src/weather-src/20-mapping-day-character.tsfrag','src/weather-src/30-ensemble-climate-hazards.tsfrag']);
 await writeFile(new URL('src/weather.ts',root),weather);
-const worker=await concat(['worker-src/00-core-observations.js','worker-src/10-radar-nowcast.js','worker-src/20-composite-models.js','worker-src/30-push-events.js','worker-src/40-aviation-router.js']);
+const worker=await concat(['worker-src/00-core-observations.js','worker-src/10-radar-nowcast.js','worker-src/20-composite-models.js','worker-src/25-dach-extreme-outlook.js','worker-src/30-push-events.js','worker-src/40-aviation-router.js']);
 await writeFile(new URL('worker/metar-proxy.js',root),worker);
 await writeFile(new URL('worker.js',root),worker);
 console.log(`Maintenance aggregates synchronized: styles ${styles.length} chars, weather ${weather.length} chars, worker ${worker.length} chars.`);

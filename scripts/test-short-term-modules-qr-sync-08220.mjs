@@ -30,9 +30,10 @@ forbid('Kurzfristvorhersage',shortTerm,'fetchWorker');
 forbid('Kurzfristvorhersage',shortTerm,'ohne zusätzlichen Abruf');
 
 const warningsIndex=modules.indexOf("{id:'warnings'");
+const extremeIndex=modules.indexOf("{id:'extreme-outlook'");
 const shortIndex=modules.indexOf("{id:'short-term'");
 const forecastIndex=modules.indexOf("{id:'forecast'");
-if(!(warningsIndex>=0&&warningsIndex<shortIndex&&shortIndex<forecastIndex))failures.push('Dashboard: Kurzfristvorhersage ist standardmäßig nicht direkt zwischen Warnungen und 7-Tage-Vorhersage einsortiert.');
+if(!(warningsIndex>=0&&warningsIndex<extremeIndex&&extremeIndex<shortIndex&&shortIndex<forecastIndex))failures.push('Dashboard: Warnungen → DACH-Extremwetter-Ausblick → Kurzfrist → 7 Tage ist nicht korrekt einsortiert.');
 for(const token of [
  "DASHBOARD_MODULE_SETTINGS_KEY='mid:dashboard-modules:v1'",
  'normalizeDashboardModuleSettings(',
@@ -109,8 +110,8 @@ try{
  globalThis.window={dispatchEvent:()=>true};globalThis.CustomEvent=class{constructor(type,init){this.type=type;this.detail=init?.detail}};
  const dashboard=await compile('dashboardModules',modules);
  const defaults=dashboard.defaultDashboardModuleSettings();
- const warningPosition=defaults.order.indexOf('warnings'),shortPosition=defaults.order.indexOf('short-term'),forecastPosition=defaults.order.indexOf('forecast');
- if(!(warningPosition+1===shortPosition&&shortPosition+1===forecastPosition))failures.push('Dashboard-Dynamik: Standardreihenfolge Warnungen → Kurzfrist → 7 Tage stimmt nicht.');
+ const warningPosition=defaults.order.indexOf('warnings'),extremePosition=defaults.order.indexOf('extreme-outlook'),shortPosition=defaults.order.indexOf('short-term'),forecastPosition=defaults.order.indexOf('forecast');
+ if(!(warningPosition+1===extremePosition&&extremePosition+1===shortPosition&&shortPosition+1===forecastPosition))failures.push('Dashboard-Dynamik: Standardreihenfolge Warnungen → DACH-Extremwetter-Ausblick → Kurzfrist → 7 Tage stimmt nicht.');
  const moved=dashboard.moveDashboardModule(defaults,'forecast','current');
  if(moved.order.indexOf('forecast')!==moved.order.indexOf('current')-1)failures.push('Dashboard-Dynamik: Verschieben eines Moduls funktioniert nicht erwartungsgemäß.');
  const normalized=dashboard.normalizeDashboardModuleSettings({order:['forecast','forecast','short-term'],enabled:{'short-term':false}});

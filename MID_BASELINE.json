@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.65.16",
+  "releaseVersion": "0.9.66.0",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -266,7 +266,8 @@
     "scripts/test-warning-current-hour-boundary-096512.mjs",
     "scripts/test-travel-water-event-sunshine-096513.mjs",
     "scripts/test-flight-altitude-input-096515.mjs",
-    "scripts/test-weather-profile-wind-arrow-096516.mjs"
+    "scripts/test-weather-profile-wind-arrow-096516.mjs",
+    "scripts/test-dach-extreme-outlook-09660.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -463,7 +464,8 @@
     "scripts/test-current-dry-pop-travel-water-096511.mjs",
     "scripts/test-travel-water-event-sunshine-096513.mjs",
     "scripts/test-flight-altitude-input-096515.mjs",
-    "scripts/test-weather-profile-wind-arrow-096516.mjs"
+    "scripts/test-weather-profile-wind-arrow-096516.mjs",
+    "scripts/test-dach-extreme-outlook-09660.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -556,7 +558,13 @@
     "MID_IMPLEMENTATION_0.9.65.14.md",
     "MID_IMPLEMENTATION_0.9.65.15.md",
     "scripts/test-weather-profile-wind-arrow-096516.mjs",
-    "MID_IMPLEMENTATION_0.9.65.16.md"
+    "MID_IMPLEMENTATION_0.9.65.16.md",
+    "src/ExtremeWeatherOutlookPanel.tsx",
+    "src/extremeWeatherOutlook.ts",
+    "src/styles-src/25-extreme-outlook.css",
+    "worker-src/25-dach-extreme-outlook.js",
+    "scripts/test-dach-extreme-outlook-09660.mjs",
+    "MID_IMPLEMENTATION_0.9.66.0.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",

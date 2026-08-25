@@ -4,6 +4,7 @@ export type DashboardModuleId=
  |'mountain'
  |'water'
  |'warnings'
+ |'extreme-outlook'
  |'short-term'
  |'forecast'
  |'composite'
@@ -37,6 +38,7 @@ export const DASHBOARD_MODULE_DEFINITIONS:DashboardModuleDefinition[]=[
  {id:'mountain',label:'Berg- und Wintersport',description:'Höhenprofil und Bergwetter',conditional:'nur bei aktivem Favoritenprofil'},
  {id:'water',label:'Wassersport',description:'Wasserwetter, Gezeiten und Bedingungen',conditional:'nur bei aktivem Favoritenprofil'},
  {id:'warnings',label:'Warnungen und Gefahren',description:'Eigene Warnindikatoren und amtliche Warnungen'},
+ {id:'extreme-outlook',label:'Extremwetter-Ausblick',description:'Eigene probabilistische DACH-Prognose für Gewitter, Regen, Sturm, Schnee und Eisregen'},
  {id:'short-term',label:'Kurzfristvorhersage',description:'15-Minuten-Schritte und Stundenverlauf bis +24 h'},
  {id:'forecast',label:'7-Tage-Vorhersage',description:'Tagesübersicht und Tagesdetails'},
  {id:'composite',label:'Kompositbild',description:'Radar, Satellit und aktuelle Beobachtungen'},

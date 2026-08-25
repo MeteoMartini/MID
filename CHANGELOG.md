@@ -1,3 +1,13 @@
+## 0.9.66.0
+
+- Neuer „MID Extremwetter-Ausblick · DACH“ als eigener, konfigurierbarer Hauptbereich direkt nach den Warnungen: Gesamtlage sowie Gewitter, Stark-/Dauerregen, Sturm, Schnee und Glätte/Eisregen für 0–6, +6–12, +12–24 und +24–48 Stunden.
+- Eigene probabilistische MID-Prognose aus DWD ICON-D2-EPS und deterministischer ICON-D2-Diagnostik; amtliche Warnungen bleiben fachlich und optisch getrennt.
+- Feste Wahrscheinlichkeitsklassen P1–P4 und Wirkungsintensitäten I1–I4 mit transparenten Schwellen. Die Gesamtkarte blendet unter 40 % aus, Einzelgefahren unter 10 %; mögliche I4-Extremereignisse werden vorsorglich ab 5 % gezeigt.
+- Gewitterbewertung verwendet CAPE nicht allein, sondern zusammen mit CIN, 850–500-hPa-Temperaturgradient, 700-hPa-Feuchte, vektorieller Scherung, Aufwind/LPI, Niederschlag und Gefrierhöhe; Hagel-, Downburst- und Starkregenpotenzial werden als Umfeldsignale ausgewiesen.
+- Regen wird über 1-/6-/24-h-Akkumulationen, Sturm über EPS-Böen und höhenabhängige Exposition, Schnee über 6-/24-h-Neuschnee und Höhenzonen sowie Eisregen über Niederschlags-, Feuchttemperatur-, Wettercode-, Dauer- und Glatteisindikatoren bewertet.
+- Übersichtliche MapLibre-DACH-Karte mit Intensitätsfarben, Prozentmarken, Liste der stärksten Regionen, Detailparametern, barrierefreier Textlegende, Mobilansicht, Fehler-/Stale-Zustand und manueller Aktualisierung.
+- Appweite Vorgaben werden übernommen: Wind in der gewählten MID-Einheit, Niederschlag in mm, Schnee in cm, Höhe in m sowie Zeitangaben gemäß Lokal-/Z-Zeit-Einstellung.
+
 ## 0.9.65.16
 
 - Kurzfrist-Wetterprofil: Windrichtungspfeile deutlich schlanker dimensioniert, damit sie die Windkurve nicht mehr optisch überdecken.

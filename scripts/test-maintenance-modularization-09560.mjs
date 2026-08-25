@@ -5,9 +5,9 @@ const concat=async paths=>(await Promise.all(paths.map(path=>readFile(new URL(pa
 const [styles,weather,worker,rootWorker,app,sevenDay,analysisCache,thunderCache,pkgText,baselineText]=await Promise.all([
  readFile(new URL('src/styles.css',root),'utf8'),readFile(new URL('src/weather.ts',root),'utf8'),readFile(new URL('worker/metar-proxy.js',root),'utf8'),readFile(new URL('worker.js',root),'utf8'),readFile(new URL('src/App.tsx',root),'utf8'),readFile(new URL('src/SevenDayForecastSummary.tsx',root),'utf8'),readFile(new URL('src/analysisCache.ts',root),'utf8'),readFile(new URL('src/thunderPlaceCache.ts',root),'utf8'),readFile(new URL('package.json',root),'utf8'),readFile(new URL('MID_BASELINE.json',root),'utf8')
 ]);
-const styleModules=await concat(['src/styles-src/00-foundation.css','src/styles-src/10-features.css','src/styles-src/20-ensemble-composite.css','src/styles-src/30-modern.css']);
+const styleModules=await concat(['src/styles-src/00-foundation.css','src/styles-src/10-features.css','src/styles-src/20-ensemble-composite.css','src/styles-src/25-extreme-outlook.css','src/styles-src/30-modern.css']);
 const weatherModules=await concat(['src/weather-src/00-types-models-search.tsfrag','src/weather-src/10-observations-specialized.tsfrag','src/weather-src/20-mapping-day-character.tsfrag','src/weather-src/30-ensemble-climate-hazards.tsfrag']);
-const workerModules=await concat(['worker-src/00-core-observations.js','worker-src/10-radar-nowcast.js','worker-src/20-composite-models.js','worker-src/30-push-events.js','worker-src/40-aviation-router.js']);
+const workerModules=await concat(['worker-src/00-core-observations.js','worker-src/10-radar-nowcast.js','worker-src/20-composite-models.js','worker-src/25-dach-extreme-outlook.js','worker-src/30-push-events.js','worker-src/40-aviation-router.js']);
 assert.equal(styles,styleModules,'styles.css weicht von den kanonischen Style-Modulen ab.');
 assert.equal(weather,weatherModules,'weather.ts weicht von den kanonischen Weather-Modulen ab.');
 assert.equal(worker,workerModules,'worker/metar-proxy.js weicht von den kanonischen Worker-Modulen ab.');
