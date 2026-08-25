@@ -1,3 +1,9 @@
+## 0.9.65.16
+
+- Kurzfrist-Wetterprofil: Windrichtungspfeile deutlich schlanker dimensioniert, damit sie die Windkurve nicht mehr optisch überdecken.
+- Pfeile erhalten eine schmale, kontrastierende Kontur (Halo) hinter einem dünnen farbigen Kern; dadurch bleiben Richtung und Pfeilspitze in Hell- und Dunkelmodus auch bei Kurvenkreuzungen klar erkennbar.
+- Keine meteorologische Daten-, Warn-, Forecast- oder Worker-Fachlogik geändert.
+
 ## 0.9.65.15
 
 - Streckenbriefing: Höheneingabe mit expliziter Wahl zwischen FL und ft AGL repariert; keine Einheitssprünge während der Eingabe.

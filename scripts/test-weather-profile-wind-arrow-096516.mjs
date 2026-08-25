@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+const read=relative=>fs.readFileSync(path.join(root,relative),'utf8');
+const cockpit=read('src/ForecastCockpit.tsx'),style=read('src/styles-src/30-modern.css'),pkg=JSON.parse(read('package.json')),baseline=JSON.parse(read('MID_BASELINE.json'));
+assert.equal(baseline.releaseVersion,pkg.version);
+assert.ok(cockpit.includes('size={12}/>'),'Windpfeile müssen im Wetterprofil schlank dimensioniert bleiben.');
+for(const token of ['.profile-wind-direction-arrow .wind-arrow-halo','stroke-width:3.35','.profile-wind-direction-arrow .wind-arrow-core','stroke-width:1.25','vector-effect:non-scaling-stroke'])assert.ok(style.includes(token),`Windpfeil-Kontrastvertrag fehlt: ${token}`);
+assert.ok(style.indexOf('.wind-arrow-halo')<style.indexOf('.wind-arrow-core'),'Halo muss unter dem Pfeilkern definiert bleiben.');
+console.log(`MID v${pkg.version}: schlanke, kontrastierte Windpfeile im Kurzfristprofil geprüft.`);
