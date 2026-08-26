@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {createRequire,stripTypeScriptTypes} from 'node:module';
 import {fileURLToPath,pathToFileURL} from 'node:url';
+import {inlineSunshineDurationContract} from './sunshine-duration-regression-helper.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const worker=fs.readFileSync(path.join(root,'worker','metar-proxy.js'),'utf8');
@@ -45,11 +46,10 @@ for(const token of ['<MemoCurrent key={id} w={w!} hours={displayHours} days={dis
 const require=createRequire(import.meta.url);let ts;try{ts=require('typescript')}catch{}
 const tempDir=fs.mkdtempSync(path.join(os.tmpdir(),'mid-sunshine-best-match-'));
 try{
- const executable=fusionSource
+ const executable=inlineSunshineDurationContract(fusionSource)
   .replace("import {fetchWorkerJson} from './workerClient';","const fetchWorkerJson=async()=>{throw new Error('not used')};")
  .replace("import {reconcileForecastPrecipitation} from './precipitation';",`const reconcileForecastPrecipitation=input=>({precipitation:Math.max(0,Number(input.precipitation)||0),rain:Math.max(0,Number(input.rain)||0),showers:Math.max(0,Number(input.showers)||0),snowfall:Math.max(0,Number(input.snowfall)||0),probability:Math.max(0,Math.min(100,Number(input.probability)||0)),code:Math.round(Number(input.code)||0),traceSuppressed:false});`)
   .replace("import {readStoredJsonCache,writeStoredJsonCache} from './cachePolicy';","const readStoredJsonCache=()=>undefined;const writeStoredJsonCache=()=>false;")
-  .replace("import {boundedSunshineSeconds,canonicalSunshineDaySeconds,daylightSecondsFromLocalTimes} from './sunshineDuration';",`const boundedSunshineSeconds=(value,maximum)=>value===null||value===undefined||value===''||!Number.isFinite(Number(value))?null:Math.min(Math.max(0,Number(maximum)||0),Math.max(0,Number(value)));const daylightSecondsFromLocalTimes=(sunrise,sunset)=>{const seconds=value=>{const match=String(value??'').match(/T(\\d{2}):(\\d{2})(?::(\\d{2}))?/);return match?Number(match[1])*3600+Number(match[2])*60+Number(match[3]||0):NaN},rise=seconds(sunrise),set=seconds(sunset);return Number.isFinite(rise)&&Number.isFinite(set)?Math.min(86400,set>=rise?set-rise:set+86400-rise):43200};const canonicalSunshineDaySeconds=({hourValues,dailyValue,daylightSeconds})=>{const valid=hourValues.map(value=>boundedSunshineSeconds(value,3600)),complete=hourValues.length>=18&&valid.every(value=>value!==null),daily=boundedSunshineSeconds(dailyValue,daylightSeconds),value=complete?Math.min(daylightSeconds,valid.reduce((sum,value)=>sum+value,0)):daily;return{valueSeconds:value,source:complete?'hourly':value===null?'missing':'daily-fallback',quality:complete?'consistent':value===null?'missing':'fallback',daylightSeconds,hourlySamples:valid.filter(value=>value!==null).length,expectedHourlySamples:hourValues.length,dailyReferenceSeconds:daily,deviationSeconds:complete&&daily!==null?value-daily:null}};`)
   .replace("import type {Day,Hour,RadarNowcast,ThunderstormNowcast} from './weather';",'');
  const out=ts?ts.transpileModule(executable,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022},fileName:'forecastFusion.ts',reportDiagnostics:true}):{outputText:stripTypeScriptTypes(executable,{mode:'transform'}),diagnostics:[]};
  const errors=(out.diagnostics||[]).filter(item=>item.category===ts?.DiagnosticCategory?.Error);

@@ -49,7 +49,8 @@ need('Nebelrisiko',fogRisk,'export function shortTermFogRisk(point:ShortTermFogR
 need('Nebelrisiko',fogRisk,'if(point.isDay&&!explicitFog&&!restrictedVisibility)score=Math.min(score,14)');
 
 need('Kurzfristdaten',shortTerm,'sunshineDuration?:number|null;');
-need('Kurzfristdaten',shortTerm,'const sunshineDuration=isQuarterInterval?');
+need('Kurzfristdaten',shortTerm,'const rawSunshineDuration=isQuarterInterval?');
+need('Kurzfristdaten',shortTerm,'coherentSunshineDurationSeconds');
 
 for(const token of [
   'const value=clamp((clamp(sunShare,0,1)-.5)/.5,0,1)',

@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 
-const importLine="import {boundedSunshineSeconds,canonicalSunshineDaySeconds,daylightSecondsFromLocalTimes} from './sunshineDuration';";
+const importPattern=/import \{([^}]+)\} from '\.\/sunshineDuration';/;
 const contractSource=fs.readFileSync(new URL('../src/sunshineDuration.ts',import.meta.url),'utf8');
 
 /**
@@ -9,6 +9,7 @@ const contractSource=fs.readFileSync(new URL('../src/sunshineDuration.ts',import
  * diese kleinen Testmodule wird dessen echte Quelle inline mittranspiliert.
  */
 export function inlineSunshineDurationContract(source){
- if(!source.includes(importLine))throw new Error('Sunshine-Duration-Import fehlt in forecastFusion.ts.');
- return source.replace(importLine,contractSource);
+ const match=source.match(importPattern),imports=match?.[1]??'';
+ if(!match||!imports.includes('boundedSunshineSeconds')||!imports.includes('canonicalSunshineDaySeconds')||!imports.includes('daylightSecondsFromLocalTimes'))throw new Error('Sunshine-Duration-Import fehlt in forecastFusion.ts.');
+ return source.replace(importPattern,contractSource);
 }

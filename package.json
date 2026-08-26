@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.66.12",
+  "version": "0.9.66.13",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -325,7 +325,8 @@
     "test:extreme-outlook-dwd-scale-persistence": "node scripts/test-extreme-outlook-dwd-scale-dashboard-persistence-09669.mjs",
     "test:extreme-outlook-compact-legend": "node scripts/test-extreme-outlook-compact-legend-096610.mjs",
     "test:extreme-outlook-method-info": "node scripts/test-extreme-outlook-method-info-096611.mjs",
-    "test:current-nowcards-responsive": "node scripts/test-current-nowcards-responsive-096612.mjs"
+    "test:current-nowcards-responsive": "node scripts/test-current-nowcards-responsive-096612.mjs",
+    "test:sunshine-precipitation-coherence": "node scripts/test-sunshine-precipitation-coherence-096613.mjs"
   },
   "dependencies": {
     "astronomy-engine": "^2.1.19",

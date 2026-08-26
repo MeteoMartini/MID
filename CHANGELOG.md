@@ -1,3 +1,10 @@
+## 0.9.66.13
+
+- Fachlich falsche Umrechnung der stündlichen Niederschlagswahrscheinlichkeit in Niederschlagsminuten entfernt: 66 % werden nicht mehr als 40 Minuten Regen ausgegeben. Ohne zeitlich aufgelöste Teilintervalle zeigt MID keine Scheindauer.
+- Sonnenscheindauer appweit nach der letzten Modell-, Wetterzwilling-, Lokal- und Radarstufe plausibilisiert: Nacht sowie mehrfach gestützter Nebel, geschlossene tiefe Bewölkung und stratiformer Niederschlag begrenzen widersprüchliche Werte; Wahrscheinlichkeit allein und Schauer-/Gewitterlagen tun dies ausdrücklich nicht.
+- Fehlende Sonnenscheinwerte bleiben fehlend. Die 3-Stunden-Ansicht summiert die drei Stundenwerte korrekt und kann bis 180 Minuten anzeigen, statt einen Mittelwert auf 60 Minuten zu begrenzen.
+- Aktuelle Ansicht, 15-Minuten-/Stundenprofil, Tagesaggregation, Events und native Widgets verwenden denselben Zeitkonsistenzvertrag. Für native Apple-Widgets ist der synchronisierte Worker erforderlich.
+
 ## 0.9.66.12
 
 - Aktuelle Radar-Nowcast-Karte gegen Breitenüberlauf abgesichert: Summen- und Ensembleangaben ordnen sich abhängig von der tatsächlichen Kartenbreite neu an, statt Diagramm, Balken oder Info-Schaltfläche zu überdecken.

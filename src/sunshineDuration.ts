@@ -14,6 +14,29 @@ export type SunshineDurationDiagnostic={
  deviationSeconds:number|null;
 };
 
+export type SunshineDurationConsistencyReason='night'|'fog'|'opaque-low-cloud'|'stratiform-precipitation';
+export type SunshineDurationConsistencyInput={
+ valueSeconds:unknown;
+ intervalSeconds?:number;
+ daylightSeconds?:number;
+ isDay?:boolean;
+ weatherCode?:unknown;
+ precipitation?:unknown;
+ rain?:unknown;
+ showers?:unknown;
+ snowfall?:unknown;
+ precipitationProbability?:unknown;
+ cloudCover?:unknown;
+ lowCloudCover?:unknown;
+};
+export type SunshineDurationConsistency={
+ valueSeconds:number|null;
+ rawSeconds:number|null;
+ capSeconds:number;
+ adjusted:boolean;
+ reason?:SunshineDurationConsistencyReason;
+};
+
 const sunshineHoursFormatter=new Intl.NumberFormat('de-DE',{minimumFractionDigits:0,maximumFractionDigits:1});
 
 /** Anders als Number(null) behandelt der Sunshine-Contract fehlende Providerwerte nie als meteorologische Null. */
@@ -26,6 +49,38 @@ export function boundedSunshineSeconds(value:unknown,maximumSeconds:number):numb
  const number=finiteSunshineSeconds(value),cap=Math.max(0,Number(maximumSeconds)||0);
  return number===null?null:Math.min(cap,Math.max(0,number));
 }
+
+const STRATIFORM_PRECIPITATION_CODES=new Set([51,53,55,56,57,61,63,65,66,67,68,69,71,73,75,77]);
+const SHOWERY_PRECIPITATION_CODES=new Set([80,81,82,83,84,85,86,95,96,97,99]);
+
+/**
+ * Letzte appweite Plausibilisierung eines zeitlich aufgelösten Sonnenscheinwerts.
+ *
+ * Niederschlagswahrscheinlichkeit ist ausdrücklich keine Niederschlagsdauer und
+ * begrenzt Sonnenschein deshalb niemals allein. Gekappt werden nur harte
+ * Widersprüche: Nacht sowie mehrfach gestützte Nebel-, geschlossene tiefe
+ * Bewölkungs- oder stratiforme Niederschlagslagen. Schauer und Gewitter bleiben
+ * ausgenommen, weil heller Sonnenschein während eines Schauers möglich ist.
+ */
+export function reconcileSunshineDuration(input:SunshineDurationConsistencyInput):SunshineDurationConsistency{
+ const intervalSeconds=Math.max(60,Number(input.intervalSeconds)||SUNSHINE_HOUR_SECONDS),rawSeconds=boundedSunshineSeconds(input.valueSeconds,intervalSeconds),explicitDaylight=finiteSunshineSeconds(input.daylightSeconds),solarCap=explicitDaylight===null?(input.isDay===false?0:intervalSeconds):Math.max(0,Math.min(intervalSeconds,explicitDaylight));
+ if(rawSeconds===null)return{valueSeconds:null,rawSeconds:null,capSeconds:solarCap,adjusted:false};
+ const finish=(capSeconds:number,reason?:SunshineDurationConsistencyReason):SunshineDurationConsistency=>{const cap=Math.max(0,Math.min(intervalSeconds,capSeconds)),valueSeconds=Math.min(rawSeconds,cap);return{valueSeconds,rawSeconds,capSeconds:cap,adjusted:valueSeconds<rawSeconds-.5,reason:valueSeconds<rawSeconds-.5?reason:undefined}};
+ if(solarCap<=0)return finish(0,'night');
+ const code=Math.round(Number(input.weatherCode)),cloud=finiteSunshineSeconds(input.cloudCover),lowCloud=finiteSunshineSeconds(input.lowCloudCover),probability=finiteSunshineSeconds(input.precipitationProbability),precipitation=Math.max(0,Number(input.precipitation)||0),rain=Math.max(0,Number(input.rain)||0),showers=Math.max(0,Number(input.showers)||0),snowfall=Math.max(0,Number(input.snowfall)||0),wetAmount=Math.max(precipitation,rain+showers,snowfall),showery=SHOWERY_PRECIPITATION_CODES.has(code)||showers>=Math.max(.05,rain*.65);
+ const fog=[45,48].includes(code)&&(Number(cloud)>=82||Number(lowCloud)>=72);
+ if(fog)return finish(solarCap/12,'fog');
+ const opaqueLowCloud=(code===3&&Number(cloud)>=88)||(Number(cloud)>=96&&Number(lowCloud)>=88);
+ if(opaqueLowCloud)return finish(solarCap/12,'opaque-low-cloud');
+ const probabilitySupportsWetSignal=probability===null||probability>=30,skySupportsStratiform=Number(cloud)>=75||Number(lowCloud)>=65||wetAmount>=.3;
+ if(!showery&&STRATIFORM_PRECIPITATION_CODES.has(code)&&wetAmount>=.05&&probabilitySupportsWetSignal&&skySupportsStratiform){
+  const strongOrOpaque=wetAmount>=1||Number(cloud)>=95||Number(lowCloud)>=90||[55,57,65,67,69,75].includes(code);
+  return finish(solarCap/(strongOrOpaque?12:6),'stratiform-precipitation');
+ }
+ return finish(solarCap);
+}
+
+export function coherentSunshineDurationSeconds(input:SunshineDurationConsistencyInput){return reconcileSunshineDuration(input).valueSeconds}
 
 export function daylightSecondsFromLocalTimes(sunrise?:string|null,sunset?:string|null,fallbackSeconds=12*SUNSHINE_HOUR_SECONDS){
  const seconds=(value?:string|null)=>{const match=String(value??'').match(/T(\d{2}):(\d{2})(?::(\d{2}))?/);return match?Number(match[1])*3600+Number(match[2])*60+Number(match[3]||0):Number.NaN},rise=seconds(sunrise),set=seconds(sunset);
