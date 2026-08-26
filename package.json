@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.66.9",
+  "version": "0.9.66.11",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -322,7 +322,9 @@
     "test:travel-water-resilience": "node scripts/test-travel-water-climatology-resilience-09665.mjs",
     "test:travel-water-noaa-oisst": "node scripts/test-travel-water-noaa-oisst-09667.mjs",
     "test:extreme-outlook-labels-layout": "node scripts/test-extreme-outlook-labels-layout-persistence-09668.mjs",
-    "test:extreme-outlook-dwd-scale-persistence": "node scripts/test-extreme-outlook-dwd-scale-dashboard-persistence-09669.mjs"
+    "test:extreme-outlook-dwd-scale-persistence": "node scripts/test-extreme-outlook-dwd-scale-dashboard-persistence-09669.mjs",
+    "test:extreme-outlook-compact-legend": "node scripts/test-extreme-outlook-compact-legend-096610.mjs",
+    "test:extreme-outlook-method-info": "node scripts/test-extreme-outlook-method-info-096611.mjs"
   },
   "dependencies": {
     "astronomy-engine": "^2.1.19",

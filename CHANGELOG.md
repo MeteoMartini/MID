@@ -1,3 +1,14 @@
+## 0.9.66.11
+
+- Der lange Methodik- und Einschränkungstext unter der DACH-Gefahrenkarte wurde aus dem normalen Layout entfernt. Er ist vollständig über einen kompakten, appweit standardisierten Info-Button abrufbar.
+
+## 0.9.66.10
+
+- Kartenlegende des DACH-Extremwetter-Ausblicks deutlich verkleinert: I1–I4 stehen nun in einem zweispaltigen Raster mit kurzen Kartenbezeichnungen; die vollständigen fachlichen Benennungen bleiben in der ausführlichen Legende unterhalb der Karte erhalten.
+- Der redundante Erklärungstext zu Farbe, Prozent und Deckkraft wurde aus der Kartenlegende entfernt. Die Schraffur wird dort nur noch kompakt als Wahrscheinlichkeit unter 60 % ausgewiesen.
+- Länder-, Verwaltungs- und Verkehrsgrenzen werden über einen transparenten Karten-Kontextlayer oberhalb der Gefahrenflächen nachgezeichnet; der separate Beschriftungslayer bleibt als oberste Orientierungsebene erhalten.
+- Wahrscheinlichkeitsband und Prozentanzeige verwenden dieselbe Rundungsbasis. Der Grenzfall eines intern knapp unter 10 % liegenden Signals kann daher nicht mehr gleichzeitig als `10 %` und `P0` erscheinen; angezeigt wird konsistent `10 % · P1`.
+
 ## 0.9.66.9
 
 - Extremwetterkarte auf die kontrastreichere CARTO-Voyager-Orientierungskarte umgestellt. Beschriftungen bleiben als eigener Vordergrundlayer oberhalb der Gefahrenflächen; geringere Flächendeckkraft hält Länder- und Verwaltungsgrenzen besser erkennbar.

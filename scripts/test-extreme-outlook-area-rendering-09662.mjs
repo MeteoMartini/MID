@@ -23,7 +23,7 @@ assert.ok(panel.includes('<ExtremeOutlookAreaOverlay data={data} periodId={selec
 assert.ok(panel.includes("markers=useMemo(()=>regions.slice(0,6),[regions])"),'Marker müssen auf regionale Maxima begrenzt sein.');
 assert.ok(!panel.includes('slice(0,28)'),'Zellweise Markerüberdeckung ist wieder vorhanden.');
 assert.ok(panel.includes("'fill-opacity':.001"),'Unsichtbare GeoJSON-Interaktionsfläche fehlt.');
-assert.ok(panel.includes('Farbe = erwartete Auswirkung')&&panel.includes('Prozent/Deckkraft = Eintrittswahrscheinlichkeit'));
+assert.ok(panel.includes('unter 60 %')&&!panel.includes('Farbe = erwartete Auswirkung')&&!panel.includes('Prozent/Deckkraft = Eintrittswahrscheinlichkeit'),'Die aktuelle kompakte Kartenlegende darf den entfernten Farbe-/Deckkrafttext nicht wieder einführen.');
 assert.ok(styles.includes('.mid-maplibre-canvas.extreme-outlook-areas'));
 
 const compiled=ts.transpileModule(canvasSource,{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText,canvasModule=await import(`data:text/javascript;base64,${Buffer.from(compiled).toString('base64')}`);

@@ -7,10 +7,10 @@ const[panel,overlay,canvasSource,outlook,dashboard,storageSafety,deviceSync,work
  read('src/ExtremeWeatherOutlookPanel.tsx'),read('src/ExtremeOutlookAreaOverlay.tsx'),read('src/extremeOutlookAreaCanvas.ts'),read('src/extremeWeatherOutlook.ts'),read('src/dashboardModules.ts'),read('src/storageSafety.ts'),read('src/deviceSync.ts'),read('worker-src/25-dach-extreme-outlook.js'),read('package.json'),read('MID_BASELINE.json'),read('CHANGELOG.md'),read('MID_IMPLEMENTATION_0.9.66.9.md')
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-extreme-outlook-dwd-scale-dashboard-persistence-09669.mjs';
-assert.equal(pkg.version,'0.9.66.9');assert.equal(baseline.releaseVersion,pkg.version);assert.equal(pkg.scripts?.['test:extreme-outlook-dwd-scale-persistence'],`node ${test}`);
+assert.ok(pkg.version.startsWith('0.9.66.')&&Number(pkg.version.split('.')[3])>=9);assert.equal(baseline.releaseVersion,pkg.version);assert.equal(pkg.scripts?.['test:extreme-outlook-dwd-scale-persistence'],`node ${test}`);
 assert.ok(baseline.requiredRegressionTests.includes(test)&&baseline.regressionTests.includes(test));for(const file of[test,'MID_IMPLEMENTATION_0.9.66.9.md'])assert.ok(baseline.requiredFiles.includes(file));
 
-for(const token of ['voyager_nolabels/{z}/{x}/{y}.png','voyager_only_labels/{z}/{x}/{y}.png','zIndex={20}','MID-Prognosestufe','Schraffur gilt genau für Teilflächen unter 60 %'])assert.ok(panel.includes(token),`Kartendarstellung fehlt: ${token}`);
+for(const token of ['voyager_nolabels/{z}/{x}/{y}.png','voyager_only_labels/{z}/{x}/{y}.png','zIndex={20}','MID-Prognosestufe','Schraffiert sind ausschließlich Teilflächen'])assert.ok(panel.includes(token),`Kartendarstellung fehlt: ${token}`);
 for(const token of ["1:'#f4d03f'","2:'#f08a24'","3:'#d9363e'","4:'#8f174f'",'Wettergefahr','markante Wettergefahr','Unwetterpotenzial','extremes Unwetterpotenzial'])assert.ok(outlook.includes(token),`DWD-nahe Prognoseskala fehlt: ${token}`);
 assert.ok(!outlook.includes("1:'#269b83'"),'Grün darf keine Gefahrstufe mehr kennzeichnen.');
 for(const token of ['HATCH_SOURCE_ID','maximumProbability:60','source:HATCH_SOURCE_ID','coordinates:[[...rings]]'])assert.ok(overlay.includes(token),`Teilflächenschraffur fehlt: ${token}`);

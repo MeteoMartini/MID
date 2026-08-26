@@ -84,6 +84,7 @@ export const EXTREME_HAZARDS:Array<{id:ExtremeHazardId;label:string;shortLabel:s
 
 export const EXTREME_INTENSITY_COLORS:Record<1|2|3|4,string>={1:'#f4d03f',2:'#f08a24',3:'#d9363e',4:'#8f174f'};
 export const EXTREME_INTENSITY_LABELS:Record<1|2|3|4,string>={1:'Wettergefahr',2:'markante Wettergefahr',3:'Unwetterpotenzial',4:'extremes Unwetterpotenzial'};
+export function extremeProbabilityBand(probability:number):ExtremeOutlookSignal['probabilityBand']{const rounded=Math.max(0,Math.min(100,Math.round(Number(probability)||0)));return rounded>=80?'P4':rounded>=60?'P3':rounded>=30?'P2':rounded>=10?'P1':'P0'}
 
 const OUTLOOK_CACHE_PREFIX='mid:extreme-outlook:';
 const OUTLOOK_PAYLOAD_PREFIX=`${OUTLOOK_CACHE_PREFIX}payload:`;
