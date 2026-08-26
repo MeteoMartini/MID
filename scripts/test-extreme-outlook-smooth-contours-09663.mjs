@@ -21,7 +21,7 @@ assert.ok(!canvasSource.includes('grid.latStep*.515')&&!canvasSource.includes('g
 assert.ok(overlay.includes('buildExtremeOutlookContours(paintAreas,data.grid,{minimumProbability')&&(overlay.includes('drawExtremeOutlookContours(map,canvas,contours)')||overlay.includes("type:'MultiPolygon'")),'Vorbemessene Konturen sind nicht in das Kartenoverlay eingebunden.');
 assert.ok(panel.includes('cellHitRing')&&panel.includes('Array.from({length:24}'),'Interaktionsflächen müssen der geglätteten Geometrie folgen.');
 assert.ok(panel.includes('Geglättete Isoplethenflächen aus den vollständigen I1–I4-Wahrscheinlichkeitsfeldern'));
-assert.ok(panel.includes('unter 60 % schraffiert'));
+assert.ok(panel.includes('Schraffur')&&panel.includes('unter 60 %'));
 
 const compiled=ts.transpileModule(canvasSource,{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText,canvasModule=await import(`data:text/javascript;base64,${Buffer.from(compiled).toString('base64')}`),grid={latStep:.8,lonStep:.75},areas=[
  {lat:50,lon:8,intensity:1,probability:50,color:'#269b83',opacity:.62},

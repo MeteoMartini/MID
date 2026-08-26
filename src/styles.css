@@ -4571,7 +4571,7 @@ body,#root{
 .mid-motion-track-graphic .tick.core{stroke:rgba(72,76,80,.92);stroke-width:3.2}
 .mid-motion-track-graphic .arrow.core{stroke:rgba(72,76,80,.98);stroke-width:4.8}
 .mid-motion-track-graphic.low .shaft.core,.mid-motion-track-graphic.low .tick.core,.mid-motion-track-graphic.low .arrow.core{stroke:rgba(79,84,89,.82)}
-/* MID v0.9.66.6 · probabilistic DACH extreme-weather outlook */
+/* MID v0.9.66.9 · probabilistic DACH extreme-weather outlook */
 .extreme-outlook-panel{display:grid;gap:14px;min-width:0;padding-top:2px}
 .extreme-outlook-head{display:flex;align-items:flex-start;justify-content:space-between;gap:22px;padding:2px 2px 0}
 .extreme-outlook-head>div:first-child{min-width:0;max-width:850px}
@@ -4622,6 +4622,16 @@ body,#root{
 .extreme-map .maplibregl-popup{z-index:70}.extreme-map .maplibregl-popup-content{min-width:185px;padding:12px 14px;border:1px solid rgba(29,48,69,.22);border-radius:11px;background:#fff;color:#13243a;font-size:11px;line-height:1.55;box-shadow:0 10px 30px rgba(12,31,49,.3)}.extreme-map .maplibregl-popup-content strong{font-size:12px}.extreme-map .maplibregl-popup-tip{border-top-color:#fff!important;border-bottom-color:#fff!important}.extreme-map .maplibregl-popup-close-button{color:#1167b1;font-size:18px}
 .extreme-region-list b{font-size:11px}.extreme-region-list small{color:color-mix(in srgb,var(--text) 66%,var(--muted));font-size:8.5px;line-height:1.35}.extreme-region-list>button>strong{font-size:13px}.extreme-selected-region dt{color:color-mix(in srgb,var(--text) 62%,var(--muted));font-size:8.5px}.extreme-selected-region dd{margin-top:3px;font-size:10px;font-weight:780}.extreme-subhazards span{font-size:8.5px}.extreme-drivers{color:color-mix(in srgb,var(--text) 66%,var(--muted));font-size:8.5px;line-height:1.5}
 @media(max-width:480px){.extreme-period-tabs button{min-width:142px}.extreme-validity{padding:9px}}
+
+/* MID v0.9.66.9 · DWD-nahe Gefahrenskala, klarer Kartenkontext und eindeutige Schraffur */
+.extreme-map{background:#d8e1e7}.extreme-maplibre .maplibregl-canvas{filter:contrast(1.035) saturate(.96)}
+.extreme-map-legend{grid-template-columns:1fr;width:220px;gap:5px;padding:10px 11px;background:rgba(255,255,255,.96);border-color:rgba(104,118,132,.38)}
+.extreme-map-legend>span{display:grid;grid-template-columns:31px minmax(0,1fr);align-items:center;gap:7px;font-size:8.4px;font-weight:720;line-height:1.2}.extreme-map-legend i{width:30px;height:19px}
+.extreme-map-legend .extreme-hatch-key{grid-column:1/-1;margin-top:3px;padding-top:6px;border-top:1px solid #d8dee5;color:#405064}.extreme-map-legend .extreme-hatch-key i{border:1px solid #8a96a4;background:repeating-linear-gradient(135deg,rgba(62,72,84,.7) 0 1px,transparent 1px 5px);color:transparent}
+.extreme-map-legend>small{margin-top:2px;color:#455568;font-size:7.4px;line-height:1.35}.extreme-map-note{color:color-mix(in srgb,var(--text) 68%,var(--muted));font-size:9px;line-height:1.48}
+.extreme-map-label>span{border-color:rgba(255,255,255,.98);box-shadow:0 2px 8px rgba(15,34,53,.46)}
+@media(max-width:720px){.extreme-map-legend{width:210px}}
+@media(max-width:480px){.extreme-map-legend{width:200px}.extreme-map-legend>span{font-size:8px}.extreme-map-legend>small{display:block}}
 /* v0.9.15.0 · klassische Stundenübersicht */
 .forecast-inline-detail-weather{position:relative;min-height:62px;outline:none;overflow:visible}
 .forecast-inline-detail-weather>svg,.forecast-inline-detail-weather .weather-pictogram{width:52px!important;height:52px!important;max-width:none}

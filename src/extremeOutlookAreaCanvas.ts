@@ -20,6 +20,7 @@ export type ExtremeAreaCanvasGrid={
 export type ExtremeAreaContourOptions={
  minimumProbability?:number;
  extremeMinimumProbability?:number;
+ maximumProbability?:number;
  colors?:Partial<Record<ExtremeAreaIntensity,string>>;
 };
 export type ExtremeAreaProjection={getCanvas:()=>{clientWidth:number;clientHeight:number};project:(coordinate:[number,number])=>{x:number;y:number}};
@@ -37,7 +38,7 @@ const FIELD_SUBDIVISIONS=10;
 const FIELD_PADDING_STEPS=1;
 const COVERAGE_THRESHOLD=.28;
 const MIN_REGION_FINE_CELLS=3;
-const DEFAULT_COLORS:Record<ExtremeAreaIntensity,string>={1:'#269b83',2:'#e7b92f',3:'#e87824',4:'#bd2340'};
+const DEFAULT_COLORS:Record<ExtremeAreaIntensity,string>={1:'#f4d03f',2:'#f08a24',3:'#d9363e',4:'#8f174f'};
 
 function rgba(hex:string,alpha:number){const value=hex.replace('#',''),expanded=value.length===3?value.split('').map(character=>character+character).join(''):value,number=Number.parseInt(expanded,16);if(!Number.isFinite(number))return`rgba(38,155,131,${alpha})`;return`rgba(${number>>16&255},${number>>8&255},${number&255},${alpha})`}
 function pointKey(point:GridPoint){return`${point.x}:${point.y}`}
@@ -90,7 +91,7 @@ function componentRings(component:{cells:GridPoint[]},globalWest:number,globalNo
 
 export function buildExtremeOutlookContours(areas:ExtremeAreaPaintCell[],grid:ExtremeAreaCanvasGrid,options:ExtremeAreaContourOptions={}){
  const indexed=indexField(areas,grid);if(!indexed)return[];
- const explicitLevels=indexed.cells.some(area=>Array.isArray(area.probabilityLevels)),minimumProbability=Math.max(0,Math.min(100,finite(options.minimumProbability,40))),extremeMinimumProbability=Math.max(0,Math.min(minimumProbability,finite(options.extremeMinimumProbability,5))),coverage=Array.from({length:indexed.rows},()=>Array(indexed.cols).fill(0));
+ const explicitLevels=indexed.cells.some(area=>Array.isArray(area.probabilityLevels)),minimumProbability=Math.max(0,Math.min(100,finite(options.minimumProbability,40))),extremeMinimumProbability=Math.max(0,Math.min(minimumProbability,finite(options.extremeMinimumProbability,5))),maximumProbability=Math.max(minimumProbability,Math.min(101,finite(options.maximumProbability,101))),coverage=Array.from({length:indexed.rows},()=>Array(indexed.cols).fill(0));
  for(const cell of indexed.cells)coverage[cell.row][cell.col]=1;
  const subdivisions=FIELD_SUBDIVISIONS,fineRows=(indexed.rows+FIELD_PADDING_STEPS*2)*subdivisions,fineCols=(indexed.cols+FIELD_PADDING_STEPS*2)*subdivisions,fineLatStep=grid.latStep/subdivisions,fineLonStep=grid.lonStep/subdivisions,globalNorth=indexed.north+FIELD_PADDING_STEPS*grid.latStep,globalWest=indexed.west-FIELD_PADDING_STEPS*grid.lonStep,contours:ExtremeAreaContour[]=[];
  for(const level of[1,2,3,4] as const){
@@ -98,8 +99,8 @@ export function buildExtremeOutlookContours(areas:ExtremeAreaPaintCell[],grid:Ex
   for(const cell of indexed.cells)nodeValues[cell.row][cell.col]=probabilityForLevel(cell,level,explicitLevels);
   if(!indexed.cells.some(cell=>probabilityForLevel(cell,level,explicitLevels)>=threshold))continue;
   const values=Array.from({length:fineRows},()=>Array(fineCols).fill(0)),mask=Array.from({length:fineRows},()=>Array(fineCols).fill(false));
-  for(let row=0;row<fineRows;row++)for(let col=0;col<fineCols;col++){const fieldRow=-FIELD_PADDING_STEPS+(row+.5)/subdivisions,fieldCol=-FIELD_PADDING_STEPS+(col+.5)/subdivisions,coverageValue=bilinear(coverage,fieldRow,fieldCol);if(coverageValue<COVERAGE_THRESHOLD)continue;const probability=bilinear(nodeValues,fieldRow,fieldCol)/coverageValue;values[row][col]=probability;mask[row][col]=probability>=threshold}
-  for(const component of fieldComponents(mask,values)){const rings=componentRings(component,globalWest,globalNorth,fineLonStep,fineLatStep);if(!rings.length)continue;const probability=Math.max(threshold,Math.min(100,Math.round(component.probability/5)*5)),color=options.colors?.[level]||DEFAULT_COLORS[level];contours.push({intensity:level,color,probability,opacity:Math.max(.38,Math.min(.82,probabilityOpacity(probability)+.08)),rings})}
+  for(let row=0;row<fineRows;row++)for(let col=0;col<fineCols;col++){const fieldRow=-FIELD_PADDING_STEPS+(row+.5)/subdivisions,fieldCol=-FIELD_PADDING_STEPS+(col+.5)/subdivisions,coverageValue=bilinear(coverage,fieldRow,fieldCol);if(coverageValue<COVERAGE_THRESHOLD)continue;const probability=bilinear(nodeValues,fieldRow,fieldCol)/coverageValue;values[row][col]=probability;mask[row][col]=probability>=threshold&&probability<maximumProbability}
+  for(const component of fieldComponents(mask,values)){const rings=componentRings(component,globalWest,globalNorth,fineLonStep,fineLatStep);if(!rings.length)continue;const roundedProbability=Math.min(100,Math.round(component.probability/5)*5),probability=Math.max(threshold,maximumProbability<101?Math.min(maximumProbability-1,roundedProbability):roundedProbability),color=options.colors?.[level]||DEFAULT_COLORS[level];contours.push({intensity:level,color,probability,opacity:Math.max(.34,Math.min(.7,probabilityOpacity(probability)-.04)),rings})}
  }
  return contours.sort((a,b)=>a.intensity-b.intensity||a.probability-b.probability);
 }

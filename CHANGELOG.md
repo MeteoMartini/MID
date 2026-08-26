@@ -1,3 +1,16 @@
+## 0.9.66.9
+
+- Extremwetterkarte auf die kontrastreichere CARTO-Voyager-Orientierungskarte umgestellt. Beschriftungen bleiben als eigener Vordergrundlayer oberhalb der Gefahrenflächen; geringere Flächendeckkraft hält Länder- und Verwaltungsgrenzen besser erkennbar.
+- MID-Prognosestufen fachlich an die DWD-Warnlogik angenähert, ohne eine amtliche Warnung vorzutäuschen: Wettergefahr, markante Wettergefahr, Unwetterpotenzial und extremes Unwetterpotenzial. Die frühere grüne Stufe entfällt zugunsten der gelb–orange–rot–violetten Gefahrenskala.
+- Schraffur korrigiert: Sie folgt nun dem interpolierten Wahrscheinlichkeitsfeld innerhalb eines Gefahrengebiets und kennzeichnet exakt die Teilflächen unter 60 %, nicht mehr pauschal den Spitzenwert der gesamten zusammenhängenden Fläche. Legende und Kartenerklärung nennen die Bedeutung ausdrücklich.
+- Dashboard-Reihenfolge erhält einen eigenen Änderungszeitpunkt. Neu hinzugekommene Sektionen werden einmalig verlustfrei migriert; die Migration wird gespeichert. Beim Start gewinnt ein neuerer synchroner Wert gegen einen veralteten IndexedDB-Spiegel, und der Geräteabgleich schützt die lokal neuere Sektionsreihenfolge vor älteren Remote-Ständen.
+
+## 0.9.66.8
+
+- DACH-Kartenbeschriftungen wurden als eigener Vordergrundlayer über die Gefahrenpolygone gelegt; Gültigkeits- und Popuptexte erhielten mehr Kontrast.
+- Datumsübergreifende Vorhersagefenster nennen Start- und Enddatum. `Gefrierhöhe` heißt im Ausblick nun `Nullgradgrenze`.
+- Sektionsänderungen werden funktional und synchron geschrieben; 0.9.66.9 ergänzt die notwendige Revisions- und Spiegelkonfliktbehandlung.
+
 ## 0.9.66.7
 
 - Fehlende Wassertemperatur im Reiseplaner ursächlich behoben: Der bisherige Open-Meteo-/ERA5-Ocean-Aufruf lieferte real ausschließlich leere SST-Werte und wurde vollständig entfernt.

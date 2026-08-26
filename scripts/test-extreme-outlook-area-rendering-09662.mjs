@@ -16,14 +16,14 @@ assert.ok(baseline.requiredFiles?.includes(test)&&baseline.requiredFiles?.includ
 assert.ok(workerSource.includes(`const WORKER_VERSION='${pkg.version}';`),'Gekoppelte Worker-Version ist nicht synchron.');
 
 for(const token of ['buildExtremeOutlookContours','extremeProbabilityLevelsForCell','minimumProbability','EXTREME_INTENSITY_COLORS',"type:'MultiPolygon'","type:'fill'","type:'line'",'fill-pattern'])assert.ok(overlay.includes(token),`Flächen-Layervertrag fehlt: ${token}`);
-assert.ok(overlay.includes('CanvasOverlay')||panel.includes('light_only_labels/{z}/{x}/{y}.png'),'Die Flächen müssen georeferenziert gerendert werden; bei nativen Polygonen muss die Beschriftungsebene darüberliegen.');
+assert.ok(overlay.includes('CanvasOverlay')||panel.includes('only_labels/{z}/{x}/{y}.png'),'Die Flächen müssen georeferenziert gerendert werden; bei nativen Polygonen muss die Beschriftungsebene darüberliegen.');
 for(const token of ['map.project([point.lon,point.lat])','buildExtremeOutlookContours','context.fill','context.stroke','devicePixelRatio','Math.min(2'])assert.ok(canvasSource.includes(token),`Canvas-Flächenvertrag fehlt: ${token}`);
 assert.ok(panel.includes("import ExtremeOutlookAreaOverlay from './ExtremeOutlookAreaOverlay'"));
 assert.ok(panel.includes('<ExtremeOutlookAreaOverlay data={data} periodId={selectedPeriod.id} hazard={hazard}/>'));
 assert.ok(panel.includes("markers=useMemo(()=>regions.slice(0,6),[regions])"),'Marker müssen auf regionale Maxima begrenzt sein.');
 assert.ok(!panel.includes('slice(0,28)'),'Zellweise Markerüberdeckung ist wieder vorhanden.');
 assert.ok(panel.includes("'fill-opacity':.001"),'Unsichtbare GeoJSON-Interaktionsfläche fehlt.');
-assert.ok(panel.includes('Farbe = Intensität · Deckkraft/Prozent = Wahrscheinlichkeit'));
+assert.ok(panel.includes('Farbe = erwartete Auswirkung')&&panel.includes('Prozent/Deckkraft = Eintrittswahrscheinlichkeit'));
 assert.ok(styles.includes('.mid-maplibre-canvas.extreme-outlook-areas'));
 
 const compiled=ts.transpileModule(canvasSource,{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText,canvasModule=await import(`data:text/javascript;base64,${Buffer.from(compiled).toString('base64')}`);

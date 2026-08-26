@@ -82,8 +82,8 @@ export const EXTREME_HAZARDS:Array<{id:ExtremeHazardId;label:string;shortLabel:s
  {id:'ice',label:'Glätte/Eisregen',shortLabel:'Eisregen',description:'Gefrierender Niederschlag und Glatteiswirkung'}
 ];
 
-export const EXTREME_INTENSITY_COLORS:Record<1|2|3|4,string>={1:'#269b83',2:'#e7b92f',3:'#e87824',4:'#bd2340'};
-export const EXTREME_INTENSITY_LABELS:Record<1|2|3|4,string>={1:'markant',2:'stark',3:'schwer',4:'extrem'};
+export const EXTREME_INTENSITY_COLORS:Record<1|2|3|4,string>={1:'#f4d03f',2:'#f08a24',3:'#d9363e',4:'#8f174f'};
+export const EXTREME_INTENSITY_LABELS:Record<1|2|3|4,string>={1:'Wettergefahr',2:'markante Wettergefahr',3:'Unwetterpotenzial',4:'extremes Unwetterpotenzial'};
 
 const OUTLOOK_CACHE_PREFIX='mid:extreme-outlook:';
 const OUTLOOK_PAYLOAD_PREFIX=`${OUTLOOK_CACHE_PREFIX}payload:`;

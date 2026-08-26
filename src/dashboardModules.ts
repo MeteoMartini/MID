@@ -28,6 +28,7 @@ export type DashboardModuleDefinition={
 export type DashboardModuleSettings={
  order:DashboardModuleId[];
  enabled:Record<DashboardModuleId,boolean>;
+ updatedAt?:string;
 };
 
 export const DASHBOARD_MODULE_SETTINGS_KEY='mid:dashboard-modules:v1';
@@ -67,18 +68,23 @@ export function normalizeDashboardModuleSettings(value:unknown):DashboardModuleS
  for(const id of DEFAULT_DASHBOARD_MODULE_ORDER)if(!seen.has(id))order.push(id);
  const enabled={...defaults.enabled};
  if(raw.enabled&&typeof raw.enabled==='object')for(const id of DEFAULT_DASHBOARD_MODULE_ORDER){const current=(raw.enabled as Partial<Record<DashboardModuleId,unknown>>)[id];if(typeof current==='boolean')enabled[id]=current}
- return{order,enabled};
+ const updatedAt=typeof raw.updatedAt==='string'&&Number.isFinite(Date.parse(raw.updatedAt))?raw.updatedAt:undefined;
+ return{order,enabled,...(updatedAt?{updatedAt}:{})};
 }
 
 export function readDashboardModuleSettings():DashboardModuleSettings{
- try{return normalizeDashboardModuleSettings(JSON.parse(localStorage.getItem(DASHBOARD_MODULE_SETTINGS_KEY)||'{}'))}catch{return defaultDashboardModuleSettings()}
+ try{
+  const raw=JSON.parse(localStorage.getItem(DASHBOARD_MODULE_SETTINGS_KEY)||'{}') as Partial<DashboardModuleSettings>,normalized=normalizeDashboardModuleSettings(raw),rawOrder=Array.isArray(raw.order)?raw.order:[],rawEnabled=raw.enabled&&typeof raw.enabled==='object'?raw.enabled:{};
+  const migrated=!normalized.updatedAt||normalized.order.length!==rawOrder.length||normalized.order.some((id,index)=>id!==rawOrder[index])||DEFAULT_DASHBOARD_MODULE_ORDER.some(id=>typeof (rawEnabled as Partial<Record<DashboardModuleId,unknown>>)[id]!=='boolean');
+  return migrated?writeDashboardModuleSettings(normalized):normalized;
+ }catch{return writeDashboardModuleSettings(defaultDashboardModuleSettings())}
 }
 
 export function writeDashboardModuleSettings(settings:DashboardModuleSettings){
- const normalized=normalizeDashboardModuleSettings(settings);
- try{localStorage.setItem(DASHBOARD_MODULE_SETTINGS_KEY,JSON.stringify(normalized))}catch{}
- if(typeof window!=='undefined')window.dispatchEvent(new CustomEvent('mid:dashboard-modules',{detail:normalized}));
- return normalized;
+ const normalized=normalizeDashboardModuleSettings(settings),previous=Date.parse(normalized.updatedAt||''),now=Date.now(),updatedAt=new Date(Number.isFinite(previous)&&previous>=now?previous+1:now).toISOString(),saved={...normalized,updatedAt};
+ try{localStorage.setItem(DASHBOARD_MODULE_SETTINGS_KEY,JSON.stringify(saved))}catch{}
+ if(typeof window!=='undefined')window.dispatchEvent(new CustomEvent('mid:dashboard-modules',{detail:saved}));
+ return saved;
 }
 
 export function moveDashboardModule(settings:DashboardModuleSettings,source:DashboardModuleId,target:DashboardModuleId){

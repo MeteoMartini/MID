@@ -48,7 +48,7 @@ const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const MET_NORWAY_LOCATIONFORECAST='https://api.met.no/weatherapi/locationforecast/2.0/complete';
-const WORKER_VERSION='0.9.66.8';
+const WORKER_VERSION='0.9.66.9';
 const C3S_SEASONAL_POINT_SYSTEMS=[
  {centreId:'ecmwf',originatingCentre:'ecmwf',system:'51',label:'ECMWF'},
  {centreId:'ukmo',originatingCentre:'ukmo',system:'610',label:'UK Met Office'},
@@ -1735,7 +1735,7 @@ const DACH_EXTREME_PERIOD_SPECS=[
 ];
 const DACH_EXTREME_THRESHOLDS={
  probability:{bands:[{id:'P0',min:0,max:9,label:'unter 10 %'},{id:'P1',min:10,max:29,label:'10–29 %'},{id:'P2',min:30,max:59,label:'30–59 %'},{id:'P3',min:60,max:79,label:'60–79 %'},{id:'P4',min:80,max:100,label:'ab 80 %'}],overviewMin:40,hazardMin:10,extremeExceptionMin:5},
- intensity:{levels:[{id:1,label:'markant'},{id:2,label:'stark'},{id:3,label:'schwer'},{id:4,label:'extrem'}]},
+ intensity:{levels:[{id:1,label:'Wettergefahr'},{id:2,label:'markante Wettergefahr'},{id:3,label:'Unwetterpotenzial'},{id:4,label:'extremes Unwetterpotenzial'}]},
  rain:{unit:'mm',windows:[1,6,24],levels:[{intensity:1,values:{1:15,6:20,24:40}},{intensity:2,values:{1:25,6:35,24:60}},{intensity:3,values:{1:40,6:60,24:90}},{intensity:4,values:{1:60,6:90,24:140}}]},
  wind:{unit:'km/h',terrainBands:[{id:'lowland',label:'Tiefland',maxElevationM:599,levels:[70,90,110,140]},{id:'upland',label:'Mittelgebirge',maxElevationM:1199,levels:[80,100,125,155]},{id:'alpine',label:'Hochlagen',maxElevationM:null,levels:[90,110,140,170]}]},
  snow:{unit:'cm',windows:[6,24],terrainMultipliers:{lowland:1,upland:1.5,alpine:2},levels:[{intensity:1,values:{6:5,24:10}},{intensity:2,values:{6:10,24:20}},{intensity:3,values:{6:20,24:35}},{intensity:4,values:{6:30,24:50}}]},
@@ -1767,7 +1767,7 @@ function dachExtremeAny(probabilities){const values=probabilities.filter(Number.
 function dachExtremeRolling(means,spreads,start,end,windowHours){const result=[];for(let endIndex=start;endIndex<end;endIndex++){const first=endIndex-windowHours+1;if(first<0)continue;const mean=means.slice(first,endIndex+1).reduce((sum,value)=>sum+(Number.isFinite(value)?Math.max(0,value):0),0),sigma=spreads.slice(first,endIndex+1).map(value=>Number.isFinite(value)?Math.max(0,value):0),variance=(1-.35)*sigma.reduce((sum,value)=>sum+value*value,0)+.35*sigma.reduce((sum,value)=>sum+value,0)**2;result.push({mean,spread:Math.sqrt(Math.max(0,variance)),endIndex})}return result}
 function dachExtremeMax(values,start,end){let value=NaN,index=start;for(let i=start;i<end;i++){const candidate=number(values[i]);if(Number.isFinite(candidate)&&(!Number.isFinite(value)||candidate>value)){value=candidate;index=i}}return{value,index}}
 function dachExtremeTerrain(elevation){return elevation>=1200?'alpine':elevation>=600?'upland':'lowland'}
-function dachExtremeIntensityLabel(intensity){return['','markant','stark','schwer','extrem'][intensity]||''}
+function dachExtremeIntensityLabel(intensity){return['','Wettergefahr','markante Wettergefahr','Unwetterpotenzial','extremes Unwetterpotenzial'][intensity]||''}
 function dachExtremeSignal(levelProbabilities,metrics,drivers,subhazards=[]){const probabilities=levelProbabilities.map(value=>Math.round(clamp(number(value)||0,0,100)));for(let index=1;index<probabilities.length;index++)probabilities[index]=Math.min(probabilities[index-1],probabilities[index]);let intensity=0,probability=0;for(let level=4;level>=1;level--){const candidate=probabilities[level-1]||0,minimum=level===4?5:10;if(candidate>=minimum){intensity=level;probability=candidate;break}}const signal=intensity?{intensity,intensityLabel:dachExtremeIntensityLabel(intensity),probability:dachExtremeRoundedProbability(probability),probabilityBand:dachExtremeProbabilityBand(probability),drivers,subhazards,metrics}:null;return{signal,probabilities}}
 function dachExtremeWindVector(speedKmh,directionDeg){if(!Number.isFinite(speedKmh)||!Number.isFinite(directionDeg))return{u:NaN,v:NaN};const radians=directionDeg*Math.PI/180,speed=speedKmh/3.6;return{u:-speed*Math.sin(radians),v:-speed*Math.cos(radians)}}
 function dachExtremeShear(speed850,direction850,speed500,direction500){const low=dachExtremeWindVector(speed850,direction850),high=dachExtremeWindVector(speed500,direction500);return Number.isFinite(low.u)&&Number.isFinite(high.u)?Math.hypot(high.u-low.u,high.v-low.v):NaN}

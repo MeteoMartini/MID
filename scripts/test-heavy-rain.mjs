@@ -33,9 +33,10 @@ need(radolan,'sampleRadolanPoint','RADOLAN-HDF5-Punktdekodierung fehlt.');
 if(failures.length){console.error('Starkregen-/Überflutungsprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
 console.log('Starkregen-/Überflutungsindikator geprüft: RADOLAN YW 15–360 min, RV +120 min, KONRAD3D, KOSTRA, Stationsabgleich, Signalfilter und Warnungstrennung.');
 
-const originalFetch=globalThis.fetch;
+const originalFetch=globalThis.fetch,originalNow=Date.now;
 const transparentPng=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAIEAAACBCAYAAADnoNlQAAAAV0lEQVR4nO3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADgbASUAAGQVSZ9AAAAAElFTkSuQmCC','base64');
 const base=Math.floor(Date.now()/300000)*300000,pad=value=>String(value).padStart(2,'0'),ywName=time=>{const date=new Date(time);return`raa01-yw_10000-${String(date.getUTCFullYear()).slice(-2)}${pad(date.getUTCMonth()+1)}${pad(date.getUTCDate())}${pad(date.getUTCHours())}${pad(date.getUTCMinutes())}-dwd---bin.hdf5`},ywFiles=Array.from({length:6},(_,index)=>ywName(base-(5-index)*5*60000)),times=Array.from({length:27},(_,index)=>new Date(base+(index-2)*5*60000).toISOString()).join(',');
+Date.now=()=>base+150000;
 globalThis.fetch=async input=>{const url=new URL(typeof input==='string'?input:input.url),request=String(url.searchParams.get('request')||'').toLowerCase();
  if(url.pathname.endsWith('/radolan/yw/'))return new Response(ywFiles.map(name=>`<a href="${name}">${name}</a>`).join('\n'),{status:200,headers:{'content-type':'text/html'}});
  if(url.pathname.includes('/radolan/yw/raa01-yw_'))return new Response(new Uint8Array(2048),{status:200,headers:{'content-type':'application/x-hdf5'}});
@@ -53,4 +54,4 @@ try{const module=await import('../worker/metar-proxy.js?heavy-rain-test='+Date.n
  const rvResponse=await module.default.fetch(new Request('https://mid.test/?mode=rv-accumulation&lat=50.96&lon=7.65&country=DE'),{}),rv=await rvResponse.json();if(!rvResponse.ok||rv.forecast30<2.9||rv.forecast60<5.9||rv.forecast120<11.9){console.error('RV-Akkumulationsprüfung fehlgeschlagen:',JSON.stringify(rv));process.exit(1)}
  const stationResponse=await module.default.fetch(new Request('https://mid.test/?mode=dwd-rain-station&lat=50.96&lon=7.65&country=DE'),{}),station=await stationResponse.json();if(!stationResponse.ok||!station.available||station.amount10m!==4.2){console.error('Stationsregenprüfung fehlgeschlagen:',JSON.stringify(station));process.exit(1)}
  console.log('Workerintegration geprüft: RADOLAN-Metadaten/Proxy, KOSTRA-Proxy, RV +30/+60/+120 und DWD-Stationsregen.');
-}finally{globalThis.fetch=originalFetch}
+}finally{globalThis.fetch=originalFetch;Date.now=originalNow}
