@@ -3,8 +3,8 @@ import {readFile} from 'node:fs/promises';
 import ts from 'typescript';
 
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8');
-const [canvasSource,overlay,panel,pkgRaw,baselineRaw,changelog,implementation,workerSource]=await Promise.all([
- read('src/extremeOutlookAreaCanvas.ts'),read('src/ExtremeOutlookAreaOverlay.tsx'),read('src/ExtremeWeatherOutlookPanel.tsx'),read('package.json'),read('MID_BASELINE.json'),read('CHANGELOG.md'),read('MID_IMPLEMENTATION_0.9.66.3.md'),read('worker-src/00-core-observations.js')
+const [canvasSource,overlay,geojsonSource,panel,pkgRaw,baselineRaw,changelog,implementation,workerSource]=await Promise.all([
+ read('src/extremeOutlookAreaCanvas.ts'),read('src/ExtremeOutlookAreaOverlay.tsx'),read('src/extremeOutlookAreaGeoJson.ts'),read('src/ExtremeWeatherOutlookPanel.tsx'),read('package.json'),read('MID_BASELINE.json'),read('CHANGELOG.md'),read('MID_IMPLEMENTATION_0.9.66.3.md'),read('worker-src/00-core-observations.js')
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-extreme-outlook-smooth-contours-09663.mjs';
 
@@ -18,7 +18,7 @@ assert.ok(workerSource.includes(`const WORKER_VERSION='${pkg.version}';`),'Profe
 for(const token of ['FIELD_SUBDIVISIONS=10','COVERAGE_THRESHOLD=.28','bilinear','fieldComponents','smoothRing','traceMask','buildExtremeOutlookContours','probability<60',"context.clip('evenodd')"])assert.ok(canvasSource.includes(token),`Professioneller Konturvertrag fehlt: ${token}`);
 assert.ok(!canvasSource.includes('KERNEL_RADIUS_STEPS')&&!canvasSource.includes('supportAt('),'Der gleichförmige radiale Stützkern darf nicht wieder eingeführt werden.');
 assert.ok(!canvasSource.includes('grid.latStep*.515')&&!canvasSource.includes('grid.lonStep*.515'),'Rechteckige Rasterzellen dürfen nicht mehr sichtbar gezeichnet werden.');
-assert.ok(overlay.includes('buildExtremeOutlookContours(paintAreas,data.grid,{minimumProbability')&&(overlay.includes('drawExtremeOutlookContours(map,canvas,contours)')||overlay.includes("type:'MultiPolygon'")),'Vorbemessene Konturen sind nicht in das Kartenoverlay eingebunden.');
+assert.ok(overlay.includes('buildExtremeOutlookContours(paintAreas,data.grid,{minimumProbability')&&overlay.includes('buildExtremeOutlookContourGeoJson(contours)')&&geojsonSource.includes("type:'MultiPolygon'"),'Vorbemessene Konturen sind nicht in das Kartenoverlay eingebunden.');
 assert.ok(panel.includes('cellHitRing')&&panel.includes('Array.from({length:24}'),'Interaktionsflächen müssen der geglätteten Geometrie folgen.');
 assert.ok(panel.includes('Geglättete Isoplethenflächen aus den vollständigen I1–I4-Wahrscheinlichkeitsfeldern'));
 assert.ok(panel.includes('Schraffur')&&panel.includes('unter 60 %'));

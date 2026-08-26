@@ -1,3 +1,24 @@
+## 0.9.66.16
+
+- Vier veraltete Extremwetter-DACH-Regressionen an die seit 0.9.66.14 getrennte Kontur-/GeoJSON-Architektur angepasst. Die Tests prüfen nun `extremeOutlookAreaGeoJson.ts` und `buildExtremeOutlookContourGeoJson` statt entfernte Implementierungsstrings im Overlay.
+- Keine Rücknahme der fachlichen Flächenkorrektur: Multipolygone, Lochringe, >60-%-Kerne und Schraffur bleiben unverändert.
+- Korrekturen aus 0.9.66.15 für GeoJSON-TypeScript-Build, Wolkenuntergrenzen-Plausibilität und chronologische amtliche Warnungen bleiben erhalten.
+
+## 0.9.66.15
+
+- Produktionsbuild repariert: Extremflächen-GeoJSONs sind nun explizit als `FeatureCollection<MultiPolygon, ...>` typisiert; der TypeScript-Fehler `type: string` gegen `type: "Feature"` ist beseitigt.
+- Flug-Events: sehr niedrige modell-diagnostische Wolkenuntergrenzen werden gegen `cloud_cover_low`, Sicht und Wettercode plausibilisiert; insbesondere wird `unter 100 ft AGL` bei guter Sicht ohne stützendes Low-Cloud-Signal nicht mehr ausgegeben.
+- Amtliche Wetterwarnungen werden chronologisch nach Beginn, dann Ende sortiert; Warnstufe oder Provider-Reihenfolge übersteuern die Zeitachse nicht mehr.
+
+## 0.9.66.14
+- Flug-Event-Plausibilität für Wolkenuntergrenzen verbessert: diagnostische Angaben wie "unter 100 ft AGL" werden nur noch gezeigt, wenn Low-Cloud-, Sicht- oder Wettercode-Signale diese niedrige Untergrenze stützen; bei guter Sicht ohne Low-Cloud-Support bleibt die Angabe nun aus.
+- Build-Fix für Extremflächen-GeoJSON: `buildExtremeOutlookContourGeoJson` liefert nun explizit typisierte GeoJSON-FeatureCollections/MultiPolygons, damit der Produktionsbuild nicht mehr an `Feature<Geometry, GeoJsonProperties>` scheitert.
+
+- DACH-Extremwetterkarte: rechteckig wirkende >60-%-Teilflächen ursächlich behoben. Die bereits fachlich korrekten Konturringe werden nun als sauber verschachtelte GeoJSON-Multipolygone an MapLibre übergeben, statt Außenringe, Lochringe und innere Inseln implizit zu vermischen.
+- Schraffur unter 60 % und ungeschraffte Kerne über 60 % bleiben auch bei geschachtelten Flächen korrekt getrennt; Inseln innerhalb einer Aussparung werden als eigene Fläche erhalten.
+- Das Overlay aktualisiert seine GeoJSON-Quellen nun auch für leere Zwischenzustände sauber weiter. Veraltete Restgeometrien bleiben dadurch nicht auf der Karte stehen.
+- Meteorologische Feldberechnung, Schwellen, Diagnostik und Worker-Fachlogik bleiben unverändert; fachlich ist dies ein Frontend-Fix.
+
 ## 0.9.66.13
 
 - Fachlich falsche Umrechnung der stündlichen Niederschlagswahrscheinlichkeit in Niederschlagsminuten entfernt: 66 % werden nicht mehr als 40 Minuten Regen ausgegeben. Ohne zeitlich aufgelöste Teilintervalle zeigt MID keine Scheindauer.

@@ -50,7 +50,8 @@ for(const [name,text,needles] of [
 const pkg=JSON.parse(fs.readFileSync(path.join(root,'package.json'),'utf8'));
 const baseline=JSON.parse(fs.readFileSync(path.join(root,'MID_BASELINE.json'),'utf8'));
 const test='scripts/test-sunshine-precipitation-coherence-096613.mjs';
-assert.equal(pkg.version,'0.9.66.13');
+const versionAtLeast=(value,minimum)=>{const a=String(value).split('.').map(Number),b=String(minimum).split('.').map(Number);for(let index=0;index<Math.max(a.length,b.length);index++){const x=a[index]??0,y=b[index]??0;if(x!==y)return x>y}return true};
+assert.ok(versionAtLeast(pkg.version,'0.9.66.13'));
 assert.equal(baseline.releaseVersion,pkg.version);
 assert.equal(pkg.scripts?.['test:sunshine-precipitation-coherence'],`node ${test}`);
 for(const key of ['requiredRegressionTests','regressionTests','requiredFiles'])assert.ok(baseline[key].includes(test),`${test} fehlt in ${key}.`);

@@ -1,6 +1,7 @@
 import {memo,useEffect,useMemo} from 'react';
 import {registerMapLayerOrder,unregisterMapLayerOrder,useMidMap} from './MapLibreCore';
 import {buildExtremeOutlookContours} from './extremeOutlookAreaCanvas';
+import {buildExtremeOutlookContourGeoJson} from './extremeOutlookAreaGeoJson';
 import {EXTREME_INTENSITY_COLORS,extremeProbabilityLevelsForCell,type ExtremeHazardId,type ExtremeWeatherOutlook} from './extremeWeatherOutlook';
 
 const SOURCE_ID='extreme-outlook-contours-source';
@@ -14,17 +15,14 @@ function hatchImage(){
  return{width:size,height:size,data};
 }
 
-function ringArea(ring:Array<{lon:number;lat:number}>){let area=0;for(let index=0;index<ring.length;index++){const current=ring[index],next=ring[(index+1)%ring.length];area+=current.lon*next.lat-next.lon*current.lat}return area/2}
-function contourGeoJson(contours:ReturnType<typeof buildExtremeOutlookContours>){return{type:'FeatureCollection',features:contours.map((contour,index)=>{const rings=[...contour.rings].sort((a,b)=>Math.abs(ringArea(b))-Math.abs(ringArea(a))).map(ring=>[...ring.map(point=>[point.lon,point.lat]),[ring[0].lon,ring[0].lat]]);return{type:'Feature',id:index,properties:{intensity:contour.intensity,color:contour.color,opacity:contour.opacity,probability:contour.probability},geometry:{type:'MultiPolygon',coordinates:[[...rings]]}}})} as any}
-
 function ExtremeOutlookAreaOverlay({data,periodId,hazard}:{data:ExtremeWeatherOutlook;periodId:string;hazard:ExtremeHazardId}){
  const map=useMidMap(),paintAreas=useMemo(()=>data.cells.map(cell=>({row:cell.row,col:cell.col,lat:cell.lat,lon:cell.lon,probabilityLevels:extremeProbabilityLevelsForCell(cell,periodId,hazard)})),[data,periodId,hazard]);
  const minimumProbability=hazard==='overall'?data.thresholds.probability.overviewMin:data.thresholds.probability.hazardMin;
  const contours=useMemo(()=>buildExtremeOutlookContours(paintAreas,data.grid,{minimumProbability,extremeMinimumProbability:data.thresholds.probability.extremeExceptionMin,colors:EXTREME_INTENSITY_COLORS}),[paintAreas,data.grid,minimumProbability,data.thresholds.probability.extremeExceptionMin]);
  const hatchContours=useMemo(()=>buildExtremeOutlookContours(paintAreas,data.grid,{minimumProbability,extremeMinimumProbability:data.thresholds.probability.extremeExceptionMin,maximumProbability:60,colors:EXTREME_INTENSITY_COLORS}),[paintAreas,data.grid,minimumProbability,data.thresholds.probability.extremeExceptionMin]);
- const geojson=useMemo(()=>contourGeoJson(contours),[contours]);
- const hatchGeojson=useMemo(()=>contourGeoJson(hatchContours),[hatchContours]);
- useEffect(()=>{if(!map||!contours.length)return;try{
+ const geojson=useMemo(()=>buildExtremeOutlookContourGeoJson(contours),[contours]);
+ const hatchGeojson=useMemo(()=>buildExtremeOutlookContourGeoJson(hatchContours),[hatchContours]);
+ useEffect(()=>{if(!map)return;try{
   if(!map.hasImage(HATCH_IMAGE_ID))map.addImage(HATCH_IMAGE_ID,hatchImage(),{pixelRatio:1});
   if(map.getSource(SOURCE_ID))(map.getSource(SOURCE_ID) as any).setData(geojson);else map.addSource(SOURCE_ID,{type:'geojson',data:geojson});
   if(map.getSource(HATCH_SOURCE_ID))(map.getSource(HATCH_SOURCE_ID) as any).setData(hatchGeojson);else map.addSource(HATCH_SOURCE_ID,{type:'geojson',data:hatchGeojson});
@@ -36,7 +34,7 @@ function ExtremeOutlookAreaOverlay({data,periodId,hazard}:{data:ExtremeWeatherOu
   ];
   layers.forEach((layer,index)=>{if(map.getLayer(layer.id))map.removeLayer(layer.id);map.addLayer(layer);registerMapLayerOrder(map,layer.id,8+index/100)});
  }catch{}
- return()=>{try{for(const id of [...LAYER_IDS].reverse()){unregisterMapLayerOrder(map,id);if(map.getLayer(id))map.removeLayer(id)}if(map.getSource(HATCH_SOURCE_ID))map.removeSource(HATCH_SOURCE_ID);if(map.getSource(SOURCE_ID))map.removeSource(SOURCE_ID)}catch{}}},[map,geojson,hatchGeojson,contours.length]);
+ return()=>{try{for(const id of [...LAYER_IDS].reverse()){unregisterMapLayerOrder(map,id);if(map.getLayer(id))map.removeLayer(id)}if(map.getSource(HATCH_SOURCE_ID))map.removeSource(HATCH_SOURCE_ID);if(map.getSource(SOURCE_ID))map.removeSource(SOURCE_ID)}catch{}}},[map,geojson,hatchGeojson]);
  return null;
 }
 
