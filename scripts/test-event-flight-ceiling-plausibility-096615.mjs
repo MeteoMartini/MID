@@ -9,6 +9,7 @@ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const require=createRequire(import.meta.url),ts=require('typescript');
 const sourcePath=path.join(root,'src','eventAviation.ts');
 const source=fs.readFileSync(sourcePath,'utf8');
+const workerSource=fs.readFileSync(path.join(root,'worker-src','40-aviation-router.js'),'utf8');
 
 for(const token of [
  'function weatherCodeSuggestsLowCeiling',
@@ -18,6 +19,9 @@ for(const token of [
  'if(value<1000)return strongLowCloud||reducedVisibility||weatherSignal;',
  "const vis=valueAt(hourly,'visibility',index),code=valueAt(hourly,'weather_code',index),lowCloud=valueAt(hourly,'cloud_cover_low',index),ceiling=ceilingFor(points,elevation);if(isDiagnosedCeilingPlausible(ceiling,lowCloud,vis,code))ceilings.push(Number(ceiling));"
 ])assert.ok(source.includes(token),`Plausibilitätslogik für Wolkenuntergrenzen fehlt: ${token}`);
+assert.ok(source.includes('resolvedCeilingMinFt=ceilingMinFt,resolvedVisibilityMinM=visibilityMin,resolvedGustMaxKt=gustMax'),'Entfernte METAR-/TAF-Terminalwerte dürfen die lokalen zusammenfassenden Eventwerte nicht überschreiben.');
+assert.ok(!source.includes("resolvedCeilingMinFt=hazardValue(items,'ceiling')"),'Amtliche Remote-Hazards dürfen nicht erneut als lokale Wolkenuntergrenze einsickern.');
+assert.ok(workerSource.includes('value!==undefined&&value>=100&&value<=60000'),'Fehl-/Sentinelwerte unter 100 ft aus Terminal-Cloud-Layern müssen verworfen werden.');
 
 const stripped=`${source.replace(/^import .*$/gm,'')}\nexport {weatherCodeSuggestsLowCeiling,isDiagnosedCeilingPlausible};`;
 const output=ts.transpileModule(stripped,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022},fileName:'eventAviation.ts',reportDiagnostics:true});

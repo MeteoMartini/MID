@@ -1,3 +1,10 @@
+## 0.9.66.17
+
+- DACH-Extremwetterkarte: Beschriftungen werden nun aus den tatsächlich dargestellten, getrennten Konturkomponenten erzeugt. Zwei räumlich getrennte Felder derselben zusammengefassten Region erhalten damit jeweils eine eigene Stufen- und Prozentangabe; eingebettete stärkere Kerne verdrängen doppelte Hüllenbeschriftungen.
+- Die in der Extremwetterkarte anonym nicht mehr nutzbaren CARTO-Kacheln wurden durch eine schlüsselfreie OpenStreetMap-Kartenbasis mit transparentem Orientierungslayer ersetzt. Das von CARTO gelieferte Wasserzeichen „API KEY REQUIRED“ erscheint dort nicht mehr.
+- Flug-Events: Standortbezogene Zusammenfassungen für Wolkenuntergrenze, Sicht und Böen bleiben strikt auf dem lokalen Modell-/Druckniveaupfad. Räumlich entfernte METAR-/TAF-Hazards bleiben im amtlichen Hazard-Screening sichtbar, dürfen aber lokale Eckwerte nicht mehr überschreiben.
+- Ungültige bzw. nicht spezifizierte Terminal-Cloud-Basen unter 100 ft und außerhalb des physikalischen Wertebereichs werden bereits im Worker verworfen. Die bestehende Low-Cloud-/Sicht-/Wettercode-Plausibilisierung bleibt zusätzlich aktiv.
+
 ## 0.9.66.16
 
 - Vier veraltete Extremwetter-DACH-Regressionen an die seit 0.9.66.14 getrennte Kontur-/GeoJSON-Architektur angepasst. Die Tests prüfen nun `extremeOutlookAreaGeoJson.ts` und `buildExtremeOutlookContourGeoJson` statt entfernte Implementierungsstrings im Overlay.

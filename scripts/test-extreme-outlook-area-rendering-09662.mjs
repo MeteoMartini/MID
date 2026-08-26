@@ -17,11 +17,11 @@ assert.ok(workerSource.includes(`const WORKER_VERSION='${pkg.version}';`),'Gekop
 
 for(const token of ['buildExtremeOutlookContours','extremeProbabilityLevelsForCell','minimumProbability','EXTREME_INTENSITY_COLORS','buildExtremeOutlookContourGeoJson',"type:'fill'","type:'line'",'fill-pattern'])assert.ok(overlay.includes(token),`Flächen-Layervertrag fehlt: ${token}`);
 for(const token of ["type:'MultiPolygon'",'FeatureCollection<MultiPolygon','contourPolygons','normalizeOrientation'])assert.ok(geojsonSource.includes(token),`GeoJSON-Flächenvertrag fehlt: ${token}`);
-assert.ok(overlay.includes('CanvasOverlay')||panel.includes('only_labels/{z}/{x}/{y}.png'),'Die Flächen müssen georeferenziert gerendert werden; bei nativen Polygonen muss die Beschriftungsebene darüberliegen.');
+assert.ok(overlay.includes('CanvasOverlay')||overlay.includes('HtmlMarker')&&overlay.includes('zIndex={35}'),'Die Flächen müssen georeferenziert gerendert werden; bei nativen Polygonen müssen flächengebundene Beschriftungen darüberliegen.');
 for(const token of ['map.project([point.lon,point.lat])','buildExtremeOutlookContours','context.fill','context.stroke','devicePixelRatio','Math.min(2'])assert.ok(canvasSource.includes(token),`Canvas-Flächenvertrag fehlt: ${token}`);
 assert.ok(panel.includes("import ExtremeOutlookAreaOverlay from './ExtremeOutlookAreaOverlay'"));
 assert.ok(panel.includes('<ExtremeOutlookAreaOverlay data={data} periodId={selectedPeriod.id} hazard={hazard}/>'));
-assert.ok(panel.includes("markers=useMemo(()=>regions.slice(0,6),[regions])"),'Marker müssen auf regionale Maxima begrenzt sein.');
+assert.ok(overlay.includes('extremeOutlookContourLabels(contours)'),'Marker müssen aus den tatsächlich getrennten Konturkomponenten entstehen.');
 assert.ok(!panel.includes('slice(0,28)'),'Zellweise Markerüberdeckung ist wieder vorhanden.');
 assert.ok(panel.includes("'fill-opacity':.001"),'Unsichtbare GeoJSON-Interaktionsfläche fehlt.');
 assert.ok(panel.includes('unter 60 %')&&!panel.includes('Farbe = erwartete Auswirkung')&&!panel.includes('Prozent/Deckkraft = Eintrittswahrscheinlichkeit'),'Die aktuelle kompakte Kartenlegende darf den entfernten Farbe-/Deckkrafttext nicht wieder einführen.');

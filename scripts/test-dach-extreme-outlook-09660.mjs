@@ -3,8 +3,8 @@ import {readFile} from 'node:fs/promises';
 
 const root=new URL('../',import.meta.url);
 const read=path=>readFile(new URL(path,root),'utf8');
-const [app,modules,panel,data,styles,workerSource,worker,router,buildScript,pkgText,baselineText,implementation]=await Promise.all([
- read('src/App.tsx'),read('src/dashboardModules.ts'),read('src/ExtremeWeatherOutlookPanel.tsx'),read('src/extremeWeatherOutlook.ts'),read('src/styles.css'),read('worker-src/25-dach-extreme-outlook.js'),read('worker/metar-proxy.js'),read('worker-src/40-aviation-router.js'),read('scripts/build-maintenance-aggregates.mjs'),read('package.json'),read('MID_BASELINE.json'),read('MID_IMPLEMENTATION_0.9.66.0.md')
+const [app,modules,panel,overlay,data,styles,workerSource,worker,router,buildScript,pkgText,baselineText,implementation]=await Promise.all([
+ read('src/App.tsx'),read('src/dashboardModules.ts'),read('src/ExtremeWeatherOutlookPanel.tsx'),read('src/ExtremeOutlookAreaOverlay.tsx'),read('src/extremeWeatherOutlook.ts'),read('src/styles.css'),read('worker-src/25-dach-extreme-outlook.js'),read('worker/metar-proxy.js'),read('worker-src/40-aviation-router.js'),read('scripts/build-maintenance-aggregates.mjs'),read('package.json'),read('MID_BASELINE.json'),read('MID_IMPLEMENTATION_0.9.66.0.md')
 ]);
 const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText),test='scripts/test-dach-extreme-outlook-09660.mjs';
 
@@ -27,7 +27,8 @@ assert.ok(app.includes('unit={unit}'));
 assert.ok(app.includes('timezone={displayTimezone}'));
 
 for(const token of ["'overall'","'thunderstorm'","'rain'","'wind'","'snow'","'ice'",'overviewMin:number','hazardMin:number','extremeExceptionMin:number','timeoutMs:48000','staleIfErrorMs:6*60*60*1000'])assert.ok(data.includes(token),`Client-Datenvertrag fehlt: ${token}`);
-for(const token of ['formatDwdWindValue','formatDisplayDateTime','displayTimeLabel','aria-pressed','role="img"','MapFitBounds','GeoJsonLayers','HtmlMarker','MID Extremwetter-Ausblick · DACH','Eigene MID-Prognose','keine amtliche Warnung','Schwellen, Parameter und Methodik','signalMetricSummary(signal,unit)'])assert.ok(panel.includes(token),`Oberflächenvertrag fehlt: ${token}`);
+for(const token of ['formatDwdWindValue','formatDisplayDateTime','displayTimeLabel','aria-pressed','role="img"','MapFitBounds','GeoJsonLayers','MID Extremwetter-Ausblick · DACH','Eigene MID-Prognose','keine amtliche Warnung','Schwellen, Parameter und Methodik','signalMetricSummary(signal,unit)'])assert.ok(panel.includes(token),`Oberflächenvertrag fehlt: ${token}`);
+for(const token of ['HtmlMarker','extremeOutlookContourLabels','Modellierte Gefahrenfläche'])assert.ok(overlay.includes(token),`Flächengebundener Kartenmarker fehlt: ${token}`);
 for(const token of ['.extreme-main-grid{','.extreme-map{','.extreme-map-legend{','.extreme-region-list{','.extreme-threshold-table','@media(max-width:480px)'])assert.ok(styles.includes(token),`Responsive DACH-CSS fehlt: ${token}`);
 
 for(const token of [

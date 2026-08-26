@@ -1,5 +1,5 @@
 function aviationVisibilityMetersText(value){if(!Number.isFinite(value))return'nicht verfügbar';if(value<1000)return`${Math.max(50,Math.round(value/50)*50)} m`;if(value<10000)return`${new Intl.NumberFormat('de-DE',{minimumFractionDigits:value<3000?1:0,maximumFractionDigits:1}).format(value/1000)} km`;return'≥ 10 km'}
-function aviationCeilingFt(clouds){if(!Array.isArray(clouds))return undefined;const bases=clouds.filter(cloud=>/^(?:BKN|OVC|VV)$/i.test(String(cloud?.cover||''))).map(cloud=>number(cloud?.base)).filter(value=>value!==undefined);return bases.length?Math.min(...bases):undefined}
+function aviationCeilingFt(clouds){if(!Array.isArray(clouds))return undefined;const bases=clouds.filter(cloud=>/^(?:BKN|OVC|VV)$/i.test(String(cloud?.cover||''))).map(cloud=>number(cloud?.base)).filter(value=>value!==undefined&&value>=100&&value<=60000);return bases.length?Math.min(...bases):undefined}
 function aviationTerminalPeriodSignals(period,{source,label,issuer,distanceKm,startEpoch,endEpoch}){
  const from=aviationEpoch(period?.timeFrom??period?.validTimeFrom??period?.obsTime??period?.reportTime),to=aviationEpoch(period?.timeTo??period?.validTimeTo),now=Date.now();
  const periodFrom=Number.isFinite(from)?from:source==='metar'?now-3*3600000:NaN,periodTo=Number.isFinite(to)?to:Number.isFinite(from)?from+(source==='metar'?90:6*60)*60000:NaN;

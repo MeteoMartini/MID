@@ -12,9 +12,10 @@ assert.equal(pkg.scripts?.['test:extreme-outlook-labels-layout'],`node ${test}`)
 assert.ok(baseline.requiredRegressionTests.includes(test)&&baseline.regressionTests.includes(test));
 for(const file of[test,'MID_IMPLEMENTATION_0.9.66.8.md'])assert.ok(baseline.requiredFiles.includes(file));
 
-for(const token of ['nolabels/{z}/{x}/{y}.png','only_labels/{z}/{x}/{y}.png','zIndex={20}','Länder-, Regions- und Städtenamen','startDate===endDate','${endDate}, ${endTime}','Nullgradgrenze'])assert.ok(panel.includes(token),`Outlook-Vertrag fehlt: ${token}`);
+for(const token of ['tile.openstreetmap.org/{z}/{x}/{y}.png','opacity={.28}','Jede getrennte dargestellte Gefahrenfläche','startDate===endDate','${endDate}, ${endTime}','Nullgradgrenze'])assert.ok(panel.includes(token),`Outlook-Vertrag fehlt: ${token}`);
+assert.ok(!panel.includes('basemaps.cartocdn.com'),'Die Extremwetterkarte darf keine anonym gesperrten CARTO-Kacheln mit API-Key-Wasserzeichen mehr laden.');
 assert.ok(!panel.includes("['Gefrierhöhe'")&&!worker.includes('Gefrierhöhe'),'Veraltete Bezeichnung Gefrierhöhe ist im DACH-Ausblick noch aktiv.');
-for(const token of ['buildExtremeOutlookContourGeoJson',"type:'fill'","type:'line'",'fill-pattern','registerMapLayerOrder','8+index/100'])assert.ok(overlay.includes(token),`Nativer Kartenlayer fehlt: ${token}`);
+for(const token of ['buildExtremeOutlookContourGeoJson',"type:'fill'","type:'line'",'fill-pattern','registerMapLayerOrder','8+index/100','extremeOutlookContourLabels','overlapsStronger','Modellierte Gefahrenfläche'])assert.ok(overlay.includes(token),`Nativer Kartenlayer bzw. flächengebundene Beschriftung fehlt: ${token}`);
 for(const token of ["type:'MultiPolygon'",'FeatureCollection<MultiPolygon','contourPolygons'])assert.ok(geojsonSource.includes(token),`Nativer GeoJSON-Kartenlayer fehlt: ${token}`);
 assert.ok(!overlay.includes('CanvasOverlay'),'Gefahrenflächen dürfen nicht mehr als DOM-Canvas über sämtlichen Kartenbeschriftungen liegen.');
 for(const token of ['.extreme-map .maplibregl-popup-content','background:#fff','font-size:11px','.extreme-validity b{font-size:13px','.extreme-period-tabs small{max-width:190px'])assert.ok(styles.includes(token),`Lesbarkeitsregel fehlt: ${token}`);
