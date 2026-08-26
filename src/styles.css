@@ -6980,3 +6980,255 @@ main>.place>.place-nowcards{display:none!important}
 }
 
 /* MID v0.9.65.6 · kompakter Luftdruckverlauf und appweite Hazard-Konsistenz. */
+
+/* MID v0.9.66.12 · überlauffeste aktuelle Nowcast- und Zusatzgefahrenkarten. */
+.hero.current-compact>.current-nowcards{
+ container:current-nowcards/inline-size;
+ width:100%;
+ max-width:100%;
+}
+.hero.current-compact .current-nowcards>*,
+.hero.current-compact .current-nowcards aside,
+.hero.current-compact .current-nowcards details{
+ box-sizing:border-box;
+ width:100%;
+ min-width:0;
+ max-width:100%;
+}
+.hero.current-compact .current-precip-panel{
+ container:current-precip/inline-size;
+ min-width:0!important;
+ max-width:100%!important;
+}
+.hero.current-compact .current-nowcard-heading{
+ display:grid;
+ grid-template-columns:minmax(0,1fr) auto;
+ align-items:start;
+ width:100%;
+ min-width:0;
+ max-width:100%;
+}
+.hero.current-compact .current-nowcard-heading>span{
+ min-width:0;
+ max-width:100%;
+ overflow-wrap:anywhere;
+}
+.hero.current-compact .current-nowcard-heading>.mode-info{
+ justify-self:end;
+ margin:0;
+}
+.hero.current-compact .current-nowcard-heading>.mode-info>button{
+ margin:0;
+}
+.hero.current-compact .current-precip-panel>span,
+.hero.current-compact .current-precip-panel>em{
+ box-sizing:border-box;
+ min-width:0;
+ max-width:100%;
+ padding-right:0!important;
+ overflow-wrap:anywhere;
+ white-space:normal;
+}
+.hero.current-compact .radar-nowcast-strip.compact{
+ box-sizing:border-box;
+ width:100%;
+ min-width:0;
+ max-width:100%;
+ overflow:hidden;
+}
+.hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-title{
+ display:grid;
+ grid-template-columns:max-content minmax(0,1fr);
+ align-items:center;
+ gap:5px 8px;
+ width:100%;
+ min-width:0;
+ max-width:100%;
+}
+.hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-title>b{
+ min-width:0;
+ white-space:nowrap;
+}
+.hero.current-compact .radar-nowcast-title .radar-nowcast-total{
+ display:inline-flex!important;
+ justify-self:end;
+ align-items:center;
+ flex-wrap:nowrap;
+ box-sizing:border-box;
+ min-width:0;
+ max-width:100%;
+}
+.hero.current-compact .radar-nowcast-title .radar-nowcast-total-main{
+ display:inline-flex!important;
+ align-items:baseline;
+ gap:5px;
+ min-width:0;
+ max-width:100%;
+ white-space:nowrap;
+}
+.hero.current-compact .radar-nowcast-title .radar-nowcast-total-main small,
+.hero.current-compact .radar-nowcast-title .radar-nowcast-total-main strong{
+ min-width:0;
+ white-space:nowrap;
+}
+.hero.current-compact .radar-nowcast-chart,
+.hero.current-compact .radar-nowcast-track{
+ box-sizing:border-box;
+ width:100%;
+ min-width:0;
+ max-width:100%;
+}
+.hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-tick>b{
+ top:10px;
+}
+.hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-now>b{
+ top:-1px;
+ padding:1px 3px;
+ border-radius:4px;
+ background:color-mix(in srgb,var(--surface) 88%,transparent);
+ line-height:1.15;
+}
+.hero.current-compact .local-now-disclosure,
+.hero.current-compact .local-now-disclosure>summary,
+.hero.current-compact .local-now-disclosure>summary>span,
+.hero.current-compact .local-now-disclosure-body,
+.hero.current-compact .thunder-status,
+.hero.current-compact .thunder-place-section,
+.hero.current-compact .thunder-place-section>header,
+.hero.current-compact .thunder-place-row{
+ box-sizing:border-box;
+ min-width:0;
+ max-width:100%;
+}
+.hero.current-compact .local-now-disclosure>summary>span>* ,
+.hero.current-compact .local-now-disclosure-body>* ,
+.hero.current-compact .thunder-status>* ,
+.hero.current-compact .thunder-place-section>header>* ,
+.hero.current-compact .thunder-place-row>*{
+ min-width:0;
+ max-width:100%;
+ overflow-wrap:anywhere;
+}
+.hero.current-compact .local-now-disclosure>summary em{
+ max-width:min(44%,160px);
+ line-height:1.2;
+ text-align:center;
+ white-space:normal;
+ overflow-wrap:anywhere;
+}
+.hero.current-compact .local-now-disclosure-body>span,
+.hero.current-compact .local-now-disclosure-body>em,
+.hero.current-compact .local-now-disclosure-body li,
+.hero.current-compact .thunder-status span{
+ white-space:normal;
+ overflow-wrap:anywhere;
+}
+.hero.current-compact .local-now-disclosure .thunder-fact-grid{
+ grid-template-columns:repeat(auto-fit,minmax(min(100%,110px),1fr));
+ min-width:0;
+ max-width:100%;
+}
+.hero.current-compact .local-now-disclosure .thunder-fact{
+ box-sizing:border-box;
+ min-width:0;
+ max-width:100%;
+}
+.hero.current-compact .local-now-disclosure .thunder-fact strong,
+.hero.current-compact .thunder-place-section>header em,
+.hero.current-compact .thunder-place-row>b{
+ white-space:normal;
+ overflow-wrap:anywhere;
+}
+
+@container current-precip (max-width:720px){
+ .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-title{
+  grid-template-columns:minmax(0,1fr);
+  align-items:start;
+  gap:4px;
+ }
+ .hero.current-compact .radar-nowcast-title .radar-nowcast-total{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr);
+  justify-self:stretch;
+  align-items:start;
+  width:100%;
+  padding:4px 7px;
+  border-radius:9px;
+ }
+ .hero.current-compact .radar-nowcast-title .radar-nowcast-total-main{
+  justify-content:flex-start;
+ }
+ .hero.current-compact .radar-nowcast-title .radar-nowcast-total>em{
+  display:block;
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  margin:3px 0 0;
+  padding:3px 0 0;
+  border-top:1px solid color-mix(in srgb,var(--border) 78%,transparent);
+  border-left:0;
+  line-height:1.2;
+  white-space:normal;
+  overflow-wrap:anywhere;
+ }
+}
+
+@container current-precip (max-width:360px){
+ .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-chart{
+  grid-template-columns:28px minmax(0,1fr);
+  gap:2px;
+ }
+ .hero.current-compact .radar-nowcast-title .radar-nowcast-total{
+  padding:4px 5px;
+ }
+ .hero.current-compact .radar-nowcast-title .radar-nowcast-total-main{
+  justify-content:space-between;
+  gap:3px;
+ }
+ .hero.current-compact .radar-nowcast-title .radar-nowcast-total-main small{
+  font-size:5.8px;
+ }
+ .hero.current-compact .radar-nowcast-title .radar-nowcast-total-main strong{
+  font-size:8px;
+ }
+ .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-tick>b,
+ .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-now>b{
+  font-size:5.8px;
+ }
+}
+
+@container current-nowcards (max-width:420px){
+ .hero.current-compact .local-now-disclosure>summary>span{
+  grid-template-columns:minmax(0,1fr);
+ }
+ .hero.current-compact .local-now-disclosure>summary em{
+  grid-column:1;
+  grid-row:auto;
+  justify-self:start;
+  max-width:100%;
+  margin-top:3px;
+ }
+ .hero.current-compact .local-now-disclosure .thunder-status{
+  grid-template-columns:minmax(0,1fr)!important;
+ }
+ .hero.current-compact .local-now-disclosure .thunder-status b{
+  white-space:normal;
+ }
+ .hero.current-compact .local-now-disclosure .thunder-fact-grid{
+  grid-template-columns:minmax(0,1fr);
+ }
+ .hero.current-compact .thunder-place-section>header{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+ }
+ .hero.current-compact .thunder-place-section>header em{
+  justify-self:start;
+ }
+ .hero.current-compact .thunder-place-row{
+  align-items:flex-start;
+  flex-wrap:wrap;
+ }
+ .hero.current-compact .thunder-place-row>b{
+  max-width:100%;
+ }
+}

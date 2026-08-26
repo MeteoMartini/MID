@@ -1,3 +1,9 @@
+## 0.9.66.12
+
+- Aktuelle Radar-Nowcast-Karte gegen Breitenüberlauf abgesichert: Summen- und Ensembleangaben ordnen sich abhängig von der tatsächlichen Kartenbreite neu an, statt Diagramm, Balken oder Info-Schaltfläche zu überdecken.
+- Zeitmarken und die Jetzt-Markierung besitzen getrennte Lesebereiche; der komplette Nowcast-Rahmen bleibt innerhalb seiner Karte.
+- Derselbe responsive Kartenvertrag gilt für Gewitter-, Starkregen- und Sturzflut-Zusatzfelder: lange Überschriften, Statusangaben, Ortszeilen, Fakten und Quellen brechen innerhalb der verfügbaren Breite um.
+
 ## 0.9.66.11
 
 - Der lange Methodik- und Einschränkungstext unter der DACH-Gefahrenkarte wurde aus dem normalen Layout entfernt. Er ist vollständig über einen kompakten, appweit standardisierten Info-Button abrufbar.

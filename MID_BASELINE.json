@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.66.11",
+  "releaseVersion": "0.9.66.12",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -278,7 +278,8 @@
     "scripts/test-extreme-outlook-labels-layout-persistence-09668.mjs",
     "scripts/test-extreme-outlook-dwd-scale-dashboard-persistence-09669.mjs",
     "scripts/test-extreme-outlook-compact-legend-096610.mjs",
-    "scripts/test-extreme-outlook-method-info-096611.mjs"
+    "scripts/test-extreme-outlook-method-info-096611.mjs",
+    "scripts/test-current-nowcards-responsive-096612.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -487,7 +488,8 @@
     "scripts/test-extreme-outlook-labels-layout-persistence-09668.mjs",
     "scripts/test-extreme-outlook-dwd-scale-dashboard-persistence-09669.mjs",
     "scripts/test-extreme-outlook-compact-legend-096610.mjs",
-    "scripts/test-extreme-outlook-method-info-096611.mjs"
+    "scripts/test-extreme-outlook-method-info-096611.mjs",
+    "scripts/test-current-nowcards-responsive-096612.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -612,7 +614,9 @@
     "scripts/test-extreme-outlook-compact-legend-096610.mjs",
     "MID_IMPLEMENTATION_0.9.66.10.md",
     "scripts/test-extreme-outlook-method-info-096611.mjs",
-    "MID_IMPLEMENTATION_0.9.66.11.md"
+    "MID_IMPLEMENTATION_0.9.66.11.md",
+    "scripts/test-current-nowcards-responsive-096612.mjs",
+    "MID_IMPLEMENTATION_0.9.66.12.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
