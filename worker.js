@@ -48,7 +48,7 @@ const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const MET_NORWAY_LOCATIONFORECAST='https://api.met.no/weatherapi/locationforecast/2.0/complete';
-const WORKER_VERSION='0.9.66.17';
+const WORKER_VERSION='0.9.66.18';
 const C3S_SEASONAL_POINT_SYSTEMS=[
  {centreId:'ecmwf',originatingCentre:'ecmwf',system:'51',label:'ECMWF'},
  {centreId:'ukmo',originatingCentre:'ukmo',system:'610',label:'UK Met Office'},
@@ -1750,7 +1750,7 @@ const DACH_EXTREME_MASKS=[
  [[5.85,46.1],[6.75,45.75],[8.5,45.9],[9.55,46.25],[10.55,46.5],[10.25,47.4],[9.55,47.75],[8.15,47.85],[7.05,47.5],[5.9,47.0]]
 ];
 const DACH_EXTREME_REGIONS=[
- ['Schleswig-Holstein',54.25,9.75],['Hamburg/Niedersachsen',52.95,9.35],['Mecklenburg-Vorpommern',53.75,12.45],['Berlin/Brandenburg',52.45,13.35],['Nordrhein-Westfalen',51.35,7.45],['Mitteldeutschland',51.0,10.15],['Sachsen',51.0,13.45],['Rheinland-Pfalz/Saarland',49.65,7.1],['Baden-Württemberg',48.55,9.0],['Nordbayern',50.0,11.25],['Südbayern',48.55,11.65],['Westschweiz',46.55,6.65],['Schweizer Mittelland',47.1,8.15],['Ostschweiz',47.25,9.35],['Vorarlberg/Tirol',47.2,10.65],['Salzburg/Oberösterreich',48.0,13.45],['Steiermark/Kärnten',46.8,14.45],['Niederösterreich/Wien',48.2,16.15]
+ ['Schleswig-Holstein',54.25,9.75],['Hamburg/Niedersachsen',52.95,9.35],['Mecklenburg-Vorpommern',53.75,12.45],['Berlin/Brandenburg',52.45,13.35],['Nordrhein-Westfalen',51.35,7.45],['Mitteldeutschland',51.0,10.15],['Sachsen',51.0,13.45],['Rheinland-Pfalz/Saarland',49.65,7.1],['Baden-Württemberg',48.55,9.0],['Nordbayern',50.0,11.25],['Südbayern',48.55,11.65],['Westschweiz',46.7,6.65],['Wallis',46.2,7.6],['Schweizer Mittelland',47.25,8.05],['Zentralschweiz',46.95,8.55],['Tessin',46.2,8.95],['Ostschweiz',47.35,9.25],['Graubünden',46.65,9.75],['Vorarlberg',47.25,9.95],['Tirol',47.2,11.3],['Salzburg/Oberösterreich',48.0,13.45],['Steiermark/Kärnten',46.8,14.45],['Niederösterreich/Wien',48.2,16.15]
 ];
 let dachExtremeOutlookCache=null;
 

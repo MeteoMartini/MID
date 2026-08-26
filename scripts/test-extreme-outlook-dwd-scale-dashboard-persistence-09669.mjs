@@ -3,8 +3,8 @@ import {readFile} from 'node:fs/promises';
 import ts from 'typescript';
 
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8');
-const[panel,overlay,geojsonSource,canvasSource,outlook,dashboard,storageSafety,deviceSync,worker,pkgRaw,baselineRaw,changelog,implementation]=await Promise.all([
- read('src/ExtremeWeatherOutlookPanel.tsx'),read('src/ExtremeOutlookAreaOverlay.tsx'),read('src/extremeOutlookAreaGeoJson.ts'),read('src/extremeOutlookAreaCanvas.ts'),read('src/extremeWeatherOutlook.ts'),read('src/dashboardModules.ts'),read('src/storageSafety.ts'),read('src/deviceSync.ts'),read('worker-src/25-dach-extreme-outlook.js'),read('package.json'),read('MID_BASELINE.json'),read('CHANGELOG.md'),read('MID_IMPLEMENTATION_0.9.66.9.md')
+const[panel,overlay,modelledAreas,geojsonSource,canvasSource,outlook,dashboard,storageSafety,deviceSync,worker,pkgRaw,baselineRaw,changelog,implementation]=await Promise.all([
+ read('src/ExtremeWeatherOutlookPanel.tsx'),read('src/ExtremeOutlookAreaOverlay.tsx'),read('src/extremeOutlookModelledAreas.ts'),read('src/extremeOutlookAreaGeoJson.ts'),read('src/extremeOutlookAreaCanvas.ts'),read('src/extremeWeatherOutlook.ts'),read('src/dashboardModules.ts'),read('src/storageSafety.ts'),read('src/deviceSync.ts'),read('worker-src/25-dach-extreme-outlook.js'),read('package.json'),read('MID_BASELINE.json'),read('CHANGELOG.md'),read('MID_IMPLEMENTATION_0.9.66.9.md')
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-extreme-outlook-dwd-scale-dashboard-persistence-09669.mjs';
 assert.ok(pkg.version.startsWith('0.9.66.')&&Number(pkg.version.split('.')[3])>=9);assert.equal(baseline.releaseVersion,pkg.version);assert.equal(pkg.scripts?.['test:extreme-outlook-dwd-scale-persistence'],`node ${test}`);
@@ -14,7 +14,8 @@ for(const token of ['tile.openstreetmap.org/{z}/{x}/{y}.png','id="extreme-outloo
 assert.ok(!panel.includes('basemaps.cartocdn.com'),'Die DACH-Karte darf keine anonym gesperrte CARTO-Basis mehr verwenden.');
 for(const token of ["1:'#f4d03f'","2:'#f08a24'","3:'#d9363e'","4:'#8f174f'",'Wettergefahr','markante Wettergefahr','Unwetterpotenzial','extremes Unwetterpotenzial'])assert.ok(outlook.includes(token),`DWD-nahe Prognoseskala fehlt: ${token}`);
 assert.ok(!outlook.includes("1:'#269b83'"),'Grün darf keine Gefahrstufe mehr kennzeichnen.');
-for(const token of ['HATCH_SOURCE_ID','maximumProbability:60','source:HATCH_SOURCE_ID','buildExtremeOutlookContourGeoJson'])assert.ok(overlay.includes(token),`Teilflächenschraffur fehlt: ${token}`);
+for(const token of ['HATCH_SOURCE_ID','source:HATCH_SOURCE_ID','buildExtremeOutlookContourGeoJson'])assert.ok(overlay.includes(token),`Teilflächenschraffur fehlt: ${token}`);
+assert.ok(modelledAreas.includes('maximumProbability:60'),'Teilflächenschraffur muss aus demselben Konturdatensatz entstehen.');
 for(const token of ['pointInRing','normalizeOrientation','contourPolygons',"type:'MultiPolygon'"])assert.ok(geojsonSource.includes(token),`Verschachtelte Teilflächenschraffur fehlt: ${token}`);
 assert.ok(canvasSource.includes('maximumProbability?:number')&&canvasSource.includes('probability>=threshold&&probability<maximumProbability'));
 for(const token of ['updatedAt?:string','const migrated=','writeDashboardModuleSettings(normalized)','previous+1'])assert.ok(dashboard.includes(token),`Dashboard-Revisionierung fehlt: ${token}`);

@@ -3,8 +3,8 @@ import {readFile} from 'node:fs/promises';
 import ts from 'typescript';
 
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8');
-const[panel,overlay,geojsonSource,styles,dashboard,settings,app,pkgRaw,baselineRaw,changelog,implementation,worker]=await Promise.all([
- read('src/ExtremeWeatherOutlookPanel.tsx'),read('src/ExtremeOutlookAreaOverlay.tsx'),read('src/extremeOutlookAreaGeoJson.ts'),read('src/styles-src/25-extreme-outlook.css'),read('src/dashboardModules.ts'),read('src/DashboardModuleSettings.tsx'),read('src/App.tsx'),read('package.json'),read('MID_BASELINE.json'),read('CHANGELOG.md'),read('MID_IMPLEMENTATION_0.9.66.8.md'),read('worker-src/25-dach-extreme-outlook.js')
+const[panel,overlay,modelledAreas,geojsonSource,styles,dashboard,settings,app,pkgRaw,baselineRaw,changelog,implementation,worker]=await Promise.all([
+ read('src/ExtremeWeatherOutlookPanel.tsx'),read('src/ExtremeOutlookAreaOverlay.tsx'),read('src/extremeOutlookModelledAreas.ts'),read('src/extremeOutlookAreaGeoJson.ts'),read('src/styles-src/25-extreme-outlook.css'),read('src/dashboardModules.ts'),read('src/DashboardModuleSettings.tsx'),read('src/App.tsx'),read('package.json'),read('MID_BASELINE.json'),read('CHANGELOG.md'),read('MID_IMPLEMENTATION_0.9.66.8.md'),read('worker-src/25-dach-extreme-outlook.js')
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-extreme-outlook-labels-layout-persistence-09668.mjs';
 assert.ok(pkg.version.startsWith('0.9.66.')&&Number(pkg.version.split('.')[3])>=8);assert.equal(baseline.releaseVersion,pkg.version);
@@ -15,7 +15,8 @@ for(const file of[test,'MID_IMPLEMENTATION_0.9.66.8.md'])assert.ok(baseline.requ
 for(const token of ['tile.openstreetmap.org/{z}/{x}/{y}.png','opacity={.28}','Jede getrennte dargestellte Gefahrenfläche','startDate===endDate','${endDate}, ${endTime}','Nullgradgrenze'])assert.ok(panel.includes(token),`Outlook-Vertrag fehlt: ${token}`);
 assert.ok(!panel.includes('basemaps.cartocdn.com'),'Die Extremwetterkarte darf keine anonym gesperrten CARTO-Kacheln mit API-Key-Wasserzeichen mehr laden.');
 assert.ok(!panel.includes("['Gefrierhöhe'")&&!worker.includes('Gefrierhöhe'),'Veraltete Bezeichnung Gefrierhöhe ist im DACH-Ausblick noch aktiv.');
-for(const token of ['buildExtremeOutlookContourGeoJson',"type:'fill'","type:'line'",'fill-pattern','registerMapLayerOrder','8+index/100','extremeOutlookContourLabels','overlapsStronger','Modellierte Gefahrenfläche'])assert.ok(overlay.includes(token),`Nativer Kartenlayer bzw. flächengebundene Beschriftung fehlt: ${token}`);
+for(const token of ['buildExtremeOutlookContourGeoJson',"type:'fill'","type:'line'",'fill-pattern','registerMapLayerOrder','8+index/100','areas.map(area=>','Modellierte Gefahrenfläche'])assert.ok(overlay.includes(token),`Nativer Kartenlayer bzw. flächengebundene Beschriftung fehlt: ${token}`);
+assert.ok(modelledAreas.includes('overlapsStronger'),'Stärkere eingebettete Kerne müssen doppelte Hüllenbeschriftungen verdrängen.');
 for(const token of ["type:'MultiPolygon'",'FeatureCollection<MultiPolygon','contourPolygons'])assert.ok(geojsonSource.includes(token),`Nativer GeoJSON-Kartenlayer fehlt: ${token}`);
 assert.ok(!overlay.includes('CanvasOverlay'),'Gefahrenflächen dürfen nicht mehr als DOM-Canvas über sämtlichen Kartenbeschriftungen liegen.');
 for(const token of ['.extreme-map .maplibregl-popup-content','background:#fff','font-size:11px','.extreme-validity b{font-size:13px','.extreme-period-tabs small{max-width:190px'])assert.ok(styles.includes(token),`Lesbarkeitsregel fehlt: ${token}`);

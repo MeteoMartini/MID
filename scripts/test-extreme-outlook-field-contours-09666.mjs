@@ -3,8 +3,8 @@ import {readFile} from 'node:fs/promises';
 import ts from 'typescript';
 
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8');
-const [canvasSource,overlay,client,panel,workerSource,direct,travel,pkgRaw,baselineRaw,changelog,implementation,workerCore]=await Promise.all([
- read('src/extremeOutlookAreaCanvas.ts'),read('src/ExtremeOutlookAreaOverlay.tsx'),read('src/extremeWeatherOutlook.ts'),read('src/ExtremeWeatherOutlookPanel.tsx'),read('worker-src/25-dach-extreme-outlook.js'),read('src/extremeWeatherOutlookDirect.generated.js'),read('src/travelPlanner.ts'),read('package.json'),read('MID_BASELINE.json'),read('CHANGELOG.md'),read('MID_IMPLEMENTATION_0.9.66.6.md'),read('worker-src/00-core-observations.js')
+const [canvasSource,overlay,modelledAreas,client,panel,workerSource,direct,travel,pkgRaw,baselineRaw,changelog,implementation,workerCore]=await Promise.all([
+ read('src/extremeOutlookAreaCanvas.ts'),read('src/ExtremeOutlookAreaOverlay.tsx'),read('src/extremeOutlookModelledAreas.ts'),read('src/extremeWeatherOutlook.ts'),read('src/ExtremeWeatherOutlookPanel.tsx'),read('worker-src/25-dach-extreme-outlook.js'),read('src/extremeWeatherOutlookDirect.generated.js'),read('src/travelPlanner.ts'),read('package.json'),read('MID_BASELINE.json'),read('CHANGELOG.md'),read('MID_IMPLEMENTATION_0.9.66.6.md'),read('worker-src/00-core-observations.js')
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-extreme-outlook-field-contours-09666.mjs';
 
@@ -19,8 +19,8 @@ assert.ok(workerCore.includes(`const WORKER_VERSION='${pkg.version}';`),'Profess
 for(const token of ['probabilityFields?:','extremeProbabilityLevelsForCell',"cacheKey:'dach-extreme-outlook:v3'",'monotone[index]=Math.min'])assert.ok(client.includes(token),`Client-Feldvertrag fehlt: ${token}`);
 for(const token of ['probabilityFields={}','assessment.probabilities','assessment.signal','probabilities[index]=Math.min','Math.round(clamp'])assert.ok(workerSource.includes(token),`Worker-Feldvertrag fehlt: ${token}`);
 assert.ok(direct.includes(workerSource.trim()),'Browser-Direktweg muss dieselbe kanonische Feldberechnung wie der Worker verwenden.');
-for(const token of ['data.cells.map','probabilityLevels:extremeProbabilityLevelsForCell','minimumProbability','extremeMinimumProbability','colors:EXTREME_INTENSITY_COLORS'])assert.ok(overlay.includes(token),`Overlay-Feldvertrag fehlt: ${token}`);
-assert.ok(!overlay.includes('.filter((item)'),'Das Overlay darf Unterschwellen-Stützfelder nicht vor der Konturberechnung verwerfen.');
+for(const token of ['data.cells.map','probabilityLevels:extremeProbabilityLevelsForCell','minimumProbability','extremeMinimumProbability','colors:EXTREME_INTENSITY_COLORS'])assert.ok(modelledAreas.includes(token),`Flächen-Feldvertrag fehlt: ${token}`);
+assert.ok(!modelledAreas.includes('paintAreas=data.cells.filter'),'Das Overlay darf Unterschwellen-Stützfelder nicht vor der Konturberechnung verwerfen.');
 for(const token of ['FIELD_SUBDIVISIONS=10','COVERAGE_THRESHOLD=.28','bilinear','fieldComponents','probabilityLevels','level===4?extremeMinimumProbability:minimumProbability'])assert.ok(canvasSource.includes(token),`Isoplethenvertrag fehlt: ${token}`);
 assert.ok(!canvasSource.includes('KERNEL_RADIUS_STEPS')&&!canvasSource.includes('supportAt(')&&!canvasSource.includes('connectedComponents('),'Gleichförmige Stützkern-/Symbolgeometrie darf nicht mehr aktiv sein.');
 assert.ok(panel.includes('Flächen aus dem vollständigen Wahrscheinlichkeitsfeld'));

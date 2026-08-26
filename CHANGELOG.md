@@ -1,3 +1,10 @@
+## 0.9.66.18
+
+- DACH-Extremwetterkarte und „Stärkste Regionen“ verwenden nun denselben flächenbezogenen Konturdatensatz. Zwei getrennte Gefahrenflächen bleiben auch dann zwei Listeneinträge, wenn ihre frühere grobe Regionsbezeichnung identisch war.
+- Jede modellierte Gefahrenfläche erhält eine stabile ID; Auswahl, Marker, Prozentwert und Detailkarte sind dadurch eindeutig gekoppelt.
+- Karten-Popups zeigen wieder die zur jeweiligen Fläche gehörende Regionsbezeichnung vor Prognosestufe und Wahrscheinlichkeit.
+- Alpenregionen feiner zugeordnet: Wallis, Zentralschweiz, Tessin, Graubünden, Vorarlberg und Tirol ersetzen zu grobe Sammelzuordnungen.
+
 ## 0.9.66.17
 
 - DACH-Extremwetterkarte: Beschriftungen werden nun aus den tatsächlich dargestellten, getrennten Konturkomponenten erzeugt. Zwei räumlich getrennte Felder derselben zusammengefassten Region erhalten damit jeweils eine eigene Stufen- und Prozentangabe; eingebettete stärkere Kerne verdrängen doppelte Hüllenbeschriftungen.
