@@ -1,3 +1,11 @@
+## 0.9.66.7
+
+- Fehlende Wassertemperatur im Reiseplaner ursächlich behoben: Der bisherige Open-Meteo-/ERA5-Ocean-Aufruf lieferte real ausschließlich leere SST-Werte und wurde vollständig entfernt.
+- Küstennahe Wassertemperaturen stammen nun aus dem täglichen NOAA-OISST-v2.1-Langzeitmittel der Normperiode 1991–2020. MID wählt für den konkreten Reisezeitraum die nächste vollständige 0,25°-Meereszelle innerhalb von 80 km; Binnenland erhält weiterhin keinen Ersatzwert.
+- Neuer CORS-sicherer Workervertrag `travel-water-climate` mit strikt validiertem Schema, gezielten OPeNDAP-Zeit-/Raumausschnitten, Land-/Fehlwertfilter, Schaltjahrbehandlung und transparenter NOAA-Kennzeichnung in der Oberfläche.
+- Alte leere SST-Caches werden durch `noaa-oisst-1991-2020:v5` invalidiert. Nur positive Ergebnisse werden langfristig gespeichert; Fehler und saubere Nichtverfügbarkeit bleiben wiederholbar. Ein alter Worker wird sichtbar diagnostiziert.
+- Der konkrete Nutzerfall Iberostar Waves Creta Panorama, 18.–27.10.2026, wurde gegen den realen NOAA-Datensatz verifiziert: 22,66 °C am 3,6 km entfernten Meeresgitter. Professional-App und Worker müssen gemeinsam auf 0.9.66.7 aktualisiert werden.
+
 ## 0.9.66.6
 
 - Wiederholt gleichförmige Sechseck-/Stützkernflächen im DACH-Extremwetter-Ausblick entfernt. Gefahrengebiete entstehen nun als Schwellenkonturen aus dem vollständigen räumlichen I1–I4-Wahrscheinlichkeitsfeld und nicht mehr als Puffer um ausschließlich sichtbare Stützpunkte.

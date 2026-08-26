@@ -46,12 +46,13 @@ if(!(baseline.requiredRegressionTests||[]).includes('scripts/test-travel-planner
 
 const compileDir=await mkdtemp(path.join(tmpdir(),'mid-travel-seamless-'));
 try{
- const compile=spawnSync('tsc',['--pretty','false','--target','ES2022','--module','ESNext','--moduleResolution','Bundler','--strict','--skipLibCheck','--outDir',compileDir,path.resolve('src/travelPlanner.ts')],{cwd:root,encoding:'utf8'});
+ const compile=spawnSync('tsc',['--pretty','false','--target','ES2022','--module','ESNext','--moduleResolution','Bundler','--strict','--skipLibCheck','--outDir',compileDir,path.resolve('src/vite-env.d.ts'),path.resolve('src/travelPlanner.ts')],{cwd:root,encoding:'utf8'});
  if(compile.status!==0)failures.push(`TypeScript: ${compile.stdout||compile.stderr}`);
  else{
   const compiledPath=path.join(compileDir,'travelPlanner.js');
-  const compiledSource=(await readFile(compiledPath,'utf8')).replace("from './cachePolicy'","from './cachePolicy.js'").replace("from './openMeteoGuard'","from './openMeteoGuard.js'");
+  const compiledSource=(await readFile(compiledPath,'utf8')).replace("from './cachePolicy'","from './cachePolicy.js'").replace("from './openMeteoGuard'","from './openMeteoGuard.js'").replace("from './workerClient'","from './workerClientMock.js'");
   await writeFile(compiledPath,compiledSource);
+  await writeFile(path.join(compileDir,'workerClientMock.js'),"export async function fetchWorkerJson(){throw new Error('SST ist in diesem Atmosphären-/Einheitentest nicht aktiv.')}\n");
   const module=await import(`${pathToFileURL(compiledPath).href}?v=${Date.now()}`);
   const daily={time:[],weather_code:[],temperature_2m_max:[],temperature_2m_min:[],precipitation_sum:[],sunshine_duration:[],daylight_duration:[],wind_speed_10m_max:[],snowfall_sum:[]};
   for(let year=1991;year<=2020;year++)for(let day=18;day<=27;day++){

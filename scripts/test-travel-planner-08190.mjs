@@ -36,7 +36,7 @@ for(const token of [
  'Mind. mittlere Schneehöhe',
  'Bestes Reisezeitfenster finden',
  'Detaillierte Schneehöhe laden',
- 'Der MID-Worker wird dafür nicht verwendet.',
+ 'Für Küstenorte ermittelt MID zusätzlich über den Worker',
  'Das Ergebnis ist eine klimatologische Erwartung',
  'searchLocations(value,controller.signal)'
 ])need('Reiseplaner-Oberfläche',panel,token);
@@ -71,14 +71,16 @@ need('Baseline-Test',baseline,'scripts/test-travel-planner-08190.mjs');
 
 const compileDir=await mkdtemp(path.join(tmpdir(),'mid-travel-test-'));
 try{
- const compile=spawnSync('tsc',['--pretty','false','--target','ES2022','--module','ESNext','--moduleResolution','Bundler','--strict','--skipLibCheck','--outDir',compileDir,path.resolve('src/travelPlanner.ts')],{cwd:path.resolve('.'),encoding:'utf8'});
+ const compile=spawnSync('tsc',['--pretty','false','--target','ES2022','--module','ESNext','--moduleResolution','Bundler','--strict','--skipLibCheck','--outDir',compileDir,path.resolve('src/vite-env.d.ts'),path.resolve('src/travelPlanner.ts')],{cwd:path.resolve('.'),encoding:'utf8'});
  if(compile.status!==0)failures.push(`TypeScript: ${compile.stdout||compile.stderr}`);
  else{
   const compiledPath=path.join(compileDir,'travelPlanner.js');
   const compiledSource=(await readFile(compiledPath,'utf8'))
    .replace("from './cachePolicy'","from './cachePolicy.js'")
-   .replace("from './openMeteoGuard'","from './openMeteoGuard.js'");
+   .replace("from './openMeteoGuard'","from './openMeteoGuard.js'")
+   .replace("from './workerClient'","from './workerClientMock.js'");
   await writeFile(compiledPath,compiledSource);
+  await writeFile(path.join(compileDir,'workerClientMock.js'),"export async function fetchWorkerJson(){throw new Error('SST ist in diesem Atmosphärenlogiktest nicht aktiv.')}\n");
   const module=await import(`${pathToFileURL(compiledPath).href}?v=${Date.now()}`);
   const daily={time:[],weather_code:[],temperature_2m_mean:[],temperature_2m_max:[],temperature_2m_min:[],precipitation_sum:[],precipitation_hours:[],sunshine_duration:[],daylight_duration:[],wind_speed_10m_max:[],snowfall_sum:[],cloud_cover_mean:[],relative_humidity_2m_mean:[]};
   for(let year=1991;year<=2020;year++)for(let day=1;day<=20;day++){
@@ -96,4 +98,4 @@ try{
 }finally{await rm(compileDir,{recursive:true,force:true})}
 
 if(failures.length){console.error('Reiseplaner-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Reiseplaner geprüft: eingeklappte Sektion, Zielortsuche, Festzeitraum, flexible Zeitfenster, Bedingungen, ERA5-Seamless-Klimatologie und optionale ERA5-Land-Schneehöhe vorhanden.');
+console.log('Reiseplaner geprüft: eingeklappte Sektion, Zielortsuche, Festzeitraum, flexible Zeitfenster, Bedingungen, ERA5-Seamless-Klimatologie, NOAA-OISST-Workerpfad und optionale ERA5-Land-Schneehöhe vorhanden.');

@@ -9,11 +9,11 @@ const [travel,panel,eventPanel,pkgRaw,baselineRaw]=await Promise.all([
  readFile('MID_BASELINE.json','utf8')
 ]);
 
-assert.ok(travel.includes("const WATER_CACHE_PREFIX='mid:travel-water-climate:1991-2020:v4:'"),'Alte negative SST-Caches werden nicht invalidiert.');
-assert.ok(travel.includes('WATER_REFERENCE_YEARS=[1991,1995,1999,2003,2007,2011,2015,2020]'),'Referenzjahre f체r kompakte SST-Klimastichprobe fehlen.');
-assert.ok(travel.includes("hourly:'sea_surface_temperature'")&&travel.includes("cell_selection:'sea'")&&travel.includes("models:'era5_ocean'"),'Historische ERA5-Ocean-SST-/Meeresgitterquelle fehlt.');
+assert.ok(travel.includes("const WATER_CACHE_PREFIX='mid:travel-water-climate:noaa-oisst-1991-2020:v5:'"),'Alte leere ERA5-Ocean-/SST-Caches werden nicht invalidiert.');
+assert.ok(travel.includes("fetchWorkerJson<TravelWaterWorkerPayload>('travel-water-climate'")&&travel.includes("payload.schema!=='mid.travel-water-climate.v1'"),'NOAA-OISST-/Workervertrag fehlt.');
+assert.ok(!travel.includes("models:'era5_ocean'")&&!travel.includes('MARINE_ARCHIVE_ENDPOINT'),'Nicht verf체gbare ERA5-Ocean-SST ist weiterhin aktiv.');
 assert.ok(panel.includes('let initialWater:TravelWaterInfo|null=null;try{initialWater=await fetchTravelWaterClimatology(destination,windows[0].start,windows[0].end,controller.signal)'),'Erste Reiseauswertung versucht die Wassertemperatur weiterhin vor dem Ergebnisrendering zu laden.');
-assert.ok(panel.includes('Wassertemperatur')&&panel.includes('klimatologisches Mittel f체r den Reisezeitraum'),'Wassertemperatur-Metrik fehlt im Reiseergebnis.');
+assert.ok(panel.includes('Wassertemperatur')&&panel.includes('NOAA-OISST-Mittel f체r den Reisezeitraum'),'Wassertemperatur-Metrik fehlt im Reiseergebnis.');
 
 assert.ok(eventPanel.includes("import {sunshineHoursLabel,sunshineMinutesLabel} from './sunshineDuration'"),'Sunshine-Formatter f체r Ereignis-/Stundenvertrag fehlen.');
 assert.ok(eventPanel.includes('function eventSunshineLabel(seconds:number|null|undefined){return sunshineHoursLabel(seconds)}'),'Mehrst체ndige Eventsumme wird nicht in Stunden dargestellt.');
@@ -26,4 +26,4 @@ assert.ok(eventPanel.includes('UVI {formatUvi(plan.summary.uvMax??Number.NaN)} �
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-travel-water-event-sunshine-096513.mjs';
 assert.equal(baseline.releaseVersion,pkg.version,'Baseline-Version nicht synchron.');
 for(const key of ['requiredRegressionTests','regressionTests','requiredFiles'])assert.ok(baseline[key].includes(test),`${test} fehlt in ${key}.`);
-console.log(`MID v${pkg.version}: Reise-SST sichtbar vor Ergebnisrendering; Event-Center kompakt, Mehrstunden-Sonne in h und Stundenverlauf in min.`);
+console.log(`MID v${pkg.version}: NOAA-Reise-SST sichtbar vor Ergebnisrendering; Event-Center kompakt, Mehrstunden-Sonne in h und Stundenverlauf in min.`);

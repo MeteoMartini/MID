@@ -31,7 +31,7 @@ for(const token of [
  'Optionaler zusätzlicher Abruf',
  "const includeSnowDepth=mode==='flexible'&&(detailedSnow||Number.isFinite(constraints.minSnowDepthCm))",
  'Pro gerastertem Klimapunkt erfolgt höchstens ein direkter Basisabruf',
- 'Der MID-Worker wird dafür nicht verwendet.'
+ 'Für Küstenorte ermittelt MID zusätzlich über den Worker'
 ])need('Abrufbudget-Oberfläche',panel,token);
 need('Abrufbudget-Design',styles,'.travel-preference .travel-snow-detail{');
 need('Package-Test',pkg,'test:travel-request-budget');
@@ -39,14 +39,16 @@ need('Baseline-Test',baseline,'scripts/test-travel-planner-request-budget-08191.
 
 const compileDir=await mkdtemp(path.join(tmpdir(),'mid-travel-budget-'));
 try{
- const compile=spawnSync('tsc',['--pretty','false','--target','ES2022','--module','ESNext','--moduleResolution','Bundler','--strict','--skipLibCheck','--outDir',compileDir,path.resolve('src/travelPlanner.ts')],{cwd:path.resolve('.'),encoding:'utf8'});
+ const compile=spawnSync('tsc',['--pretty','false','--target','ES2022','--module','ESNext','--moduleResolution','Bundler','--strict','--skipLibCheck','--outDir',compileDir,path.resolve('src/vite-env.d.ts'),path.resolve('src/travelPlanner.ts')],{cwd:path.resolve('.'),encoding:'utf8'});
  if(compile.status!==0)failures.push(`TypeScript: ${compile.stdout||compile.stderr}`);
  else{
   const compiledPath=path.join(compileDir,'travelPlanner.js');
   const compiledSource=(await readFile(compiledPath,'utf8'))
    .replace("from './cachePolicy'","from './cachePolicy.js'")
-   .replace("from './openMeteoGuard'","from './openMeteoGuard.js'");
+   .replace("from './openMeteoGuard'","from './openMeteoGuard.js'")
+   .replace("from './workerClient'","from './workerClientMock.js'");
   await writeFile(compiledPath,compiledSource);
+  await writeFile(path.join(compileDir,'workerClientMock.js'),"export async function fetchWorkerJson(){throw new Error('SST ist in diesem Atmosphären-Abrufbudgettest nicht aktiv.')}\n");
   const module=await import(`${pathToFileURL(compiledPath).href}?v=${Date.now()}`);
   let fetchCount=0,lastUrl='';
   globalThis.fetch=async url=>{
@@ -72,4 +74,4 @@ try{
 }finally{await rm(compileDir,{recursive:true,force:true})}
 
 if(failures.length){console.error('Reisewetter-Abrufbudget fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Reisewetter-Abrufbudget geprüft: keine Worker-Nutzung, ein Basisabruf je Klimaraster, In-Flight-Entdopplung, Dreijahrescache und optionale Schneehöhe.');
+console.log('Reisewetter-Abrufbudget geprüft: ein atmosphärischer Basisabruf je Klimaraster, separater NOAA-OISST-Workerpfad, In-Flight-Entdopplung, Dreijahrescache und optionale Schneehöhe.');
