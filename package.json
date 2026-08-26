@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.66.7",
+  "version": "0.9.66.8",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -320,7 +320,8 @@
     "test:travel-water-event-sunshine": "node scripts/test-travel-water-event-sunshine-096513.mjs",
     "test:flight-altitude-input": "node scripts/test-flight-altitude-input-096515.mjs",
     "test:travel-water-resilience": "node scripts/test-travel-water-climatology-resilience-09665.mjs",
-    "test:travel-water-noaa-oisst": "node scripts/test-travel-water-noaa-oisst-09667.mjs"
+    "test:travel-water-noaa-oisst": "node scripts/test-travel-water-noaa-oisst-09667.mjs",
+    "test:extreme-outlook-labels-layout": "node scripts/test-extreme-outlook-labels-layout-persistence-09668.mjs"
   },
   "dependencies": {
     "astronomy-engine": "^2.1.19",

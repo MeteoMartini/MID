@@ -1484,6 +1484,12 @@
 
 # Changelog
 
+## 0.9.66.8
+
+- DACH-Gefahrenflächen sind native MapLibre-MultiPolygone; ein separater Beschriftungs-Rasterlayer rendert Grenzen, Länder-, Regions- und Städtenamen darüber.
+- Datumsübergreifende Zeitfenster zeigen Start- und Enddatum eindeutig, „Gefrierhöhe“ heißt im Extremwetter-Ausblick nun „Nullgradgrenze“, und Popup-/Diagnosefelder sind kontrastreicher und größer gesetzt.
+- Änderungen an Sichtbarkeit und Reihenfolge der Dashboard-Sektionen werden synchron und mit funktionalen Zustandsänderungen gespeichert, sodass sie einen App-Neustart zuverlässig überstehen.
+
 ## 0.9.15.11
 
 - Niederschlags-Nowcast: vollständige 5-Minuten-DWD-RV-Punktserie bis +120 Minuten.

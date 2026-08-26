@@ -14,7 +14,7 @@ const [travel,panel,workerSource,workerCore,generatedWorker,pkgRaw,baselineRaw,c
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-travel-water-noaa-oisst-09667.mjs';
 
-assert.equal(pkg.version,'0.9.66.7');
+assert.ok(pkg.version.startsWith('0.9.66.')&&Number(pkg.version.split('.')[3])>=7,'NOAA-OISST benötigt mindestens MID 0.9.66.7.');
 assert.equal(baseline.releaseVersion,pkg.version);
 assert.equal(pkg.scripts?.['test:travel-water-noaa-oisst'],`node ${test}`);
 for(const key of ['requiredRegressionTests','regressionTests','requiredFiles'])assert.ok(baseline[key].includes(test),`${test} fehlt in ${key}.`);
