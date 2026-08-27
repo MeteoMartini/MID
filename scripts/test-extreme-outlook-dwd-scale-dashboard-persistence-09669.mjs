@@ -1,14 +1,13 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import ts from 'typescript';
-import {versionAtLeast} from './version-regression-helper.mjs';
 
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8');
 const[panel,overlay,modelledAreas,geojsonSource,canvasSource,outlook,dashboard,storageSafety,deviceSync,worker,pkgRaw,baselineRaw,changelog,implementation]=await Promise.all([
  read('src/ExtremeWeatherOutlookPanel.tsx'),read('src/ExtremeOutlookAreaOverlay.tsx'),read('src/extremeOutlookModelledAreas.ts'),read('src/extremeOutlookAreaGeoJson.ts'),read('src/extremeOutlookAreaCanvas.ts'),read('src/extremeWeatherOutlook.ts'),read('src/dashboardModules.ts'),read('src/storageSafety.ts'),read('src/deviceSync.ts'),read('worker-src/25-dach-extreme-outlook.js'),read('package.json'),read('MID_BASELINE.json'),read('CHANGELOG.md'),read('MID_IMPLEMENTATION_0.9.66.9.md')
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-extreme-outlook-dwd-scale-dashboard-persistence-09669.mjs';
-assert.ok(versionAtLeast(pkg.version,'0.9.66.9'));assert.equal(baseline.releaseVersion,pkg.version);assert.equal(pkg.scripts?.['test:extreme-outlook-dwd-scale-persistence'],`node ${test}`);
+assert.ok(pkg.version.startsWith('0.9.66.')&&Number(pkg.version.split('.')[3])>=9);assert.equal(baseline.releaseVersion,pkg.version);assert.equal(pkg.scripts?.['test:extreme-outlook-dwd-scale-persistence'],`node ${test}`);
 assert.ok(baseline.requiredRegressionTests.includes(test)&&baseline.regressionTests.includes(test));for(const file of[test,'MID_IMPLEMENTATION_0.9.66.9.md'])assert.ok(baseline.requiredFiles.includes(file));
 
 for(const token of ['tile.openstreetmap.org/{z}/{x}/{y}.png','id="extreme-outlook-context"','opacity={.28}','zIndex={18}','MID-Prognosestufe','Schraffiert sind ausschließlich Teilflächen'])assert.ok(panel.includes(token),`Kartendarstellung fehlt: ${token}`);

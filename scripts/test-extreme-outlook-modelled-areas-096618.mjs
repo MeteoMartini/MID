@@ -4,7 +4,6 @@ import os from 'node:os';
 import path from 'node:path';
 import {pathToFileURL,fileURLToPath} from 'node:url';
 import {build} from 'esbuild';
-import {versionAtLeast} from './version-regression-helper.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const tempDir=fs.mkdtempSync(path.join(os.tmpdir(),'mid-modelled-areas-'));
@@ -27,7 +26,7 @@ const worker=fs.readFileSync(path.join(root,'worker-src','25-dach-extreme-outloo
 const pkg=JSON.parse(fs.readFileSync(path.join(root,'package.json'),'utf8'));
 const baseline=JSON.parse(fs.readFileSync(path.join(root,'MID_BASELINE.json'),'utf8'));
 const test='scripts/test-extreme-outlook-modelled-areas-096618.mjs';
-assert.ok(versionAtLeast(pkg.version,'0.9.66.19'));
+assert.equal(pkg.version,'0.9.66.19');
 assert.equal(baseline.releaseVersion,pkg.version);
 assert.equal(pkg.scripts?.['test:extreme-outlook-modelled-areas'],`node ${test}`);
 for(const key of ['requiredRegressionTests','regressionTests','requiredFiles'])assert.ok(baseline[key].includes(test),`${test} fehlt in ${key}.`);

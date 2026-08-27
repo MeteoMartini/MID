@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {versionAtLeast} from './version-regression-helper.mjs';
 
 const[app,stylesSource,styles,pkgRaw,baselineRaw,implementation]=await Promise.all([
  readFile('src/App.tsx','utf8'),
@@ -11,7 +10,7 @@ const[app,stylesSource,styles,pkgRaw,baselineRaw,implementation]=await Promise.a
  readFile('MID_IMPLEMENTATION_0.9.66.12.md','utf8')
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-current-nowcards-responsive-096612.mjs';
-assert.ok(versionAtLeast(pkg.version,'0.9.66.12'),`unerwartete Nachfolgeversion ${pkg.version}`);
+assert.ok(/^0\.9\.66\.(?:1[2-9]|[2-9]\d|\d{3,})$/.test(pkg.version),`unerwartete Nachfolgeversion ${pkg.version}`);
 assert.equal(baseline.releaseVersion,pkg.version);
 assert.equal(pkg.scripts?.['test:current-nowcards-responsive'],`node ${test}`);
 for(const key of ['requiredRegressionTests','regressionTests','requiredFiles'])assert.ok(baseline[key].includes(test),`${test} fehlt in ${key}.`);

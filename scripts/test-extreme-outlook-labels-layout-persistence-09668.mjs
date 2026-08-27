@@ -1,14 +1,13 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import ts from 'typescript';
-import {versionAtLeast} from './version-regression-helper.mjs';
 
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8');
 const[panel,overlay,modelledAreas,geojsonSource,styles,dashboard,settings,app,pkgRaw,baselineRaw,changelog,implementation,worker]=await Promise.all([
  read('src/ExtremeWeatherOutlookPanel.tsx'),read('src/ExtremeOutlookAreaOverlay.tsx'),read('src/extremeOutlookModelledAreas.ts'),read('src/extremeOutlookAreaGeoJson.ts'),read('src/styles-src/25-extreme-outlook.css'),read('src/dashboardModules.ts'),read('src/DashboardModuleSettings.tsx'),read('src/App.tsx'),read('package.json'),read('MID_BASELINE.json'),read('CHANGELOG.md'),read('MID_IMPLEMENTATION_0.9.66.8.md'),read('worker-src/25-dach-extreme-outlook.js')
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-extreme-outlook-labels-layout-persistence-09668.mjs';
-assert.ok(versionAtLeast(pkg.version,'0.9.66.8'));assert.equal(baseline.releaseVersion,pkg.version);
+assert.ok(pkg.version.startsWith('0.9.66.')&&Number(pkg.version.split('.')[3])>=8);assert.equal(baseline.releaseVersion,pkg.version);
 assert.equal(pkg.scripts?.['test:extreme-outlook-labels-layout'],`node ${test}`);
 assert.ok(baseline.requiredRegressionTests.includes(test)&&baseline.regressionTests.includes(test));
 for(const file of[test,'MID_IMPLEMENTATION_0.9.66.8.md'])assert.ok(baseline.requiredFiles.includes(file));

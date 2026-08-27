@@ -1,5 +1,4 @@
 import {MID_VERSION} from './version';
-import {isMidNativeRuntime} from './runtimePlatform';
 
 let updateTimer:number|undefined;
 let visibilityHandler:(()=>void)|undefined;
@@ -33,27 +32,25 @@ function requestWorker(message:Record<string,unknown>,timeoutMs=10000):Promise<S
 
 export async function getMidUpdateStatus():Promise<MidUpdateStatus>{
  const fallback:MidUpdateStatus={appVersion:MID_VERSION,availableVersions:[],rollbackAvailable:false,controlled:Boolean(navigator.serviceWorker?.controller)};
- if(isMidNativeRuntime()||!('serviceWorker'in navigator))return fallback;
+ if(!('serviceWorker'in navigator))return fallback;
  const reply=await requestWorker({type:'MID_GET_STATUS'}).catch(():SwReply=>({ok:false}));
  return reply.status?{...reply.status,appVersion:MID_VERSION}:fallback;
 }
 
 export async function repairMidCache(){
- if(isMidNativeRuntime())throw new Error('Die native MID-App verwendet keinen Service-Worker-App-Cache.');
  const reply=await requestWorker({type:'MID_REPAIR_CACHE'},30000);
  if(!reply.ok)throw new Error(reply.error||'MID-Cache konnte nicht repariert werden.');
  return reply;
 }
 
 export async function rollbackMidVersion(){
- if(isMidNativeRuntime())throw new Error('Native MID-Versionen werden später über TestFlight beziehungsweise den App Store aktualisiert.');
  const reply=await requestWorker({type:'MID_ROLLBACK'});
  if(!reply.ok)throw new Error(reply.error||'Keine vorherige Version verfügbar.');
  return reply;
 }
 
 export async function resetMidServiceWorker(){
- if(isMidNativeRuntime()||!('serviceWorker'in navigator))return;
+ if(!('serviceWorker'in navigator))return;
  const registrations=await navigator.serviceWorker.getRegistrations();
  await Promise.all(registrations.map(registration=>registration.unregister().catch(()=>false)));
  if('caches'in window){
@@ -63,12 +60,12 @@ export async function resetMidServiceWorker(){
 }
 
 export async function markMidRuntimeHealthy(){
- if(isMidNativeRuntime()||!navigator.serviceWorker?.controller)return;
+ if(!navigator.serviceWorker?.controller)return;
  await requestWorker({type:'MID_RUNTIME_HEALTHY',version:MID_VERSION},5000).catch(()=>undefined);
 }
 
 export async function registerMidServiceWorker(){
- if(isMidNativeRuntime()||!('serviceWorker'in navigator)||!import.meta.env.PROD)return null;
+ if(!('serviceWorker'in navigator)||!import.meta.env.PROD)return null;
  try{
   const scriptUrl=new URL('./service-worker.js',document.baseURI);
   const registration=await navigator.serviceWorker.register(scriptUrl,{scope:'./',updateViaCache:'none'});

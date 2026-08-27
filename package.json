@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.67.0",
+  "version": "0.9.66.19",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,8 +10,6 @@
     "build": "npm run verify:types && npm run verify:vite",
     "build:vite": "node --max-old-space-size=4096 node_modules/vite/bin/vite.js build",
     "verify": "npm run build && node --check worker/metar-proxy.js && npm run test:regressions",
-    "ios:sync": "npm run build && cap sync ios",
-    "ios:open": "cap open ios",
     "preview": "vite preview",
     "test:updater": "node scripts/test-updater.mjs",
     "test:radar": "node scripts/test-radar.mjs",
@@ -333,15 +331,9 @@
     "test:event-flight-ceiling-plausibility": "node scripts/test-event-flight-ceiling-plausibility-096615.mjs",
     "test:official-warning-chronological-order": "node scripts/test-official-warning-chronological-order-096616.mjs",
     "test:extreme-outlook-modelled-areas": "node scripts/test-extreme-outlook-modelled-areas-096618.mjs",
-    "test:extreme-regions-flight-null": "node scripts/test-extreme-regions-flight-null-096619.mjs",
-    "test:cross-platform-ios-shell": "node scripts/test-cross-platform-ios-shell-09670.mjs"
+    "test:extreme-regions-flight-null": "node scripts/test-extreme-regions-flight-null-096619.mjs"
   },
   "dependencies": {
-    "@capacitor/app": "8.1.1",
-    "@capacitor/core": "8.5.0",
-    "@capacitor/ios": "8.5.0",
-    "@capacitor/splash-screen": "8.0.2",
-    "@capacitor/status-bar": "8.0.3",
     "astronomy-engine": "^2.1.19",
     "html-to-image": "^1.11.13",
     "jsfive": "^0.4.0",
@@ -353,7 +345,6 @@
     "recharts": "3.10.1"
   },
   "devDependencies": {
-    "@capacitor/cli": "8.5.0",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "4.7.0",
