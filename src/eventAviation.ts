@@ -32,7 +32,7 @@ function endpoint(lat:number,lon:number,elevation:number){const url=new URL('htt
 async function load(lat:number,lon:number,elevation:number,signal?:AbortSignal):Promise<Response>{
  const key=`${lat.toFixed(3)}:${lon.toFixed(3)}:${Math.round(elevation)}`,cached=cache.get(key)
  if(cached&&Date.now()-cached.at<=TTL)return cached.value
- if(workerBaseCandidates('meteogram').length){try{const value=await fetchWorkerJson<Response>('meteogram',{lat,lon,elevation:Math.round(elevation),model:'best_match'},{purpose:'meteogram',signal,timeoutMs:16000,maxAgeMs:TTL,staleIfErrorMs:3*60*60*1000,cacheKey:`event-flight:${key}`});cache.set(key,{at:Date.now(),value});return value}catch(error){if(signal?.aborted)throw error}}
+ if(workerBaseCandidates('meteogram').length){try{const value=await fetchWorkerJson<Response>('meteogram',{lat,lon,elevation:Math.round(elevation),model:'best_match'},{purpose:'meteogram',signal,timeoutMs:16000,maxAgeMs:TTL,staleIfErrorMs:3*60*60*1000,cacheKey:`event-flight:v2:${key}`});cache.set(key,{at:Date.now(),value});return value}catch(error){if(signal?.aborted)throw error}}
  const response=await guardedOpenMeteoFetch(endpoint(lat,lon,elevation).toString(),{signal},{priority:'background',maxRetries:0}),raw=await response.json().catch(()=>({}));if(!response.ok)throw new Error(raw?.error||raw?.reason||`Flugprofil HTTP ${response.status}`);const value:Response=raw?.data?raw:{data:raw,requestedModel:'best_match',modelLabel:'Best Match',version:VERSION};cache.set(key,{at:Date.now(),value});return value
 }
 async function loadOfficial(lat:number,lon:number,startEpoch:number,endEpoch:number,signal?:AbortSignal):Promise<OfficialResponse>{
@@ -44,6 +44,13 @@ async function loadOfficial(lat:number,lon:number,startEpoch:number,endEpoch:num
 function levelRank(level:EventFlightHazardLevel){return level==='caution'?2:level==='watch'?1:0}
 function stronger(a:EventFlightHazardLevel,b:EventFlightHazardLevel){return levelRank(b)>levelRank(a)?b:a}
 function overall(items:EventFlightHazardItem[]){return items.reduce<EventFlightHazardLevel>((best,item)=>stronger(best,item.level),'none')}
+export function coherentEventFlightCeiling(ceilingFt:number|null|undefined,visibilityM:number|null|undefined){const ceiling=finite(ceilingFt),visibility=finite(visibilityM);if(ceiling===null)return null;if(visibility!==null&&ceiling<100&&visibility>=5000)return null;if(visibility!==null&&ceiling<300&&visibility>=10000)return null;return ceiling}
+export function normalizeEventFlightHazardSummary(summary:EventFlightHazardSummary|null|undefined):EventFlightHazardSummary|null|undefined{
+ if(!summary)return summary;
+ const ceiling=coherentEventFlightCeiling(summary.ceilingMinFt,summary.visibilityMinM),suppressed=summary.ceilingMinFt!==null&&summary.ceilingMinFt!==undefined&&ceiling===null;
+ const items=suppressed?summary.items.map(item=>item.id==='ceiling'?{...item,level:'none' as const,detail:'nicht belastbar',value:undefined,source:undefined}:item):summary.items;
+ return{...summary,ceilingMinFt:ceiling,items,overall:overall(items)};
+}
 function maxNumber(values:(number|null)[]){const nums=values.filter((value):value is number=>value!==null&&Number.isFinite(value));return nums.length?Math.max(...nums):null}
 function minNumber(values:(number|null)[]){const nums=values.filter((value):value is number=>value!==null&&Number.isFinite(value));return nums.length?Math.min(...nums):null}
 function profile(hourly:HourlyRecord,index:number):ProfilePoint[]{return LEVELS.map(pressure=>({pressure,height:valueAt(hourly,`geopotential_height_${pressure}hPa`,index),temperature:valueAt(hourly,`temperature_${pressure}hPa`,index),humidity:valueAt(hourly,`relative_humidity_${pressure}hPa`,index),cloud:valueAt(hourly,`cloud_cover_${pressure}hPa`,index),windSpeed:valueAt(hourly,`wind_speed_${pressure}hPa`,index),windDirection:valueAt(hourly,`wind_direction_${pressure}hPa`,index)})).filter(point=>point.height!==null)}
@@ -97,6 +104,6 @@ export async function loadEventFlightHazards(lat:number,lon:number,elevation:num
    {id:'wind',label:'Böen',level:windLevel,detail:gustMax===null?'nicht verfügbar':`bis ${Math.round(gustMax)} kt`,value:gustMax??undefined,unit:'kt'}
   ]
   const officialSignals=official.signals??[],items=mergeOfficial(diagnosed,officialSignals),sources:EventFlightSourceStatus[]=[{id:'model-profile',label:`${response.modelLabel||'Best Match'} / MID-Druckniveau`,status:'used'},...(official.sources??[])],used=sourceLabels(sources),source=[response.modelLabel||'Best Match',...used.filter(label=>!label.startsWith(response.modelLabel||'Best Match'))].filter(Boolean).slice(0,4).join(' · '),resolvedCeilingMinFt=ceilingMinFt,resolvedVisibilityMinM=visibilityMin,resolvedGustMaxKt=gustMax
-  return{available:true,overall:overall(items),items,freezingLevelMin:minNumber(freezing),ceilingMinFt:resolvedCeilingMinFt,visibilityMinM:resolvedVisibilityMinM,gustMaxKt:resolvedGustMaxKt,source,sources,officialSignalCount:officialSignals.length}
+  return normalizeEventFlightHazardSummary({available:true,overall:overall(items),items,freezingLevelMin:minNumber(freezing),ceilingMinFt:resolvedCeilingMinFt,visibilityMinM:resolvedVisibilityMinM,gustMaxKt:resolvedGustMaxKt,source,sources,officialSignalCount:officialSignals.length})!
  }catch(error){if(signal?.aborted)throw error;const official=await loadOfficial(lat,lon,startEpoch,endEpoch,signal);return officialOnlySummary(official,error instanceof Error?`Druckniveau-Diagnose nicht verfügbar: ${error.message}`:'Druckniveau-Diagnose nicht verfügbar.')}
 }

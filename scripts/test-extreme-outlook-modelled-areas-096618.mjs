@@ -26,11 +26,11 @@ const worker=fs.readFileSync(path.join(root,'worker-src','25-dach-extreme-outloo
 const pkg=JSON.parse(fs.readFileSync(path.join(root,'package.json'),'utf8'));
 const baseline=JSON.parse(fs.readFileSync(path.join(root,'MID_BASELINE.json'),'utf8'));
 const test='scripts/test-extreme-outlook-modelled-areas-096618.mjs';
-assert.equal(pkg.version,'0.9.66.18');
+assert.equal(pkg.version,'0.9.66.19');
 assert.equal(baseline.releaseVersion,pkg.version);
 assert.equal(pkg.scripts?.['test:extreme-outlook-modelled-areas'],`node ${test}`);
 for(const key of ['requiredRegressionTests','regressionTests','requiredFiles'])assert.ok(baseline[key].includes(test),`${test} fehlt in ${key}.`);
-for(const token of ['buildExtremeOutlookContourSet(data,selectedPeriod.id,hazard).areas.slice(0,8)','row.id','setSelectedAreaId(row.id)','row.region'])assert.ok(panel.includes(token),`Flächengebundene Regionsliste fehlt: ${token}`);
+for(const token of ['strongestModelledRegionAreas(buildExtremeOutlookContourSet(data,selectedPeriod.id,hazard).areas,8)','row.id','setSelectedAreaId(row.id)','row.region'])assert.ok(panel.includes(token),`Flächengebundene Regionsliste fehlt: ${token}`);
 for(const token of ['areas.map(area=>','escapeHtml(area.region)','Modellierte Gefahrenfläche'])assert.ok(overlay.includes(token),`Flächengebundenes Popup fehlt: ${token}`);
 for(const region of ['Wallis','Zentralschweiz','Tessin','Graubünden','Vorarlberg','Tirol'])assert.ok(worker.includes(`['${region}'`),`Alpenregion fehlt: ${region}`);
 assert.ok(!panel.includes('strongestExtremeRegions('),'Die Ansicht darf räumlich getrennte Flächen nicht mehr nach Regionsnamen deduplizieren.');

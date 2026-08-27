@@ -1,5 +1,5 @@
 import {buildExtremeOutlookContours,type ExtremeAreaContour} from './extremeOutlookAreaCanvas';
-import {EXTREME_INTENSITY_COLORS,extremeProbabilityBand,extremeProbabilityLevelsForCell,extremeSignalForCell,extremeSignalVisible,type ExtremeHazardId,type ExtremeOutlookCell,type ExtremeWeatherOutlook,type ResolvedExtremeSignal} from './extremeWeatherOutlook';
+import {EXTREME_INTENSITY_COLORS,extremeProbabilityBand,extremeProbabilityLevelsForCell,extremeSignalForCell,type ExtremeHazardId,type ExtremeHazardKind,type ExtremeOutlookCell,type ExtremeWeatherOutlook,type ResolvedExtremeSignal} from './extremeWeatherOutlook';
 
 export type ExtremeModelledArea={
  id:string;
@@ -30,11 +30,23 @@ function displayContours(contours:ExtremeAreaContour[]){
  return selected;
 }
 
+function distanceTo(center:{lon:number;lat:number},cell:ExtremeOutlookCell){return(cell.lat-center.lat)**2+((cell.lon-center.lon)*Math.cos(center.lat*Math.PI/180))**2}
+function contourSignalForCell(cell:ExtremeOutlookCell,periodId:string,hazard:ExtremeHazardId,levelIndex:number):ResolvedExtremeSignal|null{
+ const period=cell.periods?.[periodId];if(!period)return null;
+ if(hazard!=='overall'){const signal=period.hazards?.[hazard];return signal?{...signal,hazard}:null}
+ const candidates=(Object.entries(period.probabilityFields||{}) as Array<[ExtremeHazardKind,[number,number,number,number]]>).map(([kind,levels])=>({kind,probability:Number(levels?.[levelIndex])||0,signal:period.hazards?.[kind]})).filter(item=>item.signal&&item.probability>0).sort((a,b)=>b.probability-a.probability||Number(b.signal?.probability||0)-Number(a.signal?.probability||0));
+ const selected=candidates[0];return selected?.signal?{...selected.signal,hazard:selected.kind}:extremeSignalForCell(cell,periodId,hazard);
+}
+function cellsForContour(data:ExtremeWeatherOutlook,contour:ExtremeAreaContour){
+ const center=contourCenter(contour),cells=data.cells.map(cell=>({cell,inside:contourContains(contour,{lon:cell.lon,lat:cell.lat}),distance:distanceTo(center,cell)})),contained=cells.filter(item=>item.inside);
+ return{center,cells,spatial:(contained.length?contained:cells).sort((a,b)=>a.distance-b.distance)[0]};
+}
 function representativeCell(data:ExtremeWeatherOutlook,periodId:string,hazard:ExtremeHazardId,contour:ExtremeAreaContour){
- const center=contourCenter(contour),levelIndex=contour.intensity-1;
- const candidates=data.cells.map(cell=>({cell,signal:extremeSignalForCell(cell,periodId,hazard),levelProbability:extremeProbabilityLevelsForCell(cell,periodId,hazard)[levelIndex],inside:contourContains(contour,{lon:cell.lon,lat:cell.lat}),distance:(cell.lat-center.lat)**2+((cell.lon-center.lon)*Math.cos(center.lat*Math.PI/180))**2})).filter(item=>item.signal&&extremeSignalVisible(item.signal,hazard,data.thresholds));
- const contained=candidates.filter(item=>item.inside&&item.levelProbability>0),pool=contained.length?contained:candidates;
- return pool.sort((a,b)=>Number(b.signal?.intensity===contour.intensity)-Number(a.signal?.intensity===contour.intensity)||b.levelProbability-a.levelProbability||Number(b.signal?.probability||0)-Number(a.signal?.probability||0)||a.distance-b.distance)[0];
+ const levelIndex=contour.intensity-1,{cells,spatial}=cellsForContour(data,contour);
+ const candidates=cells.map(item=>({...item,signal:contourSignalForCell(item.cell,periodId,hazard,levelIndex),levelProbability:extremeProbabilityLevelsForCell(item.cell,periodId,hazard)[levelIndex]})).filter(item=>item.signal);
+ const contained=candidates.filter(item=>item.inside&&item.levelProbability>0);
+ const metric=(contained.length?contained.sort((a,b)=>Number(b.signal?.intensity===contour.intensity)-Number(a.signal?.intensity===contour.intensity)||b.levelProbability-a.levelProbability||a.distance-b.distance):candidates.sort((a,b)=>a.distance-b.distance||Number(b.signal?.intensity===contour.intensity)-Number(a.signal?.intensity===contour.intensity)||b.levelProbability-a.levelProbability))[0];
+ return metric&&spatial?{metric,spatial}:null;
 }
 
 export function buildExtremeOutlookContourSet(data:ExtremeWeatherOutlook,periodId:string,hazard:ExtremeHazardId):ExtremeOutlookContourSet{
@@ -44,9 +56,15 @@ export function buildExtremeOutlookContourSet(data:ExtremeWeatherOutlook,periodI
  const contours=buildExtremeOutlookContours(paintAreas,data.grid,options),hatchContours=buildExtremeOutlookContours(paintAreas,data.grid,{...options,maximumProbability:60});
  const areas=displayContours(contours).map(contour=>{
   const center=contourCenter(contour),representative=representativeCell(data,periodId,hazard,contour);
-  if(!representative?.signal)return null;
-  const signal={...representative.signal,intensity:contour.intensity,probability:contour.probability,probabilityBand:extremeProbabilityBand(contour.probability)} as ResolvedExtremeSignal;
-  return{id:`${periodId}:${hazard}:I${contour.intensity}:${representative.cell.id}:${center.lat.toFixed(3)}:${center.lon.toFixed(3)}`,latitude:center.lat,longitude:center.lon,intensity:contour.intensity,probability:contour.probability,region:representative.cell.region,cell:representative.cell,signal,contour};
+  if(!representative?.metric.signal)return null;
+  const signal={...representative.metric.signal,intensity:contour.intensity,probability:contour.probability,probabilityBand:extremeProbabilityBand(contour.probability)} as ResolvedExtremeSignal;
+  return{id:`${periodId}:${hazard}:I${contour.intensity}:${representative.spatial.cell.id}:${center.lat.toFixed(3)}:${center.lon.toFixed(3)}`,latitude:center.lat,longitude:center.lon,intensity:contour.intensity,probability:contour.probability,region:representative.spatial.cell.region,cell:representative.metric.cell,signal,contour};
  }).filter((area):area is ExtremeModelledArea=>Boolean(area)).sort((a,b)=>b.intensity-a.intensity||b.probability-a.probability||a.region.localeCompare(b.region,'de'));
  return{contours,hatchContours,areas};
+}
+
+export function strongestModelledRegionAreas(areas:ExtremeModelledArea[],limit=8){
+ const regions=new Map<string,ExtremeModelledArea>();
+ for(const area of areas){const key=`${area.region}:${area.signal.hazard}:I${area.intensity}`,current=regions.get(key);if(!current||area.probability>current.probability)regions.set(key,area)}
+ return[...regions.values()].sort((a,b)=>b.intensity-a.intensity||b.probability-a.probability||a.region.localeCompare(b.region,'de')).slice(0,limit);
 }

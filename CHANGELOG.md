@@ -1,3 +1,10 @@
+## 0.9.66.19
+
+- Regionsnamen von modellierten Gefahrenflächen werden ausschließlich aus der räumlichen Lage der jeweiligen Kontur bestimmt; meteorologische Spitzenwerte einer entfernten Rasterzelle können das Popup nicht mehr falsch benennen.
+- „Stärkste Regionen“ fasst nur noch identische Kombinationen aus Region, Gefahr und Intensität zusammen und behält dabei die höchste Wahrscheinlichkeit. Mehrfache gleichlautende Einträge wie „Ostschweiz“ entfallen.
+- Flug-Events behandeln fehlende Wolkenuntergrenzen strikt nullsicher. Ein noch nicht vorhandener TAF-/Ceiling-Wert wird nicht mehr durch `Number(null)` zu 0 und anschließend als „unter 100 ft AGL“ formatiert.
+- Sehr niedrige diagnostische Untergrenzen bleiben zusätzlich gegen Sichtweite, tiefe Bewölkung und Wettercode plausibilisiert; ältere Flugwetter-Zwischenspeicher werden über einen neuen Cachevertrag entwertet.
+
 ## 0.9.66.18
 
 - DACH-Extremwetterkarte und „Stärkste Regionen“ verwenden nun denselben flächenbezogenen Konturdatensatz. Zwei getrennte Gefahrenflächen bleiben auch dann zwei Listeneinträge, wenn ihre frühere grobe Regionsbezeichnung identisch war.

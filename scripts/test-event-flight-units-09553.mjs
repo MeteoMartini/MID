@@ -11,7 +11,8 @@ for(const token of [
   "function flightHazardDetail(",
   "wind(gust,unit)",
   "Sicht / Wolkenuntergrenze",
-  "Wolkenuntergrenze {aviationCeiling(plan.summary.flightHazards?.ceilingMinFt)}"
+  "Wolkenuntergrenze {aviationCeiling(renderedFlightHazards?.ceilingMinFt)}",
+  "if(value===null||value===undefined)return'–'"
 ])assert.ok(panel.includes(token),`Flug-Event-Einheitenvertrag fehlt im Panel: ${token}`);
 for(const token of [
   "visibilityMinM?:number|null",
