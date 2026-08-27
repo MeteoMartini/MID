@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.67.2",
+  "releaseVersion": "0.9.67.4",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -288,7 +288,9 @@
     "scripts/test-extreme-regions-flight-null-096619.mjs",
     "scripts/test-cross-platform-ios-shell-09670.mjs",
     "scripts/test-ios-safe-area-header-096671.mjs",
-    "scripts/test-release-activation-event-precip-096672.mjs"
+    "scripts/test-release-activation-event-precip-096672.mjs",
+    "scripts/test-dependency-actions-maintenance-096673.mjs",
+    "scripts/test-release-workflow-pin-boundary-096674.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -507,7 +509,9 @@
     "scripts/test-extreme-regions-flight-null-096619.mjs",
     "scripts/test-cross-platform-ios-shell-09670.mjs",
     "scripts/test-ios-safe-area-header-096671.mjs",
-    "scripts/test-release-activation-event-precip-096672.mjs"
+    "scripts/test-release-activation-event-precip-096672.mjs",
+    "scripts/test-dependency-actions-maintenance-096673.mjs",
+    "scripts/test-release-workflow-pin-boundary-096674.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -664,7 +668,11 @@
     "MID_IMPLEMENTATION_0.9.67.1.md",
     "scripts/test-ios-safe-area-header-096671.mjs",
     "MID_IMPLEMENTATION_0.9.67.2.md",
-    "scripts/test-release-activation-event-precip-096672.mjs"
+    "scripts/test-release-activation-event-precip-096672.mjs",
+    "scripts/test-dependency-actions-maintenance-096673.mjs",
+    "MID_IMPLEMENTATION_0.9.67.3.md",
+    "scripts/test-release-workflow-pin-boundary-096674.mjs",
+    "MID_IMPLEMENTATION_0.9.67.4.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -699,6 +707,8 @@
     "scripts/version-regression-helper.mjs",
     "scripts/test-cross-platform-ios-shell-09670.mjs",
     "scripts/test-ios-safe-area-header-096671.mjs",
-    "scripts/test-release-activation-event-precip-096672.mjs"
+    "scripts/test-release-activation-event-precip-096672.mjs",
+    "scripts/test-dependency-actions-maintenance-096673.mjs",
+    "scripts/test-release-workflow-pin-boundary-096674.mjs"
   ]
 }

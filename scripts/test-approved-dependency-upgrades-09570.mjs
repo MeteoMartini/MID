@@ -6,8 +6,8 @@ const [pkgText,lockText,policy,deploy,install,audit,patchDeploy,patchInstall,bas
  read('package.json'),read('package-lock.json'),read('MID_DEPENDENCY_UPGRADE_POLICY.md'),read('ci/github/workflows/deploy.yml'),read('ci/github/workflows/install-mid.yml'),read('ci/github/workflows/dependency-audit.yml'),read('workflow-patches/deploy.yml'),read('workflow-patches/install-mid.yml'),read('MID_BASELINE.json')
 ]);
 const pkg=JSON.parse(pkgText),lock=JSON.parse(lockText),baseline=JSON.parse(baselineText);
-assert.equal(pkg.dependencies?.['lucide-react'],'^1.31.0');
-assert.equal(lock.packages?.['node_modules/lucide-react']?.version,'1.31.0');
+assert.equal(pkg.dependencies?.['lucide-react'],'^1.34.0');
+assert.equal(lock.packages?.['node_modules/lucide-react']?.version,'1.34.0');
 assert.equal(pkg.dependencies?.recharts,'3.10.1');
 assert.equal(lock.packages?.['node_modules/recharts']?.version,'3.10.1');
 assert.equal(lock.packages?.['node_modules/immer']?.version,'11.1.17');
@@ -25,10 +25,10 @@ for(const [label,text] of [['deploy',deploy],['install',install],['dependency-au
  assert.ok(!/actions\/(?:checkout|setup-node)@v6\b/.test(text),`${label}: ungepinnter v6-Verweis ist zurückgekehrt.`);
 }
 assert.ok(policy.includes('Recharts: 3.10.1'));
-assert.ok(policy.includes('Lucide React: 1.31.0'));
+assert.ok(policy.includes('Lucide React: 1.34.0'));
 assert.ok(policy.includes('TypeScript 7')&&policy.includes('Vite 8'));
 const test='scripts/test-approved-dependency-upgrades-09570.mjs';
 assert.equal(pkg.scripts?.['test:approved-dependency-upgrades'],`node ${test}`);
 assert.ok(baseline.requiredRegressionTests?.includes(test));
 assert.ok(baseline.regressionTests?.includes(test));
-console.log('Freigegebene Dependency-/Action-Upgrades geprüft: checkout 7.0.1, setup-node 7.0.0, Lucide React 1.31.0 und Recharts 3.10.1; React 19, plugin-react 6/Vite 8 und TypeScript 7 bleiben zurückgestellt.');
+console.log('Freigegebene Dependency-/Action-Upgrades geprüft: checkout 7.0.1, setup-node 7.0.0, Lucide React 1.34.0 und Recharts 3.10.1; React 19, plugin-react 6/Vite 8 und TypeScript 7 bleiben zurückgestellt.');

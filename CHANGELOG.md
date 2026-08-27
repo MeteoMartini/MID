@@ -1,3 +1,19 @@
+## 0.9.67.4
+
+- Release-Hotfix für den v0.9.67.3-Installer: Der Dependency-/Actions-Wartungstest verlangt nicht länger, dass der absichtlich vor Workflow-Selbstmodifikation geschützte aktive `.github`-Stand bereits innerhalb desselben ZIP-Installationslaufs aktualisiert wurde.
+- `sync-github-workflows.mjs` synchronisiert beim ausdrücklich administrativen Lauf nun neben checkout v7.0.1 und setup-node v7.0.0 auch CodeQL `init`/`analyze` auf 4.37.7 (`ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd`).
+- Der Installer-Sicherheitsvertrag bleibt unverändert: `.github` wird weder durch das Release-Overlay noch durch den automatischen Release-Commit selbst verändert; die Workflow-Aktualisierung erfolgt getrennt über den expliziten Sync.
+- Versionssynchronisierung gehärtet: `sync-version.mjs` aktualisiert nun auch die kanonische Worker-Teilquelle, damit der Aggregate-Neubau den Release-Worker nicht auf die Vorversion zurücksetzen kann.
+- Keine Änderung an Wetterlogik, UI, MapLibre/Lucide-Versionen oder Datenquellen gegenüber v0.9.67.3.
+
+## 0.9.67.3
+
+- PR #16 übernommen: Lucide React 1.31.x → 1.34.0; Package/Lockfile, Dependency-Policy und Freigabetest sind gemeinsam auf den neuen Stable-Pin umgestellt.
+- PR #17 übernommen: MapLibre GL JS 5.24.0 → 6.5.0 einschließlich synchronisierter Transitivreihen und MapLibre-Pin-Regression; der verwendete Stand enthält die DOM-Sanitizing-Korrektur aus der 6.4.1-Linie.
+- PR #15 übernommen: CodeQL 4.37.7 ist für `init` und `analyze` auf `ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd` SHA-gepinnt.
+- PR #1/#2 nicht blind gemergt: `sync-github-workflows.mjs` synchronisiert alle Workflows auf checkout v7.0.1 (`3d3c42e5aac5ba805825da76410c181273ba90b1`) und setup-node v7.0.0 (`820762786026740c76f36085b0efc47a31fe5020`).
+- React 18.3.1, TypeScript 5.9.3, Vite 6.4.3 und @vitejs/plugin-react 4.7.0 bleiben unverändert; die größeren Toolchain-Sprünge sind weiterhin separat zurückgestellt.
+
 ## 0.9.67.2
 
 - Ein vollständig gecachtes Browser-/PWA-Update wird nun kontrolliert aktiviert und lädt offene App-Fenster auf den neuen Stand. Die vorherige geprüfte Version bleibt bis zur erfolgreichen Laufzeit-Gesundheitsmeldung als Rückfallversion erhalten.

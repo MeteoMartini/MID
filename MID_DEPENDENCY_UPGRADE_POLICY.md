@@ -9,8 +9,11 @@ Der Stable-Channel erhält keine ungeprüften Major-/Toolchain-Sprünge. Der rep
 - TypeScript: 5.9.3
 - Vite: 6.4.3
 - @vitejs/plugin-react: 4.7.0
-- Lucide React: 1.31.0 (React 18.3.1 bleibt unverändert)
-- GitHub Actions: checkout 7.0.1 und setup-node 7.0.0, jeweils SHA-gepinnt
+- Lucide React: 1.34.0 (React 18.3.1 bleibt unverändert)
+- MapLibre GL JS: 6.5.0 (inkl. DOM-Sanitizing-Korrektur aus der 6.4.1-Linie)
+- GitHub Actions: checkout 7.0.1 (`3d3c42e5aac5ba805825da76410c181273ba90b1`) und setup-node 7.0.0 (`820762786026740c76f36085b0efc47a31fe5020`), jeweils SHA-gepinnt
+- CodeQL: 4.37.7 (`ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd`), SHA-gepinnt
+- Workflow-Aktivierung: Der Release-Installer verändert `.github` nicht selbst; checkout/setup-node/CodeQL werden über `npm run sync:github-workflows` ausdrücklich administrativ synchronisiert.
 
 Sicherheits-Patches innerhalb kompatibler Transitivreihen werden im Stable-Channel unmittelbar angehoben, sobald `npm audit` einen Befund meldet und die vollständige Regression grün bleibt. Aktueller Mindestvertrag: `nanoid >=3.3.18` im 3.x-Pfad sowie `protocol-buffers-schema >=3.6.1`.
 

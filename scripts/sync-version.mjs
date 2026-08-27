@@ -25,11 +25,14 @@ const baselineUrl=new URL('../MID_BASELINE.json',import.meta.url);
 const baseline=JSON.parse(await readFile(baselineUrl,'utf8'));
 baseline.releaseVersion=version;
 await writeFile(baselineUrl,`${JSON.stringify(baseline,null,2)}\n`);
-const workerUrl=new URL('../worker/metar-proxy.js',import.meta.url);
-const worker=await readFile(workerUrl,'utf8');
-const updated=worker.replace(/const WORKER_VERSION='[^']+';/,`const WORKER_VERSION='${version}';`);
-if(updated===worker&&!worker.includes(`const WORKER_VERSION='${version}';`))throw new Error('WORKER_VERSION konnte nicht synchronisiert werden.');
-await writeFile(workerUrl,updated);
+const workerTargets=['../worker-src/00-core-observations.js','../worker/metar-proxy.js'];
+for(const relativePath of workerTargets){
+ const workerUrl=new URL(relativePath,import.meta.url);
+ const worker=await readFile(workerUrl,'utf8');
+ const updated=worker.replace(/const WORKER_VERSION='[^']+';/,`const WORKER_VERSION='${version}';`);
+ if(updated===worker&&!worker.includes(`const WORKER_VERSION='${version}';`))throw new Error(`${relativePath}: WORKER_VERSION konnte nicht synchronisiert werden.`);
+ await writeFile(workerUrl,updated);
+}
 
 for(const relativePath of ['../public/service-worker.js','../public/sw.js']){
  const serviceWorkerUrl=new URL(relativePath,import.meta.url);
