@@ -18,16 +18,16 @@ for(const token of [
  "const DACH_EXTREME_ANALYSIS_BOUNDS={south:43.45,west:-3.5,north:57.75,east:19.9}",
  "const DACH_EXTREME_ROTATED_DOMAIN={west:-7.5,east:5.5,south:-6.3,north:8,poleLon:-170,poleLat:40}",
  "function dachExtremeDomainPolygon(samples=24)",
- 'function dachExtremeGrid(){const rows=19,cols=31',
- 'dachExtremeFetchBatches(batches,4)',
+ "const DACH_EXTREME_GRID_PROFILES={full:{rows:13,cols:23",
+ "fallback:{rows:11,cols:19",
+ "function dachExtremeGrid(profile='full')",
  "scope:'Mitteleuropa'",
- "displayGrid:'Gesamtes ICON-D2-Gebiet · regionales Analyseraster etwa 60–100 km'"
 ])assert.ok(worker.includes(token),`ICON-D2-Gebietsvertrag fehlt: ${token}`);
 for(const region of ['Südostengland','Dänemark','Niederlande','Belgien','Nordfrankreich','Südwestfrankreich','Böhmen','Westpolen','Schlesien/Südpolen','Slowenien','Piemont/Lombardei','Venetien/Friaul'])assert.ok(worker.includes(`['${region}'`),`Erweiterte ICON-D2-Region fehlt: ${region}`);
 
 assert.ok(data.includes("scope:'Mitteleuropa';"));
 assert.ok(data.includes('bounds.west<=-3.84&&bounds.east>=20.2&&bounds.south<=43.2&&bounds.north>=57.99'));
-assert.ok(data.includes("cacheKey:'dach-extreme-outlook:v4'"),'Alte DACH-Payloads dürfen nicht als vollständiger Mitteleuropa-Stand wiederverwendet werden.');
+assert.ok(data.includes("cacheKey:'dach-extreme-outlook:v5'"),'Alte DACH-/v4-Payloads dürfen nicht als aktueller resilienter Mitteleuropa-Stand wiederverwendet werden.');
 assert.ok(router.includes("scope:'Mitteleuropa'"),'Worker-Fehlerumschlag muss den neuen Scope verwenden.');
 
 for(const token of ['MID Extremwetter-Ausblick · Mitteleuropa','gesamtes ICON-D2-Modellgebiet','Karte des Mitteleuropa-Extremwetter-Ausblicks','amtlichen nationalen Warnstellen bzw. MeteoAlarm'])assert.ok(panel.includes(token),`Mitteleuropa-UI fehlt: ${token}`);

@@ -40,7 +40,7 @@ for(const token of [
 ])assert.ok(workerSource.includes(token),`Worker-Fachvertrag fehlt: ${token}`);
 assert.ok(router.includes("mode==='dach-extreme-outlook'"));
 assert.ok(router.includes("'dach-extreme-outlook'"));
-assert.ok(worker.includes('async function dachExtremeOutlookData()'));
+assert.ok(worker.includes("async function dachExtremeOutlookData(profile='full')"),'Extremwetter-Worker muss den resilienten Vollgebiet-/Browserprofil-Vertrag bereitstellen.');
 assert.ok(worker.includes("mode==='dach-extreme-outlook'"));
 assert.ok(buildScript.includes("'worker-src/25-dach-extreme-outlook.js'"));
 assert.ok(buildScript.includes("'src/styles-src/25-extreme-outlook.css'"));

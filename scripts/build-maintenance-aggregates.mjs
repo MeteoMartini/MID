@@ -30,7 +30,7 @@ const directEpilogue=`
 export async function loadDirectDachExtremeOutlook(signal){
  if(signal?.aborted)throw directAbortReason(signal);
  directRequestSignal=signal;
- try{return{...await dachExtremeOutlookData(),version:MID_VERSION,delivery:'browser-direct'}}finally{if(directRequestSignal===signal)directRequestSignal=undefined}
+ try{return{...await dachExtremeOutlookData('fallback'),version:MID_VERSION,delivery:'browser-direct'}}finally{if(directRequestSignal===signal)directRequestSignal=undefined}
 }
 `;
 const directModule=directPrelude+extremeOutlookSource+directEpilogue;

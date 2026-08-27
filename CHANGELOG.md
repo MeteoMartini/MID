@@ -1,3 +1,16 @@
+## 0.9.67.9
+
+- Release-Hotfix: Die historische Extremwetter-Regression akzeptiert die seit v0.9.67.8 bewusst parametrisierte resiliente `dachExtremeOutlookData(profile='full')`-Pipeline; der fachliche Mitteleuropa-/ICON-D2-Ausblick bleibt unverändert.
+- Der vollständige ICON-D2-Gebietsvertrag, reduzierte Abruflast, Batch-Retries, Teilcache und Teilabdeckungs-Fallback aus v0.9.67.8 bleiben unverändert geschützt.
+
+## 0.9.67.8
+
+- Extremwetter-Ausblick über das vollständige ICON-D2-Gebiet gegen Batch-/Rate-Limit-Ausfälle gehärtet.
+- Worker-Vollgebietsprofil auf 13×23, resilienter Browser-Direktpfad auf 11×19 bei gleicher geografischer Abdeckung.
+- Maximal zwei parallele Worker-Batches bzw. ein Direktbatch, Retry einzelner Teilabrufe und 6-h-Teilcache.
+- Einzelne fehlgeschlagene Batches führen nicht mehr automatisch zum Totalausfall; reduzierte Datenabdeckung wird transparent ausgewiesen.
+- Neue Cachegeneration v5 verhindert die Vermischung mit dem vorherigen v4-Abrufvertrag.
+
 ## 0.9.67.7
 - Extremwetter-Ausblick von DACH auf **Mitteleuropa / vollständiges ICON-D2-Modellgebiet** erweitert. Die DWD-Eckpunkte des ICON-D2-Ausgabegitters begrenzen die regionale Analyse; Benelux, Frankreich, Dänemark, Tschechien, Polen, Norditalien und weitere angrenzende Bereiche werden nun mit betrachtet.
 - Analyseraster auf 19 × 31 erweitert und Mehrpunktabrufe auf höchstens vier parallele Batches begrenzt. Alte DACH-Payloads werden durch die neue Cachegeneration nicht als vollständiger Mitteleuropa-Ausblick übernommen.
