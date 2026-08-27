@@ -69,3 +69,16 @@ Der fehlgeschlagene v0.9.53.34-Release-Kandidat wird ausschließlich technisch k
 `MID_COST_GOVERNANCE_CONTRACT.md` ist für alle weiteren MID-Schritte verbindlich. Solange MID keine Einnahmen generiert, darf keine kostenpflichtige Infrastruktur, API, Subscription, Entwickler-Mitgliedschaft oder sonstige Ausgabe ohne vorherige transparente Kostenangabe und ausdrückliche Nutzerfreigabe aktiviert oder vorausgesetzt werden. Kostenfreie/Open-Data-Pfade haben Vorrang; optionale nicht eingerichtete Quellen müssen ohne Funktionsverlust zurückfallen. Insbesondere wird für den vorbereiteten KNMI-/ECCC-GRIB-Punktadapter kein kostenpflichtiger VPS beschafft, solange keine ausdrückliche Freigabe vorliegt.
 
 Für die aktuelle 2-m-Temperatur ergänzt `MID_HYPERLOCAL_ANALYSIS_CONTRACT.md` die modellgestützte Restfeldanalyse um einen streng begrenzten direkten Messkonsens. Dieser greift nur bei mehreren frischen, nahen, voneinander getrennten Temperaturmesspunkten und verhindert, dass ein fehlerhafter räumlicher Modellgradient am Zielpunkt trotz deutlich abweichender lokaler Beobachtungen als „Temp. nahe Modell“ bestätigt wird. Die UI weist die tatsächlichen Temperatur-Messpunkte und ihren gewichteten Radius getrennt von der feldübergreifenden Stationsmenge aus. Required Regression: `scripts/test-hyperlocal-direct-temperature-consensus-095337.mjs` und `scripts/test-cost-governance-contract-095337.mjs`.
+
+## v0.9.67.0 · gemeinsamer Browser-/iOS-Vertrag
+
+`MID_CROSS_PLATFORM_CONTRACT.md` ist für die parallele Browser-/PWA- und
+iOS-Weiterentwicklung verbindlich. Beide Produkte verwenden denselben React-/
+Vite-Fachkern und denselben Worker; ein separater iOS-Fachfork ist unzulässig.
+Native Fähigkeiten werden ausschließlich über Plattformadapter ergänzt.
+`MID_IOS_ROADMAP.md` legt die autonome Etappenfolge und Apple-Freigabegates
+fest; `MID_IOS_STATUS.json` benennt den jeweils nächsten sicheren Meilenstein.
+Browserbuild, vollständige MID-Regressionen und iOS-WebView-/Capacitor-Prüfung
+bleiben getrennte Pflichtstufen. Kostenpflichtige Apple-, Signierungs-,
+TestFlight- oder macOS-CI-Schritte bleiben dem
+`MID_COST_GOVERNANCE_CONTRACT.md` unterstellt.

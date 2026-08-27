@@ -1781,6 +1781,12 @@ button,input,select,textarea{font:inherit}
 .aqi-pollutant-scale-marker{position:absolute;left:var(--aqi-position,0%);top:0;width:7px;height:7px;border-radius:50%;background:currentColor;transform:translateX(-50%);box-shadow:0 0 0 1px var(--card,white),0 0 0 3px color-mix(in srgb,currentColor 12%,transparent)}
 @media(max-width:620px){.aqi-tooltip-values{grid-template-columns:minmax(0,1fr)}}
 
+/* MID v0.9.67.0 · gemeinsamer Browserkern mit nativer iOS-/Android-Safe-Area */
+:root[data-mid-runtime=ios],:root[data-mid-runtime=android]{min-height:100%;overscroll-behavior-y:none}
+:root[data-mid-runtime=ios] body,:root[data-mid-runtime=android] body{min-height:100dvh}
+:root[data-mid-runtime=ios] .app,:root[data-mid-runtime=android] .app{padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+:root[data-mid-runtime=ios] .top,:root[data-mid-runtime=android] .top{top:max(10px,env(safe-area-inset-top))}
+@media(max-width:850px){:root[data-mid-runtime=ios] .app,:root[data-mid-runtime=android] .app{padding:max(7px,env(safe-area-inset-top)) max(7px,env(safe-area-inset-right)) max(7px,env(safe-area-inset-bottom)) max(7px,env(safe-area-inset-left))}}
 /* MID v0.8.17.2 – offizieller UV-Gefahrenindex in den aktuellen Daten */
 .metrics .uvi-card header{align-items:center;padding-right:1px}
 .metrics .uvi-card>strong{margin-top:9px;font-size:clamp(13px,1.05vw,18px);line-height:1.12}

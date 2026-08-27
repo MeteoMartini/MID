@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import ts from 'typescript';
+import {versionAtLeast} from './version-regression-helper.mjs';
 
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8');
 const [overlay,modelledAreas,geojsonSource,canvasSource,panel,styles,pkgRaw,baselineRaw,changelog,implementation,workerSource]=await Promise.all([
@@ -8,7 +9,7 @@ const [overlay,modelledAreas,geojsonSource,canvasSource,panel,styles,pkgRaw,base
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-extreme-outlook-area-rendering-09662.mjs';
 
-assert.ok(pkg.version.startsWith('0.9.66.')&&Number(pkg.version.split('.')[3])>=2,'Flächenfix benötigt mindestens MID 0.9.66.2.');
+assert.ok(versionAtLeast(pkg.version,'0.9.66.2'),'Flächenfix benötigt mindestens MID 0.9.66.2.');
 assert.equal(baseline.releaseVersion,pkg.version);
 assert.equal(pkg.scripts?.['test:extreme-outlook-area-rendering'],`node ${test}`);
 assert.ok(baseline.requiredRegressionTests?.includes(test)&&baseline.regressionTests?.includes(test),'Flächenrendering-Regression ist nicht verbindlich registriert.');

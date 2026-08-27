@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import ts from 'typescript';
+import {versionAtLeast} from './version-regression-helper.mjs';
 
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8');
 const [canvasSource,overlay,modelledAreas,geojsonSource,panel,pkgRaw,baselineRaw,changelog,implementation,workerSource]=await Promise.all([
@@ -8,7 +9,7 @@ const [canvasSource,overlay,modelledAreas,geojsonSource,panel,pkgRaw,baselineRaw
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-extreme-outlook-smooth-contours-09663.mjs';
 
-assert.ok(pkg.version.startsWith('0.9.66.')&&Number(pkg.version.split('.')[3])>=3,'Konturfix benötigt mindestens MID 0.9.66.3.');
+assert.ok(versionAtLeast(pkg.version,'0.9.66.3'),'Konturfix benötigt mindestens MID 0.9.66.3.');
 assert.equal(baseline.releaseVersion,pkg.version);
 assert.equal(pkg.scripts?.['test:extreme-outlook-smooth-contours'],`node ${test}`);
 assert.ok(baseline.requiredRegressionTests?.includes(test)&&baseline.regressionTests?.includes(test),'Konturflächen-Regression ist nicht verbindlich registriert.');

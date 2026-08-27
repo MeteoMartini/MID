@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "updatedAt": "2026-08-27T07:17:50Z",
+  "releaseVersion": "0.9.67.0",
+  "sourceBaseline": {
+    "professionalVersion": "0.9.66.19",
+    "workerVersion": "0.9.66.19",
+    "regressionsPassed": 547
+  },
+  "strategy": "shared-react-vite-core-with-capacitor-ios-shell",
+  "browserDevelopmentContinues": true,
+  "phase": "native-capability-adapters",
+  "completed": [
+    "source-and-worker-version-pair-verified",
+    "browser-production-build-verified",
+    "547-regression-baseline-verified",
+    "cross-platform-contract-created",
+    "capacitor-runtime-boundary-created",
+    "capacitor-ios-project-generated-and-synchronized",
+    "ios-bundle-version-permissions-and-brand-assets-configured",
+    "browser-and-native-webview-production-build-verified",
+    "548-regressions-passed",
+    "semantic-cross-release-regression-guards-added"
+  ],
+  "nextMilestone": "native-location-adapter-with-browser-fallback",
+  "validation": {
+    "browserBuild": "passed",
+    "typescript": "passed",
+    "workerSyntax": "passed",
+    "regressions": "548/548 passed",
+    "capacitorSync": "passed",
+    "xcodeProjectStructure": "passed",
+    "xcodeAppleSdkBuild": "pending-macos-runtime"
+  },
+  "costGate": {
+    "requiredFor": [
+      "apple-developer-membership",
+      "device-signing",
+      "testflight",
+      "app-store-submission",
+      "paid-macos-ci"
+    ],
+    "approved": false
+  }
+}

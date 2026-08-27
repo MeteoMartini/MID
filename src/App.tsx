@@ -362,7 +362,7 @@ export default function App(){
  const abortAllRequests=()=>{for(const controller of requestControllers.current.values())controller.abort();requestControllers.current.clear()};
  const isAbort=(reason:unknown,signal?:AbortSignal)=>signal?.aborted||(reason instanceof DOMException&&reason.name==='AbortError')||(reason instanceof Error&&reason.name==='AbortError');
  useEffect(()=>{const query=window.matchMedia?.('(prefers-color-scheme: dark)');if(!query)return;const update=(event:MediaQueryListEvent)=>setSystemDark(event.matches);setSystemDark(query.matches);query.addEventListener?.('change',update);return()=>query.removeEventListener?.('change',update)},[]);
- useEffect(()=>{document.documentElement.dataset.theme=dark?'dark':'light';document.documentElement.dataset.themeMode=themeMode;document.querySelector<HTMLMetaElement>('meta[name=\"theme-color\"]')?.setAttribute('content',dark?'#07111f':'#edf3f8');localStorage.setItem(THEME_STORAGE_KEY,themeMode)},[dark,themeMode]);
+ useEffect(()=>{document.documentElement.dataset.theme=dark?'dark':'light';document.documentElement.dataset.themeMode=themeMode;document.querySelector<HTMLMetaElement>('meta[name=\"theme-color\"]')?.setAttribute('content',dark?'#07111f':'#edf3f8');localStorage.setItem(THEME_STORAGE_KEY,themeMode);window.dispatchEvent(new CustomEvent('mid:theme-change',{detail:{dark}}))},[dark,themeMode]);
  useEffect(()=>localStorage.setItem('windUnit',unit),[unit]);
  useEffect(()=>{if(!dashboardModuleSettings.enabled.ensemble)setEnsembleRequested(()=>false)},[dashboardModuleSettings.enabled.ensemble]);
  useEffect(()=>{if(forecastPresentationMode!=='classic'&&dashboardModuleSettings.enabled.ensemble)setEnsembleRequested(true)},[forecastPresentationMode,dashboardModuleSettings.enabled.ensemble]);
