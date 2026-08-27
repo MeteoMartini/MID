@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.66.19",
+  "releaseVersion": "0.9.67.2",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -285,7 +285,10 @@
     "scripts/test-event-flight-ceiling-plausibility-096615.mjs",
     "scripts/test-official-warning-chronological-order-096616.mjs",
     "scripts/test-extreme-outlook-modelled-areas-096618.mjs",
-    "scripts/test-extreme-regions-flight-null-096619.mjs"
+    "scripts/test-extreme-regions-flight-null-096619.mjs",
+    "scripts/test-cross-platform-ios-shell-09670.mjs",
+    "scripts/test-ios-safe-area-header-096671.mjs",
+    "scripts/test-release-activation-event-precip-096672.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -501,7 +504,10 @@
     "scripts/test-event-flight-ceiling-plausibility-096615.mjs",
     "scripts/test-official-warning-chronological-order-096616.mjs",
     "scripts/test-extreme-outlook-modelled-areas-096618.mjs",
-    "scripts/test-extreme-regions-flight-null-096619.mjs"
+    "scripts/test-extreme-regions-flight-null-096619.mjs",
+    "scripts/test-cross-platform-ios-shell-09670.mjs",
+    "scripts/test-ios-safe-area-header-096671.mjs",
+    "scripts/test-release-activation-event-precip-096672.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -642,7 +648,23 @@
     "scripts/test-extreme-outlook-modelled-areas-096618.mjs",
     "MID_IMPLEMENTATION_0.9.66.18.md",
     "scripts/test-extreme-regions-flight-null-096619.mjs",
-    "MID_IMPLEMENTATION_0.9.66.19.md"
+    "MID_IMPLEMENTATION_0.9.66.19.md",
+    "MID_CROSS_PLATFORM_CONTRACT.md",
+    "MID_IOS_ROADMAP.md",
+    "MID_IOS_STATUS.json",
+    "MID_IMPLEMENTATION_0.9.67.0.md",
+    "capacitor.config.ts",
+    "src/runtimePlatform.ts",
+    "scripts/version-regression-helper.mjs",
+    "scripts/test-cross-platform-ios-shell-09670.mjs",
+    "ios/App/App.xcodeproj/project.pbxproj",
+    "ios/App/App/Info.plist",
+    "ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png",
+    "ios/App/App/Assets.xcassets/Splash.imageset/Contents.json",
+    "MID_IMPLEMENTATION_0.9.67.1.md",
+    "scripts/test-ios-safe-area-header-096671.mjs",
+    "MID_IMPLEMENTATION_0.9.67.2.md",
+    "scripts/test-release-activation-event-precip-096672.mjs"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -668,6 +690,15 @@
     "scripts/test-warning-current-summary-disclosure-09657.mjs",
     "MID_IMPLEMENTATION_0.9.65.12.md",
     "scripts/test-travel-water-event-sunshine-096513.mjs",
-    "MID_IMPLEMENTATION_0.9.65.13.md"
+    "MID_IMPLEMENTATION_0.9.65.13.md",
+    "MID_CROSS_PLATFORM_CONTRACT.md",
+    "MID_IOS_ROADMAP.md",
+    "MID_IOS_STATUS.json",
+    "capacitor.config.ts",
+    "src/runtimePlatform.ts",
+    "scripts/version-regression-helper.mjs",
+    "scripts/test-cross-platform-ios-shell-09670.mjs",
+    "scripts/test-ios-safe-area-header-096671.mjs",
+    "scripts/test-release-activation-event-precip-096672.mjs"
   ]
 }

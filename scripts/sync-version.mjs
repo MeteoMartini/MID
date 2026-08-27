@@ -38,3 +38,15 @@ for(const relativePath of ['../public/service-worker.js','../public/sw.js']){
  if(nextServiceWorker===serviceWorker&&!serviceWorker.includes(`const CACHE='mid-shell-v${version}';`))throw new Error(`${relativePath}: Service-Worker-Cacheversion konnte nicht synchronisiert werden.`);
  await writeFile(serviceWorkerUrl,nextServiceWorker);
 }
+
+const iosProjectUrl=new URL('../ios/App/App.xcodeproj/project.pbxproj',import.meta.url);
+try{
+ const iosProject=await readFile(iosProjectUrl,'utf8'),parts=version.split('.').map(part=>Number.parseInt(part,10));
+ const marketingVersion=parts.slice(0,3).join('.'),buildNumber=String(Math.max(1,(parts[3]??0)+1));
+ const nextIosProject=iosProject
+  .replace(/MARKETING_VERSION = [^;]+;/g,`MARKETING_VERSION = ${marketingVersion};`)
+  .replace(/CURRENT_PROJECT_VERSION = [^;]+;/g,`CURRENT_PROJECT_VERSION = ${buildNumber};`);
+ await writeFile(iosProjectUrl,nextIosProject);
+}catch(error){
+ if(error?.code!=='ENOENT')throw error;
+}

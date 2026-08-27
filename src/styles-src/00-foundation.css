@@ -1781,3 +1781,12 @@ button,input,select,textarea{font:inherit}
 .aqi-pollutant-scale-marker{position:absolute;left:var(--aqi-position,0%);top:0;width:7px;height:7px;border-radius:50%;background:currentColor;transform:translateX(-50%);box-shadow:0 0 0 1px var(--card,white),0 0 0 3px color-mix(in srgb,currentColor 12%,transparent)}
 @media(max-width:620px){.aqi-tooltip-values{grid-template-columns:minmax(0,1fr)}}
 
+/* MID v0.9.67.1 · Browser/PWA und native Container respektieren jede Geräte-Safe-Area */
+:root{--mid-safe-top:env(safe-area-inset-top,0px);--mid-safe-right:env(safe-area-inset-right,0px);--mid-safe-bottom:env(safe-area-inset-bottom,0px);--mid-safe-left:env(safe-area-inset-left,0px)}
+:root[data-mid-runtime=ios],:root[data-mid-runtime=android]{min-height:100%;overscroll-behavior-y:none}
+:root[data-mid-runtime=ios] body,:root[data-mid-runtime=android] body{min-height:100dvh}
+.app{padding:max(16px,calc(var(--mid-safe-top) + 10px)) max(16px,calc(var(--mid-safe-right) + 10px)) max(16px,calc(var(--mid-safe-bottom) + 10px)) max(16px,calc(var(--mid-safe-left) + 10px))}
+.top{top:calc(var(--mid-safe-top) + 10px)}
+@media(max-width:850px){.app{padding:calc(var(--mid-safe-top) + 7px) calc(var(--mid-safe-right) + 7px) calc(var(--mid-safe-bottom) + 7px) calc(var(--mid-safe-left) + 7px)}.top{top:auto}}
+@media(max-width:760px){.app{padding:calc(var(--mid-safe-top) + 5px) calc(var(--mid-safe-right) + 5px) calc(var(--mid-safe-bottom) + 5px) calc(var(--mid-safe-left) + 5px)}}
+@media(max-width:700px){.settings-dialog{padding:var(--mid-safe-top) var(--mid-safe-right) var(--mid-safe-bottom) var(--mid-safe-left)}}

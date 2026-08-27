@@ -2584,3 +2584,10 @@ main>.place>.place-nowcards{display:none!important}
   max-width:100%;
  }
 }
+
+/* MID v0.9.67.1 · haftende mobile Kopfzeilen bleiben unter der iOS-Statusleiste */
+@media(max-width:850px){
+ .dashboard-section-quick{top:calc(var(--mid-safe-top) + 6px)}
+ .dashboard-section-anchor{scroll-margin-top:calc(var(--mid-safe-top) + 58px)}
+ .dashboard-section-drawer{height:100dvh;padding:var(--mid-safe-top) var(--mid-safe-right) var(--mid-safe-bottom) var(--mid-safe-left)}
+}

@@ -1,3 +1,9 @@
+## 0.9.67.2
+
+- Ein vollständig gecachtes Browser-/PWA-Update wird nun kontrolliert aktiviert und lädt offene App-Fenster auf den neuen Stand. Die vorherige geprüfte Version bleibt bis zur erfolgreichen Laufzeit-Gesundheitsmeldung als Rückfallversion erhalten.
+- Dadurch kann nach einem erfolgreichen Release-Upload nicht länger unbemerkt eine wartende neue Version neben der weiterhin sichtbaren Altversion laufen.
+- Die kompakte Event-Center-Übersicht zeigt neben Niederschlagsart und -wahrscheinlichkeit wieder die für den gesamten Eventzeitraum berechnete Niederschlagsmenge in mm.
+
 ## 0.9.66.19
 
 - Regionsnamen von modellierten Gefahrenflächen werden ausschließlich aus der räumlichen Lage der jeweiligen Kontur bestimmt; meteorologische Spitzenwerte einer entfernten Rasterzelle können das Popup nicht mehr falsch benennen.

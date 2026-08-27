@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {versionAtLeast} from './version-regression-helper.mjs';
 
 const[panel,styles,pkgRaw,baselineRaw,implementation]=await Promise.all([
  readFile('src/ExtremeWeatherOutlookPanel.tsx','utf8'),
@@ -9,7 +10,7 @@ const[panel,styles,pkgRaw,baselineRaw,implementation]=await Promise.all([
  readFile('MID_IMPLEMENTATION_0.9.66.11.md','utf8')
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-extreme-outlook-method-info-096611.mjs';
-assert.ok(Number(pkg.version.split('.').at(-1))>=11);
+assert.ok(versionAtLeast(pkg.version,'0.9.66.11'));
 assert.equal(baseline.releaseVersion,pkg.version);
 assert.equal(pkg.scripts?.['test:extreme-outlook-method-info'],`node ${test}`);
 assert.ok(baseline.requiredRegressionTests.includes(test)&&baseline.regressionTests.includes(test)&&baseline.requiredFiles.includes(test));

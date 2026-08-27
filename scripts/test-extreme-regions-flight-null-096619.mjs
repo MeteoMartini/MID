@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {pathToFileURL,fileURLToPath} from 'node:url';
 import {build} from 'esbuild';
+import {versionAtLeast} from './version-regression-helper.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const tempDir=fs.mkdtempSync(path.join(os.tmpdir(),'mid-096619-'));
@@ -38,7 +39,7 @@ const extremePanel=fs.readFileSync(path.join(root,'src','ExtremeWeatherOutlookPa
 const pkg=JSON.parse(fs.readFileSync(path.join(root,'package.json'),'utf8'));
 const baseline=JSON.parse(fs.readFileSync(path.join(root,'MID_BASELINE.json'),'utf8'));
 const test='scripts/test-extreme-regions-flight-null-096619.mjs';
-assert.equal(pkg.version,'0.9.66.19');
+assert.ok(versionAtLeast(pkg.version,'0.9.66.19'));
 assert.equal(baseline.releaseVersion,pkg.version);
 assert.match(eventPanel,/value===null\|\|value===undefined/,'Nullwerte müssen vor Number(value) abgefangen werden.');
 for(const token of ['renderedFlightHazards?.ceilingMinFt','normalizeEventFlightHazardSummary'])assert.ok(eventPanel.includes(token),`Flugwetter-Darstellungsschutz fehlt: ${token}`);

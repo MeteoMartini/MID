@@ -1,5 +1,6 @@
 import {useEffect,useMemo,useState,type PointerEvent as ReactPointerEvent} from 'react';
 import {BadgeCheck,Download,MoreVertical,Share2,Smartphone,X} from 'lucide-react';
+import {isMidNativeRuntime} from './runtimePlatform';
 
 type BeforeInstallPromptEvent=Event&{
  prompt:()=>Promise<void>;
@@ -19,7 +20,7 @@ function isAndroidDevice(){return typeof navigator!=='undefined'&&/android/i.tes
 function storedHintDismissed(){try{return localStorage.getItem(PWA_HINT_DISMISSED_KEY)==='1'}catch{return false}}
 function storeHintDismissed(){try{localStorage.setItem(PWA_HINT_DISMISSED_KEY,'1')}catch{}}
 
-export function PwaInstallButton(){
+function BrowserPwaInstallButton(){
  const[open,setOpen]=useState(false),[installPrompt,setInstallPrompt]=useState<BeforeInstallPromptEvent|null>(null),[installed,setInstalled]=useState(runsStandalone),[message,setMessage]=useState(''),[hintDismissed,setHintDismissed]=useState(storedHintDismissed),[hintReady,setHintReady]=useState(false);
  const ios=useMemo(isIosDevice,[]),android=useMemo(isAndroidDevice,[]);
 
@@ -94,3 +95,5 @@ export function PwaInstallButton(){
   </div>}
  </>;
 }
+
+export function PwaInstallButton(){return isMidNativeRuntime()?null:<BrowserPwaInstallButton/>}
