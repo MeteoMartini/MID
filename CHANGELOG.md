@@ -1,3 +1,8 @@
+## 0.9.67.7
+- Extremwetter-Ausblick von DACH auf **Mitteleuropa / vollständiges ICON-D2-Modellgebiet** erweitert. Die DWD-Eckpunkte des ICON-D2-Ausgabegitters begrenzen die regionale Analyse; Benelux, Frankreich, Dänemark, Tschechien, Polen, Norditalien und weitere angrenzende Bereiche werden nun mit betrachtet.
+- Analyseraster auf 19 × 31 erweitert und Mehrpunktabrufe auf höchstens vier parallele Batches begrenzt. Alte DACH-Payloads werden durch die neue Cachegeneration nicht als vollständiger Mitteleuropa-Ausblick übernommen.
+- Sichtbare DACH-Bezeichnungen im Extremwettermodul durch **Mitteleuropa** bzw. **gesamtes ICON-D2-Modellgebiet** ersetzt; nationale Warnstellen/MeteoAlarm bleiben die Sicherheitsreferenz.
+
 ## 0.9.67.6
 
 - Release-Hotfix nach dem v0.9.67.5-Extremflächenfix: Der Interaktions-/Performancevertrag erkennt `extremeOutlookAreaGeoJson.ts` nun korrekt als bewusst dormanten Kompatibilitäts-/Regressionhelfer; der sichtbare Kartenpfad bleibt Canvas-basiert und MapLibre 6.5.0 bleibt unverändert aktiv.

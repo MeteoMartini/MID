@@ -23,7 +23,7 @@ assert.doesNotThrow(()=>formatter.formatDecimal(12.34,0,1),'Ein vertauschter Nac
 assert.equal(formatter.formatDecimal(12.34,0,1),'12,3','Der defensive Formatter muss den vertauschten Bereich als 0–1 normalisieren.');
 assert.equal(formatter.formatDecimal(12.34,99,-4),'12,34','Browserunsichere Nachkommastellen müssen auf 0–20 begrenzt werden.');
 
-assert.ok(!panel.includes(',0,1)'), 'Der DACH-Ausblick enthält weiterhin einen vertauschten formatDecimal-Aufruf.');
+assert.ok(!panel.includes(',0,1)'), 'Der Mitteleuropa-Ausblick enthält weiterhin einen vertauschten formatDecimal-Aufruf.');
 assert.ok((panel.match(/,1,0\)/g)||[]).length>=10,'Die Extremwetter-Kennwerte sind nicht vollständig auf maximal eine Nachkommastelle korrigiert.');
 assert.ok(formatSource.includes('safeMinimum=Math.min(normalizedMinimum,normalizedMaximum)'));
 assert.ok(formatSource.includes('safeMaximum=Math.max(normalizedMinimum,normalizedMaximum)'));

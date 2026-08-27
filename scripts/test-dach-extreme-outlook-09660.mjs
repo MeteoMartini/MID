@@ -27,7 +27,7 @@ assert.ok(app.includes('unit={unit}'));
 assert.ok(app.includes('timezone={displayTimezone}'));
 
 for(const token of ["'overall'","'thunderstorm'","'rain'","'wind'","'snow'","'ice'",'overviewMin:number','hazardMin:number','extremeExceptionMin:number','timeoutMs:48000','staleIfErrorMs:6*60*60*1000'])assert.ok(data.includes(token),`Client-Datenvertrag fehlt: ${token}`);
-for(const token of ['formatDwdWindValue','formatDisplayDateTime','displayTimeLabel','aria-pressed','role="img"','MapFitBounds','GeoJsonLayers','MID Extremwetter-Ausblick · DACH','Eigene MID-Prognose','keine amtliche Warnung','Schwellen, Parameter und Methodik','signalMetricSummary(signal,unit)'])assert.ok(panel.includes(token),`Oberflächenvertrag fehlt: ${token}`);
+for(const token of ['formatDwdWindValue','formatDisplayDateTime','displayTimeLabel','aria-pressed','role="img"','MapFitBounds','GeoJsonLayers','MID Extremwetter-Ausblick · Mitteleuropa','Eigene MID-Prognose','keine amtliche Warnung','Schwellen, Parameter und Methodik','signalMetricSummary(signal,unit)'])assert.ok(panel.includes(token),`Oberflächenvertrag fehlt: ${token}`);
 for(const token of ['HtmlMarker','areas.map(area=>','Modellierte Gefahrenfläche'])assert.ok(overlay.includes(token),`Flächengebundener Kartenmarker fehlt: ${token}`);
 for(const token of ['buildExtremeOutlookContourSet','displayContours','overlapsStronger'])assert.ok(modelledAreas.includes(token),`Flächengebundene Konturauswahl fehlt: ${token}`);
 for(const token of ['.extreme-main-grid{','.extreme-map{','.extreme-map-legend{','.extreme-region-list{','.extreme-threshold-table','@media(max-width:480px)'])assert.ok(styles.includes(token),`Responsive DACH-CSS fehlt: ${token}`);
@@ -51,4 +51,4 @@ assert.ok(implementation.includes('Lokal-/Z-Zeit-Einstellung'));
 assert.ok(!panel.includes("signalMetricSummary(signal,'kmh')"),'Karten-Popups dürfen die appweite Windeinheit nicht umgehen.');
 assert.ok(!panel.includes('amtliche Warnfläche'),'Eigene Prognose und amtliche Warnungen müssen getrennt bleiben.');
 
-console.log('DACH-Extremwetter-Ausblick geprüft: Dashboard, MapLibre-UI, Zeit-/Einheitenvertrag, P-/I-Schwellen, EPS-Worker, Mehrparameter-Gewitterdiagnostik, Cache und Dokumentation sind vollständig verdrahtet.');
+console.log('Mitteleuropa-Extremwetter-Ausblick geprüft: Dashboard, MapLibre-UI, Zeit-/Einheitenvertrag, P-/I-Schwellen, EPS-Worker, Mehrparameter-Gewitterdiagnostik, Cache und Dokumentation sind vollständig verdrahtet.');

@@ -16,6 +16,7 @@ export type ExtremeAreaCanvasGrid={
  latStep:number;
  lonStep:number;
  bounds?:{south:number;west:number;north:number;east:number};
+ analysisBounds?:{south:number;west:number;north:number;east:number};
 };
 export type ExtremeAreaContourOptions={
  minimumProbability?:number;
@@ -48,8 +49,8 @@ function probabilityOpacity(probability:number){return probability>=80?.82:proba
 function indexField(areas:ExtremeAreaPaintCell[],grid:ExtremeAreaCanvasGrid):IndexedField|null{
  if(!areas.length||!(grid.latStep>0)||!(grid.lonStep>0))return null;
  const indexed=areas.every(area=>Number.isInteger(area.row)&&Number.isInteger(area.col));
- const north=grid.bounds?.north??(indexed?areas.reduce((sum,area)=>sum+area.lat+finite(area.row)*grid.latStep,0)/areas.length:Math.max(...areas.map(area=>area.lat)));
- const west=grid.bounds?.west??(indexed?areas.reduce((sum,area)=>sum+area.lon-finite(area.col)*grid.lonStep,0)/areas.length:Math.min(...areas.map(area=>area.lon)));
+ const north=grid.analysisBounds?.north??grid.bounds?.north??(indexed?areas.reduce((sum,area)=>sum+area.lat+finite(area.row)*grid.latStep,0)/areas.length:Math.max(...areas.map(area=>area.lat)));
+ const west=grid.analysisBounds?.west??grid.bounds?.west??(indexed?areas.reduce((sum,area)=>sum+area.lon-finite(area.col)*grid.lonStep,0)/areas.length:Math.min(...areas.map(area=>area.lon)));
  const cells=areas.map(area=>({...area,row:indexed?finite(area.row):Math.round((north-area.lat)/grid.latStep),col:indexed?finite(area.col):Math.round((area.lon-west)/grid.lonStep)})).filter(area=>area.row>=0&&area.col>=0);
  if(!cells.length)return null;
  const rows=Math.max(grid.rows||0,...cells.map(area=>area.row+1)),cols=Math.max(grid.cols||0,...cells.map(area=>area.col+1));

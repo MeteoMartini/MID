@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.67.6",
+  "releaseVersion": "0.9.67.7",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -290,7 +290,8 @@
     "scripts/test-ios-safe-area-header-096671.mjs",
     "scripts/test-release-activation-event-precip-096672.mjs",
     "scripts/test-dependency-actions-maintenance-096673.mjs",
-    "scripts/test-release-workflow-pin-boundary-096674.mjs"
+    "scripts/test-release-workflow-pin-boundary-096674.mjs",
+    "scripts/test-extreme-outlook-icon-d2-domain-096677.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -511,7 +512,8 @@
     "scripts/test-ios-safe-area-header-096671.mjs",
     "scripts/test-release-activation-event-precip-096672.mjs",
     "scripts/test-dependency-actions-maintenance-096673.mjs",
-    "scripts/test-release-workflow-pin-boundary-096674.mjs"
+    "scripts/test-release-workflow-pin-boundary-096674.mjs",
+    "scripts/test-extreme-outlook-icon-d2-domain-096677.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -672,7 +674,9 @@
     "scripts/test-dependency-actions-maintenance-096673.mjs",
     "MID_IMPLEMENTATION_0.9.67.3.md",
     "scripts/test-release-workflow-pin-boundary-096674.mjs",
-    "MID_IMPLEMENTATION_0.9.67.4.md"
+    "MID_IMPLEMENTATION_0.9.67.4.md",
+    "scripts/test-extreme-outlook-icon-d2-domain-096677.mjs",
+    "MID_IMPLEMENTATION_0.9.67.7.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",

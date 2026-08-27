@@ -4580,7 +4580,7 @@ body,#root{
 .mid-motion-track-graphic .tick.core{stroke:rgba(72,76,80,.92);stroke-width:3.2}
 .mid-motion-track-graphic .arrow.core{stroke:rgba(72,76,80,.98);stroke-width:4.8}
 .mid-motion-track-graphic.low .shaft.core,.mid-motion-track-graphic.low .tick.core,.mid-motion-track-graphic.low .arrow.core{stroke:rgba(79,84,89,.82)}
-/* MID v0.9.66.9 · probabilistic DACH extreme-weather outlook */
+/* MID v0.9.66.9 · probabilistic Central Europe / full ICON-D2 extreme-weather outlook */
 .extreme-outlook-panel{display:grid;gap:14px;min-width:0;padding-top:2px}
 .extreme-outlook-head{display:flex;align-items:flex-start;justify-content:space-between;gap:22px;padding:2px 2px 0}
 .extreme-outlook-head>div:first-child{min-width:0;max-width:850px}
