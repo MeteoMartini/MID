@@ -15,7 +15,7 @@ for(const token of ['tile.openstreetmap.org/{z}/{x}/{y}.png','id="extreme-outloo
 assert.ok(!panel.includes('basemaps.cartocdn.com'),'Die DACH-Karte darf keine anonym gesperrte CARTO-Basis mehr verwenden.');
 for(const token of ["1:'#f4d03f'","2:'#f08a24'","3:'#d9363e'","4:'#8f174f'",'Wettergefahr','markante Wettergefahr','Unwetterpotenzial','extremes Unwetterpotenzial'])assert.ok(outlook.includes(token),`DWD-nahe Prognoseskala fehlt: ${token}`);
 assert.ok(!outlook.includes("1:'#269b83'"),'Grün darf keine Gefahrstufe mehr kennzeichnen.');
-for(const token of ['HATCH_SOURCE_ID','source:HATCH_SOURCE_ID','buildExtremeOutlookContourGeoJson'])assert.ok(overlay.includes(token),`Teilflächenschraffur fehlt: ${token}`);
+for(const token of ['CanvasOverlay','drawExtremeOutlookContours','buildExtremeOutlookContourSet'])assert.ok(overlay.includes(token),`Teilflächenschraffur-/Rendervertrag fehlt: ${token}`);
 assert.ok(modelledAreas.includes('maximumProbability:60'),'Teilflächenschraffur muss aus demselben Konturdatensatz entstehen.');
 for(const token of ['pointInRing','normalizeOrientation','contourPolygons',"type:'MultiPolygon'"])assert.ok(geojsonSource.includes(token),`Verschachtelte Teilflächenschraffur fehlt: ${token}`);
 assert.ok(canvasSource.includes('maximumProbability?:number')&&canvasSource.includes('probability>=threshold&&probability<maximumProbability'));

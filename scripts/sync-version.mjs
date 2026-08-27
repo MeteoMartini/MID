@@ -25,6 +25,14 @@ const baselineUrl=new URL('../MID_BASELINE.json',import.meta.url);
 const baseline=JSON.parse(await readFile(baselineUrl,'utf8'));
 baseline.releaseVersion=version;
 await writeFile(baselineUrl,`${JSON.stringify(baseline,null,2)}\n`);
+const iosStatusUrl=new URL('../MID_IOS_STATUS.json',import.meta.url);
+try{
+ const iosStatus=JSON.parse(await readFile(iosStatusUrl,'utf8'));
+ iosStatus.releaseVersion=version;
+ await writeFile(iosStatusUrl,`${JSON.stringify(iosStatus,null,2)}\n`);
+}catch(error){
+ if(error?.code!=='ENOENT')throw error;
+}
 const workerTargets=['../worker-src/00-core-observations.js','../worker/metar-proxy.js'];
 for(const relativePath of workerTargets){
  const workerUrl=new URL(relativePath,import.meta.url);

@@ -1,3 +1,16 @@
+## 0.9.67.6
+
+- Release-Hotfix nach dem v0.9.67.5-Extremflächenfix: Der Interaktions-/Performancevertrag erkennt `extremeOutlookAreaGeoJson.ts` nun korrekt als bewusst dormanten Kompatibilitäts-/Regressionhelfer; der sichtbare Kartenpfad bleibt Canvas-basiert und MapLibre 6.5.0 bleibt unverändert aktiv.
+- `sync-version.mjs` synchronisiert jetzt zusätzlich `MID_IOS_STATUS.json.releaseVersion`. Der dort separat dokumentierte letzte echte Capacitor-Webbundle-Sync bleibt unverändert, sodass Web-Release-Metadaten und nativer Sync-Status nicht mehr miteinander verwechselt werden.
+- Die beiden im GitHub-Installer v0.9.67.5 fehlgeschlagenen Regressionen (`test-interaction-performance-cleanup-08155.mjs`, `test-ios-safe-area-header-096671.mjs`) sind damit ohne Abschwächung ihrer Schutzverträge repariert.
+
+## 0.9.67.5
+
+- Hotfix für die mit MapLibre GL JS 6.5.0 sichtbare Extremflächen-Regression: Die modellierten DACH-Gefahrenkonturen werden wieder über den bereits etablierten, georeferenzierten Canvas-Konturrenderer gezeichnet.
+- MapLibre bleibt auf 6.5.0; Basiskarte, Zoom/Touch, Marker, Popups und unsichtbare GeoJSON-Hit-Flächen bleiben unverändert. Nur die sichtbare Flächenfüllung wird von der v6-fragilen nativen Fill-/Pattern-Layer-Strecke entkoppelt.
+- Der Renderpfad nutzt weiterhin exakt denselben `buildExtremeOutlookContourSet` wie Marker, Popups und „Stärkste Regionen“, sodass Geometrie, Regionsbezeichnung, Intensität und Wahrscheinlichkeit gekoppelt bleiben.
+- Keine Änderung an meteorologischen Schwellen, Modellfeldern oder Worker-Datenlogik gegenüber v0.9.67.4.
+
 ## 0.9.67.4
 
 - Release-Hotfix für den v0.9.67.3-Installer: Der Dependency-/Actions-Wartungstest verlangt nicht länger, dass der absichtlich vor Workflow-Selbstmodifikation geschützte aktive `.github`-Stand bereits innerhalb desselben ZIP-Installationslaufs aktualisiert wurde.

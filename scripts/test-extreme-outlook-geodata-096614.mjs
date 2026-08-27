@@ -59,9 +59,7 @@ for(const key of ['requiredRegressionTests','regressionTests','requiredFiles'])a
 assert.ok(baseline.requiredFiles.includes('MID_IMPLEMENTATION_0.9.66.14.md'));
 assert.ok(workerCore.includes(`const WORKER_VERSION='${pkg.version}';`),'Professional- und Worker-Versionen sind nicht synchronisiert.');
 for(const token of ['pointInRing','normalizeOrientation','buildExtremeOutlookContourGeoJson'])assert.ok(source.includes(token),`GeoJSON-Verschachtelung fehlt: ${token}`);
-assert.ok(overlay.includes("import {buildExtremeOutlookContourGeoJson} from './extremeOutlookAreaGeoJson';"));
-assert.ok(overlay.includes('if(!map)return;'),'Die Overlay-Aktualisierung muss auch leere Quellen sauber handhaben.');
-assert.ok(!overlay.includes('if(!map||!contours.length)return;'),'Leere Konturen dürfen die Overlay-Bereinigung nicht überspringen.');
+assert.ok(overlay.includes('CanvasOverlay')&&overlay.includes('drawExtremeOutlookContours'),'Sichtbare Flächen müssen den MapLibre-6-robusten Canvas-Konturpfad nutzen.');
 assert.ok(changelog.includes('## 0.9.66.14'));
 for(const token of ['GeoJSON-Multipolygonen','Lochringe','Inseln innerhalb geschraffter Aussparungen','Worker fachlich unverändert'])assert.ok(implementation.includes(token),`Umsetzungsnachweis unvollständig: ${token}`);
 

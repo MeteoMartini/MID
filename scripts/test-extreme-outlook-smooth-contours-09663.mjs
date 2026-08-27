@@ -19,7 +19,7 @@ assert.ok(workerSource.includes(`const WORKER_VERSION='${pkg.version}';`),'Profe
 for(const token of ['FIELD_SUBDIVISIONS=10','COVERAGE_THRESHOLD=.28','bilinear','fieldComponents','smoothRing','traceMask','buildExtremeOutlookContours','probability<60',"context.clip('evenodd')"])assert.ok(canvasSource.includes(token),`Professioneller Konturvertrag fehlt: ${token}`);
 assert.ok(!canvasSource.includes('KERNEL_RADIUS_STEPS')&&!canvasSource.includes('supportAt('),'Der gleichförmige radiale Stützkern darf nicht wieder eingeführt werden.');
 assert.ok(!canvasSource.includes('grid.latStep*.515')&&!canvasSource.includes('grid.lonStep*.515'),'Rechteckige Rasterzellen dürfen nicht mehr sichtbar gezeichnet werden.');
-assert.ok(modelledAreas.includes('buildExtremeOutlookContours(paintAreas,data.grid,options)')&&overlay.includes('buildExtremeOutlookContourGeoJson(contours)')&&geojsonSource.includes("type:'MultiPolygon'"),'Vorbemessene Konturen sind nicht in das Kartenoverlay eingebunden.');
+assert.ok(modelledAreas.includes('buildExtremeOutlookContours(paintAreas,data.grid,options)')&&overlay.includes('drawExtremeOutlookContours')&&overlay.includes('contours')&&geojsonSource.includes("type:'MultiPolygon'"),'Vorbemessene Konturen sind nicht in das sichtbare Kartenoverlay eingebunden.');
 assert.ok(panel.includes('cellHitRing')&&panel.includes('Array.from({length:24}'),'Interaktionsflächen müssen der geglätteten Geometrie folgen.');
 assert.ok(panel.includes('Geglättete Isoplethenflächen aus den vollständigen I1–I4-Wahrscheinlichkeitsfeldern'));
 assert.ok(panel.includes('Schraffur')&&panel.includes('unter 60 %'));
