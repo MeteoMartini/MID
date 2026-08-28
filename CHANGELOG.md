@@ -1,3 +1,9 @@
+## 0.9.67.10
+
+- Appweiter Warnwert-Pillenvertrag korrigiert: Bei parallel dargestellten niedrigeren Warnstufen zeigt die Pille nur noch den Schwellenwert der jeweiligen Stufe statt des Spitzenwerts einer zeitweise eingebetteten höheren Stufe.
+- Beispiel Wind: Eine niedrigere Karte „Windböen“ zeigt bei zeitweise 68 km/h nun 27 kt (50 km/h) in der Pille; 37 kt (68 km/h) bleibt der stärkeren „Sturmböen“-Stufe bzw. dem erklärenden „zeitweise bis …“-Text vorbehalten.
+- Der zentrale Formatter gilt gemeinsam für automatische Warnkarten, 7-Tage-/Widget-Kompaktwerte und Ensemble-Hazards; Starkregen, Schnee, Schneeverwehung, Wärme und Frost sind ebenfalls stufengerecht abgesichert.
+
 ## 0.9.67.9
 
 - Release-Hotfix: Die historische Extremwetter-Regression akzeptiert die seit v0.9.67.8 bewusst parametrisierte resiliente `dachExtremeOutlookData(profile='full')`-Pipeline; der fachliche Mitteleuropa-/ICON-D2-Ausblick bleibt unverändert.
