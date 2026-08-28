@@ -55,10 +55,11 @@ assert.match(weather,/precipitationProbabilityQuality:probabilityQuality/);
 assert.match(weather,/scenarios:EnsembleScenarioCluster\[\]=\[\]/);
 assert.match(weather,/knmi_harmonie_arome_cy43_eps.*uwc-west-harmonie-eps.*maxDays:2\.5/);
 assert.match(weather,/eccc_reps.*eccc-reps.*maxDays:3/);
-assert.match(weather,/DIRECT_REGIONAL_ENSEMBLE_MODELS=new Set\(\['knmi_harmonie_arome_cy43_eps','eccc_reps'\]\)/);
+assert.match(weather,/DIRECT_REGIONAL_ENSEMBLE_MODELS=new Set\(\['icon_d2_ruc_eps','knmi_harmonie_arome_cy43_eps','eccc_reps'\]\)/);
 assert.match(weather,/if\(directRegional\)throw/);
 assert.match(worker,/MID_KNMI_HARMONIE_EPS_POINT_ENDPOINT/);
 assert.match(worker,/MID_ECCC_REPS_POINT_ENDPOINT/);
+assert.match(worker,/MID_DWD_RUC_EPS_POINT_ENDPOINT/);
 
 // Kein neuer generischer Binärdecoder als Laufzeitabhängigkeit; Adaptervertrag dokumentiert.
 for(const forbidden of ['eccodes','bufr-js','grib2-simple','wgrib'])assert.ok(!pkgText.toLowerCase().includes(forbidden),`unerwartete Decoder-Abhängigkeit: ${forbidden}`);

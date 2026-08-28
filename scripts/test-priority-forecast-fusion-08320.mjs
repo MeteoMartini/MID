@@ -22,9 +22,9 @@ for(const token of [
  'fetchForecastFusionModels',
  'weatherBundleIssues',
  'coherentWeatherHours',
- 'version:7',
+ 'version:8',
  "schema:'mid.forecast-fusion.v1'",
- 'Best Match bleibt für Kurzfrist, 7-Tage-Vorhersage',
+ 'Best Match bleibt die kohärente Basis; innerhalb des ICON-D2-Gebiets kalibriert ICON-D2-RUC',
  'suffixFields',
  'MOSMIX wird bewusst nur als lokales Postprocessing'
 ])need('Worker-Fusion',worker,token);

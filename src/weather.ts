@@ -82,13 +82,14 @@ export function countryCodeFromLocation(value?:string){
  const key=raw.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]/g,'');return COUNTRY_CODE_ALIASES[key]||'';
 }
 
-type EnsembleModel={id:string;label:string;metaId:string;family:string;independenceGroup:string;resolutionKm:number;updateHours:number;maxDays:number;bbox?:[number,number,number,number];distributionMode?:'members'|'mean-spread';variantGroup?:string};
+type EnsembleModel={id:string;label:string;metaId:string;family:string;independenceGroup:string;resolutionKm:number;updateHours:number;maxDays:number;maxHours?:number;shortRangeOnly?:boolean;bbox?:[number,number,number,number];distributionMode?:'members'|'mean-spread';variantGroup?:string};
 const EUROPE_ENSEMBLE_BBOX:[number,number,number,number]=[-11,33,37,71];
 const ensembleModels:EnsembleModel[]=[
  {id:'icon_seamless_eps',label:'DWD ICON EPS Seamless',metaId:'dwd_icon_eps',family:'dwd-icon-eps',independenceGroup:'dwd-ensemble',resolutionKm:8,updateHours:3,maxDays:7.5,bbox:[-25,30,45,72]},
  {id:'icon_global_eps',label:'DWD ICON EPS Global',metaId:'dwd_icon_eps',family:'dwd-icon-eps',independenceGroup:'dwd-ensemble',resolutionKm:26,updateHours:12,maxDays:7.5},
  {id:'icon_eu_eps',label:'DWD ICON EPS EU',metaId:'dwd_icon_eu_eps',family:'dwd-icon-eps',independenceGroup:'dwd-ensemble',resolutionKm:13,updateHours:6,maxDays:5,bbox:[-25,30,45,72]},
- {id:'icon_d2_eps',label:'DWD ICON EPS D2',metaId:'dwd_icon_d2_eps',family:'dwd-icon-eps',independenceGroup:'dwd-ensemble',resolutionKm:2,updateHours:3,maxDays:2,bbox:[-6,43,26,58]},
+ {id:'icon_d2_ruc_eps',label:'DWD ICON-D2-RUC-EPS',metaId:'icon-d2-ruc-eps',family:'dwd-icon-eps',independenceGroup:'dwd-ensemble',variantGroup:'dwd-icon-d2-eps-rapid',resolutionKm:2,updateHours:1,maxDays:1,maxHours:14,shortRangeOnly:true,bbox:[-3.85,43.18,20.22,58.05]},
+ {id:'icon_d2_eps',label:'DWD ICON EPS D2',metaId:'dwd_icon_d2_eps',family:'dwd-icon-eps',independenceGroup:'dwd-ensemble',variantGroup:'dwd-icon-d2-eps-rapid',resolutionKm:2,updateHours:3,maxDays:2,bbox:[-6,43,26,58]},
  {id:'knmi_harmonie_arome_cy43_eps',label:'KNMI HARMONIE-AROME EPS',metaId:'knmi_harmonie_arome_cy43_eps',family:'uwc-west-harmonie-eps',independenceGroup:'uwc-west-harmonie-eps',resolutionKm:2.5,updateHours:3,maxDays:2.5,bbox:[-25,38.75,16,62.6]},
  {id:'ncep_gefs_seamless',label:'NOAA GFS Ensemble Seamless',metaId:'ncep_gefs025',family:'noaa-gefs',independenceGroup:'noaa-ensemble',resolutionKm:32,updateHours:6,maxDays:35},
  {id:'ncep_gefs025',label:'NOAA GFS Ensemble 0.25°',metaId:'ncep_gefs025',family:'noaa-gefs',independenceGroup:'noaa-ensemble',resolutionKm:25,updateHours:6,maxDays:10},
@@ -108,7 +109,7 @@ const ensembleModels:EnsembleModel[]=[
  {id:'google_weathernext2_ensemble',label:'Google WeatherNext 2',metaId:'google_weathernext2_ensemble',family:'google-weathernext2',independenceGroup:'google-weathernext2',resolutionKm:25,updateHours:12,maxDays:15}
 ];
 type EnsembleMeanModel=EnsembleModel;
-const ensemblePriority=['ukmo_uk_ensemble_2km','icon_d2_eps','knmi_harmonie_arome_cy43_eps','icon_eu_eps','icon_seamless_eps','ecmwf_ifs_europe_ensemble','ecmwf_aifs_europe_ensemble','ecmwf_ifs025_ensemble','ecmwf_aifs025_ensemble','ncep_gefs05','eccc_reps','gem_global_ensemble','google_weathernext2_ensemble'];
+const ensemblePriority=['ukmo_uk_ensemble_2km','icon_d2_ruc_eps','icon_d2_eps','knmi_harmonie_arome_cy43_eps','icon_eu_eps','icon_seamless_eps','ecmwf_ifs_europe_ensemble','ecmwf_aifs_europe_ensemble','ecmwf_ifs025_ensemble','ecmwf_aifs025_ensemble','ncep_gefs05','eccc_reps','gem_global_ensemble','google_weathernext2_ensemble'];
 const meanPriority=['dwd_icon_d2_eps_ensemble_mean','dwd_icon_eu_eps_ensemble_mean','dwd_icon_eps_ensemble_mean_seamless','dwd_icon_eps_ensemble_mean','ncep_hgefs025_ensemble_mean','ecmwf_ifs_europe_ensemble_mean','ecmwf_aifs_europe_ensemble_mean','ecmwf_ifs025_ensemble_mean','ecmwf_aifs025_ensemble_mean','ncep_aigefs025_ensemble_mean','ncep_gefs_ensemble_mean_seamless','ncep_gefs025_ensemble_mean','ncep_gefs05_ensemble_mean','ukmo_uk_ensemble_mean_2km','ukmo_global_ensemble_mean_20km','meteoswiss_icon_ch1_ensemble_mean','meteoswiss_icon_ch2_ensemble_mean','cmc_gem_geps_ensemble_mean','bom_access_global_ensemble_mean','google_weathernext2_ensemble_mean'];
 const meanModels:EnsembleMeanModel[]=[
  {id:'dwd_icon_d2_eps_ensemble_mean',label:'DWD ICON-D2 EPS Mittel/Spread',metaId:'dwd_icon_d2_eps',family:'dwd-icon-eps',independenceGroup:'dwd-ensemble',resolutionKm:2,updateHours:3,maxDays:2,bbox:[-6,43,26,58]},
@@ -136,13 +137,14 @@ const ENSEMBLE_CACHE_PREFIX='mid:ensemble:v15:';
 const ENSEMBLE_FRESH_CACHE_MS=20*60*1000;
 const EVENT_ENSEMBLE_CACHE_PREFIX='mid:event-ensemble:v3:';
 const EVENT_ENSEMBLE_STALE_MS=4*60*60*1000;
-const DIRECT_REGIONAL_ENSEMBLE_MODELS=new Set(['knmi_harmonie_arome_cy43_eps','eccc_reps']);
+const DIRECT_REGIONAL_ENSEMBLE_MODELS=new Set(['icon_d2_ruc_eps','knmi_harmonie_arome_cy43_eps','eccc_reps']);
 function modelApplies(m:EnsembleModel,lat:number,lon:number){if(!m.bbox)return true;const[minLon,minLat,maxLon,maxLat]=m.bbox;return lon>=minLon&&lon<=maxLon&&lat>=minLat&&lat<=maxLat}
 function orderedModels(models:EnsembleModel[],priority:string[]){const rank=new Map(priority.map((id,index)=>[id,index])),ordered=[...models].sort((a,b)=>(rank.get(a.id)??99)-(rank.get(b.id)??99)||a.resolutionKm-b.resolutionKm),first:EnsembleModel[]=[],reserve:EnsembleModel[]=[],seen=new Set<string>();for(const model of ordered){if(seen.has(model.independenceGroup))reserve.push(model);else{seen.add(model.independenceGroup);first.push(model)}}return[...first,...reserve]}
-function selectedEnsembleModels(lat:number,lon:number){return orderedModels(ensembleModels.filter(model=>modelApplies(model,lat,lon)),ensemblePriority)}
+function selectedEnsembleModels(lat:number,lon:number){return orderedModels(ensembleModels.filter(model=>!model.shortRangeOnly&&modelApplies(model,lat,lon)),ensemblePriority)}
 function selectedMeanModels(lat:number,lon:number){return orderedModels(meanModels.filter(model=>modelApplies(model,lat,lon)),meanPriority)}
 function eventLeadDayIndex(date:string){const target=Date.parse(`${date}T12:00:00Z`),now=new Date(),today=Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate(),12);return Number.isFinite(target)?Math.max(0,Math.floor((target-today)/86400000)):0}
-function selectedEnsembleModelsForEvent(lat:number,lon:number,date:string){const lead=eventLeadDayIndex(date),applicable=ensembleModels.filter(model=>modelApplies(model,lat,lon)&&model.maxDays>=lead+.5);return orderedModels(applicable,ensemblePriority)}
+function eventLeadHours(date:string,startTime='00:00'){const time=/^\d{2}:\d{2}$/.test(startTime)?startTime:'00:00',target=Date.parse(`${date}T${time}:00Z`);return Number.isFinite(target)?Math.max(0,(target-Date.now())/3600000):Number.POSITIVE_INFINITY}
+function selectedEnsembleModelsForEvent(lat:number,lon:number,date:string,startTime='00:00'){const lead=eventLeadDayIndex(date),leadHours=eventLeadHours(date,startTime),applicable=ensembleModels.filter(model=>modelApplies(model,lat,lon)&&model.maxDays>=lead+.5&&(!model.shortRangeOnly||leadHours<=Math.max(0,model.maxHours||0)));return orderedModels(applicable,ensemblePriority)}
 type EnsembleRequestUnit={models:EnsembleModel[]};
 type EnsembleLoadAttempt<T>={model:EnsembleModel;status:'active'|'fallback'|'unavailable'|'adapter-not-configured'|'reserve';value?:T;error?:unknown};
 function ensembleRequestUnits(models:EnsembleModel[]){const units:EnsembleRequestUnit[]=[],byGroup=new Map<string,EnsembleRequestUnit>();for(const model of models){if(model.variantGroup){const existing=byGroup.get(model.variantGroup);if(existing){existing.models.push(model);continue}const unit={models:[model]};byGroup.set(model.variantGroup,unit);units.push(unit)}else units.push({models:[model]})}return units}
@@ -169,8 +171,8 @@ function similarLocation(a:Location,b:Location){if(a.name.trim().toLocaleLowerCa
 type ModelMetaCandidate={id:string;label:string;kind:'forecast'|'ensemble';metaIds?:string[];metaSource?:'open-meteo'|'dwd-ruc';rapidUpdate?:boolean;resolutionKm?:number;forecastHorizonHours?:number;members?:number;availabilityOnly?:boolean};
 type ForecastCandidate=ModelMetaCandidate&{countries?:string[];bbox?:[number,number,number,number]};
 const forecastCandidates:ForecastCandidate[]=[
- {id:'icon-d2-ruc',label:'DWD ICON-D2-RUC',kind:'forecast',metaSource:'dwd-ruc',rapidUpdate:true,resolutionKm:2,forecastHorizonHours:14,availabilityOnly:true,countries:['DE','CH','AT'],bbox:[-6,43,26,58]},
- {id:'icon-d2-ruc-eps',label:'DWD ICON-D2-RUC-EPS',kind:'ensemble',metaSource:'dwd-ruc',rapidUpdate:true,resolutionKm:2,forecastHorizonHours:14,members:20,availabilityOnly:true,countries:['DE','CH','AT'],bbox:[-6,43,26,58]},
+ {id:'icon-d2-ruc',label:'DWD ICON-D2-RUC',kind:'forecast',metaSource:'dwd-ruc',rapidUpdate:true,resolutionKm:2,forecastHorizonHours:14,availabilityOnly:true,bbox:[-3.85,43.18,20.22,58.05]},
+ {id:'icon-d2-ruc-eps',label:'DWD ICON-D2-RUC-EPS',kind:'ensemble',metaSource:'dwd-ruc',rapidUpdate:true,resolutionKm:2,forecastHorizonHours:14,members:20,availabilityOnly:true,bbox:[-3.85,43.18,20.22,58.05]},
  {id:'dwd_icon_d2',label:'DWD ICON-D2',kind:'forecast',resolutionKm:2,forecastHorizonHours:48,countries:['DE','CH','AT'],bbox:[-6,43,26,58]},
  {id:'knmi_harmonie_arome_europe',label:'KNMI HARMONIE Europe',kind:'forecast',rapidUpdate:true,resolutionKm:5.5,forecastHorizonHours:60,bbox:[-14,35,32,66]},
  {id:'meteoswiss_icon_ch1',label:'MeteoSwiss ICON-CH1',kind:'forecast',countries:['CH']},
@@ -1413,7 +1415,7 @@ function aggregateEventPrecipitationProbability(rows:{model:EnsembleModel;totals
  * Stundenakkumulationen werden nur für das konkrete Eventfenster summiert.
  */
 export async function eventEnsembleForecast(lat:number,lon:number,date:string,startTime:string,endTime:string,signal?:AbortSignal,forceRefresh=false):Promise<EventEnsembleForecast>{
- const fresh=forceRefresh?null:readEventEnsembleCache(lat,lon,date,startTime,endTime,ENSEMBLE_FRESH_CACHE_MS);if(fresh)return fresh;const selected=selectedEnsembleModelsForEvent(lat,lon,date),lead=eventLeadDayIndex(date),loaded=await loadEnsembleUnits(selected,8,async model=>{const forecastDays=Math.max(1,Math.min(14,Math.ceil(Math.min(model.maxDays,lead+2)))),weather=await fetchEnsembleWeather(lat,lon,forecastDays,model.id,signal),modelResult=parseModelMembers(weather,model),totals=eventMemberPrecipitationTotals(weather,date,startTime,endTime);return modelResult||totals.length>=2?{model,modelResult,totals}:null},signal);if(signal?.aborted)throw new DOMException('Abgebrochen','AbortError');
+ const fresh=forceRefresh?null:readEventEnsembleCache(lat,lon,date,startTime,endTime,ENSEMBLE_FRESH_CACHE_MS);if(fresh)return fresh;const selected=selectedEnsembleModelsForEvent(lat,lon,date,startTime),lead=eventLeadDayIndex(date),loaded=await loadEnsembleUnits(selected,8,async model=>{const forecastDays=Math.max(1,Math.min(14,Math.ceil(Math.min(model.maxDays,lead+2)))),weather=await fetchEnsembleWeather(lat,lon,forecastDays,model.id,signal),modelResult=parseModelMembers(weather,model),totals=eventMemberPrecipitationTotals(weather,date,startTime,endTime);return modelResult||totals.length>=2?{model,modelResult,totals}:null},signal);if(signal?.aborted)throw new DOMException('Abgebrochen','AbortError');
  const fulfilled=loaded.successes.map(row=>row.value),results=fulfilled.map(row=>row.modelResult).filter(Boolean) as ModelResult[],runs=await ensembleModelRunMetas(loaded.attempts,selected,signal),days=aggregateMembers(results,runs),precipitationProbability=aggregateEventPrecipitationProbability(fulfilled,date,startTime,endTime,runs),models=fulfilled.map(row=>row.model.label),value={days,models,precipitationProbability} satisfies EventEnsembleForecast;
  if(days.length||precipitationProbability){writeEventEnsembleCache(lat,lon,date,startTime,endTime,value);return value}const stale=readEventEnsembleCache(lat,lon,date,startTime,endTime);if(stale)return stale;return value;
 }

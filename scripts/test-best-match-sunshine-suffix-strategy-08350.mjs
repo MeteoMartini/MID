@@ -21,7 +21,7 @@ for(const token of [
  'weatherBundleIssues',
  'selectWeatherRepair',
  "sourceRole:repaired?'repair':'best-match'",
- 'Best Match bleibt für Kurzfrist, 7-Tage-Vorhersage',
+ 'Best Match bleibt die kohärente Basis; innerhalb des ICON-D2-Gebiets kalibriert ICON-D2-RUC',
  'suffixFields',
  'MOSMIX wird bewusst nur als lokales Postprocessing'
 ])assert.ok(worker.includes(token),`Best-Match-/Suffixstrategie fehlt im Worker: ${token}`);

@@ -47,7 +47,9 @@ for(const token of [
 ])need('Standortrelevanz',thunder,token);
 need('Sturzflut-Kopplung',heavy,'siteRelevance?.relevant');
 need('Nowcast-Kopplung',fusion,'convectiveCellSiteRelevance(cell)');
-need('Nowcast-Kopplung',fusion,'relevance?.approaching||!relevance.relevant');
+need('Nowcast-Kopplung',fusion,'!relevance?.relevant');
+need('Nowcast stationaer/nah',fusion,'windowMinutes=relevance.approaching?120:180');
+need('Gewitter nur mit Blitz',fusion,'electrified=lightning>=1');
 need('Package-Test',pkg,'test:cockpit-compass-local-hazards');
 need('Baseline-Test',baseline,'scripts/test-cockpit-compass-local-hazards-09170.mjs');
 

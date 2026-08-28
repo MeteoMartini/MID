@@ -1,3 +1,11 @@
+# MID v0.9.67.11
+
+- ICON-D2-RUC kalibriert innerhalb des vollständigen ICON-D2-Gebiets appweit die kanonischen 0–14-h-Prognosestunden; stärkste Gewichtung 0–3 h, danach auslaufend.
+- RUC-EPS ist als kurzreichweitiger DWD-EPS-Adapter priorisiert, bleibt mit ICON-D2-EPS in einer gemeinsamen Varianten-/Familienstimme und kalibriert kurzfristig die Niederschlagswahrscheinlichkeit.
+- KONRAD3D und DWD-Mesozyklonen korrigieren standortrelevante nahe bzw. stationäre konvektive Zellen; Gewittercodes bleiben an beobachtete Blitzaktivität gebunden.
+- Der Mitteleuropa-Extremwetterausblick nutzt einen regional gecachten KONRAD3D-/Meso-Snapshot ausschließlich für 0–6 h.
+- Workerlast bleibt begrenzt: keine GRIB-/BUFR-Decodierung, kurze Edge-Caches und kein zusätzlicher KONRAD/Meso-Browserabruf beim Direktfallback.
+
 ## 0.9.67.10
 
 - Appweiter Warnwert-Pillenvertrag korrigiert: Bei parallel dargestellten niedrigeren Warnstufen zeigt die Pille nur noch den Schwellenwert der jeweiligen Stufe statt des Spitzenwerts einer zeitweise eingebetteten höheren Stufe.

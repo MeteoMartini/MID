@@ -35,6 +35,12 @@ export type ForecastFusionHour={
 export type ForecastWeatherBundleHour={
  time:string;
  epoch:number;
+ temperature?:number;
+ dewPoint?:number;
+ pressure?:number;
+ wind?:number;
+ gust?:number;
+ direction?:number;
  precipitation:number;
  rain:number;
  showers:number;
@@ -52,7 +58,12 @@ export type ForecastWeatherBundleHour={
  sourceId:string;
  sourceLabel:string;
  sourceFamily:string;
- sourceRole?:'best-match'|'repair';
+ sourceRole?:'best-match'|'repair'|'rapid-update';
+ rucApplied?:boolean;
+ rucWeight?:number;
+ rucEpsApplied?:boolean;
+ rucEpsWeight?:number;
+ rucEpsMemberCount?:number;
  repairReason?:string;
  originalSourceId?:string;
  originalSourceLabel?:string;
@@ -484,7 +495,7 @@ export function applyForecastFusionHours(hours:Hour[],baseDays:Day[],fusedDays:D
   if(weather){
    const signal=reconcileForecastPrecipitation({precipitation:weather.precipitation,rain:weather.rain,showers:weather.showers,snowfall:weather.snowfall,probability:weather.probability,code:weather.code,cloud:weather.cloud,lowCloud:weather.lowCloud,humidity:Number.isFinite(weather.humidity)?Number(weather.humidity):hour.humidity,cape:weather.cape,liftedIndex:Number.isFinite(weather.liftedIndex)?Number(weather.liftedIndex):hour.liftedIndex,convectiveInhibition:Number.isFinite(weather.convectiveInhibition)?Number(weather.convectiveInhibition):hour.convectiveInhibition,sunshineDuration:weather.sunshineDuration,isDay:hour.isDay,leadHours:(hour.epoch-now)/3600000});
    const repaired=weather.sourceRole==='repair'||weather.sourceId!=='best_match';
-   next={...next,precipitation:signal.precipitation,rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall,probability:signal.probability,code:signal.code,cloud:Number.isFinite(weather.cloud)?weather.cloud:next.cloud,lowCloud:Number.isFinite(weather.lowCloud)?Number(weather.lowCloud):next.lowCloud,cape:Number.isFinite(weather.cape)?Number(weather.cape):next.cape,sunshineDuration:boundedSunshineSeconds(weather.sunshineDuration,3600)??next.sunshineDuration,weatherSourceId:weather.sourceId,weatherSourceLabel:weather.sourceLabel,weatherBundleKind:repaired?'coherent-model':'best-match'};changed=true;
+   const rucTemperature=Number(weather.temperature),rucDewPoint=Number(weather.dewPoint),rucPressure=Number(weather.pressure),rucWind=Number(weather.wind),rucGust=Number(weather.gust),rucDirection=Number(weather.direction),temperature=Number.isFinite(rucTemperature)?rucTemperature:next.temperature,temperatureDelta=temperature-next.temperature,dewPoint=Number.isFinite(rucDewPoint)?Math.min(temperature,rucDewPoint):next.dewPoint,pressure=Number.isFinite(rucPressure)?rucPressure:next.pressure,wind=Number.isFinite(rucWind)?Math.max(0,rucWind):next.wind,gust=Number.isFinite(rucGust)?Math.max(wind,rucGust):Math.max(wind,next.gust),direction=Number.isFinite(rucDirection)?((rucDirection%360)+360)%360:next.direction;next={...next,temperature,apparent:next.apparent+temperatureDelta,dewPoint,pressure,wind,gust,direction,precipitation:signal.precipitation,rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall,probability:signal.probability,code:signal.code,cloud:Number.isFinite(weather.cloud)?weather.cloud:next.cloud,lowCloud:Number.isFinite(weather.lowCloud)?Number(weather.lowCloud):next.lowCloud,cape:Number.isFinite(weather.cape)?Number(weather.cape):next.cape,sunshineDuration:boundedSunshineSeconds(weather.sunshineDuration,3600)??next.sunshineDuration,weatherSourceId:weather.sourceId,weatherSourceLabel:weather.sourceLabel,weatherBundleKind:repaired?'coherent-model':'best-match'};changed=true;
   }
   if(dayAdjustment&&base&&fused&&base!==fused){
    // Temperatur und Wind dürfen aus eigenen, intern konsistenten Parameterbündeln
@@ -559,16 +570,16 @@ export function reconcileForecastDaysWithHours(days:Day[],hours:Hour[]){
  return changed?result:days;
 }
 
-type ConvectiveSiteRelevance={relevant:boolean;approaching:boolean;arrival:number};
+type ConvectiveSiteRelevance={relevant:boolean;approaching:boolean;nearby:boolean;arrival:number};
 function convectiveCellSiteRelevance(cell:NonNullable<ThunderstormNowcast['nearest']>):ConvectiveSiteRelevance{
- const currentDistance=Number(cell.currentDistanceKm),forecastDistance=Number(cell.forecastDistanceKm),effectiveDistance=Number(cell.forecastEffectiveDistanceKm??cell.relevanceDistanceKm),arrival=Number(cell.arrivalMinutes),centerGetsCloser=Number.isFinite(currentDistance)&&Number.isFinite(forecastDistance)&&forecastDistance+2<currentDistance,arrivalRelevant=Number.isFinite(arrival)&&arrival>=0&&arrival<=120,approaching=Boolean(cell.isApproaching&&centerGetsCloser&&Number.isFinite(effectiveDistance)&&effectiveDistance<=35&&arrivalRelevant),movingAway=Boolean(!approaching&&Number.isFinite(currentDistance)&&currentDistance>15&&Number.isFinite(forecastDistance)&&forecastDistance>currentDistance+2),referencePlaces=Array.isArray(cell.affectedPlaces)?cell.affectedPlaces.filter(place=>place.isReferenceLocation):[],referenceDirect=referencePlaces.some(place=>place.status==='now'||place.status==='likely'||place.status==='possible'),referenceCorridor=referencePlaces.some(place=>place.status==='corridor')&&Number.isFinite(effectiveDistance)&&effectiveDistance<=20&&arrivalRelevant,nearNow=Number.isFinite(currentDistance)&&currentDistance<=25&&!movingAway,tooDistant=Number.isFinite(currentDistance)&&currentDistance>60&&!approaching&&!referenceDirect&&!referenceCorridor,relevant=Boolean(!movingAway&&!tooDistant&&(currentDistance<1||nearNow||approaching||referenceDirect||referenceCorridor));
- return{relevant,approaching,arrival};
+ const currentDistance=Number(cell.currentDistanceKm),forecastDistance=Number(cell.forecastDistanceKm),effectiveDistance=Number(cell.forecastEffectiveDistanceKm??cell.relevanceDistanceKm),rawArrival=Number(cell.arrivalMinutes),centerGetsCloser=Number.isFinite(currentDistance)&&Number.isFinite(forecastDistance)&&forecastDistance+2<currentDistance,arrivalRelevant=Number.isFinite(rawArrival)&&rawArrival>=0&&rawArrival<=120,approaching=Boolean(cell.isApproaching&&centerGetsCloser&&Number.isFinite(effectiveDistance)&&effectiveDistance<=35&&arrivalRelevant),movingAway=Boolean(!approaching&&Number.isFinite(currentDistance)&&currentDistance>15&&Number.isFinite(forecastDistance)&&forecastDistance>currentDistance+2),referencePlaces=Array.isArray(cell.affectedPlaces)?cell.affectedPlaces.filter(place=>place.isReferenceLocation):[],referenceDirect=referencePlaces.some(place=>place.status==='now'||place.status==='likely'||place.status==='possible'),referenceCorridor=referencePlaces.some(place=>place.status==='corridor')&&Number.isFinite(effectiveDistance)&&effectiveDistance<=20&&arrivalRelevant,nearby=Boolean(Number.isFinite(currentDistance)&&currentDistance<=25&&!movingAway),tooDistant=Number.isFinite(currentDistance)&&currentDistance>60&&!approaching&&!referenceDirect&&!referenceCorridor,relevant=Boolean(!movingAway&&!tooDistant&&(currentDistance<1||nearby||approaching||referenceDirect||referenceCorridor)),arrival=approaching&&Number.isFinite(rawArrival)?Math.max(0,rawArrival):0;
+ return{relevant,approaching,nearby,arrival};
 }
 
 export function applyConvectiveNowcastHours(hours:Hour[],thunder:ThunderstormNowcast|null|undefined){
- const cell=thunder?.nearest,relevance=cell?convectiveCellSiteRelevance(cell):null;if(!thunder?.available||!cell||!relevance?.approaching||!relevance.relevant||!Number.isFinite(relevance.arrival)||Number(relevance.arrival)>210)return hours;
- const now=Date.now(),arrival=Math.max(0,Number(relevance.arrival)),severity=clamp(Number(cell.severity)||0,0,10),lightning=Math.max(0,Number(cell.lightningRate)||0),baseSignal=clamp(28+severity*6+Math.min(25,lightning*1.8),35,92);let changed=false;
- const result=hours.map(hour=>{const minutes=(hour.epoch-now)/60000,distance=Math.abs(minutes-arrival);if(minutes<-30||distance>105)return hour;const leadFactor=clamp(1-distance/120,.18,1),capeSupport=clamp((Number(hour.cape)||0)/900,0,1),probability=clamp(Math.max(hour.probability,baseSignal*(.72+.28*capeSupport)*leadFactor),0,100),strong=probability>=58&&(severity>=4||lightning>=4),code=strong&&![95,96,99].includes(hour.code)?95:hour.code;if(Math.abs(probability-hour.probability)<.1&&code===hour.code)return hour;changed=true;return{...hour,probability,code}});
+ const cell=thunder?.nearest,relevance=cell?convectiveCellSiteRelevance(cell):null;if(!thunder?.available||!cell||!relevance?.relevant)return hours;
+ const now=Date.now(),arrival=Math.max(0,Number(relevance.arrival)||0),severity=clamp(Number(cell.severity)||0,0,4),lightning=Math.max(0,Number(cell.lightningRate)||0),mesocyclone=Boolean(cell.mesocycloneDetected),hazardBoost=(cell.heavyRainFlag?8:0)+(cell.hailFlag?8:0)+(cell.gustFlag?6:0)+(mesocyclone?12:0),baseSignal=clamp(24+severity*9+Math.min(24,lightning*1.8)+hazardBoost,32,96),windowMinutes=relevance.approaching?120:180;let changed=false;
+ const result=hours.map(hour=>{const minutes=(hour.epoch-now)/60000,distance=relevance.approaching?Math.abs(minutes-arrival):Math.max(0,minutes);if(minutes<-30||distance>windowMinutes)return hour;const leadFactor=clamp(1-distance/(windowMinutes+30),.2,1),capeSupport=clamp((Number(hour.cape)||0)/900,0,1),probability=clamp(Math.max(hour.probability,baseSignal*(.72+.28*capeSupport)*leadFactor),0,100),electrified=lightning>=1,strong=electrified&&probability>=55&&(severity>=2||lightning>=3||mesocyclone),code=strong&&![95,96,99].includes(hour.code)?95:hour.code;if(Math.abs(probability-hour.probability)<.1&&code===hour.code)return hour;changed=true;return{...hour,probability,code}});
  return changed?result:hours;
 }
 

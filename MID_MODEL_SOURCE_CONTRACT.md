@@ -16,3 +16,14 @@ Dieser Vertrag gilt app-weit für deterministische und Ensemble-Modellquellen, M
 10. **Kanonische Endstufe bleibt unverändert.** Zusätzliche Modellquellen dürfen `MID_FORECAST_CONSISTENCY_CONTRACT.md` nicht umgehen. Sichtbare Prognosen werden weiterhin erst nach der zentralen Fusion/Finalisierung ausgegeben.
 
 Required Regression: `scripts/test-model-source-capability-contract-095336.mjs`.
+
+
+## ICON-D2-RUC / RUC-EPS Kurzfristvertrag (MID v0.9.67.11)
+
+- Innerhalb des vollständigen ICON-D2-Gebiets darf ein konfigurierter numerischer `MID_DWD_RUC_POINT_ENDPOINT` die kanonischen 0–14-h-Stunden kalibrieren. Das Gewicht ist in 0–3 h am höchsten und fällt bis +14 h ab.
+- ICON-D2-RUC bleibt in derselben Unabhängigkeitsgruppe `dwd-icon` wie ICON-D2/ICON-EU und erzeugt deshalb keine zusätzliche DWD-Stimme im Mehrmodellkonsens.
+- `MID_DWD_RUC_EPS_POINT_ENDPOINT` ist der bevorzugte kurzreichweitige DWD-EPS-Adapter. RUC-EPS und ICON-D2-EPS teilen die Variantengruppe `dwd-icon-d2-eps-rapid`; fällt RUC-EPS aus oder ist nicht konfiguriert, übernimmt ICON-D2-EPS.
+- RUC-EPS wird nur für den sinnvollen Kurzfristhorizont bis +14 h angefordert und nicht in normale 7-/14-Tage-Ensembleabrufe eingeschleust.
+- Der Cloudflare-Worker dekodiert keine rohen GRIB2-/BUFR-Raster. RUC-/RUC-EPS-Punktadapter liefern bereits dekodiertes JSON und werden am Edge kurz gecacht.
+- KONRAD3D und DWD-Mesozyklonen sind beobachtungsnahe Korrekturen nach der Modellfusion. Eine Gewitterklassifikation im aktuellen/Nowcast-Pfad erfordert weiterhin mindestens einen beobachteten Blitz.
+- Der Extremwetter-Ausblick lädt maximal einen regionalen KONRAD3D-/Mesozyklonen-Snapshot pro gecachter Berechnung; der Browser-Direktfallback erzeugt keinen zweiten DWD-Objektabruf.

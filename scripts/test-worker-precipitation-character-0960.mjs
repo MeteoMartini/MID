@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
 const worker=readFileSync(new URL('../worker/metar-proxy.js',import.meta.url),'utf8');
 for(const token of ['function precipitationCharacter','directPartition','relative_humidity_2m,cape,lifted_index,convective_inhibition','rain_sum,showers_sum,snowfall_sum,precipitation_hours','rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall','currentSignal=reconcileForecastPrecipitation','pushForecastState'])assert.ok(worker.includes(token),`Worker-Niederschlagsvertrag fehlt: ${token}`);
-assert.ok(worker.includes("FORECAST_FUSION_HOURLY='precipitation,precipitation_probability,rain,showers,snowfall"));
+for(const token of ['FORECAST_FUSION_HOURLY=', 'precipitation,precipitation_probability,rain,showers,snowfall'])assert.ok(worker.includes(token),`Forecast-Fusion-Niederschlagsfelder fehlen: ${token}`);
 console.log('Worker-Niederschlagsklassifikation geprüft: rain/showers, Instabilitätsfelder, Widgets, Push und Mehrmodell-Bündel sind gekoppelt.');
