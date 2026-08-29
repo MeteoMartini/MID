@@ -300,7 +300,7 @@ jobs:
     needs: install_build
     if: needs.install_build.result == 'success'
     runs-on: ubuntu-latest
-    timeout-minutes: 18
+    timeout-minutes: 10
     permissions:
       contents: read
     concurrency:
@@ -476,7 +476,7 @@ jobs:
       - deploy_worker
     if: needs.install_build.result == 'success' && needs.deploy_worker.result == 'success'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 18
     permissions:
       contents: read
       pages: write
@@ -503,6 +503,18 @@ jobs:
           git checkout --detach FETCH_HEAD
           test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
           test -f dist/index.html
+
+      - name: Bereits veröffentlichten kostenfreien RUC-Snapshot erhalten
+        shell: bash
+        env:
+          MID_RUC_PIPELINE_ENABLED: ${{ vars.MID_RUC_PIPELINE_ENABLED }}
+          MID_RUC_PAGES_BASE_URL: ${{ vars.MID_RUC_PAGES_BASE_URL }}
+        run: |
+          set -euo pipefail
+          base="${MID_RUC_PAGES_BASE_URL:-https://midwx.app/ruc/}"
+          args=(--base "$base" --target dist/ruc --workers 16)
+          if [ "$MID_RUC_PIPELINE_ENABLED" = "true" ]; then args+=(--required); fi
+          python tools/ruc/restore_ruc_pages_snapshot.py "${args[@]}"
 
       - name: Pages-Artefakt hochladen · Versuch 1
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
@@ -548,7 +560,7 @@ jobs:
       - pages_cooldown_1
     if: always() && needs.install_build.result == 'success' && needs.deploy_worker.result == 'success' && needs.deploy_pages_1.outputs.deployed != 'true' && needs.pages_cooldown_1.result == 'success'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 18
     permissions:
       contents: read
       pages: write
@@ -575,6 +587,18 @@ jobs:
           git checkout --detach FETCH_HEAD
           test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
           test -f dist/index.html
+
+      - name: Bereits veröffentlichten kostenfreien RUC-Snapshot erhalten
+        shell: bash
+        env:
+          MID_RUC_PIPELINE_ENABLED: ${{ vars.MID_RUC_PIPELINE_ENABLED }}
+          MID_RUC_PAGES_BASE_URL: ${{ vars.MID_RUC_PAGES_BASE_URL }}
+        run: |
+          set -euo pipefail
+          base="${MID_RUC_PAGES_BASE_URL:-https://midwx.app/ruc/}"
+          args=(--base "$base" --target dist/ruc --workers 16)
+          if [ "$MID_RUC_PIPELINE_ENABLED" = "true" ]; then args+=(--required); fi
+          python tools/ruc/restore_ruc_pages_snapshot.py "${args[@]}"
 
       - name: Pages-Artefakt hochladen · Versuch 2
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
@@ -621,7 +645,7 @@ jobs:
       - pages_cooldown_2
     if: always() && needs.install_build.result == 'success' && needs.deploy_worker.result == 'success' && needs.deploy_pages_1.outputs.deployed != 'true' && needs.deploy_pages_2.outputs.deployed != 'true' && needs.pages_cooldown_2.result == 'success'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 18
     permissions:
       contents: read
       pages: write
@@ -648,6 +672,18 @@ jobs:
           git checkout --detach FETCH_HEAD
           test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
           test -f dist/index.html
+
+      - name: Bereits veröffentlichten kostenfreien RUC-Snapshot erhalten
+        shell: bash
+        env:
+          MID_RUC_PIPELINE_ENABLED: ${{ vars.MID_RUC_PIPELINE_ENABLED }}
+          MID_RUC_PAGES_BASE_URL: ${{ vars.MID_RUC_PAGES_BASE_URL }}
+        run: |
+          set -euo pipefail
+          base="${MID_RUC_PAGES_BASE_URL:-https://midwx.app/ruc/}"
+          args=(--base "$base" --target dist/ruc --workers 16)
+          if [ "$MID_RUC_PIPELINE_ENABLED" = "true" ]; then args+=(--required); fi
+          python tools/ruc/restore_ruc_pages_snapshot.py "${args[@]}"
 
       - name: Pages-Artefakt hochladen · Versuch 3
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
