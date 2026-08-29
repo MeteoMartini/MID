@@ -37,3 +37,9 @@ Die fachliche Runtime bleibt zusätzlich fail-closed: ein stale RUC-Snapshot wir
 v0.9.73.13 soll damit den korrigierten Worker und Quellstand einmalig aus dem Bootstrap-Zirkel auf `mid-stable` bringen. Anschließend kann der nächste RUC-Workflow den parameter-nativen Snapshot erzeugen und wieder den regulären fresh-Zustand herstellen.
 
 Kein manueller Worker-Upload, kein R2 und keine kostenpflichtige Infrastruktur sind erforderlich. Der automatische 0-%-Smoke, die Promotion und der Rollback-Schutz bleiben bestehen.
+
+## Ergänzung: GitHub-Pages-Speichergrenze für native RUC-Severe-Produkte
+
+Vor der Auslieferung des noch nicht finalisierten v0.9.73.13-Kandidaten wurde die kostenfreie GitHub-Pages-Publikation gezielt verkleinert, ohne den kanonischen Forecast oder die RUC-Wolken-/Spezialdiagnostik zu beschneiden. Im `pages-free-v1`-Profil werden bei `severe15` ausschließlich redundante Varianten projiziert: `lpi` nur bei vorhandenem `lpi_max` sowie `uh_max_low`/`uh_max_med` nur bei vorhandenem `uh_max`. `lpi_max`, `uh_max` und alle übrigen Felder bleiben erhalten; das vollständige Preprocessing-Bundle bleibt unverändert und die 950-MB-Sicherheitsgrenze wird nicht angehoben.
+
+`latest.json` dokumentiert dafür `prunedRedundantFields` und `savedBytes`. Der fokussierte Python-Regressionstest prüft die Projektion bytegenau; zusätzlich bleiben der bestehende RUC-Pages-Runtimevertrag, der Parameter-Audit und die Worker-Syntax grün. Der vollständige Release-CI-Lauf bleibt vor Aktivierung verbindlich.
