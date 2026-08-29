@@ -207,6 +207,22 @@ jobs:
           set -euo pipefail
           npm run verify
 
+
+      - name: Geprüften Web-Build in die Capacitor-iOS-Hülle übernehmen
+        shell: bash
+        timeout-minutes: 3
+        run: |
+          set -euo pipefail
+          ./node_modules/.bin/cap copy ios
+          node scripts/test-cross-platform-ios-shell-09670.mjs
+          node scripts/test-runtime-lifecycle-offline-resume-09701.mjs
+          package_version="$(node -p "require('./package.json').version")"
+          ios_web_version="$(node -p "require('./ios/App/App/public/version.json').version")"
+          if [ "$ios_web_version" != "$package_version" ]; then
+            echo "::error::Capacitor-iOS-Web-Bundle ${ios_web_version} != Release ${package_version}."
+            exit 1
+          fi
+
       - name: Release- und Worker-Änderungsmetadaten ermitteln
         id: release_meta
         shell: bash
