@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.69.4",
+  "releaseVersion": "0.9.69.5",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -799,6 +799,7 @@
     "MID_CLOUDFLARE_WORKER_DEPLOY_SETUP.md",
     "MID_IMPLEMENTATION_0.9.69.3.md",
     "MID_IMPLEMENTATION_0.9.69.4.md",
+    "MID_IMPLEMENTATION_0.9.69.5.md",
     "tools/cloudflare/prepare_worker_deploy.mjs",
     "tools/cloudflare/worker_semantic_diff.mjs",
     "tools/cloudflare/parse_wrangler_output.mjs",
@@ -806,5 +807,8 @@
     "scripts/test-worker-auto-deploy-09693.mjs",
     "ci/github/workflows/install-mid.yml",
     ".github/workflows/install-mid.yml"
+  ],
+  "sourceFiles": [
+    "MID_IMPLEMENTATION_0.9.69.5.md"
   ]
 }

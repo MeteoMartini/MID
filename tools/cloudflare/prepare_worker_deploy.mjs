@@ -87,7 +87,7 @@ if(!existing&&rucBucket&&truthy('MID_RUC_BINDING_AUTO_APPROVED')){
 }
 const config={
  name:workerName,
- main:'worker/metar-proxy.js',
+ main:path.resolve(process.cwd(),'worker/metar-proxy.js'),
  compatibility_date:compatibilityDate,
  ...(Array.isArray(settings?.compatibility_flags)&&settings.compatibility_flags.length?{compatibility_flags:settings.compatibility_flags}:{}),
  keep_vars:true,

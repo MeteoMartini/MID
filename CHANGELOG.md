@@ -1,3 +1,9 @@
+## 0.9.69.5
+
+- Worker-Auto-Deploy-Hotfix: der in einer temporären `/tmp`-Wrangler-Konfiguration gespeicherte Worker-Einstiegspfad ist jetzt absolut und zeigt sicher auf den ausgecheckten Release-Arbeitsbaum.
+- Regression schützt davor, `worker/metar-proxy.js` künftig wieder relativ zum Speicherort der temporären Config statt zum Repository aufzulösen.
+- Der v0.9.69.4-Fehlversuch stoppte erneut vor Staging/Traffic; Pages und `mid-stable` blieben korrekt blockiert.
+
 ## 0.9.69.4
 
 - Worker-Auto-Deploy-Hotfix: ein leeres Cloudflare-`placement` wird nicht mehr als ungültiges `placement: {}` an Wrangler übergeben.
