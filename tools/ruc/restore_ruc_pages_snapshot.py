@@ -14,8 +14,14 @@ def sha(data:bytes)->str:return hashlib.sha256(data).hexdigest()
 def restore(base:str,target:Path,required=False,workers=16):
     base=base.rstrip('/')+'/'
     try:meta_bytes=fetch(urllib.parse.urljoin(base,'latest.json'),15)
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            print('No deployed RUC snapshot yet (HTTP 404); continuing with bootstrap release without ruc/.')
+            return False
+        if required: raise RuntimeError(f'current RUC snapshot unavailable: HTTP {e.code}') from e
+        print(f'RUC snapshot unavailable (HTTP {e.code}); continuing without ruc/.');return False
     except Exception as e:
-        if required: raise RuntimeError(f'current RUC snapshot unavailable: {e}')
+        if required: raise RuntimeError(f'current RUC snapshot unavailable: {e}') from e
         print('No deployed RUC snapshot to preserve; continuing without ruc/.');return False
     meta=json.loads(meta_bytes.decode())
     if meta.get('storageProfile')!='pages-free-v1':

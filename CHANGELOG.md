@@ -1,5 +1,14 @@
 ## 0.9.73.1
 
+## v0.9.73.3
+
+- RUC-Bootstrap-Hotfix: iOS-Statusversion mit Release synchronisiert; keine fachliche RUC-/Worker-Änderung.
+- Generierte Python-`__pycache__`-Artefakte aus dem Release entfernt.
+
+## 0.9.73.2
+- RUC Pages bootstrap: ein noch nicht vorhandenes `/ruc/latest.json` (HTTP 404) blockiert den allerersten Release nach Aktivierung der kostenlosen RUC-Pipeline nicht mehr. Andere Restore-Fehler bleiben fail-closed.
+
+
 - Hotfix für die kostenlose DWD ICON-D2-RUC/RUC-EPS-Pipeline: URL-kodierte DWD-Laufverzeichnisse (`%3A`) werden vor der Run-Erkennung dekodiert.
 - Verhindert den falschen Fehler `No common DWD RUC/RUC-EPS run directories found` bei vorhandenen stündlichen Läufen.
 - Fail-safe-Vollständigkeitsprüfung, gemeinsamer RUC/RUC-EPS-Lauf, Pages-Pfad und deaktiviertes R2 bleiben unverändert.

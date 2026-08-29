@@ -15,6 +15,9 @@ for(const token of ['prepare_ruc_pages.py','upload-pages-artifact@','deploy-page
 for(const forbidden of ['MID_RUC_R2_ACCESS_KEY_ID','MID_RUC_R2_SECRET_ACCESS_KEY','publish_ruc_r2.sh'])assert.ok(!workflow.includes(forbidden),`free Pages workflow still requires R2: ${forbidden}`);
 assert.ok(install.match(/Bereits veröffentlichten kostenfreien RUC-Snapshot erhalten/g)?.length===3,'all three normal Pages release attempts must preserve RUC');
 assert.ok(install.includes('restore_ruc_pages_snapshot.py')&&install.includes('MID_RUC_PAGES_BASE_URL'));
+const restoreScript=fs.readFileSync('tools/ruc/restore_ruc_pages_snapshot.py','utf8');
+assert.ok(restoreScript.includes("if e.code == 404"),'first-run RUC bootstrap 404 must be non-fatal');
+assert.ok(restoreScript.includes("if required: raise RuntimeError(f'current RUC snapshot unavailable: HTTP {e.code}')"),'non-404 HTTP failures must remain fail-closed when RUC pipeline is enabled');
 
 const raw=fs.readFileSync('worker/metar-proxy.js','utf8').replace(/export default\s*\{/,'const __workerDefault={').replace(/^export \{[^\n]+\};?$/gm,'');
 const now=new Date();now.setUTCMinutes(0,0,0);const run=now.toISOString(),runKey=run.replace(/[^0-9A-Za-z_-]/g,''),times=Array.from({length:4},(_,i)=>new Date(now.getTime()+i*3600000).toISOString().slice(0,16));
