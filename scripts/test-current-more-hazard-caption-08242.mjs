@@ -10,7 +10,7 @@ const failures=[];
 const need=(area,text,token)=>{if(!text.includes(token))failures.push(`${area}: fehlt ${token}`)};
 const forbid=(area,text,token)=>{if(text.includes(token))failures.push(`${area}: unerlaubt ${token}`)};
 
-need('Eigene Warnungen',app,'<small>Automatisch aus Best Match abgeleitet.</small>');
+need('Eigene Warnungen',app,'<small>Automatisch aus der kanonischen MID-Ortsprognose abgeleitet.</small>');
 forbid('Eigene Warnungen',app,'abgeleitete Indikatoren nach DWD-Kriterien');
 forbid('Eigene Warnungen',app,'Keine amtlichen Warnungen.</small>');
 

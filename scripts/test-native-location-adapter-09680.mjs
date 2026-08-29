@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {versionAtLeast} from './version-regression-helper.mjs';
+import {expectedIosNextMilestone,versionAtLeast} from './version-regression-helper.mjs';
 
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8');
 const [adapter,app,runtime,pkgRaw,baselineRaw,statusRaw,plist,roadmap,implementation]=await Promise.all([
@@ -31,7 +31,7 @@ assert.ok(!app.includes('navigator.geolocation.getCurrentPosition('),'App muss a
 for(const key of ['NSLocationWhenInUseUsageDescription','NSLocationAlwaysAndWhenInUseUsageDescription'])assert.ok(plist.includes(key),`${key} fehlt.`);
 assert.ok(plist.includes('Eine Hintergrund-Ortung findet nicht statt.'));
 assert.ok(status.completed?.includes('native-location-adapter-with-browser-fallback'));
-assert.equal(status.nextMilestone,versionAtLeast(pkg.version,'0.9.70.1')?'widgetkit-xcode-structure-with-mid-native-widget-v1':versionAtLeast(pkg.version,'0.9.68.2')?'lifecycle-offline-resume-without-local-data-loss':versionAtLeast(pkg.version,'0.9.68.1')?'native-share-import-export-with-browser-fallback':'native-external-navigation-with-deep-link-return');
+assert.equal(status.nextMilestone,expectedIosNextMilestone(pkg.version));
 assert.ok(roadmap.includes('Standortadapter mit Browser-Fallback – abgeschlossen'));
 assert.ok(implementation.includes('keine Hintergrund-Ortung')&&implementation.includes('navigator.geolocation'));
 

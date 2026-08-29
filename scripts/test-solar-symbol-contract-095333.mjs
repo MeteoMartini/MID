@@ -45,7 +45,7 @@ assert.match(worker,/function widgetAstronomicalIsDay\(/,'Native Widget-Sonnenst
 assert.match(worker,/return sunrise&&sunset&&sunset>sunrise\?stamp>=sunrise&&stamp<sunset:Boolean\(fallback\)/,'Widget muss exakt zwischen täglichem Sonnenaufgang und Sonnenuntergang Tag sein.');
 assert.match(worker,/currentIsDay=widgetAstronomicalIsDay\(current\.time,daily,Number\(current\.is_day\)===1\)/,'Widget-Aktuellwert verwendet nicht die Sonnenstandsgrenze.');
 assert.match(worker,/isDay:currentIsDay\},hourly:hourRows/,'Widget-Ausgabe gibt für aktuell noch den rohen Providerstatus aus.');
-assert.match(worker,/const isDay=widgetAstronomicalIsDay\(time,daily,Number\(at\(hourly\.is_day,index\)\)===1\)/,'Widget-Stunden verwenden nicht die Sonnenstandsgrenze.');
+assert.match(worker,/isDay=widgetAstronomicalIsDay\(time,daily,Number\(at\(hourly\.is_day,index\)\)===1\)/,'Widget-Stunden verwenden nicht die Sonnenstandsgrenze.');
 
 assert.match(contract,/Tag:\*\* `Zeitpunkt >= Sonnenaufgang && Zeitpunkt < Sonnenuntergang`/,'Vertrag dokumentiert die exakte Grenze nicht.');
 assert.match(contract,/`is_day` eines Wetterproviders ist \*\*nicht\*\* die primäre sichtbare Symbolentscheidung/,'Provider-Fallbackregel fehlt im Vertrag.');

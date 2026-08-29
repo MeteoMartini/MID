@@ -55,8 +55,8 @@ const contracts=[
  ['src/EventPlannerPanel.tsx',['eventSunshineLabel','Sonnenscheindauer']],
  ['src/App.tsx',['showSunshine','widgetmeta-sun','sunshineHoursLabel']],
  ['src/nativeWidget.ts',['sunshineDurationSeconds','sunshineDuration']],
- ['native/apple/MIDWidgetShared/MIDWidgetSnapshot.swift',['sunshineDurationSeconds']],
- ['native/apple/MIDWidgets/MIDWidget.swift',['sunshineMinutes','sunshineHours']],
+ ['ios/App/MIDWidgets/MIDWidgetSnapshot.swift',['sunshineDurationSeconds']],
+ ['ios/App/MIDWidgets/MIDWidget.swift',['sunshineMinutes','sunshineHours']],
  ['worker-src/00-core-observations.js',['widgetSunshineSeconds','sunshineDurationSeconds','sunshineDuration:\'s\'']]
 ];
 for(const [file,tokens] of contracts){const text=fs.readFileSync(path.join(root,file),'utf8');for(const token of tokens)assert.ok(text.includes(token),`${file}: Sunshine-Contract fehlt: ${token}`)}

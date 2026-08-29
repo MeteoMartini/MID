@@ -1,3 +1,4 @@
+import {expectedIosNextMilestone} from './version-regression-helper.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
@@ -42,7 +43,7 @@ assert.ok(workerCore.includes(`const WORKER_VERSION='${pkg.version}';`),'Profess
 const versionParts=pkg.version.split('.').map(Number),marketingVersion=versionParts.slice(0,3).join('.'),buildNumber=String(Math.max(1,(versionParts[3]||0)+1));
 assert.ok(iosProject.includes(`MARKETING_VERSION = ${marketingVersion};`)&&iosProject.includes(`CURRENT_PROJECT_VERSION = ${buildNumber};`),`Xcode-Version ${marketingVersion} (Build ${buildNumber}) fehlt.`);
 assert.equal(status.browserDevelopmentContinues,true);
-assert.equal(status.nextMilestone,versionAtLeast(pkg.version,'0.9.70.1')?'widgetkit-xcode-structure-with-mid-native-widget-v1':versionAtLeast(pkg.version,'0.9.68.2')?'lifecycle-offline-resume-without-local-data-loss':versionAtLeast(pkg.version,'0.9.68.1')?'native-share-import-export-with-browser-fallback':versionAtLeast(pkg.version,'0.9.68.0')?'native-external-navigation-with-deep-link-return':'native-location-adapter-with-browser-fallback');
+assert.equal(status.nextMilestone,expectedIosNextMilestone(pkg.version));
 assert.ok(implementation.includes('Hauptkopfzeile')&&implementation.includes('haftende Sektionsnavigation'));
 assert.equal(styles,await ['src/styles-src/00-foundation.css','src/styles-src/10-features.css','src/styles-src/20-ensemble-composite.css','src/styles-src/25-extreme-outlook.css','src/styles-src/30-modern.css'].reduce(async(acc,path)=>(await acc)+await readFile(path,'utf8'),Promise.resolve('')),'styles.css ist nicht mit den kanonischen Modulen synchron.');
 console.log(`MID v${pkg.version}: Hauptkopfzeile, Sticky-Navigation und Vollbilddialoge bleiben unter der iOS-Statusleiste bedienbar.`);

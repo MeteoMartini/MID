@@ -6,7 +6,7 @@ const [panel,app,nativeClient,widgetSettings,worker,styles,swift,readme]=await P
  readFile(new URL('../src/AppleWidgetSettings.tsx',import.meta.url),'utf8'),
  readFile(new URL('../worker/metar-proxy.js',import.meta.url),'utf8'),
  readFile(new URL('../src/styles.css',import.meta.url),'utf8'),
- readFile(new URL('../native/apple/MIDWidgets/MIDWidget.swift',import.meta.url),'utf8'),
+ readFile(new URL('../ios/App/MIDWidgets/MIDWidget.swift',import.meta.url),'utf8'),
  readFile(new URL('../native/apple/README.md',import.meta.url),'utf8')
 ]);
 const failures=[];
@@ -21,8 +21,9 @@ need(app,'<AppleWidgetSettings location={currentLocation} unit={unit}/>','Apple-
 need(nativeClient,"NATIVE_WIDGET_SCHEMA='mid.native.widget.v1'",'Versionierter nativer Widget-Datenvertrag fehlt.');
 need(nativeClient,"'accessoryInline','accessoryCircular','accessoryRectangular','accessoryCorner'",'watchOS-Komplikationsfamilien fehlen im Frontendvertrag.');
 need(widgetSettings,'Widgets & Komplikationen','Widget-/Komplikationsstatus fehlt in den Einstellungen.');
-need(worker,'async function nativeWidgetFeed(url)','Worker-Datenfeed für native Widgets fehlt.');
-need(worker,"if(mode==='native-widget-feed')return nativeWidgetFeed(u);",'Workerroute native-widget-feed fehlt.');
+need(worker,'async function nativeWidgetFeed(url,env)','Worker-Datenfeed für native Widgets fehlt.');
+need(worker,'forecastFusionResponse(fusionUrl,env)','Native Widgets umgehen die kanonische RUC-/Mehrmodell-Fusion.');
+need(worker,"if(mode==='native-widget-feed')return nativeWidgetFeed(u,env);",'Workerroute native-widget-feed fehlt.');
 need(worker,"schema:'mid.native.widget.v1'",'Worker liefert nicht den erwarteten Widgetvertrag.');
 need(styles,'.weather-twin-site-summary-values','CSS für die Profilzusammenfassung fehlt.');
 need(styles,'.apple-widget-readiness-grid','CSS für die Apple-Widget-Vorbereitung fehlt.');
@@ -32,6 +33,7 @@ need(readme,'App Group','Native App-Group-Vorbereitung fehlt in der Dokumentatio
 const originalFetch=globalThis.fetch;
 globalThis.fetch=async input=>{
  const url=new URL(typeof input==='string'?input:input.url);
+ if(url.hostname==='api.open-meteo.com'&&String(url.searchParams.get('models')||'').includes(','))return new Response(JSON.stringify({error:true,reason:'fusion fixture unavailable'}),{status:500,headers:{'content-type':'application/json'}});
  if(url.hostname==='api.open-meteo.com')return new Response(JSON.stringify({
   latitude:50.8,longitude:7.0,elevation:60,timezone:'Europe/Berlin',
   current:{time:'2026-07-28T10:00',temperature_2m:23.4,apparent_temperature:23.0,precipitation:0,weather_code:1,wind_speed_10m:8,wind_gusts_10m:12,wind_direction_10m:245,is_day:1},

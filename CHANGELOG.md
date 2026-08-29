@@ -1,3 +1,37 @@
+## 0.9.73.0
+
+- iOS Privacy: Haupt-App und `MIDWidgets` besitzen jeweils ein eigenes, im Target gebündeltes `PrivacyInfo.xcprivacy`; Tracking bleibt überall deaktiviert.
+- App-Manifest: Precise Location, optionaler zufälliger Device-Sync-Identifier, verschlüsselter portabler Nutzerinhalt sowie Cloudflare-RUM Produktinteraktion/Performance sind mit passenden AppFunctionality-/Analytics-Zwecken deklariert.
+- Required Reason API: `@capacitor/filesystem` wird mit `NSPrivacyAccessedAPICategoryFileTimestamp` / `C617.1` abgedeckt.
+- Widget-Manifest: ausschließlich Precise Location und frei eingegebener Standortinhalt für `mid.native.widget.v1`; keine Tracking-Domains und keine Required-Reason-API.
+- iOS Regression: historische Adaptertests verwenden nun eine zentrale semantische Next-Milestone-Funktion, damit abgeschlossene Apple-Meilensteine nicht erneut durch harte Altvergleiche blockiert werden.
+- Keine neue Apple-Berechtigung oder Capability: kein ATT, kein Push-Opt-in, kein Background Mode, kein `aps-environment`, keine Signierung. Nächstes Gate ist macOS/Xcode-Simulatorqualität.
+
+## 0.9.71.1
+
+## 0.9.72.0
+
+- iOS: APNs-Callback- und BGAppRefresh-Quellen im Haupt-App-Target vorbereitet, ohne Berechtigungs-, Entitlement-, Token-Upload- oder Scheduling-Aktivierung.
+- iOS: `BGTaskSchedulerPermittedIdentifiers` enthält den vorbereiteten Identifier `app.midwx.weather.background-refresh`; `UIBackgroundModes` und `aps-environment` bleiben absichtlich deaktiviert.
+- Vertrag: `MID_APPLE_PUSH_BACKGROUND_CONTRACT.md` schützt den gemeinsamen React/Vite-/Worker-Fachkern und das Apple-/Kosten-Gate.
+- RUC/Push/Widget: v0.9.71.1-Auditfixes bleiben enthalten; Ortsforecast-Schattenpfade nutzen die kanonische Forecast-Fusion.
+
+
+- Vier veraltete iOS-Regressionen erwarten ab v0.9.71.0 korrekt `apple-push-background-refresh-source-preparation`; die WidgetKit-Xcode-Struktur bleibt vollständig erhalten.
+- RUC-Appweit-Audit: Lüftungsassistent/-Push und Prognoseänderungs-Push verwenden die kanonische `forecast-fusion` statt eigener Best-Match-Ortsprognosen.
+- Der native `mid.native.widget.v1`-Feed übernimmt stündliche/tägliche Forecastwerte aus der kanonischen Mehrmodell-/RUC-Fusion; Current und Astronomie bleiben als Rohhülle erhalten.
+- DWD ICON-D2-RUC/ICON-D2 teilen weiterhin das DWD-ICON-Familienbudget; KNMI/DMI HARMONIE werden konservativ unter `uwc-west-harmonie` gruppiert, ohne Anbieterdiagnostik zu verlieren.
+- Wasser-/Warnquellen benennen die kanonische MID-Ortsprognose korrekt; Druckniveau-, Berg-, Marine-, Radar-/Raster- und Mitteleuropa-Extremwetterpfade bleiben fachlich getrennte Spezialdaten.
+- KNMI Direkt-GRIB wird nicht zusätzlich aktiviert: vorhandener kostenloser Open-Meteo-Pfad deckt die stündliche HARMONIE-Rapid-Quelle ab, während ein zweiter Datei/API-Key-/Dekodierpfad derzeit nur Betriebsaufwand duplizieren würde. R2 bleibt deaktiviert.
+
+## 0.9.71.0
+
+- Das vorbereitete Apple-Widget-Gerüst ist als echtes `MIDWidgets`-App-Extension-Target in `ios/App/App.xcodeproj` integriert und wird über `Embed Foundation Extensions` samt Target-Abhängigkeit in die bestehende Capacitor-App eingebettet.
+- Die Widget-Swiftquellen liegen nun kanonisch unter `ios/App/MIDWidgets`; parallele alte Swift-Kopien unter `native/apple` wurden entfernt. Der gemeinsame Wetter-/Worker-Fachkern bleibt unverändert.
+- Der unveränderte Datenvertrag `mid.native.widget.v1` wird beim Decodieren explizit validiert; der Widget-Provider nutzt den produktiven HTTPS-Endpunkt `mid-data-proxy.midwx.workers.dev`.
+- Die Widget Extension verwendet iOS/iPadOS 17.0 für `AppIntentConfiguration`; das Haupttarget bleibt auf iOS 15.0. iOS unterstützt systemSmall/Medium/Large und die Lock-Screen-Familien Inline/Circular/Rectangular; `accessoryCorner` ist für ein späteres watchOS-Target per Compile-Grenze geschützt.
+- Keine App Group, kein Apple-Entitlement, keine Signierung und kein kostenpflichtiger Dienst werden in diesem Quellmilestone aktiviert. Neue Regression schützt Xcode-Target, Einbettung, Info.plist, Bundle-ID, Plattformgrenzen und den Feedvertrag.
+
 ## 0.9.70.2
 
 - Release-Hotfix für den Lifecycle-/Offline-Meilenstein: die historische v0.9.53.14-Core-Cache-Regression prüft nicht länger eine einzelne alte Quelltextzeile, sondern den aktuellen dreistufigen Cachevertrag aus Offline-Warmstart, Fresh-Cache und Stale-Netzfallback.

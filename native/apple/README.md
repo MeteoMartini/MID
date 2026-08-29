@@ -1,24 +1,52 @@
-# MID – Apple WidgetKit/Komplikationen
+# MID – Apple WidgetKit
 
-Dieser Ordner enthält das fachliche Startgerüst für iOS-/iPadOS-Widgets und
-watchOS-Komplikationen. Das gemeinsame native App-Target liegt ab MID 0.9.67.0
-unter `ios/App` und wird über Capacitor aus demselben Browserbuild synchronisiert.
+Der fachliche Widgetvertrag bleibt `mid.native.widget.v1`. Seit MID 0.9.71.0
+liegt die ausführbare iOS-/iPadOS-WidgetKit-Struktur direkt im bestehenden
+Capacitor-Xcode-Projekt unter `ios/App/MIDWidgets`; es entsteht kein eigener
+Wetter-Fachkern und kein iOS-Fork.
 
-## Vorbereitet
+## In Xcode strukturell integriert
 
-- stabiler Worker-Endpunkt `?mode=native-widget-feed`
-- versionierter JSON-Vertrag `mid.native.widget.v1`
-- gemeinsames Swift-`Codable`-Datenmodell
-- `AppIntentTimelineProvider`
-- Darstellungen für `systemSmall`, `systemMedium`, `systemLarge`, `accessoryInline`, `accessoryCircular`, `accessoryRectangular` und `accessoryCorner`
+- Target `MIDWidgets` als eingebettete WidgetKit App Extension im bestehenden
+  `ios/App/App.xcodeproj`
+- Produkt `MIDWidgets.appex` wird über `Embed Foundation Extensions` in die
+  Haupt-App eingebettet und ist als Target-Abhängigkeit verdrahtet
+- `Info.plist` nutzt `com.apple.widgetkit-extension`
+- iOS-/iPadOS-Deployment-Target 17.0 für die Widget Extension, weil die
+  Konfiguration `AppIntentConfiguration` / `WidgetConfigurationIntent` nutzt;
+  das Capacitor-Haupttarget bleibt unverändert auf iOS 15.0
+- produktiver HTTPS-Feed `https://mid-data-proxy.midwx.workers.dev/?mode=native-widget-feed`
+- JSON-Decodierung akzeptiert ausschließlich den unveränderten Vertrag
+  `mid.native.widget.v1`
+- systemSmall, systemMedium, systemLarge sowie Lock-Screen-Familien
+  accessoryInline, accessoryCircular und accessoryRectangular sind für das
+  iOS-/iPadOS-Target vorbereitet
+- `accessoryCorner` bleibt im gemeinsamen Swift-Quellstand ausschließlich für
+  ein späteres watchOS-Target kompiliert
 
-## Noch in Xcode erforderlich
+## Bewusst noch nicht aktiviert
 
-1. Widget Extension für iOS/watchOS im vorhandenen `ios/App`-Projekt hinzufügen
-2. App Group für App und Widget Extension registrieren
-3. produktive Worker-Adresse in `MIDWidgetProvider.swift` einsetzen
-4. Signierung und Deployment Targets nach Kostenfreigabe festlegen
-5. Favoriten später über `AppEntity` statt manueller Koordinaten konfigurierbar machen
-6. Widget-Timelines nach App-Datenänderungen mit `WidgetCenter.shared.reloadTimelines` aktualisieren
+Für den aktuellen netzwerkbasierten `mid.native.widget.v1`-Feed ist **keine App
+Group erforderlich**. Deshalb wird in diesem kostenfreien Quellmilestone weder
+eine App Group registriert noch eine Entitlement-Datei erzeugt. Eine App Group
+wird erst benötigt, wenn die Haupt-App später lokale Favoriten/Snapshots direkt
+mit der Extension teilen soll.
 
-Die bestehende PWA allein kann keine echten WidgetKit-Widgets oder Apple-Watch-Komplikationen installieren; das Gerüst ist für die spätere native App-Generierung vorgesehen.
+Ebenso noch nicht Teil dieses Milestones:
+
+1. Apple-Developer-Signierung und Geräteinstallation
+2. TestFlight/App-Store-Veröffentlichung
+3. ein eigenes watchOS-Target; die accessory-Familien sind nur quellenmäßig
+   vorbereitet, Apple-Watch-Komplikationen werden erst mit einem watchOS-Target
+   ausgeliefert
+4. Favoritenwahl über `AppEntity`
+5. appseitige `WidgetCenter.shared.reloadTimelines`-Trigger nach lokalen
+   Datenänderungen
+
+Diese Punkte bleiben an den folgenden Apple-Milestones bzw. am ausdrücklichen
+Kosten-/Kontogate. Browser/PWA und iOS-WebView verwenden weiterhin denselben
+React/Vite-/Worker-Fachkern.
+## Push und Background Refresh – Quellvorbereitung ab v0.9.72.0
+
+Die Haupt-App enthält `MIDNativePushPreparation.swift` und `MIDBackgroundRefreshPreparation.swift` als kompilierbare, aber dormant gehaltene Quellen. APNs-Berechtigung/Registrierung, Token-Upload, `aps-environment` und `UIBackgroundModes` werden nicht aktiviert. Der vorbereitete BGTask-Identifier lautet `app.midwx.weather.background-refresh`. Details und Gate-Grenzen stehen in `MID_APPLE_PUSH_BACKGROUND_CONTRACT.md`.
+

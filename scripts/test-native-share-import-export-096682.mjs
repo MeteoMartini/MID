@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {versionAtLeast} from './version-regression-helper.mjs';
+import {expectedIosNextMilestone,versionAtLeast} from './version-regression-helper.mjs';
 
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8');
 const[adapter,backup,backupUi,app,pkgRaw,baselineRaw,statusRaw,roadmap,implementation]=await Promise.all([
@@ -29,7 +29,7 @@ assert.ok(backupUi.includes('type="file" accept=".midbackup,application/json"'),
 assert.ok(app.includes('type="file" accept="application/json,.json"'),'Favoritenimport verliert den gefilterten nativen Dokumentwähler.');
 
 assert.ok(status.completed?.includes('native-share-import-export-with-browser-fallback'));
-assert.equal(status.nextMilestone,versionAtLeast(pkg.version,'0.9.70.1')?'widgetkit-xcode-structure-with-mid-native-widget-v1':'lifecycle-offline-resume-without-local-data-loss');
+assert.equal(status.nextMilestone,expectedIosNextMilestone(pkg.version));
 assert.ok(roadmap.includes('Teilen/Import/Export über native Systemdialoge – abgeschlossen in v0.9.68.2'));
 assert.ok(implementation.includes('temporären Cache')&&implementation.includes('Dokumentwähler'));
 

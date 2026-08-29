@@ -56,7 +56,7 @@ for(const token of [
  'expanded?<ChevronDown',
  ':<ChevronRight',
  'x.metric&&<em>{x.metric}</em>',
- 'Automatisch aus Best Match abgeleitet.',
+ 'Automatisch aus der kanonischen MID-Ortsprognose abgeleitet.',
  'amtliche Meldungen siehe direkt anschließend'
 ])assert.ok(app.includes(token),`Responsive Warnkartenvertrag fehlt: ${token}`);
 for(const token of [

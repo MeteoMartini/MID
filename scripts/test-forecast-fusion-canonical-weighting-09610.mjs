@@ -10,6 +10,8 @@ for(const token of ['fusionWeatherRegime','fusionRegionalFactor','fusionRegimeFa
 assert.ok(worker.includes("version:8")&&worker.includes('weightingByDate'),'Worker muss die Gewichtung tageweise diagnostizieren.');
 assert.ok(worker.includes("independenceBudget:'one-budget-per-independence-group'"),'Unabhängigkeitsbudget ist nicht explizit dokumentiert.');
 assert.match(worker,/for\(const\[group,items\]of groups\).*groupBudget:budget.*weight:budget\*Math\.max/s,'Varianten derselben Familie müssen ein einziges Gruppenbudget teilen.');
+for(const token of ["id:'icon_d2_ruc'","id:'icon_d2'","independenceGroup:'dwd-icon'"])assert.ok(worker.includes(token),`DWD-RUC-Familienvertrag fehlt: ${token}`);
+for(const token of ["id:'knmi_harmonie_europe'","id:'knmi_harmonie'","id:'dmi_harmonie'"])assert.match(worker,new RegExp(`${token.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}[^\n]+independenceGroup:'uwc-west-harmonie'`),`UWC-West-HARMONIE muss ein gemeinsames Unabhängigkeitsbudget teilen: ${token}`);
 assert.ok(worker.includes("localSkillStage:'weather-twin-on-device'"),'Lokale tatsächliche Prognosegüte muss als eigene nachgelagerte Stufe ausgewiesen sein.');
 for(const token of ['regularizedWeights','modelPredictionIsLearnable','validation.days<6','applyLocalTwinHours'])assert.ok(twin.includes(token),`Gütegewichtung fehlt: ${token}`);
 assert.ok(fusion.includes("const CACHE_PREFIX='mid:forecast-fusion:v9:'"),'Geänderte Fusionsdiagnose muss den alten Cache invalidieren.');

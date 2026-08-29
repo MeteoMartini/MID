@@ -28,9 +28,11 @@ Die in MID 17.7.3 geplante DWD-ICON-D2-RUC/RUC-EPS-Integration wurde als gemeins
 
 **v0.9.70.0 kostenfreier RUC-Produktionspfad:** RUC/RUC-EPS wird ohne R2 über DWD Open Data → GitHub Actions/ecCodes → GitHub Pages → Worker → gemeinsamen MID-Fachkern ausgeliefert. Der Pages-Pfad nutzt immutable Chunks statt Range-Requests, bewahrt den letzten Snapshot über normale App-Releases hinweg und lässt R2 als rein optionale spätere Speicheroptimierung unangetastet. Die Tagesansicht schützt zusätzlich Niederschlagswahrscheinlichkeit über Niederschlagsbalken und kontrastreiche Windrichtungspfeile in Hell/Dunkel.
 
-**v0.9.70.1 Lifecycle-/Offline-Wiederaufnahme:** Browser/PWA und Capacitor-iOS verwenden nun denselben Runtime-Lifecycle-Bridge. Suspend checkpointet lokale Persistenz best-effort, Offline-Warmstarts liefern einen vorhandenen höchstens 18 Stunden alten Kernforecast unmittelbar mit Standzeit und Netzrückkehr nutzt wieder den gemeinsamen Forecast-Loader. Lokale Nutzerdaten werden beim Lifecycle niemals pauschal gelöscht oder zurückgesetzt.
+**v0.9.70.2 Lifecycle-/Offline-Wiederaufnahme:** Browser/PWA und Capacitor-iOS verwenden denselben Runtime-Lifecycle-Bridge. Suspend checkpointet lokale Persistenz best-effort, Offline-Warmstarts liefern einen vorhandenen höchstens 18 Stunden alten Kernforecast unmittelbar mit Standzeit und Netzrückkehr nutzt wieder den gemeinsamen Forecast-Loader. Lokale Nutzerdaten werden beim Lifecycle niemals pauschal gelöscht oder zurückgesetzt. Run #750 bestätigte TypeScript, Vite, Worker-Syntax, 564/564 Regressionen und `cap copy ios`.
 
-Der nächste native Meilenstein ist die Überführung des bestehenden `native/apple`-WidgetKit-Gerüsts in die Xcode-Struktur unter unverändertem `mid.native.widget.v1`-Feedvertrag.
+**v0.9.71.0 WidgetKit-Xcode-Struktur:** Das bisherige Apple-Widget-Gerüst liegt als echtes eingebettetes `MIDWidgets`-App-Extension-Target im bestehenden Capacitor-Xcode-Projekt. Der Feedvertrag bleibt `mid.native.widget.v1`, die Extension nutzt den produktiven MID-Worker und iOS 17 als bewusste `AppIntentConfiguration`-Grenze; Haupt-App iOS 15, Browser/PWA und der gemeinsame Wetterfachkern bleiben unverändert. App Group, Signierung und ein eigenes watchOS-Target werden in diesem kostenfreien Strukturmeilenstein nicht aktiviert.
+
+Die Quellvorbereitung für Push und Hintergrundaktualisierung ist in v0.9.72.0 ohne Geräte-/Signierungsaktivierung abgeschlossen. Das Apple-Datenschutz- und Berechtigungsmanifest ist in v0.9.73.0 vollständig quellenmäßig vorbereitet. Das nächste Gate ist die macOS-/Xcode-Qualitätssicherung mit Apple SDK und Simulator.
 
 ### 2. Native Plattformadapter – in Arbeit
 
@@ -38,7 +40,7 @@ Vor Beginn dieser Etappe wurde in v0.9.67.5 die gemeinsame MapLibre-6-
 Produktions-Workergrenze repariert. Modellierte GeoJSON-Gefahrenflächen werden
 damit in Browser/PWA und iOS-WebView wieder aus demselben Vite-Build gerendert.
 Standortadapter und externe OAuth-Navigation sind inzwischen abgeschlossen;
-Teilen/Import/Export sowie Lifecycle-/Offline-Wiederaufnahme sind abgeschlossen; der nächste native Meilenstein ist die WidgetKit-Xcode-Struktur.
+Teilen/Import/Export, Lifecycle-/Offline-Wiederaufnahme, WidgetKit-Xcode-Struktur, Push-/Background-Quellvorbereitung sowie Apple Privacy-/Berechtigungsmanifest sind abgeschlossen; das nächste Gate ist die macOS-/Xcode-Qualitätssicherung.
 
 - Standortadapter mit Browser-Fallback – abgeschlossen in v0.9.68.0:
   native Einmal-Ortung über Capacitor, unverändertes
@@ -52,7 +54,9 @@ Teilen/Import/Export sowie Lifecycle-/Offline-Wiederaufnahme sind abgeschlossen;
   temporäre Cachedateien über Capacitor Filesystem und Share, systemeigener
   iOS-Dokumentwähler über den gefilterten WebView-Dateiinput sowie
   unveränderte Web-Share-/Download-/Browser-Dateidialog-Fallbacks
-- Lifecycle- und Offline-Wiederaufnahme ohne Verlust lokaler Daten – abgeschlossen in v0.9.70.1: gemeinsamer Browser/PWA-/Capacitor-Bridge, best-effort Persistenzcheckpoint, Offline-Warmstart aus lokalem Kernforecast-Cache und gezielter Refresh bei Netzrückkehr
+- Lifecycle- und Offline-Wiederaufnahme ohne Verlust lokaler Daten – abgeschlossen in v0.9.70.2: gemeinsamer Browser/PWA-/Capacitor-Bridge, best-effort Persistenzcheckpoint, Offline-Warmstart aus lokalem Kernforecast-Cache und gezielter Refresh bei Netzrückkehr
+- WidgetKit-Xcode-Struktur – abgeschlossen in v0.9.71.0: echtes eingebettetes `MIDWidgets`-App-Extension-Target, unveränderter `mid.native.widget.v1`-Feedvertrag, produktiver Worker-Endpunkt und plattformgeschützte spätere watchOS-Quelle ohne Entitlement-/Signierungsaktivierung
+- Push-/Background-Refresh-Quellvorbereitung – abgeschlossen in v0.9.72.0: kompilierbare APNs-Callback- und `BGAppRefreshTask`-Quellen im Haupt-App-Target, deklarierter Task-Identifier, aber keine Notification-Berechtigungsabfrage, kein `registerForRemoteNotifications()`, kein Token-Upload, kein `UIBackgroundModes` und kein `aps-environment` vor dem Apple-Gate
 
 Jeder Adapter muss durch einen Browserpfad, einen nativen Pfad und einen
 Regressionstest geschützt sein. Fachwerte dürfen im Adapter weder berechnet
@@ -60,10 +64,11 @@ noch verändert werden.
 
 ### 3. Apple-Integrationen ohne Veröffentlichung
 
-- bestehendes `native/apple`-WidgetKit-Gerüst in die Xcode-Struktur überführen
-- `mid.native.widget.v1` unverändert als Feedvertrag verwenden
-- Quellvorbereitung für Push und Hintergrundaktualisierung
-- Datenschutz- und Berechtigungsmanifest vollständig vorbereiten
+- bestehendes `native/apple`-WidgetKit-Gerüst in die Xcode-Struktur überführen – **abgeschlossen in v0.9.71.0**
+- `mid.native.widget.v1` unverändert als Feedvertrag verwenden – **abgeschlossen in v0.9.71.0**
+- Quellvorbereitung für Push und Hintergrundaktualisierung – **abgeschlossen in v0.9.72.0**
+- Datenschutz- und Berechtigungsmanifest – abgeschlossen in v0.9.73.0
+- macOS-/Xcode-Qualitätssicherung – **nächstes Gate**
 
 Ein tatsächlicher APNs-/Geräte-Test kann Signierung und Apple-Entitlements
 benötigen und bleibt daher am Kosten-/Kontogate stehen.

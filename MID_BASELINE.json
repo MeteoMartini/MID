@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.70.2",
+  "releaseVersion": "0.9.73.0",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -302,7 +302,10 @@
     "scripts/test-extreme-outlook-mitteleuropa-recovery-096697.mjs",
     "scripts/test-ruc-pages-free-storage-09700.mjs",
     "scripts/test-day-detail-probability-wind-contrast-09700.mjs",
-    "scripts/test-runtime-lifecycle-offline-resume-09701.mjs"
+    "scripts/test-runtime-lifecycle-offline-resume-09701.mjs",
+    "scripts/test-widgetkit-xcode-structure-09710.mjs",
+    "scripts/test-apple-push-background-source-preparation-09720.mjs",
+    "scripts/test-apple-privacy-permission-manifest-09730.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -535,7 +538,10 @@
     "scripts/test-extreme-outlook-mitteleuropa-recovery-096697.mjs",
     "scripts/test-ruc-pages-free-storage-09700.mjs",
     "scripts/test-day-detail-probability-wind-contrast-09700.mjs",
-    "scripts/test-runtime-lifecycle-offline-resume-09701.mjs"
+    "scripts/test-runtime-lifecycle-offline-resume-09701.mjs",
+    "scripts/test-widgetkit-xcode-structure-09710.mjs",
+    "scripts/test-apple-push-background-source-preparation-09720.mjs",
+    "scripts/test-apple-privacy-permission-manifest-09730.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -754,7 +760,28 @@
     "MID_RUNTIME_LIFECYCLE_OFFLINE_CONTRACT.md",
     "scripts/test-runtime-lifecycle-offline-resume-09701.mjs",
     "MID_IMPLEMENTATION_0.9.70.1.md",
-    "MID_IMPLEMENTATION_0.9.70.2.md"
+    "MID_IMPLEMENTATION_0.9.70.2.md",
+    "ios/App/MIDWidgets/MIDWidget.swift",
+    "ios/App/MIDWidgets/MIDWidgetConfiguration.swift",
+    "ios/App/MIDWidgets/MIDWidgetProvider.swift",
+    "ios/App/MIDWidgets/MIDWidgetSnapshot.swift",
+    "ios/App/MIDWidgets/Info.plist",
+    "native/apple/widget-feed-v1.schema.json",
+    "native/apple/README.md",
+    "scripts/test-widgetkit-xcode-structure-09710.mjs",
+    "MID_IMPLEMENTATION_0.9.71.0.md",
+    "MID_RUC_APPWIDE_AUDIT_0.9.71.1.md",
+    "MID_IMPLEMENTATION_0.9.71.1.md",
+    "scripts/test-apple-push-background-source-preparation-09720.mjs",
+    "MID_APPLE_PUSH_BACKGROUND_CONTRACT.md",
+    "ios/App/App/MIDNativePushPreparation.swift",
+    "ios/App/App/MIDBackgroundRefreshPreparation.swift",
+    "MID_IMPLEMENTATION_0.9.72.0.md",
+    "scripts/test-apple-privacy-permission-manifest-09730.mjs",
+    "ios/App/App/PrivacyInfo.xcprivacy",
+    "ios/App/MIDWidgets/PrivacyInfo.xcprivacy",
+    "MID_APPLE_PRIVACY_PERMISSION_CONTRACT.md",
+    "MID_IMPLEMENTATION_0.9.73.0.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -770,7 +797,8 @@
     "scripts/test-ruc-dwd-pipeline-09690.mjs",
     "scripts/test-ruc-fusion-runtime-09691.mjs",
     "scripts/test-worker-auto-deploy-09693.mjs",
-    "scripts/test-runtime-lifecycle-offline-resume-09701.mjs"
+    "scripts/test-runtime-lifecycle-offline-resume-09701.mjs",
+    "scripts/test-widgetkit-xcode-structure-09710.mjs"
   ],
   "protectedFiles": [
     "scripts/test-travel-planner-era5-seamless-units-09652.mjs",
@@ -833,7 +861,25 @@
     "MID_RUNTIME_LIFECYCLE_OFFLINE_CONTRACT.md",
     "scripts/test-runtime-lifecycle-offline-resume-09701.mjs",
     "MID_IMPLEMENTATION_0.9.70.1.md",
-    "MID_IMPLEMENTATION_0.9.70.2.md"
+    "MID_IMPLEMENTATION_0.9.70.2.md",
+    "ios/App/App.xcodeproj/project.pbxproj",
+    "ios/App/MIDWidgets/MIDWidget.swift",
+    "ios/App/MIDWidgets/MIDWidgetConfiguration.swift",
+    "ios/App/MIDWidgets/MIDWidgetProvider.swift",
+    "ios/App/MIDWidgets/MIDWidgetSnapshot.swift",
+    "ios/App/MIDWidgets/Info.plist",
+    "native/apple/widget-feed-v1.schema.json",
+    "scripts/test-widgetkit-xcode-structure-09710.mjs",
+    "MID_IMPLEMENTATION_0.9.71.0.md",
+    "MID_RUC_APPWIDE_AUDIT_0.9.71.1.md",
+    "MID_IMPLEMENTATION_0.9.71.1.md",
+    "MID_APPLE_PUSH_BACKGROUND_CONTRACT.md",
+    "MID_IMPLEMENTATION_0.9.72.0.md",
+    "ios/App/App/PrivacyInfo.xcprivacy",
+    "ios/App/MIDWidgets/PrivacyInfo.xcprivacy",
+    "MID_APPLE_PRIVACY_PERMISSION_CONTRACT.md",
+    "MID_IMPLEMENTATION_0.9.73.0.md",
+    "scripts/test-apple-privacy-permission-manifest-09730.mjs"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md"

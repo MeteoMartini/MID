@@ -8,3 +8,14 @@ export function versionAtLeast(current,minimum){
  }
  return true;
 }
+
+export function expectedIosNextMilestone(current){
+ if(versionAtLeast(current,'0.9.73.0'))return 'macos-xcode-simulator-quality-assurance';
+ if(versionAtLeast(current,'0.9.72.0'))return 'apple-privacy-permission-manifest-preparation';
+ if(versionAtLeast(current,'0.9.71.0'))return 'apple-push-background-refresh-source-preparation';
+ if(versionAtLeast(current,'0.9.70.1'))return 'widgetkit-xcode-structure-with-mid-native-widget-v1';
+ if(versionAtLeast(current,'0.9.68.2'))return 'lifecycle-offline-resume-without-local-data-loss';
+ if(versionAtLeast(current,'0.9.68.1'))return 'native-share-import-export-with-browser-fallback';
+ if(versionAtLeast(current,'0.9.68.0'))return 'native-external-navigation-with-deep-link-return';
+ return 'native-location-adapter-with-browser-fallback';
+}

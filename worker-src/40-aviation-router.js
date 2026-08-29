@@ -152,7 +152,7 @@ export default{async fetch(request,env){
  if(mode==='ensemble-proxy')return openMeteoEnsembleProxy(u,env);
  if(mode==='model-meta')return openMeteoModelMeta(u);
  if(mode==='rapid-model-meta')return dwdRapidModelMeta(u);
- if(mode==='native-widget-feed')return nativeWidgetFeed(u);
+ if(mode==='native-widget-feed')return nativeWidgetFeed(u,env);
  if(mode==='icao-location'){try{return json({...await icaoLocation(u),version:WORKER_VERSION},200,{'cache-control':'public, max-age=2592000'})}catch(error){return json({error:error instanceof Error?error.message:String(error),version:WORKER_VERSION},404,{'cache-control':'public, max-age=3600'})}}
  if(mode==='aviation-hazards'){
   const lat=Number(u.searchParams.get('lat')),lon=Number(u.searchParams.get('lon')),startEpoch=Date.parse(String(u.searchParams.get('start')||'')),endEpoch=Date.parse(String(u.searchParams.get('end')||''));

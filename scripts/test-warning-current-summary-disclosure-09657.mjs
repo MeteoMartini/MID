@@ -32,7 +32,7 @@ for(const token of [
  'className="hazard-day-group"',
  'itemExpanded=open===id',
  'itemExpanded&&<div className="hazard-body"',
- 'Automatisch aus Best Match abgeleitet.',
+ 'Automatisch aus der kanonischen MID-Ortsprognose abgeleitet.',
  'amtliche Meldungen siehe direkt anschließend'
 ])assert.ok(app.includes(token),`Disclosure-/Detailvertrag fehlt: ${token}`);
 

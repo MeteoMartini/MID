@@ -20,8 +20,16 @@ const reject=(label,text,token)=>{if(text.includes(token))failures.push(`${label
 for(const token of ['models:string[]','modelsForMetric(','current.days.slice(0,3)','snapshotDays=data.filter(row=>best.has(row.date)).slice(0,3)'])need('3-Tage-Modelländerungsradar',modelChanges,token);
 need('Modellangabe je Änderung',ensemble,"Modell: {item.models.join(' · ')}");
 need('3-Tage-Einstellung',app,'Änderungsradar für die nächsten drei Tage anzeigen');
-need('Worker-3-Tage-Push',worker,"url.searchParams.set('forecast_days','3')");
-need('Worker-3-Tage-Zeilen',worker,'times.slice(0,3)');
+for(const token of [
+ "async function pushForecastState(favorite,env)",
+ "new URL('https://mid.internal/?mode=forecast-fusion')",
+ 'forecastFusionResponse(url,env)',
+ 'daily.slice(0,3)',
+ "source:'canonical-forecast-fusion'"
+])need('Worker-3-Tage-Push',worker,token);
+const pushForecastBlock=worker.slice(worker.indexOf('async function pushForecastState('),worker.indexOf('function pushForecastChangeEvents('));
+reject('Worker-3-Tage-Push',pushForecastBlock,"models','best_match");
+reject('Worker-3-Tage-Push',pushForecastBlock,"url.searchParams.set('forecast_days','3')");
 
 for(const token of ["crypto.subtle.encrypt({name:'AES-GCM'","crypto.subtle.decrypt({name:'AES-GCM'",'startDeviceSyncBridge','restoreDeviceSyncState','device-sync-push','device-sync-pull'])need('Gerätesynchronisation',deviceSync,token);
 for(const token of ['Geräteübergreifende Synchronisation','Persönlicher Synchronisationscode','Alle Daten jetzt abgleichen','Diese Web-App mit vorhandenem Stand verbinden'])need('Synchronisationseinstellungen',deviceSettings,token);

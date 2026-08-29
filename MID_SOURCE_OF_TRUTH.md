@@ -101,3 +101,12 @@ Der automatische Worker-Deploy übernimmt Placement aus der Cloudflare-Remote-Ko
 
 Die dynamische Wrangler-Konfiguration darf unabhängig von ihrem temporären Speicherort den Worker-Einstiegspunkt nur auf den ausgecheckten Release-Arbeitsbaum beziehen. `config.main` wird deshalb als absoluter Pfad auf `worker/metar-proxy.js` erzeugt. Relative Pfade, die Wrangler bei einer unter `/tmp` liegenden Config gegen `/tmp` auflösen könnte, sind für den Auto-Deploy unzulässig. Required Regression: `scripts/test-worker-auto-deploy-09693.mjs`.
 
+
+## v0.9.72.0 · Apple Push-/Background-Refresh-Quellvertrag
+
+`MID_APPLE_PUSH_BACKGROUND_CONTRACT.md` ist für die weitere native Apple-Integration verbindlich. APNs-Callbacks und `BGAppRefreshTask` werden im bestehenden Capacitor-Haupttarget ausschließlich quellenmäßig vorbereitet; sichtbare Wetter-, Warn-, Event- und Forecastlogik bleibt im gemeinsamen React/Vite-/Worker-Fachkern. Vor dem ausdrücklichen Apple-/Kosten-Gate werden weder Notification-Berechtigung noch `registerForRemoteNotifications()`, Token-Upload, `aps-environment`, `UIBackgroundModes`, APNs-Provider-Secrets, Signierung noch Geräteinstallation aktiviert. Der vorbereitete Background-Identifier lautet `app.midwx.weather.background-refresh`. Required Regression: `scripts/test-apple-push-background-source-preparation-09720.mjs`.
+
+
+## v0.9.73.0 · Apple Privacy-/Berechtigungsmanifest-Vertrag
+
+`MID_APPLE_PRIVACY_PERMISSION_CONTRACT.md` ist für App und Widget verbindlich. Beide ausführbaren Apple-Bundles besitzen ein eigenes `PrivacyInfo.xcprivacy`; Tracking bleibt `false`. Das Haupt-App-Manifest deklariert die tatsächlich verwendeten off-device Kategorien Precise Location, den optionalen zufälligen Geräte-Sync-Identifier, verschlüsselten portablen Nutzerinhalt sowie Cloudflare-RUM Produktinteraktion/Performance. Für `@capacitor/filesystem` ist `NSPrivacyAccessedAPICategoryFileTimestamp` mit Reason `C617.1` deklariert. Die Widget-Extension bleibt auf Precise Location und frei eingegebenen Standortinhalt für `mid.native.widget.v1` begrenzt. Der Meilenstein aktiviert weder ATT, Push, Background Modes, Hintergrund-Ortung, Entitlements noch Signierung. Required Regression: `scripts/test-apple-privacy-permission-manifest-09730.mjs`.

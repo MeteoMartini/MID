@@ -1,15 +1,15 @@
 {
   "schema": 1,
-  "updatedAt": "2026-08-29T08:38:00Z",
-  "releaseVersion": "0.9.70.2",
+  "updatedAt": "2026-08-29T11:46:18Z",
+  "releaseVersion": "0.9.73.0",
   "sourceBaseline": {
-    "professionalVersion": "0.9.70.0",
-    "workerVersion": "0.9.70.0",
-    "regressionsPassed": 563
+    "professionalVersion": "0.9.70.2",
+    "workerVersion": "0.9.70.2",
+    "regressionsPassed": 564
   },
   "strategy": "shared-react-vite-core-with-capacitor-ios-shell",
   "browserDevelopmentContinues": true,
-  "phase": "apple-integration-source-preparation",
+  "phase": "macos-xcode-quality-gate",
   "completed": [
     "source-and-worker-version-pair-verified",
     "browser-production-build-verified",
@@ -43,17 +43,23 @@
     "day-detail-probability-and-dark-wind-contrast-0.9.70.0",
     "563-regressions-release-baseline-verified",
     "lifecycle-offline-resume-without-local-data-loss-0.9.70.2",
-    "legacy-core-cache-regression-semantic-hotfix-0.9.70.2"
+    "legacy-core-cache-regression-semantic-hotfix-0.9.70.2",
+    "564-regressions-release-baseline-verified",
+    "widgetkit-xcode-structure-with-mid-native-widget-v1-0.9.71.0",
+    "widgetkit-regression-next-milestone-hotfix-0.9.71.1",
+    "ruc-appwide-canonical-source-audit-0.9.71.1",
+    "apple-push-background-refresh-source-preparation-0.9.72.0",
+    "apple-privacy-permission-manifest-preparation-0.9.73.0"
   ],
-  "nextMilestone": "widgetkit-xcode-structure-with-mid-native-widget-v1",
+  "nextMilestone": "macos-xcode-simulator-quality-assurance",
   "validation": {
-    "browserBuild": "v0.9.70.1 release attempt #749: TypeScript + Vite production build passed; v0.9.70.2 changes only regression contract/version/docs and requires final release CI",
-    "typescript": "passed-in-release-attempt-#749-on-v0.9.70.1-runtime-source; v0.9.70.2 final gate remains release CI",
-    "workerSyntax": "pending-release-ci-v0.9.70.2; semantic Worker code unchanged except version marker",
-    "regressions": "run #749 reached 563/564; sole failure was obsolete literal cache regex. semantic cache regression updated; full target remains 564 in release CI",
-    "capacitorSync": "pending-release-ci-v0.9.70.2: cap copy ios follows only after all 564 regressions pass",
-    "xcodeProjectStructure": "version-synchronized-v0.9.70.2; no new native capability or entitlement",
-    "xcodeAppleSdkBuild": "pending-macos-runtime"
+    "browserBuild": "v0.9.71.0 Run #751 proved TypeScript + Vite green. v0.9.73.0 cannot repeat npm/Vite locally because registry.npmjs.org is not DNS-resolvable and the offline npm cache is incomplete; release CI is mandatory.",
+    "typescript": "v0.9.71.0 Run #751 passed. v0.9.73.0 local tsc cannot resolve React/Capacitor/etc. because npm ci is environment-blocked; this is not accepted as a source-code failure and must be re-run in release CI.",
+    "workerSyntax": "generated worker/metar-proxy.js and worker.js are byte-identical after maintain:aggregates and node --check passes; semantic worker diff is changed, so normal automatic staged Worker deployment is required after full CI gate.",
+    "regressions": "565/565 locally runnable automatic tests pass out of 567 total. Only test-extreme-outlook-modelled-areas-096618.mjs and test-extreme-regions-flight-null-096619.mjs remain unexecuted because esbuild is unavailable while npm registry DNS is blocked.",
+    "capacitorSync": "embedded ios/App/App/public remains honestly at v0.9.68.2; do not retag. Full npm run ios:sync/cap copy ios must run at the macOS/Xcode quality gate after release CI dependencies are available.",
+    "xcodeProjectStructure": "App and MIDWidgets each bundle PrivacyInfo.xcprivacy; plist/project lint and Swift parse pass; Push/BGRefresh remain dormant and no ATT/push/background entitlement is activated.",
+    "xcodeAppleSdkBuild": "required-next-gate-macos-xcode-simulator; includes Apple SDK build, simulator launch, Privacy Report inspection and post-sync structure verification."
   },
   "costGate": {
     "requiredFor": [
