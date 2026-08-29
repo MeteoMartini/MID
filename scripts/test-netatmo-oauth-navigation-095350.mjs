@@ -2,6 +2,7 @@ import {readFile} from 'node:fs/promises';
 const worker=await readFile(new URL('../worker/metar-proxy.js',import.meta.url),'utf8');
 const app=await readFile(new URL('../src/App.tsx',import.meta.url),'utf8');
 const station=await readFile(new URL('../src/connectedStation.ts',import.meta.url),'utf8');
+const navigation=await readFile(new URL('../src/externalNavigation.ts',import.meta.url),'utf8');
 const settings=await readFile(new URL('../src/ConnectedStationSettings.tsx',import.meta.url),'utf8');
 function need(source,needle,message){if(!source.includes(needle))throw new Error(message)}
 need(worker,"authorize.searchParams.set('response_type','code')",'Netatmo OAuth-Start setzt response_type=code nicht.');
@@ -11,12 +12,13 @@ need(worker,"mode==='netatmo-auth-redirect'",'Direkter browserfester OAuth-Redir
 need(station,"workerPost<NetatmoAuthorizationStart>('netatmo-auth-start'",'MID bereitet die Netatmo-Autorisierungsadresse nicht serverseitig vor.');
 need(station,"url.searchParams.set('mode','netatmo-auth-redirect')",'Direkter Worker-OAuth-Redirect als Fallback fehlt.');
 need(station,"url.searchParams.set('attempt'",'Netatmo OAuth-Fallback besitzt keinen Cache-Buster.');
-need(station,"window.open(target,'_blank')",'MID öffnet Netatmo in Standalone-PWAs nicht synchron im externen Browser.');
-need(station,'window.location.assign(target)','MID besitzt keinen synchronen Same-Window-Fallback für die Netatmo-Navigation.');
+need(navigation,"window.open(url.toString(),'_blank')",'MID öffnet Netatmo in Standalone-PWAs nicht synchron im externen Browser.');
+need(navigation,'window.location.assign(url.toString())','MID besitzt keinen synchronen Same-Window-Fallback für die Netatmo-Navigation.');
 need(worker,"target.searchParams.set('mid_station_detail'",'OAuth-Fehlerdetails werden beim Rücksprung nicht transportiert.');
 need(settings,"mid_station_detail",'OAuth-Fehlerdetails werden in den Einstellungen nicht ausgewertet.');
 need(settings,"void refresh(callbackConfig,true)",'OAuth-Fehlermeldung kann nach Rückkehr von Status-Refresh überschrieben werden.');
-need(app,"url.searchParams.get('mid_station')",'OAuth-Rückkehr wird auf App-Ebene nicht erkannt.');
-need(app,"sessionStorage.setItem('mid:netatmo:callback'",'OAuth-Rückkehr wird vor dem Öffnen der Einstellungen nicht zwischengespeichert.');
+need(app,'captureMidExternalOAuthReturn','OAuth-Rückkehr wird auf App-Ebene nicht erkannt.');
+need(navigation,"url.searchParams.get('mid_station')",'OAuth-Rückkehrdaten werden nicht ausgewertet.');
+need(navigation,'sessionStorage.setItem(NETATMO_CALLBACK_KEY','OAuth-Rückkehr wird vor dem Öffnen der Einstellungen nicht zwischengespeichert.');
 need(app,"setSettingsSection('twin');setSettingsOpen(true)",'OAuth-Rückkehr öffnet den Wetterzwilling/Stationsbereich nicht.');
 console.log('Netatmo OAuth-Direktnavigation, Fehlerdiagnose und Rückkehr in die Einstellungen geprüft.');

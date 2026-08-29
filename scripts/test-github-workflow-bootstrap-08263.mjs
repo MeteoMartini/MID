@@ -12,7 +12,7 @@ if('preverify' in (pkg.scripts??{}))failures.push('Der reguläre Installationsla
 if(pkg.scripts?.['sync:github-workflows']!=='node scripts/sync-github-workflows.mjs')failures.push('Explizites Synchronisationsskript fehlt in package.json.');
 if(!baseline.regressionTests?.includes('scripts/test-github-workflow-bootstrap-08263.mjs'))failures.push('Workflow-Paket-Regression fehlt in MID_BASELINE.json.');
 
-const managed=['workflows/install-mid.yml','workflows/deploy.yml','workflows/dependency-audit.yml','dependabot.yml'];
+const managed=['workflows/install-mid.yml','workflows/deploy.yml','workflows/dependency-audit.yml','workflows/mid-ruc-preprocess.yml','workflows/mid-ruc-cloudflare-bootstrap.yml','dependabot.yml'];
 for(const relative of managed)await readFile(path.join(root,'ci','github',relative),'utf8');
 
 const temp=await mkdtemp(path.join(tmpdir(),'mid-workflow-package-'));

@@ -1,47 +1,38 @@
-# MID v0.9.67.11
+## 0.9.69.2
 
-- ICON-D2-RUC kalibriert innerhalb des vollständigen ICON-D2-Gebiets appweit die kanonischen 0–14-h-Prognosestunden; stärkste Gewichtung 0–3 h, danach auslaufend.
-- RUC-EPS ist als kurzreichweitiger DWD-EPS-Adapter priorisiert, bleibt mit ICON-D2-EPS in einer gemeinsamen Varianten-/Familienstimme und kalibriert kurzfristig die Niederschlagswahrscheinlichkeit.
-- KONRAD3D und DWD-Mesozyklonen korrigieren standortrelevante nahe bzw. stationäre konvektive Zellen; Gewittercodes bleiben an beobachtete Blitzaktivität gebunden.
-- Der Mitteleuropa-Extremwetterausblick nutzt einen regional gecachten KONRAD3D-/Meso-Snapshot ausschließlich für 0–6 h.
-- Workerlast bleibt begrenzt: keine GRIB-/BUFR-Decodierung, kurze Edge-Caches und kein zusätzlicher KONRAD/Meso-Browserabruf beim Direktfallback.
+- Cloudflare-R2-Betrieb auf **private-by-default** gehärtet: `r2.dev` wird beim einmaligen Bootstrap deaktiviert; ein Custom Domain bleibt optional und benötigt weiterhin eine gesonderte Freigabe.
+- Bootstrap validiert Cloudflares aktuelle kleingeschriebene R2-Location-Hints (`weur`, `eeur`, …); der bisherige vorbereitete Großschrift-Default wird nicht mehr an die API gesendet.
+- Lifecycle-Leckschutz für verwaiste `runs/` auf 48 h gesetzt. Die unmittelbare Vier-Run-Bereinigung bleibt Aufgabe des atomaren Publishers, der den aktuell durch `latest.json` referenzierten vollständigen Lauf vor dem Pointerwechsel niemals löscht.
+- Neuer `ruc-health`-Workerpfad prüft Binding, Metadatenschema, Laufalter, Punkt-/Zeit-/EPS-Vertrag und die tatsächliche Existenz aller vier Laufobjekte, ohne Bucketnamen, Tokens oder URLs offenzulegen.
+- GitHub-Stundenpublisher bleibt auf einen bucket-spezifischen R2-Object-Read-&-Write-Zugang begrenzbar; Bucket-/Lifecycle-Administration bleibt vom laufenden Publisher getrennt.
+- Browser/PWA und iOS bleiben auf demselben React/Vite-/Worker-Fachkern; keine native Sonderlogik oder Persistenzänderung.
 
-## 0.9.67.10
+## 0.9.69.1
 
-- Appweiter Warnwert-Pillenvertrag korrigiert: Bei parallel dargestellten niedrigeren Warnstufen zeigt die Pille nur noch den Schwellenwert der jeweiligen Stufe statt des Spitzenwerts einer zeitweise eingebetteten höheren Stufe.
-- Beispiel Wind: Eine niedrigere Karte „Windböen“ zeigt bei zeitweise 68 km/h nun 27 kt (50 km/h) in der Pille; 37 kt (68 km/h) bleibt der stärkeren „Sturmböen“-Stufe bzw. dem erklärenden „zeitweise bis …“-Text vorbehalten.
-- Der zentrale Formatter gilt gemeinsam für automatische Warnkarten, 7-Tage-/Widget-Kompaktwerte und Ensemble-Hazards; Starkregen, Schnee, Schneeverwehung, Wärme und Frost sind ebenfalls stufengerecht abgesichert.
+- Kostenfreien DWD-RUC-Produktionspfad gehärtet: der GitHub-Actions/ecCodes-Vorprozessor versucht mehrere gemeinsame RUC/RUC-EPS-Laufkandidaten und veröffentlicht nur einen vollständig dekodierten 0–14-h-Lauf.
+- RUC-EPS wird für den normalen Forecast bereits im Vorprozessor zu >0,2-mm- und >5-mm-Wahrscheinlichkeit, Mittel sowie Q25/Q50/Q75 verdichtet; native Member bleiben ausschließlich für die kurzfristige Event-Ensembleauswertung abrufbar.
+- Alle Laufobjekte einschließlich `lookup.bin` liegen unveränderlich unter `runs/<run>/`; `latest.json` wird erst nach Remote-Größenprüfung zuletzt ersetzt. Ein identischer vollständiger Lauf verursacht beim nächsten Workflow keine neuen Schreiboperationen.
+- Alte RUC-Läufe werden erst nach erfolgreichem Pointerwechsel entfernt; vier vollständige Läufe bleiben als Rückfallreserve erhalten. Best Match/ICON-D2/ICON-D2-EPS bleiben jederzeit sichere Fallbacks.
+- Cloudflare-R2-Bootstrap als Dry-Run/Fail-Closed-Werkzeug ergänzt. R2-Erstellung erfordert `MID_RUC_COST_APPROVED=true`; ein öffentliches Custom Domain zusätzlich `MID_RUC_PUBLIC_DOMAIN_APPROVED=true`. Ohne ausdrückliche Freigabe wird nichts im Cloudflare-Konto verändert.
+- Browser/PWA und iOS verwenden weiterhin denselben React/Vite-/Worker-Fachkern; der nächste native Lifecycle-/Offline-Meilenstein bleibt unverändert.
 
-## 0.9.67.9
+## 0.9.68.1
 
-- Release-Hotfix: Die historische Extremwetter-Regression akzeptiert die seit v0.9.67.8 bewusst parametrisierte resiliente `dachExtremeOutlookData(profile='full')`-Pipeline; der fachliche Mitteleuropa-/ICON-D2-Ausblick bleibt unverändert.
-- Der vollständige ICON-D2-Gebietsvertrag, reduzierte Abruflast, Batch-Retries, Teilcache und Teilabdeckungs-Fallback aus v0.9.67.8 bleiben unverändert geschützt.
+- Netatmo-OAuth wird im nativen Container über Capacitor Browser im iOS-Systembrowser geöffnet; Browser/PWA behalten den bestehenden externen beziehungsweise Same-Window-Pfad.
+- Der eng begrenzte Rücksprung `midwx://oauth/netatmo` verarbeitet Warm- und Kaltstarts, validiert Callback-Daten und öffnet anschließend die vorhandene MID-Stationsansicht.
+- Fremde Deep Links, unsichere externe Zieladressen und ungültige Stationskennungen werden verworfen; Fachwerte und Stationspersistenz bleiben außerhalb des Adapters.
 
-## 0.9.67.8
+## 0.9.68.0
 
-- Extremwetter-Ausblick über das vollständige ICON-D2-Gebiet gegen Batch-/Rate-Limit-Ausfälle gehärtet.
-- Worker-Vollgebietsprofil auf 13×23, resilienter Browser-Direktpfad auf 11×19 bei gleicher geografischer Abdeckung.
-- Maximal zwei parallele Worker-Batches bzw. ein Direktbatch, Retry einzelner Teilabrufe und 6-h-Teilcache.
-- Einzelne fehlgeschlagene Batches führen nicht mehr automatisch zum Totalausfall; reduzierte Datenabdeckung wird transparent ausgewiesen.
-- Neue Cachegeneration v5 verhindert die Vermischung mit dem vorherigen v4-Abrufvertrag.
-
-## 0.9.67.7
-- Extremwetter-Ausblick von DACH auf **Mitteleuropa / vollständiges ICON-D2-Modellgebiet** erweitert. Die DWD-Eckpunkte des ICON-D2-Ausgabegitters begrenzen die regionale Analyse; Benelux, Frankreich, Dänemark, Tschechien, Polen, Norditalien und weitere angrenzende Bereiche werden nun mit betrachtet.
-- Analyseraster auf 19 × 31 erweitert und Mehrpunktabrufe auf höchstens vier parallele Batches begrenzt. Alte DACH-Payloads werden durch die neue Cachegeneration nicht als vollständiger Mitteleuropa-Ausblick übernommen.
-- Sichtbare DACH-Bezeichnungen im Extremwettermodul durch **Mitteleuropa** bzw. **gesamtes ICON-D2-Modellgebiet** ersetzt; nationale Warnstellen/MeteoAlarm bleiben die Sicherheitsreferenz.
-
-## 0.9.67.6
-
-- Release-Hotfix nach dem v0.9.67.5-Extremflächenfix: Der Interaktions-/Performancevertrag erkennt `extremeOutlookAreaGeoJson.ts` nun korrekt als bewusst dormanten Kompatibilitäts-/Regressionhelfer; der sichtbare Kartenpfad bleibt Canvas-basiert und MapLibre 6.5.0 bleibt unverändert aktiv.
-- `sync-version.mjs` synchronisiert jetzt zusätzlich `MID_IOS_STATUS.json.releaseVersion`. Der dort separat dokumentierte letzte echte Capacitor-Webbundle-Sync bleibt unverändert, sodass Web-Release-Metadaten und nativer Sync-Status nicht mehr miteinander verwechselt werden.
-- Die beiden im GitHub-Installer v0.9.67.5 fehlgeschlagenen Regressionen (`test-interaction-performance-cleanup-08155.mjs`, `test-ios-safe-area-header-096671.mjs`) sind damit ohne Abschwächung ihrer Schutzverträge repariert.
+- Der gemeinsame React-/Vite-Kern verwendet für eine ausdrückliche Standortaktion im nativen Container den Capacitor-Geolocation-Adapter; Browser/PWA behalten den bisherigen `navigator.geolocation`-Pfad.
+- Berechtigungen werden erst bei Bedarf angefordert. Es gibt weder einen Standort-Watcher noch Hintergrund-Ortung oder neue Koordinatenpersistenz.
+- Nicht berechtigungsbedingte Brückenfehler können auf den bestehenden Browserpfad zurückfallen; eine Ablehnung wird nicht mit einem zweiten Prompt umgangen.
+- Die iOS-Berechtigungsbeschreibungen und eine neue Required Regression schützen den Adaptervertrag.
 
 ## 0.9.67.5
 
-- Hotfix für die mit MapLibre GL JS 6.5.0 sichtbare Extremflächen-Regression: Die modellierten DACH-Gefahrenkonturen werden wieder über den bereits etablierten, georeferenzierten Canvas-Konturrenderer gezeichnet.
-- MapLibre bleibt auf 6.5.0; Basiskarte, Zoom/Touch, Marker, Popups und unsichtbare GeoJSON-Hit-Flächen bleiben unverändert. Nur die sichtbare Flächenfüllung wird von der v6-fragilen nativen Fill-/Pattern-Layer-Strecke entkoppelt.
-- Der Renderpfad nutzt weiterhin exakt denselben `buildExtremeOutlookContourSet` wie Marker, Popups und „Stärkste Regionen“, sodass Geometrie, Regionsbezeichnung, Intensität und Wahrscheinlichkeit gekoppelt bleiben.
-- Keine Änderung an meteorologischen Schwellen, Modellfeldern oder Worker-Datenlogik gegenüber v0.9.67.4.
+- MapLibre GL JS 6.5 erhält im Vite-Produktionsbuild wieder den vorgeschriebenen selbstständigen ESM-Worker; dadurch erscheinen die modellierten DACH-Gefahrenflächen wieder, während Browser/PWA und iOS denselben Kartenkern behalten.
+- Ein neuer Required-Test prüft die Worker-URL vor der ersten Karte sowie den gebündelten Produktions-Worker und verhindert einen erneuten lautlosen Ausfall der GeoJSON-Flächen.
 
 ## 0.9.67.4
 

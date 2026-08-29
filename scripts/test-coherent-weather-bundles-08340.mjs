@@ -23,7 +23,7 @@ for(const token of [
  'multiModelSuffixes',
  'modelSuffixes',
  'suffixFields',
- 'Best Match bleibt die kohärente Basis; innerhalb des ICON-D2-Gebiets kalibriert ICON-D2-RUC',
+ 'Best Match bleibt die kohärente Basis',
  'MOSMIX lokal',
  "family:'ecmwf-ifs'","family:'ecmwf-aifs'","independenceGroup:'ecmwf'"
 ])assert.ok(worker.includes(token),`Worker-Horizont-/Bündelvertrag fehlt: ${token}`);

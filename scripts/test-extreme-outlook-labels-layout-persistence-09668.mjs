@@ -16,10 +16,10 @@ for(const file of[test,'MID_IMPLEMENTATION_0.9.66.8.md'])assert.ok(baseline.requ
 for(const token of ['tile.openstreetmap.org/{z}/{x}/{y}.png','opacity={.28}','Jede getrennte dargestellte Gefahrenfläche','startDate===endDate','${endDate}, ${endTime}','Nullgradgrenze'])assert.ok(panel.includes(token),`Outlook-Vertrag fehlt: ${token}`);
 assert.ok(!panel.includes('basemaps.cartocdn.com'),'Die Extremwetterkarte darf keine anonym gesperrten CARTO-Kacheln mit API-Key-Wasserzeichen mehr laden.');
 assert.ok(!panel.includes("['Gefrierhöhe'")&&!worker.includes('Gefrierhöhe'),'Veraltete Bezeichnung Gefrierhöhe ist im DACH-Ausblick noch aktiv.');
-for(const token of ['CanvasOverlay','drawExtremeOutlookContours','buildExtremeOutlookContourSet','areas.map(area=>','Modellierte Gefahrenfläche'])assert.ok(overlay.includes(token),`Kartenlayer bzw. flächengebundene Beschriftung fehlt: ${token}`);
+for(const token of ['buildExtremeOutlookContourGeoJson',"type:'fill'","type:'line'",'fill-pattern','registerMapLayerOrder','8+index/100','areas.map(area=>','Modellierte Gefahrenfläche'])assert.ok(overlay.includes(token),`Nativer Kartenlayer bzw. flächengebundene Beschriftung fehlt: ${token}`);
 assert.ok(modelledAreas.includes('overlapsStronger'),'Stärkere eingebettete Kerne müssen doppelte Hüllenbeschriftungen verdrängen.');
 for(const token of ["type:'MultiPolygon'",'FeatureCollection<MultiPolygon','contourPolygons'])assert.ok(geojsonSource.includes(token),`Nativer GeoJSON-Kartenlayer fehlt: ${token}`);
-assert.ok(overlay.includes('CanvasOverlay'),'Gefahrenflächen müssen unter MapLibre 6 über den robusten georeferenzierten Canvas-Konturpfad sichtbar bleiben.');
+assert.ok(!overlay.includes('CanvasOverlay'),'Gefahrenflächen dürfen nicht mehr als DOM-Canvas über sämtlichen Kartenbeschriftungen liegen.');
 for(const token of ['.extreme-map .maplibregl-popup-content','background:#fff','font-size:11px','.extreme-validity b{font-size:13px','.extreme-period-tabs small{max-width:190px'])assert.ok(styles.includes(token),`Lesbarkeitsregel fehlt: ${token}`);
 
 for(const token of ['DashboardModuleSettingsUpdater','onChange(current=>moveDashboardModule','onChange(current=>({...current'])assert.ok(settings.includes(token),`Funktionale Sektionsänderung fehlt: ${token}`);

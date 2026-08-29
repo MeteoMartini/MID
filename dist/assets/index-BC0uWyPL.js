@@ -1,0 +1,2 @@
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./web-CqKZQOD_.js","./index-B0c3qQWT.js","./ReactVendor-vKsizCg5.js","./index-DrCUDnSl.css"])))=>i.map(i=>d[i]);
+import{b7 as t,_ as e}from"./index-B0c3qQWT.js";import{f as r}from"./synapse-akrKn89j.js";import"./ReactVendor-vKsizCg5.js";const a=t("Geolocation",{web:()=>e(()=>import("./web-CqKZQOD_.js"),__vite__mapDeps([0,1,2,3]),import.meta.url).then(o=>new o.GeolocationWeb)});r();export{a as Geolocation};

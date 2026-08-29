@@ -8,7 +8,7 @@ const outDir=path.join(root,'.hazard-interrupted-lower-stage-test');
 await rm(outDir,{recursive:true,force:true});
 const compile=spawnSync('tsc',['src/dwdWarnings.ts','--target','ES2022','--module','ES2022','--moduleResolution','Bundler','--strict','--noUnusedLocals','--noUnusedParameters','--skipLibCheck','--outDir','.hazard-interrupted-lower-stage-test'],{cwd:root,stdio:'inherit',shell:process.platform==='win32'});
 if(compile.status!==0)process.exit(compile.status??1);
-const {summarizeDwdWarnings,formatDwdWarningValue}=await import(`${pathToFileURL(path.join(outDir,'dwdWarnings.js')).href}?v=${Date.now()}`);
+const {summarizeDwdWarnings}=await import(`${pathToFileURL(path.join(outDir,'dwdWarnings.js')).href}?v=${Date.now()}`);
 const [warnings,pkg,baseline]=await Promise.all([
  readFile(path.join(root,'src','dwdWarnings.ts'),'utf8'),
  readFile(path.join(root,'package.json'),'utf8'),
@@ -29,10 +29,8 @@ if(!strong)failures.push('Einrahmende niedrigere Wärmewarnung fehlt.');
 else{
  if(strong.validFrom!=='2026-07-30T11:00:00.000Z'||strong.validTo!=='2026-07-30T21:00:00.000Z')failures.push(`Niedrigere Wärmewarnung wurde nicht zu 11:00–21:00 zusammengeführt: ${strong.validFrom}–${strong.validTo}`);
  if(!strong.lowerIntensity)failures.push('Einrahmende Wärmewarnung ist nicht als niedrigere Stufe gekennzeichnet.');
- if(formatDwdWarningValue(strong)!=='32 °C')failures.push(`Pille der niedrigeren Wärmewarnstufe ist nicht an deren Schwelle gebunden: ${formatDwdWarningValue(strong)}`);
 }
 if(!extreme||extreme.validFrom!=='2026-07-30T15:00:00.000Z'||extreme.validTo!=='2026-07-30T17:00:00.000Z')failures.push(`Höhere Wärmewarnung hat falschen Zeitraum: ${extreme?.validFrom}–${extreme?.validTo}`);
-else if(formatDwdWarningValue(extreme)!=='39 °C')failures.push(`Pille der höchsten Wärmewarnstufe darf den tatsächlichen Spitzenwert behalten: ${formatDwdWarningValue(extreme)}`);
 
 const changedSamples=Array.from({length:40},(_,index)=>({
  time:new Date(start+index*3600000).toISOString(),epoch:start+index*3600000,temperature:24,

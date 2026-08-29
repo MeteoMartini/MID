@@ -1,18 +1,20 @@
 import {readFile} from 'node:fs/promises';
 const station=await readFile(new URL('../src/connectedStation.ts',import.meta.url),'utf8');
+const navigation=await readFile(new URL('../src/externalNavigation.ts',import.meta.url),'utf8');
 const settings=await readFile(new URL('../src/ConnectedStationSettings.tsx',import.meta.url),'utf8');
 const app=await readFile(new URL('../src/App.tsx',import.meta.url),'utf8');
 const worker=await readFile(new URL('../worker/metar-proxy.js',import.meta.url),'utf8');
 function need(source,needle,message){if(!source.includes(needle))throw new Error(message)}
 need(station,"url.searchParams.set('attempt'",'OAuth-Fallback erhält keinen eindeutigen Versuchsschlüssel.');
-need(station,"window.open(target,'_blank')",'Standalone-PWA öffnet OAuth nicht synchron in einem externen Browserkontext.');
-need(station,'window.location.assign(target)','Same-Window-Fallback der OAuth-Navigation fehlt.');
+need(navigation,"window.open(url.toString(),'_blank')",'Standalone-PWA öffnet OAuth nicht synchron in einem externen Browserkontext.');
+need(navigation,'window.location.assign(url.toString())','Same-Window-Fallback der OAuth-Navigation fehlt.');
 need(station,"workerPost<NetatmoAuthorizationStart>('netatmo-auth-start'",'OAuth-Autorisierungsadresse wird nicht vor dem Nutzertap vorbereitet.');
 if(/const connect=async\(\)=>[\s\S]{0,900}await connectedStationStatus/.test(settings))throw new Error('Netatmo-Klick wartet weiterhin asynchron vor der externen Navigation.');
 need(settings,"if(!status){setMessage('Der Worker-Status wird noch geprüft.", 'Netatmo-Start ist ohne bekannten Worker-Status nicht geschützt.');
 need(worker,"'Cache-Control':'no-store, no-cache, must-revalidate, max-age=0'",'OAuth-302-Redirects sind nicht explizit no-store.');
 need(worker,'function netatmoRedirectResponse','Gemeinsame cachefreie OAuth-Redirect-Antwort fehlt.');
 need(worker,'version:WORKER_VERSION','Worker-Version fehlt in der Netatmo-Diagnose.');
-need(app,"sessionStorage.setItem('mid:netatmo:callback'",'OAuth-Callback wird vor dem Einstellungs-Mount nicht gesichert.');
+need(app,'captureMidExternalOAuthReturn','OAuth-Callback wird nicht an den Plattformadapter übergeben.');
+need(navigation,'sessionStorage.setItem(NETATMO_CALLBACK_KEY','OAuth-Callback wird vor dem Einstellungs-Mount nicht gesichert.');
 need(settings,"storage.getItem('mid:netatmo:callback')",'Stationsbereich kann gesicherten OAuth-Callback nicht aus Session-/LocalStorage übernehmen.');
 console.log('Netatmo iOS/PWA Navigation: synchroner Start, Cache-Buster, no-store Redirects und Callback-Persistenz geprüft.');

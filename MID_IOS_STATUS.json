@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-08-27T14:30:00Z",
-  "releaseVersion": "0.9.67.11",
+  "updatedAt": "2026-08-28T21:45:00Z",
+  "releaseVersion": "0.9.69.3",
   "sourceBaseline": {
     "professionalVersion": "0.9.66.19",
     "workerVersion": "0.9.66.19",
@@ -24,16 +24,25 @@
     "browser-pwa-ios-safe-area-header-hotfix",
     "validated-browser-pwa-release-activation-and-event-precipitation",
     "dependency-actions-maintenance-0.9.67.3",
-    "release-installer-workflow-pin-boundary-hotfix-0.9.67.4"
+    "release-installer-workflow-pin-boundary-hotfix-0.9.67.4",
+    "maplibre-v6-vite-worker-extreme-area-hotfix-0.9.67.5",
+    "native-location-adapter-with-browser-fallback",
+    "native-external-navigation-with-deep-link-return",
+    "native-share-import-export-with-browser-fallback",
+    "556-regressions-passed",
+    "shared-dwd-ruc-ruc-eps-forward-port-0.9.69.0",
+    "shared-ruc-production-pipeline-hardening-0.9.69.1",
+    "shared-ruc-private-r2-bootstrap-health-0.9.69.2",
+    "shared-safe-automatic-cloudflare-worker-deploy-0.9.69.3"
   ],
-  "nextMilestone": "native-location-adapter-with-browser-fallback",
+  "nextMilestone": "lifecycle-offline-resume-without-local-data-loss",
   "validation": {
-    "browserBuild": "passed-in-pr-ci-lucide-1.34.0-and-maplibre-6.5.0",
-    "typescript": "passed-in-pr-ci-lucide-1.34.0-and-maplibre-6.5.0",
-    "workerSyntax": "passed",
-    "regressions": "v0.9.67.4 hotfix: v0.9.67.3 production build/npm ci/audit/types succeeded in GitHub installer; sole failing workflow-boundary regression corrected and protected by dedicated v0.9.67.4 test.",
-    "capacitorSync": "last-passed-v0.9.67.2; v0.9.67.4 web-bundle sync pending npm-backed/macOS ios:sync",
-    "xcodeProjectStructure": "passed",
+    "browserBuild": "pending-release-ci-v0.9.69.3: local npm registry remains unavailable; no React/Vite fachcore change in worker-deploy milestone",
+    "typescript": "pending-release-ci-v0.9.69.3: local TypeScript package unavailable; no TS/TSX fachcore change in worker-deploy milestone",
+    "workerSyntax": "passed-v0.9.69.3; worker.js and worker/metar-proxy.js byte-identical",
+    "regressions": "551-of-560 passed-v0.9.69.3; 9 startup-blocked only by missing local dependencies (7 TypeScript/tsc, 2 esbuild); zero functional assertion failures",
+    "capacitorSync": "pending-release-ci-v0.9.69.3: no native plugin or shared fachcore change introduced",
+    "xcodeProjectStructure": "passed-static-v0.9.69.3; shared React/Vite core, no iOS fork, marketing 0.9.69 build 4; no native capability change",
     "xcodeAppleSdkBuild": "pending-macos-runtime"
   },
   "costGate": {
@@ -42,7 +51,9 @@
       "device-signing",
       "testflight",
       "app-store-submission",
-      "paid-macos-ci"
+      "paid-macos-ci",
+      "ruc-r2-bucket-or-paid-storage",
+      "ruc-pipeline-cost-bearing-activation"
     ],
     "approved": false
   }

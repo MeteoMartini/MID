@@ -18,7 +18,7 @@ export type DwdWarningSample={
  isDay?:boolean;
 };
 export type DwdDisplayWindUnit='kn'|'kt'|'kmh'|'ms'|'mph';
-export type DwdWarningSignal={kind:DwdWarningKind;level:DwdWarningLevel;title:string;symbol:string;detail:string;value:number;unit:string;windowHours?:number;secondaryValue?:number;secondaryUnit?:string;validFrom?:string;validTo?:string;windDirection?:number;windDirectionText?:string;stageRank?:number;thresholdValue?:number;secondaryThresholdValue?:number;lowerIntensity?:boolean};
+export type DwdWarningSignal={kind:DwdWarningKind;level:DwdWarningLevel;title:string;symbol:string;detail:string;value:number;unit:string;windowHours?:number;secondaryValue?:number;secondaryUnit?:string;validFrom?:string;validTo?:string;windDirection?:number;windDirectionText?:string;stageRank?:number;thresholdValue?:number;lowerIntensity?:boolean};
 
 export const DWD_WARNING_COLORS:Record<DwdWarningLevel,string>={1:'#e6c229',2:'#ef8d32',3:'#e74a4a',4:'#9b59c6'};
 export const DWD_THERMAL_FEEL_COLORS={
@@ -71,25 +71,22 @@ export function formatDwdWindValue(kmh:number,unit:DwdDisplayWindUnit='kt'){
  const value=Math.max(0,finite(kmh)),primary=unit==='kmh'?`${rounded(value)} km/h`:unit==='ms'?`${rounded(value/3.6)} m/s`:unit==='mph'?`${rounded(value/1.609344)} mph`:`${rounded(value/KMH_PER_KT)} kt`;
  return unit==='kmh'?`${primary} (Bft ${beaufortFromKmh(value)})`:`${primary} (${rounded(value)} km/h)`;
 }
-function warningPillValue(signal:DwdWarningSignal){return signal.lowerIntensity&&Number.isFinite(Number(signal.thresholdValue))?Number(signal.thresholdValue):signal.value}
-function warningPillSecondaryValue(signal:DwdWarningSignal){return signal.lowerIntensity&&Number.isFinite(Number(signal.secondaryThresholdValue))?Number(signal.secondaryThresholdValue):signal.secondaryValue}
 export function formatDwdWarningCompactValue(signal:DwdWarningSignal,unit:DwdDisplayWindUnit='kt'){
- const value=warningPillValue(signal),windOnly=(kmh:number)=>{const normalized=Math.max(0,finite(kmh));return unit==='kmh'?`${rounded(normalized)} km/h`:unit==='ms'?`${rounded(normalized/3.6)} m/s`:unit==='mph'?`${rounded(normalized/1.609344)} mph`:`${rounded(normalized/KMH_PER_KT)} kt`};
- if(signal.kind==='wind'||signal.kind==='snowdrift')return windOnly(value);
- if(signal.kind==='heavyRain'||signal.kind==='continuousRain')return`${rounded(value)} mm`;
- if(signal.kind==='snow')return`${rounded(value)} cm`;
- if(signal.kind==='fog')return`${Math.max(0,rounded(value))} m`;
- if(signal.kind==='heat'||signal.kind==='frost'||signal.unit==='°C')return`${rounded(value)} °C`;
+ const windOnly=(kmh:number)=>{const value=Math.max(0,finite(kmh));return unit==='kmh'?`${rounded(value)} km/h`:unit==='ms'?`${rounded(value/3.6)} m/s`:unit==='mph'?`${rounded(value/1.609344)} mph`:`${rounded(value/KMH_PER_KT)} kt`};
+ if(signal.kind==='wind'||signal.kind==='snowdrift')return windOnly(signal.value);
+ if(signal.kind==='heavyRain'||signal.kind==='continuousRain')return`${rounded(signal.value)} mm`;
+ if(signal.kind==='snow')return`${rounded(signal.value)} cm`;
+ if(signal.kind==='fog')return`${Math.max(0,rounded(signal.value))} m`;
+ if(signal.kind==='heat'||signal.kind==='frost'||signal.unit==='°C')return`${rounded(signal.value)} °C`;
  return'';
 }
 export function formatDwdWarningValue(signal:DwdWarningSignal,unit:DwdDisplayWindUnit='kt'){
- const value=warningPillValue(signal),secondaryValue=warningPillSecondaryValue(signal);
- if(signal.kind==='wind')return formatDwdWindValue(value,unit);
- if(signal.kind==='snowdrift'){const snow=Number.isFinite(secondaryValue)?`${rounded(secondaryValue!)} cm · `:'';return`${snow}${formatDwdWindValue(value,unit)}`}
- if(signal.kind==='heavyRain'||signal.kind==='continuousRain')return`${rounded(value)} mm${signal.windowHours?`/${signal.windowHours} h`:''}`;
- if(signal.kind==='snow')return`${rounded(value)} cm${signal.windowHours?`/${signal.windowHours} h`:''}`;
- if(signal.kind==='fog')return`${Math.max(0,rounded(value))} m`;
- if(signal.kind==='heat'||signal.kind==='frost'||signal.unit==='°C')return`${rounded(value)} °C`;
+ if(signal.kind==='wind')return formatDwdWindValue(signal.value,unit);
+ if(signal.kind==='snowdrift'){const snow=Number.isFinite(signal.secondaryValue)?`${rounded(signal.secondaryValue!)} cm · `:'';return`${snow}${formatDwdWindValue(signal.value,unit)}`}
+ if(signal.kind==='heavyRain'||signal.kind==='continuousRain')return`${rounded(signal.value)} mm${signal.windowHours?`/${signal.windowHours} h`:''}`;
+ if(signal.kind==='snow')return`${rounded(signal.value)} cm${signal.windowHours?`/${signal.windowHours} h`:''}`;
+ if(signal.kind==='fog')return`${Math.max(0,rounded(signal.value))} m`;
+ if(signal.kind==='heat'||signal.kind==='frost'||signal.unit==='°C')return`${rounded(signal.value)} °C`;
  return'';
 }
 function withoutWarningStage(text:string){return text.replace(/\s*(?:[·(]\s*)?DWD-(?:Hitze)?Warnstufe\s*\d+\)?/gi,'').replace(/\s+([.,;:])/g,'$1').replace(/\.{2,}/g,'.').trim()}
@@ -146,9 +143,9 @@ function snowWindowSignals(samples:DwdWarningSample[],index:number,elevation:num
 }
 function snowdriftSignals(samples:DwdWarningSample[],index:number){
  const snow6=forwardSum(samples,index,6,snowfall),snow24=forwardSum(samples,index,24,snowfall),gust6=forwardMax(samples,index,6,sample=>finite(sample.gust)*KMH_PER_KT),signals:DwdWarningSignal[]=[];
- if(snow6>=5&&gust6>=39)signals.push({kind:'snowdrift',level:2,title:'Schneeverwehung',symbol:'🌬',detail:`${Math.round(snow6)} cm Neuschnee und Böen bis ${Math.round(gust6)} km/h.`,value:gust6,unit:'km/h',windowHours:6,secondaryValue:snow6,secondaryUnit:'cm',stageRank:2,thresholdValue:39,secondaryThresholdValue:5});
- if(snow6>10&&gust6>=65)signals.push({kind:'snowdrift',level:3,title:'Starke Schneeverwehung',symbol:'🌬',detail:`Über ${Math.round(snow6)} cm Neuschnee und Böen bis ${Math.round(gust6)} km/h.`,value:gust6,unit:'km/h',windowHours:6,secondaryValue:snow6,secondaryUnit:'cm',stageRank:3,thresholdValue:65,secondaryThresholdValue:10});
- if(snow24>25&&gust6>=65)signals.push({kind:'snowdrift',level:4,title:'Extrem starke Schneeverwehung',symbol:'🌬',detail:`Über ${Math.round(snow24)} cm Neuschnee und Böen bis ${Math.round(gust6)} km/h.`,value:gust6,unit:'km/h',windowHours:24,secondaryValue:snow24,secondaryUnit:'cm',stageRank:4,thresholdValue:65,secondaryThresholdValue:25});
+ if(snow6>=5&&gust6>=39)signals.push({kind:'snowdrift',level:2,title:'Schneeverwehung',symbol:'🌬',detail:`${Math.round(snow6)} cm Neuschnee und Böen bis ${Math.round(gust6)} km/h.`,value:gust6,unit:'km/h',windowHours:6,secondaryValue:snow6,secondaryUnit:'cm',stageRank:2});
+ if(snow6>10&&gust6>=65)signals.push({kind:'snowdrift',level:3,title:'Starke Schneeverwehung',symbol:'🌬',detail:`Über ${Math.round(snow6)} cm Neuschnee und Böen bis ${Math.round(gust6)} km/h.`,value:gust6,unit:'km/h',windowHours:6,secondaryValue:snow6,secondaryUnit:'cm',stageRank:3});
+ if(snow24>25&&gust6>=65)signals.push({kind:'snowdrift',level:4,title:'Extrem starke Schneeverwehung',symbol:'🌬',detail:`Über ${Math.round(snow24)} cm Neuschnee und Böen bis ${Math.round(gust6)} km/h.`,value:gust6,unit:'km/h',windowHours:24,secondaryValue:snow24,secondaryUnit:'cm',stageRank:4});
  return signals;
 }
 function iceSignals(sample:DwdWarningSample){
@@ -163,8 +160,8 @@ function thunderSignals(sample:DwdWarningSample,wind:DwdWarningSignal|null,rain:
  for(let level=1;level<=highest;level++){const stage=level as DwdWarningLevel,title=thunderTitle(stage);signals.push({kind:'thunderstorm',level:stage,title,symbol:'⚡',detail:`${title}${companions?` mit ${companions}`:''}.`,value:code,unit:'WMO',stageRank:stage})}
  return signals;
 }
-function fogSignal(sample:DwdWarningSample){const visibility=finite(sample.visibility,Number.NaN);if(Number.isFinite(visibility)&&visibility<150)return{kind:'fog',level:1,title:'Nebel',symbol:'🌫',detail:`Sichtweite ${Math.max(0,Math.round(visibility))} m.`,value:visibility,unit:'m',thresholdValue:150} satisfies DwdWarningSignal;return null}
-function heatSignal(samples:DwdWarningSample[],index:number){const sample=samples[index],apparent=finite(sample?.apparent,finite(sample?.temperature,Number.NaN));if(apparent>38)return{kind:'heat',level:3,title:'Extreme Wärmebelastung',symbol:'☀',detail:`Gefühlte Temperatur ${Math.round(apparent)} °C.`,value:apparent,unit:'°C',thresholdValue:38} satisfies DwdWarningSignal;const minimum=forwardMin(samples,index,12,value=>finite(value.temperature,Number.NaN));if(apparent>32&&Number.isFinite(minimum)&&minimum>=20)return{kind:'heat',level:1,title:'Starke Wärmebelastung',symbol:'☀',detail:`Gefühlte Temperatur ${Math.round(apparent)} °C bei nur geringer modellierter Abkühlung.`,value:apparent,unit:'°C',thresholdValue:32} satisfies DwdWarningSignal;return null}
+function fogSignal(sample:DwdWarningSample){const visibility=finite(sample.visibility,Number.NaN);if(Number.isFinite(visibility)&&visibility<150)return{kind:'fog',level:1,title:'Nebel',symbol:'🌫',detail:`Sichtweite ${Math.max(0,Math.round(visibility))} m.`,value:visibility,unit:'m'} satisfies DwdWarningSignal;return null}
+function heatSignal(samples:DwdWarningSample[],index:number){const sample=samples[index],apparent=finite(sample?.apparent,finite(sample?.temperature,Number.NaN));if(apparent>38)return{kind:'heat',level:3,title:'Extreme Wärmebelastung',symbol:'☀',detail:`Gefühlte Temperatur ${Math.round(apparent)} °C.`,value:apparent,unit:'°C'} satisfies DwdWarningSignal;const minimum=forwardMin(samples,index,12,value=>finite(value.temperature,Number.NaN));if(apparent>32&&Number.isFinite(minimum)&&minimum>=20)return{kind:'heat',level:1,title:'Starke Wärmebelastung',symbol:'☀',detail:`Gefühlte Temperatur ${Math.round(apparent)} °C bei nur geringer modellierter Abkühlung.`,value:apparent,unit:'°C'} satisfies DwdWarningSignal;return null}
 
 export function dwdWarningSignalsAt(samples:DwdWarningSample[],index:number,elevation=0){
  const sample=samples[index];if(!sample)return[] as DwdWarningSignal[];
@@ -174,8 +171,8 @@ export function dwdWarningSignalsAt(samples:DwdWarningSample[],index:number,elev
  signals.push(...windSignals,...rainSignals,...snowSignals,...driftSignals,...iceRows);if(fog)signals.push(fog);if(heat)signals.push(heat);
  signals.push(...thunderSignals(sample,wind,rain));
  const lowland=!Number.isFinite(elevation)||elevation<=800;
- if(lowland&&finite(sample.temperature,Number.NaN)<0){const temperature=finite(sample.temperature,Number.NaN);signals.push({kind:'frost',level:1,title:'Frost',symbol:'❄️',detail:`Lufttemperatur ${Math.round(temperature)} °C in einer Lage bis 800 m.`,value:temperature,unit:'°C',stageRank:1,thresholdValue:0})}
- if(lowland&&forwardAllBelow(samples,index,3,-10)){const minimum=Math.min(...forwardValues(samples,index,3,value=>finite(value.temperature,Number.NaN)).filter(Number.isFinite));signals.push({kind:'frost',level:2,title:'Strenger Frost',symbol:'🥶',detail:`Mindestens 3 Stunden unter −10 °C, Tiefstwert ${Math.round(minimum)} °C.`,value:minimum,unit:'°C',windowHours:3,stageRank:2,thresholdValue:-10})}
+ if(lowland&&finite(sample.temperature,Number.NaN)<0){const temperature=finite(sample.temperature,Number.NaN);signals.push({kind:'frost',level:1,title:'Frost',symbol:'❄️',detail:`Lufttemperatur ${Math.round(temperature)} °C in einer Lage bis 800 m.`,value:temperature,unit:'°C',stageRank:1})}
+ if(lowland&&forwardAllBelow(samples,index,3,-10)){const minimum=Math.min(...forwardValues(samples,index,3,value=>finite(value.temperature,Number.NaN)).filter(Number.isFinite));signals.push({kind:'frost',level:2,title:'Strenger Frost',symbol:'🥶',detail:`Mindestens 3 Stunden unter −10 °C, Tiefstwert ${Math.round(minimum)} °C.`,value:minimum,unit:'°C',windowHours:3,stageRank:2})}
  return signals.sort((a,b)=>b.level-a.level||a.kind.localeCompare(b.kind));
 }
 

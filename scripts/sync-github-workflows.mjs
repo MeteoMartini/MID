@@ -7,11 +7,13 @@ const defaultRoot=path.resolve(path.dirname(modulePath),'..');
 
 const CHECKOUT_V7_SHA='3d3c42e5aac5ba805825da76410c181273ba90b1';
 const SETUP_NODE_V7_SHA='820762786026740c76f36085b0efc47a31fe5020';
+const SETUP_PYTHON_V5_SHA='a26af69be951a213d495a4c3e4e4022e16d87065';
 const CODEQL_V4_SHA='ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd';
 function pinApprovedActions(source){
  return source
   .replace(/actions\/checkout@[^\s#]+(?:\s*#\s*v[^\n]*)?/g,`actions/checkout@${CHECKOUT_V7_SHA} # v7.0.1`)
   .replace(/actions\/setup-node@[^\s#]+(?:\s*#\s*v[^\n]*)?/g,`actions/setup-node@${SETUP_NODE_V7_SHA} # v7.0.0`)
+  .replace(/actions\/setup-python@[^\s#]+(?:\s*#\s*v[^\n]*)?/g,`actions/setup-python@${SETUP_PYTHON_V5_SHA} # v5`)
   .replace(/github\/codeql-action\/(init|analyze)@[^\s#]+(?:\s*#\s*v[^\n]*)?/g,(_match,action)=>`github/codeql-action/${action}@${CODEQL_V4_SHA} # v4.37.7`);
 }
 
@@ -19,6 +21,8 @@ const managedFiles=[
  ['workflows/install-mid.yml','workflows/install-mid.yml'],
  ['workflows/deploy.yml','workflows/deploy.yml'],
  ['workflows/dependency-audit.yml','workflows/dependency-audit.yml'],
+ ['workflows/mid-ruc-preprocess.yml','workflows/mid-ruc-preprocess.yml'],
+ ['workflows/mid-ruc-cloudflare-bootstrap.yml','workflows/mid-ruc-cloudflare-bootstrap.yml'],
  ['dependabot.yml','dependabot.yml']
 ];
 
@@ -49,7 +53,7 @@ export async function syncGithubConfiguration({root=defaultRoot,sourceRoot=path.
  // Die zwei historischen, nicht kanonisch gespiegelten Workflows (u. a.
  // apply-private-analytics und mid-code-revision) bleiben inhaltlich unverändert.
  // Beim ausdrücklich administrativ gestarteten Sync werden dort ausschließlich
- // die freigegebenen checkout/setup-node-Action-Refs sowie CodeQL init/analyze
+ // die freigegebenen checkout/setup-node/setup-python-Action-Refs sowie CodeQL init/analyze
  // auf die kanonischen SHA-Pins angehoben.
  const workflowsRoot=path.join(githubRoot,'workflows');
  let workflowNames=[];

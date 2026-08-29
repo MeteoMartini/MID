@@ -22,10 +22,14 @@ need('PWA-Installationsschutz',install,'isMidNativeRuntime()?null:<BrowserPwaIns
 for(const token of ['prepareMidRuntimeDocument()','startMidNativeRuntimeBridge()','markMidNativeRuntimeReady()'])need('App-Start',main,token);
 for(const token of ['data-mid-runtime=ios','safe-area-inset-top','safe-area-inset-bottom'])need('Native Safe Area',styles,token);
 for(const token of ['Browser-/PWA-App und als native iOS-App parallel','keinen separaten iOS-Fachfork','unversionierte Professional-ZIP'])need('Cross-Platform-Vertrag',contract,token);
-for(const token of ['Native Plattformadapter – nächste autonome Etappe','Browser-Produktionsbuild','Apple-Freigabegate'])need('iOS-Roadmap',roadmap,token);
+for(const token of ['Native Plattformadapter','Browser-Produktionsbuild','Apple-Freigabegate'])need('iOS-Roadmap',roadmap,token);
 need('Source of Truth',source,'MID_CROSS_PLATFORM_CONTRACT.md');
 if(status.browserDevelopmentContinues!==true||status.strategy!=='shared-react-vite-core-with-capacitor-ios-shell')failures.push('Fortsetzungsstatus schützt die parallele Browserentwicklung nicht.');
-if(status.nextMilestone!=='native-location-adapter-with-browser-fallback')failures.push('Nächster autonomer iOS-Meilenstein ist nicht eindeutig.');
+if(versionAtLeast(pkg.version,'0.9.68.0')){
+ if(!status.completed?.includes('native-location-adapter-with-browser-fallback'))failures.push('Der native Standortadapter ist nicht als abgeschlossen dokumentiert.');
+ const expectedNext=versionAtLeast(pkg.version,'0.9.68.2')?'lifecycle-offline-resume-without-local-data-loss':versionAtLeast(pkg.version,'0.9.68.1')?'native-share-import-export-with-browser-fallback':'native-external-navigation-with-deep-link-return';
+ if(status.nextMilestone!==expectedNext)failures.push('Der nächste autonome iOS-Meilenstein ist nicht eindeutig.');
+}else if(status.nextMilestone!=='native-location-adapter-with-browser-fallback')failures.push('Nächster autonomer iOS-Meilenstein ist nicht eindeutig.');
 if(baseline.releaseVersion!==pkg.version)failures.push(`Baseline ${baseline.releaseVersion} != Paket ${pkg.version}`);
 for(const listName of ['requiredRegressionTests','regressionTests'])if(!baseline[listName]?.includes('scripts/test-cross-platform-ios-shell-09670.mjs'))failures.push(`Baseline-${listName} enthält die Cross-Platform-Regression nicht.`);
 for(const listName of ['requiredFiles','protectedFiles'])if(!baseline[listName]?.includes('scripts/version-regression-helper.mjs'))failures.push(`Baseline-${listName} schützt den semantischen Versionsvergleich nicht.`);

@@ -16,10 +16,10 @@ assert.ok(baseline.requiredRegressionTests?.includes(test)&&baseline.regressionT
 assert.ok(baseline.requiredFiles?.includes(test)&&baseline.requiredFiles?.includes('src/ExtremeOutlookAreaOverlay.tsx')&&baseline.requiredFiles?.includes('src/extremeOutlookAreaCanvas.ts')&&baseline.requiredFiles?.includes('MID_IMPLEMENTATION_0.9.66.2.md'),'Flächenrendering-Dateien fehlen im Baseline-Vertrag.');
 assert.ok(workerSource.includes(`const WORKER_VERSION='${pkg.version}';`),'Gekoppelte Worker-Version ist nicht synchron.');
 
-for(const token of ['CanvasOverlay','drawExtremeOutlookContours','buildExtremeOutlookContourSet','id=\"extreme-outlook-areas\"'])assert.ok(overlay.includes(token),`Flächen-Layervertrag fehlt: ${token}`);
+for(const token of ['buildExtremeOutlookContourGeoJson',"type:'fill'","type:'line'",'fill-pattern'])assert.ok(overlay.includes(token),`Flächen-Layervertrag fehlt: ${token}`);
 for(const token of ['buildExtremeOutlookContours','extremeProbabilityLevelsForCell','minimumProbability','EXTREME_INTENSITY_COLORS'])assert.ok(modelledAreas.includes(token),`Flächen-Datenvertrag fehlt: ${token}`);
 for(const token of ["type:'MultiPolygon'",'FeatureCollection<MultiPolygon','contourPolygons','normalizeOrientation'])assert.ok(geojsonSource.includes(token),`GeoJSON-Flächenvertrag fehlt: ${token}`);
-assert.ok(overlay.includes('CanvasOverlay')&&overlay.includes('HtmlMarker')&&overlay.includes('zIndex={35}'),'Die Flächen müssen georeferenziert über Canvas gerendert werden und flächengebundene Beschriftungen darüberliegen.');
+assert.ok(overlay.includes('CanvasOverlay')||overlay.includes('HtmlMarker')&&overlay.includes('zIndex={35}'),'Die Flächen müssen georeferenziert gerendert werden; bei nativen Polygonen müssen flächengebundene Beschriftungen darüberliegen.');
 for(const token of ['map.project([point.lon,point.lat])','buildExtremeOutlookContours','context.fill','context.stroke','devicePixelRatio','Math.min(2'])assert.ok(canvasSource.includes(token),`Canvas-Flächenvertrag fehlt: ${token}`);
 assert.ok(panel.includes("import ExtremeOutlookAreaOverlay from './ExtremeOutlookAreaOverlay'"));
 assert.ok(panel.includes('<ExtremeOutlookAreaOverlay data={data} periodId={selectedPeriod.id} hazard={hazard}/>'));

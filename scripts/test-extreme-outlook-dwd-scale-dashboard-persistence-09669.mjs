@@ -12,10 +12,10 @@ assert.ok(versionAtLeast(pkg.version,'0.9.66.9'));assert.equal(baseline.releaseV
 assert.ok(baseline.requiredRegressionTests.includes(test)&&baseline.regressionTests.includes(test));for(const file of[test,'MID_IMPLEMENTATION_0.9.66.9.md'])assert.ok(baseline.requiredFiles.includes(file));
 
 for(const token of ['tile.openstreetmap.org/{z}/{x}/{y}.png','id="extreme-outlook-context"','opacity={.28}','zIndex={18}','MID-Prognosestufe','Schraffiert sind ausschließlich Teilflächen'])assert.ok(panel.includes(token),`Kartendarstellung fehlt: ${token}`);
-assert.ok(!panel.includes('basemaps.cartocdn.com'),'Die Mitteleuropa-Karte darf keine anonym gesperrte CARTO-Basis mehr verwenden.');
+assert.ok(!panel.includes('basemaps.cartocdn.com'),'Die DACH-Karte darf keine anonym gesperrte CARTO-Basis mehr verwenden.');
 for(const token of ["1:'#f4d03f'","2:'#f08a24'","3:'#d9363e'","4:'#8f174f'",'Wettergefahr','markante Wettergefahr','Unwetterpotenzial','extremes Unwetterpotenzial'])assert.ok(outlook.includes(token),`DWD-nahe Prognoseskala fehlt: ${token}`);
 assert.ok(!outlook.includes("1:'#269b83'"),'Grün darf keine Gefahrstufe mehr kennzeichnen.');
-for(const token of ['CanvasOverlay','drawExtremeOutlookContours','buildExtremeOutlookContourSet'])assert.ok(overlay.includes(token),`Teilflächenschraffur-/Rendervertrag fehlt: ${token}`);
+for(const token of ['HATCH_SOURCE_ID','source:HATCH_SOURCE_ID','buildExtremeOutlookContourGeoJson'])assert.ok(overlay.includes(token),`Teilflächenschraffur fehlt: ${token}`);
 assert.ok(modelledAreas.includes('maximumProbability:60'),'Teilflächenschraffur muss aus demselben Konturdatensatz entstehen.');
 for(const token of ['pointInRing','normalizeOrientation','contourPolygons',"type:'MultiPolygon'"])assert.ok(geojsonSource.includes(token),`Verschachtelte Teilflächenschraffur fehlt: ${token}`);
 assert.ok(canvasSource.includes('maximumProbability?:number')&&canvasSource.includes('probability>=threshold&&probability<maximumProbability'));
@@ -33,4 +33,4 @@ const modules=await import(moduleUrl),migrated=modules.readDashboardModuleSettin
 const moved=modules.moveDashboardModule(migrated,'extreme-outlook','forecast'),written=modules.writeDashboardModuleSettings(moved),restored=modules.readDashboardModuleSettings();assert.equal(restored.order[0],'extreme-outlook');assert.deepEqual(restored.order,written.order);assert.equal(JSON.parse(store.get(modules.DASHBOARD_MODULE_SETTINGS_KEY)).order[0],'extreme-outlook');
 
 assert.ok(changelog.includes('## 0.9.66.9'));for(const token of ['CARTO Voyager','Spitzenwert','IndexedDB-Spiegel','älterer Remote-Snapshot'])assert.ok(implementation.includes(token));
-console.log('MID 0.9.66.9: kontrastreiche Mitteleuropa-Karte, DWD-nahe Gefahrsskala, teilflächenrichtige Schraffur und konfliktfeste Sektionsreihenfolge geprüft.');
+console.log('MID 0.9.66.9: kontrastreiche DACH-Karte, DWD-nahe Gefahrsskala, teilflächenrichtige Schraffur und konfliktfeste Sektionsreihenfolge geprüft.');

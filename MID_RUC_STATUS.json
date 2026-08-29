@@ -1,0 +1,87 @@
+{
+  "schema": 1,
+  "updatedAt": "2026-08-28T20:50:07Z",
+  "releaseVersion": "0.9.69.2",
+  "source": "DWD Open Data ICON-D2-RUC / ICON-D2-RUC-EPS",
+  "deterministic": {
+    "coverageBbox": [
+      -3.85,
+      43.18,
+      20.22,
+      58.05
+    ],
+    "forecastHours": 14,
+    "updateHours": 1,
+    "preprocessor": "tools/ruc/fetch_and_build_ruc.py + build_ruc_bundle.py",
+    "workerMode": "private R2 byte-range point adapter with cached immutable lookup and legacy endpoint fallback",
+    "ready": true
+  },
+  "ensemble": {
+    "id": "icon_d2_ruc_eps",
+    "forecastHours": 14,
+    "updateHours": 1,
+    "nativePrecipitationMembers": true,
+    "family": "dwd-icon-eps",
+    "independenceGroup": "dwd-ensemble",
+    "variantGroup": "dwd-icon-d2-eps-rapid",
+    "eventShortRangeOnly": true,
+    "fallback": "icon_d2_eps",
+    "ready": true,
+    "normalForecastProduct": "preaggregated probability/significant probability/mean/Q25/Q50/Q75",
+    "nativeMemberUse": "short-range event ensemble only"
+  },
+  "publication": {
+    "workflow": ".github/workflows/mid-ruc-preprocess.yml",
+    "atomicLatest": true,
+    "retainRuns": 4,
+    "freshnessHours": 4,
+    "r2Binding": "MID_DWD_RUC_DATA",
+    "activationEnabled": false,
+    "costApproval": false,
+    "runImmutableLookup": true,
+    "remoteSizeVerification": true,
+    "idempotentSameRunNoWrite": true,
+    "customDomainRequired": false,
+    "customDomainPublicApprovalRequired": true,
+    "canonicalWorkflowMirror": "ci/github/workflows/mid-ruc-preprocess.yml",
+    "r2PrivateByDefault": true,
+    "r2DevEnabled": false,
+    "orphanLifecycleHours": 48,
+    "preflightPreservesCurrentLatestRun": true,
+    "bootstrapWorkflow": ".github/workflows/mid-ruc-cloudflare-bootstrap.yml",
+    "bootstrapActivationEnabled": false,
+    "healthMode": "ruc-health",
+    "postPublishHealthAutomation": true,
+    "healthUrlVariable": "MID_RUC_WORKER_HEALTH_URL"
+  },
+  "contracts": {
+    "bestMatchRemainsBase": true,
+    "noWorkerGribDecoding": true,
+    "thunderRequiresObservedLightning": true,
+    "normalSevenFourteenDayEnsembleExcludesRucEps": true
+  },
+  "liveSourceVerification": {
+    "directoryStructureVerified": true,
+    "productionIngestionExecuted": false,
+    "reason": "Code path and private R2 bootstrap are production-ready; actual R2 subscription, initial API token/secrets and one-time Worker binding remain explicit account gates."
+  },
+  "validation": {
+    "rucPipelineContract": "passed-v0.9.69.2",
+    "rucFusionRuntime": "passed-v0.9.69.2",
+    "workerSyntax": "passed-v0.9.69.2",
+    "workerAggregatesIdentical": true,
+    "fullRegressionLocal": "550/559 passed; 9 dependency-startup-blocked only: 7 require missing local TypeScript binary/package, 2 require missing esbuild; zero functional assertion failures",
+    "functionalAssertionFailuresRemaining": 0,
+    "releaseCiRequired": true,
+    "rucPackContract": "passed-v0.9.69.2",
+    "rucPublisherRuntime": "passed-v0.9.69.2",
+    "targetedReleaseGates": "passed-v0.9.69.2",
+    "typescript": "blocked-local-dependency-tree: node_modules/.bin/tsc absent after npm registry EAI_AGAIN",
+    "viteBuild": "blocked-local-dependency-tree: node_modules/.bin/vite and esbuild absent; npm registry EAI_AGAIN",
+    "capacitorSync": "blocked-by-same-local-dependency-tree: node_modules/.bin/cap absent; no native plugin change",
+    "rucCloudflareBootstrap": "passed-v0.9.69.2",
+    "rucStorageHealthRuntime": "passed-v0.9.69.2",
+    "rucDeployedHealthCheck": "passed-v0.9.69.2",
+    "dependencyAudit": "blocked-network: npm audit registry request EAI_AGAIN"
+  }
+}

@@ -1,18 +1,20 @@
 import {readFile} from 'node:fs/promises';
 const station=await readFile(new URL('../src/connectedStation.ts',import.meta.url),'utf8');
+const navigation=await readFile(new URL('../src/externalNavigation.ts',import.meta.url),'utf8');
 const settings=await readFile(new URL('../src/ConnectedStationSettings.tsx',import.meta.url),'utf8');
 const app=await readFile(new URL('../src/App.tsx',import.meta.url),'utf8');
 const worker=await readFile(new URL('../worker/metar-proxy.js',import.meta.url),'utf8');
 function need(text,needle,message){if(!text.includes(needle))throw new Error(message)}
 need(station,"workerPost<NetatmoAuthorizationStart>('netatmo-auth-start'",'Netatmo-Autorisierungsadresse wird nicht vor dem Nutzertap vorbereitet.');
 need(station,"url.hostname!=='api.netatmo.com'",'Vorbereitete Netatmo-Autorisierungsadresse wird nicht validiert.');
-need(station,"window.matchMedia?.('(display-mode: standalone)').matches",'Standalone/PWA-Erkennung fehlt.');
-need(station,"window.open(target,'_blank')",'Standalone-PWA öffnet Netatmo nicht in einem externen Browserkontext.');
+need(navigation,"window.matchMedia?.('(display-mode: standalone)').matches",'Standalone/PWA-Erkennung fehlt.');
+need(navigation,"window.open(url.toString(),'_blank')",'Standalone-PWA öffnet Netatmo nicht in einem externen Browserkontext.');
 need(settings,"Netatmo-Anmeldung wird vorbereitet",'UI zeigt die OAuth-Vorbereitung nicht an.');
 need(settings,"visibilitychange",'Rückkehr aus dem externen OAuth-Browser wird nicht automatisch erkannt.');
 need(settings,"mid_station_connection",'Callback-Verbindungskennung wird in den Einstellungen nicht übernommen.');
-need(app,"connectionId:url.searchParams.get('mid_station_connection')",'App sichert die OAuth-Verbindungskennung nicht beim Rücksprung.');
-need(app,"localStorage.setItem('mid:netatmo:callback'",'OAuth-Rücksprung wird nicht zusätzlich PWA-übergreifend persistent gesichert.');
+need(app,'captureMidExternalOAuthReturn','App übergibt den OAuth-Rücksprung nicht an den Plattformadapter.');
+need(navigation,"url.searchParams.get('mid_station_connection')",'App sichert die OAuth-Verbindungskennung nicht beim Rücksprung.');
+need(navigation,'localStorage.setItem(NETATMO_CALLBACK_KEY','OAuth-Rücksprung wird nicht zusätzlich PWA-übergreifend persistent gesichert.');
 need(settings,"next.oauthResult",'Stationsstatus wertet serverseitiges OAuth-Ergebnis nicht aus.');
 need(worker,"netatmoSaveOAuthResult",'Worker speichert das letzte OAuth-Ergebnis nicht serverseitig.');
 need(worker,"netatmoCallbackPage",'Worker hält den OAuth-Callback nicht als sichtbare Rücksprungseite offen.');

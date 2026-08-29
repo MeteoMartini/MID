@@ -1,0 +1,6 @@
+# CI-only DWD RUC preprocessing dependencies. They never ship to browser/iOS/Worker.
+numpy>=2.0,<3
+scipy>=1.13,<2
+eccodes>=2.38,<3
+requests>=2.31,<3
+awscli>=1.32,<2

@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.67.11",
+  "version": "0.9.69.3",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -339,14 +339,19 @@
     "test:release-activation-event-precip": "node scripts/test-release-activation-event-precip-096672.mjs",
     "test:dependency-actions-maintenance": "node scripts/test-dependency-actions-maintenance-096673.mjs",
     "test:release-workflow-pin-boundary": "node scripts/test-release-workflow-pin-boundary-096674.mjs",
-    "test:extreme-outlook-icon-d2-domain": "node scripts/test-extreme-outlook-icon-d2-domain-096677.mjs",
-    "test:extreme-outlook-resilience": "node scripts/test-extreme-outlook-resilience-096678.mjs",
-    "test:ruc-appwide-nowcast": "node scripts/test-ruc-appwide-nowcast-0966711.mjs"
+    "test:maplibre-v6-worker-runtime": "node scripts/test-maplibre-v6-worker-runtime-096675.mjs",
+    "test:native-location-adapter": "node scripts/test-native-location-adapter-09680.mjs",
+    "test:native-external-navigation": "node scripts/test-native-external-navigation-096681.mjs",
+    "test:native-share-import-export": "node scripts/test-native-share-import-export-096682.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",
+    "@capacitor/browser": "8.0.4",
     "@capacitor/core": "8.5.0",
+    "@capacitor/filesystem": "8.1.3",
+    "@capacitor/geolocation": "8.2.2",
     "@capacitor/ios": "8.5.0",
+    "@capacitor/share": "8.0.1",
     "@capacitor/splash-screen": "8.0.2",
     "@capacitor/status-bar": "8.0.3",
     "astronomy-engine": "^2.1.19",

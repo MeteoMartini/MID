@@ -43,8 +43,7 @@ need('Classic RUC Badge',app,'model-rapid-badge');
 need('Meteogramm KNMI Rapid',meteogram,"id:'knmi_harmonie_arome_europe'");
 need('Meteogramm UKV Rapid',meteogram,"id:'ukmo_uk_deterministic_2km'");
 need('Worker Meteogramm KNMI Rapid',worker,"['knmi_harmonie_arome_europe',{label:'KNMI HARMONIE-AROME Europe · Rapid Update'");
-need('DWD RUC-EPS Prioritaet',weather,"const ensemblePriority=['ukmo_uk_ensemble_2km','icon_d2_ruc_eps','icon_d2_eps'");
-need('RUC-EPS Adapter',worker,'MID_DWD_RUC_EPS_POINT_ENDPOINT');
+need('UK/RUC-EPS Rapid Ensemble Prioritaet',weather,"const ensemblePriority=['ukmo_uk_ensemble_2km','icon_d2_ruc_eps','icon_d2_eps'");
 
 const realFetch=globalThis.fetch;
 const testNowMs=Date.now(),hourMs=60*60*1000,latestRunMs=Math.floor((testNowMs-30*60*1000)/hourMs)*hourMs;

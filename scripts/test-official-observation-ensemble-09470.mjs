@@ -59,7 +59,6 @@ assert.match(weather,/DIRECT_REGIONAL_ENSEMBLE_MODELS=new Set\(\['icon_d2_ruc_ep
 assert.match(weather,/if\(directRegional\)throw/);
 assert.match(worker,/MID_KNMI_HARMONIE_EPS_POINT_ENDPOINT/);
 assert.match(worker,/MID_ECCC_REPS_POINT_ENDPOINT/);
-assert.match(worker,/MID_DWD_RUC_EPS_POINT_ENDPOINT/);
 
 // Kein neuer generischer Binärdecoder als Laufzeitabhängigkeit; Adaptervertrag dokumentiert.
 for(const forbidden of ['eccodes','bufr-js','grib2-simple','wgrib'])assert.ok(!pkgText.toLowerCase().includes(forbidden),`unerwartete Decoder-Abhängigkeit: ${forbidden}`);

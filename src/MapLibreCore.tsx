@@ -1,6 +1,12 @@
 import {createContext,useContext,useEffect,useMemo,useRef,useState,type ReactNode} from 'react';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
+
+// MapLibre GL JS 6 is ESM-only. Vite must emit its module worker as a
+// self-contained asset; without this boundary raster/HTML layers can mount
+// while worker-backed GeoJSON polygons silently remain empty in production.
+maplibregl.setWorkerUrl(maplibreWorkerUrl);
 
 export type MidMap=maplibregl.Map;
 type MapContextValue={map:MidMap|null;loaded:boolean};

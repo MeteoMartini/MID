@@ -24,7 +24,7 @@ for(const token of [
  'coherentWeatherHours',
  'version:8',
  "schema:'mid.forecast-fusion.v1'",
- 'Best Match bleibt die kohärente Basis; innerhalb des ICON-D2-Gebiets kalibriert ICON-D2-RUC',
+ 'Best Match bleibt die kohärente Basis',
  'suffixFields',
  'MOSMIX wird bewusst nur als lokales Postprocessing'
 ])need('Worker-Fusion',worker,token);

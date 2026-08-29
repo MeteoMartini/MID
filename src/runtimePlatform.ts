@@ -5,6 +5,7 @@ export type MidNativeAppState={isActive:boolean;platform:Exclude<MidRuntimePlatf
 export type MidNativeUrlOpen={url:string;platform:Exclude<MidRuntimePlatform,'web'>};
 
 let bridgeStarted=false;
+let pendingNativeUrl='';
 const listenerHandles:PluginListenerHandle[]=[];
 
 export function midRuntimePlatform():MidRuntimePlatform{
@@ -13,6 +14,7 @@ export function midRuntimePlatform():MidRuntimePlatform{
 }
 
 export function isMidNativeRuntime(){return Capacitor.isNativePlatform()&&midRuntimePlatform()!=='web'}
+export function takePendingMidNativeUrl(){const url=pendingNativeUrl;pendingNativeUrl='';return url}
 
 export function prepareMidRuntimeDocument(){
  if(typeof document==='undefined')return;
@@ -33,12 +35,15 @@ export async function startMidNativeRuntimeBridge(){
  bridgeStarted=true;
  const platform=midRuntimePlatform() as Exclude<MidRuntimePlatform,'web'>;
  const{App}=await import('@capacitor/app');
+ const publishUrl=(url:string)=>{if(!url)return;pendingNativeUrl=url;window.dispatchEvent(new CustomEvent<MidNativeUrlOpen>('mid:native-url-open',{detail:{url,platform}}))};
  listenerHandles.push(await App.addListener('appStateChange',state=>{
   window.dispatchEvent(new CustomEvent<MidNativeAppState>('mid:native-app-state',{detail:{isActive:state.isActive,platform}}));
  }));
  listenerHandles.push(await App.addListener('appUrlOpen',event=>{
-  window.dispatchEvent(new CustomEvent<MidNativeUrlOpen>('mid:native-url-open',{detail:{url:event.url,platform}}));
+  publishUrl(event.url);
  }));
+ const launch=await App.getLaunchUrl().catch(()=>undefined);
+ if(launch?.url)publishUrl(launch.url);
  const themeListener=(event:Event)=>void syncNativeStatusBar(Boolean((event as CustomEvent<{dark?:boolean}>).detail?.dark));
  window.addEventListener('mid:theme-change',themeListener);
  await syncNativeStatusBar(document.documentElement.dataset.theme==='dark');

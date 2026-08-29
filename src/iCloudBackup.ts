@@ -3,6 +3,7 @@ import {createDeviceSyncConfig,formatDeviceSyncCode,pushDeviceSync,pushWeatherTw
 import {persistStateNow} from './persistence';
 import {MID_VERSION} from './version';
 import {collectPortableUserData,replacePortableUserData} from './portableUserData';
+import {shareOrExportMidFile} from './filePlatform';
 
 const BACKUP_SCHEMA='mid-icloud-drive-backup';
 const BACKUP_VERSION=3;
@@ -44,11 +45,8 @@ export async function buildICloudBackup(){
 
 export async function saveICloudBackup(){
  const{file,summary}=await buildICloudBackup();
- const shareNavigator=navigator as Navigator&{canShare?:(data:ShareData)=>boolean;share?:(data:ShareData)=>Promise<void>};
- if(shareNavigator.share&&(!shareNavigator.canShare||shareNavigator.canShare({files:[file]}))){
-  await shareNavigator.share({title:'MID-Sicherung',text:'MID-Datensicherung – in „Dateien“ und anschließend in iCloud Drive sichern.',files:[file]});backupMeta(summary);return{mode:'share' as const,summary};
- }
- const url=URL.createObjectURL(file),anchor=document.createElement('a');anchor.href=url;anchor.download=file.name;anchor.rel='noopener';document.body.append(anchor);anchor.click();anchor.remove();window.setTimeout(()=>URL.revokeObjectURL(url),5000);backupMeta(summary);return{mode:'download' as const,summary};
+ const transferMode=await shareOrExportMidFile({file,title:'MID-Sicherung',text:'MID-Datensicherung – in „Dateien“ und anschließend in iCloud Drive sichern.'});
+ backupMeta(summary);return{mode:transferMode==='download'?'download' as const:'share' as const,transferMode,summary};
 }
 
 function validateBundle(value:unknown):value is MidICloudBackup{const row=value as Partial<MidICloudBackup>|null;return Boolean(row&&row.schema===BACKUP_SCHEMA&&(row.version===1||row.version===2||row.version===3)&&typeof row.createdAt==='string'&&row.localState?.values&&typeof row.localState.values==='object'&&row.weatherTwin&&typeof row.integrity==='string')}

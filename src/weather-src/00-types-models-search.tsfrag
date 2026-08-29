@@ -171,8 +171,8 @@ function similarLocation(a:Location,b:Location){if(a.name.trim().toLocaleLowerCa
 type ModelMetaCandidate={id:string;label:string;kind:'forecast'|'ensemble';metaIds?:string[];metaSource?:'open-meteo'|'dwd-ruc';rapidUpdate?:boolean;resolutionKm?:number;forecastHorizonHours?:number;members?:number;availabilityOnly?:boolean};
 type ForecastCandidate=ModelMetaCandidate&{countries?:string[];bbox?:[number,number,number,number]};
 const forecastCandidates:ForecastCandidate[]=[
- {id:'icon-d2-ruc',label:'DWD ICON-D2-RUC',kind:'forecast',metaSource:'dwd-ruc',rapidUpdate:true,resolutionKm:2,forecastHorizonHours:14,availabilityOnly:true,bbox:[-3.85,43.18,20.22,58.05]},
- {id:'icon-d2-ruc-eps',label:'DWD ICON-D2-RUC-EPS',kind:'ensemble',metaSource:'dwd-ruc',rapidUpdate:true,resolutionKm:2,forecastHorizonHours:14,members:20,availabilityOnly:true,bbox:[-3.85,43.18,20.22,58.05]},
+ {id:'icon-d2-ruc',label:'DWD ICON-D2-RUC',kind:'forecast',metaSource:'dwd-ruc',rapidUpdate:true,resolutionKm:2,forecastHorizonHours:14,availabilityOnly:true,countries:['DE','CH','AT'],bbox:[-6,43,26,58]},
+ {id:'icon-d2-ruc-eps',label:'DWD ICON-D2-RUC-EPS',kind:'ensemble',metaSource:'dwd-ruc',rapidUpdate:true,resolutionKm:2,forecastHorizonHours:14,members:20,availabilityOnly:true,countries:['DE','CH','AT'],bbox:[-6,43,26,58]},
  {id:'dwd_icon_d2',label:'DWD ICON-D2',kind:'forecast',resolutionKm:2,forecastHorizonHours:48,countries:['DE','CH','AT'],bbox:[-6,43,26,58]},
  {id:'knmi_harmonie_arome_europe',label:'KNMI HARMONIE Europe',kind:'forecast',rapidUpdate:true,resolutionKm:5.5,forecastHorizonHours:60,bbox:[-14,35,32,66]},
  {id:'meteoswiss_icon_ch1',label:'MeteoSwiss ICON-CH1',kind:'forecast',countries:['CH']},
