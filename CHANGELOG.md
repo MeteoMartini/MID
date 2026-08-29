@@ -1,3 +1,9 @@
+## 0.9.73.1
+
+- Hotfix für die kostenlose DWD ICON-D2-RUC/RUC-EPS-Pipeline: URL-kodierte DWD-Laufverzeichnisse (`%3A`) werden vor der Run-Erkennung dekodiert.
+- Verhindert den falschen Fehler `No common DWD RUC/RUC-EPS run directories found` bei vorhandenen stündlichen Läufen.
+- Fail-safe-Vollständigkeitsprüfung, gemeinsamer RUC/RUC-EPS-Lauf, Pages-Pfad und deaktiviertes R2 bleiben unverändert.
+
 ## 0.9.73.0
 
 - iOS Privacy: Haupt-App und `MIDWidgets` besitzen jeweils ein eigenes, im Target gebündeltes `PrivacyInfo.xcprivacy`; Tracking bleibt überall deaktiviert.

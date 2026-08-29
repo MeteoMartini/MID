@@ -34,7 +34,11 @@ def index(s,url):
  r=s.get(url,timeout=25);r.raise_for_status();p=Links();p.feed(r.text);return p.href
 
 def runs(s,base,param):
- return {href[:-1] for href in index(s,f'{base}/{param}/r/') if RUN_RE.match(href)}
+ out=set()
+ for href in index(s,f'{base}/{param}/r/'):
+  decoded=unquote(href)
+  if RUN_RE.match(decoded):out.add(decoded[:-1])
+ return out
 
 def common_runs(s):
  common=None

@@ -27,6 +27,7 @@ must(event.includes('selectedEnsembleModelsForEvent(lat,lon,date,startTime)'),'E
 
 // DWD preprocessing: common complete run, explicit full hours, fail-closed grid and EPS preaggregation.
 must(fetcher.includes("REQUIRED=('T_2M'")&&fetcher.includes('common_runs')&&fetcher.includes('candidate-count')&&fetcher.includes('for run in candidates'),'Newest incomplete DWD run must fall back to prior common complete candidates');
+must(fetcher.includes('decoded=unquote(href)')&&fetcher.includes('RUN_RE.match(decoded)'), 'DWD run-directory discovery must URL-decode encoded timestamps such as T14%3A00 before matching');
 must(fetcher.includes("required=('deterministic.bin','eps-summary.bin','eps-members.bin','lookup.bin','latest.json')"),'Candidate must be complete before output replacement');
 must(builder.includes('hourly_targets')&&builder.includes('range(hours+1)'),'RUC must explicitly select integer lead hours 0…14, not first N 15-minute samples');
 must(builder.includes('same_grid')&&builder.includes('RUC-EPS native grid differs'),'Mixed deterministic/EPS grids must fail closed');
