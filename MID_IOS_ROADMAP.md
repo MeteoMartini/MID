@@ -28,7 +28,9 @@ Die in MID 17.7.3 geplante DWD-ICON-D2-RUC/RUC-EPS-Integration wurde als gemeins
 
 **v0.9.70.0 kostenfreier RUC-Produktionspfad:** RUC/RUC-EPS wird ohne R2 über DWD Open Data → GitHub Actions/ecCodes → GitHub Pages → Worker → gemeinsamen MID-Fachkern ausgeliefert. Der Pages-Pfad nutzt immutable Chunks statt Range-Requests, bewahrt den letzten Snapshot über normale App-Releases hinweg und lässt R2 als rein optionale spätere Speicheroptimierung unangetastet. Die Tagesansicht schützt zusätzlich Niederschlagswahrscheinlichkeit über Niederschlagsbalken und kontrastreiche Windrichtungspfeile in Hell/Dunkel.
 
-Der nächste native Meilenstein bleibt Lifecycle-/Offline-Wiederaufnahme ohne lokalen Datenverlust.
+**v0.9.70.1 Lifecycle-/Offline-Wiederaufnahme:** Browser/PWA und Capacitor-iOS verwenden nun denselben Runtime-Lifecycle-Bridge. Suspend checkpointet lokale Persistenz best-effort, Offline-Warmstarts liefern einen vorhandenen höchstens 18 Stunden alten Kernforecast unmittelbar mit Standzeit und Netzrückkehr nutzt wieder den gemeinsamen Forecast-Loader. Lokale Nutzerdaten werden beim Lifecycle niemals pauschal gelöscht oder zurückgesetzt.
+
+Der nächste native Meilenstein ist die Überführung des bestehenden `native/apple`-WidgetKit-Gerüsts in die Xcode-Struktur unter unverändertem `mid.native.widget.v1`-Feedvertrag.
 
 ### 2. Native Plattformadapter – in Arbeit
 
@@ -36,7 +38,7 @@ Vor Beginn dieser Etappe wurde in v0.9.67.5 die gemeinsame MapLibre-6-
 Produktions-Workergrenze repariert. Modellierte GeoJSON-Gefahrenflächen werden
 damit in Browser/PWA und iOS-WebView wieder aus demselben Vite-Build gerendert.
 Standortadapter und externe OAuth-Navigation sind inzwischen abgeschlossen;
-Teilen/Import/Export ist abgeschlossen; der nächste native Meilenstein ist Lifecycle-/Offline-Wiederaufnahme ohne lokalen Datenverlust.
+Teilen/Import/Export sowie Lifecycle-/Offline-Wiederaufnahme sind abgeschlossen; der nächste native Meilenstein ist die WidgetKit-Xcode-Struktur.
 
 - Standortadapter mit Browser-Fallback – abgeschlossen in v0.9.68.0:
   native Einmal-Ortung über Capacitor, unverändertes
@@ -50,7 +52,7 @@ Teilen/Import/Export ist abgeschlossen; der nächste native Meilenstein ist Life
   temporäre Cachedateien über Capacitor Filesystem und Share, systemeigener
   iOS-Dokumentwähler über den gefilterten WebView-Dateiinput sowie
   unveränderte Web-Share-/Download-/Browser-Dateidialog-Fallbacks
-- Lifecycle- und Offline-Wiederaufnahme ohne Verlust lokaler Daten
+- Lifecycle- und Offline-Wiederaufnahme ohne Verlust lokaler Daten – abgeschlossen in v0.9.70.1: gemeinsamer Browser/PWA-/Capacitor-Bridge, best-effort Persistenzcheckpoint, Offline-Warmstart aus lokalem Kernforecast-Cache und gezielter Refresh bei Netzrückkehr
 
 Jeder Adapter muss durch einen Browserpfad, einen nativen Pfad und einen
 Regressionstest geschützt sein. Fachwerte dürfen im Adapter weder berechnet

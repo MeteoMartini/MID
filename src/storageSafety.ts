@@ -36,6 +36,9 @@ async function deleteRecord(key:string){try{const db=await openDb();await new Pr
 function queueRecord(key:string,record:DurableRecord){const previous=mirrorQueue.get(key)??Promise.resolve(),next=previous.catch(()=>undefined).then(()=>putRecord(key,record));mirrorQueue.set(key,next);void next.finally(()=>{if(mirrorQueue.get(key)===next)mirrorQueue.delete(key)})}
 function queueDelete(key:string){const previous=mirrorQueue.get(key)??Promise.resolve(),next=previous.catch(()=>undefined).then(()=>deleteRecord(key));mirrorQueue.set(key,next);void next.finally(()=>{if(mirrorQueue.get(key)===next)mirrorQueue.delete(key)})}
 
+/** Waits briefly for already queued durable mirror writes without blocking the UI indefinitely. */
+export async function flushStorageSafetyMirror(maxWaitMs=1400){const deadline=Date.now()+Math.max(0,maxWaitMs);for(;;){const pending=[...mirrorQueue.values()];if(!pending.length)return true;const remaining=deadline-Date.now();if(remaining<=0)return false;await Promise.race([Promise.allSettled(pending).then(()=>undefined),new Promise<void>(resolve=>globalThis.setTimeout(resolve,Math.min(remaining,120)))])}}
+
 function entryTimestamp(raw:string){try{const parsed=JSON.parse(raw) as Record<string,unknown>;for(const key of['savedAt','updatedAt','createdAt','created','time','at']){const value=parsed?.[key],numeric=typeof value==='number'?value:Date.parse(String(value||''));if(Number.isFinite(numeric)&&numeric>0)return numeric}}catch{}return 0}
 function transientEntries(){if(!native)return[] as {key:string;raw:string;bytes:number;time:number}[];const rows:{key:string;raw:string;bytes:number;time:number}[]=[];for(let index=native.storage.length-1;index>=0;index--){const key=native.key(index);if(!key||(!isTransientStorageKey(key)&&key!==RESERVE_KEY)||key===RESERVE_KEY)continue;const raw=native.get(key);if(raw===null)continue;rows.push({key,raw,bytes:(key.length+raw.length)*2,time:entryTimestamp(raw)})}return rows}
 

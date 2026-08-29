@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.70.0",
+  "releaseVersion": "0.9.70.2",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -301,7 +301,8 @@
     "scripts/test-worker-auto-deploy-09693.mjs",
     "scripts/test-extreme-outlook-mitteleuropa-recovery-096697.mjs",
     "scripts/test-ruc-pages-free-storage-09700.mjs",
-    "scripts/test-day-detail-probability-wind-contrast-09700.mjs"
+    "scripts/test-day-detail-probability-wind-contrast-09700.mjs",
+    "scripts/test-runtime-lifecycle-offline-resume-09701.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -533,7 +534,8 @@
     "scripts/test-worker-auto-deploy-09693.mjs",
     "scripts/test-extreme-outlook-mitteleuropa-recovery-096697.mjs",
     "scripts/test-ruc-pages-free-storage-09700.mjs",
-    "scripts/test-day-detail-probability-wind-contrast-09700.mjs"
+    "scripts/test-day-detail-probability-wind-contrast-09700.mjs",
+    "scripts/test-runtime-lifecycle-offline-resume-09701.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -747,7 +749,12 @@
     "tools/ruc/restore_ruc_pages_snapshot.py",
     "tools/ruc/test_prepare_ruc_pages.py",
     "MID_IMPLEMENTATION_0.9.70.0.md",
-    "scripts/test-day-detail-probability-wind-contrast-09700.mjs"
+    "scripts/test-day-detail-probability-wind-contrast-09700.mjs",
+    "src/runtimeLifecycle.ts",
+    "MID_RUNTIME_LIFECYCLE_OFFLINE_CONTRACT.md",
+    "scripts/test-runtime-lifecycle-offline-resume-09701.mjs",
+    "MID_IMPLEMENTATION_0.9.70.1.md",
+    "MID_IMPLEMENTATION_0.9.70.2.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -762,7 +769,8 @@
     "scripts/test-native-share-import-export-096682.mjs",
     "scripts/test-ruc-dwd-pipeline-09690.mjs",
     "scripts/test-ruc-fusion-runtime-09691.mjs",
-    "scripts/test-worker-auto-deploy-09693.mjs"
+    "scripts/test-worker-auto-deploy-09693.mjs",
+    "scripts/test-runtime-lifecycle-offline-resume-09701.mjs"
   ],
   "protectedFiles": [
     "scripts/test-travel-planner-era5-seamless-units-09652.mjs",
@@ -820,7 +828,12 @@
     "tools/cloudflare/check_worker_health.mjs",
     "scripts/test-worker-auto-deploy-09693.mjs",
     "ci/github/workflows/install-mid.yml",
-    ".github/workflows/install-mid.yml"
+    ".github/workflows/install-mid.yml",
+    "src/runtimeLifecycle.ts",
+    "MID_RUNTIME_LIFECYCLE_OFFLINE_CONTRACT.md",
+    "scripts/test-runtime-lifecycle-offline-resume-09701.mjs",
+    "MID_IMPLEMENTATION_0.9.70.1.md",
+    "MID_IMPLEMENTATION_0.9.70.2.md"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md"

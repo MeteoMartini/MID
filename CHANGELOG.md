@@ -1,3 +1,17 @@
+## 0.9.70.2
+
+- Release-Hotfix für den Lifecycle-/Offline-Meilenstein: die historische v0.9.53.14-Core-Cache-Regression prüft nicht länger eine einzelne alte Quelltextzeile, sondern den aktuellen dreistufigen Cachevertrag aus Offline-Warmstart, Fresh-Cache und Stale-Netzfallback.
+- Die Laufzeitlogik selbst bleibt unverändert: Offline wird vor jedem Netzpfad auf einen lokalen Kernforecast zurückgegriffen; frische Cachewerte werden normal wiederverwendet und ein belastbarer letzter Stand bleibt nach Netz-/Rate-Limit-Ausfall als begrenzter Fallback verfügbar.
+- Run #749 bestätigte vor dem Testabbruch TypeScript und Vite-Build für v0.9.70.1 sowie 563 von 564 Regressionen; Worker, Pages und `mid-stable` blieben fail-closed unangetastet.
+
+## 0.9.70.1
+
+- Gemeinsamer Browser/PWA-/Capacitor-Lifecycle-Bridge: `pagehide`, Sichtbarkeit und nativer `appStateChange` sichern den lokalen Persistenzstand best-effort, ohne Favoriten, Events, Einstellungen oder Wetterzwilling-Daten zu löschen oder zurückzusetzen.
+- Offline-Warmstart: ein höchstens 18 Stunden alter erfolgreicher Kernforecast wird ohne aussichtslosen Netzwerkversuch sofort aus dem lokalen Cache geliefert; ohne Cache endet der Ladevorgang unmittelbar mit einer verständlichen Offline-Meldung statt in einem Endlos-Ladezustand.
+- Die Oberfläche kennzeichnet Offline-Betrieb kompakt samt Standzeit des gespeicherten Wetterstands; bei Netzrückkehr und nach längerer Wiederaufnahme wird derselbe gemeinsame Forecast-Loader gezielt neu angestoßen.
+- Bestehende Browser-/PWA-Sichtbarkeits-Refreshpfade werden beim nativen Resume weiterverwendet; es entsteht kein iOS-Fachlogik-Fork und keine neue native Datenhaltung.
+- Neue Required Regression schützt Lifecycle, Offline-Short-Circuit, Cache-Metadaten, lokalen Datenbestand und Dark-Mode-Offlinestatus.
+
 ## 0.9.70.0
 
 - DWD ICON-D2-RUC/RUC-EPS kann ohne Cloudflare R2 über den kostenfreien GitHub-Pages-Pfad `pages-free-v1` veröffentlicht werden; GRIB-Decodierung bleibt vollständig im GitHub-Actions/ecCodes-Vorprozessor.

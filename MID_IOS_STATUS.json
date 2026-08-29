@@ -1,15 +1,15 @@
 {
   "schema": 1,
-  "updatedAt": "2026-08-29T07:19:00Z",
-  "releaseVersion": "0.9.70.0",
+  "updatedAt": "2026-08-29T08:38:00Z",
+  "releaseVersion": "0.9.70.2",
   "sourceBaseline": {
-    "professionalVersion": "0.9.69.6",
-    "workerVersion": "0.9.69.6",
-    "regressionsPassed": 560
+    "professionalVersion": "0.9.70.0",
+    "workerVersion": "0.9.70.0",
+    "regressionsPassed": 563
   },
   "strategy": "shared-react-vite-core-with-capacitor-ios-shell",
   "browserDevelopmentContinues": true,
-  "phase": "native-capability-adapters",
+  "phase": "apple-integration-source-preparation",
   "completed": [
     "source-and-worker-version-pair-verified",
     "browser-production-build-verified",
@@ -40,16 +40,19 @@
     "560-regressions-release-baseline-verified",
     "mitteleuropa-extreme-outlook-recovery-and-map-context-0.9.69.7",
     "free-ruc-github-pages-publication-without-paid-storage-0.9.70.0",
-    "day-detail-probability-and-dark-wind-contrast-0.9.70.0"
+    "day-detail-probability-and-dark-wind-contrast-0.9.70.0",
+    "563-regressions-release-baseline-verified",
+    "lifecycle-offline-resume-without-local-data-loss-0.9.70.2",
+    "legacy-core-cache-regression-semantic-hotfix-0.9.70.2"
   ],
-  "nextMilestone": "lifecycle-offline-resume-without-local-data-loss",
+  "nextMilestone": "widgetkit-xcode-structure-with-mid-native-widget-v1",
   "validation": {
-    "browserBuild": "pending-release-ci-v0.9.70.0: local dependency tree unavailable; full Vite production build remains release gate",
-    "typescript": "pending-release-ci-v0.9.70.0: project-local TypeScript dependency unavailable in current unpacked workspace",
-    "workerSyntax": "passed-local-v0.9.70.0",
-    "regressions": "targeted Mitteleuropa, RUC Pages-free, day-detail probability/dark-wind and Worker regressions passed; full suite requires project-local TypeScript/esbuild for remaining AST/build tests",
-    "capacitorSync": "pending-release-ci-v0.9.70.0; shared React/Vite core only, no native fork",
-    "xcodeProjectStructure": "passed-static-v0.9.70.0; marketing 0.9.70 build 1; no native capability change",
+    "browserBuild": "v0.9.70.1 release attempt #749: TypeScript + Vite production build passed; v0.9.70.2 changes only regression contract/version/docs and requires final release CI",
+    "typescript": "passed-in-release-attempt-#749-on-v0.9.70.1-runtime-source; v0.9.70.2 final gate remains release CI",
+    "workerSyntax": "pending-release-ci-v0.9.70.2; semantic Worker code unchanged except version marker",
+    "regressions": "run #749 reached 563/564; sole failure was obsolete literal cache regex. semantic cache regression updated; full target remains 564 in release CI",
+    "capacitorSync": "pending-release-ci-v0.9.70.2: cap copy ios follows only after all 564 regressions pass",
+    "xcodeProjectStructure": "version-synchronized-v0.9.70.2; no new native capability or entitlement",
     "xcodeAppleSdkBuild": "pending-macos-runtime"
   },
   "costGate": {

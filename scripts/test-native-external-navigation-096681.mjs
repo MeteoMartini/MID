@@ -32,7 +32,7 @@ assert.ok(plist.includes('<string>midwx</string>')&&plist.includes('<string>app.
 assert.ok(workerSource.includes("url.protocol==='midwx:'")&&workerSource.includes("url.hostname==='oauth'")&&workerSource.includes("url.pathname==='/netatmo'"),'Worker erlaubt den eng begrenzten nativen Rücksprung nicht.');
 assert.ok(workerSource.includes("request.headers.get('origin')||'').toLowerCase()!=='capacitor://localhost'")&&workerSource.includes('!netatmoNativeOriginAllowed(request,body?.returnUrl)'),'Native WebView darf nur mit dem exakten OAuth-Rücksprung die Ursprungsgrenze passieren.');
 assert.ok(status.completed?.includes('native-external-navigation-with-deep-link-return'));
-assert.equal(status.nextMilestone,versionAtLeast(pkg.version,'0.9.68.2')?'lifecycle-offline-resume-without-local-data-loss':'native-share-import-export-with-browser-fallback');
+assert.equal(status.nextMilestone,versionAtLeast(pkg.version,'0.9.70.1')?'widgetkit-xcode-structure-with-mid-native-widget-v1':versionAtLeast(pkg.version,'0.9.68.2')?'lifecycle-offline-resume-without-local-data-loss':'native-share-import-export-with-browser-fallback');
 assert.ok(roadmap.includes('externe OAuth-Navigation und sichere Rückkehr – abgeschlossen in v0.9.68.1'));
 assert.ok(implementation.includes('SFSafariViewController')&&implementation.includes('midwx://oauth/netatmo'));
 

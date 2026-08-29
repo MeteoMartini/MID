@@ -12,6 +12,7 @@ import {initializeStorageSafety} from './storageSafety';
 import {compactForecastVerificationLocalStorage} from './forecastVerification';
 import {beginStartupDashboardPreload} from './startupPreload';
 import {markMidNativeRuntimeReady,prepareMidRuntimeDocument,startMidNativeRuntimeBridge} from './runtimePlatform';
+import {startRuntimeLifecycleBridge} from './runtimeLifecycle';
 
 const BOOT_MARKER='mid:runtime:boot-marker:v1';
 prepareMidRuntimeDocument();
@@ -37,6 +38,7 @@ async function start(){
  if(preload)await Promise.race([preload.promise.then(()=>undefined),wait(550)]).catch(()=>undefined);
  try{startPersistenceBridge()}catch{}
  try{startDeviceSyncBridge()}catch{}
+ try{startRuntimeLifecycleBridge()}catch{}
  const root=document.getElementById('root');if(!root)throw new Error('MID-Startcontainer fehlt.');
  ReactDOM.createRoot(root).render(<React.StrictMode><StartupGuard><App/></StartupGuard></React.StrictMode>);
  try{startWebAnalyticsDiagnostics()}catch{}

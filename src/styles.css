@@ -7250,3 +7250,35 @@ main>.place>.place-nowcards{display:none!important}
  .dashboard-section-anchor{scroll-margin-top:calc(var(--mid-safe-top) + 58px)}
  .dashboard-section-drawer{height:100dvh;padding:var(--mid-safe-top) var(--mid-safe-right) var(--mid-safe-bottom) var(--mid-safe-left)}
 }
+
+/* MID v0.9.70.1 · gemeinsamer Offline-/Resume-Status */
+.runtime-offline-banner{
+ position:sticky;
+ top:var(--mid-safe-top);
+ z-index:82;
+ display:flex;
+ align-items:center;
+ gap:9px;
+ max-width:min(1180px,calc(100% - 24px));
+ margin:8px auto 10px;
+ padding:9px 12px;
+ border:1px solid color-mix(in srgb,var(--line) 72%,#f5b942 28%);
+ border-radius:14px;
+ background:color-mix(in srgb,var(--panel) 92%,#f5b942 8%);
+ box-shadow:0 8px 24px rgba(8,18,34,.08);
+ color:var(--text);
+}
+.runtime-offline-banner>svg{flex:0 0 auto;color:#b67700}
+.runtime-offline-banner>div{display:flex;align-items:baseline;gap:7px;min-width:0}
+.runtime-offline-banner strong{font-size:.82rem;letter-spacing:.02em}
+.runtime-offline-banner span{font-size:.78rem;color:var(--muted);white-space:normal}
+html[data-theme='dark'] .runtime-offline-banner{
+ border-color:rgba(255,205,102,.34);
+ background:rgba(25,33,45,.96);
+ box-shadow:0 8px 26px rgba(0,0,0,.26);
+}
+html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
+@media(max-width:640px){
+ .runtime-offline-banner{max-width:calc(100% - 16px);margin:6px 8px 8px;padding:8px 10px;align-items:flex-start}
+ .runtime-offline-banner>div{display:grid;gap:1px}
+}
