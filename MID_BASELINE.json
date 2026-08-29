@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.74.1",
+  "releaseVersion": "0.9.74.2",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -310,7 +310,8 @@
     "scripts/test-logo-cloud-profile-09739.mjs",
     "scripts/test-ruc-common-hourly-axis-097310.mjs",
     "scripts/test-ruc-native-cadence-nowcast-097311.mjs",
-    "scripts/test-ruc-parameter-audit-097311.mjs"
+    "scripts/test-ruc-parameter-audit-097311.mjs",
+    "scripts/test-ruc-pages-restore-resilience-09742.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -551,7 +552,8 @@
     "scripts/test-logo-cloud-profile-09739.mjs",
     "scripts/test-ruc-common-hourly-axis-097310.mjs",
     "scripts/test-ruc-native-cadence-nowcast-097311.mjs",
-    "scripts/test-ruc-parameter-audit-097311.mjs"
+    "scripts/test-ruc-parameter-audit-097311.mjs",
+    "scripts/test-ruc-pages-restore-resilience-09742.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -806,7 +808,10 @@
     "MID_IMPLEMENTATION_0.9.73.12.md",
     "scripts/test-cloud-profile-structures-09740.mjs",
     "MID_IMPLEMENTATION_0.9.74.0.md",
-    "MID_IMPLEMENTATION_0.9.74.1.md"
+    "MID_IMPLEMENTATION_0.9.74.1.md",
+    "scripts/test-ruc-pages-restore-resilience-09742.mjs",
+    "tools/ruc/test_restore_ruc_pages_snapshot.py",
+    "MID_IMPLEMENTATION_0.9.74.2.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",

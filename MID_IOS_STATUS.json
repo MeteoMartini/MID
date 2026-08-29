@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-08-29T21:30:00Z",
-  "releaseVersion": "0.9.74.1",
+  "updatedAt": "2026-08-29T21:50:00Z",
+  "releaseVersion": "0.9.74.2",
   "sourceBaseline": {
     "professionalVersion": "0.9.70.2",
     "workerVersion": "0.9.70.2",
@@ -78,5 +78,6 @@
       "ruc-r2-bucket-or-paid-storage"
     ],
     "approved": false
-  }
+  },
+  "validationNote": "v0.9.74.2 is deployment resilience maintenance only; no native capability split and no iOS fork. Shared React/Vite/Worker core remains unchanged except synchronized version metadata."
 }

@@ -1,3 +1,10 @@
+## v0.9.74.2
+
+- Pages-Release-Restore gegen transiente `HTTP 429/500/502/503/504`- und Netzwerkfehler gehärtet: begrenzte Retry-/Backoff-Logik mit `Retry-After`-Beachtung statt sofortigem Abbruch eines kompletten Release-Versuchs.
+- RUC-Snapshot-Restore intern auf maximal 8 parallele Chunk-Downloads begrenzt, um Lastspitzen auf `midwx.app`/GitHub Pages zu vermeiden; Workflow-Selbsterneuerung ist dafür nicht erforderlich.
+- Fail-closed bleibt erhalten: persistente Fehler brechen nach dem Retry-Budget weiterhin ab; Größe und SHA-256 jedes Chunks werden unverändert geprüft, unvollständige temporäre Restores werden verworfen.
+- Anlass war Run #766: Versuch 1 traf einen transienten HTTP 503, Versuch 2 war erfolgreich; der Gesamt-Release v0.9.74.1 war bereits grün.
+
 ## v0.9.74.1
 
 - Release-CI-Hotfix nach Run #765: `midCloud` und `highCloud` bleiben im ShortTermForecastPoint optional; die neue SVG-Wolkenstruktur akzeptiert daher korrekt `number | undefined` und normiert fehlende Werte auf 0 %.

@@ -1,0 +1,12 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+import {spawnSync} from 'node:child_process';
+import {versionAtLeast} from './version-regression-helper.mjs';
+const pkg=JSON.parse(fs.readFileSync('package.json','utf8')),baseline=JSON.parse(fs.readFileSync('MID_BASELINE.json','utf8')),test='scripts/test-ruc-pages-restore-resilience-09742.mjs';
+assert.ok(versionAtLeast(pkg.version,'0.9.74.2'));assert.equal(baseline.releaseVersion,pkg.version);
+for(const key of ['requiredRegressionTests','regressionTests','requiredFiles'])assert.ok(baseline[key].includes(test),`${test} missing from ${key}`);
+assert.ok(baseline.requiredFiles.includes('tools/ruc/test_restore_ruc_pages_snapshot.py'));
+const source=fs.readFileSync('tools/ruc/restore_ruc_pages_snapshot.py','utf8');
+for(const token of ['TRANSIENT_HTTP_CODES={429,500,502,503,504}','MAX_RESTORE_WORKERS=8','DEFAULT_FETCH_RETRIES=4','Retry-After','Transient RUC HTTP','effective_workers=min(MAX_RESTORE_WORKERS','shutil.rmtree(tmp,ignore_errors=True)'])assert.ok(source.includes(token),`restore resilience token missing: ${token}`);
+const result=spawnSync('python3',['tools/ruc/test_restore_ruc_pages_snapshot.py'],{encoding:'utf8'});assert.equal(result.status,0,result.stderr||result.stdout);assert.match(result.stdout,/retry\/backoff \+ fail-closed contract OK/);
+console.log('RUC Pages restore transient-error resilience regression OK');

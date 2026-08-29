@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-08-29T21:30:00Z",
-  "releaseVersion": "0.9.74.1",
+  "updatedAt": "2026-08-29T21:50:00Z",
+  "releaseVersion": "0.9.74.2",
   "source": "DWD Open Data ICON-D2-RUC / ICON-D2-RUC-EPS",
   "deterministic": {
     "coverageBbox": [
@@ -188,5 +188,6 @@
     "rucNativeCadenceNowcast": "passed-v0.9.73.13",
     "rucParameterAudit": "passed-v0.9.73.13"
   },
-  "notes": "v0.9.74.1 ändert keine RUC-Daten- oder Worker-Semantik; ausschließlich TypeScript-Vertrag der optionalen H/M-Wolkenanzeige im Frontend."
+  "notes": "v0.9.74.1 ändert keine RUC-Daten- oder Worker-Semantik; ausschließlich TypeScript-Vertrag der optionalen H/M-Wolkenanzeige im Frontend.",
+  "releaseNote": "v0.9.74.2 hardens normal Pages release preservation against transient CDN/Pages HTTP 429/5xx errors with bounded retry/backoff, caps restore fan-out at 8 workers, keeps per-object SHA/size verification and remains fail-closed after the retry budget. Run #766 attempt 1 hit HTTP 503; attempt 2 succeeded and the overall v0.9.74.1 release was green."
 }
