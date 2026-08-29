@@ -70,7 +70,11 @@ for(const token of [
  'className="cloud-cell mid"',
  'className="cloud-cell low"',
  'className="selected-cloud-values"',
- 'Wolken hoch / mittel / tief + UVI',
+ 'Wolken gesamt / hoch / mittel / tief + UVI',
+ 'className="cloud-total-cell"',
+ 'SvgProfileCloudStructure layer="highCloud"',
+ 'SvgProfileCloudStructure layer="midCloud"',
+ 'SvgProfileCloudStructure layer="lowCloud"',
  'clamp(Number(hour.highCloud)||0,0,100)',
  'clamp(Number(hour.midCloud)||0,0,100)',
  'clamp(Number(hour.lowCloud)||0,0,100)'

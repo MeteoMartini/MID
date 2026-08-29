@@ -1,3 +1,16 @@
+## v0.9.74.1
+
+- Release-CI-Hotfix nach Run #765: `midCloud` und `highCloud` bleiben im ShortTermForecastPoint optional; die neue SVG-Wolkenstruktur akzeptiert daher korrekt `number | undefined` und normiert fehlende Werte auf 0 %.
+- Keine Änderung am visuellen Wolkenkonzept, an Forecast/RUC/Worker-Semantik oder an nativen iOS-Fähigkeiten.
+- Regression des 24-h-Wolkenprofils um den optionalen H/M-TypeScript-Vertrag erweitert; zwei ältere Texttoken-Regressionsprüfungen auf die seit v0.9.74.0 korrekte Beschriftung Gesamt/H/M/L synchronisiert.
+
+## v0.9.74.0
+
+- 24-h-Wetterprofil: Wolkenbereich nach dem abgestimmten Konzept neu aufgebaut – Gesamtbewölkung plus höhentypische H/M/L-Strukturen statt optisch gleichartiger Wolkenblöcke.
+- Hohe Wolken cirrusartig/faserig, mittlere Wolken altocumulus-/schichtartig und tiefe Wolken cumulus-/stratocumulusartig; 0–100-%-Bedeckung steuert sichtbar Dichte, Breite, Masse und Opazität.
+- Nachbarstunden-Fading gilt nun für Gesamt + alle drei Wolkenhöhen; Randwerte und Einzeldaten zeigen Gesamt/H/M/L.
+- Kanonischer Forecast-/RUC-Datenvertrag unverändert; Pages-Free-Speichermitigation aus v0.9.73.13 bleibt enthalten, kein zusätzlicher Worker-Fachpfad und keine kostenpflichtige Infrastruktur.
+
 ## v0.9.73.13
 
 - Release-Run #762 vollständig analysiert: ZIP, Dependencies, TypeScript, Vite, Regressionen und Capacitor waren grün; der einzige Fehler lag im separaten Worker-Smoke, weil ein stale RUC-Snapshot die Promotion blockierte.

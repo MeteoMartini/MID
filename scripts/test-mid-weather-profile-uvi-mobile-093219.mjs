@@ -9,7 +9,7 @@ const [cockpit,shortTerm,styles,pkg,baseline]=await Promise.all([
 const failures=[];
 for(const token of [
  "import {formatDecimalFixed,formatUvi} from './format';",
- 'Wolken hoch / mittel / tief + UVI',
+ 'Wolken gesamt / hoch / mittel / tief + UVI',
  'formatUvi(Number(selectedPoint.uvIndex))',
  "uvIndex:mean('uvIndex')"
 ]) if(!cockpit.includes(token)) failures.push(`ForecastCockpit fehlt: ${token}`);

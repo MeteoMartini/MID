@@ -29,7 +29,7 @@ for(const token of [
   'SvgProfileWindDirectionArrow',
   'windSignalColor(gust)',
   'chartPoints.map(item=><SvgProfileWindDirectionArrow',
-  'function shortTermCloudCellGradient(point:ShortTermForecastPoint,previous:ShortTermForecastPoint|undefined,next:ShortTermForecastPoint|undefined,key:CloudProfileLayer)',
+  'function shortTermCloudCellGradient(point:ShortTermForecastPoint,previous:ShortTermForecastPoint|undefined,next:ShortTermForecastPoint|undefined,key:CloudProfileKey)',
   'cloudCellInset(item.columnWidth)',
   'cloud-cell-frame high',
   'cloud-cell-frame mid',
@@ -41,7 +41,11 @@ for(const token of [
   'Temperatur / gefühlt / Taupunkt',
   ' K</dd>',
   'Schwüle',
-  'Wolken hoch / mittel / tief + UVI',
+  'Wolken gesamt / hoch / mittel / tief + UVI',
+  'className="cloud-total-cell"',
+  'SvgProfileCloudStructure layer="highCloud"',
+  'SvgProfileCloudStructure layer="midCloud"',
+  'SvgProfileCloudStructure layer="lowCloud"',
   'Wetter-Hazards',
   'Thermische Einordnung nach den DWD-Klassen der Gefühlten Temperatur'
 ])need('24-h-Wetterprofil',cockpit,token);

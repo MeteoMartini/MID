@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-08-29T18:50:00Z",
-  "releaseVersion": "0.9.73.13",
+  "updatedAt": "2026-08-29T21:30:00Z",
+  "releaseVersion": "0.9.74.1",
   "sourceBaseline": {
     "professionalVersion": "0.9.70.2",
     "workerVersion": "0.9.70.2",
@@ -55,14 +55,15 @@
     "app-logo-selection-and-cloud-profile-card-alignment-0.9.73.9",
     "ruc-common-hourly-axis-production-ingestion-fix-0.9.73.10",
     "ruc-parameter-native-rapid-products-and-appwide-audit-0.9.73.11",
-    "worker-ruc-stale-bootstrap-deadlock-hotfix-0.9.73.13"
+    "worker-ruc-stale-bootstrap-deadlock-hotfix-0.9.73.13",
+    "weather-profile-cloud-structures-total-hml-0.9.74.0"
   ],
   "nextMilestone": "macos-xcode-simulator-quality-assurance",
   "validation": {
-    "browserBuild": "Release Run #762: ZIP-Installation, npm ci, Dependency-Audit, TypeScript, Vite-Produktionsbuild, vollständige Regressionen und Capacitor-iOS-Kopie waren grün. Der Lauf scheiterte erst im separaten automatischen Worker-Deploy-Smoke an einem veralteten RUC-Snapshot (configured=true, ready=false, fresh=false, reason=RUC-Lauf nicht frisch). v0.9.73.13 löst ausschließlich diesen Bootstrap-Zirkel fail-safe.",
-    "typescript": "Run #762 hat TypeScript für v0.9.73.12 erfolgreich abgeschlossen; v0.9.73.13 ändert nur die Worker-Deploy-Health-Gate-Logik und deren Regressionstest. Vollständiger Release-CI bleibt verbindlich.",
+    "browserBuild": "v0.9.74.1 ist ein reiner TypeScript-Wartungshotfix für das 24-h-Wolkenprofil aus v0.9.74.0. UI, Forecast-, RUC- und Worker-Fachsemantik bleiben unverändert; vollständiger Release-CI bleibt verbindlich.",
+    "typescript": "Run #765 scheiterte ausschließlich an zwei TS2322-Stellen im neuen H/M-Wolken-SVG: midCloud/highCloud sind im ShortTermForecastPoint absichtlich optional, während SvgProfileCloudStructure zunächst number verlangte. v0.9.74.1 akzeptiert number|undefined und normiert intern unverändert über Number(value)||0; kein iOS-Fork, keine native Capability.",
     "workerSyntax": "Der Worker-Kandidat v0.9.73.12 wurde in Run #762 erfolgreich hochgeladen und bei 0 % bereitgestellt; die Promotion wurde wegen stale RUC blockiert und automatisch auf v0.9.73.8 zurückgerollt. v0.9.73.13 erlaubt beim Release-Smoke nur einen strukturell gültigen stale-RUC-Bootstrap, während die RUC-Runtime stale Daten weiterhin fail-closed ignoriert.",
-    "regressions": "Run #762: vollständige Release-Regressionen grün. Zusätzlich schützt v0.9.73.13 drei Worker-Smoke-Fälle: ready/fresh akzeptiert; stale aber schema-valid/metadata-valid Bootstrap akzeptiert; ungültiges RUC-Schema bleibt harter Fehler.",
+    "regressions": "Neue Regression test-cloud-profile-structures-09740.mjs schützt Gesamt + H/M/L, höhentypische Formen, Intensität aus 0..100-%-Bewölkung und zeitliches Fading; bestehende Wetterprofil-/Open-Meteo-Regressionsverträge wurden semantisch auf den erweiterten Wolkenbereich angehoben.",
     "capacitorSync": "embedded ios/App/App/public remains honestly at v0.9.68.2; do not retag. Full npm run ios:sync/cap copy ios must run at the macOS/Xcode quality gate after release CI dependencies are available.",
     "xcodeProjectStructure": "App and MIDWidgets each bundle PrivacyInfo.xcprivacy; plist/project lint and Swift parse pass; Push/BGRefresh remain dormant and no ATT/push/background entitlement is activated.",
     "xcodeAppleSdkBuild": "required-next-gate-macos-xcode-simulator; includes Apple SDK build, simulator launch, Privacy Report inspection and post-sync structure verification."
