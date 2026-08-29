@@ -20,6 +20,8 @@ jobs:
   install_build:
     outputs:
       commit_sha: ${{ steps.commit.outputs.commit_sha }}
+      version: ${{ steps.release_meta.outputs.version }}
+      worker_changed: ${{ steps.worker_diff.outputs.changed }}
     name: MID installieren, prüfen und bauen
     if: github.actor != 'github-actions[bot]' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
@@ -52,15 +54,26 @@ jobs:
           mkdir -p "$target"
 
           ARCHIVE="$archive" TARGET="$target" python3 - <<'PY'
+          import hashlib
           import os
           import stat
           from pathlib import Path
-          from zipfile import ZipFile
+          from zipfile import ZipFile, is_zipfile
 
           archive = Path(os.environ['ARCHIVE'])
           target = Path(os.environ['TARGET']).resolve()
+          size = archive.stat().st_size
+          digest = hashlib.sha256(archive.read_bytes()).hexdigest()
+          print(f'Release-ZIP: {size} Byte · SHA-256 {digest}')
+          if size == 0:
+              raise SystemExit('Release-ZIP ist leer (0 Byte)')
+          if not is_zipfile(archive):
+              raise SystemExit('Release-Datei ist kein gültiges ZIP')
 
           with ZipFile(archive) as zip_file:
+              corrupt = zip_file.testzip()
+              if corrupt is not None:
+                  raise SystemExit(f'Release-ZIP enthält einen beschädigten Eintrag: {corrupt}')
               for entry in zip_file.infolist():
                   relative = Path(entry.filename)
                   if relative.is_absolute() or '..' in relative.parts:
@@ -194,6 +207,27 @@ jobs:
           set -euo pipefail
           npm run verify
 
+      - name: Release- und Worker-Änderungsmetadaten ermitteln
+        id: release_meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(node -p "require('./package.json').version")"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+      - name: Fachliche Worker-Änderung gegen letzte stabile Basis ermitteln
+        id: worker_diff
+        shell: bash
+        timeout-minutes: 2
+        run: |
+          set -euo pipefail
+          if git fetch --no-tags origin mid-stable && git show origin/mid-stable:worker/metar-proxy.js > /tmp/mid-worker-stable.js; then
+            node tools/cloudflare/worker_semantic_diff.mjs /tmp/mid-worker-stable.js worker/metar-proxy.js
+          else
+            echo "::warning::Letzter stabiler Worker konnte nicht gelesen werden; fail-safe wird ein Worker-Deploy verlangt."
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Neue MID-Version committen
         id: commit
         shell: bash
@@ -260,25 +294,193 @@ jobs:
 
           echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-      - name: GitHub Pages konfigurieren
-        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
 
-      - name: Produktionsbuild für Pages hochladen
-        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
-        with:
-          path: ./dist
-
-  deploy:
-    name: MID auf GitHub Pages veröffentlichen
+  deploy_worker:
+    name: Geprüften MID-Worker sicher automatisch veröffentlichen
     needs: install_build
-    if: success()
+    if: needs.install_build.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    permissions:
+      contents: read
+    concurrency:
+      group: mid-cloudflare-worker
+      cancel-in-progress: false
+
+    steps:
+      - name: Worker-Deploybedarf anzeigen
+        shell: bash
+        run: |
+          echo "Fachliche Worker-Änderung: ${{ needs.install_build.outputs.worker_changed }}"
+          echo "Release: ${{ needs.install_build.outputs.version }}"
+
+      - name: Unveränderten Worker ohne Cloudflare-Zugriff bestätigen
+        if: needs.install_build.outputs.worker_changed != 'true'
+        shell: bash
+        run: echo "Nur WORKER_VERSION/keine fachliche Worker-Änderung erkannt; Cloudflare-Deploy entfällt."
+
+      - name: Einmalige Auto-Deploy-Konfiguration prüfen
+        if: needs.install_build.outputs.worker_changed == 'true'
+        shell: bash
+        env:
+          MID_WORKER_DEPLOY_ENABLED: ${{ vars.MID_WORKER_DEPLOY_ENABLED }}
+          MID_CLOUDFLARE_WORKER_NAME: ${{ vars.MID_CLOUDFLARE_WORKER_NAME }}
+          MID_WORKER_HEALTH_URL: ${{ vars.MID_WORKER_HEALTH_URL || vars.VITE_METAR_PROXY_URL || vars.MID_RUC_WORKER_HEALTH_URL }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ "${MID_WORKER_DEPLOY_ENABLED}" != "true" ]; then
+            echo "::error::Worker-Fachcode wurde geändert, aber MID_WORKER_DEPLOY_ENABLED=true ist noch nicht freigegeben. Release wird vor Pages/mid-stable angehalten."
+            exit 1
+          fi
+          for name in MID_CLOUDFLARE_WORKER_NAME MID_WORKER_HEALTH_URL CLOUDFLARE_ACCOUNT_ID CLOUDFLARE_API_TOKEN; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::${name} fehlt für den sicheren automatischen Worker-Deploy."
+              exit 1
+            fi
+          done
+
+      - name: Geprüften Release-Commit laden
+        if: needs.install_build.outputs.worker_changed == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.install_build.outputs.commit_sha }}
+          fetch-depth: 1
+
+      - name: Remote-Konfiguration und vorherige aktive Version fail-closed spiegeln
+        if: needs.install_build.outputs.worker_changed == 'true'
+        id: remote_worker
+        shell: bash
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          MID_CLOUDFLARE_WORKER_NAME: ${{ vars.MID_CLOUDFLARE_WORKER_NAME }}
+          MID_RUC_R2_BUCKET: ${{ vars.MID_RUC_R2_BUCKET }}
+          MID_RUC_BINDING_AUTO_APPROVED: ${{ vars.MID_RUC_BINDING_AUTO_APPROVED }}
+        run: |
+          set -euo pipefail
+          node tools/cloudflare/prepare_worker_deploy.mjs /tmp/mid-wrangler-worker.json /tmp/mid-worker-deploy-meta.json
+          python3 - <<'PY'
+          import json
+          meta=json.load(open('/tmp/mid-worker-deploy-meta.json'))
+          print('Remote-Bindings:', ', '.join(f"{x['name']}:{x['type']}" for x in meta['bindingSummary']))
+          print('RUC-R2-Binding im geplanten Deployment:', meta['rucBindingPresent'])
+          PY
+
+      - name: Neue Worker-Version nur hochladen, noch nicht live schalten
+        if: needs.install_build.outputs.worker_changed == 'true'
+        id: worker_upload
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
+        env:
+          WRANGLER_OUTPUT_FILE: /tmp/mid-wrangler-upload.jsonl
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: '4.125.0'
+          command: >-
+            versions upload
+            --config /tmp/mid-wrangler-worker.json
+            --no-bundle
+            --keep-vars
+            --strict
+            --experimental-provision=false
+            --experimental-auto-create=false
+            --tag mid-${{ needs.install_build.outputs.version }}
+            --message "MID v${{ needs.install_build.outputs.version }} · geprüfter Releasekandidat"
+
+      - name: Hochgeladene Worker-Version sicher bestimmen
+        if: needs.install_build.outputs.worker_changed == 'true'
+        id: uploaded_worker
+        shell: bash
+        run: node tools/cloudflare/parse_wrangler_output.mjs /tmp/mid-wrangler-upload.jsonl
+
+      - name: Neue Version mit 0 Prozent neben dem bisherigen Worker bereitstellen
+        if: needs.install_build.outputs.worker_changed == 'true'
+        id: staged_worker
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: '4.125.0'
+          command: >-
+            versions deploy
+            ${{ steps.uploaded_worker.outputs.version_id }}@0%
+            ${{ steps.remote_worker.outputs.previous_version_id }}@100%
+            --name ${{ vars.MID_CLOUDFLARE_WORKER_NAME }}
+            --message "MID v${{ needs.install_build.outputs.version }} · 0%-Smoke"
+            -y
+
+      - name: Neue 0-Prozent-Version über Cloudflare-Versionsoverride testen
+        if: needs.install_build.outputs.worker_changed == 'true'
+        shell: bash
+        env:
+          MID_WORKER_HEALTH_URL: ${{ vars.MID_WORKER_HEALTH_URL || vars.VITE_METAR_PROXY_URL || vars.MID_RUC_WORKER_HEALTH_URL }}
+          REQUIRE_RUC: ${{ vars.MID_RUC_PIPELINE_ENABLED }}
+        run: |
+          set -euo pipefail
+          args=(--url "$MID_WORKER_HEALTH_URL" --expected-version "${{ needs.install_build.outputs.version }}" --worker "${{ vars.MID_CLOUDFLARE_WORKER_NAME }}" --version-id "${{ steps.uploaded_worker.outputs.version_id }}" --retries 6)
+          if [ "$REQUIRE_RUC" = "true" ]; then args+=(--require-ruc-ready); fi
+          node tools/cloudflare/check_worker_health.mjs "${args[@]}"
+
+      - name: Geprüfte Worker-Version auf 100 Prozent promoten
+        if: needs.install_build.outputs.worker_changed == 'true'
+        id: promoted_worker
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: '4.125.0'
+          command: >-
+            versions deploy
+            ${{ steps.uploaded_worker.outputs.version_id }}@100%
+            --name ${{ vars.MID_CLOUDFLARE_WORKER_NAME }}
+            --message "MID v${{ needs.install_build.outputs.version }} · automatisch freigegeben"
+            -y
+
+      - name: Produktiven Worker nach Promotion erneut prüfen
+        if: needs.install_build.outputs.worker_changed == 'true'
+        id: production_smoke
+        shell: bash
+        env:
+          MID_WORKER_HEALTH_URL: ${{ vars.MID_WORKER_HEALTH_URL || vars.VITE_METAR_PROXY_URL || vars.MID_RUC_WORKER_HEALTH_URL }}
+          REQUIRE_RUC: ${{ vars.MID_RUC_PIPELINE_ENABLED }}
+        run: |
+          set -euo pipefail
+          args=(--url "$MID_WORKER_HEALTH_URL" --expected-version "${{ needs.install_build.outputs.version }}" --retries 6)
+          if [ "$REQUIRE_RUC" = "true" ]; then args+=(--require-ruc-ready); fi
+          node tools/cloudflare/check_worker_health.mjs "${args[@]}"
+
+      - name: Bei fehlgeschlagenem Smoke automatisch auf vorherige Version zurückschalten
+        if: failure() && needs.install_build.outputs.worker_changed == 'true' && steps.staged_worker.conclusion == 'success'
+        id: rollback_worker
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: '4.125.0'
+          command: >-
+            versions deploy
+            ${{ steps.remote_worker.outputs.previous_version_id }}@100%
+            --name ${{ vars.MID_CLOUDFLARE_WORKER_NAME }}
+            --message "Automatischer MID-Rollback nach fehlgeschlagenem Worker-Smoke"
+            -y
+
+  deploy_pages_1:
+    continue-on-error: true
+    outputs:
+      deployed: ${{ steps.mark_deployed.outputs.deployed }}
+    name: MID auf GitHub Pages veröffentlichen · Versuch 1
+    needs:
+      - install_build
+      - deploy_worker
+    if: needs.install_build.result == 'success' && needs.deploy_worker.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
-      contents: write
+      contents: read
       pages: write
       id-token: write
-      statuses: write
     concurrency:
       group: mid-pages
       cancel-in-progress: true
@@ -287,22 +489,220 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      - name: GitHub-Pages-Deployment ausführen
+      - name: Geprüften Release-Baum ohne Checkout-Action laden
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ needs.install_build.outputs.commit_sha }}
+        run: |
+          set -euo pipefail
+          auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+          git init .
+          git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" fetch --no-tags --depth=1 origin "$RELEASE_SHA"
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
+          test -f dist/index.html
+
+      - name: Pages-Artefakt hochladen · Versuch 1
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          name: github-pages-${{ github.run_id }}-1
+          path: ./dist
+
+      - name: GitHub-Pages-Deployment · Versuch 1
         id: deployment
         uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
-
-      - name: Erfolgreichen Release-Commit laden
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ needs.install_build.outputs.commit_sha }}
-          fetch-depth: 0
+          artifact_name: github-pages-${{ github.run_id }}-1
+      - name: Erfolgreichen Pages-Versuch markieren
+        id: mark_deployed
+        shell: bash
+        run: echo 'deployed=true' >> "$GITHUB_OUTPUT"
+
+  pages_cooldown_1:
+    name: GitHub-Codeload-Rate-Limit abkühlen · 1
+    needs:
+      - install_build
+      - deploy_worker
+      - deploy_pages_1
+    if: always() && needs.install_build.result == 'success' && needs.deploy_worker.result == 'success' && needs.deploy_pages_1.outputs.deployed != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Vor erneutem Pages-Action-Download warten
+        shell: bash
+        run: |
+          echo "Erster Pages-Deploymentversuch scheiterte. 75 s Backoff vor einem frischen Runner/Action-Download."
+          sleep 75
+
+  deploy_pages_2:
+    continue-on-error: true
+    outputs:
+      deployed: ${{ steps.mark_deployed.outputs.deployed }}
+    name: MID auf GitHub Pages veröffentlichen · Versuch 2
+    needs:
+      - install_build
+      - deploy_worker
+      - deploy_pages_1
+      - pages_cooldown_1
+    if: always() && needs.install_build.result == 'success' && needs.deploy_worker.result == 'success' && needs.deploy_pages_1.outputs.deployed != 'true' && needs.pages_cooldown_1.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    concurrency:
+      group: mid-pages
+      cancel-in-progress: true
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Geprüften Release-Baum ohne Checkout-Action laden
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ needs.install_build.outputs.commit_sha }}
+        run: |
+          set -euo pipefail
+          auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+          git init .
+          git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" fetch --no-tags --depth=1 origin "$RELEASE_SHA"
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
+          test -f dist/index.html
+
+      - name: Pages-Artefakt hochladen · Versuch 2
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          name: github-pages-${{ github.run_id }}-2
+          path: ./dist
+
+      - name: GitHub-Pages-Deployment · Versuch 2
+        id: deployment
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
+        with:
+          artifact_name: github-pages-${{ github.run_id }}-2
+      - name: Erfolgreichen Pages-Versuch markieren
+        id: mark_deployed
+        shell: bash
+        run: echo 'deployed=true' >> "$GITHUB_OUTPUT"
+
+  pages_cooldown_2:
+    name: GitHub-Codeload-Rate-Limit abkühlen · 2
+    needs:
+      - install_build
+      - deploy_worker
+      - deploy_pages_1
+      - deploy_pages_2
+    if: always() && needs.install_build.result == 'success' && needs.deploy_worker.result == 'success' && needs.deploy_pages_1.outputs.deployed != 'true' && needs.deploy_pages_2.outputs.deployed != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Vor letztem Pages-Action-Download länger warten
+        shell: bash
+        run: |
+          echo "Zweiter Pages-Deploymentversuch scheiterte. 180 s Backoff vor dem letzten frischen Runner."
+          sleep 180
+
+  deploy_pages_3:
+    outputs:
+      deployed: ${{ steps.mark_deployed.outputs.deployed }}
+    name: MID auf GitHub Pages veröffentlichen · Versuch 3
+    needs:
+      - install_build
+      - deploy_worker
+      - deploy_pages_1
+      - deploy_pages_2
+      - pages_cooldown_2
+    if: always() && needs.install_build.result == 'success' && needs.deploy_worker.result == 'success' && needs.deploy_pages_1.outputs.deployed != 'true' && needs.deploy_pages_2.outputs.deployed != 'true' && needs.pages_cooldown_2.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    concurrency:
+      group: mid-pages
+      cancel-in-progress: true
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Geprüften Release-Baum ohne Checkout-Action laden
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ needs.install_build.outputs.commit_sha }}
+        run: |
+          set -euo pipefail
+          auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+          git init .
+          git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" fetch --no-tags --depth=1 origin "$RELEASE_SHA"
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
+          test -f dist/index.html
+
+      - name: Pages-Artefakt hochladen · Versuch 3
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          name: github-pages-${{ github.run_id }}-3
+          path: ./dist
+
+      - name: GitHub-Pages-Deployment · Versuch 3
+        id: deployment
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
+        with:
+          artifact_name: github-pages-${{ github.run_id }}-3
+      - name: Erfolgreichen Pages-Versuch markieren
+        id: mark_deployed
+        shell: bash
+        run: echo 'deployed=true' >> "$GITHUB_OUTPUT"
+
+  finalize_release:
+    name: Erfolgreichen Pages-/Worker-Release finalisieren
+    needs:
+      - install_build
+      - deploy_worker
+      - deploy_pages_1
+      - deploy_pages_2
+      - deploy_pages_3
+    if: always() && needs.install_build.result == 'success' && needs.deploy_worker.result == 'success' && (needs.deploy_pages_1.outputs.deployed == 'true' || needs.deploy_pages_2.outputs.deployed == 'true' || needs.deploy_pages_3.outputs.deployed == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: write
+      statuses: write
+
+    steps:
+      - name: Erfolgreichen Release-Commit ohne Checkout-Action laden
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ needs.install_build.outputs.commit_sha }}
+        run: |
+          set -euo pipefail
+          auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+          git init .
+          git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" fetch --no-tags --depth=1 origin "$RELEASE_SHA"
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
 
       - name: Letzten erfolgreichen Stand als stabile MID-Basis markieren
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          git push --force origin HEAD:refs/heads/mid-stable
-
+          auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" push --force origin HEAD:refs/heads/mid-stable
 
       - name: Finalen Stable-SHA verifizieren und Qualitätsstatus setzen
         env:
@@ -311,16 +711,59 @@ jobs:
         run: |
           set -euo pipefail
           stable_sha="$(git rev-parse HEAD)"
-          remote_sha="$(git ls-remote --heads origin refs/heads/mid-stable | awk '{print $1}')"
+          auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+
+          remote_sha=''
+          for attempt in 1 2 3 4; do
+            remote_sha="$(git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" ls-remote --heads origin refs/heads/mid-stable 2>/tmp/mid-stable-lsremote.err | awk '{print $1}')" && [ -n "$remote_sha" ] && break
+            echo "::warning::mid-stable konnte temporär nicht gelesen werden (Versuch ${attempt}/4)."
+            cat /tmp/mid-stable-lsremote.err || true
+            sleep $((attempt * 2))
+          done
           if [ "$remote_sha" != "$stable_sha" ]; then
             echo "::error::mid-stable zeigt auf ${remote_sha:-<leer>} statt auf den geprüften Release ${stable_sha}."
             exit 1
           fi
-          gh api \
-            --method POST \
-            -H 'Accept: application/vnd.github+json' \
-            "/repos/${GITHUB_REPOSITORY}/statuses/${stable_sha}" \
-            -f state='success' \
-            -f context='MID / stable-release-quality' \
-            -f description='Build, Dependency-Audit, Regressionen und Pages-Deployment bestanden' \
-            -f target_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+
+          status_payload="$(python3 - <<PY
+          import json, os
+          print(json.dumps({
+              'state': 'success',
+              'context': 'MID / stable-release-quality',
+              'description': 'Build, Audit, Regressionen, Worker-Gate und Pages bestanden',
+              'target_url': f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}",
+          }))
+          PY
+          )"
+
+          status_written=false
+          for attempt in 1 2 3 4 5; do
+            http_code="$(curl --silent --show-error --output /tmp/mid-status-response.json --write-out '%{http_code}' \
+              --connect-timeout 10 --max-time 30 \
+              --request POST \
+              --header 'Accept: application/vnd.github+json' \
+              --header 'X-GitHub-Api-Version: 2022-11-28' \
+              --header "Authorization: Bearer ${GH_TOKEN}" \
+              --data "$status_payload" \
+              "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/statuses/${stable_sha}" || printf '000')"
+
+            if [ "$http_code" = 201 ] || [ "$http_code" = 200 ]; then
+              status_written=true
+              echo "Qualitätsstatus für ${stable_sha} gesetzt."
+              break
+            fi
+
+            cat /tmp/mid-status-response.json || true
+            if [ "$http_code" = 429 ] || [[ "$http_code" =~ ^5[0-9][0-9]$ ]] || [ "$http_code" = 000 ]; then
+              echo "::warning::GitHub Status API temporär nicht verfügbar (HTTP ${http_code}, Versuch ${attempt}/5)."
+              sleep $((attempt * 3))
+              continue
+            fi
+
+            echo "::error::Qualitätsstatus konnte wegen eines nicht-temporären GitHub-API-Fehlers (HTTP ${http_code}) nicht gesetzt werden."
+            exit 1
+          done
+
+          if [ "$status_written" != true ]; then
+            echo "::warning::GitHub Status API blieb nach fünf Versuchen temporär nicht verfügbar. Build, Regressionen, Pages-Deployment und finaler mid-stable-SHA sind dennoch erfolgreich verifiziert; der Release bleibt gültig."
+          fi

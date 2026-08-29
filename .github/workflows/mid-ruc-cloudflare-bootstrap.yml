@@ -1,0 +1,32 @@
+name: MID RUC Cloudflare bootstrap
+on:
+  workflow_dispatch:
+concurrency:
+  group: mid-ruc-cloudflare-bootstrap
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  bootstrap:
+    # One-time account gate only. The scheduled RUC job remains separately disabled
+    # until storage, object credentials and the Worker binding have been verified.
+    if: ${{ vars.MID_RUC_CLOUDFLARE_BOOTSTRAP_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Verify bootstrap contract without network writes
+        run: python tools/ruc/test_cloudflare_r2_bootstrap.py
+      - name: Create/verify private R2 bucket and lifecycle
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.MID_RUC_CLOUDFLARE_BOOTSTRAP_TOKEN }}
+          MID_RUC_COST_APPROVED: ${{ vars.MID_RUC_COST_APPROVED }}
+          MID_RUC_R2_BUCKET: ${{ vars.MID_RUC_R2_BUCKET }}
+          MID_RUC_R2_LOCATION: ${{ vars.MID_RUC_R2_LOCATION }}
+          MID_RUC_ORPHAN_MAX_AGE_SECONDS: '172800'
+          MID_CLOUDFLARE_WORKER_NAME: ${{ vars.MID_CLOUDFLARE_WORKER_NAME }}
+          MID_RUC_CUSTOM_DOMAIN: ${{ vars.MID_RUC_CUSTOM_DOMAIN }}
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          MID_RUC_PUBLIC_DOMAIN_APPROVED: ${{ vars.MID_RUC_PUBLIC_DOMAIN_APPROVED }}
+        run: python tools/ruc/cloudflare_r2_bootstrap.py --apply
