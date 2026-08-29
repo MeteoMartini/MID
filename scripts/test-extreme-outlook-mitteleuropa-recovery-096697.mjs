@@ -23,9 +23,10 @@ for(const token of [
  "function dachExtremeGrid(profile='full')",
  "async function dachExtremeFetchBatchResilient(points)",
  "async function dachExtremeFetchBatches(batches,concurrency=2)",
+ "function dachExtremeApplyRucRapid(assessment,point,snapshot,periodId,kind)",
  "function dachExtremeNowcastThunder(assessment,point,snapshot,periodId)",
  "scope:'Mitteleuropa'",
- "model:'DWD ICON-D2-EPS + ICON-D2 · KONRAD3D/Meso 0–6 h'"
+ "model:'DWD ICON-D2-EPS + ICON-D2 · ICON-D2-RUC Rapid 0–6 h · KONRAD3D/Meso 0–6 h'"
 ])assert.ok(worker.includes(token),`Mitteleuropa-Fachvertrag fehlt: ${token}`);
 for(const region of ['Südostengland','Dänemark','Niederlande','Belgien','Nordfrankreich','Südwestfrankreich','Böhmen','Westpolen','Schlesien/Südpolen','Slowenien','Piemont/Lombardei','Venetien/Friaul'])assert.ok(worker.includes(`['${region}'`),`ICON-D2-Region fehlt: ${region}`);
 

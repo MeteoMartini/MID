@@ -63,9 +63,9 @@ for(const token of [
 
 // Wolken H/M/L: Rohwerte sind Prozentwerte (0..100), keine 0..1-Normalisierung.
 for(const token of [
- 'className="cloud-band high"',
- 'className="cloud-band mid"',
- 'className="cloud-band low"',
+ 'className="cloud-cell-frame high"',
+ 'className="cloud-cell-frame mid"',
+ 'className="cloud-cell-frame low"',
  'className="cloud-cell high"',
  'className="cloud-cell mid"',
  'className="cloud-cell low"',

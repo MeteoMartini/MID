@@ -30,9 +30,9 @@ for(const token of [
   'className="dewpoint-line"',
   'className="wind-line"',
   'className="gust-line"',
-  'className="cloud-band high"',
-  'className="cloud-band mid"',
-  'className="cloud-band low"',
+  'className="cloud-cell-frame high"',
+  'className="cloud-cell-frame mid"',
+  'className="cloud-cell-frame low"',
   'impact-band',
   'cockpit-weather-profile__signals',
   'selectedImpact.summary'
@@ -43,7 +43,7 @@ for(const token of [
   '.dwd-precip-type-radar__original-viewport',
   '.dwd-precip-type-radar__original-image',
   '.cockpit-weather-profile__signals',
-  '.cloud-band.low',
+  '.cloud-cell-frame',
   '.impact-band'
 ])need('Styles',styles,token);
 

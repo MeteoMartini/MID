@@ -36,6 +36,10 @@ Die Quellvorbereitung für Push und Hintergrundaktualisierung ist in v0.9.72.0 o
 
 **v0.9.73.7 gemeinsamer Kurzfrist-/Darstellungsfeinschliff:** Der kostenfreie DWD-RUC-Pages-Pfad liefert für das deterministische Nahfenster 0–6 h nun 15-minütliche Schritte und danach weiterhin stündlich bis +14 h. Die Metadaten unterscheiden dafür deterministische und EPS-Zeitachsen sauber, sodass der gemeinsame Worker die feinere Nowcasting-Nähe lesen kann, ohne das stündliche RUC-EPS zu verbiegen. Parallel wurde das 24-h-Wolkenprofil vereinheitlicht: keine höhenabhängigen Grautöne mehr, sondern ein neutrales Grau mit Bedeckungs-gesteuerter Dunkelheit und weicheren Fade-in/Fade-out-Übergängen. Browser/PWA und iOS profitieren identisch; das nächste Gate bleibt unverändert die macOS-/Xcode-Qualitätssicherung.
 
+**v0.9.73.9 Branding-/Wolkenprofil-Hotfix:** MID nutzt nun beide bereitgestellten Logo-Varianten produktiv. In den Einstellungen kann zwischen Auto, dunklem Logo und hellem Logo gewählt werden; Auto folgt dem jeweiligen Layoutkontrast und greift bereits im Startbildschirm und Header. Zusätzlich wurden die Wolkenkästchen im 24-h-Wetterprofil repariert: statt losgelöster Vollbandoptik sind H/M/L wieder sauber stundenweise im Raster verankert, mit dezenten Frames und weiterhin neutral-grauer, bedeckungsabhängiger Füllung. Der Worker bleibt fachlich unverändert; das nächste Gate bleibt unverändert die macOS-/Xcode-Qualitätssicherung.
+
+
+**v0.9.73.10 RUC-Zeitachsenfix (durch v0.9.73.11 fachlich erweitert):** Run #6 zeigte korrekt, dass eine gemeinsame 15-Minuten-Achse für alle Zustandsfelder unzulässig ist. Der gemeinsame Mehrvariablen-Zustandsvektor bleibt daher stündlich 0…+14 h und fehlende Temperatur-/Wind-/Druck-/Wolkenzwischenwerte werden nicht interpoliert. v0.9.73.11 ergänzt darauf aufbauend getrennte parameter-native 5-/15-Minuten-Rapid-Produkte; v0.9.73.10 ist deshalb nicht als reiner Stunden-RUC-Endvertrag zu lesen. RUC-EPS bleibt stündlich.
 ### 2. Native Plattformadapter – in Arbeit
 
 Vor Beginn dieser Etappe wurde in v0.9.67.5 die gemeinsame MapLibre-6-
@@ -108,3 +112,5 @@ Anmeldung noch Veröffentlichung.
 Bei einem fachlichen Fehler wird nicht ausgeliefert. Bei Kosten-, Konto-,
 Signierungs- oder Veröffentlichungsbedarf wird angehalten und um Freigabe
 gebeten.
+
+**v0.9.73.11 parameter-native RUC-Integration:** Der gemeinsame DWD-ICON-D2-RUC-Zustandskern bleibt stündlich bis +14 h; native Rapid-Produkte werden getrennt verarbeitet: `TOT_PREC` 5-minütlich bis +6 h, Konvektion/Reflektivität/Phase/Strahlung 15-minütlich bis +6 h und ausgewählte Specialist-Diagnostik stündlich. Der 0–6-h-Extremwetterpfad erhält zusätzliche RUC-Organisationssignale, Radar/Blitz/KONRAD3D bleiben höher priorisiert. Ein vollständiger Audit des aktuellen DWD-v1-Parameterbaums verhindert unnötige 3D-/Mikrophysik-Duplizierung; SRH/WSHEAR bleiben bis zur expliziten `lvt1`-Layerprüfung deaktiviert. Browser/PWA und iOS nutzen unverändert denselben gemeinsamen Fachkern; das nächste iOS-Gate bleibt macOS/Xcode-Simulator-QA.

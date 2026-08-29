@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.73.8",
+  "version": "0.9.73.12",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -347,7 +347,9 @@
     "test:ruc-pages-free-storage": "node scripts/test-ruc-pages-free-storage-09700.mjs",
     "test:day-detail-probability-wind-contrast": "node scripts/test-day-detail-probability-wind-contrast-09700.mjs",
     "test:apple-privacy-permission-manifest": "node scripts/test-apple-privacy-permission-manifest-09730.mjs",
-    "test:favorite-storage-mirror-revision": "node scripts/test-favorite-storage-mirror-revision-09734.mjs"
+    "test:favorite-storage-mirror-revision": "node scripts/test-favorite-storage-mirror-revision-09734.mjs",
+    "test:ruc-native-cadence": "node scripts/test-ruc-native-cadence-nowcast-097311.mjs",
+    "test:ruc-parameter-audit": "node scripts/test-ruc-parameter-audit-097311.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",

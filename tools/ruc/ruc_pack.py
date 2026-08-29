@@ -32,6 +32,59 @@ DEFAULT_FIELDS: tuple[FieldSpec, ...] = (
 )
 
 
+
+RAPID_5M_FIELDS: tuple[FieldSpec, ...] = (
+    FieldSpec('precipitation', 'mm', 0.001),
+)
+
+RAPID_15M_FIELDS: tuple[FieldSpec, ...] = (
+    FieldSpec('precipitation', 'mm', 0.001),
+    FieldSpec('cape', 'J/kg', 0.1),
+    FieldSpec('convective_inhibition', 'J/kg', 0.1),
+)
+
+REFLECTIVITY_15M_FIELDS: tuple[FieldSpec, ...] = (
+    FieldSpec('dbz_cmax', 'dBZ', 0.01),
+)
+
+SEVERE_15M_FIELDS: tuple[FieldSpec, ...] = (
+    FieldSpec('cape_mu', 'J/kg', 0.1),
+    FieldSpec('cin_mu', 'J/kg', 0.1),
+    FieldSpec('lpi', 'J/kg', 0.1),
+    FieldSpec('lpi_max', 'J/kg', 0.1),
+    FieldSpec('uh_max', 'm2/s2', 0.1),
+    FieldSpec('uh_max_low', 'm2/s2', 0.1),
+    FieldSpec('uh_max_med', 'm2/s2', 0.1),
+    FieldSpec('echo_top_m', 'm', 1.0),
+    FieldSpec('hail_gsp', 'native', 0.001),
+    FieldSpec('lapse_rate', 'K/km', 0.01),
+    FieldSpec('w_ctmax', 'm/s', 0.01),
+    FieldSpec('vorw_ctmax', 's-1', 0.0001),
+)
+
+SOLAR_15M_FIELDS: tuple[FieldSpec, ...] = (
+    FieldSpec('asob_s', 'W/m2', 0.1),
+    FieldSpec('aswdir_s', 'W/m2', 0.1),
+    FieldSpec('aswdifd_s', 'W/m2', 0.1),
+)
+
+SPECIALIST_HOURLY_FIELDS: tuple[FieldSpec, ...] = (
+    FieldSpec('visibility', 'm', 10.0),
+    FieldSpec('ceiling', 'm', 1.0),
+    FieldSpec('freezing_level_height', 'm', 1.0),
+    FieldSpec('snowline_height', 'm', 1.0),
+    FieldSpec('cloud_cover_mid', '%', 0.1),
+    FieldSpec('cloud_cover_high', '%', 0.1),
+    FieldSpec('surface_temperature', '°C', 0.01),
+    FieldSpec('snow_depth', 'm', 0.001),
+)
+
+PHASE_15M_FIELDS: tuple[FieldSpec, ...] = (
+    FieldSpec('rain', 'mm', 0.001),
+    FieldSpec('snowfall_water_equivalent', 'mm', 0.001),
+    FieldSpec('graupel_water_equivalent', 'mm', 0.001),
+)
+
 EPS_SUMMARY_FIELDS: tuple[FieldSpec, ...] = (
     FieldSpec('precipitation_probability', '%', 0.1),
     FieldSpec('precipitation_probability_significant', '%', 0.1),
@@ -64,7 +117,7 @@ def pack_eps_members(values: np.ndarray, scale: float=.01) -> bytes:
     out[mask]=np.rint(np.clip(arr[mask]/scale,0,65534)).astype(np.uint16)
     return out.transpose(2,0,1).copy(order='C').tobytes(order='C')
 
-def write_meta(path:Path,*,run:str,times:Sequence[str],point_count:int,specs:Sequence[FieldSpec],grid:Mapping[str,object],deterministic_key:str,eps_key:str|None,lookup_key:str,member_count:int=0,eps_scale:float=.01,eps_summary_key:str|None=None,eps_summary_specs:Sequence[FieldSpec]=EPS_SUMMARY_FIELDS,objects:Mapping[str,object]|None=None,deterministic_times:Sequence[str]|None=None,eps_summary_times:Sequence[str]|None=None,eps_times:Sequence[str]|None=None) -> None:
+def write_meta(path:Path,*,run:str,times:Sequence[str],point_count:int,specs:Sequence[FieldSpec],grid:Mapping[str,object],deterministic_key:str,eps_key:str|None,lookup_key:str,member_count:int=0,eps_scale:float=.01,eps_summary_key:str|None=None,eps_summary_specs:Sequence[FieldSpec]=EPS_SUMMARY_FIELDS,objects:Mapping[str,object]|None=None,deterministic_times:Sequence[str]|None=None,eps_summary_times:Sequence[str]|None=None,eps_times:Sequence[str]|None=None,rapid:Mapping[str,object]|None=None,rapid_extreme:Mapping[str,object]|None=None) -> None:
     det_times=list(deterministic_times or times)
     summary_times=list(eps_summary_times or eps_times or times)
     member_times=list(eps_times or eps_summary_times or times)
@@ -74,6 +127,7 @@ def write_meta(path:Path,*,run:str,times:Sequence[str],point_count:int,specs:Seq
       'deterministic':{'key':deterministic_key,'dtype':'int16-le','layout':'point-time-field','times':det_times,'fields':[asdict(s) for s in specs],'recordBytes':len(det_times)*len(specs)*2},
       'epsSummary':None if not eps_summary_key else {'key':eps_summary_key,'dtype':'int16-le','layout':'point-time-field','times':summary_times,'fields':[asdict(s) for s in eps_summary_specs],'recordBytes':len(summary_times)*len(eps_summary_specs)*2,'thresholdsMm':{'wet':0.2,'significant':5.0}},
       'eps':None if not eps_key else {'key':eps_key,'dtype':'uint16-le','layout':'point-time-member','times':member_times,'nodata':65535,'scale':eps_scale,'unit':'mm','memberCount':int(member_count),'recordBytes':len(member_times)*int(member_count)*2},
+      'rapid':dict(rapid or {}),'rapidExtreme':dict(rapid_extreme or {}) or None,
       'objects':dict(objects or {})
     }
     path.write_text(json.dumps(payload,ensure_ascii=False,separators=(',',':'))+'\n',encoding='utf-8')

@@ -43,6 +43,14 @@ export type ForecastWeatherBundleHour={
  code:number;
  cloud:number;
  lowCloud?:number;
+ midCloud?:number;
+ highCloud?:number;
+ visibility?:number;
+ rucCeilingM?:number;
+ rucFreezingLevelM?:number;
+ rucSnowlineM?:number;
+ rucSurfaceTemperatureC?:number;
+ rucSnowDepthM?:number;
  humidity?:number;
  cape?:number;
  liftedIndex?:number;
@@ -124,6 +132,7 @@ export type ForecastLocalAnchor={
  code?:number;
  isDay?:boolean;
 };
+export type ForecastFusionRapidMinute15={time:string;epoch:number;precipitation:number;cape:number;convectiveInhibition:number;peakRateMmh?:number;dbzCmax?:number;rain?:number;snowfallWaterEquivalent?:number;graupelWaterEquivalent?:number;capeMu?:number;cinMu?:number;lpi?:number;lpiMax?:number;uhMax?:number;uhMaxLow?:number;uhMaxMed?:number;echoTopM?:number;hailGsp?:number;lapseRate?:number;srh?:number;windShearU?:number;windShearV?:number;updraftMax?:number;vorticityMax?:number;shortwaveNet?:number;shortwaveDirect?:number;shortwaveDiffuse?:number;source?:string;nativePrecipitationSeconds?:number};
 export type ForecastFusionResult={
  schema:'mid.forecast-fusion.v1';
  version:number;
@@ -136,6 +145,7 @@ export type ForecastFusionResult={
  modelDays?:ForecastFusionDay[];
  hours?:ForecastFusionHour[];
  weatherHours?:ForecastWeatherBundleHour[];
+ rapidMinutes15?:ForecastFusionRapidMinute15[];
  mosmix?:ForecastFusionMosmix;
  diagnostics?:{bestMatchPreferred?:boolean;repairedHours?:number;repairSources?:string[];multiModelSuffixes?:boolean;modelSuffixes?:Record<string,string[]>;forceRefreshed?:boolean;weightingByDate?:ForecastFusionWeighting[];independenceBudget?:string;localSkillStage?:string};
  error?:string;
@@ -289,7 +299,7 @@ export function applyHyperlocalForecastHours(hours:Hour[],anchor:ForecastLocalAn
  return changed?result:hours
 }
 
-export type ForecastMinute15FinalizationOptions={radar?:RadarNowcast|null;localAnchor?:ForecastLocalAnchor;now?:number};
+export type ForecastMinute15FinalizationOptions={radar?:RadarNowcast|null;localAnchor?:ForecastLocalAnchor;now?:number;rucRapidMinutes15?:ForecastFusionRapidMinute15[]};
 /**
  * Finalisiert die 15-Minuten-Reihe vor jeder sichtbaren Verwendung. Sie übernimmt
  * die Änderungen der kanonischen Stunden als Rahmen, wendet Radar mit derselben
@@ -302,6 +312,7 @@ export function finalizeForecastMinute15(minutes15:Minute15[],baseHours:Hour[],f
  const result=minutes15.map(row=>{
   const baseHour=nearestForecastHour(baseHours,row.epoch,45*60000),finalHour=nearestForecastHour(finalHours,row.epoch,45*60000);let precipitation=Math.max(0,Number(row.precipitation)||0),rain=Math.max(0,Number(row.rain)||0),showers=Math.max(0,Number(row.showers)||0),snowfall=Math.max(0,Number(row.snowfall)||0),probability=clamp(Number(row.probability)||0,0,100),code=Math.round(Number(row.code)||0);
   if(baseHour&&finalHour){const probabilityDelta=Number(finalHour.probability)-Number(baseHour.probability);if(Number.isFinite(probabilityDelta)){if(probabilityDelta>=0)probability=clamp(probability+probabilityDelta,0,100);else if(baseHour.probability>0)probability=clamp(probability*(Math.max(0,finalHour.probability)/baseHour.probability),0,100)}if(finalHour.code!==baseHour.code&&finalHour.probability>=Math.max(30,probability-5))code=finalHour.code}
+  const rucRapid=nearestForecastHour(options.rucRapidMinutes15??[],row.epoch,8*60000);if(rucRapid){const leadHours=(row.epoch-now)/3600000,weight=leadHours<=2?.38:leadHours<=4?.62:leadHours<=6?.50:0;if(weight>0){const rapidAmount=Math.max(0,Number(rucRapid.precipitation)||0),nextAmount=precipitation+(rapidAmount-precipitation)*weight,total=rain+showers+snowfall,scale=total>.001?nextAmount/total:1;precipitation=nextAmount;if(total>.001){rain*=scale;showers*=scale;snowfall*=scale}else if(finalHour?.temperature!=null&&finalHour.temperature<=1)snowfall=nextAmount;else rain=nextAmount;const rapidRain=Number(rucRapid.rain),rapidSnow=Number(rucRapid.snowfallWaterEquivalent),phaseTotal=(Number.isFinite(rapidRain)?Math.max(0,rapidRain):0)+(Number.isFinite(rapidSnow)?Math.max(0,rapidSnow):0);if(phaseTotal>.001&&nextAmount>.001){const snowShare=Math.max(0,rapidSnow)/phaseTotal;snowfall=nextAmount*snowShare;rain=nextAmount*(1-snowShare);showers=0}const peak=Math.max(0,Number(rucRapid.peakRateMmh)||0),cape=Math.max(0,Number(rucRapid.cape)||0),capeMu=Math.max(cape,Number(rucRapid.capeMu)||0),cin=Math.max(0,Number(rucRapid.convectiveInhibition)||0),cinMu=Math.max(0,Number(rucRapid.cinMu)||cin),dbz=Number(rucRapid.dbzCmax),uh=Math.max(0,Number(rucRapid.uhMax)||0),lpi=Math.max(0,Number(rucRapid.lpiMax)||Number(rucRapid.lpi)||0),echoTop=Math.max(0,Number(rucRapid.echoTopM)||0),updraft=Math.max(0,Number(rucRapid.updraftMax)||0),baseConvective=clamp((capeMu-250)/1200,0,1)*clamp((220-Math.min(cin,cinMu))/200,.08,1)*Math.max(clamp(peak/20,0,1),Number.isFinite(dbz)?clamp((dbz-28)/25,0,1):0),organizedSupport=Math.max(clamp(uh/120,0,1),clamp(lpi/300,0,1),clamp((echoTop-5000)/7000,0,1),clamp(updraft/12,0,1)),convectiveSupport=clamp(baseConvective*(.72+.28*organizedSupport),0,1);probability=Math.max(probability,clamp((rapidAmount>.02?35:10)+rapidAmount*80+convectiveSupport*35,0,92));if(convectiveSupport>.55&&precipitation>.08&&![71,73,75,77,85,86].includes(code))code=Math.max(code,82)}}
   const radarBlend=blendRadarAtTarget({radar:options.radar,targetEpoch:row.epoch,intervalMinutes:15,modelAmount:precipitation,modelProbability:probability,now});if(radarBlend){const componentTotal=rain+showers+snowfall,scale=componentTotal>.001?radarBlend.amount/componentTotal:1;precipitation=radarBlend.amount;probability=radarBlend.probability;if(componentTotal>.001){rain*=scale;showers*=scale;snowfall*=scale}else if(finalHour?.temperature!=null&&finalHour.temperature<=1)snowfall=precipitation;else rain=precipitation}
   if(Number(anchorPrecipitation)>.01){const offsetMinutes=Math.max(0,(row.epoch-now)/60000),weight=localAdjustmentWeight(offsetMinutes,45),observedRate=Number(anchorPrecipitation)*60/Math.max(1,Number(anchor?.precipitationMinutes)||60),observedAmount=Math.max(0,observedRate*.25),modelNow=baseHour?Math.max(0,baseHour.precipitation*.25):precipitation,localAmount=localAssimilatedValue(observedAmount,modelNow,precipitation,offsetMinutes,45,0,80,20);if(localAmount>precipitation){const total=rain+showers+snowfall,scale=total>.001?localAmount/total:1;precipitation=localAmount;if(total>.001){rain*=scale;showers*=scale;snowfall*=scale}else if(finalHour?.temperature!=null&&finalHour.temperature<=1)snowfall=localAmount;else rain=localAmount}probability=Math.max(probability,90*weight);if(Number.isFinite(Number(anchorCode))&&offsetMinutes<=30)code=Math.round(Number(anchorCode))}
   const isDay=row.isDay??finalHour?.isDay,signal=reconcileForecastPrecipitation({precipitation,rain,showers,snowfall,probability,code,humidity:finalHour?.humidity,cloud:finalHour?.cloud,lowCloud:finalHour?.lowCloud,cape:finalHour?.cape,liftedIndex:finalHour?.liftedIndex,convectiveInhibition:finalHour?.convectiveInhibition,sunshineDuration:row.sunshineDuration??finalHour?.sunshineDuration,isDay,leadHours:(row.epoch-now)/3600000}),sunshineDuration=coherentSunshineDurationSeconds({valueSeconds:row.sunshineDuration,intervalSeconds:15*60,daylightSeconds:forecastIntervalDaylightSeconds(row.epoch,15*60,finalHour?.sunriseEpoch,finalHour?.sunsetEpoch),isDay,weatherCode:signal.code,precipitation:signal.precipitation,rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall,precipitationProbability:signal.probability,cloudCover:finalHour?.cloud,lowCloudCover:finalHour?.lowCloud}),next={...row,precipitation:signal.precipitation,rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall,probability:signal.probability,code:signal.code,isDay:row.isDay??finalHour?.isDay,sunshineDuration};if(Math.abs(next.precipitation-row.precipitation)<.001&&Math.abs(next.probability-row.probability)<.1&&next.code===row.code&&next.sunshineDuration===row.sunshineDuration)return row;changed=true;return next
@@ -484,7 +495,7 @@ export function applyForecastFusionHours(hours:Hour[],baseDays:Day[],fusedDays:D
   if(weather){
    const signal=reconcileForecastPrecipitation({precipitation:weather.precipitation,rain:weather.rain,showers:weather.showers,snowfall:weather.snowfall,probability:weather.probability,code:weather.code,cloud:weather.cloud,lowCloud:weather.lowCloud,humidity:Number.isFinite(weather.humidity)?Number(weather.humidity):hour.humidity,cape:weather.cape,liftedIndex:Number.isFinite(weather.liftedIndex)?Number(weather.liftedIndex):hour.liftedIndex,convectiveInhibition:Number.isFinite(weather.convectiveInhibition)?Number(weather.convectiveInhibition):hour.convectiveInhibition,sunshineDuration:weather.sunshineDuration,isDay:hour.isDay,leadHours:(hour.epoch-now)/3600000});
    const repaired=weather.sourceRole==='repair'||weather.sourceId!=='best_match';
-   next={...next,precipitation:signal.precipitation,rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall,probability:signal.probability,code:signal.code,cloud:Number.isFinite(weather.cloud)?weather.cloud:next.cloud,lowCloud:Number.isFinite(weather.lowCloud)?Number(weather.lowCloud):next.lowCloud,cape:Number.isFinite(weather.cape)?Number(weather.cape):next.cape,sunshineDuration:boundedSunshineSeconds(weather.sunshineDuration,3600)??next.sunshineDuration,weatherSourceId:weather.sourceId,weatherSourceLabel:weather.sourceLabel,weatherBundleKind:repaired?'coherent-model':'best-match'};changed=true;
+   next={...next,precipitation:signal.precipitation,rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall,probability:signal.probability,code:signal.code,cloud:Number.isFinite(weather.cloud)?weather.cloud:next.cloud,lowCloud:Number.isFinite(weather.lowCloud)?Number(weather.lowCloud):next.lowCloud,midCloud:Number.isFinite(weather.midCloud)?Number(weather.midCloud):next.midCloud,highCloud:Number.isFinite(weather.highCloud)?Number(weather.highCloud):next.highCloud,visibility:Number.isFinite(weather.visibility)?Number(weather.visibility):next.visibility,ceiling:Number.isFinite(weather.rucCeilingM)?Number(weather.rucCeilingM):next.ceiling,freezingLevel:Number.isFinite(weather.rucFreezingLevelM)?Number(weather.rucFreezingLevelM):next.freezingLevel,snowline:Number.isFinite(weather.rucSnowlineM)?Number(weather.rucSnowlineM):next.snowline,surfaceTemperature:Number.isFinite(weather.rucSurfaceTemperatureC)?Number(weather.rucSurfaceTemperatureC):next.surfaceTemperature,snowDepth:Number.isFinite(weather.rucSnowDepthM)?Number(weather.rucSnowDepthM):next.snowDepth,cape:Number.isFinite(weather.cape)?Number(weather.cape):next.cape,sunshineDuration:boundedSunshineSeconds(weather.sunshineDuration,3600)??next.sunshineDuration,weatherSourceId:weather.sourceId,weatherSourceLabel:weather.sourceLabel,weatherBundleKind:repaired?'coherent-model':'best-match'};changed=true;
   }
   if(dayAdjustment&&base&&fused&&base!==fused){
    // Temperatur und Wind dürfen aus eigenen, intern konsistenten Parameterbündeln

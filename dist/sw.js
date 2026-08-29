@@ -1,9 +1,9 @@
-const CACHE='mid-shell-v0.9.73.8';
+const CACHE='mid-shell-v0.9.73.12';
 const VERSION=CACHE.replace('mid-shell-v','');
 const CACHE_PREFIX='mid-shell-v';
 const META_CACHE='mid-system-meta-v1';
 const META_URL=new URL('./__mid_system_meta__.json',self.registration.scope).toString();
-const CORE=['./','./index.html','./manifest.webmanifest','./version.json','./mid-logo.png','./mid-icon-180.png','./mid-icon-192.png','./mid-icon-512.png'];
+const CORE=['./','./index.html','./manifest.webmanifest','./version.json','./mid-logo.png','./mid-logo-dark.png','./mid-logo-light.png','./mid-icon-180.png','./mid-icon-192.png','./mid-icon-512.png'];
 let activeCacheMemo='';
 
 function versionFromCache(name){return name.startsWith(CACHE_PREFIX)?name.slice(CACHE_PREFIX.length):''}

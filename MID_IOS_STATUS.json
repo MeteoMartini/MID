@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-08-29T15:02:39Z",
-  "releaseVersion": "0.9.73.8",
+  "updatedAt": "2026-08-29T18:30:00Z",
+  "releaseVersion": "0.9.73.12",
   "sourceBaseline": {
     "professionalVersion": "0.9.70.2",
     "workerVersion": "0.9.70.2",
@@ -51,14 +51,17 @@
     "apple-push-background-refresh-source-preparation-0.9.72.0",
     "apple-privacy-permission-manifest-preparation-0.9.73.0",
     "ruc-hybrid-15-minute-nowcasting-and-cloud-profile-gray-fade-0.9.73.7",
-    "ruc-model-text-regression-hotfix-0.9.73.8"
+    "ruc-model-text-regression-hotfix-0.9.73.8",
+    "app-logo-selection-and-cloud-profile-card-alignment-0.9.73.9",
+    "ruc-common-hourly-axis-production-ingestion-fix-0.9.73.10",
+    "ruc-parameter-native-rapid-products-and-appwide-audit-0.9.73.11"
   ],
   "nextMilestone": "macos-xcode-simulator-quality-assurance",
   "validation": {
-    "browserBuild": "v0.9.71.0 Run #751 proved TypeScript + Vite green. v0.9.73.7 cannot repeat npm/Vite locally because the extracted Linux workspace still lacks required type/esbuild dependencies in node_modules; release CI remains mandatory.",
-    "typescript": "v0.9.71.0 Run #751 passed. v0.9.73.7 local tsc remains environment-blocked by missing type packages in node_modules; this is not treated as a source-code failure and must be re-run in release CI.",
-    "workerSyntax": "generated worker/metar-proxy.js and worker.js are synchronized after maintain:aggregates and node --check passes; semantic worker diff changed because the RUC reader now honors object-specific time axes, so a normal Worker upload is required after full CI gate.",
-    "regressions": "Release Run #759 proved TypeScript and Vite green and 567/568 regressions green for v0.9.73.7. The only failure was a stale RUC wording assertion in test-mid-nine-step-integration-09530.mjs; v0.9.73.8 updates that regression to the productive DWD→Pages→Worker and RUC-EPS wording contract. Relevant targeted tests pass locally; full 568-suite is release-CI authoritative.",
+    "browserBuild": "Run #761 erreichte mit v0.9.73.11 erneut den Release-CI-Regressionsteil, scheiterte aber ausschließlich an der historischen exakten Funktionssignatur-Prüfung für dachExtremeOutlookData; v0.9.73.12 aktualisiert nur diesen Schutztest semantisch. Der vollständige TypeScript-/Vite-/Regression-/Capacitor-Gate-Lauf bleibt vor Aktivierung verbindlich.",
+    "typescript": "Für den v0.9.73.11-Kandidaten war der beobachtete Blocker in Run #761 eine veraltete Regression, kein gemeldeter TypeScript-Fehler. v0.9.73.12 benötigt dennoch den vollständigen Release-CI-Nachweis.",
+    "workerSyntax": "v0.9.73.11 changes Worker RUC rapid/specialist/extreme semantics; generated aggregates must be synchronized and node --check must pass. Normal semantic Worker deploy is required after full release CI; no manual upload.",
+    "regressions": "Run #761 scheiterte an genau der historischen Assertion async function dachExtremeOutlookData(profile='full'), obwohl der gültige Worker-Vertrag seit der env-Verdrahtung async function dachExtremeOutlookData(profile='full',env={}) lautet. v0.9.73.12 prüft nun die aktuelle env-Signatur; gezielte Extremwetter- und RUC-Verträge sind lokal grün.",
     "capacitorSync": "embedded ios/App/App/public remains honestly at v0.9.68.2; do not retag. Full npm run ios:sync/cap copy ios must run at the macOS/Xcode quality gate after release CI dependencies are available.",
     "xcodeProjectStructure": "App and MIDWidgets each bundle PrivacyInfo.xcprivacy; plist/project lint and Swift parse pass; Push/BGRefresh remain dormant and no ATT/push/background entitlement is activated.",
     "xcodeAppleSdkBuild": "required-next-gate-macos-xcode-simulator; includes Apple SDK build, simulator launch, Privacy Report inspection and post-sync structure verification."

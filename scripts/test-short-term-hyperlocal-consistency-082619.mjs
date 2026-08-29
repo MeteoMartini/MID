@@ -20,7 +20,7 @@ const need=(area,text,token)=>{if(!text.includes(token))failures.push(`${area}: 
 for(const token of ['shortTermAnchorFromCurrent','observedSkyCode','assimilatedDirection','anchorPrecipitation','localAdjustment','Hyperlokal angepasst','Bewölkung / Sicht'])need('Kurzfrist-Hyperlokalität',shortTerm,token);
 need('App-Anbindung',app,'shortTermAnchor=useMemo(()=>w?shortTermAnchorFromCurrent(st,w.current,Date.now(),w.elevation??loc?.elevation):undefined');
 need('Kanonische Stunden',app,'applyHyperlocalForecastHours(core.hours,shortTermAnchor,Date.now(),twinHours)');
-need('Kanonische 15-Minuten-Reihe',app,'finalizeForecastMinute15(minutes15,twinHours,displayHours,{radar:radarAnalysis,localAnchor:shortTermAnchor})');
+need('Kanonische 15-Minuten-Reihe',app,'finalizeForecastMinute15(minutes15,twinHours,displayHours,{radar:radarAnalysis,localAnchor:shortTermAnchor,rucRapidMinutes15:forecastFusion?.rapidMinutes15})');
 need('Package-Test',pkg,'test:short-term-hyperlocal-consistency');
 need('Baseline-Test',baseline,'scripts/test-short-term-hyperlocal-consistency-082619.mjs');
 

@@ -52,11 +52,11 @@ const apacheStamp=ms=>{const d=new Date(ms),months=['Jan','Feb','Mar','Apr','May
 const recentRuns=[latestRunMs-2*hourMs,latestRunMs-hourMs,latestRunMs];
 globalThis.fetch=async input=>{
  const url=new URL(typeof input==='string'?input:input.url);
- if(url.hostname==='opendata.dwd.de'&&url.pathname.endsWith('/icon-d2-ruc/p/PRS_GSP/r/'))return new Response(recentRuns.map((ms,index)=>`<a href="${runKey(ms)}/">${runKey(ms)}/</a> ${apacheStamp(ms+30*60*1000+index*1000)}`).join('\n'),{status:200,headers:{'content-type':'text/html'}});
- if(url.hostname==='opendata.dwd.de'&&url.pathname.endsWith(`/icon-d2-ruc/p/PRS_GSP/r/${runKey(latestRunMs)}/s/`))return new Response(`
+ if(url.hostname==='opendata.dwd.de'&&url.pathname.endsWith('/icon-d2-ruc/p/TOT_PREC/r/'))return new Response(recentRuns.map((ms,index)=>`<a href="${runKey(ms)}/">${runKey(ms)}/</a> ${apacheStamp(ms+30*60*1000+index*1000)}`).join('\n'),{status:200,headers:{'content-type':'text/html'}});
+ if(url.hostname==='opendata.dwd.de'&&url.pathname.endsWith(`/icon-d2-ruc/p/TOT_PREC/r/${runKey(latestRunMs)}/s/`))return new Response(`
   <a href="PT000H00M.grib2">PT000H00M.grib2</a>
-  <a href="PT000H15M.grib2">PT000H15M.grib2</a>
-  <a href="PT000H30M.grib2">PT000H30M.grib2</a>
+  <a href="PT000H05M.grib2">PT000H05M.grib2</a>
+  <a href="PT000H10M.grib2">PT000H10M.grib2</a>
   <a href="PT027H00M.grib2">PT027H00M.grib2</a>
  `,{status:200,headers:{'content-type':'text/html'}});
  throw new Error(`Unerwarteter RUC-Testabruf: ${url}`);
@@ -65,7 +65,7 @@ try{
  const module=await import(`../worker/metar-proxy.js?ruc-policy=${Date.now()}`),response=await module.default.fetch(new Request('https://mid.test/?mode=rapid-model-meta&model=icon-d2-ruc'),{}),data=await response.json();
  if(!response.ok)throw new Error(`DWD-RUC-Metadaten abgelehnt: ${JSON.stringify(data)}`);
  if(data._mid_rapid_update!==true||data._mid_resolution_km!==2)throw new Error(`RUC-Kennung/Resolution falsch: ${JSON.stringify(data)}`);
- if(Number(data.update_interval_seconds)!==3600||Number(data.temporal_resolution_seconds)!==900)throw new Error(`RUC-Zyklus falsch: ${JSON.stringify(data)}`);
+ if(Number(data.update_interval_seconds)!==3600||Number(data.temporal_resolution_seconds)!==300)throw new Error(`RUC-Zyklus falsch: ${JSON.stringify(data)}`);
  if(Number(data._mid_forecast_horizon_hours)!==27)throw new Error(`Aktuelle Lauflaenge wurde nicht aus dem s/-Index erkannt: ${data._mid_forecast_horizon_hours}`);
 }finally{globalThis.fetch=realFetch}
 console.log('App-weite Rapid-Update-Policy geprüft: DWD ICON-D2-RUC-Verfügbarkeit, dynamische Lauflaenge, regionale stündliche Modelle, Radar-Phasenwahl und UI-Provenienz.');

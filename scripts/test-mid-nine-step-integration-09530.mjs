@@ -84,7 +84,7 @@ for(const token of [
  "if(model.id==='icon_d2_ruc')try{const adapted=await fetchDwdRucPointAdapter",
  "provider:'DWD ICON-D2-RUC · Punktadapter'"
 ])assert.ok(worker.includes(token),`ICON-D2-RUC Punktpfad fehlt: ${token}`);
-assert.ok(weather.includes('Numerischer DWD→Pages→Worker-Pfad · 0–6 h 15 min, danach stündlich bis +14 h'),'Produktiver RUC-Zeit-/Datenpfad wird nicht transparent erklärt.');
+assert.ok(weather.includes('DWD→Pages→Worker · Zustandskern 1 h bis +14 h · Niederschlag 5 min bis +6 h · Konvektion/Reflektivität 15 min bis +6 h'),'Produktiver parameterabhängiger RUC-Zeit-/Datenpfad wird nicht transparent erklärt.');
 assert.ok(weather.includes('RUC-EPS · stündlicher probabilistischer Kurzfristpfad bis +14 h'),'RUC-EPS-Kurzfristpfad wird nicht transparent erklärt.');
 assert.ok(env.includes('MID_DWD_RUC_POINT_ENDPOINT'),'RUC-Adapter ist in .env.example nicht dokumentiert.');
 

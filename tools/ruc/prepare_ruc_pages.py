@@ -55,7 +55,7 @@ def prepare(source:Path,target:Path,data_chunk_points:int=DEFAULT_DATA_CHUNK_POI
     if meta.get('schema')!=SCHEMA or not meta.get('run'): raise ValueError('invalid RUC metadata')
     run=safe_run(meta['run'])
     if not run: raise ValueError('invalid RUC run')
-    for name in ('deterministic.bin','eps-summary.bin','lookup.bin'):
+    for name in ('deterministic.bin','eps-summary.bin','lookup.bin','rapid-5m.bin','rapid-15m.bin','rapid-extreme.json'):
         if not (source/name).is_file(): raise ValueError(f'missing {name}')
     out=target/'ruc'; shutil.rmtree(out,ignore_errors=True); (out/'runs'/run).mkdir(parents=True,exist_ok=True)
     objects=[]
@@ -72,11 +72,26 @@ def prepare(source:Path,target:Path,data_chunk_points:int=DEFAULT_DATA_CHUNK_POI
     lookup_pages,rows=write_chunks(source/'lookup.bin',out/'runs'/run/'lookup',lookup_record,lookup_chunk_entries,f'runs/{run}/lookup');objects+=rows
     lookup.pop('key',None);lookup['pages']=lookup_pages
 
+    rapid={}
+    for product_id,raw_spec in (meta.get('rapid') or {}).items():
+        spec=dict(raw_spec or {});source_name=Path(str(spec.get('key') or '')).name
+        if not source_name or not (source/source_name).is_file():
+            continue
+        record=int(spec.get('recordBytes') or 0)
+        pages,rows=write_chunks(source/source_name,out/'runs'/run/'rapid'/product_id,record,data_chunk_points,f'runs/{run}/rapid/{product_id}');objects+=rows
+        spec.pop('key',None);spec['pages']=pages;rapid[product_id]=spec
+
+    rapid_extreme=dict(meta.get('rapidExtreme') or {})
+    rapid_extreme_source=source/Path(str(rapid_extreme.get('key') or '')).name
+    if rapid_extreme and rapid_extreme_source.is_file():
+        target_extreme=out/'runs'/run/'rapid-extreme.json';shutil.copy2(rapid_extreme_source,target_extreme)
+        rapid_extreme['key']=f'runs/{run}/rapid-extreme.json';objects.append({'key':rapid_extreme['key'],'bytes':target_extreme.stat().st_size,'sha256':digest(target_extreme)})
+
     eps=dict(meta.get('eps') or {})
     eps.pop('key',None);eps['available']=False;eps['storageReason']='native EPS members omitted from free GitHub Pages profile; canonical forecast uses epsSummary'
 
     total=sum(row['bytes'] for row in objects)
-    result={**meta,'deterministic':det,'epsSummary':summary,'lookup':lookup,'eps':eps,'storageProfile':PROFILE,
+    result={**meta,'deterministic':det,'epsSummary':summary,'lookup':lookup,'rapid':rapid,'rapidExtreme':rapid_extreme or None,'eps':eps,'storageProfile':PROFILE,
             'pages':{'profile':PROFILE,'nativeEpsMembers':False,'publishedBytes':total,'objects':objects}}
     (out/'latest.json').write_text(json.dumps(result,ensure_ascii=False,separators=(',',':'))+'\n',encoding='utf-8')
     return result

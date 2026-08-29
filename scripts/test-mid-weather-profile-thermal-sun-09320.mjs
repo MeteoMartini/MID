@@ -29,14 +29,14 @@ for(const token of [
   'SvgProfileWindDirectionArrow',
   'windSignalColor(gust)',
   'chartPoints.map(item=><SvgProfileWindDirectionArrow',
-  "shortTermCloudGradientStops(chartPoints,chartPaddingLeft,chartPlotWidth,'highCloud')",
-  "shortTermCloudGradientStops(chartPoints,chartPaddingLeft,chartPlotWidth,'midCloud')",
-  "shortTermCloudGradientStops(chartPoints,chartPaddingLeft,chartPlotWidth,'lowCloud')",
-  'Math.abs(currentCloud-previousCloud)>=18',
   'function shortTermCloudCellGradient(point:ShortTermForecastPoint,previous:ShortTermForecastPoint|undefined,next:ShortTermForecastPoint|undefined,key:CloudProfileLayer)',
-  'className="cloud-band high"',
-  'className="cloud-band mid"',
-  'className="cloud-band low"',
+  'cloudCellInset(item.columnWidth)',
+  'cloud-cell-frame high',
+  'cloud-cell-frame mid',
+  'cloud-cell-frame low',
+  'className="cloud-cell-frame high"',
+  'className="cloud-cell-frame mid"',
+  'className="cloud-cell-frame low"',
   'Thermisches Empfinden',
   'Temperatur / gefühlt / Taupunkt',
   ' K</dd>',
@@ -67,7 +67,7 @@ for(const token of [
   '.cockpit-meteogram-pro__overlay.time>span.other-day b'
 ])need('Styles',styles,token);
 
-const high=cockpit.indexOf('className="cloud-band high"'),mid=cockpit.indexOf('className="cloud-band mid"'),low=cockpit.indexOf('className="cloud-band low"');
+const high=cockpit.indexOf('className="cloud-cell-frame high"'),mid=cockpit.indexOf('className="cloud-cell-frame mid"'),low=cockpit.indexOf('className="cloud-cell-frame low"');
 if(high<0||mid<0||low<0||!(high<mid&&mid<low))failures.push('Wolkenreihenfolge muss visuell H oben, M mittig, L unten sein.');
 if(cockpit.includes('cloudBandGap'))failures.push('Zwischen Wolkenschichten darf kein cloudBandGap bestehen.');
 

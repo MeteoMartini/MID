@@ -18,6 +18,9 @@ DET_BASE='https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p'
 EPS_BASE='https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc-eps/p'
 FORECAST_REQUIRED=('T_2M','TD_2M','RELHUM_2M','PMSL','U_10M','V_10M','VMAX_10M','TOT_PREC','CLCT','CLCL','CAPE_ML','CIN_ML')
 GRID_REQUIRED=('CLAT','CLON')
+RAPID_REQUIRED=('TOT_PREC','CAPE_ML','CIN_ML')
+RAPID_OPTIONAL_15=('DBZ_CMAX','CAPE_MU','CIN_MU','LPI','LPI_MAX','UH_MAX','UH_MAX_LOW','UH_MAX_MED','ECHOTOPinM','HAIL_GSP','LAPSE_RATE','W_CTMAX','VORW_CTMAX','RAIN_GSP','SNOW_GSP','GRAU_GSP','ASOB_S','ASWDIR_S','ASWDIFD_S')
+SPECIALIST_HOURLY_OPTIONAL=('VIS','CEILING','HZEROCL','SNOWLMT','CLCM','CLCH','T_G','H_SNOW')
 REQUIRED=FORECAST_REQUIRED+GRID_REQUIRED
 RUN_RE=re.compile(r'^20\d\d-\d\d-\d\dT\d\d:\d\d/$')
 GRIB_RE=re.compile(r'\.(?:grib2|grb2)(?:\.bz2)?$',re.I)
@@ -71,20 +74,22 @@ def forecast_lead_minutes(url):
  if not match:return None
  return int(match.group('hours'))*60+int(match.group('minutes'))
 
-def select_requested_files(files,hours,rapid_hours=6,hourly_only=False):
+def select_requested_files(files,hours,mode='hourly',rapid_hours=6):
  limit=max(0,int(hours))*60
  rapid_limit=min(limit,max(0,int(rapid_hours))*60)
- # Deterministic RUC keeps native 15-minute leads in the nowcasting-near 0..6 h
- # window, then hourly leads through +14 h. RUC-EPS remains hourly. Unknown
- # legacy filenames are retained fail-safe instead of being silently discarded.
  selected=[]
  for url in files:
   lead=forecast_lead_minutes(url)
   if lead is None:selected.append(url);continue
   if lead>limit:continue
-  if hourly_only or lead>rapid_limit:
-   if lead%60==0:selected.append(url)
-  elif lead%15==0:selected.append(url)
+  keep=False
+  if mode=='hourly':keep=lead%60==0
+  elif mode=='rapid-precip':keep=lead<=rapid_limit and lead%5==0
+  elif mode=='rapid15':keep=lead<=rapid_limit and lead%15==0
+  elif mode=='rapid5':keep=lead<=rapid_limit and lead%5==0
+  elif mode=='native6h':keep=lead<=rapid_limit
+  else:raise ValueError(f'unknown cadence mode {mode}')
+  if keep:selected.append(url)
  return selected
 
 def download_one(url,target):
@@ -99,14 +104,14 @@ def download_one(url,target):
  if not tmp.exists() or tmp.stat().st_size<80:raise RuntimeError(f'suspiciously small DWD file {url}')
  tmp.replace(target)
 
-def stage_tree(s,url,target,hours,label,*,hourly_only=False):
+def stage_tree(s,url,target,hours,label,*,mode='hourly'):
  discovered=crawl_files(s,url)
  if not discovered:raise RuntimeError(f'No GRIB2 files under {url}')
- files=select_requested_files(discovered,hours,hourly_only=hourly_only)
+ files=select_requested_files(discovered,hours,mode=mode)
  if not files:raise RuntimeError(f'No requested GRIB2 files under {url}')
  root=url if url.endswith('/') else url+'/'
  workers=max(1,min(12,int(os.getenv('MID_RUC_DOWNLOAD_WORKERS',str(DEFAULT_DOWNLOAD_WORKERS))),len(files)))
- grid_label=f'hourly 0..{hours}h' if hourly_only else f'15 min 0..6h + hourly ..{hours}h'
+ grid_label={'hourly':f'hourly 0..{hours}h','rapid-precip':'5 min 0..6h','rapid15':'15 min 0..6h','rapid5':'5 min 0..6h','native6h':'native cadence 0..6h'}.get(mode,mode)
  print(f'{label}: selected {len(files)}/{len(discovered)} GRIB files for {grid_label}; {workers} download workers',flush=True)
  def job(file_url):
   rel=unquote(urlparse(file_url).path[len(urlparse(root).path):]).lstrip('/');download_one(file_url,target/rel);return rel
@@ -138,10 +143,21 @@ def build_candidate(s,run,stage_root,output,hours):
  run_key=re.sub(r'[^0-9A-Za-z_-]','',run);stage=stage_root/run_key;tmp=output.parent/f'.{output.name}.{run_key}.tmp'
  shutil.rmtree(stage,ignore_errors=True);shutil.rmtree(tmp,ignore_errors=True);stage.mkdir(parents=True,exist_ok=True);tmp.mkdir(parents=True,exist_ok=True)
  for param in FORECAST_REQUIRED:
-  rows=stage_tree(s,f'{DET_BASE}/{param}/r/{run}/',stage/'deterministic'/param,hours,f'{run} {param}');print(f'{run} {param}: {len(rows)} staged GRIB files',flush=True)
+  rows=stage_tree(s,f'{DET_BASE}/{param}/r/{run}/',stage/'deterministic'/param,hours,f'{run} {param}',mode='hourly');print(f'{run} {param}: {len(rows)} staged GRIB files',flush=True)
+ for param in RAPID_REQUIRED:
+  mode='rapid-precip' if param=='TOT_PREC' else 'rapid15'
+  rows=stage_tree(s,f'{DET_BASE}/{param}/r/{run}/',stage/'rapid'/param,hours,f'{run} rapid {param}',mode=mode);print(f'{run} rapid {param}: {len(rows)} staged GRIB files',flush=True)
+ for param in RAPID_OPTIONAL_15:
+  try:
+   rows=stage_tree(s,f'{DET_BASE}/{param}/r/{run}/',stage/'rapid-optional'/param,hours,f'{run} optional {param}',mode='rapid15');print(f'{run} optional {param}: {len(rows)} staged GRIB files',flush=True)
+  except Exception as exc: print(f'{run} optional {param}: skipped ({exc})',flush=True)
+ for param in SPECIALIST_HOURLY_OPTIONAL:
+  try:
+   rows=stage_tree(s,f'{DET_BASE}/{param}/r/{run}/',stage/'specialist-hourly'/param,hours,f'{run} specialist {param}',mode='hourly');print(f'{run} specialist {param}: {len(rows)} staged GRIB files',flush=True)
+  except Exception as exc: print(f'{run} specialist {param}: skipped ({exc})',flush=True)
  for param in GRID_REQUIRED:
   rows=stage_coordinate(s,f'{DET_BASE}/{param}/r/{run}/',stage/'grid'/param,f'{run} {param}');print(f'{run} {param}: {len(rows)} staged coordinate GRIB file',flush=True)
- eps_rows=stage_tree(s,f'{EPS_BASE}/TOT_PREC/r/{run}/',stage/'eps'/'TOT_PREC',hours,f'{run} RUC-EPS TOT_PREC',hourly_only=True);print(f'{run} RUC-EPS TOT_PREC: {len(eps_rows)} staged GRIB files',flush=True)
+ eps_rows=stage_tree(s,f'{EPS_BASE}/TOT_PREC/r/{run}/',stage/'eps'/'TOT_PREC',hours,f'{run} RUC-EPS TOT_PREC',mode='hourly');print(f'{run} RUC-EPS TOT_PREC: {len(eps_rows)} staged GRIB files',flush=True)
  builder=Path(__file__).with_name('build_ruc_bundle.py');subprocess.run([sys.executable,str(builder),'--staging',str(stage),'--output',str(tmp),'--run',run,'--hours',str(hours)],check=True)
  required=('deterministic.bin','eps-summary.bin','eps-members.bin','lookup.bin','latest.json')
  missing=[name for name in required if not (tmp/name).is_file() or (tmp/name).stat().st_size<2]

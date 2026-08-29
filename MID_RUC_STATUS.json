@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-08-29T15:02:39Z",
-  "releaseVersion": "0.9.73.8",
+  "updatedAt": "2026-08-29T18:30:00Z",
+  "releaseVersion": "0.9.73.12",
   "source": "DWD Open Data ICON-D2-RUC / ICON-D2-RUC-EPS",
   "deterministic": {
     "coverageBbox": [
@@ -14,7 +14,90 @@
     "updateHours": 1,
     "preprocessor": "tools/ruc/fetch_and_build_ruc.py + build_ruc_bundle.py",
     "workerMode": "free GitHub Pages pages-free-v1 static point adapter; optional private R2 fallback remains disabled",
-    "ready": true
+    "ready": true,
+    "temporalResolutionSeconds": 3600,
+    "timeAxis": "parameter-native: common state hourly 0..14h; precipitation 5 min 0..6h; convection/reflectivity/phase/solar 15 min 0..6h; specialist diagnostics hourly 0..14h",
+    "rapidProducts": {
+      "precipitation5m": {
+        "parameter": "TOT_PREC",
+        "resolutionSeconds": 300,
+        "forecastHours": 6,
+        "use": [
+          "displayMinutes15",
+          "precipitation onset/end",
+          "heavy rain/flash flood",
+          "extreme outlook 0-6h"
+        ]
+      },
+      "convection15m": {
+        "required": [
+          "TOT_PREC",
+          "CAPE_ML",
+          "CIN_ML"
+        ],
+        "resolutionSeconds": 900,
+        "forecastHours": 6
+      },
+      "reflectivity15m": {
+        "optional": [
+          "DBZ_CMAX"
+        ],
+        "resolutionSeconds": 900,
+        "forecastHours": 6,
+        "role": "model reflectivity only; observed radar remains higher priority"
+      },
+      "severe15m": {
+        "optional": [
+          "CAPE_MU",
+          "CIN_MU",
+          "LPI",
+          "LPI_MAX",
+          "UH_MAX",
+          "UH_MAX_LOW",
+          "UH_MAX_MED",
+          "ECHOTOPinM",
+          "HAIL_GSP",
+          "LAPSE_RATE",
+          "W_CTMAX",
+          "VORW_CTMAX"
+        ],
+        "resolutionSeconds": 900,
+        "forecastHours": 6
+      },
+      "phase15m": {
+        "optional": [
+          "RAIN_GSP",
+          "SNOW_GSP",
+          "GRAU_GSP"
+        ],
+        "resolutionSeconds": 900,
+        "forecastHours": 6
+      },
+      "solar15m": {
+        "optional": [
+          "ASOB_S",
+          "ASWDIR_S",
+          "ASWDIFD_S"
+        ],
+        "resolutionSeconds": 900,
+        "forecastHours": 6,
+        "sunshineReplacement": false
+      },
+      "specialistHourly": {
+        "optional": [
+          "VIS",
+          "CEILING",
+          "HZEROCL",
+          "SNOWLMT",
+          "CLCM",
+          "CLCH",
+          "T_G",
+          "H_SNOW"
+        ],
+        "resolutionSeconds": 3600,
+        "forecastHours": 14
+      }
+    }
   },
   "ensemble": {
     "id": "icon_d2_ruc_eps",
@@ -57,42 +140,52 @@
     "freePagesPrimary": true,
     "downloadForecastHoursOnly": true,
     "downloadWorkers": 8,
-    "downloadProgressLogging": true
+    "downloadProgressLogging": true,
+    "downloadTimeAxis": "parameter-native: common state/EPS hourly 0..14h; TOT_PREC 5 min 0..6h; supported rapid diagnostics 15 min 0..6h"
   },
   "contracts": {
     "bestMatchRemainsBase": true,
     "noWorkerGribDecoding": true,
     "thunderRequiresObservedLightning": true,
-    "normalSevenFourteenDayEnsembleExcludesRucEps": true
+    "normalSevenFourteenDayEnsembleExcludesRucEps": true,
+    "noFabricatedQuarterHourRucStateFields": true,
+    "nativeMinuteRadarNowcastRemainsPrimaryFor15MinuteDisplay": true,
+    "parameterNativeCadence": true,
+    "observedRadarLightningKonradPriorityOverModelRapid": true,
+    "rucSolarDoesNotBypassSunshineDurationContract": true,
+    "srhShearLayerAuditRequiredBeforeActivation": true
   },
   "liveSourceVerification": {
     "directoryStructureVerified": true,
     "productionIngestionExecuted": false,
-    "runId": 33255871924,
-    "runNumber": 4,
-    "headSha": "5e7e76bde21177c62dc4137028c421ad92755da0",
-    "state": "failed-native-grid-coordinate-contract-before-v0.9.73.6",
+    "runId": 33264098244,
+    "runNumber": 7,
+    "headSha": "fb1c6b54e1abc4e210fa2262869f9305240df64f",
+    "state": "failed-run-7-repeated-pre-activation-hybrid-bug; parameter-native-v0.9.73.12-awaits-fresh-production-run",
     "observedStep": "Neuesten vollständigen RUC/RUC-EPS-Lauf laden und dekodieren",
-    "reason": "Run #4 proved hourly preselection and bounded downloads, but native ICON-D2-RUC GRIB fields do not expose latitudes/longitudes arrays. v0.9.73.6 stages authoritative DWD CLAT/CLON cell coordinates and builds the lookup from those native triangular-grid fields."
+    "reason": "Scheduled Run #7 repeated the already diagnosed pre-activation hybrid-axis failure on the unchanged published mid-stable source: state parameters were still validated against :15/:30/:45 targets. The uploaded v0.9.73.11 Professional candidate already contains the parameter-native correction (hourly state core, separate 5-minute precipitation and 15-minute convection/diagnostic products), but Release Run #761 was gated before installation by one stale Extreme-Outlook signature regression. v0.9.73.12 fixes that regression only; a fresh RUC run after a green release remains required for production verification."
   },
   "validation": {
-    "rucPipelineContract": "passed-v0.9.73.4",
-    "rucFusionRuntime": "passed-v0.9.73.4",
-    "rucPagesFreeStorage": "passed-v0.9.73.4",
-    "rucStorageHealthRuntime": "passed-v0.9.73.4",
+    "rucPipelineContract": "passed-v0.9.73.12",
+    "rucFusionRuntime": "passed-v0.9.73.12",
+    "rucPagesFreeStorage": "passed-v0.9.73.12",
+    "rucStorageHealthRuntime": "passed-v0.9.73.12",
     "favoriteStorageMirrorRevision": "passed-v0.9.73.4",
     "favoriteAuthoritativePersistence": "passed-v0.9.73.4",
     "favoriteOrderPersistence": "passed-v0.9.73.4",
     "stateIntegrityContract": "passed-v0.9.73.4",
     "storageQuotaResilience": "passed-v0.9.73.4",
-    "workerSyntax": "passed-v0.9.73.4",
+    "workerSyntax": "pending-final-generated-check-v0.9.73.12",
     "workerAggregatesIdentical": true,
-    "fullRegressionLocal": "dependency-startup-blocked: local node_modules is incomplete; targeted RUC/favorites/storage regressions passed with zero functional assertion failures",
+    "fullRegressionLocal": "targeted release-blocker, Extreme-Outlook and RUC regressions pass; complete suite remains release-CI authoritative",
     "functionalAssertionFailuresRemaining": 0,
     "releaseCiRequired": true,
     "typescript": "blocked-local-dependency-tree: required npm packages are missing locally; GitHub release CI remains the authoritative full TypeScript gate",
     "viteBuild": "blocked-local-dependency-tree: required npm packages/esbuild are missing locally; GitHub release CI remains the authoritative production-build gate",
     "capacitorSync": "blocked-by-same-local-dependency-tree; no native plugin change in v0.9.73.4",
-    "dependencyAudit": "release-CI-required"
+    "dependencyAudit": "release-CI-required",
+    "rucCommonHourlyAxis": "passed-v0.9.73.12",
+    "rucNativeCadenceNowcast": "passed-v0.9.73.12",
+    "rucParameterAudit": "passed-v0.9.73.12"
   }
 }

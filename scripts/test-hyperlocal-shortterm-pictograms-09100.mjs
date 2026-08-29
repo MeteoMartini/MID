@@ -15,7 +15,7 @@ for(const token of [
 for(const token of [
  "shortTermAnchor=useMemo(()=>w?shortTermAnchorFromCurrent(st,w.current,Date.now(),w.elevation??loc?.elevation):undefined",
  "applyHyperlocalForecastHours(core.hours,shortTermAnchor,Date.now(),twinHours)",
- "displayMinutes15=useMemo(()=>finalizeForecastMinute15(minutes15,twinHours,displayHours,{radar:radarAnalysis,localAnchor:shortTermAnchor})",
+ "displayMinutes15=useMemo(()=>finalizeForecastMinute15(minutes15,twinHours,displayHours,{radar:radarAnalysis,localAnchor:shortTermAnchor,rucRapidMinutes15:forecastFusion?.rapidMinutes15})",
  "<ShortTermForecast key={id} minutes15={displayMinutes15} hours={displayHours}"
 ]) if(!app.includes(token))failures.push(`App-Datenpfad fehlt: ${token}`);
 for(const kind of ["'clear'","'mostly-clear'","'partly-cloudy'","'cloudy'","'fog'","'rime-fog'","'drizzle'","'freezing-drizzle'","'rain'","'freezing-rain'","'showers'","'sleet'","'snow'","'snow-grains'","'snow-showers'","'thunder'","'thunder-hail'"]) if(!pictograms.includes(kind))failures.push(`Piktogrammtyp fehlt: ${kind}`);

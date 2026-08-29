@@ -1,3 +1,30 @@
+## v0.9.73.12
+
+- Release-CI-Hotfix nach Run #761: veraltete exakte Extremwetter-Funktionssignatur-Regression an die bereits gültige `env`-Verdrahtung angepasst; fachlicher Mitteleuropa-Extremwetterpfad unverändert.
+- Der parameter-native ICON-D2-RUC-Multiproduktpfad aus v0.9.73.11 bleibt unverändert: stündlicher Zustandskern, 5-minütiges `TOT_PREC` sowie separate 15-minütige Konvektions-/Diagnostikprodukte.
+- Produktionsvalidierung bleibt fail-closed: erst grüner Release-CI-Lauf, danach automatischer semantischer Worker-Deploy und frischer RUC-Workflow; kein manueller Worker-Upload und keine kostenpflichtige Infrastruktur.
+
+## v0.9.73.11
+
+- DWD ICON-D2-RUC appweit auf parameter-native Taktung umgestellt: gemeinsamer Zustandskern stündlich bis +14 h, `TOT_PREC` nativ 5-minütlich bis +6 h und Konvektions-/Reflektivitäts-/Phasenprodukte 15-minütlich bis +6 h.
+- 114 aktuell gelistete RUC-v1-Parameter appweit auditiert; hochwirksame Severe-, Strahlungs- und Specialist-Diagnostik gezielt ergänzt, große/mehrdimensionale oder redundante Felder bewusst zurückgestellt.
+- 0–6-h-Extremwetterpfad um räumliche RUC-Rapid-Signale für Niederschlagsrate, CAPE/CIN und optionale DBZ/UH/LPI/EchoTop/Hagel-Diagnostik erweitert.
+- `VIS`, `CEILING`, `HZEROCL`, `SNOWLMT`, `CLCM`, `CLCH`, `T_G`, `H_SNOW` als stündliche Specialist-Diagnostik; Sicht mit 10-m-Wireauflösung ohne 32,7-km-Clipping.
+- `SRH` und `WSHEAR_U/V` wegen zusätzlicher DWD-`lvt1`-Layersemantik bewusst nicht blind importiert; separater Layer-Audit vorgesehen.
+- RUC-Strahlungsfelder werden diagnostisch geführt, ersetzen aber den appweiten Sunshine-Duration-Contract nicht ohne DNI-/Sonnengeometrie-Validierung.
+
+## v0.9.73.10
+
+- Produktiven RUC-Run #6 repariert: gemeinsames ICON-D2-RUC-Mehrparameterbundle nutzt die tatsächlich gemeinsame native Stundenachse 0…+14 h statt nicht vorhandene Viertelstundenwerte für Temperatur/Wind/Druck/Wolken zu verlangen.
+- Kein künstliches Interpolieren auf :15/:30/:45; native 15-Minuten-/Radar-/Nowcast-Quellen bleiben für die feine Kurzfrist zuständig, RUC bleibt kanonischer stündlicher Kurzfristkalibrator.
+- RUC-EPS bleibt stündlich; Worker-/Modellmetadaten melden für den gemeinsamen RUC-Punktadapter korrekt 3600 s.
+- Neuer Common-Hourly-Axis-Regressionsschutz; letzter fehlerhafter Run #6 ist im RUC-Status dokumentiert und wird nicht auf dem alten SHA erneut ausgeführt.
+
+## v0.9.73.9
+
+- Beide neuen MID-Logovarianten integriert und in den Einstellungen als Auto / Dunkles Logo / Helles Logo wählbar gemacht; Auto folgt dem Layoutkontrast und greift auch im Startbildschirm.
+- Wolkenkästchen im 24-h-Wetterprofil wieder sauber an die Stundenwerte gekoppelt: H/M/L als eingerückte Rasterzellen mit dezenten Frames statt losgelöster Vollbandoptik.
+
 ## v0.9.73.8
 
 - Release-Gate-Hotfix: veralteten Integrationsassert zur früheren RUC-„Verfügbarkeitsquelle“ auf den produktiven DWD→Pages→Worker-Vertrag umgestellt.
