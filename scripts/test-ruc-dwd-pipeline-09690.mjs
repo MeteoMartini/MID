@@ -30,10 +30,12 @@ must(fetcher.includes("REQUIRED=('T_2M'")&&fetcher.includes('common_runs')&&fetc
 must(fetcher.includes('decoded=unquote(href)')&&fetcher.includes('RUN_RE.match(decoded)'), 'DWD run-directory discovery must URL-decode encoded timestamps such as T14%3A00 before matching');
 must(fetcher.includes('LEAD_RE=')&&fetcher.includes('select_requested_hourly_files')&&fetcher.includes('lead%60==0'),'RUC downloader must select only the integer lead hours required by the 0–14 h bundle');
 must(fetcher.includes('MID_RUC_DOWNLOAD_WORKERS')&&fetcher.includes('concurrent.futures.as_completed')&&fetcher.includes('downloaded {completed}/{len(files)}'),'RUC download must use bounded parallelism with live progress instead of appearing stalled');
-must(builder.includes('include_grid=grid is None')&&builder.includes('include_grid=eps_grid is None'),'GRIB decoding must extract expensive latitude/longitude arrays only once per parameter/EPS grid');
+must(fetcher.includes("GRID_REQUIRED=('CLAT','CLON')")&&fetcher.includes('stage_coordinate'),'RUC downloader must stage authoritative DWD CLAT/CLON native-grid coordinates exactly once per run');
+must(builder.includes('load_native_grid')&&builder.includes("('CLAT','CLON')")&&builder.includes('np.degrees')&&builder.includes('coordinate point count differs from forecast grid'),'RUC builder must derive the native ICON-D2 triangular grid from DWD CLAT/CLON with radians-to-degrees and point-count validation');
+must(builder.includes("RUC-EPS native point count differs from deterministic RUC grid"),'RUC-EPS must fail closed when its native point count differs from deterministic RUC');
 must(fetcher.includes("required=('deterministic.bin','eps-summary.bin','eps-members.bin','lookup.bin','latest.json')"),'Candidate must be complete before output replacement');
 must(builder.includes('hourly_targets')&&builder.includes('range(hours+1)'),'RUC must explicitly select integer lead hours 0…14, not first N 15-minute samples');
-must(builder.includes('same_grid')&&builder.includes('RUC-EPS native grid differs'),'Mixed deterministic/EPS grids must fail closed');
+must(builder.includes('native point count differs from deterministic reference')&&builder.includes('RUC-EPS native point count differs from deterministic RUC grid'),'Mixed deterministic/EPS native point counts must fail closed');
 must(builder.includes('cKDTree')&&builder.includes('max_distance_km'),'Spatial lookup must be generated and distance-verified');
 must(builder.includes('eps_summary')&&builder.includes("'precipitation_probability'")&&builder.includes("'precipitation_q75'"),'RUC-EPS probability/quantile preaggregation missing');
 must(pack.includes('EPS_SUMMARY_FIELDS')&&pack.includes("layout':'point-time-field'")&&pack.includes("layout':'point-time-member'")&&pack.includes('uint16-le'),'RUC-EPS summary/member wire contracts missing');

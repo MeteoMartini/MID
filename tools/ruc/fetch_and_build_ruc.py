@@ -16,7 +16,9 @@ import requests
 UA='MID-weather-dashboard/RUC-preprocessor'
 DET_BASE='https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p'
 EPS_BASE='https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc-eps/p'
-REQUIRED=('T_2M','TD_2M','RELHUM_2M','PMSL','U_10M','V_10M','VMAX_10M','TOT_PREC','CLCT','CLCL','CAPE_ML','CIN_ML')
+FORECAST_REQUIRED=('T_2M','TD_2M','RELHUM_2M','PMSL','U_10M','V_10M','VMAX_10M','TOT_PREC','CLCT','CLCL','CAPE_ML','CIN_ML')
+GRID_REQUIRED=('CLAT','CLON')
+REQUIRED=FORECAST_REQUIRED+GRID_REQUIRED
 RUN_RE=re.compile(r'^20\d\d-\d\d-\d\dT\d\d:\d\d/$')
 GRIB_RE=re.compile(r'\.(?:grib2|grb2)(?:\.bz2)?$',re.I)
 LEAD_RE=re.compile(r'PT(?P<hours>\d{3})H(?P<minutes>\d{2})M',re.I)
@@ -105,11 +107,29 @@ def stage_tree(s,url,target,hours,label):
    if completed==len(files) or completed%report_every==0:print(f'{label}: downloaded {completed}/{len(files)}',flush=True)
  return sorted(rows)
 
+
+
+def stage_coordinate(s,url,target,label):
+ discovered=crawl_files(s,url)
+ if not discovered:raise RuntimeError(f'No GRIB2 coordinate files under {url}')
+ # CLAT/CLON are time-constant native ICON cell coordinates. Prefer analysis lead 0;
+ # fall back to the first advertised file if DWD changes the filename convention.
+ zero=[file_url for file_url in discovered if forecast_lead_minutes(file_url)==0]
+ selected=(zero or discovered)[:1]
+ print(f'{label}: selected 1/{len(discovered)} native-grid coordinate GRIB file',flush=True)
+ root=url if url.endswith('/') else url+'/'
+ file_url=selected[0]
+ rel=unquote(urlparse(file_url).path[len(urlparse(root).path):]).lstrip('/')
+ download_one(file_url,target/rel)
+ return [rel]
+
 def build_candidate(s,run,stage_root,output,hours):
  run_key=re.sub(r'[^0-9A-Za-z_-]','',run);stage=stage_root/run_key;tmp=output.parent/f'.{output.name}.{run_key}.tmp'
  shutil.rmtree(stage,ignore_errors=True);shutil.rmtree(tmp,ignore_errors=True);stage.mkdir(parents=True,exist_ok=True);tmp.mkdir(parents=True,exist_ok=True)
- for param in REQUIRED:
+ for param in FORECAST_REQUIRED:
   rows=stage_tree(s,f'{DET_BASE}/{param}/r/{run}/',stage/'deterministic'/param,hours,f'{run} {param}');print(f'{run} {param}: {len(rows)} staged GRIB files',flush=True)
+ for param in GRID_REQUIRED:
+  rows=stage_coordinate(s,f'{DET_BASE}/{param}/r/{run}/',stage/'grid'/param,f'{run} {param}');print(f'{run} {param}: {len(rows)} staged coordinate GRIB file',flush=True)
  eps_rows=stage_tree(s,f'{EPS_BASE}/TOT_PREC/r/{run}/',stage/'eps'/'TOT_PREC',hours,f'{run} RUC-EPS TOT_PREC');print(f'{run} RUC-EPS TOT_PREC: {len(eps_rows)} staged GRIB files',flush=True)
  builder=Path(__file__).with_name('build_ruc_bundle.py');subprocess.run([sys.executable,str(builder),'--staging',str(stage),'--output',str(tmp),'--run',run,'--hours',str(hours)],check=True)
  required=('deterministic.bin','eps-summary.bin','eps-members.bin','lookup.bin','latest.json')

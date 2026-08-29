@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-08-29T13:22:37Z",
-  "releaseVersion": "0.9.73.5",
+  "updatedAt": "2026-08-29T14:00:00Z",
+  "releaseVersion": "0.9.73.6",
   "source": "DWD Open Data ICON-D2-RUC / ICON-D2-RUC-EPS",
   "deterministic": {
     "coverageBbox": [
@@ -68,12 +68,12 @@
   "liveSourceVerification": {
     "directoryStructureVerified": true,
     "productionIngestionExecuted": false,
-    "runId": 33253090396,
-    "runNumber": 3,
+    "runId": 33255871924,
+    "runNumber": 4,
     "headSha": "5e7e76bde21177c62dc4137028c421ad92755da0",
-    "state": "in-progress-at-v0.9.73.4-preparation",
+    "state": "failed-native-grid-coordinate-contract-before-v0.9.73.6",
     "observedStep": "Neuesten vollständigen RUC/RUC-EPS-Lauf laden und dekodieren",
-    "reason": "The first free Pages production ingestion reached real DWD RUC/RUC-EPS download/decode, but the v0.9.73.3 downloader still fetched complete high-frequency parameter trees and had not published a snapshot after about 42 minutes. v0.9.73.4 narrows downloads to required integer-hour leads for the 0-14 h MID product, adds bounded progress-visible concurrency and avoids repeated GRIB latitude/longitude extraction."
+    "reason": "Run #4 proved hourly preselection and bounded downloads, but native ICON-D2-RUC GRIB fields do not expose latitudes/longitudes arrays. v0.9.73.6 stages authoritative DWD CLAT/CLON cell coordinates and builds the lookup from those native triangular-grid fields."
   },
   "validation": {
     "rucPipelineContract": "passed-v0.9.73.4",

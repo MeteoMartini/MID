@@ -1,6 +1,6 @@
 # MID DWD RUC/RUC-EPS Pipeline Contract
 
-Stand: v0.9.73.4
+Stand: v0.9.73.6
 
 ## Zweck und fachliche Rolle
 
@@ -61,3 +61,11 @@ R2-Bucket, R2-Credentials, Custom Domain oder andere potenziell kostenpflichtige
 - `tools/ruc/test_cloudflare_r2_bootstrap.py`: optionaler R2-Bootstrap bleibt private-by-default und kostengegated.
 - `scripts/test-ruc-storage-health-09692.mjs` und `tools/ruc/check_ruc_health.py`: Backend-neutrale Health-/Post-Publish-Prüfung ohne Geheimnislecks.
 - Bestehende Forecast-Fusion-, Ensemble-, Best-Match-, Worker- und iOS-Regressionen bleiben zusätzlich verbindlich.
+## Native ICON-D2-RUC grid coordinates
+
+- Forecast GRIB messages on the native triangular ICON grid are not required to expose synthetic ecCodes `latitudes`/`longitudes` arrays.
+- The preprocessing pipeline stages DWD's authoritative `CLAT` and `CLON` fields once per selected run and uses their cell values as the native geographic grid.
+- `CLAT`/`CLON` may be encoded in radians; the builder converts them to degrees when their value ranges identify radian units.
+- Coordinate count, finiteness and geographic bounds are fail-closed. Deterministic parameters and RUC-EPS must match the native point count.
+- No regular-grid regridding is introduced; the compact lookup preserves the native ICON-D2-RUC triangular grid.
+

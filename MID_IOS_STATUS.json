@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "updatedAt": "2026-08-29T11:46:18Z",
-  "releaseVersion": "0.9.73.5",
+  "releaseVersion": "0.9.73.6",
   "sourceBaseline": {
     "professionalVersion": "0.9.70.2",
     "workerVersion": "0.9.70.2",

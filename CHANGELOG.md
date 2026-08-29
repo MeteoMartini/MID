@@ -1,3 +1,9 @@
+## v0.9.73.6
+
+- DWD ICON-D2-RUC: native triangular-grid lookup now derives coordinates from authoritative `CLAT`/`CLON` fields instead of unavailable ecCodes `latitudes`/`longitudes` arrays.
+- RUC preprocessing keeps v0.9.73.5 hourly preselection and bounded parallel downloads (`TOT_PREC` 15/325; RUC-EPS 300/6500 observed in run #4).
+- Added fail-closed coordinate, point-count and radians-to-degrees validation.
+
 ## v0.9.73.5
 
 - Release-Gate-Hotfix: historische Extremwetter-Persistenzregression auf den aktuellen semantischen StorageSafety-Revisionsvergleich angepasst.

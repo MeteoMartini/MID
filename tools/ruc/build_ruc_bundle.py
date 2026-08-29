@@ -14,22 +14,16 @@ from ruc_pack import DEFAULT_FIELDS,EPS_SUMMARY_FIELDS,pack_cell_major,pack_eps_
 PARAM_MAP={'T_2M':'temperature_2m','TD_2M':'dew_point_2m','RELHUM_2M':'relative_humidity_2m','PMSL':'pressure_msl','U_10M':'u10','V_10M':'v10','VMAX_10M':'wind_gusts_10m','TOT_PREC':'precipitation_acc','CLCT':'cloud_cover','CLCL':'cloud_cover_low','CAPE_ML':'cape','CIN_ML':'convective_inhibition'}
 RUC_BBOX=(-3.85,43.18,20.22,58.05)
 
-def read_messages(path:Path,ensemble=False,include_grid=True):
+def read_messages(path:Path,ensemble=False):
     try: from eccodes import codes_grib_new_from_file,codes_get,codes_get_array,codes_release
     except Exception as e: raise SystemExit('eccodes Python package required for production GRIB ingestion') from e
     opener=bz2.open if path.suffix=='.bz2' else open
-    grid_pending=include_grid
     with opener(path,'rb') as f:
       while True:
         gid=codes_grib_new_from_file(f)
         if gid is None: break
         try:
           vals=np.asarray(codes_get_array(gid,'values'),dtype=np.float32)
-          if grid_pending:
-            try:lats=np.asarray(codes_get_array(gid,'latitudes'),dtype=np.float32);lons=np.asarray(codes_get_array(gid,'longitudes'),dtype=np.float32)
-            except Exception:lats=lons=None
-            grid_pending=False
-          else:lats=lons=None
           valid=datetime.strptime(f"{int(codes_get(gid,'validityDate')):08d}{int(codes_get(gid,'validityTime')):04d}",'%Y%m%d%H%M').replace(tzinfo=timezone.utc)
           member=0
           if ensemble:
@@ -38,8 +32,33 @@ def read_messages(path:Path,ensemble=False,include_grid=True):
               except Exception: pass
           try:units=str(codes_get(gid,'units'))
           except Exception:units=''
-          yield valid,member,vals,lats,lons,units
+          yield valid,member,vals,units
         finally:codes_release(gid)
+
+def read_first_values(path:Path):
+    try: from eccodes import codes_grib_new_from_file,codes_get_array,codes_release
+    except Exception as e: raise SystemExit('eccodes Python package required for production GRIB ingestion') from e
+    opener=bz2.open if path.suffix=='.bz2' else open
+    with opener(path,'rb') as f:
+      gid=codes_grib_new_from_file(f)
+      if gid is None:raise SystemExit(f'empty coordinate GRIB: {path}')
+      try:return np.asarray(codes_get_array(gid,'values'),dtype=np.float32)
+      finally:codes_release(gid)
+
+def load_native_grid(staging:Path,expected_points:int):
+    coord={}
+    for param in ('CLAT','CLON'):
+      files=sorted((staging/'grid'/param).glob('**/*.grib2*'))
+      if not files:raise SystemExit(f'missing staged native-grid coordinate {param}')
+      coord[param]=read_first_values(files[0])
+      if len(coord[param])!=expected_points:raise SystemExit(f'{param}: coordinate point count differs from forecast grid')
+    lats=coord['CLAT'].astype(np.float64);lons=coord['CLON'].astype(np.float64)
+    # ICON CLAT/CLON are commonly encoded in radians; accept degrees as a future-safe form.
+    if np.nanmax(np.abs(lats))<=math.pi/2+.05 and np.nanmax(np.abs(lons))<=math.pi+.05:
+      lats=np.degrees(lats);lons=np.degrees(lons)
+    if not np.all(np.isfinite(lats)) or not np.all(np.isfinite(lons)):raise SystemExit('CLAT/CLON contain non-finite native-grid coordinates')
+    if np.nanmin(lats)<-90 or np.nanmax(lats)>90 or np.nanmin(lons)<-180 or np.nanmax(lons)>180:raise SystemExit('CLAT/CLON outside geographic coordinate bounds')
+    return lats.astype(np.float32),lons.astype(np.float32)
 
 def normalize(name,values,units):
     v=values.astype(np.float32,copy=True);u=units.lower()
@@ -53,21 +72,16 @@ def run_time(value:str):return datetime.fromisoformat(value.replace('Z','+00:00'
 def hourly_targets(run:str,hours:int):
     base=run_time(run);return [base+timedelta(hours=h) for h in range(hours+1)]
 
-def same_grid(base_lats,base_lons,lats,lons,tolerance=2e-4):
-    return lats is not None and lons is not None and len(lats)==len(base_lats) and np.nanmax(np.abs(lats-base_lats))<=tolerance and np.nanmax(np.abs(lons-base_lons))<=tolerance
-
-def collect_parameter(files,name,targets,base_grid=None):
-    rows={};grid=None
+def collect_parameter(files,name,targets,expected_points=None):
+    rows={}
     for file in files:
-      for valid,_member,vals,lats,lons,units in read_messages(file,include_grid=grid is None):
+      for valid,_member,vals,units in read_messages(file):
         if valid not in targets:continue
-        if grid is None and lats is not None and lons is not None:grid=(lats,lons)
+        if expected_points is not None and len(vals)!=expected_points:raise SystemExit(f'{name}: native point count differs from deterministic reference')
         rows[valid]=normalize(name,vals,units)
     missing=[t for t in targets if t not in rows]
     if missing:raise SystemExit(f'{name}: missing hourly targets: '+','.join(t.isoformat() for t in missing[:4]))
-    if grid is None:raise SystemExit(f'{name}: no latitude/longitude grid in GRIB')
-    if base_grid and not same_grid(*base_grid,*grid):raise SystemExit(f'{name}: native grid differs from deterministic reference')
-    return rows,grid
+    return rows
 
 def build_lookup(lats,lons,output:Path,step=.025,max_distance_km=5.0):
     try: from scipy.spatial import cKDTree
@@ -88,17 +102,15 @@ def build_lookup(lats,lons,output:Path,step=.025,max_distance_km=5.0):
     (output/'lookup.bin').write_bytes(out.tobytes(order='C'))
     return {'lonMin':float(xs[0]),'latMin':float(ys[0]),'dx':float(step),'dy':float(step),'nx':int(len(xs)),'ny':int(len(ys)),'maxNearestKm':float(max_distance_km),'nativePointCount':int(len(lats)),'bbox':list(RUC_BBOX)}
 
-def collect_eps(files,targets,base_grid):
-    rows={t:{} for t in targets};eps_grid=None
+def collect_eps(files,targets,expected_points):
+    rows={t:{} for t in targets}
     for file in files:
-      for valid,member,vals,lats,lons,units in read_messages(file,ensemble=True,include_grid=eps_grid is None):
+      for valid,member,vals,units in read_messages(file,ensemble=True):
         if valid not in rows:continue
-        if eps_grid is None and lats is not None and lons is not None:eps_grid=(lats,lons)
+        if len(vals)!=expected_points:raise SystemExit('RUC-EPS native point count differs from deterministic RUC grid')
         rows[valid][member]=normalize('precipitation_acc',vals,units)
-    if eps_grid is None or not same_grid(*base_grid,*eps_grid):raise SystemExit('RUC-EPS native grid differs from deterministic RUC grid')
     members=sorted(set.intersection(*(set(rows[t]) for t in targets))) if targets else []
     if len(members)<10:raise SystemExit(f'RUC-EPS has only {len(members)} common members')
-    # Keep all common members, deterministic member/control included only if DWD marks it as a member in this product.
     cube=np.stack([np.stack([rows[t][m] for m in members],axis=0) for t in targets],axis=0)
     interval=np.maximum(0,np.diff(cube,axis=0,prepend=cube[:1]))
     return interval,members
@@ -132,14 +144,15 @@ def file_info(path:Path):
 
 def main():
  p=argparse.ArgumentParser();p.add_argument('--staging',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--run',required=True);p.add_argument('--hours',type=int,default=14);p.add_argument('--lookup-step',type=float,default=.025);a=p.parse_args();a.output.mkdir(parents=True,exist_ok=True)
- targets=hourly_targets(a.run,a.hours);series={};base_grid=None
+ targets=hourly_targets(a.run,a.hours);series={};point_count=None
  for param,name in PARAM_MAP.items():
   files=sorted((a.staging/'deterministic'/param).glob('**/*.grib2*'))
   if not files:raise SystemExit(f'missing staged parameter {param}')
-  rows,grid=collect_parameter(files,name,targets,base_grid)
-  if base_grid is None:base_grid=grid
+  rows=collect_parameter(files,name,targets,point_count)
+  if point_count is None:point_count=len(rows[targets[0]])
   series[name]=rows
- times=targets;point_count=len(series['temperature_2m'][times[0]])
+ times=targets
+ base_grid=load_native_grid(a.staging,point_count)
  acc=np.stack([series['precipitation_acc'][t] for t in times]);prec=np.maximum(0,np.diff(acc,axis=0,prepend=acc[:1]))
  u=np.stack([series['u10'][t] for t in times]);v=np.stack([series['v10'][t] for t in times]);speed=np.hypot(u,v)*1.94384449;direction=(np.degrees(np.arctan2(-u,-v))+360)%360
  fields={}
@@ -154,7 +167,7 @@ def main():
  grid=build_lookup(base_grid[0],base_grid[1],a.output,a.lookup_step)
  eps_files=sorted((a.staging/'eps'/'TOT_PREC').glob('**/*.grib2*'))
  if not eps_files:raise SystemExit('missing staged RUC-EPS TOT_PREC')
- eps,members=collect_eps(eps_files,targets,base_grid);eps_path=a.output/'eps-members.bin';eps_path.write_bytes(pack_eps_members(eps,.01))
+ eps,members=collect_eps(eps_files,targets,point_count);eps_path=a.output/'eps-members.bin';eps_path.write_bytes(pack_eps_members(eps,.01))
  summary_path=a.output/'eps-summary.bin';summary_path.write_bytes(pack_cell_major(eps_summary(eps),EPS_SUMMARY_FIELDS))
  run_key=re.sub(r'[^0-9A-Za-z_-]','',a.run);lookup_path=a.output/'lookup.bin'
  object_paths={'deterministic.bin':det,'eps-summary.bin':summary_path,'eps-members.bin':eps_path,'lookup.bin':lookup_path}
