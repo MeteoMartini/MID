@@ -13,6 +13,7 @@ Insbesondere gilt:
 - Die dauerhafte Identität eines Favoriten ist seine stabile Favoriten-ID. Legacy-Daten ohne ID werden verlustfrei migriert.
 - Import fügt gültige Favoriten hinzu; bereits vorhandene Favoriten werden nicht als Nebenwirkung ersetzt.
 - Bei beschädigtem Primärspeicher wird ein lokaler Shadow-Stand zur Wiederherstellung genutzt. Enthält der Primärspeicher versehentlich Eventdatensätze, werden diese herausgefiltert, ohne gültige Ortsfavoriten zu verwerfen.
+- Der StorageSafety-Mirror (IndexedDB) darf einen vorhandenen neueren nativen Favoritenstand niemals allein wegen seines technischen Mirror-Schreibzeitpunkts überschreiben. Für `mid:favorites` und den Shadow ist die semantische Companion-Revision `mid:favorites:updated-at` maßgeblich; bei gleicher Revision gewinnt ein erfolgreich nativ commiteter Stand.
 
 ## 2. Ortsfavoriten und Event-Favoriten sind getrennte Domänen
 
@@ -79,6 +80,7 @@ Jeder Release muss automatisiert prüfen, dass:
 - Favoriten-Sync Union + Tombstones verwendet,
 - Shadow-Recovery vorhanden bleibt,
 - Favoritenänderungen ohne Idle-/Timeout-Verzögerung sofort persistiert werden und Start-Recovery Tombstones zwingend anwendet,
+- StorageSafety-Recovery für Primär-/Shadow-Favoriten die semantische `mid:favorites:updated-at`-Revision verwendet und keinen neueren nativen Stand durch einen älteren Mirror ersetzt,
 - Tombstones weder zeitlich noch per fester Mengenbegrenzung still verfallen,
 - alle Hauptsektionen denselben persistenten Default-closed-Vertrag verwenden,
 - Dashboard-Hashes bei jedem Bootstrap neutralisiert werden,

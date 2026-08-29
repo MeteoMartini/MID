@@ -1,6 +1,6 @@
 # MID DWD RUC/RUC-EPS Pipeline Contract
 
-Stand: v0.9.70.0
+Stand: v0.9.73.4
 
 ## Zweck und fachliche Rolle
 
@@ -20,7 +20,7 @@ RUC-EPS gehört wie ICON-D2-EPS zur Unabhängigkeitsgruppe `dwd-ensemble` und zu
 
 ## DWD-Open-Data-Aufbereitung
 
-Quelle sind die offiziellen DWD-Open-Data-Bäume `icon-d2-ruc` und `icon-d2-ruc-eps`. Der Vorprozessor sucht den jüngsten gemeinsamen vollständigen Lauf, liest die benötigten Parameterbäume rekursiv und dekodiert GRIB2 mit ecCodes ausschließlich in der GitHub-Actions-/Vorverarbeitungsstufe. Er wählt explizit die vollen Stunden 0…14; die native höherfrequente RUC-Zeitauflösung darf nicht versehentlich auf die ersten 15 Zeitschritte verkürzt werden.
+Quelle sind die offiziellen DWD-Open-Data-Bäume `icon-d2-ruc` und `icon-d2-ruc-eps`. Der Vorprozessor sucht den jüngsten gemeinsamen vollständigen Lauf, inventarisiert die benötigten Parameterbäume rekursiv und dekodiert GRIB2 mit ecCodes ausschließlich in der GitHub-Actions-/Vorverarbeitungsstufe. Für das 0–14-h-MID-Bundle werden anhand der DWD-Lead-Namen (`PTxxxHyyM`) bereits **vor dem Download** nur die ganzstündlichen Zielstände 0…14 ausgewählt; unbekannte Legacy-Namen bleiben fail-safe erhalten. Damit werden z. B. 5-minütige `TOT_PREC`-Zwischenstände nicht mehr hunderte Male unnötig heruntergeladen. Die native höherfrequente RUC-Zeitauflösung darf zugleich nicht versehentlich auf die ersten 15 Zeitschritte verkürzt werden. Downloads laufen mit begrenzter Parallelität und sichtbarer Fortschrittsausgabe; das teure native Lat/Lon-Gitter wird beim ecCodes-Decoding pro Parameter bzw. EPS-Gitter nur einmal extrahiert.
 
 Deterministisch werden mindestens Temperatur, Taupunkt, relative Feuchte, MSL-Druck, 10-m-Windkomponenten, Böen, Gesamtniederschlag, Gesamt-/tiefe Bewölkung, CAPE und CIN verarbeitet. RUC-EPS erzeugt für den normalen Forecast vorab je Punkt/Stunde Niederschlagswahrscheinlichkeit (>0,2 mm), signifikante Wahrscheinlichkeit (>5 mm), Mittel sowie Q25/Q50/Q75. Das gemeinsame native Gitter wird geprüft; uneinheitliche Gitter oder unzureichende räumliche Lookup-Abdeckung brechen die Veröffentlichung fail-closed ab.
 

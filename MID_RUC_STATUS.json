@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-08-28T20:50:07Z",
-  "releaseVersion": "0.9.69.2",
+  "updatedAt": "2026-08-29T13:22:37Z",
+  "releaseVersion": "0.9.73.5",
   "source": "DWD Open Data ICON-D2-RUC / ICON-D2-RUC-EPS",
   "deterministic": {
     "coverageBbox": [
@@ -13,7 +13,7 @@
     "forecastHours": 14,
     "updateHours": 1,
     "preprocessor": "tools/ruc/fetch_and_build_ruc.py + build_ruc_bundle.py",
-    "workerMode": "private R2 byte-range point adapter with cached immutable lookup and legacy endpoint fallback",
+    "workerMode": "free GitHub Pages pages-free-v1 static point adapter; optional private R2 fallback remains disabled",
     "ready": true
   },
   "ensemble": {
@@ -35,8 +35,8 @@
     "atomicLatest": true,
     "retainRuns": 4,
     "freshnessHours": 4,
-    "r2Binding": "MID_DWD_RUC_DATA",
-    "activationEnabled": false,
+    "r2Binding": "MID_DWD_RUC_DATA (optional only; disabled)",
+    "activationEnabled": true,
     "costApproval": false,
     "runImmutableLookup": true,
     "remoteSizeVerification": true,
@@ -44,7 +44,7 @@
     "customDomainRequired": false,
     "customDomainPublicApprovalRequired": true,
     "canonicalWorkflowMirror": "ci/github/workflows/mid-ruc-preprocess.yml",
-    "r2PrivateByDefault": true,
+    "r2PrivateByDefault": false,
     "r2DevEnabled": false,
     "orphanLifecycleHours": 48,
     "preflightPreservesCurrentLatestRun": true,
@@ -52,7 +52,12 @@
     "bootstrapActivationEnabled": false,
     "healthMode": "ruc-health",
     "postPublishHealthAutomation": true,
-    "healthUrlVariable": "MID_RUC_WORKER_HEALTH_URL"
+    "healthUrlVariable": "MID_RUC_WORKER_HEALTH_URL",
+    "primaryStorageProfile": "pages-free-v1",
+    "freePagesPrimary": true,
+    "downloadForecastHoursOnly": true,
+    "downloadWorkers": 8,
+    "downloadProgressLogging": true
   },
   "contracts": {
     "bestMatchRemainsBase": true,
@@ -63,25 +68,31 @@
   "liveSourceVerification": {
     "directoryStructureVerified": true,
     "productionIngestionExecuted": false,
-    "reason": "Code path and private R2 bootstrap are production-ready; actual R2 subscription, initial API token/secrets and one-time Worker binding remain explicit account gates."
+    "runId": 33253090396,
+    "runNumber": 3,
+    "headSha": "5e7e76bde21177c62dc4137028c421ad92755da0",
+    "state": "in-progress-at-v0.9.73.4-preparation",
+    "observedStep": "Neuesten vollständigen RUC/RUC-EPS-Lauf laden und dekodieren",
+    "reason": "The first free Pages production ingestion reached real DWD RUC/RUC-EPS download/decode, but the v0.9.73.3 downloader still fetched complete high-frequency parameter trees and had not published a snapshot after about 42 minutes. v0.9.73.4 narrows downloads to required integer-hour leads for the 0-14 h MID product, adds bounded progress-visible concurrency and avoids repeated GRIB latitude/longitude extraction."
   },
   "validation": {
-    "rucPipelineContract": "passed-v0.9.69.2",
-    "rucFusionRuntime": "passed-v0.9.69.2",
-    "workerSyntax": "passed-v0.9.69.2",
+    "rucPipelineContract": "passed-v0.9.73.4",
+    "rucFusionRuntime": "passed-v0.9.73.4",
+    "rucPagesFreeStorage": "passed-v0.9.73.4",
+    "rucStorageHealthRuntime": "passed-v0.9.73.4",
+    "favoriteStorageMirrorRevision": "passed-v0.9.73.4",
+    "favoriteAuthoritativePersistence": "passed-v0.9.73.4",
+    "favoriteOrderPersistence": "passed-v0.9.73.4",
+    "stateIntegrityContract": "passed-v0.9.73.4",
+    "storageQuotaResilience": "passed-v0.9.73.4",
+    "workerSyntax": "passed-v0.9.73.4",
     "workerAggregatesIdentical": true,
-    "fullRegressionLocal": "550/559 passed; 9 dependency-startup-blocked only: 7 require missing local TypeScript binary/package, 2 require missing esbuild; zero functional assertion failures",
+    "fullRegressionLocal": "dependency-startup-blocked: local node_modules is incomplete; targeted RUC/favorites/storage regressions passed with zero functional assertion failures",
     "functionalAssertionFailuresRemaining": 0,
     "releaseCiRequired": true,
-    "rucPackContract": "passed-v0.9.69.2",
-    "rucPublisherRuntime": "passed-v0.9.69.2",
-    "targetedReleaseGates": "passed-v0.9.69.2",
-    "typescript": "blocked-local-dependency-tree: node_modules/.bin/tsc absent after npm registry EAI_AGAIN",
-    "viteBuild": "blocked-local-dependency-tree: node_modules/.bin/vite and esbuild absent; npm registry EAI_AGAIN",
-    "capacitorSync": "blocked-by-same-local-dependency-tree: node_modules/.bin/cap absent; no native plugin change",
-    "rucCloudflareBootstrap": "passed-v0.9.69.2",
-    "rucStorageHealthRuntime": "passed-v0.9.69.2",
-    "rucDeployedHealthCheck": "passed-v0.9.69.2",
-    "dependencyAudit": "blocked-network: npm audit registry request EAI_AGAIN"
+    "typescript": "blocked-local-dependency-tree: required npm packages are missing locally; GitHub release CI remains the authoritative full TypeScript gate",
+    "viteBuild": "blocked-local-dependency-tree: required npm packages/esbuild are missing locally; GitHub release CI remains the authoritative production-build gate",
+    "capacitorSync": "blocked-by-same-local-dependency-tree; no native plugin change in v0.9.73.4",
+    "dependencyAudit": "release-CI-required"
   }
 }

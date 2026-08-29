@@ -14,18 +14,22 @@ from ruc_pack import DEFAULT_FIELDS,EPS_SUMMARY_FIELDS,pack_cell_major,pack_eps_
 PARAM_MAP={'T_2M':'temperature_2m','TD_2M':'dew_point_2m','RELHUM_2M':'relative_humidity_2m','PMSL':'pressure_msl','U_10M':'u10','V_10M':'v10','VMAX_10M':'wind_gusts_10m','TOT_PREC':'precipitation_acc','CLCT':'cloud_cover','CLCL':'cloud_cover_low','CAPE_ML':'cape','CIN_ML':'convective_inhibition'}
 RUC_BBOX=(-3.85,43.18,20.22,58.05)
 
-def read_messages(path:Path,ensemble=False):
+def read_messages(path:Path,ensemble=False,include_grid=True):
     try: from eccodes import codes_grib_new_from_file,codes_get,codes_get_array,codes_release
     except Exception as e: raise SystemExit('eccodes Python package required for production GRIB ingestion') from e
     opener=bz2.open if path.suffix=='.bz2' else open
+    grid_pending=include_grid
     with opener(path,'rb') as f:
       while True:
         gid=codes_grib_new_from_file(f)
         if gid is None: break
         try:
           vals=np.asarray(codes_get_array(gid,'values'),dtype=np.float32)
-          try:lats=np.asarray(codes_get_array(gid,'latitudes'),dtype=np.float32);lons=np.asarray(codes_get_array(gid,'longitudes'),dtype=np.float32)
-          except Exception:lats=lons=None
+          if grid_pending:
+            try:lats=np.asarray(codes_get_array(gid,'latitudes'),dtype=np.float32);lons=np.asarray(codes_get_array(gid,'longitudes'),dtype=np.float32)
+            except Exception:lats=lons=None
+            grid_pending=False
+          else:lats=lons=None
           valid=datetime.strptime(f"{int(codes_get(gid,'validityDate')):08d}{int(codes_get(gid,'validityTime')):04d}",'%Y%m%d%H%M').replace(tzinfo=timezone.utc)
           member=0
           if ensemble:
@@ -55,7 +59,7 @@ def same_grid(base_lats,base_lons,lats,lons,tolerance=2e-4):
 def collect_parameter(files,name,targets,base_grid=None):
     rows={};grid=None
     for file in files:
-      for valid,_member,vals,lats,lons,units in read_messages(file):
+      for valid,_member,vals,lats,lons,units in read_messages(file,include_grid=grid is None):
         if valid not in targets:continue
         if grid is None and lats is not None and lons is not None:grid=(lats,lons)
         rows[valid]=normalize(name,vals,units)
@@ -87,7 +91,7 @@ def build_lookup(lats,lons,output:Path,step=.025,max_distance_km=5.0):
 def collect_eps(files,targets,base_grid):
     rows={t:{} for t in targets};eps_grid=None
     for file in files:
-      for valid,member,vals,lats,lons,units in read_messages(file,ensemble=True):
+      for valid,member,vals,lats,lons,units in read_messages(file,ensemble=True,include_grid=eps_grid is None):
         if valid not in rows:continue
         if eps_grid is None and lats is not None and lons is not None:eps_grid=(lats,lons)
         rows[valid][member]=normalize('precipitation_acc',vals,units)

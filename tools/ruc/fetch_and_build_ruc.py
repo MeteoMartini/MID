@@ -19,6 +19,8 @@ EPS_BASE='https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc-eps/p'
 REQUIRED=('T_2M','TD_2M','RELHUM_2M','PMSL','U_10M','V_10M','VMAX_10M','TOT_PREC','CLCT','CLCL','CAPE_ML','CIN_ML')
 RUN_RE=re.compile(r'^20\d\d-\d\d-\d\dT\d\d:\d\d/$')
 GRIB_RE=re.compile(r'\.(?:grib2|grb2)(?:\.bz2)?$',re.I)
+LEAD_RE=re.compile(r'PT(?P<hours>\d{3})H(?P<minutes>\d{2})M',re.I)
+DEFAULT_DOWNLOAD_WORKERS=8
 
 class Links(html.parser.HTMLParser):
  def __init__(self):super().__init__();self.href=[]
@@ -62,6 +64,17 @@ def crawl_files(s,root,max_depth=7):
    elif GRIB_RE.search(urlparse(absolute).path):files.append(absolute)
  return sorted(set(files))
 
+def forecast_lead_minutes(url):
+ path=unquote(urlparse(url).path);match=LEAD_RE.search(path)
+ if not match:return None
+ return int(match.group('hours'))*60+int(match.group('minutes'))
+
+def select_requested_hourly_files(files,hours):
+ limit=max(0,int(hours))*60
+ # DWD filenames expose the forecast lead (PTxxxHyyM). MID's compact RUC bundle
+ # needs integer hours only; unknown legacy filenames are kept fail-safe.
+ return [url for url in files if (lead:=forecast_lead_minutes(url)) is None or (lead<=limit and lead%60==0)]
+
 def download_one(url,target):
  target.parent.mkdir(parents=True,exist_ok=True)
  if target.exists() and target.stat().st_size>100:return
@@ -74,20 +87,30 @@ def download_one(url,target):
  if not tmp.exists() or tmp.stat().st_size<80:raise RuntimeError(f'suspiciously small DWD file {url}')
  tmp.replace(target)
 
-def stage_tree(s,url,target):
- files=crawl_files(s,url)
- if not files:raise RuntimeError(f'No GRIB2 files under {url}')
+def stage_tree(s,url,target,hours,label):
+ discovered=crawl_files(s,url)
+ if not discovered:raise RuntimeError(f'No GRIB2 files under {url}')
+ files=select_requested_hourly_files(discovered,hours)
+ if not files:raise RuntimeError(f'No requested hourly GRIB2 files under {url}')
  root=url if url.endswith('/') else url+'/'
+ workers=max(1,min(12,int(os.getenv('MID_RUC_DOWNLOAD_WORKERS',str(DEFAULT_DOWNLOAD_WORKERS))),len(files)))
+ print(f'{label}: selected {len(files)}/{len(discovered)} GRIB files for hourly leads 0..{hours}h; {workers} download workers',flush=True)
  def job(file_url):
   rel=unquote(urlparse(file_url).path[len(urlparse(root).path):]).lstrip('/');download_one(file_url,target/rel);return rel
- with concurrent.futures.ThreadPoolExecutor(max_workers=6) as pool:return list(pool.map(job,files))
+ rows=[];completed=0;report_every=max(1,min(10,len(files)//3 or 1))
+ with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as pool:
+  futures=[pool.submit(job,file_url) for file_url in files]
+  for future in concurrent.futures.as_completed(futures):
+   rows.append(future.result());completed+=1
+   if completed==len(files) or completed%report_every==0:print(f'{label}: downloaded {completed}/{len(files)}',flush=True)
+ return sorted(rows)
 
 def build_candidate(s,run,stage_root,output,hours):
  run_key=re.sub(r'[^0-9A-Za-z_-]','',run);stage=stage_root/run_key;tmp=output.parent/f'.{output.name}.{run_key}.tmp'
  shutil.rmtree(stage,ignore_errors=True);shutil.rmtree(tmp,ignore_errors=True);stage.mkdir(parents=True,exist_ok=True);tmp.mkdir(parents=True,exist_ok=True)
  for param in REQUIRED:
-  rows=stage_tree(s,f'{DET_BASE}/{param}/r/{run}/',stage/'deterministic'/param);print(f'{run} {param}: {len(rows)} GRIB files',flush=True)
- eps_rows=stage_tree(s,f'{EPS_BASE}/TOT_PREC/r/{run}/',stage/'eps'/'TOT_PREC');print(f'{run} RUC-EPS TOT_PREC: {len(eps_rows)} GRIB files',flush=True)
+  rows=stage_tree(s,f'{DET_BASE}/{param}/r/{run}/',stage/'deterministic'/param,hours,f'{run} {param}');print(f'{run} {param}: {len(rows)} staged GRIB files',flush=True)
+ eps_rows=stage_tree(s,f'{EPS_BASE}/TOT_PREC/r/{run}/',stage/'eps'/'TOT_PREC',hours,f'{run} RUC-EPS TOT_PREC');print(f'{run} RUC-EPS TOT_PREC: {len(eps_rows)} staged GRIB files',flush=True)
  builder=Path(__file__).with_name('build_ruc_bundle.py');subprocess.run([sys.executable,str(builder),'--staging',str(stage),'--output',str(tmp),'--run',run,'--hours',str(hours)],check=True)
  required=('deterministic.bin','eps-summary.bin','eps-members.bin','lookup.bin','latest.json')
  missing=[name for name in required if not (tmp/name).is_file() or (tmp/name).stat().st_size<2]

@@ -1,3 +1,16 @@
+## v0.9.73.5
+
+- Release-Gate-Hotfix: historische Extremwetter-Persistenzregression auf den aktuellen semantischen StorageSafety-Revisionsvergleich angepasst.
+- RUC-Workflow-Spiegel wieder byteidentisch zum geschützten produktiven `.github`-Workflow; die Beschleunigung bleibt vollständig im Python-Fetcher und benötigt keine Workflowänderung.
+- v0.9.73.4-Favoriten- und RUC-Fachfixes unverändert beibehalten; keine Worker-/R2-/Apple-/Kostenänderung.
+
+## v0.9.73.4
+
+- RUC-Preprocessing beschleunigt: Für das 0–14-h-Bundle werden aus DWD-`PTxxxHyyM`-Bäumen vor dem Download nur die 15 benötigten vollen Stunden ausgewählt; 5-/15-Minuten-Zwischenstände und spätere Leads werden nicht mehr unnötig geladen.
+- RUC-Download mit begrenzten 8 parallelen Transfers und sichtbarem Fortschritt; ecCodes extrahiert das native Lat/Lon-Gitter pro Parameter/EPS-Gitter nur einmal.
+- Favoriten-Dauerhaftigkeit repariert: StorageSafety vergleicht Primär-/Shadow-Favoriten jetzt über `mid:favorites:updated-at`, sodass ein älterer IndexedDB-Mirror einen neueren nativen Favoritenstand nach Suspend/Reload nicht mehr zurücksetzen kann.
+- Keine fachliche Worker-, R2-, Apple-Capability- oder Kostenänderung.
+
 ## 0.9.73.1
 
 ## v0.9.73.3

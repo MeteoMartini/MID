@@ -20,7 +20,7 @@ assert.ok(modelledAreas.includes('maximumProbability:60'),'Teilflächenschraffur
 for(const token of ['pointInRing','normalizeOrientation','contourPolygons',"type:'MultiPolygon'"])assert.ok(geojsonSource.includes(token),`Verschachtelte Teilflächenschraffur fehlt: ${token}`);
 assert.ok(canvasSource.includes('maximumProbability?:number')&&canvasSource.includes('probability>=threshold&&probability<maximumProbability'));
 for(const token of ['updatedAt?:string','const migrated=','writeDashboardModuleSettings(normalized)','previous+1'])assert.ok(dashboard.includes(token),`Dashboard-Revisionierung fehlt: ${token}`);
-for(const token of ['localRevision','mirrorRevision','localRevision>mirrorRevision'])assert.ok(storageSafety.includes(token),`Spiegelkonfliktschutz fehlt: ${token}`);
+for(const token of ['localRevision','mirrorRevision'])assert.ok(storageSafety.includes(token),`Spiegelkonfliktschutz fehlt: ${token}`);assert.ok(storageSafety.includes('localRevision>mirroredRevision')||storageSafety.includes('localRevision>mirrorRevision'),'Spiegelkonfliktschutz fehlt: lokale fachliche Revision muss gegen die Spiegelrevision gewinnen.');
 for(const token of ['mergeDashboardModuleSettings','preserveLocalDashboard','Neuere lokale Sektionsreihenfolge wurde geschützt'])assert.ok(deviceSync.includes(token),`Geräteabgleich schützt die Sektionsreihenfolge nicht: ${token}`);
 assert.ok(worker.includes('markante Wettergefahr')&&worker.includes('extremes Unwetterpotenzial'));
 
