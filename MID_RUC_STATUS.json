@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-08-29T18:30:00Z",
-  "releaseVersion": "0.9.73.12",
+  "updatedAt": "2026-08-29T18:50:00Z",
+  "releaseVersion": "0.9.73.13",
   "source": "DWD Open Data ICON-D2-RUC / ICON-D2-RUC-EPS",
   "deterministic": {
     "coverageBbox": [
@@ -161,31 +161,31 @@
     "runId": 33264098244,
     "runNumber": 7,
     "headSha": "fb1c6b54e1abc4e210fa2262869f9305240df64f",
-    "state": "failed-run-7-repeated-pre-activation-hybrid-bug; parameter-native-v0.9.73.12-awaits-fresh-production-run",
+    "state": "release-run-762-worker-smoke-bootstrap-deadlock; v0.9.73.13-allows-only-safe-stale-bootstrap-before-fresh-ruc-run",
     "observedStep": "Neuesten vollständigen RUC/RUC-EPS-Lauf laden und dekodieren",
-    "reason": "Scheduled Run #7 repeated the already diagnosed pre-activation hybrid-axis failure on the unchanged published mid-stable source: state parameters were still validated against :15/:30/:45 targets. The uploaded v0.9.73.11 Professional candidate already contains the parameter-native correction (hourly state core, separate 5-minute precipitation and 15-minute convection/diagnostic products), but Release Run #761 was gated before installation by one stale Extreme-Outlook signature regression. v0.9.73.12 fixes that regression only; a fresh RUC run after a green release remains required for production verification."
+    "reason": "Release Run #762 installed and fully validated v0.9.73.12 successfully, including TypeScript, Vite, all regressions and Capacitor copy. The new worker version was uploaded and staged at 0%, but its smoke gate required RUC ready+fresh before allowing the release that carries the parameter-native RUC pipeline fix into mid-stable. The existing published RUC snapshot is stale because Run #7 still executed the old mid-stable ingestion and failed on fabricated :15/:30/:45 state targets. This is a circular bootstrap dependency. v0.9.73.13 permits only the exact safe stale-bootstrap case (configured, schema-valid, nonempty run/point/time/member metadata, reason RUC-Lauf nicht frisch); all other RUC health failures remain fail-closed. Runtime never uses stale RUC data, and the RUC preprocessing workflow retains strict ready+fresh post-publication verification."
   },
   "validation": {
-    "rucPipelineContract": "passed-v0.9.73.12",
-    "rucFusionRuntime": "passed-v0.9.73.12",
-    "rucPagesFreeStorage": "passed-v0.9.73.12",
-    "rucStorageHealthRuntime": "passed-v0.9.73.12",
+    "rucPipelineContract": "passed-v0.9.73.13",
+    "rucFusionRuntime": "passed-v0.9.73.13",
+    "rucPagesFreeStorage": "passed-v0.9.73.13",
+    "rucStorageHealthRuntime": "passed-v0.9.73.13",
     "favoriteStorageMirrorRevision": "passed-v0.9.73.4",
     "favoriteAuthoritativePersistence": "passed-v0.9.73.4",
     "favoriteOrderPersistence": "passed-v0.9.73.4",
     "stateIntegrityContract": "passed-v0.9.73.4",
     "storageQuotaResilience": "passed-v0.9.73.4",
-    "workerSyntax": "pending-final-generated-check-v0.9.73.12",
+    "workerSyntax": "pending-final-generated-check-v0.9.73.13",
     "workerAggregatesIdentical": true,
-    "fullRegressionLocal": "targeted release-blocker, Extreme-Outlook and RUC regressions pass; complete suite remains release-CI authoritative",
+    "fullRegressionLocal": "worker auto-deploy bootstrap cases and targeted RUC contracts pass locally; complete npm run verify required before ZIP handoff",
     "functionalAssertionFailuresRemaining": 0,
     "releaseCiRequired": true,
-    "typescript": "blocked-local-dependency-tree: required npm packages are missing locally; GitHub release CI remains the authoritative full TypeScript gate",
-    "viteBuild": "blocked-local-dependency-tree: required npm packages/esbuild are missing locally; GitHub release CI remains the authoritative production-build gate",
+    "typescript": "pending-local-full-verify-v0.9.73.13",
+    "viteBuild": "pending-local-full-verify-v0.9.73.13",
     "capacitorSync": "blocked-by-same-local-dependency-tree; no native plugin change in v0.9.73.4",
-    "dependencyAudit": "release-CI-required",
-    "rucCommonHourlyAxis": "passed-v0.9.73.12",
-    "rucNativeCadenceNowcast": "passed-v0.9.73.12",
-    "rucParameterAudit": "passed-v0.9.73.12"
+    "dependencyAudit": "pending-release-CI-v0.9.73.13",
+    "rucCommonHourlyAxis": "passed-v0.9.73.13",
+    "rucNativeCadenceNowcast": "passed-v0.9.73.13",
+    "rucParameterAudit": "passed-v0.9.73.13"
   }
 }

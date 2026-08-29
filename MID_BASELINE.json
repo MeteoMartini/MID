@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.73.12",
+  "releaseVersion": "0.9.73.13",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -905,5 +905,8 @@
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md"
+  ],
+  "implementationProof": [
+    "MID_IMPLEMENTATION_0.9.73.13.md"
   ]
 }

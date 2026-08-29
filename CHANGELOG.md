@@ -1,3 +1,10 @@
+## v0.9.73.13
+
+- Release-Run #762 vollständig analysiert: ZIP, Dependencies, TypeScript, Vite, Regressionen und Capacitor waren grün; der einzige Fehler lag im separaten Worker-Smoke, weil ein stale RUC-Snapshot die Promotion blockierte.
+- Zirkuläres RUC-Bootstrap-Gate behoben: Ein **schema- und metadatenvalider** Snapshot mit exakt `RUC-Lauf nicht frisch` darf den Worker-Release einmalig bootstrap-sicher passieren; alle anderen RUC-Healthfehler bleiben fail-closed.
+- Stale RUC-Daten bleiben im Forecast weiterhin deaktiviert; der RUC-Preprocessor verlangt nach Veröffentlichung unverändert einen echten `ready + fresh`-Lauf.
+- Automatischer 0-%-Worker-Smoke, Rollback und Kostenvertrag bleiben unverändert; kein manueller Worker-Upload und kein R2 erforderlich.
+
 ## v0.9.73.12
 
 - Release-CI-Hotfix nach Run #761: veraltete exakte Extremwetter-Funktionssignatur-Regression an die bereits gültige `env`-Verdrahtung angepasst; fachlicher Mitteleuropa-Extremwetterpfad unverändert.

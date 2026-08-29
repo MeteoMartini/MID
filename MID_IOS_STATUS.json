@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-08-29T18:30:00Z",
-  "releaseVersion": "0.9.73.12",
+  "updatedAt": "2026-08-29T18:50:00Z",
+  "releaseVersion": "0.9.73.13",
   "sourceBaseline": {
     "professionalVersion": "0.9.70.2",
     "workerVersion": "0.9.70.2",
@@ -54,14 +54,15 @@
     "ruc-model-text-regression-hotfix-0.9.73.8",
     "app-logo-selection-and-cloud-profile-card-alignment-0.9.73.9",
     "ruc-common-hourly-axis-production-ingestion-fix-0.9.73.10",
-    "ruc-parameter-native-rapid-products-and-appwide-audit-0.9.73.11"
+    "ruc-parameter-native-rapid-products-and-appwide-audit-0.9.73.11",
+    "worker-ruc-stale-bootstrap-deadlock-hotfix-0.9.73.13"
   ],
   "nextMilestone": "macos-xcode-simulator-quality-assurance",
   "validation": {
-    "browserBuild": "Run #761 erreichte mit v0.9.73.11 erneut den Release-CI-Regressionsteil, scheiterte aber ausschließlich an der historischen exakten Funktionssignatur-Prüfung für dachExtremeOutlookData; v0.9.73.12 aktualisiert nur diesen Schutztest semantisch. Der vollständige TypeScript-/Vite-/Regression-/Capacitor-Gate-Lauf bleibt vor Aktivierung verbindlich.",
-    "typescript": "Für den v0.9.73.11-Kandidaten war der beobachtete Blocker in Run #761 eine veraltete Regression, kein gemeldeter TypeScript-Fehler. v0.9.73.12 benötigt dennoch den vollständigen Release-CI-Nachweis.",
-    "workerSyntax": "v0.9.73.11 changes Worker RUC rapid/specialist/extreme semantics; generated aggregates must be synchronized and node --check must pass. Normal semantic Worker deploy is required after full release CI; no manual upload.",
-    "regressions": "Run #761 scheiterte an genau der historischen Assertion async function dachExtremeOutlookData(profile='full'), obwohl der gültige Worker-Vertrag seit der env-Verdrahtung async function dachExtremeOutlookData(profile='full',env={}) lautet. v0.9.73.12 prüft nun die aktuelle env-Signatur; gezielte Extremwetter- und RUC-Verträge sind lokal grün.",
+    "browserBuild": "Release Run #762: ZIP-Installation, npm ci, Dependency-Audit, TypeScript, Vite-Produktionsbuild, vollständige Regressionen und Capacitor-iOS-Kopie waren grün. Der Lauf scheiterte erst im separaten automatischen Worker-Deploy-Smoke an einem veralteten RUC-Snapshot (configured=true, ready=false, fresh=false, reason=RUC-Lauf nicht frisch). v0.9.73.13 löst ausschließlich diesen Bootstrap-Zirkel fail-safe.",
+    "typescript": "Run #762 hat TypeScript für v0.9.73.12 erfolgreich abgeschlossen; v0.9.73.13 ändert nur die Worker-Deploy-Health-Gate-Logik und deren Regressionstest. Vollständiger Release-CI bleibt verbindlich.",
+    "workerSyntax": "Der Worker-Kandidat v0.9.73.12 wurde in Run #762 erfolgreich hochgeladen und bei 0 % bereitgestellt; die Promotion wurde wegen stale RUC blockiert und automatisch auf v0.9.73.8 zurückgerollt. v0.9.73.13 erlaubt beim Release-Smoke nur einen strukturell gültigen stale-RUC-Bootstrap, während die RUC-Runtime stale Daten weiterhin fail-closed ignoriert.",
+    "regressions": "Run #762: vollständige Release-Regressionen grün. Zusätzlich schützt v0.9.73.13 drei Worker-Smoke-Fälle: ready/fresh akzeptiert; stale aber schema-valid/metadata-valid Bootstrap akzeptiert; ungültiges RUC-Schema bleibt harter Fehler.",
     "capacitorSync": "embedded ios/App/App/public remains honestly at v0.9.68.2; do not retag. Full npm run ios:sync/cap copy ios must run at the macOS/Xcode quality gate after release CI dependencies are available.",
     "xcodeProjectStructure": "App and MIDWidgets each bundle PrivacyInfo.xcprivacy; plist/project lint and Swift parse pass; Push/BGRefresh remain dormant and no ATT/push/background entitlement is activated.",
     "xcodeAppleSdkBuild": "required-next-gate-macos-xcode-simulator; includes Apple SDK build, simulator launch, Privacy Report inspection and post-sync structure verification."
