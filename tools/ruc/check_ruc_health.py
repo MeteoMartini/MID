@@ -29,9 +29,14 @@ def check(payload:dict,run:str)->None:
     if str(payload.get('run',''))!=run:
         raise RuntimeError(f'worker RUC run {payload.get("run")!r} does not match published run {run!r}')
     objects=payload.get('objectsPresent') or {}
-    for key in ('lookup','deterministic','epsSummary','epsMembers'):
+    for key in ('lookup','deterministic','epsSummary'):
         if objects.get(key) is not True:
             raise RuntimeError(f'worker RUC object {key} is not present')
+    backend=str(payload.get('backend') or '')
+    if backend=='r2' and objects.get('epsMembers') is not True:
+        raise RuntimeError('worker RUC native EPS object is not present for R2 backend')
+    if backend=='pages' and payload.get('nativeEpsMembers') is not False:
+        raise RuntimeError('GitHub Pages free profile must explicitly omit native EPS members')
     if int(payload.get('timeCount') or 0)<4 or int(payload.get('pointCount') or 0)<1 or int(payload.get('epsMemberCount') or 0)<2:
         raise RuntimeError('worker RUC metadata counts are incomplete')
 
@@ -48,7 +53,7 @@ def main()->int:
         if response.status!=200: raise RuntimeError(f'worker RUC health HTTP {response.status}')
         payload=json.loads(response.read().decode())
     check(payload,run)
-    print(f'MID RUC health OK: run={run}, ageHours={payload.get("ageHours")}, points={payload.get("pointCount")}, epsMembers={payload.get("epsMemberCount")}')
+    print(f'MID RUC health OK: backend={payload.get("backend")}, run={run}, ageHours={payload.get("ageHours")}, points={payload.get("pointCount")}, epsMembers={payload.get("epsMemberCount")}')
     return 0
 
 if __name__=='__main__':

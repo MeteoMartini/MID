@@ -1,11 +1,11 @@
 {
   "schema": 1,
-  "updatedAt": "2026-08-29T05:55:00Z",
-  "releaseVersion": "0.9.69.6",
+  "updatedAt": "2026-08-29T07:19:00Z",
+  "releaseVersion": "0.9.70.0",
   "sourceBaseline": {
-    "professionalVersion": "0.9.66.19",
-    "workerVersion": "0.9.66.19",
-    "regressionsPassed": 547
+    "professionalVersion": "0.9.69.6",
+    "workerVersion": "0.9.69.6",
+    "regressionsPassed": 560
   },
   "strategy": "shared-react-vite-core-with-capacitor-ios-shell",
   "browserDevelopmentContinues": true,
@@ -36,16 +36,20 @@
     "shared-safe-automatic-cloudflare-worker-deploy-0.9.69.3",
     "worker-deploy-empty-placement-hotfix-0.9.69.4",
     "worker-deploy-absolute-entry-point-hotfix-0.9.69.5",
-    "worker-deploy-wrangler-action-output-hotfix-0.9.69.6"
+    "worker-deploy-wrangler-action-output-hotfix-0.9.69.6",
+    "560-regressions-release-baseline-verified",
+    "mitteleuropa-extreme-outlook-recovery-and-map-context-0.9.69.7",
+    "free-ruc-github-pages-publication-without-paid-storage-0.9.70.0",
+    "day-detail-probability-and-dark-wind-contrast-0.9.70.0"
   ],
   "nextMilestone": "lifecycle-offline-resume-without-local-data-loss",
   "validation": {
-    "browserBuild": "pending-release-ci-v0.9.69.6: v0.9.69.5 CI build and full regressions passed before Worker version-id parser gate; no React/Vite fachcore change",
-    "typescript": "pending-release-ci-v0.9.69.6: hotfix limited to Cloudflare deployment tooling/workflow output plumbing",
-    "workerSyntax": "passed-v0.9.69.6; worker fachcode unchanged except synchronized release version",
-    "regressions": "targeted worker-auto-deploy Wrangler command-output regression passed-v0.9.69.6; full release CI required before promotion",
-    "capacitorSync": "pending-release-ci-v0.9.69.6: no native plugin or shared fachcore change introduced",
-    "xcodeProjectStructure": "passed-static-v0.9.69.6; shared React/Vite core, no iOS fork, marketing 0.9.69 build 7; no native capability change",
+    "browserBuild": "pending-release-ci-v0.9.70.0: local dependency tree unavailable; full Vite production build remains release gate",
+    "typescript": "pending-release-ci-v0.9.70.0: project-local TypeScript dependency unavailable in current unpacked workspace",
+    "workerSyntax": "passed-local-v0.9.70.0",
+    "regressions": "targeted Mitteleuropa, RUC Pages-free, day-detail probability/dark-wind and Worker regressions passed; full suite requires project-local TypeScript/esbuild for remaining AST/build tests",
+    "capacitorSync": "pending-release-ci-v0.9.70.0; shared React/Vite core only, no native fork",
+    "xcodeProjectStructure": "passed-static-v0.9.70.0; marketing 0.9.70 build 1; no native capability change",
     "xcodeAppleSdkBuild": "pending-macos-runtime"
   },
   "costGate": {
@@ -55,8 +59,7 @@
       "testflight",
       "app-store-submission",
       "paid-macos-ci",
-      "ruc-r2-bucket-or-paid-storage",
-      "ruc-pipeline-cost-bearing-activation"
+      "ruc-r2-bucket-or-paid-storage"
     ],
     "approved": false
   }

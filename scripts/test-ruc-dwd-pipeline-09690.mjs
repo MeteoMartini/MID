@@ -7,7 +7,9 @@ const must=(condition,message)=>{if(!condition)throw new Error(message)};
 must(worker.includes("bbox:[-3.85,43.18,20.22,58.05]"),'RUC must use verified DWD domain');
 must(worker.includes("meta.schema!=='mid.dwd.ruc.grid.v2'"),'Worker must reject other RUC wire schemas');
 must(worker.includes('Date.now()-stamp<=4*3600000'),'Worker must reject stale RUC products');
-must(worker.includes('dwdRucR2PointPayload')&&worker.includes('dwdRucEpsSummaryR2Payload')&&worker.includes('dwdRucEpsR2Payload'),'R2 deterministic, preaggregated EPS and native-event EPS adapters required');
+must(worker.includes('dwdRucR2PointPayload')&&worker.includes('dwdRucEpsSummaryR2Payload')&&worker.includes('dwdRucEpsR2Payload'),'Optional R2 deterministic, preaggregated EPS and native-event EPS adapters required');
+must(worker.includes('dwdRucStaticPointPayload')&&worker.includes('dwdRucEpsSummaryStaticPayload')&&worker.includes("pages-free-v1"),'Free GitHub Pages deterministic and preaggregated EPS adapters required');
+must(worker.includes('dwdRucStorageHealth')&&worker.includes("DWD_RUC_STATIC_DEFAULT='https://midwx.app/ruc/'"),'Backend-neutral RUC health/static default missing');
 must(worker.includes("aggregation:'preprocessed'")&&worker.includes("aggregation:'native-members-event-only'"),'Normal EPS path must use preaggregation and native members only for event path');
 must(worker.includes('dwdRucLatestCache')&&worker.includes('dwdRucLookupCache'),'R2 latest/lookup metadata must be bounded-cached');
 must(worker.includes('dwdRucR2Health')&&router.includes("mode==='ruc-health'")&&router.includes("'ruc-storage-health'"),'RUC health route missing');
@@ -36,14 +38,15 @@ must(builder.includes("lookup_key=f'runs/{run_key}/lookup.bin'"),'Lookup must be
 must(!builder.includes("lookup_key='grid/lookup.bin'"),'Global mutable lookup is forbidden');
 
 // GitHub Actions + R2 publication safety/cost contract.
-must(workflow.includes("vars.MID_RUC_PIPELINE_ENABLED == 'true'"),'RUC pipeline must remain behind explicit activation/cost gate');
+must(workflow.includes("vars.MID_RUC_PIPELINE_ENABLED == 'true'"),'RUC pipeline must remain behind explicit technical activation gate');
 must(!/uses:\s+[^\n]+@(v\d+|main|master)\b/.test(workflow),'GitHub Actions must be commit-SHA pinned');
-must(workflow.includes('tools/ruc/publish_ruc_r2.sh'),'Workflow must delegate atomic R2 publication to tested publisher');
-must(workflow.includes('MID_RUC_WORKER_HEALTH_URL')&&workflow.includes('tools/ruc/check_ruc_health.py'),'Published run must support an optional deployed Worker health smoke check');
+must(workflow.includes('tools/ruc/prepare_ruc_pages.py')&&workflow.includes('actions/upload-pages-artifact@')&&workflow.includes('actions/deploy-pages@'),'Primary workflow must publish the free GitHub Pages profile');
+must(!workflow.includes('MID_RUC_R2_ACCESS_KEY_ID')&&!workflow.includes('MID_RUC_R2_SECRET_ACCESS_KEY')&&!workflow.includes('tools/ruc/publish_ruc_r2.sh'),'Primary free workflow must not require R2 credentials or publication');
+must(workflow.includes('MID_RUC_WORKER_HEALTH_URL')&&workflow.includes('MID_WORKER_HEALTH_URL')&&workflow.includes('tools/ruc/check_ruc_health.py'),'Published free run must support deployed Worker health smoke check');
 must(healthCheck.includes("payload.get('run','')")&&healthCheck.includes("'ready':True")&&healthCheck.includes("'fresh':True"),'Health smoke must require the exact published run to be fresh and ready');
 must(workflow===canonicalWorkflow,'RUC workflow must be mirrored byte-identically in ci/github for protected administrative sync');
 must(workflowSync.includes("['workflows/mid-ruc-preprocess.yml','workflows/mid-ruc-preprocess.yml']")&&workflowSync.includes("['workflows/mid-ruc-cloudflare-bootstrap.yml','workflows/mid-ruc-cloudflare-bootstrap.yml']")&&workflowSync.includes('SETUP_PYTHON_V5_SHA'),'Administrative workflow sync must manage both RUC workflows and setup-python SHA pin');
-must(publisher.includes('runs/${RUN}/lookup.bin')||publisher.includes('runs/${RUN}/${name}'),'Publisher must upload lookup with immutable run prefix');
+must(publisher.includes('runs/${RUN}/lookup.bin')||publisher.includes('runs/${RUN}/${name}'),'Optional R2 publisher must upload lookup with immutable run prefix');
 must(publisher.includes('eps-summary.bin')&&publisher.includes('eps-members.bin'),'Publisher must upload EPS summary and native-event member products');
 must(publisher.indexOf('for name in "${objects[@]}"')<publisher.indexOf('s3://${BUCKET}/latest.json'),'Immutable run objects must be handled before latest pointer');
 must(publisher.includes("cache-control 'public,max-age=31536000,immutable'")&&publisher.includes("cache-control 'no-cache,max-age=0,must-revalidate'"),'Run/latest cache contracts missing');
@@ -67,4 +70,4 @@ must(bootstrapWorkflow===canonicalBootstrapWorkflow,'Cloudflare bootstrap workfl
 must(bootstrapWorkflow.includes("vars.MID_RUC_CLOUDFLARE_BOOTSTRAP_ENABLED == 'true'")&&bootstrapWorkflow.includes('MID_RUC_CLOUDFLARE_BOOTSTRAP_TOKEN'),'One-time Cloudflare bootstrap must remain behind a separate explicit gate');
 must(!/uses:\s+[^\n]+@(v\d+|main|master)\b/.test(bootstrapWorkflow),'Cloudflare bootstrap Actions must be commit-SHA pinned');
 must(!/delete.+bucket/i.test(bootstrap),'Bootstrap must not contain destructive bucket deletion');
-console.log('RUC DWD pipeline contract OK');
+console.log('RUC DWD pipeline contract OK (free GitHub Pages primary path, R2 optional)');

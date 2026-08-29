@@ -10,7 +10,7 @@ assert mod.health_url('https://mid.example/worker?x=1&mode=old')=='https://mid.e
 with tempfile.TemporaryDirectory() as td:
  p=Path(td)/'latest.json';p.write_text(json.dumps({'schema':'mid.dwd.ruc.grid.v2','run':'2026082822'}))
  assert mod.expected_run(str(p))=='2026082822'
- good={'configured':True,'ready':True,'fresh':True,'schemaValid':True,'run':'2026082822','timeCount':15,'pointCount':542040,'epsMemberCount':20,'objectsPresent':{'lookup':True,'deterministic':True,'epsSummary':True,'epsMembers':True}}
+ good={'configured':True,'ready':True,'fresh':True,'schemaValid':True,'backend':'r2','run':'2026082822','timeCount':15,'pointCount':542040,'epsMemberCount':20,'nativeEpsMembers':True,'objectsPresent':{'lookup':True,'deterministic':True,'epsSummary':True,'epsMembers':True}}
  mod.check(good,'2026082822')
  try:mod.check({**good,'fresh':False},'2026082822');raise AssertionError('stale payload accepted')
  except RuntimeError:pass

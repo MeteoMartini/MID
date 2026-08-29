@@ -24,6 +24,10 @@ Die in MID 17.7.3 geplante DWD-ICON-D2-RUC/RUC-EPS-Integration wurde als gemeins
 
 **v0.9.69.3–0.9.69.6 Release-Automatisierung:** Der gemeinsame Worker wird bei fachlichen Änderungen nach erfolgreichem Browser-Build und vollständiger Regression automatisch versioniert hochgeladen, zunächst mit 0 % Traffic gegen den produktionsgleichen Versionsoverride geprüft und erst danach auf 100 % promoviert. Fehlgeschlagene Vorläufe bleiben fail-closed. v0.9.69.6 verwendet dafür den dokumentierten `command-output` von `cloudflare/wrangler-action`, um die von Wrangler gelieferte Worker-Version-ID eindeutig zu bestimmen.
 
+**v0.9.69.7 Mitteleuropa-Wiederherstellung:** Der vollständige ICON-D2-Mitteleuropa-Ausblick aus der v0.9.67.x-Linie ist wieder verbindlich; eine Kartenkontextlage oberhalb der Gefahrenflächen hält Grenzen, Kartenlinien und Städtenamen auch bei mehreren Gebietslayern sichtbar.
+
+**v0.9.70.0 kostenfreier RUC-Produktionspfad:** RUC/RUC-EPS wird ohne R2 über DWD Open Data → GitHub Actions/ecCodes → GitHub Pages → Worker → gemeinsamen MID-Fachkern ausgeliefert. Der Pages-Pfad nutzt immutable Chunks statt Range-Requests, bewahrt den letzten Snapshot über normale App-Releases hinweg und lässt R2 als rein optionale spätere Speicheroptimierung unangetastet. Die Tagesansicht schützt zusätzlich Niederschlagswahrscheinlichkeit über Niederschlagsbalken und kontrastreiche Windrichtungspfeile in Hell/Dunkel.
+
 Der nächste native Meilenstein bleibt Lifecycle-/Offline-Wiederaufnahme ohne lokalen Datenverlust.
 
 ### 2. Native Plattformadapter – in Arbeit
@@ -32,7 +36,7 @@ Vor Beginn dieser Etappe wurde in v0.9.67.5 die gemeinsame MapLibre-6-
 Produktions-Workergrenze repariert. Modellierte GeoJSON-Gefahrenflächen werden
 damit in Browser/PWA und iOS-WebView wieder aus demselben Vite-Build gerendert.
 Standortadapter und externe OAuth-Navigation sind inzwischen abgeschlossen;
-der nächste Meilenstein ist Teilen/Import/Export mit Browserfallback.
+Teilen/Import/Export ist abgeschlossen; der nächste native Meilenstein ist Lifecycle-/Offline-Wiederaufnahme ohne lokalen Datenverlust.
 
 - Standortadapter mit Browser-Fallback – abgeschlossen in v0.9.68.0:
   native Einmal-Ortung über Capacitor, unverändertes

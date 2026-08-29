@@ -25,9 +25,9 @@ function ExtremeOutlookAreaOverlay({data,periodId,hazard}:{data:ExtremeWeatherOu
   if(map.getSource(SOURCE_ID))(map.getSource(SOURCE_ID) as any).setData(geojson);else map.addSource(SOURCE_ID,{type:'geojson',data:geojson});
   if(map.getSource(HATCH_SOURCE_ID))(map.getSource(HATCH_SOURCE_ID) as any).setData(hatchGeojson);else map.addSource(HATCH_SOURCE_ID,{type:'geojson',data:hatchGeojson});
   const layers:any[]=[
-   {id:LAYER_IDS[0],type:'fill',source:SOURCE_ID,paint:{'fill-color':['get','color'],'fill-opacity':['get','opacity']}},
-   {id:LAYER_IDS[1],type:'fill',source:HATCH_SOURCE_ID,paint:{'fill-pattern':HATCH_IMAGE_ID,'fill-opacity':.68}},
-   {id:LAYER_IDS[2],type:'line',source:SOURCE_ID,paint:{'line-color':'rgba(255,255,255,.82)','line-width':3.4}},
+   {id:LAYER_IDS[0],type:'fill',source:SOURCE_ID,paint:{'fill-color':['get','color'],'fill-opacity':['min',.66,['*',['get','opacity'],.86]]}},
+   {id:LAYER_IDS[1],type:'fill',source:HATCH_SOURCE_ID,paint:{'fill-pattern':HATCH_IMAGE_ID,'fill-opacity':.58}},
+   {id:LAYER_IDS[2],type:'line',source:SOURCE_ID,paint:{'line-color':'rgba(255,255,255,.9)','line-width':3.4}},
    {id:LAYER_IDS[3],type:'line',source:SOURCE_ID,paint:{'line-color':['get','color'],'line-width':1.45}}
   ];
   layers.forEach((layer,index)=>{if(map.getLayer(layer.id))map.removeLayer(layer.id);map.addLayer(layer);registerMapLayerOrder(map,layer.id,8+index/100)});

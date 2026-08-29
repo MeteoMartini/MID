@@ -13,7 +13,7 @@ assert.equal(pkg.scripts?.['test:extreme-outlook-labels-layout'],`node ${test}`)
 assert.ok(baseline.requiredRegressionTests.includes(test)&&baseline.regressionTests.includes(test));
 for(const file of[test,'MID_IMPLEMENTATION_0.9.66.8.md'])assert.ok(baseline.requiredFiles.includes(file));
 
-for(const token of ['tile.openstreetmap.org/{z}/{x}/{y}.png','opacity={.28}','Jede getrennte dargestellte Gefahrenfläche','startDate===endDate','${endDate}, ${endTime}','Nullgradgrenze'])assert.ok(panel.includes(token),`Outlook-Vertrag fehlt: ${token}`);
+for(const token of ['tile.openstreetmap.org/{z}/{x}/{y}.png','opacity={.48}','Jede getrennte dargestellte Gefahrenfläche','startDate===endDate','${endDate}, ${endTime}','Nullgradgrenze'])assert.ok(panel.includes(token),`Outlook-Vertrag fehlt: ${token}`);
 assert.ok(!panel.includes('basemaps.cartocdn.com'),'Die Extremwetterkarte darf keine anonym gesperrten CARTO-Kacheln mit API-Key-Wasserzeichen mehr laden.');
 assert.ok(!panel.includes("['Gefrierhöhe'")&&!worker.includes('Gefrierhöhe'),'Veraltete Bezeichnung Gefrierhöhe ist im DACH-Ausblick noch aktiv.');
 for(const token of ['buildExtremeOutlookContourGeoJson',"type:'fill'","type:'line'",'fill-pattern','registerMapLayerOrder','8+index/100','areas.map(area=>','Modellierte Gefahrenfläche'])assert.ok(overlay.includes(token),`Nativer Kartenlayer bzw. flächengebundene Beschriftung fehlt: ${token}`);

@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.69.6",
+  "releaseVersion": "0.9.70.0",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -298,7 +298,10 @@
     "scripts/test-ruc-dwd-pipeline-09690.mjs",
     "scripts/test-ruc-fusion-runtime-09691.mjs",
     "scripts/test-ruc-storage-health-09692.mjs",
-    "scripts/test-worker-auto-deploy-09693.mjs"
+    "scripts/test-worker-auto-deploy-09693.mjs",
+    "scripts/test-extreme-outlook-mitteleuropa-recovery-096697.mjs",
+    "scripts/test-ruc-pages-free-storage-09700.mjs",
+    "scripts/test-day-detail-probability-wind-contrast-09700.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -527,7 +530,10 @@
     "scripts/test-ruc-dwd-pipeline-09690.mjs",
     "scripts/test-ruc-fusion-runtime-09691.mjs",
     "scripts/test-ruc-storage-health-09692.mjs",
-    "scripts/test-worker-auto-deploy-09693.mjs"
+    "scripts/test-worker-auto-deploy-09693.mjs",
+    "scripts/test-extreme-outlook-mitteleuropa-recovery-096697.mjs",
+    "scripts/test-ruc-pages-free-storage-09700.mjs",
+    "scripts/test-day-detail-probability-wind-contrast-09700.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -733,7 +739,15 @@
     "tools/cloudflare/check_worker_health.mjs",
     "scripts/test-worker-auto-deploy-09693.mjs",
     "ci/github/workflows/install-mid.yml",
-    ".github/workflows/install-mid.yml"
+    ".github/workflows/install-mid.yml",
+    "scripts/test-extreme-outlook-mitteleuropa-recovery-096697.mjs",
+    "MID_IMPLEMENTATION_0.9.69.7.md",
+    "scripts/test-ruc-pages-free-storage-09700.mjs",
+    "tools/ruc/prepare_ruc_pages.py",
+    "tools/ruc/restore_ruc_pages_snapshot.py",
+    "tools/ruc/test_prepare_ruc_pages.py",
+    "MID_IMPLEMENTATION_0.9.70.0.md",
+    "scripts/test-day-detail-probability-wind-contrast-09700.mjs"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",

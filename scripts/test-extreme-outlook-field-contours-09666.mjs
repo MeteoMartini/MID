@@ -16,7 +16,7 @@ assert.ok(baseline.requiredRegressionTests?.includes(test)&&baseline.regressionT
 for(const file of[test,'MID_IMPLEMENTATION_0.9.66.6.md'])assert.ok(baseline.requiredFiles?.includes(file),`Baseline-Datei fehlt: ${file}`);
 assert.ok(workerCore.includes(`const WORKER_VERSION='${pkg.version}';`),'Professional- und Worker-Version sind nicht gekoppelt.');
 
-for(const token of ['probabilityFields?:','extremeProbabilityLevelsForCell',"cacheKey:'dach-extreme-outlook:v3'",'monotone[index]=Math.min'])assert.ok(client.includes(token),`Client-Feldvertrag fehlt: ${token}`);
+for(const token of ['probabilityFields?:','extremeProbabilityLevelsForCell',"cacheKey:'dach-extreme-outlook:v5'",'monotone[index]=Math.min'])assert.ok(client.includes(token),`Client-Feldvertrag fehlt: ${token}`);
 for(const token of ['probabilityFields={}','assessment.probabilities','assessment.signal','probabilities[index]=Math.min','Math.round(clamp'])assert.ok(workerSource.includes(token),`Worker-Feldvertrag fehlt: ${token}`);
 assert.ok(direct.includes(workerSource.trim()),'Browser-Direktweg muss dieselbe kanonische Feldberechnung wie der Worker verwenden.');
 for(const token of ['data.cells.map','probabilityLevels:extremeProbabilityLevelsForCell','minimumProbability','extremeMinimumProbability','colors:EXTREME_INTENSITY_COLORS'])assert.ok(modelledAreas.includes(token),`Flächen-Feldvertrag fehlt: ${token}`);
@@ -59,4 +59,4 @@ for(const token of ['vollständigen, monotonen Überschreitungswahrscheinlichkei
 for(const token of ["mid:travel-water-climate:noaa-oisst-1991-2020:v5:",'COASTAL_WATER_MAX_DISTANCE_KM=80',"fetchWorkerJson<TravelWaterWorkerPayload>('travel-water-climate'"])assert.ok(travel.includes(token),`Weiterentwickelter Reise-SST-Vertrag ging verloren: ${token}`);
 for(const file of ['scripts/test-travel-water-climatology-resilience-09665.mjs','MID_IMPLEMENTATION_0.9.66.5.md'])assert.ok(baseline.requiredFiles?.includes(file),`Angehängte 0.9.66.5-Absicherung ging verloren: ${file}`);
 
-console.log(`MID ${pkg.version}: vollständige I1–I4-Wahrscheinlichkeitsfelder, gradientengeformte DACH-Gefahrengebiete, Entfernung identischer Sechseck-Stützkerne und aktueller NOAA-Reise-SST-Vertrag geprüft.`);
+console.log(`MID ${pkg.version}: vollständige I1–I4-Wahrscheinlichkeitsfelder, gradientengeformte Mitteleuropa-Gefahrengebiete, Entfernung identischer Sechseck-Stützkerne und aktueller NOAA-Reise-SST-Vertrag geprüft.`);

@@ -1,3 +1,19 @@
+## 0.9.70.0
+
+- DWD ICON-D2-RUC/RUC-EPS kann ohne Cloudflare R2 über den kostenfreien GitHub-Pages-Pfad `pages-free-v1` veröffentlicht werden; GRIB-Decodierung bleibt vollständig im GitHub-Actions/ecCodes-Vorprozessor.
+- Deterministischer RUC, voraggregierte RUC-EPS-Wahrscheinlichkeiten/Quantile und räumlicher Lookup werden als kleine immutable Chunks publiziert; der Worker benötigt für Pages keine HTTP-Range-Requests.
+- Normale MID-Pages-Releases bewahren einen vorhandenen RUC-Snapshot mit Größen-/SHA-256-Prüfung und brechen bei aktivierter Pipeline fail-closed ab, statt RUC-Daten lautlos zu löschen.
+- Tagesansicht: Niederschlagswahrscheinlichkeit bleibt nun auch bei gleichzeitig sichtbaren Niederschlagsbalken als kontrastierte cyanfarbene Kurve sichtbar.
+- Tagesansicht: Windrichtungspfeile erhalten in der dunklen Ansicht einen hellen, leicht konturierten Kontrast; eine zuvor globale dunkle Cockpit-CSS-Regel ist auf das Cockpit begrenzt.
+- R2 bleibt vollständig optional und inaktiv; für diesen Meilenstein wird kein kostenpflichtiger Speicher aktiviert.
+
+## 0.9.69.7
+
+- Extremwetter-Ausblick vom versehentlich wiederverwendeten v0.9.66.19-DACH-Stand auf den bereits in v0.9.67.7–v0.9.67.11 eingeführten vollständigen Mitteleuropa-/ICON-D2-Vertrag zurückgeführt.
+- Native ICON-D2-Gebietsmaske, erweitertes Regionsnetz, resilienter Batch-/Teilcache und 0–6-h-KONRAD3D-/Meso-Beobachtungsabgleich wiederhergestellt; Browser-Direktpfad bleibt derselbe Fachkern.
+- Freie OSM-Kontextlage wird über sämtlichen Gefahrenflächen erneut gezeichnet; Ländergrenzen, Kartenlinien und Städtenamen bleiben auch bei mehreren überlagerten Gebietslayern sichtbar.
+- Neue Required Regression verhindert einen erneuten DACH-/v4-Rückfall und schützt die Karten-Layerreihenfolge.
+
 ## 0.9.69.6
 
 - Worker-Auto-Deploy: reale `cloudflare/wrangler-action`-Ausgabe wird über den dokumentierten `command-output` statt über eine nicht erzeugte `/tmp`-Datei ausgewertet.

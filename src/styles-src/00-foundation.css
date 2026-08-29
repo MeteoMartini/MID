@@ -1619,8 +1619,10 @@ button,input,select,textarea{font:inherit}
  font-weight:800;
  font-variant-numeric:tabular-nums;
 }
-.svg-wind-direction-arrow{stroke:#7bc8ef;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;opacity:.92;pointer-events:none}
-:root[data-theme=light] .svg-wind-direction-arrow{stroke:#1678a7}
+.svg-wind-direction-arrow{stroke:#bfe9ff;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;opacity:.98;pointer-events:none;filter:drop-shadow(0 0 1px rgba(0,0,0,.9))}
+:root[data-theme=light] .svg-wind-direction-arrow{stroke:#12658f;filter:drop-shadow(0 0 1px rgba(255,255,255,.88))}
+:root{--detail-probability-halo:rgba(10,35,55,.78)}
+:root[data-theme=light]{--detail-probability-halo:rgba(255,255,255,.94)}
 .weatherwidget .wind-direction-arrow{vertical-align:-.06em}
 
 /* v0.7.89.5 – Niederschlagslegende entspricht den tatsächlichen Balkendesigns */

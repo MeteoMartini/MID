@@ -17,7 +17,7 @@ assert.equal(baseline.releaseVersion,pkg.version);
 assert.equal(pkg.scripts?.['test:extreme-outlook-compact-legend'],`node ${test}`);
 assert.ok(baseline.requiredRegressionTests.includes(test)&&baseline.regressionTests.includes(test)&&baseline.requiredFiles.includes(test));
 assert.ok(baseline.requiredFiles.includes('MID_IMPLEMENTATION_0.9.66.10.md'));
-for(const token of ["1:'Gefahr'","2:'markant'","3:'Unwetter'","4:'extrem'",'unter 60 %','id="extreme-outlook-context"','opacity={.28}','zIndex={18}','tile.openstreetmap.org/{z}/{x}/{y}.png'])assert.ok(panel.includes(token),`Kompakte Legende oder Vordergrundkontext unvollständig: ${token}`);
+for(const token of ["1:'Gefahr'","2:'markant'","3:'Unwetter'","4:'extrem'",'unter 60 %','id="extreme-outlook-context"','opacity={.48}','zIndex={20}','tile.openstreetmap.org/{z}/{x}/{y}.png'])assert.ok(panel.includes(token),`Kompakte Legende oder Vordergrundkontext unvollständig: ${token}`);
 assert.ok(!panel.includes('basemaps.cartocdn.com'),'Die kompakte Extremkarte darf keine CARTO-API-Key-Wasserzeichen laden.');
 assert.ok(!panel.includes('Farbe = erwartete Auswirkung · Prozent/Deckkraft = Eintrittswahrscheinlichkeit'),'Redundanter Kartenlegendentext ist noch vorhanden.');
 assert.ok(panel.includes('extremeProbabilityBand(displayProbability)')&&panel.includes('<strong>{displayProbability} %</strong>'),'Band und Prozentanzeige müssen dieselbe gerundete Wahrscheinlichkeit verwenden.');
