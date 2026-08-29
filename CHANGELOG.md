@@ -1,3 +1,17 @@
+## v0.9.73.8
+
+- Release-Gate-Hotfix: veralteten Integrationsassert zur früheren RUC-„Verfügbarkeitsquelle“ auf den produktiven DWD→Pages→Worker-Vertrag umgestellt.
+- Run #759 hatte TypeScript, Vite und 567/568 Regressionen grün; der einzige Fehler war dieser historische Wortlaut-Test.
+- v0.9.73.7-Fachstand bleibt vollständig erhalten: RUC 0–6 h / 15 min, danach stündlich bis +14 h; RUC-EPS stündlich; appweite Modelltexte/Badges und Wolkenprofil unverändert.
+
+## v0.9.73.7
+
+- DWD-RUC-Hybridraster: deterministisch 0–6 h in 15-Minuten-Schritten, danach stündlich bis +14 h; RUC-EPS bleibt stündlich.
+- Wolkenprofil vereinheitlicht: ein neutraler Grauton für H/M/L, Intensität ausschließlich nach jeweiligem Bedeckungsgrad und weichere Fade-in/Fade-out-Übergänge.
+- Modellstand-/RUC-Texte app-weit an den produktiven DWD Open Data → GitHub Pages → Worker-Pfad angepasst.
+- `RUC`-Badge nur noch für echte DWD ICON-D2-RUC/RUC-EPS-Zeilen; andere Rapid-Update-Modelle tragen `Rapid`.
+- RUC-Downloader konsistent zum Hybridraster nachgezogen; bestehende Modellmeta-/RUC-/Pipeline-Regressionen aktualisiert und bestanden.
+
 ## v0.9.73.6
 
 - DWD ICON-D2-RUC: native triangular-grid lookup now derives coordinates from authoritative `CLAT`/`CLON` fields instead of unavailable ecCodes `latitudes`/`longitudes` arrays.

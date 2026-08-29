@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-08-29T11:46:18Z",
-  "releaseVersion": "0.9.73.6",
+  "updatedAt": "2026-08-29T15:02:39Z",
+  "releaseVersion": "0.9.73.8",
   "sourceBaseline": {
     "professionalVersion": "0.9.70.2",
     "workerVersion": "0.9.70.2",
@@ -49,14 +49,16 @@
     "widgetkit-regression-next-milestone-hotfix-0.9.71.1",
     "ruc-appwide-canonical-source-audit-0.9.71.1",
     "apple-push-background-refresh-source-preparation-0.9.72.0",
-    "apple-privacy-permission-manifest-preparation-0.9.73.0"
+    "apple-privacy-permission-manifest-preparation-0.9.73.0",
+    "ruc-hybrid-15-minute-nowcasting-and-cloud-profile-gray-fade-0.9.73.7",
+    "ruc-model-text-regression-hotfix-0.9.73.8"
   ],
   "nextMilestone": "macos-xcode-simulator-quality-assurance",
   "validation": {
-    "browserBuild": "v0.9.71.0 Run #751 proved TypeScript + Vite green. v0.9.73.0 cannot repeat npm/Vite locally because registry.npmjs.org is not DNS-resolvable and the offline npm cache is incomplete; release CI is mandatory.",
-    "typescript": "v0.9.71.0 Run #751 passed. v0.9.73.0 local tsc cannot resolve React/Capacitor/etc. because npm ci is environment-blocked; this is not accepted as a source-code failure and must be re-run in release CI.",
-    "workerSyntax": "generated worker/metar-proxy.js and worker.js are byte-identical after maintain:aggregates and node --check passes; semantic worker diff is changed, so normal automatic staged Worker deployment is required after full CI gate.",
-    "regressions": "565/565 locally runnable automatic tests pass out of 567 total. Only test-extreme-outlook-modelled-areas-096618.mjs and test-extreme-regions-flight-null-096619.mjs remain unexecuted because esbuild is unavailable while npm registry DNS is blocked.",
+    "browserBuild": "v0.9.71.0 Run #751 proved TypeScript + Vite green. v0.9.73.7 cannot repeat npm/Vite locally because the extracted Linux workspace still lacks required type/esbuild dependencies in node_modules; release CI remains mandatory.",
+    "typescript": "v0.9.71.0 Run #751 passed. v0.9.73.7 local tsc remains environment-blocked by missing type packages in node_modules; this is not treated as a source-code failure and must be re-run in release CI.",
+    "workerSyntax": "generated worker/metar-proxy.js and worker.js are synchronized after maintain:aggregates and node --check passes; semantic worker diff changed because the RUC reader now honors object-specific time axes, so a normal Worker upload is required after full CI gate.",
+    "regressions": "Release Run #759 proved TypeScript and Vite green and 567/568 regressions green for v0.9.73.7. The only failure was a stale RUC wording assertion in test-mid-nine-step-integration-09530.mjs; v0.9.73.8 updates that regression to the productive DWD→Pages→Worker and RUC-EPS wording contract. Relevant targeted tests pass locally; full 568-suite is release-CI authoritative.",
     "capacitorSync": "embedded ios/App/App/public remains honestly at v0.9.68.2; do not retag. Full npm run ios:sync/cap copy ios must run at the macOS/Xcode quality gate after release CI dependencies are available.",
     "xcodeProjectStructure": "App and MIDWidgets each bundle PrivacyInfo.xcprivacy; plist/project lint and Swift parse pass; Push/BGRefresh remain dormant and no ATT/push/background entitlement is activated.",
     "xcodeAppleSdkBuild": "required-next-gate-macos-xcode-simulator; includes Apple SDK build, simulator launch, Privacy Report inspection and post-sync structure verification."

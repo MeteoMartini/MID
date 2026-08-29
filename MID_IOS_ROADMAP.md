@@ -34,6 +34,8 @@ Die in MID 17.7.3 geplante DWD-ICON-D2-RUC/RUC-EPS-Integration wurde als gemeins
 
 Die Quellvorbereitung für Push und Hintergrundaktualisierung ist in v0.9.72.0 ohne Geräte-/Signierungsaktivierung abgeschlossen. Das Apple-Datenschutz- und Berechtigungsmanifest ist in v0.9.73.0 vollständig quellenmäßig vorbereitet. Das nächste Gate ist die macOS-/Xcode-Qualitätssicherung mit Apple SDK und Simulator.
 
+**v0.9.73.7 gemeinsamer Kurzfrist-/Darstellungsfeinschliff:** Der kostenfreie DWD-RUC-Pages-Pfad liefert für das deterministische Nahfenster 0–6 h nun 15-minütliche Schritte und danach weiterhin stündlich bis +14 h. Die Metadaten unterscheiden dafür deterministische und EPS-Zeitachsen sauber, sodass der gemeinsame Worker die feinere Nowcasting-Nähe lesen kann, ohne das stündliche RUC-EPS zu verbiegen. Parallel wurde das 24-h-Wolkenprofil vereinheitlicht: keine höhenabhängigen Grautöne mehr, sondern ein neutrales Grau mit Bedeckungs-gesteuerter Dunkelheit und weicheren Fade-in/Fade-out-Übergängen. Browser/PWA und iOS profitieren identisch; das nächste Gate bleibt unverändert die macOS-/Xcode-Qualitätssicherung.
+
 ### 2. Native Plattformadapter – in Arbeit
 
 Vor Beginn dieser Etappe wurde in v0.9.67.5 die gemeinsame MapLibre-6-

@@ -77,14 +77,15 @@ for(const token of [
 assert.ok(styles.includes('.hyperlocal-analysis-compact{display:flex!important'),'Kompakte Hyperlokal-Ergebniszeile fehlt.');
 assert.ok(styles.includes('.hyperlocal-analysis-info{display:grid'),'Hyperlokale Info-Darstellung fehlt.');
 
-// VI – ICON-D2-RUC: DWD-Verfügbarkeit plus optionaler numerischer Punktadapter.
+// VI – ICON-D2-RUC: produktiver DWD→Pages→Worker-Pfad plus optionaler externer Punktadapter-Fallback.
 for(const token of [
  "MID_DWD_RUC_POINT_ENDPOINT",
  "MID_DWD_RUC_POINT_TOKEN",
  "if(model.id==='icon_d2_ruc')try{const adapted=await fetchDwdRucPointAdapter",
  "provider:'DWD ICON-D2-RUC · Punktadapter'"
 ])assert.ok(worker.includes(token),`ICON-D2-RUC Punktpfad fehlt: ${token}`);
-assert.ok(weather.includes('wegen seines nativen Dreiecksgitters eine Verfügbarkeitsquelle'),'RUC-Einschränkung wird nicht transparent erklärt.');
+assert.ok(weather.includes('Numerischer DWD→Pages→Worker-Pfad · 0–6 h 15 min, danach stündlich bis +14 h'),'Produktiver RUC-Zeit-/Datenpfad wird nicht transparent erklärt.');
+assert.ok(weather.includes('RUC-EPS · stündlicher probabilistischer Kurzfristpfad bis +14 h'),'RUC-EPS-Kurzfristpfad wird nicht transparent erklärt.');
 assert.ok(env.includes('MID_DWD_RUC_POINT_ENDPOINT'),'RUC-Adapter ist in .env.example nicht dokumentiert.');
 
 // VII – CLMS LCM10 direkt über CDSE Statistical API.

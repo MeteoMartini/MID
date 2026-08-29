@@ -69,8 +69,15 @@ def normalize(name,values,units):
     return v
 
 def run_time(value:str):return datetime.fromisoformat(value.replace('Z','+00:00')).astimezone(timezone.utc)
-def hourly_targets(run:str,hours:int):
-    base=run_time(run);return [base+timedelta(hours=h) for h in range(hours+1)]
+def hybrid_targets(run:str,hours:int,rapid_hours:int=6):
+    base=run_time(run)
+    horizon_minutes=max(0,int(hours))*60
+    rapid_limit=min(horizon_minutes,max(0,int(rapid_hours))*60)
+    det_targets=[base+timedelta(minutes=minute) for minute in range(0,rapid_limit+1,15)]
+    if rapid_limit<horizon_minutes:
+        det_targets.extend(base+timedelta(minutes=minute) for minute in range(rapid_limit+60,horizon_minutes+1,60))
+    eps_targets=[base+timedelta(hours=h) for h in range(hours+1)]
+    return {'deterministic':det_targets,'eps':eps_targets}
 
 def collect_parameter(files,name,targets,expected_points=None):
     rows={}
@@ -144,34 +151,35 @@ def file_info(path:Path):
 
 def main():
  p=argparse.ArgumentParser();p.add_argument('--staging',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--run',required=True);p.add_argument('--hours',type=int,default=14);p.add_argument('--lookup-step',type=float,default=.025);a=p.parse_args();a.output.mkdir(parents=True,exist_ok=True)
- targets=hourly_targets(a.run,a.hours);series={};point_count=None
+ schedule=hybrid_targets(a.run,a.hours)
+ det_times=schedule['deterministic'];eps_times=schedule['eps'];all_targets=sorted({*det_times,*eps_times});series={};point_count=None
  for param,name in PARAM_MAP.items():
   files=sorted((a.staging/'deterministic'/param).glob('**/*.grib2*'))
   if not files:raise SystemExit(f'missing staged parameter {param}')
-  rows=collect_parameter(files,name,targets,point_count)
-  if point_count is None:point_count=len(rows[targets[0]])
+  rows=collect_parameter(files,name,all_targets,point_count)
+  if point_count is None:point_count=len(rows[det_times[0]])
   series[name]=rows
- times=targets
  base_grid=load_native_grid(a.staging,point_count)
- acc=np.stack([series['precipitation_acc'][t] for t in times]);prec=np.maximum(0,np.diff(acc,axis=0,prepend=acc[:1]))
- u=np.stack([series['u10'][t] for t in times]);v=np.stack([series['v10'][t] for t in times]);speed=np.hypot(u,v)*1.94384449;direction=(np.degrees(np.arctan2(-u,-v))+360)%360
+ det_acc=np.stack([series['precipitation_acc'][t] for t in det_times]);prec=np.maximum(0,np.diff(det_acc,axis=0,prepend=det_acc[:1]))
+ u=np.stack([series['u10'][t] for t in det_times]);v=np.stack([series['v10'][t] for t in det_times]);speed=np.hypot(u,v)*1.94384449;direction=(np.degrees(np.arctan2(-u,-v))+360)%360
  fields={}
  for spec in DEFAULT_FIELDS:
   n=spec.name
   if n=='wind_speed_10m':fields[n]=speed
   elif n=='wind_direction_10m':fields[n]=direction
-  elif n=='wind_gusts_10m':fields[n]=np.stack([series[n][t] for t in times])*1.94384449
+  elif n=='wind_gusts_10m':fields[n]=np.stack([series[n][t] for t in det_times])*1.94384449
   elif n=='precipitation':fields[n]=prec
-  else:fields[n]=np.stack([series[n][t] for t in times])
+  else:fields[n]=np.stack([series[n][t] for t in det_times])
  det=a.output/'deterministic.bin';det.write_bytes(pack_cell_major(fields,DEFAULT_FIELDS))
  grid=build_lookup(base_grid[0],base_grid[1],a.output,a.lookup_step)
  eps_files=sorted((a.staging/'eps'/'TOT_PREC').glob('**/*.grib2*'))
  if not eps_files:raise SystemExit('missing staged RUC-EPS TOT_PREC')
- eps,members=collect_eps(eps_files,targets,point_count);eps_path=a.output/'eps-members.bin';eps_path.write_bytes(pack_eps_members(eps,.01))
+ eps,members=collect_eps(eps_files,eps_times,point_count);eps_path=a.output/'eps-members.bin';eps_path.write_bytes(pack_eps_members(eps,.01))
  summary_path=a.output/'eps-summary.bin';summary_path.write_bytes(pack_cell_major(eps_summary(eps),EPS_SUMMARY_FIELDS))
  run_key=re.sub(r'[^0-9A-Za-z_-]','',a.run);lookup_path=a.output/'lookup.bin'
  object_paths={'deterministic.bin':det,'eps-summary.bin':summary_path,'eps-members.bin':eps_path,'lookup.bin':lookup_path}
  objects={name:file_info(path) for name,path in object_paths.items()}
- write_meta(a.output/'latest.json',run=a.run,times=[t.strftime('%Y-%m-%dT%H:%M') for t in times],point_count=point_count,specs=DEFAULT_FIELDS,grid=grid,deterministic_key=f'runs/{run_key}/deterministic.bin',eps_key=f'runs/{run_key}/eps-members.bin',eps_summary_key=f'runs/{run_key}/eps-summary.bin',lookup_key=f'runs/{run_key}/lookup.bin',member_count=len(members),eps_scale=.01,objects=objects)
- print(json.dumps({'run':a.run,'times':len(times),'points':point_count,'members':len(members),'detBytes':det.stat().st_size,'epsSummaryBytes':summary_path.stat().st_size,'epsBytes':eps_path.stat().st_size,'lookupBytes':lookup_path.stat().st_size}))
+ det_serialized=[t.strftime('%Y-%m-%dT%H:%M') for t in det_times];eps_serialized=[t.strftime('%Y-%m-%dT%H:%M') for t in eps_times]
+ write_meta(a.output/'latest.json',run=a.run,times=det_serialized,point_count=point_count,specs=DEFAULT_FIELDS,grid=grid,deterministic_key=f'runs/{run_key}/deterministic.bin',eps_key=f'runs/{run_key}/eps-members.bin',eps_summary_key=f'runs/{run_key}/eps-summary.bin',lookup_key=f'runs/{run_key}/lookup.bin',member_count=len(members),eps_scale=.01,objects=objects,deterministic_times=det_serialized,eps_summary_times=eps_serialized,eps_times=eps_serialized)
+ print(json.dumps({'run':a.run,'deterministicTimes':len(det_times),'epsTimes':len(eps_times),'points':point_count,'members':len(members),'detBytes':det.stat().st_size,'epsSummaryBytes':summary_path.stat().st_size,'epsBytes':eps_path.stat().st_size,'lookupBytes':lookup_path.stat().st_size}))
 if __name__=='__main__':main()

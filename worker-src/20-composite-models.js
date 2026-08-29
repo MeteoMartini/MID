@@ -294,9 +294,9 @@ async function phaseModelMetadata(model){
 function phaseModelScore(model){const age=Math.max(0,Number(model.ageHours)||0)+Math.max(0,Number(model.latencyHours)||0),resolution=Math.max(.8,Number(model.resolutionKm)||8),rapid=Boolean(model.rapidUpdate),native15=Boolean(model.native15);return 100-age*15-Math.log2(resolution)*9+(rapid?12:0)+(native15?5:0)}
 async function orderedPhaseModels(lat,lon){
  const candidates=RAPID_PHASE_MODELS.filter(model=>phaseModelApplies(model,lat,lon)),metas=(await Promise.all(candidates.map(phaseModelMetadata))).filter(Boolean).sort((a,b)=>phaseModelScore(b)-phaseModelScore(a));
- // Ein noch nicht von Open-Meteo dokumentiertes ICON-D2-RUC wird nur aufgenommen,
- // wenn die Metadata-API es tatsächlich kennt. Damit bleibt der Layer heute stabil
- // und schaltet RUC automatisch frei, sobald der JSON-Datenpfad verfügbar ist.
+ // Der Radar-Phasenlayer benötigt weiterhin ein räumliches JSON-Raster. Der direkte
+ // DWD→Pages→Worker-RUC-Punktpfad der Kurzfristfusion ersetzt dieses Flächenraster nicht;
+ // ICON-D2-RUC wird hier daher nur verwendet, wenn die Modell-Rasterquelle es separat liefert.
  return metas;
 }
 async function precipitationPhaseGridData(lat,lon,target){

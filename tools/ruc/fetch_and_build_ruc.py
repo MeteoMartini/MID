@@ -71,11 +71,21 @@ def forecast_lead_minutes(url):
  if not match:return None
  return int(match.group('hours'))*60+int(match.group('minutes'))
 
-def select_requested_hourly_files(files,hours):
+def select_requested_files(files,hours,rapid_hours=6,hourly_only=False):
  limit=max(0,int(hours))*60
- # DWD filenames expose the forecast lead (PTxxxHyyM). MID's compact RUC bundle
- # needs integer hours only; unknown legacy filenames are kept fail-safe.
- return [url for url in files if (lead:=forecast_lead_minutes(url)) is None or (lead<=limit and lead%60==0)]
+ rapid_limit=min(limit,max(0,int(rapid_hours))*60)
+ # Deterministic RUC keeps native 15-minute leads in the nowcasting-near 0..6 h
+ # window, then hourly leads through +14 h. RUC-EPS remains hourly. Unknown
+ # legacy filenames are retained fail-safe instead of being silently discarded.
+ selected=[]
+ for url in files:
+  lead=forecast_lead_minutes(url)
+  if lead is None:selected.append(url);continue
+  if lead>limit:continue
+  if hourly_only or lead>rapid_limit:
+   if lead%60==0:selected.append(url)
+  elif lead%15==0:selected.append(url)
+ return selected
 
 def download_one(url,target):
  target.parent.mkdir(parents=True,exist_ok=True)
@@ -89,14 +99,15 @@ def download_one(url,target):
  if not tmp.exists() or tmp.stat().st_size<80:raise RuntimeError(f'suspiciously small DWD file {url}')
  tmp.replace(target)
 
-def stage_tree(s,url,target,hours,label):
+def stage_tree(s,url,target,hours,label,*,hourly_only=False):
  discovered=crawl_files(s,url)
  if not discovered:raise RuntimeError(f'No GRIB2 files under {url}')
- files=select_requested_hourly_files(discovered,hours)
- if not files:raise RuntimeError(f'No requested hourly GRIB2 files under {url}')
+ files=select_requested_files(discovered,hours,hourly_only=hourly_only)
+ if not files:raise RuntimeError(f'No requested GRIB2 files under {url}')
  root=url if url.endswith('/') else url+'/'
  workers=max(1,min(12,int(os.getenv('MID_RUC_DOWNLOAD_WORKERS',str(DEFAULT_DOWNLOAD_WORKERS))),len(files)))
- print(f'{label}: selected {len(files)}/{len(discovered)} GRIB files for hourly leads 0..{hours}h; {workers} download workers',flush=True)
+ grid_label=f'hourly 0..{hours}h' if hourly_only else f'15 min 0..6h + hourly ..{hours}h'
+ print(f'{label}: selected {len(files)}/{len(discovered)} GRIB files for {grid_label}; {workers} download workers',flush=True)
  def job(file_url):
   rel=unquote(urlparse(file_url).path[len(urlparse(root).path):]).lstrip('/');download_one(file_url,target/rel);return rel
  rows=[];completed=0;report_every=max(1,min(10,len(files)//3 or 1))
@@ -130,7 +141,7 @@ def build_candidate(s,run,stage_root,output,hours):
   rows=stage_tree(s,f'{DET_BASE}/{param}/r/{run}/',stage/'deterministic'/param,hours,f'{run} {param}');print(f'{run} {param}: {len(rows)} staged GRIB files',flush=True)
  for param in GRID_REQUIRED:
   rows=stage_coordinate(s,f'{DET_BASE}/{param}/r/{run}/',stage/'grid'/param,f'{run} {param}');print(f'{run} {param}: {len(rows)} staged coordinate GRIB file',flush=True)
- eps_rows=stage_tree(s,f'{EPS_BASE}/TOT_PREC/r/{run}/',stage/'eps'/'TOT_PREC',hours,f'{run} RUC-EPS TOT_PREC');print(f'{run} RUC-EPS TOT_PREC: {len(eps_rows)} staged GRIB files',flush=True)
+ eps_rows=stage_tree(s,f'{EPS_BASE}/TOT_PREC/r/{run}/',stage/'eps'/'TOT_PREC',hours,f'{run} RUC-EPS TOT_PREC',hourly_only=True);print(f'{run} RUC-EPS TOT_PREC: {len(eps_rows)} staged GRIB files',flush=True)
  builder=Path(__file__).with_name('build_ruc_bundle.py');subprocess.run([sys.executable,str(builder),'--staging',str(stage),'--output',str(tmp),'--run',run,'--hours',str(hours)],check=True)
  required=('deterministic.bin','eps-summary.bin','eps-members.bin','lookup.bin','latest.json')
  missing=[name for name in required if not (tmp/name).is_file() or (tmp/name).stat().st_size<2]

@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-08-29T14:00:00Z",
-  "releaseVersion": "0.9.73.6",
+  "updatedAt": "2026-08-29T15:02:39Z",
+  "releaseVersion": "0.9.73.8",
   "source": "DWD Open Data ICON-D2-RUC / ICON-D2-RUC-EPS",
   "deterministic": {
     "coverageBbox": [

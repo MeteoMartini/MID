@@ -64,13 +64,16 @@ def pack_eps_members(values: np.ndarray, scale: float=.01) -> bytes:
     out[mask]=np.rint(np.clip(arr[mask]/scale,0,65534)).astype(np.uint16)
     return out.transpose(2,0,1).copy(order='C').tobytes(order='C')
 
-def write_meta(path:Path,*,run:str,times:Sequence[str],point_count:int,specs:Sequence[FieldSpec],grid:Mapping[str,object],deterministic_key:str,eps_key:str|None,lookup_key:str,member_count:int=0,eps_scale:float=.01,eps_summary_key:str|None=None,eps_summary_specs:Sequence[FieldSpec]=EPS_SUMMARY_FIELDS,objects:Mapping[str,object]|None=None) -> None:
+def write_meta(path:Path,*,run:str,times:Sequence[str],point_count:int,specs:Sequence[FieldSpec],grid:Mapping[str,object],deterministic_key:str,eps_key:str|None,lookup_key:str,member_count:int=0,eps_scale:float=.01,eps_summary_key:str|None=None,eps_summary_specs:Sequence[FieldSpec]=EPS_SUMMARY_FIELDS,objects:Mapping[str,object]|None=None,deterministic_times:Sequence[str]|None=None,eps_summary_times:Sequence[str]|None=None,eps_times:Sequence[str]|None=None) -> None:
+    det_times=list(deterministic_times or times)
+    summary_times=list(eps_summary_times or eps_times or times)
+    member_times=list(eps_times or eps_summary_times or times)
     payload={
       'schema':'mid.dwd.ruc.grid.v2','run':run,'generatedAt':__import__('datetime').datetime.now(__import__('datetime').timezone.utc).isoformat().replace('+00:00','Z'),
-      'times':list(times),'pointCount':int(point_count),'grid':dict(grid),'lookup':{'key':lookup_key,'dtype':'uint32-le','nodata':int(UINT32_NODATA)},
-      'deterministic':{'key':deterministic_key,'dtype':'int16-le','layout':'point-time-field','fields':[asdict(s) for s in specs],'recordBytes':len(times)*len(specs)*2},
-      'epsSummary':None if not eps_summary_key else {'key':eps_summary_key,'dtype':'int16-le','layout':'point-time-field','fields':[asdict(s) for s in eps_summary_specs],'recordBytes':len(times)*len(eps_summary_specs)*2,'thresholdsMm':{'wet':0.2,'significant':5.0}},
-      'eps':None if not eps_key else {'key':eps_key,'dtype':'uint16-le','layout':'point-time-member','nodata':65535,'scale':eps_scale,'unit':'mm','memberCount':int(member_count),'recordBytes':len(times)*int(member_count)*2},
+      'times':det_times,'pointCount':int(point_count),'grid':dict(grid),'lookup':{'key':lookup_key,'dtype':'uint32-le','nodata':int(UINT32_NODATA)},
+      'deterministic':{'key':deterministic_key,'dtype':'int16-le','layout':'point-time-field','times':det_times,'fields':[asdict(s) for s in specs],'recordBytes':len(det_times)*len(specs)*2},
+      'epsSummary':None if not eps_summary_key else {'key':eps_summary_key,'dtype':'int16-le','layout':'point-time-field','times':summary_times,'fields':[asdict(s) for s in eps_summary_specs],'recordBytes':len(summary_times)*len(eps_summary_specs)*2,'thresholdsMm':{'wet':0.2,'significant':5.0}},
+      'eps':None if not eps_key else {'key':eps_key,'dtype':'uint16-le','layout':'point-time-member','times':member_times,'nodata':65535,'scale':eps_scale,'unit':'mm','memberCount':int(member_count),'recordBytes':len(member_times)*int(member_count)*2},
       'objects':dict(objects or {})
     }
     path.write_text(json.dumps(payload,ensure_ascii=False,separators=(',',':'))+'\n',encoding='utf-8')

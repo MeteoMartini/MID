@@ -12,11 +12,12 @@ forbid('AIFS-Modell-ID',weather,"{id:'ecmwf_aifs025',label:'ECMWF AIFS 0,25°',k
 need('Frischeprüfung',weather,'function modelMetaIsFresh(data:any)');
 need('Frischeprüfung',weather,'now-initMs<=maximumAgeMs');
 need('Metadatenquelle',weather,"metadataSource:'Open-Meteo Metadata API'");
-need('Best-Match-Wording',weather,'Die konkrete Best-Match-Quelle kann je Variable und Zeitraum wechseln.');
-need('RUC-Verfügbarkeitsgrenze',weather,'Numerische RUC-Punktwerte können zusätzlich über den Worker-Punktadapter in die Forecast-Fusion eingehen');
-need('RUC-Rohdatenfallback',weather,'ohne dekodierten Punktpfad bleibt der DWD-Rohdatensatz wegen seines nativen Dreiecksgitters eine Verfügbarkeitsquelle');
-need('RUC-Availability-only',weather,"id:'icon-d2-ruc',label:'DWD ICON-D2-RUC',kind:'forecast',metaSource:'dwd-ruc',rapidUpdate:true,resolutionKm:2,forecastHorizonHours:14,availabilityOnly:true");
-need('Best-Match-Kandidaten',app,'Am Standort potenziell relevante Regionalmodelle:');
+need('Best-Match-Wording',weather,'Die konkrete Best-Match-/Modellbeteiligung kann je Variable, Standort und Zeitraum wechseln.');
+need('RUC-Numerikpfad',weather,'über den kostenfreien GitHub-Pages-/Worker-Pfad numerisch in die kanonische Kurzfristfusion eingebunden');
+need('RUC-15-Minuten-Nahbereich',weather,'deterministisch 0–6 h in 15-minütlicher Auflösung und danach stündlich bis +14 h');
+need('RUC-numerischer Kandidat',weather,"id:'icon-d2-ruc',label:'DWD ICON-D2-RUC',kind:'forecast',metaSource:'dwd-ruc',rapidUpdate:true,resolutionKm:2,forecastHorizonHours:14");
+forbid('RUC-nicht-mehr-Availability-only',weather,"id:'icon-d2-ruc',label:'DWD ICON-D2-RUC',kind:'forecast',metaSource:'dwd-ruc',rapidUpdate:true,resolutionKm:2,forecastHorizonHours:14,availabilityOnly:true");
+need('Best-Match-Kandidaten',app,'Am Standort relevante Rapid-/Regionalmodelle:');
 forbid('Best-Match-Kandidaten',app,'Wahrscheinliche Kette:');
 need('Worker-Alias',worker,"ecmwf_aifs025:['ecmwf_aifs025_single','ecmwf_aifs025']");
 need('Worker-Fusion',worker,"apiIds:['ecmwf_aifs025_single']");
