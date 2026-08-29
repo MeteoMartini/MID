@@ -21,6 +21,9 @@ try{
  result=await run(process.execPath,['tools/cloudflare/worker_semantic_diff.mjs',oldFile,newFile],{GITHUB_OUTPUT:outFile});assert.equal(result.code,0);assert.match(await readFile(outFile,'utf8'),/changed=true/);
  const wrOut=path.join(temp,'wrangler.jsonl'),ghOut=path.join(temp,'gh.txt'),vid='11111111-2222-3333-4444-555555555555';await writeFile(wrOut,JSON.stringify({type:'version-upload',version_id:vid})+'\n');
  result=await run(process.execPath,['tools/cloudflare/parse_wrangler_output.mjs',wrOut],{GITHUB_OUTPUT:ghOut});assert.equal(result.code,0);assert.match(await readFile(ghOut,'utf8'),new RegExp(vid));
+ await writeFile(ghOut,'');
+ const realWranglerStdout=`Total Upload: 665.05 KiB / gzip: 175.91 KiB\nUploaded mid-data-proxy (0.52 sec)\nWorker Version ID: ${vid}\nTo deploy this version to production traffic use the command wrangler versions deploy\n`;
+ result=await run(process.execPath,['tools/cloudflare/parse_wrangler_output.mjs'],{GITHUB_OUTPUT:ghOut,WRANGLER_COMMAND_OUTPUT:realWranglerStdout});assert.equal(result.code,0,result.stderr);assert.match(await readFile(ghOut,'utf8'),new RegExp(vid));
 
  const originalFetch=globalThis.fetch,argv=process.argv,env={...process.env};
  const configPath=path.join(temp,'wrangler.json'),metaPath=path.join(temp,'meta.json');

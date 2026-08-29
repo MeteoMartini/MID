@@ -372,8 +372,6 @@ jobs:
         if: needs.install_build.outputs.worker_changed == 'true'
         id: worker_upload
         uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
-        env:
-          WRANGLER_OUTPUT_FILE: /tmp/mid-wrangler-upload.jsonl
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -393,7 +391,9 @@ jobs:
         if: needs.install_build.outputs.worker_changed == 'true'
         id: uploaded_worker
         shell: bash
-        run: node tools/cloudflare/parse_wrangler_output.mjs /tmp/mid-wrangler-upload.jsonl
+        env:
+          WRANGLER_COMMAND_OUTPUT: ${{ steps.worker_upload.outputs.command-output }}
+        run: node tools/cloudflare/parse_wrangler_output.mjs
 
       - name: Neue Version mit 0 Prozent neben dem bisherigen Worker bereitstellen
         if: needs.install_build.outputs.worker_changed == 'true'

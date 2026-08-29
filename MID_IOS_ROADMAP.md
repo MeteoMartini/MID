@@ -22,6 +22,8 @@ Adapter.
 
 Die in MID 17.7.3 geplante DWD-ICON-D2-RUC/RUC-EPS-Integration wurde als gemeinsamer React/Vite-/Worker-Fachkernbaustein vorwärts portiert. Sie erzeugt keinen iOS-Fork und verändert keine native Datenhaltung. Browser/PWA und iOS profitieren identisch von der kanonischen 0–14-h-Kurzfristfusion. Die vorbereitete R2-Pipeline bleibt am Kosten-Gate deaktiviert. **v0.9.69.1 Produktionshärtung:** EPS-Wahrscheinlichkeiten/Quantile werden vorab in GitHub Actions aggregiert, native Member nur für kurzfristige Events gelesen, sämtliche Binärobjekte inklusive Lookup sind lauf-immutable und der R2-Publisher verifiziert Objekte vor dem atomaren `latest.json`-Wechsel. **v0.9.69.2 Betriebs-/Cloudflare-Härtung:** privater R2-Bucket mit deaktiviertem `r2.dev`, 48-h-Leck-Lifecycle, Fallback-sicherer Preflight-Cleanup, getrennte Bootstrap-/Publisher-Rechte und ein geheimnisfreier `ruc-health`-Smoketest. Custom Domain bleibt optional hinter einem gesonderten Öffentlichkeitsgate.
 
+**v0.9.69.3–0.9.69.6 Release-Automatisierung:** Der gemeinsame Worker wird bei fachlichen Änderungen nach erfolgreichem Browser-Build und vollständiger Regression automatisch versioniert hochgeladen, zunächst mit 0 % Traffic gegen den produktionsgleichen Versionsoverride geprüft und erst danach auf 100 % promoviert. Fehlgeschlagene Vorläufe bleiben fail-closed. v0.9.69.6 verwendet dafür den dokumentierten `command-output` von `cloudflare/wrangler-action`, um die von Wrangler gelieferte Worker-Version-ID eindeutig zu bestimmen.
+
 Der nächste native Meilenstein bleibt Lifecycle-/Offline-Wiederaufnahme ohne lokalen Datenverlust.
 
 ### 2. Native Plattformadapter – in Arbeit

@@ -1,3 +1,9 @@
+## 0.9.69.6
+
+- Worker-Auto-Deploy: reale `cloudflare/wrangler-action`-Ausgabe wird über den dokumentierten `command-output` statt über eine nicht erzeugte `/tmp`-Datei ausgewertet.
+- Version-ID-Erkennung bleibt fail-closed und akzeptiert exakt eine Worker-Version-ID.
+- Regression deckt die echte Wrangler-4.125.0-Zeile `Worker Version ID: ...` ab.
+
 ## 0.9.69.5
 
 - Worker-Auto-Deploy-Hotfix: der in einer temporären `/tmp`-Wrangler-Konfiguration gespeicherte Worker-Einstiegspfad ist jetzt absolut und zeigt sicher auf den ausgecheckten Release-Arbeitsbaum.
