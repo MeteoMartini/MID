@@ -1,3 +1,14 @@
+## 0.9.69.4
+
+- Worker-Auto-Deploy-Hotfix: ein leeres Cloudflare-`placement` wird nicht mehr als ungültiges `placement: {}` an Wrangler übergeben.
+- Gültiges Smart Placement bzw. genau ein expliziter Placement-Hinweis bleibt erhalten; unbekannte oder widersprüchliche Remote-Angaben brechen weiterhin fail-closed ab.
+- Der fehlgeschlagene v0.9.69.3-Erstlauf änderte keinen produktiven Traffic; Pages und `mid-stable` blieben korrekt blockiert.
+
+## 0.9.69.3
+
+- Sicherer automatischer Cloudflare-Worker-Deploy mit fachlicher Änderungserkennung, Remote-Konfigurationsspiegel, 0-%-Staging, Versionsoverride-Smoke, 100-%-Promotion und automatischem Rollback.
+- Dashboard-Variablen/Secrets bleiben erhalten; unbekannte Bindings und mehrdeutige Split-Deployments blockieren fail-closed.
+
 ## 0.9.69.2
 
 - Cloudflare-R2-Betrieb auf **private-by-default** gehärtet: `r2.dev` wird beim einmaligen Bootstrap deaktiviert; ein Custom Domain bleibt optional und benötigt weiterhin eine gesonderte Freigabe.

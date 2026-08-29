@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-08-28T21:45:00Z",
-  "releaseVersion": "0.9.69.3",
+  "updatedAt": "2026-08-29T05:45:00Z",
+  "releaseVersion": "0.9.69.4",
   "sourceBaseline": {
     "professionalVersion": "0.9.66.19",
     "workerVersion": "0.9.66.19",
@@ -33,16 +33,17 @@
     "shared-dwd-ruc-ruc-eps-forward-port-0.9.69.0",
     "shared-ruc-production-pipeline-hardening-0.9.69.1",
     "shared-ruc-private-r2-bootstrap-health-0.9.69.2",
-    "shared-safe-automatic-cloudflare-worker-deploy-0.9.69.3"
+    "shared-safe-automatic-cloudflare-worker-deploy-0.9.69.3",
+    "worker-deploy-empty-placement-hotfix-0.9.69.4"
   ],
   "nextMilestone": "lifecycle-offline-resume-without-local-data-loss",
   "validation": {
-    "browserBuild": "pending-release-ci-v0.9.69.3: local npm registry remains unavailable; no React/Vite fachcore change in worker-deploy milestone",
-    "typescript": "pending-release-ci-v0.9.69.3: local TypeScript package unavailable; no TS/TSX fachcore change in worker-deploy milestone",
-    "workerSyntax": "passed-v0.9.69.3; worker.js and worker/metar-proxy.js byte-identical",
-    "regressions": "551-of-560 passed-v0.9.69.3; 9 startup-blocked only by missing local dependencies (7 TypeScript/tsc, 2 esbuild); zero functional assertion failures",
-    "capacitorSync": "pending-release-ci-v0.9.69.3: no native plugin or shared fachcore change introduced",
-    "xcodeProjectStructure": "passed-static-v0.9.69.3; shared React/Vite core, no iOS fork, marketing 0.9.69 build 4; no native capability change",
+    "browserBuild": "pending-release-ci-v0.9.69.4: no React/Vite fachcore change; v0.9.69.3 CI build/regressions passed before Worker upload gate",
+    "typescript": "pending-release-ci-v0.9.69.4: hotfix limited to Cloudflare deployment tooling",
+    "workerSyntax": "passed-v0.9.69.4; worker fachcode unchanged except synchronized release version",
+    "regressions": "targeted worker-auto-deploy placement regression passed-v0.9.69.4; full release CI required before promotion",
+    "capacitorSync": "pending-release-ci-v0.9.69.4: no native plugin or shared fachcore change introduced",
+    "xcodeProjectStructure": "passed-static-v0.9.69.4; shared React/Vite core, no iOS fork, marketing 0.9.69 build 5; no native capability change",
     "xcodeAppleSdkBuild": "pending-macos-runtime"
   },
   "costGate": {

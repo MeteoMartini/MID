@@ -49,6 +49,20 @@ function mapBindings(bindings){
  if(unsupported.length)throw new Error(`Unbekannte/noch nicht sicher abgebildete Worker-Bindings: ${unsupported.join(', ')}. Deploy wird fail-closed abgebrochen.`);
  return{config,summary};
 }
+function normalizePlacement(placement){
+ if(!placement||typeof placement!=='object'||Array.isArray(placement))return null;
+ const mode=String(placement.mode||'').trim(),region=String(placement.region||'').trim(),host=String(placement.host||'').trim(),hostname=String(placement.hostname||'').trim();
+ const targets=[['region',region],['host',host],['hostname',hostname]].filter(([,value])=>value);
+ if(targets.length>1)throw new Error('Remote Worker-Placement enthält mehrere konkurrierende Zielhinweise; Deploy wird fail-closed abgebrochen.');
+ if(mode&&mode!=='smart'&&mode!=='targeted')throw new Error(`Unbekannter Remote Worker-Placement-Modus: ${mode}`);
+ if(mode==='smart'){
+  if(targets.length)throw new Error('Remote Worker-Placement kombiniert Smart Placement mit einem Zielhinweis; Deploy wird fail-closed abgebrochen.');
+  return{mode:'smart'};
+ }
+ if(targets.length===1){const [key,value]=targets[0];return{[key]:value}}
+ if(mode==='targeted')throw new Error('Remote Worker-Placement meldet targeted ohne region/host/hostname; Deploy wird fail-closed abgebrochen.');
+ return null;
+}
 function activeVersion(deployments){
  const rows=Array.isArray(deployments?.deployments)?deployments.deployments:Array.isArray(deployments)?deployments:[];
  const latest=rows[0];if(!latest)throw new Error('Kein aktives Cloudflare-Worker-Deployment gefunden');
@@ -65,7 +79,7 @@ const [settings,deployments]=await Promise.all([
  cfGet(accountId,token,workerName,'/deployments')
 ]);
 const compatibilityDate=String(settings?.compatibility_date||'');if(!/^\d{4}-\d{2}-\d{2}$/.test(compatibilityDate))throw new Error('Remote compatibility_date fehlt oder ist ungültig; kein geratenes Datum wird eingesetzt.');
-const mapped=mapBindings(settings?.bindings),current=activeVersion(deployments);
+const mapped=mapBindings(settings?.bindings),current=activeVersion(deployments),placement=normalizePlacement(settings?.placement);
 const rucBucket=String(process.env.MID_RUC_R2_BUCKET||'').trim(),rucBinding='MID_DWD_RUC_DATA',r2=mapped.config.r2_buckets??[],existing=r2.find(row=>row.binding===rucBinding);
 if(existing&&rucBucket&&existing.bucket_name!==rucBucket)throw new Error(`${rucBinding} zeigt remote auf ${existing.bucket_name}; konfigurierte MID_RUC_R2_BUCKET=${rucBucket}. Automatischer Deploy wird abgebrochen.`);
 if(!existing&&rucBucket&&truthy('MID_RUC_BINDING_AUTO_APPROVED')){
@@ -80,7 +94,7 @@ const config={
  no_bundle:true,
  minify:false,
  send_metrics:false,
- ...(settings?.placement&&typeof settings.placement==='object'?{placement:settings.placement}:{}),
+ ...(placement?{placement}:{}),
  ...(settings?.limits&&typeof settings.limits==='object'?{limits:settings.limits}:{}),
  ...mapped.config
 };
