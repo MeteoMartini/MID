@@ -2,10 +2,15 @@ name: MID DWD RUC preprocessing
 on:
   workflow_dispatch:
   schedule:
+    # GitHub schedule events are best-effort. Keep the existing :41 slot and a
+    # staggered :11 recovery slot; the freshness guard below makes duplicates cheap.
+    - cron: '11 * * * *'
     - cron: '41 * * * *'
 concurrency:
   group: mid-dwd-ruc-preprocess
-  cancel-in-progress: true
+  # Never cancel a nearly completed delayed RUC publication. A queued duplicate
+  # self-skips after the first run publishes the current DWD cycle.
+  cancel-in-progress: false
 permissions:
   contents: read
   pages: write
@@ -34,21 +39,39 @@ jobs:
           python-version: '3.12'
           cache: 'pip'
           cache-dependency-path: tools/ruc/requirements.txt
+      - name: RUC-Schedulerlücke und Aktualität vorab prüfen
+        id: freshness
+        env:
+          MID_RUC_PAGES_BASE_URL: ${{ vars.MID_RUC_PAGES_BASE_URL || 'https://midwx.app/ruc/' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            echo "reason=manueller Lauf erzwingt vollständige Verarbeitung" >> "$GITHUB_OUTPUT"
+            echo "RUC schedule guard: manual dispatch -> process"
+          else
+            python tools/ruc/check_ruc_schedule_guard.py --pages-base "$MID_RUC_PAGES_BASE_URL" --github-output "$GITHUB_OUTPUT"
+          fi
       - name: Freie DWD-Decodierwerkzeuge installieren
+        if: ${{ steps.freshness.outputs.should_run == 'true' }}
         run: |
           sudo apt-get update
           sudo apt-get install -y libeccodes-tools
           python -m pip install --disable-pip-version-check -r tools/ruc/requirements.txt
       - name: Neuesten vollständigen RUC/RUC-EPS-Lauf laden und dekodieren
+        if: ${{ steps.freshness.outputs.should_run == 'true' }}
         env:
           MID_RUC_FORECAST_HOURS: '14'
         run: python tools/ruc/fetch_and_build_ruc.py --output .ruc-out
       - name: RUC-Wire- und Pages-Free-Profil prüfen
+        if: ${{ steps.freshness.outputs.should_run == 'true' }}
         run: |
           python tools/ruc/test_ruc_pack.py
           python tools/ruc/test_prepare_ruc_pages.py
           python tools/ruc/prepare_ruc_pages.py --source .ruc-out --output .ruc-pages
       - name: MID-Seite mit kostenfreiem RUC-Snapshot zusammensetzen
+        if: ${{ steps.freshness.outputs.should_run == 'true' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -68,17 +91,22 @@ jobs:
           test ! -e .ruc-site/ruc/eps-members.bin
           find .ruc-site/ruc -type f -name 'eps-members.bin' -print -quit | grep -q . && { echo '::error::Native EPS member cube must not be published by the free Pages profile.'; exit 1; } || true
       - name: GitHub-Pages-Artefakt hochladen
+        if: ${{ steps.freshness.outputs.should_run == 'true' }}
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           name: mid-ruc-pages-${{ github.run_id }}
           path: ./.ruc-site
       - name: MID + RUC kostenfrei auf GitHub Pages veröffentlichen
+        if: ${{ steps.freshness.outputs.should_run == 'true' }}
         id: deployment
         uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
         with:
           artifact_name: mid-ruc-pages-${{ github.run_id }}
       - name: Produktiven Worker gegen den veröffentlichten RUC-Lauf prüfen
-        if: ${{ vars.MID_RUC_WORKER_HEALTH_URL != '' || vars.MID_WORKER_HEALTH_URL != '' || vars.VITE_METAR_PROXY_URL != '' }}
+        if: ${{ steps.freshness.outputs.should_run == 'true' && (vars.MID_RUC_WORKER_HEALTH_URL != '' || vars.MID_WORKER_HEALTH_URL != '' || vars.VITE_METAR_PROXY_URL != '') }}
         env:
           MID_RUC_WORKER_HEALTH_URL: ${{ vars.MID_RUC_WORKER_HEALTH_URL || vars.MID_WORKER_HEALTH_URL || vars.VITE_METAR_PROXY_URL }}
         run: python tools/ruc/check_ruc_health.py --url "$MID_RUC_WORKER_HEALTH_URL" --meta .ruc-out/latest.json
+      - name: Bereits aktuellen RUC-Lauf ohne Neubau bestätigen
+        if: ${{ steps.freshness.outputs.should_run != 'true' }}
+        run: echo "RUC-Neubau nicht erforderlich · ${{ steps.freshness.outputs.reason }}"
