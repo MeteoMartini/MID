@@ -6,7 +6,7 @@ import {fileURLToPath} from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const panel=fs.readFileSync(path.join(root,'src/SynopticPanel.tsx'),'utf8'),styles=fs.readFileSync(path.join(root,'src/styles.css'),'utf8');
 for(const token of [
- "light_nolabels","light_only_labels","MID BODENANALYSE","professional-analysis-map","graticule(bounds","frontZone(primary.line)","dominanter Cluster","Alternative",
+ "https://tile.openstreetmap.org/{z}/{x}/{y}.png","tone:{saturation:-.82,contrast:-.06,brightnessMin:.16,brightnessMax:1}","MID BODENANALYSE","professional-analysis-map","graticule(bounds","frontZone(primary.line)","dominanter Cluster","Alternative",
  "function windBarbs","function selectStationPlots","stationSeparationKm(existing,station)>=58","pressureCode","Wind aus ${compassDirection(station.windDirection)}","const source=isFiniteNumber(direction)?((direction%360)+360)%360:0","Multiparametrische Feldanalyse","primaryModelId"
 ])assert.ok(panel.includes(token),`Professionelle Synoptik fehlt: ${token}`);
 assert.ok(!panel.includes('(direction+180)%360'),'Synoptik-Windpfeile dürfen nicht erneut um 180 Grad gespiegelt werden.');

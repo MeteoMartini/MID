@@ -1,3 +1,37 @@
+## v0.9.74.7
+
+- Release-CI Run #771 mitigiert: npm ci, Dependency-Audit, TypeScript und Vite waren grün; 576/577 Regressionen bestanden. Ausschließlich `test-ruc-dwd-pipeline-09690.mjs` enthielt noch ein v0.9.74.5-only Übergangsfenster.
+- Drei verteilte, versionsgebundene RUC-Workflow-Ausnahmen durch einen gemeinsamen zustandsgebundenen Sync-Vertrag ersetzt: bytegleich synchron oder exakt bekannter geschützter Legacy-.github-Zustand bei vollständig validiertem kanonischem :11/:41-Catch-up-Workflow.
+- Unbekannte Workflow-Drift und unvollständiger kanonischer Catch-up-Stand bleiben fail-closed. Neue Regression prüft synced, pending-admin-sync, unsafe-drift und invalid-canonical.
+- RUC-Fachdaten, Pages-Free/950-MB-Grenze, Forecast-Fusion, iOS und Worker-Semantik unverändert; manueller Worker-Upload bleibt unnötig.
+
+## v0.9.74.6
+
+- Release-CI Run #770 mitigiert: npm ci, Dependency-Audit, TypeScript, Vite und 576/577 Regressionen waren grün; ausschließlich `test-ruc-pages-free-storage-09700.mjs` erwartete trotz bewusst geschütztem `.github`-Self-Modification-Block noch Bytegleichheit zum bereits aktualisierten kanonischen RUC-Workflow.
+- Release-vor-Admin-Sync-Ausnahme konsistent auf beide RUC-Workflow-Regressionen angewendet und exakt auf v0.9.74.5/.6 sowie den bekannten Legacy-Workflowzustand begrenzt. Ab v0.9.74.7 ist die Ausnahme automatisch wieder geschlossen.
+- RUC-Catch-up (:11/:41), 950-MB-Pages-Limit, Forecast-/Worker-Semantik und Kostenvertrag unverändert. Nach grünem v0.9.74.6-Release ist der explizite Workflow-Sync auf `main` und `mid-stable` unmittelbar nachzuholen; manueller Worker-Upload bleibt unnötig.
+
+## v0.9.74.5
+
+- Release-CI Run #769 mitigiert: npm ci, Audit, TypeScript und Vite waren grün; die einzigen 2/576 Fehler waren historische CARTO-Token-Regressionsasserts. Sie schützen nun den seit v0.9.74.3 gültigen schlüsselfreien OSM+MapLibre-Tone-Vertrag statt entfernte CARTO-URLs.
+- DWD-RUC-Scheduler gegen ausgelassene GitHub-`schedule`-Ereignisse gehärtet: bestehender :41-Slot plus versetzter :11-Recovery-Slot, äußeres `cancel-in-progress: false` und billiger exact-run Catch-up/Freshness-Guard vor apt/ecCodes/pip.
+- Der Guard überspringt nur bei strukturell gültigem, exakt aktuellem Pages-Free-RUC; neuer/stale/unklarer Stand läuft fail-open in die vollständige Verarbeitung. `fetch_and_build_ruc.py` bleibt authoritative Completeness-Gate.
+- Pages-Free-Projektion, 950-MB-Grenze, Post-Deploy-Health-Convergence, Forecast-Fusion und Worker-Runtime bleiben unverändert. RUC-Workflow-Sync ist explizit erforderlich; manueller Worker-Upload nicht.
+
+## v0.9.74.4
+
+- DWD-RUC Run #12 analysiert: RUC/RUC-EPS-Build, Pages-Free-Prüfung, 918-MB-Seitenzusammenstellung, Artifact-Upload und Pages-Deployment waren erfolgreich; ausschließlich der unmittelbar folgende Worker-Health-Probe sah noch den vorherigen stale `latest.json`.
+- Post-Pages-Healthcheck um ein kurzes begrenztes Konvergenzfenster mit eindeutigen No-Cache-Probes und Backoff ergänzt. Der neue veröffentlichte Lauf muss weiterhin exakt `ready + fresh + schemaValid` werden; stale/falsche Runs werden niemals akzeptiert.
+- Persistiert der stale Zustand nach dem Retry-Budget, bleibt der Workflow fail-closed. Neue Required Regression simuliert sowohl `stale -> stale -> fresh` als auch dauerhaft stale.
+- Keine Änderung an RUC-Fachlogik, Forecast-Fusion, Pages-Free-Profil, Worker-Runtime oder iOS-Nativfähigkeiten; kein manueller Worker-Upload erforderlich.
+
+## v0.9.74.3
+
+- Kompositbild: die anonym inzwischen gesperrten CARTO-Positron-/Dark-Matter-Kacheln samt "API KEY REQUIRED"-Wasserzeichen vollständig entfernt; bestehende Kartenbasis-IDs bleiben für Persistenz erhalten.
+- Schlüsselfreie OpenStreetMap-Kacheln bilden nun Standard, "Schlicht hell" und "Schlicht dunkel". Die beiden schlichten Varianten werden ausschließlich lokal über MapLibre-Raster-Sättigung, Kontrast und Helligkeit aufbereitet; kein API-Key, Konto oder kostenpflichtiger Kartendienst erforderlich.
+- Gleichen Schutz appweit auf Wetterkarten und Synoptikkarte ausgeweitet, damit der bereits bei der Extremwetterkarte behobene CARTO-Ausfall nicht in anderen Kartenmodulen wiederkehrt.
+- Neue Required Regression verhindert produktive `basemaps.cartocdn.com`-Rückfälle und schützt die persistierten hell/dunkel-Auswahlvarianten sowie den lokalen Raster-Tone-Vertrag. Worker- und Wetterdatenlogik bleiben unverändert.
+
 ## v0.9.74.2
 
 - Pages-Release-Restore gegen transiente `HTTP 429/500/502/503/504`- und Netzwerkfehler gehärtet: begrenzte Retry-/Backoff-Logik mit `Retry-After`-Beachtung statt sofortigem Abbruch eines kompletten Release-Versuchs.

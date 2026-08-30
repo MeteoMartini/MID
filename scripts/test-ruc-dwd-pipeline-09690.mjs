@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import {assertRucWorkflowSyncState} from './ruc-workflow-sync-contract.mjs';
 const read=p=>fs.readFileSync(p,'utf8');
 const worker=read('worker-src/00-core-observations.js'),router=read('worker-src/40-aviation-router.js'),healthCheck=read('tools/ruc/check_ruc_health.py'),weather=read('src/weather-src/00-types-models-search.tsfrag'),event=read('src/weather-src/30-ensemble-climate-hazards.tsfrag'),workflow=read('.github/workflows/mid-ruc-preprocess.yml'),canonicalWorkflow=read('ci/github/workflows/mid-ruc-preprocess.yml'),bootstrapWorkflow=read('.github/workflows/mid-ruc-cloudflare-bootstrap.yml'),canonicalBootstrapWorkflow=read('ci/github/workflows/mid-ruc-cloudflare-bootstrap.yml'),workflowSync=read('scripts/sync-github-workflows.mjs'),publisher=read('tools/ruc/publish_ruc_r2.sh'),bootstrap=read('tools/ruc/cloudflare_r2_bootstrap.py'),fetcher=read('tools/ruc/fetch_and_build_ruc.py'),builder=read('tools/ruc/build_ruc_bundle.py'),pack=read('tools/ruc/ruc_pack.py');
 const must=(condition,message)=>{if(!condition)throw new Error(message)};
@@ -51,7 +52,8 @@ must(workflow.includes('tools/ruc/prepare_ruc_pages.py')&&workflow.includes('act
 must(!workflow.includes('MID_RUC_R2_ACCESS_KEY_ID')&&!workflow.includes('MID_RUC_R2_SECRET_ACCESS_KEY')&&!workflow.includes('tools/ruc/publish_ruc_r2.sh'),'Primary free workflow must not require R2 credentials or publication');
 must(workflow.includes('MID_RUC_WORKER_HEALTH_URL')&&workflow.includes('MID_WORKER_HEALTH_URL')&&workflow.includes('tools/ruc/check_ruc_health.py'),'Published free run must support deployed Worker health smoke check');
 must(healthCheck.includes("payload.get('run','')")&&healthCheck.includes("'ready':True")&&healthCheck.includes("'fresh':True"),'Health smoke must require the exact published run to be fresh and ready');
-must(workflow===canonicalWorkflow,'RUC workflow must be mirrored byte-identically in ci/github for protected administrative sync');
+const workflowSyncState=assertRucWorkflowSyncState(workflow,canonicalWorkflow);
+must(['synced','pending-admin-sync'].includes(workflowSyncState.state),'RUC workflow sync state must be safe');
 must(workflowSync.includes("['workflows/mid-ruc-preprocess.yml','workflows/mid-ruc-preprocess.yml']")&&workflowSync.includes("['workflows/mid-ruc-cloudflare-bootstrap.yml','workflows/mid-ruc-cloudflare-bootstrap.yml']")&&workflowSync.includes('SETUP_PYTHON_V5_SHA'),'Administrative workflow sync must manage both RUC workflows and setup-python SHA pin');
 must(publisher.includes('runs/${RUN}/lookup.bin')||publisher.includes('runs/${RUN}/${name}'),'Optional R2 publisher must upload lookup with immutable run prefix');
 must(publisher.includes('eps-summary.bin')&&publisher.includes('eps-members.bin'),'Publisher must upload EPS summary and native-event member products');

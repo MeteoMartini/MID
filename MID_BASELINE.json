@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.74.2",
+  "releaseVersion": "0.9.74.7",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -311,7 +311,10 @@
     "scripts/test-ruc-common-hourly-axis-097310.mjs",
     "scripts/test-ruc-native-cadence-nowcast-097311.mjs",
     "scripts/test-ruc-parameter-audit-097311.mjs",
-    "scripts/test-ruc-pages-restore-resilience-09742.mjs"
+    "scripts/test-ruc-pages-restore-resilience-09742.mjs",
+    "scripts/test-keyless-basemap-contract-09743.mjs",
+    "scripts/test-ruc-schedule-catchup-09745.mjs",
+    "scripts/test-ruc-workflow-sync-transition-09747.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -553,7 +556,10 @@
     "scripts/test-ruc-common-hourly-axis-097310.mjs",
     "scripts/test-ruc-native-cadence-nowcast-097311.mjs",
     "scripts/test-ruc-parameter-audit-097311.mjs",
-    "scripts/test-ruc-pages-restore-resilience-09742.mjs"
+    "scripts/test-ruc-pages-restore-resilience-09742.mjs",
+    "scripts/test-keyless-basemap-contract-09743.mjs",
+    "scripts/test-ruc-schedule-catchup-09745.mjs",
+    "scripts/test-ruc-workflow-sync-transition-09747.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -811,7 +817,19 @@
     "MID_IMPLEMENTATION_0.9.74.1.md",
     "scripts/test-ruc-pages-restore-resilience-09742.mjs",
     "tools/ruc/test_restore_ruc_pages_snapshot.py",
-    "MID_IMPLEMENTATION_0.9.74.2.md"
+    "MID_IMPLEMENTATION_0.9.74.2.md",
+    "scripts/test-keyless-basemap-contract-09743.mjs",
+    "MID_IMPLEMENTATION_0.9.74.3.md",
+    "scripts/test-ruc-health-convergence-09744.mjs",
+    "MID_IMPLEMENTATION_0.9.74.4.md",
+    "scripts/test-ruc-schedule-catchup-09745.mjs",
+    "tools/ruc/check_ruc_schedule_guard.py",
+    "tools/ruc/test_ruc_schedule_guard.py",
+    "MID_IMPLEMENTATION_0.9.74.5.md",
+    "MID_IMPLEMENTATION_0.9.74.6.md",
+    "scripts/ruc-workflow-sync-contract.mjs",
+    "scripts/test-ruc-workflow-sync-transition-09747.mjs",
+    "MID_IMPLEMENTATION_0.9.74.7.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -915,6 +933,8 @@
     "MID_IMPLEMENTATION_0.9.69.5.md"
   ],
   "implementationProof": [
-    "MID_IMPLEMENTATION_0.9.73.13.md"
+    "MID_IMPLEMENTATION_0.9.74.5.md",
+    "MID_IMPLEMENTATION_0.9.74.6.md",
+    "MID_IMPLEMENTATION_0.9.74.7.md"
   ]
 }

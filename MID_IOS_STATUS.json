@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-08-29T21:50:00Z",
-  "releaseVersion": "0.9.74.2",
+  "updatedAt": "2026-08-30T07:40:18Z",
+  "releaseVersion": "0.9.74.7",
   "sourceBaseline": {
     "professionalVersion": "0.9.70.2",
     "workerVersion": "0.9.70.2",
@@ -56,14 +56,18 @@
     "ruc-common-hourly-axis-production-ingestion-fix-0.9.73.10",
     "ruc-parameter-native-rapid-products-and-appwide-audit-0.9.73.11",
     "worker-ruc-stale-bootstrap-deadlock-hotfix-0.9.73.13",
-    "weather-profile-cloud-structures-total-hml-0.9.74.0"
+    "weather-profile-cloud-structures-total-hml-0.9.74.0",
+    "release-run-769-stale-keyless-basemap-regression-hotfix-0.9.74.5",
+    "shared-ruc-scheduler-catchup-guard-0.9.74.5",
+    "release-run-770-ruc-workflow-transition-regression-hotfix-0.9.74.6",
+    "release-run-771-ruc-workflow-state-bound-transition-regression-hotfix-0.9.74.7"
   ],
   "nextMilestone": "macos-xcode-simulator-quality-assurance",
   "validation": {
-    "browserBuild": "v0.9.74.1 ist ein reiner TypeScript-Wartungshotfix für das 24-h-Wolkenprofil aus v0.9.74.0. UI, Forecast-, RUC- und Worker-Fachsemantik bleiben unverändert; vollständiger Release-CI bleibt verbindlich.",
+    "browserBuild": "Run #770: npm ci, Dependency-Audit, TypeScript und Vite waren grün; 576/577 Regressionen bestanden. Ausschließlich test-ruc-pages-free-storage-09700.mjs verlangte im bewusst geschützten Release-vor-Admin-Sync-Fenster noch Bytegleichheit des aktiven .github-RUC-Workflows mit dem bereits aktualisierten kanonischen ci/github-Stand.",
     "typescript": "Run #765 scheiterte ausschließlich an zwei TS2322-Stellen im neuen H/M-Wolken-SVG: midCloud/highCloud sind im ShortTermForecastPoint absichtlich optional, während SvgProfileCloudStructure zunächst number verlangte. v0.9.74.1 akzeptiert number|undefined und normiert intern unverändert über Number(value)||0; kein iOS-Fork, keine native Capability.",
     "workerSyntax": "Der Worker-Kandidat v0.9.73.12 wurde in Run #762 erfolgreich hochgeladen und bei 0 % bereitgestellt; die Promotion wurde wegen stale RUC blockiert und automatisch auf v0.9.73.8 zurückgerollt. v0.9.73.13 erlaubt beim Release-Smoke nur einen strukturell gültigen stale-RUC-Bootstrap, während die RUC-Runtime stale Daten weiterhin fail-closed ignoriert.",
-    "regressions": "Neue Regression test-cloud-profile-structures-09740.mjs schützt Gesamt + H/M/L, höhentypische Formen, Intensität aus 0..100-%-Bewölkung und zeitliches Fading; bestehende Wetterprofil-/Open-Meteo-Regressionsverträge wurden semantisch auf den erweiterten Wolkenbereich angehoben.",
+    "regressions": "v0.9.74.7 zentralisiert den RUC-Workflow-Übergang: aktiver Workflow ist entweder bytegleich zum kanonischen Catch-up-Stand oder exakt der bekannte geschützte Legacyzustand; unbekannte Drift und unvollständige kanonische Catch-up-Konfiguration bleiben fail-closed.",
     "capacitorSync": "embedded ios/App/App/public remains honestly at v0.9.68.2; do not retag. Full npm run ios:sync/cap copy ios must run at the macOS/Xcode quality gate after release CI dependencies are available.",
     "xcodeProjectStructure": "App and MIDWidgets each bundle PrivacyInfo.xcprivacy; plist/project lint and Swift parse pass; Push/BGRefresh remain dormant and no ATT/push/background entitlement is activated.",
     "xcodeAppleSdkBuild": "required-next-gate-macos-xcode-simulator; includes Apple SDK build, simulator launch, Privacy Report inspection and post-sync structure verification."
@@ -79,5 +83,5 @@
     ],
     "approved": false
   },
-  "validationNote": "v0.9.74.2 is deployment resilience maintenance only; no native capability split and no iOS fork. Shared React/Vite/Worker core remains unchanged except synchronized version metadata."
+  "validationNote": "v0.9.74.7 is shared-core/CI maintenance only: no iOS fork or native capability change; it fixes the sole stale Run-#771 RUC workflow transition regression with one state-bound shared contract. Full GitHub release CI remains authoritative."
 }

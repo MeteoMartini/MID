@@ -1,6 +1,6 @@
 # MID DWD RUC/RUC-EPS Pipeline Contract
 
-Stand: v0.9.73.11
+Stand: v0.9.74.5
 
 ## Zweck und fachliche Rolle
 
@@ -64,6 +64,10 @@ Die Binärprodukte werden in immutable Chunks geteilt. Der Worker liest pro Ziel
 Normale App-Releases erhalten einen vorhandenen Pages-Free-RUC-Snapshot, indem sie dessen Manifest und immutable Chunks vor dem Pages-Deployment wieder in `dist/ruc` übernehmen und per Größe/SHA-256 prüfen. Ist `MID_RUC_PIPELINE_ENABLED=true`, gilt dieser Erhalt fail-closed.
 
 Der Worker nutzt standardmäßig `https://midwx.app/ruc/`; `MID_DWD_RUC_STATIC_BASE_URL` kann diese Quelle ausdrücklich überschreiben. `ruc-health` meldet das aktive Backend und akzeptiert beim Pages-Profil die absichtliche Abwesenheit nativer EPS-Member.
+
+### Scheduler-/Catch-up-Vertrag ab v0.9.74.5
+
+GitHub-`schedule` ist als best-effort Trigger zu behandeln und darf nicht als lückenlose meteorologische Uhr angenommen werden. Der kostenlose RUC-Workflow erhält deshalb zwei versetzte Chancen je Stunde (`:11` und `:41` UTC) und darf einen bereits laufenden Build nicht durch einen verspäteten Folgetrigger abbrechen (`cancel-in-progress: false`). Vor ecCodes/pip vergleicht ein stdlib-only Guard den neuesten gemeinsam beworbenen DWD-RUC/RUC-EPS-Lauf mit dem veröffentlichten Pages-Free-`latest.json`. Nur ein strukturell gültiger, exakt gleicher und innerhalb des Vier-Stunden-Vertrags liegender Lauf darf den teuren Neubau als No-op überspringen. Bei neuerem DWD-Lauf, stale/ungültigem Pages-Metadatensatz oder jeder Discovery-/Netzwerkunsicherheit wird fail-open vollständig verarbeitet. Die eigentliche Vollständigkeitsentscheidung verbleibt bei `fetch_and_build_ruc.py`; ein bloß beworbener, aber unvollständiger neuer DWD-Lauf kann daher weiterhin nicht veröffentlicht werden.
 
 ## Optionaler R2-Pfad
 

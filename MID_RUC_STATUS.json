@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-08-29T21:50:00Z",
-  "releaseVersion": "0.9.74.2",
+  "updatedAt": "2026-08-30T07:40:18Z",
+  "releaseVersion": "0.9.74.7",
   "source": "DWD Open Data ICON-D2-RUC / ICON-D2-RUC-EPS",
   "deterministic": {
     "coverageBbox": [
@@ -141,7 +141,23 @@
     "downloadForecastHoursOnly": true,
     "downloadWorkers": 8,
     "downloadProgressLogging": true,
-    "downloadTimeAxis": "parameter-native: common state/EPS hourly 0..14h; TOT_PREC 5 min 0..6h; supported rapid diagnostics 15 min 0..6h"
+    "downloadTimeAxis": "parameter-native: common state/EPS hourly 0..14h; TOT_PREC 5 min 0..6h; supported rapid diagnostics 15 min 0..6h",
+    "postPublishHealthConvergenceAttempts": 7,
+    "postPublishHealthRetryInitialSeconds": 8,
+    "postPublishHealthRetryMaxSeconds": 30,
+    "scheduleMinutesUtc": [
+      11,
+      41
+    ],
+    "scheduleBestEffortRecoverySlotsPerHour": 2,
+    "scheduleCancelInProgress": false,
+    "scheduleCatchupGuard": "tools/ruc/check_ruc_schedule_guard.py",
+    "scheduleCatchupExactRunComparison": true,
+    "scheduleCatchupFailOpenOnUncertainty": true,
+    "scheduleCatchupFreshnessMinutes": 240,
+    "scheduleCheapNoopWhenCurrent": true,
+    "workflowSyncRequiredAfterRelease": true,
+    "workflowSyncOrder": "professional-release-green-then-explicit-main-and-mid-stable-workflow-sync"
   },
   "contracts": {
     "bestMatchRemainsBase": true,
@@ -157,13 +173,13 @@
   },
   "liveSourceVerification": {
     "directoryStructureVerified": true,
-    "productionIngestionExecuted": false,
-    "runId": 33264098244,
-    "runNumber": 7,
-    "headSha": "fb1c6b54e1abc4e210fa2262869f9305240df64f",
-    "state": "release-run-762-worker-smoke-bootstrap-deadlock; v0.9.73.13-allows-only-safe-stale-bootstrap-before-fresh-ruc-run",
-    "observedStep": "Neuesten vollständigen RUC/RUC-EPS-Lauf laden und dekodieren",
-    "reason": "Release Run #762 installed and fully validated v0.9.73.12 successfully, including TypeScript, Vite, all regressions and Capacitor copy. The new worker version was uploaded and staged at 0%, but its smoke gate required RUC ready+fresh before allowing the release that carries the parameter-native RUC pipeline fix into mid-stable. The existing published RUC snapshot is stale because Run #7 still executed the old mid-stable ingestion and failed on fabricated :15/:30/:45 state targets. This is a circular bootstrap dependency. v0.9.73.13 permits only the exact safe stale-bootstrap case (configured, schema-valid, nonempty run/point/time/member metadata, reason RUC-Lauf nicht frisch); all other RUC health failures remain fail-closed. Runtime never uses stale RUC data, and the RUC preprocessing workflow retains strict ready+fresh post-publication verification."
+    "productionIngestionExecuted": true,
+    "runId": 33286135642,
+    "runNumber": 12,
+    "headSha": "14da1dd75e79263f41e92ef9641be0b516111002",
+    "state": "run-12-pages-health-race-mitigated-plus-scheduler-gap-catchup-prepared-v0.9.74.6-transition-hotfix",
+    "observedStep": "Produktiven Worker gegen den veröffentlichten RUC-Lauf prüfen",
+    "reason": "Run #12 built and published the complete 2026-08-30T01:00 RUC/RUC-EPS snapshot successfully (Pages deploy success), then the immediate single worker health probe still observed a stale prior latest.json and failed with RUC-Lauf nicht frisch. v0.9.74.4 keeps the exact-run ready+fresh gate fail-closed but retries for a short bounded post-deploy convergence window with distinct no-cache probes. Zusätzlich zeigte die GitHub-Actions-Historie zwischen RUC #11 (00:47) und #12 (03:38) keine stündlichen Zwischenläufe trotz :41-Cron. v0.9.74.5 ergänzt deshalb einen versetzten :11-Recovery-Slot, verhindert cancel-in-progress am äußeren RUC-Workflow und prüft vor apt/pip billig den neuesten gemeinsamen DWD-Lauf gegen den veröffentlichten Pages-Lauf."
   },
   "validation": {
     "rucPipelineContract": "passed-source-contract-carried-forward-v0.9.74.0",
@@ -175,9 +191,9 @@
     "favoriteOrderPersistence": "passed-v0.9.73.4",
     "stateIntegrityContract": "passed-v0.9.73.4",
     "storageQuotaResilience": "passed-v0.9.73.4",
-    "workerSyntax": "pending-final-generated-check-v0.9.73.13",
+    "workerSyntax": "pending-final-generated-check-v0.9.74.4",
     "workerAggregatesIdentical": true,
-    "fullRegressionLocal": "worker auto-deploy bootstrap cases and targeted RUC contracts pass locally; complete npm run verify required before ZIP handoff",
+    "fullRegressionLocal": "targeted RUC post-deploy convergence and related release contracts pass locally; complete npm run verify remains release-CI gate",
     "functionalAssertionFailuresRemaining": 0,
     "releaseCiRequired": true,
     "typescript": "pending-local-full-verify-v0.9.73.13",
@@ -186,8 +202,14 @@
     "dependencyAudit": "pending-release-CI-v0.9.73.13",
     "rucCommonHourlyAxis": "passed-v0.9.73.13",
     "rucNativeCadenceNowcast": "passed-v0.9.73.13",
-    "rucParameterAudit": "passed-v0.9.73.13"
+    "rucParameterAudit": "passed-v0.9.73.13",
+    "rucDeployedHealthConvergence": "passed-v0.9.74.4",
+    "rucScheduleCatchup": "passed-v0.9.74.6-transition-regressions",
+    "releaseRun769RegressionMitigation": "targeted-two-stale-keyless-basemap-tests-pass-v0.9.74.5",
+    "releaseRun770RegressionMitigation": "targeted-single-stale-ruc-workflow-equality-test-pass-v0.9.74.6",
+    "releaseRun771RegressionMitigation": "state-bound-ruc-workflow-sync-contract-pass-v0.9.74.7"
   },
-  "notes": "v0.9.74.1 ändert keine RUC-Daten- oder Worker-Semantik; ausschließlich TypeScript-Vertrag der optionalen H/M-Wolkenanzeige im Frontend.",
-  "releaseNote": "v0.9.74.2 hardens normal Pages release preservation against transient CDN/Pages HTTP 429/5xx errors with bounded retry/backoff, caps restore fan-out at 8 workers, keeps per-object SHA/size verification and remains fail-closed after the retry budget. Run #766 attempt 1 hit HTTP 503; attempt 2 succeeded and the overall v0.9.74.1 release was green."
+  "notes": "v0.9.74.7 behebt ausschließlich die letzte inkonsistente Run-#771-Regressionsannahme. Die Release-vor-Admin-Sync-Ausnahme ist nun zentral und zustandsgebunden: nur exakter Legacy-.github-Zustand plus vollständiger kanonischer :11/:41-Catch-up-Vertrag werden toleriert; jede unbekannte Drift bleibt fail-closed. RUC-Fachdaten, Fusion, Pages-Free-Projektion, 950-MB-Grenze, Catch-up-Guard und Worker-Runtime bleiben unverändert.",
+  "releaseNote": "Run #771: npm ci, Audit, TypeScript und Vite grün; 576/577 Regressionen grün. Einziger Fehler: test-ruc-dwd-pipeline-09690.mjs hatte noch ein v0.9.74.5-only Workflow-Übergangsfenster. v0.9.74.7 ersetzt alle drei RUC-Sync-Ausnahmen durch einen gemeinsamen state-bound Vertrag.",
+  "validationNote": "Targeted Run-#770 regression mitigation passes locally; complete npm run verify remains the definitive GitHub release gate. After green release, explicit workflow sync on main and mid-stable is required."
 }

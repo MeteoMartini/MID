@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {assertRucWorkflowSyncState,RUC_CATCHUP_TOKENS} from './ruc-workflow-sync-contract.mjs';
+const active=fs.readFileSync('.github/workflows/mid-ruc-preprocess.yml','utf8');
+const canonical=fs.readFileSync('ci/github/workflows/mid-ruc-preprocess.yml','utf8');
+const guard=fs.readFileSync('tools/ruc/check_ruc_schedule_guard.py','utf8');
+const guardTest=fs.readFileSync('tools/ruc/test_ruc_schedule_guard.py','utf8');
+const workflowSyncState=assertRucWorkflowSyncState(active,canonical);
+assert.ok(['synced','pending-admin-sync'].includes(workflowSyncState.state),'Aktiver RUC-Workflow darf nur synchron oder exakt im geschützten Legacy-vor-Admin-Sync-Zustand sein.');
+for(const token of RUC_CATCHUP_TOKENS)assert.ok(canonical.includes(token),`Kanonischer RUC-Catch-up-Workflow fehlt: ${token}`);
+assert.ok(canonical.indexOf('RUC-Schedulerlücke und Aktualität vorab prüfen')<canonical.indexOf('Freie DWD-Decodierwerkzeuge installieren'),'Freshness-Guard muss vor apt/pip laufen.');
+assert.equal((canonical.match(/cron:/g)||[]).length,2,'RUC braucht genau zwei versetzte Schedulerchancen pro Stunde.');
+for(const token of ['FORECAST_REQUIRED=','GRID_REQUIRED=','newest_common_run','published_meta','fail-open build','Catch-up erforderlich',"SCHEMA='mid.dwd.ruc.grid.v2'","STORAGE_PROFILE='pages-free-v1'",'DEFAULT_MAX_AGE_MINUTES=240'])assert.ok(guard.includes(token),`RUC-Guard-Vertrag fehlt: ${token}`);
+assert.ok(guardTest.includes('RUC schedule guard unit contract OK'),'Python-Unitregression für Schedulerguard fehlt.');
+console.log('RUC scheduler catch-up contract OK: staggered schedules, non-cancelling concurrency and cheap exact-run freshness guard protected.');

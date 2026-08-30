@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import vm from 'node:vm';
+import {assertRucWorkflowSyncState} from './ruc-workflow-sync-contract.mjs';
 import assert from 'node:assert/strict';
 import {versionAtLeast} from './version-regression-helper.mjs';
 const pkg=JSON.parse(fs.readFileSync('package.json','utf8')),baseline=JSON.parse(fs.readFileSync('MID_BASELINE.json','utf8')),test='scripts/test-ruc-pages-free-storage-09700.mjs';
@@ -10,7 +11,8 @@ for(const file of ['tools/ruc/prepare_ruc_pages.py','tools/ruc/restore_ruc_pages
 const workerSource=fs.readFileSync('worker-src/00-core-observations.js','utf8'),router=fs.readFileSync('worker-src/40-aviation-router.js','utf8'),workflow=fs.readFileSync('ci/github/workflows/mid-ruc-preprocess.yml','utf8'),activeWorkflow=fs.readFileSync('.github/workflows/mid-ruc-preprocess.yml','utf8'),install=fs.readFileSync('ci/github/workflows/install-mid.yml','utf8'),activeInstall=fs.readFileSync('.github/workflows/install-mid.yml','utf8');
 for(const token of ["const DWD_RUC_STATIC_DEFAULT='https://midwx.app/ruc/'",'dwdRucStaticPointPayload','dwdRucEpsSummaryStaticPayload','dwdRucStorageHealth','pages-free-v1','GitHub Pages',"Accept-Encoding':'identity'"])assert.ok(workerSource.includes(token),`static RUC worker token missing: ${token}`);
 assert.ok(router.includes("mode==='ruc-health')return json({...await dwdRucStorageHealth(env)"));
-assert.equal(workflow,activeWorkflow);assert.equal(install,activeInstall);
+const workflowSyncState=assertRucWorkflowSyncState(activeWorkflow,workflow);
+assert.ok(['synced','pending-admin-sync'].includes(workflowSyncState.state),'Aktiver RUC-Workflow darf nur synchron oder exakt im geschützten Legacy-vor-Admin-Sync-Zustand sein.');assert.equal(install,activeInstall);
 for(const token of ['prepare_ruc_pages.py','upload-pages-artifact@','deploy-pages@','ref: mid-stable','950000000','MID_RUC_PIPELINE_ENABLED'])assert.ok(workflow.includes(token),`free Pages workflow token missing: ${token}`);
 for(const forbidden of ['MID_RUC_R2_ACCESS_KEY_ID','MID_RUC_R2_SECRET_ACCESS_KEY','publish_ruc_r2.sh'])assert.ok(!workflow.includes(forbidden),`free Pages workflow still requires R2: ${forbidden}`);
 assert.ok(install.match(/Bereits veröffentlichten kostenfreien RUC-Snapshot erhalten/g)?.length===3,'all three normal Pages release attempts must preserve RUC');
