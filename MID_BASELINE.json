@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.76.6",
+  "releaseVersion": "0.9.76.7",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -326,7 +326,8 @@
     "scripts/test-capacitor-typescript-7-ci-09761.mjs",
     "scripts/test-model-status-canonical-use-09762.mjs",
     "scripts/test-composite-transparent-reference-09762.mjs",
-    "scripts/test-model-init-window-extrema-travel-snow-09765.mjs"
+    "scripts/test-model-init-window-extrema-travel-snow-09765.mjs",
+    "scripts/test-shortterm-german-word-order-09767.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [

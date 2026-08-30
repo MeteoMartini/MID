@@ -6,7 +6,7 @@ const [cockpit,pkgRaw,baselineRaw]=await Promise.all([
  readFile(new URL('../package.json',import.meta.url),'utf8'),
  readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')
 ]);
-assert.ok(cockpit.includes("import {relativeForecastTimeLabel} from './forecastPresentation';"),'ForecastCockpit muss nur die tatsächlich verwendete Forecast-Presentation-Hilfe importieren.');
+assert.ok(cockpit.includes("import {relativeForecastTimePhrase} from './forecastPresentation';"),'ForecastCockpit muss nur die tatsächlich verwendete Forecast-Presentation-Hilfe importieren.');
 assert.ok(!cockpit.includes("import {bridgeObservedTemperature,relativeForecastTimeLabel}"),'Der entfernte bridgeObservedTemperature-Import darf den noUnusedLocals-Produktionsbuild nicht erneut brechen.');
 assert.ok(!/\bbridgeObservedTemperature\b/.test(cockpit),'ForecastCockpit darf bridgeObservedTemperature nicht lokal referenzieren; die Brücke gehört in den kanonischen ShortTermForecast-Pfad.');
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw);

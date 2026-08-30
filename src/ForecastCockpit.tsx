@@ -13,7 +13,7 @@ import {dailyTemperatureTone} from './temperatureTone';
 import {dayPeriodHoursForDate,followingNightHoursForDate} from './forecastPeriods';
 import {formatDisplayDateTime} from './timeDisplay';
 import {AppPortalPopover} from './AppPortalPopover';
-import {relativeForecastTimeLabel} from './forecastPresentation';
+import {relativeForecastTimePhrase} from './forecastPresentation';
 import {sunshineHoursLabel,sunshineMinutesLabel} from './sunshineDuration';
 import {precipitationOutlookText} from './forecastWording';
 import type {ForecastFusionResult,ForecastFusionSource} from './forecastFusion';
@@ -138,17 +138,17 @@ function miniRibbonPrecipitationStyle(amount:number,probability:number,reference
 function shortTermSummary(hours:Hour[],timezone:string,unit:WindUnit,now=Date.now()){
  const samples=shortTermHours(hours);if(!samples.length)return'Kurzfristdaten werden geladen.';
  const wet=samples.filter(sample=>(sample.precipitation>=.05&&sample.probability>=25)||sample.probability>=60),gust=samples.reduce((best,item)=>item.gust>best.gust?item:best,samples[0]);
- const gustPart=`Böen bis ${wind(gust.gust,unit)} um ${relativeForecastTimeLabel(gust.epoch,timezone,now)}`;
+ const gustPart=`Böen bis ${wind(gust.gust,unit)} ${relativeForecastTimePhrase(gust.epoch,timezone,'at',now)}`;
  if(!wet.length)return `Trocken · ${gustPart}`;
  const first=wet[0],parts=plausiblePrecipitation(first),kind=parts.type==='showers'?'Schauer':parts.type==='thunderstorm'||parts.type==='thunderstormHail'?'Gewitter':parts.weatherLabel;
- return `${kind} ab ${relativeForecastTimeLabel(first.epoch,timezone,now)} · ${gustPart}`;
+ return `${kind} ${relativeForecastTimePhrase(first.epoch,timezone,'from',now)} · ${gustPart}`;
 }
 function shortTermPointSummary(points:ShortTermForecastPoint[],unit:WindUnit,timezone:string,now=Date.now()){
  if(!points.length)return'Kurzfristdaten werden geladen.';
- const wet=points.filter(point=>(point.precipitation>=.05&&point.probability>=25)||point.probability>=60),gust=points.reduce((best,item)=>item.gust>best.gust?item:best,points[0]),gustPart=`Böen bis ${wind(gust.gust,unit)} um ${relativeForecastTimeLabel(gust.epoch,timezone,now)}`;
+ const wet=points.filter(point=>(point.precipitation>=.05&&point.probability>=25)||point.probability>=60),gust=points.reduce((best,item)=>item.gust>best.gust?item:best,points[0]),gustPart=`Böen bis ${wind(gust.gust,unit)} ${relativeForecastTimePhrase(gust.epoch,timezone,'at',now)}`;
  if(!wet.length)return `Bis auf Weiteres trocken · ${gustPart}`;
  const first=wet[0],kind=/schauer/i.test(first.weatherLabel)?'Schauer':/gewitter/i.test(first.weatherLabel)?'Gewitter':first.weatherLabel;
- return `${kind} voraussichtlich ab ${relativeForecastTimeLabel(first.epoch,timezone,now)} · ${gustPart}`;
+ return `${kind} voraussichtlich ${relativeForecastTimePhrase(first.epoch,timezone,'from',now)} · ${gustPart}`;
 }
 function shortTermCompactWeatherLabel(label:string){
  return label.replace(/^Überwiegend\s+/i,'').replace(/^Teilweise\s+/i,'').replace(/^Leicht\s+/i,'').replace(/^Mäßig\s+/i,'');

@@ -1,3 +1,9 @@
+## v0.9.76.7
+
+- Kurzfristtexte sprachlich geglättet: relative Uhrzeiten werden satzgrammatisch statt durch bloßes Voranstellen einer Präposition erzeugt. Dadurch heißt es z. B. „morgen um 19:00 Uhr“ und „morgen ab 14:00 Uhr“ statt „um morgen 19:00“ bzw. „ab morgen 14:00“.
+- Derselbe Zeitphrasen-Helfer gilt für trockene, Niederschlags- und Böen-Zusammenfassungen im Prognose-Cockpit; Tagesbezug und „Uhr“ bleiben auch für übermorgen bzw. spätere Tage eindeutig.
+- Keine Änderung an Forecast-Daten, RUC-Fusion, Worker-Fachlogik oder iOS-Architektur.
+
 ## v0.9.76.5
 
 - Modellstände: Best Match wird nicht mehr irreführend mit `Init –` dargestellt, sondern als modellabhängiger Laufverbund. Bei tatsächlich verwendeten Quellen ohne publizierten Init-Zeitstempel steht explizit „von Quelle nicht ausgewiesen“; bekannte Einzelmodell-Inits bleiben in UTC erhalten.

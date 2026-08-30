@@ -22,3 +22,13 @@ export function relativeForecastTimeLabel(epoch:number,timezone:string,now=Date.
  if(delta===2)return`übermorgen ${time}`;
  try{return`${new Intl.DateTimeFormat('de-DE',{weekday:'short',day:'2-digit',month:'2-digit',timeZone:timezone}).format(new Date(epoch))} ${time}`}catch{return`${target} ${time}`}
 }
+
+export type RelativeForecastTimeRelation='at'|'from';
+/** Satzgrammatisch vollständige deutsche Zeitphrase für dynamische Prognosetexte. */
+export function relativeForecastTimePhrase(epoch:number,timezone:string,relation:RelativeForecastTimeRelation,now=Date.now()){
+ const time=`${clock(epoch,timezone)} Uhr`,target=dateKey(epoch,timezone),today=dateKey(now,timezone),delta=dayDistance(target,today),preposition=relation==='from'?'ab':'um';
+ if(delta===0)return`${preposition} ${time}`;
+ if(delta===1)return`morgen ${preposition} ${time}`;
+ if(delta===2)return`übermorgen ${preposition} ${time}`;
+ try{const date=new Intl.DateTimeFormat('de-DE',{weekday:'short',day:'2-digit',month:'2-digit',timeZone:timezone}).format(new Date(epoch));return`am ${date} ${preposition} ${time}`}catch{return`am ${target} ${preposition} ${time}`}
+}

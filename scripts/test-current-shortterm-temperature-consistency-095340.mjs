@@ -48,7 +48,7 @@ for(const token of [
 ])assert.ok(shortTerm.includes(token),`Kurzfrist darf kanonisch lokalisierte Stunden nicht erneut assimilieren: ${token}`);
 
 for(const token of [
- 'relativeForecastTimeLabel(',
+ 'relativeForecastTimePhrase(',
  'function shortTermProfileHourlyPoints(hours:Hour[],timezone:string,now=Date.now())',
  'const windowEnd=now+PROFILE_WINDOW_MS',
  '.filter(hour=>Number(hour.epoch)<=windowEnd).slice(0,26)',
