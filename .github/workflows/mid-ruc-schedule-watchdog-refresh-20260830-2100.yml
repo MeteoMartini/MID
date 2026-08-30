@@ -1,0 +1,107 @@
+# MID watchdog replacement refresh: 2026-08-30T21:00+02:00
+# Source verified against MeteoMartini/MID main on 2026-08-30.
+# Upload destination: .github/workflows/mid-ruc-schedule-watchdog.yml
+
+name: MID RUC schedule watchdog
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/mid-ruc-schedule-watchdog.yml'
+      - '.github/workflows/mid-ruc-preprocess.yml'
+  schedule:
+    # Independent recovery checks shortly after the primary :11/:41 RUC slots.
+    - cron: '18 * * * *'
+    - cron: '48 * * * *'
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: mid-ruc-schedule-watchdog
+  cancel-in-progress: false
+
+jobs:
+  verify-and-recover:
+    if: ${{ vars.MID_RUC_PIPELINE_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Letzten primären RUC-Slot prüfen und bei Schedulerlücke nachholen
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUC_WORKFLOW: mid-ruc-preprocess.yml
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          now_epoch="$(date -u +%s)"
+          minute="$(date -u +%M)"
+          hour_start="$((now_epoch - 10#${minute} * 60 - 10#$(date -u +%S)))"
+          if [ "$((10#${minute}))" -ge 41 ]; then
+            expected_epoch="$((hour_start + 41 * 60))"
+            expected_slot=':41'
+          elif [ "$((10#${minute}))" -ge 11 ]; then
+            expected_epoch="$((hour_start + 11 * 60))"
+            expected_slot=':11'
+          else
+            expected_epoch="$((hour_start - 19 * 60))"
+            expected_slot=':41'
+          fi
+          # A few minutes of clock/API tolerance are harmless; the RUC freshness
+          # guard prevents a recovery dispatch from rebuilding an already current run.
+          expected_floor="$((expected_epoch - 180))"
+
+          latest_schedule_json="$(gh api -X GET "repos/${GITHUB_REPOSITORY}/actions/workflows/${RUC_WORKFLOW}/runs?event=schedule&per_page=1")"
+          latest_schedule_at="$(printf '%s' "$latest_schedule_json" | jq -r '.workflow_runs[0].created_at // empty')"
+          latest_schedule_status="$(printf '%s' "$latest_schedule_json" | jq -r '.workflow_runs[0].status // empty')"
+          latest_schedule_conclusion="$(printf '%s' "$latest_schedule_json" | jq -r '.workflow_runs[0].conclusion // empty')"
+          latest_schedule_url="$(printf '%s' "$latest_schedule_json" | jq -r '.workflow_runs[0].html_url // empty')"
+          latest_schedule_epoch=0
+          if [ -n "$latest_schedule_at" ]; then
+            latest_schedule_epoch="$(date -u -d "$latest_schedule_at" +%s 2>/dev/null || echo 0)"
+          fi
+
+          healthy_schedule=false
+          if [ "$latest_schedule_epoch" -ge "$expected_floor" ]; then
+            case "$latest_schedule_conclusion" in
+              failure|cancelled|timed_out|action_required|startup_failure)
+                healthy_schedule=false
+                ;;
+              *)
+                healthy_schedule=true
+                ;;
+            esac
+          fi
+
+          if [ "$healthy_schedule" = true ]; then
+            echo "RUC primary ${expected_slot} schedule event verified: ${latest_schedule_status}/${latest_schedule_conclusion:-pending} ${latest_schedule_url}"
+            exit 0
+          fi
+
+          echo "::warning::RUC primary ${expected_slot} schedule event missing or failed; starting guarded recovery dispatch."
+          dispatch_started_epoch="$(date -u +%s)"
+          gh workflow run "$RUC_WORKFLOW" --ref main -f force=false
+
+          for attempt in $(seq 1 18); do
+            sleep 5
+            latest_dispatch_json="$(gh api -X GET "repos/${GITHUB_REPOSITORY}/actions/workflows/${RUC_WORKFLOW}/runs?event=workflow_dispatch&per_page=1")"
+            latest_dispatch_at="$(printf '%s' "$latest_dispatch_json" | jq -r '.workflow_runs[0].created_at // empty')"
+            latest_dispatch_epoch=0
+            if [ -n "$latest_dispatch_at" ]; then
+              latest_dispatch_epoch="$(date -u -d "$latest_dispatch_at" +%s 2>/dev/null || echo 0)"
+            fi
+            if [ "$latest_dispatch_epoch" -ge "$((dispatch_started_epoch - 5))" ]; then
+              latest_dispatch_status="$(printf '%s' "$latest_dispatch_json" | jq -r '.workflow_runs[0].status // empty')"
+              latest_dispatch_conclusion="$(printf '%s' "$latest_dispatch_json" | jq -r '.workflow_runs[0].conclusion // empty')"
+              latest_dispatch_url="$(printf '%s' "$latest_dispatch_json" | jq -r '.workflow_runs[0].html_url // empty')"
+              echo "RUC recovery dispatch verified: ${latest_dispatch_status}/${latest_dispatch_conclusion:-pending} ${latest_dispatch_url}"
+              exit 0
+            fi
+          done
+
+          echo "::error::RUC recovery dispatch was requested but no new workflow_dispatch run became visible within 90 seconds."
+          exit 1
