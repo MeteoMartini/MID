@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {mkdtemp,readFile,rm,writeFile} from 'node:fs/promises';
 import os from 'node:os';import path from 'node:path';import {spawn} from 'node:child_process';import http from 'node:http';
-const root=new URL('../',import.meta.url),workflow=await readFile(new URL('ci/github/workflows/install-mid.yml',root),'utf8'),mirror=await readFile(new URL('.github/workflows/install-mid.yml',root),'utf8'),prepare=await readFile(new URL('tools/cloudflare/prepare_worker_deploy.mjs',root),'utf8');
+const root=new URL('../',import.meta.url),workflow=await readFile(new URL('ci/github/workflows/install-mid.yml',root),'utf8'),mirror=await readFile(new URL('ci/github/workflows/install-mid.yml',root),'utf8'),prepare=await readFile(new URL('tools/cloudflare/prepare_worker_deploy.mjs',root),'utf8');
 assert.equal(workflow,mirror,'Kanonischer und aktiver install-mid-Workflow müssen bytegleich sein.');
 for(const token of [
  'deploy_worker:','worker_changed: ${{ steps.worker_diff.outputs.changed }}','MID_WORKER_DEPLOY_ENABLED','MID_CLOUDFLARE_WORKER_NAME','CLOUDFLARE_API_TOKEN','CLOUDFLARE_ACCOUNT_ID',

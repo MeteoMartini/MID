@@ -39,7 +39,7 @@ if(!ensemble.includes('summarizeDwdWarningsForDay(hours,x.date,elevation)'))fail
 
 const outDir=path.join(root,'.daily-warning-test');
 await rm(outDir,{recursive:true,force:true});
-const compile=spawnSync('tsc',['src/dwdWarnings.ts','--target','ES2022','--module','ES2022','--moduleResolution','Bundler','--strict','--skipLibCheck','--outDir','.daily-warning-test'],{cwd:root,stdio:'inherit',shell:process.platform==='win32'});
+const compile=spawnSync('tsc',['--ignoreConfig','src/dwdWarnings.ts','--target','ES2022','--module','ES2022','--moduleResolution','Bundler','--strict','--skipLibCheck','--outDir','.daily-warning-test'],{cwd:root,stdio:'inherit',shell:process.platform==='win32'});
 if(compile.status!==0)process.exit(compile.status??1);
 const {summarizeDwdWarningsForDay}=await import(`${pathToFileURL(path.join(outDir,'dwdWarnings.js')).href}?v=${Date.now()}`);
 const samples=[];

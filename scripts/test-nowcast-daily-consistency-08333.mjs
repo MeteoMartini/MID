@@ -24,8 +24,7 @@ assert.ok(sevenDaySource.includes('futureHours=index===0?allDayHours.filter(hour
 assert.ok(shortTermSource.includes('if(precipitationCode(raw)&&probability<30)return observedSkyCode'), 'Kurzfristkarten dürfen trockene Niederschlags-Wettercodes nicht als Regen darstellen');
 
 const require=createRequire(import.meta.url);
-let ts;
-try{ts=require('typescript')}catch{}
+const ts=require('typescript-strada');
 
 let executable=inlineSunshineDurationContract(fusionSource)
  .replace("import {fetchWorkerJson} from './workerClient';","const fetchWorkerJson=async()=>{throw new Error('not used in regression')};")

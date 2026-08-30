@@ -26,7 +26,7 @@ try{
  await writeFile(path.join(temp,'ci','github','workflows','dependency-audit.yml'),'name: kanonisch-neu\n');
  await writeFile(path.join(temp,'ci','github','workflows','install-mid.yml'),'name: install\n');
  await writeFile(path.join(temp,'ci','github','workflows','deploy.yml'),'name: deploy\n');
- for(const name of ['mid-ruc-preprocess.yml','mid-ruc-cloudflare-bootstrap.yml']){
+ for(const name of ['mid-ruc-preprocess.yml','mid-ruc-schedule-watchdog.yml','mid-ruc-cloudflare-bootstrap.yml']){
   await writeFile(path.join(temp,'ci','github','workflows',name),await readFile(path.join(root,'ci','github','workflows',name),'utf8'));
  }
  await writeFile(path.join(temp,'ci','github','dependabot.yml'),'version: 2\n');

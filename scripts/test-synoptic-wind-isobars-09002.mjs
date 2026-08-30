@@ -27,7 +27,7 @@ for(const token of [
  '@media(max-width:520px)'
 ])assert.ok(styles.includes(token),`Kontrast-/Legendenregel fehlt: ${token}`);
 
-const require=createRequire(import.meta.url);let ts;try{ts=require('typescript')}catch{ts=require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript')}
+const require=createRequire(import.meta.url);const ts=require('typescript-strada')
 for(const[file,source,jsx]of[['synoptic.ts',synoptic,false],['SynopticPanel.tsx',panel,true]]){const result=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,...(jsx?{jsx:ts.JsxEmit.ReactJSX}:{})},fileName:file,reportDiagnostics:true}),errors=(result.diagnostics||[]).filter(item=>item.category===ts.DiagnosticCategory.Error);assert.equal(errors.length,0,errors.map(item=>ts.flattenDiagnosticMessageText(item.messageText,' ')).join('\n'))}
 
 const executable=synoptic

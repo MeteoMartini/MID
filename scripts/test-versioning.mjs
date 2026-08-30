@@ -15,6 +15,7 @@ if(!versionPattern.test(pkg.version))failures.push(`Paketversion entspricht nich
 if(descriptor.version!==pkg.version)failures.push('version.json und package.json sind nicht synchron');
 if(!sync.includes('(?:\\.\\d+)?'))failures.push('sync-version akzeptiert keine vierteiligen Wartungsversionen');
 if(!sync.includes("['../public/service-worker.js','../public/sw.js']"))failures.push('Service-Worker-Cache wird nicht zentral synchronisiert');
+if(!sync.includes("../MID_IOS_STATUS.json")||!sync.includes('iosStatus.releaseVersion=version'))failures.push('MID_IOS_STATUS.json wird nicht zentral mit der Releaseversion synchronisiert');
 if(!updater.includes('(?:\\.\\d+)?'))failures.push('Sichtbare Versionsersetzung unterstützt keine vierte Stelle');
 if(!serviceWorker.includes(`mid-shell-v${pkg.version}`)||legacyWorker!==serviceWorker)failures.push('Service-Worker-Versionen sind nicht vollständig synchron');
 if(!readme.includes('Wartungsrelease (`0.7.x.y` mit `y ≥ 1`)')||!readme.includes('Funktionsrelease (`0.7.x` oder äquivalent `0.7.x.0`)'))failures.push('Versionsrichtlinie ist nicht dokumentiert');

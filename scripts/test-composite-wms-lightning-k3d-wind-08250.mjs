@@ -4,7 +4,7 @@ import {join} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url);
-let ts;try{ts=require('typescript')}catch{ts=require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript')}
+const ts=require('typescript-strada')
 
 const [radar,shortTerm,styles,worker,weather,operaOverlay,pkg,baseline]=await Promise.all([
  'src/RadarPanel.tsx','src/ShortTermForecast.tsx','src/styles.css','worker/metar-proxy.js','src/weather.ts','src/OperaRasterOverlay.tsx','package.json','MID_BASELINE.json'

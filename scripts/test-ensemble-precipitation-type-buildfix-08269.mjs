@@ -1,6 +1,6 @@
 import {readFile} from 'node:fs/promises';
 import {createRequire} from 'node:module';
-const require=createRequire(import.meta.url);let ts;try{ts=require('typescript')}catch{ts=require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript')}
+const require=createRequire(import.meta.url);const ts=require('typescript-strada')
 const [panel,pkg,baseline]=await Promise.all([readFile(new URL('../src/EnsemblePanel.tsx',import.meta.url),'utf8'),readFile(new URL('../package.json',import.meta.url),'utf8'),readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')]);
 const failures=[];const need=t=>{if(!panel.includes(t))failures.push(`EnsemblePanel: ${t}`)};
 for(const token of ["row.precipVisualType==='none')return null","<PrecipitationGlyph type={row.precipVisualType}",'size={row.precipVisualSize}','thunder={row.precipVisualThunder}'])need(token);

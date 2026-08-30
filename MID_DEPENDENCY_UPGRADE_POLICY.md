@@ -1,12 +1,13 @@
 # MID Dependency Upgrade Policy
 
-Stand: MID Stable-Audit 10.08.2026
+Stand: MID TypeScript-7-Kompatibilitätsaudit 30.08.2026
 
 Der Stable-Channel erhält keine ungeprüften Major-/Toolchain-Sprünge. Der reproduzierbare Vertrag bleibt zunächst:
 
 - React / React DOM / react-is: 18.3.1
 - Recharts: 3.10.1 (isoliert gegen Diagramm-/Tooltip-/Export-/Responsive-Verträge qualifiziert)
-- TypeScript: 5.9.3
+- TypeScript: 7.0.2 (isoliert qualifiziert in v0.9.76.0)
+- TypeScript-Strada-Test-API: Alias `typescript-strada` auf 6.0.3, ausschließlich für bestehende Regressionen mit der von TypeScript 7 entfernten JavaScript-Compiler-API; niemals für den App-/Node-Typecheck
 - Vite: 6.4.3
 - @vitejs/plugin-react: 4.7.0
 - Lucide React: 1.34.0 (React 18.3.1 bleibt unverändert)
@@ -19,4 +20,8 @@ Sicherheits-Patches innerhalb kompatibler Transitivreihen werden im Stable-Chann
 
 Recharts 3.10.1 ist nach dem isolierten Kandidatenlauf der neue Stable-Vertrag. Weitere Recharts-Minor-/Patch-Upgrades bleiben weiterhin an vollständigen Build sowie Ensemble-/Tooltip-/Export-/Responsive-Regressionen gebunden.
 
-React 19, TypeScript 7 und Vite 8 werden nicht einzeln in `mid-stable` angehoben. Sie gehören in einen getrennten Kompatibilitätszweig mit vollständiger visueller, funktionaler, Performance-, PWA- und CI-Regression. Erst ein vollständig grüner Lauf darf den Stable-Vertrag ändern.
+TypeScript 7 wurde als eigener Kompatibilitätsmeilenstein ohne gleichzeitigen React-/Vite-Sprung qualifiziert. Der Stable-Vertrag darf TypeScript 7.0.2 erst nach artefaktfreiem App-/Node-Typecheck, Browser-Produktionsbuild, vollständiger MID-Regression, Worker-Syntaxprüfung und Capacitor-/iOS-Gleichlauf übernehmen.
+
+Da TypeScript 7 die bisherige Strada-JavaScript-API (`transpileModule`, `createSourceFile` und zugehörige Enums) am Paket-Root nicht mehr bereitstellt, nutzen API-basierte Regressionen den offiziell vorgesehenen Side-by-side-Pfad über den exakt gepinnten Alias `typescript-strada` 6.0.3. Der Produktcompiler, sämtliche Release-Typechecks und alle `tsc`-Aufrufe bleiben ausschließlich TypeScript 7.0.2. Direkte Compiler-API-Imports aus `typescript` sind in den Regressionen unzulässig.
+
+React 19, Vite 8 und @vitejs/plugin-react 6 bleiben weiterhin außerhalb von `mid-stable`. Jeder dieser Sprünge benötigt einen getrennten Kompatibilitätslauf; er darf weder implizit mit TypeScript 7 gekoppelt noch ohne vollständige visuelle, funktionale, Performance-, PWA- und CI-Regression übernommen werden.

@@ -2,7 +2,7 @@ import {readFile} from 'node:fs/promises';
 import {createRequire} from 'node:module';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-const require=createRequire(import.meta.url),ts=require('typescript');
+const require=createRequire(import.meta.url),ts=require('typescript-strada');
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const [mountainSource,changesSource,app,ensemble,worker,sw,legacySw,styles]=await Promise.all([
  readFile(path.join(root,'src','mountainSports.ts'),'utf8'),

@@ -11,7 +11,7 @@ for(const token of [
   "const origin=pushNormaliseOrigin(request.headers.get('origin'))"
 ])if(!worker.includes(token))failures.push(`Worker fehlt: ${token}`);
 
-if(!deviceSync.includes("ist im eingesetzten Cloudflare-Worker noch nicht freigegeben. Bitte den aktuellen MID-Worker hochladen."))failures.push('Frontend-Diagnose für veralteten Worker fehlt.');
+if(!deviceSync.includes("Synchronisationsdienst ist nicht erreichbar."))failures.push('Nutzerverständliche Frontend-Diagnose für einen nicht erreichbaren Synchronisationsdienst fehlt.');
 
 const start=worker.indexOf("const PUSH_DEFAULT_ORIGINS=");
 const end=worker.indexOf("function pushB64Decode",start);

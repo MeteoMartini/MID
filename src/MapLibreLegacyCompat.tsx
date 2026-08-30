@@ -1,7 +1,7 @@
 import {Children,isValidElement,useEffect,useMemo,type ReactElement,type ReactNode} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import * as maplibregl from 'maplibre-gl';
-import {GeoJsonLayers,HtmlMarker,MidMapLibre,RasterTileLayer,WmsTileLayer,registerMapLayerOrder,unregisterMapLayerOrder,useMidMap,type MidMap,type MidGeoLayer,type RasterTone} from './MapLibreCore';
+import {GeoJsonLayers,HtmlMarker,MidMapLibre,RasterTileLayer,VectorTileLayers,WmsTileLayer,registerMapLayerOrder,unregisterMapLayerOrder,useMidMap,type MidMap,type MidGeoLayer,type MidVectorTileLayer,type RasterTone} from './MapLibreCore';
 
 type LatLon=[number,number];
 type DivIcon={html?:string;className?:string;iconSize?:[number,number];iconAnchor?:[number,number];popupAnchor?:[number,number]};
@@ -28,6 +28,7 @@ export const L={
 export function MapContainer({center,zoom=7,minZoom,maxZoom,className,scrollWheelZoom=false,children}:{center:LatLon;zoom?:number;minZoom?:number;maxZoom?:number;className?:string;scrollWheelZoom?:boolean;preferCanvas?:boolean;fadeAnimation?:boolean;zoomAnimation?:boolean;markerZoomAnimation?:boolean;children?:ReactNode}){return <MidMapLibre center={center} zoom={zoom} minZoom={minZoom} maxZoom={maxZoom} className={className} scrollZoom={scrollWheelZoom}>{children}</MidMapLibre>}
 
 export function TileLayer({url,opacity=1,attribution,maxZoom=22,maxNativeZoom,zIndex=0,tone,eventHandlers}:{url:string;opacity?:number;attribution?:string;maxZoom?:number;maxNativeZoom?:number;zIndex?:number;tone?:RasterTone;keepBuffer?:number;updateWhenIdle?:boolean;updateWhenZooming?:boolean;eventHandlers?:{tileerror?:()=>void;load?:()=>void}}){const id=useCompatId('raster');return <RasterTileLayer id={id} url={url} opacity={opacity} maxZoom={maxNativeZoom??maxZoom} attribution={attribution} zIndex={zIndex} tone={tone} onReady={eventHandlers?.load} onError={eventHandlers?.tileerror}/>}
+export function VectorReferenceLayer({url,layers,zIndex=0,glyphsUrl}:{url:string;layers:MidVectorTileLayer[];zIndex?:number;glyphsUrl?:string}){const id=useCompatId('vector-reference');return <VectorTileLayers id={id} url={url} layers={layers} zIndex={zIndex} glyphsUrl={glyphsUrl}/>}
 
 export function WMSTileLayer({url,opacity=1,attribution,params,zIndex=0,eventHandlers}:{url:string;opacity?:number;attribution?:string;params:Record<string,string|number|boolean|undefined>;zIndex?:number;keepBuffer?:number;updateWhenIdle?:boolean;updateWhenZooming?:boolean;eventHandlers?:{tileerror?:()=>void;load?:()=>void}}){const id=useCompatId('wms');return <WmsTileLayer id={id} baseUrl={url} params={params} opacity={opacity} attribution={attribution} zIndex={zIndex} onReady={eventHandlers?.load} onError={eventHandlers?.tileerror}/>}
 

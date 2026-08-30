@@ -28,7 +28,7 @@ assert.ok(hxSource.includes("meta.product!=='hx'"),'HX-Grenzprüfung muss auf da
  assert.deepEqual(parsed.entries.map(entry=>entry.name),['composite_rs_20260810_0945_060-hd5','composite_rs_20260810_0945_120-hd5']);assert.equal(new TextDecoder().decode(parsed.bytes.slice(parsed.entries[1].dataStart,parsed.entries[1].dataEnd)),'RS120');
 }
 
-const require=createRequire(import.meta.url);let ts;try{ts=require('typescript')}catch{ts=require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript')}
+const require=createRequire(import.meta.url);const ts=require('typescript-strada')
 const executable=calibrationSource
  .replace("import type {RadarNowcast,RadarNowcastFrame} from './weather';",'')
  .replace("import type {DwdRsCalibration} from './DwdRsSource';",'')

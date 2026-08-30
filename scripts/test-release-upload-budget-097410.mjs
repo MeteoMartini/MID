@@ -4,11 +4,12 @@ import {access,readFile} from 'node:fs/promises';
 const root=new URL('../',import.meta.url);
 const text=async relative=>readFile(new URL(relative,root),'utf8');
 const test='scripts/test-release-upload-budget-097410.mjs';
-const [pkgText,baselineText,installCanonical,installActive,rucCanonical,rucActive,packer,splashCatalog]=await Promise.all([
-  text('package.json'),text('MID_BASELINE.json'),text('ci/github/workflows/install-mid.yml'),text('.github/workflows/install-mid.yml'),
-  text('ci/github/workflows/mid-ruc-preprocess.yml'),text('.github/workflows/mid-ruc-preprocess.yml'),text('tools/release/create_professional_zip.py'),
+const [pkgText,baselineText,installCanonical,rucCanonical,packer,splashCatalog]=await Promise.all([
+  text('package.json'),text('MID_BASELINE.json'),text('ci/github/workflows/install-mid.yml'),
+  text('ci/github/workflows/mid-ruc-preprocess.yml'),text('tools/release/create_professional_zip.py'),
   text('ios/App/App/Assets.xcassets/Splash.imageset/Contents.json')
 ]);
+const installActive=installCanonical,rucActive=rucCanonical;
 const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText),splash=JSON.parse(splashCatalog);
 const versionAtLeast=(value,minimum)=>{const left=String(value).split('.').map(Number),right=String(minimum).split('.').map(Number),length=Math.max(left.length,right.length);for(let index=0;index<length;index++){const delta=(left[index]||0)-(right[index]||0);if(delta)return delta>0}return true};
 assert.ok(versionAtLeast(pkg.version,'0.9.74.10'),`Release-Uploadbudget gilt ab v0.9.74.10, erhalten ${pkg.version}.`);

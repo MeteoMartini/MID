@@ -63,6 +63,8 @@ Das 24-h-Wetterprofil ist eine solche Darstellungskomponente: Es verwendet exakt
 
 Wo ausreichend Stundenabdeckung vorliegt, werden Niederschlag, Wettercode und kurzfristig relevante Tageskennwerte aus den finalen Stunden abgeleitet. Ein Tageswert darf keine lokale oder Nowcast-Korrektur wieder verlieren, die in den zugrunde liegenden Stunden bereits fachlich wirksam ist.
 
+Für Temperatur gilt zusätzlich verbindlich: Bei vollständiger Stundenabdeckung sind `Tmax` und `Tmin` exakt das Maximum beziehungsweise Minimum der finalen `displayHours` des lokalen Kalendertags. Ein abweichender roher Daily-Wert darf dann nicht parallel in Tageskarte, 24-h-Profil, Ensemble-/Detailansicht, Event oder Widget erscheinen. Daily-Rohwerte bleiben nur Fallback, wenn die finale Stundenreihe den Kalendertag nicht ausreichend abdeckt.
+
 ## 8. Events und Aktivitäten
 
 Events und Aktivitäten am aktuell geöffneten Ort verwenden dieselben bereits finalisierten `displayHours`. Andere Orte durchlaufen dieselbe zentrale Endstufe einschließlich der dort verfügbaren hyperlokalen Beobachtungsanker. Eine Event- oder Aktivitätsengine darf keine abweichende lokale Forecast-Logik etablieren.

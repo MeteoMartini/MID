@@ -3,7 +3,7 @@ import {readFile} from 'node:fs/promises';
 import {createRequire,stripTypeScriptTypes} from 'node:module';
 
 const require=createRequire(import.meta.url);
-let ts;try{ts=require('typescript')}catch{}
+const ts=require('typescript-strada')
 const test='scripts/test-hyperlocal-direct-temperature-consensus-095337.mjs';
 const [thermal,weather,app,worker,pkgRaw,baselineRaw,contract]=await Promise.all([
  readFile(new URL('../src/hyperlocalThermal.ts',import.meta.url),'utf8'),

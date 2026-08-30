@@ -11,15 +11,13 @@ const reject=(label,text,token)=>{if(text.includes(token))failures.push(`${label
 for(const token of [
  'function ShortTermRibbon({hours,minutes15,days,timezone',
  'profileDayByDate=useMemo(()=>new Map(days.map(day=>[day.date,day])),[days])',
- 'dailyMaxMarkers=chartDayBands.flatMap',
- 'dailyMinMarkers=chartDayBands.flatMap',
- 'label:`${Math.round(day.max)}°`',
- 'label:`${Math.round(day.min)}°`',
- 'maximumProxy=dayHours.reduce',
- 'minimumProxy=dayHours.reduce',
- 'item=matchChartExtreme(maximumProxy.epoch)',
- 'item=matchChartExtreme(minimumProxy.epoch)',
- 'temperatureExtremes=[...dailyMaxMarkers,...dailyMinMarkers]',
+ 'profileDayByDate=useMemo(()=>new Map(days.map(day=>[day.date,day])),[days])',
+ 'const temperatureCurvePoints=profileTemperatureSource.map',
+ "const visibleTemperatureExtreme=(dateValue:string,kind:'max'|'min')",
+ "const target=kind==='max'?Number(day.max):Number(day.min)",
+ 'if(Math.abs(item.point.temperature-target)>.11)return undefined',
+ "label:`T${kind} ${Math.round(target)}°`",
+ 'temperatureExtremes=chartDayBands.flatMap',
  '<ShortTermRibbon hours={hours} minutes15={minutes15} days={days} timezone={timezone}'
 ])need('24-h-Profil',cockpit,token);
 for(const token of [

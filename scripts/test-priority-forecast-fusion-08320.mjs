@@ -22,7 +22,7 @@ for(const token of [
  'fetchForecastFusionModels',
  'weatherBundleIssues',
  'coherentWeatherHours',
- 'version:8',
+ 'version:9',
  "schema:'mid.forecast-fusion.v1'",
  'Best Match bleibt die kohärente Basis',
  'suffixFields',

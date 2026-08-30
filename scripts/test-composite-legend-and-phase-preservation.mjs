@@ -30,7 +30,7 @@ if(!route.includes('Die feste oder flüssige Phase des WMO-Codes bleibt unverän
 
 const outDir=path.join(root,'.phase-preservation-test');
 await rm(outDir,{recursive:true,force:true});
-const compile=spawnSync('tsc',['src/precipitation.ts','--target','ES2022','--module','ES2022','--moduleResolution','Bundler','--strict','--skipLibCheck','--outDir','.phase-preservation-test'],{cwd:root,stdio:'inherit',shell:process.platform==='win32'});
+const compile=spawnSync('tsc',['--ignoreConfig','src/precipitation.ts','--target','ES2022','--module','ES2022','--moduleResolution','Bundler','--strict','--skipLibCheck','--outDir','.phase-preservation-test'],{cwd:root,stdio:'inherit',shell:process.platform==='win32'});
 if(compile.status!==0)process.exit(compile.status??1);
 const {precipitationParts}=await import(`${pathToFileURL(path.join(outDir,'precipitation.js')).href}?v=${Date.now()}`);
 const sample=(overrides={})=>({precipitation:0,rain:0,showers:0,snowfall:0,probability:0,code:0,...overrides});

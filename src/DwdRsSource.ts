@@ -7,7 +7,7 @@ export type DwdRsCalibration={available:boolean;observedAt?:string;anchors:DwdRs
 type DwdRsMeta={coverage?:boolean;provider?:string;product?:string;observedAt?:string;frames?:{leadMinutes:number;fileUrl:string}[];error?:string};
 
 export async function loadDwdRsCalibration(lat:number,lon:number,signal?:AbortSignal):Promise<DwdRsCalibration>{
- if(!workerBaseCandidates('radar').length)return{available:false,anchors:[],provider:'DWD',product:'RS',error:'Kein Radar-Worker konfiguriert.'};
+ if(!workerBaseCandidates('radar').length)return{available:false,anchors:[],provider:'DWD',product:'RS',error:'DWD-RS-Datenquelle derzeit nicht verfügbar.'};
  try{
   const meta=await fetchWorkerJson<DwdRsMeta>('rs-meta',{lat,lon,_ts:Date.now()},{purpose:'radar',signal,timeoutMs:11000,maxAgeMs:90000,staleIfErrorMs:360000,cacheKey:`rs-meta:${lat.toFixed(3)}:${lon.toFixed(3)}`});
   const observed=Date.parse(meta.observedAt||''),ageMinutes=Number.isFinite(observed)?Math.round((Date.now()-observed)/60000):undefined;

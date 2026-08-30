@@ -12,7 +12,7 @@ assert.ok(!fusion.includes('distributeDailyPrecipitationDeficit'),'Tagesmengen d
 for(const token of ["case'current':return <MemoCurrent key={id} w={w!} hours={displayHours}","case'water':return currentFavorite?.water.enabled?",'weather={w!} hours={displayHours} unit={unit}','combineThunderstormInformation(thunderAnalysis,displayHours,radarAnalysis'])assert.ok(app.includes(token),`Sektion nutzt nicht die final reconcilierten Stunden: ${token}`);
 for(const token of ['supportMinimum=lead<=24?10:lead<=72?15:20','FORECAST_FUSION_HOURLY','weatherHours','MOSMIX wird bewusst nur als lokales Postprocessing'])assert.ok(worker.includes(token),`Worker-Vertrag fehlt: ${token}`);
 
-const require=createRequire(import.meta.url);let ts;try{ts=require('typescript')}catch{ts=require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript')}
+const require=createRequire(import.meta.url);const ts=require('typescript-strada')
 const dir=await mkdtemp(join(tmpdir(),'mid-083317-'));
 try{
  const out=ts.transpileModule(precipitation,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022},fileName:'precipitation.ts',reportDiagnostics:true}),diagnostics=(out.diagnostics||[]).filter(item=>item.category===ts.DiagnosticCategory.Error);assert.equal(diagnostics.length,0,diagnostics.map(item=>ts.flattenDiagnosticMessageText(item.messageText,' ')).join('\n'));

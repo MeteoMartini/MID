@@ -4,9 +4,9 @@ import {expectedIosNextMilestone,versionAtLeast} from './version-regression-help
 const root=new URL('../',import.meta.url);
 const read=path=>readFile(new URL(path,root),'utf8');
 const [pkgText,config,runtime,pwa,install,main,styles,source,contract,roadmap,statusText,baselineText,worker,iosProject,infoPlist,appIconCatalog]=await Promise.all([
- read('package.json'),read('capacitor.config.ts'),read('src/runtimePlatform.ts'),read('src/pwa.ts'),read('src/PwaInstallButton.tsx'),read('src/main.tsx'),read('src/styles.css'),read('MID_SOURCE_OF_TRUTH.md'),read('MID_CROSS_PLATFORM_CONTRACT.md'),read('MID_IOS_ROADMAP.md'),read('MID_IOS_STATUS.json'),read('MID_BASELINE.json'),read('worker/metar-proxy.js'),read('ios/App/App.xcodeproj/project.pbxproj'),read('ios/App/App/Info.plist'),read('ios/App/App/Assets.xcassets/AppIcon.appiconset/Contents.json')
+ read('package.json'),read('capacitor.config.json'),read('src/runtimePlatform.ts'),read('src/pwa.ts'),read('src/PwaInstallButton.tsx'),read('src/main.tsx'),read('src/styles.css'),read('MID_SOURCE_OF_TRUTH.md'),read('MID_CROSS_PLATFORM_CONTRACT.md'),read('MID_IOS_ROADMAP.md'),read('MID_IOS_STATUS.json'),read('MID_BASELINE.json'),read('worker/metar-proxy.js'),read('ios/App/App.xcodeproj/project.pbxproj'),read('ios/App/App/Info.plist'),read('ios/App/App/Assets.xcassets/AppIcon.appiconset/Contents.json')
 ]);
-const pkg=JSON.parse(pkgText),status=JSON.parse(statusText),baseline=JSON.parse(baselineText),failures=[];
+const pkg=JSON.parse(pkgText),capacitorConfig=JSON.parse(config),status=JSON.parse(statusText),baseline=JSON.parse(baselineText),failures=[];
 const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
 
 if(!versionAtLeast(pkg.version,'0.9.67.0'))failures.push(`Releaseversion ist älter als 0.9.67.0: ${pkg.version}`);
@@ -14,8 +14,8 @@ if(!versionAtLeast('0.9.67.0','0.9.66.19')||versionAtLeast('0.9.66.18','0.9.66.1
 for(const[name,version]of Object.entries({'@capacitor/core':'8.5.0','@capacitor/ios':'8.5.0','@capacitor/app':'8.1.1','@capacitor/splash-screen':'8.0.2','@capacitor/status-bar':'8.0.3'}))if(pkg.dependencies?.[name]!==version)failures.push(`${name} ist nicht exakt auf ${version} gepinnt.`);
 if(pkg.devDependencies?.['@capacitor/cli']!=='8.5.0')failures.push('@capacitor/cli ist nicht exakt auf 8.5.0 gepinnt.');
 if(pkg.scripts?.['ios:sync']!=='npm run build && cap sync ios')failures.push('Reproduzierbarer iOS-Sync fehlt.');
-for(const token of ["appId:'app.midwx.weather'","appName:'MID Wetter'","webDir:'dist'"])need('Capacitor-Konfiguration',config,token);
-if(config.includes('server:')||config.includes('server.url'))failures.push('Die Produktions-App darf keinen entfernten Server statt des gebündelten dist-Builds laden.');
+for(const [key,value] of Object.entries({appId:'app.midwx.weather',appName:'MID Wetter',webDir:'dist'}))if(capacitorConfig[key]!==value)failures.push(`Capacitor-Konfiguration ${key} != ${value}`);
+if('server' in capacitorConfig)failures.push('Die Produktions-App darf keinen entfernten Server statt des gebündelten dist-Builds laden.');
 for(const token of ['Capacitor.isNativePlatform()','document.documentElement.dataset.midRuntime=platform',"App.addListener('appStateChange'","App.addListener('appUrlOpen'",'StatusBar.setOverlaysWebView({overlay:false})','SplashScreen.hide()'])need('Native Laufzeitbrücke',runtime,token);
 need('PWA-Isolation',pwa,'isMidNativeRuntime()');
 need('PWA-Installationsschutz',install,'isMidNativeRuntime()?null:<BrowserPwaInstallButton/>');

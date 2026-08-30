@@ -30,8 +30,7 @@ assert.ok(appSource.includes('dryRadarNowcastProbability(modelProbability,radar,
 assert.ok(appSource.includes("radarFinding=dryBlend?' · Radarbefund: kein Niederschlag am Standort':nearbyOnly?' · Radarbefund: Echo nur im Umfeld, kein direkter Standorttreffer':''"), 'Quellenhinweis kennzeichnet den niederschlagsfreien Radarbefund nicht');
 
 const require=createRequire(import.meta.url);
-let ts;
-try{ts=require('typescript')}catch{ts=require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript')}
+const ts=require('typescript-strada');
 function compile(source,fileName,replacements=[]){let executable=source;for(const[from,to]of replacements)executable=executable.replace(from,to);const result=ts.transpileModule(executable,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS},reportDiagnostics:true,fileName});const diagnostics=(result.diagnostics||[]).filter(item=>item.category===ts.DiagnosticCategory.Error);assert.equal(diagnostics.length,0,diagnostics.map(item=>ts.flattenDiagnosticMessageText(item.messageText,' ')).join('\n'));const dir=fs.mkdtempSync(path.join(os.tmpdir(),'mid-08335-')),modulePath=path.join(dir,fileName.replace(/\.tsx?$/,'.cjs'));fs.writeFileSync(modulePath,result.outputText);return{module:require(modulePath),dir}}
 
 const formatCompiled=compile(formatSource,'format.ts');

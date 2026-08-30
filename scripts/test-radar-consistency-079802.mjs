@@ -2,7 +2,7 @@ import {readFile} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createRequire} from 'node:module';
-const require=createRequire(import.meta.url),ts=require('typescript');
+const require=createRequire(import.meta.url),ts=require('typescript-strada');
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const [app,radar,pixel,worker,changes,ensemble,styles]=await Promise.all([

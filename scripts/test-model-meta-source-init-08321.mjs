@@ -13,7 +13,7 @@ need('Frischeprüfung',weather,'function modelMetaIsFresh(data:any)');
 need('Frischeprüfung',weather,'now-initMs<=maximumAgeMs');
 need('Metadatenquelle',weather,"metadataSource:'Open-Meteo Metadata API'");
 need('Best-Match-Wording',weather,'Die konkrete Best-Match-/Modellbeteiligung kann je Variable, Standort und Zeitraum wechseln.');
-need('RUC-Numerikpfad',weather,'über den kostenfreien GitHub-Pages-/Worker-Pfad numerisch in die kanonische Kurzfristfusion eingebunden');
+need('RUC-Numerikpfad',weather,'numerisch in die kanonische Kurzfristfusion eingebunden');
 need('RUC-gemeinsame-Stundenachse',weather,'der gemeinsame Mehrvariablenkern bleibt nativ stündlich bis +14 h');
 need('RUC-native-Rapidprodukte',weather,'Niederschläge in 5-Minuten-Schritten bis +6 h und 15-Minuten-Diagnostik aus Niederschlag, CAPE/CIN, DBZ_CMAX');
 need('RUC-keine-künstliche-Interpolation',weather,'fehlende Temperatur-, Wind-, Druck- oder Wolkenzwischenwerte werden nicht interpoliert.');

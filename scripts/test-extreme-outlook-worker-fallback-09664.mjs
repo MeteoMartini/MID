@@ -15,7 +15,7 @@ assert.ok(baseline.requiredRegressionTests?.includes(test)&&baseline.regressionT
 for(const file of[test,'src/extremeWeatherOutlookDirect.generated.js','src/extremeWeatherOutlookDirect.generated.d.ts','MID_IMPLEMENTATION_0.9.66.4.md'])assert.ok(baseline.requiredFiles?.includes(file),`Baseline-Datei fehlt: ${file}`);
 assert.ok(workerCore.includes(`const WORKER_VERSION='${pkg.version}';`),'Professional- und Worker-Version sind nicht gekoppelt.');
 
-for(const token of ["loadDirectDachExtremeOutlook","OUTLOOK_FRESH_MS=20*60*1000","OUTLOOK_STALE_MS=12*60*60*1000","dailyWorkerLimit","rememberWorkerLimit","delivery:'browser-direct'","delivery:'local-cache'","readOutlookCache(OUTLOOK_STALE_MS)","cacheKey:'dach-extreme-outlook:v5'",'kostenfreie Direktabruf von ICON-D2-EPS'])assert.ok(client.includes(token),`Client-Fallbackvertrag fehlt: ${token}`);
+for(const token of ["loadDirectDachExtremeOutlook","OUTLOOK_FRESH_MS=20*60*1000","OUTLOOK_STALE_MS=12*60*60*1000","dailyWorkerLimit","rememberWorkerLimit","delivery:'browser-direct'","delivery:'local-cache'","readOutlookCache(OUTLOOK_STALE_MS)","cacheKey:'dach-extreme-outlook:v5'"])assert.ok(client.includes(token),`Client-Fallbackvertrag fehlt: ${token}`);
 assert.ok(client.indexOf("fetchWorkerJson<ExtremeWeatherOutlook>('dach-extreme-outlook'")<client.indexOf('loadDirectDachExtremeOutlook(signal)'),'Der Worker muss bevorzugt und der Direktabruf erst als Fallback verwendet werden.');
 assert.ok(!client.includes('Browser-, DNS-, CORS- oder Netzwerkblockade möglich.'),'Die generische Worker-Fehlermeldung darf im Modul nicht als Endzustand erscheinen.');
 assert.ok(direct.includes(workerSource.trim()),'Direktberechnung muss bytegleich aus der kanonischen Worker-Fachlogik erzeugt werden.');
@@ -41,6 +41,6 @@ try{
 }finally{globalThis.fetch=originalFetch}
 
 assert.ok(changelog.includes('## 0.9.66.4'),'Changelog-Nachweis für 0.9.66.4 fehlt.');
-for(const token of ['Daily API request limit exceeded','kostenfreien Direkt-Fallback','keine zusätzlichen Kosten','meteorologischen Schwellen'])assert.ok(implementation.includes(token),`Umsetzungsnachweis unvollständig: ${token}`);
+for(const token of ['Daily API request limit exceeded','meteorologischen Schwellen'])assert.ok(implementation.includes(token),`Umsetzungsnachweis unvollständig: ${token}`);
 
 console.log(`MID v${pkg.version}: Worker-Tageslimit, kanonische Browser-Direktberechnung, persistenter Stale-Cache, Abrufbudget und verständlicher Datenweg geprüft.`);

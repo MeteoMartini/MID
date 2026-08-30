@@ -6,7 +6,7 @@ import {createRequire} from 'node:module';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
-const require=createRequire(import.meta.url),ts=require('typescript');
+const require=createRequire(import.meta.url),ts=require('typescript-strada');
 const source=fs.readFileSync(path.join(root,'src','extremeOutlookAreaGeoJson.ts'),'utf8');
 const overlay=fs.readFileSync(path.join(root,'src','ExtremeOutlookAreaOverlay.tsx'),'utf8');
 const output=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022},fileName:'extremeOutlookAreaGeoJson.ts',reportDiagnostics:true});

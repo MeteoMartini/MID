@@ -7,7 +7,7 @@ import {fileURLToPath,pathToFileURL} from 'node:url';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const source=fs.readFileSync(path.join(root,'src','sunshineDuration.ts'),'utf8');
-const require=createRequire(import.meta.url),ts=require('typescript');
+const require=createRequire(import.meta.url),ts=require('typescript-strada');
 const output=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022},fileName:'sunshineDuration.ts',reportDiagnostics:true});
 const errors=(output.diagnostics??[]).filter(item=>item.category===ts.DiagnosticCategory.Error);
 assert.equal(errors.length,0,errors.map(item=>ts.flattenDiagnosticMessageText(item.messageText,' ')).join('\n'));

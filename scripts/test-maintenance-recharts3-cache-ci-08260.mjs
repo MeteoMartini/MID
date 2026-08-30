@@ -21,7 +21,7 @@ const rechartsVersion=String(pkg.dependencies?.recharts??'');
 const lockedRechartsVersion=String(lock.packages?.['node_modules/recharts']?.version??'');
 if(!/^3\.\d+\.\d+$/.test(rechartsVersion)||lockedRechartsVersion!==rechartsVersion)failures.push(`Recharts-3-Lockvertrag inkonsistent: package=${rechartsVersion||'fehlt'}, lock=${lockedRechartsVersion||'fehlt'}.`);
 if(pkg.dependencies?.['react-is']!=='18.3.1'||lock.packages?.['node_modules/react-is']?.version!=='18.3.1')failures.push('react-is 18.3.1 ist nicht reproduzierbar festgeschrieben.');
-if(pkg.devDependencies?.typescript!=='5.9.3'||pkg.devDependencies?.vite!=='6.4.3'||pkg.devDependencies?.['@vitejs/plugin-react']!=='4.7.0')failures.push('Werkzeugversionen sind nicht exakt festgeschrieben.');
+if(pkg.devDependencies?.typescript!=='7.0.2'||pkg.devDependencies?.['typescript-strada']!=='npm:typescript@6.0.3'||pkg.devDependencies?.vite!=='6.4.3'||pkg.devDependencies?.['@vitejs/plugin-react']!=='4.7.0')failures.push('Werkzeugversionen sind nicht exakt festgeschrieben.');
 if(!pkg.scripts?.['verify:types']?.includes('tsc --noEmit -p tsconfig.app.json')||!pkg.scripts?.['verify:types']?.includes('tsc --noEmit -p tsconfig.node.json')||!pkg.scripts?.build?.includes('npm run verify:types')||pkg.scripts?.['verify:types']?.includes('tsc -b'))failures.push('Artefaktfreie TypeScript-Prüfung fehlt im expliziten finalen Buildvertrag.');
 
 const panel=files['src/EnsemblePanel.tsx'],frame=files['src/EnsembleChartFrame.tsx'];

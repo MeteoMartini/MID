@@ -11,7 +11,7 @@ if(!warningSource.includes('export function warningCurrentStartIndex'))failures.
 
 const compileDir=await mkdtemp(path.join(tmpdir(),'mid-warning-hour-boundary-'));
 try{
- const compile=spawnSync('tsc',['--pretty','false','--target','ES2022','--module','ESNext','--moduleResolution','Bundler','--strict','--skipLibCheck','--outDir',compileDir,path.resolve('src/dwdWarnings.ts')],{encoding:'utf8'});
+ const compile=spawnSync('tsc',['--ignoreConfig','--pretty','false','--target','ES2022','--module','ESNext','--moduleResolution','Bundler','--strict','--skipLibCheck','--outDir',compileDir,path.resolve('src/dwdWarnings.ts')],{encoding:'utf8'});
  if(compile.status!==0)failures.push(`TypeScript: ${compile.stdout||compile.stderr}`);
  else{
   const module=await import(`${pathToFileURL(path.join(compileDir,'dwdWarnings.js')).href}?v=${Date.now()}`);

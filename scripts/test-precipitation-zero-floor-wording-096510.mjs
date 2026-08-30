@@ -34,7 +34,7 @@ for(const [name,text] of [['ForecastCockpit',cockpit],['EnsemblePanel',ensemble]
 
 const compileDir=await mkdtemp(path.join(tmpdir(),'mid-pop-wording-'));
 try{
- const compile=spawnSync('tsc',['--pretty','false','--target','ES2022','--module','ESNext','--moduleResolution','Bundler','--strict','--skipLibCheck','--outDir',compileDir,path.resolve('src/forecastWording.ts')],{cwd:root,encoding:'utf8'});
+ const compile=spawnSync('tsc',['--ignoreConfig','--pretty','false','--target','ES2022','--module','ESNext','--moduleResolution','Bundler','--strict','--skipLibCheck','--outDir',compileDir,path.resolve('src/forecastWording.ts')],{cwd:root,encoding:'utf8'});
  if(compile.status!==0)failures.push(`TypeScript forecastWording: ${compile.stdout||compile.stderr}`);
  else{
   const file=path.join(compileDir,'forecastWording.js');

@@ -4,7 +4,7 @@ import {join} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url);
-let ts;try{ts=require('typescript')}catch{ts=require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript')}
+const ts=require('typescript-strada')
 
 const files=['src/WeatherPictogram.tsx','src/App.tsx','src/thunderPlaceCache.ts','src/EnsemblePanel.tsx','src/ShortTermForecast.tsx','src/WaterSportsPanel.tsx','src/TravelPlannerPanel.tsx','src/RouteWeatherPanel.tsx','src/iso3166.ts','src/styles.css','package.json','MID_BASELINE.json'];
 const values=await Promise.all(files.map(path=>readFile(new URL(`../${path}`,import.meta.url),'utf8')));

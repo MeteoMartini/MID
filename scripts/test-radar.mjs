@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 const read=path=>fs.readFileSync(new URL(path,import.meta.url),'utf8');
-const worker=read('../worker/metar-proxy.js'),app=read('../src/App.tsx'),client=read('../src/workerClient.ts'),workflow=read('../.github/workflows/deploy.yml');
+const worker=read('../worker/metar-proxy.js'),app=read('../src/App.tsx'),client=read('../src/workerClient.ts'),workflow=read('../ci/github/workflows/deploy.yml');
 const failures=[];
 if(/if\(Number\(mapRate\)===0\)return 0/.test(worker)||/Number\.isFinite\(mapRate\).*Number\(mapRate\)===0.*return 0/.test(worker))failures.push('DWD-GetFeatureInfo wird bei Pixelwert 0 weiterhin übersprungen');
 if(/if\(center>0\).*dwdPointRate/.test(worker))failures.push('DWD-Punktabfrage ist weiterhin an ein sichtbares Kartenecho gebunden');

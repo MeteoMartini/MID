@@ -7,13 +7,13 @@ export type CompositeSettings={basemap:BasemapId;showRadar:boolean;highResolutio
 export const COMPOSITE_SETTINGS_KEY='mid:composite-settings:v3';
 export const COMPOSITE_LAYERS_KEY='mid:composite-layers:v3';
 type BasemapTone={saturation?:number;contrast?:number;brightnessMin?:number;brightnessMax?:number;hueRotate?:number};
-type CompositeBasemap={label:string;detail:string;url:string;referenceUrl:string;attribution:string;tone?:BasemapTone};
+type CompositeBasemap={label:string;detail:string;url:string;attribution:string;tone?:BasemapTone};
 const OSM_TILE_URL='https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 const OSM_ATTRIBUTION='&copy; OpenStreetMap-Mitwirkende';
 export const COMPOSITE_BASEMAPS:Record<BasemapId,CompositeBasemap>={
- osm:{label:'OpenStreetMap',detail:'Standard · schlüsselfrei',url:OSM_TILE_URL,referenceUrl:OSM_TILE_URL,attribution:OSM_ATTRIBUTION},
- positron:{label:'Schlicht hell',detail:'OSM · schlüsselfrei',url:OSM_TILE_URL,referenceUrl:OSM_TILE_URL,attribution:OSM_ATTRIBUTION,tone:{saturation:-.9,contrast:-.08,brightnessMin:.18,brightnessMax:1}},
- dark:{label:'Schlicht dunkel',detail:'OSM · schlüsselfrei',url:OSM_TILE_URL,referenceUrl:OSM_TILE_URL,attribution:OSM_ATTRIBUTION,tone:{saturation:-1,contrast:.2,brightnessMin:0,brightnessMax:.48}}
+ osm:{label:'OpenStreetMap',detail:'Standard · schlüsselfrei',url:OSM_TILE_URL,attribution:OSM_ATTRIBUTION},
+ positron:{label:'Schlicht hell',detail:'OSM · schlüsselfrei',url:OSM_TILE_URL,attribution:OSM_ATTRIBUTION,tone:{saturation:-.9,contrast:-.08,brightnessMin:.18,brightnessMax:1}},
+ dark:{label:'Schlicht dunkel',detail:'OSM · schlüsselfrei',url:OSM_TILE_URL,attribution:OSM_ATTRIBUTION,tone:{saturation:-1,contrast:.2,brightnessMin:0,brightnessMax:.48}}
 };
 export const MODEL_LINE_MODES:ModelLineMode[]=['off','isobars','isoheights','both'];
 

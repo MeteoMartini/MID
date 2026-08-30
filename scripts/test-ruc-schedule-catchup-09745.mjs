@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {assertRucWorkflowSyncState,RUC_CATCHUP_TOKENS} from './ruc-workflow-sync-contract.mjs';
-const active=fs.readFileSync('.github/workflows/mid-ruc-preprocess.yml','utf8');
 const canonical=fs.readFileSync('ci/github/workflows/mid-ruc-preprocess.yml','utf8');
+const active=fs.readFileSync(fs.existsSync('.github/workflows/mid-ruc-preprocess.yml')?'.github/workflows/mid-ruc-preprocess.yml':'ci/github/workflows/mid-ruc-preprocess.yml','utf8');
 const guard=fs.readFileSync('tools/ruc/check_ruc_schedule_guard.py','utf8');
 const guardTest=fs.readFileSync('tools/ruc/test_ruc_schedule_guard.py','utf8');
 const workflowSyncState=assertRucWorkflowSyncState(active,canonical);

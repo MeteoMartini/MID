@@ -1,6 +1,6 @@
 import {readFile} from 'node:fs/promises';
 import {createRequire} from 'node:module';
-const require=createRequire(import.meta.url);let ts;try{ts=require('typescript')}catch{ts=require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript')}
+const require=createRequire(import.meta.url);const ts=require('typescript-strada')
 const [panel,styles,pkg,baseline]=await Promise.all([readFile(new URL('../src/EnsemblePanel.tsx',import.meta.url),'utf8'),readFile(new URL('../src/styles.css',import.meta.url),'utf8'),readFile(new URL('../package.json',import.meta.url),'utf8'),readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')]);
 const failures=[];const need=(a,t,x)=>{if(!t.includes(x))failures.push(`${a}: ${x}`)};const forbid=(a,t,x)=>{if(t.includes(x))failures.push(`${a}: unerlaubt ${x}`)};
 for(const token of ['function EnsembleTemperatureCanvas','function EnsembleTemperatureWeatherOverlay','<EnsembleTemperatureWeatherOverlay data={data}','layer="weather"','layer="hazards"','<EnsemblePrecipShape','<EnsembleHazardShape'])need('Optische Wiederherstellung',panel,token);

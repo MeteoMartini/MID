@@ -4,7 +4,7 @@ import {join} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url);
-let ts;try{ts=require('typescript')}catch{ts=require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript')}
+const ts=require('typescript-strada')
 
 const [water,weather,pkg,baseline]=await Promise.all([
  readFile(new URL('../src/WaterSportsPanel.tsx',import.meta.url),'utf8'),

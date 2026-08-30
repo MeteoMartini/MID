@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createRequire} from 'node:module';
 
-const require=createRequire(import.meta.url),ts=require('typescript'),test='scripts/test-hyperlocal-source-freshness-095338.mjs';
+const require=createRequire(import.meta.url),ts=require('typescript-strada'),test='scripts/test-hyperlocal-source-freshness-095338.mjs';
 const [thermal,worker,contract,pkgRaw,baselineRaw]=await Promise.all([
  readFile(new URL('../src/hyperlocalThermal.ts',import.meta.url),'utf8'),
  readFile(new URL('../worker/metar-proxy.js',import.meta.url),'utf8'),

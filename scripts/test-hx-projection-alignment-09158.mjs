@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createRequire} from 'node:module';
 
-const require=createRequire(import.meta.url),ts=require('typescript');
+const require=createRequire(import.meta.url),ts=require('typescript-strada');
 const [projectionSource,overlaySource]=await Promise.all([
  readFile(new URL('../src/radarProjection.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/Px250Overlay.tsx',import.meta.url),'utf8'),

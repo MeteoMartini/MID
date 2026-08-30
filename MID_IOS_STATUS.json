@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-08-30T12:39:16Z",
-  "releaseVersion": "0.9.75.0",
+  "updatedAt": "2026-08-30T16:11:10.753Z",
+  "releaseVersion": "0.9.76.4",
   "sourceBaseline": {
     "professionalVersion": "0.9.70.2",
     "workerVersion": "0.9.70.2",
@@ -69,16 +69,26 @@
     "github-browser-professional-upload-budget-hotfix-0.9.74.10",
     "weather-profile-common-story-axis-cloud-bands-0.9.75.0",
     "582-regressions-release-baseline-verified",
-    "capacitor-ios-web-assets-synchronized-0.9.75.0"
+    "capacitor-ios-web-assets-synchronized-0.9.75.0",
+    "typescript-7.0.2-compatibility-migration-0.9.76.0",
+    "typescript-strada-regression-api-boundary-6.0.3",
+    "583-regressions-release-baseline-verified",
+    "capacitor-ios-web-assets-synchronized-0.9.76.0",
+    "canonical-temperature-extrema-and-model-use-transparency-0.9.76.1",
+    "transparent-composite-reference-layer-0.9.76.1",
+    "ruc-scheduler-watchdog-source-preparation-0.9.76.1",
+    "typescript-7-capacitor-json-config-hotfix-0.9.76.1",
+    "typescript-7-strict-build-hotfix-0.9.76.2",
+    "ios-release-status-version-sync-hotfix-0.9.76.4"
   ],
   "nextMilestone": "macos-xcode-simulator-quality-assurance",
   "validation": {
-    "browserBuild": "v0.9.75.0 lokal reproduzierbar gebaut: TypeScript für App und Node sowie Vite mit 2665 transformierten Modulen bestanden. Das 24-h-Profil nutzt denselben React/Vite-Kern in Browser, PWA und iOS.",
-    "typescript": "tsc --noEmit für App- und Node-Konfiguration bestanden; gemeinsame Zeitabbildung, Wolkenband-Daten und responsive Darstellung sind typsicher.",
-    "workerSyntax": "worker/metar-proxy.js und worker.js sind bytegleich und syntaktisch grün. Ausschließlich WORKER_VERSION ist auf 0.9.75.0 synchronisiert; keine Worker-Fachänderung und kein manueller Upload erforderlich.",
-    "regressions": "Alle 582 automatisch erkannten MID-Regressionstests bestanden. Der neue Required Test schützt die gemeinsame Story Axis, achsenlose Gesamt/H/M/L-Graubänder, sichtbaren Luftdruck und Hoch-/Querformatverträge; v0.9.74.10-PNG- und Uploadbudget-Gates bleiben grün.",
-    "capacitorSync": "npm run ios:sync war erfolgreich; dist wurde nach ios/App/App/public kopiert, Capacitor-Konfiguration und sieben bestehende Plugins wurden synchronisiert. Die iOS-Webkopie trägt v0.9.75.0.",
-    "xcodeProjectStructure": "MARKETING_VERSION 0.9.75 / Build 1, unveränderte Light-/Dark-AppIcon- und Splash-Kataloge, Privacy-Manifeste und MIDWidgets-Struktur geprüft; keine neue native Berechtigung oder Capability aktiviert.",
+    "browserBuild": "Release #778 hat mit Node 22.16.0, TypeScript 7.0.2 und Vite 6.4.3 den echten TypeScript-NoEmit- und Produktionsbuild vollständig bestanden. v0.9.76.4 ändert keinen App-Fachcode, sondern schließt den verbliebenen Release-Metadatenversatz im iOS-Status.",
+    "typescript": "Release #778 bestätigt den vollständigen TypeScript-7.0.2-Strict-Typecheck und den Vite-Produktionsbuild. Der TS7-/Capacitor-JSON-Vertrag bleibt unverändert; das nächste End-to-End-Gate ist cap copy ios nach vollständig grüner Regression-Suite.",
+    "workerSyntax": "worker/metar-proxy.js und worker.js werden aus demselben Worker-Fragmentbaum erzeugt und vor Packaging bytegleich/syntaktisch geprüft. v0.9.76.1 enthält eine fachliche Worker-Metadatenänderung zur Kennzeichnung tatsächlich in die kanonische Forecast-Fusion eingeflossener Quellen; der semantische Installer-Gate muss deshalb den automatischen Worker-Deploy anfordern. Kein manueller Worker-Upload ist vorgesehen.",
+    "regressions": "Release #778 bestand 587 von 589 Regressionen. Die beiden einzigen Fehler waren identische Versionsassertionen, weil MID_IOS_STATUS.json noch 0.9.76.2 enthielt. v0.9.76.4 synchronisiert diese Datei nun zentral über sync-version.mjs und schützt die Kopplung zusätzlich im Aggregate-/Versioning-Vertrag.",
+    "capacitorSync": "capacitor.config.json bleibt die TS7-unabhängige Capacitor-Konfiguration. Release #778 erreichte cap copy ios nur deshalb nicht, weil zwei reine iOS-Status-Metadatenregressionen vorher stoppten; v0.9.76.4 beseitigt genau diesen Gate-Blocker.",
+    "xcodeProjectStructure": "Gemeinsamer Capacitor-iOS-Wrapper, Light-/Dark-AppIcon- und Splash-Kataloge, Privacy-Manifeste und MIDWidgets-Struktur bleiben erhalten; keine neue native Berechtigung oder Capability aktiviert.",
     "xcodeAppleSdkBuild": "required-next-gate-macos-xcode-simulator; includes Apple SDK build, simulator launch, Privacy Report inspection and post-sync structure verification."
   },
   "costGate": {
@@ -92,5 +102,5 @@
     ],
     "approved": false
   },
-  "validationNote": "v0.9.75.0 integrates the aligned 24-hour weather-profile story axis, neutral cloud-opacity bands without a percentage side axis and a clearly visible pressure curve into the shared Browser/PWA/iOS core. Worker logic is unchanged; macOS/Xcode simulator QA remains next."
+  "validationNote": "v0.9.76.4 ist ein reiner Release-Metadaten-/CI-Hotfix nach #778: MID_IOS_STATUS.json wird bei Versionsänderungen idempotent durch sync-version.mjs mitgeführt. Keine Änderung an Forecast-Fusion, RUC-Fachlogik, Worker-Runtime, 24-h-Design, Tmin/Tmax, Modellständen oder Kompositbild."
 }

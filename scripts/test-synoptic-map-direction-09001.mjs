@@ -16,7 +16,7 @@ assert.ok(workerSource.includes('motionDirectionDeg:((('),'Worker muss die Beweg
 assert.ok(synoptic.includes('approachBearingDeg?:number'),'Frontendvertrag für Annäherungsrichtung fehlt');
 assert.ok(panel.includes('bei Warmfronten ausdrücklich zur Warmfront hin'),'Warmfront-Richtung muss verständlich erklärt werden');
 
-const require=createRequire(import.meta.url);let ts;try{ts=require('typescript')}catch{ts=require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript')}
+const require=createRequire(import.meta.url);const ts=require('typescript-strada')
 const result=ts.transpileModule(panel,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,jsx:ts.JsxEmit.ReactJSX},fileName:'SynopticPanel.tsx',reportDiagnostics:true}),errors=(result.diagnostics||[]).filter(item=>item.category===ts.DiagnosticCategory.Error);assert.equal(errors.length,0,errors.map(item=>ts.flattenDiagnosticMessageText(item.messageText,' ')).join('\n'));
 
 const temp=path.join(os.tmpdir(),`mid-worker-direction-${Date.now()}.mjs`);fs.writeFileSync(temp,workerSource);

@@ -1,3 +1,39 @@
+## 0.9.76.4
+- CI/iOS-Status: `MID_IOS_STATUS.json.releaseVersion` wird bei Versionsänderungen nun idempotent durch `sync-version.mjs` mitgeführt; damit kann ein Patch-Bump die iOS-Strukturregressionen nicht mehr durch veraltete Release-Metadaten blockieren.
+- Release #778 bestätigte bereits TypeScript 7.0.2 und Vite 6.4.3; der Patch ändert keinen Forecast-, RUC-, Worker-, 24-h-, Modellstand- oder Komposit-Fachcode.
+
+## 0.9.76.3
+
+- Mitigiert die fünf verbliebenen Regression-Gate-Fehler aus GitHub-Run #777, nachdem TypeScript 7.0.2 und Vite bereits vollständig grün waren.
+- Akzeptiert im RUC-Sync-Vertrag ausschließlich den real aktiven, bekannten `:11/:41`-Pre-Watchdog-Zwischenstand; unbekannte Workflow-Drift bleibt fail-closed.
+- Entkoppelt den TypeScript-7-Meilensteintest von einer hart codierten Patchversion und hält Compiler/Lockfile/Strada-Vertrag weiterhin exakt.
+- Entfernt die veraltete SEO-Erwartung eines sichtbaren `kostenlos`-Hinweises; Discoverability bleibt unverändert geschützt.
+
+## v0.9.76.1
+
+## 0.9.76.2
+
+- Behebt die vier im realen GitHub-TypeScript-7-Gate von Release #776 gefundenen Strict-Compilerfehler.
+- Korrigiert die `timezone`-Übergabe im Modellstand der ForecastCockpit-Ansicht.
+- Entfernt drei nach den UI-/Diagnosebereinigungen ungenutzte TypeScript-Symbole, ohne Fachlogik zu verändern.
+- TypeScript bleibt 7.0.2; die TS7-/Capacitor-JSON-Migration aus v0.9.76.1 bleibt vollständig bestehen.
+
+- Kanonische Tmin-/Tmax-Konsistenz appweit geschlossen: vollständig abgedeckte Tage beziehen ihre Extrema aus `displayHours`; im 24-h-Profil stehen `Tmin` und `Tmax` wieder direkt an den tatsächlichen Punkten der T-Kurve, auch bei 3-h-Anzeigedichte.
+- Modellstände fachlich präzisiert: `Init`, `Quelle bereit` und `Eingeflossen` sind getrennte Zustände; nur tatsächlich in der kanonischen Forecast-Fusion verwendete Quellen erhalten `Eingeflossen`. Dieselbe Transparenz wird auch für die Kurzfristvorhersage bereitgestellt.
+- Sichtbare Entwicklungs-/Hosting-/Kosteninterna aus Produkttexten entfernt, ohne interne Architektur-, Kosten- oder Deploymentverträge anzutasten.
+- Kompositbild repariert: oberster Referenzlayer ist transparent und vektorbasiert und zeichnet nur Grenzen/Orte über das weiterhin sichtbare Satellitenbild.
+- RUC-Resilienz erweitert: Primärslots `:11`/`:41` bleiben bestehen; kanonischer `force=false`-Recovery-Dispatch und unabhängiger Watchdog sind für den expliziten GitHub-Workflow-Sync vorbereitet.
+- TypeScript bleibt exakt 7.0.2; den unter Node 22.16 gescheiterten Capacitor-Konfigurationspfad beseitigt, indem die äquivalente reine Metakonfiguration von `capacitor.config.ts` nach `capacitor.config.json` verschoben wurde. Kein TypeScript-Downgrade und kein iOS-Fork.
+- Worker-Metadaten zur tatsächlichen Modellnutzung sind semantisch geändert; der bestehende semantische Release-Gate soll den automatischen Worker-Deploy auslösen. Kein manueller Worker-Upload vorgesehen.
+
+## v0.9.76.0
+
+- Eigenständigen TypeScript-7-Kompatibilitätsmeilenstein abgeschlossen: Compiler und Lockfile von 5.9.3 auf exakt 7.0.2 angehoben.
+- App- und Node-Typecheck bleiben artefaktfrei und bestehen ohne fachliche Quellcode- oder `tsconfig`-Änderung; React/React DOM/react-is 18.3.1, Vite 6.4.3 und @vitejs/plugin-react 4.7.0 bleiben bewusst unverändert.
+- Die von TypeScript 7 entfernte Strada-JavaScript-Compiler-API wird für API-basierte Regressionen über den offiziell vorgesehenen Side-by-side-Alias `typescript-strada` 6.0.3 bereitgestellt; Produkt-Typecheck und alle `tsc`-Aufrufe bleiben ausschließlich auf 7.0.2.
+- Dependency-Policy und historische Wartungswächter auf den qualifizierten TypeScript-7-Stable-Vertrag umgestellt; neue Required Regression schützt Compiler-/Lockfile-Stand, No-Emit-Konfiguration, Plattformgleichlauf und die Abgrenzung zu React 19/Vite 8/plugin-react 6.
+- Gemeinsamer Browser/PWA/iOS-Fachkern und Worker-Semantik unverändert; kein iOS-Fork und kein manueller Worker-Upload erforderlich.
+
 ## v0.9.75.0
 
 - 24-h-Wetterprofil auf eine verbindliche gemeinsame Zeitgeometrie umgestellt: Wetterpiktogramme, Stundenraster, Sonnenereignisse, Kurven, Windpfeile, Wolken, Hazards und Auswahlcursor stehen jetzt senkrecht exakt übereinander.

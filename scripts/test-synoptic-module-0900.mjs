@@ -21,7 +21,7 @@ assert.ok(panelSource.toLowerCase().includes('unveränderte amtliche referenz')&
 for(const token of ['grid-template-columns:repeat(auto-fit','@media(max-width:760px)','@media(max-width:520px)','minmax(0,1fr)','height:clamp'])assert.ok(styles.includes(token),`Responsive Synoptikregel fehlt: ${token}`);
 assert.ok(!styles.includes('.synoptic-panel{width:'),'Synoptikmodul darf keine starre Desktopbreite erzwingen');
 
-const require=createRequire(import.meta.url);let ts;try{ts=require('typescript')}catch{ts=require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript')}
+const require=createRequire(import.meta.url);const ts=require('typescript-strada')
 for(const[file,source,jsx]of[['synoptic.ts',synopticSource,false],['SynopticPanel.tsx',panelSource,true]]){const compilerOptions={target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,...(jsx?{jsx:ts.JsxEmit.ReactJSX}:{})},result=ts.transpileModule(source,{compilerOptions,fileName:file,reportDiagnostics:true}),errors=(result.diagnostics||[]).filter(item=>item.category===ts.DiagnosticCategory.Error);assert.equal(errors.length,0,errors.map(item=>ts.flattenDiagnosticMessageText(item.messageText,' ')).join('\n'))}
 
 const tempDir=fs.mkdtempSync(path.join(os.tmpdir(),'mid-synoptic-'));

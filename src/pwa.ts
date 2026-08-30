@@ -21,11 +21,11 @@ type SwReply={ok?:boolean;status?:MidUpdateStatus;version?:string;error?:string}
 function requestWorker(message:Record<string,unknown>,timeoutMs=10000):Promise<SwReply>{
  return new Promise(resolve=>{
   const worker=navigator.serviceWorker?.controller;
-  if(!worker){resolve({ok:false,error:'Kein aktiver Service Worker.'});return}
+  if(!worker){resolve({ok:false,error:'Der App-Cache-Dienst ist noch nicht aktiv.'});return}
   const channel=new MessageChannel();
   let settled=false;
   const finish=(reply:SwReply)=>{if(settled)return;settled=true;window.clearTimeout(timer);channel.port1.close();resolve(reply)};
-  const timer=window.setTimeout(()=>finish({ok:false,error:'Service-Worker-Antwort wurde nicht rechtzeitig empfangen.'}),timeoutMs);
+  const timer=window.setTimeout(()=>finish({ok:false,error:'Der App-Cache-Dienst hat nicht rechtzeitig geantwortet.'}),timeoutMs);
   channel.port1.onmessage=event=>finish((event.data??{}) as SwReply);
   worker.postMessage(message,[channel.port2]);
  });
@@ -39,7 +39,7 @@ export async function getMidUpdateStatus():Promise<MidUpdateStatus>{
 }
 
 export async function repairMidCache(){
- if(isMidNativeRuntime())throw new Error('Die native MID-App verwendet keinen Service-Worker-App-Cache.');
+ if(isMidNativeRuntime())throw new Error('Die native MID-App verwendet einen eigenen App-Cache.');
  const reply=await requestWorker({type:'MID_REPAIR_CACHE'},30000);
  if(!reply.ok)throw new Error(reply.error||'MID-Cache konnte nicht repariert werden.');
  return reply;

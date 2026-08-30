@@ -3,8 +3,9 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
-const [app,portal,panel,styles,v078]=await Promise.all([
+const [app,cockpit,portal,panel,styles,v078]=await Promise.all([
  readFile(path.join(root,'src','App.tsx'),'utf8'),
+ readFile(path.join(root,'src','ForecastCockpit.tsx'),'utf8'),
  readFile(path.join(root,'src','AppPortalPopover.tsx'),'utf8'),
  readFile(path.join(root,'src','EnsemblePanel.tsx'),'utf8'),
  readFile(path.join(root,'src','styles.css'),'utf8'),
@@ -23,10 +24,9 @@ for(const token of [
 for(const token of [
  "import {AppPortalPopover as PortalPopover} from './AppPortalPopover';",
  'className="model-run-button"',
- 'aria-label="Modellstände anzeigen"',
- 'Initialisierung {formatModelRunTime',
- 'verfügbar seit {formatAvailabilityTime'
+ 'aria-label="Modellstände anzeigen"'
 ])if(!app.includes(token))failures.push(`Globale Info-/Modellstände-Interaktion fehlt: ${token}`);
+for(const token of ['cockpit-model-run-button','Init ${formatCockpitModelRunTime(row.initialisationTime)} · Quelle bereit ${formatCockpitAvailabilityTime(row.availabilityTime,timezone)}','<b>Eingeflossen</b>'])if(!cockpit.includes(token))failures.push(`Cockpit-Modellstand-Interaktion fehlt: ${token}`);
 for(const token of [
  'function useEnsemblePortal(open:boolean',
  'ensemble-help-toolbar',

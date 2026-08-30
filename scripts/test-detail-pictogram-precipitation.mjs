@@ -7,7 +7,7 @@ import path from 'node:path';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const outDir=path.join(root,'.detail-pictogram-test');
 await rm(outDir,{recursive:true,force:true});
-const compile=spawnSync('tsc',[
+const compile=spawnSync('tsc',['--ignoreConfig',
  'src/precipitation.ts',
  'src/detailPictograms.ts',
  '--target','ES2022',

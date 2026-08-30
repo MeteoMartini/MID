@@ -66,7 +66,7 @@ function abortReason(signal?:AbortSignal){
  return new DOMException('Vorgang abgebrochen.','AbortError');
 }
 function requestController(parent:AbortSignal|undefined,timeoutMs:number){
- const controller=new AbortController(),abort=()=>controller.abort(parent?.reason),timer=globalThis.setTimeout(()=>controller.abort(new DOMException('Worker-Zeitüberschreitung.','TimeoutError')),timeoutMs);
+ const controller=new AbortController(),abort=()=>controller.abort(parent?.reason),timer=globalThis.setTimeout(()=>controller.abort(new DOMException('Zeitüberschreitung beim MID-Datendienst.','TimeoutError')),timeoutMs);
  if(parent?.aborted)abort();else parent?.addEventListener('abort',abort,{once:true});
  return{signal:controller.signal,cleanup:()=>{globalThis.clearTimeout(timer);parent?.removeEventListener('abort',abort)}};
 }
@@ -90,18 +90,18 @@ function staleWorkerPayload<T extends WorkerPayload>(key:string,staleIfErrorMs:n
 
 function parseWorkerPayload<T extends WorkerPayload>(response:Response,text:string):T{
  const contentType=String(response.headers.get('content-type')||'').toLowerCase(),trimmed=text.trim();
- if(!trimmed)throw new Error(`Leere Worker-Antwort (HTTP ${response.status})`);
- if(contentType.includes('text/html')||/^<!doctype html|^<html\b/i.test(trimmed))throw new Error('Worker-Adresse liefert eine HTML-Seite statt JSON');
+ if(!trimmed)throw new Error(`Leere Antwort des MID-Datendienstes (HTTP ${response.status})`);
+ if(contentType.includes('text/html')||/^<!doctype html|^<html\b/i.test(trimmed))throw new Error('Der MID-Datendienst liefert ein unerwartetes Antwortformat');
  let data:unknown;
- try{data=JSON.parse(trimmed)}catch{throw new Error(`Worker-Antwort ist kein gültiges JSON (HTTP ${response.status})`)}
- if(!data||typeof data!=='object'||Array.isArray(data))throw new Error('Worker-Antwort hat ein ungültiges Format');
+ try{data=JSON.parse(trimmed)}catch{throw new Error(`Antwort des MID-Datendienstes ist nicht gültig (HTTP ${response.status})`)}
+ if(!data||typeof data!=='object'||Array.isArray(data))throw new Error('Antwort des MID-Datendienstes hat ein ungültiges Format');
  return data as T;
 }
 
 export async function fetchWorkerJson<T extends WorkerPayload>(mode:string,params:Record<string,string|number|undefined>={},options:WorkerFetchOptions={}):Promise<T>{
  const purpose=options.purpose??'general',candidates=workerBaseCandidates(purpose),cacheKey=stableWorkerCacheKey(purpose,mode,params,options.cacheKey),maxAgeMs=Math.max(0,Number(options.maxAgeMs)||0),staleIfErrorMs=Math.max(maxAgeMs,Number(options.staleIfErrorMs)||0);
  if(maxAgeMs>0){const cached=cachedWorkerPayload<T>(cacheKey,maxAgeMs);if(cached)return cached}
- if(!candidates.length){const stale=staleIfErrorMs>0?staleWorkerPayload<T>(cacheKey,staleIfErrorMs):undefined;if(stale)return stale;throw new Error(`Cloudflare Worker v${MID_VERSION} ist nicht konfiguriert.`)}
+ if(!candidates.length){const stale=staleIfErrorMs>0?staleWorkerPayload<T>(cacheKey,staleIfErrorMs):undefined;if(stale)return stale;throw new Error(`Der MID-Datendienst v${MID_VERSION} ist nicht konfiguriert.`)}
  const failures:string[]=[],available=candidates.filter(base=>!endpointBlocked(purpose,base)),attempts=available.length?available:[candidates[0]];
  for(const base of attempts){
   if(options.signal?.aborted)throw abortReason(options.signal);
@@ -120,6 +120,6 @@ export async function fetchWorkerJson<T extends WorkerPayload>(mode:string,param
   }finally{request.cleanup()}
  }
  const stale=staleIfErrorMs>0?staleWorkerPayload<T>(cacheKey,staleIfErrorMs):undefined;if(stale)return stale;
- const detail=failures.slice(-3).join(' · '),blocked=candidates.length-attempts.length;
- throw new Error(`Workerzugriff über ${attempts.length} Endpunkt${attempts.length===1?'':'e'} fehlgeschlagen${blocked>0?` · ${blocked} vorübergehend ausgelassen`:''}${detail?`: ${detail}`:''}. Browser-, DNS-, CORS- oder Netzwerkblockade möglich.`);
+ const detail=failures.slice(-3).join(' · ');
+ throw new Error(`Der MID-Datendienst ist über ${attempts.length} Verbindung${attempts.length===1?'':'en'} nicht erreichbar${detail?`: ${detail}`:''}. Bitte Netzwerk oder Inhaltsfilter prüfen.`);
 }

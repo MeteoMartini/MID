@@ -11,7 +11,7 @@ const failures=[];
 const requireTokens=(name,text,tokens)=>{for(const token of tokens)if(!text.includes(token))failures.push(`${name}: ${token}`)};
 requireTokens('Info-Portalprimitive',portal,["document.addEventListener('pointerdown',dismiss,true)","document.addEventListener('keydown',escape)","createPortal(<div ref={layerRef}"]);
 requireTokens('Info-Portale',app,["import {AppPortalPopover as PortalPopover} from './AppPortalPopover';","className=\"model-run-button\"","ⓘ Modellstände"]);
-requireTokens('Ensemble-Portale',ensemble,["function useEnsemblePortal(open:boolean","createPortal(<div ref={layer}","ensemble-help-toolbar","className=\"model-run-popover ensemble-portal-popover\"","Initialisierung {formatModelRunTime","verfügbar seit {formatAvailabilityTime"]);
+requireTokens('Ensemble-Portale',ensemble,["function useEnsemblePortal(open:boolean","createPortal(<div ref={layer}","ensemble-help-toolbar","className=\"model-run-popover ensemble-portal-popover\"","Init {formatModelRunTime","Quelle bereit {formatAvailabilityTime"]);
 requireTokens('Konsistenz-Tooltips',ensemble,["buttonRef.current?.contains(target)||tooltipRef.current?.contains(target)","document.addEventListener('pointerdown',dismiss,true)","if(event.key==='Escape')onClose()","event.preventDefault();event.stopPropagation();onToggle()"]);
 requireTokens('Portal-CSS',styles+v078,['.ensemble-portal-popover{','.consistency-popover-portal{','.app-portal-popover{','position:fixed']);
 requireTokens('Luftdruck/Astronomie',app,['function pressureTendency','hPa / 3 h','astronomySummary(w)','Sonne / Mond','hero-day-range']);

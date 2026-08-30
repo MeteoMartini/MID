@@ -22,6 +22,7 @@ const managedFiles=[
  ['workflows/deploy.yml','workflows/deploy.yml'],
  ['workflows/dependency-audit.yml','workflows/dependency-audit.yml'],
  ['workflows/mid-ruc-preprocess.yml','workflows/mid-ruc-preprocess.yml'],
+ ['workflows/mid-ruc-schedule-watchdog.yml','workflows/mid-ruc-schedule-watchdog.yml'],
  ['workflows/mid-ruc-cloudflare-bootstrap.yml','workflows/mid-ruc-cloudflare-bootstrap.yml'],
  ['dependabot.yml','dependabot.yml']
 ];

@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.75.0",
+  "releaseVersion": "0.9.76.4",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -318,7 +318,14 @@
     "scripts/test-logo-theme-assets-09748.mjs",
     "scripts/test-logo-png-integrity-09749.mjs",
     "scripts/test-release-upload-budget-097410.mjs",
-    "scripts/test-weather-profile-story-axis-09750.mjs"
+    "scripts/test-weather-profile-story-axis-09750.mjs",
+    "scripts/test-typescript-7-compatibility-09760.mjs",
+    "scripts/test-temperature-canonical-extrema-09751.mjs",
+    "scripts/test-visible-app-internals-09751.mjs",
+    "scripts/test-ruc-scheduler-watchdog-09751.mjs",
+    "scripts/test-capacitor-typescript-7-ci-09761.mjs",
+    "scripts/test-model-status-canonical-use-09762.mjs",
+    "scripts/test-composite-transparent-reference-09762.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -567,7 +574,14 @@
     "scripts/test-logo-theme-assets-09748.mjs",
     "scripts/test-logo-png-integrity-09749.mjs",
     "scripts/test-release-upload-budget-097410.mjs",
-    "scripts/test-weather-profile-story-axis-09750.mjs"
+    "scripts/test-weather-profile-story-axis-09750.mjs",
+    "scripts/test-typescript-7-compatibility-09760.mjs",
+    "scripts/test-temperature-canonical-extrema-09751.mjs",
+    "scripts/test-visible-app-internals-09751.mjs",
+    "scripts/test-ruc-scheduler-watchdog-09751.mjs",
+    "scripts/test-capacitor-typescript-7-ci-09761.mjs",
+    "scripts/test-model-status-canonical-use-09762.mjs",
+    "scripts/test-composite-transparent-reference-09762.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -641,7 +655,6 @@
     "MID_IMPLEMENTATION_0.9.65.1.md",
     "MID_CLOUDFLARE_KV_OPERATIONS_AUDIT_0.9.65.0.md",
     "MID_IMPLEMENTATION_0.9.65.3.md",
-    "scripts/test-current-warning-compact-responsive-09654.mjs",
     "MID_IMPLEMENTATION_0.9.65.4.md",
     "src/sunshineDuration.ts",
     "scripts/test-sunshine-duration-contract-09655.mjs",
@@ -713,7 +726,7 @@
     "MID_IOS_ROADMAP.md",
     "MID_IOS_STATUS.json",
     "MID_IMPLEMENTATION_0.9.67.0.md",
-    "capacitor.config.ts",
+    "capacitor.config.json",
     "src/runtimePlatform.ts",
     "scripts/version-regression-helper.mjs",
     "scripts/test-cross-platform-ios-shell-09670.mjs",
@@ -866,7 +879,20 @@
     "MID_IMPLEMENTATION_0.9.74.10.md",
     "scripts/test-weather-profile-story-axis-09750.mjs",
     "MID_24H_PROFILE_STORY_AXIS_CONTRACT.md",
-    "MID_IMPLEMENTATION_0.9.75.0.md"
+    "MID_IMPLEMENTATION_0.9.75.0.md",
+    "scripts/test-typescript-7-compatibility-09760.mjs",
+    "MID_TYPESCRIPT_7_COMPATIBILITY_CONTRACT.md",
+    "MID_IMPLEMENTATION_0.9.76.0.md",
+    "scripts/test-temperature-canonical-extrema-09751.mjs",
+    "scripts/test-visible-app-internals-09751.mjs",
+    "scripts/test-ruc-scheduler-watchdog-09751.mjs",
+    "ci/github/workflows/mid-ruc-schedule-watchdog.yml",
+    "scripts/test-capacitor-typescript-7-ci-09761.mjs",
+    "scripts/test-model-status-canonical-use-09762.mjs",
+    "scripts/test-composite-transparent-reference-09762.mjs",
+    "MID_IMPLEMENTATION_0.9.76.1.md",
+    "MID_IMPLEMENTATION_0.9.76.2.md",
+    "MID_IMPLEMENTATION_0.9.76.3.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -903,7 +929,7 @@
     "MID_CROSS_PLATFORM_CONTRACT.md",
     "MID_IOS_ROADMAP.md",
     "MID_IOS_STATUS.json",
-    "capacitor.config.ts",
+    "capacitor.config.json",
     "src/runtimePlatform.ts",
     "scripts/version-regression-helper.mjs",
     "scripts/test-cross-platform-ios-shell-09670.mjs",
@@ -971,7 +997,20 @@
     "ios/App/App/Assets.xcassets/Splash.imageset/Contents.json",
     "scripts/test-weather-profile-story-axis-09750.mjs",
     "MID_24H_PROFILE_STORY_AXIS_CONTRACT.md",
-    "MID_IMPLEMENTATION_0.9.75.0.md"
+    "MID_IMPLEMENTATION_0.9.75.0.md",
+    "scripts/test-typescript-7-compatibility-09760.mjs",
+    "MID_TYPESCRIPT_7_COMPATIBILITY_CONTRACT.md",
+    "MID_IMPLEMENTATION_0.9.76.0.md",
+    "scripts/test-temperature-canonical-extrema-09751.mjs",
+    "scripts/test-visible-app-internals-09751.mjs",
+    "scripts/test-ruc-scheduler-watchdog-09751.mjs",
+    "ci/github/workflows/mid-ruc-schedule-watchdog.yml",
+    "scripts/test-capacitor-typescript-7-ci-09761.mjs",
+    "scripts/test-model-status-canonical-use-09762.mjs",
+    "scripts/test-composite-transparent-reference-09762.mjs",
+    "MID_IMPLEMENTATION_0.9.76.1.md",
+    "MID_IMPLEMENTATION_0.9.76.2.md",
+    "MID_IMPLEMENTATION_0.9.76.3.md"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md"
@@ -983,6 +1022,10 @@
     "MID_IMPLEMENTATION_0.9.74.8.md",
     "MID_IMPLEMENTATION_0.9.74.9.md",
     "MID_IMPLEMENTATION_0.9.74.10.md",
-    "MID_IMPLEMENTATION_0.9.75.0.md"
+    "MID_IMPLEMENTATION_0.9.75.0.md",
+    "MID_IMPLEMENTATION_0.9.76.0.md",
+    "MID_IMPLEMENTATION_0.9.76.1.md",
+    "MID_IMPLEMENTATION_0.9.76.2.md",
+    "MID_IMPLEMENTATION_0.9.76.3.md"
   ]
 }

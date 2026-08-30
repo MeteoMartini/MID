@@ -21,8 +21,8 @@ for(const token of [
  'label="Temperaturtrend und Prognoseunsicherheit erklären"',
  'label="Niederschlagsdiagramm erklären"',
  'ⓘ Modellstände',
- 'Initialisierung {formatModelRunTime',
- 'verfügbar seit {formatAvailabilityTime'
+ 'Init {formatModelRunTime',
+ 'Quelle bereit {formatAvailabilityTime'
 ])if(!panel.includes(token))failures.push(`Ensemble-Hilfe/Modellstände fehlt: ${token}`);
 for(const token of [
  'currentDay=mappedDays.find(day=>day.date===todayDate)??mappedDays[0]',

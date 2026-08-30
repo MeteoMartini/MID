@@ -25,7 +25,7 @@ assert.ok(worker.includes('const NOAA_OISST_MAX_DISTANCE_KM=80;'),'Küstenradius
 
 const compileDir=await mkdtemp(path.join(tmpdir(),'mid-travel-water-resilience-'));
 try{
- const tsc=path.resolve('node_modules','.bin',process.platform==='win32'?'tsc.cmd':'tsc'),compile=spawnSync(tsc,['--pretty','false','--target','ES2022','--module','ESNext','--moduleResolution','Bundler','--strict','--skipLibCheck','--outDir',compileDir,path.resolve('src/vite-env.d.ts'),path.resolve('src/travelPlanner.ts')],{cwd:root,encoding:'utf8'});
+ const tsc=path.resolve('node_modules','.bin',process.platform==='win32'?'tsc.cmd':'tsc'),compile=spawnSync(tsc,['--ignoreConfig','--pretty','false','--target','ES2022','--module','ESNext','--moduleResolution','Bundler','--strict','--skipLibCheck','--outDir',compileDir,path.resolve('src/vite-env.d.ts'),path.resolve('src/travelPlanner.ts')],{cwd:root,encoding:'utf8'});
  assert.equal(compile.status,0,`TypeScript travelPlanner: ${compile.stdout||compile.stderr}`);
  const compiledPath=path.join(compileDir,'travelPlanner.js');
  const compiledSource=(await readFile(compiledPath,'utf8')).replace("from './cachePolicy'","from './cachePolicy.js'").replace("from './openMeteoGuard'","from './openMeteoGuard.js'").replace("from './workerClient'","from './workerClientMock.js'");
@@ -47,7 +47,7 @@ try{
  assert.equal(globalThis.__midWaterFetchCount,afterNegative+1,'Nach sauber negativem Ergebnis wurde der Datenweg nicht erneut geprüft.');
 
  globalThis.__midWaterPayload={schema:'legacy.worker',available:true,temperature:22,gridDistanceKm:4,grid:{latitude:35.4,longitude:24.6},days:10};
- await assert.rejects(()=>module.fetchTravelWaterClimatology({latitude:34.4,longitude:23.65},'2026-10-18','2026-10-27'),/Worker 0\.9\.66\.7 oder neuer/,'Veralteter Worker wird nicht verständlich diagnostiziert.');
+ await assert.rejects(()=>module.fetchTravelWaterClimatology({latitude:34.4,longitude:23.65},'2026-10-18','2026-10-27'),/aktuellen MID-Datendienst noch nicht verfügbar/,'Veralteter Worker wird nicht verständlich diagnostiziert.');
 }finally{delete globalThis.__midWaterPayload;delete globalThis.__midWaterFetchCount;await rm(compileDir,{recursive:true,force:true})}
 
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-travel-water-climatology-resilience-09665.mjs';

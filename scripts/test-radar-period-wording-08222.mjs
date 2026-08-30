@@ -3,7 +3,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {createRequire} from 'node:module';
-const require=createRequire(import.meta.url);let ts;try{ts=require('typescript')}catch{ts=require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript')}
+const require=createRequire(import.meta.url);const ts=require('typescript-strada')
 const [app,worker,pkg,baseline]=await Promise.all([readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),readFile(new URL('../worker/metar-proxy.js',import.meta.url),'utf8'),readFile(new URL('../package.json',import.meta.url),'utf8'),readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')]);
 const failures=[],need=(area,text,token)=>{if(!text.includes(token))failures.push(`${area}: ${token}`)};
 for(const token of ['nach kurzer Unterbrechung erneut','mit Unterbrechungen bis','im direkten DWD-RV-Punkt-Nowcast'])need('Radartext',app,token);

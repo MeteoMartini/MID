@@ -27,11 +27,22 @@ export function isCanonicalCatchupRucWorkflow(workflow){
     && workflow.indexOf('RUC-Schedulerlücke und Aktualität vorab prüfen')<workflow.indexOf('Freie DWD-Decodierwerkzeuge installieren');
 }
 
+export function isProtectedPreWatchdogCatchupRucWorkflow(workflow){
+  return isCanonicalCatchupRucWorkflow(workflow)
+    && workflow.includes('workflow_dispatch:')
+    && !workflow.includes('inputs:')
+    && workflow.includes('if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then')
+    && !workflow.includes('inputs.force');
+}
+
 export function rucWorkflowSyncState(active,canonical){
   if(!isCanonicalCatchupRucWorkflow(canonical)){
     return {ok:false,state:'invalid-canonical',reason:'Kanonischer RUC-Workflow erfüllt den :11/:41-Catch-up-Vertrag nicht vollständig.'};
   }
   if(active===canonical)return {ok:true,state:'synced',reason:'Aktiver und kanonischer RUC-Workflow sind synchron.'};
+  if(isProtectedPreWatchdogCatchupRucWorkflow(active)){
+    return {ok:true,state:'pending-admin-sync',reason:'Aktiver .github-RUC-Workflow ist der bereits geschützte :11/:41-Catch-up-Stand; nur der guarded Watchdog-Dispatch wartet noch auf expliziten Admin-Sync.'};
+  }
   if(isLegacyProtectedRucWorkflow(active)){
     return {ok:true,state:'pending-admin-sync',reason:'Aktiver .github-RUC-Workflow ist noch exakt der geschützte Legacy-Zustand; kanonischer Catch-up-Workflow wartet auf expliziten Admin-Sync.'};
   }

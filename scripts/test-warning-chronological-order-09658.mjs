@@ -13,7 +13,7 @@ for(const token of [
 
 const functions=app.match(/function hazardSortEpoch\([\s\S]*?\nfunction compareHazardsChronologically\([\s\S]*?\n(?=function Hazards)/)?.[0];
 assert.ok(functions,'Chronologische Warnsortierung konnte nicht extrahiert werden.');
-const ts=createRequire(import.meta.url)('typescript');
+const ts=createRequire(import.meta.url)('typescript-strada');
 const source=`const AUTOMATIC_HAZARD_LEVEL_RANK={yellow:1,orange:2,red:3,purple:4};\n${functions}\nexport {compareHazardsChronologically};`;
 const compiled=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022},reportDiagnostics:true,fileName:'warning-chronology.ts'});
 const errors=(compiled.diagnostics||[]).filter(item=>item.category===ts.DiagnosticCategory.Error);

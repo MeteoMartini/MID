@@ -6,7 +6,7 @@ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const source=await readFile(path.join(root,'src','ForecastCockpit.tsx'),'utf8');
 const app=await readFile(path.join(root,'src','App.tsx'),'utf8');
 const css=await readFile(path.join(root,'src','styles.css'),'utf8');
-assert.match(source,/CockpitModelRunDetails kind="best" info=\{modelInfo\}/,'7-Tage-Cockpit muss den Best-Match-Modellstand anbieten.');
+assert.match(source,/CockpitModelRunDetails kind="best" scope="seven" info=\{modelInfo\} fusion=\{fusion\}/,'7-Tage-Cockpit muss den Best-Match-Modellstand anbieten.');
 assert.match(source,/CockpitModelRunDetails kind="ensemble" runs=\{modelRuns\}/,'14-Tage-Cockpit muss die Ensemble-Modellstände anbieten.');
 assert.match(app,/bestMatchModelInfo=\{bestMatchInfo\} ensembleRuns=\{modelStatusRuns\}/,'App muss Ensemble- und deterministische Modellstand-Metadaten zusammengeführt an das Cockpit übergeben.');
 assert.match(app,/const modelStatusRuns=useMemo/,'14-Tage-Modellstand muss deterministische Kontrollläufe ergänzen.');

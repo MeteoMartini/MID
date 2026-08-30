@@ -45,7 +45,7 @@ for(const token of ['ein gemeinsames Wetterbündel','const weatherRepresentative
 assert.ok(app.includes('Wetter-/Niederschlagsbündel:'),'Stundenansicht muss die konkrete Wetterquelle transparent ausweisen');
 for(const token of ['WEAK_FORECAST_AMOUNT_MAX_MM=.35','deterministicSignalMinimumProbability','sky-contradiction','phaseAdjusted'])assert.ok(precipitationSource.includes(token),`physikalischer Konsistenzvertrag fehlt: ${token}`);
 
-const require=createRequire(import.meta.url);let ts;try{ts=require('typescript')}catch{}
+const require=createRequire(import.meta.url);const ts=require('typescript-strada')
 const tempDir=fs.mkdtempSync(path.join(os.tmpdir(),'mid-coherent-weather-'));
 try{
  const precipOut=ts?ts.transpileModule(precipitationSource,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022},fileName:'precipitation.ts',reportDiagnostics:true}):{outputText:stripTypeScriptTypes(precipitationSource,{mode:'transform'}),diagnostics:[]};

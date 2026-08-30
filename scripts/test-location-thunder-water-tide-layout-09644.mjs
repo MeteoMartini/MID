@@ -5,7 +5,7 @@ import {join} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {createRequire} from 'node:module';
 
-const root=new URL('../',import.meta.url),require=createRequire(import.meta.url),ts=require('typescript');
+const root=new URL('../',import.meta.url),require=createRequire(import.meta.url),ts=require('typescript-strada');
 const [riskSource,water,app,mountain,sourceStyles,builtStyles,pkgText,baselineText,implementation]=await Promise.all([
  readFile(new URL('src/detailThunderRisk.ts',root),'utf8'),
  readFile(new URL('src/WaterSportsPanel.tsx',root),'utf8'),

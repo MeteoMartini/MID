@@ -14,13 +14,13 @@ need(app,'searchRequestRef=useRef(0)','Schutz vor verspäteten Suchantworten feh
 need(app,'Orte werden gesucht …','Nutzerfeedback während der Ortssuche fehlt.');
 need(app,'setOpen(true)}}).catch','Suchfeld wird bei einem Fehler weiterhin geschlossen.');
 need(station,'if(status?.configured===false)','Netatmo-Setupfehler wird vor der Navigation nicht abgefangen.');
-need(station,'if(!status){setMessage','Netatmo-Start ist ohne fertig geladenen Worker-Status nicht geschützt.');
-need(station,"disabled={busy!==''||!statusReady||!authorizationReady}",'Netatmo-Schaltfläche ist während der Worker-/OAuth-Vorbereitung nicht gesperrt.');
+need(station,'if(!status){setMessage','Netatmo-Start ist ohne fertig geladenen Datendienst-Status nicht geschützt.');
+need(station,"disabled={busy!==''||!statusReady||!authorizationReady}",'Netatmo-Schaltfläche ist während der Datendienst-/OAuth-Vorbereitung nicht gesperrt.');
 if(/const connect=async\(\)=>[\s\S]{0,900}await connectedStationStatus/.test(station))failures.push('Netatmo-Klick enthält erneut eine asynchrone Statusprüfung vor der externen Navigation.');
-need(station,'Netatmo-Einrichtung prüfen','Fehlende Worker-Einrichtung ist am Button nicht erkennbar.');
-need(station,'Danach genügt hier ausschließlich Netatmo-Login und Freigabe.','Tokenfreie Nutzerführung nach Betreiber-Setup ist nicht erklärt.');
+need(station,'Netatmo-Einrichtung prüfen','Fehlende Datendienst-Einrichtung ist am Button nicht erkennbar.');
+need(station,'Es muss kein Zugriffstoken kopiert oder in MID eingegeben werden.','Tokenfreie Nutzerführung ist nicht erklärt.');
 need(css,'.search-query-state','Such-Lade-/Fehlerzustand ist nicht gestaltet.');
 need(css,'button.needs-setup','Netatmo-Setupzustand ist visuell nicht unterschieden.');
-if(/disabled=\{busy!==''\|\|!configured\}/.test(station))failures.push('Netatmo bleibt bei fehlender Worker-Konfiguration stumm deaktiviert.');
+if(/disabled=\{busy!==''\|\|!configured\}/.test(station))failures.push('Netatmo bleibt bei fehlender Datendienst-Konfiguration stumm deaktiviert.');
 if(failures.length){console.error('Ortssuche-/Netatmo-Zuverlässigkeitsprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
 console.log('Responsive Ortssuche und eindeutiges Netatmo-Setup-/OAuth-Feedback geprüft.');

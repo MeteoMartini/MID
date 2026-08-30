@@ -10,7 +10,7 @@ need(navigation,"window.open(url.toString(),'_blank')",'Standalone-PWA öffnet O
 need(navigation,'window.location.assign(url.toString())','Same-Window-Fallback der OAuth-Navigation fehlt.');
 need(station,"workerPost<NetatmoAuthorizationStart>('netatmo-auth-start'",'OAuth-Autorisierungsadresse wird nicht vor dem Nutzertap vorbereitet.');
 if(/const connect=async\(\)=>[\s\S]{0,900}await connectedStationStatus/.test(settings))throw new Error('Netatmo-Klick wartet weiterhin asynchron vor der externen Navigation.');
-need(settings,"if(!status){setMessage('Der Worker-Status wird noch geprüft.", 'Netatmo-Start ist ohne bekannten Worker-Status nicht geschützt.');
+need(settings,"if(!status){setMessage('Der Datendienst-Status wird noch geprüft.", 'Netatmo-Start ist ohne bekannten Worker-Status nicht geschützt.');
 need(worker,"'Cache-Control':'no-store, no-cache, must-revalidate, max-age=0'",'OAuth-302-Redirects sind nicht explizit no-store.');
 need(worker,'function netatmoRedirectResponse','Gemeinsame cachefreie OAuth-Redirect-Antwort fehlt.');
 need(worker,'version:WORKER_VERSION','Worker-Version fehlt in der Netatmo-Diagnose.');

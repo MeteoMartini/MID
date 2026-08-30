@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createRequire,stripTypeScriptTypes} from 'node:module';
 
-const require=createRequire(import.meta.url);let ts;try{ts=require('typescript')}catch{}const test='scripts/test-current-shortterm-temperature-consistency-095340.mjs';
+const require=createRequire(import.meta.url);const ts=require('typescript-strada');const test='scripts/test-current-shortterm-temperature-consistency-095340.mjs';
 const [presentation,app,shortTerm,cockpit,eventEngine,forecastContract,hyperlocalContract,pkgRaw,baselineRaw]=await Promise.all([
  readFile(new URL('../src/forecastPresentation.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),

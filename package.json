@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.75.0",
+  "version": "0.9.76.4",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -356,7 +356,8 @@
     "test:logo-png-integrity": "node scripts/test-logo-png-integrity-09749.mjs",
     "release:pack": "python3 tools/release/create_professional_zip.py MID-professional-replacement.zip",
     "test:release-upload-budget": "node scripts/test-release-upload-budget-097410.mjs",
-    "test:weather-profile-story-axis": "node scripts/test-weather-profile-story-axis-09750.mjs"
+    "test:weather-profile-story-axis": "node scripts/test-weather-profile-story-axis-09750.mjs",
+    "test:typescript-7-compatibility": "node scripts/test-typescript-7-compatibility-09760.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",
@@ -383,7 +384,8 @@
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "4.7.0",
-    "typescript": "5.9.3",
+    "typescript": "7.0.2",
+    "typescript-strada": "npm:typescript@6.0.3",
     "vite": "6.4.3"
   },
   "overrides": {

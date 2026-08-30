@@ -6,7 +6,7 @@ import path from 'node:path';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const outDir=path.join(root,'.hazard-wind-direction-test');
 await rm(outDir,{recursive:true,force:true});
-const compile=spawnSync('tsc',['src/dwdWarnings.ts','--target','ES2022','--module','ES2022','--moduleResolution','Bundler','--strict','--skipLibCheck','--outDir','.hazard-wind-direction-test'],{cwd:root,stdio:'inherit',shell:process.platform==='win32'});
+const compile=spawnSync('tsc',['--ignoreConfig','src/dwdWarnings.ts','--target','ES2022','--module','ES2022','--moduleResolution','Bundler','--strict','--skipLibCheck','--outDir','.hazard-wind-direction-test'],{cwd:root,stdio:'inherit',shell:process.platform==='win32'});
 if(compile.status!==0)process.exit(compile.status??1);
 const {summarizeDwdWarnings,formatDwdWarningDirection,formatDwdWarningDetailWithDirection}=await import(`${pathToFileURL(path.join(outDir,'dwdWarnings.js')).href}?v=${Date.now()}`);
 const [warnings,weather,app,ensemble,styles,pkg,baseline]=await Promise.all([

@@ -36,7 +36,7 @@ for(const token of [
  'Mind. mittlere Schneehöhe',
  'Bestes Reisezeitfenster finden',
  'Detaillierte Schneehöhe laden',
- 'Für Küstenorte ermittelt MID zusätzlich über den Worker',
+ 'Für Küstenorte ermittelt MID zusätzlich das tägliche NOAA-OISST-v2.1-Meeresoberflächenmittel',
  'Das Ergebnis ist eine klimatologische Erwartung',
  'searchLocations(value,controller.signal)'
 ])need('Reiseplaner-Oberfläche',panel,token);
@@ -71,7 +71,7 @@ need('Baseline-Test',baseline,'scripts/test-travel-planner-08190.mjs');
 
 const compileDir=await mkdtemp(path.join(tmpdir(),'mid-travel-test-'));
 try{
- const compile=spawnSync('tsc',['--pretty','false','--target','ES2022','--module','ESNext','--moduleResolution','Bundler','--strict','--skipLibCheck','--outDir',compileDir,path.resolve('src/vite-env.d.ts'),path.resolve('src/travelPlanner.ts')],{cwd:path.resolve('.'),encoding:'utf8'});
+ const compile=spawnSync('tsc',['--ignoreConfig','--pretty','false','--target','ES2022','--module','ESNext','--moduleResolution','Bundler','--strict','--skipLibCheck','--outDir',compileDir,path.resolve('src/vite-env.d.ts'),path.resolve('src/travelPlanner.ts')],{cwd:path.resolve('.'),encoding:'utf8'});
  if(compile.status!==0)failures.push(`TypeScript: ${compile.stdout||compile.stderr}`);
  else{
   const compiledPath=path.join(compileDir,'travelPlanner.js');

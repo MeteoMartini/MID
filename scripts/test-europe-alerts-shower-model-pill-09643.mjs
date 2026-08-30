@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createRequire} from 'node:module';
 
-const root=new URL('../',import.meta.url),require=createRequire(import.meta.url),ts=require('typescript');
+const root=new URL('../',import.meta.url),require=createRequire(import.meta.url),ts=require('typescript-strada');
 const [workerSource,workerBuilt,thunder,app,sourceStyles,builtStyles,weatherTypes,pkgText,baselineText,implementation]=await Promise.all([
  readFile(new URL('worker-src/00-core-observations.js',root),'utf8'),
  readFile(new URL('worker/metar-proxy.js',root),'utf8'),

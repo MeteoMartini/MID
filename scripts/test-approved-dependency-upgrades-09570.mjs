@@ -14,7 +14,9 @@ assert.equal(lock.packages?.['node_modules/immer']?.version,'11.1.17');
 assert.equal(lock.packages?.['node_modules/reselect']?.version,'5.2.0');
 assert.ok(!lock.packages?.['node_modules/@reduxjs/toolkit/node_modules/immer'],'Doppeltes altes Immer 11.1.8 ist noch im Lockfile verschachtelt.');
 for(const [name,value] of [['react','18.3.1'],['react-dom','18.3.1'],['react-is','18.3.1']])assert.equal(pkg.dependencies?.[name],value,`${name} darf mit diesem Wartungsschritt nicht angehoben werden.`);
-assert.equal(pkg.devDependencies?.typescript,'5.9.3','TypeScript 7 bleibt zurückgestellt.');
+assert.equal(pkg.devDependencies?.typescript,'7.0.2','TypeScript 7.0.2 muss nach dem isolierten Kompatibilitätslauf exakt festgeschrieben bleiben.');
+assert.equal(pkg.devDependencies?.['typescript-strada'],'npm:typescript@6.0.3','Strada-Test-API muss getrennt und exakt festgeschrieben bleiben.');
+assert.equal(lock.packages?.['node_modules/typescript-strada']?.version,'6.0.3');
 assert.equal(pkg.devDependencies?.vite,'6.4.3','Vite bleibt unverändert.');
 assert.equal(pkg.devDependencies?.['@vitejs/plugin-react'],'4.7.0','plugin-react 6 bleibt zurückgestellt.');
 const checkout='actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1';
@@ -26,9 +28,9 @@ for(const [label,text] of [['deploy',deploy],['install',install],['dependency-au
 }
 assert.ok(policy.includes('Recharts: 3.10.1'));
 assert.ok(policy.includes('Lucide React: 1.34.0'));
-assert.ok(policy.includes('TypeScript 7')&&policy.includes('Vite 8'));
+assert.ok(policy.includes('TypeScript: 7.0.2')&&policy.includes('Vite 8'));
 const test='scripts/test-approved-dependency-upgrades-09570.mjs';
 assert.equal(pkg.scripts?.['test:approved-dependency-upgrades'],`node ${test}`);
 assert.ok(baseline.requiredRegressionTests?.includes(test));
 assert.ok(baseline.regressionTests?.includes(test));
-console.log('Freigegebene Dependency-/Action-Upgrades geprüft: checkout 7.0.1, setup-node 7.0.0, Lucide React 1.34.0 und Recharts 3.10.1; React 19, plugin-react 6/Vite 8 und TypeScript 7 bleiben zurückgestellt.');
+console.log('Freigegebene Dependency-/Action-Upgrades geprüft: TypeScript 7.0.2, checkout 7.0.1, setup-node 7.0.0, Lucide React 1.34.0 und Recharts 3.10.1; React 19 sowie plugin-react 6/Vite 8 bleiben zurückgestellt.');

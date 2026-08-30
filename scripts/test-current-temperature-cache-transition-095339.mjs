@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createRequire} from 'node:module';
 
-const require=createRequire(import.meta.url),ts=require('typescript'),test='scripts/test-current-temperature-cache-transition-095339.mjs';
+const require=createRequire(import.meta.url),ts=require('typescript-strada'),test='scripts/test-current-temperature-cache-transition-095339.mjs';
 const [thermal,weather,app,analysisCache,shortTerm,contract,pkgRaw,baselineRaw]=await Promise.all([
  readFile(new URL('../src/hyperlocalThermal.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/weather.ts',import.meta.url),'utf8'),

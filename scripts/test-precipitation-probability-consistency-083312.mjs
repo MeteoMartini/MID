@@ -4,7 +4,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {createRequire} from 'node:module';
-const require=createRequire(import.meta.url);let ts;try{ts=require('typescript')}catch{ts=require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript')}
+const require=createRequire(import.meta.url);const ts=require('typescript-strada')
 const root=new URL('../',import.meta.url),files={precipitation:await readFile(new URL('src/precipitation.ts',root),'utf8'),weather:await readFile(new URL('src/weather.ts',root),'utf8'),fusion:await readFile(new URL('src/forecastFusion.ts',root),'utf8'),app:await readFile(new URL('src/App.tsx',root),'utf8'),shortTerm:await readFile(new URL('src/ShortTermForecast.tsx',root),'utf8'),worker:await readFile(new URL('worker/metar-proxy.js',root),'utf8'),package:await readFile(new URL('package.json',root),'utf8')};
 const required={
  precipitation:['UNSUPPORTED_FORECAST_MAX_PROBABILITY=5','WEAK_FORECAST_AMOUNT_MAX_MM=.35','export function reconcileForecastPrecipitation','deterministicSignalMinimumProbability'],

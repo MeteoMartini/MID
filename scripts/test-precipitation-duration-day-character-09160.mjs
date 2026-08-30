@@ -5,7 +5,7 @@ import {join} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url);
-let ts;try{ts=require('typescript')}catch{ts=require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript')}
+const ts=require('typescript-strada')
 
 const root=new URL('../',import.meta.url);
 const [weatherSource,appSource,sevenDaySource,cockpitSource,ensembleSource,pkgSource,baselineSource]=await Promise.all([

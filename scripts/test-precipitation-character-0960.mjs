@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFile,mkdtemp,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';import {join} from 'node:path';import {pathToFileURL} from 'node:url';import {createRequire} from 'node:module';
-const root=new URL('../',import.meta.url),source=await readFile(new URL('src/precipitation.ts',root),'utf8'),require=createRequire(import.meta.url);let ts;try{ts=require('typescript')}catch{ts=require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript')}
+const root=new URL('../',import.meta.url),source=await readFile(new URL('src/precipitation.ts',root),'utf8'),require=createRequire(import.meta.url);const ts=require('typescript-strada')
 for(const token of ['classifyPrecipitationCharacter','directPartition','convectiveFraction','liftedIndex','convectiveInhibition','lowStratusSignal','drizzlePlausible'])assert.ok(source.includes(token),`Niederschlagscharakter-Vertrag fehlt: ${token}`);
 const dir=await mkdtemp(join(tmpdir(),'mid-precip-character-'));
 try{

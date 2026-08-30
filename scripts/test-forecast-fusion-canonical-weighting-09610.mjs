@@ -7,7 +7,7 @@ assert.equal(pkg.version,baseline.releaseVersion);assert.ok(baseline.requiredReg
 
 // Nutzervertrag: eine kanonische, nachvollziehbare Prognose statt widersprüchlicher Teilpfade.
 for(const token of ['fusionWeatherRegime','fusionRegionalFactor','fusionRegimeFactor','fusionWeightFactors','horizonFactor','regionalFactor','regimeFactor','freshnessFactor'])assert.ok(worker.includes(token),`Fusionsfaktor fehlt: ${token}`);
-assert.ok(worker.includes("version:8")&&worker.includes('weightingByDate'),'Worker muss die Gewichtung tageweise diagnostizieren.');
+assert.ok(worker.includes("version:9")&&worker.includes('weightingByDate'),'Worker muss die Gewichtung tageweise diagnostizieren.');
 assert.ok(worker.includes("independenceBudget:'one-budget-per-independence-group'"),'Unabhängigkeitsbudget ist nicht explizit dokumentiert.');
 assert.match(worker,/for\(const\[group,items\]of groups\).*groupBudget:budget.*weight:budget\*Math\.max/s,'Varianten derselben Familie müssen ein einziges Gruppenbudget teilen.');
 for(const token of ["id:'icon_d2_ruc'","id:'icon_d2'","independenceGroup:'dwd-icon'"])assert.ok(worker.includes(token),`DWD-RUC-Familienvertrag fehlt: ${token}`);

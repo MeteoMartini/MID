@@ -1,7 +1,7 @@
 import {readFile} from 'node:fs/promises';
 import {createRequire} from 'node:module';
 
-const require=createRequire(import.meta.url),ts=require('typescript');
+const require=createRequire(import.meta.url),ts=require('typescript-strada');
 const [weather,pictogram,app,cockpit,shortTerm,styles,pkg,baseline]=await Promise.all([
  readFile(new URL('../src/weather.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/WeatherPictogram.tsx',import.meta.url),'utf8'),

@@ -76,7 +76,7 @@ async function warningFetch(input:RequestInfo|URL,init:RequestInit|undefined,url
     }catch(error){lastError=error;if(init?.signal?.aborted)throw error}
   }
   if(lastResponse)return lastResponse;
-  throw new Error(lastError instanceof Error&&lastError.message&&!/failed to fetch/i.test(lastError.message)?lastError.message:'Amtliche Warnungen konnten wegen einer Netzwerk- oder CORS-Sperre nicht geladen werden. MID hat den Abruf automatisch wiederholt.');
+  throw new Error(lastError instanceof Error&&lastError.message&&!/failed to fetch/i.test(lastError.message)?lastError.message:'Amtliche Warnungen konnten wegen einer Netzwerkverbindung oder eines Inhaltsfilters nicht geladen werden. MID hat den Abruf automatisch wiederholt.');
 }
 
 window.fetch=async(input:RequestInfo|URL,init?:RequestInit)=>{
@@ -185,7 +185,7 @@ async function checkVersion(force=false){
 }
 function setupVersionChecks(){cleanUpdateQuery();void checkVersion(true);window.setInterval(()=>{if(document.visibilityState==='visible')void checkVersion()},VERSION_CHECK_INTERVAL);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')void checkVersion(true)});window.addEventListener('pageshow',()=>void checkVersion(true));window.addEventListener('focus',()=>void checkVersion())}
 
-function improveWarningMessage(){const message=document.querySelector<HTMLElement>('.official-warnings.unavailable small');if(message&&/failed to fetch/i.test(message.textContent||''))message.textContent='Amtliche Warnungen konnten vom Desktop-Browser nicht geladen werden. MID hat den CORS-sicheren Abruf automatisch wiederholt; bitte Netzwerk- oder Inhaltsblocker prüfen.'}
+function improveWarningMessage(){const message=document.querySelector<HTMLElement>('.official-warnings.unavailable small');if(message&&/failed to fetch/i.test(message.textContent||''))message.textContent='Amtliche Warnungen konnten vom Desktop-Browser nicht geladen werden. MID hat den Abruf automatisch wiederholt; bitte Netzwerk oder Inhaltsfilter prüfen.'}
 function enhance(){if(enhancing)return;enhancing=true;try{enhanceVersion();enhanceChartToggles();enhanceWidget();improveWarningMessage()}finally{enhancing=false}}
 function scheduleEnhance(){if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;enhance()})}
 function scheduleEnhanceAfterResize(){window.clearTimeout(enhancementResizeTimer);enhancementResizeTimer=window.setTimeout(scheduleEnhance,160)}

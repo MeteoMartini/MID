@@ -104,16 +104,16 @@ function dailyWorkerLimit(error:unknown){return/(?:daily api request limit excee
 function storedWorkerLimitUntil(){try{const storage=browserStorage();if(!storage)return 0;const value=Number(storage.getItem(WORKER_LIMIT_KEY));return Number.isFinite(value)&&value>Date.now()?value:0}catch{return 0}}
 function rememberWorkerLimit(){const storage=browserStorage();if(!storage)return;const now=new Date(),until=Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate()+1,0,15);try{storage.setItem(WORKER_LIMIT_KEY,String(until))}catch{}}
 function clearWorkerLimit(){try{browserStorage()?.removeItem(WORKER_LIMIT_KEY)}catch{}}
-function directFallbackReason(error:unknown,skipped=false){return skipped||dailyWorkerLimit(error)?'Das Tageskontingent des zentralen MID-Datenwegs ist erreicht. Die aktuelle Prognose wurde kostenfrei direkt im Browser aus ICON-D2-EPS und ICON-D2 berechnet.':'Der zentrale MID-Datenweg war vorübergehend nicht erreichbar. Die aktuelle Prognose wurde kostenfrei direkt im Browser aus ICON-D2-EPS und ICON-D2 berechnet.'}
+function directFallbackReason(error:unknown,skipped=false){void error;void skipped;return'Die zentrale Datenquelle war vorübergehend nicht erreichbar. Die aktuelle Prognose wurde direkt aus ICON-D2-EPS und ICON-D2 berechnet.'}
 
 export async function loadExtremeWeatherOutlook(signal?:AbortSignal):Promise<ExtremeWeatherOutlook>{
  throwIfAborted(signal);
  const fresh=readOutlookCache(OUTLOOK_FRESH_MS);if(fresh)return{...fresh,delivery:'local-cache'};
- const workerSkipped=storedWorkerLimitUntil()>Date.now();let workerError:unknown=workerSkipped?new Error('MID-Worker-Tageskontingent lokal vorgemerkt.'):undefined;
+ const workerSkipped=storedWorkerLimitUntil()>Date.now();let workerError:unknown=workerSkipped?new Error('Zentraler Datenweg vorübergehend ausgesetzt.'):undefined;
  if(!workerSkipped){
   try{
    const worker=await fetchWorkerJson<ExtremeWeatherOutlook>('dach-extreme-outlook',{}, {purpose:'general',signal,timeoutMs:48000,maxAgeMs:30*60*1000,staleIfErrorMs:6*60*60*1000,cacheKey:'dach-extreme-outlook:v5'});
-   if(worker.error)throw new Error(worker.error);if(!validOutlook(worker))throw new Error('Der MID-Worker lieferte keinen vollständigen Mitteleuropa-Ausblick über das ICON-D2-Gebiet.');
+   if(worker.error)throw new Error(worker.error);if(!validOutlook(worker))throw new Error('Der MID-Datendienst lieferte keinen vollständigen Mitteleuropa-Ausblick über das ICON-D2-Gebiet.');
    const result={...worker,delivery:'worker' as const};clearWorkerLimit();writeOutlookCache(result);return result;
   }catch(error){throwIfAborted(signal);workerError=error;if(dailyWorkerLimit(error))rememberWorkerLimit()}
  }
@@ -121,8 +121,8 @@ export async function loadExtremeWeatherOutlook(signal?:AbortSignal):Promise<Ext
   const direct=await loadDirectDachExtremeOutlook(signal);throwIfAborted(signal);if(!validOutlook(direct))throw new Error('Der Direktabruf lieferte keinen vollständigen Mitteleuropa-Ausblick über das ICON-D2-Gebiet.');
   const result={...direct,delivery:'browser-direct' as const,fallbackReason:directFallbackReason(workerError,workerSkipped)};writeOutlookCache(result);return result;
  }catch(directError){
-  throwIfAborted(signal);const stale=readOutlookCache(OUTLOOK_STALE_MS);if(stale)return{...stale,delivery:'local-cache',stale:true,staleReason:'Worker und Direktabruf sind vorübergehend nicht erreichbar; der letzte lokal gesicherte Ausblick wird weiter angezeigt.'};
-  void workerError;void directError;throw new Error('Der zentrale MID-Datenweg und der kostenfreie Direktabruf von ICON-D2-EPS sind momentan nicht erreichbar. Bitte später erneut versuchen; ein vorhandener Ausblick wird künftig automatisch lokal als Ausfallsicherung vorgehalten.');
+  throwIfAborted(signal);const stale=readOutlookCache(OUTLOOK_STALE_MS);if(stale)return{...stale,delivery:'local-cache',stale:true,staleReason:'Die aktuellen Datenwege sind vorübergehend nicht erreichbar; der letzte lokal gesicherte Ausblick wird weiter angezeigt.'};
+  void workerError;void directError;throw new Error('Die aktuellen MID-Datenwege für ICON-D2-EPS sind momentan nicht erreichbar. Bitte später erneut versuchen; ein vorhandener Ausblick wird künftig automatisch lokal als Ausfallsicherung vorgehalten.');
  }
 }
 

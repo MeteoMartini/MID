@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
-const [app,planner,eventCenter,eventRefresh,mountain,water,weather,synoptic,worker,styles,env,pkg,baseline]=await Promise.all([
+const [app,planner,eventCenter,eventRefresh,mountain,water,weather,cockpit,synoptic,worker,styles,env,pkg,baseline]=await Promise.all([
  readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/EventPlannerPanel.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/eventCenter.ts',import.meta.url),'utf8'),
@@ -9,6 +9,7 @@ const [app,planner,eventCenter,eventRefresh,mountain,water,weather,synoptic,work
  readFile(new URL('../src/mountainSports.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/WaterSportsPanel.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/weather.ts',import.meta.url),'utf8'),
+ readFile(new URL('../src/ForecastCockpit.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/synoptic.ts',import.meta.url),'utf8'),
  readFile(new URL('../worker/metar-proxy.js',import.meta.url),'utf8'),
  readFile(new URL('../src/styles.css',import.meta.url),'utf8'),
@@ -84,8 +85,8 @@ for(const token of [
  "if(model.id==='icon_d2_ruc')try{const adapted=await fetchDwdRucPointAdapter",
  "provider:'DWD ICON-D2-RUC · Punktadapter'"
 ])assert.ok(worker.includes(token),`ICON-D2-RUC Punktpfad fehlt: ${token}`);
-assert.ok(weather.includes('DWD→Pages→Worker · Zustandskern 1 h bis +14 h · Niederschlag 5 min bis +6 h · Konvektion/Reflektivität 15 min bis +6 h'),'Produktiver parameterabhängiger RUC-Zeit-/Datenpfad wird nicht transparent erklärt.');
-assert.ok(weather.includes('RUC-EPS · stündlicher probabilistischer Kurzfristpfad bis +14 h'),'RUC-EPS-Kurzfristpfad wird nicht transparent erklärt.');
+assert.ok(cockpit.includes('Zustandskern 1 h bis +14 h · Niederschlag 5 min bis +6 h · Konvektion/Reflektivität 15 min bis +6 h'),'Produktiver parameterabhängiger RUC-Zeit-/Datenpfad wird im Modellstand nicht transparent erklärt.');
+assert.ok(cockpit.includes('Wahrscheinlichkeitskalibrierung 1 h bis +14 h'),'RUC-EPS-Kurzfristpfad wird im Modellstand nicht transparent erklärt.');
 assert.ok(env.includes('MID_DWD_RUC_POINT_ENDPOINT'),'RUC-Adapter ist in .env.example nicht dokumentiert.');
 
 // VII – CLMS LCM10 direkt über CDSE Statistical API.

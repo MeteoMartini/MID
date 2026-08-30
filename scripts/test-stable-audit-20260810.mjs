@@ -50,10 +50,10 @@ for(const token of ['getProjectedCanvas','projectedViewportCacheKey','setProject
 
 // P3 – Stable-Abhängigkeiten bleiben fest; Upgrades werden isoliert statt ungeprüft übernommen.
 const policy=files['scripts/check-dependency-upgrade-policy.mjs'],policyDoc=files['MID_DEPENDENCY_UPGRADE_POLICY.md'];
-for(const token of ["react:'18.3.1'","recharts:'3.10.1'","typescript:'5.9.3","vite:'6.4.3'"])need('Dependency-Policy',policy,token);
+for(const token of ["react:'18.3.1'","recharts:'3.10.1'","typescript:'7.0.2'","vite:'6.4.3'"])need('Dependency-Policy',policy,token);
 need('Dependency-Dokumentation',policyDoc,'Recharts');
 need('Dependency-Dokumentation',policyDoc,'React 19');
-need('Dependency-Dokumentation',policyDoc,'TypeScript 7');
+need('Dependency-Dokumentation',policyDoc,'TypeScript 7.0.2');
 need('Dependency-Dokumentation',policyDoc,'Vite 8');
 
 // Scheduled Release-/Auditjobs müssen explizit Stable prüfen.

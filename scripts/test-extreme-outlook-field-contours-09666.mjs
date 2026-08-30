@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import ts from 'typescript';
+import ts from 'typescript-strada';
 
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8');
 const [canvasSource,overlay,modelledAreas,client,panel,workerSource,direct,travel,pkgRaw,baselineRaw,changelog,implementation,workerCore]=await Promise.all([

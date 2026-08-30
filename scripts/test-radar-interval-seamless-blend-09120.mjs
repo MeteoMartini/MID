@@ -4,10 +4,9 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {createRequire} from 'node:module';
-import {execFileSync} from 'node:child_process';
 import {inlineSunshineDurationContract} from './sunshine-duration-regression-helper.mjs';
 const require=createRequire(import.meta.url);
-let ts;try{ts=require('typescript')}catch{ts=require(join(String(execFileSync('npm',['root','-g'])).trim(),'typescript'))}
+const ts=require('typescript-strada');
 
 const root=new URL('../',import.meta.url);
 const shortTerm=readFileSync(new URL('../src/ShortTermForecast.tsx',import.meta.url),'utf8');

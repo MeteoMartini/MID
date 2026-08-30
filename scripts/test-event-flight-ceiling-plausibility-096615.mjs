@@ -6,7 +6,7 @@ import {createRequire} from 'node:module';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
-const require=createRequire(import.meta.url),ts=require('typescript');
+const require=createRequire(import.meta.url),ts=require('typescript-strada');
 const sourcePath=path.join(root,'src','eventAviation.ts');
 const source=fs.readFileSync(sourcePath,'utf8');
 const workerSource=fs.readFileSync(path.join(root,'worker-src','40-aviation-router.js'),'utf8');
