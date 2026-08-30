@@ -499,7 +499,7 @@ jobs:
       id-token: write
     concurrency:
       group: mid-pages
-      cancel-in-progress: true
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -583,7 +583,7 @@ jobs:
       id-token: write
     concurrency:
       group: mid-pages
-      cancel-in-progress: true
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -668,7 +668,7 @@ jobs:
       id-token: write
     concurrency:
       group: mid-pages
-      cancel-in-progress: true
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
