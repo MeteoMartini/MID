@@ -1,3 +1,9 @@
+## v0.9.76.9
+
+- Reisewetter/Fester Zeitraum: historische modellierte ERA5-Schneehöhe wird jetzt immer mit ausgewertet; Schneefall bleibt getrennte Zusatzinformation und wird bei einem Schneehöhen-Ausfall nicht als Ersatzwert ausgegeben.
+- Wunschzeitraum: Alternative Reisezeiträume werden nicht mehr in nahezu identische, tageweise verschobene Fenster verdichtet. Neuer editierbarer Mindestabstand; Standard = Reisedauer, Untergrenze = 50 % der Reisedauer.
+- Bei 7 Tagen Reisedauer beträgt der Standardabstand damit 7 Tage; der Nutzer kann ihn bis minimal 4 Tage korrigieren. Browser/PWA/iOS teilen weiterhin denselben Fachkern; keine Worker-Fachänderung.
+
 ## v0.9.76.7
 
 - Kurzfristtexte sprachlich geglättet: relative Uhrzeiten werden satzgrammatisch statt durch bloßes Voranstellen einer Präposition erzeugt. Dadurch heißt es z. B. „morgen um 19:00 Uhr“ und „morgen ab 14:00 Uhr“ statt „um morgen 19:00“ bzw. „ab morgen 14:00“.

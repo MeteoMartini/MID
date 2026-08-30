@@ -38,7 +38,14 @@ for(const token of [
  'Schneehöhe ist das Optimierungskriterium',
  'Für Küstenorte ermittelt MID zusätzlich das tägliche NOAA-OISST-v2.1-Meeresoberflächenmittel',
  'Das Ergebnis ist eine klimatologische Erwartung',
- 'searchLocations(value,controller.signal)'
+ 'searchLocations(value,controller.signal)',
+ 'Mindestabstand Alternativen',
+ 'Minimum: 50 % der Reisedauer',
+ "snowDepthRequired=mode==='fixed'||",
+ 'minAlternativeGapDays=Math.max(1,Math.ceil(tripDays/2))',
+ 'setAlternativeGapDays(next)',
+ 'Math.abs(daysBetween(existing.start,candidate.start))<alternativeGapDays',
+ 'Ø modellierte Schneehöhe'
 ])need('Reiseplaner-Oberfläche',panel,token);
 
 for(const token of [

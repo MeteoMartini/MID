@@ -28,7 +28,7 @@ for(const forbidden of ['temperature_2m_mean','precipitation_hours','cloud_cover
 for(const token of [
  'Schneehöhe ist das Optimierungskriterium',
  'Kumulierter Schneefall wird separat zusätzlich ausgewiesen',
- "snowDepthRequired=mode==='flexible'&&(preference==='snow'||Number.isFinite(constraints.minSnowDepthCm))",
+ "snowDepthRequired=mode==='fixed'||(mode==='flexible'&&(preference==='snow'||Number.isFinite(constraints.minSnowDepthCm)))",
  'const includeSnowDepth=snowDepthRequired',
  'Pro gerastertem Klimapunkt erfolgt höchstens ein direkter Basisabruf',
  'Für Küstenorte ermittelt MID zusätzlich das tägliche NOAA-OISST-v2.1-Meeresoberflächenmittel'
@@ -74,4 +74,4 @@ try{
 }finally{await rm(compileDir,{recursive:true,force:true})}
 
 if(failures.length){console.error('Reisewetter-Abrufbudget fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Reisewetter-Abrufbudget geprüft: ein atmosphärischer Basisabruf je Klimaraster, separater NOAA-OISST-Workerpfad, In-Flight-Entdopplung, Dreijahrescache und automatisch geladene Schneehöhe bei Schneeoptimierung.');
+console.log('Reisewetter-Abrufbudget geprüft: ein atmosphärischer Basisabruf je Klimaraster, separater NOAA-OISST-Workerpfad, In-Flight-Entdopplung, Dreijahrescache und automatisch geladene Schneehöhe bei Festzeitraum bzw. Schneeoptimierung.');
