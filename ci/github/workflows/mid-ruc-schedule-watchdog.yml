@@ -73,12 +73,25 @@ jobs:
             esac
           fi
 
-          if [ "$healthy_schedule" = true ]; then
+          # A workflow-file push intentionally exercises the guarded dispatch once.
+          # force=false keeps this a no-op when the published RUC snapshot is already current,
+          # while proving that the recovery path itself can really start a workflow run.
+          recovery_self_test=false
+          if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
+            recovery_self_test=true
+            echo "RUC watchdog deployment self-test: guarded recovery dispatch will be exercised once."
+          fi
+
+          if [ "$healthy_schedule" = true ] && [ "$recovery_self_test" != true ]; then
             echo "RUC primary ${expected_slot} schedule event verified: ${latest_schedule_status}/${latest_schedule_conclusion:-pending} ${latest_schedule_url}"
             exit 0
           fi
 
-          echo "::warning::RUC primary ${expected_slot} schedule event missing or failed; starting guarded recovery dispatch."
+          if [ "$recovery_self_test" = true ]; then
+            echo "RUC primary ${expected_slot} schedule event is ${latest_schedule_status:-missing}/${latest_schedule_conclusion:-unknown}; exercising guarded recovery dispatch."
+          else
+            echo "::warning::RUC primary ${expected_slot} schedule event missing or failed; starting guarded recovery dispatch."
+          fi
           dispatch_started_epoch="$(date -u +%s)"
           gh workflow run "$RUC_WORKFLOW" -R "$GITHUB_REPOSITORY" --ref main -f force=false
 

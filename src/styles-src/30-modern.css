@@ -1948,18 +1948,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .cockpit-fourteen-row>label>span{min-width:0}
 
 @media (orientation:portrait) and (max-width:900px){
- .forecast-cockpit:has(.cockpit-fourteen-day) .cockpit-header{gap:1px;padding:8px 10px 6px}
- .forecast-cockpit:has(.cockpit-fourteen-day) .cockpit-header small{font-size:7px}
- .forecast-cockpit:has(.cockpit-fourteen-day) .cockpit-header strong{font-size:clamp(16px,4.8vw,20px)}
- .forecast-cockpit:has(.cockpit-fourteen-day) .cockpit-tabs{gap:4px;padding:5px 7px 0}
- .forecast-cockpit:has(.cockpit-fourteen-day) .cockpit-tabs>button,
- .mode-cockpit-tabs:has(.cockpit-fourteen-day) .cockpit-tabs>button,
- .mode-cockpit-ribbons:has(.cockpit-fourteen-day) .cockpit-tabs>button{grid-template-columns:1fr;min-height:36px;padding:4px 3px;border-radius:11px;text-align:center}
- .forecast-cockpit:has(.cockpit-fourteen-day) .cockpit-tab-icon,
- .forecast-cockpit:has(.cockpit-fourteen-day) .cockpit-tab-copy>small,
- .forecast-cockpit:has(.cockpit-fourteen-day) .cockpit-mini-ribbon{display:none}
- .forecast-cockpit:has(.cockpit-fourteen-day) .cockpit-tab-copy{justify-items:center}
- .forecast-cockpit:has(.cockpit-fourteen-day) .cockpit-tab-copy>b{font-size:10px}
+ /* MID v0.9.76.8 · Cockpit-Register bleibt unabhängig vom aktiven Horizont visuell invariant. */
  .forecast-cockpit:has(.cockpit-fourteen-day) .cockpit-body{padding:7px}
  .cockpit-fourteen-day{min-width:0;overflow:visible!important}
  .cockpit-fourteen-day>.cockpit-brief.compact-fourteen{position:static!important;display:flex;align-items:center;flex-direction:row;gap:5px;width:auto!important;margin-bottom:4px}
@@ -2044,16 +2033,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 }
 
 @media (orientation:landscape) and (max-width:1300px){
- .forecast-cockpit:has(.cockpit-fourteen-day) .cockpit-header{grid-template-columns:auto minmax(0,1fr);align-items:center;gap:8px;padding:6px 9px}
- .forecast-cockpit:has(.cockpit-fourteen-day) .cockpit-header small{font-size:6px}.forecast-cockpit:has(.cockpit-fourteen-day) .cockpit-header strong{font-size:15px}
- .forecast-cockpit:has(.cockpit-fourteen-day) .cockpit-tabs{gap:4px;padding:4px 7px 0}
- .forecast-cockpit:has(.cockpit-fourteen-day) .cockpit-tabs>button,
- .mode-cockpit-tabs:has(.cockpit-fourteen-day) .cockpit-tabs>button,
- .mode-cockpit-ribbons:has(.cockpit-fourteen-day) .cockpit-tabs>button{grid-template-columns:1fr;min-height:31px;padding:3px;border-radius:9px;text-align:center}
- .forecast-cockpit:has(.cockpit-fourteen-day) .cockpit-tab-icon,
- .forecast-cockpit:has(.cockpit-fourteen-day) .cockpit-tab-copy>small,
- .forecast-cockpit:has(.cockpit-fourteen-day) .cockpit-mini-ribbon{display:none}
- .forecast-cockpit:has(.cockpit-fourteen-day) .cockpit-tab-copy{justify-items:center}.forecast-cockpit:has(.cockpit-fourteen-day) .cockpit-tab-copy>b{font-size:8px}
+ /* MID v0.9.76.8 · Cockpit-Register bleibt unabhängig vom aktiven Horizont visuell invariant. */
  .forecast-cockpit:has(.cockpit-fourteen-day) .cockpit-body{padding:6px 8px}
  .cockpit-fourteen-day{min-width:0;overflow:visible!important}
  .cockpit-fourteen-day>.cockpit-brief.compact-fourteen{position:static!important;display:flex;align-items:center;flex-direction:row;gap:6px;width:auto!important;margin-bottom:3px}

@@ -19,7 +19,8 @@ for(const token of [
  "cron: '18 * * * *'","cron: '48 * * * *'",'actions: write','group: mid-ruc-schedule-watchdog',
  "'.github/workflows/mid-ruc-schedule-watchdog.yml'","'.github/workflows/mid-ruc-preprocess.yml'",
  'event=schedule&per_page=1','gh workflow run "$RUC_WORKFLOW" -R "$GITHUB_REPOSITORY" --ref main -f force=false',
- 'event=workflow_dispatch&per_page=1','RUC recovery dispatch verified','no new workflow_dispatch run became visible within 90 seconds'
+ 'event=workflow_dispatch&per_page=1','RUC recovery dispatch verified','no new workflow_dispatch run became visible within 90 seconds',
+ 'recovery_self_test=false','GITHUB_EVENT_NAME','RUC watchdog deployment self-test: guarded recovery dispatch will be exercised once.'
 ])assert.ok(watchdog.includes(token),`RUC-Watchdog-Vertrag fehlt: ${token}`);
 assert.ok(sync.includes("['workflows/mid-ruc-schedule-watchdog.yml','workflows/mid-ruc-schedule-watchdog.yml']"),'Admin-Sync verwaltet den RUC-Watchdog nicht.');
 
