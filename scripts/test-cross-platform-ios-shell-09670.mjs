@@ -3,8 +3,8 @@ import {expectedIosNextMilestone,versionAtLeast} from './version-regression-help
 
 const root=new URL('../',import.meta.url);
 const read=path=>readFile(new URL(path,root),'utf8');
-const [pkgText,config,runtime,pwa,install,main,styles,source,contract,roadmap,statusText,baselineText,worker,iosProject,infoPlist]=await Promise.all([
- read('package.json'),read('capacitor.config.ts'),read('src/runtimePlatform.ts'),read('src/pwa.ts'),read('src/PwaInstallButton.tsx'),read('src/main.tsx'),read('src/styles.css'),read('MID_SOURCE_OF_TRUTH.md'),read('MID_CROSS_PLATFORM_CONTRACT.md'),read('MID_IOS_ROADMAP.md'),read('MID_IOS_STATUS.json'),read('MID_BASELINE.json'),read('worker/metar-proxy.js'),read('ios/App/App.xcodeproj/project.pbxproj'),read('ios/App/App/Info.plist')
+const [pkgText,config,runtime,pwa,install,main,styles,source,contract,roadmap,statusText,baselineText,worker,iosProject,infoPlist,appIconCatalog]=await Promise.all([
+ read('package.json'),read('capacitor.config.ts'),read('src/runtimePlatform.ts'),read('src/pwa.ts'),read('src/PwaInstallButton.tsx'),read('src/main.tsx'),read('src/styles.css'),read('MID_SOURCE_OF_TRUTH.md'),read('MID_CROSS_PLATFORM_CONTRACT.md'),read('MID_IOS_ROADMAP.md'),read('MID_IOS_STATUS.json'),read('MID_BASELINE.json'),read('worker/metar-proxy.js'),read('ios/App/App.xcodeproj/project.pbxproj'),read('ios/App/App/Info.plist'),read('ios/App/App/Assets.xcassets/AppIcon.appiconset/Contents.json')
 ]);
 const pkg=JSON.parse(pkgText),status=JSON.parse(statusText),baseline=JSON.parse(baselineText),failures=[];
 const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
@@ -34,10 +34,11 @@ if(versionAtLeast(pkg.version,'0.9.68.0')){
 if(baseline.releaseVersion!==pkg.version)failures.push(`Baseline ${baseline.releaseVersion} != Paket ${pkg.version}`);
 for(const listName of ['requiredRegressionTests','regressionTests'])if(!baseline[listName]?.includes('scripts/test-cross-platform-ios-shell-09670.mjs'))failures.push(`Baseline-${listName} enthält die Cross-Platform-Regression nicht.`);
 for(const listName of ['requiredFiles','protectedFiles'])if(!baseline[listName]?.includes('scripts/version-regression-helper.mjs'))failures.push(`Baseline-${listName} schützt den semantischen Versionsvergleich nicht.`);
-for(const file of ['MID_IOS_ROADMAP.md','ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png','ios/App/App/Assets.xcassets/Splash.imageset/Contents.json'])if(!baseline.requiredFiles?.includes(file))failures.push(`Baseline-requiredFiles enthält ${file} nicht.`);
+for(const file of ['MID_IOS_ROADMAP.md','ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-Light-1024.png','ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-Dark-1024.png','ios/App/App/Assets.xcassets/Splash.imageset/Contents.json'])if(!baseline.requiredFiles?.includes(file))failures.push(`Baseline-requiredFiles enthält ${file} nicht.`);
 if(!baseline.protectedFiles?.includes('MID_IOS_ROADMAP.md'))failures.push('Die iOS-Roadmap ist nicht als geschützter Vertrag registriert.');
 if(!worker.includes(`const WORKER_VERSION='${pkg.version}';`))failures.push('Worker und gemeinsamer Release sind nicht versionssynchron.');
-for(const relative of ['ios/App/App.xcodeproj/project.pbxproj','ios/App/App/Info.plist','ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png','ios/App/App/Assets.xcassets/Splash.imageset/Contents.json'])try{await access(new URL(relative,root))}catch{failures.push(`Generiertes iOS-Projekt fehlt: ${relative}`)}
+for(const token of ['AppIcon-Light-1024.png','AppIcon-Dark-1024.png','"appearance" : "luminosity"','"value" : "dark"'])need('iOS-AppIcon-Katalog',appIconCatalog,token);
+for(const relative of ['ios/App/App.xcodeproj/project.pbxproj','ios/App/App/Info.plist','ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-Light-1024.png','ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-Dark-1024.png','ios/App/App/Assets.xcassets/Splash.imageset/Contents.json'])try{await access(new URL(relative,root))}catch{failures.push(`Generiertes iOS-Projekt fehlt: ${relative}`)}
 const versionParts=pkg.version.split('.').map(part=>Number.parseInt(part,10)||0),marketingVersion=versionParts.slice(0,3).join('.'),buildNumber=String(Math.max(1,(versionParts[3]??0)+1));
 for(const token of [`MARKETING_VERSION = ${marketingVersion};`,`CURRENT_PROJECT_VERSION = ${buildNumber};`,'PRODUCT_BUNDLE_IDENTIFIER = app.midwx.weather;'])need('Xcode-Versionierung',iosProject,token);
 for(const token of ['NSLocationWhenInUseUsageDescription','NSMotionUsageDescription','lokale Wetterdaten, Warnungen und Radarhinweise'])need('iOS-Berechtigungen',infoPlist,token);

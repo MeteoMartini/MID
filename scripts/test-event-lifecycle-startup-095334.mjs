@@ -26,7 +26,7 @@ assert(preload.includes("forecast(location.latitude,location.longitude")&&preloa
 assert(app.includes('startupForecastForLocation')&&app.includes('startupForecast.then'),'App muss denselben Startup-Forecast übernehmen statt parallel neu anzufragen.');
 assert(main.includes('beginStartupDashboardPreload')&&main.includes('Promise.race')&&main.includes('wait(550)'),'Startvorladung muss kurz und nicht blockierend sein.');
 assert(html.includes(':root[data-theme=dark] #mid-boot-shell')&&html.includes('width:min(86vw,520px)'),'Splashscreen muss Theme und prominentes Gesamtlogo unterstützen.');
-assert(html.includes('width="512" height="288"'),'Logo darf nicht als quadratische Bildbox verzerrt werden.');
+assert(html.includes('./mid-logo-light-horizontal.png')&&html.includes('width="512" height="200"'),'Logo muss das horizontale Theme-Asset mit nichtquadratischer Bildbox verwenden.');
 assert(html.includes('mid-boot-stage')&&html.includes('Aktuelle Startdaten werden bereits im Hintergrund vorbereitet.'),'Splashscreen muss Vorladephase transparent kommunizieren.');
 assert(css.includes('.event-center-card.compact.expired')&&css.includes('.event-center-expired-delete'),'Abgelaufener Zustand muss kompakt gestylt sein.');
 assert(contract.includes('Browser-Zeitzone darf')&&contract.includes('bestehende MID-Datenzugriffe'),'Vertrag muss Zeitzone und kanonische Datenpfade festschreiben.');

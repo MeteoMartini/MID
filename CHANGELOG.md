@@ -1,3 +1,23 @@
+## v0.9.74.10
+
+- RUC-/Release-Pages-Collision behoben: alle drei Release-Pages-Jobs teilen `mid-pages` nun mit `cancel-in-progress: false`; laufende RUC-Publikationen werden dadurch nicht mehr von einem Release abgebrochen. Release-Supersession auf `mid-install-${{ github.ref }}` bleibt bewusst aktiv.
+- RUC-Resilienz unverändert: versetzte `:11`-/`:41`-Schedule-Slots plus Freshness-/Catch-up-Guard; ein von GitHub verworfener best-effort-Schedule-Event kann weiterhin erst durch den nächsten Slot aufgefangen werden.
+- GitHub-Browser-Upload wieder ermöglicht: native Light-/Dark-Splashscreens auf je eine vollständige 2732×2732-Asset-Catalog-Quelle dedupliziert und reproduzierbaren Professional-Packer ergänzt. Generiertes `ios/App/App/public` wird nicht transportiert, sondern im Installer nach grünem Build via `cap copy ios` neu erzeugt.
+- Professional-Packer erzwingt 24.000.000 Byte Sicherheitsbudget; Forecast-/Worker-/RUC-Fachlogik und Apple-Capabilities unverändert, kein manueller Worker-Upload erforderlich.
+
+## v0.9.74.9
+
+- iOS-Light-Splash-Hotfix: alle drei zuvor abgeschnittenen `2732 × 2732`-PNG-Dateien aus dem verbindlichen Light-Splash-Asset vollständig neu erzeugt.
+- Neuer echter PNG-Integritätsvertrag prüft Signatur, Chunkgrenzen, CRC, IEND und IDAT-Dekompression für native Light-/Dark-Splashscreens und App-Icons; reine IHDR-Abmessungsprüfungen reichen nicht mehr aus.
+- Keine fachliche Worker-, RUC-, Forecast-, PWA- oder Apple-Capability-Änderung; nächstes Gate bleibt die macOS-/Xcode-Simulator-Qualitätssicherung.
+
+## v0.9.74.8
+
+- Verbindliche Light-/Dark-Logo-Sets für Header, Web-Bootscreen, Favicons, Social Card, PWA-Icons sowie native iOS-App-Icons und Splashscreens eingeführt; Auto folgt dem wirksamen Theme, manuelle Auswahl bleibt persistent.
+- Einsatzspezifische Kompakt-, Horizontal-, Icon- und Splash-Assets ersetzen die bisherige Mehrfachverwendung eines quadratischen Logos; beide Theme-Sets werden offline vorgehalten.
+- iOS-Webcontainer mit demselben geprüften React/Vite-Build synchronisiert; kein Plattformfork und keine neue native Berechtigung.
+- TypeScript, Vite, Worker-Syntax und alle 579 Regressionen bestanden. Worker-Fachlogik unverändert; kein manueller Worker-Upload erforderlich.
+
 ## v0.9.74.7
 
 - Release-CI Run #771 mitigiert: npm ci, Dependency-Audit, TypeScript und Vite waren grün; 576/577 Regressionen bestanden. Ausschließlich `test-ruc-dwd-pipeline-09690.mjs` enthielt noch ein v0.9.74.5-only Übergangsfenster.

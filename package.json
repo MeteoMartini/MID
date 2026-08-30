@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.74.7",
+  "version": "0.9.74.10",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -351,7 +351,11 @@
     "test:ruc-native-cadence": "node scripts/test-ruc-native-cadence-nowcast-097311.mjs",
     "test:ruc-parameter-audit": "node scripts/test-ruc-parameter-audit-097311.mjs",
     "test:ruc-pages-restore-resilience": "node scripts/test-ruc-pages-restore-resilience-09742.mjs",
-    "test:ruc-schedule-catchup": "node scripts/test-ruc-schedule-catchup-09745.mjs"
+    "test:ruc-schedule-catchup": "node scripts/test-ruc-schedule-catchup-09745.mjs",
+    "test:logo-theme-assets": "node scripts/test-logo-theme-assets-09748.mjs",
+    "test:logo-png-integrity": "node scripts/test-logo-png-integrity-09749.mjs",
+    "release:pack": "python3 tools/release/create_professional_zip.py MID-professional-replacement.zip",
+    "test:release-upload-budget": "node scripts/test-release-upload-budget-097410.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",

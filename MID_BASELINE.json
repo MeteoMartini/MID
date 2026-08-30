@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.74.7",
+  "releaseVersion": "0.9.74.10",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -314,7 +314,10 @@
     "scripts/test-ruc-pages-restore-resilience-09742.mjs",
     "scripts/test-keyless-basemap-contract-09743.mjs",
     "scripts/test-ruc-schedule-catchup-09745.mjs",
-    "scripts/test-ruc-workflow-sync-transition-09747.mjs"
+    "scripts/test-ruc-workflow-sync-transition-09747.mjs",
+    "scripts/test-logo-theme-assets-09748.mjs",
+    "scripts/test-logo-png-integrity-09749.mjs",
+    "scripts/test-release-upload-budget-097410.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -559,7 +562,10 @@
     "scripts/test-ruc-pages-restore-resilience-09742.mjs",
     "scripts/test-keyless-basemap-contract-09743.mjs",
     "scripts/test-ruc-schedule-catchup-09745.mjs",
-    "scripts/test-ruc-workflow-sync-transition-09747.mjs"
+    "scripts/test-ruc-workflow-sync-transition-09747.mjs",
+    "scripts/test-logo-theme-assets-09748.mjs",
+    "scripts/test-logo-png-integrity-09749.mjs",
+    "scripts/test-release-upload-budget-097410.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -711,7 +717,6 @@
     "scripts/test-cross-platform-ios-shell-09670.mjs",
     "ios/App/App.xcodeproj/project.pbxproj",
     "ios/App/App/Info.plist",
-    "ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png",
     "ios/App/App/Assets.xcassets/Splash.imageset/Contents.json",
     "MID_IMPLEMENTATION_0.9.67.1.md",
     "scripts/test-ios-safe-area-header-096671.mjs",
@@ -829,7 +834,34 @@
     "MID_IMPLEMENTATION_0.9.74.6.md",
     "scripts/ruc-workflow-sync-contract.mjs",
     "scripts/test-ruc-workflow-sync-transition-09747.mjs",
-    "MID_IMPLEMENTATION_0.9.74.7.md"
+    "MID_IMPLEMENTATION_0.9.74.7.md",
+    "scripts/test-logo-theme-assets-09748.mjs",
+    "MID_LOGO_ASSET_CONTRACT.md",
+    "MID_IMPLEMENTATION_0.9.74.8.md",
+    "public/mid-app-icon-light-1024.png",
+    "public/mid-app-icon-dark-1024.png",
+    "public/mid-logo-light-compact.png",
+    "public/mid-logo-dark-compact.png",
+    "public/mid-logo-light-horizontal.png",
+    "public/mid-logo-dark-horizontal.png",
+    "public/mid-favicon-light-64.png",
+    "public/mid-favicon-dark-64.png",
+    "public/mid-icon-light-180.png",
+    "public/mid-icon-dark-180.png",
+    "public/mid-icon-light-192.png",
+    "public/mid-icon-dark-192.png",
+    "public/mid-icon-light-512.png",
+    "public/mid-icon-dark-512.png",
+    "public/mid-social-card.png",
+    "ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-Light-1024.png",
+    "ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-Dark-1024.png",
+    "scripts/test-logo-png-integrity-09749.mjs",
+    "ios/App/App/Assets.xcassets/Splash.imageset/splash-light-2732x2732-1x.png",
+    "ios/App/App/Assets.xcassets/Splash.imageset/splash-dark-2732x2732-1x.png",
+    "MID_IMPLEMENTATION_0.9.74.9.md",
+    "tools/release/create_professional_zip.py",
+    "scripts/test-release-upload-budget-097410.mjs",
+    "MID_IMPLEMENTATION_0.9.74.10.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -927,7 +959,11 @@
     "ios/App/MIDWidgets/PrivacyInfo.xcprivacy",
     "MID_APPLE_PRIVACY_PERMISSION_CONTRACT.md",
     "MID_IMPLEMENTATION_0.9.73.0.md",
-    "scripts/test-apple-privacy-permission-manifest-09730.mjs"
+    "scripts/test-apple-privacy-permission-manifest-09730.mjs",
+    "scripts/test-logo-theme-assets-09748.mjs",
+    "MID_LOGO_ASSET_CONTRACT.md",
+    "ios/App/App/Assets.xcassets/AppIcon.appiconset/Contents.json",
+    "ios/App/App/Assets.xcassets/Splash.imageset/Contents.json"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md"
@@ -935,6 +971,8 @@
   "implementationProof": [
     "MID_IMPLEMENTATION_0.9.74.5.md",
     "MID_IMPLEMENTATION_0.9.74.6.md",
-    "MID_IMPLEMENTATION_0.9.74.7.md"
+    "MID_IMPLEMENTATION_0.9.74.7.md",
+    "MID_IMPLEMENTATION_0.9.74.8.md",
+    "MID_IMPLEMENTATION_0.9.74.9.md"
   ]
 }

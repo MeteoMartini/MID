@@ -1,9 +1,9 @@
-const CACHE='mid-shell-v0.9.74.7';
+const CACHE='mid-shell-v0.9.74.10';
 const VERSION=CACHE.replace('mid-shell-v','');
 const CACHE_PREFIX='mid-shell-v';
 const META_CACHE='mid-system-meta-v1';
 const META_URL=new URL('./__mid_system_meta__.json',self.registration.scope).toString();
-const CORE=['./','./index.html','./manifest.webmanifest','./version.json','./mid-logo.png','./mid-logo-dark.png','./mid-logo-light.png','./mid-icon-180.png','./mid-icon-192.png','./mid-icon-512.png'];
+const CORE=['./','./index.html','./manifest.webmanifest','./version.json','./mid-logo.png','./mid-logo-dark.png','./mid-logo-light.png','./mid-logo-dark-compact.png','./mid-logo-light-compact.png','./mid-logo-dark-horizontal.png','./mid-logo-light-horizontal.png','./mid-favicon-dark-64.png','./mid-favicon-light-64.png','./mid-icon-180.png','./mid-icon-192.png','./mid-icon-512.png','./mid-icon-dark-180.png','./mid-icon-dark-192.png','./mid-icon-dark-512.png','./mid-icon-light-180.png','./mid-icon-light-192.png','./mid-icon-light-512.png'];
 let activeCacheMemo='';
 
 function versionFromCache(name){return name.startsWith(CACHE_PREFIX)?name.slice(CACHE_PREFIX.length):''}

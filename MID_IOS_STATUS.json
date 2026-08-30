@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-08-30T07:40:18Z",
-  "releaseVersion": "0.9.74.7",
+  "updatedAt": "2026-08-30T09:05:00Z",
+  "releaseVersion": "0.9.74.10",
   "sourceBaseline": {
     "professionalVersion": "0.9.70.2",
     "workerVersion": "0.9.70.2",
@@ -60,16 +60,22 @@
     "release-run-769-stale-keyless-basemap-regression-hotfix-0.9.74.5",
     "shared-ruc-scheduler-catchup-guard-0.9.74.5",
     "release-run-770-ruc-workflow-transition-regression-hotfix-0.9.74.6",
-    "release-run-771-ruc-workflow-state-bound-transition-regression-hotfix-0.9.74.7"
+    "release-run-771-ruc-workflow-state-bound-transition-regression-hotfix-0.9.74.7",
+    "binding-light-dark-logo-asset-system-0.9.74.8",
+    "579-regressions-release-baseline-verified",
+    "capacitor-ios-web-assets-synchronized-0.9.74.8",
+    "ios-light-splash-png-integrity-hotfix-0.9.74.9",
+    "ruc-pages-cross-workflow-concurrency-hotfix-0.9.74.10",
+    "github-browser-professional-upload-budget-hotfix-0.9.74.10"
   ],
   "nextMilestone": "macos-xcode-simulator-quality-assurance",
   "validation": {
-    "browserBuild": "Run #770: npm ci, Dependency-Audit, TypeScript und Vite waren grün; 576/577 Regressionen bestanden. Ausschließlich test-ruc-pages-free-storage-09700.mjs verlangte im bewusst geschützten Release-vor-Admin-Sync-Fenster noch Bytegleichheit des aktiven .github-RUC-Workflows mit dem bereits aktualisierten kanonischen ci/github-Stand.",
-    "typescript": "Run #765 scheiterte ausschließlich an zwei TS2322-Stellen im neuen H/M-Wolken-SVG: midCloud/highCloud sind im ShortTermForecastPoint absichtlich optional, während SvgProfileCloudStructure zunächst number verlangte. v0.9.74.1 akzeptiert number|undefined und normiert intern unverändert über Number(value)||0; kein iOS-Fork, keine native Capability.",
-    "workerSyntax": "Der Worker-Kandidat v0.9.73.12 wurde in Run #762 erfolgreich hochgeladen und bei 0 % bereitgestellt; die Promotion wurde wegen stale RUC blockiert und automatisch auf v0.9.73.8 zurückgerollt. v0.9.73.13 erlaubt beim Release-Smoke nur einen strukturell gültigen stale-RUC-Bootstrap, während die RUC-Runtime stale Daten weiterhin fail-closed ignoriert.",
-    "regressions": "v0.9.74.7 zentralisiert den RUC-Workflow-Übergang: aktiver Workflow ist entweder bytegleich zum kanonischen Catch-up-Stand oder exakt der bekannte geschützte Legacyzustand; unbekannte Drift und unvollständige kanonische Catch-up-Konfiguration bleiben fail-closed.",
-    "capacitorSync": "embedded ios/App/App/public remains honestly at v0.9.68.2; do not retag. Full npm run ios:sync/cap copy ios must run at the macOS/Xcode quality gate after release CI dependencies are available.",
-    "xcodeProjectStructure": "App and MIDWidgets each bundle PrivacyInfo.xcprivacy; plist/project lint and Swift parse pass; Push/BGRefresh remain dormant and no ATT/push/background entitlement is activated.",
+    "browserBuild": "v0.9.74.10 ändert keinen Browser-Fachcode. Der Hotfix betrifft Workflow-Concurrency, native Splash-Transportstruktur und Release-Packing; GitHub CI bleibt das definitive TypeScript/Vite-Gesamtgate.",
+    "typescript": "Keine neue TypeScript-Fachlogik; nur Versionssynchronisierung und Regressionen. Der Release-Installer prüft TypeScript/Vite vor jeder Veröffentlichung.",
+    "workerSyntax": "Worker-Fachcode unverändert; WORKER_VERSION wird nur versionssynchronisiert. Semantischer Worker-Diff muss false bleiben; kein manueller Worker-Upload erforderlich.",
+    "regressions": "Neue Required Regression schützt gemeinsamen nicht-abbrechenden mid-pages-Lock, :11/:41-RUC-Catch-up, Splash-Deduplizierung und Professional-Uploadbudget. PNG-Integritäts- und Logo-Theme-Verträge wurden auf die einzelne volle 2732px-Quelle je Appearance angepasst.",
+    "capacitorSync": "Das bereits generierte ios/App/App/public wird bewusst nicht mehr im Professional-Transport dupliziert. Der Release-Installer baut Vite reproduzierbar und führt anschließend cap copy ios aus; die iOS-Webversion wird vor dem Commit gegen package.json geprüft.",
+    "xcodeProjectStructure": "AppIcon bleibt Light/Dark. Splash.imageset enthält je Appearance eine vollständige universelle 2732×2732-1x-Quelle; redundante bytegleiche 2x/3x-Kopien wurden entfernt. PNG-Integritätsvertrag bleibt aktiv.",
     "xcodeAppleSdkBuild": "required-next-gate-macos-xcode-simulator; includes Apple SDK build, simulator launch, Privacy Report inspection and post-sync structure verification."
   },
   "costGate": {
@@ -83,5 +89,5 @@
     ],
     "approved": false
   },
-  "validationNote": "v0.9.74.7 is shared-core/CI maintenance only: no iOS fork or native capability change; it fixes the sole stale Run-#771 RUC workflow transition regression with one state-bound shared contract. Full GitHub release CI remains authoritative."
+  "validationNote": "v0.9.74.10 serializes RUC and release Pages publications without cross-cancellation and restores GitHub browser ZIP uploadability through safe transport deduplication. Shared React/Vite/Worker feature semantics remain unchanged; macOS/Xcode simulator QA stays next."
 }
