@@ -22,17 +22,17 @@ for(const token of [
 for(const token of [
  'const profileTemperatureSource=profileHourlyPoints.filter',
  'const temperatureCurvePoints=profileTemperatureSource.map',
- "const visibleTemperatureExtreme=(dateValue:string,kind:'max'|'min')=>",
- 'const temperatureExtremes=chartDayBands.flatMap',
+ "const visibleTemperatureExtreme=(kind:'max'|'min')=>",
+ "const temperatureExtremes=[visibleTemperatureExtreme('max'),visibleTemperatureExtreme('min')]",
  'const actualPath=buildShortTermChartPath(temperatureCurvePoints.map',
- "label:`T${kind} ${Math.round(target)}°`",
- 'Math.abs(item.point.temperature-target)>.11',
+ "label:`${Math.round(item.point.temperature)}°`",
+ "Maximum':'Minimum'} im 24-Stunden-Fenster",
  'className={`temperature-extreme ${extreme.kind}`',
  '<circle cx={extreme.item.x} cy={extreme.item.tempY}',
  '<text x={extreme.item.x}'
 ])assert.ok(cockpit.includes(token),`24-h-Tmax/Tmin-Kurvenmarkierung fehlt: ${token}`);
 
-for(const token of ['Tmax','Tmin','displayHours','displayDays','3-h-Anzeigemodus'])assert.ok(contract.includes(token),`24-h-Vertrag dokumentiert Temperatur-Extrema nicht vollständig: ${token}`);
+for(const token of ['24-h-Fenster','displayHours','displayDays','3-h-Anzeigemodus'])assert.ok(contract.includes(token),`24-h-Vertrag dokumentiert Temperatur-Extrema nicht vollständig: ${token}`);
 for(const token of ['.cockpit-weather-profile .temperature-extreme circle{','.cockpit-weather-profile .temperature-extreme.max{color:','.cockpit-weather-profile .temperature-extreme.min{color:'])assert.ok(styleSource.includes(token),`Tmax/Tmin-Stil fehlt: ${token}`);
 
 const baseline=JSON.parse(baselineText),version=JSON.parse(pkgText).version,test='scripts/test-temperature-canonical-extrema-09751.mjs';

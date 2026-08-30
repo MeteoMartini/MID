@@ -26,7 +26,7 @@ for(const token of [
  'className="model-run-button"',
  'aria-label="Modellstände anzeigen"'
 ])if(!app.includes(token))failures.push(`Globale Info-/Modellstände-Interaktion fehlt: ${token}`);
-for(const token of ['cockpit-model-run-button','Init ${formatCockpitModelRunTime(row.initialisationTime)} · Quelle bereit ${formatCockpitAvailabilityTime(row.availabilityTime,timezone)}','<b>Eingeflossen</b>'])if(!cockpit.includes(token))failures.push(`Cockpit-Modellstand-Interaktion fehlt: ${token}`);
+for(const token of ['cockpit-model-run-button','Init ${cockpitInitialisationLabel(row)} · Quelle bereit ${cockpitAvailabilityLabel(row,timezone)}','<b>Eingeflossen</b>'])if(!cockpit.includes(token))failures.push(`Cockpit-Modellstand-Interaktion fehlt: ${token}`);
 for(const token of [
  'function useEnsemblePortal(open:boolean',
  'ensemble-help-toolbar',

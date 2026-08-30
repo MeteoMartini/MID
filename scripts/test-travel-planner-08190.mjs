@@ -35,7 +35,7 @@ for(const token of [
  'Max. erwartete Regentage',
  'Mind. mittlere Schneehöhe',
  'Bestes Reisezeitfenster finden',
- 'Detaillierte Schneehöhe laden',
+ 'Schneehöhe ist das Optimierungskriterium',
  'Für Küstenorte ermittelt MID zusätzlich das tägliche NOAA-OISST-v2.1-Meeresoberflächenmittel',
  'Das Ergebnis ist eine klimatologische Erwartung',
  'searchLocations(value,controller.signal)'
@@ -98,4 +98,4 @@ try{
 }finally{await rm(compileDir,{recursive:true,force:true})}
 
 if(failures.length){console.error('Reiseplaner-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Reiseplaner geprüft: eingeklappte Sektion, Zielortsuche, Festzeitraum, flexible Zeitfenster, Bedingungen, ERA5-Seamless-Klimatologie, NOAA-OISST-Workerpfad und optionale ERA5-Land-Schneehöhe vorhanden.');
+console.log('Reiseplaner geprüft: eingeklappte Sektion, Zielortsuche, Festzeitraum, flexible Zeitfenster, Bedingungen, ERA5-Seamless-Klimatologie, NOAA-OISST-Workerpfad und schneehöhenbasierte Schneeoptimierung vorhanden.');

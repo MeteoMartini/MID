@@ -19,7 +19,7 @@ const required=[
 for(const [label,re] of required)if(!re.test(weather))throw new Error(`weather.ts fehlt: ${label}`);
 if(/withoutGlobalEcmwfDuplicates/.test(weather))throw new Error('ECMWF-Globalvarianten werden weiterhin vor dem Abruf entfernt.');
 if(!/ensemble-capabilities/.test(worker)||! /regionalEnsembleCapabilities/.test(worker))throw new Error('Worker-Capability-Diagnose fehlt.');
-if(!/Adapter fehlt/.test(cockpit)||!/Fallback/.test(cockpit)||!/Laufmetadaten derzeit nicht abrufbar/.test(cockpit))throw new Error('Cockpit-Quellenstatus unvollständig.');
+if(!/Adapter fehlt/.test(cockpit)||!/Fallback/.test(cockpit)||!/von Quelle nicht ausgewiesen/.test(cockpit)||!/modellabhängig/.test(cockpit))throw new Error('Cockpit-Quellenstatus unvollständig.');
 if(!/Adapter fehlt/.test(app)||!/Reserve/.test(app))throw new Error('App-Modellstatus unvollständig.');
 if(!/Success-driven statt slot-driven/.test(contract)||!/Laufmetadaten/.test(contract))throw new Error('Modellquellenvertrag unvollständig.');
 if(!/MID_KNMI_HARMONIE_EPS_POINT_ENDPOINT/.test(setup)||!/MID_ECCC_REPS_POINT_ENDPOINT/.test(setup))throw new Error('Adapter-Setup unvollständig.');

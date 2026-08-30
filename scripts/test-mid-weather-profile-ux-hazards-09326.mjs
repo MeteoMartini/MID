@@ -15,10 +15,9 @@ for(const token of [
  'summarizeDwdWarnings(horizon.map(shortTermHourWarningSample),elevation,24)',
  'shortTermImpactForInterval(profileHazardSignals',
  'DWD_WARNING_COLORS[level]',
- 'profileDayByDate=useMemo(()=>new Map(days.map(day=>[day.date,day])),[days])',
- "const visibleTemperatureExtreme=(dateValue:string,kind:'max'|'min')",
- "label:`T${kind} ${Math.round(target)}°`",
- "temperatureExtremes=chartDayBands.flatMap",
+ "const visibleTemperatureExtreme=(kind:'max'|'min')",
+ "label:`${Math.round(item.point.temperature)}°`",
+ "temperatureExtremes=[visibleTemperatureExtreme('max'),visibleTemperatureExtreme('min')]",
  'profile-axis precipitation-axis"><line className="profile-axis-spine" x1={chartPaddingLeft}',
  'profile-axis wind-axis"><line className="profile-axis-spine" x1={chartPaddingLeft}',
  'cockpit-weather-profile__data-title',
@@ -41,4 +40,4 @@ for(const token of [
 ])need('Styles',styles,token);
 const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;if(pv!==bv)failures.push(`Versionen nicht synchron: ${pv}/${bv}`);
 if(failures.length){console.error('MID v0.9.32.6 Wetterprofil-UX/Hazard-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('MID: persistente Legende, zentrale Warnschwellen/-farben, linke Achsen, appweit konsistente Tages-Tmin/Tmax und bereinigte 24-h-Texte geprüft.');
+console.log('MID: persistente Legende, zentrale Warnschwellen/-farben, linke Achsen, robuste 24-h-Tmin/Tmax und bereinigte 24-h-Texte geprüft.');

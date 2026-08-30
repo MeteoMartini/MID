@@ -26,10 +26,10 @@ for(const token of [
 ])need('Abrufbudget-Logik',logic,token);
 for(const forbidden of ['temperature_2m_mean','precipitation_hours','cloud_cover_mean'])if(logic.includes(`DAILY_VARIABLES=[`)&&logic.slice(logic.indexOf('DAILY_VARIABLES=['),logic.indexOf('].join',logic.indexOf('DAILY_VARIABLES=['))).includes(forbidden))failures.push(`Unnötige Basisvariable weiterhin aktiv: ${forbidden}`);
 for(const token of [
- "const SNOW_DETAIL_KEY='mid:travel-planner:detailed-snow'",
- 'Detaillierte Schneehöhe laden',
- 'Optionaler zusätzlicher Abruf',
- "const includeSnowDepth=mode==='flexible'&&(detailedSnow||Number.isFinite(constraints.minSnowDepthCm))",
+ 'Schneehöhe ist das Optimierungskriterium',
+ 'Kumulierter Schneefall wird separat zusätzlich ausgewiesen',
+ "snowDepthRequired=mode==='flexible'&&(preference==='snow'||Number.isFinite(constraints.minSnowDepthCm))",
+ 'const includeSnowDepth=snowDepthRequired',
  'Pro gerastertem Klimapunkt erfolgt höchstens ein direkter Basisabruf',
  'Für Küstenorte ermittelt MID zusätzlich das tägliche NOAA-OISST-v2.1-Meeresoberflächenmittel'
 ])need('Abrufbudget-Oberfläche',panel,token);
@@ -74,4 +74,4 @@ try{
 }finally{await rm(compileDir,{recursive:true,force:true})}
 
 if(failures.length){console.error('Reisewetter-Abrufbudget fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Reisewetter-Abrufbudget geprüft: ein atmosphärischer Basisabruf je Klimaraster, separater NOAA-OISST-Workerpfad, In-Flight-Entdopplung, Dreijahrescache und optionale Schneehöhe.');
+console.log('Reisewetter-Abrufbudget geprüft: ein atmosphärischer Basisabruf je Klimaraster, separater NOAA-OISST-Workerpfad, In-Flight-Entdopplung, Dreijahrescache und automatisch geladene Schneehöhe bei Schneeoptimierung.');

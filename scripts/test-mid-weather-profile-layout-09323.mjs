@@ -12,10 +12,9 @@ for(const token of [
  'timeLabelStepMs=(chartViewportWidth<=560?6:chartViewportWidth<=860?4:3)*3600000',
  "weatherPictogramStep=profileResolution==='3h'||chartViewportWidth>560?1:2",
  'y={84}',
- 'profileDayByDate=useMemo(()=>new Map(days.map(day=>[day.date,day])),[days])',
- "const visibleTemperatureExtreme=(dateValue:string,kind:'max'|'min')",
- "label:`T${kind} ${Math.round(target)}°`",
- "temperatureExtremes=chartDayBands.flatMap",
+ "const visibleTemperatureExtreme=(kind:'max'|'min')",
+ "label:`${Math.round(item.point.temperature)}°`",
+ "temperatureExtremes=[visibleTemperatureExtreme('max'),visibleTemperatureExtreme('min')]",
  'className={`temperature-extreme ${extreme.kind}`}',
  'PROFILE_LEGEND_KEY',
  'useState(readProfileLegendVisible)',
@@ -38,4 +37,4 @@ for(const token of [
 ])need('Styles',styles,token);
 const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;if(pv!==bv)failures.push(`Versionen nicht synchron: ${pv}/${bv}`);
 if(failures.length){console.error('MID Wetterprofil-Layoutprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('MID: responsives Wetterprofil, persistente Legende, zentrale Tages-Tmin/Tmax und kompakte Info-Schaltflächen geprüft.');
+console.log('MID: responsives Wetterprofil, persistente Legende, 24-h-Tmin/Tmax und kompakte Info-Schaltflächen geprüft.');

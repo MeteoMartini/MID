@@ -20,23 +20,24 @@ gegeneinander verschoben sein.
 - 1-h- und 3-h-Modus verdichten nur die Darstellung; Zeitfenster und fachliche
   Werte bleiben unverändert.
 
-## Temperatur und Tagesextrema
+## Temperatur und Extrema im 24-h-Fenster
 
 - Die Temperaturkurve verwendet innerhalb des rollenden 24-h-Fensters immer die
   finale kanonische stündliche Reihe `displayHours`; die 1-h-/3-h-Umschaltung
   verändert nur die Interaktions- und Beschriftungsdichte, nicht den Verlauf der
   Temperaturkurve.
-- `Tmax` und `Tmin` stammen aus denselben kanonischen Tageswerten `displayDays`,
-  die bei vollständiger Stundenabdeckung exakt aus den Extrema der finalen
-  `displayHours` abgeleitet werden.
-- Liegt ein kanonisches Tagesmaximum oder -minimum innerhalb des sichtbaren
-  24-h-Fensters, wird es direkt am tatsächlichen Punkt der Temperaturkurve mit
-  `Tmax …°` beziehungsweise `Tmin …°` markiert.
-- Liegt das Tagesextrem außerhalb des rollenden Fensters, darf kein scheinbarer
-  Ersatzpunkt an der sichtbaren Kurve erzeugt werden.
-- Die Extremmarken bleiben auch im 3-h-Anzeigemodus sichtbar, weil ihre Position
-  aus der stündlichen Temperaturkurve und nicht aus dem ausgedünnten 3-h-Raster
-  bestimmt wird.
+- Das sichtbare Maximum und Minimum werden direkt aus genau diesen stündlichen
+  Kurvenpunkten im rollenden 24-h-Fenster bestimmt. Damit sind beide Extrema
+  unabhängig von Kalendergrenzen immer an einem tatsächlich gezeichneten Punkt
+  verankert.
+- Direkt an der Kurve steht ausschließlich der gerundete Wert, z. B. `21°` und
+  `15°`; die Begriffe Tmax/Tmin werden nicht zusätzlich in die Grafik geschrieben.
+- Die fachliche Tageskonsistenz bleibt separat bestehen: `displayDays` wird bei
+  vollständiger Stundenabdeckung weiterhin aus den Extrema derselben finalen
+  `displayHours` abgeleitet.
+- Beide Extremmarken bleiben auch im 3-h-Anzeigemodus sichtbar, weil ihre Position
+  aus der vollständigen stündlichen Temperaturkurve und nicht aus dem ausgedünnten
+  3-h-Raster bestimmt wird.
 
 ## Wolken
 

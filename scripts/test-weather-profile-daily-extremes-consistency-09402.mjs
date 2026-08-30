@@ -9,16 +9,13 @@ const failures=[];
 const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
 const reject=(label,text,token)=>{if(text.includes(token))failures.push(`${label}: unerwartet ${token}`)};
 for(const token of [
- 'function ShortTermRibbon({hours,minutes15,days,timezone',
- 'profileDayByDate=useMemo(()=>new Map(days.map(day=>[day.date,day])),[days])',
- 'profileDayByDate=useMemo(()=>new Map(days.map(day=>[day.date,day])),[days])',
+ 'function ShortTermRibbon({hours,minutes15,timezone',
  'const temperatureCurvePoints=profileTemperatureSource.map',
- "const visibleTemperatureExtreme=(dateValue:string,kind:'max'|'min')",
- "const target=kind==='max'?Number(day.max):Number(day.min)",
- 'if(Math.abs(item.point.temperature-target)>.11)return undefined',
- "label:`T${kind} ${Math.round(target)}°`",
- 'temperatureExtremes=chartDayBands.flatMap',
- '<ShortTermRibbon hours={hours} minutes15={minutes15} days={days} timezone={timezone}'
+ "const visibleTemperatureExtreme=(kind:'max'|'min')",
+ "kind==='max'?(current.point.temperature>best.point.temperature?current:best)",
+ "label:`${Math.round(item.point.temperature)}°`",
+ "temperatureExtremes=[visibleTemperatureExtreme('max'),visibleTemperatureExtreme('min')]",
+ '<ShortTermRibbon hours={hours} minutes15={minutes15} timezone={timezone}'
 ])need('24-h-Profil',cockpit,token);
 for(const token of [
  'nightSegments=hours.reduce',
@@ -31,4 +28,4 @@ need('App zentrale Prognosedaten',app,'hours={displayHours}');
 const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;
 if(pv!==bv)failures.push(`Versionen nicht synchron: ${pv}/${bv}`);
 if(failures.length){console.error('24-h-Tmin/Tmax-Konsistenzprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('24-h-Wetterprofil verwendet für Tmin/Tmax dieselben zentralen Tageswerte wie der Rest der App; Stundenwerte bestimmen nur die Markerposition im sichtbaren Intervall.');
+console.log('24-h-Wetterprofil markiert Maximum und Minimum robust direkt aus der kanonischen stündlichen 24-h-Kurve; Tageswerte bleiben separat appweit konsistent.');

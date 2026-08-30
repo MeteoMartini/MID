@@ -80,7 +80,7 @@ jobs:
 
           echo "::warning::RUC primary ${expected_slot} schedule event missing or failed; starting guarded recovery dispatch."
           dispatch_started_epoch="$(date -u +%s)"
-          gh workflow run "$RUC_WORKFLOW" --ref main -f force=false
+          gh workflow run "$RUC_WORKFLOW" -R "$GITHUB_REPOSITORY" --ref main -f force=false
 
           for attempt in $(seq 1 18); do
             sleep 5

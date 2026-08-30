@@ -1,3 +1,10 @@
+## v0.9.76.5
+
+- Modellstände: Best Match wird nicht mehr irreführend mit `Init –` dargestellt, sondern als modellabhängiger Laufverbund. Bei tatsächlich verwendeten Quellen ohne publizierten Init-Zeitstempel steht explizit „von Quelle nicht ausgewiesen“; bekannte Einzelmodell-Inits bleiben in UTC erhalten.
+- 24-h-Wetterprofil: Maximum und Minimum werden robust aus der vollständigen kanonischen stündlichen 24-h-Temperaturkurve bestimmt und immer am tatsächlichen Kurvenpunkt markiert. Sichtbar steht nur noch der Wert (`21°`, `15°`) ohne `Tmax`/`Tmin`-Präfix; der 3-h-Modus verliert die Extrema nicht.
+- Reisewetter „Hohe Schneelage“: Optimierung basiert zwingend auf historischer Schneehöhe und Schneedeckendauer. Kumulierter Schneefall ist nur noch Zusatzinformation und ersetzt die Schneehöhe bei einem Quellfehler nicht. Die Schneelage-Kachel zeigt primär Ø Schneehöhe und zusätzlich die Schneefallsumme.
+- Langfrist: kostenneutraler Ausbaupfad für C3S-CDS, DWD GCFS2.2/EPISODES, NOAA NMME und eine getrennte Extended-Range-Ebene dokumentiert; keine zusätzlichen kostenpflichtigen Dienste aktiviert.
+
 ## 0.9.76.4
 - CI/iOS-Status: `MID_IOS_STATUS.json.releaseVersion` wird bei Versionsänderungen nun idempotent durch `sync-version.mjs` mitgeführt; damit kann ein Patch-Bump die iOS-Strukturregressionen nicht mehr durch veraltete Release-Metadaten blockieren.
 - Release #778 bestätigte bereits TypeScript 7.0.2 und Vite 6.4.3; der Patch ändert keinen Forecast-, RUC-, Worker-, 24-h-, Modellstand- oder Komposit-Fachcode.
