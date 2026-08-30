@@ -1,6 +1,12 @@
 name: MID DWD RUC preprocessing
 on:
   workflow_dispatch:
+    inputs:
+      force:
+        description: Vollständige RUC-Verarbeitung unabhängig vom Freshness-Guard erzwingen
+        required: false
+        default: true
+        type: boolean
   schedule:
     # GitHub schedule events are best-effort. Keep the existing :41 slot and a
     # staggered :11 recovery slot; the freshness guard below makes duplicates cheap.
@@ -46,10 +52,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ] && [ "${{ inputs.force }}" != "false" ]; then
             echo "should_run=true" >> "$GITHUB_OUTPUT"
             echo "reason=manueller Lauf erzwingt vollständige Verarbeitung" >> "$GITHUB_OUTPUT"
-            echo "RUC schedule guard: manual dispatch -> process"
+            echo "RUC schedule guard: forced manual dispatch -> process"
           else
             python tools/ruc/check_ruc_schedule_guard.py --pages-base "$MID_RUC_PAGES_BASE_URL" --github-output "$GITHUB_OUTPUT"
           fi
