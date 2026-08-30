@@ -33,7 +33,8 @@ for(const token of [
  'chartDataInset=22',
  'chartDataLeft=chartPaddingLeft+chartDataInset',
  'chartDataWidth=Math.max(1,chartPlotWidth-chartDataInset*2)',
- 'chartDataLeft+clamp((point.epoch-chartStartEpoch)/chartTimeSpan,0,1)*chartDataWidth'
+ 'const profileXForEpoch=(epoch:number)=>',
+ 'profileXForEpoch(point.epoch)'
 ]) need(cockpit,'ForecastCockpit',token);
 for(const token of [
  '.dashboard-section-anchor{',

@@ -9,38 +9,46 @@ const [cockpit,styles,pkg,baseline]=await Promise.all([
 ]);
 
 for(const token of [
- "type CloudProfileKey='cloud'|CloudProfileLayer",
- 'function SvgProfileCloudStructure(',
- 'value:number|undefined',
- "if(layer==='highCloud')",
- "if(layer==='midCloud')",
- 'className="cloud-structure high"',
- 'className="cloud-structure mid"',
- 'className="cloud-structure low"',
- 'className="cloud-total-cell"',
- 'shortTermCloudCellGradient(item.point,chartPoints[index-1]?.point,chartPoints[index+1]?.point,\'cloud\')',
- 'SvgProfileCloudStructure layer="highCloud" value={item.point.highCloud}',
- 'SvgProfileCloudStructure layer="midCloud" value={item.point.midCloud}',
- 'SvgProfileCloudStructure layer="lowCloud" value={item.point.lowCloud}',
+ "type CloudProfileKey='cloud'|'lowCloud'|'midCloud'|'highCloud'",
+ 'function shortTermCloudOpacity(value:number)',
+ 'function shortTermCloudCellGradient(',
+ 'leftSource=previous?',
+ 'rightSource=next?',
+ "className:'total'",
+ "className:'high'",
+ "className:'mid'",
+ "className:'low'",
+ 'className={`cloud-opacity-band ${row.className}`}',
+ 'x={item.columnLeft}',
+ 'width={item.columnWidth+.25}',
+ 'stopColor="var(--profile-cloud)"',
+ '>Gesamt</text>',
+ '>H</text>',
+ '>M</text>',
+ '>L</text>',
  'Wolken Gesamt · H/M/L',
  'Wolken gesamt / hoch / mittel / tief + UVI'
-])assert.ok(cockpit.includes(token),`24-h-Wolkenstruktur fehlt: ${token}`);
+])assert.ok(cockpit.includes(token),`24-h-Wolkenband fehlt: ${token}`);
 
 for(const token of [
- '--profile-cloud-total:',
- '--profile-cloud-high:',
- '--profile-cloud-mid:',
- '--profile-cloud-low:',
- '.cockpit-weather-profile .cloud-total-cell{',
- '.cockpit-weather-profile .cloud-structure-wisp{',
- '.cockpit-weather-profile .cloud-structure.high .primary{',
- '.cockpit-weather-profile .cloud-structure.mid .cloud-structure-lobe{',
- '.cockpit-weather-profile .cloud-structure.low .cloud-structure-lobe{'
-])assert.ok(styles.includes(token),`Wolkenstruktur-CSS fehlt: ${token}`);
+ '--profile-cloud:#6f7d88',
+ '.cockpit-weather-profile .cloud-opacity-band{',
+ '.cockpit-weather-profile .cloud-opacity-band.total{',
+ 'repeating-linear-gradient(180deg',
+ 'var(--profile-cloud)'
+])assert.ok(styles.includes(token),`Wolkenband-CSS fehlt: ${token}`);
 
-assert.ok(cockpit.includes('leftSource=previous?')&&cockpit.includes('rightSource=next?'),'H/M/L-Fading muss Nachbarstunden einbeziehen.');
-assert.ok(cockpit.includes('const fraction=clamp(Number(value)||0,0,100)/100'),'Wolkenstruktur muss direkt aus 0..100-%-Bedeckung skaliert werden.');
-assert.ok(cockpit.includes("const wisps=fraction>=.72?3:fraction>=.34?2:1"),'Hohe Wolken müssen mit zunehmender Bedeckung dichter/wispy werden.');
-assert.ok(cockpit.includes("Math.round(1+fraction*3)"),'Mittlere/tiefe Wolken müssen mit zunehmender Bedeckung mehr Wolkenkörper erhalten.');
+for(const forbidden of [
+ 'SvgProfileCloudStructure',
+ 'cloud-cell-frame',
+ 'cloud-structure',
+ 'selected-cloud-values',
+ '--profile-cloud-high',
+ '--profile-cloud-mid',
+ '--profile-cloud-low',
+ 'Wolken (%)'
+])assert.ok(!cockpit.includes(forbidden)&&!styles.includes(forbidden),`Alter Wolken-/Achsenvertrag muss entfernt sein: ${forbidden}`);
+
+assert.ok(cockpit.includes('const fraction=clamp(Number(value)||0,0,100)/100'),'Grauintensität muss direkt aus 0..100-%-Bedeckung skaliert werden.');
 assert.equal(JSON.parse(pkg).version,JSON.parse(baseline).releaseVersion,'Release-/Baseline-Version müssen synchron sein.');
-console.log('24-h-Wolkenprofil: Gesamt + höhentypische H/M/L-Strukturen, Intensität und Fading geprüft.');
+console.log('24-h-Wolkenprofil: vier kontinuierliche Gesamt/H/M/L-Graubänder ohne Prozentachse geprüft.');

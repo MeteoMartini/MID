@@ -10,7 +10,8 @@ const [pkgText,baselineText,installCanonical,installActive,rucCanonical,rucActiv
   text('ios/App/App/Assets.xcassets/Splash.imageset/Contents.json')
 ]);
 const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText),splash=JSON.parse(splashCatalog);
-assert.equal(pkg.version,'0.9.74.10');
+const versionAtLeast=(value,minimum)=>{const left=String(value).split('.').map(Number),right=String(minimum).split('.').map(Number),length=Math.max(left.length,right.length);for(let index=0;index<length;index++){const delta=(left[index]||0)-(right[index]||0);if(delta)return delta>0}return true};
+assert.ok(versionAtLeast(pkg.version,'0.9.74.10'),`Release-Uploadbudget gilt ab v0.9.74.10, erhalten ${pkg.version}.`);
 assert.equal(baseline.releaseVersion,pkg.version);
 assert.equal(pkg.scripts?.['release:pack'],'python3 tools/release/create_professional_zip.py MID-professional-replacement.zip');
 assert.equal(pkg.scripts?.['test:release-upload-budget'],`node ${test}`);

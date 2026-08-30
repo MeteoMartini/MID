@@ -14,8 +14,8 @@ const checks=[
   ['header receives dynamic brand logo path',appSource.includes('brandLogoPath:string')&&appSource.includes('src={brandLogoPath}')],
   ['boot shell uses dynamic logo preload',indexSource.includes('id="mid-logo-preload"')&&indexSource.includes('window.__MID_BOOT_LOGO_PATH__=logoPath')],
   ['service workers cache both logo variants',serviceWorkerSource.includes("'./mid-logo-dark.png'")&&serviceWorkerSource.includes("'./mid-logo-light.png'")&&legacyServiceWorkerSource.includes("'./mid-logo-dark.png'")&&legacyServiceWorkerSource.includes("'./mid-logo-light.png'")],
-  ['cloud row uses inset cloud cells',cockpitSource.includes('cloudCellInset')&&cockpitSource.includes('cloud-cell-frame')],
-  ['cloud row styling updated',stylesSource.includes('.cockpit-weather-profile .cloud-cell-frame')&&stylesSource.includes('.cockpit-weather-profile .cloud-cell{')],
+  ['cloud row uses continuous opacity bands',cockpitSource.includes('cloud-opacity-band')&&cockpitSource.includes('width={item.columnWidth+.25}')],
+  ['cloud row styling updated',stylesSource.includes('.cockpit-weather-profile .cloud-opacity-band{')&&!stylesSource.includes('.cockpit-weather-profile .cloud-cell-frame')],
 ];
 
 const failed=checks.filter(([,passed])=>!passed);

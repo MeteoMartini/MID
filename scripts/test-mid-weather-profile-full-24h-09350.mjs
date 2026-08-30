@@ -14,7 +14,8 @@ for(const token of [
  'chartStartEpoch=profileNow',
  'chartEndEpoch=profileNow+PROFILE_WINDOW_MS',
  'chartTimeSpan=Math.max(1,chartEndEpoch-chartStartEpoch)',
- 'chartDataLeft+clamp((point.epoch-chartStartEpoch)/chartTimeSpan,0,1)*chartDataWidth'
+ 'const profileXForEpoch=(epoch:number)=>',
+ 'profileXForEpoch(point.epoch)'
 ])need(token);
 reject('chartSourcePoints=adjusted.filter(point=>point.offsetMinutes<=24*60)');
 reject('chartSourcePoints=points.slice(0,Math.min(points.length,25))');

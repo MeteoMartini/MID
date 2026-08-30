@@ -30,9 +30,10 @@ for(const token of [
   'className="dewpoint-line"',
   'className="wind-line"',
   'className="gust-line"',
-  'className="cloud-cell-frame high"',
-  'className="cloud-cell-frame mid"',
-  'className="cloud-cell-frame low"',
+  "className:'high'",
+  "className:'mid'",
+  "className:'low'",
+  'className={`cloud-opacity-band ${row.className}`}',
   'impact-band',
   'cockpit-weather-profile__signals',
   'selectedImpact.summary'
@@ -43,7 +44,7 @@ for(const token of [
   '.dwd-precip-type-radar__original-viewport',
   '.dwd-precip-type-radar__original-image',
   '.cockpit-weather-profile__signals',
-  '.cloud-cell-frame',
+  '.cloud-opacity-band',
   '.impact-band'
 ])need('Styles',styles,token);
 

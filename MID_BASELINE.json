@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.74.10",
+  "releaseVersion": "0.9.75.0",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -317,7 +317,8 @@
     "scripts/test-ruc-workflow-sync-transition-09747.mjs",
     "scripts/test-logo-theme-assets-09748.mjs",
     "scripts/test-logo-png-integrity-09749.mjs",
-    "scripts/test-release-upload-budget-097410.mjs"
+    "scripts/test-release-upload-budget-097410.mjs",
+    "scripts/test-weather-profile-story-axis-09750.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -565,7 +566,8 @@
     "scripts/test-ruc-workflow-sync-transition-09747.mjs",
     "scripts/test-logo-theme-assets-09748.mjs",
     "scripts/test-logo-png-integrity-09749.mjs",
-    "scripts/test-release-upload-budget-097410.mjs"
+    "scripts/test-release-upload-budget-097410.mjs",
+    "scripts/test-weather-profile-story-axis-09750.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -861,7 +863,10 @@
     "MID_IMPLEMENTATION_0.9.74.9.md",
     "tools/release/create_professional_zip.py",
     "scripts/test-release-upload-budget-097410.mjs",
-    "MID_IMPLEMENTATION_0.9.74.10.md"
+    "MID_IMPLEMENTATION_0.9.74.10.md",
+    "scripts/test-weather-profile-story-axis-09750.mjs",
+    "MID_24H_PROFILE_STORY_AXIS_CONTRACT.md",
+    "MID_IMPLEMENTATION_0.9.75.0.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -963,7 +968,10 @@
     "scripts/test-logo-theme-assets-09748.mjs",
     "MID_LOGO_ASSET_CONTRACT.md",
     "ios/App/App/Assets.xcassets/AppIcon.appiconset/Contents.json",
-    "ios/App/App/Assets.xcassets/Splash.imageset/Contents.json"
+    "ios/App/App/Assets.xcassets/Splash.imageset/Contents.json",
+    "scripts/test-weather-profile-story-axis-09750.mjs",
+    "MID_24H_PROFILE_STORY_AXIS_CONTRACT.md",
+    "MID_IMPLEMENTATION_0.9.75.0.md"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md"
@@ -973,6 +981,8 @@
     "MID_IMPLEMENTATION_0.9.74.6.md",
     "MID_IMPLEMENTATION_0.9.74.7.md",
     "MID_IMPLEMENTATION_0.9.74.8.md",
-    "MID_IMPLEMENTATION_0.9.74.9.md"
+    "MID_IMPLEMENTATION_0.9.74.9.md",
+    "MID_IMPLEMENTATION_0.9.74.10.md",
+    "MID_IMPLEMENTATION_0.9.75.0.md"
   ]
 }

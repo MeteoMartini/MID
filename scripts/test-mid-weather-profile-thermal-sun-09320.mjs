@@ -30,22 +30,19 @@ for(const token of [
   'windSignalColor(gust)',
   'chartPoints.map(item=><SvgProfileWindDirectionArrow',
   'function shortTermCloudCellGradient(point:ShortTermForecastPoint,previous:ShortTermForecastPoint|undefined,next:ShortTermForecastPoint|undefined,key:CloudProfileKey)',
-  'cloudCellInset(item.columnWidth)',
-  'cloud-cell-frame high',
-  'cloud-cell-frame mid',
-  'cloud-cell-frame low',
-  'className="cloud-cell-frame high"',
-  'className="cloud-cell-frame mid"',
-  'className="cloud-cell-frame low"',
+  "className:'high'",
+  "className:'mid'",
+  "className:'low'",
+  'className={`cloud-opacity-band ${row.className}`}',
   'Thermisches Empfinden',
   'Temperatur / gefühlt / Taupunkt',
   ' K</dd>',
   'Schwüle',
   'Wolken gesamt / hoch / mittel / tief + UVI',
-  'className="cloud-total-cell"',
-  'SvgProfileCloudStructure layer="highCloud"',
-  'SvgProfileCloudStructure layer="midCloud"',
-  'SvgProfileCloudStructure layer="lowCloud"',
+  "label:'Gesamtbewölkung'",
+  "label:'Hohe Wolken'",
+  "label:'Mittelhohe Wolken'",
+  "label:'Tiefe Wolken'",
   'Wetter-Hazards',
   'Thermische Einordnung nach den DWD-Klassen der Gefühlten Temperatur'
 ])need('24-h-Wetterprofil',cockpit,token);
@@ -71,7 +68,7 @@ for(const token of [
   '.cockpit-meteogram-pro__overlay.time>span.other-day b'
 ])need('Styles',styles,token);
 
-const high=cockpit.indexOf('className="cloud-cell-frame high"'),mid=cockpit.indexOf('className="cloud-cell-frame mid"'),low=cockpit.indexOf('className="cloud-cell-frame low"');
+const high=cockpit.indexOf("className:'high'"),mid=cockpit.indexOf("className:'mid'"),low=cockpit.indexOf("className:'low'");
 if(high<0||mid<0||low<0||!(high<mid&&mid<low))failures.push('Wolkenreihenfolge muss visuell H oben, M mittig, L unten sein.');
 if(cockpit.includes('cloudBandGap'))failures.push('Zwischen Wolkenschichten darf kein cloudBandGap bestehen.');
 

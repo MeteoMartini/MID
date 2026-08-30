@@ -1,3 +1,10 @@
+## v0.9.75.0
+
+- 24-h-Wetterprofil auf eine verbindliche gemeinsame Zeitgeometrie umgestellt: Wetterpiktogramme, Stundenraster, Sonnenereignisse, Kurven, Windpfeile, Wolken, Hazards und Auswahlcursor stehen jetzt senkrecht exakt übereinander.
+- Bewölkung als vier schmale, kontinuierlich ein-/ausfadende Grauintensitätsbänder in der Reihenfolge Gesamt/H/M/L umgesetzt. Rechte Wolken-Prozentbeschriftung entfernt; exakte Werte bleiben in Tooltips und Einzeldaten erhalten.
+- Luftdruckbahn vergrößert und Kurve in Hell-/Dunkelmodus deutlich kontrastreicher ausgeführt; responsive Hochformat- und Querformat-Master-/Detailansicht bleibt erhalten.
+- Grundlage ist der verbindliche letzte Build-Stand v0.9.74.10 einschließlich PNG-Integritäts- und 24-MB-Uploadbudget-Verträgen. Gemeinsamer Browser/PWA/iOS-Fachkern, keine Worker-Fachänderung und kein manueller Worker-Upload erforderlich.
+
 ## v0.9.74.10
 
 - RUC-/Release-Pages-Collision behoben: alle drei Release-Pages-Jobs teilen `mid-pages` nun mit `cancel-in-progress: false`; laufende RUC-Publikationen werden dadurch nicht mehr von einem Release abgebrochen. Release-Supersession auf `mid-install-${{ github.ref }}` bleibt bewusst aktiv.

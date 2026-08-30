@@ -42,7 +42,9 @@ for(const token of [
  'sunsetEpoch',
  'className="night-band"',
  'y={84}',
- 'y1={tempTop}',
+ 'const profileXForEpoch=(epoch:number)=>',
+ 'profileXForEpoch(event.epoch)',
+ 'y1={skyBandTop}',
  'weatherPictogramStep=',
  'className="day-separator"'
 ])assert.ok(cockpit.includes(token),`Zeit-/Solar-/Kollisionsvertrag fehlt: ${token}`);
@@ -61,25 +63,22 @@ for(const token of [
  'shortTermPrecipitationDetail(selectedPoint)'
 ])assert.ok(cockpit.includes(token),`Niederschlagsdarstellung fehlt: ${token}`);
 
-// Wolken H/M/L: Rohwerte sind Prozentwerte (0..100), keine 0..1-Normalisierung.
+// Wolken Gesamt/H/M/L: neutrale, kontinuierliche Graubänder statt Prozentachse.
 for(const token of [
- 'className="cloud-cell-frame high"',
- 'className="cloud-cell-frame mid"',
- 'className="cloud-cell-frame low"',
- 'className="cloud-cell high"',
- 'className="cloud-cell mid"',
- 'className="cloud-cell low"',
- 'className="selected-cloud-values"',
+ "className:'total'",
+ "className:'high'",
+ "className:'mid'",
+ "className:'low'",
+ 'className={`cloud-opacity-band ${row.className}`}',
  'Wolken gesamt / hoch / mittel / tief + UVI',
- 'className="cloud-total-cell"',
- 'SvgProfileCloudStructure layer="highCloud"',
- 'SvgProfileCloudStructure layer="midCloud"',
- 'SvgProfileCloudStructure layer="lowCloud"',
+ 'stopColor="var(--profile-cloud)"',
  'clamp(Number(hour.highCloud)||0,0,100)',
  'clamp(Number(hour.midCloud)||0,0,100)',
  'clamp(Number(hour.lowCloud)||0,0,100)'
 ])assert.ok(cockpit.includes(token),`Wolkenschichtvertrag fehlt: ${token}`);
 assert.ok(!/Number\(hour\.(?:highCloud|midCloud|lowCloud)\)\s*\/\s*100/.test(cockpit),'Open-Meteo-Wolkenprozente dürfen im Datenmodell nicht nochmals durch 100 geteilt werden.');
+assert.ok(!cockpit.includes('selected-cloud-values'),'Im Wolkenplot darf keine rechte Prozentwert-Achse erscheinen.');
+assert.ok(!cockpit.includes('Wolken (%)'),'Die Intensität wird ausschließlich weiß–grau codiert.');
 
 // Die appweite DWD-Thermikpalette besitzt genau eine Quelle für Current und Cockpit.
 for(const token of ['veryCold','cold','cool','slightlyCool','comfortable','slightlyWarm','warm','hot','veryHot'])assert.ok(dwdWarnings.includes(token),`DWD-Thermikfarbe fehlt: ${token}`);
@@ -100,4 +99,3 @@ assert.ok(baseline.requiredRegressionTests.includes(test),'Neue Profil-/Open-Met
 assert.ok(baseline.regressionTests.includes(test),'Neue Profil-/Open-Meteo-Prüfung muss im Release-Testlauf stehen.');
 assert.ok(baseline.requiredFiles.includes(test),'Neue Profil-/Open-Meteo-Prüfung muss als Pflichtdatei geschützt sein.');
 console.log(`MID v${pkg.version}: gleitendes 24-h-Profil, responsive Kollisionsfreiheit, DWD-Farben und Open-Meteo-Auditverträge geprüft.`);
-

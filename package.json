@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.74.10",
+  "version": "0.9.75.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -355,7 +355,8 @@
     "test:logo-theme-assets": "node scripts/test-logo-theme-assets-09748.mjs",
     "test:logo-png-integrity": "node scripts/test-logo-png-integrity-09749.mjs",
     "release:pack": "python3 tools/release/create_professional_zip.py MID-professional-replacement.zip",
-    "test:release-upload-budget": "node scripts/test-release-upload-budget-097410.mjs"
+    "test:release-upload-budget": "node scripts/test-release-upload-budget-097410.mjs",
+    "test:weather-profile-story-axis": "node scripts/test-weather-profile-story-axis-09750.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",
