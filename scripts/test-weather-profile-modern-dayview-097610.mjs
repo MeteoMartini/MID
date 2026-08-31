@@ -26,7 +26,7 @@ for(const token of [
  '',
  'profileXForEpoch(event.epoch)',
  "event.kind==='sunrise'?'↑':'↓'",
- 'className="profile-now-line"',
+ 'className="profile-selected-time-tag"',
  'className="profile-time-axis bottom"',
  'className="profile-bottom-time"',
  'profile-lane-unit-label',
@@ -39,7 +39,7 @@ assert.ok(!cockpit.includes('chartMinimumWidth=chartViewportWidth<=560?620:chart
 for(const sheet of [styleSource,styles])for(const token of [
  'Tagesansicht-inspiriertes gleitendes 24-h-Wetterprofil',
  '.night-pattern-base{',
- '.profile-now-line{',
+ '.profile-selected-time-tag rect{',
  '.wind-warning-band{',
  '.wind-warning-threshold{',
  '.wind-warning-threshold-label{',
@@ -52,4 +52,6 @@ assert.equal(pkg.version,baseline.releaseVersion,'Paket- und Baseline-Version m�
 for(const key of ['requiredRegressionTests','regressionTests'])assert.ok(baseline[key].includes(test),`${test} fehlt in ${key}.`);
 assert.ok(baseline.requiredFiles.includes(test),`${test} fehlt in requiredFiles.`);
 assert.ok(baseline.protectedFiles.includes(test),`${test} muss als visueller Vertrags-Test geschützt sein.`);
-console.log(`MID v${pkg.version}: gleitendes 24-h-Tagesansichtsdesign mit gemeinsamer Zeitachse, Nacht, Solarereignissen und DWD-Windwarnschwellen geprüft.`);
+assert.ok(!cockpit.includes('className="profile-now-line"'),'Rote Jetzt-Linie darf nach der Auswahlachsen-Konsolidierung nicht mehr vorhanden sein.');
+assert.ok(!cockpit.includes('>JETZT</text>'),'Redundanter JETZT-Schriftzug darf nicht mehr vorhanden sein.');
+console.log(`MID v${pkg.version}: 24-h-Tagesansichtsdesign mit gemeinsamer Auswahlachse, Nacht, Solarereignissen und DWD-Windwarnschwellen geprüft.`);

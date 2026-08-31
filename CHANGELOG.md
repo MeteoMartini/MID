@@ -1,3 +1,17 @@
+# v0.9.76.20
+
+- CI-Hotfix nach Install-Run #793: drei veraltete Regressionserwartungen wurden auf den bereits erfolgreich mit TypeScript 7.0.2 und Vite 6.4.3 gebauten Produktvertrag migriert.
+- Wolkenprofil-Regressionen schützen nun ausdrücklich die nicht überlappenden Gesamt/H/M/L-Zellen (`x = columnLeft + 0,7`, `width = columnWidth - 1,4`) statt die frühere überlappende Geometrie zu verlangen.
+- Szenariocluster-Regression schützt jetzt den Resume-Recovery-Vertrag: eine transiente Teilantwort darf vorhandene Ensemble-Szenarien nicht mit einem leeren Array überschreiben.
+- Kein Produktcode-Rollback, keine fachliche Worker-Änderung. Der Ensemble-Resume-Fix und die 24-h-/DWD-UI-Finalisierung aus v0.9.76.19 bleiben vollständig erhalten.
+
+# v0.9.76.19
+
+- 14-Tage-Ensemble: same-location Resume/Reload startet Ensemble-Daten zuverlässig neu; der bisherige Lebenszyklusfehler, bei dem der Ensemble-State geleert und der Request nicht erneut ausgelöst wurde, ist behoben.
+- Letzter erfolgreicher Ensemble-Stand bleibt bei transienten Fehlern sichtbar; bei sichtbarer Online-App folgt nach 45 s automatisch ein neuer Versuch.
+- 24-h-Profil-Finalisierung: Nacht-Schraffur wieder sichtbar, rote Jetzt-Linie/„JETZT“ entfernt, gewählte Uhrzeit an der blauen Auswahlachse, kein „gleitend ab …“, keine überlappenden Thermik-/Wolken-/Hazard-Zellen.
+- DWD Wolken/Niederschlagsart: dünnere Stecknadel als Ortsmarker. Kein fachlicher Worker-Upload erforderlich.
+
 # v0.9.76.18
 
 - CI-Hotfix: zwei überholte 24-h-Wetterprofil-Regressionen an den bereits produktiv gültigen kompakten Profilvertrag angepasst (vollzählige Stundenpiktogramme, aktuelle SVG-Position und responsive 2/4/8-px-Dateninsets).

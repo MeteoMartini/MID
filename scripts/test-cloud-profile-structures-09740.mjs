@@ -19,8 +19,8 @@ for(const token of [
  "className:'mid'",
  "className:'low'",
  'className={`cloud-opacity-band ${row.className}`}',
- 'x={item.columnLeft}',
- 'width={item.columnWidth+.25}',
+ 'x={item.columnLeft+.7}',
+ 'width={Math.max(0,item.columnWidth-1.4)}',
  'stopColor="var(--profile-cloud)"',
  '>Gesamt</text>',
  '>H</text>',
@@ -51,4 +51,4 @@ for(const forbidden of [
 
 assert.ok(cockpit.includes('const fraction=clamp(Number(value)||0,0,100)/100'),'Grauintensität muss direkt aus 0..100-%-Bedeckung skaliert werden.');
 assert.equal(JSON.parse(pkg).version,JSON.parse(baseline).releaseVersion,'Release-/Baseline-Version müssen synchron sein.');
-console.log('24-h-Wolkenprofil: vier kontinuierliche Gesamt/H/M/L-Graubänder ohne Prozentachse geprüft.');
+console.log('24-h-Wolkenprofil: vier kontinuierliche Gesamt/H/M/L-Graubänder ohne Prozentachse und ohne überlappende Zellrechtecke geprüft.');

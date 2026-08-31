@@ -13,7 +13,7 @@ for(const token of ["const HORIZONS=[12,24,48,72]","export type WeatherRegime=",
 for(const token of ['Güte nach Wetterlage und Horizont','Lokale Modellgewichtung · aktuelle Prognose','MID-Gewichtung gegen Best Match','report.currentForecasts'])need('Prognosegüte-UI',panel,token);
 for(const token of ['export type EnsembleScenarioCluster','function buildEnsembleScenarios(','scenarioLabel(','scenarios=buildEnsembleScenarios','scenarios:cache.scenarios??[]'])need('Ensemble-Szenariocluster',weather,token);
 for(const token of ['function EnsembleScenarioClusters(','ensemble-scenario-probability-overview','advancedMode&&<EnsembleScenarioClusters scenarios={scenarios} open={scenarioOpen}'])need('Szenariocluster-UI',ensemble,token);
-for(const token of ['setEnsembleScenarios(value.scenarios??[])','scenarios={ensembleScenarios}'])need('Szenariocluster-Appverdrahtung',app,token);
+for(const token of ['setEnsembleScenarios(current=>value.scenarios?.length?value.scenarios:current)','scenarios={ensembleScenarios}'])need('Szenariocluster-Appverdrahtung',app,token);
 for(const token of ['function mountainZoneAssessments(','function MountainZoneAnalysis(','Analyse nach Höhenzone','<MountainZoneAnalysis data={data} days={days}/>','mountainSnowQuality(','contiguousMountainWindow('])need('Berg-Höhenzonenanalyse',app,token);
 for(const token of ['.ensemble-scenarios{','.forecast-segment-quality{','.forecast-weighted-days{','.mountain-zone-analysis{'])need('Neue UI-Stile',styles,token);
 if(failures.length){console.error('Lernsystem-/Szenario-/Höhenzonenprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}

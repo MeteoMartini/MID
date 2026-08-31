@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-08-31T09:19:53.771Z",
-  "releaseVersion": "0.9.76.18",
+  "updatedAt": "2026-08-31T10:39:31.445Z",
+  "releaseVersion": "0.9.76.20",
   "sourceBaseline": {
     "professionalVersion": "0.9.70.2",
     "workerVersion": "0.9.70.2",
@@ -86,7 +86,9 @@
     "capacitor-ios-web-assets-synchronized-0.9.76.11",
     "parallel-v0.9.76.11-lineage-consolidation-0.9.76.12",
     "weather-profile-mobile-density-axis-refinement-0.9.76.12",
-    "weather-profile-stale-regression-contract-migration-0.9.76.14"
+    "weather-profile-stale-regression-contract-migration-0.9.76.14",
+    "ensemble-resume-recovery-shared-core-0.9.76.19",
+    "regression-contract-hotfix-0.9.76.20"
   ],
   "nextMilestone": "macos-xcode-simulator-quality-assurance",
   "validation": {

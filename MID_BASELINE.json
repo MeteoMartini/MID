@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.76.18",
+  "releaseVersion": "0.9.76.20",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -333,7 +333,8 @@
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
     "scripts/test-weather-profile-mobile-compact-097612.mjs",
     "scripts/test-maplibre-660-uuid-upstream-097615.mjs",
-    "scripts/test-lucide-135-maintenance-097616.mjs"
+    "scripts/test-lucide-135-maintenance-097616.mjs",
+    "scripts/test-ensemble-resume-refresh-097619.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -596,7 +597,8 @@
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
     "scripts/test-weather-profile-mobile-compact-097612.mjs",
     "scripts/test-maplibre-660-uuid-upstream-097615.mjs",
-    "scripts/test-lucide-135-maintenance-097616.mjs"
+    "scripts/test-lucide-135-maintenance-097616.mjs",
+    "scripts/test-ensemble-resume-refresh-097619.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -925,7 +927,8 @@
     "scripts/test-maplibre-660-uuid-upstream-097615.mjs",
     "MID_IMPLEMENTATION_0.9.76.15.md",
     "MID_BRANCH_RULESET.json",
-    "MID_DEPENDENCY_UPGRADE_POLICY.md"
+    "MID_DEPENDENCY_UPGRADE_POLICY.md",
+    "scripts/test-ensemble-resume-refresh-097619.mjs"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1063,7 +1066,10 @@
     "MID_IMPLEMENTATION_0.9.76.15.md",
     "MID_BRANCH_RULESET.json",
     "MID_DEPENDENCY_UPGRADE_POLICY.md",
-    "MID_IMPLEMENTATION_0.9.76.17.md"
+    "MID_IMPLEMENTATION_0.9.76.17.md",
+    "scripts/test-ensemble-resume-refresh-097619.mjs",
+    "MID_IMPLEMENTATION_0.9.76.19.md",
+    "MID_IMPLEMENTATION_0.9.76.20.md"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md"
@@ -1083,19 +1089,34 @@
     "MID_IMPLEMENTATION_0.9.76.9.md",
     "MID_IMPLEMENTATION_0.9.76.10.md",
     "MID_IMPLEMENTATION_0.9.76.11.md",
-    "MID_IMPLEMENTATION_0.9.76.12.md"
+    "MID_IMPLEMENTATION_0.9.76.12.md",
+    "MID_IMPLEMENTATION_0.9.76.19.md",
+    "MID_IMPLEMENTATION_0.9.76.20.md"
   ],
   "evidenceFiles": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
     "scripts/test-weather-profile-mobile-compact-097612.mjs",
-    "MID_IMPLEMENTATION_0.9.76.17.md"
+    "MID_IMPLEMENTATION_0.9.76.17.md",
+    "MID_IMPLEMENTATION_0.9.76.19.md",
+    "MID_IMPLEMENTATION_0.9.76.20.md",
+    "scripts/test-cloud-profile-structures-09740.mjs",
+    "scripts/test-logo-cloud-profile-09739.mjs",
+    "scripts/test-learning-scenarios-mountain-zones-071110.mjs"
   ],
   "releaseEvidence": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
-    "scripts/test-weather-profile-mobile-compact-097612.mjs"
+    "scripts/test-weather-profile-mobile-compact-097612.mjs",
+    "scripts/test-ensemble-resume-refresh-097619.mjs",
+    "scripts/test-cloud-profile-structures-09740.mjs",
+    "scripts/test-logo-cloud-profile-09739.mjs",
+    "scripts/test-learning-scenarios-mountain-zones-071110.mjs"
   ],
   "activeRegressionSuite": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
-    "scripts/test-weather-profile-mobile-compact-097612.mjs"
+    "scripts/test-weather-profile-mobile-compact-097612.mjs",
+    "scripts/test-ensemble-resume-refresh-097619.mjs",
+    "scripts/test-cloud-profile-structures-09740.mjs",
+    "scripts/test-logo-cloud-profile-09739.mjs",
+    "scripts/test-learning-scenarios-mountain-zones-071110.mjs"
   ]
 }
