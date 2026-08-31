@@ -1,0 +1,15 @@
+name = "mid-ruc-schedule-watchdog"
+main = "src/index.js"
+compatibility_date = "2026-08-31"
+workers_dev = false
+
+[triggers]
+crons = ["*/10 * * * *"]
+
+[vars]
+GITHUB_OWNER = "MeteoMartini"
+GITHUB_REPO = "MID"
+GITHUB_WORKFLOW = "mid-ruc-preprocess.yml"
+GITHUB_REF = "main"
+STALE_MINUTES = "42"
+DISPATCH_COOLDOWN_MINUTES = "18"

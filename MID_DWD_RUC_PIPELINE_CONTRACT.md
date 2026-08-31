@@ -1,6 +1,6 @@
 # MID DWD RUC/RUC-EPS Pipeline Contract
 
-Stand: v0.9.74.5
+Stand: v0.9.76.24
 
 ## Zweck und fachliche Rolle
 
@@ -68,6 +68,12 @@ Der Worker nutzt standardmäßig `https://midwx.app/ruc/`; `MID_DWD_RUC_STATIC_B
 ### Scheduler-/Catch-up-Vertrag ab v0.9.74.5
 
 GitHub-`schedule` ist als best-effort Trigger zu behandeln und darf nicht als lückenlose meteorologische Uhr angenommen werden. Der kostenlose RUC-Workflow erhält deshalb zwei versetzte Chancen je Stunde (`:11` und `:41` UTC) und darf einen bereits laufenden Build nicht durch einen verspäteten Folgetrigger abbrechen (`cancel-in-progress: false`). Vor ecCodes/pip vergleicht ein stdlib-only Guard den neuesten gemeinsam beworbenen DWD-RUC/RUC-EPS-Lauf mit dem veröffentlichten Pages-Free-`latest.json`. Nur ein strukturell gültiger, exakt gleicher und innerhalb des Vier-Stunden-Vertrags liegender Lauf darf den teuren Neubau als No-op überspringen. Bei neuerem DWD-Lauf, stale/ungültigem Pages-Metadatensatz oder jeder Discovery-/Netzwerkunsicherheit wird fail-open vollständig verarbeitet. Die eigentliche Vollständigkeitsentscheidung verbleibt bei `fetch_and_build_ruc.py`; ein bloß beworbener, aber unvollständiger neuer DWD-Lauf kann daher weiterhin nicht veröffentlicht werden.
+
+### Scheduler-Resilienz ab v0.9.76.24
+
+Die primären GitHub-Slots bleiben unverändert bei `:11` und `:41` UTC. Zusätzlich prüft der GitHub-interne Watchdog alle zehn Minuten (`:08/:18/:28/:38/:48/:58`). Vor einem Recovery-Dispatch muss er aktive/queued RUC-Läufe respektieren und einen 18-Minuten-`workflow_dispatch`-Cooldown einhalten. Jeder Recovery-Lauf verwendet `force=false`, damit der bestehende Freshness-Guard weiterhin über Neubau oder No-op entscheidet.
+
+Da Primärworkflow und GitHub-Watchdog denselben Scheduler-Provider teilen, ist unter `tools/ruc/cloudflare_schedule_watchdog/` eine optionale provider-unabhängige zweite Cron-Ebene vorbereitet. Sie ist nicht automatisch aktiviert und benötigt kein R2. Ihre Aktivierung setzt ein separat als Cloudflare-Secret hinterlegtes, minimal berechtigtes GitHub-Token voraus. Ohne diese manuelle Credential-Freigabe bleibt die externe Ebene inaktiv; der produktive GitHub-Pfad funktioniert weiterhin mit den beiden Primärslots und dem verdichteten GitHub-Watchdog.
 
 ## Optionaler R2-Pfad
 

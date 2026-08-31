@@ -7,6 +7,11 @@ on:
         required: false
         default: true
         type: boolean
+      trigger_source:
+        description: Auslöser des Dispatches (manual, github-watchdog, cloudflare-watchdog)
+        required: false
+        default: manual
+        type: string
   schedule:
     # GitHub schedule events are best-effort. Keep the existing :41 slot and a
     # staggered :11 recovery slot; the freshness guard below makes duplicates cheap.
@@ -45,6 +50,15 @@ jobs:
           python-version: '3.12'
           cache: 'pip'
           cache-dependency-path: tools/ruc/requirements.txt
+      - name: RUC-Auslöser protokollieren
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            echo "RUC trigger source: ${{ inputs.trigger_source || 'manual' }}"
+          else
+            echo "RUC trigger source: schedule"
+          fi
       - name: RUC-Schedulerlücke und Aktualität vorab prüfen
         id: freshness
         env:

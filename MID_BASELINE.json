@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.76.23",
+  "releaseVersion": "0.9.76.25",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -338,7 +338,8 @@
     "scripts/test-build-budget-media-contract-097620.mjs",
     "scripts/test-stable-fast-forward-promotion-097620.mjs",
     "scripts/test-budget-workflow-release-lineage-097621.mjs",
-    "scripts/test-weather-profile-cell-gaps-day-wind-pin-097620.mjs"
+    "scripts/test-weather-profile-cell-gaps-day-wind-pin-097620.mjs",
+    "scripts/test-ruc-scheduler-resilience-097624.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -944,7 +945,11 @@
     "scripts/test-weather-profile-cell-gaps-day-wind-pin-097620.mjs",
     "MID_IMPLEMENTATION_0.9.76.21.md",
     "MID_IMPLEMENTATION_0.9.76.22.md",
-    "MID_IMPLEMENTATION_0.9.76.23.md"
+    "MID_IMPLEMENTATION_0.9.76.23.md",
+    "scripts/test-ruc-scheduler-resilience-097624.mjs",
+    "MID_RUC_SCHEDULER_RESILIENCE_SETUP.md",
+    "MID_IMPLEMENTATION_0.9.76.24.md",
+    "MID_IMPLEMENTATION_0.9.76.25.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1088,7 +1093,9 @@
     "scripts/test-build-budget-media-contract-097620.mjs",
     "scripts/test-stable-fast-forward-promotion-097620.mjs",
     "MID_IMPLEMENTATION_0.9.76.21.md",
-    "MID_IMPLEMENTATION_0.9.76.23.md"
+    "MID_IMPLEMENTATION_0.9.76.23.md",
+    "scripts/test-ruc-scheduler-resilience-097624.mjs",
+    "MID_IMPLEMENTATION_0.9.76.24.md"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md"
@@ -1111,14 +1118,17 @@
     "MID_IMPLEMENTATION_0.9.76.12.md",
     "MID_IMPLEMENTATION_0.9.76.20.md",
     "MID_IMPLEMENTATION_0.9.76.21.md",
-    "MID_IMPLEMENTATION_0.9.76.23.md"
+    "MID_IMPLEMENTATION_0.9.76.23.md",
+    "MID_IMPLEMENTATION_0.9.76.24.md"
   ],
   "evidenceFiles": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
     "scripts/test-weather-profile-mobile-compact-097612.mjs",
     "MID_IMPLEMENTATION_0.9.76.17.md",
     "MID_IMPLEMENTATION_0.9.76.21.md",
-    "MID_IMPLEMENTATION_0.9.76.23.md"
+    "MID_IMPLEMENTATION_0.9.76.23.md",
+    "scripts/test-ruc-scheduler-resilience-097624.mjs",
+    "MID_IMPLEMENTATION_0.9.76.24.md"
   ],
   "releaseEvidence": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",

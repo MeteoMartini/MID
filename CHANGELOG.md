@@ -1,3 +1,10 @@
+# v0.9.76.25
+
+- CI-Hotfix nach Release-Run #799: TypeScript 7.0.2, Vite 6.4.3, Dependency-Audit und 602 von 603 Regressionen waren grün; ausschließlich der historische RUC-Watchdog-Test erwartete noch zwei getrennte `:18/:48`-Cron-Einträge.
+- Der bestehende Watchdog-Test schützt nun die fachlich bereits aktive Scheduler-Resilienz: eine sechsfach gestaffelte `:08/:18/:28/:38/:48/:58`-Cron-Expression, Active-Run-Sperre, 18-Minuten-Cooldown, `force=false`, `trigger_source=github-watchdog` und Push-Self-Test.
+- Primärer RUC-Vertrag `:11/:41` unverändert; GitHub-Watchdog bleibt ausdrücklich same-provider. Der optionale Cloudflare-Cron-Watchdog bleibt nur quellseitig vorbereitet.
+- Kein Produktcode-Rollback und keine fachliche Worker-Änderung; manueller Worker-Upload bleibt unnötig.
+
 # v0.9.76.22
 
 - CI-Vertragshotfix nach Release-Run #795: TypeScript 7.0.2, Vite 6.4.3 und Dependency-Audit waren bereits grün; vier veraltete Regressionserwartungen wurden an die bewusst freigegebenen v0.9.76.21-Verträge angepasst.

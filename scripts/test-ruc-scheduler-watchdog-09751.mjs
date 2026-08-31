@@ -14,11 +14,12 @@ for(const token of [
  '"${{ inputs.force }}" != "false"','tools/ruc/check_ruc_schedule_guard.py','cancel-in-progress: false'
 ])assert.ok(primary.includes(token),`Primärer RUC-Schedulervertrag fehlt: ${token}`);
 
-assert.equal((watchdog.match(/cron:/g)||[]).length,2,'Watchdog braucht zwei unabhängige Recovery-Prüfungen.');
+assert.equal((watchdog.match(/cron:/g)||[]).length,1,'GitHub-Watchdog muss die sechs 10-Minuten-Prüfslots in genau einer Cron-Expression bündeln.');
 for(const token of [
- "cron: '18 * * * *'","cron: '48 * * * *'",'actions: write','group: mid-ruc-schedule-watchdog',
+ "cron: '8,18,28,38,48,58 * * * *'",'actions: write','group: mid-ruc-schedule-watchdog',
  "'.github/workflows/mid-ruc-schedule-watchdog.yml'","'.github/workflows/mid-ruc-preprocess.yml'",
- 'event=schedule&per_page=1','gh workflow run "$RUC_WORKFLOW" -R "$GITHUB_REPOSITORY" --ref main -f force=false',
+ 'event=schedule&per_page=1','per_page=30','active preprocessing run already exists','workflow_dispatch cooldown (<18 min)',
+ 'gh workflow run "$RUC_WORKFLOW" -R "$GITHUB_REPOSITORY" --ref main -f force=false -f trigger_source=github-watchdog',
  'event=workflow_dispatch&per_page=1','RUC recovery dispatch verified','no new workflow_dispatch run became visible within 90 seconds',
  'recovery_self_test=false','GITHUB_EVENT_NAME','RUC watchdog deployment self-test: guarded recovery dispatch will be exercised once.'
 ])assert.ok(watchdog.includes(token),`RUC-Watchdog-Vertrag fehlt: ${token}`);
@@ -28,4 +29,4 @@ const baseline=JSON.parse(baselineText),test='scripts/test-ruc-scheduler-watchdo
 for(const key of ['requiredRegressionTests','regressionTests'])assert.ok(baseline[key].includes(test),`${test} fehlt in ${key}.`);
 assert.ok(baseline.requiredFiles.includes(test),`${test} fehlt in requiredFiles.`);
 assert.ok(baseline.requiredFiles.includes('ci/github/workflows/mid-ruc-schedule-watchdog.yml'),'Kanonischer RUC-Watchdog ist keine geschützte Pflichtdatei.');
-console.log('RUC :11/:41 plus unabhängiger :18/:48 Scheduler-Watchdog mit guarded dispatch und Run-Nachweis geschützt.');
+console.log('RUC :11/:41 plus verdichteter same-provider 10-Minuten-Watchdog mit Active-Run-Sperre, Cooldown, guarded dispatch und Run-Nachweis geschützt.');

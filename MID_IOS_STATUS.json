@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-08-31T12:36:40.323Z",
-  "releaseVersion": "0.9.76.23",
+  "updatedAt": "2026-08-31T14:21:31.925Z",
+  "releaseVersion": "0.9.76.25",
   "sourceBaseline": {
     "professionalVersion": "0.9.70.2",
     "workerVersion": "0.9.70.2",
@@ -89,7 +89,8 @@
     "weather-profile-stale-regression-contract-migration-0.9.76.14",
     "ensemble-resume-recovery-shared-core-0.9.76.19",
     "weather-profile-cell-gap-dwd-pin-day-wind-warning-colors-0.9.76.20",
-    "parallel-release-hardening-consolidation-0.9.76.21"
+    "parallel-release-hardening-consolidation-0.9.76.21",
+    "ruc-scheduler-resilience-source-preparation-0.9.76.24"
   ],
   "nextMilestone": "macos-xcode-simulator-quality-assurance",
   "validation": {
@@ -112,8 +113,9 @@
     ],
     "approved": false
   },
-  "validationNote": "v0.9.76.22 ist ein reiner CI-Vertragshotfix nach Run #795; Produktlogik aus v0.9.76.21 bleibt unverändert. Browser/PWA/iOS teilen denselben React/Vite-Kern; kein fachlicher Worker-Diff. Nächstes natives Gate bleibt macOS-/Xcode-Simulator-QA.",
+  "validationNote": "v0.9.76.24 härtet ausschließlich den RUC-Scheduler-/Recovery-Vertrag: Primärslots :11/:41 bleiben unverändert; GitHub-Watchdog verdichtet und dispatch-entstapelt; provider-unabhängiger Cloudflare-Cron-Watchdog nur quellseitig vorbereitet. Browser/PWA/iOS-Fachkern unverändert; kein fachlicher MID-Worker-Diff.",
   "completedMilestones": [
-    "ci-regression-contract-hotfix-0.9.76.22"
+    "ci-regression-contract-hotfix-0.9.76.22",
+    "ruc-scheduler-resilience-source-preparation-0.9.76.24"
   ]
 }

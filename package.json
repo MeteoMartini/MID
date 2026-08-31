@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.76.23",
+  "version": "0.9.76.25",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -362,7 +362,8 @@
     "test:weather-profile-mobile-compact": "node scripts/test-weather-profile-mobile-compact-097612.mjs",
     "test:lucide-135-maintenance": "node scripts/test-lucide-135-maintenance-097616.mjs",
     "test:ensemble-resume-refresh": "node scripts/test-ensemble-resume-refresh-097619.mjs",
-    "test:weather-profile-cell-gaps-day-wind-pin": "node scripts/test-weather-profile-cell-gaps-day-wind-pin-097620.mjs"
+    "test:weather-profile-cell-gaps-day-wind-pin": "node scripts/test-weather-profile-cell-gaps-day-wind-pin-097620.mjs",
+    "test:ruc-scheduler-resilience": "node scripts/test-ruc-scheduler-resilience-097624.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",
