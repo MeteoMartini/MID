@@ -19,7 +19,7 @@ Pflicht: `CAPE_ML`, `CIN_ML`.
 
 Optional, nur wenn der konkrete DWD-Lauf vollständig ist: `DBZ_CMAX`, `CAPE_MU`, `CIN_MU`, `LPI`, `LPI_MAX`, `UH_MAX`, `UH_MAX_LOW`, `UH_MAX_MED`, `ECHOTOPinM`, `HAIL_GSP`, `LAPSE_RATE`, `W_CTMAX`, `VORW_CTMAX`.
 
-Nutzen: konvektive Unterstützung von displayMinutes15 und insbesondere Mitteleuropa-Extremwetter 0–6 h. Kein einzelnes Modellfeld erzeugt allein einen Gewittercode. Beobachteter Blitz, KONRAD3D/Mesozyklonen und Radar bleiben bestätigende/höher priorisierte Quellen.
+Nutzen: konvektive Unterstützung von displayMinutes15 und insbesondere Mitteleuropa-Extremwetter 0–6 h. Kein einzelnes Modellfeld erzeugt allein einen synthetischen Gewittercode; ab v0.9.76.35 darf aber die kombinierte Rapid-Mehrparameterdiagnostik aus Instabilität/Inhibition, modelliertem Trigger und elektrischer/organisatorischer Evidenz ein **prognostisches** Gewittersignal erzeugen. Beobachteter Blitz, KONRAD3D/Mesozyklonen und Radar bleiben bestätigende beziehungsweise höher priorisierte Quellen für den aktuellen Zustand.
 
 ### Niederschlagsphase 15 min 0…+6 h
 `RAIN_GSP`, `SNOW_GSP`, optional `GRAU_GSP`.
@@ -80,7 +80,7 @@ Sehr interessant für Karten-/Satellitenvergleich, aber ungeeignet für den komp
 
 `WW`.
 
-Nicht als alleinige RUC-Wettercode-Autorität verwenden. MID besitzt einen appweiten Niederschlags-/Phasen-/Gewittervertrag; insbesondere darf ein Modellcode ohne beobachteten Blitz kein bestätigtes Gewitter erzeugen. `WW` kann später als Diagnose-/Plausibilitätsfeld dienen, aber nicht den kanonischen Codevertrag umgehen.
+Nicht als alleinige **Beobachtungs**autorität verwenden. Ein numerischer `WW`-Gewittercode ist eine zulässige Prognoseaussage und darf nicht wegen fehlender aktueller Blitze zu einem Schauer zurückgestuft werden. Für synthetisch aus Rapid-Feldern erzeugte Gewittercodes verlangt MID dagegen mehrere physikalisch unabhängige Zutaten. Die Benennung einer aktuell beobachteten KONRAD3D-/Radarzelle bleibt weiterhin blitzgebunden.
 
 ## Appweite Priorität
 

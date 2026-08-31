@@ -60,5 +60,5 @@ if(!context.__rapid.some(h=>h.rucApplied))throw new Error('RUC did not calibrate
 const updated=context.__rapid.find(h=>h.rucApplied);if(!(updated.temperature>15&&updated.wind>8&&updated.precipitation>.2&&updated.cape>100))throw new Error('RUC physical calibration fields were not applied');
 context.__final=await call('applyRucEpsProbabilityHours(__rapid,__epsState)');
 if(!context.__final.some(h=>h.rucEpsApplied&&h.probability>20))throw new Error('RUC-EPS did not calibrate precipitation probability');
-const demoted=await call('safeRapidThunderCode(61,95,false)');if([95,96,97,99].includes(demoted))throw new Error('RUC may not create thunder without observed lightning');
+const preserved=await call('rapidForecastWeatherCode(95,NaN)');if(preserved!==95)throw new Error('RUC calibration must not demote an existing numerical thunderstorm forecast when lightning is absent');const directRapid=await call('rapidForecastWeatherCode(61,95)');if(directRapid!==95)throw new Error('A direct numerical RUC thunderstorm weather interpretation must remain a forecast thunderstorm signal');
 console.log('RUC fusion runtime contract OK');

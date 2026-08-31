@@ -66,9 +66,10 @@ const storm=thunderModule.combineThunderstormInformation({...nowcast,nearest:{..
 assert.equal(storm?.phenomenon,'thunderstorm');
 assert.equal(storm?.sectionLabel,'Gewitterinformation');
 assert.match(storm?.headline||'',/Gewitter/,'Mindestens ein detektierter Blitz muss die Gewitterbezeichnung aktivieren.');
-const modelOnly=thunderModule.combineThunderstormInformation(null,[{epoch:Date.now(),code:95,cape:1000}],null,null,'Niederkassel');
-assert.equal(modelOnly?.sectionLabel,'Konvektionsinformation');
-assert.doesNotMatch(JSON.stringify(modelOnly),/Gewitter/i,'Ein reines Modellsignal ohne detektierten Blitz darf nicht als Gewitter ausgegeben werden.');
+const modelOnly=thunderModule.combineThunderstormInformation(null,[{epoch:Date.now(),time:new Date().toISOString(),code:95,cape:1000}],null,null,'Niederkassel');
+assert.equal(modelOnly?.phenomenon,'thunderstorm','Numerische Gewitterprognose darf ohne aktuellen Blitz bestehen bleiben.');
+assert.equal(modelOnly?.sectionLabel,'Gewitterinformation');
+assert.match(`${modelOnly?.headline||''} ${modelOnly?.summary||''}`,/Gewitter/,'Numerisches WMO-Gewittersignal muss als Prognose benannt werden.');
 assert.ok(app.includes('<small>{thunderInfo.sectionLabel}</small>'),'Kachel verwendet noch eine fest verdrahtete Gewitterüberschrift.');
 
 const marker='/* MID v0.9.64.3 · Modellstand-Pille kollisionsfrei neben der 14-Tage-Überschrift. */';

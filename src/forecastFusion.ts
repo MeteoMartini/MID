@@ -164,6 +164,118 @@ const FRESH_MS=35*60*1000;
 const STALE_MS=8*60*60*1000;
 
 function clamp(value:number,min:number,max:number){return Math.max(min,Math.min(max,value))}
+
+export type RapidThunderSample={
+ time?:string;
+ epoch?:number;
+ precipitation?:number;
+ cape?:number;
+ convectiveInhibition?:number;
+ peakRateMmh?:number;
+ dbzCmax?:number;
+ capeMu?:number;
+ cinMu?:number;
+ lpi?:number;
+ lpiMax?:number;
+ uhMax?:number;
+ uhMaxLow?:number;
+ uhMaxMed?:number;
+ echoTopM?:number;
+ updraftMax?:number;
+ source?:string;
+};
+
+export type RapidThunderRiskLevel='possible'|'likely'|'high';
+export type RapidThunderRisk={
+ level:RapidThunderRiskLevel;
+ percent:number;
+ support:number;
+ signals:string[];
+ peakTime?:string;
+ peakEpoch?:number;
+ sample:RapidThunderSample;
+ diagnostics:{
+  capeMu:number;
+  cin:number;
+  dbzCmax?:number;
+  peakRateMmh:number;
+  lpi?:number;
+  uhMax?:number;
+  echoTopM?:number;
+  updraftMax?:number;
+  instabilitySupport:number;
+  triggerSupport:number;
+  electricalSupport:number;
+  organizationSupport:number;
+ };
+};
+
+function rapidThunderFinite(value:unknown,fallback=Number.NaN){const number=Number(value);return Number.isFinite(number)?number:fallback}
+function rapidThunderClamp(value:number,min:number,max:number){return Math.min(max,Math.max(min,value))}
+function maximumFinite(...values:unknown[]){const numbers=values.map(value=>rapidThunderFinite(value)).filter(Number.isFinite);return numbers.length?Math.max(...numbers):Number.NaN}
+function minimumFinite(...values:unknown[]){const numbers=values.map(value=>rapidThunderFinite(value)).filter(Number.isFinite);return numbers.length?Math.min(...numbers):Number.NaN}
+
+/**
+ * Ingredient-based ICON-D2-RUC thunderstorm diagnostic.
+ *
+ * The diagnostic deliberately does not use a single hard threshold as a
+ * thunderstorm authority. Instability + inhibition + a resolved trigger form
+ * the physical core. Lightning potential and storm-organisation diagnostics
+ * (LPI, UH, echo top, updraft) can strengthen that core, but cannot create a
+ * thunderstorm signal on their own. This keeps the result useful even when
+ * optional rapid fields are absent and prevents a lone noisy field from
+ * dominating the canonical forecast.
+ */
+export function rapidThunderRisk(sample:RapidThunderSample):RapidThunderRisk|null{
+ const cape=Math.max(0,rapidThunderFinite(sample.cape,0)),capeMu=Math.max(cape,Math.max(0,rapidThunderFinite(sample.capeMu,0))),cin=minimumFinite(Math.abs(rapidThunderFinite(sample.convectiveInhibition)),Math.abs(rapidThunderFinite(sample.cinMu))),effectiveCin=Number.isFinite(cin)?cin:120;
+ const precipitation=Math.max(0,rapidThunderFinite(sample.precipitation,0)),peakRate=Math.max(0,rapidThunderFinite(sample.peakRateMmh,precipitation*4)),dbz=rapidThunderFinite(sample.dbzCmax),lpi=maximumFinite(sample.lpiMax,sample.lpi),uh=maximumFinite(sample.uhMax,sample.uhMaxMed,sample.uhMaxLow),echoTop=Math.max(0,rapidThunderFinite(sample.echoTopM,0)),updraft=Math.max(0,rapidThunderFinite(sample.updraftMax,0));
+
+ // Continuous ingredient scaling. The numbers are normalisation ranges rather
+ // than categorical DWD warning thresholds.
+ const instabilitySupport=rapidThunderClamp((capeMu-200)/1200,0,1),cinGate=effectiveCin<=25?1:effectiveCin<=75?.86:effectiveCin<=150?.56:effectiveCin<=220?.26:.08;
+ const reflectivitySupport=Number.isFinite(dbz)?rapidThunderClamp((dbz-30)/25,0,1):0,rateSupport=rapidThunderClamp((peakRate-3)/22,0,1),amountSupport=rapidThunderClamp((precipitation-.05)/1.45,0,1),triggerSupport=Math.max(reflectivitySupport,rateSupport,amountSupport*.82);
+ const electricalSupport=Number.isFinite(lpi)?rapidThunderClamp(lpi/300,0,1):0,uhSupport=Number.isFinite(uh)?rapidThunderClamp(uh/120,0,1):0,echoSupport=rapidThunderClamp((echoTop-4500)/7500,0,1),updraftSupport=rapidThunderClamp(updraft/12,0,1),organizationSupport=Math.max(uhSupport,echoSupport,updraftSupport);
+ const core=instabilitySupport*cinGate*triggerSupport,support=rapidThunderClamp(core*(.70+.18*electricalSupport+.12*organizationSupport),0,1);
+ const independentGroups=[instabilitySupport>=.2,triggerSupport>=.2,electricalSupport>=.12||organizationSupport>=.22].filter(Boolean).length;
+ if(core<.16||independentGroups<2)return null;
+
+ let level:RapidThunderRiskLevel|null=null;
+ if(support>=.72&&(electricalSupport>=.30||organizationSupport>=.55||reflectivitySupport>=.88))level='high';
+ else if(support>=.52&&(electricalSupport>=.12||organizationSupport>=.30||reflectivitySupport>=.72))level='likely';
+ else if(support>=.24)level='possible';
+ if(!level)return null;
+
+ const percent=level==='high'?rapidThunderClamp(Math.round(73+support*22),80,94):level==='likely'?rapidThunderClamp(Math.round(48+support*34),60,82):rapidThunderClamp(Math.round(24+support*38),30,59),signals:string[]=[];
+ if(instabilitySupport>=.2)signals.push(`MU-CAPE ${Math.round(capeMu)} J/kg`);
+ if(Number.isFinite(cin))signals.push(`CIN ${Math.round(effectiveCin)} J/kg`);
+ if(Number.isFinite(dbz)&&reflectivitySupport>=.15)signals.push(`modellierte Reflektivität ${Math.round(dbz)} dBZ`);
+ if(peakRate>=5)signals.push(`5-min-Peak ${Math.round(peakRate)} mm/h`);
+ if(Number.isFinite(lpi)&&electricalSupport>=.08)signals.push(`LPI ${Math.round(lpi)}`);
+ if(Number.isFinite(uh)&&uhSupport>=.08)signals.push(`UH ${Math.round(uh)} m²/s²`);
+ if(echoTop>=4500)signals.push(`EchoTop ${Math.round(echoTop/100)/10} km`);
+ if(updraft>=3)signals.push(`Aufwind ${Math.round(updraft*10)/10} m/s`);
+ return{level,percent,support:Number(support.toFixed(3)),signals,peakTime:sample.time,peakEpoch:Number.isFinite(rapidThunderFinite(sample.epoch))?rapidThunderFinite(sample.epoch):undefined,sample,diagnostics:{capeMu,cin:effectiveCin,dbzCmax:Number.isFinite(dbz)?dbz:undefined,peakRateMmh:peakRate,lpi:Number.isFinite(lpi)?lpi:undefined,uhMax:Number.isFinite(uh)?uh:undefined,echoTopM:echoTop||undefined,updraftMax:updraft||undefined,instabilitySupport:Number(instabilitySupport.toFixed(3)),triggerSupport:Number(triggerSupport.toFixed(3)),electricalSupport:Number(electricalSupport.toFixed(3)),organizationSupport:Number(organizationSupport.toFixed(3))}};
+}
+
+export function significantRapidThunderRisk(samples:RapidThunderSample[]|undefined,now=Date.now(),horizonHours=3):RapidThunderRisk|null{
+ if(!Array.isArray(samples)||!samples.length)return null;
+ const end=now+Math.max(1,horizonHours)*3600000,rows=samples.filter(sample=>{const epoch=rapidThunderFinite(sample.epoch);return Number.isFinite(epoch)&&epoch>=now-10*60000&&epoch<=end}).map(sample=>rapidThunderRisk(sample)).filter((risk):risk is RapidThunderRisk=>Boolean(risk));
+ if(!rows.length)return null;
+ return rows.reduce((best,row)=>row.percent>best.percent||(row.percent===best.percent&&row.support>best.support)?row:best,rows[0]);
+}
+
+/**
+ * Only a well-supported multi-parameter rapid diagnosis may synthesize a WMO
+ * thunderstorm forecast code. Severe/hail subcodes remain reserved for direct
+ * model weather interpretation or additional explicit evidence.
+ */
+export function rapidThunderForecastCode(currentCode:number,risk:RapidThunderRisk|null){
+ const code=Math.round(rapidThunderFinite(currentCode,0));
+ if([95,96,97,99].includes(code))return code;
+ if(risk&&(risk.level==='likely'||risk.level==='high'))return 95;
+ return code;
+}
+
 export type RadarBlendMode='direct'|'transition'|'proximity'|'dry';
 export type RadarHitClass='site'|'nearby'|'dry';
 export type RadarTargetBlend={
@@ -319,7 +431,7 @@ export function finalizeForecastMinute15(minutes15:Minute15[],baseHours:Hour[],f
  const result=minutes15.map(row=>{
   const baseHour=nearestForecastHour(baseHours,row.epoch,45*60000),finalHour=nearestForecastHour(finalHours,row.epoch,45*60000);let precipitation=Math.max(0,Number(row.precipitation)||0),rain=Math.max(0,Number(row.rain)||0),showers=Math.max(0,Number(row.showers)||0),snowfall=Math.max(0,Number(row.snowfall)||0),probability=clamp(Number(row.probability)||0,0,100),code=Math.round(Number(row.code)||0);
   if(baseHour&&finalHour){const probabilityDelta=Number(finalHour.probability)-Number(baseHour.probability);if(Number.isFinite(probabilityDelta)){if(probabilityDelta>=0)probability=clamp(probability+probabilityDelta,0,100);else if(baseHour.probability>0)probability=clamp(probability*(Math.max(0,finalHour.probability)/baseHour.probability),0,100)}if(finalHour.code!==baseHour.code&&finalHour.probability>=Math.max(30,probability-5))code=finalHour.code}
-  const rucRapid=nearestForecastHour(options.rucRapidMinutes15??[],row.epoch,8*60000);if(rucRapid){const leadHours=(row.epoch-now)/3600000,weight=leadHours<=2?.38:leadHours<=4?.62:leadHours<=6?.50:0;if(weight>0){const rapidAmount=Math.max(0,Number(rucRapid.precipitation)||0),nextAmount=precipitation+(rapidAmount-precipitation)*weight,total=rain+showers+snowfall,scale=total>.001?nextAmount/total:1;precipitation=nextAmount;if(total>.001){rain*=scale;showers*=scale;snowfall*=scale}else if(finalHour?.temperature!=null&&finalHour.temperature<=1)snowfall=nextAmount;else rain=nextAmount;const rapidRain=Number(rucRapid.rain),rapidSnow=Number(rucRapid.snowfallWaterEquivalent),phaseTotal=(Number.isFinite(rapidRain)?Math.max(0,rapidRain):0)+(Number.isFinite(rapidSnow)?Math.max(0,rapidSnow):0);if(phaseTotal>.001&&nextAmount>.001){const snowShare=Math.max(0,rapidSnow)/phaseTotal;snowfall=nextAmount*snowShare;rain=nextAmount*(1-snowShare);showers=0}const peak=Math.max(0,Number(rucRapid.peakRateMmh)||0),cape=Math.max(0,Number(rucRapid.cape)||0),capeMu=Math.max(cape,Number(rucRapid.capeMu)||0),cin=Math.max(0,Number(rucRapid.convectiveInhibition)||0),cinMu=Math.max(0,Number(rucRapid.cinMu)||cin),dbz=Number(rucRapid.dbzCmax),uh=Math.max(0,Number(rucRapid.uhMax)||0),lpi=Math.max(0,Number(rucRapid.lpiMax)||Number(rucRapid.lpi)||0),echoTop=Math.max(0,Number(rucRapid.echoTopM)||0),updraft=Math.max(0,Number(rucRapid.updraftMax)||0),baseConvective=clamp((capeMu-250)/1200,0,1)*clamp((220-Math.min(cin,cinMu))/200,.08,1)*Math.max(clamp(peak/20,0,1),Number.isFinite(dbz)?clamp((dbz-28)/25,0,1):0),organizedSupport=Math.max(clamp(uh/120,0,1),clamp(lpi/300,0,1),clamp((echoTop-5000)/7000,0,1),clamp(updraft/12,0,1)),convectiveSupport=clamp(baseConvective*(.72+.28*organizedSupport),0,1);probability=Math.max(probability,clamp((rapidAmount>.02?35:10)+rapidAmount*80+convectiveSupport*35,0,92));if(convectiveSupport>.55&&precipitation>.08&&![71,73,75,77,85,86].includes(code))code=Math.max(code,82)}}
+  const rucRapid=nearestForecastHour(options.rucRapidMinutes15??[],row.epoch,8*60000);if(rucRapid){const leadHours=(row.epoch-now)/3600000,weight=leadHours<=2?.38:leadHours<=4?.62:leadHours<=6?.50:0;if(weight>0){const rapidAmount=Math.max(0,Number(rucRapid.precipitation)||0),nextAmount=precipitation+(rapidAmount-precipitation)*weight,total=rain+showers+snowfall,scale=total>.001?nextAmount/total:1;precipitation=nextAmount;if(total>.001){rain*=scale;showers*=scale;snowfall*=scale}else if(finalHour?.temperature!=null&&finalHour.temperature<=1)snowfall=nextAmount;else rain=nextAmount;const rapidRain=Number(rucRapid.rain),rapidSnow=Number(rucRapid.snowfallWaterEquivalent),phaseTotal=(Number.isFinite(rapidRain)?Math.max(0,rapidRain):0)+(Number.isFinite(rapidSnow)?Math.max(0,rapidSnow):0);if(phaseTotal>.001&&nextAmount>.001){const snowShare=Math.max(0,rapidSnow)/phaseTotal;snowfall=nextAmount*snowShare;rain=nextAmount*(1-snowShare);showers=0}const peak=Math.max(0,Number(rucRapid.peakRateMmh)||0),cape=Math.max(0,Number(rucRapid.cape)||0),capeMu=Math.max(cape,Number(rucRapid.capeMu)||0),cin=Math.max(0,Number(rucRapid.convectiveInhibition)||0),cinMu=Math.max(0,Number(rucRapid.cinMu)||cin),dbz=Number(rucRapid.dbzCmax),baseConvective=clamp((capeMu-250)/1200,0,1)*clamp((220-Math.min(cin,cinMu))/200,.08,1)*Math.max(clamp(peak/20,0,1),Number.isFinite(dbz)?clamp((dbz-28)/25,0,1):0),rapidThunder=rapidThunderRisk(rucRapid),convectiveSupport=Math.max(baseConvective,rapidThunder?.support??0);probability=Math.max(probability,clamp((rapidAmount>.02?35:10)+rapidAmount*80+convectiveSupport*35,0,92),rapidThunder?.percent??0);if(rapidThunder&&(rapidThunder.level==='likely'||rapidThunder.level==='high')&&precipitation>.08&&![71,73,75,77,85,86].includes(code))code=rapidThunderForecastCode(code,rapidThunder);else if(convectiveSupport>.55&&precipitation>.08&&![71,73,75,77,85,86].includes(code))code=Math.max(code,82)}}
   const radarBlend=blendRadarAtTarget({radar:options.radar,targetEpoch:row.epoch,intervalMinutes:15,modelAmount:precipitation,modelProbability:probability,now});if(radarBlend){const componentTotal=rain+showers+snowfall,scale=componentTotal>.001?radarBlend.amount/componentTotal:1;precipitation=radarBlend.amount;probability=radarBlend.probability;if(componentTotal>.001){rain*=scale;showers*=scale;snowfall*=scale}else if(finalHour?.temperature!=null&&finalHour.temperature<=1)snowfall=precipitation;else rain=precipitation}
   if(Number(anchorPrecipitation)>.01){const offsetMinutes=Math.max(0,(row.epoch-now)/60000),weight=localAdjustmentWeight(offsetMinutes,45),observedRate=Number(anchorPrecipitation)*60/Math.max(1,Number(anchor?.precipitationMinutes)||60),observedAmount=Math.max(0,observedRate*.25),modelNow=baseHour?Math.max(0,baseHour.precipitation*.25):precipitation,localAmount=localAssimilatedValue(observedAmount,modelNow,precipitation,offsetMinutes,45,0,80,20);if(localAmount>precipitation){const total=rain+showers+snowfall,scale=total>.001?localAmount/total:1;precipitation=localAmount;if(total>.001){rain*=scale;showers*=scale;snowfall*=scale}else if(finalHour?.temperature!=null&&finalHour.temperature<=1)snowfall=localAmount;else rain=localAmount}probability=Math.max(probability,90*weight);if(Number.isFinite(Number(anchorCode))&&offsetMinutes<=30)code=Math.round(Number(anchorCode))}
   const isDay=row.isDay??finalHour?.isDay,signal=reconcileForecastPrecipitation({precipitation,rain,showers,snowfall,probability,code,humidity:finalHour?.humidity,cloud:finalHour?.cloud,lowCloud:finalHour?.lowCloud,cape:finalHour?.cape,liftedIndex:finalHour?.liftedIndex,convectiveInhibition:finalHour?.convectiveInhibition,sunshineDuration:row.sunshineDuration??finalHour?.sunshineDuration,isDay,leadHours:(row.epoch-now)/3600000}),sunshineDuration=coherentSunshineDurationSeconds({valueSeconds:row.sunshineDuration,intervalSeconds:15*60,daylightSeconds:forecastIntervalDaylightSeconds(row.epoch,15*60,finalHour?.sunriseEpoch,finalHour?.sunsetEpoch),isDay,weatherCode:signal.code,precipitation:signal.precipitation,rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall,precipitationProbability:signal.probability,cloudCover:finalHour?.cloud,lowCloudCover:finalHour?.lowCloud}),next={...row,precipitation:signal.precipitation,rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall,probability:signal.probability,code:signal.code,isDay:row.isDay??finalHour?.isDay,sunshineDuration};if(Math.abs(next.precipitation-row.precipitation)<.001&&Math.abs(next.probability-row.probability)<.1&&next.code===row.code&&next.sunshineDuration===row.sunshineDuration)return row;changed=true;return next

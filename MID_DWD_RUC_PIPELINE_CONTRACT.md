@@ -15,7 +15,7 @@ RUC-EPS gehört wie ICON-D2-EPS zur Unabhängigkeitsgruppe `dwd-ensemble` und zu
 - RUC-Niederschlag wird mit dem kanonischen Best-Match-Niederschlagsbündel reconciled; RUC ersetzt keine Niederschlagsphase blind.
 - RUC-EPS kalibriert die kurzfristige Niederschlagswahrscheinlichkeit im normalen Forecast aus bereits im Vorprozessor aggregierten Memberwahrscheinlichkeiten.
 - Native RUC-EPS-Member sind ausschließlich eine optionale exakt eventbezogene Zusatzquelle. Fehlen sie im kostenlosen Speicherprofil, fällt diese Memberauswertung auf ICON-D2-EPS innerhalb derselben DWD-Ensemblefamilie zurück.
-- Ein numerisches RUC- oder RUC-EPS-Signal darf niemals allein `Gewitter` erzeugen. Die appweite Regel „Gewitter erst bei beobachtetem Blitz“ bleibt verbindlich.
+- **Beobachtung und Prognose sind strikt getrennt:** Eine aktuelle Radar-/KONRAD3D-Zelle wird ohne detektierten Blitz weiterhin nicht als beobachtetes `Gewitter` bezeichnet. Diese Blitzregel gilt jedoch **nicht** als Sperre für numerische Gewitterprognosen. Die kanonische NWP-Prognose darf auch ohne Rapid-Daten Gewitter vorhersagen; ICON-D2-RUC darf bei verfügbarer Rapid-Diagnostik ein numerisches Gewittersignal erzeugen, wenn mehrere physikalisch unabhängige Zutaten (Instabilität/Inhibition + modellierter konvektiver Trigger + elektrische/organisatorische Unterstützung wie LPI/UH/EchoTop/Aufwind) gemeinsam tragen. Kein einzelnes Rapid-Feld ist alleinige Gewitterautorität.
 - Radar, Blitz, Stationen und Wetterzwilling bleiben nachgelagerte hyperlokale Korrekturen der kanonischen Reihe.
 
 ## DWD-Open-Data-Aufbereitung und native Zeitachsen
@@ -38,9 +38,19 @@ Fehlende Zwischenwerte von Temperatur, Wind, Druck oder Wolken werden nicht inte
 
 ### Appweite Verwendung
 
-Die RUC-Rapid-Felder laufen in `forecast-fusion` als `rapidMinutes15` in die kanonische `displayMinutes15`-Endstufe ein. RUC wird **vor** Radar/Nowcast angewendet; beobachtetes Radar und lokale Beobachtungen bleiben dadurch nachgelagert und höher priorisiert. 5-min-Niederschläge liefern neben der 15-min-Summe einen Peak-Intensitätswert, CAPE/CIN und optionale modellierte Reflektivität unterstützen die Schauer-/Konvektionsplausibilität. Ohne beobachteten Blitz darf RUC weiterhin keinen Gewittercode erzeugen.
+Die RUC-Rapid-Felder laufen in `forecast-fusion` als `rapidMinutes15` in die kanonische `displayMinutes15`-Endstufe ein. RUC wird **vor** Radar/Nowcast angewendet; beobachtetes Radar und lokale Beobachtungen bleiben dadurch nachgelagert und höher priorisiert. 5-min-Niederschläge liefern neben der 15-min-Summe einen Peak-Intensitätswert. CAPE/MU-CAPE und CIN/MU-CIN bilden zusammen mit modellierter Reflektivität bzw. Niederschlagstriggern den konvektiven Kern; LPI, UH, EchoTop und maximaler Aufwind verstärken ihn als zusätzliche elektrische/organisatorische Evidenz. Ab v0.9.76.35 darf diese **Mehrparameterdiagnostik** ein numerisches Gewittersignal in der Prognose erzeugen. Die aktuelle KONRAD3D-Zellbezeichnung bleibt davon unabhängig und heißt ohne Blitz weiterhin Schauer-/starke Schauerzelle.
 
 Für den Mitteleuropa-Extremwetter-Ausblick erzeugt der Vorprozessor ein kompaktes räumliches `rapid-extreme.json`. Es enthält ausschließlich für 0–6 h u. a. 6-h-Niederschlag, maximale 15-min-Menge, 5-min-Peakrate, CAPE/CIN und optional `DBZ_CMAX`, MU-CAPE/CIN, UH, LPI, EchoTop und Hagel. Diese deterministische Rapid-Unterstützung ergänzt ICON-D2-EPS/ICON-D2, ersetzt aber weder die Ensemble-Wahrscheinlichkeit noch KONRAD3D/Meso/Blitz als beobachtungsnahe Bestätigung.
+
+
+### Gewittersemantik ab v0.9.76.35
+
+MID unterscheidet zwei verschiedene Aussagen, die nicht mehr gegenseitig blockiert werden:
+
+1. **Aktuelle beobachtete Zellklassifikation:** KONRAD3D/Radar ohne detektierten Blitz → Schauer bzw. starke Schauerzelle; mit Blitz → Gewitterzelle. VIL, Reflektivität, vertikale Ausdehnung, Starkregenpotential und Zellmasse fließen über die amtliche KONRAD3D-Schwereklassifikation weiterhin in die Intensitätsbewertung ein, ersetzen aber den Blitznachweis für die Benennung des aktuellen Zustands nicht.
+2. **Numerische Gewitterprognose:** kann unabhängig vom aktuellen Blitzstatus entstehen. Ohne Rapid-Daten bleibt die kanonische Mehrparameter-/WMO-Prognose voll wirksam. Mit Rapid-Daten ergänzt ICON-D2-RUC die 0–6-h-Diagnose aus CAPE/MU-CAPE, CIN/MU-CIN, 5-/15-min-Niederschlag, `DBZ_CMAX`, LPI/LPI_MAX, UH, EchoTop und Aufwind. Die Rapid-Entscheidung ist ingredient-basiert; ein einzelnes Feld allein erzeugt keinen synthetischen Gewittercode.
+
+Damit bedeutet „kein aktueller Blitz“ nur „aktuell nicht blitzbestätigt“ und niemals „numerisch kein Gewitter möglich“.
 
 ### Strahlung und Sonnenscheindauer
 

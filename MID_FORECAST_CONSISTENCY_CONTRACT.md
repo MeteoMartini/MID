@@ -53,6 +53,16 @@ Erhöht oder senkt die zentrale Kurzfristlogik die Niederschlagswahrscheinlichke
 
 15-Minuten-Werte dürfen aufgrund ihrer feineren zeitlichen Auflösung vom Stundenwert abweichen; sie müssen jedoch aus derselben Evidenz und derselben zentralen Blend-/Plausibilitätslogik stammen. Feinere zeitliche Struktur ist zulässig, widersprüchliche Prognoseursachen sind es nicht.
 
+### 5a. Beobachtete Zelle und numerische Gewitterprognose sind getrennte Aussagen
+
+Die Blitzregel gilt ausschließlich für die **Bezeichnung einer aktuell radar-/KONRAD3D-beobachteten Zelle**: ohne beobachteten Blitz bleibt sie Schauer- beziehungsweise starke Schauerzelle; mit Blitz darf sie als Gewitterzelle bezeichnet werden.
+
+Sie ist **kein Gate für die numerische Prognose**. Die kanonische MID-Prognose darf Gewitter auch ohne aktuellen Blitznachweis prognostizieren. Das gilt sowohl mit Rapid-Evidenz als auch dann, wenn kein Rapid-Datensatz verfügbar ist. Bereits vorhandene numerische Gewittercodes dürfen allein wegen fehlender aktueller Blitzbeobachtung nicht herabgestuft werden.
+
+Ist ICON-D2-RUC verfügbar, wird ein neu abgeleitetes Rapid-Gewittersignal nicht aus einem einzelnen Feld erzeugt, sondern aus einer gemeinsamen konvektiven Evidenzlage – insbesondere Instabilität/Inhibition, hochfrequentem Niederschlag beziehungsweise modellierter Reflektivität sowie, sofern vorhanden, LPI, Updraft Helicity, EchoTop, Aufwind und weiteren Organisationssignalen. Diese Rapid-Diagnostik ergänzt die kanonische NWP-Gewitterprognose; sie ersetzt sie nicht.
+
+Radar-/KONRAD3D-Größen wie VIL, VIL-Dichte, DWD-Severity, EchoTop oder Reflektivität dürfen die aktuelle Zell- und Nowcast-Evidenz verstärken. Ohne Blitz dürfen sie die aktuell beobachtete Zelle dennoch nicht rückwirkend als bereits bestätigte Gewitterzelle umbenennen.
+
 ## 6. Keine doppelte Assimilation
 
 Radar, Konvektion, Stationsanker, Wetterzwilling oder andere lokale Korrekturen dürfen in einer UI-Komponente nicht erneut auf bereits finalisierte Werte angewendet werden. Darstellungskomponenten erhalten finale Werte und visualisieren sie lediglich.

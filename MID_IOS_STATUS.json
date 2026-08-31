@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-08-31T21:04:33.791Z",
-  "releaseVersion": "0.9.76.34",
+  "updatedAt": "2026-08-31T21:30:00Z",
+  "releaseVersion": "0.9.76.35",
   "sourceBaseline": {
     "professionalVersion": "0.9.70.2",
     "workerVersion": "0.9.70.2",
@@ -97,14 +97,15 @@
     "travel-planner-default-location-and-composite-boundaries-0.9.76.31",
     "travel-current-location-composite-boundary-regression-0.9.76.32",
     "weather-profile-day-stepper-cloud-layout-0.9.76.33",
-    "ci-hotfix-run-805-weather-profile-regressions-0.9.76.34"
+    "ci-hotfix-run-805-weather-profile-regressions-0.9.76.34",
+    "numerical-thunder-ruc-multiparameter-semantics-0.9.76.35"
   ],
   "nextMilestone": "macos-xcode-simulator-quality-assurance",
   "validation": {
     "browserBuild": "GitHub-Run #805: TypeScript 7.0.2 und Vite 6.4.3 waren erfolgreich; der Build scheiterte erst danach an sechs veralteten 24-h-Profil-Regressionen, die in v0.9.76.34 synchronisiert wurden.",
     "typescript": "GitHub-Run #805 bestätigte den vollständigen TypeScript-Check als grün; v0.9.76.34 ändert ausschließlich Regressionserwartungen und Release-Metadaten.",
-    "workerSyntax": "Keine fachliche Worker-Änderung; Worker bleibt nur versionssynchron.",
-    "regressions": "Die sechs in Run #805 fehlgeschlagenen 24-h-Profiltests sowie die neue v0.9.76.33-Profil-/Stundenwechselregression laufen lokal grün.",
+    "workerSyntax": "Worker-Fusion fachlich geändert: numerischer Blitz-Gate entfernt; RUC/RUC-EPS erhalten numerische Gewittercodes. Worker-Aggregat/Syntax und neue RUC-/Gewitterregressionen vor Release zu prüfen.",
+    "regressions": "P0-Regression ergänzt: Beobachtungszelle bleibt blitzgebunden benannt; numerische NWP/RUC-Gewitterprognose bleibt unabhängig möglich; Einzelparameter dürfen keinen synthetischen Rapid-Gewittercode erzeugen.",
     "capacitorSync": "Kein neuer Capacitor-/iOS-Sync in dieser Container-Sitzung durchgeführt; Browser/PWA- und iOS-Fachkern bleiben unverändert gemeinsam.",
     "xcodeProjectStructure": "Gemeinsamer Capacitor-iOS-Wrapper, Light-/Dark-AppIcon- und Splash-Kataloge, Privacy-Manifeste und MIDWidgets-Struktur bleiben erhalten; keine neue native Berechtigung oder Capability aktiviert.",
     "xcodeAppleSdkBuild": "required-next-gate-macos-xcode-simulator; includes Apple SDK build, simulator launch, Privacy Report inspection and post-sync structure verification."
@@ -120,7 +121,7 @@
     ],
     "approved": false
   },
-  "validationNote": "v0.9.76.34 ist ein reiner CI-Hotfix für Run #805: sechs veraltete 24-h-Profiltests wurden an die bereits freigegebene v0.9.76.33-Geometrie angepasst; Produktcode bleibt unverändert.",
+  "validationNote": "v0.9.76.35 trennt Gewitterbeobachtung und Gewitterprognose fachlich sauber: Blitz bleibt Bestätigung für aktuelle KONRAD3D-Zellen, numerische NWP-/RUC-Prognosen können unabhängig Gewitter erzeugen. ICON-D2-RUC Rapid wird multiparametrisch aus Instabilität, Inhibition, Trigger, LPI/UH/EchoTop/Aufwind bewertet.",
   "completedMilestones": [
     "ci-regression-contract-hotfix-0.9.76.22",
     "ruc-scheduler-resilience-source-preparation-0.9.76.24",
@@ -132,6 +133,7 @@
     "travel-planner-default-location-and-composite-boundaries-0.9.76.31",
     "travel-current-location-composite-boundary-regression-0.9.76.32",
     "weather-profile-day-stepper-cloud-layout-0.9.76.33",
-    "ci-hotfix-run-805-weather-profile-regressions-0.9.76.34"
+    "ci-hotfix-run-805-weather-profile-regressions-0.9.76.34",
+    "numerical-thunder-ruc-multiparameter-semantics-0.9.76.35"
   ]
 }

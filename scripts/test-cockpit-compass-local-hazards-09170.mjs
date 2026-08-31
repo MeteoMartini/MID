@@ -43,7 +43,7 @@ for(const token of [
  'THUNDER_SITE_PASSED_HIDE_DISTANCE_KM=15',
  'THUNDER_SITE_MAX_DISTANCE_KM=60',
  'relevance?.relevant',
- 'passedCell'
+ 'if(!numericalThunder&&!combinedConvectiveSignal)return null;'
 ])need('Standortrelevanz',thunder,token);
 need('Sturzflut-Kopplung',heavy,'siteRelevance?.relevant');
 need('Nowcast-Kopplung',fusion,'convectiveCellSiteRelevance(cell)');
@@ -77,7 +77,8 @@ try{
  const nearInfo=module.combineThunderstormInformation(wrap(nearLeaving),[],null,null,'Bezugsort');
  if(!nearInfo)failures.push('Noch unmittelbar nahe Zelle wird bereits vor der 15-km-Auszugsgrenze ausgeblendet.');
  const now=Date.now(),modelHours=[{epoch:now+30*60000,code:95,cape:500,probability:65}],radarQuiet={currentRate:0},radarActive={currentRate:10};
- if(module.combineThunderstormInformation(wrap(passed),modelHours,radarQuiet,null,'Bezugsort')!==null)failures.push('Abgezogene Zelle wird über ein bloßes Modellsignal erneut eingeblendet.');
+ const passedModelForecast=module.combineThunderstormInformation(wrap(passed),modelHours,radarQuiet,null,'Bezugsort');
+ if(!passedModelForecast||passedModelForecast.status?.kind!=='model'||passedModelForecast.phenomenon!=='thunderstorm')failures.push('Eine abgezogene beobachtete Zelle darf eine unabhängige numerische Gewitterprognose nicht unterdrücken.');
  const liveSignal=module.combineThunderstormInformation(wrap(passed),[{...modelHours[0],cape:1100}],radarActive,null,'Bezugsort');
  if(!liveSignal||liveSignal.status?.kind!=='model')failures.push('Neues starkes Standortradar-/CAPE-Signal wird nach Zellabzug unzulässig unterdrückt.');
 }catch(error){failures.push(`Funktionale Standortrelevanz nicht ausführbar: ${error instanceof Error?error.message:String(error)}`)}

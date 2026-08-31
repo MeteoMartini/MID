@@ -1,3 +1,12 @@
+# v0.9.76.35
+
+- P0 Gewittersemantik: Blitznachweis klassifiziert weiterhin den **aktuellen Radar-/KONRAD3D-Zustand**, ist aber keine Voraussetzung mehr für eine numerische Gewitterprognose.
+- ICON-D2-RUC: Der alte numerische Blitz-Gate wurde entfernt; RUC-/RUC-EPS-Kalibrierung darf bestehende WMO-Gewittercodes nicht mehr zu Schauercodes herabstufen.
+- ICON-D2-RUC Rapid: neue ingredient-basierte Mehrparameterdiagnostik aus CAPE/MU-CAPE, CIN/MU-CIN, 5-/15-min-Niederschlag, modellierter Reflektivität, LPI, UH, EchoTop und Aufwind. Kein einzelnes Rapid-Feld allein erzeugt einen synthetischen Gewittercode.
+- 15-min-Prognose: hinreichend stark und mehrfach gestützte Rapid-Konvektion darf prognostisch WMO 95 erzeugen; 96/97/99 werden nicht heuristisch erfunden.
+- Gewitterinformation: numerische Gewitterprognosen bleiben auch ohne Rapid-Daten möglich. Eine blitzlose aktuelle K3D-Zelle bleibt zugleich korrekt als starke Schauerzelle bezeichnet; numerische Gewitterentwicklung wird davon getrennt dargestellt.
+- Worker-Fachlogik geändert; aktualisierter Worker ist erforderlich.
+
 # v0.9.76.34
 
 - CI-Hotfix für GitHub-Run #805: Sechs veraltete Regressionserwartungen wurden an den bereits freigegebenen 24-h-Profilvertrag aus v0.9.76.33 angepasst.

@@ -17,7 +17,7 @@ must(worker.includes('dwdRucR2Health')&&router.includes("mode==='ruc-health'")&&
 must(!/eccodes|codes_grib|grib_new/i.test(worker),'Cloudflare Worker must never decode GRIB/eccodes');
 must(worker.includes('applyRucRapidUpdateWeatherHours')&&worker.includes('applyRucEpsProbabilityHours'),'RUC and RUC-EPS must calibrate canonical hours');
 must(worker.includes("sourceRole:'rapid-update'")&&worker.includes('leadHours>14'),'RUC calibration must be 0–14 h only');
-must(worker.includes('safeRapidThunderCode')&&worker.includes('[95,96,97,99]'),'RUC thunder guard missing');
+must(worker.includes('rapidForecastWeatherCode')&&!worker.includes('safeRapidThunderCode'),'RUC forecast weather-code handling must preserve numerical thunder without a lightning gate');
 must(worker.includes('temperature_2m,dew_point_2m,pressure_msl,wind_speed_10m'),'RUC/core physical variables missing from fusion request');
 
 // Ensemble family/short-range contract.
