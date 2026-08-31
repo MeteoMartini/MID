@@ -1,3 +1,10 @@
+# v0.9.76.15
+
+- MapLibre GL JS 6.6.0 qualifiziert und übernommen; die bisherigen 6.5.0-Pin-Regressionen folgen dem neuen reproduzierbaren Vertrag.
+- `uuid@7.0.3` als transitiver Dev-/iOS-Tooling-Pfad `@capacitor/cli -> xcode -> uuid` dokumentiert und gegen riskante Overrides geschützt.
+- `MID_BRANCH_RULESET.json` als konkrete Stable-Schutzvorlage mit `MID CI verify`, Release-Evidenzstatus und gezieltem Workflow-Bypass gehärtet.
+- Keine fachliche Wetter-, Karten-, Radar-, Worker-, React- oder Vite-Major-Änderung.
+
 ## v0.9.76.14
 
 - CI-Hotfix nach Run #788: drei historische 24-h-Profil-Regressionen auf den bereits fachlich freigegebenen, kompakteren v0.9.76.13-Achsenvertrag migriert; kein Produktcode-Rollback.

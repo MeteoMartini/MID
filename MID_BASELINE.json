@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.76.14",
+  "releaseVersion": "0.9.76.15",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -331,7 +331,8 @@
     "scripts/test-forecast-cockpit-register-invariance-09768.mjs",
     "scripts/test-weather-profile-modern-dayview-097610.mjs",
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
-    "scripts/test-weather-profile-mobile-compact-097612.mjs"
+    "scripts/test-weather-profile-mobile-compact-097612.mjs",
+    "scripts/test-maplibre-660-uuid-upstream-097615.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -592,7 +593,8 @@
     "scripts/test-forecast-cockpit-register-invariance-09768.mjs",
     "scripts/test-weather-profile-modern-dayview-097610.mjs",
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
-    "scripts/test-weather-profile-mobile-compact-097612.mjs"
+    "scripts/test-weather-profile-mobile-compact-097612.mjs",
+    "scripts/test-maplibre-660-uuid-upstream-097615.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -917,7 +919,11 @@
     "scripts/test-weather-profile-mobile-compact-097612.mjs",
     "MID_IMPLEMENTATION_0.9.76.12.md",
     "MID_IMPLEMENTATION_0.9.76.13.md",
-    "MID_IMPLEMENTATION_0.9.76.14.md"
+    "MID_IMPLEMENTATION_0.9.76.14.md",
+    "scripts/test-maplibre-660-uuid-upstream-097615.mjs",
+    "MID_IMPLEMENTATION_0.9.76.15.md",
+    "MID_BRANCH_RULESET.json",
+    "MID_DEPENDENCY_UPGRADE_POLICY.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -935,7 +941,8 @@
     "scripts/test-worker-auto-deploy-09693.mjs",
     "scripts/test-runtime-lifecycle-offline-resume-09701.mjs",
     "scripts/test-widgetkit-xcode-structure-09710.mjs",
-    "scripts/test-dwd-location-crop-original-pixels-097611.mjs"
+    "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
+    "scripts/test-maplibre-660-uuid-upstream-097615.mjs"
   ],
   "protectedFiles": [
     "scripts/test-travel-planner-era5-seamless-units-09652.mjs",
@@ -1048,7 +1055,11 @@
     "src/ForecastCockpit.tsx",
     "scripts/test-weather-profile-mobile-compact-097612.mjs",
     "MID_IMPLEMENTATION_0.9.76.12.md",
-    "MID_IMPLEMENTATION_0.9.76.13.md"
+    "MID_IMPLEMENTATION_0.9.76.13.md",
+    "scripts/test-maplibre-660-uuid-upstream-097615.mjs",
+    "MID_IMPLEMENTATION_0.9.76.15.md",
+    "MID_BRANCH_RULESET.json",
+    "MID_DEPENDENCY_UPGRADE_POLICY.md"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md"

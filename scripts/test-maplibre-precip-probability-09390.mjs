@@ -9,11 +9,11 @@ const [pkgText,lockText,baselineText,core,compat,weather,app,fusion,cockpit,rada
 const pkg=JSON.parse(pkgText),lock=JSON.parse(lockText),baseline=JSON.parse(baselineText),failures=[];
 const need=(area,text,token)=>{if(!text.includes(token))failures.push(`${area}: ${token}`)};
 const forbid=(area,text,token)=>{if(text.includes(token))failures.push(`${area}: unerlaubt ${token}`)};
-if(pkg.dependencies?.['maplibre-gl']!=='6.5.0')failures.push('Package: maplibre-gl 6.5.0 ist nicht fest gepinnt.');
+if(pkg.dependencies?.['maplibre-gl']!=='6.6.0')failures.push('Package: maplibre-gl 6.6.0 ist nicht fest gepinnt.');
 for(const name of ['leaflet','react-leaflet'])if(pkg.dependencies?.[name])failures.push(`Package: ${name} ist weiterhin Runtime-Abhängigkeit.`);
 if(pkg.devDependencies?.['@types/leaflet'])failures.push('Package: @types/leaflet ist weiterhin Dev-Abhängigkeit.');
 if(lock.packages?.['node_modules/leaflet']||lock.packages?.['node_modules/react-leaflet']||lock.packages?.['node_modules/@react-leaflet/core'])failures.push('Lockfile enthält weiterhin Leaflet-Pakete.');
-if(lock.packages?.['node_modules/maplibre-gl']?.version!=='6.5.0')failures.push('Lockfile enthält nicht MapLibre GL JS 6.5.0.');
+if(lock.packages?.['node_modules/maplibre-gl']?.version!=='6.6.0')failures.push('Lockfile enthält nicht MapLibre GL JS 6.6.0.');
 need('MapLibre-Kern',core,"import * as maplibregl from 'maplibre-gl'");
 need('MapLibre-WMS',core,"'{bbox-epsg-3857}'");
 need('MapLibre-Layerreihenfolge',core,'registerMapLayerOrder');
