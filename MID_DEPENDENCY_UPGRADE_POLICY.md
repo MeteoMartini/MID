@@ -10,7 +10,7 @@ Der Stable-Channel erhält keine ungeprüften Major-/Toolchain-Sprünge. Der rep
 - TypeScript-Strada-Test-API: Alias `typescript-strada` auf 6.0.3, ausschließlich für bestehende Regressionen mit der von TypeScript 7 entfernten JavaScript-Compiler-API; niemals für den App-/Node-Typecheck
 - Vite: 6.4.3
 - @vitejs/plugin-react: 4.7.0
-- Lucide React: 1.34.0 (React 18.3.1 bleibt unverändert)
+- Lucide React: 1.35.0 (isolierter Minor-Kandidat; TypeScript/Vite und CodeQL grün, nur historische Versionspins angepasst) (React 18.3.1 bleibt unverändert)
 - MapLibre GL JS: 6.6.0 (6.5.0-Kompatibilitätslinie plus CPU-DEM-Picking ohne GPU-Readback-Stall, reduzierte GPU-Speicherlast und einmaliger color-relief-DEM-Texturupload pro Tile)
 - GitHub Actions: checkout 7.0.1 (`3d3c42e5aac5ba805825da76410c181273ba90b1`) und setup-node 7.0.0 (`820762786026740c76f36085b0efc47a31fe5020`), jeweils SHA-gepinnt
 - CodeQL: 4.37.7 (`ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd`), SHA-gepinnt

@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.76.15",
+  "version": "0.9.76.18",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -359,7 +359,8 @@
     "test:weather-profile-story-axis": "node scripts/test-weather-profile-story-axis-09750.mjs",
     "test:typescript-7-compatibility": "node scripts/test-typescript-7-compatibility-09760.mjs",
     "test:09765": "node scripts/test-model-init-window-extrema-travel-snow-09765.mjs",
-    "test:weather-profile-mobile-compact": "node scripts/test-weather-profile-mobile-compact-097612.mjs"
+    "test:weather-profile-mobile-compact": "node scripts/test-weather-profile-mobile-compact-097612.mjs",
+    "test:lucide-135-maintenance": "node scripts/test-lucide-135-maintenance-097616.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",
@@ -374,7 +375,7 @@
     "astronomy-engine": "^2.1.19",
     "html-to-image": "^1.11.13",
     "jsfive": "^0.4.0",
-    "lucide-react": "^1.34.0",
+    "lucide-react": "^1.35.0",
     "maplibre-gl": "6.6.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",

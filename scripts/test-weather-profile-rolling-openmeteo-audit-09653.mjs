@@ -41,7 +41,7 @@ for(const token of [
  'sunriseEpoch',
  'sunsetEpoch',
  'className="night-band"',
- 'y={82}',
+ 'y={83}',
  'const profileXForEpoch=(epoch:number)=>',
  'profileXForEpoch(event.epoch)',
  'y1={skyBandTop}',

@@ -30,7 +30,7 @@ for(const token of [
 for(const token of [
  "window.addEventListener('mid:navigate-forecast-horizon'",
  "window.dispatchEvent(new CustomEvent('mid:forecast-horizon-active'",
- 'chartDataInset=compactProfile?5:10',
+ 'chartDataInset=compactProfile?2:chartViewportWidth<=860?4:8',
  'chartDataLeft=chartPaddingLeft+chartDataInset',
  'chartDataWidth=Math.max(1,chartPlotWidth-chartDataInset*2)',
  'const profileXForEpoch=(epoch:number)=>',

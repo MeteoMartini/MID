@@ -1,3 +1,22 @@
+# v0.9.76.18
+
+- CI-Hotfix: zwei überholte 24-h-Wetterprofil-Regressionen an den bereits produktiv gültigen kompakten Profilvertrag angepasst (vollzählige Stundenpiktogramme, aktuelle SVG-Position und responsive 2/4/8-px-Dateninsets).
+- Kein Rückbau des neuen 24-h-Layouts und keine fachliche Worker-Änderung.
+
+# v0.9.76.17
+
+- DWD „Wolken + Niederschlagsart“: Zentrierung des standortbezogenen Originalbild-Ausschnitts nach Zoomwechsel robuster gemacht, indem der Ortsmittelpunkt nach Layout-/Scroll-Updates mehrfach nachgeführt wird. Bei höheren Zoomstufen bleibt der Zielort damit deutlich zuverlässiger im Fokus.
+- DWD-Ortsmarker optisch entschärft (kleiner, transparenter) und die fest eingebettete Originallegende weiter verkleinert, damit weniger Bildinhalt verdeckt wird.
+- 24-h-Wetterprofil: obere Zeitmarker näher an die Zeitachse gerückt, linke/rechte Diagrammränder weiter verdichtet und die Lane „Therm. Empfinden“ zweizeilig ausgeführt, sodass die Nutzbreite insbesondere mobil besser ausgenutzt wird.
+- Achsenpolitur im 24-h-Profil: Niederschlags-, Wind- und Luftdruck-Skalen erhalten mehr Abstand zur Achse; Wetterpiktogramme werden nun vollständig, etwas kleiner und mit besserer Konturierung dargestellt.
+- Nachtstunden im 24-h-Profil werden jetzt als zusammenhängende, hellere Flächen statt unruhiger Streifen hervorgehoben; gemeinsamer Browser/PWA/iOS-Fachkern bleibt erhalten. Keine fachliche Worker-Änderung und kein manueller Worker-Upload erforderlich.
+
+# v0.9.76.16
+
+- Lucide React 1.34.0 → 1.35.0 nach isoliertem Dependabot-Kandidatenlauf; TypeScript/Vite und CodeQL waren grün.
+- Zwei historische Versionspin-Regressionen auf den qualifizierten Lucide-Stand aktualisiert; neue Regression schützt den isolierten Wartungsschritt.
+- React 18.3.1, Vite 6.4.3 und plugin-react 4.7.0 bleiben unverändert; keine funktionale Wetter-, UI-, Karten-, Worker- oder iOS-Änderung.
+
 # v0.9.76.15
 
 - MapLibre GL JS 6.6.0 qualifiziert und übernommen; die bisherigen 6.5.0-Pin-Regressionen folgen dem neuen reproduzierbaren Vertrag.

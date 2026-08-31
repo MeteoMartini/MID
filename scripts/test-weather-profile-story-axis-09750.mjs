@@ -15,7 +15,7 @@ for(const token of [
  'profileXForEpoch(event.epoch)',
  'x1={item.x} y1={skyBandTop} x2={item.x} y2={impactTop+impactHeight}',
  'x1={selectedVisualPoint.x} x2={selectedVisualPoint.x} y1={skyBandTop}',
- 'x={item.x-9} y={82}',
+ 'x={item.x-weatherPictogramOffset} y={83}',
  'style={{left:positionPct(item.x)}}',
  'className="lane-bg weather"',
  'pressureTop=468,pressureBottom=520',

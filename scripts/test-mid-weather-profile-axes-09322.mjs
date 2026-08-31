@@ -10,8 +10,8 @@ const failures=[];
 const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
 
 for(const token of [
-  'chartPaddingLeft=compactProfile?68:chartViewportWidth<=860?76:88',
-  'chartPaddingRight=compactProfile?34:chartViewportWidth<=860?38:44',
+  'chartPaddingLeft=compactProfile?60:chartViewportWidth<=860?70:82',
+  'chartPaddingRight=compactProfile?24:chartViewportWidth<=860?28:34',
   'className="profile-axis temperature-axis"',
   'className="profile-axis precipitation-axis"',
   'className="profile-axis wind-axis"',
@@ -24,7 +24,7 @@ for(const token of [
   '>mm</text>',
   '>hPa</text>',
   "unit==='kmh'?'km/h':unit==='ms'?'m/s':unit==='mph'?'mph':'kt'",
-  'textAnchor="end" x={chartPaddingLeft-10}',
+  'x={leftScaleLabelX}',
   '[chartRainMax,chartRainMax/2,0].map',
   '[100,50,0].map',
   '[chartWindMax,chartWindMax/2,0].map'
@@ -36,8 +36,8 @@ for(const token of [
   '.cockpit-weather-profile .profile-axis-unit',
   '.cockpit-weather-profile .profile-time-axis',
   '.cockpit-weather-profile .profile-time-tick.major',
-  '.cockpit-weather-profile .cockpit-meteogram-pro__overlay.time>span{top:5px',
-  'background:color-mix(in srgb,var(--mg-shell) 58%,transparent)',
+  '.cockpit-weather-profile .cockpit-meteogram-pro__overlay.time>span{top:24px',
+  'background:color-mix(in srgb,var(--mg-shell) 54%,transparent)',
   '.cockpit-weather-profile .cockpit-meteogram-pro__svg .day-separator',
   '.cockpit-weather-profile .profile-bottom-date{',
   '.cockpit-weather-profile .profile-axis .axis-label{fill:var(--mg-muted);font:800 8px/1 Inter,ui-sans-serif,system-ui,sans-serif;font-variant-numeric:tabular-nums;paint-order:stroke fill;'
