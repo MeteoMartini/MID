@@ -1,3 +1,17 @@
+# v0.9.76.34
+
+- CI-Hotfix für GitHub-Run #805: Sechs veraltete Regressionserwartungen wurden an den bereits freigegebenen 24-h-Profilvertrag aus v0.9.76.33 angepasst.
+- Die Tests erwarten jetzt die neue Wetterpiktogramm-Höhe `y=78`, die nach oben verlegten Wolkenbänder (`cloudTop=101`), den darunter liegenden Temperaturbereich (`tempTop=150`), die verschobene Luftdruckspur (`498–550`) sowie die dünnere Temperaturkurve (`2.75`).
+- Produktcode und fachliche Wetterlogik bleiben unverändert; kein Rollback der neuen Wolkenanordnung oder des 23→00-Uhr-Fixes.
+- Keine fachliche Worker-Änderung.
+
+# v0.9.76.33
+
+- Tagesdetail-Stundennavigation: Der Schritt von 23:00 Uhr springt beim Weiterklicken nun korrekt auf 00:00 Uhr des Folgetags statt auf den 12-Uhr-Fallback. Die gewünschte Zieluhrzeit bleibt dabei so lange vorgemerkt, bis der neue Tag tatsächlich den passenden Zeitslot ausgewählt hat.
+- 24-h-Wetterprofil: Die Wolkenbänder (Gesamt/H/M/L) sitzen jetzt direkt unter den Wetter-Piktogrammen und damit vor dem Temperaturbereich.
+- 24-h-Wetterprofil: Temperatur- und gefühlte Temperaturkurve wurden bewusst etwas dünner ausgeführt, um den oberen Profilbereich ruhiger und präziser wirken zu lassen.
+- Keine fachliche Worker-Änderung; nur Versionssynchronisierung des gekoppelten Notfall-/Audit-Artefakts. Ein neuer manueller Worker-Upload ist nicht erforderlich.
+
 # v0.9.76.32
 
 - Release-Gate-Sicherung für die v0.9.76.31-Korrekturen ergänzt.

@@ -36,8 +36,8 @@ assert.ok(cockpit.includes('columnWidth=Math.max(0,columnRight-columnLeft)'),'24
 assert.ok(!cockpit.includes('columnWidth:Math.max(16,columnRight-columnLeft)'),'Künstlich auf 16 px aufgeweitete Profilspalten würden wieder zu überlappenden Einzelkästchen führen.');
 assert.ok(cockpit.includes('const span=Math.max(0,item.columnRight-item.columnLeft);'),'Profilband-Geometrie muss auf der echten Zellspanne beruhen.');
 assert.ok(cockpit.includes('const safeMinWidth=Math.min(minWidth,span)'),'Profilband-Geometrie muss Minimalbreiten innerhalb der echten Zelle kappen.');
-assert.ok(modern.includes('.cockpit-weather-profile .temperature-line{stroke-width:3.35}'),'24-h-Temperaturkurve ist nicht auf die dünnere Tagesansicht-Anmutung reduziert.');
-assert.ok(styles.includes('.cockpit-weather-profile .temperature-line{stroke-width:3.35}'),'Styles-Aggregat enthält die dünnere 24-h-Temperaturkurve nicht.');
+assert.ok(modern.includes('.cockpit-weather-profile .temperature-line{stroke-width:2.75}'),'24-h-Temperaturkurve ist nicht auf die dünnere Tagesansicht-Anmutung reduziert.');
+assert.ok(styles.includes('.cockpit-weather-profile .temperature-line{stroke-width:2.75}'),'Styles-Aggregat enthält die dünnere 24-h-Temperaturkurve nicht.');
 
 assert.ok(radar.includes('className="dwd-precip-type-radar__location-pin" aria-hidden="true">📍</span></button>'),'DWD-Ortsmarker muss mit einer echten Stecknadel gekennzeichnet sein.');
 assert.ok(!radar.includes("<MapPin size={22}/><span>{location.name||'Standort'}</span>"),'DWD-Ortsmarker darf keinen Ortsnamen über das Bild legen.');

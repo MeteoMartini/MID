@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.76.32",
+  "releaseVersion": "0.9.76.34",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -966,7 +966,8 @@
     "MID_IMPLEMENTATION_0.9.76.28.md",
     "MID_IMPLEMENTATION_0.9.76.29.md",
     "scripts/test-travel-current-composite-boundaries-097632.mjs",
-    "MID_IMPLEMENTATION_0.9.76.32.md"
+    "MID_IMPLEMENTATION_0.9.76.32.md",
+    "MID_IMPLEMENTATION_0.9.76.34.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1148,7 +1149,8 @@
     "MID_IMPLEMENTATION_0.9.76.27.md",
     "MID_IMPLEMENTATION_0.9.76.28.md",
     "MID_IMPLEMENTATION_0.9.76.29.md",
-    "MID_IMPLEMENTATION_0.9.76.32.md"
+    "MID_IMPLEMENTATION_0.9.76.32.md",
+    "MID_IMPLEMENTATION_0.9.76.34.md"
   ],
   "evidenceFiles": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -1164,7 +1166,8 @@
     "MID_IMPLEMENTATION_0.9.76.28.md",
     "MID_IMPLEMENTATION_0.9.76.29.md",
     "scripts/test-travel-current-composite-boundaries-097632.mjs",
-    "MID_IMPLEMENTATION_0.9.76.32.md"
+    "MID_IMPLEMENTATION_0.9.76.32.md",
+    "MID_IMPLEMENTATION_0.9.76.34.md"
   ],
   "releaseEvidence": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",

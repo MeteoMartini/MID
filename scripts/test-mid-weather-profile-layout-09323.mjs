@@ -11,7 +11,7 @@ for(const token of [
  'chartCanvasHeight=chartHeight',
  'timeLabelStepMs=(chartViewportWidth<=560?6:chartViewportWidth<=860?4:3)*3600000',
  'weatherPictogramStep=1',
- 'y={83}',
+ 'y={78}',
  "const visibleTemperatureExtreme=(kind:'max'|'min')",
  "label:`${Math.round(item.point.temperature)}°`",
  "temperatureExtremes=[visibleTemperatureExtreme('max'),visibleTemperatureExtreme('min')]",
