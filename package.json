@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.76.10",
+  "version": "0.9.76.14",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -358,7 +358,8 @@
     "test:release-upload-budget": "node scripts/test-release-upload-budget-097410.mjs",
     "test:weather-profile-story-axis": "node scripts/test-weather-profile-story-axis-09750.mjs",
     "test:typescript-7-compatibility": "node scripts/test-typescript-7-compatibility-09760.mjs",
-    "test:09765": "node scripts/test-model-init-window-extrema-travel-snow-09765.mjs"
+    "test:09765": "node scripts/test-model-init-window-extrema-travel-snow-09765.mjs",
+    "test:weather-profile-mobile-compact": "node scripts/test-weather-profile-mobile-compact-097612.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",

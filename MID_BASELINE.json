@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.76.10",
+  "releaseVersion": "0.9.76.14",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -329,7 +329,9 @@
     "scripts/test-model-init-window-extrema-travel-snow-09765.mjs",
     "scripts/test-shortterm-german-word-order-09767.mjs",
     "scripts/test-forecast-cockpit-register-invariance-09768.mjs",
-    "scripts/test-weather-profile-modern-dayview-097610.mjs"
+    "scripts/test-weather-profile-modern-dayview-097610.mjs",
+    "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
+    "scripts/test-weather-profile-mobile-compact-097612.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -588,7 +590,9 @@
     "scripts/test-composite-transparent-reference-09762.mjs",
     "scripts/test-model-init-window-extrema-travel-snow-09765.mjs",
     "scripts/test-forecast-cockpit-register-invariance-09768.mjs",
-    "scripts/test-weather-profile-modern-dayview-097610.mjs"
+    "scripts/test-weather-profile-modern-dayview-097610.mjs",
+    "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
+    "scripts/test-weather-profile-mobile-compact-097612.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -905,7 +909,15 @@
     "MID_LONG_RANGE_COST_NEUTRAL_EXPANSION_0.9.76.5.md",
     "scripts/test-forecast-cockpit-register-invariance-09768.mjs",
     "scripts/test-weather-profile-modern-dayview-097610.mjs",
-    "MID_IMPLEMENTATION_0.9.76.10.md"
+    "MID_IMPLEMENTATION_0.9.76.10.md",
+    "src/DwdPrecipitationTypeRadar.tsx",
+    "src/styles-src/30-modern.css",
+    "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
+    "MID_IMPLEMENTATION_0.9.76.11.md",
+    "scripts/test-weather-profile-mobile-compact-097612.mjs",
+    "MID_IMPLEMENTATION_0.9.76.12.md",
+    "MID_IMPLEMENTATION_0.9.76.13.md",
+    "MID_IMPLEMENTATION_0.9.76.14.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -922,7 +934,8 @@
     "scripts/test-ruc-fusion-runtime-09691.mjs",
     "scripts/test-worker-auto-deploy-09693.mjs",
     "scripts/test-runtime-lifecycle-offline-resume-09701.mjs",
-    "scripts/test-widgetkit-xcode-structure-09710.mjs"
+    "scripts/test-widgetkit-xcode-structure-09710.mjs",
+    "scripts/test-dwd-location-crop-original-pixels-097611.mjs"
   ],
   "protectedFiles": [
     "scripts/test-travel-planner-era5-seamless-units-09652.mjs",
@@ -1025,7 +1038,17 @@
     "MID_IMPLEMENTATION_0.9.76.2.md",
     "MID_IMPLEMENTATION_0.9.76.3.md",
     "scripts/test-weather-profile-modern-dayview-097610.mjs",
-    "MID_IMPLEMENTATION_0.9.76.10.md"
+    "MID_IMPLEMENTATION_0.9.76.10.md",
+    "src/DwdPrecipitationTypeRadar.tsx",
+    "src/styles-src/30-modern.css",
+    "scripts/test-dwd-native-georef-09250.mjs",
+    "scripts/test-dwd-raster-georef-09242.mjs",
+    "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
+    "MID_IMPLEMENTATION_0.9.76.11.md",
+    "src/ForecastCockpit.tsx",
+    "scripts/test-weather-profile-mobile-compact-097612.mjs",
+    "MID_IMPLEMENTATION_0.9.76.12.md",
+    "MID_IMPLEMENTATION_0.9.76.13.md"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md"
@@ -1043,6 +1066,8 @@
     "MID_IMPLEMENTATION_0.9.76.2.md",
     "MID_IMPLEMENTATION_0.9.76.3.md",
     "MID_IMPLEMENTATION_0.9.76.9.md",
-    "MID_IMPLEMENTATION_0.9.76.10.md"
+    "MID_IMPLEMENTATION_0.9.76.10.md",
+    "MID_IMPLEMENTATION_0.9.76.11.md",
+    "MID_IMPLEMENTATION_0.9.76.12.md"
   ]
 }

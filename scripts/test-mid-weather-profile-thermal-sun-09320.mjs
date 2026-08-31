@@ -24,7 +24,8 @@ for(const token of [
   "label='sehr kalt'",
   "import {shortTermFogRisk} from './shortTermFogRisk';",
   'className="selected-time-line"',
-  "dateValue!==chartPoints[0]?.dateValue?'other-day':''",
+  "className={item.showDateMarker?'major':''}",
+  'className="profile-bottom-date"',
   "<small>{formatDate(item.dateValue,{day:'2-digit',month:'2-digit'})}</small>",
   'SvgProfileWindDirectionArrow',
   'windSignalColor(gust)',
@@ -46,7 +47,7 @@ for(const token of [
   'Wetter-Hazards',
   'Thermische Einordnung nach den DWD-Klassen der Gefühlten Temperatur'
 ])need('24-h-Wetterprofil',cockpit,token);
-for(const token of ['shortTermCloudBaseApprox','Wolkenbasis*'])reject('24-h-Wetterprofil',cockpit,token);
+for(const token of ['shortTermCloudBaseApprox','Wolkenbasis*','cockpit-meteogram-pro__overlay calendar'])reject('24-h-Wetterprofil',cockpit,token);
 need('Nebelrisiko',fogRisk,'export function shortTermFogRisk(point:ShortTermFogRiskPoint):ShortTermFogRiskResult');
 need('Nebelrisiko',fogRisk,'if(point.isDay&&!explicitFog&&!restrictedVisibility)score=Math.min(score,14)');
 
@@ -65,7 +66,8 @@ for(const token of [
   '.cockpit-weather-profile .selected-time-line',
   '.cockpit-weather-profile .thermal-feel-band',
   '.cockpit-weather-profile .profile-wind-direction-arrow',
-  '.cockpit-meteogram-pro__overlay.time>span.other-day b'
+  '.cockpit-weather-profile .cockpit-meteogram-pro__overlay.time>span.major',
+  '.cockpit-weather-profile .profile-bottom-date{'
 ])need('Styles',styles,token);
 
 const high=cockpit.indexOf("className:'high'"),mid=cockpit.indexOf("className:'mid'"),low=cockpit.indexOf("className:'low'");

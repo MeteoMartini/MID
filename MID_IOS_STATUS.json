@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-08-30T21:34:17.596Z",
-  "releaseVersion": "0.9.76.10",
+  "updatedAt": "2026-08-31T06:44:43.396Z",
+  "releaseVersion": "0.9.76.14",
   "sourceBaseline": {
     "professionalVersion": "0.9.70.2",
     "workerVersion": "0.9.70.2",
@@ -80,15 +80,21 @@
     "typescript-7-capacitor-json-config-hotfix-0.9.76.1",
     "typescript-7-strict-build-hotfix-0.9.76.2",
     "ios-release-status-version-sync-hotfix-0.9.76.4",
-    "MID_IMPLEMENTATION_0.9.76.10.md"
+    "MID_IMPLEMENTATION_0.9.76.10.md",
+    "dwd-original-location-crop-and-pixel-mapping-0.9.76.11",
+    "594-regressions-release-baseline-verified",
+    "capacitor-ios-web-assets-synchronized-0.9.76.11",
+    "parallel-v0.9.76.11-lineage-consolidation-0.9.76.12",
+    "weather-profile-mobile-density-axis-refinement-0.9.76.12",
+    "weather-profile-stale-regression-contract-migration-0.9.76.14"
   ],
   "nextMilestone": "macos-xcode-simulator-quality-assurance",
   "validation": {
-    "browserBuild": "Release #778 hat mit Node 22.16.0, TypeScript 7.0.2 und Vite 6.4.3 den echten TypeScript-NoEmit- und Produktionsbuild vollständig bestanden. v0.9.76.4 ändert keinen App-Fachcode, sondern schließt den verbliebenen Release-Metadatenversatz im iOS-Status.",
-    "typescript": "Release #778 bestätigt den vollständigen TypeScript-7.0.2-Strict-Typecheck und den Vite-Produktionsbuild. Der TS7-/Capacitor-JSON-Vertrag bleibt unverändert; das nächste End-to-End-Gate ist cap copy ios nach vollständig grüner Regression-Suite.",
-    "workerSyntax": "worker/metar-proxy.js und worker.js werden aus demselben Worker-Fragmentbaum erzeugt und vor Packaging bytegleich/syntaktisch geprüft. v0.9.76.1 enthält eine fachliche Worker-Metadatenänderung zur Kennzeichnung tatsächlich in die kanonische Forecast-Fusion eingeflossener Quellen; der semantische Installer-Gate muss deshalb den automatischen Worker-Deploy anfordern. Kein manueller Worker-Upload ist vorgesehen.",
-    "regressions": "Release #778 bestand 587 von 589 Regressionen. Die beiden einzigen Fehler waren identische Versionsassertionen, weil MID_IOS_STATUS.json noch 0.9.76.2 enthielt. v0.9.76.4 synchronisiert diese Datei nun zentral über sync-version.mjs und schützt die Kopplung zusätzlich im Aggregate-/Versioning-Vertrag.",
-    "capacitorSync": "capacitor.config.json bleibt die TS7-unabhängige Capacitor-Konfiguration. Release #778 erreichte cap copy ios nur deshalb nicht, weil zwei reine iOS-Status-Metadatenregressionen vorher stoppten; v0.9.76.4 beseitigt genau diesen Gate-Blocker.",
+    "browserBuild": "MID v0.9.76.14 übernimmt den in GitHub-Run #788 bereits erfolgreichen TypeScript-7-/Vite-Produktstand unverändert und migriert ausschließlich drei veraltete 24-h-Profil-Regressionserwartungen auf den aktuellen kompakten Achsenvertrag.",
+    "typescript": "GitHub-Run #788: TypeScript 7.0.2 NoEmit für App und Node vollständig grün; v0.9.76.14 verändert keinen TypeScript-Produktcode.",
+    "workerSyntax": "Worker-Fachlogik bleibt gegenüber beiden v0.9.76.11-Linien unverändert; nach Neutralisierung der Versionskonstante sind die Workerquellen fachlich bytegleich. Kein manueller Worker-Upload erforderlich.",
+    "regressions": "Die drei in #788 verbliebenen Altverträge (Meteogramm-Overlay-Skalierung, 24-h-Achsen, Thermik/Sonne) sind auf den bereits freigegebenen major-/profile-bottom-date-Vertrag migriert; DWD-Ortsausschnitt und neue 24-h-Regressionen bleiben grün.",
+    "capacitorSync": "Der erfolgreiche Browser-Build wurde mit cap copy ios in die gemeinsame Capacitor-iOS-Shell übernommen; Cross-Platform-, WidgetKit-, TypeScript-7-/Capacitor-, Datenschutz-, Push-/Background- und Logo-/PNG-Strukturtests sind grün.",
     "xcodeProjectStructure": "Gemeinsamer Capacitor-iOS-Wrapper, Light-/Dark-AppIcon- und Splash-Kataloge, Privacy-Manifeste und MIDWidgets-Struktur bleiben erhalten; keine neue native Berechtigung oder Capability aktiviert.",
     "xcodeAppleSdkBuild": "required-next-gate-macos-xcode-simulator; includes Apple SDK build, simulator launch, Privacy Report inspection and post-sync structure verification."
   },
@@ -103,5 +109,5 @@
     ],
     "approved": false
   },
-  "validationNote": "v0.9.76.4 ist ein reiner Release-Metadaten-/CI-Hotfix nach #778: MID_IOS_STATUS.json wird bei Versionsänderungen idempotent durch sync-version.mjs mitgeführt. Keine Änderung an Forecast-Fusion, RUC-Fachlogik, Worker-Runtime, 24-h-Design, Tmin/Tmax, Modellständen oder Kompositbild."
+  "validationNote": "v0.9.76.14 ist der CI-Hotfix nach #788: kein UI-Rollback, sondern Migration dreier historischer 24-h-Testannahmen. DWD-Ortsausschnitt und mobile Profilverdichtung bleiben gemeinsam erhalten. Das nächste native Gate bleibt macOS-/Xcode-Simulator-QA."
 }

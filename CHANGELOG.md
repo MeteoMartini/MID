@@ -1,3 +1,30 @@
+## v0.9.76.14
+
+- CI-Hotfix nach Run #788: drei historische 24-h-Profil-Regressionen auf den bereits fachlich freigegebenen, kompakteren v0.9.76.13-Achsenvertrag migriert; kein Produktcode-Rollback.
+- Die Tests erwarten nun die reduzierten mobilen Seitenränder, die vereinfachte obere Zeitachse ohne dominante Kalenderzeile, kompakte Tageswechselmarker sowie den aktuellen `major`-/`profile-bottom-date`-Vertrag.
+- TypeScript 7.0.2 und Vite 6.4.3 waren in #788 bereits vollständig grün; DWD-Ortsausschnitt, Originalpixel-Auswertung und 24-h-Profil-Feinschliff bleiben unverändert erhalten.
+- Gemeinsamer Browser/PWA/iOS-Fachkern bleibt erhalten; keine Worker-Fachänderung.
+
+## v0.9.76.13
+
+- Buildfix für den einzigen Fehler aus GitHub-Release #787: nach Entfernung der redundanten 24-h-Zeitpille verblieb `profileWindowEndLabel` als unbenutzte Konstante und wurde von TypeScript 7 mit TS6133 abgewiesen.
+- Die Konstante ist entfernt und die zugehörige 24-h-Profil-Regression schützt den Fehler künftig explizit. Die in v0.9.76.12 zusammengeführten DWD-Ortsausschnitt- und 24-h-Profiländerungen bleiben vollständig erhalten.
+- Keine funktionale Worker-Änderung.
+
+## v0.9.76.12
+
+- Konsolidiert die beiden nahezu zeitgleich auf v0.9.76.10 entstandenen v0.9.76.11-Linien ohne Rollback: der DWD-Ortsausschnitt mit Originallegende/Originalpixel-Auswertung und der mobile Feinschliff des 24-h-Wetterprofils sind gemeinsam enthalten.
+- 24-h-Profil: redundante Zeit-Pille entfernt, linke/rechte Diagrammränder deutlich verdichtet, Achsen-/Einheiten-/Wolkenbeschriftungen gegen Überdeckung gehärtet, Nachtstunden weniger dominant und obere/untere Zeitachse auf eine sparsame gemeinsame Struktur reduziert.
+- DWD „Wolken + Niederschlagsart“: standortzentrierter Deutschland-Ausschnitt, feste Originallegende, Originalpixel-Klickauswertung, Georeferenzierungs-/Randtests und zugehörige UI-Geometrie aus dem hochgeladenen parallelen v0.9.76.11-Stand bleiben vollständig erhalten.
+- Gemeinsamer Browser/PWA/iOS-Fachkern bleibt erhalten; keine Worker-Fachänderung und kein manueller Worker-Upload erforderlich.
+
+## v0.9.76.11
+
+- „Wolken + Niederschlagsart“ startet für deutsche Standorte und Favoriten als standortzentrierter, verschieb- und zoombarer Ausschnitt des unveränderten amtlichen DWD-Originalbilds.
+- Standortmarker und freie Bildklicks bleiben an den normierten Originalpixeln des vollständigen DWD-PNG gebunden. Die reine Ansichtsabbildung wurde an 17 sichtbaren DWD-Stadtankern sowie fünf deutschen Randorten geprüft und erzeugt keinen Kartenlayer.
+- Die im amtlichen DWD-Bild eingebettete Originallegende bleibt fest am Ausschnitt sichtbar und stammt aus derselben Bildantwort. Reisewetter v0.9.76.9 und das modernisierte 24-h-Wetterprofil v0.9.76.10 bleiben vollständig erhalten.
+- Keine Änderung an Worker-Fachlogik oder iOS-Architektur; kein manueller Worker-Upload erforderlich.
+
 ## v0.9.76.10
 
 - 24-h-Wetterprofil grafisch nach dem klareren Prinzip der Tagesansicht neu geordnet: rollend von jetzt bis +24 h, alle Parameter exakt auf denselben senkrechten Zeitschritten und ohne mobile Verkleinerung eines künstlich überbreiten Diagramms.

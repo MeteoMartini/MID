@@ -10,8 +10,8 @@ const failures=[];
 const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
 
 for(const token of [
-  'chartPaddingLeft=compactProfile?82:chartViewportWidth<=860?90:104',
-  'chartPaddingRight=compactProfile?44:chartViewportWidth<=860?50:58',
+  'chartPaddingLeft=compactProfile?68:chartViewportWidth<=860?76:88',
+  'chartPaddingRight=compactProfile?34:chartViewportWidth<=860?38:44',
   'className="profile-axis temperature-axis"',
   'className="profile-axis precipitation-axis"',
   'className="profile-axis wind-axis"',
@@ -36,10 +36,14 @@ for(const token of [
   '.cockpit-weather-profile .profile-axis-unit',
   '.cockpit-weather-profile .profile-time-axis',
   '.cockpit-weather-profile .profile-time-tick.major',
-  '.cockpit-weather-profile .cockpit-meteogram-pro__overlay.time>span{top:3px',
-  'background:color-mix(in srgb,var(--mg-shell) 76%,transparent)',
-  '.cockpit-weather-profile .cockpit-meteogram-pro__svg .day-separator'
+  '.cockpit-weather-profile .cockpit-meteogram-pro__overlay.time>span{top:5px',
+  'background:color-mix(in srgb,var(--mg-shell) 58%,transparent)',
+  '.cockpit-weather-profile .cockpit-meteogram-pro__svg .day-separator',
+  '.cockpit-weather-profile .profile-bottom-date{',
+  '.cockpit-weather-profile .profile-axis .axis-label{fill:var(--mg-muted);font:800 8px/1 Inter,ui-sans-serif,system-ui,sans-serif;font-variant-numeric:tabular-nums;paint-order:stroke fill;'
 ])need('Achsen-Styles',styles,token);
+
+if(cockpit.includes('cockpit-meteogram-pro__overlay calendar'))failures.push('24-h-Wetterprofil: dominante obere Kalenderzeile muss entfernt bleiben');
 
 const packageVersion=JSON.parse(pkg).version,baselineVersion=JSON.parse(baseline).releaseVersion;
 if(packageVersion!==baselineVersion)failures.push(`Versionen nicht synchron: ${packageVersion}/${baselineVersion}`);
