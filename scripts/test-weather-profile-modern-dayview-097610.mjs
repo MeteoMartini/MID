@@ -21,8 +21,10 @@ for(const token of [
  'className={`wind-warning-band level-${guide.level}`}',
  'className="wind-warning-threshold"',
  'className="wind-warning-threshold-label"',
- 'const nightBands=chartPoints.reduce',
+ 'const nightBandOpacity=.4,midnightBoundary=chartDayBands[1]??null,nightBands=(()=>',
+ 'nightBands.map(item=><linearGradient',
  'nightBands.map(item=><rect',
+ '{midnightBoundary?<line className="day-separator"',
  '',
  'profileXForEpoch(event.epoch)',
  "event.kind==='sunrise'?'↑':'↓'",
@@ -31,14 +33,14 @@ for(const token of [
  'className="profile-bottom-time"',
  'profile-lane-unit-label',
  'Im Windfeld werden dieselben DWD-Böenwarnschwellen wie in der Tagesansicht',
- 'Nachtstunden sind über alle Spuren hinweg abgedunkelt'
+ 'Nachtstunden sind über alle Spuren hinweg dezent hinterlegt und blenden zu Sonnenuntergang bzw. Sonnenaufgang weich ein und aus'
 ])assert.ok(cockpit.includes(token),`Modernes 24-h-Profil fehlt: ${token}`);
 
 assert.ok(!cockpit.includes('chartMinimumWidth=chartViewportWidth<=560?620:chartViewportWidth<=860?760:980'),'Das mobile Profil darf nicht mehr als überbreites SVG verkleinert werden.');
 
 for(const sheet of [styleSource,styles])for(const token of [
  'Tagesansicht-inspiriertes gleitendes 24-h-Wetterprofil',
- '.night-pattern-base{',
+ '.cockpit-weather-profile .cockpit-meteogram-pro__svg .night-band{pointer-events:none}',
  '.profile-selected-time-tag rect{',
  '.wind-warning-band{',
  '.wind-warning-threshold{',

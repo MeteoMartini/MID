@@ -50,7 +50,9 @@ need('Gewitterauswertung',thunder,[
 need('Oberfläche',app,[
  'function ThunderPlaceList(',
  'Betroffene Orte &amp; Zugbahn',
- '+{hidden} weitere im (i)',
+ 'hidden>0&&<em>+{hidden} weitere</em>',
+ 'hidden>0&&<span className="thunder-place-pill more">+{hidden} weitere</span>',
+ 'Weitere Orte anzeigen (',
  'Jetzt: radarbestimmter Zellbereich',
  'voraussichtlich auf der Zugbahn',
  'nur Unsicherheitskorridor',

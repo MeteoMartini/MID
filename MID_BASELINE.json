@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.76.25",
+  "releaseVersion": "0.9.76.30",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -339,7 +339,10 @@
     "scripts/test-stable-fast-forward-promotion-097620.mjs",
     "scripts/test-budget-workflow-release-lineage-097621.mjs",
     "scripts/test-weather-profile-cell-gaps-day-wind-pin-097620.mjs",
-    "scripts/test-ruc-scheduler-resilience-097624.mjs"
+    "scripts/test-ruc-scheduler-resilience-097624.mjs",
+    "scripts/test-thunder-mobile-place-summary-pin-097625.mjs",
+    "scripts/test-thunder-mobile-route-cards-097627.mjs",
+    "scripts/test-extreme-rain-profile-night-097628.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -607,7 +610,10 @@
     "scripts/test-build-budget-media-contract-097620.mjs",
     "scripts/test-stable-fast-forward-promotion-097620.mjs",
     "scripts/test-budget-workflow-release-lineage-097621.mjs",
-    "scripts/test-weather-profile-cell-gaps-day-wind-pin-097620.mjs"
+    "scripts/test-weather-profile-cell-gaps-day-wind-pin-097620.mjs",
+    "scripts/test-thunder-mobile-place-summary-pin-097625.mjs",
+    "scripts/test-thunder-mobile-route-cards-097627.mjs",
+    "scripts/test-extreme-rain-profile-night-097628.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -949,7 +955,14 @@
     "scripts/test-ruc-scheduler-resilience-097624.mjs",
     "MID_RUC_SCHEDULER_RESILIENCE_SETUP.md",
     "MID_IMPLEMENTATION_0.9.76.24.md",
-    "MID_IMPLEMENTATION_0.9.76.25.md"
+    "MID_IMPLEMENTATION_0.9.76.25.md",
+    "scripts/test-thunder-mobile-place-summary-pin-097625.mjs",
+    "MID_IMPLEMENTATION_0.9.76.26.md",
+    "scripts/test-thunder-mobile-route-cards-097627.mjs",
+    "MID_IMPLEMENTATION_0.9.76.27.md",
+    "scripts/test-extreme-rain-profile-night-097628.mjs",
+    "MID_IMPLEMENTATION_0.9.76.28.md",
+    "MID_IMPLEMENTATION_0.9.76.29.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -969,7 +982,8 @@
     "scripts/test-widgetkit-xcode-structure-09710.mjs",
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
     "scripts/test-maplibre-660-uuid-upstream-097615.mjs",
-    "scripts/test-weather-profile-mobile-compact-097612.mjs"
+    "scripts/test-weather-profile-mobile-compact-097612.mjs",
+    "scripts/test-extreme-rain-profile-night-097628.mjs"
   ],
   "protectedFiles": [
     "scripts/test-travel-planner-era5-seamless-units-09652.mjs",
@@ -1095,7 +1109,10 @@
     "MID_IMPLEMENTATION_0.9.76.21.md",
     "MID_IMPLEMENTATION_0.9.76.23.md",
     "scripts/test-ruc-scheduler-resilience-097624.mjs",
-    "MID_IMPLEMENTATION_0.9.76.24.md"
+    "MID_IMPLEMENTATION_0.9.76.24.md",
+    "scripts/test-extreme-rain-profile-night-097628.mjs",
+    "MID_IMPLEMENTATION_0.9.76.28.md",
+    "MID_IMPLEMENTATION_0.9.76.29.md"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md"
@@ -1119,7 +1136,11 @@
     "MID_IMPLEMENTATION_0.9.76.20.md",
     "MID_IMPLEMENTATION_0.9.76.21.md",
     "MID_IMPLEMENTATION_0.9.76.23.md",
-    "MID_IMPLEMENTATION_0.9.76.24.md"
+    "MID_IMPLEMENTATION_0.9.76.24.md",
+    "MID_IMPLEMENTATION_0.9.76.26.md",
+    "MID_IMPLEMENTATION_0.9.76.27.md",
+    "MID_IMPLEMENTATION_0.9.76.28.md",
+    "MID_IMPLEMENTATION_0.9.76.29.md"
   ],
   "evidenceFiles": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -1128,14 +1149,25 @@
     "MID_IMPLEMENTATION_0.9.76.21.md",
     "MID_IMPLEMENTATION_0.9.76.23.md",
     "scripts/test-ruc-scheduler-resilience-097624.mjs",
-    "MID_IMPLEMENTATION_0.9.76.24.md"
+    "MID_IMPLEMENTATION_0.9.76.24.md",
+    "MID_IMPLEMENTATION_0.9.76.26.md",
+    "MID_IMPLEMENTATION_0.9.76.27.md",
+    "scripts/test-extreme-rain-profile-night-097628.mjs",
+    "MID_IMPLEMENTATION_0.9.76.28.md",
+    "MID_IMPLEMENTATION_0.9.76.29.md"
   ],
   "releaseEvidence": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
-    "scripts/test-weather-profile-mobile-compact-097612.mjs"
+    "scripts/test-weather-profile-mobile-compact-097612.mjs",
+    "scripts/test-thunder-mobile-place-summary-pin-097625.mjs",
+    "scripts/test-thunder-mobile-route-cards-097627.mjs",
+    "scripts/test-extreme-rain-profile-night-097628.mjs"
   ],
   "activeRegressionSuite": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
-    "scripts/test-weather-profile-mobile-compact-097612.mjs"
+    "scripts/test-weather-profile-mobile-compact-097612.mjs",
+    "scripts/test-thunder-mobile-place-summary-pin-097625.mjs",
+    "scripts/test-thunder-mobile-route-cards-097627.mjs",
+    "scripts/test-extreme-rain-profile-night-097628.mjs"
   ]
 }

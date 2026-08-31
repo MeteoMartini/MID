@@ -39,7 +39,7 @@ assert.ok(cockpit.includes('const safeMinWidth=Math.min(minWidth,span)'),'Profil
 assert.ok(modern.includes('.cockpit-weather-profile .temperature-line{stroke-width:3.35}'),'24-h-Temperaturkurve ist nicht auf die dünnere Tagesansicht-Anmutung reduziert.');
 assert.ok(styles.includes('.cockpit-weather-profile .temperature-line{stroke-width:3.35}'),'Styles-Aggregat enthält die dünnere 24-h-Temperaturkurve nicht.');
 
-assert.ok(radar.includes('<MapPin size={18} aria-hidden="true"/></button>'),'DWD-Ortsmarker muss nur noch die kompakte Stecknadel enthalten.');
+assert.ok(radar.includes('className="dwd-precip-type-radar__location-pin" aria-hidden="true">📍</span></button>'),'DWD-Ortsmarker muss mit einer echten Stecknadel gekennzeichnet sein.');
 assert.ok(!radar.includes("<MapPin size={22}/><span>{location.name||'Standort'}</span>"),'DWD-Ortsmarker darf keinen Ortsnamen über das Bild legen.');
 
 for(const css of [modern,styles]){
@@ -49,8 +49,8 @@ for(const css of [modern,styles]){
 }
 
 for(const css of [modern,styles]){
- assert.ok(css.includes('.dwd-precip-type-radar__location-marker{position:absolute;z-index:6;display:grid;place-items:center;width:22px;height:22px'), 'Kompakte 22-px-Stecknadel fehlt.');
- assert.ok(css.includes('.dwd-precip-type-radar__location-marker span{display:none}'),'Markertext muss verborgen bleiben.');
+  assert.ok(css.includes('.dwd-precip-type-radar__location-marker{position:absolute;z-index:6;display:grid;place-items:center;width:28px;height:34px'),'Freigestellte Stecknadel-Geometrie fehlt.');
+ assert.ok(css.includes('.dwd-precip-type-radar__location-pin{display:block;font-size:26px'),'Stecknadel-Emoji-Stil fehlt.');
 }
 
 assert.ok(app.includes('function WindDirectionArrow({direction,gust,className='),'Appweiter Windrichtungspfeil nimmt keine Böe zur Warnfarbenermittlung an.');

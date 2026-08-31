@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-08-31T14:21:31.925Z",
-  "releaseVersion": "0.9.76.25",
+  "updatedAt": "2026-08-31T18:58:26.630Z",
+  "releaseVersion": "0.9.76.30",
   "sourceBaseline": {
     "professionalVersion": "0.9.70.2",
     "workerVersion": "0.9.70.2",
@@ -90,14 +90,17 @@
     "ensemble-resume-recovery-shared-core-0.9.76.19",
     "weather-profile-cell-gap-dwd-pin-day-wind-warning-colors-0.9.76.20",
     "parallel-release-hardening-consolidation-0.9.76.21",
-    "ruc-scheduler-resilience-source-preparation-0.9.76.24"
+    "ruc-scheduler-resilience-source-preparation-0.9.76.24",
+    "mobile-thunder-route-list-and-dwd-pin-0.9.76.26",
+    "mobile-thunder-route-cards-0.9.76.27",
+    "release-run-801-thunder-regression-hotfix-0.9.76.29"
   ],
   "nextMilestone": "macos-xcode-simulator-quality-assurance",
   "validation": {
-    "browserBuild": "v0.9.76.22 ändert gegenüber dem bereits in GitHub mit TypeScript 7.0.2 und Vite 6.4.3 erfolgreich gebauten v0.9.76.21-Produktcode ausschließlich vier veraltete Regressionserwartungen sowie Release-Metadaten; der vollständige GitHub-Release-Gate bleibt vor Stable-Promotion verbindlich.",
-    "typescript": "Keine neue TypeScript-Major-Migration: TypeScript 7.0.2 bleibt unverändert. Die gezielten Merge-/UI-/Release-Regressionsverträge werden lokal geprüft; der vollständige NoEmit-Lauf erfolgt im kanonischen npm-ci/verify-Gate.",
-    "workerSyntax": "Keine fachliche Worker-Änderung; nur synchronisierte Versionskonstante. Semantischer Worker-Diff bleibt leer; kein manueller Worker-Upload erforderlich.",
-    "regressions": "Vier in Run #795 als veraltet identifizierte Regressionserwartungen sind auf die bereits freigegebenen Wolkenprofil-, Ensemble-Resume- und Fast-Forward-Promotionsverträge migriert. Die Suite umfasst weiterhin 602 automatisch erkannte Tests.",
+    "browserBuild": "Lokale UI-Anpassung ohne Fachlogikänderung im Forecast-/Worker-Kern. TypeScript-NoEmit wurde erfolgreich geprüft; produktiver Vite-Build bleibt vor Stable-Promotion im vollständigen Release-Gate verbindlich.",
+    "typescript": "Globale TypeScript-Prüfung (tsc --noEmit) erfolgreich; zusätzliche UI-/Radar-/Responsive-Regressionen für Gewitter-Ortsliste und DWD-Stecknadel sind grün.",
+    "workerSyntax": "worker/metar-proxy.js wurde per node --check validiert. Keine fachliche Worker-Änderung; nur gemeinsame Versionssynchronisierung.",
+    "regressions": "Gezielte UI-Regressionsprüfung für mobile Gewitter-Zugbahnkarten, DWD-Stecknadel und aktuelle Nowcards; vollständiges Release-Gate bleibt vor Stable-Promotion verbindlich.",
     "capacitorSync": "Der erfolgreiche Browser-Build wurde mit cap copy ios in die gemeinsame Capacitor-iOS-Shell übernommen; Cross-Platform-, WidgetKit-, TypeScript-7-/Capacitor-, Datenschutz-, Push-/Background- und Logo-/PNG-Strukturtests sind grün.",
     "xcodeProjectStructure": "Gemeinsamer Capacitor-iOS-Wrapper, Light-/Dark-AppIcon- und Splash-Kataloge, Privacy-Manifeste und MIDWidgets-Struktur bleiben erhalten; keine neue native Berechtigung oder Capability aktiviert.",
     "xcodeAppleSdkBuild": "required-next-gate-macos-xcode-simulator; includes Apple SDK build, simulator launch, Privacy Report inspection and post-sync structure verification."
@@ -113,9 +116,14 @@
     ],
     "approved": false
   },
-  "validationNote": "v0.9.76.24 härtet ausschließlich den RUC-Scheduler-/Recovery-Vertrag: Primärslots :11/:41 bleiben unverändert; GitHub-Watchdog verdichtet und dispatch-entstapelt; provider-unabhängiger Cloudflare-Cron-Watchdog nur quellseitig vorbereitet. Browser/PWA/iOS-Fachkern unverändert; kein fachlicher MID-Worker-Diff.",
+  "validationNote": "v0.9.76.30 korrigiert ausschließlich zwei veraltete 24-h-Wetterprofil-Regressionsverträge aus GitHub-Run #802: Nachtstunden bleiben als dezenter Hintergrund mit Fade an Sonnenuntergang/Sonnenaufgang geschützt; die einzige 24/00-Uhr-Tagesgrenze bleibt bestehen. Keine fachliche Rücknahme.",
   "completedMilestones": [
     "ci-regression-contract-hotfix-0.9.76.22",
-    "ruc-scheduler-resilience-source-preparation-0.9.76.24"
+    "ruc-scheduler-resilience-source-preparation-0.9.76.24",
+    "mobile-thunder-route-list-and-dwd-pin-0.9.76.26",
+    "mobile-thunder-route-cards-0.9.76.27",
+    "extreme-rain-and-24h-night-polish-0.9.76.28",
+    "release-run-801-thunder-regression-hotfix-0.9.76.29",
+    "weather-profile-night-fade-regression-gate-0.9.76.30"
   ]
 }

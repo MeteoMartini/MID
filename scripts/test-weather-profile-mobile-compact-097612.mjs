@@ -21,9 +21,12 @@ assert.ok(cockpit.includes('chartPaddingLeft=compactProfile?60:chartViewportWidt
 assert.ok(cockpit.includes('chartPaddingRight=compactProfile?24:chartViewportWidth<=860?28:34'),'Rechter Diagrammrand wurde nicht kompakter ausgelegt.');
 assert.ok(cockpit.includes('className="profile-bottom-date"'),'Untere Zeitachse enthält keine ergänzende Tagesmarke.');
 assert.ok(!cockpit.includes('cockpit-meteogram-pro__overlay calendar'),'Die dominante obere Kalenderachse ist noch eingeblendet.');
-assert.ok(css.includes('.cockpit-weather-profile .cockpit-meteogram-pro__svg .night-band{opacity:.42;pointer-events:none}'),'Nachtstunden müssen wieder klar, aber dezent schraffiert sichtbar sein.');
+assert.ok(css.includes('.cockpit-weather-profile .cockpit-meteogram-pro__svg .night-band{pointer-events:none}'),'Nachtstunden müssen als dezente, nicht-interaktive Hintergrundfläche erhalten bleiben.');
+assert.ok(cockpit.includes('nightBands.map(item=><linearGradient'),'Nachtstunden müssen mit weichem Fade an Sonnenuntergang/Sonnenaufgang gerendert werden.');
+assert.ok(cockpit.includes('stopOpacity={item.fadeIn?0:nightBandOpacity}'),'Nachtband-Fade-in am Sonnenuntergang fehlt.');
+assert.ok(cockpit.includes('stopOpacity={item.fadeOut?0:nightBandOpacity}'),'Nachtband-Fade-out am Sonnenaufgang fehlt.');
 assert.ok(css.includes('.cockpit-weather-profile .profile-bottom-date{'),'CSS für die kompaktere untere Tagesmarke fehlt.');
 assert.ok(css.includes('.cockpit-weather-profile .profile-selected-time-tag rect{'),'CSS für die Uhrzeit an der blauen Auswahlachse fehlt.');
 assert.ok(css.includes('.cockpit-weather-profile .profile-axis .axis-label{fill:var(--mg-muted);font:800 8px/1 Inter,ui-sans-serif,system-ui,sans-serif;font-variant-numeric:tabular-nums;paint-order:stroke fill;'),'Achsenbeschriftungen wurden nicht gegen Überdeckung gehärtet.');
 
-console.log('24-h-Wetterprofil: Zeitpille entfernt, Seitenränder verdichtet, Achsen vereinheitlicht und Nachtmarkierung entschärft.');
+console.log('24-h-Wetterprofil: Zeitpille entfernt, Seitenränder verdichtet, Achsen vereinheitlicht und Nachtmarkierung als dezentes Fade geschützt.');

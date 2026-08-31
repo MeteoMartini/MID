@@ -1,3 +1,24 @@
+# v0.9.76.30
+
+- CI-Hotfix: Zwei veraltete 24-h-Wetterprofil-Regressionen wurden an den seit v0.9.76.28 gültigen Nacht-Fade-Vertrag angepasst.
+- Geschützt bleiben eine einzige 24/00-Uhr-Tagesgrenze sowie der dezente Nacht-Hintergrund mit weichem Fade an Sonnenuntergang und Sonnenaufgang; die frühere Schraffur wird nicht wieder eingeführt.
+- Keine fachliche oder sichtbare Rücknahme der v0.9.76.28/29-Änderungen.
+
+# v0.9.76.29
+
+- Release-Gate-Hotfix nach GitHub-Actions-Run #801: TypeScript, Vite-Build und 604 von 605 Regressionen waren grün; ausschließlich `test-thunder-affected-places-route-09151.mjs` erwartete noch den vor v0.9.76.26 verwendeten Text `+{hidden} weitere im (i)`.
+- Der historische Gewitter-Orts-/Zugbahntest schützt nun den aktuellen Vertrag: sichtbarer Restzähler, Rest-Pille und `Weitere Orte anzeigen (...)`-Disclosure bei unverändert vollständiger Now/likely/possible/corridor-Fachlogik.
+- Kein Rollback der verdichteten mobilen Gewitterdarstellung. Die Extremregen-, Geländehöhen- und 24-h-Nachtprofil-Korrekturen aus v0.9.76.28 bleiben vollständig enthalten.
+- Fachlicher Worker-Diff aus v0.9.76.28 bleibt enthalten; aktualisierter Worker ist weiterhin erforderlich.
+
+# v0.9.76.28
+
+- Extremwetter-Ausblick: Bei Regenlagen im 0–6-h-Fenster übernehmen Regionsliste und Detailkarte nun bevorzugt die verfügbare ICON-D2-RUC-Akkumulation, sodass irreführende `0 mm`-Anzeigen trotz vorhandener Rapid-Signale entfallen.
+- Extremwetter-Details: Geländehöhen werden lesbarer auf 10 m bzw. 100 m gerundet.
+- 24-h-Wetterprofil: Es wird nur noch eine einzige senkrechte Tagesgrenze für 24/00 Uhr gezeichnet; zusätzliche hervorgehobene Vollhöhenlinien entfallen.
+- 24-h-Wetterprofil: Nachtstunden erhalten einen dezenten Hintergrund mit weichem Fade an Sonnenuntergang und Sonnenaufgang statt der bisherigen harten Schraffur.
+- Fachliche Worker-Änderung enthalten; ein aktualisierter Worker-Upload ist erforderlich.
+
 # v0.9.76.25
 
 - CI-Hotfix nach Release-Run #799: TypeScript 7.0.2, Vite 6.4.3, Dependency-Audit und 602 von 603 Regressionen waren grün; ausschließlich der historische RUC-Watchdog-Test erwartete noch zwei getrennte `:18/:48`-Cron-Einträge.
