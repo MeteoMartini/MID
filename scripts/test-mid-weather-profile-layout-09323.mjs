@@ -7,11 +7,11 @@ const [cockpit,styles,pkg,baseline]=await Promise.all([
 ]);
 const failures=[];const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};const reject=(label,text,token)=>{if(text.includes(token))failures.push(`${label}: unerwartet ${token}`)};
 for(const token of [
- 'chartHeight=500',
- 'chartCanvasHeight=Math.max(252,Math.round(chartHeight*Math.min(1,chartViewportWidth/chartWidth)))',
+ 'chartHeight=632',
+ 'chartCanvasHeight=chartHeight',
  'timeLabelStepMs=(chartViewportWidth<=560?6:chartViewportWidth<=860?4:3)*3600000',
  "weatherPictogramStep=profileResolution==='3h'||chartViewportWidth>560?1:2",
- 'y={84}',
+ 'y={82}',
  "const visibleTemperatureExtreme=(kind:'max'|'min')",
  "label:`${Math.round(item.point.temperature)}°`",
  "temperatureExtremes=[visibleTemperatureExtreme('max'),visibleTemperatureExtreme('min')]",

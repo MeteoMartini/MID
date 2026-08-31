@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-08-30T20:58:37.300Z",
-  "releaseVersion": "0.9.76.9",
+  "updatedAt": "2026-08-30T21:34:17.596Z",
+  "releaseVersion": "0.9.76.10",
   "sourceBaseline": {
     "professionalVersion": "0.9.70.2",
     "workerVersion": "0.9.70.2",
@@ -79,7 +79,8 @@
     "ruc-scheduler-watchdog-source-preparation-0.9.76.1",
     "typescript-7-capacitor-json-config-hotfix-0.9.76.1",
     "typescript-7-strict-build-hotfix-0.9.76.2",
-    "ios-release-status-version-sync-hotfix-0.9.76.4"
+    "ios-release-status-version-sync-hotfix-0.9.76.4",
+    "MID_IMPLEMENTATION_0.9.76.10.md"
   ],
   "nextMilestone": "macos-xcode-simulator-quality-assurance",
   "validation": {

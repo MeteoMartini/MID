@@ -67,6 +67,26 @@ gegeneinander verschoben sein.
 - Beide Orientierungen verwenden denselben React/Vite-Fachkern; es gibt keinen
   separaten iOS-Darstellungspfad.
 
+## Tagesansichtsbasierte grafische Hierarchie ab v0.9.76.10
+
+- Das Profil wird in der verfügbaren Breite gezeichnet; auf Mobilgeräten wird kein
+  künstlich überbreites SVG mehr auf die Bildschirmbreite herunterskaliert.
+- Temperatur, thermisches Empfinden, Niederschlag, Wind/Böen, Luftdruck,
+  Wolken und Hazards verwenden dieselben vertikalen Stunden-/3-h-Linien.
+- Achsen besitzen eine einheitliche linke Parameter-/Einheitenspalte und sparsame
+  Skalenwerte; Wolken bleiben weiterhin ohne Prozentachse.
+- Der Windbereich zeigt die kanonischen `DWD_WIND_THRESHOLDS_KMH` aus der
+  Tagesansicht als dezente farbige Schwellenbänder und Schwellenlinien. Die
+  Skala reicht mindestens bis zur ersten DWD-Böenwarnschwelle.
+- Nachtstunden werden über alle grafischen Parameterbahnen hinweg gemeinsam
+  abgedunkelt. Die Nachtmarkierung verändert weder Daten noch Zeitgeometrie.
+- Sonnenaufgang und Sonnenuntergang werden mit ihren exakten Epochen über
+  `profileXForEpoch(event.epoch)` dezent markiert.
+- `JETZT` ist die linke Kante des rollenden Fensters; eine dezente vertikale
+  Jetzt-Linie und eine zweite, geometrisch identische Zeitreferenz am unteren
+  Rand erleichtern das senkrechte Lesen.
+- Diese Darstellung gilt unverändert im gemeinsamen Browser/PWA/iOS-React-Kern.
+
 ## Regression
 
 `scripts/test-weather-profile-story-axis-09750.mjs` schützt die gemeinsame

@@ -35,20 +35,20 @@ assert.ok(!cockpit.includes('hours.slice(startIndex,startIndex+24)'),'Der alte K
 
 // Getrennte, nicht überlappende Darstellungsbahnen und astronomische Orientierung.
 for(const token of [
- 'skyBandTop=48,tempTop=104',
+ 'skyBandTop=50,tempTop=108',
  'profile-window-labels',
  'profile-solar-marker',
  'sunriseEpoch',
  'sunsetEpoch',
  'className="night-band"',
- 'y={84}',
+ 'y={82}',
  'const profileXForEpoch=(epoch:number)=>',
  'profileXForEpoch(event.epoch)',
  'y1={skyBandTop}',
  'weatherPictogramStep=',
  'className="day-separator"'
 ])assert.ok(cockpit.includes(token),`Zeit-/Solar-/Kollisionsvertrag fehlt: ${token}`);
-assert.ok(77<84&&84+18<=104,'Solartext, Wettersymbole und Temperaturbahn müssen vertikal getrennt bleiben.');
+assert.ok(77<82&&82+18<=108,'Solartext, Wettersymbole und Temperaturbahn müssen vertikal getrennt bleiben.');
 for(const token of ['.profile-solar-marker text{','.profile-window-labels text{','.cockpit-meteogram-pro__svg .night-band{','@media (orientation:landscape) and (max-width:1180px) and (max-height:760px)','profile-chart profile-data'])assert.ok(styles.includes(token),`Responsive Profilgestaltung fehlt: ${token}`);
 
 // Niederschlag: Menge und Wahrscheinlichkeit bleiben getrennte, beschriftete Größen.

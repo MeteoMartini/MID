@@ -26,7 +26,7 @@ for(const token of [
   '24-h-Wetterprofil',
   'function shortTermImpactForInterval(signals:DwdWarningSignal[],startEpoch:number,endEpoch:number)',
   'function shortTermPressureTrend(',
-  'chartWidth=Math.max(chartMinimumWidth,chartViewportWidth)',
+  'chartWidth=Math.max(320,chartViewportWidth)',
   'className="dewpoint-line"',
   'className="wind-line"',
   'className="gust-line"',

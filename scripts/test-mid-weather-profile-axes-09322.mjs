@@ -10,20 +10,24 @@ const failures=[];
 const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
 
 for(const token of [
-  'chartPaddingLeft=96,chartPaddingRight=58',
+  'chartPaddingLeft=compactProfile?82:chartViewportWidth<=860?90:104',
+  'chartPaddingRight=compactProfile?44:chartViewportWidth<=860?50:58',
   'className="profile-axis temperature-axis"',
   'className="profile-axis precipitation-axis"',
   'className="profile-axis wind-axis"',
+  'className="profile-axis pressure-axis"',
   'className="profile-time-axis"',
+  'className="profile-time-axis bottom"',
   'profile-time-tick',
+  'profile-lane-unit-label',
   '>°C</text>',
   '>mm</text>',
+  '>hPa</text>',
   "unit==='kmh'?'km/h':unit==='ms'?'m/s':unit==='mph'?'mph':'kt'",
   'textAnchor="end" x={chartPaddingLeft-10}',
-  'className="profile-axis precipitation-axis"><line className="profile-axis-spine" x1={chartPaddingLeft}',
-  'className="profile-axis wind-axis"><line className="profile-axis-spine" x1={chartPaddingLeft}',
-  'profile-axis-unit left',
-  '100 %'
+  '[chartRainMax,chartRainMax/2,0].map',
+  '[100,50,0].map',
+  '[chartWindMax,chartWindMax/2,0].map'
 ])need('24-h-Wetterprofil',cockpit,token);
 
 for(const token of [

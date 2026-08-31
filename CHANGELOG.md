@@ -1,3 +1,10 @@
+## v0.9.76.10
+
+- 24-h-Wetterprofil grafisch nach dem klareren Prinzip der Tagesansicht neu geordnet: rollend von jetzt bis +24 h, alle Parameter exakt auf denselben senkrechten Zeitschritten und ohne mobile Verkleinerung eines künstlich überbreiten Diagramms.
+- Windbereich ergänzt um die appweit identischen DWD-Böenwarnschwellen mit dezenten Warnbändern/-linien; die Windskala zeigt mindestens die erste Warnschwelle.
+- Nachtstunden werden über alle Bahnen gemeinsam abgedunkelt; Sonnenaufgang und Sonnenuntergang stehen dezent an ihrer exakten Zeitposition. Einheitliche Parameter-/Einheitenspalte, sparsamere Skalen und eine zweite kompakte Zeitreferenz am unteren Rand verbessern die vertikale Lesbarkeit.
+- Gemeinsamer Browser/PWA/iOS-Fachkern bleibt erhalten; keine Worker-Fachänderung.
+
 ## v0.9.76.9
 
 - Reisewetter/Fester Zeitraum: historische modellierte ERA5-Schneehöhe wird jetzt immer mit ausgewertet; Schneefall bleibt getrennte Zusatzinformation und wird bei einem Schneehöhen-Ausfall nicht als Ersatzwert ausgegeben.

@@ -21,7 +21,7 @@ scripts.forEach((script,index)=>{
 for(const token of [
   '24-h-Wetterprofil',
   'const chartSourcePoints=profileDisplayPoints.length?profileDisplayPoints:hourlyPoints.slice(0,25)',
-  'chartWidth=Math.max(chartMinimumWidth,chartViewportWidth)',
+  'chartWidth=Math.max(320,chartViewportWidth)',
   'className="cockpit-meteogram-pro__datafield"',
   'className="cockpit-weather-profile__signals"'
 ])need('ForecastCockpit',cockpit,token);
