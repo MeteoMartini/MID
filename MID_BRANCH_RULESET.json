@@ -1,14 +1,15 @@
 {
-  "schema": 2,
+  "schema": 3,
   "target": "mid-stable",
   "enforcement": "active",
   "requiredChecks": [
-    "MID CI verify"
+    "MID / release-candidate-quality"
   ],
   "releaseEvidenceStatus": "MID / stable-release-quality",
-  "requirePullRequestForHumanChanges": true,
-  "blockForcePushForHumans": true,
-  "releaseWorkflowBypassRequired": true,
+  "requirePullRequestBeforeMerge": false,
+  "blockForcePush": true,
+  "restrictDeletions": true,
+  "releaseWorkflowBypassRequired": false,
   "releaseWorkflow": "Install MID release and deploy",
-  "notes": "Vorlage für GitHub Ruleset/Branch Protection. Der Release-Workflow benötigt gezielten Bypass, weil er den bereits vollständig geprüften und veröffentlichten Commit nach mid-stable promotet; menschliche Direkt-/Force-Pushes sollen blockiert bleiben."
+  "notes": "Endziel nach einem erfolgreichen Testlauf der Fast-Forward-Promotion: Restrict deletions + Block force pushes + Required status check MID / release-candidate-quality. Der Kandidatenstatus wird erst nach Build/Audit/Regressionen/Worker-Gate/Pages und vor dem normalen Fast-Forward-Push gesetzt; ein Workflow-Bypass ist dann nicht erforderlich."
 }

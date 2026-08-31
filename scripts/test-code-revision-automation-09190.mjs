@@ -23,6 +23,6 @@ for(const file of ['scripts/test-cockpit-meteogram-overlay-scale-09186.mjs','scr
 const packageJson=JSON.parse(await read('package.json'));
 if(packageJson.devDependencies?.['@playwright/test']||packageJson.devDependencies?.['@lhci/cli'])failures.push('Browserwerkzeuge dürfen das Lockfile nicht verändern');
 const baseline=JSON.parse(await read('MID_PERFORMANCE_BASELINE.json'));
-for(const key of ['assetCount','totalBytes','totalGzipBytes','jsGzipBytes','cssGzipBytes','largestJsGzipBytes'])if(!Number.isFinite(baseline.limits?.[key]))failures.push(`Performance-Limit fehlt: ${key}`);
+for(const key of ['assetCount','totalBytes','totalGzipBytes','compressibleGzipBytes','staticMediaBytes','jsGzipBytes','cssGzipBytes','largestJsGzipBytes'])if(!Number.isFinite(baseline.limits?.[key]))failures.push(`Performance-Limit fehlt: ${key}`);
 if(failures.length){console.error(`Code-Revisionsautomation unvollständig:\n- ${failures.join('\n- ')}`);process.exit(1)}
 console.log(`Code-Revisionsautomation vollständig (${workflow?'Repository-Workflow':'geschützter Professional-Transportvertrag'}).`);

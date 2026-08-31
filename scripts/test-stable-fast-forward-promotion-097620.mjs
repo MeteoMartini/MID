@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+const root=new URL('../',import.meta.url),read=file=>readFile(new URL(file,root),'utf8');
+const workflow=await read('ci/github/workflows/install-mid.yml');
+const rules=JSON.parse(await read('MID_BRANCH_RULESET.json'));
+assert.ok(!workflow.includes('push --force origin HEAD:refs/heads/mid-stable'),'Stable-Promotion darf keinen Force-Push mehr enthalten.');
+assert.ok(workflow.includes("context': 'MID / release-candidate-quality'"));
+assert.ok(workflow.includes('git merge-base --is-ancestor "$stable_before" "$release_sha"'));
+assert.ok(workflow.includes('push origin "${release_sha}:refs/heads/mid-stable"'));
+const statusPos=workflow.indexOf("context': 'MID / release-candidate-quality'");
+const pushPos=workflow.indexOf('push origin "${release_sha}:refs/heads/mid-stable"');
+assert.ok(statusPos>=0&&pushPos>statusPos,'Kandidatenstatus muss vor der Stable-Promotion gesetzt werden.');
+assert.deepEqual(rules.requiredChecks,['MID / release-candidate-quality']);
+assert.equal(rules.blockForcePush,true);
+assert.equal(rules.releaseWorkflowBypassRequired,false);
+console.log('Stable-Promotion ist fail-closed, statusgebunden und ausschließlich Fast-Forward.');

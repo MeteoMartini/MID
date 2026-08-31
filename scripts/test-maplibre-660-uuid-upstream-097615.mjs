@@ -21,9 +21,15 @@ assert.equal(lock.packages?.['node_modules/uuid']?.version,'7.0.3');
 assert.ok(policy.includes('@capacitor/cli 8.5.0 -> xcode 3.0.1 -> uuid ^7.0.3'));
 assert.ok(policy.includes('kein')&&policy.includes('inkompatibles UUID-Override'));
 assert.equal(branch.target,'mid-stable');
-assert.ok(branch.requiredChecks?.includes('MID CI verify'));
+if(versionAtLeast(pkg.version,'0.9.76.20')){
+ assert.ok(branch.requiredChecks?.includes('MID / release-candidate-quality'));
+ assert.equal(branch.releaseWorkflowBypassRequired,false);
+ assert.equal(branch.blockForcePush,true);
+}else{
+ assert.ok(branch.requiredChecks?.includes('MID CI verify'));
+ assert.equal(branch.releaseWorkflowBypassRequired,true);
+}
 assert.equal(branch.releaseEvidenceStatus,'MID / stable-release-quality');
-assert.equal(branch.releaseWorkflowBypassRequired,true);
 for(const key of ['requiredRegressionTests','regressionTests','requiredFiles','protectedFiles'])assert.ok(baseline[key]?.includes(test),`${test} fehlt in ${key}.`);
 assert.ok(implementation.includes('MapLibre GL JS 6.6.0')&&implementation.includes('uuid@7.0.3')&&implementation.includes('Branch-Schutz'));
 console.log(`MID v${pkg.version}: MapLibre 6.6.0, transitive UUID-Upstreamgrenze und Stable-Branch-Schutzvorlage geprüft.`);

@@ -1,3 +1,19 @@
+# v0.9.76.22
+
+- CI-Vertragshotfix nach Release-Run #795: TypeScript 7.0.2, Vite 6.4.3 und Dependency-Audit waren bereits grün; vier veraltete Regressionserwartungen wurden an die bewusst freigegebenen v0.9.76.21-Verträge angepasst.
+- Wolkenprofil-Tests schützen nun die kollisionsfreie `cloudCellGeometry` statt frühere randberührende/überlappende Rechteckmaße zu verlangen.
+- Szenariocluster-Test schützt die Resume-Recovery, bei der eine transiente leere Teilantwort den letzten erfolgreichen Ensemble-Stand nicht mehr löscht.
+- Pages-/Installer-Test schützt jetzt den neuen `MID / release-candidate-quality`-Status, die Vorfahrprüfung und die ausschließlich Fast-Forward erfolgende Stable-Promotion ohne Force-Push.
+- Kein Produktcode-Rollback und keine fachliche Worker-Änderung. Die UI-/Budget-/Stable-Härtung aus v0.9.76.21 bleibt vollständig erhalten.
+
+# v0.9.76.21
+
+- Parallelkonsolidierung ohne Rollback: die separat auf v0.9.76.20 erstellten UI-Änderungen werden unter der eindeutigen nächsten Releaseversion übernommen. Das 24-h-Wetterprofil nutzt echte Zellzwischenräume, einheitliche Achsenwert-Abstände und eine dünnere Temperaturkurve; der DWD-Ortsausschnitt zeigt nur noch die kompakte Stecknadel, und Tages-/Stunden-Windpfeile übernehmen die appweiten DWD-Böenwarnfarben.
+- Auto-Revision/Build-Budget: komprimierbarer Webcode und bereits komprimierte statische Medien werden getrennt budgetiert. 5,2 MB Code/Text-gzip, 7,0 MB statische Medien und 8,5 MB Gesamt-gzip bilden getrennte Sicherheitsnetze.
+- Stable-Härtung: der kanonische Installer setzt nach Build/Audit/Regressionen/Worker-Gate/Pages zuerst `MID / release-candidate-quality` und promotet anschließend ausschließlich per Fast-Forward ohne Force-Push nach `mid-stable`; divergierende Historien brechen fail-closed ab.
+- Startperformance: der Boot-Logo-Preload erhält seinen `href` erst nach synchroner Theme-/Logoauflösung und lädt damit nicht unnötig zuerst die Light-Variante.
+- Regression: der Parallel-UI-Test bleibt vollständig erhalten und wird mit den drei Budget-/Stable-Hardening-Tests gemeinsam geschützt. Keine fachliche Worker-Änderung; nur Versionssynchronisierung, daher kein manueller Worker-Upload erforderlich.
+
 # v0.9.76.20
 
 - CI-Hotfix nach Install-Run #793: drei veraltete Regressionserwartungen wurden auf den bereits erfolgreich mit TypeScript 7.0.2 und Vite 6.4.3 gebauten Produktvertrag migriert.

@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+const root=new URL('../',import.meta.url),read=file=>readFile(new URL(file,root),'utf8');
+const checker=await read('scripts/check-build-budget.mjs');
+const baseline=JSON.parse(await read('MID_PERFORMANCE_BASELINE.json'));
+const html=await read('index.html');
+assert.equal(baseline.schema,2);
+for(const key of ['totalGzipBytes','compressibleGzipBytes','staticMediaBytes','jsGzipBytes','cssGzipBytes','largestJsGzipBytes'])assert.ok(Number.isFinite(baseline.limits?.[key]),`Budget fehlt: ${key}`);
+assert.equal(baseline.limits.compressibleGzipBytes,5200000,'Das bisherige 5,2-MB-Code/Text-Sicherheitsnetz bleibt erhalten.');
+assert.ok(checker.includes('COMPRESSIBLE_EXTENSIONS')&&checker.includes('STATIC_MEDIA_EXTENSIONS'));
+assert.ok(checker.includes('compressibleGzipBytes')&&checker.includes('staticMediaBytes'));
+assert.match(html,/id="mid-logo-preload" rel="preload" as="image" fetchpriority="high"/);
+assert.ok(!html.includes('id="mid-logo-preload" rel="preload" href="./mid-logo-light-horizontal.png"'),'Der Boot-Preload darf nicht vor der Theme-Auflösung das Light-Logo anfordern.');
+assert.ok(html.includes("document.getElementById('mid-logo-preload')?.setAttribute('href',logoPath)"),'Der synchron ermittelte Theme-Logo-Pfad muss den Preload setzen.');
+console.log('Build-Budget trennt Code/Text von statischen Medien; Boot-Logo-Preload fordert nur die tatsächlich gewählte Theme-Variante an.');

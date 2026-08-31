@@ -1618,7 +1618,9 @@ button,input,select,textarea{font:inherit}
  vertical-align:-.08em;
  font-weight:800;
  font-variant-numeric:tabular-nums;
+ color:inherit;
 }
+.wind-direction-arrow.warning-1{color:#e6c229}.wind-direction-arrow.warning-2{color:#ef8d32}.wind-direction-arrow.warning-3{color:#e74a4a}.wind-direction-arrow.warning-4{color:#9b59c6}
 .svg-wind-direction-arrow{stroke:#bfe9ff;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;opacity:.98;pointer-events:none;filter:drop-shadow(0 0 1px rgba(0,0,0,.9))}
 :root[data-theme=light] .svg-wind-direction-arrow{stroke:#12658f;filter:drop-shadow(0 0 1px rgba(255,255,255,.88))}
 :root{--detail-probability-halo:rgba(10,35,55,.78)}

@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-08-31T10:39:31.445Z",
-  "releaseVersion": "0.9.76.20",
+  "updatedAt": "2026-08-31T11:43:26.120Z",
+  "releaseVersion": "0.9.76.22",
   "sourceBaseline": {
     "professionalVersion": "0.9.70.2",
     "workerVersion": "0.9.70.2",
@@ -88,14 +88,15 @@
     "weather-profile-mobile-density-axis-refinement-0.9.76.12",
     "weather-profile-stale-regression-contract-migration-0.9.76.14",
     "ensemble-resume-recovery-shared-core-0.9.76.19",
-    "regression-contract-hotfix-0.9.76.20"
+    "weather-profile-cell-gap-dwd-pin-day-wind-warning-colors-0.9.76.20",
+    "parallel-release-hardening-consolidation-0.9.76.21"
   ],
   "nextMilestone": "macos-xcode-simulator-quality-assurance",
   "validation": {
-    "browserBuild": "MID v0.9.76.14 übernimmt den in GitHub-Run #788 bereits erfolgreichen TypeScript-7-/Vite-Produktstand unverändert und migriert ausschließlich drei veraltete 24-h-Profil-Regressionserwartungen auf den aktuellen kompakten Achsenvertrag.",
-    "typescript": "GitHub-Run #788: TypeScript 7.0.2 NoEmit für App und Node vollständig grün; v0.9.76.14 verändert keinen TypeScript-Produktcode.",
-    "workerSyntax": "Worker-Fachlogik bleibt gegenüber beiden v0.9.76.11-Linien unverändert; nach Neutralisierung der Versionskonstante sind die Workerquellen fachlich bytegleich. Kein manueller Worker-Upload erforderlich.",
-    "regressions": "Die drei in #788 verbliebenen Altverträge (Meteogramm-Overlay-Skalierung, 24-h-Achsen, Thermik/Sonne) sind auf den bereits freigegebenen major-/profile-bottom-date-Vertrag migriert; DWD-Ortsausschnitt und neue 24-h-Regressionen bleiben grün.",
+    "browserBuild": "v0.9.76.22 ändert gegenüber dem bereits in GitHub mit TypeScript 7.0.2 und Vite 6.4.3 erfolgreich gebauten v0.9.76.21-Produktcode ausschließlich vier veraltete Regressionserwartungen sowie Release-Metadaten; der vollständige GitHub-Release-Gate bleibt vor Stable-Promotion verbindlich.",
+    "typescript": "Keine neue TypeScript-Major-Migration: TypeScript 7.0.2 bleibt unverändert. Die gezielten Merge-/UI-/Release-Regressionsverträge werden lokal geprüft; der vollständige NoEmit-Lauf erfolgt im kanonischen npm-ci/verify-Gate.",
+    "workerSyntax": "Keine fachliche Worker-Änderung; nur synchronisierte Versionskonstante. Semantischer Worker-Diff bleibt leer; kein manueller Worker-Upload erforderlich.",
+    "regressions": "Vier in Run #795 als veraltet identifizierte Regressionserwartungen sind auf die bereits freigegebenen Wolkenprofil-, Ensemble-Resume- und Fast-Forward-Promotionsverträge migriert. Die Suite umfasst weiterhin 602 automatisch erkannte Tests.",
     "capacitorSync": "Der erfolgreiche Browser-Build wurde mit cap copy ios in die gemeinsame Capacitor-iOS-Shell übernommen; Cross-Platform-, WidgetKit-, TypeScript-7-/Capacitor-, Datenschutz-, Push-/Background- und Logo-/PNG-Strukturtests sind grün.",
     "xcodeProjectStructure": "Gemeinsamer Capacitor-iOS-Wrapper, Light-/Dark-AppIcon- und Splash-Kataloge, Privacy-Manifeste und MIDWidgets-Struktur bleiben erhalten; keine neue native Berechtigung oder Capability aktiviert.",
     "xcodeAppleSdkBuild": "required-next-gate-macos-xcode-simulator; includes Apple SDK build, simulator launch, Privacy Report inspection and post-sync structure verification."
@@ -111,5 +112,8 @@
     ],
     "approved": false
   },
-  "validationNote": "v0.9.76.14 ist der CI-Hotfix nach #788: kein UI-Rollback, sondern Migration dreier historischer 24-h-Testannahmen. DWD-Ortsausschnitt und mobile Profilverdichtung bleiben gemeinsam erhalten. Das nächste native Gate bleibt macOS-/Xcode-Simulator-QA."
+  "validationNote": "v0.9.76.22 ist ein reiner CI-Vertragshotfix nach Run #795; Produktlogik aus v0.9.76.21 bleibt unverändert. Browser/PWA/iOS teilen denselben React/Vite-Kern; kein fachlicher Worker-Diff. Nächstes natives Gate bleibt macOS-/Xcode-Simulator-QA.",
+  "completedMilestones": [
+    "ci-regression-contract-hotfix-0.9.76.22"
+  ]
 }

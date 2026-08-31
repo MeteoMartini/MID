@@ -515,8 +515,11 @@ jobs:
           auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
           git init .
           git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
-          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" fetch --no-tags --depth=1 origin "$RELEASE_SHA"
-          git checkout --detach FETCH_HEAD
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" fetch --no-tags origin \
+            "+refs/heads/main:refs/remotes/origin/main" \
+            "+refs/heads/mid-stable:refs/remotes/origin/mid-stable"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" fetch --no-tags origin "$RELEASE_SHA"
+          git checkout --detach "$RELEASE_SHA"
           test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
           test -f dist/index.html
 
@@ -599,8 +602,11 @@ jobs:
           auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
           git init .
           git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
-          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" fetch --no-tags --depth=1 origin "$RELEASE_SHA"
-          git checkout --detach FETCH_HEAD
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" fetch --no-tags origin \
+            "+refs/heads/main:refs/remotes/origin/main" \
+            "+refs/heads/mid-stable:refs/remotes/origin/mid-stable"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" fetch --no-tags origin "$RELEASE_SHA"
+          git checkout --detach "$RELEASE_SHA"
           test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
           test -f dist/index.html
 
@@ -684,8 +690,11 @@ jobs:
           auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
           git init .
           git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
-          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" fetch --no-tags --depth=1 origin "$RELEASE_SHA"
-          git checkout --detach FETCH_HEAD
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" fetch --no-tags origin \
+            "+refs/heads/main:refs/remotes/origin/main" \
+            "+refs/heads/mid-stable:refs/remotes/origin/mid-stable"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" fetch --no-tags origin "$RELEASE_SHA"
+          git checkout --detach "$RELEASE_SHA"
           test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
           test -f dist/index.html
 
@@ -743,18 +752,75 @@ jobs:
           auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
           git init .
           git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
-          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" fetch --no-tags --depth=1 origin "$RELEASE_SHA"
-          git checkout --detach FETCH_HEAD
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" fetch --no-tags origin \
+            "+refs/heads/main:refs/remotes/origin/main" \
+            "+refs/heads/mid-stable:refs/remotes/origin/mid-stable"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" fetch --no-tags origin "$RELEASE_SHA"
+          git checkout --detach "$RELEASE_SHA"
           test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
 
-      - name: Letzten erfolgreichen Stand als stabile MID-Basis markieren
+      - name: Release-Kandidatenstatus vor Stable-Promotion setzen
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          candidate_sha="$(git rev-parse HEAD)"
+          status_payload="$(python3 - <<PY
+          import json, os
+          print(json.dumps({
+              'state': 'success',
+              'context': 'MID / release-candidate-quality',
+              'description': 'Build, Audit, Regressionen, Worker-Gate und Pages bestanden',
+              'target_url': f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}",
+          }))
+          PY
+          )"
+          for attempt in 1 2 3 4 5; do
+            http_code="$(curl --silent --show-error --output /tmp/mid-candidate-status.json --write-out '%{http_code}' \
+              --connect-timeout 10 --max-time 30 \
+              --request POST \
+              --header 'Accept: application/vnd.github+json' \
+              --header 'X-GitHub-Api-Version: 2022-11-28' \
+              --header "Authorization: Bearer ${GH_TOKEN}" \
+              --data "$status_payload" \
+              "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/statuses/${candidate_sha}" || printf '000')"
+            if [ "$http_code" = 201 ] || [ "$http_code" = 200 ]; then
+              echo "Release-Kandidatenstatus für ${candidate_sha} gesetzt."
+              exit 0
+            fi
+            cat /tmp/mid-candidate-status.json || true
+            if [ "$http_code" = 429 ] || [[ "$http_code" =~ ^5[0-9][0-9]$ ]] || [ "$http_code" = 000 ]; then
+              echo "::warning::GitHub Status API temporär nicht verfügbar (HTTP ${http_code}, Versuch ${attempt}/5)."
+              sleep $((attempt * 3))
+              continue
+            fi
+            echo "::error::Release-Kandidatenstatus konnte wegen HTTP ${http_code} nicht gesetzt werden."
+            exit 1
+          done
+          echo "::error::Release-Kandidatenstatus konnte nach fünf Versuchen nicht gesetzt werden; Stable-Promotion wird fail-closed abgebrochen."
+          exit 1
+
+      - name: Geprüften Release ausschließlich per Fast-Forward nach mid-stable promoten
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
-          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" push --force origin HEAD:refs/heads/mid-stable
+          release_sha="$(git rev-parse HEAD)"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" fetch --no-tags origin \
+            "+refs/heads/mid-stable:refs/remotes/origin/mid-stable"
+          stable_before="$(git rev-parse refs/remotes/origin/mid-stable)"
+          if [ "$stable_before" = "$release_sha" ]; then
+            echo "mid-stable zeigt bereits auf den geprüften Release ${release_sha}."
+            exit 0
+          fi
+          if ! git merge-base --is-ancestor "$stable_before" "$release_sha"; then
+            echo "::error::mid-stable ${stable_before} ist kein Vorfahr des geprüften Release ${release_sha}; keine Historie wird überschrieben."
+            exit 1
+          fi
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" push origin "${release_sha}:refs/heads/mid-stable"
 
       - name: Finalen Stable-SHA verifizieren und Qualitätsstatus setzen
         env:
