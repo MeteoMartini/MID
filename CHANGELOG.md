@@ -1,3 +1,17 @@
+# v0.9.76.32
+
+- Release-Gate-Sicherung für die v0.9.76.31-Korrekturen ergänzt.
+- Reiseplaner-Vertrag schützt nun explizit den aktuell ausgewählten MID-Ort als Standardziel und verhindert die Wiederkehr eines alten persistenten Reiseziels als Startwert.
+- Komposit-Vertrag schützt den robusten Boundary-Fallback sowie numerische/stringbasierte `admin_level`-/`maritime`-Werte, damit oberhalb des Wetterbilds nicht nur Städte, sondern auch Grenzen sichtbar bleiben.
+- Keine fachliche Worker-Änderung; kein neuer manueller Worker-Upload erforderlich.
+
+# v0.9.76.31
+
+- Reiseplaner: Das ausgewählte Ziel startet standardmäßig wieder mit dem aktuell gewählten MID-Ort. Ein zuvor lokal gespeichertes Reiseziel überschreibt den Startzustand nicht mehr ungewollt.
+- Reiseplaner: Solange kein alternatives Reiseziel gewählt wurde, bleibt die Zielkarte automatisch mit dem aktuellen MID-Ort synchron.
+- Kompositbild: Der obere Referenzlayer zeichnet Grenzen robuster. Zusätzlich zum hervorgehobenen Länder-/Regionsrahmen wird ein allgemeiner Boundary-Fallback eingeblendet, und `admin_level`/`maritime` werden sowohl numerisch als auch als String akzeptiert.
+- Keine fachliche Worker-Änderung; ein neuer Worker-Upload ist für diese Korrektur nicht erforderlich.
+
 # v0.9.76.30
 
 - CI-Hotfix: Zwei veraltete 24-h-Wetterprofil-Regressionen wurden an den seit v0.9.76.28 gültigen Nacht-Fade-Vertrag angepasst.

@@ -35,9 +35,10 @@ const LazyPx250Overlay=lazy(()=>import('./Px250Overlay'));
 const LazyOperaRasterOverlay=lazy(()=>import('./OperaRasterOverlay'));
 const COMPOSITE_REFERENCE_TILEJSON='https://tiles.openfreemap.org/planet';
 const COMPOSITE_REFERENCE_GLYPHS='https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf';
-function compositeReferenceLayers(opacity:number){const alpha=Math.max(0,Math.min(1,opacity));return[
- {id:'country-boundaries',type:'line' as const,sourceLayer:'boundary',filter:['all',['==',['get','admin_level'],2],['==',['get','maritime'],0]],paint:{'line-color':'rgba(244,249,252,.96)','line-width':['interpolate',['linear'],['zoom'],3,1,7,1.7,11,2.5],'line-opacity':.92*alpha}},
- {id:'regional-boundaries',type:'line' as const,sourceLayer:'boundary',minzoom:5,filter:['all',['==',['get','admin_level'],4],['==',['get','maritime'],0]],paint:{'line-color':'rgba(239,247,251,.78)','line-width':['interpolate',['linear'],['zoom'],5,.6,10,1.4],'line-opacity':.72*alpha,'line-dasharray':[2,2]}},
+function compositeReferenceLayers(opacity:number){const alpha=Math.max(0,Math.min(1,opacity)),nonMaritime=['any',['!',['has','maritime']],['==',['get','maritime'],0],['==',['get','maritime'],'0'],['==',['get','maritime'],false],['==',['get','maritime'],'false']],adminLevel=(level:number)=>['any',['==',['get','admin_level'],level],['==',['get','admin_level'],String(level)]];return[
+ {id:'boundary-fallback',type:'line' as const,sourceLayer:'boundary',minzoom:2,filter:nonMaritime,paint:{'line-color':'rgba(235,244,249,.54)','line-width':['interpolate',['linear'],['zoom'],2,.45,5,.7,8,1.05],'line-opacity':.56*alpha}},
+ {id:'country-boundaries',type:'line' as const,sourceLayer:'boundary',filter:['all',adminLevel(2),nonMaritime],paint:{'line-color':'rgba(244,249,252,.96)','line-width':['interpolate',['linear'],['zoom'],3,1,7,1.7,11,2.5],'line-opacity':.92*alpha}},
+ {id:'regional-boundaries',type:'line' as const,sourceLayer:'boundary',minzoom:5,filter:['all',adminLevel(4),nonMaritime],paint:{'line-color':'rgba(239,247,251,.78)','line-width':['interpolate',['linear'],['zoom'],5,.6,10,1.4],'line-opacity':.72*alpha,'line-dasharray':[2,2]}},
  {id:'places',type:'symbol' as const,sourceLayer:'place',minzoom:3,filter:['match',['get','class'],['city','town'],true,false],layout:{'text-field':['coalesce',['get','name:de'],['get','name']],'text-font':['Noto Sans Regular'],'text-size':['interpolate',['linear'],['zoom'],3,10,7,12,11,14],'text-max-width':9,'text-allow-overlap':false,'text-optional':true},paint:{'text-color':'#f7fbfd','text-halo-color':'rgba(18,31,39,.92)','text-halo-width':1.5,'text-halo-blur':.35,'text-opacity':.95*alpha}}
 ] as any}
 const LazyRadarModelPrecipTypeOverlay=lazy(()=>import('./RadarModelPrecipTypeOverlay'));

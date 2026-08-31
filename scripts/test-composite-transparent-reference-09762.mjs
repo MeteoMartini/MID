@@ -5,6 +5,7 @@ const settings=fs.readFileSync('src/compositeSettings.ts','utf8');
 const core=fs.readFileSync('src/MapLibreCore.tsx','utf8');
 assert.ok(radar.includes("COMPOSITE_REFERENCE_TILEJSON='https://tiles.openfreemap.org/planet'"),'Komposit-Referenz muss die schlüsselfreie Vektorquelle verwenden.');
 assert.ok(radar.includes("sourceLayer:'boundary'")&&radar.includes("sourceLayer:'place'"),'Oberer Referenzlayer muss Grenzen und Ortsnamen aus Vektordaten zeichnen.');
+assert.ok(radar.includes("boundary-fallback")&&radar.includes("adminLevel(2)")&&radar.includes("adminLevel(4)"),'Grenz-Layer muss auch bei stringbasierten admin_level-Werten sichtbare Grenzen absichern.');
 assert.ok(radar.includes('<VectorReferenceLayer')&&!radar.includes('referenceUrl'),'Komposit darf oberhalb des Satellitenbilds keinen flächigen Referenz-Rasterlayer mehr montieren.');
 assert.ok(!settings.includes('only_labels')&&!settings.includes('cartocdn'),'Basemap-Konfiguration darf keinen fremden Label-Rasterlayer enthalten.');
 assert.ok(core.includes("map.addSource(sourceId,{type:'vector',url})"),'MapLibre-Kern muss transparenten Vektor-Referenzlayer unterstützen.');

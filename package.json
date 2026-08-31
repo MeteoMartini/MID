@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.76.30",
+  "version": "0.9.76.32",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -366,7 +366,8 @@
     "test:ruc-scheduler-resilience": "node scripts/test-ruc-scheduler-resilience-097624.mjs",
     "test:thunder-mobile-place-summary-pin": "node scripts/test-thunder-mobile-place-summary-pin-097625.mjs",
     "test:thunder-mobile-route-cards": "node scripts/test-thunder-mobile-route-cards-097627.mjs",
-    "test:extreme-rain-profile-night": "node scripts/test-extreme-rain-profile-night-097628.mjs"
+    "test:extreme-rain-profile-night": "node scripts/test-extreme-rain-profile-night-097628.mjs",
+    "test:travel-current-composite-boundaries": "node scripts/test-travel-current-composite-boundaries-097632.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",

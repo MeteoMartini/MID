@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-08-31T18:58:26.630Z",
-  "releaseVersion": "0.9.76.30",
+  "updatedAt": "2026-08-31T19:42:42Z",
+  "releaseVersion": "0.9.76.32",
   "sourceBaseline": {
     "professionalVersion": "0.9.70.2",
     "workerVersion": "0.9.70.2",
@@ -93,15 +93,17 @@
     "ruc-scheduler-resilience-source-preparation-0.9.76.24",
     "mobile-thunder-route-list-and-dwd-pin-0.9.76.26",
     "mobile-thunder-route-cards-0.9.76.27",
-    "release-run-801-thunder-regression-hotfix-0.9.76.29"
+    "release-run-801-thunder-regression-hotfix-0.9.76.29",
+    "travel-planner-default-location-and-composite-boundaries-0.9.76.31",
+    "travel-current-location-composite-boundary-regression-0.9.76.32"
   ],
   "nextMilestone": "macos-xcode-simulator-quality-assurance",
   "validation": {
-    "browserBuild": "Lokale UI-Anpassung ohne Fachlogikänderung im Forecast-/Worker-Kern. TypeScript-NoEmit wurde erfolgreich geprüft; produktiver Vite-Build bleibt vor Stable-Promotion im vollständigen Release-Gate verbindlich.",
-    "typescript": "Globale TypeScript-Prüfung (tsc --noEmit) erfolgreich; zusätzliche UI-/Radar-/Responsive-Regressionen für Gewitter-Ortsliste und DWD-Stecknadel sind grün.",
-    "workerSyntax": "worker/metar-proxy.js wurde per node --check validiert. Keine fachliche Worker-Änderung; nur gemeinsame Versionssynchronisierung.",
-    "regressions": "Gezielte UI-Regressionsprüfung für mobile Gewitter-Zugbahnkarten, DWD-Stecknadel und aktuelle Nowcards; vollständiges Release-Gate bleibt vor Stable-Promotion verbindlich.",
-    "capacitorSync": "Der erfolgreiche Browser-Build wurde mit cap copy ios in die gemeinsame Capacitor-iOS-Shell übernommen; Cross-Platform-, WidgetKit-, TypeScript-7-/Capacitor-, Datenschutz-, Push-/Background- und Logo-/PNG-Strukturtests sind grün.",
+    "browserBuild": "Quellstand für Reiseplaner-Defaultziel und Komposit-Grenzoverlay ist regressionsgesichert. Ein vollständiger Vite-Produktionsbuild bleibt im GitHub-Release-Gate verbindlich.",
+    "typescript": "Geänderte TSX-Dateien wurden zusätzlich per TypeScript-Parser auf Syntaxdiagnosen geprüft; vollständiges Projekt-tsc bleibt im GitHub-Gate verbindlich.",
+    "workerSyntax": "worker/metar-proxy.js per node --check geprüft; keine fachliche Worker-Änderung.",
+    "regressions": "Neuer kombinierter Regressionstest für Reiseplaner-Defaultziel und Komposit-Grenzen sowie bestehender transparenter Komposit-Referenztest sind grün.",
+    "capacitorSync": "Kein neuer Capacitor-/iOS-Sync in dieser Container-Sitzung durchgeführt; Browser/PWA- und iOS-Fachkern bleiben unverändert gemeinsam.",
     "xcodeProjectStructure": "Gemeinsamer Capacitor-iOS-Wrapper, Light-/Dark-AppIcon- und Splash-Kataloge, Privacy-Manifeste und MIDWidgets-Struktur bleiben erhalten; keine neue native Berechtigung oder Capability aktiviert.",
     "xcodeAppleSdkBuild": "required-next-gate-macos-xcode-simulator; includes Apple SDK build, simulator launch, Privacy Report inspection and post-sync structure verification."
   },
@@ -116,7 +118,7 @@
     ],
     "approved": false
   },
-  "validationNote": "v0.9.76.30 korrigiert ausschließlich zwei veraltete 24-h-Wetterprofil-Regressionsverträge aus GitHub-Run #802: Nachtstunden bleiben als dezenter Hintergrund mit Fade an Sonnenuntergang/Sonnenaufgang geschützt; die einzige 24/00-Uhr-Tagesgrenze bleibt bestehen. Keine fachliche Rücknahme.",
+  "validationNote": "v0.9.76.32 sichert die v0.9.76.31-Korrekturen mit einem eigenen Regressionstest ab: Reiseplaner startet am aktuellen MID-Ort; Komposit-Referenzlayer behält Städte plus robuste Länder-/Regionsgrenzen mit Boundary-Fallback. Keine fachliche Worker-Änderung.",
   "completedMilestones": [
     "ci-regression-contract-hotfix-0.9.76.22",
     "ruc-scheduler-resilience-source-preparation-0.9.76.24",
@@ -124,6 +126,8 @@
     "mobile-thunder-route-cards-0.9.76.27",
     "extreme-rain-and-24h-night-polish-0.9.76.28",
     "release-run-801-thunder-regression-hotfix-0.9.76.29",
-    "weather-profile-night-fade-regression-gate-0.9.76.30"
+    "weather-profile-night-fade-regression-gate-0.9.76.30",
+    "travel-planner-default-location-and-composite-boundaries-0.9.76.31",
+    "travel-current-location-composite-boundary-regression-0.9.76.32"
   ]
 }
