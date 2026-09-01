@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-09-01T12:04:52.118Z",
-  "releaseVersion": "0.9.77.8",
+  "updatedAt": "2026-09-01T15:05:00.000Z",
+  "releaseVersion": "0.9.77.10",
   "sourceBaseline": {
     "professionalVersion": "0.9.70.2",
     "workerVersion": "0.9.70.2",
@@ -102,7 +102,9 @@
     "shared-subseasonal-trend-14dplus-and-seasonal-model-comparison-0.9.77.0",
     "0.9.77.4 – Witterungstrend Tag 15–46 mit zeitachsenbasierter Klimamittel-Zuordnung, Tmin/Tmax, Windböen, Punkt-Tooltip und bestandenem Release-Upload-Budget aktualisiert.",
     "run-811-trend14plus-typescript-buildfix-0.9.77.5",
-    "0.9.77.6 – Run #812 RUC-Workflow-Admin-Sync-Übergang eng regressionsgeschützt; Build/Vite aus #812 waren bereits grün."
+    "0.9.77.6 – Run #812 RUC-Workflow-Admin-Sync-Übergang eng regressionsgeschützt; Build/Vite aus #812 waren bereits grün.",
+    "0.9.77.9 – Trend 14d+: Temperatur als Default mit persistierter letzter Auswahl, Böen entfernt, ERA5-Land-1991–2020-Klimareferenz, getrennte P10–P90/P25–P75-Bänder; appweiter Parameter-Farbvertrag und Extremwetter-Abstand nachgezogen.",
+    "0.9.77.10 – Install-/Deploy-Run #817 TypeScript-Hotfix, echter Witterungstrend-Modellstand und Werte an der blauen Kurzfrist-Referenzlinie."
   ],
   "nextMilestone": "macos-xcode-simulator-quality-assurance",
   "validation": {
@@ -125,7 +127,7 @@
     ],
     "approved": false
   },
-  "validationNote": "v0.9.77.6 behebt Run #812 fail-closed: der Installer akzeptiert den exakt definierten setup-python-v5→v7-Admin-Sync-Übergang des aktiven RUC-Workflows, während jede zusätzliche Workflow-Drift weiterhin blockiert.",
+  "validationNote": "v0.9.77.9 standardisiert das Parameter-Farbkonzept in Trend-, 14-Tage-, Meteogramm- und Cockpit-Diagrammen, entfernt nicht gelieferte Böen aus Trend 14d+, verwendet ERA5-Land 1991–2020 als einheitliche Klimareferenz, trennt P10–P90 von P25–P75 sichtbar und vergrößert den Abstand unter dem Extremwetter-Ausblick.",
   "completedMilestones": [
     "ci-regression-contract-hotfix-0.9.76.22",
     "ruc-scheduler-resilience-source-preparation-0.9.76.24",
@@ -152,7 +154,19 @@
       "date": "2026-09-01",
       "title": "Run #812 – RUC setup-python Admin-Sync Hotfix",
       "summary": "Der aktive setup-python-v5-RUC-Workflow wird gegenüber dem kanonischen v7-Stand nur dann als pending-admin-sync akzeptiert, wenn genau dieser eine bekannte Pin-Unterschied vorliegt; jede weitere Drift bleibt fail-closed."
+    },
+    {
+      "version": "0.9.77.9",
+      "date": "2026-09-01",
+      "title": "Trend 14d+ Klimareferenz, Unsicherheit und appweiter Farbvertrag",
+      "summary": "Böen ohne belastbare Daten vollständig entfernt; Temperatur bleibt Default, letzte Parameterauswahl persistiert. Klimareferenz auf ERA5-Land 1991–2020 wie im 14-Tage-Ensemble vereinheitlicht, P10–P90/P25–P75 optisch getrennt und Tmin-Band blau. Generische Parameterfarben in zentralen Diagrammen standardisiert; Warn-/Phasenfarben bleiben semantisch separat."
+    },
+    {
+      "version": "0.9.77.10",
+      "date": "2026-09-01",
+      "title": "Witterungstrend-Modellstand und Kurzfrist-Referenzwerte",
+      "summary": "Behebt die fünf TypeScript-Blocker aus Installer #817, zeigt den tatsächlichen Open-Meteo-Modellinitialisierungsstand für EC46/GEFS und ergänzt parameterfarbige Werte direkt an der blauen Kurzfrist-Referenzlinie."
     }
   ],
-  "currentVersion": "0.9.77.6"
+  "currentVersion": "0.9.77.10"
 }

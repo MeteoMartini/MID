@@ -28,8 +28,8 @@ assert.match(cockpit,/cockpit-fourteen-temps/,'Tmin\/Tmax-Stil der 14-Tage-Über
 assert.doesNotMatch(ensemble,/Ensemble-Mitglieder pro Tag im Mittel/,'Nutzlose Mitglieder-Satzanzeige darf nicht zurückkehren');
 assert.match(ensemble,/Abweichung zum Klimamittel/,'Temperaturschalter muss die Klimaabweichung erklären');
 assert.match(ensemble,/Menge × Wahrscheinlichkeit/,'Niederschlagsschalter muss das kombinierte Signal erklären');
-assert.match(styles,/\.ensemble-metric-mini\.wind>em>i\{[^}]*background:#167a55/s,'Windfarbe des Schalters muss dem Diagramm entsprechen');
-assert.match(styles,/\.ensemble-metric-mini\.wind>em>strong\{[^}]*background:#5f8f31/s,'Böenfarbe des Schalters muss dem Diagramm entsprechen');
+assert.match(styles,/\.ensemble-metric-mini\.wind>em>i\{[^}]*background:var\(--param-wind\)/s,'Windfarbe des Schalters muss dem appweiten Parametervertrag entsprechen');
+assert.match(styles,/\.ensemble-metric-mini\.wind>em>strong\{[^}]*background:var\(--param-gust\)/s,'Böenfarbe des Schalters muss dem appweiten Parametervertrag entsprechen');
 assert.match(ensemble,/showRainRange&&<Scatter/,'P10–P90-Schalter darf nur die Fehlerbalken ausblenden');
 assert.match(ensemble,/chartTooltipTrigger\(\)/,'Desktop-Tooltips müssen Hover unterstützen');
 assert.match(ensemble,/P10–P90-Spannen ein-\/ausblenden/,'P10–P90-Schalter muss eindeutig beschriftet sein');

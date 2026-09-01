@@ -57,7 +57,7 @@ for(const token of [
  'probabilityPath=',
  'className="probability-line"',
  'className="rain-bar"',
- 'className="selected-probability-value"',
+ 'className="selected-time-value precipitation"',
  'Menge (mm)',
  'Wahrscheinlichkeit (%)',
  'shortTermPrecipitationDetail(selectedPoint)'

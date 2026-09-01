@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.9.77.10 - 2026-09-01
+- Install-/Deploy-Run #817: fünf TypeScript-Blocker im Berg-/Witterungstrend-Pfad behoben.
+- Witterungstrend zeigt den tatsächlichen Open-Meteo-Modellinitialisierungsstand für EC46/GEFS; Datenabruf wird separat ausgewiesen.
+- Kurzfristdiagramm zeigt an der blauen ausgewählten Zeitlinie Werte für Wolken, Temperatur/gefühlt/Taupunkt, Niederschlag, Wind/Böen und Luftdruck in Parameterfarben.
+
 ## v0.9.77.8 - 2026-09-01
 - CI-Hotfix nach Installer #815: TypeScript und Vite waren bereits grün; 617/618 Regressionen bestanden. `test-extreme-rain-profile-night-097628.mjs` wurde vom veralteten Quelltext-Stringvertrag auf den aktuellen semantischen v0.9.77.8-Vertrag umgestellt: I-Schwelle + tatsächliches Modellsignal sowie identifier-unabhängiger RUC-Regenfallback. Produktionslogik unverändert.
 - CI-Hotfix nach Installer #814: ungenutzter `height`-Parameter im Trend-14d+-Chart entfernt; TypeScript-`noUnusedParameters`-Gate wieder erfüllbar.

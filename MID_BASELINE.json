@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.77.8",
+  "releaseVersion": "0.9.77.10",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -351,7 +351,10 @@
     "scripts/test-trend14plus-buildfix-09775.mjs",
     "scripts/test-ruc-workflow-setup-python-transition-09776.mjs",
     "scripts/test-long-range-model-sources-09774.mjs",
-    "scripts/test-extreme-threshold-ruc-horizon-09778.mjs"
+    "scripts/test-extreme-threshold-ruc-horizon-09778.mjs",
+    "scripts/test-appwide-parameter-colors-09779.mjs",
+    "scripts/test-extreme-outlook-spacing-09779.mjs",
+    "scripts/test-shortterm-selected-line-values-097710.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -631,7 +634,10 @@
     "scripts/test-trend14plus-buildfix-09775.mjs",
     "scripts/test-ruc-workflow-setup-python-transition-09776.mjs",
     "scripts/test-long-range-model-sources-09774.mjs",
-    "scripts/test-extreme-threshold-ruc-horizon-09778.mjs"
+    "scripts/test-extreme-threshold-ruc-horizon-09778.mjs",
+    "scripts/test-appwide-parameter-colors-09779.mjs",
+    "scripts/test-extreme-outlook-spacing-09779.mjs",
+    "scripts/test-shortterm-selected-line-values-097710.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -1003,7 +1009,14 @@
     "scripts/test-long-range-model-sources-09774.mjs",
     "scripts/test-extreme-threshold-ruc-horizon-09778.mjs",
     "MID_IMPLEMENTATION_0.9.77.8.md",
-    "MID_PR_HOUSEKEEPING_0.9.77.8.md"
+    "MID_PR_HOUSEKEEPING_0.9.77.8.md",
+    "MID_IMPLEMENTATION_0.9.77.9.md",
+    "MID_TEST_REPORT_0.9.77.9.md",
+    "scripts/test-appwide-parameter-colors-09779.mjs",
+    "scripts/test-extreme-outlook-spacing-09779.mjs",
+    "MID_IMPLEMENTATION_0.9.77.10.md",
+    "MID_TEST_REPORT_0.9.77.10.md",
+    "scripts/test-shortterm-selected-line-values-097710.mjs"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1223,7 +1236,9 @@
     "src/LongRangePanel.tsx",
     "src/styles-src/00-foundation.css",
     "src/styles-src/10-features.css",
-    "scripts/test-long-range-model-sources-09774.mjs"
+    "scripts/test-long-range-model-sources-09774.mjs",
+    "MID_IMPLEMENTATION_0.9.77.9.md",
+    "MID_IMPLEMENTATION_0.9.77.10.md"
   ],
   "evidenceFiles": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -1274,6 +1289,6 @@
     "scripts/test-parameter-colors-trend14plus-09771.mjs",
     "scripts/test-trend14plus-buildfix-09775.mjs"
   ],
-  "version": "0.9.77.6",
+  "version": "0.9.77.10",
   "updatedAt": "2026-09-01T09:55:00Z"
 }

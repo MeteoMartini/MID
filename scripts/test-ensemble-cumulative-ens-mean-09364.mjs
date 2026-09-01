@@ -11,7 +11,7 @@ const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),failures=[];
 const need=(area,text,token)=>{if(!text.includes(token))failures.push(`${area}: ${token}`)};
 need('Tooltip',panel,'{(cumulative||advancedMode)&&<div><dt>ENS-Mittel</dt>');
 need('Legende',panel,'<i className="line cumulative-mean"/>ENS-Mittel');
-need('Diagramm',panel,'dataKey="precipitationMean" name="precipitationMean" stroke="#71cbe8" strokeWidth={2.1}');
+need('Diagramm',panel,'dataKey="precipitationMean" name="precipitationMean" stroke="color-mix(in srgb,var(--param-precipitation) 62%,white)" strokeWidth={2.1}');
 need('Export',panel,'Kumuliert · Best Match · P10–P90 · P25–P75 Tag 1–7 · ENS-Mittel');
 need('Styles',styles,'.rain-legend i.line.cumulative-mean');
 if(panel.includes("{advancedMode&&<Line yAxisId=\"mm\" type=\"monotone\" dataKey=\"precipitationMean\""))failures.push('ENS-Mittel ist im kumulierten Diagramm weiterhin an den erweiterten Modus gekoppelt.');

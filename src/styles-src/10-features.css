@@ -1040,17 +1040,17 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .wind-legend span{display:inline-flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap}
 .wind-legend i{display:inline-block;flex:0 0 auto}
 .wind-legend i.area{width:17px;height:9px;border-radius:3px}
-.wind-legend i.area.wind{border:1px solid rgba(22,122,85,.66);background:rgba(104,189,145,.32)}
-.wind-legend i.area.gust{border:1px solid rgba(95,143,49,.68);background:rgba(154,203,107,.34)}
-.wind-legend i.area.quartile.wind{border-color:rgba(18,105,72,.84);background:rgba(69,161,112,.5)}
-.wind-legend i.area.quartile.gust{border-color:rgba(79,126,39,.84);background:rgba(126,181,77,.52)}
+.wind-legend i.area.wind{border:1px solid color-mix(in srgb,var(--param-wind) 66%,transparent);background:color-mix(in srgb,var(--param-wind) 28%,transparent)}
+.wind-legend i.area.gust{border:1px solid color-mix(in srgb,var(--param-gust) 68%,transparent);background:color-mix(in srgb,var(--param-gust) 30%,transparent)}
+.wind-legend i.area.quartile.wind{border-color:color-mix(in srgb,var(--param-wind) 84%,transparent);background:color-mix(in srgb,var(--param-wind) 48%,transparent)}
+.wind-legend i.area.quartile.gust{border-color:color-mix(in srgb,var(--param-gust) 84%,transparent);background:color-mix(in srgb,var(--param-gust) 50%,transparent)}
 .wind-legend small{color:var(--muted);font-size:8px;font-weight:750}
 .wind-legend i.line{width:19px;height:0;border-top:3px solid}
-.wind-legend i.line.best.wind{border-color:#167a55}
-.wind-legend i.line.best.gust{border-color:#5f8f31}
+.wind-legend i.line.best.wind{border-color:var(--param-wind)}
+.wind-legend i.line.best.gust{border-color:var(--param-gust)}
 .wind-legend i.line.mean{border-top-width:2px;border-top-style:dashed}
-.wind-legend i.line.mean.wind{border-color:#68bd91}
-.wind-legend i.line.mean.gust{border-color:#9acb6b}
+.wind-legend i.line.mean.wind{border-color:var(--param-wind)}
+.wind-legend i.line.mean.gust{border-color:var(--param-gust)}
 .ensemble-wind-plot{display:grid;grid-template-columns:44px minmax(0,1fr) 52px;gap:6px;align-items:stretch;flex:1 1 auto;width:100%;min-width:0;min-height:0}
 .ensemble-wind-chart-core{display:grid;grid-template-rows:minmax(0,1fr) 28px;min-width:0;min-height:0}
 .ensemble-wind-chart-core>.recharts-responsive-container{min-width:0!important;min-height:0!important}
@@ -1249,7 +1249,6 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .subseasonal-trend.metric-pressure{--trend-color:var(--param-pressure)}
 .subseasonal-trend.metric-cloud{--trend-color:var(--param-cloud)}
 .subseasonal-trend.metric-wind{--trend-color:var(--param-wind)}
-.subseasonal-trend.metric-gust{--trend-color:var(--param-gust)}
 .subseasonal-head{align-items:flex-start!important}
 .subseasonal-head .long-range-head-actions{margin-left:auto}
 .subseasonal-families{justify-content:flex-start!important}
@@ -1264,29 +1263,30 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .subseasonal-metric-selector button.metric-pressure{--metric-color:var(--param-pressure)}
 .subseasonal-metric-selector button.metric-cloud{--metric-color:var(--param-cloud)}
 .subseasonal-metric-selector button.metric-wind{--metric-color:var(--param-wind)}
-.subseasonal-metric-selector button.metric-gust{--metric-color:var(--param-gust)}
 .subseasonal-metric-selector button.active{color:var(--metric-color);border-color:color-mix(in srgb,var(--metric-color) 70%,var(--border))!important;background:color-mix(in srgb,var(--metric-color) 10%,var(--panel,var(--surface)))!important}
 .subseasonal-main-chart>header>svg{color:var(--trend-color)!important}
-.subseasonal-chart{position:relative;overflow:hidden!important;background:transparent!important}
+.subseasonal-chart{position:relative;overflow:visible!important;background:transparent!important}
 .subseasonal-chart svg{min-width:0!important;width:100%!important;display:block}
-.subseasonal-chart .anomaly-plume.outer{fill:color-mix(in srgb,var(--trend-color) 11%,transparent);stroke:color-mix(in srgb,var(--trend-color) 20%,transparent)}
-.subseasonal-chart .anomaly-plume.inner{fill:color-mix(in srgb,var(--trend-color) 22%,transparent);stroke:color-mix(in srgb,var(--trend-color) 30%,transparent)}
+.subseasonal-chart .anomaly-plume.outer{vector-effect:non-scaling-stroke}
+.subseasonal-chart .anomaly-plume.inner{vector-effect:non-scaling-stroke}
 .subseasonal-chart .anomaly-mean-line{stroke:var(--trend-color)!important;stroke-width:2.8}
-.subseasonal-chart .climate-reference-line{fill:none;stroke:color-mix(in srgb,var(--muted) 88%,var(--text));stroke-width:1.6;stroke-dasharray:6 5;stroke-linecap:round;stroke-linejoin:round}
+.subseasonal-chart .climate-reference-line{fill:none;stroke:color-mix(in srgb,var(--trend-color) 72%,var(--muted));stroke-width:1.6;stroke-dasharray:6 5;stroke-linecap:round;stroke-linejoin:round}
 .subseasonal-chart .subseasonal-point-hit{position:absolute;width:30px;height:30px;border:0;border-radius:999px;background:transparent;transform:translate(-50%,-50%);cursor:pointer;touch-action:manipulation;z-index:1}
 .subseasonal-chart .subseasonal-point-hit::after{content:"";position:absolute;inset:5px;border-radius:999px;background:color-mix(in srgb,var(--trend-color) 24%,transparent);opacity:0;transition:opacity .18s ease}
 .subseasonal-chart .subseasonal-point-hit.active::after,.subseasonal-chart .subseasonal-point-hit:focus-visible::after{opacity:1}
-.subseasonal-chart .subseasonal-point-tooltip{position:absolute;min-width:188px;max-width:min(280px,72vw);display:grid;gap:4px;padding:10px 12px;border-radius:14px;border:1px solid color-mix(in srgb,var(--border) 84%,transparent);background:color-mix(in srgb,var(--surface) 96%,#fff);box-shadow:0 14px 30px rgba(20,31,48,.16);transform:translate(-50%,calc(-100% - 12px));z-index:3}
+.subseasonal-chart .subseasonal-point-tooltip{position:absolute;min-width:220px;max-width:min(340px,82vw);display:grid;gap:6px;padding:11px 13px;border-radius:14px;border:1px solid color-mix(in srgb,var(--border) 84%,transparent);background:color-mix(in srgb,var(--surface) 98%,#fff);box-shadow:0 14px 30px rgba(20,31,48,.18);transform:translate(-50%,calc(-100% - 12px));z-index:5;line-height:1.35}
 .subseasonal-chart .subseasonal-point-tooltip::after{content:"";position:absolute;left:50%;bottom:-8px;width:14px;height:14px;background:color-mix(in srgb,var(--surface) 96%,#fff);border-right:1px solid color-mix(in srgb,var(--border) 84%,transparent);border-bottom:1px solid color-mix(in srgb,var(--border) 84%,transparent);transform:translateX(-50%) rotate(45deg)}
-.subseasonal-chart .subseasonal-point-tooltip strong{font-size:9px;color:var(--text)}
-.subseasonal-chart .subseasonal-point-tooltip small{font-size:7.5px;color:var(--muted)}
-.subseasonal-chart .subseasonal-point-tooltip span{font-size:8px;color:var(--text)}
+.subseasonal-chart .subseasonal-point-tooltip strong{font-size:11px;color:var(--text)}
+.subseasonal-chart .subseasonal-point-tooltip small{font-size:9px;color:var(--muted)}
+.subseasonal-chart .subseasonal-point-tooltip span{font-size:9.5px;color:var(--text)}
+.subseasonal-tooltip-series{display:grid!important;gap:2px;padding-left:8px;border-left:3px solid var(--trend-color)}
+.subseasonal-tooltip-series>b{font-size:9.5px}.subseasonal-tooltip-series>em{font-size:9.5px;font-style:normal;font-weight:800;color:var(--text)}.subseasonal-tooltip-series>small{font-size:8.7px!important;line-height:1.3}
 
 .subseasonal-chart-legend{display:flex;flex-wrap:wrap;gap:8px 14px;color:var(--muted);font-size:8px;font-weight:750}
 .subseasonal-chart-legend span{display:inline-flex;align-items:center;gap:5px}
 .subseasonal-chart-legend i{display:inline-block;width:24px;height:0;border-top:2px solid var(--trend-color)}
 .subseasonal-chart-legend .climate i{border-top:2px dashed color-mix(in srgb,var(--muted) 88%,var(--text))}
-.subseasonal-chart-legend .spread i{height:8px;border:1px solid color-mix(in srgb,var(--trend-color) 32%,transparent);border-top:1px solid color-mix(in srgb,var(--trend-color) 32%,transparent);border-radius:3px;background:color-mix(in srgb,var(--trend-color) 16%,transparent)}
+.subseasonal-chart-legend .spread i{height:8px;border:1px solid color-mix(in srgb,var(--trend-color) 32%,transparent);border-top:1px solid color-mix(in srgb,var(--trend-color) 32%,transparent);border-radius:3px}.subseasonal-chart-legend .outer-spread i{background:color-mix(in srgb,var(--trend-color) 10%,transparent)}.subseasonal-chart-legend .inner-spread i{background:color-mix(in srgb,var(--trend-color) 28%,transparent);border-color:color-mix(in srgb,var(--trend-color) 48%,transparent)}
 .subseasonal-comparison .climate-value{margin-top:3px;padding-top:3px;border-top:1px dashed var(--border);color:var(--muted)}
 @media(max-width:600px){.subseasonal-head{position:relative;padding-right:74px}.subseasonal-head .long-range-head-actions{position:absolute;top:0;right:0;gap:5px}.subseasonal-head .long-range-head-actions>button{width:32px;height:32px;flex-basis:32px;border-radius:10px}.subseasonal-model-selector{grid-template-columns:repeat(3,minmax(0,1fr))}.subseasonal-metric-selector{grid-template-columns:repeat(2,minmax(0,1fr))}.subseasonal-model-selector button,.subseasonal-metric-selector button{padding:7px 8px}.subseasonal-model-selector b,.subseasonal-metric-selector b{font-size:8.5px}.subseasonal-model-selector small,.subseasonal-metric-selector small{font-size:6.8px}.subseasonal-chart .axis-label{font-size:9px}.subseasonal-chart .month-label{font-size:8px}.subseasonal-comparison .long-range-model-strip{grid-template-columns:1fr!important}.subseasonal-families>span{flex:1 1 120px}}
 @media(max-width:390px){.subseasonal-metric-selector{grid-template-columns:repeat(2,minmax(0,1fr))}.subseasonal-chart-legend{gap:6px 9px;font-size:7px}.subseasonal-controls{padding:6px}.subseasonal-main-chart{padding:8px!important}}

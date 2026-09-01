@@ -45,15 +45,20 @@ for(const token of [
  'thunderRisk={locationThunderRisk}',
  "label:'Gewitterrisiko'",
  'Einheitliche 6-Stunden-Ortsanalyse',
- 'function mountainLevelThunderRisk(',
- "risks.push('erhöhte konvektive Instabilität')"
+ 'function mountainHourlyThunderRisk(',
+ 'function mountainRapidThunderRisk(',
+ 'function mountainCombinedThunderPercent(',
+ 'score-=mountainConvectivePenalty(convectiveRisk)',
+ "risks.push(ruc?'Gewitter-/Konvektionssignal · Höhenmodell + ICON-D2-RUC':'Gewitter-/Konvektionssignal aus Mehrparameteranalyse')",
+ '<MountainZoneAnalysis data={data} days={days} rapidMinutes15={rapidMinutes15}/>'
 ])assert.ok(app.includes(token),`App-Vertrag fehlt: ${token}`);
 assert.equal((app.match(/thunderRisk=\{locationThunderRisk\}/g)||[]).length,2,'Aktuell und Wassersport müssen exakt dasselbe 6-h-Risiko erhalten.');
 assert.ok(!app.includes("risks.push('Gewitterrisiko')"),'CAPE-only-Bergsignal darf nicht als Gewitterrisiko bezeichnet werden.');
+assert.ok(!app.includes("risks.push('erhöhte konvektive Instabilität')"),'Die Höhenzonenanalyse darf CAPE nicht mehr als eigenständige Gefahrenaussage verwenden.');
 
 for(const token of [
  'thunderRisk:PeriodThunderRisk|null',
- 'const currentHour=hours[currentIndex(hours)]??hours[0],thunder=Boolean(thunderRisk)',
+ 'const currentHour=hours[currentIndex(hours)]??hours[0],effectiveThunderPercent=Math.max(thunderRisk?.percent??0,rapidThunderRisk?.percent??0)',
  'function completeTideRange(',
  "label=\"Gewitterrisiko\"",
  'Tidenhub · vollständige Tide',
@@ -61,7 +66,9 @@ for(const token of [
  'function TideSparkline(',
  'water-wave-group',
  'water-flow-group',
- 'water-weather-group'
+ 'water-weather-group',
+ 'rapidThunderRisk?:RapidThunderRisk|null',
+ "detail={rapidThunderRisk?'kanonische Ortsanalyse + ICON-D2-RUC Mehrparameter · nächste 6 h'"
 ])assert.ok(water.includes(token),`Wassersport-Vertrag fehlt: ${token}`);
 assert.ok(!water.includes('hour.cape>=800')&&!water.includes('point.cape>=800'),'Wassersport enthält noch einen CAPE-Sonderweg.');
 assert.ok(!water.includes('Spanne 24 h'),'Ein angebrochener 24-h-Ausschnitt darf nicht mehr als Tidenhub erscheinen.');

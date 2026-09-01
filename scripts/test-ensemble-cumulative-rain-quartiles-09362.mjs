@@ -23,7 +23,7 @@ for(const token of [
  'cumulativeQBandPlot:index<7?Math.max(0,q75-q25):undefined',
  'dataKey="cumulativeQ25Plot"',
  'dataKey="cumulativeQBandPlot"',
- 'fill="#1687d5" fillOpacity={.38}',
+ 'fill="var(--param-precipitation)" fillOpacity={.38}',
  'P10–P90 · P25–P75',
  'className="area cumulative quartile"'
 ]) if(!panel.includes(token)) failures.push(`EnsemblePanel.tsx fehlt: ${token}`);

@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.77.8",
+  "version": "0.9.77.10",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -371,7 +371,9 @@
     "test:thunder-numerical-ruc": "node scripts/test-thunder-numerical-ruc-097635.mjs",
     "test:trend14plus": "node scripts/test-trend14plus-09770.mjs",
     "test:github-pr-maintenance-09773": "node scripts/test-github-pr-maintenance-09773.mjs",
-    "test:extreme-threshold-ruc-horizon": "node scripts/test-extreme-threshold-ruc-horizon-09778.mjs"
+    "test:extreme-threshold-ruc-horizon": "node scripts/test-extreme-threshold-ruc-horizon-09778.mjs",
+    "test:appwide-parameter-colors": "node scripts/test-appwide-parameter-colors-09779.mjs",
+    "test:extreme-outlook-spacing": "node scripts/test-extreme-outlook-spacing-09779.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",
