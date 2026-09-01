@@ -113,7 +113,7 @@ const SEASONAL_ENDPOINT='https://seasonal-api.open-meteo.com/v1/seasonal';
 const ENSEMBLE_ENDPOINT='https://ensemble-api.open-meteo.com/v1/ensemble';
 const CLIMATE_ENDPOINT='https://archive-api.open-meteo.com/v1/archive';
 const CACHE_PREFIX='mid:subseasonal-trend:v7';
-const CLIMATE_CACHE_PREFIX='mid:subseasonal-climatology:1991-2020:v2';
+const CLIMATE_CACHE_PREFIX='mid:subseasonal-climatology:1991-2020:v3';
 const CACHE_MAX_AGE_MS=6*60*60*1000;
 const CLIMATE_MAX_AGE_MS=180*86400000;
 const MODEL_METADATA_BASE='https://api.open-meteo.com/data';
@@ -138,6 +138,8 @@ const VIEW_METRICS:ViewMetricDefinition[]=[
 const DAILY_VARIABLES=[...new Set(RAW_METRICS.map(metric=>metric.api))];
 const FALLBACK_DAILY_VARIABLES=['temperature_2m_max','temperature_2m_min','precipitation_sum','pressure_msl_mean','cloud_cover_mean','wind_speed_10m_mean'];
 const CLIMATE_DAILY_VARIABLES=[...DAILY_VARIABLES];
+const CLIMATE_TEMPERATURE_VARIABLES=['temperature_2m_max','temperature_2m_min'];
+const CLIMATE_ATMOSPHERIC_VARIABLES=['precipitation_sum','pressure_msl_mean','cloud_cover_mean','wind_speed_10m_mean'];
 
 const TEMPERATURE_SERIES:MultiSeriesDefinition[]=[
   {id:'temperature_max',label:'Tmax',color:'var(--param-temperature-max)',climateColor:'var(--param-temperature-max-climate)'},
@@ -248,20 +250,39 @@ function climateDateKey(date:string){return String(date).slice(5,10)}
 function climateCacheKey(location:Location){return `${CLIMATE_CACHE_PREFIX}:${(Math.round(location.latitude*20)/20).toFixed(2)}:${(Math.round(location.longitude*20)/20).toFixed(2)}:${Math.round(Number(location.elevation??0)/100)*100}`}
 function datesInWeek(startDate:string,endDate:string){const values:string[]=[];const start=new Date(`${startDate}T12:00:00Z`),end=new Date(`${endDate}T12:00:00Z`);for(let cursor=new Date(start);cursor<=end;cursor.setUTCDate(cursor.getUTCDate()+1))values.push(cursor.toISOString().slice(0,10));return values}
 
+async function fetchClimateArchive(location:Location,variables:string[],model:'era5_seamless'|'era5_land'|'era5',signal:AbortSignal,refresh:boolean){
+  const params=new URLSearchParams({latitude:String(location.latitude),longitude:String(location.longitude),start_date:'1991-01-01',end_date:'2020-12-31',daily:variables.join(','),timezone:'auto',models:model,cell_selection:'land',temperature_unit:'celsius',precipitation_unit:'mm',wind_speed_unit:'kn'});
+  if(Number.isFinite(location.elevation))params.set('elevation',String(location.elevation));
+  return fetchJson(`${CLIMATE_ENDPOINT}?${params}`,signal,refresh);
+}
+
+function mergeClimatePayloads(temperature:ApiPayload,atmosphere:ApiPayload):ApiPayload{
+  const temperatureDaily=temperature.daily??{},atmosphereDaily=atmosphere.daily??{};
+  const time=Array.isArray(temperatureDaily.time)?temperatureDaily.time:Array.isArray(atmosphereDaily.time)?atmosphereDaily.time:[];
+  return{daily:{...temperatureDaily,...atmosphereDaily,time},daily_units:{...(temperature.daily_units??{}),...(atmosphere.daily_units??{})}};
+}
+
 async function loadClimateWeeks(location:Location,weeks:TrendWeek[],signal:AbortSignal,refresh:boolean):Promise<ClimateWeek[]>{
   const key=climateCacheKey(location),now=Date.now();
   let cache:ClimateCache|null=null;
   try{const raw=localStorage.getItem(key);if(raw){const parsed=JSON.parse(raw) as ClimateCache;if(parsed?.values&&now-Number(parsed.created)<=CLIMATE_MAX_AGE_MS)cache=parsed}}catch{}
   if(!cache||refresh){
-    const params=new URLSearchParams({latitude:String(location.latitude),longitude:String(location.longitude),start_date:'1991-01-01',end_date:'2020-12-31',daily:CLIMATE_DAILY_VARIABLES.join(','),timezone:'auto',models:'era5_land',cell_selection:'land',wind_speed_unit:'kn'});
-    if(Number.isFinite(location.elevation))params.set('elevation',String(location.elevation));
-    const payload=await fetchJson(`${CLIMATE_ENDPOINT}?${params}`,signal,refresh);
+    let payload:ApiPayload;
+    try{
+      payload=await fetchClimateArchive(location,CLIMATE_DAILY_VARIABLES,'era5_seamless',signal,refresh);
+    }catch{
+      const [temperature,atmosphere]=await Promise.all([
+        fetchClimateArchive(location,CLIMATE_TEMPERATURE_VARIABLES,'era5_land',signal,refresh),
+        fetchClimateArchive(location,CLIMATE_ATMOSPHERIC_VARIABLES,'era5',signal,refresh)
+      ]);
+      payload=mergeClimatePayloads(temperature,atmosphere);
+    }
     const times=Array.isArray(payload.daily?.time)?(payload.daily!.time as unknown[]).map(String):[];
     const buckets=new Map<string,Record<RawMetricKey,number[]>>();
     for(let index=0;index<times.length;index++){
       const dateKey=climateDateKey(times[index]);
       const bucket=buckets.get(dateKey)??Object.fromEntries(RAW_METRICS.map(metric=>[metric.id,[] as number[]])) as Record<RawMetricKey,number[]>;
-      for(const metric of RAW_METRICS){const source=payload.daily?.[metric.api];const value=Array.isArray(source)?Number(source[index]):Number.NaN;if(Number.isFinite(value))bucket[metric.id].push(value)}
+      for(const metric of RAW_METRICS){const source=payload.daily?.[metric.api];const raw=Array.isArray(source)?source[index]:undefined;const value=raw===null||raw===undefined?Number.NaN:Number(raw);if(Number.isFinite(value))bucket[metric.id].push(value)}
       buckets.set(dateKey,bucket);
     }
     const values:Record<string,Partial<Record<RawMetricKey,number>>>={};
@@ -815,7 +836,7 @@ export default function SubseasonalTrendPanel({location,windUnit='kn',advancedMo
         <b>Methodik & Hinweise</b>
         <p>ECMWF EC46 liefert 51 Ensemblemitglieder bis Tag 46, NOAA GEFS 31 Ensemblemitglieder bis Tag 35. MID verdichtet beide Quellen auf Wochenblöcke ab Tag 15 und gewichtet Modellfamilien im Multi-Modell unabhängig von der Memberzahl 1:1.</p>
         <p>Temperatur wird konsistent als kombinierte Tmax/Tmin-Grafik gezeigt; Mittelkurven und Unsicherheitsbereiche folgen demselben Farbkonzept wie im 14-Tage-Ensemble. Wind wird als Wochenmittel geführt; nicht belastbar gelieferte Zusatzgrößen werden nicht als eigener Parameter angezeigt.</p>
-        <p>Das Klimamittel wird wie im 14-Tage-Ensemble aus ERA5-Land 1991–2020 am Ort abgeleitet. Tmax/Tmin, Wochen-Niederschlag, mittlerer Luftdruck, Bewölkung und Wind werden kalendergleich für jeden Wochenblock aggregiert.</p>
+        <p>Das Klimamittel wird wie im 14-Tage-Ensemble aus der ERA5-Seamless-Reanalyse 1991–2020 am Ort abgeleitet: ERA5-Land für die Landtemperatur, ERA5 für Niederschlag, Luftdruck, Bewölkung und Wind. Alle Größen werden kalendergleich für jeden Wochenblock aggregiert.</p>
         <p>Ab Tag 36 steht derzeit nur EC46 zur Verfügung; der Multi-Modell-Pfad reduziert sich dort automatisch auf die verbleibende Modellfamilie.</p>
       </div>:null}
 
@@ -859,7 +880,7 @@ export default function SubseasonalTrendPanel({location,windUnit='kn',advancedMo
         <div className="long-range-model-strip">
           {combined.map(week=>renderComparisonArticle(metric,week,models,week,climateWeeks,windUnit))}
         </div>
-        {advancedMode?<div className="long-range-method"><b>Quellen und Reichweite</b><p>ECMWF EC46: 36-km-Subseasonal-Ensemble bis 46 Tage. NOAA GEFS 0,5°: Ensemble bis 35 Tage. MID verdichtet beide auf identische Wochenblöcke und hält die Inter-Modell-Gewichtung unabhängig von der Memberzahl bei 1:1. Klimareferenz: ERA5-Land 1991–2020, identisch zur 14-Tage-Temperaturklimatologie und für alle dargestellten Parameter kalendergleich aggregiert.</p></div>:null}
+        {advancedMode?<div className="long-range-method"><b>Quellen und Reichweite</b><p>ECMWF EC46: 36-km-Subseasonal-Ensemble bis 46 Tage. NOAA GEFS 0,5°: Ensemble bis 35 Tage. MID verdichtet beide auf identische Wochenblöcke und hält die Inter-Modell-Gewichtung unabhängig von der Memberzahl bei 1:1. Klimareferenz: ERA5-Seamless 1991–2020; Temperatur aus ERA5-Land, atmosphärische Größen aus ERA5, kalendergleich aggregiert.</p></div>:null}
       </section>
     </>:null}
   </section>;

@@ -2639,3 +2639,39 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
 .cockpit-weather-profile .profile-solar-marker>line:nth-of-type(2){opacity:.42;stroke-dasharray:3 6}.cockpit-weather-profile .profile-solar-marker text{font-size:6.5px;opacity:.88}.cockpit-weather-profile .profile-solar-marker circle{filter:drop-shadow(0 0 2px rgba(247,203,85,.24))}
 .cockpit-weather-profile .profile-axis .axis-label,.cockpit-weather-profile .profile-axis .profile-scale-label,.cockpit-weather-profile .profile-probability-scale{font-variant-numeric:tabular-nums}.cockpit-weather-profile .profile-lane-label{font-size:7.6px;letter-spacing:.005em}.cockpit-weather-profile .cloud-layer-label{font-size:6.5px;paint-order:stroke fill;stroke:color-mix(in srgb,var(--mg-plot) 96%,transparent);stroke-width:2px;stroke-linejoin:round}
 @media(max-width:560px){.cockpit-weather-profile .profile-lane-label{font-size:7.1px}.cockpit-weather-profile .profile-lane-unit-label{font-size:6.4px}.cockpit-weather-profile .profile-axis .axis-label,.cockpit-weather-profile .profile-axis .profile-scale-label{font-size:6.5px}.cockpit-weather-profile .profile-probability-scale{font-size:5.8px}.cockpit-weather-profile .wind-warning-threshold-label{font-size:5.1px}.cockpit-weather-profile .profile-bottom-time text{font-size:5.9px}.cockpit-weather-profile .profile-bottom-date{font-size:5.1px}.cockpit-weather-profile .cockpit-weather-profile__window-note{font-size:8px}}
+
+/* MID v0.9.77.11 · verbindlicher Parameter-Farbvertrag: 24-h-Profil + 7-Tage-Ansichten */
+.cockpit-weather-profile{
+  --profile-dew:var(--param-dewpoint);
+  --profile-wind:var(--param-wind);
+  --profile-gust:var(--param-gust);
+  --profile-cloud:var(--param-cloud);
+  --profile-prob:var(--param-precipitation);
+  --profile-pressure:var(--param-pressure);
+}
+:root[data-theme=light] .cockpit-weather-profile{--profile-cloud:var(--param-cloud);--profile-pressure:var(--param-pressure)}
+.cockpit-weather-profile .profile-wind-direction-arrow{color:var(--param-wind)}
+.cockpit-weather-profile .temperature-line{stroke:var(--param-temperature)}
+.cockpit-weather-profile .apparent-line{stroke:color-mix(in srgb,var(--param-temperature) 58%,var(--text));stroke-dasharray:5 4}
+.cockpit-weather-profile .dewpoint-line{stroke:var(--param-dewpoint)}
+.cockpit-weather-profile .probability-column,.cockpit-weather-profile .probability-point{fill:var(--param-precipitation)}
+.cockpit-weather-profile .probability-line{stroke:var(--param-precipitation)}
+.cockpit-weather-profile .wind-line{stroke:var(--param-wind)}
+.cockpit-weather-profile .gust-line{stroke:var(--param-gust)}
+.cockpit-weather-profile .pressure-line{stroke:var(--param-pressure)}
+.cockpit-weather-profile .pressure-point{fill:var(--param-pressure)}
+.cockpit-weather-profile .profile-lane-grid.pressure{stroke:color-mix(in srgb,var(--param-pressure) 20%,var(--mg-grid))}
+
+.forecast-meta-rain,.forecast-meta-rain b{color:var(--param-precipitation)}
+.forecast-meta-rain small{color:color-mix(in srgb,var(--param-precipitation) 72%,var(--muted))}
+.forecast-meta-sun{color:var(--param-sunshine)}
+.forecast-meta-wind{color:var(--param-wind)}
+.forecast-inline-detail-temp{border-color:color-mix(in srgb,var(--param-temperature) 34%,var(--border))!important;background:color-mix(in srgb,var(--param-temperature) 9%,var(--surface))!important;color:var(--param-temperature)!important}
+.forecast-inline-detail-metrics>span:first-child b{color:var(--param-wind)}
+.forecast-inline-detail-metrics>span:nth-child(2) b{color:var(--param-precipitation)}
+.detaillegend .temp,.detaillegend i.temp{border-top-color:var(--param-temperature)!important;background:var(--param-temperature)!important}
+.detaillegend .probability,.detaillegend i.probability{border-top-color:var(--param-precipitation)!important;background:var(--param-precipitation)!important}
+.detaillegend i.dewpoint{background:var(--param-dewpoint)!important}
+.detaillegend i.windline{background:var(--param-wind)!important}
+.detaillegend i.gustline{background:repeating-linear-gradient(90deg,var(--param-gust) 0 7px,transparent 7px 11px)!important}
+.detaillegend i.pressureline{background:var(--param-pressure)!important}

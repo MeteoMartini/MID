@@ -3,8 +3,9 @@ const app=fs.readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
 const ensemble=fs.readFileSync(new URL('../src/EnsemblePanel.tsx',import.meta.url),'utf8');
 const css=fs.readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
 const required=[
- [app,/rgba\(\$\{channels\},\.17\)/,'ECMWF-Farbe muss transparent und dezent sein'],
- [app,/border:`rgba\(\$\{channels\},\.30\)`/,'ECMWF-Kontur muss dezent sein'],
+ [app,/background:'color-mix\(in srgb,var\(--param-temperature\) 10%,transparent\)'/,'Temperaturfeld muss die zentrale transparente Parameterfarbe verwenden'],
+ [app,/border:'color-mix\(in srgb,var\(--param-temperature\) 28%,transparent\)'/,'Temperaturkontur muss die zentrale dezente Parameterfarbe verwenden'],
+ [app,/color:'var\(--param-temperature\)'/,'Temperaturtext muss den zentralen Parameterfarbvertrag verwenden'],
  [ensemble,/const prepareHover=useCallback/,'Desktop-Hover-Reaktivierung fehlt'],
  [ensemble,/onMouseEnter=\{tooltip\.prepareHover\}/,'Temperatur-/Wind-Hover-Reaktivierung fehlt'],
  [ensemble,/onMouseEnter=\{rainTooltip\.prepareHover\}/,'Niederschlags-Hover-Reaktivierung fehlt'],
@@ -14,4 +15,4 @@ const required=[
  [css,/\.ensemble-chart-export \.recharts-tooltip-wrapper\{pointer-events:none!important\}/,'Recharts-Tooltip fängt Desktop-Hover weiterhin ab']
 ];
 for(const [source,pattern,message] of required){if(!pattern.test(source))throw new Error(message)}
-console.log('v0.9.15.2 Temperaturfeld- und Desktop-Ensemble-Tooltip-Vertrag bestanden.');
+console.log('MID v0.9.77.11: zentraler Temperaturfarbvertrag und Desktop-Ensemble-Tooltip geschützt.');

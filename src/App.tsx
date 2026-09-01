@@ -1231,12 +1231,7 @@ function WeatherPeriodIcons({dayVisual,nightVisual,daySize=44,nightSize=25}:{day
 function windDirectionShort(direction:number){const labels=['N','NNO','NO','ONO','O','OSO','SO','SSO','S','SSW','SW','WSW','W','WNW','NW','NNW'];return labels[Math.round((((direction%360)+360)%360)/22.5)%16]??'–'}
 function detailListPrecipLabel(hour:Hour){const amount=Math.max(0,Number(hour.precipitation)||0),snowfall=Math.max(0,Number(hour.snowfall)||0);return amount>.04||snowfall>=.05?precipitationAmountLabel(hour):'–'}
 function detailListWeatherLabel(parts:PrecipitationParts){return parts.type==='none'?label(parts.displayCode):parts.weatherLabel}
-function ecmwfTemperatureTone(value:number){
- const stops:[number,[number,number,number]][]=[[-40,[49,54,149]],[-25,[63,117,181]],[-10,[116,178,216]],[0,[224,243,248]],[10,[255,235,153]],[20,[253,174,97]],[30,[239,93,62]],[40,[165,15,38]]],temperature=Number(value);
- const mix=(left:[number,number,number],right:[number,number,number],ratio:number)=>left.map((channel,index)=>Math.round(channel+(right[index]-channel)*ratio)) as [number,number,number];let rgb=stops[0][1];
- for(let index=1;index<stops.length;index+=1){if(temperature<=stops[index][0]){const[left,leftRgb]=stops[index-1],[right,rightRgb]=stops[index];rgb=mix(leftRgb,rightRgb,Math.max(0,Math.min(1,(temperature-left)/(right-left))));break}rgb=stops[index][1]}
- const channels=rgb.join(','),background=`linear-gradient(180deg,rgba(${channels},.17),rgba(${channels},.075))`;return{background,border:`rgba(${channels},.30)`,color:'var(--text)',title:`ECMWF-orientierte 2-m-Temperaturfarbskala · ${Math.round(temperature)} °C`};
-}
+function ecmwfTemperatureTone(value:number){const temperature=Number(value);return{background:'color-mix(in srgb,var(--param-temperature) 10%,transparent)',border:'color-mix(in srgb,var(--param-temperature) 28%,transparent)',color:'var(--param-temperature)',title:`Temperatur · ${Math.round(temperature)} °C`};}
 function clockHourInZone(timezone:string,epoch=Date.now()){try{return Number(new Intl.DateTimeFormat('en-GB',{timeZone:timezone,hour:'2-digit',hourCycle:'h23'}).format(new Date(epoch)))}catch{return new Date(epoch).getHours()}}
 
 type DetailThermalFeel={score:number;label:string;burden:string;color:string;delta:number;sultry:boolean};

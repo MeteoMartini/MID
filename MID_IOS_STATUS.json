@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-09-01T15:05:00.000Z",
-  "releaseVersion": "0.9.77.10",
+  "updatedAt": "2026-09-01T20:30:00Z",
+  "releaseVersion": "0.9.77.11",
   "sourceBaseline": {
     "professionalVersion": "0.9.70.2",
     "workerVersion": "0.9.70.2",
@@ -168,5 +168,5 @@
       "summary": "Behebt die fünf TypeScript-Blocker aus Installer #817, zeigt den tatsächlichen Open-Meteo-Modellinitialisierungsstand für EC46/GEFS und ergänzt parameterfarbige Werte direkt an der blauen Kurzfrist-Referenzlinie."
     }
   ],
-  "currentVersion": "0.9.77.10"
+  "currentVersion": "0.9.77.11"
 }

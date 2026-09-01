@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.9.77.11 - 2026-09-01
+
+- Trend 14d+: Klimareferenz von einem unvollständigen ERA5-Land-Gesamtabruf auf ERA5-Seamless 1991–2020 umgestellt; fachlicher ERA5-Land/ERA5-Fallback schützt Temperatur sowie Niederschlag, Luftdruck, Bewölkung und Wind.
+- Appweiter Parameter-Farbvertrag verbindlich eingeführt und 24-h-Wetterprofil sowie 7-Tage-Tagesansichten auf die zentralen `--param-*`-Farben vereinheitlicht.
+- Lokale absolute Temperaturfarbskalen und Klimaabweichungsfarben überschreiben tatsächliche Tmin/Tmax-/Temperaturwerte in den betroffenen Ansichten nicht mehr.
+
 ## v0.9.77.10 - 2026-09-01
 - Install-/Deploy-Run #817: fünf TypeScript-Blocker im Berg-/Witterungstrend-Pfad behoben.
 - Witterungstrend zeigt den tatsächlichen Open-Meteo-Modellinitialisierungsstand für EC46/GEFS; Datenabruf wird separat ausgewiesen.

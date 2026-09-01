@@ -54,6 +54,13 @@ Für neue nicht-modale, an einem Steuerelement verankerte Ebenen gilt:
 - Wind, Böen, Niederschlag, Temperatur, Druck, Sicht und Höhen verwenden dieselben appweiten Einheitenregeln.
 - Zeitintervalle werden fachlich als Intervalle behandelt, wenn die Quelle Intervallwerte liefert; ein Zeitstempel darf nicht irreführend als Punktwert dargestellt werden.
 
+## 6a. Verbindliche Parameterfarben
+
+- Ergänzend ist `MID_PARAMETER_COLOR_CONTRACT.md` appweit verbindlich.
+- Meteorologische Parameter verwenden in Diagrammen, Tageswerten, Legenden und Tooltips ausschließlich die zentralen `--param-*`-Tokens bzw. daraus abgeleitete `color-mix()`-Varianten.
+- Lokale Ersatzpaletten sowie unbeschriftete Klima-/Absolutwert-Farbskalen dürfen die sichtbare Parameteridentität nicht überschreiben.
+- Warnstufe, thermisches Empfinden, Wetterregime und Niederschlagsphase bleiben ausdrücklich gekennzeichnete semantische Ausnahmen.
+
 ## 7. Responsive und barrierearme Bedienung
 
 - Neue primäre Bedienelemente verwenden die MID-Touchgröße und `touch-action: manipulation`, soweit kein Drag/Scroll erforderlich ist.
