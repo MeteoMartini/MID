@@ -1,85 +1,694 @@
 import {useCallback,useEffect,useMemo,useRef,useState} from 'react';
-import {CloudRain,CloudSun,Gauge,Info,RefreshCw,ThermometerSun,Wind} from 'lucide-react';
-import {formatDecimalFixed} from './format';
+import {Cloud,CloudRain,RefreshCw,ThermometerSun,Snowflake,Wind as WindIcon,Gauge,Info} from 'lucide-react';
 import {guardedOpenMeteoFetch} from './openMeteoGuard';
-import {wind as formatWind,type Location,type WindUnit} from './weather';
+import {formatDecimalFixed} from './format';
+import type {Location,WindUnit} from './weather';
 
-type Props={location:Location;advancedMode:boolean;windUnit:WindUnit};
-type TrendMetric='temperature'|'precipitation'|'pressure'|'cloud'|'wind';
-type TrendWeekValue={mean:number;p10:number;p25:number;p75:number;p90:number;samples:number[];modelCount:number};
-type TrendWeek={id:string;label:string;startDate:string;endDate:string;values:Record<TrendMetric,TrendWeekValue|null>};
-type ClimateWeek={id:string;values:Record<TrendMetric,number|null>};
-type TrendModel={id:string;family:string;label:string;provider:string;members:number;horizonDays:number;gridLabel:string;weeks:TrendWeek[];climateWeeks?:ClimateWeek[]};
-type TrendBundle={generatedAt:string;models:TrendModel[];cacheStatus:'network'|'fresh-cache'|'stale-cache'|'mixed-stale';cacheAgeMinutes:number};
-type ApiPayload={latitude?:number;longitude?:number;daily?:Record<string,unknown>;daily_units?:Record<string,string>;weekly?:Record<string,unknown>;weekly_units?:Record<string,string>};
-type MetricDefinition={id:TrendMetric;label:string;unit:string;api:string;aggregate:'mean'|'sum';icon:typeof ThermometerSun};
+type TrendMetric='temperature_max'|'temperature_min'|'precipitation'|'pressure'|'cloud'|'wind'|'gust';
+type ModelView='combined'|'ecmwf-ec46'|'noaa-gefs';
 
-const ECMWF_ENDPOINT='https://seasonal-api.open-meteo.com/v1/seasonal';
+type MetricAggregate='mean'|'sum';
+
+interface MetricDefinition{
+  id:TrendMetric;
+  label:string;
+  buttonLabel:string;
+  unit:string;
+  icon:typeof ThermometerSun;
+  api:string;
+  aggregate:MetricAggregate;
+  weeklyMean:string;
+  weeklyAnomaly:string;
+  colorClass:string;
+}
+
+interface TrendWeekValue{
+  mean:number;
+  p10:number;
+  p25:number;
+  p75:number;
+  p90:number;
+  samples:number[];
+  modelCount:number;
+}
+
+interface TrendWeek{
+  id:string;
+  label:string;
+  startDate:string;
+  endDate:string;
+  values:Record<TrendMetric,TrendWeekValue|null>;
+}
+
+interface TrendModel{
+  id:'ecmwf-ec46'|'noaa-gefs';
+  family:string;
+  members:number;
+  horizonDays:number;
+  gridLabel:string;
+  weeks:TrendWeek[];
+  climateWeeks:TrendWeek[];
+}
+
+interface TrendBundle{
+  models:TrendModel[];
+  fetchedAt:string;
+  cacheStatus:'live'|'fresh-cache'|'stale-cache'|'mixed-stale';
+  cacheAgeMinutes:number;
+}
+
+interface ApiPayload{
+  daily?:Record<string,unknown>;
+  daily_units?:Record<string,string>;
+  weekly?:Record<string,unknown>;
+  weekly_units?:Record<string,string>;
+  generationtime_ms?:number;
+  error?:boolean;
+  reason?:string;
+}
+
+const SEASONAL_ENDPOINT='https://seasonal-api.open-meteo.com/v1/seasonal';
 const ENSEMBLE_ENDPOINT='https://ensemble-api.open-meteo.com/v1/ensemble';
-const CACHE_TTL_MS=2*60*60*1000;
-const STALE_IF_ERROR_MS=12*60*60*1000;
-const CACHE_PREFIX='mid:subseasonal-trend:v2:';
+const CACHE_PREFIX='mid:subseasonal-trend:v3';
+const CACHE_MAX_AGE_MS=6*60*60*1000;
 const METRICS:MetricDefinition[]=[
- {id:'temperature',label:'Temperatur',unit:'°C',api:'temperature_2m_mean',aggregate:'mean',icon:ThermometerSun},
- {id:'precipitation',label:'Niederschlag',unit:'mm/Woche',api:'precipitation_sum',aggregate:'sum',icon:CloudRain},
- {id:'pressure',label:'Luftdruck',unit:'hPa',api:'pressure_msl_mean',aggregate:'mean',icon:Gauge},
- {id:'cloud',label:'Bewölkung',unit:'%',api:'cloud_cover_mean',aggregate:'mean',icon:CloudSun},
- {id:'wind',label:'Wind',unit:'km/h',api:'wind_speed_10m_mean',aggregate:'mean',icon:Wind}
+  {id:'temperature_max',label:'Tmax',buttonLabel:'Tmax',unit:'°C',icon:ThermometerSun,api:'temperature_2m_max',aggregate:'mean',weeklyMean:'temperature_2m_max',weeklyAnomaly:'temperature_2m_max_anomaly',colorClass:'metric-temperature-max'},
+  {id:'temperature_min',label:'Tmin',buttonLabel:'Tmin',unit:'°C',icon:Snowflake,api:'temperature_2m_min',aggregate:'mean',weeklyMean:'temperature_2m_min',weeklyAnomaly:'temperature_2m_min_anomaly',colorClass:'metric-temperature-min'},
+  {id:'precipitation',label:'Niederschlag',buttonLabel:'Niederschlag',unit:'mm/Woche',icon:CloudRain,api:'precipitation_sum',aggregate:'sum',weeklyMean:'precipitation_mean',weeklyAnomaly:'precipitation_anomaly',colorClass:'metric-precipitation'},
+  {id:'pressure',label:'Luftdruck',buttonLabel:'Luftdruck',unit:'hPa',icon:Gauge,api:'pressure_msl_mean',aggregate:'mean',weeklyMean:'pressure_msl_mean',weeklyAnomaly:'pressure_msl_anomaly',colorClass:'metric-pressure'},
+  {id:'cloud',label:'Bewölkung',buttonLabel:'Bewölkung',unit:'%',icon:Cloud,api:'cloud_cover_mean',aggregate:'mean',weeklyMean:'cloud_cover_mean',weeklyAnomaly:'cloud_cover_anomaly',colorClass:'metric-cloud'},
+  {id:'wind',label:'Wind',buttonLabel:'Wind',unit:'kt',icon:WindIcon,api:'wind_speed_10m_mean',aggregate:'mean',weeklyMean:'wind_speed_10m_mean',weeklyAnomaly:'wind_speed_10m_anomaly',colorClass:'metric-wind'},
+  {id:'gust',label:'Windböen',buttonLabel:'Böen',unit:'kt',icon:WindIcon,api:'wind_gusts_10m_mean',aggregate:'mean',weeklyMean:'wind_gusts_10m_mean',weeklyAnomaly:'wind_gusts_10m_anomaly',colorClass:'metric-gust'}
 ];
-const DAILY_VARIABLES=METRICS.map(metric=>metric.api).join(',');
-const WEEKLY_VARIABLES='temperature_2m_mean,temperature_2m_anomaly,precipitation_mean,precipitation_anomaly,pressure_msl_mean,pressure_msl_anomaly,cloud_cover_mean,cloud_cover_anomaly,wind_speed_10m_mean,wind_speed_10m_anomaly';
+const DAILY_VARIABLES=[...new Set(METRICS.map(metric=>metric.api))];
+const WEEKLY_VARIABLES=[...new Set(METRICS.flatMap(metric=>[metric.weeklyMean,metric.weeklyAnomaly]))];
 
-function finite(value:unknown){const numeric=Number(value);return Number.isFinite(numeric)?numeric:null}
-function mean(values:number[]){return values.length?values.reduce((sum,value)=>sum+value,0)/values.length:null}
-function quantile(values:number[],q:number){if(!values.length)return null;const sorted=[...values].sort((a,b)=>a-b),position=(sorted.length-1)*q,lower=Math.floor(position),upper=Math.ceil(position);if(lower===upper)return sorted[lower];const weight=position-lower;return sorted[lower]*(1-weight)+sorted[upper]*weight}
-function summarize(samples:number[],modelCount=1):TrendWeekValue|null{const clean=samples.filter(Number.isFinite);if(!clean.length)return null;return{mean:mean(clean)!,p10:quantile(clean,.1)!,p25:quantile(clean,.25)!,p75:quantile(clean,.75)!,p90:quantile(clean,.9)!,samples:clean,modelCount}}
-function memberSeries(daily:Record<string,unknown>,base:string){const keys=Object.keys(daily).filter(key=>key.startsWith(`${base}_member`)&&Array.isArray(daily[key])).sort();if(keys.length)return keys.map(key=>(daily[key] as unknown[]).map(finite));const direct=Array.isArray(daily[base])?(daily[base] as unknown[]).map(finite):[];return direct.length?[direct]:[]}
-function formatDate(date:string){try{return new Intl.DateTimeFormat('de-DE',{day:'2-digit',month:'2-digit',timeZone:'UTC'}).format(new Date(`${date}T12:00:00Z`))}catch{return date.slice(5)}}
-function dateSequence(startDate:string,endDate:string){const values:string[]=[];let cursor=new Date(`${startDate}T12:00:00Z`),end=new Date(`${endDate}T12:00:00Z`);while(cursor<=end){values.push(cursor.toISOString().slice(0,10));cursor=new Date(cursor.getTime()+86400000)}return values}
-function aggregateMember(series:(number|null)[],start:number,end:number,mode:'mean'|'sum'){const values=series.slice(start,end).filter((value):value is number=>Number.isFinite(value));if(!values.length)return null;return mode==='sum'?values.reduce((sum,value)=>sum+value,0):values.reduce((sum,value)=>sum+value,0)/values.length}
-function buildWeeks(payload:ApiPayload){const daily=payload.daily??{},time=Array.isArray(daily.time)?daily.time.map(String):[];if(time.length<=14)return{weeks:[] as TrendWeek[],members:0};const series=Object.fromEntries(METRICS.map(metric=>[metric.id,memberSeries(daily,metric.api)])) as Record<TrendMetric,(number|null)[][]>,members=Math.max(0,...METRICS.map(metric=>series[metric.id].length)),weeks:TrendWeek[]=[];for(let start=14;start<time.length;start+=7){const end=Math.min(time.length,start+7),startDate=time[start],endDate=time[end-1];if(!startDate||!endDate)continue;const values={} as Record<TrendMetric,TrendWeekValue|null>;for(const metric of METRICS){const samples=series[metric.id].map(member=>aggregateMember(member,start,end,metric.aggregate)).filter((value):value is number=>Number.isFinite(value));values[metric.id]=summarize(samples)}weeks.push({id:`${startDate}/${endDate}`,label:`Tag ${start+1}–${end}`,startDate,endDate,values})}return{weeks,members}}
-function weeklySeries(payload:ApiPayload,key:string){const values=payload.weekly?.[key];return Array.isArray(values)?values.map(finite):[]}
-function buildEc46ClimateWeeks(payload:ApiPayload,weeks:TrendWeek[]):ClimateWeek[]{const means:Record<TrendMetric,(number|null)[]>={temperature:weeklySeries(payload,'temperature_2m_mean'),precipitation:weeklySeries(payload,'precipitation_mean'),pressure:weeklySeries(payload,'pressure_msl_mean'),cloud:weeklySeries(payload,'cloud_cover_mean'),wind:weeklySeries(payload,'wind_speed_10m_mean')},anomalies:Record<TrendMetric,(number|null)[]>={temperature:weeklySeries(payload,'temperature_2m_anomaly'),precipitation:weeklySeries(payload,'precipitation_anomaly'),pressure:weeklySeries(payload,'pressure_msl_anomaly'),cloud:weeklySeries(payload,'cloud_cover_anomaly'),wind:weeklySeries(payload,'wind_speed_10m_anomaly')},pressureUnit=String(payload.weekly_units?.pressure_msl_anomaly??'');return weeks.map((week,index)=>{const weeklyIndex=index+2,values={} as Record<TrendMetric,number|null>;for(const metric of METRICS){const center=means[metric.id][weeklyIndex],rawAnomaly=anomalies[metric.id][weeklyIndex];if(!Number.isFinite(center)||!Number.isFinite(rawAnomaly)){values[metric.id]=null;continue}let anomaly=Number(rawAnomaly);if(metric.id==='pressure'&&pressureUnit==='Pa')anomaly/=100;let climate=Number(center)-anomaly;if(metric.id==='precipitation')climate*=dateSequence(week.startDate,week.endDate).length;values[metric.id]=climate}return{id:week.id,values}})}
-function modelFromPayload(id:string,family:string,label:string,provider:string,horizonDays:number,gridLabel:string,payload:ApiPayload,withClimate=false):TrendModel|null{const parsed=buildWeeks(payload);if(!parsed.weeks.length)return null;return{id,family,label,provider,members:parsed.members,horizonDays,gridLabel,weeks:parsed.weeks,climateWeeks:withClimate?buildEc46ClimateWeeks(payload,parsed.weeks):undefined}}
-function metricDefinition(metric:TrendMetric){return METRICS.find(item=>item.id===metric)!}
-function cacheKey(location:Location){return`${CACHE_PREFIX}${location.latitude.toFixed(3)},${location.longitude.toFixed(3)}`}
-function readCache(location:Location){try{const parsed=JSON.parse(localStorage.getItem(cacheKey(location))||'null') as {at:number;models:TrendModel[]}|null;return parsed&&Number.isFinite(parsed.at)&&Array.isArray(parsed.models)?parsed:null}catch{return null}}
-function writeCache(location:Location,models:TrendModel[]){try{localStorage.setItem(cacheKey(location),JSON.stringify({at:Date.now(),models}))}catch{}}
-function cacheBundle(record:{at:number;models:TrendModel[]},status:TrendBundle['cacheStatus']):TrendBundle{return{generatedAt:new Date(record.at).toISOString(),models:record.models,cacheStatus:status,cacheAgeMinutes:Math.max(0,Math.round((Date.now()-record.at)/60000))}}
-async function fetchJson(url:string,signal:AbortSignal,refresh:boolean){const response=await guardedOpenMeteoFetch(url,{signal,cache:refresh?'reload':'default'},{priority:'normal'});let payload:unknown;try{payload=await response.json()}catch{throw new Error(`Trendquelle lieferte kein gültiges JSON (HTTP ${response.status}).`)}if(!response.ok){const reason=payload&&typeof payload==='object'&&'reason'in payload?String((payload as {reason?:unknown}).reason||''):'';throw new Error(reason||`Trendquelle HTTP ${response.status}`)}return payload as ApiPayload}
-async function fetchEcmwf(location:Location,signal:AbortSignal,refresh:boolean){const params=new URLSearchParams({latitude:String(location.latitude),longitude:String(location.longitude),models:'ecmwf_ec46',daily:DAILY_VARIABLES,weekly:WEEKLY_VARIABLES,forecast_days:'46',timezone:'GMT',cell_selection:'nearest'}),payload=await fetchJson(`${ECMWF_ENDPOINT}?${params}`,signal,refresh);return modelFromPayload('ecmwf-ec46','ECMWF EC46','ECMWF · EC46','ECMWF via Open-Meteo Seasonal API',46,'ECMWF O320 · ca. 36 km',payload,true)}
-async function fetchGefs(location:Location,signal:AbortSignal,refresh:boolean){const params=new URLSearchParams({latitude:String(location.latitude),longitude:String(location.longitude),models:'ncep_gefs05',daily:DAILY_VARIABLES,forecast_days:'35',timezone:'GMT',cell_selection:'nearest'}),payload=await fetchJson(`${ENSEMBLE_ENDPOINT}?${params}`,signal,refresh);return modelFromPayload('noaa-gefs35','NOAA GEFS','NOAA · GEFS 0,5°','NOAA NCEP via Open-Meteo Ensemble API',35,'GEFS 0,5° · ca. 50 km',payload)}
-async function loadTrend(location:Location,signal:AbortSignal,refresh=false):Promise<TrendBundle>{const cached=readCache(location),age=cached?Date.now()-cached.at:Infinity;if(!refresh&&cached&&age<=CACHE_TTL_MS)return cacheBundle(cached,'fresh-cache');const settled=await Promise.allSettled([fetchEcmwf(location,signal,refresh),fetchGefs(location,signal,refresh)]);if(signal.aborted)throw new DOMException('Abgebrochen','AbortError');const models=settled.flatMap(result=>result.status==='fulfilled'&&result.value?[result.value]:[]),failures=settled.filter(result=>result.status==='rejected');if(models.length){let merged=models,status:TrendBundle['cacheStatus']='network';if(failures.length&&cached&&age<=STALE_IF_ERROR_MS){const ids=new Set(merged.map(model=>model.id));merged=[...merged,...cached.models.filter(model=>!ids.has(model.id))];status='mixed-stale'}writeCache(location,merged);return{generatedAt:new Date().toISOString(),models:merged,cacheStatus:status,cacheAgeMinutes:0}}if(cached&&age<=STALE_IF_ERROR_MS)return cacheBundle(cached,'stale-cache');const reason=failures.map(result=>result.status==='rejected'?(result.reason instanceof Error?result.reason.message:String(result.reason)):'').filter(Boolean).join(' · ');throw new Error(reason||'Subseasonale Ensemblequellen derzeit nicht verfügbar.')}
-function resample(samples:number[],count=51){if(!samples.length)return[];const sorted=[...samples].sort((a,b)=>a-b);if(sorted.length===1)return Array.from({length:count},()=>sorted[0]);return Array.from({length:count},(_,index)=>quantile(sorted,index/(count-1))!).filter(Number.isFinite)}
-function combineWeeks(models:TrendModel[]):TrendWeek[]{const ids=new Map<string,{label:string;startDate:string;endDate:string}>();models.forEach(model=>model.weeks.forEach(week=>ids.set(week.id,{label:week.label,startDate:week.startDate,endDate:week.endDate})));return[...ids.entries()].sort((a,b)=>a[1].startDate.localeCompare(b[1].startDate)).map(([id,meta])=>{const values={} as Record<TrendMetric,TrendWeekValue|null>;for(const metric of METRICS){const contributors=models.flatMap(model=>{const value=model.weeks.find(week=>week.id===id)?.values[metric.id];return value?.samples.length?[value.samples]:[]});values[metric.id]=contributors.length?summarize(contributors.flatMap(samples=>resample(samples)),contributors.length):null}return{id,...meta,values}})}
-function windFactor(unit:WindUnit){return unit==='kn'?1/1.852:unit==='ms'?1/3.6:unit==='mph'?1/1.609344:1}
-function displayValue(value:number,metric:TrendMetric,unit:WindUnit){return metric==='wind'?value*windFactor(unit):value}
-function windUnitLabel(unit:WindUnit){return unit==='kn'?'kt':unit==='ms'?'m/s':unit==='mph'?'mph':'km/h'}
-function formatMetric(value:number,metric:TrendMetric,unit:WindUnit){if(metric==='wind')return formatWind(value/1.852,unit);const def=metricDefinition(metric);if(metric==='precipitation')return`${formatDecimalFixed(value,1)} ${def.unit}`;if(metric==='cloud'||metric==='pressure')return`${Math.round(value)} ${def.unit}`;return`${formatDecimalFixed(value,1)} ${def.unit}`}
-function spreadLabel(value:TrendWeekValue,metric:TrendMetric,unit:WindUnit){return`${formatMetric(value.p10,metric,unit)} – ${formatMetric(value.p90,metric,unit)}`}
-function parameterColor(metric:TrendMetric){return`var(--param-${metric})`}
-function pathFor(rows:TrendWeek[],metric:TrendMetric,key:keyof Pick<TrendWeekValue,'mean'|'p10'|'p25'|'p75'|'p90'>,x:(index:number)=>number,y:(value:number)=>number,unit:WindUnit){return rows.reduce((path,row,index)=>{const value=row.values[metric]?.[key];return Number.isFinite(value)?`${path}${path?' L':'M'} ${x(index)} ${y(displayValue(Number(value),metric,unit))}`:path},'')}
-function areaFor(rows:TrendWeek[],metric:TrendMetric,low:'p10'|'p25',high:'p75'|'p90',x:(index:number)=>number,y:(value:number)=>number,unit:WindUnit){const upper=rows.map((row,index)=>{const value=row.values[metric]?.[high];return Number.isFinite(value)?`${index?'L':'M'} ${x(index)} ${y(displayValue(Number(value),metric,unit))}`:null}).filter(Boolean) as string[],lower=[...rows].reverse().map((row,index)=>{const actual=rows.length-1-index,value=row.values[metric]?.[low];return Number.isFinite(value)?`L ${x(actual)} ${y(displayValue(Number(value),metric,unit))}`:null}).filter(Boolean) as string[];return upper.length&&lower.length?`${upper.join(' ')} ${lower.join(' ')} Z`:''}
-function climateLinePath(weeks:TrendWeek[],climateWeeks:ClimateWeek[],metric:TrendMetric,x:(index:number)=>number,y:(value:number)=>number,unit:WindUnit){return weeks.reduce((path,week,index)=>{const raw=climateWeeks.find(row=>row.id===week.id)?.values[metric];return Number.isFinite(raw)?`${path}${path?' L':'M'} ${x(index)} ${y(displayValue(Number(raw),metric,unit))}`:path},'')}
-function niceCeil(value:number,step:number){return Math.ceil(value/step)*step}
-function niceFloor(value:number,step:number){return Math.floor(value/step)*step}
-function scaleFor(metric:TrendMetric,values:number[],climate:number[],unit:WindUnit){const all=[...values,...climate].filter(Number.isFinite);if(metric==='cloud')return{min:0,max:100,ticks:[100,75,50,25,0]};if(metric==='pressure'){const lo=Math.min(...all,1000),hi=Math.max(...all,1015),min=Math.max(940,niceFloor(lo-5,5)),max=Math.min(1060,niceCeil(hi+5,5)),safeMax=max<=min?min+20:max;return{min,max:safeMax,ticks:Array.from({length:5},(_,i)=>safeMax-(safeMax-min)*i/4).map(v=>Math.round(v/5)*5)}}if(metric==='precipitation'){const max=niceCeil(Math.max(10,...all)*1.08,10);return{min:0,max,ticks:[max,max*.75,max*.5,max*.25,0]}}if(metric==='wind'){const step=unit==='ms'?2:5,max=niceCeil(Math.max(step*2,...all)*1.08,step);return{min:0,max,ticks:[max,max*.75,max*.5,max*.25,0].map(v=>niceCeil(v,step))}}const lo=Math.min(...all,0),hi=Math.max(...all,10),span=Math.max(4,hi-lo),step=span>20?5:span>10?2:1,min=niceFloor(lo-span*.08,step),max=niceCeil(hi+span*.08,step);return{min,max:max<=min?min+step*4:max,ticks:Array.from({length:5},(_,i)=>max-(max-min)*i/4)}}
-function climateComparison(weeks:TrendWeek[],climateWeeks:ClimateWeek[],metric:TrendMetric){const diffs=weeks.flatMap(week=>{const actual=week.values[metric]?.mean,climate=climateWeeks.find(row=>row.id===week.id)?.values[metric];return Number.isFinite(actual)&&Number.isFinite(climate)?[Number(actual)-Number(climate)]:[]});if(!diffs.length)return null;return mean(diffs)}
-function trendDescription(weeks:TrendWeek[],climateWeeks:ClimateWeek[],metric:TrendMetric,unit:WindUnit){const rows=weeks.map(week=>week.values[metric]).filter((value):value is TrendWeekValue=>Boolean(value)),climateDelta=climateComparison(weeks,climateWeeks,metric);if(Number.isFinite(climateDelta)){const d=Number(climateDelta);if(metric==='temperature')return Math.abs(d)<.7?'Das Ensemble-Mittel liegt im betrachteten Zeitraum nahe am EC46-Modellklima.':d>0?`Überwiegend wärmer als das EC46-Modellklima · im Mittel ${formatDecimalFixed(d,1)} K darüber.`:`Überwiegend kühler als das EC46-Modellklima · im Mittel ${formatDecimalFixed(Math.abs(d),1)} K darunter.`;if(metric==='precipitation'){const avgClimate=mean(climateWeeks.map(row=>row.values.precipitation).filter((v):v is number=>Number.isFinite(v)))||0,pct=avgClimate>1?d/avgClimate*100:0;return Math.abs(pct)<15?'Die Wochenmengen liegen im Mittel nahe am EC46-Modellklima.':pct>0?`Im Mittel feuchter als das EC46-Modellklima · etwa ${Math.round(Math.abs(pct))} % höhere Wochenmenge.`:`Im Mittel trockener als das EC46-Modellklima · etwa ${Math.round(Math.abs(pct))} % geringere Wochenmenge.`}if(metric==='pressure')return Math.abs(d)<2?'Der mittlere Luftdruck liegt nahe am EC46-Modellklima; daraus ergibt sich kein robustes Druckregime-Signal.':d<0?`Der Wochenmittel-Luftdruck liegt im Mittel ${formatDecimalFixed(Math.abs(d),1)} hPa unter dem EC46-Modellklima; das ist mit häufigerem Tiefdruckeinfluss vereinbar, ohne einzelne Wetterlagen festzulegen.`:`Der Wochenmittel-Luftdruck liegt im Mittel ${formatDecimalFixed(d,1)} hPa über dem EC46-Modellklima; das ist mit häufigerem Hochdruckeinfluss vereinbar, ohne einzelne Wetterlagen festzulegen.`;if(metric==='cloud')return Math.abs(d)<8?'Die mittlere Bewölkung liegt nahe am EC46-Modellklima.':d>0?`Im Mittel ${Math.round(d)} Prozentpunkte mehr Bewölkung als im EC46-Modellklima.`:`Im Mittel ${Math.round(Math.abs(d))} Prozentpunkte weniger Bewölkung als im EC46-Modellklima.`;if(metric==='wind'){const shown=Math.abs(displayValue(d,metric,unit));return Math.abs(d)<3?'Das Windniveau liegt nahe am EC46-Modellklima.':d>0?`Im Mittel ${formatDecimalFixed(shown,1)} ${windUnitLabel(unit)} über dem EC46-Modellklima.`:`Im Mittel ${formatDecimalFixed(shown,1)} ${windUnitLabel(unit)} unter dem EC46-Modellklima.`}}if(rows.length<2)return'Noch kein belastbarer Verlauf über mehrere Wochen.';const first=rows[0].mean,last=rows.at(-1)!.mean,delta=last-first;if(metric==='temperature')return Math.abs(delta)<1?'Temperaturniveau über die Wochen relativ stabil.':delta>0?'Spätere Wochen zeigen ein höheres Temperaturniveau.':'Spätere Wochen zeigen ein niedrigeres Temperaturniveau.';if(metric==='precipitation'){const ratio=first>.2?last/first:1;return ratio>1.35?'Die Ensemble-Wochenmengen nehmen im Verlauf zu.':ratio<.65?'Die Ensemble-Wochenmengen nehmen im Verlauf ab.':'Kein ausgeprägter Verlauf der Ensemble-Wochenmengen.'}if(metric==='pressure')return Math.abs(delta)<3?'Großräumiges Druckniveau ohne markanten Verlauf.':delta>0?'Spätere Wochen zeigen höheren mittleren Luftdruck.':'Spätere Wochen zeigen niedrigeren mittleren Luftdruck.';if(metric==='cloud')return Math.abs(delta)<8?'Bewölkungsniveau im Verlauf relativ stabil.':delta>0?'Spätere Wochen mit höherer mittlerer Bewölkung.':'Spätere Wochen mit geringerer mittlerer Bewölkung.';return Math.abs(delta)<3?'Windniveau im Verlauf relativ stabil.':delta>0?'Spätere Wochen mit höherem Windniveau.':'Spätere Wochen mit geringerem Windniveau.'}
-function tickLabel(value:number,metric:TrendMetric,unit:WindUnit){if(metric==='pressure'||metric==='cloud'||metric==='precipitation')return String(Math.round(value));if(metric==='wind')return unit==='ms'?formatDecimalFixed(value,1):String(Math.round(value));return formatDecimalFixed(value,1)}
-function TrendChart({weeks,climateWeeks,metric,windUnit}:{weeks:TrendWeek[];climateWeeks:ClimateWeek[];metric:TrendMetric;windUnit:WindUnit}){const width=760,height=250,left=62,right=18,top=24,bottom=48,values=weeks.flatMap(week=>{const value=week.values[metric];return value?[value.p10,value.p25,value.mean,value.p75,value.p90].map(v=>displayValue(v,metric,windUnit)):[]}).filter(Number.isFinite),climate=climateWeeks.map(row=>row.values[metric]).filter((value):value is number=>Number.isFinite(value)).map(value=>displayValue(value,metric,windUnit));if(!values.length)return <div className="long-range-info"><p>Für diesen Parameter liegen im gewählten Zeitraum keine Ensemblewerte vor.</p></div>;const scale=scaleFor(metric,values,climate,windUnit),plotWidth=width-left-right,plotHeight=height-top-bottom,x=(index:number)=>left+(weeks.length<=1?.5:index/(weeks.length-1))*plotWidth,y=(value:number)=>top+(scale.max-value)/(scale.max-scale.min)*plotHeight,outer=areaFor(weeks,metric,'p10','p90',x,y,windUnit),inner=areaFor(weeks,metric,'p25','p75',x,y,windUnit),line=pathFor(weeks,metric,'mean',x,y,windUnit),climateLine=climateLinePath(weeks,climateWeeks,metric,x,y,windUnit);return <div className={`long-range-chart subseasonal-chart metric-${metric}`}><svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${metricDefinition(metric).label} im Witterungstrend`}>{scale.ticks.map((tick,index)=><g key={`${index}-${tick}`}><line x1={left} x2={width-right} y1={y(tick)} y2={y(tick)} className="grid"/><text x={left-8} y={y(tick)+4} textAnchor="end" className="axis-label">{tickLabel(tick,metric,windUnit)}</text></g>)}{weeks.map((week,index)=><g key={week.id}><line x1={x(index)} x2={x(index)} y1={top} y2={height-bottom} className="vertical-grid"/><text x={x(index)} y={height-22} textAnchor="middle" className="month-label">{week.label.replace('Tag ','T')}</text><text x={x(index)} y={height-10} textAnchor="middle" className="month-label">{formatDate(week.startDate)}</text></g>)}{outer?<path d={outer} className="anomaly-plume outer"/>:null}{inner?<path d={inner} className="anomaly-plume inner"/>:null}{climateLine?<path d={climateLine} className="climate-reference-line"/>:null}{line?<path d={line} className="anomaly-mean-line"/>:null}{weeks.map((week,index)=>{const value=week.values[metric];return value?<g key={`dot-${week.id}`}><circle cx={x(index)} cy={y(displayValue(value.mean,metric,windUnit))} r={5} className="anomaly-dot" style={{fill:parameterColor(metric)}}/><title>{`${week.label} · ${formatDate(week.startDate)}–${formatDate(week.endDate)}: ${formatMetric(value.mean,metric,windUnit)} · P10–P90 ${spreadLabel(value,metric,windUnit)} · ${value.modelCount} Modellfamilie${value.modelCount===1?'':'n'}`}</title></g>:null})}</svg></div>}
+const FALLBACK_DAILY_VARIABLES=['temperature_2m_max','temperature_2m_min','precipitation_sum','pressure_msl_mean','cloud_cover_mean','wind_speed_10m_mean'];
+const FALLBACK_WEEKLY_VARIABLES=['temperature_2m_mean','temperature_2m_anomaly','precipitation_mean','precipitation_anomaly','pressure_msl_mean','pressure_msl_anomaly','cloud_cover_mean','cloud_cover_anomaly','wind_speed_10m_mean','wind_speed_10m_anomaly'];
 
-export default function SubseasonalTrendPanel({location,advancedMode,windUnit}:Props){
- const[data,setData]=useState<TrendBundle|null>(null),[loading,setLoading]=useState(true),[refreshing,setRefreshing]=useState(false),[error,setError]=useState(''),[metric,setMetric]=useState<TrendMetric>(()=>{try{const stored=localStorage.getItem('mid:subseasonal-trend:metric');return METRICS.some(item=>item.id===stored)?stored as TrendMetric:'temperature'}catch{return'temperature'}}),[view,setView]=useState('combined'),[infoOpen,setInfoOpen]=useState(false),controllerRef=useRef<AbortController|null>(null);
- const load=useCallback(async(refresh=false)=>{controllerRef.current?.abort();const controller=new AbortController();controllerRef.current=controller;if(refresh)setRefreshing(true);else setLoading(true);setError('');try{const bundle=await loadTrend(location,controller.signal,refresh);if(!controller.signal.aborted){setData(bundle);setView(current=>current==='combined'||bundle.models.some(model=>model.id===current)?current:'combined')}}catch(reason){if(!controller.signal.aborted)setError(reason instanceof Error?reason.message:'Witterungstrend konnte nicht geladen werden.')}finally{if(controllerRef.current===controller)controllerRef.current=null;if(!controller.signal.aborted){setLoading(false);setRefreshing(false)}}},[location.latitude,location.longitude]);
- useEffect(()=>{void load(false);return()=>controllerRef.current?.abort()},[load]);
- useEffect(()=>{try{localStorage.setItem('mid:subseasonal-trend:metric',metric)}catch{}},[metric]);
- const models=data?.models??[],combined=useMemo(()=>combineWeeks(models),[models]),selectedWeeks=view==='combined'?combined:models.find(model=>model.id===view)?.weeks??combined,climateWeeks=models.find(model=>model.id==='ecmwf-ec46')?.climateWeeks??[],selectedLabel=view==='combined'?'Multi-Modell':models.find(model=>model.id===view)?.family??'Multi-Modell',def=metricDefinition(metric),Icon=def.icon,cacheLabel=data?.cacheStatus==='fresh-cache'?`Cache · ${data.cacheAgeMinutes} min`:data?.cacheStatus==='stale-cache'?`Fallback-Cache · ${data.cacheAgeMinutes} min`:data?.cacheStatus==='mixed-stale'?`teilweise Cache · ${data.cacheAgeMinutes} min`:'';
- return <section className={`long-range-overview subseasonal-trend metric-${metric}`}><header className="subseasonal-head"><div><strong>Witterungstrend · Tag 15–46</strong><small>Wochenblöcke statt scheinpräziser Tageswerte · ECMWF EC46 + NOAA GEFS bis Tag 35</small>{cacheLabel?<small>{cacheLabel}</small>:null}</div><div className="long-range-head-actions"><button type="button" onClick={()=>void load(true)} disabled={refreshing} aria-label="Witterungstrend aktualisieren" title="EC46 und GEFS einschließlich Klimareferenz neu abrufen"><RefreshCw size={16} className={refreshing?'spin':''}/></button><button type="button" className={infoOpen?'active':''} onClick={()=>setInfoOpen(value=>!value)} aria-label="Witterungstrend-Methodik"><Info size={16}/></button></div></header>
-  {infoOpen?<div className="long-range-info"><p><b>Horizontvertrag:</b> Ab Tag 15 zeigt MID keine verlängerte deterministische Tagesprognose. Die Werte werden zu Wochenblöcken verdichtet. Innerhalb jeder Modellfamilie stammen Mittel und P10/P25/P75/P90 aus den Ensemblemitgliedern; im Multi-Modell werden die Modellfamilien gleich gewichtet. Ab Tag 36 steht derzeit nur EC46 zur Verfügung und wird entsprechend als Ein-Modell-Signal gekennzeichnet.</p><small>Die gestrichelte Referenz ist das modellkonsistente ECMWF-EC46-Klimamittel aus den offiziellen Wochenanomalien. Sie dient der Einordnung, nicht als Vorhersage. Dadurch werden systematische Modellunterschiede bei der Anomalieinterpretation reduziert.</small>{advancedMode?<small>Die Subseasonal-Modellwerte sind direkte Modellwerte ohne lokale Beobachtungskorrektur und werden nicht in den kanonischen Kurzfrist-Forecast zurückgemischt. EC46 ist in diesem Pfad nicht bias-korrigiert.</small>:null}</div>:null}
-  {loading&&!models.length?<div className="long-range-loading"><RefreshCw className="spin" size={17}/>EC46- und GEFS-Ensembles werden geladen …</div>:null}
-  {error&&!models.length?<div className="long-range-error"><strong>Witterungstrend derzeit nicht verfügbar</strong><small>{error}</small></div>:null}
-  {error&&models.length?<div className="long-range-info"><p><b>Teilaktualisierung:</b> {error}</p></div>:null}
-  {models.length?<><div className="long-range-family-chips subseasonal-families">{models.map(model=><span key={model.id}>{model.family}<small>{model.members||'–'} Member · bis Tag {model.horizonDays}</small></span>)}</div><div className="long-range-controls subseasonal-controls"><div className="long-range-model-selector subseasonal-model-selector"><button type="button" className={view==='combined'?'active':''} onClick={()=>setView('combined')}><b>Multi-Modell</b><small>{models.length} unabhängige Familien</small></button>{models.map(model=><button key={model.id} type="button" className={view===model.id?'active':''} onClick={()=>setView(model.id)}><b>{model.family}</b><small>{model.members} Member · {model.gridLabel}</small></button>)}</div><div className="long-range-model-selector subseasonal-metric-selector">{METRICS.map(item=><button key={item.id} type="button" className={`${metric===item.id?'active ':''}metric-${item.id}`} onClick={()=>setMetric(item.id)}><b>{item.label}</b><small>{item.id==='wind'?windUnitLabel(windUnit):item.unit}</small></button>)}</div></div><div className="long-range-grid" style={{gridTemplateColumns:'1fr'}}><article className={`subseasonal-main-chart metric-${metric}`}><header><Icon size={18}/><div><strong>{def.label} · {selectedLabel}</strong><small>{trendDescription(selectedWeeks,climateWeeks,metric,windUnit)}</small></div></header><div className="subseasonal-chart-legend"><span className="ensemble"><i/>Ensemble-Mittel</span><span className="climate"><i/>EC46-Klimamittel</span><span className="spread"><i/>P25–P75 / P10–P90</span></div><TrendChart weeks={selectedWeeks} climateWeeks={climateWeeks} metric={metric} windUnit={windUnit}/><footer><span>Außen P10–P90 · innen P25–P75</span><span>{view==='combined'?'Modellfamilien gleich gewichtet':'Ensemblemitglieder des gewählten Modells'}</span></footer></article></div><section className="long-range-models subseasonal-comparison"><header><div><span>ENSEMBLE-VERGLEICH</span><h4>{def.label} je Wochenblock</h4></div></header><div className="long-range-model-strip">{combined.map(week=>{const climate=climateWeeks.find(row=>row.id===week.id)?.values[metric];return <article key={week.id}><strong>{week.label}</strong><small>{formatDate(week.startDate)} – {formatDate(week.endDate)}</small>{models.map(model=>{const value=model.weeks.find(row=>row.id===week.id)?.values[metric];return value?<span key={model.id}>{model.family}: {formatMetric(value.mean,metric,windUnit)}<small> · P10–P90 {spreadLabel(value,metric,windUnit)}</small></span>:null})}{week.values[metric]?<em>Multi: {formatMetric(week.values[metric]!.mean,metric,windUnit)} · {week.values[metric]!.modelCount} Modellfamilie{week.values[metric]!.modelCount===1?'':'n'}</em>:null}{Number.isFinite(climate)?<small className="climate-value">EC46-Klimamittel: {formatMetric(Number(climate),metric,windUnit)}</small>:null}</article>})}</div>{advancedMode?<div className="long-range-method"><b>Quellen und Reichweite</b><p>ECMWF EC46: 36-km-Subseasonal-Ensemble bis 46 Tage. NOAA GEFS 0,5°: Ensemble bis 35 Tage. MID verdichtet beide auf identische Wochenblöcke und hält die Inter-Modell-Gewichtung unabhängig von der Memberzahl bei 1:1. Klimareferenz: EC46-Modellklima aus offiziellen Wochenmittel-/Anomaliefeldern.</p></div>:null}</section></>:null}
- </section>
+function metricDefinition(metric:TrendMetric){
+  return METRICS.find(item=>item.id===metric)??METRICS[0];
+}
+
+function windUnitLabel(unit:WindUnit){
+  return unit==='kmh'?'km/h':unit==='ms'?'m/s':unit==='mph'?'mph':'kt';
+}
+
+function finite(values:number[]){
+  return values.filter(Number.isFinite);
+}
+
+function mean(values:number[]){
+  if(!values.length)return NaN;
+  return values.reduce((sum,value)=>sum+value,0)/values.length;
+}
+
+function quantile(values:number[],position:number){
+  if(!values.length)return NaN;
+  const sorted=[...values].sort((a,b)=>a-b);
+  if(sorted.length===1)return sorted[0];
+  const index=(sorted.length-1)*Math.max(0,Math.min(1,position));
+  const lower=Math.floor(index);
+  const upper=Math.ceil(index);
+  if(lower===upper)return sorted[lower];
+  const mix=index-lower;
+  return sorted[lower]*(1-mix)+sorted[upper]*mix;
+}
+
+function summarize(samples:number[],modelCount:number):TrendWeekValue|null{
+  const valid=finite(samples);
+  if(!valid.length)return null;
+  return {
+    mean:mean(valid),
+    p10:quantile(valid,0.1),
+    p25:quantile(valid,0.25),
+    p75:quantile(valid,0.75),
+    p90:quantile(valid,0.9),
+    samples:valid,
+    modelCount
+  };
+}
+
+function daySpan(startDate:string,endDate:string){
+  const start=Date.parse(`${startDate}T00:00:00Z`);
+  const end=Date.parse(`${endDate}T00:00:00Z`);
+  if(!Number.isFinite(start)||!Number.isFinite(end)||end<start)return 7;
+  return Math.max(1,Math.round((end-start)/86400000)+1);
+}
+
+function aggregateMember(values:number[],aggregate:MetricAggregate){
+  const valid=finite(values);
+  if(!valid.length)return NaN;
+  return aggregate==='sum'?valid.reduce((sum,value)=>sum+value,0):mean(valid);
+}
+
+function memberSeries(payload:ApiPayload,key:string){
+  const members=new Map<number,number[]>();
+  const rows=payload.daily??{};
+  Object.entries(rows).forEach(([name,value])=>{
+    const match=name.match(new RegExp(`^${key}_member(\\d+)$`));
+    if(match&&Array.isArray(value))members.set(Number(match[1]),value.map(entry=>entry===null?Number.NaN:Number(entry)));
+  });
+  const base=Array.isArray(rows[key])?(rows[key] as unknown[]).map(entry=>entry===null?Number.NaN:Number(entry)):[];
+  return members.size?[...members.values()].sort((a,b)=>a.length-b.length):base.length?[base]:[];
+}
+
+function buildWeeks(payload:ApiPayload):TrendWeek[]{
+  const time=Array.isArray(payload.daily?.time)?(payload.daily?.time as unknown[]).map(String):[];
+  const weeks:TrendWeek[]=[];
+  for(let start=14;start<time.length;start+=7){
+    const end=Math.min(start+6,time.length-1);
+    const dayCount=end-start+1;
+    const values=Object.fromEntries(METRICS.map(metric=>{
+      const memberValues=memberSeries(payload,metric.api)
+        .map(series=>aggregateMember(series.slice(start,end+1),metric.aggregate))
+        .filter(Number.isFinite);
+      return [metric.id,summarize(memberValues,Math.max(1,memberValues.length))] as const;
+    })) as Record<TrendMetric,TrendWeekValue|null>;
+    weeks.push({
+      id:`${time[start]}:${time[end]}`,
+      label:`Tag ${start+1}–${end+1}`,
+      startDate:time[start],
+      endDate:time[end],
+      values
+    });
+    if(dayCount<7)break;
+  }
+  return weeks;
+}
+
+function weeklySeries(payload:ApiPayload,key:string){
+  const values=payload.weekly?.[key];
+  return Array.isArray(values)?values.map(entry=>entry===null?Number.NaN:Number(entry)):[];
+}
+
+function normalizedWeeklyValue(value:number,unit:string|undefined){
+  if(!Number.isFinite(value))return NaN;
+  if(unit==='Pa')return value/100;
+  return value;
+}
+
+function findClimateWeekIndex(weeklyTimes:string[],week:TrendWeek,fallbackIndex:number){
+  const exactStart=weeklyTimes.indexOf(week.startDate);
+  if(exactStart>=0)return exactStart;
+  const contained=weeklyTimes.findIndex(time=>time>=week.startDate&&time<=week.endDate);
+  if(contained>=0)return contained;
+  const target=Date.parse(`${week.startDate}T12:00:00Z`);
+  const near=weeklyTimes.findIndex(time=>Math.abs(Date.parse(`${time}T12:00:00Z`)-target)<=3*86400000);
+  if(near>=0)return near;
+  const shifted=fallbackIndex+2;
+  if(shifted>=0&&shifted<weeklyTimes.length)return shifted;
+  return fallbackIndex>=0&&fallbackIndex<weeklyTimes.length?fallbackIndex:-1;
+}
+
+function buildEc46ClimateWeeks(payload:ApiPayload,weeks:TrendWeek[]):TrendWeek[]{
+  const weeklyTimes=Array.isArray(payload.weekly?.time)?(payload.weekly?.time as unknown[]).map(String):[];
+  const meanSeries=Object.fromEntries(METRICS.map(metric=>[metric.id,weeklySeries(payload,metric.weeklyMean)])) as Record<TrendMetric,number[]>;
+  const anomalySeries=Object.fromEntries(METRICS.map(metric=>[metric.id,weeklySeries(payload,metric.weeklyAnomaly)])) as Record<TrendMetric,number[]>;
+  return weeks.map((week,index)=>{
+    const climateValues=Object.fromEntries(METRICS.map(metric=>{
+      const climateIndex=findClimateWeekIndex(weeklyTimes,week,index);
+      const meanUnit=payload.weekly_units?.[metric.weeklyMean];
+      const anomalyUnit=payload.weekly_units?.[metric.weeklyAnomaly];
+      const center=normalizedWeeklyValue(meanSeries[metric.id]?.[climateIndex]??NaN,meanUnit);
+      const anomaly=normalizedWeeklyValue(anomalySeries[metric.id]?.[climateIndex]??NaN,anomalyUnit);
+      if(!Number.isFinite(center))return [metric.id,null] as const;
+      let climate=center;
+      if(Number.isFinite(anomaly))climate=center-anomaly;
+      if(metric.id==='precipitation')climate*=daySpan(week.startDate,week.endDate);
+      return [metric.id,Number.isFinite(climate)?climate:null] as const;
+    })) as Record<TrendMetric,number|null>;
+    return {
+      id:week.id,
+      label:week.label,
+      startDate:week.startDate,
+      endDate:week.endDate,
+      values:climateValues as unknown as Record<TrendMetric,TrendWeekValue|null>
+    };
+  });
+}
+
+function modelFromPayload(id:TrendModel['id'],family:string,members:number,horizonDays:number,gridLabel:string,payload:ApiPayload):TrendModel{
+  const weeks=buildWeeks(payload);
+  const climateWeeks=id==='ecmwf-ec46'?buildEc46ClimateWeeks(payload,weeks):[];
+  return {id,family,members,horizonDays,gridLabel,weeks,climateWeeks};
+}
+
+async function fetchJson(url:string,signal:AbortSignal,refresh:boolean){
+  const response=await guardedOpenMeteoFetch(url,{signal,cache:refresh?'reload':'default'},{priority:'normal'});
+  let payload:unknown;
+  try{payload=await response.json()}catch{throw new Error(`Trendquelle lieferte kein gültiges JSON (HTTP ${response.status}).`)}
+  if(!response.ok){
+    const reason=payload&&typeof payload==='object'&&'reason' in payload?String((payload as {reason?:unknown}).reason||''):'';
+    throw new Error(reason||`Trendquelle HTTP ${response.status}`);
+  }
+  return payload as ApiPayload;
+}
+
+async function fetchEcmwf(latitude:number,longitude:number,signal:AbortSignal,refresh:boolean){
+  const request = async (dailyVars:string[],weeklyVars:string[]) => {
+    const params=new URLSearchParams({
+      latitude:String(latitude),
+      longitude:String(longitude),
+      timezone:'GMT',
+      forecast_days:'46',
+      cell_selection:'nearest',
+      wind_speed_unit:'kn',
+      daily:dailyVars.join(','),
+      weekly:weeklyVars.join(',')
+    });
+    return fetchJson(`${SEASONAL_ENDPOINT}?${params}`,signal,refresh);
+  };
+  let payload:ApiPayload;
+  try{
+    payload=await request(DAILY_VARIABLES,WEEKLY_VARIABLES);
+  }catch(error){
+    payload=await request(FALLBACK_DAILY_VARIABLES,FALLBACK_WEEKLY_VARIABLES);
+  }
+  return modelFromPayload('ecmwf-ec46','ECMWF EC46',50,46,'ECMWF O320 · ca. 36 km',payload);
+}
+
+async function fetchGefs(latitude:number,longitude:number,signal:AbortSignal,refresh:boolean){
+  const request = async (dailyVars:string[]) => {
+    const params=new URLSearchParams({
+      latitude:String(latitude),
+      longitude:String(longitude),
+      timezone:'GMT',
+      models:'ncep_gefs025',
+      forecast_days:'35',
+      cell_selection:'nearest',
+      wind_speed_unit:'kn',
+      daily:dailyVars.join(',')
+    });
+    return fetchJson(`${ENSEMBLE_ENDPOINT}?${params}`,signal,refresh);
+  };
+  let payload:ApiPayload;
+  try{
+    payload=await request(DAILY_VARIABLES);
+  }catch(error){
+    payload=await request(FALLBACK_DAILY_VARIABLES);
+  }
+  return modelFromPayload('noaa-gefs','NOAA GEFS',30,35,'GEFS 0,5° · ca. 50 km',payload);
+}
+
+async function loadTrend(location:{latitude:number;longitude:number},signal:AbortSignal,refresh:boolean):Promise<TrendBundle>{
+  const cacheKey=`${CACHE_PREFIX}:${location.latitude.toFixed(4)}:${location.longitude.toFixed(4)}`;
+  const now=Date.now();
+  const readCache=()=>{
+    try{
+      const raw=localStorage.getItem(cacheKey);
+      if(!raw)return null;
+      const parsed=JSON.parse(raw) as {savedAt:number;data:TrendBundle};
+      if(!parsed?.savedAt||!parsed?.data?.models?.length)return null;
+      return parsed;
+    }catch{return null;}
+  };
+  const cached=readCache();
+  if(cached&&!refresh&&now-cached.savedAt<=60*60*1000){
+    return {...cached.data,cacheStatus:'fresh-cache',cacheAgeMinutes:Math.max(1,Math.round((now-cached.savedAt)/60000))};
+  }
+  try{
+    const settled=await Promise.allSettled([
+      fetchEcmwf(location.latitude,location.longitude,signal,refresh),
+      fetchGefs(location.latitude,location.longitude,signal,refresh)
+    ]);
+    if(signal.aborted)throw new DOMException('Aborted','AbortError');
+    const models=settled.flatMap(result=>result.status==='fulfilled'?[result.value]:[]);
+    if(!models.length){
+      const rejection=settled.find(result=>result.status==='rejected') as PromiseRejectedResult|undefined;
+      throw rejection?.reason instanceof Error?rejection.reason:new Error('Keine Subseasonal-Daten verfügbar.');
+    }
+    const bundle:TrendBundle={models,fetchedAt:new Date().toISOString(),cacheStatus:settled.every(result=>result.status==='fulfilled')?'live':'mixed-stale',cacheAgeMinutes:0};
+    try{localStorage.setItem(cacheKey,JSON.stringify({savedAt:now,data:bundle}))}catch{}
+    return bundle;
+  }catch(error){
+    if(cached&&now-cached.savedAt<=CACHE_MAX_AGE_MS){
+      return {...cached.data,cacheStatus:'stale-cache',cacheAgeMinutes:Math.max(1,Math.round((now-cached.savedAt)/60000))};
+    }
+    throw error;
+  }
+}
+
+function resample(samples:number[],count=51){
+  if(!samples.length)return [];
+  const sorted=[...samples].sort((a,b)=>a-b);
+  if(sorted.length===1)return Array.from({length:count},()=>sorted[0]);
+  return Array.from({length:count},(_,index)=>quantile(sorted,index/(count-1))).filter(Number.isFinite);
+}
+
+function combineWeeks(models:TrendModel[]):TrendWeek[]{
+  const ids=new Map<string,{label:string;startDate:string;endDate:string}>();
+  models.forEach(model=>model.weeks.forEach(week=>ids.set(week.id,{label:week.label,startDate:week.startDate,endDate:week.endDate})));
+  return [...ids.entries()]
+    .sort((a,b)=>a[1].startDate.localeCompare(b[1].startDate))
+    .map(([id,meta])=>{
+      const values={} as Record<TrendMetric,TrendWeekValue|null>;
+      for(const metric of METRICS){
+        const contributors=models.flatMap(model=>{
+          const value=model.weeks.find(week=>week.id===id)?.values[metric.id];
+          return value?.samples.length?[value.samples]:[];
+        });
+        values[metric.id]=contributors.length?summarize(contributors.flatMap(samples=>resample(samples)),contributors.length):null;
+      }
+      return {id,...meta,values};
+    });
+}
+
+function formatDate(value:string){
+  if(!value)return '–';
+  const [year,month,day]=value.split('-').map(Number);
+  if(!year||!month||!day)return value;
+  return `${String(day).padStart(2,'0')}.${String(month).padStart(2,'0')}.`;
+}
+
+function formatMetric(value:number,metric:TrendMetric,windUnit:WindUnit){
+  if(!Number.isFinite(value))return '–';
+  if(metric==='wind'||metric==='gust')return formatWindMetric(value,windUnit);
+  if(metric==='cloud')return `${formatDecimalFixed(value,0)} %`;
+  if(metric==='pressure')return `${formatDecimalFixed(value,1)} hPa`;
+  if(metric==='precipitation')return `${formatDecimalFixed(value,1)} mm`;
+  return `${formatDecimalFixed(value,1)} °C`;
+}
+
+function spreadLabel(value:TrendWeekValue,metric:TrendMetric,windUnit:WindUnit){
+  return `${formatMetric(value.p10,metric,windUnit)} – ${formatMetric(value.p90,metric,windUnit)}`;
+}
+
+function climateNumber(climateWeeks:TrendWeek[],id:string,metric:TrendMetric){
+  const week=climateWeeks.find(entry=>entry.id===id);
+  const value=(week?.values as unknown as Record<TrendMetric,number|null>|undefined)?.[metric];
+  return Number.isFinite(value)?Number(value):NaN;
+}
+
+function trendDescription(weeks:TrendWeek[],climateWeeks:TrendWeek[],metric:TrendMetric,windUnit:WindUnit){
+  const values=weeks.map(week=>week.values[metric]?.mean).filter(Number.isFinite) as number[];
+  if(!values.length)return 'Derzeit liegen für diesen Zeitraum keine belastbaren Werte vor.';
+  const climateDiffs=weeks.map(week=>{
+    const meanValue=week.values[metric]?.mean;
+    const climateValue=climateNumber(climateWeeks,week.id,metric);
+    return typeof meanValue==='number'&&Number.isFinite(meanValue)&&Number.isFinite(climateValue)?meanValue-climateValue:NaN;
+  }).filter(Number.isFinite) as number[];
+  const delta=mean(climateDiffs);
+  if(Number.isFinite(delta)){
+    if(metric==='precipitation')return `Im Mittel ${formatDecimalFixed(Math.abs(delta),1)} mm/Woche ${delta>=0?'nasser':'trockener'} als das EC46-Modellklima.`;
+    if(metric==='cloud')return `Im Mittel ${formatDecimalFixed(Math.abs(delta),0)} %-Punkte ${delta>=0?'wolkiger':'aufgelockerter'} als das EC46-Modellklima.`;
+    if(metric==='wind'||metric==='gust')return `Im Mittel ${formatMetric(Math.abs(delta),metric,windUnit)} ${delta>=0?'stärker':'schwächer'} als das EC46-Modellklima.`;
+    return `Im Mittel ${formatMetric(Math.abs(delta),metric,windUnit)} ${delta>=0?'über':'unter'} dem EC46-Modellklima.`;
+  }
+  const avg=mean(values);
+  return `Wochenmittel im Bereich von ${formatMetric(avg,metric,windUnit)}.`;
+}
+
+function clamp(value:number,min:number,max:number){
+  return Math.min(max,Math.max(min,value));
+}
+
+function niceStep(raw:number){
+  if(!Number.isFinite(raw)||raw<=0)return 1;
+  const power=10**Math.floor(Math.log10(raw));
+  const normalized=raw/power;
+  const factor=normalized<=1?1:normalized<=2?2:normalized<=2.5?2.5:normalized<=5?5:10;
+  return factor*power;
+}
+
+function niceTicks(min:number,max:number,count:number){
+  if(!Number.isFinite(min)||!Number.isFinite(max))return [0,1];
+  if(min===max){
+    const padding=Math.abs(min||1)*0.15||1;
+    return [min-padding,min,min+padding];
+  }
+  const step=niceStep((max-min)/Math.max(1,count-1));
+  const start=Math.floor(min/step)*step;
+  const end=Math.ceil(max/step)*step;
+  const ticks:number[]=[];
+  for(let value=start;value<=end+step*0.5;value+=step)ticks.push(Number(value.toFixed(6)));
+  return ticks;
+}
+
+function axisLabel(value:number,metric:TrendMetric,windUnit:WindUnit){
+  if(metric==='wind'||metric==='gust')return formatDecimalFixed(convertWind(value,windUnit),windUnit==='ms'?1:0);
+  if(metric==='cloud')return formatDecimalFixed(value,0);
+  if(metric==='pressure')return formatDecimalFixed(value,0);
+  if(metric==='precipitation')return formatDecimalFixed(value,0);
+  return formatDecimalFixed(value,0);
+}
+
+function valueToDisplay(value:number,metric:TrendMetric,windUnit:WindUnit){
+  if(!Number.isFinite(value))return NaN;
+  return metric==='wind'||metric==='gust'?convertWind(value,windUnit):value;
+}
+
+function pathFromPoints(points:{x:number;y:number}[]){
+  return points.length?`M ${points.map(point=>`${point.x.toFixed(2)} ${point.y.toFixed(2)}`).join(' L ')}`:'';
+}
+
+function polygonFromBands(top:{x:number;y:number}[],bottom:{x:number;y:number}[]){
+  if(!top.length||!bottom.length||top.length!==bottom.length)return '';
+  return `${top.map(point=>`${point.x.toFixed(2)},${point.y.toFixed(2)}`).join(' ')} ${[...bottom].reverse().map(point=>`${point.x.toFixed(2)},${point.y.toFixed(2)}`).join(' ')}`;
+}
+
+function TrendChart({weeks,climateWeeks,metric,windUnit}:{weeks:TrendWeek[];climateWeeks:TrendWeek[];metric:TrendMetric;windUnit:WindUnit}){
+  const [activeIndex,setActiveIndex]=useState<number|null>(null);
+  useEffect(()=>{setActiveIndex(null)},[metric,weeks.map(week=>week.id).join('|')]);
+  const width=640,height=244,margin={top:12,right:16,bottom:40,left:46};
+  const usableWidth=width-margin.left-margin.right,usableHeight=height-margin.top-margin.bottom;
+  const points=weeks.map((week,index)=>{
+    const value=week.values[metric];
+    const climate=climateNumber(climateWeeks,week.id,metric);
+    return {
+      week,
+      index,
+      x:margin.left+(weeks.length===1?usableWidth/2:(usableWidth*Math.max(0,index))/Math.max(1,weeks.length-1)),
+      mean:valueToDisplay(value?.mean??NaN,metric,windUnit),
+      p10:valueToDisplay(value?.p10??NaN,metric,windUnit),
+      p25:valueToDisplay(value?.p25??NaN,metric,windUnit),
+      p75:valueToDisplay(value?.p75??NaN,metric,windUnit),
+      p90:valueToDisplay(value?.p90??NaN,metric,windUnit),
+      climate:valueToDisplay(climate,metric,windUnit),
+      raw:value,
+      rawClimate:climate
+    };
+  });
+  let dataValues=points.flatMap(point=>[point.mean,point.p10,point.p25,point.p75,point.p90,point.climate]).filter(Number.isFinite) as number[];
+  if(metric==='cloud')dataValues=[...dataValues,0,100];
+  if(metric==='precipitation')dataValues=[...dataValues,0];
+  let min=Math.min(...dataValues),max=Math.max(...dataValues);
+  if(!Number.isFinite(min)||!Number.isFinite(max)){min=0;max=1;}
+  if(metric==='cloud'){min=0;max=100;}else if(metric==='precipitation'){min=0;max=Math.max(max,5);}else if(min===max){const pad=Math.abs(min||1)*0.15||1;min-=pad;max+=pad;}else{const pad=(max-min)*0.12;min-=pad;max+=pad;}
+  const ticks=niceTicks(min,max,5);
+  const scaleY=(value:number)=>margin.top+usableHeight-((value-ticks[0])/(ticks[ticks.length-1]-ticks[0]||1))*usableHeight;
+  const outerTop=points.filter(point=>Number.isFinite(point.p90)).map(point=>({x:point.x,y:scaleY(point.p90)}));
+  const outerBottom=points.filter(point=>Number.isFinite(point.p10)).map(point=>({x:point.x,y:scaleY(point.p10)}));
+  const innerTop=points.filter(point=>Number.isFinite(point.p75)).map(point=>({x:point.x,y:scaleY(point.p75)}));
+  const innerBottom=points.filter(point=>Number.isFinite(point.p25)).map(point=>({x:point.x,y:scaleY(point.p25)}));
+  const meanPoints=points.filter(point=>Number.isFinite(point.mean)).map(point=>({x:point.x,y:scaleY(point.mean)}));
+  const climatePoints=points.filter(point=>Number.isFinite(point.climate)).map(point=>({x:point.x,y:scaleY(point.climate)}));
+  const activePoint=activeIndex===null?null:points[activeIndex]??null;
+  return <div className="subseasonal-chart" onClick={event=>{if(event.target===event.currentTarget)setActiveIndex(null)}}>
+    <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`Witterungstrend ${metricDefinition(metric).label}`}>
+      {ticks.map(tick=>{
+        const y=scaleY(tick);
+        return <g key={tick}>
+          <line x1={margin.left} x2={width-margin.right} y1={y} y2={y} stroke="currentColor" opacity="0.1" />
+          <text x={margin.left-8} y={y+4} textAnchor="end" className="axis-label" fill="currentColor" opacity="0.55">{axisLabel(tick,metric,windUnit)}</text>
+        </g>;
+      })}
+      {points.map(point=><line key={`x-${point.week.id}`} x1={point.x} x2={point.x} y1={margin.top} y2={height-margin.bottom} stroke="currentColor" opacity="0.05" />)}
+      {outerTop.length===outerBottom.length&&outerTop.length>1?<polygon className="anomaly-plume outer" points={polygonFromBands(outerTop,outerBottom)} />:null}
+      {innerTop.length===innerBottom.length&&innerTop.length>1?<polygon className="anomaly-plume inner" points={polygonFromBands(innerTop,innerBottom)} />:null}
+      {climatePoints.length>1?<path className="climate-reference-line" d={pathFromPoints(climatePoints)} />:null}
+      {meanPoints.length>1?<path className="anomaly-mean-line" fill="none" d={pathFromPoints(meanPoints)} />:null}
+      {meanPoints.map((point,index)=><circle key={`dot-${index}`} cx={point.x} cy={point.y} r={4} fill="currentColor" className="trend-point" />)}
+      {points.map(point=><g key={`label-${point.week.id}`}>
+        <text x={point.x} y={height-18} textAnchor="middle" className="month-label" fill="currentColor" opacity="0.75">{point.week.label}</text>
+        <text x={point.x} y={height-8} textAnchor="middle" className="month-label" fill="currentColor" opacity="0.55">{formatDate(point.week.startDate)}</text>
+      </g>)}
+    </svg>
+    {points.map(point=>Number.isFinite(point.mean)?<button
+      key={`hit-${point.week.id}`}
+      type="button"
+      className={`subseasonal-point-hit ${activeIndex===point.index?'active':''}`}
+      style={{left:`${(point.x/width)*100}%`,top:`${(scaleY(point.mean)/height)*100}%`}}
+      onClick={event=>{event.stopPropagation();setActiveIndex(current=>current===point.index?null:point.index)}}
+      aria-label={`${point.week.label}: ${formatMetric(point.raw?.mean??NaN,metric,windUnit)}`}
+    />:null)}
+    {activePoint&&Number.isFinite(activePoint.mean)?<div
+      className="subseasonal-point-tooltip"
+      style={{left:`${clamp((activePoint.x/width)*100,14,86)}%`,top:`${clamp((scaleY(activePoint.mean)/height)*100,16,78)}%`}}
+      onClick={event=>event.stopPropagation()}
+    >
+      <strong>{activePoint.week.label}</strong>
+      <small>{formatDate(activePoint.week.startDate)} – {formatDate(activePoint.week.endDate)}</small>
+      <span>Mittel: {formatMetric(activePoint.raw?.mean??NaN,metric,windUnit)}</span>
+      <span>P25–P75: {formatMetric(activePoint.raw?.p25??NaN,metric,windUnit)} – {formatMetric(activePoint.raw?.p75??NaN,metric,windUnit)}</span>
+      <span>P10–P90: {formatMetric(activePoint.raw?.p10??NaN,metric,windUnit)} – {formatMetric(activePoint.raw?.p90??NaN,metric,windUnit)}</span>
+      {Number.isFinite(activePoint.rawClimate)?<span>EC46-Klimamittel: {formatMetric(activePoint.rawClimate,metric,windUnit)}</span>:null}
+    </div>:null}
+  </div>;
+}
+
+function convertWind(value:number,unit:WindUnit){
+  if(!Number.isFinite(value))return NaN;
+  if(unit==='kmh')return value*1.852;
+  if(unit==='ms')return value*0.514444;
+  if(unit==='mph')return value*1.15078;
+  return value;
+}
+
+function formatWindMetric(value:number,unit:WindUnit){
+  const converted=convertWind(value,unit);
+  if(!Number.isFinite(converted))return '–';
+  const digits=unit==='ms'?1:0;
+  return `${formatDecimalFixed(converted,digits)} ${windUnitLabel(unit)}`;
+}
+
+export default function SubseasonalTrendPanel({location,windUnit='kn',advancedMode=false}:{location:Location;windUnit?:WindUnit;advancedMode?:boolean}){
+  const [data,setData]=useState<TrendBundle|null>(null);
+  const [loading,setLoading]=useState(true);
+  const [refreshing,setRefreshing]=useState(false);
+  const [error,setError]=useState('');
+  const [metric,setMetric]=useState<TrendMetric>(()=>{
+    try{
+      const stored=localStorage.getItem('mid:subseasonal-trend:metric');
+      return METRICS.some(item=>item.id===stored)?stored as TrendMetric:'temperature_max';
+    }catch{return 'temperature_max';}
+  });
+  const [view,setView]=useState<ModelView>(()=>{
+    try{
+      const stored=localStorage.getItem('mid:subseasonal-trend:view');
+      return stored==='ecmwf-ec46'||stored==='noaa-gefs'?stored:'combined';
+    }catch{return 'combined';}
+  });
+  const [infoOpen,setInfoOpen]=useState(false);
+  const controllerRef=useRef<AbortController|null>(null);
+
+  const load=useCallback(async(refresh=false)=>{
+    controllerRef.current?.abort();
+    const controller=new AbortController();
+    controllerRef.current=controller;
+    if(refresh)setRefreshing(true);else setLoading(true);
+    setError('');
+    try{
+      const bundle=await loadTrend(location,controller.signal,refresh);
+      if(!controller.signal.aborted){
+        setData(bundle);
+        setView(current=>current==='combined'||bundle.models.some(model=>model.id===current)?current:'combined');
+      }
+    }catch(reason){
+      if(!controller.signal.aborted)setError(reason instanceof Error?reason.message:'Witterungstrend konnte nicht geladen werden.');
+    }finally{
+      if(controllerRef.current===controller)controllerRef.current=null;
+      if(!controller.signal.aborted){setLoading(false);setRefreshing(false);}
+    }
+  },[location.latitude,location.longitude]);
+
+  useEffect(()=>{load();return()=>controllerRef.current?.abort();},[load]);
+  useEffect(()=>{try{localStorage.setItem('mid:subseasonal-trend:metric',metric)}catch{}},[metric]);
+  useEffect(()=>{try{localStorage.setItem('mid:subseasonal-trend:view',view)}catch{}},[view]);
+
+  const models=data?.models??[];
+  const combined=useMemo(()=>combineWeeks(models),[models]);
+  const selectedWeeks=view==='combined'?combined:models.find(model=>model.id===view)?.weeks??combined;
+  const climateWeeks=models.find(model=>model.id==='ecmwf-ec46')?.climateWeeks??[];
+  const selectedLabel=view==='combined'?'Multi-Modell':models.find(model=>model.id===view)?.family??'Multi-Modell';
+  const def=metricDefinition(metric);
+  const Icon=def.icon;
+  const cacheLabel=data?.cacheStatus==='fresh-cache'?`Cache · ${data.cacheAgeMinutes} min`:data?.cacheStatus==='stale-cache'?`Fallback-Cache · ${data.cacheAgeMinutes} min`:data?.cacheStatus==='mixed-stale'?`teilweise Cache · ${data.cacheAgeMinutes} min`:'';
+
+  return <section className={`section-panel long-range-panel subseasonal-trend ${def.colorClass}`}>
+    <header className="section-head long-range-head subseasonal-head">
+      <div>
+        <h3>Witterungstrend · Tag 15–46</h3>
+        <p>Wochenblöcke statt scheinpräziser Tageswerte · ECMWF EC46 + NOAA GEFS bis Tag 35</p>
+      </div>
+      <div className="long-range-head-actions">
+        <button type="button" onClick={()=>load(true)} aria-label="Witterungstrend aktualisieren" disabled={refreshing}>{refreshing?<RefreshCw size={18} className="spin"/>:<RefreshCw size={18}/>}</button>
+        <button type="button" onClick={()=>setInfoOpen(open=>!open)} aria-expanded={infoOpen} aria-label="Methodik anzeigen"><Info size={18}/></button>
+      </div>
+    </header>
+
+    {loading?<p className="section-status">Witterungstrend wird geladen…</p>:null}
+    {!loading&&error?<p className="section-status error">{error}</p>:null}
+
+    {!loading&&models.length?<>
+      <div className="long-range-family-chips subseasonal-families">
+        {models.map(model=><span key={model.id}>{model.family}<small>{model.members||'–'} Member · bis Tag {model.horizonDays}</small></span>)}
+      </div>
+
+      <div className="long-range-controls subseasonal-controls">
+        <div className="long-range-model-selector subseasonal-model-selector">
+          <button type="button" className={view==='combined'?'active':''} onClick={()=>setView('combined')}>
+            <b>Multi-Modell</b>
+            <small>{models.length} unabhängige Familien</small>
+          </button>
+          {models.map(model=><button key={model.id} type="button" className={view===model.id?'active':''} onClick={()=>setView(model.id)}>
+            <b>{model.family}</b>
+            <small>{model.members} Member · {model.gridLabel}</small>
+          </button>)}
+        </div>
+        <div className="long-range-model-selector subseasonal-metric-selector">
+          {METRICS.map(item=><button key={item.id} type="button" className={`${metric===item.id?'active ':''}${item.colorClass}`} onClick={()=>setMetric(item.id)}>
+            <b>{item.buttonLabel}</b>
+            <small>{item.id==='wind'||item.id==='gust'?windUnitLabel(windUnit):item.unit}</small>
+          </button>)}
+        </div>
+      </div>
+
+      {infoOpen?<div className="long-range-method">
+        <b>Methodik & Hinweise</b>
+        <p>ECMWF EC46 liefert 50 Ensemblemitglieder bis Tag 46, NOAA GEFS 30 Ensemblemitglieder bis Tag 35. MID verdichtet beide Quellen auf Wochenblöcke ab Tag 15 und gewichtet Modellfamilien im Multi-Modell unabhängig von der Memberzahl 1:1.</p>
+        <p>Das EC46-Klimamittel wird je Wochenblock aus den zugehörigen Wochenfeldern der Seasonal-API abgeleitet und anhand der Zeitachse statt über starre Indexe zugeordnet, damit auch Teilwochen am Periodenende konsistent bleiben.</p>
+        <p>Tmax/Tmin nutzen das übliche Farbkonzept warm/kühl. Für Wind werden – soweit von der Quelle geliefert – zusätzlich Windböen als eigene Kennzahl geführt. Per Klick oder Tipp auf einen Kurvenpunkt erscheint ein kompaktes Tooltip wie im 24d-Ensemble.</p>
+        <p>Ab Tag 36 steht derzeit nur EC46 zur Verfügung; der Multi-Modell-Pfad reduziert sich dann automatisch auf die verbleibende Modellfamilie.</p>
+        {cacheLabel?<p><b>Datenstatus:</b> {cacheLabel}</p>:null}
+      </div>:null}
+
+      <div className="long-range-grid" style={{gridTemplateColumns:'1fr'}}>
+        <article className={`subseasonal-main-chart ${def.colorClass}`}>
+          <header>
+            <Icon size={18}/>
+            <div>
+              <strong>{def.label} · {selectedLabel}</strong>
+              <small>{trendDescription(selectedWeeks,climateWeeks,metric,windUnit)}</small>
+            </div>
+          </header>
+          <div className="subseasonal-chart-legend">
+            <span className="ensemble"><i/>Ensemble-Mittel</span>
+            <span className="climate"><i/>EC46-Klimamittel</span>
+            <span className="spread"><i/>P25–P75 / P10–P90</span>
+          </div>
+          <TrendChart weeks={selectedWeeks} climateWeeks={climateWeeks} metric={metric} windUnit={windUnit}/>
+          <footer>
+            <span>Außen P10–P90 · innen P25–P75</span>
+            <span>{view==='combined'?'Modellfamilien gleich gewichtet':'Ensemblemitglieder des gewählten Modells'}</span>
+          </footer>
+        </article>
+      </div>
+
+      <section className="long-range-models subseasonal-comparison">
+        <header>
+          <div>
+            <span>ENSEMBLE-VERGLEICH</span>
+            <h4>{def.label} je Wochenblock</h4>
+          </div>
+        </header>
+        <div className="long-range-model-strip">
+          {combined.map(week=>{
+            const climate=climateNumber(climateWeeks,week.id,metric);
+            return <article key={week.id}>
+              <strong>{week.label}</strong>
+              <small>{formatDate(week.startDate)} – {formatDate(week.endDate)}</small>
+              {models.map(model=>{
+                const value=model.weeks.find(row=>row.id===week.id)?.values[metric];
+                return value?<span key={model.id}>{model.family}: {formatMetric(value.mean,metric,windUnit)}<small> · P10–P90 {spreadLabel(value,metric,windUnit)}</small></span>:null;
+              })}
+              {week.values[metric]?<em>Multi: {formatMetric(week.values[metric]!.mean,metric,windUnit)} · {week.values[metric]!.modelCount} Modellfamilie{week.values[metric]!.modelCount===1?'':'n'}</em>:null}
+              {Number.isFinite(climate)?<small className="climate-value">EC46-Klimamittel: {formatMetric(climate,metric,windUnit)}</small>:null}
+            </article>;
+          })}
+        </div>
+        {advancedMode?<div className="long-range-method"><b>Quellen und Reichweite</b><p>ECMWF EC46: 36-km-Subseasonal-Ensemble bis 46 Tage. NOAA GEFS 0,5°: Ensemble bis 35 Tage. MID verdichtet beide auf identische Wochenblöcke und hält die Inter-Modell-Gewichtung unabhängig von der Memberzahl bei 1:1. Klimareferenz: EC46-Modellklima aus offiziellen Wochenmittel-/Anomaliefeldern.</p></div>:null}
+      </section>
+    </>:null}
+  </section>;
 }

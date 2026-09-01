@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {rucWorkflowSyncState,isProtectedSetupPythonV5ToV7Transition} from './ruc-workflow-sync-contract.mjs';
+const canonical=fs.readFileSync('ci/github/workflows/mid-ruc-preprocess.yml','utf8');
+const v7='actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0';
+const v5='actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5';
+assert.ok(canonical.includes(v7),'canonical RUC workflow must use setup-python v7');
+const active=canonical.replace(v7,v5);
+assert.equal(isProtectedSetupPythonV5ToV7Transition(active,canonical),true);
+assert.deepEqual(rucWorkflowSyncState(active,canonical).state,'pending-admin-sync');
+const drift=active.replace("cron: '11 * * * *'","cron: '12 * * * *'");
+assert.equal(isProtectedSetupPythonV5ToV7Transition(drift,canonical),false);
+assert.equal(rucWorkflowSyncState(drift,canonical).ok,false,'any additional drift must remain fail-closed');
+console.log('RUC setup-python v5→v7 admin-sync transition contract OK.');

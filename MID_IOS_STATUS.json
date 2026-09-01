@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-09-01T08:13:13.231Z",
-  "releaseVersion": "0.9.77.1",
+  "updatedAt": "2026-09-01T09:52:29.394Z",
+  "releaseVersion": "0.9.77.6",
   "sourceBaseline": {
     "professionalVersion": "0.9.70.2",
     "workerVersion": "0.9.70.2",
@@ -99,7 +99,10 @@
     "weather-profile-day-stepper-cloud-layout-0.9.76.33",
     "ci-hotfix-run-805-weather-profile-regressions-0.9.76.34",
     "numerical-thunder-ruc-multiparameter-semantics-0.9.76.35",
-    "shared-subseasonal-trend-14dplus-and-seasonal-model-comparison-0.9.77.0"
+    "shared-subseasonal-trend-14dplus-and-seasonal-model-comparison-0.9.77.0",
+    "0.9.77.4 – Witterungstrend Tag 15–46 mit zeitachsenbasierter Klimamittel-Zuordnung, Tmin/Tmax, Windböen, Punkt-Tooltip und bestandenem Release-Upload-Budget aktualisiert.",
+    "run-811-trend14plus-typescript-buildfix-0.9.77.5",
+    "0.9.77.6 – Run #812 RUC-Workflow-Admin-Sync-Übergang eng regressionsgeschützt; Build/Vite aus #812 waren bereits grün."
   ],
   "nextMilestone": "macos-xcode-simulator-quality-assurance",
   "validation": {
@@ -122,7 +125,7 @@
     ],
     "approved": false
   },
-  "validationNote": "v0.9.77.0 ergänzt den gemeinsamen Browser/PWA/iOS-Fachkern um Trend 14d+: EC46/GEFS-Wochenensemble Tag 15–46 und saisonalen Direktvergleich. Keine Rückmischung in den kanonischen Kurzfristforecast; nächstes natives Gate bleibt macOS/Xcode-Simulator-QA.",
+  "validationNote": "v0.9.77.6 behebt Run #812 fail-closed: der Installer akzeptiert den exakt definierten setup-python-v5→v7-Admin-Sync-Übergang des aktiven RUC-Workflows, während jede zusätzliche Workflow-Drift weiterhin blockiert.",
   "completedMilestones": [
     "ci-regression-contract-hotfix-0.9.76.22",
     "ruc-scheduler-resilience-source-preparation-0.9.76.24",
@@ -136,6 +139,20 @@
     "weather-profile-day-stepper-cloud-layout-0.9.76.33",
     "ci-hotfix-run-805-weather-profile-regressions-0.9.76.34",
     "numerical-thunder-ruc-multiparameter-semantics-0.9.76.35",
-    "shared-subseasonal-trend-14dplus-and-seasonal-model-comparison-0.9.77.0"
-  ]
+    "shared-subseasonal-trend-14dplus-and-seasonal-model-comparison-0.9.77.0",
+    {
+      "version": "0.9.77.4",
+      "date": "2026-09-01",
+      "title": "Witterungstrend Tag 15–46 – Klimamittel, Tmin/Tmax, Windböen und Tooltip",
+      "summary": "Der subseasonale Trend nutzt jetzt eine an der Wochen-Zeitachse ausgerichtete EC46-Klimareferenz, ersetzt T durch Tmin/Tmax, ergänzt Windböen, bietet Klick-/Tipp-Tooltips wie im 24d-Ensemble und hält die Release-ZIPs innerhalb des Upload-Budgets."
+    },
+    "run-811-trend14plus-typescript-buildfix-0.9.77.5",
+    {
+      "version": "0.9.77.6",
+      "date": "2026-09-01",
+      "title": "Run #812 – RUC setup-python Admin-Sync Hotfix",
+      "summary": "Der aktive setup-python-v5-RUC-Workflow wird gegenüber dem kanonischen v7-Stand nur dann als pending-admin-sync akzeptiert, wenn genau dieser eine bekannte Pin-Unterschied vorliegt; jede weitere Drift bleibt fail-closed."
+    }
+  ],
+  "currentVersion": "0.9.77.6"
 }

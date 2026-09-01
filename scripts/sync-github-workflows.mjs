@@ -7,14 +7,16 @@ const defaultRoot=path.resolve(path.dirname(modulePath),'..');
 
 const CHECKOUT_V7_SHA='3d3c42e5aac5ba805825da76410c181273ba90b1';
 const SETUP_NODE_V7_SHA='820762786026740c76f36085b0efc47a31fe5020';
-const SETUP_PYTHON_V5_SHA='a26af69be951a213d495a4c3e4e4022e16d87065';
-const CODEQL_V4_SHA='ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd';
+const UPLOAD_ARTIFACT_V7_SHA='043fb46d1a93c77aae656e7c1c64a875d1fc6a0a';
+const SETUP_PYTHON_V7_SHA='5fda3b95a4ea91299a34e894583c3862153e4b97';
+const CODEQL_V4_SHA='cdf488f595d80d6e07e03d4674febd5ab45fa938';
 function pinApprovedActions(source){
  return source
   .replace(/actions\/checkout@[^\s#]+(?:\s*#\s*v[^\n]*)?/g,`actions/checkout@${CHECKOUT_V7_SHA} # v7.0.1`)
   .replace(/actions\/setup-node@[^\s#]+(?:\s*#\s*v[^\n]*)?/g,`actions/setup-node@${SETUP_NODE_V7_SHA} # v7.0.0`)
-  .replace(/actions\/setup-python@[^\s#]+(?:\s*#\s*v[^\n]*)?/g,`actions/setup-python@${SETUP_PYTHON_V5_SHA} # v5`)
-  .replace(/github\/codeql-action\/(init|analyze)@[^\s#]+(?:\s*#\s*v[^\n]*)?/g,(_match,action)=>`github/codeql-action/${action}@${CODEQL_V4_SHA} # v4.37.7`);
+  .replace(/actions\/upload-artifact@[^\s#]+(?:\s*#\s*v[^\n]*)?/g,`actions/upload-artifact@${UPLOAD_ARTIFACT_V7_SHA} # v7.0.1`)
+  .replace(/actions\/setup-python@[^\s#]+(?:\s*#\s*v[^\n]*)?/g,`actions/setup-python@${SETUP_PYTHON_V7_SHA} # v7.0.0`)
+  .replace(/github\/codeql-action\/(init|analyze)@[^\s#]+(?:\s*#\s*v[^\n]*)?/g,(_match,action)=>`github/codeql-action/${action}@${CODEQL_V4_SHA} # v4.37.9`);
 }
 
 const managedFiles=[

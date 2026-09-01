@@ -1,3 +1,43 @@
+# Changelog
+
+## v0.9.77.6 - 2026-09-01
+- GitHub-Installer Run #812 gefixt: exakt definierter RUC setup-python-v5→v7-Admin-Sync-Übergang wird als pending-admin-sync akzeptiert.
+- Jede zusätzliche RUC-Workflow-Abweichung bleibt fail-closed.
+- Neuer Regressionstest schützt den Pin-only-Übergang und lehnt kombinierte Drift ab.
+
+# v0.9.77.5
+
+- CI-Hotfix für GitHub Actions Run #811: ZIP-Entpacken, `npm ci` und Dependency-Audit waren grün; ausschließlich der TypeScript-Build des neuen Trend-14d+-Panels schlug fehl.
+- `SubseasonalTrendPanel` verwendet wieder den kanonischen MID-`WindUnit` (`kn` intern, Anzeige weiterhin `kt`), wodurch die Übergabe aus `LongRangePanel` wieder typsicher ist.
+- Nicht vorhandenes Lucide-Icon `Rain` durch `CloudRain` ersetzt; Tmin nutzt `Snowflake`, Windböen den bereits verwendeten Wind-Iconpfad.
+- Lucide-Icon-Typisierung und die Nullability der Klimadifferenz wurden TypeScript-sicher korrigiert.
+- Tmin/Tmax, Windböen, EC46-Klimamittel-Zeitachsenfix und Punkt-Tooltips aus v0.9.77.4 bleiben vollständig erhalten.
+- Keine fachliche Worker-Änderung; manueller Worker-Upload nicht erforderlich.
+
+# Changelog
+
+## v0.9.77.4 - 2026-09-01
+- Witterungstrend Tag 15-46 fachlich nachgeschärft: EC46-Klimamittel werden jetzt über die Wochen-Zeitachse statt über starre Indexe zugeordnet, damit Teilwochen und Endbereiche konsistent bleiben.
+- Temperatur-Slot in der Subseasonal-Ansicht in Tmax und Tmin aufgeteilt; Wind um Windböen erweitert, jeweils mit dem appweiten Farbkonzept.
+- Hauptdiagramm des Witterungstrends um Klick-/Tipp-Tooltips pro Kurvenpunkt ergänzt, analog zum 24d-Ensemble.
+- Wind- und Böenwerte im Witterungstrend auf kn-basierte API-Abfrage vereinheitlicht, damit die Einheiten appweit konsistent bleiben.
+- Release-Upload-Budget erneut geprüft; Professional- und Worker-ZIP bleiben innerhalb des vorgesehenen Größenrahmens.
+
+# v0.9.77.3
+
+- RUC-Infrastrukturwartung separat durchgeführt: Dependabot-PR #26 MID-konform übernommen; `actions/setup-python` ist im kanonischen RUC-Workflow und im administrativen Sync auf 7.0.0 / SHA `5fda3b95a4ea91299a34e894583c3862153e4b97` angehoben.
+- Python 3.12, pip-Cache, RUC-Scheduler :11/:41, Guard, Pages-Storage und meteorologische RUC-Fachlogik bleiben unverändert.
+- Neuer fokussierter PR-Wartungstest schützt #25/#24/#26 gemeinsam und hält React 19, React DOM 19, react-is 19 sowie plugin-react 6 ausdrücklich zurückgestellt.
+- Keine fachliche Worker-Änderung; Worker-Upload nicht erforderlich.
+
+# v0.9.77.2
+
+- GitHub-Actions-Wartung: Dependabot-PR #25 MID-konform übernommen; `actions/upload-artifact` ist kanonisch auf 7.0.1 / SHA `043fb46d1a93c77aae656e7c1c64a875d1fc6a0a` angehoben.
+- CodeQL-PR #24 korrigiert übernommen: `init` und `analyze` werden gemeinsam auf 4.37.9 / SHA `cdf488f595d80d6e07e03d4674febd5ab45fa938` gepinnt; der im Original-PR entstandene Versionsmix ist ausgeschlossen.
+- Expliziter Workflow-Sync und Regressionen schützen nun auch `upload-artifact`; `.github` bleibt im normalen Release-Installer unverändert.
+- React-19- und plugin-react-6-Majors bleiben bewusst zurückgestellt.
+- Keine fachliche Worker-Änderung; Worker-Upload nicht erforderlich.
+
 # v0.9.76.35
 
 - P0 Gewittersemantik: Blitznachweis klassifiziert weiterhin den **aktuellen Radar-/KONRAD3D-Zustand**, ist aber keine Voraussetzung mehr für eine numerische Gewitterprognose.

@@ -24,18 +24,19 @@ assert.equal(pkg.devDependencies?.typescript,'7.0.2');
 assert.equal(pkg.devDependencies?.['typescript-strada'],'npm:typescript@6.0.3');
 assert.equal(pkg.devDependencies?.vite,'6.4.3');
 assert.equal(pkg.devDependencies?.['@vitejs/plugin-react'],'4.7.0');
-const codeql='ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd';
-const checkout='3d3c42e5aac5ba805825da76410c181273ba90b1',setup='820762786026740c76f36085b0efc47a31fe5020';
-assert.ok(syncSource.includes(`CHECKOUT_V7_SHA='${checkout}'`)&&syncSource.includes(`SETUP_NODE_V7_SHA='${setup}'`));
+const codeql='cdf488f595d80d6e07e03d4674febd5ab45fa938',upload='043fb46d1a93c77aae656e7c1c64a875d1fc6a0a';
+const checkout='3d3c42e5aac5ba805825da76410c181273ba90b1',setup='820762786026740c76f36085b0efc47a31fe5020',python='5fda3b95a4ea91299a34e894583c3862153e4b97';
+assert.ok(syncSource.includes(`CHECKOUT_V7_SHA='${checkout}'`)&&syncSource.includes(`SETUP_NODE_V7_SHA='${setup}'`)&&syncSource.includes(`SETUP_PYTHON_V7_SHA='${python}'`));
 assert.ok(syncSource.includes(`CODEQL_V4_SHA='${codeql}'`));
-assert.ok(syncSource.includes('github/codeql-action/${action}@${CODEQL_V4_SHA} # v4.37.7'));
+assert.ok(syncSource.includes(`UPLOAD_ARTIFACT_V7_SHA='${upload}'`));
+assert.ok(syncSource.includes('github/codeql-action/${action}@${CODEQL_V4_SHA} # v4.37.9'));
 // Der automatische ZIP-Installer schützt aktive Workflows bewusst vor Selbstmodifikation.
 // Deshalb wird hier der auslieferbare Sync-Vertrag geprüft und nicht verlangt, dass .github
 // bereits im selben Installationslauf auf CodeQL 4.37.7 umgeschrieben wurde.
 assert.ok(codeRevision.includes("--exclude='.github/'"));
 assert.ok(codeRevision.includes("git add -A -- . ':(exclude).github/**'"));
 for(const key of ['requiredRegressionTests','regressionTests','requiredFiles','protectedFiles'])assert.ok(baseline[key]?.includes(test),`${test} fehlt in ${key}.`);
-for(const token of ['Lucide React: 1.35.0','MapLibre GL JS: 6.6.0','CodeQL: 4.37.7'])assert.ok(policy.includes(token),`Dependency-Policy fehlt: ${token}`);
+for(const token of ['Lucide React: 1.35.0','MapLibre GL JS: 6.6.0','CodeQL: 4.37.9','setup-python 7.0.0','upload-artifact 7.0.1'])assert.ok(policy.includes(token),`Dependency-Policy fehlt: ${token}`);
 assert.ok(changelog.includes('## 0.9.67.3'));
 assert.ok(implementation.includes('PR #16')&&implementation.includes('PR #17')&&implementation.includes('PR #15')&&implementation.includes('PR #1/#2'));
 console.log(`MID v${pkg.version}: Lucide, MapLibre, CodeQL und Actions sind auf dem freigegebenen Wartungsstand synchron.`);

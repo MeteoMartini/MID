@@ -12,9 +12,9 @@ Der Stable-Channel erhält keine ungeprüften Major-/Toolchain-Sprünge. Der rep
 - @vitejs/plugin-react: 4.7.0
 - Lucide React: 1.35.0 (isolierter Minor-Kandidat; TypeScript/Vite und CodeQL grün, nur historische Versionspins angepasst) (React 18.3.1 bleibt unverändert)
 - MapLibre GL JS: 6.6.0 (6.5.0-Kompatibilitätslinie plus CPU-DEM-Picking ohne GPU-Readback-Stall, reduzierte GPU-Speicherlast und einmaliger color-relief-DEM-Texturupload pro Tile)
-- GitHub Actions: checkout 7.0.1 (`3d3c42e5aac5ba805825da76410c181273ba90b1`) und setup-node 7.0.0 (`820762786026740c76f36085b0efc47a31fe5020`), jeweils SHA-gepinnt
-- CodeQL: 4.37.7 (`ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd`), SHA-gepinnt
-- Workflow-Aktivierung: Der Release-Installer verändert `.github` nicht selbst; checkout/setup-node/CodeQL werden über `npm run sync:github-workflows` ausdrücklich administrativ synchronisiert.
+- GitHub Actions: checkout 7.0.1 (`3d3c42e5aac5ba805825da76410c181273ba90b1`), setup-node 7.0.0 (`820762786026740c76f36085b0efc47a31fe5020`), setup-python 7.0.0 (`5fda3b95a4ea91299a34e894583c3862153e4b97`) und upload-artifact 7.0.1 (`043fb46d1a93c77aae656e7c1c64a875d1fc6a0a`), jeweils SHA-gepinnt
+- CodeQL: 4.37.9 (`cdf488f595d80d6e07e03d4674febd5ab45fa938`), SHA-gepinnt und für `init`/`analyze` zwingend identisch
+- Workflow-Aktivierung: Der Release-Installer verändert `.github` nicht selbst; checkout/setup-node/setup-python/upload-artifact/CodeQL werden über `npm run sync:github-workflows` ausdrücklich administrativ synchronisiert.
 
 Sicherheits-Patches innerhalb kompatibler Transitivreihen werden im Stable-Channel unmittelbar angehoben, sobald `npm audit` einen Befund meldet und die vollständige Regression grün bleibt. Aktueller Mindestvertrag: `nanoid >=3.3.18` im 3.x-Pfad sowie `protocol-buffers-schema >=3.6.1`.
 

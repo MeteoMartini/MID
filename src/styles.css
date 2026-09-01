@@ -3037,8 +3037,9 @@ button,input,select,[role="button"]{touch-action:manipulation}
 @media(max-width:860px){.flight-briefing-overview{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:520px){.flight-briefing-overview{grid-template-columns:1fr 1fr}.flight-route-hazard-list article header{align-items:flex-start}.flight-result-toolbar{display:grid;gap:7px}.flight-briefing-status{justify-self:start}}
 
 /* MID parameter colour contract + Trend 14d+ mobile polish */
-.subseasonal-trend{--trend-color:var(--param-temperature)}
-.subseasonal-trend.metric-temperature{--trend-color:var(--param-temperature)}
+.subseasonal-trend{--trend-color:var(--param-temperature-max)}
+.subseasonal-trend.metric-temperature-max{--trend-color:var(--param-temperature-max)}
+.subseasonal-trend.metric-temperature-min{--trend-color:var(--param-temperature-min)}
 .subseasonal-trend.metric-precipitation{--trend-color:var(--param-precipitation)}
 .subseasonal-trend.metric-pressure{--trend-color:var(--param-pressure)}
 .subseasonal-trend.metric-cloud{--trend-color:var(--param-cloud)}
@@ -3051,7 +3052,8 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .subseasonal-model-selector,.subseasonal-metric-selector{display:grid!important;overflow:visible!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
 .subseasonal-model-selector button,.subseasonal-metric-selector button{min-width:0!important;width:100%;padding:8px 9px}
 .subseasonal-metric-selector button{border-color:color-mix(in srgb,var(--metric-color,var(--border)) 42%,var(--border))!important}
-.subseasonal-metric-selector button.metric-temperature{--metric-color:var(--param-temperature)}
+.subseasonal-metric-selector button.metric-temperature-max{--metric-color:var(--param-temperature-max)}
+.subseasonal-metric-selector button.metric-temperature-min{--metric-color:var(--param-temperature-min)}
 .subseasonal-metric-selector button.metric-precipitation{--metric-color:var(--param-precipitation)}
 .subseasonal-metric-selector button.metric-pressure{--metric-color:var(--param-pressure)}
 .subseasonal-metric-selector button.metric-cloud{--metric-color:var(--param-cloud)}
@@ -3059,12 +3061,21 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .subseasonal-metric-selector button.metric-gust{--metric-color:var(--param-gust)}
 .subseasonal-metric-selector button.active{color:var(--metric-color);border-color:color-mix(in srgb,var(--metric-color) 70%,var(--border))!important;background:color-mix(in srgb,var(--metric-color) 10%,var(--panel,var(--surface)))!important}
 .subseasonal-main-chart>header>svg{color:var(--trend-color)!important}
-.subseasonal-chart{overflow:hidden!important;background:transparent!important}
-.subseasonal-chart svg{min-width:0!important;width:100%!important}
+.subseasonal-chart{position:relative;overflow:hidden!important;background:transparent!important}
+.subseasonal-chart svg{min-width:0!important;width:100%!important;display:block}
 .subseasonal-chart .anomaly-plume.outer{fill:color-mix(in srgb,var(--trend-color) 11%,transparent);stroke:color-mix(in srgb,var(--trend-color) 20%,transparent)}
 .subseasonal-chart .anomaly-plume.inner{fill:color-mix(in srgb,var(--trend-color) 22%,transparent);stroke:color-mix(in srgb,var(--trend-color) 30%,transparent)}
 .subseasonal-chart .anomaly-mean-line{stroke:var(--trend-color)!important;stroke-width:2.8}
 .subseasonal-chart .climate-reference-line{fill:none;stroke:color-mix(in srgb,var(--muted) 88%,var(--text));stroke-width:1.6;stroke-dasharray:6 5;stroke-linecap:round;stroke-linejoin:round}
+.subseasonal-chart .subseasonal-point-hit{position:absolute;width:30px;height:30px;border:0;border-radius:999px;background:transparent;transform:translate(-50%,-50%);cursor:pointer;touch-action:manipulation;z-index:1}
+.subseasonal-chart .subseasonal-point-hit::after{content:"";position:absolute;inset:5px;border-radius:999px;background:color-mix(in srgb,var(--trend-color) 24%,transparent);opacity:0;transition:opacity .18s ease}
+.subseasonal-chart .subseasonal-point-hit.active::after,.subseasonal-chart .subseasonal-point-hit:focus-visible::after{opacity:1}
+.subseasonal-chart .subseasonal-point-tooltip{position:absolute;min-width:188px;max-width:min(280px,72vw);display:grid;gap:4px;padding:10px 12px;border-radius:14px;border:1px solid color-mix(in srgb,var(--border) 84%,transparent);background:color-mix(in srgb,var(--surface) 96%,#fff);box-shadow:0 14px 30px rgba(20,31,48,.16);transform:translate(-50%,calc(-100% - 12px));z-index:3}
+.subseasonal-chart .subseasonal-point-tooltip::after{content:"";position:absolute;left:50%;bottom:-8px;width:14px;height:14px;background:color-mix(in srgb,var(--surface) 96%,#fff);border-right:1px solid color-mix(in srgb,var(--border) 84%,transparent);border-bottom:1px solid color-mix(in srgb,var(--border) 84%,transparent);transform:translateX(-50%) rotate(45deg)}
+.subseasonal-chart .subseasonal-point-tooltip strong{font-size:9px;color:var(--text)}
+.subseasonal-chart .subseasonal-point-tooltip small{font-size:7.5px;color:var(--muted)}
+.subseasonal-chart .subseasonal-point-tooltip span{font-size:8px;color:var(--text)}
+
 .subseasonal-chart-legend{display:flex;flex-wrap:wrap;gap:8px 14px;color:var(--muted);font-size:8px;font-weight:750}
 .subseasonal-chart-legend span{display:inline-flex;align-items:center;gap:5px}
 .subseasonal-chart-legend i{display:inline-block;width:24px;height:0;border-top:2px solid var(--trend-color)}
