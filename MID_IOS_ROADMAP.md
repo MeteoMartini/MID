@@ -46,6 +46,9 @@ Die Quellvorbereitung für Push und Hintergrundaktualisierung ist in v0.9.72.0 o
 
 
 **v0.9.73.10 RUC-Zeitachsenfix (durch v0.9.73.11 fachlich erweitert):** Run #6 zeigte korrekt, dass eine gemeinsame 15-Minuten-Achse für alle Zustandsfelder unzulässig ist. Der gemeinsame Mehrvariablen-Zustandsvektor bleibt daher stündlich 0…+14 h und fehlende Temperatur-/Wind-/Druck-/Wolkenzwischenwerte werden nicht interpoliert. v0.9.73.11 ergänzt darauf aufbauend getrennte parameter-native 5-/15-Minuten-Rapid-Produkte; v0.9.73.10 ist deshalb nicht als reiner Stunden-RUC-Endvertrag zu lesen. RUC-EPS bleibt stündlich.
+
+**v0.9.77.0 gemeinsamer Trend 14d+:** Browser/PWA und Capacitor-iOS erhalten im selben React/Vite-Fachkern einen probabilistischen Witterungstrend für Tag 15–46. ECMWF EC46 und NOAA GEFS 0,5° werden ab Tag 15 in Wochenblöcke verdichtet und als einzelne Ensembles sowie gleichgewichtetes Multi-Modell für Temperatur, Niederschlag, Luftdruck, Bewölkung und Wind dargestellt; Tag 36–46 bleibt transparent EC46-only. Die bestehende saisonale C3S-/NMME-/CFSv2-/DWD-GCFS2.2/EPISODES-Ansicht bleibt erhalten und erhält einen direkten Monats-Modellvergleich. Keine Rückmischung in den kanonischen Kurzfristforecast, keine native Abspaltung und keine neue Berechtigung; das nächste native Gate bleibt macOS-/Xcode-Simulator-QA.
+
 ### 2. Native Plattformadapter – in Arbeit
 
 Vor Beginn dieser Etappe wurde in v0.9.67.5 die gemeinsame MapLibre-6-

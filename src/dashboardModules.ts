@@ -44,7 +44,7 @@ export const DASHBOARD_MODULE_DEFINITIONS:DashboardModuleDefinition[]=[
  {id:'forecast',label:'7-Tage-Vorhersage',description:'Tagesübersicht und Tagesdetails'},
  {id:'composite',label:'Kompositbild',description:'Radar, Satellit und aktuelle Beobachtungen'},
  {id:'ensemble',label:'14-Tage-Ensemble',description:'Unsicherheit und mögliche Entwicklung'},
- {id:'long-range',label:'Langfrist',description:'Monatliche Temperatur- und Niederschlagsanomalien im saisonalen Modellvergleich'},
+ {id:'long-range',label:'Trend 14d+',description:'Witterungstrend Tag 15–46 und saisonaler Multi-Modell-Vergleich bis sieben Monate'},
  {id:'forecast-verification',label:'Prognosegüte und Rückblick',description:'Vorhersagekontrolle und lokale Modellgüte',advancedOnly:true},
  {id:'travel-planner',label:'Reiseplaner',description:'Reisewetter, Klimatologie und Reisezeitfenster'},
  {id:'event-planner',label:'Eventplaner',description:'Termine und Aktivitäten mit Wettercheck, Tipps und Modellupdates'},

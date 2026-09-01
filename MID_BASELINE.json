@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.76.35",
+  "releaseVersion": "0.9.77.0",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -344,7 +344,8 @@
     "scripts/test-thunder-mobile-route-cards-097627.mjs",
     "scripts/test-extreme-rain-profile-night-097628.mjs",
     "scripts/test-travel-current-composite-boundaries-097632.mjs",
-    "scripts/test-thunder-numerical-ruc-097635.mjs"
+    "scripts/test-thunder-numerical-ruc-097635.mjs",
+    "scripts/test-trend14plus-09770.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -617,7 +618,8 @@
     "scripts/test-thunder-mobile-route-cards-097627.mjs",
     "scripts/test-extreme-rain-profile-night-097628.mjs",
     "scripts/test-travel-current-composite-boundaries-097632.mjs",
-    "scripts/test-thunder-numerical-ruc-097635.mjs"
+    "scripts/test-thunder-numerical-ruc-097635.mjs",
+    "scripts/test-trend14plus-09770.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -971,7 +973,11 @@
     "MID_IMPLEMENTATION_0.9.76.32.md",
     "MID_IMPLEMENTATION_0.9.76.34.md",
     "scripts/test-thunder-numerical-ruc-097635.mjs",
-    "MID_IMPLEMENTATION_0.9.76.35.md"
+    "MID_IMPLEMENTATION_0.9.76.35.md",
+    "src/SubseasonalTrendPanel.tsx",
+    "src/LongRangeModelComparison.tsx",
+    "scripts/test-trend14plus-09770.mjs",
+    "MID_IMPLEMENTATION_0.9.77.0.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -994,7 +1000,8 @@
     "scripts/test-weather-profile-mobile-compact-097612.mjs",
     "scripts/test-extreme-rain-profile-night-097628.mjs",
     "scripts/test-travel-current-composite-boundaries-097632.mjs",
-    "scripts/test-thunder-numerical-ruc-097635.mjs"
+    "scripts/test-thunder-numerical-ruc-097635.mjs",
+    "scripts/test-trend14plus-09770.mjs"
   ],
   "protectedFiles": [
     "scripts/test-travel-planner-era5-seamless-units-09652.mjs",
@@ -1159,7 +1166,9 @@
     "MID_IMPLEMENTATION_0.9.76.32.md",
     "MID_IMPLEMENTATION_0.9.76.34.md",
     "MID_IMPLEMENTATION_0.9.76.35.md",
-    "scripts/test-thunder-numerical-ruc-097635.mjs"
+    "scripts/test-thunder-numerical-ruc-097635.mjs",
+    "MID_IMPLEMENTATION_0.9.77.0.md",
+    "scripts/test-trend14plus-09770.mjs"
   ],
   "evidenceFiles": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -1178,7 +1187,8 @@
     "MID_IMPLEMENTATION_0.9.76.32.md",
     "MID_IMPLEMENTATION_0.9.76.34.md",
     "MID_IMPLEMENTATION_0.9.76.35.md",
-    "scripts/test-thunder-numerical-ruc-097635.mjs"
+    "scripts/test-thunder-numerical-ruc-097635.mjs",
+    "MID_IMPLEMENTATION_0.9.77.0.md"
   ],
   "releaseEvidence": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -1187,7 +1197,8 @@
     "scripts/test-thunder-mobile-route-cards-097627.mjs",
     "scripts/test-extreme-rain-profile-night-097628.mjs",
     "scripts/test-travel-current-composite-boundaries-097632.mjs",
-    "scripts/test-thunder-numerical-ruc-097635.mjs"
+    "scripts/test-thunder-numerical-ruc-097635.mjs",
+    "scripts/test-trend14plus-09770.mjs"
   ],
   "activeRegressionSuite": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -1196,6 +1207,7 @@
     "scripts/test-thunder-mobile-route-cards-097627.mjs",
     "scripts/test-extreme-rain-profile-night-097628.mjs",
     "scripts/test-travel-current-composite-boundaries-097632.mjs",
-    "scripts/test-thunder-numerical-ruc-097635.mjs"
+    "scripts/test-thunder-numerical-ruc-097635.mjs",
+    "scripts/test-trend14plus-09770.mjs"
   ]
 }

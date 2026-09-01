@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-08-31T21:30:00Z",
-  "releaseVersion": "0.9.76.35",
+  "updatedAt": "2026-09-01T06:58:33Z",
+  "releaseVersion": "0.9.77.0",
   "sourceBaseline": {
     "professionalVersion": "0.9.70.2",
     "workerVersion": "0.9.70.2",
@@ -98,15 +98,16 @@
     "travel-current-location-composite-boundary-regression-0.9.76.32",
     "weather-profile-day-stepper-cloud-layout-0.9.76.33",
     "ci-hotfix-run-805-weather-profile-regressions-0.9.76.34",
-    "numerical-thunder-ruc-multiparameter-semantics-0.9.76.35"
+    "numerical-thunder-ruc-multiparameter-semantics-0.9.76.35",
+    "shared-subseasonal-trend-14dplus-and-seasonal-model-comparison-0.9.77.0"
   ],
   "nextMilestone": "macos-xcode-simulator-quality-assurance",
   "validation": {
-    "browserBuild": "GitHub-Run #805: TypeScript 7.0.2 und Vite 6.4.3 waren erfolgreich; der Build scheiterte erst danach an sechs veralteten 24-h-Profil-Regressionen, die in v0.9.76.34 synchronisiert wurden.",
-    "typescript": "GitHub-Run #805 bestätigte den vollständigen TypeScript-Check als grün; v0.9.76.34 ändert ausschließlich Regressionserwartungen und Release-Metadaten.",
-    "workerSyntax": "Worker-Fusion fachlich geändert: numerischer Blitz-Gate entfernt; RUC/RUC-EPS erhalten numerische Gewittercodes. Worker-Aggregat/Syntax und neue RUC-/Gewitterregressionen vor Release zu prüfen.",
-    "regressions": "P0-Regression ergänzt: Beobachtungszelle bleibt blitzgebunden benannt; numerische NWP/RUC-Gewitterprognose bleibt unabhängig möglich; Einzelparameter dürfen keinen synthetischen Rapid-Gewittercode erzeugen.",
-    "capacitorSync": "Kein neuer Capacitor-/iOS-Sync in dieser Container-Sitzung durchgeführt; Browser/PWA- und iOS-Fachkern bleiben unverändert gemeinsam.",
+    "browserBuild": "v0.9.77.0: npm run build wurde gestartet, konnte in dieser isolierten Laufzeit wegen nicht installierter npm-Typdefinitionen/Dependencies nicht bis zum Vite-Build gelangen. Kein Produkt-TypeScriptfehler der Trend-14d+-Quellen wurde dabei ausgewiesen; der normale GitHub-Installer besitzt die vollständige gepinnte Dependency-Toolchain.",
+    "typescript": "v0.9.77.0: fünf geänderte TS/TSX-Dateien parsergeprüft; 145 relative TypeScript-Importziele vollständig. Vollständiger TypeScript-7.0.2-No-Emit-Check benötigt die im Transport-ZIP bewusst nicht enthaltene npm-Installation.",
+    "workerSyntax": "v0.9.77.0: keine fachliche Workeränderung. Generiertes Worker-Aggregat, worker/metar-proxy.js, worker.js und beide Service Worker syntaktisch grün.",
+    "regressions": "v0.9.77.0: 500/500 umgebungsunabhängige automatische Regressionen bestanden; Trend-14d+, saisonale C3S/DWD-UI und aktualisierter Langfristvertrag grün. Weitere 110 Tests sind ausschließlich an die lokal fehlende npm-Testtoolchain (TypeScript 7/typescript-strada/esbuild) gebunden.",
+    "capacitorSync": "Kein neuer cap copy ios in dieser isolierten Laufzeit, da kein vollständiger Vite-Build ohne npm-Dependencies möglich ist. Cross-Platform-iOS-Shell, Safe Area, Privacy Manifest, Push/Background-Quellvorbereitung und WidgetKit-Xcode-Struktur wurden regressionsgeprüft und sind grün.",
     "xcodeProjectStructure": "Gemeinsamer Capacitor-iOS-Wrapper, Light-/Dark-AppIcon- und Splash-Kataloge, Privacy-Manifeste und MIDWidgets-Struktur bleiben erhalten; keine neue native Berechtigung oder Capability aktiviert.",
     "xcodeAppleSdkBuild": "required-next-gate-macos-xcode-simulator; includes Apple SDK build, simulator launch, Privacy Report inspection and post-sync structure verification."
   },
@@ -121,7 +122,7 @@
     ],
     "approved": false
   },
-  "validationNote": "v0.9.76.35 trennt Gewitterbeobachtung und Gewitterprognose fachlich sauber: Blitz bleibt Bestätigung für aktuelle KONRAD3D-Zellen, numerische NWP-/RUC-Prognosen können unabhängig Gewitter erzeugen. ICON-D2-RUC Rapid wird multiparametrisch aus Instabilität, Inhibition, Trigger, LPI/UH/EchoTop/Aufwind bewertet.",
+  "validationNote": "v0.9.77.0 ergänzt den gemeinsamen Browser/PWA/iOS-Fachkern um Trend 14d+: EC46/GEFS-Wochenensemble Tag 15–46 und saisonalen Direktvergleich. Keine Rückmischung in den kanonischen Kurzfristforecast; nächstes natives Gate bleibt macOS/Xcode-Simulator-QA.",
   "completedMilestones": [
     "ci-regression-contract-hotfix-0.9.76.22",
     "ruc-scheduler-resilience-source-preparation-0.9.76.24",
@@ -134,6 +135,7 @@
     "travel-current-location-composite-boundary-regression-0.9.76.32",
     "weather-profile-day-stepper-cloud-layout-0.9.76.33",
     "ci-hotfix-run-805-weather-profile-regressions-0.9.76.34",
-    "numerical-thunder-ruc-multiparameter-semantics-0.9.76.35"
+    "numerical-thunder-ruc-multiparameter-semantics-0.9.76.35",
+    "shared-subseasonal-trend-14dplus-and-seasonal-model-comparison-0.9.77.0"
   ]
 }
