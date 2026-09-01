@@ -367,7 +367,7 @@
 .cockpit-short-diagram-tooltip .tooltip-row.apparent i{background:#d89a4d}
 .cockpit-short-diagram-tooltip .tooltip-row.dew i{background:#455a73}
 .cockpit-short-diagram-tooltip .tooltip-row.rain i{background:#2697d8}
-.cockpit-short-diagram-tooltip .tooltip-row.wind i{background:#2f9b6a}
+.cockpit-short-diagram-tooltip .tooltip-row.wind i{background:var(--param-wind)}
 .cockpit-short-diagram-tooltip .tooltip-row.gust i{background:#8e44ad}
 .cockpit-short-diagram-labels{display:flex;flex-wrap:wrap;gap:10px 14px;color:#566c82;font-size:.86rem}
 .cockpit-short-diagram-labels span{display:inline-flex;gap:8px;align-items:center;padding:7px 10px;border-radius:999px;background:#f4f8fb;border:1px solid rgba(111,145,176,.18)}
@@ -375,7 +375,7 @@
 .cockpit-short-diagram-labels i.temp{width:18px;height:0;border-top:3px solid #d12a1f}
 .cockpit-short-diagram-labels i.apparent{width:18px;height:0;border-top:3px dashed #d89a4d}
 .cockpit-short-diagram-labels i.rain{width:10px;height:18px;border-radius:999px;background:#2697d8}
-.cockpit-short-diagram-labels i.wind{width:14px;height:14px;border-top:3px solid #2f9b6a;border-right:3px solid #2f9b6a;transform:rotate(45deg)}
+.cockpit-short-diagram-labels i.wind{width:14px;height:14px;border-top:3px solid var(--param-wind);border-right:3px solid var(--param-wind);transform:rotate(45deg)}
 @media(max-width:920px){.cockpit-short-diagram-shell{padding:14px}.cockpit-short-diagram-tooltip{top:auto;bottom:58px;left:14px!important;right:14px;transform:none;max-width:none}.cockpit-short-diagram-head em{white-space:normal}}
 @media(max-width:680px){.cockpit-short-diagram-head{gap:10px}.cockpit-short-diagram-head b{font-size:1.24rem}.cockpit-short-diagram-headnode b{font-size:.78rem}.cockpit-short-diagram-dayband{top:36px}.cockpit-short-diagram-dayband b{font-size:.92rem}.cockpit-short-diagram-weather-node{top:62px}.cockpit-short-diagram-labels{gap:8px}}
 @media(max-width:480px){.cockpit-short-diagram-shell{padding:12px 12px 14px;border-radius:22px}.cockpit-short-diagram-head>span{gap:4px}.cockpit-short-diagram-canvas{min-height:372px}.cockpit-short-diagram-dayband b{font-size:.86rem}.cockpit-short-diagram-dayband small{font-size:.58rem}.cockpit-short-diagram-tooltip{padding:11px 12px;bottom:56px}.cockpit-short-diagram-labels span{padding:6px 9px}}

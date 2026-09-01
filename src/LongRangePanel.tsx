@@ -4,9 +4,9 @@ import {formatDecimalFixed} from './format';
 import {loadSeasonalForecast,type SeasonalForecastBundle,type SeasonalMonth,type SeasonalPointModel} from './seasonalForecast';
 import SubseasonalTrendPanel from './SubseasonalTrendPanel';
 import LongRangeModelComparison from './LongRangeModelComparison';
-import type {Location} from './weather';
+import type {Location,WindUnit} from './weather';
 
-type Props={location:Location;locationName:string;advancedMode:boolean};
+type Props={location:Location;locationName:string;advancedMode:boolean;windUnit:WindUnit};
 type Metric='temperature'|'precipitation';
 type ChartUnit='K'|'%'|'mm/Tag';
 type CombinedMonth={date:string;label:string;mean:number|null;low:number|null;q25:number|null;q75:number|null;high:number|null;modelCount:number;contributorLabels:string[]};
@@ -36,7 +36,7 @@ function dwdQualityDetails(metric:{mse:number|null;msess:number|null;rpss:number
 function sourceStateLabel(state:SeasonalForecastBundle['c3sNumericStatus']['state']){return state==='live'?'Numerisch aktiv':state==='configured'?'Datenpfad bereit':state==='outside-domain'?'außerhalb Datengebiet':state==='error'?'Quelle gestört':'noch nicht konfiguriert'}
 function dwdPrecipValue(period:NonNullable<SeasonalForecastBundle['dwdPerspective']>['periods'][number]){if(Number.isFinite(period.precipitationAnomalyPercent))return`${Number(period.precipitationAnomalyPercent)>=0?'+':''}${Math.round(Number(period.precipitationAnomalyPercent))} %`;if(Number.isFinite(period.precipitationAnomaly))return`${Number(period.precipitationAnomaly)>=0?'+':''}${formatDecimalFixed(Number(period.precipitationAnomaly),2)} mm/Tag`;return'–'}
 
-export default function LongRangePanel({location,locationName,advancedMode}:Props){
+export default function LongRangePanel({location,locationName,advancedMode,windUnit}:Props){
  const locationKey=`${location.latitude.toFixed(2)},${location.longitude.toFixed(2)}`,modelStorageKey=`mid:long-range:selected-model:${locationKey}`,scrollStorageKey=`mid:long-range:model-scroll:${locationKey}`;
  const[data,setData]=useState<SeasonalForecastBundle|null>(null),[loading,setLoading]=useState(true),[refreshing,setRefreshing]=useState(false),[error,setError]=useState(''),[infoOpen,setInfoOpen]=useState(false),[selectedModelId,setSelectedModelId]=useState(''),[legendOpen,setLegendOpen]=useState(()=>{try{return localStorage.getItem('mid:long-range:legend-details')==='1'}catch{return false}});
  const controllerRef=useRef<AbortController|null>(null),modelSelectorRef=useRef<HTMLDivElement|null>(null);
@@ -59,7 +59,7 @@ export default function LongRangePanel({location,locationName,advancedMode}:Prop
  return <section className="long-range-panel">
   <header className="long-range-head"><div><span>TREND 14D+</span><h3>Witterungs- & Langfristtrend · {locationName}</h3><p>Tag 15–46 als probabilistische Wochenentwicklung; anschließend saisonale Monatsanomalien mit Ensemble- und Multi-Modell-Unsicherheit.</p>{cacheLabel?<small className="long-range-cache-state">{cacheLabel}</small>:null}</div><div className="long-range-head-actions"><button type="button" onClick={()=>void load(true)} disabled={refreshing} aria-label="Saisonmodelle ausdrücklich aktualisieren" title="Saisonmodelle neu abrufen"><RefreshCw size={17} className={refreshing?'spin':''}/></button><button type="button" className={infoOpen?'active':''} onClick={()=>setInfoOpen((value:boolean)=>!value)} aria-label="Methodik"><Info size={17}/></button></div></header>
   {infoOpen?<div className="long-range-info"><p>Die Rauchfahnen kombinieren ausschließlich numerisch geladene unabhängige Modellfamilien. C3S-Punktdaten werden als echte numerische Ensemblewerte geladen; Kartenfarben werden niemals zu Zahlen zurückgerechnet. DWD GCFS2.2 / EPISODES wird als eigenständige Deutschland-Perspektive geführt, weil die DWD-Auswertung 3-Monats-Zeiträume und eigene Qualitätsmaße verwendet.</p><p>Die langsamen Saisonquellen werden gemeinsam für vier Stunden zwischengespeichert. Bei einem temporären Quellfehler kann MID einen höchstens 36 Stunden alten letzten erfolgreichen Stand verwenden; „Aktualisieren“ fordert bewusst einen neuen Abruf an.</p></div>:null}
-  <SubseasonalTrendPanel location={location} advancedMode={advancedMode}/>
+  <SubseasonalTrendPanel location={location} advancedMode={advancedMode} windUnit={windUnit}/>
   {loading&&!models.length?<div className="long-range-loading"><RefreshCw className="spin" size={18}/>Saisonmodelle werden geladen …</div>:null}
   {error&&!models.length?<div className="long-range-error"><strong>Langfristdaten derzeit nicht verfügbar</strong><small>{error}</small></div>:null}
   {error&&models.length?<div className="long-range-info"><p><b>Aktualisierung nicht vollständig:</b> {error}</p></div>:null}
