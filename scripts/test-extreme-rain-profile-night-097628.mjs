@@ -18,9 +18,11 @@ const needPattern=(label,text,pattern,description)=>{if(!pattern.test(text))fail
 need('Extrem-UI',panel,'function roundedTerrainElevation(value:unknown)');
 need('Extrem-UI',panel,'function rainMetricDisplay(metric:ResolvedExtremeSignal[\'metrics\'])');
 // Seit v0.9.77.8 werden I-Schwelle und das tatsächliche Modellsignal bewusst gemeinsam gezeigt.
-need('Extrem-UI',panel,"if(signal.hazard==='rain')return`${threshold} · Modellsignal ${rainMetricLabel(metric)}`");
+need('Extrem-UI',panel,"if(signal.hazard==='rain')return`${threshold} · ${source} ${rainMetricLabel(metric)}`");
 need('Extrem-UI',panel,"['Intensitätsschwelle',threshold]");
-need('Extrem-UI',panel,"['Modellsignal Akkumulation',rainMetricLabel(metric)]");
+need('Extrem-UI',panel,"[`${source} Akkumulation`,rainMetricLabel(metric)]");
+need('Extrem-UI',panel,"['Überschreitungswahrscheinlichkeit',probabilityEvidenceLabel(signal)]");
+need('Extrem-UI',panel,'EPS-Streuung Akkumulation');
 need('Extrem-UI',panel,"['Geländehöhe',terrainElevationLabel(metric.elevationM)]");
 
 function checkRainSupport(label,text){
@@ -30,10 +32,12 @@ function checkRainSupport(label,text){
   need(label,text,'coverage>=5.9?dachExtremeRucSupportProbability(');
   need(label,text,'level.values[6]');
   need(label,text,'dachExtremeRucSupportProbability(max1,level.values[1])');
-  need(label,text,'const existingRain=Math.max(0,number(metrics.rainMm)||0)');
-  // Der lokale Name der 6-h-Akkumulation ist kein Fachvertrag. Geschützt werden Quelle,
-  // >0,04-mm-Fallback, Übernahme in rainMm und das maximal 6-h breite Fenster.
-  needPattern(label,text,/if\(existingRain<=\.04&&([A-Za-z_$][\w$]*)>\.04\)\{metrics\.rainMm=Number\(\1\.toFixed\(1\)\);metrics\.windowHours=Math\.min\(6,Math\.max\(1,Math\.round\(coverage\)\|\|1\)\)\}/,'RUC-Regenfallback muss dieselbe positive Akkumulation in rainMm übernehmen und das Fenster auf höchstens 6 h begrenzen.');
+  need(label,text,'rucEvidence=[null,null,null,null]');
+  need(label,text,'rucEvidence[i]=six>=one?{value:total,window:6}:{value:max1,window:1}');
+  need(label,text,"if(evidence&&number(rapid[index])>number(base[index]))");
+  need(label,text,"metrics.evidenceSource='ICON-D2-RUC'");
+  need(label,text,'metrics.rainMm=Number(number(evidence.value).toFixed(1))');
+  need(label,text,'metrics.windowHours=number(evidence.window)||1');
 }
 checkRainSupport('Worker',worker);
 checkRainSupport('Direktausblick',direct);

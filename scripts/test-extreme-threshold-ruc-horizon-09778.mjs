@@ -47,7 +47,7 @@ assert.ok(contract.includes('Im UI-Zeitraum +12–24 h darf RUC deshalb ausschli
 assert.ok(contract.includes('+24–48 h bleibt vollständig beim ICON-D2-/EPS-Pfad'),'RUC must not leak into +24–48 h.');
 
 // UI must compare the displayed model metric with the exact I-level threshold.
-for(const token of ['I${signal.intensity}','Intensitätsschwelle','Modellsignal Akkumulation','thresholdMetricsForContour','thresholdProbability'])assert.ok(panel.includes(token)||areas.includes(token),`Threshold-vs-model UI integrity missing: ${token}`);
+for(const token of ['I${signal.intensity}','Intensitätsschwelle','EPS-Streuung Akkumulation','thresholdMetricsForContour','thresholdProbability'])assert.ok(panel.includes(token)||areas.includes(token),`Threshold-vs-model UI integrity missing: ${token}`);
 assert.ok(areas.includes('metrics:thresholdMetricsForContour(data,representative.metric.signal,contour.intensity,contour.probability)'),'Contour intensity rewrites must also rewrite threshold evidence.');
 
 console.log('Extreme-weather I/P threshold and full-run RUC horizon regression passed.');

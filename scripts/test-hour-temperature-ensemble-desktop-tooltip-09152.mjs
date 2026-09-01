@@ -1,11 +1,13 @@
 import fs from 'node:fs';
 const app=fs.readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
+const tone=fs.readFileSync(new URL('../src/temperatureTone.ts',import.meta.url),'utf8');
 const ensemble=fs.readFileSync(new URL('../src/EnsemblePanel.tsx',import.meta.url),'utf8');
 const css=fs.readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
 const required=[
- [app,/background:'color-mix\(in srgb,var\(--param-temperature\) 10%,transparent\)'/,'Temperaturfeld muss die zentrale transparente Parameterfarbe verwenden'],
- [app,/border:'color-mix\(in srgb,var\(--param-temperature\) 28%,transparent\)'/,'Temperaturkontur muss die zentrale dezente Parameterfarbe verwenden'],
- [app,/color:'var\(--param-temperature\)'/,'Temperaturtext muss den zentralen Parameterfarbvertrag verwenden'],
+ [tone,/export function hourlyTemperatureTone/,'Klimatologieabhängige Kurzfrist-Temperaturtönung fehlt'],
+ [tone,/color-mix\(in srgb,\$\{token\} \$\{textShare\}%,var\(--text\)\)/,'Temperaturtext muss innerhalb der zentralen Parameterfarbfamilie bleiben'],
+ [tone,/background:`color-mix\(in srgb,\$\{token\} \$\{backgroundShare\}%,transparent\)`/,'Temperaturfeld muss transparent aus der zentralen Parameterfarbfamilie abgeleitet werden'],
+ [app,/hourlyTemperatureTone\(hour\.temperature,climateDay\?\.minMean,climateDay\?\.maxMean\)/,'Kurzfrist-Einzeltemperatur nutzt die Klimatologie-Tönung nicht'],
  [ensemble,/const prepareHover=useCallback/,'Desktop-Hover-Reaktivierung fehlt'],
  [ensemble,/onMouseEnter=\{tooltip\.prepareHover\}/,'Temperatur-/Wind-Hover-Reaktivierung fehlt'],
  [ensemble,/onMouseEnter=\{rainTooltip\.prepareHover\}/,'Niederschlags-Hover-Reaktivierung fehlt'],
@@ -15,4 +17,4 @@ const required=[
  [css,/\.ensemble-chart-export \.recharts-tooltip-wrapper\{pointer-events:none!important\}/,'Recharts-Tooltip fängt Desktop-Hover weiterhin ab']
 ];
 for(const [source,pattern,message] of required){if(!pattern.test(source))throw new Error(message)}
-console.log('MID v0.9.77.11: zentraler Temperaturfarbvertrag und Desktop-Ensemble-Tooltip geschützt.');
+console.log('MID v0.9.77.12: klimatologiegebundene Temperaturfarbfamilien und Desktop-Ensemble-Tooltip geschützt.');

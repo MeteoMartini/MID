@@ -346,9 +346,9 @@ footer a:hover{opacity:1;color:var(--accent)}
 .detaillegend{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 10px;color:var(--muted);font-size:11px}
 .detaillegend span{display:inline-flex;align-items:center;gap:7px;padding:4px 8px;border:1px solid var(--border);border-radius:999px;background:var(--s2)}
 .detaillegend i{display:inline-block;flex:0 0 auto}
-.detaillegend .temp,.detaillegend .apparent,.detaillegend .probability{width:18px;height:0;border-top:2px solid #ff7a37}
+.detaillegend .temp,.detaillegend .apparent,.detaillegend .probability{width:18px;height:0;border-top:2px solid var(--param-temperature)}
 .detaillegend .apparent{border-top-color:#ffd8a3;border-top-style:dashed}
-.detaillegend .probability{border-top-color:#56d7ff;border-top-style:dashed}
+.detaillegend .probability{border-top-color:var(--param-precipitation);border-top-style:dashed}
 .detaillegend .rain{width:12px;height:10px;border-radius:3px;background:linear-gradient(180deg,#4db8ff,#2f84d9)}
 .hazards .orange,.forecast-hazards .orange,.weatherwidget.modern .widgethazards .orange{border:1px solid rgba(255,149,0,.36);background:rgba(255,149,0,.14);color:#ffb25a}
 .hazards .purple,.forecast-hazards .purple,.weatherwidget.modern .widgethazards .purple{border:1px solid rgba(173,112,255,.36);background:rgba(173,112,255,.14);color:#c8a0ff}
@@ -379,9 +379,9 @@ footer a:hover{opacity:1;color:var(--accent)}
 .detaillegend{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 10px}
 .detaillegend span{display:inline-flex;align-items:center;gap:7px;padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:var(--s2);color:var(--muted);font-size:11px}
 .detaillegend i{display:inline-block;width:20px;height:3px;border-radius:999px;background:currentColor}
-.detaillegend i.temp{background:#ff7a37}
+.detaillegend i.temp{background:var(--param-temperature)}
 .detaillegend i.apparent{background:#ffd8a3}
-.detaillegend i.probability{background:#56d7ff;border-top:1px dashed rgba(255,255,255,.55)}
+.detaillegend i.probability{background:var(--param-precipitation);border-top:1px dashed rgba(255,255,255,.55)}
 .detaillegend i.drizzle{background:linear-gradient(90deg,#8fd0ff,#5d9fd8)}
 .detaillegend i.rain{background:linear-gradient(90deg,#4aa3ff,#235f9c)}
 .detaillegend i.showers{background:repeating-linear-gradient(135deg,#27c7f6 0 4px,#0a7ba6 4px 7px)}
@@ -1488,9 +1488,9 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 .detaillegend.interactive button.active{border-color:color-mix(in srgb,var(--primary) 34%,var(--border));color:var(--text)}
 .detaillegend.interactive button.inactive{opacity:.38;filter:saturate(.35)}
 .detaillegend i.apparent{height:3px!important;border:0!important;background:repeating-linear-gradient(90deg,var(--apparent-line) 0 7px,transparent 7px 11px)!important}
-.detaillegend i.dewpoint{background:#59b8b0!important;opacity:.72}
-.detaillegend i.windline{background:#4fc985!important}
-.detaillegend i.gustline{height:3px!important;background:repeating-linear-gradient(90deg,#b786ff 0 7px,transparent 7px 11px)!important}
+.detaillegend i.dewpoint{background:var(--param-dewpoint)!important;opacity:.72}
+.detaillegend i.windline{background:var(--param-wind)!important}
+.detaillegend i.gustline{height:3px!important;background:repeating-linear-gradient(90deg,var(--param-gust) 0 7px,transparent 7px 11px)!important}
 .detaillegend i.direction{height:16px!important;background:none!important;color:#7bc8ef;font-size:15px;line-height:16px;text-align:center}
 .detaillegend i.direction::before{content:'↗'}
 @media(max-width:640px){.detaillegend.interactive{gap:5px}.detaillegend.interactive button{padding:5px 7px;font-size:10px}}
@@ -1621,8 +1621,9 @@ button,input,select,textarea{font:inherit}
  color:inherit;
 }
 .wind-direction-arrow.warning-1{color:#e6c229}.wind-direction-arrow.warning-2{color:#ef8d32}.wind-direction-arrow.warning-3{color:#e74a4a}.wind-direction-arrow.warning-4{color:#9b59c6}
-.svg-wind-direction-arrow{stroke:#bfe9ff;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;opacity:.98;pointer-events:none;filter:drop-shadow(0 0 1px rgba(0,0,0,.9))}
-:root[data-theme=light] .svg-wind-direction-arrow{stroke:#12658f;filter:drop-shadow(0 0 1px rgba(255,255,255,.88))}
+.svg-wind-direction-arrow{color:var(--param-wind);stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;opacity:.98;pointer-events:none;filter:drop-shadow(0 0 1px rgba(0,0,0,.9))}
+:root[data-theme=light] .svg-wind-direction-arrow{filter:drop-shadow(0 0 1px rgba(255,255,255,.88))}
+.svg-wind-direction-arrow.warning-1{color:#e6c229}.svg-wind-direction-arrow.warning-2{color:#ef8d32}.svg-wind-direction-arrow.warning-3{color:#e74a4a}.svg-wind-direction-arrow.warning-4{color:#9b59c6}
 :root{--detail-probability-halo:rgba(10,35,55,.78)}
 :root[data-theme=light]{--detail-probability-halo:rgba(255,255,255,.94)}
 .weatherwidget .wind-direction-arrow{vertical-align:-.06em}

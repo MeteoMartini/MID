@@ -14,15 +14,15 @@ for(const key of ['requiredRegressionTests','regressionTests','requiredFiles'])a
 
 assert.ok(app.includes("const probabilityPath=showProbability?p.map"),'Niederschlagswahrscheinlichkeit muss unabhängig von vorhandenen Niederschlagsbalken gezeichnet werden.');
 assert.ok(!app.includes('showProbability&&!showRainBars'),'Niederschlagsbalken dürfen die Wahrscheinlichkeitskurve nicht mehr unterdrücken.');
-for(const token of ['className="detail-probability-line"','className="detail-probability-halo"','stroke="#56d7ff"','stroke="var(--detail-probability-halo)"'])assert.ok(app.includes(token),`Kontrastierter Wahrscheinlichkeits-Layer fehlt: ${token}`);
+for(const token of ['className="detail-probability-line"','className="detail-probability-halo"','stroke="var(--param-precipitation)"','stroke="var(--detail-probability-halo)"'])assert.ok(app.includes(token),`Kontrastierter Wahrscheinlichkeits-Layer fehlt: ${token}`);
 
-assert.ok(foundation.includes('.svg-wind-direction-arrow{stroke:#bfe9ff'),'Windpfeile benötigen im dunklen Design einen hellen Grundkontrast.');
-assert.ok(foundation.includes(':root[data-theme=light] .svg-wind-direction-arrow{stroke:#12658f'),'Helles Design benötigt einen eigenen dunklen Windpfeil-Kontrast.');
+assert.ok(foundation.includes('.svg-wind-direction-arrow{color:var(--param-wind);stroke:currentColor'),'Windpfeile müssen den zentralen Windfarbvertrag verwenden.');
+assert.ok(foundation.includes('.svg-wind-direction-arrow.warning-4{color:#9b59c6}'),'Windpfeile müssen Warnstufen farblich abbilden.');
 assert.ok(foundation.includes('--detail-probability-halo:rgba(10,35,55,.78)'));
 assert.ok(foundation.includes(':root[data-theme=light]{--detail-probability-halo:rgba(255,255,255,.94)}'));
 assert.ok(!cockpit.includes('.svg-wind-direction-arrow line,.svg-wind-direction-arrow path{stroke:#20374d'),'Cockpit-CSS darf die appweite Windpfeil-Farbe nicht mehr global dunkel überschreiben.');
 assert.ok(cockpit.includes('.cockpit-short-chart .svg-wind-direction-arrow line,.cockpit-short-chart .svg-wind-direction-arrow path'),'Cockpit-spezifische Pfeilregeln müssen auf das Cockpit begrenzt bleiben.');
-for(const token of ['.svg-wind-direction-arrow{stroke:#bfe9ff','--detail-probability-halo:rgba(10,35,55,.78)','.cockpit-short-chart .svg-wind-direction-arrow line'])assert.ok(styles.includes(token),`Generiertes Styles-Aggregat ist nicht synchron: ${token}`);
+for(const token of ['.svg-wind-direction-arrow{color:var(--param-wind);stroke:currentColor','--detail-probability-halo:rgba(10,35,55,.78)','.cockpit-short-chart .svg-wind-direction-arrow line'])assert.ok(styles.includes(token),`Generiertes Styles-Aggregat ist nicht synchron: ${token}`);
 
 for(const token of ['Niederschlagswahrscheinlichkeit','dunklen Ansicht','Windpfeile'])assert.ok(implementation.includes(token),`Umsetzungsnachweis fehlt: ${token}`);
 console.log('MID v0.9.70.0: Tagesansicht zeigt die Niederschlagswahrscheinlichkeit auch mit Balken und kontrastreiche Windpfeile in Hell/Dunkel.');

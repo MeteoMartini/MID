@@ -8,8 +8,8 @@ assert.match(weather,/return\{wind:base,gust:adjusted\?base:gustValue,adjusted\}
 assert.match(weather,/gustAdjusted:windPair\.adjusted/,'Stundenwerte müssen die Angleichung für die Detailansicht kennzeichnen');
 assert.match(app,/const windPath=showWind\?p\.map/,'Windpfad im Tagesdetaildiagramm fehlt');
 assert.match(app,/const gustPath=showGust\?p\.map/,'Böenpfad im Tagesdetaildiagramm fehlt');
-assert.match(app,/stroke="#4fc985"/,'sichtbare Windlinie fehlt');
-assert.match(app,/stroke="#b786ff"[^>]*strokeDasharray="7 5"/,'sichtbare gestrichelte Böenlinie fehlt; bei gleichen Werten muss die Windlinie in den Lücken erkennbar bleiben');
+assert.match(app,/stroke="var\(--param-wind\)"/,'sichtbare Windlinie fehlt');
+assert.match(app,/stroke="var\(--param-gust\)"[^>]*strokeDasharray="7 5"/,'sichtbare gestrichelte Böenlinie fehlt; bei gleichen Werten muss die Windlinie in den Lücken erkennbar bleiben');
 assert.match(app,/currentHour\.gustAdjusted&&<em>Böe auf Windniveau plausibilisiert<\/em>/,'Tooltip-Hinweis auf angeglichene Böe fehlt');
 assert.doesNotMatch(weather,/gust:.*Number\.NaN/,'die Böenreihe darf wegen eines unplausiblen Einzelwerts nicht mehr in NaN umgewandelt werden');
 console.log('Tagesdetail-Wind geprüft: nachvollziehbare punktweise Böenangleichung ohne Glättung; Wind- und Böenlinie bleiben sichtbar.');

@@ -9,13 +9,13 @@ const failures=[];
 const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
 const reject=(label,text,token)=>{if(text.includes(token))failures.push(`${label}: unerwartet ${token}`)};
 for(const token of [
- 'function ShortTermRibbon({hours,minutes15,timezone',
+ 'function ShortTermRibbon({hours,minutes15,climate,timezone',
  'const temperatureCurvePoints=profileTemperatureSource.map',
  "const visibleTemperatureExtreme=(kind:'max'|'min')",
  "kind==='max'?(current.point.temperature>best.point.temperature?current:best)",
  "label:`${Math.round(item.point.temperature)}°`",
  "temperatureExtremes=[visibleTemperatureExtreme('max'),visibleTemperatureExtreme('min')]",
- '<ShortTermRibbon hours={hours} minutes15={minutes15} timezone={timezone}'
+ '<ShortTermRibbon hours={hours} minutes15={minutes15} climate={climate} timezone={timezone}'
 ])need('24-h-Profil',cockpit,token);
 for(const token of [
  'nightSegments=hours.reduce',

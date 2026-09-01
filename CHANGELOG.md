@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.9.77.12
+
+- Appweiter Parameter-Farbvertrag auch in Tagesdetail/24-h vollständig durchgesetzt.
+- Warnstufen färben Windpfeile; Tmin/Tmax-Töne bleiben Blau/Rot und werden klimatologisch nur in ihrer Intensität gewichtet.
+- 24-h-Auswahlwerte an der blauen Zeitlinie als lesbare Parameter-Pills; stündliche Temperaturpunkte reduziert.
+
+
 ## v0.9.77.11 - 2026-09-01
 
 - Trend 14d+: Klimareferenz von einem unvollständigen ERA5-Land-Gesamtabruf auf ERA5-Seamless 1991–2020 umgestellt; fachlicher ERA5-Land/ERA5-Fallback schützt Temperatur sowie Niederschlag, Luftdruck, Bewölkung und Wind.

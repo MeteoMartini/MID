@@ -23,7 +23,7 @@ for(const token of [
  'const yPressure=',
  'const pressurePath=',
  'pressure-grid-',
- 'stroke="#c48cff"',
+ 'stroke="var(--param-pressure)"',
  '<small>Luftdruck</small>',
  'pressureTrendLabel',
  '<small>Bewölkung / UVI / Sonnenscheindauer</small>'

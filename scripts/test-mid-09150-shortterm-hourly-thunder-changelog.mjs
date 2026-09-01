@@ -16,7 +16,12 @@ requireText(shortTerm,'return plausibilizeShortTermThermals(points)','Plausibili
 requireText(shortTerm,'Verlauf plausibilisiert','sichtbare Kennzeichnung');
 
 const app=read('src/App.tsx');
-requireText(app,'function ecmwfTemperatureTone','ECMWF-Temperaturfarblogik');
+const temperatureTone=read('src/temperatureTone.ts');
+const cockpit=read('src/ForecastCockpit.tsx');
+requireText(temperatureTone,'export function hourlyTemperatureTone','zentrale stündliche Temperaturfarblogik');
+requireText(temperatureTone,"var(--param-temperature-min)",'Tmin-Farbfamilie');
+requireText(temperatureTone,"var(--param-temperature-max)",'Tmax-Farbfamilie');
+requireText(cockpit,"import {dailyTemperatureTone,hourlyTemperatureTone} from './temperatureTone'",'Cockpit nutzt zentrale Temperaturfarblogik');
 requireText(app,"detailResolution==='1h'&&!compactDetailExpanded",'zentriertes 1h-Fenster');
 requireText(app,"compactDetailCanExpand=detailResolution==='1h'",'Mehr-anzeigen nur im 1h-Raster');
 requireText(app,'queueRequestedClockHour(d.date,clockHourInZone(timezone,nowTick))','Sprung zur aktuellen Ortsstunde');

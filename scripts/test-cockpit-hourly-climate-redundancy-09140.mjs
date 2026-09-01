@@ -17,12 +17,13 @@ const forbid=(label,text,token)=>{if(text.includes(token))failures.push(`${label
 for(const token of [
  "export type DailyTemperatureKind='min'|'max'",
  'export function dailyTemperatureTone(',
+ 'export function hourlyTemperatureTone(',
  "value-Number(climateMean)",
  "kind==='max'"
 ])need('Klimaton',tones,token);
 
 for(const token of [
- "import {dailyTemperatureTone} from './temperatureTone'",
+ "import {dailyTemperatureTone,hourlyTemperatureTone} from './temperatureTone'",
  'climate={climate}',
  'hourlyDetail={cockpitDetails?.sevenDay}',
  'className="cockpit-day-hourly-cue"',

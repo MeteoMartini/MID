@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.77.11",
+  "releaseVersion": "0.9.77.12",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -356,7 +356,9 @@
     "scripts/test-extreme-outlook-spacing-09779.mjs",
     "scripts/test-shortterm-selected-line-values-097710.mjs",
     "scripts/test-trend14plus-climatology-097711.mjs",
-    "scripts/test-parameter-color-contract-097711.mjs"
+    "scripts/test-parameter-color-contract-097711.mjs",
+    "scripts/test-parameter-color-contract-097712.mjs",
+    "scripts/test-extreme-threshold-evidence-097712.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -641,7 +643,9 @@
     "scripts/test-extreme-outlook-spacing-09779.mjs",
     "scripts/test-shortterm-selected-line-values-097710.mjs",
     "scripts/test-trend14plus-climatology-097711.mjs",
-    "scripts/test-parameter-color-contract-097711.mjs"
+    "scripts/test-parameter-color-contract-097711.mjs",
+    "scripts/test-parameter-color-contract-097712.mjs",
+    "scripts/test-extreme-threshold-evidence-097712.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -1023,7 +1027,9 @@
     "scripts/test-shortterm-selected-line-values-097710.mjs",
     "MID_PARAMETER_COLOR_CONTRACT.md",
     "MID_IMPLEMENTATION_0.9.77.11.md",
-    "MID_TEST_REPORT_0.9.77.11.md"
+    "MID_TEST_REPORT_0.9.77.11.md",
+    "scripts/test-parameter-color-contract-097712.mjs",
+    "scripts/test-extreme-threshold-evidence-097712.mjs"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1190,7 +1196,8 @@
     "scripts/test-extreme-threshold-ruc-horizon-09778.mjs",
     "MID_IMPLEMENTATION_0.9.77.8.md",
     "MID_PR_HOUSEKEEPING_0.9.77.8.md",
-    "MID_PARAMETER_COLOR_CONTRACT.md"
+    "MID_PARAMETER_COLOR_CONTRACT.md",
+    "scripts/test-parameter-color-contract-097712.mjs"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md",
@@ -1205,7 +1212,12 @@
     "src/ExtremeWeatherOutlookPanel.tsx",
     "src/extremeOutlookModelledAreas.ts",
     "MID_DWD_RUC_PIPELINE_CONTRACT.md",
-    "scripts/test-extreme-threshold-ruc-horizon-09778.mjs"
+    "scripts/test-extreme-threshold-ruc-horizon-09778.mjs",
+    "src/temperatureTone.ts",
+    "src/App.tsx",
+    "src/ForecastCockpit.tsx",
+    "MID_PARAMETER_COLOR_CONTRACT.md",
+    "scripts/test-parameter-color-contract-097712.mjs"
   ],
   "implementationProof": [
     "MID_IMPLEMENTATION_0.9.74.5.md",
@@ -1249,7 +1261,12 @@
     "scripts/test-long-range-model-sources-09774.mjs",
     "MID_IMPLEMENTATION_0.9.77.9.md",
     "MID_IMPLEMENTATION_0.9.77.10.md",
-    "MID_IMPLEMENTATION_0.9.77.11.md"
+    "MID_IMPLEMENTATION_0.9.77.11.md",
+    "src/temperatureTone.ts",
+    "src/App.tsx",
+    "src/ForecastCockpit.tsx",
+    "MID_PARAMETER_COLOR_CONTRACT.md",
+    "scripts/test-parameter-color-contract-097712.mjs"
   ],
   "evidenceFiles": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
