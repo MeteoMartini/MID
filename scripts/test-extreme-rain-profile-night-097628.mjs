@@ -13,12 +13,31 @@ const [panel,cockpit,stylesSource,styles,worker,direct,pkgRaw,baselineRaw]=await
 ]);
 const failures=[];
 const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
+const needPattern=(label,text,pattern,description)=>{if(!pattern.test(text))failures.push(`${label}: ${description}`)};
+
 need('Extrem-UI',panel,'function roundedTerrainElevation(value:unknown)');
 need('Extrem-UI',panel,'function rainMetricDisplay(metric:ResolvedExtremeSignal[\'metrics\'])');
-need('Extrem-UI',panel,"if(signal.hazard==='rain')return rainMetricLabel(metric)");
+// Seit v0.9.77.8 werden I-Schwelle und das tatsächliche Modellsignal bewusst gemeinsam gezeigt.
+need('Extrem-UI',panel,"if(signal.hazard==='rain')return`${threshold} · Modellsignal ${rainMetricLabel(metric)}`");
+need('Extrem-UI',panel,"['Intensitätsschwelle',threshold]");
+need('Extrem-UI',panel,"['Modellsignal Akkumulation',rainMetricLabel(metric)]");
 need('Extrem-UI',panel,"['Geländehöhe',terrainElevationLabel(metric.elevationM)]");
-need('Worker',worker,"if(kind==='rain'){const existingRain=Math.max(0,number(metrics.rainMm)||0);if(existingRain<=.04&&rainTotal6>.04)");
-need('Direktausblick',direct,"if(kind==='rain'){const existingRain=Math.max(0,number(metrics.rainMm)||0);if(existingRain<=.04&&rainTotal6>.04)");
+
+function checkRainSupport(label,text){
+  need(label,text,"if(kind==='rain'){");
+  need(label,text,'support.precipitationMm');
+  need(label,text,'support.max1hMm');
+  need(label,text,'coverage>=5.9?dachExtremeRucSupportProbability(');
+  need(label,text,'level.values[6]');
+  need(label,text,'dachExtremeRucSupportProbability(max1,level.values[1])');
+  need(label,text,'const existingRain=Math.max(0,number(metrics.rainMm)||0)');
+  // Der lokale Name der 6-h-Akkumulation ist kein Fachvertrag. Geschützt werden Quelle,
+  // >0,04-mm-Fallback, Übernahme in rainMm und das maximal 6-h breite Fenster.
+  needPattern(label,text,/if\(existingRain<=\.04&&([A-Za-z_$][\w$]*)>\.04\)\{metrics\.rainMm=Number\(\1\.toFixed\(1\)\);metrics\.windowHours=Math\.min\(6,Math\.max\(1,Math\.round\(coverage\)\|\|1\)\)\}/,'RUC-Regenfallback muss dieselbe positive Akkumulation in rainMm übernehmen und das Fenster auf höchstens 6 h begrenzen.');
+}
+checkRainSupport('Worker',worker);
+checkRainSupport('Direktausblick',direct);
+
 need('24-h-Profil',cockpit,'const nightBandOpacity=.4,midnightBoundary=chartDayBands[1]??null,nightBands=(()=>');
 need('24-h-Profil',cockpit,'nightBands.map(item=><linearGradient');
 need('24-h-Profil',cockpit,'{midnightBoundary?<line className="day-separator"');
@@ -34,4 +53,4 @@ if(failures.length){
   console.error('Extremregen-/24h-Profil-Regressionsprüfung fehlgeschlagen:\n- '+failures.join('\n- '));
   process.exit(1);
 }
-console.log('Extremregen-Metrik, Geländehöhen-Rundung und 24-h-Nachtprofil erfolgreich geprüft.');
+console.log('Extremregen-Metrik, I-Schwellenvergleich, RUC-Fallback, Geländehöhen-Rundung und 24-h-Nachtprofil erfolgreich geprüft.');

@@ -1,0 +1,12 @@
+import fs from 'node:fs';
+const source=fs.readFileSync(new URL('./check-api-contracts.mjs',import.meta.url),'utf8');
+const requireText=(needle,message)=>{if(!source.includes(needle))throw new Error(message)};
+requireText('const failures=[],warnings=[],checks=[]','API-Health muss kritische Fehler und optionale Provider-Degradation trennen.');
+requireText("(required?failures:warnings).push(message)",'jsonCheck muss required/optional tatsächlich getrennt behandeln.');
+for(const model of ['meteofrance_arome_france','meteofrance_seamless','meteofrance_arpege_europe','jma_msm','jma_gsm','jma_seamless'])requireText(model,`Regionalmodell ${model} fehlt im Healthcheck.`);
+const optionalCalls=(source.match(/\{required:false\}/g)||[]).length;if(optionalCalls<3)throw new Error('Regionale Providerpfade müssen als optionale Degradationsprüfungen gekennzeichnet bleiben.');
+requireText("hourly:'temperature_2m,precipitation,cloud_cover,wind_speed_10m'",'Regionaler Oberflächen-Minimalvertrag ist nicht vereinheitlicht.');
+requireText("models:'jma_msm',hourly:'temperature_850hPa,relative_humidity_850hPa,wind_speed_850hPa,geopotential_height_850hPa'",'JMA-Druckniveauvertrag muss getrennt auf MSM geprüft werden.');
+if(/models:model,hourly:'temperature_2m,precipitation,cloud_cover,wind_speed_10m,temperature_850hPa/.test(source))throw new Error('JMA GSM/Seamless dürfen nicht wieder pauschal an den MSM-Druckniveauvertrag gekoppelt werden.');
+for(const core of ['Open-Meteo Best Match + Mond','ECMWF AIFS Europe Ensemble','EU-AQI stündlich','Hourly Min/Max Aggregation'])requireText(core,`Kritischer Kernvertrag ${core} fehlt.`);
+console.log('API-Health-Resilienz v0.9.77.8: PASS');

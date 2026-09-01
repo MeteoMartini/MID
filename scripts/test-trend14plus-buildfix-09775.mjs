@@ -12,10 +12,11 @@ need('SubseasonalTrendPanel muss den kanonischen MID-WindUnit aus weather.ts ver
 need('Default-Windeinheit muss dem kanonischen WindUnit-Wert kn entsprechen.',source.includes("windUnit='kn'"));
 need('Veralteter lokaler WindUnit-Wert kt darf nicht als Typdefinition vorkommen.',!source.includes("type WindUnit='kt'"));
 need('Niederschlags-Icon muss das tatsächlich exportierte CloudRain verwenden.',source.includes('CloudRain')&&!source.includes('{Cloud,Rain,'));
-need('Tmin-Icon muss einen im Projekt bereits verwendeten Lucide-Export verwenden.',source.includes('icon:Snowflake'));
+need('Der kombinierte Tmax/Tmin-Schalter muss einen realen, bereits verwendeten Lucide-Export verwenden.',source.includes("id:'temperature'")&&source.includes('icon:ThermometerSun'));
+need('Die zusammengeführte Tmax/Tmin-Ansicht darf keinen veralteten Snowflake-Pflichtimport erzwingen.',!source.includes('{Snowflake,')&&!source.includes(',Snowflake,'));
 need('Windböen dürfen keinen ungesicherten Lucide-Export benötigen.',source.includes("id:'gust'")&&source.includes('icon:WindIcon'));
 need('Lucide-Icon-Typ muss über einen realen Lucide-Komponententyp laufen.',source.includes('icon:typeof ThermometerSun;'));
-need('Klimadifferenz muss meanValue vor Subtraktion explizit auf number eingrenzen.',source.includes("typeof meanValue==='number'&&Number.isFinite(meanValue)"));
+need('Klimadifferenz muss optionale meanValue-Werte vor der Subtraktion numerisch absichern.',source.includes('Number.isFinite(meanValue)&&Number.isFinite(climateValue)?Number(meanValue)-climateValue'));
 need('LongRangePanel muss denselben WindUnit aus weather.ts verwenden.',longRange.includes("import type {Location,WindUnit} from './weather';"));
 need('LongRangePanel muss windUnit unverändert an SubseasonalTrendPanel durchreichen.',longRange.includes('windUnit={windUnit}'));
 
@@ -23,4 +24,4 @@ if(failures.length){
   console.error('MID v0.9.77.5 Trend-14d+-Buildfix fehlgeschlagen:\n- '+failures.join('\n- '));
   process.exit(1);
 }
-console.log('MID v0.9.77.5: Run-#811-TypeScript-Buildfix geschützt (WindUnit, Lucide-Exports, Icon-Typen, Nullability).');
+console.log('MID v0.9.77.8: Trend-14d+-Buildvertrag geschützt (WindUnit, reale Lucide-Exports, kombinierte Tmax/Tmin-Ansicht, Nullability).');

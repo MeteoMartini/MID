@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.9.77.8 - 2026-09-01
+- CI-Hotfix nach Installer #815: TypeScript und Vite waren bereits grün; 617/618 Regressionen bestanden. `test-extreme-rain-profile-night-097628.mjs` wurde vom veralteten Quelltext-Stringvertrag auf den aktuellen semantischen v0.9.77.8-Vertrag umgestellt: I-Schwelle + tatsächliches Modellsignal sowie identifier-unabhängiger RUC-Regenfallback. Produktionslogik unverändert.
+- CI-Hotfix nach Installer #814: ungenutzter `height`-Parameter im Trend-14d+-Chart entfernt; TypeScript-`noUnusedParameters`-Gate wieder erfüllbar.
+- Produktivprüfung nach Issue #27 gehärtet: kritische Kern-APIs bleiben fail-closed, regionale Météo-France-/JMA-Einzelmodellstörungen werden als Provider-Degradation statt als kompletter MID-Ausfall bewertet.
+- JMA-Druckniveauprüfung auf den expliziten MSM-Profilpfad getrennt; GSM/Seamless werden nicht mehr pauschal an denselben Profilvertrag gekoppelt.
+- Extremwetter I/P-Audit: Schwellenreferenz und tatsächliches Modellsignal werden getrennt dargestellt; P1–P4 bezeichnet ausdrücklich die Wahrscheinlichkeit der jeweiligen I-Stufe.
+- Regen-/Schnee-Rollfenster sind periodengrenzenfest; Werte aus dem vorherigen Zeitraum können die nächste Periode nicht mehr hochstufen.
+- ICON-D2-RUC-Extremwetterpfad auf Schema v3 erweitert: native 5/15-min-Diagnostik +0–6 h, stündlicher Zustandskern +6–12 h und +12–14 h; keine RUC-Unterstellung ab +14 h.
+- Subthreshold-RUC-Werte erzeugen keine höhere I-Stufe mehr. Regen/Wind werden an realen I-Schwellen gegatet; Gewitter bleibt ingredient-basiert.
+- C3S/Extremflächen-UI aktualisiert Schwellenreferenzen zusammen mit der dargestellten Konturintensität.
+- PR #24/#25/#26 fachlich als erledigt identifiziert; GitHub-Connector verweigert das Schließen mit HTTP 403. #6/#18/#20/#21 bleiben bewusst zurückgestellt.
+- Worker-Fachlogik und RUC-Payload geändert: Worker-Upload erforderlich.
+
+## v0.9.77.7 - 2026-09-01
+- Witterungstrend kombiniert Tmax/Tmin und bereinigt Klimamittel-/Farbkonzept sowie numerisch aktive Langfristmodellquellen.
+- Keine fachliche Worker-Änderung.
+
 ## v0.9.77.6 - 2026-09-01
 - GitHub-Installer Run #812 gefixt: exakt definierter RUC setup-python-v5→v7-Admin-Sync-Übergang wird als pending-admin-sync akzeptiert.
 - Jede zusätzliche RUC-Workflow-Abweichung bleibt fail-closed.

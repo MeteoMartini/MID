@@ -102,29 +102,96 @@ def collect_optional_fields(staging_root:Path,param_map,targets,expected_points,
 def accumulation_intervals(rows,targets):
     cube=np.stack([rows[t] for t in targets]);return np.maximum(0,np.diff(cube,axis=0,prepend=cube[:1]))
 
-def build_rapid_extreme_summary(lats,lons,run,rapid15_times,rapid15_precip,rapid15_cape,rapid15_cin,rapid5_precip,severe_fields=None):
+def _max_rolling_sum(cube,window_steps,start_index=1):
+    arr=np.asarray(cube,dtype=np.float64)
+    if arr.ndim!=2 or arr.shape[0]<=start_index:return np.full(arr.shape[1] if arr.ndim==2 else 0,np.nan,dtype=np.float64)
+    best=np.full(arr.shape[1],np.nan,dtype=np.float64)
+    for end in range(start_index+window_steps-1,arr.shape[0]):
+      first=end-window_steps+1
+      if first<start_index:continue
+      total=np.nansum(arr[first:end+1],axis=0)
+      best=np.where(np.isfinite(best),np.maximum(best,total),total)
+    return best
+
+def build_rapid_extreme_summary(lats,lons,run,rapid15_times,rapid15_precip,rapid15_cape,rapid15_cin,rapid5_precip,severe_fields=None,deterministic_times=None,deterministic_fields=None,specialist_fields=None,phase_fields=None):
+    """Build a compact 0–14 h extreme-weather support summary.
+
+    Native 5/15-minute RUC fields are used only for +0–6 h.  The hourly
+    deterministic RUC state vector supplies +6–12 h and +12–14 h.  The
+    resulting periods are deliberately explicit so consumers cannot apply a
+    short-range rapid diagnostic outside its native validity window.
+    """
     try: from scipy.spatial import cKDTree
     except Exception as e: raise SystemExit('scipy required for rapid extreme summary') from e
     rows,cols=13,23;south,west,north,east=43.45,-3.5,57.75,19.9
     def xyz(lat,lon):
       p=np.radians(lat);l=np.radians(lon);c=np.cos(p);return np.column_stack((c*np.cos(l),c*np.sin(l),np.sin(p)))
     tree=cKDTree(xyz(np.asarray(lats,dtype=np.float64),np.asarray(lons,dtype=np.float64)));cells=[]
-    severe_fields=severe_fields or {};total6=np.nansum(rapid15_precip[1:],axis=0);max15=np.nanmax(rapid15_precip,axis=0);peak5=np.nanmax(rapid5_precip*12,axis=0);maxcape=np.nanmax(rapid15_cape,axis=0);mincin=np.nanmin(rapid15_cin,axis=0);maxdbz=np.nanmax(severe_fields['dbz_cmax'],axis=0) if 'dbz_cmax' in severe_fields else None;maxuh=np.nanmax(severe_fields['uh_max'],axis=0) if 'uh_max' in severe_fields else None;maxlpi=np.nanmax(severe_fields['lpi_max'],axis=0) if 'lpi_max' in severe_fields else (np.nanmax(severe_fields['lpi'],axis=0) if 'lpi' in severe_fields else None);maxecho=np.nanmax(severe_fields['echo_top_m'],axis=0) if 'echo_top_m' in severe_fields else None;maxhail=np.nanmax(severe_fields['hail_gsp'],axis=0) if 'hail_gsp' in severe_fields else None;maxcape_mu=np.nanmax(severe_fields['cape_mu'],axis=0) if 'cape_mu' in severe_fields else None;mincin_mu=np.nanmin(severe_fields['cin_mu'],axis=0) if 'cin_mu' in severe_fields else None
+    severe_fields=severe_fields or {};deterministic_fields=deterministic_fields or {};specialist_fields=specialist_fields or {};phase_fields=phase_fields or {}
+    total6=np.nansum(rapid15_precip[1:],axis=0);max15=np.nanmax(rapid15_precip,axis=0);peak5=np.nanmax(rapid5_precip*12,axis=0);max1h_rapid=_max_rolling_sum(rapid5_precip,12,1);maxcape=np.nanmax(rapid15_cape,axis=0);mincin=np.nanmin(rapid15_cin,axis=0)
+    maxdbz=np.nanmax(severe_fields['dbz_cmax'],axis=0) if 'dbz_cmax' in severe_fields else None;maxuh=np.nanmax(severe_fields['uh_max'],axis=0) if 'uh_max' in severe_fields else None;maxlpi=np.nanmax(severe_fields['lpi_max'],axis=0) if 'lpi_max' in severe_fields else (np.nanmax(severe_fields['lpi'],axis=0) if 'lpi' in severe_fields else None);maxecho=np.nanmax(severe_fields['echo_top_m'],axis=0) if 'echo_top_m' in severe_fields else None;maxhail=np.nanmax(severe_fields['hail_gsp'],axis=0) if 'hail_gsp' in severe_fields else None;maxcape_mu=np.nanmax(severe_fields['cape_mu'],axis=0) if 'cape_mu' in severe_fields else None;mincin_mu=np.nanmin(severe_fields['cin_mu'],axis=0) if 'cin_mu' in severe_fields else None
+    rapid_rain=np.nansum(phase_fields.get('rain',np.zeros_like(rapid15_precip))[1:],axis=0) if phase_fields else None;rapid_snow=np.nansum(phase_fields.get('snowfall_water_equivalent',np.zeros_like(rapid15_precip))[1:],axis=0) if phase_fields else None;rapid_graupel=np.nansum(phase_fields.get('graupel_water_equivalent',np.zeros_like(rapid15_precip))[1:],axis=0) if phase_fields else None
+    base_time=datetime.fromisoformat(run.replace('Z','+00:00')).astimezone(timezone.utc);deterministic_times=list(deterministic_times or [])
+    leads=[(value-base_time).total_seconds()/3600 for value in deterministic_times]
+    period_specs=[('0-6',0,6),('6-12',6,12),('12-14',12,14)]
+    def period_arrays(start_hour,end_hour):
+      interval=[index for index,lead in enumerate(leads) if lead>start_hour+1e-6 and lead<=end_hour+1e-6]
+      state=[index for index,lead in enumerate(leads) if lead>=start_hour-1e-6 and lead<=end_hour+1e-6]
+      return interval,state
+    def stat(cube,indices,mode):
+      if cube is None or not indices:return None
+      arr=np.asarray(cube,dtype=np.float64)[indices]
+      if mode=='sum':return np.nansum(arr,axis=0)
+      if mode=='min':return np.nanmin(arr,axis=0)
+      return np.nanmax(arr,axis=0)
+    period_cubes={}
+    for pid,start_hour,end_hour in period_specs:
+      interval,state=period_arrays(start_hour,end_hour)
+      period_cubes[pid]={
+       'startHour':start_hour,'endHour':end_hour,'coverageHours':max(0,min(end_hour,14)-start_hour),
+       'precipitationMm':stat(deterministic_fields.get('precipitation'),interval,'sum'),
+       'max1hMm':stat(deterministic_fields.get('precipitation'),interval,'max'),
+       'gustKt':stat(deterministic_fields.get('wind_gusts_10m'),state,'max'),
+       'windKt':stat(deterministic_fields.get('wind_speed_10m'),state,'max'),
+       'cape':stat(deterministic_fields.get('cape'),state,'max'),
+       'cin':stat(deterministic_fields.get('convective_inhibition'),state,'min'),
+       'temperatureMinC':stat(deterministic_fields.get('temperature_2m'),state,'min'),
+       'temperatureMaxC':stat(deterministic_fields.get('temperature_2m'),state,'max'),
+       'dewPointMaxC':stat(deterministic_fields.get('dew_point_2m'),state,'max'),
+       'rhMaxPct':stat(deterministic_fields.get('relative_humidity_2m'),state,'max'),
+       'freezingLevelMinM':stat(specialist_fields.get('freezing_level_height'),state,'min'),
+       'snowlineMinM':stat(specialist_fields.get('snowline_height'),state,'min'),
+      }
+    # Native rapid data supersedes the coarser hourly precipitation/convection diagnostics only in +0–6 h.
+    period_cubes['0-6'].update({'precipitationMm':total6,'max1hMm':max1h_rapid,'max15mMm':max15,'peak5mRateMmh':peak5,'cape':maxcape,'cin':mincin,'nativeRapid':True,'dbzCmax':maxdbz,'uhMax':maxuh,'lpiMax':maxlpi,'echoTopM':maxecho,'hailGspMax':maxhail,'capeMu':maxcape_mu,'cinMu':mincin_mu,'rainPhaseMm':rapid_rain,'snowPhaseWaterEquivalentMm':rapid_snow,'graupelPhaseWaterEquivalentMm':rapid_graupel})
+    def value_at(values,index,digits=1):
+      if values is None:return None
+      value=float(values[index])
+      return round(value,digits) if np.isfinite(value) else None
     for r in range(rows):
       lat=south+(north-south)*r/(rows-1)
       for c in range(cols):
         lon=west+(east-west)*c/(cols-1);distance,index=tree.query(xyz(np.array([lat]),np.array([lon]))[0],k=1);km=2*6371.0088*np.arcsin(min(1,float(distance)/2))
         if km>8:continue
-        cell={'latitude':round(lat,4),'longitude':round(lon,4),'precipitation6h':round(float(total6[index]),2),'max15m':round(float(max15[index]),2),'peak5mRate':round(float(peak5[index]),1),'cape':round(float(maxcape[index]),0),'cin':round(float(mincin[index]),0)}
-        if maxdbz is not None and np.isfinite(maxdbz[index]):cell['dbzCmax']=round(float(maxdbz[index]),1)
-        if maxuh is not None and np.isfinite(maxuh[index]):cell['uhMax']=round(float(maxuh[index]),1)
-        if maxlpi is not None and np.isfinite(maxlpi[index]):cell['lpiMax']=round(float(maxlpi[index]),1)
-        if maxecho is not None and np.isfinite(maxecho[index]):cell['echoTopM']=round(float(maxecho[index]),0)
-        if maxhail is not None and np.isfinite(maxhail[index]):cell['hailGspMax']=round(float(maxhail[index]),3)
-        if maxcape_mu is not None and np.isfinite(maxcape_mu[index]):cell['capeMu']=round(float(maxcape_mu[index]),0)
-        if mincin_mu is not None and np.isfinite(mincin_mu[index]):cell['cinMu']=round(float(mincin_mu[index]),0)
+        periods={}
+        for pid,start_hour,end_hour in period_specs:
+          cube=period_cubes[pid];row={'startHour':start_hour,'endHour':end_hour,'coverageHours':cube['coverageHours'],'source':'native-rapid+hourly-core' if pid=='0-6' else 'hourly-core'}
+          mappings=[('precipitationMm','precipitationMm',2),('max1hMm','max1hMm',2),('gustKt','gustKt',1),('windKt','windKt',1),('cape','cape',0),('cin','cin',0),('temperatureMinC','temperatureMinC',1),('temperatureMaxC','temperatureMaxC',1),('dewPointMaxC','dewPointMaxC',1),('rhMaxPct','rhMaxPct',0),('freezingLevelMinM','freezingLevelMinM',0),('snowlineMinM','snowlineMinM',0)]
+          for out_key,cube_key,digits in mappings:
+            value=value_at(cube.get(cube_key),index,digits)
+            if value is not None:row[out_key]=value
+          if pid=='0-6':
+            rapid_maps=[('max15mMm','max15mMm',2),('peak5mRateMmh','peak5mRateMmh',1),('dbzCmax','dbzCmax',1),('uhMax','uhMax',1),('lpiMax','lpiMax',1),('echoTopM','echoTopM',0),('hailGspMax','hailGspMax',3),('capeMu','capeMu',0),('cinMu','cinMu',0),('rainPhaseMm','rainPhaseMm',2),('snowPhaseWaterEquivalentMm','snowPhaseWaterEquivalentMm',2),('graupelPhaseWaterEquivalentMm','graupelPhaseWaterEquivalentMm',2)]
+            for out_key,cube_key,digits in rapid_maps:
+              value=value_at(cube.get(cube_key),index,digits)
+              if value is not None:row[out_key]=value
+          periods[pid]=row
+        first=periods['0-6']
+        cell={'latitude':round(lat,4),'longitude':round(lon,4),'periods':periods,'precipitation6h':first.get('precipitationMm',0),'max1h':first.get('max1hMm',0),'max15m':first.get('max15mMm',0),'peak5mRate':first.get('peak5mRateMmh',0),'cape':first.get('cape',0),'cin':first.get('cin',0)}
+        for key in ('dbzCmax','uhMax','lpiMax','echoTopM','hailGspMax','capeMu','cinMu'):
+          if key in first:cell[key]=first[key]
         cells.append(cell)
-    return {'schema':'mid.dwd.ruc.rapid-extreme.v2','run':run,'windowHours':6,'nativePrecipitationSeconds':300,'convectiveSeconds':900,'grid':{'rows':rows,'cols':cols,'bounds':{'south':south,'west':west,'north':north,'east':east}},'cells':cells}
+    return {'schema':'mid.dwd.ruc.rapid-extreme.v3','run':run,'horizonHours':14,'windowHours':6,'nativePrecipitationSeconds':300,'convectiveSeconds':900,'periods':[{'id':pid,'startHour':start,'endHour':end,'source':'native-rapid+hourly-core' if pid=='0-6' else 'hourly-core'} for pid,start,end in period_specs],'grid':{'rows':rows,'cols':cols,'bounds':{'south':south,'west':west,'north':north,'east':east}},'cells':cells}
 
 def collect_parameter(files,name,targets,expected_points=None):
     rows={}
@@ -250,15 +317,15 @@ def main():
  if specialist_specs:
   specialist_path=a.output/'specialist-hourly.bin';specialist_path.write_bytes(pack_cell_major(specialist_fields,specialist_specs))
 
- phase_path=None
+ phase_path=None;phase_for_extreme={}
  rain_files=sorted((a.staging/'rapid-optional'/'RAIN_GSP').glob('**/*.grib2*'));snow_files=sorted((a.staging/'rapid-optional'/'SNOW_GSP').glob('**/*.grib2*'));graupel_files=sorted((a.staging/'rapid-optional'/'GRAU_GSP').glob('**/*.grib2*'))
  rain_rows=collect_optional_parameter(rain_files,'rain_acc',rapid15_times,point_count);snow_rows=collect_optional_parameter(snow_files,'snow_acc',rapid15_times,point_count);graupel_rows=collect_optional_parameter(graupel_files,'graupel_acc',rapid15_times,point_count)
  if rain_rows and snow_rows:
-  rain15=accumulation_intervals(rain_rows,rapid15_times);snow15=accumulation_intervals(snow_rows,rapid15_times);graupel15=accumulation_intervals(graupel_rows,rapid15_times) if graupel_rows else np.zeros_like(rain15);phase_path=a.output/'rapid-phase-15m.bin';phase_path.write_bytes(pack_cell_major({'rain':rain15,'snowfall_water_equivalent':snow15,'graupel_water_equivalent':graupel15},PHASE_15M_FIELDS))
+  rain15=accumulation_intervals(rain_rows,rapid15_times);snow15=accumulation_intervals(snow_rows,rapid15_times);graupel15=accumulation_intervals(graupel_rows,rapid15_times) if graupel_rows else np.zeros_like(rain15);phase_for_extreme={'rain':rain15,'snowfall_water_equivalent':snow15,'graupel_water_equivalent':graupel15};phase_path=a.output/'rapid-phase-15m.bin';phase_path.write_bytes(pack_cell_major(phase_for_extreme,PHASE_15M_FIELDS))
  grid=build_lookup(base_grid[0],base_grid[1],a.output,a.lookup_step)
  severe_for_extreme=dict(severe_fields)
  if dbz_cube is not None:severe_for_extreme['dbz_cmax']=dbz_cube
- extreme=build_rapid_extreme_summary(base_grid[0],base_grid[1],a.run,rapid15_times,rapid_precip15,np.stack([rapid_cape[t] for t in rapid15_times]),np.stack([rapid_cin[t] for t in rapid15_times]),rapid_precip5,severe_for_extreme)
+ extreme=build_rapid_extreme_summary(base_grid[0],base_grid[1],a.run,rapid15_times,rapid_precip15,np.stack([rapid_cape[t] for t in rapid15_times]),np.stack([rapid_cin[t] for t in rapid15_times]),rapid_precip5,severe_for_extreme,deterministic_times=det_times,deterministic_fields=fields,specialist_fields=specialist_fields,phase_fields=phase_for_extreme)
  extreme_path=a.output/'rapid-extreme.json';extreme_path.write_text(json.dumps(extreme,ensure_ascii=False,separators=(',',':'))+'\n',encoding='utf-8')
  eps_files=sorted((a.staging/'eps'/'TOT_PREC').glob('**/*.grib2*'))
  if not eps_files:raise SystemExit('missing staged RUC-EPS TOT_PREC')
@@ -277,7 +344,7 @@ def main():
  if solar_path:rapid['solar15']=rapid_spec(solar_path,rapid15_serialized,solar_specs,900,6)
  if phase_path:rapid['phase15']=rapid_spec(phase_path,rapid15_serialized,PHASE_15M_FIELDS,900,6)
  if specialist_path:rapid['specialistHourly']=rapid_spec(specialist_path,det_serialized,specialist_specs,3600,14)
- rapid_extreme={'key':f'runs/{run_key}/rapid-extreme.json','schema':'mid.dwd.ruc.rapid-extreme.v2','windowHours':6}
+ rapid_extreme={'key':f'runs/{run_key}/rapid-extreme.json','schema':'mid.dwd.ruc.rapid-extreme.v3','windowHours':6,'horizonHours':14}
  write_meta(a.output/'latest.json',run=a.run,times=det_serialized,point_count=point_count,specs=DEFAULT_FIELDS,grid=grid,deterministic_key=f'runs/{run_key}/deterministic.bin',eps_key=f'runs/{run_key}/eps-members.bin',eps_summary_key=f'runs/{run_key}/eps-summary.bin',lookup_key=f'runs/{run_key}/lookup.bin',member_count=len(members),eps_scale=.01,objects=objects,deterministic_times=det_serialized,eps_summary_times=eps_serialized,eps_times=eps_serialized,rapid=rapid,rapid_extreme=rapid_extreme)
  print(json.dumps({'run':a.run,'deterministicTimes':len(det_times),'rapid5Times':len(rapid5_times),'rapid15Times':len(rapid15_times),'epsTimes':len(eps_times),'points':point_count,'members':len(members),'reflectivity15':bool(dbz_path),'severe15Fields':[x.name for x in severe_specs],'solar15Fields':[x.name for x in solar_specs],'specialistHourlyFields':[x.name for x in specialist_specs],'phase15':bool(phase_path),'detBytes':det.stat().st_size,'rapid5Bytes':rapid5_path.stat().st_size,'rapid15Bytes':rapid15_path.stat().st_size,'epsSummaryBytes':summary_path.stat().st_size,'epsBytes':eps_path.stat().st_size,'lookupBytes':lookup_path.stat().st_size}))
 if __name__=='__main__':main()

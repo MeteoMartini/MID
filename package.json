@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.77.6",
+  "version": "0.9.77.8",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -370,7 +370,8 @@
     "test:travel-current-composite-boundaries": "node scripts/test-travel-current-composite-boundaries-097632.mjs",
     "test:thunder-numerical-ruc": "node scripts/test-thunder-numerical-ruc-097635.mjs",
     "test:trend14plus": "node scripts/test-trend14plus-09770.mjs",
-    "test:github-pr-maintenance-09773": "node scripts/test-github-pr-maintenance-09773.mjs"
+    "test:github-pr-maintenance-09773": "node scripts/test-github-pr-maintenance-09773.mjs",
+    "test:extreme-threshold-ruc-horizon": "node scripts/test-extreme-threshold-ruc-horizon-09778.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",

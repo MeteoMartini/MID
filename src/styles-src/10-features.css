@@ -1242,6 +1242,7 @@ button,input,select,[role="button"]{touch-action:manipulation}
 
 /* MID parameter colour contract + Trend 14d+ mobile polish */
 .subseasonal-trend{--trend-color:var(--param-temperature-max)}
+.subseasonal-trend.metric-temperature{--trend-color:var(--param-temperature-max)}
 .subseasonal-trend.metric-temperature-max{--trend-color:var(--param-temperature-max)}
 .subseasonal-trend.metric-temperature-min{--trend-color:var(--param-temperature-min)}
 .subseasonal-trend.metric-precipitation{--trend-color:var(--param-precipitation)}
@@ -1256,6 +1257,7 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .subseasonal-model-selector,.subseasonal-metric-selector{display:grid!important;overflow:visible!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
 .subseasonal-model-selector button,.subseasonal-metric-selector button{min-width:0!important;width:100%;padding:8px 9px}
 .subseasonal-metric-selector button{border-color:color-mix(in srgb,var(--metric-color,var(--border)) 42%,var(--border))!important}
+.subseasonal-metric-selector button.metric-temperature{--metric-color:var(--param-temperature-max)}
 .subseasonal-metric-selector button.metric-temperature-max{--metric-color:var(--param-temperature-max)}
 .subseasonal-metric-selector button.metric-temperature-min{--metric-color:var(--param-temperature-min)}
 .subseasonal-metric-selector button.metric-precipitation{--metric-color:var(--param-precipitation)}

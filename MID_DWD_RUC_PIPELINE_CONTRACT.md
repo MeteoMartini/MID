@@ -40,7 +40,7 @@ Fehlende Zwischenwerte von Temperatur, Wind, Druck oder Wolken werden nicht inte
 
 Die RUC-Rapid-Felder laufen in `forecast-fusion` als `rapidMinutes15` in die kanonische `displayMinutes15`-Endstufe ein. RUC wird **vor** Radar/Nowcast angewendet; beobachtetes Radar und lokale Beobachtungen bleiben dadurch nachgelagert und höher priorisiert. 5-min-Niederschläge liefern neben der 15-min-Summe einen Peak-Intensitätswert. CAPE/MU-CAPE und CIN/MU-CIN bilden zusammen mit modellierter Reflektivität bzw. Niederschlagstriggern den konvektiven Kern; LPI, UH, EchoTop und maximaler Aufwind verstärken ihn als zusätzliche elektrische/organisatorische Evidenz. Ab v0.9.76.35 darf diese **Mehrparameterdiagnostik** ein numerisches Gewittersignal in der Prognose erzeugen. Die aktuelle KONRAD3D-Zellbezeichnung bleibt davon unabhängig und heißt ohne Blitz weiterhin Schauer-/starke Schauerzelle.
 
-Für den Mitteleuropa-Extremwetter-Ausblick erzeugt der Vorprozessor ein kompaktes räumliches `rapid-extreme.json`. Es enthält ausschließlich für 0–6 h u. a. 6-h-Niederschlag, maximale 15-min-Menge, 5-min-Peakrate, CAPE/CIN und optional `DBZ_CMAX`, MU-CAPE/CIN, UH, LPI, EchoTop und Hagel. Diese deterministische Rapid-Unterstützung ergänzt ICON-D2-EPS/ICON-D2, ersetzt aber weder die Ensemble-Wahrscheinlichkeit noch KONRAD3D/Meso/Blitz als beobachtungsnahe Bestätigung.
+Für den Mitteleuropa-Extremwetter-Ausblick erzeugt der Vorprozessor ein kompaktes räumliches `rapid-extreme.json` (Schema v3) über die **vollständige verfügbare RUC-Laufzeit 0…+14 h**. +0–6 h enthält die nativen 5-/15-min-Produkte (u. a. 6-h-Niederschlag, max. 1 h, max. 15 min, 5-min-Peakrate, CAPE/CIN und optional `DBZ_CMAX`, MU-CAPE/CIN, UH, LPI, EchoTop, Hagel und Niederschlagsphase). +6–12 h und +12–14 h werden aus dem stündlichen RUC-Zustandskern abgeleitet (Niederschlag/max. 1 h, Böen/Wind, CAPE/CIN, Temperatur, Taupunkt, Feuchte sowie – wenn vorhanden – Nullgrad- und Schneefallgrenze). Im UI-Zeitraum +12–24 h darf RUC deshalb ausschließlich die reale Teilabdeckung +12–14 h stützen; +24–48 h bleibt vollständig beim ICON-D2-/EPS-Pfad. Deterministische RUC-Werte dürfen eine I-Stufe nur dann stützen, wenn die zugehörige Intensitätsschwelle tatsächlich erreicht wird; subthreshold RUC-Werte erzeugen keine höhere I-Stufe. Diese Unterstützung ergänzt ICON-D2-EPS/ICON-D2, ersetzt aber weder die Ensemble-Wahrscheinlichkeit noch KONRAD3D/Meso/Blitz als beobachtungsnahe Bestätigung.
 
 
 ### Gewittersemantik ab v0.9.76.35
@@ -48,7 +48,7 @@ Für den Mitteleuropa-Extremwetter-Ausblick erzeugt der Vorprozessor ein kompakt
 MID unterscheidet zwei verschiedene Aussagen, die nicht mehr gegenseitig blockiert werden:
 
 1. **Aktuelle beobachtete Zellklassifikation:** KONRAD3D/Radar ohne detektierten Blitz → Schauer bzw. starke Schauerzelle; mit Blitz → Gewitterzelle. VIL, Reflektivität, vertikale Ausdehnung, Starkregenpotential und Zellmasse fließen über die amtliche KONRAD3D-Schwereklassifikation weiterhin in die Intensitätsbewertung ein, ersetzen aber den Blitznachweis für die Benennung des aktuellen Zustands nicht.
-2. **Numerische Gewitterprognose:** kann unabhängig vom aktuellen Blitzstatus entstehen. Ohne Rapid-Daten bleibt die kanonische Mehrparameter-/WMO-Prognose voll wirksam. Mit Rapid-Daten ergänzt ICON-D2-RUC die 0–6-h-Diagnose aus CAPE/MU-CAPE, CIN/MU-CIN, 5-/15-min-Niederschlag, `DBZ_CMAX`, LPI/LPI_MAX, UH, EchoTop und Aufwind. Die Rapid-Entscheidung ist ingredient-basiert; ein einzelnes Feld allein erzeugt keinen synthetischen Gewittercode.
+2. **Numerische Gewitterprognose:** kann unabhängig vom aktuellen Blitzstatus entstehen. Ohne Rapid-Daten bleibt die kanonische Mehrparameter-/WMO-Prognose voll wirksam. Mit Rapid-Daten ergänzt ICON-D2-RUC +0–6 h die Diagnose aus CAPE/MU-CAPE, CIN/MU-CIN, 5-/15-min-Niederschlag, `DBZ_CMAX`, LPI/LPI_MAX, UH, EchoTop und Aufwind. Von +6 bis +14 h stehen nur die wissenschaftlich belastbaren stündlichen Zustandsparameter zur Verfügung; sie dürfen ein vorhandenes Ensemble-Gewittersignal nur bei passender CAPE-/CIN- und Niederschlagslage stützen und ersetzen fehlende Scherungs-/Organisationsdiagnostik nicht. Die Entscheidung ist ingredient-basiert; ein einzelnes Feld allein erzeugt keinen synthetischen Gewittercode.
 
 Damit bedeutet „kein aktueller Blitz“ nur „aktuell nicht blitzbestätigt“ und niemals „numerisch kein Gewitter möglich“.
 
@@ -64,7 +64,7 @@ Der produktive Standardpfad ist `pages-free-v1` und benötigt weder R2 noch eine
 
 - deterministische stündliche RUC-Kerndaten,
 - native 5-min-/15-min-RUC-Rapid-Produkte,
-- ein kompaktes 0–6-h-Extremwetter-Rapid-Summary,
+- ein kompaktes 0–14-h-Extremwetter-RUC-Summary (native Rapid-Diagnostik 0–6 h, stündlicher Zustandskern 6–14 h),
 - die voraggregierte RUC-EPS-Zusammenfassung,
 - der Punkt-Lookup,
 - ein kleines `latest.json`.
@@ -99,7 +99,7 @@ R2-Bucket, R2-Credentials, Custom Domain oder andere potenziell kostenpflichtige
 
 ## Regressionen
 
-- `scripts/test-ruc-native-cadence-nowcast-097311.mjs`: parameterabhängige 5-/15-/60-min-Auflösung, Radarpriorität und Extremwetter-0–6-h-Vertrag.
+- `scripts/test-ruc-native-cadence-nowcast-097311.mjs`: parameterabhängige 5-/15-/60-min-Auflösung, Radarpriorität und native Rapid-0–6-h-Vertrag; der Extremwetter-Zustandskern reicht separat bis +14 h.
 - `scripts/test-ruc-parameter-audit-097311.mjs`: appweiter 114-Parameter-Audit, Specialist-/Severe-/Solar-Vertrag, Layer-Schutz für SRH/WSHEAR und Sunshine-Duration-Sperre.
 - `scripts/test-ruc-dwd-pipeline-09690.mjs`: Domain-, Actions-, Binär-, Free-Pages-, optionaler R2- und Schutzvertrag.
 - `scripts/test-ruc-fusion-runtime-09691.mjs`: Worker-Runtimepfad mit RUC-Kalibrierung, EPS-Wahrscheinlichkeit, Cache-/Read-Schutz und Gewittersperre.
