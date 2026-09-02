@@ -35,7 +35,7 @@ const checks=[
   ['scalar climate line uses parameter color',features.includes('stroke:color-mix(in srgb,var(--trend-color) 72%,var(--muted))')],
   ['ec46-only tail-period note present',source.includes('Ab Tag 36 steht derzeit nur EC46 zur Verfügung')],
   ['model metadata api present',source.includes("MODEL_METADATA_BASE='https://api.open-meteo.com/data'")&&source.includes("fetchModelMetadata('ecmwf_ec46'")&&source.includes("fetchModelMetadata('ncep_gefs05'")],
-  ['real model run initialisation shown',source.includes('<b>Modellstand:</b> {modelRunSummary(models)}')&&source.includes('runInitialisationTime')],
+  ['real model run initialisation shown in model pills without redundant header',!source.includes('<b>Modellstand:</b>')&&source.includes('runInitialisationTime')&&source.includes('Lauf ${formatModelRun(model.runInitialisationTime)} UTC')],
   ['fetch time is labelled separately from model run',source.includes('Datenabruf {formatDateTime(data.fetchedAt)} UTC')],
   ['dark theme parameter colors are concrete values',!foundation.includes('--param-precipitation:var(--param-precipitation)')&&!foundation.includes('--param-wind:var(--param-wind)')&&!foundation.includes('--param-gust:var(--param-gust)')],
   ['comparison list label reflects metric',source.includes('<h4>{def.label} je Wochenblock</h4>')]

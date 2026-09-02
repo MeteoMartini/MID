@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.77.15",
+  "version": "0.9.77.16",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -376,7 +376,8 @@
     "test:extreme-outlook-spacing": "node scripts/test-extreme-outlook-spacing-09779.mjs",
     "test:openmeteo-rapid-source-contract": "node scripts/test-openmeteo-rapid-source-contract-097713.mjs",
     "test:regional-model-domain-fusion": "node scripts/test-regional-model-domain-fusion-097714.mjs",
-    "test:attachment-hazard-temperature-colors": "node scripts/test-attachment-hazard-temperature-colors-097715.mjs"
+    "test:attachment-hazard-temperature-colors": "node scripts/test-attachment-hazard-temperature-colors-097715.mjs",
+    "test:weather-profile-longrange-ui": "node scripts/test-weather-profile-longrange-ui-097716.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",

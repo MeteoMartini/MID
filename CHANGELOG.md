@@ -1,3 +1,11 @@
+## v0.9.77.16
+
+- 24-h-Wert-Pills im Hell-/Dunkeldesign kontrastfest: definierte Meteogramm-Tooltipfarben statt ungültiger SVG-Hintergrundvariablen.
+- Tmin/Tmax- und aktiver Temperaturmarker im 24-h-Wetterprofil deutlich verkleinert.
+- Redundanten „Modellstand“ im Header des Witterungstrends entfernt; tatsächliche Läufe bleiben in den Modell-Pills, Datenabruf/Cache bleibt separat sichtbar.
+- Langfristige Temperatur-/Niederschlags- und Schneelinien-Diagramme skalieren ohne horizontales Scrollen vollständig auf die verfügbare Breite.
+- Keine fachliche Worker-Änderung; manueller Worker-Upload nicht erforderlich.
+
 ## v0.9.77.15
 
 - Extremwetter-Popups nennen jetzt die konkrete Gefahr der dargestellten Fläche (z. B. „Gewitter“) statt generisch „Modellierte Gefahrenfläche“.

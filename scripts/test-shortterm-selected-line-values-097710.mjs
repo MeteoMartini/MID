@@ -10,7 +10,7 @@ const checks=[
  ['run 817 obsolete daySpan helper removed',!trend.includes('function daySpan(')],
  ['run 817 climate cache has explicit interface',trend.includes('interface ClimateCache')&&trend.includes('const climateCache=cache;')],
  ['selected blue time line remains',source.includes('className="selected-time-line"')],
- ['selected line values use readable pill component',source.includes('function ProfileSelectedValuePill')&&css.includes('.selected-time-value-pill rect{fill:color-mix')],
+ ['selected line values use readable theme-adaptive pill component',source.includes('function ProfileSelectedValuePill')&&css.includes('.selected-time-value-pill rect{fill:var(--mg-tooltip)')&&css.includes('var(--mg-tooltip-border)')],
  ['selected line cloud values present',source.includes('className="cloud"')&&source.includes('Wolken ${Math.round')],
  ['selected line temperature values present',source.includes('className="temperature"')&&source.includes('gef.')&&source.includes('Td ${Math.round')],
  ['selected line precipitation values present',source.includes('className="precipitation"')&&source.includes('probabilityDisplayValue')],

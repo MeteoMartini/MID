@@ -17,7 +17,7 @@ const checks=[
  ['detail chart wind and gust use canonical tokens',app.includes('stroke="var(--param-wind)" strokeWidth="2"')&&app.includes('stroke="var(--param-gust)" strokeWidth="2"')],
  ['detail direction arrows receive gust threshold input',app.includes('direction={p[i].direction} gust={p[i].gust}')],
  ['svg wind arrow base and warning classes are standardized',foundation.includes('.svg-wind-direction-arrow{color:var(--param-wind);stroke:currentColor')&&foundation.includes('.svg-wind-direction-arrow.warning-1{color:#e6c229}')],
- ['24h selected values use readable pills',cockpit.includes('ProfileSelectedValuePill')&&modern.includes('.selected-time-value-pill rect{fill:color-mix')],
+ ['24h selected values use readable theme-adaptive pills',cockpit.includes('ProfileSelectedValuePill')&&modern.includes('.selected-time-value-pill rect{fill:var(--mg-tooltip)')&&modern.includes('var(--mg-tooltip-border)')],
  ['24h temperature point density reduced to selection',cockpit.includes('className="temperature-point active"')&&!cockpit.includes('{chartPoints.map(item=><circle key={`temp-point-')]
 ];
 const failed=checks.filter(([,ok])=>!ok);

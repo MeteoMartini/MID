@@ -386,11 +386,6 @@ function formatModelRun(value:number|undefined){
   try{return new Intl.DateTimeFormat('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23',timeZone:'UTC'}).format(new Date(Number(value)*1000));}catch{return '';}
 }
 
-function modelRunSummary(models:TrendModel[]){
-  const rows=models.map(model=>{const run=formatModelRun(model.runInitialisationTime);return run?`${model.family} ${run} UTC`:''}).filter(Boolean);
-  return rows.length?rows.join(' · '):'aktuellster verfügbarer Lauf · Metadaten derzeit nicht verfügbar';
-}
-
 function convertWind(value:number,unit:WindUnit){
   if(!Number.isFinite(value))return Number.NaN;
   if(unit==='kmh')return value*1.852;
@@ -797,7 +792,7 @@ export default function SubseasonalTrendPanel({location,windUnit='kn',advancedMo
       <div>
         <h3>Witterungstrend · Tag 15–46</h3>
         <p>Wochenblöcke statt scheinpräziser Tageswerte · ECMWF EC46 + NOAA GEFS bis Tag 35</p>
-        {data?<small className="long-range-cache-state"><b>Modellstand:</b> {modelRunSummary(models)}<br/><span>Datenabruf {formatDateTime(data.fetchedAt)} UTC{cacheLabel?` · ${cacheLabel}`:''}</span></small>:null}
+        {data?<small className="long-range-cache-state">Datenabruf {formatDateTime(data.fetchedAt)} UTC{cacheLabel?` · ${cacheLabel}`:''}</small>:null}
       </div>
       <div className="long-range-head-actions">
         <button type="button" onClick={()=>load(true)} aria-label="Witterungstrend aktualisieren" disabled={refreshing}>{refreshing?<RefreshCw size={18} className="spin"/>:<RefreshCw size={18}/>}</button>
