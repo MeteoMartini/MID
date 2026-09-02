@@ -1,3 +1,13 @@
+# MID Saisonadapter / Multi-Modell-Langfristtrend v0.9.77.27
+
+Der saisonale Modellvertrag wurde auf eine kanonische Systemidentität erweitert. C3S führt nun die **10 aktuell operationellen Systeme** einzeln, einschließlich der getrennten ECCC-Systeme CanESM5.1p1bc (System 4) und GEM5.2-NEMO (System 5). NOAA NMME wird weiterhin dynamisch aus dem jeweils neuesten ENSMEAN-Verzeichnis gelesen; aktuell vorhandene Modelle werden nicht durch eine statische Whitelist begrenzt.
+
+Für das Poor-Man’s-Ensemble ist der Datenanbieter nicht die Stimme: C3S/NMME/Open-Meteo-Dubletten derselben bzw. eng gekoppelten Modelllinie werden über `modelKey`/`independenceKey` zusammengeführt. Dadurch werden CFSv2, ECCC GEM5.2-NEMO, die CanESM5-Linie und ECMWF SEAS5 nicht doppelt gezählt.
+
+Der direkte NOAA-NMME-Punktpfad lädt nicht mehr routinemäßig vollständige NetCDF-Dateien. Er liest einen kleinen Header per Byte-Range, ermittelt den nächstgelegenen Rasterpunkt und lädt die Monatswerte per HTTP Multi-Range. Bei fehlender Range-Unterstützung oder nicht dekodierbarer NetCDF-Struktur bleibt ein begrenzter Volldownload-Fallback erhalten. Die Modellabrufe werden in kleinen Batches ausgeführt, um NOAA CPC und Cloudflare-Subrequests robuster zu behandeln.
+
+Die vollständige Quellen-/Unabhängigkeitsprüfung ist in `MID_SEASONAL_LONG_RANGE_SOURCE_AUDIT_0.9.77.27.md` dokumentiert. WMO-LC-LRFMME-, APCC- und DWD-EPISODES-Produkte mit anderer Zeitachse oder Authentifizierung werden nicht als künstliche Monatsmodelle bzw. zusätzliche Doppelstimmen in den C3S/NMME-Konsens gemischt.
+
 # MID Saisonadapter / Langfrist-Proxy v0.9.41.1
 
 Der Worker besitzt zwei neue numerische Langfrist-Endpunkte:

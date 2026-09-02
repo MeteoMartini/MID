@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.77.25",
+  "releaseVersion": "0.9.77.27",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -371,7 +371,9 @@
     "scripts/test-weather-profile-skybar-pills-097723.mjs",
     "scripts/test-knmi-eps-wasm-feasibility-097723.mjs",
     "scripts/test-knmi-eps-wasm32-prototype-097724.mjs",
-    "scripts/test-trend-seasonal-temperature-ui-097725.mjs"
+    "scripts/test-trend-seasonal-temperature-ui-097725.mjs",
+    "scripts/test-long-range-single-model-fallback-097726.mjs",
+    "scripts/test-seasonal-all-model-consensus-097727.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -669,7 +671,9 @@
     "scripts/test-weather-profile-skybar-pills-097723.mjs",
     "scripts/test-knmi-eps-wasm-feasibility-097723.mjs",
     "scripts/test-knmi-eps-wasm32-prototype-097724.mjs",
-    "scripts/test-trend-seasonal-temperature-ui-097725.mjs"
+    "scripts/test-trend-seasonal-temperature-ui-097725.mjs",
+    "scripts/test-long-range-single-model-fallback-097726.mjs",
+    "scripts/test-seasonal-all-model-consensus-097727.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -1099,7 +1103,11 @@
     "tools/knmi_eps_wasm_prototype/cloudflare_precompiled.mjs",
     "scripts/test-trend-seasonal-temperature-ui-097725.mjs",
     "MID_IMPLEMENTATION_0.9.77.25.md",
-    "MID_TEST_REPORT_0.9.77.25.md"
+    "MID_TEST_REPORT_0.9.77.25.md",
+    "MID_IMPLEMENTATION_0.9.77.26.md",
+    "MID_TEST_REPORT_0.9.77.26.md",
+    "MID_SEASONAL_LONG_RANGE_SOURCE_AUDIT_0.9.77.27.md",
+    "MID_IMPLEMENTATION_0.9.77.27.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1451,14 +1459,17 @@
     "scripts/test-knmi-eps-productive-cache-097718.mjs",
     "scripts/test-current-temperature-smooth-bridge-097719.mjs",
     "scripts/test-knmi-eps-worker-binding-097719.mjs",
-    "scripts/test-knmi-eps-point-decoder-097722.mjs"
+    "scripts/test-knmi-eps-point-decoder-097722.mjs",
+    "scripts/test-seasonal-all-model-consensus-097727.mjs"
   ],
   "version": "0.9.77.23",
   "updatedAt": "2026-09-02T12:00:00Z",
   "implementationFiles": [
-    "MID_IMPLEMENTATION_0.9.77.23.md"
+    "MID_IMPLEMENTATION_0.9.77.23.md",
+    "MID_IMPLEMENTATION_0.9.77.27.md"
   ],
   "testReports": [
-    "MID_TEST_REPORT_0.9.77.23.md"
+    "MID_TEST_REPORT_0.9.77.23.md",
+    "MID_TEST_REPORT_0.9.77.27.md"
   ]
 }

@@ -129,3 +129,10 @@ Das 24-h-Wetterprofil verwendet für die Gesamtzeile denselben zentralen `detail
 
 Temperatur ist im Witterungstrend Tag 15–46 der fail-safe Default; `mid:subseasonal-trend:metric` speichert die letzte gültige Auswahl. Der Season-Bereich verwendet alle tatsächlich numerisch geladenen unabhängigen Modellfamilien mit genau einer Stimme je Familie als Poor-Man’s-Ensemble und zeigt dieselben verfügbaren Einzelmodelle gemeinsam in einem Diagramm. Reine Katalog-/Status-/Zusatzmodellkästen ohne Zahlenwerte werden nicht dargestellt. Tmin/Tmax erscheinen in 7-/14-Tage-Übersichten wieder als kompakte blaue/rote Kästchen; bereits etwa ±0,5 bis ±1 K zum jeweiligen Klimamittel verändern Zahl-, Hintergrund- und Rahmenintensität sichtbar. Aktuelle/stündliche Temperaturen bleiben neutral. Required Regression: `scripts/test-trend-seasonal-temperature-ui-097725.mjs`.
 
+
+## 0.9.77.27
+- Saison-/Langfristtrend verwendet kanonische `modelKey`-/`independenceKey`-Identitäten. Datenanbieter sind keine zusätzlichen Modellstimmen.
+- C3S führt 10 aktuelle operationelle Systeme; ECCC System 4/5 bleiben getrennte Systeme. NOAA NMME wird dynamisch aus dem jüngsten ENSMEAN-Lauf übernommen.
+- Poor-Man’s-Ensemble gewichtet jedes tatsächlich numerisch verfügbare unabhängige Modellsystem exakt einmal; C3S/NMME/Open-Meteo-Dubletten werden zusammengeführt.
+- NOAA-NMME-Punktdaten werden primär per NetCDF-Header-Range und HTTP Multi-Range gelesen; Volldownload ist nur Fallback. Keine neue kostenpflichtige Ressource.
+- WMO/APCC/CanSIPS/DWD-EPISODES werden nicht als scheinbar zusätzliche Monatsstimmen eingemischt, wenn Zeitachse, Authentifizierung oder Modellabhängigkeit das fachlich verbieten. Vollständiger Audit: `MID_SEASONAL_LONG_RANGE_SOURCE_AUDIT_0.9.77.27.md`.

@@ -6,7 +6,7 @@ const comparison=fs.readFileSync(path.join(process.cwd(),'src','LongRangeModelCo
 const seasonal=fs.readFileSync(path.join(process.cwd(),'src','seasonalForecast.ts'),'utf8');
 
 const checks=[
-  ['poor mans ensemble uses every loaded model family once',panel.includes('Poor-Man’s-Ensemble')&&panel.includes('eine Stimme je numerisch verfügbarer Modellfamilie')],
+  ['poor mans ensemble uses every independent loaded model system once',panel.includes('Poor-Man’s-Ensemble')&&panel.includes('eine Stimme je numerisch verfügbarem unabhängigen Modellsystem')],
   ['all loaded model families feed the combined months',panel.includes("buildCombinedMonths(models,'temperature')")&&panel.includes("buildCombinedMonths(models,'precipitation')")],
   ['single-model overlay receives complete point model list',panel.includes('<LongRangeModelComparison models={models}/>')],
   ['overlay explicitly shows all available numerical models',comparison.includes('alle verfügbaren numerischen Modelle')&&comparison.includes('series:ModelSeries[]=models.map')],

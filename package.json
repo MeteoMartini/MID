@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.77.25",
+  "version": "0.9.77.27",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -386,7 +386,9 @@
     "test:weather-profile-skybar-pills": "node scripts/test-weather-profile-skybar-pills-097723.mjs",
     "test:knmi-eps-wasm-feasibility": "node scripts/test-knmi-eps-wasm-feasibility-097723.mjs",
     "test:knmi-eps-wasm32-prototype": "node scripts/test-knmi-eps-wasm32-prototype-097724.mjs",
-    "test:trend-seasonal-temperature-ui": "node scripts/test-trend-seasonal-temperature-ui-097725.mjs"
+    "test:trend-seasonal-temperature-ui": "node scripts/test-trend-seasonal-temperature-ui-097725.mjs",
+    "test:long-range-single-model-fallback": "node scripts/test-long-range-single-model-fallback-097726.mjs",
+    "test:seasonal-all-model-consensus": "node scripts/test-seasonal-all-model-consensus-097727.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",

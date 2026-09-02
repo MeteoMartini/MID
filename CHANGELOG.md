@@ -1,3 +1,10 @@
+## v0.9.77.26
+
+- Hotfix Langfristtrend: Saison-Rauchfahnen bleiben bereits bei einer numerisch verfügbaren Modellfamilie sichtbar; der reine Single-Model-Hinweiskasten ersetzt die Grafik nicht mehr.
+- Bei einer Quelle zeigt MID deren echte Temperatur-/Niederschlags-Ensemble-Streuung; ab zwei Quellen wird automatisch wieder das gleichgewichtete Poor-Man’s-Ensemble plus gemeinsamer Einzelmodellvergleich verwendet.
+- Fehlerursache war ausschließlich die Frontend-Gate-Logik aus v0.9.77.25; saisonale Workerquellen und Multi-Modell-Vertrag bleiben unverändert.
+- Keine fachliche Workeränderung; Worker nur versionssynchronisiert.
+
 ## v0.9.77.25
 
 - Witterungstrend Tag 15–46 bestätigt und regressionsgeschützt: Temperatur ist Standard, die letzte gültige Parameterauswahl wird dauerhaft gespeichert.
@@ -5107,3 +5114,12 @@
 - Komposit-Layer-Zustand einschließlich Aktivierung, Kartenstil, Transparenzen und Bewegungszeitmodus bleibt unter dem bestehenden v3-Vertrag dauerhaft erhalten.
 - Cloudflare-KV-Last reduziert: regelabhängige Kadenzen, metadata-only Scheduling, zustandsabhängige Writes und gedrosselte Heartbeats ohne Wegfall von Regeln oder Datenquellen.
 - Regressionen prüfen die kanonische Prognose, das textuelle Flugbriefing, dauerhafte Nutzerzustände und das KV-Operationsbudget.
+
+## 0.9.77.27
+- Saison-/Langfristquellen vollständig neu auditiert und auf kanonische Modell-/Unabhängigkeits-IDs umgestellt.
+- C3S führt die 10 aktuell operationellen Systeme getrennt; ECCC CanESM5.1p1bc und GEM5.2-NEMO sind eigenständige Systeme, Met Office GloSea6-GC5.1 System 610 und JMA CPS4 sind aktualisiert.
+- NOAA NMME bleibt dynamisch und übernimmt jedes im neuesten ENSMEAN-Lauf tatsächlich verfügbare Modell; CFSv2/ECCC-Dubletten werden anbieterübergreifend nicht doppelt gewichtet.
+- Poor-Man’s-Ensemble: eine gleichgewichtete Stimme je unabhängiger Modelllinie; aktuell bis zu 13 unabhängige Systeme bei vollständig aktivem C3S + NMME.
+- NMME-Punktentnahme auf Header-Range + HTTP Multi-Range mit Volldownload-Fallback und begrenzter Parallelität umgestellt.
+- Gemeinsames Einzelmodell-Diagramm bleibt auch bei >12 Linien eindeutig über Farbe + Linienmuster; keine zusätzlichen Katalog-/Hinweiskästchen.
+- WMO LC-LRFMME, APCC, CanSIPS und DWD EPISODES geprüft und nur dort einbezogen, wo Zeitachse, Authentifizierung und Unabhängigkeit eine fachlich saubere numerische Vereinigung erlauben.

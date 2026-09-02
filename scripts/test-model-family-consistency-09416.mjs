@@ -38,7 +38,7 @@ assert.ok(mountain.includes("const grouped=new Map<string,typeof rows>()"),'Schn
 assert.ok(mountain.includes('unabhängige Modellfamilien gleich gewichtet'),'Schneefallgrenzen-Methodik muss Familiengewichtung transparent machen.');
 
 // Langfrist ist bereits familien-dedupliziert und darf nicht regressieren.
-assert.ok(seasonal.includes('freshDeduped=[...new Map(freshModels.map(model=>[model.family,model])).values()]'),'Saisonmodelle müssen pro Familie dedupliziert bleiben.');
+assert.ok(seasonal.includes('freshDeduped=preferredIndependentModels(freshModels)')&&seasonal.includes('model.independenceKey||model.modelKey||model.family'),'Saisonmodelle müssen über kanonische Unabhängigkeits-IDs dedupliziert bleiben.');
 
 // Frontendvertrag des Workers muss Gruppen/Rollen transportieren.
 assert.ok(fusion.includes("const CACHE_PREFIX='mid:forecast-fusion:v9:'"),'Forecast-Fusion-Cache muss nach Lage-/Horizont-/Regionalgewichtungsänderung invalidiert werden.');

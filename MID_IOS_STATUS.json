@@ -1,11 +1,11 @@
 {
   "schema": 1,
-  "updatedAt": "2026-09-02T14:52:23.000Z",
-  "releaseVersion": "0.9.77.25",
+  "updatedAt": "2026-09-02T19:00:00+02:00",
+  "releaseVersion": "0.9.77.27",
   "sourceBaseline": {
-    "professionalVersion": "0.9.77.25",
-    "workerVersion": "0.9.77.25",
-    "regressionsPassed": 533
+    "professionalVersion": "0.9.77.26",
+    "workerVersion": "0.9.77.26",
+    "regressionsPassed": 534
   },
   "strategy": "shared-react-vite-core-with-capacitor-ios-shell",
   "browserDevelopmentContinues": true,
@@ -114,14 +114,15 @@
     "nightly-auto-revision-issue-28-audit-api-contract-hotfix-0.9.77.20",
     "release-run-830-api-health-minmax-regression-hotfix-0.9.77.21",
     "shared-knmi-harmonie-eps-point-decoder-source-preparation-0.9.77.22",
-    "trend-seasonal-poor-mans-ensemble-temperature-cards-0.9.77.25"
+    "trend-seasonal-poor-mans-ensemble-temperature-cards-0.9.77.25",
+    "long-range-single-model-fallback-0.9.77.26"
   ],
   "nextMilestone": "macos-xcode-simulator-quality-assurance",
   "validation": {
-    "browserBuild": "v0.9.77.25: Der vollständige lokale Browser-Produktionsbuild ist im Transport-Arbeitsbaum nicht ausführbar, weil node_modules nicht mitgeliefert wird und npm ci im Container mit Transporttimeout abbrach. Geänderte TS/TSX-Dateien sind parser-/transpilebasiert syntaktisch grün; der normale Installer/CI-Pfad installiert die gepinnte Toolchain.",
-    "typescript": "v0.9.77.25: Lokaler Projekt-TypeScript-7-/typescript-strada-Install fehlt nach abgebrochenem npm ci; global steht nur TypeScript 5.8.3 zur Verfügung. Deshalb sind die toolchaingebundenen Tests nicht als TypeScript-Gate wertbar.",
-    "workerSyntax": "v0.9.77.25: Maintenance-Aggregate sowie node --check für worker/metar-proxy.js und worker.js grün. Keine fachliche Workeränderung; nur Versionssynchronisierung.",
-    "regressions": "v0.9.77.25: 533/533 umgebungsunabhängig ausführbare Regressionen bestanden. Insgesamt 638 Tests erkannt; 105 sind ausschließlich durch die lokal fehlende npm/TypeScript-7/typescript-strada-Testtoolchain blockiert. Alle neuen und direkt betroffenen Witterungstrend-, Season-, Modellquellen-, Tmin/Tmax-, 7-/14-Tage-, Farb- und UI-Verträge sind grün.",
+    "browserBuild": "v0.9.77.27: Vollständiger Vite-Produktionsbuild in dieser Transportumgebung nicht ausführbar, weil npm ci am externen Registry-DNS mit EAI_AGAIN scheitert. Die geänderten Saison-TS/TSX-Dateien sind parser-/transpilebasiert syntaktisch grün; der normale Installer/CI-Pfad installiert die gepinnte Toolchain.",
+    "typescript": "v0.9.77.27: Projekt-TypeScript-7/typescript-strada konnte wegen EAI_AGAIN gegen registry.npmjs.org nicht vollständig installiert werden. 105 toolchaingebundene Regressionen bleiben daher lokal nicht wertbar; die geänderten TS/TSX-Dateien wurden zusätzlich mit dem vorhandenen TypeScript-Parser/Transpiler geprüft.",
+    "workerSyntax": "v0.9.77.27: Maintenance-Aggregate synchron; node --check für Worker-Fragment, generierten Worker und beide Service Worker grün. Funktionale Workeränderung: 10-System-C3S-Vertrag sowie sparse NOAA-NMME-Multi-Range-Punktentnahme.",
+    "regressions": "v0.9.77.27: 535/535 in dieser Umgebung ausführbare Regressionen bestanden. Insgesamt 640 Tests erkannt; 105 bleiben ausschließlich durch die nicht vollständig installierbare TypeScript-7/typescript-strada-Testtoolchain blockiert. Neue Saison-All-Model-Regression und alle direkt betroffenen Langfrist-/Modellquellen-/Poor-Man’s-Ensemble-Tests sind grün.",
     "capacitorSync": "Kein neuer cap copy ios in dieser isolierten Laufzeit, da kein vollständiger Vite-Build ohne installierte npm-Dependencies möglich ist. Die Änderungen liegen ausschließlich im gemeinsamen React/Vite-Fachkern und gelten damit parallel für Browser/PWA/iOS.",
     "xcodeProjectStructure": "Gemeinsamer Capacitor-iOS-Wrapper, Light-/Dark-AppIcon- und Splash-Kataloge, Privacy-Manifeste und MIDWidgets-Struktur bleiben erhalten; keine neue native Berechtigung oder Capability aktiviert.",
     "xcodeAppleSdkBuild": "required-next-gate-macos-xcode-simulator; includes Apple SDK build, simulator launch, Privacy Report inspection and post-sync structure verification."
@@ -137,7 +138,7 @@
     ],
     "approved": false
   },
-  "validationNote": "v0.9.77.25 bestätigt Temperatur als Witterungstrend-Default mit persistierter letzter Auswahl, verdichtet Season auf ein gleichgewichtetes Poor-Man’s-Ensemble aller tatsächlich numerisch verfügbaren unabhängigen Modellfamilien plus gemeinsames Einzelmodell-Diagramm und stellt Tmin/Tmax in 7-/14-Tage wieder als kompakte Blau-/Rot-Kästchen mit empfindlicher Klimaabweichungsreaktion dar. Keine fachliche Workeränderung, keine neue Ressource und keine Kostenaktivierung; nextMilestone macos-xcode-simulator-quality-assurance bleibt unverändert.",
+  "validationNote": "v0.9.77.27 vereinigt den vollständigen aktuell regelkonform erreichbaren Monats-Saisonpool über kanonische Modell-/Unabhängigkeits-IDs: 10 C3S-Systeme, dynamisches NOAA NMME und ECMWF-Fallback ohne Doppelgewichtung. NOAA-NMME nutzt sparse HTTP-Range/Multi-Range-Punktentnahme mit Volldownload-Fallback. WMO/APCC/CanSIPS/EPISODES werden wegen Zugangsgate, abweichender Zeitachse oder Doppelgewichtungsrisiko nicht als ungeprüfte Zusatzstimmen eingemischt. Funktionale Workeränderung; Worker-Upload erforderlich. Keine neue Ressource/Kostenaktivierung; nextMilestone macos-xcode-simulator-quality-assurance bleibt unverändert.",
   "completedMilestones": [
     "ci-regression-contract-hotfix-0.9.76.22",
     "ruc-scheduler-resilience-source-preparation-0.9.76.24",
@@ -208,7 +209,19 @@
       "date": "2026-09-02",
       "title": "Witterungstrend-Persistenz, Season-Poor-Man’s-Ensemble und Tmin/Tmax-Kästchen",
       "summary": "Temperatur bleibt Default und letzte Witterungstrend-Auswahl persistiert. Season kombiniert alle tatsächlich numerisch verfügbaren unabhängigen Modellfamilien mit einer Stimme je Familie und zeigt alle Einzelmodelle gemeinsam; reine Katalog-/Statuskästen entfallen. Tmin/Tmax erhalten wieder kompakte Blau-/Rot-Kästchen mit empfindlicher Reaktion bereits auf kleine Klimaabweichungen."
+    },
+    {
+      "version": "0.9.77.26",
+      "date": "2026-09-02",
+      "title": "Langfristtrend Single-Model-Fallback",
+      "summary": "Behebt das UI-Gate aus v0.9.77.25: Saison-Rauchfahnen bleiben bei nur einer numerisch verfügbaren Modellfamilie sichtbar; ab zwei Familien greift weiterhin automatisch das gleichgewichtete Poor-Man’s-Ensemble und der gemeinsame Modellvergleich."
+    },
+    {
+      "version": "0.9.77.27",
+      "date": "2026-09-02",
+      "title": "Saison-/Langfristmodelle – vollständiger unabhängiger Multi-Modell-Pool",
+      "summary": "C3S (10 aktuelle Systeme), dynamisches NOAA NMME und ECMWF-Fallback werden über kanonische Modell-/Unabhängigkeits-IDs zu einem gleichgewichteten Poor-Man’s-Ensemble vereinigt. NOAA-NMME-Punktwerte nutzen Sparse-/Multi-Range-I/O; WMO/APCC/CanSIPS/EPISODES werden nur bei fachlich kompatibler Zeitachse und ohne Doppelgewichtung einbezogen."
     }
   ],
-  "currentVersion": "0.9.77.25"
+  "currentVersion": "0.9.77.27"
 }

@@ -1,7 +1,7 @@
 import {readFile} from 'node:fs/promises';
 const [seasonal,panel,mountain,app,worker,styles]=await Promise.all([readFile(new URL('../src/seasonalForecast.ts',import.meta.url),'utf8'),readFile(new URL('../src/LongRangePanel.tsx',import.meta.url),'utf8'),readFile(new URL('../src/mountainSports.ts',import.meta.url),'utf8'),readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),readFile(new URL('../worker/metar-proxy.js',import.meta.url),'utf8'),readFile(new URL('../src/styles.css',import.meta.url),'utf8')]);
 const failures=[],need=(scope,text,token)=>{if(!text.includes(token))failures.push(`${scope}: fehlt ${token}`)};
-for(const token of ["id:'ecmwf-seasonal',family:'ECMWF'","id:'noaa-cfsv2',family:'NOAA CFSv2'",'fetchCfsv2','Poor-Man’s-Ensemble gewichtet jede tatsächlich numerisch verfügbare unabhängige Modellfamilie exakt einmal'])need('seasonal',seasonal,token);
+for(const token of ["id:'ecmwf-seasonal',modelKey:'ecmwf-seas5-51'","id:'noaa-cfsv2',modelKey:'ncep-cfsv2'",'fetchCfsv2','Das Poor-Man’s-Ensemble gewichtet jedes tatsächlich numerisch verfügbare unabhängige Modellsystem exakt einmal'])need('seasonal',seasonal,token);
 if(seasonal.includes("apiModel:'ecmwf_seas5'")||seasonal.includes("apiModel:'ecmwf_ec46'"))failures.push('seasonal: ECMWF-Varianten werden weiterhin als separate Multi-Modell-Familien behandelt');
 for(const token of ['Poor-Man’s-Ensemble','models.map((item:SeasonalPointModel)=>item.family)','buildCombinedMonths','gleichgewichteten Poor-Man’s-Ensemble-Mittel'])need('panel',panel,token);
 for(const token of ['snowfall_height_spread','freezing_level_height_spread','SNOWLINE_ENSEMBLE_MODELS','combineSnowLineModels','memberEquivalent'])need('mountain',mountain,token);
