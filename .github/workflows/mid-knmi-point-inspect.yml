@@ -1,0 +1,605 @@
+name: MID KNMI point inspect
+
+on:
+  workflow_dispatch:
+    inputs:
+      latitude:
+        description: "Latitude des Testpunkts (z. B. 52.10)"
+        required: true
+        default: "52.10"
+        type: string
+      longitude:
+        description: "Longitude des Testpunkts (z. B. 5.18)"
+        required: true
+        default: "5.18"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mid-knmi-point-inspect
+  cancel-in-progress: true
+
+jobs:
+  inspect-knmi-point:
+    name: Decode one KNMI HARMONIE EPS point
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      KNMI_DATASET: harmonie_arome_cy43_p4a
+      KNMI_DATASET_VERSION: "1.0"
+      KNMI_API_KEY: ${{ secrets.KNMI_OPEN_DATA_API_KEY }}
+      TARGET_LAT: ${{ inputs.latitude }}
+      TARGET_LON: ${{ inputs.longitude }}
+
+      # Safety limits
+      MAX_TAR_ENTRIES: "240"
+      MAX_MEMBER_BYTES: "33554432"   # 32 MiB hard cap
+      RANGE_CHUNK_BYTES: "1048576"   # 1 MiB chunks
+
+    steps:
+      - name: Validate point input
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import math
+          import os
+          import sys
+
+          try:
+              lat = float(os.environ["TARGET_LAT"])
+              lon = float(os.environ["TARGET_LON"])
+          except Exception:
+              print("::error::Latitude/Longitude sind keine gültigen Zahlen.")
+              sys.exit(1)
+
+          if not (math.isfinite(lat) and math.isfinite(lon)):
+              print("::error::Latitude/Longitude müssen endlich sein.")
+              sys.exit(1)
+
+          if not (-90.0 <= lat <= 90.0):
+              print("::error::Latitude muss zwischen -90 und +90 liegen.")
+              sys.exit(1)
+
+          if not (-180.0 <= lon <= 180.0):
+              print("::error::Longitude muss zwischen -180 und +180 liegen.")
+              sys.exit(1)
+
+          print(f"Requested point: {lat:.5f}, {lon:.5f}")
+          PY
+
+      - name: Install ecCodes
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends libeccodes-tools
+          grib_ls -V
+
+      - name: Locate and download exactly one KNMI TAR member
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -z "${KNMI_API_KEY:-}" ]; then
+            echo "::error::KNMI_OPEN_DATA_API_KEY fehlt oder ist leer."
+            exit 1
+          fi
+
+          python3 - <<'PY'
+          import json
+          import os
+          import re
+          import sys
+          import urllib.parse
+          import urllib.request
+          from pathlib import Path
+
+          api_key = os.environ["KNMI_API_KEY"]
+          dataset = os.environ["KNMI_DATASET"]
+          version = os.environ["KNMI_DATASET_VERSION"]
+          max_entries = int(os.environ["MAX_TAR_ENTRIES"])
+          max_member_bytes = int(os.environ["MAX_MEMBER_BYTES"])
+          chunk_bytes = int(os.environ["RANGE_CHUNK_BYTES"])
+
+          base = "https://api.dataplatform.knmi.nl/open-data/v1"
+          out_path = Path(os.environ.get("RUNNER_TEMP", "/tmp")) / "knmi-point-sample.grib"
+
+          archive_size = None
+          header_bytes = 0
+          payload_bytes = 0
+
+          def api_json(url):
+              request = urllib.request.Request(
+                  url,
+                  headers={"Authorization": api_key},
+              )
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  return json.load(response)
+
+          query = urllib.parse.urlencode({
+              "maxKeys": 1,
+              "orderBy": "created",
+              "sorting": "desc",
+          })
+          list_url = f"{base}/datasets/{dataset}/versions/{version}/files?{query}"
+
+          try:
+              payload = api_json(list_url)
+          except Exception as exc:
+              print(f"::error::KNMI-Dateiliste fehlgeschlagen: {exc}")
+              sys.exit(1)
+
+          files = payload.get("files") or []
+          if not files:
+              print("::error::Keine KNMI-P4a-Datei gefunden.")
+              sys.exit(1)
+
+          latest = files[0]
+          archive_name = latest.get("filename")
+          if not archive_name:
+              print("::error::Neueste KNMI-Datei besitzt keinen Dateinamen.")
+              sys.exit(1)
+
+          encoded = urllib.parse.quote(archive_name, safe="")
+          url_endpoint = (
+              f"{base}/datasets/{dataset}/versions/{version}/files/"
+              f"{encoded}/url"
+          )
+
+          try:
+              url_payload = api_json(url_endpoint)
+          except Exception as exc:
+              print(f"::error::Temporäre Download-URL fehlgeschlagen: {exc}")
+              sys.exit(1)
+
+          download_url = url_payload.get("temporaryDownloadUrl")
+          if not isinstance(download_url, str) or not download_url.startswith("https://"):
+              print("::error::Keine gültige temporäre Download-URL erhalten.")
+              sys.exit(1)
+
+          def ranged_get(start, length, purpose):
+              global archive_size
+              end = start + length - 1
+              request = urllib.request.Request(
+                  download_url,
+                  headers={
+                      "Range": f"bytes={start}-{end}",
+                      "Accept-Encoding": "identity",
+                      "User-Agent": "MID-KNMI-point-inspect/1.0",
+                  },
+              )
+
+              try:
+                  response = urllib.request.urlopen(request, timeout=45)
+              except Exception as exc:
+                  print(f"::error::HTTP-Range {start}-{end} fehlgeschlagen: {exc}")
+                  sys.exit(1)
+
+              try:
+                  status = getattr(response, "status", None)
+                  content_range = response.headers.get("Content-Range", "")
+
+                  if status != 206:
+                      print(
+                          "::error::Range-Request wurde nicht mit HTTP 206 beantwortet "
+                          f"(Status {status}). Sicherheitsabbruch."
+                      )
+                      sys.exit(1)
+
+                  match = re.match(r"bytes\s+(\d+)-(\d+)/(\d+|\*)", content_range)
+                  if not match:
+                      print(f"::error::Ungültiger Content-Range: {content_range!r}")
+                      sys.exit(1)
+
+                  got_start = int(match.group(1))
+                  got_end = int(match.group(2))
+                  if got_start != start or got_end != end:
+                      print(
+                          "::error::KNMI lieferte einen anderen Bytebereich als angefordert: "
+                          f"{content_range}"
+                      )
+                      sys.exit(1)
+
+                  if match.group(3) != "*":
+                      archive_size = int(match.group(3))
+
+                  data = response.read(length + 1)
+                  if len(data) != length:
+                      print(
+                          f"::error::{purpose}: {len(data)} statt {length} Byte erhalten."
+                      )
+                      sys.exit(1)
+
+                  return data
+              finally:
+                  response.close()
+
+          def parse_octal(raw):
+              text = raw.rstrip(b"\0 ").lstrip(b" ")
+              if not text:
+                  return 0
+              try:
+                  return int(text, 8)
+              except ValueError:
+                  return None
+
+          def decode_text(raw):
+              return raw.split(b"\0", 1)[0].decode("utf-8", "replace").strip()
+
+          # Walk TAR metadata only and choose the first real P4a meteo member.
+          offset = 0
+          selected = None
+
+          for index in range(max_entries):
+              header = ranged_get(offset, 512, "TAR header")
+              header_bytes += 512
+
+              if header == b"\0" * 512:
+                  break
+
+              name = decode_text(header[0:100])
+              prefix = decode_text(header[345:500])
+              if prefix:
+                  name = f"{prefix}/{name}"
+
+              size = parse_octal(header[124:136])
+              typeflag = header[156:157].decode("ascii", "replace") or "0"
+
+              if size is None:
+                  print(
+                      f"::error::TAR-Dateigröße in Header #{index + 1} "
+                      f"bei Offset {offset} nicht lesbar."
+                  )
+                  sys.exit(1)
+
+              if (
+                  typeflag in ("0", "\x00")
+                  and "harm43_v1_eur_uwcw_meteo_" in name
+                  and name.endswith("_GB")
+              ):
+                  selected = {
+                      "name": name,
+                      "size": size,
+                      "header_offset": offset,
+                      "payload_offset": offset + 512,
+                  }
+                  break
+
+              padded = ((size + 511) // 512) * 512
+              offset += 512 + padded
+
+          if not selected:
+              print(
+                  f"::error::Keine reguläre P4a-Meteo-Datei in den ersten "
+                  f"{max_entries} TAR-Einträgen gefunden."
+              )
+              sys.exit(1)
+
+          member_size = selected["size"]
+          if member_size <= 0 or member_size > max_member_bytes:
+              print(
+                  "::error::Ausgewähltes TAR-Mitglied verletzt das Größenlimit: "
+                  f"{member_size} Byte."
+              )
+              sys.exit(1)
+
+          payload_offset = selected["payload_offset"]
+
+          with out_path.open("wb") as fh:
+              pos = 0
+              while pos < member_size:
+                  length = min(chunk_bytes, member_size - pos)
+                  data = ranged_get(
+                      payload_offset + pos,
+                      length,
+                      "GRIB member payload",
+                  )
+                  fh.write(data)
+                  payload_bytes += len(data)
+                  pos += len(data)
+
+          if out_path.stat().st_size != member_size:
+              print("::error::Lokale GRIB-Dateigröße stimmt nicht mit TAR-Metadaten überein.")
+              sys.exit(1)
+
+          with out_path.open("rb") as fh:
+              signature = fh.read(4)
+          if signature != b"GRIB":
+              print(f"::error::Keine GRIB-Signatur gefunden: {signature!r}")
+              sys.exit(1)
+
+          member_match = re.search(
+              r"_meteo_(\d{3})_(\d{12})_(\d{5})_GB$",
+              selected["name"],
+          )
+          member_number = ""
+          nominal_stamp = ""
+          file_step = ""
+          if member_match:
+              member_number = str(int(member_match.group(1)))
+              nominal_stamp = member_match.group(2)
+              raw_step = member_match.group(3)
+              # KNMI naming uses HHHMM; 00200 => +2 h 00 min.
+              file_step = f"{int(raw_step[:3])}:{raw_step[3:]}"
+
+          print("KNMI range acquisition: OK")
+          print(f"Archive: {archive_name}")
+          print(f"Selected member file: {selected['name']}")
+          print(f"Selected member bytes: {member_size}")
+          if member_number:
+              print(f"Member number from filename: {member_number}")
+          if nominal_stamp:
+              print(f"Nominal run stamp: {nominal_stamp}")
+          if file_step:
+              print(f"Filename forecast step: +{file_step}")
+          if archive_size is not None:
+              print(f"Archive bytes: {archive_size}")
+          print(f"TAR header bytes transferred: {header_bytes}")
+          print(f"GRIB payload bytes transferred: {payload_bytes}")
+          print("GRIB signature: OK")
+
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env:
+              env.write(f"KNMI_SAMPLE_GRIB={out_path}\n")
+              env.write(f"KNMI_SAMPLE_MEMBER_FILE={selected['name']}\n")
+              env.write(f"KNMI_MEMBER_NUMBER={member_number}\n")
+              env.write(f"KNMI_NOMINAL_STAMP={nominal_stamp}\n")
+              env.write(f"KNMI_FILE_STEP={file_step}\n")
+          PY
+
+      - name: Decode nearest KNMI model point
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ ! -s "${KNMI_SAMPLE_GRIB:-}" ]; then
+            echo "::error::KNMI sample GRIB fehlt."
+            exit 1
+          fi
+
+          echo "============================================================"
+          echo "Requested point: ${TARGET_LAT}, ${TARGET_LON}"
+          echo "Member file: ${KNMI_SAMPLE_MEMBER_FILE}"
+          if [ -n "${KNMI_MEMBER_NUMBER:-}" ]; then
+            echo "Member: ${KNMI_MEMBER_NUMBER}"
+          fi
+          if [ -n "${KNMI_FILE_STEP:-}" ]; then
+            echo "Forecast step from filename: +${KNMI_FILE_STEP}"
+          fi
+          echo "============================================================"
+
+          # Use 2 m temperature to expose the actual nearest grid point chosen
+          # by ecCodes, including latitude/longitude and distance.
+          echo
+          echo "### Nearest model grid point"
+          grib_ls \
+            -w indicatorOfParameter=11,indicatorOfTypeOfLevel=105,level=2 \
+            -l "${TARGET_LAT},${TARGET_LON},1" \
+            -p indicatorOfParameter,stepRange \
+            "$KNMI_SAMPLE_GRIB"
+
+          echo
+          echo "### MID-near point decoding"
+
+          python3 - <<'PY'
+          import json
+          import math
+          import os
+          import subprocess
+          import sys
+          from pathlib import Path
+
+          path = os.environ["KNMI_SAMPLE_GRIB"]
+          lat = float(os.environ["TARGET_LAT"])
+          lon = float(os.environ["TARGET_LON"])
+
+          # KNMI Cy43 P2a/P4a local GRIB1 parameter table.
+          # We deliberately key by indicatorOfParameter because generic
+          # ecCodes reports shortName=unknown without KNMI's local table.
+          specs = [
+              ("pressure_msl_pa",       1,   103, 0,  0),
+              ("temperature_2m_k",      11,  105, 2,  0),
+              ("visibility_m",          20,  105, 0,  0),
+              ("wind_u_10m_ms",         33,  105, 10, 0),
+              ("wind_v_10m_ms",         34,  105, 10, 0),
+              ("wind_u_50m_ms",         33,  105, 50, 0),
+              ("wind_v_50m_ms",         34,  105, 50, 0),
+              ("relative_humidity_2m",  52,  105, 2,  0),
+              ("snow_water_eq_kgm2",    65,  105, 0,  0),
+              ("cloud_total_pct",       71,  105, 0,  0),
+              ("cloud_low_pct",         73,  105, 0,  0),
+              ("cloud_mid_pct",         74,  105, 0,  0),
+              ("cloud_high_pct",        75,  105, 0,  0),
+              ("gust_u_10m_ms",         162, 105, 10, 2),
+              ("gust_v_10m_ms",         163, 105, 10, 2),
+              ("rain_kgm2",             181, 105, 0,  4),
+              ("snow_kgm2",             184, 105, 0,  4),
+              ("cloud_base_m",          186, 200, 0,  0),
+              ("graupel_kgm2",          201, 105, 0,  4),
+              ("lightning_raw",         209, 200, 0,  0),
+          ]
+
+          def query_value(code, level_type, level, tri):
+              where = (
+                  f"indicatorOfParameter={code},"
+                  f"indicatorOfTypeOfLevel={level_type},"
+                  f"level={level},"
+                  f"timeRangeIndicator={tri}"
+              )
+              cmd = [
+                  "grib_get",
+                  "-F", "%.12g",
+                  "-P", "stepRange",
+                  "-l", f"{lat},{lon},1",
+                  "-w", where,
+                  path,
+              ]
+              proc = subprocess.run(
+                  cmd,
+                  text=True,
+                  capture_output=True,
+                  check=False,
+              )
+
+              if proc.returncode != 0:
+                  return None, None, proc.stderr.strip()
+
+              lines = [
+                  line.strip()
+                  for line in proc.stdout.splitlines()
+                  if line.strip()
+              ]
+              if not lines:
+                  return None, None, "no matching GRIB message"
+
+              # Expected form with -P stepRange and -l ...,1:
+              # "<stepRange> <nearestValue>"
+              parts = lines[0].split()
+              if len(parts) < 2:
+                  return None, None, f"unexpected ecCodes output: {lines[0]!r}"
+
+              try:
+                  value = float(parts[-1])
+              except ValueError:
+                  return None, None, f"non-numeric value: {parts[-1]!r}"
+
+              step = parts[-2]
+              return value, step, None
+
+          raw = {}
+          steps = {}
+          errors = {}
+
+          for name, code, level_type, level, tri in specs:
+              value, step, error = query_value(code, level_type, level, tri)
+              if error:
+                  errors[name] = error
+              else:
+                  raw[name] = value
+                  steps[name] = step
+
+          def finite(name):
+              value = raw.get(name)
+              return value if isinstance(value, (int, float)) and math.isfinite(value) else None
+
+          def vector(u_name, v_name):
+              u = finite(u_name)
+              v = finite(v_name)
+              if u is None or v is None:
+                  return None
+              speed_ms = math.hypot(u, v)
+              speed_kt = speed_ms * 1.9438444924406
+              # Meteorological direction = direction wind comes FROM.
+              direction = (math.degrees(math.atan2(-u, -v)) + 360.0) % 360.0
+              return {
+                  "u_ms": round(u, 3),
+                  "v_ms": round(v, 3),
+                  "speed_ms": round(speed_ms, 3),
+                  "speed_kt": round(speed_kt, 2),
+                  "direction_deg": round(direction, 1),
+              }
+
+          result = {
+              "requested_point": {
+                  "latitude": lat,
+                  "longitude": lon,
+              },
+              "source": {
+                  "dataset": "harmonie_arome_cy43_p4a/1.0",
+                  "member_file": os.environ.get("KNMI_SAMPLE_MEMBER_FILE"),
+                  "member": os.environ.get("KNMI_MEMBER_NUMBER") or None,
+                  "nominal_stamp": os.environ.get("KNMI_NOMINAL_STAMP") or None,
+                  "filename_step": os.environ.get("KNMI_FILE_STEP") or None,
+              },
+              "mid_point_values": {},
+              "raw_values": raw,
+              "grib_steps": steps,
+              "decode_errors": errors,
+          }
+
+          out = result["mid_point_values"]
+
+          temp = finite("temperature_2m_k")
+          if temp is not None:
+              out["temperature_2m_c"] = round(temp - 273.15, 2)
+
+          pressure = finite("pressure_msl_pa")
+          if pressure is not None:
+              out["pressure_msl_hpa"] = round(pressure / 100.0, 2)
+
+          visibility = finite("visibility_m")
+          if visibility is not None:
+              out["visibility_m"] = round(visibility, 1)
+              out["visibility_km"] = round(visibility / 1000.0, 2)
+
+          rh = finite("relative_humidity_2m")
+          if rh is not None:
+              out["relative_humidity_2m_pct"] = round(rh, 1)
+
+          for src, dst in [
+              ("cloud_total_pct", "cloud_cover_total_pct"),
+              ("cloud_low_pct", "cloud_cover_low_pct"),
+              ("cloud_mid_pct", "cloud_cover_mid_pct"),
+              ("cloud_high_pct", "cloud_cover_high_pct"),
+          ]:
+              value = finite(src)
+              if value is not None:
+                  out[dst] = round(value, 1)
+
+          cloud_base = finite("cloud_base_m")
+          if cloud_base is not None:
+              out["cloud_base_m"] = round(cloud_base, 1)
+              out["cloud_base_ft"] = round(cloud_base * 3.280839895)
+
+          out["wind_10m"] = vector("wind_u_10m_ms", "wind_v_10m_ms")
+          out["wind_50m"] = vector("wind_u_50m_ms", "wind_v_50m_ms")
+          out["gust_10m"] = vector("gust_u_10m_ms", "gust_v_10m_ms")
+
+          # 1 kg/m² liquid-water equivalent == 1 mm water equivalent.
+          for src, dst in [
+              ("rain_kgm2", "rain_mm_water_equivalent"),
+              ("snow_kgm2", "snow_mm_water_equivalent"),
+              ("graupel_kgm2", "graupel_mm_water_equivalent"),
+              ("snow_water_eq_kgm2", "snow_water_equivalent_mm"),
+          ]:
+              value = finite(src)
+              if value is not None:
+                  out[dst] = round(value, 3)
+
+          lightning = finite("lightning_raw")
+          if lightning is not None:
+              out["lightning_diagnostic_raw"] = round(lightning, 6)
+
+          print("Decoded MID-near values:")
+          for key, value in out.items():
+              if isinstance(value, dict):
+                  print(f"- {key}: {json.dumps(value, ensure_ascii=False)}")
+              else:
+                  print(f"- {key}: {value}")
+
+          if errors:
+              print("")
+              print("Fields not decoded:")
+              for key, error in errors.items():
+                  print(f"- {key}: {error}")
+
+          print("")
+          print("JSON:")
+          print(json.dumps(result, indent=2, ensure_ascii=False, sort_keys=True))
+
+          json_path = Path(os.environ.get("RUNNER_TEMP", "/tmp")) / "knmi-point-inspect.json"
+          json_path.write_text(
+              json.dumps(result, indent=2, ensure_ascii=False, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          print("")
+          print(f"Local JSON written: {json_path}")
+          PY
+
+          echo
+          echo "### Safety summary"
+          echo "Only one P4a TAR member was downloaded."
+          echo "The complete multi-gigabyte KNMI TAR archive was NOT downloaded."
+          echo "Hard member-size cap: ${MAX_MEMBER_BYTES} bytes."
