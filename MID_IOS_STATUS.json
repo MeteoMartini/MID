@@ -1,11 +1,11 @@
 {
   "schema": 1,
-  "updatedAt": "2026-09-02T13:44:00.000Z",
-  "releaseVersion": "0.9.77.24",
+  "updatedAt": "2026-09-02T14:52:23.000Z",
+  "releaseVersion": "0.9.77.25",
   "sourceBaseline": {
-    "professionalVersion": "0.9.77.24",
-    "workerVersion": "0.9.77.24",
-    "regressionsPassed": null
+    "professionalVersion": "0.9.77.25",
+    "workerVersion": "0.9.77.25",
+    "regressionsPassed": 533
   },
   "strategy": "shared-react-vite-core-with-capacitor-ios-shell",
   "browserDevelopmentContinues": true,
@@ -113,15 +113,16 @@
     "release-run-829-regression-contract-hotfix-0.9.77.20",
     "nightly-auto-revision-issue-28-audit-api-contract-hotfix-0.9.77.20",
     "release-run-830-api-health-minmax-regression-hotfix-0.9.77.21",
-    "shared-knmi-harmonie-eps-point-decoder-source-preparation-0.9.77.22"
+    "shared-knmi-harmonie-eps-point-decoder-source-preparation-0.9.77.22",
+    "trend-seasonal-poor-mans-ensemble-temperature-cards-0.9.77.25"
   ],
   "nextMilestone": "macos-xcode-simulator-quality-assurance",
   "validation": {
-    "browserBuild": "v0.9.77.18: Der vollständige lokale Browser-Produktionsbuild ist im Transport-Quellstand nicht ausführbar, weil node_modules bewusst nicht enthalten ist. Der neue produktive KNMI-EPS-Worker-Cache ist syntaktisch und regressiv geprüft; der normale Installer/CI-Pfad installiert die gepinnte Toolchain.",
-    "typescript": "v0.9.77.18: Die lokale TypeScript-7.0.2-Toolchain ist im Transport-ZIP nicht installiert. Von 631 automatisch erkannten Regressionen sind 106 ausschließlich toolchaingebunden (86 typescript-strada, 18 lokale TypeScript-CLI/Toolchain, 2 esbuild); kein sonstiger fachlicher Fehlschlag verbleibt.",
-    "workerSyntax": "v0.9.77.18: worker-src/05-knmi-eps-cache.js, worker/metar-proxy.js, worker.js sowie beide Service Worker syntaktisch grün; Worker-Aggregat nach Versionssync neu erzeugt.",
-    "regressions": "v0.9.77.18: 525/525 umgebungsunabhängige automatische Regressionen bestanden. Insgesamt 631 Tests erkannt; die übrigen 106 sind ausschließlich an die lokal fehlende npm/TypeScript-Testtoolchain gebunden. KNMI-EPS-Produktivcache, Worker-Auto-Deploy, KV-Operationsbudget, Beobachtungs-/Ensemblevertrag, Modellquellenvertrag, Versionsvertrag und Release-Lineage sind grün.",
-    "capacitorSync": "Kein neuer cap copy ios in dieser isolierten Laufzeit, da kein vollständiger Vite-Build ohne npm-Dependencies möglich ist. Der gemeinsame Browser/PWA/iOS-Fachkern bleibt unverändert; der aktuelle Schritt betrifft ausschließlich den gemeinsamen Worker.",
+    "browserBuild": "v0.9.77.25: Der vollständige lokale Browser-Produktionsbuild ist im Transport-Arbeitsbaum nicht ausführbar, weil node_modules nicht mitgeliefert wird und npm ci im Container mit Transporttimeout abbrach. Geänderte TS/TSX-Dateien sind parser-/transpilebasiert syntaktisch grün; der normale Installer/CI-Pfad installiert die gepinnte Toolchain.",
+    "typescript": "v0.9.77.25: Lokaler Projekt-TypeScript-7-/typescript-strada-Install fehlt nach abgebrochenem npm ci; global steht nur TypeScript 5.8.3 zur Verfügung. Deshalb sind die toolchaingebundenen Tests nicht als TypeScript-Gate wertbar.",
+    "workerSyntax": "v0.9.77.25: Maintenance-Aggregate sowie node --check für worker/metar-proxy.js und worker.js grün. Keine fachliche Workeränderung; nur Versionssynchronisierung.",
+    "regressions": "v0.9.77.25: 533/533 umgebungsunabhängig ausführbare Regressionen bestanden. Insgesamt 638 Tests erkannt; 105 sind ausschließlich durch die lokal fehlende npm/TypeScript-7/typescript-strada-Testtoolchain blockiert. Alle neuen und direkt betroffenen Witterungstrend-, Season-, Modellquellen-, Tmin/Tmax-, 7-/14-Tage-, Farb- und UI-Verträge sind grün.",
+    "capacitorSync": "Kein neuer cap copy ios in dieser isolierten Laufzeit, da kein vollständiger Vite-Build ohne installierte npm-Dependencies möglich ist. Die Änderungen liegen ausschließlich im gemeinsamen React/Vite-Fachkern und gelten damit parallel für Browser/PWA/iOS.",
     "xcodeProjectStructure": "Gemeinsamer Capacitor-iOS-Wrapper, Light-/Dark-AppIcon- und Splash-Kataloge, Privacy-Manifeste und MIDWidgets-Struktur bleiben erhalten; keine neue native Berechtigung oder Capability aktiviert.",
     "xcodeAppleSdkBuild": "required-next-gate-macos-xcode-simulator; includes Apple SDK build, simulator launch, Privacy Report inspection and post-sync structure verification."
   },
@@ -136,7 +137,7 @@
     ],
     "approved": false
   },
-  "validationNote": "v0.9.77.24 führt KNMI-EPS Abschnitt 4/4 kostenneutral bis zum reproduzierbaren ecCodes-Wasm32/MEMFS/Nearest-Point-Quellprototyp fort. Keine Queue, kein neues Cloudflare-Binding, keine Wasm-Produktionsdependency und keine fachliche Workeränderung; reale P4a-Build-/Bundle-/RAM-/CPU-/Numerikverifikation bleibt das nächste Gate. Der gemeinsame Browser/PWA/iOS-Fachkern und nextMilestone macos-xcode-simulator-quality-assurance bleiben unverändert.",
+  "validationNote": "v0.9.77.25 bestätigt Temperatur als Witterungstrend-Default mit persistierter letzter Auswahl, verdichtet Season auf ein gleichgewichtetes Poor-Man’s-Ensemble aller tatsächlich numerisch verfügbaren unabhängigen Modellfamilien plus gemeinsames Einzelmodell-Diagramm und stellt Tmin/Tmax in 7-/14-Tage wieder als kompakte Blau-/Rot-Kästchen mit empfindlicher Klimaabweichungsreaktion dar. Keine fachliche Workeränderung, keine neue Ressource und keine Kostenaktivierung; nextMilestone macos-xcode-simulator-quality-assurance bleibt unverändert.",
   "completedMilestones": [
     "ci-regression-contract-hotfix-0.9.76.22",
     "ruc-scheduler-resilience-source-preparation-0.9.76.24",
@@ -201,7 +202,13 @@
       "summary": "Zweiter der vier verbleibenden Hauptabschnitte bindet KNMI HARMONIE EPS über den produktiven TAR-Indexcache an ein 6×5-Rolling-Manifest; Cloudflare dekodiert weiterhin kein GRIB. Current-Temperatur wird zeit- und zeitzonengenau als weiche Brücke statt als Einzelstundenersatz assimiliert. Installer #828 wird durch Synchronisierung der Modularisierungsregression mit worker-src/05-knmi-eps-cache.js repariert."
     },
     "weather-profile-transparent-pills-shared-day-skybar-0.9.77.23",
-    "knmi-eps-wasm32-nearest-point-source-prototype-0.9.77.24"
+    "knmi-eps-wasm32-nearest-point-source-prototype-0.9.77.24",
+    {
+      "version": "0.9.77.25",
+      "date": "2026-09-02",
+      "title": "Witterungstrend-Persistenz, Season-Poor-Man’s-Ensemble und Tmin/Tmax-Kästchen",
+      "summary": "Temperatur bleibt Default und letzte Witterungstrend-Auswahl persistiert. Season kombiniert alle tatsächlich numerisch verfügbaren unabhängigen Modellfamilien mit einer Stimme je Familie und zeigt alle Einzelmodelle gemeinsam; reine Katalog-/Statuskästen entfallen. Tmin/Tmax erhalten wieder kompakte Blau-/Rot-Kästchen mit empfindlicher Reaktion bereits auf kleine Klimaabweichungen."
+    }
   ],
-  "currentVersion": "0.9.77.24"
+  "currentVersion": "0.9.77.25"
 }

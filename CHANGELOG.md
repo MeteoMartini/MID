@@ -1,3 +1,11 @@
+## v0.9.77.25
+
+- Witterungstrend Tag 15–46 bestätigt und regressionsgeschützt: Temperatur ist Standard, die letzte gültige Parameterauswahl wird dauerhaft gespeichert.
+- Season auf ein transparentes Poor-Man’s-Ensemble umgestellt: alle tatsächlich numerisch verfügbaren unabhängigen Modellfamilien erhalten je eine Stimme; alle Einzelmodelle werden zusätzlich gemeinsam in einer skalierenden Grafik gezeigt.
+- Nicht-numerische Katalog-/Status-/Zusatzmodellkästen und der redundante Einzelmodell-Kartenstreifen aus der Season-Hauptansicht entfernt.
+- Tmin/Tmax in 7-/14-Tage wieder als kleine blaue/rote Kästchen; nichtlineare Klimamittelreaktion macht bereits kleine Abweichungen deutlich sichtbar.
+- Keine fachliche Workeränderung; Worker nur versionssynchronisiert.
+
 ## v0.9.77.24
 
 - KNMI-HARMONIE-EPS Abschnitt 4/4 kostenneutral bis zum reproduzierbaren ecCodes-Wasm32/MEMFS/Nearest-Point-Quellprototyp fortgeführt.

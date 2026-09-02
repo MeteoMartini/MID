@@ -32,9 +32,10 @@ const messages=splitGrib1Messages(fake);assert.equal(messages.length,1);assert.e
 assert.throws(()=>splitGrib1Messages(Uint8Array.from([0x47,0x52,0x49,0x42,0,0,12,2,0x37,0x37,0x37,0x37])),/GRIB1/);
 
 const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText),status=JSON.parse(statusText),test='scripts/test-knmi-eps-wasm32-prototype-097724.mjs';
-assert.equal(pkg.version,'0.9.77.24');assert.equal(baseline.releaseVersion,'0.9.77.24');assert.equal(status.releaseVersion,'0.9.77.24');
+const versionParts=value=>String(value).split('.').map(Number);const atLeast=(value,min)=>{const a=versionParts(value),b=versionParts(min);for(let i=0;i<Math.max(a.length,b.length);i++){const d=(a[i]??0)-(b[i]??0);if(d)return d>0}return true};
+assert.ok(atLeast(pkg.version,'0.9.77.24'));assert.equal(baseline.releaseVersion,pkg.version);assert.equal(status.releaseVersion,pkg.version);
 for(const key of ['requiredRegressionTests','regressionTests'])assert.ok(baseline[key].includes(test),`${test} fehlt in ${key}.`);
 for(const path of ['tools/knmi_eps_wasm_prototype/mid_eccodes_point.c','tools/knmi_eps_wasm_prototype/build_wasm32.sh','tools/knmi_eps_wasm_prototype/adapter.mjs','tools/knmi_eps_wasm_prototype/cloudflare_precompiled.mjs','tools/knmi_eps_wasm_prototype/report_bundle.py','tools/knmi_eps_wasm_prototype/benchmark.mjs','tools/knmi_eps_wasm_prototype/README.md',test])assert.ok(baseline.requiredFiles.includes(path),`Pflichtdatei fehlt: ${path}`);
 assert.ok(!pkg.dependencies?.['@meri-imperiumi/eccodes-wasm']&&!pkg.devDependencies?.['@meri-imperiumi/eccodes-wasm'],'Prototyp darf noch keine npm-Produktionsdependency einführen.');
 assert.ok(!/\bqueues\b\s*[:=]/i.test(worker),'Produktiver Worker darf weiterhin keine Queue-Bindings/Consumer-Logik erhalten.');
-console.log('MID v0.9.77.24: fokussierter ecCodes-Wasm32/MEMFS/Nearest-Point-Prototyp fail-closed vorbereitet; kein NODEFS, Vollgitter, Queue- oder Worker-Aktivierungspfad.');
+console.log(`MID v${pkg.version}: fokussierter ecCodes-Wasm32/MEMFS/Nearest-Point-Prototyp fail-closed vorbereitet; kein NODEFS, Vollgitter, Queue- oder Worker-Aktivierungspfad.`);

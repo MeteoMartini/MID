@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.77.24",
+  "releaseVersion": "0.9.77.25",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -370,7 +370,8 @@
     "scripts/test-knmi-eps-point-decoder-097722.mjs",
     "scripts/test-weather-profile-skybar-pills-097723.mjs",
     "scripts/test-knmi-eps-wasm-feasibility-097723.mjs",
-    "scripts/test-knmi-eps-wasm32-prototype-097724.mjs"
+    "scripts/test-knmi-eps-wasm32-prototype-097724.mjs",
+    "scripts/test-trend-seasonal-temperature-ui-097725.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -667,7 +668,8 @@
     "scripts/test-knmi-eps-point-decoder-097722.mjs",
     "scripts/test-weather-profile-skybar-pills-097723.mjs",
     "scripts/test-knmi-eps-wasm-feasibility-097723.mjs",
-    "scripts/test-knmi-eps-wasm32-prototype-097724.mjs"
+    "scripts/test-knmi-eps-wasm32-prototype-097724.mjs",
+    "scripts/test-trend-seasonal-temperature-ui-097725.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -1094,7 +1096,10 @@
     "MID_IMPLEMENTATION_0.9.77.24.md",
     "MID_TEST_REPORT_0.9.77.24.md",
     "MID_REGIONAL_ENSEMBLE_ADAPTER_SETUP.md",
-    "tools/knmi_eps_wasm_prototype/cloudflare_precompiled.mjs"
+    "tools/knmi_eps_wasm_prototype/cloudflare_precompiled.mjs",
+    "scripts/test-trend-seasonal-temperature-ui-097725.mjs",
+    "MID_IMPLEMENTATION_0.9.77.25.md",
+    "MID_TEST_REPORT_0.9.77.25.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",

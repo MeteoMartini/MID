@@ -10,20 +10,20 @@ export type DailyTemperatureTone={
 function clamp01(value:number){return Math.min(1,Math.max(0,value))}
 function decimal(value:number){return value.toFixed(1).replace('.',',')}
 function dailyIntensity(anomaly:number|null,kind:DailyTemperatureKind){
- if(anomaly===null)return kind==='min'?.52:.62;
- const scaled=clamp01((anomaly+7)/14);
- // Tmin: kälter => stärker/dunkler blau, milder => heller/entsättigter blau.
- // Tmax: kühler => heller/entsättigter rot, wärmer => stärker/dunkler rot.
- return kind==='min'?1-scaled:clamp01(.14+scaled*.86);
+ if(anomaly===null)return kind==='min'?.56:.62;
+ // Kleine Abweichungen um das Klimamittel sollen bereits sichtbar reagieren.
+ // Wurzelkennlinie: ±0,5…1 K verändert die Tonstufe deutlich, große Abweichungen sättigen sanft.
+ const signed=Math.max(-1,Math.min(1,anomaly/3));
+ const response=Math.sign(signed)*Math.sqrt(Math.abs(signed));
+ const directional=kind==='min'?-response:response;
+ return clamp01(.52+directional*.43);
 }
 function dailyTone(token:string,intensity:number){
- const bounded=clamp01(intensity),textShare=Math.round(58+bounded*42);
+ const bounded=clamp01(intensity),textShare=Math.round(72+bounded*27),backgroundShare=Math.round(9+bounded*19),borderShare=Math.round(24+bounded*34);
  return{
-  // Klimatische Abweichung wird ausschließlich in der Zahlfarbe sichtbar.
-  // Hintergrund und Rahmen bleiben neutral, damit Tmin/Tmax keine farbige Pille bilden.
-  color:`color-mix(in srgb,${token} ${textShare}%,var(--muted))`,
-  background:'transparent',
-  border:'transparent'
+  color:`color-mix(in srgb,${token} ${textShare}%,var(--text))`,
+  background:`color-mix(in srgb,${token} ${backgroundShare}%,transparent)`,
+  border:`color-mix(in srgb,${token} ${borderShare}%,var(--border))`
  };
 }
 function neutralHourlyTone(){

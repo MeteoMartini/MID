@@ -18,7 +18,7 @@ const checks=[
  ['24h wind arrow uses central token',modern.includes('.profile-wind-direction-arrow{color:var(--param-wind)')],
  ['24h temperature line resolves to central token',cockpit.includes("return'var(--param-temperature)'")],
  ['Tmin/Tmax retain canonical blue/red families',tempTone.includes("kind==='max'?'var(--param-temperature-max)':'var(--param-temperature-min)'")],
- ['daily Tmin/Tmax use signed climate anomaly saturation within their family',tempTone.includes('dailyIntensity(anomaly,kind)')&&tempTone.includes("return kind==='min'?1-scaled:clamp01(.14+scaled*.86)")],
+ ['daily Tmin/Tmax use signed climate anomaly saturation within their family',tempTone.includes('dailyIntensity(anomaly,kind)')&&tempTone.includes('Math.sqrt(Math.abs(signed))')&&tempTone.includes("const directional=kind==='min'?-response:response")],
  ['short-term individual temperatures are neutral text, not Tmin/Tmax colours',tempTone.includes('export function hourlyTemperatureTone')&&tempTone.includes("color:'var(--text)'")&&tempTone.includes('void climateMin;void climateMax;')],
  ['7d rain meta uses precipitation token',modern.includes('.forecast-meta-rain,.forecast-meta-rain b{color:var(--param-precipitation)}')],
  ['7d sunshine meta uses sunshine token',modern.includes('.forecast-meta-sun{color:var(--param-sunshine)}')],
