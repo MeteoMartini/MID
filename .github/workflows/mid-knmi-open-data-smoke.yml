@@ -1,0 +1,118 @@
+name: MID KNMI Open Data smoke test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mid-knmi-open-data-smoke
+  cancel-in-progress: true
+
+jobs:
+  knmi-open-data-smoke:
+    name: Verify KNMI HARMONIE EPS access
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      KNMI_DATASET: harmonie_arome_cy43_p4a
+      KNMI_DATASET_VERSION: "1.0"
+      KNMI_API_KEY: ${{ secrets.KNMI_OPEN_DATA_API_KEY }}
+
+    steps:
+      - name: Verify KNMI Open Data access
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -z "${KNMI_API_KEY:-}" ]; then
+            echo "::error::KNMI_OPEN_DATA_API_KEY fehlt oder ist leer."
+            exit 1
+          fi
+
+          python3 - <<'PY'
+          import json
+          import os
+          import sys
+          import urllib.parse
+          import urllib.request
+
+          api_key = os.environ["KNMI_API_KEY"]
+          dataset = os.environ["KNMI_DATASET"]
+          version = os.environ["KNMI_DATASET_VERSION"]
+          base = "https://api.dataplatform.knmi.nl/open-data/v1"
+
+          query = urllib.parse.urlencode({
+              "maxKeys": 1,
+              "orderBy": "created",
+              "sorting": "desc",
+          })
+
+          list_url = (
+              f"{base}/datasets/{dataset}/versions/{version}/files?{query}"
+          )
+
+          request = urllib.request.Request(
+              list_url,
+              headers={"Authorization": api_key},
+          )
+
+          try:
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  payload = json.load(response)
+                  deprecation = response.headers.get("X-KNMI-Deprecation")
+          except Exception as exc:
+              print(f"::error::KNMI-Dateiliste fehlgeschlagen: {exc}")
+              sys.exit(1)
+
+          files = payload.get("files") or []
+          if not files:
+              print("::error::Keine P4a-Dateien von KNMI erhalten.")
+              sys.exit(1)
+
+          latest = files[0]
+          filename = latest.get("filename")
+          if not filename:
+              print("::error::Neueste Datei besitzt keinen Dateinamen.")
+              sys.exit(1)
+
+          encoded = urllib.parse.quote(filename, safe="")
+          url_endpoint = (
+              f"{base}/datasets/{dataset}/versions/{version}/files/"
+              f"{encoded}/url"
+          )
+
+          request = urllib.request.Request(
+              url_endpoint,
+              headers={"Authorization": api_key},
+          )
+
+          try:
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  download_payload = json.load(response)
+          except Exception as exc:
+              print(f"::error::Download-URL-Abfrage fehlgeschlagen: {exc}")
+              sys.exit(1)
+
+          temporary_url = download_payload.get("temporaryDownloadUrl")
+
+          if not isinstance(temporary_url, str) or not temporary_url.startswith("https://"):
+              print("::error::Keine gültige temporäre Download-URL erhalten.")
+              sys.exit(1)
+
+          print("KNMI Open Data access: OK")
+          print(f"Dataset: {dataset}/{version}")
+          print(f"Latest file: {filename}")
+
+          if latest.get("size") is not None:
+              print(f"File size: {latest['size']} bytes")
+
+          if latest.get("created"):
+              print(f"Created: {latest['created']}")
+
+          if deprecation:
+              print(f"KNMI deprecation header: {deprecation}")
+
+          print("Temporary download URL: OK (value intentionally not printed)")
+          PY
