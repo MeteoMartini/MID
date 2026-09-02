@@ -1,0 +1,752 @@
+name: MID KNMI multiparam packed smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      latitude:
+        description: "Latitude des Testpunkts"
+        required: true
+        default: "52.10"
+        type: string
+      longitude:
+        description: "Longitude des Testpunkts"
+        required: true
+        default: "5.18"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mid-knmi-multiparam-packed-smoke
+  cancel-in-progress: true
+
+jobs:
+  multiparam-packed-smoke:
+    name: Validate direct packed decoding for MID parameters
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      KNMI_DATASET: harmonie_arome_cy43_p4a
+      KNMI_DATASET_VERSION: "1.0"
+      KNMI_API_KEY: ${{ secrets.KNMI_OPEN_DATA_API_KEY }}
+      TARGET_LAT: ${{ inputs.latitude }}
+      TARGET_LON: ${{ inputs.longitude }}
+      MAX_TAR_ENTRIES: "32"
+      MAX_GRIB_MESSAGES: "64"
+      MAX_MEMBER_BYTES: "33554432"
+
+    steps:
+      - name: Install ecCodes reference tool
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends libeccodes-tools
+          grib_ls -V
+
+      - name: Validate all MID-near packed point values
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -z "${KNMI_API_KEY:-}" ]; then
+            echo "::error::KNMI_OPEN_DATA_API_KEY fehlt oder ist leer."
+            exit 1
+          fi
+
+          python3 - <<'PY'
+          import json
+          import math
+          import os
+          import re
+          import subprocess
+          import sys
+          import urllib.parse
+          import urllib.request
+          from pathlib import Path
+
+          lat = float(os.environ["TARGET_LAT"])
+          lon = float(os.environ["TARGET_LON"])
+          if not (
+              math.isfinite(lat) and math.isfinite(lon)
+              and -90 <= lat <= 90 and -180 <= lon <= 180
+          ):
+              print("::error::Ungültiger Testpunkt.")
+              sys.exit(1)
+
+          api_key = os.environ["KNMI_API_KEY"]
+          dataset = os.environ["KNMI_DATASET"]
+          version = os.environ["KNMI_DATASET_VERSION"]
+          max_tar_entries = int(os.environ["MAX_TAR_ENTRIES"])
+          max_grib_messages = int(os.environ["MAX_GRIB_MESSAGES"])
+          max_member_bytes = int(os.environ["MAX_MEMBER_BYTES"])
+
+          base = "https://api.dataplatform.knmi.nl/open-data/v1"
+          tmp = Path(os.environ.get("RUNNER_TEMP", "/tmp"))
+          reference_path = tmp / "knmi-multiparam-reference.grib"
+
+          bytes_transferred = 0
+
+          # name, parameter, levelType, level, TRI
+          specs = [
+              ("pressure_msl_pa",       1,   103, 0,  0),
+              ("temperature_2m_k",      11,  105, 2,  0),
+              ("visibility_m",          20,  105, 0,  0),
+              ("wind_u_10m_ms",         33,  105, 10, 0),
+              ("wind_v_10m_ms",         34,  105, 10, 0),
+              ("wind_u_50m_ms",         33,  105, 50, 0),
+              ("wind_v_50m_ms",         34,  105, 50, 0),
+              ("relative_humidity_2m",  52,  105, 2,  0),
+              ("snow_water_eq_kgm2",    65,  105, 0,  0),
+              ("cloud_total",           71,  105, 0,  0),
+              ("cloud_low",             73,  105, 0,  0),
+              ("cloud_mid",             74,  105, 0,  0),
+              ("cloud_high",            75,  105, 0,  0),
+              ("gust_u_10m_ms",         162, 105, 10, 2),
+              ("gust_v_10m_ms",         163, 105, 10, 2),
+              ("rain_kgm2",             181, 105, 0,  4),
+              ("snow_kgm2",             184, 105, 0,  4),
+              ("cloud_base_m",          186, 200, 0,  0),
+              ("graupel_kgm2",          201, 105, 0,  4),
+              ("lightning_raw",         209, 200, 0,  0),
+          ]
+
+          def api_json(url):
+              req = urllib.request.Request(
+                  url, headers={"Authorization": api_key}
+              )
+              with urllib.request.urlopen(req, timeout=30) as r:
+                  return json.load(r)
+
+          listing_url = (
+              f"{base}/datasets/{dataset}/versions/{version}/files?"
+              + urllib.parse.urlencode({
+                  "maxKeys": 1,
+                  "orderBy": "created",
+                  "sorting": "desc",
+              })
+          )
+          listing = api_json(listing_url)
+          files = listing.get("files") or []
+          if not files:
+              print("::error::Keine P4a-Datei gefunden.")
+              sys.exit(1)
+
+          archive = files[0].get("filename")
+          if not archive:
+              print("::error::Archivname fehlt.")
+              sys.exit(1)
+
+          encoded = urllib.parse.quote(archive, safe="")
+          url_payload = api_json(
+              f"{base}/datasets/{dataset}/versions/{version}/files/"
+              f"{encoded}/url"
+          )
+          download_url = url_payload.get("temporaryDownloadUrl")
+          if not isinstance(download_url, str) or not download_url.startswith("https://"):
+              print("::error::Keine gültige temporäre Download-URL.")
+              sys.exit(1)
+
+          def range_get(start, length, purpose):
+              global bytes_transferred
+              end = start + length - 1
+              req = urllib.request.Request(
+                  download_url,
+                  headers={
+                      "Range": f"bytes={start}-{end}",
+                      "Accept-Encoding": "identity",
+                      "User-Agent": "MID-KNMI-multiparam-packed-smoke/1.0",
+                  },
+              )
+              r = urllib.request.urlopen(req, timeout=45)
+              try:
+                  if getattr(r, "status", None) != 206:
+                      print(f"::error::{purpose}: HTTP {getattr(r,'status',None)} statt 206.")
+                      sys.exit(1)
+                  cr = r.headers.get("Content-Range", "")
+                  m = re.match(r"bytes\s+(\d+)-(\d+)/(\d+|\*)", cr)
+                  if not m or int(m.group(1)) != start or int(m.group(2)) != end:
+                      print(f"::error::{purpose}: falscher Content-Range {cr!r}.")
+                      sys.exit(1)
+                  data = r.read(length + 1)
+                  if len(data) != length:
+                      print(f"::error::{purpose}: {len(data)} statt {length} Byte.")
+                      sys.exit(1)
+                  bytes_transferred += len(data)
+                  return data
+              finally:
+                  r.close()
+
+          def tar_octal(raw):
+              text = raw.rstrip(b"\0 ").lstrip(b" ")
+              return int(text, 8) if text else 0
+
+          def text(raw):
+              return raw.split(b"\0", 1)[0].decode("utf-8", "replace").strip()
+
+          def signed_mag(raw):
+              value = int.from_bytes(raw, "big")
+              mask = 1 << (len(raw) * 8 - 1)
+              mag = value & (mask - 1)
+              return -mag if value & mask else mag
+
+          def ibm32(raw):
+              word = int.from_bytes(raw, "big")
+              if word == 0:
+                  return 0.0
+              sign = -1.0 if word & 0x80000000 else 1.0
+              exponent = (word >> 24) & 0x7F
+              fraction = word & 0x00FFFFFF
+              return sign * (fraction / (1 << 24)) * (16.0 ** (exponent - 64))
+
+          def norm_lon(x):
+              return ((x + 180.0) % 360.0) - 180.0
+
+          # Locate first real meteorological TAR member.
+          tar_offset = 0
+          member = None
+          for _ in range(max_tar_entries):
+              h = range_get(tar_offset, 512, "TAR header")
+              if h == b"\0" * 512:
+                  break
+              name = text(h[0:100])
+              prefix = text(h[345:500])
+              if prefix:
+                  name = f"{prefix}/{name}"
+              size = tar_octal(h[124:136])
+              typeflag = h[156:157].decode("ascii", "replace") or "0"
+              if (
+                  typeflag in ("0", "\x00")
+                  and "harm43_v1_eur_uwcw_meteo_" in name
+                  and name.endswith("_GB")
+              ):
+                  member = {
+                      "name": name,
+                      "size": size,
+                      "payload": tar_offset + 512,
+                  }
+                  break
+              tar_offset += 512 + ((size + 511) // 512) * 512
+
+          if not member:
+              print("::error::Kein HARMONIE-Meteo-TAR-Mitglied gefunden.")
+              sys.exit(1)
+          if member["size"] <= 0 or member["size"] > max_member_bytes:
+              print("::error::TAR-Mitglied außerhalb des Sicherheitslimits.")
+              sys.exit(1)
+
+          # Sparse GRIB index.
+          messages = []
+          rel = 0
+          for number in range(1, max_grib_messages + 1):
+              if rel == member["size"]:
+                  break
+              h = range_get(member["payload"] + rel, 64, f"GRIB header #{number}")
+              if h[:4] != b"GRIB" or h[7] != 1:
+                  print(f"::error::Ungültige GRIB1-Nachricht #{number}.")
+                  sys.exit(1)
+              length = int.from_bytes(h[4:7], "big")
+              if length < 64 or rel + length > member["size"]:
+                  print("::error::Unplausible GRIB-Nachrichtenlänge.")
+                  sys.exit(1)
+              messages.append({
+                  "number": number,
+                  "archive_offset": member["payload"] + rel,
+                  "relative_offset": rel,
+                  "length": length,
+                  "pds_length": int.from_bytes(h[8:11], "big"),
+                  "flags": h[15],
+                  "parameter": h[16],
+                  "level_type": h[17],
+                  "level": int.from_bytes(h[18:20], "big"),
+                  "tri": h[28],
+              })
+              rel += length
+
+          if rel != member["size"]:
+              print("::error::GRIB-Index deckt das TAR-Mitglied nicht exakt ab.")
+              sys.exit(1)
+
+          by_key = {
+              (m["parameter"], m["level_type"], m["level"], m["tri"]): m
+              for m in messages
+          }
+
+          missing = [
+              name for name, p, lt, lev, tri in specs
+              if (p, lt, lev, tri) not in by_key
+          ]
+          if missing:
+              print("::error::Erwartete Felder fehlen: " + ", ".join(missing))
+              sys.exit(1)
+
+          # Grid geometry from temperature field.
+          temp = by_key[(11, 105, 2, 0)]
+          if not (temp["flags"] & 0x80):
+              print("::error::Temperaturfeld ohne GDS.")
+              sys.exit(1)
+
+          temp_gds_start = temp["archive_offset"] + 8 + temp["pds_length"]
+          gds_len = int.from_bytes(range_get(temp_gds_start, 3, "GDS length"), "big")
+          gds = range_get(temp_gds_start, gds_len, "GDS")
+          if gds[5] != 10:
+              print("::error::Kein rotated lat/lon Grid 10.")
+              sys.exit(1)
+
+          ni = int.from_bytes(gds[6:8], "big")
+          nj = int.from_bytes(gds[8:10], "big")
+          lat1 = signed_mag(gds[10:13]) / 1000.0
+          lon1 = signed_mag(gds[13:16]) / 1000.0
+          di = int.from_bytes(gds[23:25], "big") / 1000.0
+          dj = int.from_bytes(gds[25:27], "big") / 1000.0
+          scan = gds[27]
+          south_lat = signed_mag(gds[32:35]) / 1000.0
+          south_lon = signed_mag(gds[35:38]) / 1000.0
+          rotation = ibm32(gds[38:42])
+
+          if abs(rotation) > 1e-7:
+              print("::error::Zusätzlicher Grid-Rotationswinkel unerwartet.")
+              sys.exit(1)
+          if scan & 0x1F:
+              print("::error::Reservierte Scanbits gesetzt.")
+              sys.exit(1)
+
+          i_neg = bool(scan & 0x80)
+          j_pos = bool(scan & 0x40)
+          j_consecutive = bool(scan & 0x20)
+
+          pole_lat = -south_lat
+          pole_lon = norm_lon(south_lon + 180.0)
+
+          glat = math.radians(lat)
+          dlon = math.radians(norm_lon(lon - pole_lon))
+          plat = math.radians(pole_lat)
+
+          rlat = math.degrees(math.asin(max(-1.0, min(
+              1.0,
+              math.sin(glat) * math.sin(plat)
+              + math.cos(glat) * math.cos(plat) * math.cos(dlon)
+          ))))
+          rlon = norm_lon(math.degrees(math.atan2(
+              -math.cos(glat) * math.sin(dlon),
+              -math.cos(glat) * math.sin(plat) * math.cos(dlon)
+              + math.sin(glat) * math.cos(plat)
+          )))
+
+          delta_i = norm_lon(lon1 - rlon) if i_neg else norm_lon(rlon - lon1)
+          delta_j = (rlat - lat1) if j_pos else (lat1 - rlat)
+          i = int(math.floor(delta_i / di + 0.5))
+          j = int(math.floor(delta_j / dj + 0.5))
+
+          if not (0 <= i < ni and 0 <= j < nj):
+              print("::error::Testpunkt außerhalb des Modellgitters.")
+              sys.exit(1)
+
+          grid_index = i * nj + j if j_consecutive else j * ni + i
+
+          # Geographic bearing of +j (grid north), computed from grid geometry.
+          def rotated_to_geo(rlat_deg, rlon_deg):
+              rr_lat = math.radians(rlat_deg)
+              rr_lon = math.radians(rlon_deg)
+              pp_lat = math.radians(pole_lat)
+              pp_lon = math.radians(pole_lon)
+
+              sin_g = (
+                  math.sin(pp_lat) * math.sin(rr_lat)
+                  + math.cos(pp_lat) * math.cos(rr_lat) * math.cos(rr_lon)
+              )
+              g_lat = math.asin(max(-1.0, min(1.0, sin_g)))
+              g_lon = pp_lon - math.atan2(
+                  math.cos(rr_lat) * math.sin(rr_lon),
+                  math.cos(pp_lat) * math.sin(rr_lat)
+                  - math.sin(pp_lat) * math.cos(rr_lat) * math.cos(rr_lon)
+              )
+              return math.degrees(g_lat), norm_lon(math.degrees(g_lon))
+
+          def bearing(a, b):
+              a_lat, a_lon = map(math.radians, a)
+              b_lat, b_lon = map(math.radians, b)
+              dl = b_lon - a_lon
+              y = math.sin(dl) * math.cos(b_lat)
+              x = (
+                  math.cos(a_lat) * math.sin(b_lat)
+                  - math.sin(a_lat) * math.cos(b_lat) * math.cos(dl)
+              )
+              return (math.degrees(math.atan2(y, x)) + 360.0) % 360.0
+
+          grid_rlon = lon1 + (-i if i_neg else i) * di
+          grid_rlat = lat1 + (j if j_pos else -j) * dj
+          grid_geo = rotated_to_geo(grid_rlat, grid_rlon)
+          next_j_geo = rotated_to_geo(
+              grid_rlat + (dj if j_pos else -dj),
+              grid_rlon,
+          )
+          grid_north_bearing = bearing(grid_geo, next_j_geo)
+
+          # Read one packed value from each selected message.
+          direct = {}
+          packing = {}
+
+          for name, p, lt, lev, tri in specs:
+              m = by_key[(p, lt, lev, tri)]
+              pds = range_get(
+                  m["archive_offset"] + 8,
+                  m["pds_length"],
+                  f"PDS {name}",
+              )
+              decimal_scale = signed_mag(pds[26:28])
+
+              next_section = m["archive_offset"] + 8 + m["pds_length"]
+              if m["flags"] & 0x80:
+                  this_gds_len = int.from_bytes(
+                      range_get(next_section, 3, f"GDS length {name}"),
+                      "big",
+                  )
+                  next_section += this_gds_len
+
+              bitmap_present = bool(m["flags"] & 0x40)
+              bitmap_bytes = 0
+              bitmap_value_present = True
+              packed_index = grid_index
+
+              if bitmap_present:
+                  bms_start = next_section
+                  bms_head = range_get(bms_start, 6, f"BMS header {name}")
+                  bms_length = int.from_bytes(bms_head[0:3], "big")
+                  unused_bitmap_bits = bms_head[3]
+                  bitmap_table_reference = int.from_bytes(bms_head[4:6], "big")
+
+                  if bms_length < 7:
+                      print(f"::error::{name}: BMS-Länge {bms_length} unplausibel.")
+                      sys.exit(1)
+                  if not (0 <= unused_bitmap_bits <= 7):
+                      print(
+                          f"::error::{name}: ungültige Zahl ungenutzter "
+                          f"Bitmap-Bits: {unused_bitmap_bits}."
+                      )
+                      sys.exit(1)
+                  if bitmap_table_reference != 0:
+                      print(
+                          f"::error::{name}: vordefinierte Bitmap-Tabelle "
+                          f"{bitmap_table_reference} wird fail-closed nicht geraten."
+                      )
+                      sys.exit(1)
+
+                  bitmap_data_start = bms_start + 6
+                  bitmap_data_length = bms_length - 6
+                  bitmap_bit_count = bitmap_data_length * 8 - unused_bitmap_bits
+
+                  if grid_index >= bitmap_bit_count:
+                      print(
+                          f"::error::{name}: Grid-Index {grid_index} liegt außerhalb "
+                          f"der Bitmap mit {bitmap_bit_count} Punkten."
+                      )
+                      sys.exit(1)
+
+                  target_byte = grid_index // 8
+                  bit_in_byte = grid_index % 8
+
+                  # Für den verdichteten Packed-Index wird nur die Bitmap bis
+                  # einschließlich Zielbyte benötigt, nicht das GRIB-Datenfeld.
+                  bitmap_prefix = range_get(
+                      bitmap_data_start,
+                      target_byte + 1,
+                      f"bitmap prefix {name}",
+                  )
+                  bitmap_bytes = len(bitmap_prefix)
+
+                  current = bitmap_prefix[target_byte]
+                  target_mask = 1 << (7 - bit_in_byte)
+                  bitmap_value_present = bool(current & target_mask)
+
+                  if bitmap_value_present:
+                      present_before = sum(
+                          byte.bit_count()
+                          for byte in bitmap_prefix[:target_byte]
+                      )
+                      if bit_in_byte:
+                          before_mask = (0xFF << (8 - bit_in_byte)) & 0xFF
+                          present_before += (current & before_mask).bit_count()
+                      packed_index = present_before
+                  else:
+                      packed_index = None
+
+                  next_section += bms_length
+
+              bds = range_get(next_section, 11, f"BDS {name}")
+              bds_flags = bds[3]
+              if bds_flags & 0xF0:
+                  print(
+                      f"::error::{name}: kein GRIB1 Simple Packing "
+                      f"(BDS flags 0x{bds_flags:02x})."
+                  )
+                  sys.exit(1)
+
+              binary_scale = signed_mag(bds[4:6])
+              ref = ibm32(bds[6:10])
+              bits = bds[10]
+
+              coded = None
+              bytes_needed = 0
+
+              if not bitmap_value_present:
+                  value = None
+              elif bits == 0:
+                  coded = 0
+                  value = ref * (10.0 ** (-decimal_scale))
+              elif 1 <= bits <= 56:
+                  packed_start = next_section + 11
+                  bit_start = packed_index * bits
+                  byte_start = bit_start // 8
+                  bit_offset = bit_start % 8
+                  bytes_needed = (bit_offset + bits + 7) // 8
+                  raw = range_get(
+                      packed_start + byte_start,
+                      bytes_needed,
+                      f"packed point {name}",
+                  )
+                  word = int.from_bytes(raw, "big")
+                  shift = len(raw) * 8 - (bit_offset + bits)
+                  coded = (word >> shift) & ((1 << bits) - 1)
+                  value = (
+                      ref + coded * (2.0 ** binary_scale)
+                  ) * (10.0 ** (-decimal_scale))
+              else:
+                  print(f"::error::{name}: bitsPerValue={bits} unplausibel.")
+                  sys.exit(1)
+
+              direct[name] = value
+              packing[name] = {
+                  "bits_per_value": bits,
+                  "point_bytes": bytes_needed,
+                  "bitmap_present": bitmap_present,
+                  "bitmap_bytes": bitmap_bytes,
+                  "bitmap_value_present": bitmap_value_present,
+                  "packed_index": packed_index,
+                  "binary_scale": binary_scale,
+                  "decimal_scale": decimal_scale,
+                  "coded": coded,
+              }
+
+          # Download exactly one full ~16 MB TAR member once, only as an
+          # ecCodes validation oracle for all direct point decodes.
+          full_member = range_get(
+              member["payload"],
+              member["size"],
+              "one-time complete member validation",
+          )
+          if full_member[:4] != b"GRIB":
+              print("::error::Validierungsdatei beginnt nicht mit GRIB.")
+              sys.exit(1)
+          reference_path.write_bytes(full_member)
+
+          def eccodes_value(p, lt, lev, tri):
+              where = (
+                  f"indicatorOfParameter={p},"
+                  f"indicatorOfTypeOfLevel={lt},"
+                  f"level={lev},"
+                  f"timeRangeIndicator={tri}"
+              )
+              proc = subprocess.run(
+                  [
+                      "grib_get",
+                      "-F", "%.12g",
+                      "-l", f"{lat},{lon},1",
+                      "-w", where,
+                      str(reference_path),
+                  ],
+                  text=True,
+                  capture_output=True,
+                  check=False,
+              )
+              if proc.returncode != 0:
+                  return None, proc.stderr.strip()
+              lines = [x.strip() for x in proc.stdout.splitlines() if x.strip()]
+              if not lines:
+                  return None, "no output"
+              try:
+                  return float(lines[0].split()[-1]), None
+              except Exception:
+                  return None, lines[0]
+
+          comparisons = {}
+          failures = []
+
+          for name, p, lt, lev, tri in specs:
+              ref_value, error = eccodes_value(p, lt, lev, tri)
+              if error:
+                  failures.append(f"{name}: ecCodes: {error}")
+                  continue
+
+              value = direct[name]
+              pack = packing[name]
+
+              if value is None:
+                  # Bei Bitmap=0 existiert am exakten Modellgitterpunkt kein
+                  # Wert. Das ist ein fachlicher Missing-Wert, kein Decoderfehler.
+                  comparisons[name] = {
+                      "direct": None,
+                      "eccodes": ref_value,
+                      "absolute_error": None,
+                      "tolerance": None,
+                      "match": True,
+                      "bitmap_missing_at_exact_grid_point": True,
+                  }
+                  continue
+
+              increment = (
+                  (2.0 ** pack["binary_scale"])
+                  * (10.0 ** (-pack["decimal_scale"]))
+                  if pack["bits_per_value"] else 0.0
+              )
+              tolerance = max(abs(increment) * 0.51, 1e-7)
+              diff = abs(value - ref_value)
+
+              comparisons[name] = {
+                  "direct": value,
+                  "eccodes": ref_value,
+                  "absolute_error": diff,
+                  "tolerance": tolerance,
+                  "match": diff <= tolerance,
+              }
+              if diff > tolerance:
+                  failures.append(
+                      f"{name}: direct={value} ecCodes={ref_value} "
+                      f"diff={diff} tol={tolerance}"
+                  )
+
+          if failures:
+              print("::error::Direktdecoder-Abweichungen:")
+              for failure in failures:
+                  print(f"- {failure}")
+              sys.exit(1)
+
+          def pct(v):
+              if v is None:
+                  return None
+              if -0.001 <= v <= 1.5:
+                  v *= 100.0
+              return max(0.0, min(100.0, v))
+
+          def wind(u_name, v_name):
+              u = direct[u_name]
+              v = direct[v_name]
+              speed = math.hypot(u, v)
+              to_grid = math.degrees(math.atan2(u, v))
+              to_true = (grid_north_bearing + to_grid) % 360.0
+              from_true = (to_true + 180.0) % 360.0
+              return {
+                  "speed_ms": round(speed, 3),
+                  "speed_kt": round(speed * 1.9438444924406, 2),
+                  "direction_true_deg": round(from_true, 1),
+                  "u_grid_ms": round(u, 3),
+                  "v_grid_ms": round(v, 3),
+              }
+
+          mid = {
+              "temperature_2m_c": round(direct["temperature_2m_k"] - 273.15, 2),
+              "pressure_msl_hpa": round(direct["pressure_msl_pa"] / 100.0, 2),
+              "visibility_m": round(direct["visibility_m"], 1),
+              "relative_humidity_2m_pct": round(pct(direct["relative_humidity_2m"]), 1),
+              "cloud_cover_total_pct": round(pct(direct["cloud_total"]), 1),
+              "cloud_cover_low_pct": round(pct(direct["cloud_low"]), 1),
+              "cloud_cover_mid_pct": round(pct(direct["cloud_mid"]), 1),
+              "cloud_cover_high_pct": round(pct(direct["cloud_high"]), 1),
+              "wind_10m": wind("wind_u_10m_ms", "wind_v_10m_ms"),
+              "wind_50m": wind("wind_u_50m_ms", "wind_v_50m_ms"),
+              "gust_10m": wind("gust_u_10m_ms", "gust_v_10m_ms"),
+              "rain_accum_mm": round(direct["rain_kgm2"], 3),
+              "snow_accum_mm_water_equivalent": round(direct["snow_kgm2"], 3),
+              "graupel_accum_mm_water_equivalent": round(direct["graupel_kgm2"], 3),
+              "snow_water_equivalent_mm": round(direct["snow_water_eq_kgm2"], 3),
+              "cloud_base_m": (
+                  round(direct["cloud_base_m"], 1)
+                  if direct["cloud_base_m"] is not None else None
+              ),
+              "cloud_base_ft": (
+                  round(direct["cloud_base_m"] * 3.280839895, 0)
+                  if direct["cloud_base_m"] is not None else None
+              ),
+              "lightning_diagnostic_raw": (
+                  round(direct["lightning_raw"], 6)
+                  if direct["lightning_raw"] is not None else None
+              ),
+          }
+
+          result = {
+              "schema": "mid.knmi.multiparam-packed-smoke.v1",
+              "archive": archive,
+              "tar_member": member["name"],
+              "point": {
+                  "requested_lat": lat,
+                  "requested_lon": lon,
+                  "grid_i": i,
+                  "grid_j": j,
+                  "grid_index": grid_index,
+                  "grid_lat": grid_geo[0],
+                  "grid_lon": grid_geo[1],
+                  "grid_north_true_bearing_deg": grid_north_bearing,
+              },
+              "direct_raw": direct,
+              "packing": packing,
+              "comparisons": comparisons,
+              "mid_normalized": mid,
+              "transfer": {
+                  "total_test_bytes_including_one_full_validation_member":
+                      bytes_transferred,
+                  "full_validation_member_bytes": member["size"],
+                  "production_direct_read_bytes":
+                      sum(
+                          x["point_bytes"] + x["bitmap_bytes"]
+                          for x in packing.values()
+                      ),
+                  "production_packed_value_bytes_only":
+                      sum(x["point_bytes"] for x in packing.values()),
+              },
+          }
+
+          print("KNMI multi-parameter packed decoder: OK")
+          print(f"Archive: {archive}")
+          print(f"TAR member: {member['name']}")
+          print(
+              f"Grid index: {grid_index} (i={i}, j={j}); "
+              f"grid north={grid_north_bearing:.3f}° true"
+          )
+          print("")
+          print("Direct-vs-ecCodes:")
+          for name, row in comparisons.items():
+              if row["direct"] is None:
+                  print(
+                      f"- {name}: exact-grid=MISSING via bitmap "
+                      f"pointBytes=0 bitmapBytes={packing[name]['bitmap_bytes']}"
+                  )
+              else:
+                  print(
+                      f"- {name}: direct={row['direct']:.12g} "
+                      f"ecCodes={row['eccodes']:.12g} "
+                      f"error={row['absolute_error']:.3g} "
+                      f"pointBytes={packing[name]['point_bytes']} "
+                      f"bitmapBytes={packing[name]['bitmap_bytes']}"
+                  )
+
+          print("")
+          print("MID-normalized:")
+          for key, value in mid.items():
+              print(f"- {key}: {json.dumps(value, ensure_ascii=False)}")
+
+          print("")
+          print(
+              "Production packed payload bytes for all tested fields at one "
+              f"member/forecast point: "
+              f"{result['transfer']['production_direct_read_bytes']}"
+          )
+          print(
+              "The full TAR member was downloaded only once in this smoke test "
+              "to validate every direct value against ecCodes."
+          )
+
+          print("")
+          print("JSON:")
+          print(json.dumps(result, indent=2, ensure_ascii=False, sort_keys=True))
+          PY
