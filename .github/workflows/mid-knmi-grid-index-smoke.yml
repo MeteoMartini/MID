@@ -1,0 +1,753 @@
+name: MID KNMI grid index smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      latitude:
+        description: "Latitude des Testpunkts"
+        required: true
+        default: "52.10"
+        type: string
+      longitude:
+        description: "Longitude des Testpunkts"
+        required: true
+        default: "5.18"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mid-knmi-grid-index-smoke
+  cancel-in-progress: true
+
+jobs:
+  grid-index-smoke:
+    name: Derive KNMI rotated-grid index from GDS only
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      KNMI_DATASET: harmonie_arome_cy43_p4a
+      KNMI_DATASET_VERSION: "1.0"
+      KNMI_API_KEY: ${{ secrets.KNMI_OPEN_DATA_API_KEY }}
+      TARGET_LAT: ${{ inputs.latitude }}
+      TARGET_LON: ${{ inputs.longitude }}
+      MAX_TAR_ENTRIES: "32"
+      MAX_GRIB_MESSAGES: "64"
+      MAX_REFERENCE_MESSAGE_BYTES: "4194304"
+
+    steps:
+      - name: Install ecCodes reference tool
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends libeccodes-tools
+          grib_ls -V
+
+      - name: Validate GDS-only nearest-grid index
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -z "${KNMI_API_KEY:-}" ]; then
+            echo "::error::KNMI_OPEN_DATA_API_KEY fehlt oder ist leer."
+            exit 1
+          fi
+
+          python3 - <<'PY'
+          import json
+          import math
+          import os
+          import re
+          import subprocess
+          import sys
+          import urllib.parse
+          import urllib.request
+          from pathlib import Path
+
+          try:
+              target_lat = float(os.environ["TARGET_LAT"])
+              target_lon = float(os.environ["TARGET_LON"])
+          except Exception:
+              print("::error::Latitude/Longitude ungültig.")
+              sys.exit(1)
+
+          if not (
+              math.isfinite(target_lat)
+              and math.isfinite(target_lon)
+              and -90 <= target_lat <= 90
+              and -180 <= target_lon <= 180
+          ):
+              print("::error::Latitude/Longitude außerhalb des gültigen Bereichs.")
+              sys.exit(1)
+
+          api_key = os.environ["KNMI_API_KEY"]
+          dataset = os.environ["KNMI_DATASET"]
+          version = os.environ["KNMI_DATASET_VERSION"]
+          max_tar_entries = int(os.environ["MAX_TAR_ENTRIES"])
+          max_grib_messages = int(os.environ["MAX_GRIB_MESSAGES"])
+          max_reference_message_bytes = int(
+              os.environ["MAX_REFERENCE_MESSAGE_BYTES"]
+          )
+
+          base = "https://api.dataplatform.knmi.nl/open-data/v1"
+          temp_dir = Path(os.environ.get("RUNNER_TEMP", "/tmp"))
+          reference_path = temp_dir / "knmi-grid-reference.grib"
+
+          bytes_transferred = 0
+
+          def api_json(url):
+              req = urllib.request.Request(
+                  url,
+                  headers={"Authorization": api_key},
+              )
+              with urllib.request.urlopen(req, timeout=30) as response:
+                  return json.load(response)
+
+          query = urllib.parse.urlencode({
+              "maxKeys": 1,
+              "orderBy": "created",
+              "sorting": "desc",
+          })
+          list_url = f"{base}/datasets/{dataset}/versions/{version}/files?{query}"
+
+          try:
+              listing = api_json(list_url)
+          except Exception as exc:
+              print(f"::error::KNMI-Dateiliste fehlgeschlagen: {exc}")
+              sys.exit(1)
+
+          files = listing.get("files") or []
+          if not files:
+              print("::error::Keine P4a-Datei gefunden.")
+              sys.exit(1)
+
+          latest = files[0]
+          archive_name = latest.get("filename")
+          if not archive_name:
+              print("::error::Archivname fehlt.")
+              sys.exit(1)
+
+          encoded = urllib.parse.quote(archive_name, safe="")
+          url_endpoint = (
+              f"{base}/datasets/{dataset}/versions/{version}/files/"
+              f"{encoded}/url"
+          )
+
+          try:
+              url_payload = api_json(url_endpoint)
+          except Exception as exc:
+              print(f"::error::Temporäre Download-URL fehlgeschlagen: {exc}")
+              sys.exit(1)
+
+          download_url = url_payload.get("temporaryDownloadUrl")
+          if not isinstance(download_url, str) or not download_url.startswith("https://"):
+              print("::error::Keine gültige temporäre Download-URL.")
+              sys.exit(1)
+
+          def range_get(start, length, purpose):
+              global bytes_transferred
+              end = start + length - 1
+              req = urllib.request.Request(
+                  download_url,
+                  headers={
+                      "Range": f"bytes={start}-{end}",
+                      "Accept-Encoding": "identity",
+                      "User-Agent": "MID-KNMI-grid-index-smoke/1.0",
+                  },
+              )
+              try:
+                  response = urllib.request.urlopen(req, timeout=30)
+              except Exception as exc:
+                  print(
+                      f"::error::{purpose}: HTTP-Range {start}-{end} "
+                      f"fehlgeschlagen: {exc}"
+                  )
+                  sys.exit(1)
+
+              try:
+                  status = getattr(response, "status", None)
+                  content_range = response.headers.get("Content-Range", "")
+                  if status != 206:
+                      print(f"::error::{purpose}: HTTP {status} statt 206.")
+                      sys.exit(1)
+
+                  match = re.match(
+                      r"bytes\s+(\d+)-(\d+)/(\d+|\*)",
+                      content_range,
+                  )
+                  if not match:
+                      print(
+                          f"::error::{purpose}: ungültiger Content-Range "
+                          f"{content_range!r}"
+                      )
+                      sys.exit(1)
+
+                  if int(match.group(1)) != start or int(match.group(2)) != end:
+                      print(
+                          f"::error::{purpose}: falscher Range geliefert: "
+                          f"{content_range}"
+                      )
+                      sys.exit(1)
+
+                  data = response.read(length + 1)
+                  if len(data) != length:
+                      print(
+                          f"::error::{purpose}: {len(data)} statt {length} Byte."
+                      )
+                      sys.exit(1)
+
+                  bytes_transferred += len(data)
+                  return data
+              finally:
+                  response.close()
+
+          def parse_tar_octal(raw):
+              text = raw.rstrip(b"\0 ").lstrip(b" ")
+              if not text:
+                  return 0
+              try:
+                  return int(text, 8)
+              except ValueError:
+                  return None
+
+          def decode_text(raw):
+              return raw.split(b"\0", 1)[0].decode(
+                  "utf-8",
+                  "replace",
+              ).strip()
+
+          # GRIB/WMO signed integer: sign bit + magnitude.
+          def signed_magnitude(raw):
+              value = int.from_bytes(raw, "big", signed=False)
+              bits = len(raw) * 8
+              sign_mask = 1 << (bits - 1)
+              magnitude = value & (sign_mask - 1)
+              return -magnitude if value & sign_mask else magnitude
+
+          def ibm_float32(raw):
+              word = int.from_bytes(raw, "big", signed=False)
+              if word == 0:
+                  return 0.0
+              sign = -1.0 if word & 0x80000000 else 1.0
+              characteristic = (word >> 24) & 0x7F
+              fraction = word & 0x00FFFFFF
+              return (
+                  sign
+                  * (fraction / float(1 << 24))
+                  * (16.0 ** (characteristic - 64))
+              )
+
+          def normalize_lon(value):
+              while value < -180.0:
+                  value += 360.0
+              while value >= 180.0:
+                  value -= 360.0
+              return value
+
+          def normalize_delta(value):
+              return normalize_lon(value)
+
+          # Locate first real HARMONIE member using TAR headers only.
+          tar_offset = 0
+          selected = None
+
+          for _ in range(max_tar_entries):
+              header = range_get(tar_offset, 512, "TAR header")
+              if header == b"\0" * 512:
+                  break
+
+              name = decode_text(header[0:100])
+              prefix = decode_text(header[345:500])
+              if prefix:
+                  name = f"{prefix}/{name}"
+
+              size = parse_tar_octal(header[124:136])
+              typeflag = header[156:157].decode(
+                  "ascii",
+                  "replace",
+              ) or "0"
+
+              if size is None:
+                  print("::error::TAR-Größe nicht lesbar.")
+                  sys.exit(1)
+
+              if (
+                  typeflag in ("0", "\x00")
+                  and "harm43_v1_eur_uwcw_meteo_" in name
+                  and name.endswith("_GB")
+              ):
+                  selected = {
+                      "name": name,
+                      "size": size,
+                      "payload_offset": tar_offset + 512,
+                  }
+                  break
+
+              tar_offset += 512 + ((size + 511) // 512) * 512
+
+          if not selected:
+              print("::error::Kein HARMONIE-GRIB-TAR-Mitglied gefunden.")
+              sys.exit(1)
+
+          member_size = selected["size"]
+          member_start = selected["payload_offset"]
+
+          # Sparse-index GRIB messages via 64-byte headers.
+          messages = []
+          rel = 0
+
+          for number in range(1, max_grib_messages + 1):
+              remaining = member_size - rel
+              if remaining == 0:
+                  break
+              if remaining < 64:
+                  print("::error::Unvollständiges GRIB-Ende.")
+                  sys.exit(1)
+
+              h = range_get(
+                  member_start + rel,
+                  64,
+                  f"GRIB header #{number}",
+              )
+
+              if h[0:4] != b"GRIB" or h[7] != 1:
+                  print(
+                      f"::error::Keine gültige GRIB1-Nachricht bei Offset {rel}."
+                  )
+                  sys.exit(1)
+
+              total = int.from_bytes(h[4:7], "big")
+              pds_len = int.from_bytes(h[8:11], "big")
+
+              if total < 64 or rel + total > member_size:
+                  print(f"::error::Unplausible Nachrichtenlänge {total}.")
+                  sys.exit(1)
+
+              messages.append({
+                  "number": number,
+                  "relative_offset": rel,
+                  "archive_offset": member_start + rel,
+                  "total_length": total,
+                  "pds_length": pds_len,
+                  "section1_flags": h[15],
+                  "parameter": h[16],
+                  "level_type": h[17],
+                  "level": int.from_bytes(h[18:20], "big"),
+                  "tri": h[28],
+              })
+              rel += total
+
+          if rel != member_size:
+              print(
+                  f"::error::GRIB-Index deckt {rel} von {member_size} Byte ab."
+              )
+              sys.exit(1)
+
+          temp = next(
+              (
+                  m for m in messages
+                  if m["parameter"] == 11
+                  and m["level_type"] == 105
+                  and m["level"] == 2
+                  and m["tri"] == 0
+              ),
+              None,
+          )
+
+          if not temp:
+              print("::error::2-m-Temperatur nicht gefunden.")
+              sys.exit(1)
+
+          # GDS flag is bit 1 of PDS octet 8; in zero-based Python h[15].
+          if not (temp["section1_flags"] & 0x80):
+              print("::error::Temperaturfeld besitzt keine Grid Description Section.")
+              sys.exit(1)
+
+          gds_start = temp["archive_offset"] + 8 + temp["pds_length"]
+          gds_len_head = range_get(gds_start, 3, "GDS length")
+          gds_length = int.from_bytes(gds_len_head, "big")
+
+          if gds_length < 42 or gds_length > 4096:
+              print(f"::error::Unplausible GDS-Länge {gds_length}.")
+              sys.exit(1)
+
+          gds = range_get(gds_start, gds_length, "complete GDS")
+
+          representation = gds[5]
+          if representation != 10:
+              print(
+                  f"::error::Data representation type {representation}; "
+                  "erwartet wird GRIB1 Grid 10 (rotated lat/lon)."
+              )
+              sys.exit(1)
+
+          ni = int.from_bytes(gds[6:8], "big")
+          nj = int.from_bytes(gds[8:10], "big")
+          lat1 = signed_magnitude(gds[10:13]) / 1000.0
+          lon1 = signed_magnitude(gds[13:16]) / 1000.0
+          lat2 = signed_magnitude(gds[17:20]) / 1000.0
+          lon2 = signed_magnitude(gds[20:23]) / 1000.0
+          di = int.from_bytes(gds[23:25], "big") / 1000.0
+          dj = int.from_bytes(gds[25:27], "big") / 1000.0
+          scan = gds[27]
+          south_lat = signed_magnitude(gds[32:35]) / 1000.0
+          south_lon = signed_magnitude(gds[35:38]) / 1000.0
+          rotation_angle = ibm_float32(gds[38:42])
+
+          i_scans_negative = bool(scan & 0x80)
+          j_scans_positive = bool(scan & 0x40)
+          j_consecutive = bool(scan & 0x20)
+          reserved_scan_bits = scan & 0x1F
+
+          if (
+              ni <= 1
+              or nj <= 1
+              or not math.isfinite(di)
+              or not math.isfinite(dj)
+              or di <= 0
+              or dj <= 0
+          ):
+              print("::error::Ungültige reguläre Gitterdimension/-inkremente.")
+              sys.exit(1)
+
+          # GRIB1 scanning-mode bits 4..8 are reserved and must be zero.
+          if reserved_scan_bits:
+              print(
+                  f"::error::Unerwartete gesetzte reservierte Scanbits: "
+                  f"0x{reserved_scan_bits:02x}."
+              )
+              sys.exit(1)
+
+          # Cy43 P4a currently uses no extra axial rotation. Fail closed if
+          # this changes; a future Cy46/GRIB2 decoder will be separate.
+          if abs(rotation_angle) > 1e-7:
+              print(
+                  f"::error::angleOfRotationInDegrees={rotation_angle}; "
+                  "dieser Cy43-Smoke unterstützt absichtlich nur 0°."
+              )
+              sys.exit(1)
+
+          # WMO Grid 10 stores the geographic SOUTH pole. Convert to the
+          # geographic NORTH pole used by the standard rotated-grid inverse.
+          pole_lat = -south_lat
+          pole_lon = normalize_lon(south_lon + 180.0)
+
+          # Geographic -> rotated coordinates.
+          #
+          # DWD model documentation back-transformation:
+          #   rlat = asin(sin(glat) sin(pLat)
+          #             + cos(glat) cos(pLat) cos(glon-pLon))
+          #   rlon = atan2(
+          #       -cos(glat) sin(glon-pLon),
+          #       -cos(glat) sin(pLat) cos(glon-pLon)
+          #       + sin(glat) cos(pLat)
+          #   )
+          glat = math.radians(target_lat)
+          dlon = math.radians(normalize_delta(target_lon - pole_lon))
+          plat = math.radians(pole_lat)
+
+          sin_rlat = (
+              math.sin(glat) * math.sin(plat)
+              + math.cos(glat) * math.cos(plat) * math.cos(dlon)
+          )
+          sin_rlat = max(-1.0, min(1.0, sin_rlat))
+          rlat = math.degrees(math.asin(sin_rlat))
+
+          y = -math.cos(glat) * math.sin(dlon)
+          x = (
+              -math.cos(glat) * math.sin(plat) * math.cos(dlon)
+              + math.sin(glat) * math.cos(plat)
+          )
+          rlon = normalize_lon(math.degrees(math.atan2(y, x)))
+
+          # Convert rotated coordinate to nearest regular-grid i/j.
+          if i_scans_negative:
+              delta_i = normalize_delta(lon1 - rlon)
+          else:
+              delta_i = normalize_delta(rlon - lon1)
+
+          if j_scans_positive:
+              delta_j = rlat - lat1
+          else:
+              delta_j = lat1 - rlat
+
+          i_float = delta_i / di
+          j_float = delta_j / dj
+          i = int(math.floor(i_float + 0.5))
+          j = int(math.floor(j_float + 0.5))
+
+          if i < 0 or i >= ni or j < 0 or j >= nj:
+              print("::error::Zielpunkt liegt außerhalb des HARMONIE-Gitters.")
+              print(
+                  f"rotated={rlat:.6f}/{rlon:.6f}, "
+                  f"i={i_float:.4f}, j={j_float:.4f}"
+              )
+              sys.exit(1)
+
+          if j_consecutive:
+              derived_index = i * nj + j
+          else:
+              derived_index = j * ni + i
+
+          # ecCodes is used once only as validation reference.
+          if temp["total_length"] > max_reference_message_bytes:
+              print("::error::Referenzfeld überschreitet Sicherheitslimit.")
+              sys.exit(1)
+
+          reference = range_get(
+              temp["archive_offset"],
+              temp["total_length"],
+              "ecCodes reference message",
+          )
+          if reference[0:4] != b"GRIB" or reference[-4:] != b"7777":
+              print("::error::Referenz-GRIB unvollständig.")
+              sys.exit(1)
+
+          reference_path.write_bytes(reference)
+
+          proc = subprocess.run(
+              [
+                  "grib_ls",
+                  "-l", f"{target_lat},{target_lon},1",
+                  "-p",
+                  (
+                      "gridType,Ni,Nj,"
+                      "latitudeOfFirstGridPointInDegrees,"
+                      "longitudeOfFirstGridPointInDegrees,"
+                      "iDirectionIncrementInDegrees,"
+                      "jDirectionIncrementInDegrees,"
+                      "latitudeOfSouthernPoleInDegrees,"
+                      "longitudeOfSouthernPoleInDegrees,"
+                      "angleOfRotationInDegrees,"
+                      "iScansNegatively,jScansPositively,"
+                      "jPointsAreConsecutive"
+                  ),
+                  str(reference_path),
+              ],
+              text=True,
+              capture_output=True,
+              check=False,
+          )
+
+          if proc.returncode != 0:
+              print(proc.stdout)
+              print(proc.stderr, file=sys.stderr)
+              print("::error::ecCodes-Referenzabfrage fehlgeschlagen.")
+              sys.exit(1)
+
+          chosen_re = re.compile(
+              r"Grid Point chosen .*?index=(\d+)\s+"
+              r"latitude=([-+0-9.]+)\s+longitude=([-+0-9.]+)\s+"
+              r"distance=([-+0-9.]+)"
+          )
+          chosen_match = chosen_re.search(proc.stdout)
+
+          if not chosen_match:
+              print(proc.stdout)
+              print("::error::ecCodes-Gitterindex nicht erkannt.")
+              sys.exit(1)
+
+          eccodes_index = int(chosen_match.group(1))
+          eccodes_lat = float(chosen_match.group(2))
+          eccodes_lon = float(chosen_match.group(3))
+          eccodes_distance = float(chosen_match.group(4))
+
+          if derived_index != eccodes_index:
+              print("::error::GDS-only Index stimmt nicht mit ecCodes überein.")
+              print(
+                  f"derived={derived_index}, ecCodes={eccodes_index}, "
+                  f"i={i}, j={j}, iFloat={i_float:.6f}, "
+                  f"jFloat={j_float:.6f}"
+              )
+              print("")
+              print("ecCodes:")
+              print(proc.stdout)
+              sys.exit(1)
+
+          # Prove the same index can be used with the packed-point decoder
+          # without a full field: read BDS metadata + only the selected value.
+          pds_start = temp["archive_offset"] + 8
+          pds = range_get(pds_start, temp["pds_length"], "PDS")
+          decimal_scale_raw = int.from_bytes(pds[26:28], "big")
+          decimal_scale = (
+              -(decimal_scale_raw & 0x7FFF)
+              if decimal_scale_raw & 0x8000
+              else decimal_scale_raw
+          )
+
+          bds_start = gds_start + gds_length
+          bds_head = range_get(bds_start, 11, "BDS header")
+          bds_length = int.from_bytes(bds_head[0:3], "big")
+          bds_flags = bds_head[3]
+          binary_raw = int.from_bytes(bds_head[4:6], "big")
+          binary_scale = (
+              -(binary_raw & 0x7FFF)
+              if binary_raw & 0x8000
+              else binary_raw
+          )
+          reference_word = int.from_bytes(bds_head[6:10], "big")
+          bits_per_value = bds_head[10]
+
+          if reference_word == 0:
+              ref_value = 0.0
+          else:
+              sign = -1.0 if reference_word & 0x80000000 else 1.0
+              characteristic = (reference_word >> 24) & 0x7F
+              fraction = reference_word & 0x00FFFFFF
+              ref_value = (
+                  sign
+                  * (fraction / float(1 << 24))
+                  * (16.0 ** (characteristic - 64))
+              )
+
+          if bds_flags & 0xF0:
+              print(
+                  f"::error::BDS 0x{bds_flags:02x}: "
+                  "kein unterstütztes Simple Packing."
+              )
+              sys.exit(1)
+
+          if not 1 <= bits_per_value <= 56:
+              print(
+                  f"::error::Unplausible bitsPerValue={bits_per_value}."
+              )
+              sys.exit(1)
+
+          packed_start = bds_start + 11
+          bit_start = derived_index * bits_per_value
+          byte_start = bit_start // 8
+          bit_offset = bit_start % 8
+          bytes_needed = (bit_offset + bits_per_value + 7) // 8
+
+          packed = range_get(
+              packed_start + byte_start,
+              bytes_needed,
+              "derived-index packed value",
+          )
+          word = int.from_bytes(packed, "big")
+          total_bits = len(packed) * 8
+          shift = total_bits - (bit_offset + bits_per_value)
+          coded = (word >> shift) & ((1 << bits_per_value) - 1)
+
+          decoded_k = (
+              ref_value + coded * (2.0 ** binary_scale)
+          ) * (10.0 ** (-decimal_scale))
+
+          result = {
+              "schema": "mid.knmi.grid-index-smoke.v1",
+              "archive": archive_name,
+              "tar_member": selected["name"],
+              "requested_point": {
+                  "latitude": target_lat,
+                  "longitude": target_lon,
+              },
+              "gds": {
+                  "representation": representation,
+                  "Ni": ni,
+                  "Nj": nj,
+                  "rotated_first_lat": lat1,
+                  "rotated_first_lon": lon1,
+                  "rotated_last_lat": lat2,
+                  "rotated_last_lon": lon2,
+                  "di_deg": di,
+                  "dj_deg": dj,
+                  "southern_pole_lat": south_lat,
+                  "southern_pole_lon": south_lon,
+                  "north_pole_lat": pole_lat,
+                  "north_pole_lon": pole_lon,
+                  "rotation_angle_deg": rotation_angle,
+                  "scanning_mode": scan,
+                  "i_scans_negative": i_scans_negative,
+                  "j_scans_positive": j_scans_positive,
+                  "j_points_are_consecutive": j_consecutive,
+              },
+              "derived": {
+                  "rotated_latitude": rlat,
+                  "rotated_longitude": rlon,
+                  "i_float": i_float,
+                  "j_float": j_float,
+                  "i": i,
+                  "j": j,
+                  "index": derived_index,
+                  "temperature_k_from_packed_bytes": decoded_k,
+                  "temperature_c_from_packed_bytes": decoded_k - 273.15,
+                  "point_payload_bytes": bytes_needed,
+              },
+              "eccodes_reference": {
+                  "index": eccodes_index,
+                  "latitude": eccodes_lat,
+                  "longitude": eccodes_lon,
+                  "distance_km": eccodes_distance,
+              },
+              "index_match": derived_index == eccodes_index,
+              "bytes_transferred_including_one_validation_field":
+                  bytes_transferred,
+          }
+
+          print("GDS-only rotated-grid index: OK")
+          print(f"Archive: {archive_name}")
+          print(f"TAR member: {selected['name']}")
+          print("")
+          print("Grid:")
+          print(
+              f"- Ni/Nj: {ni}/{nj}"
+          )
+          print(
+              f"- rotated first: {lat1:.3f}/{lon1:.3f}"
+          )
+          print(
+              f"- increments: {di:.6f}° / {dj:.6f}°"
+          )
+          print(
+              f"- south pole: {south_lat:.3f}/{south_lon:.3f}"
+          )
+          print(
+              f"- north pole: {pole_lat:.3f}/{pole_lon:.3f}"
+          )
+          print(
+              f"- rotation angle: {rotation_angle:.6f}°"
+          )
+          print(
+              f"- scanning: 0x{scan:02x}; "
+              f"iNeg={i_scans_negative}, "
+              f"jPos={j_scans_positive}, "
+              f"jConsecutive={j_consecutive}"
+          )
+          print("")
+          print("Point derivation:")
+          print(
+              f"- geographic: {target_lat:.5f}/{target_lon:.5f}"
+          )
+          print(
+              f"- rotated: {rlat:.6f}/{rlon:.6f}"
+          )
+          print(
+              f"- i/j: {i}/{j}"
+          )
+          print(
+              f"- derived index: {derived_index}"
+          )
+          print(
+              f"- ecCodes index: {eccodes_index}"
+          )
+          print(
+              f"- MATCH: {derived_index == eccodes_index}"
+          )
+          print(
+              f"- packed temperature: {decoded_k:.6f} K / "
+              f"{decoded_k - 273.15:.3f} °C"
+          )
+          print(
+              f"- packed point bytes: {bytes_needed}"
+          )
+          print("")
+          print("JSON:")
+          print(json.dumps(
+              result,
+              indent=2,
+              ensure_ascii=False,
+              sort_keys=True,
+          ))
+          PY
