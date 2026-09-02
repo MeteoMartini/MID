@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.77.16",
+  "releaseVersion": "0.9.77.17",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -362,7 +362,8 @@
     "scripts/test-extreme-threshold-evidence-097712.mjs",
     "scripts/test-regional-model-domain-fusion-097714.mjs",
     "scripts/test-attachment-hazard-temperature-colors-097715.mjs",
-    "scripts/test-weather-profile-longrange-ui-097716.mjs"
+    "scripts/test-weather-profile-longrange-ui-097716.mjs",
+    "scripts/test-tmin-tmax-number-tone-097717.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -1042,7 +1043,9 @@
     "MID_TEST_REPORT_0.9.77.15.md",
     "scripts/test-weather-profile-longrange-ui-097716.mjs",
     "MID_IMPLEMENTATION_0.9.77.16.md",
-    "MID_TEST_REPORT_0.9.77.16.md"
+    "MID_TEST_REPORT_0.9.77.16.md",
+    "MID_IMPLEMENTATION_0.9.77.17.md",
+    "MID_TEST_REPORT_0.9.77.17.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",

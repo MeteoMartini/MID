@@ -13,10 +13,11 @@ assert.ok(overlay.includes('hazardLabel(area.signal.hazard)'),'Popup muss die ta
 assert.ok(!overlay.includes('Modellierte Gefahrenfläche'),'Generische Popup-Bezeichnung darf nicht mehr erscheinen.');
 
 assert.ok(tone.includes("const token=kind==='max'?'var(--param-temperature-max)':'var(--param-temperature-min)'"),'Tmin/Tmax müssen in den kanonischen Blau-/Rotfamilien bleiben.');
-assert.ok(tone.includes("return kind==='min'?1-scaled:clamp01(.14+scaled*.86)"),'Tmin und Tmax müssen die signierte Klimaabweichung gegenläufig in Sättigung abbilden.');
+assert.ok(tone.includes("return kind==='min'?1-scaled:clamp01(.14+scaled*.86)"),'Tmin und Tmax müssen die signierte Klimaabweichung gegenläufig in der Zahlfarbe abbilden.');
+assert.ok(tone.includes("background:'transparent'")&&tone.includes("border:'transparent'"),'Tmin/Tmax-Hintergrund und -Rahmen müssen neutral bleiben.');
 assert.ok(tone.includes("color:'var(--text)'"),'Aktuelle/stündliche Temperaturwerte müssen neutral in der Theme-Textfarbe erscheinen.');
 assert.ok(tone.includes('void climateMin;void climateMax;'),'Stündliche Temperatur darf nicht mehr anhand klimatologischer Tmin/Tmax in Blau/Rot einsortiert werden.');
-assert.ok(cockpit.includes('Tmin blau, Tmax rot · Sättigung = Abweichung vom jeweiligen Klimamittel.'),'7-Tage-Legende muss die neue Farblogik verständlich benennen.');
+assert.ok(cockpit.includes('Tmin blau, Tmax rot · Zahlfarbe = Abweichung vom jeweiligen Klimamittel.'),'7-Tage-Legende muss die neue Farblogik verständlich benennen.');
 assert.ok(modern.includes('.selected-time-value-pill.temperature{color:var(--text)}'),'Auch der ausgewählte stündliche Temperaturwert im 24-h-Profil muss neutral bleiben.');
 assert.ok(contract.includes('Blau/Rot bleibt ausschließlich den Tagesextrema Tmin/Tmax vorbehalten.'),'Verbindlicher Farbvertrag muss aktuelle Temperaturen von Tmin/Tmax trennen.');
 assert.ok(contract.includes('deutlich kälter = sehr kräftig/dunkel')&&contract.includes('deutlich wärmer = sehr kräftig/dunkel'),'Farbvertrag muss beide Klimaskalenrichtungen schützen.');

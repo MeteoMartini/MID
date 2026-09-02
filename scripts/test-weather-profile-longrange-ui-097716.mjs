@@ -12,7 +12,7 @@ const [profile,trend,modern,styles,pkgText,baselineText]=await Promise.all([
 ]);
 const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText);
 
-assert.equal(pkg.version,'0.9.77.16','UI-Fix muss als v0.9.77.16 ausgeliefert werden.');
+assert.ok(pkg.version.startsWith('0.9.77.')&&Number(pkg.version.split('.').at(-1))>=16,'UI-Fix aus v0.9.77.16 muss in allen Folgereleases erhalten bleiben.');
 assert.equal(baseline.releaseVersion,pkg.version,'Baseline und Paketversion müssen synchron sein.');
 
 assert.ok(modern.includes('.selected-time-value-pill rect{fill:var(--mg-tooltip);'), '24-h-Wert-Pills müssen den theme-adaptiven Tooltip-Hintergrund verwenden.');
@@ -40,4 +40,4 @@ assert.ok(!modern.includes('.chartscroll,.detail-scroll,.trend-scroll,.meteogram
 assert.ok(styles.includes('.selected-time-value-pill rect{fill:var(--mg-tooltip);'), 'Styles-Aggregat muss die Pill-Korrektur enthalten.');
 assert.ok(styles.includes('.long-range-chart{width:100%;min-width:0;overflow-x:hidden;'), 'Styles-Aggregat muss die responsive Langfristdarstellung enthalten.');
 
-console.log('MID v0.9.77.16: 24-h-Pills, kleinere Temperaturmarker, Witterungstrend-Metadaten und scrollfreie Langfristdiagramme geprüft.');
+console.log(`MID v${pkg.version}: 24-h-Pills, kleinere Temperaturmarker, Witterungstrend-Metadaten und scrollfreie Langfristdiagramme geprüft.`);

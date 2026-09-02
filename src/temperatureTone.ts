@@ -17,11 +17,13 @@ function dailyIntensity(anomaly:number|null,kind:DailyTemperatureKind){
  return kind==='min'?1-scaled:clamp01(.14+scaled*.86);
 }
 function dailyTone(token:string,intensity:number){
- const bounded=clamp01(intensity),textShare=Math.round(48+bounded*50),backgroundShare=Math.round(4+bounded*28),borderShare=Math.round(16+bounded*46);
+ const bounded=clamp01(intensity),textShare=Math.round(58+bounded*42);
  return{
-  color:`color-mix(in srgb,${token} ${textShare}%,var(--text))`,
-  background:`color-mix(in srgb,${token} ${backgroundShare}%,transparent)`,
-  border:`color-mix(in srgb,${token} ${borderShare}%,transparent)`
+  // Klimatische Abweichung wird ausschließlich in der Zahlfarbe sichtbar.
+  // Hintergrund und Rahmen bleiben neutral, damit Tmin/Tmax keine farbige Pille bilden.
+  color:`color-mix(in srgb,${token} ${textShare}%,var(--muted))`,
+  background:'transparent',
+  border:'transparent'
  };
 }
 function neutralHourlyTone(){

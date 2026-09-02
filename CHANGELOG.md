@@ -1,3 +1,10 @@
+## v0.9.77.17
+
+- Klimatische Tmin/Tmax-Abweichung wird ausschließlich über die **Zahlfarbe** sichtbar; Hintergrund und Rahmen der Werte bleiben neutral/transparent.
+- Blaue Tmin- und rote Tmax-Zahlen behalten die signierte Klimasättigung, ohne farbige Pillen/Hinterlegungen zu erzeugen.
+- 7-Tage-Legende und Parameter-Farbvertrag auf „Zahlfarbe = Abweichung vom jeweiligen Klimamittel“ präzisiert.
+- Neuer Regressionstest schützt die reine Zahlfarben-Codierung appweit; keine fachliche Worker-Änderung.
+
 ## v0.9.77.16
 
 - 24-h-Wert-Pills im Hell-/Dunkeldesign kontrastfest: definierte Meteogramm-Tooltipfarben statt ungültiger SVG-Hintergrundvariablen.
