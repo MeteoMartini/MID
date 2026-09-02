@@ -1,6 +1,6 @@
 # MID KNMI HARMONIE EPS Worker Contract
 
-Stand: v0.9.77.19
+Stand: v0.9.77.22
 
 ## Ziel
 
@@ -43,3 +43,7 @@ Sind API-Key und Decoder vorhanden, verwendet `ensemble-proxy` den produktiven R
 ## Pflichtregression
 
 `scripts/test-knmi-eps-worker-binding-097719.mjs`
+## Referenzdecoder ab v0.9.77.22
+
+`tools/knmi_eps_decoder/` ist die kanonische externe Implementierung der Decodergrenze. Der Worker-Vertrag selbst bleibt unverändert: Listing, temporäre URL, TAR-Index, 6×5-Rolling-Zuordnung und Range-Manifest entstehen im Worker; der Decoder führt ausschließlich die numerische GRIB1-Punktdekodierung aus. Der Decoder ist in v0.9.77.22 nur als Quell-/Containerpaket vorbereitet und wird nicht automatisch gehostet oder aktiviert.
+

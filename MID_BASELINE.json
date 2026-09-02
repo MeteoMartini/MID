@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.77.21",
+  "releaseVersion": "0.9.77.22",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -366,7 +366,8 @@
     "scripts/test-tmin-tmax-number-tone-097717.mjs",
     "scripts/test-knmi-eps-productive-cache-097718.mjs",
     "scripts/test-current-temperature-smooth-bridge-097719.mjs",
-    "scripts/test-knmi-eps-worker-binding-097719.mjs"
+    "scripts/test-knmi-eps-worker-binding-097719.mjs",
+    "scripts/test-knmi-eps-point-decoder-097722.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -659,7 +660,8 @@
     "scripts/test-weather-profile-longrange-ui-097716.mjs",
     "scripts/test-knmi-eps-productive-cache-097718.mjs",
     "scripts/test-current-temperature-smooth-bridge-097719.mjs",
-    "scripts/test-knmi-eps-worker-binding-097719.mjs"
+    "scripts/test-knmi-eps-worker-binding-097719.mjs",
+    "scripts/test-knmi-eps-point-decoder-097722.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -1061,7 +1063,13 @@
     "scripts/test-knmi-eps-worker-binding-097719.mjs",
     "MID_KNMI_HARMONIE_EPS_WORKER_CONTRACT.md",
     "MID_IMPLEMENTATION_0.9.77.19.md",
-    "MID_TEST_REPORT_0.9.77.19.md"
+    "MID_TEST_REPORT_0.9.77.19.md",
+    "MID_KNMI_HARMONIE_EPS_DECODER_CONTRACT.md",
+    "tools/knmi_eps_decoder/decoder.py",
+    "tools/knmi_eps_decoder/server.py",
+    "tools/knmi_eps_decoder/selftest.py",
+    "tools/knmi_eps_decoder/README.md",
+    "scripts/test-knmi-eps-point-decoder-097722.mjs"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1271,7 +1279,12 @@
     "src/eventWeatherEngine.ts",
     "MID_KNMI_HARMONIE_EPS_WORKER_CONTRACT.md",
     "scripts/test-current-temperature-smooth-bridge-097719.mjs",
-    "scripts/test-knmi-eps-worker-binding-097719.mjs"
+    "scripts/test-knmi-eps-worker-binding-097719.mjs",
+    "MID_KNMI_HARMONIE_EPS_DECODER_CONTRACT.md",
+    "tools/knmi_eps_decoder/decoder.py",
+    "tools/knmi_eps_decoder/server.py",
+    "src/weather-src/00-types-models-search.tsfrag",
+    "scripts/test-knmi-eps-point-decoder-097722.mjs"
   ],
   "implementationProof": [
     "MID_IMPLEMENTATION_0.9.74.5.md",
@@ -1332,7 +1345,9 @@
     "scripts/test-current-temperature-smooth-bridge-097719.mjs",
     "scripts/test-knmi-eps-worker-binding-097719.mjs",
     "MID_IMPLEMENTATION_0.9.77.19.md",
-    "MID_TEST_REPORT_0.9.77.19.md"
+    "MID_TEST_REPORT_0.9.77.19.md",
+    "MID_IMPLEMENTATION_0.9.77.22.md",
+    "scripts/test-knmi-eps-point-decoder-097722.mjs"
   ],
   "evidenceFiles": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -1365,7 +1380,9 @@
     "scripts/test-current-temperature-smooth-bridge-097719.mjs",
     "scripts/test-knmi-eps-worker-binding-097719.mjs",
     "MID_IMPLEMENTATION_0.9.77.19.md",
-    "MID_TEST_REPORT_0.9.77.19.md"
+    "MID_TEST_REPORT_0.9.77.19.md",
+    "MID_TEST_REPORT_0.9.77.22.md",
+    "scripts/test-knmi-eps-point-decoder-097722.mjs"
   ],
   "releaseEvidence": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -1385,7 +1402,10 @@
     "scripts/test-current-temperature-smooth-bridge-097719.mjs",
     "scripts/test-knmi-eps-worker-binding-097719.mjs",
     "MID_IMPLEMENTATION_0.9.77.19.md",
-    "MID_TEST_REPORT_0.9.77.19.md"
+    "MID_TEST_REPORT_0.9.77.19.md",
+    "MID_IMPLEMENTATION_0.9.77.22.md",
+    "MID_TEST_REPORT_0.9.77.22.md",
+    "scripts/test-knmi-eps-point-decoder-097722.mjs"
   ],
   "activeRegressionSuite": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -1400,8 +1420,9 @@
     "scripts/test-trend14plus-buildfix-09775.mjs",
     "scripts/test-knmi-eps-productive-cache-097718.mjs",
     "scripts/test-current-temperature-smooth-bridge-097719.mjs",
-    "scripts/test-knmi-eps-worker-binding-097719.mjs"
+    "scripts/test-knmi-eps-worker-binding-097719.mjs",
+    "scripts/test-knmi-eps-point-decoder-097722.mjs"
   ],
-  "version": "0.9.77.19",
-  "updatedAt": "2026-09-02T11:30:00Z"
+  "version": "0.9.77.22",
+  "updatedAt": "2026-09-02T12:00:00Z"
 }

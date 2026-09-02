@@ -90,7 +90,7 @@ const ensembleModels:EnsembleModel[]=[
  {id:'icon_eu_eps',label:'DWD ICON EPS EU',metaId:'dwd_icon_eu_eps',family:'dwd-icon-eps',independenceGroup:'dwd-ensemble',resolutionKm:13,updateHours:6,maxDays:5,bbox:[-25,30,45,72]},
  {id:'icon_d2_ruc_eps',label:'DWD ICON-D2-RUC-EPS',metaId:'icon-d2-ruc-eps',family:'dwd-icon-eps',independenceGroup:'dwd-ensemble',variantGroup:'dwd-icon-d2-eps-rapid',resolutionKm:2,updateHours:1,maxDays:1,maxHours:14,shortRangeOnly:true,bbox:[-3.85,43.18,20.22,58.05]},
  {id:'icon_d2_eps',label:'DWD ICON EPS D2',metaId:'dwd_icon_d2_eps',family:'dwd-icon-eps',independenceGroup:'dwd-ensemble',variantGroup:'dwd-icon-d2-eps-rapid',resolutionKm:2,updateHours:3,maxDays:2,bbox:[-6,43,26,58]},
- {id:'knmi_harmonie_arome_cy43_eps',label:'KNMI HARMONIE-AROME EPS',metaId:'knmi_harmonie_arome_cy43_eps',family:'uwc-west-harmonie-eps',independenceGroup:'uwc-west-harmonie-eps',resolutionKm:2.5,updateHours:3,maxDays:2.5,bbox:[-25,38.75,16,62.6]},
+ {id:'knmi_harmonie_arome_cy43_eps',label:'KNMI HARMONIE-AROME EPS',metaId:'knmi_harmonie_arome_cy43_eps',family:'uwc-west-harmonie-eps',independenceGroup:'uwc-west-harmonie-eps',resolutionKm:5.5,updateHours:1,maxDays:2.5,bbox:[-25,38.75,16,62.6]},
  {id:'ncep_gefs_seamless',label:'NOAA GFS Ensemble Seamless',metaId:'ncep_gefs025',family:'noaa-gefs',independenceGroup:'noaa-ensemble',resolutionKm:32,updateHours:6,maxDays:35},
  {id:'ncep_gefs025',label:'NOAA GFS Ensemble 0.25°',metaId:'ncep_gefs025',family:'noaa-gefs',independenceGroup:'noaa-ensemble',resolutionKm:25,updateHours:6,maxDays:10},
  {id:'ncep_gefs05',label:'NOAA GFS Ensemble 0.5°',metaId:'ncep_gefs05',family:'noaa-gefs',independenceGroup:'noaa-ensemble',resolutionKm:50,updateHours:6,maxDays:35},

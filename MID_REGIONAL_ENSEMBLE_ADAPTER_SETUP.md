@@ -75,11 +75,17 @@ Für den ECCC-Datamart ist upstream normalerweise kein persönlicher API-Key erf
 
 1. Für KNMI ausschließlich das vom MID-Worker gelieferte Rolling-Manifest verwenden; **kein eigenes Listing und kein eigener TAR-Index**.
 2. Nur die angegebenen Multi-Range-Bereiche aus den kurzlebigen Download-URLs laden.
-3. GRIB2 außerhalb des Cloudflare Workers mit `eccodes`/`cfgrib`, `wgrib2` oder GDAL dekodieren.
+3. Quellen-native GRIB-Daten außerhalb des Cloudflare Workers dekodieren. **KNMI Cy43 P4a ist GRIB1**; ECCC kann einen abweichenden GRIB-Vertrag besitzen. Für KNMI ist `tools/knmi_eps_decoder/` der kanonische Referenzdecoder mit ecCodes.
 4. Für die angefragten Koordinaten den nächstgelegenen bzw. fachlich geeigneten interpolierten Gitterpunkt bestimmen.
 5. Die vom Worker vorgegebene Rolling-Membernummer und `validLeadHours` unverändert in das Hourly-Schema transformieren.
 6. Numerische Punktresultate dürfen kurz nach Modelllauf + gerundetem Punkt gecacht werden; signed URLs dürfen nicht persistiert werden.
 7. Quelle/Laufzeit intern protokollieren; Fehler mit HTTP 4xx/5xx und verständlichem `error`/`detail` zurückgeben.
+
+## Referenzdecoder ab v0.9.77.22
+
+`tools/knmi_eps_decoder/` implementiert den dritten der vier KNMI-Produktionsabschnitte als reproduzierbare, containerfähige Referenz. Er akzeptiert ausschließlich `mid.knmi.harmonie-eps.point-decode-request.v1`, baut **weder KNMI-Listing noch TAR-Index** selbst auf, verlangt HTTP 206 für alle Worker-vorgegebenen Ranges und dekodiert die P4a-GRIB1-Felder Temperatur, Regen, 10-m-Wind und Böen. Die rollierende Niederschlagsakkumulation wird je 5er-Batch am ersten gemeinsamen Gültigkeitszeitpunkt auf null gesetzt und danach in Stundenmengen differenziert. Signed URLs werden weder persistiert noch protokolliert.
+
+Der Referenzdecoder ist in diesem Release **nicht öffentlich gehostet und nicht als Worker-Variable aktiviert**. Eine reale End-to-End-Aktivierung bleibt Abschnitt 4/4 und setzt einen bereits verfügbaren kostenfreien HTTPS-Runtimepfad oder eine ausdrückliche Kostenfreigabe voraus.
 
 ## Attribution
 

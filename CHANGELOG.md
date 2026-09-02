@@ -1,3 +1,10 @@
+## v0.9.77.22
+
+- Dritter der vier verbleibenden KNMI-HARMONIE-EPS-Hauptabschnitte: externer GRIB1-Punktdecoder unter `tools/knmi_eps_decoder/`, strikt an das Worker-Rolling-Manifest und HTTP-206-Ranges gebunden.
+- P4a-Rolling-Regen wird batchweise am ersten gemeinsamen Zeitpunkt baselined und in stündliche Mengen differenziert; Signed-URLs bleiben aus Logs und persistenten Caches heraus.
+- KNMI-P4a-Europe-Metadaten auf 5,5 km und stündliche Aktualisierung korrigiert; höher aufgelöste 2–2,5-km-HARMONIE-Domänen bleiben davon getrennt.
+- Kein Hosting/Cloudflare-Dienst/Workflow aktiviert; reale End-to-End-Aktivierung bleibt Abschnitt 4/4 und unterliegt der Kostenfreigabe.
+
 ## v0.9.77.21
 
 - Installer #830 korrigiert: `test-api-contract-health-resilience-09778.mjs` erwartet nicht länger den alten generischen Namen „Hourly Min/Max Aggregation“, sondern den seit v0.9.77.20 tatsächlich geprüften Kernvertrag `ECMWF IFS native 3h Min/Max`.

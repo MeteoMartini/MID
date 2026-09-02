@@ -37,6 +37,8 @@ def excluded(relative: Path) -> bool:
     posix = relative.as_posix()
     if posix in EXCLUDED_FILES:
         return True
+    if "__pycache__" in relative.parts or relative.suffix.lower() in {".pyc", ".pyo"}:
+        return True
     return any(posix == d or posix.startswith(d + "/") for d in EXCLUDED_DIRS)
 
 

@@ -1,10 +1,10 @@
 {
   "schema": 1,
-  "updatedAt": "2026-09-02T11:30:00Z",
-  "releaseVersion": "0.9.77.21",
+  "updatedAt": "2026-09-02T12:00:00Z",
+  "releaseVersion": "0.9.77.22",
   "sourceBaseline": {
-    "professionalVersion": "0.9.77.21",
-    "workerVersion": "0.9.77.21",
+    "professionalVersion": "0.9.77.22",
+    "workerVersion": "0.9.77.22",
     "regressionsPassed": null
   },
   "strategy": "shared-react-vite-core-with-capacitor-ios-shell",
@@ -112,7 +112,8 @@
     "release-run-828-maintenance-aggregate-regression-hotfix-0.9.77.19",
     "release-run-829-regression-contract-hotfix-0.9.77.20",
     "nightly-auto-revision-issue-28-audit-api-contract-hotfix-0.9.77.20",
-    "release-run-830-api-health-minmax-regression-hotfix-0.9.77.21"
+    "release-run-830-api-health-minmax-regression-hotfix-0.9.77.21",
+    "shared-knmi-harmonie-eps-point-decoder-source-preparation-0.9.77.22"
   ],
   "nextMilestone": "macos-xcode-simulator-quality-assurance",
   "validation": {
@@ -200,5 +201,5 @@
       "summary": "Zweiter der vier verbleibenden Hauptabschnitte bindet KNMI HARMONIE EPS über den produktiven TAR-Indexcache an ein 6×5-Rolling-Manifest; Cloudflare dekodiert weiterhin kein GRIB. Current-Temperatur wird zeit- und zeitzonengenau als weiche Brücke statt als Einzelstundenersatz assimiliert. Installer #828 wird durch Synchronisierung der Modularisierungsregression mit worker-src/05-knmi-eps-cache.js repariert."
     }
   ],
-  "currentVersion": "0.9.77.21"
+  "currentVersion": "0.9.77.22"
 }
