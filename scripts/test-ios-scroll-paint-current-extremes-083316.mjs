@@ -17,7 +17,8 @@ if(baseline.releaseVersion!==pkg.version)failures.push(`Baseline ${baseline.rele
 for(const token of [
  'export function reconcileCurrentTemperatureObservation',
  'bestDistance>90*60000',
- 'result[bestIndex]={...current,temperature}',
+ 'function currentTemperatureBridgeWeight',
+ 'modelAtObservation=leftTemperature+(rightTemperature-leftTemperature)*fraction',
  'hourlyMax=temperatures.length?Math.max(...temperatures):Number.NaN',
  'completeCoverage&&Number.isFinite(hourlyMax)?hourlyMax',
  'completeCoverage&&Number.isFinite(hourlyMin)?hourlyMin',
@@ -58,9 +59,9 @@ try{
  fs.writeFileSync(modulePath,transpiled.outputText);const mod=require(modulePath),now=Date.UTC(2026,7,2,16,5),date='2026-08-02';Date.now=()=>now;
  const hour=index=>({time:`${date}T${String(index).padStart(2,'0')}:00`,epoch:Date.UTC(2026,7,2,index,0),timezone:'Europe/Berlin',temperature:index===16?31:24,apparent:24,humidity:50,dewPoint:14,pressure:1014,precipitation:0,rain:0,showers:0,snowfall:0,probability:0,code:1,wind:5,gust:8,direction:90,cloud:15,lowCloud:5,uvIndex:0,visibility:20000,cape:0,isDay:index>=6&&index<=21});
  const baseHours=Array.from({length:24},(_,index)=>hour(index)),day={date,code:1,max:31,min:19,sunshineDuration:50000,precipitation:0,probability:0,wind:5,gust:8,direction:90,uvMax:7};
- const raisedHours=mod.reconcileCurrentTemperatureObservation(baseHours,32,now);assert.equal(raisedHours[16].temperature,32,'aktueller Wert muss die nächste Stundenposition anheben');
- const raisedDay=mod.reconcileForecastDaysWithHours([day],raisedHours)[0];assert.equal(raisedDay.max,32,'aktuelle 32 °C müssen als kanonisches Tmax der finalen Stunden erscheinen');assert.equal(raisedDay.min,24,'bei vollständiger Stundenabdeckung muss Tmin exakt aus den finalen Stunden stammen');
- const loweredHours=mod.reconcileCurrentTemperatureObservation(baseHours,18,now);const loweredDay=mod.reconcileForecastDaysWithHours([day],loweredHours)[0];assert.equal(loweredDay.min,18,'aktueller Wert unter Tmin muss als kanonisches Minimum erscheinen');assert.equal(loweredDay.max,24,'bei vollständiger Stundenabdeckung darf kein abweichendes Daily-Tmax parallel bestehen bleiben');
+ const raisedHours=mod.reconcileCurrentTemperatureObservation(baseHours,32,now),raisedFraction=(now-raisedHours[16].epoch)/(raisedHours[17].epoch-raisedHours[16].epoch),raisedAtNow=raisedHours[16].temperature+(raisedHours[17].temperature-raisedHours[16].temperature)*raisedFraction;assert.ok(Math.abs(raisedAtNow-32)<1e-9,'geglättete Current-Brücke muss am echten Beobachtungszeitpunkt 32 °C treffen');
+ const raisedDay=mod.reconcileForecastDaysWithHours([day],raisedHours)[0],raisedTemperatures=raisedHours.map(hour=>hour.temperature);assert.equal(raisedDay.max,Math.max(...raisedTemperatures),'Tmax muss exakt aus den geglätteten finalen Stunden stammen');assert.equal(raisedDay.min,Math.min(...raisedTemperatures),'Tmin muss exakt aus den geglätteten finalen Stunden stammen');
+ const loweredHours=mod.reconcileCurrentTemperatureObservation(baseHours,18,now),loweredFraction=(now-loweredHours[16].epoch)/(loweredHours[17].epoch-loweredHours[16].epoch),loweredAtNow=loweredHours[16].temperature+(loweredHours[17].temperature-loweredHours[16].temperature)*loweredFraction;assert.ok(Math.abs(loweredAtNow-18)<1e-9,'geglättete Current-Brücke muss am echten Beobachtungszeitpunkt 18 °C treffen');const loweredDay=mod.reconcileForecastDaysWithHours([day],loweredHours)[0],loweredTemperatures=loweredHours.map(hour=>hour.temperature);assert.equal(loweredDay.min,Math.min(...loweredTemperatures),'Tmin muss exakt aus den geglätteten finalen Stunden stammen');assert.equal(loweredDay.max,Math.max(...loweredTemperatures),'Tmax muss exakt aus den geglätteten finalen Stunden stammen');
  const ignored=mod.reconcileCurrentTemperatureObservation(baseHours,40,now+12*3600000);assert.equal(ignored,baseHours,'eine zeitlich nicht zuordenbare Beobachtung darf die Stunden nicht verändern');
 }finally{Date.now=originalNow;fs.rmSync(dir,{recursive:true,force:true})}
 console.log('MID v0.8.33.16 geprüft: durchgehender Root-Hintergrund, reduzierte mobile Compositor-Ebenen, direkte Viewport-Aktivierung und Tagesextreme exakt aus den finalen Stunden bei vollständiger Tagesabdeckung.');

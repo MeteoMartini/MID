@@ -40,3 +40,9 @@ Optional für den bereits vorbereiteten privaten RUC-R2-Pfad:
 
 ## Notfallartefakt
 `MID-worker.zip` wird weiterhin bei jedem gekoppelten Release erzeugt. Es ist Backup/Notfall-/Audit-Artefakt, nicht mehr der reguläre Veröffentlichungsweg, sobald der Auto-Deploy einmalig aktiviert wurde.
+
+## Ergänzung v0.9.77.18 – KNMI-HARMONIE-EPS-Produktivcache
+
+Der produktive KNMI-HARMONIE-EPS-TAR-Indexcache verwendet das bereits vorhandene KV-Binding `MID_PUSH_SUBSCRIPTIONS` mit dem strikt getrennten Präfix `cache:knmi-eps:tar-index:v1:`. Für diesen Cache darf der Auto-Deploy **kein neues KV-Namespace und keine sonstige Cloudflare-Ressource** provisionieren. Die vorhandene Remote-KV-Bindung wird wie bisher verlustfrei gespiegelt.
+
+Der Push-Scheduler bleibt auf `sub:`-Listenabfragen beschränkt; der KNMI-Cache selbst verwendet kein `KV.list()`. Fachliche Worker-Änderungen am Cache lösen den bestehenden gestagten Worker-Deploy aus. Verbindliche Fachreferenz: `MID_KNMI_HARMONIE_EPS_CACHE_CONTRACT.md`. Required Regression: `scripts/test-knmi-eps-productive-cache-097718.mjs`.

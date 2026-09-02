@@ -47,7 +47,7 @@ assert.ok(eventCenter.includes('weatherTwinApplied?:boolean'),'EventSummary doku
 assert.ok(!twin.includes('applyOperationalNowcastHours(locallyAdjusted,radar)'),'Wetterzwilling darf Radar nicht separat und damit doppelt anwenden.');
 assert.ok(twin.includes('settings.nowcastAssimilation&&radar'),'Radar-Schalter steuert nicht mehr die Aufnahme in den Wetterzwilling-Lernkreis.');
 assert.ok(twin.includes('return locallyAdjusted;'),'Wetterzwilling-Stundenkorrektur endet nicht vor der gemeinsamen MID-Endstufe.');
-assert.ok(app.includes('finalizeForecastHours(twinHours,baseDisplayDays,{radar:radarAnalysis,thunder:thunderAnalysis,observedTemperature:finalizationObservedTemperature})'),'Ortsprognose führt Wetterzwilling nicht durch dieselbe zentrale Endstufe.');
+assert.ok(app.includes('finalizeForecastHours(twinHours,baseDisplayDays,{radar:radarAnalysis,thunder:thunderAnalysis,observedTemperature:finalizationObservedTemperature,observedAt:finalizationObservedAt})'),'Ortsprognose führt Wetterzwilling nicht durch dieselbe zentrale Endstufe einschließlich zeitgenauer Current-Beobachtung.');
 assert.ok(settings.includes('Radar-/Nowcast im Lernkreis'),'Wetterzwilling-Einstellung erklärt die neue zentrale Nowcast-Architektur nicht.');
 
 console.log(`MID v${packageJson.version}: Event-Zeitraum-PoP und Wetterzwilling-Endstufe appweit konsistent geprüft.`);

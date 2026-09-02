@@ -8,5 +8,6 @@ const optionalCalls=(source.match(/\{required:false\}/g)||[]).length;if(optional
 requireText("hourly:'temperature_2m,precipitation,cloud_cover,wind_speed_10m'",'Regionaler Oberflächen-Minimalvertrag ist nicht vereinheitlicht.');
 requireText("models:'jma_msm',hourly:'temperature_850hPa,relative_humidity_850hPa,wind_speed_850hPa,geopotential_height_850hPa'",'JMA-Druckniveauvertrag muss getrennt auf MSM geprüft werden.');
 if(/models:model,hourly:'temperature_2m,precipitation,cloud_cover,wind_speed_10m,temperature_850hPa/.test(source))throw new Error('JMA GSM/Seamless dürfen nicht wieder pauschal an den MSM-Druckniveauvertrag gekoppelt werden.');
-for(const core of ['Open-Meteo Best Match + Mond','ECMWF AIFS Europe Ensemble','EU-AQI stündlich','Hourly Min/Max Aggregation'])requireText(core,`Kritischer Kernvertrag ${core} fehlt.`);
-console.log('API-Health-Resilienz v0.9.77.8: PASS');
+for(const core of ['Open-Meteo Best Match + Mond','ECMWF AIFS Europe Ensemble','EU-AQI stündlich','ECMWF IFS native 3h Min/Max'])requireText(core,`Kritischer Kernvertrag ${core} fehlt.`);
+for(const token of ["models:'ecmwf_ifs'","forecast_hours:'24'","hourly:'temperature_2m_min,temperature_2m_max'","finiteSeries(payload,'temperature_2m_min',2)","finiteSeries(payload,'temperature_2m_max',2)"])requireText(token,`ECMWF-IFS-Min/Max-Healthvertrag unvollständig: ${token}`);
+console.log('API-Health-Resilienz v0.9.77.21: PASS');

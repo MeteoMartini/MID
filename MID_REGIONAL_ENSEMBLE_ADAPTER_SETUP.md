@@ -6,15 +6,26 @@ MID kennt `knmi_harmonie_arome_cy43_eps` und `eccc_reps` bereits als hochwertige
 
 ## Vom MID-Worker erwarteter Request
 
-Der Worker ruft den konfigurierten Adapter per GET auf und ergänzt:
+### KNMI HARMONIE-AROME Cy43 P4a – produktiver Rolling-Manifest-Pfad
 
-- `lat=<Breitengrad>`
-- `lon=<Längengrad>`
-- `forecast_days=<Tage>`
-- `variables=<kommagetrennte Variablen>`
-- `model=knmi_harmonie_arome_cy43_eps` bzw. `model=eccc_reps`
+Ab v0.9.77.19 orchestriert der MID-Worker die KNMI-Quelle selbst, sobald **beide** Worker-Secrets/Variablen `MID_KNMI_API_KEY` und `MID_KNMI_HARMONIE_EPS_POINT_ENDPOINT` vorhanden sind. Der Decoder bekommt dann **POST** mit `Content-Type: application/json` und Schema `mid.knmi.harmonie-eps.point-decode-request.v1`.
 
-Optional sendet er `Authorization: Bearer <TOKEN>`.
+Der Request enthält `latitude`, `longitude`, `forecastHours`, `variables` und ein `manifest` mit:
+
+- sechs lückenlosen stündlichen P4a-Archiven,
+- dynamischer Zuordnung 1–5, 6–10, …, 26–30,
+- auf den neuesten Lauf ausgerichteten `validLeadHours` 0–54 h,
+- kurzlebigen KNMI-Download-URLs,
+- den aus dem persistenten MID-TAR-Index stammenden exakten Bytepositionen,
+- vorgepackten HTTP-Multi-Range-Gruppen mit höchstens 16 Teilen.
+
+Der Decoder **darf keinen zweiten KNMI-Listing-/TAR-Indexpfad aufbauen**. Er lädt ausschließlich die im Manifest bezeichneten Byte-Ranges, dekodiert die GRIB-Nachrichten außerhalb von Cloudflare und gibt die numerische Punktzeitreihe zurück. Temporäre Download-URLs dürfen weder persistiert noch protokolliert werden.
+
+Fehlt `MID_KNMI_API_KEY`, bleibt der historische GET-Punktadapter als Kompatibilitätsweg möglich. Er gilt nicht als produktiver Cachepfad und darf eine nicht konfigurierte Quelle nicht blockieren.
+
+### ECCC REPS / Legacy-Punktadapter
+
+Für ECCC und den Kompatibilitätsweg ruft der Worker den konfigurierten Adapter per GET auf und ergänzt `lat`, `lon`, `forecast_days`, `variables` und `model`. Optional sendet er `Authorization: Bearer <TOKEN>`.
 
 ## Erwartetes Response-Schema
 
@@ -49,7 +60,7 @@ MID_KNMI_HARMONIE_EPS_POINT_ENDPOINT=https://<eigener-adapter>/knmi-harmonie-eps
 MID_KNMI_HARMONIE_EPS_POINT_TOKEN=<optional-eigenes-adapter-token>
 ```
 
-Der KNMI-API-Key gehört **in den Adapter**, nicht in das Frontend. Empfehlter Secret-Name dort: `KNMI_OPEN_DATA_API_KEY`.
+Der KNMI-API-Key gehört **ausschließlich in den MID-Worker**, nicht in Frontend oder Decoder. Kanonischer Secret-Name ist `MID_KNMI_API_KEY` (alternativ unterstützt der Worker `KNMI_OPEN_DATA_API_KEY`). Der Decoder erhält nur kurzlebige signierte Download-URLs und Range-Manifeste.
 
 ### ECCC
 
@@ -62,12 +73,13 @@ Für den ECCC-Datamart ist upstream normalerweise kein persönlicher API-Key erf
 
 ## Empfohlene Adapterarchitektur
 
-1. Neueste Modellläufe serverseitig erkennen und Dateien nur einmal pro Lauf herunterladen/cachen.
-2. GRIB2 mit `eccodes`/`cfgrib`, `wgrib2` oder GDAL dekodieren.
-3. Für angefragte Koordinaten den nächstgelegenen bzw. fachlich geeigneten interpolierten Gitterpunkt bestimmen.
-4. Ensemblemitglied, Prognosezeit und Parameter in das obige Hourly-Schema transformieren.
-5. Ergebnis kurz cachen (z. B. pro Modelllauf + gerundetem Punkt), damit viele MID-Nutzer nicht dieselben GRIB-Dateien erneut dekodieren.
-6. Quelle/Laufzeit intern protokollieren; Fehler mit HTTP 4xx/5xx und verständlichem `error`/`detail` zurückgeben.
+1. Für KNMI ausschließlich das vom MID-Worker gelieferte Rolling-Manifest verwenden; **kein eigenes Listing und kein eigener TAR-Index**.
+2. Nur die angegebenen Multi-Range-Bereiche aus den kurzlebigen Download-URLs laden.
+3. GRIB2 außerhalb des Cloudflare Workers mit `eccodes`/`cfgrib`, `wgrib2` oder GDAL dekodieren.
+4. Für die angefragten Koordinaten den nächstgelegenen bzw. fachlich geeigneten interpolierten Gitterpunkt bestimmen.
+5. Die vom Worker vorgegebene Rolling-Membernummer und `validLeadHours` unverändert in das Hourly-Schema transformieren.
+6. Numerische Punktresultate dürfen kurz nach Modelllauf + gerundetem Punkt gecacht werden; signed URLs dürfen nicht persistiert werden.
+7. Quelle/Laufzeit intern protokollieren; Fehler mit HTTP 4xx/5xx und verständlichem `error`/`detail` zurückgeben.
 
 ## Attribution
 

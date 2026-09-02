@@ -29,7 +29,7 @@ for(const token of ["thresholds:[10,20,25,50,75]","thresholds:[20,40,50,100,150]
 
 // Min-/Max-Aggregationsmetadaten: MID bleibt JSON-basiert; der Online-Vertrag prüft die beiden Aggregationen getrennt.
 assert.ok(!weather.toLowerCase().includes('flatbuffers'),'MID darf wegen des Open-Meteo-Metadatenfixes keinen FlatBuffers-Laufzeitpfad einführen.');
-for(const token of ['temperature_2m_min','temperature_2m_max','temporal_resolution','hourly_6'])assert.ok(contracts.includes(token),`Min-/Max-Vertragscheck fehlt: ${token}`);
+for(const token of ['temperature_2m_min','temperature_2m_max',"models:'ecmwf_ifs'","forecast_hours:'24'",'ECMWF IFS native 3h Min/Max'])assert.ok(contracts.includes(token),`Min-/Max-Vertragscheck fehlt: ${token}`);
 
 // Bereits verbindliche Begleitregressionen: Astronomie und DWD ICON.
 for(const token of ['moonrise','moonset','moon_phase'])assert.ok(contracts.includes(token),`Mond-API-Vertrag fehlt: ${token}`);

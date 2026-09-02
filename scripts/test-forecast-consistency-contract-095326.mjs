@@ -18,7 +18,7 @@ for(const token of [
  "observed.code=Boolean(observed.cloud||observed.lowCloud||observed.visibility||observed.precipitation)"
 ])need(anchor,token,'gemeinsamer hyperlokaler Beobachtungsanker');
 for(const token of [
- 'finalizeForecastHours(twinHours,baseDisplayDays,{radar:radarAnalysis,thunder:thunderAnalysis,observedTemperature:finalizationObservedTemperature})',
+ 'finalizeForecastHours(twinHours,baseDisplayDays,{radar:radarAnalysis,thunder:thunderAnalysis,observedTemperature:finalizationObservedTemperature,observedAt:finalizationObservedAt})',
  'applyHyperlocalForecastHours(core.hours,shortTermAnchor,Date.now(),twinHours)',
  'displayMinutes15=useMemo(()=>finalizeForecastMinute15(minutes15,twinHours,displayHours,{radar:radarAnalysis,localAnchor:shortTermAnchor,rucRapidMinutes15:forecastFusion?.rapidMinutes15})',
  'precipitationNowSummary(displayMinutes15,displayHours,displayTimezone)',

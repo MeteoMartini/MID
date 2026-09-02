@@ -25,7 +25,7 @@ assert.ok(fusion.includes('blendRadarAtTarget'),'Operativer Stunden-Nowcast nutz
 assert.ok(fusion.includes('RADAR_TRANSITION_HORIZON_MINUTES'),'Auslaufender Radar-Timing-Übergang fehlt.');
 assert.ok(!fusion.includes('minutes>210'),'Direkte alte 210-Minuten-Radarfortschreibung ist noch vorhanden.');
 assert.ok(!twin.includes('applyOperationalNowcastHours(locallyAdjusted,radar)'),'Wetterzwilling darf Radar nicht mehr in einem separaten Parallelpfad anwenden.');
-assert.ok(app.includes('finalizeForecastHours(twinHours,baseDisplayDays,{radar:radarAnalysis,thunder:thunderAnalysis,observedTemperature:finalizationObservedTemperature})'),'Aktive Wetterzwilling-Stunden laufen nicht durch dieselbe zentrale Radar-/Modell-Endstufe wie die Ortsvorhersage.');
+assert.ok(app.includes('finalizeForecastHours(twinHours,baseDisplayDays,{radar:radarAnalysis,thunder:thunderAnalysis')&&app.includes('observedTemperature:finalizationObservedTemperature,observedAt:finalizationObservedAt'),'Aktive Wetterzwilling-Stunden laufen nicht durch dieselbe zentrale Radar-/Modell-/Current-Endstufe wie die Ortsvorhersage.');
 assert.ok(!twin.includes('Number(radar.currentRate))*.25'),'Wetterzwilling schreibt weiterhin direkte Radarintensität pauschal fort.');
 assert.equal(pkg.version,baseline.releaseVersion,'Releaseversion des Radar-Blend-Buildfixstands stimmt nicht mit der Baseline überein.');
 

@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.77.17",
+  "releaseVersion": "0.9.77.21",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -363,7 +363,10 @@
     "scripts/test-regional-model-domain-fusion-097714.mjs",
     "scripts/test-attachment-hazard-temperature-colors-097715.mjs",
     "scripts/test-weather-profile-longrange-ui-097716.mjs",
-    "scripts/test-tmin-tmax-number-tone-097717.mjs"
+    "scripts/test-tmin-tmax-number-tone-097717.mjs",
+    "scripts/test-knmi-eps-productive-cache-097718.mjs",
+    "scripts/test-current-temperature-smooth-bridge-097719.mjs",
+    "scripts/test-knmi-eps-worker-binding-097719.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -653,7 +656,10 @@
     "scripts/test-extreme-threshold-evidence-097712.mjs",
     "scripts/test-openmeteo-rapid-source-contract-097713.mjs",
     "scripts/test-attachment-hazard-temperature-colors-097715.mjs",
-    "scripts/test-weather-profile-longrange-ui-097716.mjs"
+    "scripts/test-weather-profile-longrange-ui-097716.mjs",
+    "scripts/test-knmi-eps-productive-cache-097718.mjs",
+    "scripts/test-current-temperature-smooth-bridge-097719.mjs",
+    "scripts/test-knmi-eps-worker-binding-097719.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -1045,7 +1051,17 @@
     "MID_IMPLEMENTATION_0.9.77.16.md",
     "MID_TEST_REPORT_0.9.77.16.md",
     "MID_IMPLEMENTATION_0.9.77.17.md",
-    "MID_TEST_REPORT_0.9.77.17.md"
+    "MID_TEST_REPORT_0.9.77.17.md",
+    "MID_KNMI_HARMONIE_EPS_CACHE_CONTRACT.md",
+    "worker-src/05-knmi-eps-cache.js",
+    "scripts/test-knmi-eps-productive-cache-097718.mjs",
+    "MID_IMPLEMENTATION_0.9.77.18.md",
+    "MID_TEST_REPORT_0.9.77.18.md",
+    "scripts/test-current-temperature-smooth-bridge-097719.mjs",
+    "scripts/test-knmi-eps-worker-binding-097719.mjs",
+    "MID_KNMI_HARMONIE_EPS_WORKER_CONTRACT.md",
+    "MID_IMPLEMENTATION_0.9.77.19.md",
+    "MID_TEST_REPORT_0.9.77.19.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1074,7 +1090,10 @@
     "scripts/test-trend14plus-buildfix-09775.mjs",
     "scripts/test-trend14plus-climatology-097711.mjs",
     "scripts/test-parameter-color-contract-097711.mjs",
-    "scripts/test-weather-profile-longrange-ui-097716.mjs"
+    "scripts/test-weather-profile-longrange-ui-097716.mjs",
+    "scripts/test-knmi-eps-productive-cache-097718.mjs",
+    "scripts/test-current-temperature-smooth-bridge-097719.mjs",
+    "scripts/test-knmi-eps-worker-binding-097719.mjs"
   ],
   "protectedFiles": [
     "scripts/test-travel-planner-era5-seamless-units-09652.mjs",
@@ -1214,7 +1233,15 @@
     "MID_IMPLEMENTATION_0.9.77.8.md",
     "MID_PR_HOUSEKEEPING_0.9.77.8.md",
     "MID_PARAMETER_COLOR_CONTRACT.md",
-    "scripts/test-parameter-color-contract-097712.mjs"
+    "scripts/test-parameter-color-contract-097712.mjs",
+    "MID_KNMI_HARMONIE_EPS_CACHE_CONTRACT.md",
+    "worker-src/05-knmi-eps-cache.js",
+    "scripts/test-knmi-eps-productive-cache-097718.mjs",
+    "src/forecastFusion.ts",
+    "src/eventWeatherEngine.ts",
+    "MID_KNMI_HARMONIE_EPS_WORKER_CONTRACT.md",
+    "scripts/test-current-temperature-smooth-bridge-097719.mjs",
+    "scripts/test-knmi-eps-worker-binding-097719.mjs"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md",
@@ -1234,7 +1261,17 @@
     "src/App.tsx",
     "src/ForecastCockpit.tsx",
     "MID_PARAMETER_COLOR_CONTRACT.md",
-    "scripts/test-parameter-color-contract-097712.mjs"
+    "scripts/test-parameter-color-contract-097712.mjs",
+    "worker-src/05-knmi-eps-cache.js",
+    "scripts/build-maintenance-aggregates.mjs",
+    "worker-src/40-aviation-router.js",
+    "MID_KNMI_HARMONIE_EPS_CACHE_CONTRACT.md",
+    "scripts/test-knmi-eps-productive-cache-097718.mjs",
+    "src/forecastFusion.ts",
+    "src/eventWeatherEngine.ts",
+    "MID_KNMI_HARMONIE_EPS_WORKER_CONTRACT.md",
+    "scripts/test-current-temperature-smooth-bridge-097719.mjs",
+    "scripts/test-knmi-eps-worker-binding-097719.mjs"
   ],
   "implementationProof": [
     "MID_IMPLEMENTATION_0.9.74.5.md",
@@ -1286,7 +1323,16 @@
     "scripts/test-parameter-color-contract-097712.mjs",
     "src/ExtremeOutlookAreaOverlay.tsx",
     "scripts/test-attachment-hazard-temperature-colors-097715.mjs",
-    "MID_TEST_REPORT_0.9.77.15.md"
+    "MID_TEST_REPORT_0.9.77.15.md",
+    "MID_KNMI_HARMONIE_EPS_CACHE_CONTRACT.md",
+    "worker-src/05-knmi-eps-cache.js",
+    "scripts/test-knmi-eps-productive-cache-097718.mjs",
+    "MID_IMPLEMENTATION_0.9.77.18.md",
+    "MID_TEST_REPORT_0.9.77.18.md",
+    "scripts/test-current-temperature-smooth-bridge-097719.mjs",
+    "scripts/test-knmi-eps-worker-binding-097719.mjs",
+    "MID_IMPLEMENTATION_0.9.77.19.md",
+    "MID_TEST_REPORT_0.9.77.19.md"
   ],
   "evidenceFiles": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -1311,7 +1357,15 @@
     "scripts/test-trend14plus-09770.mjs",
     "MID_IMPLEMENTATION_0.9.77.8.md",
     "MID_PR_HOUSEKEEPING_0.9.77.8.md",
-    "MID_TEST_REPORT_0.9.77.11.md"
+    "MID_TEST_REPORT_0.9.77.11.md",
+    "MID_KNMI_HARMONIE_EPS_CACHE_CONTRACT.md",
+    "scripts/test-knmi-eps-productive-cache-097718.mjs",
+    "MID_IMPLEMENTATION_0.9.77.18.md",
+    "MID_TEST_REPORT_0.9.77.18.md",
+    "scripts/test-current-temperature-smooth-bridge-097719.mjs",
+    "scripts/test-knmi-eps-worker-binding-097719.mjs",
+    "MID_IMPLEMENTATION_0.9.77.19.md",
+    "MID_TEST_REPORT_0.9.77.19.md"
   ],
   "releaseEvidence": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -1324,7 +1378,14 @@
     "scripts/test-trend14plus-09770.mjs",
     "scripts/test-long-range-model-sources-09774.mjs",
     "MID_IMPLEMENTATION_0.9.77.8.md",
-    "MID_PR_HOUSEKEEPING_0.9.77.8.md"
+    "MID_PR_HOUSEKEEPING_0.9.77.8.md",
+    "scripts/test-knmi-eps-productive-cache-097718.mjs",
+    "MID_IMPLEMENTATION_0.9.77.18.md",
+    "MID_TEST_REPORT_0.9.77.18.md",
+    "scripts/test-current-temperature-smooth-bridge-097719.mjs",
+    "scripts/test-knmi-eps-worker-binding-097719.mjs",
+    "MID_IMPLEMENTATION_0.9.77.19.md",
+    "MID_TEST_REPORT_0.9.77.19.md"
   ],
   "activeRegressionSuite": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -1336,8 +1397,11 @@
     "scripts/test-thunder-numerical-ruc-097635.mjs",
     "scripts/test-trend14plus-09770.mjs",
     "scripts/test-parameter-colors-trend14plus-09771.mjs",
-    "scripts/test-trend14plus-buildfix-09775.mjs"
+    "scripts/test-trend14plus-buildfix-09775.mjs",
+    "scripts/test-knmi-eps-productive-cache-097718.mjs",
+    "scripts/test-current-temperature-smooth-bridge-097719.mjs",
+    "scripts/test-knmi-eps-worker-binding-097719.mjs"
   ],
-  "version": "0.9.77.11",
-  "updatedAt": "2026-09-01T20:30:00Z"
+  "version": "0.9.77.19",
+  "updatedAt": "2026-09-02T11:30:00Z"
 }

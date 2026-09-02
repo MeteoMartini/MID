@@ -450,17 +450,29 @@ function dateKeyInTimezone(epoch:number,timezone:string){
 }
 
 /**
- * Bindet den aktuell angezeigten Temperaturwert an die nächstgelegene
- * Stundenposition. Dadurch kann eine frische Stations-/Current-Beobachtung
- * nicht außerhalb der sichtbaren Tages- und Stundenprognose liegen.
+ * Assimiliert einen frischen Current-Wert als weiche Brücke in die kanonische
+ * Stundenreihe. Der frühere Einpunkt-Ersatz erzeugte bei Beobachtungszeiten
+ * zwischen zwei Stunden sichtbare Kerben: z. B. konnte ein Current-Wert von
+ * 09:35 ausschließlich die 10-Uhr-Stunde versetzen. Jetzt wird zunächst der
+ * Modellwert am echten Beobachtungszeitpunkt linear bestimmt. Die daraus
+ * resultierende Abweichung gilt für beide Stunden, die den Messzeitpunkt
+ * einschließen, und läuft davor/danach mit einer glatten S-Kurve aus.
  */
+function currentTemperatureBridgeWeight(epoch:number,leftEpoch:number,rightEpoch:number){
+ if(epoch>=leftEpoch&&epoch<=rightEpoch)return 1;
+ const before=epoch<leftEpoch,distance=before?leftEpoch-epoch:epoch-rightEpoch,horizon=(before?120:180)*60000;if(distance>=horizon)return 0;
+ const x=clamp(1-distance/horizon,0,1);return x*x*(3-2*x);
+}
 export function reconcileCurrentTemperatureObservation(hours:Hour[],temperature:number,observedAt=Date.now()){
  if(!hours.length||!Number.isFinite(temperature)||!Number.isFinite(observedAt))return hours;
- let bestIndex=-1,bestDistance=Number.POSITIVE_INFINITY;
- hours.forEach((hour,index)=>{const distance=Math.abs(Number(hour.epoch)-observedAt);if(Number.isFinite(hour.epoch)&&distance<bestDistance){bestDistance=distance;bestIndex=index}});
- if(bestIndex<0||bestDistance>90*60000)return hours;
- const current=hours[bestIndex];if(Math.abs(current.temperature-temperature)<.05)return hours;
- const result=[...hours];result[bestIndex]={...current,temperature};return result;
+ const valid=hours.map((hour,index)=>({hour,index,epoch:Number(hour.epoch)})).filter(row=>Number.isFinite(row.epoch)).sort((a,b)=>a.epoch-b.epoch);if(!valid.length)return hours;
+ let nearest=valid[0],bestDistance=Math.abs(valid[0].epoch-observedAt),left:(typeof valid)[number]|undefined,right:(typeof valid)[number]|undefined;
+ for(const row of valid){const distance=Math.abs(row.epoch-observedAt);if(distance<bestDistance){nearest=row;bestDistance=distance}if(row.epoch<=observedAt)left=row;if(row.epoch>=observedAt&&!right)right=row}
+ if(bestDistance>90*60000)return hours;
+ left=left&&observedAt-left.epoch<=90*60000?left:nearest;right=right&&right.epoch-observedAt<=90*60000?right:nearest;
+ const leftEpoch=left.epoch,rightEpoch=right.epoch,leftTemperature=Number(left.hour.temperature),rightTemperature=Number(right.hour.temperature);if(!Number.isFinite(leftTemperature)||!Number.isFinite(rightTemperature))return hours;
+ const span=Math.max(0,rightEpoch-leftEpoch),fraction=span>0?clamp((observedAt-leftEpoch)/span,0,1):0,modelAtObservation=leftTemperature+(rightTemperature-leftTemperature)*fraction,correction=temperature-modelAtObservation;if(Math.abs(correction)<.05)return hours;
+ let changed=false;const result=hours.map(hour=>{const epoch=Number(hour.epoch);if(!Number.isFinite(epoch))return hour;const weight=currentTemperatureBridgeWeight(epoch,leftEpoch,rightEpoch);if(weight<=0)return hour;const shift=correction*weight,nextTemperature=Number(hour.temperature)+shift;if(!Number.isFinite(nextTemperature))return hour;changed=true;return{...hour,temperature:nextTemperature,apparent:Number.isFinite(Number(hour.apparent))?Number(hour.apparent)+shift:hour.apparent}});return changed?result:hours;
 }
 
 export type ForecastHourFinalizationOptions={

@@ -1,3 +1,23 @@
+## v0.9.77.21
+
+- Installer #830 korrigiert: `test-api-contract-health-resilience-09778.mjs` erwartet nicht länger den alten generischen Namen „Hourly Min/Max Aggregation“, sondern den seit v0.9.77.20 tatsächlich geprüften Kernvertrag `ECMWF IFS native 3h Min/Max`.
+- Die Regression schützt zusätzlich `models=ecmwf_ifs`, `forecast_hours=24` sowie `temperature_2m_min` und `temperature_2m_max`; damit wird der Healthcheck nicht durch bloßes Umbenennen grün.
+- Keine fachliche Forecast-/Workeränderung gegenüber v0.9.77.20; Temperaturglättung und KNMI-HARMONIE-EPS-Produktivpfad bleiben unverändert.
+
+## v0.9.77.20
+
+- Installer #829 korrigiert: zwei veraltete String-/Einpunkt-Regressionen auf den bereits gültigen zentralen Current-/Radar-Endstufenvertrag migriert; Produktionslogik der v0.9.77.19-Temperaturglättung bleibt erhalten.
+- Nächtliche Revision / Issue #28: `browserslist` auf den sicherheitskorrigierten 4.28.7-Pfad (plus kompatibles `baseline-browser-mapping`) angehoben; High-Audit GHSA-73wf-gq98-2v4g und GHSA-c83g-rgw3-j3cx beseitigt.
+- Open-Meteo-Min/Max-Healthcheck an den dokumentierten ECMWF-IFS-3-h-Vertrag gebunden statt die nicht allgemein garantierten Best-Match-`hourly_6`-Min/Max zu erzwingen.
+- KNMI-HARMONIE-EPS-/produktiver-Cache-/Workerstand aus v0.9.77.18/19 bleibt vollständig erhalten.
+
+## v0.9.77.19
+
+- Zweiter der vier verbleibenden Hauptabschnitte: KNMI HARMONIE EPS nutzt den produktiven TAR-Indexcache jetzt im Worker für sechs stündliche 5er-Batches, 30 Rolling-Member, 0–54-h-Alignment und exakte Sparse-Range-Manifeste; GRIB-Dekodierung bleibt außerhalb Cloudflare.
+- Current-Temperatur wird mit dem echten standortlokalen Beobachtungszeitpunkt als weiche 120/180-min-Brücke in `displayHours` assimiliert statt einen einzelnen Stundenpunkt zu ersetzen; die sichtbare Delle in 24-h-Profil und Tagesansicht entfällt.
+- GitHub Installer #828: veraltete Modularisierungsregression um `worker-src/05-knmi-eps-cache.js` ergänzt; TypeScript/Vite waren im fehlgeschlagenen Run bereits erfolgreich.
+- Keine neue Cloudflare-Ressource und kein neuer Workflow; Worker-Fachänderung erfordert den regulären gestagten Worker-Deploy.
+
 ## v0.9.77.17
 
 - Klimatische Tmin/Tmax-Abweichung wird ausschließlich über die **Zahlfarbe** sichtbar; Hintergrund und Rahmen der Werte bleiben neutral/transparent.

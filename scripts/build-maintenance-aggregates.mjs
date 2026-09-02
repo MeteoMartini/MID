@@ -6,7 +6,7 @@ await writeFile(new URL('src/styles.css',root),styles);
 const weather=await concat(['src/weather-src/00-types-models-search.tsfrag','src/weather-src/10-observations-specialized.tsfrag','src/weather-src/20-mapping-day-character.tsfrag','src/weather-src/30-ensemble-climate-hazards.tsfrag']);
 await writeFile(new URL('src/weather.ts',root),weather);
 const extremeOutlookSource=await readFile(new URL('worker-src/25-dach-extreme-outlook.js',root),'utf8');
-const worker=await concat(['worker-src/00-core-observations.js','worker-src/10-radar-nowcast.js','worker-src/20-composite-models.js','worker-src/25-dach-extreme-outlook.js','worker-src/30-push-events.js','worker-src/40-aviation-router.js']);
+const worker=await concat(['worker-src/00-core-observations.js','worker-src/05-knmi-eps-cache.js','worker-src/10-radar-nowcast.js','worker-src/20-composite-models.js','worker-src/25-dach-extreme-outlook.js','worker-src/30-push-events.js','worker-src/40-aviation-router.js']);
 await writeFile(new URL('worker/metar-proxy.js',root),worker);
 await writeFile(new URL('worker.js',root),worker);
 const directPrelude=`/* Generated from worker-src/25-dach-extreme-outlook.js. Do not edit directly. */

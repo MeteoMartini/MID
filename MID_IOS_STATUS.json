@@ -1,11 +1,11 @@
 {
   "schema": 1,
-  "updatedAt": "2026-09-02T05:23:21.563Z",
-  "releaseVersion": "0.9.77.17",
+  "updatedAt": "2026-09-02T11:30:00Z",
+  "releaseVersion": "0.9.77.21",
   "sourceBaseline": {
-    "professionalVersion": "0.9.70.2",
-    "workerVersion": "0.9.70.2",
-    "regressionsPassed": 564
+    "professionalVersion": "0.9.77.21",
+    "workerVersion": "0.9.77.21",
+    "regressionsPassed": null
   },
   "strategy": "shared-react-vite-core-with-capacitor-ios-shell",
   "browserDevelopmentContinues": true,
@@ -106,15 +106,21 @@
     "0.9.77.9 – Trend 14d+: Temperatur als Default mit persistierter letzter Auswahl, Böen entfernt, ERA5-Land-1991–2020-Klimareferenz, getrennte P10–P90/P25–P75-Bänder; appweiter Parameter-Farbvertrag und Extremwetter-Abstand nachgezogen.",
     "0.9.77.10 – Install-/Deploy-Run #817 TypeScript-Hotfix, echter Witterungstrend-Modellstand und Werte an der blauen Kurzfrist-Referenzlinie.",
     "openmeteo-rapid-source-contract-0.9.77.13",
-    "regional-model-domain-fusion-0.9.77.14"
+    "regional-model-domain-fusion-0.9.77.14",
+    "knmi-harmonie-eps-worker-binding-0.9.77.19",
+    "current-temperature-smooth-bridge-0.9.77.19",
+    "release-run-828-maintenance-aggregate-regression-hotfix-0.9.77.19",
+    "release-run-829-regression-contract-hotfix-0.9.77.20",
+    "nightly-auto-revision-issue-28-audit-api-contract-hotfix-0.9.77.20",
+    "release-run-830-api-health-minmax-regression-hotfix-0.9.77.21"
   ],
   "nextMilestone": "macos-xcode-simulator-quality-assurance",
   "validation": {
-    "browserBuild": "v0.9.77.13: Der vollständige lokale Browser-Produktionsbuild ist im Transport-Quellstand nicht ausführbar, weil node_modules bewusst nicht enthalten ist. Die geänderten Worker-/Quellenpfade sind syntaktisch und regressiv geprüft; der normale Installer/CI-Pfad installiert die gepinnte Toolchain.",
-    "typescript": "v0.9.77.13: Die lokale TypeScript-7.0.2-Toolchain ist im Transport-ZIP nicht installiert. Von 626 automatisch erkannten Regressionen sind 105 ausschließlich toolchaingebunden (86 typescript-strada, 16 TypeScript-7-CLI, 2 esbuild, 1 lokales tsc); kein sonstiger fachlicher Fehlschlag verbleibt.",
-    "workerSyntax": "v0.9.77.13: worker-src/00-core-observations.js, worker-src/20-composite-models.js, worker/metar-proxy.js, worker.js sowie beide Service Worker syntaktisch grün; Worker-Aggregat nach Versionssync neu erzeugt.",
-    "regressions": "v0.9.77.13: 521/521 umgebungsunabhängige automatische Regressionen bestanden. Insgesamt 626 Tests erkannt; die übrigen 105 sind ausschließlich an die lokal fehlende npm/TypeScript-7-Testtoolchain gebunden. Open-Meteo-Rapid-Quellenvertrag, DWD-RUC-Pipeline/Fusion, Phasenraster-Budget, Wartungsaggregat, Versionsvertrag und Release-Upload-Budget sind grün.",
-    "capacitorSync": "Kein neuer cap copy ios in dieser isolierten Laufzeit, da kein vollständiger Vite-Build ohne npm-Dependencies möglich ist. Cross-Platform-iOS-Shell, Safe Area, Privacy Manifest, Push/Background-Quellvorbereitung und WidgetKit-Xcode-Struktur wurden regressionsgeprüft und sind grün.",
+    "browserBuild": "v0.9.77.18: Der vollständige lokale Browser-Produktionsbuild ist im Transport-Quellstand nicht ausführbar, weil node_modules bewusst nicht enthalten ist. Der neue produktive KNMI-EPS-Worker-Cache ist syntaktisch und regressiv geprüft; der normale Installer/CI-Pfad installiert die gepinnte Toolchain.",
+    "typescript": "v0.9.77.18: Die lokale TypeScript-7.0.2-Toolchain ist im Transport-ZIP nicht installiert. Von 631 automatisch erkannten Regressionen sind 106 ausschließlich toolchaingebunden (86 typescript-strada, 18 lokale TypeScript-CLI/Toolchain, 2 esbuild); kein sonstiger fachlicher Fehlschlag verbleibt.",
+    "workerSyntax": "v0.9.77.18: worker-src/05-knmi-eps-cache.js, worker/metar-proxy.js, worker.js sowie beide Service Worker syntaktisch grün; Worker-Aggregat nach Versionssync neu erzeugt.",
+    "regressions": "v0.9.77.18: 525/525 umgebungsunabhängige automatische Regressionen bestanden. Insgesamt 631 Tests erkannt; die übrigen 106 sind ausschließlich an die lokal fehlende npm/TypeScript-Testtoolchain gebunden. KNMI-EPS-Produktivcache, Worker-Auto-Deploy, KV-Operationsbudget, Beobachtungs-/Ensemblevertrag, Modellquellenvertrag, Versionsvertrag und Release-Lineage sind grün.",
+    "capacitorSync": "Kein neuer cap copy ios in dieser isolierten Laufzeit, da kein vollständiger Vite-Build ohne npm-Dependencies möglich ist. Der gemeinsame Browser/PWA/iOS-Fachkern bleibt unverändert; der aktuelle Schritt betrifft ausschließlich den gemeinsamen Worker.",
     "xcodeProjectStructure": "Gemeinsamer Capacitor-iOS-Wrapper, Light-/Dark-AppIcon- und Splash-Kataloge, Privacy-Manifeste und MIDWidgets-Struktur bleiben erhalten; keine neue native Berechtigung oder Capability aktiviert.",
     "xcodeAppleSdkBuild": "required-next-gate-macos-xcode-simulator; includes Apple SDK build, simulator launch, Privacy Report inspection and post-sync structure verification."
   },
@@ -129,7 +135,7 @@
     ],
     "approved": false
   },
-  "validationNote": "v0.9.77.13 trennt echte DWD ICON-D2-RUC/RUC-EPS-Daten strikt von Open-Meteo: RUC wird nur über den direkten DWD/MID-Adapter bezogen; Open-Meteo liefert separat Best Match/minutely_15, reguläres ICON-D2 15 min, AROME 15 min und HRRR 15 min. Nicht existente Open-Meteo-RUC-Aliase und dadurch verursachte Fehlversuche wurden entfernt.",
+  "validationNote": "v0.9.77.21 behebt ausschließlich den verbleibenden Installer-#830-Regressionsdrift: API-Health schützt jetzt den bereits in v0.9.77.20 gültigen ECMWF-IFS-native-3h-Min/Max-Vertrag einschließlich Modell-ID, 24-h-Abruf und beider Min/Max-Felder. Produktionslogik, Current-Temperaturglättung sowie KNMI-EPS-Cache/Worker-Anbindung bleiben unverändert.",
   "completedMilestones": [
     "ci-regression-contract-hotfix-0.9.76.22",
     "ruc-scheduler-resilience-source-preparation-0.9.76.24",
@@ -180,7 +186,19 @@
       "date": "2026-09-02",
       "title": "Gefahren-Popup und klimatologische Tmin/Tmax-Farbskala",
       "summary": "Gefahrenflächen-Popups nennen die konkrete Gefahr. Aktuelle/stündliche Temperaturwerte bleiben neutral; Tmin/Tmax verwenden getrennte Blau-/Rot-Sättigungsskalen anhand der signierten Abweichung vom jeweiligen Klimamittel."
+    },
+    {
+      "version": "0.9.77.18",
+      "date": "2026-09-02",
+      "title": "KNMI HARMONIE EPS – produktiver TAR-Indexcache",
+      "summary": "Erster der vier verbleibenden Hauptabschnitte: persistenter 72-h-TAR-Index im vorhandenen MID_PUSH_SUBSCRIPTIONS-KV unter getrenntem cache:knmi-eps:-Präfix, 10-min-Isolate-Cache, Rolling-Member-Isolation und Sparse-/Multi-Range-Packing ohne neuen Workflow oder neue Cloudflare-Ressource."
+    },
+    {
+      "version": "0.9.77.19",
+      "date": "2026-09-02",
+      "title": "KNMI EPS Worker-Anbindung, Temperaturbrücke und Installer-Hotfix",
+      "summary": "Zweiter der vier verbleibenden Hauptabschnitte bindet KNMI HARMONIE EPS über den produktiven TAR-Indexcache an ein 6×5-Rolling-Manifest; Cloudflare dekodiert weiterhin kein GRIB. Current-Temperatur wird zeit- und zeitzonengenau als weiche Brücke statt als Einzelstundenersatz assimiliert. Installer #828 wird durch Synchronisierung der Modularisierungsregression mit worker-src/05-knmi-eps-cache.js repariert."
     }
   ],
-  "currentVersion": "0.9.77.13"
+  "currentVersion": "0.9.77.21"
 }

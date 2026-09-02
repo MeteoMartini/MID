@@ -49,8 +49,8 @@ await jsonCheck('JMA MSM Druckniveau 850 hPa',`https://api.open-meteo.com/v1/for
 const aqi=new URLSearchParams({latitude:'50.815',longitude:'7.037',timezone:'auto',past_days:'1',forecast_days:'1',hourly:'pm10,pm2_5,european_aqi,european_aqi_pm10,european_aqi_pm2_5'});
 await jsonCheck('EU-AQI stündlich',`https://air-quality-api.open-meteo.com/v1/air-quality?${aqi}`,payload=>finiteSeries(payload,'pm10')&&finiteSeries(payload,'pm2_5')&&finiteSeries(payload,'european_aqi'));
 
-const aggregation=new URLSearchParams({latitude:'50.815',longitude:'7.037',timezone:'auto',forecast_days:'2',hourly:'temperature_2m_min,temperature_2m_max',temporal_resolution:'hourly_6'});
-await jsonCheck('Hourly Min/Max Aggregation',`https://api.open-meteo.com/v1/forecast?${aggregation}`,payload=>finiteSeries(payload,'temperature_2m_min',2)&&finiteSeries(payload,'temperature_2m_max',2)&&payload.hourly.temperature_2m_min.some((value,index)=>Number(value)!==Number(payload.hourly.temperature_2m_max[index])));
+const aggregation=new URLSearchParams({latitude:'50.815',longitude:'7.037',timezone:'GMT',forecast_hours:'24',models:'ecmwf_ifs',hourly:'temperature_2m_min,temperature_2m_max'});
+await jsonCheck('ECMWF IFS native 3h Min/Max',`https://api.open-meteo.com/v1/forecast?${aggregation}`,payload=>finiteSeries(payload,'temperature_2m_min',2)&&finiteSeries(payload,'temperature_2m_max',2)&&payload.hourly.temperature_2m_min.some((value,index)=>Number(value)!==Number(payload.hourly.temperature_2m_max[index])));
 
 if(warnings.length)console.warn(`Optionale Provider-Degradation (${warnings.length}):\n${warnings.join('\n')}`);
 if(failures.length){console.error(`Kritische API-Vertragsfehler (${failures.length}):\n${failures.join('\n')}`);process.exit(1)}
