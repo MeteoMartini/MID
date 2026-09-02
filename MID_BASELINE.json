@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.77.12",
+  "releaseVersion": "0.9.77.15",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -295,6 +295,7 @@
     "scripts/test-native-location-adapter-09680.mjs",
     "scripts/test-native-external-navigation-096681.mjs",
     "scripts/test-native-share-import-export-096682.mjs",
+    "scripts/test-openmeteo-rapid-source-contract-097713.mjs",
     "scripts/test-ruc-dwd-pipeline-09690.mjs",
     "scripts/test-ruc-fusion-runtime-09691.mjs",
     "scripts/test-ruc-storage-health-09692.mjs",
@@ -358,7 +359,9 @@
     "scripts/test-trend14plus-climatology-097711.mjs",
     "scripts/test-parameter-color-contract-097711.mjs",
     "scripts/test-parameter-color-contract-097712.mjs",
-    "scripts/test-extreme-threshold-evidence-097712.mjs"
+    "scripts/test-extreme-threshold-evidence-097712.mjs",
+    "scripts/test-regional-model-domain-fusion-097714.mjs",
+    "scripts/test-attachment-hazard-temperature-colors-097715.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -645,7 +648,9 @@
     "scripts/test-trend14plus-climatology-097711.mjs",
     "scripts/test-parameter-color-contract-097711.mjs",
     "scripts/test-parameter-color-contract-097712.mjs",
-    "scripts/test-extreme-threshold-evidence-097712.mjs"
+    "scripts/test-extreme-threshold-evidence-097712.mjs",
+    "scripts/test-openmeteo-rapid-source-contract-097713.mjs",
+    "scripts/test-attachment-hazard-temperature-colors-097715.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -1029,7 +1034,10 @@
     "MID_IMPLEMENTATION_0.9.77.11.md",
     "MID_TEST_REPORT_0.9.77.11.md",
     "scripts/test-parameter-color-contract-097712.mjs",
-    "scripts/test-extreme-threshold-evidence-097712.mjs"
+    "scripts/test-extreme-threshold-evidence-097712.mjs",
+    "scripts/test-openmeteo-rapid-source-contract-097713.mjs",
+    "scripts/test-attachment-hazard-temperature-colors-097715.mjs",
+    "MID_TEST_REPORT_0.9.77.15.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1266,7 +1274,10 @@
     "src/App.tsx",
     "src/ForecastCockpit.tsx",
     "MID_PARAMETER_COLOR_CONTRACT.md",
-    "scripts/test-parameter-color-contract-097712.mjs"
+    "scripts/test-parameter-color-contract-097712.mjs",
+    "src/ExtremeOutlookAreaOverlay.tsx",
+    "scripts/test-attachment-hazard-temperature-colors-097715.mjs",
+    "MID_TEST_REPORT_0.9.77.15.md"
   ],
   "evidenceFiles": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",

@@ -175,25 +175,25 @@ const forecastCandidates:ForecastCandidate[]=[
  {id:'icon-d2-ruc-eps',label:'DWD ICON-D2-RUC-EPS',kind:'ensemble',metaSource:'dwd-ruc',rapidUpdate:true,resolutionKm:2,forecastHorizonHours:14,members:20,countries:['DE','CH','AT'],bbox:[-6,43,26,58]},
  {id:'dwd_icon_d2',label:'DWD ICON-D2',kind:'forecast',resolutionKm:2,forecastHorizonHours:48,countries:['DE','CH','AT'],bbox:[-6,43,26,58]},
  {id:'knmi_harmonie_arome_europe',label:'KNMI HARMONIE Europe',kind:'forecast',rapidUpdate:true,resolutionKm:5.5,forecastHorizonHours:60,bbox:[-14,35,32,66]},
- {id:'meteoswiss_icon_ch1',label:'MeteoSwiss ICON-CH1',kind:'forecast',countries:['CH']},
- {id:'meteoswiss_icon_ch2',label:'MeteoSwiss ICON-CH2',kind:'forecast',countries:['CH']},
- {id:'geosphere_arome_austria',label:'GeoSphere AROME Austria',kind:'forecast',countries:['AT']},
- {id:'chmi_aladin_cz_1km',label:'CHMI ALADIN Tschechien 1 km',kind:'forecast',countries:['CZ']},
+ {id:'meteoswiss_icon_ch1',label:'MeteoSwiss ICON-CH1',kind:'forecast',resolutionKm:1,forecastHorizonHours:33,countries:['CH'],bbox:[3,43,18,50]},
+ {id:'meteoswiss_icon_ch2',label:'MeteoSwiss ICON-CH2',kind:'forecast',resolutionKm:2,forecastHorizonHours:120,countries:['CH'],bbox:[3,43,18,50]},
+ {id:'geosphere_arome_austria',label:'GeoSphere AROME Austria',kind:'forecast',resolutionKm:2.5,forecastHorizonHours:60,countries:['AT'],bbox:[8,45,18,50]},
+ {id:'chmi_aladin_cz_1km',label:'CHMI ALADIN Tschechien 1 km',kind:'forecast',resolutionKm:1,forecastHorizonHours:72,countries:['CZ'],bbox:[11,47,20,52]},
  {id:'chmi_aladin_central_europe_2km',label:'CHMI ALADIN Mitteleuropa 2,3 km',kind:'forecast',bbox:[-12,35,35,62]},
  {id:'chmi_aladin_seamless',label:'CHMI ALADIN Seamless',kind:'forecast',bbox:[-12,35,35,62]},
- {id:'meteofrance_arome_france_hd_15min',label:'Météo-France AROME HD 15 min',kind:'forecast',rapidUpdate:true,resolutionKm:1.5,forecastHorizonHours:6,countries:['FR']},
- {id:'meteofrance_arome_france_15min',label:'Météo-France AROME 15 min',kind:'forecast',rapidUpdate:true,resolutionKm:2.5,forecastHorizonHours:6,countries:['FR']},
- {id:'meteofrance_arome_france_hd',label:'Météo-France AROME HD',kind:'forecast',resolutionKm:1.5,forecastHorizonHours:48,countries:['FR']},
- {id:'meteofrance_arome_france',label:'Météo-France AROME',kind:'forecast',resolutionKm:2.5,forecastHorizonHours:48,countries:['FR']},
+ {id:'meteofrance_arome_france_hd_15min',label:'Météo-France AROME HD 15 min',kind:'forecast',rapidUpdate:true,resolutionKm:1.5,forecastHorizonHours:6,countries:['FR'],bbox:[-8,40,13,53]},
+ {id:'meteofrance_arome_france_15min',label:'Météo-France AROME 15 min',kind:'forecast',rapidUpdate:true,resolutionKm:2.5,forecastHorizonHours:6,countries:['FR'],bbox:[-8,40,13,53]},
+ {id:'meteofrance_arome_france_hd',label:'Météo-France AROME HD',kind:'forecast',resolutionKm:1.5,forecastHorizonHours:48,countries:['FR'],bbox:[-8,40,13,53]},
+ {id:'meteofrance_arome_france',label:'Météo-France AROME',kind:'forecast',resolutionKm:2.5,forecastHorizonHours:48,countries:['FR'],bbox:[-8,40,13,53]},
  {id:'meteofrance_seamless',label:'Météo-France Seamless',kind:'forecast',resolutionKm:2.5,forecastHorizonHours:96,countries:['FR'],bbox:[-25,30,45,72]},
- {id:'knmi_harmonie_arome_netherlands',label:'KNMI HARMONIE Niederlande',kind:'forecast',rapidUpdate:true,resolutionKm:2,forecastHorizonHours:60,countries:['NL','BE']},
- {id:'ukmo_uk_deterministic_2km',label:'UKMO UKV / Seamless',kind:'forecast',metaIds:['ukmo_uk_deterministic_2km','ukmo_seamless'],rapidUpdate:true,resolutionKm:2,forecastHorizonHours:54,countries:['GB','IE']},
- {id:'metno_nordic_pp',label:'MET Nordic PP',kind:'forecast',rapidUpdate:true,resolutionKm:1,forecastHorizonHours:60,countries:['NO','SE','DK','FI']},
- {id:'dmi_harmonie_arome_europe',label:'DMI Harmonie Europe',kind:'forecast',countries:['DK','DE','NL','BE','NO','SE']},
+ {id:'knmi_harmonie_arome_netherlands',label:'KNMI HARMONIE Niederlande',kind:'forecast',rapidUpdate:true,resolutionKm:2,forecastHorizonHours:60,countries:['NL','BE'],bbox:[-2,48,12,56]},
+ {id:'ukmo_uk_deterministic_2km',label:'UKMO UKV / Seamless',kind:'forecast',metaIds:['ukmo_uk_deterministic_2km','ukmo_seamless'],rapidUpdate:true,resolutionKm:2,forecastHorizonHours:48,countries:['GB','IE'],bbox:[-12,48,4,62]},
+ {id:'metno_nordic_pp',label:'MET Nordic PP',kind:'forecast',rapidUpdate:true,resolutionKm:1,forecastHorizonHours:60,countries:['NO','SE','DK','FI'],bbox:[0,53,32,72]},
+ {id:'dmi_harmonie_arome_europe',label:'DMI Harmonie Europe',kind:'forecast',resolutionKm:2,forecastHorizonHours:60,countries:['DK','DE','NL','BE','NO','SE'],bbox:[-15,35,32,72]},
  {id:'italia_meteo_arpae_icon_2i',label:'ItaliaMeteo ICON-2I',kind:'forecast',countries:['IT']},
- {id:'ncep_hrrr_conus',label:'NOAA HRRR',kind:'forecast',rapidUpdate:true,resolutionKm:3,forecastHorizonHours:48,countries:['US','CA']},
- {id:'ncep_nam_conus',label:'NOAA NAM',kind:'forecast',resolutionKm:12,forecastHorizonHours:84,countries:['US','CA']},
- {id:'ncep_nbm_conus',label:'NOAA NBM',kind:'forecast',rapidUpdate:true,resolutionKm:2.5,forecastHorizonHours:264,countries:['US','CA']},
+ {id:'ncep_hrrr_conus',label:'NOAA HRRR',kind:'forecast',rapidUpdate:true,resolutionKm:3,forecastHorizonHours:48,countries:['US','CA'],bbox:[-130,20,-60,55]},
+ {id:'ncep_nam_conus',label:'NOAA NAM',kind:'forecast',resolutionKm:12,forecastHorizonHours:84,countries:['US','CA'],bbox:[-130,20,-60,55]},
+ {id:'ncep_nbm_conus',label:'NOAA NBM',kind:'forecast',rapidUpdate:true,resolutionKm:2.5,forecastHorizonHours:264,countries:['US','CA'],bbox:[-130,20,-60,55]},
  {id:'cmc_gem_hrdps',label:'GEM HRDPS 2,5 km',kind:'forecast',resolutionKm:2.5,forecastHorizonHours:48,countries:['CA','US'],bbox:[-150,35,-45,72]},
  {id:'cmc_gem_rdps',label:'GEM RDPS 10 km',kind:'forecast',resolutionKm:10,forecastHorizonHours:84,countries:['CA','US'],bbox:[-170,20,-35,90]},
  {id:'jma_msm',label:'JMA MSM 5 km',kind:'forecast',resolutionKm:5,forecastHorizonHours:96,countries:['JP','KR'],bbox:[118,20,155,52]},
@@ -217,8 +217,8 @@ const globalForecastCandidates:ForecastCandidate[]=[
  {id:'meteofrance_arpege_world',label:'Météo-France ARPEGE World',kind:'forecast',resolutionKm:25,forecastHorizonHours:96}
 ];
 function candidateApplies(candidate:ForecastCandidate,lat:number,lon:number,country:string){
- if(candidate.countries?.includes(country))return true;
- if(!candidate.bbox)return false;const[minLon,minLat,maxLon,maxLat]=candidate.bbox;return lon>=minLon&&lon<=maxLon&&lat>=minLat&&lat<=maxLat;
+ if(candidate.bbox){const[minLon,minLat,maxLon,maxLat]=candidate.bbox;return lon>=minLon&&lon<=maxLon&&lat>=minLat&&lat<=maxLat}
+ return Boolean(candidate.countries?.includes(country));
 }
 function modelMetaEpochMs(value:unknown){const numberValue=Number(value);if(!Number.isFinite(numberValue))return Number.NaN;return numberValue>10_000_000_000?numberValue:numberValue*1000}
 function modelMetaIsFresh(data:any){const initMs=modelMetaEpochMs(data?.last_run_initialisation_time),updateSeconds=Math.max(3600,Number(data?.update_interval_seconds)||21600),maximumAgeMs=Math.max(18*3600000,Math.min(72*3600000,updateSeconds*4000+6*3600000)),now=Date.now();return Number.isFinite(initMs)&&initMs<=now+2*3600000&&now-initMs<=maximumAgeMs}

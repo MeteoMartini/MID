@@ -2,13 +2,14 @@ import {Fragment,memo,useEffect,useMemo} from 'react';
 import {HtmlMarker,registerMapLayerOrder,unregisterMapLayerOrder,useMidMap} from './MapLibreCore';
 import {buildExtremeOutlookContourGeoJson} from './extremeOutlookAreaGeoJson';
 import {buildExtremeOutlookContourSet} from './extremeOutlookModelledAreas';
-import {EXTREME_INTENSITY_COLORS,type ExtremeHazardId,type ExtremeWeatherOutlook} from './extremeWeatherOutlook';
+import {EXTREME_HAZARDS,EXTREME_INTENSITY_COLORS,type ExtremeHazardId,type ExtremeWeatherOutlook} from './extremeWeatherOutlook';
 
 const SOURCE_ID='extreme-outlook-contours-source';
 const HATCH_SOURCE_ID='extreme-outlook-hatch-source';
 const LAYER_IDS=['extreme-outlook-contours-fill','extreme-outlook-contours-hatch','extreme-outlook-contours-casing','extreme-outlook-contours-outline'] as const;
 const HATCH_IMAGE_ID='extreme-outlook-probability-hatch';
 function escapeHtml(value:unknown){return String(value??'').replace(/[&<>'"]/g,character=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]||character))}
+function hazardLabel(hazard:Exclude<ExtremeHazardId,'overall'>){return EXTREME_HAZARDS.find(item=>item.id===hazard)?.label??hazard}
 
 function hatchImage(){
  const size=8,data=new Uint8Array(size*size*4);
@@ -33,7 +34,7 @@ function ExtremeOutlookAreaOverlay({data,periodId,hazard}:{data:ExtremeWeatherOu
   layers.forEach((layer,index)=>{if(map.getLayer(layer.id))map.removeLayer(layer.id);map.addLayer(layer);registerMapLayerOrder(map,layer.id,8+index/100)});
  }catch{}
  return()=>{try{for(const id of [...LAYER_IDS].reverse()){unregisterMapLayerOrder(map,id);if(map.getLayer(id))map.removeLayer(id)}if(map.getSource(HATCH_SOURCE_ID))map.removeSource(HATCH_SOURCE_ID);if(map.getSource(SOURCE_ID))map.removeSource(SOURCE_ID)}catch{}}},[map,geojson,hatchGeojson]);
- return <Fragment>{areas.map(area=><HtmlMarker key={area.id} latitude={area.latitude} longitude={area.longitude} className="extreme-map-label" anchor="center" html={`<span style="background:${EXTREME_INTENSITY_COLORS[area.intensity]};color:${area.intensity<=2?'#17202a':'#ffffff'}"><b>I${area.intensity}</b><small>${area.probability}%</small></span>`} popupHtml={`<strong>${escapeHtml(area.region)}</strong><br/>Modellierte Gefahrenfläche<br/>I${area.intensity} · <b>${area.probability} %</b>`} zIndex={35}/>)}</Fragment>;
+ return <Fragment>{areas.map(area=><HtmlMarker key={area.id} latitude={area.latitude} longitude={area.longitude} className="extreme-map-label" anchor="center" html={`<span style="background:${EXTREME_INTENSITY_COLORS[area.intensity]};color:${area.intensity<=2?'#17202a':'#ffffff'}"><b>I${area.intensity}</b><small>${area.probability}%</small></span>`} popupHtml={`<strong>${escapeHtml(area.region)}</strong><br/>${escapeHtml(hazardLabel(area.signal.hazard))}<br/>I${area.intensity} · <b>${area.probability} %</b>`} zIndex={35}/>)}</Fragment>;
 }
 
 export default memo(ExtremeOutlookAreaOverlay);

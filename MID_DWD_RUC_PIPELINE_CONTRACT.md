@@ -117,3 +117,11 @@ R2-Bucket, R2-Credentials, Custom Domain oder andere potenziell kostenpflichtige
 - Coordinate count, finiteness and geographic bounds are fail-closed. Deterministic parameters and RUC-EPS must match the native point count.
 - No regular-grid regridding is introduced; the compact lookup preserves the native ICON-D2-RUC triangular grid.
 
+
+## Open-Meteo-Abgrenzung (Stand 02.09.2026)
+
+- Open-Meteo stellt **DWD ICON-D2-RUC derzeit nicht als Forecast-API-Modell bereit**. Die Modell-IDs `icon_d2_ruc` bzw. `dwd_icon_d2_ruc` dürfen deshalb nicht als Open-Meteo-Capability probiert oder als Fallback bezeichnet werden.
+- MID bezieht den echten stündlich initialisierten ICON-D2-RUC/RUC-EPS weiterhin ausschließlich aus dem direkten DWD-Open-Data-Preprocessing über den kanonischen Pages-/optional freigegebenen R2-Pfad bzw. den expliziten Punktadapter.
+- Open-Meteo `minutely_15` bleibt dennoch wertvoll und wird als **separater Regional-/Best-Match-Pfad** genutzt: in Mitteleuropa reguläres ICON-D2-15-min (Modelllauf alle 3 h), in Nordamerika HRRR-15-min und im AROME-Gebiet die stündlich aktualisierten AROME-France-(HD)-15-min-Produkte.
+- Reguläres Open-Meteo ICON-D2-15-min ist **kein Ersatz für ICON-D2-RUC** und erhält deshalb keine stündliche Rapid-Refresh-Kennzeichnung. Beide Quellen dürfen innerhalb der DWD-ICON-Familie nicht als unabhängige Stimmen doppelt gewichtet werden.
+- Der generische `/v1/forecast`-Best-Match-Pfad mit `minutely_15` bleibt als breit verfügbarer Kurzfrist-/Fallbackpfad aktiv; die echte DWD-RUC-Kalibrierung hat innerhalb ihres geprüften Gebiets und Horizonts weiterhin Vorrang gemäß diesem Vertrag.

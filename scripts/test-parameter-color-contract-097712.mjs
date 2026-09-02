@@ -8,8 +8,8 @@ const modern=fs.readFileSync('src/styles-src/30-modern.css','utf8');
 const checks=[
  ['contract binds wind arrow warning colors',contract.includes('Windpfeile verwenden ohne Warnschwelle `--param-wind`')&&contract.includes('I1–I4')],
  ['contract binds climatology-aware Tmin/Tmax shade families',contract.includes('Tmin verwendet ausschließlich Blautöne')&&contract.includes('Tmax ausschließlich Rottöne')],
- ['hourly temperatures use climate Tmin/Tmax references',tone.includes('hourlyTemperatureTone')&&cockpit.includes('hourlyTemperatureTone(item.temperature')&&app.includes('hourlyTemperatureTone(hour.temperature')],
- ['daily Tmin/Tmax anomaly changes opacity not family',tone.includes('Math.abs(anomaly)/7')&&tone.includes("const token=kind==='max'?'var(--param-temperature-max)':'var(--param-temperature-min)'")],
+ ['hourly temperatures stay neutral while reusing central helper',tone.includes('hourlyTemperatureTone')&&tone.includes("color:'var(--text)'")&&cockpit.includes('hourlyTemperatureTone(item.temperature')&&app.includes('hourlyTemperatureTone(hour.temperature')],
+ ['daily Tmin/Tmax signed anomaly changes saturation not family',tone.includes('dailyIntensity(anomaly,kind)')&&tone.includes("const token=kind==='max'?'var(--param-temperature-max)':'var(--param-temperature-min)'")],
  ['detail chart general temperature uses parameter token',app.includes('stroke="var(--param-temperature)" strokeWidth="2.2"')],
  ['detail chart dewpoint uses parameter token',app.includes('stroke="var(--param-dewpoint)"')],
  ['detail chart pressure uses parameter token',app.includes('stroke="var(--param-pressure)"')],
@@ -21,5 +21,5 @@ const checks=[
  ['24h temperature point density reduced to selection',cockpit.includes('className="temperature-point active"')&&!cockpit.includes('{chartPoints.map(item=><circle key={`temp-point-')]
 ];
 const failed=checks.filter(([,ok])=>!ok);
-if(failed.length){console.error('Parameter colour contract v0.9.77.12 failed:');failed.forEach(([label])=>console.error(' - '+label));process.exit(1)}
-console.log('Parameter colour contract v0.9.77.12 passed with',checks.length,'checks.');
+if(failed.length){console.error('Parameter colour contract v0.9.77.15 failed:');failed.forEach(([label])=>console.error(' - '+label));process.exit(1)}
+console.log('Parameter colour contract v0.9.77.15 passed with',checks.length,'checks.');

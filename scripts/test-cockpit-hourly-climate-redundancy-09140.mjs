@@ -18,6 +18,8 @@ for(const token of [
  "export type DailyTemperatureKind='min'|'max'",
  'export function dailyTemperatureTone(',
  'export function hourlyTemperatureTone(',
+ "color:'var(--text)'",
+ 'void climateMin;void climateMax;',
  "value-Number(climateMean)",
  "kind==='max'"
 ])need('Klimaton',tones,token);
@@ -69,4 +71,4 @@ for(const [file,source] of [['App.tsx',app],['ForecastCockpit.tsx',cockpit],['te
 }
 
 if(failures.length){console.error('Cockpit-Stunden-/Klimafarb-/Redundanzprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Klimabezogene Tagesfarben, stündliches Tagesakkordeon und redundanzfreie Cockpit-Ansichten geprüft.');
+console.log('Signierte Klimafarben für Tmin/Tmax, neutrale stündliche Temperaturen und redundanzfreie Cockpit-Ansichten geprüft.');

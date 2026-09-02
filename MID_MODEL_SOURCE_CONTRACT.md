@@ -1,6 +1,6 @@
 # MID – Modellquellen- und Ensemble-Fallback-Vertrag
 
-## Verbindlich ab v0.9.53.36
+## Verbindlich ab v0.9.53.36 · erweitert v0.9.77.14
 
 Dieser Vertrag gilt app-weit für deterministische und Ensemble-Modellquellen, Modellstandanzeigen, Events, Langfrist-/Kurzfristpfade und alle daraus abgeleiteten Prognosen.
 
@@ -14,5 +14,6 @@ Dieser Vertrag gilt app-weit für deterministische und Ensemble-Modellquellen, M
 8. **Kein ungeprüftes „mehr ist besser“.** Neue Modelle werden nur aufgenommen, wenn sie für Region, Horizont, Parameter oder Resilienz zusätzlichen Informationswert liefern. Neue Varianten derselben Modellfamilie werden nicht als unabhängige Stimme behandelt.
 9. **Katalogpflege.** Änderungen externer Modellkataloge (insbesondere Open-Meteo) werden gegen diesen Vertrag geprüft. Modell-IDs dürfen nicht still veralten; neue sinnvolle Mean/Spread- oder Modellvarianten werden bewusst bewertet und regressionsgeschützt integriert.
 10. **Kanonische Endstufe bleibt unverändert.** Zusätzliche Modellquellen dürfen `MID_FORECAST_CONSISTENCY_CONTRACT.md` nicht umgehen. Sichtbare Prognosen werden weiterhin erst nach der zentralen Fusion/Finalisierung ausgegeben.
+11. **Reales Modellgebiet vor Ländergrenze.** Besitzt ein Regionalmodell eine bekannte Modell-BBox, entscheidet diese über die fachliche Anwendbarkeit. Länderkennzeichen dienen nur der Priorisierung innerhalb der Abdeckung und dürfen ein Modell nicht außerhalb seines Gebiets aktivieren. Umgekehrt darf ein Regionalmodell innerhalb seiner realen Abdeckung grenzüberschreitend genutzt werden (z. B. MeteoSwiss ICON-CH oder GeoSphere AROME im Alpen-/angrenzenden Mitteleuropabereich). Verwandte Systeme bleiben dabei in ihren bestehenden Unabhängigkeitsgruppen, insbesondere MeteoSwiss ICON-CH1/CH2 sowie KNMI/DMI UWC-West HARMONIE.
 
-Required Regression: `scripts/test-model-source-capability-contract-095336.mjs`.
+Required Regression: `scripts/test-model-source-capability-contract-095336.mjs`, `scripts/test-regional-model-domain-fusion-097714.mjs`.

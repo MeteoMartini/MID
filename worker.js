@@ -48,7 +48,7 @@ const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const MET_NORWAY_LOCATIONFORECAST='https://api.met.no/weatherapi/locationforecast/2.0/complete';
-const WORKER_VERSION='0.9.77.12';
+const WORKER_VERSION='0.9.77.15';
 const C3S_SEASONAL_POINT_SYSTEMS=[
  {centreId:'ecmwf',originatingCentre:'ecmwf',system:'51',label:'ECMWF'},
  {centreId:'ukmo',originatingCentre:'ukmo',system:'610',label:'UK Met Office'},
@@ -249,19 +249,19 @@ const FORECAST_FUSION_HOURLY='temperature_2m,dew_point_2m,pressure_msl,wind_spee
 const FORECAST_FUSION_EUROPE=[-25,30,45,72];
 const FORECAST_FUSION_MODELS=[
  {id:'best_match',apiIds:['best_match'],label:'Open-Meteo Best Match',family:'best-match',independenceGroup:'anchor',provider:'Open-Meteo',tier:1,maxDays:14,anchor:true,consensusRole:'anchor'},
- // ICON-D2-RUC wird direkt beim DWD auf Verfügbarkeit geprüft. Für numerische Punktwerte
- // bevorzugt MID den optional konfigurierbaren MID_DWD_RUC_POINT_ENDPOINT; erst danach
- // wird eine eventuell künftig verfügbare Open-Meteo-Capability probiert. Der optionale
- // RUC-Pfad kann den gemeinsamen Multi-Model-Request deshalb niemals blockieren.
- {id:'icon_d2_ruc',apiIds:['icon_d2_ruc','dwd_icon_d2_ruc'],label:'DWD ICON-D2-RUC',family:'dwd-icon-ruc',independenceGroup:'dwd-icon',provider:'DWD',tier:1,maxDays:1,maxHours:14,rapidUpdate:true,updateHours:1,resolutionKm:2,bbox:[-3.85,43.18,20.22,58.05],optionalCapability:true},
+ // ICON-D2-RUC ist Stand 02.09.2026 kein Open-Meteo-Modell. MID bezieht den
+ // stündlich aktualisierten RUC deshalb ausschließlich über den eigenen DWD→Pages/R2-
+ // Punktadapter. Dadurch entstehen weder 404-Capability-Probes noch eine falsche
+ // Gleichsetzung mit dem regulären, nur 3-stündlich aktualisierten Open-Meteo ICON-D2.
+ {id:'icon_d2_ruc',apiIds:[],label:'DWD ICON-D2-RUC',family:'dwd-icon-ruc',independenceGroup:'dwd-icon',provider:'DWD',tier:1,maxDays:1,maxHours:14,rapidUpdate:true,updateHours:1,resolutionKm:2,bbox:[-3.85,43.18,20.22,58.05],directOnly:true},
  {id:'icon_d2',apiIds:['icon_d2','dwd_icon_d2'],label:'DWD ICON-D2',family:'dwd-icon',independenceGroup:'dwd-icon',provider:'DWD',tier:1,maxDays:2,updateHours:3,resolutionKm:2,countries:['DE','AT','CH'],bbox:[-6,43,26,58]},
  {id:'icon_eu',apiIds:['icon_eu','dwd_icon_eu'],label:'DWD ICON-EU',family:'dwd-icon',independenceGroup:'dwd-icon',provider:'DWD',tier:1,maxDays:5,updateHours:3,resolutionKm:7,bbox:FORECAST_FUSION_EUROPE},
  {id:'icon_global',apiIds:['icon_global','dwd_icon'],label:'DWD ICON Global',family:'dwd-icon',independenceGroup:'dwd-icon',provider:'DWD',tier:3,maxDays:7.5,updateHours:6,resolutionKm:11},
  {id:'knmi_harmonie_europe',apiIds:['knmi_harmonie_arome_europe','knmi_seamless'],label:'KNMI HARMONIE-AROME Europe',family:'knmi-harmonie',independenceGroup:'uwc-west-harmonie',provider:'KNMI',tier:1,maxDays:3,rapidUpdate:true,updateHours:1,resolutionKm:5.5,bbox:[-12,40,32,68]},
  {id:'knmi_harmonie',apiIds:['knmi_harmonie_arome_netherlands','knmi_seamless'],label:'KNMI HARMONIE-AROME NL',family:'knmi-harmonie',independenceGroup:'uwc-west-harmonie',provider:'KNMI',tier:1,maxDays:3,rapidUpdate:true,updateHours:1,resolutionKm:2,countries:['NL','BE','LU'],bbox:[-2,48,12,56]},
- {id:'meteoswiss_icon_ch1',apiIds:['meteoswiss_icon_ch1'],label:'MeteoSwiss ICON-CH1',family:'meteoswiss-icon',independenceGroup:'meteoswiss-icon',provider:'MeteoSwiss',tier:1,maxDays:1.4,updateHours:3,resolutionKm:1,countries:['CH']},
- {id:'meteoswiss_icon_ch2',apiIds:['meteoswiss_icon_ch2'],label:'MeteoSwiss ICON-CH2',family:'meteoswiss-icon',independenceGroup:'meteoswiss-icon',provider:'MeteoSwiss',tier:1,maxDays:5,updateHours:6,resolutionKm:2,countries:['CH']},
- {id:'geosphere_arome',apiIds:['geosphere_arome_austria'],label:'GeoSphere AROME Austria',family:'geosphere-arome',independenceGroup:'geosphere-arome',provider:'GeoSphere Austria',tier:1,maxDays:3,updateHours:3,resolutionKm:2.5,countries:['AT'],bbox:[8,45,18,50]},
+ {id:'meteoswiss_icon_ch1',apiIds:['meteoswiss_icon_ch1'],label:'MeteoSwiss ICON-CH1',family:'meteoswiss-icon',independenceGroup:'meteoswiss-icon',provider:'MeteoSwiss',tier:1,maxDays:1.4,updateHours:3,resolutionKm:1,countries:['CH'],bbox:[3,43,18,50]},
+ {id:'meteoswiss_icon_ch2',apiIds:['meteoswiss_icon_ch2'],label:'MeteoSwiss ICON-CH2',family:'meteoswiss-icon',independenceGroup:'meteoswiss-icon',provider:'MeteoSwiss',tier:1,maxDays:5,updateHours:6,resolutionKm:2,countries:['CH'],bbox:[3,43,18,50]},
+ {id:'geosphere_arome',apiIds:['geosphere_arome_austria'],label:'GeoSphere AROME Austria',family:'geosphere-arome',independenceGroup:'geosphere-arome',provider:'GeoSphere Austria',tier:1,maxDays:2.5,updateHours:3,resolutionKm:2.5,countries:['AT'],bbox:[8,45,18,50]},
  {id:'meteofrance_arome',apiIds:['meteofrance_arome_france_hd','meteofrance_arome_france','meteofrance_seamless'],label:'Météo-France AROME / Seamless',family:'meteofrance-arome',independenceGroup:'meteofrance',provider:'Météo-France',tier:1,maxDays:2,updateHours:3,resolutionKm:1.5,countries:['FR'],bbox:[-6,41,11,52]},
  {id:'ukmo_ukv',apiIds:['ukmo_uk_deterministic_2km','ukmo_seamless'],label:'UKMO UKV / Seamless',family:'ukmo-ukv',independenceGroup:'ukmo',provider:'UK Met Office',tier:1,maxDays:2,rapidUpdate:true,updateHours:1,resolutionKm:2,latencyHours:4,countries:['GB','IE'],bbox:[-12,48,4,62]},
  {id:'metno_nordic',apiIds:['metno_nordic','metno_nordic_pp'],label:'MET Nordic',family:'metno-nordic',independenceGroup:'metno',provider:'MET Norway',tier:1,maxDays:3,rapidUpdate:true,updateHours:1,resolutionKm:1,countries:['NO','SE','DK','FI'],bbox:[0,53,32,72]},
@@ -270,7 +270,7 @@ const FORECAST_FUSION_MODELS=[
  // NBM ist ein postprozessiertes Multi-Model-Produkt und deshalb keine zusätzliche
  // unabhängige Stimme im Konsens. Es bleibt als lokaler Diagnose-/Reparaturpfad verfügbar.
  {id:'nbm',apiIds:['ncep_nbm_conus'],label:'NOAA NBM',family:'noaa-nbm',independenceGroup:'noaa-postprocessing',provider:'NOAA/NCEP',tier:1,maxDays:11,rapidUpdate:true,updateHours:1,resolutionKm:2.5,countries:['US','CA'],bbox:[-130,20,-60,55],consensusRole:'postprocessing'},
- {id:'dmi_harmonie',apiIds:['dmi_harmonie_arome_europe'],label:'DMI HARMONIE Europe',family:'dmi-harmonie',independenceGroup:'uwc-west-harmonie',provider:'DMI',tier:2,maxDays:3,updateHours:3,resolutionKm:2.5,bbox:[-15,35,32,72]},
+ {id:'dmi_harmonie',apiIds:['dmi_harmonie_arome_europe'],label:'DMI HARMONIE Europe',family:'dmi-harmonie',independenceGroup:'uwc-west-harmonie',provider:'DMI',tier:2,maxDays:2.5,updateHours:3,resolutionKm:2,bbox:[-15,35,32,72]},
  {id:'chmi_aladin_cz',apiIds:['chmi_aladin_cz_1km'],label:'CHMI ALADIN CZ',family:'chmi-aladin-cz',independenceGroup:'chmi-aladin',provider:'CHMI',tier:1,maxDays:3,updateHours:6,resolutionKm:1,countries:['CZ'],bbox:[11,47,20,52],optionalCapability:true},
  {id:'chmi_aladin_ce',apiIds:['chmi_aladin_central_europe_2km','chmi_aladin_seamless'],label:'CHMI ALADIN Mitteleuropa',family:'chmi-aladin-ce',independenceGroup:'chmi-aladin',provider:'CHMI',tier:2,maxDays:3,updateHours:6,resolutionKm:2.3,bbox:[-12,35,35,62],optionalCapability:true},
  {id:'italiameteo_icon2i',apiIds:['italia_meteo_arpae_icon_2i'],label:'ItaliaMeteo ICON-2I',family:'italiameteo-icon2i',independenceGroup:'italiameteo-icon2i',provider:'ItaliaMeteo',tier:1,maxDays:3,updateHours:12,resolutionKm:2,countries:['IT'],bbox:[5,35,20,49]},
@@ -315,7 +315,7 @@ async function fetchMosmixForecast(lat,lon,elevation,country,refresh=false){
   return{considered:true,successful:days.length>=2&&hours.length>=18,label:'DWD MOSMIX',family:'mosmix-postprocessing',provider:'DWD Open Data via Bright Sky',reason:days.length>=2?undefined:'MOSMIX-Lieferung unvollständig.',days,hours,quality:Number(selected.site.quality.toFixed(3)),stationId,stationName,distanceKm:Number(selected.site.distanceKm.toFixed(1)),stationElevation:selected.site.stationElevation,elevationDifferenceM:Number.isFinite(selected.site.elevationDifferenceM)?Math.round(selected.site.elevationDifferenceM):undefined};
  }catch(error){return{considered:true,successful:false,reason:error instanceof Error?error.message:String(error),days:[],hours:[]}}
 }
-function fusionModelApplies(model,lat,lon,country){if(model.anchor)return true;if(model.countries?.includes(country))return true;if(!model.bbox)return true;const[minLon,minLat,maxLon,maxLat]=model.bbox;return lon>=minLon&&lon<=maxLon&&lat>=minLat&&lat<=maxLat}
+function fusionModelApplies(model,lat,lon,country){if(model.anchor)return true;if(model.bbox){const[minLon,minLat,maxLon,maxLat]=model.bbox;return lon>=minLon&&lon<=maxLon&&lat>=minLat&&lat<=maxLat}if(model.countries?.length)return model.countries.includes(country);return true}
 function forecastFusionSelection(lat,lon,country){
  const applicable=FORECAST_FUSION_MODELS.filter(model=>fusionModelApplies(model,lat,lon,country)),chosen=[];
  const add=model=>{if(!model||chosen.some(item=>item.id===model.id))return;chosen.push(model)};
@@ -340,7 +340,7 @@ const forecastModelCapabilityCache=new Map();
 const forecastFusionFreshnessCache=new Map();
 function forecastCapabilityBlocked(apiId){const until=forecastModelCapabilityCache.get(apiId);return Number.isFinite(until)&&until>Date.now()}
 function fusionFreshnessFactor(model,payload){const raw=number(payload?.last_run_initialisation_time),initMs=Number.isFinite(raw)?(raw>10000000000?raw:raw*1000):NaN,availableRaw=number(payload?.last_run_availability_time),availabilityMs=Number.isFinite(availableRaw)?(availableRaw>10000000000?availableRaw:availableRaw*1000):NaN,cycleHours=Math.max(.5,(number(payload?.update_interval_seconds)||Math.max(1,Number(model.updateHours)||6)*3600)/3600),ageHours=(Date.now()-initMs)/3600000;if(!Number.isFinite(ageHours)||ageHours<-.5)return .94;let factor=ageHours<=cycleHours*1.35?1:ageHours<=cycleHours*2?.88:ageHours<=cycleHours*3?.7:.52;if(Number.isFinite(availabilityMs)&&Date.now()-availabilityMs<10*60000)factor*=.97;return clamp(factor,.5,1)}
-async function forecastFusionFreshness(model){const cached=forecastFusionFreshnessCache.get(model.id);if(cached&&Date.now()-cached.at<5*60000)return cached;for(const metaId of [...new Set([...(model.apiIds||[]),model.id])]){try{const response=await fetchWithDeadline(`https://api.open-meteo.com/data/${metaId}/static/meta.json?cache_buster=${Date.now()}`,{headers:{Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`}},2500);if(!response.ok)continue;const payload=await response.json(),initRaw=number(payload?.last_run_initialisation_time),availableRaw=number(payload?.last_run_availability_time),value={at:Date.now(),factor:fusionFreshnessFactor(model,payload),initialisationTime:Number.isFinite(initRaw)?new Date((initRaw>10000000000?initRaw:initRaw*1000)).toISOString():undefined,availabilityTime:Number.isFinite(availableRaw)?new Date((availableRaw>10000000000?availableRaw:availableRaw*1000)).toISOString():undefined};forecastFusionFreshnessCache.set(model.id,value);return value}catch{}}const fallback={at:Date.now(),factor:.94};forecastFusionFreshnessCache.set(model.id,fallback);return fallback}
+async function forecastFusionFreshness(model){const cached=forecastFusionFreshnessCache.get(model.id);if(cached&&Date.now()-cached.at<5*60000)return cached;if(model.directOnly){const initMs=Date.parse(String(model.initialisationTime||'')),availableMs=Date.parse(String(model.availabilityTime||'')),payload={last_run_initialisation_time:Number.isFinite(initMs)?initMs/1000:undefined,last_run_availability_time:Number.isFinite(availableMs)?availableMs/1000:undefined,update_interval_seconds:Math.max(1,Number(model.updateHours)||1)*3600},value={at:Date.now(),factor:fusionFreshnessFactor(model,payload),initialisationTime:Number.isFinite(initMs)?new Date(initMs).toISOString():undefined,availabilityTime:Number.isFinite(availableMs)?new Date(availableMs).toISOString():undefined};forecastFusionFreshnessCache.set(model.id,value);return value}for(const metaId of [...new Set([...(model.apiIds||[]),model.id])]){try{const response=await fetchWithDeadline(`https://api.open-meteo.com/data/${metaId}/static/meta.json?cache_buster=${Date.now()}`,{headers:{Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`}},2500);if(!response.ok)continue;const payload=await response.json(),initRaw=number(payload?.last_run_initialisation_time),availableRaw=number(payload?.last_run_availability_time),value={at:Date.now(),factor:fusionFreshnessFactor(model,payload),initialisationTime:Number.isFinite(initRaw)?new Date((initRaw>10000000000?initRaw:initRaw*1000)).toISOString():undefined,availabilityTime:Number.isFinite(availableRaw)?new Date((availableRaw>10000000000?availableRaw:availableRaw*1000)).toISOString():undefined};forecastFusionFreshnessCache.set(model.id,value);return value}catch{}}const fallback={at:Date.now(),factor:.94};forecastFusionFreshnessCache.set(model.id,fallback);return fallback}
 function fusionNonNegative(value){const parsed=number(value);return Number.isFinite(parsed)?Math.max(0,parsed):NaN}
 function fusionNullableSunshine(value,cap=86400){const parsed=number(value);return Number.isFinite(parsed)?clamp(parsed,0,cap):null}
 function fusionDailyPrecipitation(rawValue,probabilityValue,codeValue,rainValue,showersValue,snowfallValue,leadHours){
@@ -385,7 +385,7 @@ function applyRucEpsProbabilityHours(weatherHours,rucEps){if(!rucEps?.successful
 
 async function fetchForecastFusionModel(model,lat,lon,elevation,env,refresh=false){
  let lastError='nicht verfügbar';
- if(model.id==='icon_d2_ruc')try{const adapted=await fetchDwdRucPointAdapter(model,lat,lon,elevation,env);if(adapted?.successful)return adapted;if(adapted?.reason)lastError=adapted.reason}catch(error){lastError=error instanceof Error?error.message:String(error)}
+ if(model.id==='icon_d2_ruc'){try{const adapted=await fetchDwdRucPointAdapter(model,lat,lon,elevation,env);if(adapted?.successful)return adapted;if(adapted?.reason)lastError=adapted.reason}catch(error){lastError=error instanceof Error?error.message:String(error)}return{...model,successful:false,reason:lastError,days:[],hours:[]}}
  for(const apiId of model.apiIds){
   if(model.optionalCapability&&forecastCapabilityBlocked(apiId)){lastError=`${apiId}: Capability derzeit nicht verfügbar`;continue}
   const rapidHours=model.rapidUpdate&&Number.isFinite(Number(model.maxHours))?Math.max(1,Math.min(14,Math.floor(Number(model.maxHours)))):null,query=new URLSearchParams({latitude:String(lat),longitude:String(lon),timezone:rapidHours?'GMT':'auto',models:apiId,hourly:FORECAST_FUSION_HOURLY,wind_speed_unit:'kn',temperature_unit:'celsius',precipitation_unit:'mm',cell_selection:'land'});if(rapidHours)query.set('forecast_hours',String(rapidHours));else{query.set('forecast_days',String(Math.min(14,model.maxDays||14)));query.set('daily',FORECAST_FUSION_DAILY)}if(Number.isFinite(elevation))query.set('elevation',String(clamp(elevation,-500,9000)));
@@ -427,10 +427,10 @@ function parseForecastFusionModelPayload(payload,model,apiId,suffixed=false){
  const successful=days.length>=1||model.id==='icon_d2_ruc'&&hours.length>=6;return{...model,apiId,successful,weatherBundleReady:hours.length>=6,reason:successful?undefined:'keine verwertbaren Tages-/Stundendaten',timezone:String(payload?.timezone||'UTC'),days,hours,multiModelSuffixes:suffixed,suffixFields:[...suffixFields]};
 }
 async function fetchForecastFusionModels(models,lat,lon,elevation,env,refresh=false){
- // Optional/noch nicht dokumentierte Capabilities (derzeit insbesondere ICON-D2-RUC)
- // werden nie in die gemeinsame Open-Meteo-Anfrage gemischt. Ein unbekannter Modell-ID
- // darf nicht den gesamten Multi-Model-Request zu Fall bringen.
- const batchModels=models.filter(model=>!model.optionalCapability),requested=batchModels.map(model=>({...model,apiId:model.apiIds?.[0]||model.id}));let parsed=[];
+ // Direkte Quellen (insbesondere DWD ICON-D2-RUC) und optionale Modell-Capabilities
+ // werden nie in die gemeinsame Open-Meteo-Anfrage gemischt. Ein nicht von Open-Meteo
+ // bereitgestellter Modellpfad darf den Multi-Model-Request weder verzögern noch blockieren.
+ const batchModels=models.filter(model=>!model.directOnly&&!model.optionalCapability),requested=batchModels.map(model=>({...model,apiId:model.apiIds?.[0]||model.id}));let parsed=[];
  if(requested.length){const query=new URLSearchParams({latitude:String(lat),longitude:String(lon),timezone:'auto',forecast_days:'14',models:requested.map(model=>model.apiId).join(','),daily:FORECAST_FUSION_DAILY,hourly:FORECAST_FUSION_HOURLY,wind_speed_unit:'kn',temperature_unit:'celsius',precipitation_unit:'mm',cell_selection:'land'});if(Number.isFinite(elevation))query.set('elevation',String(clamp(elevation,-500,9000)));try{const response=await fetchWithDeadline(`${OPEN_METEO_FORECAST}?${query}`,{headers:{Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`,...(refresh?{'Cache-Control':'no-cache'}:{})},cf:refresh?{cacheEverything:false}:{cacheTtl:1200,cacheEverything:true}},19000),body=await response.text();let payload={};try{payload=JSON.parse(body)}catch{}if(response.ok&&!payload?.error){if(Array.isArray(payload))parsed=requested.map((model,index)=>parseForecastFusionModelPayload(payload[index]||{},model,model.apiId,false));else parsed=requested.map(model=>parseForecastFusionModelPayload(payload,model,model.apiId,true))}}catch{}}
  const byId=new Map(parsed.map(result=>[result.id,result])),missing=models.filter(model=>!byId.get(model.id)?.successful),fallback=missing.length?await mapConcurrent(missing,3,model=>fetchForecastFusionModel(model,lat,lon,elevation,env,refresh)):[];for(const result of fallback)byId.set(result.id,result);const successful=[...byId.values()].filter(result=>result?.successful&&!result.anchor),freshnessTargets=successful.slice(0,12),freshnessRows=await mapConcurrent(freshnessTargets,6,async result=>({id:result.id,...await forecastFusionFreshness(result)}));for(const meta of freshnessRows){const row=byId.get(meta.id);if(row)byId.set(meta.id,{...row,runFreshness:meta.factor,initialisationTime:row.initialisationTime||meta.initialisationTime,availabilityTime:row.availabilityTime||meta.availabilityTime})}const modelSuffixes=Object.fromEntries(parsed.filter(result=>result.successful&&result.suffixFields?.length).map(result=>[result.id,result.suffixFields]));return{results:models.map(model=>byId.get(model.id)||{...model,successful:false,reason:'nicht verfügbar',days:[],hours:[]}),multiModelSuffixes:parsed.some(result=>result.successful&&result.multiModelSuffixes),modelSuffixes};
 }
@@ -1610,17 +1610,19 @@ async function weatherMapGridData(lat,lon,modelId){
 const precipitationPhaseGridCache=new Map();
 const precipitationPhaseModelMetaCache=new Map();
 const RAPID_PHASE_MODELS=[
- {id:'icon-d2-ruc',label:'DWD ICON-D2-RUC',apiIds:['icon_d2_ruc','dwd_icon_d2_ruc'],metaIds:['dwd_icon_d2_ruc','icon_d2_ruc'],bbox:[-6,43,26,58],resolutionKm:2,rapidUpdate:true,native15:true,maxHours:14,optionalCapability:true},
+ // Open-Meteo integriert derzeit kein ICON-D2-RUC. Für das räumliche Phasenraster
+ // verwenden wir deshalb nur tatsächlich veröffentlichte Open-Meteo-Modelle. Der echte
+ // DWD ICON-D2-RUC bleibt separat im MID-Punkt-/Rapidpfad (DWD→Pages/R2) aktiv.
  {id:'arome-france-hd-ruc',label:'Météo-France AROME HD 15 min',apiIds:['meteofrance_arome_france_hd_15min'],metaIds:['meteofrance_arome_france_hd_15min','meteofrance_arome_france_hd'],endpoint:'https://api.open-meteo.com/v1/meteofrance',bbox:[-8,40,13,53],resolutionKm:1.5,rapidUpdate:true,native15:true,maxHours:6},
  {id:'arome-france-ruc',label:'Météo-France AROME 15 min',apiIds:['meteofrance_arome_france_15min'],metaIds:['meteofrance_arome_france_15min','meteofrance_arome_france'],endpoint:'https://api.open-meteo.com/v1/meteofrance',bbox:[-8,40,13,53],resolutionKm:2.5,rapidUpdate:true,native15:true,maxHours:6},
- {id:'hrrr-ruc',label:'NOAA HRRR Rapid Refresh',apiIds:['ncep_hrrr_conus'],metaIds:['ncep_hrrr_conus'],bbox:[-130,20,-60,55],resolutionKm:3,rapidUpdate:true,native15:true,maxHours:18},
+ {id:'hrrr-ruc',label:'NOAA HRRR Rapid Refresh 15 min',apiIds:['ncep_hrrr_conus_15min','ncep_hrrr_conus'],metaIds:['ncep_hrrr_conus_15min','ncep_hrrr_conus'],bbox:[-130,20,-60,55],resolutionKm:3,rapidUpdate:true,native15:true,maxHours:18},
  {id:'knmi-harmonie-europe',label:'KNMI HARMONIE-AROME Europe',apiIds:['knmi_harmonie_arome_europe','knmi_seamless'],metaIds:['knmi_harmonie_arome_europe'],bbox:[-12,40,32,68],resolutionKm:5.5,rapidUpdate:true,native15:false,maxHours:60},
  {id:'knmi-harmonie-nl',label:'KNMI HARMONIE-AROME NL',apiIds:['knmi_harmonie_arome_netherlands','knmi_seamless'],metaIds:['knmi_harmonie_arome_netherlands'],bbox:[-2,48,12,56],resolutionKm:2,rapidUpdate:true,native15:false,maxHours:60},
  {id:'met-nordic-ruc',label:'MET Nordic PP',apiIds:['metno_nordic','metno_nordic_pp'],metaIds:['metno_nordic_pp','metno_nordic'],bbox:[0,53,32,72],resolutionKm:1,rapidUpdate:true,native15:false,maxHours:60},
  {id:'ukv-ruc',label:'UKMO UKV / Seamless',apiIds:['ukmo_uk_deterministic_2km','ukmo_seamless'],metaIds:['ukmo_uk_deterministic_2km','ukmo_seamless'],bbox:[-12,48,4,62],resolutionKm:2,rapidUpdate:true,native15:false,maxHours:48,latencyHours:4},
- {id:'icon-d2',label:'DWD ICON-D2',apiIds:['dwd_icon_d2','icon_d2'],metaIds:['dwd_icon_d2','icon_d2'],bbox:[-6,43,26,58],resolutionKm:2,rapidUpdate:false,native15:true,maxHours:48},
+ {id:'icon-d2',label:'DWD ICON-D2 15 min (Open-Meteo)',apiIds:['dwd_icon_d2','icon_d2'],metaIds:['dwd_icon_d2_15min','dwd_icon_d2','icon_d2'],bbox:[-6,43,26,58],resolutionKm:2,rapidUpdate:false,native15:true,maxHours:48},
  {id:'geosphere-arome',label:'GeoSphere AROME Austria',apiIds:['geosphere_arome_austria'],metaIds:['geosphere_arome_austria'],bbox:[8,45,18,50],resolutionKm:2.5,rapidUpdate:false,native15:false,maxHours:60},
- {id:'dmi-harmonie',label:'DMI HARMONIE Europe',apiIds:['dmi_harmonie_arome_europe'],metaIds:['dmi_harmonie_arome_europe'],bbox:[-15,35,32,72],resolutionKm:5.5,rapidUpdate:false,native15:false,maxHours:60}
+ {id:'dmi-harmonie',label:'DMI HARMONIE Europe',apiIds:['dmi_harmonie_arome_europe'],metaIds:['dmi_harmonie_arome_europe'],bbox:[-15,35,32,72],resolutionKm:2,rapidUpdate:false,native15:false,maxHours:60}
 ];
 function precipitationPhaseGridCacheKey(lat,lon,roundedMs){return`${lat.toFixed(2)}:${lon.toFixed(2)}:${roundedMs}`}
 function precipitationPhaseRateLimited(message){return /(?:request|rate|minute|minutes|429).*limit|limit.*(?:request|rate|minute|minutes)|too many requests/i.test(String(message||''))}
@@ -1638,8 +1640,9 @@ function phaseModelScore(model){const age=Math.max(0,Number(model.ageHours)||0)+
 async function orderedPhaseModels(lat,lon){
  const candidates=RAPID_PHASE_MODELS.filter(model=>phaseModelApplies(model,lat,lon)),metas=(await Promise.all(candidates.map(phaseModelMetadata))).filter(Boolean).sort((a,b)=>phaseModelScore(b)-phaseModelScore(a));
  // Der Radar-Phasenlayer benötigt weiterhin ein räumliches JSON-Raster. Der direkte
- // DWD→Pages→Worker-RUC-Punktpfad der Kurzfristfusion ersetzt dieses Flächenraster nicht;
- // ICON-D2-RUC wird hier daher nur verwendet, wenn die Modell-Rasterquelle es separat liefert.
+ // DWD→Pages/R2→Worker-RUC-Punktpfad der Kurzfristfusion ersetzt dieses Flächenraster nicht.
+ // Open-Meteo ICON-D2 15 min bleibt hier ein 3-stündlich aktualisierter Regionalfallback;
+ // stündliche Rapid-Refresh-Priorität erhalten nur tatsächlich stündlich verfügbare Modelle.
  return metas;
 }
 async function precipitationPhaseGridData(lat,lon,target){

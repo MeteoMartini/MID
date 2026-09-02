@@ -82,7 +82,7 @@ assert.ok(styles.includes('.hyperlocal-analysis-info{display:grid'),'Hyperlokale
 for(const token of [
  "MID_DWD_RUC_POINT_ENDPOINT",
  "MID_DWD_RUC_POINT_TOKEN",
- "if(model.id==='icon_d2_ruc')try{const adapted=await fetchDwdRucPointAdapter",
+ "if(model.id==='icon_d2_ruc'){try{const adapted=await fetchDwdRucPointAdapter",
  "provider:'DWD ICON-D2-RUC · Punktadapter'"
 ])assert.ok(worker.includes(token),`ICON-D2-RUC Punktpfad fehlt: ${token}`);
 assert.ok(cockpit.includes('Zustandskern 1 h bis +14 h · Niederschlag 5 min bis +6 h · Konvektion/Reflektivität 15 min bis +6 h'),'Produktiver parameterabhängiger RUC-Zeit-/Datenpfad wird im Modellstand nicht transparent erklärt.');

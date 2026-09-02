@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-09-01T21:47:43.368Z",
-  "releaseVersion": "0.9.77.12",
+  "updatedAt": "2026-09-02T00:29:39.181Z",
+  "releaseVersion": "0.9.77.15",
   "sourceBaseline": {
     "professionalVersion": "0.9.70.2",
     "workerVersion": "0.9.70.2",
@@ -104,14 +104,16 @@
     "run-811-trend14plus-typescript-buildfix-0.9.77.5",
     "0.9.77.6 – Run #812 RUC-Workflow-Admin-Sync-Übergang eng regressionsgeschützt; Build/Vite aus #812 waren bereits grün.",
     "0.9.77.9 – Trend 14d+: Temperatur als Default mit persistierter letzter Auswahl, Böen entfernt, ERA5-Land-1991–2020-Klimareferenz, getrennte P10–P90/P25–P75-Bänder; appweiter Parameter-Farbvertrag und Extremwetter-Abstand nachgezogen.",
-    "0.9.77.10 – Install-/Deploy-Run #817 TypeScript-Hotfix, echter Witterungstrend-Modellstand und Werte an der blauen Kurzfrist-Referenzlinie."
+    "0.9.77.10 – Install-/Deploy-Run #817 TypeScript-Hotfix, echter Witterungstrend-Modellstand und Werte an der blauen Kurzfrist-Referenzlinie.",
+    "openmeteo-rapid-source-contract-0.9.77.13",
+    "regional-model-domain-fusion-0.9.77.14"
   ],
   "nextMilestone": "macos-xcode-simulator-quality-assurance",
   "validation": {
-    "browserBuild": "v0.9.77.0: npm run build wurde gestartet, konnte in dieser isolierten Laufzeit wegen nicht installierter npm-Typdefinitionen/Dependencies nicht bis zum Vite-Build gelangen. Kein Produkt-TypeScriptfehler der Trend-14d+-Quellen wurde dabei ausgewiesen; der normale GitHub-Installer besitzt die vollständige gepinnte Dependency-Toolchain.",
-    "typescript": "v0.9.77.0: fünf geänderte TS/TSX-Dateien parsergeprüft; 145 relative TypeScript-Importziele vollständig. Vollständiger TypeScript-7.0.2-No-Emit-Check benötigt die im Transport-ZIP bewusst nicht enthaltene npm-Installation.",
-    "workerSyntax": "v0.9.77.0: keine fachliche Workeränderung. Generiertes Worker-Aggregat, worker/metar-proxy.js, worker.js und beide Service Worker syntaktisch grün.",
-    "regressions": "v0.9.77.0: 500/500 umgebungsunabhängige automatische Regressionen bestanden; Trend-14d+, saisonale C3S/DWD-UI und aktualisierter Langfristvertrag grün. Weitere 110 Tests sind ausschließlich an die lokal fehlende npm-Testtoolchain (TypeScript 7/typescript-strada/esbuild) gebunden.",
+    "browserBuild": "v0.9.77.13: Der vollständige lokale Browser-Produktionsbuild ist im Transport-Quellstand nicht ausführbar, weil node_modules bewusst nicht enthalten ist. Die geänderten Worker-/Quellenpfade sind syntaktisch und regressiv geprüft; der normale Installer/CI-Pfad installiert die gepinnte Toolchain.",
+    "typescript": "v0.9.77.13: Die lokale TypeScript-7.0.2-Toolchain ist im Transport-ZIP nicht installiert. Von 626 automatisch erkannten Regressionen sind 105 ausschließlich toolchaingebunden (86 typescript-strada, 16 TypeScript-7-CLI, 2 esbuild, 1 lokales tsc); kein sonstiger fachlicher Fehlschlag verbleibt.",
+    "workerSyntax": "v0.9.77.13: worker-src/00-core-observations.js, worker-src/20-composite-models.js, worker/metar-proxy.js, worker.js sowie beide Service Worker syntaktisch grün; Worker-Aggregat nach Versionssync neu erzeugt.",
+    "regressions": "v0.9.77.13: 521/521 umgebungsunabhängige automatische Regressionen bestanden. Insgesamt 626 Tests erkannt; die übrigen 105 sind ausschließlich an die lokal fehlende npm/TypeScript-7-Testtoolchain gebunden. Open-Meteo-Rapid-Quellenvertrag, DWD-RUC-Pipeline/Fusion, Phasenraster-Budget, Wartungsaggregat, Versionsvertrag und Release-Upload-Budget sind grün.",
     "capacitorSync": "Kein neuer cap copy ios in dieser isolierten Laufzeit, da kein vollständiger Vite-Build ohne npm-Dependencies möglich ist. Cross-Platform-iOS-Shell, Safe Area, Privacy Manifest, Push/Background-Quellvorbereitung und WidgetKit-Xcode-Struktur wurden regressionsgeprüft und sind grün.",
     "xcodeProjectStructure": "Gemeinsamer Capacitor-iOS-Wrapper, Light-/Dark-AppIcon- und Splash-Kataloge, Privacy-Manifeste und MIDWidgets-Struktur bleiben erhalten; keine neue native Berechtigung oder Capability aktiviert.",
     "xcodeAppleSdkBuild": "required-next-gate-macos-xcode-simulator; includes Apple SDK build, simulator launch, Privacy Report inspection and post-sync structure verification."
@@ -127,7 +129,7 @@
     ],
     "approved": false
   },
-  "validationNote": "v0.9.77.9 standardisiert das Parameter-Farbkonzept in Trend-, 14-Tage-, Meteogramm- und Cockpit-Diagrammen, entfernt nicht gelieferte Böen aus Trend 14d+, verwendet ERA5-Land 1991–2020 als einheitliche Klimareferenz, trennt P10–P90 von P25–P75 sichtbar und vergrößert den Abstand unter dem Extremwetter-Ausblick.",
+  "validationNote": "v0.9.77.13 trennt echte DWD ICON-D2-RUC/RUC-EPS-Daten strikt von Open-Meteo: RUC wird nur über den direkten DWD/MID-Adapter bezogen; Open-Meteo liefert separat Best Match/minutely_15, reguläres ICON-D2 15 min, AROME 15 min und HRRR 15 min. Nicht existente Open-Meteo-RUC-Aliase und dadurch verursachte Fehlversuche wurden entfernt.",
   "completedMilestones": [
     "ci-regression-contract-hotfix-0.9.76.22",
     "ruc-scheduler-resilience-source-preparation-0.9.76.24",
@@ -166,7 +168,19 @@
       "date": "2026-09-01",
       "title": "Witterungstrend-Modellstand und Kurzfrist-Referenzwerte",
       "summary": "Behebt die fünf TypeScript-Blocker aus Installer #817, zeigt den tatsächlichen Open-Meteo-Modellinitialisierungsstand für EC46/GEFS und ergänzt parameterfarbige Werte direkt an der blauen Kurzfrist-Referenzlinie."
+    },
+    {
+      "version": "0.9.77.13",
+      "date": "2026-09-02",
+      "title": "Open-Meteo Rapid-Refresh/RUC-Quellenvertrag",
+      "summary": "DWD ICON-D2-RUC bleibt strikt an die direkte DWD-Pipeline gebunden; nicht verfügbare Open-Meteo-RUC-Aliase wurden entfernt. Open-Meteo Best Match/minutely_15, ICON-D2 15 min, AROME 15 min und HRRR 15 min sind als getrennte Quellenpfade regressionsgeschützt."
+    },
+    {
+      "version": "0.9.77.15",
+      "date": "2026-09-02",
+      "title": "Gefahren-Popup und klimatologische Tmin/Tmax-Farbskala",
+      "summary": "Gefahrenflächen-Popups nennen die konkrete Gefahr. Aktuelle/stündliche Temperaturwerte bleiben neutral; Tmin/Tmax verwenden getrennte Blau-/Rot-Sättigungsskalen anhand der signierten Abweichung vom jeweiligen Klimamittel."
     }
   ],
-  "currentVersion": "0.9.77.11"
+  "currentVersion": "0.9.77.13"
 }

@@ -32,7 +32,7 @@ assert.equal(baseline.releaseVersion,pkg.version);
 assert.equal(pkg.scripts?.['test:extreme-outlook-modelled-areas'],`node ${test}`);
 for(const key of ['requiredRegressionTests','regressionTests','requiredFiles'])assert.ok(baseline[key].includes(test),`${test} fehlt in ${key}.`);
 for(const token of ['strongestModelledRegionAreas(buildExtremeOutlookContourSet(data,selectedPeriod.id,hazard).areas,8)','row.id','setSelectedAreaId(row.id)','row.region'])assert.ok(panel.includes(token),`Flächengebundene Regionsliste fehlt: ${token}`);
-for(const token of ['areas.map(area=>','escapeHtml(area.region)','Modellierte Gefahrenfläche'])assert.ok(overlay.includes(token),`Flächengebundenes Popup fehlt: ${token}`);
+for(const token of ['areas.map(area=>','escapeHtml(area.region)','hazardLabel(area.signal.hazard)'])assert.ok(overlay.includes(token),`Flächengebundenes Popup fehlt: ${token}`);
 for(const region of ['Wallis','Zentralschweiz','Tessin','Graubünden','Vorarlberg','Tirol'])assert.ok(worker.includes(`['${region}'`),`Alpenregion fehlt: ${region}`);
 assert.ok(!panel.includes('strongestExtremeRegions('),'Die Ansicht darf räumlich getrennte Flächen nicht mehr nach Regionsnamen deduplizieren.');
 

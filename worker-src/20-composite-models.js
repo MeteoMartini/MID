@@ -267,17 +267,19 @@ async function weatherMapGridData(lat,lon,modelId){
 const precipitationPhaseGridCache=new Map();
 const precipitationPhaseModelMetaCache=new Map();
 const RAPID_PHASE_MODELS=[
- {id:'icon-d2-ruc',label:'DWD ICON-D2-RUC',apiIds:['icon_d2_ruc','dwd_icon_d2_ruc'],metaIds:['dwd_icon_d2_ruc','icon_d2_ruc'],bbox:[-6,43,26,58],resolutionKm:2,rapidUpdate:true,native15:true,maxHours:14,optionalCapability:true},
+ // Open-Meteo integriert derzeit kein ICON-D2-RUC. Für das räumliche Phasenraster
+ // verwenden wir deshalb nur tatsächlich veröffentlichte Open-Meteo-Modelle. Der echte
+ // DWD ICON-D2-RUC bleibt separat im MID-Punkt-/Rapidpfad (DWD→Pages/R2) aktiv.
  {id:'arome-france-hd-ruc',label:'Météo-France AROME HD 15 min',apiIds:['meteofrance_arome_france_hd_15min'],metaIds:['meteofrance_arome_france_hd_15min','meteofrance_arome_france_hd'],endpoint:'https://api.open-meteo.com/v1/meteofrance',bbox:[-8,40,13,53],resolutionKm:1.5,rapidUpdate:true,native15:true,maxHours:6},
  {id:'arome-france-ruc',label:'Météo-France AROME 15 min',apiIds:['meteofrance_arome_france_15min'],metaIds:['meteofrance_arome_france_15min','meteofrance_arome_france'],endpoint:'https://api.open-meteo.com/v1/meteofrance',bbox:[-8,40,13,53],resolutionKm:2.5,rapidUpdate:true,native15:true,maxHours:6},
- {id:'hrrr-ruc',label:'NOAA HRRR Rapid Refresh',apiIds:['ncep_hrrr_conus'],metaIds:['ncep_hrrr_conus'],bbox:[-130,20,-60,55],resolutionKm:3,rapidUpdate:true,native15:true,maxHours:18},
+ {id:'hrrr-ruc',label:'NOAA HRRR Rapid Refresh 15 min',apiIds:['ncep_hrrr_conus_15min','ncep_hrrr_conus'],metaIds:['ncep_hrrr_conus_15min','ncep_hrrr_conus'],bbox:[-130,20,-60,55],resolutionKm:3,rapidUpdate:true,native15:true,maxHours:18},
  {id:'knmi-harmonie-europe',label:'KNMI HARMONIE-AROME Europe',apiIds:['knmi_harmonie_arome_europe','knmi_seamless'],metaIds:['knmi_harmonie_arome_europe'],bbox:[-12,40,32,68],resolutionKm:5.5,rapidUpdate:true,native15:false,maxHours:60},
  {id:'knmi-harmonie-nl',label:'KNMI HARMONIE-AROME NL',apiIds:['knmi_harmonie_arome_netherlands','knmi_seamless'],metaIds:['knmi_harmonie_arome_netherlands'],bbox:[-2,48,12,56],resolutionKm:2,rapidUpdate:true,native15:false,maxHours:60},
  {id:'met-nordic-ruc',label:'MET Nordic PP',apiIds:['metno_nordic','metno_nordic_pp'],metaIds:['metno_nordic_pp','metno_nordic'],bbox:[0,53,32,72],resolutionKm:1,rapidUpdate:true,native15:false,maxHours:60},
  {id:'ukv-ruc',label:'UKMO UKV / Seamless',apiIds:['ukmo_uk_deterministic_2km','ukmo_seamless'],metaIds:['ukmo_uk_deterministic_2km','ukmo_seamless'],bbox:[-12,48,4,62],resolutionKm:2,rapidUpdate:true,native15:false,maxHours:48,latencyHours:4},
- {id:'icon-d2',label:'DWD ICON-D2',apiIds:['dwd_icon_d2','icon_d2'],metaIds:['dwd_icon_d2','icon_d2'],bbox:[-6,43,26,58],resolutionKm:2,rapidUpdate:false,native15:true,maxHours:48},
+ {id:'icon-d2',label:'DWD ICON-D2 15 min (Open-Meteo)',apiIds:['dwd_icon_d2','icon_d2'],metaIds:['dwd_icon_d2_15min','dwd_icon_d2','icon_d2'],bbox:[-6,43,26,58],resolutionKm:2,rapidUpdate:false,native15:true,maxHours:48},
  {id:'geosphere-arome',label:'GeoSphere AROME Austria',apiIds:['geosphere_arome_austria'],metaIds:['geosphere_arome_austria'],bbox:[8,45,18,50],resolutionKm:2.5,rapidUpdate:false,native15:false,maxHours:60},
- {id:'dmi-harmonie',label:'DMI HARMONIE Europe',apiIds:['dmi_harmonie_arome_europe'],metaIds:['dmi_harmonie_arome_europe'],bbox:[-15,35,32,72],resolutionKm:5.5,rapidUpdate:false,native15:false,maxHours:60}
+ {id:'dmi-harmonie',label:'DMI HARMONIE Europe',apiIds:['dmi_harmonie_arome_europe'],metaIds:['dmi_harmonie_arome_europe'],bbox:[-15,35,32,72],resolutionKm:2,rapidUpdate:false,native15:false,maxHours:60}
 ];
 function precipitationPhaseGridCacheKey(lat,lon,roundedMs){return`${lat.toFixed(2)}:${lon.toFixed(2)}:${roundedMs}`}
 function precipitationPhaseRateLimited(message){return /(?:request|rate|minute|minutes|429).*limit|limit.*(?:request|rate|minute|minutes)|too many requests/i.test(String(message||''))}
@@ -295,8 +297,9 @@ function phaseModelScore(model){const age=Math.max(0,Number(model.ageHours)||0)+
 async function orderedPhaseModels(lat,lon){
  const candidates=RAPID_PHASE_MODELS.filter(model=>phaseModelApplies(model,lat,lon)),metas=(await Promise.all(candidates.map(phaseModelMetadata))).filter(Boolean).sort((a,b)=>phaseModelScore(b)-phaseModelScore(a));
  // Der Radar-Phasenlayer benötigt weiterhin ein räumliches JSON-Raster. Der direkte
- // DWD→Pages→Worker-RUC-Punktpfad der Kurzfristfusion ersetzt dieses Flächenraster nicht;
- // ICON-D2-RUC wird hier daher nur verwendet, wenn die Modell-Rasterquelle es separat liefert.
+ // DWD→Pages/R2→Worker-RUC-Punktpfad der Kurzfristfusion ersetzt dieses Flächenraster nicht.
+ // Open-Meteo ICON-D2 15 min bleibt hier ein 3-stündlich aktualisierter Regionalfallback;
+ // stündliche Rapid-Refresh-Priorität erhalten nur tatsächlich stündlich verfügbare Modelle.
  return metas;
 }
 async function precipitationPhaseGridData(lat,lon,target){

@@ -1,3 +1,25 @@
+## v0.9.77.15
+
+- Extremwetter-Popups nennen jetzt die konkrete Gefahr der dargestellten Fläche (z. B. „Gewitter“) statt generisch „Modellierte Gefahrenfläche“.
+- Aktuelle und stündliche Temperaturwerte einschließlich „Nächste 90 Minuten“, Tagesdetail und ausgewähltem 24-h-Zeitwert werden neutral in der Theme-Textfarbe dargestellt.
+- Tmin/Tmax in 7-/14-Tage-Ansichten verwenden ausschließlich Blau/Rot; die Sättigung folgt jetzt der signierten Abweichung vom jeweiligen klimatologischen Tmin/Tmax.
+- Parameter-Farbvertrag und veraltete Regressionen auf die neue, im Anhang definierte Semantik migriert.
+- Keine fachliche Worker-Änderung; manueller Worker-Upload nicht erforderlich.
+
+## v0.9.77.14
+
+- Regionale Modellwahl auf reale/konservative Modell-BBoxen vereinheitlicht: BBox gilt vor Länderkennung; grenzüberschreitende Nutzung innerhalb des Modellgebiets ist erlaubt.
+- MeteoSwiss ICON-CH1/CH2 und GeoSphere AROME Austria können damit auch im abgedeckten angrenzenden Mitteleuropa als zusätzliche Wetterzwilling-Quellen einfließen, ohne die nationale Priorisierung zu verdrängen.
+- App-Modellstandfilter für ALADIN CZ, AROME France/HD, KNMI HARMONIE NL, UKV, MET Nordic sowie HRRR/NAM/NBM an die Worker-Gebiete angeglichen.
+- DMI HARMONIE AROME Europe konsistent auf 2 km und 2,5 Tage gestellt; UWC-West-Unabhängigkeitsgruppe bleibt mit KNMI gemeinsam.
+- Neuer Regressionstest schützt Modellgebiete, grenzüberschreitende Fusion und Doppelgewichtung.
+
+## v0.9.77.13
+
+- Open-Meteo Rapid-Refresh/RUC-Quellenvertrag korrigiert: echter DWD ICON-D2-RUC bleibt ausschließlich direkt über die MID-DWD-Pipeline; nicht vorhandene Open-Meteo-RUC-Modellalias-Probes entfernt.
+- Open-Meteo ICON-D2-15-min wird korrekt als 3-stündlich aktualisiertes Regionalmodell behandelt; HRRR-/AROME-15-min-Rapidpfade explizit geschützt.
+- Neuer Regressionstest schützt Best-Match-`minutely_15`, direkte RUC-Frische und die Quellenabgrenzung.
+
 # Changelog
 
 ## 0.9.77.12
