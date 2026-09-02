@@ -1,10 +1,10 @@
 {
   "schema": 1,
-  "updatedAt": "2026-09-02T12:00:00Z",
-  "releaseVersion": "0.9.77.22",
+  "updatedAt": "2026-09-02T14:05:00+02:00",
+  "releaseVersion": "0.9.77.23",
   "sourceBaseline": {
-    "professionalVersion": "0.9.77.22",
-    "workerVersion": "0.9.77.22",
+    "professionalVersion": "0.9.77.23",
+    "workerVersion": "0.9.77.23",
     "regressionsPassed": null
   },
   "strategy": "shared-react-vite-core-with-capacitor-ios-shell",
@@ -136,7 +136,7 @@
     ],
     "approved": false
   },
-  "validationNote": "v0.9.77.21 behebt ausschließlich den verbleibenden Installer-#830-Regressionsdrift: API-Health schützt jetzt den bereits in v0.9.77.20 gültigen ECMWF-IFS-native-3h-Min/Max-Vertrag einschließlich Modell-ID, 24-h-Abruf und beider Min/Max-Felder. Produktionslogik, Current-Temperaturglättung sowie KNMI-EPS-Cache/Worker-Anbindung bleiben unverändert.",
+  "validationNote": "v0.9.77.23 verfeinert den gemeinsamen React-UI-Kern des 24-h-Wetterprofils: transparente Wertepillen und dieselbe zentrale Sonne-/Gesamtbewölkungs-Skybar wie in der Tagesansicht bei unveränderten H/M/L-Bändern. KNMI-EPS Abschnitt 4/4 wurde als Runtime-/Kosten-Gate auditiert: der externe Python/ecCodes-Decoder bleibt ohne kompatiblen kostenfreien Runtimepfad oder ausdrückliche Kostenfreigabe unaktiviert. Forecast-/Worker-Fachlogik und der iOS-Meilenstein macos-xcode-simulator-quality-assurance bleiben unverändert.",
   "completedMilestones": [
     "ci-regression-contract-hotfix-0.9.76.22",
     "ruc-scheduler-resilience-source-preparation-0.9.76.24",
@@ -199,7 +199,8 @@
       "date": "2026-09-02",
       "title": "KNMI EPS Worker-Anbindung, Temperaturbrücke und Installer-Hotfix",
       "summary": "Zweiter der vier verbleibenden Hauptabschnitte bindet KNMI HARMONIE EPS über den produktiven TAR-Indexcache an ein 6×5-Rolling-Manifest; Cloudflare dekodiert weiterhin kein GRIB. Current-Temperatur wird zeit- und zeitzonengenau als weiche Brücke statt als Einzelstundenersatz assimiliert. Installer #828 wird durch Synchronisierung der Modularisierungsregression mit worker-src/05-knmi-eps-cache.js repariert."
-    }
+    },
+    "weather-profile-transparent-pills-shared-day-skybar-0.9.77.23"
   ],
-  "currentVersion": "0.9.77.22"
+  "currentVersion": "0.9.77.23"
 }

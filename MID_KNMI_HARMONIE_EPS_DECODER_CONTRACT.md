@@ -38,3 +38,10 @@ Die Antwort ist Open-Meteo-ähnlich und verwendet `_member01` bis `_member30`. T
 ## Pflichtregression
 
 `scripts/test-knmi-eps-point-decoder-097722.mjs`
+## Aktivierungs-Gate v0.9.77.23
+
+Die reale Runtime-Aktivierung ist in `MID_KNMI_HARMONIE_EPS_ACTIVATION_AUDIT_0.9.77.23.md` geprüft. Der Referenzdecoder bleibt bis zu einem kompatiblen kostenfreien Runtimepfad, einem validierten Wasm-/JS-Decoder oder ausdrücklicher Kostenfreigabe unaktiviert. Ein kostenpflichtiger Cloudflare-Container darf nicht automatisch provisioniert werden.
+## Kostenfreier Wasm-/Queue-Prototyp ab v0.9.77.23
+
+`MID_KNMI_HARMONIE_EPS_WASM_FEASIBILITY_0.9.77.23.md` ergänzt das Aktivierungs-Gate. Ein fokussierter ecCodes-Wasm32/MEMFS/Nearest-Point-Build darf als Forschungsprototyp untersucht werden. Falls dessen Decode-CPU das synchrone Workers-Free-Limit überschreitet, darf anschließend ein asynchroner Free-Queue-Consumer als Quelle eines numerischen Punktcaches geprüft werden. **Weder Wasm-Produktionsdependency noch Queue-Ressource sind damit freigegeben oder aktiviert.** Python/ecCodes bleibt bis zur numerischen Gegenprüfung die Referenz.
+

@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.77.22",
+  "version": "0.9.77.23",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -382,7 +382,9 @@
     "test:knmi-eps-productive-cache": "node scripts/test-knmi-eps-productive-cache-097718.mjs",
     "test:current-temperature-smooth-bridge": "node scripts/test-current-temperature-smooth-bridge-097719.mjs",
     "test:knmi-eps-worker-binding": "node scripts/test-knmi-eps-worker-binding-097719.mjs",
-    "test:knmi-eps-point-decoder": "node scripts/test-knmi-eps-point-decoder-097722.mjs"
+    "test:knmi-eps-point-decoder": "node scripts/test-knmi-eps-point-decoder-097722.mjs",
+    "test:weather-profile-skybar-pills": "node scripts/test-weather-profile-skybar-pills-097723.mjs",
+    "test:knmi-eps-wasm-feasibility": "node scripts/test-knmi-eps-wasm-feasibility-097723.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",

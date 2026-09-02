@@ -4,6 +4,7 @@ import {fileURLToPath} from 'node:url';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const app=await readFile(path.join(root,'src','App.tsx'),'utf8');
+const skybar=await readFile(path.join(root,'src','detailSkyBar.ts'),'utf8');
 const ensemble=await readFile(path.join(root,'src','EnsemblePanel.tsx'),'utf8');
 const enhancer=await readFile(path.join(root,'src','v078.ts'),'utf8');
 const styles=await readFile(path.join(root,'src','styles.css'),'utf8');
@@ -25,7 +26,8 @@ if(!app.includes('return <InfoHint label="Erklärung anzeigen">{advanced?(techni
 for(const token of ["function ModeExplanation({advanced,summary,technical,label=\'Diagramm erklären\'}", 'return <InfoHint label={label}>{advanced?technical:summary}</InfoHint>'])if(!ensemble.includes(token))failures.push(`Ensemble-Erklärungen werden nicht robust über (i) geöffnet: ${token}`);
 for(const token of ['precipitationMidPlot','precipitationErrorRange','dataKey="precipitationMidPlot"','dataKey="precipitationErrorRange"'])if(!ensemble.includes(token))failures.push(`P10–P90-Fehlerbalkenlogik fehlt: ${token}`);
 if(ensemble.includes('dataKey="precipitationErrorBest"'))failures.push('Der Fehlerbalken ist weiterhin am Best-Match-Wert verankert.');
-for(const token of ['function detailSkyBarSegments(','detailSkyBarSegments(p,left,right,W,skyBarY)','data-mid-skybar="react"','data-mid-sky-legend="react"'])if(!app.includes(token))failures.push(`Deklarativer Sonne-/Bewölkungsbalken fehlt: ${token}`);
+for(const token of ["import {detailSkyBarSegments} from './detailSkyBar';",'detailSkyBarSegments(p,left,right,W,skyBarY)','data-mid-skybar="react"','data-mid-sky-legend="react"'])if(!app.includes(token))failures.push(`Deklarativer Sonne-/Bewölkungsbalken fehlt: ${token}`);
+for(const token of ['export function detailSkyBarSample(','export function detailSkyBarSegments(','#ffc229','#aeb3b9'])if(!skybar.includes(token))failures.push(`Gemeinsamer Sonne-/Bewölkungsbalken fehlt: ${token}`);
 for(const token of ['enhanceSkyBars','__MID_FORECAST__','mid:forecast-updated'])if(enhancer.includes(token))failures.push(`Veraltete imperative Skybar-Logik ist noch aktiv: ${token}`);
 for(const token of ['.place-meta.advanced','white-space:nowrap','font-variant-numeric:tabular-nums'])if(!styles.includes(token))failures.push(`Kompakte einzeilige Ortszeitdarstellung fehlt: ${token}`);
 

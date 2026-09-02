@@ -55,8 +55,9 @@ assert.match(modelRow,/resolutionKm:5\.5/,'P4a Europe must use the official lowe
 assert.match(modelRow,/updateHours:1/,'P4a rolling ensemble is updated hourly');
 assert.match(modelRow,/maxDays:2\.5/);
 
-assert.equal(pkg.version,'0.9.77.22');
-assert.equal(baseline.releaseVersion,'0.9.77.22');
+const versionAtLeast=(value,minimum)=>{const a=String(value).split('.').map(Number),b=String(minimum).split('.').map(Number);for(let index=0;index<Math.max(a.length,b.length);index++){const x=a[index]??0,y=b[index]??0;if(x!==y)return x>y}return true};
+assert.ok(versionAtLeast(pkg.version,'0.9.77.22'),`KNMI-Decodervertrag benötigt mindestens v0.9.77.22, gefunden ${pkg.version}.`);
+assert.equal(baseline.releaseVersion,pkg.version,'Decoderregression muss der aktuellen Releaseversion folgen.');
 assert.ok(baseline.requiredRegressionTests.includes('scripts/test-knmi-eps-point-decoder-097722.mjs'));
 assert.ok(baseline.regressionTests.includes('scripts/test-knmi-eps-point-decoder-097722.mjs'));
 

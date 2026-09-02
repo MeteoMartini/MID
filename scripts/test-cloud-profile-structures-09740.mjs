@@ -1,8 +1,9 @@
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 
-const [cockpit,styles,pkg,baseline]=await Promise.all([
+const [cockpit,skybar,styles,pkg,baseline]=await Promise.all([
  readFile(new URL('../src/ForecastCockpit.tsx',import.meta.url),'utf8'),
+ readFile(new URL('../src/detailSkyBar.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/styles.css',import.meta.url),'utf8'),
  readFile(new URL('../package.json',import.meta.url),'utf8'),
  readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')
@@ -14,7 +15,8 @@ for(const token of [
  'function shortTermCloudCellGradient(',
  'leftSource=previous?',
  'rightSource=next?',
- "className:'total'",
+ 'data-mid-skybar="profile"',
+ 'profileSkyBarSegments=detailSkyBarSegments(',
  "className:'high'",
  "className:'mid'",
  "className:'low'",
@@ -35,7 +37,6 @@ for(const token of [
 for(const token of [
  '--profile-cloud:#6f7d88',
  '.cockpit-weather-profile .cloud-opacity-band{',
- '.cockpit-weather-profile .cloud-opacity-band.total{',
  'repeating-linear-gradient(180deg',
  'var(--profile-cloud)'
 ])assert.ok(styles.includes(token),`Wolkenband-CSS fehlt: ${token}`);
@@ -51,6 +52,8 @@ for(const forbidden of [
  'Wolken (%)'
 ])assert.ok(!cockpit.includes(forbidden)&&!styles.includes(forbidden),`Alter Wolken-/Achsenvertrag muss entfernt sein: ${forbidden}`);
 
-assert.ok(cockpit.includes('const fraction=clamp(Number(value)||0,0,100)/100'),'Grauintensität muss direkt aus 0..100-%-Bedeckung skaliert werden.');
+assert.ok(cockpit.includes('const fraction=clamp(Number(value)||0,0,100)/100'),'H/M/L-Grauintensität muss direkt aus 0..100-%-Bedeckung skaliert werden.');
+for(const token of ['#ffc229','#aeb3b9','Sonnenschein/Klarheit · Stufe','Gesamtbewölkung · Stufe'])assert.ok(skybar.includes(token),`Gemeinsame Gesamt-Skybar fehlt: ${token}`);
+assert.ok(!cockpit.includes("rows=[{key:'total',className:'total',y:cloudTop"),'Gesamtbewölkung darf nicht mehr als viertes Grauzellenband gerendert werden.');
 assert.equal(JSON.parse(pkg).version,JSON.parse(baseline).releaseVersion,'Release-/Baseline-Version müssen synchron sein.');
-console.log('24-h-Wolkenprofil: vier kontinuierlich intensitätskodierte Gesamt/H/M/L-Graubänder mit kollisionsfreien Einzelzellen und ohne Prozentachse geprüft.');
+console.log('24-h-Wolkenprofil: gemeinsame Tagesansicht-Skybar für Gesamt sowie kontinuierliche H/M/L-Graubänder ohne Prozentachse geprüft.');

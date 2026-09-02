@@ -20,10 +20,12 @@ for(const token of [
  'className="lane-bg weather"',
  'pressureTop=498,pressureBottom=550',
  'className="pressure-line"',
- "className:'total'",
- "className:'high'",
- "className:'mid'",
- "className:'low'",
+ "import {detailSkyBarSegments} from './detailSkyBar';",
+ 'profileSkyBarSegments=detailSkyBarSegments(',
+ 'data-mid-skybar="profile"',
+ "key:'high'",
+ "key:'mid'",
+ "key:'low'",
  'className={`cloud-opacity-band ${row.className}`}',
  'stopColor="var(--profile-cloud)"',
  '>Wolken</text>',
@@ -31,6 +33,7 @@ for(const token of [
 ])assert.ok(cockpit.includes(token),`Gemeinsamer 24-h-Story-Axis-Vertrag fehlt: ${token}`);
 
 for(const forbidden of [
+ "rows=[{key:'total',className:'total',y:cloudTop",
  'selected-cloud-values',
  'Wolken (%)',
  'SvgProfileCloudStructure',
@@ -51,4 +54,4 @@ const packageVersion=JSON.parse(pkgText).version,baseline=JSON.parse(baselineTex
 assert.equal(packageVersion,baseline.releaseVersion,'Paket- und Baseline-Version müssen synchron sein.');
 for(const key of ['requiredRegressionTests','regressionTests'])assert.ok(baseline[key].includes(test),`${test} fehlt in ${key}.`);
 assert.ok(baseline.requiredFiles.includes(test),`${test} muss als Pflichtdatei geschützt sein.`);
-console.log(`MID v${packageVersion}: gemeinsame senkrechte 24-h-Zeitachse, sichtbarer Luftdruck und vier achsenlose Wolken-Graubänder geprüft.`);
+console.log(`MID v${packageVersion}: gemeinsame senkrechte 24-h-Zeitachse, sichtbarer Luftdruck, Tagesansicht-Skybar für Gesamt sowie H/M/L-Graubänder geprüft.`);

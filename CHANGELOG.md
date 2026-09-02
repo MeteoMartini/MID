@@ -1,3 +1,12 @@
+## v0.9.77.23
+
+- 24-h-Wertepillen am aktiven Auswahlcursor leicht transparent (`fill-opacity: .8`), damit darunterliegende Diagramminhalte sichtbar bleiben.
+- Gesamtbewölkungs-Grauzellenzeile im 24-h-Profil durch exakt dieselbe Sonne-/Gesamtbewölkungs-Leiste wie in der Tagesansicht ersetzt.
+- `detailSkyBarSegments` in `src/detailSkyBar.ts` zentralisiert; Tagesansicht und 24-h-Profil teilen Farben, vier Stärken sowie Tag-/Nacht-Semantik.
+- H/M/L-Wolkenintensitätsbänder und gemeinsame `profileXForEpoch`-Zeitachse bleiben erhalten.
+- Keine Worker-/Forecast-/KNMI-Fachlogikänderung.
+- Abschnitt 4/4 bleibt fail-closed, erhält aber einen geprüften kostenfreien Forschungspfad: fokussierter ecCodes-Wasm32/MEMFS/Nearest-Point-Prototyp und optional asynchroner Cloudflare-Queues-Free-Consumer; in diesem Release werden weder Wasm-Dependency noch Queue/Ressource aktiviert.
+
 ## v0.9.77.22
 
 - Dritter der vier verbleibenden KNMI-HARMONIE-EPS-Hauptabschnitte: externer GRIB1-Punktdecoder unter `tools/knmi_eps_decoder/`, strikt an das Worker-Rolling-Manifest und HTTP-206-Ranges gebunden.

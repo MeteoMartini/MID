@@ -63,9 +63,10 @@ for(const token of [
  'shortTermPrecipitationDetail(selectedPoint)'
 ])assert.ok(cockpit.includes(token),`Niederschlagsdarstellung fehlt: ${token}`);
 
-// Wolken Gesamt/H/M/L: neutrale, kontinuierliche Graubänder statt Prozentachse.
+// Wolken: Gesamt nutzt die gemeinsame Tagesansicht-Skybar; H/M/L bleiben neutrale Graubänder ohne Prozentachse.
 for(const token of [
- "className:'total'",
+ 'data-mid-skybar="profile"',
+ 'profileSkyBarSegments=detailSkyBarSegments(',
  "className:'high'",
  "className:'mid'",
  "className:'low'",
@@ -78,7 +79,8 @@ for(const token of [
 ])assert.ok(cockpit.includes(token),`Wolkenschichtvertrag fehlt: ${token}`);
 assert.ok(!/Number\(hour\.(?:highCloud|midCloud|lowCloud)\)\s*\/\s*100/.test(cockpit),'Open-Meteo-Wolkenprozente dürfen im Datenmodell nicht nochmals durch 100 geteilt werden.');
 assert.ok(!cockpit.includes('selected-cloud-values'),'Im Wolkenplot darf keine rechte Prozentwert-Achse erscheinen.');
-assert.ok(!cockpit.includes('Wolken (%)'),'Die Intensität wird ausschließlich weiß–grau codiert.');
+assert.ok(!cockpit.includes('Wolken (%)'),'Die Wolkendarstellung bleibt ohne Prozentachse.');
+assert.ok(!cockpit.includes("rows=[{key:'total',className:'total',y:cloudTop"),'Das alte Gesamtbewölkungs-Grauband darf nicht parallel zur gemeinsamen Skybar bestehen.');
 
 // Die appweite DWD-Thermikpalette besitzt genau eine Quelle für Current und Cockpit.
 for(const token of ['veryCold','cold','cool','slightlyCool','comfortable','slightlyWarm','warm','hot','veryHot'])assert.ok(dwdWarnings.includes(token),`DWD-Thermikfarbe fehlt: ${token}`);

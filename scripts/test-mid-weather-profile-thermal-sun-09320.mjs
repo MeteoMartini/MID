@@ -40,7 +40,7 @@ for(const token of [
   ' K</dd>',
   'Schwüle',
   'Wolken gesamt / hoch / mittel / tief + UVI',
-  "label:'Gesamtbewölkung'",
+  'data-mid-skybar="profile"',
   "label:'Hohe Wolken'",
   "label:'Mittelhohe Wolken'",
   "label:'Tiefe Wolken'",
