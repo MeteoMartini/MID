@@ -1,0 +1,623 @@
+name: MID KNMI packed point smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      latitude:
+        description: "Latitude des Testpunkts"
+        required: true
+        default: "52.10"
+        type: string
+      longitude:
+        description: "Longitude des Testpunkts"
+        required: true
+        default: "5.18"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mid-knmi-packed-point-smoke
+  cancel-in-progress: true
+
+jobs:
+  packed-point-smoke:
+    name: Decode one KNMI GRIB1 grid value from packed bytes
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      KNMI_DATASET: harmonie_arome_cy43_p4a
+      KNMI_DATASET_VERSION: "1.0"
+      KNMI_API_KEY: ${{ secrets.KNMI_OPEN_DATA_API_KEY }}
+      TARGET_LAT: ${{ inputs.latitude }}
+      TARGET_LON: ${{ inputs.longitude }}
+      MAX_TAR_ENTRIES: "32"
+      MAX_GRIB_MESSAGES: "64"
+      MAX_REFERENCE_MESSAGE_BYTES: "4194304"
+
+    steps:
+      - name: Install ecCodes
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends libeccodes-tools
+          grib_ls -V
+
+      - name: Validate direct packed-point decoding
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -z "${KNMI_API_KEY:-}" ]; then
+            echo "::error::KNMI_OPEN_DATA_API_KEY fehlt oder ist leer."
+            exit 1
+          fi
+
+          python3 - <<'PY'
+          import json
+          import math
+          import os
+          import re
+          import subprocess
+          import sys
+          import urllib.parse
+          import urllib.request
+          from pathlib import Path
+
+          try:
+              target_lat = float(os.environ["TARGET_LAT"])
+              target_lon = float(os.environ["TARGET_LON"])
+          except Exception:
+              print("::error::Latitude/Longitude ungültig.")
+              sys.exit(1)
+
+          if not (
+              math.isfinite(target_lat)
+              and math.isfinite(target_lon)
+              and -90 <= target_lat <= 90
+              and -180 <= target_lon <= 180
+          ):
+              print("::error::Latitude/Longitude außerhalb des gültigen Bereichs.")
+              sys.exit(1)
+
+          api_key = os.environ["KNMI_API_KEY"]
+          dataset = os.environ["KNMI_DATASET"]
+          version = os.environ["KNMI_DATASET_VERSION"]
+          max_tar_entries = int(os.environ["MAX_TAR_ENTRIES"])
+          max_grib_messages = int(os.environ["MAX_GRIB_MESSAGES"])
+          max_reference_message_bytes = int(
+              os.environ["MAX_REFERENCE_MESSAGE_BYTES"]
+          )
+
+          base = "https://api.dataplatform.knmi.nl/open-data/v1"
+          temp_dir = Path(os.environ.get("RUNNER_TEMP", "/tmp"))
+          reference_path = temp_dir / "knmi-temp-reference.grib"
+
+          bytes_transferred = 0
+
+          def api_json(url):
+              req = urllib.request.Request(
+                  url,
+                  headers={"Authorization": api_key},
+              )
+              with urllib.request.urlopen(req, timeout=30) as response:
+                  return json.load(response)
+
+          query = urllib.parse.urlencode({
+              "maxKeys": 1,
+              "orderBy": "created",
+              "sorting": "desc",
+          })
+          list_url = f"{base}/datasets/{dataset}/versions/{version}/files?{query}"
+
+          try:
+              listing = api_json(list_url)
+          except Exception as exc:
+              print(f"::error::KNMI-Dateiliste fehlgeschlagen: {exc}")
+              sys.exit(1)
+
+          files = listing.get("files") or []
+          if not files:
+              print("::error::Keine P4a-Datei gefunden.")
+              sys.exit(1)
+
+          latest = files[0]
+          archive_name = latest.get("filename")
+          if not archive_name:
+              print("::error::Archivname fehlt.")
+              sys.exit(1)
+
+          encoded = urllib.parse.quote(archive_name, safe="")
+          url_endpoint = (
+              f"{base}/datasets/{dataset}/versions/{version}/files/"
+              f"{encoded}/url"
+          )
+
+          try:
+              url_payload = api_json(url_endpoint)
+          except Exception as exc:
+              print(f"::error::Temporäre Download-URL fehlgeschlagen: {exc}")
+              sys.exit(1)
+
+          download_url = url_payload.get("temporaryDownloadUrl")
+          if not isinstance(download_url, str) or not download_url.startswith("https://"):
+              print("::error::Keine gültige temporäre Download-URL.")
+              sys.exit(1)
+
+          def range_get(start, length, purpose):
+              global bytes_transferred
+              end = start + length - 1
+              req = urllib.request.Request(
+                  download_url,
+                  headers={
+                      "Range": f"bytes={start}-{end}",
+                      "Accept-Encoding": "identity",
+                      "User-Agent": "MID-KNMI-packed-point-smoke/1.0",
+                  },
+              )
+
+              try:
+                  response = urllib.request.urlopen(req, timeout=30)
+              except Exception as exc:
+                  print(
+                      f"::error::{purpose}: HTTP-Range {start}-{end} "
+                      f"fehlgeschlagen: {exc}"
+                  )
+                  sys.exit(1)
+
+              try:
+                  status = getattr(response, "status", None)
+                  content_range = response.headers.get("Content-Range", "")
+
+                  if status != 206:
+                      print(
+                          f"::error::{purpose}: HTTP {status} statt 206."
+                      )
+                      sys.exit(1)
+
+                  match = re.match(
+                      r"bytes\s+(\d+)-(\d+)/(\d+|\*)",
+                      content_range,
+                  )
+                  if not match:
+                      print(
+                          f"::error::{purpose}: ungültiger Content-Range "
+                          f"{content_range!r}"
+                      )
+                      sys.exit(1)
+
+                  if int(match.group(1)) != start or int(match.group(2)) != end:
+                      print(
+                          f"::error::{purpose}: falscher Range geliefert: "
+                          f"{content_range}"
+                      )
+                      sys.exit(1)
+
+                  data = response.read(length + 1)
+                  if len(data) != length:
+                      print(
+                          f"::error::{purpose}: {len(data)} statt {length} Byte."
+                      )
+                      sys.exit(1)
+
+                  bytes_transferred += len(data)
+                  return data
+              finally:
+                  response.close()
+
+          def parse_octal(raw):
+              text = raw.rstrip(b"\0 ").lstrip(b" ")
+              if not text:
+                  return 0
+              try:
+                  return int(text, 8)
+              except ValueError:
+                  return None
+
+          def decode_text(raw):
+              return raw.split(b"\0", 1)[0].decode(
+                  "utf-8",
+                  "replace",
+              ).strip()
+
+          # TAR member lookup using only TAR headers.
+          tar_offset = 0
+          selected = None
+
+          for _ in range(max_tar_entries):
+              header = range_get(tar_offset, 512, "TAR header")
+              if header == b"\0" * 512:
+                  break
+
+              name = decode_text(header[0:100])
+              prefix = decode_text(header[345:500])
+              if prefix:
+                  name = f"{prefix}/{name}"
+
+              size = parse_octal(header[124:136])
+              typeflag = header[156:157].decode(
+                  "ascii",
+                  "replace",
+              ) or "0"
+
+              if size is None:
+                  print("::error::TAR-Größe nicht lesbar.")
+                  sys.exit(1)
+
+              if (
+                  typeflag in ("0", "\x00")
+                  and "harm43_v1_eur_uwcw_meteo_" in name
+                  and name.endswith("_GB")
+              ):
+                  selected = {
+                      "name": name,
+                      "size": size,
+                      "payload_offset": tar_offset + 512,
+                  }
+                  break
+
+              tar_offset += 512 + ((size + 511) // 512) * 512
+
+          if not selected:
+              print("::error::Kein HARMONIE-GRIB-TAR-Mitglied gefunden.")
+              sys.exit(1)
+
+          member_size = selected["size"]
+          member_start = selected["payload_offset"]
+
+          # Index GRIB1 messages with only 64-byte message headers.
+          messages = []
+          rel = 0
+
+          for number in range(1, max_grib_messages + 1):
+              remaining = member_size - rel
+              if remaining == 0:
+                  break
+              if remaining < 64:
+                  print("::error::Unvollständiges GRIB-Ende.")
+                  sys.exit(1)
+
+              h = range_get(
+                  member_start + rel,
+                  64,
+                  f"GRIB header #{number}",
+              )
+
+              if h[0:4] != b"GRIB" or h[7] != 1:
+                  print(
+                      f"::error::Keine gültige GRIB1-Nachricht bei Offset {rel}."
+                  )
+                  sys.exit(1)
+
+              total = int.from_bytes(h[4:7], "big")
+              pds_len = int.from_bytes(h[8:11], "big")
+
+              if total < 64 or rel + total > member_size:
+                  print(
+                      f"::error::Unplausible Nachrichtenlänge {total}."
+                  )
+                  sys.exit(1)
+
+              messages.append({
+                  "number": number,
+                  "relative_offset": rel,
+                  "archive_offset": member_start + rel,
+                  "total_length": total,
+                  "pds_length": pds_len,
+                  "section1_flags": h[15],
+                  "parameter": h[16],
+                  "level_type": h[17],
+                  "level": int.from_bytes(h[18:20], "big"),
+                  "tri": h[28],
+                  "header64": h,
+              })
+              rel += total
+
+          if rel != member_size:
+              print(
+                  f"::error::GRIB-Index deckt {rel} von {member_size} Byte ab."
+              )
+              sys.exit(1)
+
+          temp = next(
+              (
+                  m for m in messages
+                  if m["parameter"] == 11
+                  and m["level_type"] == 105
+                  and m["level"] == 2
+                  and m["tri"] == 0
+              ),
+              None,
+          )
+
+          if not temp:
+              print("::error::2-m-Temperatur nicht gefunden.")
+              sys.exit(1)
+
+          if temp["total_length"] > max_reference_message_bytes:
+              print("::error::Referenznachricht überschreitet Sicherheitslimit.")
+              sys.exit(1)
+
+          # Signed-magnitude 16-bit integer as used for GRIB1 scale factors.
+          def signed_mag_16(raw):
+              value = int.from_bytes(raw, "big")
+              sign = -1 if (value & 0x8000) else 1
+              magnitude = value & 0x7FFF
+              return sign * magnitude
+
+          # IBM/GRIB single precision float:
+          # (-1)^s * 2^-24 * mantissa * 16^(characteristic-64)
+          def ibm_float32(raw):
+              word = int.from_bytes(raw, "big")
+              if word == 0:
+                  return 0.0
+              sign = -1.0 if (word & 0x80000000) else 1.0
+              characteristic = (word >> 24) & 0x7F
+              mantissa = word & 0x00FFFFFF
+              return (
+                  sign
+                  * (mantissa / float(1 << 24))
+                  * (16.0 ** (characteristic - 64))
+              )
+
+          msg_start = temp["archive_offset"]
+          pds = temp["header64"][8:8 + temp["pds_length"]]
+          if len(pds) < 28:
+              print("::error::PDS zu kurz.")
+              sys.exit(1)
+
+          section1_flags = pds[7]
+          gds_present = bool(section1_flags & 0x80)
+          bms_present = bool(section1_flags & 0x40)
+
+          decimal_scale = signed_mag_16(pds[26:28])
+
+          next_section = msg_start + 8 + temp["pds_length"]
+          gds_length = 0
+
+          if gds_present:
+              gds_head = range_get(next_section, 3, "GDS length")
+              gds_length = int.from_bytes(gds_head, "big")
+              if gds_length < 6:
+                  print(f"::error::Ungültige GDS-Länge {gds_length}.")
+                  sys.exit(1)
+              next_section += gds_length
+
+          if bms_present:
+              # The direct packed-index shortcut must account for a bitmap.
+              # Current P4a fields are expected not to use one; fail rather
+              # than silently decode the wrong grid value.
+              bms_head = range_get(next_section, 6, "BMS header")
+              bms_length = int.from_bytes(bms_head[0:3], "big")
+              print(
+                  f"::error::Bitmap Section vorhanden (Länge {bms_length}); "
+                  "dieser Smoke-Test unterstützt absichtlich nur bitmapfreie "
+                  "Simple-Packing-Felder."
+              )
+              sys.exit(1)
+
+          bds_start = next_section
+          bds_head = range_get(bds_start, 11, "BDS header")
+
+          bds_length = int.from_bytes(bds_head[0:3], "big")
+          data_flag = bds_head[3]
+          binary_scale = signed_mag_16(bds_head[4:6])
+          reference_value = ibm_float32(bds_head[6:10])
+          bits_per_value = bds_head[10]
+
+          # High nibble 0 means grid-point data, simple packing,
+          # floating-point values and no additional flags.
+          if (data_flag & 0xF0) != 0:
+              print(
+                  f"::error::BDS dataFlag 0x{data_flag:02x}: "
+                  "kein unterstütztes GRIB1 Simple Packing."
+              )
+              sys.exit(1)
+
+          if bits_per_value <= 0 or bits_per_value > 56:
+              print(
+                  f"::error::Unplausible bitsPerValue={bits_per_value}."
+              )
+              sys.exit(1)
+
+          # Reference value from a complete single GRIB message.
+          # This download exists only to validate the custom packed decoder.
+          reference_bytes = range_get(
+              msg_start,
+              temp["total_length"],
+              "ecCodes reference temperature message",
+          )
+          if reference_bytes[-4:] != b"7777":
+              print("::error::Referenz-GRIB unvollständig.")
+              sys.exit(1)
+
+          reference_path.write_bytes(reference_bytes)
+
+          proc = subprocess.run(
+              [
+                  "grib_ls",
+                  "-l", f"{target_lat},{target_lon},1",
+                  "-p", "indicatorOfParameter,stepRange",
+                  str(reference_path),
+              ],
+              text=True,
+              capture_output=True,
+              check=False,
+          )
+
+          if proc.returncode != 0:
+              print(proc.stdout)
+              print(proc.stderr, file=sys.stderr)
+              print("::error::ecCodes-Referenzabfrage fehlgeschlagen.")
+              sys.exit(1)
+
+          chosen_re = re.compile(
+              r"Grid Point chosen .*?index=(\d+)\s+"
+              r"latitude=([-+0-9.]+)\s+longitude=([-+0-9.]+)\s+"
+              r"distance=([-+0-9.]+)"
+          )
+          chosen_match = chosen_re.search(proc.stdout)
+          if not chosen_match:
+              print(proc.stdout)
+              print("::error::ecCodes-Gitterindex nicht erkannt.")
+              sys.exit(1)
+
+          grid_index = int(chosen_match.group(1))
+          chosen_lat = float(chosen_match.group(2))
+          chosen_lon = float(chosen_match.group(3))
+          distance_km = float(chosen_match.group(4))
+
+          value_line_re = re.compile(
+              r"^\s*11\s+\S+\s+([-+0-9.eE]+)\s*$",
+              re.MULTILINE,
+          )
+          value_match = value_line_re.search(proc.stdout)
+          if not value_match:
+              print(proc.stdout)
+              print("::error::ecCodes-Referenzwert nicht erkannt.")
+              sys.exit(1)
+
+          eccodes_value = float(value_match.group(1))
+
+          # Packed data start at BDS octet 12 (offset 11).
+          packed_start = bds_start + 11
+          bit_start = grid_index * bits_per_value
+          byte_start = bit_start // 8
+          bit_offset = bit_start % 8
+          bytes_needed = (bit_offset + bits_per_value + 7) // 8
+
+          packed_bytes = range_get(
+              packed_start + byte_start,
+              bytes_needed,
+              "single packed grid value",
+          )
+
+          word = int.from_bytes(packed_bytes, "big")
+          total_bits = len(packed_bytes) * 8
+          shift = total_bits - (bit_offset + bits_per_value)
+          coded_value = (
+              word >> shift
+          ) & ((1 << bits_per_value) - 1)
+
+          direct_value = (
+              reference_value
+              + coded_value * (2.0 ** binary_scale)
+          ) * (10.0 ** (-decimal_scale))
+
+          error = abs(direct_value - eccodes_value)
+
+          # Compute half an encoded increment as an expected tolerance.
+          packing_increment = (
+              (2.0 ** binary_scale)
+              * (10.0 ** (-decimal_scale))
+          )
+          tolerance = max(
+              abs(packing_increment) * 0.51,
+              1e-7,
+          )
+
+          if error > tolerance:
+              print(
+                  "::error::Direkt dekodierter Punkt stimmt nicht mit "
+                  f"ecCodes überein: direct={direct_value}, "
+                  f"ecCodes={eccodes_value}, error={error}, "
+                  f"tolerance={tolerance}"
+              )
+              sys.exit(1)
+
+          metadata_bytes = (
+              # two TAR headers observed/typical plus 64 bytes for each
+              # GRIB message plus section-length/BDS metadata reads.
+              bytes_transferred - temp["total_length"] - bytes_needed
+          )
+
+          result = {
+              "schema": "mid.knmi.packed-point-smoke.v1",
+              "archive": archive_name,
+              "tar_member": selected["name"],
+              "parameter": "temperature_2m",
+              "requested_point": {
+                  "latitude": target_lat,
+                  "longitude": target_lon,
+              },
+              "nearest_grid_point": {
+                  "index": grid_index,
+                  "latitude": chosen_lat,
+                  "longitude": chosen_lon,
+                  "distance_km": distance_km,
+              },
+              "packing": {
+                  "gds_present": gds_present,
+                  "bitmap_present": bms_present,
+                  "bds_length": bds_length,
+                  "data_flag": data_flag,
+                  "binary_scale_factor": binary_scale,
+                  "decimal_scale_factor": decimal_scale,
+                  "reference_value": reference_value,
+                  "bits_per_value": bits_per_value,
+                  "coded_integer": coded_value,
+                  "packed_value_byte_count": bytes_needed,
+                  "packed_value_archive_offset": packed_start + byte_start,
+              },
+              "values": {
+                  "direct_kelvin": direct_value,
+                  "eccodes_kelvin": eccodes_value,
+                  "direct_celsius": direct_value - 273.15,
+                  "absolute_error": error,
+                  "packing_increment": packing_increment,
+              },
+              "transfer": {
+                  "full_temperature_message_bytes_for_validation_only":
+                      temp["total_length"],
+                  "direct_point_payload_bytes": bytes_needed,
+                  "metadata_and_index_bytes": metadata_bytes,
+                  "total_test_bytes": bytes_transferred,
+              },
+          }
+
+          print("Direct GRIB1 packed-point decoding: OK")
+          print(f"Archive: {archive_name}")
+          print(f"TAR member: {selected['name']}")
+          print(
+              f"Nearest grid point: index={grid_index}, "
+              f"{chosen_lat:.4f}/{chosen_lon:.4f}, "
+              f"{distance_km:.2f} km"
+          )
+          print("")
+          print("Packing:")
+          print(f"- bitmapPresent: {bms_present}")
+          print(f"- dataFlag: 0x{data_flag:02x}")
+          print(f"- bitsPerValue: {bits_per_value}")
+          print(f"- binaryScaleFactor: {binary_scale}")
+          print(f"- decimalScaleFactor: {decimal_scale}")
+          print(f"- referenceValue: {reference_value}")
+          print(f"- codedInteger: {coded_value}")
+          print(f"- direct point payload: {bytes_needed} byte(s)")
+          print("")
+          print("Validation:")
+          print(f"- direct:  {direct_value:.9f} K")
+          print(f"- ecCodes: {eccodes_value:.9f} K")
+          print(f"- error:   {error:.12g} K")
+          print(
+              f"- Celsius: {(direct_value - 273.15):.3f} °C"
+          )
+          print("")
+          print(
+              "The complete temperature field was downloaded only once "
+              "as a validation reference."
+          )
+          print(
+              "The custom decoder itself required only "
+              f"{bytes_needed} packed payload byte(s) for this grid point."
+          )
+          print("")
+          print("JSON:")
+          print(json.dumps(
+              result,
+              indent=2,
+              ensure_ascii=False,
+              sort_keys=True,
+          ))
+          PY
