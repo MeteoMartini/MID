@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.77.27",
+  "releaseVersion": "0.9.77.29",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -373,7 +373,9 @@
     "scripts/test-knmi-eps-wasm32-prototype-097724.mjs",
     "scripts/test-trend-seasonal-temperature-ui-097725.mjs",
     "scripts/test-long-range-single-model-fallback-097726.mjs",
-    "scripts/test-seasonal-all-model-consensus-097727.mjs"
+    "scripts/test-seasonal-all-model-consensus-097727.mjs",
+    "scripts/test-climate-delta-badges-097728.mjs",
+    "scripts/test-witterung-seven-day-curve-097729.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -673,7 +675,9 @@
     "scripts/test-knmi-eps-wasm32-prototype-097724.mjs",
     "scripts/test-trend-seasonal-temperature-ui-097725.mjs",
     "scripts/test-long-range-single-model-fallback-097726.mjs",
-    "scripts/test-seasonal-all-model-consensus-097727.mjs"
+    "scripts/test-seasonal-all-model-consensus-097727.mjs",
+    "scripts/test-climate-delta-badges-097728.mjs",
+    "scripts/test-witterung-seven-day-curve-097729.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -1107,7 +1111,14 @@
     "MID_IMPLEMENTATION_0.9.77.26.md",
     "MID_TEST_REPORT_0.9.77.26.md",
     "MID_SEASONAL_LONG_RANGE_SOURCE_AUDIT_0.9.77.27.md",
-    "MID_IMPLEMENTATION_0.9.77.27.md"
+    "MID_IMPLEMENTATION_0.9.77.27.md",
+    "scripts/test-climate-delta-badges-097728.mjs",
+    "MID_IMPLEMENTATION_0.9.77.28.md",
+    "MID_TEST_REPORT_0.9.77.28.md",
+    "MID_LONG_RANGE_SOURCE_EXPANSION_0.9.77.29.md",
+    "scripts/test-witterung-seven-day-curve-097729.mjs",
+    "MID_IMPLEMENTATION_0.9.77.29.md",
+    "MID_TEST_REPORT_0.9.77.29.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1463,13 +1474,15 @@
     "scripts/test-seasonal-all-model-consensus-097727.mjs"
   ],
   "version": "0.9.77.23",
-  "updatedAt": "2026-09-02T12:00:00Z",
+  "updatedAt": "2026-09-02T19:00:00+02:00",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
-    "MID_IMPLEMENTATION_0.9.77.27.md"
+    "MID_IMPLEMENTATION_0.9.77.27.md",
+    "MID_IMPLEMENTATION_0.9.77.28.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",
-    "MID_TEST_REPORT_0.9.77.27.md"
+    "MID_TEST_REPORT_0.9.77.27.md",
+    "MID_TEST_REPORT_0.9.77.28.md"
   ]
 }

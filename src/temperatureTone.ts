@@ -9,6 +9,7 @@ export type DailyTemperatureTone={
 
 function clamp01(value:number){return Math.min(1,Math.max(0,value))}
 function decimal(value:number){return value.toFixed(1).replace('.',',')}
+export function dailyTemperatureAnomalyLabel(anomaly:number|null){return anomaly===null||!Number.isFinite(anomaly)?'–':`${anomaly>=0?'+':''}${decimal(anomaly)} K`}
 function dailyIntensity(anomaly:number|null,kind:DailyTemperatureKind){
  if(anomaly===null)return kind==='min'?.56:.62;
  // Kleine Abweichungen um das Klimamittel sollen bereits sichtbar reagieren.
@@ -37,7 +38,7 @@ function neutralHourlyTone(){
 export function dailyTemperatureTone(value:number,climateMean:number|undefined,kind:DailyTemperatureKind):DailyTemperatureTone{
  const validValue=Number.isFinite(value),validMean=Number.isFinite(climateMean),anomaly=validValue&&validMean?value-Number(climateMean):null;
  const token=kind==='max'?'var(--param-temperature-max)':'var(--param-temperature-min)',label=kind==='max'?'Tmax':'Tmin',tone=dailyTone(token,dailyIntensity(anomaly,kind));
- return{...tone,anomaly,title:anomaly===null?(kind==='max'?'Tageshöchsttemperatur':'Tagestiefsttemperatur'):`${label} ${anomaly>=0?'+':''}${decimal(anomaly)} K zum Klimamittel`};
+ return{...tone,anomaly,title:anomaly===null?(kind==='max'?'Tageshöchsttemperatur':'Tagestiefsttemperatur'):`${label} ${dailyTemperatureAnomalyLabel(anomaly)} zum Klimamittel`};
 }
 
 export function hourlyTemperatureTone(value:number,climateMin:number|undefined,climateMax:number|undefined):DailyTemperatureTone{

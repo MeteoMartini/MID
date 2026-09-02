@@ -1,0 +1,16 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const app=fs.readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
+const cockpit=fs.readFileSync(new URL('../src/ForecastCockpit.tsx',import.meta.url),'utf8');
+const tone=fs.readFileSync(new URL('../src/temperatureTone.ts',import.meta.url),'utf8');
+const weather=fs.readFileSync(new URL('../src/weather.ts',import.meta.url),'utf8');
+const css=fs.readFileSync(new URL('../src/styles-src/30-modern.css',import.meta.url),'utf8');
+assert.ok(app.includes('const climateRequested=dashboardModuleSettings.enabled.forecast||ensembleRequested||weatherTwinSettings.useAsMainForecast;'),'Klimatologie darf nicht von der optionalen 7-Tage-Zusammenfassung abhängen.');
+assert.ok(app.includes('dailyTemperatureAnomalyLabel(minTone.anomaly)'),'Klassische 7-Tage-Übersicht muss Tmin-Klimaabweichung sichtbar zeigen.');
+assert.ok(app.includes('dailyTemperatureAnomalyLabel(maxTone.anomaly)'),'Klassische 7-Tage-Übersicht muss Tmax-Klimaabweichung sichtbar zeigen.');
+assert.ok(cockpit.includes("minTone.anomaly===null?'Δ –':dailyTemperatureAnomalyLabel(minTone.anomaly)"),'Cockpit 7/14 muss Tmin-Klimaabweichung sichtbar zeigen.');
+assert.ok(cockpit.includes("maxTone.anomaly===null?'Δ –':dailyTemperatureAnomalyLabel(maxTone.anomaly)"),'Cockpit 7/14 muss Tmax-Klimaabweichung sichtbar zeigen.');
+assert.ok(tone.includes('export function dailyTemperatureAnomalyLabel'),'Zentrale Delta-Beschriftung fehlt.');
+assert.ok(weather.includes('staleCache=climateFromCache(key,Number.POSITIVE_INFINITY)'),'Stale-Klimacache-Fallback fehlt.');
+assert.ok(css.includes('.climate-tone-daily>small'),'Kompakte sichtbare Delta-Zeile fehlt.');
+console.log('Klimamittel-Vertrag geprüft: Tagesprognose lädt Klima unabhängig von Summary-Schalter; Tmin/Tmax zeigen sichtbare ±K-Werte; Stale-Fallback aktiv.');

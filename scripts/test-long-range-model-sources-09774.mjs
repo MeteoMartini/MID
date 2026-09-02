@@ -12,7 +12,7 @@ const checks=[
   ['overlay explicitly shows all available numerical models',comparison.includes('alle verfügbaren numerischen Modelle')&&comparison.includes('series:ModelSeries[]=models.map')],
   ['catalogue-only model cards removed from panel',!panel.includes('C3S-Vergleich')&&!panel.includes('Numerische Saisonmodelle')&&!panel.includes('catalogueOnlyCount')&&!panel.includes('long-range-gateway-status')],
   ['selected-model card carousel removed',!panel.includes('mid:long-range:selected-model')&&!panel.includes('mid:long-range:model-scroll')],
-  ['seasonal source contract keeps catalogue entries internal',seasonal.includes('reine Katalogeinträge bleiben intern und werden nicht als Modellkarte dargestellt')],
+  ['seasonal source contract keeps catalogue entries internal',seasonal.toLowerCase().includes('reine katalogeinträge bleiben intern und werden nicht als modellkarte dargestellt')],
   ['actual c3s model families remain available to the loader',seasonal.includes("freshModels.push(...c3s.models)")]
 ];
 

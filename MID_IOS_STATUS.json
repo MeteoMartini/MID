@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-09-02T19:00:00+02:00",
-  "releaseVersion": "0.9.77.27",
+  "updatedAt": "2026-09-02T18:19:38.975Z",
+  "releaseVersion": "0.9.77.29",
   "sourceBaseline": {
     "professionalVersion": "0.9.77.26",
     "workerVersion": "0.9.77.26",
@@ -119,10 +119,10 @@
   ],
   "nextMilestone": "macos-xcode-simulator-quality-assurance",
   "validation": {
-    "browserBuild": "v0.9.77.27: Vollständiger Vite-Produktionsbuild in dieser Transportumgebung nicht ausführbar, weil npm ci am externen Registry-DNS mit EAI_AGAIN scheitert. Die geänderten Saison-TS/TSX-Dateien sind parser-/transpilebasiert syntaktisch grün; der normale Installer/CI-Pfad installiert die gepinnte Toolchain.",
-    "typescript": "v0.9.77.27: Projekt-TypeScript-7/typescript-strada konnte wegen EAI_AGAIN gegen registry.npmjs.org nicht vollständig installiert werden. 105 toolchaingebundene Regressionen bleiben daher lokal nicht wertbar; die geänderten TS/TSX-Dateien wurden zusätzlich mit dem vorhandenen TypeScript-Parser/Transpiler geprüft.",
-    "workerSyntax": "v0.9.77.27: Maintenance-Aggregate synchron; node --check für Worker-Fragment, generierten Worker und beide Service Worker grün. Funktionale Workeränderung: 10-System-C3S-Vertrag sowie sparse NOAA-NMME-Multi-Range-Punktentnahme.",
-    "regressions": "v0.9.77.27: 535/535 in dieser Umgebung ausführbare Regressionen bestanden. Insgesamt 640 Tests erkannt; 105 bleiben ausschließlich durch die nicht vollständig installierbare TypeScript-7/typescript-strada-Testtoolchain blockiert. Neue Saison-All-Model-Regression und alle direkt betroffenen Langfrist-/Modellquellen-/Poor-Man’s-Ensemble-Tests sind grün.",
+    "browserBuild": "v0.9.77.28: Vollständiger Vite-Produktionsbuild in dieser Transportumgebung weiterhin nicht ausführbar, weil die projektgepinntte npm-/TypeScript-7-Toolchain nicht vollständig installiert ist. App.tsx, ForecastCockpit.tsx, temperatureTone.ts und weather.ts wurden mit dem lokal vorhandenen TypeScript-Parser/Transpiler ohne Syntaxdiagnose geprüft.",
+    "typescript": "v0.9.77.28: 105 Regressionen bleiben ausschließlich durch die fehlende projektgepinntte TypeScript-7-/typescript-strada-Testtoolchain bzw. deren CLI-Kompatibilität blockiert. Die geänderten TS/TSX-Dateien sind parser-/transpilebasiert syntaktisch grün.",
+    "workerSyntax": "v0.9.77.28: Maintenance-Aggregate synchron; node --check für generierten Worker und beide Service Worker grün. Gegenüber v0.9.77.27 ist der Worker nach Versionsnormalisierung bytegleich; keine funktionale Workeränderung.",
+    "regressions": "v0.9.77.28: 536/536 in dieser Umgebung ausführbare Regressionen bestanden. Insgesamt 641 Tests erkannt; 105 bleiben ausschließlich toolchaingebunden blockiert. Neuer Klimamittel-/Delta-Badge-Vertrag sowie direkt betroffene 7-/14-Tage-, Temperatur- und Cockpit-Regressionen sind grün.",
     "capacitorSync": "Kein neuer cap copy ios in dieser isolierten Laufzeit, da kein vollständiger Vite-Build ohne installierte npm-Dependencies möglich ist. Die Änderungen liegen ausschließlich im gemeinsamen React/Vite-Fachkern und gelten damit parallel für Browser/PWA/iOS.",
     "xcodeProjectStructure": "Gemeinsamer Capacitor-iOS-Wrapper, Light-/Dark-AppIcon- und Splash-Kataloge, Privacy-Manifeste und MIDWidgets-Struktur bleiben erhalten; keine neue native Berechtigung oder Capability aktiviert.",
     "xcodeAppleSdkBuild": "required-next-gate-macos-xcode-simulator; includes Apple SDK build, simulator launch, Privacy Report inspection and post-sync structure verification."
@@ -138,7 +138,7 @@
     ],
     "approved": false
   },
-  "validationNote": "v0.9.77.27 vereinigt den vollständigen aktuell regelkonform erreichbaren Monats-Saisonpool über kanonische Modell-/Unabhängigkeits-IDs: 10 C3S-Systeme, dynamisches NOAA NMME und ECMWF-Fallback ohne Doppelgewichtung. NOAA-NMME nutzt sparse HTTP-Range/Multi-Range-Punktentnahme mit Volldownload-Fallback. WMO/APCC/CanSIPS/EPISODES werden wegen Zugangsgate, abweichender Zeitachse oder Doppelgewichtungsrisiko nicht als ungeprüfte Zusatzstimmen eingemischt. Funktionale Workeränderung; Worker-Upload erforderlich. Keine neue Ressource/Kostenaktivierung; nextMilestone macos-xcode-simulator-quality-assurance bleibt unverändert.",
+  "validationNote": "v0.9.77.28 stellt sichtbare individuelle Tmin-/Tmax-Abweichungen zum Klimamittel 1991–2020 in 7-/14-Tage-Übersichten wieder her. Der Klimadatenabruf ist vom optionalen 7-Tage-Summary-Schalter entkoppelt; vorhandene Klimacaches bleiben bei temporären Archive-Fehlern stale nutzbar. Keine funktionale Workeränderung gegenüber v0.9.77.27; nextMilestone macos-xcode-simulator-quality-assurance bleibt unverändert.",
   "completedMilestones": [
     "ci-regression-contract-hotfix-0.9.76.22",
     "ruc-scheduler-resilience-source-preparation-0.9.76.24",
@@ -223,5 +223,5 @@
       "summary": "C3S (10 aktuelle Systeme), dynamisches NOAA NMME und ECMWF-Fallback werden über kanonische Modell-/Unabhängigkeits-IDs zu einem gleichgewichteten Poor-Man’s-Ensemble vereinigt. NOAA-NMME-Punktwerte nutzen Sparse-/Multi-Range-I/O; WMO/APCC/CanSIPS/EPISODES werden nur bei fachlich kompatibler Zeitachse und ohne Doppelgewichtung einbezogen."
     }
   ],
-  "currentVersion": "0.9.77.27"
+  "currentVersion": "0.9.77.28"
 }

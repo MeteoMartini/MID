@@ -1436,15 +1436,17 @@ export async function ensembles(lat:number,lon:number,signal?:AbortSignal,priori
 const CLIMATE_CACHE_PREFIX='mid:climatology:1991-2020:';
 type ClimateCache={created:number;values:Record<string,{max:number;min:number;years:number}>};
 function climateCacheKey(lat:number,lon:number,elevation?:number){return`${CLIMATE_CACHE_PREFIX}${(Math.round(lat*20)/20).toFixed(2)}:${(Math.round(lon*20)/20).toFixed(2)}:${Math.round(Number(elevation??0)/100)*100}`}
-function climateFromCache(key:string){try{const raw=localStorage.getItem(key);if(!raw)return null;const parsed=JSON.parse(raw) as ClimateCache;if(!parsed?.values||Date.now()-Number(parsed.created)>180*86400000)return null;return parsed}catch{return null}}
+function climateFromCache(key:string,maxAgeMs=180*86400000){try{const raw=localStorage.getItem(key);if(!raw)return null;const parsed=JSON.parse(raw) as ClimateCache;if(!parsed?.values||Date.now()-Number(parsed.created)>maxAgeMs)return null;return parsed}catch{return null}}
 function climateDateKey(date:string){return String(date).slice(5,10)}
 export async function climatology(lat:number,lon:number,elevation:number|undefined,dates:string[],signal?:AbortSignal):Promise<ClimateDay[]>{
- const key=climateCacheKey(lat,lon,elevation);let cache=climateFromCache(key);
+ const key=climateCacheKey(lat,lon,elevation),staleCache=climateFromCache(key,Number.POSITIVE_INFINITY);let cache=climateFromCache(key);
  if(!cache){
-  const p=new URLSearchParams({latitude:String(lat),longitude:String(lon),start_date:'1991-01-01',end_date:'2020-12-31',daily:'temperature_2m_max,temperature_2m_min',timezone:'auto',models:'era5_land',cell_selection:'land'});if(Number.isFinite(elevation))p.set('elevation',String(elevation));
-  const data=await j<any>(`https://archive-api.open-meteo.com/v1/archive?${p}`,signal),times=(data.daily?.time??[]) as string[],max=(data.daily?.temperature_2m_max??[]) as number[],min=(data.daily?.temperature_2m_min??[]) as number[],buckets=new Map<string,{max:number[];min:number[]}>();
-  for(let i=0;i<times.length;i++){const k=climateDateKey(times[i]),hi=Number(max[i]),lo=Number(min[i]);if(!Number.isFinite(hi)||!Number.isFinite(lo))continue;const row=buckets.get(k)??{max:[],min:[]};row.max.push(hi);row.min.push(lo);buckets.set(k,row)}
-  const values:ClimateCache['values']={};buckets.forEach((row,k)=>{if(row.max.length>=20&&row.min.length>=20)values[k]={max:row.max.reduce((a,b)=>a+b,0)/row.max.length,min:row.min.reduce((a,b)=>a+b,0)/row.min.length,years:Math.min(row.max.length,row.min.length)}});if(!values['02-29']&&values['02-28']&&values['03-01'])values['02-29']={max:(values['02-28'].max+values['03-01'].max)/2,min:(values['02-28'].min+values['03-01'].min)/2,years:Math.min(values['02-28'].years,values['03-01'].years)};cache={created:Date.now(),values};try{localStorage.setItem(key,JSON.stringify(cache))}catch{}
+  try{
+   const p=new URLSearchParams({latitude:String(lat),longitude:String(lon),start_date:'1991-01-01',end_date:'2020-12-31',daily:'temperature_2m_max,temperature_2m_min',timezone:'auto',models:'era5_land',cell_selection:'land'});if(Number.isFinite(elevation))p.set('elevation',String(elevation));
+   const data=await j<any>(`https://archive-api.open-meteo.com/v1/archive?${p}`,signal),times=(data.daily?.time??[]) as string[],max=(data.daily?.temperature_2m_max??[]) as number[],min=(data.daily?.temperature_2m_min??[]) as number[],buckets=new Map<string,{max:number[];min:number[]}>();
+   for(let i=0;i<times.length;i++){const k=climateDateKey(times[i]),hi=Number(max[i]),lo=Number(min[i]);if(!Number.isFinite(hi)||!Number.isFinite(lo))continue;const row=buckets.get(k)??{max:[],min:[]};row.max.push(hi);row.min.push(lo);buckets.set(k,row)}
+   const values:ClimateCache['values']={};buckets.forEach((row,k)=>{if(row.max.length>=20&&row.min.length>=20)values[k]={max:row.max.reduce((a,b)=>a+b,0)/row.max.length,min:row.min.reduce((a,b)=>a+b,0)/row.min.length,years:Math.min(row.max.length,row.min.length)}});if(!values['02-29']&&values['02-28']&&values['03-01'])values['02-29']={max:(values['02-28'].max+values['03-01'].max)/2,min:(values['02-28'].min+values['03-01'].min)/2,years:Math.min(values['02-28'].years,values['03-01'].years)};cache={created:Date.now(),values};try{localStorage.setItem(key,JSON.stringify(cache))}catch{}
+  }catch(error){if(staleCache)cache=staleCache;else throw error}
  }
  return dates.map(date=>{const v=cache!.values[climateDateKey(date)];return v?{date,maxMean:v.max,minMean:v.min,years:v.years}:null}).filter(Boolean) as ClimateDay[];
 }

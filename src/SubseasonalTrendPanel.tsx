@@ -114,7 +114,9 @@ const ENSEMBLE_ENDPOINT='https://ensemble-api.open-meteo.com/v1/ensemble';
 const CLIMATE_ENDPOINT='https://archive-api.open-meteo.com/v1/archive';
 const CACHE_PREFIX='mid:subseasonal-trend:v7';
 const CLIMATE_CACHE_PREFIX='mid:subseasonal-climatology:1991-2020:v3';
-const CACHE_MAX_AGE_MS=6*60*60*1000;
+const CACHE_MAX_AGE_MS=36*60*60*1000;
+const TREND_SOURCE_TIMEOUT_MS=12000;
+const TREND_CLIMATE_TIMEOUT_MS=4500;
 const CLIMATE_MAX_AGE_MS=180*86400000;
 const MODEL_METADATA_BASE='https://api.open-meteo.com/data';
 
@@ -145,6 +147,15 @@ const TEMPERATURE_SERIES:MultiSeriesDefinition[]=[
   {id:'temperature_max',label:'Tmax',color:'var(--param-temperature-max)',climateColor:'var(--param-temperature-max-climate)'},
   {id:'temperature_min',label:'Tmin',color:'var(--param-temperature-min)',climateColor:'var(--param-temperature-min-climate)'}
 ];
+
+async function withBoundedAbort<T>(parent:AbortSignal,timeoutMs:number,task:(signal:AbortSignal)=>Promise<T>,timeoutMessage:string):Promise<T>{
+  const controller=new AbortController();
+  let timedOut=false;
+  const relay=()=>controller.abort(parent.reason);
+  if(parent.aborted)relay();else parent.addEventListener('abort',relay,{once:true});
+  const timer=setTimeout(()=>{timedOut=true;controller.abort(new DOMException(timeoutMessage,'TimeoutError'));},timeoutMs);
+  try{return await task(controller.signal)}catch(error){if(timedOut&&!parent.aborted)throw new Error(timeoutMessage);throw error}finally{clearTimeout(timer);parent.removeEventListener('abort',relay)}
+}
 
 function viewMetricDefinition(metric:ViewMetric){
   return VIEW_METRICS.find(item=>item.id===metric)??VIEW_METRICS[0];
@@ -324,7 +335,10 @@ async function loadTrend(location:Location,signal:AbortSignal,refresh:boolean):P
   const cached=readCache();
   if(cached&&!refresh&&now-cached.savedAt<=60*60*1000)return {...cached.data,cacheStatus:'fresh-cache',cacheAgeMinutes:Math.max(1,Math.round((now-cached.savedAt)/60000))};
   try{
-    const settled=await Promise.allSettled([fetchEcmwf(location.latitude,location.longitude,signal,refresh),fetchGefs(location.latitude,location.longitude,signal,refresh)]);
+    const settled=await Promise.allSettled([
+      withBoundedAbort(signal,TREND_SOURCE_TIMEOUT_MS,child=>fetchEcmwf(location.latitude,location.longitude,child,refresh),'ECMWF EC46 antwortete nicht rechtzeitig.'),
+      withBoundedAbort(signal,TREND_SOURCE_TIMEOUT_MS,child=>fetchGefs(location.latitude,location.longitude,child,refresh),'NOAA GEFS antwortete nicht rechtzeitig.')
+    ]);
     if(signal.aborted)throw new DOMException('Aborted','AbortError');
     const models=settled.flatMap(result=>result.status==='fulfilled'?[result.value]:[]);
     if(!models.length){
@@ -332,7 +346,9 @@ async function loadTrend(location:Location,signal:AbortSignal,refresh:boolean):P
       throw rejection?.reason instanceof Error?rejection.reason:new Error('Keine Subseasonal-Daten verfügbar.');
     }
     const referenceWeeks=combineWeeks(models);
-    const climateWeeks=await loadClimateWeeks(location,referenceWeeks,signal,refresh).catch(()=>[]);
+    // Die 30-jährige ERA5-Klimatologie darf die bereits geladenen EC46/GEFS-Werte niemals blockieren.
+    // Nach einem kurzen Budget wird der Trend sofort ohne Klimakurve gezeigt; vorhandene Klimacaches bleiben nutzbar.
+    const climateWeeks=await withBoundedAbort(signal,TREND_CLIMATE_TIMEOUT_MS,child=>loadClimateWeeks(location,referenceWeeks,child,refresh),'Klimatologie lädt im Hintergrund weiter.').catch(()=>[]);
     const bundle:TrendBundle={models,climateWeeks,fetchedAt:new Date().toISOString(),cacheStatus:settled.every(result=>result.status==='fulfilled')?'live':'mixed-stale',cacheAgeMinutes:0};
     try{localStorage.setItem(cacheKey,JSON.stringify({savedAt:now,data:bundle}));}catch{}
     return bundle;

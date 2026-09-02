@@ -23,7 +23,7 @@ for(const [file,token] of [
  ['src/PushSettingsPanel.tsx','für Benachrichtigungen aktiv'],
  ['src/AppleWidgetSettings.tsx','Datenfeed oder Standort noch nicht verfügbar.'],
  ['src/WeatherMapsPanel.tsx','Kartenquelle nicht verfügbar'],
- ['src/LongRangePanel.tsx','echte numerische Ensemblewerte'],
+ ['src/LongRangePanel.tsx','echte numerische Saisonwerte'],
  ['src/StartupGuard.tsx','App-Cache zurückgesetzt. MID wird neu geladen …']
 ])assert.ok(sources.get(file)?.includes(token),`Nutzerorientierter Ersatztext fehlt in ${file}: ${token}`);
 

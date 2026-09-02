@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.77.27",
+  "version": "0.9.77.29",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -388,7 +388,9 @@
     "test:knmi-eps-wasm32-prototype": "node scripts/test-knmi-eps-wasm32-prototype-097724.mjs",
     "test:trend-seasonal-temperature-ui": "node scripts/test-trend-seasonal-temperature-ui-097725.mjs",
     "test:long-range-single-model-fallback": "node scripts/test-long-range-single-model-fallback-097726.mjs",
-    "test:seasonal-all-model-consensus": "node scripts/test-seasonal-all-model-consensus-097727.mjs"
+    "test:seasonal-all-model-consensus": "node scripts/test-seasonal-all-model-consensus-097727.mjs",
+    "test:climate-delta-badges": "node scripts/test-climate-delta-badges-097728.mjs",
+    "test:witterung-seven-day-curve": "node scripts/test-witterung-seven-day-curve-097729.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",

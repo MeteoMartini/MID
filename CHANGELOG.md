@@ -1,3 +1,11 @@
+## v0.9.77.29
+
+- Witterungstrend Tag 15–46 gegen hängende ERA5-Klimatologie entkoppelt: EC46/GEFS erhalten feste Quellbudgets, Klima ein separates Kurzbudget; vorhandene Modellwerte werden nicht mehr dauerhaft hinter „wird geladen …“ versteckt.
+- Stale-Witterungsfallback auf 36 h erweitert.
+- Langfristvertrag erweitert: numerische Ensemble-Mittel und geeignete deterministische Läufe dürfen wie EPS-Systeme beitragen; weiterhin exakt eine Stimme je unabhängiger Modelllinie. DWD Subseasonal EPISODES zählt als regionaler ECMWF-Downscaling-/Qualitätsanker, nicht als zweite EC46-Stimme.
+- Neue responsive 7-Tage-Kurvenübersicht direkt oberhalb der Tageskarten: Wetterpiktogramme, Tmin/Tmax, geglätteter Temperaturverlauf, Niederschlagsbalken und direkte Tagesauswahl.
+- Keine fachliche Workeränderung gegenüber v0.9.77.28; Worker nur versionssynchronisiert.
+
 ## v0.9.77.26
 
 - Hotfix Langfristtrend: Saison-Rauchfahnen bleiben bereits bei einer numerisch verfügbaren Modellfamilie sichtbar; der reine Single-Model-Hinweiskasten ersetzt die Grafik nicht mehr.
@@ -5123,3 +5131,9 @@
 - NMME-Punktentnahme auf Header-Range + HTTP Multi-Range mit Volldownload-Fallback und begrenzter Parallelität umgestellt.
 - Gemeinsames Einzelmodell-Diagramm bleibt auch bei >12 Linien eindeutig über Farbe + Linienmuster; keine zusätzlichen Katalog-/Hinweiskästchen.
 - WMO LC-LRFMME, APCC, CanSIPS und DWD EPISODES geprüft und nur dort einbezogen, wo Zeitachse, Authentifizierung und Unabhängigkeit eine fachlich saubere numerische Vereinigung erlauben.
+
+## 0.9.77.28
+- 7-/14-Tage Tmin/Tmax: individuelle Abweichung zum jeweiligen Klimamittel 1991–2020 wieder direkt im blauen/roten Kästchen sichtbar.
+- Klimatologie-Datenbedarf von der optionalen 7-Tage-Kurzinterpretation entkoppelt; aktive Tagesprognose lädt das Klimamittel zuverlässig auch bei deaktivierter Summary.
+- Bereits kleine Abweichungen um ±0,5–1 K wirken wieder auf Badge-Text, Hintergrund und Rahmen; bei fehlendem Klimamittel steht sichtbar `Δ –`.
+- Vorhandener Klimacache dient bei temporärem Archive-API-Fehler als Stale-Fallback.

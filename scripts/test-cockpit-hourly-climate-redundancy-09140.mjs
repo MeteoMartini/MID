@@ -25,7 +25,7 @@ for(const token of [
 ])need('Klimaton',tones,token);
 
 for(const token of [
- "import {dailyTemperatureTone,hourlyTemperatureTone} from './temperatureTone'",
+ "dailyTemperatureTone,hourlyTemperatureTone",
  'climate={climate}',
  'hourlyDetail={cockpitDetails?.sevenDay}',
  'className="cockpit-day-hourly-cue"',

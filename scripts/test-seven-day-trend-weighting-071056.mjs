@@ -11,6 +11,6 @@ assert.match(sevenDay,/climateDelta:climate&&Number\.isFinite\(climate\.maxMean\
 assert.match(sevenDay,/trendHours=\[\.\.\.dayHours,\.\.\.followingNightHours\]/,'Warnsignale müssen ausschließlich aus dem Tag und der ersten Folgenacht stammen');
 assert.match(sevenDay,/hazards=summarizeDwdWarnings\(trendHours,elevation\)/,'markante DWD-nahe Warnsignale werden im Trend nicht geprüft');
 assert.match(sevenDay,/weatherClauses=supplementalClause\?clauses\.slice\(0,2\):clauses\.slice\(0,3\)/,'markante Hazards oder Folgenachtereignisse erhalten keinen garantierten Platz im Kurztext');
-assert.match(app,/const climateRequested=forecastDisplaySettings\.showSevenDaySummary\|\|ensembleRequested/,'Klimamittel wird für den 7-Tage-Trend nicht bedarfsgerecht geladen');
+assert.match(app,/const climateRequested=dashboardModuleSettings\.enabled\.forecast\|\|ensembleRequested\|\|weatherTwinSettings\.useAsMainForecast/,'Klimamittel muss für die Tagesprognose unabhängig vom optionalen Summary-Schalter geladen werden');
 assert.match(app,/<SevenDayForecastSummary days=\{forecastDays\} hours=\{hours\} climate=\{climate\} elevation=\{elevation\}\/>/,'Klimamittel und Höhenlage werden nicht an den Trend übergeben');
 console.log('7-Tage-Trend geprüft: frühe Tage priorisiert, DWD-Kenntage/Klimamittel/Hazards und tatsächlicher Bewölkungsverlauf berücksichtigt.');
