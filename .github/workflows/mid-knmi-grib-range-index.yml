@@ -1,0 +1,601 @@
+name: MID KNMI GRIB range index
+
+on:
+  workflow_dispatch:
+    inputs:
+      latitude:
+        description: "Latitude des Testpunkts"
+        required: true
+        default: "52.10"
+        type: string
+      longitude:
+        description: "Longitude des Testpunkts"
+        required: true
+        default: "5.18"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mid-knmi-grib-range-index
+  cancel-in-progress: true
+
+jobs:
+  sparse-grib-index:
+    name: Index one P4a GRIB member without full download
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      KNMI_DATASET: harmonie_arome_cy43_p4a
+      KNMI_DATASET_VERSION: "1.0"
+      KNMI_API_KEY: ${{ secrets.KNMI_OPEN_DATA_API_KEY }}
+      TARGET_LAT: ${{ inputs.latitude }}
+      TARGET_LON: ${{ inputs.longitude }}
+      MAX_TAR_ENTRIES: "32"
+      MAX_GRIB_MESSAGES: "64"
+      MAX_GRIB_MESSAGE_BYTES: "4194304"  # 4 MiB per single message
+
+    steps:
+      - name: Install ecCodes
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends libeccodes-tools
+          grib_ls -V
+
+      - name: Build sparse GRIB range index
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -z "${KNMI_API_KEY:-}" ]; then
+            echo "::error::KNMI_OPEN_DATA_API_KEY fehlt oder ist leer."
+            exit 1
+          fi
+
+          python3 - <<'PY'
+          import json
+          import math
+          import os
+          import re
+          import sys
+          import urllib.parse
+          import urllib.request
+          from pathlib import Path
+
+          try:
+              target_lat = float(os.environ["TARGET_LAT"])
+              target_lon = float(os.environ["TARGET_LON"])
+          except Exception:
+              print("::error::Latitude/Longitude ungültig.")
+              sys.exit(1)
+
+          if not (
+              math.isfinite(target_lat)
+              and math.isfinite(target_lon)
+              and -90 <= target_lat <= 90
+              and -180 <= target_lon <= 180
+          ):
+              print("::error::Latitude/Longitude außerhalb des gültigen Bereichs.")
+              sys.exit(1)
+
+          api_key = os.environ["KNMI_API_KEY"]
+          dataset = os.environ["KNMI_DATASET"]
+          version = os.environ["KNMI_DATASET_VERSION"]
+          max_tar_entries = int(os.environ["MAX_TAR_ENTRIES"])
+          max_grib_messages = int(os.environ["MAX_GRIB_MESSAGES"])
+          max_grib_message_bytes = int(os.environ["MAX_GRIB_MESSAGE_BYTES"])
+
+          base = "https://api.dataplatform.knmi.nl/open-data/v1"
+          sample_path = Path(os.environ.get("RUNNER_TEMP", "/tmp")) / "knmi-sparse-temp.grib"
+
+          archive_bytes_transferred = 0
+          archive_size = None
+
+          def api_json(url):
+              req = urllib.request.Request(
+                  url,
+                  headers={"Authorization": api_key},
+              )
+              with urllib.request.urlopen(req, timeout=30) as response:
+                  return json.load(response)
+
+          query = urllib.parse.urlencode({
+              "maxKeys": 1,
+              "orderBy": "created",
+              "sorting": "desc",
+          })
+          list_url = f"{base}/datasets/{dataset}/versions/{version}/files?{query}"
+
+          try:
+              listing = api_json(list_url)
+          except Exception as exc:
+              print(f"::error::KNMI-Dateiliste fehlgeschlagen: {exc}")
+              sys.exit(1)
+
+          files = listing.get("files") or []
+          if not files:
+              print("::error::Keine P4a-Datei gefunden.")
+              sys.exit(1)
+
+          latest = files[0]
+          archive_name = latest.get("filename")
+          if not archive_name:
+              print("::error::Archivname fehlt.")
+              sys.exit(1)
+
+          encoded = urllib.parse.quote(archive_name, safe="")
+          url_endpoint = (
+              f"{base}/datasets/{dataset}/versions/{version}/files/"
+              f"{encoded}/url"
+          )
+
+          try:
+              url_payload = api_json(url_endpoint)
+          except Exception as exc:
+              print(f"::error::Temporäre Download-URL fehlgeschlagen: {exc}")
+              sys.exit(1)
+
+          download_url = url_payload.get("temporaryDownloadUrl")
+          if not isinstance(download_url, str) or not download_url.startswith("https://"):
+              print("::error::Keine gültige temporäre Download-URL.")
+              sys.exit(1)
+
+          def range_get(start, length, purpose):
+              global archive_size, archive_bytes_transferred
+              end = start + length - 1
+
+              req = urllib.request.Request(
+                  download_url,
+                  headers={
+                      "Range": f"bytes={start}-{end}",
+                      "Accept-Encoding": "identity",
+                      "User-Agent": "MID-KNMI-GRIB-range-index/1.0",
+                  },
+              )
+
+              try:
+                  response = urllib.request.urlopen(req, timeout=30)
+              except Exception as exc:
+                  print(
+                      f"::error::{purpose}: HTTP-Range {start}-{end} "
+                      f"fehlgeschlagen: {exc}"
+                  )
+                  sys.exit(1)
+
+              try:
+                  status = getattr(response, "status", None)
+                  content_range = response.headers.get("Content-Range", "")
+
+                  if status != 206:
+                      print(
+                          f"::error::{purpose}: Range nicht mit HTTP 206 "
+                          f"beantwortet (Status {status})."
+                      )
+                      sys.exit(1)
+
+                  match = re.match(
+                      r"bytes\s+(\d+)-(\d+)/(\d+|\*)",
+                      content_range,
+                  )
+                  if not match:
+                      print(
+                          f"::error::{purpose}: ungültiger Content-Range "
+                          f"{content_range!r}"
+                      )
+                      sys.exit(1)
+
+                  if int(match.group(1)) != start or int(match.group(2)) != end:
+                      print(
+                          f"::error::{purpose}: anderer Bytebereich geliefert: "
+                          f"{content_range}"
+                      )
+                      sys.exit(1)
+
+                  if match.group(3) != "*":
+                      archive_size = int(match.group(3))
+
+                  data = response.read(length + 1)
+                  if len(data) != length:
+                      print(
+                          f"::error::{purpose}: {len(data)} statt {length} Byte."
+                      )
+                      sys.exit(1)
+
+                  archive_bytes_transferred += len(data)
+                  return data
+              finally:
+                  response.close()
+
+          def parse_octal(raw):
+              text = raw.rstrip(b"\0 ").lstrip(b" ")
+              if not text:
+                  return 0
+              try:
+                  return int(text, 8)
+              except ValueError:
+                  return None
+
+          def decode_text(raw):
+              return raw.split(b"\0", 1)[0].decode(
+                  "utf-8",
+                  "replace",
+              ).strip()
+
+          # 1) Locate the first actual HARMONIE GRIB TAR member using
+          #    TAR headers only. No member payload is downloaded here.
+          tar_offset = 0
+          selected = None
+
+          for _ in range(max_tar_entries):
+              header = range_get(tar_offset, 512, "TAR header")
+
+              if header == b"\0" * 512:
+                  break
+
+              name = decode_text(header[0:100])
+              prefix = decode_text(header[345:500])
+              if prefix:
+                  name = f"{prefix}/{name}"
+
+              size = parse_octal(header[124:136])
+              typeflag = header[156:157].decode(
+                  "ascii",
+                  "replace",
+              ) or "0"
+
+              if size is None:
+                  print("::error::TAR-Dateigröße nicht lesbar.")
+                  sys.exit(1)
+
+              if (
+                  typeflag in ("0", "\x00")
+                  and "harm43_v1_eur_uwcw_meteo_" in name
+                  and name.endswith("_GB")
+              ):
+                  selected = {
+                      "name": name,
+                      "size": size,
+                      "header_offset": tar_offset,
+                      "payload_offset": tar_offset + 512,
+                  }
+                  break
+
+              tar_offset += 512 + ((size + 511) // 512) * 512
+
+          if not selected:
+              print("::error::Kein HARMONIE-GRIB-TAR-Mitglied gefunden.")
+              sys.exit(1)
+
+          member_size = selected["size"]
+          payload_start = selected["payload_offset"]
+
+          # 2) GRIB1 sparse index:
+          #    Each message starts with:
+          #      bytes 0..3 = "GRIB"
+          #      bytes 4..6 = total message length (24-bit big-endian)
+          #      byte 7     = edition
+          #
+          #    We request only 64 bytes per message. That is enough to
+          #    parse the GRIB1 Product Definition Section keys required
+          #    to identify the field.
+          messages = []
+          relative_offset = 0
+
+          for message_number in range(1, max_grib_messages + 1):
+              remaining = member_size - relative_offset
+              if remaining == 0:
+                  break
+
+              if remaining < 64:
+                  print(
+                      f"::error::Nur noch {remaining} Byte am Ende des "
+                      "TAR-Mitglieds; kein vollständiger GRIB-Header."
+                  )
+                  sys.exit(1)
+
+              header = range_get(
+                  payload_start + relative_offset,
+                  64,
+                  f"GRIB header #{message_number}",
+              )
+
+              if header[0:4] != b"GRIB":
+                  print(
+                      f"::error::GRIB-Signatur bei relativem Offset "
+                      f"{relative_offset} fehlt: {header[0:4]!r}"
+                  )
+                  sys.exit(1)
+
+              total_length = int.from_bytes(
+                  header[4:7],
+                  byteorder="big",
+                  signed=False,
+              )
+              edition = header[7]
+
+              if edition != 1:
+                  print(
+                      f"::error::GRIB edition {edition} statt GRIB1 "
+                      f"bei Nachricht #{message_number}."
+                  )
+                  sys.exit(1)
+
+              if total_length < 64 or total_length > member_size:
+                  print(
+                      f"::error::Unplausible GRIB-Nachrichtenlänge "
+                      f"{total_length} bei #{message_number}."
+                  )
+                  sys.exit(1)
+
+              if relative_offset + total_length > member_size:
+                  print(
+                      "::error::GRIB-Nachricht ragt über das TAR-Mitglied hinaus."
+                  )
+                  sys.exit(1)
+
+              # GRIB1 Section 1 / PDS begins directly after 8-byte Section 0.
+              pds_length = int.from_bytes(
+                  header[8:11],
+                  byteorder="big",
+                  signed=False,
+              )
+              if pds_length < 28:
+                  print(
+                      f"::error::PDS-Länge {pds_length} zu klein "
+                      f"bei Nachricht #{message_number}."
+                  )
+                  sys.exit(1)
+
+              table_version = header[11]
+              centre = header[12]
+              parameter = header[16]
+              level_type = header[17]
+              level = int.from_bytes(
+                  header[18:20],
+                  byteorder="big",
+                  signed=False,
+              )
+              time_unit = header[25]
+              p1 = header[26]
+              p2 = header[27]
+              tri = header[28]
+
+              message = {
+                  "number": message_number,
+                  "relative_offset": relative_offset,
+                  "archive_offset": payload_start + relative_offset,
+                  "total_length": total_length,
+                  "edition": edition,
+                  "pds_length": pds_length,
+                  "table_version": table_version,
+                  "centre": centre,
+                  "parameter": parameter,
+                  "level_type": level_type,
+                  "level": level,
+                  "time_unit": time_unit,
+                  "p1": p1,
+                  "p2": p2,
+                  "tri": tri,
+              }
+              messages.append(message)
+              relative_offset += total_length
+
+          if relative_offset != member_size:
+              print(
+                  f"::error::GRIB-Index deckt {relative_offset} von "
+                  f"{member_size} Byte ab."
+              )
+              sys.exit(1)
+
+          if not messages:
+              print("::error::Keine GRIB-Nachrichten erkannt.")
+              sys.exit(1)
+
+          # Select the exact 2 m temperature field.
+          temp = next(
+              (
+                  m for m in messages
+                  if m["parameter"] == 11
+                  and m["level_type"] == 105
+                  and m["level"] == 2
+                  and m["tri"] == 0
+              ),
+              None,
+          )
+
+          if temp is None:
+              print("::error::2-m-Temperatur-Nachricht nicht gefunden.")
+              sys.exit(1)
+
+          if temp["total_length"] > max_grib_message_bytes:
+              print(
+                  "::error::Temperatur-GRIB-Nachricht überschreitet "
+                  f"Sicherheitslimit: {temp['total_length']} Byte."
+              )
+              sys.exit(1)
+
+          # 3) Download ONLY this single GRIB message by byte range.
+          temp_bytes = range_get(
+              temp["archive_offset"],
+              temp["total_length"],
+              "2 m temperature GRIB message",
+          )
+
+          if temp_bytes[0:4] != b"GRIB" or temp_bytes[-4:] != b"7777":
+              print(
+                  "::error::Sparse GRIB-Nachricht hat keine vollständige "
+                  "GRIB1-Rahmung."
+              )
+              sys.exit(1)
+
+          sample_path.write_bytes(temp_bytes)
+
+          # Transfer estimates from the actual current message sizes.
+          def selected_bytes(predicate):
+              return sum(
+                  m["total_length"]
+                  for m in messages
+                  if predicate(m)
+              )
+
+          # Minimal ensemble fusion fields:
+          # 2m temp, 10m U/V, gust U/V, rain.
+          minimal_bytes = selected_bytes(
+              lambda m: (
+                  (
+                      m["parameter"] == 11
+                      and m["level_type"] == 105
+                      and m["level"] == 2
+                      and m["tri"] == 0
+                  )
+                  or (
+                      m["parameter"] in (33, 34)
+                      and m["level_type"] == 105
+                      and m["level"] == 10
+                      and m["tri"] == 0
+                  )
+                  or (
+                      m["parameter"] in (162, 163)
+                      and m["level_type"] == 105
+                      and m["level"] == 10
+                      and m["tri"] == 2
+                  )
+                  or (
+                      m["parameter"] == 181
+                      and m["tri"] == 4
+                  )
+              )
+          )
+
+          # Extended MID-near ensemble set:
+          # + pressure, RH, total/H/M/L cloud, snow/graupel,
+          #   cloud base, lightning, visibility.
+          extended_codes = {
+              1, 11, 20, 33, 34, 52, 71, 73, 74, 75,
+              162, 163, 181, 184, 186, 201, 209,
+          }
+          extended_bytes = selected_bytes(
+              lambda m: (
+                  m["parameter"] in extended_codes
+                  and not (
+                      m["parameter"] in (33, 34)
+                      and m["level"] != 10
+                  )
+              )
+          )
+
+          result = {
+              "schema": "mid.knmi.grib-range-index.v1",
+              "archive": archive_name,
+              "tar_member": selected["name"],
+              "tar_member_size": member_size,
+              "tar_payload_archive_offset": payload_start,
+              "grib_message_count": len(messages),
+              "messages": messages,
+              "temperature_sparse_message": temp,
+              "transfer_estimate": {
+                  "full_member_bytes": member_size,
+                  "minimal_fusion_bytes": minimal_bytes,
+                  "minimal_fusion_fraction": round(
+                      minimal_bytes / member_size,
+                      4,
+                  ),
+                  "extended_mid_bytes": extended_bytes,
+                  "extended_mid_fraction": round(
+                      extended_bytes / member_size,
+                      4,
+                  ),
+              },
+              "actual_bytes_transferred_this_test": archive_bytes_transferred,
+              "complete_tar_member_downloaded": False,
+          }
+
+          print("Sparse GRIB1 indexing: OK")
+          print(f"Archive: {archive_name}")
+          print(f"TAR member: {selected['name']}")
+          print(f"TAR member size: {member_size} bytes")
+          print(f"GRIB messages indexed: {len(messages)}")
+          print(
+              "Full TAR member downloaded for indexing: NO "
+              "(64-byte header ranges only)"
+          )
+          print("")
+          print("GRIB message index:")
+
+          for m in messages:
+              print(
+                  f"- #{m['number']:02d} "
+                  f"off={m['relative_offset']:<9d} "
+                  f"len={m['total_length']:<9d} "
+                  f"param={m['parameter']:<3d} "
+                  f"lt={m['level_type']:<3d} "
+                  f"level={m['level']:<5d} "
+                  f"TRI={m['tri']:<3d} "
+                  f"P1={m['p1']:<3d} P2={m['p2']:<3d}"
+              )
+
+          print("")
+          print("Transfer estimate per member/forecast file:")
+          print(
+              f"- full:     {member_size} bytes"
+          )
+          print(
+              f"- minimal:  {minimal_bytes} bytes "
+              f"({100*minimal_bytes/member_size:.1f}%)"
+          )
+          print(
+              f"- extended: {extended_bytes} bytes "
+              f"({100*extended_bytes/member_size:.1f}%)"
+          )
+          print(
+              f"Actual bytes transferred by this whole test: "
+              f"{archive_bytes_transferred}"
+          )
+          print("")
+          print("Sparse temperature message saved for ecCodes validation:")
+          print(sample_path)
+
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env:
+              env.write(f"KNMI_SPARSE_GRIB={sample_path}\n")
+              env.write(f"KNMI_SPARSE_TEMP_BYTES={temp['total_length']}\n")
+
+          print("")
+          print("JSON:")
+          print(json.dumps(
+              result,
+              indent=2,
+              ensure_ascii=False,
+              sort_keys=True,
+          ))
+          PY
+
+      - name: Validate sparse 2 m temperature message with ecCodes
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ ! -s "${KNMI_SPARSE_GRIB:-}" ]; then
+            echo "::error::Sparse Temperatur-GRIB-Datei fehlt."
+            exit 1
+          fi
+
+          echo "Sparse message bytes: ${KNMI_SPARSE_TEMP_BYTES}"
+
+          echo
+          echo "### ecCodes metadata"
+          grib_ls \
+            -p edition,indicatorOfParameter,indicatorOfTypeOfLevel,level,stepRange,Ni,Nj \
+            "$KNMI_SPARSE_GRIB"
+
+          echo
+          echo "### Nearest 2 m temperature"
+          grib_ls \
+            -l "${TARGET_LAT},${TARGET_LON},1" \
+            -p indicatorOfParameter,stepRange \
+            "$KNMI_SPARSE_GRIB"
+
+          echo
+          echo "Safety: only one GRIB message payload was downloaded; no full 16 MB TAR member."
