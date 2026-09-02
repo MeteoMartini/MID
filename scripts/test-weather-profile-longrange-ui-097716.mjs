@@ -12,7 +12,8 @@ const [profile,trend,modern,styles,pkgText,baselineText]=await Promise.all([
 ]);
 const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText);
 
-assert.ok(pkg.version.startsWith('0.9.77.')&&Number(pkg.version.split('.').at(-1))>=16,'UI-Fix aus v0.9.77.16 muss in allen Folgereleases erhalten bleiben.');
+const versionParts=pkg.version.split('.').map(Number),atLeast097716=versionParts[0]>0||versionParts[1]>9||(versionParts[1]===9&&(versionParts[2]>77||(versionParts[2]===77&&(versionParts[3]??0)>=16)));
+assert.ok(atLeast097716,'UI-Fix aus v0.9.77.16 muss in allen Folgereleases erhalten bleiben.');
 assert.equal(baseline.releaseVersion,pkg.version,'Baseline und Paketversion müssen synchron sein.');
 
 assert.ok(modern.includes('.selected-time-value-pill rect{fill:var(--mg-tooltip);'), '24-h-Wert-Pills müssen den theme-adaptiven Tooltip-Hintergrund verwenden.');

@@ -12,8 +12,8 @@ const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}
 
 for(const token of [
   "export type CloudFormKind='clear'|'stratus'|'altostratus'|'cirrus'|'cumulus'|'cumulonimbus'|'layered'|'generic'",
-  'export function cloudFormKind(code:number,profile:WeatherPictogramCloudProfile={})',
-  "if(['fog','rime-fog','drizzle','freezing-drizzle'].includes(weatherKind))return'stratus'",
+  'export function cloudFormKind(code:number,profile:WeatherPictogramCloudProfile={},overrideKind?:WeatherPictogramKind)',
+  "if(['mist','fog','rime-fog','drizzle','freezing-drizzle'].includes(weatherKind))return'stratus'",
   "if(layer==='mid')return'altostratus'",
   "if(layer==='high')return'cirrus'",
   "return'cumulus'",

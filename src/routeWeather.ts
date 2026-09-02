@@ -1,4 +1,4 @@
-import {forecast,icon,label,mapHours,type Hour,type Location} from './weather';
+import {forecast,label,mapHours,type Hour,type Location} from './weather';
 import {precipitationParts,type PrecipType} from './precipitation';
 
 export type RouteProfile='car'|'bike'|'foot';
@@ -8,7 +8,6 @@ export type RouteMapMode='line'|'segments'|'corridor';
 export type RouteCheckpointWeather={
  code:number;
  displayCode:number;
- icon:string;
  label:string;
  precipType:PrecipType;
  precipLabel:string;
@@ -135,7 +134,6 @@ function assessCheckpoint(hour:Hour){
   weather:{
    code:hour.code,
    displayCode,
-   icon:icon(displayCode,hour.isDay),
    label:displayLabel,
    precipType:precipitation.type,
    precipLabel:precipitation.label,

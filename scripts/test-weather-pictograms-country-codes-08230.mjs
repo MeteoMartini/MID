@@ -19,10 +19,11 @@ for(const token of [
  "if(c===48)return'rime-fog'",
  "if([56,57].includes(c))return'freezing-drizzle'",
  "if([66,67].includes(c))return'freezing-rain'",
- "if([68,69,83,84].includes(c))return'sleet'",
+ "if([68,69].includes(c))return'sleet'",
+ "if([83,84].includes(c))return'sleet-showers'",
  "if([96,99].includes(c))return'thunder-hail'",
- '<FogLines/>',
- '<FogLines rime/>',
+ '<MistLines fog/>',
+ '<MistLines fog rime/>',
  'viewBox="0 0 68 68"',
  'className={`mid-weather-pictogram'
 ])need('Piktogrammsystem',pictogram,token);
@@ -52,7 +53,7 @@ try{
  if(!kindMatch)failures.push('Piktogramm-Dynamik: weatherPictogramKind konnte nicht isoliert werden.');
  const source=String(kindMatch?.[0]||'').replace(/\n\nexport function cloudLayerKind$/,'');
  const pictureModule=await compile('WeatherPictogramKinds',source);
- const kinds=new Map([[0,'clear'],[1,'mostly-clear'],[2,'partly-cloudy'],[3,'cloudy'],[45,'fog'],[48,'rime-fog'],[51,'drizzle'],[56,'freezing-drizzle'],[61,'rain'],[66,'freezing-rain'],[68,'sleet'],[71,'snow'],[77,'snow-grains'],[80,'showers'],[85,'snow-showers'],[95,'thunder'],[96,'thunder-hail']]);
+ const kinds=new Map([[0,'clear'],[1,'mostly-clear'],[2,'partly-cloudy'],[3,'cloudy'],[45,'fog'],[48,'rime-fog'],[51,'drizzle'],[56,'freezing-drizzle'],[61,'rain'],[66,'freezing-rain'],[68,'sleet'],[83,'sleet-showers'],[71,'snow'],[77,'snow-grains'],[80,'showers'],[85,'snow-showers'],[95,'thunder'],[96,'thunder-hail']]);
  for(const [code,expected] of kinds){const actual=pictureModule.weatherPictogramKind(code);if(actual!==expected)failures.push(`Piktogramm-Dynamik: WMO ${code} → ${actual}, erwartet ${expected}`)}
 }finally{await rm(dir,{recursive:true,force:true})}
 

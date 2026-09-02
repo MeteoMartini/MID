@@ -1290,3 +1290,36 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .subseasonal-comparison .climate-value{margin-top:3px;padding-top:3px;border-top:1px dashed var(--border);color:var(--muted)}
 @media(max-width:600px){.subseasonal-head{position:relative;padding-right:74px}.subseasonal-head .long-range-head-actions{position:absolute;top:0;right:0;gap:5px}.subseasonal-head .long-range-head-actions>button{width:32px;height:32px;flex-basis:32px;border-radius:10px}.subseasonal-model-selector{grid-template-columns:repeat(3,minmax(0,1fr))}.subseasonal-metric-selector{grid-template-columns:repeat(2,minmax(0,1fr))}.subseasonal-model-selector button,.subseasonal-metric-selector button{padding:7px 8px}.subseasonal-model-selector b,.subseasonal-metric-selector b{font-size:8.5px}.subseasonal-model-selector small,.subseasonal-metric-selector small{font-size:6.8px}.subseasonal-chart .axis-label{font-size:9px}.subseasonal-chart .month-label{font-size:8px}.subseasonal-comparison .long-range-model-strip{grid-template-columns:1fr!important}.subseasonal-families>span{flex:1 1 120px}}
 @media(max-width:390px){.subseasonal-metric-selector{grid-template-columns:repeat(2,minmax(0,1fr))}.subseasonal-chart-legend{gap:6px 9px;font-size:7px}.subseasonal-controls{padding:6px}.subseasonal-main-chart{padding:8px!important}}
+
+/* MID v0.9.78.0 · verbindliches appweites Wetterpiktogramm-System 2.0 */
+:root{
+ --wx-icon-sun-core:#fff7b2;--wx-icon-sun-mid:#ffd84b;--wx-icon-sun-edge:#f3a915;--wx-icon-sun-ray:#ffbe18;
+ --wx-icon-moon-core:#fffdf0;--wx-icon-moon-mid:#e8edf5;--wx-icon-moon-edge:#9baabd;--wx-icon-moon-highlight:rgba(255,255,255,.9);--wx-icon-star:#f9fbff;
+ --wx-icon-cloud-top:#fbfdff;--wx-icon-cloud-mid:#e7edf3;--wx-icon-cloud-bottom:#bac6d2;--wx-icon-cloud-stroke:#728599;--wx-icon-cloud-layer:#8798a9;--wx-icon-cloud-highlight:rgba(255,255,255,.58);
+ --wx-icon-night-cloud-top:#f6f9fc;--wx-icon-night-cloud-mid:#dce5ee;--wx-icon-night-cloud-bottom:#aab9c8;
+ --wx-icon-storm-top:#7a899d;--wx-icon-storm-bottom:#46566c;--wx-icon-night-storm-top:#91a1b4;--wx-icon-night-storm-bottom:#53657b;--wx-icon-storm-stroke:#405168;--wx-icon-storm-highlight:rgba(255,255,255,.3);
+ --wx-icon-rain:#2699e6;--wx-icon-snow:#63bce9;--wx-icon-snow-grain:#dff6ff;--wx-icon-ice:#72c9ec;--wx-icon-graupel:#d7eff8;--wx-icon-hail:#e8fbff;--wx-icon-hail-edge:#499fc8;
+ --wx-icon-lightning:#ffd12a;--wx-icon-lightning-edge:#dc9700;--wx-icon-fog:#7f93a6;--wx-icon-fog-soft:#9badbc;--wx-icon-fog-pale:#b9c7d2;--wx-icon-wind:#7ca1be;--wx-icon-funnel:#64788b;
+ --wx-icon-cirrus-1:#9ab5ca;--wx-icon-cirrus-2:#d8e6f0;--wx-icon-cirrus-3:#7f9fba;--wx-icon-shadow:#273a4e;
+ --wx-icon-day-plate:rgba(123,191,232,.18);--wx-icon-day-fog-plate:rgba(188,207,221,.28);--wx-icon-day-storm-plate:rgba(106,151,196,.28);--wx-icon-day-plate-stroke:rgba(78,119,151,.22);--wx-icon-day-horizon:rgba(255,255,255,.12);
+ --wx-icon-night-plate:rgba(49,90,131,.3);--wx-icon-night-fog-plate:rgba(78,101,127,.4);--wx-icon-night-storm-plate:rgba(28,58,91,.54);--wx-icon-night-plate-stroke:rgba(224,239,253,.32);--wx-icon-night-horizon:rgba(213,231,250,.09)
+}
+:root[data-theme=light]{
+ --wx-icon-cloud-top:#ffffff;--wx-icon-cloud-mid:#e8edf2;--wx-icon-cloud-bottom:#aebbc8;--wx-icon-cloud-stroke:#7a8999;--wx-icon-cloud-layer:#8998a7;
+ --wx-icon-night-cloud-top:#eef3f8;--wx-icon-night-cloud-mid:#d5e0ea;--wx-icon-night-cloud-bottom:#98a9ba;--wx-icon-storm-top:#748497;--wx-icon-storm-bottom:#405167;
+ --wx-icon-fog:#7d8c9a;--wx-icon-fog-soft:#95a3b0;--wx-icon-fog-pale:#aebbc5;--wx-icon-shadow:#405066;
+ --wx-icon-day-plate:rgba(123,184,220,.13);--wx-icon-day-fog-plate:rgba(165,188,205,.2);--wx-icon-day-storm-plate:rgba(104,144,180,.2);--wx-icon-day-plate-stroke:rgba(70,102,130,.2);
+ --wx-icon-night-plate:rgba(55,88,122,.22);--wx-icon-night-fog-plate:rgba(72,96,120,.28);--wx-icon-night-storm-plate:rgba(44,68,96,.35);--wx-icon-night-plate-stroke:rgba(65,91,118,.32)
+}
+.mid-weather-pictogram{shape-rendering:geometricPrecision;text-rendering:geometricPrecision;isolation:isolate}
+.mid-weather-pictogram .mid-weather-sun,.mid-weather-pictogram .mid-weather-moon,.mid-weather-pictogram .mid-weather-cloud,.mid-weather-pictogram .mid-weather-rain,.mid-weather-pictogram .mid-weather-drizzle,.mid-weather-pictogram .mid-weather-snow,.mid-weather-pictogram .mid-weather-ice-pellets,.mid-weather-pictogram .mid-weather-graupel,.mid-weather-pictogram .mid-weather-hail,.mid-weather-pictogram .mid-weather-lightning,.mid-weather-pictogram .mid-weather-fog-lines,.mid-weather-pictogram .mid-weather-haze{vector-effect:non-scaling-stroke}
+.mid-weather-pictogram.compact .mid-weather-skyplate{opacity:.82}
+.mid-weather-pictogram.intensity-light .mid-weather-cloud{opacity:.96}
+.mid-weather-pictogram.intensity-heavy .mid-weather-cloud-cumulonimbus{filter:drop-shadow(0 2px 2px color-mix(in srgb,var(--wx-icon-shadow) 35%,transparent))}
+.mid-weather-pictogram.weather-drizzle .mid-weather-drizzle circle{filter:drop-shadow(0 .5px .4px color-mix(in srgb,var(--wx-icon-rain) 40%,transparent))}
+.mid-weather-pictogram.weather-snow-grains .mid-weather-snow circle{stroke-width:.8}
+.mid-weather-pictogram.weather-freezing-rain .mid-weather-ice,.mid-weather-pictogram.weather-freezing-drizzle .mid-weather-ice{filter:drop-shadow(0 0 1.4px color-mix(in srgb,var(--wx-icon-ice) 54%,transparent))}
+.mid-weather-pictogram.weather-thunder-hail .mid-weather-hail,.mid-weather-pictogram.weather-hail .mid-weather-hail{filter:drop-shadow(0 1px 1px color-mix(in srgb,var(--wx-icon-hail-edge) 28%,transparent))}
+.mid-weather-pictogram[data-day-part="night"] .mid-weather-moon{filter:drop-shadow(0 0 3px rgba(236,244,255,.3))}
+.mid-weather-pictogram[data-day-part="night"] .mid-weather-rain,.mid-weather-pictogram[data-day-part="night"] .mid-weather-drizzle,.mid-weather-pictogram[data-day-part="night"] .mid-weather-snow{filter:drop-shadow(0 1px 1px rgba(18,37,58,.2))}
+@media(prefers-contrast:more){.mid-weather-pictogram{filter:contrast(1.08)}.mid-weather-pictogram .mid-weather-cloud{stroke-width:1.6}.mid-weather-pictogram .mid-weather-rain{stroke-width:3.35}}

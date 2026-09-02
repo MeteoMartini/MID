@@ -1,3 +1,12 @@
+## v0.9.78.0
+
+- Verbindlicher appweiter Wetterpiktogramm-Standard 2.0: ein zentraler skalierbarer SVG-Renderer für Forecast-, Tages-, Stunden-, Event-, Reise-, Wasser-, Berg-, Routen-, Ensemble- und kompakte Widgetdarstellungen.
+- Tag/Nacht und Hell/Dunkel zentralisiert; keine getrennten Rasterassets.
+- Niederschlagsarten und -stärken nach WMO-/synoptischer Present-Weather-Logik erweitert: u. a. Sprühregen, gefrierender Sprühregen/Regen, Regen/Schauer, Schnee, Schneegriesel, Schneeschauer, Schneeregen, Eiskristalle, Eiskörner, Graupel, Hagel sowie Gewitter-/Hagelvarianten.
+- Leicht/mäßig/stark wird über Dichte, Anzahl, Größe und Strichgewicht unterscheidbar, nicht nur über Farbe.
+- SYNOP-/BUFR-/METAR-Brücke für dekodierte Present-Weather-Kürzel ergänzt; alter Forecast-Emoji-Hilfspfad entfernt.
+- Keine fachliche Workeränderung; Worker nur versionssynchronisiert.
+
 ## v0.9.77.29
 
 - Witterungstrend Tag 15–46 gegen hängende ERA5-Klimatologie entkoppelt: EC46/GEFS erhalten feste Quellbudgets, Klima ein separates Kurzbudget; vorhandene Modellwerte werden nicht mehr dauerhaft hinter „wird geladen …“ versteckt.

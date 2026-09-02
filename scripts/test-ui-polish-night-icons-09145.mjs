@@ -29,7 +29,7 @@ for(const token of [
 for(const token of [
   'nightCloudGradient=`mid-cloud-night-${rawId}`',
   'nightStormGradient=`mid-storm-night-${rawId}`',
-  "const darkCloud=['thunder','thunder-hail'].includes(kind),cloudFillGradient=day?cloudGradient:nightCloudGradient,stormFillGradient=day?stormGradient:nightStormGradient;",
+  "const darkCloud=['thunder','thunder-hail','squall','funnel-cloud'].includes(kind),cloudFillGradient=day?cloudGradient:nightCloudGradient,stormFillGradient=day?stormGradient:nightStormGradient;",
   '<linearGradient id={nightCloudGradient}',
   '<linearGradient id={nightStormGradient}'
 ])need('WeatherPictogram.tsx',pictogram,token);
