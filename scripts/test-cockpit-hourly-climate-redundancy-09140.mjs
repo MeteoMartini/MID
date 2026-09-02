@@ -14,27 +14,39 @@ const failures=[];
 const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
 const forbid=(label,text,token)=>{if(text.includes(token))failures.push(`${label}: redundanter Altstand ${token}`)};
 
+// Zentraler Nachfolgevertrag seit v0.9.78.1:
+// - stündliche Temperaturen bleiben neutral,
+// - 7 Tage verwenden absolute ECMWF-Farben ohne Klima-Delta,
+// - 14 Tage behalten die signierte Tmin/Tmax-Klimaanomalie.
 for(const token of [
  "export type DailyTemperatureKind='min'|'max'",
  'export function dailyTemperatureTone(',
  'export function hourlyTemperatureTone(',
+ 'export function ecmwfTemperatureColor(',
+ 'export function ecmwfTemperatureTone(',
  "color:'var(--text)'",
  'void climateMin;void climateMax;',
  "value-Number(climateMean)",
  "kind==='max'"
-])need('Klimaton',tones,token);
+])need('Temperaturton',tones,token);
 
 for(const token of [
- "dailyTemperatureTone,hourlyTemperatureTone",
+ 'dailyTemperatureAnomalyLabel,dailyTemperatureTone,ecmwfTemperatureColor,ecmwfTemperatureTone,hourlyTemperatureTone',
  'climate={climate}',
  'hourlyDetail={cockpitDetails?.sevenDay}',
  'className="cockpit-day-hourly-cue"',
  'className="cockpit-day-hourly-accordion"',
  'Stündlicher Tagesverlauf',
  'compactGustLabel(day.gust,unit)',
- "dailyTemperatureTone(day.max,climateDay?.maxMean,'max')",
+ 'minTone=ecmwfTemperatureTone(day.min),maxTone=ecmwfTemperatureTone(day.max)',
+ 'Temperaturen nach ECMWF-Farbskala · in 7 Tagen keine Klimaabweichungen.',
+ "minTone=dailyTemperatureTone(item.bestMin,item.climateMin,'min'),maxTone=dailyTemperatureTone(item.bestMax,item.climateMax,'max')",
+ "dailyTemperatureAnomalyLabel(minTone.anomaly)",
+ "dailyTemperatureAnomalyLabel(maxTone.anomaly)",
  "activeHorizon==='fourteen-day'?cockpitDetails?.fourteenDay:undefined"
 ])need('Cockpit',cockpit,token);
+forbid('Cockpit',cockpit,"dailyTemperatureTone(day.max,climateDay?.maxMean,'max')");
+forbid('Cockpit',cockpit,"dailyTemperatureTone(day.min,climateDay?.minMean,'min')");
 forbid('Cockpit',cockpit,'details:{shortTerm?:ReactNode;sevenDay?:ReactNode;fourteenDay?:ReactNode}');
 forbid('Cockpit',cockpit,'Vollständige Analyse öffnen');
 
@@ -48,8 +60,10 @@ for(const token of [
  'compactMode={false}',
  "!hourlyDetailOnly&&<div className=\"forecastrows\"",
  "hourlyDetailOnly||(!inlineAccordionMode&&detailsOpen)",
- "dailyTemperatureTone(d.max,climateDay?.maxMean,'max')"
+ 'minTone=ecmwfTemperatureTone(d.min),maxTone=ecmwfTemperatureTone(d.max)'
 ])need('App',app,token);
+forbid('App',app,"dailyTemperatureTone(d.max,climateDay?.maxMean,'max')");
+forbid('App',app,"dailyTemperatureTone(d.min,climateDay?.minMean,'min')");
 forbid('App',app,'sevenDaySummary={cockpitSevenDaySummary} details={{');
 
 for(const token of [
@@ -70,5 +84,5 @@ for(const [file,source] of [['App.tsx',app],['ForecastCockpit.tsx',cockpit],['te
  if(errors.length)failures.push(`${file}: ${errors.map(item=>ts.flattenDiagnosticMessageText(item.messageText,' ')).join(' | ')}`);
 }
 
-if(failures.length){console.error('Cockpit-Stunden-/Klimafarb-/Redundanzprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Signierte Klimafarben für Tmin/Tmax, neutrale stündliche Temperaturen und redundanzfreie Cockpit-Ansichten geprüft.');
+if(failures.length){console.error('Cockpit-Stunden-/Temperaturfarb-/Redundanzprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
+console.log('Temperaturfarbvertrag geprüft: Stunden neutral, 7d absolute ECMWF-Farben ohne Δ, 14d signierte Tmin/Tmax-Klimadeltas; Cockpit bleibt redundanzfrei.');

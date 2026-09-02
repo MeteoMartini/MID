@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.78.0",
+  "releaseVersion": "0.9.78.3",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -376,7 +376,9 @@
     "scripts/test-seasonal-all-model-consensus-097727.mjs",
     "scripts/test-climate-delta-badges-097728.mjs",
     "scripts/test-witterung-seven-day-curve-097729.mjs",
-    "scripts/test-weather-pictogram-standard-09780.mjs"
+    "scripts/test-weather-pictogram-standard-09780.mjs",
+    "scripts/test-weather-pictogram-ui-lock-09781.mjs",
+    "scripts/test-seven-day-ecmwf-hourly-09781.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -679,7 +681,9 @@
     "scripts/test-seasonal-all-model-consensus-097727.mjs",
     "scripts/test-climate-delta-badges-097728.mjs",
     "scripts/test-witterung-seven-day-curve-097729.mjs",
-    "scripts/test-weather-pictogram-standard-09780.mjs"
+    "scripts/test-weather-pictogram-standard-09780.mjs",
+    "scripts/test-weather-pictogram-ui-lock-09781.mjs",
+    "scripts/test-seven-day-ecmwf-hourly-09781.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -1124,7 +1128,11 @@
     "MID_WEATHER_PICTOGRAM_STANDARD.md",
     "scripts/test-weather-pictogram-standard-09780.mjs",
     "MID_IMPLEMENTATION_0.9.78.0.md",
-    "MID_TEST_REPORT_0.9.78.0.md"
+    "MID_TEST_REPORT_0.9.78.0.md",
+    "scripts/test-weather-pictogram-ui-lock-09781.mjs",
+    "scripts/test-seven-day-ecmwf-hourly-09781.mjs",
+    "MID_IMPLEMENTATION_0.9.78.1.md",
+    "MID_TEST_REPORT_0.9.78.1.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1408,7 +1416,9 @@
     "src/WeatherPictogram.tsx",
     "scripts/test-weather-pictogram-standard-09780.mjs",
     "MID_IMPLEMENTATION_0.9.78.0.md",
-    "MID_TEST_REPORT_0.9.78.0.md"
+    "MID_TEST_REPORT_0.9.78.0.md",
+    "MID_IMPLEMENTATION_0.9.78.1.md",
+    "MID_TEST_REPORT_0.9.78.1.md"
   ],
   "evidenceFiles": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -1447,7 +1457,9 @@
     "MID_WEATHER_PICTOGRAM_STANDARD.md",
     "scripts/test-weather-pictogram-standard-09780.mjs",
     "MID_IMPLEMENTATION_0.9.78.0.md",
-    "MID_TEST_REPORT_0.9.78.0.md"
+    "MID_TEST_REPORT_0.9.78.0.md",
+    "MID_IMPLEMENTATION_0.9.78.1.md",
+    "MID_TEST_REPORT_0.9.78.1.md"
   ],
   "releaseEvidence": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -1474,7 +1486,9 @@
     "MID_WEATHER_PICTOGRAM_STANDARD.md",
     "scripts/test-weather-pictogram-standard-09780.mjs",
     "MID_IMPLEMENTATION_0.9.78.0.md",
-    "MID_TEST_REPORT_0.9.78.0.md"
+    "MID_TEST_REPORT_0.9.78.0.md",
+    "MID_IMPLEMENTATION_0.9.78.1.md",
+    "MID_TEST_REPORT_0.9.78.1.md"
   ],
   "activeRegressionSuite": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -1495,18 +1509,20 @@
     "scripts/test-weather-pictogram-standard-09780.mjs"
   ],
   "version": "0.9.77.23",
-  "updatedAt": "2026-09-02T19:00:00+02:00",
+  "updatedAt": "2026-09-02T22:23:00+02:00",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
     "MID_IMPLEMENTATION_0.9.77.27.md",
     "MID_IMPLEMENTATION_0.9.77.28.md",
     "MID_WEATHER_PICTOGRAM_STANDARD.md",
-    "MID_IMPLEMENTATION_0.9.78.0.md"
+    "MID_IMPLEMENTATION_0.9.78.0.md",
+    "MID_IMPLEMENTATION_0.9.78.1.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",
     "MID_TEST_REPORT_0.9.77.27.md",
     "MID_TEST_REPORT_0.9.77.28.md",
-    "MID_TEST_REPORT_0.9.78.0.md"
+    "MID_TEST_REPORT_0.9.78.0.md",
+    "MID_TEST_REPORT_0.9.78.1.md"
   ]
 }

@@ -1,4 +1,44 @@
 export type DailyTemperatureKind='min'|'max';
+
+export type EcmwfTemperatureTone={
+ color:string;
+ background:string;
+ border:string;
+ title:string;
+};
+
+type EcmwfTemperatureStop={value:number;color:[number,number,number]};
+// ECMWF-inspirierte 2-m-Temperaturpalette: kalte Werte blau/violett, milde Werte
+// grün/gelb, warme Werte orange/rot. Die Kennlinie ist wertbasiert, nicht klimatologisch.
+const ECMWF_TEMPERATURE_STOPS:EcmwfTemperatureStop[]=[
+ {value:-30,color:[87,53,151]},
+ {value:-20,color:[68,83,178]},
+ {value:-10,color:[56,132,205]},
+ {value:0,color:[69,177,204]},
+ {value:5,color:[82,188,151]},
+ {value:10,color:[157,201,83]},
+ {value:15,color:[236,201,55]},
+ {value:20,color:[244,151,42]},
+ {value:25,color:[234,91,39]},
+ {value:30,color:[210,54,49]},
+ {value:35,color:[164,34,49]},
+ {value:40,color:[112,21,47]}
+];
+function mixChannel(a:number,b:number,ratio:number){return Math.round(a+(b-a)*ratio)}
+export function ecmwfTemperatureColor(value:number){
+ const numeric=Number(value);if(!Number.isFinite(numeric))return'var(--param-temperature)';
+ if(numeric<=ECMWF_TEMPERATURE_STOPS[0].value){const [r,g,b]=ECMWF_TEMPERATURE_STOPS[0].color;return`rgb(${r} ${g} ${b})`}
+ const last=ECMWF_TEMPERATURE_STOPS[ECMWF_TEMPERATURE_STOPS.length-1];if(numeric>=last.value){const[r,g,b]=last.color;return`rgb(${r} ${g} ${b})`}
+ for(let index=0;index<ECMWF_TEMPERATURE_STOPS.length-1;index++){
+  const a=ECMWF_TEMPERATURE_STOPS[index],b=ECMWF_TEMPERATURE_STOPS[index+1];if(numeric<a.value||numeric>b.value)continue;
+  const ratio=(numeric-a.value)/Math.max(.001,b.value-a.value),r=mixChannel(a.color[0],b.color[0],ratio),g=mixChannel(a.color[1],b.color[1],ratio),blue=mixChannel(a.color[2],b.color[2],ratio);return`rgb(${r} ${g} ${blue})`;
+ }
+ return'var(--param-temperature)';
+}
+export function ecmwfTemperatureTone(value:number):EcmwfTemperatureTone{
+ const color=ecmwfTemperatureColor(value),rounded=Number.isFinite(Number(value))?`${Math.round(Number(value))} °C`:'–';
+ return{color,background:`color-mix(in srgb,${color} 18%,transparent)`,border:`color-mix(in srgb,${color} 55%,var(--border))`,title:`Temperatur ${rounded} · ECMWF-Farbskala`};
+}
 export type DailyTemperatureTone={
  color:string;
  background:string;

@@ -13,7 +13,8 @@ assert.ok(tone.includes('Math.sqrt(Math.abs(signed))'),'Kleine Klimaabweichungen
 assert.ok(tone.includes('backgroundShare=Math.round(9+bounded*19)')&&tone.includes('borderShare=Math.round(24+bounded*34)'),'Kästchenhintergrund und Rahmen müssen mit der Klimaabweichung reagieren.');
 assert.ok(tone.includes('background:`color-mix(in srgb,${token} ${backgroundShare}%,transparent)`'),'Tmin/Tmax benötigen wieder kleine farbige Kästchen.');
 assert.ok(tone.includes('border:`color-mix(in srgb,${token} ${borderShare}%,var(--border))`'),'Die Kästchen benötigen eine parametergleiche Kontur.');
-assert.ok(cockpit.includes('Tmin blau, Tmax rot · Kästchenintensität = Abweichung vom jeweiligen Klimamittel.'),'Die 7-Tage-Legende muss die Kästchenlogik benennen.');
+assert.ok(cockpit.includes('dailyTemperatureTone(item.bestMin,item.climateMin')&&cockpit.includes('dailyTemperatureTone(item.bestMax,item.climateMax'),'Die 14-Tage-Ansicht muss den historischen Tmin/Tmax-Klimaton weiter verwenden.');
+assert.ok(cockpit.includes('Temperaturen nach ECMWF-Farbskala · in 7 Tagen keine Klimaabweichungen.'),'7-Tage-Ansicht muss seit v0.9.78.1 ausdrücklich auf absolute ECMWF-Farben wechseln.');
 assert.ok(contract.includes('kleinen bläulichen')&&contract.includes('kleinen rötlichen Kästchen'),'Der Farbvertrag muss die blauen/roten Tmin-/Tmax-Kästchen schützen.');
 assert.ok(contract.includes('±0,5 bis ±1 K'),'Kleine Klimaabweichungen müssen ausdrücklich geschützt sein.');
 assert.equal(baseline.releaseVersion,pkg.version,'Baseline und Paketversion müssen synchron sein.');

@@ -16,7 +16,7 @@ const checks=[
  ['24h precipitation probability aliases central token',modern.includes('--profile-prob:var(--param-precipitation)')],
  ['24h pressure aliases central token',modern.includes('--profile-pressure:var(--param-pressure)')],
  ['24h wind arrow uses central token',modern.includes('.profile-wind-direction-arrow{color:var(--param-wind)')],
- ['24h temperature line resolves to central token',cockpit.includes("return'var(--param-temperature)'")],
+ ['24h temperature line uses the binding ECMWF absolute-temperature function',cockpit.includes('function ecmwfTemperatureLineColor(value:number){return ecmwfTemperatureColor(value)}')&&tempTone.includes('export function ecmwfTemperatureColor')],
  ['Tmin/Tmax retain canonical blue/red families',tempTone.includes("kind==='max'?'var(--param-temperature-max)':'var(--param-temperature-min)'")],
  ['daily Tmin/Tmax use signed climate anomaly saturation within their family',tempTone.includes('dailyIntensity(anomaly,kind)')&&tempTone.includes('Math.sqrt(Math.abs(signed))')&&tempTone.includes("const directional=kind==='min'?-response:response")],
  ['short-term individual temperatures are neutral text, not Tmin/Tmax colours',tempTone.includes('export function hourlyTemperatureTone')&&tempTone.includes("color:'var(--text)'")&&tempTone.includes('void climateMin;void climateMax;')],

@@ -27,7 +27,7 @@ Die Niederschlagsstärke wird nicht primär durch eine andere Farbe vermittelt, 
 
 ## Tag/Nacht
 
-Jeder Wetterzustand besitzt eine eindeutige Tag-/Nacht-Darstellung. Bei Schauern und wechselnder Bewölkung ist Sonne bzw. Mond direkt sichtbar. Bei stratiformem Niederschlag, Schnee oder geschlossener Bewölkung bleibt der Tageszeitanker bewusst dezenter hinter der Bewölkung. Die `data-day-part`-Semantik bleibt für alle Größen erhalten.
+Jeder Wetterzustand besitzt eine eindeutige Tag-/Nacht-Darstellung. Sonne bzw. Mond wird dort sichtbar kombiniert, wo der Himmelzustand fachlich Teil des Symbols ist – insbesondere bei wechselnder Bewölkung und Schauern. Bei stratiformem Regen/Schnee, Nebel oder geschlossener Bewölkung wird kein künstlicher Sonnen-/Mondrest hinter das Phänomen gelegt; die Tageszeit bleibt technisch über `data-day-part` erhalten und wird nur dort grafisch gezeigt, wo sie meteorologisch sinnvoll unterscheidet.
 
 ## Hell- und Dunkelmodus
 
@@ -35,7 +35,7 @@ Die Vektorgeometrie ist identisch. Sämtliche relevanten Farben werden über `--
 
 ## Skalierbarkeit und Einsatz
 
-`WeatherPictogram` bleibt echtes Inline-SVG mit `viewBox="0 0 68 68"` und wird ohne Rasterassets skaliert. `compact` reduziert den visuellen Schatten für kleine Zellen; `plain` entfernt nur die Hintergrundplatte und ist für Diagramme vorgesehen. Die meteorologische Kerngeometrie bleibt gleich, damit dasselbe Wetter appweit sofort wiedererkannt wird.
+`WeatherPictogram` bleibt echtes Inline-SVG mit `viewBox="0 0 68 68"` und wird ohne Rasterassets skaliert. Der verbindliche Standard ist **standalone**: Das Wetterzeichen selbst besitzt keine eingebaute quadratische/abgerundete Sky-Plate. `plain=true` ist deshalb der Default; zusätzlich unterdrückt das appweite CSS jede alte `mid-weather-skyplate`. Falls eine Oberfläche einen Chip oder eine Kachel benötigt, stammt deren Hintergrund ausschließlich vom umgebenden UI-Container und niemals aus einer zweiten Wettericon-Grafik. `compact` reduziert nur Schatten/Detailgrad für kleine Zellen. Die meteorologische Kerngeometrie bleibt gleich, damit dasselbe Wetter appweit sofort wiedererkannt wird.
 
 Verbindliche Einsatzorte sind mindestens:
 
@@ -59,3 +59,16 @@ Nicht meteorologische Bedienicons, Warnstufensymbole und astronomische Spezialda
 4. Sprühregen, Schneegriesel, gefrierende und gemischte Phasen bleiben voneinander unterscheidbar.
 5. Niederschlagsintensität bleibt in Hoch-/Querformat, Desktop und iOS bei jeder vorgesehenen Größe erkennbar.
 6. Neue Wetterphänomene werden ausschließlich in diesem zentralen Standard ergänzt; parallele Emoji- oder Asset-Renderer sind nicht zulässig.
+
+
+## Verbindliche Präzisierung v0.9.78.1 – Screenshot-3-Lock und Phasenkohärenz
+
+Das in MID 17.7.14 freigegebene **Weather Icon System 2.0** ist die verbindliche visuelle Referenz für die gesamte App. Daraus folgen zusätzlich:
+
+1. Hauptwetterglyphen werden ohne eingebettete quadratische Hintergrundplatte dargestellt. Ein umgebender UI-Chip darf existieren, darf aber nicht Teil des Wetterzeichens sein.
+2. Tages-/Nacht-, Hell-/Dunkel- und Größenvarianten verwenden dieselbe zentrale SVG-Geometrie und dieselben `--wx-icon-*`-Tokens. Separate alte Bildsätze sind unzulässig.
+3. Tagescharakter, Regimebezeichnung und Piktogramm müssen fachlich kohärent sein. `Regenschauer` darf beispielsweise nicht aus einem rohen, nur bewölkten `hour.code` ein identisches Wolkensymbol wie ein trockener Tag erhalten. Repräsentative Forecast-Piktogramme verwenden deshalb die kanonische Niederschlagsphase aus `precipitationParts(...).displayCode`; der fachliche Tages-Fallback darf eine reine Sky-Code-Repräsentation übersteuern.
+4. Sprühregen, Regen, Schauer, Schnee, Schneegriesel, Schneeschauer, gefrierende/mischförmige Niederschläge, Graupel, Hagel und Gewitter bleiben eigenständige Symbolfamilien. Intensität wird geometrisch über Dichte/Anzahl/Strichgewicht transportiert.
+5. Neue Komponenten dürfen Wetterzustände ausschließlich über `WeatherPictogram` darstellen. Wird eine neue Wetterquelle eingebunden, wird ihre Semantik zuerst in den kanonischen Forecast-/Niederschlagspfad übersetzt und erst danach gerendert.
+
+Required Regression: `scripts/test-weather-pictogram-ui-lock-09781.mjs`.

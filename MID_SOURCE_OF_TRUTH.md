@@ -18,6 +18,16 @@ Für jede weitere Entwicklung gilt ausschließlich der GitHub-Zweig `mid-stable`
 
 > Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.
 
+
+## v0.9.78.2 · Installer-Spiegel-Hotfix
+
+Der mit dem Professional-Release transportierte Installer-Spiegel `workflow-patches/install-mid.yml` muss bytegleich zum kanonischen Workflow `ci/github/workflows/install-mid.yml` bleiben. Abweichungen sind unzulässig, wenn dadurch Release-/Workflow-Regressionen gegen einen veralteten Vertragsstand laufen würden. Der Hotfix v0.9.78.2 enthält keine fachliche App- oder Workerlogikänderung; er repariert ausschließlich diese transportierte Workflow-Spiegeldatei und die dazugehörige Versionsfortschreibung.
+
+
+## v0.9.78.3 · GitHub-Installer-Regressionsvertrag
+
+Ein Release-Regressionstest darf einen ausdrücklich supersedierten UI-Vertrag nicht weiterhin erzwingen. Für die 7-Tage-Ansicht gilt ab v0.9.78.1 ausschließlich die absolute ECMWF-Temperaturskala ohne Klimaabweichungsanzeige; die signierte Klimadelta-Logik bleibt auf 14 Tage begrenzt. Außerdem darf die aktive `.github/workflows/install-mid.yml` während eines ZIP-Installationslaufs nicht bytegleich zur neu installierten kanonischen `ci/github/workflows/install-mid.yml` vorausgesetzt werden: `.github` ist absichtlich vom automatischen Release-Ersatz ausgeschlossen. Aktive Workflows werden in solchen Regressionen semantisch auf ihren Sicherheits-/Kompatibilitätsvertrag geprüft; eine tatsächliche Workflow-Synchronisierung bleibt eine explizite administrative Aktion.
+
 ## Versionslogik
 
 - Funktionale Erweiterung: nächste dreiteilige Funktionsversion.
@@ -148,3 +158,10 @@ Tmin/Tmax in 7-/14-Tage-Übersichten verwenden das jeweilige klimatologische Tag
 ## Ergänzung v0.9.78.0 – verbindlicher appweiter Wetterpiktogramm-Standard 2.0
 
 `MID_WEATHER_PICTOGRAM_STANDARD.md` ist ab v0.9.78.0 für alle meteorologischen Wetterzustands-Piktogramme verbindlich. `src/WeatherPictogram.tsx` ist der einzige kanonische Wetterzustandsrenderer im gemeinsamen React/Vite-Fachkern. Forecast-, Tages-, Stunden-, Event-, Reise-, Routen-, Wasser-, Berg-, Ensemble- und Widgetansichten dürfen keine parallelen Emoji-, Rasterasset- oder lokalen Wettericonpfade neu einführen. Die Symbolfamilie muss Tag/Nacht sowie Hell/Dunkel bei identischer skalierbarer SVG-Geometrie unterstützen. Niederschlagsart und Niederschlagsstärke werden getrennt kodiert; insbesondere Sprühregen, gefrierender Sprühregen/Regen, Regen/Schauer, Schnee, Schneegriesel, Schneeschauer, stratiformer und konvektiver Misch-Niederschlag, Eiskristalle, Eiskörner, Graupel und Hagel müssen unterscheidbar bleiben. Dekodierte SYNOP-/BUFR-/METAR-Present-Weather-Angaben dürfen über den zentralen `phenomenon`-Pfad eingebunden werden. Intensität darf nicht allein über Farbe vermittelt werden. Der alte Forecast-Emoji-Hilfspfad ist nicht mehr zulässig. Required Regression: `scripts/test-weather-pictogram-standard-09780.mjs`.
+
+
+## v0.9.78.1 · Weather-Icon-System-Lock und 7-Tage-Stundenkurve
+
+`MID_WEATHER_PICTOGRAM_STANDARD.md` wird verschärft: Weather Icon System 2.0 ist die appweite visuelle Referenz; Wetterglyphen sind standalone und dürfen keine eingebaute alte Sky-Plate tragen. Repräsentative Tages-/Nachtpiktogramme müssen ihre Phase aus dem kanonischen `precipitationParts(...).displayCode` ableiten, damit Niederschlagscharakter und Symbol nicht auseinanderlaufen. `Regenschauer`, Sprühregen, Schneegriesel, Schnee-/Mischphasen, Hagel und Gewitter bleiben damit auch in kompakten 7-Tage-Karten unterscheidbar.
+
+Der 7-Tage-Temperatur-/Niederschlagsblock folgt dem freigegebenen Konzept: die Temperaturkurve basiert auf den stündlichen kanonischen Forecastwerten, Niederschlagsbalken sind stündlich und auf derselben Zeitachse ausgerichtet, 00/12-Uhr- und Tagesmarken strukturieren alle sieben Tage, horizontale Temperaturhilfslinien bleiben sichtbar. Temperatur wird wertbasiert mit der zentralen ECMWF-inspirierten Skala eingefärbt. In der 7-Tage-Ansicht werden keine Klimamittelabweichungen/±K mehr gezeigt; die ältere 7-Tage-Regel aus v0.9.77.25/v0.9.77.28 ist insoweit ausdrücklich ersetzt. Die 14-Tage-Klimaabweichungslogik bleibt bestehen. Required Regressions: `scripts/test-weather-pictogram-ui-lock-09781.mjs`, `scripts/test-seven-day-ecmwf-hourly-09781.mjs`.

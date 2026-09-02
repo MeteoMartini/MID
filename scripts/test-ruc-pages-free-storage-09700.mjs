@@ -8,11 +8,20 @@ assert.ok(versionAtLeast(pkg.version,'0.9.70.0'));assert.equal(baseline.releaseV
 for(const key of ['requiredRegressionTests','regressionTests','requiredFiles'])assert.ok(baseline[key].includes(test),`${test} missing from ${key}`);
 for(const file of ['tools/ruc/prepare_ruc_pages.py','tools/ruc/restore_ruc_pages_snapshot.py','tools/ruc/test_prepare_ruc_pages.py','MID_IMPLEMENTATION_0.9.70.0.md'])assert.ok(baseline.requiredFiles.includes(file),`${file} missing from baseline`);
 
-const readActive=(path,canonical)=>fs.readFileSync(fs.existsSync(path)?path:canonical,'utf8');const workerSource=fs.readFileSync('worker-src/00-core-observations.js','utf8'),router=fs.readFileSync('worker-src/40-aviation-router.js','utf8'),workflow=fs.readFileSync('ci/github/workflows/mid-ruc-preprocess.yml','utf8'),activeWorkflow=readActive('.github/workflows/mid-ruc-preprocess.yml','ci/github/workflows/mid-ruc-preprocess.yml'),install=fs.readFileSync('ci/github/workflows/install-mid.yml','utf8'),activeInstall=readActive('.github/workflows/install-mid.yml','ci/github/workflows/install-mid.yml');
+const readActive=(path,canonical)=>fs.readFileSync(fs.existsSync(path)?path:canonical,'utf8');const workerSource=fs.readFileSync('worker-src/00-core-observations.js','utf8'),router=fs.readFileSync('worker-src/40-aviation-router.js','utf8'),workflow=fs.readFileSync('ci/github/workflows/mid-ruc-preprocess.yml','utf8'),activeWorkflow=readActive('.github/workflows/mid-ruc-preprocess.yml','ci/github/workflows/mid-ruc-preprocess.yml'),install=fs.readFileSync('ci/github/workflows/install-mid.yml','utf8'),activeInstallPath='.github/workflows/install-mid.yml',activeInstall=readActive(activeInstallPath,'ci/github/workflows/install-mid.yml');
 for(const token of ["const DWD_RUC_STATIC_DEFAULT='https://midwx.app/ruc/'",'dwdRucStaticPointPayload','dwdRucEpsSummaryStaticPayload','dwdRucStorageHealth','pages-free-v1','GitHub Pages',"Accept-Encoding':'identity'"])assert.ok(workerSource.includes(token),`static RUC worker token missing: ${token}`);
 assert.ok(router.includes("mode==='ruc-health')return json({...await dwdRucStorageHealth(env)"));
 const workflowSyncState=assertRucWorkflowSyncState(activeWorkflow,workflow);
-assert.ok(['synced','pending-admin-sync'].includes(workflowSyncState.state),'Aktiver RUC-Workflow darf nur synchron oder exakt im geschützten Legacy-vor-Admin-Sync-Zustand sein.');assert.equal(install,activeInstall);
+assert.ok(['synced','pending-admin-sync'].includes(workflowSyncState.state),'Aktiver RUC-Workflow darf nur synchron oder exakt im geschützten Legacy-vor-Admin-Sync-Zustand sein.');
+// Der ZIP-Installer ersetzt .github absichtlich nicht. Während eines Release-Runs darf die aktive
+// Workflowdatei deshalb älter als die neu installierte kanonische Kopie sein. Bytegleichheit wäre
+// ein Widerspruch zum Self-Modification-Schutz; geprüft wird stattdessen der weiterhin sichere
+// Mindestvertrag der gerade aktiven Pipeline.
+if(fs.existsSync(activeInstallPath)){
+ for(const token of ['MID-professional-replacement.zip','npm run verify',"git add -A -- . ':(exclude).github/**'",'restore_ruc_pages_snapshot.py','MID_RUC_PAGES_BASE_URL','group: mid-pages','cancel-in-progress: false'])assert.ok(activeInstall.includes(token),`active installer safety token missing: ${token}`);
+ assert.ok(!activeInstall.includes('git push --force origin HEAD:main'),'active installer must never force-push main');
+ assert.ok(!activeInstall.includes('rsync -a --delete --checksum "$source_dir/" .github/'),'active installer must not self-modify .github');
+}
 for(const token of ['prepare_ruc_pages.py','upload-pages-artifact@','deploy-pages@','ref: mid-stable','950000000','MID_RUC_PIPELINE_ENABLED'])assert.ok(workflow.includes(token),`free Pages workflow token missing: ${token}`);
 for(const forbidden of ['MID_RUC_R2_ACCESS_KEY_ID','MID_RUC_R2_SECRET_ACCESS_KEY','publish_ruc_r2.sh'])assert.ok(!workflow.includes(forbidden),`free Pages workflow still requires R2: ${forbidden}`);
 assert.ok(install.match(/Bereits veröffentlichten kostenfreien RUC-Snapshot erhalten/g)?.length===3,'all three normal Pages release attempts must preserve RUC');

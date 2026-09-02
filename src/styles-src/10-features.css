@@ -1312,6 +1312,8 @@ button,input,select,[role="button"]{touch-action:manipulation}
  --wx-icon-night-plate:rgba(55,88,122,.22);--wx-icon-night-fog-plate:rgba(72,96,120,.28);--wx-icon-night-storm-plate:rgba(44,68,96,.35);--wx-icon-night-plate-stroke:rgba(65,91,118,.32)
 }
 .mid-weather-pictogram{shape-rendering:geometricPrecision;text-rendering:geometricPrecision;isolation:isolate}
+/* Appweiter Lock: Wetterglyphen sind eigenständige Symbole; ein eingebetteter alter Sky-Plate-Hintergrund ist unzulässig. */
+.mid-weather-pictogram .mid-weather-skyplate{display:none!important}
 .mid-weather-pictogram .mid-weather-sun,.mid-weather-pictogram .mid-weather-moon,.mid-weather-pictogram .mid-weather-cloud,.mid-weather-pictogram .mid-weather-rain,.mid-weather-pictogram .mid-weather-drizzle,.mid-weather-pictogram .mid-weather-snow,.mid-weather-pictogram .mid-weather-ice-pellets,.mid-weather-pictogram .mid-weather-graupel,.mid-weather-pictogram .mid-weather-hail,.mid-weather-pictogram .mid-weather-lightning,.mid-weather-pictogram .mid-weather-fog-lines,.mid-weather-pictogram .mid-weather-haze{vector-effect:non-scaling-stroke}
 .mid-weather-pictogram.compact .mid-weather-skyplate{opacity:.82}
 .mid-weather-pictogram.intensity-light .mid-weather-cloud{opacity:.96}

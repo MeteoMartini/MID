@@ -56,3 +56,16 @@ Insbesondere geschützt sind das 24-h-Wetterprofil, die 7-Tage-Tagesansichten sa
 - Die 7-/14-Tage-Übersichten stellen Tmin wieder in einem kleinen bläulichen und Tmax in einem kleinen rötlichen Kästchen dar. Die Kästchen bleiben kompakt und dürfen die Tageskarten nicht verbreitern.
 - Bereits kleine signierte Klimaabweichungen von etwa ±0,5 bis ±1 K müssen sichtbar auf Zahl-, Hintergrund- und Rahmenintensität reagieren. Eine nichtlineare Kennlinie darf große Abweichungen sanft sättigen, damit kleinere Abweichungen nicht optisch untergehen.
 - Tmin bleibt unabhängig vom Vorzeichen ausschließlich blau, Tmax ausschließlich rot. Kurzfristige/stündliche Einzeltemperaturen bleiben weiterhin neutral und erhalten keine Tmin-/Tmax-Kästchen.
+
+
+## Zusatzvertrag v0.9.78.1 – 7-Tage-ECMWF-Temperaturskala
+
+Dieser Absatz **ersetzt für die 7-Tage-Ansicht** die ältere v0.9.77.25-/v0.9.77.28-Regel, nach der Tmin/Tmax dort als klimaabweichungsabhängige Blau-/Rot-Kästchen dargestellt wurden. Die 14-Tage-/Ensemble-Klimaabweichungsdarstellung bleibt davon unberührt.
+
+- Die 7-Tage-Kurvenübersicht und die 7-Tage-Tageskarten zeigen **keine Abweichungen zum Klimamittel** und keine `±K`-/`Δ`-Werte.
+- Temperaturfarbe ist dort eine Funktion der **absoluten 2-m-Temperatur** nach der zentral in `src/temperatureTone.ts` definierten ECMWF-inspirierten Skala: kalt violett/blau, kühl cyan/grün, mild gelb, warm orange, heiß rot/dunkelrot.
+- Die stündliche 7-Tage-Temperaturkurve erhält ihre Farbe punktweise aus derselben Skala. Tmin/Tmax-Werte und der Temperaturbereich jeder 7-Tage-Tageskarte verwenden dieselbe wertbasierte Farbidentität.
+- Niederschlag bleibt `--param-precipitation`; Temperatur- und Niederschlagsdarstellung besitzen im 7-Tage-Kurvenblock eine **gemeinsame Stundenachse** und sind zeitlich deckungsgleich ausgerichtet.
+- Die Regel gilt identisch für Hell/Dunkel, iPhone/iPad und Desktop sowie Hoch-/Querformat.
+
+Required Regression: `scripts/test-seven-day-ecmwf-hourly-09781.mjs`.

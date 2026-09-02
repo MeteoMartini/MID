@@ -1,3 +1,24 @@
+## v0.9.78.3
+
+- GitHub-Installer-Run #841 gezielt korrigiert: TypeScript 7, Vite-Build, npm-Installation und Dependency-Audit waren bereits grün; ausschließlich zwei veraltete Regressionen blockierten den Release.
+- `test-cockpit-hourly-climate-redundancy-09140.mjs` auf den verbindlichen v0.9.78.1-Nachfolgevertrag migriert: 7 Tage nutzen absolute ECMWF-Temperaturfarben ohne Klima-Delta, stündliche Temperaturen bleiben neutral, 14 Tage behalten signierte Tmin/Tmax-Klimadeltas.
+- `test-ruc-pages-free-storage-09700.mjs` verlangt während des ZIP-Installers keine unzulässige Bytegleichheit mehr zwischen aktiver `.github/workflows/install-mid.yml` und der neu installierten kanonischen Kopie. Stattdessen wird der sichere Mindestvertrag der aktiven Pipeline geprüft; der bewusste `.github`-Self-Modification-Schutz bleibt damit erhalten.
+- Keine fachliche App-, Forecast-, Wetterpiktogramm-, RUC- oder Workerlogikänderung.
+
+## v0.9.78.2
+
+- Installer-Hotfix für GitHub Release-Run #840: die im Release mitgeführte Spiegeldatei `workflow-patches/install-mid.yml` ist wieder bytegleich zur kanonischen Pipeline unter `ci/github/workflows/install-mid.yml`.
+- Damit sind Race-Schutz auf `main`, Ausschluss der automatischen `.github`-Selbstmodifikation, serieller `mid-pages`-Lock ohne Cancellation sowie der gestufte Worker-/Pages-/Stable-Promote-Vertrag wieder konsistent regressionsgeschützt.
+- Keine fachliche App-, Forecast- oder Workerlogikänderung; der Fix betrifft ausschließlich die mit dem Release transportierte Installer-Spiegeldatei und die Versionsfortschreibung auf v0.9.78.2.
+
+## v0.9.78.1
+
+- Weather Icon System 2.0 als echter appweiter Screenshot-3-Lock: Wetterglyphen standardmäßig standalone ohne eingebettete Sky-Plate; zusätzliche CSS-Sperre verhindert die Rückkehr alter quadratischer Piktogrammplatten.
+- Tagespiktogramme in klassischer 7-Tage-Ansicht und Forecast Cockpit verwenden die kanonisch korrigierte Niederschlagsphase; Regenschauer, Regen, Schnee usw. können nicht mehr durch einen rohen cloud-only Stunden-Code dasselbe Symbol wie trockene Bedingungen erhalten.
+- 7-Tage-Kurvenübersicht auf reale Stundenwerte umgestellt: gemeinsame 00/12-Zeitachse für Temperatur und Niederschlag, stündliche Niederschlagsbalken, horizontale Temperaturhilfslinien und geglättete Stundenkurve.
+- 7-Tage-Temperaturen nutzen eine zentral interpolierte ECMWF-inspirierte Absoluttemperaturskala in Kurve, Tmin/Tmax und Rangebar; Klimaabweichungen/±K sind im 7-Tage-Modus entfernt. 14-Tage-Klimaanomalien bleiben bestehen.
+- Piktogramm-, Farb- und Source-of-Truth-Verträge sowie Regressionen auf v0.9.78.1 erweitert. Keine fachliche Workeränderung.
+
 ## v0.9.78.0
 
 - Verbindlicher appweiter Wetterpiktogramm-Standard 2.0: ein zentraler skalierbarer SVG-Renderer für Forecast-, Tages-, Stunden-, Event-, Reise-, Wasser-, Berg-, Routen-, Ensemble- und kompakte Widgetdarstellungen.

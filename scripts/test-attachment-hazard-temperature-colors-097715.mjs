@@ -17,7 +17,8 @@ assert.ok(tone.includes('Math.sqrt(Math.abs(signed))')&&tone.includes("const dir
 assert.ok(tone.includes('background:`color-mix(in srgb,${token}')&&tone.includes('border:`color-mix(in srgb,${token}'),'Tmin/Tmax müssen wieder kleine farbige Blau-/Rot-Kästchen mit klimaabhängiger Intensität verwenden.');
 assert.ok(tone.includes("color:'var(--text)'"),'Aktuelle/stündliche Temperaturwerte müssen neutral in der Theme-Textfarbe erscheinen.');
 assert.ok(tone.includes('void climateMin;void climateMax;'),'Stündliche Temperatur darf nicht mehr anhand klimatologischer Tmin/Tmax in Blau/Rot einsortiert werden.');
-assert.ok(cockpit.includes('Tmin blau, Tmax rot · Kästchenintensität = Abweichung vom jeweiligen Klimamittel.'),'7-Tage-Legende muss die neue Kästchenlogik verständlich benennen.');
+assert.ok(cockpit.includes('Temperaturen nach ECMWF-Farbskala · in 7 Tagen keine Klimaabweichungen.'),'7-Tage-Legende muss die ab v0.9.78.1 gültige ECMWF-Farbskala ohne Klimadelta benennen.');
+assert.ok(cockpit.includes('dailyTemperatureTone(item.bestMin,item.climateMin')&&cockpit.includes('dailyTemperatureTone(item.bestMax,item.climateMax'),'14-Tage-Ansicht muss die historische klimabezogene Tmin/Tmax-Farbskala weiter schützen.');
 assert.ok(modern.includes('.selected-time-value-pill.temperature{color:var(--text)}'),'Auch der ausgewählte stündliche Temperaturwert im 24-h-Profil muss neutral bleiben.');
 assert.ok(contract.includes('Blau/Rot bleibt ausschließlich den Tagesextrema Tmin/Tmax vorbehalten.'),'Verbindlicher Farbvertrag muss aktuelle Temperaturen von Tmin/Tmax trennen.');
 assert.ok(contract.includes('kälter = kräftiger/dunkler')&&contract.includes('wärmer = kräftiger/dunkler')&&contract.includes('±0,5 bis ±1 K'),'Farbvertrag muss beide Klimaskalenrichtungen und die empfindlichere Reaktion kleiner Abweichungen schützen.');

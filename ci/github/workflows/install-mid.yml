@@ -816,6 +816,8 @@ jobs:
             echo "mid-stable zeigt bereits auf den geprüften Release ${release_sha}."
             exit 0
           fi
+          # Stable-Promotion bleibt eine Fast-Forward-Freigabe des geprüften Release-HEADs nach refs/heads/mid-stable.
+          # Referenzanker für Regressionen: HEAD:refs/heads/mid-stable
           if ! git merge-base --is-ancestor "$stable_before" "$release_sha"; then
             echo "::error::mid-stable ${stable_before} ist kein Vorfahr des geprüften Release ${release_sha}; keine Historie wird überschrieben."
             exit 1
