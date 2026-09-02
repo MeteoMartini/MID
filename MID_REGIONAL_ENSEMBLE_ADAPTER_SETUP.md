@@ -101,3 +101,7 @@ v0.9.53.36 bietet am Worker `mode=ensemble-capabilities`. Dort müssen für die 
 ## Kosten-Governance ab v0.9.53.37
 
 Der hier beschriebene GRIB-Punktadapter bleibt optional. Die Datenquellen selbst können kostenfrei/Open-Data sein, für einen dauerhaft erreichbaren externen Containerhost können jedoch Hostingkosten anfallen. Nach `MID_COST_GOVERNANCE_CONTRACT.md` darf deshalb kein VPS/Container-Tarif oder anderes kostenpflichtiges Hosting ohne vorherige transparente Kostenangabe und ausdrückliche Nutzerfreigabe beschafft oder aktiviert werden. Solange kein bereits vorhandener kostenfreier Host zur Verfügung steht, bleibt der Adapter unkonfiguriert; die success-driven Ensemblelogik rückt automatisch mit den vorhandenen kostenlosen Modellfamilien nach.
+
+## KNMI-Wasm32-Prototyp v0.9.77.24
+
+Für die noch offene Abschnitt-4-Aktivierung existiert nun `tools/knmi_eps_wasm_prototype/` als kostenneutraler Quellprototyp. Er ändert den Adaptervertrag nicht: Worker-Manifest/Cache bleiben kanonisch, Python/ecCodes bleibt numerische Referenz und es wird weder eine Queue noch ein neues Binding aktiviert. Erst ein erfolgreich gebautes wasm32-Binary mit realer P4a-Gegenprüfung, Bundle-/RAM-/CPU-Nachweis und unverändertem 6×5-Rolling-Vertrag darf in eine spätere Aktivierungsentscheidung einfließen.

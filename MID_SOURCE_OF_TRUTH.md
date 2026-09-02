@@ -122,4 +122,7 @@ Die dynamische Wrangler-Konfiguration darf unabhängig von ihrem temporären Spe
 ## v0.9.77.23 · 24-h-Skybar und KNMI-EPS-Aktivierungs-Gate
 
 Das 24-h-Wetterprofil verwendet für die Gesamtzeile denselben zentralen `detailSkyBarSegments`-Vertrag wie die Tagesansicht; H/M/L bleiben separate graue Intensitätsbänder. Wertepillen am aktiven Zeitcursor sind leicht transparent. `MID_KNMI_HARMONIE_EPS_ACTIVATION_AUDIT_0.9.77.23.md` dokumentiert zugleich Abschnitt 4/4: Der vorbereitete ecCodes-Punktdecoder wird nicht kostenpflichtig aktiviert. Cloudflare Python Workers sind für den nativen ecCodes-Referenzdecoder derzeit kein kompatibler Runtimepfad; Cloudflare Containers setzen einen kostenpflichtigen Workers-Paid-Plan voraus. Ohne kostenfreien kompatiblen Host, validierten Wasm-/JS-Decoder oder ausdrückliche Kostenfreigabe bleibt die reale E2E-Aktivierung gesperrt.
+## v0.9.77.24 · KNMI-EPS Wasm32-Punktprototyp
+
+`tools/knmi_eps_wasm_prototype/` ist der verbindliche, nicht-produktive Forschungsstand für Abschnitt 4/4. Der Build pinnt ECMWF ecCodes 2.48.1, nutzt wasm32 und `ENABLE_MEMFS=ON`, verarbeitet bereits getrennte GRIB1-Nachrichten ausschließlich im Speicher und ruft die native ecCodes-Nearest-Point-API auf. Ein Vollgittertransfer nach JavaScript, NODEFS, Queue-/Binding-Aktivierung oder eine neue npm-Produktionsdependency sind verboten. Die Python/ecCodes-Implementierung bleibt Referenz, bis reale P4a-Numerik sowie Bundle/RAM/CPU gemessen sind. Required Regression: `scripts/test-knmi-eps-wasm32-prototype-097724.mjs`.
 

@@ -45,3 +45,7 @@ Die reale Runtime-Aktivierung ist in `MID_KNMI_HARMONIE_EPS_ACTIVATION_AUDIT_0.9
 
 `MID_KNMI_HARMONIE_EPS_WASM_FEASIBILITY_0.9.77.23.md` ergänzt das Aktivierungs-Gate. Ein fokussierter ecCodes-Wasm32/MEMFS/Nearest-Point-Build darf als Forschungsprototyp untersucht werden. Falls dessen Decode-CPU das synchrone Workers-Free-Limit überschreitet, darf anschließend ein asynchroner Free-Queue-Consumer als Quelle eines numerischen Punktcaches geprüft werden. **Weder Wasm-Produktionsdependency noch Queue-Ressource sind damit freigegeben oder aktiviert.** Python/ecCodes bleibt bis zur numerischen Gegenprüfung die Referenz.
 
+
+## Wasm32-In-Memory-Prototyp v0.9.77.24
+
+`tools/knmi_eps_wasm_prototype/` ist ausschließlich ein Forschungsprototyp für Abschnitt 4/4. Er darf den Python/ecCodes-Referenzdecoder erst ersetzen, wenn ein realer P4a-Build numerisch gegen diesen Referenzpfad bestanden hat. Verbindlich sind: wasm32, ecCodes 2.48.1, `ENABLE_MEMFS=ON`, keine NODEFS-/Hostdateiabhängigkeit, keine Vollgitterübertragung nach JavaScript und die native `codes_grib_nearest_find`-Punktabfrage aus einer bereits getrennten In-Memory-GRIB1-Nachricht. Infrastrukturaktivierung bleibt gesperrt.

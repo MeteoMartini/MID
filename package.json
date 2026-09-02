@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.77.23",
+  "version": "0.9.77.24",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -384,7 +384,8 @@
     "test:knmi-eps-worker-binding": "node scripts/test-knmi-eps-worker-binding-097719.mjs",
     "test:knmi-eps-point-decoder": "node scripts/test-knmi-eps-point-decoder-097722.mjs",
     "test:weather-profile-skybar-pills": "node scripts/test-weather-profile-skybar-pills-097723.mjs",
-    "test:knmi-eps-wasm-feasibility": "node scripts/test-knmi-eps-wasm-feasibility-097723.mjs"
+    "test:knmi-eps-wasm-feasibility": "node scripts/test-knmi-eps-wasm-feasibility-097723.mjs",
+    "test:knmi-eps-wasm32-prototype": "node scripts/test-knmi-eps-wasm32-prototype-097724.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",

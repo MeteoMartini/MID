@@ -65,3 +65,7 @@ Bis dahin: keine neue Dependency, keine Queue, keine neue Cloudflare-Ressource, 
 - Cloudflare Workers Limits: https://developers.cloudflare.com/workers/platform/limits/
 - Cloudflare WebAssembly/Web-Standards: https://developers.cloudflare.com/workers/runtime-apis/webassembly/ und https://developers.cloudflare.com/workers/runtime-apis/web-standards/
 - Cloudflare Queues Pricing/Limits: https://developers.cloudflare.com/queues/platform/pricing/ und https://developers.cloudflare.com/queues/platform/limits/
+
+## Quellprototyp v0.9.77.24
+
+Der bevorzugte Pfad ist nun konkret unter `tools/knmi_eps_wasm_prototype/` vorbereitet. Er pinnt ecCodes 2.48.1, baut wasm32 ohne NODEFS, nutzt die eingebetteten ecCodes-Definitionen über `ENABLE_MEMFS=ON` und exportiert nur eine speicherbasierte GRIB1-Nearest-Point-ABI. Die Source-Vorbereitung ändert weder den produktiven Worker noch das Aktivierungsgate. Ein echter Emscripten-Build, Bundle-/RAM-/CPU-Benchmark und die numerische P4a-Gegenprüfung bleiben erforderlich, bevor eine Queue oder andere Infrastruktur überhaupt in Betracht kommt.

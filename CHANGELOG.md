@@ -1,3 +1,10 @@
+## v0.9.77.24
+
+- KNMI-HARMONIE-EPS Abschnitt 4/4 kostenneutral bis zum reproduzierbaren ecCodes-Wasm32/MEMFS/Nearest-Point-Quellprototyp fortgeführt.
+- Direkte In-Memory-GRIB1-ABI über `codes_handle_new_from_message_copy` und native `codes_grib_nearest_find`; kein Vollgittertransfer nach JavaScript.
+- Forschungsbuild pinnt ecCodes 2.48.1, verzichtet auf wasm64/NODEFS, begrenzt Wasm auf 24 MiB initial / 96 MiB maximal und reserviert 2,5 MB gzip als fail-closed Bundlebudget.
+- Keine npm-Wasm-Dependency, keine Queue, kein neues Cloudflare-Binding, kein Paid-Plan und keine fachliche Workeränderung. Reale P4a-Build-/CPU-/RAM-/Numerikverifikation bleibt offen.
+
 ## v0.9.77.23
 
 - 24-h-Wertepillen am aktiven Auswahlcursor leicht transparent (`fill-opacity: .8`), damit darunterliegende Diagramminhalte sichtbar bleiben.

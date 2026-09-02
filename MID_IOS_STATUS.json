@@ -1,10 +1,10 @@
 {
   "schema": 1,
-  "updatedAt": "2026-09-02T14:05:00+02:00",
-  "releaseVersion": "0.9.77.23",
+  "updatedAt": "2026-09-02T13:44:00.000Z",
+  "releaseVersion": "0.9.77.24",
   "sourceBaseline": {
-    "professionalVersion": "0.9.77.23",
-    "workerVersion": "0.9.77.23",
+    "professionalVersion": "0.9.77.24",
+    "workerVersion": "0.9.77.24",
     "regressionsPassed": null
   },
   "strategy": "shared-react-vite-core-with-capacitor-ios-shell",
@@ -136,7 +136,7 @@
     ],
     "approved": false
   },
-  "validationNote": "v0.9.77.23 verfeinert den gemeinsamen React-UI-Kern des 24-h-Wetterprofils: transparente Wertepillen und dieselbe zentrale Sonne-/Gesamtbewölkungs-Skybar wie in der Tagesansicht bei unveränderten H/M/L-Bändern. KNMI-EPS Abschnitt 4/4 wurde als Runtime-/Kosten-Gate auditiert: der externe Python/ecCodes-Decoder bleibt ohne kompatiblen kostenfreien Runtimepfad oder ausdrückliche Kostenfreigabe unaktiviert. Forecast-/Worker-Fachlogik und der iOS-Meilenstein macos-xcode-simulator-quality-assurance bleiben unverändert.",
+  "validationNote": "v0.9.77.24 führt KNMI-EPS Abschnitt 4/4 kostenneutral bis zum reproduzierbaren ecCodes-Wasm32/MEMFS/Nearest-Point-Quellprototyp fort. Keine Queue, kein neues Cloudflare-Binding, keine Wasm-Produktionsdependency und keine fachliche Workeränderung; reale P4a-Build-/Bundle-/RAM-/CPU-/Numerikverifikation bleibt das nächste Gate. Der gemeinsame Browser/PWA/iOS-Fachkern und nextMilestone macos-xcode-simulator-quality-assurance bleiben unverändert.",
   "completedMilestones": [
     "ci-regression-contract-hotfix-0.9.76.22",
     "ruc-scheduler-resilience-source-preparation-0.9.76.24",
@@ -200,7 +200,8 @@
       "title": "KNMI EPS Worker-Anbindung, Temperaturbrücke und Installer-Hotfix",
       "summary": "Zweiter der vier verbleibenden Hauptabschnitte bindet KNMI HARMONIE EPS über den produktiven TAR-Indexcache an ein 6×5-Rolling-Manifest; Cloudflare dekodiert weiterhin kein GRIB. Current-Temperatur wird zeit- und zeitzonengenau als weiche Brücke statt als Einzelstundenersatz assimiliert. Installer #828 wird durch Synchronisierung der Modularisierungsregression mit worker-src/05-knmi-eps-cache.js repariert."
     },
-    "weather-profile-transparent-pills-shared-day-skybar-0.9.77.23"
+    "weather-profile-transparent-pills-shared-day-skybar-0.9.77.23",
+    "knmi-eps-wasm32-nearest-point-source-prototype-0.9.77.24"
   ],
-  "currentVersion": "0.9.77.23"
+  "currentVersion": "0.9.77.24"
 }

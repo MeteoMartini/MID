@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.77.23",
+  "releaseVersion": "0.9.77.24",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -369,7 +369,8 @@
     "scripts/test-knmi-eps-worker-binding-097719.mjs",
     "scripts/test-knmi-eps-point-decoder-097722.mjs",
     "scripts/test-weather-profile-skybar-pills-097723.mjs",
-    "scripts/test-knmi-eps-wasm-feasibility-097723.mjs"
+    "scripts/test-knmi-eps-wasm-feasibility-097723.mjs",
+    "scripts/test-knmi-eps-wasm32-prototype-097724.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -665,7 +666,8 @@
     "scripts/test-knmi-eps-worker-binding-097719.mjs",
     "scripts/test-knmi-eps-point-decoder-097722.mjs",
     "scripts/test-weather-profile-skybar-pills-097723.mjs",
-    "scripts/test-knmi-eps-wasm-feasibility-097723.mjs"
+    "scripts/test-knmi-eps-wasm-feasibility-097723.mjs",
+    "scripts/test-knmi-eps-wasm32-prototype-097724.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -1080,7 +1082,19 @@
     "src/detailSkyBar.ts",
     "MID_KNMI_HARMONIE_EPS_ACTIVATION_AUDIT_0.9.77.23.md",
     "scripts/test-knmi-eps-wasm-feasibility-097723.mjs",
-    "MID_KNMI_HARMONIE_EPS_WASM_FEASIBILITY_0.9.77.23.md"
+    "MID_KNMI_HARMONIE_EPS_WASM_FEASIBILITY_0.9.77.23.md",
+    "tools/knmi_eps_wasm_prototype/mid_eccodes_point.c",
+    "tools/knmi_eps_wasm_prototype/build_wasm32.sh",
+    "tools/knmi_eps_wasm_prototype/adapter.mjs",
+    "tools/knmi_eps_wasm_prototype/report_bundle.py",
+    "tools/knmi_eps_wasm_prototype/benchmark.mjs",
+    "tools/knmi_eps_wasm_prototype/README.md",
+    "scripts/test-knmi-eps-wasm32-prototype-097724.mjs",
+    "MID_KNMI_HARMONIE_EPS_WASM_PROTOTYPE_0.9.77.24.md",
+    "MID_IMPLEMENTATION_0.9.77.24.md",
+    "MID_TEST_REPORT_0.9.77.24.md",
+    "MID_REGIONAL_ENSEMBLE_ADAPTER_SETUP.md",
+    "tools/knmi_eps_wasm_prototype/cloudflare_precompiled.mjs"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
