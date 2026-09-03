@@ -27,8 +27,8 @@ assert.ok(detailSkyBar.includes("precipitationParts,type PrecipSample")&&detailS
 assert.ok(!detailSkyBar.includes("layer:'sun'" )&&!detailSkyBar.includes("layer:'cloud'" )&&!detailSkyBar.includes("layer:'precip'" ),'Die alte Drei-Layer-Streifenlogik darf nicht mehr vorhanden sein.');
 
 assert.ok(cockpit.includes('nightBands=(()=>{')&&cockpit.includes('hourly.forEach((hour,index)=>{const isNight=!hour.isDay')&&cockpit.includes('seven-day-curve-night-band')&&cockpit.includes('fillOpacity={0.07}')&&cockpit.includes('seven-day-curve-temperature-band')&&cockpit.includes('P25–P75'),'Die 7-Tage-Kurvenübersicht muss zusammenhängende, nochmals deutlich hellere Nachtbänder sowie das P25–P75-Band rendern.');
-assert.ok(cockpit.includes('ohne 3D-Effekt')&&cockpit.includes('hellgraue Hülle um die Temperatur zeigt P25–P75'),'Kurvenübersicht-Hinweis muss die bereinigte Skybar und das Temperaturband nennen.');
-assert.ok(cockpit.includes('zusammenhängenden Nachtstunden')&&cockpit.includes('deutlich heller hinterlegt')&&cockpit.includes('P25–P75-Unsicherheitsband'),'ARIA-/Beschreibungs-Text für hellere Nachtstunden und Temperaturband fehlt.');
+assert.ok(cockpit.includes('ohne 3D-Effekt')&&cockpit.includes('geglättet')&&cockpit.includes('P25–P75-Band'),'Kurvenübersicht-Hinweis muss die bereinigte Skybar und das geglättete Temperaturband nennen.');
+assert.ok(cockpit.includes('zusammenhängenden Nachtstunden')&&cockpit.includes('deutlich heller hinterlegt')&&cockpit.includes('geglättetem P25–P75-Unsicherheitsband'),'ARIA-/Beschreibungs-Text für hellere Nachtstunden und geglättetes Temperaturband fehlt.');
 
 for(const token of ['ein einzelner, unterschiedlich breiter Wetterstreifen','Niederschlag ersetzt dabei die Bewölkungsdarstellung','ohne 3D-Unterlage oder seitliche Überlappungen','7-Tage-Kurvenübersicht hellt Nachtstunden deutlich auf','hellgraues P25–P75-Band']){
   assert.ok(contract.includes(token),`24h-Profil-Vertrag unvollständig: ${token}`);
@@ -38,4 +38,4 @@ assert.equal(baseline.releaseVersion,pkg.version,'Baseline und Paketversion müs
 assert.equal(pkg.scripts?.['test:weather-profile-skybar-pills'],`node ${test}`,'Package-Testeintrag fehlt.');
 assert.ok(baseline.requiredRegressionTests?.includes(test)&&baseline.regressionTests?.includes(test),'Regressionstest muss in beiden Baseline-Testlisten enthalten sein.');
 
-console.log(`MID v${pkg.version}: Single-Strip-Wetterband ohne 3D-Effekt, mit Sonnenabstufung und hellerer 7-Tage-Kurvenübersicht geschützt.`);
+console.log(`MID v${pkg.version}: verbundene Single-Strip-Skybar, hellere Nachtbänder und geglättetes 7-Tage-P25–P75-Band geschützt.`);

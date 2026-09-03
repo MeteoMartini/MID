@@ -19,7 +19,7 @@ assert.ok(tone.includes("color:'var(--text)'"),'Aktuelle/stündliche Temperaturw
 assert.ok(tone.includes('void climateMin;void climateMax;'),'Stündliche Temperatur darf nicht mehr anhand klimatologischer Tmin/Tmax in Blau/Rot einsortiert werden.');
 assert.ok(cockpit.includes('minTone=ecmwfTemperatureTone(day.min),maxTone=ecmwfTemperatureTone(day.max)')&&cockpit.includes('cockpit-legend-inline">Temperaturfarben: ECMWF-Skala'),'7-Tage-Ansicht muss die absolute ECMWF-Farbskala strukturell verwenden, ohne technische Supersession-Texte anzuzeigen.');
 assert.ok(!cockpit.includes('in 7 Tagen keine Klimaabweichungen'),'Prompt-/Implementierungstext darf nicht in der sichtbaren 7-Tage-UI verbleiben.');
-assert.ok(cockpit.includes('dailyTemperatureTone(item.bestMin,item.climateMin')&&cockpit.includes('dailyTemperatureTone(item.bestMax,item.climateMax'),'14-Tage-Ansicht muss die historische klimabezogene Tmin/Tmax-Farbskala weiter schützen.');
+assert.ok(cockpit.includes('minTone=ecmwfTemperatureTone(item.bestMin),maxTone=ecmwfTemperatureTone(item.bestMax)'),'14-Tage-Ansicht muss Tmin/Tmax nun ebenfalls mit der absoluten ECMWF-Farbskala rendern.');
 assert.ok(modern.includes('.selected-time-value-pill.temperature{color:var(--text)}'),'Auch der ausgewählte stündliche Temperaturwert im 24-h-Profil muss neutral bleiben.');
 assert.ok(contract.includes('Blau/Rot bleibt ausschließlich den Tagesextrema Tmin/Tmax vorbehalten.'),'Verbindlicher Farbvertrag muss aktuelle Temperaturen von Tmin/Tmax trennen.');
 assert.ok(contract.includes('kälter = kräftiger/dunkler')&&contract.includes('wärmer = kräftiger/dunkler')&&contract.includes('±0,5 bis ±1 K'),'Farbvertrag muss beide Klimaskalenrichtungen und die empfindlichere Reaktion kleiner Abweichungen schützen.');
@@ -27,4 +27,4 @@ assert.ok(contract.includes('kälter = kräftiger/dunkler')&&contract.includes('
 assert.equal(baseline.releaseVersion,pkg.version,'Baseline und Paketversion müssen synchron sein.');
 assert.equal(pkg.scripts?.['test:attachment-hazard-temperature-colors'],`node ${test}`,'Package-Testeintrag fehlt.');
 assert.ok(baseline.requiredRegressionTests?.includes(test),'Neue Regression fehlt im requiredRegressionTests-Vertrag.');
-console.log(`MID v${pkg.version}: Gefahren-Popup sowie neutrale Kurzfrist- und klimabezogene Tmin/Tmax-Farbskalen geschützt.`);
+console.log(`MID v${pkg.version}: Gefahren-Popup sowie neutrale Kurzfrist- und absolute 7d/14d-ECMWF-Temperaturfarben geschützt.`);

@@ -23,7 +23,7 @@ assert.doesNotMatch(classicSeven,/<small>Min<\/small>|<small>Max<\/small>/,'Klas
 
 assert.match(tones,/background:`color-mix\(in srgb,\$\{color\} 10%,transparent\)`/,'7-Tage-ECMWF-Badgehintergrund muss auf 10 % abgeschwächt sein.');
 assert.match(tones,/backgroundShare=Math\.round\(5\+bounded\*11\)/,'14-Tage-Klimabadgehintergrund muss abgeschwächt sein.');
-assert.match(cockpit,/cockpit-fourteen-temps[\s\S]*dailyTemperatureAnomalyLabel/,'14-Tage-Klimadeltas müssen erhalten bleiben.');
+assert.ok(cockpit.includes('cockpit-fourteen-temps')&&cockpit.includes('minTone=ecmwfTemperatureTone(item.bestMin),maxTone=ecmwfTemperatureTone(item.bestMax)'),'14-Tage-Tmin/Tmax müssen die ECMWF-Farblogik verwenden.');
 assert.match(modern,/\.climate-tone-daily>span\{[^}]*-webkit-text-stroke:\.28px/,'Farbige Temperaturziffern brauchen einen dünnen kontrastierenden Ziffernrahmen.');
 assert.match(modern,/\.seven-day-curve-temps \.ecmwf-value-badge\{[^}]*border:1px solid transparent/,'ECMWF-Werte im 7-Tage-Kopf brauchen einen dünnen Badge-Rahmen.');
 

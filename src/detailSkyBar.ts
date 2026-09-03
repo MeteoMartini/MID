@@ -148,6 +148,26 @@ const weatherStripVisual=(hour:PrecipSample,intervalSeconds:number)=>{
   };
 };
 
+function appendSegment(segments:SkyBarSegment[],index:number,x0:number,x1:number,centerY:number,visual:NonNullable<ReturnType<typeof weatherStripVisual>>){
+  if(x1<=x0)return;
+  const previous=segments[segments.length-1];
+  if(previous&&Math.abs(previous.x2-x0)<=0.65&&previous.y===centerY&&previous.color===visual.color&&previous.strokeWidth===visual.strokeWidth&&previous.opacity===visual.opacity){
+    previous.x2=x1;
+    previous.title=visual.title;
+    return;
+  }
+  segments.push({
+    key:`wx-${index}`,
+    x1:x0,
+    x2:x1,
+    y:centerY,
+    color:visual.color,
+    strokeWidth:visual.strokeWidth,
+    opacity:visual.opacity,
+    title:visual.title,
+  });
+}
+
 export function detailSkyBarSegments(
   hours:PrecipSample[],
   left:number,
@@ -171,20 +191,9 @@ export function detailSkyBarSegments(
       const next=index<positions.length-1?(positions[index+1]??rightEdge):rightEdge;
       const rawX0=index===0?leftEdge:(prev+x)*0.5;
       const rawX1=index===positions.length-1?rightEdge:(x+next)*0.5;
-      const gap=Math.min(Math.max((rawX1-rawX0)*0.14,0.7),4.4);
-      const x0=Math.max(leftEdge,rawX0+gap*0.5);
-      const x1=Math.min(rightEdge,rawX1-gap*0.5);
-      if(x1<=x0)return;
-      segments.push({
-        key:`wx-${index}`,
-        x1:x0,
-        x2:x1,
-        y:centerY,
-        color:visual.color,
-        strokeWidth:visual.strokeWidth,
-        opacity:visual.opacity,
-        title:visual.title,
-      });
+      const x0=Math.max(leftEdge,rawX0);
+      const x1=Math.min(rightEdge,rawX1);
+      appendSegment(segments,index,x0,x1,centerY,visual);
     });
     return segments;
   }
@@ -192,7 +201,6 @@ export function detailSkyBarSegments(
   const p=hours.slice(left,right+1);
   if(!p.length)return [];
   const segmentWidth=chartW/p.length;
-  const gap=Math.min(Math.max(segmentWidth*0.12,0.6),4.6);
   const segments:SkyBarSegment[]=[];
 
   p.forEach((hour,index)=>{
@@ -200,19 +208,9 @@ export function detailSkyBarSegments(
     if(!visual)return;
     const segmentLeft=index*segmentWidth;
     const segmentRight=(index+1)*segmentWidth;
-    const x0=Math.max(0,segmentLeft+gap*0.5);
-    const x1=Math.min(chartW,segmentRight-gap*0.5);
-    if(x1<=x0)return;
-    segments.push({
-      key:`wx-${index}`,
-      x1:x0,
-      x2:x1,
-      y:centerY,
-      color:visual.color,
-      strokeWidth:visual.strokeWidth,
-      opacity:visual.opacity,
-      title:visual.title,
-    });
+    const x0=Math.max(0,segmentLeft);
+    const x1=Math.min(chartW,segmentRight);
+    appendSegment(segments,index,x0,x1,centerY,visual);
   });
 
   return segments;

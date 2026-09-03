@@ -8,10 +8,10 @@ const css=fs.readFileSync(new URL('../src/styles-src/30-modern.css',import.meta.
 assert.ok(app.includes('const climateRequested=dashboardModuleSettings.enabled.forecast||ensembleRequested||weatherTwinSettings.useAsMainForecast;'),'Klimatologie darf nicht von der optionalen 7-Tage-Zusammenfassung abhängen.');
 assert.ok(app.includes('minTone=ecmwfTemperatureTone(d.min),maxTone=ecmwfTemperatureTone(d.max)'),'Klassische 7-Tage-Übersicht muss seit v0.9.78.1 die absolute ECMWF-Temperaturskala nutzen.');
 assert.ok(!app.includes('<small>Min</small>')&&!app.includes('<small>Max</small>'),'Klassische 7-Tage-Übersicht zeigt seit v0.9.78.4 weder ±K-Klimadeltas noch zusätzliche Min/Max-Labels.');
-assert.ok(cockpit.includes('cockpit-fourteen-temps')&&cockpit.includes("dailyTemperatureAnomalyLabel(minTone.anomaly)")&&cockpit.includes("dailyTemperatureAnomalyLabel(maxTone.anomaly)"),'14-Tage-Cockpit muss die historische Klimadelta-Logik weiterhin sichtbar halten.');
+assert.ok(cockpit.includes('cockpit-fourteen-temps')&&cockpit.includes('minTone=ecmwfTemperatureTone(item.bestMin),maxTone=ecmwfTemperatureTone(item.bestMax)')&&!cockpit.includes("dailyTemperatureAnomalyLabel(minTone.anomaly)")&&!cockpit.includes("dailyTemperatureAnomalyLabel(maxTone.anomaly)"),'14-Tage-Cockpit muss Tmin/Tmax nun in ECMWF-Farben ohne Klimadelta-Zeilen rendern.');
 assert.ok(cockpit.includes('minTone=ecmwfTemperatureTone(day.min),maxTone=ecmwfTemperatureTone(day.max)')&&cockpit.includes('cockpit-legend-inline">Temperaturfarben: ECMWF-Skala'),'7-Tage-Cockpit muss absolute ECMWF-Farben strukturell verwenden.');
 assert.ok(!cockpit.includes('in 7 Tagen keine Klimaabweichungen'),'Technische Supersession-/Prompt-Texte dürfen nicht sichtbar werden.');
 assert.ok(tone.includes('export function dailyTemperatureAnomalyLabel'),'Zentrale Delta-Beschriftung fehlt.');
 assert.ok(weather.includes('staleCache=climateFromCache(key,Number.POSITIVE_INFINITY)'),'Stale-Klimacache-Fallback fehlt.');
 assert.ok(css.includes('.climate-tone-daily>small'),'Kompakte sichtbare Delta-Zeile fehlt.');
-console.log('Klimamittel-Vertrag migriert: 7d zeigt absolute ECMWF-Farben ohne ±K und ohne Min/Max-Zusatzlabel; 14d behält Klimadeltas; Stale-Fallback bleibt aktiv.');
+console.log('Klimamittel-Vertrag migriert: 7d und 14d zeigen Tmin/Tmax in absoluten ECMWF-Farben ohne Tmin/Tmax-Δ-Zeilen; Stale-Fallback bleibt aktiv.');

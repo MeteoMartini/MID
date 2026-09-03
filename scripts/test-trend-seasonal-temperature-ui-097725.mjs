@@ -17,7 +17,7 @@ assert.ok(seasonal.includes('freshModels.push(...c3s.models)')&&seasonal.include
 assert.ok(tone.includes('Math.sqrt(Math.abs(signed))')&&tone.includes('backgroundShare=')&&tone.includes('borderShare='),'Kleine Tmin/Tmax-Klimaabweichungen müssen über deutlich reagierende farbige Kästchen sichtbar sein.');
 assert.ok(cockpit.includes('Temperaturfarben: ECMWF-Skala'),'7-Tage-Legende muss die absolute Temperaturfarbskala knapp benennen.');
 assert.ok(!cockpit.includes('in 7 Tagen keine Klimaabweichungen')&&!cockpit.includes('Weiterentwickelter Wetterstreifen oberhalb'),'Prompt-/Umsetzungsanweisungen dürfen nicht als UI-Text erscheinen.');
-assert.ok(cockpit.includes('cockpit-fourteen-temps')&&cockpit.includes('dailyTemperatureTone(item.bestMin,item.climateMin'), '14-Tage-Ansicht muss die frühere Klimaabweichungs-Kästchenlogik weiterhin verwenden.');
+assert.ok(cockpit.includes('cockpit-fourteen-temps')&&cockpit.includes('minTone=ecmwfTemperatureTone(item.bestMin),maxTone=ecmwfTemperatureTone(item.bestMax)'), '14-Tage-Ansicht muss Tmin/Tmax mit ECMWF-Farben statt Klimaabweichungs-Kästchen rendern.');
 assert.ok(styles.includes('--model-series-1:')&&styles.includes('.long-range-model-overlay-chart'),'Das gemeinsame Modell-Diagramm braucht ein theme-fähiges Serienfarbsystem und responsive Styles.');
 assert.equal(baseline.releaseVersion,pkg.version,'Baseline und Paketversion müssen synchron sein.');
 assert.equal(pkg.scripts?.['test:trend-seasonal-temperature-ui'],`node ${test}`,'Package-Testeintrag fehlt.');
