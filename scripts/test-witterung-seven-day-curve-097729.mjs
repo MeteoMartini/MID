@@ -14,8 +14,8 @@ assert.ok(trend.includes('Klimatologie lädt im Hintergrund weiter.')&&trend.inc
 
 assert.ok(cockpit.includes('function smoothCurvePath(')&&cockpit.includes('function SevenDayCurveOverview('),'Neue 7-Tage-Kurvenübersicht fehlt.');
 assert.ok(cockpit.includes('<SevenDayCurveOverview days={visible}')&&cockpit.indexOf('<SevenDayCurveOverview days={visible}')<cockpit.indexOf('<div className="cockpit-seven-grid"'),'Kurvenübersicht muss oberhalb der kompakten Tageskarten liegen.');
-for(const token of ['seven-day-temperature-gradient','seven-day-curve-rainbar','ecmwfTemperatureTone(day.min','ecmwfTemperatureTone(day.max','WeatherPictogram','rainItems=hourly.map','halfDayTicks=Array.from','nightBands=(()=>{','fillOpacity={0.18}'])assert.ok(cockpit.includes(token),`Kurvenübersicht unvollständig: ${token}`);
-for(const token of ['.seven-day-curve-overview','.seven-day-curve-days','.seven-day-curve-temperature-line','.seven-day-curve-rainbar','@media(max-width:390px)']){
+for(const token of ['seven-day-temperature-gradient','seven-day-curve-temperature-band','ecmwfTemperatureTone(day.min','ecmwfTemperatureTone(day.max','WeatherPictogram','rainItems=hourly.map','halfDayTicks=Array.from','nightBands=(()=>{','fillOpacity={0.07}','interpolateTemperatureBand(','polygonFromBandPoints('])assert.ok(cockpit.includes(token),`Kurvenübersicht unvollständig: ${token}`);
+for(const token of ['.seven-day-curve-overview','.seven-day-curve-days','.seven-day-curve-temperature-band','.seven-day-curve-temperature-line','.seven-day-curve-rainbar','@media(max-width:390px)']){
  assert.ok(styleSource.includes(token),`Responsive Designquelle fehlt: ${token}`);assert.ok(styleAggregate.includes(token),`Style-Aggregat fehlt: ${token}`);
 }
 
@@ -27,4 +27,4 @@ assert.equal(baseline.releaseVersion,pkg.version,'Baseline und Paketversion müs
 assert.equal(pkg.scripts?.['test:witterung-seven-day-curve'],`node ${test}`,'Package-Testeintrag fehlt.');
 assert.ok(baseline.requiredRegressionTests?.includes(test)&&baseline.regressionTests?.includes(test),'Neue Regression muss in beiden Baseline-Testlisten stehen.');
 assert.ok(baseline.requiredRegressionTests?.includes('scripts/test-climate-delta-badges-097728.mjs')&&baseline.regressionTests?.includes('scripts/test-climate-delta-badges-097728.mjs'),'v0.9.77.28 Klimadelta-Regression darf nicht aus dem Pflichtvertrag fehlen.');
-console.log(`MID v${pkg.version}: Witterung-Timeout-Fallback, Nicht-EPS-Langfristvertrag und 7-Tage-Kurvenübersicht geschützt.`);
+console.log(`MID v${pkg.version}: Witterung-Timeout-Fallback, Nicht-EPS-Langfristvertrag und verfeinerte 7-Tage-Kurvenübersicht geschützt.`);

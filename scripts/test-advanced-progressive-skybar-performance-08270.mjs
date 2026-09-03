@@ -13,7 +13,7 @@ const [app,skybar,ensemble,enhancer,styles,pkgText,baselineText]=await Promise.a
 ]);
 const failures=[],need=(area,text,token)=>{if(!text.includes(token))failures.push(`${area}: fehlt ${token}`)},forbid=(area,text,token)=>{if(text.includes(token))failures.push(`${area}: veraltet ${token}`)};
 for(const token of ["import {detailSkyBarSegments} from './detailSkyBar';",'detailSkyBarSegments(p,left,right,W,skyBarY)','data-mid-skybar="react"','data-mid-sky-legend="react"'])need('Tagesdetail-Skybar',app,token);
-for(const token of ['const weatherStripVisual=','const precipitationKind=','const precipBandWidth=','const precipSunOverlay=','underlayColor','underlayStrokeWidth','xPositions?:number[]','export function detailSkyBarSegments('])need('Gemeinsame Skybar-Logik',skybar,token);
+for(const token of ['const weatherStripVisual=','const precipitationKind=','const precipBandWidth=','const precipSunColor=','const sampleIntervalSeconds=','const sunVisualShare=','xPositions?:number[]','export function detailSkyBarSegments('])need('Gemeinsame Skybar-Logik',skybar,token);
 for(const token of ["layer:'sun'","layer:'cloud'","layer:'precip'",'function sunSample(','function cloudSample(','function precipitationSample(','DetailSkyBarPoint'])forbid('Gemeinsame Skybar-Altlogik',skybar,token);
 for(const token of ['__MID_FORECAST__','enhanceSkyBars','mid:forecast-updated','svg.dataset.skybarY','svg.viewBox.baseVal'])forbid('Imperative Skybar',enhancer,token);
 need('Observer-Budget',enhancer,"const ENHANCEMENT_SELECTOR='.trend-legend,.rain-legend,.widget-controls,.weatherwidget,.brand-version,.official-warnings.unavailable,.app>footer'");

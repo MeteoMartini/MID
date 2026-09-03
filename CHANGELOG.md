@@ -1,3 +1,18 @@
+## v0.9.78.21
+
+- CI-Hotfix für GitHub Release-Run #858: TypeScript 7, Vite-Produktionsbuild und 649 von 650 Regressionen waren bereits grün; ausschließlich `test-seven-day-ecmwf-hourly-09781.mjs` erwartete noch die frühere Nachtdeckkraft `0.18`.
+- Regression auf den verbindlichen v0.9.78.20-Vertrag synchronisiert: zusammenhängende Nachtstunden bleiben mit `fillOpacity={0.07}` nochmals deutlich heller; P25–P75-Temperaturband, Skybar-Abstufung und alle Fachberechnungen bleiben unverändert.
+- Keine fachliche App-, Forecast-, RUC- oder Workerlogik geändert; Worker nur versionssynchronisiert.
+
+## v0.9.78.20
+
+- 7-Tage-Kurvenübersicht: Nachtflächen nochmals deutlich aufgehellt und zusammenhängend über Mitternacht belassen.
+- Temperaturkurve ergänzt um ein hellgraues P25–P75-Unsicherheitsband aus den verfügbaren Ensemblequartilen der ersten sieben Tage.
+- Skybar fachlich korrigiert: `sunshineDuration` wird entsprechend dem MID-Vertrag als Sekundenwert behandelt und jetzt durch die reale Intervalllänge (15 min bzw. 1 h) normiert; dadurch entstehen wieder echte abgestufte Sonnenscheinanteile statt nahezu sofortiger 100-%-Sättigung.
+- Niederschlagsdicke wird zeitauflösungsneutral aus der auf mm/h normierten Intensität abgeleitet, damit 15-Minuten- und Stundenwerte dieselben vier Dickenstufen fachlich gleich nutzen.
+- Skybar ohne 3D-Unterlage und ohne überstehende Round-Cap-Überlappungen: jedes Segment bleibt als abgerundetes Rechteck innerhalb seiner eigenen Zeit-Zelle.
+- Keine fachliche Workeränderung; Worker nur versionssynchronisiert.
+
 ## v0.9.78.16
 
 - Weather Icon System 2.0: Niederschlagsintensität für alle Phasen weiter geschärft; Regen/Sprühregen sowie Schnee, Schneegriesel, Eiskristalle, Eiskörner, Graupel und Hagel nutzen klar unterscheidbare Partikelanzahl/-dichte/-größe.
