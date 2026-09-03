@@ -23,7 +23,7 @@ for(const token of [
  "sourceRole:repaired?'repair':'best-match'",
  'Best Match bleibt die kohärente Basis',
  'suffixFields',
- 'MOSMIX wird bewusst nur als lokales Postprocessing'
+ 'MOSMIX bleibt ein korreliertes DWD-Postprocessing'
 ])assert.ok(worker.includes(token),`Best-Match-/Suffixstrategie fehlt im Worker: ${token}`);
 
 for(const token of [

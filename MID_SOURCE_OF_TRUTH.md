@@ -38,6 +38,16 @@ Die 7-Tage-Kurvenübersicht verwendet für den oberen Tages-/Piktogrammbereich e
 
 Die in v0.9.78.4 abgeschwächten Tmin/Tmax-Hintergründe sind verbindlich und dürfen nicht durch ältere Regressionserwartungen auf stärkere Flächen zurückgesetzt werden. Für 7 Tage gilt die absolute ECMWF-Farbskala ohne Klimadelta und ohne `Min`/`Max`-Zusatzlabel. Für 14 Tage bleibt die signierte, nichtlineare Klimaabweichungsreaktion erhalten, jedoch mit bewusst gedämpftem Hintergrund und Rahmen zugunsten der Zahlenlesbarkeit.
 
+
+
+## v0.9.78.7 · Merge Open-Meteo Watch + RUC/MOSMIX
+
+Am 03.09.2026 existierten kurzfristig zwei unabhängige lokale Releases mit der Kennung v0.9.78.6. Der in `MID_OPEN_METEO_WATCH_2026-09-03.md` beschriebene Open-Meteo-Wartungsvertrag und der in `MID_IMPLEMENTATION_0.9.78.6.md` beschriebene DWD-RUC-/MOSMIX-Niederschlagsvertrag sind ab v0.9.78.7 untrennbar zusammengeführt. Keine spätere Fortsetzung darf einen der beiden Zweige separat als alleinige v0.9.78.6-Basis behandeln. Required Regression: `scripts/test-openmeteo-watch-09787.mjs` sowie `scripts/test-ruc-mosmix-precip-consensus-09786.mjs`.
+
+## v0.9.78.6 · DWD-RUC-/MOSMIX-Niederschlagskonsens
+
+Für Deutschland bleibt Open-Meteo Best Match das kohärente Stunden-Wetterbündel. DWD ICON-D2-RUC darf die 0–14-h-Niederschlagsmenge kurzfristig kalibrieren, ein nasser deterministischer RUC darf sein eigenes Mengen-Gewicht jedoch niemals allein durch das Vorhandensein von Niederschlag erhöhen. Bei einer deutlichen positiven RUC-Abweichung wird sein effektives Niederschlagsgewicht kontinuierlich gegen drei korrelierte/ergänzende Signale geprüft: Best-Match-Stundenmenge, lokale DWD-MOSMIX-Stundenmenge (`precipitation`, vorherige 60 Minuten / RR1c-naher Punktkonsens) und RUC-EPS-Niederschlagswahrscheinlichkeit. MOSMIX bleibt DWD-Postprocessing und zählt nicht als unabhängige Modellfamilie; es darf ausschließlich als lokaler Plausibilitätsanker und moderater Mengen-Nachzug wirken. Radar/Nowcast und lokale Beobachtungen bleiben nachgelagert und höher priorisiert. Niederschlagsphase und Komponenten müssen nach jeder Mengenfusion auf dieselbe finale Stundenmenge skaliert werden. Required Regression: `scripts/test-ruc-mosmix-precip-consensus-09786.mjs`.
+
 ## Versionslogik
 
 - Funktionale Erweiterung: nächste dreiteilige Funktionsversion.

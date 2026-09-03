@@ -38,6 +38,8 @@ export type ForecastFusionHour={
  wind:number;
  gust:number;
  direction?:number;
+ precipitation?:number;
+ precipitationProbability?:number;
 };
 export type ForecastWeatherBundleHour={
  time:string;
@@ -67,10 +69,19 @@ export type ForecastWeatherBundleHour={
  sourceId:string;
  sourceLabel:string;
  sourceFamily:string;
- sourceRole?:'best-match'|'repair';
+ sourceRole?:'best-match'|'repair'|'rapid-update';
  repairReason?:string;
  originalSourceId?:string;
  originalSourceLabel?:string;
+ rucApplied?:boolean;
+ rucWeight?:number;
+ rucPrecipitationWeight?:number;
+ rucPrecipitationSupport?:number;
+ basePrecipitationMm?:number;
+ rucRawPrecipitationMm?:number;
+ mosmixPrecipitationMm?:number;
+ mosmixPrecipitationWeight?:number;
+ rucEpsProbability?:number;
 };
 export type ForecastFusionMosmix={
  available:boolean;
@@ -83,6 +94,9 @@ export type ForecastFusionMosmix={
  elevationDifferenceM?:number;
  coverageHours:number;
  coverageDays:number;
+ precipitationConsensusAvailable?:boolean;
+ precipitationConsensusApplied?:boolean;
+ precipitationCoverageHours?:number;
  source:string;
 };
 export type ForecastFusionDay={
@@ -154,7 +168,7 @@ export type ForecastFusionResult={
  weatherHours?:ForecastWeatherBundleHour[];
  rapidMinutes15?:ForecastFusionRapidMinute15[];
  mosmix?:ForecastFusionMosmix;
- diagnostics?:{bestMatchPreferred?:boolean;repairedHours?:number;rucAppliedHours?:number;rucEpsAppliedHours?:number;rucEpsMemberCount?:number;repairSources?:string[];multiModelSuffixes?:boolean;modelSuffixes?:Record<string,string[]>;forceRefreshed?:boolean;weightingByDate?:ForecastFusionWeighting[];independenceBudget?:string;localSkillStage?:string};
+ diagnostics?:{bestMatchPreferred?:boolean;repairedHours?:number;rucAppliedHours?:number;rucEpsAppliedHours?:number;rucEpsMemberCount?:number;mosmixPrecipitationAppliedHours?:number;repairSources?:string[];multiModelSuffixes?:boolean;modelSuffixes?:Record<string,string[]>;forceRefreshed?:boolean;weightingByDate?:ForecastFusionWeighting[];independenceBudget?:string;localSkillStage?:string};
  error?:string;
  cached?:boolean;
 };

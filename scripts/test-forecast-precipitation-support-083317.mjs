@@ -10,7 +10,7 @@ for(const token of ['UNSUPPORTED_FORECAST_MAX_PROBABILITY=5','WEAK_FORECAST_AMOU
 for(const token of ['weatherHours?:ForecastWeatherBundleHour[]','weatherBundleKind:repaired?\'coherent-model\':\'best-match\'','Eine Tagesaggregation darf keine bislang nicht vorhandene Niederschlagsstunde','const normalized=hours.map(reconcileForecastHourPrecipitation)'])assert.ok(fusion.includes(token),`fehlender kohärenter Stundenvertrag: ${token}`);
 assert.ok(!fusion.includes('distributeDailyPrecipitationDeficit'),'Tagesmengen dürfen nicht mehr zu Stunden umverteilt werden');
 for(const token of ["case'current':return <MemoCurrent key={id} w={w!} hours={displayHours}","case'water':return currentFavorite?.water.enabled?",'weather={w!} hours={displayHours} unit={unit}','combineThunderstormInformation(thunderAnalysis,displayHours,radarAnalysis'])assert.ok(app.includes(token),`Sektion nutzt nicht die final reconcilierten Stunden: ${token}`);
-for(const token of ['supportMinimum=lead<=24?10:lead<=72?15:20','FORECAST_FUSION_HOURLY','weatherHours','MOSMIX wird bewusst nur als lokales Postprocessing'])assert.ok(worker.includes(token),`Worker-Vertrag fehlt: ${token}`);
+for(const token of ['supportMinimum=lead<=24?10:lead<=72?15:20','FORECAST_FUSION_HOURLY','weatherHours','MOSMIX bleibt ein korreliertes DWD-Postprocessing'])assert.ok(worker.includes(token),`Worker-Vertrag fehlt: ${token}`);
 
 const require=createRequire(import.meta.url);const ts=require('typescript-strada')
 const dir=await mkdtemp(join(tmpdir(),'mid-083317-'));

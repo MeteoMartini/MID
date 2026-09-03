@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.78.5",
+  "releaseVersion": "0.9.78.7",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -379,7 +379,9 @@
     "scripts/test-weather-pictogram-standard-09780.mjs",
     "scripts/test-weather-pictogram-ui-lock-09781.mjs",
     "scripts/test-seven-day-ecmwf-hourly-09781.mjs",
-    "scripts/test-seven-day-axis-badge-lock-09784.mjs"
+    "scripts/test-seven-day-axis-badge-lock-09784.mjs",
+    "scripts/test-ruc-mosmix-precip-consensus-09786.mjs",
+    "scripts/test-openmeteo-watch-09787.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -685,7 +687,8 @@
     "scripts/test-weather-pictogram-standard-09780.mjs",
     "scripts/test-weather-pictogram-ui-lock-09781.mjs",
     "scripts/test-seven-day-ecmwf-hourly-09781.mjs",
-    "scripts/test-seven-day-axis-badge-lock-09784.mjs"
+    "scripts/test-seven-day-axis-badge-lock-09784.mjs",
+    "scripts/test-openmeteo-watch-09787.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -1137,7 +1140,11 @@
     "MID_TEST_REPORT_0.9.78.1.md",
     "scripts/test-seven-day-axis-badge-lock-09784.mjs",
     "MID_IMPLEMENTATION_0.9.78.4.md",
-    "MID_TEST_REPORT_0.9.78.4.md"
+    "MID_TEST_REPORT_0.9.78.4.md",
+    "scripts/test-openmeteo-watch-09787.mjs",
+    "MID_OPEN_METEO_WATCH_2026-09-03.md",
+    "MID_IMPLEMENTATION_0.9.78.7.md",
+    "MID_TEST_REPORT_0.9.78.7.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1171,7 +1178,8 @@
     "scripts/test-current-temperature-smooth-bridge-097719.mjs",
     "scripts/test-knmi-eps-worker-binding-097719.mjs",
     "scripts/test-weather-pictogram-standard-09780.mjs",
-    "scripts/test-seven-day-axis-badge-lock-09784.mjs"
+    "scripts/test-seven-day-axis-badge-lock-09784.mjs",
+    "scripts/test-openmeteo-watch-09787.mjs"
   ],
   "protectedFiles": [
     "scripts/test-travel-planner-era5-seamless-units-09652.mjs",
@@ -1319,7 +1327,9 @@
     "src/eventWeatherEngine.ts",
     "MID_KNMI_HARMONIE_EPS_WORKER_CONTRACT.md",
     "scripts/test-current-temperature-smooth-bridge-097719.mjs",
-    "scripts/test-knmi-eps-worker-binding-097719.mjs"
+    "scripts/test-knmi-eps-worker-binding-097719.mjs",
+    "MID_OPEN_METEO_WATCH_2026-09-03.md",
+    "scripts/test-openmeteo-watch-09787.mjs"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md",
@@ -1424,7 +1434,9 @@
     "MID_IMPLEMENTATION_0.9.78.0.md",
     "MID_TEST_REPORT_0.9.78.0.md",
     "MID_IMPLEMENTATION_0.9.78.1.md",
-    "MID_TEST_REPORT_0.9.78.1.md"
+    "MID_TEST_REPORT_0.9.78.1.md",
+    "MID_IMPLEMENTATION_0.9.78.7.md",
+    "MID_TEST_REPORT_0.9.78.7.md"
   ],
   "evidenceFiles": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -1466,7 +1478,9 @@
     "MID_TEST_REPORT_0.9.78.0.md",
     "MID_IMPLEMENTATION_0.9.78.1.md",
     "MID_TEST_REPORT_0.9.78.1.md",
-    "MID_TEST_REPORT_0.9.78.4.md"
+    "MID_TEST_REPORT_0.9.78.4.md",
+    "MID_OPEN_METEO_WATCH_2026-09-03.md",
+    "MID_TEST_REPORT_0.9.78.7.md"
   ],
   "releaseEvidence": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -1496,7 +1510,9 @@
     "MID_TEST_REPORT_0.9.78.0.md",
     "MID_IMPLEMENTATION_0.9.78.1.md",
     "MID_TEST_REPORT_0.9.78.1.md",
-    "MID_TEST_REPORT_0.9.78.4.md"
+    "MID_TEST_REPORT_0.9.78.4.md",
+    "MID_OPEN_METEO_WATCH_2026-09-03.md",
+    "MID_TEST_REPORT_0.9.78.7.md"
   ],
   "activeRegressionSuite": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -1515,7 +1531,8 @@
     "scripts/test-knmi-eps-point-decoder-097722.mjs",
     "scripts/test-seasonal-all-model-consensus-097727.mjs",
     "scripts/test-weather-pictogram-standard-09780.mjs",
-    "scripts/test-seven-day-axis-badge-lock-09784.mjs"
+    "scripts/test-seven-day-axis-badge-lock-09784.mjs",
+    "scripts/test-openmeteo-watch-09787.mjs"
   ],
   "version": "0.9.77.23",
   "updatedAt": "2026-09-03T06:29:00+02:00",
@@ -1526,7 +1543,8 @@
     "MID_WEATHER_PICTOGRAM_STANDARD.md",
     "MID_IMPLEMENTATION_0.9.78.0.md",
     "MID_IMPLEMENTATION_0.9.78.1.md",
-    "MID_IMPLEMENTATION_0.9.78.4.md"
+    "MID_IMPLEMENTATION_0.9.78.4.md",
+    "MID_IMPLEMENTATION_0.9.78.7.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",
@@ -1534,6 +1552,7 @@
     "MID_TEST_REPORT_0.9.77.28.md",
     "MID_TEST_REPORT_0.9.78.0.md",
     "MID_TEST_REPORT_0.9.78.1.md",
-    "MID_TEST_REPORT_0.9.78.4.md"
+    "MID_TEST_REPORT_0.9.78.4.md",
+    "MID_TEST_REPORT_0.9.78.7.md"
   ]
 }

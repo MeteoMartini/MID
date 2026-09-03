@@ -26,7 +26,7 @@ for(const token of [
  "schema:'mid.forecast-fusion.v1'",
  'Best Match bleibt die kohärente Basis',
  'suffixFields',
- 'MOSMIX wird bewusst nur als lokales Postprocessing'
+ 'MOSMIX bleibt ein korreliertes DWD-Postprocessing'
 ])need('Worker-Fusion',worker,token);
 for(const token of [
  'const FRESH_MS=35*60*1000',

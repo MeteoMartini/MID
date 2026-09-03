@@ -28,8 +28,9 @@ for(const token of [
  "family:'ecmwf-ifs'","family:'ecmwf-aifs'","independenceGroup:'ecmwf'"
 ])assert.ok(worker.includes(token),`Worker-Horizont-/Bündelvertrag fehlt: ${token}`);
 assert.ok(!worker.includes("family:'aifs'"),'IFS und AIFS dürfen nicht als unabhängige ECMWF-Familien doppelt gewichtet werden');
-assert.ok(worker.includes('MOSMIX wird bewusst nur als lokales Postprocessing'),'MOSMIX-Parametergrenze fehlt');
-assert.ok(!worker.includes('mosmixProbability('),'MOSMIX darf keine Niederschlagswahrscheinlichkeit in den Postprocessing-Pfad tragen');
+assert.ok(worker.includes('MOSMIX bleibt ein korreliertes DWD-Postprocessing'),'MOSMIX-Parametergrenze fehlt');
+assert.ok(worker.includes('rucPrecipitationConsensus'),'MOSMIX-RR1c darf nur als RUC-Konsensanker wirken');
+assert.ok(!worker.includes('mosmixProbability('),'MOSMIX darf keine eigenständige Wahrscheinlichkeits-Leitprognose erzeugen');
 for(const token of [
  'ForecastWeatherBundleHour',
  'weatherHours?:ForecastWeatherBundleHour[]',

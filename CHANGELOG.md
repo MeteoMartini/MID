@@ -1,3 +1,21 @@
+## v0.9.78.7
+
+- Merge der zwei am 03.09.2026 parallel entstandenen v0.9.78.6-Zweige: Open-Meteo MID Watch + DWD-RUC-/MOSMIX-Niederschlagskonsens.
+- Offizielle Open-Meteo-Upstream-Korrekturen zu Forecast-/EC46-Metadaten, `wave_peak_period`, GloFAS-Ensemble/Perzentilen, Copernicus-DEM Südhalbkugel und Météo-France-GRIB-Fehlerbehandlung sind als Konsumentenvertrag dokumentiert und regressionsgeschützt.
+- Keine falsche clientseitige Nachbildung serverinterner Open-Meteo-Fixes; die bereits implementierte v0.9.78.6-RUC-/MOSMIX-Niederschlagskorrektur bleibt vollständig erhalten.
+- Versionskollision v0.9.78.6 beendet; v0.9.78.7 ist der verbindliche gemeinsame Nachfolgestand.
+
+## v0.9.78.6
+
+- Niederschlagsfusion für Deutschland fachlich nachgeschärft: DWD MOSMIX-Stundenniederschlag (`precipitation`, 60-min-Akkumulation / RR1c-naher Punktkonsens) wird nicht als unabhängige Modellstimme, sondern ausschließlich als lokaler DWD-Plausibilitätsanker gegen deterministische ICON-D2-RUC-Ausreißer verwendet.
+- Ein nasser ICON-D2-RUC erhöht sein eigenes Niederschlagsgewicht nicht mehr. Die bisherige +5-Prozentpunkte-Nassverstärkung wurde entfernt; konvektive Dynamik darf weiterhin Temperatur/Wind/Wolken-/Konvektionsparameter stärken.
+- Bei deutlich nasserem RUC wird dessen Mengenanteil kontinuierlich gegen Best Match, MOSMIX und RUC-EPS gestützt. Von den drei Quellen bestätigte RUC-Signale bleiben wirksam; isolierte nasse RUC-Punktspitzen werden deutlich gedämpft statt pauschal gekappt.
+- MOSMIX zieht den resultierenden 0–14-h-Niederschlagswert bei guter Punktqualität zusätzlich moderat in Richtung des lokalen DWD-Punktkonsenses; bei konvektiven Lagen ist dieser Nachzug bewusst schwächer.
+- Niederschlagskomponenten (Regen/Schauer/Schnee) werden nach der Mengenfusion proportional auf den finalen Stundenwert skaliert, damit Menge und Wettercharakter nicht auseinanderlaufen.
+- Neue Diagnostik je RUC-Stunde: Best-Match-Menge, RUC-Rohmenge, effektives RUC-Niederschlagsgewicht, Konsensstützung, MOSMIX-Menge/-Gewicht und RUC-EPS-Wahrscheinlichkeit.
+- Required Regression: `scripts/test-ruc-mosmix-precip-consensus-09786.mjs`.
+- Fachliche Workeränderung: Worker-Deploy erforderlich.
+
 ## v0.9.78.5
 
 - GitHub-Installer-Run #843 gezielt korrigiert: Produktionsbuild, TypeScript 7, Vite und 645 von 646 Regressionen waren bereits grün; ausschließlich `test-tmin-tmax-number-tone-097717.mjs` erwartete noch die vor v0.9.78.4 gültige stärkere Tmin/Tmax-Hintergrund-/Rahmenintensität.
