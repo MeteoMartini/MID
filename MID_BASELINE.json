@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.78.28",
+  "releaseVersion": "0.9.78.31",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -1548,7 +1548,7 @@
     "scripts/test-ruc-precip-amplitude-guard-09787.mjs",
     "scripts/test-maintenance-cleanup-097828.mjs"
   ],
-  "version": "0.9.78.28",
+  "version": "0.9.78.31",
   "updatedAt": "2026-09-03T23:45:00+02:00",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
@@ -1562,7 +1562,10 @@
     "MID_IMPLEMENTATION_0.9.78.25.md",
     "MID_IMPLEMENTATION_0.9.78.26.md",
     "MID_IMPLEMENTATION_0.9.78.27.md",
-    "MID_IMPLEMENTATION_0.9.78.28.md"
+    "MID_IMPLEMENTATION_0.9.78.28.md",
+    "MID_IMPLEMENTATION_0.9.78.29.md",
+    "MID_IMPLEMENTATION_0.9.78.30.md",
+    "MID_IMPLEMENTATION_0.9.78.31.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",

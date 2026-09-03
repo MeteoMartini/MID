@@ -2896,3 +2896,10 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
 @media(max-width:480px){.cockpit-day-skybar>svg{height:14px}}
 
 @media(max-width:520px){.long-range-subsection{padding:8px;gap:8px}.long-range-subsection-head{align-items:flex-start;flex-direction:column}.long-range-subsection-head>small{text-align:left}}
+
+
+/* MID 0.9.78.29 · 14-Tage-Best-Match bleibt bei laufendem Ensembleabruf sofort nutzbar. */
+.cockpit-fourteen-ensemble-pending{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:8px 0 10px;padding:10px 12px;border:1px dashed color-mix(in srgb,var(--border) 76%,transparent);border-radius:14px;background:color-mix(in srgb,var(--surface-2) 78%,transparent);color:var(--text)}
+.cockpit-fourteen-ensemble-pending strong{font-size:12px}.cockpit-fourteen-ensemble-pending small{color:var(--muted);font-size:10px;text-align:right}
+.cockpit-fourteen-ensemble-badge{display:inline-flex;align-items:center;justify-content:center;min-height:24px;padding:3px 7px;border-radius:999px;border:1px solid color-mix(in srgb,var(--border) 78%,transparent);background:color-mix(in srgb,var(--surface-2) 86%,transparent);color:var(--muted);font-size:9px;font-weight:800;white-space:nowrap}
+@media(max-width:640px){.cockpit-fourteen-ensemble-pending{align-items:flex-start;flex-direction:column}.cockpit-fourteen-ensemble-pending small{text-align:left}}

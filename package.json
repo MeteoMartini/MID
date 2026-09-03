@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.78.28",
+  "version": "0.9.78.31",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -116,7 +116,7 @@
     "test:water-tides-full-calendar-day": "node scripts/test-water-tides-full-calendar-day-08254.mjs",
     "test:forecast-cockpit": "node scripts/test-forecast-cockpit-pictograms-09100.mjs",
     "test:official-observation-ensemble": "node scripts/test-official-observation-ensemble-09470.mjs",
-    "audit:dependencies": "npm audit --audit-level=high --omit=dev && node scripts/check-dependency-upgrade-policy.mjs",
+    "audit:dependencies": "node scripts/audit-production-dependencies.mjs && node scripts/check-dependency-upgrade-policy.mjs",
     "audit:all": "npm audit --audit-level=high && node scripts/check-dependency-upgrade-policy.mjs",
     "test:maintenance-08260": "node scripts/test-maintenance-recharts3-cache-ci-08260.mjs",
     "test:recharts3-reference-dot-buildfix": "node scripts/test-recharts3-reference-dot-buildfix-08261.mjs",
