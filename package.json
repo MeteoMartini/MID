@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.78.3",
+  "version": "0.9.78.5",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -393,7 +393,8 @@
     "test:witterung-seven-day-curve": "node scripts/test-witterung-seven-day-curve-097729.mjs",
     "test:weather-pictogram-standard": "node scripts/test-weather-pictogram-standard-09780.mjs",
     "test:weather-pictogram-ui-lock": "node scripts/test-weather-pictogram-ui-lock-09781.mjs",
-    "test:seven-day-ecmwf-hourly": "node scripts/test-seven-day-ecmwf-hourly-09781.mjs"
+    "test:seven-day-ecmwf-hourly": "node scripts/test-seven-day-ecmwf-hourly-09781.mjs",
+    "test:seven-day-axis-badge-lock": "node scripts/test-seven-day-axis-badge-lock-09784.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",

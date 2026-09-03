@@ -1,3 +1,18 @@
+## v0.9.78.5
+
+- GitHub-Installer-Run #843 gezielt korrigiert: Produktionsbuild, TypeScript 7, Vite und 645 von 646 Regressionen waren bereits grün; ausschließlich `test-tmin-tmax-number-tone-097717.mjs` erwartete noch die vor v0.9.78.4 gültige stärkere Tmin/Tmax-Hintergrund-/Rahmenintensität.
+- Regression auf den verbindlichen v0.9.78.4-Vertrag migriert: 7-Tage-ECMWF-Tmin/Tmax behalten den bewusst schwachen 10-%-Hintergrund ohne Min/Max-Zusatzlabel; 14-Tage-Tmin/Tmax reagieren weiterhin nichtlinear auf Klimaabweichungen, jedoch mit der gedämpften 5–16-%-Hintergrund- und 20–46-%-Rahmenskala.
+- `MID_PARAMETER_COLOR_CONTRACT.md` präzisiert: im 14-Tage-/Ensemblebereich bleibt die signierte Klimareaktion erhalten, während der 7-Tage-Modus ausschließlich absolute ECMWF-Farben ohne Klimadelta verwendet.
+- Keine fachliche App-, Forecast-, RUC- oder Workerlogikänderung; Worker nur versionssynchronisiert.
+
+## v0.9.78.4
+
+- 7-Tage-Kurvenübersicht geometrisch auf die gleiche Tagesbreite wie der Piktogramm-/Tageskopf fixiert: die oberen Tagessegmente verwenden jetzt exakt dieselben linken/rechten Plotränder wie die 00–24-h-Tagesabschnitte im Diagramm. Dadurch liegen Tageskopf und Kurventeil pro Kalendertag deckungsgleich übereinander.
+- 7-Tage-Tageskarten im Forecast-Cockpit zeigen Tmin/Tmax jetzt kompakter ohne die zusätzlichen "Min"/"Max"-Beschriftungen.
+- Klassische 7-Tage-Listenansicht ebenfalls auf die kompakte Tmin/Tmax-Darstellung ohne "Min"/"Max" umgestellt.
+- Hintergrundflächen der Tmin/Tmax-Badges in 7 und 14 Tagen bewusst abgeschwächt, damit Zahlen bei warmen und kalten Extremen besser lesbar bleiben; Farbcharakter und Warnwirkung bleiben erhalten.
+- Keine fachliche Workeränderung; Worker nur versionssynchronisiert.
+
 ## v0.9.78.3
 
 - GitHub-Installer-Run #841 gezielt korrigiert: TypeScript 7, Vite-Build, npm-Installation und Dependency-Audit waren bereits grün; ausschließlich zwei veraltete Regressionen blockierten den Release.

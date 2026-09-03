@@ -28,6 +28,16 @@ Der mit dem Professional-Release transportierte Installer-Spiegel `workflow-patc
 
 Ein Release-Regressionstest darf einen ausdrücklich supersedierten UI-Vertrag nicht weiterhin erzwingen. Für die 7-Tage-Ansicht gilt ab v0.9.78.1 ausschließlich die absolute ECMWF-Temperaturskala ohne Klimaabweichungsanzeige; die signierte Klimadelta-Logik bleibt auf 14 Tage begrenzt. Außerdem darf die aktive `.github/workflows/install-mid.yml` während eines ZIP-Installationslaufs nicht bytegleich zur neu installierten kanonischen `ci/github/workflows/install-mid.yml` vorausgesetzt werden: `.github` ist absichtlich vom automatischen Release-Ersatz ausgeschlossen. Aktive Workflows werden in solchen Regressionen semantisch auf ihren Sicherheits-/Kompatibilitätsvertrag geprüft; eine tatsächliche Workflow-Synchronisierung bleibt eine explizite administrative Aktion.
 
+
+## v0.9.78.4 · 7-Tage-Geometrie und Tmin/Tmax-Lesbarkeit
+
+Die 7-Tage-Kurvenübersicht verwendet für den oberen Tages-/Piktogrammbereich exakt dieselben relativen linken und rechten Plotränder wie das gemeinsame 00–24-h-SVG. Jeder Tageskopf ist dadurch geometrisch deckungsgleich mit seinem 24-Stunden-Abschnitt im Diagramm; responsive Breakpoints dürfen diese Ausrichtung nicht mit separaten Padding-Werten überschreiben. Im 7-Tage-Modus zeigen Tmin/Tmax nur noch die Werte ohne zusätzliche „Min“-/„Max“-Beschriftungen. Die ECMWF-Farbidentität bleibt erhalten, die Hintergrundflächen der Tmin/Tmax-Badges werden jedoch deutlich schwächer gemischt. Für 14 Tage bleiben die signierten Klimadeltas fachlich bestehen, ebenfalls mit abgeschwächten Badge-Hintergründen für bessere Lesbarkeit. Required Regression: `scripts/test-seven-day-axis-badge-lock-09784.mjs`.
+
+
+## v0.9.78.5 · Tmin/Tmax-Regressionsvertrag
+
+Die in v0.9.78.4 abgeschwächten Tmin/Tmax-Hintergründe sind verbindlich und dürfen nicht durch ältere Regressionserwartungen auf stärkere Flächen zurückgesetzt werden. Für 7 Tage gilt die absolute ECMWF-Farbskala ohne Klimadelta und ohne `Min`/`Max`-Zusatzlabel. Für 14 Tage bleibt die signierte, nichtlineare Klimaabweichungsreaktion erhalten, jedoch mit bewusst gedämpftem Hintergrund und Rahmen zugunsten der Zahlenlesbarkeit.
+
 ## Versionslogik
 
 - Funktionale Erweiterung: nächste dreiteilige Funktionsversion.

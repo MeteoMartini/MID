@@ -53,8 +53,8 @@ Insbesondere geschützt sind das 24-h-Wetterprofil, die 7-Tage-Tagesansichten sa
 
 ## Zusatzvertrag v0.9.77.25
 
-- Die 7-/14-Tage-Übersichten stellen Tmin wieder in einem kleinen bläulichen und Tmax in einem kleinen rötlichen Kästchen dar. Die Kästchen bleiben kompakt und dürfen die Tageskarten nicht verbreitern.
-- Bereits kleine signierte Klimaabweichungen von etwa ±0,5 bis ±1 K müssen sichtbar auf Zahl-, Hintergrund- und Rahmenintensität reagieren. Eine nichtlineare Kennlinie darf große Abweichungen sanft sättigen, damit kleinere Abweichungen nicht optisch untergehen.
+- Die 7-/14-Tage-Übersichten stellen Tmin/Tmax weiterhin in kompakten farblich unterscheidbaren Kästchen dar. Die Hintergrundflächen sind bewusst schwach getönt, damit die Zahlen auch bei thermischen Extremen klar lesbar bleiben; die Kästchen dürfen die Tageskarten nicht verbreitern.
+- Im 14-Tage-/Ensemblebereich müssen bereits kleine signierte Klimaabweichungen von etwa ±0,5 bis ±1 K sichtbar auf Zahl-, Hintergrund- und Rahmenintensität reagieren. Die Hintergrund- und Rahmenreaktion bleibt gegenüber v0.9.77.25 bewusst gedämpft; eine nichtlineare Kennlinie darf große Abweichungen sanft sättigen. Im 7-Tage-Modus gilt stattdessen ausschließlich die absolute ECMWF-Temperaturfarbskala ohne Klimadelta.
 - Tmin bleibt unabhängig vom Vorzeichen ausschließlich blau, Tmax ausschließlich rot. Kurzfristige/stündliche Einzeltemperaturen bleiben weiterhin neutral und erhalten keine Tmin-/Tmax-Kästchen.
 
 

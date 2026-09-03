@@ -37,7 +37,7 @@ export function ecmwfTemperatureColor(value:number){
 }
 export function ecmwfTemperatureTone(value:number):EcmwfTemperatureTone{
  const color=ecmwfTemperatureColor(value),rounded=Number.isFinite(Number(value))?`${Math.round(Number(value))} °C`:'–';
- return{color,background:`color-mix(in srgb,${color} 18%,transparent)`,border:`color-mix(in srgb,${color} 55%,var(--border))`,title:`Temperatur ${rounded} · ECMWF-Farbskala`};
+ return{color,background:`color-mix(in srgb,${color} 10%,transparent)`,border:`color-mix(in srgb,${color} 46%,var(--border))`,title:`Temperatur ${rounded} · ECMWF-Farbskala`};
 }
 export type DailyTemperatureTone={
  color:string;
@@ -60,7 +60,7 @@ function dailyIntensity(anomaly:number|null,kind:DailyTemperatureKind){
  return clamp01(.52+directional*.43);
 }
 function dailyTone(token:string,intensity:number){
- const bounded=clamp01(intensity),textShare=Math.round(72+bounded*27),backgroundShare=Math.round(9+bounded*19),borderShare=Math.round(24+bounded*34);
+ const bounded=clamp01(intensity),textShare=Math.round(74+bounded*24),backgroundShare=Math.round(5+bounded*11),borderShare=Math.round(20+bounded*26);
  return{
   color:`color-mix(in srgb,${token} ${textShare}%,var(--text))`,
   background:`color-mix(in srgb,${token} ${backgroundShare}%,transparent)`,
