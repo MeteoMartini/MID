@@ -1,163 +1,214 @@
-import {clamp} from './chartMath';
-import {type ShortTermForecastPoint} from './ShortTermForecast';
-import {precipitationParts} from './precipitation';
+import {precipitationParts,type PrecipSample} from './precipitation';
 
-export type DetailSkyBarPoint=Pick<ShortTermForecastPoint,'cloud'|'lowCloud'|'midCloud'|'highCloud'|'isDay'|'precipitation'|'rain'|'showers'|'snowfall'|'probability'|'code'|'temperature'|'dewPoint'|'humidity'>;
-export type DetailSkyBarSegment={key:string;x1:number;x2:number;y:number;color:string;strokeWidth:number;opacity:number;title:string};
-
-type DetailSkyBarLayerSample={
- signature:string;
- color:string;
- y:number;
- strokeWidth:number;
- opacity:number;
- title:string;
+export type SkyBarSegment={
+  key:string;
+  x1:number;
+  x2:number;
+  y:number;
+  color:string;
+  strokeWidth:number;
+  opacity:number;
+  title:string;
+  underlayColor?:string;
+  underlayStrokeWidth?:number;
+  underlayOpacity?:number;
 };
 
-const DETAIL_SKY_BAR_SUN='#ffc229';
-const DETAIL_SKY_BAR_CLOUD='#aeb3b9';
-const DETAIL_SKY_BAR_LEVEL_WIDTH=[0,2.1,3.4,4.9,6.5];
-const DETAIL_SKY_BAR_LAYER_OFFSETS={sun:-3.6,cloud:0,precip:4.2} as const;
-const DETAIL_SKY_BAR_PRECIP_COLORS={
- rain:'var(--param-precipitation)',
- snow:'#66bce8',
- mixed:'#a769d8',
- freezing:'#a769d8',
- storm:'#7869e8',
-} as const;
+const clamp=(value:number,min:number,max:number)=>Math.min(max,Math.max(min,value));
+const clamp01=(value:number)=>clamp(value,0,1);
 
-function detailSkyBarLevel(value:number,start:number,end:number){
- const ratio=clamp((value-start)/Math.max(1,end-start),0,1);
- return Math.min(4,Math.max(1,Math.ceil(ratio*4)));
-}
+const toRgb=(value:string)=>{
+  const hex=value.replace('#','').trim();
+  if(hex.length!==6)return null;
+  const numeric=Number.parseInt(hex,16);
+  if(Number.isNaN(numeric))return null;
+  return {
+    r:(numeric>>16)&255,
+    g:(numeric>>8)&255,
+    b:numeric&255,
+  };
+};
 
-function resolvedCloudCover(point:DetailSkyBarPoint){
- const total=Number(point.cloud);
- if(Number.isFinite(total))return clamp(total,0,100);
- const layers=[Number(point.lowCloud),Number(point.midCloud),Number(point.highCloud)].filter(Number.isFinite);
- return clamp(layers.length?Math.max(...layers):0,0,100);
-}
+const blendHex=(from:string,to:string,ratio:number)=>{
+  const a=toRgb(from);
+  const b=toRgb(to);
+  const t=clamp01(ratio);
+  if(!a||!b)return from;
+  const mix=(x:number,y:number)=>Math.round(x+(y-x)*t).toString(16).padStart(2,'0');
+  return `#${mix(a.r,b.r)}${mix(a.g,b.g)}${mix(a.b,b.b)}`;
+};
 
-function sunSample(point:DetailSkyBarPoint,centerY:number):DetailSkyBarLayerSample|null{
- const cloud=resolvedCloudCover(point),daylight=point.isDay!==false;
- if(!daylight||cloud>=50)return null;
- const level=detailSkyBarLevel(50-cloud,0,50);
- return{
-  signature:`sun-${level}`,
-  color:DETAIL_SKY_BAR_SUN,
-  y:centerY+DETAIL_SKY_BAR_LAYER_OFFSETS.sun,
-  strokeWidth:DETAIL_SKY_BAR_LEVEL_WIDTH[level],
-  opacity:.98,
-  title:`Sonnenschein/Klarheit · Stufe ${level} von 4`,
- };
-}
+const skyColor=(cloudCover:number,daylight:boolean,sunshineShare:number)=>{
+  if(!daylight)return '#aeb3b9';
+  const cloud=clamp(cloudCover,0,100);
+  if(cloud>=88)return '#b4b8bd';
+  if(cloud>=68)return blendHex('#c7b24a','#aeb3b9',0.58);
+  if(cloud>=42)return blendHex('#ffc229','#aeb3b9',0.32);
+  if(sunshineShare>=0.66)return '#ffc229';
+  if(sunshineShare>=0.34)return blendHex('#ffd869','#ffc229',0.44);
+  return blendHex('#ffd869','#aeb3b9',0.22);
+};
 
-function cloudSample(point:DetailSkyBarPoint,centerY:number):DetailSkyBarLayerSample|null{
- const cloud=resolvedCloudCover(point),daylight=point.isDay!==false;
- if(daylight&&cloud<50)return null;
- if(!daylight&&cloud<20)return null;
- const level=detailSkyBarLevel(cloud,daylight?50:20,100);
- return{
-  signature:`cloud-${level}`,
-  color:DETAIL_SKY_BAR_CLOUD,
-  y:centerY+DETAIL_SKY_BAR_LAYER_OFFSETS.cloud,
-  strokeWidth:DETAIL_SKY_BAR_LEVEL_WIDTH[level],
-  opacity:.92,
-  title:`Gesamtbewölkung · Stufe ${level} von 4`,
- };
-}
+const precipBaseColor=(kind:'rain'|'snow'|'mixed'|'storm')=>({
+  rain:'var(--param-precipitation)',
+  snow:'#66bce8',
+  mixed:'#a769d8',
+  storm:'#7869e8',
+}[kind]);
 
-function precipitationFamily(type:ReturnType<typeof precipitationParts>['type']){
- if(type==='drizzle'||type==='rain'||type==='showers')return{key:'rain',color:DETAIL_SKY_BAR_PRECIP_COLORS.rain};
- if(type==='snow'||type==='snowShowers'||type==='snowGrains')return{key:'snow',color:DETAIL_SKY_BAR_PRECIP_COLORS.snow};
- if(type==='sleet'||type==='sleetShowers')return{key:'mixed',color:DETAIL_SKY_BAR_PRECIP_COLORS.mixed};
- if(type==='freezingDrizzle'||type==='freezingRain')return{key:'freezing',color:DETAIL_SKY_BAR_PRECIP_COLORS.freezing};
- if(type==='thunderstorm'||type==='thunderstormHail')return{key:'storm',color:DETAIL_SKY_BAR_PRECIP_COLORS.storm};
- return null;
-}
+const precipSunOverlay=(daylight:boolean,sunshineShare:number,cloud:number)=>{
+  if(!daylight||sunshineShare<=0.18)return null;
+  return skyColor(Math.max(0,Math.min(60,cloud)),true,Math.max(sunshineShare,0.28));
+};
 
-function precipitationLevel(amount:number){
- if(!(amount>=.05))return 0;
- if(amount<2.5)return 1;
- if(amount<10)return 2;
- if(amount<50)return 3;
- return 4;
-}
+const cloudBandWidth=(cloud:number,daylight:boolean)=>{
+  if(!daylight&&cloud<20)return 0;
+  if(cloud<18)return daylight?3.1:0;
+  if(cloud<38)return 4.4;
+  if(cloud<62)return 5.8;
+  if(cloud<86)return 7.2;
+  return 8.5;
+};
 
-function precipitationSample(point:DetailSkyBarPoint,centerY:number):DetailSkyBarLayerSample|null{
- const parts=precipitationParts(point),amount=Math.max(0,Number(parts.total)||0),level=precipitationLevel(amount),family=precipitationFamily(parts.type);
- if(level<=0||!family)return null;
- return{
-  signature:`precip-${family.key}-${level}`,
-  color:family.color,
-  y:centerY+DETAIL_SKY_BAR_LAYER_OFFSETS.precip,
-  strokeWidth:DETAIL_SKY_BAR_LEVEL_WIDTH[level],
-  opacity:.62+level*.08,
-  title:`Niederschlag · ${parts.label} · Stufe ${level} von 4`,
- };
-}
+const sunBandWidth=(sunshineShare:number,cloud:number)=>{
+  if(sunshineShare>=0.78||cloud<18)return 8.3;
+  if(sunshineShare>=0.52||cloud<35)return 6.9;
+  if(sunshineShare>=0.24||cloud<55)return 5.4;
+  return 4.0;
+};
 
-function xBounds(points:DetailSkyBarPoint[],left:number,right:number,width:number,xCenters?:number[]){
- const plotWidth=Math.max(1,width-left-right);
- const fallbackCenter=(index:number)=>points.length<=1?left+plotWidth/2:left+(index/Math.max(1,points.length-1))*plotWidth;
- const centerAt=(index:number)=>Number.isFinite(Number(xCenters?.[index]))?Number(xCenters?.[index]):fallbackCenter(index);
- return points.map((point,index)=>{
-  const center=centerAt(index),previous=index>0?centerAt(index-1):left,next=index<points.length-1?centerAt(index+1):width-right;
-  const start=index===0?left:(previous+center)/2,end=index===points.length-1?width-right:(center+next)/2;
-  return{point,start,end};
- });
-}
+const precipBandWidth=(amount:number)=>{
+  if(amount<0.05)return 0;
+  if(amount<0.5)return 4.5;
+  if(amount<2.5)return 5.8;
+  if(amount<10)return 7.2;
+  return 8.8;
+};
 
-function segmentsForLayer(
- layerKey:string,
- bounds:ReturnType<typeof xBounds>,
- makeSample:(point:DetailSkyBarPoint)=>DetailSkyBarLayerSample|null,
-){
- const segments:DetailSkyBarSegment[]=[];
- let activeSample:DetailSkyBarLayerSample|null=null;
- let activeStart=0;
- let activeEnd=0;
- let activeIndex=0;
- const pushActive=()=>{
-  if(!activeSample)return;
-  segments.push({
-   key:`${layerKey}-${activeIndex}-${segments.length}`,
-   x1:activeStart,
-   x2:activeEnd,
-   y:activeSample.y,
-   color:activeSample.color,
-   strokeWidth:activeSample.strokeWidth,
-   opacity:activeSample.opacity,
-   title:activeSample.title,
+const precipitationKind=(hour:PrecipSample):'rain'|'snow'|'mixed'|'storm'=>{
+  const parts=precipitationParts(hour);
+  if(parts.type==='thunderstorm'||parts.type==='thunderstormHail')return 'storm';
+  if(parts.type==='sleet'||parts.type==='sleetShowers'||parts.type==='freezingDrizzle'||parts.type==='freezingRain')return 'mixed';
+  if(parts.type==='snow'||parts.type==='snowGrains'||parts.type==='snowShowers')return 'snow';
+  return 'rain';
+};
+
+const precipitationLabel=(hour:PrecipSample)=>precipitationParts(hour).label||'Niederschlag';
+
+const weatherStripVisual=(hour:PrecipSample)=>{
+  const amount=Math.max(0,Number(hour.precipitation??0));
+  const cloud=clamp(Number(hour.cloud??0),0,100);
+  const daylight=!!hour.isDay;
+  const sunshineShare=daylight?clamp01(Number(hour.sunshineDuration ?? 0)/60):0;
+  const precipWidth=precipBandWidth(amount);
+
+  if(precipWidth>0){
+    const kind=precipitationKind(hour);
+    const highlight=daylight&&sunshineShare>0.18?' · mit Sonnenanteilen':'';
+    const underlayColor=precipSunOverlay(daylight,sunshineShare,cloud);
+    return {
+      color:precipBaseColor(kind),
+      strokeWidth:underlayColor?Math.max(3.2,precipWidth-2.2):precipWidth,
+      opacity:0.98,
+      title:`${precipitationLabel(hour)} · ${amount.toFixed(amount>=10?0:1)} mm/h${highlight}`,
+      underlayColor:underlayColor??undefined,
+      underlayStrokeWidth:underlayColor?Math.min(9.4,precipWidth+1.8):undefined,
+      underlayOpacity:underlayColor?0.96:undefined,
+    };
+  }
+
+  if(daylight){
+    const sunWidth=sunBandWidth(sunshineShare,cloud);
+    return {
+      color:skyColor(cloud,true,sunshineShare),
+      strokeWidth:sunWidth,
+      opacity:0.96,
+      title:`Sonne/Bewölkung · ${(sunshineShare*100).toFixed(0)} % Sonne · ${cloud.toFixed(0)} % Wolken`,
+    };
+  }
+
+  const width=cloudBandWidth(cloud,false);
+  if(width<=0)return null;
+  return {
+    color:skyColor(cloud,false,0),
+    strokeWidth:width,
+    opacity:0.88,
+    title:`Bewölkung Nacht · ${cloud.toFixed(0)} %`,
+  };
+};
+
+export function detailSkyBarSegments(
+  hours:PrecipSample[],
+  left:number,
+  right:number,
+  chartW:number,
+  centerY:number,
+  xPositions?:number[],
+):SkyBarSegment[]{
+  if(!hours.length||chartW<=0)return [];
+
+  if(Array.isArray(xPositions)&&xPositions.length){
+    const leftEdge=left;
+    const rightEdge=Math.max(leftEdge,chartW-right);
+    const positions=xPositions.slice(0,hours.length);
+    const segments:SkyBarSegment[]=[];
+    hours.forEach((hour,index)=>{
+      const visual=weatherStripVisual(hour);
+      if(!visual)return;
+      const x=positions[index]??leftEdge;
+      const prev=index>0?(positions[index-1]??leftEdge):leftEdge;
+      const next=index<positions.length-1?(positions[index+1]??rightEdge):rightEdge;
+      const rawX0=index===0?leftEdge:(prev+x)*0.5;
+      const rawX1=index===positions.length-1?rightEdge:(x+next)*0.5;
+      const gap=Math.min(Math.max((rawX1-rawX0)*0.1,0.35),3.5);
+      const x0=Math.max(leftEdge,rawX0+gap*0.5);
+      const x1=Math.min(rightEdge,rawX1-gap*0.5);
+      if(x1<=x0)return;
+      segments.push({
+        key:`wx-${index}`,
+        x1:x0,
+        x2:x1,
+        y:centerY,
+        color:visual.color,
+        strokeWidth:visual.strokeWidth,
+        opacity:visual.opacity,
+        title:visual.title,
+        underlayColor:visual.underlayColor,
+        underlayStrokeWidth:visual.underlayStrokeWidth,
+        underlayOpacity:visual.underlayOpacity,
+      });
+    });
+    return segments;
+  }
+
+  const p=hours.slice(left,right+1);
+  if(!p.length)return [];
+  const segmentWidth=chartW/p.length;
+  const gap=Math.min(Math.max(segmentWidth*0.08,0.4),4);
+  const segments:SkyBarSegment[]=[];
+
+  p.forEach((hour,index)=>{
+    const visual=weatherStripVisual(hour);
+    if(!visual)return;
+    const segmentLeft=index*segmentWidth;
+    const segmentRight=(index+1)*segmentWidth;
+    const x0=Math.max(0,segmentLeft+gap*0.5);
+    const x1=Math.min(chartW,segmentRight-gap*0.5);
+    if(x1<=x0)return;
+    segments.push({
+      key:`wx-${index}`,
+      x1:x0,
+      x2:x1,
+      y:centerY,
+      color:visual.color,
+      strokeWidth:visual.strokeWidth,
+      opacity:visual.opacity,
+      title:visual.title,
+      underlayColor:visual.underlayColor,
+      underlayStrokeWidth:visual.underlayStrokeWidth,
+      underlayOpacity:visual.underlayOpacity,
+    });
   });
-  activeSample=null;
- };
- bounds.forEach(({point,start,end},index)=>{
-  const sample=makeSample(point);
-  if(!sample){
-   pushActive();
-   return;
-  }
-  if(activeSample&&activeSample.signature===sample.signature){
-   activeEnd=end;
-   return;
-  }
-  pushActive();
-  activeSample=sample;
-  activeStart=start;
-  activeEnd=end;
-  activeIndex=index;
- });
- pushActive();
- return segments;
-}
 
-export function detailSkyBarSegments(points:DetailSkyBarPoint[],left:number,right:number,width:number,centerY:number,xCenters?:number[]){
- if(!points.length)return[];
- const bounds=xBounds(points,left,right,width,xCenters);
- return[
-  ...segmentsForLayer('sun',bounds,point=>sunSample(point,centerY)),
-  ...segmentsForLayer('cloud',bounds,point=>cloudSample(point,centerY)),
-  ...segmentsForLayer('precip',bounds,point=>precipitationSample(point,centerY)),
- ];
+  return segments;
 }

@@ -3,23 +3,38 @@ import {readFile} from 'node:fs/promises';
 
 const root=new URL('../',import.meta.url);
 const read=path=>readFile(new URL(path,root),'utf8');
-const [cockpit,app,skybar,styleSource,styles,contract,pkgText,baselineText]=await Promise.all([
- read('src/ForecastCockpit.tsx'),read('src/App.tsx'),read('src/detailSkyBar.ts'),read('src/styles-src/30-modern.css'),read('src/styles.css'),read('MID_24H_PROFILE_STORY_AXIS_CONTRACT.md'),read('package.json'),read('MID_BASELINE.json')
+const [app,cockpit,detailSkyBar,contract,pkgRaw,baselineRaw]=await Promise.all([
+  read('src/App.tsx'),
+  read('src/ForecastCockpit.tsx'),
+  read('src/detailSkyBar.ts'),
+  read('MID_24H_PROFILE_STORY_AXIS_CONTRACT.md'),
+  read('package.json'),
+  read('MID_BASELINE.json')
 ]);
-const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText),test='scripts/test-weather-profile-skybar-pills-097723.mjs';
+const pkg=JSON.parse(pkgRaw);
+const baseline=JSON.parse(baselineRaw);
+const test='scripts/test-weather-profile-skybar-pills-097723.mjs';
 
-assert.ok(app.includes("import {detailSkyBarSegments} from './detailSkyBar';")&&cockpit.includes("import {detailSkyBarSegments} from './detailSkyBar';"),'Tagesansicht und 24-h-Profil müssen dieselbe Skybar-Implementierung verwenden.');
-assert.ok(app.includes('detailSkyBarSegments(p,left,right,W,skyBarY)'),'Die Tagesansicht muss weiterhin den kanonischen Skybar-Helfer verwenden.');
-assert.ok(cockpit.includes('profileSkyBarSegments=detailSkyBarSegments(')&&cockpit.includes('chartPoints.map(item=>item.x)'),'Das 24-h-Profil muss dieselbe Skybar-Logik auf seiner exakten gemeinsamen Zeitachse verwenden.');
-for(const token of ['#ffc229','#aeb3b9','Sonnenschein/Klarheit · Stufe','Gesamtbewölkung · Stufe','precipitationParts','var(--param-precipitation)',"snow:'#66bce8'","mixed:'#a769d8'","storm:'#7869e8'",'if(!daylight||cloud>=50)return null','if(!daylight&&cloud<20)return null','if(amount<2.5)return 1','if(amount<10)return 2','if(amount<50)return 3',"...segmentsForLayer('precip'"])assert.ok(skybar.includes(token),`Skybar-Vertrag fehlt: ${token}`);
-assert.ok(cockpit.includes('data-mid-skybar="profile"'),'Die Wetterleiste im 24-h-Profil muss explizit markiert sein.');
-assert.ok(cockpit.includes('data-mid-skybar="seven-day"')&&cockpit.includes('skyBarSegments=detailSkyBarSegments(hourly'),'Die weiterentwickelte Wetterleiste muss auch oberhalb der 7-Tage-Temperaturkurve laufen.');
-assert.ok(!cockpit.includes("rows=[{key:'total',className:'total',y:cloudTop"),'Das frühere Gesamtbewölkungs-Grauband darf nicht parallel zur Sonne-/Wolken-Leiste bestehen bleiben.');
-for(const token of ["key:'high'","key:'mid'","key:'low'"])assert.ok(cockpit.includes(token),`H/M/L-Wolkenband muss erhalten bleiben: ${token}`);
-for(const sheet of [styleSource,styles])assert.ok(sheet.includes('.selected-time-value-pill rect{fill:var(--mg-tooltip);fill-opacity:.8;'),'Wertepillen müssen mit 80 % Füllopazität leicht transparent sein.');
-assert.ok(contract.includes('Gesamtbewölkung wird im 24-h-Profil nicht mehr als viertes graues Zellenband gezeichnet'),'Story-Axis-Vertrag muss den Ersatz der Gesamt-Zeile dokumentieren.');
-assert.ok(contract.includes('detailSkyBarSegments')&&contract.includes('Logik wie die Tagesansicht'),'Story-Axis-Vertrag muss die 1:1-Wiederverwendung der Tagesansichtslogik festschreiben.');
+assert.ok(app.includes('data-mid-sky-note="react"'),'Wetterstreifen-Hinweis fehlt in der 24h-Ansicht.');
+assert.ok(app.includes('Ein einziger Wetterstreifen')&&app.includes('Niederschlag ersetzt die Bewölkungsfarbe')&&app.includes('farbiger Niederschlag auf gelbem Grund'),'Hinweis muss das Single-Strip-Konzept inklusive Sonnen-Schauer-Darstellung erklären.');
+
+assert.ok(detailSkyBar.includes('const weatherStripVisual=')&&detailSkyBar.includes('const precipitationKind=')&&detailSkyBar.includes('const precipBandWidth='),'Single-Strip-Logik fehlt in detailSkyBar.ts.');
+assert.ok(detailSkyBar.includes('mit Sonnenanteilen'),'Niederschlag mit Sonnenanteilen muss textlich erkennbar bleiben.');
+assert.ok(detailSkyBar.includes('underlayColor')&&detailSkyBar.includes('precipSunOverlay')&&detailSkyBar.includes('underlayStrokeWidth'),'Für Schauer bei Sonne muss eine gelbe Unterlage unter dem Niederschlagsstrich existieren.');
+assert.ok(detailSkyBar.includes('xPositions?:number[]'),'detailSkyBar muss explizite X-Positionen der 7-Tage-Kurvenübersicht unterstützen.');
+assert.ok(detailSkyBar.includes("precipitationParts,type PrecipSample")&&detailSkyBar.includes('hours:PrecipSample[]')&&!detailSkyBar.includes("import type {Hour} from './weather'"),'Wetterstreifen muss Hour und kanonische ShortTermForecastPoint-Strukturen über den gemeinsamen PrecipSample-Vertrag akzeptieren.');
+assert.ok(!detailSkyBar.includes("layer:'sun'" )&&!detailSkyBar.includes("layer:'cloud'" )&&!detailSkyBar.includes("layer:'precip'" ),'Die alte Drei-Layer-Streifenlogik darf nicht mehr vorhanden sein.');
+
+assert.ok(cockpit.includes('nightBands=visible.flatMap')&&cockpit.includes('seven-day-curve-night-band'),'Die 7-Tage-Kurvenübersicht muss Nachtbänder berechnen und rendern.');
+assert.ok(cockpit.includes('Schauer können bei viel Sonne farbig auf gelbem Grund erscheinen'),'Kurvenübersicht-Hinweis muss die Sonnen-Schauer-Darstellung nennen.');
+assert.ok(cockpit.includes('dezent abgedunkelten Nachtstunden'),'ARIA-/Beschreibungs-Text für Nachtstunden fehlt.');
+
+for(const token of ['ein einzelner, unterschiedlich breiter Wetterstreifen','Niederschlag ersetzt dabei die Bewölkungsdarstellung','farbiger Niederschlag auf gelbem Grund','7-Tage-Kurvenübersicht dunkelt Nachtstunden leicht ab']){
+  assert.ok(contract.includes(token),`24h-Profil-Vertrag unvollständig: ${token}`);
+}
+
 assert.equal(baseline.releaseVersion,pkg.version,'Baseline und Paketversion müssen synchron sein.');
 assert.equal(pkg.scripts?.['test:weather-profile-skybar-pills'],`node ${test}`,'Package-Testeintrag fehlt.');
-assert.ok(baseline.requiredRegressionTests?.includes(test)&&baseline.regressionTests?.includes(test),'Neue 24-h-UI-Regression fehlt in der Baseline.');
-console.log(`MID v${pkg.version}: transparente Wertepillen und gemeinsame Sonne/Wolken/Niederschlag-Wetterleiste in Tagesansicht, 24-h-Profil und 7-Tage-Kurve geschützt.`);
+assert.ok(baseline.requiredRegressionTests?.includes(test)&&baseline.regressionTests?.includes(test),'Regressionstest muss in beiden Baseline-Testlisten enthalten sein.');
+
+console.log(`MID v${pkg.version}: Single-Strip-Wetterband und Nachtabdunklung der 7-Tage-Kurvenübersicht geschützt.`);

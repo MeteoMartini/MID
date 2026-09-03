@@ -53,7 +53,8 @@ for(const forbidden of [
 ])assert.ok(!cockpit.includes(forbidden)&&!styles.includes(forbidden),`Alter Wolken-/Achsenvertrag muss entfernt sein: ${forbidden}`);
 
 assert.ok(cockpit.includes('const fraction=clamp(Number(value)||0,0,100)/100'),'H/M/L-Grauintensität muss direkt aus 0..100-%-Bedeckung skaliert werden.');
-for(const token of ['#ffc229','#aeb3b9','Sonnenschein/Klarheit · Stufe','Gesamtbewölkung · Stufe'])assert.ok(skybar.includes(token),`Gemeinsame Gesamt-Skybar fehlt: ${token}`);
+for(const token of ['#ffc229','#aeb3b9','const weatherStripVisual=','const precipitationKind=','const precipBandWidth=','const precipSunOverlay=','underlayColor','underlayStrokeWidth'])assert.ok(skybar.includes(token),`Gemeinsame Gesamt-Skybar fehlt: ${token}`);
+for(const forbidden of ['Sonnenschein/Klarheit · Stufe','Gesamtbewölkung · Stufe',"layer:'sun'","layer:'cloud'","layer:'precip'"])assert.ok(!skybar.includes(forbidden),`Alter Single-/Drei-Layer-Skybarvertrag muss entfernt sein: ${forbidden}`);
 assert.ok(!cockpit.includes("rows=[{key:'total',className:'total',y:cloudTop"),'Gesamtbewölkung darf nicht mehr als viertes Grauzellenband gerendert werden.');
 assert.equal(JSON.parse(pkg).version,JSON.parse(baseline).releaseVersion,'Release-/Baseline-Version müssen synchron sein.');
 console.log('24-h-Wolkenprofil: gemeinsame Tagesansicht-Skybar für Gesamt sowie kontinuierliche H/M/L-Graubänder ohne Prozentachse geprüft.');

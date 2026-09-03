@@ -42,7 +42,7 @@ gegeneinander verschoben sein.
 ## Wolken
 
 - Die Reihenfolge bleibt von oben nach unten: Gesamt, H, M, L.
-- **Gesamtbewölkung wird im 24-h-Profil nicht mehr als viertes graues Zellenband gezeichnet.** An dieser Stelle steht die Sonne-/Gesamtbewölkungs-Leiste mit **derselben `detailSkyBarSegments`-Logik wie die Tagesansicht**: tagsüber Gelb für klar/sonnig, sonst Grau; nachts bleibt klar ohne Balken, Bewölkung erscheint grau. Die Strichdicke bildet dieselben vier Ausprägungsstufen ab.
+- **Gesamtbewölkung wird im 24-h-Profil nicht mehr als viertes graues Zellenband gezeichnet.** An dieser Stelle steht jetzt **ein einzelner, unterschiedlich breiter Wetterstreifen** mit derselben `detailSkyBarSegments`-Grundlogik wie in der Tagesansicht: tagsüber verläuft er je nach Sonne/Wolken gelb bis grau; klare Nacht darf aussetzen, nächtliche Bewölkung erscheint grau. **Niederschlag ersetzt dabei die Bewölkungsdarstellung** und verwendet fachlich passende Niederschlagsfarben auch für Schnee-, Misch- und Gewitterphasen; bei vielen Sonnenanteilen dürfen Schauer und andere Niederschlagsphasen als farbiger Niederschlag auf gelbem Grund erscheinen. Die Strichdicke bildet die jeweilige Ausprägung ab.
 - Die Gesamt-Leiste verwendet weiterhin exakt dieselbe X-Zeitgeometrie wie alle übrigen Profilparameter; im rollenden Profil werden dafür die bereits über `profileXForEpoch` bestimmten Stundenpositionen an den gemeinsamen Helfer übergeben.
 - H, M und L bleiben darunter als schmale, kontinuierliche horizontale Graubänder erhalten. Für diese drei Ebenen steuert 0…100 % ausschließlich die Opazität von weiß/transparent bis grau.
 - Nachbarstunden werden in den H/M/L-Verlauf einbezogen, sodass Übergänge weich ein- und ausfaden.
@@ -86,12 +86,12 @@ gegeneinander verschoben sein.
   Rand erleichtern das senkrechte Lesen.
 - Diese Darstellung gilt unverändert im gemeinsamen Browser/PWA/iOS-React-Kern.
 
+- Die 7-Tage-Kurvenübersicht dunkelt Nachtstunden leicht ab und zeigt unter der Temperaturkurve denselben Single-Strip-Wetteransatz auf gemeinsamer Zeitachse; bei vielen Sonnenanteilen dürfen Schauer als farbiger Niederschlag auf gelbem Grund erscheinen.
+
 ## Regression
 
 `scripts/test-weather-profile-story-axis-09750.mjs` schützt die gemeinsame
 Zeitabbildung, die durchgehenden Vertikalen, die achsenlose Wolkendarstellung,
 die sichtbare Luftdruckspur und die Hoch-/Querformatverträge.
 
-`scripts/test-weather-profile-skybar-pills-097723.mjs` schützt zusätzlich die
-1:1-Wiederverwendung der Tagesansicht-Sonne/Wolken-Leiste für Gesamtbewölkung,
-den Erhalt von H/M/L sowie die leicht transparenten Wertepillen.
+`scripts/test-weather-profile-skybar-pills-097723.mjs` schützt zusätzlich den einzelnen Wetterstreifen für Sonne/Bewölkung/Niederschlag, den Erhalt von H/M/L, die passende Farblogik für Niederschlagsarten und dass die 7-Tage-Kurvenübersicht Nachtstunden leicht abdunkelt.

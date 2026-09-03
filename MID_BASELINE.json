@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.78.16",
+  "releaseVersion": "0.9.78.18",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -1151,7 +1151,9 @@
     "scripts/test-precipitation-trailing-interval-nowcast-097810.mjs",
     "MID_PRECIPITATION_INTERVAL_CONTRACT.md",
     "MID_IMPLEMENTATION_0.9.78.10.md",
-    "MID_TEST_REPORT_0.9.78.10.md"
+    "MID_TEST_REPORT_0.9.78.10.md",
+    "MID_IMPLEMENTATION_0.9.78.18.md",
+    "MID_TEST_REPORT_0.9.78.18.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
