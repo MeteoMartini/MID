@@ -14,7 +14,7 @@ assert.ok(trend.includes('Klimatologie lädt im Hintergrund weiter.')&&trend.inc
 
 assert.ok(cockpit.includes('function smoothCurvePath(')&&cockpit.includes('function SevenDayCurveOverview('),'Neue 7-Tage-Kurvenübersicht fehlt.');
 assert.ok(cockpit.includes('<SevenDayCurveOverview days={visible}')&&cockpit.indexOf('<SevenDayCurveOverview days={visible}')<cockpit.indexOf('<div className="cockpit-seven-grid"'),'Kurvenübersicht muss oberhalb der kompakten Tageskarten liegen.');
-for(const token of ['seven-day-temperature-gradient','seven-day-curve-rainbar','ecmwfTemperatureTone(day.min','ecmwfTemperatureTone(day.max','WeatherPictogram','rainItems=hourly.map','halfDayTicks=Array.from'])assert.ok(cockpit.includes(token),`Kurvenübersicht unvollständig: ${token}`);
+for(const token of ['seven-day-temperature-gradient','seven-day-curve-rainbar','ecmwfTemperatureTone(day.min','ecmwfTemperatureTone(day.max','WeatherPictogram','rainItems=hourly.map','halfDayTicks=Array.from','nightBands=(()=>{','fillOpacity={0.18}'])assert.ok(cockpit.includes(token),`Kurvenübersicht unvollständig: ${token}`);
 for(const token of ['.seven-day-curve-overview','.seven-day-curve-days','.seven-day-curve-temperature-line','.seven-day-curve-rainbar','@media(max-width:390px)']){
  assert.ok(styleSource.includes(token),`Responsive Designquelle fehlt: ${token}`);assert.ok(styleAggregate.includes(token),`Style-Aggregat fehlt: ${token}`);
 }

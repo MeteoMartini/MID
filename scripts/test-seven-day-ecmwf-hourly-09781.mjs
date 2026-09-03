@@ -15,7 +15,9 @@ for(const token of [
  'seven-day-curve-temperature-halo',
  'stopColor={ecmwfTemperatureColor(point.value)}',
  'minTone=ecmwfTemperatureTone(day.min),maxTone=ecmwfTemperatureTone(day.max)',
- 'Temperaturfarben: ECMWF-Skala'
+ 'Temperaturfarben: ECMWF-Skala',
+ 'nightBands=(()=>{',
+ 'fillOpacity={0.18}'
 ])assert.ok(cockpit.includes(token),`7-Tage-Kurvenkonzept unvollständig: ${token}`);
 assert.ok(!cockpit.slice(cockpit.indexOf('function SevenDayBand('),cockpit.indexOf('\nfunction ensembleSeries(')).includes('dailyTemperatureAnomalyLabel(minTone.anomaly)'),'7-Tage-Cockpit darf keine Tmin-Klimaabweichung mehr anzeigen.');
 assert.ok(!cockpit.slice(cockpit.indexOf('function SevenDayBand('),cockpit.indexOf('\nfunction ensembleSeries(')).includes('dailyTemperatureAnomalyLabel(maxTone.anomaly)'),'7-Tage-Cockpit darf keine Tmax-Klimaabweichung mehr anzeigen.');

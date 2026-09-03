@@ -61,28 +61,30 @@ const precipSunOverlay=(daylight:boolean,sunshineShare:number,cloud:number)=>{
   return skyColor(Math.max(0,Math.min(60,cloud)),true,Math.max(sunshineShare,0.28));
 };
 
+const SKYBAR_THICKNESS_STEPS=[2.7,3.8,4.9,6.1] as const;
+const skybarThickness=(level:number)=>SKYBAR_THICKNESS_STEPS[Math.max(0,Math.min(SKYBAR_THICKNESS_STEPS.length-1,Math.round(level)))]!;
+
 const cloudBandWidth=(cloud:number,daylight:boolean)=>{
   if(!daylight&&cloud<20)return 0;
-  if(cloud<18)return daylight?3.1:0;
-  if(cloud<38)return 4.4;
-  if(cloud<62)return 5.8;
-  if(cloud<86)return 7.2;
-  return 8.5;
+  if(cloud<25)return daylight?skybarThickness(0):0;
+  if(cloud<50)return skybarThickness(1);
+  if(cloud<75)return skybarThickness(2);
+  return skybarThickness(3);
 };
 
 const sunBandWidth=(sunshineShare:number,cloud:number)=>{
-  if(sunshineShare>=0.78||cloud<18)return 8.3;
-  if(sunshineShare>=0.52||cloud<35)return 6.9;
-  if(sunshineShare>=0.24||cloud<55)return 5.4;
-  return 4.0;
+  if(sunshineShare>=0.78||cloud<18)return skybarThickness(3);
+  if(sunshineShare>=0.52||cloud<35)return skybarThickness(2);
+  if(sunshineShare>=0.24||cloud<55)return skybarThickness(1);
+  return skybarThickness(0);
 };
 
 const precipBandWidth=(amount:number)=>{
   if(amount<0.05)return 0;
-  if(amount<0.5)return 4.5;
-  if(amount<2.5)return 5.8;
-  if(amount<10)return 7.2;
-  return 8.8;
+  if(amount<0.5)return skybarThickness(0);
+  if(amount<2.5)return skybarThickness(1);
+  if(amount<10)return skybarThickness(2);
+  return skybarThickness(3);
 };
 
 const precipitationKind=(hour:PrecipSample):'rain'|'snow'|'mixed'|'storm'=>{
@@ -112,8 +114,8 @@ const weatherStripVisual=(hour:PrecipSample)=>{
       opacity:0.98,
       title:`${precipitationLabel(hour)} · ${amount.toFixed(amount>=10?0:1)} mm/h${highlight}`,
       underlayColor:underlayColor??undefined,
-      underlayStrokeWidth:underlayColor?Math.min(9.4,precipWidth+1.8):undefined,
-      underlayOpacity:underlayColor?0.96:undefined,
+      underlayStrokeWidth:underlayColor?Math.min(7.4,precipWidth+1.25):undefined,
+      underlayOpacity:underlayColor?0.92:undefined,
     };
   }
 

@@ -18,16 +18,16 @@ const test='scripts/test-weather-profile-skybar-pills-097723.mjs';
 assert.ok(app.includes('data-mid-sky-note="react"'),'Wetterstreifen-Hinweis fehlt in der 24h-Ansicht.');
 assert.ok(app.includes('Ein einziger Wetterstreifen')&&app.includes('Niederschlag ersetzt die Bewölkungsfarbe')&&app.includes('farbiger Niederschlag auf gelbem Grund'),'Hinweis muss das Single-Strip-Konzept inklusive Sonnen-Schauer-Darstellung erklären.');
 
-assert.ok(detailSkyBar.includes('const weatherStripVisual=')&&detailSkyBar.includes('const precipitationKind=')&&detailSkyBar.includes('const precipBandWidth='),'Single-Strip-Logik fehlt in detailSkyBar.ts.');
+assert.ok(detailSkyBar.includes('const weatherStripVisual=')&&detailSkyBar.includes('const precipitationKind=')&&detailSkyBar.includes('const precipBandWidth=')&&detailSkyBar.includes('const SKYBAR_THICKNESS_STEPS='),'Single-Strip-Logik mit vier Dickenstufen fehlt in detailSkyBar.ts.');
 assert.ok(detailSkyBar.includes('mit Sonnenanteilen'),'Niederschlag mit Sonnenanteilen muss textlich erkennbar bleiben.');
 assert.ok(detailSkyBar.includes('underlayColor')&&detailSkyBar.includes('precipSunOverlay')&&detailSkyBar.includes('underlayStrokeWidth'),'Für Schauer bei Sonne muss eine gelbe Unterlage unter dem Niederschlagsstrich existieren.');
 assert.ok(detailSkyBar.includes('xPositions?:number[]'),'detailSkyBar muss explizite X-Positionen der 7-Tage-Kurvenübersicht unterstützen.');
 assert.ok(detailSkyBar.includes("precipitationParts,type PrecipSample")&&detailSkyBar.includes('hours:PrecipSample[]')&&!detailSkyBar.includes("import type {Hour} from './weather'"),'Wetterstreifen muss Hour und kanonische ShortTermForecastPoint-Strukturen über den gemeinsamen PrecipSample-Vertrag akzeptieren.');
 assert.ok(!detailSkyBar.includes("layer:'sun'" )&&!detailSkyBar.includes("layer:'cloud'" )&&!detailSkyBar.includes("layer:'precip'" ),'Die alte Drei-Layer-Streifenlogik darf nicht mehr vorhanden sein.');
 
-assert.ok(cockpit.includes('nightBands=visible.flatMap')&&cockpit.includes('seven-day-curve-night-band'),'Die 7-Tage-Kurvenübersicht muss Nachtbänder berechnen und rendern.');
+assert.ok(cockpit.includes('nightBands=(()=>{')&&cockpit.includes('hourly.forEach((hour,index)=>{const isNight=!hour.isDay')&&cockpit.includes('seven-day-curve-night-band')&&cockpit.includes('fillOpacity={0.18}'),'Die 7-Tage-Kurvenübersicht muss zusammenhängende, helle Nachtbänder berechnen und rendern.');
 assert.ok(cockpit.includes('Schauer können bei viel Sonne farbig auf gelbem Grund erscheinen'),'Kurvenübersicht-Hinweis muss die Sonnen-Schauer-Darstellung nennen.');
-assert.ok(cockpit.includes('dezent abgedunkelten Nachtstunden'),'ARIA-/Beschreibungs-Text für Nachtstunden fehlt.');
+assert.ok(cockpit.includes('zusammenhängenden Nachtstunden')&&cockpit.includes('deutlich heller hinterlegt'),'ARIA-/Beschreibungs-Text für zusammenhängende helle Nachtstunden fehlt.');
 
 for(const token of ['ein einzelner, unterschiedlich breiter Wetterstreifen','Niederschlag ersetzt dabei die Bewölkungsdarstellung','farbiger Niederschlag auf gelbem Grund','7-Tage-Kurvenübersicht dunkelt Nachtstunden leicht ab']){
   assert.ok(contract.includes(token),`24h-Profil-Vertrag unvollständig: ${token}`);
