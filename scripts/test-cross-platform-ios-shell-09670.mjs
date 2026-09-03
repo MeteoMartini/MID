@@ -11,8 +11,8 @@ const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}
 
 if(!versionAtLeast(pkg.version,'0.9.67.0'))failures.push(`Releaseversion ist älter als 0.9.67.0: ${pkg.version}`);
 if(!versionAtLeast('0.9.67.0','0.9.66.19')||versionAtLeast('0.9.66.18','0.9.66.19'))failures.push('Semantischer Mindestversionsschutz ist fehlerhaft.');
-for(const[name,version]of Object.entries({'@capacitor/core':'8.5.0','@capacitor/ios':'8.5.0','@capacitor/app':'8.1.1','@capacitor/splash-screen':'8.0.2','@capacitor/status-bar':'8.0.3'}))if(pkg.dependencies?.[name]!==version)failures.push(`${name} ist nicht exakt auf ${version} gepinnt.`);
-if(pkg.devDependencies?.['@capacitor/cli']!=='8.5.0')failures.push('@capacitor/cli ist nicht exakt auf 8.5.0 gepinnt.');
+for(const[name,version]of Object.entries({'@capacitor/core':'8.5.1','@capacitor/ios':'8.5.1','@capacitor/app':'8.1.1','@capacitor/splash-screen':'8.0.2','@capacitor/status-bar':'8.0.3'}))if(pkg.dependencies?.[name]!==version)failures.push(`${name} ist nicht exakt auf ${version} gepinnt.`);
+if(pkg.devDependencies?.['@capacitor/cli']!=='8.5.1')failures.push('@capacitor/cli ist nicht exakt auf 8.5.1 gepinnt.');
 if(pkg.scripts?.['ios:sync']!=='npm run build && cap sync ios')failures.push('Reproduzierbarer iOS-Sync fehlt.');
 for(const [key,value] of Object.entries({appId:'app.midwx.weather',appName:'MID Wetter',webDir:'dist'}))if(capacitorConfig[key]!==value)failures.push(`Capacitor-Konfiguration ${key} != ${value}`);
 if('server' in capacitorConfig)failures.push('Die Produktions-App darf keinen entfernten Server statt des gebündelten dist-Builds laden.');

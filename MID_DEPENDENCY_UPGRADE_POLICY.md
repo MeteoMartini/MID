@@ -1,6 +1,6 @@
 # MID Dependency Upgrade Policy
 
-Stand: MID Wartungsaudit 31.08.2026
+Stand: MID Wartungsaudit 03.09.2026
 
 Der Stable-Channel erhält keine ungeprüften Major-/Toolchain-Sprünge. Der reproduzierbare Vertrag bleibt zunächst:
 
@@ -11,7 +11,8 @@ Der Stable-Channel erhält keine ungeprüften Major-/Toolchain-Sprünge. Der rep
 - Vite: 6.4.3
 - @vitejs/plugin-react: 4.7.0
 - Lucide React: 1.35.0 (isolierter Minor-Kandidat; TypeScript/Vite und CodeQL grün, nur historische Versionspins angepasst) (React 18.3.1 bleibt unverändert)
-- MapLibre GL JS: 6.6.0 (6.5.0-Kompatibilitätslinie plus CPU-DEM-Picking ohne GPU-Readback-Stall, reduzierte GPU-Speicherlast und einmaliger color-relief-DEM-Texturupload pro Tile)
+- MapLibre GL JS: 6.7.0 (kompatibler Wartungsstand mit vermiedener Symbol-Neuplatzierung bei unverändertem Kamerastand sowie Korrekturen für Tile-Revalidierung und Terrain-Kamerabewegung)
+- Capacitor Core / iOS / CLI: 8.5.1 (kompatibler Patchstand mit robusterer Listener-Entfernung, korrigierten POSIX-Pfaden für das iOS-SPM-Paket und Schutz des internen HTTP-Proxy-Pfads)
 - GitHub Actions: checkout 7.0.1 (`3d3c42e5aac5ba805825da76410c181273ba90b1`), setup-node 7.0.0 (`820762786026740c76f36085b0efc47a31fe5020`), setup-python 7.0.0 (`5fda3b95a4ea91299a34e894583c3862153e4b97`) und upload-artifact 7.0.1 (`043fb46d1a93c77aae656e7c1c64a875d1fc6a0a`), jeweils SHA-gepinnt
 - CodeQL: 4.37.9 (`cdf488f595d80d6e07e03d4674febd5ab45fa938`), SHA-gepinnt und für `init`/`analyze` zwingend identisch
 - Workflow-Aktivierung: Der Release-Installer verändert `.github` nicht selbst; checkout/setup-node/setup-python/upload-artifact/CodeQL werden über `npm run sync:github-workflows` ausdrücklich administrativ synchronisiert.
@@ -26,6 +27,6 @@ Da TypeScript 7 die bisherige Strada-JavaScript-API (`transpileModule`, `createS
 
 React 19, Vite 8 und @vitejs/plugin-react 6 bleiben weiterhin außerhalb von `mid-stable`. Jeder dieser Sprünge benötigt einen getrennten Kompatibilitätslauf; er darf weder implizit mit TypeScript 7 gekoppelt noch ohne vollständige visuelle, funktionale, Performance-, PWA- und CI-Regression übernommen werden.
 
-MapLibre GL JS 6.6.0 wurde als isolierter Minor-/Patch-Kandidat qualifiziert. Der Dependabot-PR erreichte einen grünen TypeScript-/Vite-Produktionsbuild und grünes CodeQL; die roten Regressionen waren ausschließlich auf den alten 6.5.0-Pin festgeschrieben. Die Karten-, Radar-, Komposit-, GeoJSON-, Worker- und Lazy-Load-Verträge bleiben unverändert und werden weiterhin vollständig geprüft.
+MapLibre GL JS 6.7.0 wurde als isolierter kompatibler Wartungskandidat qualifiziert. Die Version überspringt bei unverändertem Kamerastand unnötige Symbol-Neuplatzierungen und behebt unter anderem Tile-Revalidierungs- sowie Terrain-Kamerafehler. Die Karten-, Radar-, Komposit-, GeoJSON-, Worker- und Lazy-Load-Verträge bleiben unverändert und werden weiterhin vollständig geprüft.
 
-Die Installationswarnung `uuid@7.0.3` stammt ausschließlich aus dem Dev-/iOS-Werkzeugpfad `@capacitor/cli 8.5.0 -> xcode 3.0.1 -> uuid ^7.0.3`. `@capacitor/cli 8.5.0` und `xcode 3.0.1` sind zum Prüfzeitpunkt die aktuellen stabilen Upstreamstände. MID erzwingt deshalb **kein** inkompatibles UUID-Override; der Pfad wird regressionsgeschützt und bei einem kompatiblen Upstream-Update erneut bewertet.
+Die Installationswarnung `uuid@7.0.3` stammt ausschließlich aus dem Dev-/iOS-Werkzeugpfad `@capacitor/cli 8.5.1 -> xcode 3.0.1 -> uuid ^7.0.3`. `@capacitor/cli 8.5.1` und `xcode 3.0.1` sind zum Prüfzeitpunkt die aktuellen stabilen Upstreamstände. MID erzwingt deshalb **kein** inkompatibles UUID-Override; der Pfad wird regressionsgeschützt und bei einem kompatiblen Upstream-Update erneut bewertet.

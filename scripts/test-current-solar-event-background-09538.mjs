@@ -11,7 +11,8 @@ const [app,panel,eventCenter,refresh,pkgRaw,baselineRaw]=await Promise.all([
 ]);
 
 assert.match(app,/\[solarNow,setSolarNow\]=useState\(\(\)=>Date\.now\(\)\)/,'Aktuelles Wetter besitzt keine laufende astronomische Zeitbasis.');
-assert.match(app,/astronomy=astronomySummary\(w\).*currentIsDay=astronomicalIsDayAt\(solarNow,/s,'Tag-/Nachtstatus wird nicht über die zentrale astronomische Sonnenauf-/untergangsgrenze abgeleitet.');
+assert.match(app,/astronomy=useMemo\(\(\)=>astronomySummary\(w,new Date\(solarNow\)\).*currentIsDay=astronomicalIsDayAt\(solarNow,/s,'Tag-/Nachtstatus wird nicht über die zentrale astronomische Sonnenauf-/untergangsgrenze abgeleitet.');
+assert.match(app,/solarDaylightWindowAt\(Date\.now\(\),location\)/,'Der Hintergrundtimer verwendet nicht das zentrale, gecachte Sonnenfenster.');
 assert.match(app,/<WeatherPictogram code=\{currentWeatherCode\} day=\{currentIsDay\}/,'Hauptpiktogramm verwendet weiterhin den statischen API-is_day-Wert.');
 assert.match(app,/recentSunshineDuration\(w,\{[^}]*isDay:currentIsDay\}\)/s,'Sonnenschein-Plausibilisierung verwendet nicht denselben astronomischen Tag-/Nachtstatus.');
 assert.match(app,/document\.addEventListener\('visibilitychange',resume\).*window\.addEventListener\('focus',resume\)/s,'Astronomischer Status wird nach App-Rückkehr nicht sofort nachgeführt.');

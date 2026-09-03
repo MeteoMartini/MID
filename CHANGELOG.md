@@ -1,3 +1,11 @@
+## v0.9.78.28
+
+- Wartungsbereinigung ohne Funktionsabbau: zwei veraltete TypeScript-5.8-Buildartefakte und generierte Prüfartefakte dauerhaft aus Professional-Releases ausgeschlossen; 33 innerhalb ihrer Quellmodule exakt doppelte CSS-Regeln konsolidiert.
+- „Aktuell“-Ansicht rechenärmer: der Minutentimer nutzt nur noch das gecachte Sonnenfenster; die vollständige Sonnen-/Mond-/Finsternisübersicht wird höchstens stündlich neu berechnet.
+- iPhone-Handling verbessert: 1-h-/3-h-Schalter des 24-h-Wetterprofils erhalten im Grobzeigermodus dieselbe verlässliche 36-px-Trefferhöhe wie benachbarte Kompaktsteuerungen.
+- MapLibre GL JS 6.7.0 und Capacitor Core/iOS/CLI 8.5.1 nach kompatiblem Wartungslauf übernommen; React 18, Recharts 3, Vite 6 und TypeScript 7 bleiben unverändert.
+- Bewusst dormant gehaltene Altmodule bleiben vollständig als reaktivierbare Referenz erhalten; keine fachliche Workeränderung und kein Worker-Upload erforderlich.
+
 ## v0.9.78.21
 
 - CI-Hotfix für GitHub Release-Run #858: TypeScript 7, Vite-Produktionsbuild und 649 von 650 Regressionen waren bereits grün; ausschließlich `test-seven-day-ecmwf-hourly-09781.mjs` erwartete noch die frühere Nachtdeckkraft `0.18`.

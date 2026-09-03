@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.78.27",
+  "version": "0.9.78.28",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -397,15 +397,16 @@
     "test:seven-day-axis-badge-lock": "node scripts/test-seven-day-axis-badge-lock-09784.mjs",
     "test:ruc-precip-amplitude-guard": "node scripts/test-ruc-precip-amplitude-guard-09787.mjs",
     "test:precipitation-trailing-interval-nowcast": "node scripts/test-precipitation-trailing-interval-nowcast-097810.mjs",
-    "test:long-range-subsections-relative-sunshine": "node scripts/test-long-range-subsections-relative-sunshine-097825.mjs"
+    "test:long-range-subsections-relative-sunshine": "node scripts/test-long-range-subsections-relative-sunshine-097825.mjs",
+    "test:maintenance-cleanup": "node scripts/test-maintenance-cleanup-097828.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",
     "@capacitor/browser": "8.0.4",
-    "@capacitor/core": "8.5.0",
+    "@capacitor/core": "8.5.1",
     "@capacitor/filesystem": "8.1.3",
     "@capacitor/geolocation": "8.2.2",
-    "@capacitor/ios": "8.5.0",
+    "@capacitor/ios": "8.5.1",
     "@capacitor/share": "8.0.1",
     "@capacitor/splash-screen": "8.0.2",
     "@capacitor/status-bar": "8.0.3",
@@ -413,14 +414,14 @@
     "html-to-image": "^1.11.13",
     "jsfive": "^0.4.0",
     "lucide-react": "^1.35.0",
-    "maplibre-gl": "6.6.0",
+    "maplibre-gl": "6.7.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-is": "18.3.1",
     "recharts": "3.10.1"
   },
   "devDependencies": {
-    "@capacitor/cli": "8.5.0",
+    "@capacitor/cli": "8.5.1",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "4.7.0",

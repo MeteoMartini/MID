@@ -31,7 +31,7 @@ for(const workflow of [rucCanonical,rucActive]){
 }
 
 assert.ok(packer.includes('MAX_UPLOAD_BYTES = 24_000_000'));
-for(const token of ['".github"','"node_modules"','"dist"','"ios/App/App/public"'])assert.ok(packer.includes(token),`Transport-Ausschluss fehlt: ${token}`);
+for(const token of ['".github"','"node_modules"','"dist"','"artifacts"','"ios/App/App/public"'])assert.ok(packer.includes(token),`Transport-Ausschluss fehlt: ${token}`);
 assert.ok(packer.includes('cap copy ios'),'Packer muss dokumentieren, dass das iOS-Webbundle reproduzierbar regeneriert wird.');
 
 assert.deepEqual(splash.images.map(image=>[image.filename,image.scale,image.appearances?.[0]?.value??'light']),[

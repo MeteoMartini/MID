@@ -6,7 +6,7 @@ const [pkgText,configText,installWorkflow,contract,baselineText]=await Promise.a
 ]);
 const pkg=JSON.parse(pkgText),config=JSON.parse(configText),baseline=JSON.parse(baselineText),test='scripts/test-capacitor-typescript-7-ci-09761.mjs';
 assert.equal(pkg.devDependencies?.typescript,'7.0.2');
-assert.equal(pkg.devDependencies?.['@capacitor/cli'],'8.5.0');
+assert.equal(pkg.devDependencies?.['@capacitor/cli'],'8.5.1');
 assert.deepEqual(config,{appId:'app.midwx.weather',appName:'MID Wetter',webDir:'dist'});
 await assert.rejects(access(new URL('capacitor.config.ts',root)),/ENOENT/,'TS-Konfigurationsdatei darf im Release nicht parallel liegen.');
 assert.ok(installWorkflow.includes('./node_modules/.bin/cap copy ios'),'Installer muss weiterhin den geprüften Web-Build in die iOS-Hülle kopieren.');

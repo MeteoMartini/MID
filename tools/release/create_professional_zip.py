@@ -24,6 +24,7 @@ EXCLUDED_DIRS = {
     ".github",
     "node_modules",
     "dist",
+    "artifacts",
     "ios/App/App/public",
 }
 EXCLUDED_FILES = {
@@ -37,7 +38,7 @@ def excluded(relative: Path) -> bool:
     posix = relative.as_posix()
     if posix in EXCLUDED_FILES:
         return True
-    if "__pycache__" in relative.parts or relative.suffix.lower() in {".pyc", ".pyo"}:
+    if "__pycache__" in relative.parts or relative.suffix.lower() in {".pyc", ".pyo", ".tsbuildinfo"}:
         return True
     return any(posix == d or posix.startswith(d + "/") for d in EXCLUDED_DIRS)
 
@@ -74,7 +75,7 @@ def main() -> int:
 
     size = out.stat().st_size
     print(f"Professional-Release: {out} · {size} Byte")
-    print("Transport-Ausschlüsse: .github, dist, node_modules, ios/App/App/public (wird nach Build via cap copy ios regeneriert)")
+    print("Transport-Ausschlüsse: .github, dist, node_modules, artifacts, ios/App/App/public (wird nach Build via cap copy ios regeneriert)")
     if size >= MAX_UPLOAD_BYTES:
         out.unlink(missing_ok=True)
         raise SystemExit(f"Professional-Release überschreitet Browser-Uploadbudget: {size} >= {MAX_UPLOAD_BYTES} Byte")

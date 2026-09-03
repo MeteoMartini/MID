@@ -13,7 +13,7 @@ const [core,pkgRaw,baselineRaw,implementation]=await Promise.all([
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-maplibre-v6-worker-runtime-096675.mjs';
 
 assert.ok(versionAtLeast(pkg.version,'0.9.67.5'));
-assert.equal(pkg.dependencies?.['maplibre-gl'],'6.6.0');
+assert.equal(pkg.dependencies?.['maplibre-gl'],'6.7.0');
 assert.equal(baseline.releaseVersion,pkg.version);
 assert.equal(pkg.scripts?.['test:maplibre-v6-worker-runtime'],`node ${test}`);
 for(const key of ['requiredRegressionTests','regressionTests','requiredFiles'])assert.ok(baseline[key]?.includes(test),`${test} fehlt in ${key}.`);

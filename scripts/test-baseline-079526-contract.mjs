@@ -14,7 +14,7 @@ requireTokens('Info-Portale',app,["import {AppPortalPopover as PortalPopover} fr
 requireTokens('Ensemble-Portale',ensemble,["function useEnsemblePortal(open:boolean","createPortal(<div ref={layer}","ensemble-help-toolbar","className=\"model-run-popover ensemble-portal-popover\"","Init {formatModelRunTime","Quelle bereit {formatAvailabilityTime"]);
 requireTokens('Konsistenz-Tooltips',ensemble,["buttonRef.current?.contains(target)||tooltipRef.current?.contains(target)","document.addEventListener('pointerdown',dismiss,true)","if(event.key==='Escape')onClose()","event.preventDefault();event.stopPropagation();onToggle()"]);
 requireTokens('Portal-CSS',styles+v078,['.ensemble-portal-popover{','.consistency-popover-portal{','.app-portal-popover{','position:fixed']);
-requireTokens('Luftdruck/Astronomie',app,['function pressureTendency','hPa / 3 h','astronomySummary(w)','Sonne / Mond','hero-day-range']);
+requireTokens('Luftdruck/Astronomie',app,['function pressureTendency','hPa / 3 h','astronomySummary(w,new Date(solarNow))','solarDaylightWindowAt(Date.now(),location)','Sonne / Mond','hero-day-range']);
 requireTokens('Astronomiekern',astronomy,['export function astronomySummary','moonIllumination','formatDayLengthChange']);
 requireTokens('Bergprofil',mountain,['export async function mountainProfile','OVERPASS_ENDPOINTS','applyMountainProfile',"season:'auto'",'summer','winter']);
 requireTokens('Bergprofil-UI',app,['Automatisch bestimmen','Talstation','Mittelstation','Bergstation','Saisonprofil','mountainSportsForecast']);
