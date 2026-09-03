@@ -43,8 +43,10 @@ try{
 for(const token of [
  'const locationThunderRisk=useMemo(',
  'thunderRisk={locationThunderRisk}',
- "label:'Gewitterrisiko'",
- 'Einheitliche 6-Stunden-Ortsanalyse',
+ "label:'Niederschlag'",
+ 'thunderRiskInline=thunderRisk&&thunderRisk.percent>=30',
+ 'Schauer-/Gewittersignal',
+ 'metric-inline-pill',
  'function mountainHourlyThunderRisk(',
  'function mountainRapidThunderRisk(',
  'function mountainCombinedThunderPercent(',
@@ -53,6 +55,8 @@ for(const token of [
  '<MountainZoneAnalysis data={data} days={days} rapidMinutes15={rapidMinutes15}/>'
 ])assert.ok(app.includes(token),`App-Vertrag fehlt: ${token}`);
 assert.equal((app.match(/thunderRisk=\{locationThunderRisk\}/g)||[]).length,2,'Aktuell und Wassersport müssen exakt dasselbe 6-h-Risiko erhalten.');
+assert.ok(!app.includes("label:'Gewitterrisiko'"),'Die eigenständige aktuelle Kachel „Gewitterrisiko“ muss entfernt bleiben.');
+assert.ok(app.includes('WeatherPictogram code={Number.isFinite(currentWeatherCode)?currentWeatherCode:61}'),'Die Niederschlagskachel muss das appweite Weather Icon System 2.0 verwenden.');
 assert.ok(!app.includes("risks.push('Gewitterrisiko')"),'CAPE-only-Bergsignal darf nicht als Gewitterrisiko bezeichnet werden.');
 assert.ok(!app.includes("risks.push('erhöhte konvektive Instabilität')"),'Die Höhenzonenanalyse darf CAPE nicht mehr als eigenständige Gefahrenaussage verwenden.');
 

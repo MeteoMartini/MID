@@ -4,31 +4,41 @@ Datum: 2026-09-03
 
 ## Anlass
 
-Am 03.09.2026 entstanden zwei voneinander unabhängige Wartungszweige mit derselben Versionskennung `v0.9.78.6`:
+Die erneute mobile 24-h-Profilprüfung für Niederkassel/Rheidt zeigt, dass v0.9.78.6 zwar die aktuelle trockene Stunde korrekt mit `0,0 mm` bei separat weiter sichtbarer Eintrittswahrscheinlichkeit darstellt, die nachfolgenden Stundenmengen aber weiterhin zu stark vom nassen ICON-D2-RUC geprägt sein können. Der erste Ausreißerschutz war damit wirksam, aber im konvektiven Fall noch nicht ausreichend.
 
-1. der Open-Meteo-Wartungszweig „Open-Meteo MID Watch“;
-2. der anschließend in MID 17.7.14 erstellte DWD-RUC-/MOSMIX-Niederschlagskonsenszweig.
+## Ursache
 
-Die identische Versionskennung darf nicht dazu führen, dass einer der beiden Stände stillschweigend den anderen ersetzt. `v0.9.78.7` ist deshalb der verbindliche Merge-Stand.
+Der v0.9.78.6-Konsens verwendete die RUC-EPS-Niederschlagswahrscheinlichkeit teilweise als Stütze für die deterministische RUC-Mengenamplitude. Eine hohe Eintrittswahrscheinlichkeit beantwortet jedoch nur, ob Niederschlag wahrscheinlich ist, nicht ob beispielsweise 0,4 oder 2,0 mm in einer Stunde zu erwarten sind. Zusätzlich wurde der MOSMIX-RR1c-Anker gerade bei konvektiver Lage auf 60 % seines normalen Gewichts reduziert.
 
-## Zusammengeführte Verträge
+## Umsetzung
 
-### DWD-RUC / MOSMIX
+### Eintritt und Menge getrennt
 
-Die gesamte v0.9.78.6-Niederschlagskorrektur bleibt erhalten: MOSMIX-Stundenniederschlag als DWD-Konsensanker, kein Nass-Selbstbonus für deterministischen RUC, getrenntes RUC-Niederschlagsgewicht, RUC-EPS-Unterstützung, kohärente Skalierung von Regen/Schauer/Schnee und Diagnosefelder.
+- RUC-EPS stützt weiterhin die **Eintrittswahrscheinlichkeit**.
+- Die **Mengenamplitude** eines nassen RUC wird nur noch gegen Best Match und DWD-MOSMIX RR1c geprüft.
+- Hohe RUC-EPS-PoP kann einen Niederschlag nicht mehr allein mengenmäßig hochhalten.
 
-### Open-Meteo Watch 2026-09-03
+### Kontinuierlicher Overshoot-Guard
 
-Der heutige offizielle Upstream-Zeitraum ist in `MID_OPEN_METEO_WATCH_2026-09-03.md` festgeschrieben. Besonders geschützt sind:
+Für einen gegenüber den lokalen Mengenankern deutlich nasseren RUC wird nun zusätzlich die relative Überschreitung gegenüber einem qualitätsgewichteten lokalen Mengenreferenzwert bewertet. Der RUC-Anteil sinkt kontinuierlich mit wachsendem Overshoot. Es gibt weiterhin keine pauschale harte Obergrenze.
 
-- die korrigierten EC46-/Forecast-Metadaten und dimensionslosen EFI/SOT-Felder,
-- die Eigenständigkeit von `wave_peak_period`,
-- der korrigierte GloFAS-Ensemble-/Perzentilvertrag ohne feste 51-Member-Annahme,
-- die südliche Copernicus-DEM-Korrektur,
-- die Tatsache, dass Open-Meteo-interne Météo-France-GRIB- und S3-Serverlogik nicht clientseitig dupliziert wird.
+### MOSMIX im konvektiven Fall
 
-MID nutzt die von den betroffenen Upstream-Fixes berührten EC46-Fehlfelder derzeit nicht operativ. Deshalb ist keine fachlich falsche Umrechnung oder Ersatzlogik hinzugefügt worden. Stattdessen ist der korrekte Konsumentenvertrag regressionsgeschützt.
+MOSMIX wird bei Konvektion nicht mehr auf 60 % seines normalen Gewichtes zurückgesetzt, sondern nur noch moderat auf 85 %. Damit bleibt hochaufgelöste RUC-Konvektion relevant, ohne den lokalen DWD-Punktkonsens praktisch auszuschalten.
 
-## Version
+### Diagnose
 
-Der doppelte lokale Versionsname `v0.9.78.6` ist damit beendet. Alle weiteren Releases bauen ausschließlich auf `v0.9.78.7` oder höher auf.
+Zusätzlich stehen intern zur Verfügung:
+
+- `localPrecipitationReferenceMm`
+- `rucPrecipitationOvershootRatio`
+
+Damit lässt sich unmittelbar erkennen, ob eine Stundenmenge durch einen starken RUC-Überschuss entstanden wäre und wie stark der Mengen-Guard gegriffen hat.
+
+## Wirkung im numerischen Schutztest
+
+Bei Best Match `0,2 mm`, MOSMIX `0,2 mm`, RUC `2,1 mm`, RUC-EPS `80 %` und konvektivem Signal wird die fusionierte Menge auf rund `0,42 mm` gedrückt. Ein gut gestützter Fall Best Match `1,2 mm`, MOSMIX `1,3 mm`, RUC `1,5 mm` bleibt dagegen bei rund `1,35 mm` und wird somit nicht künstlich trockengeglättet.
+
+## Deployment
+
+Die Änderung liegt im Worker-Fachkern. Ein Worker-Update ist daher für die Wirkung von v0.9.78.7 erforderlich. Die Professional-App enthält die passenden Diagnosefelder und den unveränderten appweiten Forecast-Fusionspfad.

@@ -60,12 +60,15 @@
 .thunder-place-section.compact .thunder-place-group>header small{font-size:7.2px}
 .thunder-place-section.compact .thunder-place-row{min-height:28px;padding:4px 0}
 .thunder-place-section.compact .thunder-place-row>span strong{font-size:9px}
+.thunder-place-section.compact .thunder-place-row>span small{font-size:7.2px;line-height:1.22}
 .thunder-place-section.compact .thunder-place-row>b{font-size:8px;padding:3px 7px}
+.thunder-place-more.compact{margin-top:1px;padding:7px 8px}
+.thunder-place-more.compact>summary{font-size:8px}
 .thunder-place-legend{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 10px;margin:4px 0 0;padding-top:9px;border-top:1px solid color-mix(in srgb,var(--border) 72%,transparent)}
 .thunder-place-legend span{display:flex;align-items:center;gap:5px;font-size:7.5px;line-height:1.25;color:var(--muted)}
 .thunder-place-legend i{display:inline-block;width:8px;height:8px;flex:0 0 auto;border-radius:50%;background:var(--border)}
 .thunder-place-legend i.now{background:#24b469}.thunder-place-legend i.likely{background:#3e8ed0}.thunder-place-legend i.possible{background:#e0a21f}.thunder-place-legend i.corridor{background:#8b90a0}
-@media(max-width:560px){.thunder-place-section{padding:9px;gap:7px}.thunder-place-summary{gap:4px}.thunder-place-pill{min-height:20px;padding:3px 7px;font-size:7.5px}.thunder-place-group{padding:7px 8px;gap:5px}.thunder-place-group>header{align-items:flex-start;flex-direction:column;gap:1px}.thunder-place-group>header small{text-align:left}.thunder-place-group.current .thunder-place-stack{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.thunder-place-group.current .thunder-place-row{display:grid;grid-template-columns:1fr;align-content:start;gap:4px;padding:6px 7px;border:0;border-radius:9px;background:color-mix(in srgb,#d9f8e4 45%,var(--surface))}.thunder-place-group.current .thunder-place-row>b{justify-self:start;max-width:100%}.thunder-place-group.future .thunder-place-stack{display:flex;gap:6px;overflow-x:auto;overscroll-behavior-x:contain;padding-bottom:2px;scroll-snap-type:x proximity;scrollbar-width:thin}.thunder-place-group.future .thunder-place-row{display:grid;grid-template-columns:1fr;align-content:start;flex:0 0 min(72%,190px);gap:4px;padding:7px 8px;border:1px solid color-mix(in srgb,var(--border) 65%,transparent);border-radius:10px;background:color-mix(in srgb,var(--surface) 90%,transparent);scroll-snap-align:start}.thunder-place-group.future .thunder-place-row>b{justify-self:start;max-width:100%}.thunder-place-row{gap:8px}.thunder-place-row>b{max-width:50%;font-size:8.5px}.thunder-place-row>span small{font-size:7.8px;line-height:1.24}.thunder-place-more{padding:7px 8px}.thunder-place-more>summary{font-size:8.5px}.thunder-place-legend{grid-template-columns:1fr}.thunder-place-section.compact .thunder-place-group:last-of-type .thunder-place-stack>.thunder-place-row:nth-child(n+4){display:none}}
+@media(max-width:560px){.thunder-place-section{padding:9px;gap:7px}.thunder-place-summary{gap:4px}.thunder-place-pill{min-height:20px;padding:3px 7px;font-size:7.5px}.thunder-place-group{padding:7px 8px;gap:5px}.thunder-place-group>header{align-items:flex-start;flex-direction:column;gap:1px}.thunder-place-group>header small{text-align:left}.thunder-place-group.current .thunder-place-stack{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.thunder-place-group.current .thunder-place-row{display:grid;grid-template-columns:1fr;align-content:start;gap:4px;padding:6px 7px;border:0;border-radius:9px;background:color-mix(in srgb,#d9f8e4 45%,var(--surface))}.thunder-place-group.current .thunder-place-row>b{justify-self:start;max-width:100%}.thunder-place-group.future .thunder-place-stack{display:flex;gap:6px;overflow-x:auto;overscroll-behavior-x:contain;padding-bottom:2px;scroll-snap-type:x proximity;scrollbar-width:thin}.thunder-place-group.future .thunder-place-row{display:grid;grid-template-columns:1fr;align-content:start;flex:0 0 min(72%,190px);gap:4px;padding:7px 8px;border:1px solid color-mix(in srgb,var(--border) 65%,transparent);border-radius:10px;background:color-mix(in srgb,var(--surface) 90%,transparent);scroll-snap-align:start}.thunder-place-group.future .thunder-place-row>b{justify-self:start;max-width:100%}.thunder-place-row{gap:8px}.thunder-place-row>b{max-width:50%;font-size:8.5px}.thunder-place-row>span small{font-size:7.8px;line-height:1.24}.thunder-place-more{padding:7px 8px}.thunder-place-more>summary{font-size:8.5px}.thunder-place-legend{grid-template-columns:1fr}.thunder-place-section.compact .thunder-place-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.thunder-place-section.compact .thunder-place-group.current .thunder-place-stack{grid-template-columns:1fr}.thunder-place-section.compact .thunder-place-group.future .thunder-place-row{flex:0 0 min(58%,150px);padding:6px 7px}.thunder-place-section.compact .thunder-place-row>span small{font-size:7.1px}.thunder-place-section.compact .thunder-place-group:last-of-type .thunder-place-stack>.thunder-place-row:nth-child(n+4){display:none}}
 
 /* MID v0.9.15.2 · dezentere ECMWF-Temperaturfelder und Desktop-Ensemble-Hover */
 .forecast-inline-detail-row{
@@ -1515,6 +1518,15 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 
 /* Modulweise Typografie-Normalisierung: dichte Fachmetadaten verwenden zentrale Tokens statt lokaler Kleinstwerte. */
 .metrics header{font-size:var(--mid-text-sm)}
+.metrics header .current-metric-icon{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:999px;background:color-mix(in srgb,var(--s2) 84%,transparent);color:var(--accent)}
+.metric-icon-wrap{display:inline-flex;align-items:center;justify-content:center}
+.metric-icon-pictogram .weather-pictogram{width:18px;height:18px}
+.metric-icon-dual{gap:3px}
+.current-metric-value-stack{display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px}
+.metric-inline-pill{display:inline-flex;align-items:center;justify-content:center;padding:2px 7px;border:1px solid color-mix(in srgb,var(--border) 78%,transparent);border-radius:999px;font-size:8px;font-weight:800;letter-spacing:.02em;line-height:1.2;background:color-mix(in srgb,var(--surface) 78%,transparent);color:var(--text)}
+.metric-inline-pill.watch{border-color:color-mix(in srgb,#e8b949 36%,transparent);background:color-mix(in srgb,#e8b949 16%,var(--surface));color:#b07300}
+.metric-inline-pill.alert{border-color:color-mix(in srgb,#d97629 34%,transparent);background:color-mix(in srgb,#d97629 16%,var(--surface));color:#c96b1d}
+@media(max-width:760px){.metrics header .current-metric-icon{min-width:20px;height:20px}.current-metric-value-stack{gap:4px}.metric-inline-pill{padding:2px 6px;font-size:7.5px}}
 .metrics article>small,.days button>small,.days button>i,.hours small,.short-term-detail small{font-size:var(--mid-text-xs)}
 .weatherwidget.modern.compact>header span,.weatherwidget.modern.compact>header small,.weatherwidget.modern.compact .widgetday-head small,.weatherwidget.modern.compact .widgetlabel{font-size:var(--mid-text-xs)}
 .weatherwidget.modern.compact .widgetmeta span,.weatherwidget.modern.compact .widgethazards span,.weatherwidget.modern.compact footer{font-size:var(--mid-text-micro)}
@@ -1939,10 +1951,11 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .cockpit-fourteen-card.regime-warm{--cockpit-fourteen-regime:#a75b18}
 .cockpit-fourteen-card.regime-quiet{--cockpit-fourteen-regime:var(--muted)}
 .cockpit-fourteen-card::before{position:absolute;inset:0 auto 0 0;width:3px;border-radius:inherit;background:var(--cockpit-fourteen-regime);content:""}
+.cockpit-fourteen-grid{grid-template-columns:repeat(14,minmax(190px,1fr))}
 .cockpit-fourteen-card>header{
  display:grid;
  grid-template-columns:minmax(0,1fr) max-content;
- grid-template-areas:"heading consistency" "regime temps";
+ grid-template-areas:"heading consistency" "regime regime" "temps temps";
  align-items:center;
  gap:5px 7px;
  min-width:0;
@@ -1966,8 +1979,18 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
  line-height:1.12;
 }
 .cockpit-fourteen-regime>i{font-style:normal}.cockpit-fourteen-regime>span{min-width:0;overflow-wrap:break-word}
-.cockpit-fourteen-temps{grid-area:temps}
-.cockpit-fourteen-card>header>.cockpit-consistency-pill{grid-area:consistency}
+.cockpit-fourteen-temps{grid-area:temps;justify-content:flex-start!important;min-width:0}
+.cockpit-fourteen-card>header>.cockpit-consistency-pill{grid-area:consistency;align-self:start}
+@media (orientation:landscape) and (min-width:1025px){
+ .cockpit-fourteen-card{min-width:190px!important;overflow:hidden}
+ .cockpit-fourteen-heading-copy>.cockpit-fourteen-weather-label{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+ .cockpit-fourteen-regime{max-width:100%;white-space:normal}
+ .cockpit-fourteen-row{grid-template-columns:auto minmax(64px,1fr);grid-template-areas:"label value" "track track";gap:3px 6px}
+ .cockpit-fourteen-row>label{grid-area:label}
+ .cockpit-fourteen-row>small{grid-area:value;justify-self:end;max-width:100%;white-space:normal!important;line-height:1.15}
+ .cockpit-fourteen-row>.cockpit-anomaly-track,.cockpit-fourteen-row>.cockpit-rain-track,.cockpit-fourteen-row>.cockpit-wind-track{grid-area:track;width:100%}
+}
+
 .cockpit-consistency-pill{gap:3px}.cockpit-consistency-pill>span,.cockpit-consistency-pill>small{font:inherit;line-height:1;white-space:nowrap}.cockpit-fourteen-card>header>.cockpit-consistency-pill>small{color:inherit;font-size:.78em;font-weight:900;opacity:.78}
 .cockpit-fourteen-row.temperature{grid-area:temperature}.cockpit-fourteen-row.precipitation{grid-area:precipitation}.cockpit-fourteen-row.wind{grid-area:wind}
 .cockpit-fourteen-row>label>span{min-width:0}
@@ -2057,7 +2080,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
  .forecast-cockpit:has(.cockpit-fourteen-day) .cockpit-footer-info{gap:3px}.forecast-cockpit:has(.cockpit-fourteen-day) .cockpit-footer-info>svg{width:10px;height:10px}
 }
 
-@media (orientation:landscape) and (max-width:1300px){
+@media (orientation:landscape) and (max-width:1024px){
  /* MID v0.9.76.8 · Cockpit-Register bleibt unabhängig vom aktiven Horizont visuell invariant. */
  .forecast-cockpit:has(.cockpit-fourteen-day) .cockpit-body{padding:6px 8px}
  .cockpit-fourteen-day{min-width:0;overflow:visible!important}
@@ -2157,7 +2180,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 @media (orientation:portrait) and (max-width:900px){
  .cockpit-fourteen-day>.cockpit-brief.compact-fourteen{grid-template-columns:minmax(0,1fr) max-content!important;gap:3px 6px!important}
 }
-@media (orientation:landscape) and (max-width:1300px){
+@media (orientation:landscape) and (max-width:1024px){
  .cockpit-fourteen-day>.cockpit-brief.compact-fourteen{grid-template-columns:minmax(0,1fr) max-content!important;gap:2px 6px!important}
 }
 
@@ -2330,7 +2353,7 @@ main>.place>.place-nowcards{display:none!important}
  .cockpit-fourteen-sunshine{grid-template-columns:auto auto minmax(0,1fr);min-height:0;padding:2px 5px;border-radius:7px}
  .cockpit-fourteen-sunshine>span{font-size:7px}.cockpit-fourteen-sunshine>b{font-size:6.4px}.cockpit-fourteen-sunshine>small{font-size:5.7px}
 }
-@media (orientation:landscape) and (max-width:1300px){
+@media (orientation:landscape) and (max-width:1024px){
  .cockpit-fourteen-card{grid-template-areas:"header" "temperature" "precipitation" "sunshine" "wind"}
  .cockpit-fourteen-sunshine{grid-template-columns:auto minmax(0,1fr);gap:2px;padding:2px 3px;border-radius:6px}
  .cockpit-fourteen-sunshine>span{font-size:6px}.cockpit-fourteen-sunshine>b{justify-self:end;font-size:5.7px}.cockpit-fourteen-sunshine>small{grid-column:1/-1;font-size:4.8px;text-align:left}

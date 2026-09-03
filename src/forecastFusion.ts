@@ -77,6 +77,8 @@ export type ForecastWeatherBundleHour={
  rucWeight?:number;
  rucPrecipitationWeight?:number;
  rucPrecipitationSupport?:number;
+ rucPrecipitationOvershootRatio?:number;
+ localPrecipitationReferenceMm?:number;
  basePrecipitationMm?:number;
  rucRawPrecipitationMm?:number;
  mosmixPrecipitationMm?:number;

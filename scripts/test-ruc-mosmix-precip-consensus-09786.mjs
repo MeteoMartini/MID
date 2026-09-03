@@ -11,7 +11,7 @@ for(const token of [
   'function rucRapidBaseWeight(leadHours)',
   'function rucPrecipitationConsensus(',
   'rapidAmount>anchorAmount+.12',
-  'anchorSupport*.30+mosmixSupport*.45+epsSupport*.25',
+  'amountSupport=Number.isFinite(mosmixSupport)?anchorSupport*.35+mosmixSupport*.65:anchorSupport',
   'ein nasser RUC erhöht sein eigenes Niederschlagsgewicht nicht mehr',
   'RR1c-Niederschlagskonsens',
   'mosmixPrecipitationWeight',
@@ -43,8 +43,8 @@ assert.equal(api.rucRapidWeight(5,{precipitation:2,cape:0}),.58,'Nässe allein d
 assert.ok(Math.abs(api.rucRapidWeight(5,{precipitation:0,cape:800})-.68)<1e-9,'Konvektive Dynamik darf andere RUC-Parameter weiterhin stärken.');
 
 const outlier=api.rucPrecipitationConsensus(5,{precipitation:.2},{precipitation:2.1,cape:0},{precipitation:.2},{probability:40},.9);
-assert.ok(outlier.rapidWeight<.25,`Nasser RUC-Ausreißer muss deutlich gedämpft werden, erhalten: ${outlier.rapidWeight}`);
-assert.ok(outlier.amount<.7,`Best Match + MOSMIX + EPS sollen den 2,1-mm-Ausreißer klar begrenzen, erhalten: ${outlier.amount}`);
+assert.ok(outlier.rapidWeight<.2,`Nasser RUC-Ausreißer muss deutlich gedämpft werden, erhalten: ${outlier.rapidWeight}`);
+assert.ok(outlier.amount<.5,`Best Match + MOSMIX sollen den 2,1-mm-Ausreißer klar begrenzen; EPS stützt nur den Eintritt, erhalten: ${outlier.amount}`);
 assert.ok(outlier.mosmixWeight>.2,'MOSMIX muss bei guter Punktqualität als lokaler DWD-Konsens wirksam sein.');
 
 const supported=api.rucPrecipitationConsensus(5,{precipitation:1.2},{precipitation:1.5,cape:0},{precipitation:1.3},{probability:70},.9);
@@ -53,7 +53,7 @@ assert.ok(supported.amount>1.2&&supported.amount<1.5,'Gestützter RUC soll als K
 
 const dryCorrection=api.rucPrecipitationConsensus(5,{precipitation:1.2},{precipitation:.1,cape:0},{precipitation:.2},{probability:20},.9);
 assert.equal(dryCorrection.rapidWeight,.58,'Trockener RUC wird nicht durch den Nass-Ausreißerschutz pauschal beschnitten.');
-assert.ok(dryCorrection.amount<.7,'Ein übereinstimmendes trockeneres DWD-Signal darf die Leitprognose sinnvoll reduzieren.');
+assert.ok(dryCorrection.amount<.6,'Ein übereinstimmendes trockeneres DWD-Signal darf die Leitprognose sinnvoll reduzieren.');
 
 assert.equal(baseline.releaseVersion,pkg.version,'Baseline und Paketversion müssen übereinstimmen.');
 assert.ok(baseline.requiredRegressionTests?.includes('scripts/test-ruc-mosmix-precip-consensus-09786.mjs'),'Baseline muss den neuen Niederschlagskonsens schützen.');

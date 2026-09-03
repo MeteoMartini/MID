@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.78.7",
+  "version": "0.9.78.8",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -394,7 +394,8 @@
     "test:weather-pictogram-standard": "node scripts/test-weather-pictogram-standard-09780.mjs",
     "test:weather-pictogram-ui-lock": "node scripts/test-weather-pictogram-ui-lock-09781.mjs",
     "test:seven-day-ecmwf-hourly": "node scripts/test-seven-day-ecmwf-hourly-09781.mjs",
-    "test:seven-day-axis-badge-lock": "node scripts/test-seven-day-axis-badge-lock-09784.mjs"
+    "test:seven-day-axis-badge-lock": "node scripts/test-seven-day-axis-badge-lock-09784.mjs",
+    "test:ruc-precip-amplitude-guard": "node scripts/test-ruc-precip-amplitude-guard-09787.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",

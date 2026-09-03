@@ -31,8 +31,11 @@ for(const [name,styles] of [['Quell-CSS',sourceStyles],['Aggregat-CSS',builtStyl
  const section=styles.slice(styles.lastIndexOf(marker));
  assert.ok(section.startsWith(marker),`${name}: v0.9.64.2-Layoutvertrag fehlt oder wird überschrieben.`);
  const portraitStart=section.indexOf('@media (orientation:portrait) and (max-width:900px)');
- const landscapeStart=section.indexOf('@media (orientation:landscape) and (max-width:1300px)');
- assert.ok(portraitStart>=0&&landscapeStart>portraitStart,`${name}: Hoch-/Querformatblöcke fehlen.`);
+ const landscapeStart=section.indexOf('@media (orientation:landscape) and (max-width:1024px)');
+ assert.ok(portraitStart>=0&&landscapeStart>portraitStart,`${name}: Hoch-/Tablet-Querformatblöcke fehlen.`);
+ assert.ok(section.includes('.cockpit-fourteen-grid{grid-template-columns:repeat(14,minmax(190px,1fr))}'),`${name}: lesbare Desktop-Mindestbreite der 14-Tage-Karten fehlt.`);
+ assert.ok(section.includes('@media (orientation:landscape) and (min-width:1025px)'),`${name}: Desktop-Lesbarkeitsvertrag oberhalb der Tabletbreite fehlt.`);
+ assert.ok(section.includes('grid-template-areas:"heading consistency" "regime regime" "temps temps"'),`${name}: Desktop-Kopf trennt Wetterlage, Regime und Temperatur nicht kollisionsfrei.`);
  const portrait=section.slice(portraitStart,landscapeStart),landscape=section.slice(landscapeStart);
  for(const token of [
   'grid-template-columns:minmax(0,1fr)!important',
@@ -63,4 +66,4 @@ assert.ok(baseline.regressionTests?.includes(test),'Regressionskatalog enthält 
 assert.ok(baseline.requiredFiles?.includes('MID_IMPLEMENTATION_0.9.64.2.md'),'Implementierungsvertrag ist nicht als Pflichtdatei geschützt.');
 for(const token of ['14 Zeilen','7 × 2','ohne horizontales Scrollen','Heiß','Ruhig','Modellzahl','Worker'])assert.ok(implementation.includes(token),`Implementierungsnotiz unvollständig: ${token}`);
 
-console.log(`${pkg.version}: 14 vollständige Hochformat-Zeilen und 7×2-Querformatkarten ohne horizontalen Scrollverlust geschützt.`);
+console.log(`${pkg.version}: 14 vollständige Hochformat-Zeilen, 7×2-Tablet-Querformat und lesbare Desktopkarten geschützt.`);
