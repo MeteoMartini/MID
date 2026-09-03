@@ -1318,7 +1318,9 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .mid-weather-pictogram.compact .mid-weather-skyplate{opacity:.82}
 .mid-weather-pictogram.intensity-light .mid-weather-cloud{opacity:.96}
 .mid-weather-pictogram.intensity-heavy .mid-weather-cloud-cumulonimbus{filter:drop-shadow(0 2px 2px color-mix(in srgb,var(--wx-icon-shadow) 35%,transparent))}
-.mid-weather-pictogram.weather-drizzle .mid-weather-drizzle circle{filter:drop-shadow(0 .5px .4px color-mix(in srgb,var(--wx-icon-rain) 40%,transparent))}
+.mid-weather-pictogram.weather-drizzle .mid-weather-drizzle circle{filter:drop-shadow(0 .65px .5px color-mix(in srgb,var(--wx-icon-rain) 46%,transparent))}
+.mid-weather-pictogram .mid-weather-rain path{filter:drop-shadow(0 .7px .55px color-mix(in srgb,var(--wx-icon-rain) 42%,transparent))}
+.mid-weather-pictogram .mid-weather-rain circle{filter:drop-shadow(0 .9px .7px color-mix(in srgb,var(--wx-icon-rain) 52%,transparent))}
 .mid-weather-pictogram.weather-snow-grains .mid-weather-snow circle{stroke-width:.8}
 .mid-weather-pictogram.weather-freezing-rain .mid-weather-ice,.mid-weather-pictogram.weather-freezing-drizzle .mid-weather-ice{filter:drop-shadow(0 0 1.4px color-mix(in srgb,var(--wx-icon-ice) 54%,transparent))}
 .mid-weather-pictogram.weather-thunder-hail .mid-weather-hail,.mid-weather-pictogram.weather-hail .mid-weather-hail{filter:drop-shadow(0 1px 1px color-mix(in srgb,var(--wx-icon-hail-edge) 28%,transparent))}

@@ -17,7 +17,8 @@ assert.ok(tone.includes('Math.sqrt(Math.abs(signed))')&&tone.includes("const dir
 assert.ok(tone.includes('background:`color-mix(in srgb,${token}')&&tone.includes('border:`color-mix(in srgb,${token}'),'Tmin/Tmax müssen wieder kleine farbige Blau-/Rot-Kästchen mit klimaabhängiger Intensität verwenden.');
 assert.ok(tone.includes("color:'var(--text)'"),'Aktuelle/stündliche Temperaturwerte müssen neutral in der Theme-Textfarbe erscheinen.');
 assert.ok(tone.includes('void climateMin;void climateMax;'),'Stündliche Temperatur darf nicht mehr anhand klimatologischer Tmin/Tmax in Blau/Rot einsortiert werden.');
-assert.ok(cockpit.includes('Temperaturen nach ECMWF-Farbskala · in 7 Tagen keine Klimaabweichungen.'),'7-Tage-Legende muss die ab v0.9.78.1 gültige ECMWF-Farbskala ohne Klimadelta benennen.');
+assert.ok(cockpit.includes('minTone=ecmwfTemperatureTone(day.min),maxTone=ecmwfTemperatureTone(day.max)')&&cockpit.includes('cockpit-legend-inline">Temperaturfarben: ECMWF-Skala'),'7-Tage-Ansicht muss die absolute ECMWF-Farbskala strukturell verwenden, ohne technische Supersession-Texte anzuzeigen.');
+assert.ok(!cockpit.includes('in 7 Tagen keine Klimaabweichungen'),'Prompt-/Implementierungstext darf nicht in der sichtbaren 7-Tage-UI verbleiben.');
 assert.ok(cockpit.includes('dailyTemperatureTone(item.bestMin,item.climateMin')&&cockpit.includes('dailyTemperatureTone(item.bestMax,item.climateMax'),'14-Tage-Ansicht muss die historische klimabezogene Tmin/Tmax-Farbskala weiter schützen.');
 assert.ok(modern.includes('.selected-time-value-pill.temperature{color:var(--text)}'),'Auch der ausgewählte stündliche Temperaturwert im 24-h-Profil muss neutral bleiben.');
 assert.ok(contract.includes('Blau/Rot bleibt ausschließlich den Tagesextrema Tmin/Tmax vorbehalten.'),'Verbindlicher Farbvertrag muss aktuelle Temperaturen von Tmin/Tmax trennen.');

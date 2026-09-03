@@ -291,13 +291,14 @@ function representativePrecipitationCode(type:PrecipType,total:number,snowCm:num
  if(type==='rain')return total>=10?65:total>=2.5?63:61;
  if(type==='freezingRain')return total>=2.5?67:66;
  if(type==='showers')return total>=10?82:total>=2.5?81:80;
- if(type==='snow')return snowCm>=2?75:snowCm>=.5?73:71;
+ const snowRate=Math.max(snowCm,total);
+ if(type==='snow')return snowRate>=2?75:snowRate>=.5?73:71;
  if(type==='snowGrains')return 77;
- if(type==='snowShowers')return snowCm>=2?86:85;
+ if(type==='snowShowers')return snowRate>=2?86:85;
  if(type==='sleet')return total>=2.5?69:68;
  if(type==='sleetShowers')return total>=2.5?84:83;
- if(type==='thunderstormHail')return 96;
- if(type==='thunderstorm')return 95;
+ if(type==='thunderstormHail')return total>=10?99:96;
+ if(type==='thunderstorm')return total>=10?97:95;
  return 3;
 }
 
@@ -356,9 +357,10 @@ export function precipitationParts(h:PrecipSample):PrecipitationParts{
   :type==='drizzle'
    ?`${drizzleIntensity(total)} Sprühregen`
    :PRECIP_LABEL[type];
- const displayCode=codedType===type
-  ?effectiveCode
-  :representativePrecipitationCode(type,total,snowCm);
+ // Die sichtbare Intensität folgt der finalen MID-Menge, nicht einem eventuell
+ // vor der Fusion erzeugten Roh-WMO-Intensitätscode. Die Niederschlagsphase
+ // bleibt unverändert, nur die geometrische Intensitätsstufe wird neu kalibriert.
+ const displayCode=representativePrecipitationCode(type,total,snowCm);
  const label=`${weatherLabel} ${amount}`;
  return{total,type,label,weatherLabel,code,displayCode};
 }

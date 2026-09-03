@@ -27,7 +27,7 @@ for(const token of ["function ModeExplanation({advanced,summary,technical,label=
 for(const token of ['precipitationMidPlot','precipitationErrorRange','dataKey="precipitationMidPlot"','dataKey="precipitationErrorRange"'])if(!ensemble.includes(token))failures.push(`P10–P90-Fehlerbalkenlogik fehlt: ${token}`);
 if(ensemble.includes('dataKey="precipitationErrorBest"'))failures.push('Der Fehlerbalken ist weiterhin am Best-Match-Wert verankert.');
 for(const token of ["import {detailSkyBarSegments} from './detailSkyBar';",'detailSkyBarSegments(p,left,right,W,skyBarY)','data-mid-skybar="react"','data-mid-sky-legend="react"'])if(!app.includes(token))failures.push(`Deklarativer Sonne-/Bewölkungsbalken fehlt: ${token}`);
-for(const token of ['export function detailSkyBarSample(','export function detailSkyBarSegments(','#ffc229','#aeb3b9'])if(!skybar.includes(token))failures.push(`Gemeinsamer Sonne-/Bewölkungsbalken fehlt: ${token}`);
+for(const token of ['function sunSample(','function cloudSample(','function precipitationSample(','export function detailSkyBarSegments(','#ffc229','#aeb3b9','var(--param-precipitation)'])if(!skybar.includes(token))failures.push(`Gemeinsamer Sonne-/Bewölkungsbalken fehlt: ${token}`);
 for(const token of ['enhanceSkyBars','__MID_FORECAST__','mid:forecast-updated'])if(enhancer.includes(token))failures.push(`Veraltete imperative Skybar-Logik ist noch aktiv: ${token}`);
 for(const token of ['.place-meta.advanced','white-space:nowrap','font-variant-numeric:tabular-nums'])if(!styles.includes(token))failures.push(`Kompakte einzeilige Ortszeitdarstellung fehlt: ${token}`);
 

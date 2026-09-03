@@ -53,7 +53,7 @@ const implausibleSnowGrainsDry=precipitationParts(sample({code:77,temperature:6,
 if(implausibleSnowGrainsDry.type!=='snow')failures.push(`Unplausibler Schneegrieselcode wechselt fälschlich die feste Phase: ${implausibleSnowGrainsDry.type}`);
 if(![71,73,75].includes(implausibleSnowGrainsDry.displayCode))failures.push(`Unplausibler Schneegrieselcode erhält keinen allgemeinen Schneecode: ${implausibleSnowGrainsDry.displayCode}`);
 const implausibleSnowRain=precipitationParts(sample({code:75,temperature:5,precipitation:1.2,rain:1.2,cloud:90}));
-if(implausibleSnowRain.type!=='snow'||implausibleSnowRain.displayCode!==75)failures.push(`Schneecode darf nicht in die flüssige Phase wechseln: ${implausibleSnowRain.type}/${implausibleSnowRain.displayCode}`);
+if(implausibleSnowRain.type!=='snow'||implausibleSnowRain.displayCode!==73)failures.push(`Schneecode muss in der festen Phase bleiben und die sichtbare Intensität aus der finalen Menge ableiten: ${implausibleSnowRain.type}/${implausibleSnowRain.displayCode}`);
 const implausibleFreezingDrizzle=precipitationParts(sample({code:57,precipitation:1.2,rain:1.2,humidity:70,cloud:40,lowCloud:10}));
 if(implausibleFreezingDrizzle.type!=='freezingRain'||![66,67].includes(implausibleFreezingDrizzle.displayCode))failures.push(`Gefrierender Sprühregen muss innerhalb der gefrierenden Flüssigphase bleiben: ${implausibleFreezingDrizzle.type}/${implausibleFreezingDrizzle.displayCode}`);
 
@@ -69,6 +69,16 @@ const fallbackRain=precipitationParts(sample({code:3,precipitation:.8,rain:.8,pr
 if(fallbackRain.displayCode!==61)failures.push(`Fallback-Regen erhält trotz messbarer Menge keinen Regensymbolcode: ${fallbackRain.displayCode}`);
 const fallbackSnow=precipitationParts(sample({code:3,precipitation:.8,snowfall:1.2,probability:80}));
 if(![71,73,75].includes(fallbackSnow.displayCode))failures.push(`Fallback-Schnee erhält keinen Schneesymbolcode: ${fallbackSnow.displayCode}`);
+const amountCalibratedRain=precipitationParts(sample({code:61,precipitation:12,rain:12,probability:90}));
+if(amountCalibratedRain.displayCode!==65)failures.push(`Finale starke Regenmenge wird im Piktogramm nicht als starke Intensität dargestellt: ${amountCalibratedRain.displayCode}`);
+const amountCalibratedShower=precipitationParts(sample({code:80,precipitation:3.2,showers:3.2,probability:80}));
+if(amountCalibratedShower.displayCode!==81)failures.push(`Finale mäßige Schauermenge wird im Piktogramm nicht als stärkere Schauerintensität dargestellt: ${amountCalibratedShower.displayCode}`);
+const amountCalibratedSnow=precipitationParts(sample({code:71,precipitation:2.4,snowfall:2.4,probability:90}));
+if(amountCalibratedSnow.displayCode!==75)failures.push(`Finale starke Schneemenge wird im Piktogramm nicht als starke Intensität dargestellt: ${amountCalibratedSnow.displayCode}`);
+const amountCalibratedSleet=precipitationParts(sample({code:68,precipitation:3.2,rain:1.8,snowfall:.8,probability:80}));
+if(amountCalibratedSleet.displayCode!==69)failures.push(`Finale stärkere Schneeregenmenge wird im Piktogramm nicht intensiver dargestellt: ${amountCalibratedSleet.displayCode}`);
+const amountCalibratedThunder=precipitationParts(sample({code:95,precipitation:12,showers:12,probability:90}));
+if(![97,99].includes(amountCalibratedThunder.displayCode))failures.push(`Starker Gewitterniederschlag erhält keine starke geometrische Intensitätsstufe: ${amountCalibratedThunder.displayCode}`);
 const legend=presentPrecipTypes(cases.slice(0,5).map(([,input])=>precipitationParts(input)));
 for(const expected of ['snow','snowShowers','sleet','sleetShowers'])if(!legend.includes(expected))failures.push(`Legende enthält ${expected} nicht`);
 if(legend.filter(type=>type==='sleet').length!==1)failures.push('Legende enthält Schneeregen mehrfach');

@@ -15,7 +15,7 @@ for(const token of [
  'seven-day-curve-temperature-halo',
  'stopColor={ecmwfTemperatureColor(point.value)}',
  'minTone=ecmwfTemperatureTone(day.min),maxTone=ecmwfTemperatureTone(day.max)',
- 'Temperaturen nach ECMWF-Farbskala · in 7 Tagen keine Klimaabweichungen.'
+ 'Temperaturfarben: ECMWF-Skala'
 ])assert.ok(cockpit.includes(token),`7-Tage-Kurvenkonzept unvollständig: ${token}`);
 assert.ok(!cockpit.slice(cockpit.indexOf('function SevenDayBand('),cockpit.indexOf('\nfunction ensembleSeries(')).includes('dailyTemperatureAnomalyLabel(minTone.anomaly)'),'7-Tage-Cockpit darf keine Tmin-Klimaabweichung mehr anzeigen.');
 assert.ok(!cockpit.slice(cockpit.indexOf('function SevenDayBand('),cockpit.indexOf('\nfunction ensembleSeries(')).includes('dailyTemperatureAnomalyLabel(maxTone.anomaly)'),'7-Tage-Cockpit darf keine Tmax-Klimaabweichung mehr anzeigen.');
@@ -29,4 +29,4 @@ assert.ok(sourceOfTruth.includes('7-Tage-Stundenkurve')&&sourceOfTruth.includes(
 assert.equal(pkg.scripts?.['test:seven-day-ecmwf-hourly'],`node ${test}`,'Package-Testeintrag fehlt.');
 assert.ok(baseline.requiredRegressionTests?.includes(test)&&baseline.regressionTests?.includes(test),'7-Tage-ECMWF-Stundenkurve fehlt in Baseline.');
 assert.ok(!cockpit.slice(cockpit.indexOf('function SevenDayBand('),cockpit.indexOf('\nfunction ensembleSeries(')).includes('<small>Min</small>')&&!cockpit.slice(cockpit.indexOf('function SevenDayBand('),cockpit.indexOf('\nfunction ensembleSeries(')).includes('<small>Max</small>'),'7-Tage-Cockpit zeigt keine zusätzlichen Min/Max-Labels.');
-console.log(`MID v${pkg.version}: 7-Tage-Kurve mit gemeinsamer Stundenachse, stündlichem Niederschlag, ECMWF-Farben und ohne Klimadelta/Min-Max-Zusatzlabel geschützt.`);
+console.log(`MID v${pkg.version}: 7-Tage-Kurve mit Stundenachse, Wetterstreifen, stündlichem Niederschlag und lesbaren ECMWF-Farben geschützt.`);

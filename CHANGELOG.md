@@ -1,3 +1,11 @@
+## v0.9.78.16
+
+- Weather Icon System 2.0: Niederschlagsintensität für alle Phasen weiter geschärft; Regen/Sprühregen sowie Schnee, Schneegriesel, Eiskristalle, Eiskörner, Graupel und Hagel nutzen klar unterscheidbare Partikelanzahl/-dichte/-größe.
+- Sichtbare Niederschlagsintensität wird für Forecastdaten aus der finalen MID-Menge nach Fusion/Plausibilisierung rekalibriert, ohne die Niederschlagsphase umzudeuten.
+- Niederschlagselemente unter der Wolke kontrastreicher und bei kleinen Piktogrammen besser erkennbar.
+- Run #852: sechs veraltete Regressionen auf die aktuellen Verträge migriert; entfernte Prompt-/Supersession-Texte werden nicht wieder verlangt, die neue mehrschichtige Wetterstreifenlogik ersetzt den alten `detailSkyBarSample`-Anker.
+- Release-Installer behandelt ein fachlich bereits identisch installiertes ZIP als erfolgreichen No-op statt als Fehler.
+
 ## v0.9.78.12
 
 - CI-Hotfix für GitHub Release-Run #850: TypeScript-7-Prüfung und Vite-Produktionsbuild waren vollständig grün; ausschließlich drei Regressionstests erwarteten nach der v0.9.78.10-Niederschlagsintervallkorrektur bzw. dem v0.9.78.11-TS6133-Hotfix noch supersedierte Quelltextanker.

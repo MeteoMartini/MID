@@ -89,3 +89,11 @@ Ab v0.9.78.9 gilt deshalb zusätzlich:
 - Bedien- und Parametericons werden aus dem MID/Lucide-Designsystem bezogen; Emoji-basierte alternative Wetterzustandsrenderer bleiben verboten.
 
 Damit ist Screenshot 1 („Weather Icon System 2.0“) nicht nur als Renderername, sondern als sichtbare, appweit wiedererkennbare Symbolfamilie festgeschrieben.
+
+## Verbindliche Präzisierung v0.9.78.16 – Mengenlesbarkeit aller Niederschlagsphasen
+
+Die geometrische Intensitätsdarstellung gilt ausdrücklich für **alle** Niederschlagsformen, nicht nur für Regen. Leicht, mäßig und stark werden – soweit die meteorologische Codierung eine entsprechende Abstufung zulässt – über Partikelanzahl, Dichte, Größe und Strichgewicht unterschieden. Das umfasst insbesondere Regen, Sprühregen, Schnee, Schneegriesel, Schneeregen, Schneeschauer, Eiskristalle, Eiskörner, Graupel, Hagel sowie Gewitterniederschlag.
+
+Für Forecastdaten hat die **finale kanonische MID-Niederschlagsmenge nach Fusion und Plausibilisierung** Vorrang vor einem eventuell zuvor erzeugten Intensitätscode. Die Niederschlagsphase bleibt unverändert; nur die sichtbare Intensitätsstufe wird auf die finale Menge rekalibriert. So kann ein ursprünglich leichter Regencode nach einer belastbaren finalen Starkregenmenge auch geometrisch als starker Regen erscheinen – und umgekehrt.
+
+Niederschlagselemente müssen auch in kleinen Piktogrammen klar unterhalb der Wolkenkontur sichtbar bleiben. Die Unterscheidung darf nicht ausschließlich über Farbe erfolgen.

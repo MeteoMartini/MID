@@ -214,23 +214,29 @@ function MistLines({fog=false,rime=false,haze=false}:{fog?:boolean;rime?:boolean
 }
 
 function precipitationLayout(intensity:WeatherPictogramIntensity){
- if(intensity==='light')return{xs:[27,41],stroke:2.25,length:5,opacity:.82};
- if(intensity==='heavy')return{xs:[17,29,41,53],stroke:3.45,length:9,opacity:1};
- return{xs:[21,34,47],stroke:2.9,length:7,opacity:1};
+ if(intensity==='light')return{xs:[26,42],stroke:2.55,length:7,head:1.55,baseY:48.5,opacity:.92};
+ if(intensity==='heavy')return{xs:[16,27,38,49,58],stroke:3.4,length:10.5,head:2.25,baseY:47.2,opacity:1};
+ return{xs:[20,33,46,57],stroke:3,length:8.4,head:1.9,baseY:47.8,opacity:1};
 }
 function Rain({intensity='moderate',drizzle=false}:{intensity?:WeatherPictogramIntensity;drizzle?:boolean}){
- const layout=precipitationLayout(intensity),xs=drizzle?(intensity==='heavy'?[20,30,40,50]:intensity==='light'?[29,41]:[24,34,44]):layout.xs;
- if(drizzle)return <g className={`mid-weather-drizzle intensity-${intensity}`} fill="var(--wx-icon-rain)" opacity={layout.opacity}>{xs.map((x,index)=><circle key={x} cx={x} cy={51+(index%2)*4} r={intensity==='heavy'?1.65:intensity==='light'?1.15:1.4}/>)}</g>;
- return <g className={`mid-weather-rain intensity-${intensity}`} fill="none" stroke="var(--wx-icon-rain)" strokeWidth={layout.stroke} strokeLinecap="round" opacity={layout.opacity}>{xs.map((x,index)=><path key={x} d={`M${x} ${48+(index%2)}l-${Math.max(2,Math.round(layout.length*.42))} ${layout.length}`}/>)}</g>;
+ const layout=precipitationLayout(intensity),xs=drizzle?(intensity==='heavy'?[18,28,38,48,58]:intensity==='light'?[27,41,53]:[22,34,46,58]):layout.xs;
+ if(drizzle)return <g className={`mid-weather-drizzle intensity-${intensity}`} fill="var(--wx-icon-rain)" opacity={layout.opacity}>{xs.map((x,index)=><circle key={x} cx={x} cy={50.5+(index%2)*4.2} r={intensity==='heavy'?1.95:intensity==='light'?1.4:1.7}/>)}</g>;
+ return <g className={`mid-weather-rain intensity-${intensity}`} fill="var(--wx-icon-rain)" stroke="var(--wx-icon-rain)" strokeWidth={layout.stroke} strokeLinecap="round" strokeLinejoin="round" opacity={layout.opacity}>{xs.map((x,index)=>{const startY=layout.baseY+(index%2)*1.7,dx=Number(Math.max(2.3,layout.length*.38).toFixed(2)),endX=Number((x-dx).toFixed(2)),endY=Number((startY+layout.length).toFixed(2));return <g key={x}><path d={`M${x} ${startY}l-${dx} ${layout.length}`} fill="none"/><circle cx={endX-.15} cy={endY+.45} r={layout.head}/></g>})}</g>;
+}
+function solidParticleXs(intensity:WeatherPictogramIntensity){
+ if(intensity==='light')return[27,43];
+ if(intensity==='heavy')return[15,26,37,48,59];
+ return[19,32,45,57];
 }
 function Snow({grains=false,intensity='moderate'}:{grains?:boolean;intensity?:WeatherPictogramIntensity}){
- const xs=intensity==='heavy'?[17,29,41,53]:intensity==='light'?[27,42]:[21,34,47];
- return <g className={`mid-weather-snow intensity-${intensity}`} stroke="var(--wx-icon-snow)" strokeWidth={intensity==='heavy'?2:1.75} strokeLinecap="round">{xs.map((x,index)=>grains?<circle key={x} cx={x} cy={51+index%2*4} r={intensity==='heavy'?2.5:intensity==='light'?1.7:2.05} fill="var(--wx-icon-snow-grain)" stroke="var(--wx-icon-snow)" strokeWidth=".8"/>:<g key={x} transform={`translate(${x} ${51+index%2*4}) scale(${intensity==='light'?.84:intensity==='heavy'?1.08:1})`}><path d="M-4 0h8M0-4v8M-3-3l6 6M3-3l-6 6"/></g>)}</g>;
+ const xs=solidParticleXs(intensity);
+ return <g className={`mid-weather-snow intensity-${intensity}`} stroke="var(--wx-icon-snow)" strokeWidth={intensity==='heavy'?2.15:intensity==='light'?1.7:1.9} strokeLinecap="round">{xs.map((x,index)=>grains?<circle key={x} cx={x} cy={50.5+index%2*4.4} r={intensity==='heavy'?2.7:intensity==='light'?1.75:2.2} fill="var(--wx-icon-snow-grain)" stroke="var(--wx-icon-snow)" strokeWidth=".9"/>:<g key={x} transform={`translate(${x} ${51+index%2*4.4}) scale(${intensity==='light'?.86:intensity==='heavy'?1.12:1})`}><path d="M-4 0h8M0-4v8M-3-3l6 6M3-3l-6 6"/></g>)}</g>;
 }
 function IceCrystal({x=51,y=51,large=false}:{x?:number;y?:number;large?:boolean}){return <g className="mid-weather-ice" transform={`translate(${x} ${y}) scale(${large?1.18:1})`} stroke="var(--wx-icon-ice)" strokeWidth="1.6" strokeLinecap="round"><path d="M-5 0h10M0-5v10M-3.5-3.5l7 7M3.5-3.5l-7 7"/></g>}
-function IcePellets({intensity='moderate'}:{intensity?:WeatherPictogramIntensity}){const xs=intensity==='heavy'?[18,30,42,54]:intensity==='light'?[28,42]:[22,35,48];return <g className={`mid-weather-ice-pellets intensity-${intensity}`} fill="none" stroke="var(--wx-icon-ice)" strokeWidth="1.55">{xs.map((x,index)=><polygon key={x} points={`${x},${48+index%2*4} ${x+3},${50+index%2*4} ${x+2},${54+index%2*4} ${x-2},${54+index%2*4} ${x-3},${50+index%2*4}`} strokeLinejoin="round"/>)}</g>}
-function Graupel({intensity='moderate'}:{intensity?:WeatherPictogramIntensity}){const xs=intensity==='heavy'?[18,29,41,53]:intensity==='light'?[28,42]:[22,35,48];return <g className={`mid-weather-graupel intensity-${intensity}`} fill="var(--wx-icon-graupel)" stroke="var(--wx-icon-ice)" strokeWidth=".8">{xs.map((x,index)=><circle key={x} cx={x} cy={51+index%2*4} r={intensity==='heavy'?2.7:2.25}/>)}</g>}
-function Hail({intensity='moderate'}:{intensity?:WeatherPictogramIntensity}){const xs=intensity==='heavy'?[17,29,41,53]:intensity==='light'?[28,43]:[21,35,49];return <g className={`mid-weather-hail intensity-${intensity}`} fill="var(--wx-icon-hail)" stroke="var(--wx-icon-hail-edge)" strokeWidth="1">{xs.map((x,index)=><circle key={x} cx={x} cy={51+index%2*4} r={intensity==='heavy'?3.1:intensity==='light'?2.2:2.65}/>)}</g>}
+function IceCrystals({intensity='moderate'}:{intensity?:WeatherPictogramIntensity}){return <g className={`mid-weather-ice-crystals intensity-${intensity}`}>{solidParticleXs(intensity).map((x,index)=><IceCrystal key={x} x={x} y={50.5+index%2*4.5} large={intensity==='heavy'}/>)}</g>}
+function IcePellets({intensity='moderate'}:{intensity?:WeatherPictogramIntensity}){const xs=solidParticleXs(intensity);return <g className={`mid-weather-ice-pellets intensity-${intensity}`} fill="none" stroke="var(--wx-icon-ice)" strokeWidth={intensity==='heavy'?1.8:intensity==='light'?1.45:1.65}>{xs.map((x,index)=><polygon key={x} points={`${x},${48+index%2*4.2} ${x+3},${50+index%2*4.2} ${x+2},${54+index%2*4.2} ${x-2},${54+index%2*4.2} ${x-3},${50+index%2*4.2}`} strokeLinejoin="round"/>)}</g>}
+function Graupel({intensity='moderate'}:{intensity?:WeatherPictogramIntensity}){const xs=solidParticleXs(intensity);return <g className={`mid-weather-graupel intensity-${intensity}`} fill="var(--wx-icon-graupel)" stroke="var(--wx-icon-ice)" strokeWidth=".85">{xs.map((x,index)=><circle key={x} cx={x} cy={51+index%2*4.3} r={intensity==='heavy'?2.85:intensity==='light'?2:2.4}/>)}</g>}
+function Hail({intensity='moderate'}:{intensity?:WeatherPictogramIntensity}){const xs=solidParticleXs(intensity);return <g className={`mid-weather-hail intensity-${intensity}`} fill="var(--wx-icon-hail)" stroke="var(--wx-icon-hail-edge)" strokeWidth="1">{xs.map((x,index)=><circle key={x} cx={x} cy={51+index%2*4.3} r={intensity==='heavy'?3.25:intensity==='light'?2.15:2.7}/>)}</g>}
 function Lightning({heavy=false}:{heavy?:boolean}){return <g className="mid-weather-lightning"><path d="M34 42h10l-6 8h7L31 63l4-10h-7l6-11Z" fill="var(--wx-icon-lightning)" stroke="var(--wx-icon-lightning-edge)" strokeWidth="1.1" strokeLinejoin="round"/>{heavy?<path d="M49 43h7l-4 6h5l-10 9 3-7h-5l4-8Z" fill="var(--wx-icon-lightning)" stroke="var(--wx-icon-lightning-edge)" strokeWidth=".8" strokeLinejoin="round" opacity=".86"/>:null}</g>}
 function WindGlyph({squall=false}:{squall?:boolean}){return <g className="mid-weather-wind-glyph" fill="none" stroke="var(--wx-icon-wind)" strokeLinecap="round"><path d="M9 43h28c7 0 8-8 2-9-3-.5-5 1-6 3" strokeWidth={squall?3.4:2.8}/><path d="M14 51h38c7 0 8 8 2 9-3 .5-5-1-6-3" strokeWidth={squall?3.4:2.8}/><path d="M8 58h25" strokeWidth="2.4" opacity=".75"/></g>}
 function Funnel(){return <g className="mid-weather-funnel" fill="none" stroke="var(--wx-icon-funnel)" strokeLinecap="round"><path d="M24 46c14 0 25 0 31-4" strokeWidth="3.6"/><path d="M28 51c10 0 18-1 23-4" strokeWidth="3.2"/><path d="M33 56c7 0 12-1 15-3" strokeWidth="2.7"/><path d="M39 60c3 0 5-.5 6-1.5" strokeWidth="2.2"/></g>}
@@ -281,7 +287,7 @@ export function WeatherPictogram({code,day=true,size='1em',className='',title,x,
    {kind==='snow'?<Snow intensity={precipIntensity}/>:null}
    {kind==='snow-grains'?<Snow grains intensity={precipIntensity}/>:null}
    {kind==='snow-showers'?<Snow intensity={precipIntensity}/>:null}
-   {kind==='ice-crystals'?<><IceCrystal x={27} y={51} large/><IceCrystal x={43} y={55}/></>:null}
+   {kind==='ice-crystals'?<IceCrystals intensity={precipIntensity}/>:null}
    {kind==='ice-pellets'?<IcePellets intensity={precipIntensity}/>:null}
    {kind==='graupel'?<Graupel intensity={precipIntensity}/>:null}
    {kind==='hail'?<Hail intensity={precipIntensity}/>:null}

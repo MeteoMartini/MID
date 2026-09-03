@@ -266,8 +266,9 @@ jobs:
           fi
 
           if git diff --cached --quiet; then
-            echo "::error::Das Release-ZIP führte zu keinen installierbaren Änderungen."
-            exit 1
+            echo "::notice::Das Release-ZIP ist fachlich identisch zum bereits installierten Stand; der Workflow endet erfolgreich als No-op."
+            echo "commit_sha=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
 
           version=$(node -p "require('./package.json').version")

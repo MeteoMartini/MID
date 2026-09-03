@@ -28,6 +28,10 @@ for(const token of [
  '<IcePellets intensity={precipIntensity}/>',
  '<Graupel intensity={precipIntensity}/>',
  '<Hail intensity={precipIntensity}/>',
+ 'solidParticleXs(intensity)',
+ "if(intensity==='heavy')return[15,26,37,48,59]",
+ "return[19,32,45,57]",
+ '<IceCrystals intensity={precipIntensity}/>',
  "['mostly-clear','partly-cloudy','showers','sleet-showers','snow-showers']"
 ])need('Piktogramm',pictogram,token);
 for(const token of ['--wx-icon-rain:','--wx-icon-snow:','--wx-icon-lightning:','--wx-icon-day-plate:','--wx-icon-night-plate:',':root[data-theme=light]','.mid-weather-pictogram.intensity-heavy','@media(prefers-contrast:more)'])need('Theme-CSS',features,token);

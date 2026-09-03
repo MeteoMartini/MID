@@ -15,7 +15,8 @@ assert.ok(comparison.includes('series:ModelSeries[]=models.map')&&comparison.inc
 assert.ok(!panel.includes('C3S-Vergleich')&&!panel.includes('Numerische Saisonmodelle')&&!panel.includes('long-range-gateway-status')&&!panel.includes('mid:long-range:selected-model'),'Unnötige Katalog-/Status-/Einzelmodell-Kästchen müssen aus der Season-Hauptansicht entfernt sein.');
 assert.ok(seasonal.includes('freshModels.push(...c3s.models)')&&seasonal.includes('const freshDeduped=preferredIndependentModels(freshModels)'),'Alle verfügbaren numerischen Quellen müssen in den unabhängigen Modellsystem-Pool einfließen.');
 assert.ok(tone.includes('Math.sqrt(Math.abs(signed))')&&tone.includes('backgroundShare=')&&tone.includes('borderShare='),'Kleine Tmin/Tmax-Klimaabweichungen müssen über deutlich reagierende farbige Kästchen sichtbar sein.');
-assert.ok(cockpit.includes('Temperaturen nach ECMWF-Farbskala · in 7 Tagen keine Klimaabweichungen.'),'7-Tage-Legende muss die ab v0.9.78.1 gültige ECMWF-Supersession erklären.');
+assert.ok(cockpit.includes('Temperaturfarben: ECMWF-Skala'),'7-Tage-Legende muss die absolute Temperaturfarbskala knapp benennen.');
+assert.ok(!cockpit.includes('in 7 Tagen keine Klimaabweichungen')&&!cockpit.includes('Weiterentwickelter Wetterstreifen oberhalb'),'Prompt-/Umsetzungsanweisungen dürfen nicht als UI-Text erscheinen.');
 assert.ok(cockpit.includes('cockpit-fourteen-temps')&&cockpit.includes('dailyTemperatureTone(item.bestMin,item.climateMin'), '14-Tage-Ansicht muss die frühere Klimaabweichungs-Kästchenlogik weiterhin verwenden.');
 assert.ok(styles.includes('--model-series-1:')&&styles.includes('.long-range-model-overlay-chart'),'Das gemeinsame Modell-Diagramm braucht ein theme-fähiges Serienfarbsystem und responsive Styles.');
 assert.equal(baseline.releaseVersion,pkg.version,'Baseline und Paketversion müssen synchron sein.');

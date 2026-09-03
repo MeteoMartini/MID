@@ -37,7 +37,7 @@ export function ecmwfTemperatureColor(value:number){
 }
 export function ecmwfTemperatureTone(value:number):EcmwfTemperatureTone{
  const color=ecmwfTemperatureColor(value),rounded=Number.isFinite(Number(value))?`${Math.round(Number(value))} °C`:'–';
- return{color,background:`color-mix(in srgb,${color} 10%,transparent)`,border:`color-mix(in srgb,${color} 46%,var(--border))`,title:`Temperatur ${rounded} · ECMWF-Farbskala`};
+ return{color,background:`color-mix(in srgb,${color} 10%,transparent)`,border:`color-mix(in srgb,${color} 46%,var(--border))`,title:`Temperatur ${rounded}`};
 }
 export type DailyTemperatureTone={
  color:string;

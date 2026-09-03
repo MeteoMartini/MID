@@ -39,7 +39,7 @@ for(const token of [
  'Stündlicher Tagesverlauf',
  'compactGustLabel(day.gust,unit)',
  'minTone=ecmwfTemperatureTone(day.min),maxTone=ecmwfTemperatureTone(day.max)',
- 'Temperaturen nach ECMWF-Farbskala · in 7 Tagen keine Klimaabweichungen.',
+ 'cockpit-legend-inline">Temperaturfarben: ECMWF-Skala',
  "minTone=dailyTemperatureTone(item.bestMin,item.climateMin,'min'),maxTone=dailyTemperatureTone(item.bestMax,item.climateMax,'max')",
  "dailyTemperatureAnomalyLabel(minTone.anomaly)",
  "dailyTemperatureAnomalyLabel(maxTone.anomaly)",
@@ -49,6 +49,7 @@ forbid('Cockpit',cockpit,"dailyTemperatureTone(day.max,climateDay?.maxMean,'max'
 forbid('Cockpit',cockpit,"dailyTemperatureTone(day.min,climateDay?.minMean,'min')");
 forbid('Cockpit',cockpit,'details:{shortTerm?:ReactNode;sevenDay?:ReactNode;fourteenDay?:ReactNode}');
 forbid('Cockpit',cockpit,'Vollständige Analyse öffnen');
+forbid('Cockpit',cockpit,'in 7 Tagen keine Klimaabweichungen');
 
 for(const token of [
  "presentation?:'full'|'hourly-detail'",
