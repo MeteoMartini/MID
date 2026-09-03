@@ -24,7 +24,7 @@ for(const token of [
  'direction+180',
  'const NAVIGATION_ICON_BASE_DEGREES=45;',
  'windToDegrees(direction)-NAVIGATION_ICON_BASE_DEGREES',
- "intervalLabel:isQuarterInterval?'15 min':'1 h'"
+ "intervalLabel:isQuarterInterval?`${Math.max(1,Math.round(intervalMinutes))} min`:'1 h'"
 ])need('Kurzfristlogik',shortTerm,token);
 for(const token of [
  '.short-term-strip>button{display:grid;grid-template-rows:auto auto minmax(0,18px) 31px auto auto;',
@@ -61,7 +61,7 @@ try{
  if(firstSix!=='18:00|18:15|18:30|18:45|19:00|19:15')failures.push(`Zeitstufen: erwartet 18:00|18:15|18:30|18:45|19:00|19:15, erhalten ${firstSix}`);
  if(points[0]?.offsetLabel!=='+7 min')failures.push(`Offset 1: erwartet +7 min, erhalten ${points[0]?.offsetLabel}`);
  if(points[4]?.offsetLabel!=='+1 h 7 min')failures.push(`Offset 5: erwartet +1 h 7 min, erhalten ${points[4]?.offsetLabel}`);
- if(points.slice(0,6).some(point=>point.intervalLabel!=='15 min'))failures.push('Bezugsintervalle: die ersten sechs 90-Minuten-Stufen müssen jeweils 15 min ausweisen.');
+ if(points[0]?.intervalLabel!=='7 min'||points.slice(1,6).some(point=>point.intervalLabel!=='15 min'))failures.push(`Bezugsintervalle: das laufende erste trailing Intervall muss nur den Zukunftsanteil (7 min) ausweisen, danach 15 min; erhalten ${points.slice(0,6).map(point=>point.intervalLabel).join('|')}.`);
  if(points[0]?.direction!==270||points[0]?.wind!==3)failures.push('Windwerte wurden in den Kurzfristpunkten nicht korrekt übernommen.');
 }finally{await rm(dir,{recursive:true,force:true})}
 

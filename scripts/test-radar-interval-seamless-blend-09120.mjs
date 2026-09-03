@@ -18,8 +18,9 @@ const pkg=JSON.parse(readFileSync(new URL('../package.json',import.meta.url),'ut
 const baseline=JSON.parse(readFileSync(new URL('../MID_BASELINE.json',import.meta.url),'utf8'));
 
 assert.ok(shortTerm.includes('isQuarterInterval=offsetMinutes<=QUARTER_STEP_COUNT*15'),'15-Minuten-Raster muss unabhängig vom Vorhandensein nativer Viertelstundendaten bestimmt werden.');
-assert.ok(shortTerm.includes("intervalLabel:isQuarterInterval?'15 min':'1 h'"),'Bezugsintervall muss dem Zeitraster entsprechen.');
-assert.ok(shortTerm.includes('base.precipitation*intervalFactor'),'Stündliche Modellmenge muss für Viertelstunden auf das Intervall skaliert werden.');
+assert.ok(shortTerm.includes("intervalLabel:isQuarterInterval?`${Math.max(1,Math.round(intervalMinutes))} min`:'1 h'"),'Bezugsintervall muss dem tatsächlichen Zukunftsanteil entsprechen.');
+assert.ok(shortTerm.includes('precipitationBase.precipitation*intervalFactor'),'Stündliche Modellmenge muss aus dem rückblickenden Akkumulationsintervall auf die Viertelstunde skaliert werden.');
+assert.ok(shortTerm.includes('trailingAccumulationHour(hours,target)'),'Akkumulationsfelder dürfen nicht aus einer interpolierten Punktstunde stammen.');
 assert.ok(!shortTerm.includes('intervalMinutes=quarter?15:60'),'Alte fehlerhafte Intervallableitung ist noch vorhanden.');
 assert.ok(fusion.includes('blendRadarAtTarget'),'Operativer Stunden-Nowcast nutzt nicht den zentralen Radar-Modell-Blend.');
 assert.ok(fusion.includes('RADAR_TRANSITION_HORIZON_MINUTES'),'Auslaufender Radar-Timing-Übergang fehlt.');

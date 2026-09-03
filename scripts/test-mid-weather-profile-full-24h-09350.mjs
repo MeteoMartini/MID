@@ -6,19 +6,21 @@ const [cockpit,pkg,baseline]=await Promise.all([
 ]);
 const failures=[];const need=(token)=>{if(!cockpit.includes(token))failures.push(`ForecastCockpit fehlt: ${token}`)};const reject=(token)=>{if(cockpit.includes(token))failures.push(`Altvertrag noch vorhanden: ${token}`)};
 for(const token of [
- 'function shortTermProfileHourlyPoints(hours:Hour[],timezone:string,now=Date.now())',
+ 'function shortTermProfileHourlyPoints(hours:Hour[],adjusted:ShortTermForecastPoint[],timezone:string,now=Date.now())',
  'const windowEnd=now+PROFILE_WINDOW_MS',
- '.filter(hour=>Number(hour.epoch)<=windowEnd).slice(0,26)',
- "intervalLabel:'1 h'",
+ 'filter(hour=>hour.epoch>now&&hour.epoch-HOUR_MS<windowEnd)',
+ 'precipitationIntervalStartEpoch:start',
+ 'precipitationIntervalEndEpoch:end',
+ "durationMinutes>=55?'1 h':`${durationMinutes} min`",
  'const chartSourcePoints=profileDisplayPoints.length?profileDisplayPoints:hourlyPoints.slice(0,25)',
  'chartStartEpoch=profileNow',
  'chartEndEpoch=profileNow+PROFILE_WINDOW_MS',
  'chartTimeSpan=Math.max(1,chartEndEpoch-chartStartEpoch)',
  'const profileXForEpoch=(epoch:number)=>',
- 'profileXForEpoch(point.epoch)'
+ 'precipitationMidX=(precipitationStartX+precipitationEndX)/2'
 ])need(token);
 reject('chartSourcePoints=adjusted.filter(point=>point.offsetMinutes<=24*60)');
 reject('chartSourcePoints=points.slice(0,Math.min(points.length,25))');
 const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;if(pv!==bv)failures.push(`Versionen nicht synchron: ${pv}/${bv}`);
 if(failures.length){console.error(`MID 24-h-Wetterprofil Vollfenster-Regressionsprüfung fehlgeschlagen:\n- ${failures.join('\n- ')}`);process.exit(1)}
-console.log('MID: 24-h-Wetterprofil läuft exakt von jetzt bis +24 h; stündliche Werte bleiben kanonisch und 15-Minuten-Schritte außerhalb des Diagramms.');
+console.log('MID: 24-h-Wetterprofil läuft exakt von jetzt bis +24 h; Niederschlag nutzt rückblickende Intervallenden und finalisierte 15-Minuten-Daten im ersten Nowcastfenster.');

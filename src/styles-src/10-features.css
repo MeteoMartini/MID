@@ -203,8 +203,8 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .composite-switch.compact>span{min-width:0}
 .composite-switch.compact b{font-size:9px!important;line-height:1.05!important}
 .composite-switch.compact small{display:block!important;min-height:0!important;margin-top:2px!important;color:var(--muted)!important;font-size:6.6px!important;line-height:1.12!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;-webkit-line-clamp:unset!important}
-.composite-switch-emoji{display:grid;width:24px;height:24px;place-items:center;border-radius:8px;background:color-mix(in srgb,var(--primary) 8%,var(--s2));font-size:15px;line-height:1}
-.composite-switch.active .composite-switch-emoji{background:color-mix(in srgb,var(--primary) 16%,var(--s2))}
+.composite-switch-icon{display:grid;width:24px;height:24px;place-items:center;border-radius:8px;background:color-mix(in srgb,var(--primary) 8%,var(--s2));font-size:15px;line-height:1}
+.composite-switch.active .composite-switch-icon{background:color-mix(in srgb,var(--primary) 16%,var(--s2))}
 .radarmap{contain:layout paint style;isolation:isolate;overscroll-behavior:contain}
 .radarmap.touch-scroll-mode .maplibregl-map{touch-action:pan-y!important}
 .composite-map-interaction{position:absolute;z-index:950;right:8px;bottom:52px;display:inline-flex;align-items:center;gap:5px;min-height:30px;padding:5px 8px;border:1px solid rgba(255,255,255,.72);border-radius:10px;background:rgba(16,31,46,.82);color:#fff;box-shadow:0 5px 14px rgba(0,0,0,.22);font-size:8px;font-weight:800;line-height:1;touch-action:manipulation}
@@ -225,7 +225,7 @@ button,input,select,[role="button"]{touch-action:manipulation}
 @media(max-width:760px){
  .composite-layer-switches{display:flex!important;overflow-x:auto;gap:5px!important;padding:1px 1px 5px;scroll-snap-type:none!important;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch}
  .composite-switch.compact{flex:0 0 112px!important;min-height:42px!important;padding:5px 7px!important}
- .composite-switch.compact b{font-size:8.5px!important}.composite-switch.compact small{font-size:6.1px!important}.composite-switch-emoji{width:22px;height:22px;font-size:14px}
+ .composite-switch.compact b{font-size:8.5px!important}.composite-switch.compact small{font-size:6.1px!important}.composite-switch-icon{width:22px;height:22px;font-size:14px}
  .radarmap{height:min(66vh,560px)}
  .composite-map-interaction{right:7px;bottom:48px}
  .mid-konrad-marker{min-width:43px;padding:4px 5px;font-size:7px}.mid-konrad-marker small{font-size:6px}

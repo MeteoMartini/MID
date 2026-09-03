@@ -31,7 +31,7 @@ try{
 const cockpit=fs.readFileSync(path.join(root,'src','ForecastCockpit.tsx'),'utf8');
 assert.ok(!cockpit.includes('shortTermEstimatedPrecipitationDuration'),'Niederschlagswahrscheinlichkeit wird weiterhin in fiktive Minuten umgerechnet');
 assert.ok(!/intervalMinutes\s*\*\s*clamp\(point\.probability/.test(cockpit),'PoP-zu-Dauer-Formel ist weiterhin vorhanden');
-assert.ok(cockpit.includes('Der Prozentwert beim Niederschlag ist die Eintrittswahrscheinlichkeit im Bezugsintervall, keine Regendauer'),'fachliche Erläuterung im Stundenprofil fehlt');
+assert.ok(cockpit.includes('Der Prozentwert ist die Eintrittswahrscheinlichkeit im Bezugsintervall, keine Regendauer'),'fachliche Erläuterung im Stundenprofil fehlt');
 assert.ok(cockpit.includes('sunshineValues.reduce((total,value)=>total+Math.max(0,value),0)'),'3-h-Sonnenschein wird nicht summiert');
 assert.ok(cockpit.includes('sunshineMinutesLabel(selectedPoint.sunshineDuration,shortTermIntervalMinutes(selectedPoint))'),'3-h-Anzeige ist weiterhin auf 60 Minuten begrenzt');
 assert.ok(!cockpit.includes('sunshineDuration:Number(hour.sunshineDuration)||0'),'fehlende Stundenwerte werden weiterhin als 0 min ausgegeben');

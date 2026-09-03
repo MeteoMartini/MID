@@ -20,7 +20,7 @@ for(const token of [
 ]){
   if(!styles.includes(token))failures.push(`Responsives Metadatenlayout fehlt: ${token}`);
 }
-if(!app.includes('<b>💧 {precipitationAmountLabel(d)}</b><small>'))failures.push('Niederschlagsmenge und kompakte PoP-Zusatzinformation sind nicht getrennt umbrechbar.');
+if(!app.includes('<b><Droplets size={12}/>{precipitationAmountLabel(d)}</b><small>'))failures.push('Niederschlagsmenge, Design-2.0-Vektoricon und kompakte PoP-Zusatzinformation sind nicht getrennt umbrechbar.');
 if(styles.includes('.cockpit-day-rain b,.cockpit-day-rain small,.forecast-meta-rain,.widgetmeta>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'))failures.push('Veralteter Ellipsis-Schutz schneidet Wetterwerte weiterhin ab.');
 if(failures.length){
   console.error(`7-Tage-Metadatenlayout-Prüfung fehlgeschlagen:\n- ${failures.join('\n- ')}`);

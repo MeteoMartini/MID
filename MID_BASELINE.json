@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.78.8",
+  "releaseVersion": "0.9.78.12",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -381,7 +381,8 @@
     "scripts/test-seven-day-ecmwf-hourly-09781.mjs",
     "scripts/test-seven-day-axis-badge-lock-09784.mjs",
     "scripts/test-ruc-mosmix-precip-consensus-09786.mjs",
-    "scripts/test-ruc-precip-amplitude-guard-09787.mjs"
+    "scripts/test-ruc-precip-amplitude-guard-09787.mjs",
+    "scripts/test-precipitation-trailing-interval-nowcast-097810.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -688,7 +689,8 @@
     "scripts/test-weather-pictogram-ui-lock-09781.mjs",
     "scripts/test-seven-day-ecmwf-hourly-09781.mjs",
     "scripts/test-seven-day-axis-badge-lock-09784.mjs",
-    "scripts/test-ruc-precip-amplitude-guard-09787.mjs"
+    "scripts/test-ruc-precip-amplitude-guard-09787.mjs",
+    "scripts/test-precipitation-trailing-interval-nowcast-097810.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -1143,7 +1145,13 @@
     "MID_TEST_REPORT_0.9.78.4.md",
     "scripts/test-ruc-precip-amplitude-guard-09787.mjs",
     "MID_IMPLEMENTATION_0.9.78.7.md",
-    "MID_TEST_REPORT_0.9.78.7.md"
+    "MID_TEST_REPORT_0.9.78.7.md",
+    "MID_IMPLEMENTATION_0.9.78.9.md",
+    "MID_TEST_REPORT_0.9.78.9.md",
+    "scripts/test-precipitation-trailing-interval-nowcast-097810.mjs",
+    "MID_PRECIPITATION_INTERVAL_CONTRACT.md",
+    "MID_IMPLEMENTATION_0.9.78.10.md",
+    "MID_TEST_REPORT_0.9.78.10.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",

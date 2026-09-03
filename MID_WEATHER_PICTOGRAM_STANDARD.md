@@ -72,3 +72,20 @@ Das in MID 17.7.14 freigegebene **Weather Icon System 2.0** ist die verbindliche
 5. Neue Komponenten dürfen Wetterzustände ausschließlich über `WeatherPictogram` darstellen. Wird eine neue Wetterquelle eingebunden, wird ihre Semantik zuerst in den kanonischen Forecast-/Niederschlagspfad übersetzt und erst danach gerendert.
 
 Required Regression: `scripts/test-weather-pictogram-ui-lock-09781.mjs`.
+
+## Verbindliche Präzisierung v0.9.78.9 – visueller Form-Lock gegen Legacy-Anmutung
+
+Die diagnostische Wolkenhöhen-/Wolkenformanalyse bleibt fachlich erhalten, darf aber die **primäre Wetterzustands-Glyphe nicht mehr in eine andere Symbolfamilie umformen**. Genau dies hatte dazu geführt, dass z. B. ein regnerischer oder bedeckter Tag je nach H/M/L-Bewölkung als wellige Cirrus-/Schichtwolkenform erschien und dadurch trotz zentralem Renderer wie ein altes Piktogramm wirkte.
+
+Ab v0.9.78.9 gilt deshalb zusätzlich:
+
+- `data-cloud-layer` und `data-cloud-form` bleiben reine meteorologische Diagnostik.
+- Die sichtbare Hauptform wird über einen zentralen **visuellen Form-Lock** bestimmt.
+- Bedeckt verwendet die klare geschlossene Wolkenform des Weather Icon System 2.0.
+- Stratiformer Regen, Sprühregen, Schnee, Schneeregen, gefrierender Niederschlag, Schneegriesel, Eiskörner, Graupel und Hagel verwenden eine einheitliche Niederschlagswolke mit jeweils eigenständigen Partikeln und Intensitäten.
+- Schauer verwenden eine konvektive Haufenwolke mit Tag-/Nacht-Himmelskörper, Gewitter die Cumulonimbus-Familie.
+- Dunst, Nebel und Reifnebel werden als eigenständige Linien-/Eissymbolik **ohne zusätzliche Wolke** dargestellt.
+- Höhenwolken-Diagnostik darf in Detail-/Wolkenprofilen weiterhin ausgewertet werden, aber niemals die primäre Forecast-Glyphe in 7/14 Tagen, Kurzfrist, Ensemble, Event, Reise, Route, Wasser oder Widget ersetzen.
+- Bedien- und Parametericons werden aus dem MID/Lucide-Designsystem bezogen; Emoji-basierte alternative Wetterzustandsrenderer bleiben verboten.
+
+Damit ist Screenshot 1 („Weather Icon System 2.0“) nicht nur als Renderername, sondern als sichtbare, appweit wiedererkennbare Symbolfamilie festgeschrieben.

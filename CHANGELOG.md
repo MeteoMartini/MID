@@ -1,3 +1,36 @@
+## v0.9.78.12
+
+- CI-Hotfix für GitHub Release-Run #850: TypeScript-7-Prüfung und Vite-Produktionsbuild waren vollständig grün; ausschließlich drei Regressionstests erwarteten nach der v0.9.78.10-Niederschlagsintervallkorrektur bzw. dem v0.9.78.11-TS6133-Hotfix noch supersedierte Quelltextanker.
+- Kurzfrist-Regression auf den trailing-interval-Vertrag migriert: das erste laufende 15-Minuten-Fenster zeigt nur den tatsächlich noch zukünftigen Anteil ab jetzt (z. B. 7 min), danach folgen volle 15-Minuten-Intervalle.
+- Sonne/Niederschlag-Kohärenztest auf die aktuelle fachliche Erläuterung migriert; PoP bleibt Eintrittswahrscheinlichkeit und wird nicht als Regendauer interpretiert.
+- 24-h-Zellgeometrietest schützt nun die aktive intervalgebundene `profileBandGeometry` direkt und verbietet ausdrücklich die Rückkehr des in v0.9.78.11 entfernten toten `probabilityCellGeometry`-Helpers.
+- Keine fachliche App-, Forecast-, Niederschlags- oder Workerlogik geändert; ausschließlich Regressionen an den bereits aktiven Fachvertrag angepasst.
+
+## v0.9.78.11
+
+- CI-Hotfix für GitHub Release-Run #849: unbenutzten Resthelfer `probabilityCellGeometry` aus `ForecastCockpit.tsx` entfernt.
+- Der Fehler war rein typseitig (`TS6133`) und blockierte `verify:types`; die Niederschlags-Intervall-/Nowcast-Fachlogik aus v0.9.78.10 bleibt unverändert erhalten.
+- Neuer Regression-Lock verhindert die erneute Einführung des unbenutzten Helpers.
+- Keine fachliche Workeränderung; Worker nur versionssynchronisiert.
+
+## v0.9.78.10
+
+- Niederschlags-Intervallsemantik appweit korrigiert: Open-Meteo-/MOSMIX-Akkumulationen werden als rückblickende Intervalle mit Zeitstempel = Intervallende behandelt; Radarfenster sind nicht mehr um den Modellzeitpunkt zentriert.
+- 24-h-Wetterprofil „ab jetzt“ zeigt keine bereits vollständig vergangene Stundenmenge mehr. Das erste laufende Intervall wird nur mit seinem Zukunftsanteil bilanziert; finalisierte 15-Minuten-/Radarwerte speisen die ersten Stundenblöcke.
+- Niederschlagsbalken und PoP liegen auf ihren realen Intervallgrenzen, während Temperatur, Wind und Druck punktbezogen bleiben.
+- Radar-NWP-Blend gehärtet: trockene Standort-Radarstrecken dämpfen auch Modellmengen >1 mm; Echo nur im Umfeld darf die PoP stützen, aber keine ungestützte Standortmenge unverändert durchreichen.
+- Kurzfrist-Fallback und hyperlokale Niederschlagsassimilation verwenden das Akkumulationsintervall, das den Ziel-/Beobachtungszeitpunkt enthält.
+- Resttages-Niederschlag zählt nur zukünftige Intervallanteile; Tmin/Tmax bleiben unverändert.
+- Neuer verbindlicher Vertrag `MID_PRECIPITATION_INTERVAL_CONTRACT.md` und Regression `test-precipitation-trailing-interval-nowcast-097810.mjs`.
+- Keine fachliche Workeränderung.
+
+## v0.9.78.9
+
+- Weather Icon System 2.0 visuell appweit verriegelt: H/M/L-Wolkendiagnostik darf die Hauptglyphe nicht mehr in wellige Cirrus-/Altostratusformen umformen; Bedeckt, Niederschlag, Schauer, Gewitter und Nebel folgen nun unabhängig davon der freigegebenen Symbolfamilie.
+- Appweite Wetterzustands-Pfade für Aktuell, Kurzfrist, 7/14 Tage, Ensemble, Event, Reise, Route, Wasser und Widget bleiben auf `WeatherPictogram`; Radar-/Komposit-Schalter und Forecast-Parametericons wurden von Wetter-Emoji-Darstellungen auf Vektor-/Lucide-Symbole bereinigt.
+- 14-Tage-Desktopdarstellung ab 1025 CSS-px mit 224-px-Karten, horizontalem Scrollband, lesbarer Typografie und klar getrennten Wetter-/Temperatur-/Niederschlags-/Sonnenschein-/Windbereichen. Das 7×2-Mikrolayout bleibt auf Mobil-/Tablet-Querformat bis 1024 px beschränkt.
+- Keine fachliche Workeränderung.
+
 ## v0.9.78.8
 
 - GitHub-Regression `test-location-thunder-water-tide-layout-09644.mjs` auf den aktuellen Nachfolgevertrag migriert: die separate Kachel „Gewitterrisiko“ bleibt entfernt; relevante Gewitterinformationen werden kompakt in der Niederschlagskachel geführt, während Aktuell und Wassersport weiterhin dieselbe kanonische 6-h-Ortsanalyse verwenden.

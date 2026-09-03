@@ -20,7 +20,7 @@ assert.ok(cockpit.includes('className="cockpit-day-pop"'),'Die PoP-Zeile besitzt
 assert.ok(cockpit.includes("precipitationCompactMeta=[precipitationProbabilityCompact,precipitationDurationCompact].filter(Boolean).join(' · ')"),'Cockpit kombiniert PoP und Dauer nicht platzsparend.');
 assert.ok(!cockpit.includes('<span className="cockpit-day-rain" title={`${precipitationAmountLabel(day)} · ${dailyPrecipitationProbabilityTitle(day)} · Dauer ${precipitationDuration}`}><b>{precipitationAmountLabel(day)}</b><small>'),'PoP steckt weiterhin in der halben Niederschlagsspalte.');
 
-assert.ok(app.includes('className="forecast-meta-rain"')&&app.includes('<b>💧 {precipitationAmountLabel(d)}</b><small>'),'Klassische 7-Tage-Zeile ist nicht in Menge und kompakte Zusatzzeile strukturiert.');
+assert.ok(app.includes('className="forecast-meta-rain"')&&app.includes('precipitationAmountLabel(d)')&&app.includes('<Droplets size={12}/>'),'Klassische 7-Tage-Zeile ist nicht in Menge, Design-2.0-Vektoricon und kompakte Zusatzzeile strukturiert.');
 assert.ok(app.includes('className="widgetmeta-rain"')&&app.includes('className="widgetmeta-wind"'),'Widget-Metadaten sind nicht in umbrechbare Teilzeilen aufgeteilt.');
 assert.ok(ensemble.includes('precipitationProbabilityWindowCompactLabel(elevated)'),'Ensemblekarten verwenden nicht dieselbe platzsparende 6-h-Notation.');
 

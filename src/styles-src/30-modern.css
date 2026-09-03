@@ -2343,7 +2343,7 @@ main>.place>.place-nowcards{display:none!important}
  font-variant-numeric:tabular-nums;
  line-height:1.1;
 }
-.cockpit-fourteen-sunshine>span{font-size:11px}.cockpit-fourteen-sunshine>b{font-size:10px;white-space:nowrap}.cockpit-fourteen-sunshine>small{min-width:0;color:var(--muted);font-size:8px;text-align:right;overflow-wrap:anywhere}
+.cockpit-fourteen-sunshine>span,.cockpit-fourteen-sunshine>svg{font-size:11px}.cockpit-fourteen-sunshine>b{font-size:10px;white-space:nowrap}.cockpit-fourteen-sunshine>small{min-width:0;color:var(--muted);font-size:8px;text-align:right;overflow-wrap:anywhere}
 .cockpit-focus-card.fourteen{grid-template-columns:minmax(180px,1.25fr) auto minmax(125px,.8fr) minmax(150px,.95fr) minmax(160px,1.05fr)}
 .cockpit-fourteen-selected-sunshine{align-content:center;padding:7px 9px;border:1px solid color-mix(in srgb,#e4ae24 24%,var(--border));border-radius:12px;background:color-mix(in srgb,#f4c84a 8%,var(--surface))}
 .cockpit-fourteen-selected-sunshine>b{color:#9b7109!important}.cockpit-fourteen-selected-sunshine>small{white-space:normal}
@@ -2351,12 +2351,12 @@ main>.place>.place-nowcards{display:none!important}
 @media (orientation:portrait) and (max-width:900px){
  .cockpit-fourteen-card{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-areas:"header header header" "temperature precipitation wind" "sunshine sunshine sunshine"}
  .cockpit-fourteen-sunshine{grid-template-columns:auto auto minmax(0,1fr);min-height:0;padding:2px 5px;border-radius:7px}
- .cockpit-fourteen-sunshine>span{font-size:7px}.cockpit-fourteen-sunshine>b{font-size:6.4px}.cockpit-fourteen-sunshine>small{font-size:5.7px}
+ .cockpit-fourteen-sunshine>span,.cockpit-fourteen-sunshine>svg{font-size:7px}.cockpit-fourteen-sunshine>b{font-size:6.4px}.cockpit-fourteen-sunshine>small{font-size:5.7px}
 }
 @media (orientation:landscape) and (max-width:1024px){
  .cockpit-fourteen-card{grid-template-areas:"header" "temperature" "precipitation" "sunshine" "wind"}
  .cockpit-fourteen-sunshine{grid-template-columns:auto minmax(0,1fr);gap:2px;padding:2px 3px;border-radius:6px}
- .cockpit-fourteen-sunshine>span{font-size:6px}.cockpit-fourteen-sunshine>b{justify-self:end;font-size:5.7px}.cockpit-fourteen-sunshine>small{grid-column:1/-1;font-size:4.8px;text-align:left}
+ .cockpit-fourteen-sunshine>span,.cockpit-fourteen-sunshine>svg{font-size:6px}.cockpit-fourteen-sunshine>b{justify-self:end;font-size:5.7px}.cockpit-fourteen-sunshine>small{grid-column:1/-1;font-size:4.8px;text-align:left}
 }
 
 /* MID v0.9.65.6 · kompakter Luftdruckverlauf und appweite Hazard-Konsistenz. */
@@ -2720,3 +2720,146 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
 .seven-day-curve-overview>footer{display:flex;align-items:center;gap:14px;margin:3px 5px 0;padding-top:7px;border-top:1px solid color-mix(in srgb,var(--border) 66%,transparent);color:var(--muted);font-size:7.5px}.seven-day-curve-overview>footer>span{display:inline-flex;align-items:center;gap:5px}.seven-day-curve-overview>footer i{display:inline-block;width:18px}.seven-day-curve-overview>footer i.temp-line{height:4px;border-radius:999px;background:linear-gradient(90deg,#ecc937,#f3972a,#d23631)}.seven-day-curve-overview>footer i.rain-bars{width:13px;height:10px;border-radius:2px;background:var(--param-precipitation)}.seven-day-curve-overview>footer>small{margin-left:auto;color:var(--muted);font-size:7.3px}
 @media(max-width:620px){.seven-day-curve-overview{padding:11px 7px 8px;border-radius:18px}.seven-day-curve-overview>header{align-items:flex-start;margin-inline:5px}.seven-day-curve-overview>header>span{display:none}.seven-day-curve-days>button{padding-inline:1px}.seven-day-curve-days>button>b{font-size:8.4px}.seven-day-curve-days>button>small{font-size:6.1px}.seven-day-curve-days .mid-weather-pictogram{width:32px!important;height:32px!important}.seven-day-curve-temps strong{font-size:9.7px}.seven-day-curve-temps em{font-size:8.4px}.seven-day-curve-chart svg{min-height:184px}.seven-day-curve-axis-label{font-size:7.4px}.seven-day-curve-time-label,.seven-day-curve-day-label{font-size:7.2px}.seven-day-curve-overview>footer{gap:10px;font-size:6.9px}.seven-day-curve-overview>footer>small{display:none}}
 @media(max-width:390px){.seven-day-curve-days>button>small{letter-spacing:-.02em}.seven-day-curve-days .mid-weather-pictogram{width:29px!important;height:29px!important;margin-block:1px}.seven-day-curve-overview>footer{justify-content:center}}
+
+/* MID v0.9.78.9 · Desktop-Lock: lesbare 14-Tage-Karten statt Tablet-Mikrolayout. */
+@media (min-width:1025px){
+ .forecast-cockpit:has(.cockpit-fourteen-day) .cockpit-body{padding:14px 16px}
+ .cockpit-fourteen-day{min-width:0;overflow:visible!important}
+ .cockpit-fourteen-grid{
+  display:grid!important;
+  grid-template-columns:repeat(14,minmax(224px,224px))!important;
+  grid-auto-flow:column;
+  grid-auto-columns:224px;
+  gap:10px!important;
+  width:100%;
+  min-width:0;
+  overflow-x:auto!important;
+  overflow-y:hidden;
+  overscroll-behavior-x:contain;
+  scroll-snap-type:x proximity;
+  scroll-padding-inline:2px;
+  padding:4px 2px 10px!important;
+ }
+ .cockpit-fourteen-card{
+  box-sizing:border-box;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-areas:"header" "temperature" "precipitation" "sunshine" "wind"!important;
+  align-content:start;
+  width:224px!important;
+  min-width:224px!important;
+  min-height:270px;
+  gap:9px!important;
+  padding:12px 12px 11px 14px!important;
+  border-radius:18px!important;
+  overflow:hidden!important;
+  scroll-snap-align:start;
+ }
+ .cockpit-fourteen-card>header{
+  grid-area:header;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  grid-template-areas:"heading consistency" "regime regime" "temps temps"!important;
+  align-items:start!important;
+  gap:7px 8px!important;
+  min-width:0;
+ }
+ .cockpit-fourteen-card>header>.cockpit-fourteen-heading{grid-area:heading;display:flex!important;align-items:flex-start;gap:8px;min-width:0}
+ .cockpit-fourteen-heading>.mid-weather-pictogram{width:38px!important;height:38px!important;flex:0 0 38px}
+ .cockpit-fourteen-heading-copy{display:grid!important;gap:2px!important;min-width:0}
+ .cockpit-fourteen-card>header .cockpit-fourteen-heading-copy>b{font-size:12px!important;line-height:1.05!important}
+ .cockpit-fourteen-card>header .cockpit-fourteen-heading-copy>small{font-size:9px!important;line-height:1.05!important}
+ .cockpit-fourteen-heading-copy>.cockpit-fourteen-weather-label{
+  display:-webkit-box!important;
+  min-height:22px;
+  overflow:hidden!important;
+  color:var(--muted);
+  font-size:9.5px!important;
+  font-weight:650;
+  line-height:1.18!important;
+  white-space:normal!important;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+ }
+ .cockpit-fourteen-card>header>.cockpit-consistency-pill{
+  grid-area:consistency;
+  align-self:start;
+  justify-self:end;
+  min-width:56px;
+  min-height:27px;
+  padding:5px 7px!important;
+  font-size:9px!important;
+  line-height:1!important;
+ }
+ .cockpit-fourteen-regime{
+  grid-area:regime;
+  width:max-content!important;
+  max-width:100%;
+  min-height:24px;
+  justify-self:start!important;
+  padding:4px 8px!important;
+  font-size:9.5px!important;
+  line-height:1.1!important;
+  white-space:normal!important;
+ }
+ .cockpit-fourteen-temps{
+  grid-area:temps;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:7px!important;
+  min-height:38px;
+  min-width:0;
+ }
+ .cockpit-fourteen-temps>.climate-tone-daily{min-width:54px!important;padding:5px 7px!important}
+ .cockpit-fourteen-temps>b{font-size:16px!important}.cockpit-fourteen-temps>strong{font-size:20px!important}.cockpit-fourteen-temps>em{font-size:12px!important}
+ .cockpit-fourteen-row{
+  display:grid!important;
+  grid-template-columns:auto minmax(0,1fr)!important;
+  grid-template-areas:"label value" "track track"!important;
+  align-items:center!important;
+  gap:4px 7px!important;
+  min-width:0;
+ }
+ .cockpit-fourteen-row.temperature{grid-area:temperature}.cockpit-fourteen-row.precipitation{grid-area:precipitation}.cockpit-fourteen-row.wind{grid-area:wind}
+ .cockpit-fourteen-row>label{grid-area:label;display:inline-flex;align-items:center;gap:4px;font-size:9.5px!important;line-height:1.1;white-space:nowrap}
+ .cockpit-fourteen-row>label>svg{width:12px!important;height:12px!important;flex:0 0 12px}
+ .cockpit-fourteen-row>small,
+ .cockpit-fourteen-row>small.cockpit-fourteen-wind-meta{
+  grid-area:value;
+  display:flex;
+  align-items:center;
+  justify-self:end;
+  gap:3px;
+  max-width:126px;
+  overflow:hidden;
+  color:var(--text);
+  font-size:9.5px!important;
+  line-height:1.1!important;
+  text-align:right;
+  white-space:normal!important;
+  overflow-wrap:normal;
+ }
+ .cockpit-fourteen-row>.cockpit-anomaly-track,.cockpit-fourteen-row>.cockpit-rain-track,.cockpit-fourteen-row>.cockpit-wind-track{
+  grid-area:track;
+  width:100%;
+  height:8px!important;
+  min-height:8px!important;
+ }
+ .cockpit-fourteen-row .cockpit-inline-wind-arrow{--arrow-size:12px!important;flex:0 0 auto}
+ .cockpit-fourteen-sunshine{
+  grid-area:sunshine;
+  display:grid!important;
+  grid-template-columns:auto auto minmax(0,1fr)!important;
+  align-items:center;
+  gap:5px!important;
+  min-height:30px;
+  padding:6px 8px!important;
+  border-radius:9px!important;
+ }
+ .cockpit-fourteen-sunshine>span,.cockpit-fourteen-sunshine>svg{font-size:12px!important}.cockpit-fourteen-sunshine>b{font-size:10px!important}.cockpit-fourteen-sunshine>small{font-size:8px!important;line-height:1.1;text-align:right!important;overflow-wrap:normal!important}
+ .cockpit-fourteen-day>.cockpit-focus-card.fourteen{margin-top:10px}
+}
+
+.cockpit-fourteen-selected-sunshine>b{display:inline-flex;align-items:center;gap:5px}
+.cockpit-day-regime>i{display:inline-flex;align-items:center;justify-content:center}
+.cockpit-day-regime>i>svg,.cockpit-fourteen-regime>i>svg{display:block}

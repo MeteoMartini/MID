@@ -17,12 +17,13 @@ for(const key of ['requiredRegressionTests','regressionTests','requiredFiles'])a
 for(const token of [
  'const profileBandGeometry=',
  'const bandCellGeometry=',
- 'const probabilityCellGeometry=',
  'const cloudCellGeometry=',
  'const band=bandCellGeometry(item)',
- 'const probabilityBand=probabilityCellGeometry(item)',
+ 'const intervalSpan=Math.max(2,item.precipitationWidth)',
+ 'probabilityBand=profileBandGeometry({columnLeft:item.precipitationStartX,columnRight:item.precipitationEndX,columnWidth:intervalSpan}',
  'cloudBand=cloudCellGeometry(item)'
 ])assert.ok(cockpit.includes(token),`24-h-Zellabstand fehlt: ${token}`);
+assert.ok(!cockpit.includes('const probabilityCellGeometry='),'Der nach der trailing-interval-Umstellung unbenutzte probabilityCellGeometry-Helfer darf nicht zurückkehren.');
 assert.ok(!cockpit.includes('x={item.columnLeft+.55} y={thermalFeelTop} width={Math.max(0,item.columnWidth-1.1)}'),'Thermisches Empfinden verwendet noch die randberührende Altgeometrie.');
 assert.ok(!cockpit.includes('x={item.columnLeft+.7} y={row.y} width={Math.max(0,item.columnWidth-1.4)}'),'Wolkenbänder verwenden noch die randberührende Altgeometrie.');
 for(const token of [

@@ -19,9 +19,13 @@ const [cockpit,styles,dwdWarnings,app,weatherTypes,weatherSpecialized,weatherMap
 
 // Das Profil ist ein gleitendes Zeitfenster, kein Kalenderstunden-Ausschnitt.
 for(const token of [
- "const PROFILE_WINDOW_MS=24*60*60*1000",
+ "const HOUR_MS=60*60*1000",
+ "const PROFILE_WINDOW_MS=24*HOUR_MS",
  'const windowEnd=now+PROFILE_WINDOW_MS',
- '.filter(hour=>Number(hour.epoch)<=windowEnd).slice(0,26)',
+ 'function shortTermProfileHourlyPoints(hours:Hour[],adjusted:ShortTermForecastPoint[],timezone:string,now=Date.now())',
+ 'filter(hour=>hour.epoch>now&&hour.epoch-HOUR_MS<windowEnd)',
+ 'precipitationIntervalStartEpoch',
+ 'precipitationIntervalEndEpoch',
  'chartStartEpoch=profileNow',
  'chartEndEpoch=profileNow+PROFILE_WINDOW_MS',
  'window.setInterval(()=>setProfileNow(Date.now()),30000)',
@@ -55,6 +59,8 @@ for(const token of ['.profile-solar-marker text{','.profile-window-labels text{'
 for(const token of [
  'probabilityHeight=',
  'probabilityPath=',
+ 'precipitationMidX',
+ 'formatClock(item.precipitationStartEpoch,timezone)',
  'className="probability-line"',
  'className="rain-bar"',
  'className="precipitation"',

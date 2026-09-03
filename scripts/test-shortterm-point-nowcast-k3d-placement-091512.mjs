@@ -12,7 +12,8 @@ const [fusion,shortTerm,cockpit,radar,weather,worker,styles]=await Promise.all([
  readFile(new URL('../src/styles.css',import.meta.url),'utf8'),
 ]);
 assert.match(fusion,/mode:'proximity',hitClass:'nearby'/,'nearby echo must remain a proximity signal');
-assert.match(fusion,/amount:safeModelAmount,probability:/,'nearby-only echo must not create site precipitation amount');
+assert.match(fusion,/siteDryAmountWeight=.*amountFactor/,'nearby-only echo must damp unsupported site precipitation amount inside the direct nowcast horizon');
+assert.doesNotMatch(fusion,/safeModelAmount<=1/,'large NWP amounts must not bypass dry-radar attenuation');
 assert.match(fusion,/siteIntervals=overlappingSiteIntervals/,'short-term fusion must use exact interrupted site phases');
 assert.match(fusion,/siteFrames\.reduce\(\(sum,frame\)=>\{const calibrated=Number\(frame\.amountMm\);return sum\+\(Number\.isFinite\(calibrated\)&&calibrated>=0\?calibrated:clamp\(radarFinite\(frame\.rate\)/,'5-minute site frames must prefer calibrated amounts and retain rate integration only as fallback');
 assert.match(shortTerm,/DWD-RV-Standorttreffer/,'standalone short-term details must expose direct site hits');

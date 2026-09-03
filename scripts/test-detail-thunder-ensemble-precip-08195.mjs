@@ -19,7 +19,7 @@ for(const token of [
  'currentThunderRisk=significantHourlyThunderRisk(currentHour)',
  'className="hour-tooltip-precipitation"',
  'className={`hourly-thunder-risk ${currentThunderRisk.level}`}',
- '⚡ Gewitterrisiko {Math.round(currentThunderRisk.percent)} %',
+ '<CloudLightning size={11}/>Gewitterrisiko {Math.round(currentThunderRisk.percent)} %',
  'Math.round(currentThunderRisk.percent)} %'
 ])need('Tagesdetail',app,token);
 for(const token of [

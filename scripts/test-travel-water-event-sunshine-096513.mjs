@@ -21,7 +21,7 @@ const metricStart=eventPanel.indexOf('function eventMetricLine('),metricEnd=even
 assert.ok(metricStart>=0&&metricEnd>metricStart,'Kompakte Eventmetrik nicht gefunden.');
 assert.ok(!metric.includes('eventSunshineLabel')&&!metric.includes('☀'),'Sonnenscheindauer wurde entgegen dem kompakten Event-Center-Vertrag in die Übersichtszeile aufgenommen.');
 assert.ok(eventPanel.includes('sunshineMinutesLabel(point.sunshineDuration,point.durationMinutes??60)'),'Stündlicher Eventverlauf muss Sonnenscheindauer weiterhin in Minuten zeigen.');
-assert.ok(eventPanel.includes('UVI {formatUvi(plan.summary.uvMax??Number.NaN)} · ☀ {eventSunshineLabel(plan.summary.sunshineDurationTotal)}'),'Mehrstündige Eventdetails müssen die aggregierte Sonnenscheindauer behalten.');
+assert.ok(eventPanel.includes('UVI {formatUvi(plan.summary.uvMax??Number.NaN)} · Sonnenschein {eventSunshineLabel(plan.summary.sunshineDurationTotal)}'),'Mehrstündige Eventdetails müssen die aggregierte Sonnenscheindauer ohne Legacy-Emoji behalten.');
 
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-travel-water-event-sunshine-096513.mjs';
 assert.equal(baseline.releaseVersion,pkg.version,'Baseline-Version nicht synchron.');
