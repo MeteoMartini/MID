@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.78.31",
+  "version": "0.9.78.33",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -398,7 +398,8 @@
     "test:ruc-precip-amplitude-guard": "node scripts/test-ruc-precip-amplitude-guard-09787.mjs",
     "test:precipitation-trailing-interval-nowcast": "node scripts/test-precipitation-trailing-interval-nowcast-097810.mjs",
     "test:long-range-subsections-relative-sunshine": "node scripts/test-long-range-subsections-relative-sunshine-097825.mjs",
-    "test:maintenance-cleanup": "node scripts/test-maintenance-cleanup-097828.mjs"
+    "test:maintenance-cleanup": "node scripts/test-maintenance-cleanup-097828.mjs",
+    "test:ensemble-progressive-bootstrap": "node scripts/test-ensemble-progressive-bootstrap-097832.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",

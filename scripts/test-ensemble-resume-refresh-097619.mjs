@@ -10,7 +10,9 @@ assert.ok(app.includes("if(!hadWeather){setEns([]);setEnsembleScenarios([]);setM
 assert.ok(app.includes("if(!(ensembleRequested||weatherTwinSettings.enabled)||!loc||!w){abortRequest('ensemble');return}"), 'Ensemble-Abruf muss an einen verfügbaren Kernforecast gekoppelt sein.');
 assert.ok(app.includes('w?.timezone,ensembleRefreshRevision]);'), 'Ensemble-Effect reagiert nicht auf die neue Refreshgeneration.');
 assert.ok(!app.match(/\.catch\(reason=>\{if\(!isAbort\(reason,ensembleController\.signal\).*setEns\(\[\]\)/s), 'Transienter Ensemble-Fehler darf vorhandene Ensemble-Tage nicht löschen.');
-assert.ok(app.includes('window.setTimeout(()=>setEnsembleRefreshRevision(value=>value+1),45_000)'), 'Automatischer sichtbarer Online-Retry nach transientem Ensemble-Fehler fehlt.');
+assert.ok(app.includes("retryPending=true;if(retryTimer)return;retryTimer=window.setTimeout(()=>{retryTimer=0;requestRetry()},delayMs)"), 'Zeitgesteuerter Ensemble-Retry nach transientem Fehler fehlt.');
+assert.ok(app.includes("document.addEventListener('visibilitychange',resumeRetry);window.addEventListener('online',resumeRetry)"), 'Ensemble-Retry muss beim Sichtbarwerden und bei Netzrückkehr sofort fortgesetzt werden.');
+assert.ok(app.includes("document.removeEventListener('visibilitychange',resumeRetry);window.removeEventListener('online',resumeRetry)"), 'Ensemble-Retry-Listener werden beim Effect-Cleanup nicht entfernt.');
 assert.ok(app.includes("Letzter erfolgreicher Stand bleibt sichtbar, sofern vorhanden."), 'Fallback-Vertrag für letzten erfolgreichen Ensemble-Stand fehlt.');
 
 console.log('Ensemble-Resume-Hotfix: same-location reload preserves data, re-triggers loading and retries transient failures without app restart.');

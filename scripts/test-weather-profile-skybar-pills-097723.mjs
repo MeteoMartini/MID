@@ -3,10 +3,11 @@ import {readFile} from 'node:fs/promises';
 
 const root=new URL('../',import.meta.url);
 const read=path=>readFile(new URL(path,root),'utf8');
-const [app,cockpit,detailSkyBar,styles,contract,pkgRaw,baselineRaw]=await Promise.all([
+const [app,cockpit,detailSkyBar,skyBarRenderer,styles,contract,pkgRaw,baselineRaw]=await Promise.all([
   read('src/App.tsx'),
   read('src/ForecastCockpit.tsx'),
   read('src/detailSkyBar.ts'),
+  read('src/SkyBarSegments.tsx'),
   read('src/styles-src/30-modern.css'),
   read('MID_24H_PROFILE_STORY_AXIS_CONTRACT.md'),
   read('package.json'),
@@ -28,7 +29,7 @@ assert.ok(!detailSkyBar.includes('underlayColor')&&!detailSkyBar.includes('under
 assert.ok(detailSkyBar.includes('xPositions?:number[]'),'detailSkyBar muss explizite X-Positionen der 7-Tage-Kurvenübersicht unterstützen.');
 assert.ok(detailSkyBar.includes("precipitationParts,type PrecipSample")&&detailSkyBar.includes('hours:PrecipSample[]')&&!detailSkyBar.includes("import type {Hour} from './weather'"),'Wetterstreifen muss den gemeinsamen PrecipSample-Vertrag akzeptieren.');
 
-assert.ok(app.includes('segmentRx=Math.min(999,segment.strokeWidth/2,segmentWidth/2)')&&cockpit.includes('segmentRx=Math.min(999,segment.strokeWidth/2,segmentWidth/2)'),'Skybar-Segmente müssen gerundet innerhalb ihrer Zellen gerendert werden.');
+assert.ok(app.includes('<SkyBarSegmentsSvg segments={skyBarSegments}')&&cockpit.includes('<SkyBarSegmentsSvg segments={profileSkyBarSegments}')&&skyBarRenderer.includes('joinedLeft=touches(')&&skyBarRenderer.includes('joinedRight=touches(')&&skyBarRenderer.includes('!joinedLeft?<circle')&&skyBarRenderer.includes('!joinedRight?<circle'),'Skybar-Segmente müssen gerundet sein, bei gleich dicken Nachbarsegmenten aber ohne optische Fuge verbunden werden.');
 assert.ok(cockpit.includes('function cockpitDaySkyBarSegments(')&&cockpit.includes('data-mid-skybar="day-card"')&&styles.includes('.cockpit-day-skybar{'),'Skybar muss wieder in jeder 7-Tage-Tageskachel eingebunden sein.');
 
 const curveStart=cockpit.indexOf('function SevenDayCurveOverview('),curveEnd=cockpit.indexOf('\nfunction cockpitDaySkyBarSegments(');

@@ -2,6 +2,7 @@ import {precipitationParts,type PrecipSample} from './precipitation';
 
 export type SkyBarSegment={
   key:string;
+  layer:'base'|'precip';
   x1:number;
   x2:number;
   y:number;
@@ -153,6 +154,7 @@ function appendSegment(segments:SkyBarSegment[],index:number,prefix:string,x0:nu
   }
   segments.push({
     key:`${prefix}-${index}`,
+    layer:visual.layer,
     x1:x0,
     x2:x1,
     y:centerY,
