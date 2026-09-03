@@ -14,8 +14,9 @@ for(const source of [css,modern]){
  assert.doesNotMatch(source,/@media\(max-width:620px\)\{[^}]*\.seven-day-curve-days\{padding-left:/,'Mobile CSS darf die deckungsgleiche Plotgeometrie nicht überschreiben.');
 }
 
-const sevenDayTemps=cockpit.match(/<span className="cockpit-day-temps">[\s\S]*?<\/span>\n   <span className="cockpit-day-temp-track">/)?.[0]??'';
-assert.ok(sevenDayTemps,'7-Tage-Tmin/Tmax-Block nicht gefunden.');
+const sevenDayTemps=cockpit.match(/<span className="cockpit-day-temps">[\s\S]*?<\/span>\n    \{daySkyBarSegments\.length\?/)?.[0]??'';
+assert.ok(sevenDayTemps,'7-Tage-Tmin/Tmax-Block vor der wiederhergestellten Tages-Skybar nicht gefunden.');
+assert.ok(cockpit.includes('data-mid-skybar="day-card"'),'Tages-Skybar muss zwischen Temperaturwerten und Temperaturtrack erhalten bleiben.');
 assert.doesNotMatch(sevenDayTemps,/<small>Min<\/small>|<small>Max<\/small>/,'7-Tage-Cockpit darf Min/Max-Zusatzlabels nicht anzeigen.');
 const classicSeven=app.match(/<div className="forecast-barwrap">[\s\S]*?<ForecastHazards/)?.[0]??'';
 assert.ok(classicSeven,'Klassischer 7-Tage-Tmin/Tmax-Block nicht gefunden.');

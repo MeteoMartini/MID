@@ -806,7 +806,7 @@ export default function SubseasonalTrendPanel({location,windUnit='kn',advancedMo
   return <section className={`section-panel long-range-panel subseasonal-trend ${def.colorClass}`}>
     <header className="section-head long-range-head subseasonal-head">
       <div>
-        <h3>Witterungstrend · Tag 15–46</h3>
+        <h3>Tag 15–46 · Wochenentwicklung</h3>
         <p>Wochenblöcke statt scheinpräziser Tageswerte · ECMWF EC46 + NOAA GEFS bis Tag 35</p>
         {data?<small className="long-range-cache-state">Datenabruf {formatDateTime(data.fetchedAt)} UTC{cacheLabel?` · ${cacheLabel}`:''}</small>:null}
       </div>

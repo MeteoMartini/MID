@@ -14,8 +14,10 @@ assert.ok(trend.includes('Klimatologie lädt im Hintergrund weiter.')&&trend.inc
 
 assert.ok(cockpit.includes('function smoothCurvePath(')&&cockpit.includes('function SevenDayCurveOverview('),'Neue 7-Tage-Kurvenübersicht fehlt.');
 assert.ok(cockpit.includes('<SevenDayCurveOverview days={visible}')&&cockpit.indexOf('<SevenDayCurveOverview days={visible}')<cockpit.indexOf('<div className="cockpit-seven-grid"'),'Kurvenübersicht muss oberhalb der kompakten Tageskarten liegen.');
-for(const token of ['seven-day-temperature-gradient','seven-day-curve-temperature-band','ecmwfTemperatureTone(day.min','ecmwfTemperatureTone(day.max','WeatherPictogram','rainItems=hourly.map','halfDayTicks=Array.from','nightBands=(()=>{','fillOpacity={0.07}','interpolateTemperatureBand(','smoothBandPath(','verbundener Wetterstreifen'])assert.ok(cockpit.includes(token),`Kurvenübersicht unvollständig: ${token}`);
-for(const token of ['.seven-day-curve-overview','.seven-day-curve-days','.seven-day-curve-temperature-band','.seven-day-curve-temperature-line','.seven-day-curve-rainbar','@media(max-width:390px)']){
+for(const token of ['seven-day-temperature-gradient','ecmwfTemperatureTone(day.min','ecmwfTemperatureTone(day.max','WeatherPictogram','rainItems=hourly.map','halfDayTicks=Array.from','nightBands=(()=>{','seven-day-curve-night-band','segmentRx=Math.min(999,segment.strokeWidth/2,segmentWidth/2)','verbundener Wetterstreifen'])assert.ok(cockpit.includes(token),`Kurvenübersicht unvollständig: ${token}`);
+const curve=cockpit.slice(cockpit.indexOf('function SevenDayCurveOverview('),cockpit.indexOf('\nfunction cockpitDaySkyBarSegments('));
+assert.ok(!curve.includes('seven-day-curve-temperature-band')&&!curve.includes('P25–P75')&&!curve.includes('interpolateTemperatureBand(')&&!curve.includes('smoothBandPath('),'P25–P75 muss aus der 7-Tage-Kurvenübersicht ersatzlos entfernt sein.');
+for(const token of ['.seven-day-curve-overview','.seven-day-curve-days','.seven-day-curve-temperature-line','.seven-day-curve-rainbar','.seven-day-curve-night-band{',':root[data-theme=light] .seven-day-curve-night-band{','@media(max-width:390px)']){
  assert.ok(styleSource.includes(token),`Responsive Designquelle fehlt: ${token}`);assert.ok(styleAggregate.includes(token),`Style-Aggregat fehlt: ${token}`);
 }
 

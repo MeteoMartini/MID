@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.78.24",
+  "version": "0.9.78.27",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -396,7 +396,8 @@
     "test:seven-day-ecmwf-hourly": "node scripts/test-seven-day-ecmwf-hourly-09781.mjs",
     "test:seven-day-axis-badge-lock": "node scripts/test-seven-day-axis-badge-lock-09784.mjs",
     "test:ruc-precip-amplitude-guard": "node scripts/test-ruc-precip-amplitude-guard-09787.mjs",
-    "test:precipitation-trailing-interval-nowcast": "node scripts/test-precipitation-trailing-interval-nowcast-097810.mjs"
+    "test:precipitation-trailing-interval-nowcast": "node scripts/test-precipitation-trailing-interval-nowcast-097810.mjs",
+    "test:long-range-subsections-relative-sunshine": "node scripts/test-long-range-subsections-relative-sunshine-097825.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",

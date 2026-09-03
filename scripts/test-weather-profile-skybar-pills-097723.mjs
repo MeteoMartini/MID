@@ -3,10 +3,11 @@ import {readFile} from 'node:fs/promises';
 
 const root=new URL('../',import.meta.url);
 const read=path=>readFile(new URL(path,root),'utf8');
-const [app,cockpit,detailSkyBar,contract,pkgRaw,baselineRaw]=await Promise.all([
+const [app,cockpit,detailSkyBar,styles,contract,pkgRaw,baselineRaw]=await Promise.all([
   read('src/App.tsx'),
   read('src/ForecastCockpit.tsx'),
   read('src/detailSkyBar.ts'),
+  read('src/styles-src/30-modern.css'),
   read('MID_24H_PROFILE_STORY_AXIS_CONTRACT.md'),
   read('package.json'),
   read('MID_BASELINE.json')
@@ -16,21 +17,28 @@ const baseline=JSON.parse(baselineRaw);
 const test='scripts/test-weather-profile-skybar-pills-097723.mjs';
 
 assert.ok(app.includes('data-mid-sky-note="react"'),'Wetterstreifen-Hinweis fehlt in der 24h-Ansicht.');
-assert.ok(app.includes('Ein einziger Wetterstreifen')&&app.includes('Niederschlag ersetzt die Bewölkungsfarbe')&&app.includes('sonnengetönter Niederschlag ohne 3D-Effekt'),'Hinweis muss das Single-Strip-Konzept inklusive bereinigter Sonnen-Schauer-Darstellung erklären.');
+assert.ok(app.includes('Niederschlag liegt farbrein über dem Grundband')&&app.includes('niemals mit Gelb/Grau gemischt')&&app.includes('Gerundete Teile'),'Hinweis muss den farbreinen Grundband-/Overlay-Vertrag erklären.');
 
-assert.ok(detailSkyBar.includes('const weatherStripVisual=')&&detailSkyBar.includes('const precipitationKind=')&&detailSkyBar.includes('const precipBandWidth=')&&detailSkyBar.includes('const SKYBAR_THICKNESS_STEPS=')&&detailSkyBar.includes('const sunVisualShare=')&&detailSkyBar.includes('const sampleIntervalSeconds=')&&detailSkyBar.includes('sunshineDuration ?? 0)/Math.max(60,intervalSeconds)')&&detailSkyBar.includes('precipitationRateMmh=amount*(3600/Math.max(60,intervalSeconds))'),'Single-Strip-Logik muss Sonnenanteil in Sekunden intervallgerecht normieren und Niederschlagsdicke aus mm/h ableiten.');
-assert.ok(detailSkyBar.includes('mit Sonnenanteilen')&&detailSkyBar.includes('const precipSunColor=')&&detailSkyBar.includes('color-mix(in srgb'),'Niederschlag mit Sonnenanteilen muss ohne Unterlage als abgestufte Mischfarbe berechnet werden.');
-assert.ok(!detailSkyBar.includes('underlayColor')&&!detailSkyBar.includes('underlayStrokeWidth')&&!detailSkyBar.includes('underlayOpacity'),'Der bereinigte Skybar darf keine 3D-Unterlage mehr rendern.');
-assert.ok(app.includes('segmentWidth=Math.max(0,segment.x2-segment.x1)')&&cockpit.includes('segmentWidth=Math.max(0,segment.x2-segment.x1)'),'Skybar-Segmente müssen als innerhalb ihrer Zelle begrenzte Rechtecke statt überstehender Round-Cap-Linien gerendert werden.');
+for(const token of ['const weatherStripVisuals=','const baseSkyVisual=','const precipitationOverlayVisual=','const precipitationKind=','const precipBandWidth=','const precipBaseColor=','const SKYBAR_THICKNESS_STEPS=','const sunVisualShare=','const sampleIntervalSeconds=','sunshineDuration??0)/Math.max(60,intervalSeconds)','precipitationRateMmh=amount*(3600/Math.max(60,intervalSeconds))','return [...baseSegments,...precipSegments]']){
+  assert.ok(detailSkyBar.includes(token),`Skybar-Vertrag unvollständig: ${token}`);
+}
+assert.ok(detailSkyBar.includes("layer:'base'")&&detailSkyBar.includes("layer:'precip'"),'Sonne/Bewölkung und Niederschlag müssen als getrennte Zeichenlagen geführt werden.');
+assert.ok(!detailSkyBar.includes('const precipSunColor=')&&!detailSkyBar.includes('color-mix(in srgb'),'Niederschlag darf nicht mehr mit Gelb/Grau zu Mischfarben verrechnet werden.');
+assert.ok(!detailSkyBar.includes('underlayColor')&&!detailSkyBar.includes('underlayStrokeWidth')&&!detailSkyBar.includes('underlayOpacity'),'Skybar darf keine 3D-Unterlage rendern.');
 assert.ok(detailSkyBar.includes('xPositions?:number[]'),'detailSkyBar muss explizite X-Positionen der 7-Tage-Kurvenübersicht unterstützen.');
-assert.ok(detailSkyBar.includes("precipitationParts,type PrecipSample")&&detailSkyBar.includes('hours:PrecipSample[]')&&!detailSkyBar.includes("import type {Hour} from './weather'"),'Wetterstreifen muss Hour und kanonische ShortTermForecastPoint-Strukturen über den gemeinsamen PrecipSample-Vertrag akzeptieren.');
-assert.ok(!detailSkyBar.includes("layer:'sun'" )&&!detailSkyBar.includes("layer:'cloud'" )&&!detailSkyBar.includes("layer:'precip'" ),'Die alte Drei-Layer-Streifenlogik darf nicht mehr vorhanden sein.');
+assert.ok(detailSkyBar.includes("precipitationParts,type PrecipSample")&&detailSkyBar.includes('hours:PrecipSample[]')&&!detailSkyBar.includes("import type {Hour} from './weather'"),'Wetterstreifen muss den gemeinsamen PrecipSample-Vertrag akzeptieren.');
 
-assert.ok(cockpit.includes('nightBands=(()=>{')&&cockpit.includes('hourly.forEach((hour,index)=>{const isNight=!hour.isDay')&&cockpit.includes('seven-day-curve-night-band')&&cockpit.includes('fillOpacity={0.07}')&&cockpit.includes('seven-day-curve-temperature-band')&&cockpit.includes('P25–P75'),'Die 7-Tage-Kurvenübersicht muss zusammenhängende, nochmals deutlich hellere Nachtbänder sowie das P25–P75-Band rendern.');
-assert.ok(cockpit.includes('ohne 3D-Effekt')&&cockpit.includes('geglättet')&&cockpit.includes('P25–P75-Band'),'Kurvenübersicht-Hinweis muss die bereinigte Skybar und das geglättete Temperaturband nennen.');
-assert.ok(cockpit.includes('zusammenhängenden Nachtstunden')&&cockpit.includes('deutlich heller hinterlegt')&&cockpit.includes('geglättetem P25–P75-Unsicherheitsband'),'ARIA-/Beschreibungs-Text für hellere Nachtstunden und geglättetes Temperaturband fehlt.');
+assert.ok(app.includes('segmentRx=Math.min(999,segment.strokeWidth/2,segmentWidth/2)')&&cockpit.includes('segmentRx=Math.min(999,segment.strokeWidth/2,segmentWidth/2)'),'Skybar-Segmente müssen gerundet innerhalb ihrer Zellen gerendert werden.');
+assert.ok(cockpit.includes('function cockpitDaySkyBarSegments(')&&cockpit.includes('data-mid-skybar="day-card"')&&styles.includes('.cockpit-day-skybar{'),'Skybar muss wieder in jeder 7-Tage-Tageskachel eingebunden sein.');
 
-for(const token of ['ein einzelner, unterschiedlich breiter Wetterstreifen','Niederschlag ersetzt dabei die Bewölkungsdarstellung','ohne 3D-Unterlage oder seitliche Überlappungen','7-Tage-Kurvenübersicht hellt Nachtstunden deutlich auf','hellgraues P25–P75-Band']){
+const curveStart=cockpit.indexOf('function SevenDayCurveOverview('),curveEnd=cockpit.indexOf('\nfunction cockpitDaySkyBarSegments(');
+assert.ok(curveStart>=0&&curveEnd>curveStart,'7-Tage-Kurvenübersicht konnte nicht isoliert werden.');
+const curve=cockpit.slice(curveStart,curveEnd);
+assert.ok(curve.includes('nightBands=(()=>{')&&curve.includes('seven-day-curve-night-band'),'Die 7-Tage-Kurvenübersicht muss zusammenhängende Nachtbereiche rendern.');
+assert.ok(!curve.includes('seven-day-curve-temperature-band')&&!curve.includes('P25–P75')&&!curve.includes('smoothBandPath')&&!curve.includes('interpolateTemperatureBand'),'P25–P75 muss aus der 7-Tage-Kurvenübersicht ersatzlos entfernt sein.');
+assert.ok(styles.includes('.seven-day-curve-night-band{fill:rgba(164,181,199,.14)!important')&&styles.includes(':root[data-theme=light] .seven-day-curve-night-band{fill:rgba(73,92,113,.08)!important'),'Nachtstunden müssen in dunklem und hellem Design explizit sichtbar sein.');
+
+for(const token of ['farbreines Grundband','keine Farbmischung mit Gelb/Grau','Alle Teilstücke sind gerundet','Nachtstunden wieder als zusammenhängende','P25–P75-Band um die Temperaturkurve ist ersatzlos entfernt']){
   assert.ok(contract.includes(token),`24h-Profil-Vertrag unvollständig: ${token}`);
 }
 
@@ -38,4 +46,4 @@ assert.equal(baseline.releaseVersion,pkg.version,'Baseline und Paketversion müs
 assert.equal(pkg.scripts?.['test:weather-profile-skybar-pills'],`node ${test}`,'Package-Testeintrag fehlt.');
 assert.ok(baseline.requiredRegressionTests?.includes(test)&&baseline.regressionTests?.includes(test),'Regressionstest muss in beiden Baseline-Testlisten enthalten sein.');
 
-console.log(`MID v${pkg.version}: verbundene Single-Strip-Skybar, hellere Nachtbänder und geglättetes 7-Tage-P25–P75-Band geschützt.`);
+console.log(`MID v${pkg.version}: Tageskarten-Skybar, gerundete farbreine Grund-/Niederschlagslagen und themefeste 7-Tage-Nachtstunden ohne P25–P75 geschützt.`);

@@ -6,7 +6,7 @@ const foundation=fs.readFileSync(path.join(process.cwd(),'src','styles-src','00-
 const features=fs.readFileSync(path.join(process.cwd(),'src','styles-src','10-features.css'),'utf8');
 
 const checks=[
-  ['trend panel title',source.includes('Witterungstrend · Tag 15–46')],
+  ['trend panel title',source.includes('Tag 15–46 · Wochenentwicklung')],
   ['week blocks start at day 15',source.includes('for(let start=14;start<time.length;start+=7)')],
   ['ecmwf seasonal endpoint',source.includes("const SEASONAL_ENDPOINT='https://seasonal-api.open-meteo.com/v1/seasonal'")],
   ['ecmwf model explicit',source.includes("models:'ecmwf_ec46'")],

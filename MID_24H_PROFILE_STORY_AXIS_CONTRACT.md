@@ -42,7 +42,7 @@ gegeneinander verschoben sein.
 ## Wolken
 
 - Die Reihenfolge bleibt von oben nach unten: Gesamt, H, M, L.
-- **Gesamtbewölkung wird im 24-h-Profil nicht mehr als viertes graues Zellenband gezeichnet.** An dieser Stelle steht jetzt **ein einzelner, unterschiedlich breiter Wetterstreifen** mit derselben `detailSkyBarSegments`-Grundlogik wie in der Tagesansicht: tagsüber verläuft er je nach Sonne/Wolken gelb bis grau; klare Nacht darf aussetzen, nächtliche Bewölkung erscheint grau. **Niederschlag ersetzt dabei die Bewölkungsdarstellung** und verwendet fachlich passende Niederschlagsfarben auch für Schnee-, Misch- und Gewitterphasen; bei vielen Sonnenanteilen dürfen Schauer und andere Niederschlagsphasen heller bzw. sonnengetönt erscheinen, jedoch ohne 3D-Unterlage oder seitliche Überlappungen. Die Strichdicke bildet die jeweilige Ausprägung in vier abgestuften Breiten ab.
+- **Gesamtbewölkung wird im 24-h-Profil nicht mehr als viertes graues Zellenband gezeichnet.** An dieser Stelle steht jetzt **ein einzelner, unterschiedlich breiter Wetterstreifen** mit derselben `detailSkyBarSegments`-Grundlogik wie in der Tagesansicht: tagsüber verläuft er je nach Sonne/Wolken gelb bis grau; klare Nacht darf aussetzen, nächtliche Bewölkung erscheint grau. **Sonne und Bewölkung bilden ein farbreines Grundband:** gelb und grau schließen sich gegenseitig aus. Niederschlag verwendet fachlich passende eigene Farben auch für Schnee-, Misch- und Gewitterphasen und wird als separate, zentrierte Lage über das Grundband gezeichnet. Es findet keine Farbmischung mit Gelb/Grau statt; ist der Grundstreifen breiter als die Niederschlagslage, bleibt er seitlich sichtbar. Alle Teilstücke sind gerundet, ohne 3D-Unterlage oder seitliche Überlappung. Die Strichdicke bildet die jeweilige Ausprägung in vier abgestuften Breiten ab.
 - Die Gesamt-Leiste verwendet weiterhin exakt dieselbe X-Zeitgeometrie wie alle übrigen Profilparameter; im rollenden Profil werden dafür die bereits über `profileXForEpoch` bestimmten Stundenpositionen an den gemeinsamen Helfer übergeben.
 - H, M und L bleiben darunter als schmale, kontinuierliche horizontale Graubänder erhalten. Für diese drei Ebenen steuert 0…100 % ausschließlich die Opazität von weiß/transparent bis grau.
 - Nachbarstunden werden in den H/M/L-Verlauf einbezogen, sodass Übergänge weich ein- und ausfaden.
@@ -86,7 +86,7 @@ gegeneinander verschoben sein.
   Rand erleichtern das senkrechte Lesen.
 - Diese Darstellung gilt unverändert im gemeinsamen Browser/PWA/iOS-React-Kern.
 
-- Die 7-Tage-Kurvenübersicht hellt Nachtstunden deutlich auf, zeigt unter der Temperaturkurve denselben Single-Strip-Wetteransatz auf gemeinsamer Zeitachse und ergänzt um die Temperatur ein hellgraues P25–P75-Band.
+- Die 7-Tage-Kurvenübersicht stellt Nachtstunden wieder als zusammenhängende, themegeeignete Hintergrundbereiche dar und zeigt denselben gerundeten, farbreinen Wetterstreifen auf gemeinsamer Zeitachse. Das zuvor ergänzte P25–P75-Band um die Temperaturkurve ist ersatzlos entfernt.
 
 ## Regression
 
@@ -94,4 +94,4 @@ gegeneinander verschoben sein.
 Zeitabbildung, die durchgehenden Vertikalen, die achsenlose Wolkendarstellung,
 die sichtbare Luftdruckspur und die Hoch-/Querformatverträge.
 
-`scripts/test-weather-profile-skybar-pills-097723.mjs` schützt zusätzlich den einzelnen Wetterstreifen für Sonne/Bewölkung/Niederschlag, den Erhalt von H/M/L, die passende Farblogik für Niederschlagsarten, den Verzicht auf 3D-Unterlagen sowie die deutlich helleren Nachtstunden der 7-Tage-Kurvenübersicht.
+`scripts/test-weather-profile-skybar-pills-097723.mjs` schützt zusätzlich den einzelnen Wetterstreifen für Sonne/Bewölkung/Niederschlag, den Erhalt von H/M/L, vier Dickenstufen, farbreine Grund-/Niederschlagslagen, gerundete Teilstücke, den Verzicht auf 3D-Unterlagen sowie die themegeeigneten Nachtstunden der 7-Tage-Kurvenübersicht und die ersatzlose Entfernung des dortigen P25–P75-Bands.

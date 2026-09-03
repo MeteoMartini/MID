@@ -11,43 +11,20 @@ export type SkyBarSegment={
   title:string;
 };
 
+type WeatherStripLayer='base'|'precip';
+
+type WeatherStripVisual={
+  layer:WeatherStripLayer;
+  color:string;
+  strokeWidth:number;
+  opacity:number;
+  title:string;
+};
+
 const clamp=(value:number,min:number,max:number)=>Math.min(max,Math.max(min,value));
 const clamp01=(value:number)=>clamp(value,0,1);
 
-const toRgb=(value:string)=>{
-  const hex=value.replace('#','').trim();
-  if(hex.length!==6)return null;
-  const numeric=Number.parseInt(hex,16);
-  if(Number.isNaN(numeric))return null;
-  return {
-    r:(numeric>>16)&255,
-    g:(numeric>>8)&255,
-    b:numeric&255,
-  };
-};
-
-const blendHex=(from:string,to:string,ratio:number)=>{
-  const a=toRgb(from);
-  const b=toRgb(to);
-  const t=clamp01(ratio);
-  if(!a||!b)return from;
-  const mix=(x:number,y:number)=>Math.round(x+(y-x)*t).toString(16).padStart(2,'0');
-  return `#${mix(a.r,b.r)}${mix(a.g,b.g)}${mix(a.b,b.b)}`;
-};
-
 const sunVisualShare=(sunshineShare:number,cloudCover:number)=>clamp01(sunshineShare*0.82+(1-clamp(Number.isFinite(cloudCover)?cloudCover:100,0,100)/100)*0.18);
-
-const skyColor=(cloudCover:number,daylight:boolean,sunshineShare:number)=>{
-  if(!daylight)return '#aeb3b9';
-  const cloud=clamp(cloudCover,0,100);
-  const sunshine=sunVisualShare(sunshineShare,cloud);
-  if(cloud>=92&&sunshine<0.18)return '#b4b8bd';
-  if(sunshine>=0.82)return '#ffc229';
-  if(sunshine>=0.62)return blendHex('#ffe07d','#ffc229',0.56);
-  if(sunshine>=0.4)return blendHex('#efe0a0','#ffc229',0.32);
-  if(sunshine>=0.2)return blendHex('#dccca2','#aeb3b9',0.26);
-  return blendHex('#d6d2c9','#aeb3b9',0.38);
-};
 
 const precipBaseColor=(kind:'rain'|'snow'|'mixed'|'storm')=>({
   rain:'var(--param-precipitation)',
@@ -101,54 +78,72 @@ const sampleIntervalSeconds=(hours:PrecipSample[],index:number)=>{
   return clamp(interval,60,3600);
 };
 
-const precipSunColor=(kind:'rain'|'snow'|'mixed'|'storm',sunshineShare:number)=>{
-  const base=precipBaseColor(kind),share=clamp01((sunshineShare-.18)/.82);
-  if(share<=0)return base;
-  const basePercent=Math.round(92-share*38);
-  return `color-mix(in srgb, ${base} ${basePercent}%, #ffc229)`;
-};
-
-const weatherStripVisual=(hour:PrecipSample,intervalSeconds:number)=>{
-  const amount=Math.max(0,Number(hour.precipitation??0));
-  const cloud=clamp(Number(hour.cloud??0),0,100);
-  const daylight=!!hour.isDay;
-  const sunshineShare=daylight?clamp01(Number(hour.sunshineDuration ?? 0)/Math.max(60,intervalSeconds)):0;
-  const precipitationRateMmh=amount*(3600/Math.max(60,intervalSeconds));
-  const precipWidth=precipBandWidth(precipitationRateMmh);
-
-  if(precipWidth>0){
-    const kind=precipitationKind(hour);
-    const highlight=daylight&&sunshineShare>0.18?' · mit Sonnenanteilen':'';
-    const intervalMinutes=Math.round(intervalSeconds/60);
-    return {
-      color:precipSunColor(kind,daylight?sunVisualShare(sunshineShare,cloud):0),
-      strokeWidth:precipWidth,
-      opacity:0.98,
-      title:`${precipitationLabel(hour)} · ${precipitationRateMmh.toFixed(precipitationRateMmh>=10?0:1)} mm/h${intervalMinutes<60?` · ${amount.toFixed(amount>=10?0:1)} mm/${intervalMinutes} min`:''}${highlight}`,
-    };
-  }
-
+const baseSkyVisual=(cloud:number,daylight:boolean,sunshineShare:number):WeatherStripVisual|null=>{
   if(daylight){
-    const sunWidth=sunBandWidth(sunshineShare,cloud);
+    const visualSunshine=sunVisualShare(sunshineShare,cloud);
+    const favorSun=visualSunshine>=0.26&&(visualSunshine>=0.58||cloud<58||(visualSunshine>=0.18&&cloud<72));
+    if(favorSun){
+      const width=sunBandWidth(sunshineShare,cloud);
+      return {
+        layer:'base',
+        color:'#ffc229',
+        strokeWidth:width,
+        opacity:0.97,
+        title:`Sonne/Bewölkung · ${(visualSunshine*100).toFixed(0)} % Sonne · ${cloud.toFixed(0)} % Wolken`,
+      };
+    }
+    const width=cloudBandWidth(cloud,true);
+    if(width<=0)return null;
     return {
-      color:skyColor(cloud,true,sunshineShare),
-      strokeWidth:sunWidth,
-      opacity:0.96,
-      title:`Sonne/Bewölkung · ${(sunshineShare*100).toFixed(0)} % Sonne · ${cloud.toFixed(0)} % Wolken`,
+      layer:'base',
+      color:cloud>=82?'#b0b5bb':'#c0c5cb',
+      strokeWidth:width,
+      opacity:0.94,
+      title:`Bewölkung · ${cloud.toFixed(0)} % Wolken${visualSunshine>0.12?` · ${(visualSunshine*100).toFixed(0)} % Sonne`:''}`,
     };
   }
 
   const width=cloudBandWidth(cloud,false);
   if(width<=0)return null;
   return {
-    color:skyColor(cloud,false,0),
+    layer:'base',
+    color:'#aeb3b9',
     strokeWidth:width,
     opacity:0.88,
     title:`Bewölkung Nacht · ${cloud.toFixed(0)} %`,
   };
 };
 
-function appendSegment(segments:SkyBarSegment[],index:number,x0:number,x1:number,centerY:number,visual:NonNullable<ReturnType<typeof weatherStripVisual>>){
+const precipitationOverlayVisual=(hour:PrecipSample,intervalSeconds:number,cloud:number,sunshineShare:number):WeatherStripVisual|null=>{
+  const amount=Math.max(0,Number(hour.precipitation??0));
+  const precipitationRateMmh=amount*(3600/Math.max(60,intervalSeconds));
+  const width=precipBandWidth(precipitationRateMmh);
+  if(width<=0)return null;
+  const intervalMinutes=Math.round(intervalSeconds/60);
+  const kind=precipitationKind(hour);
+  const hasSunshineBase=!!hour.isDay&&sunVisualShare(sunshineShare,cloud)>=0.18;
+  return {
+    layer:'precip',
+    color:precipBaseColor(kind),
+    strokeWidth:width,
+    opacity:0.99,
+    title:`${precipitationLabel(hour)} · ${precipitationRateMmh.toFixed(precipitationRateMmh>=10?0:1)} mm/h${intervalMinutes<60?` · ${amount.toFixed(amount>=10?0:1)} mm/${intervalMinutes} min`:''}${hasSunshineBase?' · auf sonnigem Grundband':''}`,
+  };
+};
+
+const weatherStripVisuals=(hour:PrecipSample,intervalSeconds:number)=>{
+  const cloud=clamp(Number(hour.cloud??0),0,100);
+  const daylight=!!hour.isDay;
+  const sunshineShare=daylight?clamp01(Number(hour.sunshineDuration??0)/Math.max(60,intervalSeconds)):0;
+  const visuals:WeatherStripVisual[]=[];
+  const base=baseSkyVisual(cloud,daylight,sunshineShare);
+  if(base)visuals.push(base);
+  const precipitation=precipitationOverlayVisual(hour,intervalSeconds,cloud,sunshineShare);
+  if(precipitation)visuals.push(precipitation);
+  return visuals;
+};
+
+function appendSegment(segments:SkyBarSegment[],index:number,prefix:string,x0:number,x1:number,centerY:number,visual:WeatherStripVisual){
   if(x1<=x0)return;
   const previous=segments[segments.length-1];
   if(previous&&Math.abs(previous.x2-x0)<=0.65&&previous.y===centerY&&previous.color===visual.color&&previous.strokeWidth===visual.strokeWidth&&previous.opacity===visual.opacity){
@@ -157,7 +152,7 @@ function appendSegment(segments:SkyBarSegment[],index:number,x0:number,x1:number
     return;
   }
   segments.push({
-    key:`wx-${index}`,
+    key:`${prefix}-${index}`,
     x1:x0,
     x2:x1,
     y:centerY,
@@ -178,14 +173,17 @@ export function detailSkyBarSegments(
 ):SkyBarSegment[]{
   if(!hours.length||chartW<=0)return [];
 
+  const baseSegments:SkyBarSegment[]=[];
+  const precipSegments:SkyBarSegment[]=[];
+  const segmentsForLayer=(layer:WeatherStripLayer)=>layer==='precip'?precipSegments:baseSegments;
+
   if(Array.isArray(xPositions)&&xPositions.length){
     const leftEdge=left;
     const rightEdge=Math.max(leftEdge,chartW-right);
     const positions=xPositions.slice(0,hours.length);
-    const segments:SkyBarSegment[]=[];
     hours.forEach((hour,index)=>{
-      const visual=weatherStripVisual(hour,sampleIntervalSeconds(hours,index));
-      if(!visual)return;
+      const visuals=weatherStripVisuals(hour,sampleIntervalSeconds(hours,index));
+      if(!visuals.length)return;
       const x=positions[index]??leftEdge;
       const prev=index>0?(positions[index-1]??leftEdge):leftEdge;
       const next=index<positions.length-1?(positions[index+1]??rightEdge):rightEdge;
@@ -193,25 +191,23 @@ export function detailSkyBarSegments(
       const rawX1=index===positions.length-1?rightEdge:(x+next)*0.5;
       const x0=Math.max(leftEdge,rawX0);
       const x1=Math.min(rightEdge,rawX1);
-      appendSegment(segments,index,x0,x1,centerY,visual);
+      visuals.forEach((visual,visualIndex)=>appendSegment(segmentsForLayer(visual.layer),index*2+visualIndex,visual.layer,x0,x1,centerY,visual));
     });
-    return segments;
+    return [...baseSegments,...precipSegments];
   }
 
-  const p=hours.slice(left,right+1);
-  if(!p.length)return [];
-  const segmentWidth=chartW/p.length;
-  const segments:SkyBarSegment[]=[];
-
-  p.forEach((hour,index)=>{
-    const visual=weatherStripVisual(hour,sampleIntervalSeconds(p,index));
-    if(!visual)return;
-    const segmentLeft=index*segmentWidth;
-    const segmentRight=(index+1)*segmentWidth;
-    const x0=Math.max(0,segmentLeft);
-    const x1=Math.min(chartW,segmentRight);
-    appendSegment(segments,index,x0,x1,centerY,visual);
+  const leftEdge=left;
+  const rightEdge=Math.max(leftEdge,chartW-right);
+  const segmentWidth=(rightEdge-leftEdge)/hours.length;
+  hours.forEach((hour,index)=>{
+    const visuals=weatherStripVisuals(hour,sampleIntervalSeconds(hours,index));
+    if(!visuals.length)return;
+    const segmentLeft=leftEdge+index*segmentWidth;
+    const segmentRight=index===hours.length-1?rightEdge:leftEdge+(index+1)*segmentWidth;
+    const x0=Math.max(leftEdge,segmentLeft);
+    const x1=Math.min(rightEdge,segmentRight);
+    visuals.forEach((visual,visualIndex)=>appendSegment(segmentsForLayer(visual.layer),index*2+visualIndex,visual.layer,x0,x1,centerY,visual));
   });
 
-  return segments;
+  return [...baseSegments,...precipSegments];
 }

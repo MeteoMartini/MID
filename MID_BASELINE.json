@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.78.24",
+  "releaseVersion": "0.9.78.27",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -382,7 +382,8 @@
     "scripts/test-seven-day-axis-badge-lock-09784.mjs",
     "scripts/test-ruc-mosmix-precip-consensus-09786.mjs",
     "scripts/test-ruc-precip-amplitude-guard-09787.mjs",
-    "scripts/test-precipitation-trailing-interval-nowcast-097810.mjs"
+    "scripts/test-precipitation-trailing-interval-nowcast-097810.mjs",
+    "scripts/test-long-range-subsections-relative-sunshine-097825.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -690,7 +691,8 @@
     "scripts/test-seven-day-ecmwf-hourly-09781.mjs",
     "scripts/test-seven-day-axis-badge-lock-09784.mjs",
     "scripts/test-ruc-precip-amplitude-guard-09787.mjs",
-    "scripts/test-precipitation-trailing-interval-nowcast-097810.mjs"
+    "scripts/test-precipitation-trailing-interval-nowcast-097810.mjs",
+    "scripts/test-long-range-subsections-relative-sunshine-097825.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -1537,8 +1539,8 @@
     "scripts/test-seven-day-axis-badge-lock-09784.mjs",
     "scripts/test-ruc-precip-amplitude-guard-09787.mjs"
   ],
-  "version": "0.9.77.23",
-  "updatedAt": "2026-09-03T10:19:00+02:00",
+  "version": "0.9.78.27",
+  "updatedAt": "2026-09-03T23:09:18+02:00",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
     "MID_IMPLEMENTATION_0.9.77.27.md",
@@ -1547,7 +1549,10 @@
     "MID_IMPLEMENTATION_0.9.78.0.md",
     "MID_IMPLEMENTATION_0.9.78.1.md",
     "MID_IMPLEMENTATION_0.9.78.4.md",
-    "MID_IMPLEMENTATION_0.9.78.7.md"
+    "MID_IMPLEMENTATION_0.9.78.7.md",
+    "MID_IMPLEMENTATION_0.9.78.25.md",
+    "MID_IMPLEMENTATION_0.9.78.26.md",
+    "MID_IMPLEMENTATION_0.9.78.27.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",

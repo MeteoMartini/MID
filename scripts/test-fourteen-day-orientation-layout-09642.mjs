@@ -16,7 +16,7 @@ for(const token of [
  'className="cockpit-fourteen-row precipitation"',
  'className="cockpit-fourteen-row wind"',
  '<WeatherPictogram code={item.weatherCode}',
- '<Sun size={12} aria-hidden="true"/>'
+ '<RelativeSunshineIcon share={item.sunshineShare} size={12}/>'
 ])assert.ok(cockpit.includes(token),`14-Tage-Datenintegration unvollständig: ${token}`);
 
 const desktopMarker='/* MID v0.9.78.9 · Desktop-Lock: lesbare 14-Tage-Karten statt Tablet-Mikrolayout. */';
