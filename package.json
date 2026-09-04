@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.78.48",
+  "version": "0.9.78.49",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -413,7 +413,8 @@
     "test:seven-day-condition-label-consistency": "node scripts/test-seven-day-condition-label-consistency-097845.mjs",
     "test:precipitation-forward-slot-presentation": "node scripts/test-precipitation-forward-slot-presentation-097846.mjs",
     "test:shortterm-forward-slot-buildfix": "node scripts/test-shortterm-forward-slot-buildfix-097847.mjs",
-    "test:precipitation-forward-slot-regression-compat": "node scripts/test-precipitation-forward-slot-regression-compat-097848.mjs"
+    "test:precipitation-forward-slot-regression-compat": "node scripts/test-precipitation-forward-slot-regression-compat-097848.mjs",
+    "test:warning-hybrid-uncertainty": "node scripts/test-warning-hybrid-uncertainty-097849.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",

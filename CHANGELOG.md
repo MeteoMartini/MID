@@ -1,3 +1,10 @@
+## 0.9.78.49
+- Warnungen & Hinweise als Hybrid-Zentrum neu geordnet: amtliche Warnungen zuerst, MID-Prognosehinweise danach; überlappende Hinweise als MID-Ergänzung.
+- Amtliche Warnstufenfarben exklusiv für amtliche Meldungen; MID-Hinweise nutzen Parameterfarben.
+- Kompakte amtliche Windzusammenfassungen folgen der gewählten Windeinheit, Originaltexte bleiben unverändert.
+- Automatische Warninhalte vermeiden trügerische Genauigkeit: Wind/Regensummen/Schnee/Temperatur als Bereiche, Nebel/Glätte/Gewitter räumlich-qualitativ; schauergebundene Gefahren kennzeichnen unsicheren Ortstreffer.
+- Neuer verbindlicher Vertrag `MID_WARNING_HYBRID_CONTRACT.md` und Regression `test-warning-hybrid-uncertainty-097849.mjs`.
+
 ## 0.9.78.48
 - Release #881 repariert: 19 veraltete Regressionen nach dem Forward-Slot-Niederschlagsvertrag auf den aktuellen Fachstand migriert.
 - Isolierte `forecastFusion.ts`-Testharnesses kapseln die neue `precipitationIntervals`-Abhängigkeit, statt wegen eines fehlenden Temp-Moduls abzubrechen.

@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.78.48",
+  "releaseVersion": "0.9.78.49",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -399,7 +399,8 @@
     "scripts/test-seven-day-condition-label-consistency-097845.mjs",
     "scripts/test-precipitation-forward-slot-presentation-097846.mjs",
     "scripts/test-shortterm-forward-slot-buildfix-097847.mjs",
-    "scripts/test-precipitation-forward-slot-regression-compat-097848.mjs"
+    "scripts/test-precipitation-forward-slot-regression-compat-097848.mjs",
+    "scripts/test-warning-hybrid-uncertainty-097849.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -724,7 +725,8 @@
     "scripts/test-seven-day-condition-label-consistency-097845.mjs",
     "scripts/test-precipitation-forward-slot-presentation-097846.mjs",
     "scripts/test-shortterm-forward-slot-buildfix-097847.mjs",
-    "scripts/test-precipitation-forward-slot-regression-compat-097848.mjs"
+    "scripts/test-precipitation-forward-slot-regression-compat-097848.mjs",
+    "scripts/test-warning-hybrid-uncertainty-097849.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -1208,7 +1210,11 @@
     "src/precipitationIntervals.ts",
     "scripts/test-precipitation-forward-slot-regression-compat-097848.mjs",
     "MID_IMPLEMENTATION_0.9.78.48.md",
-    "MID_TEST_REPORT_0.9.78.48.md"
+    "MID_TEST_REPORT_0.9.78.48.md",
+    "scripts/test-warning-hybrid-uncertainty-097849.mjs",
+    "MID_WARNING_HYBRID_CONTRACT.md",
+    "MID_IMPLEMENTATION_0.9.78.49.md",
+    "MID_TEST_REPORT_0.9.78.49.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1618,8 +1624,8 @@
     "scripts/test-codeql-alert-remediation-097834.mjs",
     "scripts/test-parallel-merge-skybar-phase-097839.mjs"
   ],
-  "version": "0.9.78.48",
-  "updatedAt": "2026-09-04T10:35:00Z",
+  "version": "0.9.78.49",
+  "updatedAt": "2026-09-04T13:35:00+02:00",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
     "MID_IMPLEMENTATION_0.9.77.27.md",
@@ -1652,7 +1658,8 @@
     "MID_IMPLEMENTATION_0.9.78.45.md",
     "MID_IMPLEMENTATION_0.9.78.46.md",
     "MID_IMPLEMENTATION_0.9.78.47.md",
-    "MID_IMPLEMENTATION_0.9.78.48.md"
+    "MID_IMPLEMENTATION_0.9.78.48.md",
+    "MID_IMPLEMENTATION_0.9.78.49.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",
@@ -1673,6 +1680,7 @@
     "MID_TEST_REPORT_0.9.78.45.md",
     "MID_TEST_REPORT_0.9.78.46.md",
     "MID_TEST_REPORT_0.9.78.47.md",
-    "MID_TEST_REPORT_0.9.78.48.md"
+    "MID_TEST_REPORT_0.9.78.48.md",
+    "MID_TEST_REPORT_0.9.78.49.md"
   ]
 }

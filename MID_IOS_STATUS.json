@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-09-04T10:35:45.390Z",
-  "releaseVersion": "0.9.78.48",
+  "updatedAt": "2026-09-04T13:42:00.000Z",
+  "releaseVersion": "0.9.78.49",
   "sourceBaseline": {
     "professionalVersion": "0.9.77.26",
     "workerVersion": "0.9.77.26",
@@ -125,7 +125,8 @@
     "parallel-chat-security-merge-and-skybar-phase-colors-0.9.78.39",
     "startup-splash-preload-shared-promises-0.9.78.43",
     "period-weather-pictogram-day-night-consistency-0.9.78.43",
-    "precipitation-forward-slot-presentation-0.9.78.46"
+    "precipitation-forward-slot-presentation-0.9.78.46",
+    "warning-hybrid-uncertainty-0.9.78.49"
   ],
   "nextMilestone": "macos-xcode-simulator-quality-assurance",
   "validation": {

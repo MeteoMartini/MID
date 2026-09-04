@@ -30,7 +30,7 @@ for(const token of [
  'Clock3',
  '<MemoHazards data={hz} timezone={displayTimezone}/>',
  'function hazardValidityLabel(',
- 'Gültig: {validity}',
+ "{x.conditional?'Schwerpunkt: ':'Fenster: '}{validity}",
  'className="hazard-validity"',
  'Automatisch berechneter Gültigkeitszeitraum des Warnindikators'
 ])need('Warnzeit-Darstellung',app,token);

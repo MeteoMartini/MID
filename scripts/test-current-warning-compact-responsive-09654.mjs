@@ -55,9 +55,11 @@ for(const token of [
  'aria-expanded={expanded}',
  'expanded?<ChevronDown',
  ':<ChevronRight',
- 'x.metric&&<em>{x.metric}</em>',
+ 'metric=x.displayMetric||x.metric',
+ 'hazard-origin-badge',
+ 'MID · PROGNOSEHINWEIS',
  'Automatisch aus der kanonischen MID-Ortsprognose abgeleitet.',
- 'amtliche Meldungen siehe direkt anschließend'
+ 'Amtliche Warnungen bleiben autoritativ und werden separat gekennzeichnet.'
 ])assert.ok(app.includes(token),`Responsive Warnkartenvertrag fehlt: ${token}`);
 for(const token of [
  '.hazard-day-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))',

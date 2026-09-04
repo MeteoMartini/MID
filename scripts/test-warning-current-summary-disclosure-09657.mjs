@@ -19,7 +19,7 @@ for(const token of [
  'className="hazards-responsive-head hazards-responsive-summary"',
  'onClick={()=>setExpanded(value=>!value)}',
  'aria-expanded={expanded}',
- "return'Aktuell: keine Warnlage'",
+ "return'Derzeit kein MID-Hinweis aktiv'",
  'return`Aktuell: ${state}`',
  "if(item.kind==='heat')return/^Extreme\\b/i.test(title)?'extrem':/^Starke\\b/i.test(title)?'stark':'erhöht'"
 ])assert.ok(app.includes(token),`Aktueller Warnzustandsvertrag fehlt: ${token}`);
@@ -33,26 +33,27 @@ for(const token of [
  'itemExpanded=open===id',
  'itemExpanded&&<div className="hazard-body"',
  'Automatisch aus der kanonischen MID-Ortsprognose abgeleitet.',
- 'amtliche Meldungen siehe direkt anschließend'
+ 'Amtliche Warnungen bleiben autoritativ und werden separat gekennzeichnet.'
 ])assert.ok(app.includes(token),`Disclosure-/Detailvertrag fehlt: ${token}`);
 
-// Die stärkste aktuell aktive Stufe färbt den kompakten Kopf; ohne aktuelle Lage bleibt er grün/neutral.
+// Amtliche Stufenfarben bleiben exklusiv bei amtlichen Karten; MID-Hinweise nutzen Parameterfarben.
 for(const token of [
- '.hazards-current-clear{--hazard-current-color:#48a96f',
- '.hazards-current-yellow{--hazard-current-color:#d4a80f',
- '.hazards-current-orange{--hazard-current-color:#dc7928',
- '.hazards-current-red{--hazard-current-color:#d94b4b',
- '.hazards-current-purple{--hazard-current-color:#9256bf',
- 'box-shadow:inset 4px 0 0 color-mix(in srgb,var(--hazard-current-color) 88%,transparent)',
- '.hazards-responsive-head>div>span{margin:0;color:var(--hazard-current-color)'
+ '.official-alert.yellow{--official-level:#e0b92e',
+ '.official-alert.orange{--official-level:#ef8d32',
+ '.official-alert.red{--official-level:#e74a4a',
+ '.official-alert.purple{--official-level:#a866df',
+ 'article[data-kind=wind]{--mid-hazard-color:var(--param-wind)}',
+ 'article[data-kind=heavyRain]',
+ 'background:var(--mid-hazard-color)'
 ]){
- assert.ok(styleSource.includes(token),`Warnstufenfarbe fehlt in modularer CSS-Quelle: ${token}`);
- assert.ok(styles.includes(token),`Warnstufenfarbe fehlt im aggregierten CSS: ${token}`);
+ assert.ok(styleSource.includes(token),`Hybrid-Farbvertrag fehlt in modularer CSS-Quelle: ${token}`);
+ assert.ok(styles.includes(token),`Hybrid-Farbvertrag fehlt im aggregierten CSS: ${token}`);
 }
 
-// Amtliche CAP-Warnungen bleiben unmittelbar darunter und unverändert vollständig.
-assert.ok(app.includes('<section className="warnings-responsive-shell"><MemoHazards'), 'Automatische und amtliche Warnungen müssen in derselben Warn-Shell bleiben.');
-assert.ok(app.includes('<MemoOfficialWarnings alerts={official}'), 'Amtliche Warnungen müssen direkt nach der automatischen Lage folgen.');
+// Amtliche CAP-Warnungen stehen im Hybrid-Zentrum zuerst und bleiben unverändert vollständig.
+assert.ok(app.includes('function WarningCenter('), 'Gemeinsames Hybrid-Warnzentrum fehlt.');
+assert.ok(app.includes('<MemoOfficialWarnings alerts={alerts}'), 'Amtliche Warnungen müssen im Hybrid-Zentrum zuerst erscheinen.');
+assert.ok(app.includes('<MemoHazards data={automatic}'), 'MID-Hinweise müssen nach den amtlichen Warnungen folgen.');
 for(const token of ['<p>{a.description}</p>','a.instruction&&<p className="instruction">'])assert.ok(app.includes(token),`Amtlicher Warninhalt fehlt: ${token}`);
 
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-warning-current-summary-disclosure-09657.mjs';

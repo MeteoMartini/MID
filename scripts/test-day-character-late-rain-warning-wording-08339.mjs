@@ -16,7 +16,7 @@ const [weatherSource,app,ensemble,pkgSource,baselineSource]=await Promise.all([
  readFile(new URL('MID_BASELINE.json',root),'utf8')
 ]);
 for(const token of ['dayPeriodHoursForDate(day.date,hours)','dayWeatherCharacterText'])assert.ok(weatherSource.includes(token),`Tagescharakter-Regel fehlt: ${token}`);
-assert.ok(app.includes('<strong>Keine Warnung</strong>'),'Hauptwarnkarte verwendet nicht „Keine Warnung“.');
+assert.ok(app.includes('<strong>Keine automatischen Hinweise</strong>'),'Hauptwarnkarte verwendet nicht den eindeutigen MID-Hinweistext.');
 assert.ok(app.includes('✓ Keine Warnung'),'7-Tage-Karte verwendet nicht „Keine Warnung“.');
 assert.ok(!app.includes('Keine Warnindikatoren'),'Veraltete Warnungsformulierung ist noch vorhanden.');
 assert.ok(app.includes('title={dayWeatherCharacterText(character)}'),'7-Tage-Piktogramm verwendet nicht den vollständigen Tagescharakter.');
