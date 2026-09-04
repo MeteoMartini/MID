@@ -4,6 +4,7 @@ import {summarizeDwdWarnings} from './dwdWarnings';
 import {followingNightIsTropical} from './forecastNight';
 import {dayPeriodHoursForDate,followingNightHoursForDate} from './forecastPeriods';
 import {DETAIL_THUNDER_RISK_DISPLAY_THRESHOLD,significantHourlyThunderRisk} from './detailThunderRisk';
+import {precipitationPresentationHours} from './precipitationIntervals';
 
 function dateOnlyUtc(value:string){const match=String(value||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return match?new Date(Date.UTC(Number(match[1]),Number(match[2])-1,Number(match[3]),12)):new Date(Number.NaN)}
 function formatDateOnly(value:string,options:Intl.DateTimeFormatOptions){const date=dateOnlyUtc(value);return Number.isFinite(date.getTime())?new Intl.DateTimeFormat('de-DE',{...options,timeZone:'UTC'}).format(date):value}
@@ -106,7 +107,8 @@ function sevenDayFollowingNightClause(points:SevenDayWeatherPoint[]){
 }
 export function buildSevenDayForecastSummary(days:Day[],hours:Hour[],climate:ClimateDay[]=[],elevation=0){
  const forecastDays=days.slice(0,7);if(!forecastDays.length)return'';
- const climateMap=new Map(climate.map(day=>[day.date,day])),points=forecastDays.map((day,index)=>{const allDayHours=hours.filter(hour=>hour.time.startsWith(day.date)),futureHours=index===0?allDayHours.filter(hour=>hour.epoch>=Date.now()-30*60000):allDayHours,dayHours=dayPeriodHoursForDate(day.date,futureHours.length?futureHours:allDayHours),fallbackDayHours=dayHours.length?dayHours:dayPeriodHoursForDate(day.date,allDayHours);return sevenDayPoint(day,forecastDays[index+1],fallbackDayHours,hours,index,climateMap.get(day.date),elevation)}),segments:SevenDayWeatherSegment[]=[];
+ const displayHours=precipitationPresentationHours(hours);
+ const climateMap=new Map(climate.map(day=>[day.date,day])),points=forecastDays.map((day,index)=>{const allDayHours=displayHours.filter(hour=>hour.time.startsWith(day.date)),futureHours=index===0?allDayHours.filter(hour=>hour.epoch>=Date.now()-30*60000):allDayHours,dayHours=dayPeriodHoursForDate(day.date,futureHours.length?futureHours:allDayHours),fallbackDayHours=dayHours.length?dayHours:dayPeriodHoursForDate(day.date,allDayHours);return sevenDayPoint(day,forecastDays[index+1],fallbackDayHours,displayHours,index,climateMap.get(day.date),elevation)}),segments:SevenDayWeatherSegment[]=[];
  for(const point of points){const current=segments[segments.length-1];if(current?.regime===point.regime){current.end=point.index;current.points.push(point)}else segments.push({regime:point.regime,start:point.index,end:point.index,points:[point]})}
  const effectiveSegments=selectSevenDaySegments(segments),clauses=effectiveSegments.map((segment,index)=>sevenDayClause(segment,forecastDays,index,effectiveSegments.length)),hazardClause=sevenDayHazardClause(points),followingNightClause=hazardClause?'':sevenDayFollowingNightClause(points),supplementalClause=hazardClause||followingNightClause,weatherClauses=supplementalClause?clauses.slice(0,2):clauses.slice(0,3),text=[...weatherClauses,supplementalClause].filter(Boolean).join('. ');
  return`${text}.`;

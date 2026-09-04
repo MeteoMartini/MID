@@ -107,3 +107,7 @@ Zeitabbildung, die durchgehenden Vertikalen, die achsenlose Wolkendarstellung,
 die sichtbare Luftdruckspur und die Hoch-/Querformatverträge.
 
 `scripts/test-weather-profile-skybar-pills-097723.mjs` schützt zusätzlich den einzelnen Wetterstreifen für Sonne/Bewölkung/Niederschlag, den Erhalt von H/M/L, vier Dickenstufen, farbreine Grund-/Niederschlagslagen, gerundete Teilstücke, den Verzicht auf 3D-Unterlagen sowie die themegeeigneten Nachtstunden der 7-Tage-Kurvenübersicht und die ersatzlose Entfernung des dortigen P25–P75-Bands.
+
+## Präzisierung v0.9.78.46 · Niederschlags-Slotbeginn
+
+Die gemeinsame Zeitachse unterscheidet ab v0.9.78.46 strikt zwischen instantanen Zustandswerten und akkumulierten Niederschlagsfeldern. Ein sichtbares Stundenlabel `S` steht für den Niederschlag im vorwärts gerichteten Slot `[S,S+1 h]`; Open-Meteo-/DWD-Rohakkumulationen bleiben intern am Intervallende. Temperatur, Wind, Druck und Bewölkung verbleiben punktbezogen an `S`. Niederschlagsmenge, PoP, Phase, Skybar-Overlay und Niederschlagspiktogramm verwenden dagegen gemeinsam die auf den Slotbeginn normalisierte Niederschlagsprobe. Das erste laufende Intervall wird nur für seinen noch zukünftigen Anteil dargestellt; 15-min-Nowcast und stündlicher Fallback überlappen sich nicht.

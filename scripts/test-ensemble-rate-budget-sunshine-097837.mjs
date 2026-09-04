@@ -25,7 +25,7 @@ for(const source of [ensemble,aggregate]){
 }
 assert.ok(guard.includes('const MAX_ACTIVE=2;')&&guard.includes('const START_GAP_MS=220;'),'Globaler Open-Meteo-Guard muss bei zwei parallelen Requests und Startabstand bleiben.');
 assert.ok(app.includes('if(value.bootstrap)scheduleRetry(2_000)'),'Nach sichtbarem Mean/Spread-Bootstrap muss die Vollfusion nach 2 s anlaufen.');
-assert.ok(cockpit.includes('probabilityHours=hours.filter(hour=>hour.time.startsWith(day.date))')&&cockpit.includes('calendarDayHours=probabilityHours'),'PoP-Altvertrag und volle 24-h-Skybar müssen gleichzeitig erhalten bleiben.');
+assert.ok(cockpit.includes('probabilityHours=displayHours.filter(hour=>hour.time.startsWith(day.date))')&&cockpit.includes('calendarDayHours=probabilityHours'),'PoP-Altvertrag und volle 24-h-Skybar müssen gleichzeitig erhalten bleiben.');
 assert.ok(cockpit.includes('intensity=.42+ratio*.58')&&cockpit.includes('sun-base sun-ray')&&!cockpit.includes('activeRays=Math.round'),'Relative Sonne muss immer als vollständiges Achtstrahl-Symbol gezeichnet werden; Anteil wird nur über Intensität/Kernfüllung codiert.');
 const sunCss=styles.slice(styles.indexOf('.cockpit-relative-sun{'),styles.indexOf('.cockpit-fourteen-sunshine>span'));assert.ok(sunCss.includes('.sun-ray{shape-rendering:geometricPrecision}')&&!sunCss.includes('vector-effect:non-scaling-stroke'),'Kleine Sonnensymbole dürfen nicht durch nicht skalierende, zu dicke Striche verzerrt werden.');
 assert.equal(baseline.releaseVersion,pkg.version);assert.equal(baseline.version,pkg.version);

@@ -44,6 +44,7 @@ try{
 const fusionCompiled=compile(inlineSunshineDurationContract(fusionSource),'forecastFusion.ts',[
  ["import {fetchWorkerJson} from './workerClient';","const fetchWorkerJson=async()=>{throw new Error('not used in regression')};"],
  ["import {reconcileForecastPrecipitation} from './precipitation';","const reconcileForecastPrecipitation=input=>({precipitation:Math.max(0,Number(input.precipitation)||0),rain:Math.max(0,Number(input.rain)||0),showers:Math.max(0,Number(input.showers)||0),snowfall:Math.max(0,Number(input.snowfall)||0),probability:Math.max(0,Math.min(100,Number(input.probability)||0)),code:Math.round(Number(input.code)||0),traceSuppressed:false});"],
+ ["import {precipitationPresentationHours} from './precipitationIntervals';","const precipitationPresentationHours=hours=>hours;"],
  ["import {readStoredJsonCache,writeStoredJsonCache} from './cachePolicy';","const readStoredJsonCache=()=>undefined;const writeStoredJsonCache=()=>false;"],
  ["import type {Day,Hour,RadarNowcast,ThunderstormNowcast} from './weather';",'']
 ]);

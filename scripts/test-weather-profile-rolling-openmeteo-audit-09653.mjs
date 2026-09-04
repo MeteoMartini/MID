@@ -23,7 +23,7 @@ for(const token of [
  "const PROFILE_WINDOW_MS=24*HOUR_MS",
  'const windowEnd=now+PROFILE_WINDOW_MS',
  'function shortTermProfileHourlyPoints(hours:Hour[],adjusted:ShortTermForecastPoint[],timezone:string,now=Date.now())',
- 'filter(hour=>hour.epoch>now&&hour.epoch-HOUR_MS<windowEnd)',
+ 'precipitationPresentationHours(hours).filter(hour=>hour.epoch<windowEnd&&hour.epoch+HOUR_MS>now)',
  'precipitationIntervalStartEpoch',
  'precipitationIntervalEndEpoch',
  'chartStartEpoch=profileNow',

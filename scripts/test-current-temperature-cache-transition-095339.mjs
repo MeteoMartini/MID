@@ -68,7 +68,7 @@ for(const token of [
 for(const token of [
  'const SHORT_TERM_HORIZON_MS=24*HOUR_MS',
  'const QUARTER_STEP_COUNT=6',
- 'base=interpolatedHour(hours,target)',
+ 'base=interpolatedHour(hours,precipitationIntervalStartEpoch)',
  'canonicalLocal=Number(base.localAdjustment)>0',
  'bridgeObservedTemperature(anchorTemperature,assimilatedTemperature'
 ])assert.ok(shortTerm.includes(token),`90-min-/24-h-Temperaturpfad ist nicht kanonisch: ${token}`);

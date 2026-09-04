@@ -58,9 +58,9 @@ try{
  }
  const points=mod.buildShortTermForecast(minute15,hours,timezone,now);
  const firstSix=points.slice(0,6).map(point=>point.timeLabel).join('|');
- if(firstSix!=='18:00|18:15|18:30|18:45|19:00|19:15')failures.push(`Zeitstufen: erwartet 18:00|18:15|18:30|18:45|19:00|19:15, erhalten ${firstSix}`);
- if(points[0]?.offsetLabel!=='+7 min')failures.push(`Offset 1: erwartet +7 min, erhalten ${points[0]?.offsetLabel}`);
- if(points[4]?.offsetLabel!=='+1 h 7 min')failures.push(`Offset 5: erwartet +1 h 7 min, erhalten ${points[4]?.offsetLabel}`);
+ if(firstSix!=='17:53|18:00|18:15|18:30|18:45|19:00')failures.push(`Zeitstufen: erwartet laufendes Intervall 17:53|18:00|18:15|18:30|18:45|19:00, erhalten ${firstSix}`);
+ if(points[0]?.offsetLabel!=='ab jetzt')failures.push(`Offset 1: erwartet ab jetzt, erhalten ${points[0]?.offsetLabel}`);
+ if(points[5]?.offsetLabel!=='+1 h 7 min')failures.push(`Offset 6: erwartet +1 h 7 min, erhalten ${points[5]?.offsetLabel}`);
  if(points[0]?.intervalLabel!=='7 min'||points.slice(1,6).some(point=>point.intervalLabel!=='15 min'))failures.push(`Bezugsintervalle: das laufende erste trailing Intervall muss nur den Zukunftsanteil (7 min) ausweisen, danach 15 min; erhalten ${points.slice(0,6).map(point=>point.intervalLabel).join('|')}.`);
  if(points[0]?.direction!==270||points[0]?.wind!==3)failures.push('Windwerte wurden in den Kurzfristpunkten nicht korrekt übernommen.');
 }finally{await rm(dir,{recursive:true,force:true})}

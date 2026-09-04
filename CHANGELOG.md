@@ -1,3 +1,28 @@
+## 0.9.78.48
+- Release #881 repariert: 19 veraltete Regressionen nach dem Forward-Slot-Niederschlagsvertrag auf den aktuellen Fachstand migriert.
+- Isolierte `forecastFusion.ts`-Testharnesses kapseln die neue `precipitationIntervals`-Abhängigkeit, statt wegen eines fehlenden Temp-Moduls abzubrechen.
+- Sichtbare Niederschlagszeiten bleiben startgestempelt; Rohakkumulationen bleiben intern endgestempelt.
+- 24-h-, Current/Kurzfrist-, Wasser-, Höhenwetter-, Solar-, Radar- und 7d-Beschriftungsregressionen an die bereits verbindlichen Produktionsverträge angepasst.
+- Neue Meta-Regression schützt die Forward-Slot-/Harness-Kompatibilität dauerhaft.
+
+## 0.9.78.47
+- GitHub-Release #880 repariert: `src/ShortTermForecast.tsx` enthielt nach der Vorwärts-Slot-Umstellung noch die ungenutzte Hilfsvariable `targetOffsetMinutes`; TypeScript 7.0.2 blockierte deshalb mit TS6133.
+- Die überflüssige Variable ist entfernt. Der fachliche v0.9.78.46-Vertrag bleibt unverändert: sichtbarer Niederschlag ist am Beginn des Zukunftsintervalls beschriftet, Rohakkumulationen werden weiterhin korrekt am Intervallende gelesen.
+- Neue Regression `test-shortterm-forward-slot-buildfix-097847.mjs` verhindert sowohl den TS6133-Rückfall als auch eine versehentliche Rückkehr zur Endstempel-Anzeige.
+
+## 0.9.78.46
+- Sichtbare Niederschlagszeiten auf erwartbare Vorwärtsslots umgestellt: `08:00` mit Niederschlag bedeutet nun `08:00–09:00`; rohe Open-Meteo-/DWD-Akkumulationen bleiben intern weiterhin am Intervallende.
+- Zentraler Präsentationsadapter koppelt Niederschlagsmenge, PoP, Phase und niederschlagsbestimmten Wettercode an denselben sichtbaren Slot; Temperatur/Wind/Bewölkung bleiben punktbezogen.
+- 15-min-/1-h-Übergang, 24-h-Profil, 7d-Kurve/Karten/Skybar, Tag-/Folgenacht-Piktogramme, Widget, Ensemble-Best-Match, Wasser-/Bergsport und Meteogramm auf denselben Zeitvertrag ausgerichtet.
+- Berg-/Wintersport-3-h-Matrix zusätzlich korrigiert: Zeitlabel = Slotbeginn; Niederschlag wird aus den normalisierten Einzelstunden summiert, PoP daraus maximiert und das repräsentative Piktogramm aus demselben Intervall gewählt.
+- Fehlende Anschlussprobe wird fail-safe nicht als alte Niederschlagsstunde in die Zukunft verschoben; trockene Slots verlieren dabei einen eventuell alten nassen Rohcode.
+- Neue Regression `test-precipitation-forward-slot-presentation-097846.mjs`; veraltete statische 7d-/PoP-Assertions an die Präsentationsschicht angepasst.
+
+## 0.9.78.45
+- 7-Tage-Cockpit: sichtbare Wetterbeschreibung stammt jetzt aus demselben `dayWeatherCharacter` wie das Tagespiktogramm statt aus der groben Regimeklasse. Dadurch wird z. B. `Wolkig, oft sonnig` nicht mehr pauschal als `Sonnig` beschriftet.
+- Die kleine Glyphe in der Beschreibungspille verwendet denselben `dayVisual`-Code und dasselbe Wolkenprofil wie das große Tagespiktogramm; Regime bleibt nur sekundäre Farb-/UI-Metadaten.
+- Neuer Regressionstest schützt Text-/Piktogramm-Kohärenz der 7-Tage-Tageskarten.
+
 ## 0.9.78.44
 - Release #878 repariert: der ältere Event-Lifecycle-Regressionstest erwartete noch das frühere 550-ms-Splashbudget und blockierte damit die bewusst auf maximal 900 ms erweiterte v0.9.78.43-Startvorladung.
 - Event-Lifecycle-Regression prüft nun dauerhaft ein hartes Splashbudget von höchstens 900 ms statt einer veralteten exakten Millisekundenzahl.

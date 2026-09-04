@@ -17,7 +17,7 @@ const blendSource=readFileSync(new URL('../src/forecastFusion.ts',import.meta.ur
 const pkg=JSON.parse(readFileSync(new URL('../package.json',import.meta.url),'utf8'));
 const baseline=JSON.parse(readFileSync(new URL('../MID_BASELINE.json',import.meta.url),'utf8'));
 
-assert.ok(shortTerm.includes('isQuarterInterval=offsetMinutes<=QUARTER_STEP_COUNT*15'),'15-Minuten-Raster muss unabhängig vom Vorhandensein nativer Viertelstundendaten bestimmt werden.');
+assert.ok(shortTerm.includes('isQuarterInterval=targetIndex<QUARTER_STEP_COUNT'),'15-Minuten-Raster muss unabhängig vom Vorhandensein nativer Viertelstundendaten bestimmt werden.');
 assert.ok(shortTerm.includes("intervalLabel:isQuarterInterval?`${Math.max(1,Math.round(intervalMinutes))} min`:'1 h'"),'Bezugsintervall muss dem tatsächlichen Zukunftsanteil entsprechen.');
 assert.ok(shortTerm.includes('precipitationBase.precipitation*intervalFactor'),'Stündliche Modellmenge muss aus dem rückblickenden Akkumulationsintervall auf die Viertelstunde skaliert werden.');
 assert.ok(shortTerm.includes('trailingAccumulationHour(hours,target)'),'Akkumulationsfelder dürfen nicht aus einer interpolierten Punktstunde stammen.');
@@ -32,7 +32,7 @@ assert.equal(pkg.version,baseline.releaseVersion,'Releaseversion des Radar-Blend
 
 const directory=mkdtempSync(join(tmpdir(),'mid-radar-blend-'));
 try{
- const executable=inlineSunshineDurationContract(blendSource).replace("import {fetchWorkerJson} from './workerClient';","const fetchWorkerJson=async()=>{throw new Error('not used')};").replace("import {reconcileForecastPrecipitation} from './precipitation';","const reconcileForecastPrecipitation=input=>input;").replace("import {readStoredJsonCache,writeStoredJsonCache} from './cachePolicy';","const readStoredJsonCache=()=>undefined;const writeStoredJsonCache=()=>false;").replace("import type {Day,Hour,RadarNowcast,RadarNowcastFrame,ThunderstormNowcast} from './weather';",'');
+ const executable=inlineSunshineDurationContract(blendSource).replace("import {fetchWorkerJson} from './workerClient';","const fetchWorkerJson=async()=>{throw new Error('not used')};").replace("import {reconcileForecastPrecipitation} from './precipitation';","const reconcileForecastPrecipitation=input=>input;").replace("import {precipitationPresentationHours} from './precipitationIntervals';","const precipitationPresentationHours=hours=>hours;").replace("import {readStoredJsonCache,writeStoredJsonCache} from './cachePolicy';","const readStoredJsonCache=()=>undefined;const writeStoredJsonCache=()=>false;").replace("import type {Day,Hour,RadarNowcast,RadarNowcastFrame,ThunderstormNowcast} from './weather';",'');
  const compiled=ts.transpileModule(executable,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext},fileName:'forecastFusion.ts'}).outputText;
  const modulePath=join(directory,'radarBlend.mjs');writeFileSync(modulePath,compiled);
  const {blendRadarAtTarget}=await import(`${pathToFileURL(modulePath).href}?v=${Date.now()}`);

@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.78.44",
+  "releaseVersion": "0.9.78.48",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -395,7 +395,11 @@
     "scripts/test-seven-day-curve-night-band-097841.mjs",
     "scripts/test-detail-skybar-unused-parameter-buildfix-097841.mjs",
     "scripts/test-startup-splash-preload-097843.mjs",
-    "scripts/test-period-pictogram-consistency-097843.mjs"
+    "scripts/test-period-pictogram-consistency-097843.mjs",
+    "scripts/test-seven-day-condition-label-consistency-097845.mjs",
+    "scripts/test-precipitation-forward-slot-presentation-097846.mjs",
+    "scripts/test-shortterm-forward-slot-buildfix-097847.mjs",
+    "scripts/test-precipitation-forward-slot-regression-compat-097848.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -716,7 +720,11 @@
     "scripts/test-seven-day-curve-night-band-097841.mjs",
     "scripts/test-detail-skybar-unused-parameter-buildfix-097841.mjs",
     "scripts/test-startup-splash-preload-097843.mjs",
-    "scripts/test-period-pictogram-consistency-097843.mjs"
+    "scripts/test-period-pictogram-consistency-097843.mjs",
+    "scripts/test-seven-day-condition-label-consistency-097845.mjs",
+    "scripts/test-precipitation-forward-slot-presentation-097846.mjs",
+    "scripts/test-shortterm-forward-slot-buildfix-097847.mjs",
+    "scripts/test-precipitation-forward-slot-regression-compat-097848.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -1193,7 +1201,14 @@
     "src/precipitationPhaseColor.ts",
     "MID_IMPLEMENTATION_0.9.78.39.md",
     "MID_TEST_REPORT_0.9.78.34.md",
-    "MID_TEST_REPORT_0.9.78.39.md"
+    "MID_TEST_REPORT_0.9.78.39.md",
+    "scripts/test-precipitation-forward-slot-presentation-097846.mjs",
+    "MID_IMPLEMENTATION_0.9.78.46.md",
+    "MID_TEST_REPORT_0.9.78.46.md",
+    "src/precipitationIntervals.ts",
+    "scripts/test-precipitation-forward-slot-regression-compat-097848.mjs",
+    "MID_IMPLEMENTATION_0.9.78.48.md",
+    "MID_TEST_REPORT_0.9.78.48.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1490,7 +1505,9 @@
     "MID_TEST_REPORT_0.9.78.1.md",
     "MID_IMPLEMENTATION_0.9.78.40.md",
     "MID_IMPLEMENTATION_0.9.78.41.md",
-    "MID_IMPLEMENTATION_0.9.78.42.md"
+    "MID_IMPLEMENTATION_0.9.78.42.md",
+    "MID_IMPLEMENTATION_0.9.78.46.md",
+    "MID_IMPLEMENTATION_0.9.78.47.md"
   ],
   "evidenceFiles": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -1535,7 +1552,10 @@
     "MID_TEST_REPORT_0.9.78.4.md",
     "MID_TEST_REPORT_0.9.78.40.md",
     "MID_TEST_REPORT_0.9.78.41.md",
-    "MID_TEST_REPORT_0.9.78.42.md"
+    "MID_TEST_REPORT_0.9.78.42.md",
+    "MID_TEST_REPORT_0.9.78.46.md",
+    "MID_TEST_REPORT_0.9.78.47.md",
+    "MID_TEST_REPORT_0.9.78.48.md"
   ],
   "releaseEvidence": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -1598,8 +1618,8 @@
     "scripts/test-codeql-alert-remediation-097834.mjs",
     "scripts/test-parallel-merge-skybar-phase-097839.mjs"
   ],
-  "version": "0.9.78.44",
-  "updatedAt": "2026-09-04T09:18:00Z",
+  "version": "0.9.78.48",
+  "updatedAt": "2026-09-04T10:35:00Z",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
     "MID_IMPLEMENTATION_0.9.77.27.md",
@@ -1628,7 +1648,11 @@
     "MID_IMPLEMENTATION_0.9.78.41.md",
     "MID_IMPLEMENTATION_0.9.78.42.md",
     "MID_IMPLEMENTATION_0.9.78.43.md",
-    "MID_IMPLEMENTATION_0.9.78.44.md"
+    "MID_IMPLEMENTATION_0.9.78.44.md",
+    "MID_IMPLEMENTATION_0.9.78.45.md",
+    "MID_IMPLEMENTATION_0.9.78.46.md",
+    "MID_IMPLEMENTATION_0.9.78.47.md",
+    "MID_IMPLEMENTATION_0.9.78.48.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",
@@ -1645,6 +1669,10 @@
     "MID_TEST_REPORT_0.9.78.41.md",
     "MID_TEST_REPORT_0.9.78.42.md",
     "MID_TEST_REPORT_0.9.78.43.md",
-    "MID_TEST_REPORT_0.9.78.44.md"
+    "MID_TEST_REPORT_0.9.78.44.md",
+    "MID_TEST_REPORT_0.9.78.45.md",
+    "MID_TEST_REPORT_0.9.78.46.md",
+    "MID_TEST_REPORT_0.9.78.47.md",
+    "MID_TEST_REPORT_0.9.78.48.md"
   ]
 }

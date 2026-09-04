@@ -8,7 +8,7 @@ const failures=[];const need=(token)=>{if(!cockpit.includes(token))failures.push
 for(const token of [
  'function shortTermProfileHourlyPoints(hours:Hour[],adjusted:ShortTermForecastPoint[],timezone:string,now=Date.now())',
  'const windowEnd=now+PROFILE_WINDOW_MS',
- 'filter(hour=>hour.epoch>now&&hour.epoch-HOUR_MS<windowEnd)',
+ 'precipitationPresentationHours(hours).filter(hour=>hour.epoch<windowEnd&&hour.epoch+HOUR_MS>now)',
  'precipitationIntervalStartEpoch:start',
  'precipitationIntervalEndEpoch:end',
  "durationMinutes>=55?'1 h':`${durationMinutes} min`",

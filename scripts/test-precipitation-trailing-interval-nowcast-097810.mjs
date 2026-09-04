@@ -24,7 +24,9 @@ for(const token of [
  'function trailingAccumulationHour(hours:Hour[],epoch:number)',
  'accumulationBase=trailingAccumulationHour(hours,target)',
  'modelNowAccumulation=trailingAccumulationHour(hours,now)',
- 'precipitationIntervalStartEpoch=target-intervalMinutes*60000',
+ 'let previousIntervalEnd=now',
+ 'precipitationIntervalStartEpoch=previousIntervalEnd',
+ 'previousIntervalEnd=target',
  'quarterFactor=intervalMinutes/15'
 ])assert.ok(shortTerm.includes(token),`Kurzfrist-Intervallvertrag fehlt: ${token}`);
 
@@ -32,7 +34,7 @@ for(const token of [
 for(const token of [
  'function shortTermProfileHourlyPoints(hours:Hour[],adjusted:ShortTermForecastPoint[],timezone:string,now=Date.now())',
  'aggregateProfileHour(group,timezone,now)',
- 'filter(hour=>hour.epoch>now&&hour.epoch-HOUR_MS<windowEnd)',
+ 'return precipitationPresentationHours(hours).filter(hour=>hour.epoch<windowEnd&&hour.epoch+HOUR_MS>now)',
  'precipitationIntervalStartEpoch:start',
  'precipitationIntervalEndEpoch:end',
  'precipitationMidX=(precipitationStartX+precipitationEndX)/2',
@@ -44,12 +46,12 @@ assert.ok(!cockpit.includes('epoch<=now&&now-epoch<90*60000)startIndex=index'),'
 // Resttagesmenge zählt nur zukünftigen Anteil des ersten trailing-hour-Intervalls.
 for(const token of [
  'futureFraction=(hour:Hour)=>',
- 'if(!Number.isFinite(end)||end<=now)return 0',
+ 'if(!Number.isFinite(start)||end<=now)return 0',
  'return clamp((end-now)/3600000,0,1)',
  '*precipitationFraction(hour)'
 ])assert.ok(fusion.includes(token),`Resttages-Akkumulationsvertrag fehlt: ${token}`);
 
-for(const phrase of ['Zeitstempel ist damit das **Intervallende**','kein Standorttreffer','große NWP-Mengen >1 mm','PoP × deterministische Menge'])assert.ok(contract.includes(phrase),`Fachvertrag unvollständig: ${phrase}`);
+for(const phrase of ['Provider-Zeitstempel `T` bezeichnet für diese Felder also das **Intervallende**','kein Standorttreffer','große NWP-Mengen >1 mm','PoP × deterministische Menge'])assert.ok(contract.includes(phrase),`Fachvertrag unvollständig: ${phrase}`);
 assert.ok(sourceOfTruth.includes('MID_PRECIPITATION_INTERVAL_CONTRACT.md'),'Source of Truth referenziert den neuen Niederschlags-Intervallvertrag nicht.');
 
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-precipitation-trailing-interval-nowcast-097810.mjs';

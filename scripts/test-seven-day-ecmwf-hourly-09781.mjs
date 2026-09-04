@@ -7,7 +7,7 @@ const [cockpit,app,tone,styleSource,styleAggregate,colorContract,sourceOfTruth,p
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-seven-day-ecmwf-hourly-09781.mjs';
 for(const token of ['ECMWF_TEMPERATURE_STOPS','export function ecmwfTemperatureColor','export function ecmwfTemperatureTone'])assert.ok(tone.includes(token),`ECMWF-Temperaturskala fehlt: ${token}`);
 for(const token of [
- 'hourly=hours.filter(hour=>visibleDateIndex.has(hour.time.slice(0,10)))',
+ 'hourly=precipitationPresentationHours(hours).filter(hour=>visibleDateIndex.has(hour.time.slice(0,10)))',
  'hourPosition=(hour:Hour)',
  'rainItems=hourly.map(hour=>({hour,amount:precipitationParts(hour).total}))',
  'halfDayTicks=Array.from({length:visible.length*2+1}',

@@ -109,3 +109,33 @@ Zusammengefasste Piktogramme für einen ganzen Tag oder eine folgende Nacht dür
 - Wo parallel eine Skybar existiert, müssen Tagescharakter, Periodenpiktogramm und Skybar denselben meteorologischen Stunden-/Phasenpfad repräsentieren. Kleine lokale Unterschiede sind nur zulässig, wenn sie aus der unterschiedlichen Semantik entstehen (Skybar = zeitlicher Verlauf, Piktogramm = zusammengefasster Charakter), nicht aus verschiedenen Datenquellen oder konkurrierenden Icon-Selektoren.
 
 Damit gilt appweit: **ein Renderer (`WeatherPictogram`), ein Periodenaggregator (`periodWeatherVisual`), ein Tagescharakter (`dayWeatherCharacter`)**. Lokale Duplikate von Perioden-Icon-Selektoren sind nicht zulässig.
+
+## Verbindliche Präzisierung v0.9.78.45 – Text-/Piktogramm-Kohärenz in Tageskarten
+
+In 7-Tage-Tageskarten wird der **sichtbare Wetterbeschreibungstext** nicht mehr aus der groben Darstellungs-/Regimeklasse (`sunny`, `quiet`, `windy`, `warm` usw.) abgeleitet. Diese Klasse darf weiterhin Farbe und Kachelbetonung steuern, ist aber keine meteorologische Kurzbeschreibung.
+
+- Sichtbarer Tagesbeschreibungstext = `dayWeatherCharacter(...).label`.
+- Sichtbares Tagespiktogramm = `periodWeatherVisual(..., {preferFallbackCode:true})` mit genau demselben `dayWeatherCharacter` als führendem Signal.
+- Das kleine Symbol in der Beschreibungspille verwendet denselben `dayVisual`-Code und dieselben Wolkenprofilwerte wie das große Tagespiktogramm.
+- Ein Tag mit z. B. `Wolkig, oft sonnig` darf daher nicht mehr pauschal nur als `Sonnig` beschriftet werden; ebenso darf ein bedeckter, aber windiger Tag nicht allein als `Wind` erscheinen.
+- Die Regimeklassifikation bleibt ausschließlich als sekundäre UI-/Farbmetadaten erhalten.
+
+Damit gilt für Tageskarten zusätzlich: **Beschreibung und Hauptpiktogramm stammen aus demselben Tagescharakter; Regime ist nur Präsentationsmetadatum.**
+
+## Verbindliche Präzisierung v0.9.78.46 – Niederschlags-Zeitslot und Piktogramm
+
+Stündliche/unterstündliche Niederschlagspiktogramme müssen dieselbe Zeitbedeutung besitzen wie die daneben angezeigte Niederschlagsmenge und -wahrscheinlichkeit. Da Open-Meteo/DWD Akkumulationen intern am Intervallende liefern, gilt für die sichtbare Prognose der in `MID_PRECIPITATION_INTERVAL_CONTRACT.md` definierte Slotbeginn-Vertrag.
+
+- Ein sichtbares Stundenfeld **08:00** beschreibt niederschlagsseitig **08:00–09:00 Uhr**.
+- Menge, PoP, Regen-/Schauer-/Schneeanteile und die daraus abgeleitete Niederschlagsphase werden gemeinsam auf diesen Slot normalisiert.
+- Temperatur, Wind, Bewölkung und andere instantane Felder bleiben am Zeitpunkt 08:00 verankert.
+- Ein Regenpiktogramm um 08:00 darf deshalb nicht aus dem Rohintervall 07:00–08:00 stammen, während die sichtbare Menge bereits 08:00–09:00 meint – oder umgekehrt.
+- Tages- und Folgenachtpiktogramme aggregieren die bereits auf sichtbare Slotbeginne normalisierten Niederschlagsstunden. Dadurch bleiben Piktogramm, Beschreibung, Skybar und Tages-/Nachtzuordnung auch über Mitternacht kohärent.
+
+Der Roh-/Radar-/Verifikationspfad bleibt davon unberührt und arbeitet weiterhin mit den tatsächlichen endgestempelten Akkumulationsintervallen.
+
+## Verbindliche Präzisierung v0.9.78.46 – Zeitkohärenz von Niederschlag und Piktogramm
+
+Bei zeitpunktbeschrifteten Prognosen bedeutet ein sichtbarer Stundenzeitpunkt den **Beginn** des dargestellten Prognoseintervalls. Zeigt MID beispielsweise bei `08:00` Regen, gilt dieses Wettersignal für den Slot `08:00–09:00`. Niederschlagsmenge, Niederschlagswahrscheinlichkeit, Niederschlagsart/-phase und das daraus abgeleitete Wetterpiktogramm müssen immer dasselbe sichtbare Intervall repräsentieren. Die rückblickende Provider-Zeitstempelung darf nicht dazu führen, dass ein Niederschlagspiktogramm eine Stunde zu spät erscheint. Trockene Vorwärtsslots behalten den instantanen Himmelszustand des Slotbeginns; ein alter nasser Wettercode darf nicht ohne passende Anschlussakkumulation als zukünftiger Niederschlag weitergetragen werden. Bei 3-h-Aggregationen bezeichnet die sichtbare Zeit den Beginn des 3-h-Slots; das repräsentative Wetterpiktogramm wird aus den zum selben Slot gehörenden normalisierten Einzelstunden bestimmt.
+
+Required Regression: `scripts/test-precipitation-forward-slot-presentation-097846.mjs`.

@@ -16,9 +16,9 @@ assert.ok(cockpit.includes("import {periodWeatherVisual} from './periodWeatherVi
 assert.ok(!app.includes('function periodWeatherVisual(')&&!cockpit.includes('function cockpitPeriodVisual('),'Lokale konkurrierende Perioden-Icon-Selektoren dürfen nicht wieder eingeführt werden.');
 const dayLock=(source)=>source.includes('{preferFallbackCode:true}');
 assert.ok(dayLock(app)&&dayLock(cockpit),'Tagespiktogramme müssen mit dayWeatherCharacter synchronisiert sein.');
-assert.ok(app.includes('periodWeatherVisual(followingNightHours,false')&&app.includes('periodWeatherVisual(followingNightHoursForDate(selectedDay.date,hours),false'),'Klassische Tagesansichten müssen das kleine Piktogramm aus der tatsächlich folgenden Nacht ableiten.');
-assert.ok(cockpit.includes('nightVisual=periodWeatherVisual(followingNightHoursForDate(day.date,hours),false'),'Cockpit-Tageskarten müssen das kleine Piktogramm aus der tatsächlich folgenden Nacht ableiten.');
-assert.ok(ensemble.includes('character=dayWeatherCharacter(x,hours.filter(hour=>hour.time.startsWith(x.date)))'),'Ensemble-Fallback muss weiterhin den gemeinsamen Tagescharakter statt eines rohen Tagescodes verwenden.');
+assert.ok(app.includes('periodWeatherVisual(followingNightHours,false')&&app.includes('periodWeatherVisual(followingNightHoursForDate(selectedDay.date,precipitationDisplayHours),false'),'Klassische Tagesansichten müssen das kleine Piktogramm aus der tatsächlich folgenden Nacht ableiten.');
+assert.ok(cockpit.includes('nightVisual=periodWeatherVisual(followingNightHoursForDate(day.date,displayHours),false'),'Cockpit-Tageskarten müssen das kleine Piktogramm aus der tatsächlich folgenden Nacht ableiten.');
+assert.ok(ensemble.includes('character=dayWeatherCharacter(x,precipitationDisplayHours.filter(hour=>hour.time.startsWith(x.date)))'),'Ensemble-Fallback muss weiterhin den gemeinsamen Tagescharakter statt eines rohen Tagescodes verwenden.');
 for(const token of ['Periodenkohärenz für Tag und Folgenacht','ein Renderer (`WeatherPictogram`), ein Periodenaggregator (`periodWeatherVisual`), ein Tagescharakter (`dayWeatherCharacter`)','Folgenacht-Piktogramm'])assert.ok(contract.includes(token),`Piktogrammvertrag unvollständig: ${token}`);
 assert.equal(pkg.scripts?.['test:period-pictogram-consistency'],`node ${test}`,'Package-Testeintrag fehlt.');
 assert.ok(baseline.regressionTests?.includes(test)&&baseline.requiredRegressionTests?.includes(test),'Periodenpiktogramm-Regression fehlt in der Baseline.');

@@ -9,6 +9,6 @@ assert.match(weather,/if\(primary<=0\)return'0%'/);
 assert.match(weather,/der Zeitraum ordnet das Stundenmaximum nur zeitlich ein/);
 assert.match(app,/dailyPrecipitationProbabilityCompact\(d,allDayHoursForDate\)/);
 assert.match(app,/dailyPrecipitationProbabilityCompact\(d,d\.probabilityHours\)/);
-assert.match(cockpit,/probabilityHours=hours\.filter\(hour=>hour\.time\.startsWith\(day\.date\)\)/);
+assert.match(cockpit,/probabilityHours=displayHours\.filter\(hour=>hour\.time\.startsWith\(day\.date\)\)/);
 assert.match(cockpit,/precipitationCompactMeta=\[precipitationProbabilityCompact,precipitationDurationCompact\]\.filter\(Boolean\)\.join\(' · '\)/);
 console.log('MID v0.9.53.3: Tages-PoP zeigt wieder Zeitraum und bei Bedarf Dauer; Stundenfallback bleibt semantisch als Maximum gekennzeichnet.');

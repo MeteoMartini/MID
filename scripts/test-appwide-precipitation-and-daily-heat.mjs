@@ -25,7 +25,7 @@ for(const token of [
  '<WeatherPictogram code={currentWeatherCode} day={currentIsDay}',
  '<b>{currentWeatherLabel}</b>',
  'function mountainPrecipitationParts',
- 'part=mountainPrecipitationParts(source)',
+ 'parts=mountainPrecipitationParts(source)',
  'code:part.displayCode',
  'summarizeDwdWarningsForDay(hours,day.date,elevation)',
  'hz=dailyHazards(d,hours,elevation,unit,1)',

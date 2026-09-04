@@ -35,7 +35,7 @@ for(const token of [
 for(const token of [
  'precipitationForm=dominantPrecipitationForm(dayHours)',
  'regimeText=regimeLabel(regime,precipitationForm?.label)',
- '>{regimeText}</span>',
+ '>{conditionText}</span>',
  'precipitationAmountLabel(day)'
 ])need('7-Tage-Cockpit',cockpit,token);
 for(const [label,text] of [

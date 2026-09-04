@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.78.44",
+  "version": "0.9.78.48",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -409,7 +409,11 @@
     "test:seven-day-curve-night-band": "node scripts/test-seven-day-curve-night-band-097841.mjs",
     "test:detail-skybar-unused-parameter-buildfix": "node scripts/test-detail-skybar-unused-parameter-buildfix-097841.mjs",
     "test:startup-splash-preload": "node scripts/test-startup-splash-preload-097843.mjs",
-    "test:period-pictogram-consistency": "node scripts/test-period-pictogram-consistency-097843.mjs"
+    "test:period-pictogram-consistency": "node scripts/test-period-pictogram-consistency-097843.mjs",
+    "test:seven-day-condition-label-consistency": "node scripts/test-seven-day-condition-label-consistency-097845.mjs",
+    "test:precipitation-forward-slot-presentation": "node scripts/test-precipitation-forward-slot-presentation-097846.mjs",
+    "test:shortterm-forward-slot-buildfix": "node scripts/test-shortterm-forward-slot-buildfix-097847.mjs",
+    "test:precipitation-forward-slot-regression-compat": "node scripts/test-precipitation-forward-slot-regression-compat-097848.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",

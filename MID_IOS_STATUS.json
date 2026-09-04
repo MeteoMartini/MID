@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-09-04T08:57:04.785Z",
-  "releaseVersion": "0.9.78.44",
+  "updatedAt": "2026-09-04T10:35:45.390Z",
+  "releaseVersion": "0.9.78.48",
   "sourceBaseline": {
     "professionalVersion": "0.9.77.26",
     "workerVersion": "0.9.77.26",
@@ -124,7 +124,8 @@
     "release-run-869-regression-and-ensemble-resume-hotfix-0.9.78.33",
     "parallel-chat-security-merge-and-skybar-phase-colors-0.9.78.39",
     "startup-splash-preload-shared-promises-0.9.78.43",
-    "period-weather-pictogram-day-night-consistency-0.9.78.43"
+    "period-weather-pictogram-day-night-consistency-0.9.78.43",
+    "precipitation-forward-slot-presentation-0.9.78.46"
   ],
   "nextMilestone": "macos-xcode-simulator-quality-assurance",
   "validation": {
