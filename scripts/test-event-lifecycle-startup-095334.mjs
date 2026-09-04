@@ -23,8 +23,9 @@ assert(app.includes('event-center-header-entry')&&app.includes('className="expir
 assert(app.includes('removeExpired')&&app.includes('<Trash2'),'Glocken-Popover braucht direkte Entfernen-Aktion.');
 assert(refresh.includes('eventCenterEndEpoch(record)>=now'),'Automatischer Event-Refresh darf abgelaufene Events nicht weiter aktualisieren.');
 assert(preload.includes("forecast(location.latitude,location.longitude")&&preload.includes("forceFresh:false"),'Splash-Vorladung muss kanonischen Forecastpfad/cachefreundlich nutzen.');
+assert(!preload.includes("ensembles(location.latitude,location.longitude,undefined,'normal')")&&!preload.includes("ensembles(location.latitude,location.longitude,undefined,'background')"),'Splash-Vorladung darf keine volle Ensemble-Memberfusion erzwingen.');
 assert(app.includes('startupForecastForLocation')&&app.includes('startupForecast.then'),'App muss denselben Startup-Forecast übernehmen statt parallel neu anzufragen.');
-assert(main.includes('beginStartupDashboardPreload')&&main.includes('Promise.race')&&main.includes('wait(550)'),'Startvorladung muss kurz und nicht blockierend sein.');
+assert(main.includes('beginStartupDashboardPreload')&&main.includes('Promise.race')&&/wait\((?:[1-8]\d{2}|900)\)/.test(main),'Startvorladung muss ein hartes kurzes Zeitbudget von höchstens 900 ms behalten.');
 assert(html.includes(':root[data-theme=dark] #mid-boot-shell')&&html.includes('width:min(86vw,520px)'),'Splashscreen muss Theme und prominentes Gesamtlogo unterstützen.');
 assert(html.includes('./mid-logo-light-horizontal.png')&&html.includes('width="512" height="200"'),'Logo muss das horizontale Theme-Asset mit nichtquadratischer Bildbox verwenden.');
 assert(html.includes('mid-boot-stage')&&html.includes('Aktuelle Startdaten werden bereits im Hintergrund vorbereitet.'),'Splashscreen muss Vorladephase transparent kommunizieren.');

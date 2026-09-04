@@ -97,3 +97,15 @@ Die geometrische Intensitätsdarstellung gilt ausdrücklich für **alle** Nieder
 Für Forecastdaten hat die **finale kanonische MID-Niederschlagsmenge nach Fusion und Plausibilisierung** Vorrang vor einem eventuell zuvor erzeugten Intensitätscode. Die Niederschlagsphase bleibt unverändert; nur die sichtbare Intensitätsstufe wird auf die finale Menge rekalibriert. So kann ein ursprünglich leichter Regencode nach einer belastbaren finalen Starkregenmenge auch geometrisch als starker Regen erscheinen – und umgekehrt.
 
 Niederschlagselemente müssen auch in kleinen Piktogrammen klar unterhalb der Wolkenkontur sichtbar bleiben. Die Unterscheidung darf nicht ausschließlich über Farbe erfolgen.
+
+## Verbindliche Präzisierung v0.9.78.43 – Periodenkohärenz für Tag und Folgenacht
+
+Zusammengefasste Piktogramme für einen ganzen Tag oder eine folgende Nacht dürfen nicht mehr aus einer beliebigen einzelnen Stunde abgeleitet werden. Für diese Einsatzorte ist `src/periodWeatherVisual.ts` der zentrale Periodenvertrag über dem gemeinsamen `WeatherPictogram`-Renderer.
+
+- Das **Tagespiktogramm** einer 7-/14-Tage- oder vergleichbaren Tagesdarstellung folgt dem bereits aus Tageslichtfenster, Bewölkung, Sonnenscheindauer und Niederschlagsdominanz abgeleiteten `dayWeatherCharacter`. Damit darf ein als „Sonnig“ klassifizierter Tag nicht gleichzeitig nur wegen einer einzelnen stärker bewölkten Stunde als geschlossene Wolke erscheinen; ebenso darf ein dominanter Regenschauer nicht durch ein reines Sky-Symbol verdrängt werden.
+- Ein zusätzliches, kleineres **Folgenacht-Piktogramm** wird ausschließlich aus den Stunden der auf den dargestellten Tag folgenden Nacht bestimmt. Es übernimmt nicht das Tagespiktogramm und verwendet auch nicht einfach den ungünstigsten Einzelstunden-Code.
+- Für Nacht- und sonstige zusammengefasste Perioden werden Niederschlagsart, Dauer, Wahrscheinlichkeit und Menge gemeinsam bewertet. Ein Niederschlagsphänomen wird nur dann zum Periodenpiktogramm, wenn es zeitlich bzw. mengen-/wahrscheinlichkeitsseitig relevant ist; kurze Randereignisse dürfen den gesamten Zeitraum nicht irreführend dominieren.
+- Ohne dominantes Niederschlags-/Nebelsignal wird die sichtbare Himmelsbedeckung aus der mittleren Periodenbewölkung bestimmt. Die mittleren Low-/Mid-/High-Cloud-Werte werden weiterhin als diagnostische Profilwerte an `WeatherPictogram` übergeben, verändern aber nicht den zentralen visuellen Form-Lock.
+- Wo parallel eine Skybar existiert, müssen Tagescharakter, Periodenpiktogramm und Skybar denselben meteorologischen Stunden-/Phasenpfad repräsentieren. Kleine lokale Unterschiede sind nur zulässig, wenn sie aus der unterschiedlichen Semantik entstehen (Skybar = zeitlicher Verlauf, Piktogramm = zusammengefasster Charakter), nicht aus verschiedenen Datenquellen oder konkurrierenden Icon-Selektoren.
+
+Damit gilt appweit: **ein Renderer (`WeatherPictogram`), ein Periodenaggregator (`periodWeatherVisual`), ein Tagescharakter (`dayWeatherCharacter`)**. Lokale Duplikate von Perioden-Icon-Selektoren sind nicht zulässig.

@@ -25,17 +25,17 @@ function nativeFailure(error:unknown){void error;void markMidNativeRuntimeReady(
 async function signalHealthy(){await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));window.dispatchEvent(new Event('mid:runtime-healthy'));await markMidRuntimeHealthy();await markMidNativeRuntimeReady();markBootHealthy()}
 async function start(){
  markBootStart();
+ const startupPreload=beginStartupDashboardPreload();
  void startMidNativeRuntimeBridge().catch(()=>undefined);
- setBootStage('Lokale Daten werden geprüft …');
+ setBootStage('Startdaten werden bereits im Hintergrund geladen …');
  await timeout(initializeStorageSafety(),3500).catch(()=>false);
  await timeout(compactForecastVerificationLocalStorage(),5000).catch(()=>false);
  setBootStage('Einstellungen und Favoriten werden wiederhergestellt …');
  await timeout(restorePersistentState(),4500).catch(()=>false);
  setBootStage('Gerätestand wird abgeglichen …');
  await timeout(restoreDeviceSyncState(),6500).catch(()=>false);
- setBootStage('Aktuelle Startdaten werden vorbereitet …');
- const preload=beginStartupDashboardPreload();
- if(preload)await Promise.race([preload.promise.then(()=>undefined),wait(550)]).catch(()=>undefined);
+ setBootStage('Prognose, Oberfläche und Zusatzdaten werden vorbereitet …');
+ if(startupPreload){const splashReadiness:Promise<unknown>[]=[startupPreload.promise,startupPreload.interfacePromise];if(startupPreload.stationPromise)splashReadiness.push(startupPreload.stationPromise);if(startupPreload.ensemblePromise)splashReadiness.push(startupPreload.ensemblePromise);await Promise.race([Promise.allSettled(splashReadiness).then(()=>undefined),wait(900)]).catch(()=>undefined)};
  try{startPersistenceBridge()}catch{}
  try{startDeviceSyncBridge()}catch{}
  try{startRuntimeLifecycleBridge()}catch{}

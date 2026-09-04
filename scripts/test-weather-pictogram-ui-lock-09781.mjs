@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8');
-const [pictogram,features,app,cockpit,ensemble,shortTerm,event,travel,route,water,contract,pkgRaw,baselineRaw]=await Promise.all([
- read('src/WeatherPictogram.tsx'),read('src/styles-src/10-features.css'),read('src/App.tsx'),read('src/ForecastCockpit.tsx'),read('src/EnsemblePanel.tsx'),read('src/ShortTermForecast.tsx'),read('src/EventPlannerPanel.tsx'),read('src/TravelPlannerPanel.tsx'),read('src/RouteWeatherPanel.tsx'),read('src/WaterSportsPanel.tsx'),read('MID_WEATHER_PICTOGRAM_STANDARD.md'),read('package.json'),read('MID_BASELINE.json')
+const [pictogram,features,app,cockpit,periodVisual,ensemble,shortTerm,event,travel,route,water,contract,pkgRaw,baselineRaw]=await Promise.all([
+ read('src/WeatherPictogram.tsx'),read('src/styles-src/10-features.css'),read('src/App.tsx'),read('src/ForecastCockpit.tsx'),read('src/periodWeatherVisual.ts'),read('src/EnsemblePanel.tsx'),read('src/ShortTermForecast.tsx'),read('src/EventPlannerPanel.tsx'),read('src/TravelPlannerPanel.tsx'),read('src/RouteWeatherPanel.tsx'),read('src/WaterSportsPanel.tsx'),read('MID_WEATHER_PICTOGRAM_STANDARD.md'),read('package.json'),read('MID_BASELINE.json')
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-weather-pictogram-ui-lock-09781.mjs';
 assert.ok(pictogram.includes('compact=false,plain=true,phenomenon,intensity'), 'WeatherPictogram muss standalone/plain als Default rendern.');
@@ -14,10 +14,13 @@ assert.ok(pictogram.includes("if(['drizzle','freezing-drizzle','rain','freezing-
 assert.ok(pictogram.includes("if(['mist','fog','rime-fog','haze','clear'].includes(kind))return'clear'"), 'Nebel/Dunst dürfen nicht zusätzlich eine alte Wolkenform rendern.');
 assert.ok(pictogram.includes('data-visual-form={visualForm}'), 'Visueller Form-Lock muss diagnostizierbar sein.');
 assert.ok(!pictogram.includes('<CloudShape form={form}'), 'Diagnostische Wolkenhöhe darf die Hauptwetterglyphen nicht mehr in alte Cirrus-/Stratusvarianten umformen.');
-assert.ok(app.includes('function periodDisplayCode(hour:Hour){return precipitationParts(hour).displayCode}'),'Klassische Forecast-Piktogramme müssen die kanonische Niederschlagsphase verwenden.');
-assert.ok(cockpit.includes('function cockpitDisplayCode(hour:Hour){return precipitationParts(hour).displayCode}'),'Cockpit-Piktogramme müssen die kanonische Niederschlagsphase verwenden.');
+assert.ok(periodVisual.includes("function displayCode(hour:Hour){return precipitationParts(hour).displayCode}"),'Zusammengefasste Forecast-Piktogramme müssen zentral die kanonische Niederschlagsphase verwenden.');
+assert.ok(periodVisual.includes('options.preferFallbackCode?fallbackCode:dominantPeriodCode(pool)'),'Der fachlich bereits aggregierte Tagescharakter muss für Tagespiktogramme autoritativ nutzbar sein.');
+assert.ok(periodVisual.includes('precipitationDominant=active.length>=Math.max(2,Math.ceil(pool.length*.25))'),'Nacht-/Periodenpiktogramme dürfen nicht nach einem einzelnen ungünstigen Stundenwert gewählt werden.');
+assert.ok(app.includes("import {periodWeatherVisual,type PeriodWeatherVisual} from './periodWeatherVisual'"),'Klassische Forecast-Darstellungen müssen den zentralen Perioden-Piktogrammvertrag verwenden.');
+assert.ok(cockpit.includes("import {periodWeatherVisual} from './periodWeatherVisual'"),'Cockpit-Darstellungen müssen den zentralen Perioden-Piktogrammvertrag verwenden.');
 for(const source of [app,cockpit]){
- assert.ok(source.includes('fallbackIsPrecip&&representativeIsSky?fallbackCode:representativeCode'),'Tagescharakter muss eine fälschlich reine Sky-Code-Repräsentation bei Niederschlag übersteuern.');
+ assert.ok(source.includes('{preferFallbackCode:true}'),'Tagespiktogramm muss mit dem bereits aus dem Tagesverlauf abgeleiteten Tagescharakter synchronisiert werden.');
  assert.ok(!source.includes('plain={false}'),'App darf den alten internen Sky-Plate-Pfad nicht reaktivieren.');
 }
 for(const [name,source] of [['Ensemble',ensemble],['Kurzfrist',shortTerm],['Event',event],['Reise',travel],['Route',route],['Wasser',water]])assert.ok(source.includes('WeatherPictogram'),`${name}: Wetterzustände müssen über WeatherPictogram laufen.`);

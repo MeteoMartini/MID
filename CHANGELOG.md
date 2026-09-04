@@ -1,3 +1,16 @@
+## 0.9.78.44
+- Release #878 repariert: der ältere Event-Lifecycle-Regressionstest erwartete noch das frühere 550-ms-Splashbudget und blockierte damit die bewusst auf maximal 900 ms erweiterte v0.9.78.43-Startvorladung.
+- Event-Lifecycle-Regression prüft nun dauerhaft ein hartes Splashbudget von höchstens 900 ms statt einer veralteten exakten Millisekundenzahl.
+- Startup-Vertrag an die aktuelle Architektur angeglichen: leichter Mean/Spread-Ensemble-Bootstrap und benötigte UI-Chunks dürfen im Splash vorladen; volle Member-/Mehrmodellfusion, Radar und andere schwere Sekundärdaten bleiben nach dem App-Mount.
+- Keine fachliche Änderung an Wetterdaten, Piktogrammen, Skybar oder Worker-Runtime.
+
+## 0.9.78.43
+- App-Start auf iPhone/PWA vorgezogen: Best-Match-Prognose beginnt unmittelbar nach dem Bootmarker parallel zu Storage-/Persistenz-Restore; Schnellstation, Ensemble-Mean/Spread-Bootstrap und benötigte Ensemble-UI-Chunks werden gestaffelt im Splash vorgewärmt und anschließend von `App.tsx` über dieselben Promises weiterverwendet statt doppelt abgefragt.
+- Das Splash-Wartebudget bleibt hart auf 900 ms nach den lokalen Restore-Schritten begrenzt; volle Ensemble-Memberfusion, Radar-, Warn- und weitere Sekundärabrufe werden bewusst nicht zusätzlich in den Splash gezogen. Der globale Open-Meteo-Guard bleibt auf maximal zwei aktive Abrufe mit Startabstand begrenzt.
+- Wetterpiktogramme appweit konsolidiert: neuer zentraler `periodWeatherVisual`-Vertrag koppelt Tagespiktogramme an `dayWeatherCharacter`; kurze Einzelstunden dürfen zusammengefasste Nacht-/Periodenpiktogramme nicht mehr allein dominieren.
+- 7-Tage-Karten mit zwei Symbolen trennen nun verbindlich Tagescharakter und tatsächlich folgende Nacht: großes Tagespiktogramm folgt Tageslicht-/Sonnenschein-/Niederschlagscharakter, kleines Nachtpiktogramm aggregiert ausschließlich die Folgenacht nach Dauer, Wahrscheinlichkeit, Menge, Nebel und mittlerer Bewölkung.
+- Derselbe Periodenvertrag wird in klassischer 7-Tage-Ansicht, Cockpit-7d, Tagesdetail und Widget-Vorschau verwendet; lokale konkurrierende Perioden-Icon-Selektoren wurden entfernt. Weather Icon System 2.0 bleibt der einzige Renderer.
+
 ## 0.9.78.42
 - CI-Hotfix für Release-Run #876: TypeScript 7, Vite-Produktionsbuild und 663 von 664 weiteren Regressionen waren bereits grün; ausschließlich der appweite Parameterfarbtest erwartete nach der zentralisierten Phasenpalette noch den alten Inline-String im ForecastCockpit.
 - `test-appwide-parameter-colors-09779.mjs` prüft nun den aktiven gemeinsamen Vertrag: flüssiger Niederschlag nutzt weiterhin `--param-precipitation`, Schnee hellblau, Misch-/gefrierende Phase violett und Gewitter/Hagel purpur; ForecastCockpit und Skybar greifen auf dieselbe zentrale Palette zu.

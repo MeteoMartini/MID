@@ -1,0 +1,2 @@
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./web-CLMbE3MZ.js","./index-NItOqKp-.js","./ReactVendor-CYueatNA.js","./index-DFWxzzdg.css"])))=>i.map(i=>d[i]);
+import{b9 as e,_ as o}from"./index-NItOqKp-.js";import"./ReactVendor-CYueatNA.js";const _=e("Browser",{web:()=>o(()=>import("./web-CLMbE3MZ.js"),__vite__mapDeps([0,1,2,3]),import.meta.url).then(r=>new r.BrowserWeb)});export{_ as Browser};

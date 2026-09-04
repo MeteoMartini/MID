@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.78.42",
+  "releaseVersion": "0.9.78.44",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -393,7 +393,9 @@
     "scripts/test-parallel-merge-skybar-phase-097839.mjs",
     "scripts/test-install-workflow-registry-retries-097840.mjs",
     "scripts/test-seven-day-curve-night-band-097841.mjs",
-    "scripts/test-detail-skybar-unused-parameter-buildfix-097841.mjs"
+    "scripts/test-detail-skybar-unused-parameter-buildfix-097841.mjs",
+    "scripts/test-startup-splash-preload-097843.mjs",
+    "scripts/test-period-pictogram-consistency-097843.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -712,7 +714,9 @@
     "scripts/test-parallel-merge-skybar-phase-097839.mjs",
     "scripts/test-install-workflow-registry-retries-097840.mjs",
     "scripts/test-seven-day-curve-night-band-097841.mjs",
-    "scripts/test-detail-skybar-unused-parameter-buildfix-097841.mjs"
+    "scripts/test-detail-skybar-unused-parameter-buildfix-097841.mjs",
+    "scripts/test-startup-splash-preload-097843.mjs",
+    "scripts/test-period-pictogram-consistency-097843.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -1594,8 +1598,8 @@
     "scripts/test-codeql-alert-remediation-097834.mjs",
     "scripts/test-parallel-merge-skybar-phase-097839.mjs"
   ],
-  "version": "0.9.78.42",
-  "updatedAt": "2026-09-04T06:58:00Z",
+  "version": "0.9.78.44",
+  "updatedAt": "2026-09-04T09:18:00Z",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
     "MID_IMPLEMENTATION_0.9.77.27.md",
@@ -1622,7 +1626,9 @@
     "MID_IMPLEMENTATION_0.9.78.39.md",
     "MID_IMPLEMENTATION_0.9.78.40.md",
     "MID_IMPLEMENTATION_0.9.78.41.md",
-    "MID_IMPLEMENTATION_0.9.78.42.md"
+    "MID_IMPLEMENTATION_0.9.78.42.md",
+    "MID_IMPLEMENTATION_0.9.78.43.md",
+    "MID_IMPLEMENTATION_0.9.78.44.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",
@@ -1637,6 +1643,8 @@
     "MID_TEST_REPORT_0.9.78.39.md",
     "MID_TEST_REPORT_0.9.78.40.md",
     "MID_TEST_REPORT_0.9.78.41.md",
-    "MID_TEST_REPORT_0.9.78.42.md"
+    "MID_TEST_REPORT_0.9.78.42.md",
+    "MID_TEST_REPORT_0.9.78.43.md",
+    "MID_TEST_REPORT_0.9.78.44.md"
   ]
 }

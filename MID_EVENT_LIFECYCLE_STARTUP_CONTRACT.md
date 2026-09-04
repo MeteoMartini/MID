@@ -16,8 +16,9 @@ Verbindlicher App-Vertrag ab MID v0.9.53.34.
 - Das vollständige MID-Logo (Symbol + Wortmarke + Unterzeile) wird prominent und ohne Verzerrung dargestellt. Es darf nicht auf ein kleines quadratisches Symbol reduziert werden.
 - Während des Splashscreens dürfen aktuelle Startdaten vorab geladen werden, **ausschließlich über bestehende MID-Datenzugriffe und Cache-/Prioritätsregeln**. Es dürfen keine parallelen Sonder-APIs oder abweichenden Forecastpfade entstehen.
 - Die Startvorladung verwendet den nach Persistenz-/Geräteabgleich maßgeblichen letzten Standort, respektiert Offline-Zustand, vorhandene frische Forecast-Caches und Open-Meteo-/Worker-Schutzregeln.
+- Die zusätzliche Splash-Wartezeit bleibt hart auf **maximal 900 ms** begrenzt; danach wird unabhängig vom Stand der Vorlade-Promises gerendert.
 - Die Vorladung darf den sichtbaren App-Start nicht wesentlich blockieren. MID wartet nur kurz auf die Kernprognose; bei langsamer Verbindung übernimmt die App denselben bereits gestarteten Promise und lädt normal weiter.
-- Der Splashscreen ist kein zweites Dashboard: Radar, Ensemble, Langfrist- und andere schwere Sekundärdaten werden erst nach dem normalen App-Mount entsprechend ihren bestehenden Lazy-/Prioritätsregeln geladen.
+- Der Splashscreen ist kein zweites Dashboard: Er darf nur den bereits rate-limit-geschützten **leichten Ensemble-Mean/Spread-Bootstrap** und benötigte UI-Chunks vorziehen. Die vollständige Member-/Mehrmodell-Ensemblefusion, Radar, Langfrist- und andere schwere Sekundärdaten bleiben außerhalb des Splashscreens und folgen nach dem normalen App-Mount ihren bestehenden Lazy-/Prioritätsregeln.
 
 ## 3. Regression
 Änderungen an Event-Center, Startlogik, Persistenz oder Forecast-Loading müssen `scripts/test-event-lifecycle-startup-095334.mjs` bestehen.
