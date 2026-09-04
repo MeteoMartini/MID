@@ -19,7 +19,7 @@ assert(weather.includes("groups.has(model.independenceGroup)"), 'Korrelierte Mod
 assert(weather.includes('gustNeighborhoodP90'), 'Die Warnlogik muss räumliche EPS-Böenquantile verwenden.');
 assert(weather.includes('precipitationNeighborhoodP90'), 'Die Warnlogik muss räumliche EPS-Niederschlagsquantile verwenden.');
 assert(weather.includes('temperatureNeighborhoodLowP10'), 'Die Warnlogik muss räumliche EPS-Temperaturuntergrenzen verwenden.');
-assert(weather.includes("return`bis zu ${Math.max(0,Math.ceil((kmh/1.852)/5)*5)} kt`"), 'MID-Windhinweise müssen als bis-zu-Angabe statt als Bereich formuliert werden.');
+assert(weather.includes("return`bis zu ${rounded(kmh/1.852,5,Number.isFinite(maximumExclusiveKmh)?maximumExclusiveKmh/1.852:Number.NaN)} kt`"), 'MID-Windhinweise müssen als bis-zu-Angabe statt als Bereich formuliert werden und dürfen bei niedrigeren Stufen unter der nächsthöheren Schwelle gedeckelt werden.');
 assert(!fragment.includes('function hazardWindBand('), 'Der alte Wind-von-bis-Formatter darf nicht mehr aktiv sein.');
 assert(app.includes('warningEnsembleNeighborhood(loc.latitude,loc.longitude,controller.signal)'), 'Die App muss die Ensemble-Umfeldanalyse für den gewählten Ort laden.');
 assert(app.includes('unit,warningEnsemble)'), 'Die Warnberechnung muss die Ensemble-Umfeldanalyse erhalten.');

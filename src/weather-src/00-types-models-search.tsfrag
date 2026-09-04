@@ -2,7 +2,7 @@ import {fetchWorkerJson,workerBaseCandidates} from './workerClient';
 import {writeBoundedStorage} from './cachePolicy';
 import {guardedOpenMeteoJson,isOpenMeteoRateLimitError,openMeteoCooldownRetryAt,registerOpenMeteoCooldown,OpenMeteoRateLimitError,type OpenMeteoPriority} from './openMeteoGuard';
 import {formatDecimal} from './format';
-import {formatDwdWarningDetailWithDirection,formatDwdWarningDirection,formatDwdWarningValue,summarizeDwdWarnings,warningCurrentStartIndex,type DwdWarningKind,type DwdWarningLevel,type DwdWarningSignal} from './dwdWarnings';
+import {DWD_WIND_THRESHOLDS_KMH,formatDwdWarningDetailWithDirection,formatDwdWarningDirection,formatDwdWarningValue,summarizeDwdWarnings,warningCurrentStartIndex,type DwdWarningKind,type DwdWarningLevel,type DwdWarningSignal} from './dwdWarnings';
 import {loadOperaRaster} from './CompositeData';
 import {analyseOperaRasterNowcast} from './OperaRasterSource';
 import {precipitationParts,reconcileForecastPrecipitation} from './precipitation';

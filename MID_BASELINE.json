@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.78.54",
+  "releaseVersion": "0.9.78.58",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -403,7 +403,8 @@
     "scripts/test-warning-hybrid-uncertainty-097849.mjs",
     "scripts/test-warning-hybrid-probabilistic-097850.mjs",
     "scripts/test-wind-kt-display-contract-097851.mjs",
-    "scripts/test-warning-probabilistic-hour-fields-buildfix-097852.mjs"
+    "scripts/test-warning-probabilistic-hour-fields-buildfix-097852.mjs",
+    "scripts/test-warning-wind-stage-presentation-097856.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -733,7 +734,8 @@
     "scripts/test-wind-kt-display-contract-097851.mjs",
     "scripts/test-warning-hybrid-probabilistic-097850.mjs",
     "scripts/test-warning-probabilistic-hour-fields-buildfix-097852.mjs",
-    "scripts/test-warning-eps-neighborhood-097853.mjs"
+    "scripts/test-warning-eps-neighborhood-097853.mjs",
+    "scripts/test-warning-wind-stage-presentation-097856.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -1227,7 +1229,12 @@
     "scripts/test-warning-hybrid-probabilistic-097850.mjs",
     "scripts/test-warning-probabilistic-hour-fields-buildfix-097852.mjs",
     "MID_IMPLEMENTATION_0.9.78.52.md",
-    "MID_TEST_REPORT_0.9.78.52.md"
+    "MID_TEST_REPORT_0.9.78.52.md",
+    "scripts/test-warning-wind-stage-presentation-097856.mjs",
+    "MID_IMPLEMENTATION_0.9.78.56.md",
+    "MID_TEST_REPORT_0.9.78.56.md",
+    "MID_IMPLEMENTATION_0.9.78.58.md",
+    "MID_TEST_REPORT_0.9.78.58.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1416,7 +1423,10 @@
     "scripts/test-maintenance-cleanup-097828.mjs",
     "MID_IMPLEMENTATION_0.9.78.28.md",
     "scripts/test-ensemble-progressive-bootstrap-097832.mjs",
-    "scripts/test-codeql-alert-remediation-097834.mjs"
+    "scripts/test-codeql-alert-remediation-097834.mjs",
+    "MID_IMPLEMENTATION_0.9.78.57.md",
+    "MID_TEST_REPORT_0.9.78.57.md",
+    "scripts/test-app-helper-block-buildfix-097857.mjs"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md",
@@ -1637,8 +1647,8 @@
     "scripts/test-codeql-alert-remediation-097834.mjs",
     "scripts/test-parallel-merge-skybar-phase-097839.mjs"
   ],
-  "version": "0.9.78.54",
-  "updatedAt": "2026-09-04T17:31:00+02:00",
+  "version": "0.9.78.58",
+  "updatedAt": "2026-09-04T18:35:00+02:00",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
     "MID_IMPLEMENTATION_0.9.77.27.md",
@@ -1677,7 +1687,10 @@
     "MID_IMPLEMENTATION_0.9.78.51.md",
     "MID_IMPLEMENTATION_0.9.78.52.md",
     "MID_IMPLEMENTATION_0.9.78.53.md",
-    "MID_IMPLEMENTATION_0.9.78.54.md"
+    "MID_IMPLEMENTATION_0.9.78.54.md",
+    "MID_IMPLEMENTATION_0.9.78.56.md",
+    "MID_IMPLEMENTATION_0.9.78.57.md",
+    "MID_IMPLEMENTATION_0.9.78.58.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",
@@ -1704,6 +1717,9 @@
     "MID_TEST_REPORT_0.9.78.51.md",
     "MID_TEST_REPORT_0.9.78.52.md",
     "MID_TEST_REPORT_0.9.78.53.md",
-    "MID_TEST_REPORT_0.9.78.54.md"
+    "MID_TEST_REPORT_0.9.78.54.md",
+    "MID_TEST_REPORT_0.9.78.56.md",
+    "MID_TEST_REPORT_0.9.78.57.md",
+    "MID_TEST_REPORT_0.9.78.58.md"
   ]
 }

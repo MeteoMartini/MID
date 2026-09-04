@@ -12,7 +12,7 @@ for(const token of [
  'useState(readProfileLegendVisible)',
  "localStorage.setItem(PROFILE_LEGEND_KEY,profileLegendVisible?'1':'0')",
  "label:'Stärkste Einschränkung'",
- 'summarizeDwdWarnings(horizon.map(shortTermHourWarningSample),elevation,24)',
+ "function shortTermHazardSignals(hours:Hour[],elevation=0,unit:WindUnit='kn'){return hazards(hours,undefined,elevation,unit)}",
  'shortTermImpactForInterval(profileHazardSignals',
  'DWD_WARNING_COLORS[level]',
  "const visibleTemperatureExtreme=(kind:'max'|'min')",

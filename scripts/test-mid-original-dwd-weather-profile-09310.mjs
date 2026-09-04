@@ -24,7 +24,7 @@ for(const token of ['./DwdPrecipitationMap','./HymecNgOverlay','./HymecNgSource'
 
 for(const token of [
   '24-h-Wetterprofil',
-  'function shortTermImpactForInterval(signals:DwdWarningSignal[],startEpoch:number,endEpoch:number)',
+  'function shortTermImpactForInterval(signals:HazardItem[],startEpoch:number,endEpoch:number)',
   'function shortTermPressureTrend(',
   'chartWidth=Math.max(320,chartViewportWidth)',
   'className="dewpoint-line"',

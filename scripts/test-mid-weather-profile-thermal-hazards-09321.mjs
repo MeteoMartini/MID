@@ -8,13 +8,10 @@ const [cockpit,styles,pkg,baseline]=await Promise.all([
 const failures=[];const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};const reject=(label,text,token)=>{if(text.includes(token))failures.push(`${label}: unerwartet ${token}`)};
 for(const token of [
  'DWD_WARNING_COLORS',
- 'summarizeDwdWarnings',
- 'type DwdWarningSample',
- 'type DwdWarningSignal',
- 'function shortTermHourWarningSample(hour:Hour)',
- 'function shortTermHazardSignals(hours:Hour[],elevation=0)',
- 'summarizeDwdWarnings(horizon.map(shortTermHourWarningSample),elevation,24)',
- 'function shortTermImpactForInterval(signals:DwdWarningSignal[],startEpoch:number,endEpoch:number)',
+ 'hazards,label as weatherCodeLabel',
+ 'type HazardItem',
+ "function shortTermHazardSignals(hours:Hour[],elevation=0,unit:WindUnit='kn'){return hazards(hours,undefined,elevation,unit)}",
+ 'function shortTermImpactForInterval(signals:HazardItem[],startEpoch:number,endEpoch:number)',
  'color=DWD_WARNING_COLORS[level]',
  "label:'Stärkste Einschränkung'",
  "className:`impact-level-${maxImpact.level}`",

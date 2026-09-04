@@ -1,6 +1,6 @@
 # MID Warning Hybrid Contract
 
-Stand: v0.9.78.53
+Stand: v0.9.78.56
 
 ## 1. Autorität und Reihenfolge
 - Amtliche Warnungen (z. B. DWD/CAP) sind autoritativ und werden immer vor MID-Prognosehinweisen dargestellt.
@@ -31,6 +31,7 @@ Stand: v0.9.78.53
 
 ## 5. Fachliche Typen
 - **Wind:** Böenspitzen als „bis zu“-Angabe; bei Schauerkontext bedingt und örtlich. EPS-P75/P90 und räumliches Umfeld dürfen das Zeitfenster frühzeitig stützen.
+- Überlappen mehrere Windstufen, darf eine niedrigere Stufe in der Kurzangabe **nicht** dieselbe Spitzenangabe wie die höhere Stufe wiederholen. Ihre sichtbare „bis zu“-Angabe bleibt unter der Schwelle der nächsthöheren Stufe; beginnt oder endet die höhere Stufe am Rand des gemeinsamen Fensters, wird das sichtbare Zeitfenster der niedrigeren Stufe auf den verbleibenden Abschnitt gekürzt. Ist sie vollständig durch eine höhere Stufe überdeckt, entfällt die redundante niedrigere MID-Karte. Die meteorologische Rohklassifikation bleibt intern erhalten.
 - **Gewitter:** kein WMO-Code als Nutzerwert; Hinweis auf räumlich begrenzte Zelltreffer.
 - **Stark-/Dauerregen:** gerundete „bis zu“-Mengen; bei konvektivem Starkregen örtliche Variabilität, bei Dauerregen gebietsweise Summen.
 - **Schnee/Schneeverwehung:** gerundete „bis zu“-Mengen und Böenspitzen; Höhen-/Untergrundabhängigkeit transparent.
