@@ -76,7 +76,16 @@ function activeVersion(deployments){
 const accountId=required('CLOUDFLARE_ACCOUNT_ID'),token=required('CLOUDFLARE_API_TOKEN'),workerName=required('MID_CLOUDFLARE_WORKER_NAME');
 const tempDir=await mkdtemp(path.join(os.tmpdir(),'mid-worker-deploy-'));
 await chmod(tempDir,0o700);
-const out=path.join(tempDir,'wrangler.json'),metaOut=path.join(tempDir,'metadata.json');
+function resolveOutputPaths(){
+ const args=process.argv.slice(2).map(value=>String(value||'').trim()).filter(Boolean);
+ if(args.length===0)return{out:path.join(tempDir,'wrangler.json'),metaOut:path.join(tempDir,'metadata.json'),legacy:false};
+ if(args.length!==2)throw new Error('prepare_worker_deploy erwartet entweder keine Pfadargumente oder genau zwei Legacy-Ausgabepfade.');
+ const expectedOut=path.resolve(os.tmpdir(),'mid-wrangler-worker.json'),expectedMeta=path.resolve(os.tmpdir(),'mid-worker-deploy-meta.json');
+ const out=path.resolve(args[0]),metaOut=path.resolve(args[1]);
+ if(out!==expectedOut||metaOut!==expectedMeta)throw new Error('Legacy-Ausgabepfade sind ausschließlich für die bekannten install-mid-/tmp-Dateien zulässig.');
+ return{out,metaOut,legacy:true};
+}
+const {out,metaOut,legacy:legacyOutputMode}=resolveOutputPaths();
 const [settings,deployments]=await Promise.all([
  cfGet(accountId,token,workerName,'/settings'),
  cfGet(accountId,token,workerName,'/deployments')
@@ -105,4 +114,4 @@ await writeFile(out,JSON.stringify(config,null,2)+'\n',{encoding:'utf8',mode:0o6
 const meta={schema:'mid.cloudflare.worker-deploy.v1',workerName,previousVersionId:current.versionId,previousDeploymentId:current.deploymentId,compatibilityDate,bindingSummary:mapped.summary.map(({name,type,planned})=>({name,type,planned:Boolean(planned)})),rucBindingPresent:Boolean((config.r2_buckets||[]).some(row=>row.binding===rucBinding))};
 await writeFile(metaOut,JSON.stringify(meta,null,2)+'\n',{encoding:'utf8',mode:0o600,flag:'wx'});
 if(process.env.GITHUB_OUTPUT)await appendFile(process.env.GITHUB_OUTPUT,`previous_version_id=${current.versionId}\nworker_name=${workerName}\nconfig_path=${out}\nmeta_path=${metaOut}\ntemp_dir=${tempDir}\n`);
-console.log(`Worker-Konfiguration sicher vorbereitet: ${workerName}; vorherige Version ${current.versionId}; ${meta.bindingSummary.length} Bindings (Werte/Secrets nicht ausgegeben).`);
+console.log(`Worker-Konfiguration sicher vorbereitet: ${workerName}; vorherige Version ${current.versionId}; ${meta.bindingSummary.length} Bindings (Werte/Secrets nicht ausgegeben)${legacyOutputMode?' · Legacy-Workflow-Pfad kompatibel':''}.`);
