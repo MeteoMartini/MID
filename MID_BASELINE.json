@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.78.33",
+  "releaseVersion": "0.9.78.37",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -385,7 +385,10 @@
     "scripts/test-precipitation-trailing-interval-nowcast-097810.mjs",
     "scripts/test-long-range-subsections-relative-sunshine-097825.mjs",
     "scripts/test-maintenance-cleanup-097828.mjs",
-    "scripts/test-ensemble-progressive-bootstrap-097832.mjs"
+    "scripts/test-ensemble-progressive-bootstrap-097832.mjs",
+    "scripts/test-ensemble-deadline-watchdog-097835.mjs",
+    "scripts/test-ensemble-fast-availability-097836.mjs",
+    "scripts/test-ensemble-rate-budget-sunshine-097837.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -696,7 +699,10 @@
     "scripts/test-precipitation-trailing-interval-nowcast-097810.mjs",
     "scripts/test-long-range-subsections-relative-sunshine-097825.mjs",
     "scripts/test-maintenance-cleanup-097828.mjs",
-    "scripts/test-ensemble-progressive-bootstrap-097832.mjs"
+    "scripts/test-ensemble-progressive-bootstrap-097832.mjs",
+    "scripts/test-ensemble-deadline-watchdog-097835.mjs",
+    "scripts/test-ensemble-fast-availability-097836.mjs",
+    "scripts/test-ensemble-rate-budget-sunshine-097837.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -1548,10 +1554,12 @@
     "scripts/test-weather-pictogram-standard-09780.mjs",
     "scripts/test-seven-day-axis-badge-lock-09784.mjs",
     "scripts/test-ruc-precip-amplitude-guard-09787.mjs",
-    "scripts/test-maintenance-cleanup-097828.mjs"
+    "scripts/test-maintenance-cleanup-097828.mjs",
+    "scripts/test-ensemble-deadline-watchdog-097835.mjs",
+    "scripts/test-ensemble-fast-availability-097836.mjs"
   ],
-  "version": "0.9.78.32",
-  "updatedAt": "2026-09-03T23:45:00+02:00",
+  "version": "0.9.78.37",
+  "updatedAt": "2026-09-04T01:24:00+02:00",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
     "MID_IMPLEMENTATION_0.9.77.27.md",
@@ -1568,7 +1576,11 @@
     "MID_IMPLEMENTATION_0.9.78.29.md",
     "MID_IMPLEMENTATION_0.9.78.30.md",
     "MID_IMPLEMENTATION_0.9.78.31.md",
-    "MID_IMPLEMENTATION_0.9.78.32.md"
+    "MID_IMPLEMENTATION_0.9.78.32.md",
+    "MID_IMPLEMENTATION_0.9.78.34.md",
+    "MID_IMPLEMENTATION_0.9.78.35.md",
+    "MID_IMPLEMENTATION_0.9.78.36.md",
+    "MID_IMPLEMENTATION_0.9.78.37.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",

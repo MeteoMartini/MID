@@ -48,7 +48,7 @@ const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const MET_NORWAY_LOCATIONFORECAST='https://api.met.no/weatherapi/locationforecast/2.0/complete';
-const WORKER_VERSION='0.9.78.33';
+const WORKER_VERSION='0.9.78.37';
 const C3S_SEASONAL_POINT_SYSTEMS=[
  {centreId:'ecmwf',originatingCentre:'ecmwf',system:'51',modelKey:'ecmwf-seas5-51',independenceKey:'ecmwf-seas5-51',label:'ECMWF SEAS5'},
  {centreId:'ukmo',originatingCentre:'ukmo',system:'610',modelKey:'ukmo-glosea6-gc51-610',independenceKey:'ukmo-glosea6-gc51-610',label:'UK Met Office GloSea6-GC5.1'},
@@ -203,7 +203,7 @@ async function openMeteoCoreForecast(url){
 }
 
 async function openMeteoEnsembleProxy(url,env){
- const lat=number(url.searchParams.get('lat')),lon=number(url.searchParams.get('lon')),days=Math.max(1,Math.min(14,Math.ceil(number(url.searchParams.get('forecast_days'))||14))),model=String(url.searchParams.get('model')||'').trim(),requested=String(url.searchParams.get('variables')||'temperature_2m,precipitation').split(',').map(value=>value.trim()).filter(Boolean),allowedVariables=new Set(['temperature_2m','temperature_2m_spread','precipitation','precipitation_spread','sunshine_duration','sunshine_duration_spread','wind_speed_10m','wind_gusts_10m']);
+ const lat=number(url.searchParams.get('lat')),lon=number(url.searchParams.get('lon')),days=Math.max(1,Math.min(14,Math.ceil(number(url.searchParams.get('forecast_days'))||14))),model=String(url.searchParams.get('model')||'').trim(),requested=String(url.searchParams.get('variables')||'temperature_2m,precipitation').split(',').map(value=>value.trim()).filter(Boolean),allowedVariables=new Set(['temperature_2m','temperature_2m_spread','precipitation','precipitation_spread','sunshine_duration','sunshine_duration_spread','wind_speed_10m','wind_gusts_10m','cloud_cover','cloud_cover_low','cloud_cover_mid','cloud_cover_high']);
  if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180)return json({error:'gültige lat/lon erforderlich'},400,{'cache-control':'no-store'});
  if(!/^[a-z0-9_]{3,80}$/i.test(model))return json({error:'ungültiges Ensemblemodell'},400,{'cache-control':'no-store'});
  const variables=[...new Set(requested.filter(value=>allowedVariables.has(value)))];if(!variables.length)return json({error:'keine zulässigen Ensemblevariablen'},400,{'cache-control':'no-store'});

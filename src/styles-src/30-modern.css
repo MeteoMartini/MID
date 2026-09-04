@@ -2346,7 +2346,7 @@ main>.place>.place-nowcards{display:none!important}
  font-variant-numeric:tabular-nums;
  line-height:1.1;
 }
-.cockpit-relative-sun{display:block;overflow:visible;color:#9b7109;flex:0 0 auto}.cockpit-relative-sun .sun-base,.cockpit-relative-sun .sun-core-fill,.cockpit-relative-sun .sun-ray-fill{fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}.cockpit-relative-sun .sun-base{stroke:currentColor}.cockpit-relative-sun .sun-core-fill,.cockpit-relative-sun .sun-ray-fill{stroke:var(--param-sunshine);filter:none}
+.cockpit-relative-sun{display:block;overflow:visible;color:#9b7109;flex:0 0 auto;max-width:none;max-height:none}.cockpit-relative-sun .sun-base,.cockpit-relative-sun .sun-core-fill{stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.cockpit-relative-sun .sun-base{fill:none;stroke:currentColor}.cockpit-relative-sun .sun-core-fill{fill:var(--param-sunshine);stroke:none;filter:none}.cockpit-relative-sun .sun-glyph{transform-origin:12px 12px}.cockpit-relative-sun .sun-ray{shape-rendering:geometricPrecision}
 .cockpit-fourteen-sunshine>span,.cockpit-fourteen-sunshine>svg{font-size:11px}.cockpit-fourteen-sunshine>b{font-size:10px;white-space:nowrap}.cockpit-fourteen-sunshine>small{min-width:0;color:var(--muted);font-size:8px;text-align:right;overflow-wrap:anywhere}
 .cockpit-focus-card.fourteen{grid-template-columns:minmax(180px,1.25fr) auto minmax(125px,.8fr) minmax(150px,.95fr) minmax(160px,1.05fr)}
 .cockpit-fourteen-selected-sunshine{align-content:center;padding:7px 9px;border:1px solid color-mix(in srgb,#e4ae24 24%,var(--border));border-radius:12px;background:color-mix(in srgb,#f4c84a 8%,var(--surface))}

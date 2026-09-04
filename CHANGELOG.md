@@ -1,3 +1,16 @@
+## 0.9.78.37
+- Vollensemble startet 2 s nach dem sichtbaren Mean/Spread-Bootstrap; lange unabhängige Modellfamilien werden zuerst geladen.
+- Vollfusion auf sechs erfolgreiche Modellrouten bei maximal zwei parallelen Open-Meteo-Requests begrenzt; 20-s-Modellbudget und fehlerabhängige Variablenfallbacks reduzieren Blockade- und Request-Risiko.
+- Finaler Ensemblecache auf 60 min verlängert, um identische Neuabrufe zwischen Modellupdates zu vermeiden.
+- Relative 14-Tage-Sonne zeichnet immer alle acht Strahlen und skaliert die Strichstärke sauber bei 12–14 px.
+- Release-Run #872: fünf veraltete PoP-Stringregressionen mit dem 24-h-Skybar-Vertrag wieder kompatibel gemacht.
+
+## 0.9.78.36
+- Ensemble-Erststart auf iOS auf einen seriellen Mean/Spread-first-Pfad umgestellt: zunächst eine echte Ensemblefamilie sichtbar, anschließend automatische Vollfusion statt parallelem Großabruf.
+- Bootstrap auf einen gleichzeitigen Modellabruf begrenzt; Memberdaten dienen nur als Fallback, wenn Mean/Spread nicht verfügbar ist.
+- Einzelmodell-Bootstrap wird in der Konsistenz bewusst schwächer bewertet; finaler Mehrmodellvertrag bleibt unverändert.
+- Versionssynchronisierung hält `MID_BASELINE.json.releaseVersion` und das Legacy-Feld `version` gemeinsam aktuell.
+
 ## v0.9.78.28
 
 - Wartungsbereinigung ohne Funktionsabbau: zwei veraltete TypeScript-5.8-Buildartefakte und generierte Prüfartefakte dauerhaft aus Professional-Releases ausgeschlossen; 33 innerhalb ihrer Quellmodule exakt doppelte CSS-Regeln konsolidiert.

@@ -24,6 +24,7 @@ await writeFile(lockUrl,`${JSON.stringify(lock,null,2)}\n`);
 const baselineUrl=new URL('../MID_BASELINE.json',import.meta.url);
 const baseline=JSON.parse(await readFile(baselineUrl,'utf8'));
 baseline.releaseVersion=version;
+baseline.version=version;
 await writeFile(baselineUrl,`${JSON.stringify(baseline,null,2)}\n`);
 const iosStatusUrl=new URL('../MID_IOS_STATUS.json',import.meta.url);
 try{
