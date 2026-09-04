@@ -1,3 +1,18 @@
+# 0.9.78.61 — 2026-09-04
+
+- GitHub Release #893 repariert: TypeScript 7 und Vite-Produktionsbuild waren bereits vollständig erfolgreich; nur 2 von 679 Regressionen erwarteten noch die alte ausführliche 7d-Beschriftung.
+- Historische Tests auf den verbindlichen kompakten 7d-Einzeilervertrag aktualisiert; Produktionslogik bleibt unverändert.
+- 7-Tage-Kacheln bleiben bei Kurzformen wie „Sonnig“, „Regen“, „Schauer“, „Ruhig“, „Windig“ usw.
+- Keine funktionale Worker-Änderung.
+
+# 0.9.78.60 — 2026-09-04
+
+- GitHub Release #892 repariert: npm-Installation und Dependency-Audit waren erfolgreich; der Abbruch erfolgte ausschließlich im TypeScript-7-Check.
+- Acht ungültige Feldzugriffe aus dem neuen 7d-Kurzlabel-Helfer entfernt und auf kanonische `Day`-/`Hour`-/`dayPrecipitationAssessment`-Felder umgestellt.
+- 7-Tage-Kacheln zeigen weiterhin ausschließlich kompakte Einzeiler wie „Sonnig“, „Regen“, „Schauer“, „Ruhig“ oder „Windig“; ausführliche Wettertexte bleiben nur als Detail-/Tooltipinformation erhalten.
+- Neue Regression `test-seven-day-compact-label-buildfix-097860.mjs`.
+- Keine funktionale Worker-Änderung.
+
 # 0.9.78.54 — 2026-09-04
 
 - GitHub Release #886 repariert: TypeScript-7-/Vite-Produktionsbuild war bereits erfolgreich; ausschließlich 7 von 675 historischen Regressionen blockierten anschließend den Release.

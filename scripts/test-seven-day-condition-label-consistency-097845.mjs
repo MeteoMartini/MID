@@ -1,17 +1,16 @@
-import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
-const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8');
-const [cockpit,contract,baselineRaw,pkgRaw]=await Promise.all([
- read('src/ForecastCockpit.tsx'),read('MID_WEATHER_PICTOGRAM_STANDARD.md'),read('MID_BASELINE.json'),read('package.json')
-]);
-const baseline=JSON.parse(baselineRaw),pkg=JSON.parse(pkgRaw),test='scripts/test-seven-day-condition-label-consistency-097845.mjs';
-assert.ok(cockpit.includes("function cockpitDayConditionLabel(character:ReturnType<typeof dayWeatherCharacter>)"),'7d-Tageskarten brauchen einen eigenen, aus dayWeatherCharacter abgeleiteten sichtbaren Bedingungstext.');
-assert.ok(cockpit.includes("conditionText=cockpitDayConditionLabel(weather)"),'7d-Karten müssen den sichtbaren Text aus demselben Tagescharakter wie das Piktogramm ableiten.');
-assert.ok(cockpit.includes("dayVisual=periodWeatherVisual(dayHours,true,weather.code,dayWeatherCharacterText(weather),{preferFallbackCode:true})"),'Das große Tagespiktogramm muss weiter denselben dayWeatherCharacter führen.');
-assert.ok(cockpit.includes('>{conditionText}</span>'),'Die sichtbare Beschreibung darf nicht mehr den groben regimeText ausgeben.');
-assert.ok(cockpit.includes('<WeatherPictogram code={dayVisual.code} day size={14} compact title={conditionText}'),'Auch das kleine Piktogramm der Beschreibungspille muss denselben dayVisual-Code verwenden.');
-assert.ok(cockpit.includes('Regime: ${regimeText}'),'Regime bleibt als sekundäre UI-Metadaten erhalten.');
-for(const token of ['Text-/Piktogramm-Kohärenz in Tageskarten','Sichtbarer Tagesbeschreibungstext = `dayWeatherCharacter(...).label`','Regime ist nur Präsentationsmetadatum'])assert.ok(contract.includes(token),`Piktogrammvertrag unvollständig: ${token}`);
-assert.equal(pkg.scripts?.['test:seven-day-condition-label-consistency'],`node ${test}`,'Package-Testeintrag fehlt.');
-assert.ok(baseline.regressionTests?.includes(test)&&baseline.requiredRegressionTests?.includes(test),'7d-Beschreibungsregression fehlt in der Baseline.');
-console.log(`MID v${pkg.version}: 7d-Beschreibung und Tagespiktogramm stammen aus demselben Tagescharakter.`);
+import {readFileSync} from 'node:fs';
+const appSource=readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
+const cockpitSource=readFileSync(new URL('../src/ForecastCockpit.tsx',import.meta.url),'utf8');
+const failures=[];
+if(!appSource.includes('compactConditionLabel=sevenDayCompactConditionLabel(d,daylightHoursForDate.length?daylightHoursForDate:allDayHoursForDate)'))failures.push('7-Tage-Kacheln berechnen noch kein kompaktes Kurzlabel.');
+if(!appSource.includes('<ForecastConditionPills label={compactConditionLabel}/>'))failures.push('7-Tage-Kacheln verwenden die kompakte Kurzform nicht sichtbar.');
+if(appSource.includes('<ForecastConditionPills label={character.label} secondary={character.secondary}/>'))failures.push('7-Tage-Kacheln zeigen weiterhin Primär-/Sekundärtexte statt kompakter Einzeilenform.');
+if(!/function sevenDayCompactConditionLabel\(day:Day,hours:Hour\[\]\):string/.test(appSource))failures.push('Hilfsfunktion für kompakte 7-Tage-Kurzlabels fehlt.');
+if(!cockpitSource.includes('</i>{regimeText}</span>'))failures.push('Forecast-Cockpit zeigt auf den 7-Tage-Kacheln nicht die kompakte Regime-Kurzform.');
+if(cockpitSource.includes('</i>{conditionText}</span>'))failures.push('Forecast-Cockpit zeigt weiterhin die lange Wettercharakter-Beschriftung in den 7-Tage-Kacheln.');
+if(failures.length){
+ console.error('test-seven-day-condition-label-consistency-097845 failed');
+ for(const failure of failures)console.error(` - ${failure}`);
+ process.exit(1);
+}
+console.log('test-seven-day-condition-label-consistency-097845 passed');

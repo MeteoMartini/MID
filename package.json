@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.78.59",
+  "version": "0.9.78.61",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -420,7 +420,8 @@
     "test:warning-probabilistic-hour-fields-buildfix": "node scripts/test-warning-probabilistic-hour-fields-buildfix-097852.mjs",
     "test:warning-eps-neighborhood": "node scripts/test-warning-eps-neighborhood-097853.mjs",
     "test:warning-wind-stage-presentation": "node scripts/test-warning-wind-stage-presentation-097856.mjs",
-    "test:app-helper-block-buildfix": "node scripts/test-app-helper-block-buildfix-097857.mjs"
+    "test:app-helper-block-buildfix": "node scripts/test-app-helper-block-buildfix-097857.mjs",
+    "test:seven-day-compact-label-buildfix": "node scripts/test-seven-day-compact-label-buildfix-097860.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",

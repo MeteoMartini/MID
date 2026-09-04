@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-09-04T16:45:14.663Z",
-  "releaseVersion": "0.9.78.59",
+  "updatedAt": "2026-09-04T19:55:27.658Z",
+  "releaseVersion": "0.9.78.61",
   "sourceBaseline": {
     "professionalVersion": "0.9.77.26",
     "workerVersion": "0.9.77.26",
@@ -126,7 +126,8 @@
     "startup-splash-preload-shared-promises-0.9.78.43",
     "period-weather-pictogram-day-night-consistency-0.9.78.43",
     "precipitation-forward-slot-presentation-0.9.78.46",
-    "warning-hybrid-uncertainty-0.9.78.49"
+    "warning-hybrid-uncertainty-0.9.78.49",
+    "seven-day-compact-label-buildfix-0.9.78.60"
   ],
   "nextMilestone": "macos-xcode-simulator-quality-assurance",
   "validation": {

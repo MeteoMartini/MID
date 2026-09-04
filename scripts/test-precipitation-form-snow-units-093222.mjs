@@ -34,10 +34,11 @@ for(const token of [
 ])need('Wettertext',weather,token);
 for(const token of [
  'precipitationForm=dominantPrecipitationForm(dayHours)',
- 'regimeText=regimeLabel(regime,precipitationForm?.label)',
- '>{conditionText}</span>',
+ 'regimeText=sevenDayRegimeLabel(regime,precipitationForm?.label)',
+ '>{regimeText}</span>',
  'precipitationAmountLabel(day)'
 ])need('7-Tage-Cockpit',cockpit,token);
+if(cockpit.includes('>{conditionText}</span>'))failures.push('7-Tage-Cockpit: ausführlicher Tagescharakter darf die kompakte Einzeilen-Kurzform nicht wieder ersetzen.');
 for(const [label,text] of [
  ['App',app],['Kurzfrist',shortTerm],['Meteogramm',meteogram],['Ensemble',ensemble],['Wassersport',water]
 ])need(label,text,'precipitationAmountLabel');
