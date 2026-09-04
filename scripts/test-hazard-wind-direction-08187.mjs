@@ -44,7 +44,7 @@ for(const token of [
 ])need('Warnrichtungs-Berechnung',warnings,token);
 for(const token of [
  'formatDwdWarningDetailWithDirection',
- 'text:`${formatDwdWarningDetailWithDirection(signal,unit)} Automatisch aus dem Open-Meteo-Best-Match abgeleitet; keine amtliche Warnung.`'
+ 'text:formatDwdWarningDetailWithDirection(signal,unit)'
 ])need('Hazard-Datenvertrag',weather,token);
 for(const token of [
  '<span>{x.displayText||x.text}</span>',

@@ -1,3 +1,37 @@
+# 0.9.78.54 — 2026-09-04
+
+- GitHub Release #886 repariert: TypeScript-7-/Vite-Produktionsbuild war bereits erfolgreich; ausschließlich 7 von 675 historischen Regressionen blockierten anschließend den Release.
+- Veraltete Warnungsregressionen an den seit v0.9.78.49–.53 verbindlichen probabilistischen Warnvertrag angepasst: entfernte Hilfstexte bleiben entfernt, Windrichtung bleibt inline, probabilistische Zeitfenster bleiben sichtbar.
+- Ensemble-Resume-Test gegen den neuen `warningEnsemble`-Zustand gehärtet, ohne den Schutz des letzten erfolgreichen Ensemble-Stands zu lockern.
+- Keine fachliche Produktionslogik geändert; Worker nur versionssynchronisiert.
+
+# 0.9.78.53 — 2026-09-04
+
+- Warnrelevante MID-Prognosehinweise erhalten echte kurzfristige EPS-Unterstützung für Böen, Niederschlag und Temperatur.
+- 12-km-Umfeldprüfung mit Standort plus vier Nachbarpunkten; räumliche Extrema werden pro Ensemblemitglied vor der Quantilbildung gebildet, damit keine Pseudomitglieder entstehen.
+- Bis zu zwei unabhängige Ensemble-Modellfamilien stützen Warnfenster; Modellfamilien derselben `independenceGroup` werden nicht doppelt gewertet.
+- Wind-/Niederschlags-/Schnee-/Hitzehinweise verwenden `bis zu …` statt pseudogenauer Von-bis-Spannen.
+- Amtliche Originalwarntexte bleiben unverändert; sichtbare MID-Knotenangaben bleiben `kt`.
+- Baseline-Verweise für v0.9.78.50–53 vervollständigt.
+
+## 0.9.78.52 - 2026-09-04
+- GitHub-Release #884 repariert: probabilistische Warnfenster verwendeten drei nicht existierende `Hour`-Felder (`precip`, `temp`) bzw. einen falschen Summen-Key und scheiterten deshalb im TypeScript-7-Check.
+- Warnlogik nutzt jetzt kanonisch `precipitation`, `temperature` und `snowfall`; Probabilistik, erweiterte Zeitfenster und der `kt`-Anzeigevertrag bleiben unverändert.
+- Neue Regression `test-warning-probabilistic-hour-fields-buildfix-097852.mjs` schützt Fragment und generiertes Aggregat.
+
+## 0.9.78.51 - 2026-09-04
+
+- Knoten-Anzeigevertrag präzisiert: MID-generierte Inhalte verwenden sichtbar ausschließlich `kt`; `kn` bleibt nur interner/API-Transportwert.
+- Amtliche Originalwarntexte bleiben wortgetreu und dürfen daher weiterhin `kn` enthalten, wenn die Quelle dies so liefert.
+- Die kompakte MID-Zusammenfassung einer amtlichen Windwarnung liest `kn`/`kt`/`Knoten` aus dem Original, beschriftet den übernommenen Zahlenwert aber einheitlich als `kt`.
+- Verbindlicher Warnvertrag und Regression `test-wind-kt-display-contract-097851.mjs` ergänzt.
+
+## 0.9.78.50 - 2026-09-04
+
+- Warnungsbereich überarbeitet: amtliche DWD-Untertitel ziehen Windwerte nun bevorzugt direkt aus den offiziellen DWD-Einheitenangaben (inkl. `kn`/`kt`) statt aus MID-intern rückgerechneten Werten.
+- MID-Prognosehinweise berechnen Gültigkeitsfenster jetzt probabilistisch erweitert und kennzeichnen sie als Wahrscheinlichkeitsbereich; dadurch werden enge Einzelstunden-Treffer bei Windböen und anderen warnfähigen Parametern vermieden.
+- Prompt-/Hilfstexte innerhalb und unterhalb der MID-Hinweissektion entfernt, damit nur fachlich relevante Inhalte angezeigt werden.
+
 ## 0.9.78.49
 - Warnungen & Hinweise als Hybrid-Zentrum neu geordnet: amtliche Warnungen zuerst, MID-Prognosehinweise danach; überlappende Hinweise als MID-Ergänzung.
 - Amtliche Warnstufenfarben exklusiv für amtliche Meldungen; MID-Hinweise nutzen Parameterfarben.

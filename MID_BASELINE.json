@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.78.49",
+  "releaseVersion": "0.9.78.54",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -400,7 +400,10 @@
     "scripts/test-precipitation-forward-slot-presentation-097846.mjs",
     "scripts/test-shortterm-forward-slot-buildfix-097847.mjs",
     "scripts/test-precipitation-forward-slot-regression-compat-097848.mjs",
-    "scripts/test-warning-hybrid-uncertainty-097849.mjs"
+    "scripts/test-warning-hybrid-uncertainty-097849.mjs",
+    "scripts/test-warning-hybrid-probabilistic-097850.mjs",
+    "scripts/test-wind-kt-display-contract-097851.mjs",
+    "scripts/test-warning-probabilistic-hour-fields-buildfix-097852.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -726,7 +729,11 @@
     "scripts/test-precipitation-forward-slot-presentation-097846.mjs",
     "scripts/test-shortterm-forward-slot-buildfix-097847.mjs",
     "scripts/test-precipitation-forward-slot-regression-compat-097848.mjs",
-    "scripts/test-warning-hybrid-uncertainty-097849.mjs"
+    "scripts/test-warning-hybrid-uncertainty-097849.mjs",
+    "scripts/test-wind-kt-display-contract-097851.mjs",
+    "scripts/test-warning-hybrid-probabilistic-097850.mjs",
+    "scripts/test-warning-probabilistic-hour-fields-buildfix-097852.mjs",
+    "scripts/test-warning-eps-neighborhood-097853.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -1045,7 +1052,6 @@
     "scripts/test-weather-profile-modern-dayview-097610.mjs",
     "MID_IMPLEMENTATION_0.9.76.10.md",
     "src/DwdPrecipitationTypeRadar.tsx",
-    "src/styles-src/30-modern.css",
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
     "MID_IMPLEMENTATION_0.9.76.11.md",
     "scripts/test-weather-profile-mobile-compact-097612.mjs",
@@ -1214,7 +1220,14 @@
     "scripts/test-warning-hybrid-uncertainty-097849.mjs",
     "MID_WARNING_HYBRID_CONTRACT.md",
     "MID_IMPLEMENTATION_0.9.78.49.md",
-    "MID_TEST_REPORT_0.9.78.49.md"
+    "MID_TEST_REPORT_0.9.78.49.md",
+    "scripts/test-wind-kt-display-contract-097851.mjs",
+    "MID_IMPLEMENTATION_0.9.78.51.md",
+    "MID_TEST_REPORT_0.9.78.51.md",
+    "scripts/test-warning-hybrid-probabilistic-097850.mjs",
+    "scripts/test-warning-probabilistic-hour-fields-buildfix-097852.mjs",
+    "MID_IMPLEMENTATION_0.9.78.52.md",
+    "MID_TEST_REPORT_0.9.78.52.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1624,8 +1637,8 @@
     "scripts/test-codeql-alert-remediation-097834.mjs",
     "scripts/test-parallel-merge-skybar-phase-097839.mjs"
   ],
-  "version": "0.9.78.49",
-  "updatedAt": "2026-09-04T13:35:00+02:00",
+  "version": "0.9.78.54",
+  "updatedAt": "2026-09-04T17:31:00+02:00",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
     "MID_IMPLEMENTATION_0.9.77.27.md",
@@ -1659,7 +1672,12 @@
     "MID_IMPLEMENTATION_0.9.78.46.md",
     "MID_IMPLEMENTATION_0.9.78.47.md",
     "MID_IMPLEMENTATION_0.9.78.48.md",
-    "MID_IMPLEMENTATION_0.9.78.49.md"
+    "MID_IMPLEMENTATION_0.9.78.49.md",
+    "MID_IMPLEMENTATION_0.9.78.50.md",
+    "MID_IMPLEMENTATION_0.9.78.51.md",
+    "MID_IMPLEMENTATION_0.9.78.52.md",
+    "MID_IMPLEMENTATION_0.9.78.53.md",
+    "MID_IMPLEMENTATION_0.9.78.54.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",
@@ -1681,6 +1699,11 @@
     "MID_TEST_REPORT_0.9.78.46.md",
     "MID_TEST_REPORT_0.9.78.47.md",
     "MID_TEST_REPORT_0.9.78.48.md",
-    "MID_TEST_REPORT_0.9.78.49.md"
+    "MID_TEST_REPORT_0.9.78.49.md",
+    "MID_TEST_REPORT_0.9.78.50.md",
+    "MID_TEST_REPORT_0.9.78.51.md",
+    "MID_TEST_REPORT_0.9.78.52.md",
+    "MID_TEST_REPORT_0.9.78.53.md",
+    "MID_TEST_REPORT_0.9.78.54.md"
   ]
 }

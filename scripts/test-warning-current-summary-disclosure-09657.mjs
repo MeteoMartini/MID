@@ -28,13 +28,16 @@ assert.ok(!app.includes("<em>{data.length} {data.length===1?'Zeitfenster':'Zeitf
 
 // Erst nach dem Aufklappen erscheinen Tages-/Zeitfensterkarten und Erläuterung.
 for(const token of [
- '{expanded&&<><div className="hazard-day-grid">',
+ '{expanded&&<div className="hazard-day-grid">',
  'className="hazard-day-group"',
  'itemExpanded=open===id',
  'itemExpanded&&<div className="hazard-body"',
- 'Automatisch aus der kanonischen MID-Ortsprognose abgeleitet.',
- 'Amtliche Warnungen bleiben autoritativ und werden separat gekennzeichnet.'
+ 'className={`hazard-origin-badge${supplement?\' supplement\':\'\'}`}',
+ 'MID · PROGNOSEHINWEIS'
 ])assert.ok(app.includes(token),`Disclosure-/Detailvertrag fehlt: ${token}`);
+
+assert.ok(!app.includes('Automatisch aus der kanonischen MID-Ortsprognose abgeleitet.'),'Entfernter Hilfstext darf nicht in die Warnkarte zurückkehren.');
+assert.ok(!app.includes('Amtliche Warnungen bleiben autoritativ und werden separat gekennzeichnet.'),'Entfernter Warnkarten-Fußtext darf nicht zurückkehren.');
 
 // Amtliche Stufenfarben bleiben exklusiv bei amtlichen Karten; MID-Hinweise nutzen Parameterfarben.
 for(const token of [

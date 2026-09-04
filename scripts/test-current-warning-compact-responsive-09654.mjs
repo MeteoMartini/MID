@@ -57,10 +57,12 @@ for(const token of [
  ':<ChevronRight',
  'metric=x.displayMetric||x.metric',
  'hazard-origin-badge',
- 'MID · PROGNOSEHINWEIS',
+ 'MID · PROGNOSEHINWEIS'
+])assert.ok(app.includes(token),`Responsive Warnkartenvertrag fehlt: ${token}`);
+for(const token of [
  'Automatisch aus der kanonischen MID-Ortsprognose abgeleitet.',
  'Amtliche Warnungen bleiben autoritativ und werden separat gekennzeichnet.'
-])assert.ok(app.includes(token),`Responsive Warnkartenvertrag fehlt: ${token}`);
+])assert.ok(!app.includes(token),`Entfernter Prompt-/Hilfstext darf nicht wieder in der Warnsektion erscheinen: ${token}`);
 for(const token of [
  '.hazard-day-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))',
  '@media(orientation:portrait) and (max-width:760px)',

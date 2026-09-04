@@ -32,7 +32,7 @@ for(const token of [
  'function hazardValidityLabel(',
  "{x.conditional?'Schwerpunkt: ':'Fenster: '}{validity}",
  'className="hazard-validity"',
- 'Automatisch berechneter Gültigkeitszeitraum des Warnindikators'
+ 'Probabilistisch abgeleitetes Zeitfenster des Warnindikators; der Schwerpunkt kann innerhalb dieses Fensters variieren.'
 ])need('Warnzeit-Darstellung',app,token);
 
 for(const token of [

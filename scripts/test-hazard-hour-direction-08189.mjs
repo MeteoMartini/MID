@@ -24,7 +24,7 @@ const turning=summarizeDwdWarnings([hour('14',225,70/1.852),hour('15',230,70/1.8
 if(!turning)failures.push('Windwarnung mit Richtungswechsel aus Hour.direction fehlt.');
 else if(formatDwdWarningDetailWithDirection(turning)!=='Sturmböen bis 38 kt (70 km/h); anfangs aus südwestlicher, später aus nordwestlicher Richtung.')failures.push(`Hour.direction-Richtungswechsel falsch: ${formatDwdWarningDetailWithDirection(turning)}`);
 for(const token of ['direction?:number;','rawWindDirection=Number.isFinite(Number(sample.windDirection))?Number(sample.windDirection):Number.isFinite(Number(sample.direction))?Number(sample.direction):Number.NaN'])if(!warnings.includes(token))failures.push(`Richtungskompatibilität fehlt: ${token}`);
-if(!weather.includes('text:`${formatDwdWarningDetailWithDirection(signal,unit)} Automatisch aus dem Open-Meteo-Best-Match abgeleitet; keine amtliche Warnung.`'))failures.push('Warnkarte verwendet nicht den Inline-Richtungstext.');
+if(!weather.includes('text:formatDwdWarningDetailWithDirection(signal,unit)'))failures.push('Warnkarte verwendet nicht den Inline-Richtungstext.');
 if(!pkg.includes('test:hazard-hour-direction'))failures.push('Package-Testeintrag fehlt.');
 if(!baseline.includes('scripts/test-hazard-hour-direction-08189.mjs'))failures.push('Baseline-Testeintrag fehlt.');
 await rm(outDir,{recursive:true,force:true});
