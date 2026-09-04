@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.78.37",
+  "releaseVersion": "0.9.78.42",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -388,7 +388,12 @@
     "scripts/test-ensemble-progressive-bootstrap-097832.mjs",
     "scripts/test-ensemble-deadline-watchdog-097835.mjs",
     "scripts/test-ensemble-fast-availability-097836.mjs",
-    "scripts/test-ensemble-rate-budget-sunshine-097837.mjs"
+    "scripts/test-ensemble-rate-budget-sunshine-097837.mjs",
+    "scripts/test-codeql-alert-remediation-097834.mjs",
+    "scripts/test-parallel-merge-skybar-phase-097839.mjs",
+    "scripts/test-install-workflow-registry-retries-097840.mjs",
+    "scripts/test-seven-day-curve-night-band-097841.mjs",
+    "scripts/test-detail-skybar-unused-parameter-buildfix-097841.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -702,7 +707,12 @@
     "scripts/test-ensemble-progressive-bootstrap-097832.mjs",
     "scripts/test-ensemble-deadline-watchdog-097835.mjs",
     "scripts/test-ensemble-fast-availability-097836.mjs",
-    "scripts/test-ensemble-rate-budget-sunshine-097837.mjs"
+    "scripts/test-ensemble-rate-budget-sunshine-097837.mjs",
+    "scripts/test-codeql-alert-remediation-097834.mjs",
+    "scripts/test-parallel-merge-skybar-phase-097839.mjs",
+    "scripts/test-install-workflow-registry-retries-097840.mjs",
+    "scripts/test-seven-day-curve-night-band-097841.mjs",
+    "scripts/test-detail-skybar-unused-parameter-buildfix-097841.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -1167,7 +1177,19 @@
     "MID_IMPLEMENTATION_0.9.78.18.md",
     "MID_TEST_REPORT_0.9.78.18.md",
     "scripts/test-maintenance-cleanup-097828.mjs",
-    "MID_IMPLEMENTATION_0.9.78.28.md"
+    "MID_IMPLEMENTATION_0.9.78.28.md",
+    "scripts/test-ensemble-progressive-bootstrap-097832.mjs",
+    "MID_IMPLEMENTATION_0.9.78.32.md",
+    "MID_IMPLEMENTATION_0.9.78.33.md",
+    "scripts/source-url-contract.mjs",
+    "scripts/test-codeql-alert-remediation-097834.mjs",
+    "MID_PR_SECURITY_MATRIX_0.9.78.34.md",
+    "MID_IMPLEMENTATION_0.9.78.34.md",
+    "scripts/test-parallel-merge-skybar-phase-097839.mjs",
+    "src/precipitationPhaseColor.ts",
+    "MID_IMPLEMENTATION_0.9.78.39.md",
+    "MID_TEST_REPORT_0.9.78.34.md",
+    "MID_TEST_REPORT_0.9.78.39.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1201,7 +1223,10 @@
     "scripts/test-current-temperature-smooth-bridge-097719.mjs",
     "scripts/test-knmi-eps-worker-binding-097719.mjs",
     "scripts/test-weather-pictogram-standard-09780.mjs",
-    "scripts/test-seven-day-axis-badge-lock-09784.mjs"
+    "scripts/test-seven-day-axis-badge-lock-09784.mjs",
+    "scripts/test-ensemble-progressive-bootstrap-097832.mjs",
+    "scripts/test-codeql-alert-remediation-097834.mjs",
+    "scripts/test-parallel-merge-skybar-phase-097839.mjs"
   ],
   "protectedFiles": [
     "scripts/test-travel-planner-era5-seamless-units-09652.mjs",
@@ -1351,7 +1376,9 @@
     "scripts/test-current-temperature-smooth-bridge-097719.mjs",
     "scripts/test-knmi-eps-worker-binding-097719.mjs",
     "scripts/test-maintenance-cleanup-097828.mjs",
-    "MID_IMPLEMENTATION_0.9.78.28.md"
+    "MID_IMPLEMENTATION_0.9.78.28.md",
+    "scripts/test-ensemble-progressive-bootstrap-097832.mjs",
+    "scripts/test-codeql-alert-remediation-097834.mjs"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md",
@@ -1456,7 +1483,10 @@
     "MID_IMPLEMENTATION_0.9.78.0.md",
     "MID_TEST_REPORT_0.9.78.0.md",
     "MID_IMPLEMENTATION_0.9.78.1.md",
-    "MID_TEST_REPORT_0.9.78.1.md"
+    "MID_TEST_REPORT_0.9.78.1.md",
+    "MID_IMPLEMENTATION_0.9.78.40.md",
+    "MID_IMPLEMENTATION_0.9.78.41.md",
+    "MID_IMPLEMENTATION_0.9.78.42.md"
   ],
   "evidenceFiles": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -1498,7 +1528,10 @@
     "MID_TEST_REPORT_0.9.78.0.md",
     "MID_IMPLEMENTATION_0.9.78.1.md",
     "MID_TEST_REPORT_0.9.78.1.md",
-    "MID_TEST_REPORT_0.9.78.4.md"
+    "MID_TEST_REPORT_0.9.78.4.md",
+    "MID_TEST_REPORT_0.9.78.40.md",
+    "MID_TEST_REPORT_0.9.78.41.md",
+    "MID_TEST_REPORT_0.9.78.42.md"
   ],
   "releaseEvidence": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -1556,10 +1589,13 @@
     "scripts/test-ruc-precip-amplitude-guard-09787.mjs",
     "scripts/test-maintenance-cleanup-097828.mjs",
     "scripts/test-ensemble-deadline-watchdog-097835.mjs",
-    "scripts/test-ensemble-fast-availability-097836.mjs"
+    "scripts/test-ensemble-fast-availability-097836.mjs",
+    "scripts/test-ensemble-progressive-bootstrap-097832.mjs",
+    "scripts/test-codeql-alert-remediation-097834.mjs",
+    "scripts/test-parallel-merge-skybar-phase-097839.mjs"
   ],
-  "version": "0.9.78.37",
-  "updatedAt": "2026-09-04T01:24:00+02:00",
+  "version": "0.9.78.42",
+  "updatedAt": "2026-09-04T06:58:00Z",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
     "MID_IMPLEMENTATION_0.9.77.27.md",
@@ -1580,7 +1616,13 @@
     "MID_IMPLEMENTATION_0.9.78.34.md",
     "MID_IMPLEMENTATION_0.9.78.35.md",
     "MID_IMPLEMENTATION_0.9.78.36.md",
-    "MID_IMPLEMENTATION_0.9.78.37.md"
+    "MID_IMPLEMENTATION_0.9.78.37.md",
+    "MID_IMPLEMENTATION_0.9.78.38.md",
+    "MID_IMPLEMENTATION_0.9.78.33.md",
+    "MID_IMPLEMENTATION_0.9.78.39.md",
+    "MID_IMPLEMENTATION_0.9.78.40.md",
+    "MID_IMPLEMENTATION_0.9.78.41.md",
+    "MID_IMPLEMENTATION_0.9.78.42.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",
@@ -1589,6 +1631,12 @@
     "MID_TEST_REPORT_0.9.78.0.md",
     "MID_TEST_REPORT_0.9.78.1.md",
     "MID_TEST_REPORT_0.9.78.4.md",
-    "MID_TEST_REPORT_0.9.78.7.md"
+    "MID_TEST_REPORT_0.9.78.7.md",
+    "MID_TEST_REPORT_0.9.78.38.md",
+    "MID_TEST_REPORT_0.9.78.34.md",
+    "MID_TEST_REPORT_0.9.78.39.md",
+    "MID_TEST_REPORT_0.9.78.40.md",
+    "MID_TEST_REPORT_0.9.78.41.md",
+    "MID_TEST_REPORT_0.9.78.42.md"
   ]
 }

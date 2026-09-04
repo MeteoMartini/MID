@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import ts from 'typescript-strada';
 import {versionAtLeast} from './version-regression-helper.mjs';
+import {sourceUsesHttpsHost} from './source-url-contract.mjs';
 
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8');
 const[panel,overlay,modelledAreas,geojsonSource,canvasSource,outlook,dashboard,storageSafety,deviceSync,worker,pkgRaw,baselineRaw,changelog,implementation]=await Promise.all([
@@ -12,7 +13,7 @@ assert.ok(versionAtLeast(pkg.version,'0.9.66.9'));assert.equal(baseline.releaseV
 assert.ok(baseline.requiredRegressionTests.includes(test)&&baseline.regressionTests.includes(test));for(const file of[test,'MID_IMPLEMENTATION_0.9.66.9.md'])assert.ok(baseline.requiredFiles.includes(file));
 
 for(const token of ['tile.openstreetmap.org/{z}/{x}/{y}.png','id="extreme-outlook-context"','opacity={.48}','zIndex={20}','MID-Prognosestufe','Schraffiert sind ausschließlich Teilflächen'])assert.ok(panel.includes(token),`Kartendarstellung fehlt: ${token}`);
-assert.ok(!panel.includes('basemaps.cartocdn.com'),'Die DACH-Karte darf keine anonym gesperrte CARTO-Basis mehr verwenden.');
+assert.ok(!sourceUsesHttpsHost(panel,'basemaps.cartocdn.com'),'Die DACH-Karte darf keine anonym gesperrte CARTO-Basis mehr verwenden.');
 for(const token of ["1:'#f4d03f'","2:'#f08a24'","3:'#d9363e'","4:'#8f174f'",'Wettergefahr','markante Wettergefahr','Unwetterpotenzial','extremes Unwetterpotenzial'])assert.ok(outlook.includes(token),`DWD-nahe Prognoseskala fehlt: ${token}`);
 assert.ok(!outlook.includes("1:'#269b83'"),'Grün darf keine Gefahrstufe mehr kennzeichnen.');
 for(const token of ['HATCH_SOURCE_ID','source:HATCH_SOURCE_ID','buildExtremeOutlookContourGeoJson'])assert.ok(overlay.includes(token),`Teilflächenschraffur fehlt: ${token}`);

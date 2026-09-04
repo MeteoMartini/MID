@@ -175,23 +175,49 @@ jobs:
 
       - name: Abhängigkeiten reproduzierbar installieren
         shell: bash
-        timeout-minutes: 6
+        timeout-minutes: 8
         run: |
           set -euo pipefail
-          npm ci \
-            --no-audit \
-            --no-fund \
-            --prefer-offline \
-            --legacy-peer-deps \
-            --loglevel=notice
+          installed=false
+          for attempt in 1 2 3; do
+            if npm ci \
+              --no-audit \
+              --no-fund \
+              --prefer-offline \
+              --legacy-peer-deps \
+              --loglevel=notice; then
+              installed=true
+              break
+            fi
+            echo "::warning::npm ci fehlgeschlagen (Versuch ${attempt}/3). Bereinige node_modules und prüfe den Cache vor erneutem Versuch."
+            rm -rf node_modules
+            npm cache verify || true
+            sleep $((attempt * 3))
+          done
+          if [ "$installed" != true ]; then
+            echo "::error::npm ci konnte nach drei Versuchen nicht erfolgreich abgeschlossen werden."
+            exit 1
+          fi
 
 
       - name: Produktionsabhängigkeiten auf hohe Risiken prüfen
         shell: bash
-        timeout-minutes: 4
+        timeout-minutes: 5
         run: |
           set -euo pipefail
-          npm run audit:dependencies
+          audited=false
+          for attempt in 1 2 3; do
+            if npm run audit:dependencies; then
+              audited=true
+              break
+            fi
+            echo "::warning::Dependency-Audit fehlgeschlagen (Versuch ${attempt}/3). Wiederhole nach kurzer Pause."
+            sleep $((attempt * 3))
+          done
+          if [ "$audited" != true ]; then
+            echo "::error::Dependency-Audit konnte nach drei Versuchen nicht erfolgreich abgeschlossen werden."
+            exit 1
+          fi
 
       - name: Produktionsbuild und Regressionstests ausführen
         shell: bash
@@ -377,10 +403,13 @@ jobs:
           MID_RUC_BINDING_AUTO_APPROVED: ${{ vars.MID_RUC_BINDING_AUTO_APPROVED }}
         run: |
           set -euo pipefail
-          node tools/cloudflare/prepare_worker_deploy.mjs /tmp/mid-wrangler-worker.json /tmp/mid-worker-deploy-meta.json
+          node tools/cloudflare/prepare_worker_deploy.mjs
+          export META_PATH="${{ steps.remote_worker.outputs.meta_path }}"
           python3 - <<'PY'
           import json
-          meta=json.load(open('/tmp/mid-worker-deploy-meta.json'))
+          import os
+          with open(os.environ['META_PATH'], encoding='utf-8') as handle:
+              meta=json.load(handle)
           print('Remote-Bindings:', ', '.join(f"{x['name']}:{x['type']}" for x in meta['bindingSummary']))
           print('RUC-R2-Binding im geplanten Deployment:', meta['rucBindingPresent'])
           PY
@@ -395,7 +424,7 @@ jobs:
           wranglerVersion: '4.125.0'
           command: >-
             versions upload
-            --config /tmp/mid-wrangler-worker.json
+            --config ${{ steps.remote_worker.outputs.config_path }}
             --no-bundle
             --keep-vars
             --strict

@@ -9,6 +9,7 @@ const meteogram=read('src/MeteogramPanel.tsx');
 const cockpit=read('src/ForecastCockpit.tsx');
 const modern=read('src/styles-src/30-modern.css');
 const temperatureTone=read('src/temperatureTone.ts');
+const precipitationPhaseColor=read('src/precipitationPhaseColor.ts');
 
 const checks=[
   ['central parameter contract includes Tmin/Tmax/rain/pressure/wind/gust/cloud', ['--param-temperature-min:','--param-temperature-max:','--param-precipitation:','--param-pressure:','--param-wind:','--param-gust:','--param-cloud:'].every(token=>foundation.includes(token))],
@@ -21,7 +22,7 @@ const checks=[
   ['14d precipitation chart uses central precipitation colour',ensemble.includes('fill="var(--param-precipitation)"')&&ensemble.includes('stroke="var(--param-precipitation)"')],
   ['meteogram generic precipitation uses central precipitation colour',meteogram.includes("rain:'var(--param-precipitation)'")],
   ['meteogram line contract uses pressure/wind/gust variables',meteogram.includes("'pressure-line':{stroke:'var(--param-pressure)'}")&&meteogram.includes("'wind-line':{stroke:'var(--param-wind)'}")&&meteogram.includes("'gust-line':{stroke:'var(--param-gust)'}")],
-  ['cockpit generic precipitation uses central precipitation colour',cockpit.includes("return'var(--param-precipitation)'")],
+  ['cockpit precipitation uses shared phase palette with central liquid precipitation colour',cockpit.includes("import {precipitationPhaseColor} from './precipitationPhaseColor';")&&cockpit.includes('return precipitationPhaseColor(plausiblePrecipitation(sample).type)')&&precipitationPhaseColor.includes("liquid:'var(--param-precipitation)'")&&precipitationPhaseColor.includes("snow:'#66bce8'")&&precipitationPhaseColor.includes("mixed:'#a769d8'")&&precipitationPhaseColor.includes("storm:'#7869e8'")],
   ['cockpit day temperatures use central Tmin/Tmax colours',ensembleCss.includes('.cockpit-day-temps b{font-size:16px;color:var(--param-temperature-min)}')&&ensembleCss.includes('.cockpit-day-temps strong{font-size:22px;color:var(--param-temperature-max)}')],
   ['cockpit rain track uses central precipitation colour',ensembleCss.includes('.cockpit-rain-track>b{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,color-mix(in srgb,var(--param-precipitation)')],
   ['cockpit wind and gust tracks use central colours',ensembleCss.includes('.cockpit-wind-track>i{background:var(--param-gust)')&&ensembleCss.includes('.cockpit-wind-track>b{background:var(--param-wind)}')],

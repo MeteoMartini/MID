@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import {sourceUsesExactHttpsUrl,sourceUsesHttpsHost} from './source-url-contract.mjs';
 const root=process.cwd();
 const read=(file)=>fs.readFileSync(path.join(root,file),'utf8');
 const composite=read('src/compositeSettings.ts');
@@ -9,8 +10,8 @@ const weatherMaps=read('src/WeatherMapsPanel.tsx');
 const synoptic=read('src/SynopticPanel.tsx');
 const mapCore=read('src/MapLibreCore.tsx');
 const productive=[composite,radar,weatherMaps,synoptic].join('\n');
-assert.ok(!productive.includes('basemaps.cartocdn.com'),'Produktive MID-Karten dürfen keine anonym gesperrten CARTO-Rasterkacheln mehr verwenden.');
-for(const source of [composite,weatherMaps,synoptic])assert.ok(source.includes('https://tile.openstreetmap.org/{z}/{x}/{y}.png'),'Schlüsselfreie OSM-Kartenbasis fehlt.');
+assert.ok(!sourceUsesHttpsHost(productive,'basemaps.cartocdn.com'),'Produktive MID-Karten dürfen keine anonym gesperrten CARTO-Rasterkacheln mehr verwenden.');
+for(const source of [composite,weatherMaps,synoptic])assert.ok(sourceUsesExactHttpsUrl(source,'https://tile.openstreetmap.org/{z}/{x}/{y}.png'),'Schlüsselfreie OSM-Kartenbasis fehlt.');
 assert.ok(composite.includes("positron:{label:'Schlicht hell'")&&composite.includes("dark:{label:'Schlicht dunkel'"),'Bestehende helle/dunkle Auswahl-IDs müssen für Persistenz erhalten bleiben.');
 assert.ok(composite.includes('tone:{saturation:-.9')&&composite.includes('brightnessMax:.48'),'Helle und dunkle schlüsselfreie Darstellungsvarianten müssen unterscheidbar bleiben.');
 assert.ok(radar.includes('tone={currentBasemap.tone}'),'Kompositbild muss die Basemap-Tönung an Basis- und Orientierungslayer weiterreichen.');

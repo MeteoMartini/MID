@@ -1,4 +1,5 @@
 import {precipitationParts,type PrecipSample} from './precipitation';
+import {precipitationPhaseColor,precipitationPhaseColorLabel} from './precipitationPhaseColor';
 
 export type SkyBarSegment={
   key:string;
@@ -25,33 +26,23 @@ type WeatherStripVisual={
 const clamp=(value:number,min:number,max:number)=>Math.min(max,Math.max(min,value));
 const clamp01=(value:number)=>clamp(value,0,1);
 
-const sunVisualShare=(sunshineShare:number,cloudCover:number)=>clamp01(sunshineShare*0.82+(1-clamp(Number.isFinite(cloudCover)?cloudCover:100,0,100)/100)*0.18);
+const sunVisualShare=(sunshineShare:number,cloudCover:number)=>{
+  const cloud=clamp(Number.isFinite(cloudCover)?cloudCover:100,0,100);
+  const cloudClearShare=clamp01((50-cloud)/50);
+  return clamp01(Math.max(sunshineShare,cloudClearShare));
+};
 
-const precipBaseColor=(kind:'rain'|'snow'|'mixed'|'storm')=>({
-  rain:'var(--param-precipitation)',
-  snow:'#66bce8',
-  mixed:'#a769d8',
-  storm:'#7869e8',
-}[kind]);
-
-const SKYBAR_THICKNESS_STEPS=[2.1,2.9,3.7,4.5] as const;
+const SKYBAR_THICKNESS_STEPS=[2.4,3.3,4.2,5.1] as const;
 const skybarThickness=(level:number)=>SKYBAR_THICKNESS_STEPS[Math.max(0,Math.min(SKYBAR_THICKNESS_STEPS.length-1,Math.round(level)))]!;
+const skybarFourStepLevel=(share:number)=>Math.min(3,Math.floor(clamp01(share)*4));
 
-const cloudBandWidth=(cloud:number,daylight:boolean)=>{
-  if(!daylight&&cloud<20)return 0;
-  if(cloud<25)return daylight?skybarThickness(0):0;
-  if(cloud<50)return skybarThickness(1);
-  if(cloud<75)return skybarThickness(2);
-  return skybarThickness(3);
+const cloudBandWidth=(cloud:number)=>{
+  if(cloud<50)return 0;
+  return skybarThickness(skybarFourStepLevel((cloud-50)/50));
 };
 
-const sunBandWidth=(sunshineShare:number,cloud:number)=>{
-  const share=sunVisualShare(sunshineShare,cloud);
-  if(share>=0.78)return skybarThickness(3);
-  if(share>=0.54)return skybarThickness(2);
-  if(share>=0.3)return skybarThickness(1);
-  return skybarThickness(0);
-};
+const sunBandWidth=(sunshineShare:number,cloud:number)=>
+  skybarThickness(skybarFourStepLevel(sunVisualShare(sunshineShare,cloud)));
 
 const precipBandWidth=(amount:number)=>{
   if(amount<0.05)return 0;
@@ -60,16 +51,6 @@ const precipBandWidth=(amount:number)=>{
   if(amount<10)return skybarThickness(2);
   return skybarThickness(3);
 };
-
-const precipitationKind=(hour:PrecipSample):'rain'|'snow'|'mixed'|'storm'=>{
-  const parts=precipitationParts(hour);
-  if(parts.type==='thunderstorm'||parts.type==='thunderstormHail')return 'storm';
-  if(parts.type==='sleet'||parts.type==='sleetShowers'||parts.type==='freezingDrizzle'||parts.type==='freezingRain')return 'mixed';
-  if(parts.type==='snow'||parts.type==='snowGrains'||parts.type==='snowShowers')return 'snow';
-  return 'rain';
-};
-
-const precipitationLabel=(hour:PrecipSample)=>precipitationParts(hour).label||'Niederschlag';
 
 const sampleIntervalSeconds=(hours:PrecipSample[],index:number)=>{
   const current=Number(hours[index]?.epoch),next=Number(hours[index+1]?.epoch),previous=Number(hours[index-1]?.epoch);
@@ -80,55 +61,42 @@ const sampleIntervalSeconds=(hours:PrecipSample[],index:number)=>{
 };
 
 const baseSkyVisual=(cloud:number,daylight:boolean,sunshineShare:number):WeatherStripVisual|null=>{
-  if(daylight){
+  if(daylight&&cloud<50){
     const visualSunshine=sunVisualShare(sunshineShare,cloud);
-    const favorSun=visualSunshine>=0.26&&(visualSunshine>=0.58||cloud<58||(visualSunshine>=0.18&&cloud<72));
-    if(favorSun){
-      const width=sunBandWidth(sunshineShare,cloud);
-      return {
-        layer:'base',
-        color:'#ffc229',
-        strokeWidth:width,
-        opacity:0.97,
-        title:`Sonne/Bewölkung · ${(visualSunshine*100).toFixed(0)} % Sonne · ${cloud.toFixed(0)} % Wolken`,
-      };
-    }
-    const width=cloudBandWidth(cloud,true);
-    if(width<=0)return null;
     return {
       layer:'base',
-      color:cloud>=82?'#b0b5bb':'#c0c5cb',
-      strokeWidth:width,
-      opacity:0.94,
-      title:`Bewölkung · ${cloud.toFixed(0)} % Wolken${visualSunshine>0.12?` · ${(visualSunshine*100).toFixed(0)} % Sonne`:''}`,
+      color:'#ffc229',
+      strokeWidth:sunBandWidth(sunshineShare,cloud),
+      opacity:0.98,
+      title:`Sonnenschein · ${(visualSunshine*100).toFixed(0)} % relative Stärke · ${cloud.toFixed(0)} % Wolken`,
     };
   }
 
-  const width=cloudBandWidth(cloud,false);
+  const width=cloudBandWidth(cloud);
   if(width<=0)return null;
   return {
     layer:'base',
     color:'#aeb3b9',
     strokeWidth:width,
-    opacity:0.88,
-    title:`Bewölkung Nacht · ${cloud.toFixed(0)} %`,
+    opacity:0.96,
+    title:`Bewölkung${daylight?'':' Nacht'} · ${cloud.toFixed(0)} %`,
   };
 };
 
-const precipitationOverlayVisual=(hour:PrecipSample,intervalSeconds:number,cloud:number,sunshineShare:number):WeatherStripVisual|null=>{
+const precipitationOverlayVisual=(hour:PrecipSample,intervalSeconds:number,cloud:number):WeatherStripVisual|null=>{
   const amount=Math.max(0,Number(hour.precipitation??0));
   const precipitationRateMmh=amount*(3600/Math.max(60,intervalSeconds));
   const width=precipBandWidth(precipitationRateMmh);
   if(width<=0)return null;
   const intervalMinutes=Math.round(intervalSeconds/60);
-  const kind=precipitationKind(hour);
-  const hasSunshineBase=!!hour.isDay&&sunVisualShare(sunshineShare,cloud)>=0.18;
+  const parts=precipitationParts(hour);
+  const hasSunshineBase=!!hour.isDay&&cloud<50;
   return {
     layer:'precip',
-    color:precipBaseColor(kind),
+    color:precipitationPhaseColor(parts.type),
     strokeWidth:width,
-    opacity:0.99,
-    title:`${precipitationLabel(hour)} · ${precipitationRateMmh.toFixed(precipitationRateMmh>=10?0:1)} mm/h${intervalMinutes<60?` · ${amount.toFixed(amount>=10?0:1)} mm/${intervalMinutes} min`:''}${hasSunshineBase?' · auf sonnigem Grundband':''}`,
+    opacity:1,
+    title:`${parts.label||'Niederschlag'} · ${precipitationPhaseColorLabel(parts.type)} · ${precipitationRateMmh.toFixed(precipitationRateMmh>=10?0:1)} mm/h${intervalMinutes<60?` · ${amount.toFixed(amount>=10?0:1)} mm/${intervalMinutes} min`:''}${hasSunshineBase?' · auf sonnigem Grundband':''}`,
   };
 };
 
@@ -139,7 +107,7 @@ const weatherStripVisuals=(hour:PrecipSample,intervalSeconds:number)=>{
   const visuals:WeatherStripVisual[]=[];
   const base=baseSkyVisual(cloud,daylight,sunshineShare);
   if(base)visuals.push(base);
-  const precipitation=precipitationOverlayVisual(hour,intervalSeconds,cloud,sunshineShare);
+  const precipitation=precipitationOverlayVisual(hour,intervalSeconds,cloud);
   if(precipitation)visuals.push(precipitation);
   return visuals;
 };

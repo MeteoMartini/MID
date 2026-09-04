@@ -8,6 +8,7 @@ need(worker,"title:'Netatmo wurde mit MID verbunden'",'Erfolgsseite bestätigt d
 need(settings,'oauthFresh','Stationsbereich blendet veraltete OAuth-Ergebnisse nicht aus.');
 need(settings,"oauth.stage==='token'",'Tokenfehler werden nach Browser-Rückkehr nicht konkret erklärt.');
 need(app,'captureMidExternalOAuthReturn','App übergibt den Callback nicht an den Plattformadapter.');
-need(navigation,'localStorage.setItem(NETATMO_CALLBACK_KEY','Callback-Fallback über localStorage fehlt.');
+need(navigation,'takePendingMidNetatmoOAuthCallback','Flüchtige Callback-Übergabe fehlt.');
+if(navigation.includes('sessionStorage.setItem')||navigation.includes('localStorage.setItem'))failures.push('Callback-Daten werden weiterhin im Browser-Speicher abgelegt.');
 if(failures.length){console.error('Netatmo Callback-Handoff fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Netatmo Callback-Handoff geprüft: sichtbare Browser-Rücksprungseite, serverseitiges OAuth-Ergebnis und PWA-Fallback sind vorhanden.');
+console.log('Netatmo Callback-Handoff geprüft: sichtbare Browser-Rücksprungseite, serverseitiges OAuth-Ergebnis und flüchtiger App-Handoff sind vorhanden.');

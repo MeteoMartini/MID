@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import ts from 'typescript-strada';
 import {versionAtLeast} from './version-regression-helper.mjs';
+import {sourceUsesHttpsHost} from './source-url-contract.mjs';
 
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8');
 const[panel,overlay,modelledAreas,geojsonSource,styles,dashboard,settings,app,pkgRaw,baselineRaw,changelog,implementation,worker]=await Promise.all([
@@ -14,7 +15,7 @@ assert.ok(baseline.requiredRegressionTests.includes(test)&&baseline.regressionTe
 for(const file of[test,'MID_IMPLEMENTATION_0.9.66.8.md'])assert.ok(baseline.requiredFiles.includes(file));
 
 for(const token of ['tile.openstreetmap.org/{z}/{x}/{y}.png','opacity={.48}','Jede getrennte dargestellte Gefahrenfläche','startDate===endDate','${endDate}, ${endTime}','Nullgradgrenze'])assert.ok(panel.includes(token),`Outlook-Vertrag fehlt: ${token}`);
-assert.ok(!panel.includes('basemaps.cartocdn.com'),'Die Extremwetterkarte darf keine anonym gesperrten CARTO-Kacheln mit API-Key-Wasserzeichen mehr laden.');
+assert.ok(!sourceUsesHttpsHost(panel,'basemaps.cartocdn.com'),'Die Extremwetterkarte darf keine anonym gesperrten CARTO-Kacheln mit API-Key-Wasserzeichen mehr laden.');
 assert.ok(!panel.includes("['Gefrierhöhe'")&&!worker.includes('Gefrierhöhe'),'Veraltete Bezeichnung Gefrierhöhe ist im DACH-Ausblick noch aktiv.');
 for(const token of ['buildExtremeOutlookContourGeoJson',"type:'fill'","type:'line'",'fill-pattern','registerMapLayerOrder','8+index/100','areas.map(area=>','hazardLabel(area.signal.hazard)'])assert.ok(overlay.includes(token),`Nativer Kartenlayer bzw. flächengebundene Beschriftung fehlt: ${token}`);
 assert.ok(modelledAreas.includes('overlapsStronger'),'Stärkere eingebettete Kerne müssen doppelte Hüllenbeschriftungen verdrängen.');

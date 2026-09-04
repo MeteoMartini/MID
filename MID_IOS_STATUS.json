@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-09-04T04:20:03.214Z",
-  "releaseVersion": "0.9.78.37",
+  "updatedAt": "2026-09-04T06:59:30.942Z",
+  "releaseVersion": "0.9.78.42",
   "sourceBaseline": {
     "professionalVersion": "0.9.77.26",
     "workerVersion": "0.9.77.26",
@@ -119,7 +119,10 @@
     "release-run-869-regression-and-ensemble-resume-hotfix-0.9.78.34",
     "seven-day-daycard-24h-skybar-0.9.78.34",
     "ensemble-anti-hang-deadline-independent-bootstrap-0.9.78.35",
-    "ensemble-mean-spread-first-single-model-bootstrap-0.9.78.36"
+    "ensemble-mean-spread-first-single-model-bootstrap-0.9.78.36",
+    "skybar-yellow-gray-blue-four-thickness-0.9.78.38",
+    "release-run-869-regression-and-ensemble-resume-hotfix-0.9.78.33",
+    "parallel-chat-security-merge-and-skybar-phase-colors-0.9.78.39"
   ],
   "nextMilestone": "macos-xcode-simulator-quality-assurance",
   "validation": {

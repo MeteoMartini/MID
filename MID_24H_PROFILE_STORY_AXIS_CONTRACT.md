@@ -88,6 +88,18 @@ gegeneinander verschoben sein.
 
 - Die 7-Tage-Kurvenübersicht stellt Nachtstunden wieder als zusammenhängende, themegeeignete Hintergrundbereiche dar und zeigt denselben gerundeten, farbreinen Wetterstreifen auf gemeinsamer Zeitachse. Das zuvor ergänzte P25–P75-Band um die Temperaturkurve ist ersatzlos entfernt.
 
+
+### Verbindlicher Skybar-Farb-/Dickenvertrag
+
+- Sonnenschein ist gelb, Bewölkung grau. Niederschlag verwendet eine eigene **phasenabhängige, farbreine Overlay-Farbe**: Regen/Sprühregen/Schauer blau, Schnee hellblau, Misch-/gefrierende Phase violett, Gewitter/Hagel purpur. Die Bedeutungen werden nicht über Mischfarben mit dem Grundband codiert.
+- Ab **50 % Gesamtbewölkung** ist das Grundband grau. Der Bereich 50–100 % wird ausschließlich über **vier gleich definierte Dickenstufen** codiert.
+- Unter 50 % Gesamtbewölkung ist das Grundband tagsüber gelb. Die vier Sonnendicken folgen der relativen Sonnenscheindauer bzw. – wenn diese nicht stärker ausfällt – dem Aufklarungsgrad 50 → 0 % Bewölkung.
+- Bewölkung verwendet appweit in der Skybar einen **einheitlichen Grauton**; mehr oder weniger Bewölkung darf dort keine Grauton-/Opacity-Abstufung mehr erzeugen.
+- Niederschlag liegt als eigener Overlay-Streifen über dem Grundband, übernimmt die verbindliche Niederschlagsart/-phasenfarbe und verwendet ebenfalls vier Dickenstufen nach der zeitnormalisierten Intensität. Die Dicke codiert Stärke, die Farbe Art/Phase.
+- Die Dickenstufen sind gegenüber dem vorherigen Stand leicht verstärkt: `2.4 / 3.3 / 4.2 / 5.1` SVG-Einheiten. Auch auf dem iPhone wird die Tageskarten-Skybar nicht mehr auf 14 px Höhe verkleinert.
+- Klare Nächte unter 50 % Bewölkung dürfen ohne Grundband bleiben. Gerundete Segmente und fugenlose Verbindung gleichartiger Nachbarsegmente bleiben verbindlich.
+
+
 ## Regression
 
 `scripts/test-weather-profile-story-axis-09750.mjs` schützt die gemeinsame

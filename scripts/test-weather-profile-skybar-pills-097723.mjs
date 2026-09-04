@@ -18,12 +18,17 @@ const baseline=JSON.parse(baselineRaw);
 const test='scripts/test-weather-profile-skybar-pills-097723.mjs';
 
 assert.ok(app.includes('data-mid-sky-note="react"'),'Wetterstreifen-Hinweis fehlt in der 24h-Ansicht.');
-assert.ok(app.includes('Niederschlag liegt farbrein über dem Grundband')&&app.includes('niemals mit Gelb/Grau gemischt')&&app.includes('Gerundete Teile'),'Hinweis muss den farbreinen Grundband-/Overlay-Vertrag erklären.');
+assert.ok(app.includes('Sonnenschein · gelb')&&app.includes('Bewölkung · grau')&&app.includes('Niederschlag · nach Phase')&&app.includes('Regen/Sprühregen/Schauer blau, Schnee hellblau, Misch-/gefrierende Phase violett, Gewitter/Hagel purpur')&&app.includes('Ab 50 % Gesamtbewölkung')&&app.includes('Unter 50 % ist es tagsüber gelb'),'Hinweis muss den verbindlichen Gelb/Grau-/Phasenfarben- und 50-%-Skybar-Vertrag erklären.');
 
-for(const token of ['const weatherStripVisuals=','const baseSkyVisual=','const precipitationOverlayVisual=','const precipitationKind=','const precipBandWidth=','const precipBaseColor=','const SKYBAR_THICKNESS_STEPS=','const sunVisualShare=','const sampleIntervalSeconds=','sunshineDuration??0)/Math.max(60,intervalSeconds)','precipitationRateMmh=amount*(3600/Math.max(60,intervalSeconds))','return [...baseSegments,...precipSegments]']){
+for(const token of ['const weatherStripVisuals=','const baseSkyVisual=','const precipitationOverlayVisual=','precipitationPhaseColor(parts.type)','precipitationPhaseColorLabel(parts.type)','const precipBandWidth=','const SKYBAR_THICKNESS_STEPS=','const sunVisualShare=','const sampleIntervalSeconds=','sunshineDuration??0)/Math.max(60,intervalSeconds)','precipitationRateMmh=amount*(3600/Math.max(60,intervalSeconds))','return [...baseSegments,...precipSegments]']){
   assert.ok(detailSkyBar.includes(token),`Skybar-Vertrag unvollständig: ${token}`);
 }
 assert.ok(detailSkyBar.includes("layer:'base'")&&detailSkyBar.includes("layer:'precip'"),'Sonne/Bewölkung und Niederschlag müssen als getrennte Zeichenlagen geführt werden.');
+assert.ok(detailSkyBar.includes('const SKYBAR_THICKNESS_STEPS=[2.4,3.3,4.2,5.1] as const'),'Skybar muss die leicht verstärkten vier Dickenstufen verwenden.');
+assert.ok(detailSkyBar.includes('if(cloud<50)return 0;')&&detailSkyBar.includes('skybarFourStepLevel((cloud-50)/50)'),'Grauband darf erst ab 50 % Gesamtbewölkung beginnen und muss 50–100 % auf vier Dickenstufen abbilden.');
+assert.ok(detailSkyBar.includes('if(daylight&&cloud<50)')&&detailSkyBar.includes("color:'#ffc229'"),'Unter 50 % Gesamtbewölkung muss tagsüber das gelbe Sonnenband verwendet werden.');
+assert.ok(detailSkyBar.includes("color:'#aeb3b9'")&&!detailSkyBar.includes("cloud>=82?'#b0b5bb':'#c0c5cb'"),'Bewölkung muss einen einheitlichen Grauton nutzen; die Stärke wird ausschließlich über die Dicke codiert.');
+assert.ok(detailSkyBar.includes("import {precipitationPhaseColor,precipitationPhaseColorLabel} from './precipitationPhaseColor';")&&detailSkyBar.includes('color:precipitationPhaseColor(parts.type)'),'Skybar-Niederschlag muss die gemeinsame Art-/Phasenpalette verwenden.');
 assert.ok(!detailSkyBar.includes('const precipSunColor=')&&!detailSkyBar.includes('color-mix(in srgb'),'Niederschlag darf nicht mehr mit Gelb/Grau zu Mischfarben verrechnet werden.');
 assert.ok(!detailSkyBar.includes('underlayColor')&&!detailSkyBar.includes('underlayStrokeWidth')&&!detailSkyBar.includes('underlayOpacity'),'Skybar darf keine 3D-Unterlage rendern.');
 assert.ok(detailSkyBar.includes('xPositions?:number[]'),'detailSkyBar muss explizite X-Positionen der 7-Tage-Kurvenübersicht unterstützen.');
@@ -40,7 +45,7 @@ assert.ok(curve.includes('nightBands=(()=>{')&&curve.includes('seven-day-curve-n
 assert.ok(!curve.includes('seven-day-curve-temperature-band')&&!curve.includes('P25–P75')&&!curve.includes('smoothBandPath')&&!curve.includes('interpolateTemperatureBand'),'P25–P75 muss aus der 7-Tage-Kurvenübersicht ersatzlos entfernt sein.');
 assert.ok(styles.includes('.seven-day-curve-night-band{fill:rgba(164,181,199,.14)!important')&&styles.includes(':root[data-theme=light] .seven-day-curve-night-band{fill:rgba(73,92,113,.08)!important'),'Nachtstunden müssen in dunklem und hellem Design explizit sichtbar sein.');
 
-for(const token of ['farbreines Grundband','keine Farbmischung mit Gelb/Grau','Alle Teilstücke sind gerundet','Nachtstunden wieder als zusammenhängende','P25–P75-Band um die Temperaturkurve ist ersatzlos entfernt']){
+for(const token of ['Regen/Sprühregen/Schauer blau, Schnee hellblau, Misch-/gefrierende Phase violett, Gewitter/Hagel purpur','50 % Gesamtbewölkung','vier gleich definierte Dickenstufen','einheitlichen Grauton','Nachtstunden wieder als zusammenhängende','P25–P75-Band um die Temperaturkurve ist ersatzlos entfernt']){
   assert.ok(contract.includes(token),`24h-Profil-Vertrag unvollständig: ${token}`);
 }
 

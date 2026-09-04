@@ -8,7 +8,9 @@ for(const token of [
  'cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0',"wranglerVersion: '4.125.0'",'--strict','--keep-vars','--experimental-provision=false','--experimental-auto-create=false',
  '@0%','@100%','Cloudflare-Versionsoverride','check_worker_health.mjs','Automatischer MID-Rollback','needs.deploy_worker.result == \'success\''
 ])assert.ok(workflow.includes(token),`Auto-Worker-Deploy-Vertrag fehlt: ${token}`);
-for(const token of ['keep_vars:true','no_bundle:true','compatibility_date','kv_namespaces','r2_buckets','MID_RUC_BINDING_AUTO_APPROVED','Unbekannte/noch nicht sicher abgebildete Worker-Bindings','normalizePlacement','versions'])assert.ok(prepare.includes(token),`Dynamische Wrangler-Konfiguration fehlt: ${token}`);
+for(const token of ['keep_vars:true','no_bundle:true','compatibility_date','kv_namespaces','r2_buckets','MID_RUC_BINDING_AUTO_APPROVED','Unbekannte/noch nicht sicher abgebildete Worker-Bindings','normalizePlacement','versions',"mkdtemp(path.join(os.tmpdir(),'mid-worker-deploy-'))","mode:0o600,flag:'wx'",'config_path=${out}','meta_path=${metaOut}'])assert.ok(prepare.includes(token),`Dynamische bzw. sicher temporäre Wrangler-Konfiguration fehlt: ${token}`);
+for(const token of ['steps.remote_worker.outputs.config_path','steps.remote_worker.outputs.meta_path'])assert.ok(workflow.includes(token),`Workflow konsumiert den sicheren temporären Pfad nicht: ${token}`);
+assert.ok(!prepare.includes("process.argv[2]||'/tmp/")&&!workflow.includes('/tmp/mid-wrangler-worker.json')&&!workflow.includes('/tmp/mid-worker-deploy-meta.json'),'Vorhersagbare /tmp-Dateien dürfen nicht mehr verwendet werden.');
 assert.ok(!workflow.includes('wrangler deploy\n'),'Direkter wrangler deploy darf den 0%-Smoke-Vertrag nicht umgehen.');
 
 const temp=await mkdtemp(path.join(os.tmpdir(),'mid-worker-deploy-'));
@@ -26,13 +28,15 @@ try{
  result=await run(process.execPath,['tools/cloudflare/parse_wrangler_output.mjs'],{GITHUB_OUTPUT:ghOut,WRANGLER_COMMAND_OUTPUT:realWranglerStdout});assert.equal(result.code,0,result.stderr);assert.match(await readFile(ghOut,'utf8'),new RegExp(vid));
 
  const originalFetch=globalThis.fetch,argv=process.argv,env={...process.env};
- const configPath=path.join(temp,'wrangler.json'),metaPath=path.join(temp,'meta.json');
- process.env.CLOUDFLARE_ACCOUNT_ID='abc';process.env.CLOUDFLARE_API_TOKEN='secret-token';process.env.MID_CLOUDFLARE_WORKER_NAME='mid-worker';process.env.MID_RUC_R2_BUCKET='mid-ruc-data';process.env.MID_RUC_BINDING_AUTO_APPROVED='true';delete process.env.GITHUB_OUTPUT;
- process.argv=[process.execPath,'prepare_worker_deploy.mjs',configPath,metaPath];
+ await writeFile(ghOut,'');
+ process.env.CLOUDFLARE_ACCOUNT_ID='abc';process.env.CLOUDFLARE_API_TOKEN='secret-token';process.env.MID_CLOUDFLARE_WORKER_NAME='mid-worker';process.env.MID_RUC_R2_BUCKET='mid-ruc-data';process.env.MID_RUC_BINDING_AUTO_APPROVED='true';process.env.GITHUB_OUTPUT=ghOut;
  globalThis.fetch=async url=>new Response(JSON.stringify({success:true,result:String(url).endsWith('/settings')?{compatibility_date:'2026-08-01',compatibility_flags:['nodejs_compat'],placement:{},bindings:[{name:'MID_PUSH_SUBSCRIPTIONS',type:'kv_namespace',namespace_id:'0123456789abcdef0123456789abcdef'},{name:'SECRET',type:'secret_text',text:'must-not-leak'},{name:'VISIBLE',type:'plain_text',text:'must-not-leak'}]}:{deployments:[{id:'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',versions:[{version_id:'aaaaaaaa-1111-2222-3333-bbbbbbbbbbbb',percentage:100}]}]}}),{status:200,headers:{'content-type':'application/json'}});
  await import(`../tools/cloudflare/prepare_worker_deploy.mjs?test=${Date.now()}`);
+ const outputs=Object.fromEntries((await readFile(ghOut,'utf8')).trim().split('\n').map(line=>{const at=line.indexOf('=');return[line.slice(0,at),line.slice(at+1)]})),configPath=outputs.config_path,metaPath=outputs.meta_path;
+ assert.ok(configPath.startsWith(path.join(os.tmpdir(),'mid-worker-deploy-'))&&metaPath.startsWith(path.dirname(configPath)+path.sep),'Generierte Dateien müssen in demselben zufälligen privaten Temp-Verzeichnis liegen.');
  const config=JSON.parse(await readFile(configPath,'utf8')),meta=JSON.parse(await readFile(metaPath,'utf8')),serialized=JSON.stringify({config,meta});
  assert.equal(config.keep_vars,true);assert.equal(config.no_bundle,true);assert.equal('placement' in config,false,'Leeres Remote-Placement darf nicht als placement:{} an Wrangler gehen.');assert.equal(path.isAbsolute(config.main),true,'Temporäre Wrangler-Konfiguration muss einen absoluten Worker-Einstiegspfad verwenden.');assert.equal(config.main,path.resolve('worker/metar-proxy.js'),'Worker-Einstiegspfad muss auf den ausgecheckten Release zeigen, nicht relativ zur /tmp-Konfiguration aufgelöst werden.');assert.equal(config.kv_namespaces[0].binding,'MID_PUSH_SUBSCRIPTIONS');assert.equal(config.r2_buckets[0].binding,'MID_DWD_RUC_DATA');assert.ok(!serialized.includes('must-not-leak'),'Plaintext-/Secretwerte dürfen nie in generierte Dateien gelangen.');
+ await rm(outputs.temp_dir,{recursive:true,force:true});
  globalThis.fetch=originalFetch;process.argv=argv;for(const key of Object.keys(process.env))if(!(key in env))delete process.env[key];Object.assign(process.env,env);
 
  const server=http.createServer((req,res)=>{res.setHeader('content-type','application/json');const url=new URL(req.url,'http://localhost');if(url.searchParams.get('mode')==='ruc-health')res.end(JSON.stringify({configured:true,ready:true,fresh:true,schemaValid:true,backend:'pages',run:'2026-08-29T18:00',pointCount:542040,timeCount:15,epsMemberCount:20,version:'0.9.69.5'}));else res.end(JSON.stringify({ok:true,version:'0.9.69.5'}));});await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));

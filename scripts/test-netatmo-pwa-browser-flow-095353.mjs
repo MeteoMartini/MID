@@ -14,9 +14,11 @@ need(settings,"visibilitychange",'Rückkehr aus dem externen OAuth-Browser wird 
 need(settings,"mid_station_connection",'Callback-Verbindungskennung wird in den Einstellungen nicht übernommen.');
 need(app,'captureMidExternalOAuthReturn','App übergibt den OAuth-Rücksprung nicht an den Plattformadapter.');
 need(navigation,"url.searchParams.get('mid_station_connection')",'App sichert die OAuth-Verbindungskennung nicht beim Rücksprung.');
-need(navigation,'localStorage.setItem(NETATMO_CALLBACK_KEY','OAuth-Rücksprung wird nicht zusätzlich PWA-übergreifend persistent gesichert.');
+need(navigation,'pendingNetatmoCallback=callback','OAuth-Rücksprung wird nicht flüchtig bis zum Einstellungs-Mount gesichert.');
+need(settings,"url.searchParams.get('mid_station_connection')||pending?.connectionId",'URL- und In-Memory-Rücksprung werden nicht gemeinsam verarbeitet.');
+if(navigation.includes('sessionStorage.setItem')||navigation.includes('localStorage.setItem'))throw new Error('OAuth-Rücksprung darf keine sensiblen Callback-Daten im Browser-Speicher ablegen.');
 need(settings,"next.oauthResult",'Stationsstatus wertet serverseitiges OAuth-Ergebnis nicht aus.');
 need(worker,"netatmoSaveOAuthResult",'Worker speichert das letzte OAuth-Ergebnis nicht serverseitig.');
 need(worker,"netatmoCallbackPage",'Worker hält den OAuth-Callback nicht als sichtbare Rücksprungseite offen.');
 need(worker,"target.searchParams.set('mid_station_connection',String(entry.connectionId))",'Worker gibt die OAuth-Verbindungskennung beim Rücksprung nicht zurück.');
-console.log('Netatmo iOS/PWA Browser-OAuth geprüft: Autorisierungs-URL ist vorab vorbereitet, externe Browsernavigation erfolgt direkt aus dem Tap und connectionId überlebt Browser-/PWA-Kontextwechsel.');
+console.log('Netatmo iOS/PWA Browser-OAuth geprüft: Autorisierungs-URL ist vorab vorbereitet, externe Browsernavigation erfolgt direkt aus dem Tap und connectionId wird aus URL oder flüchtigem Handoff übernommen.');

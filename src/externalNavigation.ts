@@ -6,8 +6,8 @@ export type MidNetatmoOAuthCallback={result:'netatmo-connected'|'netatmo-denied'
 const MID_OAUTH_SCHEME='midwx:';
 const MID_OAUTH_HOST='oauth';
 const NETATMO_CALLBACK_PATH='/netatmo';
-const NETATMO_CALLBACK_KEY='mid:netatmo:callback';
 const NETATMO_RESULTS=new Set<MidNetatmoOAuthCallback['result']>(['netatmo-connected','netatmo-denied','netatmo-error']);
+let pendingNetatmoCallback:MidNetatmoOAuthCallback|null=null;
 
 function safeText(value:string,max:number){return String(value||'').replace(/[\u0000-\u001f\u007f]/g,' ').trim().slice(0,max)}
 function isNativeNetatmoCallback(url:URL){return url.protocol===MID_OAUTH_SCHEME&&url.hostname===MID_OAUTH_HOST&&url.pathname===NETATMO_CALLBACK_PATH&&!url.username&&!url.password&&!url.port}
@@ -43,12 +43,16 @@ export function parseMidNetatmoOAuthCallback(rawUrl:string):MidNetatmoOAuthCallb
  }catch{return null}
 }
 
+export function takePendingMidNetatmoOAuthCallback(){
+ const callback=pendingNetatmoCallback;
+ pendingNetatmoCallback=null;
+ return callback;
+}
+
 export function captureMidExternalOAuthReturn(rawUrl:string){
  const callback=parseMidNetatmoOAuthCallback(rawUrl);
  if(!callback)return null;
- const payload=JSON.stringify(callback);
- try{sessionStorage.setItem(NETATMO_CALLBACK_KEY,payload)}catch{}
- try{localStorage.setItem(NETATMO_CALLBACK_KEY,payload)}catch{}
+ pendingNetatmoCallback=callback;
  window.dispatchEvent(new CustomEvent<MidNetatmoOAuthCallback>('mid:external-oauth-return',{detail:callback}));
  return callback;
 }

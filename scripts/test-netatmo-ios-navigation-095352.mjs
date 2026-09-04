@@ -15,6 +15,7 @@ need(worker,"'Cache-Control':'no-store, no-cache, must-revalidate, max-age=0'",'
 need(worker,'function netatmoRedirectResponse','Gemeinsame cachefreie OAuth-Redirect-Antwort fehlt.');
 need(worker,'version:WORKER_VERSION','Worker-Version fehlt in der Netatmo-Diagnose.');
 need(app,'captureMidExternalOAuthReturn','OAuth-Callback wird nicht an den Plattformadapter übergeben.');
-need(navigation,'sessionStorage.setItem(NETATMO_CALLBACK_KEY','OAuth-Callback wird vor dem Einstellungs-Mount nicht gesichert.');
-need(settings,"storage.getItem('mid:netatmo:callback')",'Stationsbereich kann gesicherten OAuth-Callback nicht aus Session-/LocalStorage übernehmen.');
-console.log('Netatmo iOS/PWA Navigation: synchroner Start, Cache-Buster, no-store Redirects und Callback-Persistenz geprüft.');
+need(navigation,'pendingNetatmoCallback=callback','OAuth-Callback wird vor dem Einstellungs-Mount nicht flüchtig gesichert.');
+need(settings,'takePendingMidNetatmoOAuthCallback()','Stationsbereich kann den flüchtig gesicherten OAuth-Callback nicht übernehmen.');
+if(navigation.includes('sessionStorage.setItem')||navigation.includes('localStorage.setItem'))throw new Error('OAuth-Callback darf nicht im Browser-Speicher persistiert werden.');
+console.log('Netatmo iOS/PWA Navigation: synchroner Start, Cache-Buster, no-store Redirects und flüchtige Callback-Übergabe geprüft.');

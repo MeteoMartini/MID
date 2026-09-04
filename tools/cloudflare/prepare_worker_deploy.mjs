@@ -1,4 +1,5 @@
-import {appendFile,mkdir,writeFile} from 'node:fs/promises';
+import {appendFile,chmod,mkdtemp,writeFile} from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 
 function required(name){const value=String(process.env[name]||'').trim();if(!value)throw new Error(`${name} fehlt`);return value}
@@ -73,7 +74,9 @@ function activeVersion(deployments){
 }
 
 const accountId=required('CLOUDFLARE_ACCOUNT_ID'),token=required('CLOUDFLARE_API_TOKEN'),workerName=required('MID_CLOUDFLARE_WORKER_NAME');
-const out=process.argv[2]||'/tmp/mid-wrangler-worker.json',metaOut=process.argv[3]||'/tmp/mid-worker-deploy-meta.json';
+const tempDir=await mkdtemp(path.join(os.tmpdir(),'mid-worker-deploy-'));
+await chmod(tempDir,0o700);
+const out=path.join(tempDir,'wrangler.json'),metaOut=path.join(tempDir,'metadata.json');
 const [settings,deployments]=await Promise.all([
  cfGet(accountId,token,workerName,'/settings'),
  cfGet(accountId,token,workerName,'/deployments')
@@ -98,8 +101,8 @@ const config={
  ...(settings?.limits&&typeof settings.limits==='object'?{limits:settings.limits}:{}),
  ...mapped.config
 };
-await mkdir(path.dirname(out),{recursive:true});await writeFile(out,JSON.stringify(config,null,2)+'\n');
+await writeFile(out,JSON.stringify(config,null,2)+'\n',{encoding:'utf8',mode:0o600,flag:'wx'});
 const meta={schema:'mid.cloudflare.worker-deploy.v1',workerName,previousVersionId:current.versionId,previousDeploymentId:current.deploymentId,compatibilityDate,bindingSummary:mapped.summary.map(({name,type,planned})=>({name,type,planned:Boolean(planned)})),rucBindingPresent:Boolean((config.r2_buckets||[]).some(row=>row.binding===rucBinding))};
-await writeFile(metaOut,JSON.stringify(meta,null,2)+'\n');
-if(process.env.GITHUB_OUTPUT)await appendFile(process.env.GITHUB_OUTPUT,`previous_version_id=${current.versionId}\nworker_name=${workerName}\n`);
+await writeFile(metaOut,JSON.stringify(meta,null,2)+'\n',{encoding:'utf8',mode:0o600,flag:'wx'});
+if(process.env.GITHUB_OUTPUT)await appendFile(process.env.GITHUB_OUTPUT,`previous_version_id=${current.versionId}\nworker_name=${workerName}\nconfig_path=${out}\nmeta_path=${metaOut}\ntemp_dir=${tempDir}\n`);
 console.log(`Worker-Konfiguration sicher vorbereitet: ${workerName}; vorherige Version ${current.versionId}; ${meta.bindingSummary.length} Bindings (Werte/Secrets nicht ausgegeben).`);

@@ -1,3 +1,32 @@
+## 0.9.78.42
+- CI-Hotfix für Release-Run #876: TypeScript 7, Vite-Produktionsbuild und 663 von 664 weiteren Regressionen waren bereits grün; ausschließlich der appweite Parameterfarbtest erwartete nach der zentralisierten Phasenpalette noch den alten Inline-String im ForecastCockpit.
+- `test-appwide-parameter-colors-09779.mjs` prüft nun den aktiven gemeinsamen Vertrag: flüssiger Niederschlag nutzt weiterhin `--param-precipitation`, Schnee hellblau, Misch-/gefrierende Phase violett und Gewitter/Hagel purpur; ForecastCockpit und Skybar greifen auf dieselbe zentrale Palette zu.
+- Keine meteorologische Fachlogik verändert. Die phasenabhängigen Skybar-/Cockpitfarben, 24-h-Tageskarten-Skybar, Ensemble-Härtung und die erweiterte 7d-Nachtfläche bleiben unverändert.
+
+## 0.9.78.41
+- CI-Buildfix für GitHub Release-Run #875: den nach der phasenabhängigen Skybar-Umstellung ungenutzten `sunshineShare`-Parameter aus `precipitationOverlayVisual` entfernt; dadurch wird TypeScript 7 `TS6133` beseitigt.
+- Phasenabhängige Niederschlagsfarben, vier Skybar-Dickenstufen, v0.9.78.40-Nachtflächen und Installer-Härtung bleiben unverändert.
+- Neue Regression schützt den Buildfix.
+
+## 0.9.78.40
+- GitHub-Release-Installer gegen flüchtige frühe CI-Abbrüche gehärtet: `npm ci` und das Produktions-Dependency-Audit werden jetzt bis zu drei Mal mit Bereinigung bzw. kurzer Backoff-Pause wiederholt, bevor der Lauf hart fehlschlägt.
+- 7-Tage-Kurvenübersicht: der Nachtgraubereich spannt jetzt bewusst von oberhalb der Skybar bis unter die Niederschlagsbasis, damit Nachtstunden auch hinter Wetterstreifen und Niederschlagsbalken zusammenhängend sichtbar bleiben.
+- Parallel-Chat-Stand erneut gegengeprüft: die phasenabhängigen Skybar-Niederschlagsfarben sowie die bereits vereinigten Sicherheits-/Ensemble-/Sonnen-Fixes bleiben unverändert erhalten.
+- Neue Regressionen schützen sowohl die Installer-Retries als auch die erweiterte Nachtflächen-Geometrie.
+
+## 0.9.78.39
+- Parallel-Chat-v0.9.78.34 vollständig mit dem neueren v0.9.78.38-Hauptstand vereinigt: CodeQL #81–#90, flüchtiger Netatmo-OAuth-Handoff, sichere zufällige Worker-Deploy-Tempdateien sowie die zugehörigen Schutztests bleiben erhalten.
+- Neuere Ensemble-/Skybar-/Sonnen-Fixes v0.9.78.35–.38 bleiben gleichzeitig vollständig bestehen.
+- Skybar-Niederschlag nach Art/Phase eingefärbt: Regen/Schauer blau, Schnee hellblau, Misch-/gefrierende Phase violett, Gewitter/Hagel purpur; gemeinsame Palette mit dem Forecast-Cockpit.
+- Skybar-Legende auf phasenabhängige Niederschlagsfarben umgestellt.
+
+## 0.9.78.38
+- Skybar verbindlich auf Gelb/Grau/Blau umgestellt: Sonnenschein gelb, Bewölkung einheitlich grau, Niederschlag unabhängig von der Phase blau; keine Grauton- oder Opacity-Abstufung mehr.
+- 50-%-Schwelle präzisiert: ab 50 % Gesamtbewölkung vier Graudicken von 50–100 %, darunter tagsüber vier Sonnendicken aus relativer Sonnenscheindauer bzw. Aufklarung.
+- Vier Dickenstufen leicht verstärkt auf 2,4 / 3,3 / 4,2 / 5,1 SVG-Einheiten; mobile Tageskarten-Skybar bleibt auch unter 480 px 16 px hoch.
+- Legende auf drei eindeutige Einträge „Sonnenschein · gelb“, „Bewölkung · grau“, „Niederschlag · blau“ sowie den 50-%-Vertrag umgestellt.
+- Einheitliche Farbe/Opacity beseitigt künstliche Unterbrechungen bei gleich dicken aufeinanderfolgenden Bewölkungs- bzw. Niederschlagssegmenten.
+
 ## 0.9.78.37
 - Vollensemble startet 2 s nach dem sichtbaren Mean/Spread-Bootstrap; lange unabhängige Modellfamilien werden zuerst geladen.
 - Vollfusion auf sechs erfolgreiche Modellrouten bei maximal zwei parallelen Open-Meteo-Requests begrenzt; 20-s-Modellbudget und fehlerabhängige Variablenfallbacks reduzieren Blockade- und Request-Risiko.

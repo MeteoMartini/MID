@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {versionAtLeast} from './version-regression-helper.mjs';
+import {sourceUsesHttpsHost} from './source-url-contract.mjs';
 
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8');
 const [worker,data,direct,panel,overlay,app,modules,router,pkgRaw,baselineRaw,implementation]=await Promise.all([
@@ -46,7 +47,7 @@ for(const source of [panel,app,modules])assert.ok(!source.includes('Extremwetter
 // Kartenkontext muss unabhängig von der Anzahl/nestung der Gefahrenflächen oberhalb bleiben.
 assert.ok(panel.includes('id="extreme-outlook-basemap"')&&panel.includes('zIndex={0}'));
 assert.ok(panel.includes('id="extreme-outlook-context"')&&panel.includes('opacity={.48}')&&panel.includes('zIndex={20}'),'Grenz-/Stadtkontext muss über Gefahrenflächen nachgezeichnet werden.');
-assert.ok(!panel.includes('basemaps.cartocdn.com'),'Extremkarte bleibt bei der freien OSM-Kartenquelle.');
+assert.ok(!sourceUsesHttpsHost(panel,'basemaps.cartocdn.com'),'Extremkarte bleibt bei der freien OSM-Kartenquelle.');
 assert.ok(panel.includes('zIndex={30}')&&panel.includes('zIndex={40}'),'Interaktion und Standort müssen oberhalb des Kontextlayers bleiben.');
 assert.ok(overlay.includes("zIndex={35}"),'Gebietslabels müssen oberhalb des Kontextlayers bleiben.');
 assert.ok(overlay.includes("'fill-opacity':['min',.66,['*',['get','opacity'],.86]]"),'Gefahrenfüllung muss gedeckelt sein, damit der Kartenkontext lesbar bleibt.');

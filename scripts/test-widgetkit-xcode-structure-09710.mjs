@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {sourceUsesExactHttpsUrl} from './source-url-contract.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=relative=>fs.readFileSync(path.join(root,relative),'utf8');
@@ -40,7 +41,7 @@ assert.ok(!project.includes('com.apple.security.application-groups'),'App Group 
 assert.equal(schema.$id?.includes('mid.native.widget.v1')||schema.properties?.schema?.const==='mid.native.widget.v1',true,'Schema-Datei schützt mid.native.widget.v1 nicht');
 assert.ok(snapshot.includes('static let expectedSchema = "mid.native.widget.v1"'),'Swift-Modell schützt den Feedvertrag nicht');
 assert.ok(provider.includes('snapshot.schema == MIDWidgetSnapshot.expectedSchema'),'Widget Provider validiert den Schema-Vertrag nicht');
-assert.ok(provider.includes('https://mid-data-proxy.midwx.workers.dev/'),'Produktiver Worker-Endpunkt fehlt');
+assert.ok(sourceUsesExactHttpsUrl(provider,'https://mid-data-proxy.midwx.workers.dev/'),'Produktiver Worker-Endpunkt fehlt');
 assert.ok(provider.includes('URLQueryItem(name: "mode", value: "native-widget-feed")'),'native-widget-feed-Route fehlt');
 assert.ok(worker.includes("schema:'mid.native.widget.v1'"),'Worker liefert nicht den unveränderten v1-Vertrag');
 

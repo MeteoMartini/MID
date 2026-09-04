@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.78.37",
+  "version": "0.9.78.42",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -402,7 +402,12 @@
     "test:ensemble-progressive-bootstrap": "node scripts/test-ensemble-progressive-bootstrap-097832.mjs",
     "test:ensemble-deadline-watchdog": "node scripts/test-ensemble-deadline-watchdog-097835.mjs",
     "test:ensemble-fast-availability": "node scripts/test-ensemble-fast-availability-097836.mjs",
-    "test:ensemble-rate-budget-sunshine": "node scripts/test-ensemble-rate-budget-sunshine-097837.mjs"
+    "test:ensemble-rate-budget-sunshine": "node scripts/test-ensemble-rate-budget-sunshine-097837.mjs",
+    "test:codeql-alert-remediation": "node scripts/test-codeql-alert-remediation-097834.mjs",
+    "test:parallel-merge-skybar-phase": "node scripts/test-parallel-merge-skybar-phase-097839.mjs",
+    "test:install-workflow-registry-retries": "node scripts/test-install-workflow-registry-retries-097840.mjs",
+    "test:seven-day-curve-night-band": "node scripts/test-seven-day-curve-night-band-097841.mjs",
+    "test:detail-skybar-unused-parameter-buildfix": "node scripts/test-detail-skybar-unused-parameter-buildfix-097841.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",
