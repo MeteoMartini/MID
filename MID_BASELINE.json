@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.78.68",
+  "releaseVersion": "0.9.78.69",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -751,7 +751,9 @@
     "scripts/test-ensemble-multiparameter-097865.mjs",
     "scripts/test-fourteen-day-pill-favorite-tap-097866.mjs",
     "scripts/test-ensemble-confidence-calibration-097867.mjs",
-    "scripts/test-release-preflight-gate-097868.mjs"
+    "scripts/test-release-preflight-gate-097868.mjs",
+    "scripts/test-ensemble-data-quality-separation-097869.mjs",
+    "scripts/test-forecast-confidence-layout-090505.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -1697,8 +1699,8 @@
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
     "scripts/test-composite-temporal-truth-zugspuren-097860.mjs"
   ],
-  "version": "0.9.78.68",
-  "updatedAt": "2026-09-05T18:44:00+02:00",
+  "version": "0.9.78.69",
+  "updatedAt": "2026-09-05T21:38:00+02:00",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
     "MID_IMPLEMENTATION_0.9.77.27.md",
@@ -1750,7 +1752,8 @@
     "MID_IMPLEMENTATION_0.9.78.65.md",
     "MID_IMPLEMENTATION_0.9.78.66.md",
     "MID_IMPLEMENTATION_0.9.78.67.md",
-    "MID_IMPLEMENTATION_0.9.78.68.md"
+    "MID_IMPLEMENTATION_0.9.78.68.md",
+    "MID_IMPLEMENTATION_0.9.78.69.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",
@@ -1788,6 +1791,7 @@
     "MID_TEST_REPORT_0.9.78.63.md",
     "MID_TEST_REPORT_0.9.78.66.md",
     "MID_TEST_REPORT_0.9.78.67.md",
-    "MID_TEST_REPORT_0.9.78.68.md"
+    "MID_TEST_REPORT_0.9.78.68.md",
+    "MID_TEST_REPORT_0.9.78.69.md"
   ]
 }

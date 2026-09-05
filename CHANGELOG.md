@@ -1,3 +1,10 @@
+## 0.9.78.69 – 2026-09-05
+
+- CI-Hotfix nach GitHub-Run #903: veraltete Mehrparameter-Erwartung entfernt, die schwache Datenbasis fälschlich als meteorologische Mittel-Konfidenz erzwang.
+- Verbindlicher Vertrag: Konfidenzfüllung bewertet meteorologische Übereinstimmung; Datenvollständigkeit/Frische bleibt separat im Qualitätsring.
+- Fehlender einzelner Kernparameter, unbekannte Lauf-Frische oder reduzierte Member-Abdeckung dürfen bei sonst stark übereinstimmenden Kernsignalen `hoch` bleiben; weniger als zwei Kernparameter bleiben fail-closed nicht bewertbar.
+- Neue Regression schützt die Trennung von meteorologischer Konfidenz und Datenqualität.
+
 ## 0.9.78.68
 
 - CI-Hotfix: sieben nach der 14d-Konfidenzmodernisierung veraltete Regressionserwartungen an die aktuellen, verbindlichen UI-/Datenqualitäts-/iOS-Touch-Verträge angepasst; keine Produktionslogik zurückgebaut.

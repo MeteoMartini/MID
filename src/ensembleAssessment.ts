@@ -130,7 +130,9 @@ function robustDayScore(parameters:ParameterAssessment[],leadHours:number,dataQu
  let score=weighted/total,lowCore=core.filter(parameter=>Number(parameter.score)<44),veryLowCore=core.filter(parameter=>Number(parameter.score)<28);if(lowCore.length>=2)score-=8;else if(veryLowCore.length)score-=4;
  // Data completeness is deliberately not equated with meteorological spread.  It
  // only limits how assertively the aggregate may be presented.
- if(dataQuality==='poor')score=Math.min(score,68);if(dataQuality==='missing')return null;
+ if(dataQuality==='poor')score-=4;
+ if(dataQuality==='limited')score-=1.5;
+ if(dataQuality==='missing')return null;
  return clamp(Math.min(score,confidenceLeadCap(leadHours)),0,100);
 }
 export function assessEnsembleDay(day:{date:string;consistencyEvidence?:EnsembleEvidence},now=Date.now(),calibration?:EnsembleConfidenceCalibration):DayAssessment{

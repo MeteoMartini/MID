@@ -12,7 +12,8 @@ requireToken(assessment,"PARAMETER_CONFIDENCE_WEIGHTS:Record<EnsembleParameter,n
 requireToken(assessment,'export function ensembleLeadFactor(leadHours:number)','Vorlaufnormalisierung des Ensemble-Spreads fehlt.');
 requireToken(assessment,"decisionUncertainty==='open'?' · Ausgang offen, ohne Konfidenzstrafe':''",'Offener Niederschlagsausgang wird nicht ausdrücklich von der Konfidenz getrennt.');
 requireToken(assessment,"if(!calibration||calibration.sampleDays<5||leadHours>96)return undefined",'Lokale Skill-Kalibrierung ist nicht auf ausreichend belegte kurze Vorläufe begrenzt.');
-requireToken(assessment,"if(dataQuality==='poor')score=Math.min(score,68)",'Datenqualität ist nicht separat als Aussagegrenze modelliert.');
+requireToken(assessment,"if(dataQuality==='poor')score-=4;",'Schwache Datenbasis reduziert die meteorologische Konfidenz nicht weich.');
+requireToken(assessment,"if(dataQuality==='limited')score-=1.5;",'Eingeschränkte Datenbasis reduziert die meteorologische Konfidenz nicht weich.');
 requireToken(assessment,'expectedGroups.add(contribution.group)','Parameter-spezifische erwartete Ensemblefamilien fehlen.');
 requireToken(verification,'export function ensembleConfidenceCalibrationFromReport','Adapter von MID-Verifikation zur Ensemble-Konfidenz fehlt.');
 requireToken(verification,"row?.parameterMetrics.probability",'Brier-/Niederschlagswahrscheinlichkeits-Skill fehlt in der Kalibrierung.');

@@ -1009,7 +1009,7 @@
 .cockpit-model-run-popover.app-portal-popover{position:fixed;z-index:2147482200;display:grid;gap:8px;max-height:min(62vh,460px);overflow:auto;padding:11px 13px;border:1px solid var(--border);border-radius:13px;background:color-mix(in srgb,var(--surface) 98%,transparent);color:var(--text);box-shadow:0 14px 34px rgba(5,20,36,.24);font-size:11px;line-height:1.45;white-space:normal;overflow-wrap:anywhere;backdrop-filter:blur(16px)}
 .cockpit-model-run-popover>strong{font-size:12px}.cockpit-model-run-popover>p{margin:0;color:var(--muted)}.cockpit-model-run-chain{padding:7px 8px;border-radius:9px;background:var(--s2);color:var(--text)!important}.cockpit-model-run-list{display:grid;gap:6px}.cockpit-model-run-row{display:grid;gap:1px;padding:6px 0;border-top:1px solid color-mix(in srgb,var(--border) 70%,transparent)}.cockpit-model-run-row:first-child{border-top:0}.cockpit-model-run-row>b{font-size:10px}.cockpit-model-run-row>small,.cockpit-model-run-empty{color:var(--muted);font-size:9px}.cockpit-model-run-close{justify-self:end;padding:5px 9px;border:1px solid var(--border);border-radius:999px;background:var(--s2);color:var(--text);font-size:9px;font-weight:800}
 .cockpit-fourteen-card[role="button"]{cursor:pointer;outline:none}.cockpit-fourteen-card[role="button"]:focus-visible{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 24%,transparent)}
-.cockpit-consistency-pill{display:inline-flex;align-items:center;justify-content:center;justify-self:end;min-width:44px;min-height:28px;padding:4px 8px;border:0;border-radius:999px;color:#132839;font:inherit;font-size:11px;font-weight:850;line-height:1;white-space:nowrap;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(20,45,62,.12);touch-action:manipulation}
+.cockpit-consistency-pill{display:inline-flex;align-items:center;justify-content:center;justify-self:end;position:relative;flex:0 0 auto;min-width:44px;max-width:58px;min-height:26px;padding:3px 8px;border:0;border-radius:999px;color:#132839;font:inherit;font-size:11px;font-weight:850;line-height:1;white-space:nowrap;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(20,45,62,.12);touch-action:manipulation;overflow:visible}.cockpit-consistency-pill>span{position:relative;z-index:1;display:block}
 .cockpit-consistency-pill:hover,.cockpit-consistency-pill:focus-visible,.cockpit-consistency-pill.active{outline:2px solid color-mix(in srgb,var(--text) 38%,transparent);outline-offset:2px}
 .cockpit-consistency-popover{z-index:2147482300!important}
 @media(max-width:620px){.cockpit-brief-with-tools{gap:8px}.cockpit-brief-tools{width:100%;justify-content:space-between}.cockpit-brief-tools>.cockpit-legend-inline{max-width:min(64vw,34ch);text-align:left}.cockpit-model-run-button{min-height:30px;padding:5px 8px;font-size:8.5px}.cockpit-model-run-popover.app-portal-popover{max-height:min(68vh,480px)}.cockpit-consistency-pill{min-height:30px;padding:4px 7px;font-size:10.5px}}
@@ -2966,9 +2966,31 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
 
 
 /* v0.9.78.67: confidence fill = meteorological confidence; outer ring = independent data quality */
-.cockpit-consistency-pill.quality-limited:not(.active):not(:focus-visible),
-.consistency-dot.quality-limited:not(:focus-visible){outline:2px dashed color-mix(in srgb,var(--muted) 72%,transparent);outline-offset:2px}
-.cockpit-consistency-pill.quality-poor:not(.active):not(:focus-visible),
-.consistency-dot.quality-poor:not(:focus-visible){outline:3px double color-mix(in srgb,var(--muted) 88%,transparent);outline-offset:2px}
-.cockpit-consistency-pill.quality-missing:not(.active):not(:focus-visible),
-.consistency-dot.quality-missing:not(:focus-visible){outline:2px dotted color-mix(in srgb,var(--muted) 82%,transparent);outline-offset:2px}
+.cockpit-consistency-pill.quality-limited:not(.active):not(:focus-visible)::after,
+.consistency-dot.quality-limited:not(:focus-visible)::after{content:"";position:absolute;inset:-2px;border:1.5px dashed color-mix(in srgb,var(--muted) 72%,transparent);border-radius:inherit;pointer-events:none}
+.cockpit-consistency-pill.quality-poor:not(.active):not(:focus-visible)::after,
+.consistency-dot.quality-poor:not(:focus-visible)::after{content:"";position:absolute;inset:-3px;border:2px double color-mix(in srgb,var(--muted) 88%,transparent);border-radius:inherit;pointer-events:none}
+.cockpit-consistency-pill.quality-missing:not(.active):not(:focus-visible)::after,
+.consistency-dot.quality-missing:not(:focus-visible)::after{content:"";position:absolute;inset:-2px;border:1.5px dotted color-mix(in srgb,var(--muted) 82%,transparent);border-radius:inherit;pointer-events:none}
+
+
+/* MID v0.9.78.68 · 14d-Konfidenzbadge kompakt und textfrei kollisionsarm. */
+.cockpit-fourteen-card>header>.cockpit-consistency-pill{
+ justify-self:end;
+ align-self:start;
+ min-width:clamp(40px,12vw,50px)!important;
+ max-width:clamp(46px,14vw,56px)!important;
+ min-height:24px!important;
+ padding:3px 6px!important;
+ font-size:clamp(7.2px,1.9vw,9px)!important;
+ line-height:1!important;
+}
+@media(max-width:620px){
+ .cockpit-fourteen-card>header>.cockpit-consistency-pill{
+  min-width:38px!important;
+  max-width:44px!important;
+  min-height:20px!important;
+  padding:2px 5px!important;
+  font-size:clamp(6.4px,1.7vw,7.6px)!important;
+ }
+}

@@ -20,7 +20,7 @@ const wet=evidence();wet.precipitation.eventProbability=50;const wetAssessment=a
 // Missing sunshine is a data-quality issue, not an automatic meteorological downgrade.
 const noSun=evidence();delete noSun.sunshine;const noSunAssessment=assess(noSun);assert.equal(noSunAssessment.agreement,'high');assert.equal(noSunAssessment.dataQuality,'limited');
 // Missing one core parameter limits the overall statement but does not erase the usable core evidence.
-const noRain=evidence();delete noRain.precipitation;const noRainAssessment=assess(noRain);assert.equal(noRainAssessment.agreement,'medium');assert.equal(noRainAssessment.dataQuality,'poor');assert.equal(noRainAssessment.parameters[0].agreement,'high');
+const noRain=evidence();delete noRain.precipitation;const noRainAssessment=assess(noRain);assert.equal(noRainAssessment.agreement,'high','Two strongly agreeing core parameters may retain high meteorological confidence while coverage is separately poor.');assert.equal(noRainAssessment.dataQuality,'poor');assert.equal(noRainAssessment.parameters[0].agreement,'high');
 const noRainWind=evidence();delete noRainWind.precipitation;delete noRainWind.wind;assert.equal(assess(noRainWind).agreement,'unknown','Fewer than two core parameters cannot support a day confidence.');
 assert.equal(assessEnsembleDay({date},now).agreement,'unknown','Legacy cache without provenance');
 // High confidence can describe hazardous weather if models agree.
@@ -28,8 +28,8 @@ const storm=buildEnsembleEvidence([group('a'),group('b')].map(g=>({...g,rows:g.r
 const partial=buildEnsembleEvidence([group('a'),group('b')].map(g=>({...g,rows:g.rows.map(r=>({...r,complete:{...r.complete,wind:false}}))})),now);assert.equal(assess(partial).parameters[2].agreement,'unknown');assert.equal(assess(partial).parameters[0].agreement,'high');
 assert.equal(assess(buildEnsembleEvidence([group('a',{native:false}),group('b',{native:false})],now)).agreement,'unknown','Synthetic mean/spread are not native members');
 // Freshness and coverage now affect data quality first; meteorological spread remains separate.
-const unknownRun=assess(buildEnsembleEvidence([group('a',{initialisationTime:undefined}),group('b')],now));assert.equal(unknownRun.dataQuality,'poor');assert.equal(unknownRun.agreement,'medium');
-const deficient=assess(buildEnsembleEvidence([group('a',{expectedMembers:40}),group('b')],now));assert.equal(deficient.dataQuality,'poor');assert.equal(deficient.agreement,'medium');
+const unknownRun=assess(buildEnsembleEvidence([group('a',{initialisationTime:undefined}),group('b')],now));assert.equal(unknownRun.dataQuality,'poor');assert.equal(unknownRun.agreement,'high','Run freshness belongs to data quality and must not force meteorological confidence to medium.');
+const deficient=assess(buildEnsembleEvidence([group('a',{expectedMembers:40}),group('b')],now));assert.equal(deficient.dataQuality,'poor');assert.equal(deficient.agreement,'high','Member coverage belongs to data quality and must not force meteorological confidence to medium when the available ensemble spread agrees strongly.');
 const duplicate=buildEnsembleEvidence([group('a'),group('a'),group('b',{rows:Array.from({length:100},()=>({...row,precipitation:5})),expectedMembers:100})],now);assert.ok(Math.abs(duplicate.precipitation.eventProbability-50)<1e-10,'Group/variant normalization independent of member count');
 // Expected families are parameter-specific: a model that structurally has no sunshine field is not a sunshine outage.
 const withoutSunDeclaration=group('c',{rows:Array.from({length:10},()=>({...row,complete:{temperature:true,precipitation:true,wind:true}}))});const parameterExpected=buildEnsembleEvidence([group('a'),group('b'),withoutSunDeclaration],now);assert.equal(parameterExpected.sunshine.coverage.expectedFamilies,2);assert.equal(parameterExpected.temperature.coverage.expectedFamilies,3);
