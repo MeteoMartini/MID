@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.78.60",
+  "releaseVersion": "0.9.78.62",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -404,7 +404,8 @@
     "scripts/test-warning-hybrid-probabilistic-097850.mjs",
     "scripts/test-wind-kt-display-contract-097851.mjs",
     "scripts/test-warning-probabilistic-hour-fields-buildfix-097852.mjs",
-    "scripts/test-warning-wind-stage-presentation-097856.mjs"
+    "scripts/test-warning-wind-stage-presentation-097856.mjs",
+    "scripts/test-pressure-axis-nice-spacing-097861.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -737,7 +738,8 @@
     "scripts/test-warning-eps-neighborhood-097853.mjs",
     "scripts/test-warning-wind-stage-presentation-097856.mjs",
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
-    "scripts/test-composite-temporal-truth-zugspuren-097860.mjs"
+    "scripts/test-composite-temporal-truth-zugspuren-097860.mjs",
+    "scripts/test-pressure-axis-nice-spacing-097861.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -1242,7 +1244,10 @@
     "MID_IMPLEMENTATION_0.9.78.59.md",
     "MID_TEST_REPORT_0.9.78.59.md",
     "MID_IMPLEMENTATION_0.9.78.60.md",
-    "MID_TEST_REPORT_0.9.78.60.md"
+    "MID_TEST_REPORT_0.9.78.60.md",
+    "src/pressureAxis.ts",
+    "src/forecastDayLabel.ts",
+    "scripts/test-pressure-axis-nice-spacing-097861.mjs"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1594,7 +1599,10 @@
     "MID_TEST_REPORT_0.9.78.42.md",
     "MID_TEST_REPORT_0.9.78.46.md",
     "MID_TEST_REPORT_0.9.78.47.md",
-    "MID_TEST_REPORT_0.9.78.48.md"
+    "MID_TEST_REPORT_0.9.78.48.md",
+    "src/pressureAxis.ts",
+    "src/forecastDayLabel.ts",
+    "scripts/test-pressure-axis-nice-spacing-097861.mjs"
   ],
   "releaseEvidence": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -1659,8 +1667,8 @@
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
     "scripts/test-composite-temporal-truth-zugspuren-097860.mjs"
   ],
-  "version": "0.9.78.60",
-  "updatedAt": "2026-09-04T18:48:00+02:00",
+  "version": "0.9.78.62",
+  "updatedAt": "2026-09-05T07:35:00+02:00",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
     "MID_IMPLEMENTATION_0.9.77.27.md",
@@ -1704,7 +1712,9 @@
     "MID_IMPLEMENTATION_0.9.78.57.md",
     "MID_IMPLEMENTATION_0.9.78.58.md",
     "MID_IMPLEMENTATION_0.9.78.59.md",
-    "MID_IMPLEMENTATION_0.9.78.60.md"
+    "MID_IMPLEMENTATION_0.9.78.60.md",
+    "MID_IMPLEMENTATION_0.9.78.61.md",
+    "MID_IMPLEMENTATION_0.9.78.62.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",
@@ -1736,6 +1746,8 @@
     "MID_TEST_REPORT_0.9.78.57.md",
     "MID_TEST_REPORT_0.9.78.58.md",
     "MID_TEST_REPORT_0.9.78.59.md",
-    "MID_TEST_REPORT_0.9.78.60.md"
+    "MID_TEST_REPORT_0.9.78.60.md",
+    "MID_TEST_REPORT_0.9.78.61.md",
+    "MID_TEST_REPORT_0.9.78.62.md"
   ]
 }

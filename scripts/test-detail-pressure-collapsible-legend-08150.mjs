@@ -19,7 +19,7 @@ for(const token of [
  'className="pressureline"',
  "toggleDetailLine('pressure')",
  'showPressureSection',
- 'pressureScale=niceRange',
+ 'pressureScale=nicePressureAxis',
  'const yPressure=',
  'const pressurePath=',
  'pressure-grid-',

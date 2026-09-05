@@ -15,5 +15,6 @@ const required=[
 ];
 const missing=required.filter(token=>!app.includes(token));
 if(missing.length){console.error('Fehlende App-Helfer:',missing.join(', '));process.exit(1)}
-if(!app.includes('<ForecastConditionPills label={character.label} secondary={character.secondary}/>')){console.error('Forecast condition pill contract missing');process.exit(1)}
-console.log('App helper block + forecast pill contract: OK');
+if(!app.includes('<ForecastConditionPills label={compactSevenDayConditionLabel(d,allDayHoursForDate)}/>')){console.error('Compact 7-day forecast pill contract missing');process.exit(1)}
+if(app.includes('<ForecastConditionPills label={character.label} secondary={character.secondary}/>')){console.error('Legacy multi-pill 7-day forecast label still active');process.exit(1)}
+console.log('App helper block + compact 7-day forecast pill contract: OK');

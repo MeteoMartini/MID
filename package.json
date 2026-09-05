@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.78.60",
+  "version": "0.9.78.62",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -421,7 +421,8 @@
     "test:warning-eps-neighborhood": "node scripts/test-warning-eps-neighborhood-097853.mjs",
     "test:warning-wind-stage-presentation": "node scripts/test-warning-wind-stage-presentation-097856.mjs",
     "test:app-helper-block-buildfix": "node scripts/test-app-helper-block-buildfix-097857.mjs",
-    "test:composite-temporal-truth-zugspuren": "node scripts/test-composite-temporal-truth-zugspuren-097860.mjs"
+    "test:composite-temporal-truth-zugspuren": "node scripts/test-composite-temporal-truth-zugspuren-097860.mjs",
+    "test:pressure-axis-nice-spacing": "node scripts/test-pressure-axis-nice-spacing-097861.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",

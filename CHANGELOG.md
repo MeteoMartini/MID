@@ -1,3 +1,14 @@
+## 0.9.78.62
+- GitHub-Installer #896 repariert: TypeScript 7 und Vite-Produktionsbuild waren bereits erfolgreich; nur 1 von 680 Regressionen war veraltet.
+- Niederschlagsformen-/Schneemengenregression auf den verbindlichen zentralen `compactSevenDayConditionLabel`-Pfad migriert.
+- Kompakte 7-Tage-Einzeiler und phasentreue Labels für Regen, Schauer, Schnee und Schneeregen bleiben unverändert erhalten.
+- Keine fachliche Produktions- oder Worker-Änderung.
+
+## 0.9.78.61
+- Luftdruck-Y-Achsen im 24-h-Wetterprofil und Tagesdetail auf ganzzahlige, gleichmäßig verteilte hPa-Ticks umgestellt.
+- Gemeinsame adaptive 2/4/5/10-hPa-Achsenschritte mit sauberer Randreserve eingeführt.
+- 7-Tage-Kurzpillen-Vertrag beibehalten und bestehende Altregressionen darauf synchronisiert.
+
 # 0.9.78.60 — 2026-09-04
 
 - Sektion **Kompositbild** als moderne, kartenorientierte Übersicht mit den klar getrennten Modi Radar, Satellit und Synoptik neu geordnet.

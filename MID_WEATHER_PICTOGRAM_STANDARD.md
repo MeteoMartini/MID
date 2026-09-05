@@ -139,3 +139,16 @@ Der Roh-/Radar-/Verifikationspfad bleibt davon unberührt und arbeitet weiterhin
 Bei zeitpunktbeschrifteten Prognosen bedeutet ein sichtbarer Stundenzeitpunkt den **Beginn** des dargestellten Prognoseintervalls. Zeigt MID beispielsweise bei `08:00` Regen, gilt dieses Wettersignal für den Slot `08:00–09:00`. Niederschlagsmenge, Niederschlagswahrscheinlichkeit, Niederschlagsart/-phase und das daraus abgeleitete Wetterpiktogramm müssen immer dasselbe sichtbare Intervall repräsentieren. Die rückblickende Provider-Zeitstempelung darf nicht dazu führen, dass ein Niederschlagspiktogramm eine Stunde zu spät erscheint. Trockene Vorwärtsslots behalten den instantanen Himmelszustand des Slotbeginns; ein alter nasser Wettercode darf nicht ohne passende Anschlussakkumulation als zukünftiger Niederschlag weitergetragen werden. Bei 3-h-Aggregationen bezeichnet die sichtbare Zeit den Beginn des 3-h-Slots; das repräsentative Wetterpiktogramm wird aus den zum selben Slot gehörenden normalisierten Einzelstunden bestimmt.
 
 Required Regression: `scripts/test-precipitation-forward-slot-presentation-097846.mjs`.
+
+
+## Verbindliche Präzisierung v0.9.78.61 – kompakte 7-Tage-Kurzform
+
+Die Nutzeranforderung an die 7-Tage-Kacheln präzisiert den früheren Vertrag aus v0.9.78.45: Die meteorologische Datenbasis bleibt weiterhin `dayWeatherCharacter(...)` plus Tagesniederschlagsanalyse, die **sichtbare** Pillenbeschriftung wird jedoch wieder bewusst auf eine kurze, einzeilige Kategorie reduziert.
+
+- Sichtbare 7-Tage-Pille = kompakte Einzeilen-Kategorie, z. B. **Sonnig**, **Regen**, **Schauer**, **Ruhig**, **Windig**, **Warm**, **Schnee** oder **Gewitter**.
+- Der vollständige Tagescharakter bleibt im Tooltip und als Kontext für das Tagespiktogramm erhalten.
+- Das große Tagespiktogramm bleibt an denselben Tagescharakter gekoppelt; die Kurzform darf deshalb keine fachlich widersprechende Kategorie erzeugen.
+- Klassische 7-Tage-Ansicht und Forecast-Cockpit verwenden dieselbe Kurzformlogik.
+- Keine zweite sichtbare Sekundärpille und kein zweizeiliger Wetterbeschreibungstext in der 7-Tage-Kachel.
+
+Damit ersetzt diese Präzisierung ausschließlich die **sichtbare Textlänge** des Vertrags aus v0.9.78.45; dessen fachliche Text-/Piktogramm-Kohärenz bleibt bestehen.

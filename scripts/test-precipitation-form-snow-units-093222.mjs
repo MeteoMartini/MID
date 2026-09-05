@@ -4,10 +4,11 @@ import {pathToFileURL,fileURLToPath} from 'node:url';
 import path from 'node:path';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
-const [precipitation,weather,cockpit,app,shortTerm,meteogram,ensemble,water,pkg,baseline]=await Promise.all([
+const [precipitation,weather,cockpit,forecastDayLabel,app,shortTerm,meteogram,ensemble,water,pkg,baseline]=await Promise.all([
  readFile(path.join(root,'src','precipitation.ts'),'utf8'),
  readFile(path.join(root,'src','weather.ts'),'utf8'),
  readFile(path.join(root,'src','ForecastCockpit.tsx'),'utf8'),
+ readFile(path.join(root,'src','forecastDayLabel.ts'),'utf8'),
  readFile(path.join(root,'src','App.tsx'),'utf8'),
  readFile(path.join(root,'src','ShortTermForecast.tsx'),'utf8'),
  readFile(path.join(root,'src','MeteogramPanel.tsx'),'utf8'),
@@ -33,11 +34,22 @@ for(const token of [
  "if(text.includes('schneegriesel'))return'Schneegriesel'"
 ])need('Wettertext',weather,token);
 for(const token of [
- 'precipitationForm=dominantPrecipitationForm(dayHours)',
- 'regimeText=regimeLabel(regime,precipitationForm?.label)',
- '>{conditionText}</span>',
+ "import {compactSevenDayConditionLabel} from './forecastDayLabel'",
+ 'regimeText=compactSevenDayConditionLabel(day,displayHours)',
+ '>{regimeText}</span>',
  'precipitationAmountLabel(day)'
 ])need('7-Tage-Cockpit',cockpit,token);
+for(const token of [
+ "import {dominantPrecipitationForm} from './precipitation'",
+ 'form=dominantPrecipitationForm(dayHours)?.label',
+ "if(value.includes('schnee')&&value.includes('regen'))return'Schneeregen'",
+ "if(value.includes('schnee'))return'Schnee'",
+ "return showery?'Schauer':'Regen'"
+])need('7-Tage-Kurzlabel',forecastDayLabel,token);
+for(const token of [
+ 'precipitationForm=bestDay?dominantPrecipitationForm(dayHours):null',
+ 'regimeText=regimeLabel(regime,precipitationForm?.label)'
+])need('14-Tage-Cockpit',cockpit,token);
 for(const [label,text] of [
  ['App',app],['Kurzfrist',shortTerm],['Meteogramm',meteogram],['Ensemble',ensemble],['Wassersport',water]
 ])need(label,text,'precipitationAmountLabel');
