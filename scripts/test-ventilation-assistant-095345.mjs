@@ -21,7 +21,7 @@ need(worker,'function netatmoEnvironment','Interne Netatmo-Raumsensoren werden n
 need(worker,'function ventilationAbsoluteHumidity','Absolute Feuchte fehlt in der Lüftungslogik.');
 need(worker,'precipitation_probability','Niederschlagsrisiko fehlt in der Lüftungsprognose.');
 need(worker,'weather_code','Gewitter-/Wettercode fehlt in der Lüftungsprognose.');
-need(worker,'gustKn*1.852','Böen aus der kanonischen MID-Prognose werden nicht korrekt von kt nach km/h umgerechnet.');
+need(worker,'Math.max(0,gustKn)*1.852','Böen aus der kanonischen MID-Prognose werden nicht korrekt von kt nach km/h umgerechnet.');
 need(worker,'forecastFusionResponse(url,env)','Lüftungsprognose umgeht den kanonischen MID-Fusionspfad.');
 if(/async function ventilationForecast\([^)]*\)\{const url=new URL\(OPEN_METEO_FORECAST\)/.test(worker))failures.push('Lüftungsassistent enthält weiterhin einen rohen Open-Meteo-Schattenpfad.');
 need(worker,"mode==='ventilation-advice'",'Ventilation-Advice Workerroute fehlt.');

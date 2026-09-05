@@ -50,7 +50,7 @@ type GatewayQuality={mse?:number|null;msess?:number|null;rpss?:number|null;corre
 type DwdGatewayPeriod={id?:string;label?:string;startDate?:string;endDate?:string;temperatureAnomaly?:number|null;precipitationAnomaly?:number|null;precipitationAnomalyPercent?:number|null;temperatureQuality?:GatewayQuality;precipitationQuality?:GatewayQuality};
 type DwdGatewayReply={available?:boolean;configured?:boolean;outsideDomain?:boolean;error?:string;detail?:string;generatedAt?:string;modelVersion?:string;downscaling?:string;referencePeriod?:string;runLabel?:string;source?:string;gridPoint?:{latitude?:number;longitude?:number;gridLabel?:string};periods?:DwdGatewayPeriod[]};
 
-function finite(value:unknown):number|null{const numeric=Number(value);return Number.isFinite(numeric)?numeric:null}
+function finite(value:unknown):number|null{if(value===null||value===undefined||String(value).trim()==='')return null;const numeric=Number(value);return Number.isFinite(numeric)?numeric:null}
 function finiteValues(values:(number|null|undefined)[]){return values.filter((value):value is number=>Number.isFinite(value))}
 function memberKeys(payload:Record<string,unknown>,base:string){return Object.keys(payload).filter(key=>key.startsWith(`${base}_member`)&&Array.isArray(payload[key])).sort()}
 function memberValuesAt(payload:Record<string,unknown>,base:string,index:number){return memberKeys(payload,base).map(key=>finite((payload[key] as unknown[])[index])).filter((value):value is number=>value!==null)}
@@ -101,7 +101,7 @@ function parseDwdPerspective(reply:DwdGatewayReply,requestedLatitude:number,requ
 
 const SEASONAL_CACHE_TTL_MS=4*60*60*1000;
 const SEASONAL_STALE_IF_ERROR_MS=36*60*60*1000;
-const SEASONAL_STORAGE_PREFIX='mid:seasonal-bundle:v3:';
+const SEASONAL_STORAGE_PREFIX='mid:seasonal-bundle:v4:';
 type SeasonalCacheRecord={at:number;bundle:SeasonalForecastBundle};
 const seasonalMemoryCache=new Map<string,SeasonalCacheRecord>();
 function seasonalCacheKey(latitude:number,longitude:number){return`${latitude.toFixed(3)},${longitude.toFixed(3)}`}

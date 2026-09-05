@@ -10,7 +10,7 @@ const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test
 
 assert.ok(skybar.includes('const sunBandWidth=(sunshineShare:number)=>{')&&skybar.includes('if(sunshineShare<=.5)return 0;'),'Sonnenband muss bei <=50 % aus bleiben.');
 assert.ok(skybar.includes('skybarAboveHalfLevel(sunshineShare)'),'Sonnenband muss 50–100 % auf denselben vier Stufenvertrag abbilden.');
-assert.ok(skybar.includes('if(cloud<50)return 0;')&&skybar.includes('skybarAboveHalfLevel(cloud/100)'),'Wolkenband muss 50–100 % auf vier Stufen abbilden.');
+assert.ok(skybar.includes('if(!Number.isFinite(cloud)||cloud<50)return 0;')&&skybar.includes('skybarAboveHalfLevel(cloud/100)'),'Wolkenband muss 50–100 % auf vier Stufen abbilden.');
 assert.ok(skybar.includes('if(sunshineShare!==null&&Number.isFinite(sunshineShare))return clamp01(sunshineShare);'),'Vorhandene relative Sonnenscheindauer muss Vorrang vor Wolken-Fallback haben.');
 assert.ok(skybar.includes('return clamp01(1-cloud/100);'),'Nur bei fehlender Sonnenscheindauer darf Gesamtbewölkung den komplementären Sonnenfallback liefern.');
 assert.ok(!skybar.includes('Math.max(sunshineShare,cloudClearShare)'),'Alte Max-Verknüpfung darf Sonne nicht systematisch auf eine zu dicke Stufe heben.');

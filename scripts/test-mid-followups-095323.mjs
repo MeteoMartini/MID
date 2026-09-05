@@ -30,7 +30,7 @@ assert.match(weather,/if\(primary<=0\)return'0%'/,'0 % darf kein künstliches Ze
 
 assert.match(eventEngine,/durationMinutes:Math\.max\(1,Math\.round\(\(overlapEnd-overlapStart\)\/60000\)\)/,'Eventzeitraum muss anteilige Zeitabdeckung speichern.');
 assert.match(eventEngine,/windowAverageProbability=coveredMinutes>0\?probabilityRows\.reduce/,'Fallback-PoP muss den gesamten Eventzeitraum gewichten.');
-assert.match(eventEngine,/precipitationProbabilityRelevant=eventProbability\?\.probability\?\?windowAverageProbability/,'Event-PoP darf nicht auf die höchste Einzelstunde zurückfallen.');
+assert.match(eventEngine,/precipitationProbabilityRelevant=eventProbability\?\.probability\?\?null/,'Event-PoP darf nicht auf die höchste Einzelstunde zurückfallen.');
 assert.ok(eventCenter.includes("'hourly-window-average-fallback'"),'EventSummary muss den Zeitraum-Fallback transparent kennzeichnen.');
 
 for(const token of ['DWD ICON-D2 · 2 km','ΔT ','Gelände-/Oberflächenkorrektur','°','±','ü. NHN'])assert.ok(app.includes(token)||weather.includes(token),`Aktuelle Wetterdarstellung/Unicode-Vertrag fehlt: ${token}`);

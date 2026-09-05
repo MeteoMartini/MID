@@ -8,7 +8,7 @@ const [seasonal,panel,comparison,worker,readme,audit,pkgText,baselineText]=await
 ]);
 const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText),test='scripts/test-seasonal-all-model-consensus-097727.mjs';
 
-for(const token of ['modelKey:string','independenceKey:string','sourcePriority:number','preferredIndependentModels','model.independenceKey||model.modelKey||model.family',"SEASONAL_STORAGE_PREFIX='mid:seasonal-bundle:v3:'"])
+for(const token of ['modelKey:string','independenceKey:string','sourcePriority:number','preferredIndependentModels','model.independenceKey||model.modelKey||model.family',"SEASONAL_STORAGE_PREFIX='mid:seasonal-bundle:v4:'"])
  assert.ok(seasonal.includes(token),`Kanonischer Saisonmodellvertrag fehlt: ${token}`);
 
 const c3sIds=['ecmwf-51','ukmo-610','meteofrance-9','dwd-22','cmcc-4','ncep-2','jma-4','eccc-4','eccc-5','bom-2'];

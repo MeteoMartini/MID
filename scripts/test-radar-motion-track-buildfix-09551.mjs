@@ -3,7 +3,7 @@ import {readFile} from 'node:fs/promises';
 const root=new URL('../',import.meta.url);
 const [radar,pkgText,baselineText]=await Promise.all(['src/RadarPanel.tsx','package.json','MID_BASELINE.json'].map(path=>readFile(new URL(path,root),'utf8')));
 for(const dead of ['function PrecipitationMotionTrack','function motionTrackCompositeIcon(','<MemoPrecipitationMotionTrack'])assert.ok(!radar.includes(dead),`Veralteter Zeitpfeilpfad ist zurückgekehrt: ${dead}`);
-for(const active of ['type EchoApproachTrack=','function resolveEchoApproachTrack(',"confidence==='low'",'item.cross<=item.width','[15,30,45,60,90,120]','function EchoApproachTrackLayer(','<MemoEchoApproachTrack track={approachTrack}'])assert.ok(radar.includes(active),`Aktiver Echo-Zugspur-Vertrag fehlt: ${active}`);
+for(const active of ['type EchoApproachTrack=','function resolveEchoApproachTrack(',"confidence!=='high'&&confidence!=='medium'",'item.cross<=item.width','[15,30,45,60,90,120]','function EchoApproachTrackLayer(','<MemoEchoApproachTrack track={approachTrack}'])assert.ok(radar.includes(active),`Aktiver Echo-Zugspur-Vertrag fehlt: ${active}`);
 assert.equal((radar.match(/<MemoEchoApproachTrack/g)||[]).length,1,'Genau eine echogebundene Zugspur muss gerendert werden.');
 const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText);
 assert.equal(pkg.scripts?.['test:radar-motion-track-buildfix'],'node scripts/test-radar-motion-track-buildfix-09551.mjs');

@@ -28,7 +28,7 @@ const clamp01=(value:number)=>clamp(value,0,1);
 
 const sunVisualShare=(sunshineShare:number|null,cloudCover:number)=>{
   if(sunshineShare!==null&&Number.isFinite(sunshineShare))return clamp01(sunshineShare);
-  const cloud=clamp(Number.isFinite(cloudCover)?cloudCover:100,0,100);
+  if(!Number.isFinite(cloudCover))return NaN;const cloud=clamp(cloudCover,0,100);
   return clamp01(1-cloud/100);
 };
 
@@ -38,7 +38,7 @@ const skybarFourStepLevel=(share:number)=>Math.min(3,Math.floor(clamp01(share)*4
 const skybarAboveHalfLevel=(share:number)=>skybarFourStepLevel((clamp01(share)-.5)/.5);
 
 const cloudBandWidth=(cloud:number)=>{
-  if(cloud<50)return 0;
+  if(!Number.isFinite(cloud)||cloud<50)return 0;
   return skybarThickness(skybarAboveHalfLevel(cloud/100));
 };
 
@@ -75,7 +75,7 @@ const baseSkyVisual=(cloud:number,daylight:boolean,sunshineShare:number|null):We
         color:'#ffc229',
         strokeWidth:width,
         opacity:0.98,
-        title:`Sonnenschein · ${(visualSunshine*100).toFixed(0)} % der betrachteten Zeit${sunshineDirect?'':' · aus Bewölkungsgrad abgeleitet'} · ${cloud.toFixed(0)} % Wolken`,
+        title:`Sonnenschein · ${(visualSunshine*100).toFixed(0)} % der betrachteten Zeit${sunshineDirect?'':' · aus Bewölkungsgrad abgeleitet'} · ${Number.isFinite(cloud)?`${cloud.toFixed(0)} % Wolken`:'Bewölkung unbekannt'}`,
       };
     }
   }
@@ -109,7 +109,7 @@ const precipitationOverlayVisual=(hour:PrecipSample,intervalSeconds:number,cloud
 };
 
 const weatherStripVisuals=(hour:PrecipSample,intervalSeconds:number)=>{
-  const cloud=clamp(Number(hour.cloud??0),0,100);
+  const cloud=hour.cloud===null||hour.cloud===undefined?NaN:clamp(Number(hour.cloud),0,100);
   const daylight=!!hour.isDay,rawSunshine=hour.sunshineDuration;
   const sunshineShare=daylight&&rawSunshine!==null&&rawSunshine!==undefined&&Number.isFinite(Number(rawSunshine))?clamp01(Number(rawSunshine)/Math.max(60,intervalSeconds)):null;
   const visuals:WeatherStripVisual[]=[];

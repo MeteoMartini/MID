@@ -1,3 +1,14 @@
+## 0.9.78.64
+
+- 14d-Anzeige wissenschaftlich eingegrenzt: unkalibrierter Temperatur-Konsistenzindex statt behaupteter Prognosesicherheit in Prozent; kompakte und ausführliche Streuungsberechnung vereinheitlicht.
+- Plausible Ensemble-Minderheitslösungen werden nicht mehr durch Median-/IQR-Beschneidung aus den Unsicherheitsbändern entfernt; Ensemblecache erneuert.
+- Fehlende Saison-, Warn-, Skybar- und Lüftungsdaten bleiben unbekannt; erhöhtes CO₂ priorisiert das früheste geeignete Fenster.
+- Eventfenster über Mitternacht und Ortszeitzonen korrigiert; kein Stundenmittel als Ersatz für Ereigniswahrscheinlichkeit, vollständige Member-Intervallabdeckung erforderlich.
+- Radar-ETA auf Beobachtung +120 min begrenzt; fehlende Bewegungskonfidenz und unbekannte KONRAD-Zeitstempel gesperrt; Szenarioanteile korrekt beschriftet.
+- Flugprofile unterscheiden Gelände-AGL, ISA-Druckflächen und geometrische MSL-Schichtgrenzen; keine Randwertextrapolation oder Entwarnung bei unvollständiger Datengrundlage.
+- Klimatische Nasshäufigkeit nutzt die gültige Niederschlagsstichprobe; betroffene Cachegenerationen erneuert.
+- Neue wissenschaftliche Verhaltenstests und Dokumentation: MID_IMPLEMENTATION_0.9.78.64.md.
+
 ## 0.9.78.63
 - Skybar-Sonnenklassifikation korrigiert: Gelb beginnt tagsüber erst oberhalb 50 % relativer Sonnenscheindauer und nutzt bis 100 % vier symmetrische Dickenstufen.
 - Graues Bewölkungsband bleibt ab 50 % Gesamtbewölkung bis 100 % vierstufig; Gelb und Grau sind als Grundband strikt gegenseitig exklusiv.

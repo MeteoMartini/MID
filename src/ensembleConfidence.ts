@@ -7,8 +7,11 @@ export type EnsembleConfidenceInput={
  maxModelCount:number;
 };
 
+/** Legacy heuristic temperature index, not a calibrated forecast probability.
+ * Preserve coefficients until independent, lead/parameter-specific verification exists.
+ */
 export function computeEnsembleConfidence({spread,index,modelCount,maxModelCount}:EnsembleConfidenceInput){
- const safeSpread=Math.max(0,Number(spread)||0);
+ if(!Number.isFinite(spread)||spread<0||!Number.isFinite(index)||index<0||!Number.isFinite(modelCount)||modelCount<=0||!Number.isFinite(maxModelCount)||maxModelCount<=0)return 0;const safeSpread=Math.max(0,Number(spread)||0);
  const safeIndex=Math.max(0,Number(index)||0);
  const safeModelCount=Math.max(0,Number(modelCount)||0);
  const safeMaxModels=Math.max(2,Number(maxModelCount)||1);

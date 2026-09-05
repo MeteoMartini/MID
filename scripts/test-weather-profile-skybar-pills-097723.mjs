@@ -25,7 +25,7 @@ for(const token of ['const weatherStripVisuals=','const baseSkyVisual=','const p
 }
 assert.ok(detailSkyBar.includes("layer:'base'")&&detailSkyBar.includes("layer:'precip'"),'Sonne/Bewölkung und Niederschlag müssen als getrennte Zeichenlagen geführt werden.');
 assert.ok(detailSkyBar.includes('const SKYBAR_THICKNESS_STEPS=[2.4,3.3,4.2,5.1] as const'),'Skybar muss die leicht verstärkten vier Dickenstufen verwenden.');
-assert.ok(detailSkyBar.includes('if(cloud<50)return 0;')&&detailSkyBar.includes('skybarAboveHalfLevel(cloud/100)'),'Grauband darf erst ab 50 % Gesamtbewölkung beginnen und muss 50–100 % auf vier Dickenstufen abbilden.');
+assert.ok(detailSkyBar.includes('if(!Number.isFinite(cloud)||cloud<50)return 0;')&&detailSkyBar.includes('skybarAboveHalfLevel(cloud/100)'),'Grauband darf erst ab 50 % Gesamtbewölkung beginnen und muss 50–100 % auf vier Dickenstufen abbilden.');
 assert.ok(detailSkyBar.includes('if(sunshineShare<=.5)return 0;')&&detailSkyBar.includes('if(visualSunshine>.5)')&&detailSkyBar.includes("color:'#ffc229'"),'Gelb darf erst oberhalb 50 % relativer Sonnenscheindauer bzw. des Fallback-Aufklarungsanteils beginnen.');
 assert.ok(!detailSkyBar.includes('if(daylight&&cloud<50)'),'Alter Wolken-Shortcut darf direkte Sonnenscheindauer nicht mehr übersteuern.');
 assert.ok(detailSkyBar.includes("color:'#aeb3b9'")&&!detailSkyBar.includes("cloud>=82?'#b0b5bb':'#c0c5cb'"),'Bewölkung muss einen einheitlichen Grauton nutzen; die Stärke wird ausschließlich über die Dicke codiert.');

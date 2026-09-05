@@ -14,7 +14,7 @@ for(const token of [
  "fetchWorkerJson<Weather&{error?:string}>('ensemble-proxy'",
  "temperature_2m_spread,precipitation,precipitation_spread",
  "pseudoModelFromMeanSpread",
- "ENSEMBLE_CACHE_PREFIX='mid:ensemble:v15:'",
+ "ENSEMBLE_CACHE_PREFIX='mid:ensemble:v16:'",
  "lokaler letzter erfolgreicher Stand"
 ])if(!weather.includes(token))failures.push(`Ensemble-Recovery fehlt: ${token}`);
 for(const token of [

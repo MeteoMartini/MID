@@ -135,9 +135,9 @@ const meanModels:EnsembleMeanModel[]=[
  {id:'bom_access_global_ensemble_mean',label:'BOM ACCESS ENS Mittel/Spread',metaId:'bom_access_global_ensemble',family:'bom-access-ens',independenceGroup:'bom-ensemble',resolutionKm:40,updateHours:6,maxDays:10},
  {id:'google_weathernext2_ensemble_mean',label:'Google WeatherNext 2 Mittel',metaId:'google_weathernext2_ensemble',family:'google-weathernext2',independenceGroup:'google-weathernext2',resolutionKm:25,updateHours:12,maxDays:14}
 ];
-const ENSEMBLE_CACHE_PREFIX='mid:ensemble:v15:';
+const ENSEMBLE_CACHE_PREFIX='mid:ensemble:v16:';
 const ENSEMBLE_FRESH_CACHE_MS=60*60*1000;
-const EVENT_ENSEMBLE_CACHE_PREFIX='mid:event-ensemble:v3:';
+const EVENT_ENSEMBLE_CACHE_PREFIX='mid:event-ensemble:v4:';
 const EVENT_ENSEMBLE_STALE_MS=4*60*60*1000;
 const DIRECT_REGIONAL_ENSEMBLE_MODELS=new Set(['icon_d2_ruc_eps','knmi_harmonie_arome_cy43_eps','eccc_reps']);
 function modelApplies(m:EnsembleModel,lat:number,lon:number){if(!m.bbox)return true;const[minLon,minLat,maxLon,maxLat]=m.bbox;return lon>=minLon&&lon<=maxLon&&lat>=minLat&&lat<=maxLat}

@@ -30,7 +30,7 @@ assert.ok(!panel.includes('lateGraceSeconds:190*60'),'Satellitenbeobachtungen d√
 for(const token of [
  'if(radarValid)return{direction:normalizeBearing(radarDirection)',
  'analysis.motionAnchors??[]',
- "confidence==='low'",
+ "confidence!=='high'&&confidence!=='medium'",
  'item.cross<=item.width',
  'resolveEchoApproachTrack([lat,lon],analysis,targetMs)',
  'mid-echo-approach-corridor',

@@ -4,7 +4,7 @@ const css=readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
 const failures=[];
 for(const token of [
  '<strong>Prognoseentwicklung</strong>',
- '<small>Belastbarer Zeitraum</small>',
+ '<small>Zeitraum guter Temperatur-Konsistenz</small>',
  '<small>Wahrscheinlichste Entwicklung</small>',
  '<small>Zunehmende Unsicherheit</small>',
  'function forecastOutlook(',

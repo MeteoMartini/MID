@@ -12,13 +12,13 @@ const [major,minor,feature,maintenance=0]=pkg.version.split('.').map(Number)
 assert.ok(major>0||minor>9||(minor===9&&(feature>49||(feature===49&&maintenance>=1))),'Event-PoP-Zeitintervallfix darf nicht vor v0.9.49.1 liegen')
 assert.ok(eventCenter.includes('periodLabel?:string'),'Event-Zeitleiste benötigt eine eindeutige Intervallbeschriftung')
 for(const token of [
- "if(endStamp<=startStamp)endStamp=startStamp+60*60000",
+ "if(endStamp<=startStamp)return[]",
  'intervalStart=intervalEnd-step',
  'overlapStart=Math.max(intervalStart,startStamp)',
  'overlapEnd=Math.min(intervalEnd,endStamp)',
  'if(overlapEnd<=overlapStart)continue',
  'fraction=(overlapEnd-overlapStart)/step',
- 'periodLabel:`${clockFromCivilStamp(overlapStart)}–${clockFromCivilStamp(overlapEnd)}`',
+ 'periodLabel:`${clockFromCivilStamp(overlapStart,timezone)}–${clockFromCivilStamp(overlapEnd,timezone)}`',
  'precipitationProbability:hour.probability',
  'scaled(hour.precipitation)',
  'scaled(hour.rain)',

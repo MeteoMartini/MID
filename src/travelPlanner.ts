@@ -151,7 +151,7 @@ type Bucket={
  codes:Map<number,number>;
 };
 
-const BASE_CACHE_PREFIX='mid:travel-climate:1991-2020:v3:';
+const BASE_CACHE_PREFIX='mid:travel-climate:1991-2020:v4:';
 const SNOW_CACHE_PREFIX='mid:travel-snow-depth:1991-2020:v3:';
 const WATER_CACHE_PREFIX='mid:travel-water-climate:noaa-oisst-1991-2020:v5:';
 const CACHE_MAX_AGE=3*365*86400000;
@@ -212,7 +212,7 @@ export function aggregateTravelClimate(payload:HistoricalDailyPayload):TravelCli
  for(const[key,bucket]of buckets){
   const years=Math.max(bucket.max.length,bucket.min.length,bucket.precipitation.length);
   if(years<20)continue;
-  days[key]={key,maxMean:mean(bucket.max),minMean:mean(bucket.min),meanMean:mean(bucket.mean),maxP25:quantile(bucket.max,.25),maxP75:quantile(bucket.max,.75),minP25:quantile(bucket.min,.25),minP75:quantile(bucket.min,.75),precipitationMean:mean(bucket.precipitation),wetProbability:years?bucket.wet/years*100:0,sunshineMeanHours:mean(bucket.sunshine),daylightMeanHours:mean(bucket.daylight),windMaxMean:mean(bucket.wind),snowfallMean:mean(bucket.snowfall),cloudMean:mean(bucket.cloud),weatherCode:mode(bucket.codes),years};
+  days[key]={key,maxMean:mean(bucket.max),minMean:mean(bucket.min),meanMean:mean(bucket.mean),maxP25:quantile(bucket.max,.25),maxP75:quantile(bucket.max,.75),minP25:quantile(bucket.min,.25),minP75:quantile(bucket.min,.75),precipitationMean:mean(bucket.precipitation),wetProbability:bucket.precipitation.length?bucket.wet/bucket.precipitation.length*100:NaN,sunshineMeanHours:mean(bucket.sunshine),daylightMeanHours:mean(bucket.daylight),windMaxMean:mean(bucket.wind),snowfallMean:mean(bucket.snowfall),cloudMean:mean(bucket.cloud),weatherCode:mode(bucket.codes),years};
  }
  return{createdAt:Date.now(),latitude:Number(payload.latitude),longitude:Number(payload.longitude),elevation:Number.isFinite(Number(payload.elevation))?Number(payload.elevation):undefined,timezone:String(payload.timezone||'auto'),source:'Open-Meteo ERA5-Seamless · ERA5-Land + ERA5',referencePeriod:'1991–2020',days,snowDepthIncluded:false};
 }

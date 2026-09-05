@@ -13,7 +13,7 @@ const need=(area,text,token)=>{if(!text.includes(token))failures.push(`${area}: 
 const forbid=(area,text,token)=>{if(text.includes(token))failures.push(`${area}: unerwünscht ${token}`)};
 
 for(const token of [
- "const BASE_CACHE_PREFIX='mid:travel-climate:1991-2020:v3:'",
+ "const BASE_CACHE_PREFIX='mid:travel-climate:1991-2020:v4:'",
  "models:'era5_seamless'",
  "temperature_unit:'celsius'",
  "precipitation_unit:'mm'",
