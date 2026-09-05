@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.78.62",
+  "releaseVersion": "0.9.78.63",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -405,7 +405,8 @@
     "scripts/test-wind-kt-display-contract-097851.mjs",
     "scripts/test-warning-probabilistic-hour-fields-buildfix-097852.mjs",
     "scripts/test-warning-wind-stage-presentation-097856.mjs",
-    "scripts/test-pressure-axis-nice-spacing-097861.mjs"
+    "scripts/test-pressure-axis-nice-spacing-097861.mjs",
+    "scripts/test-skybar-sun-cloud-exclusive-097863.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -739,7 +740,8 @@
     "scripts/test-warning-wind-stage-presentation-097856.mjs",
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
     "scripts/test-composite-temporal-truth-zugspuren-097860.mjs",
-    "scripts/test-pressure-axis-nice-spacing-097861.mjs"
+    "scripts/test-pressure-axis-nice-spacing-097861.mjs",
+    "scripts/test-skybar-sun-cloud-exclusive-097863.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -1667,8 +1669,8 @@
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
     "scripts/test-composite-temporal-truth-zugspuren-097860.mjs"
   ],
-  "version": "0.9.78.62",
-  "updatedAt": "2026-09-05T07:35:00+02:00",
+  "version": "0.9.78.63",
+  "updatedAt": "2026-09-05T10:28:52+02:00",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
     "MID_IMPLEMENTATION_0.9.77.27.md",
@@ -1714,7 +1716,8 @@
     "MID_IMPLEMENTATION_0.9.78.59.md",
     "MID_IMPLEMENTATION_0.9.78.60.md",
     "MID_IMPLEMENTATION_0.9.78.61.md",
-    "MID_IMPLEMENTATION_0.9.78.62.md"
+    "MID_IMPLEMENTATION_0.9.78.62.md",
+    "MID_IMPLEMENTATION_0.9.78.63.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",
@@ -1748,6 +1751,7 @@
     "MID_TEST_REPORT_0.9.78.59.md",
     "MID_TEST_REPORT_0.9.78.60.md",
     "MID_TEST_REPORT_0.9.78.61.md",
-    "MID_TEST_REPORT_0.9.78.62.md"
+    "MID_TEST_REPORT_0.9.78.62.md",
+    "MID_TEST_REPORT_0.9.78.63.md"
   ]
 }

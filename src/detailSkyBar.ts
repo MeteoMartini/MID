@@ -26,23 +26,26 @@ type WeatherStripVisual={
 const clamp=(value:number,min:number,max:number)=>Math.min(max,Math.max(min,value));
 const clamp01=(value:number)=>clamp(value,0,1);
 
-const sunVisualShare=(sunshineShare:number,cloudCover:number)=>{
+const sunVisualShare=(sunshineShare:number|null,cloudCover:number)=>{
+  if(sunshineShare!==null&&Number.isFinite(sunshineShare))return clamp01(sunshineShare);
   const cloud=clamp(Number.isFinite(cloudCover)?cloudCover:100,0,100);
-  const cloudClearShare=clamp01((50-cloud)/50);
-  return clamp01(Math.max(sunshineShare,cloudClearShare));
+  return clamp01(1-cloud/100);
 };
 
 const SKYBAR_THICKNESS_STEPS=[2.4,3.3,4.2,5.1] as const;
 const skybarThickness=(level:number)=>SKYBAR_THICKNESS_STEPS[Math.max(0,Math.min(SKYBAR_THICKNESS_STEPS.length-1,Math.round(level)))]!;
 const skybarFourStepLevel=(share:number)=>Math.min(3,Math.floor(clamp01(share)*4));
+const skybarAboveHalfLevel=(share:number)=>skybarFourStepLevel((clamp01(share)-.5)/.5);
 
 const cloudBandWidth=(cloud:number)=>{
   if(cloud<50)return 0;
-  return skybarThickness(skybarFourStepLevel((cloud-50)/50));
+  return skybarThickness(skybarAboveHalfLevel(cloud/100));
 };
 
-const sunBandWidth=(sunshineShare:number,cloud:number)=>
-  skybarThickness(skybarFourStepLevel(sunVisualShare(sunshineShare,cloud)));
+const sunBandWidth=(sunshineShare:number)=>{
+  if(sunshineShare<=.5)return 0;
+  return skybarThickness(skybarAboveHalfLevel(sunshineShare));
+};
 
 const precipBandWidth=(amount:number)=>{
   if(amount<0.05)return 0;
@@ -53,23 +56,28 @@ const precipBandWidth=(amount:number)=>{
 };
 
 const sampleIntervalSeconds=(hours:PrecipSample[],index:number)=>{
-  const current=Number(hours[index]?.epoch),next=Number(hours[index+1]?.epoch),previous=Number(hours[index-1]?.epoch);
+  const sample=hours[index],explicitStart=Number(sample?.precipitationIntervalStartEpoch),explicitEnd=Number(sample?.precipitationIntervalEndEpoch),explicit=Number.isFinite(explicitStart)&&Number.isFinite(explicitEnd)&&explicitEnd>explicitStart?(explicitEnd-explicitStart)/1000:NaN;
+  if(Number.isFinite(explicit)&&explicit>0)return clamp(explicit,60,6*3600);
+  const current=Number(sample?.epoch),next=Number(hours[index+1]?.epoch),previous=Number(hours[index-1]?.epoch);
   const forward=Number.isFinite(current)&&Number.isFinite(next)?(next-current)/1000:NaN;
   const backward=Number.isFinite(current)&&Number.isFinite(previous)?(current-previous)/1000:NaN;
   const interval=Number.isFinite(forward)&&forward>0?forward:Number.isFinite(backward)&&backward>0?backward:3600;
-  return clamp(interval,60,3600);
+  return clamp(interval,60,6*3600);
 };
 
-const baseSkyVisual=(cloud:number,daylight:boolean,sunshineShare:number):WeatherStripVisual|null=>{
-  if(daylight&&cloud<50){
-    const visualSunshine=sunVisualShare(sunshineShare,cloud);
-    return {
-      layer:'base',
-      color:'#ffc229',
-      strokeWidth:sunBandWidth(sunshineShare,cloud),
-      opacity:0.98,
-      title:`Sonnenschein · ${(visualSunshine*100).toFixed(0)} % relative Stärke · ${cloud.toFixed(0)} % Wolken`,
-    };
+const baseSkyVisual=(cloud:number,daylight:boolean,sunshineShare:number|null):WeatherStripVisual|null=>{
+  if(daylight){
+    const visualSunshine=sunVisualShare(sunshineShare,cloud),sunshineDirect=sunshineShare!==null;
+    if(visualSunshine>.5){
+      const width=sunBandWidth(visualSunshine);
+      if(width>0)return {
+        layer:'base',
+        color:'#ffc229',
+        strokeWidth:width,
+        opacity:0.98,
+        title:`Sonnenschein · ${(visualSunshine*100).toFixed(0)} % der betrachteten Zeit${sunshineDirect?'':' · aus Bewölkungsgrad abgeleitet'} · ${cloud.toFixed(0)} % Wolken`,
+      };
+    }
   }
 
   const width=cloudBandWidth(cloud);
@@ -90,7 +98,7 @@ const precipitationOverlayVisual=(hour:PrecipSample,intervalSeconds:number,cloud
   if(width<=0)return null;
   const intervalMinutes=Math.round(intervalSeconds/60);
   const parts=precipitationParts(hour);
-  const hasSunshineBase=!!hour.isDay&&cloud<50;
+  const rawSunshine=hour.sunshineDuration,sunshineShare=!!hour.isDay&&rawSunshine!==null&&rawSunshine!==undefined&&Number.isFinite(Number(rawSunshine))?clamp01(Number(rawSunshine)/Math.max(60,intervalSeconds)):null,hasSunshineBase=!!hour.isDay&&sunVisualShare(sunshineShare,cloud)>.5;
   return {
     layer:'precip',
     color:precipitationPhaseColor(parts.type),
@@ -102,8 +110,8 @@ const precipitationOverlayVisual=(hour:PrecipSample,intervalSeconds:number,cloud
 
 const weatherStripVisuals=(hour:PrecipSample,intervalSeconds:number)=>{
   const cloud=clamp(Number(hour.cloud??0),0,100);
-  const daylight=!!hour.isDay;
-  const sunshineShare=daylight?clamp01(Number(hour.sunshineDuration??0)/Math.max(60,intervalSeconds)):0;
+  const daylight=!!hour.isDay,rawSunshine=hour.sunshineDuration;
+  const sunshineShare=daylight&&rawSunshine!==null&&rawSunshine!==undefined&&Number.isFinite(Number(rawSunshine))?clamp01(Number(rawSunshine)/Math.max(60,intervalSeconds)):null;
   const visuals:WeatherStripVisual[]=[];
   const base=baseSkyVisual(cloud,daylight,sunshineShare);
   if(base)visuals.push(base);

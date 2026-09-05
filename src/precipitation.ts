@@ -6,6 +6,8 @@ export type PrecipSample={
  time?:string;
  epoch?:number;
  timezone?:string;
+ precipitationIntervalStartEpoch?:number;
+ precipitationIntervalEndEpoch?:number;
  precipitation:number;
  rain:number;
  showers:number;

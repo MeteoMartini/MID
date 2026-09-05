@@ -1,3 +1,10 @@
+## 0.9.78.63
+- Skybar-Sonnenklassifikation korrigiert: Gelb beginnt tagsüber erst oberhalb 50 % relativer Sonnenscheindauer und nutzt bis 100 % vier symmetrische Dickenstufen.
+- Graues Bewölkungsband bleibt ab 50 % Gesamtbewölkung bis 100 % vierstufig; Gelb und Grau sind als Grundband strikt gegenseitig exklusiv.
+- Direkte Sonnenscheindauer ist primär; Gesamtbewölkung dient nur bei fehlender Sonnenscheindauer als komplementärer Sonnenfallback.
+- Alte `max(Sonnenschein, Aufklarung)`-Logik entfernt, die geringe Bewölkung systematisch zu einem zu dicken gelben Band machen konnte.
+- 3-h-/aggregierte Skybar-Werte werden an der realen Intervalllänge normalisiert; dadurch kein künstliches Hochskalieren aufsummierter Sonnenscheindauer.
+
 ## 0.9.78.62
 - GitHub-Installer #896 repariert: TypeScript 7 und Vite-Produktionsbuild waren bereits erfolgreich; nur 1 von 680 Regressionen war veraltet.
 - Niederschlagsformen-/Schneemengenregression auf den verbindlichen zentralen `compactSevenDayConditionLabel`-Pfad migriert.
