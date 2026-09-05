@@ -13,9 +13,10 @@ assert.ok(!cross.includes('<svg'),'Die reaktivierte Cross Section darf keine gra
 assert.ok(!cross.includes('html-to-image'),'PNG-/Grafikexport der alten Cross Section ist noch aktiv.');
 for(const token of ['profileLevels=[950,925,900,850,800,700,600,500,400,300]','cloud_cover_${level}hPa','relative_humidity_${level}hPa','steeringCloudCenterHpa','steeringProfileMode:cloudActive?\'cloud-weighted\':\'fallback\'']) assert.ok(worker.includes(token),`Vertikale Schwerpunktströmung fehlt: ${token}`);
 for(const token of ['steeringCloudCenterHpa?:number','steeringCloudBaseHpa?:number','steeringCloudTopHpa?:number',"steeringProfileMode?:'cloud-weighted'|'fallback'",'steeringLevels?:number[]']) assert.ok(weatherType.includes(token),`RadarNowcast-Typ fehlt: ${token}`);
-for(const token of ["if(steeringValid)return{direction:normalizeBearing(steeringDirection)",'function motionTrackCompositeIcon(','return <Marker pane="mid-motion-labels" position={site} icon={icon}','<Marker pane="mid-motion-labels" position={site} icon={icon}','geometry.ticks.map((tick,index)=>','label=motionTimeLabel(','name="mid-motion-labels"']) assert.ok(radar.includes(token),`Zeitpfeil-/Pane-Vertrag fehlt: ${token}`);
+for(const token of ["if(radarValid)return{direction:normalizeBearing(radarDirection)",'function resolveEchoApproachTrack(','analysis.motionAnchors??[]','item.cross<=item.width','<MemoEchoApproachTrack track={approachTrack}','name="mid-motion-labels"']) assert.ok(radar.includes(token),`Echo-Zugspur-/Pane-Vertrag fehlt: ${token}`);
+assert.ok(radar.indexOf("if(radarValid)return{direction:normalizeBearing(radarDirection)")<radar.indexOf("if(steeringValid)return{direction:normalizeBearing(steeringDirection)"),'Radarbildfolge muss vor reiner Höhenströmung priorisiert werden.');
 const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText),test='scripts/test-flight-route-briefing-cloud-steering-09590.mjs';
 assert.equal(pkg.scripts?.['test:flight-route-cloud-steering'],`node ${test}`);
 assert.ok(baseline.requiredRegressionTests?.includes(test),'Required Regression fehlt.');
 assert.ok(baseline.regressionTests?.includes(test),'Regression fehlt.');
-console.log('Flug-Streckenbriefing und wolkengewichtete vertikale Schwerpunktströmung für den Radar-Zeitpfeil geprüft.');
+console.log('Flug-Streckenbriefing, vertikale Schwerpunktströmung und radarpriorisierte Echo-Zugspur geprüft.');

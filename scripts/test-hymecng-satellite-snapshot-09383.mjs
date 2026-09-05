@@ -9,9 +9,9 @@ const failures=[];
 const need=(where,text,token)=>{if(!text.includes(token))failures.push(`${where}: fehlt ${token}`)};
 const reject=(where,text,token)=>{if(text.includes(token))failures.push(`${where}: unerwünscht ${token}`)};
 for(const token of [
- 'snapshotToken=satelliteUntimed?`latest:${revision}`:`snapshot:${iso}`',
+ 'requestedSatelliteKey=satelliteUntimed?`latest:',
  'time:iso',
- 'der amtliche DWD-3h-Satellitenstand bleibt bis zum nächsten regulären Termin zulässig.',
+ 'satelliteBlend=targetSeconds>referenceSeconds+90?[]',
  "import('./RadarModelPrecipTypeOverlay')"
 ])need('RadarPanel',panel,token);
 for(const token of [
@@ -36,4 +36,4 @@ for(const token of [
 need('Baseline',baseline,'scripts/test-hymecng-satellite-snapshot-09383.mjs');
 const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;if(pv!==bv)failures.push(`Versionen nicht synchron: ${pv}/${bv}`);
 if(failures.length){console.error('HymecNG-Rückbau-/Satelliten-Snapshot-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Aktiver HymecNG-Kompositpfad ist entfernt; zeitgestempelter Satellit mit kontrolliertem DWD-Latest-Fallback bleibt geschützt.');
+console.log('Aktiver HymecNG-Kompositpfad ist entfernt; zeitechter Satellit mit kontrolliertem DWD-Latest-Fallback bleibt geschützt.');

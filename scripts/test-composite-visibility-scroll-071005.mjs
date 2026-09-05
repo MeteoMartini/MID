@@ -8,17 +8,17 @@ const failures=[];
 const need=(source,token,label)=>{if(!source.includes(token))failures.push(`${label}: ${token}`)};
 
 for(const token of [
-  "label=\"Radar · 1 km\"",
-  "label=\"K3D / MIX\"",
-  "label=\"Zeitpfeil\"",
+  "label=\"Niederschlagsart\"",
+  "label=\"Zellen\"",
+  "label=\"Zugspuren\"",
   'radarButtonDetail=',
   'nowcastButtonDetail=`${k3dButtonState} · ${mixButtonState}`'
 ])need(radar,token,'Kompakte Layerbuttons fehlen');
 
 for(const token of [
-  'function motionTrackCompositeIcon(',
-  'mid-motion-track-composite-svg',
-  "<Marker pane=\"mid-motion-labels\" position={site} icon={icon}",
+  'function EchoApproachTrackLayer(',
+  'mid-echo-approach-track',
+  '<Marker pane="mid-motion-labels" position={track.closest}',
   'function konradMarkerIcon(',
   'mid-konrad-marker',
   'function nowcastMixMarkerIcon()',
@@ -41,7 +41,7 @@ if(radar.includes('radar-motion-chip')||radar.includes('radar-site-motion-label'
 
 for(const token of [
   '.composite-switch.compact{',
-  '.mid-motion-track-composite-svg{',
+  '.mid-echo-approach-track',
   '.mid-konrad-marker{',
   '.mid-nowcastmix-marker{',
   '.radarmap.touch-scroll-mode .maplibregl-map{touch-action:pan-y!important}',
@@ -53,4 +53,4 @@ if(failures.length){
   console.error('Komposit-Sichtbarkeit/Scroll-Regression fehlgeschlagen:\n- '+failures.join('\n- '));
   process.exit(1);
 }
-console.log('Kompositbild geprüft: kompaktes Layerband, sichtbare K3D-/NowCastMIX-Symbole und einzelner weißer Zeitpfeil sowie touchfreundliches Scrollen sind aktiv.');
+console.log('Kompositbild geprüft: verständliches Layerband, sichtbare K3D-/NowCastMIX-Symbole, echogebundene Zugspur und touchfreundliches Scrollen sind aktiv.');

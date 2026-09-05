@@ -20,16 +20,16 @@ requireTokens('Meteorologischer Zugvektor',worker,[
 ]);
 requireTokens('Nowcast-Objekt-API',worker,["mode==='nowcastmix-points'",'dwdLightningPoints(lat,lon)',"'dwd-nowcastmix-lightning'"]);
 requireTokens('Komposit-Option',radar,[
- 'showNowcastObjects:boolean','label="K3D / MIX"','nowcastButtonDetail=`${k3dButtonState} · ${mixButtonState}`','function KonradNowcastObjects(','loadNowcastMixPoints(','visibleNowcastMix','<MemoKonradNowcastObjects data={thunder}'
+ 'showNowcastObjects:boolean','label="Zellen"','nowcastButtonDetail=`${k3dButtonState} · ${mixButtonState}`','function KonradNowcastObjects(','loadNowcastMixPoints(','visibleNowcastMix','<MemoKonradNowcastObjects data={thunder}'
 ]);
 requireTokens('Einzelne Zugspur',radar,[
- 'motionAvailable=showRadar&&Number.isFinite(motionDirection)&&Number.isFinite(motionSpeed)&&motionSpeed>=2','showMotion=showMotionOverlay&&motionAvailable','showMotionField=showMotion','function PrecipitationMotionTrack','motionTrackCompositeIcon','const upstreamBearing=(resolved.direction+180)%360','<MemoPrecipitationMotionTrack site={[lat,lon]}'
+ 'motionAvailable=showRadar&&Boolean(approachTrack)','showMotion=showMotionOverlay&&motionAvailable','showMotionField=showMotion','function resolveEchoApproachTrack','analysis.motionAnchors??[]','item.cross<=item.width','<MemoEchoApproachTrack track={approachTrack}'
 ]);
 requireTokens('App-Schwellen',app,['function radarSiteThreshold(','function radarNearbyThreshold(','seasonalEchoLabel']);
 requireTokens('OPERA-Saisonprofil',opera,['function operaSeasonalEchoProfile(','winter-sensitive','summer-filter','echoProfile.siteThreshold','echoProfile.anchorThreshold','seasonalEchoLabel:echoProfile.label']);
 requireTokens('Radar-Typvertrag',weather,['seasonalEchoProfile?:','steeringDirectionDeg?:number','forecastLatitude?:number','motionDirectionDeg?:number']);
 requireTokens('Frontend-Workerclient',composite,["loadNowcastMixPoints","'nowcastmix-points'"]);
-requireTokens('Objekt-Styling',styles,['.konrad-track','.mid-konrad-marker{','.mid-nowcastmix-marker{','.mid-motion-track-composite-svg']);
+requireTokens('Objekt-Styling',styles,['.konrad-track','.mid-konrad-marker{','.mid-nowcastmix-marker{','.mid-echo-approach-track']);
 
 // Saisonale Schwellen müssen schwache Echos im Winter sensibler behandeln als im Sommer.
 try{
@@ -50,4 +50,4 @@ try{
 }catch(error){failures.push(`Funktionaler Schwerpunktströmungstest nicht ausführbar: ${error instanceof Error?error.message:String(error)}`)}
 
 if(failures.length){console.error('Saisonale Radar-/Zugvektor-/Nowcastobjekt-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Saisonale Radarbewertung, meteorologischer Hybrid-Zugvektor, einzelne Zugspur sowie optionale KONRAD3D-/NowCastMIX-Objekte sind geprüft.');
+console.log('Saisonale Radarbewertung, meteorologischer Hybrid-Zugvektor, echogebundene Standort-Zugspur sowie optionale KONRAD3D-/NowCastMIX-Objekte sind geprüft.');

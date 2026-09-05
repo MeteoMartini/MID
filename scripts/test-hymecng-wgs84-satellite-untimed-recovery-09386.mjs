@@ -9,7 +9,7 @@ const [projection,panel,worker,pkg,baseline]=await Promise.all([
 const failures=[];
 const need=(where,text,token)=>{if(!text.includes(token))failures.push(`${where}: fehlt ${token}`)};
 for(const token of ["+ellps=([^\\s]+)","ellipsoid==='WGS84'","298.257223563","ellipsoid==='GRS80'","298.257222101"])need('Radarprojektion',projection,token);
-for(const token of ['satelliteUntimed=Boolean(satelliteProduct?.latestOnly)','timeVerified:false','snapshotRevision','snapshotToken=satelliteUntimed?`latest:${revision}`:`snapshot:${iso}`','...(satelliteUntimed?{}:{time:iso})'])need('Satelliten-Recovery',panel+worker,token);
+for(const token of ['satelliteUntimed=Boolean(satelliteProduct?.latestOnly)','timeVerified:false','snapshotRevision','requestedSatelliteKey=satelliteUntimed?`latest:','...(satelliteUntimed?{}:{time:iso})'])need('Satelliten-Recovery',panel+worker,token);
 const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;if(pv!==bv)failures.push(`Versionen nicht synchron: ${pv}/${bv}`);
 
 // Funktional: DWD-Layer vorhanden, aber ohne TIME-Dimension. Er muss als latestOnly zurückkommen.

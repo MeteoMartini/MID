@@ -19,7 +19,7 @@ for(const token of [
   "import('./RadarModelPrecipTypeOverlay')",
   'Niederschlagsart · Radar+Modell',
   'OPERA-CIRRUS-Echomaske + frischestes geeignetes Rapid-/Regionalmodell als radar-/modellgestützte Phasenklassifikation',
-  'ausschließlich bei festem, gemischtem oder gefrierendem Niederschlag um kleine semitransparente Wettersymbole'
+  'Reiner Regen bleibt ausschließlich als normales Radarecho sichtbar.'
 ]) need('RadarPanel',radarPanel,token);
 for(const token of [
   "import('./CompositeHymecNgOverlay')",

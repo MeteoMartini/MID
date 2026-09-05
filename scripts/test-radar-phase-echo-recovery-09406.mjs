@@ -16,7 +16,8 @@ assert.match(phase,/distanceKm\(existing,item\)<spacing/,'phase symbols must be 
 assert.match(phase,/HtmlMarker/,'phase overlay must render point symbols');
 assert.match(phase,/opacity:\$\{safeOpacity\.toFixed\(2\)\}/,'user opacity must control phase symbols');
 assert.doesNotMatch(phase,/GeoJsonLayers|fill-opacity|Polygon/,'old filled phase polygons must stay removed');
-assert.match(panel,/if\(next&&!showRadar\)setShowRadar\(true\)/,'enabling precipitation type must preserve/show the selected radar underneath');
+assert.match(panel,/disabled=\{!showRadar\}/,'precipitation type must be unavailable without a radar observation underneath');
+assert.match(panel,/setShowPrecipitationType\(value=>!value\)/,'precipitation type control must remain independently switchable');
 assert.match(panel,/precipitationTypeOpacity/,'phase opacity slider must remain available below the image');
 assert.match(styles,/\.radar-phase-symbol>span,\.radar-phase-symbol-shape\{display:block;width:19px;height:15px/,'phase symbols must remain compact enough to preserve radar gradations');
 console.log('ok - non-liquid precipitation is rendered as small semi-transparent symbols over the selected radar');

@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 const root=new URL('../',import.meta.url);
-const [radar,pkgText,baselineText]=await Promise.all(['src/RadarPanel.tsx','package.json','MID_BASELINE.json'].map(p=>readFile(new URL(p,root),'utf8')));
-for(const dead of ['function motionTimeMarkers','type MotionTimeMarker','function localVectorKm','displayMotionAnchors=','motionAnchors=Array.isArray(analysis?.motionAnchors)']) assert.ok(!radar.includes(dead),`Veralteter/ungenutzter Zugspurpfad ist zurückgekehrt: ${dead}`);
-for(const active of ['function PrecipitationMotionTrack','upstreamBearing=(resolved.direction+180)%360','<MemoPrecipitationMotionTrack','<Marker pane="mid-motion-labels" position={site} icon={icon}','trackKm=Math.max(.5,resolved.speed*leadMinutes/60)','trackStart=destinationPoint(site,upstreamBearing,trackKm)','geometry.ticks.map((tick,index)=>']) assert.ok(radar.includes(active),`Aktiver Einzelzugspur-Vertrag fehlt: ${active}`);
-assert.equal((radar.match(/<MemoPrecipitationMotionTrack/g)||[]).length,1,'Genau eine Zugspur muss gerendert werden.');
+const [radar,pkgText,baselineText]=await Promise.all(['src/RadarPanel.tsx','package.json','MID_BASELINE.json'].map(path=>readFile(new URL(path,root),'utf8')));
+for(const dead of ['function PrecipitationMotionTrack','function motionTrackCompositeIcon(','<MemoPrecipitationMotionTrack'])assert.ok(!radar.includes(dead),`Veralteter Zeitpfeilpfad ist zurückgekehrt: ${dead}`);
+for(const active of ['type EchoApproachTrack=','function resolveEchoApproachTrack(',"confidence==='low'",'item.cross<=item.width','[15,30,45,60,90,120]','function EchoApproachTrackLayer(','<MemoEchoApproachTrack track={approachTrack}'])assert.ok(radar.includes(active),`Aktiver Echo-Zugspur-Vertrag fehlt: ${active}`);
+assert.equal((radar.match(/<MemoEchoApproachTrack/g)||[]).length,1,'Genau eine echogebundene Zugspur muss gerendert werden.');
 const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText);
 assert.equal(pkg.scripts?.['test:radar-motion-track-buildfix'],'node scripts/test-radar-motion-track-buildfix-09551.mjs');
 assert.ok(baseline.requiredRegressionTests?.includes('scripts/test-radar-motion-track-buildfix-09551.mjs'));
 assert.ok(baseline.regressionTests?.includes('scripts/test-radar-motion-track-buildfix-09551.mjs'));
-console.log('Radar-TypeScript-Buildfix geprüft: keine toten Altvariablen, genau eine aktive Zeitpfeilspur bleibt geschützt.');
+console.log('Radar-Zugspur geprüft: kein alter Standortpfeil; nur erkannte Echoanker mit Korridortreffer erzeugen eine ETA.');

@@ -15,7 +15,7 @@ const forbid=(area,text,token)=>{if(text.includes(token))failures.push(`${area}:
 
 for(const token of [
  "const DWD_WARNING_LAYER='dwd:Warnungen_Gemeinden_vereinigt'",
- "label=\"Warnkarte\"",
+ "label=\"Warnungen\"",
  "layers:DWD_WARNING_LAYER",
  "warningOpacity",
  "const DWD_ISOBAR_LAYER='dwd:Icon_reg025_fd_sl_PMSL'",

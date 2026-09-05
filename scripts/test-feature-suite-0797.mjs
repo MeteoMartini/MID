@@ -24,9 +24,9 @@ requireTokens('Favoriten-Deep-Link App',app,['function notificationLocation()','
 requireTokens('Favoriten-Deep-Link Service Worker',sw,['notificationclick','favoriteId','targetUrl.searchParams.set(\'mid-favorite\',favoriteId)','client.navigate(target)']);
 requireTokens('Letzter Ort',app,['const notified=notificationLocation();if(notified)return notified;const last=storedLocation();if(last)return last','localStorage.setItem(LOCATION_STORAGE_KEY,JSON.stringify(normalized))','function locate(openLocation=true)']);
 requireTokens('Radar-Zugrichtung Worker',worker,['precipitationCentroid','centroidEastKm','centroidNorthKm','radarMotionFromFrames','motionDirectionDeg','motionSpeedKmh','multi-frame-grid-correlation']);
-requireTokens('Radar-Zugrichtung UI',radar,['function PrecipitationMotionTrack','motionTrackCompositeIcon','const upstreamBearing=(resolved.direction+180)%360','Zeitpfeil {Math.round(motionDirection)}°','motionMethod=String(analysis?.motionSource','motionDirectionDeg','motionSpeedKmh']);
+requireTokens('Radar-Zugrichtung UI',radar,['function resolveEchoApproachTrack','analysis.motionAnchors??[]','item.cross<=item.width','Echo-Zugspur ${Math.round(approachTrack.direction)}°','motionMethod=String(analysis?.motionSource','motionDirectionDeg','motionSpeedKmh']);
 requireTokens('Radar-Zugrichtung Typ',weather,['motionDirectionDeg?:number','motionSpeedKmh?:number','motionConfidence?:\'high\'|\'medium\'|\'low\'']);
-requireTokens('Radar-Zugrichtung CSS',styles,['.radarmap .radar-motion-chip{','.radar-motion-arrow,','.radar-motion-arrow-head']);
+requireTokens('Radar-Zugrichtung CSS',styles,['.mid-echo-approach-track','.mid-approach-node{','.mid-approach-eta{']);
 requireTokens('Versionsfestes Modellarchiv',modelChanges,['HISTORY_KEY=\'mid:model-run-change-history:v2\'','type ModelChangeHistory','appendHistory','slice(-6)','slice(40)','loadModelChangeSnapshot','saveModelChangeSnapshot']);
 if(persistence.includes("if(localStorage.getItem('mid:favorites'))return false"))failures.push('Persistenz: früher Abbruch bei vorhandenen Favoriten wurde nicht entfernt.');
 requireTokens('Persistenzbrücke',persistence,['const INCLUDED_KEYS=isPersistentBackupKey','if(INCLUDED_KEYS(key)&&localStorage.getItem(key)===null)localStorage.setItem(key,value)','readDb()','readCache()']);

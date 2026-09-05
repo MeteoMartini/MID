@@ -1,17 +1,12 @@
-# 0.9.78.61 — 2026-09-04
-
-- GitHub Release #893 repariert: TypeScript 7 und Vite-Produktionsbuild waren bereits vollständig erfolgreich; nur 2 von 679 Regressionen erwarteten noch die alte ausführliche 7d-Beschriftung.
-- Historische Tests auf den verbindlichen kompakten 7d-Einzeilervertrag aktualisiert; Produktionslogik bleibt unverändert.
-- 7-Tage-Kacheln bleiben bei Kurzformen wie „Sonnig“, „Regen“, „Schauer“, „Ruhig“, „Windig“ usw.
-- Keine funktionale Worker-Änderung.
-
 # 0.9.78.60 — 2026-09-04
 
-- GitHub Release #892 repariert: npm-Installation und Dependency-Audit waren erfolgreich; der Abbruch erfolgte ausschließlich im TypeScript-7-Check.
-- Acht ungültige Feldzugriffe aus dem neuen 7d-Kurzlabel-Helfer entfernt und auf kanonische `Day`-/`Hour`-/`dayPrecipitationAssessment`-Felder umgestellt.
-- 7-Tage-Kacheln zeigen weiterhin ausschließlich kompakte Einzeiler wie „Sonnig“, „Regen“, „Schauer“, „Ruhig“ oder „Windig“; ausführliche Wettertexte bleiben nur als Detail-/Tooltipinformation erhalten.
-- Neue Regression `test-seven-day-compact-label-buildfix-097860.mjs`.
-- Keine funktionale Worker-Änderung.
+- Sektion **Kompositbild** als moderne, kartenorientierte Übersicht mit den klar getrennten Modi Radar, Satellit und Synoptik neu geordnet.
+- Zeitachse zeigt ausschließlich tatsächlich verfügbare Produktstände im festen Bereich −1 bis +2 Stunden; Beobachtung, Nowcast und Modellprognose sind eindeutig getrennt.
+- Unzuverlässigen pauschalen Zeitpfeil durch echogebundene Zugspuren ersetzt: Eine ETA entsteht nur bei realem Radaranker auf Standortkurs und ausreichender Bewegungsqualität; Unsicherheitskorridor, +15- bis +120-Minuten-Knoten und Wachstumstrend werden sichtbar.
+- Radar- und Satellitenwechsel mit stabilem Vordergrundbild, Hintergrund-Vorladen, begrenztem Framecache und Fehlerquorum gegen leere/flackernde Vorschauen gehärtet.
+- Untimed Satellit, 250-m-Radar, Warnkarte, Blitze und KONRAD3D/NowCastMIX werden nicht mehr in fachlich unzulässige Vergangenheits- oder Zukunftsstände kopiert.
+- Schnellwahl, verständliche Overlay-Bezeichnungen, kompakte Facheinstellungen, Datenstatus, Live-Rückkehr und Standortzusammenfassung ergänzt; mobile Darstellung auf eine klare zweispaltige Bedienung optimiert.
+- Neue Regression `test-composite-temporal-truth-zugspuren-097860.mjs`; alle historischen Kompositprüfungen auf den neuen Zeit- und Zugspurenvertrag migriert.
 
 # 0.9.78.54 — 2026-09-04
 

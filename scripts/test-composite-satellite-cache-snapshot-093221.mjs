@@ -22,9 +22,11 @@ for(const [name,text] of [['sw.js',sw],['service-worker.js',swAlias]]){
  ])need(name,text,token);
  reject(name,text,"const cached=await cache.match(request,{ignoreSearch:true});if(cached)return cached;\n  return fetch(request).then(response=>{if(response.ok&&['script','style','image','font'].includes(request.destination))");
 }
-need('RadarPanel',panel,"satelliteTimeline,targetSeconds,{interpolationGapSeconds:0,earlyGraceSeconds:45*60");
+need('RadarPanel',panel,"satelliteBlend=targetSeconds>referenceSeconds+90?[]");
 need('RadarPanel',panel,"...(satelliteUntimed?{}:{time:iso})");
-need('RadarPanel',panel,'snapshotToken=satelliteUntimed?`latest:${revision}`:`snapshot:${iso}`');
+need('RadarPanel',panel,'requestedSatelliteKey=satelliteUntimed?`latest:');
+need('RadarPanel',panel,'stableSatelliteKey');
+need('RadarPanel',panel,'satelliteRenderFrames=[');
 reject('RadarPanel',panel,"satelliteTimeline,targetSeconds,{interpolationGapSeconds:35*60");
 need('Worker',worker,"const cacheTtl=base===EUMETSAT_WMS?60:180");
 need('Worker',worker,"'Cache-Control':'no-cache'");
@@ -32,4 +34,4 @@ const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;
 if(pv!==bv)failures.push(`Versionen nicht synchron: ${pv}/${bv}`);
 
 if(failures.length){console.error('MID Satelliten-Snapshot-/Cacheprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('MID: dynamische WMS-Anfragen network-only, Altcache-Bereinigung, diskrete TIME-Snapshots und cache-busted DWD-Latest-Fallback geprüft.');
+console.log('MID: dynamische WMS-Anfragen network-only, diskrete Zeitstände, cache-busted DWD-Latest-Fallback und gepufferter Satellitenwechsel geprüft.');

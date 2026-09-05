@@ -8,8 +8,9 @@ const [worker,panel,pkg,baseline]=await Promise.all([
 const failures=[];
 const need=(where,text,token)=>{if(!text.includes(token))failures.push(`${where}: fehlt ${token}`)};
 for(const token of ['const DWD_SATELLITE_MAX_AGE_MINUTES=210','maxAgeMinutes:210','latest>=now-maxAgeMinutes*60000','timeVerified:false','snapshotRevision'])need('Worker',worker,token);
-need('RadarPanel',panel,'lateGraceSeconds:190*60');
-need('RadarPanel',panel,'der amtliche DWD-3h-Satellitenstand bleibt bis zum nächsten regulären Termin zulässig.');
+need('RadarPanel',panel,'satelliteUntimed?(liveFollow?');
+need('RadarPanel',panel,'satelliteBlend=targetSeconds>referenceSeconds+90?[]');
+need('RadarPanel',panel,'latestOnly');
 const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;if(pv!==bv)failures.push(`Versionen nicht synchron: ${pv}/${bv}`);
 
 const originalFetch=globalThis.fetch,now=Date.now(),iso=value=>new Date(value).toISOString();
@@ -30,4 +31,4 @@ try{
  if(!Array.isArray(data.satelliteDayProduct?.times)||!data.satelliteDayProduct.times.length)failures.push('DWD-3h-Fallback ohne Zeitstand');
 }finally{globalThis.fetch=originalFetch}
 if(failures.length){console.error('Satelliten-3h-Fallback-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Satellit: EUMETSAT-NRT eng, amtlicher DWD-3h-Stand zeitgestempelt bevorzugt und bei fehlender TIME-Dimension als kontrollierter Live-Snapshot geschützt.');
+console.log('Satellit: amtlicher DWD-3h-Fallback bleibt verfügbar, wird im Komposit aber nur am bestätigten Beobachtungsstand bzw. als Live-Snapshot gezeigt.');

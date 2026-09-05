@@ -16,8 +16,10 @@ for(const token of [
  'setTileRevision(value=>value+1);setRasterZooming(false)',
  '<RasterZoomLifecycle onStart={handleRasterZoomStart} onEnd={handleRasterZoomEnd}/>',
  'satelliteUntimed=Boolean(satelliteProduct?.latestOnly)',
- 'satelliteBlend=satelliteUntimed?',
- 'snapshotToken=satelliteUntimed?`latest:${revision}`:`snapshot:${iso}`',
+ 'satelliteBlend=targetSeconds>referenceSeconds+90?[]:satelliteUntimed?',
+ 'requestedSatelliteKey=satelliteUntimed?`latest:',
+ 'satelliteRenderFrames=[',
+ 'loadedSatelliteFrames.has(requestedSatelliteKey)',
  'time:iso',
  'keepBuffer={0}',
  'updateWhenZooming={false}'
@@ -39,4 +41,4 @@ for(const token of ['SATELLITE_LATEST_DAY','SATELLITE_LATEST_IR'])reject('Worker
 const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;
 if(pv!==bv)failures.push(`Versionen nicht synchron: ${pv}/${bv}`);
 if(failures.length){console.error('MID Satelliten-/Zoomprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('MID: Satellitenbild nutzt bevorzugt explizite TIME-Snapshots; DWD-Layer ohne auswertbare TIME-Dimension erhalten einen kontrollierten, cache-busted Latest-Snapshot statt auszufallen.');
+console.log('MID: Satellitenbild nutzt echte TIME-Snapshots mit Doppelpuffer; DWD ohne TIME bleibt kontrollierter, cache-busted Live-Snapshot.');
