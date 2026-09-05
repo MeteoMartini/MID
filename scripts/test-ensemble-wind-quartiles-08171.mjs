@@ -15,7 +15,7 @@ for(const token of [
   'windQ75=windVals.length>=6?weightedQuantile(windVals,.75):NaN',
   'gustQ25=gustVals.length>=6?weightedQuantile(gustVals,.25):NaN',
   'gustQ75=gustVals.length>=6?weightedQuantile(gustVals,.75):NaN',
-  "const ENSEMBLE_CACHE_PREFIX='mid:ensemble:v16:'"
+  "const ENSEMBLE_CACHE_PREFIX='mid:ensemble:v17:'"
 ])need('Ensemble-Windquartile',weather,token);
 
 for(const token of [

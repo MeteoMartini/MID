@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.78.64",
+  "version": "0.9.78.65",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -424,7 +424,8 @@
     "test:composite-temporal-truth-zugspuren": "node scripts/test-composite-temporal-truth-zugspuren-097860.mjs",
     "test:pressure-axis-nice-spacing": "node scripts/test-pressure-axis-nice-spacing-097861.mjs",
     "test:skybar-sun-cloud-exclusive": "node scripts/test-skybar-sun-cloud-exclusive-097863.mjs",
-    "test:audit-science": "node scripts/test-audit-science-097864.mjs"
+    "test:audit-science": "node scripts/test-audit-science-097864.mjs",
+    "test:ensemble-multiparameter": "node scripts/test-ensemble-multiparameter-097865.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",

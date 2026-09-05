@@ -1,3 +1,9 @@
+## MID v0.9.78.65 – 14d-Mehrparameterbewertung
+
+Temperatur, Niederschlag, Wind/Böen und Sonne werden getrennt bewertet. Gemeinsame Zeiträume und Datenlücken sind nachvollziehbar; Modellübereinstimmung wird nicht als kalibrierte Trefferwahrscheinlichkeit ausgegeben.
+
+[Methodik und Änderungen](MID_IMPLEMENTATION_0.9.78.65.md) · [Validierung](MID_VALIDATION_0.9.78.65.md)
+
 ## MID v0.9.78.64 – wissenschaftlicher Audit
 
 Aktuelle Änderungen, Begründungen und Grenzen: [Implementierung 0.9.78.64](MID_IMPLEMENTATION_0.9.78.64.md). Lokale Prüfergebnisse: [Validierung](MID_VALIDATION_0.9.78.64.md).

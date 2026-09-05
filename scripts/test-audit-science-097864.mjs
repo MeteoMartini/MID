@@ -25,13 +25,7 @@ assert.equal(sky.sunVisualShare(.8,90),.8);
 assert.equal(sky.sunBandWidth(.5),0);
 assert.ok(sky.sunBandWidth(.6)>0);
 assert.ok(sky.sunBandWidth(1)>sky.sunBandWidth(.6));
-const confidence=load('src/ensembleConfidence.ts',['clamp','computeEnsembleConfidence']).computeEnsembleConfidence;
-const input={spread:2,index:0,modelCount:4,maxModelCount:4};
-assert.equal(confidence({...input,modelCount:0}),0);
-assert.equal(confidence({...input,spread:NaN}),0);
-assert.ok(confidence({...input,spread:10})<confidence(input));
-assert.ok(confidence({...input,index:13})<confidence(input));
-assert.ok(confidence({...input,modelCount:2})<confidence(input));
+// Legacy temperature-index checks are superseded by test-ensemble-multiparameter-097865.mjs.
 const time=load('src/weather-src/00-types-models-search.tsfrag',['parseLocalIso','partsAtEpoch','localIsoEpoch']);
 const event=load('src/eventWeatherEngine.ts',['parseMinuteStamp','eventWindowEndDate','clockFromCivilStamp','timelineForWindow','unique','weatherSeverity','majorWeatherCode','mean','maximum','minimum','eventWeatherPart','summarizeTimeline'],{localIsoEpoch:time.localIsoEpoch,precipitationParts:()=>({type:'none',displayCode:0,total:0}),label:()=>'',compactPrecipitationTypeLabel:()=>''});
 const hours=['2026-09-05T23:00','2026-09-06T00:00','2026-09-06T01:00','2026-09-06T02:00'].map(time=>({time,precipitation:0,probability:0}));
@@ -74,9 +68,10 @@ assert.equal(advice.ventilationRoomAdvice({...room,co2:undefined},rule,{rows}).s
 assert.equal(advice.ventilationRoomAdvice(room,rule,{rows:[{}]}).status,'wait');
 const panel=fs.readFileSync(new URL('src/EnsemblePanel.tsx',root),'utf8'),cockpit=fs.readFileSync(new URL('src/ForecastCockpit.tsx',root),'utf8');
 assert.ok(!panel.includes('Prognosesicherheit ${'));
-assert.ok(panel.includes('keine Trefferwahrscheinlichkeit'));
+assert.ok(panel.includes('keine kalibrierte Trefferwahrscheinlichkeit'));
 assert.ok(cockpit.includes('spread=Math.max(item.maxHigh-item.maxLow,item.minHigh-item.minLow)'),'Compact/full spread definitions must agree');
-const aggregation=load('src/weather-src/30-ensemble-climate-hazards.tsfrag',['quantile','weightedQuantile','weightedMean','weightedProbability','clampNumber','effectiveModelFreshness','modelDayWeight','variantSelectionScore','representativeResultsForDate','aggregateMembers'],{DWD_PRECIPITATION_PROBABILITY_THRESHOLD_MM:.2,DWD_SIGNIFICANT_PRECIPITATION_PROBABILITY_THRESHOLD_MM:5});
+const evidenceModule=await import('data:text/javascript;base64,'+Buffer.from(ts.transpileModule(fs.readFileSync(new URL('src/ensembleAssessment.ts',root),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText).toString('base64'));
+const aggregation=load('src/weather-src/30-ensemble-climate-hazards.tsfrag',['quantile','weightedQuantile','weightedMean','weightedProbability','clampNumber','effectiveModelFreshness','modelDayWeight','variantSelectionScore','representativeResultsForDate','aggregateMembers'],{buildEnsembleEvidence:evidenceModule.buildEnsembleEvidence,DWD_PRECIPITATION_PROBABILITY_THRESHOLD_MM:.2,DWD_SIGNIFICANT_PRECIPITATION_PROBABILITY_THRESHOLD_MM:5});
 const scenarios=['a','b'].map(id=>({model:{id,label:id,family:id,independenceGroup:id,maxDays:14,resolutionKm:25,updateHours:6},members:new Map(Array.from({length:10},(_,i)=>[String(i),[{date:'2026-09-18',max:i<8?20:32,min:i<8?10:22,precipitation:i<8?0:100,precipitationWindows:[0,0,0,i<8?0:100],sunshineDuration:1000,wind:i<8?10:60,gust:i<8?20:80}]]))}));
 const aggregate=aggregation.aggregateMembers(scenarios)[0];
 assert.equal(aggregate.memberCount,20,'Plausible minority scenarios must survive');

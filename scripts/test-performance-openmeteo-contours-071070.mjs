@@ -12,7 +12,7 @@ for(const token of [
  "'ecmwf_aifs_europe_ensemble'",
  "'ecmwf_ifs_europe_ensemble_mean'",
  "'ecmwf_aifs_europe_ensemble_mean'",
- "ENSEMBLE_CACHE_PREFIX='mid:ensemble:v16:'",
+ "ENSEMBLE_CACHE_PREFIX='mid:ensemble:v17:'",
  'ENSEMBLE_FRESH_CACHE_MS=60*60*1000',
  'loadEnsembleUnits',
  'variantGroup',

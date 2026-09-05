@@ -47,8 +47,10 @@ assert.equal(cold.snowfall,1,'Plausibler Schneefallwert ging verloren.');
 for(const token of ['temperature:n(w.hourly.temperature_2m[i],NaN)','temperature:n(w.daily.temperature_2m_min[i],NaN)','phaseAdjusted=true'])assert.ok(weatherFragment.includes(token)||precipitation.includes(token),`Zentraler Phasenvertrag fehlt: ${token}`);
 assert.ok(weatherBuilt.includes('temperature:n(w.daily.temperature_2m_min[i],NaN)'),'Wetteraggregat enthält die Tages-Phasenprüfung nicht.');
 for(const token of ['language?:string','Originaltext: ${language}'])assert.ok(weatherBuilt.includes(token)||app.includes(token),`Warntext-/Sprachvertrag fehlt: ${token}`);
-for(const token of ['availableModelCount:maxModelCount','{modelCount}/{reference} M','von ${reference} Modellfamilien','Beim bereits laufenden ersten Tag'])assert.ok(cockpit.includes(token),`Transparenter Modellbeitragsvertrag fehlt: ${token}`);
-for(const token of ['referenceModelCount:number','Math.max(1,...data.map(item=>Math.max(1,item.modelCount||1)))','von {referenceModelCount} Modellfamilien'])assert.ok(ensemble.includes(token),`Ensemble-Beitragsvertrag fehlt: ${token}`);
+const coverageView=await readFile(new URL('src/ForecastConfidence.tsx',root),'utf8');
+for(const source of [cockpit,ensemble])assert.ok(source.includes('EnsembleAssessmentDetails'),'Gemeinsame Parameterabdeckung muss in beiden Ansichten sichtbar sein.');
+for(const token of ['parameter.coverage.members','parameter.coverage.expectedMembers','parameter.coverage.families','parameter.coverage.expectedFamilies','vollständige Mitglieder','geladene Modellgruppen'])assert.ok(coverageView.includes(token),`Transparenter Parameterbeitragsvertrag fehlt: ${token}`);
+
 
 const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText),test='scripts/test-warning-text-warm-phase-model-coverage-09645.mjs';
 assert.ok(pkg.version.localeCompare('0.9.64.5',undefined,{numeric:true,sensitivity:'base'})>=0,'Korrektur benötigt mindestens Wartungsrelease v0.9.64.5.');

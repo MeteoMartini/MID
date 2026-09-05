@@ -1,3 +1,11 @@
+## 0.9.78.65
+
+- Gemeinsame Vierparameter-Bewertung in klassischer 14d-Ansicht und Cockpit statt Temperaturindex und 72-Punkte-Grenze.
+- Native Parameterabdeckung, vollständige lokale Tage und Laufalter verhindern hohe Einstufung bei Datenlücken oder veralteten Läufen.
+- Kalendergenaue gemeinsame und parameterspezifische Zeiträume, spätere Fenster und begrenzende Bereiche sichtbar.
+- Qualitative, textlich erklärte Details; keine unkalibrierte Genauigkeits-Prozentzahl.
+- Ensemblecache v17, Verhaltenstests und wissenschaftliche Methodendokumentation ergänzt.
+
 ## 0.9.78.64
 
 - 14d-Anzeige wissenschaftlich eingegrenzt: unkalibrierter Temperatur-Konsistenzindex statt behaupteter Prognosesicherheit in Prozent; kompakte und ausführliche Streuungsberechnung vereinheitlicht.

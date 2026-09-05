@@ -21,7 +21,7 @@ for(const token of [
  'cockpit-forecast-compass',
  '<CockpitForecastGuide data={series} scenarios={scenarios} advancedMode={advancedMode}/>',
  "advancedMode:boolean;"
-])need('Cockpit-Kompass',cockpit,token);
+])need('Cockpit-Kompass',cockpit+await readFile(new URL('../src/ForecastConfidence.tsx',import.meta.url),'utf8'),token);
 for(const token of [
  "const LOCAL_HAZARD_DISPLAY_SETTINGS_KEY='mid:localHazardDisplaySettings'",
  'showThunderAndFlashFlood:parsed?.showThunderAndFlashFlood!==false',

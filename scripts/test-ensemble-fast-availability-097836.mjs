@@ -7,7 +7,7 @@ const [modelSource,weatherSource,weatherAggregate,app,confidence,pkgRaw,baseline
  read('src/weather-src/30-ensemble-climate-hazards.tsfrag'),
  read('src/weather.ts'),
  read('src/App.tsx'),
- read('src/ensembleConfidence.ts'),
+ read('src/ensembleAssessment.ts'),
  read('package.json'),
  read('MID_BASELINE.json')
 ]);
@@ -27,7 +27,7 @@ for(const source of [weatherSource,weatherAggregate]){
 }
 
 assert.ok(app.includes('keepLoadingUntilRefresh=false')&&app.includes('if(value.bootstrap)keepLoadingUntilRefresh=true')&&app.includes('if(value.bootstrap)scheduleRetry(2_000)')&&app.includes('setEnsLoading(keepLoadingUntilRefresh)'),'Nach einem vorläufigen Schnellstart muss die Oberfläche sichtbar signalisieren, dass die vollständige Modellfusion weiter nachgeladen wird.');
-assert.ok(confidence.includes('const safeMaxModels=Math.max(2,Number(maxModelCount)||1);'),'Ein Einzelmodell-Bootstrap darf nicht dieselbe Modellkonsistenzwertung wie eine echte Mehrmodellbasis erhalten.');
+assert.ok(confidence.includes('coverage.families>=2'),'Ein Einzelmodell-Bootstrap darf nicht dieselbe Modellkonsistenzwertung wie eine echte Mehrmodellbasis erhalten.');
 assert.equal(baseline.releaseVersion,pkg.version,'Baseline und package.json müssen synchron sein.');
 assert.equal(baseline.version,pkg.version,'Auch das Legacy-Baseline-Versionsfeld muss mit dem Release synchron bleiben.');
 const syncVersion=await read('scripts/sync-version.mjs');

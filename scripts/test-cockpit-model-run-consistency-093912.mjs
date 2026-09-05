@@ -11,9 +11,8 @@ assert.match(source,/CockpitModelRunDetails kind="ensemble" runs=\{modelRuns\}/,
 assert.match(app,/bestMatchModelInfo=\{bestMatchInfo\} ensembleRuns=\{modelStatusRuns\}/,'App muss Ensemble- und deterministische Modellstand-Metadaten zusammengeführt an das Cockpit übergeben.');
 assert.match(app,/const modelStatusRuns=useMemo/,'14-Tage-Modellstand muss deterministische Kontrollläufe ergänzen.');
 assert.match(source,/function CockpitConsistencyPill/,'14-Tage-Konsistenz braucht eine eigene interaktive Pille.');
-assert.match(source,/memberCount=\{item\.memberCount\}/,'Konsistenztooltip muss die Ensemble-Mitglieder erhalten.');
-assert.match(source,/Prognosekonsistenz: \{Math\.round\(confidence\)\} %/,'Tooltip muss denselben Prognosekonsistenz-Titel wie die klassische Ansicht verwenden.');
-assert.match(source,/\{label\} · \{modelCount\} von \{reference\} Modellfamilien\{memberCount\?` · \$\{memberCount\} Mitglieder`/,'Tooltip muss Klassifikation, tagesbezogene Modellbeiträge, Referenzzahl und Mitgliederzahl ausgeben.');
+assert.match(source,/assessment=\{item\.assessment\}/,'Konsistenztooltip erhält gemeinsame Parameterbewertung.');
+assert.match(source,/EnsembleAssessmentDetails assessment=\{assessment\}/,'Beide Ansichten zeigen dieselben Parameterdetails.');
 assert.match(source,/return <article key=\{item\.date\} className=\{`cockpit-fourteen-card/,'14-Tage-Karte darf wegen der inneren Konsistenz-Schaltfläche kein verschachtelter Button mehr sein.');
 assert.doesNotMatch(source,/return <button type="button" key=\{item\.date\} className=\{`cockpit-fourteen-card/,'Keine Button-in-Button-Struktur zulassen.');
 assert.match(source,/event\.target!==event\.currentTarget/,'Tastendrücke auf der Konsistenzpille dürfen nicht die Tageskarte aktivieren.');

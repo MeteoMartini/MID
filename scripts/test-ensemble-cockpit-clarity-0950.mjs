@@ -6,7 +6,7 @@ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=name=>fs.readFileSync(path.join(root,name),'utf8');
 const ensemble=read('src/EnsemblePanel.tsx'),cockpit=read('src/ForecastCockpit.tsx'),styles=read('src/styles.css'),app=read('src/App.tsx'),modules=read('src/dashboardModules.ts');
 for(const token of ["stroke=gust?'var(--param-gust)':'var(--param-wind)'","fill=gust?'var(--param-gust)':'var(--param-wind)'","Wind dunkelgrün · Böen oliv","Menge × Wahrscheinlichkeit","combinedPrecipitationPreview","bestPrecipitationProbability"])assert.ok(ensemble.includes(token),`Ensemble-Klarheitsvertrag fehlt: ${token}`);
-for(const token of ['cockpit-now90','cockpit-meteogram-pro','cockpit-day-regime','regimeLabel','consistencyColor','regime-${regime}','cockpit-fourteen-row','precipCombinedScore','bestPrecipitationProbability'])assert.ok(cockpit.includes(token),`Cockpit-Klarheitsvertrag fehlt: ${token}`);
+for(const token of ['cockpit-now90','cockpit-meteogram-pro','cockpit-day-regime','regimeLabel','AGREEMENT_COLOR','regime-${regime}','cockpit-fourteen-row','precipCombinedScore','bestPrecipitationProbability'])assert.ok(cockpit.includes(token),`Cockpit-Klarheitsvertrag fehlt: ${token}`);
 assert.ok(!cockpit.includes('Blaue Balken: Niederschlag')&&!cockpit.includes('cockpit-short-legend'),'Unpassende Kurzfrist-Balkenerklärung darf nicht mehr gerendert werden.');
 assert.ok(!cockpit.includes('Darstellung durchgängig einstündig.'),'Redundanter Kurzfrist-Erklärtext darf nicht zurückkehren.');
 assert.ok(!cockpit.includes('aria-label="Auflösung der Kurzfristvorhersage"'),'Entfernter 1h/3h-Schalter darf nicht zurückkehren.');

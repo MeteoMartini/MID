@@ -1,14 +1,14 @@
 import {readFileSync} from 'node:fs';
-const panel=readFileSync(new URL('../src/EnsemblePanel.tsx',import.meta.url),'utf8');
+const panel=readFileSync(new URL('../src/EnsemblePanel.tsx',import.meta.url),'utf8')+readFileSync(new URL('../src/ForecastConfidence.tsx',import.meta.url),'utf8');
 const css=readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
 const failures=[];
 for(const token of [
  '<strong>Prognoseentwicklung</strong>',
- '<small>Zeitraum guter Temperatur-Konsistenz</small>',
- '<small>Wahrscheinlichste Entwicklung</small>',
- '<small>Zunehmende Unsicherheit</small>',
+ '<small>Gemeinsam konsistente Zeiträume</small>',
+ '<small>Erwartete Entwicklung</small>',
+ 'Bewertung verschlechtert sich',
  'function forecastOutlook(',
- 'function forecastUncertaintyDriver(',
+ 'firstAgreementChange(assessments)',
  'probabilitySummary=visible.map((_,index)=>',
  'ensemble-scenario-probability-overview',
  'ensemble-scenario-probability-meter'

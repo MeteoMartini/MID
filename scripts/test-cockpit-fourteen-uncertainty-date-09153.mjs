@@ -2,7 +2,7 @@ import {readFileSync} from 'node:fs';
 
 const source=readFileSync(new URL('../src/ForecastCockpit.tsx',import.meta.url),'utf8');
 const failures=[];
-const exact="formatDate(date,{weekday:'long',day:'2-digit',month:'2-digit'})";
+const exact="formatDate(first.date,{weekday:'short',day:'2-digit',month:'2-digit'})";
 if(!source.includes(exact))failures.push('Die zunehmende Unsicherheit nennt Wochentag und Datum nicht gemeinsam.');
 if(source.includes("return date?`Ab ${formatDate(date,{weekday:'long'})}"))failures.push('Die alte nur aus dem Wochentag bestehende Unsicherheitsangabe ist noch aktiv.');
 if(!source.includes("formatDate(item.date,{weekday:'short',day:'2-digit',month:'2-digit'})"))failures.push('Das 14-Tage-Mini-Ribbon verwendet kein eindeutiges Datum im Tooltip.');

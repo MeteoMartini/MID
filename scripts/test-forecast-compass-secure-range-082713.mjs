@@ -1,7 +1,7 @@
+import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-const panel=readFileSync(new URL('../src/EnsemblePanel.tsx',import.meta.url),'utf8');
-const failures=[];
-for(const token of ['const secureThreshold=72','secureUntilIndex=data.findIndex(row=>row.confidence<secureThreshold)','secureCount=secureUntilIndex===-1?Math.min(data.length,14):secureUntilIndex','<strong>Prognoseentwicklung</strong>','<small>Zeitraum guter Temperatur-Konsistenz</small>','<small>Wahrscheinlichste Entwicklung</small>','<small>Zunehmende Unsicherheit</small>','forecastOutlook(data,secureCount)','forecastUncertaintyDriver(widest)'])if(!panel.includes(token))failures.push(`Prognose-Kompass fehlt: ${token}`);
-if(panel.includes('<small>Nächste 3 Tage</small>'))failures.push('Prognose-Kompass verwendet noch die starre Drei-Tage-Angabe.');
-if(failures.length){console.error('Prognose-Kompass-Regressionsprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Prognose-Kompass zeigt die dynamisch weitgehend gesicherte Prognosedauer statt pauschal drei Tage.');
+const read=name=>readFileSync(new URL('../src/'+name,import.meta.url),'utf8');
+for(const name of ['EnsemblePanel.tsx','ForecastCockpit.tsx']){const source=read(name);assert.ok(source.includes('ForecastConfidenceOverview'));assert.ok(source.includes('agreementWindows(assessments)'));assert.ok(!source.includes('secureThreshold=72'));}
+const shared=read('ForecastConfidence.tsx');
+for(const token of ['Gemeinsam konsistente Zeiträume','Erwartete Entwicklung','Bewertung verschlechtert sich','Datenlücken unterbrechen jedes Fenster'])assert.ok(shared.includes(token));
+console.log('Shared multiparameter calendar windows replace unvalidated 72-point cutoff.');
