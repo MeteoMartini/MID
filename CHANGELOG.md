@@ -1,3 +1,25 @@
+## 0.9.78.68
+
+- CI-Hotfix: sieben nach der 14d-Konfidenzmodernisierung veraltete Regressionserwartungen an die aktuellen, verbindlichen UI-/Datenqualitäts-/iOS-Touch-Verträge angepasst; keine Produktionslogik zurückgebaut.
+- TypeScript-7-Regressionshygiene: `test-ensemble-multiparameter-097865.mjs` verwendet ausschließlich `typescript-strada` und enthält keinen Root-TypeScript-Strada-Fallback mehr.
+- Release-Härtung: Der kanonische Professional-ZIP-Packer führt ab jetzt zwingend einen vollständigen lokalen Preflight aus (TS7 + Vite, Worker-Syntax, alle Regressionen, Version, Baseline, Lineage, Uploadbudget) und prüft anschließend die ZIP-Integrität.
+
+## 0.9.78.67 – 2026-09-05
+- 14-Tage-Vorhersagekonfidenz robust statt „schwächster Parameter gewinnt“: Niederschlag 32 %, Temperatur 28 %, Wind/Böen 28 %, Sonne 12 %.
+- Datenqualität (`gut/eingeschränkt/schwach/nicht ausreichend`) von meteorologischer Konfidenz getrennt; parameterbezogene erwartete Ensemblefamilien verhindern künstliche Ausfälle.
+- 50:50-Niederschlagsereignis wird als offener Ausgang, nicht als schlechte Prognose gewertet.
+- P10–P90-Spread wird vorlaufabhängig normalisiert; Langfrist-Caps verhindern unrealistisch hohe Sicherheit in Woche 2.
+- Lokale MID-Verifikation kann bis 96 h mit stark geschrumpften Fehler-/Brier-Korrekturen einfließen; keine Extrapolation in den Langfristbereich.
+- Cockpit und EnsemblePanel nutzen denselben zentralen Konfidenzpfad; Datenqualität wird separat am Konfidenzindikator visualisiert.
+- Veraltete 14d-/Bootstrap-Regressionsverträge auf die neue Kalibrierungs- und Datenqualitätsarchitektur aktualisiert.
+
+## 0.9.78.66
+
+- 14d-Wetter-Kurzaussagen bleiben appweit in den Übersichtskacheln einzeilig; historische Responsive-Regeln mit erzwungenem Umbruch werden final übersteuert.
+- Favoriten-Schnellleiste auf Touch-Geräten gehärtet: normaler Tap nutzt wieder den nativen Button-Pfad, Drag startet erst nach 8 px Bewegung.
+- Antippen des Sortiergriffs wählt den Favoriten ebenfalls aus; Klicks werden nur nach einem echten Drag unterdrückt.
+- Sortiergriff wieder als reguläres Grid-Element statt absoluter Touch-Überlagerung; horizontales Scrollen bleibt unverändert erhalten.
+
 ## 0.9.78.65
 
 - Gemeinsame Vierparameter-Bewertung in klassischer 14d-Ansicht und Cockpit statt Temperaturindex und 72-Punkte-Grenze.

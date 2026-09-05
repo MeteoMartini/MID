@@ -68,7 +68,7 @@ assert.equal(advice.ventilationRoomAdvice({...room,co2:undefined},rule,{rows}).s
 assert.equal(advice.ventilationRoomAdvice(room,rule,{rows:[{}]}).status,'wait');
 const panel=fs.readFileSync(new URL('src/EnsemblePanel.tsx',root),'utf8'),cockpit=fs.readFileSync(new URL('src/ForecastCockpit.tsx',root),'utf8');
 assert.ok(!panel.includes('Prognosesicherheit ${'));
-assert.ok(panel.includes('keine kalibrierte Trefferwahrscheinlichkeit'));
+assert.ok(panel.includes('Der Index ist keine Trefferwahrscheinlichkeit'));
 assert.ok(cockpit.includes('spread=Math.max(item.maxHigh-item.maxLow,item.minHigh-item.minLow)'),'Compact/full spread definitions must agree');
 const evidenceModule=await import('data:text/javascript;base64,'+Buffer.from(ts.transpileModule(fs.readFileSync(new URL('src/ensembleAssessment.ts',root),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText).toString('base64'));
 const aggregation=load('src/weather-src/30-ensemble-climate-hazards.tsfrag',['quantile','weightedQuantile','weightedMean','weightedProbability','clampNumber','effectiveModelFreshness','modelDayWeight','variantSelectionScore','representativeResultsForDate','aggregateMembers'],{buildEnsembleEvidence:evidenceModule.buildEnsembleEvidence,DWD_PRECIPITATION_PROBABILITY_THRESHOLD_MM:.2,DWD_SIGNIFICANT_PRECIPITATION_PROBABILITY_THRESHOLD_MM:5});

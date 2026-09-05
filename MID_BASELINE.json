@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.78.65",
+  "releaseVersion": "0.9.78.68",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -408,7 +408,10 @@
     "scripts/test-pressure-axis-nice-spacing-097861.mjs",
     "scripts/test-skybar-sun-cloud-exclusive-097863.mjs",
     "scripts/test-audit-science-097864.mjs",
-    "scripts/test-ensemble-multiparameter-097865.mjs"
+    "scripts/test-ensemble-multiparameter-097865.mjs",
+    "scripts/test-fourteen-day-pill-favorite-tap-097866.mjs",
+    "scripts/test-ensemble-confidence-calibration-097867.mjs",
+    "scripts/test-release-preflight-gate-097868.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -745,7 +748,10 @@
     "scripts/test-pressure-axis-nice-spacing-097861.mjs",
     "scripts/test-skybar-sun-cloud-exclusive-097863.mjs",
     "scripts/test-audit-science-097864.mjs",
-    "scripts/test-ensemble-multiparameter-097865.mjs"
+    "scripts/test-ensemble-multiparameter-097865.mjs",
+    "scripts/test-fourteen-day-pill-favorite-tap-097866.mjs",
+    "scripts/test-ensemble-confidence-calibration-097867.mjs",
+    "scripts/test-release-preflight-gate-097868.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -1256,7 +1262,16 @@
     "scripts/test-pressure-axis-nice-spacing-097861.mjs",
     "src/ensembleAssessment.ts",
     "src/ForecastConfidence.tsx",
-    "scripts/test-ensemble-multiparameter-097865.mjs"
+    "scripts/test-ensemble-multiparameter-097865.mjs",
+    "MID_IMPLEMENTATION_0.9.78.66.md",
+    "MID_TEST_REPORT_0.9.78.66.md",
+    "scripts/test-ensemble-confidence-calibration-097867.mjs",
+    "MID_IMPLEMENTATION_0.9.78.67.md",
+    "MID_TEST_REPORT_0.9.78.67.md",
+    "MID_IMPLEMENTATION_0.9.78.68.md",
+    "MID_TEST_REPORT_0.9.78.68.md",
+    "scripts/release-preflight.mjs",
+    "scripts/test-release-preflight-gate-097868.mjs"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1453,7 +1468,10 @@
     "scripts/test-app-helper-block-buildfix-097857.mjs",
     "src/ensembleAssessment.ts",
     "src/ForecastConfidence.tsx",
-    "scripts/test-ensemble-multiparameter-097865.mjs"
+    "scripts/test-ensemble-multiparameter-097865.mjs",
+    "scripts/test-ensemble-confidence-calibration-097867.mjs",
+    "scripts/release-preflight.mjs",
+    "scripts/test-release-preflight-gate-097868.mjs"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md",
@@ -1679,8 +1697,8 @@
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
     "scripts/test-composite-temporal-truth-zugspuren-097860.mjs"
   ],
-  "version": "0.9.78.65",
-  "updatedAt": "2026-09-05T10:28:52+02:00",
+  "version": "0.9.78.68",
+  "updatedAt": "2026-09-05T18:44:00+02:00",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
     "MID_IMPLEMENTATION_0.9.77.27.md",
@@ -1727,7 +1745,12 @@
     "MID_IMPLEMENTATION_0.9.78.60.md",
     "MID_IMPLEMENTATION_0.9.78.61.md",
     "MID_IMPLEMENTATION_0.9.78.62.md",
-    "MID_IMPLEMENTATION_0.9.78.63.md"
+    "MID_IMPLEMENTATION_0.9.78.63.md",
+    "MID_IMPLEMENTATION_0.9.78.64.md",
+    "MID_IMPLEMENTATION_0.9.78.65.md",
+    "MID_IMPLEMENTATION_0.9.78.66.md",
+    "MID_IMPLEMENTATION_0.9.78.67.md",
+    "MID_IMPLEMENTATION_0.9.78.68.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",
@@ -1762,6 +1785,9 @@
     "MID_TEST_REPORT_0.9.78.60.md",
     "MID_TEST_REPORT_0.9.78.61.md",
     "MID_TEST_REPORT_0.9.78.62.md",
-    "MID_TEST_REPORT_0.9.78.63.md"
+    "MID_TEST_REPORT_0.9.78.63.md",
+    "MID_TEST_REPORT_0.9.78.66.md",
+    "MID_TEST_REPORT_0.9.78.67.md",
+    "MID_TEST_REPORT_0.9.78.68.md"
   ]
 }

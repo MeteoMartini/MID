@@ -2936,3 +2936,39 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
  .warnings-responsive-shell .official-list,.warnings-responsive-shell .hazard-day-grid{padding:6px}.warnings-responsive-shell .official-alert>button{min-height:50px;padding:6px 7px 6px 10px}.warnings-responsive-shell .official-alert-head>strong{font-size:9.5px}.warnings-responsive-shell .official-alert-meta{font-size:6.8px}
  .warnings-responsive-shell .hazards-responsive-head{grid-template-columns:auto minmax(0,1fr) auto}.warnings-responsive-shell .hazards-responsive-head>em{display:none}.warnings-responsive-shell .hazards.compact-list .hazard-day-group .hazard-toggle-head>em{max-width:86px}.hazard-origin-row{gap:3px 5px}
 }
+
+/* MID v0.9.78.66 · 14d-Kurzaussagen einzeilig + robuste Favoriten-Taps auf iOS */
+.cockpit-fourteen-regime{
+ flex-wrap:nowrap!important;
+ white-space:nowrap!important;
+ overflow:hidden;
+}
+.cockpit-fourteen-regime>i{flex:0 0 auto}
+.cockpit-fourteen-regime>span{
+ min-width:0;
+ overflow:hidden;
+ text-overflow:ellipsis;
+ overflow-wrap:normal!important;
+ word-break:keep-all;
+ white-space:nowrap!important;
+}
+.header-favorites .favorite-bubbles>button .favorite-quick-grip{
+ position:static;
+ left:auto;
+ top:auto;
+ z-index:auto;
+ align-self:stretch;
+ width:12px;
+ height:auto;
+ min-height:24px;
+ transform:none;
+}
+
+
+/* v0.9.78.67: confidence fill = meteorological confidence; outer ring = independent data quality */
+.cockpit-consistency-pill.quality-limited:not(.active):not(:focus-visible),
+.consistency-dot.quality-limited:not(:focus-visible){outline:2px dashed color-mix(in srgb,var(--muted) 72%,transparent);outline-offset:2px}
+.cockpit-consistency-pill.quality-poor:not(.active):not(:focus-visible),
+.consistency-dot.quality-poor:not(:focus-visible){outline:3px double color-mix(in srgb,var(--muted) 88%,transparent);outline-offset:2px}
+.cockpit-consistency-pill.quality-missing:not(.active):not(:focus-visible),
+.consistency-dot.quality-missing:not(:focus-visible){outline:2px dotted color-mix(in srgb,var(--muted) 82%,transparent);outline-offset:2px}

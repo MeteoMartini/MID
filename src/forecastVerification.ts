@@ -2,6 +2,7 @@ import {DWD_PRECIPITATION_PROBABILITY_THRESHOLD_MM,dailyWetProbabilityFromHours,
 import {modelPredictionIsLearnable,stableModelIdentity,type ModelConsensusRole} from './modelFamilyContract';
 import {formatDisplayDateTime} from './timeDisplay';
 import {guardedOpenMeteoFetch,isOpenMeteoRateLimitError} from './openMeteoGuard';
+import type {EnsembleConfidenceCalibration,EnsembleParameter,EnsembleSkillBucket,EnsembleSkillMetric} from './ensembleAssessment';
 
 const PREFIX='mid:forecast-verification:v3:';
 const LEGACY_PREFIXES=['mid:forecast-verification:v2:','mid:forecast-verification:v1:'];
@@ -315,6 +316,24 @@ export type ForecastVerificationReport={
  health:TwinHealth;
  archiveUpdatedAt:string;
 };
+
+export function ensembleConfidenceCalibrationFromReport(report:ForecastVerificationReport|null|undefined):EnsembleConfidenceCalibration|undefined{
+ if(!report||report.days<4)return undefined;
+ const best=report.models.find(row=>row.id==='best_match'),mapMetrics=(row:ForecastModelScore|undefined):EnsembleSkillBucket=>{
+  const parameters:Partial<Record<EnsembleParameter,EnsembleSkillMetric>>={};
+  const add=(target:EnsembleParameter,source:ForecastParameter)=>{const metric=row?.parameterMetrics[source];if(metric&&metric.samples>0&&Number.isFinite(metric.error))parameters[target]={samples:metric.samples,error:metric.error}};
+  add('temperature','temperature');add('precipitation','precipitation');add('wind','gust');add('sunshine','sunshine');
+  const probability=row?.parameterMetrics.probability,rainProbability=probability&&probability.samples>0&&Number.isFinite(probability.error)?{samples:probability.samples,error:probability.error}:undefined;
+  return{parameters,rainProbability};
+ },weightedBucket=(horizon:ForecastHorizon):EnsembleSkillBucket=>{
+  const buckets=report.segments.filter(segment=>segment.horizon===horizon).map(segment=>({days:Math.max(1,segment.days),model:segment.models.find(row=>row.id==='best_match')})).filter(row=>row.model),parameters:Partial<Record<EnsembleParameter,EnsembleSkillMetric>>={};
+  const combine=(target:EnsembleParameter,source:ForecastParameter)=>{let weighted=0,total=0,samples=0;for(const bucket of buckets){const metric=bucket.model?.parameterMetrics[source];if(!metric||!Number.isFinite(metric.error)||metric.samples<=0)continue;const weight=Math.min(bucket.days,metric.samples);weighted+=metric.error*weight;total+=weight;samples+=metric.samples}if(total)parameters[target]={samples,error:weighted/total}};
+  combine('temperature','temperature');combine('precipitation','precipitation');combine('wind','gust');combine('sunshine','sunshine');let probabilityWeighted=0,probabilityTotal=0,probabilitySamples=0;for(const bucket of buckets){const metric=bucket.model?.parameterMetrics.probability;if(!metric||!Number.isFinite(metric.error)||metric.samples<=0)continue;const weight=Math.min(bucket.days,metric.samples);probabilityWeighted+=metric.error*weight;probabilityTotal+=weight;probabilitySamples+=metric.samples}return{parameters,rainProbability:probabilityTotal?{samples:probabilitySamples,error:probabilityWeighted/probabilityTotal}:undefined}
+ };
+ const global=mapMetrics(best),horizons:{'24'?:EnsembleSkillBucket;'48'?:EnsembleSkillBucket;'72'?:EnsembleSkillBucket}={};
+ for(const horizon of[24,48,72] as const){const bucket=weightedBucket(horizon),hasParameter=Object.values(bucket.parameters??{}).some(Boolean),hasProbability=Boolean(bucket.rainProbability);if(hasParameter||hasProbability)horizons[String(horizon) as '24'|'48'|'72']=bucket}
+ return{sampleDays:report.days,global,horizons};
+}
 
 export type LiveTwinContext={station?:Station|null;radar?:RadarNowcast|null;currentHour?:Hour|null};
 export type PrivateSensorSample={timestamp?:string;temperature?:number;precipitation?:number;precipitationRate?:number;gust?:number;cloudCover?:number;label?:string;quality?:number;provider?:string};

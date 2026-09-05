@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import os
 import stat
+import subprocess
 import sys
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
@@ -54,7 +55,14 @@ def iter_files():
             yield path, relative
 
 
+def run_preflight() -> None:
+    command = ["node", str(ROOT / "scripts" / "release-preflight.mjs")]
+    print("Release-Preflight: vollständiger Build + vollständige Regressionen vor ZIP-Erstellung")
+    subprocess.run(command, cwd=ROOT, check=True)
+
+
 def main() -> int:
+    run_preflight()
     out = Path(sys.argv[1]).expanduser() if len(sys.argv) > 1 else DEFAULT_OUT
     if not out.is_absolute():
         out = ROOT / out
@@ -73,6 +81,16 @@ def main() -> int:
             info.compress_type = ZIP_DEFLATED
             zf.writestr(info, path.read_bytes(), compress_type=ZIP_DEFLATED, compresslevel=9)
 
+    with ZipFile(out, "r") as verify_zip:
+        broken = verify_zip.testzip()
+        if broken:
+            out.unlink(missing_ok=True)
+            raise SystemExit(f"Professional-Release ZIP-Integrität fehlgeschlagen: {broken}")
+        names = set(verify_zip.namelist())
+        for required in {"package.json", "MID_BASELINE.json", "worker.js", "worker/metar-proxy.js", "src/version.ts"}:
+            if required not in names:
+                out.unlink(missing_ok=True)
+                raise SystemExit(f"Professional-Release unvollständig: {required}")
     size = out.stat().st_size
     print(f"Professional-Release: {out} · {size} Byte")
     print("Transport-Ausschlüsse: .github, dist, node_modules, artifacts, ios/App/App/public (wird nach Build via cap copy ios regeneriert)")

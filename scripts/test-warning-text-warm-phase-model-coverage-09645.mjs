@@ -49,7 +49,7 @@ assert.ok(weatherBuilt.includes('temperature:n(w.daily.temperature_2m_min[i],NaN
 for(const token of ['language?:string','Originaltext: ${language}'])assert.ok(weatherBuilt.includes(token)||app.includes(token),`Warntext-/Sprachvertrag fehlt: ${token}`);
 const coverageView=await readFile(new URL('src/ForecastConfidence.tsx',root),'utf8');
 for(const source of [cockpit,ensemble])assert.ok(source.includes('EnsembleAssessmentDetails'),'Gemeinsame Parameterabdeckung muss in beiden Ansichten sichtbar sein.');
-for(const token of ['parameter.coverage.members','parameter.coverage.expectedMembers','parameter.coverage.families','parameter.coverage.expectedFamilies','vollständige Mitglieder','geladene Modellgruppen'])assert.ok(coverageView.includes(token),`Transparenter Parameterbeitragsvertrag fehlt: ${token}`);
+for(const token of ['parameter.coverage.members','parameter.coverage.expectedMembers','parameter.coverage.families','parameter.coverage.expectedFamilies','vollständige Mitglieder','erwartete Modellgruppen'])assert.ok(coverageView.includes(token),`Transparenter Parameterbeitragsvertrag fehlt: ${token}`);
 
 
 const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText),test='scripts/test-warning-text-warm-phase-model-coverage-09645.mjs';
