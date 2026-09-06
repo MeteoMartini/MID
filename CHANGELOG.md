@@ -1,3 +1,18 @@
+# 0.9.78.85
+
+- CI-Regressionsfix nach Release #917: stabiler Komposit-Persistenzschlüssel v3 wiederhergestellt, Event-Hitzehinweise zentral und seriös vereinheitlicht, TypeScript-7-kompatibler Event-Test sowie Regressionen an die neue Linienfarben-/Playback-Semantik angepasst.
+- Keine fachliche Workeränderung.
+
+# 0.9.78.84
+
+- Synoptik-Buildfix: entfernt die nicht vom MID-`PathOptions`-Vertrag unterstützte Eigenschaft `smoothFactor` aus den Isobaren-/Isohypsen-Polylines.
+- Die sichtbare Glättung bleibt über die bereits vorhandene MID-eigene Chaikin-Vorverarbeitung erhalten.
+- Linienfarben, separate Isobaren-/Isohypsenwahl, Karten-Schnellwahl und Sat/Rad-Playback bleiben unverändert erhalten.
+
+# 0.9.78.83
+
+Eventplaner-Empfehlungen fachlich plausibilisiert: aktivitäts- und umgebungsbezogene Bekleidungs-/Thermiklogik statt pauschaler Übergangskleidung, spezielle Profile für Sport/Indoor/Ski/Wassersport sowie fehlende Ereigniswahrscheinlichkeiten nicht mehr als scheinbare 0 %. Keine fachliche Workeränderung.
+
 # 0.9.78.82
 
 Konsolidierter Stand aus den beiden parallelen 0.9.78.81-Arbeitszweigen: Die gepufferte, quellenwahre Satellitenwiedergabe des hochgeladenen Standes bleibt vollständig erhalten; zusätzlich sind die Skybar-Korrekturen für Open-Meteo-Sonnenscheindauer integriert. Stunden- und 15-Minuten-Akkumulationen werden auf den sichtbaren Vorwärtsslot ausgerichtet, 3-h-Sonnenschein vollständig summiert und Wolkenfelder bei Verdichtung als Intervallmittel behandelt. Keine fachliche Workeränderung gegenüber 0.9.78.81.

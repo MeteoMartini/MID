@@ -7,6 +7,7 @@ import type {EventActivity,EventAdvice,EventEnvironment,EventPlan,EventStatus,Ev
 import {forecastLocalAnchorFromCurrent} from './forecastLocalAnchor'
 import {coherentSunshineDurationSeconds} from './sunshineDuration'
 import {eventIntervalHasPrecipitation,eventIntervalSkyCode} from './eventIntervalSemantics'
+import {eventColdGuidance,eventHeatGuidance} from './eventRecommendationPolicy'
 
 export type BuildEventPlanOptions={
  location:Location
@@ -63,8 +64,8 @@ function evaluateEvent(summary:EventSummary,environment:EventEnvironment,activit
  else if((eventPrecipProbability(summary)??0)>=40||(summary.precipitationTotal??0)>=1.5){severity+=environment==='indoor'?0:2;tips.push(summary.weatherLabel?.includes('Sprühregen')?'Zeitweise ist Sprühregen möglich.':'Zeitweise ist Niederschlag möglich.');behavior.push('Witterungsschutz bereithalten und den Ablauf bei Bedarf kurzfristig anpassen.')}
  if((summary.windMax??0)>=22||(summary.gustMax??0)>=34){severity+=environment==='indoor'?1:3;tips.push('Starker Wind beziehungsweise markante Böen können den Ablauf beeinträchtigen.');behavior.push(activity==='watersports'?'Gewässerzustand sowie zulässige Wind- und Materialgrenzen prüfen.':activity==='flight'?'Start-/Landephase und lokale Windgrenzen gesondert prüfen.':'Windempfindliche Aufbauten und Ausrüstung sichern; exponierte Bereiche besonders berücksichtigen.')}
  else if((summary.windMax??0)>=14||(summary.gustMax??0)>=24){severity+=1;tips.push('Zeitweise ist mäßiger bis frischer Wind möglich.');behavior.push(activity==='flight'?'Böen und lokale Windrichtung vor Abflug prüfen.':'Windwirkung bei Streckenwahl, Aufenthaltsort und Ausrüstung berücksichtigen.')}
- if((summary.temperatureMax??summary.temperatureAvg??0)>=29){severity+=2;tips.push('Eine erhöhte Wärmebelastung ist möglich.');behavior.push('Ausreichende Trinkwasserversorgung sicherstellen, regelmäßige Erholungspausen vorsehen und längere Aufenthalte in direkter Sonne nach Möglichkeit vermeiden.')}
- if((summary.temperatureMin??summary.temperatureAvg??99)<=3){severity+=2;tips.push('Niedrige Temperaturen können zu Kältebelastung führen.');behavior.push('Geeigneten Kälteschutz vorsehen und ausreichende Aufwärmphasen ermöglichen.')}
+ const heat=eventHeatGuidance(summary,environment,activity);if(heat){severity+=heat.severityDelta;tips.push(heat.tip);behavior.push(heat.behavior)}
+ const cold=eventColdGuidance(summary,environment,activity);if(cold){severity+=cold.severityDelta;tips.push(cold.tip);behavior.push(cold.behavior)}
  if((summary.uvMax??0)>=6&&environment!=='indoor'&&activity!=='flight'){severity+=1;tips.push('Eine erhöhte UV-Belastung ist möglich.');behavior.push('Geeigneten UV-Schutz verwenden und längere direkte Sonnenexposition begrenzen.')}
  if((summary.visibilityMin??99999)<1000){severity+=2;tips.push('Zeitweise kann die Sicht deutlich eingeschränkt sein.');behavior.push(activity==='flight'?'Sichtminima und Alternates gesondert prüfen.':'Für Anfahrt und Wegführung zusätzliche Sicherheits- und Zeitreserven berücksichtigen.')}
  if(activity==='cycling'||activity==='running'||activity==='hiking')behavior.push('Untergrundverhältnisse auf Nässe und erhöhte Rutschgefahr prüfen.')

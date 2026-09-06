@@ -8,8 +8,10 @@ const failures=[];
 for(const token of [
  "renderer=useMemo(()=>L.svg({pane:'mid-model-lines',padding:.65}",
  'renderer={renderer} positions={item.path as any}',
- "mainColor=type==='isobars'?'#ffffff':'#ffd84d'",
- "haloColor=type==='isobars'?'#061521':'#261d00'"
+ "function contourPalette(type:'isobars'|'isoheights',tone:'white'|'black'|'multicolor')",
+ "mainColor=level.major?palette.major:palette.main",
+ "tone={resolvedIsobarLineTone}",
+ "tone={resolvedIsoheightLineTone}"
 ])if(!radar.includes(token))failures.push(`SVG-Konturfix fehlt: ${token}`);
 for(const token of [
  '.maplibre-mid-model-lines-pane',

@@ -13,6 +13,7 @@ import {refreshAllEventWeather,refreshEventWeather,type EventWeatherRefreshReaso
 import {MidDisclosure} from './UiPrimitives'
 import {sunshineHoursLabel,sunshineMinutesLabel} from './sunshineDuration'
 import {normalizeEventFlightHazardSummary} from './eventAviation'
+import {buildEventOutfitHint,eventHeatGuidance,eventPrecipitationProbability} from './eventRecommendationPolicy'
 
 type Props={initialLocation:Location;advancedMode:boolean;unit:WindUnit;canonicalHours?:Hour[];canonicalFusion?:ForecastFusionResult|null;canonicalWeatherTwinApplied?:boolean;backgroundOnly?:boolean}
 type ValueEvent={target:{value:string}}
@@ -54,7 +55,7 @@ function storageSet(key:string,value:string){try{localStorage.setItem(key,value)
 function storedLocation(){try{const parsed=JSON.parse(storageGet(EVENT_LOCATION_KEY)) as Location;return Number.isFinite(parsed?.latitude)&&Number.isFinite(parsed?.longitude)?parsed:null}catch{return null}}
 function localToday(){try{const parts=new Intl.DateTimeFormat('en-CA',{year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()),get=(type:string)=>parts.find(part=>part.type===type)?.value;return`${get('year')}-${get('month')}-${get('day')}`}catch{return new Date().toISOString().slice(0,10)}}
 function addDays(value:string,days:number){const match=value.match(/^(\d{4})-(\d{2})-(\d{2})$/);if(!match)return value;const date=new Date(Date.UTC(Number(match[1]),Number(match[2])-1,Number(match[3]),12));date.setUTCDate(date.getUTCDate()+days);return date.toISOString().slice(0,10)}
-function formatNumber(value:number|null|undefined,digits=0){if(!Number.isFinite(Number(value)))return'–';return new Intl.NumberFormat('de-DE',{minimumFractionDigits:digits,maximumFractionDigits:digits}).format(Number(value))}
+function formatNumber(value:number|null|undefined,digits=0){if(value==null||!Number.isFinite(Number(value)))return'–';return new Intl.NumberFormat('de-DE',{minimumFractionDigits:digits,maximumFractionDigits:digits}).format(Number(value))}
 function eventSunshineLabel(seconds:number|null|undefined){return sunshineHoursLabel(seconds)}
 function formatDate(value:string){const date=new Date(`${value}T12:00:00Z`);return Number.isFinite(date.getTime())?new Intl.DateTimeFormat('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'}).format(date):value}
 function formatClock(value:string){return value.slice(0,5)}
@@ -67,27 +68,21 @@ function environmentLabel(value:EventEnvironment){return ENVIRONMENT_OPTIONS.fin
 function activityLabel(value:EventActivity){return ACTIVITY_OPTIONS.find(item=>item.id===value)?.label??value}
 function eventWeatherPart(point:EventTimelinePoint){return precipitationParts({time:point.time,precipitation:point.precipitation??0,rain:point.rain??0,showers:point.showers??0,snowfall:point.snowfall??0,probability:point.precipitationProbability??0,code:point.weatherCode??0,temperature:point.temperature??undefined,humidity:point.humidity??undefined,cloud:point.cloud??undefined,lowCloud:point.lowCloud??undefined,cape:point.cape??undefined,liftedIndex:point.liftedIndex??undefined,convectiveInhibition:point.convectiveInhibition??undefined,sunshineDuration:point.sunshineDuration??undefined,isDay:point.isDay})}
 function EventTimelinePrecipitationProbability({point}:{point:EventTimelinePoint}){const type=eventWeatherPart(point).type,title=type==='snow'||type==='snowGrains'||type==='snowShowers'?'Schneewahrscheinlichkeit':type==='sleet'||type==='sleetShowers'?'Schnee-/Schneeregenwahrscheinlichkeit':type==='thunderstorm'||type==='thunderstormHail'?'Gewitter-/Niederschlagswahrscheinlichkeit':type==='freezingRain'||type==='freezingDrizzle'?'Wahrscheinlichkeit gefrierenden Niederschlags':'Niederschlagswahrscheinlichkeit',icon=type==='snow'||type==='snowGrains'||type==='snowShowers'||type==='sleet'||type==='sleetShowers'?<Snowflake size={12}/>:type==='thunderstorm'||type==='thunderstormHail'?<CloudLightning size={12}/>:<CloudRain size={12}/>;return <span className="event-timeline-pop" title={title} aria-label={`${title} ${formatNumber(point.precipitationProbability)} Prozent`}>{icon}<b>{formatNumber(point.precipitationProbability)} %</b></span>}
-function eventPrecipProbability(summary:EventSummary){return summary.precipitationProbabilitySource==='ensemble-members-dwd-event'?summary.precipitationProbabilityRelevant:null}
+function eventPrecipProbability(summary:EventSummary){return eventPrecipitationProbability(summary)}
 function eventPrecipLabel(summary:EventSummary){return summary.precipitationTypeLabel||'Niederschlag'}
 function EventSummaryPrecipitationIcon({summary,size=14}:{summary:EventSummary;size?:number}){const text=`${summary.precipitationTypeLabel||''} ${summary.weatherLabel||''}`.toLocaleLowerCase('de-DE'),code=Number(summary.weatherCode);if(/schnee|graupel|schneeregen/.test(text)||[71,73,75,77,85,86].includes(code))return <Snowflake size={size}/>;if(/gewitter|hagel/.test(text)||[95,96,97,99].includes(code))return <CloudLightning size={size}/>;return <CloudRain size={size}/>}
 
 function statusLabel(value:EventStatus){return value==='good'?'Günstig':'watch'===value?'Beobachten':'Achtung'}
 function buildOutfitHint(summary:EventSummary,environment:EventEnvironment,activity:EventActivity){
  if(activity==='flight'){const active=normalizeEventFlightHazardSummary(summary.flightHazards)?.items.filter(item=>item.level!=='none').map(item=>item.label)??[];return active.length?`Prüfschwerpunkte: ${active.slice(0,3).join(' · ')}`:'Keine markante Flugwetter-Einschränkung im Screening'}
- const layers:string[]=[]
- if((summary.temperatureMax??summary.temperatureAvg??0)>=27)layers.push('leichte, luftige Kleidung')
- else if((summary.temperatureMin??summary.temperatureAvg??99)<=4)layers.push('warme, winddichte Schichten')
- else layers.push('wetterangepasste Übergangskleidung')
- if((eventPrecipProbability(summary)??0)>=40||(summary.precipitationTotal??0)>=1)layers.push('Regenschutz')
- if((summary.uvMax??0)>=6&&environment!=='indoor')layers.push('Sonnen- und Hitzeschutz')
- if((summary.windMax??0)>=16||(summary.gustMax??0)>=24)layers.push('etwas Windschutz')
- return layers.join(' · ')
+ return buildEventOutfitHint(summary,environment,activity)
 }
-function buildTimingHint(summary:EventSummary,activity:EventActivity){
+function buildTimingHint(summary:EventSummary,activity:EventActivity,environment:EventEnvironment){
  if(activity==='flight'){const level=normalizeEventFlightHazardSummary(summary.flightHazards)?.overall;return level==='caution'?'Flugwetterprodukte vor Durchführung zwingend neu prüfen':level==='watch'?'Flugwetterlage vor Abflug gezielt verifizieren':'METAR/TAF vor Abflug aktualisieren'}
+ if(summary.coverageComplete===false||eventPrecipProbability(summary)==null)return'Datengrundlage unvollständig; vor dem Termin erneut aktualisieren'
  if((eventPrecipProbability(summary)??0)>=75)return'Zeitreserve und geeigneten Witterungsschutz vorsehen'
  if((summary.windMax??0)>=18||(summary.gustMax??0)>=28)return'Exponierte Bereiche und windempfindliche Aufbauten besonders berücksichtigen'
- if((summary.temperatureMax??summary.temperatureAvg??0)>=29)return'Trinkwasserversorgung und regelmäßige Erholungspausen sicherstellen'
+ const heat=eventHeatGuidance(summary,environment,activity);if(heat)return heat.behavior
  return'nach aktuellem Stand keine markante wetterbedingte Einschränkung'
 }
 function eventCompactRange(record:EventCenterRecord){return`${formatDate(record.date)} · ${formatClock(record.startTime)}–${formatClock(record.endTime)}`}
@@ -313,7 +308,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
  const latestRuns=plan?.modelInfo?.runs?.slice(0,4)??[]
  const currentTitle=plan?.title?.trim()||title.trim()||'Geplantes Event'
  const outfitHint=plan?buildOutfitHint(plan.summary,plan.environment,plan.activity):''
- const timingHint=plan?buildTimingHint(plan.summary,plan.activity):''
+ const timingHint=plan?buildTimingHint(plan.summary,plan.activity,plan.environment):''
  const lastUpdateText=plan?new Intl.DateTimeFormat('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(new Date(plan.refreshedAt)):''
  const favoriteEvents=savedEvents.filter(item=>item.isFavorite)
  const activeFavoriteEvents=favoriteEvents.filter(item=>!isEventCenterRecordExpired(item,eventClock))

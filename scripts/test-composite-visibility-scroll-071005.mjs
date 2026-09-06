@@ -30,9 +30,9 @@ for(const token of [
 for(const token of [
   'function spatiallyThin',
   'touchDevice?70:120',
-  'touchDevice?36:70',
-  "window.addEventListener('scroll',stop,{passive:true,once:true})"
-])need(radar,token,'Scroll-/Vektorentlastung fehlt');
+  'touchDevice?36:70'
+])need(radar,token,'Vektorentlastung fehlt');
+if(radar.includes("window.addEventListener('scroll',stop"))failures.push('Sat/Rad-Wiedergabe darf beim Scrollen nicht automatisch gestoppt werden.');
 
 if(radar.includes('radar-motion-chip')||radar.includes('radar-site-motion-label'))failures.push('Das entfernte textliche Zugrichtungs-Overlay ist wieder enthalten.');
 

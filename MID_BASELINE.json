@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.78.82",
+  "releaseVersion": "0.9.78.85",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -418,7 +418,9 @@
     "scripts/test-fourteen-day-confidence-no-clipping-097879.mjs",
     "scripts/test-fourteen-day-header-density-097880.mjs",
     "scripts/test-composite-buffered-playback-097881.mjs",
-    "scripts/test-skybar-sunshine-time-alignment-097881.mjs"
+    "scripts/test-skybar-sunshine-time-alignment-097881.mjs",
+    "scripts/test-event-recommendation-sanity-097883.mjs",
+    "scripts/test-synoptic-contour-path-options-097884.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -769,7 +771,8 @@
     "scripts/test-fourteen-day-confidence-no-clipping-097879.mjs",
     "scripts/test-fourteen-day-header-density-097880.mjs",
     "scripts/test-composite-buffered-playback-097881.mjs",
-    "scripts/test-skybar-sunshine-time-alignment-097881.mjs"
+    "scripts/test-skybar-sunshine-time-alignment-097881.mjs",
+    "scripts/test-synoptic-contour-path-options-097884.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -1298,7 +1301,16 @@
     "scripts/test-fourteen-day-confidence-no-clipping-097879.mjs",
     "MID_IMPLEMENTATION_0.9.78.80.md",
     "scripts/test-fourteen-day-header-density-097880.mjs",
-    "scripts/test-composite-buffered-playback-097881.mjs"
+    "scripts/test-composite-buffered-playback-097881.mjs",
+    "scripts/test-event-recommendation-sanity-097883.mjs",
+    "MID_EVENT_RECOMMENDATION_CONTRACT.md",
+    "MID_IMPLEMENTATION_0.9.78.83.md",
+    "MID_TEST_REPORT_0.9.78.83.md",
+    "scripts/test-synoptic-contour-path-options-097884.mjs",
+    "MID_IMPLEMENTATION_0.9.78.84.md",
+    "MID_TEST_REPORT_0.9.78.84.md",
+    "MID_IMPLEMENTATION_0.9.78.85.md",
+    "MID_TEST_REPORT_0.9.78.85.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1501,7 +1513,9 @@
     "scripts/release-preflight.mjs",
     "scripts/test-release-preflight-gate-097868.mjs",
     "scripts/test-composite-native-history-navigation-097875.mjs",
-    "scripts/test-composite-buffered-playback-097881.mjs"
+    "scripts/test-composite-buffered-playback-097881.mjs",
+    "MID_IMPLEMENTATION_0.9.78.85.md",
+    "MID_TEST_REPORT_0.9.78.85.md"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md",
@@ -1613,7 +1627,8 @@
     "MID_IMPLEMENTATION_0.9.78.46.md",
     "MID_IMPLEMENTATION_0.9.78.47.md",
     "MID_IMPLEMENTATION_0.9.78.78.md",
-    "MID_IMPLEMENTATION_0.9.78.79.md"
+    "MID_IMPLEMENTATION_0.9.78.79.md",
+    "MID_IMPLEMENTATION_0.9.78.84.md"
   ],
   "evidenceFiles": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -1664,7 +1679,9 @@
     "MID_TEST_REPORT_0.9.78.48.md",
     "src/pressureAxis.ts",
     "src/forecastDayLabel.ts",
-    "scripts/test-pressure-axis-nice-spacing-097861.mjs"
+    "scripts/test-pressure-axis-nice-spacing-097861.mjs",
+    "MID_TEST_REPORT_0.9.78.83.md",
+    "MID_TEST_REPORT_0.9.78.84.md"
   ],
   "releaseEvidence": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -1699,7 +1716,8 @@
     "MID_IMPLEMENTATION_0.9.78.7.md",
     "MID_TEST_REPORT_0.9.78.7.md",
     "scripts/test-maintenance-cleanup-097828.mjs",
-    "MID_IMPLEMENTATION_0.9.78.28.md"
+    "MID_IMPLEMENTATION_0.9.78.28.md",
+    "MID_TEST_REPORT_0.9.78.84.md"
   ],
   "activeRegressionSuite": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -1730,7 +1748,7 @@
     "scripts/test-composite-temporal-truth-zugspuren-097860.mjs",
     "scripts/test-fourteen-day-header-density-097880.mjs"
   ],
-  "version": "0.9.78.82",
+  "version": "0.9.78.85",
   "updatedAt": "2026-09-06T13:35:00.000Z",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
@@ -1788,7 +1806,9 @@
     "MID_IMPLEMENTATION_0.9.78.70.md",
     "MID_IMPLEMENTATION_0.9.78.72.md",
     "MID_IMPLEMENTATION_0.9.78.77.md",
-    "MID_IMPLEMENTATION_0.9.78.80.md"
+    "MID_IMPLEMENTATION_0.9.78.80.md",
+    "MID_IMPLEMENTATION_0.9.78.83.md",
+    "MID_IMPLEMENTATION_0.9.78.85.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",
@@ -1829,6 +1849,8 @@
     "MID_TEST_REPORT_0.9.78.68.md",
     "MID_TEST_REPORT_0.9.78.69.md",
     "MID_TEST_REPORT_0.9.78.70.md",
-    "MID_TEST_REPORT_0.9.78.72.md"
+    "MID_TEST_REPORT_0.9.78.72.md",
+    "MID_TEST_REPORT_0.9.78.83.md",
+    "MID_TEST_REPORT_0.9.78.84.md"
   ]
 }

@@ -20,7 +20,7 @@ for(const token of [
  "warningOpacity",
  "styles:product.style",
  "elevation:product.elevation",
- "DWD-Linienbild nicht erreichbar; MID-Ersatzkonturen werden geladen.",
+ "DWD-Linienbild nicht erreichbar; MID-Konturen werden verwendet.",
  "lightningDisplayBlend=lightningRasterBlend.length?lightningRasterBlend",
  "vectorLightning=visibleLightning.length>0",
  "...(iso?{time:iso}:{})",

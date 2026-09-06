@@ -1,12 +1,13 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
-const [app,weather,eventEngine,eventCenter,eventPanel,pkgRaw,baselineRaw]=await Promise.all([
+const [app,weather,eventEngine,eventCenter,eventPanel,eventPolicy,pkgRaw,baselineRaw]=await Promise.all([
  readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/weather.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/eventWeatherEngine.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/eventCenter.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/EventPlannerPanel.tsx',import.meta.url),'utf8'),
+ readFile(new URL('../src/eventRecommendationPolicy.ts',import.meta.url),'utf8'),
  readFile(new URL('../package.json',import.meta.url),'utf8'),
  readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')
 ]);
@@ -21,8 +22,9 @@ for(const id of ['ventilation','mountain','water','composite','ensemble','long-r
 assert.match(app,/id="long-range"[\s\S]{0,180}defaultOpen=\{false\}/,'Langfrist muss standardmäßig geschlossen sein.');
 
 assert.ok(!eventPanel.includes('Pausen und Wasserstellen einplanen'),'Umgangssprachlicher Hitzeratschlag darf nicht mehr erscheinen.');
-for(const token of ['Trinkwasserversorgung und regelmäßige Erholungspausen sicherstellen','Wetterbedingte Hinweise und Maßnahmen','Lagehinweise','Empfohlene Maßnahmen'])assert.ok(eventPanel.includes(token),`Seriöser Eventhinweis fehlt: ${token}`);
-assert.ok(eventEngine.includes('Ausreichende Trinkwasserversorgung sicherstellen'),'Seriöse Hitzemaßnahme fehlt im Event-Engine-Vertrag.');
+for(const token of ['Wetterbedingte Hinweise und Maßnahmen','Lagehinweise','Empfohlene Maßnahmen'])assert.ok(eventPanel.includes(token),`Seriöser Eventhinweis fehlt: ${token}`);
+for(const token of ['Trinkwasserversorgung und regelmäßige Erholungspausen sicherstellen','Ausreichende Trinkwasserversorgung sicherstellen'])assert.ok(eventPolicy.includes(token),`Seriöse Hitzemaßnahme fehlt in der zentralen Event-Empfehlungspolitik: ${token}`);
+assert.ok(eventEngine.includes('eventHeatGuidance(summary,environment,activity)'),'Event-Engine muss die zentrale Hitzemaßnahme verwenden.');
 
 assert.match(weather,/dailyWindowMean=values\.reduce/,'DWD-Zeitfenster müssen gegen das Tagesfenster-Mittel bewertet werden.');
 assert.match(weather,/highest-second>=10&&highest-dailyWindowMean>=15/,'Zeitfenster darf nur bei deutlich abweichender Wahrscheinlichkeit hervorgehoben werden.');
