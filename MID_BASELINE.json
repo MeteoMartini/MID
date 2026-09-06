@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.78.79",
+  "releaseVersion": "0.9.78.80",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -415,7 +415,8 @@
     "scripts/test-composite-native-history-navigation-097875.mjs",
     "scripts/test-dwd-cloud-confidence-signal-097877.mjs",
     "scripts/test-confidence-pill-spacing-097878.mjs",
-    "scripts/test-fourteen-day-confidence-no-clipping-097879.mjs"
+    "scripts/test-fourteen-day-confidence-no-clipping-097879.mjs",
+    "scripts/test-fourteen-day-header-density-097880.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -763,7 +764,8 @@
     "scripts/test-composite-native-history-navigation-097875.mjs",
     "scripts/test-dwd-cloud-confidence-signal-097877.mjs",
     "scripts/test-confidence-pill-spacing-097878.mjs",
-    "scripts/test-fourteen-day-confidence-no-clipping-097879.mjs"
+    "scripts/test-fourteen-day-confidence-no-clipping-097879.mjs",
+    "scripts/test-fourteen-day-header-density-097880.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -1289,7 +1291,9 @@
     "MID_IMPLEMENTATION_0.9.78.78.md",
     "scripts/test-confidence-pill-spacing-097878.mjs",
     "MID_IMPLEMENTATION_0.9.78.79.md",
-    "scripts/test-fourteen-day-confidence-no-clipping-097879.mjs"
+    "scripts/test-fourteen-day-confidence-no-clipping-097879.mjs",
+    "MID_IMPLEMENTATION_0.9.78.80.md",
+    "scripts/test-fourteen-day-header-density-097880.mjs"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1328,7 +1332,8 @@
     "scripts/test-codeql-alert-remediation-097834.mjs",
     "scripts/test-parallel-merge-skybar-phase-097839.mjs",
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
-    "scripts/test-composite-temporal-truth-zugspuren-097860.mjs"
+    "scripts/test-composite-temporal-truth-zugspuren-097860.mjs",
+    "scripts/test-fourteen-day-header-density-097880.mjs"
   ],
   "protectedFiles": [
     "scripts/test-travel-planner-era5-seamless-units-09652.mjs",
@@ -1716,10 +1721,11 @@
     "scripts/test-codeql-alert-remediation-097834.mjs",
     "scripts/test-parallel-merge-skybar-phase-097839.mjs",
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
-    "scripts/test-composite-temporal-truth-zugspuren-097860.mjs"
+    "scripts/test-composite-temporal-truth-zugspuren-097860.mjs",
+    "scripts/test-fourteen-day-header-density-097880.mjs"
   ],
-  "version": "0.9.78.79",
-  "updatedAt": "2026-09-05T23:00:00+02:00",
+  "version": "0.9.78.80",
+  "updatedAt": "2026-09-06T11:25:00.000Z",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
     "MID_IMPLEMENTATION_0.9.77.27.md",
@@ -1775,7 +1781,8 @@
     "MID_IMPLEMENTATION_0.9.78.69.md",
     "MID_IMPLEMENTATION_0.9.78.70.md",
     "MID_IMPLEMENTATION_0.9.78.72.md",
-    "MID_IMPLEMENTATION_0.9.78.77.md"
+    "MID_IMPLEMENTATION_0.9.78.77.md",
+    "MID_IMPLEMENTATION_0.9.78.80.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",

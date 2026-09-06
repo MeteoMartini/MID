@@ -1,3 +1,8 @@
+# MID v0.9.78.80
+
+- 14-Tage-Cockpit: runder Parameter-/Zeitraum-Info-Button direkt neben Modellstand; die bisherige zusätzliche Info-Zeile im Prognose-Kompass entfällt.
+- Hochformat: Regime-/Kurzaussage wieder in der ersten Zeile; Tmin/Tmax kompakter zusammengerückt, ohne Werte oder Konfidenz abzuschneiden.
+
 # 0.9.78.79
 
 14-Tage-Karten: Die vergrößerte Konfidenzpille erhält im Hochformat eine kollisionsfreie Kopfzeilenfläche. Regime-Kurzaussage, Wettertext und kompakte Metadaten werden bei knapper Breite nicht mehr abgeschnitten, sondern können umbrechen; Desktopkarten sind moderat verbreitert. Keine fachliche Workeränderung. Siehe MID_IMPLEMENTATION_0.9.78.79.md.

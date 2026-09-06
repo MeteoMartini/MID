@@ -7879,3 +7879,43 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
  .cockpit-fourteen-grid{grid-template-columns:repeat(14,minmax(236px,236px))!important;grid-auto-columns:236px!important}
  .cockpit-fourteen-card{width:236px!important;min-width:236px!important}
 }
+
+/* MID v0.9.78.80 · 14d-Kopf kompakter: runder Info-Button neben Modellstand, Regime wieder in erster Zeile. */
+.forecast-confidence-info-row{display:flex;justify-content:flex-end;margin-top:8px}
+.cockpit-fourteen-day>.cockpit-brief.compact-fourteen>.cockpit-brief-tools{display:flex!important;align-items:center!important;justify-content:flex-end!important;flex-wrap:nowrap!important;gap:7px!important}
+.cockpit-fourteen-day>.cockpit-brief.compact-fourteen .cockpit-confidence-info{flex:0 0 auto;margin:0!important}
+.cockpit-fourteen-day>.cockpit-brief.compact-fourteen .cockpit-confidence-info>button{width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important;padding:0!important;border-radius:999px!important}
+.cockpit-fourteen-day>.cockpit-brief.compact-fourteen .cockpit-confidence-info>button>svg{width:16px;height:16px}
+@media (orientation:portrait) and (max-width:900px){
+ .cockpit-fourteen-card>header{
+  grid-template-columns:minmax(72px,1fr) max-content max-content max-content!important;
+  grid-template-areas:"heading regime temps consistency"!important;
+  align-items:center!important;
+  gap:3px 7px!important;
+ }
+ .cockpit-fourteen-regime{
+  width:auto!important;
+  max-width:none!important;
+  min-height:0!important;
+  justify-self:start!important;
+  padding:2px 5px!important;
+  white-space:nowrap!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  overflow-wrap:normal!important;
+  word-break:keep-all!important;
+ }
+ .cockpit-fourteen-regime>span{white-space:nowrap!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:normal!important;word-break:keep-all!important}
+ .cockpit-fourteen-temps{justify-content:flex-start!important;gap:1px!important;min-height:0!important;padding:0!important;white-space:nowrap!important}
+ .cockpit-fourteen-temps>.climate-tone-daily{min-width:36px!important;padding:3px 4px!important}
+ .cockpit-fourteen-card>header>.cockpit-consistency-pill{align-self:center!important;margin:2px 2px!important}
+ .cockpit-fourteen-day>.cockpit-brief.compact-fourteen .cockpit-confidence-info>button{width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important}
+}
+@media (orientation:portrait) and (max-width:430px){
+ .cockpit-fourteen-card>header{grid-template-columns:minmax(62px,1fr) max-content max-content max-content!important;gap:2px 5px!important}
+ .cockpit-fourteen-regime{padding-inline:4px!important;font-size:clamp(5.4px,1.65vw,6.6px)!important}
+ .cockpit-fourteen-temps>.climate-tone-daily{min-width:32px!important;padding:2px 3px!important}
+ .cockpit-fourteen-day>.cockpit-brief.compact-fourteen>.cockpit-brief-tools{gap:5px!important}
+ .cockpit-fourteen-day>.cockpit-brief.compact-fourteen .cockpit-confidence-info>button{width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important}
+}
+

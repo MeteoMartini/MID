@@ -24,7 +24,18 @@ export function EnsembleAssessmentDetails({assessment}:{assessment:DayAssessment
  </div>;
 }
 
-export function ForecastConfidenceOverview({assessments,outlook,advancedMode=false}:{assessments:DayAssessment[];outlook?:{headline:string;detail:string};advancedMode?:boolean}){
+export function ForecastConfidenceInfoHint({assessments,advancedMode=false,className=''}:{assessments:DayAssessment[];advancedMode?:boolean;className?:string}){
+ const ordered=[...assessments].sort((a,b)=>a.date.localeCompare(b.date)),windows=agreementWindows(ordered),firstEvaluable=ordered.find(day=>day.agreement!=='unknown');
+ return <AppInfoHint label="Parameter und weitere Zeiträume" width={430} showClose className={className}>
+  <strong>Parameter und weitere Zeiträume</strong>
+  {windows.length>1&&<p>Weitere hohe Konfidenzfenster: {windows.slice(1).map(window=>`${windowLabel(window)} · ${scoreRangeLabel(window,ordered)}`).join(' · ')}</p>}
+  {firstEvaluable?.parameters.map(parameter=>{const periods=agreementWindows(ordered,parameter.key);return <p key={parameter.key}><b>{parameter.label}:</b> {periods.length?periods.map(window=>`${windowLabel(window)} · ${scoreRangeLabel(window,ordered,parameter.key)}`).join(' · '):'kein bewertbares Fenster mit hoher Parameterkonfidenz'}</p>})}
+  <p>Der 0–100-Wert ist ein Konfidenzindex und bewusst kein Prozentwert: Er beschreibt Ensembleübereinstimmung, Vorlauf und gedämpfte lokale Güte, nicht die Wahrscheinlichkeit, dass eine konkrete Vorhersage „eintrifft“. Datenqualität und unvollständige Randtage werden separat ausgewiesen und dürfen eine meteorologisch hohe Konfidenz nicht künstlich auf „mittel“ setzen.</p>
+  {advancedMode&&<p>Die Spreads werden mit dem Vorlauf normalisiert. Wo genügend lokale Rückblicksdaten vorhanden sind, fließen Brier-/Fehlerwerte mit starker Schrumpfung als kleine Skill-Korrektur ein; ein nur teilweise abgedeckter letzter Kalendertag bleibt „nicht bewertbar“, bis genügend vollständige Ensemblewerte vorliegen.</p>}
+ </AppInfoHint>;
+}
+
+export function ForecastConfidenceOverview({assessments,outlook,advancedMode=false,showInfoHint=true}:{assessments:DayAssessment[];outlook?:{headline:string;detail:string};advancedMode?:boolean;showInfoHint?:boolean}){
  const ordered=[...assessments].sort((a,b)=>a.date.localeCompare(b.date)),windows=agreementWindows(ordered),primaryWindow=windows[0],change=firstAgreementChange(ordered),coverageDate=trailingUnknownCoverageDate(ordered),firstEvaluable=ordered.find(day=>day.agreement!=='unknown'),meteorologicalLimit=change??ordered.find(day=>day.agreement!=='high'&&day.agreement!=='unknown'),dataIssue=ordered.find(day=>day.dataQuality==='poor'||day.dataQuality==='missing');
  const lowest=meteorologicalLimit?.limiting.map(p=>p.label).join(', ')||'',coverageDay=coverageDate?ordered.find(day=>day.date===coverageDate):undefined;
  const primaryText=primaryWindow?`${windowLabel(primaryWindow)} · ${scoreRangeLabel(primaryWindow,ordered)}`:firstEvaluable?`Aktuell ${AGREEMENT_LABEL[firstEvaluable.agreement]} · Index ${Math.round(firstEvaluable.confidenceScore??0)}/100`:'Noch nicht belastbar bewertbar';
@@ -37,15 +48,7 @@ export function ForecastConfidenceOverview({assessments,outlook,advancedMode=fal
    <span><small>Erwartete Entwicklung</small><b>{outlook?.headline??'Tagesprognosen vergleichen'}</b><em>{outlook?.detail??'Auch eine gut vorhersagbare Entwicklung kann ungünstiges Wetter bedeuten.'}</em></span>
    <span><small>{thirdLabel}</small><b>{thirdTitle}</b><em>{thirdDetail}</em></span>
   </div>
-  <div style={{display:'flex',justifyContent:'flex-end',marginTop:8}}>
-   <AppInfoHint label="Parameter und weitere Zeiträume" width={430} showClose>
-    <strong>Parameter und weitere Zeiträume</strong>
-    {windows.length>1&&<p>Weitere hohe Konfidenzfenster: {windows.slice(1).map(window=>`${windowLabel(window)} · ${scoreRangeLabel(window,ordered)}`).join(' · ')}</p>}
-    {firstEvaluable?.parameters.map(parameter=>{const periods=agreementWindows(ordered,parameter.key);return <p key={parameter.key}><b>{parameter.label}:</b> {periods.length?periods.map(window=>`${windowLabel(window)} · ${scoreRangeLabel(window,ordered,parameter.key)}`).join(' · '):'kein bewertbares Fenster mit hoher Parameterkonfidenz'}</p>})}
-    <p>Der 0–100-Wert ist ein Konfidenzindex und bewusst kein Prozentwert: Er beschreibt Ensembleübereinstimmung, Vorlauf und gedämpfte lokale Güte, nicht die Wahrscheinlichkeit, dass eine konkrete Vorhersage „eintrifft“. Datenqualität und unvollständige Randtage werden separat ausgewiesen und dürfen eine meteorologisch hohe Konfidenz nicht künstlich auf „mittel“ setzen.</p>
-    {advancedMode&&<p>Die Spreads werden mit dem Vorlauf normalisiert. Wo genügend lokale Rückblicksdaten vorhanden sind, fließen Brier-/Fehlerwerte mit starker Schrumpfung als kleine Skill-Korrektur ein; ein nur teilweise abgedeckter letzter Kalendertag bleibt „nicht bewertbar“, bis genügend vollständige Ensemblewerte vorliegen.</p>}
-   </AppInfoHint>
-  </div>
+  {showInfoHint?<div className="forecast-confidence-info-row"><ForecastConfidenceInfoHint assessments={ordered} advancedMode={advancedMode}/></div>:null}
  </section>;
 }
 

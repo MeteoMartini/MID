@@ -1,2 +1,0 @@
-const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./web-BEM0inMq.js","./index-odEAOo0u.js","./ReactVendor-CYueatNA.js","./index-CJNyAfzQ.css"])))=>i.map(i=>d[i]);
-import{bi as r,_ as t}from"./index-odEAOo0u.js";import"./ReactVendor-CYueatNA.js";const _=r("Share",{web:()=>t(()=>import("./web-BEM0inMq.js"),__vite__mapDeps([0,1,2,3]),import.meta.url).then(e=>new e.ShareWeb)});export{_ as Share};
