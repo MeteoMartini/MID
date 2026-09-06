@@ -7805,6 +7805,26 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
  .cockpit-fourteen-card>header>.cockpit-consistency-pill .confidence-signal-bars{min-width:16px;height:12px;gap:1.3px}.cockpit-fourteen-card>header>.cockpit-consistency-pill .confidence-signal-bars>i{width:2.2px}.cockpit-fourteen-card>header>.cockpit-consistency-pill .confidence-signal-bars>i:nth-child(1){height:2.5px}.cockpit-fourteen-card>header>.cockpit-consistency-pill .confidence-signal-bars>i:nth-child(2){height:4.5px}.cockpit-fourteen-card>header>.cockpit-consistency-pill .confidence-signal-bars>i:nth-child(3){height:6.5px}.cockpit-fourteen-card>header>.cockpit-consistency-pill .confidence-signal-bars>i:nth-child(4){height:9px}.cockpit-fourteen-card>header>.cockpit-consistency-pill .confidence-signal-bars>i:nth-child(5){height:11.5px}
  .cockpit-fourteen-card>header>.cockpit-consistency-pill .confidence-traffic-dots>i{width:5px;height:5px}
 }
+/* MID v0.9.78.78 · Konfidenzpille: sichere Außenluft und klare Trennung von Signal + Index. */
+.cockpit-fourteen-card>header>.cockpit-consistency-pill{
+ box-sizing:border-box;
+ margin:3px 4px 6px!important;
+}
+.cockpit-fourteen-card>header>.cockpit-consistency-pill.mode-signal{
+ min-width:64px!important;
+ max-width:76px!important;
+ padding:4px 9px!important;
+}
+.cockpit-fourteen-card>header>.cockpit-consistency-pill .confidence-display{gap:8px!important}
+.cockpit-fourteen-card>header>.cockpit-consistency-pill .confidence-display>small{min-width:1.9em!important;text-align:right!important}
+.cockpit-fourteen-card>header>.cockpit-consistency-pill .confidence-signal-bars{min-width:22px}
+@media(max-width:620px){
+ .cockpit-fourteen-card>header>.cockpit-consistency-pill{margin:3px 4px 6px!important}
+ .cockpit-fourteen-card>header>.cockpit-consistency-pill.mode-signal{min-width:58px!important;max-width:68px!important;padding:3px 7px!important}
+ .cockpit-fourteen-card>header>.cockpit-consistency-pill .confidence-display{gap:7px!important}
+ .cockpit-fourteen-card>header>.cockpit-consistency-pill .confidence-display>small{min-width:1.9em!important;font-size:7.5px!important}
+ .cockpit-fourteen-card>header>.cockpit-consistency-pill .confidence-signal-bars{min-width:19px;height:13px;gap:1.5px}
+}
 .confidence-display-settings{display:grid;gap:8px}.confidence-display-settings>header{display:grid;gap:2px}.confidence-display-settings>header>span{color:var(--accent);font-size:9px;font-weight:850;letter-spacing:.08em;text-transform:uppercase}.confidence-display-settings>header>strong{font-size:13px}.confidence-display-settings>header>small{color:var(--muted);font-size:10px;line-height:1.35}
 .settings-confidence-preview{display:flex;align-items:center;justify-content:center;min-height:28px;color:#45ad73}
 .settings-confidence-preview.signal{align-items:flex-end;gap:2px}.settings-confidence-preview.signal>i{display:block;width:4px;border-radius:2px;background:currentColor}.settings-confidence-preview.signal>i:nth-child(1){height:6px}.settings-confidence-preview.signal>i:nth-child(2){height:10px}.settings-confidence-preview.signal>i:nth-child(3){height:14px}.settings-confidence-preview.signal>i:nth-child(4){height:18px}
@@ -7812,3 +7832,50 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
 .settings-confidence-preview.text{font-size:11px;font-weight:900;color:#45ad73}
 
 .mountain-snowline-precip.unresolved{stroke:currentColor;stroke-width:.6;stroke-dasharray:3 3}
+
+
+/* MID v0.9.78.79 · 14-Tage-Karten: größere Konfidenzpille ohne abgeschnittene Nachbarinhalte. */
+.cockpit-fourteen-card>header{overflow:visible}
+.cockpit-fourteen-card>header>.cockpit-consistency-pill{flex:0 0 auto}
+.cockpit-fourteen-regime,
+.cockpit-fourteen-regime>span{
+ overflow:visible!important;
+ text-overflow:clip!important;
+ white-space:normal!important;
+ word-break:normal!important;
+ overflow-wrap:anywhere!important;
+}
+.cockpit-fourteen-regime{width:max-content!important;max-width:100%!important}
+.cockpit-fourteen-heading-copy>.cockpit-fourteen-weather-label{
+ display:block!important;
+ min-height:0!important;
+ overflow:visible!important;
+ text-overflow:clip!important;
+ white-space:normal!important;
+ -webkit-line-clamp:unset!important;
+ overflow-wrap:anywhere!important;
+ -webkit-box-orient:initial!important;
+}
+.cockpit-fourteen-row>small,
+.cockpit-fourteen-row>small.cockpit-fourteen-wind-meta{
+ max-width:100%!important;
+ overflow:visible!important;
+ text-overflow:clip!important;
+ white-space:normal!important;
+ overflow-wrap:anywhere!important;
+}
+.cockpit-fourteen-row>small.cockpit-fourteen-wind-meta{flex-wrap:wrap}
+@media (orientation:portrait) and (max-width:900px){
+ .cockpit-fourteen-card>header{
+  grid-template-columns:minmax(0,1fr) auto auto!important;
+  grid-template-areas:"heading temps consistency" "regime regime regime"!important;
+  align-items:center!important;
+  gap:4px 6px!important;
+ }
+ .cockpit-fourteen-regime{justify-self:start!important}
+ .cockpit-fourteen-card>header>.cockpit-consistency-pill{align-self:center!important}
+}
+@media (min-width:1025px){
+ .cockpit-fourteen-grid{grid-template-columns:repeat(14,minmax(236px,236px))!important;grid-auto-columns:236px!important}
+ .cockpit-fourteen-card{width:236px!important;min-width:236px!important}
+}

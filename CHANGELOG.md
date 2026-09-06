@@ -1,3 +1,11 @@
+# 0.9.78.79
+
+14-Tage-Karten: Die vergrößerte Konfidenzpille erhält im Hochformat eine kollisionsfreie Kopfzeilenfläche. Regime-Kurzaussage, Wettertext und kompakte Metadaten werden bei knapper Breite nicht mehr abgeschnitten, sondern können umbrechen; Desktopkarten sind moderat verbreitert. Keine fachliche Workeränderung. Siehe MID_IMPLEMENTATION_0.9.78.79.md.
+
+# 0.9.78.78
+
+14-Tage-Konfidenzpille mit größerem Außenabstand zu Temperatur und Wind/Böen sowie klarerer Trennung zwischen Empfangsbalken und 0–100-Index. Fünfstufige Balken- und kontinuierliche Farbsemantik bleiben unverändert. Keine fachliche Workeränderung. Siehe MID_IMPLEMENTATION_0.9.78.78.md.
+
 # 0.9.78.76
 
 24-h-Wetterprofil: fehlende bzw. offensichtlich widersprüchliche H/M/L-Wolkenschichtwerte werden nicht länger als echte 0 % angezeigt. Gesamtbewölkung bleibt unverändert; Schichten werden nicht aus dem Gesamtwert rekonstruiert. Teilweise fehlende Schichten erscheinen als `–`, vollständig nicht belastbare Schichtinformation als `n. v.`. Keine fachliche Workeränderung. Siehe MID_IMPLEMENTATION_0.9.78.76.md.

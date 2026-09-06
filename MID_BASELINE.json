@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.78.77",
+  "releaseVersion": "0.9.78.79",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -413,7 +413,9 @@
     "scripts/test-ensemble-confidence-calibration-097867.mjs",
     "scripts/test-release-preflight-gate-097868.mjs",
     "scripts/test-composite-native-history-navigation-097875.mjs",
-    "scripts/test-dwd-cloud-confidence-signal-097877.mjs"
+    "scripts/test-dwd-cloud-confidence-signal-097877.mjs",
+    "scripts/test-confidence-pill-spacing-097878.mjs",
+    "scripts/test-fourteen-day-confidence-no-clipping-097879.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -759,7 +761,9 @@
     "scripts/test-confidence-event-symbols-097870.mjs",
     "scripts/test-confidence-display-boundary-info-097871.mjs",
     "scripts/test-composite-native-history-navigation-097875.mjs",
-    "scripts/test-dwd-cloud-confidence-signal-097877.mjs"
+    "scripts/test-dwd-cloud-confidence-signal-097877.mjs",
+    "scripts/test-confidence-pill-spacing-097878.mjs",
+    "scripts/test-fourteen-day-confidence-no-clipping-097879.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -1281,7 +1285,11 @@
     "scripts/release-preflight.mjs",
     "scripts/test-release-preflight-gate-097868.mjs",
     "scripts/test-composite-native-history-navigation-097875.mjs",
-    "MID_IMPLEMENTATION_0.9.78.77.md"
+    "MID_IMPLEMENTATION_0.9.78.77.md",
+    "MID_IMPLEMENTATION_0.9.78.78.md",
+    "scripts/test-confidence-pill-spacing-097878.mjs",
+    "MID_IMPLEMENTATION_0.9.78.79.md",
+    "scripts/test-fourteen-day-confidence-no-clipping-097879.mjs"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1592,7 +1600,9 @@
     "MID_IMPLEMENTATION_0.9.78.41.md",
     "MID_IMPLEMENTATION_0.9.78.42.md",
     "MID_IMPLEMENTATION_0.9.78.46.md",
-    "MID_IMPLEMENTATION_0.9.78.47.md"
+    "MID_IMPLEMENTATION_0.9.78.47.md",
+    "MID_IMPLEMENTATION_0.9.78.78.md",
+    "MID_IMPLEMENTATION_0.9.78.79.md"
   ],
   "evidenceFiles": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -1708,7 +1718,7 @@
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
     "scripts/test-composite-temporal-truth-zugspuren-097860.mjs"
   ],
-  "version": "0.9.78.77",
+  "version": "0.9.78.79",
   "updatedAt": "2026-09-05T23:00:00+02:00",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
