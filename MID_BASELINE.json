@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.78.85",
+  "releaseVersion": "0.9.79.8",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -420,7 +420,14 @@
     "scripts/test-composite-buffered-playback-097881.mjs",
     "scripts/test-skybar-sunshine-time-alignment-097881.mjs",
     "scripts/test-event-recommendation-sanity-097883.mjs",
-    "scripts/test-synoptic-contour-path-options-097884.mjs"
+    "scripts/test-optional-bottom-navigation-09790.mjs",
+    "scripts/test-modern-navigation-step2-09791.mjs",
+    "scripts/test-modern-map-focus-09792.mjs",
+    "scripts/test-modern-today-overview-09793.mjs",
+    "scripts/test-modern-forecast-workspace-09794.mjs",
+    "scripts/test-modern-plan-more-hierarchy-09795.mjs",
+    "scripts/test-synoptic-contour-path-options-097884.mjs",
+    "scripts/test-modern-focus-detail-hierarchy-09796.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -772,7 +779,8 @@
     "scripts/test-fourteen-day-header-density-097880.mjs",
     "scripts/test-composite-buffered-playback-097881.mjs",
     "scripts/test-skybar-sunshine-time-alignment-097881.mjs",
-    "scripts/test-synoptic-contour-path-options-097884.mjs"
+    "scripts/test-synoptic-contour-path-options-097884.mjs",
+    "scripts/test-modern-focus-detail-hierarchy-09796.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -1310,7 +1318,9 @@
     "MID_IMPLEMENTATION_0.9.78.84.md",
     "MID_TEST_REPORT_0.9.78.84.md",
     "MID_IMPLEMENTATION_0.9.78.85.md",
-    "MID_TEST_REPORT_0.9.78.85.md"
+    "MID_TEST_REPORT_0.9.78.85.md",
+    "MID_IMPLEMENTATION_0.9.79.6.md",
+    "scripts/test-modern-focus-detail-hierarchy-09796.mjs"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1515,7 +1525,9 @@
     "scripts/test-composite-native-history-navigation-097875.mjs",
     "scripts/test-composite-buffered-playback-097881.mjs",
     "MID_IMPLEMENTATION_0.9.78.85.md",
-    "MID_TEST_REPORT_0.9.78.85.md"
+    "MID_TEST_REPORT_0.9.78.85.md",
+    "MID_NAVIGATION_BOTTOM_BAR_CONTRACT.md",
+    "MID_IMPLEMENTATION_0.9.79.6.md"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md",
@@ -1748,8 +1760,8 @@
     "scripts/test-composite-temporal-truth-zugspuren-097860.mjs",
     "scripts/test-fourteen-day-header-density-097880.mjs"
   ],
-  "version": "0.9.78.85",
-  "updatedAt": "2026-09-06T13:35:00.000Z",
+  "version": "0.9.79.8",
+  "updatedAt": "2026-09-06T16:53:00.000Z",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
     "MID_IMPLEMENTATION_0.9.77.27.md",

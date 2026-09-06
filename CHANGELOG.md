@@ -1,13 +1,81 @@
+# Changelog
+
+## 0.9.79.8
+
+- CI-Regressionsfix nach Release-Run #920: fünf noch auf die vor Bottom-Bar-Struktur zugeschnittene Quelltext-Regressionen auf den funktional gleichwertigen v0.9.79.x-Vertrag aktualisiert.
+- Sonnenstunden- und Niederschlagsregressionen erkennen die weiterhin zentral reconcilierten `displayHours` nun auch in der optionalen Heute-Fokusstruktur.
+- 14-Tage-Favoritenregression prüft die Mindestversion semantisch statt ausschließlich innerhalb der alten `0.9.78.x`-Linie.
+- Planer-/Kurzfristregressionen akzeptieren den neuen Planen-Hub und die gemeinsame Horizontnavigation, ohne die geschützten Event-/Reiseplaner-, Modul-, QR- oder Kurzfristverträge abzuschwächen.
+- Keine fachliche Änderung an Wetterdaten, Forecast-Fusion, Radar-/Satellitenprodukten, Radarfarben, Parameterfarben, Einheiten oder Workerlogik.
+
+## 0.9.79.7
+
+- CI-Buildfix für das optionale Bottom-Leisten-Bedienkonzept: die deduplizierten Prognosekandidaten werden vor dem `filter()` explizit als `DashboardModuleId[]` typisiert.
+- Behebt den TypeScript-Fehler `TS2322: Type 'string[]' is not assignable to type 'DashboardModuleId[]'` aus Release-Run #919.
+- Die bestehende Schritt-5-Regression wurde auf den typstabilen Kandidatenaufbau aktualisiert; der Funktionsvertrag selbst bleibt unverändert.
+- Keine fachliche Änderung an Navigation, Forecastlogik, Radar-/Satellitenprodukten, Radarfarben, Parameterfarben, Einheiten oder Worker-Fachlogik.
+
+## 0.9.79.6
+
+- Parallelstand v0.9.78.84/.85 vollständig in den Bottom-Bar-Zweig integriert: Synoptik-Buildfix ohne `smoothFactor`, Composite-v3-Linienfarben/Persistenz, Sat/Rad-Wiedergabevertrag und Event-Hitzeempfehlungen bleiben erhalten.
+- Optionales Bottom-Leisten-Bedienkonzept, Schritt 7: „Heute“ folgt jetzt **Übersicht → Fokus → Details**; die vollständige Current-Ansicht erscheint im Beta-Modus erst nach explizitem Details-Aufruf.
+- Ein erneuter Tap auf „Heute“ führt zurück zur Übersicht; der klassische Current-Bereich bleibt unverändert.
+- „Karte“ öffnet im Beta-Modus das bestehende Kompositbild direkt ohne zusätzliche äußere Aufklappstufe.
+- Keine Änderung an Radar-/Satellitenprodukten, Radarfarben, Parameterfarben, Einheiten, Forecast-Datenpfaden oder Worker-Fachlogik.
+
+## 0.9.79.5
+
+- Optionales Bottom-Leisten-Bedienkonzept, Schritt 6: neuer Planen-Hub als gemeinsamer Einstieg in Event, Reise, Berg/Winter und Wasser.
+- Nicht eingerichtete Aktivitätsprofile führen direkt in Favoriten & Profile; vorhandene Module und Datenpfade bleiben unverändert.
+- „Mehr“ erhält im Beta-Modus kompakte Schnellzugriffe auf Einstellungen, Benachrichtigungen, Favoriten/Profile und Wetterzwilling sowie eine deduplizierte Liste weiterer Fachmodule.
+- Klassischer Sektions-Drawer, Radar-/Satellitenprodukte, Radarfarben, Parameterfarben, Einheiten und Worker-Fachlogik bleiben unverändert.
+
+## 0.9.79.4
+
+- Optionales Bottom-Leisten-Bedienkonzept, Schritt 5: Prognose als verdichteter Arbeitsraum mit der gemeinsamen Horizontleiste `90 min · 24 h · 7 T · 14 T · 46 T · Saison`.
+- Der zuletzt gewählte Prognosehorizont wird persistent gespeichert; der Bottom-Tab Prognose kehrt bevorzugt dorthin zurück.
+- Im Beta-Cockpit entfallen doppelte Cockpit-Kopfzeile und interne Horizonttabs; klassische Prognosemodule werden nur im Beta-Modus visuell verdichtet.
+- Klassischer Modus, Forecast-Datenpfade, Radar-/Satellitenprodukte, Radarfarben, Parameterfarben, Piktogramme, Einheiten und Worker-Fachlogik bleiben unverändert.
+
+## 0.9.79.3
+
+- Optionales Bottom-Leisten-Bedienkonzept, Schritt 4: kompakte mobile „Heute“-Übersicht aus den bestehenden MID-Datenpfaden.
+- „Heute relevant“ priorisiert bis zu drei vorhandene Signale; stündliche Kurzleiste und 7-Tage-Kurzblick führen in die bestehenden Detailmodule.
+- Die bisherige Current-Detailansicht bleibt vollständig erhalten; „Alle Details“ führt dorthin.
+- Große Orts-Nowcards werden nur im mobilen Bottom-Leisten-Modus aus der Kopfzone genommen; klassischer Modus bleibt unverändert.
+- Keine Änderung an Radar-/Satellitenprodukten, Radarfarben, Parameterfarben, Einheiten oder Worker-Fachlogik.
+
+## 0.9.79.2
+
+- Optionaler Bottom-Leisten-Modus: Kompositbild als map-first Fokusansicht mit größerer direkter Kartenfläche.
+- Ebenen/Schnellwahl liegen im Fokusmodus als kompakter Karten-Overlay-Dialog; klassische Toolbar bleibt im Fallback unverändert.
+- MapLibre-Pan/Pinch und die vorhandenen +/−-Controls bleiben verbindlich; Standortzentrierung bleibt separat erreichbar.
+- Timeline, Play/Pause und Geschwindigkeit bleiben direkt unter der Karte; erweiterte Darstellung/Deckkraft folgt danach.
+- Keine Änderung an Radarfarbtabellen, Radar-/Satellitenprodukten, Parametern oder Datenpfaden.
+
+
+## 0.9.79.1
+
+- Optionales Bottom-Bar-Bedienkonzept, Schritt 2: mobiler Kopfbereich im Beta-Modus kompakter; klassischer Modus unverändert.
+- Gemeinsame Prognoseleiste `90 min · 24 h · 7 T · 14 T · 46 T · Saison` führt in die bestehenden MID-Prognosemodule statt neue Datenpfade anzulegen.
+- 90 min/24 h fokussieren innerhalb von Kurzfrist bzw. Prognose-Cockpit den passenden Abschnitt; 46 T/Saison fokussieren die vorhandenen Langfrist-Unterbereiche.
+- Alle neuen Horizont- und Kopf-Aktionsziele bleiben auf iOS mindestens 44 px hoch/breit.
+- Radarprodukte und Radarfarben bleiben unverändert auf dem bestehenden Standardfarbenvertrag. Keine fachliche Workeränderung.
+
+
+## 0.9.79.0
+- Optionales neues mobiles Bedienkonzept als persistenter Fallback-sicherer Modus.
+- Bottom-Tab-Bar „Heute · Prognose · Karte · Planen · Mehr“ auf kompakten Breiten mit iOS-Safe-Area.
+- Klassische Navigation bleibt Standard und jederzeit in den Einstellungen wiederherstellbar.
+- Radarprodukte/-farben, Parameterfarben, Einheiten und Datenpfade bleiben unverändert.
+
 # 0.9.78.85
 
-- CI-Regressionsfix nach Release #917: stabiler Komposit-Persistenzschlüssel v3 wiederhergestellt, Event-Hitzehinweise zentral und seriös vereinheitlicht, TypeScript-7-kompatibler Event-Test sowie Regressionen an die neue Linienfarben-/Playback-Semantik angepasst.
-- Keine fachliche Workeränderung.
+CI-Regressionsfix nach Release #917: stabiler `mid:composite-settings:v3`-Persistenzvertrag mit den neuen Linienfarbfeldern, seriöse Trinkwasser-/Erholungspausen-Semantik im Eventplaner, TypeScript-7-kompatible Event-Regressionen sowie auf die manuell geglätteten/färbbaren MID-Konturen und die nicht mehr scrollbedingt pausierende Sat/Rad-Wiedergabe aktualisierte Komposit-Regressionen. Keine fachliche Workeränderung.
 
 # 0.9.78.84
 
-- Synoptik-Buildfix: entfernt die nicht vom MID-`PathOptions`-Vertrag unterstützte Eigenschaft `smoothFactor` aus den Isobaren-/Isohypsen-Polylines.
-- Die sichtbare Glättung bleibt über die bereits vorhandene MID-eigene Chaikin-Vorverarbeitung erhalten.
-- Linienfarben, separate Isobaren-/Isohypsenwahl, Karten-Schnellwahl und Sat/Rad-Playback bleiben unverändert erhalten.
+Synoptik-Buildfix: ungültige `smoothFactor`-Eigenschaften aus den Leaflet/MapLibre-Polyline-Optionen entfernt. Die MID-eigene Konturglättung, Schwarz/Weiß/Akzent-Farbwahl für Isobaren/Isohypsen und die robustere Sat/Rad-Wiedergabe bleiben erhalten. Keine fachliche Workeränderung.
 
 # 0.9.78.83
 

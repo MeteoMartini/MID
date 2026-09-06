@@ -27,7 +27,9 @@ for(const token of [
 assert.ok(!app.includes('tapPointer=useRef<'),'Fragiler zusätzlicher Touch-Tap-Zustand darf die native Button-Auswahl nicht mehr blockieren.');
 assert.ok(!app.includes('onPointerDown={event=>tapStart(event,item.id)}'),'Favoritenbutton darf Touch-Taps nicht mehr über einen separaten Pointer-State abfangen.');
 
-assert.ok(/^0\.9\.78\.(?:6[6-9]|[7-9]\d|\d{3,})$/.test(pkg.version),`Paketversion ${pkg.version} darf den v0.9.78.66-Vertrag nicht unterschreiten.`);
+const versionParts=String(pkg.version).split('.').map(part=>Number.parseInt(part,10));
+const versionAtLeast=(actual,minimum)=>minimum.every((part,index)=>{const value=actual[index]??0;if(value===part)return true;for(let i=0;i<index;i++){const prior=actual[i]??0;if(prior!==minimum[i])return prior>minimum[i]}return value>part});
+assert.ok(versionAtLeast(versionParts,[0,9,78,66]),`Paketversion ${pkg.version} darf den v0.9.78.66-Vertrag nicht unterschreiten.`);
 assert.equal(baseline.releaseVersion,pkg.version,'Baseline und Paketversion sind nicht synchron.');
 assert.ok(baseline.regressionTests?.includes(test),'Neue Regression fehlt im Baseline-Katalog.');
 console.log(`${pkg.version}: 14d-Kurzaussage bleibt vollständig lesbar; Favoriten-Tap und Drag sind auf iOS getrennt und der Griff hat keine tote Touch-Zone mehr.`);

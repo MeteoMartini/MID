@@ -6,7 +6,7 @@ import SubseasonalTrendPanel from './SubseasonalTrendPanel';
 import LongRangeModelComparison from './LongRangeModelComparison';
 import type {Location,WindUnit} from './weather';
 
-type Props={location:Location;locationName:string;advancedMode:boolean;windUnit:WindUnit};
+type Props={location:Location;locationName:string;advancedMode:boolean;windUnit:WindUnit;initialHorizon?:'46d'|'season'};
 type Metric='temperature'|'precipitation';
 type ChartUnit='K'|'%'|'mm/Tag';
 type CombinedMonth={date:string;label:string;mean:number|null;low:number|null;q25:number|null;q75:number|null;high:number|null;modelCount:number;contributorLabels:string[]};
@@ -36,9 +36,9 @@ function dwdQualityLabel(classification:'better'|'similar'|'worse'|'unknown'){re
 function dwdQualityDetails(metric:{mse:number|null;msess:number|null;rpss:number|null;correlation:number|null}){const values:string[]=[];if(Number.isFinite(metric.mse))values.push(`MSE ${formatDecimalFixed(Number(metric.mse),2)}`);if(Number.isFinite(metric.msess))values.push(`MSESS ${formatDecimalFixed(Number(metric.msess),2)}`);if(Number.isFinite(metric.rpss))values.push(`RPSS ${formatDecimalFixed(Number(metric.rpss),2)}`);if(Number.isFinite(metric.correlation))values.push(`r ${formatDecimalFixed(Number(metric.correlation),2)}`);return values.join(' · ')}
 function dwdPrecipValue(period:NonNullable<SeasonalForecastBundle['dwdPerspective']>['periods'][number]){if(Number.isFinite(period.precipitationAnomalyPercent))return`${Number(period.precipitationAnomalyPercent)>=0?'+':''}${Math.round(Number(period.precipitationAnomalyPercent))} %`;if(Number.isFinite(period.precipitationAnomaly))return`${Number(period.precipitationAnomaly)>=0?'+':''}${formatDecimalFixed(Number(period.precipitationAnomaly),2)} mm/Tag`;return'–'}
 
-export default function LongRangePanel({location,locationName,advancedMode,windUnit}:Props){
+export default function LongRangePanel({location,locationName,advancedMode,windUnit,initialHorizon}:Props){
  const[data,setData]=useState<SeasonalForecastBundle|null>(null),[loading,setLoading]=useState(true),[refreshing,setRefreshing]=useState(false),[error,setError]=useState(''),[infoOpen,setInfoOpen]=useState(false),[legendOpen,setLegendOpen]=useState(()=>{try{return localStorage.getItem('mid:long-range:legend-details')==='1'}catch{return false}});
- const controllerRef=useRef<AbortController|null>(null);
+ const controllerRef=useRef<AbortController|null>(null),weatherTrendRef=useRef<HTMLElement>(null),seasonalRef=useRef<HTMLElement>(null);
  const load=useCallback(async(refresh=false)=>{
   controllerRef.current?.abort();const controller=new AbortController();controllerRef.current=controller;
   if(refresh)setRefreshing(true);else setLoading(true);setError('');
@@ -50,17 +50,18 @@ export default function LongRangePanel({location,locationName,advancedMode,windU
  },[location.latitude,location.longitude]);
  useEffect(()=>{void load(false);return()=>{controllerRef.current?.abort();controllerRef.current=null}},[load]);
  useEffect(()=>{try{localStorage.setItem('mid:long-range:legend-details',legendOpen?'1':'0')}catch{}},[legendOpen]);
+ useEffect(()=>{if(!initialHorizon)return;const target=initialHorizon==='season'?seasonalRef.current:weatherTrendRef.current;if(!target)return;window.requestAnimationFrame(()=>window.requestAnimationFrame(()=>target.scrollIntoView({behavior:'smooth',block:'start'})))},[initialHorizon,loading]);
  const models=data?.pointModels??[];
  const tempCombined=useMemo(()=>buildCombinedMonths(models,'temperature'),[models]),precipCombined=useMemo(()=>buildCombinedMonths(models,'precipitation'),[models]),multiModel=models.length>=2,singleModel=models.length===1?models[0]:null,showLegendDetails=advancedMode||legendOpen;
  const cacheLabel=data?.cacheStatus==='fresh-cache'?`Cache · ${data.cacheAgeMinutes??0} min`:data?.cacheStatus==='stale-cache'?`Fallback-Cache · ${data.cacheAgeMinutes??0} min`:data?.cacheStatus==='mixed-stale'?`teilweise Cache · ${data.cacheAgeMinutes??0} min`:'';
  return <section className="long-range-panel">
   <header className="long-range-head"><div><span>TRENDS 14 D+</span><h3>Witterungs- & Saisontrends · {locationName}</h3><p>Zwei getrennte Prognosehorizonte: Witterungstrend für Tag 15–46 und Saisonvorhersagen mit monatlichen bzw. 3-monatigen Anomalien.</p>{cacheLabel?<small className="long-range-cache-state">Saisonvorhersagen · {cacheLabel}</small>:null}</div><div className="long-range-head-actions"><button type="button" onClick={()=>void load(true)} disabled={refreshing} aria-label="Saisonvorhersagen ausdrücklich aktualisieren" title="Saisonvorhersagen neu abrufen"><RefreshCw size={17} className={refreshing?'spin':''}/></button><button type="button" className={infoOpen?'active':''} onClick={()=>setInfoOpen((value:boolean)=>!value)} aria-label="Methodik"><Info size={17}/></button></div></header>
   {infoOpen?<div className="long-range-info"><p>Das Poor-Man’s-Ensemble verwendet echte numerische Saisonwerte. Dafür sind keine EPS-Mitglieder zwingend: Ensemble-Rauchfahnen, Ensemble-Mittel und belastbare deterministische Modellmittel dürfen beitragen, sofern sie auf derselben Monats-/Anomalieachse liegen. Jede unabhängige Modelllinie erhält exakt eine Stimme; viele Member erzeugen also kein höheres Modellgewicht. Reine Katalogmodelle ohne Zahlenwerte werden nicht dargestellt. DWD GCFS2.2 / EPISODES bleibt als eigenständige Deutschland-Perspektive erhalten. DWD Subseasonal EPISODES ist dagegen ein auf etwa 5 km heruntergerechneter ECMWF-IFS-Extended-Range-Pfad und darf deshalb EC46 nicht als zweite unabhängige Stimme doppeln; er ist als regionaler Deutschland-Anker bzw. Qualitätscheck vorgesehen.</p><p>Die langsamen Saisonquellen werden gemeinsam für vier Stunden zwischengespeichert. Bei einem temporären Quellfehler kann MID einen höchstens 36 Stunden alten letzten erfolgreichen Stand verwenden; „Aktualisieren“ fordert bewusst einen neuen Abruf an.</p></div>:null}
-  <section className="long-range-subsection weather-trend-subsection">
+  <section ref={weatherTrendRef} className="long-range-subsection weather-trend-subsection">
    <header className="long-range-subsection-head"><div><span>WITTERUNGSTREND</span><h4>Tag 15–46</h4><p>Probabilistische Wochenentwicklung mit eigener Modell- und Parameterwahl.</p></div><small>ECMWF EC46 + NOAA GEFS</small></header>
    <SubseasonalTrendPanel location={location} advancedMode={advancedMode} windUnit={windUnit}/>
   </section>
-  <section className="long-range-subsection seasonal-forecast-subsection">
+  <section ref={seasonalRef} className="long-range-subsection seasonal-forecast-subsection">
    <header className="long-range-subsection-head"><div><span>SAISONVORHERSAGEN</span><h4>Monats- & 3-Monats-Trends</h4><p>Numerische saisonale Anomalien und unabhängiger Multi-Modell-Vergleich.</p></div><small>inkl. DWD Deutschland-Perspektive</small></header>
   {loading&&!models.length?<div className="long-range-loading"><RefreshCw className="spin" size={18}/>Saisonmodelle werden geladen …</div>:null}
   {error&&!models.length?<div className="long-range-error"><strong>Langfristdaten derzeit nicht verfügbar</strong><small>{error}</small></div>:null}

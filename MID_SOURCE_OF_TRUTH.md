@@ -189,3 +189,35 @@ Für die 14-Tage-Ansicht gilt ab 1025 CSS-Pixel ein eigener Desktopvertrag mit m
 ## v0.9.78.46 · sichtbare Niederschlagszeit = Slotbeginn
 
 Der Rechenvertrag aus v0.9.78.10 bleibt vollständig erhalten: providerseitige stündliche Niederschlagsmengen/-wahrscheinlichkeiten sind rückblickende, am Intervallende gestempelte Rohwerte. Für die **sichtbare Zukunftsprognose** gilt ab v0.9.78.46 jedoch zusätzlich der in `MID_PRECIPITATION_INTERVAL_CONTRACT.md` präzisierte Präsentationsvertrag: ein sichtbarer Stundenzeitpunkt `S` bezeichnet den beginnenden Slot `[S,S+1 h]`; die zugehörigen Niederschlagsfelder stammen daher aus dem unmittelbar folgenden Rohwert `S+1 h`. Menge, PoP, Niederschlagsphase und niederschlagsbestimmter Wettercode müssen dasselbe sichtbare Intervall meinen. Instantane Felder wie Temperatur, Wind, Druck und Bewölkung verbleiben am Zeitpunkt `S`. Die 15-Minuten-/1-Stunden-Grenze darf weder Lücken noch Doppelzählung erzeugen; fehlende Anschlusswerte werden nicht als falsche Zukunft umetikettiert. Der interne Radar-/Nowcast-, Assimilations-, Verifikations- und Event-Overlap-Rechenkern bleibt endgestempelt. Required Regressions: `scripts/test-precipitation-trailing-interval-nowcast-097810.mjs`, `scripts/test-precipitation-forward-slot-presentation-097846.mjs`.
+## v0.9.79.0 · Optionales Bottom-Tab-Bedienkonzept
+
+`MID_NAVIGATION_BOTTOM_BAR_CONTRACT.md` ist verbindlich. Die bisherige Navigation bleibt Default/Fallback. Der optionale Schlüssel `mid:navigationMode:v1` persistiert die Wahl `classic | bottom-tabs` und wird als portable Nutzereinstellung synchronisiert. Mobile Bottom-Tabs führen ausschließlich in bestehende Sektionen; Radarprodukte/-farben, Parameterfarben, Einheiten und Datenpfade bleiben unberührt. Required Regression: `scripts/test-optional-bottom-navigation-09790.mjs`.
+## v0.9.79.1 · Optionales Bedienkonzept, Schritt 2
+
+`MID_NAVIGATION_BOTTOM_BAR_CONTRACT.md` wird erweitert. Nur im optionalen `bottom-tabs`-Modus wird der mobile Kopfbereich kompakter und vor dem Prognose-Arbeitsraum eine gemeinsame Leiste **90 min · 24 h · 7 T · 14 T · 46 T · Saison** eingeblendet. Alle Ziele fokussieren vorhandene MID-Module/Unterbereiche; es entstehen keine zusätzlichen Datenpfade. Klassisch bleibt unverändert. Radarprodukte/-farben und Parameterfarben bleiben vollständig isoliert. Required Regression: `scripts/test-modern-navigation-step2-09791.mjs`.
+## v0.9.79.2 · Optionales Bedienkonzept, Schritt 3
+
+Im `bottom-tabs`-Modus verwendet das Kompositbild einen map-first Fokusmodus. Die bestehenden Radar-/Satelliten-/Synoptikdaten bleiben unverändert; lediglich Bedienhierarchie und Platzverteilung werden angepasst. Schnelle Overlays und Presets liegen unter **Ebenen** direkt auf der Karte, vollständige Darstellungs-/Deckkraftoptionen bleiben erreichbar. Pan/Pinch, die bestehenden MapLibre-`+ / −`-Controls, Standortzentrierung, Timeline, Play/Pause, Einzelschritt, `Jetzt` und Wiedergabegeschwindigkeit bleiben erhalten. `classic` bleibt unverändert. Radarfarbtabellen bleiben ausschließlich `dwd-standard`. Required Regression: `scripts/test-modern-map-focus-09792.mjs`.
+## v0.9.79.3 · Optionales Bedienkonzept, Schritt 4
+
+Im `bottom-tabs`-Modus ergänzt eine kompakte Heute-Übersicht die vorhandenen kanonischen MID-Daten um die Bedienebenen „Heute relevant“, Stundenkurzleiste und 7-Tage-Kurzblick. Die zugrunde liegende Current-Ansicht und sämtliche Fachpfade bleiben erhalten; der klassische Modus bleibt unverändert. Required Regression: `scripts/test-modern-today-overview-09793.mjs`.
+
+## v0.9.79.4 · Optionales Bedienkonzept, Schritt 5
+
+`MID_NAVIGATION_BOTTOM_BAR_CONTRACT.md` bleibt verbindlich. Im `bottom-tabs`-Modus ist die äußere Horizontleiste die primäre Prognosenavigation; `mid:modernForecastHorizon:v1` persistiert den zuletzt gewählten Horizont. Der Prognose-Tab kehrt bevorzugt zu diesem verfügbaren Ziel zurück. Im Cockpit-Arbeitsraum werden interne Doppel-Tabs nicht zusätzlich gerendert; `classic` bleibt unverändert. Keine Änderung an meteorologischen Datenpfaden oder Radarfarbverträgen. Required Regression: `scripts/test-modern-forecast-workspace-09794.mjs`.
+## v0.9.79.5 · Optionales Bedienkonzept, Schritt 6
+
+Im `bottom-tabs`-Modus führt **Planen** in einen Hub für Event, Reise, Berg/Winter und Wasser; **Mehr** bündelt direkte Einstellungszugriffe und deduplizierte Fachmodule. Alle Ziele verwenden vorhandene Module und Datenpfade. `classic` bleibt unverändert. Required Regression: `scripts/test-modern-plan-more-hierarchy-09795.mjs`.
+
+## v0.9.79.6 · Parallelstand-Merge und Bedienkonzept, Schritt 7
+
+Die nachgereichten Änderungen aus **v0.9.78.84/.85** sind verbindlich in den v0.9.79-Zweig integriert: Synoptik ohne ungültiges `smoothFactor`, Composite-v3-Persistenz einschließlich Linienfarben, Sat/Rad-Wiedergabevertrag und seriöse Event-Hitzeempfehlungen bleiben erhalten. Im optionalen `bottom-tabs`-Modus gilt zusätzlich **Übersicht → Fokus → Details**: Heute rendert die vollständige Current-Ansicht erst nach explizitem Details-Aufruf; Karte öffnet das vorhandene Kompositbild ohne zusätzliche äußere Aufklappstufe direkt im Fokus. `classic` bleibt vollständig unverändert. Radarprodukte/-farben, Parameterfarben, Einheiten und kanonische Forecastpfade bleiben isoliert. Required Regression: `scripts/test-modern-focus-detail-hierarchy-09796.mjs`.
+
+## v0.9.79.7 · CI-Buildfix Bottom-Bar-Typvertrag
+
+Die Prognosekandidaten der optionalen Bottom-Leiste werden vor der Deduplizierung explizit als `DashboardModuleId[]` typisiert. Dies verhindert die TypeScript-Aufweitung auf `string[]`, die Release-Run #919 mit TS2322 blockierte. Es handelt sich um einen reinen Build-/Typfix ohne Änderung an Bedienlogik, Wetterdaten, Radarfarben oder Worker-Fachlogik.
+
+## v0.9.79.8 · CI-Regressionsmodernisierung nach Run #920
+
+Der Produktionsbuild und die TypeScript-Prüfung von v0.9.79.7 waren bereits erfolgreich. Run #920 scheiterte ausschließlich an fünf statischen Regressionen, deren Quelltextmuster noch die vor dem optionalen Bottom-Bar-/Planen-Hub-Umbau geltende Dashboard-Struktur voraussetzten. Diese Regressionen müssen ab v0.9.79.8 den funktional gleichwertigen aktuellen Vertrag prüfen: zentrale `displayHours`/`displayDays` bleiben verbindlich, Event- und Reiseplaner bleiben separat schaltbar und gemeinsam unter Planen erreichbar, Kurzfrist-/QR-/Modulverträge bleiben erhalten, und spätere Versionslinien müssen den v0.9.78.66-Favoritenvertrag semantisch statt über ein auf `0.9.78.x` begrenztes Regex erfüllen. Die Korrektur darf keine App- oder Worker-Fachlogik verändern.
+
