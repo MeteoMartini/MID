@@ -29,7 +29,7 @@ assert.ok(ensembleFragment.includes('const ENSEMBLE_MODEL_TIMEOUT_MS=20_000')&&e
 assert.ok(ensembleFragment.includes('loadEnsembleUnits(selected,6')&&ensembleFragment.includes('signal,2)'),'Begrenzte 6er-Vollfusion mit maximal zwei parallelen Abrufen fehlt.');
 assert.ok(app.includes('scheduleRetry(2_000)'),'Schnelle 2-s-Vollfusion nach Bootstrap fehlt.');
 assert.ok(cockpit.includes('RELATIVE_SUN_RAYS.map')&&cockpit.includes('className="sun-base sun-ray"'),'Vollständige unverzerrte Sonnendarstellung aus v37 fehlt.');
-assert.ok(skybar.includes('SKYBAR_THICKNESS_STEPS=[2.4,3.3,4.2,5.1]'),'Vier kräftigere Skybar-Dicken aus v38 fehlen.');
+assert.ok(skybar.includes('SKYBAR_THICKNESS_STEPS=[2.4,3.6,4.8,6.0]'),'Vier appweit klar unterscheidbare Skybar-Dicken fehlen.');
 assert.ok(cockpit.includes('calendarDayHours=probabilityHours')&&cockpit.includes('cockpitDaySkyBarSegments(calendarDayHours.length?calendarDayHours:dayHours)'),'24-h-Tageskarten-Skybar fehlt.');
 
 // Phase-aware precipitation colours are now a single shared contract.

@@ -97,7 +97,7 @@ gegeneinander verschoben sein.
 - Das graue Bewölkungsband beginnt bei **50 % Gesamtbewölkung** und bildet 50–100 % ebenfalls in vier Dickenstufen ab. Gelb und Grau sind gegenseitig exklusiv: direkte Sonnenscheindauer >50 % hat tagsüber Vorrang; andernfalls kann ab 50 % Bedeckung nur Grau erscheinen. Dadurch werden Sonne und Wolken nicht mehr aus zwei gleichzeitig aktiven Grundbändern abgeleitet.
 - Bewölkung verwendet appweit in der Skybar einen **einheitlichen Grauton**; mehr oder weniger Bewölkung darf dort keine Grauton-/Opacity-Abstufung mehr erzeugen.
 - Niederschlag liegt als eigener Overlay-Streifen über dem Grundband, übernimmt die verbindliche Niederschlagsart/-phasenfarbe und verwendet ebenfalls vier Dickenstufen nach der zeitnormalisierten Intensität. Die Dicke codiert Stärke, die Farbe Art/Phase.
-- Die Dickenstufen sind gegenüber dem vorherigen Stand leicht verstärkt: `2.4 / 3.3 / 4.2 / 5.1` SVG-Einheiten. Auch auf dem iPhone wird die Tageskarten-Skybar nicht mehr auf 14 px Höhe verkleinert.
+- Die Dickenstufen sind gegenüber dem vorherigen Stand leicht verstärkt: `2.4 / 3.6 / 4.8 / 6.0` SVG-Einheiten. Auch auf dem iPhone wird die Tageskarten-Skybar nicht mehr auf 14 px Höhe verkleinert.
 - Klare Nächte unter 50 % Bewölkung dürfen ohne Grundband bleiben. Gerundete Segmente und fugenlose Verbindung gleichartiger Nachbarsegmente bleiben verbindlich.
 
 

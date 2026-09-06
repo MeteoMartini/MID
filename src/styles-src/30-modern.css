@@ -2880,7 +2880,7 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
 }
 .cockpit-day-skybar{grid-area:skybar;display:block;min-width:0;margin:-1px 0 1px}
 .cockpit-day-skybar>svg{display:block;width:100%;height:16px;overflow:visible}
-.cockpit-day-skybar-rail{fill:color-mix(in srgb,var(--text) 9%,transparent)}
+.cockpit-day-skybar-rail{fill:color-mix(in srgb,var(--text) 7%,transparent)}
 .cockpit-day-skybar rect{shape-rendering:geometricPrecision}
 .seven-day-curve-night-band{fill:rgba(164,181,199,.14)!important;fill-opacity:1!important}
 :root[data-theme=light] .seven-day-curve-night-band{fill:rgba(73,92,113,.08)!important}

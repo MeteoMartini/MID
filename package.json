@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.79.8",
+  "version": "0.9.79.9",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -436,7 +436,8 @@
     "test:webarchive-097872": "node scripts/test-webarchive-shortterm-twin-snowline-097872.mjs",
     "test:composite-native-history-navigation": "node scripts/test-composite-native-history-navigation-097875.mjs",
     "test:composite-buffered-playback": "node scripts/test-composite-buffered-playback-097881.mjs",
-    "test:skybar-sunshine-time-alignment": "node scripts/test-skybar-sunshine-time-alignment-097881.mjs"
+    "test:skybar-sunshine-time-alignment": "node scripts/test-skybar-sunshine-time-alignment-097881.mjs",
+    "test:skybar-four-thickness-appwide": "node scripts/test-skybar-four-thickness-appwide-09799.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",

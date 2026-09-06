@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.9.79.9
+
+- Skybar appweit erneut geprüft und die vier Dickenstufen auf kleinen Displays klarer voneinander getrennt: `2.4 / 3.6 / 4.8 / 6.0`.
+- Sonne und Bewölkung nutzen explizite 50–62,5 / 62,5–75 / 75–87,5 / 87,5–100-%-Klassen; Niederschlag behält vier zeitnormalisierte Intensitätsklassen.
+- Jedes Segment trägt die tatsächlich verwendete Stufe 1–4 als DOM-Diagnoseattribut.
+- Die bisher 7 Einheiten hohe Grundschiene der 7-Tage-Tageskarten wurde auf eine dezente 1,2-Einheiten-Achse reduziert, damit sie die vier realen Dicken nicht mehr optisch nivelliert.
+- Tagesdetail/24 h, 24-h-Profil, 7-Tage-Kurve und Tageskarten bleiben auf derselben zentralen Skybar-Engine.
+- Keine fachliche Änderung an Wetterdaten, Radar/Satellit oder Workerlogik.
+
 ## 0.9.79.8
 
 - CI-Regressionsfix nach Release-Run #920: fünf noch auf die vor Bottom-Bar-Struktur zugeschnittene Quelltext-Regressionen auf den funktional gleichwertigen v0.9.79.x-Vertrag aktualisiert.

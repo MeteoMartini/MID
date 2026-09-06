@@ -17,7 +17,7 @@ assert.equal(seasonal.finite(0),0);
 const warning=load('src/weather-src/30-ensemble-climate-hazards.tsfrag',['warningEnsembleValue']);
 for(const value of [null,undefined,'',' '])assert.ok(Number.isNaN(warning.warningEnsembleValue({hourly:{temperature_2m:[value]}},'temperature_2m','',0)));
 assert.equal(warning.warningEnsembleValue({hourly:{temperature_2m:[0]}},'temperature_2m','',0),0);
-const sky=load('src/detailSkyBar.ts',['clamp','clamp01','sunVisualShare','SKYBAR_THICKNESS_STEPS','skybarThickness','skybarFourStepLevel','skybarAboveHalfLevel','cloudBandWidth','sunBandWidth','baseSkyVisual']);
+const sky=load('src/detailSkyBar.ts',['clamp','clamp01','sunVisualShare','SKYBAR_THICKNESS_STEPS','skybarThickness','skybarThicknessLevel','skybarAboveHalfLevel','cloudBandWidth','sunBandWidth','precipBandLevel','precipBandWidth','baseSkyVisual']);
 assert.ok(Number.isNaN(sky.sunVisualShare(null,NaN)));
 assert.equal(sky.cloudBandWidth(NaN),0);
 assert.equal(sky.sunVisualShare(0,0),0);
@@ -25,6 +25,9 @@ assert.equal(sky.sunVisualShare(.8,90),.8);
 assert.equal(sky.sunBandWidth(.5),0);
 assert.ok(sky.sunBandWidth(.6)>0);
 assert.ok(sky.sunBandWidth(1)>sky.sunBandWidth(.6));
+assert.deepEqual([...sky.SKYBAR_THICKNESS_STEPS],[2.4,3.6,4.8,6]);
+assert.deepEqual([.51,.63,.76,.9].map(sky.skybarAboveHalfLevel),[0,1,2,3]);
+assert.deepEqual([.1,.8,4,12].map(sky.precipBandLevel),[0,1,2,3]);
 // Legacy temperature-index checks are superseded by test-ensemble-multiparameter-097865.mjs.
 const time=load('src/weather-src/00-types-models-search.tsfrag',['parseLocalIso','partsAtEpoch','localIsoEpoch']);
 const intervalSemantics=load('src/eventIntervalSemantics.ts',['eventIntervalHasPrecipitation','eventIntervalSkyCode']);

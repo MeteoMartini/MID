@@ -9,6 +9,7 @@ export type SkyBarSegment={
   y:number;
   color:string;
   strokeWidth:number;
+  thicknessLevel:1|2|3|4;
   opacity:number;
   title:string;
 };
@@ -19,6 +20,7 @@ type WeatherStripVisual={
   layer:WeatherStripLayer;
   color:string;
   strokeWidth:number;
+  thicknessLevel:1|2|3|4;
   opacity:number;
   title:string;
 };
@@ -32,10 +34,17 @@ const sunVisualShare=(sunshineShare:number|null,cloudCover:number)=>{
   return clamp01(1-cloud/100);
 };
 
-const SKYBAR_THICKNESS_STEPS=[2.4,3.3,4.2,5.1] as const;
-const skybarThickness=(level:number)=>SKYBAR_THICKNESS_STEPS[Math.max(0,Math.min(SKYBAR_THICKNESS_STEPS.length-1,Math.round(level)))]!;
-const skybarFourStepLevel=(share:number)=>Math.min(3,Math.floor(clamp01(share)*4));
-const skybarAboveHalfLevel=(share:number)=>skybarFourStepLevel((clamp01(share)-.5)/.5);
+const SKYBAR_THICKNESS_STEPS=[2.4,3.6,4.8,6.0] as const;
+type SkyBarThicknessIndex=0|1|2|3;
+const skybarThickness=(level:SkyBarThicknessIndex)=>SKYBAR_THICKNESS_STEPS[level];
+const skybarThicknessLevel=(level:SkyBarThicknessIndex):1|2|3|4=>(level+1) as 1|2|3|4;
+const skybarAboveHalfLevel=(share:number):SkyBarThicknessIndex=>{
+  const value=clamp01(share);
+  if(value<.625)return 0;
+  if(value<.75)return 1;
+  if(value<.875)return 2;
+  return 3;
+};
 
 const cloudBandWidth=(cloud:number)=>{
   if(!Number.isFinite(cloud)||cloud<50)return 0;
@@ -47,13 +56,14 @@ const sunBandWidth=(sunshineShare:number)=>{
   return skybarThickness(skybarAboveHalfLevel(sunshineShare));
 };
 
-const precipBandWidth=(amount:number)=>{
-  if(amount<0.05)return 0;
-  if(amount<0.5)return skybarThickness(0);
-  if(amount<2.5)return skybarThickness(1);
-  if(amount<10)return skybarThickness(2);
-  return skybarThickness(3);
+const precipBandLevel=(amount:number):SkyBarThicknessIndex|null=>{
+  if(amount<0.05)return null;
+  if(amount<0.5)return 0;
+  if(amount<2.5)return 1;
+  if(amount<10)return 2;
+  return 3;
 };
+const precipBandWidth=(amount:number)=>{const level=precipBandLevel(amount);return level===null?0:skybarThickness(level);};
 
 const sampleIntervalSeconds=(hours:PrecipSample[],index:number)=>{
   const sample=hours[index],explicitStart=Number(sample?.precipitationIntervalStartEpoch),explicitEnd=Number(sample?.precipitationIntervalEndEpoch),explicit=Number.isFinite(explicitStart)&&Number.isFinite(explicitEnd)&&explicitEnd>explicitStart?(explicitEnd-explicitStart)/1000:NaN;
@@ -69,23 +79,25 @@ const baseSkyVisual=(cloud:number,daylight:boolean,sunshineShare:number|null):We
   if(daylight){
     const visualSunshine=sunVisualShare(sunshineShare,cloud),sunshineDirect=sunshineShare!==null;
     if(visualSunshine>.5){
-      const width=sunBandWidth(visualSunshine);
+      const level=skybarAboveHalfLevel(visualSunshine),width=sunBandWidth(visualSunshine);
       if(width>0)return {
         layer:'base',
         color:'#ffc229',
         strokeWidth:width,
+        thicknessLevel:skybarThicknessLevel(level),
         opacity:0.98,
         title:`Sonnenschein · ${(visualSunshine*100).toFixed(0)} % der betrachteten Zeit${sunshineDirect?'':' · aus Bewölkungsgrad abgeleitet'} · ${Number.isFinite(cloud)?`${cloud.toFixed(0)} % Wolken`:'Bewölkung unbekannt'}`,
       };
     }
   }
 
-  const width=cloudBandWidth(cloud);
+  const level=skybarAboveHalfLevel(cloud/100),width=cloudBandWidth(cloud);
   if(width<=0)return null;
   return {
     layer:'base',
     color:'#aeb3b9',
     strokeWidth:width,
+    thicknessLevel:skybarThicknessLevel(level),
     opacity:0.96,
     title:`Bewölkung${daylight?'':' Nacht'} · ${cloud.toFixed(0)} %`,
   };
@@ -94,8 +106,8 @@ const baseSkyVisual=(cloud:number,daylight:boolean,sunshineShare:number|null):We
 const precipitationOverlayVisual=(hour:PrecipSample,intervalSeconds:number,cloud:number):WeatherStripVisual|null=>{
   const amount=Math.max(0,Number(hour.precipitation??0));
   const precipitationRateMmh=amount*(3600/Math.max(60,intervalSeconds));
-  const width=precipBandWidth(precipitationRateMmh);
-  if(width<=0)return null;
+  const level=precipBandLevel(precipitationRateMmh),width=precipBandWidth(precipitationRateMmh);
+  if(level===null||width<=0)return null;
   const intervalMinutes=Math.round(intervalSeconds/60);
   const parts=precipitationParts(hour);
   const rawSunshine=hour.sunshineDuration,sunshineShare=!!hour.isDay&&rawSunshine!==null&&rawSunshine!==undefined&&Number.isFinite(Number(rawSunshine))?clamp01(Number(rawSunshine)/Math.max(60,intervalSeconds)):null,hasSunshineBase=!!hour.isDay&&sunVisualShare(sunshineShare,cloud)>.5;
@@ -103,6 +115,7 @@ const precipitationOverlayVisual=(hour:PrecipSample,intervalSeconds:number,cloud
     layer:'precip',
     color:precipitationPhaseColor(parts.type),
     strokeWidth:width,
+    thicknessLevel:skybarThicknessLevel(level),
     opacity:1,
     title:`${parts.label||'Niederschlag'} · ${precipitationPhaseColorLabel(parts.type)} · ${precipitationRateMmh.toFixed(precipitationRateMmh>=10?0:1)} mm/h${intervalMinutes<60?` · ${amount.toFixed(amount>=10?0:1)} mm/${intervalMinutes} min`:''}${hasSunshineBase?' · auf sonnigem Grundband':''}`,
   };
@@ -123,7 +136,7 @@ const weatherStripVisuals=(hour:PrecipSample,intervalSeconds:number)=>{
 function appendSegment(segments:SkyBarSegment[],index:number,prefix:string,x0:number,x1:number,centerY:number,visual:WeatherStripVisual){
   if(x1<=x0)return;
   const previous=segments[segments.length-1];
-  if(previous&&Math.abs(previous.x2-x0)<=0.65&&previous.y===centerY&&previous.color===visual.color&&previous.strokeWidth===visual.strokeWidth&&previous.opacity===visual.opacity){
+  if(previous&&Math.abs(previous.x2-x0)<=0.65&&previous.y===centerY&&previous.color===visual.color&&previous.strokeWidth===visual.strokeWidth&&previous.thicknessLevel===visual.thicknessLevel&&previous.opacity===visual.opacity){
     previous.x2=x1;
     previous.title=visual.title;
     return;
@@ -136,6 +149,7 @@ function appendSegment(segments:SkyBarSegment[],index:number,prefix:string,x0:nu
     y:centerY,
     color:visual.color,
     strokeWidth:visual.strokeWidth,
+    thicknessLevel:visual.thicknessLevel,
     opacity:visual.opacity,
     title:visual.title,
   });
