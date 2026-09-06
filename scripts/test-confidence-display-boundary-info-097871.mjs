@@ -12,5 +12,5 @@ assert.ok(confidence.includes('<AppInfoHint label="Parameter und weitere Zeiträ
 assert.ok(!confidence.includes('<summary style={{minHeight:40,cursor:\'pointer\'}}>Parameter und weitere Zeiträume</summary>'),'Breiter Parameter-Disclosure ist weiterhin sichtbar.');
 for(const token of ['Math.min(15,Math.ceil(forecastDays))','Math.min(15,model.maxDays)','Math.min(15,definition.maxDays)'])assert.ok(ensembleSource.includes(token),`15-Tage-Randabruf fehlt: ${token}`);
 assert.ok(workerSource.includes("Math.min(15,Math.ceil(number(url.searchParams.get('forecast_days'))||14))"),'Worker-Proxy schneidet den 15. Ensemble-Randtag noch ab.');
-for(const token of ['MID v0.9.78.72 · wählbare, kompakte Konfidenzdarstellung','settings-confidence-preview.signal','.cockpit-consistency-pill.mode-signal','.confidence-traffic-dots'])assert.ok(styles.includes(token),`CSS-Vertrag fehlt: ${token}`);
+for(const token of ['MID v0.9.78.77 · Konfidenzsignal: mehr Abstand, fünf Empfangsstufen und kontinuierliche Score-Farbe.','settings-confidence-preview.signal','.cockpit-consistency-pill.mode-signal','.confidence-traffic-dots'])assert.ok(styles.includes(token),`CSS-Vertrag fehlt: ${token}`);
 console.log('MID v0.9.78.72+: Konfidenzdarstellung, Info-Button und 15-Tage-Randabruf geprüft.');
