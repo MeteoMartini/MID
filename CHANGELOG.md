@@ -1,3 +1,27 @@
+# v0.9.78.72
+
+- 90-Minuten-Cockpit: Restintervalle unter fünf Minuten direkt vor dem nächsten 15-Minuten-Slot werden nicht mehr als eigene Kachel angezeigt. Die zugrunde liegende Kurzfristserie bleibt unverändert; sichtbar beginnt die Leiste am nächsten belastbaren Slot.
+- Wetterzwilling: identische Modellbezeichnungen derselben Unabhängigkeitsgruppe werden in der Gewichtungsanzeige defensiv zusammengeführt. Die Berechnung behält die bereits vorhandenen Modellfamilien-/Unabhängigkeitsbudgets bei; eine doppelte DWD-Anzeige ist nicht als zusätzliche unabhängige Stimme zu verstehen.
+- Schneefallgrenze: Niederschlagssignale werden als zusammenhängende Zeitbänder statt regelmäßiger Einzelstreifen dargestellt. Ab Ende der stündlichen Höhenprognose werden native 6-h-Ensemblefenster zeitlich verwendet; die Tageswahrscheinlichkeit aktiviert nicht mehr automatisch jeden 3-/6-h-Punkt. Nicht zeitlich aufgelöste Tageswahrscheinlichkeiten werden ausdrücklich als Tagesband markiert.
+- Übergang stündlich → Ensemble bereinigt: 6-h-Fenster auf dem Übergangstag werden am letzten stündlichen Datenzeitpunkt abgeschnitten, sodass z. B. ein bereits stündlich belegtes 03–06-Uhr-Ereignis nicht zusätzlich als 00–06-Uhr-Ensemblefenster erscheint.
+
+## 0.9.78.72
+
+- 14d-Konfidenz wahlweise als Signalbalken, Ampel oder Text+Index; Signalbalken Standard.
+- Parameter/weitere Zeiträume hinter kompaktem (i)-Popover.
+- 15-Tage-Rohabruf für vollständigen 14. Ensemble-Kalendertag; UI bleibt 14 Tage.
+- Datenqualität bleibt vom meteorologischen Konfidenzindex getrennt.
+- Event-Stundenintervall- und Symbolkompaktierungsverträge beibehalten und abgesichert.
+
+## 0.9.78.70 – 2026-09-05
+
+- 14d-Konfidenzfenster konsistent zur Tagesbewertung: Datenqualität zerreißt kein meteorologisch hohes Fenster mehr; echte Unterabdeckung bleibt separat sichtbar.
+- Nachlaufender nicht bewertbarer Ensemble-Randtag wird als `teilw.`/Randabdeckung statt als vermeintlicher Konfidenzabfall behandelt.
+- Kompakte Tagesbadges und Prognose-Kompass zeigen den intuitiven 0–100-Konfidenzindex, ausdrücklich ohne ihn als Treffer-% zu deklarieren.
+- Event-Stundenintervall korrigiert: vorangehende Niederschlags-/Sonnenscheinsummen werden nicht mehr durch einen Instantan-Wettercode am Stundenende rückwirkend falsch beschriftet.
+- Appweiter Symbolaudit: eindeutige Mikrometriken in 14d, Event-Timeline und Widget platzsparend icon-basiert; Barrierefreiheitsnamen und Einheiten bleiben erhalten.
+- Neuer verbindlicher `MID_COMPACT_SYMBOL_CONTRACT.md` und fokussierte Regressionen für Konfidenz-Randtag, Intervallsemantik und Symbolkompaktheit.
+
 ## 0.9.78.69 – 2026-09-05
 
 - CI-Hotfix nach GitHub-Run #903: veraltete Mehrparameter-Erwartung entfernt, die schwache Datenbasis fälschlich als meteorologische Mittel-Konfidenz erzwang.

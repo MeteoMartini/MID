@@ -28,7 +28,7 @@ assert.match(eventCenter,/precipitationTypeLabel\?:string/,'Niederschlagsart-Lab
 assert.match(planner,/eventPrecipLabel\(plan\.summary\).*eventPrecipProbability\(plan\.summary\).*%/s,'Niederschlagsart und passende Wahrscheinlichkeit werden nicht gemeinsam ausgegeben.');
 
 assert.match(planner,/Wind \$\{wind\(plan\.summary\.windMax[\s\S]*?· G \$\{wind\(plan\.summary\.gustMax/,'Event-Kompaktzeile muss Wind und Böen gemeinsam mit G-Kennzeichnung nennen.');
-assert.match(planner,/Wind \{wind\(point\.wind[\s\S]*?· G \{wind\(point\.gust/,'Stündlicher Eventverlauf muss Wind und Böen gemeinsam mit G-Kennzeichnung nennen.');
+assert.match(planner,/\{wind\(point\.wind[\s\S]*?· G \{wind\(point\.gust/,'Stündlicher Eventverlauf muss Wind und Böen gemeinsam mit G-Kennzeichnung nennen.');
 assert.match(eventCenter,/rounded\(summary\.gustMax\)/,'Böen fehlen im Änderungs-Signaturvertrag.');
 assert.match(eventCenter,/gustDelta/,'Böenänderungen werden im Event-Center nicht bewertet.');
 

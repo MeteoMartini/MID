@@ -157,12 +157,18 @@ export type AgreementWindow={start:string;end:string;days:number};
 export function agreementWindows(days:DayAssessment[],parameter?:EnsembleParameter):AgreementWindow[]{
  const result:AgreementWindow[]=[];let current:AgreementWindow|null=null;
  for(const day of [...days].sort((a,b)=>a.date.localeCompare(b.date))){
-  const item=parameter?day.parameters.find(p=>p.key===parameter):null,qualifies=parameter?item?.agreement==='high'&&item.quality!=='missing':day.agreement==='high'&&day.dataQuality!=='poor'&&day.dataQuality!=='missing';
+  // Meteorological confidence and data quality are separate signals. A day with
+  // a robustly narrow multi-parameter spread remains part of a high-confidence
+  // window even when fewer/staler members lower the independently rendered
+  // data-quality ring. Truly unsupported days are already agreement='unknown'.
+  const item=parameter?day.parameters.find(p=>p.key===parameter):null,qualifies=parameter?item?.agreement==='high':day.agreement==='high';
   const epoch=Date.parse(`${day.date}T12:00:00Z`);if(!qualifies||!Number.isFinite(epoch)){current=null;continue}
   if(current&&epoch-Date.parse(`${current.end}T12:00:00Z`)===86400000){current.end=day.date;current.days++}else{current={start:day.date,end:day.date,days:1};result.push(current)}
  }
  return result;
 }
-export function firstAgreementChange(days:DayAssessment[]){for(let i=1;i<days.length;i++){const before=days[i-1],after=days[i];if(Date.parse(after.date)-Date.parse(before.date)!==86400000)continue;if(rank[after.agreement]>rank[before.agreement])return after}return null}
+export function firstAgreementChange(days:DayAssessment[]){for(let i=1;i<days.length;i++){const before=days[i-1],after=days[i];if(Date.parse(after.date)-Date.parse(before.date)!==86400000)continue;if(before.agreement==='unknown'||after.agreement==='unknown')continue;if(rank[after.agreement]>rank[before.agreement])return after}return null}
+/** First date of a purely trailing, unevaluable horizon edge. Unknown is coverage, not a confidence downgrade. */
+export function trailingUnknownCoverageDate(days:DayAssessment[]){const ordered=[...days].sort((a,b)=>a.date.localeCompare(b.date));let lastKnown=-1;for(let i=0;i<ordered.length;i++)if(ordered[i].agreement!=='unknown')lastKnown=i;if(lastKnown<0||lastKnown>=ordered.length-1)return null;const tail=ordered.slice(lastKnown+1);return tail.length&&tail.every(day=>day.agreement==='unknown')?tail[0].date:null}
 /** Internal 0–100 confidence index for visual emphasis. Never display it as a probability. */
 export function agreementVisualValue(day:DayAssessment){return day.confidenceScore??0}

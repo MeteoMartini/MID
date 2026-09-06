@@ -7753,3 +7753,51 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
   font-size:clamp(6.4px,1.7vw,7.6px)!important;
  }
 }
+
+/* MID v0.9.78.70 · kompakte, aber barrierefreie Symbolik und klare Konfidenz-Randtage. */
+.event-timeline-compact-metrics{display:flex!important;align-items:center;justify-content:center;flex-wrap:wrap;gap:3px 8px;width:100%}
+.event-timeline-compact-metrics>span{display:inline-flex;align-items:center;justify-content:center;gap:3px;min-width:0;white-space:nowrap;text-transform:none!important;letter-spacing:normal!important;color:inherit!important;font-size:inherit!important}
+.event-timeline-compact-metrics b{font:inherit;font-weight:700;color:inherit}
+.event-metrics-grid strong>span[title="Sonnenscheindauer"]{display:inline-flex;align-items:center;gap:3px;white-space:nowrap}
+.cockpit-consistency-pill.coverage-boundary{background:color-mix(in srgb,var(--muted) 58%,var(--surface))!important}
+.cockpit-coverage-boundary-note{margin:7px 0 0;padding:7px 8px;border-radius:9px;background:color-mix(in srgb,var(--muted) 9%,transparent);color:var(--muted);font-size:10px;line-height:1.35}
+.cockpit-fourteen-row>label[aria-label]{min-width:12px;justify-content:flex-start}
+@media(max-width:620px){.event-timeline-compact-metrics{gap:2px 6px}.cockpit-fourteen-row>label[aria-label]{min-width:10px}}
+
+/* MID v0.9.78.72 · wählbare, kompakte Konfidenzdarstellung: Signalbalken / Ampel / Text. */
+.confidence-display{display:inline-flex;align-items:center;justify-content:center;gap:4px;min-width:0;color:var(--confidence-color,var(--muted));line-height:1}
+.confidence-display>small{font-size:.72em;font-weight:900;line-height:1;color:currentColor;opacity:.88;font-variant-numeric:tabular-nums}
+.confidence-display-text>b{font:inherit;font-weight:900;line-height:1;white-space:nowrap}
+.confidence-display-boundary>b{font:inherit;font-weight:900;color:var(--muted);white-space:nowrap}
+.confidence-signal-bars{display:inline-flex;align-items:flex-end;gap:1.5px;height:14px}
+.confidence-signal-bars>i{display:block;width:3px;border-radius:2px;background:color-mix(in srgb,var(--muted) 24%,transparent);opacity:.65}
+.confidence-signal-bars>i:nth-child(1){height:4px}.confidence-signal-bars>i:nth-child(2){height:7px}.confidence-signal-bars>i:nth-child(3){height:10px}.confidence-signal-bars>i:nth-child(4){height:13px}
+.confidence-signal-bars>i.active{background:currentColor;opacity:1;box-shadow:0 0 5px color-mix(in srgb,currentColor 28%,transparent)}
+.confidence-traffic-dots{display:inline-flex;align-items:center;gap:2px}
+.confidence-traffic-dots>i{display:block;width:6px;height:6px;border-radius:50%;opacity:.2;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--text) 22%,transparent)}
+.confidence-traffic-dots>i:nth-child(1){background:#d9544d}.confidence-traffic-dots>i:nth-child(2){background:#c79224}.confidence-traffic-dots>i:nth-child(3){background:#45ad73}
+.confidence-traffic-dots>i.active{opacity:1;box-shadow:0 0 6px color-mix(in srgb,currentColor 28%,transparent)}
+.cockpit-consistency-pill{background:color-mix(in srgb,var(--surface) 82%,transparent)!important;color:var(--text)!important}
+.cockpit-consistency-pill.mode-text.agreement-high{background:color-mix(in srgb,#45ad73 88%,var(--surface))!important;color:#10283a!important}
+.cockpit-consistency-pill.mode-text.agreement-medium{background:color-mix(in srgb,#c79224 88%,var(--surface))!important;color:#10283a!important}
+.cockpit-consistency-pill.mode-text.agreement-low{background:color-mix(in srgb,#d9544d 86%,var(--surface))!important;color:#10283a!important}
+.cockpit-consistency-pill.mode-text.agreement-unknown{background:color-mix(in srgb,var(--muted) 28%,var(--surface))!important;color:var(--text)!important}
+.cockpit-consistency-pill.mode-signal,.cockpit-consistency-pill.mode-traffic-light{min-width:44px!important;max-width:52px!important;padding:3px 5px!important}
+.cockpit-consistency-pill.mode-text{min-width:48px!important;max-width:60px!important}
+.cockpit-consistency-pill.coverage-boundary{min-width:42px!important;max-width:48px!important}
+.consistency-dot{position:relative;display:inline-flex;align-items:center;justify-content:center;min-width:30px;min-height:24px;padding:3px 5px;border:1px solid color-mix(in srgb,var(--border) 82%,transparent);border-radius:999px;background:color-mix(in srgb,var(--surface) 88%,transparent);cursor:pointer;touch-action:manipulation}
+.consistency-dot.mode-text{min-width:46px}.consistency-dot .confidence-display>small{font-size:8px}
+@media(max-width:620px){
+ .cockpit-fourteen-card>header>.cockpit-consistency-pill.mode-signal,.cockpit-fourteen-card>header>.cockpit-consistency-pill.mode-traffic-light{min-width:36px!important;max-width:42px!important;padding:2px 4px!important}
+ .cockpit-fourteen-card>header>.cockpit-consistency-pill.mode-text{min-width:40px!important;max-width:48px!important;padding:2px 4px!important}
+ .cockpit-fourteen-card>header>.cockpit-consistency-pill .confidence-display>small{font-size:6.6px}
+ .cockpit-fourteen-card>header>.cockpit-consistency-pill .confidence-signal-bars{height:11px}.cockpit-fourteen-card>header>.cockpit-consistency-pill .confidence-signal-bars>i{width:2.5px}.cockpit-fourteen-card>header>.cockpit-consistency-pill .confidence-signal-bars>i:nth-child(1){height:3px}.cockpit-fourteen-card>header>.cockpit-consistency-pill .confidence-signal-bars>i:nth-child(2){height:5px}.cockpit-fourteen-card>header>.cockpit-consistency-pill .confidence-signal-bars>i:nth-child(3){height:8px}.cockpit-fourteen-card>header>.cockpit-consistency-pill .confidence-signal-bars>i:nth-child(4){height:10px}
+ .cockpit-fourteen-card>header>.cockpit-consistency-pill .confidence-traffic-dots>i{width:5px;height:5px}
+}
+.confidence-display-settings{display:grid;gap:8px}.confidence-display-settings>header{display:grid;gap:2px}.confidence-display-settings>header>span{color:var(--accent);font-size:9px;font-weight:850;letter-spacing:.08em;text-transform:uppercase}.confidence-display-settings>header>strong{font-size:13px}.confidence-display-settings>header>small{color:var(--muted);font-size:10px;line-height:1.35}
+.settings-confidence-preview{display:flex;align-items:center;justify-content:center;min-height:28px;color:#45ad73}
+.settings-confidence-preview.signal{align-items:flex-end;gap:2px}.settings-confidence-preview.signal>i{display:block;width:4px;border-radius:2px;background:currentColor}.settings-confidence-preview.signal>i:nth-child(1){height:6px}.settings-confidence-preview.signal>i:nth-child(2){height:10px}.settings-confidence-preview.signal>i:nth-child(3){height:14px}.settings-confidence-preview.signal>i:nth-child(4){height:18px}
+.settings-confidence-preview.traffic{gap:4px}.settings-confidence-preview.traffic>i{display:block;width:8px;height:8px;border-radius:50%}.settings-confidence-preview.traffic>i:nth-child(1){background:#d9544d}.settings-confidence-preview.traffic>i:nth-child(2){background:#c79224}.settings-confidence-preview.traffic>i:nth-child(3){background:#45ad73}
+.settings-confidence-preview.text{font-size:11px;font-weight:900;color:#45ad73}
+
+.mountain-snowline-precip.unresolved{stroke:currentColor;stroke-width:.6;stroke-dasharray:3 3}

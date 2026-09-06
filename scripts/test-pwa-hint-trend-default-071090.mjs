@@ -10,7 +10,7 @@ assert.match(pwa,/className="pwa-install-hint-close"/,'dauerhaft schließbares X
 assert.match(pwa,/className={`header-install-button\$\{installed\?' installed':''\}`}/,'kompakter App-Status in der Kopfzeile fehlt');
 assert.match(app,/<div className="actions compact-actions">[\s\S]{0,260}<PwaInstallButton\/>[\s\S]{0,220}<button className="settings-button"/,'App-Status muss weiterhin links neben dem Einstellungsbutton stehen; der Sektionen-Button darf davor liegen.');
 assert.doesNotMatch(app,/<footer>[\s\S]{0,350}<PwaInstallButton\/>/,'alter breiter Installationsbutton darf nicht im Footer bleiben');
-assert.match(app,/DEFAULT_FORECAST_DISPLAY_SETTINGS:ForecastDisplaySettings=\{showSevenDaySummary:true,showDwdPrecipitationTypeRadar:true\}/,'7-Tage-Trend ist nicht als Standard aktiviert');
+assert.match(app,/DEFAULT_FORECAST_DISPLAY_SETTINGS:ForecastDisplaySettings=\{showSevenDaySummary:true,showDwdPrecipitationTypeRadar:true,confidenceDisplayMode:'signal'\}/,'7-Tage-Trend bzw. Standard-Konfidenzmodus ist nicht korrekt aktiviert');
 assert.match(app,/showSevenDaySummary:parsed\?\.showSevenDaySummary!==false/,'nur eine ausdrückliche Deaktivierung darf den 7-Tage-Trend ausschalten');
 assert.match(css,/\.pwa-install-hint\{position:fixed/,'dezentes Hinweis-Overlay ist nicht gestaltet');
 assert.match(css,/\.header-install-button\.installed/,'installierter App-Status besitzt keine kompakte Statusgestaltung');

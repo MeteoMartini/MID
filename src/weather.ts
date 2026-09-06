@@ -1386,7 +1386,7 @@ export function aifsEuropeEnsembleContractValid(weather:Weather){const precipita
 async function fetchEnsembleWeather(lat:number,lon:number,forecastDays:number,modelId:string,signal?:AbortSignal,hourly='temperature_2m,precipitation,wind_speed_10m,wind_gusts_10m,sunshine_duration',priority:OpenMeteoPriority='normal'){
  const modelDeadline=ensembleDeadline(signal,priority==='background'?34_000:ENSEMBLE_MODEL_TIMEOUT_MS,`${modelId}: Ensemble-Modellabruf hat das Zeitbudget überschritten.`),modelSignal=modelDeadline.signal;
  try{
-  const forecast_days=Math.max(1,Math.min(14,Math.ceil(forecastDays))),request=async(rawVariables:string)=>{
+  const forecast_days=Math.max(1,Math.min(15,Math.ceil(forecastDays))),request=async(rawVariables:string)=>{
    const variables=ensembleVariablesForContract(modelId,rawVariables),parameters={lat,lon,model:modelId,forecast_days,variables},directRegional=DIRECT_REGIONAL_ENSEMBLE_MODELS.has(modelId);let proxyError:unknown;
    if(workerBaseCandidates('general').length){try{const proxied=await fetchWorkerJson<Weather&{error?:string}>('ensemble-proxy',parameters,{purpose:'general',signal:modelSignal,timeoutMs:priority==='foreground'?10_000:16_000,cache:'no-store'});if(Array.isArray(proxied?.hourly?.time)&&proxied.hourly.time.length>=12){if(modelId==='ecmwf_aifs_europe_ensemble'&&!aifsEuropeEnsembleContractValid(proxied))throw new Error('ECMWF AIFS Europa Ensemble: Bewölkungs-/Niederschlagswerte außerhalb des Open-Meteo-Vertrags');return proxied;}proxyError=new Error(`${modelId}: Regionalensemble-Adapter lieferte keine nutzbare Zeitreihe`)}catch(error){proxyError=error}}
    if(modelSignal.aborted)throw modelSignal.reason instanceof Error?modelSignal.reason:new DOMException('Abgebrochen','AbortError');
@@ -1421,13 +1421,13 @@ const ENSEMBLE_BOOTSTRAP_MEAN_IDS=new Set<string>(ENSEMBLE_BOOTSTRAP_MEAN_ORDER)
 function ensembleBootstrapModels(models:EnsembleModel[],ids:Set<string>,order:readonly string[]){const rank=new Map(order.map((id,index)=>[id,index])),seen=new Set<string>();return models.filter(model=>ids.has(model.id)&&model.maxDays>=10).sort((a,b)=>(rank.get(a.id)??99)-(rank.get(b.id)??99)).filter(model=>{if(seen.has(model.independenceGroup))return false;seen.add(model.independenceGroup);return true})}
 async function memberEnsembleBootstrap(lat:number,lon:number,signal?:AbortSignal){
  const selected=ensembleBootstrapModels(selectedEnsembleModels(lat,lon),ENSEMBLE_BOOTSTRAP_MEMBER_IDS,ENSEMBLE_BOOTSTRAP_MEMBER_ORDER);if(!selected.length)return null;
- const loaded=await loadEnsembleUnits(selected,1,async model=>parseModelMembers(await fetchEnsembleWeather(lat,lon,Math.min(14,model.maxDays),model.id,signal,'temperature_2m,precipitation,wind_speed_10m,wind_gusts_10m','foreground'),model),signal,1);if(signal?.aborted)throw new DOMException('Abgebrochen','AbortError');
+ const loaded=await loadEnsembleUnits(selected,1,async model=>parseModelMembers(await fetchEnsembleWeather(lat,lon,Math.min(15,model.maxDays),model.id,signal,'temperature_2m,precipitation,wind_speed_10m,wind_gusts_10m','foreground'),model),signal,1);if(signal?.aborted)throw new DOMException('Abgebrochen','AbortError');
  const results=loaded.successes.map(row=>row.value),days=aggregateMembers(results,[],{minimumIndependentGroups:1,minimumWeightedSamples:5});if(!results.length||days.length<7)return null;
  return{days:days.slice(0,14),models:results.map(result=>result.model.label),runs:[],scenarios:buildEnsembleScenarios(results,days),bootstrap:true} satisfies EnsembleForecastBundle;
 }
 async function meanEnsembleBootstrap(lat:number,lon:number,signal?:AbortSignal){
  const selected=ensembleBootstrapModels(selectedMeanModels(lat,lon),ENSEMBLE_BOOTSTRAP_MEAN_IDS,ENSEMBLE_BOOTSTRAP_MEAN_ORDER);if(!selected.length)return null;
- const loaded=await loadEnsembleUnits(selected,1,async definition=>pseudoModelFromMeanSpread(await fetchEnsembleWeather(lat,lon,Math.min(14,definition.maxDays),definition.id,signal,'temperature_2m,temperature_2m_spread,precipitation,precipitation_spread','foreground'),definition),signal,1);if(signal?.aborted)throw new DOMException('Abgebrochen','AbortError');
+ const loaded=await loadEnsembleUnits(selected,1,async definition=>pseudoModelFromMeanSpread(await fetchEnsembleWeather(lat,lon,Math.min(15,definition.maxDays),definition.id,signal,'temperature_2m,temperature_2m_spread,precipitation,precipitation_spread','foreground'),definition),signal,1);if(signal?.aborted)throw new DOMException('Abgebrochen','AbortError');
  const results=loaded.successes.map(row=>row.value),days=aggregateMembers(results,[],{minimumIndependentGroups:1,minimumWeightedSamples:5});if(!results.length||days.length<7)return null;
  return{days:days.slice(0,14),models:results.map(result=>result.model.label),runs:[],scenarios:[],bootstrap:true} satisfies EnsembleForecastBundle;
 }

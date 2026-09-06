@@ -44,10 +44,10 @@ let React=null,renderToStaticMarkup=null;try{React=require('react');({renderToSt
 if(React&&renderToStaticMarkup){
  const uiSource=fs.readFileSync(new URL('../src/ForecastConfidence.tsx',import.meta.url),'utf8');
  const uiCode=ts.transpileModule(uiSource,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX}}).outputText;
- const module={exports:{}};new Function('require','module','exports',uiCode)(id=>id==='./ensembleAssessment'?{...awaitedModule}:require(id),module,module.exports);
+ const module={exports:{}};new Function('require','module','exports',uiCode)(id=>id==='./ensembleAssessment'?{...awaitedModule}:id==='./AppInfoPopover'?{AppInfoHint:({children})=>React.createElement(React.Fragment,null,children)}:require(id),module,module.exports);
  const html=renderToStaticMarkup(React.createElement(module.exports.EnsembleAssessmentDetails,{assessment:base}));
  for(const label of ['Temperatur','Niederschlag','Wind/Böen','Sonne','keine Trefferwahrscheinlichkeit','Datenbasis gut','20/20','robuste'])assert.ok(html.includes(label),label);
- const overview=renderToStaticMarkup(React.createElement(module.exports.ForecastConfidenceOverview,{assessments:days}));assert.ok(overview.includes('Gut vorhersagbare Zeiträume'));assert.ok(overview.includes('keine gemeinsame Eintrittswahrscheinlichkeit'));
+ const overview=renderToStaticMarkup(React.createElement(module.exports.ForecastConfidenceOverview,{assessments:days}));assert.ok(overview.includes('Hohe Prognosekonfidenz'));assert.ok(overview.includes('Konfidenzindex'));assert.ok(overview.includes('kein Prozentwert'));
 }
 console.log('Robust multi-parameter ensemble confidence, data quality separation, lead normalization and local skill shrinkage passed.');
 

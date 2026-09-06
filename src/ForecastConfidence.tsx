@@ -1,9 +1,15 @@
 import {useEffect,useState} from 'react';
-import {AGREEMENT_COLOR,AGREEMENT_LABEL,DATA_QUALITY_LABEL,agreementWindows,assessmentSummary,firstAgreementChange,type DayAssessment} from './ensembleAssessment';
+import {AppInfoHint} from './AppInfoPopover';
+import {AGREEMENT_COLOR,AGREEMENT_LABEL,DATA_QUALITY_LABEL,agreementWindows,assessmentSummary,firstAgreementChange,trailingUnknownCoverageDate,type DayAssessment,type EnsembleParameter} from './ensembleAssessment';
 
 function dateLabel(date:string){return new Date(`${date}T12:00:00Z`).toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit',timeZone:'UTC'})}
 function windowLabel(window:{start:string;end:string}){return window.start===window.end?dateLabel(window.start):`${dateLabel(window.start)} – ${dateLabel(window.end)}`}
 function parameterQualityLabel(quality:'sufficient'|'limited'|'missing'){return quality==='sufficient'?'Datenbasis gut':quality==='limited'?'Datenbasis eingeschränkt':'Datenbasis nicht ausreichend'}
+
+function scoreRangeLabel(window:{start:string;end:string},assessments:DayAssessment[],parameter?:EnsembleParameter){
+ const values=assessments.filter(day=>day.date>=window.start&&day.date<=window.end).map(day=>parameter?day.parameters.find(item=>item.key===parameter)?.score:day.confidenceScore).filter((value):value is number=>value!==null&&value!==undefined&&Number.isFinite(value)).map(value=>Math.round(value));
+ if(!values.length)return'';const minimum=Math.min(...values),maximum=Math.max(...values);return minimum===maximum?`Index ${minimum}/100`:`Index ${minimum}–${maximum}/100`;
+}
 
 export function EnsembleAssessmentDetails({assessment}:{assessment:DayAssessment}){
  return <div className="mid-ensemble-assessment" style={{fontSize:12,lineHeight:1.45,maxHeight:'60vh',overflowY:'auto'}}>
@@ -19,20 +25,27 @@ export function EnsembleAssessmentDetails({assessment}:{assessment:DayAssessment
 }
 
 export function ForecastConfidenceOverview({assessments,outlook,advancedMode=false}:{assessments:DayAssessment[];outlook?:{headline:string;detail:string};advancedMode?:boolean}){
- const windows=agreementWindows(assessments),change=firstAgreementChange(assessments),first=assessments[0],limited=change??assessments.find(d=>d.agreement!=='high'||d.dataQuality==='poor'||d.dataQuality==='missing');
- const lowest=limited?.limiting.map(p=>p.label).join(', ')||'';
+ const ordered=[...assessments].sort((a,b)=>a.date.localeCompare(b.date)),windows=agreementWindows(ordered),primaryWindow=windows[0],change=firstAgreementChange(ordered),coverageDate=trailingUnknownCoverageDate(ordered),firstEvaluable=ordered.find(day=>day.agreement!=='unknown'),meteorologicalLimit=change??ordered.find(day=>day.agreement!=='high'&&day.agreement!=='unknown'),dataIssue=ordered.find(day=>day.dataQuality==='poor'||day.dataQuality==='missing');
+ const lowest=meteorologicalLimit?.limiting.map(p=>p.label).join(', ')||'',coverageDay=coverageDate?ordered.find(day=>day.date===coverageDate):undefined;
+ const primaryText=primaryWindow?`${windowLabel(primaryWindow)} · ${scoreRangeLabel(primaryWindow,ordered)}`:firstEvaluable?`Aktuell ${AGREEMENT_LABEL[firstEvaluable.agreement]} · Index ${Math.round(firstEvaluable.confidenceScore??0)}/100`:'Noch nicht belastbar bewertbar';
+ const thirdLabel=change?'Konfidenz nimmt ab':coverageDay?'Datenbasis / Randtag':dataIssue?'Datenbasis':'Konfidenzverlauf';
+ const thirdTitle=change?`${dateLabel(change.date)}${lowest?`: ${lowest}`:''}`:coverageDay?`${dateLabel(coverageDay.date)} · nur teilweise belegt`:dataIssue?`${dateLabel(dataIssue.date)} · ${DATA_QUALITY_LABEL[dataIssue.dataQuality]}`:'Kein deutlicher meteorologischer Rückgang erkannt';
+ const thirdDetail=change?'Die Ensemblelösungen streuen in mindestens einem Kernbereich stärker oder der Vorlauf begrenzt die Aussage.':coverageDay?'Der letzte Prognosetag liegt am Rand des verfügbaren Ensemblehorizonts. „Nicht bewertbar“ ist hier ein Abdeckungs-, kein meteorologisches Abwertungssignal.':dataIssue?'Die verfügbare Modell-/Memberbasis ist eingeschränkt; die meteorologische Konfidenz wird davon getrennt ausgewiesen.':'Die bewertbaren Kernparameter bleiben innerhalb der vorlaufnormalisierten Konfidenzgrenzen.';
  return <section className="ensemble-forecast-compass cockpit-forecast-compass" aria-label="MID Prognose-Kompass">
   <header><span aria-hidden="true">◎</span><div><small>MID Prognose-Kompass</small><strong>Prognoseentwicklung</strong></div></header>
-  <div><span><small>Gut vorhersagbare Zeiträume</small><b>{windows.length?windowLabel(windows[0]):'Noch kein durchgehend hohes Konfidenzfenster'}</b><em>{windows.length?'Hohe robuste Ensemblekonfidenz bei mindestens ausreichender Datenbasis.':'Mindestens zwei Kernparameter oder der Vorlauf begrenzen die gemeinsame Konfidenz.'}</em></span>
+  <div><span><small>Hohe Prognosekonfidenz</small><b>{primaryText}</b><em>{primaryWindow?'Robuste meteorologische Ensembleübereinstimmung. Datenqualität und Randabdeckung werden separat gekennzeichnet.':'Noch kein zusammenhängender Abschnitt mit hoher meteorologischer Ensembleübereinstimmung.'}</em></span>
    <span><small>Erwartete Entwicklung</small><b>{outlook?.headline??'Tagesprognosen vergleichen'}</b><em>{outlook?.detail??'Auch eine gut vorhersagbare Entwicklung kann ungünstiges Wetter bedeuten.'}</em></span>
-   <span><small>{change?'Konfidenz nimmt ab':'Begrenzender Bereich'}</small><b>{limited?`${dateLabel(limited.date)}${lowest?`: ${lowest}`:''}`:'Kein deutlich begrenzender Bereich erkannt'}</b><em>{limited?.dataQuality==='poor'||limited?.dataQuality==='missing'?`Datenbasis ${DATA_QUALITY_LABEL[limited.dataQuality]}; meteorologische Unsicherheit wird davon getrennt ausgewiesen.`:limited?'Die Ensemblelösungen streuen in mindestens einem Kernbereich stärker oder der Vorlauf begrenzt die Aussage.':'Die Kernparameter liegen innerhalb der vorlaufnormalisierten Konfidenzgrenzen.'}</em></span>
+   <span><small>{thirdLabel}</small><b>{thirdTitle}</b><em>{thirdDetail}</em></span>
   </div>
-  <details style={{marginTop:8,fontSize:13}}><summary style={{minHeight:40,cursor:'pointer'}}>Parameter und weitere Zeiträume</summary>
-   {windows.length>1&&<p>Weitere hohe Konfidenzfenster: {windows.slice(1).map(windowLabel).join(' · ')}</p>}
-   {first?.parameters.map(parameter=>{const periods=agreementWindows(assessments,parameter.key);return <p key={parameter.key}><b>{parameter.label}:</b> {periods.length?periods.map(windowLabel).join(' · '):'kein ausreichend belegtes Fenster mit hoher Parameterkonfidenz'}</p>})}
-   <p>Fenster zeigen hohe robuste Ensemblekonfidenz für jeden enthaltenen Tag. Sie sind keine gemeinsame Eintrittswahrscheinlichkeit, keine Wetterfreigabe und keine Garantie. Datenlücken werden separat als Datenqualität gekennzeichnet und unterbrechen nur dann das Gesamtfenster, wenn die Basis schwach oder nicht ausreichend ist.</p>
-   {advancedMode&&<p>Die Spreads werden mit dem Vorlauf normalisiert. Wo genügend lokale Rückblicksdaten vorhanden sind, fließen Brier-/Fehlerwerte mit starker Schrumpfung als kleine Skill-Korrektur ein; der angezeigte 0–100-Index bleibt ausdrücklich keine Prozentwahrscheinlichkeit.</p>}
-  </details>
+  <div style={{display:'flex',justifyContent:'flex-end',marginTop:8}}>
+   <AppInfoHint label="Parameter und weitere Zeiträume" width={430} showClose>
+    <strong>Parameter und weitere Zeiträume</strong>
+    {windows.length>1&&<p>Weitere hohe Konfidenzfenster: {windows.slice(1).map(window=>`${windowLabel(window)} · ${scoreRangeLabel(window,ordered)}`).join(' · ')}</p>}
+    {firstEvaluable?.parameters.map(parameter=>{const periods=agreementWindows(ordered,parameter.key);return <p key={parameter.key}><b>{parameter.label}:</b> {periods.length?periods.map(window=>`${windowLabel(window)} · ${scoreRangeLabel(window,ordered,parameter.key)}`).join(' · '):'kein bewertbares Fenster mit hoher Parameterkonfidenz'}</p>})}
+    <p>Der 0–100-Wert ist ein Konfidenzindex und bewusst kein Prozentwert: Er beschreibt Ensembleübereinstimmung, Vorlauf und gedämpfte lokale Güte, nicht die Wahrscheinlichkeit, dass eine konkrete Vorhersage „eintrifft“. Datenqualität und unvollständige Randtage werden separat ausgewiesen und dürfen eine meteorologisch hohe Konfidenz nicht künstlich auf „mittel“ setzen.</p>
+    {advancedMode&&<p>Die Spreads werden mit dem Vorlauf normalisiert. Wo genügend lokale Rückblicksdaten vorhanden sind, fließen Brier-/Fehlerwerte mit starker Schrumpfung als kleine Skill-Korrektur ein; ein nur teilweise abgedeckter letzter Kalendertag bleibt „nicht bewertbar“, bis genügend vollständige Ensemblewerte vorliegen.</p>}
+   </AppInfoHint>
+  </div>
  </section>;
 }
 

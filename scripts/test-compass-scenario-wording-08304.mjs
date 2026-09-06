@@ -4,11 +4,11 @@ const css=readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
 const failures=[];
 for(const token of [
  '<strong>Prognoseentwicklung</strong>',
- '<small>Gut vorhersagbare Zeiträume</small>',
+ '<small>Hohe Prognosekonfidenz</small>',
  '<small>Erwartete Entwicklung</small>',
  'Konfidenz nimmt ab',
  'function forecastOutlook(',
- 'firstAgreementChange(assessments)',
+ 'firstAgreementChange(ordered)',
  'probabilitySummary=visible.map((_,index)=>',
  'ensemble-scenario-probability-overview',
  'ensemble-scenario-probability-meter'

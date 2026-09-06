@@ -27,7 +27,8 @@ assert.ok(sky.sunBandWidth(.6)>0);
 assert.ok(sky.sunBandWidth(1)>sky.sunBandWidth(.6));
 // Legacy temperature-index checks are superseded by test-ensemble-multiparameter-097865.mjs.
 const time=load('src/weather-src/00-types-models-search.tsfrag',['parseLocalIso','partsAtEpoch','localIsoEpoch']);
-const event=load('src/eventWeatherEngine.ts',['parseMinuteStamp','eventWindowEndDate','clockFromCivilStamp','timelineForWindow','unique','weatherSeverity','majorWeatherCode','mean','maximum','minimum','eventWeatherPart','summarizeTimeline'],{localIsoEpoch:time.localIsoEpoch,precipitationParts:()=>({type:'none',displayCode:0,total:0}),label:()=>'',compactPrecipitationTypeLabel:()=>''});
+const intervalSemantics=load('src/eventIntervalSemantics.ts',['eventIntervalHasPrecipitation','eventIntervalSkyCode']);
+const event=load('src/eventWeatherEngine.ts',['parseMinuteStamp','eventWindowEndDate','clockFromCivilStamp','timelineForWindow','unique','weatherSeverity','majorWeatherCode','mean','maximum','minimum','eventWeatherPart','summarizeTimeline'],{localIsoEpoch:time.localIsoEpoch,precipitationParts:()=>({type:'none',displayCode:0,total:0}),label:()=>'',compactPrecipitationTypeLabel:()=>'',eventIntervalHasPrecipitation:intervalSemantics.eventIntervalHasPrecipitation,eventIntervalSkyCode:intervalSemantics.eventIntervalSkyCode,coherentSunshineDurationSeconds:({valueSeconds})=>valueSeconds});
 const hours=['2026-09-05T23:00','2026-09-06T00:00','2026-09-06T01:00','2026-09-06T02:00'].map(time=>({time,precipitation:0,probability:0}));
 for(const zone of [undefined,'Europe/Berlin','America/New_York'])assert.equal(event.timelineForWindow(hours,'2026-09-05','23:00','01:00',zone).reduce((sum,row)=>sum+row.durationMinutes,0),120);
 assert.deepEqual(event.timelineForWindow(hours,'2026-09-05','23:00','23:00'),[]);
