@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.78.74",
+  "version": "0.9.78.75",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -433,7 +433,8 @@
     "test:ensemble-data-quality-separation": "node scripts/test-ensemble-data-quality-separation-097869.mjs",
     "test:confidence-event-symbols": "node scripts/test-confidence-event-symbols-097870.mjs",
     "test:confidence-display-boundary": "node scripts/test-confidence-display-boundary-info-097871.mjs",
-    "test:webarchive-097872": "node scripts/test-webarchive-shortterm-twin-snowline-097872.mjs"
+    "test:webarchive-097872": "node scripts/test-webarchive-shortterm-twin-snowline-097872.mjs",
+    "test:composite-native-history-navigation": "node scripts/test-composite-native-history-navigation-097875.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",

@@ -10,7 +10,7 @@ const root=new URL('../',import.meta.url);
 const[panel,timeline,settings,styles]=await Promise.all(['src/RadarPanel.tsx','src/CompositeTimeline.ts','src/compositeSettings.ts','src/styles.css'].map(path=>readFile(new URL(path,root),'utf8')));
 
 for(const token of [
- 'buildAvailableCompositeTimeline(referenceSeconds,timelineContract)',
+ 'buildAvailableCompositeTimeline(referenceSeconds,timelineContract,90)',
  "showPxAtTime=showRadar&&pxDisplayAvailable&&liveFollow&&viewMode==='radar'",
  'showWarningsAtTime=showWarnings&&liveFollow',
  'targetSeconds>referenceSeconds+90?[]:satelliteUntimed?',

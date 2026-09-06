@@ -35,7 +35,7 @@ for(const token of [
  'latestOnly:true',
  'timeVerified:false',
  'untimedDwd.sort',
- 'timed.sort((a,b)=>(b.latest-a.latest)'
+ 'timed.sort((a,b)=>Number(hasRecentHistory(b))-Number(hasRecentHistory(a))'
 ])need('Worker',worker,token);
 for(const token of ['SATELLITE_LATEST_DAY','SATELLITE_LATEST_IR'])reject('Worker',worker,token);
 const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;

@@ -1,3 +1,5 @@
+> Aktueller Kartenstand: **0.9.78.75**, auf Basis des Uploads vom 06.09.2026, 08:13:32. Änderungen und Installationshinweise: [MID_IMPLEMENTATION_0.9.78.75.md](MID_IMPLEMENTATION_0.9.78.75.md). **Worker-Update erforderlich.**
+
 ## MID v0.9.78.65 – 14d-Mehrparameterbewertung
 
 Temperatur, Niederschlag, Wind/Böen und Sonne werden getrennt bewertet. Gemeinsame Zeiträume und Datenlücken sind nachvollziehbar; Modellübereinstimmung wird nicht als kalibrierte Trefferwahrscheinlichkeit ausgegeben.

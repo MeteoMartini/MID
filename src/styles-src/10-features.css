@@ -1327,3 +1327,14 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .mid-weather-pictogram[data-day-part="night"] .mid-weather-moon{filter:drop-shadow(0 0 3px rgba(236,244,255,.3))}
 .mid-weather-pictogram[data-day-part="night"] .mid-weather-rain,.mid-weather-pictogram[data-day-part="night"] .mid-weather-drizzle,.mid-weather-pictogram[data-day-part="night"] .mid-weather-snow{filter:drop-shadow(0 1px 1px rgba(18,37,58,.2))}
 @media(prefers-contrast:more){.mid-weather-pictogram{filter:contrast(1.08)}.mid-weather-pictogram .mid-weather-cloud{stroke-width:1.6}.mid-weather-pictogram .mid-weather-rain{stroke-width:3.35}}
+
+/* MID 0.9.78.75: shared direct map gestures and accessible navigation controls. */
+.maplibregl-map .maplibregl-ctrl-top-right{top:8px;right:8px}
+.maplibregl-map .maplibregl-ctrl-group{border-radius:12px;overflow:hidden;box-shadow:0 2px 12px #0003}
+.maplibregl-map .maplibregl-ctrl-group button{width:40px;height:40px;min-width:40px;min-height:40px;touch-action:manipulation}
+.maplibregl-map .maplibregl-ctrl-group button:focus-visible{outline:3px solid #1676d2;outline-offset:-3px}
+@media(pointer:coarse){.maplibregl-map .maplibregl-ctrl-group button{width:44px;height:44px}}
+
+.composite-card .composite-locate-button{top:112px;right:18px;width:40px;height:40px;border-radius:12px}
+.composite-card .composite-map-status{max-width:calc(100% - 84px)}
+@media(pointer:coarse){.composite-card .composite-locate-button{top:120px;width:44px;height:44px}}

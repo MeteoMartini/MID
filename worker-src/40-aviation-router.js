@@ -198,7 +198,7 @@ export default{async fetch(request,env){
   catch(error){return json({host:'',radar:{past:[],nowcast:[]},error:error instanceof Error?error.message:String(error),version:WORKER_VERSION,checkedAt:new Date().toISOString()},502,{'cache-control':'no-store'})}
  }
  if(mode==='model-contours'){
-  try{return json({...await modelContours(lat,lon),version:WORKER_VERSION},200,{'cache-control':'public, max-age=1800'})}
+  try{return json({...await modelContours(lat,lon,u.searchParams.get('renderer')==='grid'),version:WORKER_VERSION},200,{'cache-control':'public, max-age=1800'})}
   catch(error){return json({frames:[],error:error instanceof Error?error.message:String(error),version:WORKER_VERSION,checkedAt:new Date().toISOString()},502,{'cache-control':'no-store'})}
  }
  if(mode==='meteogram'){

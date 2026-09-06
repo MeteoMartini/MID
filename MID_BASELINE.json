@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.78.74",
+  "releaseVersion": "0.9.78.75",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -411,7 +411,8 @@
     "scripts/test-ensemble-multiparameter-097865.mjs",
     "scripts/test-fourteen-day-pill-favorite-tap-097866.mjs",
     "scripts/test-ensemble-confidence-calibration-097867.mjs",
-    "scripts/test-release-preflight-gate-097868.mjs"
+    "scripts/test-release-preflight-gate-097868.mjs",
+    "scripts/test-composite-native-history-navigation-097875.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -755,7 +756,8 @@
     "scripts/test-ensemble-data-quality-separation-097869.mjs",
     "scripts/test-forecast-confidence-layout-090505.mjs",
     "scripts/test-confidence-event-symbols-097870.mjs",
-    "scripts/test-confidence-display-boundary-info-097871.mjs"
+    "scripts/test-confidence-display-boundary-info-097871.mjs",
+    "scripts/test-composite-native-history-navigation-097875.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -1275,7 +1277,8 @@
     "MID_IMPLEMENTATION_0.9.78.68.md",
     "MID_TEST_REPORT_0.9.78.68.md",
     "scripts/release-preflight.mjs",
-    "scripts/test-release-preflight-gate-097868.mjs"
+    "scripts/test-release-preflight-gate-097868.mjs",
+    "scripts/test-composite-native-history-navigation-097875.mjs"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1475,7 +1478,8 @@
     "scripts/test-ensemble-multiparameter-097865.mjs",
     "scripts/test-ensemble-confidence-calibration-097867.mjs",
     "scripts/release-preflight.mjs",
-    "scripts/test-release-preflight-gate-097868.mjs"
+    "scripts/test-release-preflight-gate-097868.mjs",
+    "scripts/test-composite-native-history-navigation-097875.mjs"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md",
@@ -1701,7 +1705,7 @@
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
     "scripts/test-composite-temporal-truth-zugspuren-097860.mjs"
   ],
-  "version": "0.9.78.74",
+  "version": "0.9.78.75",
   "updatedAt": "2026-09-05T23:00:00+02:00",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",

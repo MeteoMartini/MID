@@ -31,9 +31,6 @@ for(const token of [
   'function spatiallyThin',
   'touchDevice?70:120',
   'touchDevice?36:70',
-  'function MapInteractionController(',
-  'touch-scroll-mode',
-  'composite-map-interaction',
   "window.addEventListener('scroll',stop,{passive:true,once:true})"
 ])need(radar,token,'Scroll-/Vektorentlastung fehlt');
 
@@ -44,8 +41,6 @@ for(const token of [
   '.mid-echo-approach-track',
   '.mid-konrad-marker{',
   '.mid-nowcastmix-marker{',
-  '.radarmap.touch-scroll-mode .maplibregl-map{touch-action:pan-y!important}',
-  '.composite-map-interaction{',
   '.composite-card{contain:layout paint style;isolation:isolate}'
 ])need(styles,token,'Komposit-CSS fehlt');
 

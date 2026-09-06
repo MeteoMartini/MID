@@ -13,7 +13,8 @@ export type ContourPath=[number,number][];
 export type ContourLevel={level:number;paths:ContourPath[]};
 export type PressureCenter={type:'H'|'T';lat:number;lon:number;value:number;prominence?:number};
 export type ModelContourFrame={time:string;isobarStep?:number;isoheightStepGpdm?:number;isobars:ContourLevel[];isoheights:ContourLevel[];centers?:PressureCenter[]};
-export type ModelContourResponse={frames:ModelContourFrame[];provider?:string;model?:string;resolutionNote?:string;fallback?:{from?:string;to?:string;reason?:string};grid?:{rows:number;cols:number;latSpan:number;lonSpan:number;scope?:string;bounds?:{south:number;north:number;west:number;east:number}};contours?:{isobars?:string;isoheights?:string};checkedAt?:string;error?:string};
+export type SynopticWmsProduct={layer:string;style:string;elevation?:number};
+export type ModelContourResponse={wms?:{isobars:SynopticWmsProduct;isoheights:SynopticWmsProduct;referenceTime:string};frames:ModelContourFrame[];provider?:string;model?:string;resolutionNote?:string;fallback?:{from?:string;to?:string;reason?:string};grid?:{rows:number;cols:number;latSpan:number;lonSpan:number;scope?:string;bounds?:{south:number;north:number;west:number;east:number}};contours?:{isobars?:string;isoheights?:string};checkedAt?:string;error?:string};
 export type CompositeProductTimes={
  satelliteDay:ProductTime[];
  satelliteIr:ProductTime[];
@@ -44,4 +45,4 @@ export async function loadLightningPoints(lat:number,lon:number,signal?:AbortSig
 export async function loadNowcastMixPoints(lat:number,lon:number,signal?:AbortSignal){return fetchWorkerJson<LightningPointResponse>('nowcastmix-points',{lat,lon},{purpose:'radar',signal,timeoutMs:10000})}
 export async function loadCompositeTimes(lat:number,lon:number,signal?:AbortSignal){return fetchWorkerJson<CompositeProductTimes>('composite-times',{lat,lon},{purpose:'radar',signal,timeoutMs:10000})}
 export async function loadRainViewer(lat:number,lon:number,signal?:AbortSignal){return fetchWorkerJson<RainViewerResponse>('rainviewer-meta',{lat,lon},{purpose:'radar',signal,timeoutMs:9000})}
-export async function loadModelContours(lat:number,lon:number,signal?:AbortSignal){return fetchWorkerJson<ModelContourResponse>('model-contours',{lat,lon},{purpose:'radar',signal,timeoutMs:15000})}
+export async function loadModelContours(lat:number,lon:number,signal?:AbortSignal,forceGrid=false){return fetchWorkerJson<ModelContourResponse>('model-contours',{lat,lon,...(forceGrid?{renderer:'grid'}:{})},{purpose:'radar',signal,timeoutMs:15000})}

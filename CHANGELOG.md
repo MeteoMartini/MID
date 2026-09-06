@@ -1,3 +1,7 @@
+# 0.9.78.75
+
+Kompositbild: direkte Kartenbedienung mit gemeinsamen +/- Tasten, reale Satellitenhistorie bis etwa −90 min, reparierte WMS-Zeit-/Layerparser und native, lauf- und zeitgebundene DWD-Isobaren/500-hPa-Isohypsen mit numerischem Fallback. Basis 0.9.78.74 vollständig übernommen. Siehe MID_IMPLEMENTATION_0.9.78.75.md. Worker-Update erforderlich.
+
 # v0.9.78.72
 
 - 90-Minuten-Cockpit: Restintervalle unter fünf Minuten direkt vor dem nächsten 15-Minuten-Slot werden nicht mehr als eigene Kachel angezeigt. Die zugrunde liegende Kurzfristserie bleibt unverändert; sichtbar beginnt die Leiste am nächsten belastbaren Slot.

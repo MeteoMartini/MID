@@ -14,6 +14,6 @@ assert.doesNotMatch(worker,/Math\.floor\(sourceTime\/\(3\*3600000\)\)/,'3-hour r
 assert.match(worker,/latestTime:new Date\(frameTime\)\.toISOString\(\)/,'actual satellite source time must be exposed as latestTime');
 assert.match(panel,/satelliteLatestSeconds=satelliteLatestIso\?Math\.floor\(Date\.parse\(satelliteLatestIso\)\/1000\):referenceSeconds/,'untimed WMS snapshot must carry the source timestamp');
 assert.match(panel,/frame:\{time:satelliteLatestSeconds,iso:satelliteLatestIso\|\|''\}/,'satellite blend frame must use that timestamp');
-assert.match(panel,/blendStamp\(satelliteBlend,referenceSeconds,timezone,latestSatelliteTime\)/,'legend must derive Stand from the satellite product timestamp');
+assert.match(panel,/blendStamp\(satelliteDisplayFrame\?\[\{frame:satelliteDisplayFrame,weight:1\}\]:\[\],referenceSeconds,timezone,latestSatelliteTime\)/,'legend must derive Stand from the satellite product timestamp');
 assert.doesNotMatch(panel,/Zeit nicht ausgewiesen/,'old no-timestamp placeholder must remain removed');
 console.log('ok - DWD latest WMS snapshot is labelled from actual DWD satellite source time, without fake 3-hour rounding');
