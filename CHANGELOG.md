@@ -1,3 +1,7 @@
+# 0.9.78.76
+
+24-h-Wetterprofil: fehlende bzw. offensichtlich widersprüchliche H/M/L-Wolkenschichtwerte werden nicht länger als echte 0 % angezeigt. Gesamtbewölkung bleibt unverändert; Schichten werden nicht aus dem Gesamtwert rekonstruiert. Teilweise fehlende Schichten erscheinen als `–`, vollständig nicht belastbare Schichtinformation als `n. v.`. Keine fachliche Workeränderung. Siehe MID_IMPLEMENTATION_0.9.78.76.md.
+
 # 0.9.78.75
 
 Kompositbild: direkte Kartenbedienung mit gemeinsamen +/- Tasten, reale Satellitenhistorie bis etwa −90 min, reparierte WMS-Zeit-/Layerparser und native, lauf- und zeitgebundene DWD-Isobaren/500-hPa-Isohypsen mit numerischem Fallback. Basis 0.9.78.74 vollständig übernommen. Siehe MID_IMPLEMENTATION_0.9.78.75.md. Worker-Update erforderlich.

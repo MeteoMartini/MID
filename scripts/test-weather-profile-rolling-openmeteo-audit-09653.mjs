@@ -79,9 +79,9 @@ for(const token of [
  'className={`cloud-opacity-band ${row.className}`}',
  'Wolken gesamt / hoch / mittel / tief + UVI',
  'stopColor="var(--profile-cloud)"',
- 'clamp(Number(hour.highCloud)||0,0,100)',
- 'clamp(Number(hour.midCloud)||0,0,100)',
- 'clamp(Number(hour.lowCloud)||0,0,100)'
+ 'highCloud:Number.isFinite(Number(hour.highCloud))?clamp(Number(hour.highCloud),0,100):undefined',
+ 'midCloud:Number.isFinite(Number(hour.midCloud))?clamp(Number(hour.midCloud),0,100):undefined',
+ 'lowCloud:Number.isFinite(Number(hour.lowCloud))?clamp(Number(hour.lowCloud),0,100):Number.NaN'
 ])assert.ok(cockpit.includes(token),`Wolkenschichtvertrag fehlt: ${token}`);
 assert.ok(!/Number\(hour\.(?:highCloud|midCloud|lowCloud)\)\s*\/\s*100/.test(cockpit),'Open-Meteo-Wolkenprozente dürfen im Datenmodell nicht nochmals durch 100 geteilt werden.');
 assert.ok(!cockpit.includes('selected-cloud-values'),'Im Wolkenplot darf keine rechte Prozentwert-Achse erscheinen.');
