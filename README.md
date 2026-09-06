@@ -1,3 +1,7 @@
+> **0.9.78.82:** Konsolidiert die gepufferte Satellitenwiedergabe des hochgeladenen 0.9.78.81-Standes mit der Skybar-/Sonnenschein-Zeitachsenkorrektur. Siehe [MID_IMPLEMENTATION_0.9.78.82.md](MID_IMPLEMENTATION_0.9.78.82.md).
+
+> **0.9.78.81:** Satellitenanzeige und gepufferte Wiedergabe korrigiert, Anzeigedauer wählbar. Basis 0.9.78.80. Siehe [MID_IMPLEMENTATION_0.9.78.81.md](MID_IMPLEMENTATION_0.9.78.81.md).
+
 > Aktueller Kartenstand: **0.9.78.75**, auf Basis des Uploads vom 06.09.2026, 08:13:32. Änderungen und Installationshinweise: [MID_IMPLEMENTATION_0.9.78.75.md](MID_IMPLEMENTATION_0.9.78.75.md). **Worker-Update erforderlich.**
 
 ## MID v0.9.78.65 – 14d-Mehrparameterbewertung

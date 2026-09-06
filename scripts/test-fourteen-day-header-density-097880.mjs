@@ -21,7 +21,7 @@ for(const [name,styles] of [['Quell-CSS',sourceStyles],['Aggregat-CSS',builtStyl
  ])assert.ok(block.includes(token),`${name}: kompakter 14d-Kopf unvollständig: ${token}`);
 }
 const baseline=JSON.parse(baselineRaw),pkg=JSON.parse(pkgRaw),test='scripts/test-fourteen-day-header-density-097880.mjs';
-assert.equal(pkg.version,'0.9.78.80');
+assert.match(pkg.version,/^\d+\.\d+\.\d+\.\d+$/); // Layout contract survives subsequent releases; synchronized version is checked below.
 assert.equal(baseline.releaseVersion,pkg.version);
 assert.ok(baseline.requiredRegressionTests?.includes(test));
 assert.ok(baseline.regressionTests?.includes(test));

@@ -17,7 +17,7 @@ for(const token of [
  'QUARTER_MIN_GAP_MS=10*60000',
  'QUARTER_MAX_GAP_MS=20*60000'
 ])assert.ok(intervals.includes(token),`Vorwärts-Slot-Helfer unvollständig: ${token}`);
-assert.ok(intervals.includes('if(!next||!Number.isFinite(gap)||gap<MIN_GAP_MS||gap>MAX_GAP_MS)')&&intervals.includes('precipitation:0,rain:0,showers:0,snowfall:0,probability:0,code:drySkyCode(state)'), 'Fehlende Anschlussstunden müssen fail-safe trocken dargestellt werden, ohne alten Niederschlag nach vorne umzuhängen.');
+assert.ok(intervals.includes('if(!next||!Number.isFinite(gap)||gap<MIN_GAP_MS||gap>MAX_GAP_MS)')&&intervals.includes('precipitation:0,rain:0,showers:0,snowfall:0,probability:0,sunshineDuration:null,code:drySkyCode(state)'), 'Fehlende Anschlussstunden müssen fail-safe trocken dargestellt werden, ohne alten Niederschlag nach vorne umzuhängen.');
 
 for(const token of [
  'let previousIntervalEnd=now',

@@ -1,0 +1,29 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {createRequire} from 'node:module';
+const require=createRequire(import.meta.url),ts=require('typescript-strada');
+const read=p=>fs.readFileSync(new URL('../'+p,import.meta.url),'utf8');
+const compile=s=>ts.transpileModule(s,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText;
+const panel=read('src/RadarPanel.tsx'),ast=ts.createSourceFile('panel.tsx',panel,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
+const declarations=new Map(),effects=[];function visit(n){if(ts.isVariableDeclaration(n))declarations.set(n.name.getText(ast),n);if(ts.isCallExpression(n)&&n.expression.getText(ast)==='useEffect')effects.push(n);ts.forEachChild(n,visit)}visit(ast);
+const timeCode=compile(read('src/CompositeTimeline.ts')),exports={};new Function('exports',timeCode)(exports);
+const blendCode=['satelliteUntimed','satelliteLatestSeconds','satelliteBlend'].map(n=>'const '+declarations.get(n).getText(ast)+';').join('\n');
+const blend=new Function('satelliteProduct','satelliteLatestIso','referenceSeconds','targetSeconds','liveFollow','satelliteTimeline','blendTimedFrames',compile(blendCode)+';return satelliteBlend');
+const now=Date.parse('2026-09-06T12:00Z')/1000,frames=Array.from({length:6},(_,i)=>({time:now-(90-i*10)*60,iso:new Date((now-(90-i*10)*60)*1000).toISOString()}));
+assert.equal(blend({},frames.at(-1).iso,now,now,true,frames,exports.blendTimedFrames)[0].frame.time,now-40*60,'A verified delayed satellite image must remain visible in live combination');
+assert.equal(blend({},frames.at(-1).iso,now,now+600,false,frames,exports.blendTimedFrames).length,0,'No future satellite imagery invented');
+assert.equal(blend({},frames.at(-1).iso,now,frames[1].time,false,frames,exports.blendTimedFrames)[0].frame.time,frames[1].time);
+const effect=effects.find(n=>n.getText(ast).includes('playbackSeconds*1000'));
+assert.ok(effect,'Readiness-driven playback effect');
+function simulate(ready,{playing=true,index=0,seconds=2.4}={}){let timer,delay,paused=false,advanced=false,message='';const env={panelVisible:true,playing,canAnimate:true,playbackReady:ready,playbackSeconds:seconds,index,frames:[1,2,3],requestedSatelliteKey:'frame',useEffect:cb=>cb(),window:{setTimeout:(cb,ms)=>{timer=cb;delay=ms;return 1},clearTimeout:()=>{}},setPlaying:v=>paused=!v,setPlaybackMessage:v=>message=v,setIndex:fn=>{advanced=fn(index)!==index}};new Function(...Object.keys(env),compile(effect.getText(ast)))(...Object.values(env));timer?.();return{delay,paused,advanced,message}}
+assert.equal(simulate(false).delay,20000);assert.equal(simulate(false).advanced,false);assert.equal(simulate(false).paused,true);assert.ok(simulate(false).message.includes('nicht vollständig'));
+assert.equal(simulate(true).delay,2400);assert.equal(simulate(true).advanced,true);assert.equal(simulate(true,{seconds:4.8}).delay,4800);assert.equal(simulate(true,{seconds:1.2}).delay,1200);assert.equal(simulate(true,{index:2}).delay,3600);assert.equal(simulate(true,{playing:false}).advanced,false);
+assert.ok(panel.includes("source:viewMode==='radar'?'Radar + Satellit':'Satellit',observations:satelliteObservationTimes"));assert.ok(panel.includes('satelliteDisplayFrame?[{frame:satelliteDisplayFrame,weight:1}]:[]'),'Displayed timestamp follows buffered image');assert.ok(panel.includes('satellitePreloadFrame=requestedSatelliteKey'),'History loads behind retained image');
+// Exercise real RasterTileLayer with a MapLibre test double: another source need not be idle.
+const core=read('src/MapLibreCore.tsx'),coreAst=ts.createSourceFile('core.tsx',core,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX),fn=coreAst.statements.find(n=>n.name?.text==='RasterTileLayer');
+const handlers={},layers=new Map(),sources=new Map(),hookRef={current:null};let loaded=false,first=0,latest=0,initial=true;
+const map={getLayer:id=>layers.get(id),getSource:id=>sources.get(id),addSource:(id,data)=>sources.set(id,data),addLayer:data=>layers.set(data.id,data),removeLayer:id=>layers.delete(id),removeSource:id=>sources.delete(id),isSourceLoaded:()=>loaded,on:(name,fn)=>{handlers[name]=fn},off:()=>{},setPaintProperty:()=>{}};
+const deps={useRef:()=>hookRef,useMidMap:()=>map,useEffect:cb=>{if(initial)cb()},safeId:x=>x,registerMapLayerOrder:()=>{},unregisterMapLayerOrder:()=>{},clampRasterTone:x=>x};
+const component=new Function('exports',...Object.keys(deps),compile(fn.getText(coreAst))+';return RasterTileLayer')({},...Object.values(deps));
+component({id:'sat',url:'fixture',onReady:()=>first++});initial=false;component({id:'sat',url:'fixture',onReady:()=>latest++});loaded=true;handlers.sourcedata();assert.equal(first,0,'Stale onReady closure must not commit obsolete requested frame');assert.equal(latest,1);handlers.idle();assert.equal(latest,1,'Only one readiness notification');assert.equal(layers.get('sat-layer').paint['raster-opacity-transition'].duration,350);
+console.log('Buffered satellite playback: delayed live image, genuine history, load wait, dwell speeds, loop pause, source readiness and current callbacks passed.');

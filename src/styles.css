@@ -3129,6 +3129,11 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .composite-card .composite-locate-button{top:112px;right:18px;width:40px;height:40px;border-radius:12px}
 .composite-card .composite-map-status{max-width:calc(100% - 84px)}
 @media(pointer:coarse){.composite-card .composite-locate-button{top:120px;width:44px;height:44px}}
+
+/* MID playback: readable dwell-time control at narrow widths. */
+.composite-playback-speed{display:flex;align-items:center;gap:5px;font-size:11px;min-width:0}.composite-playback-speed select{max-width:145px;min-height:36px;font:inherit;border-radius:8px}.composite-playback-status{margin:6px 10px;line-height:1.4}
+.composite-card .composite-playback-speed{grid-column:1/-1;grid-row:2;justify-self:end}
+@media(max-width:760px){.composite-card .composite-playback-speed{grid-row:3}}
 /* MID v0.8.25.1 · Kompositbild: Standort, Blitzpunkte, Modelllinien und dezente Zugpfeile */
 .maplibre-mid-lightning-points-pane{z-index:710!important;pointer-events:auto!important}
 .maplibre-mid-motion-arrows-pane{z-index:525!important;pointer-events:none!important}

@@ -1,3 +1,11 @@
+# 0.9.78.82
+
+Konsolidierter Stand aus den beiden parallelen 0.9.78.81-Arbeitszweigen: Die gepufferte, quellenwahre Satellitenwiedergabe des hochgeladenen Standes bleibt vollständig erhalten; zusätzlich sind die Skybar-Korrekturen für Open-Meteo-Sonnenscheindauer integriert. Stunden- und 15-Minuten-Akkumulationen werden auf den sichtbaren Vorwärtsslot ausgerichtet, 3-h-Sonnenschein vollständig summiert und Wolkenfelder bei Verdichtung als Intervallmittel behandelt. Keine fachliche Workeränderung gegenüber 0.9.78.81.
+
+# 0.9.78.81
+
+Satellit im Live-Komposit trotz Quellenlatenz sichtbar; bildbereite Wiedergabe mit drei Geschwindigkeiten, gepuffertem Wechsel und wahrheitsgetreuer Zeitbeschriftung. Gesamtstand 0.9.78.80 übernommen.
+
 # MID v0.9.78.80
 
 - 14-Tage-Cockpit: runder Parameter-/Zeitraum-Info-Button direkt neben Modellstand; die bisherige zusätzliche Info-Zeile im Prognose-Kompass entfällt.

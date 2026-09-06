@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-09-06T11:21:10.412Z",
-  "releaseVersion": "0.9.78.80",
+  "updatedAt": "2026-09-06T13:35:00.000Z",
+  "releaseVersion": "0.9.78.82",
   "sourceBaseline": {
     "professionalVersion": "0.9.77.26",
     "workerVersion": "0.9.77.26",
@@ -126,7 +126,8 @@
     "startup-splash-preload-shared-promises-0.9.78.43",
     "period-weather-pictogram-day-night-consistency-0.9.78.43",
     "precipitation-forward-slot-presentation-0.9.78.46",
-    "warning-hybrid-uncertainty-0.9.78.49"
+    "warning-hybrid-uncertainty-0.9.78.49",
+    "skybar-sunshine-time-alignment-merged-with-buffered-satellite-playback-0.9.78.82"
   ],
   "nextMilestone": "macos-xcode-simulator-quality-assurance",
   "validation": {
