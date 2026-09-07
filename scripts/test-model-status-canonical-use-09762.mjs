@@ -9,6 +9,6 @@ assert.ok(worker.includes('usedInCanonical')&&worker.includes('usageDetail')&&wo
 assert.ok(worker.includes('availabilityTime:rucEps.availabilityTime')&&worker.includes('initialisationTime:rucEps.initialisationTime'),'RUC-EPS muss Init und Bereitstellungszeit getrennt ausweisen.');
 assert.ok(app.includes('fusion={forecastFusion}'),'Cockpit muss den tatsächlich verwendeten Forecast-Fusion-Stand erhalten.');
 assert.ok(cockpit.includes('scope="short"')&&cockpit.includes('Kurzfrist · verwendete Modellstände'),'Kurzfristvorhersage braucht denselben Modellstand-Nachweis wie 7 Tage.');
-assert.ok(cockpit.includes('<b>Quelle bereit</b> bedeutet nur')&&cockpit.includes('<b>Eingeflossen</b> erscheint ausschließlich'),'UI muss Quelle-bereit und tatsächlich eingeflossen eindeutig unterscheiden.');
+assert.ok(cockpit.includes('<b>Quelle bereit</b> bedeutet, dass der Lauf veröffentlicht war.')&&cockpit.includes('<b>Eingeflossen</b> erscheint ausschließlich'),'UI muss Quelle-bereit und tatsächlich eingeflossen eindeutig unterscheiden.');
 assert.ok(cockpit.includes("return'Eingeflossen'")&&cockpit.includes("return'Geprüft'"),'Modellstand muss tatsächliche Nutzung klar kennzeichnen.');
 console.log('Canonical model-status contract OK: Init, source-ready and actual fusion use are distinct in short-term and 7-day views.');

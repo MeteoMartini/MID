@@ -12,7 +12,7 @@ const failures=[];
 const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
 for(const token of [
  "export function formatDwdWarningDetailWithDirection(signal:DwdWarningSignal",
- "return direction.startsWith('Anfangs')?`${detail}; ${inlineDirection}.`:`${detail} ${inlineDirection}.`;"
+ "return direction.startsWith('Anfänglich')?`${detail}; ${inlineDirection}.`:`${detail} ${inlineDirection}.`;"
 ])need('Inline-Textbildung',warnings,token);
 for(const token of [
  'formatDwdWarningDetailWithDirection',

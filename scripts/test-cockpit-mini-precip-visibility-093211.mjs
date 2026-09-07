@@ -12,7 +12,7 @@ for(const token of [
  'miniRibbonPrecipitationStyle(day.precipitation,day.probability,10)',
  'fillOpacity={item.barOpacity}',
  'className="signal-time"',
- "value:maxImpact.summary,meta:formatProfilePointTime(maxImpactPoint)"
+ "value:maxImpact.summary,meta:`Stufe ${maxImpact.level}${maxImpactWindow?` · ${maxImpactWindow}`:''}`"
 ]) if(!cockpit.includes(token)) failures.push(`ForecastCockpit fehlt erwarteter Baustein: ${token}`);
 for(const token of [
  '.cockpit-weather-profile__signals .signal-time{',

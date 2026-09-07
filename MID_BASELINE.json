@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.79.14",
+  "releaseVersion": "0.9.79.20",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -431,7 +431,12 @@
     "scripts/test-skybar-four-thickness-appwide-09799.mjs",
     "scripts/test-weather-regime-color-consistency-097910.mjs",
     "scripts/test-weather-regime-shared-contract-097911.mjs",
-    "scripts/test-skybar-daylight-no-gaps-097913.mjs"
+    "scripts/test-skybar-daylight-no-gaps-097913.mjs",
+    "scripts/test-mosmix-contribution-freshness-097915.mjs",
+    "scripts/test-mosmix-hourly-run-metadata-097916.mjs",
+    "scripts/test-precipitation-forward-geometry-097916.mjs",
+    "scripts/test-settings-navigation-polish-097917.mjs",
+    "scripts/test-hazard-time-direction-localtime-097919.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -788,7 +793,11 @@
     "scripts/test-skybar-four-thickness-appwide-09799.mjs",
     "scripts/test-weather-regime-color-consistency-097910.mjs",
     "scripts/test-weather-regime-shared-contract-097911.mjs",
-    "scripts/test-skybar-daylight-no-gaps-097913.mjs"
+    "scripts/test-skybar-daylight-no-gaps-097913.mjs",
+    "scripts/test-mosmix-contribution-freshness-097915.mjs",
+    "scripts/test-mosmix-hourly-run-metadata-097916.mjs",
+    "scripts/test-precipitation-forward-geometry-097916.mjs",
+    "scripts/test-settings-navigation-polish-097917.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -1340,7 +1349,19 @@
     "MID_IMPLEMENTATION_0.9.79.12.md",
     "scripts/test-skybar-daylight-no-gaps-097913.mjs",
     "MID_IMPLEMENTATION_0.9.79.13.md",
-    "MID_IMPLEMENTATION_0.9.79.14.md"
+    "MID_IMPLEMENTATION_0.9.79.14.md",
+    "scripts/test-mosmix-contribution-freshness-097915.mjs",
+    "MID_MOSMIX_FRESHNESS_CONTRACT.md",
+    "MID_IMPLEMENTATION_0.9.79.15.md",
+    "scripts/test-mosmix-hourly-run-metadata-097916.mjs",
+    "scripts/test-precipitation-forward-geometry-097916.mjs",
+    "MID_IMPLEMENTATION_0.9.79.16.md",
+    "scripts/test-settings-navigation-polish-097917.mjs",
+    "MID_IMPLEMENTATION_0.9.79.17.md",
+    "MID_IMPLEMENTATION_0.9.79.18.md",
+    "MID_IMPLEMENTATION_0.9.79.19.md",
+    "scripts/test-hazard-time-direction-localtime-097919.mjs",
+    "MID_IMPLEMENTATION_0.9.79.20.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1384,7 +1405,11 @@
     "scripts/test-skybar-four-thickness-appwide-09799.mjs",
     "scripts/test-weather-regime-color-consistency-097910.mjs",
     "scripts/test-weather-regime-shared-contract-097911.mjs",
-    "scripts/test-skybar-daylight-no-gaps-097913.mjs"
+    "scripts/test-skybar-daylight-no-gaps-097913.mjs",
+    "scripts/test-mosmix-contribution-freshness-097915.mjs",
+    "scripts/test-mosmix-hourly-run-metadata-097916.mjs",
+    "scripts/test-precipitation-forward-geometry-097916.mjs",
+    "scripts/test-settings-navigation-polish-097917.mjs"
   ],
   "protectedFiles": [
     "scripts/test-travel-planner-era5-seamless-units-09652.mjs",
@@ -1786,10 +1811,14 @@
     "scripts/test-skybar-four-thickness-appwide-09799.mjs",
     "scripts/test-weather-regime-color-consistency-097910.mjs",
     "scripts/test-weather-regime-shared-contract-097911.mjs",
-    "scripts/test-skybar-daylight-no-gaps-097913.mjs"
+    "scripts/test-skybar-daylight-no-gaps-097913.mjs",
+    "scripts/test-mosmix-contribution-freshness-097915.mjs",
+    "scripts/test-mosmix-hourly-run-metadata-097916.mjs",
+    "scripts/test-precipitation-forward-geometry-097916.mjs",
+    "scripts/test-settings-navigation-polish-097917.mjs"
   ],
-  "version": "0.9.79.14",
-  "updatedAt": "2026-09-06T16:53:00.000Z",
+  "version": "0.9.79.20",
+  "updatedAt": "2026-09-07T08:45:00.000Z",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
     "MID_IMPLEMENTATION_0.9.77.27.md",
@@ -1850,7 +1879,13 @@
     "MID_IMPLEMENTATION_0.9.78.83.md",
     "MID_IMPLEMENTATION_0.9.78.85.md",
     "MID_IMPLEMENTATION_0.9.79.9.md",
-    "MID_IMPLEMENTATION_0.9.79.12.md"
+    "MID_IMPLEMENTATION_0.9.79.12.md",
+    "MID_IMPLEMENTATION_0.9.79.15.md",
+    "MID_IMPLEMENTATION_0.9.79.16.md",
+    "MID_IMPLEMENTATION_0.9.79.17.md",
+    "MID_IMPLEMENTATION_0.9.79.18.md",
+    "MID_IMPLEMENTATION_0.9.79.19.md",
+    "MID_IMPLEMENTATION_0.9.79.20.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",

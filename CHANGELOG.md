@@ -1,3 +1,62 @@
+# MID v0.9.79.20
+
+- CI-Fix für Release #929: drei veraltete Regressionstests an die bereits beabsichtigte v0.9.79.19-Darstellung von Warnstufe, Warnzeitfenster und `LT` angepasst.
+- Keine Änderung an der produktiven Wetter-, Warn- oder Workerlogik.
+
+# MID v0.9.79.19
+
+## Extern
+- Windhinweise nennen die Richtung direkt und weisen markante Drehungen mit einem zeitlich aufgelösten Wechsel aus.
+- Warnstufe und Warnzeitfenster werden im 24-h-Wetterprofil aus denselben Warnobjekten wie in der Warnübersicht übernommen.
+- In Lokalzeit umgerechnete absolute Zeitstempel werden mit „LT“ gekennzeichnet, damit UTC-/Quellzeiten und Lokalzeit nicht verwechselt werden.
+
+## Intern
+- Wetterprofil-Hazardbänder führen die kanonische Stufe und `validFrom`/`validTo` weiter.
+- CI-Fehler #928 behoben: die UI-Regression v0.9.79.17 ist nicht mehr an eine historische Patch-Version gekoppelt.
+- Keine fachliche Workeränderung.
+
+# MID v0.9.79.18
+
+## Extern
+- Keine Änderung an der Wetterdarstellung: Niederschlagswahrscheinlichkeit, Mengenbalken und die seit v0.9.79.16 geltende Vorwärtsintervall-Geometrie bleiben unverändert.
+
+## Intern
+- CI-Fehler aus Release #927 behoben: die historische Regression für Niederschlagswahrscheinlichkeit erwartete noch den früheren punktweise aufgebauten `p.map`-Pfad.
+- Der Test prüft nun die aktuelle stufenförmige Vorwärtsintervall-Kurve (`p.reduce`) und zusätzlich explizit, dass die PoP-Kurve unabhängig von vorhandenen Niederschlagsmengenbalken gerendert wird.
+- Kein fachlicher Rollback und keine Änderung an Forecast-, Skybar- oder Workerlogik.
+
+# MID v0.9.79.17
+
+## Extern
+- Einstellungen nutzen ein einheitlicheres Typografie-, Abstands- und Kartenraster.
+- Schalter in Einstellungen und Push-Regeln besitzen nun eine konsistente iOS-Geometrie und bessere Fokuszustände.
+- Mobile Einstellungsnavigation zeigt wieder kurze Bereichsnamen; die optionale Bottom-Leiste hat klarere Aktivzustände und einheitliche Touchziele.
+- Der klassische Navigationsmodus bleibt unverändert als persistenter Fallback erhalten.
+
+## Intern
+- UI-Polish aus dem parallelen Zweig „Logos und Konzepte“ auf den fachlich neueren v0.9.79.16-Stand konsolidiert.
+- MOSMIX-S/L-Frischelogik und Niederschlags-Vorwärtsintervallgeometrie aus v0.9.79.16 bleiben unverändert erhalten.
+- Neuer Pflichtregressionstest schützt Einstellungsraster, Switch-Geometrie, mobile Bereichsnamen, Fokus, Reduced Motion und klassischen Fallback.
+
+# MID v0.9.79.16
+
+## Extern
+- MOSMIX-S wird als stündliche Kurzfrist-Aktualitätsreferenz ausgewiesen; MOSMIX-L bleibt separat für 03/09/15/21 UTC sichtbar.
+- Niederschlag und Skybar liegen nun geometrisch im tatsächlich bezeichneten Vorwärtsintervall (z. B. 19:00–20:00).
+- Niederschlagswahrscheinlichkeit im 24-h-Profil wird als Intervalltreppe statt als linear interpolierter Zeitpunktwert dargestellt.
+
+## Intern
+- DWD-MOSMIX-S/L-Laufindizes werden getrennt verifiziert; kein L-Init-Fallback als scheinbar stündliche S-Aktualität.
+- Skybar-x-Positionen sind Slotstarts; 24-h-Tagesachse reserviert die rechte Kante für 24:00.
+- Neue Pflichtregressionen sichern MOSMIX-S/L und Niederschlags-Intervallgeometrie.
+
+## v0.9.79.15 – MOSMIX-Anteil und Laufaktualität
+- Modellstand beziffert den ungefähren direkten MOSMIX-Korrekturanteil für Temperatur, Tmin/Tmax, Taupunkt, Druck, Wind/Böen und den RR1c-Niederschlagskonsens.
+- MOSMIX-L-Init wird aus dem offiziellen DWD-OpenData-Laufindex gelesen; „Quelle bereit“ und Laufalter bleiben getrennt.
+- Modellzeilen kennzeichnen den Lauf als aktuell oder warnen bei ungewöhnlich altem Init.
+- Falls der offizielle Laufindex nicht verifiziert werden kann, wird kein Init geraten.
+- Fachliche Workeränderung erforderlich.
+
 ## v0.9.79.14 – CI-Buildfix nach Release #925
 - GitHub-Release #925 scheiterte im TypeScript-Parser an einer rohen `<50 %`-Schreibweise innerhalb eines JSX-Hilfetexts in `App.tsx`.
 - Die Formulierung lautet nun parserfest „unter 50 % Bewölkung“; die fachliche Skybar-No-gap-Regel aus v0.9.79.13 bleibt unverändert.

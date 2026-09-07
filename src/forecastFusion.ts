@@ -90,6 +90,19 @@ export type ForecastFusionMosmix={
  available:boolean;
  applied:boolean;
  quality:number;
+ initialisationTime?:string;
+ availabilityTime?:string;
+ updateHours?:number;
+ runFreshness?:number;
+ runMetaSource?:string;
+ shortInitialisationTime?:string;
+ shortAvailabilityTime?:string;
+ shortRunMetaSource?:string;
+ longInitialisationTime?:string;
+ longAvailabilityTime?:string;
+ longUpdateHours?:number;
+ longRunMetaSource?:string;
+ coverageUntil?:string;
  stationId?:string;
  stationName?:string;
  distanceKm?:number;
@@ -181,6 +194,9 @@ const FRESH_MS=35*60*1000;
 const STALE_MS=8*60*60*1000;
 
 function clamp(value:number,min:number,max:number){return Math.max(min,Math.min(max,value))}
+export type ForecastFusionMosmixContributionRanges={temperature:[number,number];dewPoint:[number,number];pressure:[number,number];wind:[number,number];dailyTemperature:[number,number];precipitation0to6:number;precipitation6to14:number};
+export function mosmixHourlyLeadStrength(leadHours:number){return leadHours<=6?.18:leadHours<=48?.38:leadHours<=120?.3:.16}
+export function forecastFusionMosmixContributionRanges(quality:number,scope:'short'|'seven'):ForecastFusionMosmixContributionRanges{const q=clamp(Number(quality)||0,0,1),leads=(scope==='short'?[.18,.38]:[.16,.18,.3,.38]).map(value=>value*q),range=(values:number[]):[number,number]=>[Math.min(...values),Math.max(...values)],temperature=range(leads),dewPoint=range(leads.map(value=>value*.7)),pressure=range(leads.map(value=>value*.35)),wind=range(leads.map(value=>value*.58)),dailyTemperature:[number,number]=scope==='short'?[.52*q,.52*q]:[.42*q,.52*q];return{temperature,dewPoint,pressure,wind,dailyTemperature,precipitation0to6:.28*q,precipitation6to14:.20*q}}
 
 export type RapidThunderSample={
  time?:string;
@@ -666,7 +682,7 @@ export function applyForecastFusionHours(hours:Hour[],baseDays:Day[],fusedDays:D
   if(!mosmixUsable)return next;
   const mosmix=nearestFusionHour(mosmixHours,hour.epoch);if(!mosmix)return next;
   const leadHours=(hour.epoch-now)/3600000;if(leadHours<-.5||leadHours>168)return next;
-  const leadStrength=leadHours<=6?.18:leadHours<=48?.38:leadHours<=120?.3:.16,temperatureStrength=leadStrength*mosmixQuality,temperature=blendToward(next.temperature,mosmix.temperature,temperatureStrength,3),temperatureDelta=temperature-next.temperature,rawDewPoint=blendToward(next.dewPoint,mosmix.dewPoint,leadStrength*mosmixQuality*.7,4),dewPoint=Math.min(temperature,rawDewPoint),derivedHumidity=relativeHumidityFromTemperatureDewPoint(temperature,dewPoint),humidity=Number.isFinite(derivedHumidity)?derivedHumidity:blendToward(next.humidity,mosmix.humidity,leadStrength*mosmixQuality*.55,18),pressure=blendToward(next.pressure,mosmix.pressure,leadStrength*mosmixQuality*.35,5),wind=Math.max(0,blendToward(next.wind,mosmix.wind,leadStrength*mosmixQuality*.58,7)),gust=Math.max(wind,blendToward(next.gust,mosmix.gust,leadStrength*mosmixQuality*.58,10));
+  const leadStrength=mosmixHourlyLeadStrength(leadHours),temperatureStrength=leadStrength*mosmixQuality,temperature=blendToward(next.temperature,mosmix.temperature,temperatureStrength,3),temperatureDelta=temperature-next.temperature,rawDewPoint=blendToward(next.dewPoint,mosmix.dewPoint,leadStrength*mosmixQuality*.7,4),dewPoint=Math.min(temperature,rawDewPoint),derivedHumidity=relativeHumidityFromTemperatureDewPoint(temperature,dewPoint),humidity=Number.isFinite(derivedHumidity)?derivedHumidity:blendToward(next.humidity,mosmix.humidity,leadStrength*mosmixQuality*.55,18),pressure=blendToward(next.pressure,mosmix.pressure,leadStrength*mosmixQuality*.35,5),wind=Math.max(0,blendToward(next.wind,mosmix.wind,leadStrength*mosmixQuality*.58,7)),gust=Math.max(wind,blendToward(next.gust,mosmix.gust,leadStrength*mosmixQuality*.58,10));
   changed=true;return{...next,temperature,apparent:next.apparent+temperatureDelta,humidity,dewPoint,pressure,wind,gust};
  });
  return changed?result:hours;

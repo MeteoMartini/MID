@@ -13,7 +13,7 @@ const [cockpit,panel,travel,contract,pkgText,baselineText]=await Promise.all([
 for(const token of [
  "if(row.id==='best_match')return'modellabhängig'",
  "return row.metadataUnavailable||row.fusionLoaded===true?'von Quelle nicht ausgewiesen':'nicht verfügbar'",
- '`Init ${cockpitInitialisationLabel(row)} · Quelle bereit ${cockpitAvailabilityLabel(row,timezone)}`'
+ '`Init ${cockpitInitialisationLabel(row)} · Quelle bereit ${cockpitAvailabilityLabel(row,timezone)} · ${cockpitModelFreshnessLabel(row)}`'
 ])assert.ok(cockpit.includes(token),`Modellstand-Initvertrag fehlt: ${token}`);
 assert.ok(!cockpit.includes("Init ${formatCockpitModelRunTime(row.initialisationTime)} · Quelle bereit ${formatCockpitAvailabilityTime(row.availabilityTime,timezone)}"),'Modellstand darf fehlende Init-Zeiten nicht mehr als Gedankenstrich ausgeben.');
 

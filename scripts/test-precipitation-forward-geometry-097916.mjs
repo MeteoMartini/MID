@@ -1,0 +1,17 @@
+import assert from "node:assert/strict";
+import {readFile} from "node:fs/promises";
+const root=new URL("../",import.meta.url),read=p=>readFile(new URL(p,root),"utf8");
+const [sky,app,cockpit,intervals,contract,pkgRaw,baselineRaw]=await Promise.all([read("src/detailSkyBar.ts"),read("src/App.tsx"),read("src/ForecastCockpit.tsx"),read("src/precipitationIntervals.ts"),read("MID_PRECIPITATION_INTERVAL_CONTRACT.md"),read("package.json"),read("MID_BASELINE.json")]);
+const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test="scripts/test-precipitation-forward-geometry-097916.mjs";
+assert.ok(intervals.includes('Anzeige(S) = Rohwert(S + 60 min)')||contract.includes('Anzeige(S) = Rohwert(S + 60 min)'),'Vorwärtsslot-Vertrag fehlt.');
+assert.ok(sky.includes('xPositions represent interval starts'),'Skybar dokumentiert Slotstart-Geometrie nicht.');
+assert.ok(sky.includes('const rawEnd=Number.isFinite(following)&&following>rawStart?following:rawStart+fallbackWidth;'),'Skybar endet nicht am Folgeslot.');
+assert.ok(!sky.includes('const rawX0=index===0?leftEdge:(prev+x)*0.5'),'Alte zentrierte Skybar-Geometrie ist noch aktiv.');
+assert.ok(app.includes('const xAt=(i:number)=>left+(i/Math.max(1,p.length))*plotW'),'24-h-Achse reserviert 24:00 nicht als rechte Slotkante.');
+assert.ok(app.includes('slotRight=slotEndAt(i)')&&app.includes('barLeft=Math.max(left,slotLeft+barInset)'),'24-h-Niederschlagsbalken sind nicht im Vorwärtsslot verankert.');
+assert.ok(app.includes('probabilityPath=showProbability?p.reduce'),'24-h-Niederschlagswahrscheinlichkeit ist nicht als Intervalltreppe umgesetzt.');
+assert.ok(cockpit.includes('probabilityPath=chartPoints.reduce')&&cockpit.includes('precipitationStartX')&&cockpit.includes('precipitationEndX'),'Wetterprofil-PoP ist nicht explizit intervallbezogen.');
+assert.ok(contract.includes('19:00–20:00')&&contract.includes('18:30–19:30'),'Intervallgeometrie ist nicht im Vertrag abgesichert.');
+assert.equal(baseline.releaseVersion,pkg.version);
+for(const key of ['requiredRegressionTests','regressionTests','requiredTests','activeRegressionSuite'])assert.ok(baseline[key]?.includes(test),`${test} fehlt in ${key}.`);
+console.log(`MID v${pkg.version}: Niederschlag/Skybar appweit als Vorwärtsintervall geometrisch abgesichert.`);

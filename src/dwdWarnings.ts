@@ -54,7 +54,7 @@ function directionDifference(a:number,b:number){const delta=Math.abs(normaliseWi
 function warningWindDirectionText(occurrences:WarningOccurrence[]){
  const directions=occurrences.sort((a,b)=>a.start-b.start).map(item=>Number(item.signal.windDirection)).filter(Number.isFinite);if(!directions.length)return'';
  const groupSize=Math.max(1,Math.ceil(directions.length/3)),early=circularMeanDirection(directions.slice(0,groupSize)),late=circularMeanDirection(directions.slice(-groupSize)),overall=circularMeanDirection(directions);
- if(directions.length>=3&&Number.isFinite(early)&&Number.isFinite(late)&&directionDifference(early,late)>=67.5)return`Anfangs aus ${windDirectionAdjective(early)}, später aus ${windDirectionAdjective(late)} Richtung`;
+ if(directions.length>=3&&Number.isFinite(early)&&Number.isFinite(late)&&directionDifference(early,late)>=67.5)return`Anfänglich aus ${windDirectionAdjective(early)}, später aus ${windDirectionAdjective(late)} Richtung`;
  return Number.isFinite(overall)?`Aus ${windDirectionAdjective(overall)} Richtung`:'';
 }
 export function formatDwdWarningDirection(signal:DwdWarningSignal){if(signal.kind!=='wind'&&signal.kind!=='snowdrift')return'';if(signal.windDirectionText)return signal.windDirectionText;return Number.isFinite(signal.windDirection)?`Aus ${windDirectionAdjective(Number(signal.windDirection))} Richtung`:''}
@@ -62,7 +62,7 @@ export function formatDwdWarningDetailWithDirection(signal:DwdWarningSignal,unit
  const detail=formatDwdWarningDetail(signal,unit).trim().replace(/[.!?]+$/,'');
  const direction=formatDwdWarningDirection(signal).trim();if(!direction)return`${detail}.`;
  const inlineDirection=`${direction.charAt(0).toLocaleLowerCase('de-DE')}${direction.slice(1)}`;
- return direction.startsWith('Anfangs')?`${detail}; ${inlineDirection}.`:`${detail} ${inlineDirection}.`;
+ return direction.startsWith('Anfänglich')?`${detail}; ${inlineDirection}.`:`${detail} ${inlineDirection}.`;
 }
 
 function rounded(value:number){return Math.round(value)}

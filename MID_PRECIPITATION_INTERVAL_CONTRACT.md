@@ -1,6 +1,6 @@
 # MID · Niederschlags-Intervallvertrag
 
-Stand: v0.9.78.46 · 04.09.2026
+Stand: v0.9.79.16 · 07.09.2026
 
 ## Zweck
 
@@ -133,3 +133,15 @@ Verbindliche Regressionen:
 
 - `scripts/test-precipitation-trailing-interval-nowcast-097810.mjs` – schützt die rohe endgestempelte Rechenbasis und Radar/NWP-Intervalle.
 - `scripts/test-precipitation-forward-slot-presentation-097846.mjs` – schützt die vorwärts gerichtete Nutzersemantik und ihre appweite Verwendung.
+
+## 11. Geometrie der sichtbaren Intervalle
+
+Die fachlich richtige Slotzuordnung muss auch geometrisch sichtbar sein. Ein Niederschlagswert für `19:00–20:00` darf nicht um 19:00 zentriert und dadurch als `18:30–19:30` erscheinen.
+
+Verbindlich gilt daher:
+
+- Skybar-Segmente mit expliziten Zeitpositionen beginnen exakt am sichtbaren Slotstart `T` und enden an `T+Δ`.
+- Stündliche Niederschlagsbalken liegen vollständig innerhalb desselben Stundenfensters.
+- Niederschlagswahrscheinlichkeit wird im 24-h-Profil als Intervallgröße stufenförmig über dem Bezugsfenster gezeichnet, nicht als linear interpolierter Zeitpunktwert.
+- Die 24-h-Tagesachse reserviert die rechte Kante für 24:00; der 23:00-Punkt liegt am Beginn des letzten Slots 23:00–24:00.
+- Instantane Größen bleiben auf ihrer Zeitmarke; Akkumulations-/Wahrscheinlichkeitsfelder verwenden die Vorwärtsintervall-Geometrie.

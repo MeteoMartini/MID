@@ -24,7 +24,7 @@ const sample=(hour,direction,gust=70/1.852)=>({time:`2026-07-30T${String(hour).p
 
 const changing=summarizeDwdWarnings([sample(8,225),sample(9,230),sample(10,315),sample(11,320)]).find(signal=>signal.kind==='wind');
 if(!changing)failures.push('Windwarnung mit Richtungswechsel fehlt.');
-else{if(formatDwdWarningDirection(changing)!=='Anfangs aus südwestlicher, später aus nordwestlicher Richtung')failures.push(`Richtungswechsel falsch: ${formatDwdWarningDirection(changing)}`);if(formatDwdWarningDetailWithDirection(changing)!=='Sturmböen bis 38 kt (70 km/h); anfangs aus südwestlicher, später aus nordwestlicher Richtung.')failures.push(`Richtungswechsel nicht im Warntext: ${formatDwdWarningDetailWithDirection(changing)}`)}
+else{if(formatDwdWarningDirection(changing)!=='Anfänglich aus südwestlicher, später aus nordwestlicher Richtung')failures.push(`Richtungswechsel falsch: ${formatDwdWarningDirection(changing)}`);if(formatDwdWarningDetailWithDirection(changing)!=='Sturmböen bis 38 kt (70 km/h); anfänglich aus südwestlicher, später aus nordwestlicher Richtung.')failures.push(`Richtungswechsel nicht im Warntext: ${formatDwdWarningDetailWithDirection(changing)}`)}
 const steady=summarizeDwdWarnings([sample(8,220),sample(9,225),sample(10,230)]).find(signal=>signal.kind==='wind');
 if(!steady)failures.push('Konstante Windwarnung fehlt.');
 else{if(formatDwdWarningDirection(steady)!=='Aus südwestlicher Richtung')failures.push(`Konstante Richtung falsch: ${formatDwdWarningDirection(steady)}`);if(formatDwdWarningDetailWithDirection(steady)!=='Sturmböen bis 38 kt (70 km/h) aus südwestlicher Richtung.')failures.push(`Konstante Richtung nicht im Warntext: ${formatDwdWarningDetailWithDirection(steady)}`)}
@@ -37,7 +37,7 @@ for(const token of [
  'windDirectionText?:string',
  'function circularMeanDirection(values:number[])',
  'function warningWindDirectionText(occurrences:WarningOccurrence[])',
- 'Anfangs aus ${windDirectionAdjective(early)}, später aus ${windDirectionAdjective(late)} Richtung',
+ 'Anfänglich aus ${windDirectionAdjective(early)}, später aus ${windDirectionAdjective(late)} Richtung',
  'export function formatDwdWarningDirection(signal:DwdWarningSignal)',
  'export function formatDwdWarningDetailWithDirection(signal:DwdWarningSignal',
  "windDirectionText:selected.signal.kind==='wind'?warningWindDirectionText(interval.members):undefined"

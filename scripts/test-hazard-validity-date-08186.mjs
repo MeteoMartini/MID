@@ -13,7 +13,8 @@ for(const token of [
   "tomorrow=dateKey(now+24*60*60*1000)",
   "startDate===tomorrow?`Morgen, ${date(start)} · `",
   "`${date(start)} · `",
-  "if(!sameDate)return`${date(start)}, ${active?'jetzt':time(start)} – ${date(end)}, ${time(end)} Uhr`"
+  "const localSuffix=localTimeDisambiguationSuffix(),suffix=localSuffix?` ${localSuffix}`:''",
+  "Uhr${suffix}"
 ])need('Datumsdarstellung',app,token);
 need('Package-Test',pkg,'test:hazard-validity-date');
 need('Baseline-Test',baseline,'scripts/test-hazard-validity-date-08186.mjs');
@@ -23,7 +24,8 @@ if(!match)failures.push('hazardValidityLabel konnte nicht extrahiert werden.');
 else{
   const source=match[0].replace(/validFrom:string\|undefined/g,'validFrom').replace(/validTo:string\|undefined/g,'validTo').replace(/timezone\?:string/g,'timezone').replace(/value:number/g,'value');
   const formatInZone=(value,timeZone,options)=>new Intl.DateTimeFormat('de-DE',{...options,timeZone:timeZone||undefined}).format(new Date(value));
-  const label=new Function('formatInZone',`${source};return hazardValidityLabel;`)(formatInZone);
+  const localTimeDisambiguationSuffix=()=> 'LT';
+  const label=new Function('formatInZone','localTimeDisambiguationSuffix',`${source};return hazardValidityLabel;`)(formatInZone,localTimeDisambiguationSuffix);
   const originalNow=Date.now;
   try{
     Date.now=()=>Date.parse('2026-07-29T12:00:00Z');
@@ -31,10 +33,10 @@ else{
     const later=label('2026-07-31T06:00:00Z','2026-07-31T10:00:00Z','Europe/Berlin');
     const today=label('2026-07-29T15:00:00Z','2026-07-29T18:00:00Z','Europe/Berlin');
     const overnight=label('2026-07-29T20:00:00Z','2026-07-30T02:00:00Z','Europe/Berlin');
-    if(tomorrow!=='Morgen, 30.07. · 08:00–12:00 Uhr')failures.push(`Morgen-Darstellung falsch: ${tomorrow}`);
-    if(later!=='31.07. · 08:00–12:00 Uhr')failures.push(`Späteres Datum falsch: ${later}`);
-    if(today!=='17:00–20:00 Uhr')failures.push(`Heutige kompakte Darstellung falsch: ${today}`);
-    if(overnight!=='29.07., 22:00 – 30.07., 04:00 Uhr')failures.push(`Datumswechsel falsch: ${overnight}`);
+    if(tomorrow!=='Morgen, 30.07. · 08:00–12:00 Uhr LT')failures.push(`Morgen-Darstellung falsch: ${tomorrow}`);
+    if(later!=='31.07. · 08:00–12:00 Uhr LT')failures.push(`Späteres Datum falsch: ${later}`);
+    if(today!=='17:00–20:00 Uhr LT')failures.push(`Heutige kompakte Darstellung falsch: ${today}`);
+    if(overnight!=='29.07., 22:00 – 30.07., 04:00 Uhr LT')failures.push(`Datumswechsel falsch: ${overnight}`);
   }finally{Date.now=originalNow}
 }
 

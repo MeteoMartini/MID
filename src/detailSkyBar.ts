@@ -181,13 +181,15 @@ export function detailSkyBarSegments(
     hours.forEach((hour,index)=>{
       const visuals=weatherStripVisuals(hour,sampleIntervalSeconds(hours,index));
       if(!visuals.length)return;
-      const x=positions[index]??leftEdge;
-      const prev=index>0?(positions[index-1]??leftEdge):leftEdge;
-      const next=index<positions.length-1?(positions[index+1]??rightEdge):rightEdge;
-      const rawX0=index===0?leftEdge:(prev+x)*0.5;
-      const rawX1=index===positions.length-1?rightEdge:(x+next)*0.5;
-      const x0=Math.max(leftEdge,rawX0);
-      const x1=Math.min(rightEdge,rawX1);
+      // xPositions represent interval starts. Accumulated precipitation and sunshine
+      // belong to the forward interval [T,T+Δ], not to a cell centred on T.
+      const rawStart=Number(positions[index]);
+      const previous=Number(positions[index-1]);
+      const following=Number(positions[index+1]);
+      const fallbackWidth=Number.isFinite(rawStart)&&Number.isFinite(previous)&&rawStart>previous?rawStart-previous:(rightEdge-leftEdge)/Math.max(1,hours.length);
+      const rawEnd=Number.isFinite(following)&&following>rawStart?following:rawStart+fallbackWidth;
+      const x0=Math.max(leftEdge,Number.isFinite(rawStart)?rawStart:leftEdge);
+      const x1=Math.min(rightEdge,Number.isFinite(rawEnd)?rawEnd:rightEdge);
       visuals.forEach((visual,visualIndex)=>appendSegment(segmentsForLayer(visual.layer),index*2+visualIndex,visual.layer,x0,x1,centerY,visual));
     });
     return [...baseSegments,...precipSegments];

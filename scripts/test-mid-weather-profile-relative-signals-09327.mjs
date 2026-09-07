@@ -9,8 +9,10 @@ for(const token of [
  "relativePointTime=(point:ShortTermForecastPoint)=>`${dateOnlyFromEpoch(point.epoch,timezone)===todayDate?'heute':'morgen'} ${point.timeLabel}`",
  'const formatProfilePointTime=relativePointTime',
  'formatProfilePointTime(maxFogPoint)',
- 'formatProfilePointTime(maxImpactPoint)',
- "label:'Stärkste Einschränkung'"
+ 'formatProfilePointTime(maxFogPoint)',
+ 'maxImpactWindow=shortTermImpactWindowLabel(maxImpact,timezone)',
+ "label:'Stärkste Einschränkung'",
+ "meta:`Stufe ${maxImpact.level}${maxImpactWindow?` · ${maxImpactWindow}`:''}`"
 ])need('24-h-Signalkarten',cockpit,token);
 reject('Alte Signal-Zeitformatierung',cockpit,"pointDate&&pointDate!==chartPoints[0]?.dateValue?`${point.timeLabel} · ${formatDate(pointDate,{day:'2-digit',month:'2-digit'})}`:point.timeLabel");
 const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;if(pv!==bv)failures.push(`Versionen nicht synchron: ${pv}/${bv}`);
