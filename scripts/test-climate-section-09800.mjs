@@ -8,8 +8,11 @@ const checks=[
  ['Modul ist standardmäßig geschlossen',app.includes('id="climate"')&&app.includes('title="Klima"')&&app.includes('defaultOpen={false}')],
  ['Modul ist konfigurierbar',modules.includes("|'climate'")&&modules.includes("id:'climate'")],
  ['Abruf erfolgt erst beim Mount/Öffnen',panel.includes('if(!active)return')&&panel.includes('fetchTravelClimatology(location,false')],
- ['Jahresübergreifende Auswahl vorhanden',panel.includes('(start-1+index)%12+1')&&panel.includes('Winter Dez–Mär')],
+ ['Jahresübergreifende Auswahl vorhanden',panel.includes('(start-1+index)%12+1')&&panel.includes('Winter Dez–Feb')],
  ['Kernparameter vollständig',panel.includes('Tmax / Mittel / Tmin')&&panel.includes('Niederschlag · Zeitraum')&&panel.includes('Bedeckungsgrad')&&panel.includes('Windrose')],
+ ['Werteoverlay vorhanden',panel.includes('climate-value-overlay')&&panel.includes('Monat antippen für Werte')],
+ ['Bedeckungsanteile vorhanden',panel.includes('CLOUD_CLASSES')&&panel.includes('Anteile der Bedeckungsgrade')],
+ ['Windrose nach Geschwindigkeit geteilt',panel.includes('WIND_BINS')&&panel.includes('Armlänge = Richtungshäufigkeit')],
  ['Ein Tagesabruf mit Windrichtung',travel.includes("'wind_direction_10m_dominant'")&&travel.includes("'wind_speed_10m_mean'")&&travel.includes('circularMean')],
  ['Responsive Layout vorhanden',css.includes('@media(max-width:620px)')&&css.includes('orientation:landscape')&&css.includes('.climate-panel')]
 ];
