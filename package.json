@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.80.1",
+  "version": "0.9.80.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -441,7 +441,8 @@
     "test:skybar-four-thickness-appwide": "node scripts/test-skybar-four-thickness-appwide-09799.mjs",
     "test:weather-regime-colors": "node scripts/test-weather-regime-color-consistency-097910.mjs",
     "test:weather-regime-shared": "node scripts/test-weather-regime-shared-contract-097911.mjs",
-    "test:skybar-daylight-no-gaps": "node scripts/test-skybar-daylight-no-gaps-097913.mjs"
+    "test:skybar-daylight-no-gaps": "node scripts/test-skybar-daylight-no-gaps-097913.mjs",
+    "test:weather-profile-polish-temporal": "node scripts/test-weather-profile-polish-temporal-09802.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",

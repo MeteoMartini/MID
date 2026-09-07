@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.80.1",
+  "releaseVersion": "0.9.80.2",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -432,6 +432,7 @@
     "scripts/test-weather-regime-color-consistency-097910.mjs",
     "scripts/test-weather-regime-shared-contract-097911.mjs",
     "scripts/test-skybar-daylight-no-gaps-097913.mjs",
+    "scripts/test-weather-profile-polish-temporal-09802.mjs",
     "scripts/test-mosmix-contribution-freshness-097915.mjs",
     "scripts/test-mosmix-hourly-run-metadata-097916.mjs",
     "scripts/test-precipitation-forward-geometry-097916.mjs",
@@ -1824,7 +1825,7 @@
     "scripts/test-settings-navigation-polish-097917.mjs",
     "scripts/test-climate-section-09800.mjs"
   ],
-  "version": "0.9.80.1",
+  "version": "0.9.80.2",
   "updatedAt": "2026-09-07T08:45:00.000Z",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",

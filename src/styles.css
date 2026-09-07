@@ -7488,6 +7488,18 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
 .cockpit-weather-profile .pressure-point{fill:var(--param-pressure)}
 .cockpit-weather-profile .profile-lane-grid.pressure{stroke:color-mix(in srgb,var(--param-pressure) 20%,var(--mg-grid))}
 
+/* MID v0.9.80.2 · 24-h-Profil: ruhige Plotflächen und harte gemeinsame Zeitgrenzen. */
+.cockpit-weather-profile .cockpit-meteogram-pro__stage{border-radius:18px;overflow:hidden;background:linear-gradient(180deg,color-mix(in srgb,var(--mg-plot) 94%,var(--surface)),color-mix(in srgb,var(--mg-shell) 92%,var(--surface)))}
+.cockpit-weather-profile .cockpit-meteogram-pro__svg{overflow:hidden}
+.cockpit-weather-profile .cockpit-meteogram-pro__svg .lane-bg{stroke:color-mix(in srgb,var(--mg-plot-border) 62%,transparent);stroke-width:.75}
+.cockpit-weather-profile .cockpit-meteogram-pro__svg .lane-bg.weather,.cockpit-weather-profile .cockpit-meteogram-pro__svg .lane-bg.thermal-feel,.cockpit-weather-profile .cockpit-meteogram-pro__svg .lane-bg.precip,.cockpit-weather-profile .cockpit-meteogram-pro__svg .lane-bg.wind,.cockpit-weather-profile .cockpit-meteogram-pro__svg .lane-bg.pressure,.cockpit-weather-profile .cockpit-meteogram-pro__svg .lane-bg.cloud,.cockpit-weather-profile .cockpit-meteogram-pro__svg .lane-bg.impact{fill:color-mix(in srgb,var(--mg-plot) 96%,transparent)}
+.cockpit-weather-profile .probability-column{shape-rendering:geometricPrecision}
+.cockpit-weather-profile .rain-bar{filter:drop-shadow(0 1px 1px color-mix(in srgb,var(--param-precipitation) 22%,transparent))}
+.cockpit-weather-profile .selected-time-value-pill rect{fill-opacity:.94;stroke-width:.6;filter:drop-shadow(0 2px 5px rgba(0,0,0,.16))}
+.cockpit-weather-profile .selected-time-line{stroke-width:1.35;opacity:.88}
+.cockpit-weather-profile .cockpit-meteogram-pro__legend{padding-top:7px;border-top:1px solid color-mix(in srgb,var(--mg-plot-border) 52%,transparent)}
+@media(max-width:560px){.cockpit-weather-profile .cockpit-meteogram-pro__stage{border-radius:14px}.cockpit-weather-profile .selected-time-value-pill text{font-size:7.2px}}
+
 .forecast-meta-rain,.forecast-meta-rain b{color:var(--param-precipitation)}
 .forecast-meta-rain small{color:color-mix(in srgb,var(--param-precipitation) 72%,var(--muted))}
 .forecast-meta-sun{color:var(--param-sunshine)}
