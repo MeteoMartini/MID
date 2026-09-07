@@ -29,7 +29,7 @@ for(const token of [
  'code:part.displayCode',
  'summarizeDwdWarningsForDay(hours,day.date,elevation)',
  'hz=dailyHazards(d,hours,elevation,unit,1)',
- 'hz:strongestDailyHazards(dailyHazards(d,hours,elevation??0,unit,1))'
+ 'hz:strongestDailyHazards(widgetAutomaticHazardsForDay(d.date,automaticWidgetHazards,timezone))'
 ])if(!app.includes(token))failures.push(`Appweite Plausibilisierung/Warnlogik fehlt: ${token}`);
 for(const token of ['temperature:hour.temperature','const displayCode=precipitation.displayCode'])if(!route.includes(token))failures.push(`Routenwetter nicht zentral plausibilisiert: ${token}`);
 for(const token of ["from './precipitation';",'precipitationParts','precipitationAmountLabel','const part=precipitationParts({',"snowGrains:{short:'SG'",'cloud_cover_low'])if(!meteogram.includes(token))failures.push(`Meteogramm nicht zentral plausibilisiert: ${token}`);
@@ -39,7 +39,9 @@ if(!ensemble.includes('summarizeDwdWarningsForDay(hours,x.date,elevation)'))fail
 
 const outDir=path.join(root,'.daily-warning-test');
 await rm(outDir,{recursive:true,force:true});
-const compile=spawnSync('tsc',['--ignoreConfig','src/dwdWarnings.ts','--target','ES2022','--module','ES2022','--moduleResolution','Bundler','--strict','--skipLibCheck','--outDir','.daily-warning-test'],{cwd:root,stdio:'inherit',shell:process.platform==='win32'});
+const tscVersion=spawnSync('tsc',['--version'],{cwd:root,encoding:'utf8',shell:process.platform==='win32'});
+const tscMajor=Number.parseInt((tscVersion.stdout||tscVersion.stderr||'').match(/Version\s+(\d+)/)?.[1]||'0',10);
+const compile=spawnSync('tsc',[...(tscMajor>=7?['--ignoreConfig']:[]),'src/dwdWarnings.ts','--target','ES2022','--module','ES2022','--moduleResolution','Bundler','--strict','--skipLibCheck','--typeRoots','.daily-warning-test/types','--outDir','.daily-warning-test'],{cwd:root,stdio:'inherit',shell:process.platform==='win32'});
 if(compile.status!==0)process.exit(compile.status??1);
 const {summarizeDwdWarningsForDay}=await import(`${pathToFileURL(path.join(outDir,'dwdWarnings.js')).href}?v=${Date.now()}`);
 const samples=[];

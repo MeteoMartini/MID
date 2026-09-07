@@ -13,7 +13,7 @@ for(const token of [
  'function strongestDailyHazards(items:DailyHazardBadge[],limit=3)',
  'const strongestStage=Math.max(...items.map(item=>item.stageRank))',
  'items.filter(item=>item.stageRank===strongestStage)',
- 'hz:strongestDailyHazards(dailyHazards(d,hours,elevation??0,unit,1))',
+ 'hz:strongestDailyHazards(widgetAutomaticHazardsForDay(d.date,automaticWidgetHazards,timezone))',
  'widgetWidth=Math.max(420,128+n*88)'
 ])assert.ok(app.includes(token),`Widget-/Hazard-Vertrag fehlt: ${token}`);
 assert.ok(!app.includes('hz:dailyHazards(d,hours,elevation??0,unit,1).slice(0,3)'), 'Das Widget zeigt weiterhin einfach die ersten drei statt nur der höchsten Hazard-Stufe.');

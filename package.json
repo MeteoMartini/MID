@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.80.3",
+  "version": "0.9.80.5",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -215,6 +215,7 @@
     "test:dwd-precipitation-type-radar": "node scripts/test-dwd-precipitation-type-radar-09200.mjs",
     "test:code-revision-automation": "node scripts/test-code-revision-automation-09190.mjs",
     "test:climate-section": "node scripts/test-climate-section-09800.mjs",
+    "test:climate-hazard-widget": "node scripts/test-climate-hazard-widget-09804.mjs",
     "test:deployed-health": "node scripts/check-deployed-mid.mjs",
     "test:api-contracts": "node scripts/check-api-contracts.mjs",
     "test:build-budget": "node scripts/check-build-budget.mjs",

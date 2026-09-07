@@ -109,8 +109,10 @@ function forwardMin(samples:DwdWarningSample[],index:number,hours:number,selecto
 function forwardAllBelow(samples:DwdWarningSample[],index:number,hours:number,threshold:number){const values=forwardValues(samples,index,hours,sample=>finite(sample.temperature,Number.NaN)).filter(Number.isFinite);return values.length>=hours&&values.every(value=>value<threshold)}
 function liquidPrecipitation(sample:DwdWarningSample){const explicit=Math.max(0,finite(sample.rain))+Math.max(0,finite(sample.showers));if(explicit>0)return explicit;const code=finite(sample.code,-1);return[51,53,55,56,57,61,63,65,66,67,80,81,82,95,96,97,99].includes(code)?Math.max(0,finite(sample.precipitation)):0}
 function snowfall(sample:DwdWarningSample){return Math.max(0,finite(sample.snowfall))}
-function windThresholdExceeded(kmh:number,threshold:number){return threshold===50||threshold===140?kmh>threshold:kmh>=threshold}
-function windClassifications(kmh:number){return DWD_WIND_THRESHOLDS_KMH.map((item,index)=>({...item,stageRank:index+1})).filter(item=>windThresholdExceeded(kmh,item.threshold))}
+export function dwdWindThresholdExceededKmh(kmh:number,threshold:number){return threshold===50||threshold===140?kmh>threshold:kmh>=threshold}
+export function dwdWindWarningLevelKmh(kmh:number):0|DwdWarningLevel{if(!Number.isFinite(kmh))return 0;let level:0|DwdWarningLevel=0;for(const item of DWD_WIND_THRESHOLDS_KMH)if(dwdWindThresholdExceededKmh(kmh,item.threshold))level=Math.max(level,item.level) as DwdWarningLevel;return level}
+export function dwdWindWarningLevelKt(kt:number):0|DwdWarningLevel{return dwdWindWarningLevelKmh(Number(kt)*KMH_PER_KT)}
+function windClassifications(kmh:number){return DWD_WIND_THRESHOLDS_KMH.map((item,index)=>({...item,stageRank:index+1})).filter(item=>dwdWindThresholdExceededKmh(kmh,item.threshold))}
 function thresholdStages(value:number,level2:number,level3:number,level4:number){
  const stages:{level:DwdWarningLevel;threshold:number}[]=[];if(!Number.isFinite(value))return stages;
  if(value>=level2)stages.push({level:2,threshold:level2});if(value>=level3)stages.push({level:3,threshold:level3});if(value>level4)stages.push({level:4,threshold:level4});return stages;

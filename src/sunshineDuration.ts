@@ -108,3 +108,5 @@ export function sunshineMinutesValue(seconds:unknown,maximumMinutes=60){
 export function sunshineMinutesLabel(seconds:unknown,maximumMinutes=60){const value=sunshineMinutesValue(seconds,maximumMinutes);return value==='–'?value:`${value} min`}
 export function sunshineHoursValue(seconds:unknown){const value=finiteSunshineSeconds(seconds);return value===null?'–':sunshineHoursFormatter.format(Math.max(0,value)/SUNSHINE_HOUR_SECONDS)}
 export function sunshineHoursLabel(seconds:unknown){const value=sunshineHoursValue(seconds);return value==='–'?value:`${value} h`}
+export function sunshineWholeHoursValue(seconds:unknown){const value=finiteSunshineSeconds(seconds);return value===null?'–':String(Math.max(0,Math.round(value/SUNSHINE_HOUR_SECONDS)))}
+export function sunshineWholeHoursLabel(seconds:unknown){const value=sunshineWholeHoursValue(seconds);return value==='–'?value:`${value} h`}

@@ -1,0 +1,43 @@
+import {readFile} from 'node:fs/promises';
+import assert from 'node:assert/strict';
+const [app,climate,travel,dwd,sun,foundation,modern,pkgText,baselineText]=await Promise.all([
+ readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
+ readFile(new URL('../src/ClimatePanel.tsx',import.meta.url),'utf8'),
+ readFile(new URL('../src/travelPlanner.ts',import.meta.url),'utf8'),
+ readFile(new URL('../src/dwdWarnings.ts',import.meta.url),'utf8'),
+ readFile(new URL('../src/sunshineDuration.ts',import.meta.url),'utf8'),
+ readFile(new URL('../src/styles-src/00-foundation.css',import.meta.url),'utf8'),
+ readFile(new URL('../src/styles-src/30-modern.css',import.meta.url),'utf8'),
+ readFile(new URL('../package.json',import.meta.url),'utf8'),
+ readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')
+]);
+const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText);
+const need=(label,text,token)=>assert.ok(text.includes(token),`${label}: ${token}`);
+need('Kanonischer DWD-Grenzvertrag',dwd,"export function dwdWindThresholdExceededKmh(kmh:number,threshold:number){return threshold===50||threshold===140?kmh>threshold:kmh>=threshold}");
+need('Kanonische Böenstufe',dwd,'export function dwdWindWarningLevelKt');
+need('App nutzt zentrale Böenstufe',app,'function windDirectionWarningLevel(gust?:number){return dwdWindWarningLevelKt(Number(gust))}');
+need('Bergwetter nutzt zentrale Schwellen',app,'dwdWindThresholdExceededKmh(kmh,item.threshold)');
+need('Widget nutzt automatische MID-Hinweise',app,'automaticWidgetHazards=useMemo(()=>hazards(hours,undefined,elevation??0,unit)');
+need('Widget ordnet Zeitfenster tagesbezogen zu',app,'widgetAutomaticHazardsForDay(d.date,automaticWidgetHazards,timezone)');
+need('Widget-Hazardtage verwenden ISO-Lokaldate',app,'const first=localDateInZone(timezone,start),last=localDateInZone(timezone,end-1)');
+assert.ok(!app.includes('hz:strongestDailyHazards(dailyHazards(d,hours,elevation??0,unit,1))'),'Widget fällt auf den alten separaten Tageswarnpfad zurück.');
+need('Widget Sonnenschein ganzstündig',sun,'export function sunshineWholeHoursLabel');
+need('Widget verwendet Ganzstunden',app,'sunshineWholeHoursLabel(d.sunshineDuration)');
+need('Widget Böenfarbe folgt Warnstufe',app,'widgetmeta-wind warning-${dwdWindWarningLevelKt(d.gust)}');
+need('Winter Dezember bis Februar',climate,'Winter Dez–Feb');
+need('Bedeckungsklassen 1/8-nah',climate,"label:'Mittel · 4–5/8',max:62.5");
+need('Bedeckung 8/8 separat',climate,"label:'Bedeckt · 8/8',max:Infinity");
+need('Schneefalltage aus Tagesreihe',travel,'snowProbability:bucket.snowfall.length?bucket.snow/bucket.snowfall.length*100:NaN');
+need('Schneefalltag-Schwelle transparent',travel,'snowfall>=.1');
+need('Klima-Cache wegen Schemaänderung erneuert',travel,"mid:travel-climate:1991-2020:v6:");
+need('Windrose benennt Tagesbasis',climate,'Tagesbasis · Armlänge = Richtungshäufigkeit');
+need('Windrose behauptet keine Stundenstatistik',climate,'keine stündliche Häufigkeitsverteilung');
+need('Tmax-Klimafarbe separat',foundation,'--param-temperature-max-climate:');
+need('Mittel-Klimafarbe separat',foundation,'--param-temperature-mean-climate:');
+need('Tmin-Klimafarbe separat',foundation,'--param-temperature-min-climate:');
+need('Diagramm nutzt Tmax-Klimafarbe',modern,'climate-temp-max{stroke:var(--param-temperature-max-climate');
+need('Diagramm nutzt Mittel-Klimafarbe',modern,'climate-temp-mean{stroke:var(--param-temperature-mean-climate');
+need('Diagramm nutzt Tmin-Klimafarbe',modern,'climate-temp-min{stroke:var(--param-temperature-min-climate');
+assert.ok(pkg.scripts?.['test:climate-hazard-widget']==='node scripts/test-climate-hazard-widget-09804.mjs','Package-Testeintrag fehlt.');
+assert.ok(JSON.stringify(baseline).includes('scripts/test-climate-hazard-widget-09804.mjs'),'Baseline schützt die v0.9.80.4-Regression nicht.');
+console.log('MID v0.9.80.4 Klima-/Hazard-/Widget-Vertrag geprüft.');

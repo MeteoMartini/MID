@@ -1,6 +1,6 @@
 import {Fragment,useCallback,useEffect,useId,useLayoutEffect,useMemo,useRef,useState,type CSSProperties,type ReactNode} from 'react';
 import {ChevronDown,ChevronLeft,ChevronRight,ChevronUp,Clock3,Droplets,Info,SlidersHorizontal,Sun,ThermometerSun,Wind} from 'lucide-react';
-import {DWD_THERMAL_FEEL_COLORS,DWD_WARNING_COLORS,DWD_WIND_THRESHOLDS_KMH} from './dwdWarnings';
+import {DWD_THERMAL_FEEL_COLORS,DWD_WARNING_COLORS,DWD_WIND_THRESHOLDS_KMH,dwdWindWarningLevelKt} from './dwdWarnings';
 import {formatDecimalFixed,formatUvi} from './format';
 import {WeatherPictogram,weatherPictogramKind} from './WeatherPictogram';
 import {shortTermFogRisk} from './shortTermFogRisk';
@@ -93,7 +93,7 @@ function shortTermIntervalMinutes(point:Pick<ShortTermForecastPoint,'intervalLab
 function shortTermThunderRiskLabel(point:Pick<ShortTermForecastPoint,'thunderPercent'|'code'>){const percent=Math.round(Number(point.thunderPercent)||0),kind=weatherPictogramKind(point.code);if((kind==='thunder'||kind==='thunder-hail')&&percent<15)return'Gewittersignal · Wahrscheinlichkeit nicht quantifiziert';return percent>=70?`hoch · ${percent} %`:percent>=40?`erhöht · ${percent} %`:percent>=15?`gering · ${percent} %`:'kein signifikantes Risiko'}
 function shortTermPrecipitationDetail(point:Pick<ShortTermForecastPoint,'precipitation'|'rain'|'showers'|'snowfall'|'probability'|'code'|'temperature'|'dewPoint'|'humidity'|'cloud'|'lowCloud'|'intervalLabel'>){const parts=shortTermPrecipitationParts(point);return`${precipitationAmountLabel(point)} · ${Math.round(point.probability)} % · ${parts.weatherLabel}`}
 function shortTermWindDetail(point:Pick<ShortTermForecastPoint,'direction'|'wind'|'gust'>,unit:WindUnit){return`${cardinal(point.direction)} · ${wind(point.wind,unit)} · Böen ${wind(point.gust,unit)}`}
-function windWarningLevel(gustKt:number){const kmh=gustKt*KMH_PER_KT;let level=0;for(const threshold of DWD_WIND_THRESHOLDS_KMH)if(kmh>=threshold.threshold)level=Math.max(level,threshold.level);return level}
+function windWarningLevel(gustKt:number){return dwdWindWarningLevelKt(gustKt)}
 function compactGustLabel(gustKt:number,unit:WindUnit){if(!Number.isFinite(gustKt))return'G–';if(unit==='kmh')return`G${Math.round(gustKt*KMH_PER_KT)} km/h`;if(unit==='ms')return`G${Math.round(gustKt*.514444)} m/s`;if(unit==='mph')return`G${Math.round(gustKt*1.15078)} mph`;return`G${Math.round(gustKt)} kt`}
 
 function readActiveHorizon(availability:HorizonAvailability){try{const stored=localStorage.getItem(ACTIVE_HORIZON_KEY) as ForecastHorizon|null;if(stored&&horizonAvailable(stored,availability))return stored}catch{}return availability.shortTerm?'short-term':availability.sevenDay?'seven-day':'fourteen-day'}

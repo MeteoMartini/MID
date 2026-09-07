@@ -13,7 +13,7 @@ const need=(area,text,token)=>{if(!text.includes(token))failures.push(`${area}: 
 const forbid=(area,text,token)=>{if(text.includes(token))failures.push(`${area}: unerwünscht ${token}`)};
 
 for(const token of [
- "const BASE_CACHE_PREFIX='mid:travel-climate:1991-2020:v5:'",
+ "const BASE_CACHE_PREFIX='mid:travel-climate:1991-2020:v6:'",
  "models:'era5_seamless'",
  "temperature_unit:'celsius'",
  "precipitation_unit:'mm'",
@@ -46,7 +46,10 @@ if(!(baseline.requiredRegressionTests||[]).includes('scripts/test-travel-planner
 
 const compileDir=await mkdtemp(path.join(tmpdir(),'mid-travel-seamless-'));
 try{
- const compile=spawnSync('tsc',['--ignoreConfig','--pretty','false','--target','ES2022','--module','ESNext','--moduleResolution','Bundler','--strict','--skipLibCheck','--outDir',compileDir,path.resolve('src/vite-env.d.ts'),path.resolve('src/travelPlanner.ts')],{cwd:root,encoding:'utf8'});
+ await writeFile(path.join(compileDir,'mid-env.d.ts'),"interface ImportMetaEnv { readonly [key:string]: string|boolean|undefined }\ninterface ImportMeta { readonly env: ImportMetaEnv }\n");
+ const tscVersion=spawnSync('tsc',['--version'],{cwd:root,encoding:'utf8'});
+ const tscMajor=Number.parseInt((tscVersion.stdout||tscVersion.stderr||'').match(/Version\s+(\d+)/)?.[1]||'0',10);
+ const compile=spawnSync('tsc',[...(tscMajor>=7?['--ignoreConfig']:[]),'--pretty','false','--target','ES2022','--module','ESNext','--moduleResolution','Bundler','--strict','--skipLibCheck','--typeRoots',path.join(compileDir,'types'),'--outDir',compileDir,path.join(compileDir,'mid-env.d.ts'),path.resolve('src/travelPlanner.ts')],{cwd:root,encoding:'utf8'});
  if(compile.status!==0)failures.push(`TypeScript: ${compile.stdout||compile.stderr}`);
  else{
   const compiledPath=path.join(compileDir,'travelPlanner.js');

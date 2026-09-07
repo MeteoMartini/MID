@@ -1,3 +1,30 @@
+# MID v0.9.80.5
+
+## Extern
+- Der GitHub-Installer kann den aktuellen MID-Stand wieder veröffentlichen; die Wetterdarstellung und fachliche Logik aus v0.9.80.4 bleiben unverändert.
+- Die Prüfung des kompakten Widgets berücksichtigt dessen neue Böen-Warnfarben korrekt, ohne den Schutz vor abgeschnittenen Wetterwerten zu lockern.
+
+## Intern
+- CI-Hotfix nach Release-Lauf #934: zwei direkte TypeScript-Prüfungen erkennen TypeScript 7 und setzen dort den erforderlichen `--ignoreConfig`-Schalter; ältere lokale Compiler bleiben weiterhin lauffähig.
+- Die Nicht-Abschneiden-Regression erkennt die dynamische Widget-Windklasse `warning-*` und prüft weiterhin Regen-, Wind- und Böen-Teilzeilen.
+- Keine Änderung an Wetter-, Hazard-, Klima- oder Workerfachlogik gegenüber v0.9.80.4; Worker-/Service-Worker-Versionen sind lediglich releasesynchronisiert.
+
+# MID v0.9.80.4
+
+## Extern
+- Klima ist klarer lesbar: Höchst-, Mittel- und Tiefsttemperatur sowie Niederschlag haben dauerhaft unterschiedliche Farben.
+- Bedeckung wird in fünf verständlichen Anteilen gezeigt; Niederschlags- und Schneefalltage ergänzen die Monatswerte.
+- Die Windrose erklärt nun eindeutig, dass sie auf typischen Tageswindrichtungen basiert und wie sich ihre Arme nach Windstärke aufteilen.
+- Das MID-Widget verwendet dieselben automatischen Wetterhinweise und Böen-Warnstufen wie die App; Sonnenscheindauer wird dort platzsparend auf ganze Stunden gerundet.
+- Die Windwarnfarben sind zwischen Warnhinweisen, Windpfeilen, Forecast-Cockpit und Bergwetter vereinheitlicht.
+
+## Intern
+- Zentraler DWD-Windschwellenvertrag für alle beteiligten Oberflächen; 50 und 140 km/h bleiben als strikte „über“-Grenzen erhalten.
+- Widget-Hinweise werden aus den kanonischen probabilistischen Hazard-Zeitfenstern abgeleitet.
+- Klima-Cache auf Schema v6 erweitert, um Schneefalltage ohne zusätzliche Netzabfrage aus derselben Tagesreihe zu bestimmen.
+- Eigene Klima-Farbtokens für Tmax, Mittel und Tmin sowie neue Regression für Klima/Hazard/Widget.
+- Keine fachliche Workeränderung.
+
 # MID v0.9.80.1
 
 ## Extern

@@ -14,7 +14,7 @@ for(const token of [
  'item.stageRank>current.stageRank',
  'compactHz=highestDailyHazardsByKind(hz)',
  '<ForecastHazards hazards={compactHz}/>',
- 'hz:strongestDailyHazards(dailyHazards(d,hours,elevation??0,unit,1))'
+ 'hz:strongestDailyHazards(widgetAutomaticHazardsForDay(d.date,automaticWidgetHazards,timezone))'
 ])need('7-Tage-Warnfilter',app,token);
 need('Package-Test',pkg,'test:forecast-highest-hazard-per-kind');
 need('Baseline-Test',baseline,'scripts/test-forecast-highest-hazard-per-kind-081812.mjs');
