@@ -1,3 +1,15 @@
+## v0.9.79.14 – CI-Buildfix nach Release #925
+- GitHub-Release #925 scheiterte im TypeScript-Parser an einer rohen `<50 %`-Schreibweise innerhalb eines JSX-Hilfetexts in `App.tsx`.
+- Die Formulierung lautet nun parserfest „unter 50 % Bewölkung“; die fachliche Skybar-No-gap-Regel aus v0.9.79.13 bleibt unverändert.
+- Der bestehende No-gap-Pflichttest schützt zusätzlich gegen eine erneute rohe `<50 %`-Schreibweise im JSX.
+- Keine fachliche Änderung an Forecast, Skybar-Schwellen, Worker oder Datenquellen.
+
+## v0.9.79.13 – Skybar tagsüber lückenfrei
+- Zentrale Ursache der sichtbaren Tageslücken behoben: direkte Sonnenscheindauer ≤50 % plus Gesamtbewölkung <50 % konnte bislang weder Gelb noch Grau erzeugen.
+- Bewertbare Tages-Slots erhalten nun immer ein Grundband; im kritischen Zwischenbereich ein graues Mindestband der ersten Dickenstufe.
+- 24-h-Tagesdetail, 24-h-Profil, 7-Tage-Kurve und Tageskarten profitieren über dieselbe zentrale Skybar-Engine.
+- Klare Nächte und echte Datenlücken bleiben bewusst ausnehmbar; Niederschlagsfarben/-Overlay und vier Dickenstufen bleiben unverändert.
+
 ## v0.9.79.12 – CI-Regressionsfix nach Release #923
 - Vier historische Regressionen auf den seit v0.9.79.11 zentralen `forecastRegime.ts`-Vertrag umgestellt.
 - Keine Rückkehr zu paralleler Regimelogik in `ForecastCockpit.tsx`; Farben und Klassifikation bleiben zentral.

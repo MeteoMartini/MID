@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.79.12",
+  "releaseVersion": "0.9.79.14",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -430,7 +430,8 @@
     "scripts/test-modern-focus-detail-hierarchy-09796.mjs",
     "scripts/test-skybar-four-thickness-appwide-09799.mjs",
     "scripts/test-weather-regime-color-consistency-097910.mjs",
-    "scripts/test-weather-regime-shared-contract-097911.mjs"
+    "scripts/test-weather-regime-shared-contract-097911.mjs",
+    "scripts/test-skybar-daylight-no-gaps-097913.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -786,7 +787,8 @@
     "scripts/test-modern-focus-detail-hierarchy-09796.mjs",
     "scripts/test-skybar-four-thickness-appwide-09799.mjs",
     "scripts/test-weather-regime-color-consistency-097910.mjs",
-    "scripts/test-weather-regime-shared-contract-097911.mjs"
+    "scripts/test-weather-regime-shared-contract-097911.mjs",
+    "scripts/test-skybar-daylight-no-gaps-097913.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -1335,7 +1337,10 @@
     "src/forecastRegime.ts",
     "scripts/test-weather-regime-shared-contract-097911.mjs",
     "MID_IMPLEMENTATION_0.9.79.11.md",
-    "MID_IMPLEMENTATION_0.9.79.12.md"
+    "MID_IMPLEMENTATION_0.9.79.12.md",
+    "scripts/test-skybar-daylight-no-gaps-097913.mjs",
+    "MID_IMPLEMENTATION_0.9.79.13.md",
+    "MID_IMPLEMENTATION_0.9.79.14.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1378,7 +1383,8 @@
     "scripts/test-fourteen-day-header-density-097880.mjs",
     "scripts/test-skybar-four-thickness-appwide-09799.mjs",
     "scripts/test-weather-regime-color-consistency-097910.mjs",
-    "scripts/test-weather-regime-shared-contract-097911.mjs"
+    "scripts/test-weather-regime-shared-contract-097911.mjs",
+    "scripts/test-skybar-daylight-no-gaps-097913.mjs"
   ],
   "protectedFiles": [
     "scripts/test-travel-planner-era5-seamless-units-09652.mjs",
@@ -1779,9 +1785,10 @@
     "scripts/test-fourteen-day-header-density-097880.mjs",
     "scripts/test-skybar-four-thickness-appwide-09799.mjs",
     "scripts/test-weather-regime-color-consistency-097910.mjs",
-    "scripts/test-weather-regime-shared-contract-097911.mjs"
+    "scripts/test-weather-regime-shared-contract-097911.mjs",
+    "scripts/test-skybar-daylight-no-gaps-097913.mjs"
   ],
-  "version": "0.9.79.12",
+  "version": "0.9.79.14",
   "updatedAt": "2026-09-06T16:53:00.000Z",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
