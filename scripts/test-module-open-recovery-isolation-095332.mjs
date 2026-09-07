@@ -15,9 +15,9 @@ const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw);
 assert.equal(pkg.version,baseline.releaseVersion,'Release und Baseline müssen synchron sein.');
 
 // Einmalige Heilungsmigration: alle Hauptsektionen werden geschlossen, einschließlich Langfrist.
-assert.match(app,/const MODULE_OPEN_CONTRACT_KEY='mid:module-open-contract:v5'/,'Modulvertrag v5 fehlt.');
+assert.match(app,/const MODULE_OPEN_CONTRACT_KEY='mid:module-open-contract:v6'/,'Modulvertrag v6 fehlt.');
 assert.match(app,/MODULES_DEFAULT_CLOSED=\['ventilation','mountain','water','composite','ensemble','long-range'/,'Langfrist fehlt in der v5-Heilungsmigration.');
-assert.match(app,/for\(const id of MODULES_DEFAULT_CLOSED\)persistModuleOpen\(id,false\)/,'v5 muss bestehende kontaminierte Offenstände einmalig schließen.');
+assert.match(app,/for\(const id of MODULES_DEFAULT_CLOSED\)persistModuleOpen\(id,false\)/,'v6 muss bestehende kontaminierte Offenstände einmalig schließen.');
 assert.match(app,/mid:module-open-contract:v4/,'v4 muss als Legacy-Vertrag migriert werden.');
 
 // Nutzer-Toggle muss vor einem möglichen App-Hintergrundwechsel synchron in LocalStorage landen.
@@ -37,4 +37,4 @@ assert.match(portable,/if\(\/\^mid:module:\[\^:\]\+:open\$\/\.test\(key\)\)retur
 assert.ok(stateContract.includes('Recovery-/StorageSafety-Spiegel'),'State-Integritätsvertrag dokumentiert die Recovery-Isolation nicht.');
 assert.ok(baseline.requiredRegressionTests.includes('scripts/test-module-open-recovery-isolation-095332.mjs'),'Neue Sektions-Recovery-Regression ist nicht Required.');
 
-console.log(`MID v${pkg.version}: Hauptsektionszustände sind aus Sync, Recovery-Snapshot und StorageSafety-Spiegel isoliert; v5-Heilungsmigration geprüft.`);
+console.log(`MID v${pkg.version}: Hauptsektionszustände sind aus Sync, Recovery-Snapshot und StorageSafety-Spiegel isoliert; v6-Heilungsmigration geprüft.`);

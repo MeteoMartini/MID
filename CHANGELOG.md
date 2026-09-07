@@ -1,3 +1,28 @@
+# MID v0.9.80.1
+
+## Extern
+- Änderungen aus dem neueren Klima-/Konzeptstand v0.9.80.0 mit dem zuvor korrigierten v0.9.79.20-Release zusammengeführt.
+- Die neue, standardmäßig geschlossene Klima-Sektion bleibt vollständig erhalten; Warn-/LT- und CI-Korrekturen aus v0.9.79.20 bleiben unverändert wirksam.
+
+## Intern
+- Vor dem Merge wurden die drei in Release #929 korrigierten Regressionen bytegleich gegen v0.9.79.20 geprüft.
+- Klima-Komponente und Klima-Regressionsprüfung sind jetzt zusätzlich in der Baseline als Pflichtbestandteile verankert, damit sie bei späteren Release-Merges nicht still verloren gehen.
+- Keine neue fachliche Workeränderung gegenüber v0.9.80.0.
+
+# MID v0.9.80.0
+
+## Extern
+- Neue, standardmäßig geschlossene Sektion „Klima“ für den gewählten Ort.
+- Klimanormalen 1991–2020 für Tmax, Tmin, Mitteltemperatur, Niederschlag, mittleren Wind und Bedeckungsgrad.
+- Frei wählbare, auch jahresübergreifende Monatszeiträume; Direktwahl für Dezember–März, Sommer und Gesamtjahr.
+- Gemeinsamer Jahresverlauf, Monatskarten und Windrose in MID-Parameterfarben; für Mobil-Hoch- und Querformat optimiert.
+
+## Intern
+- Klimadaten werden erst beim Öffnen geladen, ortsbezogen gerastert und bis zu drei Jahre lokal wiederverwendet.
+- Ein einzelner ERA5-Seamless-Tagesabruf versorgt alle Darstellungen; Monatsfilter und Windrose werden ohne weitere Netz- oder Workerabrufe lokal berechnet.
+- Windrichtungen werden zirkulär gemittelt; Quellen- und Grenzenhinweis trennt modellierte Klimatologie klar von Vorhersage und lokaler Messung.
+- Keine fachliche Workeränderung.
+
 # MID v0.9.79.20
 
 - CI-Fix für Release #929: drei veraltete Regressionstests an die bereits beabsichtigte v0.9.79.19-Darstellung von Warnstufe, Warnzeitfenster und `LT` angepasst.

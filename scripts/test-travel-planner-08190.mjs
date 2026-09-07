@@ -66,7 +66,7 @@ for(const token of [
  'CACHE_MAX_AGE=3*365*86400000',
  'CLIMATE_GRID_DEGREES=.1',
  'sharedRequest<T>',
- "DAILY_VARIABLES=['weather_code','temperature_2m_max','temperature_2m_min','precipitation_sum','sunshine_duration','daylight_duration','wind_speed_10m_max','snowfall_sum']"
+ "DAILY_VARIABLES=['weather_code','temperature_2m_max','temperature_2m_min','precipitation_sum','sunshine_duration','daylight_duration','wind_speed_10m_max','wind_speed_10m_mean','wind_direction_10m_dominant','cloud_cover_mean','snowfall_sum']"
 ])need('Reiseplaner-Logik',logic,token);
 
 for(const token of [

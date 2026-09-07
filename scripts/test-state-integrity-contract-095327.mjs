@@ -42,10 +42,10 @@ assert.match(sync,/values\[FAVORITES_SHADOW_KEY\]=mergedFavorites\.value/,'Gemer
 assert.ok(!eventCenter.includes("mid:favorites"),'Event-Center darf den Ortsfavoritenspeicher nicht verwenden.');
 
 // Hauptsektionen: ein Vertrag, default closed, kein Startup-Hash oder Geräte-Sync als Öffnungsursache.
-assert.match(app,/const MODULE_OPEN_CONTRACT_KEY='mid:module-open-contract:v5'/,'Modulvertrag v5 fehlt.');
-assert.match(app,/MODULES_DEFAULT_CLOSED=\['ventilation','mountain','water','composite','ensemble','long-range','forecast-verification','travel-planner','event-planner','flight-meteorology','weather-maps','widget'\]/,'Hauptsektionen sind nicht einheitlich default-closed.');
+assert.match(app,/const MODULE_OPEN_CONTRACT_KEY='mid:module-open-contract:v6'/,'Modulvertrag v6 fehlt.');
+assert.match(app,/MODULES_DEFAULT_CLOSED=\['ventilation','mountain','water','composite','ensemble','long-range','climate','forecast-verification','travel-planner','event-planner','flight-meteorology','weather-maps','widget'\]/,'Hauptsektionen sind nicht einheitlich default-closed.');
 assert.match(app,/if\(\/\^#mid-section-\[a-z-\]\+\$\/\.test\(location\.hash\)\)history\.replaceState/,'Dashboard-Hash muss vor der Vertragsprüfung bei jedem Bootstrap neutralisiert werden.');
-for(const id of ['mountain','water','composite','ensemble','long-range','forecast-verification','travel-planner','event-planner','flight-meteorology','weather-maps','widget']){
+for(const id of ['mountain','water','composite','ensemble','long-range','climate','forecast-verification','travel-planner','event-planner','flight-meteorology','weather-maps','widget']){
  assert.match(app,new RegExp(`id="${id}"[\\s\\S]{0,220}defaultOpen=\\{false\\}`),`${id} folgt nicht dem gemeinsamen Default-closed-Vertrag.`);
 }
 assert.match(portable,/if\(\/\^mid:module:\[\^:\]\+:open\$\/\.test\(key\)\)return false/,'Hauptmodul-Offenzustände müssen gerätelokal bleiben.');

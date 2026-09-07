@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.79.20",
+  "version": "0.9.80.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -214,6 +214,7 @@
     "test:cockpit-meteogram-hourly-detail": "node scripts/test-cockpit-meteogram-hourly-detail-09187.mjs",
     "test:dwd-precipitation-type-radar": "node scripts/test-dwd-precipitation-type-radar-09200.mjs",
     "test:code-revision-automation": "node scripts/test-code-revision-automation-09190.mjs",
+    "test:climate-section": "node scripts/test-climate-section-09800.mjs",
     "test:deployed-health": "node scripts/check-deployed-mid.mjs",
     "test:api-contracts": "node scripts/check-api-contracts.mjs",
     "test:build-budget": "node scripts/check-build-budget.mjs",

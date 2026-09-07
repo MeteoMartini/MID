@@ -24,7 +24,7 @@ for(const token of [
  "daily:DAILY_VARIABLES",
  "if(!includeSnowDepth)return dataset;"
 ])need('Abrufbudget-Logik',logic,token);
-for(const forbidden of ['temperature_2m_mean','precipitation_hours','cloud_cover_mean'])if(logic.includes(`DAILY_VARIABLES=[`)&&logic.slice(logic.indexOf('DAILY_VARIABLES=['),logic.indexOf('].join',logic.indexOf('DAILY_VARIABLES=['))).includes(forbidden))failures.push(`Unnötige Basisvariable weiterhin aktiv: ${forbidden}`);
+for(const forbidden of ['temperature_2m_mean','precipitation_hours'])if(logic.includes(`DAILY_VARIABLES=[`)&&logic.slice(logic.indexOf('DAILY_VARIABLES=['),logic.indexOf('].join',logic.indexOf('DAILY_VARIABLES=['))).includes(forbidden))failures.push(`Unnötige Basisvariable weiterhin aktiv: ${forbidden}`);
 for(const token of [
  'Schneehöhe ist das Optimierungskriterium',
  'Kumulierter Schneefall wird separat zusätzlich ausgewiesen',
@@ -69,7 +69,7 @@ try{
   if(parsedUrl.searchParams.get('models')!=='era5_seamless')failures.push(`Falsches Klimamodell: ${parsedUrl.searchParams.get('models')}`);
   if(parsedUrl.searchParams.get('wind_speed_unit')!=='kn')failures.push(`Wind nicht in kanonischen MID-Knoten angefordert: ${parsedUrl.searchParams.get('wind_speed_unit')}`);
   if(parsedUrl.searchParams.get('temperature_unit')!=='celsius'||parsedUrl.searchParams.get('precipitation_unit')!=='mm')failures.push('Explizite kanonische Temperatur-/Niederschlagseinheiten fehlen.');
-  for(const forbidden of ['temperature_2m_mean','precipitation_hours','cloud_cover_mean','relative_humidity_2m_mean'])if(query.includes(forbidden))failures.push(`Unnötige Variable tatsächlich angefordert: ${forbidden}`);
+  for(const forbidden of ['temperature_2m_mean','precipitation_hours','relative_humidity_2m_mean'])if(query.includes(forbidden))failures.push(`Unnötige Variable tatsächlich angefordert: ${forbidden}`);
  }
 }finally{await rm(compileDir,{recursive:true,force:true})}
 
