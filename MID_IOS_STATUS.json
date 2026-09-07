@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-09-07T16:19:40.060Z",
-  "releaseVersion": "0.9.80.5",
+  "updatedAt": "2026-09-07T18:19:27.949Z",
+  "releaseVersion": "0.9.80.7",
   "sourceBaseline": {
     "professionalVersion": "0.9.77.26",
     "workerVersion": "0.9.77.26",
@@ -128,14 +128,15 @@
     "precipitation-forward-slot-presentation-0.9.78.46",
     "warning-hybrid-uncertainty-0.9.78.49",
     "skybar-sunshine-time-alignment-merged-with-buffered-satellite-playback-0.9.78.82",
-    "climate-hazard-widget-contract-0.9.80.4"
+    "climate-hazard-widget-contract-0.9.80.4",
+    "shared-widget-pop-climate-readability-0.9.80.6"
   ],
   "nextMilestone": "macos-xcode-simulator-quality-assurance",
   "validation": {
-    "browserBuild": "v0.9.80.5: GitHub-Lauf #934 bestätigte für den fachlich identischen v0.9.80.4-Stand erfolgreichen TypeScript-Projektcheck und Vite-Produktionsbuild; der Lauf scheiterte erst an drei nachgelagerten Regressionen. v0.9.80.5 korrigiert ausschließlich diese CI-Verträge.",
-    "typescript": "v0.9.80.5: Isolierte Testcompiles erkennen die tsc-Hauptversion und setzen unter TypeScript 7 den erforderlichen --ignoreConfig-Schalter; lokale Rückwärtskompatibilität bleibt erhalten.",
-    "workerSyntax": "v0.9.80.5: Maintenance-Aggregate synchron; worker.js und worker/metar-proxy.js bytegleich. Keine funktionale Workeränderung gegenüber v0.9.80.4.",
-    "regressions": "v0.9.80.5: Die drei in GitHub-Release #934 fehlgeschlagenen Regressionen sind nach dem Hotfix gezielt grün; Versions-, Aggregate-, Maintenance- und Release-Lineage-Verträge werden zusätzlich geprüft.",
+    "browserBuild": "v0.9.80.6: kein neuer vollständiger lokaler Vite-Build ohne installierte npm-Dependencies; die vier geänderten TS/TSX-Dateien wurden syntaktisch transpiliert. Der unmittelbar vorausgehende v0.9.80.5-Stand ist auf mid-stable installiert.",
+    "typescript": "v0.9.80.6: chartMath, App, ForecastCockpit und ClimatePanel mit TypeScript transpileModule fehlerfrei; die TypeScript-7-CI-Verträge aus v0.9.80.5 bleiben unverändert.",
+    "workerSyntax": "v0.9.80.6: Maintenance-Aggregate synchron; worker.js und worker/metar-proxy.js node --check-grün und bytegleich. Keine funktionale Workeränderung.",
+    "regressions": "v0.9.80.6: 13 gezielte Release-/UI-/Intervall-/Farb-/Lineage-Regressionen grün; Sunshine-Gesamttest lokal nur wegen fehlendem typescript-strada nicht startbar, betroffene Widget-Pille separat regressionsgeschützt.",
     "capacitorSync": "Kein neuer cap copy/sync ios in dieser isolierten Laufzeit, da kein vollständiger Vite-Build ohne erfolgreich installierte npm-Dependencies möglich ist. Die Änderungen liegen im gemeinsamen React/Vite-Fachkern; die eingebettete native Webkopie wird nicht künstlich umetikettiert.",
     "xcodeProjectStructure": "Gemeinsamer Capacitor-iOS-Wrapper, Light-/Dark-AppIcon- und Splash-Kataloge, Privacy-Manifeste und MIDWidgets-Struktur bleiben erhalten; keine neue native Berechtigung oder Capability aktiviert.",
     "xcodeAppleSdkBuild": "required-next-gate-macos-xcode-simulator; includes Apple SDK build, simulator launch, Privacy Report inspection and post-sync structure verification."
@@ -151,7 +152,7 @@
     ],
     "approved": false
   },
-  "validationNote": "v0.9.80.5 ist ein reiner CI-/Release-Hotfix für GitHub-Lauf #934. Wetter-, Klima-, Hazard- und Widget-Fachlogik aus v0.9.80.4 bleiben unverändert; korrigiert werden TypeScript-7-Testhüllen und die Erkennung der dynamischen Widget-Windwarnklasse. Keine funktionale Workeränderung.",
+  "validationNote": "v0.9.80.6 präzisiert ausschließlich die gemeinsame React/Vite-Darstellung: Widget-Sonnenpille zentriert, PoP-Linien monoton geglättet bei unveränderter Intervallsemantik sowie lesbarere Klima-Bedeckung/Farben/Tooltips. Keine funktionale Workeränderung; native iOS-Webassets werden erst im separaten iOS-Synchronisationsschritt neu gebaut.",
   "completedMilestones": [
     "ci-regression-contract-hotfix-0.9.76.22",
     "ruc-scheduler-resilience-source-preparation-0.9.76.24",

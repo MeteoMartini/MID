@@ -12,8 +12,8 @@ assert.equal(baseline.releaseVersion,pkg.version);
 assert.equal(pkg.scripts?.['test:day-detail-probability-wind-contrast'],`node ${test}`);
 for(const key of ['requiredRegressionTests','regressionTests','requiredFiles'])assert.ok(baseline[key].includes(test),`${test} fehlt in ${key}.`);
 
-assert.ok(app.includes("const probabilityPath=showProbability?p.reduce"),'Niederschlagswahrscheinlichkeit muss unabhängig von vorhandenen Niederschlagsbalken als eigene Intervallkurve erzeugt werden.');
-assert.ok(app.includes("const start=xAt(i),end=slotEndAt(i),yValue=yProb(x.probability)"),'Niederschlagswahrscheinlichkeit muss die seit v0.9.79.16 verbindliche Vorwärtsintervall-Geometrie verwenden.');
+assert.ok(app.includes("probabilityCurvePoints=showProbability&&p.length")&&app.includes("probabilityPath=showProbability?monotoneSvgPath(probabilityCurvePoints):''"),'Niederschlagswahrscheinlichkeit muss unabhängig von vorhandenen Niederschlagsbalken als eigene geglättete Kurve erzeugt werden.');
+assert.ok(app.includes("{x:(xAt(index)+slotEndAt(index))/2,y:yProb(item.probability)}"),'Die geglättete Niederschlagswahrscheinlichkeit muss an den Mittelpunkten der verbindlichen Vorwärtsslots verankert bleiben.');
 assert.ok(app.includes("showRainSection=showRainBars||showProbability"),'Der Niederschlagsbereich muss auch ohne Mengenbalken für die Wahrscheinlichkeitskurve sichtbar bleiben.');
 assert.ok(app.includes('{showProbability&&<g className="detail-probability-line"'),'Die Wahrscheinlichkeitskurve muss ausschließlich von showProbability abhängen.');
 assert.ok(!app.includes('showProbability&&!showRainBars'),'Niederschlagsbalken dürfen die Wahrscheinlichkeitskurve nicht mehr unterdrücken.');
@@ -29,4 +29,4 @@ assert.ok(cockpit.includes('.cockpit-short-chart .svg-wind-direction-arrow line,
 for(const token of ['.svg-wind-direction-arrow{color:var(--param-wind);stroke:currentColor','--detail-probability-halo:rgba(10,35,55,.78)','.cockpit-short-chart .svg-wind-direction-arrow line'])assert.ok(styles.includes(token),`Generiertes Styles-Aggregat ist nicht synchron: ${token}`);
 
 for(const token of ['Niederschlagswahrscheinlichkeit','dunklen Ansicht','Windpfeile'])assert.ok(implementation.includes(token),`Umsetzungsnachweis fehlt: ${token}`);
-console.log(`MID v${pkg.version}: Tagesansicht zeigt die Niederschlagswahrscheinlichkeit unabhängig von Mengenbalken als Vorwärtsintervall und kontrastreiche Windpfeile in Hell/Dunkel.`);
+console.log(`MID v${pkg.version}: Tagesansicht zeigt eine monoton geglättete, an Vorwärtsslots verankerte Niederschlagswahrscheinlichkeit und kontrastreiche Windpfeile in Hell/Dunkel.`);

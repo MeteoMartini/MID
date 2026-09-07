@@ -3982,3 +3982,20 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
 /* MID v0.9.80.4 · Klima-/Widget-Verträge */
 .climate-summary-detail{grid-column:2;display:block;color:var(--muted);font-size:8.5px;font-style:normal;line-height:1.25;white-space:normal}
 .widgetmeta-wind.warning-1 small{color:#e6c229}.widgetmeta-wind.warning-2 small{color:#ef8d32}.widgetmeta-wind.warning-3 small{color:#e74a4a}.widgetmeta-wind.warning-4 small{color:#9b59c6}
+
+/* MID v0.9.80.6 · Widget-Zentrierung, geglättete PoP-Kurve und lesbare Klimagrafik. */
+.weatherwidget.modern.compact .widgetmeta-sun{display:flex!important;align-items:center;justify-content:center;min-height:26px;text-align:center}
+.weatherwidget.modern.compact .widgetmeta-sun>b{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:16px;line-height:1;white-space:nowrap}
+.weatherwidget.modern.compact .widgetmeta-sun>b>svg{flex:0 0 auto}
+.climate-cloud-shares .climate-cloud-stack .clear{background:#f4f7f9}.climate-cloud-shares .climate-cloud-stack .few{background:#dce2e6}.climate-cloud-shares .climate-cloud-stack .medium{background:#b8c0c6}.climate-cloud-shares .climate-cloud-stack .high{background:#87939c}.climate-cloud-shares .climate-cloud-stack .overcast{background:#596773}
+.climate-cloud-legend span{min-height:44px;padding:6px 7px;border:1px solid color-mix(in srgb,var(--border) 92%,transparent);border-radius:9px;background:color-mix(in srgb,var(--surface) 96%,var(--s2));color:var(--text)!important;line-height:1.18}
+.climate-cloud-legend span.clear,.climate-cloud-legend span.few,.climate-cloud-legend span.medium,.climate-cloud-legend span.high,.climate-cloud-legend span.overcast{background:color-mix(in srgb,var(--surface) 96%,var(--s2))}
+.climate-cloud-legend .clear i{background:#f4f7f9}.climate-cloud-legend .few i{background:#dce2e6}.climate-cloud-legend .medium i{background:#b8c0c6}.climate-cloud-legend .high i{background:#87939c}.climate-cloud-legend .overcast i{background:#596773}
+.climate-cloud-legend b{color:var(--text)!important;font-weight:900}.climate-cloud-legend i{border-color:color-mix(in srgb,var(--text) 18%,var(--border))}
+:root[data-theme=light] .climate-temp-mean,:root[data-theme=light] .climate-legend .mean,:root[data-theme=light] .climate-summary .temperature .tmean,:root[data-theme=light] .climate-month-grid .tmean{color:#111827;stroke:#111827}
+:root[data-theme=light] .climate-temp-min,:root[data-theme=light] .climate-legend .min,:root[data-theme=light] .climate-summary .temperature .tmin,:root[data-theme=light] .climate-month-grid .tmin{color:#174f9e;stroke:#174f9e}
+.climate-value-overlay>rect{fill:var(--surface);fill-opacity:.985;stroke:color-mix(in srgb,var(--primary) 42%,var(--border));stroke-width:1;filter:drop-shadow(0 6px 14px rgba(0,0,0,.22))}
+.climate-value-overlay text{font-size:9.4px;font-weight:820;paint-order:stroke fill;stroke:var(--surface);stroke-width:1.7px;stroke-linejoin:round}
+.climate-value-overlay .title{fill:var(--text);font-size:10.5px;font-weight:950;stroke-width:2px}.climate-value-overlay .max{fill:var(--param-temperature-max-climate,#a86d16)}.climate-value-overlay .mean{fill:var(--param-temperature-mean-climate,#111827)}.climate-value-overlay .min{fill:var(--param-temperature-min-climate,#174f9e)}.climate-value-overlay .rain{fill:var(--param-precipitation,#2476c2);font-weight:900}
+.cockpit-weather-profile .probability-line,.adaptive-detail-chart .probability-line{stroke-linecap:round;stroke-linejoin:round}
+@media(max-width:620px){.climate-cloud-legend span{min-height:40px;padding:5px 6px}.climate-value-overlay text{font-size:9px}.climate-value-overlay .title{font-size:10px}}

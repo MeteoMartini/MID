@@ -14,7 +14,7 @@ import type {StationAnalysisField} from './sourceQuality';
 import {representativeDetailPictograms} from './detailPictograms';
 import {getMidUpdateStatus,repairMidCache,resetMidServiceWorker,rollbackMidVersion,type MidUpdateStatus} from './pwa';
 import {DWD_THERMAL_FEEL_COLORS,DWD_WARNING_COLORS,DWD_WIND_THRESHOLDS_KMH,dwdWindThresholdExceededKmh,dwdWindWarningLevelKt,formatDwdWarningCompactValue,formatDwdWarningDetail,formatDwdWarningDirection,formatDwdWindValue,summarizeDwdWarningsForDay,type DwdWarningKind,type DwdWarningLevel} from './dwdWarnings';
-import {clamp,nicePositiveRange,niceRange} from './chartMath';
+import {clamp,monotoneSvgPath,nicePositiveRange,niceRange} from './chartMath';
 import {combineThunderstormInformation,type ThunderInfo,type ThunderInfoPlace} from './thunderstorm';
 import {combineHeavyRain,loadHeavyRainBase,type HeavyRainBase,type HeavyRainInfo} from './heavyRain';
 import {radarHistory,type RadarHistory} from './radarHistory';
@@ -1484,7 +1484,7 @@ function Forecast({days,hours,minutes15,climate,selected:selectedSeed,setSelecte
  const apparentPath=showApparent?p.map((x,i)=>`${i?'L':'M'} ${xAt(i)} ${yTemp(x.apparent)}`).join(' '):'';
  const dewPointPath=showDewPoint?p.map((x,i)=>`${i?'L':'M'} ${xAt(i)} ${yTemp(x.dewPoint)}`).join(' '):'';
  const pressurePath=showPressure?p.map((x,i)=>({x,i})).filter(({x})=>Number.isFinite(x.pressure)).map(({x,i},index)=>`${index?'L':'M'} ${xAt(i)} ${yPressure(x.pressure)}`).join(' '):'';
- const probabilityPath=showProbability?p.reduce((path,x,i)=>{const start=xAt(i),end=slotEndAt(i),yValue=yProb(x.probability);return `${path}${i?' L':'M'} ${start} ${yValue} L ${end} ${yValue}`},''):'';
+ const probabilityCurvePoints=showProbability&&p.length?[{x:xAt(0),y:yProb(p[0].probability)},...p.map((item,index)=>({x:(xAt(index)+slotEndAt(index))/2,y:yProb(item.probability)})),{x:slotEndAt(p.length-1),y:yProb(p[p.length-1].probability)}]:[],probabilityPath=showProbability?monotoneSvgPath(probabilityCurvePoints):'';
  const windPath=showWind?p.map((x,i)=>`${i?'L':'M'} ${xAt(i)} ${yWind(x.wind)}`).join(' '):'';
  const gustPath=showGust?p.map((x,i)=>`${i?'L':'M'} ${xAt(i)} ${yWind(x.gust)}`).join(' '):'';
  const areaPath=showTemperature?`${tempPath} L ${xAt(p.length-1)} ${tempBottom} L ${xAt(0)} ${tempBottom} Z`:'';

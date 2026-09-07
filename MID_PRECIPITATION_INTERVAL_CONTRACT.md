@@ -142,6 +142,6 @@ Verbindlich gilt daher:
 
 - Skybar-Segmente mit expliziten Zeitpositionen beginnen exakt am sichtbaren Slotstart `T` und enden an `T+Δ`.
 - Stündliche Niederschlagsbalken liegen vollständig innerhalb desselben Stundenfensters.
-- Niederschlagswahrscheinlichkeit wird im 24-h-Profil als Intervallgröße stufenförmig über dem Bezugsfenster gezeichnet, nicht als linear interpolierter Zeitpunktwert.
+- Niederschlagswahrscheinlichkeit bleibt fachlich eine Intervallgröße. Für die Darstellung darf die Linie ab v0.9.80.6 **monoton geglättet** durch die Mittelpunkte der zugehörigen Vorwärtsslots geführt werden. Die Glättung ist ausschließlich eine visuelle Führung; Prozentwert, Auswahl/Tooltip und Intervallbeschriftung bleiben dem vollständigen Bezugsfenster `[S,S+Δ]` zugeordnet. Ein generischer Spline mit Überschwingen oder eine Umdeutung zu sub-stündlichen Wahrscheinlichkeiten ist unzulässig.
 - Die 24-h-Tagesachse reserviert die rechte Kante für 24:00; der 23:00-Punkt liegt am Beginn des letzten Slots 23:00–24:00.
 - Instantane Größen bleiben auf ihrer Zeitmarke; Akkumulations-/Wahrscheinlichkeitsfelder verwenden die Vorwärtsintervall-Geometrie.

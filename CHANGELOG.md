@@ -1,3 +1,31 @@
+# MID v0.9.80.7
+
+## Extern
+- Die parallelen Änderungen aus den beiden zuletzt gleich bezeichneten v0.9.80.6-Ständen sind in einem eindeutigen Release zusammengeführt.
+- Kompositbild: Radar und Satellit laufen über eine gemeinsame reale Zeitachse, bereiten den nächsten Stand vor und blenden geladene Nachbarbilder weich ineinander; die wählbaren Tempi bleiben erhalten.
+- Synoptik: Linienart ist als Primärwahl erreichbar; Isobaren und geglättete 500-hPa-Isohypsen können einzeln oder gemeinsam dargestellt werden.
+- 24-h-Profil, Klima und Widget behalten die zuletzt korrigierte Ausrichtung, Lesbarkeit, Farbtrennung und geglättete Niederschlagswahrscheinlichkeit.
+
+## Intern
+- Versionskollision der parallelen v0.9.80.6-Entwicklungszweige durch den konsolidierten Stand v0.9.80.7 aufgelöst.
+- Die Komposit-Wiedergabe verwendet ausschließlich echte bestätigte Produktzeiten und erfindet keine meteorologischen Zwischenstände.
+- Die Klima-, Zeitachsen-, UI-, Synoptik- und Widget-Verträge sowie die Light-/Dark-Logo-Assets bleiben gemeinsam erhalten.
+- Keine funktionale Workeränderung.
+
+# MID v0.9.80.6
+
+## Extern
+- Im kompakten Widget stehen Sonnensymbol und Sonnenscheindauer jetzt sauber zentriert und mit erkennbarem Abstand in ihrer Pille.
+- Die Niederschlagswahrscheinlichkeit im 24-h-Wetterprofil und in der Tagesansicht wird wieder als ruhige, geglättete Linie dargestellt; die zugrunde liegenden Stundenintervalle bleiben unverändert.
+- Die Bedeckungsanteile im Klimabereich sind auch in den dunkleren Klassen gut lesbar.
+- Der Klima-Jahresverlauf unterscheidet Mitteltemperatur und Tmin kontrastreicher; das Wertefeld beim Antippen eines Monats ist deutlich größer und besser lesbar.
+
+## Intern
+- PoP-Kurven verwenden eine monotone kubische Hermite-Interpolation mit Überschwingungsschutz; Niederschlagsmengen, Auswahlpunkte und Tooltips behalten die kanonische Vorwärtsintervall-Geometrie.
+- Klimafarben: Mitteltemperatur in der Hellansicht #111827, Tmin #174f9e; in der Dunkelansicht bleiben kontrastgerechte äquivalente Tokens erhalten.
+- Bedeckungslegendeneinträge verwenden neutrale Flächen und separate Farbmuster statt dunkler Vollflächen hinter dem Text.
+- Keine funktionale Workeränderung.
+
 # MID v0.9.80.5
 
 ## Extern

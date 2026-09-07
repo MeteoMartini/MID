@@ -9,9 +9,9 @@ assert.ok(sky.includes('const rawEnd=Number.isFinite(following)&&following>rawSt
 assert.ok(!sky.includes('const rawX0=index===0?leftEdge:(prev+x)*0.5'),'Alte zentrierte Skybar-Geometrie ist noch aktiv.');
 assert.ok(app.includes('const xAt=(i:number)=>left+(i/Math.max(1,p.length))*plotW'),'24-h-Achse reserviert 24:00 nicht als rechte Slotkante.');
 assert.ok(app.includes('slotRight=slotEndAt(i)')&&app.includes('barLeft=Math.max(left,slotLeft+barInset)'),'24-h-Niederschlagsbalken sind nicht im Vorwärtsslot verankert.');
-assert.ok(app.includes('probabilityPath=showProbability?p.reduce'),'24-h-Niederschlagswahrscheinlichkeit ist nicht als Intervalltreppe umgesetzt.');
-assert.ok(cockpit.includes('probabilityPath=chartPoints.reduce')&&cockpit.includes('precipitationStartX')&&cockpit.includes('precipitationEndX'),'Wetterprofil-PoP ist nicht explizit intervallbezogen.');
+assert.ok(app.includes('probabilityCurvePoints=showProbability&&p.length')&&app.includes('monotoneSvgPath(probabilityCurvePoints)'),'24-h-Niederschlagswahrscheinlichkeit wird nicht aus den Vorwärtsslot-Ankern monoton geglättet.');
+assert.ok(cockpit.includes('probabilityCurvePoints=chartPoints.length')&&cockpit.includes('precipitationStartX')&&cockpit.includes('precipitationEndX')&&cockpit.includes('monotoneSvgPath(probabilityCurvePoints)'),'Wetterprofil-PoP verliert Intervallanker oder monotone Glättung.');
 assert.ok(contract.includes('19:00–20:00')&&contract.includes('18:30–19:30'),'Intervallgeometrie ist nicht im Vertrag abgesichert.');
 assert.equal(baseline.releaseVersion,pkg.version);
 for(const key of ['requiredRegressionTests','regressionTests','requiredTests','activeRegressionSuite'])assert.ok(baseline[key]?.includes(test),`${test} fehlt in ${key}.`);
-console.log(`MID v${pkg.version}: Niederschlag/Skybar appweit als Vorwärtsintervall geometrisch abgesichert.`);
+console.log(`MID v${pkg.version}: Niederschlag/Skybar bleiben Vorwärtsintervalle; PoP wird über die Slotanker monoton geglättet.`);

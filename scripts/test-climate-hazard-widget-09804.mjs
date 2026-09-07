@@ -38,6 +38,16 @@ need('Tmin-Klimafarbe separat',foundation,'--param-temperature-min-climate:');
 need('Diagramm nutzt Tmax-Klimafarbe',modern,'climate-temp-max{stroke:var(--param-temperature-max-climate');
 need('Diagramm nutzt Mittel-Klimafarbe',modern,'climate-temp-mean{stroke:var(--param-temperature-mean-climate');
 need('Diagramm nutzt Tmin-Klimafarbe',modern,'climate-temp-min{stroke:var(--param-temperature-min-climate');
+
+need('Widget Sonne vertikal zentriert',modern,'.weatherwidget.modern.compact .widgetmeta-sun{display:flex!important;align-items:center;justify-content:center');
+need('Widget Sonne/Wert mit Abstand',modern,'.weatherwidget.modern.compact .widgetmeta-sun>b{display:inline-flex;align-items:center;justify-content:center;gap:5px');
+need('Bedeckungsboxen haben lesbaren Vordergrund',modern,'.climate-cloud-legend span{min-height:44px');
+need('Bedeckungsboxen nutzen Textfarbe',modern,'color:var(--text)!important;line-height:1.18');
+need('Mitteltemperatur in Hellansicht schwarz',foundation,'--param-temperature-mean-climate:#111827');
+need('Tmin in Hellansicht dunkelblau',foundation,'--param-temperature-min-climate:#174f9e');
+need('Klima-Tooltip verbreitert',climate,'const overlayWidth=226');
+for(const token of ['className="max"','className="mean"','className="min"','className="rain"'])need('Klima-Tooltip trennt Werte',climate,token);
+need('Klima-Tooltip mit deckendem Hintergrund',modern,'.climate-value-overlay>rect{fill:var(--surface);fill-opacity:.985');
 assert.ok(pkg.scripts?.['test:climate-hazard-widget']==='node scripts/test-climate-hazard-widget-09804.mjs','Package-Testeintrag fehlt.');
 assert.ok(JSON.stringify(baseline).includes('scripts/test-climate-hazard-widget-09804.mjs'),'Baseline schützt die v0.9.80.4-Regression nicht.');
-console.log('MID v0.9.80.4 Klima-/Hazard-/Widget-Vertrag geprüft.');
+console.log(`MID v${pkg.version} Klima-/Hazard-/Widget-Vertrag inklusive v0.9.80.6-Lesbarkeit geprüft.`);
