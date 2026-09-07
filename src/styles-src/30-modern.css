@@ -1694,16 +1694,17 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .cockpit-day-weekday-long{display:none}
 .cockpit-day-rain-icon{flex:0 0 auto;color:#237ac2}
 .cockpit-day-wind-sustained{min-width:0;color:var(--text);font-size:10px;font-weight:850;line-height:1.12;white-space:nowrap}
-.cockpit-day-regime.wet{--cockpit-regime-color:#2471a7}
-.cockpit-day-regime.showery{--cockpit-regime-color:#24849f}
-.cockpit-day-regime.sunny{--cockpit-regime-color:#9c7410}
-.cockpit-day-regime.windy{--cockpit-regime-color:#347a57}
-.cockpit-day-regime.warm{--cockpit-regime-color:#a75b18}
-.cockpit-day-regime.quiet{--cockpit-regime-color:var(--muted)}
+.cockpit-day,.cockpit-fourteen-card{--mid-weather-regime-accent:var(--weather-regime-quiet)}
+.cockpit-day.regime-wet,.cockpit-fourteen-card.regime-wet{--mid-weather-regime-accent:var(--weather-regime-wet)}
+.cockpit-day.regime-showery,.cockpit-fourteen-card.regime-showery{--mid-weather-regime-accent:var(--weather-regime-showery)}
+.cockpit-day.regime-sunny,.cockpit-fourteen-card.regime-sunny{--mid-weather-regime-accent:var(--weather-regime-sunny)}
+.cockpit-day.regime-windy,.cockpit-fourteen-card.regime-windy{--mid-weather-regime-accent:var(--weather-regime-windy)}
+.cockpit-day.regime-warm,.cockpit-fourteen-card.regime-warm{--mid-weather-regime-accent:var(--weather-regime-warm)}
+.cockpit-day.regime-quiet,.cockpit-fourteen-card.regime-quiet{--mid-weather-regime-accent:var(--weather-regime-quiet)}
 .cockpit-day-regime{
- color:var(--cockpit-regime-color,currentColor);
- border:1px solid color-mix(in srgb,var(--cockpit-regime-color,currentColor) 24%,transparent);
- background:color-mix(in srgb,var(--cockpit-regime-color,currentColor) 12%,var(--surface));
+ color:var(--mid-weather-regime-accent,currentColor);
+ border:1px solid color-mix(in srgb,var(--mid-weather-regime-accent,currentColor) 24%,transparent);
+ background:color-mix(in srgb,var(--mid-weather-regime-accent,currentColor) 12%,var(--surface));
 }
 
 @media (orientation:portrait) and (max-width:900px){
@@ -1946,14 +1947,8 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 
 /* MID v0.9.64.2 · 14-Tage-Cockpit ohne horizontales Scrollen: 14 Zeilen hochkant, 7 × 2 quer. */
 .cockpit-fourteen-weekday-long{display:none}
-.cockpit-fourteen-card{position:relative;--cockpit-fourteen-regime:var(--muted)}
-.cockpit-fourteen-card.regime-wet{--cockpit-fourteen-regime:#2471a7}
-.cockpit-fourteen-card.regime-showery{--cockpit-fourteen-regime:#24849f}
-.cockpit-fourteen-card.regime-sunny{--cockpit-fourteen-regime:#9c7410}
-.cockpit-fourteen-card.regime-windy{--cockpit-fourteen-regime:#347a57}
-.cockpit-fourteen-card.regime-warm{--cockpit-fourteen-regime:#a75b18}
-.cockpit-fourteen-card.regime-quiet{--cockpit-fourteen-regime:var(--muted)}
-.cockpit-fourteen-card::before{position:absolute;inset:0 auto 0 0;width:3px;border-radius:inherit;background:var(--cockpit-fourteen-regime);content:""}
+.cockpit-fourteen-card{position:relative}
+.cockpit-fourteen-card::before{position:absolute;inset:0 auto 0 0;width:3px;border-radius:inherit;background:var(--mid-weather-regime-accent,var(--weather-regime-quiet));content:""}
 .cockpit-fourteen-grid{grid-template-columns:repeat(14,minmax(190px,1fr))}
 .cockpit-fourteen-card>header{
  display:grid;
@@ -1973,10 +1968,10 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
  min-width:0;
  max-width:100%;
  padding:3px 7px;
- border:1px solid color-mix(in srgb,var(--cockpit-fourteen-regime) 26%,transparent);
+ border:1px solid color-mix(in srgb,var(--mid-weather-regime-accent,var(--weather-regime-quiet)) 26%,transparent);
  border-radius:999px;
- background:color-mix(in srgb,var(--cockpit-fourteen-regime) 11%,var(--surface));
- color:var(--cockpit-fourteen-regime);
+ background:color-mix(in srgb,var(--mid-weather-regime-accent,var(--weather-regime-quiet)) 11%,var(--surface));
+ color:var(--mid-weather-regime-accent,var(--weather-regime-quiet));
  font-size:10px;
  font-weight:850;
  line-height:1.12;

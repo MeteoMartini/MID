@@ -8,12 +8,13 @@ const require=createRequire(import.meta.url);
 const ts=require('typescript-strada')
 
 const root=new URL('../',import.meta.url);
-const [periodSource,weatherSource,appSource,sevenDaySource,cockpitSource,nightSource,pkgSource,baselineSource]=await Promise.all([
+const [periodSource,weatherSource,appSource,sevenDaySource,cockpitSource,regimeSource,nightSource,pkgSource,baselineSource]=await Promise.all([
  readFile(new URL('src/forecastPeriods.ts',root),'utf8'),
  readFile(new URL('src/weather.ts',root),'utf8'),
  readFile(new URL('src/App.tsx',root),'utf8'),
  readFile(new URL('src/SevenDayForecastSummary.tsx',root),'utf8'),
  readFile(new URL('src/ForecastCockpit.tsx',root),'utf8'),
+ readFile(new URL('src/forecastRegime.ts',root),'utf8'),
  readFile(new URL('src/forecastNight.ts',root),'utf8'),
  readFile(new URL('package.json',root),'utf8'),
  readFile(new URL('MID_BASELINE.json',root),'utf8')
@@ -24,7 +25,8 @@ for(const [area,text,token] of [
  ['App',appSource,"import {dayPeriodHoursForDate,followingNightHoursForDate} from './forecastPeriods';"],
  ['Cockpit',cockpitSource,"import {dayPeriodHoursForDate,followingNightHoursForDate} from './forecastPeriods';"],
  ['Folgenacht-Minimum',nightSource,"import {followingNightHoursForDate} from './forecastPeriods';"],
- ['Cockpit-Regime',cockpitSource,"if(assessment.showery&&assessment.dominant)return'showery';"],
+ ['Cockpit-Regime',regimeSource,"if(assessment.showery&&assessment.dominant)return'showery';"],
+ ['Cockpit-Regime-Vertrag',cockpitSource,"import {forecastDayRegime,forecastRegimeLabel,type ForecastDayRegime} from './forecastRegime';"],
  ['7-Tage-Trend',sevenDaySource,'dayPrecipitation=Math.max(dayAssessment.amount,index===0?Math.max(0,Number(day.precipitation)||0):0)'],
  ['7-Tage-Trend',sevenDaySource,'totalPrecip=points.reduce((sum,point)=>sum+point.dayPrecipitation,0)']
 ])assert.ok(text.includes(token),`${area}: ${token}`);

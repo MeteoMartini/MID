@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.79.9",
+  "releaseVersion": "0.9.79.12",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -428,7 +428,9 @@
     "scripts/test-modern-plan-more-hierarchy-09795.mjs",
     "scripts/test-synoptic-contour-path-options-097884.mjs",
     "scripts/test-modern-focus-detail-hierarchy-09796.mjs",
-    "scripts/test-skybar-four-thickness-appwide-09799.mjs"
+    "scripts/test-skybar-four-thickness-appwide-09799.mjs",
+    "scripts/test-weather-regime-color-consistency-097910.mjs",
+    "scripts/test-weather-regime-shared-contract-097911.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -782,7 +784,9 @@
     "scripts/test-skybar-sunshine-time-alignment-097881.mjs",
     "scripts/test-synoptic-contour-path-options-097884.mjs",
     "scripts/test-modern-focus-detail-hierarchy-09796.mjs",
-    "scripts/test-skybar-four-thickness-appwide-09799.mjs"
+    "scripts/test-skybar-four-thickness-appwide-09799.mjs",
+    "scripts/test-weather-regime-color-consistency-097910.mjs",
+    "scripts/test-weather-regime-shared-contract-097911.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -1324,7 +1328,14 @@
     "MID_IMPLEMENTATION_0.9.79.6.md",
     "scripts/test-modern-focus-detail-hierarchy-09796.mjs",
     "scripts/test-skybar-four-thickness-appwide-09799.mjs",
-    "MID_IMPLEMENTATION_0.9.79.9.md"
+    "MID_IMPLEMENTATION_0.9.79.9.md",
+    "scripts/test-weather-regime-color-consistency-097910.mjs",
+    "MID_WEATHER_REGIME_COLOR_CONTRACT.md",
+    "MID_IMPLEMENTATION_0.9.79.10.md",
+    "src/forecastRegime.ts",
+    "scripts/test-weather-regime-shared-contract-097911.mjs",
+    "MID_IMPLEMENTATION_0.9.79.11.md",
+    "MID_IMPLEMENTATION_0.9.79.12.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1365,7 +1376,9 @@
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
     "scripts/test-composite-temporal-truth-zugspuren-097860.mjs",
     "scripts/test-fourteen-day-header-density-097880.mjs",
-    "scripts/test-skybar-four-thickness-appwide-09799.mjs"
+    "scripts/test-skybar-four-thickness-appwide-09799.mjs",
+    "scripts/test-weather-regime-color-consistency-097910.mjs",
+    "scripts/test-weather-regime-shared-contract-097911.mjs"
   ],
   "protectedFiles": [
     "scripts/test-travel-planner-era5-seamless-units-09652.mjs",
@@ -1764,9 +1777,11 @@
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
     "scripts/test-composite-temporal-truth-zugspuren-097860.mjs",
     "scripts/test-fourteen-day-header-density-097880.mjs",
-    "scripts/test-skybar-four-thickness-appwide-09799.mjs"
+    "scripts/test-skybar-four-thickness-appwide-09799.mjs",
+    "scripts/test-weather-regime-color-consistency-097910.mjs",
+    "scripts/test-weather-regime-shared-contract-097911.mjs"
   ],
-  "version": "0.9.79.9",
+  "version": "0.9.79.12",
   "updatedAt": "2026-09-06T16:53:00.000Z",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
@@ -1827,7 +1842,8 @@
     "MID_IMPLEMENTATION_0.9.78.80.md",
     "MID_IMPLEMENTATION_0.9.78.83.md",
     "MID_IMPLEMENTATION_0.9.78.85.md",
-    "MID_IMPLEMENTATION_0.9.79.9.md"
+    "MID_IMPLEMENTATION_0.9.79.9.md",
+    "MID_IMPLEMENTATION_0.9.79.12.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",

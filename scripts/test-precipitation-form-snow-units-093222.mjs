@@ -48,7 +48,7 @@ for(const token of [
 ])need('7-Tage-Kurzlabel',forecastDayLabel,token);
 for(const token of [
  'precipitationForm=bestDay?dominantPrecipitationForm(dayHours):null',
- 'regimeText=regimeLabel(regime,precipitationForm?.label)'
+ 'regimeText=forecastRegimeLabel(regime,precipitationForm?.label)'
 ])need('14-Tage-Cockpit',cockpit,token);
 for(const [label,text] of [
  ['App',app],['Kurzfrist',shortTerm],['Meteogramm',meteogram],['Ensemble',ensemble],['Wassersport',water]

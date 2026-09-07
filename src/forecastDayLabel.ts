@@ -1,6 +1,7 @@
-import {dayPrecipitationAssessment,dayWeatherCharacter,dayWeatherCharacterText,type Day,type Hour} from './weather';
+import {type Day,type Hour} from './weather';
 import {dominantPrecipitationForm} from './precipitation';
 import {dayPeriodHoursForDate} from './forecastPeriods';
+import {forecastDayRegime} from './forecastRegime';
 
 function compactPrecipitationLabel(label:string|undefined,showery:boolean){
  const value=String(label||'').toLocaleLowerCase('de-DE');
@@ -13,13 +14,11 @@ function compactPrecipitationLabel(label:string|undefined,showery:boolean){
 
 /** Sichtbarer Wettercharakter der 7-Tage-Kacheln: bewusst kurz und einzeilig. */
 export function compactSevenDayConditionLabel(day:Day,hours:Hour[]){
- const calendarHours=hours.filter(hour=>hour.time.startsWith(day.date)),daylight=dayPeriodHoursForDate(day.date,hours),dayHours=daylight.length?daylight:calendarHours,character=dayWeatherCharacter(day,dayHours),assessment=dayPrecipitationAssessment(day,dayHours),characterText=dayWeatherCharacterText(character).toLocaleLowerCase('de-DE'),form=dominantPrecipitationForm(dayHours)?.label;
- const sunny=/sonnig|heiter|freundlich/.test(characterText),cloudy=/bedeckt|stark bewölkt|meist bewölkt/.test(characterText),warm=day.max>=30,windy=day.wind>=15||(day.gust>=34&&day.wind>=10)||day.gust>=42,showery=assessment.showery&&assessment.dominant;
- if(showery)return compactPrecipitationLabel(form,true);
- if(assessment.dominant||character.precipitationDominant)return compactPrecipitationLabel(form,false);
- if(windy&&!cloudy)return'Windig';
- if(sunny&&warm)return'Warm';
- if(sunny)return'Sonnig';
- if(windy)return'Windig';
+ const calendarHours=hours.filter(hour=>hour.time.startsWith(day.date)),daylight=dayPeriodHoursForDate(day.date,hours),dayHours=daylight.length?daylight:calendarHours,form=dominantPrecipitationForm(dayHours)?.label,regime=forecastDayRegime(day,dayHours);
+ if(regime==='showery')return compactPrecipitationLabel(form,true);
+ if(regime==='wet')return compactPrecipitationLabel(form,false);
+ if(regime==='windy')return'Windig';
+ if(regime==='warm')return'Warm';
+ if(regime==='sunny')return'Sonnig';
  return'Ruhig';
 }

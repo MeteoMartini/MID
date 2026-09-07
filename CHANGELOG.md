@@ -1,3 +1,13 @@
+## v0.9.79.12 – CI-Regressionsfix nach Release #923
+- Vier historische Regressionen auf den seit v0.9.79.11 zentralen `forecastRegime.ts`-Vertrag umgestellt.
+- Keine Rückkehr zu paralleler Regimelogik in `ForecastCockpit.tsx`; Farben und Klassifikation bleiben zentral.
+- Keine meteorologische, visuelle oder Worker-Fachänderung.
+
+## v0.9.79.11 – Wetterregime appweit gekoppelt
+- Gemeinsame Regimeklassifikation für 7d/14d und klassische 7d-Ansicht.
+- Regimefarben vollständig auf zentrale Palette/`--mid-weather-regime-accent` geführt.
+- Schauer-Regime und klassische Wetterpille per Regression abgesichert.
+
 # Changelog
 
 ## 0.9.79.9

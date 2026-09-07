@@ -2,8 +2,9 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
 const root=new URL('../',import.meta.url);
-const [cockpit,sourceStyles,builtStyles,pkgText,baselineText,implementation]=await Promise.all([
+const [cockpit,regimeSource,sourceStyles,builtStyles,pkgText,baselineText,implementation]=await Promise.all([
  readFile(new URL('src/ForecastCockpit.tsx',root),'utf8'),
+ readFile(new URL('src/forecastRegime.ts',root),'utf8'),
  readFile(new URL('src/styles-src/30-modern.css',root),'utf8'),
  readFile(new URL('src/styles.css',root),'utf8'),
  readFile(new URL('package.json',root),'utf8'),
@@ -18,7 +19,7 @@ for(const token of [
  'className="cockpit-day-rain-icon"',
  'className="cockpit-day-wind-sustained"',
  'className={`cockpit-day-regime ${regime}`}',
- "regime==='warm'?'Heiß':'Ruhig'",
+ 'forecastRegimeLabel',
  'precipitationCompactMeta',
  'compactGustLabel(day.gust,unit)',
  'cockpit-day-hourly-cue'
@@ -50,8 +51,10 @@ for(const [name,styles] of [['Quell-CSS',sourceStyles],['Aggregat-CSS',builtStyl
   '.cockpit-day-weekday-short{display:inline}',
   '.cockpit-day-wind-sustained{grid-area:sustained'
  ])assert.ok(landscape.includes(token),`${name}: Querformat-Spaltenvertrag unvollständig: ${token}`);
- for(const token of ['.cockpit-day-regime.wet{','showery{','sunny{','windy{','warm{','quiet{'])assert.ok(section.includes(token),`${name}: farbige Regimeklasse fehlt: ${token}`);
+ for(const regime of ['wet','showery','sunny','windy','warm','quiet'])assert.ok(section.includes(`.cockpit-day.regime-${regime},.cockpit-fourteen-card.regime-${regime}{--mid-weather-regime-accent:var(--weather-regime-${regime})}`),`${name}: zentrale farbige Regimeklasse fehlt: ${regime}`);
 }
+
+for(const token of ["export function forecastDayRegime","export function forecastRegimeLabel","regime==='warm'?'Heiß':'Ruhig'"])assert.ok(regimeSource.includes(token),`Gemeinsame Regimeklassifizierung fehlt: ${token}`);
 
 assert.ok(pkg.version.localeCompare('0.9.64.0',undefined,{numeric:true,sensitivity:'base'})>=0,'Responsive Orientierungsdarstellung benötigt mindestens v0.9.64.0.');
 assert.equal(pkg.scripts?.['test:seven-day-orientation-layout'],`node ${test}`,'Package-Testeintrag fehlt.');

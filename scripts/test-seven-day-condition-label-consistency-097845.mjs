@@ -10,7 +10,7 @@ assert.ok(cockpit.includes("regimeText=compactSevenDayConditionLabel(day,display
 assert.ok(cockpit.includes("dayVisual=periodWeatherVisual(dayHours,true,weather.code,dayWeatherCharacterText(weather),{preferFallbackCode:true})"),'Das große Tagespiktogramm muss weiter denselben dayWeatherCharacter führen.');
 assert.ok(cockpit.includes('>{regimeText}</span>'),'Die sichtbare 7d-Pille muss die kompakte Kurzform ausgeben.');
 assert.ok(!cockpit.includes('>{conditionText}</span>'),'Der lange Tagesbeschreibungstext darf nicht mehr sichtbar in der 7d-Pille stehen.');
-assert.ok(app.includes('<ForecastConditionPills label={compactSevenDayConditionLabel(d,allDayHoursForDate)}/>'),'Auch die klassische 7d-Ansicht muss dieselbe kompakte Kurzform verwenden.');
+assert.ok(app.includes('<ForecastConditionPills label={compactSevenDayConditionLabel(d,allDayHoursForDate)} regime={regime}/>'),'Auch die klassische 7d-Ansicht muss dieselbe kompakte Kurzform verwenden.');
 for(const label of ["'Sonnig'","'Regen'","'Schauer'","'Ruhig'","'Windig'","'Warm'"])assert.ok(labelSource.includes(label),`Kompakte 7d-Kategorie fehlt: ${label}`);
 for(const token of ['Verbindliche Präzisierung v0.9.78.61 – kompakte 7-Tage-Kurzform','Sichtbare 7-Tage-Pille = kompakte Einzeilen-Kategorie','Der vollständige Tagescharakter bleibt im Tooltip'])assert.ok(contract.includes(token),`Piktogrammvertrag unvollständig: ${token}`);
 assert.equal(pkg.scripts?.['test:seven-day-condition-label-consistency'],`node ${test}`,'Package-Testeintrag fehlt.');

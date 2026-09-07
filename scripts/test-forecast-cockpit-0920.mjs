@@ -2,6 +2,7 @@ import {readFileSync,existsSync} from 'node:fs';
 const app=readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
 const cockpitPath=new URL('../src/ForecastCockpit.tsx',import.meta.url);
 const cockpit=existsSync(cockpitPath)?readFileSync(cockpitPath,'utf8'):'';
+const regime=readFileSync(new URL('../src/forecastRegime.ts',import.meta.url),'utf8');
 const css=readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
 const pkg=readFileSync(new URL('../package.json',import.meta.url),'utf8');
 const baseline=readFileSync(new URL('../MID_BASELINE.json',import.meta.url),'utf8');
@@ -12,7 +13,8 @@ for(const token of ['Klassisch','Cockpit · Register','Cockpit · Ribbons','Die 
 for(const token of ["const FORECAST_COCKPIT_MODULES:DashboardModuleId[]=['short-term','forecast','ensemble']","forecastPresentationMode!=='classic'&&FORECAST_COCKPIT_MODULES.includes(id)","if(id!==forecastCockpitAnchor)return null"])need('Keine Doppelmodule',app,token);
 for(const token of ['cockpit-now90',"points=useMemo(()=>selectShortTermPoints(adjusted,'1h')",'regularShortTermPoints','SvgProfileWindDirectionArrow','Böen bis'])need('Kurzfrist',cockpit,token);
 if(cockpit.includes('SHORT_TERM_RESOLUTION_KEY')||cockpit.includes('aria-label="Auflösung der Kurzfristvorhersage"'))failures.push('Kurzfrist: entfernter 1h/3h-Umschalter ist wieder enthalten');
-for(const token of ['cockpit-seven-grid','temperatureRange','cockpit-day-temp-track','cockpit-day-regime','regimeLabel','7-Tage-Trend'])need('7-Tage',cockpit,token);
+for(const token of ['cockpit-seven-grid','temperatureRange','cockpit-day-temp-track','cockpit-day-regime','forecastRegimeLabel','7-Tage-Trend'])need('7-Tage',cockpit,token);
+for(const token of ['export function forecastDayRegime','export function forecastRegimeLabel'])need('Gemeinsamer Regimevertrag',regime,token);
 for(const token of ['cockpit-fourteen-grid','cockpit-fourteen-row','precipCombinedScore','climateMean','assessEnsembleDay','Konsistenz'])need('14-Tage',cockpit,token);
 for(const token of ['ACTIVE_HORIZON_KEY','MiniRibbon','Ensemble-Analyse öffnen','chooseDay(day.date)','onSelectedDate(item.date)','cockpit-day-hourly-accordion','hourlyDetail={cockpitDetails?.sevenDay}'])need('Interaktion',cockpit,token);
 for(const token of ['.forecast-cockpit','.cockpit-tabs','.cockpit-now90','.cockpit-seven-grid','.cockpit-fourteen-grid','@media(max-width:680px)','@media(max-width:420px)'])need('Responsive Design',css,token);

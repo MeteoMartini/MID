@@ -1,1 +1,0 @@
-import{bx as n}from"./index-DOeGr9TV.js";import"./ReactVendor-CYueatNA.js";class i extends n{async show(e){}async hide(e){}}export{i as SplashScreenWeb};
