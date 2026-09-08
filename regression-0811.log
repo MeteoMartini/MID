@@ -1,0 +1,774 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> open-meteo-weather-dashboard@0.9.81.1 pretest:regressions
+> npm run maintain:aggregates
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> open-meteo-weather-dashboard@0.9.81.1 maintain:aggregates
+> node scripts/build-maintenance-aggregates.mjs
+
+Maintenance aggregates synchronized: styles 1048096 chars, weather 325209 chars, worker 761462 chars, direct outlook 47910 chars.
+
+> open-meteo-weather-dashboard@0.9.81.1 test:regressions
+> node scripts/run-regressions.mjs
+
+Adaptive vertrauensabhängige Modellobergrenze und editierbarer DEM-/Metadaten-Standortfingerabdruck geprüft.
+Erweiterter Modus, einklappbare Analysebereiche, reaktive Tagesdetail-Skybar, Prognose-Kompass und Rendering-Budget geprüft.
+Aggregate-Versionen geprüft: package, Baseline, iOS-Status, Worker-Fragment und generierter Worker = 0.9.81.1.
+AQI-Kachel geprüft: kompakter Hauptwert, EU-AQI in der Überschrift und keine doppelte Mittelmäßig-Anzeige.
+Favoritenlernen und Einstellungsstruktur geprüft: automatisches Favoritenlernen ist Opt-in und wird bei Aktivierung gedrosselt nachgeführt; Wetterzwilling, Sync und Updates sind getrennt auffindbar.
+API-Health-Resilienz v0.9.77.21: PASS
+App helper block + compact 7-day forecast pill contract: OK
+MID v0.9.81.1: Apple Privacy-Manifeste für App und Widget sind fachlich begrenzt, trackingfrei und im jeweiligen Xcode-Target verdrahtet.
+MID v0.9.81.1: APNs- und BGAppRefresh-Quellen bleiben im iOS-Target vorbereitet, aber ohne vorzeitige Aktivierung.
+Freigegebene Dependency-/Action-Upgrades geprüft: TypeScript 7.0.2, checkout 7.0.1, setup-node 7.0.0, Lucide React 1.35.0 und Recharts 3.10.1; React 19 sowie plugin-react 6/Vite 8 bleiben zurückgestellt.
+App-wide parameter colour regression passed with 17 checks.
+Appweite Niederschlags- und Tageswarnprüfung bestanden: zentrale Regen-/Sprühregen- und Schnee-/Schneegriesel-Plausibilisierung sowie konsistentes Maximum der gefühlten Temperatur sind geschützt.
+Appweiter Touch-/Responsivitäts-Cleanup geprüft: keine Mehrfachaktivierung in Modulen/Cockpit, stabile Suchtreffer und vergrößerte Touchflächen auf groben Zeigern.
+AQI-Karte geprüft: offizielle sechsstufige EEA-Bänder/Farben, stündliche Einzelwerte und nächstgelegene EEA-Messstation sind verdrahtet.
+AQI-Einzelwertskalen geprüft: Markerposition folgt derselben EU-AQI-Stufe wie der aktive Skalenabschnitt; Open-Meteo/CAMS-Fallbackschwellen sind synchronisiert.
+MID v0.9.45.2: standortrelevante nächste Sonnen-/Mondfinsternis mit Zukunftsfilter und Verdeckungsangabe geprüft.
+MID v0.9.81.1: Gefahren-Popup sowie neutrale Kurzfrist- und absolute 7d/14d-ECMWF-Temperaturfarben geschützt.
+Audit 0.9.78.64: missing values, index invariants, event duration/coverage, radar horizon and AGL/pressure coordinates passed.
+MID v0.9.81.1: MeteoAlarm-Boxen werden je Warnart auf das lokal passende Warngebiet begrenzt; Landes-/Nachbarwarnungen bleiben draußen.
+MID v0.9.81.1: foreground-first Datenabruf, passive Eventpflege und Rate-Limit-Stabilität geprüft.
+Vollständige portable Sicherung, iOS-PWA-Übernahme und automatische Web-App-Synchronisation geprüft.
+v0.7.95.26-Funktionsvertrag geprüft: Popover, Modellstände, Konsistenzpunkte, Luftdruck/Astronomie, Bergprofil, Modelländerungen, Push, Analytics, Gerätesynchronisation, Prognosegüte und Worker-Livequellen bleiben geschützt.
+Best Match, API-Suffixaudit und Sunshine-Contract geprüft: vollständige lokale Stunden bilden jeden Tageswert; Daily bleibt Fallback und Qualitätsreferenz.
+Korrekturrelease v0.9.81.1: Budgetvertrag und Fast-Forward-Stable-Promotion sind konsistent.
+Build-Budget trennt Code/Text von statischen Medien; Boot-Logo-Preload fordert nur die tatsächlich gewählte Theme-Variante an.
+RadioTower-Import und getrennte Luftdruckdarstellung geprüft.
+v0.9.15.13 Build-/Ganzzahl-Prozentregression bestanden.
+Build-Regression v0.7.100.4 geprüft: ChevronDown ist für die Komposit-Legende korrekt importiert.
+MID Buildstabilitätsregression ab v0.8.27.4 bestanden.
+GitHub-Buildfix geprüft: ungenutzte Parameter in Prognosegewichtung und Szenariocluster entfernt.
+MID v0.9.4.1 Buildfix geprüft: keine ungenutzten quartileFill-, weatherFamily- oder mapBounds-frame-Deklarationen.
+MID v0.9.7.1 Buildfix geprüft: fünf ungenutzte ForecastCockpit-Deklarationen entfernt.
+Kurzfrist-Wind-Aggregationstyp geprüft.
+MID v0.9.81.1: Capacitor-Konfiguration ist TypeScript-7-unabhängig und funktioniert auch im bestehenden Node-22.16-Installerpfad.
+Diagrammlayout geprüft: JETZT, Wetterpiktogramme, Sonnenschein-/Bewölkungsband und Diagramm folgen der gewünschten Reihenfolge; die ausgewählte Stundenlinie reicht bis zur Piktogramm-Lane.
+CI-Regressionen sind umgebungsunabhängig: TypeScript-7-CLI plus gepinnte Strada-Test-API, plattformstabile Pfade, keine Offline-npm-Probe und klare Lockfile-Strukturprüfung.
+Klimamittel-Vertrag migriert: 7d und 14d zeigen Tmin/Tmax in absoluten ECMWF-Farben ohne Tmin/Tmax-Δ-Zeilen; Stale-Fallback bleibt aktiv.
+MID v0.9.81.1 Klima-/Hazard-/Widget-Vertrag inklusive v0.9.80.6-Lesbarkeit geprüft.
+✓ Modul ist standardmäßig geschlossen
+✓ Modul ist konfigurierbar
+✓ Abruf erfolgt erst beim Mount/Öffnen
+✓ Jahresübergreifende Auswahl vorhanden
+✓ Kernparameter vollständig
+✓ Werteoverlay vorhanden
+✓ Bedeckungsanteile vorhanden
+✓ Windrose nach Geschwindigkeit geteilt
+✓ Ein Tagesabruf mit Windrichtung
+✓ Responsive Layout vorhanden
+Wolkenschichtfähige Piktogramme, Tag-/Nacht-Paare und 3-h-/1-h-Tagesdetails geprüft.
+24-h-Wolkenprofil: gemeinsame Tagesansicht-Skybar für Gesamt sowie kontinuierliche H/M/L-Graubänder ohne Prozentachse geprüft.
+Cockpit-Klarheit geprüft: 90-Minuten-Blick, feste 1h-Kurzfrist, klare 7-/14-Tage-Parameter.
+MID v0.9.32.10: tempMin-Skalierung für beide kombinierten Mini-Diagramme geprüft.
+MID-Prognose-Kompass in beiden Cockpit-Modi sowie optionale, kompakte und standortrelevante Gewitter-/Sturzfluthinweise geprüft.
+MID v0.9.81.1 Cockpit-, Warnungs- und Ensemble-Usability geprüft.
+14-Tage-Cockpit nutzt Tagescharakter, Sprühregen-Plausibilisierung und Konvektivniederschlagslogik appweit konsistent.
+Cockpit-Register zeigt zunehmende Unsicherheit mit Wochentag und Datum.
+Temperaturfarbvertrag geprüft: Stunden neutral sowie 7d/14d absolute ECMWF-Farben ohne Tmin/Tmax-Δ-Zeilen; Cockpit bleibt redundanzfrei.
+MID v0.9.16.1 Cockpit-Landscape-/Widget-Regression bestanden.
+Kompakte Einzeldaten des 24-h-Wetterprofils geprüft.
+Responsive Vollbreiten-Geometrie des 24-h-Wetterprofils geprüft.
+Innovatives 24-h-Wetterprofil mit zentralen Hazards geprüft.
+MID 0.9.81.1: Mini-Niederschlagskombination und sichtbare Zeitangaben im 24-h-Wetterprofil geprüft.
+Cockpit-Modellstand und klickbare 14-Tage-Konsistenzpillen sind abgesichert.
+Cockpit-Regressionsynchronisierung auf das responsive 24-h-Wetterprofil geprüft.
+MID v0.9.9.0 Cockpit-Register auf Desktop, Tablet und Smartphone geschützt.
+MID v0.9.4.0: horizontales 7-Tage-Scrollen bleibt im Horizont und unplausibler Sprühregen wird nicht ungeprüft visualisiert.
+Kurzfrist-Cockpit ohne separaten Kompass, mit Spotlights und 24-Stunden-Vorschau erfolgreich geprüft.
+Interaktives 24-h-Wetterprofil mit Einzeldaten geprüft.
+Premium-Kurzfristdarstellung mit bereinigtem 24-h-Wetterprofil geprüft.
+Winddarstellungs-Buildfix geprüft: gültige WindUnit, vollständige Warnfarben-Windrichtungspfeile und kein ungenutzter Alt-Helfer.
+CodeCheck v0.7.83 bestanden: robuste Portal-/Popover-Logik, zentrale Diagrammskalen, typisierte Ensemble-Tooltips, stabile Hazard-Keys und überlaufsichere 7-Tage-Hinweise.
+Code-Revisionsautomation vollständig (geschützter Professional-Transportvertrag).
+MID v0.9.81.1: CodeQL #81–#90 behoben; exakte URL-Hosts, flüchtiger OAuth-Handoff und exklusive Tempdateien geprüft.
+CodeQL-Schutz: keine Math.random()-Nutzung im Produktionscode; favoriteId() nutzt sichere Zufallsquellen.
+CodeQL-Sicherheitshärtung geprüft: XML-Unescaping, WMS-Fehler, Analysecache, exakte URL-Prüfung, flüchtiger OAuth-Handoff, sichere Tempdateien und API-Vertragsausgabe.
+Best-Match-zentrierte Wetterbündel geprüft: API-Suffixe, gezielte Reparatur, keine Parameterkreuzung und physikalisch konsistente Regen-/Schauerphase.
+Prognose-Kompass und Szenario-Wahrscheinlichkeiten sind professionell und auf den ersten Blick verständlich.
+Buffered satellite playback: delayed live image, genuine history, load wait, dwell speeds, pause-free loop, 12-frame reuse and current callbacks passed.
+Komposit-Legende und phasenerhaltende Sprühregen-/Schneegriesel-Plausibilisierung geprüft.
+0.9.78.75: native satellite history, bounded multi-year TIME parsing, shared navigation, source-specific readiness, synchronized DWD lines and metadata deduplication passed.
+K3D-/NowCastMIX-Zellfläche, amtliche Prognosepunkte, 1σ-Korridor und Overlay-Legende sind geprüft.
+Komposit-Phasenfusion, Rate-Limit-Schutz und 7-Tage-Grammatik geschützt.
+Kompositbild nutzt für Niederschlagsart ausschließlich beobachtete OPERA-Echos + dynamisches Rapid-/Regionalmodell; HymecNG/WN sind kein aktiver Komposit-Fallback.
+test-composite-radar-legend-buildfix-09403: ok
+MID: dynamische WMS-Anfragen network-only, diskrete Zeitstände, cache-busted DWD-Latest-Fallback und gepufferter Satellitenwechsel geprüft.
+MID: Satellitenbild nutzt echte TIME-Snapshots mit Doppelpuffer; DWD ohne TIME bleibt kontrollierter, cache-busted Live-Snapshot.
+ok - DWD latest WMS snapshot is labelled from actual DWD satellite source time, without fake 3-hour rounding
+Kompositbild geprüft: zeitechte Layerframes, Live-Follow, gepufferte Rasterwechsel, moderne Modi und echogebundene Zugspuren.
+Komposit-Zugspuren geprüft: objekt-/echogebundene ETA, Unsicherheitskorridor und Zeitknoten ersetzen den pauschalen Zeitpfeil.
+DOM-Zugspur geprüft: Korridor, Geopfad, Zeitknoten und ETA-Chip werden als eigenständige Leaflet-Objekte gerendert.
+Komposit-Zugspur skalenfest geprüft: Geokoordinaten für Pfad und Korridor, feste meteorologische Prognosezeiten statt viewportabhängiger Pfeillänge.
+Komposit-Zugachse geprüft: reale Echoanker, Zeitknoten und Radarpriorität; Höhenströmung bleibt nur Diagnose/Fallback ohne ETA.
+Komposit geprüft: Referenzkarte bleibt oberhalb der Wetterraster; Zugspur und ETA entstehen nur aus einem real erkannten Echo auf Standortkurs.
+Composite transparent reference overlay OK: satellite remains visible, only vector boundaries/place labels are added above it.
+Standortmarker, Modelllinien, PX250 nur bei Jetzt, sichtbare Blitzpunkte, echogebundene Zugspur und responsive Übersicht geprüft.
+Kompositbild geprüft: verständliches Layerband, sichtbare K3D-/NowCastMIX-Symbole, echogebundene Zugspur und touchfreundliches Scrollen sind aktiv.
+OPERA, Warnkarte, DWD-Modell-WMS, Blitzfallback, K3D-Zuggeometrie und Warnfarben der Kurzfrist-Windpfeile geprüft.
+MID v0.9.78.72+: Konfidenzdarstellung, Info-Button und 15-Tage-Randabruf geprüft.
+MID v0.9.78.70: Konfidenz-Randtag, Event-Stundenintervall und kompakte Symbolik geprüft.
+(node:1097) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+MID v0.9.78.78: Konfidenzpille mit sicherem Außenabstand und getrenntem Signal/Index geprüft.
+Netatmo-OAuth, verschlüsselte Tokenablage und reaktivierte Außenstationsübernahme sind geprüft.
+Konsistenz-Tooltips geprüft: Außenklick/-tippen und Escape schließen, Interaktion im Tooltip und auf dem Farbpunkt bleibt erhalten.
+MID v0.9.53.16-Kompatibilität: unabhängige Anbieter bleiben ergänzend nutzbar, dürfen aber ab v0.9.53.17 nicht mehr die vollständige Best-Match-Kernprognose und deren Kacheln ersetzen.
+MID v0.9.53.15-Vertrag fortgeführt: GPS-toleranter letzter Best-Match-Stand und Worker-Edge-Cache bleiben erhalten, ohne unvollständigen Fremdprovider in die Standardprognose einzuspeisen.
+MID v0.9.53.17: vollständige Best-Match-Prognose und klassische Kacheldarstellung wiederhergestellt; Rate-Limit-/Cache-Schutz bleibt appweit erhalten, ohne Cross-Provider-Downgrade.
+MID v0.9.81.1: keine kostenpflichtigen Projektschritte ohne vorherige transparente Kostenangabe und ausdrückliche Freigabe.
+MID v0.9.81.1: gemeinsamer Browser-/PWA-Kern und Capacitor-iOS-Shell sind geschützt.
+Aktuelle Daten und Favoriten geprüft: identische Info-Schaltflächen, direkter Menüsprung, GPS-Nahbereichszuordnung, POI-sichere Favoritenidentität und zusätzliche Standort-Aktivmarkierung.
+MID v0.9.81.1: kompakte Hyperlokaldarstellung und vollständige Datenbasis-Infos geprüft.
+MID v0.9.81.1: trockener Nowcast 0 %, klimatologische NOAA-OISST, ganze Niederschlagstage und zeitstrenger Warnkopf geprüft.
+Current-/Hyperlokal-Restart v0.9.53.25 geprüft: reiche Analyse wird nicht von Rohstation überschrieben, Warmstartdaten werden sofort wiederverwendet und Modell-/Geländekontext bleibt persistent gecacht.
+Aktueller Himmelszustand geprüft: 7/8 = stark bewölkt, 8/8 = bedeckt; frische lokale Bewölkung und Sicht steuern Hauptkarte und Detailkarte konsistent.
+Aktuelles Wetter, Windumbruch, Trend-Rechtschreibung und direkte Berg-/Wassersportoptionen geprüft.
+Ein-/ausklappbare und dauerhaft gespeicherte Aktuell-Wetter-Kacheln geprüft.
+Kompakte Mehr-Schaltfläche am Modulrand und gekürzter Warnhinweis geprüft.
+MID 0.9.66.12: Radar-Nowcast und lokale Zusatzgefahren bleiben ohne verdeckte Texte innerhalb ihrer Kartenbreite.
+MID v0.9.81.1: Current-, 90-min-, 24-h- und Folgetag-Zeitkonsistenz geprüft.
+MID v0.9.81.1: Sonnenauf-/untergang und zentraler Event-Hintergrundmonitor geprüft.
+0.9.81.1: Messquellenanzeige ist gegen TS18048/optionale rows abgesichert.
+Aktuelle Sonnenscheindauer geprüft: Ausgabe pro Stundenfenster ausschließlich in Minuten, maximal 60 min.
+MID v0.9.81.1: Current-Temperaturübergang, Cachegeneration, Force-Fresh und 90-min-/24-h-Konsistenz geprüft.
+Current-Temperatur wird zeitgenau und ohne Einzelstunden-Delle in den kanonischen Forecast überführt.
+(node:1361) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+MID v0.9.81.1: Compact-Kopf, lokale Gefahrenkarten und responsive Warnkarte geprüft.
+Mitteleuropa-Extremwetter-Ausblick geprüft: Dashboard, MapLibre-UI, Zeit-/Einheitenvertrag, P-/I-Schwellen, EPS-Worker, Mehrparameter-Gewitterdiagnostik, Cache und Dokumentation sind vollständig verdrahtet.
+Tages-/Stunden-Niederschlag geprüft: MID erfindet keine Stunden aus Tagesmengen; der Tageskopf wird aus kohärenten finalen Stunden aggregiert.
+Tages-/Stunden-Niederschlagskonsistenz ab v0.8.33.6 geprüft.
+MID v0.9.53.3: Tages-PoP zeigt wieder Zeitraum und bei Bedarf Dauer; Stundenfallback bleibt semantisch als Maximum gekennzeichnet.
+ok - app-wide exclusive 00–24 h / elevated 6-h display and whole-hour daily precipitation duration verified
+Tagescharakter geprüft: Niederschlag außerhalb des Tagesfensters bleibt vollständig dem Nachtpiktogramm vorbehalten; echter Tagesregen bleibt dominant.
+MID v0.9.81.1: Tagesansicht zeigt eine monoton geglättete, an Vorwärtsslots verankerte Niederschlagswahrscheinlichkeit und kontrastreiche Windpfeile in Hell/Dunkel.
+Tag-/Folgenachtgrenzen geprüft: Tagescharakter ist strikt tagsüber; Nachtpiktogramm und Tropennacht nutzen dieselbe datumsübergreifende Folgenacht; Cockpit kennzeichnet Tagesschauer nicht als ruhig.
+MID v0.9.81.1: Lucide, MapLibre, CodeQL und Actions sind auf dem freigegebenen Wartungsstand synchron.
+MID v0.9.81.1: Dependency-Audit nutzt npm Bulk + OSV-Fallback und blockiert HIGH/CRITICAL weiterhin.
+Detailansicht geprüft: CHMI-Modelle sind katalogisiert; im Erweiterten Modus sind Temperatur-, Niederschlags- und Windparameter einzeln schaltbar, Bereiche reagieren dynamisch und die Darstellung passt sich verzerrungsfrei an die verfügbare Breite an.
+Detailpiktogramme geprüft: Stundenmengen des vorangegangenen Intervalls erzeugen passende Niederschlagssymbole; kurze Niederschlagsereignisse werden beim responsiven Ausdünnen nicht übersprungen.
+Detailpiktogramme geprüft: Die Zahl richtet sich nach der Diagrammbreite; jedes Symbol repräsentiert sein Zeitfenster und kann kurze Niederschlagsereignisse priorisieren.
+MID Detail-Pillen-Regression bestanden: UVI ist kompakt beschriftet und berechnet weiterhin das Tagesmaximum.
+Detailansicht geprüft: Wettertext, Symbol, Diagrammpiktogramme und Niederschlagsfeld verwenden dieselbe Plausibilitätsprüfung; Legendenmuster erscheinen als Balken.
+Detail-Niederschlagskachel: keine doppelte Niederschlagsart, Gewitterrisiko sichtbar.
+Tagesdetail geprüft: Luftdruckverlauf und -kachel, zusammengefasste Bewölkung/UVI-Kachel, persistente einklappbare Legende sowie TypeScript-Buildfix sind vorhanden.
+MID v0.9.81.1: TS6133-Buildfix im phasenabhängigen Skybar-Niederschlagslayer geschützt.
+Tagesdetaildiagramm geprüft: Tablet-Hochformat zeigt alle Wetterpiktogramme und Windrichtungspfeile in kompakter Größe.
+Tagesdetail-Thermik sowie 24h-Pfeil-/Mausradbedienung und einheitentreue Böenanzeige geprüft.
+Tagesdetail-Gewitterrisiko und vereinfachte Ensemble-Niederschlagssymbolik geprüft.
+Mehrindex-Gewitterdiagnose geprüft: WMO-Code, CAPE, Lifted Index, CIN, Feuchte, Schauer und Auslösebedingungen werden kombiniert.
+Gewitterrisiko ab 30 % und konsistente 7-Tage-Trenddiagnose geprüft.
+Tagesdetail-Wind geprüft: nachvollziehbare punktweise Böenangleichung ohne Glättung; Wind- und Böenlinie bleiben sichtbar.
+Detailfelder, aktuelle Windkachel, appweite Stratus-Plausibilisierung und ortsbezogene Push-Texte geprüft.
+Geräte-Sync-Nullability geprüft: der vollständige deviceSync.ts-Pfad kompiliert im Strict-Modus mit typisierten Schnittstellenstubs; fehlende Favoritensnapshots bleiben verlustfrei und null-sicher.
+App-Neustart bleibt in der Wetteransicht; nur explizite mid-sync-Transfers öffnen den Synchronisationspfad.
+MID v0.9.78.77: konservative DWD-Bildpunktwolken und feinere, geräumigere Konfidenzsignalstufen geprüft.
+DWD-Quellenintegrität: amtliches Originalprodukt statt eigener Rekonstruktion geprüft.
+DWD-Originalprodukt und dessen gebundene Radar-/Satellitenzeiten geprüft.
+DWD-Ortsausschnitt: 17 Stadtanker plus fünf deutsche Randorte, fester Originallegendeneinsatz und inverse Originalpixel-Auswertung geprüft.
+DWD-Originalpixelanalyse bleibt ausschnitts- und zoomunabhängig; die Ortskalibrierung erzeugt keinen Kartenlayer.
+MID v0.9.53.14+: DWD-nahe Tages-PoP-Zeitfenster, appweiter Open-Meteo-429-Schutz und quellensicherer Core-Requestvertrag geprüft.
+DWD-nahe Niederschlagswahrscheinlichkeit geprüft: intern 00–24 h plus vier 6-h-Fenster; kompakt exklusiv nur erhöhtes Fenster oder 00–24 h.
+DWD-Schwellen >0,2 mm / >5,0 mm für 00–24 h und 6-h-Zeitfenster app-weit geprüft.
+Amtliches DWD-Originalbild mit Zoom, Originalzeitständen und Pixelanalyse geprüft.
+DWD-Originalbild: 100–500 % in 100-%-Schritten, permanenter 100-%-Reset und App-Scroll-Ausgang geprüft.
+Zoombares DWD-Originalprodukt und neues 24-h-Wetterprofil gemeinsam geprüft.
+DWD-Originalbild- und Pixelanalyse-Workerpayloads geprüft.
+Das DWD-Originalbild darf ortszentriert beschnitten werden, bleibt aber ein unverändertes Bild statt eines Kartenlayers.
+DWD-Quellzeitstempel sind an die tatsächlich angezeigte Originalbildantwort gekoppelt.
+DWD-Zeitstempel-Buildfix bleibt ohne ungenutzte timezone-Variable erhalten.
+DWD-Warnungen geprüft: Warntexte sind ganzzahlig und einheitenbewusst; 7-Tage-Hazards zeigen nur Wert und Einheit, Detailmarker sind entfernt und Ensemble-Hazards stehen ab Stufe 2 im Tooltip.
+DWD-WMS-Routing geprüft: offizieller Endpunkt, Backups und Workspace-Fallback mit passendem Layernamen.
+EEA-Stationssuche geprüft: aktuelle EEA-Hosts, Spiegelserver, Geometrie-Fallback, Browser-Rückfall und letzter erfolgreicher Stand sind vorhanden.
+Ensemble-Achsen geprüft: Recharts-Standardbaseline bleibt unverändert; externe Temperaturtitel sind kollisionsfrei angeordnet.
+MID v0.8.30.9 Achsen-/Tooltip-Prüfung bestanden.
+Ensemble-Windfarben, kombinierte 14-Tage-Parameter, 90-Minuten-Blick und feste 1h-Kurzfrist geprüft.
+test-ensemble-confidence-calibration-097867 passed
+MID: ENS-Mittel ist im kumulierten 14-Tage-Niederschlagsdiagramm in Standard- und erweitertem Modus sichtbar.
+MID: kumuliertes ENS-Mittel skaliert korrekt, P25–P75 endet nach Tag 7 und Desktop-Sektionsleiste bleibt ohne Horizontal-Scroll/Topbar-Überdeckung.
+MID: kumulierte Niederschlagsquartile werden aus vollständigen Member-Trajektorien statt aus täglichen Quartilen berechnet.
+MID: 14-Tage-Ensemble-Niederschlag behält Tagesansicht und bietet kumulierte P10–P90-Darstellung.
+MID: kumuliertes Niederschlagsdiagramm enthält P10–P90 plus echtes memberbasiertes P25–P75-Band.
+MID v0.9.78.69: meteorologische Konfidenz und Datenqualität bleiben getrennt; zwei starke Kernparameter können hoch bleiben, fehlende Kernbasis bleibt fail-closed.
+MID v0.9.81.1: Ensemble-Deadline, unabhängiger Mean/Spread-Bootstrap, App-Watchdog und AIFS-Workervertrag geschützt.
+MID v0.9.15.6 desktop ensemble and composite/KONRAD3D regression passed.
+Einheitliche leicht diagonale Ensemble-Tagesachse für alle Diagramme geprüft.
+Gleiche Exportbreiten und gemeinsame Chart-Höhe geprüft.
+Ensemble-Export geprüft: Fußnoten, Wrapper und gemeinsame professionelle Achsen- und Diagrammgeometrie sind vorhanden.
+MID v0.9.81.1: Mean/Spread-first, serieller Einzelmodell-Bootstrap, vorläufige Anzeige und nachgelagerte Vollfusion geschützt.
+Ensemble-Hilfe und Tagesintervall geprüft: Body-Portale, Außenklick/Escape, Modellstände sowie Tmin/Tmax sind geschützt.
+Ensemble-Warnfilter geprüft: Diagrammmarker und Tooltip erhalten je Warntyp ausschließlich die höchste Stufe; unterschiedliche Warntypen bleiben erhalten.
+Kompakte gemeinsame Ensemble-Geometrie, adaptive Hover-/Klick-Tooltips und Outside-Dismiss geprüft.
+Ensemble-Tooltips, Wetter-/Niederschlagsband, Hazardmarker und gemeinsame Tagesgeometrie geprüft.
+Temperatur-Tageszentren werden aus den real gerenderten X-Achsenmarken vermessen; Kästchen und senkrechte Hilfslinien teilen exakt dieselben Zentren.
+MID v0.9.4.0: gemeinsames Temperatur-/Niederschlag-/Wind-Böen-Deck, professionelle Cockpit-Diagramme, Unsicherheitsfade und Temperaturwerte geprüft.
+MID v0.9.41.2: mobiles Temperatur-Ensemble-Tooltip hält Größe bei und richtet Sonne, Niederschlag und Modelle lesbar aus.
+MID v0.9.41.3: Sonne, Niederschlag und Modelle nutzen mobil gemeinsame Spalten und sind rechtsbündig ohne Größenänderung.
+Ensemble-Modellprüfung bestanden: priorisierte Mitglieder, offizielle Mittel-/Spread-Reserve, Workerproxy und lokaler letzter Stand sind vorhanden.
+Robust multi-parameter ensemble confidence, data quality separation, lead normalization and local skill shrinkage passed.
+Native daily coverage excludes missing gusts and missing whole timestamps.
+Ensemble-Nullability geprüft: optionale Klimawerte werden vor Formatierung und Skalierung typsicher auf endliche Zahlen eingegrenzt.
+Ensemble-Optik v0.8.25.4 mit achsengebundenem Wetterband, Niederschlagssymbolik, Hazardmarkern und kompaktem Tooltip geprüft.
+Einheitliches Hochformat-Layout für Temperatur, Niederschlag und Wind geprüft.
+Ensemble-Niederschlagssymbolik grenzt none vor dem Glyph-Aufruf typsicher aus.
+Gemeinsame professionelle Ensemble-Chart-Engine für Temperatur, Niederschlag und Wind geprüft.
+MID v0.9.81.1: progressiver 14d-Ensemble-Bootstrap und kantenlose gleichdicke Skybar-Segmente geschützt.
+Ensemble-Niederschlagsachsen geprüft: externe Titel bleiben auf Desktop, Mobil und im Export lesbar.
+Native Hochformat-Zeitachsen, klickschließende Tooltips und sichtbare Tagesraster geprüft.
+MID v0.9.81.1: schnelle Vollensemble-Nachladung mit Request-Budget sowie vollständige relative Sonnendarstellung geschützt.
+Ensemble-Resume-Hotfix: same-location reload preserves data, re-triggers loading and retries transient failures without app restart.
+Recharts-3-Livediagramme und transparente ADWICE/WAWFOR-Datenherkunft geprüft.
+MID v0.8.33.2 geprüft: Sonne-Wertblock bleibt einzeilig und ist leicht nach rechts versetzt.
+Gemeinsame Ensemble-Achsenbreiten, Höhen und Titelzeilen geprüft.
+Professionelle Temperatur-Chart-Geometrie, Tagesleiste und mobile Tooltip-Engine geprüft.
+Ensemble-Temperaturachsen geprüft: externe Titel bleiben auf Desktop, Mobil und im Export lesbar.
+Ensemble-Recovery, KONRAD3D-Zellzentrumprüfung und hochaufgelöster Radar-Nowcast geprüft.
+Ensemble-Tooltip-Schließung, einheitliche X-Achsen, Tageshilfslinien und Hoch-/Querformatverträge geprüft.
+Gemeinsame Recharts-Achsen, mobile Tooltips und Favoriteninteraktion geprüft.
+Einheitliche Desktop- und Mobile-Tooltips mit expliziter Klick-Schließung geprüft.
+Querformat-Tooltips, achsgenaue Tageslinien, horizontale Hauptlinien und zustandsarme Klick-Tooltips geprüft.
+Gemeinsame Tooltip-Helfer und vollständige Temperaturinhalte geprüft.
+Ensemble-Sichtbarkeit geprüft: Ladeanforderung bleibt bei geöffnetem Modul aktiv; Diagramme, Modellstände und Änderungsradar sind vom PNG-Export entkoppelt.
+Achsengebundenes zusammenhängendes Ensemble-Wetterband und scrollschonender Liveframe geprüft.
+Achsengebundenes Wetterband, Hazards und unclipped mobile Tooltips geprüft.
+Achsgenaues, nahtloses Sonne-/Wolkenband mit Tageslinien in den Kästchenmitten geprüft.
+Ensemble geprüft: Wind/Böen mit P10–P90, P25–P75, Best Match und ENS-Mittel; alle drei Diagramme sind einklappbar und die Sonne-/Mond-Werte bleiben kompakt.
+Ensemble-Winddiagramm geprüft: dunkler P25–P75-Kernbereich für Tage 1–7 und mittig oberhalb angeordnete Legende.
+Ensemble-Auswahl und Hyperlokalanalyse geprüft: Wind/Böen wird gespeichert; explizite aktuelle METAR-Sicht- und Wolkenmeldungen können fehlerhafte Modellbewölkung begrenzen.
+MID v0.9.5.1: Ensemble-Windvorschau verwendet den gültigen WindUnit-Vertrag kn; Anzeige bleibt kt.
+0.9.81.1: amtliche Europa-Warnungen, blitzgebundene Gewitterbezeichnung und kollisionsfreie Modellstand-Pille geschützt.
+MID v0.9.81.1: Event-/Ortsprognose, Astronomy-Engine-Ephemeriden und hyperlokale Stationsgewichtung konsistent geprüft.
+MID v0.9.46.0: G-Böenabkürzung, amtliche ICAO-/AWC-Hazards, WAFS-SIGWX beider WAFC sowie nationale KNMI-AIRMET-/SIGMET-Pfade geprüft.
+Event-Center-Buildfix geprüft: Topbar-Event-Center, Deep-Link und Buildvertrag sind abgesichert.
+MID v0.9.43.0: Event-Center Mehrfachfavoriten, Theme-Optimierung, kompakte Texte, appweite Parameterformate und Flugwetter-Hazards geprüft.
+MID v0.9.44.0: chronologische und wählbare Eventsortierung, echte Bearbeitung sowie gekoppelte Niederschlagsart/-wahrscheinlichkeit und Wind+Böen geprüft.
+MID v0.9.42.0: Event-Center ist kompakt in der Top-Leiste, Änderungstexte sind natürlich und Event-/Reiseplaner gemeinsam unter Planer separat schaltbar.
+MID v0.9.81.1: Event-Persistenz nutzt den quota-sicheren Durable-Store; ein alter nativer localStorage-Wert kann einen frisch gespiegelten Eventstand nicht mehr verdecken.
+MID v0.9.53.13: Event-Favoriten bleiben von Ortsfavoriten unabhängig; Sync und responsive Live-Ortssuche sind geschützt.
+MID v0.9.53.28: platzneutrale Event-Wetterampel aus zentralem EventAdvice-Status geprüft.
+Flug-Event-Plausibilität geprüft: implausible Diagnosen sehr tiefer Wolkenuntergrenzen werden bei guter Sicht gefiltert.
+Flug-Events geprüft: Wind folgt der gewählten Einheit, Sicht nutzt m/km, Wolkenuntergrenze ft AGL und entfernte METAR/TAF-Rohwerte überschreiben keine lokalen Eckwerte.
+MID v0.9.81.1: zentraler Event-Fresh-Reload und platzsparender Hyperlokal-Info-Trigger geprüft.
+OK MID v0.9.53.34 event lifecycle + startup contract
+0.9.81.1: Event-Zeitraum-PoP und vorangehende Stundenintervalle semantisch ausgerichtet.
+Planer-Integration geprüft: Eventplaner und Reiseplaner liegen gemeinsam unter Planer und bleiben separat schaltbar.
+MID v0.9.81.1: Event-Zeitraum-PoP und Wetterzwilling-Endstufe appweit konsistent geprüft.
+MID v0.9.45.3: kompakte Events-&-Aktivitäten-Übersicht mit Wetter-Eckdaten und progressiven Details in Sektion und Glocken-Popover geprüft.
+MID v0.9.78.83: aktivitäts-, umgebungs- und datenbewusste Event-Empfehlungen geprüft.
+MID v0.9.81.1: zentraler Event-Refresh-Broker, dauerhafte Commits und Modelllaufüberwachung geprüft.
+OK MID v0.9.53.35 Event-Refresh TypeScript buildfix
+MID v0.9.81.1: Event-Refresh bleibt gegenüber Geräte-Sync und verspäteten Schreibvorgängen monoton frisch.
+MID v0.9.81.1: UI-unabhängiger Event-Reload und persistente Propagation geprüft.
+MID v0.9.81.1: Event-Fresh-Reload ist transaktionsautoritativ, persistent bestätigt und syncfest.
+MID v0.9.45.4: kompakter Event-Ort, gestufter Workflow und appweite Portal-Info-Logik geprüft.
+MID ab 0.9.66.2: sichtbare, georeferenzierte DACH-Gefahrenflächen und reduzierte regionale Marker geprüft.
+MID 0.9.66.10: kompakte Kartenlegende sowie Kartenlinien und Beschriftungen oberhalb der Gefahrenflächen geprüft.
+MID 0.9.66.9: kontrastreiche DACH-Karte, DWD-nahe Gefahrsskala, teilflächenrichtige Schraffur und konfliktfeste Sektionsreihenfolge geprüft.
+MID 0.9.81.1: vollständige I1–I4-Wahrscheinlichkeitsfelder, gradientengeformte Mitteleuropa-Gefahrengebiete, Entfernung identischer Sechseck-Stützkerne und aktueller NOAA-Reise-SST-Vertrag geprüft.
+MID 0.9.81.1: GeoJSON-Multipolygone, 60-%-Schraffur-Lochringe und verschachtelte Extremflächen stabilisiert.
+MID 0.9.66.8: Kartenbeschriftungen über nativen Gefahrenpolygonen, eindeutiges Enddatum, lesbare Textflächen und sofort persistierte Sektionsreihenfolge geprüft.
+MID 0.9.66.11: Kartenmethodik ist platzsparend hinter dem standardisierten Info-Button verfügbar.
+MID v0.9.81.1: Mitteleuropa-Ausblick, vollständiges ICON-D2-Gebiet und lesbarer Grenz-/Stadtkontext über mehreren Gefahrenlayern geschützt.
+MID 0.9.66.18: getrennte Gefahrenflächen, eindeutige Listeneinträge und passende Regionsnamen in Karten-Popups geprüft.
+MID 0.9.66.3: geglättete, unregelmäßige und georeferenzierte DACH-Gefahrenkonturen geprüft.
+Extreme outlook spacing regression passed with 2 checks.
+MID 0.9.66.1: DACH-Dezimalformatierung und zentraler RangeError-Schutz geprüft.
+MID v0.9.81.1: Worker-Tageslimit, kanonische Browser-Direktberechnung, persistenter Stale-Cache, Abrufbudget und verständlicher Datenweg geprüft.
+Extremregen-Metrik, I-Schwellenvergleich, RUC-Fallback, Geländehöhen-Rundung und 24-h-Nachtprofil erfolgreich geprüft.
+MID 0.9.66.19: räumlich korrekte Regionsnamen, deduplizierte Regionsliste und nullsichere Flugwetter-Ceilings geprüft.
+Extreme-weather threshold/evidence consistency regression passed.
+Extreme-weather I/P threshold and full-run RUC horizon regression passed.
+MID Favoriten: sofortige Persistenz, dauerhafte Tombstones und konfliktfester Sync geprüft.
+Favoriten-Dauerhaftigkeit geprüft (0.9.81.1): sofortige Speicherung und POI-scharfe Identität bei erhaltener GPS-Nahbereichslogik.
+Favoritenwechsel geprüft: mobile Rand-Wischgesten und Desktop-Klick behalten Ansicht/Tag; Sonnenschein wird über bis zu 60 Minuten aggregiert und lokal plausibilisiert.
+Favoriten-/Event-Koexistenz geprüft (0.9.81.1): ein Tap = eine Mutation, Event und Ortsfavorit bleiben unabhängig, Näherung löscht nichts.
+Favoritenmenü und Performance geprüft: aktiver Favorit wird direkt sichtbar; Layoutmessung, Persistenz, Favoritenlernen, Push- und Archivsync sind entdoppelt beziehungsweise in Leerlaufphasen verlagert.
+Favoritenreihenfolge geprüft: synchron persistiert, vor Start-Pull migriert, separat revidiert und geräteübergreifend konfliktfest gemergt.
+Favoriten-Schnellleiste geprüft: zweite kompakte Kopfzeile, Standort/Favoritenauswahl, Profilkennzeichen sowie Maus- und Touch-Drag&Drop sind vorhanden; Detailverwaltung bleibt im Einstellungsmenü.
+Favoritenregeln, direkter Menüsprung und Performance geprüft: neue Regeln sind aus, Favoriten persistieren sofort, aktive Favoriten werden robust zentriert und lange Listen layoutseitig isoliert.
+Favoriten-StorageSafety geprüft: ein älterer IndexedDB-Mirror darf einen neueren nativen Favoritenstand nicht mehr zurücksetzen.
+Funktionssuite v0.7.97.0 geprüft: Berg-/Wintersport, GeoSphere-Schnee, Analytics, Benachrichtigungsdesign/Deep-Links, letzter Ort, Radar-Zugrichtung und versionsfestes Modellarchiv.
+Streckenbriefing-Höheneingabe geprüft: explizite FL/ft-AGL-Wahl, freie Mehrzifferneingabe, 100-ft-Präzision unter FL050 und 10-FL-Rundung ab FL050.
+Flug- und Kompositkorridore geprüft: regionale Hazardräume und echogebundene Annäherung mit Unsicherheitskorridor.
+Cross Section reaktiviert: kein Diagramm, sondern zeit-/höhenbezogenes Streckenbriefing mit Modell- und ICAO-Gefahren.
+Cross Section geprüft: textuelles Streckenbriefing mit Route, FL, Start/Landung, Zeit-/Ortshinweisen und amtlichen Signalen aktiv; alte Grafik bleibt entfernt.
+Cross Section geprüft: Route wird wetterseitig ausreichend abgetastet; separate hochauflösende Terrain-/Grafikpipeline bleibt entfernt.
+Flugmeteorologie geprüft: Cross Section ist als textuelles Streckenbriefing mit Route, Flughöhe, Start/Landung, Modellgefahren und amtlichen Signalen reaktiviert.
+Flug-Streckenbriefing, vertikale Schwerpunktströmung und radarpriorisierte Echo-Zugspur geprüft.
+MID v0.9.81.1: mehrpunktfähiges textuelles Korridor-/Vertikalbriefing mit räumlicher Unschärfe und Eintritts-/Austrittsfenstern geprüft.
+Klassische Standardansicht sowie Register- und Ribbon-Cockpit v0.9.7.x geprüft.
+MID v0.9.81.1: ForecastCockpit bleibt frei von verwaisten Temperatur-Brückenimporten und TS6133-Rückfällen.
+Forecast-Cockpit-Tag/Nacht-Piktogramme und kompakte Böenangabe geprüft.
+Forecast-Cockpit-Piktogramme und Windpfeile geprüft.
+ForecastCockpit TypeScript-Buildfix v0.9.78.11 geprüft.
+Prognose-Cockpit Register bleibt bei Kurzfrist/7/14 Tagen typografisch und grafisch invariant.
+Shared multiparameter calendar windows replace unvalidated 72-point cutoff.
+test-forecast-confidence-layout-090505 passed
+Forecast-Konsistenzvertrag v0.9.53.26 geprüft: Hyperlokal/Nowcast wirken über kanonische Stunden und finalisierte 15-Minuten-Daten app-weit; sichtbare Forecast-Module führen keinen separaten Rohdaten-Blend mehr aus.
+Desktop-Layout der 7-Tage-Vorhersage geprüft: schmalere Temperaturbalken und textfreundliche Spalten aktiv.
+MID v0.9.81.1: kanonische P0/P1-Fusion mit Lage-, Horizont-, Regional-, Frische-, Unabhängigkeits- und lokaler Gütestufe geprüft.
+7-Tage-Warnfilter geprüft: In der Vorhersage erscheint je Warntyp nur die höchste Stufe; das Widget begrenzt zusätzlich auf die stärkste Tageswarnstufe.
+Forecast-Inline-Niederschlagstypen und Buildfixvertrag geprüft.
+Parameterspezifische Prognosegüte geprüft: vorhandene v3-Lerndaten bleiben erhalten; Niederschlag, Temperatur und Böen dominieren den Gesamtscore vor Sonnenschein.
+Finale Niederschlagsunterstützung geprüft: horizonabhängige Stützung, physikalische Regen-/Schauerprüfung, kohärente Modellbündel und keine Tages-zu-Stunden-Erfindung.
+7-Tage-Kurzinterpretation sowie vollständige Marker in Querformat und Tablet-Hochformat geprüft.
+7-Tage-Metadatenlayout geprüft: Niederschlag, Sonne und Wind bleiben kompakt gruppiert, dürfen bei Platzmangel aber vollständig umbrechen statt abgeschnitten zu werden.
+MID: 14-Tage-Cockpit öffnet sofort aus Best Match; Ensemble und relative Sonnenscheindauer werden entkoppelt ergänzt.
+MID v0.9.78.79: 14-Tage-Konfidenzpille ohne abgeschnittene Nachbarinhalte geprüft.
+MID v0.9.78.80: runder Infozugang und kompakte einzeilige 14-Tage-Kopfzeile geprüft.
+0.9.81.1: 14-Tage-Tablet-7×2 und saubere Desktopkarten ab 1025 px geschützt.
+0.9.81.1: 14d-Kurzaussage bleibt vollständig lesbar; Favoriten-Tap und Drag sind auf iOS getrennt und der Griff hat keine tote Touch-Zone mehr.
+Vollständige verschlüsselte Wetterzwilling-Langzeitsicherung und Netatmo-Einrichtungsdiagnose sind geprüft.
+Format und Layout geprüft: sichtbare Dezimalwerte nutzen deutsches Komma; zehn aktuelle Parameter bleiben am Desktop in einer kompakten Zeile.
+Kanonische Release-Pipeline geprüft: SHA-fixierte Actions, Least-Privilege-Jobs, Abhängigkeitsaudit, direkte ZIP-Installation und keine unzulässige Workflow-Selbständerung.
+Explizite GitHub-Workflow-Synchronisierung geprüft: checkout v7.0.1, setup-node v7.0.0, setup-python v7.0.0, upload-artifact v7.0.1 und CodeQL 4.37.9 werden SHA-gepinnt in kanonischen und zusätzlichen MID-Workflows angewendet.
+MID v0.9.81.1: PR #25/#24/#26 MID-konform übernommen; React 19 und plugin-react 6 bleiben zurückgestellt.
+Kanonisches GitHub-Workflow-Paket geprüft: Alt-Installer-kompatibel, explizit synchronisierbar, idempotent und ohne Veränderung fremder Workflows.
+Globale METAR-Abfrage geprüft: AWC-Bounding-Box ist lat/lon-sortiert, aktueller 3-h-Abruf aktiv, internationale Suchweite erweitert und Sichtweite wird übernommen.
+0.9.81.1: griechische Warngebietszuordnung, Volltext, Dublettenfreiheit und KV-Isolation geschützt.
+Hour-Windrichtungsprüfung bestanden: reale Hour.direction-Werte erscheinen direkt im Warntext, einschließlich markanter Drehung.
+Unterbrochene Warnstufen geprüft: identische niedrigere Warnphasen werden über die eingebettete höhere Stufe zu einem einrahmenden Zeitraum verbunden; inhaltlich unterschiedliche Phasen bleiben getrennt.
+Warnstufenprüfung bestanden: niedrigere und höhere Intensitätsstufen werden parallel mit eigenen Zeiträumen, Texten und kompakter Kennzeichnung ausgegeben.
+MID v0.9.81.1: Windrichtung mit markanter Drehung, kanonische Warnfenster/-stufen im Wetterprofil, LT-Kennzeichnung und CI-Versionstest geprüft.
+Eigene Warnindikatoren geprüft: zusammenhängende Gültigkeitsfenster, Ortszeitformatierung und kompakte responsive Anzeige vorhanden.
+Warnzeit-Datum geprüft: Warnungen ab morgen tragen Datum; heutige Warnungen bleiben kompakt, Datumswechsel vollständig.
+Eigene Windwarnungen geprüft: konstante Richtung, Richtungswechsel und 360°-Übergang stehen direkt im Warntext; eine separate Richtungskapsel ist entfernt.
+Inline-Windrichtungsprüfung bestanden: Richtung steht im Warntext und nicht in einer separaten Kapsel.
+Blickrichtung und Radar-Nowcast geprüft: Sensorlistener nach Freigabe, sichtbarer Richtungspfeil, 5-Minuten-Mengenachse und dezente +2-h-Summe vorhanden.
+Starkregen-/Überflutungsindikator geprüft: RADOLAN YW 15–360 min, RV +120 min, KONRAD3D, KOSTRA, Stationsabgleich, Signalfilter und Warnungstrennung.
+Workerintegration geprüft: RADOLAN-Metadaten/Proxy, KOSTRA-Proxy, RV +30/+60/+120 und DWD-Stationsregen.
+MID v0.9.77.15: neutrale Kurzfrist-Temperaturen, klimatologische Tagesextrema und Desktop-Ensemble-Tooltip geschützt.
+MID v0.9.15.8 HX projection alignment regression passed.
+HymecNG ist nur noch diagnostischer Worker-Altpfad; die Komposit-Niederschlagsart bleibt exklusiv OPERA + ICON-D2.
+Aktiver HymecNG-Kompositpfad ist entfernt; zeitechter Satellit mit kontrolliertem DWD-Latest-Fallback bleibt geschützt.
+HymecNG-WGS84-Ellipsoid und DWD-Satellitenlayer ohne TIME-Dimension als cache-busted Live-Snapshot geschützt.
+MID v0.9.81.1: direkter Temperatur-Messkonsens, Einzelstationsschutz, DWD-10-min/SYNOP/METAR-Provenienz und Current-Diagnose geprüft.
+MID v0.9.81.1: DWD-10-Minuten-Echtzeit, DEM-Morphologie, Oberflächen-/Rauigkeitsgewichtung und Doppelkorrekturschutz geprüft.
+MID v0.9.53.19 Hyperlokal-Signifikanz und Event-Glockenpiktogramm geprüft.
+Hyperlokale Analyse geprüft: Ceiling wird nur ab 5/8, die Wolkenuntergrenze bei 1/8 bis 4/8 angezeigt; beide Höhen werden aus METAR-Wolkenlagen in hft abgeleitet.
+MID v0.9.81.1: parameterbezogene Hyperlokal-Relevanz, Feld-Provenienz, hochfrequente Beobachtungen und Regionalmodell-Hintergrund geprüft.
+Hyperlokale Qualitätsprüfung bestanden: physische Stationsentdopplung, zirkuläre Windrichtung, thermodynamische Konsistenz, sensible Quellenfilter und bedarfsgesteuerte Anreicherung sind geschützt.
+Hyperlokale Ultra-/Kurzfrist, präzise Zusammenfassung, 14-Tage-Piktogramme und Windpfeile geprüft.
+MID v0.9.81.1: adaptive Temperaturkorrektur, DWD-POI-Neuestwert und CDC-/SYNOP-Intervallprovenienz geprüft.
+ICAO-Ortssuche-Buildfix geprüft: Worker-Antworttyp enthält den optionalen Fehlerumschlag und erfüllt den fetchWorkerJson-Vertrag.
+ICAO-Ortssuche geprüft: gemeinsame Suche, 30-Tage-Cache, Worker-Auflösung und Darstellung in Haupt-, Routen- und Reisewettersuche vorhanden.
+Manuelle iCloud-Sicherheitskopie und gemeinsame portable Datenrichtlinie geprüft.
+Impressum geprüft: Footer- und Einstellungszugang, Anbieterangaben, Interaktionsfreigabe und fehlender E-Mail-Klartext im App-Quellcode.
+Installer-main-Race geprüft: eventgebundener Checkout, sichere .github-Rebase-Ausnahme, fachliche Änderungen brechen ab, kein Force-Push auf main.
+v0.9.39.8: exakter Altinstaller-Fall "Only in ./node_modules: minimist" ist regressionsgeschuetzt.
+v0.9.39.6 Installer-Bootstrap: node_modules-Altlast wird sicher ignoriert/entfernt.
+v0.9.39.9: Bootstrap-Regression ist npm-ci-sicher und reproduziert den alten rsync/diff-Installer isoliert.
+Installer-Release-ZIP-Validierung in Patch und kanonischem Workflow geprüft.
+Install-Workflow geprüft: npm-ci-/Audit-Retries sind kanonisch und im Patchstand hinterlegt.
+Interaktionsperformance geprüft: Randwischen blockiert normales Scrollen nicht mehr, Favoritenpositionierung und Drag-Reorder sind rAF-gedrosselt, Ansichtswechsel vermeiden Voll-Layoutmessungen; deaktivierte Altmodule einschließlich der verworfenen DWD-Rekonstruktionspipeline bleiben dormant; das textuelle Flug-Streckenbriefing ist bewusst wieder aktiv und bleibt lazy geladen; die Stationsintegration ist bewusst wieder aktiv; das amtliche DWD-Originalbild benötigt diese Zusatzmodule nicht.
+Ortssuche, Kurzfristkarten und professionelle Ensemble-Tooltips geprüft.
+MID v0.9.81.1: Hauptkopfzeile, Sticky-Navigation und Vollbilddialoge bleiben unter der iOS-Statusleiste bedienbar.
+MID v0.8.33.16 geprüft: durchgehender Root-Hintergrund, reduzierte mobile Compositor-Ebenen, direkte Viewport-Aktivierung und Tagesextreme exakt aus den finalen Stunden bei vollständiger Tagesabdeckung.
+MID v0.9.15.10 K3D viewport, time and geometry plausibility regression passed.
+Keyless basemap contract OK: no CARTO API-key watermark path, OSM + local raster tone preserved.
+KNMI HARMONIE EPS Punktdecoder: Worker-Manifest-only, GRIB1, 6×5 Rolling-Member, HTTP-206-Ranges, Rolling-Regenkorrektur und P4a-5,5-km/1-h-Metadaten geschützt.
+KNMI HARMONIE EPS productive-cache regression passed.
+MID v0.9.81.1: ecCodes-Wasm-/Free-Queue-Kandidat fail-closed dokumentiert; keine Dependency, Queue oder Worker-Aktivierung.
+MID v0.9.81.1: fokussierter ecCodes-Wasm32/MEMFS/Nearest-Point-Prototyp fail-closed vorbereitet; kein NODEFS, Vollgitter, Queue- oder Worker-Aktivierungspfad.
+KNMI HARMONIE EPS Worker-Anbindung: Open-Data-Orchestrierung, 6×5 Rolling-Member, 0–54-h-Alignment, Cache-/Range-Manifest und externer Decodervertrag geprüft.
+MID v0.9.15.7 KONRAD3D derived-point TypeScript buildfix regression passed.
+MID v0.9.81.1: Info-UI, Wetterzwilling-No-op, Sync-Koaleszenz und Scheduler-Index regressionsgeschützt.
+Prognosegüte nach Wetterlage/Horizont, überprüfbare lokale Lerngewichtung, Ensemble-Szenariocluster und Berg-Höhenzonenanalyse sind geprüft.
+Legenden-/Sprachprüfung bestanden: dunkle Schrift auf dem Sonnenscheinband und natürliche deutsche Zeitstellung bei Schauern.
+Lokale Importprüfung bestanden: 158 TypeScript-Dateien besitzen vollständige relative Importziele.
+Lokales Standortprofil sowie iOS-/watchOS-Widget- und Komplikationsvorbereitung sind geprüft.
+MID v0.9.81.1: LocalSurfaceContext erfüllt den WorkerPayload-Typvertrag.
+Standort-/Favoriten-Auswahl geprüft: aktiver GPS-Standort wird beim App-Start neu bestimmt, manuelle Orte bleiben geschützt und nahe Favoriten werden sauber zugeordnet.
+Standortmarker geschützt: Sichtrichtung nur bei tatsächlich aktiver Geräteort-Auswahl; Favoriten/manuelle Orte erhalten ausschließlich die neutrale Ortsmarkierung.
+Standort-Rückkehr geprüft: Kernforecast, Stations-/AQI-/Radar-/Warn-/Hazard-Quellen, Reverse-Geocoding und Push-Sync vermeiden unnötige Wiederholungsabrufe; manueller Fresh-Reload bleibt separat möglich.
+0.9.81.1: einheitliches Orts-Gewitterrisiko, gruppierte Wassersport-Übersicht und vollständiger Tidenhub geschützt.
+MID v0.9.81.1: letzter Ort + Hauptansicht persistieren lokal; unveränderte Push- und pagehide-Syncs erzeugen keine unnötigen KV-Writes.
+MID v0.9.81.1: npm-10-Audit-Lockfile-Baum ist konsistent.
+Logo selection and cloud profile regression passed.
+Native MID-Brand-PNGs geprüft: vollständige Chunk-/CRC-/IEND-/IDAT-Integrität für Light/Dark Splash und AppIcon.
+Verbindliche MID-Light-/Dark-Logo-Sets für Header, Boot, PWA/Favicon und iOS geprüft.
+MID 0.9.81.1: Langfristmodelle mit P10–P90 und P25–P75 sowie divergierenden Anomaliefarben geprüft.
+Long-range model source regression passed with 8 checks.
+MID v0.9.81.1: Langfrist-Poor-Man’s-Ensemble und einklappbare Schneefallgrenzen-Ensemblegrafik geprüft.
+MID 0.9.81.1: Trend-14d+-/Langfrist-Sektion, ECMWF + NOAA CFSv2 und gemeinsamen Einzelmodellvergleich geprüft.
+MID v0.9.81.1: Saison-Langfristtrend bleibt bei nur einer numerisch verfügbaren Modellfamilie sichtbar.
+MID: getrennte Trends-14d+-Untersektionen und relative Sonnenscheindauer in der 14d-Übersicht geschützt.
+MID 0.9.81.1: Langfrist-Diagrammachsen ohne implizites any geprüft.
+MID Lucide-Wartung geprüft: 1.35.0 reproduzierbar, React 18/Vite 6 unverändert.
+Wartung v0.7.82.1 geprüft: MID-Initialen, selbstheilende Rückfallversion, kompakte Tageswarnungen, Ensemble-Warnungen im Tooltip und korrekte Niederschlagsachsen sind vorhanden.
+MID v0.9.81.1: Wartungsbereinigung, Astronomie-CPU-Pfad, iPhone-Touchziele und kompatible Plattform-/Kartenpatches geprüft.
+Funktionsneutrale Modularisierung geprüft: Styles, weather.ts und Worker werden aus kanonischen Teilquellen bytegleich erzeugt; 7-Tage- und Cache-Logik sind aus App.tsx ausgelagert.
+Recharts 3.10.1, Lockfile-Wurzel, begrenzte Caches und CI-deterministische Release-Invarianten geprüft.
+MID v0.9.81.1: funktionsneutrale Komponentenaufteilung sowie einheitliche Cache-/Persistenz-Nutzerverträge geprüft.
+Kartenrichtung und Ensemble-Export geprüft: Kompassmarker, iOS-Berechtigung, drei PNG-Teilen-Buttons, MID- und Quellenblock vorhanden.
+MID v0.9.81.1: MapLibre 6.7.0, transitive UUID-Upstreamgrenze und Stable-Branch-Schutzvorlage geprüft.
+MapLibre CompatBounds geprüft: Südwest-/Nordost-Ecken sind typisiert und verfügbar.
+MID v0.9.39.3: MapLibre-Typen und 6-h-Niederschlagsfenster im Mean/Spread-Fallback buildfest geprüft.
+MapLibre app-weit, DWD-schwellenbasierte 24-h-/6-h-PoP und beobachtungsgebundene OPERA + dynamische Rapid-/Regionalmodell-Niederschlagsart geprüft.
+MID 0.9.67.5: MapLibre-6-Vite-Workergrenze und produktive GeoJSON-Flächenverarbeitung geprüft.
+MID Menü-/Scrollstabilität bestanden: ViewportGate aktiviert vorlaufend ohne Idle-Verzögerung und Scrollen invalidiert nicht mehr den gesamten Kartenbaum.
+MID-v0.7.99.1 geprüft: Skigebietsweite Höhenwahl, eindeutige Modelllaufkennung, exakte Push-Koordinaten und strikte Favoritenaktivierung sind geschützt.
+MID v0.9.15.0: Kurzfrist-Plausibilisierung, Stundenübersicht, Gewitterdetails und Changelog-Bereinigung geprüft.
+DWD-Originalprodukt, mobile 24-h-Aufklappung, Wetterprofil und Wetterkartenzeiten geprüft.
+Zoombares DWD-Originalprodukt und Tageseckdaten unterhalb der 24-h-Liste geprüft.
+MID: 24-h-Kacheln sowie verlustfreier Favoriten-Union-/Tombstone-Sync geprüft.
+MID v0.9.81.1: Modulzustand, Eventhinweise, DWD-PoP-Zeitfenster, Event-Zeitraum-PoP und aktuelle Hyperlokalkacheln geprüft.
+MID v0.9.81.1: alle neun Integrationsschritte gegen Quellvertrag geprüft.
+MID v0.9.31.0: amtliches zoombares DWD-Originalprodukt und neues 24-h-Wetterprofil erfolgreich geprüft.
+Eine einzige zoombare amtliche DWD-Kombinationsgrafik ohne nachgebautes Komposit geprüft.
+MID UI/Langfrist: Favoritenleiste, Defaults, Touch, meteorologische Symbole, Status und P10/P90+P25/P75 geschützt.
+MID: 24-h-Achsen mit Skalen, Tickmarken, Einheiten und ruhiger Zeitachse geprüft.
+MID: 24-h-Wetterprofil läuft exakt von jetzt bis +24 h; Niederschlag nutzt rückblickende Intervallenden und finalisierte 15-Minuten-Daten im ersten Nowcastfenster.
+MID: responsives Wetterprofil, persistente Legende, 24-h-Tmin/Tmax und kompakte Info-Schaltflächen geprüft.
+MID: 24-h-Signalkarten verwenden heute/morgen statt Datum hinter der Uhrzeit.
+MID v0.9.32.5: Mehrfaktoren-Schwüle und fillerfreie Einzeldaten geprüft.
+MID: 24-h-Hazards verwenden appweite DWD/MID-Warnschwellen, Gültigkeitsintervalle und Warnfarben.
+MID v0.9.32.0: 24-h-Auswahl, Thermik/Hazards, Windpfeile, Wolkenfading und Ensemble-Sonnenband erfolgreich geprüft.
+MID: UVI in Einzeldaten und flachere mobile 24-h-Leiste ohne Parameterverlust geprüft.
+MID: persistente Legende, zentrale Warnschwellen/-farben, linke Achsen, robuste 24-h-Tmin/Tmax und bereinigte 24-h-Texte geprüft.
+Mobile Tmin/Tmax-Zentrierung, explizite SVG-Modellkonturen und kollisionsfreie Komposit-Overlays geprüft.
+MID v0.8.33.14 geprüft: Hook-Reihenfolge, Ersttipper, Scrollschutz, Diagramm-Pointerpfade, rAF-Tooltips und mobile Touch-/Hover-Regeln sind abgesichert.
+3-Tage-Modelländerungsradar mit Modellangabe, verschlüsselte Gerätesynchronisation, stillgelegtes Routenwetter und Prognosegüte/Rückblick sind geprüft.
+MID Modellfamilien vollständig geprüft: Full-member, Mean/Spread, deterministische JMA-Kontrolle und regionale Spezialmodelle bleiben fachlich getrennt.
+Modellfamilien-, Rapid-Cycle- und Wetterplaner-Konsistenz geprüft.
+MID v0.9.81.1: Modell-Init, 24-h-Min/Max ohne Präfix und schneehöhenbasierte Reiseoptimierung geschützt.
+Open-Meteo Bezugsquelle, aktuelle AIFS-Single-ID und Modelllauf-Frischeprüfung bestanden.
+Modelllauf-Änderungsradar geprüft: Einstellungen, Vergleich, Ensemble-Darstellung und Worker-Push bleiben vollständig verdrahtet.
+MID v0.9.81.1: P0-P2 Model-Skill-, Wetterzwilling-, PoP-, Familien-, Frische- und Mean/Spread-Vertrag geprüft.
+MID v0.9.53.36 model-source capability contract: OK
+Canonical model-status contract OK: Init, source-ready and actual fusion use are distinct in short-term and 7-day views.
+Optionales Bedienkonzept Schritt 7 sowie Merge v0.9.78.84/.85: Übersicht/Fokus/Details, direkter Kartenfokus, klassischer Fallback, Synoptik-Persistenz und Radar-Isolation geprüft.
+Optionales Bedienkonzept Schritt 5: Prognose-Arbeitsraum, Horizont-Persistenz, Cockpit-Dedup, klassischer Fallback, iOS-Touchziele und Radar-Isolation geprüft.
+Optionales Bedienkonzept Schritt 3: Map-Focus, Ebenen-Overlay, Timeline/Playback, Fallback und Radar-Isolation geprüft.
+Optionales Bedienkonzept Schritt 2: Mobilkopf, 90m/24h/7T/14T/46T/Saison-Fokus, Touchziele und Radar-Isolation geprüft.
+Optionales Bedienkonzept Schritt 6: Planen-Hub, Mehr-Hierarchie, Einstellungsdirektzugriffe, klassischer Fallback, iOS-Touchziele und Radar-Isolation geprüft.
+Optionales Bedienkonzept Schritt 4: Heute-Übersicht, vorhandene Datenpfade, klassische Detailansicht, iOS-Touchziele und Radar-Isolation geprüft.
+MID v0.9.81.1: Hauptsektionszustände sind aus Sync, Recovery-Snapshot und StorageSafety-Spiegel isoliert; v6-Heilungsmigration geprüft.
+Einheitliches persistentes Öffnen/Schließen großer Dashboard-Module geprüft.
+MOSMIX bleibt korreliertes DWD-Postprocessing: Temperatur/Wind werden lokal nachkorrigiert; die stündliche Niederschlagsmenge dient ausschließlich als RR1c-Konsensanker gegen RUC-Ausreißer.
+MID v0.9.81.1: MOSMIX-Anteile, offizieller Init-Zyklus und Aktualitätswarnung sind abgesichert.
+MID v0.9.81.1: MOSMIX-S stündlich und MOSMIX-L separat im Modellstand abgesichert.
+Berg-/Wintersport geprüft: Tageslichtfenster, Folgetag nach Sonnenuntergang, gestufte Höhenzonen und tagesbezogenes Gewitterrisiko aktiv.
+Berg-/Wintersport: Höhenwetter nach Höhenzone ist in Sommer und Winter standardmäßig eingeklappt.
+Höhenwetter geprüft: Windwarnfarben, Niederschlagsintensität, NHN-Bezug und Sichtkorrektur in dichter Wolkenschicht.
+Höhenwetter-Verlauf, Profilwording und siebentägiger Szenariovergleich geprüft.
+Bergprofil-Persistenz, getrennte Wind-/Schneedaten und Desktop-Tagesbereich geprüft.
+Bergprofil geprüft: lokale Höhenhülle, skigebietsweite Extremhöhen, Mittelstationswahl, Distanzgrenzen und Migration unplausibler Altprofile sind geschützt.
+Berg-/Wintersport und Wind/Böen-Plausibilisierung geprüft: Wind bleibt unverändert, Böen werden nur punktweise bei fehlenden oder kleineren Werten angeglichen.
+MID 0.9.68.1: native externe OAuth-Navigation, validierter Deep-Link-Rücksprung und Browserfallback geprüft.
+MID 0.9.68.0: nativer Einmal-Standortadapter, Berechtigung und Browser-Fallback geprüft.
+MID 0.9.68.2: native Dateiübergabe, Dokumentwähler sowie Browser-/PWA-Fallbacks geprüft.
+Navigation und Favoriten geprüft: Tagespfeile stehen auf Handy, Tablet und Desktop bereit; neue und importierte Favoriten werden hinten angefügt.
+Netatmo Callback-Handoff geprüft: sichtbare Browser-Rücksprungseite, serverseitiges OAuth-Ergebnis und flüchtiger App-Handoff sind vorhanden.
+Netatmo iOS/PWA Navigation: synchroner Start, Cache-Buster, no-store Redirects und flüchtige Callback-Übergabe geprüft.
+Netatmo Direkt-Redirect und sichtbare OAuth-Fehlerdiagnose geprüft.
+Netatmo OAuth-Direktnavigation, Fehlerdiagnose und flüchtige Rückkehr in die Einstellungen geprüft.
+Netatmo-Persistenz nach Neustart und kontrastierte Schneeflocke im Ensemble-Wetterband geprüft.
+Netatmo iOS/PWA Browser-OAuth geprüft: Autorisierungs-URL ist vorab vorbereitet, externe Browsernavigation erfolgt direkt aus dem Tap und connectionId wird aus URL oder flüchtigem Handoff übernommen.
+Tag-/Nachtpiktogramme, kompakte Mondphase und schließbare Astronomie-Detailinformationen sind geprüft.
+Nächtliche Audit-Abhängigkeiten geprüft: nanoid 3.3.18, protocol-buffers-schema 3.6.1, postcss 8.5.23, browserslist 4.28.7.
+Repository-Hygiene: node_modules ist aus dem Git-Index entfernt und bleibt über .gitignore lokal.
+Repository-Hygiene: .github bleibt im automatischen Release-Lauf unverändert; Workflow-Synchronisierung ist ausschließlich explizit.
+Actions-Workflow-Selbstmodifikationsschutz geprüft: Prebuild ändert .github nicht; explizite Synchronisierung bleibt verfügbar; Release-Commit schließt .github aus.
+Kompaktlayout geprüft: Tages-PoP nutzt volle Breite, 0-min-Dauer entfällt, Widget/klassische Prognose umbrechen und fachliche Wetterwerte werden nicht per Ellipsis abgeschnitten.
+Benachrichtigungsintervall geprüft: Auswahl, Persistenz, Client-Sync und serverseitiger geräteweiter Cooldown sind aktiv.
+MID v0.9.15.9 notification start and K3D renderer regression passed.
+Nowcast-/Tageskonsistenz ab v0.8.33.3 geprüft.
+MID v0.9.81.1: amtlicher Beobachtungsbroker, Quellenherkunft und Ensemble-Adaptervertrag geprüft.
+Amtliche Wetterwarnungen geprüft: zeitlich aufsteigende Sortierung nach Beginn und Ende ist appseitig verbindlich.
+Open-Meteo-Rapid-Quellenvertrag geprüft: Best Match minutely15, HRRR/AROME Rapid, ICON-D2 15 min 3-stündlich und DWD ICON-D2-RUC strikt direkt getrennt.
+Open-Meteo-Update-Audit 17.08.2026 geprüft: AIFS Europe, Météo-France, JMA, EU-AQI, Min/Max-Metadaten, Mond und DWD ICON.
+OPERA Phase 1 geprüft: korrigierte LAEA-Geometrie, reale HDF5-Vorprüfung, DWD + OPERA-Abgleich, OPERA-Unterlage und RainViewer nur als letzter Fallback.
+OPERA-Workerintegration geprüft: 13 tatsächlich gelistete 5-Minuten-Frames und validierter CORS-HDF5-Proxy.
+OPERA-Fallback geprüft: S3-Indexausfall wird durch bestätigte HDF5-Range-Probes aufgefangen.
+Optionales Bottom-Tab-Bedienkonzept, Persistenz, Fallback und Radarfarb-Isolation geprüft.
+Pages-Codeload-Resilienz geprüft: configure-pages entfernt, Release-Build entkoppelt und Pages-Deployment mit frischen Runnern + 75/180-s-Backoff dreifach abgesichert.
+MID v0.9.81.1: Parallel-Chat-Security, v35-v38-Ensemble/Skybar/Sonne und phasenabhängige Niederschlagsfarben gemeinsam geschützt.
+Parameter colour contract regression passed with 21 checks.
+Parameter colour contract v0.9.77.15 passed with 13 checks.
+Parameter colour + Trend 14d+ regression passed with 18 checks.
+App-Performance und Livequellen geprüft: keine doppelte Current-Kartierung, Detailuhr nur bei offenem Tageschart, Komposit-Offscreen-Pause sowie K3D-/NowCastMIX-Status/Fallbacks sind aktiv.
+Performance-/Responsivitätsprüfung bestanden: Lazy-Module, sichere Vite-Optimierungen, Rendering-Containment, Touch-Scrolling und reduzierte Bewegung sind abgesichert; nur die auditierte React-/Charts-Vendor-Aufteilung ist zulässig, MapLibre bleibt lazy.
+Performance, Open-Meteo-Modellstand und sichtbare Isobaren/Isohypsen geprüft.
+MID v0.9.81.1: Tages- und Folgenacht-Piktogramme sind appweit an Tagescharakter bzw. tatsächliche Folgenacht gekoppelt.
+Persönlicher Entscheidungszwilling, Outdoor-Wording und bewusst reaktivierte Stationsanbindung sind geprüft.
+MID v0.9.45.0: sichtbare Planer-Sektion mit separat schaltbarem Event-/Reiseplaner und deutlich kompakter Rahmen-/Aktivitätsauswahl geprüft.
+Popover-Regression bestanden: gemeinsame App-Portalprimitive sowie Ensemble-Spezialtooltips schließen per Außenklick/Escape und bleiben viewportfest.
+Konvektiver/stratiformer Niederschlag geprüft: direkte Modellkomponenten führen, Instabilität stützt, Phase bleibt kohärent.
+Niederschlagscharakter geprüft: Detaildauer bleibt 15-minütig; Tagesübersichten runden die Niederschlagsdauer auf volle Stunden.
+MID: Niederschlagsformen phasentreu und Schneefall zusätzlich in cm appweit abgesichert.
+MID v0.9.81.1: Niederschlag/Skybar bleiben Vorwärtsintervalle; PoP wird über die Slotanker monoton geglättet.
+MID v0.9.81.1: sichtbare Niederschlagszeit = Slotbeginn; Roh-/Nowcast-Rechenkern bleibt endgestempelt.
+MID v0.9.81.1: Forward-Slot-Vertrag und isolierte forecastFusion-Regressionsharnesses sind kompatibel geschützt.
+Niederschlags-Vorwarnung, Mindestmenge, Meldungspause und +2-h-Fortsetzung geprüft.
+Niederschlagskonsistenz geprüft: Wahrscheinlichkeit, Horizont, Bewölkung und Phase werden zentral gekoppelt; Rohwahrscheinlichkeiten bleiben ohne erfundene Stunden erhalten.
+MID v0.9.81.1: trailing precipitation intervals, Radar/NWP-Mengenblend und „ab jetzt“-Bilanzierung geschützt.
+PoP geprüft: keine künstliche 5-%-Untergrenze; 0/1/4 % bleiben möglich. Quasi ausgeschlossener Niederschlag wird appweit eindeutig als trocken statt nur überwiegend trocken beschrieben.
+Niederschlagsformen geprüft: Sprühregen und Schneegriesel werden nur innerhalb ihrer flüssigen bzw. festen Phase verallgemeinert; Symbol, Text, Legende und Tooltip bleiben konsistent.
+MID v0.9.78.61: Luftdruckachsen verwenden ganzzahlige, gleichmäßig verteilte hPa-Ticks.
+(node:5698) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Luftdruckkarte geprüft: eine Nachkommastelle und keine sichtbare API-Feldbezeichnung.
+Luftdrucktendenz geprüft: API-Feld, Hour-Typ, Mapping und 3-h-Auswertung sind vollständig verdrahtet.
+MID nutzt eine nicht blockierende Best-Match-Hauptprognose mit suffixgeprüfter Bündelreparatur und lokaler Nachkorrektur.
+Professionelle UI-Terminologie ab v0.8.33.7 geprüft.
+Push-Benachrichtigungen geprüft: App, Panel, Client, Service Worker, Worker-Routen und Konfigurationsdiagnose sind vorhanden.
+MID Push: Ende-zu-Ende-Status, Scheduler, konfigurierbare Niederschlags-Vorwarnung und Meldungspause geprüft.
+PWA-Hinweis/Kopfzeile und 7-Tage-Standard geprüft: einmalig schließbar, dauerhaft gespeichert, installierter Status kompakt, Trend standardmäßig aktiv.
+PWA-Installationsprüfung bestanden: kompakter Kopfzeilenstatus, persistenter Hinweis, direkter Chromium-Dialog, iOS-Anleitung und Standalone-Erkennung sind vorhanden.
+ok - palette chooser removed; each radar path uses its fixed standard colours and phase symbols are separate
+Radar-/Modelllauf-Konsistenz geprüft: Ankunftsfenster, 5-Minuten-Mengenhöhen, PX250-Georeferenz, Mehrframe-Zugrichtung und alter/neuer Niederschlagsbeginn sind geschützt.
+Radarintervall und nahtloser 0–180-Minuten-Blend fachlich geprüft.
+✓ Radar-Metadaten-Buildfix v0.9.12.2
+Radar-/Regionalmodell-Phasenraster geprüft: dynamische Rapid-/Regionalmodellwahl, 13×19/247 Punkte, 3 sequenzielle Batches, Rate-Limit-Fallback und Stale-Run-Abbruch.
+Niederschlagsart-Requestbudget geschützt: maximal 247 Phasenpunkte, sequenziell, Cache/Stale-Fallback und Retry.
+Radar-Bewegungsfeld und optionale Nowcast-Leiste geprüft: reale Echoanker, Standort-ETA, Einstellungspersistenz und verfügbare −1/+2-h-Zeitstände sind vorhanden.
+Radar-Zugspur geprüft: kein alter Standortpfeil; nur erkannte Echoanker mit Korridortreffer erzeugen eine ETA.
+Radar-Nowcard v0.9.12.1: OK
+MID v0.9.37.0: RS-Mengenanker, HX-Randprüfung, Wachstum/Zerfall, lokales Bewegungsfeld, 9-Member-Ensemble und Stationskalibrierung geprüft.
+MID v0.9.81.1 RadarNowcast-Nullability-Buildfix geprüft.
+Radar-Nowcast-Nullbarkeit geprüft: ausgewählte app-weite Zeitbasis wird während des initialen Ladens nullsicher übergeben.
+Radar-Nowcast-Ref geprüft: current ist schreibbar und der aktive Balken bleibt Popover-Anker.
+Radar-Nowcast-Summe und Trend-Wortlaut geprüft.
+Mehrphasiger Radar-Niederschlagszeitraum und klare Trennung von Nahbereichsechos geprüft.
+ok - non-liquid precipitation is rendered as small semi-transparent symbols over the selected radar
+Radar-Niederschlagsart: Layerstatus und meteorologische SVG-Symbole für Schnee/Schneekörner/Mischphase/Gefrieren/Graupel/Hagel geschützt.
+Radar-Scrubbing, progressive Analyse und RADOLAN-Rückschau geprüft.
+Saisonale Radarbewertung, meteorologischer Hybrid-Zugvektor, echogebundene Standort-Zugspur sowie optionale KONRAD3D-/NowCastMIX-Objekte sind geprüft.
+Radar-Standortintervalle v0.9.15.11: OK
+Radar-PX250-TypeScript-Buildfix und weiterhin aktive 250-m-Anzeige geprüft.
+Amtliches DWD-Originalprodukt und erweiterte Wetterkarten gemeinsam geprüft.
+DWD-Originalprodukt, innovatives 24-h-Profil und Wetterkarten-Folgefixes geprüft.
+Radar- und Modellabgleich geprüft: DWD-Punktwert auch bei trocken wirkendem Kartenpixel, Subrequest-Grenze, 3-h-Korrekturfenster, 5-min-Aktualisierung und explizite Worker-Konfiguration vorhanden.
+DWD-Integrationstest bestanden: Kartenpixel 0 mm/h wurde durch 1.2 mm/h aus GetFeatureInfo korrigiert.
+Ensemble-Niederschlagsdiagramm geprüft: P10/P90-Kurven wurden durch einen sichtbaren, vom Best Match unabhängigen P10–P90-Fehlerbalken ersetzt.
+Recharts-3-Wetter-, Niederschlags- und Hazardebenen verwenden eine typsichere, achsengebundene SVG-Ebene.
+Regionale Modellgebiete, grenzüberschreitende Nutzung und Unabhängigkeitsgruppen geprüft.
+Funktionskontinuität geprüft: 720 automatisch erkannte Regressionstests; Referenz-, Popover-, Push- und Analytics-Schutz dürfen nicht verschwinden.
+MID: Regression-Runner priorisiert projektlokale node_modules/.bin-Werkzeuge; verify und die kanonische Dependency-Audit-Quelle starten die Suite über npm, ohne die installer-geschützte aktive .github-Konfiguration vorauszusetzen.
+MID v0.9.67.2: validiertes Browser-/PWA-Update wird aktiviert; kompakte Events zeigen Wahrscheinlichkeit und Menge.
+Release-Sauberkeit geprüft: kein veralteter Szenario-/Regime-Test, aktueller v0.8.2-Test vorhanden.
+MID 0.9.81.1: v0.9.65.1-Hotfixvertrag für Worker-Testexports und kompakte Info-Controls bleibt erhalten.
+MID-Quellbasis geschützt: MID-v0.7.95.26-complete, Release 0.9.81.1, stabiler Zweig mid-stable.
+Release-ZIP ist durch vollständigen Build-, Regressions-, Versions-, Baseline- und Lineage-Preflight gesperrt.
+Release-Hotfix geprüft: serieller Pages-Lock, :11/:41-RUC-Catch-up, deduplizierter 2732px-Splash und <25-MB-Transportpacker.
+MID v0.9.81.1: Release-Installer schützt .github, während der explizite Workflow-Sync CodeQL 4.37.9 und die Action-Pins administrativ aktualisiert.
+Abrufe geprüft: Best Match, Station, Luftqualität, Radar, Warnungen und Modellinfo laden unabhängig; Ensemble und Klima sind getrennt; Ortswechsel, Suche, Meteogramm und PX250 brechen veraltete Anfragen ab.
+Responsive Nowcast-/Ensemble-Prüfung bestanden: 5-Minuten-Balken, Portal-Tooltip, halbierter Marker und viewportgebundene Diagramme.
+Responsivität v0.7.100.3 geprüft: isolierte Uhr, memoisiertes Dashboard, entdoppelte Live-Abrufe, Leaflet-Canvas und mobile Effektentlastung sind aktiv.
+Routenwetter ist aus Dashboard und Einstellungen entfernt; Quellmodule bleiben für eine spätere Reaktivierung erhalten.
+RUC parameter-native cadence regression passed: hourly state core plus native 5/15-minute rapid products.
+RUC DWD pipeline contract OK (free GitHub Pages primary path, R2 optional)
+RUC fusion runtime contract OK
+RUC deployed health-check convergence contract OK
+MID RUC health not converged (1/3): worker RUC health ready=False, expected True; run='2026082818'; reason='RUC-Lauf nicht frisch'; retry in 0s
+MID RUC health not converged (2/3): worker RUC health ready=False, expected True; run='2026082818'; reason='RUC-Lauf nicht frisch'; retry in 0s
+MID RUC health not converged (1/2): worker RUC health ready=False, expected True; run='2026082818'; reason='RUC-Lauf nicht frisch'; retry in 0s
+RUC post-Pages health convergence regression OK
+RUC/MOSMIX-Niederschlagskonsens geprüft: kein Nass-Selbstbonus, Ausreißerschutz, EPS-Stützung und DWD-RR1c-Konsens.
+RUC native cadence/nowcast contract passed: native 5/15-min products through +6 h, hourly state core through +14 h, radar priority and threshold-gated full-run extreme support.
+RUC free GitHub Pages storage runtime contract OK
+RUC Pages restore transient-error resilience regression OK
+RUC parameter audit contract passed: native rapid products, specialist hourly diagnostics, deferred ambiguous vertical shear layers, and Sunshine contract protection.
+RUC-Niederschlags-Amplitudenschutz geprüft: EPS trennt Eintritt von Menge, Overshoot wird kontinuierlich gedämpft, gestützter RUC bleibt erhalten.
+App-weite Rapid-Update-Policy geprüft: DWD ICON-D2-RUC-Verfügbarkeit, dynamische Lauflaenge, regionale stündliche Modelle, Radar-Phasenwahl und UI-Provenienz.
+RUC scheduler catch-up contract OK: staggered schedules, non-cancelling concurrency and cheap exact-run freshness guard protected.
+RUC scheduler resilience contract OK: primary :11/:41 preserved, 10-minute guarded GitHub watchdog and external Cloudflare source preparation protected.
+RUC :11/:41 plus verdichteter same-provider 10-Minuten-Watchdog mit Active-Run-Sperre, Cooldown, guarded dispatch und Run-Nachweis geschützt.
+RUC storage health runtime contract OK
+RUC-Regressionen zeitrobust geprüft: Modellläufe und Zielzeitpunkte werden relativ zur Testlaufzeit erzeugt.
+RUC setup-python v5→v7 admin-sync transition contract OK.
+RUC workflow sync transition contract OK: synced, exact pre-watchdog catch-up, legacy and unknown drift are state-bound.
+runtime lifecycle/offline resume regression passed
+Satellit: amtlicher DWD-3h-Fallback bleibt verfügbar, wird im Komposit aber nur am bestätigten Beobachtungsstand bzw. als Live-Snapshot gezeigt.
+Szenario-Temperaturen, Prognose-Vorlaufzählung und achsgenaue Haupt-Rasterlinien geprüft.
+Szenariocluster geprüft: zeitliche Abweichungen werden konkret nach Wetterparameter und Wochentag benannt.
+Szenariocluster geprüft: Modellfamilienanteile, eindeutige Labels und robuste zukünftige Divergenz sind aktiv.
+Szenariocluster geprüft: gemeinsam gerundete Anteile ergeben in allen Fällen exakt 100 %.
+Szenariodarstellung, Ausreißerfilter, Dauerregenklassifikation und zentrale Wetterzwilling-Einstellungen sind geprüft.
+Szenariocluster geprüft: absolute Temperaturen in °C, Temperaturdifferenzen in K.
+MID v0.8.33.15 geprüft: Suchfeld und Tagesnavigation reagieren über Touch-end nach Momentum-Scroll; Tagesauswahl bleibt lokal und statische Tageszeilen werden nicht neu berechnet.
+Responsive Ortssuche und eindeutiges Netatmo-Setup-/OAuth-Feedback geprüft.
+MID v0.9.81.1: vollständiger C3S/NMME-Saisonpool, kanonische Unabhängigkeits-IDs und sparse NMME-Punktentnahme geschützt.
+MID 0.9.81.1: C3S/CDS- und DWD-GCFS2.2/EPISODES-Pfade sowie kompakter Season-Modellvergleich geschützt.
+MID 0.9.81.1: Sektionen-Drawer/Seitenleiste, Hash-Navigation, Auto-Expand und 24-h-Datenabstand geprüft.
+MID v0.9.81.1 Suchmaschinen-Discoverability geprüft.
+Einstellungs- und Ensemble-Referenzfunktionen geprüft.
+Einstellungsmenü geprüft: Ansicht/Design/Einheiten sind gebündelt; Favoriten, Wetterzwilling, Synchronisation und System/Updates besitzen intuitive getrennte Bereiche.
+Einstellungen und optionale Bottom-Navigation: Typografie, Raster, Switches, Touchziele, Fokus, Reduced Motion und klassischer Fallback geprüft.
+Einstellungs- und Standardmodus-Design geprüft: Benachrichtigungen zentral, technische Inhalte reduziert und Karten-/Abstandsdesign vereinheitlicht.
+7-Tage-Achsen-/Badge-Lock v0.9.78.4 bestanden.
+MID v0.9.81.1: 7d-Kacheln verwenden kompakte Einzeilen-Kategorien bei erhaltenem Tagescharakter/Piktogramm.
+7-Tage-Kurvenübersicht geprüft: Nachtbereich spannt jetzt auch unter Skybar und Niederschlagsachse.
+MID v0.9.81.1: 7-Tage-Kurve mit Stundenachse, themefester Nachtmarkierung, Wetterstreifen, stündlichem Niederschlag und lesbaren ECMWF-Farben geschützt.
+0.9.81.1: Tagesdetail folgt dem gewählten Tag; Sonnenstunden bleiben gerundet und platzneutral.
+0.9.81.1: sieben vollstaendige 7-Tage-Karten im Tablet-Querformat ohne gekappte Informationen geschuetzt.
+7-Tage-Trend geprüft: Tropennacht bezieht sich auf die folgende Nacht; Regenwarnungen bleiben mit dem angezeigten Kalendertag konsistent.
+0.9.81.1: vollständige Hochformat-Zeilen, sieben Querformat-Spalten und farbige Wetterregime geschützt.
+7-Tage-Trend geprüft: heutiger Niederschlag bleibt über den vollständigen lokalen Kalendertag 00–24 Uhr erhalten, auch nach seinem Ablauf.
+7-Tage-Trend geprüft: frühe Tage priorisiert, DWD-Kenntage/Klimamittel/Hazards und tatsächlicher Bewölkungsverlauf berücksichtigt.
+Kurzfrist-Hyperlokal-Buildfix geprüft: optionale Ankerwerte werden vor Vergleich typsicher normalisiert.
+Kurzfrist-Kartenbeschriftung und Headertext geprüft.
+Kurzfrist-Nebelrisiko geprüft: 2-K-Spread tagsüber reicht nicht, echte Sicht-/Nebelbeobachtung und schwachwindige Nachtsättigung bleiben wirksam.
+Hyperlokale Kurzfristkonsistenz geprüft: Temperatur, Wetterzustand, Feuchte, Taupunkt, QFF, Wind/Böen, Richtung, Bewölkung, Sicht und Niederschlag werden zeitlich auslaufend angeglichen.
+Kurzfristvorhersage, modulare Dashboard-Reihenfolge, ausgewählte Windeinheit in Gewitterangaben und lokaler QR-Synchronisationstransfer geprüft.
+Kurzfrist-Rundung, Windrichtungslogik und überlagerungsfreies Kurzfristlayout geprüft.
+Kurzfrist-Gewitterprobe verwendet ausschließlich den typsicheren DetailThunderRiskSample-Vertrag.
+MID v0.9.81.1: ShortTermForwardSlot-Buildfix gegen TS6133 und Startstempel-Rückfall geschützt.
+MID v0.9.81.1: deutsche Wortstellung dynamischer Kurzfrist-Zeitphrasen geprüft.
+(node:6825) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+TS5076-Buildfix bleibt ohne fragile ??/||-Verkettung erhalten; die aktuelle Wetterprofil-Skala nutzt robuste Tick-Fallbacks.
+MID v0.9.15.12 app-wide point-nowcast and K3D placement regression passed.
+MID v0.9.77.12: selected blue-line values, readable parameter pills and reduced temperature points protected.
+MID v0.9.81.1: Tages-Skybar ist appweit lückenfrei für bewertbare Sonne/Wolken-Slots; echte Datenlücken und klare Nächte bleiben zulässig.
+MID v0.9.81.1: vier klar unterscheidbare Skybar-Dicken sind zentral und appweit in 24 h, Profil, 7-Tage-Kurve und Tageskarten geschützt.
+MID v0.9.81.1: Sonne/Wolken-Skybar nutzt exklusive 50–100-%-Vierstufenklassifikation mit intervalltreuer Sonnenscheindauer.
+MID v0.9.81.1: Skybar-Sonnenschein ist zeitlich am Vorwärtsslot ausgerichtet; 3h-Summen und Wolkenmittel sind konsistent.
+MID v0.9.81.1: zeitpunktbezogene Wetterpiktogramme wechseln app-weit exakt an Sonnenaufgang/Sonnenuntergang; 90-Minuten- und Widgetpfade geprüft.
+Quellenqualität und Abrufbudget geprüft: feldspezifische Gewichtung, Niederschlagsintervalle, Restfeld-Dämpfung, Kurzzeit-/Stale-Caches und Worker-Circuit-Breaker sind geschützt.
+Wasser- und Bergsportsektionen folgen dem einheitlichen Default-closed-Vertrag und speichern danach ihren Zustand über die bestehende Modul-Persistenz.
+MID Stable-Audit 10.08.2026 geprüft: finaler Buildvertrag, Seasonal-/Meteogramm-Caches, progressive Berechnung, projizierter Rastercache, Stable-CI und Dependency-Upgrade-Policy sind geschützt.
+Stable-Promotion ist fail-closed, statusgebunden und ausschließlich Fast-Forward.
+MID v0.9.81.1: stabile, schwachwindige Nächte werden temperaturseitig evidenzbasiert enger lokalisiert; Tages-/Wind-/Bewölkungs-Gegenproben bestanden.
+Stable-Quality-Status-Retry geprüft: SHA-Vertrag bleibt hart; GitHub-5xx beim Statussetzen wird mit Backoff wiederholt und nach fünf temporären Fehlern nur als Warnung gewertet.
+MID Stable-Hardening aus v0.9.53.57: Vendor-Chunking, vollständiger Auditbericht, finaler Stable-SHA-Status und Recharts-3-Kompatibilitätsvertrag geprüft.
+Standard-/Erweitert-Inhalte geprüft: Erststartmodule sind eingeklappt, Flugmeteorologie mit aktivem Streckenbriefing und Meteogramm sowie Widget/PNG bleibt dem erweiterten Modus vorbehalten, Quellen öffnen als schließbares Fußzeilen-Popover.
+Startschutz, Cache-Reparatur und lokale Datenrettung geprüft.
+MID v0.9.81.1: Splash lädt Forecast, Station, Ensemble-Bootstrap und benötigte UI-Chunks ohne zusätzlichen Full-Ensemble-Burst vor.
+MID v0.9.81.1: Favoritenintegrität, Event-Trennung, verlustfreier Sync und einheitlicher gerätelokaler Sektionsvertrag geprüft.
+MID: quota-sichere Persistenz, Cache-Bereinigung und vollständiger Wetterzwilling-Erhalt geprüft.
+Mehrere Gewitterorte, 60-Minuten-Zugbahn, Fallback-Ergänzung und ruckelarme Radar-Layer geprüft.
+SubseasonalTrendPanel noUnusedParameters v0.9.77.8: PASS
+Sonne-/Mond-Kachel geprüft: Uhrzeiten sind auf die kompakte Werttypografie der übrigen Kacheln begrenzt und bleiben auf Desktop/Mobil kompakt.
+0.9.65.5: appweiter Sunshine-Duration-Contract von 15 min über Stunde/Tag bis Ensemble, Events und Widgets geprüft.
+Sonnenscheindauer geprüft: volle Stunden ohne Dezimalstelle, sonst deutsches Dezimalkomma mit maximal einer Nachkommastelle.
+Sonnenscheindauer geprüft: maximal vier 15-Minuten-Werte und niemals mehr als 60 Minuten je ausgewiesenem Stundenfenster.
+MID 0.9.66.13: PoP wird nicht als Regendauer ausgegeben; Sonnenscheindauer ist von 15 min bis Tag, Event und Widget zeitlich kohärent.
+midwx.app und www.midwx.app sind im Synchronisations-Worker dauerhaft freigegeben; zusätzliche Origins werden ergänzt statt ersetzt.
+Widerspruchsfreies Menü und vollständiger portabler Web-App-Abgleich geprüft.
+MID v0.9.81.1: Synoptik nutzt native DWD-Isobaren, geglättete MID-Isohypsen und keine wirkungslose Farbauswahl.
+MID-Synoptik v0.9.0.1 geprüft: echte Kartengrundlage, lesbare Stationsplots, kompakte Grafiken und korrekte Stromaufwärtsrichtung zur Warmfront.
+MID-Synoptik v0.9.0.0 geprüft: DWD-Referenz, Isobaren/Stationsplots, Frontobjekte, Multimodell, Korridor, Timing, Verifikation, Analogarchiv, Unsicherheit, Kausalkette, Auswirkungen und responsive Darstellung.
+MID v0.9.4.0: professionelle Bodenanalysekarte, dominante Front, Stationsmodelle, Feldanalyse und eindeutige Windvektoren geprüft.
+MID-Synoptik v0.9.0.2 geprüft: Windrichtung und Winddrehung werden bewertet, Balken sind eindeutig beschriftet und Isobaren besitzen Hochkontrast-Doppelkonturen.
+MID v0.9.81.1: appweit kanonische Tmax/Tmin und sichtbare 24-h-Kurvenmarken in 1-h/3-h geschützt.
+Aktuell betroffene Orte, Zugbahnorte, individuelle Ankunftszeiten und Unsicherheitskennzeichnung geprüft.
+Stadtgenaue Gewitterlokalisierung, qualitative Hagelgrößenklasse und scrollschonende Observer-/Recharts-/CSS-Pfade geprüft.
+Gewitterinformation verfeinert und natürliche Zeit-vor-Ereignis-Sprache der 7-Tage-Untertitel geprüft.
+Gewitterlokalisierung, vollständiger KONRAD3D-Tooltip, Nowcast-Objektlegende und optionale echogebundene Zugspur sind geprüft.
+Gewitter-Ortsbezeichnung geprüft: manueller Favoritenname/alias wird nullsicher in Karte und Tooltip verwendet.
+Gewitter-Wording geprüft: niedrigste Stufe lautet nur „Gewitter“.
+MID v0.9.81.1: kompaktere mobile Gewitter-Ortsdarstellung und echte DWD-Stecknadel geprüft.
+MID v0.9.81.1: mobile Gewitterorte als verdichtete aktuelle Karten plus horizontale Zugbahn geprüft.
+P0-Gewittersemantik geprüft: Blitz klassifiziert Beobachtung; kanonische NWP/RUC-Mehrparameterdiagnostik darf unabhängig Gewitter prognostizieren.
+Gewitterpositionen mit Ortsnamen, klare Annäherungszeit, kompakte Karte und Großschreibung der 7-Tage-Texte geprüft.
+Gewitter-Push geprüft: aktuelle Entfernung, Prognoseabstand und Annäherungszeit sind widerspruchsfrei getrennt.
+Zellbezeichnungs-Buildfix geprüft: ungenutzter cell-Parameter bleibt entfernt; der Blitzstatus steuert Gewitter-/Schauerzelle.
+Z-Zeit hhmmZ und Gewitterinformation geprüft: KONRAD3D-Zelle, Blitz, Hagel, Starkregen, Tracking, Signalfilter und Warnungstrennung.
+ok - app-wide Local/Z time basis with local default and local-only location header exception verified
+MID v0.9.81.1: abgeschwächte ECMWF-Tmin/Tmax-Flächen für 7d/14d und lesbare Temperaturbadges geschützt.
+MID v0.8.33.2 geprüft: bündige Tooltip-Zeilen sowie erster Tap für Suche und Favoriten.
+Schnellere Ortssuche und direkte Kurzfrist-Touch-Bedienung geprüft.
+MID v0.9.81.1: Reiseplaner-Defaultziel und Komposit-Grenzoverlay geschützt.
+Reiseplaner geprüft: eingeklappte Sektion, Zielortsuche, Festzeitraum, flexible Zeitfenster, Bedingungen, ERA5-Seamless-Klimatologie, NOAA-OISST-Workerpfad und schneehöhenbasierte Schneeoptimierung vorhanden.
+Reiseplaner geprüft: ERA5-Seamless-Basis, ERA5-Land-Schneehöhe, Plausibilitätsguards, Cache-Migration und appweite Windeinheit sind konsistent.
+Reisewetter-Abrufbudget geprüft: ein atmosphärischer Basisabruf je Klimaraster, separater NOAA-OISST-Workerpfad, In-Flight-Entdopplung, Dreijahrescache und automatisch geladene Schneehöhe bei Festzeitraum bzw. Schneeoptimierung.
+MID v0.9.81.1: NOAA-OISST-Workervertrag, Küstenradius, reine Positivpersistenz, Erholung und sichtbare Altworker-Diagnose geprüft.
+MID v0.9.81.1: NOAA-Reise-SST sichtbar vor Ergebnisrendering; Event-Center kompakt, Mehrstunden-Sonne in h und Stundenverlauf in min.
+MID 0.9.66.7: reale NOAA-OISST-Klimatologie für Kreta, Kalendertage, Schaltjahr, Küstenradius, Binnenlandausschluss, Workerroute und UI-Vertrag geprüft.
+MID v0.9.81.1: Witterungstrend-Persistenz, Season-Poor-Man’s-Ensemble/Modelloverlay und Tmin/Tmax-Kästchen geschützt.
+Trend 14d+ regression passed with 33 checks.
+MID v0.9.77.10: Trend-14d+-Buildvertrag geschützt (WindUnit, reale Lucide-Exports, kombinierte Tmax/Tmin-Ansicht, keine nicht gelieferten Böen, Nullability).
+Trend 14d+ climatology regression passed with 11 checks.
+MID: unabhängiges ECMWF+NOAA-Langfrist-Poor-Man’s-Ensemble sowie Schneegrenzen-Multi-Modell 1/3/7/14 Tage geprüft.
+MID v0.9.81.1: TypeScript 7.0.2 ist lockfile-genau und ohne React-/Vite-Major-Kopplung qualifiziert.
+MID UI-/Architekturvertrag v0.9.50.0: gemeinsame Popover-/Info-Primitive, neue-Code-Grenzen, Dichte-, Zeit-, Einheiten- und Sektionsregeln verbindlich geschützt.
+MID v0.9.81.1: Designsystem-Tokens, Statusfarben, Typografie und Disclosure-Primitiv appweit geschützt.
+MID v0.9.81.1: MidDisclosure nutzt gültige details-Props; TS2322-defaultOpen-Rückfall ist geschützt.
+MID v0.9.81.1: iOS-Textskalierung, Touch, Disabled, Reduced Motion und Hochkontrast appweit vereinheitlicht.
+UI-Polish für Nachtpiktogramme, Böenlayout und klassische Stundenliste geprüft.
+Ensemble-UI, iCloud-Sicherung und Startschutz geprüft.
+MID v0.9.81.1: mobile Portalgeometrie, Popover-Dichte, Fokus und Touchflächen appweit standardisiert.
+Updater geprüft: vollständiger Shell-Check vor Aktivierung, Gesundheitsmeldung, automatische Rückfalloption, manuelle Reparatur/Reset und Erhalt einer Vorversion für 0.9.81.1.
+UVI-Kachel geprüft: offizielle DWD-/WHO-Stufen, farbiger Stufenindikator, gleich große Info-Schaltfläche und stufengerechte Handlungsempfehlungen vorhanden.
+UVI-Ganzzahlformat und konsistente Radar-Nowcast-Wahrscheinlichkeit ab v0.8.33.5 geprüft.
+Netatmo-OAuth, interne Raumsensoren, wetterprognosegestützter Lüftungsassistent und reine Stufe-1-Pushberatung sind geprüft.
+Funktionaler Worker-Test: Netatmo-Innenraum + sichere 24-h-Lüftungsprognose und Lüftungs-Pushkonfiguration sind wirksam.
+Versionsschema geprüft: 0.9.81.1 als Wartungsstand; dreiteilige sowie vierteilige Funktionsstände mit abschließender 0 und Wartungsreleases ab .1 werden korrekt verarbeitet.
+Ansichtsmodi geprüft: Standard ist Erststartmodus, Erweitert ergänzt technische Erklärungen bei weiterhin einklappbaren Modulen; Info- und Modellstände-Popover schließen per Pointer-Außenklick und Escape.
+Sichtbare App-Texte sind von Kosten-, Hosting-, Worker-, Xcode- und vergleichbaren Entwicklungsinterna getrennt.
+Warnungs-Buildfix geprüft: ungenutzte Alt-Helper entfernt, aktive Mehrstufenlogik bleibt erhalten.
+MID v0.9.81.1: automatische Warnkarten strikt chronologisch (Tag, Beginn, Ende; Tie-Break Warnstufe) geprüft.
+Warnstunden geprüft: Eine laufende Stundenwarnung bleibt bis zum tatsächlichen Stundenende aktuell; kein Umschalten auf die nächste Prognosestunde nach :30.
+MID v0.9.81.1: aktueller Warnzustand, Warnstufenfarbe, Disclosure und amtliche Folgewarnungen geprüft.
+MID v0.9.78.53: EPS- und Umfeldunterstützung für Warnungen geprüft.
+test-warning-hybrid-probabilistic-097850: OK
+PASS: MID-Hinweissektion rendert weiterhin MID · PROGNOSEHINWEIS
+PASS: amtliche DWD-Warnungen behalten die Autoritätskennzeichnung
+PASS: Winduntertitel können direkte kn/kt-Angaben aus dem DWD-Text auswerten
+PASS: MID-Hinweise verwenden probabilistische Validitätsfenster
+PASS: MID-Hinweise kennzeichnen den Wertebereich als Wahrscheinlichkeitsbereich
+PASS: Prompt-/Hilfstext-Artefakte im Hybridwarnbereich sind entfernt
+PASS: Windhinweise erlauben probabilistisch höhere Spitzen als die Punktvorhersage
+MID v0.9.81.1: TS7-Buildfix für probabilistische Warn-Hour-Felder geprüft.
+0.9.81.1: vollständige amtliche Warntexte, warme Niederschlagsphase und transparente Modellbeiträge geschützt.
+Warn-UI v0.7.82.2 geprüft: warnfreie Tage, kompakte Ensemble-Marker, einheitlicher Tooltip und Warntexte ohne Stufenhinweise.
+MID v0.9.81.1: Windstufen-Präsentation geprüft – niedrigere Stufen behalten eigenes Restfenster und eigene "bis zu"-Obergrenze.
+MID 0.9.81.1: Strömungstext, Zielkonvention und dynamischer Richtungspfeil stimmen seit v0.9.64.7 für 211°/SSW überein.
+Wasserwetter-Verlauf, Wassersport-Wording und automatische Sommerwahl außerhalb der Skisaison geprüft.
+Gezeiten-/Wasserstandsmatrix geprüft: Tageswendepunkte für bis zu drei Tage, exakte Zeit/Level-Angaben und kompakte Tabellenzeile vorhanden.
+Gezeiten minutengenau interpoliert; Hazards oberhalb der Wetterfelder nebeneinander und Niederschlagssymbole innerhalb der Felder geprüft.
+Gezeiten werden aus dem Wasserstandsverlauf minutengenau geschätzt; Hazard-/Niederschlags-Overlays und Tooltip-Ebenen sind kollisionsfrei abgesichert.
+Gezeiten-Wendepunkte werden auch bei flachen 15-Minuten-Kurven erkannt; bei ungeeigneten Feindaten greift der Stundenfallback.
+Gezeiten im Wasserwetter-Verlauf werden für den vollständigen jeweiligen Kalendertag und unabhängig vom dargestellten Zeitfenster ermittelt.
+WaterSports-TypeScript-Buildfix geprüft: kein ungenutzter map-Wertparameter in movingAverage.
+Weather-Aggregat-Typvertrag geprüft: maintain:aggregates erhält den EnsembleModel-Typ des Frische-Callbacks.
+Wetterkartenmodul mit ICON-D2-Kombinationskarten, explizitem INIT-/Gültig-Block und NowCastMIX erfolgreich geprüft.
+Wolkenformen, Wolkenstockwerke und Tag/Nacht-Hintergründe geprüft.
+MID Wetterpiktogramm-Standard 2.0: Intensität, SYNOP/METAR-Phänomene, Tag/Nacht und Theme-Vertrag statisch geprüft.
+MID v0.9.81.1: Weather Icon System 2.0 standalone, appweit und niederschlagsphasenkohärent geschützt.
+Transparente Wetterpiktogramme für alle WMO-Gruppen und dreistellige ISO-3166-Ländercodes in Gewitter-Ortsnamen geprüft.
+MID v0.9.81.1: getrennte 24-h-Zellen, einheitliche Achsenwerte, dünnere Temperaturkurve, kompakter DWD-Pin und warnfarbige Tages-Windpfeile geprüft.
+24-h-Wolkenprofil: fehlende oder offensichtlich inkonsistente H/M/L-Schichtwerte bleiben unbekannt statt als 0 % zu erscheinen.
+24-h-Wetterprofil markiert Maximum und Minimum robust direkt aus der kanonischen stündlichen 24-h-Kurve; Tageswerte bleiben separat appweit konsistent.
+MID: 24-h-Profil ab jetzt mit korrekten Niederschlagsintervallen; Schneefallgrenze null-sicher, 0–4,5 km und Niederschlagssignale geprüft.
+MID v0.9.81.1: 24-h-Pills, kleinere Temperaturmarker, Witterungstrend-Metadaten und scrollfreie Langfristdiagramme geprüft.
+24-h-Wetterprofil: Zeitpille entfernt, Seitenränder verdichtet, Achsen vereinheitlicht und Nachtmarkierung als dezentes Fade geschützt.
+MID v0.9.81.1: 24-h-Tagesansichtsdesign mit gemeinsamer Auswahlachse, Nacht, Solarereignissen und DWD-Windwarnschwellen geprüft.
+24-h-Profil: Plotgrenzen und Zeitsemantik geprüft.
+MID v0.9.81.1: 24-h-Luftdruckspur und appweit konsistente Hazard-Zeitfenster in 1 h/3 h geprüft.
+MID v0.9.81.1: gleitendes 24-h-Profil, responsive Kollisionsfreiheit, DWD-Farben und Open-Meteo-Auditverträge geprüft.
+MID v0.9.81.1: Tageskarten-Skybar, gerundete farbreine Grund-/Niederschlagslagen und themefeste 7-Tage-Nachtstunden ohne P25–P75 geschützt.
+24-h-Wetterprofil: stundengenauer Tageswechsel, obere Wolkenbänder und dünnere Temperaturkurven geprüft.
+MID v0.9.81.1: gemeinsame senkrechte 24-h-Zeitachse, sichtbarer Luftdruck, Tagesansicht-Skybar für Gesamt sowie H/M/L-Graubänder geprüft.
+MID v0.9.81.1: schlanke, kontrastierte Windpfeile im Kurzfristprofil geprüft.
+MID v0.9.81.1: Wetterregime-Farben sind appweit zentralisiert und inklusive Schauer-Regime abgesichert.
+MID v0.9.81.1: sichtbare Wetterregime nutzen gemeinsame Fachlogik und zentrale Farben in 7d/14d sowie klassischer 7d-Ansicht.
+MID: Promise<void>-kompatible Wetterzwilling-Archivqueue geprüft.
+Wetterzwilling-Audit geprüft: Einheiten, Quellen, Zeitzone, Lernfreigabe, Assimilation, Szenarien und Höhenzonen sind abgesichert.
+Wetterzwilling-Nachkorrektur geprüft: Qualitätsfreigabe, Aktivierungsangebot, Diagnosekennzeichnung und unverändertes Best-Match-Wetterbündel sind vorhanden.
+Lokaler Wetterzwilling Stufen 1–4 geprüft: Wahrheitskern, Lernen, aktive Assimilation und persönliche Entscheidungen sind integriert.
+Exakt achsgebundene Wetterleiste und exklusive Kurzfristdetailauswahl geprüft.
+Web Analytics geprüft: Beacon, SPA-Statusdiagnose und rsync-sichere Workflow-Reparaturdateien sind vorhanden.
+MID v0.9.78.72: Webarchiv-Punkte 90 min, Wetterzwilling-Doppelanzeige und Schneefallgrenzen-Niederschlag regressionsgeschützt.
+MID v0.9.71.0: WidgetKit-App-Extension ist im Xcode-Projekt eingebettet; mid.native.widget.v1, iOS-17-AppIntent-Grenze und kostenfreier Entitlement-Aufschub sind geschützt.
+360-Grad-Windrichtungsprüfung bestanden: HTML- und SVG-Pfeile verwenden den exakten Winkel ohne 45-Grad-Raster.
+MID: sichtbare Knotenwerte verwenden ausschließlich kt; amtliche Originaltexte bleiben unverändert.
+Windpart und Module geprüft: DWD-Schwellen 50/65/90/105/120/140 km/h, Schraffuren und dezente Trennlinien sind vorhanden; Widget-/PNG-Generator und Flugmeteorologie verwenden eindeutige Modulschalter; das Meteogramm ist ohne doppelte Eigensteuerung gruppiert.
+MID v0.9.81.1: Witterung-Timeout-Fallback, Nicht-EPS-Langfristvertrag und verfeinerte 7-Tage-Kurvenübersicht geschützt.
+Modellfamilien-Wording, reaktivierte Netatmo-Anbindung und eindeutige Güte der Regenwahrscheinlichkeit sind geprüft.
+Worker-Konfiguration sicher vorbereitet: mid-worker; vorherige Version aaaaaaaa-1111-2222-3333-bbbbbbbbbbbb; 4 Bindings (Werte/Secrets nicht ausgegeben).
+Automatischer Worker-Deploy: 0%-Smoke, Promotion, Rollback, Remote-Binding-Spiegel und Health-Vertrag geprüft.
+Worker-Konfiguration sicher vorbereitet: mid-worker; vorherige Version aaaaaaaa-1111-2222-3333-bbbbbbbbbbbb; 1 Bindings (Werte/Secrets nicht ausgegeben) · Legacy-Workflow-Pfad kompatibel.
+Worker-Auto-Deploy Legacy-Installerpfad: sichere exakte /tmp-Kompatibilität und GITHUB_OUTPUT-Brücke geprüft.
+MID v0.9.81.1: KV-Audit, cadence-basierte Leseeinsparung, zustandsbasierte Writes und unveränderte Alarmquellen geprüft.
+Komposit-Live-Layer geprüft: Satellit mit produktspezifischer Frischezeit; stabiler DWD-Radaralias, exakte Referenzzeit und Quellendiagnose sind abgesichert.
+Worker-Niederschlagsklassifikation geprüft: rain/showers, Instabilitätsfelder, Widgets, Push und Mehrmodell-Bündel sind gekoppelt.
+
+Alle 720 automatisch erkannten MID-Regressionstests bestanden.

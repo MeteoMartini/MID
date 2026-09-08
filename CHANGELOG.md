@@ -5756,3 +5756,9 @@ Kompositbild: direkte Kartenbedienung mit gemeinsamen +/- Tasten, reale Satellit
 - Klimatologie-Datenbedarf von der optionalen 7-Tage-Kurzinterpretation entkoppelt; aktive Tagesprognose lädt das Klimamittel zuverlässig auch bei deaktivierter Summary.
 - Bereits kleine Abweichungen um ±0,5–1 K wirken wieder auf Badge-Text, Hintergrund und Rahmen; bei fehlendem Klimamittel steht sichtbar `Δ –`.
 - Vorhandener Klimacache dient bei temporärem Archive-API-Fehler als Stale-Fallback.
+## 0.9.81.1
+
+- Radar-/Satellitenfilm läuft am Schleifenende ohne künstliche Zusatzpause weiter; bis zu zwölf bestätigte Satellitenstände bleiben für den nächsten Durchlauf vorgemerkt.
+- KONRAD3D-Zellstände erhalten einen ausdrücklichen Zeitstatus. Ohne bestätigten Beobachtungszeitpunkt werden sie nicht als aktuell oder freigegeben bezeichnet.
+- Der AGL-Vertrag des Flugbriefings wurde geprüft: Eingaben unter FL050 werden entlang der Strecke auf das jeweilige Geländeniveau aufgeschlagen; Druckflächen ab FL050 bleiben druckhöhenbezogen.
+- Übergabestand v0.9.81.0 auf der gelieferten v0.9.80.7-Codebasis rekonstruiert und gegen einen erneuten Versionsrückfall abgesichert.

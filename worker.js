@@ -50,7 +50,7 @@ const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const MET_NORWAY_LOCATIONFORECAST='https://api.met.no/weatherapi/locationforecast/2.0/complete';
-const WORKER_VERSION='0.9.80.7';
+const WORKER_VERSION='0.9.81.1';
 const C3S_SEASONAL_POINT_SYSTEMS=[
  {centreId:'ecmwf',originatingCentre:'ecmwf',system:'51',modelKey:'ecmwf-seas5-51',independenceKey:'ecmwf-seas5-51',label:'ECMWF SEAS5'},
  {centreId:'ukmo',originatingCentre:'ukmo',system:'610',modelKey:'ukmo-glosea6-gc51-610',independenceKey:'ukmo-glosea6-gc51-610',label:'UK Met Office GloSea6-GC5.1'},
@@ -891,9 +891,9 @@ async function dwdKonrad3dNowcast(lat,lon,country=''){
  for(const root of DWD_KONRAD3D_ROOTS){try{
   const index=await fetchText(root,{'Accept':'text/html,application/xhtml+xml'}),latest=latestKonradFilename(index);if(!latest)throw new Error('kein Produkt im Verzeichnis');
   const observedAt=new Date(latest.time).toISOString(),ageMinutes=Math.round((Date.now()-latest.time)/60000);
-  if(ageMinutes>35||ageMinutes<-10){staleResult={available:false,coverage:true,temporaryUnavailable:true,provider:'DWD KONRAD3D',product:'KONRAD3D',observedAt,ageMinutes,cellsFound:0,nearbyCells:[],summary:`Der jüngste erreichbare KONRAD3D-Zelllauf ist ${ageMinutes} Minuten alt.`,temporalResolutionMinutes:5,license:'Daten: Deutscher Wetterdienst',error:'KONRAD3D-Datenstand veraltet.'};continue}
+  if(ageMinutes>35||ageMinutes<-10){staleResult={available:false,coverage:true,temporaryUnavailable:true,provider:'DWD KONRAD3D',product:'KONRAD3D',observedAt,observationTimeStatus:'stale',ageMinutes,cellsFound:0,nearbyCells:[],summary:`Der jüngste erreichbare KONRAD3D-Zelllauf ist ${ageMinutes} Minuten alt.`,temporalResolutionMinutes:5,license:'Daten: Deutscher Wetterdienst',error:'KONRAD3D-Datenstand veraltet.'};continue}
   const xml=await fetchText(new URL(latest.name,root).toString(),{'Accept':'application/xml,text/xml,*/*'}),baseCells=parseKonradCells(xml,lat,lon,observedAt),mesocyclones=await latestMesocycloneDetections().catch(()=>[]),cells=attachMesocyclones(baseCells,mesocyclones),nearbyCells=cells.filter(cell=>cell.relevanceDistanceKm<=80).slice(0,8),nearestBase=nearbyCells[0],nearest=nearestBase?await enrichStormAffectedPlaces(nearestBase,lat,lon,observedAt):undefined,enrichedNearbyCells=nearest?[nearest,...nearbyCells.slice(1)]:nearbyCells;
-  return{available:true,coverage:true,provider:'DWD KONRAD3D',product:'KONRAD3D',observedAt,ageMinutes,cellsFound:cells.length,nearbyCells:enrichedNearbyCells,nearest,summary:nearest?konradSummary(nearest):'Keine relevante KONRAD3D-Zelle im Umkreis von 80 km.',temporalResolutionMinutes:5,license:'Daten: Deutscher Wetterdienst',diagnostics:{sourceRoot:new URL(root).hostname,placeSource:nearest?.placeSource}};
+  return{available:true,coverage:true,provider:'DWD KONRAD3D',product:'KONRAD3D',observedAt,observationTimeStatus:'confirmed',ageMinutes,cellsFound:cells.length,nearbyCells:enrichedNearbyCells,nearest,summary:nearest?konradSummary(nearest):'Keine relevante KONRAD3D-Zelle im Umkreis von 80 km.',temporalResolutionMinutes:5,license:'Daten: Deutscher Wetterdienst',diagnostics:{sourceRoot:new URL(root).hostname,placeSource:nearest?.placeSource}};
  }catch(error){errors.push(`${new URL(root).hostname}: ${error instanceof Error?error.message:String(error)}`)}}
  if(staleResult)return{...staleResult,diagnostics:{errors}};
  throw new Error(`KONRAD3D nicht erreichbar: ${errors.join(' | ')}`);
