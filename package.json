@@ -472,7 +472,7 @@
     "@vitejs/plugin-react": "4.7.0",
     "typescript": "7.0.2",
     "typescript-strada": "npm:typescript@6.0.3",
-    "vite": "6.4.3"
+    "vite": "8.2.2"
   },
   "overrides": {
     "@jridgewell/trace-mapping": "0.3.28"
