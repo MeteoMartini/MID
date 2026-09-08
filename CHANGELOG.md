@@ -5845,3 +5845,11 @@ Kompositbild: direkte Kartenbedienung mit gemeinsamen +/- Tasten, reale Satellit
 - Kartenansicht, Radar-/Satelliten-/Blitz-/Zell-/Warn-/Synoptik-Layer, Deckkräfte, Kartenbasis, Bewegungszeitmodus und Wiedergabetempo werden gemeinsam dauerhaft wiederhergestellt. Ein gespeicherter 250-m-Modus wird nicht mehr vor Abschluss der Verfügbarkeitsprüfung verworfen.
 - Isohypsen erhalten vor der begrenzten Chaikin-Kurvenglättung einen zweistufigen symmetrischen Binomialfilter; Isobaren bleiben bewusst etwas detailreicher. So werden Gittertreppen reduziert, ohne synoptische Strukturen Windy-artig zu überglätten.
 - Das optionale Beta-Bedienkonzept zeigt weiterhin nur fünf Hauptziele. Seltenere Analyse-, Profil-, Profi- und Werkzeugbereiche liegen nun eingeklappt im Mehr-Menü und erscheinen erst nach Aufruf.
+# MID v0.9.83.5
+
+- Klima: tägliche ERA5-Bedeckungsmittel werden nun zuerst plausibel auf 0–8 Oktas gerundet und danach in die beschrifteten Achtelklassen gruppiert.
+- Klima: Wind- und Böentexte verwenden außerhalb der Diagrammlegende eine einheitliche neutrale Textfarbe; Wert und Einheit bleiben zusammen.
+- Komposit: Satellitenstände werden in einem Ringpuffer mit bis zu zwölf realen Nachbarbildern verdeckt vorgeladen und beim Wechsel überblendet.
+- Synoptik: native DWD-Isobaren bleiben erhalten; geglättete MID-Isohypsen werden separat aus dem Rasterpfad geladen und wieder sichtbar gezeichnet.
+- Karte: der Lokalisierungsbutton stoppt laufende Kartenbewegungen, aktualisiert die Kartengröße und zentriert zuverlässig auf Geräte- oder Favoritenort.
+- Keine Logo- und keine Workflow-YAML-Änderungen.

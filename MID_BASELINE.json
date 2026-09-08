@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.83.4",
+  "releaseVersion": "0.9.83.5",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -1858,7 +1858,7 @@
     "scripts/test-climate-section-09800.mjs",
     "scripts/test-climate-hazard-widget-09804.mjs"
   ],
-  "version": "0.9.83.4",
+  "version": "0.9.83.5",
   "updatedAt": "2026-09-08T09:06:02Z",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
