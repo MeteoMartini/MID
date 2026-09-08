@@ -66,7 +66,10 @@ for(const token of [
  'CACHE_MAX_AGE=3*365*86400000',
  'CLIMATE_GRID_DEGREES=.1',
  'sharedRequest<T>',
- "DAILY_VARIABLES=['weather_code','temperature_2m_max','temperature_2m_min','precipitation_sum','sunshine_duration','daylight_duration','wind_speed_10m_max','wind_speed_10m_mean','wind_direction_10m_dominant','cloud_cover_mean','snowfall_sum']"
+ "const DAILY_VARIABLES_BASE=['weather_code','temperature_2m_max','temperature_2m_min','precipitation_sum','sunshine_duration','daylight_duration','wind_speed_10m_max','wind_speed_10m_mean','wind_direction_10m_dominant','cloud_cover_mean','snowfall_sum'];",
+ "const DAILY_GUST_VARIABLE='wind_gusts_10m_max';",
+ "const DAILY_VARIABLES=[...DAILY_VARIABLES_BASE,DAILY_GUST_VARIABLE].join(',');",
+ "const DAILY_VARIABLES_WITHOUT_GUST=DAILY_VARIABLES_BASE.join(',');"
 ])need('Reiseplaner-Logik',logic,token);
 
 for(const token of [
@@ -81,8 +84,10 @@ need('Package-Test',pkg,'test:travel-planner');
 need('Baseline-Test',baseline,'scripts/test-travel-planner-08190.mjs');
 
 const compileDir=await mkdtemp(path.join(tmpdir(),'mid-travel-test-'));
+const tscVersion=spawnSync('tsc',['--version'],{cwd:path.resolve('.'),encoding:'utf8',shell:process.platform==='win32'});
+const tscMajor=Number.parseInt((tscVersion.stdout||tscVersion.stderr||'').match(/Version\s+(\d+)/)?.[1]||'0',10);
 try{
- const compile=spawnSync('tsc',['--ignoreConfig','--pretty','false','--target','ES2022','--module','ESNext','--moduleResolution','Bundler','--strict','--skipLibCheck','--outDir',compileDir,path.resolve('src/vite-env.d.ts'),path.resolve('src/travelPlanner.ts')],{cwd:path.resolve('.'),encoding:'utf8'});
+ const compile=spawnSync('tsc',[...(tscMajor>=7?['--ignoreConfig']:[]),'--pretty','false','--target','ES2022','--module','ESNext','--moduleResolution','Bundler','--strict','--skipLibCheck','--outDir',compileDir,path.resolve('src/vite-env.d.ts'),path.resolve('src/travelPlanner.ts')],{cwd:path.resolve('.'),encoding:'utf8'});
  if(compile.status!==0)failures.push(`TypeScript: ${compile.stdout||compile.stderr}`);
  else{
   const compiledPath=path.join(compileDir,'travelPlanner.js');

@@ -13,7 +13,7 @@ const need=(area,text,token)=>{if(!text.includes(token))failures.push(`${area}: 
 const forbid=(area,text,token)=>{if(text.includes(token))failures.push(`${area}: unerwünscht ${token}`)};
 
 for(const token of [
- "const BASE_CACHE_PREFIX='mid:travel-climate:1991-2020:v6:'",
+ "const BASE_CACHE_PREFIX='mid:travel-climate:1991-2020:v7:'",
  "models:'era5_seamless'",
  "temperature_unit:'celsius'",
  "precipitation_unit:'mm'",
@@ -57,15 +57,16 @@ try{
   await writeFile(compiledPath,compiledSource);
   await writeFile(path.join(compileDir,'workerClientMock.js'),"export async function fetchWorkerJson(){throw new Error('SST ist in diesem Atmosphären-/Einheitentest nicht aktiv.')}\n");
   const module=await import(`${pathToFileURL(compiledPath).href}?v=${Date.now()}`);
-  const daily={time:[],weather_code:[],temperature_2m_max:[],temperature_2m_min:[],precipitation_sum:[],sunshine_duration:[],daylight_duration:[],wind_speed_10m_max:[],snowfall_sum:[]};
+  const daily={time:[],weather_code:[],temperature_2m_max:[],temperature_2m_min:[],precipitation_sum:[],sunshine_duration:[],daylight_duration:[],wind_speed_10m_max:[],wind_gusts_10m_max:[],snowfall_sum:[]};
   for(let year=1991;year<=2020;year++)for(let day=18;day<=27;day++){
-   daily.time.push(`${year}-10-${day}`);daily.weather_code.push(1);daily.temperature_2m_max.push(23);daily.temperature_2m_min.push(17);daily.precipitation_sum.push(day===23?2:0);daily.sunshine_duration.push(6.5*3600);daily.daylight_duration.push(11*3600);daily.wind_speed_10m_max.push(12);daily.snowfall_sum.push(0);
+   daily.time.push(`${year}-10-${day}`);daily.weather_code.push(1);daily.temperature_2m_max.push(23);daily.temperature_2m_min.push(17);daily.precipitation_sum.push(day===23?2:0);daily.sunshine_duration.push(6.5*3600);daily.daylight_duration.push(11*3600);daily.wind_speed_10m_max.push(12);daily.wind_gusts_10m_max.push(day===23?28:24);daily.snowfall_sum.push(0);
   }
   const dataset=module.aggregateTravelClimate({latitude:35.4,longitude:24.65,elevation:10,timezone:'Europe/Athens',daily});
   const summary=module.summarizeTravelPeriod(module.travelPeriod(dataset,'2026-10-18','2026-10-27'));
   const narrative=module.travelNarrative(summary,'balanced',false);
   if(!narrative.includes('sonnig')||narrative.includes('sonnenarm'))failures.push(`Sonnen-Narrativ unplausibel: ${narrative}`);
   if(Math.abs(summary.windMaxMean-12)>.01)failures.push(`Wind ist nicht in kanonischen Knoten erhalten: ${summary.windMaxMean}`);
+  if(Math.abs((dataset.days['10-18']?.gustMaxMean??0)-24)>.01||Math.abs((dataset.days['10-23']?.gustRecordMax??0)-28)>.01)failures.push('Tageshöchstböen werden in der Klimatologie nicht korrekt erhalten.');
   const nullable={...daily,sunshine_duration:daily.sunshine_duration.map(()=>null),wind_speed_10m_max:daily.wind_speed_10m_max.map(()=>null)};
   const nullableDataset=module.aggregateTravelClimate({latitude:35.4,longitude:24.65,elevation:10,timezone:'Europe/Athens',daily:nullable});
   if(nullableDataset.days['10-18']?.sunshineMeanHours===0||nullableDataset.days['10-18']?.windMaxMean===0)failures.push('API-Nullwerte werden erneut als meteorologische 0 interpretiert.');

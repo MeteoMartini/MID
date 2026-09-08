@@ -8787,3 +8787,11 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
 /* v0.9.81.1: nicht belastbare Farbwahl aus der Synoptik-Bedienung entfernen. */
 .composite-line-toolbar,
 .composite-advanced-fields>label:nth-of-type(3){display:none!important}
+
+/* MID v0.9.82.0 · Klima: optionale Böenwindrose, Extremböe und sichere Tooltip-Innenabstände. */
+.climate-value-overlay text{text-anchor:start!important}
+.climate-windrose{gap:7px}
+.climate-wind-switch{display:inline-flex;align-items:center;justify-content:center;gap:3px;padding:3px;border:1px solid var(--border);border-radius:999px;background:var(--s2)}
+.climate-wind-switch button{min-height:28px;padding:0 10px;border:0;border-radius:999px;background:transparent;color:var(--muted);font:inherit;font-size:9.5px;font-weight:800;cursor:pointer}
+.climate-wind-switch button.active{background:var(--surface);color:var(--param-wind,#54788c);box-shadow:0 1px 3px rgba(0,0,0,.14)}
+.climate-wind-switch button:focus-visible{outline:2px solid color-mix(in srgb,var(--primary) 70%,transparent);outline-offset:2px}

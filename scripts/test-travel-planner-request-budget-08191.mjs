@@ -21,7 +21,9 @@ for(const token of [
  "const inFlightRequests=new Map<string,Promise<unknown>>();",
  "async function sharedRequest<T>",
  "async function waitForShared<T>",
- "daily:DAILY_VARIABLES",
+ "const makeParams=(daily:string)=>",
+ "makeParams(DAILY_VARIABLES)",
+ "makeParams(DAILY_VARIABLES_WITHOUT_GUST)",
  "if(!includeSnowDepth)return dataset;"
 ])need('Abrufbudget-Logik',logic,token);
 for(const forbidden of ['temperature_2m_mean','precipitation_hours'])if(logic.includes(`DAILY_VARIABLES=[`)&&logic.slice(logic.indexOf('DAILY_VARIABLES=['),logic.indexOf('].join',logic.indexOf('DAILY_VARIABLES=['))).includes(forbidden))failures.push(`Unnötige Basisvariable weiterhin aktiv: ${forbidden}`);
@@ -38,8 +40,10 @@ need('Package-Test',pkg,'test:travel-request-budget');
 need('Baseline-Test',baseline,'scripts/test-travel-planner-request-budget-08191.mjs');
 
 const compileDir=await mkdtemp(path.join(tmpdir(),'mid-travel-budget-'));
+const tscVersion=spawnSync('tsc',['--version'],{cwd:path.resolve('.'),encoding:'utf8',shell:process.platform==='win32'});
+const tscMajor=Number.parseInt((tscVersion.stdout||tscVersion.stderr||'').match(/Version\s+(\d+)/)?.[1]||'0',10);
 try{
- const compile=spawnSync('tsc',['--ignoreConfig','--pretty','false','--target','ES2022','--module','ESNext','--moduleResolution','Bundler','--strict','--skipLibCheck','--outDir',compileDir,path.resolve('src/vite-env.d.ts'),path.resolve('src/travelPlanner.ts')],{cwd:path.resolve('.'),encoding:'utf8'});
+ const compile=spawnSync('tsc',[...(tscMajor>=7?['--ignoreConfig']:[]),'--pretty','false','--target','ES2022','--module','ESNext','--moduleResolution','Bundler','--strict','--skipLibCheck','--outDir',compileDir,path.resolve('src/vite-env.d.ts'),path.resolve('src/travelPlanner.ts')],{cwd:path.resolve('.'),encoding:'utf8'});
  if(compile.status!==0)failures.push(`TypeScript: ${compile.stdout||compile.stderr}`);
  else{
   const compiledPath=path.join(compileDir,'travelPlanner.js');
@@ -69,6 +73,7 @@ try{
   if(parsedUrl.searchParams.get('models')!=='era5_seamless')failures.push(`Falsches Klimamodell: ${parsedUrl.searchParams.get('models')}`);
   if(parsedUrl.searchParams.get('wind_speed_unit')!=='kn')failures.push(`Wind nicht in kanonischen MID-Knoten angefordert: ${parsedUrl.searchParams.get('wind_speed_unit')}`);
   if(parsedUrl.searchParams.get('temperature_unit')!=='celsius'||parsedUrl.searchParams.get('precipitation_unit')!=='mm')failures.push('Explizite kanonische Temperatur-/Niederschlagseinheiten fehlen.');
+  if(!query.split(',').includes('wind_gusts_10m_max'))failures.push('Optionale Klimaböe fehlt im regulären Basisabruf.');
   for(const forbidden of ['temperature_2m_mean','precipitation_hours','relative_humidity_2m_mean'])if(query.includes(forbidden))failures.push(`Unnötige Variable tatsächlich angefordert: ${forbidden}`);
  }
 }finally{await rm(compileDir,{recursive:true,force:true})}

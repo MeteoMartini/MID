@@ -1,3 +1,29 @@
+# MID v0.9.82.1
+
+## Extern
+- Keine Änderung an Wetter-, Klima- oder Reiseplanerfunktionen gegenüber v0.9.82.0.
+- Der fehlgeschlagene Release-Lauf #939 ist korrigiert; MID kann den bereits geprüften v0.9.82.0-Funktionsstand wieder regulär veröffentlichen.
+
+## Intern
+- Zwei veraltete Reiseplaner-Regressionen wurden an den in v0.9.82.0 ergänzten optionalen Böenabruf angepasst.
+- Der Abrufbudget-Test prüft nun den regulären Gust-Pfad und den kompatiblen Fallback, statt die frühere statische `daily:DAILY_VARIABLES`-Form vorauszusetzen.
+- Die beiden isolierten Reiseplaner-Testhüllen setzen `--ignoreConfig` nur unter TypeScript 7 und bleiben damit auch mit älteren lokalen Compilern prüfbar.
+- Produktionsbuild, TypeScript-Prüfung und 718 weitere Regressionen waren in GitHub Actions #939 bereits erfolgreich; es gibt keine fachliche Workeränderung.
+
+# MID v0.9.82.0
+
+## Extern
+- Klima: Die Windrose kann zwischen Wind und Böen umgeschaltet werden, wenn für den gewählten Ort historische Böendaten vorhanden sind. Fehlen Böendaten, bleibt die Oberfläche unverändert und zeigt keinen leeren Schalter.
+- Klima: Für den gewählten Zeitraum wird zusätzlich die stärkste modellierte Böe aus der Klimaperiode 1991–2020 angezeigt; auch die Monatskarten führen sie mit, sofern verfügbar.
+- Klima: Niederschlags- und Schneefalltage werden jetzt als ganze Tage angezeigt.
+- Klima: Das Wertefeld im Jahresverlauf ordnet Temperatur- und Niederschlagswerte auf zwei klar getrennte Zeilen, sodass alle Inhalte innerhalb des Tooltips bleiben.
+
+## Intern
+- Das bestehende ERA5-Seamless-Tagesarchiv wird optional um das tägliche Böenmaximum ergänzt; bei fehlender Unterstützung fällt MID automatisch auf den bisherigen Klimadatensatz zurück.
+- Böen werden nach der täglichen Hauptwindrichtung gruppiert. MID behauptet damit keine separat gemessene Böenrichtung.
+- Der Klima-Cache wurde wegen der zusätzlichen Böenfelder auf Schema v7 angehoben.
+- Keine funktionale Workeränderung.
+
 # MID v0.9.80.7
 
 ## Extern
