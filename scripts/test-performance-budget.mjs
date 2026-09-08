@@ -14,19 +14,11 @@ if(!flight.includes("lazy(()=>import('./MeteogramPanel'))"))failures.push('Meteo
 for(const token of ["target:'es2020'","cssCodeSplit:true","sourcemap:false","reportCompressedSize:false"]){
  if(!vite.includes(token))failures.push(`Sichere Vite-Optimierung fehlt: ${token}`);
 }
-if(vite.includes('manualChunks')){
- const auditedVendorSplit=vite.includes('manualChunks:midVendorChunk')&&vite.includes("return 'ReactVendor'")&&vite.includes("return 'ChartsVendor'");
- if(!auditedVendorSplit)failures.push('Riskante oder nicht auditierte manuelle Vendor-Chunk-Aufteilung ist aktiv');
- const chunkFunctionStart=vite.indexOf('function midVendorChunk');
- const chunkFunctionEnd=vite.indexOf('export default defineConfig');
- const chunkFunction=chunkFunctionStart>=0&&chunkFunctionEnd>chunkFunctionStart?vite.slice(chunkFunctionStart,chunkFunctionEnd):'';
- const chunkNames=[...chunkFunction.matchAll(/return\s+'([^']+)'/g)].map(match=>match[1]);
- const unexpected=[...new Set(chunkNames.filter(name=>!['ReactVendor','ChartsVendor'].includes(name)))];
- if(unexpected.length)failures.push(`Nicht auditierte Vendor-Chunks aktiv: ${unexpected.join(', ')}`);
- const manualChunkAssignments=[...vite.matchAll(/\bmanualChunks\s*:/g)].length;
- if(manualChunkAssignments!==1)failures.push(`Unerwartete Anzahl manualChunks-Zuweisungen: ${manualChunkAssignments}`);
- if(/return\s+['"](?:MapLibre|Maplibre|MapLibreVendor|MapVendor)['"]/.test(chunkFunction))failures.push('MapLibre darf nicht in einen manuellen Vendor-Chunk verschoben werden');
+for(const token of ["minify:'oxc'","cssMinify:'lightningcss'",'rolldownOptions','codeSplitting',"name:'ReactVendor'","name:'ChartsVendor'"]){
+ if(!vite.includes(token))failures.push(`Auditierte Vite-8-Optimierung fehlt: ${token}`);
 }
+for(const token of ["minify:'esbuild'","cssMinify:'esbuild'",'manualChunks','rollupOptions'])if(vite.includes(token))failures.push(`Deprecated Vite-Pfad ist aktiv: ${token}`);
+if(/name:['"](?:MapLibre|Maplibre|MapLibreVendor|MapVendor)['"]/.test(vite))failures.push('MapLibre darf nicht in einen erzwungenen Vendor-Chunk verschoben werden');
 for(const token of ['content-visibility:auto','contain-intrinsic-size:auto 620px','overscroll-behavior-inline:contain','prefers-reduced-motion']){
  if(!css.includes(token))failures.push(`Responsive/Performance-CSS fehlt: ${token}`);
 }

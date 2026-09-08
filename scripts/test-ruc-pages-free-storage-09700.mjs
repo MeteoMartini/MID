@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import vm from 'node:vm';
-import {assertRucWorkflowSyncState} from './ruc-workflow-sync-contract.mjs';
+import {assertCanonicalRucWorkflow} from './ruc-workflow-sync-contract.mjs';
 import assert from 'node:assert/strict';
 import {versionAtLeast} from './version-regression-helper.mjs';
 const pkg=JSON.parse(fs.readFileSync('package.json','utf8')),baseline=JSON.parse(fs.readFileSync('MID_BASELINE.json','utf8')),test='scripts/test-ruc-pages-free-storage-09700.mjs';
@@ -8,11 +8,11 @@ assert.ok(versionAtLeast(pkg.version,'0.9.70.0'));assert.equal(baseline.releaseV
 for(const key of ['requiredRegressionTests','regressionTests','requiredFiles'])assert.ok(baseline[key].includes(test),`${test} missing from ${key}`);
 for(const file of ['tools/ruc/prepare_ruc_pages.py','tools/ruc/restore_ruc_pages_snapshot.py','tools/ruc/test_prepare_ruc_pages.py','MID_IMPLEMENTATION_0.9.70.0.md'])assert.ok(baseline.requiredFiles.includes(file),`${file} missing from baseline`);
 
-const readActive=(path,canonical)=>fs.readFileSync(fs.existsSync(path)?path:canonical,'utf8');const workerSource=fs.readFileSync('worker-src/00-core-observations.js','utf8'),router=fs.readFileSync('worker-src/40-aviation-router.js','utf8'),workflow=fs.readFileSync('ci/github/workflows/mid-ruc-preprocess.yml','utf8'),activeWorkflow=readActive('.github/workflows/mid-ruc-preprocess.yml','ci/github/workflows/mid-ruc-preprocess.yml'),install=fs.readFileSync('ci/github/workflows/install-mid.yml','utf8'),activeInstallPath='.github/workflows/install-mid.yml',activeInstall=readActive(activeInstallPath,'ci/github/workflows/install-mid.yml');
+const readActive=(path,canonical)=>fs.readFileSync(fs.existsSync(path)?path:canonical,'utf8');const workerSource=fs.readFileSync('worker-src/00-core-observations.js','utf8'),router=fs.readFileSync('worker-src/40-aviation-router.js','utf8'),workflow=fs.readFileSync('ci/github/workflows/mid-ruc-preprocess.yml','utf8'),install=fs.readFileSync('ci/github/workflows/install-mid.yml','utf8'),activeInstallPath='.github/workflows/install-mid.yml',activeInstall=readActive(activeInstallPath,'ci/github/workflows/install-mid.yml');
 for(const token of ["const DWD_RUC_STATIC_DEFAULT='https://midwx.app/ruc/'",'dwdRucStaticPointPayload','dwdRucEpsSummaryStaticPayload','dwdRucStorageHealth','pages-free-v1','GitHub Pages',"Accept-Encoding':'identity'"])assert.ok(workerSource.includes(token),`static RUC worker token missing: ${token}`);
 assert.ok(router.includes("mode==='ruc-health')return json({...await dwdRucStorageHealth(env)"));
-const workflowSyncState=assertRucWorkflowSyncState(activeWorkflow,workflow);
-assert.ok(['synced','pending-admin-sync'].includes(workflowSyncState.state),'Aktiver RUC-Workflow darf nur synchron oder exakt im geschützten Legacy-vor-Admin-Sync-Zustand sein.');
+const workflowContract=assertCanonicalRucWorkflow(workflow);
+assert.equal(workflowContract.state,'canonical','Der fachliche RUC-Pages-Test validiert die kanonische Release-Pipeline; aktives .github wird separat durch Admin-Sync-Regressionen geschützt.');
 // Der ZIP-Installer ersetzt .github absichtlich nicht. Während eines Release-Runs darf die aktive
 // Workflowdatei deshalb älter als die neu installierte kanonische Kopie sein. Bytegleichheit wäre
 // ein Widerspruch zum Self-Modification-Schutz; geprüft wird stattdessen der weiterhin sichere

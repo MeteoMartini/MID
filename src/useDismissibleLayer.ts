@@ -1,6 +1,6 @@
 import {useEffect,useRef,type RefObject} from 'react';
 
-type ElementRef<T extends HTMLElement> = Pick<RefObject<T>, 'current'>;
+type ElementRef<T extends HTMLElement> = Pick<RefObject<T | null>, 'current'>;
 
 export function useDismissibleLayer<T extends HTMLElement>(ref:ElementRef<T>,open:boolean,onDismiss:()=>void){
  const dismissRef=useRef(onDismiss);

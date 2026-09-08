@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.82.1",
+  "version": "0.9.83.4",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -443,7 +443,8 @@
     "test:weather-regime-colors": "node scripts/test-weather-regime-color-consistency-097910.mjs",
     "test:weather-regime-shared": "node scripts/test-weather-regime-shared-contract-097911.mjs",
     "test:skybar-daylight-no-gaps": "node scripts/test-skybar-daylight-no-gaps-097913.mjs",
-    "test:weather-profile-polish-temporal": "node scripts/test-weather-profile-polish-temporal-09802.mjs"
+    "test:weather-profile-polish-temporal": "node scripts/test-weather-profile-polish-temporal-09802.mjs",
+    "test:react19-climate-colors": "node scripts/test-react19-ref-climate-colors-09832.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",
@@ -458,24 +459,22 @@
     "astronomy-engine": "^2.1.19",
     "html-to-image": "^1.11.13",
     "jsfive": "^0.4.0",
-    "lucide-react": "^1.35.0",
+    "lucide-react": "^1.40.0",
     "maplibre-gl": "6.7.0",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
-    "react-is": "18.3.1",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "react-is": "19.2.8",
     "recharts": "3.10.1"
   },
   "devDependencies": {
     "@capacitor/cli": "8.5.1",
-    "@types/react": "^18.3.18",
-    "@types/react-dom": "^18.3.5",
-    "@vitejs/plugin-react": "4.7.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
+    "@vitejs/plugin-react": "6.1.1",
+    "esbuild": "0.28.2",
     "typescript": "7.0.2",
     "typescript-strada": "npm:typescript@6.0.3",
-    "vite": "6.4.3"
-  },
-  "overrides": {
-    "@jridgewell/trace-mapping": "0.3.28"
+    "vite": "8.2.2"
   },
   "packageManager": "npm@10.9.2",
   "engines": {

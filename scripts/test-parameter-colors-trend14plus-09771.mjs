@@ -11,7 +11,7 @@ const checks=[
   ['central pressure colour exists',css.includes('--param-pressure:#')],
   ['central wind colour exists',css.includes('--param-wind:#')],
   ['central cloud colour exists',css.includes('--param-cloud:#')],
-  ['central climate Tmax colour exists',css.includes('--param-temperature-max-climate:#')],
+  ['central climate Tmax colour exists',css.includes('--param-temperature-max-climate:var(--param-temperature-max)')],
   ['central climate Tmin colour exists',css.includes('--param-temperature-min-climate:#')],
   ['trend temperature palette wired',css.includes('.subseasonal-trend.metric-temperature{--trend-color:var(--param-temperature-max)}')],
   ['trend precipitation palette wired',css.includes('.subseasonal-trend.metric-precipitation{--trend-color:var(--param-precipitation)}')],

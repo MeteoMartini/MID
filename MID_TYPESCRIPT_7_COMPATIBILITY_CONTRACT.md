@@ -39,3 +39,28 @@ oder die Kopplung an weitere Toolchain-Majors.
 ## Capacitor-Konfiguration im Release-CI
 
 Die Produktquellen bleiben vollständig auf **TypeScript 7.0.2**. Die Capacitor-Metakonfiguration liegt jedoch bewusst als `capacitor.config.json` vor. Grund: Der bestehende Release-Installer verwendet Node 22.16; dort ist natives TypeScript-Stripping noch nicht standardmäßig aktiv, während TypeScript 7 die von älteren Loaderpfaden erwartete klassische Compiler-API nicht mehr bereitstellt. Eine JSON-Konfiguration benötigt weder die entfernte Compiler-API noch Laufzeit-Transpilation und hält `cap copy ios` sowie `cap sync ios` deshalb unabhängig von diesem Loaderdetail stabil. Dies ist **kein iOS-Fork** und verändert weder den React/Vite-Fachkern noch die native Capacitor-Hülle fachlich.
+
+## Folgemigration v0.9.83.0
+
+Der ursprüngliche Meilenstein v0.9.76.0 bleibt historisch unverändert dokumentiert. Mit
+v0.9.83.0 wurde die zuvor ausdrücklich zurückgestellte, gekoppelte Toolchain-Migration
+separat qualifiziert:
+
+- React, React DOM und react-is: `19.2.8`
+- `@types/react`: `19.2.18`, `@types/react-dom`: `19.2.5`
+- Vite: `8.2.2`, `@vitejs/plugin-react`: `6.1.1`
+- Vite-8-Buildkern: Oxc (JavaScript), Lightning CSS (CSS) und Rolldown
+  `output.codeSplitting.groups` für die bestehende React-/Charts-Vendortrennung.
+
+TypeScript bleibt davon unabhängig exakt auf `7.0.2`; der Alias `typescript-strada`
+bleibt ausschließlich für Regressionen mit der klassischen Compiler-API auf `6.0.3`.
+Damit ist die frühere Schutzregel „keine unbeabsichtigte Major-Kopplung“ weiterhin erfüllt:
+Die React-/Vite-Majors wurden nicht still mit TypeScript 7 angehoben, sondern in einem
+eigenen, gekoppelten Migrationsschritt mit Lockfile-, Build- und Regressionsvertrag.
+
+## React-19-Ref-Vertrag ab v0.9.83.2
+
+React 19 typisiert `useRef` und `RefObject` strenger. MID initialisiert deshalb optionale
+Refs immer explizit und gibt DOM-Refs in Helferverträgen als `RefObject<T | null>` weiter.
+Dies betrifft insbesondere Ensemble-Portale, Diagramm-Refs und Radar-Popover. Der Vertrag
+verhindert, dass der TypeScript-7-Produktionsbuild erneut an React-18-Ref-Signaturen scheitert.

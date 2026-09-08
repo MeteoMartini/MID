@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.82.1",
+  "releaseVersion": "0.9.83.4",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -439,7 +439,8 @@
     "scripts/test-settings-navigation-polish-097917.mjs",
     "scripts/test-hazard-time-direction-localtime-097919.mjs",
     "scripts/test-climate-section-09800.mjs",
-    "scripts/test-climate-hazard-widget-09804.mjs"
+    "scripts/test-climate-hazard-widget-09804.mjs",
+    "scripts/test-react19-ref-climate-colors-09832.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -802,7 +803,8 @@
     "scripts/test-precipitation-forward-geometry-097916.mjs",
     "scripts/test-settings-navigation-polish-097917.mjs",
     "scripts/test-climate-section-09800.mjs",
-    "scripts/test-climate-hazard-widget-09804.mjs"
+    "scripts/test-climate-hazard-widget-09804.mjs",
+    "scripts/test-react19-ref-climate-colors-09832.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -1371,7 +1373,11 @@
     "src/ClimatePanel.tsx",
     "MID_IMPLEMENTATION_0.9.80.1.md",
     "scripts/test-climate-hazard-widget-09804.mjs",
-    "MID_IMPLEMENTATION_0.9.80.4.md"
+    "MID_IMPLEMENTATION_0.9.80.4.md",
+    "MID_IMPLEMENTATION_0.9.83.0.md",
+    "MID_TEST_REPORT_0.9.83.0.md",
+    "MID_IMPLEMENTATION_0.9.83.4.md",
+    "MID_TEST_REPORT_0.9.83.4.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1421,7 +1427,8 @@
     "scripts/test-precipitation-forward-geometry-097916.mjs",
     "scripts/test-settings-navigation-polish-097917.mjs",
     "scripts/test-climate-section-09800.mjs",
-    "scripts/test-climate-hazard-widget-09804.mjs"
+    "scripts/test-climate-hazard-widget-09804.mjs",
+    "scripts/test-react19-ref-climate-colors-09832.mjs"
   ],
   "protectedFiles": [
     "scripts/test-travel-planner-era5-seamless-units-09652.mjs",
@@ -1588,7 +1595,14 @@
     "MID_IMPLEMENTATION_0.9.78.85.md",
     "MID_TEST_REPORT_0.9.78.85.md",
     "MID_NAVIGATION_BOTTOM_BAR_CONTRACT.md",
-    "MID_IMPLEMENTATION_0.9.79.6.md"
+    "MID_IMPLEMENTATION_0.9.79.6.md",
+    "MID_IMPLEMENTATION_0.9.83.0.md",
+    "MID_TEST_REPORT_0.9.83.0.md",
+    "scripts/test-react19-ref-climate-colors-09832.mjs",
+    "MID_IMPLEMENTATION_0.9.83.2.md",
+    "MID_TEST_REPORT_0.9.83.2.md",
+    "MID_IMPLEMENTATION_0.9.83.3.md",
+    "MID_TEST_REPORT_0.9.83.3.md"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md",
@@ -1623,7 +1637,9 @@
     "tools/knmi_eps_decoder/decoder.py",
     "tools/knmi_eps_decoder/server.py",
     "src/weather-src/00-types-models-search.tsfrag",
-    "scripts/test-knmi-eps-point-decoder-097722.mjs"
+    "scripts/test-knmi-eps-point-decoder-097722.mjs",
+    "MID_IMPLEMENTATION_0.9.83.4.md",
+    "MID_TEST_REPORT_0.9.83.4.md"
   ],
   "implementationProof": [
     "MID_IMPLEMENTATION_0.9.74.5.md",
@@ -1701,7 +1717,8 @@
     "MID_IMPLEMENTATION_0.9.78.47.md",
     "MID_IMPLEMENTATION_0.9.78.78.md",
     "MID_IMPLEMENTATION_0.9.78.79.md",
-    "MID_IMPLEMENTATION_0.9.78.84.md"
+    "MID_IMPLEMENTATION_0.9.78.84.md",
+    "MID_IMPLEMENTATION_0.9.83.0.md"
   ],
   "evidenceFiles": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -1754,7 +1771,12 @@
     "src/forecastDayLabel.ts",
     "scripts/test-pressure-axis-nice-spacing-097861.mjs",
     "MID_TEST_REPORT_0.9.78.83.md",
-    "MID_TEST_REPORT_0.9.78.84.md"
+    "MID_TEST_REPORT_0.9.78.84.md",
+    "MID_IMPLEMENTATION_0.9.83.0.md",
+    "MID_TEST_REPORT_0.9.83.0.md",
+    "MID_TEST_REPORT_0.9.83.2.md",
+    "MID_IMPLEMENTATION_0.9.83.3.md",
+    "MID_TEST_REPORT_0.9.83.3.md"
   ],
   "releaseEvidence": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -1794,7 +1816,8 @@
     "MID_IMPLEMENTATION_0.9.80.5.md",
     "MID_TEST_REPORT_0.9.80.5.md",
     "MID_IMPLEMENTATION_0.9.80.6.md",
-    "MID_TEST_REPORT_0.9.80.6.md"
+    "MID_TEST_REPORT_0.9.80.6.md",
+    "MID_IMPLEMENTATION_0.9.83.4.md"
   ],
   "activeRegressionSuite": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -1835,8 +1858,8 @@
     "scripts/test-climate-section-09800.mjs",
     "scripts/test-climate-hazard-widget-09804.mjs"
   ],
-  "version": "0.9.82.1",
-  "updatedAt": "2026-09-07T17:50:00Z",
+  "version": "0.9.83.4",
+  "updatedAt": "2026-09-08T09:06:02Z",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
     "MID_IMPLEMENTATION_0.9.77.27.md",
@@ -1905,7 +1928,10 @@
     "MID_IMPLEMENTATION_0.9.79.19.md",
     "MID_IMPLEMENTATION_0.9.79.20.md",
     "MID_IMPLEMENTATION_0.9.80.1.md",
-    "MID_IMPLEMENTATION_0.9.80.4.md"
+    "MID_IMPLEMENTATION_0.9.80.4.md",
+    "MID_IMPLEMENTATION_0.9.83.0.md",
+    "MID_IMPLEMENTATION_0.9.83.2.md",
+    "MID_IMPLEMENTATION_0.9.83.3.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",
@@ -1948,6 +1974,10 @@
     "MID_TEST_REPORT_0.9.78.70.md",
     "MID_TEST_REPORT_0.9.78.72.md",
     "MID_TEST_REPORT_0.9.78.83.md",
-    "MID_TEST_REPORT_0.9.78.84.md"
+    "MID_TEST_REPORT_0.9.78.84.md",
+    "MID_TEST_REPORT_0.9.83.0.md",
+    "MID_TEST_REPORT_0.9.83.2.md",
+    "MID_TEST_REPORT_0.9.83.3.md",
+    "MID_TEST_REPORT_0.9.83.4.md"
   ]
 }

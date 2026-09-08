@@ -59,6 +59,13 @@ export function rucWorkflowSyncState(active,canonical){
   return {ok:false,state:'unsafe-drift',reason:'Aktiver RUC-Workflow weicht vom kanonischen Stand ab und entspricht nicht dem eng definierten geschützten Legacy-Zustand.'};
 }
 
+export function assertCanonicalRucWorkflow(canonical){
+  if(!isCanonicalCatchupRucWorkflow(canonical)){
+    throw new Error('Kanonischer RUC-Workflow erfüllt den :11/:41-Catch-up-Vertrag nicht vollständig.');
+  }
+  return {ok:true,state:'canonical',reason:'Kanonischer RUC-Workflow erfüllt den geschützten :11/:41-Catch-up-Vertrag.'};
+}
+
 export function assertRucWorkflowSyncState(active,canonical){
   const result=rucWorkflowSyncState(active,canonical);
   if(!result.ok)throw new Error(result.reason);

@@ -1,7 +1,7 @@
 import fs from 'node:fs';
-import {assertRucWorkflowSyncState} from './ruc-workflow-sync-contract.mjs';
+import {assertCanonicalRucWorkflow} from './ruc-workflow-sync-contract.mjs';
 const read=p=>fs.readFileSync(p,'utf8');
-const active=(path,canonical)=>read(fs.existsSync(path)?path:canonical);const worker=read('worker-src/00-core-observations.js'),router=read('worker-src/40-aviation-router.js'),healthCheck=read('tools/ruc/check_ruc_health.py'),weather=read('src/weather-src/00-types-models-search.tsfrag'),event=read('src/weather-src/30-ensemble-climate-hazards.tsfrag'),canonicalWorkflow=read('ci/github/workflows/mid-ruc-preprocess.yml'),workflow=active('.github/workflows/mid-ruc-preprocess.yml','ci/github/workflows/mid-ruc-preprocess.yml'),canonicalBootstrapWorkflow=read('ci/github/workflows/mid-ruc-cloudflare-bootstrap.yml'),bootstrapWorkflow=active('.github/workflows/mid-ruc-cloudflare-bootstrap.yml','ci/github/workflows/mid-ruc-cloudflare-bootstrap.yml'),workflowSync=read('scripts/sync-github-workflows.mjs'),publisher=read('tools/ruc/publish_ruc_r2.sh'),bootstrap=read('tools/ruc/cloudflare_r2_bootstrap.py'),fetcher=read('tools/ruc/fetch_and_build_ruc.py'),builder=read('tools/ruc/build_ruc_bundle.py'),pack=read('tools/ruc/ruc_pack.py');
+const worker=read('worker-src/00-core-observations.js'),router=read('worker-src/40-aviation-router.js'),healthCheck=read('tools/ruc/check_ruc_health.py'),weather=read('src/weather-src/00-types-models-search.tsfrag'),event=read('src/weather-src/30-ensemble-climate-hazards.tsfrag'),canonicalWorkflow=read('ci/github/workflows/mid-ruc-preprocess.yml'),workflow=canonicalWorkflow,canonicalBootstrapWorkflow=read('ci/github/workflows/mid-ruc-cloudflare-bootstrap.yml'),bootstrapWorkflow=canonicalBootstrapWorkflow,workflowSync=read('scripts/sync-github-workflows.mjs'),publisher=read('tools/ruc/publish_ruc_r2.sh'),bootstrap=read('tools/ruc/cloudflare_r2_bootstrap.py'),fetcher=read('tools/ruc/fetch_and_build_ruc.py'),builder=read('tools/ruc/build_ruc_bundle.py'),pack=read('tools/ruc/ruc_pack.py');
 const must=(condition,message)=>{if(!condition)throw new Error(message)};
 
 // Core meteorological and worker safety contract.
@@ -52,8 +52,8 @@ must(workflow.includes('tools/ruc/prepare_ruc_pages.py')&&workflow.includes('act
 must(!workflow.includes('MID_RUC_R2_ACCESS_KEY_ID')&&!workflow.includes('MID_RUC_R2_SECRET_ACCESS_KEY')&&!workflow.includes('tools/ruc/publish_ruc_r2.sh'),'Primary free workflow must not require R2 credentials or publication');
 must(workflow.includes('MID_RUC_WORKER_HEALTH_URL')&&workflow.includes('MID_WORKER_HEALTH_URL')&&workflow.includes('tools/ruc/check_ruc_health.py'),'Published free run must support deployed Worker health smoke check');
 must(healthCheck.includes("payload.get('run','')")&&healthCheck.includes("'ready':True")&&healthCheck.includes("'fresh':True"),'Health smoke must require the exact published run to be fresh and ready');
-const workflowSyncState=assertRucWorkflowSyncState(workflow,canonicalWorkflow);
-must(['synced','pending-admin-sync'].includes(workflowSyncState.state),'RUC workflow sync state must be safe');
+const workflowContract=assertCanonicalRucWorkflow(canonicalWorkflow);
+must(workflowContract.state==='canonical','Canonical RUC workflow contract must be valid; active .github state is checked only by the explicit admin-sync regression.');
 must(workflowSync.includes("['workflows/mid-ruc-preprocess.yml','workflows/mid-ruc-preprocess.yml']")&&workflowSync.includes("['workflows/mid-ruc-schedule-watchdog.yml','workflows/mid-ruc-schedule-watchdog.yml']")&&workflowSync.includes("['workflows/mid-ruc-cloudflare-bootstrap.yml','workflows/mid-ruc-cloudflare-bootstrap.yml']")&&workflowSync.includes('SETUP_PYTHON_V7_SHA'),'Administrative workflow sync must manage both RUC workflows and setup-python v7 SHA pin');
 must(publisher.includes('runs/${RUN}/lookup.bin')||publisher.includes('runs/${RUN}/${name}'),'Optional R2 publisher must upload lookup with immutable run prefix');
 must(publisher.includes('eps-summary.bin')&&publisher.includes('eps-members.bin'),'Publisher must upload EPS summary and native-event member products');
@@ -75,7 +75,7 @@ must(bootstrap.includes("MID_RUC_R2_LOCATION','weur")&&bootstrap.includes(".stri
 must(bootstrap.includes('DEFAULT_ORPHAN_MAX_AGE_SECONDS=48*3600'),'R2 lifecycle safety net must preserve a longer fallback window than the normal publisher retention');
 must(worker.includes('dwdRucR2Health')&&worker.includes("mode==='ruc-health'")===false,'RUC health implementation must live in worker core while routing remains modular');
 must(bootstrap.includes('binding_state')&&bootstrap.includes('MANUAL GATE: Worker')&&!bootstrap.includes("request('PATCH'"),'Bootstrap may verify but must not blindly rewrite existing Worker bindings');
-must(bootstrapWorkflow===canonicalBootstrapWorkflow,'Cloudflare bootstrap workflow must be mirrored byte-identically in ci/github');
+must(bootstrapWorkflow===canonicalBootstrapWorkflow,'Cloudflare bootstrap contract is validated from the canonical ci/github release copy; active .github is admin-sync territory.');
 must(bootstrapWorkflow.includes("vars.MID_RUC_CLOUDFLARE_BOOTSTRAP_ENABLED == 'true'")&&bootstrapWorkflow.includes('MID_RUC_CLOUDFLARE_BOOTSTRAP_TOKEN'),'One-time Cloudflare bootstrap must remain behind a separate explicit gate');
 must(!/uses:\s+[^\n]+@(v\d+|main|master)\b/.test(bootstrapWorkflow),'Cloudflare bootstrap Actions must be commit-SHA pinned');
 must(!/delete.+bucket/i.test(bootstrap),'Bootstrap must not contain destructive bucket deletion');

@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-09-08T07:11:32.314Z",
-  "releaseVersion": "0.9.82.1",
+  "updatedAt": "2026-09-08T11:38:07.848Z",
+  "releaseVersion": "0.9.83.4",
   "sourceBaseline": {
     "professionalVersion": "0.9.77.26",
     "workerVersion": "0.9.77.26",
@@ -129,15 +129,16 @@
     "warning-hybrid-uncertainty-0.9.78.49",
     "skybar-sunshine-time-alignment-merged-with-buffered-satellite-playback-0.9.78.82",
     "climate-hazard-widget-contract-0.9.80.4",
-    "shared-widget-pop-climate-readability-0.9.80.6"
+    "shared-widget-pop-climate-readability-0.9.80.6",
+    "react19-vite8-toolchain-compatibility-migration-0.9.83.0"
   ],
   "nextMilestone": "macos-xcode-simulator-quality-assurance",
   "validation": {
-    "browserBuild": "v0.9.80.6: kein neuer vollständiger lokaler Vite-Build ohne installierte npm-Dependencies; die vier geänderten TS/TSX-Dateien wurden syntaktisch transpiliert. Der unmittelbar vorausgehende v0.9.80.5-Stand ist auf mid-stable installiert.",
-    "typescript": "v0.9.80.6: chartMath, App, ForecastCockpit und ClimatePanel mit TypeScript transpileModule fehlerfrei; die TypeScript-7-CI-Verträge aus v0.9.80.5 bleiben unverändert.",
-    "workerSyntax": "v0.9.80.6: Maintenance-Aggregate synchron; worker.js und worker/metar-proxy.js node --check-grün und bytegleich. Keine funktionale Workeränderung.",
-    "regressions": "v0.9.80.6: 13 gezielte Release-/UI-/Intervall-/Farb-/Lineage-Regressionen grün; Sunshine-Gesamttest lokal nur wegen fehlendem typescript-strada nicht startbar, betroffene Widget-Pille separat regressionsgeschützt.",
-    "capacitorSync": "Kein neuer cap copy/sync ios in dieser isolierten Laufzeit, da kein vollständiger Vite-Build ohne erfolgreich installierte npm-Dependencies möglich ist. Die Änderungen liegen im gemeinsamen React/Vite-Fachkern; die eingebettete native Webkopie wird nicht künstlich umetikettiert.",
+    "browserBuild": "v0.9.83.0: vollständiger lokaler npm-/Vite-8-Produktionsbuild in der isolierten Laufzeit nicht möglich, da npm ci beim Registry-Abruf nicht fortschritt. Die geänderten Vite-/Dependency-/Lockfile-/Workflow-Verträge wurden statisch und mit gezielten Node-Regressionen geprüft; der kanonische GitHub-Installer bleibt für den echten Build fail-closed.",
+    "typescript": "TypeScript bleibt exakt 7.0.2; der TypeScript-7-Kompatibilitätsvertrag wurde für die nachgelagerte React-19/Vite-8-Gesamtmigration erweitert. Der vollständige tsc --noEmit-Lauf bleibt Teil des GitHub-Release-Preflights.",
+    "workerSyntax": "v0.9.83.0: Maintenance-Aggregate synchron; worker.js und worker/metar-proxy.js node --check-grün. Semantischer Vergleich gegen v0.9.82.1 ist abgesehen von WORKER_VERSION bytegleich.",
+    "regressions": "v0.9.83.0: geänderte Dependency-, Lockfile-, Workflow-, Vite-, Stable-Hardening-, Performance-, Versions-, Baseline- und Lineage-Verträge gezielt grün. Vollständige Suite bleibt wegen fehlender lockfile-genauer npm-Installation dem fail-closed GitHub-Installer vorbehalten.",
+    "capacitorSync": "Kein neuer npm run ios:sync in dieser isolierten Laufzeit, da vorher ein erfolgreicher vollständiger Vite-8-Produktionsbuild erforderlich ist. Die eingebettete native Webkopie wird nicht künstlich umetikettiert.",
     "xcodeProjectStructure": "Gemeinsamer Capacitor-iOS-Wrapper, Light-/Dark-AppIcon- und Splash-Kataloge, Privacy-Manifeste und MIDWidgets-Struktur bleiben erhalten; keine neue native Berechtigung oder Capability aktiviert.",
     "xcodeAppleSdkBuild": "required-next-gate-macos-xcode-simulator; includes Apple SDK build, simulator launch, Privacy Report inspection and post-sync structure verification."
   },
@@ -152,7 +153,7 @@
     ],
     "approved": false
   },
-  "validationNote": "v0.9.80.6 präzisiert ausschließlich die gemeinsame React/Vite-Darstellung: Widget-Sonnenpille zentriert, PoP-Linien monoton geglättet bei unveränderter Intervallsemantik sowie lesbarere Klima-Bedeckung/Farben/Tooltips. Keine funktionale Workeränderung; native iOS-Webassets werden erst im separaten iOS-Synchronisationsschritt neu gebaut.",
+  "validationNote": "v0.9.83.0 modernisiert ausschließlich die gemeinsame React/Vite-Toolchain: React 19.2.8, Vite 8.2.2/plugin-react 6.1.1, Lucide 1.40.0 sowie Oxc/Lightning CSS/Rolldown-Code-Splitting. Keine Wetter-/UI-Fachlogik oder Workerfachlogik geändert; nativer iOS-Webstand wird erst nach erfolgreichem Produktionsbuild synchronisiert.",
   "completedMilestones": [
     "ci-regression-contract-hotfix-0.9.76.22",
     "ruc-scheduler-resilience-source-preparation-0.9.76.24",
@@ -238,5 +239,5 @@
     },
     "release-run-934-typescript7-widget-regression-hotfix-0.9.80.5"
   ],
-  "currentVersion": "0.9.77.28"
+  "currentVersion": "0.9.83.0"
 }

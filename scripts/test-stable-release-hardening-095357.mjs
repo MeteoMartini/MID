@@ -13,7 +13,8 @@ const baseline=JSON.parse(baselineText);
 const failures=[];
 const need=(area,text,token)=>{if(!text.includes(token))failures.push(area+': '+token)};
 
-for(const token of ['manualChunks:midVendorChunk',"return 'ReactVendor'","return 'ChartsVendor'"])need('Vite-Chunking',vite,token);
+for(const token of ['rolldownOptions','codeSplitting','reactVendorPattern','chartsVendorPattern',"name:'ReactVendor'","name:'ChartsVendor'"])need('Vite-Chunking',vite,token);
+for(const token of ['manualChunks','rollupOptions'])if(vite.includes(token))failures.push('Vite-Chunking: deprecated '+token+' ist zurückgekehrt.');
 if(/return ['"]MapLibre/i.test(vite))failures.push('Vite-Chunking: MapLibre wurde in einen erzwungenen Vendor-Chunk verschoben; die bestehende Lazy-Grenze muss erhalten bleiben.');
 for(const token of ['npm-audit-full.json','if: always()','actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a','npm run audit:all'])need('Dependency-Audit',audit,token);
 for(const token of ['statuses: write','ls-remote --heads origin refs/heads/mid-stable',"'context': 'MID / stable-release-quality'",'/statuses/${stable_sha}'])need('Stable-SHA',install,token);

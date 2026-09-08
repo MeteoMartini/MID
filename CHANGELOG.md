@@ -1,3 +1,53 @@
+# MID v0.9.83.4
+
+## Extern
+- Der Release-Installer wird nicht mehr durch einen administrativ noch nicht synchronisierten GitHub-RUC-Workflow blockiert. Wetterdaten, RUC-Berechnung und Darstellung bleiben unverändert.
+- Die vollständige Build- und Regressionsprüfung bleibt bestehen; nur die Zuständigkeit für aktive GitHub-Workflowdateien ist jetzt sauber vom normalen ZIP-Release getrennt.
+
+## Intern
+- Drei RUC-Fachregressionen prüfen ausschließlich den kanonischen `ci/github`-Workflow, den das Release tatsächlich mitliefert.
+- Die aktive `.github`-Konfiguration bleibt wie vorgesehen vom automatischen Release-Installer geschützt und wird weiterhin separat über die vorhandenen Admin-Sync-/Transition-Regressionen fail-closed validiert.
+- Kein Lockern des RUC-Catch-up-, Pages-, Speicher-, Health- oder Workflow-Sicherheitsvertrags.
+
+# MID v0.9.83.3
+
+- GitHub-Release-Lauf #942 repariert: Die beiden isolierten Extremwetter-/Flugwetter-Regressionen erhalten `esbuild` wieder als ausdrückliche, im Lockfile fixierte Entwicklungsabhängigkeit.
+- Drei nach der Vite-8- und Klima-Farbmigration veraltete Prüferwartungen korrigiert: ein nicht mehr installierter `browserslist`-Pfad gilt als nicht betroffen, Klima-Tmax darf auf den zentralen Tmax-Token verweisen, und die Plugin-React-Policy bleibt maschinenlesbar.
+- Die Vite-8/Rolldown-Produktionspipeline bleibt unverändert; `esbuild` wird ausschließlich von den zwei bestehenden Node-Testhüllen zum Bündeln einzelner TypeScript-Fachmodule verwendet.
+- Keine Änderung an App-Verhalten, Wetterberechnung, Darstellung oder Worker-Fachlogik.
+
+# MID v0.9.83.2
+
+- Release-Installation unter React 19 repariert: Ensemble- und Radar-Bedienelemente verwenden jetzt die korrekten Referenztypen; der in GitHub-Lauf #941 aufgetretene TypeScript-Abbruch ist damit gezielt behoben.
+- Klima: Tmax verwendet wieder die appweite MID-Temperaturfarbe. Wind und Böen sind in Zusammenfassung, Monatswerten, Umschalter und Windrose eindeutig in den bekannten MID-Parameterfarben dargestellt.
+- Keine fachliche Änderung an Wetter-, Warn-, Klima- oder Worker-Berechnungen.
+
+# MID v0.9.83.1
+
+## Extern
+- Widget: Wenn für einen Tag keine warnwürdigen MID-Ereignisse vorliegen, wird keine leere Entwarnungs-/Hinweispille mehr angezeigt.
+- Klima: Die Temperaturachse im Jahresverlauf verwendet jetzt automatisch glatte, leicht lesbare Skalenwerte statt krummer Zwischenwerte.
+- Klima: Wind- und Böenwerte werden in Zusammenfassung, Windrose und Monatskarten einheitlich als ganze Werte dargestellt.
+
+## Intern
+- Klima-Temperaturskala verwendet adaptive Nice-Steps (1/2/5/10/20/50 °C) mit sauber aufgerundeten Achsgrenzen.
+- Widget-Hazardbereich wird nur gerendert, wenn tatsächlich mindestens ein warnwürdiges Ereignis für den jeweiligen Tag vorliegt; der Gesamtzustand behandelt ein komplett warnfreies Widget layoutseitig wie „Hazards aus“.
+- Keine Änderung an Warnschwellen, Wetterdaten, Klimadatenquellen oder Worker-Fachlogik.
+
+# MID v0.9.83.0
+
+## Extern
+- Keine Änderung an Wetterdaten, Vorhersagen, Warnungen, Radar/Satellit, Synoptik, Klima oder Bedienlogik.
+- Die technische Basis der App wurde modernisiert, damit MID mit den aktuellen React-/Vite-Werkzeugen weiterentwickelt werden kann, ohne den bestehenden Funktionsumfang anzutasten.
+- Symbole und interne Build-Werkzeuge wurden aktualisiert; Darstellung und gespeicherte Nutzerzustände bleiben erhalten.
+
+## Intern
+- React, React DOM und react-is gemeinsam auf 19.2.8 sowie die zugehörigen Typen auf die React-19-Reihe migriert; Recharts 3.10.1 bleibt erhalten und ist peer-kompatibel.
+- Vite 8.2.2 und @vitejs/plugin-react 6.1.1 gemeinsam übernommen. Der Build nutzt nun Oxc, Lightning CSS und Rolldown-codeSplitting statt der veralteten esbuild-/manualChunks-Konfiguration.
+- Lucide React auf 1.40.0 aktualisiert; TypeScript bleibt exakt auf 7.0.2, der bestehende Strada-Testalias auf 6.0.3.
+- deploy-pages auf 5.0.1 und CodeQL init/analyze gemeinsam auf 4.37.9 SHA-gepinnt.
+- Keine fachliche Workeränderung; nur Versionssynchronisierung.
+
 # MID v0.9.82.1
 
 ## Extern

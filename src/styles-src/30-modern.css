@@ -4019,3 +4019,20 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
 .climate-wind-switch button{min-height:28px;padding:0 10px;border:0;border-radius:999px;background:transparent;color:var(--muted);font:inherit;font-size:9.5px;font-weight:800;cursor:pointer}
 .climate-wind-switch button.active{background:var(--surface);color:var(--param-wind,#54788c);box-shadow:0 1px 3px rgba(0,0,0,.14)}
 .climate-wind-switch button:focus-visible{outline:2px solid color-mix(in srgb,var(--primary) 70%,transparent);outline-offset:2px}
+
+/* MID v0.9.83.2 · React-19-Freigabefix und Klima-Farbvertrag. */
+.climate-summary .temperature svg{color:var(--param-temperature-max)}
+.climate-summary .wind .wind-value,.climate-month-grid .wind-value,.climate-windrose .wind-value{color:var(--param-wind);font-weight:850}
+.climate-summary .wind .gust-value,.climate-month-grid .gust-value,.climate-windrose .gust-value{color:var(--param-gust);font-weight:850}
+.climate-wind-switch button.wind.active{color:var(--param-wind)}
+.climate-wind-switch button.gust.active{color:var(--param-gust)}
+.climate-windrose.mode-wind .climate-wind-center{fill:var(--param-wind)!important}
+.climate-windrose.mode-gust .climate-wind-center{fill:var(--param-gust)!important}
+.climate-windrose.mode-wind .climate-wind-sector.speed-0,.climate-windrose.mode-wind .climate-wind-legend .speed-0 i{stroke:color-mix(in srgb,var(--param-wind) 32%,var(--surface));background:color-mix(in srgb,var(--param-wind) 32%,var(--surface))}
+.climate-windrose.mode-wind .climate-wind-sector.speed-1,.climate-windrose.mode-wind .climate-wind-legend .speed-1 i{stroke:color-mix(in srgb,var(--param-wind) 52%,var(--surface));background:color-mix(in srgb,var(--param-wind) 52%,var(--surface))}
+.climate-windrose.mode-wind .climate-wind-sector.speed-2,.climate-windrose.mode-wind .climate-wind-legend .speed-2 i{stroke:color-mix(in srgb,var(--param-wind) 76%,var(--surface));background:color-mix(in srgb,var(--param-wind) 76%,var(--surface))}
+.climate-windrose.mode-wind .climate-wind-sector.speed-3,.climate-windrose.mode-wind .climate-wind-legend .speed-3 i{stroke:var(--param-wind);background:var(--param-wind)}
+.climate-windrose.mode-gust .climate-wind-sector.speed-0,.climate-windrose.mode-gust .climate-wind-legend .speed-0 i{stroke:color-mix(in srgb,var(--param-gust) 32%,var(--surface));background:color-mix(in srgb,var(--param-gust) 32%,var(--surface))}
+.climate-windrose.mode-gust .climate-wind-sector.speed-1,.climate-windrose.mode-gust .climate-wind-legend .speed-1 i{stroke:color-mix(in srgb,var(--param-gust) 52%,var(--surface));background:color-mix(in srgb,var(--param-gust) 52%,var(--surface))}
+.climate-windrose.mode-gust .climate-wind-sector.speed-2,.climate-windrose.mode-gust .climate-wind-legend .speed-2 i{stroke:color-mix(in srgb,var(--param-gust) 76%,var(--surface));background:color-mix(in srgb,var(--param-gust) 76%,var(--surface))}
+.climate-windrose.mode-gust .climate-wind-sector.speed-3,.climate-windrose.mode-gust .climate-wind-legend .speed-3 i{stroke:var(--param-gust);background:var(--param-gust)}

@@ -26,9 +26,9 @@ assert.equal(typeof stradaTs.transpileModule,'function');
 assert.equal(typeof stradaTs.createSourceFile,'function');
 assert.equal(typeof ts.transpileModule,'undefined','TypeScript 7 darf nicht versehentlich als alte Strada-API behandelt werden.');
 
-for(const [name,value] of Object.entries({react:'18.3.1','react-dom':'18.3.1','react-is':'18.3.1'}))assert.equal(pkg.dependencies?.[name],value,`${name} wurde unzulässig mitmigriert.`);
-assert.equal(pkg.devDependencies?.vite,'6.4.3');
-assert.equal(pkg.devDependencies?.['@vitejs/plugin-react'],'4.7.0');
+for(const [name,value] of Object.entries({react:'19.2.8','react-dom':'19.2.8','react-is':'19.2.8'}))assert.equal(pkg.dependencies?.[name],value,`${name} muss dem qualifizierten React-19-Gesamtvertrag entsprechen.`);
+assert.equal(pkg.devDependencies?.vite,'8.2.2');
+assert.equal(pkg.devDependencies?.['@vitejs/plugin-react'],'6.1.1');
 
 assert.equal(appConfig.compilerOptions?.strict,true);
 assert.equal(appConfig.compilerOptions?.isolatedModules,true);
@@ -52,4 +52,4 @@ const scriptSources=await Promise.all(scriptNames.map(async name=>[name,await re
 const directRootApiImports=scriptSources.filter(([,source])=>/from\s+['"]typescript['"]|require\(['"]typescript['"]\)|createRequire\([^\n]+\)\(['"]typescript['"]\)/.test(source)).map(([name])=>name);
 assert.deepEqual(directRootApiImports,[],`Regressionen importieren die entfernte TypeScript-7-Strada-API direkt: ${directRootApiImports.join(', ')}`);
 
-console.log(`MID v${pkg.version}: TypeScript 7.0.2 ist lockfile-genau und ohne React-/Vite-Major-Kopplung qualifiziert.`);
+console.log(`MID v${pkg.version}: TypeScript 7.0.2 bleibt lockfile-genau; die nachgelagerte React-19/Vite-8-Gesamtmigration ist ausdrücklich gekoppelt qualifiziert.`);

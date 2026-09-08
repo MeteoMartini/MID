@@ -24,6 +24,9 @@ assert.ok(!app.includes('hz:strongestDailyHazards(dailyHazards(d,hours,elevation
 need('Widget Sonnenschein ganzstündig',sun,'export function sunshineWholeHoursLabel');
 need('Widget verwendet Ganzstunden',app,'sunshineWholeHoursLabel(d.sunshineDuration)');
 need('Widget Böenfarbe folgt Warnstufe',app,'widgetmeta-wind warning-${dwdWindWarningLevelKt(d.gust)}');
+need('Widget zeigt Hinweise nur bei warnwürdigen Ereignissen',app,'showHazards&&d.hz.length?<div className="widgethazards"');
+need('Widget behandelt leeren Hinweiszustand layoutseitig wie ohne Hazards',app,'hasWidgetHazards=showHazards&&previewDays.some(day=>day.hz.length>0)');
+assert.ok(!app.includes('keine MID-Hinweise'),'Widget enthält weiterhin eine Entwarnungs-Pille ohne warnwürdiges Ereignis.');
 need('Winter Dezember bis Februar',climate,'Winter Dez–Feb');
 need('Bedeckungsklassen 1/8-nah',climate,"label:'Mittel · 4–5/8',max:62.5");
 need('Bedeckung 8/8 separat',climate,"label:'Bedeckt · 8/8',max:Infinity");
@@ -56,6 +59,11 @@ need('Windrose bietet Böenumschalter',climate,'aria-label="Darstellung der Wind
 need('Böenumschalter verschwindet ohne Daten',climate,"gustAvailable?<div className=\"climate-wind-switch\"");
 need('Niederschlagstage ganzzahlig',climate,'Math.round(summary.wetDays)');
 need('Schneefalltage ganzzahlig',climate,'Math.round(summary.snowDays)');
+need('Klima-Temperaturachse nutzt runde Skala',climate,'niceTemperatureScale(rows.flatMap(row=>[row.min,row.max]))');
+need('Klima-Temperaturachse nutzt runde Tickwerte',climate,'scale.ticks.map(tick=>');
+need('Klima-Windwerte ganzzahlig',climate,'const wholeWind=(knots:number,unit:WindUnit)=>formatDecimal(windDisplay(knots,unit),0,0)');
+assert.ok(!climate.includes('formatDecimal(windDisplay(summary.wind,unit),1,1)'),'Klima-Zusammenfassung zeigt Wind weiterhin mit Nachkommastelle.');
+assert.ok(!climate.includes('formatDecimal(windDisplay(row.wind,unit),1,1)'),'Klima-Monatskarten zeigen Wind weiterhin mit Nachkommastelle.');
 for(const token of ['className="max"','className="mean"','className="min"','className="rain"'])need('Klima-Tooltip trennt Werte',climate,token);
 need('Klima-Tooltip mit deckendem Hintergrund',modern,'.climate-value-overlay>rect{fill:var(--surface);fill-opacity:.985');
 assert.ok(pkg.scripts?.['test:climate-hazard-widget']==='node scripts/test-climate-hazard-widget-09804.mjs','Package-Testeintrag fehlt.');
