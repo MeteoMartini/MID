@@ -1,3 +1,27 @@
+# MID v0.9.84.0
+
+## Extern
+- Kurzfristige Starkregen-, Schnee- und Eisrisiken nutzen ICON-D2-RUC und RUC-EPS jetzt gemeinsam vorsichtiger und aussagekräftiger. RUC-EPS kann die kurzfristige Eintrittswahrscheinlichkeit bestätigen oder begrenzt dämpfen, ohne eine bereits ensemblegestützte Gefahr einfach verschwinden zu lassen.
+- Sehr nasse einzelne RUC-Läufe werden zusätzlich mit der RUC-EPS-Verteilung abgeglichen. Dadurch reagieren lokale Niederschlagsprognosen weniger empfindlich auf isolierte Ausreißer.
+- Im Extremwetter-Ausblick ist transparenter erkennbar, wann RUC/RUC-EPS die Gefahreneinschätzung stützt und welche Kurzfristdaten dahinterstehen.
+- Weitere Einsatzmöglichkeiten in Push-Mitteilungen, Flugmeteorologie, Bergwetter, Mehrlauf-Trends und Wind-Ensembles wurden geprüft und nach Nutzen/Risiko priorisiert.
+
+## Intern
+- `rapid-extreme.json` auf Schema v4 erweitert: voraggregierte RUC-EPS-Niederschlagsevidenz pro 0–6/6–12/12–14-h-Fenster, ohne Veröffentlichung nativer Member-Cubes.
+- Hyperlokaler RUC-Niederschlagskonsens nutzt RUC-EPS-Q75 nur als kontinuierliche Upper-Tail-Plausibilisierung, nicht als hartes Mengen-Capping.
+- Extremwetter-Regen erhält begrenzte bidirektionale RUC-EPS-Kalibrierung; Gewitter nutzt RUC-EPS als Niederschlagsstütze; Schnee/Eis koppeln RUC-EPS an deterministische Phasen-/Temperaturdiagnostik.
+- Keine synthetische RUC-EPS-Windwahrscheinlichkeit: der aktuelle EPS-Preprocessor enthält nur Niederschlagsmember.
+- Rückwärtskompatibel zu rapid-extreme v1–v3; v4-Funktionen aktivieren sich automatisch nach dem nächsten vollständigen RUC-Preprocessing.
+
+# MID v0.9.83.5
+
+- Klima: tägliche ERA5-Bedeckungsmittel werden nun zuerst plausibel auf 0–8 Oktas gerundet und danach in die beschrifteten Achtelklassen gruppiert.
+- Klima: Wind- und Böentexte verwenden außerhalb der Diagrammlegende eine einheitliche neutrale Textfarbe; Wert und Einheit bleiben zusammen.
+- Komposit: Satellitenstände werden in einem Ringpuffer mit bis zu zwölf realen Nachbarbildern verdeckt vorgeladen und beim Wechsel überblendet.
+- Synoptik: native DWD-Isobaren bleiben erhalten; geglättete MID-Isohypsen werden separat aus dem Rasterpfad geladen und wieder sichtbar gezeichnet.
+- Karte: der Lokalisierungsbutton stoppt laufende Kartenbewegungen, aktualisiert die Kartengröße und zentriert zuverlässig auf Geräte- oder Favoritenort.
+- Keine Logo- und keine Workflow-YAML-Änderungen.
+
 # MID v0.9.83.4
 
 ## Extern
@@ -5845,11 +5869,3 @@ Kompositbild: direkte Kartenbedienung mit gemeinsamen +/- Tasten, reale Satellit
 - Kartenansicht, Radar-/Satelliten-/Blitz-/Zell-/Warn-/Synoptik-Layer, Deckkräfte, Kartenbasis, Bewegungszeitmodus und Wiedergabetempo werden gemeinsam dauerhaft wiederhergestellt. Ein gespeicherter 250-m-Modus wird nicht mehr vor Abschluss der Verfügbarkeitsprüfung verworfen.
 - Isohypsen erhalten vor der begrenzten Chaikin-Kurvenglättung einen zweistufigen symmetrischen Binomialfilter; Isobaren bleiben bewusst etwas detailreicher. So werden Gittertreppen reduziert, ohne synoptische Strukturen Windy-artig zu überglätten.
 - Das optionale Beta-Bedienkonzept zeigt weiterhin nur fünf Hauptziele. Seltenere Analyse-, Profil-, Profi- und Werkzeugbereiche liegen nun eingeklappt im Mehr-Menü und erscheinen erst nach Aufruf.
-# MID v0.9.83.5
-
-- Klima: tägliche ERA5-Bedeckungsmittel werden nun zuerst plausibel auf 0–8 Oktas gerundet und danach in die beschrifteten Achtelklassen gruppiert.
-- Klima: Wind- und Böentexte verwenden außerhalb der Diagrammlegende eine einheitliche neutrale Textfarbe; Wert und Einheit bleiben zusammen.
-- Komposit: Satellitenstände werden in einem Ringpuffer mit bis zu zwölf realen Nachbarbildern verdeckt vorgeladen und beim Wechsel überblendet.
-- Synoptik: native DWD-Isobaren bleiben erhalten; geglättete MID-Isohypsen werden separat aus dem Rasterpfad geladen und wieder sichtbar gezeichnet.
-- Karte: der Lokalisierungsbutton stoppt laufende Kartenbewegungen, aktualisiert die Kartengröße und zentriert zuverlässig auf Geräte- oder Favoritenort.
-- Keine Logo- und keine Workflow-YAML-Änderungen.

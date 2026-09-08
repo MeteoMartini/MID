@@ -39,11 +39,11 @@ assert.ok(extreme.includes('coverage>=5.9?dachExtremeRucSupportProbability(total
 assert.ok(extreme.includes('dachExtremeRucSupportProbability(max1,level.values[1])'),'Rain RUC support must evaluate the real 1-h threshold.');
 
 // Full RUC model run: native rapid +0–6, hourly core +6–12 and +12–14; nothing after +14.
-for(const token of ["('0-6',0,6)","('6-12',6,12)","('12-14',12,14)","'schema':'mid.dwd.ruc.rapid-extreme.v3'","'horizonHours':14"])assert.ok(builder.includes(token),`RUC v3 period contract missing: ${token}`);
-assert.ok(core.includes("'mid.dwd.ruc.rapid-extreme.v3'"),'Worker reader must accept rapid-extreme v3.');
+for(const token of ["('0-6',0,6)","('6-12',6,12)","('12-14',12,14)","'schema':'mid.dwd.ruc.rapid-extreme.v4'","'horizonHours':14"])assert.ok(builder.includes(token),`RUC v4 period contract missing: ${token}`);
+assert.ok(core.includes("'mid.dwd.ruc.rapid-extreme.v4'"),'Worker reader must accept rapid-extreme v4.');
 assert.ok(extreme.includes('dachExtremeRucPeriodForOutlook'),'Extreme outlook must select RUC support by temporal overlap.');
-assert.ok(extreme.includes("ICON-D2-RUC 0–14 h (Rapid 0–6 h)")&&extreme.includes('model:modelLabel'),'Visible model lineage must expose RUC coverage only when RUC data are actually present.');
-assert.ok(contract.includes('Im UI-Zeitraum +12–24 h darf RUC deshalb ausschließlich die reale Teilabdeckung +12–14 h stützen'),'Contract must forbid pretending RUC covers all of +12–24 h.');
+assert.ok(extreme.includes("ICON-D2-RUC${rucEpsExtreme?'/RUC-EPS':''} 0–14 h (Rapid 0–6 h)")&&extreme.includes('model:modelLabel'),'Visible model lineage must expose RUC/RUC-EPS coverage only when those data are actually present.');
+assert.ok(contract.includes('Im UI-Zeitraum +12–24 h darf RUC/RUC-EPS deshalb ausschließlich die reale Teilabdeckung +12–14 h stützen'),'Contract must forbid pretending RUC/RUC-EPS covers all of +12–24 h.');
 assert.ok(contract.includes('+24–48 h bleibt vollständig beim ICON-D2-/EPS-Pfad'),'RUC must not leak into +24–48 h.');
 
 // UI must compare the displayed model metric with the exact I-level threshold.

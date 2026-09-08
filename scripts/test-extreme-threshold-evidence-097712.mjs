@@ -17,8 +17,8 @@ for(const [label,source] of [['worker',worker],['direct',direct]]){
   assert.ok(source.includes("gustSpreadKmh:Number((evidence?.spread||0).toFixed(0))"),`${label}: wind spread evidence missing`);
   assert.ok(!source.includes('metricCandidates=[]'),`${label}: obsolete highest-mean evidence selector still present`);
   assert.ok(source.includes("rucEvidence=[null,null,null,null]"),`${label}: RUC level evidence missing`);
-  assert.ok(source.includes("if(evidence&&number(rapid[index])>number(base[index]))"),`${label}: RUC may not overwrite evidence unless it drives the selected I-level`);
-  assert.ok(source.includes("metrics.evidenceSource='ICON-D2-RUC'"),`${label}: RUC evidence source missing`);
+  assert.ok(source.includes("if(evidence&&number(rapid[index])>number(base[index]))")||source.includes("if(evidence&&number(rapid[index])>number(calibrated[index]))"),`${label}: RUC may not overwrite evidence unless it drives the selected I-level`);
+  assert.ok(source.includes("metrics.evidenceSource='ICON-D2-RUC'")||source.includes("'ICON-D2-RUC + RUC-EPS'"),`${label}: RUC evidence source missing`);
   assert.ok(source.includes("rain:{unit:'mm',windows:[1,6,24],levels:[{intensity:1,values:{1:15,6:20,24:40}},{intensity:2,values:{1:25,6:35,24:60}},{intensity:3,values:{1:40,6:60,24:90}},{intensity:4,values:{1:60,6:90,24:140}}]}"),`${label}: rain I1-I4 threshold contract changed unexpectedly`);
 }
 

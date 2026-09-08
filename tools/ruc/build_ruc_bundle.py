@@ -113,7 +113,7 @@ def _max_rolling_sum(cube,window_steps,start_index=1):
       best=np.where(np.isfinite(best),np.maximum(best,total),total)
     return best
 
-def build_rapid_extreme_summary(lats,lons,run,rapid15_times,rapid15_precip,rapid15_cape,rapid15_cin,rapid5_precip,severe_fields=None,deterministic_times=None,deterministic_fields=None,specialist_fields=None,phase_fields=None):
+def build_rapid_extreme_summary(lats,lons,run,rapid15_times,rapid15_precip,rapid15_cape,rapid15_cin,rapid5_precip,severe_fields=None,deterministic_times=None,deterministic_fields=None,specialist_fields=None,phase_fields=None,eps_period_summary=None):
     """Build a compact 0–14 h extreme-weather support summary.
 
     Native 5/15-minute RUC fields are used only for +0–6 h.  The hourly
@@ -127,7 +127,7 @@ def build_rapid_extreme_summary(lats,lons,run,rapid15_times,rapid15_precip,rapid
     def xyz(lat,lon):
       p=np.radians(lat);l=np.radians(lon);c=np.cos(p);return np.column_stack((c*np.cos(l),c*np.sin(l),np.sin(p)))
     tree=cKDTree(xyz(np.asarray(lats,dtype=np.float64),np.asarray(lons,dtype=np.float64)));cells=[]
-    severe_fields=severe_fields or {};deterministic_fields=deterministic_fields or {};specialist_fields=specialist_fields or {};phase_fields=phase_fields or {}
+    severe_fields=severe_fields or {};deterministic_fields=deterministic_fields or {};specialist_fields=specialist_fields or {};phase_fields=phase_fields or {};eps_period_summary=eps_period_summary or {}
     total6=np.nansum(rapid15_precip[1:],axis=0);max15=np.nanmax(rapid15_precip,axis=0);peak5=np.nanmax(rapid5_precip*12,axis=0);max1h_rapid=_max_rolling_sum(rapid5_precip,12,1);maxcape=np.nanmax(rapid15_cape,axis=0);mincin=np.nanmin(rapid15_cin,axis=0)
     maxdbz=np.nanmax(severe_fields['dbz_cmax'],axis=0) if 'dbz_cmax' in severe_fields else None;maxuh=np.nanmax(severe_fields['uh_max'],axis=0) if 'uh_max' in severe_fields else None;maxlpi=np.nanmax(severe_fields['lpi_max'],axis=0) if 'lpi_max' in severe_fields else (np.nanmax(severe_fields['lpi'],axis=0) if 'lpi' in severe_fields else None);maxecho=np.nanmax(severe_fields['echo_top_m'],axis=0) if 'echo_top_m' in severe_fields else None;maxhail=np.nanmax(severe_fields['hail_gsp'],axis=0) if 'hail_gsp' in severe_fields else None;maxcape_mu=np.nanmax(severe_fields['cape_mu'],axis=0) if 'cape_mu' in severe_fields else None;mincin_mu=np.nanmin(severe_fields['cin_mu'],axis=0) if 'cin_mu' in severe_fields else None
     rapid_rain=np.nansum(phase_fields.get('rain',np.zeros_like(rapid15_precip))[1:],axis=0) if phase_fields else None;rapid_snow=np.nansum(phase_fields.get('snowfall_water_equivalent',np.zeros_like(rapid15_precip))[1:],axis=0) if phase_fields else None;rapid_graupel=np.nansum(phase_fields.get('graupel_water_equivalent',np.zeros_like(rapid15_precip))[1:],axis=0) if phase_fields else None
@@ -185,13 +185,26 @@ def build_rapid_extreme_summary(lats,lons,run,rapid15_times,rapid15_precip,rapid
             for out_key,cube_key,digits in rapid_maps:
               value=value_at(cube.get(cube_key),index,digits)
               if value is not None:row[out_key]=value
+          eps_row=eps_period_summary.get(pid) or {}
+          eps_scalars=[('epsMemberCount','memberCount',0),('epsWetProbabilityPct','wetProbabilityPct',0),('epsSignificantProbabilityPct','significantProbabilityPct',0),('epsMax1hQ75Mm','max1hQ75Mm',2),('epsTotalQ75Mm','totalQ75Mm',2)]
+          for out_key,cube_key,digits in eps_scalars:
+            value=value_at(eps_row.get(cube_key),index,digits)
+            if value is not None:row[out_key]=value
+          for out_key,cube_key in [('epsRain1hProbabilityPct','rain1hProbabilityPct'),('epsRain6hProbabilityPct','rain6hProbabilityPct')]:
+            values=eps_row.get(cube_key)
+            if values is not None:
+              series=[]
+              for level_values in np.asarray(values):
+                value=value_at(level_values,index,0)
+                series.append(int(value) if value is not None else None)
+              if any(value is not None for value in series):row[out_key]=series
           periods[pid]=row
         first=periods['0-6']
         cell={'latitude':round(lat,4),'longitude':round(lon,4),'periods':periods,'precipitation6h':first.get('precipitationMm',0),'max1h':first.get('max1hMm',0),'max15m':first.get('max15mMm',0),'peak5mRate':first.get('peak5mRateMmh',0),'cape':first.get('cape',0),'cin':first.get('cin',0)}
         for key in ('dbzCmax','uhMax','lpiMax','echoTopM','hailGspMax','capeMu','cinMu'):
           if key in first:cell[key]=first[key]
         cells.append(cell)
-    return {'schema':'mid.dwd.ruc.rapid-extreme.v3','run':run,'horizonHours':14,'windowHours':6,'nativePrecipitationSeconds':300,'convectiveSeconds':900,'periods':[{'id':pid,'startHour':start,'endHour':end,'source':'native-rapid+hourly-core' if pid=='0-6' else 'hourly-core'} for pid,start,end in period_specs],'grid':{'rows':rows,'cols':cols,'bounds':{'south':south,'west':west,'north':north,'east':east}},'cells':cells}
+    return {'schema':'mid.dwd.ruc.rapid-extreme.v4','run':run,'horizonHours':14,'windowHours':6,'nativePrecipitationSeconds':300,'convectiveSeconds':900,'periods':[{'id':pid,'startHour':start,'endHour':end,'source':'native-rapid+hourly-core' if pid=='0-6' else 'hourly-core'} for pid,start,end in period_specs],'grid':{'rows':rows,'cols':cols,'bounds':{'south':south,'west':west,'north':north,'east':east}},'cells':cells}
 
 def collect_parameter(files,name,targets,expected_points=None):
     rows={}
@@ -256,6 +269,50 @@ def eps_summary(interval):
       'precipitation_q50':q50,
       'precipitation_q75':q75,
     }
+
+def rapid_extreme_eps_period_summary(interval,eps_times,run):
+    """Compact RUC-EPS precipitation evidence for the 0–14 h extreme outlook.
+
+    The native member cube is aggregated before publication, so the browser/worker
+    never downloads the member cube for the regional outlook.  Exact MID rain
+    thresholds are retained as probabilities for 1 h and (where covered) 6 h;
+    generic wet/significant probabilities and Q75 remain available for phase gates.
+    """
+    arr=np.asarray(interval,dtype=np.float64)
+    if arr.ndim!=3:return {}
+    base=datetime.fromisoformat(run.replace('Z','+00:00')).astimezone(timezone.utc)
+    leads=[(value-base).total_seconds()/3600 for value in eps_times]
+    periods=[('0-6',0,6),('6-12',6,12),('12-14',12,14)]
+    one_hour_thresholds=(15.,25.,40.,60.)
+    six_hour_thresholds=(20.,35.,60.,90.)
+    out={}
+    for pid,start,end in periods:
+      indices=[i for i,lead in enumerate(leads) if lead>start+1e-6 and lead<=end+1e-6]
+      if not indices:continue
+      cube=arr[indices]
+      max1=np.nanmax(cube,axis=0)
+      total=np.nansum(cube,axis=0)
+      valid=np.isfinite(total)
+      count=np.sum(valid,axis=0)
+      denominator=np.maximum(count,1)
+      def probability(values,threshold):
+        return np.where(count>0,100*np.sum(np.isfinite(values)&(values>threshold),axis=0)/denominator,np.nan)
+      with np.errstate(invalid='ignore'):
+        max1_q75=np.nanquantile(max1,.75,axis=0)
+        total_q75=np.nanquantile(total,.75,axis=0)
+      row={
+        'memberCount':count.astype(np.float64),
+        'wetProbabilityPct':probability(total,.2),
+        'significantProbabilityPct':probability(total,5.),
+        'max1hQ75Mm':max1_q75,
+        'totalQ75Mm':total_q75,
+        'rain1hProbabilityPct':np.stack([probability(max1,t) for t in one_hour_thresholds],axis=0),
+        'coverageHours':float(min(end,14)-start),
+      }
+      if end-start>=5.9 and len(indices)>=6:
+        row['rain6hProbabilityPct']=np.stack([probability(total,t) for t in six_hour_thresholds],axis=0)
+      out[pid]=row
+    return out
 
 def file_info(path:Path):
     digest=hashlib.sha256()
@@ -325,11 +382,12 @@ def main():
  grid=build_lookup(base_grid[0],base_grid[1],a.output,a.lookup_step)
  severe_for_extreme=dict(severe_fields)
  if dbz_cube is not None:severe_for_extreme['dbz_cmax']=dbz_cube
- extreme=build_rapid_extreme_summary(base_grid[0],base_grid[1],a.run,rapid15_times,rapid_precip15,np.stack([rapid_cape[t] for t in rapid15_times]),np.stack([rapid_cin[t] for t in rapid15_times]),rapid_precip5,severe_for_extreme,deterministic_times=det_times,deterministic_fields=fields,specialist_fields=specialist_fields,phase_fields=phase_for_extreme)
- extreme_path=a.output/'rapid-extreme.json';extreme_path.write_text(json.dumps(extreme,ensure_ascii=False,separators=(',',':'))+'\n',encoding='utf-8')
  eps_files=sorted((a.staging/'eps'/'TOT_PREC').glob('**/*.grib2*'))
  if not eps_files:raise SystemExit('missing staged RUC-EPS TOT_PREC')
- eps,members=collect_eps(eps_files,eps_times,point_count);eps_path=a.output/'eps-members.bin';eps_path.write_bytes(pack_eps_members(eps,.01))
+ eps,members=collect_eps(eps_files,eps_times,point_count);eps_period_summary=rapid_extreme_eps_period_summary(eps,eps_times,a.run)
+ extreme=build_rapid_extreme_summary(base_grid[0],base_grid[1],a.run,rapid15_times,rapid_precip15,np.stack([rapid_cape[t] for t in rapid15_times]),np.stack([rapid_cin[t] for t in rapid15_times]),rapid_precip5,severe_for_extreme,deterministic_times=det_times,deterministic_fields=fields,specialist_fields=specialist_fields,phase_fields=phase_for_extreme,eps_period_summary=eps_period_summary)
+ extreme_path=a.output/'rapid-extreme.json';extreme_path.write_text(json.dumps(extreme,ensure_ascii=False,separators=(',',':'))+'\n',encoding='utf-8')
+ eps_path=a.output/'eps-members.bin';eps_path.write_bytes(pack_eps_members(eps,.01))
  summary_path=a.output/'eps-summary.bin';summary_path.write_bytes(pack_cell_major(eps_summary(eps),EPS_SUMMARY_FIELDS))
  run_key=re.sub(r'[^0-9A-Za-z_-]','',a.run);lookup_path=a.output/'lookup.bin'
  object_paths={'deterministic.bin':det,'eps-summary.bin':summary_path,'eps-members.bin':eps_path,'lookup.bin':lookup_path,'rapid-5m.bin':rapid5_path,'rapid-15m.bin':rapid15_path,'rapid-extreme.json':extreme_path}
@@ -344,7 +402,7 @@ def main():
  if solar_path:rapid['solar15']=rapid_spec(solar_path,rapid15_serialized,solar_specs,900,6)
  if phase_path:rapid['phase15']=rapid_spec(phase_path,rapid15_serialized,PHASE_15M_FIELDS,900,6)
  if specialist_path:rapid['specialistHourly']=rapid_spec(specialist_path,det_serialized,specialist_specs,3600,14)
- rapid_extreme={'key':f'runs/{run_key}/rapid-extreme.json','schema':'mid.dwd.ruc.rapid-extreme.v3','windowHours':6,'horizonHours':14}
+ rapid_extreme={'key':f'runs/{run_key}/rapid-extreme.json','schema':'mid.dwd.ruc.rapid-extreme.v4','windowHours':6,'horizonHours':14}
  write_meta(a.output/'latest.json',run=a.run,times=det_serialized,point_count=point_count,specs=DEFAULT_FIELDS,grid=grid,deterministic_key=f'runs/{run_key}/deterministic.bin',eps_key=f'runs/{run_key}/eps-members.bin',eps_summary_key=f'runs/{run_key}/eps-summary.bin',lookup_key=f'runs/{run_key}/lookup.bin',member_count=len(members),eps_scale=.01,objects=objects,deterministic_times=det_serialized,eps_summary_times=eps_serialized,eps_times=eps_serialized,rapid=rapid,rapid_extreme=rapid_extreme)
  print(json.dumps({'run':a.run,'deterministicTimes':len(det_times),'rapid5Times':len(rapid5_times),'rapid15Times':len(rapid15_times),'epsTimes':len(eps_times),'points':point_count,'members':len(members),'reflectivity15':bool(dbz_path),'severe15Fields':[x.name for x in severe_specs],'solar15Fields':[x.name for x in solar_specs],'specialistHourlyFields':[x.name for x in specialist_specs],'phase15':bool(phase_path),'detBytes':det.stat().st_size,'rapid5Bytes':rapid5_path.stat().st_size,'rapid15Bytes':rapid15_path.stat().st_size,'epsSummaryBytes':summary_path.stat().st_size,'epsBytes':eps_path.stat().st_size,'lookupBytes':lookup_path.stat().st_size}))
 if __name__=='__main__':main()

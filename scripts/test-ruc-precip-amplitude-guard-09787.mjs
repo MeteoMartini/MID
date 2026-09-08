@@ -9,14 +9,16 @@ const pkg=JSON.parse(readFileSync(new URL('../package.json',import.meta.url),'ut
 const test='scripts/test-ruc-precip-amplitude-guard-09787.mjs';
 
 for(const token of [
- 'RUC-EPS stützt das EINTRETEN von Niederschlag, nicht dessen deterministische',
+ 'RUC-EPS bleibt eine Wahrscheinlichkeits-/Streuungsquelle und ersetzt keine',
  'amountSupport=Number.isFinite(mosmixSupport)?anchorSupport*.35+mosmixSupport*.65:anchorSupport',
  'overshootPenalty=1/(1+(overshoot/overshootScale)*.75)',
  'convectiveFactor=convective?.85:1',
  'rucPrecipitationOvershootRatio',
+ 'rucEpsUpperTailPenalty',
+ 'epsQ75Mm',
  'localPrecipitationReferenceMm',
 ])assert.ok(worker.includes(token),`Mengen-Amplitudenschutz fehlt: ${token}`);
-for(const token of ['rucPrecipitationOvershootRatio?:number','localPrecipitationReferenceMm?:number'])assert.ok(fusion.includes(token),`Frontend-Diagnosevertrag fehlt: ${token}`);
+for(const token of ['rucPrecipitationOvershootRatio?:number','rucEpsUpperTailPenalty?:number','rucEpsSignificantProbability?:number','rucEpsQ75Mm?:number','localPrecipitationReferenceMm?:number'])assert.ok(fusion.includes(token),`Frontend-Diagnosevertrag fehlt: ${token}`);
 
 function extractFunction(name){
  const marker=`function ${name}(`,start=worker.indexOf(marker);assert.ok(start>=0,`Funktion ${name} fehlt`);
@@ -34,10 +36,11 @@ ${extractFunction('rucPrecipitationConsensus')}
 result=rucPrecipitationConsensus;`;
 const context={result:null};vm.createContext(context);vm.runInContext(source,context);const consensus=context.result;
 
-const wetOutlier=consensus(3,{precipitation:.2},{precipitation:2.1,cape:800},{precipitation:.2},{probability:80},.9);
+const wetOutlier=consensus(3,{precipitation:.2},{precipitation:2.1,cape:800},{precipitation:.2},{probability:80,significantProbability:10,q75Mm:.55},.9);
 assert.ok(wetOutlier.amount<.5,`Hohe EPS-PoP darf 2,1-mm-RUC-Ausreißer nicht mengenmäßig hochhalten: ${wetOutlier.amount}`);
 assert.ok(wetOutlier.rapidWeight<.2,`RUC-Mengenanteil bleibt bei starkem Overshoot zu hoch: ${wetOutlier.rapidWeight}`);
 assert.ok(wetOutlier.overshootRatio>4,'Overshoot-Diagnose muss den deutlichen Mengenüberschuss sichtbar machen.');
+assert.ok(wetOutlier.epsUpperTailPenalty<1,'RUC-EPS-Q75 muss einen isolierten oberen RUC-Ausreißer zusätzlich dämpfen.');
 assert.equal(wetOutlier.localReference,.2,'Lokale Mengenreferenz muss bei übereinstimmendem Best Match/MOSMIX 0,2 mm bleiben.');
 
 const supported=consensus(3,{precipitation:1.2},{precipitation:1.5,cape:800},{precipitation:1.3},{probability:70},.9);

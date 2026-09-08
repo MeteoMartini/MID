@@ -40,7 +40,7 @@ const first=context.__parsed.hours[0];for(const key of ['temperature','dewPoint'
 // Normal forecast path must read the preaggregated EPS summary and must NOT touch native members.
 context.__epsState=await call('fetchDwdRucEpsProbabilityAdapter(50,7,undefined,__env)');
 if(!context.__epsState.successful||context.__epsState.aggregation!=='preprocessed')throw new Error('Normal RUC-EPS path did not select preprocessed summary');
-if(context.__epsState.hours.length!==times.length||Math.abs(context.__epsState.hours[0].probability-75)>.01||context.__epsState.memberCount!==20)throw new Error('Preaggregated RUC-EPS probability contract mismatch');
+if(context.__epsState.hours.length!==times.length||Math.abs(context.__epsState.hours[0].probability-75)>.01||Math.abs(context.__epsState.hours[0].significantProbability-25)>.01||Math.abs(context.__epsState.hours[0].q75Mm-.65)>.01||context.__epsState.memberCount!==20)throw new Error('Preaggregated RUC-EPS probability/Q75 contract mismatch');
 if(context.__reads.summary!==1||context.__reads.members!==0)throw new Error(`Normal forecast should read summary only, got summary=${context.__reads.summary}, members=${context.__reads.members}`);
 
 // Event/short-range ensemble path may request native members, preserving real ensemble semantics.
@@ -59,6 +59,7 @@ context.__rapid=await call('applyRucRapidUpdateWeatherHours(__base,[__ruc])');
 if(!context.__rapid.some(h=>h.rucApplied))throw new Error('RUC did not calibrate canonical 0–14 h hours');
 const updated=context.__rapid.find(h=>h.rucApplied);if(!(updated.temperature>15&&updated.wind>8&&updated.precipitation>.2&&updated.cape>100))throw new Error('RUC physical calibration fields were not applied');
 context.__final=await call('applyRucEpsProbabilityHours(__rapid,__epsState)');
-if(!context.__final.some(h=>h.rucEpsApplied&&h.probability>20))throw new Error('RUC-EPS did not calibrate precipitation probability');
+if(!context.__final.some(h=>h.rucEpsApplied&&h.probability>20&&Math.abs(h.rucEpsQ75Mm-.65)<.01&&Math.abs(h.rucEpsSignificantProbability-25)<.01))throw new Error('RUC-EPS did not calibrate precipitation probability with summary diagnostics');
+context.__guard=await call("rucPrecipitationConsensus(2,{precipitation:.2},{precipitation:5,cape:100},{precipitation:.2},{probability:80,significantProbability:15,q75Mm:.7},1)");if(!(context.__guard.epsUpperTailPenalty<1&&context.__guard.rapidWeight<context.__guard.baseWeight))throw new Error('RUC-EPS Q75 upper-tail guard did not damp an isolated wet deterministic RUC outlier');
 const preserved=await call('rapidForecastWeatherCode(95,NaN)');if(preserved!==95)throw new Error('RUC calibration must not demote an existing numerical thunderstorm forecast when lightning is absent');const directRapid=await call('rapidForecastWeatherCode(61,95)');if(directRapid!==95)throw new Error('A direct numerical RUC thunderstorm weather interpretation must remain a forecast thunderstorm signal');
 console.log('RUC fusion runtime contract OK');

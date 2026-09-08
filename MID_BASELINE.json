@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.83.5",
+  "releaseVersion": "0.9.84.1",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -440,7 +440,9 @@
     "scripts/test-hazard-time-direction-localtime-097919.mjs",
     "scripts/test-climate-section-09800.mjs",
     "scripts/test-climate-hazard-widget-09804.mjs",
-    "scripts/test-react19-ref-climate-colors-09832.mjs"
+    "scripts/test-react19-ref-climate-colors-09832.mjs",
+    "scripts/test-ruc-expanded-extreme-integration-09840.mjs",
+    "scripts/test-modern-five-workspaces-09841.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -804,7 +806,9 @@
     "scripts/test-settings-navigation-polish-097917.mjs",
     "scripts/test-climate-section-09800.mjs",
     "scripts/test-climate-hazard-widget-09804.mjs",
-    "scripts/test-react19-ref-climate-colors-09832.mjs"
+    "scripts/test-react19-ref-climate-colors-09832.mjs",
+    "scripts/test-ruc-expanded-extreme-integration-09840.mjs",
+    "scripts/test-modern-five-workspaces-09841.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -1377,7 +1381,11 @@
     "MID_IMPLEMENTATION_0.9.83.0.md",
     "MID_TEST_REPORT_0.9.83.0.md",
     "MID_IMPLEMENTATION_0.9.83.4.md",
-    "MID_TEST_REPORT_0.9.83.4.md"
+    "MID_TEST_REPORT_0.9.83.4.md",
+    "scripts/test-ruc-expanded-extreme-integration-09840.mjs",
+    "MID_IMPLEMENTATION_0.9.84.0.md",
+    "MID_TEST_REPORT_0.9.84.0.md",
+    "MID_RUC_USAGE_AUDIT_0.9.84.0.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1428,7 +1436,8 @@
     "scripts/test-settings-navigation-polish-097917.mjs",
     "scripts/test-climate-section-09800.mjs",
     "scripts/test-climate-hazard-widget-09804.mjs",
-    "scripts/test-react19-ref-climate-colors-09832.mjs"
+    "scripts/test-react19-ref-climate-colors-09832.mjs",
+    "scripts/test-ruc-expanded-extreme-integration-09840.mjs"
   ],
   "protectedFiles": [
     "scripts/test-travel-planner-era5-seamless-units-09652.mjs",
@@ -1602,7 +1611,11 @@
     "MID_IMPLEMENTATION_0.9.83.2.md",
     "MID_TEST_REPORT_0.9.83.2.md",
     "MID_IMPLEMENTATION_0.9.83.3.md",
-    "MID_TEST_REPORT_0.9.83.3.md"
+    "MID_TEST_REPORT_0.9.83.3.md",
+    "scripts/test-ruc-expanded-extreme-integration-09840.mjs",
+    "MID_IMPLEMENTATION_0.9.84.0.md",
+    "MID_TEST_REPORT_0.9.84.0.md",
+    "MID_RUC_USAGE_AUDIT_0.9.84.0.md"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md",
@@ -1718,7 +1731,10 @@
     "MID_IMPLEMENTATION_0.9.78.78.md",
     "MID_IMPLEMENTATION_0.9.78.79.md",
     "MID_IMPLEMENTATION_0.9.78.84.md",
-    "MID_IMPLEMENTATION_0.9.83.0.md"
+    "MID_IMPLEMENTATION_0.9.83.0.md",
+    "scripts/test-ruc-expanded-extreme-integration-09840.mjs",
+    "MID_IMPLEMENTATION_0.9.84.0.md",
+    "MID_RUC_USAGE_AUDIT_0.9.84.0.md"
   ],
   "evidenceFiles": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -1776,7 +1792,10 @@
     "MID_TEST_REPORT_0.9.83.0.md",
     "MID_TEST_REPORT_0.9.83.2.md",
     "MID_IMPLEMENTATION_0.9.83.3.md",
-    "MID_TEST_REPORT_0.9.83.3.md"
+    "MID_TEST_REPORT_0.9.83.3.md",
+    "scripts/test-ruc-expanded-extreme-integration-09840.mjs",
+    "MID_TEST_REPORT_0.9.84.0.md",
+    "MID_RUC_USAGE_AUDIT_0.9.84.0.md"
   ],
   "releaseEvidence": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -1817,7 +1836,10 @@
     "MID_TEST_REPORT_0.9.80.5.md",
     "MID_IMPLEMENTATION_0.9.80.6.md",
     "MID_TEST_REPORT_0.9.80.6.md",
-    "MID_IMPLEMENTATION_0.9.83.4.md"
+    "MID_IMPLEMENTATION_0.9.83.4.md",
+    "MID_IMPLEMENTATION_0.9.84.0.md",
+    "MID_TEST_REPORT_0.9.84.0.md",
+    "MID_RUC_USAGE_AUDIT_0.9.84.0.md"
   ],
   "activeRegressionSuite": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -1856,9 +1878,10 @@
     "scripts/test-precipitation-forward-geometry-097916.mjs",
     "scripts/test-settings-navigation-polish-097917.mjs",
     "scripts/test-climate-section-09800.mjs",
-    "scripts/test-climate-hazard-widget-09804.mjs"
+    "scripts/test-climate-hazard-widget-09804.mjs",
+    "scripts/test-ruc-expanded-extreme-integration-09840.mjs"
   ],
-  "version": "0.9.83.5",
+  "version": "0.9.84.1",
   "updatedAt": "2026-09-08T09:06:02Z",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
@@ -1931,7 +1954,8 @@
     "MID_IMPLEMENTATION_0.9.80.4.md",
     "MID_IMPLEMENTATION_0.9.83.0.md",
     "MID_IMPLEMENTATION_0.9.83.2.md",
-    "MID_IMPLEMENTATION_0.9.83.3.md"
+    "MID_IMPLEMENTATION_0.9.83.3.md",
+    "MID_IMPLEMENTATION_0.9.84.0.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",
@@ -1978,6 +2002,7 @@
     "MID_TEST_REPORT_0.9.83.0.md",
     "MID_TEST_REPORT_0.9.83.2.md",
     "MID_TEST_REPORT_0.9.83.3.md",
-    "MID_TEST_REPORT_0.9.83.4.md"
+    "MID_TEST_REPORT_0.9.83.4.md",
+    "MID_TEST_REPORT_0.9.84.0.md"
   ]
 }

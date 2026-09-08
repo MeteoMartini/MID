@@ -15,7 +15,7 @@ assert.ok(fusion.includes('rucRapidMinutes15?:ForecastFusionRapidMinute15[]'),'C
 assert.ok(fusion.indexOf('const rucRapid=nearestForecastHour')<fusion.indexOf('const radarBlend=blendRadarAtTarget'),'RUC model rapid data must be applied before radar so observed radar retains priority.');
 assert.ok(app.includes('rucRapidMinutes15:forecastFusion?.rapidMinutes15'),'Canonical displayMinutes15 must receive RUC rapid rows.');
 assert.ok(extreme.includes('dachExtremeApplyRucSupport')&&extreme.includes('dachExtremeRucPeriodForOutlook')&&extreme.includes('subthreshold RUC-Werte erzeugen keine höhere I-Stufe'),'Extreme outlook must use threshold-gated RUC support across the available 0–14 h model run.');
-assert.ok(builder.includes("'schema':'mid.dwd.ruc.rapid-extreme.v3'")&&builder.includes("('6-12',6,12)")&&builder.includes("('12-14',12,14)"),'RUC extreme summary must expose 0–6, 6–12 and 12–14 support periods.');
+assert.ok(builder.includes("'schema':'mid.dwd.ruc.rapid-extreme.v4'")&&builder.includes("('6-12',6,12)")&&builder.includes("('12-14',12,14)"),'RUC extreme summary must expose 0–6, 6–12 and 12–14 support periods.');
 assert.ok(cockpit.includes('Niederschlag 5 min bis +6 h')&&cockpit.includes('Konvektion/Reflektivität 15 min bis +6 h'),'Model text must expose parameter-native cadence.');
 assert.ok(weather.includes('fehlende Temperatur-, Wind-, Druck- oder Wolkenzwischenwerte werden nicht interpoliert'),'Model text must reject fabricated high-frequency state fields.');
 console.log('RUC native cadence/nowcast contract passed: native 5/15-min products through +6 h, hourly state core through +14 h, radar priority and threshold-gated full-run extreme support.');

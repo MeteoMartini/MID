@@ -27,7 +27,7 @@ for(const token of [
  "function dachExtremeApplyRucSupport(assessment,point,snapshot,period,kind)",
  "function dachExtremeNowcastThunder(assessment,point,snapshot,periodId)",
  "scope:'Mitteleuropa'",
- "const modelLabel=`DWD ICON-D2-EPS + ICON-D2${rucRapid?' · ICON-D2-RUC 0–14 h (Rapid 0–6 h)':''}${regionalNowcast?.available?' · KONRAD3D/Meso 0–6 h':''}`"
+ "modelLabel=`DWD ICON-D2-EPS + ICON-D2${rucRapid?` · ICON-D2-RUC${rucEpsExtreme?'/RUC-EPS':''} 0–14 h (Rapid 0–6 h)`:''}${regionalNowcast?.available?' · KONRAD3D/Meso 0–6 h':''}`"
 ])assert.ok(worker.includes(token),`Mitteleuropa-Fachvertrag fehlt: ${token}`);
 for(const region of ['Südostengland','Dänemark','Niederlande','Belgien','Nordfrankreich','Südwestfrankreich','Böhmen','Westpolen','Schlesien/Südpolen','Slowenien','Piemont/Lombardei','Venetien/Friaul'])assert.ok(worker.includes(`['${region}'`),`ICON-D2-Region fehlt: ${region}`);
 

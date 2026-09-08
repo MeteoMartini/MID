@@ -4008,6 +4008,44 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
 .climate-value-overlay .title{fill:var(--text);font-size:10.5px;font-weight:950;stroke-width:2px}.climate-value-overlay .max{fill:var(--param-temperature-max-climate,#a86d16)}.climate-value-overlay .mean{fill:var(--param-temperature-mean-climate,#111827)}.climate-value-overlay .min{fill:var(--param-temperature-min-climate,#174f9e)}.climate-value-overlay .rain{fill:var(--param-precipitation,#2476c2);font-weight:900}
 .cockpit-weather-profile .probability-line,.adaptive-detail-chart .probability-line{stroke-linecap:round;stroke-linejoin:round}
 @media(max-width:620px){.climate-cloud-legend span{min-height:40px;padding:5px 6px}.climate-value-overlay text{font-size:9px}.climate-value-overlay .title{font-size:10px}}
+
+/* MID v0.9.84.1 · neues Fünf-Bereiche-Konzept auf Smartphone, Querformat und Desktop. */
+@media(min-width:851px){
+ .navigation-bottom-tabs.with-section-navigation{padding-left:196px}
+ .navigation-bottom-tabs .dashboard-section-rail{display:none!important}
+ .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs{
+  position:fixed!important;z-index:1880;top:104px;bottom:auto;left:max(12px,calc((100vw - 1540px)/2 + 12px));
+  display:grid!important;grid-template-columns:1fr;gap:5px;width:168px;margin:0;padding:8px;
+  border:1px solid var(--border);border-radius:20px;background:color-mix(in srgb,var(--surface) 96%,transparent);
+  box-shadow:var(--shadow);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)
+ }
+ .navigation-bottom-tabs .dashboard-bottom-tabs button{
+  display:grid!important;width:100%;min-height:54px;grid-template-columns:34px minmax(0,1fr);align-items:center;justify-content:start;gap:9px;
+  padding:8px 10px!important;border:1px solid transparent!important;border-radius:14px!important;background:transparent!important;color:var(--muted);
+  font-size:11px!important;text-align:left;touch-action:manipulation
+ }
+ .navigation-bottom-tabs .dashboard-bottom-tabs button.active{border-color:color-mix(in srgb,var(--primary) 24%,var(--border))!important;background:color-mix(in srgb,var(--primary) 10%,var(--surface))!important;color:var(--primary)!important}
+ .navigation-bottom-tabs .dashboard-bottom-tabs button svg{justify-self:center}
+ .navigation-bottom-tabs .dashboard-section-drawer-backdrop{justify-items:end}
+ .navigation-bottom-tabs .dashboard-section-drawer{border-right:0;border-left:1px solid var(--border);box-shadow:-22px 0 60px rgba(0,0,0,.26)}
+ .navigation-bottom-tabs .modern-today-overview{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);align-items:start;gap:12px;margin:12px 0 16px}
+ .navigation-bottom-tabs .modern-today-overview>section,.navigation-bottom-tabs .modern-today-hero{border:1px solid var(--border);border-radius:22px;background:color-mix(in srgb,var(--surface) 96%,transparent);box-shadow:0 12px 32px rgba(18,48,76,.09)}
+ .navigation-bottom-tabs .modern-today-overview .modern-today-hero{min-height:230px}
+ .navigation-bottom-tabs .modern-current-details-focus{display:block;margin:0 0 16px;padding:0;border:0;background:transparent}
+ .navigation-bottom-tabs .modern-planner-hub{display:grid;margin:12px 0 16px;padding:16px;border:1px solid color-mix(in srgb,var(--primary) 22%,var(--border));border-radius:22px;background:linear-gradient(180deg,color-mix(in srgb,var(--primary) 5%,var(--surface)),color-mix(in srgb,var(--s2) 88%,var(--surface)));box-shadow:0 12px 32px rgba(18,48,76,.09)}
+ .navigation-bottom-tabs .modern-planner-actions{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+ .navigation-bottom-tabs .modern-planner-actions>button{min-height:76px}
+ .navigation-bottom-tabs .modern-forecast-horizons{margin:12px 0 8px}
+ .navigation-bottom-tabs .modern-map-focus-shell{display:block;margin:12px 0 16px;padding:0;border:0;background:transparent}
+}
+@media(min-width:851px) and (max-width:1120px){
+ .navigation-bottom-tabs.with-section-navigation{padding-left:92px}
+ .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs{width:68px;left:12px}
+ .navigation-bottom-tabs .dashboard-bottom-tabs button{grid-template-columns:1fr;justify-content:center;text-align:center;padding:7px!important}
+ .navigation-bottom-tabs .dashboard-bottom-tabs button span{display:none}
+ .navigation-bottom-tabs .modern-today-overview{grid-template-columns:1fr}
+ .navigation-bottom-tabs .modern-planner-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
 /* v0.9.81.1: nicht belastbare Farbwahl aus der Synoptik-Bedienung entfernen. */
 .composite-line-toolbar,
 .composite-advanced-fields>label:nth-of-type(3){display:none!important}

@@ -8,8 +8,8 @@ const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText);
 // Standort war bereits dauerhaft gespeichert; der Vertrag bleibt explizit geschützt.
 for(const token of ["const LOCATION_STORAGE_KEY='mid:lastLocation'","function storedLocation()","function initialLocation()","localStorage.setItem(LOCATION_STORAGE_KEY,JSON.stringify(normalized))"])assert.ok(app.includes(token),`Standortpersistenz fehlt: ${token}`);
 
-// Nur die vier Haupt-Prognoseansichten werden als leichtgewichtiger UI-Zustand restauriert.
-for(const token of ["LAST_DASHBOARD_SECTION_KEY='mid:last-dashboard-section:v1'","RESTORABLE_DASHBOARD_SECTIONS:DashboardModuleId[]=['current','short-term','forecast','ensemble']","readLastDashboardSection()","persistLastDashboardSection(id)","navigateToDashboardSection(id,false,'auto')"])assert.ok(app.includes(token),`Ansichtspersistenz fehlt: ${token}`);
+// Die fünf Arbeitsbereiche und ihre aktivierbaren Module werden als leichtgewichtiger UI-Zustand restauriert.
+for(const token of ["LAST_DASHBOARD_SECTION_KEY='mid:last-dashboard-section:v1'","RESTORABLE_DASHBOARD_SECTIONS:DashboardModuleId[]=['current','warnings','extreme-outlook','ventilation'","readLastDashboardSection()","persistLastDashboardSection(id)","navigateToDashboardSection(id,false,'auto')"])assert.ok(app.includes(token),`Ansichtspersistenz fehlt: ${token}`);
 assert.match(app,/activeNavSection,setActiveNavSection\]=useState<DashboardModuleId\|'place'\|''>\(\(\)=>readLastDashboardSection\(\)\)/,'Aktive Ansicht wird beim Appstart nicht aus dem lokalen Zustand initialisiert.');
 assert.ok(cockpit.includes("ACTIVE_HORIZON_KEY='mid:forecastCockpit:activeHorizon'"),'Cockpit-Horizont wird nicht separat erhalten.');
 for(const key of ["'mid:last-dashboard-section:v1'","'mid:forecastCockpit:activeHorizon'"])assert.ok(portable.includes(key),`${key} muss als rein gerätelokaler UI-Zustand vom Geräte-KV-Sync ausgeschlossen sein.`);

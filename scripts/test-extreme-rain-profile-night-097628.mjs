@@ -34,8 +34,8 @@ function checkRainSupport(label,text){
   need(label,text,'dachExtremeRucSupportProbability(max1,level.values[1])');
   need(label,text,'rucEvidence=[null,null,null,null]');
   need(label,text,'rucEvidence[i]=six>=one?{value:total,window:6}:{value:max1,window:1}');
-  need(label,text,"if(evidence&&number(rapid[index])>number(base[index]))");
-  need(label,text,"metrics.evidenceSource='ICON-D2-RUC'");
+  needPattern(label,text,/if\(evidence&&number\(rapid\[index\]\)>number\((?:base|calibrated)\[index\]\)\)/,'RUC evidence gate must only replace the selected I-level when its probability drives the level');
+  if(!text.includes("metrics.evidenceSource='ICON-D2-RUC'")&&!text.includes("'ICON-D2-RUC + RUC-EPS'"))failures.push(`${label}: RUC evidence source missing`);
   need(label,text,'metrics.rainMm=Number(number(evidence.value).toFixed(1))');
   need(label,text,'metrics.windowHours=number(evidence.window)||1');
 }

@@ -79,12 +79,15 @@ export type ForecastWeatherBundleHour={
  rucPrecipitationWeight?:number;
  rucPrecipitationSupport?:number;
  rucPrecipitationOvershootRatio?:number;
+ rucEpsUpperTailPenalty?:number;
  localPrecipitationReferenceMm?:number;
  basePrecipitationMm?:number;
  rucRawPrecipitationMm?:number;
  mosmixPrecipitationMm?:number;
  mosmixPrecipitationWeight?:number;
  rucEpsProbability?:number;
+ rucEpsSignificantProbability?:number;
+ rucEpsQ75Mm?:number;
 };
 export type ForecastFusionMosmix={
  available:boolean;
