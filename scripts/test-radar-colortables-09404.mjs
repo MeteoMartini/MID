@@ -29,6 +29,6 @@ for(const phaseName of ["phase==='mixed'","phase==='snow'","phase==='snow-grains
 assert.match(symbols,/else content='<g fill="none" stroke="currentColor"/,'freezing precipitation swirl symbol missing');
 assert.doesNotMatch(tables,/\{phase:'rain',label:'Regen'.*symbol/,'pure rain must not get an extra phase symbol');
 
-assert.match(panel,/showRadar&&!highResolution&&activeSource==='dwd'&&dwdRenderBlend\.map/,'1-km DWD radar render path missing');
+assert.match(panel,/showRadar&&!highResolution&&activeSource==='dwd'&&dwdVisualBlend\.map/,'1-km DWD radar render/crossfade path missing');
 assert.match(panel,/showPxAtTime&&pxMeta\?\.available&&<Suspense fallback=\{null\}><LazyPx250Overlay/,'250-m radar render path missing');
 console.log('ok - palette chooser removed; each radar path uses its fixed standard colours and phase symbols are separate');

@@ -5762,3 +5762,10 @@ Kompositbild: direkte Kartenbedienung mit gemeinsamen +/- Tasten, reale Satellit
 - KONRAD3D-Zellstände erhalten einen ausdrücklichen Zeitstatus. Ohne bestätigten Beobachtungszeitpunkt werden sie nicht als aktuell oder freigegeben bezeichnet.
 - Der AGL-Vertrag des Flugbriefings wurde geprüft: Eingaben unter FL050 werden entlang der Strecke auf das jeweilige Geländeniveau aufgeschlagen; Druckflächen ab FL050 bleiben druckhöhenbezogen.
 - Übergabestand v0.9.81.0 auf der gelieferten v0.9.80.7-Codebasis rekonstruiert und gegen einen erneuten Versionsrückfall abgesichert.
+
+## 0.9.81.2
+
+- Radar- und Satellitenstände werden erst nach vollständigem Laden umgeschaltet. Der vorherige Stand bleibt während eines echten 480-ms-Crossfades sichtbar; vorgeladene Bilder bleiben im Zwölf-Frame-Puffer.
+- Kartenansicht, Radar-/Satelliten-/Blitz-/Zell-/Warn-/Synoptik-Layer, Deckkräfte, Kartenbasis, Bewegungszeitmodus und Wiedergabetempo werden gemeinsam dauerhaft wiederhergestellt. Ein gespeicherter 250-m-Modus wird nicht mehr vor Abschluss der Verfügbarkeitsprüfung verworfen.
+- Isohypsen erhalten vor der begrenzten Chaikin-Kurvenglättung einen zweistufigen symmetrischen Binomialfilter; Isobaren bleiben bewusst etwas detailreicher. So werden Gittertreppen reduziert, ohne synoptische Strukturen Windy-artig zu überglätten.
+- Das optionale Beta-Bedienkonzept zeigt weiterhin nur fünf Hauptziele. Seltenere Analyse-, Profil-, Profi- und Werkzeugbereiche liegen nun eingeklappt im Mehr-Menü und erscheinen erst nach Aufruf.

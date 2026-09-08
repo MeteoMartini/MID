@@ -13,6 +13,9 @@ const [app,radar,modernStyles,styles,radarColors,contract,baseline]=await Promis
 
 assert.ok(app.includes("focusMode={navigationMode==='bottom-tabs'}"),'Map-Focus muss ausschließlich an bottom-tabs gebunden sein');
 assert.ok(app.includes("const NAVIGATION_MODE_STORAGE_KEY='mid:navigationMode:v1'"),'persistenter Navigationsmodus fehlt');
+assert.ok(app.includes("dashboard-section-nav-list ${variant}${modernDrawer?' progressive':''}"),'Beta-Mehr-Menü muss seine seltenen Bereiche progressiv offenlegen.');
+assert.ok(app.includes('<details key={group.id}'),'Seltene Beta-Bereiche dürfen erst nach Aufruf sichtbar werden.');
+assert.ok(app.includes("id:'map',label:'Karten'"),'Der Karten-Hauptbereich muss verständlich benannt sein.');
 
 for(const token of [
  'focusMode=false',
@@ -42,6 +45,7 @@ for(const token of [
  '@media(max-width:850px) and (orientation:landscape)'
 ])assert.ok(modernStyles.includes(token),`Map-Focus-CSS-Vertrag fehlt: ${token}`);
 assert.ok(styles.includes('/* MID v0.9.79.2 · optionales Bedienkonzept: gemeinsamer Map-Focus-Modus */'),'Styles-Aggregat enthält Map-Focus nicht');
+assert.ok(styles.includes('.dashboard-section-nav-list.drawer.progressive>details'),'Progressive Beta-Navigation fehlt im Styles-Aggregat.');
 
 assert.equal((radarColors.match(/id:'dwd-standard'/g)||[]).length,1,'Radarstandard muss weiterhin genau eine Farbtabellen-ID besitzen');
 assert.ok(radarColors.includes("export type RadarColorTableId='dwd-standard';"),'Radarfarbvertrag wurde verändert');

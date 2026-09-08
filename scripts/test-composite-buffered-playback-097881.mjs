@@ -20,6 +20,10 @@ assert.equal(simulate(false).delay,850);assert.equal(simulate(false).advanced,fa
 assert.equal(simulate(false,{stall:9}).advanced,true);assert.ok(simulate(false,{stall:9}).message.includes('springt weiter'));
 assert.equal(simulate(true).delay,2400);assert.equal(simulate(true).advanced,true);assert.equal(simulate(true,{seconds:4.8}).delay,4800);assert.equal(simulate(true,{seconds:1.2}).delay,1200);assert.equal(simulate(true,{index:2}).delay,2400,'Am Schleifenende darf keine künstliche Zusatzpause entstehen');assert.equal(simulate(true,{playing:false}).advanced,false);
 assert.ok(panel.includes('while(next.size>12)'),'Der begrenzte Satelliten-Ringpuffer muss zwölf bestätigte Stände wiederverwenden.');
+assert.ok(panel.includes('satelliteFadeReady')&&panel.includes('radarFadeReady'),'Geladene Radar-/Satellitenstände benötigen einen expliziten Crossfade-Zustand.');
+assert.ok(panel.includes('window.requestAnimationFrame(()=>window.requestAnimationFrame(()=>setSatelliteFadeReady(true)))'),'Satelliten-Crossfade muss erst nach dem gerenderten Vorladezustand starten.');
+assert.ok(panel.includes('dwdVisualBlend'),'DWD-Radar muss den alten Stand bis zum echten Crossfade behalten.');
+assert.ok(panel.includes('playbackSeconds} satisfies CompositeSettings'),'Das gewählte Wiedergabetempo muss mit den Kartenebenen gespeichert werden.');
 assert.ok(panel.includes("source:viewMode==='radar'?'Radar + Satellit':'Satellit',observations:satelliteObservationTimes"));assert.ok(panel.includes('satelliteDisplayFrame?[{frame:satelliteDisplayFrame,weight:1}]:[]'),'Displayed timestamp follows buffered image');assert.ok(panel.includes('satellitePreloadFrame=requestedSatelliteKey'),'History loads behind retained image');
 // Exercise real RasterTileLayer with a MapLibre test double: another source need not be idle.
 const core=read('src/MapLibreCore.tsx'),coreAst=ts.createSourceFile('core.tsx',core,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX),fn=coreAst.statements.find(n=>n.name?.text==='RasterTileLayer');
@@ -28,4 +32,4 @@ const map={getLayer:id=>layers.get(id),getSource:id=>sources.get(id),addSource:(
 const deps={useRef:()=>hookRef,useMidMap:()=>map,useEffect:cb=>{if(initial)cb()},safeId:x=>x,registerMapLayerOrder:()=>{},unregisterMapLayerOrder:()=>{},clampRasterTone:x=>x};
 const component=new Function('exports',...Object.keys(deps),compile(fn.getText(coreAst))+';return RasterTileLayer')({},...Object.values(deps));
 component({id:'sat',url:'fixture',onReady:()=>first++});initial=false;component({id:'sat',url:'fixture',onReady:()=>latest++});loaded=true;handlers.sourcedata();assert.equal(first,0,'Stale onReady closure must not commit obsolete requested frame');assert.equal(latest,1);handlers.idle();assert.equal(latest,1,'Only one readiness notification');assert.equal(layers.get('sat-layer').paint['raster-opacity-transition'].duration,350);
-console.log('Buffered satellite playback: delayed live image, genuine history, load wait, dwell speeds, pause-free loop, 12-frame reuse and current callbacks passed.');
+console.log('Buffered radar/satellite playback: retained old frame, rendered crossfade, genuine history, persistent dwell speed and 12-frame reuse passed.');

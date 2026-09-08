@@ -18,9 +18,11 @@ for(const token of [
  'Bottom-Leiste · Beta',
  "label:'Heute'",
  "label:'Prognose'",
- "label:'Karte'",
+ "label:'Karten'",
  "label:'Planen'",
- '<span>Mehr</span>'
+ '<span>Mehr</span>',
+ "dashboard-section-nav-list ${variant}${modernDrawer?' progressive':''}",
+ '<details key={group.id}'
 ])assert.ok(app.includes(token),`App-Vertrag fehlt: ${token}`);
 for(const token of [
  '.navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs',

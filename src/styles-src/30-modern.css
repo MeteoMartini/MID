@@ -3482,6 +3482,15 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
 .composite-focus-layer-switches>.composite-switch:last-child{
  grid-column:1/-1;
 }
+.composite-maplibre .leaflet-tile-pane>.leaflet-layer{transition:opacity .48s cubic-bezier(.22,.61,.36,1)}
+.dashboard-section-nav-list.drawer.progressive{display:grid;gap:7px}
+.dashboard-section-nav-list.drawer.progressive>details{overflow:hidden;border:1px solid var(--border);border-radius:14px;background:color-mix(in srgb,var(--surface) 78%,transparent)}
+.dashboard-section-nav-list.drawer.progressive>details>summary{display:grid;grid-template-columns:minmax(0,1fr) auto 18px;align-items:center;gap:8px;min-height:46px;padding:8px 11px;cursor:pointer;list-style:none;color:var(--text);font-size:11px;font-weight:850;touch-action:manipulation}
+.dashboard-section-nav-list.drawer.progressive>details>summary::-webkit-details-marker{display:none}
+.dashboard-section-nav-list.drawer.progressive>details>summary small{display:grid;place-items:center;min-width:21px;height:21px;border-radius:999px;background:var(--s2);color:var(--muted);font-size:8px}
+.dashboard-section-nav-list.drawer.progressive>details>summary svg{color:var(--muted);transition:transform .18s ease}
+.dashboard-section-nav-list.drawer.progressive>details[open]>summary svg{transform:rotate(180deg)}
+.dashboard-section-nav-list.drawer.progressive>details>section{display:grid;gap:4px;padding:0 6px 6px}
 .navigation-bottom-tabs .composite-focus-mode>.composite-advanced{
  margin:8px 0 0;
  border-radius:14px;
