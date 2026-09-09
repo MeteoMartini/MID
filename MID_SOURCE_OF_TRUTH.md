@@ -223,6 +223,10 @@ Die Widgetoption **Kurvenübersicht** ist ab v0.9.84.5 ein eigenständiger Darst
 
 Die Kurvenübersicht muss den freigegebenen Aufbau beibehalten: Tages-/Datumszeile, zentrale Wetterpiktogramme, ECMWF-basierte Tmin-/Tmax-Pillen, eine geglättete Temperaturkurve, gerundete Skybar-Segmente mit getrennten Niederschlags-Overlays, zusammenhängende Nachtbereiche und stündliche Niederschlagssäulen auf derselben lokalen Zeitachse. Niederschlag und Sonnenschein bleiben über die bestehende Widget-Optionsgruppe schaltbar. Required Regression: `scripts/test-widget-curve-overview-09845.mjs`.
 
+## v0.9.84.6 · Widget-Zeitraum 3–7 Tage
+
+Die eigenständige Widget-Kurvenübersicht unterstützt als Zeitraum **3, 4, 5, 6 oder 7 Tage**. Die Auswahl wird gemeinsam mit Theme-, Sichtbarkeits- und Ansichtsoptionen unter `mid:0.7.1:widget-settings` persistiert. Ungültige Altwerte fallen sicher auf 7 Tage zurück. Kartenansicht und Kurvenübersicht nutzen dieselbe Auswahl; die Kurvenbreite wird für die gewählte Tageszahl angepasst. Der kanonische `SevenDayCurveOverview`-Renderer, die lokalen Tages-/Stundendaten sowie alle bestehenden Export-, Hazard- und Sicherheitsverträge bleiben erhalten. Required Regression: `scripts/test-widget-curve-overview-09845.mjs`.
+
 ## v0.9.79.8 · CI-Regressionsmodernisierung nach Run #920
 
 Der Produktionsbuild und die TypeScript-Prüfung von v0.9.79.7 waren bereits erfolgreich. Run #920 scheiterte ausschließlich an fünf statischen Regressionen, deren Quelltextmuster noch die vor dem optionalen Bottom-Bar-/Planen-Hub-Umbau geltende Dashboard-Struktur voraussetzten. Diese Regressionen müssen ab v0.9.79.8 den funktional gleichwertigen aktuellen Vertrag prüfen: zentrale `displayHours`/`displayDays` bleiben verbindlich, Event- und Reiseplaner bleiben separat schaltbar und gemeinsam unter Planen erreichbar, Kurzfrist-/QR-/Modulverträge bleiben erhalten, und spätere Versionslinien müssen den v0.9.78.66-Favoritenvertrag semantisch statt über ein auf `0.9.78.x` begrenztes Regex erfüllen. Die Korrektur darf keine App- oder Worker-Fachlogik verändern.
