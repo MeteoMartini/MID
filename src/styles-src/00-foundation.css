@@ -261,6 +261,58 @@ footer a:hover{opacity:1;color:var(--accent)}
 .weatherwidget.modern.compact .widgetgrid.days-6{grid-template-columns:repeat(6,minmax(104px,1fr))!important}
 .weatherwidget.modern.compact .widgetgrid.days-7{grid-template-columns:repeat(7,minmax(104px,1fr))!important}
 
+/* v0.9.84.3 – Widget wind signal, control panel and Meteogram/Skybar polish */
+.widget-controls{gap:10px!important;background:linear-gradient(180deg,color-mix(in srgb,var(--s2) 94%,var(--primary) 6%),var(--s2))!important}
+.widget-controls-heading{display:grid;gap:2px;padding:2px 2px 7px;border-bottom:1px solid var(--border)}
+.widget-controls-heading>span{color:var(--accent);font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+.widget-controls-heading>strong{font-size:18px;line-height:1.1}
+.widget-controls-heading>small{font-size:10px}
+.widget-location-preview{display:grid;gap:2px;padding:9px 10px;border:1px solid color-mix(in srgb,var(--primary) 20%,var(--border));border-radius:12px;background:color-mix(in srgb,var(--surface) 78%,var(--primary) 22%)}
+.widget-location-preview>span,.widget-control-label{color:var(--muted);font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.widget-location-preview>strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
+.widget-control-group,.widget-option-group{display:grid;gap:5px}
+.widget-control-group{padding:8px 9px;border:1px solid var(--border);border-radius:12px;background:color-mix(in srgb,var(--surface) 68%,transparent)}
+.widget-control-group>label{display:grid!important;gap:4px!important;align-items:stretch!important;font-size:11px;font-weight:700}
+.widget-control-group select{width:100%;height:35px;padding:0 9px;font-size:12px;font-weight:750}
+.widget-theme-toggle{min-height:38px!important;padding:8px 10px;border:1px solid var(--border);border-radius:11px;background:var(--surface);font-size:12px;font-weight:750}
+.widget-theme-toggle input,.widget-option-grid input{accent-color:var(--primary)}
+.widget-option-group{padding-top:2px}
+.widget-option-grid{gap:6px!important}
+.widget-option-grid label{display:flex;align-items:center;gap:7px;min-height:35px;padding:7px 8px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text);font-size:11px;font-weight:700;transition:border-color .15s ease,background .15s ease}
+.widget-option-grid label:has(input:checked){border-color:color-mix(in srgb,var(--primary) 55%,var(--border));background:color-mix(in srgb,var(--primary) 12%,var(--surface))}
+.widget-option-grid label span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.weatherwidget.modern .widgetmeta-wind{display:grid;grid-template-columns:minmax(0,1fr);gap:2px;padding:6px 7px;border:1px solid color-mix(in srgb,currentColor 35%,transparent);background:color-mix(in srgb,currentColor 9%,transparent);font-variant-numeric:tabular-nums}
+.weatherwidget.modern .widgetmeta-wind>b{display:flex;align-items:center;justify-content:center;gap:4px;min-width:0;font-size:10px;font-weight:900;white-space:nowrap}
+.weatherwidget.modern .widgetmeta-wind>small{display:flex;align-items:baseline;justify-content:center;gap:3px;color:inherit;font-size:9px;font-weight:700;white-space:nowrap}
+.weatherwidget.modern .widgetmeta-wind .widget-wind-value{font-weight:900}
+.weatherwidget.modern .widgetmeta-wind .widget-gust-label{font-size:8px;letter-spacing:.03em;text-transform:uppercase}
+.weatherwidget.modern .widgetmeta-wind .widget-gust-value{font-size:10px;font-weight:950}
+.weatherwidget.modern .widget-wind-arrow{display:inline-grid;place-items:center;width:20px;height:20px;flex:0 0 20px;border:1.5px solid currentColor;border-radius:50%;background:color-mix(in srgb,currentColor 12%,transparent);font-size:16px;line-height:1;font-weight:950;text-shadow:0 1px 1px rgba(0,0,0,.3);filter:drop-shadow(0 1px 1px rgba(0,0,0,.25))}
+.weatherwidget.modern .widgetmeta-wind.warning-0{color:var(--param-wind);border-color:color-mix(in srgb,var(--param-wind) 35%,var(--border))}
+.weatherwidget.modern .widgetmeta-wind.warning-1{color:#e6c229;border-color:#e6c229;background:rgba(230,194,41,.14)}
+.weatherwidget.modern .widgetmeta-wind.warning-2{color:#ef8d32;border-color:#ef8d32;background:rgba(239,141,50,.15)}
+.weatherwidget.modern .widgetmeta-wind.warning-3{color:#e74a4a;border-color:#e74a4a;background:rgba(231,74,74,.15)}
+.weatherwidget.modern .widgetmeta-wind.warning-4{color:#c084e8;border-color:#9b59c6;background:rgba(155,89,198,.18)}
+.weatherwidget.modern.light .widgetmeta-wind.warning-0{color:#247e5b}
+.weatherwidget.modern.light .widgetmeta-wind{background:color-mix(in srgb,currentColor 7%,transparent)}
+.weatherwidget.modern.compact .widget-curve{margin:0 9px 8px;border-top:1px solid rgba(112,154,196,.15);padding:5px 0 0}
+.weatherwidget.modern.compact .widget-curve svg{display:block;width:100%;height:auto;min-height:185px}
+.widget-curve-daylight{fill:rgba(94,137,180,.09)}
+.widget-curve-night{fill:rgba(3,13,26,.42)}
+.weatherwidget.modern.light .widget-curve-daylight{fill:rgba(232,183,56,.07)}
+.weatherwidget.modern.light .widget-curve-night{fill:rgba(42,74,105,.08)}
+.widget-curve-sky-track{stroke:currentColor;stroke-width:8;opacity:.1;stroke-linecap:round}
+.widget-curve-skybar rect{shape-rendering:geometricPrecision}
+.widget-curve-sky-clear{fill:#d4dce3}.widget-curve-sky-cloud{fill:#a9b6c2}.widget-curve-sky-cloud-heavy{fill:#7f909d}.widget-curve-sky-sun{fill:#f2b92d}
+.widget-curve-precip-rain{fill:#2aa9e8}.widget-curve-precip-snow{fill:#8ec5ff}.widget-curve-precip-ice{fill:#79d5e9}.widget-curve-precip-thunder{fill:#6b7df0}
+.widget-curve-day-separator{stroke:currentColor;stroke-width:1;opacity:.17;stroke-dasharray:2 3}
+.widget-curve-temp-halo{stroke:rgba(255,190,47,.2);stroke-width:9;stroke-linecap:round;stroke-linejoin:round}
+.widget-curve-temp{stroke:url(#widget-curve-temp-gradient);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 2px 2px rgba(0,0,0,.24))}
+.widget-curve-rain{fill:#258ed0;opacity:.82}
+.weatherwidget.modern.light .widget-curve-temp-halo{stroke:rgba(232,156,23,.18)}
+@media(max-width:760px){.widget-controls-heading{grid-column:1/-1}.widget-location-preview{grid-column:1/-1}.widget-control-group{min-width:0}.widget-option-group{grid-column:1/-1}.widget-controls>small{grid-column:1/-1}.widget-controls .widget-export-actions{grid-column:1/-1}}
+@media(max-width:480px){.widget-control-group{padding:7px}.widget-option-grid label{font-size:10px;padding:6px}.weatherwidget.modern.compact .widget-curve svg{min-height:175px}}
+
 /* v0.4.2 geolocation, mobile theme, rain legend and narrower widgets */
 .theme-toggle{display:inline-flex!important;align-items:center;justify-content:center;gap:5px}
 .theme-toggle span{display:none;font-size:11px;font-weight:750}
