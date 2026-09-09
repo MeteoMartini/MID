@@ -231,6 +231,12 @@ Die eigenständige Widget-Kurvenübersicht unterstützt als Zeitraum **3, 4, 5, 
 
 Widget-Tageskopf und `SevenDayCurveOverview` verwenden dieselbe einmalig auf sichtbare Vorwärtsslots normalisierte Stundenreihe. Eine zweite Niederschlagsverschiebung ist unzulässig. Die Säulen übernehmen die kanonische Niederschlagsmenge mit konservativem Komponentenfallback; Skybar und Säulen reagieren gemeinsam auf die klar bezeichnete Niederschlagsoption. Alte Widgetstände werden einmalig auf sichtbaren Niederschlag migriert, spätere bewusste Änderungen bleiben unter `mid:0.7.1:widget-settings` persistent. Die Legende darf ausgeblendeten Niederschlag nicht als aktiv ausweisen. Kurven-SVG und Widgetmenü müssen ohne künstliche Mindesthöhe, verrutschende Selects oder unnötige Leerflächen responsiv bleiben. Required Regression: `scripts/test-widget-curve-overview-09845.mjs`.
 
+## v0.9.84.8 · Lesbare Warnschwellen und Wind in der Widget-Kurve
+
+- Die gelbe Windwarnstufe verwendet im hellen Widget dunkle Schrift und einen hellgelben, klar umrandeten Hintergrund mit ausreichendem Kontrast.
+- Die Kurvenübersicht zeigt bei aktivierter Windoption je Tag eine kompakte, warnstufengefärbte Kombination aus Richtung, Mittelwind und Böe.
+- Optionsfelder bleiben zweispaltig ausgerichtet; Checkbox und einzeilige Kurzbezeichnung dürfen nicht umbrechen oder gegeneinander verrutschen.
+
 ## v0.9.79.8 · CI-Regressionsmodernisierung nach Run #920
 
 Der Produktionsbuild und die TypeScript-Prüfung von v0.9.79.7 waren bereits erfolgreich. Run #920 scheiterte ausschließlich an fünf statischen Regressionen, deren Quelltextmuster noch die vor dem optionalen Bottom-Bar-/Planen-Hub-Umbau geltende Dashboard-Struktur voraussetzten. Diese Regressionen müssen ab v0.9.79.8 den funktional gleichwertigen aktuellen Vertrag prüfen: zentrale `displayHours`/`displayDays` bleiben verbindlich, Event- und Reiseplaner bleiben separat schaltbar und gemeinsam unter Planen erreichbar, Kurzfrist-/QR-/Modulverträge bleiben erhalten, und spätere Versionslinien müssen den v0.9.78.66-Favoritenvertrag semantisch statt über ein auf `0.9.78.x` begrenztes Regex erfüllen. Die Korrektur darf keine App- oder Worker-Fachlogik verändern.
