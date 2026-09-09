@@ -1938,10 +1938,24 @@ button,input,select,textarea{font:inherit}
 .weatherwidget.modern.compact.widget-view-curve.light .seven-day-curve-hazards i{color:#654b00;background:#fff2b8}.weatherwidget.modern.compact.widget-view-curve.light .seven-day-curve-hazards i.watch{color:#8b4300;background:#ffe6c7}.weatherwidget.modern.compact.widget-view-curve.light .seven-day-curve-hazards i.warning{color:#a51f2b;background:#ffe1e4}
 .widget-fixed-days{display:flex;align-items:center;min-height:35px;padding:0 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:12px}
 .weatherwidget.modern.compact.widget-view-ensemble{box-sizing:border-box;overflow:visible;padding:12px;background:var(--surface);color:var(--text)}
-.weatherwidget.modern.compact.widget-view-ensemble>.ensemble{margin:0;padding:14px;border:0;box-shadow:none;background:transparent}
+.weatherwidget.modern.compact.widget-view-ensemble>.ensemble{margin:0;padding:6px;border:0;box-shadow:none;background:transparent}
 .weatherwidget.modern.compact.widget-view-ensemble .ensemble-metric-deck{display:none}
-.weatherwidget.modern.compact.widget-view-ensemble .ensemble-chart-export{margin-top:12px}
-.weatherwidget.modern.compact.widget-view-ensemble>footer{padding:8px 12px 4px}
+.weatherwidget.modern.compact.widget-view-ensemble .ensemble-chart-export{margin-top:0}
+.weatherwidget.modern.compact.widget-view-ensemble>footer{display:none}
+.widget-ensemble-metric{grid-column:1/-1}
+.widget-ensemble-metric label{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:10px}
+.widget-ensemble-metric select{min-width:0;width:100%}
+.ensemble-presentation-widget>.ensemble-chart-export{display:none}
+.ensemble-presentation-widget.ensemble-widget-temperature>.ensemble-chart-temperature,.ensemble-presentation-widget.ensemble-widget-precipitation>.ensemble-chart-precipitation,.ensemble-presentation-widget.ensemble-widget-wind>.ensemble-chart-wind{display:block}
+.ensemble-presentation-widget .ensemble-export-header{display:grid;gap:2px;margin:0 0 5px;padding:0 4px 7px;border-bottom:1px solid var(--border)}
+.ensemble-presentation-widget .ensemble-export-header .ensemble-export-kicker{display:none}
+.ensemble-presentation-widget .ensemble-export-header strong{font-size:22px;line-height:1.05;color:var(--text)}
+.ensemble-presentation-widget .ensemble-export-header .ensemble-export-subtitle{font-size:12px;font-weight:750;color:var(--muted)}
+.ensemble-presentation-widget>.charthead,.ensemble-presentation-widget>.ens-summary,.ensemble-presentation-widget>.chips,.ensemble-presentation-widget .ensemble-chart-export>.charthead,.ensemble-presentation-widget .ensemble-export-footer{display:none!important}
+.ensemble-presentation-widget .ensemble-export-chart-body{padding:0}
+.ensemble-presentation-widget .rain-chart-toolbar .rain-cumulative-toggle{display:none}
+.ensemble-presentation-widget .consistency-tooltip-line{display:none!important}
+.ensemble-presentation-widget .chart{margin:0;padding:5px 2px 0}
 .climate-favorite-name{display:flex!important;align-items:center;gap:8px;min-width:min(100%,240px);padding:7px 10px!important;border:1px solid var(--border);border-radius:10px;background:var(--surface)}
 .climate-favorite-name input{width:16px;height:16px;margin:0;accent-color:var(--primary)}
 .climate-favorite-name span{font-size:11px;font-weight:750;white-space:nowrap}

@@ -257,3 +257,8 @@ Die visuelle Skybar-Klassifikation und die physikalische Sonnenscheindauer sind 
 ## v0.9.84.13 · Feste aktuelle Widget-Live-URLs
 
 Feste Widget-URLs verwenden eine zentral gepflegte Ortsliste und erzeugen je Ort automatisch **Kompakt** und **Kurvenübersicht** für **5** und **7 Tage**. Beim Aufruf werden aktuelle kanonische MID-Prognosedaten geladen; angezeigt wird ausschließlich die Widgetfläche. URL-Vorgaben dürfen nicht durch lokale Widgeteinstellungen überschrieben werden. Wind, Niederschlag, Sonnenschein und Hazards sind vollständig aktiv. Required Regression: `scripts/test-widget-url-exports-098413.mjs`.
+# MID v0.9.84.14
+
+- Das Ensemble-Widget besitzt eine gespeicherte Einzelauswahl für Temperatur, Niederschlag oder Wind/Böen.
+- Vorschau und PNG enthalten nur das gewählte Diagramm mit Ortsname und ohne modellspezifische Begleitinformationen.
+- Feste Widget-URL-Orte werden ausschließlich über `WIDGET_URL_LOCATIONS` in `src/widgetUrlExports.ts` gepflegt.
