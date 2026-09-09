@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.84.1",
+  "releaseVersion": "0.9.84.2",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -1881,7 +1881,7 @@
     "scripts/test-climate-hazard-widget-09804.mjs",
     "scripts/test-ruc-expanded-extreme-integration-09840.mjs"
   ],
-  "version": "0.9.84.1",
+  "version": "0.9.84.2",
   "updatedAt": "2026-09-08T09:06:02Z",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",

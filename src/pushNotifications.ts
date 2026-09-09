@@ -12,8 +12,9 @@ export type PushRuleFavorite={
 export type PushNotificationInterval=15|30|60|120|180;
 export type PushPrecipitationLeadMinutes=15|30|45|60|90|120;
 export type PushPrecipitationThresholdMm=.1|.2|.5|1|2|5;
-export type PushPrecipitationAlertSettings={leadMinutes:PushPrecipitationLeadMinutes;minimumAmountMm:PushPrecipitationThresholdMm};
-export const DEFAULT_PUSH_PRECIPITATION_ALERT:PushPrecipitationAlertSettings={leadMinutes:60,minimumAmountMm:.1};
+export type PushPrecipitationDurationMinutes=0|15|30|60|120|180;
+export type PushPrecipitationAlertSettings={leadMinutes:PushPrecipitationLeadMinutes;minimumAmountMm:PushPrecipitationThresholdMm;minimumDurationMinutes:PushPrecipitationDurationMinutes};
+export const DEFAULT_PUSH_PRECIPITATION_ALERT:PushPrecipitationAlertSettings={leadMinutes:60,minimumAmountMm:.1,minimumDurationMinutes:0};
 export type PushStatus={supported:boolean;permission:NotificationPermission|'unsupported';configured:boolean;subscribed:boolean;serverRegistered:boolean;schedulerHealthy:boolean;schedulerLastRunAt?:string;workerCheckedAt?:string;activeFavorites:number;activeRules:number;operational:boolean;workerUrl:string;message:string};
 
 type PushConfig={enabled?:boolean;publicKey?:string;version?:string;error?:string};

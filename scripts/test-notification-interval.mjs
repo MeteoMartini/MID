@@ -32,7 +32,7 @@ for(const token of [
  'saveSubscription(subscription,favorites,notificationIntervalMinutes,precipitationAlert,ventilation)'
 ])if(!client.includes(token))failures.push(`Push-Client-Übertragung fehlt: ${token}`);
 for(const token of [
- 'const PUSH_NOTIFICATION_INTERVALS=[15,30,60,120,180],PUSH_PRECIPITATION_LEADS=[15,30,45,60,90,120],PUSH_PRECIPITATION_AMOUNTS=[.1,.2,.5,1,2,5];',
+ 'const PUSH_NOTIFICATION_INTERVALS=[15,30,60,120,180],PUSH_PRECIPITATION_LEADS=[15,30,45,60,90,120],PUSH_PRECIPITATION_AMOUNTS=[.1,.2,.5,1,2,5],PUSH_PRECIPITATION_DURATIONS=[0,15,30,60,120,180];',
  'function pushNotificationReady(',
  'notificationIntervalMinutes=validPushNotificationInterval(body?.notificationIntervalMinutes)',
  'lastNotificationAt:existing?.lastNotificationAt',

@@ -22,7 +22,11 @@ if(fs.existsSync(activeInstallPath)){
  assert.ok(!activeInstall.includes('git push --force origin HEAD:main'),'active installer must never force-push main');
  assert.ok(!activeInstall.includes('rsync -a --delete --checksum "$source_dir/" .github/'),'active installer must not self-modify .github');
 }
-for(const token of ['prepare_ruc_pages.py','upload-pages-artifact@','deploy-pages@','ref: mid-stable','950000000','MID_RUC_PIPELINE_ENABLED'])assert.ok(workflow.includes(token),`free Pages workflow token missing: ${token}`);
+for(const token of ['prepare_ruc_pages.py','upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a','download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093','upload-pages-artifact@','deploy-pages@','ref: mid-stable','950000000','MID_RUC_PIPELINE_ENABLED','gh run list --workflow install-mid.yml'])assert.ok(workflow.includes(token),`free Pages workflow token missing: ${token}`);
+assert.ok(workflow.includes('  prepare:')&&workflow.includes('  publish:'),'RUC-Vorbereitung und Pages-Publish müssen getrennte Jobs sein.');
+const prepareBlock=workflow.split('  publish:')[0];
+assert.ok(!prepareBlock.includes('group: mid-pages'),'Der teure RUC-Download darf den seriellen Pages-Lock nicht halten.');
+assert.ok(workflow.includes('group: mid-pages\n      cancel-in-progress: false'),'Nur der kurze RUC-Publish muss den seriellen Pages-Lock nutzen.');
 for(const forbidden of ['MID_RUC_R2_ACCESS_KEY_ID','MID_RUC_R2_SECRET_ACCESS_KEY','publish_ruc_r2.sh'])assert.ok(!workflow.includes(forbidden),`free Pages workflow still requires R2: ${forbidden}`);
 assert.ok(install.match(/Bereits veröffentlichten kostenfreien RUC-Snapshot erhalten/g)?.length===3,'all three normal Pages release attempts must preserve RUC');
 assert.ok(install.includes('restore_ruc_pages_snapshot.py')&&install.includes('MID_RUC_PAGES_BASE_URL'));

@@ -19,26 +19,22 @@ on:
     - cron: '41 * * * *'
 concurrency:
   group: mid-dwd-ruc-preprocess
-  # Never cancel a nearly completed delayed RUC publication. A queued duplicate
+  # Never cancel a nearly completed delayed RUC preparation. A queued duplicate
   # self-skips after the first run publishes the current DWD cycle.
   cancel-in-progress: false
 permissions:
   contents: read
-  pages: write
-  id-token: write
 jobs:
-  preprocess:
-    # Free publication path: public-repository standard runner + GitHub Pages.
-    # No R2 bucket, object-storage subscription or paid credential is required.
+  prepare:
+    # The expensive DWD download/decode deliberately runs without the Pages
+    # lock. Only the short publish job below serializes against MID releases.
     if: ${{ vars.MID_RUC_PIPELINE_ENABLED == 'true' }}
+    outputs:
+      should_run: ${{ steps.freshness.outputs.should_run }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    concurrency:
-      group: mid-pages
-      cancel-in-progress: false
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: read
     steps:
       - name: Letzten geprüften MID-Stable-Stand laden
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -90,8 +86,62 @@ jobs:
           python tools/ruc/test_ruc_pack.py
           python tools/ruc/test_prepare_ruc_pages.py
           python tools/ruc/prepare_ruc_pages.py --source .ruc-out --output .ruc-pages
-      - name: MID-Seite mit kostenfreiem RUC-Snapshot zusammensetzen
+      - name: Vorbereiteten RUC-Snapshot als unveränderliches Übergabeartefakt sichern
         if: ${{ steps.freshness.outputs.should_run == 'true' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: mid-ruc-data-${{ github.run_id }}
+          path: ./.ruc-pages/ruc
+          if-no-files-found: error
+          retention-days: 2
+          # RUC-Binärdaten sind bereits kompakt; kein zusätzlicher CPU-intensiver
+          # Kompressionslauf vor dem kurzen Publish-Lock.
+          compression-level: 0
+      - name: Bereits aktuellen RUC-Lauf ohne Neubau bestätigen
+        if: ${{ steps.freshness.outputs.should_run != 'true' }}
+        run: echo "RUC-Neubau nicht erforderlich · ${{ steps.freshness.outputs.reason }}"
+
+  publish:
+    name: MID + RUC kostenfrei auf GitHub Pages veröffentlichen
+    needs: prepare
+    if: ${{ needs.prepare.result == 'success' && needs.prepare.outputs.should_run == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+      pages: write
+      id-token: write
+    concurrency:
+      group: mid-pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Laufenden MID-Release vor dem RUC-Publish ausschließen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          active="$(gh run list --workflow install-mid.yml --limit 100 --json status --jq '[.[] | select(.status == "queued" or .status == "in_progress")] | length')"
+          if [ "$active" -gt 0 ]; then
+            echo "::error::Ein MID-Release läuft noch (${active} queued/in_progress). RUC-Publish wird fail-closed übersprungen; der Watchdog versucht den nächsten Lauf erneut."
+            exit 1
+          fi
+          echo "Kein laufender MID-Release erkannt; RUC-Publish darf den Pages-Lock verwenden."
+      - name: Aktuellen MID-Stable-Stand erst im Publish-Lock laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: mid-stable
+          fetch-depth: 1
+      - name: Vorbereiteten RUC-Snapshot laden
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: mid-ruc-data-${{ github.run_id }}
+          path: ./.ruc-pages/ruc
+      - name: MID-Seite mit aktuellem Stable-Stand und RUC-Snapshot zusammensetzen
         shell: bash
         run: |
           set -euo pipefail
@@ -111,22 +161,17 @@ jobs:
           test ! -e .ruc-site/ruc/eps-members.bin
           find .ruc-site/ruc -type f -name 'eps-members.bin' -print -quit | grep -q . && { echo '::error::Native EPS member cube must not be published by the free Pages profile.'; exit 1; } || true
       - name: GitHub-Pages-Artefakt hochladen
-        if: ${{ steps.freshness.outputs.should_run == 'true' }}
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           name: mid-ruc-pages-${{ github.run_id }}
           path: ./.ruc-site
       - name: MID + RUC kostenfrei auf GitHub Pages veröffentlichen
-        if: ${{ steps.freshness.outputs.should_run == 'true' }}
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
         with:
           artifact_name: mid-ruc-pages-${{ github.run_id }}
       - name: Produktiven Worker gegen den veröffentlichten RUC-Lauf prüfen
-        if: ${{ steps.freshness.outputs.should_run == 'true' && (vars.MID_RUC_WORKER_HEALTH_URL != '' || vars.MID_WORKER_HEALTH_URL != '' || vars.VITE_METAR_PROXY_URL != '') }}
+        if: ${{ vars.MID_RUC_WORKER_HEALTH_URL != '' || vars.MID_WORKER_HEALTH_URL != '' || vars.VITE_METAR_PROXY_URL != '' }}
         env:
           MID_RUC_WORKER_HEALTH_URL: ${{ vars.MID_RUC_WORKER_HEALTH_URL || vars.MID_WORKER_HEALTH_URL || vars.VITE_METAR_PROXY_URL }}
-        run: python tools/ruc/check_ruc_health.py --url "$MID_RUC_WORKER_HEALTH_URL" --meta .ruc-out/latest.json
-      - name: Bereits aktuellen RUC-Lauf ohne Neubau bestätigen
-        if: ${{ steps.freshness.outputs.should_run != 'true' }}
-        run: echo "RUC-Neubau nicht erforderlich · ${{ steps.freshness.outputs.reason }}"
+        run: python tools/ruc/check_ruc_health.py --url "$MID_RUC_WORKER_HEALTH_URL" --meta ./.ruc-pages/ruc/latest.json

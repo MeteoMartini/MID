@@ -8,6 +8,7 @@ const [app,push,panel,worker]=await Promise.all([
 const fail=[];const need=(name,text,needle)=>{if(!text.includes(needle))fail.push(`${name}: ${needle}`)};
 need('Push-Typ',push,'PushPrecipitationLeadMinutes=15|30|45|60|90|120');
 need('Push-Typ',push,'PushPrecipitationThresholdMm=.1|.2|.5|1|2|5');
+need('Push-Typ',push,'PushPrecipitationDurationMinutes=0|15|30|60|120|180');
 need('Subscription',push,'precipitationAlert');
 need('Einstellungen',panel,'Niederschlags-Vorwarnung');
 need('Einstellungen',panel,'45 Minuten vorher');
@@ -17,6 +18,9 @@ need('2h-Fortsetzung',app,'Über das +2-h-Fenster hinaus ist weiterer Niederschl
 need('2h-Neubeginn',app,'Nach dem +2-h-Fenster ist ab etwa');
 need('Worker-Vorlauf',worker,'PUSH_PRECIPITATION_LEADS=[15,30,45,60,90,120]');
 need('Worker-Mengen',worker,'PUSH_PRECIPITATION_AMOUNTS=[.1,.2,.5,1,2,5]');
+need('Worker-Dauer',worker,'PUSH_PRECIPITATION_DURATIONS=[0,15,30,60,120,180]');
+need('Worker-Dauerfilter',worker,'minimumDurationMinutes');
+need('Meldungstext',worker,'voraussichtlich etwa');
 need('Worker-Horizont',worker,"forecast_minutely_15','24'");
 need('Worker-Pause',worker,'trigger&&canNotify()');
 if(worker.includes('triggerActive=result.active'))fail.push('Worker: verspätete Aktivwarnung ist noch aktiv.');
