@@ -773,6 +773,13 @@ jobs:
     permissions:
       contents: write
       statuses: write
+    # Stable-Promotion und RUC-Publish dürfen sich nicht zwischen der
+    # Stable-SHA-Prüfung und dem eigentlichen Pages-Deployment überholen.
+    # Der Lock bleibt auf den kurzen Abschluss beschränkt; Build, Audit,
+    # Regressionen und Worker-Smoke laufen weiterhin davor.
+    concurrency:
+      group: mid-pages
+      cancel-in-progress: false
 
     steps:
       - name: Erfolgreichen Release-Commit ohne Checkout-Action laden

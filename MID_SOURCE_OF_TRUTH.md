@@ -217,7 +217,12 @@ Die nachgereichten Änderungen aus **v0.9.78.84/.85** sind verbindlich in den v0
 
 Die Prognosekandidaten der optionalen Bottom-Leiste werden vor der Deduplizierung explizit als `DashboardModuleId[]` typisiert. Dies verhindert die TypeScript-Aufweitung auf `string[]`, die Release-Run #919 mit TS2322 blockierte. Es handelt sich um einen reinen Build-/Typfix ohne Änderung an Bedienlogik, Wetterdaten, Radarfarben oder Worker-Fachlogik.
 
+## v0.9.84.5 · Eigenständige Widget-Kurvenübersicht
+
+Die Widgetoption **Kurvenübersicht** ist ab v0.9.84.5 ein eigenständiger Darstellungsmodus und verwendet ausschließlich den kanonischen `SevenDayCurveOverview`-Renderer. Die klassische kompakte Tagesansicht wird in diesem Modus nicht parallel angezeigt. Der Zeitraum bleibt auf **3 oder 7 Tage** begrenzt und wird zusammen mit Theme- und Sichtbarkeitsoptionen unter `mid:0.7.1:widget-settings` persistiert.
+
+Die Kurvenübersicht muss den freigegebenen Aufbau beibehalten: Tages-/Datumszeile, zentrale Wetterpiktogramme, ECMWF-basierte Tmin-/Tmax-Pillen, eine geglättete Temperaturkurve, gerundete Skybar-Segmente mit getrennten Niederschlags-Overlays, zusammenhängende Nachtbereiche und stündliche Niederschlagssäulen auf derselben lokalen Zeitachse. Niederschlag und Sonnenschein bleiben über die bestehende Widget-Optionsgruppe schaltbar. Required Regression: `scripts/test-widget-curve-overview-09845.mjs`.
+
 ## v0.9.79.8 · CI-Regressionsmodernisierung nach Run #920
 
 Der Produktionsbuild und die TypeScript-Prüfung von v0.9.79.7 waren bereits erfolgreich. Run #920 scheiterte ausschließlich an fünf statischen Regressionen, deren Quelltextmuster noch die vor dem optionalen Bottom-Bar-/Planen-Hub-Umbau geltende Dashboard-Struktur voraussetzten. Diese Regressionen müssen ab v0.9.79.8 den funktional gleichwertigen aktuellen Vertrag prüfen: zentrale `displayHours`/`displayDays` bleiben verbindlich, Event- und Reiseplaner bleiben separat schaltbar und gemeinsam unter Planen erreichbar, Kurzfrist-/QR-/Modulverträge bleiben erhalten, und spätere Versionslinien müssen den v0.9.78.66-Favoritenvertrag semantisch statt über ein auf `0.9.78.x` begrenztes Regex erfüllen. Die Korrektur darf keine App- oder Worker-Fachlogik verändern.
-

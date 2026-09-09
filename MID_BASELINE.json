@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.84.3",
+  "releaseVersion": "0.9.84.5",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -440,6 +440,7 @@
     "scripts/test-hazard-time-direction-localtime-097919.mjs",
     "scripts/test-climate-section-09800.mjs",
     "scripts/test-climate-hazard-widget-09804.mjs",
+    "scripts/test-widget-curve-overview-09845.mjs",
     "scripts/test-react19-ref-climate-colors-09832.mjs",
     "scripts/test-ruc-expanded-extreme-integration-09840.mjs",
     "scripts/test-modern-five-workspaces-09841.mjs"
@@ -806,6 +807,7 @@
     "scripts/test-settings-navigation-polish-097917.mjs",
     "scripts/test-climate-section-09800.mjs",
     "scripts/test-climate-hazard-widget-09804.mjs",
+    "scripts/test-widget-curve-overview-09845.mjs",
     "scripts/test-react19-ref-climate-colors-09832.mjs",
     "scripts/test-ruc-expanded-extreme-integration-09840.mjs",
     "scripts/test-modern-five-workspaces-09841.mjs"
@@ -1385,7 +1387,12 @@
     "scripts/test-ruc-expanded-extreme-integration-09840.mjs",
     "MID_IMPLEMENTATION_0.9.84.0.md",
     "MID_TEST_REPORT_0.9.84.0.md",
-    "MID_RUC_USAGE_AUDIT_0.9.84.0.md"
+    "MID_RUC_USAGE_AUDIT_0.9.84.0.md",
+    "MID_IMPLEMENTATION_0.9.84.4.md",
+    "MID_TEST_REPORT_0.9.84.4.md",
+    "MID_IMPLEMENTATION_0.9.84.5.md",
+    "MID_TEST_REPORT_0.9.84.5.md",
+    "scripts/test-widget-curve-overview-09845.mjs"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1436,6 +1443,7 @@
     "scripts/test-settings-navigation-polish-097917.mjs",
     "scripts/test-climate-section-09800.mjs",
     "scripts/test-climate-hazard-widget-09804.mjs",
+    "scripts/test-widget-curve-overview-09845.mjs",
     "scripts/test-react19-ref-climate-colors-09832.mjs",
     "scripts/test-ruc-expanded-extreme-integration-09840.mjs"
   ],
@@ -1881,7 +1889,7 @@
     "scripts/test-climate-hazard-widget-09804.mjs",
     "scripts/test-ruc-expanded-extreme-integration-09840.mjs"
   ],
-  "version": "0.9.84.3",
+  "version": "0.9.84.5",
   "updatedAt": "2026-09-08T09:06:02Z",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
@@ -1955,7 +1963,8 @@
     "MID_IMPLEMENTATION_0.9.83.0.md",
     "MID_IMPLEMENTATION_0.9.83.2.md",
     "MID_IMPLEMENTATION_0.9.83.3.md",
-    "MID_IMPLEMENTATION_0.9.84.0.md"
+    "MID_IMPLEMENTATION_0.9.84.0.md",
+    "MID_IMPLEMENTATION_0.9.84.5.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",
@@ -2003,6 +2012,8 @@
     "MID_TEST_REPORT_0.9.83.2.md",
     "MID_TEST_REPORT_0.9.83.3.md",
     "MID_TEST_REPORT_0.9.83.4.md",
-    "MID_TEST_REPORT_0.9.84.0.md"
+    "MID_TEST_REPORT_0.9.84.0.md",
+    "MID_TEST_REPORT_0.9.84.4.md",
+    "MID_TEST_REPORT_0.9.84.5.md"
   ]
 }

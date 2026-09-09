@@ -31,6 +31,7 @@ jobs:
     if: ${{ vars.MID_RUC_PIPELINE_ENABLED == 'true' }}
     outputs:
       should_run: ${{ steps.freshness.outputs.should_run }}
+      stable_sha: ${{ steps.stable_revision.outputs.sha }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
@@ -41,6 +42,15 @@ jobs:
         with:
           ref: mid-stable
           fetch-depth: 1
+      - name: Verwendeten MID-Stable-Stand festhalten
+        id: stable_revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha="$(git rev-parse HEAD)"
+          test "${#sha}" -eq 40
+          echo "sha=${sha}" >> "$GITHUB_OUTPUT"
+          echo "RUC-Basis: ${sha}"
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.12'
@@ -119,29 +129,38 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Laufenden MID-Release vor dem RUC-Publish ausschließen
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          active="$(gh run list --workflow install-mid.yml --limit 100 --json status --jq '[.[] | select(.status == "queued" or .status == "in_progress")] | length')"
-          if [ "$active" -gt 0 ]; then
-            echo "::error::Ein MID-Release läuft noch (${active} queued/in_progress). RUC-Publish wird fail-closed übersprungen; der Watchdog versucht den nächsten Lauf erneut."
-            exit 1
-          fi
-          echo "Kein laufender MID-Release erkannt; RUC-Publish darf den Pages-Lock verwenden."
       - name: Aktuellen MID-Stable-Stand erst im Publish-Lock laden
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: mid-stable
           fetch-depth: 1
+      - name: RUC-Basis gegen aktuellen MID-Stable-Stand prüfen
+        id: stable_guard
+        env:
+          EXPECTED_STABLE_SHA: ${{ needs.prepare.outputs.stable_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual_sha="$(git rev-parse HEAD)"
+          if [ -z "${EXPECTED_STABLE_SHA}" ] || [ "${actual_sha}" != "${EXPECTED_STABLE_SHA}" ]; then
+            echo "allowed=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::MID-Stable wurde seit der RUC-Vorbereitung weitergeführt (${EXPECTED_STABLE_SHA:-<leer>} → ${actual_sha}). RUC-Publish wird sicher als No-op übersprungen; der nächste Lauf baut auf der neuen Basis."
+            {
+              echo "### RUC-Publish übersprungen"
+              echo "Die Vorbereitungsbasis ist nicht mehr der aktuelle `mid-stable`-Stand. Es wurde kein veraltetes RUC-Artefakt veröffentlicht."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          echo "allowed=true" >> "$GITHUB_OUTPUT"
+          echo "RUC-Basis unverändert: ${actual_sha}"
       - name: Vorbereiteten RUC-Snapshot laden
+        if: steps.stable_guard.outputs.allowed == 'true'
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: mid-ruc-data-${{ github.run_id }}
           path: ./.ruc-pages/ruc
       - name: MID-Seite mit aktuellem Stable-Stand und RUC-Snapshot zusammensetzen
+        if: steps.stable_guard.outputs.allowed == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -160,18 +179,34 @@ jobs:
           fi
           test ! -e .ruc-site/ruc/eps-members.bin
           find .ruc-site/ruc -type f -name 'eps-members.bin' -print -quit | grep -q . && { echo '::error::Native EPS member cube must not be published by the free Pages profile.'; exit 1; } || true
+      - name: MID-Stable unmittelbar vor dem Pages-Publish erneut prüfen
+        if: steps.stable_guard.outputs.allowed == 'true'
+        env:
+          EXPECTED_STABLE_SHA: ${{ needs.prepare.outputs.stable_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin mid-stable
+          actual_sha="$(git rev-parse FETCH_HEAD)"
+          if [ "${actual_sha}" != "${EXPECTED_STABLE_SHA}" ]; then
+            echo "::warning::MID-Stable änderte sich während der RUC-Publish-Vorbereitung (${EXPECTED_STABLE_SHA} → ${actual_sha}). Kein veraltetes RUC-Artefakt wird veröffentlicht."
+            exit 1
+          fi
+          echo "MID-Stable unmittelbar vor Publish unverändert: ${actual_sha}"
       - name: GitHub-Pages-Artefakt hochladen
+        if: steps.stable_guard.outputs.allowed == 'true'
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           name: mid-ruc-pages-${{ github.run_id }}
           path: ./.ruc-site
       - name: MID + RUC kostenfrei auf GitHub Pages veröffentlichen
+        if: steps.stable_guard.outputs.allowed == 'true'
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
         with:
           artifact_name: mid-ruc-pages-${{ github.run_id }}
       - name: Produktiven Worker gegen den veröffentlichten RUC-Lauf prüfen
-        if: ${{ vars.MID_RUC_WORKER_HEALTH_URL != '' || vars.MID_WORKER_HEALTH_URL != '' || vars.VITE_METAR_PROXY_URL != '' }}
+        if: ${{ steps.stable_guard.outputs.allowed == 'true' && (vars.MID_RUC_WORKER_HEALTH_URL != '' || vars.MID_WORKER_HEALTH_URL != '' || vars.VITE_METAR_PROXY_URL != '') }}
         env:
           MID_RUC_WORKER_HEALTH_URL: ${{ vars.MID_RUC_WORKER_HEALTH_URL || vars.MID_WORKER_HEALTH_URL || vars.VITE_METAR_PROXY_URL }}
         run: python tools/ruc/check_ruc_health.py --url "$MID_RUC_WORKER_HEALTH_URL" --meta ./.ruc-pages/ruc/latest.json
