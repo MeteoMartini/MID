@@ -7,9 +7,9 @@ const [cockpit,app,tone,styleSource,styleAggregate,colorContract,sourceOfTruth,p
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-seven-day-ecmwf-hourly-09781.mjs';
 for(const token of ['ECMWF_TEMPERATURE_STOPS','export function ecmwfTemperatureColor','export function ecmwfTemperatureTone'])assert.ok(tone.includes(token),`ECMWF-Temperaturskala fehlt: ${token}`);
 for(const token of [
- 'hourly=precipitationPresentationHours(hours).filter(hour=>visibleDateIndex.has(hour.time.slice(0,10)))',
+ 'hourly=(presentationReady?hours:precipitationPresentationHours(hours)).filter(hour=>visibleDateIndex.has(hour.time.slice(0,10)))',
  'hourPosition=(hour:Hour)',
- 'rainItems=hourly.map(hour=>({hour,amount:precipitationParts(hour).total}))',
+ 'amount:Math.max(parts.total,direct,components)',
  'halfDayTicks=Array.from({length:visible.length*2+1}',
  "{hour%24===12?'12':'00'}",
  'seven-day-curve-temperature-halo',
@@ -25,7 +25,7 @@ const forecastRows=app.slice(app.indexOf('const forecastRowContents='),app.index
 assert.ok(forecastRows.includes('minTone=ecmwfTemperatureTone(d.min),maxTone=ecmwfTemperatureTone(d.max)'),'Klassische 7-Tage-Karten müssen ECMWF-Farbton verwenden.');
 assert.ok(!forecastRows.includes('<small>Min</small>')&&!forecastRows.includes('<small>Max</small>'),'Klassische 7-Tage-Karten zeigen seit v0.9.78.4 nur noch die Tmin/Tmax-Werte ohne zusätzliche Min/Max-Labels.');
 assert.ok(!forecastRows.includes('dailyTemperatureAnomalyLabel'),'Klassische 7-Tage-Karten dürfen keine Klimadelta-Beschriftung anzeigen.');
-for(const token of ['.seven-day-curve-temperature-halo','.seven-day-curve-time-label','.seven-day-curve-day-label','.seven-day-curve-night-band{',':root[data-theme=light] .seven-day-curve-night-band{','min-height:194px']){assert.ok(styleSource.includes(token),`7-Tage-Stylequelle fehlt: ${token}`);assert.ok(styleAggregate.includes(token),`7-Tage-Styleaggregat fehlt: ${token}`)}
+for(const token of ['.seven-day-curve-temperature-halo','.seven-day-curve-time-label','.seven-day-curve-day-label','.seven-day-curve-night-band{',':root[data-theme=light] .seven-day-curve-night-band{','min-height:0!important']){assert.ok(styleSource.includes(token),`7-Tage-Stylequelle fehlt: ${token}`);assert.ok(styleAggregate.includes(token),`7-Tage-Styleaggregat fehlt: ${token}`)}
 for(const token of ['ersetzt für die 7-Tage-Ansicht','keine Abweichungen zum Klimamittel','absoluten 2-m-Temperatur','gemeinsame Stundenachse'])assert.ok(colorContract.includes(token),`Farbvertrag unvollständig: ${token}`);
 assert.ok(sourceOfTruth.includes('7-Tage-Stundenkurve')&&sourceOfTruth.includes('Die 14-Tage-Klimaabweichungslogik bleibt bestehen.'),'Source of Truth muss die 7d-Supersession und den 14d-Erhalt festschreiben.');
 assert.equal(pkg.scripts?.['test:seven-day-ecmwf-hourly'],`node ${test}`,'Package-Testeintrag fehlt.');

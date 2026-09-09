@@ -388,11 +388,11 @@ function smoothCurvePath(points:{x:number;y:number}[]){
  return path;
 }
 
-export function SevenDayCurveOverview({days,hours,selectedDate,onSelectedDate,showRain=true,showSunshine=true}:{days:Day[];hours:Hour[];selectedDate:string;onSelectedDate:(date:string)=>void;showRain?:boolean;showSunshine?:boolean}){
+export function SevenDayCurveOverview({days,hours,selectedDate,onSelectedDate,showRain=true,showSunshine=true,presentationReady=false}:{days:Day[];hours:Hour[];selectedDate:string;onSelectedDate:(date:string)=>void;showRain?:boolean;showSunshine?:boolean;presentationReady?:boolean}){
  const visible=days.slice(0,7);
  if(!visible.length)return null;
  const visibleDateIndex=new Map(visible.map((day,index)=>[day.date,index]));
- const hourly=precipitationPresentationHours(hours).filter(hour=>visibleDateIndex.has(hour.time.slice(0,10))).sort((a,b)=>a.epoch-b.epoch);
+ const hourly=(presentationReady?hours:precipitationPresentationHours(hours)).filter(hour=>visibleDateIndex.has(hour.time.slice(0,10))).sort((a,b)=>a.epoch-b.epoch);
  const width=700,height=224,left=42,right=10,skyBarY=18,top=34,tempBottom=132,precipBase=182,timeAxisY=194,dayAxisY=213,plotWidth=width-left-right,totalHours=Math.max(24,visible.length*24);
  const headerPaddingStyle={'--seven-day-curve-count':visible.length,'--seven-day-curve-left-pad':`${left/width*100}%`,'--seven-day-curve-right-pad':`${right/width*100}%`} as CSSProperties;
  const hourPosition=(hour:Hour)=>{
@@ -412,7 +412,7 @@ export function SevenDayCurveOverview({days,hours,selectedDate,onSelectedDate,sh
  ]);
  const temperaturePoints=hourlyTemperaturePoints.length>=2?hourlyTemperaturePoints:fallbackPoints;
  const line=smoothCurvePath(temperaturePoints);
- const rainItems=hourly.map(hour=>({hour,amount:precipitationParts(hour).total}));
+ const rainItems=hourly.map(hour=>{const parts=precipitationParts(hour),direct=Math.max(0,Number(hour.precipitation)||0),components=Math.max(0,Number(hour.rain)||0)+Math.max(0,Number(hour.showers)||0)+Math.max(0,Number(hour.snowfall)||0);return{hour,amount:Math.max(parts.total,direct,components)}});
  const rainMax=Math.max(.2,...rainItems.map(item=>item.amount));
  const hourCellWidth=plotWidth/totalHours;
  const barWidth=Math.max(1.8,hourCellWidth*.78);
@@ -458,7 +458,7 @@ export function SevenDayCurveOverview({days,hours,selectedDate,onSelectedDate,sh
    {halfDayTicks.map((hour,index)=>{const x=left+hour/totalHours*plotWidth;return <g key={`curve-time-${hour}`}><line className="seven-day-curve-time-tick" x1={x} x2={x} y1={precipBase} y2={precipBase+4}/><text className="seven-day-curve-time-label" x={x} y={timeAxisY} textAnchor={index===0?'start':index===halfDayTicks.length-1?'end':'middle'}>{hour%24===12?'12':'00'}</text></g>})}
    {visible.map((day,index)=><text key={`curve-day-label-${day.date}`} className="seven-day-curve-day-label" x={left+(index*24+12)/totalHours*plotWidth} y={dayAxisY} textAnchor="middle">{formatDate(day.date,{weekday:'short'})}</text>)}
   </svg></div>
-  <footer className="seven-day-curve-footer"><span><i className="weather-strip"/>Wetterstreifen</span><span><i className="temp-line"/>Temperatur</span><span><i className="rain-bars"/>Niederschlag</span><small>Stündlich · Ortszeit</small></footer>
+  <footer className="seven-day-curve-footer"><span><i className="weather-strip"/>Wetterstreifen</span><span><i className="temp-line"/>Temperatur</span>{showRain?<span><i className="rain-bars"/>Niederschlag</span>:<span className="rain-hidden">Niederschlag ausgeblendet</span>}<small>Stündlich · Ortszeit</small></footer>
  </section>;
 }
 

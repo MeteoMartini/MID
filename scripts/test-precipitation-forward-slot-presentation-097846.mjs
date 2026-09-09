@@ -27,7 +27,7 @@ for(const token of [
 ])assert.ok(shortTerm.includes(token),`Kurzfrist-Vorwärtsintervall fehlt: ${token}`);
 
 assert.ok(cockpit.includes('precipitationIntervalStartEpoch:start')&&cockpit.includes('precipitationIntervalEndEpoch:end'),'24-h-Profil muss sichtbare Start-/Endgrenzen tragen.');
-assert.ok(cockpit.includes('const hourly=precipitationPresentationHours(hours)'),'7d-Kurvenübersicht muss sichtbare Vorwärtsstunden verwenden.');
+assert.ok(cockpit.includes('presentationReady?hours:precipitationPresentationHours(hours)'),'7d-Kurvenübersicht muss sichtbare Vorwärtsstunden verwenden und bereits normalisierte Widgetstunden verlustfrei übernehmen.');
 assert.ok(cockpit.includes('dayPeriodHoursForDate(day.date,hourly)'),'7d-Kurvenkopf/Piktogramm muss denselben vorwärts normalisierten Stundenverlauf verwenden.');
 assert.ok(cockpit.includes('displayHours=useMemo(()=>precipitationPresentationHours(hours),[hours])')&&cockpit.includes('displayMinutes15=useMemo(()=>precipitationPresentationMinutes15(minutes15),[minutes15])'),'7d-Tageskacheln müssen Stunden und 15-Minuten-Niederschlag auf Slotbeginn normalisieren.');
 assert.ok(cockpit.includes('dayPrecipitationAssessment(day,dayHours,displayMinutes15)'),'7d-Niederschlagsdauer muss die normalisierten 15-Minuten-Slots verwenden.');
