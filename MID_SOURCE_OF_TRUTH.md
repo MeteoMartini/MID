@@ -237,6 +237,10 @@ Widget-Tageskopf und `SevenDayCurveOverview` verwenden dieselbe einmalig auf sic
 - Die Kurvenübersicht zeigt bei aktivierter Windoption je Tag eine kompakte, warnstufengefärbte Kombination aus Richtung, Mittelwind und Böe.
 - Optionsfelder bleiben zweispaltig ausgerichtet; Checkbox und einzeilige Kurzbezeichnung dürfen nicht umbrechen oder gegeneinander verrutschen.
 
+## v0.9.84.9 · Ensemble-Widget, Kurvenhazards und optionaler Klima-Favoritenname
+
+Die neue Widgetansicht **14-Tage-Ensemble** rendert die drei vorhandenen vollständigen Diagramme für Temperatur, Niederschlag und Wind/Böen gemeinsam und ohne parallele vereinfachte Diagrammimplementierung. Ensemble-Daten werden erst bei Auswahl dieser Ansicht angefordert. Die Kurvenübersicht zeigt bei aktivierter Hazardoption datumsgleiche Warnsignale; Windrichtung, Mittelwind und Böen bleiben auch im hellen Export klar lesbar. Das Klima-Modul darf optional den aktiven Favoritennamen statt des technischen Ortsnamens verwenden und persistiert diese Wahl pro Koordinate. Required Regression: `scripts/test-widget-ensemble-climate-alias-09849.mjs`.
+
 ## v0.9.79.8 · CI-Regressionsmodernisierung nach Run #920
 
 Der Produktionsbuild und die TypeScript-Prüfung von v0.9.79.7 waren bereits erfolgreich. Run #920 scheiterte ausschließlich an fünf statischen Regressionen, deren Quelltextmuster noch die vor dem optionalen Bottom-Bar-/Planen-Hub-Umbau geltende Dashboard-Struktur voraussetzten. Diese Regressionen müssen ab v0.9.79.8 den funktional gleichwertigen aktuellen Vertrag prüfen: zentrale `displayHours`/`displayDays` bleiben verbindlich, Event- und Reiseplaner bleiben separat schaltbar und gemeinsam unter Planen erreichbar, Kurzfrist-/QR-/Modulverträge bleiben erhalten, und spätere Versionslinien müssen den v0.9.78.66-Favoritenvertrag semantisch statt über ein auf `0.9.78.x` begrenztes Regex erfüllen. Die Korrektur darf keine App- oder Worker-Fachlogik verändern.

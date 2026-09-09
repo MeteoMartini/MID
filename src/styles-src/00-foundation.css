@@ -1925,3 +1925,24 @@ button,input,select,textarea{font:inherit}
 .weatherwidget.modern.compact.widget-view-curve.light .seven-day-curve-wind.warning-0{color:#247e5b}.weatherwidget.modern.compact.widget-view-curve.light .seven-day-curve-wind.warning-1{color:#654b00;border-color:#a97e00;background:#fff2b8}.weatherwidget.modern.compact.widget-view-curve.light .seven-day-curve-wind.warning-2{color:#8b4300}.weatherwidget.modern.compact.widget-view-curve.light .seven-day-curve-wind.warning-3{color:#a51f2b}.weatherwidget.modern.compact.widget-view-curve.light .seven-day-curve-wind.warning-4{color:#713b91}
 .widget-option-grid label{display:grid!important;grid-template-columns:18px minmax(0,1fr);align-items:center;column-gap:6px;overflow:hidden}.widget-option-grid input{width:16px;height:16px;margin:0;flex:none}.widget-option-grid label span{display:block!important;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap!important;-webkit-line-clamp:unset;line-clamp:unset}.widget-option-grid label[title]{cursor:help}
 @media(max-width:520px){.widget-option-grid label{font-size:9px;padding-inline:6px}.weatherwidget.modern.compact.widget-view-curve .seven-day-curve-wind b{font-size:7px}.weatherwidget.modern.compact.widget-view-curve .seven-day-curve-wind small{font-size:6px}}
+
+/* MID 0.9.84.9: legible curve wind, aligned hazards, ensemble export and climate aliases */
+.weatherwidget.modern.compact.widget-view-curve .seven-day-curve-wind .cockpit-inline-wind-arrow{--arrow-size:16px!important;flex:0 0 20px;display:grid;place-items:center;width:20px;height:20px;border:1px solid currentColor;border-radius:50%;background:rgba(255,255,255,.1);font-size:16px;font-weight:950;filter:drop-shadow(0 1px 1px rgba(0,0,0,.38))}
+.weatherwidget.modern.compact.widget-view-curve.light .seven-day-curve-wind .cockpit-inline-wind-arrow{background:#fff;border-width:2px;box-shadow:0 1px 3px rgba(13,42,66,.18);filter:none}
+.weatherwidget.modern.compact.widget-view-curve .seven-day-curve-wind b{font-size:10px}
+.weatherwidget.modern.compact.widget-view-curve .seven-day-curve-wind small{font-size:8px}
+.weatherwidget.modern.compact.widget-view-curve .seven-day-curve-hazard-row{display:grid;grid-template-columns:repeat(var(--seven-day-curve-count),minmax(0,1fr));gap:3px;padding-left:var(--seven-day-curve-left-pad);padding-right:var(--seven-day-curve-right-pad);margin-top:3px}
+.weatherwidget.modern.compact.widget-view-curve .seven-day-curve-hazards{display:flex;align-items:center;justify-content:center;gap:2px;min-width:0;min-height:19px}
+.weatherwidget.modern.compact.widget-view-curve .seven-day-curve-hazards i{display:block;max-width:100%;padding:2px 4px;border:1px solid currentColor;border-radius:999px;background:color-mix(in srgb,currentColor 10%,transparent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#f0cf36;font-size:8px;font-style:normal;font-weight:900;line-height:1.1}
+.weatherwidget.modern.compact.widget-view-curve .seven-day-curve-hazards i.watch{color:#ef8d32}.weatherwidget.modern.compact.widget-view-curve .seven-day-curve-hazards i.warning{color:#ef5555}
+.weatherwidget.modern.compact.widget-view-curve.light .seven-day-curve-hazards i{color:#654b00;background:#fff2b8}.weatherwidget.modern.compact.widget-view-curve.light .seven-day-curve-hazards i.watch{color:#8b4300;background:#ffe6c7}.weatherwidget.modern.compact.widget-view-curve.light .seven-day-curve-hazards i.warning{color:#a51f2b;background:#ffe1e4}
+.widget-fixed-days{display:flex;align-items:center;min-height:35px;padding:0 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:12px}
+.weatherwidget.modern.compact.widget-view-ensemble{box-sizing:border-box;overflow:visible;padding:12px;background:var(--surface);color:var(--text)}
+.weatherwidget.modern.compact.widget-view-ensemble>.ensemble{margin:0;padding:14px;border:0;box-shadow:none;background:transparent}
+.weatherwidget.modern.compact.widget-view-ensemble .ensemble-metric-deck{display:none}
+.weatherwidget.modern.compact.widget-view-ensemble .ensemble-chart-export{margin-top:12px}
+.weatherwidget.modern.compact.widget-view-ensemble>footer{padding:8px 12px 4px}
+.climate-favorite-name{display:flex!important;align-items:center;gap:8px;min-width:min(100%,240px);padding:7px 10px!important;border:1px solid var(--border);border-radius:10px;background:var(--surface)}
+.climate-favorite-name input{width:16px;height:16px;margin:0;accent-color:var(--primary)}
+.climate-favorite-name span{font-size:11px;font-weight:750;white-space:nowrap}
+@media(max-width:520px){.weatherwidget.modern.compact.widget-view-curve .seven-day-curve-wind b{font-size:9px}.weatherwidget.modern.compact.widget-view-curve .seven-day-curve-wind small{font-size:7px}.weatherwidget.modern.compact.widget-view-curve .seven-day-curve-hazards i{font-size:7px}}
