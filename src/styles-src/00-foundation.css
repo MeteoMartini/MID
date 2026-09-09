@@ -1946,3 +1946,13 @@ button,input,select,textarea{font:inherit}
 .climate-favorite-name input{width:16px;height:16px;margin:0;accent-color:var(--primary)}
 .climate-favorite-name span{font-size:11px;font-weight:750;white-space:nowrap}
 @media(max-width:520px){.weatherwidget.modern.compact.widget-view-curve .seven-day-curve-wind b{font-size:9px}.weatherwidget.modern.compact.widget-view-curve .seven-day-curve-wind small{font-size:7px}.weatherwidget.modern.compact.widget-view-curve .seven-day-curve-hazards i{font-size:7px}}
+
+/* Feste Live-Widget-URLs: nur die aktuelle Exportflaeche ohne App-Chrom. */
+.widget-url-export-app{min-width:100%;min-height:100vh;margin:0;padding:0;background:#f7fbff;overflow:auto}
+.widget-url-export-app.widget-url-dark{background:#07111f}
+.widget-url-export-app>main{width:max-content;min-width:100%;max-width:none;margin:0;padding:0;display:block}
+.widget-url-export-app .widget-embedded{margin:0;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none}
+.widget-url-export-app .widgetlayout{display:block}
+.widget-url-export-app .widget-controls{display:none!important}
+.widget-url-export-app .widget-preview{margin:0;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;overflow:visible}
+.widget-url-export-app .weatherwidget{margin:0}

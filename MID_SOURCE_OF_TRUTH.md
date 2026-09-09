@@ -253,3 +253,7 @@ Der Produktionsbuild und die TypeScript-Prüfung von v0.9.79.7 waren bereits erf
 ## v0.9.84.12 · Skybar-Releasefix: Sonnenscheindauer bleibt eigenständig
 
 Die visuelle Skybar-Klassifikation und die physikalische Sonnenscheindauer sind getrennte Verträge. `baseSkyVisual()` verwendet bei bekannter Gesamtbewölkung weiterhin ausschließlich den komplementären Himmelszustand für das gelbe/graue Grundband. `sunVisualShare()` darf dagegen einen vorhandenen direkten Sonnenscheindaueranteil nicht durch Wolkenkomplementierung ersetzen; Wolkenkomplementierung ist dort nur Fallback bei fehlendem Sonnenwert. Damit bleibt der Wissenschaftsaudit kompatibel, ohne den v0.9.84.11-Skybarvertrag oder sonnige Niederschlags-Overlays abzuschwächen.
+
+## v0.9.84.13 · Feste aktuelle Widget-Live-URLs
+
+Feste Widget-URLs verwenden eine zentral gepflegte Ortsliste und erzeugen je Ort automatisch **Kompakt** und **Kurvenübersicht** für **5** und **7 Tage**. Beim Aufruf werden aktuelle kanonische MID-Prognosedaten geladen; angezeigt wird ausschließlich die Widgetfläche. URL-Vorgaben dürfen nicht durch lokale Widgeteinstellungen überschrieben werden. Wind, Niederschlag, Sonnenschein und Hazards sind vollständig aktiv. Required Regression: `scripts/test-widget-url-exports-098413.mjs`.

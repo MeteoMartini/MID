@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.84.12",
+  "version": "0.9.84.13",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -218,6 +218,7 @@
     "test:climate-hazard-widget": "node scripts/test-climate-hazard-widget-09804.mjs",
     "test:widget-curve-overview": "node scripts/test-widget-curve-overview-09845.mjs",
     "test:widget-ensemble-climate-alias": "node scripts/test-widget-ensemble-climate-alias-09849.mjs",
+    "test:widget-url-exports": "node scripts/test-widget-url-exports-098413.mjs",
     "test:deployed-health": "node scripts/check-deployed-mid.mjs",
     "test:api-contracts": "node scripts/check-api-contracts.mjs",
     "test:build-budget": "node scripts/check-build-budget.mjs",

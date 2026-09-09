@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {spawnSync} from 'node:child_process';
+import {pathToFileURL} from 'node:url';
+const configPath=new URL('../src/widgetUrlExports.ts',import.meta.url),app=await readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),css=await readFile(new URL('../src/styles-src/00-foundation.css',import.meta.url),'utf8');
+const probe=`import {readWidgetUrlExportRequest,widgetUrlExportVariants} from ${JSON.stringify(pathToFileURL(configPath.pathname).href)};const variants=widgetUrlExportVariants('https://www.midwx.app/');console.log(JSON.stringify({variants,parsed:variants.map(item=>readWidgetUrlExportRequest(item.url))}))`;
+const run=spawnSync(process.execPath,['--experimental-strip-types','--input-type=module','-e',probe],{encoding:'utf8'});assert.equal(run.status,0,run.stderr||'Widget-URL-Konfiguration konnte nicht geladen werden.');
+const{variants,parsed}=JSON.parse(run.stdout);assert.equal(variants.length,12,'Drei Orte × zwei Ansichten × zwei Zeiträume müssen zwölf URLs ergeben.');
+for(const slug of['wiesbaden','kuerecik','malatya'])for(const ansicht of['kompakt','kurve'])for(const tage of[5,7])assert.ok(variants.some(item=>item.location.slug===slug&&item.url.includes(`ansicht=${ansicht}`)&&item.days===tage&&item.theme==='light'),`URL fehlt: ${slug}/${ansicht}/${tage}/light`);
+assert.deepEqual(variants.map(item=>[item.location.slug,item.location.name,item.location.latitude,item.location.longitude]).filter((row,index,all)=>all.findIndex(candidate=>candidate[0]===row[0])===index),[['wiesbaden','Wiesbaden',50.09,8.24],['kuerecik','Kürecik',38.35,37.79],['malatya','Malatya',38.44,38.09]]);
+assert.ok(parsed.every((item,index)=>item&&item.location.slug===variants[index].location.slug&&item.view===variants[index].view&&item.days===variants[index].days&&item.theme==='light'),'Kanonische URLs werden nicht verlustfrei gelesen.');
+assert.match(app,/if\(widgetUrlExport\)return <div className=\{`app widget-url-export-app/,'Eigene Nur-Widget-Ausgabe fehlt.');assert.match(app,/showWind:true,showRain:true,showSunshine:true,showHazards:true/,'URL-Ausgabe hängt von lokalen Sichtbarkeitseinstellungen ab.');assert.match(css,/\.widget-url-export-app \.widget-controls\{display:none!important\}/,'Bedienelemente werden nicht entfernt.');
+console.log('Widget-Live-URLs geprüft: 12 von 12 Varianten bestanden.');

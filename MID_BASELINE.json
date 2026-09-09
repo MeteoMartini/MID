@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.84.12",
+  "releaseVersion": "0.9.84.13",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -445,7 +445,8 @@
     "scripts/test-react19-ref-climate-colors-09832.mjs",
     "scripts/test-ruc-expanded-extreme-integration-09840.mjs",
     "scripts/test-modern-five-workspaces-09841.mjs",
-    "scripts/test-skybar-shower-overlay-cloud-priority-098411.mjs"
+    "scripts/test-skybar-shower-overlay-cloud-priority-098411.mjs",
+    "scripts/test-widget-url-exports-098413.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -814,7 +815,8 @@
     "scripts/test-react19-ref-climate-colors-09832.mjs",
     "scripts/test-ruc-expanded-extreme-integration-09840.mjs",
     "scripts/test-modern-five-workspaces-09841.mjs",
-    "scripts/test-skybar-shower-overlay-cloud-priority-098411.mjs"
+    "scripts/test-skybar-shower-overlay-cloud-priority-098411.mjs",
+    "scripts/test-widget-url-exports-098413.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -1410,7 +1412,11 @@
     "MID_IMPLEMENTATION_0.9.84.11.md",
     "MID_TEST_REPORT_0.9.84.11.md",
     "MID_IMPLEMENTATION_0.9.84.12.md",
-    "MID_TEST_REPORT_0.9.84.12.md"
+    "MID_TEST_REPORT_0.9.84.12.md",
+    "MID_IMPLEMENTATION_0.9.84.13.md",
+    "MID_TEST_REPORT_0.9.84.13.md",
+    "src/widgetUrlExports.ts",
+    "scripts/test-widget-url-exports-098413.mjs"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1465,7 +1471,8 @@
     "scripts/test-widget-ensemble-climate-alias-09849.mjs",
     "scripts/test-react19-ref-climate-colors-09832.mjs",
     "scripts/test-ruc-expanded-extreme-integration-09840.mjs",
-    "scripts/test-skybar-shower-overlay-cloud-priority-098411.mjs"
+    "scripts/test-skybar-shower-overlay-cloud-priority-098411.mjs",
+    "scripts/test-widget-url-exports-098413.mjs"
   ],
   "protectedFiles": [
     "scripts/test-travel-planner-era5-seamless-units-09652.mjs",
@@ -1910,8 +1917,8 @@
     "scripts/test-ruc-expanded-extreme-integration-09840.mjs",
     "scripts/test-skybar-shower-overlay-cloud-priority-098411.mjs"
   ],
-  "version": "0.9.84.12",
-  "updatedAt": "2026-09-09T20:45:00.000+02:00",
+  "version": "0.9.84.13",
+  "updatedAt": "2026-09-09T22:00:00.000+02:00",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
     "MID_IMPLEMENTATION_0.9.77.27.md",
@@ -1990,7 +1997,8 @@
     "MID_IMPLEMENTATION_0.9.84.7.md",
     "MID_IMPLEMENTATION_0.9.84.8.md",
     "MID_IMPLEMENTATION_0.9.84.11.md",
-    "MID_IMPLEMENTATION_0.9.84.12.md"
+    "MID_IMPLEMENTATION_0.9.84.12.md",
+    "MID_IMPLEMENTATION_0.9.84.13.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",
@@ -2045,6 +2053,7 @@
     "MID_TEST_REPORT_0.9.84.7.md",
     "MID_TEST_REPORT_0.9.84.8.md",
     "MID_TEST_REPORT_0.9.84.11.md",
-    "MID_TEST_REPORT_0.9.84.12.md"
+    "MID_TEST_REPORT_0.9.84.12.md",
+    "MID_TEST_REPORT_0.9.84.13.md"
   ]
 }
