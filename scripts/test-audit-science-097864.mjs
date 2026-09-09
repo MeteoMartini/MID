@@ -27,11 +27,12 @@ assert.ok(sky.sunBandWidth(.6)>0);
 assert.ok(sky.sunBandWidth(1)>sky.sunBandWidth(.6));
 assert.deepEqual([...sky.SKYBAR_THICKNESS_STEPS],[2.4,3.6,4.8,6]);
 assert.deepEqual([.51,.63,.76,.9].map(sky.skybarAboveHalfLevel),[0,1,2,3]);
-const daytimeFallback=sky.baseSkyVisual(20,true,.4);assert.ok(daytimeFallback);assert.equal(daytimeFallback.color,'#aeb3b9');assert.equal(daytimeFallback.thicknessLevel,1);assert.ok(daytimeFallback.title.includes('Tages-Fallback'));
+const cloudDrivenSunny=sky.baseSkyVisual(20,true,.4);assert.ok(cloudDrivenSunny);assert.equal(cloudDrivenSunny.color,'#ffc229');assert.equal(cloudDrivenSunny.thicknessLevel,3);assert.ok(cloudDrivenSunny.title.includes('komplementär zu 20 % Gesamtbewölkung'));
 const sunnyBase=sky.baseSkyVisual(20,true,.7);assert.ok(sunnyBase);assert.equal(sunnyBase.color,'#ffc229');
 assert.equal(sky.baseSkyVisual(20,false,null),null,'Klare Nacht unter 50 % Bewölkung darf weiterhin ohne Grundband bleiben.');
-assert.ok(sky.baseSkyVisual(NaN,true,.4),'Direkte Sonnenscheindauer muss tagsüber auch bei fehlender Bewölkung ein sichtbares Grundband sichern.');
-assert.deepEqual([.1,.8,4,12].map(sky.precipBandLevel),[0,1,2,3]);
+assert.equal(sky.baseSkyVisual(NaN,true,.4),null,'Bei unbekannter Bewölkung bleibt ein Sonnenscheinanteil <=50 % unterhalb der Skybar-Sichtbarkeitsschwelle.');
+assert.ok(sky.baseSkyVisual(NaN,true,.7),'Bei unbekannter Bewölkung darf ausreichend hohe direkte Sonnenscheindauer das gelbe Fallback-Grundband liefern.');
+assert.deepEqual([.1,.8,5,15].map(sky.precipBandLevel),[0,1,2,3]);
 // Legacy temperature-index checks are superseded by test-ensemble-multiparameter-097865.mjs.
 const time=load('src/weather-src/00-types-models-search.tsfrag',['parseLocalIso','partsAtEpoch','localIsoEpoch']);
 const intervalSemantics=load('src/eventIntervalSemantics.ts',['eventIntervalHasPrecipitation','eventIntervalSkyCode']);

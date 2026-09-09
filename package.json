@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.84.9",
+  "version": "0.9.84.12",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -448,7 +448,8 @@
     "test:weather-profile-polish-temporal": "node scripts/test-weather-profile-polish-temporal-09802.mjs",
     "test:react19-climate-colors": "node scripts/test-react19-ref-climate-colors-09832.mjs",
     "test:ruc-expanded-extreme-integration": "node scripts/test-ruc-expanded-extreme-integration-09840.mjs",
-    "test:modern-five-workspaces": "node scripts/test-modern-five-workspaces-09841.mjs"
+    "test:modern-five-workspaces": "node scripts/test-modern-five-workspaces-09841.mjs",
+    "test:skybar-shower-overlay-cloud-priority": "node scripts/test-skybar-shower-overlay-cloud-priority-098411.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",

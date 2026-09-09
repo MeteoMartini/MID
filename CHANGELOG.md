@@ -1,3 +1,26 @@
+# MID v0.9.84.12
+
+## Extern
+- Release-Korrektur ohne sichtbare Änderung: Die neue Skybar-Logik aus v0.9.84.11 bleibt vollständig erhalten.
+- Gesamtbewölkung steuert weiterhin das gelbe/graue Grundband; sonnige Schauer bleiben als farbiger Niederschlagslayer über Sonne sichtbar.
+
+## Intern
+- GitHub-Run #966 repariert: direkter Sonnenscheinparameter und wolkenbasierter visueller Sonnenanteil sind wieder sauber getrennt.
+- Der wissenschaftliche Auditvertrag `sunVisualShare(0,0) = 0` ist wieder erfüllt, ohne die Wolkenpriorität der Skybar zurückzunehmen.
+- Keine fachliche Workeränderung.
+
+# MID v0.9.84.11
+
+## Extern
+- Skybar: Gesamtbewölkung ist jetzt die primäre Himmelsgröße. Hohe Sonnenscheindauer kann eine überwiegend bewölkte Stunde nicht mehr als maximal sonnig darstellen.
+- Klassische Schauerlagen bleiben sichtbar: farbiger Niederschlag liegt über einem vorhandenen gelben Sonnenband; ein breiteres Sonnenband bleibt seitlich sichtbar, ein gleich dicker oder dickerer Niederschlagsbalken verdeckt es vollständig.
+- Niederschlagsdicken orientieren sich an den DWD-Intensitäten leicht/mäßig/stark; die höchste vierte Dicke ist eine klar dokumentierte MID-Darstellungsunterteilung innerhalb „stark“.
+
+## Intern
+- Zentrale `detailSkyBar`-Engine für alle sichtbaren Skybar-Verwendungen vereinheitlicht.
+- Wolkenpriorität, Sunshine-Fallback, Schauer-Layerreihenfolge und Intensitätsschwellen regressionsgeschützt.
+- Keine fachliche Workeränderung.
+
 # MID v0.9.84.0
 
 ## Extern

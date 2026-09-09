@@ -18,7 +18,7 @@ const baseline=JSON.parse(baselineRaw);
 const test='scripts/test-weather-profile-skybar-pills-097723.mjs';
 
 assert.ok(app.includes('data-mid-sky-note="react"'),'Wetterstreifen-Hinweis fehlt in der 24h-Ansicht.');
-assert.ok(app.includes('Sonnenschein · gelb')&&app.includes('Bewölkung · grau')&&app.includes('Niederschlag · nach Phase')&&app.includes('Regen/Sprühregen/Schauer blau, Schnee hellblau, Misch-/gefrierende Phase violett, Gewitter/Hagel purpur')&&app.includes('mehr als 50 % relativer Sonnenscheindauer')&&app.includes('Grau beginnt ab 50 % Gesamtbewölkung')&&app.includes('Gelb und Grau werden nie gleichzeitig gezeichnet'),'Hinweis muss den exklusiven Gelb/Grau-/Phasenfarben- und 50–100-%-Skybar-Vertrag erklären.');
+assert.ok(app.includes('Sonnenschein · gelb')&&app.includes('Bewölkung · grau')&&app.includes('Niederschlag · nach Phase')&&app.includes('Regen/Sprühregen/Schauer blau, Schnee hellblau, Misch-/gefrierende Phase violett, Gewitter/Hagel purpur')&&app.includes('Gesamtbewölkung die primäre Himmelsgröße')&&app.includes('69 % Gesamtbewölkung')&&app.includes('Gelb und Grau werden nie gleichzeitig gezeichnet')&&app.includes('Niederschlag liegt als eigenständige farbreine Lage darüber'),'Hinweis muss den exklusiven Wolken/Sonnen-Grundband- und Niederschlags-Overlay-Vertrag erklären.');
 
 for(const token of ['const weatherStripVisuals=','const baseSkyVisual=','const precipitationOverlayVisual=','precipitationPhaseColor(parts.type)','precipitationPhaseColorLabel(parts.type)','const precipBandWidth=','const SKYBAR_THICKNESS_STEPS=','const sunVisualShare=','const sampleIntervalSeconds=','Number(rawSunshine)/Math.max(60,intervalSeconds)','precipitationRateMmh=amount*(3600/Math.max(60,intervalSeconds))','return [...baseSegments,...precipSegments]']){
   assert.ok(detailSkyBar.includes(token),`Skybar-Vertrag unvollständig: ${token}`);
@@ -26,8 +26,8 @@ for(const token of ['const weatherStripVisuals=','const baseSkyVisual=','const p
 assert.ok(detailSkyBar.includes("layer:'base'")&&detailSkyBar.includes("layer:'precip'"),'Sonne/Bewölkung und Niederschlag müssen als getrennte Zeichenlagen geführt werden.');
 assert.ok(detailSkyBar.includes('const SKYBAR_THICKNESS_STEPS=[2.4,3.6,4.8,6.0] as const'),'Skybar muss die klar unterscheidbaren vier Dickenstufen verwenden.');
 assert.ok(detailSkyBar.includes('if(!Number.isFinite(cloud)||cloud<50)return 0;')&&detailSkyBar.includes('skybarAboveHalfLevel(cloud/100)'),'Grauband darf erst ab 50 % Gesamtbewölkung beginnen und muss 50–100 % auf vier Dickenstufen abbilden.');
-assert.ok(detailSkyBar.includes('if(sunshineShare<=.5)return 0;')&&detailSkyBar.includes('if(visualSunshine>.5)')&&detailSkyBar.includes("color:'#ffc229'"),'Gelb darf erst oberhalb 50 % relativer Sonnenscheindauer bzw. des Fallback-Aufklarungsanteils beginnen.');
-assert.ok(!detailSkyBar.includes('if(daylight&&cloud<50)'),'Alter Wolken-Shortcut darf direkte Sonnenscheindauer nicht mehr übersteuern.');
+assert.ok(detailSkyBar.includes('if(sunshineShare<=.5)return 0;')&&detailSkyBar.includes('if(daylight&&boundedCloud<50)')&&detailSkyBar.includes('const visualSunshine=clamp01(1-boundedCloud/100)')&&detailSkyBar.includes("color:'#ffc229'"),'Gelb muss bei bekannter Gesamtbewölkung ausschließlich aus dem komplementären Aufklarungsanteil entstehen.');
+assert.ok(detailSkyBar.includes('if(sunshineShare!==null&&Number.isFinite(sunshineShare))return clamp01(sunshineShare);')&&detailSkyBar.includes('if(cloudKnown){')&&detailSkyBar.includes('if(daylight&&boundedCloud<50)'),'Skybar-Grundzustand muss bekannte Gesamtbewölkung priorisieren; der separate Sonnenscheindauer-Helfer bleibt physikalisch eigenständig.');
 assert.ok(detailSkyBar.includes("color:'#aeb3b9'")&&!detailSkyBar.includes("cloud>=82?'#b0b5bb':'#c0c5cb'"),'Bewölkung muss einen einheitlichen Grauton nutzen; die Stärke wird ausschließlich über die Dicke codiert.');
 assert.ok(detailSkyBar.includes("import {precipitationPhaseColor,precipitationPhaseColorLabel} from './precipitationPhaseColor';")&&detailSkyBar.includes('color:precipitationPhaseColor(parts.type)'),'Skybar-Niederschlag muss die gemeinsame Art-/Phasenpalette verwenden.');
 assert.ok(!detailSkyBar.includes('const precipSunColor=')&&!detailSkyBar.includes('color-mix(in srgb'),'Niederschlag darf nicht mehr mit Gelb/Grau zu Mischfarben verrechnet werden.');
@@ -46,7 +46,7 @@ assert.ok(curve.includes('nightBands=(()=>{')&&curve.includes('seven-day-curve-n
 assert.ok(!curve.includes('seven-day-curve-temperature-band')&&!curve.includes('P25–P75')&&!curve.includes('smoothBandPath')&&!curve.includes('interpolateTemperatureBand'),'P25–P75 muss aus der 7-Tage-Kurvenübersicht ersatzlos entfernt sein.');
 assert.ok(styles.includes('.seven-day-curve-night-band{fill:rgba(164,181,199,.14)!important')&&styles.includes(':root[data-theme=light] .seven-day-curve-night-band{fill:rgba(73,92,113,.08)!important'),'Nachtstunden müssen in dunklem und hellem Design explizit sichtbar sein.');
 
-for(const token of ['Regen/Sprühregen/Schauer blau, Schnee hellblau, Misch-/gefrierende Phase violett, Gewitter/Hagel purpur','50 % Gesamtbewölkung','vier gleich definierte Dickenstufen','einheitlichen Grauton','Nachtstunden wieder als zusammenhängende','P25–P75-Band um die Temperaturkurve ist ersatzlos entfernt']){
+for(const token of ['Regen/Sprühregen/Schauer blau, Schnee hellblau, Misch-/gefrierende Phase violett, Gewitter/Hagel purpur','50 % Gesamtbewölkung','vier Dickenstufen','einheitlichen Grauton','Nachtstunden wieder als zusammenhängende','P25–P75-Band um die Temperaturkurve ist ersatzlos entfernt']){
   assert.ok(contract.includes(token),`24h-Profil-Vertrag unvollständig: ${token}`);
 }
 

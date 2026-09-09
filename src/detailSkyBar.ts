@@ -29,9 +29,17 @@ const clamp=(value:number,min:number,max:number)=>Math.min(max,Math.max(min,valu
 const clamp01=(value:number)=>clamp(value,0,1);
 
 const sunVisualShare=(sunshineShare:number|null,cloudCover:number)=>{
+  // Keep the physical sunshine-duration helper independent from the sky-state
+  // classification. If a direct sunshine share exists it remains authoritative
+  // for that parameter; cloud complement is only its fallback. The Skybar base
+  // itself is classified separately in baseSkyVisual(), where known total cloud
+  // cover has priority by design.
   if(sunshineShare!==null&&Number.isFinite(sunshineShare))return clamp01(sunshineShare);
-  if(!Number.isFinite(cloudCover))return NaN;const cloud=clamp(cloudCover,0,100);
-  return clamp01(1-cloud/100);
+  if(Number.isFinite(cloudCover)){
+    const cloud=clamp(cloudCover,0,100);
+    return clamp01(1-cloud/100);
+  }
+  return NaN;
 };
 
 const SKYBAR_THICKNESS_STEPS=[2.4,3.6,4.8,6.0] as const;
@@ -57,13 +65,17 @@ const sunBandWidth=(sunshineShare:number)=>{
 };
 
 const precipBandLevel=(amount:number):SkyBarThicknessIndex|null=>{
+  // DWD intensity classes for continuous rain: light <=0.5 mm/h, moderate >0.5-4 mm/h,
+  // heavy >4 mm/h. MID splits the heavy class once more at 15 mm/h for the fourth
+  // visual thickness level; that extra step is a display refinement, not a new DWD class.
   if(amount<0.05)return null;
-  if(amount<0.5)return 0;
-  if(amount<2.5)return 1;
-  if(amount<10)return 2;
+  if(amount<=0.5)return 0;
+  if(amount<=4)return 1;
+  if(amount<15)return 2;
   return 3;
 };
 const precipBandWidth=(amount:number)=>{const level=precipBandLevel(amount);return level===null?0:skybarThickness(level);};
+const precipIntensityLabel=(amount:number)=>amount<=0.5?'leicht':amount<=4?'mäßig':amount<15?'stark':'stark · hohe Intensität';
 
 const sampleIntervalSeconds=(hours:PrecipSample[],index:number)=>{
   const sample=hours[index],explicitStart=Number(sample?.precipitationIntervalStartEpoch),explicitEnd=Number(sample?.precipitationIntervalEndEpoch),explicit=Number.isFinite(explicitStart)&&Number.isFinite(explicitEnd)&&explicitEnd>explicitStart?(explicitEnd-explicitStart)/1000:NaN;
@@ -76,36 +88,51 @@ const sampleIntervalSeconds=(hours:PrecipSample[],index:number)=>{
 };
 
 const baseSkyVisual=(cloud:number,daylight:boolean,sunshineShare:number|null):WeatherStripVisual|null=>{
-  const sunshineDirect=sunshineShare!==null&&Number.isFinite(sunshineShare);
-  if(daylight){
-    const visualSunshine=sunVisualShare(sunshineShare,cloud);
-    if(visualSunshine>.5){
-      const level=skybarAboveHalfLevel(visualSunshine),width=sunBandWidth(visualSunshine);
+  const cloudKnown=Number.isFinite(cloud),sunshineDirect=sunshineShare!==null&&Number.isFinite(sunshineShare);
+
+  // Total cloud cover is the primary sky-state signal whenever it is available.
+  // Daytime sun and cloud are complementary: <50 % cloud -> yellow clear/sun share,
+  // >=50 % cloud -> grey cloud share. This keeps 69 % cloud grey even if an
+  // aggregated sunshine-duration field happens to report a very high value.
+  if(cloudKnown){
+    const boundedCloud=clamp(cloud,0,100);
+    if(daylight&&boundedCloud<50){
+      const visualSunshine=clamp01(1-boundedCloud/100),level=skybarAboveHalfLevel(visualSunshine),width=sunBandWidth(visualSunshine);
       if(width>0)return {
         layer:'base',
         color:'#ffc229',
         strokeWidth:width,
         thicknessLevel:skybarThicknessLevel(level),
         opacity:0.98,
-        title:`Sonnenschein · ${(visualSunshine*100).toFixed(0)} % der betrachteten Zeit${sunshineDirect?'':' · aus Bewölkungsgrad abgeleitet'} · ${Number.isFinite(cloud)?`${cloud.toFixed(0)} % Wolken`:'Bewölkung unbekannt'}`,
+        title:`Sonnenanteil · ${(visualSunshine*100).toFixed(0)} % · komplementär zu ${boundedCloud.toFixed(0)} % Gesamtbewölkung`,
       };
     }
+    const width=cloudBandWidth(boundedCloud);
+    if(width>0){const level=skybarAboveHalfLevel(boundedCloud/100);return {
+      layer:'base',
+      color:'#aeb3b9',
+      strokeWidth:width,
+      thicknessLevel:skybarThicknessLevel(level),
+      opacity:0.96,
+      title:`Gesamtbewölkung${daylight?'':' Nacht'} · ${boundedCloud.toFixed(0)} %`,
+    };}
+    return null;
   }
 
-  const regularCloudWidth=cloudBandWidth(cloud),daylightFallback=daylight&&sunshineDirect&&sunshineShare<=.5&&regularCloudWidth<=0;
-  const fallbackShare=Number.isFinite(cloud)?Math.max(.5,clamp01(cloud/100)):sunshineDirect?Math.max(.5,1-clamp01(Number(sunshineShare))):NaN;
-  const level=regularCloudWidth>0?skybarAboveHalfLevel(cloud/100):daylightFallback&&Number.isFinite(fallbackShare)?skybarAboveHalfLevel(fallbackShare):0;
-  const width=regularCloudWidth>0?regularCloudWidth:daylightFallback?skybarThickness(level):0;
-  if(width<=0)return null;
-  const cloudLabel=Number.isFinite(cloud)?`${cloud.toFixed(0)} %`:'unbekannt';
-  return {
-    layer:'base',
-    color:'#aeb3b9',
-    strokeWidth:width,
-    thicknessLevel:skybarThicknessLevel(level),
-    opacity:0.96,
-    title:`Bewölkung${daylight?'':' Nacht'} · ${cloudLabel}${daylightFallback?' · Tages-Fallback bei ≤50 % Sonnenschein':''}`,
-  };
+  // If total cloud cover is missing, relative sunshine duration may still supply a
+  // daytime fallback. It must never be used to override a known cloud-cover value.
+  if(daylight&&sunshineDirect){
+    const visualSunshine=clamp01(Number(sunshineShare)),width=sunBandWidth(visualSunshine);
+    if(width>0){const level=skybarAboveHalfLevel(visualSunshine);return {
+      layer:'base',
+      color:'#ffc229',
+      strokeWidth:width,
+      thicknessLevel:skybarThicknessLevel(level),
+      opacity:0.98,
+      title:`Sonnenschein · ${(visualSunshine*100).toFixed(0)} % der betrachteten Zeit · Bewölkung unbekannt`,
+    };}
+  }
+  return null;
 };
 
 const precipitationOverlayVisual=(hour:PrecipSample,intervalSeconds:number,cloud:number):WeatherStripVisual|null=>{
@@ -115,14 +142,15 @@ const precipitationOverlayVisual=(hour:PrecipSample,intervalSeconds:number,cloud
   if(level===null||width<=0)return null;
   const intervalMinutes=Math.round(intervalSeconds/60);
   const parts=precipitationParts(hour);
-  const rawSunshine=hour.sunshineDuration,sunshineShare=!!hour.isDay&&rawSunshine!==null&&rawSunshine!==undefined&&Number.isFinite(Number(rawSunshine))?clamp01(Number(rawSunshine)/Math.max(60,intervalSeconds)):null,hasSunshineBase=!!hour.isDay&&sunVisualShare(sunshineShare,cloud)>.5;
+  const rawSunshine=hour.sunshineDuration,sunshineShare=!!hour.isDay&&rawSunshine!==null&&rawSunshine!==undefined&&Number.isFinite(Number(rawSunshine))?clamp01(Number(rawSunshine)/Math.max(60,intervalSeconds)):null;
+  const hasSunshineBase=!!hour.isDay&&(Number.isFinite(cloud)?clamp(cloud,0,100)<50:sunVisualShare(sunshineShare,cloud)>.5);
   return {
     layer:'precip',
     color:precipitationPhaseColor(parts.type),
     strokeWidth:width,
     thicknessLevel:skybarThicknessLevel(level),
     opacity:1,
-    title:`${parts.label||'Niederschlag'} · ${precipitationPhaseColorLabel(parts.type)} · ${precipitationRateMmh.toFixed(precipitationRateMmh>=10?0:1)} mm/h${intervalMinutes<60?` · ${amount.toFixed(amount>=10?0:1)} mm/${intervalMinutes} min`:''}${hasSunshineBase?' · auf sonnigem Grundband':''}`,
+    title:`${parts.label||'Niederschlag'} · ${precipitationPhaseColorLabel(parts.type)} · ${precipIntensityLabel(precipitationRateMmh)} · ${precipitationRateMmh.toFixed(precipitationRateMmh>=10?0:1)} mm/h${intervalMinutes<60?` · ${amount.toFixed(amount>=10?0:1)} mm/${intervalMinutes} min`:''}${hasSunshineBase?' · auf sonnigem Grundband':''}`,
   };
 };
 

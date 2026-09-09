@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-09-09T14:29:08.041Z",
-  "releaseVersion": "0.9.84.9",
+  "updatedAt": "2026-09-09T18:37:17.519Z",
+  "releaseVersion": "0.9.84.12",
   "sourceBaseline": {
     "professionalVersion": "0.9.77.26",
     "workerVersion": "0.9.77.26",
@@ -239,5 +239,8 @@
     },
     "release-run-934-typescript7-widget-regression-hotfix-0.9.80.5"
   ],
-  "currentVersion": "0.9.83.0"
+  "currentVersion": "0.9.83.0",
+  "verified": [
+    "skybar-cloud-priority-shower-overlay-source-version-synchronized-0.9.84.11"
+  ]
 }
