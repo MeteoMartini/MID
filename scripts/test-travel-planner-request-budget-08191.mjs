@@ -32,8 +32,8 @@ for(const token of [
  'Kumulierter Schneefall wird separat zusätzlich ausgewiesen',
  "snowDepthRequired=mode==='fixed'||(mode==='flexible'&&(preference==='snow'||Number.isFinite(constraints.minSnowDepthCm)))",
  'const includeSnowDepth=snowDepthRequired',
- 'Pro gerastertem Klimapunkt erfolgt höchstens ein direkter Basisabruf',
- 'Für Küstenorte ermittelt MID zusätzlich das tägliche NOAA-OISST-v2.1-Meeresoberflächenmittel'
+ 'MID lädt nur Quellen, deren Prognosehorizont den gewählten Reisezeitraum tatsächlich erreicht',
+ 'Für Küstenorte bleibt NOAA OISST v2.1 die klimatologische Wassertemperatur-Referenz'
 ])need('Abrufbudget-Oberfläche',panel,token);
 need('Abrufbudget-Design',styles,'.travel-preference .travel-snow-detail{');
 need('Package-Test',pkg,'test:travel-request-budget');

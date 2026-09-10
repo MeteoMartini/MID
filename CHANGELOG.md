@@ -1,17 +1,85 @@
+# MID v0.9.84.33
+
+## Extern
+- Der Prognose-Designstand aus v0.9.84.31/32 bleibt nun auch im tatsächlichen Release-Build vollständig erhalten. Die vereinheitlichten Einstiege, mobilen 90-min/24-h-Umschalter, 7-/14-Tage-Layouts und Niederschlagsfarben werden beim Build nicht mehr zurückgesetzt.
+- Keine Änderung an den meteorologischen Daten oder Berechnungen gegenüber v0.9.84.32.
+
+## Intern
+- Die Forecast-/Responsive-CSS-Regeln wurden aus der generierten Datei `src/styles.css` in die kanonische Quelle `src/styles-src/30-modern.css` überführt. `build-maintenance-aggregates` erzeugt sie damit reproduzierbar in jedem lokalen und GitHub-CI-Build.
+- Die Regression `test-forecast-entry-consistency-098430.mjs` schützt diesen Quellvertrag weiterhin und läuft nach dem Aggregat-Neubau grün.
+- Der in Run #987 bereits erfolgreiche TypeScript-7- und Vite-Buildpfad bleibt unverändert; behoben wird ausschließlich der nachgelagerte Regression-Rückfall durch die CSS-Aggregation.
+- Keine fachliche Worker-Änderung.
+
+# MID v0.9.84.32
+
+## Extern
+- Der nach dem Upload von v0.9.84.31 fehlgeschlagene GitHub-Release wird gezielt repariert; die sichtbaren Prognose- und Niederschlagsdarstellungen aus v0.9.84.31 bleiben unverändert erhalten.
+- Die farbigen Niederschlagsbalken der 7-Tage-Kurvenübersicht verwenden weiterhin das MID-Phasenfarbkonzept, jetzt ohne TypeScript-Buildfehler.
+
+## Intern
+- GitHub-Run #986 analysiert: ZIP-Validierung, npm-ci und Dependency-Audit waren erfolgreich; der Abbruch entstand ausschließlich im TypeScript-Build in `src/ForecastCockpit.tsx`.
+- `curveRainBarStyle()` leitet die Niederschlagsphase nun korrekt aus `precipitationParts(hour).type` ab. Der fehlerhafte Einzelstunden-Aufruf von `dominantPrecipitationForm()` wurde entfernt.
+- CSS-Custom-Properties der Kurven-Niederschlagsbalken werden explizit als `CSSProperties` typisiert.
+- Der bestehende Modern-Workspace-Regressionstest wurde auf die neue gemeinsame Forecast-Headerklasse aktualisiert, statt den neuen Headervertrag fälschlich als Regression zu werten.
+- `test-forecast-entry-consistency-098430.mjs` schützt jetzt zusätzlich genau die in Run #986 sichtbar gewordenen Typfehler.
+- Keine fachliche Worker-Änderung.
+
+# MID v0.9.84.31
+
+## Extern
+- Die Prognose-Einstiege für 90 Minuten, 24 Stunden, 7 Tage, 14 Tage und 46 Tage+ wurden noch einmal gemeinsam auf Smartphone, Querformat und Desktop abgeglichen. Überschriften, Abstände, Akzentfarben und Zeithorizont-Navigation wirken nun einheitlicher.
+- Der Umschalter zwischen 90-Minuten- und 24-Stunden-Ansicht nutzt auf kleinen Displays die volle Breite und bleibt besser bedienbar.
+- Die 14-Tage-Ansicht wurde auf Mobilgeräten besser lesbar: Im Hochformat sind Schrift und Kennwerte größer; im Querformat werden die Tageskarten nicht mehr auf sieben extrem schmale Spalten zusammengedrückt, sondern bleiben lesbar horizontal verschiebbar.
+- Niederschlagsbalken der Tagesansicht übernehmen konsequent die MID-Farblogik für Niederschlagsart und Intensität. Auch die 7-Tage-Kurvenübersicht verwendet denselben Parameterfarbvertrag.
+- Der im Release-Lauf sichtbare TypeScript-Fehler im Reiseprognose-Pfad ist bereinigt.
+
+## Intern
+- Der gemeinsame `forecast-entry-head`-Vertrag wurde so verfeinert, dass Eyebrow, Titel, Beschreibung und Statuszeilen nicht mehr versehentlich dieselbe Großschreibungs-/Akzentformatierung erben.
+- Mobile Scroll-/Snap-Regeln für Prognosehorizonte und 14-Tage-Karten wurden vereinheitlicht; die 14-Tage-Landschaftsansicht verwendet feste lesbare Kartenbreiten statt Mikroschrift.
+- Die Tagesansicht nutzt `precipitationPhaseColor()` plus die vorhandenen Phasenmuster für ihre Niederschlagsbalken; die Intensität steuert zusätzlich Deckkraft und Kontur.
+- `mediumDay()` im Reise-Fusionspfad enthält keinen ungenutzten `date`-Parameter mehr.
+- Regression `test-forecast-entry-consistency-098430.mjs` wurde auf die verfeinerte Darstellung erweitert.
+- Keine fachliche Änderung am Cloudflare-Worker; nur die Releaseversionsmarke wird synchronisiert.
+
+# MID v0.9.84.30
+
+## Extern
+- Die Prognose-Einstiege wurden in mobiler und Desktop-Ansicht gestalterisch vereinheitlicht: Kurzfrist-, Prognose-, Warn-, Langfrist- und Reiseplaner-Köpfe nutzen nun ein gemeinsames, farblich abgestimmtes Einstiegsmuster.
+- Die Tagesansicht nutzt das MID-Farbkonzept jetzt auch bei Niederschlagsbalken konsequenter. Phase und Intensität treten dadurch klarer hervor.
+- Ein Build-/Release-Fehler im Reiseprognose-Fusionspfad wurde bereinigt, damit der ZIP-Installationsworkflow nicht mehr an einem ungenutzten TypeScript-Parameter scheitert.
+
+## Intern
+- Neue gemeinsame CSS-Basis `forecast-entry-head` für prognosenahe Einstiege inklusive Responsive-Fallbacks und angeglichener Modern-Forecast-Horizon-Navigation.
+- Niederschlagsbalken in Tagesansicht und 7-Tage-Kurvenübersicht erhalten phasenabhängige Farb-/Kontursteuerung statt nur einer generischen Standarddarstellung.
+- `src/travelForecastFusion.ts` entfernt den ungenutzten `date`-Parameter in `mediumDay`, womit der TypeScript-Verifier wieder sauber läuft.
+- Neue Regression `scripts/test-forecast-entry-consistency-098430.mjs`.
+
+# MID v0.9.84.29
+
+## Extern
+- Der Reiseplaner erhält ein eigenes Reise-Center: geplante Reisen können festgepinnt und später direkt wieder geöffnet oder bearbeitet werden.
+- Festgepinnte Reisen zeigen bereits in der Übersicht die bekannten Kernwerte Temperatur, Niederschlag/Regentage, Sonnenschein, Wind, Schnee und – sofern verfügbar – Wassertemperatur. Die vollständige bisherige Auswertung bleibt über „Details“ erreichbar.
+- Liegt ein Reisezeitraum innerhalb aktueller Modellhorizonte, fließen künftig passende Prognose-, Ensemble- oder Witterungssignale ein. MID kennzeichnet sichtbar, ob die Bewertung aus Modellprognose + Klima, Witterungstrend + Klima, Saisontrend + Klima oder nur aus Klimatologie besteht.
+- Mit wachsendem Vorlauf nimmt der Modellanteil kontrolliert ab; weit entfernte Termine werden weiterhin überwiegend klimatologisch bewertet, statt tägliche Scheingenauigkeit vorzutäuschen.
+
+## Intern
+- Neuer persistenter Reise-Center-State getrennt von Ortsfavoriten und Event-Center-Einträgen.
+- Neue horizontabhängige Forecast-/Klimafusion: operationelle Prognose/Ensembles bis Tag 14, ECMWF-EC46-Wochenanomalien mit GEFS-Bestätigung für Tag 15–46 und schwach gewichtete saisonale Multi-Modell-Anomalien ab Tag 47.
+- Modellfamilien werden über Unabhängigkeitsgruppen zusammengeführt; Ensemblemitglieder werden nicht als zusätzliche Qualitätsstimmen gezählt. DWD GCFS2.2/EPISODES kann im passenden Gebiet über vorhandene Gütemaße als Qualitätsanker wirken.
+- Quellen außerhalb ihres Prognosehorizonts werden nicht unnötig geladen. Quellenstatus, modellgestützte Reisetage, Modellanteil und unabhängige Modellfamilien werden im Detailbereich transparent ausgewiesen.
+- Neuer Vertrag `MID_TRAVEL_CENTER_FORECAST_FUSION_CONTRACT.md` und Regression `scripts/test-travel-center-forecast-fusion-098429.mjs`.
+- Keine fachliche Änderung an der Cloudflare-Worker-Logik; NOAA OISST v2.1 bleibt für Küsten-Wassertemperaturen unverändert die klimatologische Referenz.
+
 # MID v0.9.84.28
 
 ## Extern
-- Der PowerPoint-Widget-Export funktioniert nun auch auf restriktiven Windows-Firmenclients ohne Node.js, npm, winget oder Administratorrechte. Vorhandenes Microsoft Edge übernimmt die Bildausgabe mit den normalen Unternehmensvorgaben für Proxy und Zertifikate.
-- Ein Doppelklick auf `Update-MID-Widgets.cmd` aktualisiert zwölf feste Light-PNGs für Wiesbaden, Kürecik und Malatya mit ECMWF-Temperaturfarben. Standardziel ist der persönliche Bilderordner statt eines geschützten Systemlaufwerks.
-- Falls Firmenrichtlinien Edge-Headless oder lokale DevTools sperren, werden keine Sicherheitsmechanismen umgangen; stattdessen steht eine Browser-Fallbackseite mit allen zwölf Live-Ansichten bereit.
-- PowerPoint-Dateien werden erst ersetzt, wenn alle zwölf neuen PNGs erfolgreich gerendert und als plausible PNG-Dateien validiert wurden. Bei Fehlern bleiben die letzten gültigen Offline-Bilder erhalten.
+- Weather Icon System 2.0 unterscheidet Graupel und Hagel nun klarer: Graupel erscheint als kleinere, weich gerundete Pellets; Hagel als größere, kantigere Körner.
+- Die zuletzt eingeführte Nachschärfung bei gefrierendem Regen und den gleichmäßigeren Niederschlagsintensitäten bleibt unverändert erhalten.
 
 ## Intern
-- `Update-MID-Widgets.ps1` wurde von der Node-Hilfsdatei entkoppelt und nutzt die in Microsoft Edge enthaltene lokale Chrome-DevTools-Schnittstelle ausschließlich über `127.0.0.1`. Die eigentliche HTTPS-Verbindung zu `www.midwx.app` bleibt vollständig in Edge und übernimmt die Firmenrichtlinien.
-- Keine `--ignore-certificate-errors`, `--no-sandbox`, `ExecutionPolicy Bypass` oder Proxy-Overrides; kein Installationsversuch.
-- Ein einziger temporärer Edge-Prozess rendert die zwölf Widgets nacheinander; dadurch entfallen zwölf Browserstarts. Ein transaktionaler Staging-Ordner verhindert gemischte oder halbfertige PowerPoint-Stände.
-- Neu: `Update-MID-Widgets.cmd`, `MID-Widget-Fallback.html`, `FIRMENCLIENT-README.txt` und Regression `test-widget-corporate-client-098428.mjs`.
-- Keine Änderung an meteorologischer Logik, Wetterdatenquellen, Worker-Fachlogik oder App-Darstellung.
+- `src/WeatherPictogram.tsx` trennt Graupel- und Hagelpartikel jetzt auch bei kleinen Darstellungen geometrisch deutlicher über Rundung, Facettierung, Kontur und Lichtkante.
+- Der bestehende Audit `test-pictogram-intensity-snow-depth-098426.mjs` prüft zusätzlich, dass Graupel rund und Hagel facettiert gerendert wird.
+- Keine fachliche Änderung an Wetterberechnung, Datenquellen oder Cloudflare-Worker-Logik.
 
 # MID v0.9.84.27
 

@@ -31,7 +31,7 @@ for(const token of [
  "className={`forecast-cockpit mode-${mode}${workspaceMode?' modern-workspace':''}`}",
  "data-workspace-mode={workspaceMode?'true':'false'}",
  "aria-label={workspaceMode?'Prognose-Arbeitsansicht':undefined}",
- '{!workspaceMode&&<><header className="cockpit-header">'
+ '{!workspaceMode&&<><header className="cockpit-header forecast-entry-head forecast-entry-head-seven-day">'
 ])assert.ok(cockpit.includes(token),`Cockpit-Arbeitsraum-Vertrag fehlt: ${token}`);
 
 for(const token of [

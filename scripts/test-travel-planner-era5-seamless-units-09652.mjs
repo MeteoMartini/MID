@@ -33,8 +33,8 @@ for(const token of [
  "import {label,searchLocations,wind,type Location,type WindUnit} from './weather'",
  'maxWindKt:windInputToKnots(windLimit,unit)',
  'wind(active.summary.windMaxMean,unit)',
- 'ERA5-Seamless · 1991–2020',
- 'ERA5-Seamless kombiniert die feinere ERA5-Land-Temperatur mit ERA5 für Niederschlag, Sonne und Wind'
+ 'ERA5-Seamless-Klimatologie 1991–2020',
+ 'Mit wachsendem Vorlauf gewinnt die ERA5-Seamless-Klimatologie 1991–2020 bewusst an Gewicht'
 ])need('Einheiten/Anzeige',panel,token);
 need('App-Einheitenweitergabe',app,"<MemoLazyTravelPlanner initialLocation={loc!} advancedMode={layoutMode==='advanced'} unit={unit}/>");
 

@@ -40,7 +40,7 @@ for(const token of [
  'writeCache(key,value)'
 ])assert.ok(travel.includes(token),`Client-NOAA-OISST-Vertrag fehlt: ${token}`);
 assert.ok(!travel.includes("models:'era5_ocean'")&&!travel.includes('MARINE_ARCHIVE_ENDPOINT'),'Defekter Open-Meteo-ERA5-Ocean-Pfad ist weiterhin aktiv.');
-assert.ok(panel.includes('NOAA-OISST-Mittel für den Reisezeitraum')&&panel.includes('NOAA-OISST-v2.1-Meeresoberflächenmittel der Normperiode 1991–2020'),'Quelle/Methodik der Wassertemperatur ist nicht transparent.');
+assert.ok(panel.includes('NOAA-OISST-Mittel für den Reisezeitraum')&&panel.includes('NOAA OISST v2.1')&&panel.includes('klimatologische Wassertemperatur-Referenz'),'Quelle/Methodik der Wassertemperatur ist nicht transparent.');
 assert.ok(changelog.includes('## 0.9.66.7'));
 for(const token of ['vollständig `null`','NOAA OISST v2.1','Worker-Upload','Iberostar Waves Creta Panorama','22,66 °C'])assert.ok(implementation.includes(token),`Umsetzungsnachweis unvollständig: ${token}`);
 

@@ -24,6 +24,8 @@ assert.ok(precipitation.includes("if(type==='snowGrains'&&snowRateCmh<=0)return 
 assert.ok(pictogram.includes("if([87,88].includes(c))return'graupel-showers'")&&pictogram.includes("if([89,90].includes(c))return'hail-showers'"),'Graupel-/Hagelschauer brauchen eigene Piktogramme.');
 assert.ok(pictogram.includes("if([91,92].includes(c))return'showers'")&&pictogram.includes("if([93,94].includes(c))return'wintry-after-thunder'"),'WMO 91/92 müssen aktuelle Regenschauer ohne Blitz, WMO 93/94 phasenoffenen winterlichen Niederschlag nach vorausgegangenem Gewitter zeigen.');
 assert.ok(pictogram.includes("showCelestial=['mostly-clear','partly-cloudy','showers','sleet-showers','snow-showers','graupel-showers','hail-showers'].includes(kind)"),'Tag/Nacht-Himmelskörper müssen auf echte Schauer-/Auflockerungssymbole begrenzt sein.');
+assert.ok(pictogram.includes('function graupelRadius')&&pictogram.includes('function hailStoneRadius')&&pictogram.includes('function hailStonePoints'),'Graupel-/Hagelgeometrie fehlt.');
+assert.ok(pictogram.includes('<circle cx={x} cy={y} r={r}/>')&&pictogram.includes('<polygon points={hailStonePoints(x,y,r)}/>'),'Graupel muss rund und Hagel facettiert gerendert werden.');
 assert.ok(pictogram.includes("if(intensity==='very-heavy')return[12,21,30,39,48,58]")&&pictogram.includes("if(intensity==='heavy')return[15,26,37,48,59]"),'Sehr starke und starke Niederschlagsgeometrie müssen unterscheidbar sein.');
 assert.ok(precipitation.includes("const codeFloor:PrecipitationIntensityLevel|0=code===82?4"),'Schauerklassifikation muss WMO 82 als Intensitäts-Mindeststufe schützen.');
 assert.ok(precipitation.includes('Untergrenze aus ${minutes} min'),'Längere Schauerakkumulationen dürfen nicht als gemessene 10-min-Intensität ausgegeben werden.');

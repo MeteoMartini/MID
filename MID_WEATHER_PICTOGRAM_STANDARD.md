@@ -19,7 +19,7 @@ Abgedeckt werden insbesondere:
 - Schneegriesel / snow grains `SG` als eigenes Symbol;
 - Schneeschauer `SHSN`;
 - Schneeregen und Schneeregenschauer als getrennte stratiforme bzw. konvektive Symbolik;
-- Eiskristalle `IC`, Eiskörner `PL`, Graupel / small hail `GS` und Hagel `GR` mit klar unterscheidbaren Partikelformen;
+- Eiskristalle `IC`, Eiskörner `PL`, Graupel / small hail `GS` und Hagel `GR` mit klar unterscheidbaren Partikelformen; Graupel erscheint als kleinere, weich gerundete Pellets, Hagel als größere kantig-facettierte Körner;
 - Gewitter `TS`, Gewitter mit Niederschlag sowie Hagelgewitter;
 - Böenlinie `SQ` und Trichterwolke `FC` für dekodierte Beobachtungsprodukte.
 
@@ -83,6 +83,7 @@ Ab v0.9.78.9 gilt deshalb zusätzlich:
 - Die sichtbare Hauptform wird über einen zentralen **visuellen Form-Lock** bestimmt.
 - Bedeckt verwendet die klare geschlossene Wolkenform des Weather Icon System 2.0.
 - Stratiformer Regen, Sprühregen, Schnee, Schneeregen, gefrierender Niederschlag, Schneegriesel, Eiskörner, Graupel und Hagel verwenden eine einheitliche Niederschlagswolke mit jeweils eigenständigen Partikeln und Intensitäten.
+- Graupel und Hagel bleiben auch in kleinen Darstellungen unmittelbar unterscheidbar: Graupel nutzt weich gerundete Pellets mit weicher Lichtkante, Hagel größere kantige/facettierte Körner mit stärkerer Kontur.
 - Schauer verwenden eine konvektive Haufenwolke mit Tag-/Nacht-Himmelskörper, Gewitter die Cumulonimbus-Familie.
 - Dunst, Nebel und Reifnebel werden als eigenständige Linien-/Eissymbolik **ohne zusätzliche Wolke** dargestellt.
 - Höhenwolken-Diagnostik darf in Detail-/Wolkenprofilen weiterhin ausgewertet werden, aber niemals die primäre Forecast-Glyphe in 7/14 Tagen, Kurzfrist, Ensemble, Event, Reise, Route, Wasser oder Widget ersetzen.

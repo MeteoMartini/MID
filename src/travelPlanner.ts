@@ -28,6 +28,9 @@ export type TravelClimateDay={
  cloudMean:number;
  weatherCode:number;
  years:number;
+ /** Optional travel-fusion diagnostics; values remain meteorological data, not UI state. */
+ forecastShare?:number;
+ forecastSource?:string;
 };
 
 export type TravelClimateDataset={
@@ -326,9 +329,9 @@ export function bestTravelWindows(dataset:TravelClimateDataset,searchStart:strin
  return selected;
 }
 
-export function travelNarrative(summary:TravelSummary,preference:TravelPreference,snowDepthIncluded:boolean){
+export function travelNarrative(summary:TravelSummary,preference:TravelPreference,snowDepthIncluded:boolean,sourceMode='Nur Klimatologie'){
  const thermal=summary.avgMax>=30?'sehr warm bis heiß':summary.avgMax>=25?'warm':summary.avgMax>=20?'mild bis warm':summary.avgMax>=15?'mild':summary.avgMax>=10?'kühl':'kalt',wetShare=summary.days?summary.wetDaysExpected/summary.days:0,moisture=wetShare<=.03&&summary.precipitationTotal<.2?'trocken':wetShare<=.2?'überwiegend trocken':wetShare<=.4?'eher trocken':wetShare<=.6?'wechselhaft':'häufig niederschlagsanfällig',sun=summary.sunshinePerDay>=8?'sehr sonnig':summary.sunshinePerDay>=5?'sonnig':summary.sunshinePerDay>=3?'mit mäßigem Sonnenschein':'eher sonnenarm',wind=summary.windMaxMean>=40/1.852?'oft windig':summary.windMaxMean>=25/1.852?'zeitweise windig':'meist mäßig windig';
- const roundedWetDays=Math.round(summary.wetDaysExpected),parts=[`Klimatologisch ist der Zeitraum ${thermal}, ${moisture} und ${sun}.`,`${wind[0].toUpperCase()}${wind.slice(1)}; erwartet werden im Mittel rund ${roundedWetDays} Niederschlagstage.`];
- if(preference==='snow')parts.push(snowDepthIncluded&&Number.isFinite(summary.snowDepthMean)?`Die mittlere modellierte Schneehöhe liegt bei rund ${Math.round(Number(summary.snowDepthMean))} cm; im Reisezeitraum fallen klimatologisch zusätzlich rund ${Math.round(summary.snowfallTotal)} cm Schnee.`:`Für die Schneehöhenoptimierung fehlen belastbare historische Schneehöhendaten.`);
+ const roundedWetDays=Math.round(summary.wetDaysExpected),modelled=sourceMode!=='Nur Klimatologie',parts=[modelled?`Aus aktueller Modelllage und Klimareferenz ergibt sich für den Zeitraum: ${thermal}, ${moisture} und ${sun}.`:`Klimatologisch ist der Zeitraum ${thermal}, ${moisture} und ${sun}.`,`${wind[0].toUpperCase()}${wind.slice(1)}; erwartet werden im Mittel rund ${roundedWetDays} Niederschlagstage.`];
+ if(preference==='snow')parts.push(snowDepthIncluded&&Number.isFinite(summary.snowDepthMean)?`Die mittlere modellierte Schneehöhe liegt bei rund ${Math.round(Number(summary.snowDepthMean))} cm; im Reisezeitraum ergibt sich zusätzlich rund ${Math.round(summary.snowfallTotal)} cm Schnee.`:`Für die Schneehöhenoptimierung fehlen belastbare historische Schneehöhendaten.`);
  return parts.join(' ');
 }
