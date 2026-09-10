@@ -19,7 +19,8 @@ need('Widget rendert alle gewählten Tage',app,'WIDGET_DAY_OPTIONS.map(x=><optio
 need('Widget nutzt die kanonische Kurvenübersicht',app,'<SevenDayCurveOverview days={previewDays} hours={precipitationDisplayHours} presentationReady');
 need('Kurvenansicht steuert Niederschlag',app,'showRain={showRain}');
 need('Kurvenansicht steuert Sonnenschein',app,'showSunshine={showSunshine}');
-need('Kurvenansicht steuert Wind',app,'showWind={showWind} hazardsByDate=');
+need('Kurvenansicht steuert Wind',app,'showWind={showWind}');
+need('Kurvenansicht steuert optionale ECMWF-Temperaturfarben',app,'ecmwfTemperatureColors={ecmwfTemperatureColors}');
 need('Alte Widgetstände aktivieren Niederschlag einmalig',app,"(parsed.schema===2||parsed.schema===3)&&typeof parsed.showRain==='boolean'?parsed.showRain:true");
 assert.ok(!app.includes('function WidgetCurve('),'Der alte parallele Widget-Kurvenrenderer ist noch vorhanden.');
 need('Kurvenoption ist eigenständig',app,"view==='ensemble'?ensemblePanel:view==='curve'?<SevenDayCurveOverview");

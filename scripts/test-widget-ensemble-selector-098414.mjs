@@ -8,7 +8,7 @@ const pkg=JSON.parse(readFileSync(new URL('../package.json',import.meta.url),'ut
 const baseline=JSON.parse(readFileSync(new URL('../MID_BASELINE.json',import.meta.url),'utf8'));
 const test='scripts/test-widget-ensemble-selector-098414.mjs';
 
-assert.match(app,/type WidgetStoredSettings=\{schema:4;[^}]*ensembleMetric:EnsembleDisplayMetric/,'Persistenter Widget-Vertrag muss die Ensembleauswahl enthalten.');
+assert.match(app,/type WidgetStoredSettings=\{schema:5;[^}]*ensembleMetric:EnsembleDisplayMetric/,'Persistenter Widget-Vertrag muss die Ensembleauswahl enthalten.');
 for(const [value,label] of [['temperature','Temperatur'],['precipitation','Niederschlag'],['wind','Wind\/Böen']]){
   assert.match(app,new RegExp(`<option value="${value}">${label}<\\/option>`),`${label} fehlt in der Ensembleauswahl.`);
 }

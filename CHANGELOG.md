@@ -1,4 +1,22 @@
+# MID v0.9.84.20
+
+## 0.9.84.20
+- Release-Prüfung korrigiert: Die Widget-Erweiterung aus v0.9.84.19 bleibt unverändert erhalten.
+- Wind/Böen bleiben im Widget zweizeilig; die optionalen ECMWF-Temperaturfarben bleiben für Standard-Exporte aktiviert.
+- Keine Änderung an Wetterberechnung, Datenquellen, Darstellung oder Bedienung gegenüber v0.9.84.19.
+
+## Intern
+- GitHub-Run #975 repariert: TypeScript 7.0.2 und Vite 8.2.2 waren bereits vollständig erfolgreich; nur zwei ältere, quelltextorientierte Regressionen erwarteten noch die Struktur vor dem neuen optionalen `ecmwfTemperatureColors`-Prop.
+- Der 7-Tage-Test akzeptiert jetzt die optionale ECMWF-Farbsteuerung und schützt zugleich, dass die Standardansicht weiter mit `ecmwfTemperatureColors=true` startet.
+- Der Widget-Kurventest prüft Wind und ECMWF-Farboption unabhängig voneinander statt eine zufällige Prop-Reihenfolge festzuschreiben.
+- Keine fachliche Workeränderung.
+
 # MID v0.9.84.18
+
+## 0.9.84.19
+- Widget: Wind und Böen bleiben auch bei knappen Tageskarten konsequent in zwei Zeilen und brechen nicht mehr zusätzlich um.
+- Export: ECMWF-Temperaturfarben können für die Widget-/PNG-Ausgabe ein- oder ausgeschaltet werden; neue Standard-Exporte verwenden sie automatisch.
+- Die Temperaturfarben sind in Hell/Dunkel kontrastiert und gelten auch für die Kurvenübersicht sowie feste Live-Export-URLs.
 
 ## Extern
 - Reiner Release-/Regression-Hotfix: Wetterberechnung, Skybar, Niederschlagsdarstellung und Bedienung bleiben gegenüber v0.9.84.17 unverändert.
