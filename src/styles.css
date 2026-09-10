@@ -1983,6 +1983,21 @@ button,input,select,textarea{font:inherit}
 @media(max-width:820px){.weatherwidget.modern.compact .widgetmeta-wind>b{gap:2px;font-size:9px}.weatherwidget.modern.compact .widgetmeta-wind>small{gap:2px;font-size:8px}.weatherwidget.modern.compact .widgetmeta-wind .widget-gust-value{font-size:9px}}
 .widget-option-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 @media(min-width:1080px){.widget-option-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* MID v0.9.84.23 · Widget: stabile vertikale Parameterraster; Präsentationskopf ohne künstliche Tagesauswahl. */
+.weatherwidget.modern.compact.widget-view-cards .widgetgrid{align-items:stretch}
+.weatherwidget.modern.compact.widget-view-cards .widgetday{display:grid;grid-template-rows:auto 48px 2.5em 38px auto auto;align-content:start;height:100%}
+.weatherwidget.modern.compact.widget-view-cards .widgetday-head{min-height:22px;align-items:flex-start}
+.weatherwidget.modern.compact.widget-view-cards .widgeticon{display:grid;place-items:center;height:48px;margin:3px 0 1px}
+.weatherwidget.modern.compact.widget-view-cards .widgetlabel{display:grid;place-items:center;min-height:2.5em;height:2.5em;margin:0;padding:0;text-align:center}
+.weatherwidget.modern.compact.widget-view-cards .widgettemps{min-height:38px;margin-top:0;align-items:center}
+.weatherwidget.modern.compact.widget-view-cards .widgetmeta{display:grid;grid-auto-rows:42px;align-content:start;gap:4px;margin-top:5px}
+.weatherwidget.modern.compact.widget-view-cards .widgetmeta>span{box-sizing:border-box;height:42px;min-height:42px;align-content:center;justify-items:center;padding-top:4px;padding-bottom:4px}
+.weatherwidget.modern.compact.widget-view-cards .widgetmeta>span>b,.weatherwidget.modern.compact.widget-view-cards .widgetmeta>span>small{margin:0}
+.weatherwidget.modern.compact.widget-view-cards .widgetmeta-sun>b{display:inline-flex;align-items:center;justify-content:center;gap:3px;min-height:100%}
+.weatherwidget.modern.compact.widget-view-cards .widgetmeta-wind>b,.weatherwidget.modern.compact.widget-view-cards .widgetmeta-wind>small{justify-content:center}
+.weatherwidget.modern.compact.widget-view-curve .seven-day-curve-days>button.active{background:transparent;box-shadow:none}
+.weatherwidget.modern.compact.temperature-colors-ecmwf.widget-view-curve .seven-day-curve-temperature-halo{stroke:color-mix(in srgb,var(--text) 12%,transparent)}
 /* MID v0.8.17.2 – offizieller UV-Gefahrenindex in den aktuellen Daten */
 .metrics .uvi-card header{align-items:center;padding-right:1px}
 .metrics .uvi-card>strong{margin-top:9px;font-size:clamp(13px,1.05vw,18px);line-height:1.12}

@@ -1,3 +1,15 @@
+# MID v0.9.84.23
+
+## Extern
+- Widget-Tageskarten halten Wetterbild, Beschreibung, Tmin/Tmax sowie Niederschlag, Sonnenschein und Wind/Böen jetzt über alle Tage auf festen, gleich hohen Zeilen. Längere Wettertexte verschieben nachfolgende Parameter nicht mehr.
+- In der Kurvenübersicht des Export-Widgets wird der erste Tag nicht mehr hellblau als scheinbar ausgewählt hinterlegt.
+- Aktivierte ECMWF-Temperaturfarben bleiben sowohl in den Tageswerten als auch in der Temperaturkurve erhalten; ohne ECMWF-Option gelten weiterhin die normalen MID-Parameterfarben.
+
+## Intern
+- Die kompakte Kartenansicht verwendet ein explizites vertikales Raster mit festen Höhen für Piktogramm, Wettertext, Temperaturzeile und Parameterpillen; Wind/Böen bleiben unverändert zweizeilig.
+- `SevenDayCurveOverview` trennt interaktive Tagesauswahl von `presentationReady`: Export-/PowerPoint-Widgets setzen keine künstliche aktive Tagesfläche mehr. Eine CSS-Fallback-Regel verhindert auch bei älteren Zuständen eine aktive Hintergrundtönung im Kurvenexport.
+- Bestehende Widget-Regressionsverträge wurden erweitert; kein zusätzlicher regelmäßiger CI-Testjob nötig. Keine meteorologische Berechnungs- oder Datenquellenänderung.
+
 # MID v0.9.84.22
 
 ## Extern

@@ -20,6 +20,9 @@ assert.match(css,/\.weatherwidget\.modern\.compact \.widgetmeta-wind>b\{flex-wra
 assert.match(css,/\.weatherwidget\.modern\.compact \.widgetmeta-wind>small\{flex-wrap:nowrap!important;white-space:nowrap/,'Böenzeile kann weiterhin umbrechen.');
 assert.match(css,/\.widget-temp-ecmwf\{[^}]*border:1px solid var\(--widget-temp-border\)[^}]*background:var\(--widget-temp-background\)[^}]*color:var\(--widget-temp-color\)/s,'ECMWF-Temperaturwerte besitzen keine lesbare Badge-Darstellung.');
 assert.match(css,/\.weatherwidget\.modern\.compact\.dark \.widgettemps \.widget-temp-ecmwf\{color:color-mix/s,'Dark-Mode-Kontrast für ECMWF-Temperaturwerte fehlt.');
+assert.match(css,/\.weatherwidget\.modern\.compact\.widget-view-cards \.widgetday\{[^}]*display:grid;grid-template-rows:auto 48px 2\.5em 38px auto auto/s,'Widget-Tageskarten besitzen kein stabiles vertikales Parameterraster.');
+assert.match(css,/\.weatherwidget\.modern\.compact\.widget-view-cards \.widgetmeta\{[^}]*grid-auto-rows:42px/s,'Widget-Parameterzeilen besitzen keine einheitliche Höhe.');
+assert.match(css,/\.weatherwidget\.modern\.compact\.widget-view-cards \.widgetmeta>span\{[^}]*height:42px;min-height:42px/s,'Widget-Parameterpillen können zwischen Tagen in der Höhe verrutschen.');
 assert.match(tone,/const ECMWF_TEMPERATURE_STOPS/,'Zentrale wertbasierte ECMWF-Temperaturpalette fehlt.');
 
-console.log('MID v0.9.84.20: Widget-Wind bleibt exakt zweizeilig; ECMWF-Temperaturfarben sind optional, persistent, kontrastiert und in Standard-Exporten aktiv.');
+console.log('MID v0.9.84.23: Widget-Wind bleibt exakt zweizeilig; Tagesparameter sind vertikal verriegelt und ECMWF-Temperaturfarben bleiben optional, persistent, kontrastiert und in Standard-Exporten aktiv.');
