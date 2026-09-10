@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.84.25",
+  "version": "0.9.84.27",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -454,7 +454,8 @@
     "test:modern-five-workspaces": "node scripts/test-modern-five-workspaces-09841.mjs",
     "test:skybar-shower-overlay-cloud-priority": "node scripts/test-skybar-shower-overlay-cloud-priority-098411.mjs",
     "test:update-startup-recovery": "node scripts/test-update-startup-recovery-098415.mjs",
-    "test:ios-resume-location": "node scripts/test-ios-resume-location-preservation-098425.mjs"
+    "test:ios-resume-location": "node scripts/test-ios-resume-location-preservation-098425.mjs",
+    "test:pictogram-intensity-snow-depth": "node scripts/test-pictogram-intensity-snow-depth-098426.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",

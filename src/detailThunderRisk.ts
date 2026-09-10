@@ -58,7 +58,7 @@ export function significantHourlyThunderRisk(sample:DetailThunderRiskSample):Det
  const rain=Math.max(0,finite(sample.rain,0));
  const precipitation=Math.max(0,finite(sample.precipitation,0));
 
- const directThunder=[95,96,97,99].includes(code),hailThunder=[96,99].includes(code);
+ const directThunder=[95,96,97,98,99].includes(code),hailThunder=[96,99].includes(code);
  const capePoints=points(cape,[[2000,4],[1200,3],[600,2],[300,1]]);
  const liPoints=points(liftedIndex,[[-6,4],[-4,3],[-2,2],[0,1]],true);
  const instability=Math.max(capePoints,liPoints)+Math.min(capePoints,liPoints)*.5;
@@ -70,7 +70,7 @@ export function significantHourlyThunderRisk(sample:DetailThunderRiskSample):Det
  const nearSaturation=Number.isFinite(dewPointSpread)&&dewPointSpread<=6?1:0;
  const moisture=Math.max(dewPointPoints,columnWaterPoints,humidityPoints+nearSaturation);
 
- const convectiveCode=[80,81,82,95,96,97,99].includes(code);
+ const convectiveCode=[80,81,82,95,96,97,98,99].includes(code);
  const showerPoints=points(showers,[[1,3],[.2,2],[.05,1]]);
  const probabilityPoints=points(probability,[[70,2],[45,1]]);
  const precipitationPoints=precipitation>=1||rain>=1?1:0;
@@ -106,6 +106,6 @@ export function significantPeriodThunderRisk(samples:TimedDetailThunderRiskSampl
  const evaluated=samples.map((sample,index)=>({sample,index,risk:significantHourlyThunderRisk(sample)})).filter((row):row is typeof row&{risk:DetailThunderRisk}=>Boolean(row.risk));
  if(!evaluated.length)return null;
  const strongest=evaluated.reduce((best,row)=>row.risk.percent>best.risk.percent||(row.risk.percent===best.risk.percent&&row.risk.score>best.risk.score)?row:best,evaluated[0]);
- const directThunder=samples.some(sample=>[95,96,97,99].includes(Math.round(finite(sample.code,-1))));
+ const directThunder=samples.some(sample=>[95,96,97,98,99].includes(Math.round(finite(sample.code,-1))));
  return{...strongest.risk,horizonHours:Math.max(1,Math.round(finite(horizonHours,6))),peakIndex:strongest.index,peakTime:strongest.sample.time,peakEpoch:Number.isFinite(strongest.sample.epoch)?Number(strongest.sample.epoch):undefined,directThunder};
 }

@@ -23,7 +23,7 @@ for(const token of [
  'Math.round(currentThunderRisk.percent)} %'
 ])need('Tagesdetail',app,token);
 for(const token of [
- "const directThunder=[95,96,97,99].includes(code)",
+ "const directThunder=[95,96,97,98,99].includes(code)",
  "if(directThunder){const normalizedScore=Math.max(score,6);return{level:'elevated'",
  'const instability=',
  'const moisture=',
@@ -37,11 +37,11 @@ for(const token of [
  "const size=amount>=largeThreshold?'large' as const:'small' as const;",
  "function PrecipitationGlyph({type,size,thunder}",
  "const scale=size==='large'?1.08:.9",
- 'precipitationOffset=thunder?-4.4:0',
+ "precipitationOffset=thunder&&type!=='none'?-4.4:0",
  'strokeLinejoin="round"',
  'size={row.precipVisualSize}',
  "function EnsemblePrecipShape({cx,cy,row,boxWidth,boxHeight}",
- "row.precipVisualType==='none')return null",
+ "(row.precipVisualType==='none'&&!row.precipVisualThunder))return null",
  "<PrecipitationGlyph type={row.precipVisualType}"
 ])need('Ensemble-Symbolik',ensemble,token);
 if(ensemble.includes('precipVisualCount')||ensemble.includes('count:1|2|3'))failures.push('Die alte Mehrfachsymbolik mit ein bis drei Tropfen/Flocken ist noch vorhanden.');

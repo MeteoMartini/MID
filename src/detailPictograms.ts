@@ -1,10 +1,11 @@
-import type {PrecipitationParts,PrecipType} from './precipitation';
+import type {PrecipitationParts,PrecipType,PrecipitationVisualIntensity} from './precipitation';
 export type DetailPictogramHour={code:number;probability:number;isDay?:boolean};
 
 export type DetailPictogramPoint={
  index:number;
  sourceIndex:number;
  displayCode:number;
+ intensity?:PrecipitationVisualIntensity;
 };
 
 const PRECIP_PRIORITY:Record<PrecipType,number>={
@@ -19,14 +20,17 @@ const PRECIP_PRIORITY:Record<PrecipType,number>={
  snowShowers:55,
  sleet:48,
  sleetShowers:58,
+ graupelShowers:60,
+ hailShowers:65,
+ wintryAfterThunder:62,
  thunderstorm:70,
  thunderstormHail:80
 };
 
 function rawWeatherPriority(code:number){
  if([95,96,97,99].includes(code))return 700;
- if([68,69,71,73,75,77,83,84,85,86].includes(code))return 500;
- if([51,53,55,56,57,61,63,65,66,67,80,81,82].includes(code))return 400;
+ if([68,69,71,73,75,77,83,84,85,86,87,88,89,90,93,94].includes(code))return 500;
+ if([51,53,55,56,57,61,63,65,66,67,80,81,82,91,92].includes(code))return 400;
  if([45,48].includes(code))return 250;
  if(code===3)return 180;
  if(code===2)return 140;
@@ -85,7 +89,7 @@ export function representativeDetailPictograms(
   }
   const hour=hours[best]??hours[base];
   const parts=precipitation[best]??precipitation[base];
-  return{index:base,sourceIndex:best,displayCode:detailPictogramDisplayCode(hour,parts)};
+  return{index:base,sourceIndex:best,displayCode:detailPictogramDisplayCode(hour,parts),intensity:parts.intensity};
  });
 
  return points;

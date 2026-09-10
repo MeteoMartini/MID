@@ -310,7 +310,7 @@ function constraintResult(summary:TravelSummary,constraints:TravelConstraints){
  if(Number.isFinite(constraints.minSunHoursPerDay)&&summary.sunshinePerDay<Number(constraints.minSunHoursPerDay))unmet.push(`weniger als ${constraints.minSunHoursPerDay} Sonnenstunden pro Tag`);
  const maxWindKt=Number.isFinite(constraints.maxWindKt)?Number(constraints.maxWindKt):Number.isFinite(constraints.maxWindKmh)?Number(constraints.maxWindKmh)/1.852:Number.NaN;
  if(Number.isFinite(maxWindKt)&&summary.windMaxMean>maxWindKt)unmet.push(`Ø Windmaximum über ${constraints.maxWindLabel||`${Math.round(maxWindKt)} kt`}`);
- if(Number.isFinite(constraints.minSnowDepthCm)&&(!Number.isFinite(summary.snowDepthMean)||Number(summary.snowDepthMean)<Number(constraints.minSnowDepthCm)))unmet.push(`mittlere Schneehöhe unter ${constraints.minSnowDepthCm} cm`);
+ if(Number.isFinite(constraints.minSnowDepthCm)&&(!Number.isFinite(summary.snowDepthMean)||Number(summary.snowDepthMean)<Number(constraints.minSnowDepthCm)))unmet.push(`mittlere Schneehöhe unter ${Math.round(Number(constraints.minSnowDepthCm))} cm`);
  return unmet;
 }
 

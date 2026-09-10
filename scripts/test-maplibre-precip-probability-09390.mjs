@@ -48,7 +48,7 @@ need('Radar-Modell-Phase',phase,'Number(grid.modelAgeHours)>16');
 need('Radar-Modell-Phase',phase,"phase.confidence==='eingeschränkt'");
 need('Radar-Modell-Phase',phase,'HtmlMarker');
 need('Radar-Modell-Phase',phase,'asSymbolPhase(phase.phase)');
-need('Radar-Modell-Phase',phase,"explicitHail=[96,99].includes(code)");
+need('Radar-Modell-Phase',phase,"explicitHail=[89,90,96,99].includes(code)");
 need('Radar-Modell-Phase',phase,"explicitSnowGrains=[77].includes(code)");
 forbid('Radar-Modell-Phase',phase,'GeoJsonLayers');
 need('Radar-Modell-Phase',phase,"phase:'hail'");

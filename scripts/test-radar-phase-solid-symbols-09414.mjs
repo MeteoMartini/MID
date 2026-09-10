@@ -9,7 +9,7 @@ const [overlay,legend,symbols,pkg,baseline,worker]=await Promise.all([
 ]);
 const failures=[];
 const need=(label,text,snippet)=>{if(!text.includes(snippet))failures.push(`${label}: ${snippet}`)};
-for(const token of ['explicitHail=[96,99].includes(code)','explicitSnowGrains=[77].includes(code)','precipitationTypeSymbolSvg(item.phase)','Layer aktiv · aktuell keine festen/gemischten Niederschlagsarten im sichtbaren Ausschnitt']) need('Overlay',overlay,token);
+for(const token of ['explicitHail=[89,90,96,99].includes(code)','explicitSnowGrains=[77].includes(code)','precipitationTypeSymbolSvg(item.phase)','Layer aktiv · aktuell keine festen/gemischten Niederschlagsarten im sichtbaren Ausschnitt']) need('Overlay',overlay,token);
 for(const token of ["label:'Graupel / Eiskörner'","label:'Hagel'"]) need('Legend',legend,token);
 for(const token of ["graupel:{label:'Graupel / Eiskörner'","'snow-grains':{label:'Schneekörner'","hail:{label:'Hagel'","phase==='graupel'","phase==='snow-grains'","phase==='hail'",'<polygon','stroke="currentColor"']) need('Meteorologische SVG-Symbolik',symbols,token);
 const version=JSON.parse(pkg).version,baselineVersion=JSON.parse(baseline).releaseVersion,workerVersion=worker.match(/const WORKER_VERSION='([^']+)'/)?.[1];

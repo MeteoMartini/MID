@@ -1,5 +1,5 @@
 import {forecast,label,mapHours,type Hour,type Location} from './weather';
-import {precipitationParts,type PrecipType} from './precipitation';
+import {precipitationParts,type PrecipType,type PrecipitationVisualIntensity} from './precipitation';
 
 export type RouteProfile='car'|'bike'|'foot';
 export type RouteRestrictionLevel='none'|'low'|'moderate'|'high'|'critical';
@@ -8,6 +8,7 @@ export type RouteMapMode='line'|'segments'|'corridor';
 export type RouteCheckpointWeather={
  code:number;
  displayCode:number;
+ intensity?:PrecipitationVisualIntensity;
  label:string;
  precipType:PrecipType;
  precipLabel:string;
@@ -114,8 +115,9 @@ function assessCheckpoint(hour:Hour){
  let score=0;
 
  if(precipitation.type==='thunderstorm'||precipitation.type==='thunderstormHail'){score=Math.max(score,4);reasons.push('Gewitterrisiko');}
- if(precipitation.type==='snow'||precipitation.type==='snowShowers'||precipitation.type==='snowGrains'){score=Math.max(score,3);reasons.push('Schnee / winterliche Fahrbahnbedingungen');}
- if(precipitation.type==='sleet'||precipitation.type==='sleetShowers'||precipitation.type==='freezingRain'||precipitation.type==='freezingDrizzle'){score=Math.max(score,4);reasons.push('Glättegefahr durch gefrierenden oder gemischten Niederschlag');}
+ if(precipitation.type==='snow'||precipitation.type==='snowShowers'||precipitation.type==='snowGrains'||precipitation.type==='graupelShowers'){score=Math.max(score,3);reasons.push('Fester Niederschlag / winterliche Fahrbahnbedingungen');}
+ if(precipitation.type==='hailShowers'){score=Math.max(score,4);reasons.push('Hagelschauer / erhöhte Rutsch- und Sichtgefahr');}
+ if(precipitation.type==='sleet'||precipitation.type==='sleetShowers'||precipitation.type==='wintryAfterThunder'||precipitation.type==='freezingRain'||precipitation.type==='freezingDrizzle'){score=Math.max(score,4);reasons.push('Glättegefahr durch gefrierenden oder gemischten Niederschlag');}
  if(hour.precipitation>=8){score=Math.max(score,3);reasons.push('kräftiger Niederschlag');}
  else if(hour.precipitation>=2){score=Math.max(score,2);reasons.push('nasser Fahrbahnabschnitt');}
  else if(hour.precipitation>=0.2||hour.probability>=70){score=Math.max(score,1);reasons.push('mögliche Niederschläge');}
@@ -134,6 +136,7 @@ function assessCheckpoint(hour:Hour){
   weather:{
    code:hour.code,
    displayCode,
+   intensity:precipitation.intensity,
    label:displayLabel,
    precipType:precipitation.type,
    precipLabel:precipitation.label,

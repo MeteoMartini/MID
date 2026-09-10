@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.84.25",
+  "releaseVersion": "0.9.84.27",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -451,7 +451,8 @@
     "scripts/test-update-startup-recovery-098415.mjs",
     "scripts/test-network-timeout-cache-audit-098415.mjs",
     "scripts/test-widget-wind-temperature-export-098419.mjs",
-    "scripts/test-ios-resume-location-preservation-098425.mjs"
+    "scripts/test-ios-resume-location-preservation-098425.mjs",
+    "scripts/test-pictogram-intensity-snow-depth-098426.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -825,7 +826,8 @@
     "scripts/test-widget-ensemble-selector-098414.mjs",
     "scripts/test-update-startup-recovery-098415.mjs",
     "scripts/test-network-timeout-cache-audit-098415.mjs",
-    "scripts/test-ios-resume-location-preservation-098425.mjs"
+    "scripts/test-ios-resume-location-preservation-098425.mjs",
+    "scripts/test-pictogram-intensity-snow-depth-098426.mjs"
   ],
   "requiredFiles": [
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
@@ -1439,7 +1441,13 @@
     "scripts/test-ios-resume-location-preservation-098425.mjs",
     "MID_IOS_RESUME_LOCATION_CONTRACT.md",
     "MID_IMPLEMENTATION_0.9.84.25.md",
-    "MID_TEST_REPORT_0.9.84.25.md"
+    "MID_TEST_REPORT_0.9.84.25.md",
+    "scripts/test-pictogram-intensity-snow-depth-098426.mjs",
+    "MID_PRECIP_PICTOGRAM_SNOW_DEPTH_CONTRACT.md",
+    "MID_IMPLEMENTATION_0.9.84.26.md",
+    "MID_TEST_REPORT_0.9.84.26.md",
+    "MID_IMPLEMENTATION_0.9.84.27.md",
+    "MID_TEST_REPORT_0.9.84.27.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1499,7 +1507,8 @@
     "scripts/test-widget-ensemble-selector-098414.mjs",
     "scripts/test-update-startup-recovery-098415.mjs",
     "scripts/test-network-timeout-cache-audit-098415.mjs",
-    "scripts/test-ios-resume-location-preservation-098425.mjs"
+    "scripts/test-ios-resume-location-preservation-098425.mjs",
+    "scripts/test-pictogram-intensity-snow-depth-098426.mjs"
   ],
   "protectedFiles": [
     "scripts/test-travel-planner-era5-seamless-units-09652.mjs",
@@ -1680,7 +1689,9 @@
     "MID_RUC_USAGE_AUDIT_0.9.84.0.md",
     "MID_UPDATE_STARTUP_RECOVERY_CONTRACT.md",
     "MID_IOS_RESUME_LOCATION_CONTRACT.md",
-    "scripts/test-ios-resume-location-preservation-098425.mjs"
+    "scripts/test-ios-resume-location-preservation-098425.mjs",
+    "MID_PRECIP_PICTOGRAM_SNOW_DEPTH_CONTRACT.md",
+    "scripts/test-pictogram-intensity-snow-depth-098426.mjs"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md",
@@ -1860,7 +1871,9 @@
     "MID_TEST_REPORT_0.9.83.3.md",
     "scripts/test-ruc-expanded-extreme-integration-09840.mjs",
     "MID_TEST_REPORT_0.9.84.0.md",
-    "MID_RUC_USAGE_AUDIT_0.9.84.0.md"
+    "MID_RUC_USAGE_AUDIT_0.9.84.0.md",
+    "MID_PRECIP_PICTOGRAM_SNOW_DEPTH_CONTRACT.md",
+    "MID_TEST_REPORT_0.9.84.26.md"
   ],
   "releaseEvidence": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -1950,8 +1963,8 @@
     "scripts/test-network-timeout-cache-audit-098415.mjs",
     "scripts/test-ios-resume-location-preservation-098425.mjs"
   ],
-  "version": "0.9.84.25",
-  "updatedAt": "2026-09-10T09:57:00+02:00",
+  "version": "0.9.84.27",
+  "updatedAt": "2026-09-10T16:48:00+02:00",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
     "MID_IMPLEMENTATION_0.9.77.27.md",
@@ -2037,7 +2050,9 @@
     "MID_IMPLEMENTATION_0.9.84.16.md",
     "MID_IMPLEMENTATION_0.9.84.19.md",
     "MID_IMPLEMENTATION_0.9.84.20.md",
-    "MID_IMPLEMENTATION_0.9.84.25.md"
+    "MID_IMPLEMENTATION_0.9.84.25.md",
+    "MID_IMPLEMENTATION_0.9.84.26.md",
+    "MID_IMPLEMENTATION_0.9.84.27.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",
@@ -2099,6 +2114,8 @@
     "MID_TEST_REPORT_0.9.84.16.md",
     "MID_TEST_REPORT_0.9.84.19.md",
     "MID_TEST_REPORT_0.9.84.20.md",
-    "MID_TEST_REPORT_0.9.84.25.md"
+    "MID_TEST_REPORT_0.9.84.25.md",
+    "MID_TEST_REPORT_0.9.84.26.md",
+    "MID_TEST_REPORT_0.9.84.27.md"
   ]
 }

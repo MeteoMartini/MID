@@ -22,7 +22,7 @@ for(const token of [
 for(const token of [
  'currentPrecip=precipitationParts({',
  'currentWeatherCode=currentPrecip.displayCode',
- '<WeatherPictogram code={currentWeatherCode} day={currentIsDay}',
+ '<WeatherPictogram code={currentWeatherCode} intensity={currentPrecip.intensity} day={currentIsDay}',
  '<b>{currentWeatherLabel}</b>',
  'function mountainPrecipitationParts',
  'parts=mountainPrecipitationParts(source)',

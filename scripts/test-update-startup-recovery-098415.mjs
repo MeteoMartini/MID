@@ -75,7 +75,7 @@ for(const token of ['let updatePromise:Promise<void>|null=null','UPDATE_EVENT_TH
 // Meteorological regression discovered by the same audit: no invented fourth
 // continuous-rain class; snow and showers use their DWD-relevant intensity bases.
 assert.ok(!precipitation.includes('amount<15')&&!precipitation.includes('amount>=15')&&!precipitation.includes('rateMmh>=15'),'Niederschlagslogik führt wieder eine erfundene vierte Dauerregenklasse ein.');
-for(const token of ['tenMinuteMm=rateMmh/6',"return result(4,'sehr stark'",'snowRateCmh<=.5','snowRateCmh<=4','WMO/DWD-Code','precipitationSampleIntervalSeconds'])assert.ok(precipitation.includes(token),`Typabhängige Niederschlagsintensität fehlt: ${token}`);
+for(const token of ['tenMinuteMm=rateMmh/6',"level>=4?'sehr stark'",'snowRateCmh<=.5','snowRateCmh<=4','WMO/DWD-Code','precipitationSampleIntervalSeconds'])assert.ok(precipitation.includes(token),`Typabhängige Niederschlagsintensität fehlt: ${token}`);
 assert.ok(skybar.includes('precipitationIntensityDescriptor(parts.type,amount,snowfall,intervalSeconds,parts.displayCode)'),'Skybar nutzt nicht die zentrale Intensitätsklassifikation.');
 assert.ok(weather.includes('intervalSeconds:15*60')&&forecastFusion.includes('intervalSeconds:15*60')&&shortTerm.includes('intervalSeconds:intervalMinutes*60'),'15-min-Niederschlag wird nicht vor der WMO/DWD-Intensitätsklassifikation auf sein tatsächliches Zeitintervall bezogen.');
 

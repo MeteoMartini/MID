@@ -8,7 +8,7 @@ const failures=[];
 const checks=[
  /currentWeatherCode=currentPrecip\.displayCode/,
  /currentWeatherLabel=currentPrecip\.type==='none'\?label\(currentWeatherCode\):currentPrecip\.weatherLabel/,
- /<WeatherPictogram code=\{currentWeatherCode\} day=\{currentHour\.isDay\}/,
+ /<WeatherPictogram code=\{currentWeatherCode\}[^>]*intensity=\{currentPrecip\.intensity\}[^>]*day=\{currentHour\.isDay\}/,
  /\{currentWeatherLabel\}/,
  /representativeDetailPictograms\(iconIndices,p,precipSeries\)/
 ];

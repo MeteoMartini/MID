@@ -307,7 +307,7 @@ export function significantRapidThunderRisk(samples:RapidThunderSample[]|undefin
  */
 export function rapidThunderForecastCode(currentCode:number,risk:RapidThunderRisk|null){
  const code=Math.round(rapidThunderFinite(currentCode,0));
- if([95,96,97,99].includes(code))return code;
+ if([95,96,97,98,99].includes(code))return code;
  if(risk&&(risk.level==='likely'||risk.level==='high'))return 95;
  return code;
 }
@@ -440,7 +440,7 @@ function localObservedSkyCode(fallback:number,cloud:number|undefined,lowCloud:nu
  const code=Math.round(Number(fallback)||0),vis=Number(visibility),hum=Number(humidity),temp=Number(temperature),cover=Math.max(Number(cloud)||0,Number(lowCloud)||0);if(Number.isFinite(vis)&&vis<=1000&&Number.isFinite(hum)&&hum>=92)return Number.isFinite(temp)&&temp<=0?48:45;if((code===45||code===48)&&Number.isFinite(vis)&&vis<=2500)return code;if(cover>=87.5)return 3;if(cover>=37.5)return 2;if(cover>=12.5)return 1;return 0
 }
 function localReconciledWeatherCode(forecastCode:number,anchorCode:number|undefined,cloud:number,lowCloud:number,visibility:number,humidity:number,temperature:number,precipitation:number,probability:number,offsetMinutes:number,localAdjustment:number){
- const raw=Math.round(Number(forecastCode)||0),observed=Math.round(Number(anchorCode));if([95,96,99].includes(raw)&&probability>=30)return raw;if(precipitation>=.01||(localPrecipitationCode(raw)&&probability>=30))return raw;if(localPrecipitationCode(raw)&&probability<30)return localObservedSkyCode(Number.isFinite(observed)?observed:raw,cloud,lowCloud,visibility,humidity,temperature);if(localAdjustment<=0)return raw;if(Number.isFinite(observed)&&localPrecipitationCode(observed)&&offsetMinutes<=30)return observed;return localObservedSkyCode(Number.isFinite(observed)?observed:raw,cloud,lowCloud,visibility,humidity,temperature)
+ const raw=Math.round(Number(forecastCode)||0),observed=Math.round(Number(anchorCode));if(raw===98)return raw;if([95,96,97,99].includes(raw)&&probability>=30)return raw;if(precipitation>=.01||(localPrecipitationCode(raw)&&probability>=30))return raw;if(localPrecipitationCode(raw)&&probability<30)return localObservedSkyCode(Number.isFinite(observed)?observed:raw,cloud,lowCloud,visibility,humidity,temperature);if(localAdjustment<=0)return raw;if(Number.isFinite(observed)&&localPrecipitationCode(observed)&&offsetMinutes<=30)return observed;return localObservedSkyCode(Number.isFinite(observed)?observed:raw,cloud,lowCloud,visibility,humidity,temperature)
 }
 function nearestForecastHour<T extends {epoch:number}>(items:T[],epoch:number,maxDistance=90*60000){let best:T|undefined,distance=Infinity;for(const item of items){const current=Math.abs(Number(item.epoch)-epoch);if(current<distance){best=item;distance=current}}return distance<=maxDistance?best:undefined}
 function trailingAccumulationHour<T extends {epoch:number}>(items:T[],epoch:number){const sorted=items.filter(item=>Number.isFinite(Number(item.epoch))).sort((left,right)=>Number(left.epoch)-Number(right.epoch));const containing=sorted.find(item=>Number(item.epoch)>=epoch&&Number(item.epoch)-3600000<epoch+1);return containing??nearestForecastHour(sorted,epoch,90*60000)}
@@ -591,7 +591,7 @@ function relativeHumidityFromTemperatureDewPoint(temperature:number,dewPoint:num
  return clamp(100*vapor/Math.max(.0001,saturation),0,100);
 }
 
-function precipitationWeatherCode(code:number){const value=Math.round(Number(code));return[51,53,55,56,57,61,63,65,66,67,71,73,75,77,80,81,82,85,86,95,96,99].includes(value)}
+function precipitationWeatherCode(code:number){const value=Math.round(Number(code));return(value>=50&&value<=94)||[95,96,97,99].includes(value)}
 function forecastIntervalDaylightSeconds(epoch:number,intervalSeconds:number,sunriseEpoch?:number,sunsetEpoch?:number){if(!Number.isFinite(sunriseEpoch)||!Number.isFinite(sunsetEpoch)||Number(sunsetEpoch)<=Number(sunriseEpoch))return undefined;const start=epoch-Math.max(60,intervalSeconds)*1000;return Math.max(0,(Math.min(epoch,Number(sunsetEpoch))-Math.max(start,Number(sunriseEpoch)))/1000)}
 function drySkyCode(hour:Hour){
  const code=Math.round(Number(hour.code));if([45,48].includes(code))return code;
@@ -759,7 +759,7 @@ function convectiveCellSiteRelevance(cell:NonNullable<ThunderstormNowcast['neare
 export function applyConvectiveNowcastHours(hours:Hour[],thunder:ThunderstormNowcast|null|undefined){
  const cell=thunder?.nearest,relevance=cell?convectiveCellSiteRelevance(cell):null;if(!thunder?.available||!cell||!relevance?.approaching||!relevance.relevant||!Number.isFinite(relevance.arrival)||Number(relevance.arrival)>210)return hours;
  const now=Date.now(),arrival=Math.max(0,Number(relevance.arrival)),severity=clamp(Number(cell.severity)||0,0,10),lightning=Math.max(0,Number(cell.lightningRate)||0),baseSignal=clamp(28+severity*6+Math.min(25,lightning*1.8),35,92);let changed=false;
- const result=hours.map(hour=>{const minutes=(hour.epoch-now)/60000,distance=Math.abs(minutes-arrival);if(minutes<-30||distance>105)return hour;const leadFactor=clamp(1-distance/120,.18,1),capeSupport=clamp((Number(hour.cape)||0)/900,0,1),probability=clamp(Math.max(hour.probability,baseSignal*(.72+.28*capeSupport)*leadFactor),0,100),strong=probability>=58&&(severity>=4||lightning>=4),code=strong&&![95,96,99].includes(hour.code)?95:hour.code;if(Math.abs(probability-hour.probability)<.1&&code===hour.code)return hour;changed=true;return{...hour,probability,code}});
+ const result=hours.map(hour=>{const minutes=(hour.epoch-now)/60000,distance=Math.abs(minutes-arrival);if(minutes<-30||distance>105)return hour;const leadFactor=clamp(1-distance/120,.18,1),capeSupport=clamp((Number(hour.cape)||0)/900,0,1),probability=clamp(Math.max(hour.probability,baseSignal*(.72+.28*capeSupport)*leadFactor),0,100),strong=probability>=58&&(severity>=4||lightning>=4),code=strong&&![95,96,97,98,99].includes(hour.code)?95:hour.code;if(Math.abs(probability-hour.probability)<.1&&code===hour.code)return hour;changed=true;return{...hour,probability,code}});
  return changed?result:hours;
 }
 

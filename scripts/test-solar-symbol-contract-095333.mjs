@@ -34,8 +34,10 @@ assert.match(shortTerm,/interpolatedHour[\s\S]*daylightFromBoundaries\(epoch,nea
 assert.match(shortTerm,/targetIsDay=daylightFromBoundaries\(precipitationIntervalStartEpoch,base\.sunriseEpoch,base\.sunsetEpoch,base\.isDay\)/,'15-Minuten-/90-Minuten-Zielpunkte verwenden nicht den exakten Sonnenstatus.');
 assert.match(fusion,/isDay:row\.isDay\?\?finalHour\?\.isDay/,'Forecast-Finalisierung überschreibt den 15-Minuten-Sonnenstatus.');
 
-assert.match(cockpit,/WeatherPictogram code=\{item\.code\} day=\{item\.isDay\}/,'90-Minuten-Cockpit verwendet den finalen Sonnenstatus nicht.');
-assert.match(cockpit,/WeatherPictogram code=\{point\.code\} day=\{point\.isDay\}/,'Stündliches Cockpit verwendet den finalen Sonnenstatus nicht.');
+assert.match(cockpit,/WeatherPictogram code=\{item\.code\}[^>]*day=\{item\.isDay\}/,'90-Minuten-Cockpit verwendet den finalen Sonnenstatus nicht.');
+assert.match(cockpit,/WeatherPictogram code=\{item\.code\}[^>]*intensity=\{item\.pictogramIntensity\}/,'90-Minuten-Cockpit verliert die Niederschlagsintensität.');
+assert.match(cockpit,/WeatherPictogram code=\{point\.code\}[^>]*day=\{point\.isDay\}/,'Stündliches Cockpit verwendet den finalen Sonnenstatus nicht.');
+assert.match(cockpit,/WeatherPictogram code=\{point\.code\}[^>]*intensity=\{point\.pictogramIntensity\}/,'Stündliches Cockpit verliert die Niederschlagsintensität.');
 assert.match(app,/currentIsDay=astronomicalIsDayAt\(solarNow/,'Aktuelles Hauptpiktogramm verwendet nicht die zentrale Sonnenstandsentscheidung.');
 assert.match(app,/isDay=\{astronomicalIsDayAt\(Date\.now\(\)/,'Aktuelle Komposit-/Bergdarstellung ist nicht an den astronomischen Sonnenstand gebunden.');
 assert.match(app,/isDay:astronomicalIsDayAt\(slotStart\.epoch/,'Höhenwetter-Zeitpunkte verwenden nicht den astronomischen Status am sichtbaren Slotbeginn.');

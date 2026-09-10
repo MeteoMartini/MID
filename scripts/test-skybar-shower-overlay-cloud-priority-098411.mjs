@@ -42,8 +42,8 @@ for(const token of [
   "if(rateMmh<=4)return result(2,'mäßig'",
   "return result(3,'stark'",
   "tenMinuteMm=rateMmh/6",
-  "if(tenMinuteMm<=8)return result(3,'stark'",
-  "return result(4,'sehr stark'",
+  "tenMinuteMm<=8?3:4",
+  "level>=4?'sehr stark'",
   "if(snowRateCmh<=.5)return result(1,'leicht'",
   "if(snowRateCmh<=4)return result(2,'mäßig'",
 ])assert.ok(precipitation.includes(token),`Niederschlagsstufe fehlt: ${token}`);

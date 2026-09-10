@@ -38,7 +38,15 @@ const cases=[
  ['Gefrierender Regen bleibt gefrierender Regen',sample({code:67,precipitation:1.1,rain:1.1}), 'freezingRain'],
  ['Fallback erkennt reinen Schnee',sample({code:3,precipitation:.8,snowfall:1.2}), 'snow'],
  ['Fallback erkennt Schneeregen nur bei festem und flüssigem Anteil',sample({code:3,precipitation:1.1,rain:.5,snowfall:.7}), 'sleet'],
- ['Fallback erkennt Schneeregenschauer nur bei Schnee und Schauern',sample({code:3,precipitation:1.1,showers:.5,snowfall:.7}), 'sleetShowers']
+ ['Fallback erkennt Schneeregenschauer nur bei Schnee und Schauern',sample({code:3,precipitation:1.1,showers:.5,snowfall:.7}), 'sleetShowers'],
+ ['WMO 87 bleibt leichter Graupelschauer',sample({code:87,precipitation:.4,showers:.4}), 'graupelShowers'],
+ ['WMO 88 bleibt Graupelschauer mit zusammengefasster mäßig/stark-Stufe',sample({code:88,precipitation:3,showers:3}), 'graupelShowers'],
+ ['WMO 89 bleibt leichter Hagelschauer',sample({code:89,precipitation:.4,showers:.4}), 'hailShowers'],
+ ['WMO 90 bleibt Hagelschauer mit zusammengefasster mäßig/stark-Stufe',sample({code:90,precipitation:3,showers:3}), 'hailShowers'],
+ ['WMO 91 bleibt leichter Regenschauer nach Gewitter in der vorangegangenen Stunde',sample({code:91,precipitation:.3,rain:.3,showers:.6,cape:900}), 'showers'],
+ ['WMO 92 bleibt mäßiger/starker Regenschauer nach Gewitter in der vorangegangenen Stunde',sample({code:92,precipitation:3,rain:3,showers:.8,cape:900}), 'showers'],
+ ['WMO 93 bleibt phasenoffener winterlicher Niederschlag nach vorangegangenem Gewitter',sample({code:93,precipitation:.4,snowfall:.2}), 'wintryAfterThunder'],
+ ['WMO 94 bleibt phasenoffener winterlicher Niederschlag nach vorangegangenem Gewitter',sample({code:94,precipitation:3,snowfall:1}), 'wintryAfterThunder']
 ];
 const failures=[];
 for(const [name,input,expected] of cases){const actual=precipitationParts(input).type;if(actual!==expected)failures.push(`${name}: erwartet ${expected}, erhalten ${actual}`)}
@@ -71,8 +79,24 @@ const fallbackSnow=precipitationParts(sample({code:3,precipitation:.8,snowfall:1
 if(![71,73,75].includes(fallbackSnow.displayCode))failures.push(`Fallback-Schnee erhält keinen Schneesymbolcode: ${fallbackSnow.displayCode}`);
 const amountCalibratedRain=precipitationParts(sample({code:61,precipitation:12,rain:12,probability:90}));
 if(amountCalibratedRain.displayCode!==65)failures.push(`Finale starke Regenmenge wird im Piktogramm nicht als starke Intensität dargestellt: ${amountCalibratedRain.displayCode}`);
-const amountCalibratedShower=precipitationParts(sample({code:80,precipitation:3.2,showers:3.2,probability:80}));
-if(amountCalibratedShower.displayCode!==81)failures.push(`Finale mäßige Schauermenge wird im Piktogramm nicht als stärkere Schauerintensität dargestellt: ${amountCalibratedShower.displayCode}`);
+const conservativeGapShower=precipitationParts(sample({code:80,precipitation:3.2,showers:3.2,probability:80}));
+if(conservativeGapShower.displayCode!==80||conservativeGapShower.intensity!=='light')failures.push(`DWD-Lücke 0,4–<0,7 mm/10 min muss ohne expliziten Intensitätscode konservativ leicht bleiben: ${conservativeGapShower.displayCode}/${conservativeGapShower.intensity}`);
+const amountCalibratedShower=precipitationParts(sample({code:80,precipitation:6,showers:6,probability:80}));
+if(amountCalibratedShower.displayCode!==81||amountCalibratedShower.intensity!=='moderate')failures.push(`Quantitativ mäßiger Schauer ab 0,7 mm/10 min wird nicht als mäßig dargestellt: ${amountCalibratedShower.displayCode}/${amountCalibratedShower.intensity}`);
+const strongShower=precipitationParts(sample({code:81,precipitation:18,showers:18,probability:95}));
+if(strongShower.displayCode!==81||strongShower.intensity!=='heavy')failures.push(`Starker Regenschauer muss trotz zusammengefasstem WMO-Code 81 geometrisch stark bleiben: ${strongShower.displayCode}/${strongShower.intensity}`);
+const veryStrongShower=precipitationParts(sample({code:82,precipitation:60,showers:60,probability:95}));
+if(veryStrongShower.displayCode!==82||veryStrongShower.intensity!=='very-heavy')failures.push(`Sehr starker Regenschauer muss eine eigene vierte Geometriestufe erhalten: ${veryStrongShower.displayCode}/${veryStrongShower.intensity}`);
+const strongSnowShower=precipitationParts(sample({code:86,precipitation:3,snowfall:5,showers:3,probability:95}));
+if(strongSnowShower.displayCode!==86||strongSnowShower.intensity!=='heavy')failures.push(`Starker Schneeschauer muss trotz zusammengefasstem WMO-Code 86 geometrisch stark bleiben: ${strongSnowShower.displayCode}/${strongSnowShower.intensity}`);
+const moderateHeavyGraupel=precipitationParts(sample({code:88,precipitation:3,showers:3,probability:95}));
+if(moderateHeavyGraupel.displayCode!==88||moderateHeavyGraupel.intensity!=='moderate'||!moderateHeavyGraupel.weatherLabel.includes('mäßiger bis starker'))failures.push(`WMO 88 darf ohne getrennte Messintensität nicht künstlich als stark präzisiert werden: ${moderateHeavyGraupel.displayCode}/${moderateHeavyGraupel.intensity}/${moderateHeavyGraupel.weatherLabel}`);
+const moderateHeavyHail=precipitationParts(sample({code:90,precipitation:7,showers:7,probability:95}));
+if(moderateHeavyHail.displayCode!==90||moderateHeavyHail.intensity!=='moderate'||!moderateHeavyHail.weatherLabel.includes('mäßiger bis starker'))failures.push(`WMO 90 darf ohne getrennte Messintensität nicht künstlich als stark präzisiert werden: ${moderateHeavyHail.displayCode}/${moderateHeavyHail.intensity}/${moderateHeavyHail.weatherLabel}`);
+const afterThunderShower=precipitationParts(sample({code:92,precipitation:6,rain:6,showers:2,cape:1200,probability:95}));
+if(afterThunderShower.type!=='showers'||afterThunderShower.displayCode!==92||afterThunderShower.intensity!=='moderate')failures.push(`WMO 92 muss Regenschauer nach Gewitter in der vorangegangenen Stunde bleiben; eine Stundenakkumulation darf die zusammengefasste WMO-Stufe nicht künstlich verschärfen: ${afterThunderShower.type}/${afterThunderShower.displayCode}/${afterThunderShower.intensity}`);
+const afterThunderWintry=precipitationParts(sample({code:94,precipitation:9,snowfall:5,probability:95}));
+if(afterThunderWintry.type!=='wintryAfterThunder'||afterThunderWintry.displayCode!==94||afterThunderWintry.intensity!=='moderate')failures.push(`WMO 94 muss phasenoffen und ohne erfundene starke Einzelintensität bleiben: ${afterThunderWintry.type}/${afterThunderWintry.displayCode}/${afterThunderWintry.intensity}`);
 const amountCalibratedSnow=precipitationParts(sample({code:71,precipitation:2.4,snowfall:2.4,probability:90}));
 if(amountCalibratedSnow.displayCode!==73)failures.push(`Finale mäßige Schneemenge wird im Piktogramm nicht als mäßige Intensität dargestellt: ${amountCalibratedSnow.displayCode}`);
 const amountCalibratedSleet=precipitationParts(sample({code:68,precipitation:3.2,rain:1.8,snowfall:.8,probability:80}));
@@ -81,8 +105,10 @@ const amountCalibratedThunder=precipitationParts(sample({code:95,precipitation:1
 if(![97,99].includes(amountCalibratedThunder.displayCode))failures.push(`Starker Gewitterniederschlag erhält keine starke geometrische Intensitätsstufe: ${amountCalibratedThunder.displayCode}`);
 const quarterRain=precipitationParts(sample({code:61,precipitation:.2,rain:.2,probability:80,precipitationIntervalStartEpoch:0,precipitationIntervalEndEpoch:15*60000}));
 if(quarterRain.displayCode!==63||quarterRain.weatherLabel!=='mäßiger Regen')failures.push(`15-min-Regen wird nicht auf die tatsächliche Intervallintensität normiert: ${quarterRain.displayCode}/${quarterRain.weatherLabel}`);
-const quarterShower=precipitationParts(sample({code:80,precipitation:.8,showers:.8,probability:80,precipitationIntervalStartEpoch:0,precipitationIntervalEndEpoch:15*60000}));
-if(quarterShower.displayCode!==81)failures.push(`15-min-Schauer wird nicht auf 10-min-Intensität normiert: ${quarterShower.displayCode}`);
+const quarterGapShower=precipitationParts(sample({code:80,precipitation:.8,showers:.8,probability:80,precipitationIntervalStartEpoch:0,precipitationIntervalEndEpoch:15*60000}));
+if(quarterGapShower.displayCode!==80)failures.push(`15-min-Schauer im DWD-Zwischenbereich muss konservativ leicht bleiben: ${quarterGapShower.displayCode}`);
+const quarterShower=precipitationParts(sample({code:80,precipitation:1.2,showers:1.2,probability:80,precipitationIntervalStartEpoch:0,precipitationIntervalEndEpoch:15*60000}));
+if(quarterShower.displayCode!==81||quarterShower.intensity!=='moderate')failures.push(`15-min-Schauer >=0,7 mm/10 min wird nicht intervallgerecht auf mäßig normiert: ${quarterShower.displayCode}/${quarterShower.intensity}`);
 const legend=presentPrecipTypes(cases.slice(0,5).map(([,input])=>precipitationParts(input)));
 for(const expected of ['snow','snowShowers','sleet','sleetShowers'])if(!legend.includes(expected))failures.push(`Legende enthält ${expected} nicht`);
 if(legend.filter(type=>type==='sleet').length!==1)failures.push('Legende enthält Schneeregen mehrfach');

@@ -15,8 +15,8 @@ const forbid=(area,text,token)=>{if(text.includes(token))failures.push(`${area}:
 
 for(const token of [
  "export type WeatherPictogramKind=",
- "if(c===45)return'fog'",
- "if(c===48)return'rime-fog'",
+ "if(c>=40&&c<=47)return'fog'",
+ "if([48,49].includes(c))return'rime-fog'",
  "if([56,57].includes(c))return'freezing-drizzle'",
  "if([66,67].includes(c))return'freezing-rain'",
  "if([68,69].includes(c))return'sleet'",

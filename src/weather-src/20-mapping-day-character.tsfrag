@@ -143,9 +143,9 @@ function skyFromCloud(percent:number,sunshineFraction?:number){
 function plausiblePrecipFamily(h:Hour){
  const part=precipitationParts(h);
  if(part.type==='drizzle'||part.type==='freezingDrizzle')return'drizzle';
- if(part.type==='rain'||part.type==='freezingRain'||part.type==='sleet')return'rain';
+ if(part.type==='rain'||part.type==='freezingRain'||part.type==='sleet'||part.type==='wintryAfterThunder')return'rain';
  if(part.type==='snow'||part.type==='snowGrains')return'snow';
- if(part.type==='showers'||part.type==='snowShowers'||part.type==='sleetShowers')return'showers';
+ if(part.type==='showers'||part.type==='snowShowers'||part.type==='sleetShowers'||part.type==='graupelShowers'||part.type==='hailShowers')return'showers';
  if(part.type==='thunderstorm'||part.type==='thunderstormHail')return'thunder';
  return'none';
 }
@@ -156,9 +156,9 @@ function plausiblePrecipCode(h:Hour,family:string){
 }
 function precipCodeFamily(code:number){
  if([51,53,55,56,57].includes(code))return'drizzle';
- if([61,63,65,66,67,68,69].includes(code))return'rain';
+ if([61,63,65,66,67,68,69,91,92,93,94].includes(code))return'rain';
  if([71,73,75,77].includes(code))return'snow';
- if([80,81,82,83,84,85,86].includes(code))return'showers';
+ if([80,81,82,83,84,85,86,87,88,89,90].includes(code))return'showers';
  if([95,96,97,99].includes(code))return'thunder';
  return'none';
 }
@@ -239,6 +239,9 @@ function skyTrend(hours:Hour[],fallback:string){
 }
 function shortEvent(family:string,eventLabel:string){
  const text=eventLabel.toLocaleLowerCase('de-DE');
+ if(text.includes('graupelschauer'))return'Graupelschauer';
+ if(text.includes('hagelschauer'))return'Hagelschauer';
+ if(text.includes('winterlicher niederschlag'))return'Winterlicher Niederschlag';
  if(text.includes('schneeregenschauer'))return'Schneeregenschauer';
  if(text.includes('schneeschauer'))return'Schneeschauer';
  if(text.includes('schneeregen'))return'Schneeregen';

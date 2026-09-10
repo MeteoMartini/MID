@@ -10,8 +10,8 @@ export const PRECIPITATION_PHASE_COLORS={
 } as const;
 
 export function precipitationPhaseVisualKind(type:PrecipType):PrecipitationPhaseVisualKind{
-  if(type==='snow'||type==='snowShowers'||type==='snowGrains')return'snow';
-  if(type==='freezingRain'||type==='freezingDrizzle'||type==='sleet'||type==='sleetShowers')return'mixed';
+  if(type==='snow'||type==='snowShowers'||type==='snowGrains'||type==='graupelShowers'||type==='hailShowers')return'snow';
+  if(type==='freezingRain'||type==='freezingDrizzle'||type==='sleet'||type==='sleetShowers'||type==='wintryAfterThunder')return'mixed';
   if(type==='thunderstorm'||type==='thunderstormHail')return'storm';
   return'liquid';
 }
@@ -20,7 +20,7 @@ export function precipitationPhaseColor(type:PrecipType){return PRECIPITATION_PH
 
 export function precipitationPhaseColorLabel(type:PrecipType){
   const kind=precipitationPhaseVisualKind(type);
-  if(kind==='snow')return'Schnee · hellblau';
+  if(kind==='snow')return'Schnee/Graupel/Hagel · hellblau';
   if(kind==='mixed')return'Misch-/gefrierende Phase · violett';
   if(kind==='storm')return'Gewitter/Hagel · purpur';
   return'Regen/Sprühregen/Schauer · blau';

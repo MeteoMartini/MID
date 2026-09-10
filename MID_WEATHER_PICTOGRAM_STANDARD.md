@@ -55,7 +55,7 @@ Nicht meteorologische Bedienicons, Warnstufensymbole und astronomische Spezialda
 
 1. Ein Wetterzustand wird fachlich zuerst im kanonischen Forecast-/Niederschlagspfad bestimmt.
 2. `WeatherPictogram` visualisiert diesen Zustand; es darf die Wetterphase nicht eigenständig umdeuten.
-3. WMO-Codes bestimmen bei Forecastdaten die Intensitätsklasse. Dekodierte SYNOP/BUFR/METAR-Meldungen dürfen `phenomenon` und optional `intensity` übergeben.
+3. WMO-Codes liefern nur dort eine Intensitätsklasse, wo die jeweilige Codegruppe sie tatsächlich kodiert. Zusammengefasste bzw. nicht intensitätskodierte Codes werden nicht künstlich präzisiert. Dekodierte SYNOP/BUFR/METAR-Meldungen dürfen `phenomenon` und optional `intensity` übergeben.
 4. Sprühregen, Schneegriesel, gefrierende und gemischte Phasen bleiben voneinander unterscheidbar.
 5. Niederschlagsintensität bleibt in Hoch-/Querformat, Desktop und iOS bei jeder vorgesehenen Größe erkennbar.
 6. Neue Wetterphänomene werden ausschließlich in diesem zentralen Standard ergänzt; parallele Emoji- oder Asset-Renderer sind nicht zulässig.
@@ -152,3 +152,21 @@ Die Nutzeranforderung an die 7-Tage-Kacheln präzisiert den früheren Vertrag au
 - Keine zweite sichtbare Sekundärpille und kein zweizeiliger Wetterbeschreibungstext in der 7-Tage-Kachel.
 
 Damit ersetzt diese Präzisierung ausschließlich die **sichtbare Textlänge** des Vertrags aus v0.9.78.45; dessen fachliche Text-/Piktogramm-Kohärenz bleibt bestehen.
+
+## Verbindliche Präzisierung v0.9.84.26 – Intensitätsstufen, Schauerphase und WMO 87–94
+
+Die Niederschlagspiktogramme unterscheiden appweit bis zu vier sichtbare Intensitätsstufen: **leicht**, **mäßig**, **stark** und – nur dort, wo die fachliche Codierung dies trägt – **sehr stark**. Die Intensität wird weiterhin über Partikelanzahl, Dichte, Größe und Strichstärke vermittelt, nicht nur über Farbe.
+
+- Kontinuierlicher Regen und Schnee werden mit ihren dafür geeigneten, auf das tatsächliche Akkumulationsintervall normierten Mengenraten klassifiziert.
+- Für Regenschauer gelten die DWD-bezogenen 10-Minuten-Intensitäten. Bei längeren Forecast-Akkumulationen ist eine auf 10 Minuten normierte Durchschnittsmenge jedoch nur eine **Untergrenze** für den stärksten 10-Minuten-Abschnitt. Ein expliziter WMO-Code darf deshalb nicht durch eine grobe Stundenakkumulation künstlich abgeschwächt werden; insbesondere bleibt WMO 82 `sehr stark`.
+- Codes, die amtlich mehrere Intensitäten zusammenfassen, werden ohne zusätzliche belastbare Intervallinformation nicht künstlich präzisiert. Die Darstellung bleibt konservativ.
+- WMO 87/88 werden als Graupel-/small-hail-Schauer, 89/90 als Hagelschauer dargestellt. Sie verwenden bei Schauern tagsüber Sonne und nachts Mond, sofern der Himmelskörper als Schauer-/Auflockerungskontext fachlich sinnvoll ist.
+- WMO 91/92 bedeuten **Regenschauer zur Beobachtungszeit nach einem Gewitter in der vorangegangenen Stunde**, nicht ein aktuell andauerndes Gewitter. Sie verwenden daher das Schauerpiktogramm mit Tages-/Nachthimmelskörper, aber ohne Blitz. WMO 93/94 legen Schnee, Schneeregen oder Graupel/Hagel nicht eindeutig auseinander und verwenden ein bewusst generisches winterliches Niederschlagssymbol ohne erfundene Phasenpräzision.
+- WMO 95–99 sind aktuelle Gewittercodes. 95/97 garantieren Niederschlag, legen dessen Phase aber nicht eindeutig auf Regen fest; ohne zusätzliches Phasenfeld wird deshalb kein Regenpartikel erfunden. 96/99 zeigen Graupel/Hagel ohne automatisch zusätzlichen Regen. 98 bedeutet Gewitter mit Staub-/Sandsturm und ist **kein Niederschlagsnachweis**.
+- WMO 77 (Schneegriesel) und 79 (Eiskörner) können laut DWD in unterschiedlichen Intensitäten auftreten, kodieren die konkrete Stärke im ww-Code selbst aber nicht. Aus dem Code allein bleibt die Intensität daher neutral; quantitative Zusatzdaten dürfen sie spezifizieren.
+- Für reine Mengenableitung bei Regenschauern gelten <0,4 mm/10 min leicht, 0,7–<2 mm/10 min mäßig, 2–8 mm/10 min stark und >8 mm/10 min sehr stark. Der in der DWD-Mengentabelle nicht eindeutig zugeordnete Zwischenbereich 0,4–<0,7 mm/10 min wird ohne zusätzlichen Intensitätscode konservativ als leicht dargestellt.
+- Zusammengefasste Tages-/Nachtpiktogramme übernehmen die repräsentative Intensität aus den Stunden der jeweiligen Periode. 14-Tage-/Klimaaggregate ohne belastbare Intervallintensität erhalten dagegen keine erfundene zusätzliche Präzision.
+
+Schneehöhe/Schneedecke ist von Neuschnee/Schneefallakkumulation getrennt: **sichtbare Schneehöhen werden appweit in ganzen Zentimetern ausgegeben**, während interne Rohwerte sowie Neuschnee-/Schneefallmengen ihre für Berechnung und kleine Akkumulationen notwendige Dezimalpräzision behalten.
+
+Required Regression: `scripts/test-pictogram-intensity-snow-depth-098426.mjs`.

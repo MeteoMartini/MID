@@ -1,8 +1,8 @@
 import {label,type Hour} from './weather';
-import {precipitationParts} from './precipitation';
+import {precipitationParts,type PrecipitationVisualIntensity} from './precipitation';
 import {weatherPictogramKind,type WeatherPictogramCloudProfile,type WeatherPictogramKind} from './WeatherPictogram';
 
-export type PeriodWeatherVisual=WeatherPictogramCloudProfile&{code:number;title:string;available:boolean};
+export type PeriodWeatherVisual=WeatherPictogramCloudProfile&{code:number;title:string;available:boolean;intensity?:PrecipitationVisualIntensity};
 
 type PeriodWeatherVisualOptions={preferFallbackCode?:boolean};
 
@@ -22,6 +22,7 @@ function periodPool(hours:Hour[],dayPeriod:boolean){
  return civil.length?civil:hours;
 }
 
+function displayParts(hour:Hour){return precipitationParts(hour)}
 function displayCode(hour:Hour){return precipitationParts(hour).displayCode}
 function sampleKind(hour:Hour){return weatherPictogramKind(displayCode(hour))}
 function sampleAmount(hour:Hour){return Math.max(0,Number(hour.precipitation)||0)+Math.max(0,Number(hour.snowfall)||0)*0.1}
@@ -40,6 +41,19 @@ function skyCodeForPool(pool:Hour[]){
  return [...counts.entries()].sort((left,right)=>right[1]-left[1]||left[0]-right[0])[0]?.[0]??3;
 }
 
+function representativePeriodIntensity(pool:Hour[],code:number):PrecipitationVisualIntensity|undefined{
+ const targetKind=weatherPictogramKind(code);
+ if(SKY_KINDS.has(targetKind)||FOG_KINDS.has(targetKind))return undefined;
+ const scores=new Map<PrecipitationVisualIntensity,number>();
+ for(const hour of pool){
+  const parts=displayParts(hour),kind=weatherPictogramKind(parts.displayCode);
+  if(kind!==targetKind||parts.type==='none'||parts.intensity==='none')continue;
+  const amount=sampleAmount(hour),probability=sampleProbability(hour),weight=(.5+probability/100)*(1+Math.min(4,amount*2));
+  scores.set(parts.intensity,(scores.get(parts.intensity)??0)+weight);
+ }
+ return [...scores.entries()].sort((a,b)=>b[1]-a[1])[0]?.[0];
+}
+
 function dominantPeriodCode(pool:Hour[]){
  if(!pool.length)return 3;
  const precipRows=pool.map(hour=>({hour,code:displayCode(hour),kind:sampleKind(hour),amount:sampleAmount(hour),probability:sampleProbability(hour)})).filter(row=>!SKY_KINDS.has(row.kind));
@@ -49,7 +63,7 @@ function dominantPeriodCode(pool:Hour[]){
  if(precipitationDominant&&active.length){
   const scores=new Map<WeatherPictogramKind,{score:number;code:number;bestSampleScore:number}>();
   for(const row of active){
-   const severity=THUNDER_KINDS.has(row.kind)?4:row.kind==='showers'||row.kind==='sleet-showers'||row.kind==='snow-showers'?2.3:row.kind==='rain'||row.kind==='freezing-rain'||row.kind==='sleet'||row.kind==='snow'?1.9:1.35;
+   const severity=THUNDER_KINDS.has(row.kind)?4:row.kind==='showers'||row.kind==='sleet-showers'||row.kind==='snow-showers'||row.kind==='graupel-showers'||row.kind==='hail-showers'?2.3:row.kind==='rain'||row.kind==='freezing-rain'||row.kind==='sleet'||row.kind==='snow'||row.kind==='wintry-after-thunder'?1.9:1.35;
    const score=severity*(1+row.probability/100)+Math.min(4,row.amount*2.4),existing=scores.get(row.kind);
    if(existing)scores.set(row.kind,{score:existing.score+score,code:score>existing.bestSampleScore?row.code:existing.code,bestSampleScore:Math.max(existing.bestSampleScore,score)});else scores.set(row.kind,{score,code:row.code,bestSampleScore:score});
   }
@@ -75,6 +89,6 @@ function dominantPeriodCode(pool:Hour[]){
 export function periodWeatherVisual(hours:Hour[],dayPeriod:boolean,fallbackCode:number,fallbackTitle:string,options:PeriodWeatherVisualOptions={}):PeriodWeatherVisual{
  const pool=periodPool(hours,dayPeriod),periodLabel=dayPeriod?'Tagsüber':'Nachts';
  if(!pool.length)return{code:fallbackCode,title:`${periodLabel}: ${fallbackTitle}`,available:false};
- const code=options.preferFallbackCode?fallbackCode:dominantPeriodCode(pool),baseTitle=options.preferFallbackCode?fallbackTitle:label(code)||fallbackTitle;
- return{code,title:`${periodLabel}: ${baseTitle}`,available:true,cloud:meanLayer(pool,'cloud'),lowCloud:meanLayer(pool,'lowCloud'),midCloud:meanLayer(pool,'midCloud'),highCloud:meanLayer(pool,'highCloud')};
+ const code=options.preferFallbackCode?fallbackCode:dominantPeriodCode(pool),baseTitle=options.preferFallbackCode?fallbackTitle:label(code)||fallbackTitle,intensity=representativePeriodIntensity(pool,code);
+ return{code,title:`${periodLabel}: ${baseTitle}`,available:true,intensity,cloud:meanLayer(pool,'cloud'),lowCloud:meanLayer(pool,'lowCloud'),midCloud:meanLayer(pool,'midCloud'),highCloud:meanLayer(pool,'highCloud')};
 }

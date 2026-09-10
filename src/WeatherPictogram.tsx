@@ -4,8 +4,8 @@ import {label} from './weather';
 export type WeatherPictogramKind=
  'clear'|'mostly-clear'|'partly-cloudy'|'cloudy'|'mist'|'fog'|'rime-fog'|'haze'|
  'drizzle'|'freezing-drizzle'|'rain'|'freezing-rain'|'showers'|'sleet'|'sleet-showers'|'snow'|'snow-grains'|'snow-showers'|
- 'ice-crystals'|'ice-pellets'|'graupel'|'hail'|'thunder'|'thunder-hail'|'squall'|'funnel-cloud';
-export type WeatherPictogramIntensity='none'|'light'|'moderate'|'heavy';
+ 'ice-crystals'|'ice-pellets'|'graupel'|'graupel-showers'|'hail'|'hail-showers'|'wintry-after-thunder'|'thunder'|'thunder-hail'|'squall'|'funnel-cloud';
+export type WeatherPictogramIntensity='none'|'light'|'moderate'|'heavy'|'very-heavy';
 export type CloudLayerKind='none'|'low'|'mid'|'high'|'layered'|'convective'|'unspecified';
 export type CloudFormKind='clear'|'stratus'|'altostratus'|'cirrus'|'cumulus'|'cumulonimbus'|'layered'|'generic';
 
@@ -17,7 +17,7 @@ export type WeatherPictogramCloudProfile={
 };
 
 export type SynopticPhenomenonCode=
- 'DZ'|'FZDZ'|'RA'|'FZRA'|'SHRA'|'SN'|'SG'|'SHSN'|'RASN'|'SHRASN'|'IC'|'PL'|'GS'|'GR'|
+ 'DZ'|'FZDZ'|'RA'|'FZRA'|'SHRA'|'SN'|'SG'|'SHSN'|'RASN'|'SHRASN'|'SHGS'|'SHGR'|'IC'|'PL'|'GS'|'GR'|
  'TS'|'TSRA'|'TSSN'|'TSGR'|'TSGS'|'BR'|'FG'|'FZFG'|'HZ'|'FU'|'DU'|'SA'|'SQ'|'FC';
 
 export type WeatherPictogramSpec={kind:WeatherPictogramKind;intensity:WeatherPictogramIntensity;phenomenon?:string};
@@ -35,7 +35,7 @@ type Props=WeatherPictogramCloudProfile&{
  plain?:boolean;
  /** Optional WMO/ICAO present-weather bridge, e.g. -DZ, +RA, SHSN, FZRA, SG or TSGR. */
  phenomenon?:SynopticPhenomenonCode|string;
- /** Explicit intensity is primarily for decoded SYNOP/BUFR/METAR observations. */
+ /** Explicit intensity may come from decoded SYNOP/BUFR/METAR or interval-aware forecast amounts. */
  intensity?:WeatherPictogramIntensity;
 };
 
@@ -44,9 +44,12 @@ function normalizedPhenomenon(value:unknown){return String(value||'').trim().toU
 
 export function weatherPictogramIntensity(code:number):WeatherPictogramIntensity{
  const c=Math.round(Number(code));
- if([51,56,61,66,68,71,80,83,85].includes(c))return'light';
- if([53,63,69,73,77,81,84,95,96].includes(c))return'moderate';
- if([55,57,65,67,75,82,86,97,99].includes(c))return'heavy';
+ // WMO/DWD present-weather codes. Where one code combines moderate/strong,
+ // code-only rendering stays moderate; interval-aware callers may override it.
+ if([50,51,56,58,60,61,66,68,70,71,80,83,85,87,89,91,93].includes(c))return'light';
+ if([52,53,57,59,62,63,67,69,72,73,81,84,86,88,90,92,94,95,96].includes(c))return'moderate';
+ if(c===82)return'very-heavy';
+ if([54,55,64,65,74,75,97,99].includes(c))return'heavy';
  return'none';
 }
 
@@ -56,18 +59,24 @@ export function weatherPictogramKind(code:number):WeatherPictogramKind{
  if(c===1)return'mostly-clear';
  if(c===2)return'partly-cloudy';
  if(c===3)return'cloudy';
- if(c===45)return'fog';
- if(c===48)return'rime-fog';
- if([51,53,55].includes(c))return'drizzle';
+ if(c>=40&&c<=47)return'fog';
+ if([48,49].includes(c))return'rime-fog';
+ if([50,51,52,53,54,55].includes(c))return'drizzle';
  if([56,57].includes(c))return'freezing-drizzle';
- if([61,63,65].includes(c))return'rain';
+ if([58,59,60,61,62,63,64,65].includes(c))return'rain';
  if([66,67].includes(c))return'freezing-rain';
  if([68,69].includes(c))return'sleet';
- if([83,84].includes(c))return'sleet-showers';
- if([71,73,75].includes(c))return'snow';
+ if([70,71,72,73,74,75].includes(c))return'snow';
+ if(c===76||c===78)return'ice-crystals';
  if(c===77)return'snow-grains';
+ if(c===79)return'ice-pellets';
  if([80,81,82].includes(c))return'showers';
+ if([91,92].includes(c))return'showers';
+ if([83,84].includes(c))return'sleet-showers';
  if([85,86].includes(c))return'snow-showers';
+ if([93,94].includes(c))return'wintry-after-thunder';
+ if([87,88].includes(c))return'graupel-showers';
+ if([89,90].includes(c))return'hail-showers';
  if([96,99].includes(c))return'thunder-hail';
  if([95,97,98].includes(c))return'thunder';
  return'partly-cloudy';
@@ -95,6 +104,8 @@ export function synopticPhenomenonPictogram(value:string):WeatherPictogramSpec|n
  else if(has('FZRA'))kind='freezing-rain';
  else if(has('SH')&&((has('RA')&&has('SN'))||(has('DZ')&&has('SN'))))kind='sleet-showers';
  else if(has('SH')&&has('SN'))kind='snow-showers';
+ else if(has('SH')&&has('GS'))kind='graupel-showers';
+ else if(has('SH')&&has('GR'))kind='hail-showers';
  else if(has('SH')&&has('RA'))kind='showers';
  else if((has('RA')&&has('SN'))||(has('DZ')&&has('SN')))kind='sleet';
  else if(has('DZ'))kind='drizzle';
@@ -117,7 +128,7 @@ export function weatherPictogramSpec(code:number,phenomenon?:string,intensity?:W
 export function cloudLayerKind(code:number,profile:WeatherPictogramCloudProfile={},overrideKind?:WeatherPictogramKind):CloudLayerKind{
  const weatherKind=overrideKind??weatherPictogramKind(code);
  if(weatherKind==='clear')return'none';
- if(['thunder','thunder-hail','showers','sleet-showers','snow-showers','squall','funnel-cloud'].includes(weatherKind))return'convective';
+ if(['thunder','thunder-hail','showers','sleet-showers','snow-showers','graupel-showers','hail-showers','squall','funnel-cloud'].includes(weatherKind))return'convective';
  const low=finiteCloud(profile.lowCloud),mid=finiteCloud(profile.midCloud),high=finiteCloud(profile.highCloud),total=finiteCloud(profile.cloud);
  const layers=[['low',low],['mid',mid],['high',high]] as const,available=layers.filter((entry):entry is readonly['low'|'mid'|'high',number]=>entry[1]!==undefined).sort((a,b)=>b[1]-a[1]);
  if(available.length){
@@ -129,7 +140,7 @@ export function cloudLayerKind(code:number,profile:WeatherPictogramCloudProfile=
  }
  if(total!==undefined&&total>=75&&low!==undefined&&low>=50)return'low';
  if(['mist','fog','rime-fog','drizzle','freezing-drizzle'].includes(weatherKind))return'low';
- if(['rain','freezing-rain','sleet','snow','snow-grains','ice-crystals','ice-pellets','graupel','hail'].includes(weatherKind))return mid!==undefined&&mid>=55&&(!low||mid>low+12)?'mid':'layered';
+ if(['rain','freezing-rain','sleet','snow','snow-grains','ice-crystals','ice-pellets','graupel','hail','wintry-after-thunder'].includes(weatherKind))return mid!==undefined&&mid>=55&&(!low||mid>low+12)?'mid':'layered';
  return'unspecified';
 }
 
@@ -145,18 +156,18 @@ export function cloudLayerDescription(kind:CloudLayerKind){
 export function cloudFormKind(code:number,profile:WeatherPictogramCloudProfile={},overrideKind?:WeatherPictogramKind):CloudFormKind{
  const weatherKind=overrideKind??weatherPictogramKind(code),layer=cloudLayerKind(code,profile,weatherKind),low=finiteCloud(profile.lowCloud),total=finiteCloud(profile.cloud);
  if(weatherKind==='clear')return'clear';
- if(['thunder','thunder-hail','showers','sleet-showers','snow-showers','squall','funnel-cloud'].includes(weatherKind)||layer==='convective')return'cumulonimbus';
+ if(['thunder','thunder-hail','showers','sleet-showers','snow-showers','graupel-showers','hail-showers','squall','funnel-cloud'].includes(weatherKind)||layer==='convective')return'cumulonimbus';
  if(['mist','fog','rime-fog','drizzle','freezing-drizzle'].includes(weatherKind))return'stratus';
  if(layer==='high')return'cirrus';
  if(layer==='mid')return'altostratus';
  if(layer==='layered')return'layered';
  if(layer==='low'){
-  if(weatherKind==='cloudy'||['rain','freezing-rain','sleet','snow','snow-grains','ice-crystals','ice-pellets','graupel','hail'].includes(weatherKind)||(low??0)>=76||(total??0)>=84)return'stratus';
+  if(weatherKind==='cloudy'||['rain','freezing-rain','sleet','snow','snow-grains','ice-crystals','ice-pellets','graupel','hail','wintry-after-thunder'].includes(weatherKind)||(low??0)>=76||(total??0)>=84)return'stratus';
   return'cumulus';
  }
  if(weatherKind==='cloudy')return'stratus';
  if(['mostly-clear','partly-cloudy'].includes(weatherKind))return'cumulus';
- if(['rain','freezing-rain','sleet','snow','snow-grains','ice-crystals','ice-pellets','graupel','hail'].includes(weatherKind))return'layered';
+ if(['rain','freezing-rain','sleet','snow','snow-grains','ice-crystals','ice-pellets','graupel','hail','wintry-after-thunder'].includes(weatherKind))return'layered';
  return'generic';
 }
 
@@ -170,7 +181,7 @@ export function cloudFormDescription(kind:CloudFormKind){
  return'';
 }
 
-function intensityDescription(value:WeatherPictogramIntensity){return value==='light'?'leicht':value==='moderate'?'mäßig':value==='heavy'?'stark':''}
+function intensityDescription(value:WeatherPictogramIntensity){return value==='light'?'leicht':value==='moderate'?'mäßig':value==='heavy'?'stark':value==='very-heavy'?'sehr stark':''}
 
 /**
  * Weather Icon System 2.0 visual form lock.
@@ -182,10 +193,10 @@ function intensityDescription(value:WeatherPictogramIntensity){return value==='l
  */
 export function weatherPictogramVisualForm(kind:WeatherPictogramKind):CloudFormKind{
  if(['thunder','thunder-hail','squall','funnel-cloud'].includes(kind))return'cumulonimbus';
- if(['showers','sleet-showers','snow-showers'].includes(kind))return'cumulus';
+ if(['showers','sleet-showers','snow-showers','graupel-showers','hail-showers'].includes(kind))return'cumulus';
  if(['mostly-clear','partly-cloudy'].includes(kind))return'cumulus';
  if(kind==='cloudy')return'generic';
- if(['drizzle','freezing-drizzle','rain','freezing-rain','sleet','snow','snow-grains','ice-crystals','ice-pellets','graupel','hail'].includes(kind))return'generic';
+ if(['drizzle','freezing-drizzle','rain','freezing-rain','sleet','snow','snow-grains','ice-crystals','ice-pellets','graupel','hail','wintry-after-thunder'].includes(kind))return'generic';
  if(['mist','fog','rime-fog','haze','clear'].includes(kind))return'clear';
  return'generic';
 }
@@ -214,44 +225,49 @@ function MistLines({fog=false,rime=false,haze=false}:{fog?:boolean;rime?:boolean
 }
 
 function precipitationLayout(intensity:WeatherPictogramIntensity){
+ if(intensity==='none')return{xs:[24,36,48],stroke:2.7,length:7.4,head:1.65,baseY:48.4,opacity:.94};
  if(intensity==='light')return{xs:[26,42],stroke:2.55,length:7,head:1.55,baseY:48.5,opacity:.92};
+ if(intensity==='very-heavy')return{xs:[12,21,30,39,48,57],stroke:3.75,length:11.4,head:2.45,baseY:46.6,opacity:1};
  if(intensity==='heavy')return{xs:[16,27,38,49,58],stroke:3.4,length:10.5,head:2.25,baseY:47.2,opacity:1};
  return{xs:[20,33,46,57],stroke:3,length:8.4,head:1.9,baseY:47.8,opacity:1};
 }
 function Rain({intensity='moderate',drizzle=false}:{intensity?:WeatherPictogramIntensity;drizzle?:boolean}){
- const layout=precipitationLayout(intensity),xs=drizzle?(intensity==='heavy'?[18,28,38,48,58]:intensity==='light'?[27,41,53]:[22,34,46,58]):layout.xs;
- if(drizzle)return <g className={`mid-weather-drizzle intensity-${intensity}`} fill="var(--wx-icon-rain)" opacity={layout.opacity}>{xs.map((x,index)=><circle key={x} cx={x} cy={50.5+(index%2)*4.2} r={intensity==='heavy'?1.95:intensity==='light'?1.4:1.7}/>)}</g>;
+ const layout=precipitationLayout(intensity),xs=drizzle?(intensity==='very-heavy'?[13,22,31,40,49,58]:intensity==='heavy'?[18,28,38,48,58]:intensity==='light'?[27,41,53]:[22,34,46,58]):layout.xs;
+ if(drizzle)return <g className={`mid-weather-drizzle intensity-${intensity}`} fill="var(--wx-icon-rain)" opacity={layout.opacity}>{xs.map((x,index)=><circle key={x} cx={x} cy={50.5+(index%2)*4.2} r={intensity==='very-heavy'?2.15:intensity==='heavy'?1.95:intensity==='light'?1.4:1.7}/>)}</g>;
  return <g className={`mid-weather-rain intensity-${intensity}`} fill="var(--wx-icon-rain)" stroke="var(--wx-icon-rain)" strokeWidth={layout.stroke} strokeLinecap="round" strokeLinejoin="round" opacity={layout.opacity}>{xs.map((x,index)=>{const startY=layout.baseY+(index%2)*1.7,dx=Number(Math.max(2.3,layout.length*.38).toFixed(2)),endX=Number((x-dx).toFixed(2)),endY=Number((startY+layout.length).toFixed(2));return <g key={x}><path d={`M${x} ${startY}l-${dx} ${layout.length}`} fill="none"/><circle cx={endX-.15} cy={endY+.45} r={layout.head}/></g>})}</g>;
 }
 function solidParticleXs(intensity:WeatherPictogramIntensity){
+ if(intensity==='none')return[24,36,48];
  if(intensity==='light')return[27,43];
+ if(intensity==='very-heavy')return[12,21,30,39,48,58];
  if(intensity==='heavy')return[15,26,37,48,59];
  return[19,32,45,57];
 }
 function Snow({grains=false,intensity='moderate'}:{grains?:boolean;intensity?:WeatherPictogramIntensity}){
  const xs=solidParticleXs(intensity);
- return <g className={`mid-weather-snow intensity-${intensity}`} stroke="var(--wx-icon-snow)" strokeWidth={intensity==='heavy'?2.15:intensity==='light'?1.7:1.9} strokeLinecap="round">{xs.map((x,index)=>grains?<circle key={x} cx={x} cy={50.5+index%2*4.4} r={intensity==='heavy'?2.7:intensity==='light'?1.75:2.2} fill="var(--wx-icon-snow-grain)" stroke="var(--wx-icon-snow)" strokeWidth=".9"/>:<g key={x} transform={`translate(${x} ${51+index%2*4.4}) scale(${intensity==='light'?.86:intensity==='heavy'?1.12:1})`}><path d="M-4 0h8M0-4v8M-3-3l6 6M3-3l-6 6"/></g>)}</g>;
+ return <g className={`mid-weather-snow intensity-${intensity}`} stroke="var(--wx-icon-snow)" strokeWidth={intensity==='very-heavy'?2.3:intensity==='heavy'?2.15:intensity==='light'?1.7:1.9} strokeLinecap="round">{xs.map((x,index)=>grains?<circle key={x} cx={x} cy={50.5+index%2*4.4} r={intensity==='very-heavy'?3:intensity==='heavy'?2.7:intensity==='light'?1.75:2.2} fill="var(--wx-icon-snow-grain)" stroke="var(--wx-icon-snow)" strokeWidth=".9"/>:<g key={x} transform={`translate(${x} ${51+index%2*4.4}) scale(${intensity==='light'?.86:intensity==='very-heavy'?1.22:intensity==='heavy'?1.12:1})`}><path d="M-4 0h8M0-4v8M-3-3l6 6M3-3l-6 6"/></g>)}</g>;
 }
 function IceCrystal({x=51,y=51,large=false}:{x?:number;y?:number;large?:boolean}){return <g className="mid-weather-ice" transform={`translate(${x} ${y}) scale(${large?1.18:1})`} stroke="var(--wx-icon-ice)" strokeWidth="1.6" strokeLinecap="round"><path d="M-5 0h10M0-5v10M-3.5-3.5l7 7M3.5-3.5l-7 7"/></g>}
-function IceCrystals({intensity='moderate'}:{intensity?:WeatherPictogramIntensity}){return <g className={`mid-weather-ice-crystals intensity-${intensity}`}>{solidParticleXs(intensity).map((x,index)=><IceCrystal key={x} x={x} y={50.5+index%2*4.5} large={intensity==='heavy'}/>)}</g>}
-function IcePellets({intensity='moderate'}:{intensity?:WeatherPictogramIntensity}){const xs=solidParticleXs(intensity);return <g className={`mid-weather-ice-pellets intensity-${intensity}`} fill="none" stroke="var(--wx-icon-ice)" strokeWidth={intensity==='heavy'?1.8:intensity==='light'?1.45:1.65}>{xs.map((x,index)=><polygon key={x} points={`${x},${48+index%2*4.2} ${x+3},${50+index%2*4.2} ${x+2},${54+index%2*4.2} ${x-2},${54+index%2*4.2} ${x-3},${50+index%2*4.2}`} strokeLinejoin="round"/>)}</g>}
-function Graupel({intensity='moderate'}:{intensity?:WeatherPictogramIntensity}){const xs=solidParticleXs(intensity);return <g className={`mid-weather-graupel intensity-${intensity}`} fill="var(--wx-icon-graupel)" stroke="var(--wx-icon-ice)" strokeWidth=".85">{xs.map((x,index)=><circle key={x} cx={x} cy={51+index%2*4.3} r={intensity==='heavy'?2.85:intensity==='light'?2:2.4}/>)}</g>}
-function Hail({intensity='moderate'}:{intensity?:WeatherPictogramIntensity}){const xs=solidParticleXs(intensity);return <g className={`mid-weather-hail intensity-${intensity}`} fill="var(--wx-icon-hail)" stroke="var(--wx-icon-hail-edge)" strokeWidth="1">{xs.map((x,index)=><circle key={x} cx={x} cy={51+index%2*4.3} r={intensity==='heavy'?3.25:intensity==='light'?2.15:2.7}/>)}</g>}
+function IceCrystals({intensity='moderate'}:{intensity?:WeatherPictogramIntensity}){return <g className={`mid-weather-ice-crystals intensity-${intensity}`}>{solidParticleXs(intensity).map((x,index)=><IceCrystal key={x} x={x} y={50.5+index%2*4.5} large={intensity==='heavy'||intensity==='very-heavy'}/>)}</g>}
+function IcePellets({intensity='moderate'}:{intensity?:WeatherPictogramIntensity}){const xs=solidParticleXs(intensity);return <g className={`mid-weather-ice-pellets intensity-${intensity}`} fill="none" stroke="var(--wx-icon-ice)" strokeWidth={intensity==='very-heavy'?1.95:intensity==='heavy'?1.8:intensity==='light'?1.45:1.65}>{xs.map((x,index)=><polygon key={x} points={`${x},${48+index%2*4.2} ${x+3},${50+index%2*4.2} ${x+2},${54+index%2*4.2} ${x-2},${54+index%2*4.2} ${x-3},${50+index%2*4.2}`} strokeLinejoin="round"/>)}</g>}
+function Graupel({intensity='moderate'}:{intensity?:WeatherPictogramIntensity}){const xs=solidParticleXs(intensity);return <g className={`mid-weather-graupel intensity-${intensity}`} fill="var(--wx-icon-graupel)" stroke="var(--wx-icon-ice)" strokeWidth=".85">{xs.map((x,index)=><circle key={x} cx={x} cy={51+index%2*4.3} r={intensity==='very-heavy'?3.15:intensity==='heavy'?2.85:intensity==='light'?2:2.4}/>)}</g>}
+function Hail({intensity='moderate'}:{intensity?:WeatherPictogramIntensity}){const xs=solidParticleXs(intensity);return <g className={`mid-weather-hail intensity-${intensity}`} fill="var(--wx-icon-hail)" stroke="var(--wx-icon-hail-edge)" strokeWidth="1">{xs.map((x,index)=><circle key={x} cx={x} cy={51+index%2*4.3} r={intensity==='very-heavy'?3.55:intensity==='heavy'?3.25:intensity==='light'?2.15:2.7}/>)}</g>}
+function WintryAfterThunder({intensity='moderate'}:{intensity?:WeatherPictogramIntensity}){const scale=intensity==='heavy'||intensity==='very-heavy'?1.08:intensity==='light'?.9:1;const dx=34*(1-scale),dy=52*(1-scale)+(intensity==='light'?1:0);return <g className={`mid-weather-wintry-after-thunder intensity-${intensity}`} transform={`translate(${dx.toFixed(2)} ${dy.toFixed(2)}) scale(${scale})`}><path d="M19 49l-3.1 8.2" fill="none" stroke="var(--wx-icon-rain)" strokeWidth="2.8" strokeLinecap="round"/><g transform="translate(34 53)" stroke="var(--wx-icon-snow)" strokeWidth="1.9" strokeLinecap="round"><path d="M-4 0h8M0-4v8M-3-3l6 6M3-3l-6 6"/></g><circle cx="50" cy="53" r={intensity==='light'?2.2:2.8} fill="var(--wx-icon-hail)" stroke="var(--wx-icon-hail-edge)" strokeWidth="1"/></g>}
 function Lightning({heavy=false}:{heavy?:boolean}){return <g className="mid-weather-lightning"><path d="M34 42h10l-6 8h7L31 63l4-10h-7l6-11Z" fill="var(--wx-icon-lightning)" stroke="var(--wx-icon-lightning-edge)" strokeWidth="1.1" strokeLinejoin="round"/>{heavy?<path d="M49 43h7l-4 6h5l-10 9 3-7h-5l4-8Z" fill="var(--wx-icon-lightning)" stroke="var(--wx-icon-lightning-edge)" strokeWidth=".8" strokeLinejoin="round" opacity=".86"/>:null}</g>}
 function WindGlyph({squall=false}:{squall?:boolean}){return <g className="mid-weather-wind-glyph" fill="none" stroke="var(--wx-icon-wind)" strokeLinecap="round"><path d="M9 43h28c7 0 8-8 2-9-3-.5-5 1-6 3" strokeWidth={squall?3.4:2.8}/><path d="M14 51h38c7 0 8 8 2 9-3 .5-5-1-6-3" strokeWidth={squall?3.4:2.8}/><path d="M8 58h25" strokeWidth="2.4" opacity=".75"/></g>}
 function Funnel(){return <g className="mid-weather-funnel" fill="none" stroke="var(--wx-icon-funnel)" strokeLinecap="round"><path d="M24 46c14 0 25 0 31-4" strokeWidth="3.6"/><path d="M28 51c10 0 18-1 23-4" strokeWidth="3.2"/><path d="M33 56c7 0 12-1 15-3" strokeWidth="2.7"/><path d="M39 60c3 0 5-.5 6-1.5" strokeWidth="2.2"/></g>}
 
 function weatherKindDescription(kind:WeatherPictogramKind){
- const names:Record<WeatherPictogramKind,string>={clear:'klar', 'mostly-clear':'überwiegend klar','partly-cloudy':'teilweise bewölkt',cloudy:'bedeckt',mist:'Dunst',fog:'Nebel','rime-fog':'Reifnebel',haze:'trockener Dunst',drizzle:'Sprühregen','freezing-drizzle':'gefrierender Sprühregen',rain:'Regen','freezing-rain':'gefrierender Regen',showers:'Regenschauer',sleet:'Schneeregen','sleet-showers':'Schneeregenschauer',snow:'Schnee','snow-grains':'Schneegriesel','snow-showers':'Schneeschauer','ice-crystals':'Eiskristalle','ice-pellets':'Eiskörner',graupel:'Graupel',hail:'Hagel',thunder:'Gewitter','thunder-hail':'Gewitter mit Hagel',squall:'Böenlinie', 'funnel-cloud':'Trichterwolke'};
+ const names:Record<WeatherPictogramKind,string>={clear:'klar', 'mostly-clear':'überwiegend klar','partly-cloudy':'teilweise bewölkt',cloudy:'bedeckt',mist:'Dunst',fog:'Nebel','rime-fog':'Reifnebel',haze:'trockener Dunst',drizzle:'Sprühregen','freezing-drizzle':'gefrierender Sprühregen',rain:'Regen','freezing-rain':'gefrierender Regen',showers:'Regenschauer',sleet:'Schneeregen','sleet-showers':'Schneeregenschauer',snow:'Schnee','snow-grains':'Schneegriesel','snow-showers':'Schneeschauer','ice-crystals':'Eiskristalle','ice-pellets':'Eiskörner',graupel:'Graupel','graupel-showers':'Graupelschauer',hail:'Hagel','hail-showers':'Hagelschauer','wintry-after-thunder':'winterlicher Niederschlag nach Gewitter',thunder:'Gewitter','thunder-hail':'Gewitter mit Hagel',squall:'Böenlinie', 'funnel-cloud':'Trichterwolke'};
  return names[kind];
 }
 
 export function WeatherPictogram({code,day=true,size='1em',className='',title,x,y,style,cloud,lowCloud,midCloud,highCloud,compact=false,plain=true,phenomenon,intensity}:Props){
- const profile={cloud,lowCloud,midCloud,highCloud},rawId=useId().replace(/[^a-zA-Z0-9_-]/g,''),spec=weatherPictogramSpec(code,phenomenon,intensity),kind=spec.kind,precipIntensity=spec.intensity,layer=cloudLayerKind(code,profile,kind),form=cloudFormKind(code,profile,kind),visualForm=weatherPictogramVisualForm(kind),layerText=cloudLayerDescription(layer),formText=cloudFormDescription(form),intensityText=precipIntensity!=='none'&&['drizzle','freezing-drizzle','rain','freezing-rain','showers','sleet','sleet-showers','snow','snow-grains','snow-showers','ice-crystals','ice-pellets','graupel','hail','thunder','thunder-hail'].includes(kind)?intensityDescription(precipIntensity):'',baseDescription=title||phenomenon?title||`${intensityText?`${intensityText} `:''}${weatherKindDescription(kind)}`:label(code),details=[intensityText,layerText,formText].filter(Boolean).filter((item,index,array)=>array.indexOf(item)===index),description=details.reduce((current,item)=>current.toLocaleLowerCase('de-DE').includes(item.toLocaleLowerCase('de-DE'))?current:`${current} · ${item}`,baseDescription),sunGradient=`mid-sun-${rawId}`,moonGradient=`mid-moon-${rawId}`,cloudGradient=`mid-cloud-${rawId}`,nightCloudGradient=`mid-cloud-night-${rawId}`,stormGradient=`mid-storm-${rawId}`,nightStormGradient=`mid-storm-night-${rawId}`,shadow=`mid-shadow-${rawId}`;
+ const profile={cloud,lowCloud,midCloud,highCloud},rawId=useId().replace(/[^a-zA-Z0-9_-]/g,''),spec=weatherPictogramSpec(code,phenomenon,intensity),kind=spec.kind,precipIntensity=spec.intensity,wmoCode=Math.round(Number(code)||0),synopticRaw=normalizedPhenomenon(phenomenon),thunderDust=wmoCode===98&&!phenomenon,thunderRain=Boolean(synopticRaw&&(synopticRaw.includes('RA')||synopticRaw.includes('DZ'))),thunderSnow=Boolean(synopticRaw&&synopticRaw.includes('SN')),thunderGraupel=Boolean(synopticRaw&&synopticRaw.includes('GS')),layer=cloudLayerKind(code,profile,kind),form=cloudFormKind(code,profile,kind),visualForm=weatherPictogramVisualForm(kind),layerText=cloudLayerDescription(layer),formText=cloudFormDescription(form),intensityText=precipIntensity!=='none'&&['drizzle','freezing-drizzle','rain','freezing-rain','showers','sleet','sleet-showers','snow','snow-grains','snow-showers','ice-crystals','ice-pellets','graupel','graupel-showers','hail','hail-showers','wintry-after-thunder','thunder','thunder-hail'].includes(kind)?intensityDescription(precipIntensity):'',baseDescription=title||phenomenon?title||`${intensityText?`${intensityText} `:''}${weatherKindDescription(kind)}`:label(code),details=[intensityText,layerText,formText].filter(Boolean).filter((item,index,array)=>array.indexOf(item)===index),description=details.reduce((current,item)=>current.toLocaleLowerCase('de-DE').includes(item.toLocaleLowerCase('de-DE'))?current:`${current} · ${item}`,baseDescription),sunGradient=`mid-sun-${rawId}`,moonGradient=`mid-moon-${rawId}`,cloudGradient=`mid-cloud-${rawId}`,nightCloudGradient=`mid-cloud-night-${rawId}`,stormGradient=`mid-storm-${rawId}`,nightStormGradient=`mid-storm-night-${rawId}`,shadow=`mid-shadow-${rawId}`;
  const celestial=day?<Sun gradient={sunGradient}/>:<Moon gradient={moonGradient}/>;
- const showCelestial=['mostly-clear','partly-cloudy','showers','sleet-showers','snow-showers'].includes(kind),showVeiledCelestial=false,showFogCelestial=false;
+ const showCelestial=['mostly-clear','partly-cloudy','showers','sleet-showers','snow-showers','graupel-showers','hail-showers'].includes(kind),showVeiledCelestial=false,showFogCelestial=false;
  const darkCloud=['thunder','thunder-hail','squall','funnel-cloud'].includes(kind),cloudFillGradient=day?cloudGradient:nightCloudGradient,stormFillGradient=day?stormGradient:nightStormGradient;
- const precipitationCloud=['drizzle','freezing-drizzle','rain','freezing-rain','showers','sleet','sleet-showers','snow','snow-grains','snow-showers','ice-crystals','ice-pellets','graupel','hail','thunder','thunder-hail','squall','funnel-cloud'].includes(kind);
+ const precipitationCloud=['drizzle','freezing-drizzle','rain','freezing-rain','showers','sleet','sleet-showers','snow','snow-grains','snow-showers','ice-crystals','ice-pellets','graupel','graupel-showers','hail','hail-showers','wintry-after-thunder','thunder','thunder-hail','squall','funnel-cloud'].includes(kind);
  return <svg className={`mid-weather-pictogram weather-${kind} intensity-${precipIntensity} cloud-layer-${layer} cloud-form-${form}${compact?' compact':''} ${className}`.trim()} x={x} y={y} width={size} height={size} viewBox="0 0 68 68" role="img" aria-label={description} style={style} preserveAspectRatio="xMidYMid meet" data-cloud-layer={layer} data-cloud-form={form} data-visual-form={visualForm} data-day-part={day?'day':'night'} data-weather-kind={kind} data-intensity={precipIntensity} data-phenomenon={spec.phenomenon||undefined}>
   <title>{description}</title>
   <defs>
@@ -289,10 +305,11 @@ export function WeatherPictogram({code,day=true,size='1em',className='',title,x,
    {kind==='snow-showers'?<Snow intensity={precipIntensity}/>:null}
    {kind==='ice-crystals'?<IceCrystals intensity={precipIntensity}/>:null}
    {kind==='ice-pellets'?<IcePellets intensity={precipIntensity}/>:null}
-   {kind==='graupel'?<Graupel intensity={precipIntensity}/>:null}
-   {kind==='hail'?<Hail intensity={precipIntensity}/>:null}
-   {kind==='thunder'?<><Rain intensity={precipIntensity}/><Lightning heavy={precipIntensity==='heavy'}/></>:null}
-   {kind==='thunder-hail'?<><Rain intensity={precipIntensity}/><Lightning heavy={precipIntensity==='heavy'}/><Hail intensity={precipIntensity}/></>:null}
+   {kind==='graupel'||kind==='graupel-showers'?<Graupel intensity={precipIntensity}/>:null}
+   {kind==='hail'||kind==='hail-showers'?<Hail intensity={precipIntensity}/>:null}
+   {kind==='wintry-after-thunder'?<WintryAfterThunder intensity={precipIntensity}/>:null}
+   {kind==='thunder'?thunderDust?<><WindGlyph squall/><Lightning/></>:<>{thunderRain?<Rain intensity={precipIntensity}/>:null}{thunderSnow?<Snow intensity={precipIntensity}/>:null}<Lightning heavy={precipIntensity==='heavy'||precipIntensity==='very-heavy'}/></>:null}
+   {kind==='thunder-hail'?<><Lightning heavy={precipIntensity==='heavy'||precipIntensity==='very-heavy'}/>{thunderGraupel?<Graupel intensity={precipIntensity}/>:<Hail intensity={precipIntensity}/>}</>:null}
    {kind==='squall'?<WindGlyph squall/>:null}
    {kind==='funnel-cloud'?<Funnel/>:null}
   </g>

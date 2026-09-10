@@ -1,3 +1,32 @@
+# MID v0.9.84.27
+
+## Extern
+- Keine sichtbare Funktionsänderung gegenüber v0.9.84.26: Die neue Niederschlagsintensitäts-, Tag-/Nacht- und Schneehöhendarstellung bleibt unverändert erhalten.
+- Der Release-Installer wird nicht mehr durch ältere Prüfregeln blockiert, die noch die vorherige Piktogramm- und Schneehöhenlogik erwarteten.
+
+## Intern
+- 17 Regressionen aus GitHub-Run #982 an den v0.9.84.26-Fachvertrag angepasst.
+- DWD/WMO 91/92 bleiben Regenschauer nach Gewitter in der vorangegangenen Stunde; WMO 89/90 sind explizite Hagelschauer, WMO 98 bleibt Gewitter ohne erfundenen Niederschlag.
+- Schauerprüfungen respektieren die konservative DWD-Lücke 0,4–<0,7 mm/10 min sowie die vierte Stufe für WMO 82.
+- Schneehöhen-, Sonnenstands-, Ensemble- und Skybar-Regressionen prüfen die aktuelle Semantik statt veralteter JSX-/Implementierungsdetails.
+
+# MID v0.9.84.26
+
+## Extern
+- Wetterpiktogramme unterscheiden Niederschlagsstärken appweit klarer; sehr starke Regenschauer erhalten eine eigene kräftigste Stufe. Graupel- und Hagelschauer sind als eigene Phänomene erkennbar.
+- Schauer zeigen den Tages-/Nachtbezug weiterhin nur dort, wo er meteorologisch sinnvoll ist: Sonne tagsüber, Mond nachts. Dauerregen/-schnee erhalten keinen künstlichen Himmelskörper.
+- Niederschlag nach einem bereits vorangegangenen Gewitter wird nicht mehr mit einem aktuell andauernden Gewitter verwechselt.
+- Schneehöhen und Schneedecken werden in der gesamten App in ganzen Zentimetern angezeigt. Neuschnee-/Schneefallmengen bleiben als separate Akkumulationsgröße ausreichend präzise.
+
+## Intern
+- WMO 82 wird als sehr starke Schauerintensität geschützt; gröbere Stundenakkumulationen dürfen einen expliziten Schauer-Intensitätscode nicht künstlich abschwächen.
+- WMO 87–90, 91/92 und 93/94 wurden in Piktogramm-, Detail-, Perioden-, Berg-, Wasser-, Event-, Routen- und Farblogik konsistent ergänzt.
+- WMO 95–99 wurden ebenfalls vereinheitlicht: 95/97 erfinden ohne zusätzliche Phaseninformation keinen Regen, 96/99 zeigen Hagel/Graupel ohne Zusatzregen, 98 bleibt Gewitter mit Staub/Sand ohne erfundenen Niederschlag.
+- Ein älterer Tag-/Nacht-Strukturtest für den Höhenwetter-Verlauf wurde auf die inzwischen korrekte Intensitätsdurchleitung aktualisiert; die astronomische Tag-/Nachtlogik selbst blieb erhalten.
+- Perioden-/Impact-Whitelists wurden erweitert, damit Graupel/Hagel und phasenunscharfer winterlicher Niederschlag nicht durch ältere Selektoren verloren gehen.
+- Schneehöhenformatierung und -achse verwenden ganze cm; interne Rohdaten bleiben ungerundet.
+- Neuer Vertrag `MID_PRECIP_PICTOGRAM_SNOW_DEPTH_CONTRACT.md` plus Regression `test-pictogram-intensity-snow-depth-098426.mjs`.
+
 # MID v0.9.84.25
 
 ## Extern

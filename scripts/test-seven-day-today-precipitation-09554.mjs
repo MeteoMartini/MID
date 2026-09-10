@@ -8,7 +8,7 @@ for(const token of [
  "dayPrecipitation=Math.max(dayAssessment.amount,index===0?Math.max(0,Number(day.precipitation)||0):0)",
  "currentDayPrecipitationRelevant=index===0&&(dayPrecipitation>=.1||dayAssessment.durationHours>=.25||dayAssessment.activeIntervals>0)",
  "wetDominant=dayAssessment.dominant||currentDayPrecipitationRelevant",
- "thunderDirect=dayHours.some(hour=>[95,96,97,99].includes(Math.round(Number(hour.code))))"
+ "thunderDirect=dayHours.some(hour=>[95,96,97,98,99].includes(Math.round(Number(hour.code))))"
 ])assert.ok(sevenDay.includes(token),`7-Tage-Heute-Niederschlagsvertrag fehlt: ${token}`);
 assert.ok(sevenDay.includes("futureHours=index===0?allDayHours.filter(hour=>hour.epoch>=Date.now()-30*60000):allDayHours"),'Resttageslogik für Wettercharakter muss erhalten bleiben.');
 const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText),test='scripts/test-seven-day-today-precipitation-09554.mjs';

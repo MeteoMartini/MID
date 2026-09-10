@@ -34,7 +34,7 @@ assert.equal(sky.baseSkyVisual(20,false,null),null,'Klare Nacht unter 50 % Bewö
 assert.equal(sky.baseSkyVisual(NaN,true,.4),null,'Bei unbekannter Bewölkung bleibt ein Sonnenscheinanteil <=50 % unterhalb der Skybar-Sichtbarkeitsschwelle.');
 assert.ok(sky.baseSkyVisual(NaN,true,.7),'Bei unbekannter Bewölkung darf ausreichend hohe direkte Sonnenscheindauer das gelbe Fallback-Grundband liefern.');
 assert.deepEqual([.1,.8,5,15].map(amount=>precipIntensity.precipitationIntensityDescriptor('rain',amount,0,3600,61)?.level),[1,2,3,3],'Dauerregen besitzt nur die drei DWD-Intensitätsklassen.');
-assert.deepEqual([1,3,18,60].map(amount=>precipIntensity.precipitationIntensityDescriptor('showers',amount,0,3600,81)?.level),[1,2,3,4],'Regenschauer bilden leicht/mäßig/stark/sehr stark über 10-min-Intensität ab.');
+assert.deepEqual([1,6,18,60].map(amount=>precipIntensity.precipitationIntensityDescriptor('showers',amount,0,3600,80)?.level),[1,2,3,4],'Regenschauer bilden leicht/mäßig/stark/sehr stark über 10-min-Intensität ab; ein expliziter Code 81 würde mindestens mäßig erzwingen.');
 assert.deepEqual([.2,1,5].map(snowfall=>precipIntensity.precipitationIntensityDescriptor('snow',.1,snowfall,3600,71)?.level),[1,2,3],'Schneeintensität muss dem Schneezuwachs folgen.');
 // Legacy temperature-index checks are superseded by test-ensemble-multiparameter-097865.mjs.
 const time=load('src/weather-src/00-types-models-search.tsfrag',['parseLocalIso','partsAtEpoch','localIsoEpoch']);
