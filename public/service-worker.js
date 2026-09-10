@@ -1,4 +1,4 @@
-const CACHE='mid-shell-v0.9.84.33';
+const CACHE='mid-shell-v0.9.84.37';
 const VERSION=CACHE.replace('mid-shell-v','');
 const CACHE_PREFIX='mid-shell-v';
 const META_CACHE='mid-system-meta-v1';
@@ -18,6 +18,7 @@ function dynamicNetworkRequest(url){const mode=String(url.searchParams.get('mode
 function runtimeShellAsset(request,url){if(['script','style','font'].includes(request.destination))return true;if(request.destination==='image'&&!url.search&&/\.(?:png|jpe?g|webp|gif|svg|ico)$/i.test(url.pathname))return true;return false}
 async function purgeDynamicCacheEntries(){const names=await shellCaches();await Promise.all(names.map(async name=>{const cache=await caches.open(name),requests=await cache.keys();await Promise.all(requests.filter(request=>{try{return dynamicNetworkRequest(new URL(request.url))}catch{return false}}).map(request=>cache.delete(request))) }))}
 async function fetchAsset(url){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(new DOMException('Zeitlimit beim Laden der MID-App-Shell.','TimeoutError')),15000);try{const response=await fetch(url,{signal:controller.signal,cache:'no-store',redirect:'follow'});if(!response.ok)throw new Error(`${new URL(url).pathname}: HTTP ${response.status}`);const destination=new URL(url).pathname;if(/\.(?:js|mjs|css)$/i.test(destination)){const type=response.headers.get('content-type')||'';if(type.includes('text/html'))throw new Error(`${destination}: unerwartete HTML-Antwort`)}return response}finally{clearTimeout(timer)}}
+async function cacheAssetsConcurrently(cache,urls,limit=4){let index=0;const queue=[...urls],workers=Array.from({length:Math.min(Math.max(1,limit),queue.length)},async()=>{while(index<queue.length){const url=queue[index++],response=await fetchAsset(url);await cache.put(url,response)}});await Promise.all(workers)}
 async function fetchRuntimeWithTimeout(request,init={},timeoutMs=8000){const controller=new AbortController(),parent=request?.signal,abort=()=>controller.abort(parent?.reason),timer=setTimeout(()=>controller.abort(new DOMException('MID-Netzwerkabruf hat das Zeitlimit überschritten.','TimeoutError')),timeoutMs);if(parent?.aborted)abort();else parent?.addEventListener?.('abort',abort,{once:true});try{return await fetch(request,{...init,signal:controller.signal})}finally{clearTimeout(timer);parent?.removeEventListener?.('abort',abort)}}
 async function cacheShell(cacheName=CACHE){
  const cache=await caches.open(cacheName);
@@ -25,7 +26,7 @@ async function cacheShell(cacheName=CACHE){
   const indexUrl=new URL('./index.html',self.registration.scope).toString(),indexResponse=await fetchAsset(indexUrl),html=await indexResponse.clone().text(),assets=new Set(CORE.map(path=>new URL(path,self.registration.scope).toString()));
   for(const match of html.matchAll(/(?:src|href)=["']([^"']+)["']/gi)){const asset=sameScopeAsset(match[1]);if(asset)assets.add(asset)}
   await cache.put(indexUrl,indexResponse.clone());await cache.put(new URL('./',self.registration.scope).toString(),indexResponse.clone());
-  for(const url of assets){if(url===indexUrl||url===new URL('./',self.registration.scope).toString())continue;const response=await fetchAsset(url);await cache.put(url,response)}
+  const rootUrl=new URL('./',self.registration.scope).toString(),shellAssets=[...assets].filter(url=>url!==indexUrl&&url!==rootUrl);await cacheAssetsConcurrently(cache,shellAssets,4)
   await cache.put(new URL('./__mid_shell_valid__.json',self.registration.scope).toString(),new Response(JSON.stringify({version:VERSION,validatedAt:new Date().toISOString(),assetCount:assets.size}),{headers:{'content-type':'application/json'}}));
   return{version:VERSION,assetCount:assets.size};
  }catch(error){await caches.delete(cacheName);throw error}

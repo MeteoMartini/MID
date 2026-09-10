@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.84.33",
+  "releaseVersion": "0.9.84.37",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -453,7 +453,10 @@
     "scripts/test-widget-wind-temperature-export-098419.mjs",
     "scripts/test-ios-resume-location-preservation-098425.mjs",
     "scripts/test-pictogram-intensity-snow-depth-098426.mjs",
-    "scripts/test-travel-center-forecast-fusion-098429.mjs"
+    "scripts/test-travel-center-forecast-fusion-098429.mjs",
+    "scripts/test-update-event-sources-ios27-098434.mjs",
+    "scripts/test-day-precipitation-color-contract-098435.mjs",
+    "scripts/test-ci-types-event-update-098436.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -829,7 +832,10 @@
     "scripts/test-network-timeout-cache-audit-098415.mjs",
     "scripts/test-ios-resume-location-preservation-098425.mjs",
     "scripts/test-pictogram-intensity-snow-depth-098426.mjs",
-    "scripts/test-travel-center-forecast-fusion-098429.mjs"
+    "scripts/test-travel-center-forecast-fusion-098429.mjs",
+    "scripts/test-update-event-sources-ios27-098434.mjs",
+    "scripts/test-day-precipitation-color-contract-098435.mjs",
+    "scripts/test-ci-types-event-update-098436.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/install-mid.yml",
@@ -1455,7 +1461,11 @@
     "worker-src/20-composite-models.js",
     "worker-src/25-dach-extreme-outlook.js",
     "worker-src/30-push-events.js",
-    "worker-src/40-aviation-router.js"
+    "worker-src/40-aviation-router.js",
+    "scripts/test-update-event-sources-ios27-098434.mjs",
+    "MID_IOS_26_27_DESIGN_CONTRACT.md",
+    "scripts/test-day-precipitation-color-contract-098435.mjs",
+    "scripts/test-ci-types-event-update-098436.mjs"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1516,7 +1526,10 @@
     "scripts/test-update-startup-recovery-098415.mjs",
     "scripts/test-network-timeout-cache-audit-098415.mjs",
     "scripts/test-ios-resume-location-preservation-098425.mjs",
-    "scripts/test-pictogram-intensity-snow-depth-098426.mjs"
+    "scripts/test-pictogram-intensity-snow-depth-098426.mjs",
+    "scripts/test-update-event-sources-ios27-098434.mjs",
+    "scripts/test-day-precipitation-color-contract-098435.mjs",
+    "scripts/test-ci-types-event-update-098436.mjs"
   ],
   "protectedFiles": [
     "scripts/test-travel-planner-era5-seamless-units-09652.mjs",
@@ -1699,7 +1712,10 @@
     "MID_IOS_RESUME_LOCATION_CONTRACT.md",
     "scripts/test-ios-resume-location-preservation-098425.mjs",
     "MID_PRECIP_PICTOGRAM_SNOW_DEPTH_CONTRACT.md",
-    "scripts/test-pictogram-intensity-snow-depth-098426.mjs"
+    "scripts/test-pictogram-intensity-snow-depth-098426.mjs",
+    "scripts/test-update-event-sources-ios27-098434.mjs",
+    "MID_IOS_26_27_DESIGN_CONTRACT.md",
+    "MID_EVENT_RECOMMENDATION_CONTRACT.md"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md",
@@ -1969,9 +1985,12 @@
     "scripts/test-skybar-shower-overlay-cloud-priority-098411.mjs",
     "scripts/test-update-startup-recovery-098415.mjs",
     "scripts/test-network-timeout-cache-audit-098415.mjs",
-    "scripts/test-ios-resume-location-preservation-098425.mjs"
+    "scripts/test-ios-resume-location-preservation-098425.mjs",
+    "scripts/test-update-event-sources-ios27-098434.mjs",
+    "scripts/test-day-precipitation-color-contract-098435.mjs",
+    "scripts/test-ci-types-event-update-098436.mjs"
   ],
-  "version": "0.9.84.33",
+  "version": "0.9.84.37",
   "updatedAt": "2026-09-10T16:48:00+02:00",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",

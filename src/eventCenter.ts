@@ -44,7 +44,7 @@ export function buildEventModelSignature(modelInfo:BestMatchModelInfo|null|undef
 export function buildEventConditionsSignature(plan:EventPlan|null|undefined){
  if(!plan)return'none'
  const summary=plan.summary
- return [plan.advice.status,summary.weatherCode??'na',rounded(summary.temperatureAvg,1),rounded(summary.precipitationProbabilityRelevant??summary.precipitationProbabilityMax),rounded(summary.sunshineDurationTotal==null?null:summary.sunshineDurationTotal/60),rounded(summary.windMax),rounded(summary.gustMax),rounded(summary.uvMax),summary.flightHazards?.overall??'na'].join('|')
+ const probability=summary.precipitationProbabilitySource==='unavailable'?'na':summary.precipitationProbabilityRelevant==null?'na':rounded(summary.precipitationProbabilityRelevant);return [plan.advice.status,summary.weatherCode??'na',rounded(summary.temperatureAvg,1),probability,summary.precipitationProbabilitySource??'legacy',rounded(summary.sunshineDurationTotal==null?null:summary.sunshineDurationTotal/60),rounded(summary.windMax),rounded(summary.gustMax),rounded(summary.uvMax),summary.flightHazards?.overall??'na'].join('|')
 }
 export function buildEventRunHeadline(modelInfo:BestMatchModelInfo|null|undefined){
  const primary=modelInfo?.runs?.[0]?.label||modelInfo?.likelyChain||'Best Match'
@@ -58,7 +58,11 @@ export function compareEventPlans(previous:EventPlan|null|undefined,next:EventPl
  const runHeadline=buildEventRunHeadline(next.modelInfo)
  if(!previous)return{level:'none',badge:'Stabil',summary:'Event gespeichert. Änderungen werden erst bei deutlich veränderten Wetter-Eckdaten gemeldet.',updatedAt:Date.now(),modelSignature,conditionsSignature,runHeadline}
  const previousModelSignature=buildEventModelSignature(previous.modelInfo)
- const rainDelta=rounded((next.summary.precipitationProbabilityRelevant??next.summary.precipitationProbabilityMax??0)-(previous.summary.precipitationProbabilityRelevant??previous.summary.precipitationProbabilityMax??0))
+ const previousProbability=previous.summary.precipitationProbabilityRelevant,nextProbability=next.summary.precipitationProbabilityRelevant
+ const previousProbabilityFinite=previousProbability!=null&&Number.isFinite(previousProbability)?previousProbability:null
+ const nextProbabilityFinite=nextProbability!=null&&Number.isFinite(nextProbability)?nextProbability:null
+ const probabilitySourcesComparable=Boolean(previous.summary.precipitationProbabilitySource&&previous.summary.precipitationProbabilitySource===next.summary.precipitationProbabilitySource&&previous.summary.precipitationProbabilitySource!=='unavailable'&&previousProbabilityFinite!=null&&nextProbabilityFinite!=null)
+ const rainDelta=previousProbabilityFinite!=null&&nextProbabilityFinite!=null&&probabilitySourcesComparable?rounded(nextProbabilityFinite-previousProbabilityFinite):null
  const precipitationDelta=rounded((next.summary.precipitationTotal??0)-(previous.summary.precipitationTotal??0),1)
  const windDelta=rounded((next.summary.windMax??0)-(previous.summary.windMax??0))
  const gustDelta=rounded((next.summary.gustMax??0)-(previous.summary.gustMax??0))
@@ -69,8 +73,8 @@ export function compareEventPlans(previous:EventPlan|null|undefined,next:EventPl
  const changes:string[]=[]
  let level:EventChangeLevel='none'
  if(statusChanged){level='major';changes.push(statusChangeSummary(previous.advice.status,next.advice.status))}
- if(rainDelta>=20){level=level==='major'?'major':'minor';changes.push(`Niederschlagsrisiko deutlich gestiegen (+${rainDelta} %-P.).`)}
- else if(rainDelta<=-20){level=level==='major'?'major':'minor';changes.push(`Niederschlagsrisiko deutlich gesunken (${rainDelta} %-P.).`)}
+ if(rainDelta!=null&&rainDelta>=20){level=level==='major'?'major':'minor';changes.push(`Niederschlagsrisiko deutlich gestiegen (+${rainDelta} %-P.).`)}
+ else if(rainDelta!=null&&rainDelta<=-20){level=level==='major'?'major':'minor';changes.push(`Niederschlagsrisiko deutlich gesunken (${rainDelta} %-P.).`)}
  if(precipitationDelta>=1.5){level=level==='major'?'major':'minor';changes.push(`Erwartete Niederschlagsmenge höher (+${precipitationDelta.toLocaleString('de-DE')} mm).`)}
  else if(precipitationDelta<=-1.5){level=level==='major'?'major':'minor';changes.push(`Erwartete Niederschlagsmenge geringer (${precipitationDelta.toLocaleString('de-DE')} mm).`)}
  if(windDelta>=6||gustDelta>=8){level=level==='major'?'major':'minor';changes.push('Wind/Böen deutlich stärker.')}

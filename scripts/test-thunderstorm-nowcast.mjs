@@ -6,7 +6,8 @@ const app=await readFile(path.join(root,'src','App.tsx'),'utf8'),weather=await r
 const need=(text,token,message)=>{if(!text.includes(token))failures.push(message)};
 need(app,'formatZuluHm(now)','Z-Zeit wird nicht als hhmmZ formatiert.');
 if(app.includes("formatInZone(now,'UTC',{hour:'2-digit',minute:'2-digit',hourCycle:'h23'})}Z"))failures.push('Altes Z-Zeit-Format hh:mmZ ist noch aktiv.');
-need(app,'Gewitterinformation','Separate Gewitterinformation fehlt in der Standortzeile.');
+need(app,"localHazardDisplaySettings.showThunderAndFlashFlood&&thunderInfo&&<aside className={`thunder-now",'Separate Gewitterinformation fehlt als eigener Standort-Nowcard.');
+need(app,'<small>{thunderInfo.sectionLabel}</small>','Gewitter-Nowcard zeigt seine fachliche Abschnittsbezeichnung nicht mehr.');
 need(weather,"fetchWorkerJson<ThunderstormNowcast>('thunderstorm-nowcast'",'Frontend-Abruf für KONRAD3D fehlt.');
 need(worker,"mode==='thunderstorm-nowcast'",'Workerroute thunderstorm-nowcast fehlt.');
 need(worker,'DWD_KONRAD3D_ROOTS','Offizielle DWD-KONRAD3D-Pfade mit Spiegelserver fehlen.');

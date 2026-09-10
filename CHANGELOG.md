@@ -1,3 +1,58 @@
+# MID v0.9.84.37
+
+## Extern
+- Der Release-Blocker aus GitHub #990 wurde beseitigt; die sechs betroffenen Regressionen prüfen jetzt die tatsächlich aktuelle MID-Funktion statt veralteter Texte oder alter Farbwerte.
+- Die Quellenangabe benennt DWD Open Data für ICON-D2/RUC/RUC-EPS/MOSMIX wieder ausdrücklich und präzisiert das europäische Radarkomposit als EUMETNET OPERA CIRRUS-Komposit.
+- ICAO-Suche, eigenständige Gewitterinformation und das neue Niederschlags-Farbkonzept bleiben unverändert funktional erhalten.
+
+## Intern
+- `test-appwide-parameter-colors-09779.mjs` prüft die zentralen Niederschlags-Phasentokens statt obsoleter Hexwerte.
+- `test-pictogram-intensity-snow-depth-098426.mjs` schützt die neue Trennung Graupel/Schnee, Misch-/Gefrierphase und Hagel/Gewitter.
+- ICAO- und Gewitter-Regressionen wurden von überholten Literalüberschriften auf die aktuelle funktionale/strukturelle UI umgestellt.
+- Quellen-/Visible-Internals-Verträge wurden an die aktuelle nutzerorientierte Fußleiste angepasst.
+- Keine Änderung an Prognoseberechnung, Event-PoP-Logik, Update-Algorithmus oder Worker-Funktion.
+
+# MID v0.9.84.36
+
+## Extern
+- Der Release-Build wurde nach dem fehlgeschlagenen GitHub-Lauf #989 gezielt gehärtet. Die bereits eingeführte Event-PoP- und Update-Logik bleibt fachlich unverändert.
+- Sporadisch fehlende Niederschlagswahrscheinlichkeiten können weiterhin nicht allein eine Event-Verschärfung auslösen.
+
+## Intern
+- Event-PoP-Deltas verwenden vor der Subtraktion explizit validierte endliche Werte; damit ist die Null-/Undefined-Behandlung unter TypeScript 7 eindeutig.
+- Die Service-Worker-Registrierungsabfrage akzeptiert den aktuellen DOM-Vertrag `readonly ServiceWorkerRegistration[]` und materialisiert erst lokal eine filterbare Kopie.
+- Die bestehende Update/Event-Regression wurde auf den typsicheren Ausdruck aktualisiert; zusätzlicher CI-Typvertrag `scripts/test-ci-types-event-update-098436.mjs`.
+- Keine fachliche Änderung an Wetterfusion, Event-Bewertungsschwellen oder Worker-Logik.
+
+# MID v0.9.84.35
+
+## Extern
+- Die Niederschlagsbalken der Tagesansicht folgen jetzt sichtbar und vollständig dem MID-Farbvertrag. Regen, Sprühregen und Schauer bleiben in derselben blauen Niederschlagsfamilie; Schauer erscheinen nicht mehr als eigenständiger türkisfarbener Parameter.
+- Schnee und Graupel werden hellblau dargestellt, Misch-/gefrierender Niederschlag violett und Gewitter/Hagel purpur. Graupel und Hagel sind zusätzlich über unterschiedliche Balkenmuster unterscheidbar.
+- Die gestrichelte Niederschlagswahrscheinlichkeitskurve bleibt bewusst blau und damit als eigener Wahrscheinlichkeitsparameter unabhängig von der Niederschlagsphase erkennbar.
+- Die in v0.9.84.34 umgesetzten Verbesserungen für Updateprozess, Quellenfuß, Event-PoP-Lücken und iOS-26/27-Navigation bleiben vollständig erhalten.
+
+## Intern
+- Zentrale Phasenfarbtokens `--param-precipitation-snow`, `--param-precipitation-mixed` und `--param-precipitation-storm` in der kanonischen Foundation eingeführt; Hell-/Dunkelmodus besitzen jeweils abgestimmte Werte.
+- `precipitationPhaseColor.ts`, Tagesdetail-SVG-Muster und Legenden verwenden denselben zentralen Vertrag. `hailShowers` ist der Purpur-/Sturmfamilie zugeordnet; Graupel bleibt in der hellblauen Schnee-/Graupelfamilie.
+- Gefrierender Regen und Schneeregen verwenden nicht länger überwiegend blaue Füllungen, sondern die verbindliche violette Misch-/Gefrierphase.
+- Neue Regression `scripts/test-day-precipitation-color-contract-098435.mjs`; der ältere Skybar-Phasentest wurde auf zentrale Tokens statt veralteter Hex-Literale aktualisiert.
+- Keine fachliche Änderung an Wetterberechnung oder Cloudflare-Worker-Logik.
+
+# MID v0.9.84.34
+
+## Extern
+- Der Updatevorgang wurde weiter gegen seltene Hänger abgesichert. Langsam installierende App-Shells werden länger beobachtet, ein noch nicht fertiges Update lässt die laufende Version unangetastet, und nach einem bestätigten Service-Worker-Wechsel gibt es einen iOS/PWA-Sicherheitsfallback. Ein vorübergehender Ausfall einer Wetterdatenquelle kann eine technisch korrekt gestartete MID-Version nicht mehr fälschlich zurückrollen.
+- Die Quellenübersicht in der Fußleiste wurde auf den aktuellen MID-Datenstand gebracht und nach Leitprognose/Kurzfrist, Ensembles, Langfrist/Saison, Beobachtungen, Warnungen/Radar/Satellit, Klima/Reise/Wasser, Flugmeteorologie sowie Karten/Luftqualität gegliedert. Sie macht deutlicher, dass Quellen nur nach Ort, Horizont und tatsächlicher Verfügbarkeit genutzt werden.
+- Event-Bewertungen werden nicht mehr allein deshalb verschärft, weil vorübergehend keine formale Ereignis-Niederschlagswahrscheinlichkeit geliefert wird. Bei vollständiger Stundenabdeckung kann transparent ein zeitgewichtetes Stunden-PoP-Mittel einspringen; fehlt auch dieses, bleiben die übrigen Wetterparameter trotzdem neutral weiter bewertbar.
+- Die optionale moderne Navigation wurde behutsam an das aktuelle iOS-Designsystem herangeführt: schwebende, safe-area-fähige Navigation mit glasartiger Funktionsschicht, zurückhaltender Akzentfarbe sowie eigenen Fallbacks für reduzierte Transparenz und erhöhten Kontrast. Wetterkarten und Inhaltsflächen bleiben bewusst klar und informationsorientiert.
+
+## Intern
+- Updateinstallation: `updatefound`-Beobachtung bis 45 s, automatische Aktivierungswiederholung und 3-s-Navigationsfallback ausschließlich nach echtem `controllerchange`; kein Reload durch einen alten Controller. Shell-Assets werden begrenzt parallel und weiterhin all-or-nothing gecacht.
+- Runtime-Health trennt jetzt stabile App-Shell von Datenquellen-Health. Rollback bleibt für echte Startup-/Shell-Fehler erhalten; Core-Daten werden separat als `ready`/`degraded` diagnostiziert.
+- Event-PoP: Ensemble-Ereigniswahrscheinlichkeit bleibt Priorität; vollständige Stunden-PoP-Abdeckung ermöglicht expliziten `hourly-window-average-fallback`. PoP-Deltas werden nur zwischen derselben Quelle verglichen; ein frischer gecachter Event-PoP darf partielle Ensemble-Nachladungen überbrücken, ohne sein Alter zu erneuern.
+- Neuer Designvertrag `MID_IOS_26_27_DESIGN_CONTRACT.md` und neue kombinierte Regression `test-update-event-sources-ios27-098434.mjs`. Bestehende Update-/Event-Verträge und Regressionen wurden auf den korrigierten Datenwahrheits- und Recovery-Vertrag aktualisiert.
+
 # MID v0.9.84.33
 
 ## Extern

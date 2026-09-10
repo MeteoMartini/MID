@@ -35,7 +35,7 @@ assert.ok(precipitation.includes("[91,92].includes(Math.round(Number(sourceCode)
 assert.ok(precipitation.includes("tenMinuteMm<.7?1:tenMinuteMm<2?2"),'Der DWD-Mengenbereich 0,4–<0,7 mm/10 min darf ohne expliziten Intensitätscode nicht künstlich als mäßig überhöht werden.');
 assert.ok(precipitation.includes("tenMinute>=.7?81:80")||precipitation.includes("tenMinute>=.7?81"),'Auch die aus Mengen abgeleitete repräsentative Schauer-Codewahl muss die konservative 0,7-mm-Grenze verwenden.');
 assert.ok(precipitation.includes("warmPhaseProtected=[87,88,89,90,93,94,96,99].includes(code)"),'Hagel/Graupel und phasenoffene WMO-Codes dürfen nicht durch eine Warmboden-Schneekorrektur in Regen umgedeutet werden.');
-assert.ok(phaseColor.includes("type==='graupelShowers'||type==='hailShowers'")&&phaseColor.includes("type==='wintryAfterThunder'"),'Neue festen/gemischten Phasen müssen in der appweiten Niederschlagsfarbe enthalten sein.');
+assert.ok(phaseColor.includes("type==='snow'||type==='snowShowers'||type==='snowGrains'||type==='graupelShowers'")&&phaseColor.includes("type==='hailShowers'||type==='thunderstorm'||type==='thunderstormHail'")&&phaseColor.includes("type==='freezingRain'||type==='freezingDrizzle'||type==='sleet'||type==='sleetShowers'||type==='wintryAfterThunder'"),'Neue festen/gemischten Phasen müssen mit getrennten Schnee/Graupel-, Misch-/Gefrier- und Gewitter/Hagel-Farbfamilien in der appweiten Niederschlagsfarbe enthalten sein.');
 
 // Perioden-/Detail-Piktogramme dürfen Graupel, Hagel oder WMO 93/94 nicht wegen alter Whitelists verlieren.
 for(const [name,source] of [['App',app],['Cockpit',cockpit],['Periodenaggregator',periodVisual]]){

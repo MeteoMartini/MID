@@ -3,7 +3,7 @@ import type {EventActivity,EventEnvironment,EventSummary} from './eventCenter'
 function finite(value:number|null|undefined):number|null{return value!=null&&Number.isFinite(Number(value))?Number(value):null}
 function joinParts(parts:(string|null|undefined|false)[]){return parts.filter((part):part is string=>Boolean(part)).join(' · ')}
 
-export function eventPrecipitationProbability(summary:EventSummary){return summary.precipitationProbabilitySource==='ensemble-members-dwd-event'?finite(summary.precipitationProbabilityRelevant):null}
+export function eventPrecipitationProbability(summary:EventSummary){return summary.precipitationProbabilitySource==='unavailable'?null:finite(summary.precipitationProbabilityRelevant)}
 export function eventThermalReference(summary:EventSummary){return finite(summary.apparentAvg)??finite(summary.temperatureAvg)??finite(summary.temperatureMax)??finite(summary.temperatureMin)}
 function eventThermalPeak(summary:EventSummary){const values=[finite(summary.temperatureMax),finite(summary.apparentAvg),finite(summary.temperatureAvg)].filter((value):value is number=>value!=null);return values.length?Math.max(...values):null}
 function eventThermalMinimum(summary:EventSummary){const values=[finite(summary.temperatureMin),finite(summary.apparentAvg),finite(summary.temperatureAvg)].filter((value):value is number=>value!=null);return values.length?Math.min(...values):null}

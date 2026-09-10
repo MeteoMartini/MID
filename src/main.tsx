@@ -22,28 +22,26 @@ function setBootStage(message:string){const node=document.getElementById('mid-bo
 function wait(ms:number){return new Promise<void>(resolve=>window.setTimeout(resolve,ms))}
 function markBootHealthy(){try{sessionStorage.removeItem(BOOT_MARKER);localStorage.removeItem('mid:runtime:last-start-error')}catch{}}
 function nativeFailure(error:unknown){void error;void markMidNativeRuntimeReady();const root=document.getElementById('root');if(!root)return;root.innerHTML=`<main class="mid-native-start-failure"><section><h1>MID konnte nicht starten</h1><p>Lokale Daten wurden nicht gelöscht. Bitte lade MID erneut oder repariere den App-Cache.</p><div><button id="mid-native-reload">Neu laden</button><button id="mid-native-repair">App-Cache reparieren</button></div></section></main>`;root.querySelector('#mid-native-reload')?.addEventListener('click',()=>location.reload());root.querySelector('#mid-native-repair')?.addEventListener('click',async()=>{try{const registrations=await navigator.serviceWorker?.getRegistrations?.()||[];await Promise.all(registrations.map(item=>item.unregister().catch(()=>false)));if('caches'in window){const names=await caches.keys();await Promise.all(names.filter(name=>name.startsWith('mid-shell-v')||name==='mid-system-meta-v1').map(name=>caches.delete(name)))}}finally{location.reload()}})}
+function appSurfaceReady(){return Boolean(document.querySelector('#root .app'))&&!document.querySelector('#root .mid-startup-recovery,#root .mid-native-start-failure')}
+function waitForStableAppSurface(timeoutMs=8000,stableMs=1600){
+ if(appSurfaceReady())return new Promise<boolean>(resolve=>window.setTimeout(()=>resolve(appSurfaceReady()),stableMs));
+ return new Promise<boolean>(resolve=>{let settled=false,stableTimer=0;const observer=new MutationObserver(()=>{if(!appSurfaceReady()){window.clearTimeout(stableTimer);stableTimer=0;return}if(stableTimer)return;stableTimer=window.setTimeout(()=>finish(appSurfaceReady()),stableMs)}),finish=(ready:boolean)=>{if(settled)return;settled=true;window.clearTimeout(timer);window.clearTimeout(stableTimer);observer.disconnect();resolve(ready)},timer=window.setTimeout(()=>finish(appSurfaceReady()),timeoutMs);observer.observe(document.getElementById('root')??document.body,{childList:true,subtree:true});observer.takeRecords()})
+}
 function waitForCoreDataReady(timeoutMs=20_000){
  if(document.documentElement.dataset.midCoreDataReady)return Promise.resolve(true);
  return new Promise<boolean>(resolve=>{let settled=false;const finish=(ready:boolean)=>{if(settled)return;settled=true;window.clearTimeout(timer);window.removeEventListener('mid:core-data-ready',readyHandler);resolve(ready)},readyHandler=()=>finish(true),timer=window.setTimeout(()=>finish(Boolean(document.documentElement.dataset.midCoreDataReady)),timeoutMs);window.addEventListener('mid:core-data-ready',readyHandler,{once:true})});
 }
 async function signalHealthy(){
  await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));
- // Der native Splashscreen darf nach einem erfolgreichen UI-Mount verschwinden; die
- // Web-App-Version wird dagegen erst nach einer nutzbaren Kernprognose als gesund markiert.
  await markMidNativeRuntimeReady();
- const coreReady=await waitForCoreDataReady(20_000);
- if(coreReady){window.dispatchEvent(new Event('mid:runtime-healthy'));await markMidRuntimeHealthy();markBootHealthy();return}
- if(navigator.onLine===false){
-  // Offline ist kein Beweis, dass der neue Datenpfad gesund ist. Einen pending
-  // Update-Stand deshalb weder gesundschreiben noch ohne Netzwerk zurückrollen.
-  // Beim nächsten Online-Ereignis wird derselbe Healthcheck einmal neu bewertet.
-  window.addEventListener('online',()=>{void signalHealthy().catch(()=>markBootHealthy())},{once:true});markBootHealthy();return
- }
- const status=await getMidUpdateStatus().catch(()=>null);
- const pendingVersion=status?.pendingVersion,appVersion=status?.appVersion;
+ // Ein Release ist technisch gesund, wenn die neue React-/App-Shell stabil gerendert
+ // bleibt. Die Verfügbarkeit externer Wetterquellen ist ein eigener Betriebszustand:
+ // ein temporäres API-/Netzproblem darf keine intakte Version zurückrollen.
+ const surfaceReady=await waitForStableAppSurface(8000,1600);
+ if(surfaceReady){window.dispatchEvent(new Event('mid:runtime-healthy'));await markMidRuntimeHealthy();markBootHealthy();void waitForCoreDataReady(20_000).then(coreReady=>{document.documentElement.dataset.midCoreDataHealth=coreReady?'ready':'degraded'});return}
+ if(navigator.onLine===false){window.addEventListener('online',()=>{void signalHealthy().catch(()=>markBootHealthy())},{once:true});markBootHealthy();return}
+ const status=await getMidUpdateStatus().catch(()=>null),pendingVersion=status?.pendingVersion,appVersion=status?.appVersion;
  if(pendingVersion!==undefined&&appVersion!==undefined&&pendingVersion===appVersion){const rolledBack=await rollbackPendingMidUpdate().catch(()=>({ok:false}));if(rolledBack?.ok){const url=new URL(location.href);url.searchParams.set('mid-rollback',String(Date.now()));url.searchParams.set('_mid_reload',String(Date.now()));location.replace(url.toString());return}}
- // Kein Update-Pending: die App bleibt mit ihrer normalen Fehler-/Cacheoberfläche bedienbar.
- // Der Prozess wird nicht in eine Reload-Schleife gezwungen.
  markBootHealthy();
 }
 async function start(){

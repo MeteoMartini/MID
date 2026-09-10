@@ -39,17 +39,22 @@ assert.ok(serviceWorker.includes('if(retryNewerRollback||validatedUpdate)await n
 
 // Page updater: trust a real controllerchange; do not assume timeout means success.
 assert.ok(updater.includes('new Promise<boolean>')&&updater.includes('timer=window.setTimeout(()=>done(false),timeoutMs)'),'Controllerwechsel kann einen Timeout fälschlich als erfolgreiche Aktivierung behandeln.');
-assert.ok(updater.includes('if(activated)return;'),'Nach realem Controllerwechsel darf die Seite keine zweite konkurrierende Navigation mehr auslösen.');
+assert.ok(updater.includes('if(activated){schedulePostActivationNavigation(version);return;}'),'Nach realem Controllerwechsel darf nur der verzögerte, bereits vom neuen Controller bediente Sicherheitsfallback geplant werden.');
 assert.ok(!updater.includes('if(activated)await new Promise<void>(resolve=>window.setTimeout(resolve,2600))'),'Veraltetes zeitgesteuertes Doppel-Navigationsfenster ist wieder vorhanden.');
+assert.ok(updater.includes('const UPDATE_INSTALL_WAIT_MS=45_000')&&updater.includes("registration.addEventListener('updatefound',updateFound)"),'Verzögert auftauchende Service-Worker-Installation wird nicht lang genug bzw. nicht über updatefound beobachtet.');
+assert.ok(updater.includes('scheduleActivationRetry(version)')&&updater.includes("if(pending){removeUpdateNotice();showUpdateNotice"),'Noch installierender Worker wird nicht kontrolliert automatisch erneut aktiviert.');
+assert.ok(updater.includes('POST_ACTIVATION_NAVIGATION_MS=3_000')&&updater.includes('if(activated){schedulePostActivationNavigation(version);return;}'),'Bestätigter Controllerwechsel besitzt keinen verzögerten iOS/PWA-Navigationsfallback.');
+assert.ok(updater.includes("if(navigator.serviceWorker?.controller){removeUpdateNotice();showUpdateNotice")&&updater.includes('location.replace(url.toString())'),'Controlled Clients dürfen nicht über einen Reload unter dem alten Worker scheinbar aktualisiert werden.');
 
 
-// Update health must prove that the weather data path is usable. A mere React
-// paint is not enough to retire the rollback cache.
-assert.ok(app.includes("window.dispatchEvent(new CustomEvent('mid:core-data-ready'"),'Kernprognose meldet keinen belastbaren Daten-Ready-Zustand.');
-assert.ok(main.includes('waitForCoreDataReady(20_000)')&&main.includes('const pendingVersion=status?.pendingVersion,appVersion=status?.appVersion;')&&main.includes('pendingVersion!==undefined&&appVersion!==undefined&&pendingVersion===appVersion')&&main.includes('rollbackPendingMidUpdate()'),'20-s-Gesundheitswächter für ein pending Update fehlt oder der nullable Update-Status wird nicht TS7-sicher auf skalare Werte reduziert.');
-assert.ok(main.includes("if(navigator.onLine===false){")&&main.includes("window.addEventListener('online',()=>{void signalHealthy()"),'Offline darf ein pending Update nicht ohne Kernwetterdaten als gesund markieren.');
-assert.ok(!main.includes('coreReady||navigator.onLine===false'),'Offline wird fälschlich wieder als positiver Datenpfad-Healthcheck behandelt.');
-assert.ok(main.indexOf('await markMidNativeRuntimeReady()')<main.indexOf('waitForCoreDataReady(20_000)'),'Nativer Splashscreen hängt fälschlich von einem Netzwerk-Erfolg ab.');
+// Update health is a shell/runtime check. External forecast availability is
+// tracked separately and must never roll back a technically healthy release.
+assert.ok(app.includes("window.dispatchEvent(new CustomEvent('mid:core-data-ready'"),'Kernprognose meldet keinen separaten Daten-Ready-Zustand.');
+assert.ok(main.includes('function appSurfaceReady()')&&main.includes('waitForStableAppSurface(8000,1600)'),'Stabiler App-Surface-Healthcheck fehlt.');
+assert.ok(main.includes('if(surfaceReady){')&&main.includes('await markMidRuntimeHealthy()')&&main.includes("dataset.midCoreDataHealth=coreReady?'ready':'degraded'"),'Release-Health und Datenquellen-Health sind nicht sauber getrennt.');
+assert.ok(main.includes('const status=await getMidUpdateStatus().catch(()=>null)')&&main.includes('pendingVersion!==undefined&&appVersion!==undefined&&pendingVersion===appVersion')&&main.includes('rollbackPendingMidUpdate()'),'Rollback für echten Shell-/Startfehler fehlt oder ist nicht TS7-sicher.');
+assert.ok(!main.includes('if(!coreReady')&&!main.includes('coreReady||navigator.onLine===false'),'Temporär fehlende Kernwetterdaten dürfen keinen Release-Rollback auslösen.');
+assert.ok(main.indexOf('await markMidNativeRuntimeReady()')<main.indexOf('waitForStableAppSurface(8000,1600)'),'Nativer Splashscreen hängt fälschlich von einem Datenquellen-Erfolg ab.');
 assert.ok(pwa.includes("requestWorker({type:'MID_ROLLBACK_IF_PENDING'},6000)"),'Pending-Update kann aus dem Laufzeitwächter nicht gezielt zurückgerollt werden.');
 
 // Cached shell navigation must win over a half-open network after a bounded
@@ -79,5 +84,5 @@ for(const token of ['tenMinuteMm=rateMmh/6',"level>=4?'sehr stark'",'snowRateCmh
 assert.ok(skybar.includes('precipitationIntensityDescriptor(parts.type,amount,snowfall,intervalSeconds,parts.displayCode)'),'Skybar nutzt nicht die zentrale Intensitätsklassifikation.');
 assert.ok(weather.includes('intervalSeconds:15*60')&&forecastFusion.includes('intervalSeconds:15*60')&&shortTerm.includes('intervalSeconds:intervalMinutes*60'),'15-min-Niederschlag wird nicht vor der WMO/DWD-Intensitätsklassifikation auf sein tatsächliches Zeitintervall bezogen.');
 
-for(const phrase of ['wartender Service Worker','harte Zeitgrenzen','ersten sichtbaren Render','terminalen Erfolg oder Fehler','Dauerregen','nutzbaren Kernprognose','8-s-Budget'])assert.ok(contract.includes(phrase),`Vertrag unvollständig: ${phrase}`);
+for(const phrase of ['wartender Service Worker','45 Sekunden','updatefound','stabile App-Oberfläche','Datenquellen-Gesundheit','harte Zeitgrenzen','ersten sichtbaren Render','terminalen Erfolg oder Fehler','Dauerregen','8-s-Budget'])assert.ok(contract.includes(phrase),`Vertrag unvollständig: ${phrase}`);
 console.log(`MID v${pkg.version}: Update-Aktivierung, Start-Timeouts, Foreground-Freigabe, Deferred Work, Sync-/PWA-Deduplizierung und typabhängige Skybar-Intensitäten geprüft.`);

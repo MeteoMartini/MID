@@ -1,6 +1,6 @@
 # MID – verbindlicher Parameter-Farbvertrag
 
-Stand: v0.9.77.15
+Stand: v0.9.84.35
 
 Dieser Vertrag ist appweit verbindlich. Er gilt für Browser/PWA und den gemeinsamen iOS-/Capacitor-Fachkern, auf Desktop, Tablet und Smartphone sowie im Hoch- und Querformat. Ein meteorologischer Parameter behält in Karten, Diagrammen, Tageswerten, Legenden, Tooltips, Selektoren und kompakten Übersichten dieselbe visuelle Grundidentität.
 
@@ -69,3 +69,14 @@ Dieser Absatz **ersetzt für die 7-Tage-Ansicht** die ältere v0.9.77.25-/v0.9.7
 - Die Regel gilt identisch für Hell/Dunkel, iPhone/iPad und Desktop sowie Hoch-/Querformat.
 
 Required Regression: `scripts/test-seven-day-ecmwf-hourly-09781.mjs`.
+
+## Zusatzvertrag v0.9.84.35 – Niederschlagsphase in der Tagesansicht
+
+- Die **Parameteridentität Niederschlag** bleibt `--param-precipitation`. Insbesondere Niederschlagswahrscheinlichkeit, generische Niederschlagsmengen und nicht phasencodierte Niederschlagsindikatoren bleiben in dieser Blau-Familie.
+- Wird die **Niederschlagsart ausdrücklich codiert** (Tagesdetail/Skybar/phasenspezifische Legende), ist dies ein zusätzlicher semantischer Kanal nach Regel 4. Dafür gelten zentral: Regen/Sprühregen/Schauer = `--param-precipitation`, Schnee/Graupel = `--param-precipitation-snow`, Misch-/gefrierende Phase = `--param-precipitation-mixed`, Gewitter/Hagel = `--param-precipitation-storm`.
+- Diese Phasenfarben liegen ausschließlich in `src/styles-src/00-foundation.css`; Diagramme, SVG-Muster und Legenden dürfen dafür keine konkurrierenden lokalen Basisfarben definieren.
+- Intensität wird weiterhin primär über Balkenhöhe und ergänzend über Deckkraft/Kontur vermittelt. Die Farbfamilie darf sich mit der Intensität nicht ändern.
+- Schauer bleiben in der **blauen Niederschlagsfamilie** und dürfen nicht als eigenständiger cyan/türkiser Parameter erscheinen. Gefrierender Regen/Schneeregen bleiben violett; Hagel ist purpur und wird nicht wie Schnee hellblau dargestellt. Graupel bleibt hellblau, wird aber geometrisch/patternbasiert von Hagel unterschieden.
+- Die gestrichelte Niederschlagswahrscheinlichkeitskurve bleibt unabhängig von der Niederschlagsphase in `--param-precipitation`, damit Wahrscheinlichkeit und beobachtete/erwartete Phase nicht miteinander verwechselt werden.
+
+Required Regression: `scripts/test-day-precipitation-color-contract-098435.mjs`.

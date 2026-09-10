@@ -26,12 +26,13 @@ assert.equal(policy.eventHeatGuidance(summary({temperatureAvg:27,temperatureMax:
 assert.equal(policy.eventHeatGuidance(summary({temperatureAvg:28,temperatureMax:28,apparentAvg:28}),'outdoor','city'),null,'Passive Aktivität darf bei 28 °C nicht automatisch dieselbe Wärmestufe wie Fußball erhalten.');
 assert.equal(policy.eventHeatGuidance(summary({temperatureAvg:32,temperatureMax:33,apparentAvg:32}),'indoor','gym'),null,'Außentemperatur darf Indoor-Gym nicht als thermisch kritisch klassifizieren.');
 assert.equal(policy.eventPrecipitationProbability(summary({precipitationProbabilityRelevant:null,precipitationProbabilitySource:'unavailable'})),null,'Fehlende Event-Wahrscheinlichkeit muss fehlend bleiben.');
+assert.equal(policy.eventPrecipitationProbability(summary({precipitationProbabilityRelevant:42,precipitationProbabilitySource:'hourly-window-average-fallback'})),42,'Transparent gekennzeichneter Stunden-PoP-Zeitraumfallback muss als Ersatzsignal nutzbar bleiben.');
 assert.match(panelSource,/function formatNumber\(value:number\|null\|undefined,digits=0\)\{if\(value==null\|\|!Number\.isFinite/,'Nullwerte werden im Event-UI noch als 0 formatiert.');
 assert.match(panelSource,/buildEventOutfitHint\(summary,environment,activity\)/,'Event-Leitwetter nutzt die zentrale Empfehlungspolitik nicht.');
-assert.match(panelSource,/coverageComplete===false\|\|eventPrecipProbability\(summary\)==null\)return'Datengrundlage unvollständig; vor dem Termin erneut aktualisieren'/,'Unvollständige Daten dürfen nicht gleichzeitig eine Entwarnung im Timing-Hinweis erzeugen.');
+assert.match(panelSource,/if\(summary\.coverageComplete===false\)return'Datengrundlage unvollständig; vor dem Termin erneut aktualisieren'/,'Nur tatsächlich unvollständige Event-Wetterdaten dürfen den Timing-Hinweis als unvollständig markieren.');
 assert.match(engineSource,/eventHeatGuidance\(summary,environment,activity\)/,'EventAdvice nutzt die aktivitätsbezogene Wärmelogik nicht.');
 assert.match(engineSource,/eventColdGuidance\(summary,environment,activity\)/,'EventAdvice nutzt die aktivitätsbezogene Kältelogik nicht.');
 assert.match(contract,/Fehlende Werte bleiben fehlend/,'Datenwahrheitsvertrag fehlt.');
 assert.ok(baseline.requiredRegressionTests?.includes('scripts/test-event-recommendation-sanity-097883.mjs'),'Neue Event-Empfehlungsregression ist nicht verpflichtend.');
 assert.ok(baseline.requiredFiles?.includes('MID_EVENT_RECOMMENDATION_CONTRACT.md'),'Event-Empfehlungsvertrag ist nicht in der Baseline geschützt.');
-console.log('MID v0.9.78.83: aktivitäts-, umgebungs- und datenbewusste Event-Empfehlungen geprüft.');
+console.log('MID: aktivitäts-, umgebungs- und datenbewusste Event-Empfehlungen einschließlich PoP-Fallback geprüft.');

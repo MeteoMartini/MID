@@ -45,9 +45,12 @@ for(const zone of [undefined,'Europe/Berlin','America/New_York'])assert.equal(ev
 assert.deepEqual(event.timelineForWindow(hours,'2026-09-05','23:00','23:00'),[]);
 const timeline=[100,0].map(precipitationProbability=>({durationMinutes:60,precipitationProbability,weatherCode:0,precipitation:0,temperature:20,wind:2,gust:3}));
 const summary=event.summarizeTimeline(timeline,null);
-assert.equal(summary.precipitationProbabilityRelevant,null);
+assert.equal(summary.precipitationProbabilityRelevant,50);
 assert.equal(summary.hourlyMeanProbability,50);
-assert.equal(summary.precipitationProbabilitySource,'unavailable');
+assert.equal(summary.precipitationProbabilitySource,'hourly-window-average-fallback');
+const incompleteSummary=event.summarizeTimeline([{...timeline[0]},{...timeline[1],precipitationProbability:null}],null);
+assert.equal(incompleteSummary.precipitationProbabilityRelevant,null);
+assert.equal(incompleteSummary.precipitationProbabilitySource,'unavailable');
 const members=load('src/weather-src/30-ensemble-climate-hazards.tsfrag',['eventCivilEpoch','eventMemberPrecipitationTotals'],time);
 const weather={timezone:'Europe/Berlin',utc_offset_seconds:7200,hourly:{time:hours.map(h=>h.time),precipitation:[0,1,2,0]}};
 assert.deepEqual(members.eventMemberPrecipitationTotals(weather,'2026-09-05','23:00','01:00'),[3]);

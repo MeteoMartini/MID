@@ -35,7 +35,7 @@ for(const token of [
 for(const token of [
  'Ort, PLZ, ICAO, POI oder Favorit suchen',
  'ICAO {result.icao}',
- 'ICAO-Ortssuche'
+ 'aria-label="Ort, ICAO-Kennung oder Favorit suchen"'
 ])need('Hauptsuche',app,token);
 for(const token of ['Ort, PLZ oder ICAO suchen','item.icao?`${item.icao} · ${item.name}`'])need('Routenwettersuche',route,token);
 for(const token of ['Ort, Region, Reiseziel oder ICAO','location.icao?`${location.icao} · ${location.name}`'])need('Reisewettersuche',travel,token);

@@ -33,11 +33,11 @@ assert.ok(skybar.includes('SKYBAR_THICKNESS_STEPS=[2.4,3.6,4.8,6.0]'),'Vier appw
 assert.ok(cockpit.includes('calendarDayHours=probabilityHours')&&cockpit.includes('cockpitDaySkyBarSegments(calendarDayHours.length?calendarDayHours:dayHours)'),'24-h-Tageskarten-Skybar fehlt.');
 
 // Phase-aware precipitation colours are now a single shared contract.
-for(const token of ["liquid:'var(--param-precipitation)'","snow:'#66bce8'","mixed:'#a769d8'","storm:'#7869e8'"])assert.ok(phase.includes(token),`Phasenfarbe fehlt: ${token}`);
-assert.ok(phase.includes("type==='snow'||type==='snowShowers'||type==='snowGrains'")&&phase.includes("type==='freezingRain'||type==='freezingDrizzle'||type==='sleet'||type==='sleetShowers'")&&phase.includes("type==='thunderstorm'||type==='thunderstormHail'"),'Niederschlagsphasen werden nicht vollständig klassifiziert.');
+for(const token of ["liquid:'var(--param-precipitation)'","snow:'var(--param-precipitation-snow)'","mixed:'var(--param-precipitation-mixed)'","storm:'var(--param-precipitation-storm)'"])assert.ok(phase.includes(token),`Phasenfarbe fehlt: ${token}`);
+assert.ok(phase.includes("type==='snow'||type==='snowShowers'||type==='snowGrains'||type==='graupelShowers'")&&phase.includes("type==='freezingRain'||type==='freezingDrizzle'||type==='sleet'||type==='sleetShowers'")&&phase.includes("type==='hailShowers'||type==='thunderstorm'||type==='thunderstormHail'"),'Niederschlagsphasen werden nicht vollständig klassifiziert.');
 assert.ok(skybar.includes('color:precipitationPhaseColor(parts.type)')&&skybar.includes('precipitationPhaseColorLabel(parts.type)'),'Skybar nutzt die gemeinsame Phasenpalette nicht.');
 assert.ok(cockpit.includes("import {precipitationPhaseColor} from './precipitationPhaseColor';")&&cockpit.includes('return precipitationPhaseColor(plausiblePrecipitation(sample).type)'),'24-h-/Cockpit-Niederschlagsfarbe ist nicht mit der Skybar synchronisiert.');
 assert.ok(app.includes('Niederschlag · nach Phase')&&app.includes('Regen/Sprühregen/Schauer blau, Schnee hellblau, Misch-/gefrierende Phase violett, Gewitter/Hagel purpur'),'Skybar-Legende beschreibt die Phasenfarben nicht.');
-assert.ok(styles.includes('.detaillegend i.precipitation-bar{background:linear-gradient(90deg,var(--param-precipitation) 0 25%,#66bce8 25% 50%,#a769d8 50% 75%,#7869e8 75% 100%)!important}'),'Legendenmuster zeigt die Phasenpalette nicht.');
+assert.ok(styles.includes('.detaillegend i.precipitation-bar{background:linear-gradient(90deg,var(--param-precipitation) 0 25%,var(--param-precipitation-snow) 25% 50%,var(--param-precipitation-mixed) 50% 75%,var(--param-precipitation-storm) 75% 100%)!important}'),'Legendenmuster zeigt die zentrale Phasenpalette nicht.');
 
 console.log(`MID v${pkg.version}: Parallel-Chat-Security, v35-v38-Ensemble/Skybar/Sonne und phasenabhängige Niederschlagsfarben gemeinsam geschützt.`);

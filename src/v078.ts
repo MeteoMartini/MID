@@ -12,6 +12,7 @@ const WIDGET_NAMES_KEY='mid:0.7.1:widget-place-names';
 const nativeFetch=window.fetch.bind(window);
 function boundedNativeFetch(input:RequestInfo|URL,init:RequestInit={},timeoutMs=8000){const controller=new AbortController(),parent=init.signal,abort=()=>controller.abort(parent?.reason),timer=window.setTimeout(()=>controller.abort(new DOMException('Versionsabruf hat das Zeitlimit überschritten.','TimeoutError')),timeoutMs);if(parent?.aborted)abort();else parent?.addEventListener('abort',abort,{once:true});return nativeFetch(input,{...init,signal:controller.signal}).finally(()=>{window.clearTimeout(timer);parent?.removeEventListener('abort',abort)})}
 function boundedRegistrationUpdate(registration:ServiceWorkerRegistration,timeoutMs=6500){return new Promise<void>(resolve=>{let settled=false;const finish=()=>{if(settled)return;settled=true;window.clearTimeout(timer);resolve()},timer=window.setTimeout(finish,timeoutMs);registration.update().then(finish,finish)})}
+function midRegistrationsWithBudget(timeoutMs=3500){return new Promise<ServiceWorkerRegistration[]>(resolve=>{let settled=false;const finish=(items:readonly ServiceWorkerRegistration[]=[])=>{if(settled)return;settled=true;window.clearTimeout(timer);const registrations=[...items],expected=new URL('./',document.baseURI).href,matches=registrations.filter(item=>item.scope===expected);resolve(matches.length?matches:registrations.filter(item=>location.href.startsWith(item.scope)))},timer=window.setTimeout(()=>finish([]),timeoutMs);navigator.serviceWorker?.getRegistrations?.().then(finish,()=>finish([]))})}
 const defaultChartVisibility:ChartVisibility={tempMaxBand:true,tempMinBand:true,bestMax:true,bestMin:true,rainBest:true,rainLow:true,rainHigh:true};
 let chartVisibility=readJson<ChartVisibility>(CHART_KEY,defaultChartVisibility);
 let enhancing=false;
@@ -143,6 +144,16 @@ const AUTO_UPDATE_KEY='mid:auto-update';
 const VERSION_CHECK_INTERVAL=15*60*1000;
 const VERSION_CHECK_THROTTLE=30*1000;
 const RELOAD_ATTEMPT_KEY='mid:update-reload-attempt';
+const UPDATE_INSTALL_WAIT_MS=45_000;
+const UPDATE_DISCOVERY_WAIT_MS=7_000;
+const UPDATE_ACTIVATION_RETRY_MS=4_000;
+const UPDATE_DISCOVERY_RETRY_MS=12_000;
+const UPDATE_RETRY_LIMIT=4;
+const POST_ACTIVATION_NAVIGATION_MS=3_000;
+let activationRetryTimer=0;
+let activationRetryVersion='';
+let activationRetryCount=0;
+let postActivationNavigationTimer=0;
 let lastVersionCheck=0;
 let versionCheckPromise:Promise<void>|null=null;
 let dismissedVersion='';
@@ -153,36 +164,48 @@ function autoUpdateEnabled(){try{return localStorage.getItem(AUTO_UPDATE_KEY)===
 function setAutoUpdate(value:boolean){try{localStorage.setItem(AUTO_UPDATE_KEY,String(value))}catch{}}
 function recentReloadAttempt(version:string){try{const raw=sessionStorage.getItem(RELOAD_ATTEMPT_KEY);if(!raw)return false;const data=JSON.parse(raw) as {version?:string;time?:number};return data.version===version&&Date.now()-Number(data.time||0)<120000}catch{return false}}
 function markReloadAttempt(version:string){try{sessionStorage.setItem(RELOAD_ATTEMPT_KEY,JSON.stringify({version,time:Date.now()}))}catch{}}
+function clearReloadAttempt(){try{sessionStorage.removeItem(RELOAD_ATTEMPT_KEY)}catch{}}
 function cleanUpdateQuery(){try{const url=new URL(location.href),keys=['mid-update','mid-refresh','_mid_reload','mid-rollback','mid-retry'],had=keys.some(key=>url.searchParams.has(key));if(!had)return;keys.forEach(key=>url.searchParams.delete(key));history.replaceState(history.state,'',url.toString())}catch{}}
-function waitForInstalledWorker(registration:ServiceWorkerRegistration,timeoutMs=10000){
- const current=registration.waiting??registration.installing;if(!current)return Promise.resolve<ServiceWorker|null>(null);if(current.state==='installed')return Promise.resolve(current);
- return new Promise<ServiceWorker|null>(resolve=>{let finished=false;const done=(worker:ServiceWorker|null)=>{if(finished)return;finished=true;window.clearTimeout(timer);current.removeEventListener('statechange',changed);resolve(worker)},changed=()=>{if(current.state==='installed')done(current);else if(current.state==='redundant')done(null)},timer=window.setTimeout(()=>done(registration.waiting??(current.state==='installed'?current:null)),timeoutMs);current.addEventListener('statechange',changed)});
+function waitForInstalledWorker(registration:ServiceWorkerRegistration,timeoutMs=UPDATE_INSTALL_WAIT_MS){
+ const ready=()=>registration.waiting??(registration.installing?.state==='installed'?registration.installing:null);const immediate=ready();if(immediate)return Promise.resolve(immediate);
+ return new Promise<ServiceWorker|null>(resolve=>{let finished=false,workerDiscovered=Boolean(registration.installing),timer=0;const observed=new Set<ServiceWorker>();const arm=(ms:number)=>{window.clearTimeout(timer);timer=window.setTimeout(()=>done(ready()),ms)},cleanup=()=>{registration.removeEventListener('updatefound',updateFound);for(const worker of observed)worker.removeEventListener('statechange',stateChanged);window.clearTimeout(timer)},done=(worker:ServiceWorker|null)=>{if(finished)return;finished=true;cleanup();resolve(worker)},stateChanged=()=>{const worker=ready();if(worker)done(worker);else if(workerDiscovered&&[...observed].length>0&&[...observed].every(item=>item.state==='redundant'))done(null)},observe=(worker:ServiceWorker|null)=>{if(!worker||observed.has(worker))return;workerDiscovered=true;observed.add(worker);worker.addEventListener('statechange',stateChanged);if(worker.state==='installed')done(worker)},updateFound=()=>{workerDiscovered=true;observe(registration.installing);arm(timeoutMs)};registration.addEventListener('updatefound',updateFound);observe(registration.installing);arm(workerDiscovered?timeoutMs:UPDATE_DISCOVERY_WAIT_MS)});
 }
-function waitForControllerChange(timeoutMs=5000){return new Promise<boolean>(resolve=>{let finished=false;const done=(changed=true)=>{if(finished)return;finished=true;window.clearTimeout(timer);navigator.serviceWorker?.removeEventListener('controllerchange',changedHandler);resolve(changed)},changedHandler=()=>done(true),timer=window.setTimeout(()=>done(false),timeoutMs);navigator.serviceWorker?.addEventListener('controllerchange',changedHandler,{once:true})})}
-async function activateWaitingWorker(registration:ServiceWorkerRegistration,version:string){const worker=await waitForInstalledWorker(registration);if(!worker)return false;const changed=waitForControllerChange();worker.postMessage({type:'MID_ACTIVATE_UPDATE',version});return changed}
+function waitForControllerChange(timeoutMs=8000){return new Promise<boolean>(resolve=>{let finished=false;const done=(changed=true)=>{if(finished)return;finished=true;window.clearTimeout(timer);navigator.serviceWorker?.removeEventListener('controllerchange',changedHandler);resolve(changed)},changedHandler=()=>done(true),timer=window.setTimeout(()=>done(false),timeoutMs);navigator.serviceWorker?.addEventListener('controllerchange',changedHandler,{once:true})})}
+async function activateWaitingWorker(registration:ServiceWorkerRegistration,version:string){const worker=await waitForInstalledWorker(registration);if(!worker||worker.state==='redundant')return false;const changed=waitForControllerChange();worker.postMessage({type:'MID_ACTIVATE_UPDATE',version});return changed}
+function cancelActivationRetry(version?:string){if(version&&activationRetryVersion&&activationRetryVersion!==version)return;window.clearTimeout(activationRetryTimer);activationRetryTimer=0;activationRetryVersion='';activationRetryCount=0}
+function scheduleActivationRetry(version:string,delayMs=UPDATE_ACTIVATION_RETRY_MS){if(activationRetryVersion!==version){cancelActivationRetry();activationRetryVersion=version}if(activationRetryCount>=UPDATE_RETRY_LIMIT)return;activationRetryCount+=1;window.clearTimeout(activationRetryTimer);activationRetryTimer=window.setTimeout(()=>{clearReloadAttempt();void reloadForVersion(version)},delayMs)}
+function setUpdateNoticeBusy(version:string){const notice=document.querySelector<HTMLElement>('[data-mid-update-notice]');if(!notice||notice.dataset.version!==version)return;const small=notice.querySelector<HTMLElement>('.mid-update-copy small');if(small)small.textContent='Die neue App-Shell wird geprüft und vollständig vorbereitet …';notice.querySelectorAll<HTMLButtonElement>('.mid-update-actions button').forEach(button=>{button.disabled=true});const primary=notice.querySelector<HTMLButtonElement>('.mid-update-actions .primary');if(primary)primary.textContent='Wird vorbereitet …'}
+function schedulePostActivationNavigation(version:string){window.clearTimeout(postActivationNavigationTimer);postActivationNavigationTimer=window.setTimeout(()=>{if(VERSION===version||!navigator.serviceWorker?.controller)return;const url=new URL(location.href);url.searchParams.delete('mid-update');url.searchParams.set('mid-retry',version);url.searchParams.set('_mid_reload',String(Date.now()));location.replace(url.toString())},POST_ACTIVATION_NAVIGATION_MS)}
 async function reloadForVersion(version:string){
  if(recentReloadAttempt(version))return;
- markReloadAttempt(version);removeUpdateNotice();
- let activated=false;
+ markReloadAttempt(version);setUpdateNoticeBusy(version);
+ let activated=false,registrations:ServiceWorkerRegistration[]=[];
  try{
-  const registrations=await navigator.serviceWorker?.getRegistrations?.()??[];
+  registrations=await midRegistrationsWithBudget();
   for(const registration of registrations){await boundedRegistrationUpdate(registration);if(await activateWaitingWorker(registration,version)){activated=true;break}}
  }catch{}
  // Nach einem realen Controllerwechsel besitzt ausschließlich der neue Service
- // Worker das Navigationsrecht. Ein zeitversetzter zweiter location.replace()-Sprung
- // kann auf WKWebView noch mit client.navigate() kollidieren und eine Misch-Shell erzeugen.
- if(activated)return;
- const url=new URL(location.href);url.searchParams.delete('mid-update');url.searchParams.set('mid-refresh',version);url.searchParams.set('_mid_reload',String(Date.now()));location.replace(url.toString());
+ // Worker das Navigationsrecht. Ein zweiter location.replace()-Sprung würde auf
+ // iOS/PWA unter Umständen noch durch den alten Controller bedient.
+ if(activated){schedulePostActivationNavigation(version);return;}
+ const pending=registrations.some(registration=>Boolean(registration.waiting||registration.installing));
+ clearReloadAttempt();
+ if(pending){removeUpdateNotice();showUpdateNotice(version,undefined,'Das Update wird noch vollständig vorbereitet. MID übernimmt es automatisch, sobald die neue App-Shell geprüft ist.');scheduleActivationRetry(version);return}
+ // Ein kontrollierter Client darf nicht durch einen Reload unter dem alten Worker
+ // scheinbar auf die neue Version wechseln. Stattdessen bleibt die Sitzung stabil
+ // und ein erneuter expliziter Updateversuch ist möglich.
+ if(navigator.serviceWorker?.controller){removeUpdateNotice();showUpdateNotice(version,undefined,'Die neue Release-Datei ist am App-Cache noch nicht vollständig angekommen. Die aktuelle Version bleibt aktiv; MID prüft automatisch erneut.');scheduleActivationRetry(version,UPDATE_DISCOVERY_RETRY_MS);return}
+ removeUpdateNotice();const url=new URL(location.href);url.searchParams.delete('mid-update');url.searchParams.set('mid-refresh',version);url.searchParams.set('_mid_reload',String(Date.now()));location.replace(url.toString());
 }
 function removeUpdateNotice(){document.querySelector<HTMLElement>('[data-mid-update-notice]')?.remove()}
-function showUpdateNotice(version:string,releasedAt?:string){
+function showUpdateNotice(version:string,releasedAt?:string,statusText?:string){
   if(dismissedVersion===version)return;
   let notice=document.querySelector<HTMLElement>('[data-mid-update-notice]');
   if(notice?.dataset.version===version)return;
   notice?.remove();notice=document.createElement('aside');notice.dataset.midUpdateNotice='1';notice.dataset.version=version;notice.className='mid-update-notice';notice.setAttribute('role','status');notice.setAttribute('aria-live','polite');
-  const copy=document.createElement('div');copy.className='mid-update-copy';const strong=document.createElement('strong');strong.textContent='MID-Update geprüft und vollständig vorbereitet';const small=document.createElement('small');const date=releasedAt?new Date(releasedAt):null;small.textContent=`Version ${version} ist verfügbar${date&&Number.isFinite(date.getTime())?` · ${formatDisplayDateTime(date,undefined,{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',hourCycle:'h23'})}`:''}.`;copy.append(strong,small);
+  const copy=document.createElement('div');copy.className='mid-update-copy';const strong=document.createElement('strong');strong.textContent='MID-Update geprüft und vollständig vorbereitet';const small=document.createElement('small');const date=releasedAt?new Date(releasedAt):null;small.textContent=statusText??`Version ${version} ist verfügbar${date&&Number.isFinite(date.getTime())?` · ${formatDisplayDateTime(date,undefined,{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',hourCycle:'h23'})}`:''}.`;copy.append(strong,small);
   const autoLabel=document.createElement('label');autoLabel.className='mid-update-auto';const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.checked=autoUpdateEnabled();const autoText=document.createElement('span');autoText.textContent='Künftige Updates automatisch laden';autoLabel.append(checkbox,autoText);
-  const actions=document.createElement('div');actions.className='mid-update-actions';const later=document.createElement('button');later.type='button';later.className='secondary';later.textContent='Später';later.addEventListener('click',()=>{dismissedVersion=version;removeUpdateNotice()});const reload=document.createElement('button');reload.type='button';reload.className='primary';reload.textContent='Jetzt neu laden';reload.addEventListener('click',()=>reloadForVersion(version));actions.append(later,reload);
+  const actions=document.createElement('div');actions.className='mid-update-actions';const later=document.createElement('button');later.type='button';later.className='secondary';later.textContent='Später';later.addEventListener('click',()=>{dismissedVersion=version;cancelActivationRetry(version);clearReloadAttempt();removeUpdateNotice()});const reload=document.createElement('button');reload.type='button';reload.className='primary';reload.textContent=statusText?'Erneut versuchen':'Jetzt neu laden';reload.addEventListener('click',()=>reloadForVersion(version));actions.append(later,reload);
   checkbox.addEventListener('change',()=>setAutoUpdate(checkbox.checked));
   notice.append(copy,autoLabel,actions);document.body.append(notice);
 }

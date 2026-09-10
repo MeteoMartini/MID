@@ -19,7 +19,7 @@ const forbidden=[
 for(const token of forbidden)assert.ok(!combined.includes(token),`Entwicklungsinternum ist noch als sichtbarer App-Text vorhanden: ${token}`);
 
 for(const [file,token] of [
- ['src/App.tsx','DWD ICON-D2-RUC/RUC-EPS aus DWD Open Data für die kanonische Kurzfristfusion'],
+ ['src/App.tsx','DWD ICON-D2, ICON-D2-RUC/RUC-EPS und DWD MOSMIX-S/L aus DWD Open Data'],
  ['src/PushSettingsPanel.tsx','für Benachrichtigungen aktiv'],
  ['src/AppleWidgetSettings.tsx','Datenfeed oder Standort noch nicht verfügbar.'],
  ['src/WeatherMapsPanel.tsx','Kartenquelle nicht verfügbar'],

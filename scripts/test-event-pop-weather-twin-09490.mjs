@@ -30,15 +30,16 @@ for(const token of [
 
 for(const token of [
  'eventEnsembleForecast(location.latitude,location.longitude,eventDate,eventStartTime,eventEndTime,signal,forceFresh)',
- 'precipitationProbabilityRelevant=eventProbability?.probability??null',
- "precipitationProbabilitySource:eventProbability?'ensemble-members-dwd-event':'unavailable'",
+ 'fallbackProbability=!eventProbability&&probabilityCoverageComplete',
+ 'precipitationProbabilityRelevant=eventProbability?.probability??fallbackProbability',
+ "precipitationProbabilitySource=eventProbability?'ensemble-members-dwd-event':fallbackProbability!=null?'hourly-window-average-fallback':'unavailable'",
  'applyEnsembleDailyPrecipitationProbability(twinEligible?localTwinDays:fusedDays,ensembleDays)',
  'buildForecastVerificationReport(locationKey,fusedDays,ensembleDays,location,baseHours)',
  'applyLocalTwinHours(locationKey,finalHours,fusedDays,localTwinDays)',
  'finalizeForecastHours(finalHours,displayBaseDays',
  'Event-Niederschlagswahrscheinlichkeit ${eventStartTime}–${eventEndTime}',
  'durationMinutes:Math.max(1,Math.round((overlapEnd-overlapStart)/60000))',
- 'Stundenwahrscheinlichkeiten sind keine Ereignisprognose'
+ 'zeitgewichtetes Stunden-PoP-Mittel als Ersatzsignal'
 ])assert.ok(eventEngine.includes(token),`Event-Engine-Konsistenz fehlt: ${token}`);
 
 assert.ok(eventCenter.includes("precipitationProbabilitySource?:'ensemble-members-dwd-event'|'hourly-window-average-fallback'"),'EventSummary speichert die Herkunft der Zeitraum-PoP nicht.');
