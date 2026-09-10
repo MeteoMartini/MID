@@ -5,7 +5,6 @@ run-name: MID-Revision – ${{ github.event_name }} / ${{ inputs.task || 'automa
 on:
   push:
     branches:
-      - main
       - mid-stable
     paths-ignore:
       - 'MID-professional-replacement*.zip'
@@ -45,8 +44,7 @@ jobs:
   install:
     name: Revisionspaket installieren
     if: >-
-      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      (github.event_name == 'workflow_dispatch' && (inputs.task == 'install' || inputs.task == 'all'))
+      github.event_name == 'workflow_dispatch' && (inputs.task == 'install' || inputs.task == 'all')
     runs-on: ubuntu-latest
     timeout-minutes: 65
     permissions:
@@ -565,12 +563,12 @@ jobs:
         with:
           ref: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 'mid-stable' || github.sha }}
       - name: CodeQL initialisieren
-        uses: github/codeql-action/init@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4.37.7
+        uses: github/codeql-action/init@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
         with:
           languages: javascript-typescript
           build-mode: none
           queries: security-extended
       - name: CodeQL auswerten
-        uses: github/codeql-action/analyze@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4.37.7
+        uses: github/codeql-action/analyze@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
         with:
           category: /language:javascript-typescript
