@@ -10,7 +10,9 @@ const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}
 const reject=(label,text,token)=>{if(text.includes(token))failures.push(`${label}: unerwartet ${token}`)};
 for(const token of [
  'function ShortTermRibbon({hours,minutes15,climate,timezone',
- 'const temperatureCurvePoints=profileTemperatureSource.map',
+ 'profileStateSource=profileTemperatureSource.length?profileTemperatureSource:chartSourcePoints',
+ 'const temperatureCurvePoints=profileStateSource.map',
+ 'pressureScale=shortTermPressureScale(profileStateSource)',
  "const visibleTemperatureExtreme=(kind:'max'|'min')",
  "kind==='max'?(current.point.temperature>best.point.temperature?current:best)",
  "label:`${Math.round(item.point.temperature)}°`",

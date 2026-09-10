@@ -26,6 +26,13 @@ gegeneinander verschoben sein.
   finale kanonische stündliche Reihe `displayHours`; die 1-h-/3-h-Umschaltung
   verändert nur die Interaktions- und Beschriftungsdichte, nicht den Verlauf der
   Temperaturkurve.
+- Derselbe Grundsatz gilt für die weiteren punktbezogenen Zustandskurven im
+  Temperatur-/Druckbereich: gefühlte Temperatur, Taupunkt und Luftdruck werden
+  im 3-h-Modus nicht aus künstlichen 3-h-Mittelwerten erzeugt. Sie bleiben an
+  der kanonischen stündlichen Reihe und damit zeitlich konsistent zur
+  Temperaturkurve; die 3-h-Umschaltung verdichtet ausschließlich Darstellung
+  und Interaktion. Intervallgrößen wie Niederschlagsakkumulationen bleiben davon
+  unberührt.
 - Das sichtbare Maximum und Minimum werden direkt aus genau diesen stündlichen
   Kurvenpunkten im rollenden 24-h-Fenster bestimmt. Damit sind beide Extrema
   unabhängig von Kalendergrenzen immer an einem tatsächlich gezeichneten Punkt
@@ -113,3 +120,11 @@ die sichtbare Luftdruckspur und die Hoch-/Querformatverträge.
 ## Präzisierung v0.9.78.46 · Niederschlags-Slotbeginn
 
 Die gemeinsame Zeitachse unterscheidet ab v0.9.78.46 strikt zwischen instantanen Zustandswerten und akkumulierten Niederschlagsfeldern. Ein sichtbares Stundenlabel `S` steht für den Niederschlag im vorwärts gerichteten Slot `[S,S+1 h]`; Open-Meteo-/DWD-Rohakkumulationen bleiben intern am Intervallende. Temperatur, Wind, Druck und Bewölkung verbleiben punktbezogen an `S`. Niederschlagsmenge, PoP, Phase, Skybar-Overlay und Niederschlagspiktogramm verwenden dagegen gemeinsam die auf den Slotbeginn normalisierte Niederschlagsprobe. Die PoP-Linie darf ab v0.9.80.6 als monoton geglättete PoP-Linie durch die Slotmittelpunkte gezeichnet werden; Säulen, auswählbare Punkte, Werte und Tooltips behalten unverändert ihre expliziten Vorwärtsintervalle. Die Kurve ist eine Darstellungsform und erzeugt keine zusätzlichen Wahrscheinlichkeitswerte. Das erste laufende Intervall wird nur für seinen noch zukünftigen Anteil dargestellt; 15-min-Nowcast und stündlicher Fallback überlappen sich nicht.
+
+## Präzisierung v0.9.84.38 · kontinuierliche Tagesfusion
+
+- Tagesbasierte Modell-/MOSMIX-Konsensanpassungen dürfen die stündliche Temperaturkurve **nicht an 00:00 Uhr sprunghaft** verändern. Tageswerte sind Aggregationen und besitzen keine meteorologische Gültigkeitskante am Kalendertageswechsel.
+- Die affine Tageskorrektur der stündlichen Temperatur (Niveau und Tagesamplitude) wird deshalb zwischen den **lokalen Tagesmitten** kontinuierlich interpoliert. Entsprechende Wind-/Böen-Skalierungen folgen demselben zeitlich stetigen Übergang.
+- Echte stündliche Änderungen der Leitprognose – beispielsweise Frontpassage, Bewölkungsänderung, Advektion oder nächtliche Durchmischung – bleiben unangetastet. MID glättet keine meteorologisch begründeten Rohsignale weg; beseitigt werden ausschließlich künstliche Gewichtungs-/Tagesgrenzen.
+- DWD ICON-D2-RUC läuft vor dem realen +14-h-Horizont mit einer kontinuierlichen Gewichtsfunktion aus. MOSMIX-Stundenbeiträge werden ebenfalls über geglättete Lead-Time-Übergänge ein-/ausgeblendet. Harte Gewichtssprünge dürfen keine Temperatur- oder Druckwende erzeugen.
+- Luftdruck bleibt ein punktbezogener stündlicher Zustandswert. Die 1-h-/3-h-Darstellung darf weder Druckmittel über 3-h-Blöcke bilden noch die Druckkurve zeitlich versetzen.

@@ -15,7 +15,9 @@ assert.ok(app.includes("import {forecastDayRegime,type ForecastDayRegime} from '
 assert.ok(app.includes('regime=forecastDayRegime(d,allDayHoursForDate)')&&app.includes('<ForecastConditionPills label={compactSevenDayConditionLabel(d,allDayHoursForDate)} regime={regime}/>'),'Klassische 7d-Pille erhält keine Regimefarbe.');
 for(const css of [ensembleCss,modernCss])assert.ok(css.includes('--mid-weather-regime-accent'),'CSS-Regimeableitung fehlt.');
 assert.ok(ensembleCss.includes('.cockpit-phase-line .showery{background:color-mix(in srgb,var(--weather-regime-showery) 12%,var(--surface))}'),'Phase-Line behandelt Schauer nicht zentral.');
-assert.ok(ensembleCss.includes('.forecast-condition-pill.primary.regime-showery{--mid-weather-regime-accent:var(--weather-regime-showery)}'),'Klassische 7d-Pille behandelt Schauer nicht mit derselben Palette.');
+assert.ok(ensembleCss.includes('.forecast-condition-pill.main.regime-showery{--mid-weather-regime-accent:var(--weather-regime-showery)}'),'Klassische 7d-Pille behandelt Schauer nicht mit derselben Palette.');
+assert.ok(ensembleCss.includes('.forecast-icon .forecast-condition-pill{')&&ensembleCss.includes('padding:2px 6px')&&ensembleCss.includes('font-size:11px'),'Klassische 7d-Regime-Pille ist nicht kompakt wie die übrigen Ansichten.');
+assert.ok(app.includes("index===0?`main${regime?` regime-${regime}`:''}`:'secondary'")&&!app.includes("index===0?`primary${regime?` regime-${regime}`:''}`:'secondary'"),'Klassische Regime-Pille darf nicht mehr die globale Primary-Buttonklasse erben.');
 for(const legacy of ['.cockpit-phase-line .wet{background:color-mix(in srgb,#2697d8','.cockpit-phase-line .sunny,.cockpit-phase-line .warm{background:color-mix(in srgb,#f6ad16','.cockpit-phase-line .windy{background:color-mix(in srgb,#3abb78'])assert.ok(!ensembleCss.includes(legacy),`Legacy-Regimefarbe noch aktiv: ${legacy}`);
 assert.ok(contract.includes('forecastDayRegime')&&contract.includes('klassische 7-Tage-Ansicht'),'Vertrag dokumentiert gemeinsame Fachlogik oder klassische 7d-Färbung nicht.');
 assert.equal(baseline.releaseVersion,pkg.version,'Package/Baseline müssen synchron sein.');

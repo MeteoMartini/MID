@@ -9,7 +9,8 @@ const failures=[];const need=(label,text,token)=>{if(!text.includes(token))failu
 for(const token of [
  "const BRIGHTSKY_WEATHER='https://api.brightsky.dev/weather'",'async function fetchMosmixForecast',"family:'mosmix-postprocessing'",'distanceKm<=55','elevationDifferenceM<=450','quality>=.42','mosmixBase=horizon<=2?.52:horizon<=7?.42:0','confidence>=52','MOSMIX lokal','modelDays','version:9',"'dwd-mosmix-postprocessing'",'MOSMIX bleibt ein korreliertes DWD-Postprocessing',"family:'ecmwf-ifs'","family:'ecmwf-aifs'","independenceGroup:'ecmwf'"
 ])need('Worker-MOSMIX',worker,token);
-for(const token of ['modelDays?:ForecastFusionDay[]','weatherHours?:ForecastWeatherBundleHour[]','applyForecastFusionModelDays','fusion?.mosmix?.applied','leadHours<=6?.18','leadHours>168','MOSMIX lokal'])need('Frontend-Fusion',fusion,token);
+for(const token of ['modelDays?:ForecastFusionDay[]','weatherHours?:ForecastWeatherBundleHour[]','applyForecastFusionModelDays','fusion?.mosmix?.applied','function smoothLeadTransition(','export function mosmixHourlyLeadStrength(','if(lead<=3)return .18','if(lead<12)return smoothLeadTransition(lead,3,12,.18,.38)','const leadStrength=mosmixHourlyLeadStrength(leadHours)','leadHours>168','MOSMIX lokal'])need('Frontend-Fusion',fusion,token);
+if(fusion.includes('leadHours<=6?.18'))failures.push('MOSMIX darf nach v0.9.84.38 keinen harten Gewichtssprung bei +6 h mehr verwenden.');
 for(const token of ['fusionVerificationCandidates',"id:'mid_best_match_quality_model'","label:'Best Match geprüft ohne MOSMIX'",'applyForecastFusionHours(hours,days,fusedDays,forecastFusion)','days={displayDays}','hours={displayHours}'])need('App-Integration',app,token);
 need('Kurzfrist-Badge',shortTerm,'<em>{sourceLabel}</em>');
 if(worker.includes('precipitation=mosmixApplied?'))failures.push('MOSMIX darf Tagesniederschlag weiterhin nicht als eigenständige Leitprognose überschreiben.');

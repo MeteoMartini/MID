@@ -30,6 +30,7 @@ const source=`
 function number(value){if(value===null||value===undefined||value==='')return undefined;const parsed=Number(value);return Number.isFinite(parsed)?parsed:undefined}
 function clamp(value,minimum,maximum){return Math.max(minimum,Math.min(maximum,value))}
 ${extractFunction('blendRapidValue')}
+${extractFunction('rucLeadTransition')}
 ${extractFunction('rucRapidBaseWeight')}
 ${extractFunction('rucPrecipitationAgreement')}
 ${extractFunction('rucPrecipitationConsensus')}

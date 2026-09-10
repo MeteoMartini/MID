@@ -50,7 +50,7 @@ const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const MET_NORWAY_LOCATIONFORECAST='https://api.met.no/weatherapi/locationforecast/2.0/complete';
-const WORKER_VERSION='0.9.84.37';
+const WORKER_VERSION='0.9.84.39';
 const C3S_SEASONAL_POINT_SYSTEMS=[
  {centreId:'ecmwf',originatingCentre:'ecmwf',system:'51',modelKey:'ecmwf-seas5-51',independenceKey:'ecmwf-seas5-51',label:'ECMWF SEAS5'},
  {centreId:'ukmo',originatingCentre:'ukmo',system:'610',modelKey:'ukmo-glosea6-gc51-610',independenceKey:'ukmo-glosea6-gc51-610',label:'UK Met Office GloSea6-GC5.1'},
@@ -386,7 +386,8 @@ async function fetchDwdRucEpsProbabilityAdapter(lat,lon,elevation,env){
  const headers={Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},token=String(env?.MID_DWD_RUC_EPS_POINT_TOKEN||'').trim();if(token)headers.Authorization=`Bearer ${token}`;
  try{const response=await fetchWithDeadline(endpoint.toString(),{headers,cf:{cacheTtl:300,cacheEverything:true}},14500),body=await response.text();let payload={};try{payload=JSON.parse(body)}catch{}if(!response.ok||payload?.error)throw new Error(String(payload?.reason||payload?.error||`DWD ICON-D2-RUC-EPS Point-Adapter HTTP ${response.status}`));return result(payload,'MID_DWD_RUC_EPS_POINT_ENDPOINT','point-adapter')}catch(error){return{successful:false,configured:true,hours:[],reason:error instanceof Error?error.message:String(error)}}
 }
-function rucRapidBaseWeight(leadHours){return leadHours<=3?.7:leadHours<=6?.58:leadHours<=10?.43:leadHours<=14?.3:0}
+function rucLeadTransition(leadHours,startHours,endHours,startWeight,endWeight){const span=Math.max(.001,endHours-startHours),t=clamp((leadHours-startHours)/span,0,1),smooth=t*t*(3-2*t);return startWeight+(endWeight-startWeight)*smooth}
+function rucRapidBaseWeight(leadHours){const lead=Math.max(0,number(leadHours)??0);if(lead<=2)return .7;if(lead<5)return rucLeadTransition(lead,2,5,.7,.58);if(lead<9)return rucLeadTransition(lead,5,9,.58,.43);if(lead<12)return rucLeadTransition(lead,9,12,.43,.3);if(lead<=14)return rucLeadTransition(lead,12,14,.3,0);return 0}
 function rucRapidWeight(leadHours,hour){let weight=rucRapidBaseWeight(leadHours);if(!weight)return 0;const convective=(number(hour?.cape)||0)>=400;if(convective)weight=Math.min(.82,weight+.1);return weight}
 function rucPrecipitationAgreement(reference,target){const a=Math.max(0,number(reference)??0),b=Math.max(0,number(target)??0),largest=Math.max(a,b);if(largest<.03)return 1;return clamp(1-Math.abs(a-b)/Math.max(.3,largest*.9),0,1)}
 function rucPrecipitationConsensus(leadHours,anchor,rapid,mosmix,rucEps,mosmixQuality=0){

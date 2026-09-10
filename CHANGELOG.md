@@ -1,3 +1,34 @@
+# MID v0.9.84.39
+
+## Extern
+- Der Release-Blocker aus GitHub #992 wurde beseitigt. Die fachlichen Änderungen aus v0.9.84.38 an Temperatur-/Luftdruckkonsistenz, kontinuierlicher Tagesfusion, RUC/MOSMIX-Übergängen und den kompakten Regime-Pillen bleiben unverändert erhalten.
+- Es wurden keine Wetterwerte, Gewichte oder Darstellungen gegenüber v0.9.84.38 erneut verändert; korrigiert wurden ausschließlich vier nach den bewussten .38-Änderungen veraltete Regressionserwartungen und eine explizite Vertragsdokumentation im Fusionscode.
+
+## Intern
+- `test-coherent-weather-bundles-08340.mjs` und `test-priority-forecast-fusion-08320.mjs` erkennen wieder den expliziten Vertrag, dass Menge, Phase, Wahrscheinlichkeit, Wettercode und relevante Wolken-/Konvektionsfelder als kohärentes Wetterbündel erhalten bleiben.
+- `test-mosmix-adaptive-fusion-08330.mjs` schützt nun die kontinuierliche `mosmixHourlyLeadStrength()`-Funktion und verbietet den früheren harten +6-h-Gewichtssprung.
+- `test-weather-profile-daily-extremes-consistency-09402.mjs` prüft die gemeinsame kanonische Stundenbasis `profileStateSource` für Temperaturkurve, Extrema und Luftdruckskala statt des alten direkten `profileTemperatureSource.map`-Literals.
+- GitHub #992 hatte TypeScript 7 und Vite bereits erfolgreich abgeschlossen; der Abbruch erfolgte ausschließlich bei diesen vier von 739 Regressionen.
+- Keine neue fachliche Worker-Änderung gegenüber v0.9.84.38; da v0.9.84.38 nicht veröffentlicht wurde, bleibt der in .38 enthaltene RUC-Worker-Fix gegenüber `mid-stable` v0.9.84.37 deployrelevant.
+
+# MID v0.9.84.38
+
+## Extern
+- Der auffällige Temperaturverlauf im 24-h-Profil wurde auf Datenfusion und Darstellungsebene geprüft. Echte stündliche Temperaturänderungen bleiben erhalten; künstliche Knicke an Modell-/Tagesgrenzen werden vermieden.
+- Temperatur, gefühlte Temperatur, Taupunkt und Luftdruck stehen konsequent auf derselben stündlichen Zeitbasis. Beim Wechsel auf 3 h werden punktbezogene Zustandswerte nicht zu künstlichen 3-h-Mittelwerten geglättet oder verschoben.
+- Tagesbasierte Temperaturkorrekturen gehen nun kontinuierlich zwischen den lokalen Tagesmitten ineinander über, statt am Kalendertageswechsel einen harten Sprung erzeugen zu können. ICON-D2-RUC läuft vor +14 h weich aus; MOSMIX-Stundenbeiträge verwenden geglättete Lead-Time-Übergänge.
+- Die Luftdruckachse bleibt dynamisch in hPa; der 6-h-Drucktrend wird unabhängig von der gewählten Darstellungsdichte aus der stündlichen Reihe bestimmt.
+- In der klassischen 7-Tage-Ansicht erscheinen „Sonnig“, „Ruhig“, „Schauer“ usw. nun als dieselben kompakten Wetterregime-Pillen wie in den übrigen Prognoseansichten. Die versehentlich übergroßen blauen Schaltflächen sind entfernt.
+
+## Intern
+- `applyForecastFusionHours()` interpoliert die affine Tageskorrektur für Temperatur sowie Wind/Böen zeitlich stetig zwischen lokalen Tagesmitten. Die bisherige harte, datumsweise Transformation ist entfernt.
+- DWD ICON-D2-RUC verwendet geglättete Gewichtsübergänge und läuft zwischen +12 und +14 h kontinuierlich auf null aus. Damit kann das Ende des realen RUC-Horizonts keine künstliche Kante erzeugen.
+- Der 3-h-Aggregator verändert Temperatur, gefühlte Temperatur, Feuchte/Taupunkt und Luftdruck nicht mehr zu Blockmittelwerten; punktbezogene Zustandswerte bleiben am gültigen Stundenzeitpunkt erhalten.
+- Temperatur-/Thermik- und Luftdruckpfade sowie Druckskala und Drucktrend verwenden dieselbe kanonische stündliche 24-h-Quelle. Niederschlagsakkumulationen bleiben echte Intervallgrößen.
+- `ForecastConditionPills` verwendet für die Haupt-Regimepille nicht länger die globale `.primary`-Klasse. Die klassische Regime-Pille übernimmt den gemeinsamen kompakten 2×6-px-/Regimefarbvertrag.
+- Bestehende Regressionen für kanonische Temperatur-Extrema, RUC/MOSMIX-Konsens und gemeinsame Wetterregime schützen die neuen Kontinuitätsverträge.
+- Fachliche Worker-Änderung durch die geglättete RUC-Gewichtung: Worker-Upload für v0.9.84.38 erforderlich.
+
 # MID v0.9.84.37
 
 ## Extern

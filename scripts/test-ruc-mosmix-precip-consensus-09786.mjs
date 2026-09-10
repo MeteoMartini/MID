@@ -31,6 +31,7 @@ const source=`
 function number(value){if(value===null||value===undefined||value==='')return undefined;const parsed=Number(value);return Number.isFinite(parsed)?parsed:undefined}
 function clamp(value,minimum,maximum){return Math.max(minimum,Math.min(maximum,value))}
 ${extractFunction('blendRapidValue')}
+${extractFunction('rucLeadTransition')}
 ${extractFunction('rucRapidBaseWeight')}
 ${extractFunction('rucRapidWeight')}
 ${extractFunction('rucPrecipitationAgreement')}
@@ -39,6 +40,8 @@ result={rucRapidBaseWeight,rucRapidWeight,rucPrecipitationConsensus};`;
 const context={result:null};vm.createContext(context);vm.runInContext(source,context);const api=context.result;
 
 assert.equal(api.rucRapidBaseWeight(5),.58,'+5 h behält den bisherigen meteorologischen Basisanteil.');
+for(const [lead,label] of [[5,'+5 h'],[9,'+9 h'],[12,'+12 h'],[14,'+14 h']]){const before=api.rucRapidBaseWeight(lead-.01),after=api.rucRapidBaseWeight(lead+.01);assert.ok(Math.abs(after-before)<.01,`RUC-Übergang bei ${label} ist noch sprunghaft: ${before} → ${after}`)}
+assert.ok(api.rucRapidBaseWeight(13)>api.rucRapidBaseWeight(13.5)&&api.rucRapidBaseWeight(13.5)>api.rucRapidBaseWeight(13.9),'RUC muss vor +14 h weich gegen null auslaufen.');
 assert.equal(api.rucRapidWeight(5,{precipitation:2,cape:0}),.58,'Nässe allein darf den RUC-Anteil nicht erhöhen.');
 assert.ok(Math.abs(api.rucRapidWeight(5,{precipitation:0,cape:800})-.68)<1e-9,'Konvektive Dynamik darf andere RUC-Parameter weiterhin stärken.');
 

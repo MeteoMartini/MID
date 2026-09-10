@@ -31,7 +31,8 @@ for(const token of [
  'initialisationTime?:string;',
  'runMetaSource?:string;',
  'coverageUntil?:string;',
- 'export function mosmixHourlyLeadStrength(leadHours:number){return leadHours<=6?.18:leadHours<=48?.38:leadHours<=120?.3:.16}',
+ 'function smoothLeadTransition(leadHours:number,startHours:number,endHours:number,startWeight:number,endWeight:number)',
+ 'export function mosmixHourlyLeadStrength(leadHours:number){const lead=Math.max(0,Number(leadHours)||0);if(lead<=3)return .18;if(lead<12)return smoothLeadTransition(lead,3,12,.18,.38)',
  'export function forecastFusionMosmixContributionRanges',
  'precipitation0to6:.28*q',
  'precipitation6to14:.20*q',
@@ -49,6 +50,9 @@ for(const token of [
  '${cockpitModelFreshnessLabel(row)}'
 ])assert.ok(cockpit.includes(token),`Modellstand-Transparenz fehlt: ${token}`);
 for(const token of ['MOSMIX-L-Init zurückfallen','2,5 h','direkte Korrekturanteile','28 %','20 %'])assert.ok(contract.includes(token),`MOSMIX-Vertrag unvollständig: ${token}`);
+
+assert.ok(!fusion.includes('leadHours<=6?.18:leadHours<=48?.38:leadHours<=120?.3:.16'),'MOSMIX-Gewicht darf nicht mehr hart an +6/+48/+120 h springen.');
+for(const token of ['smoothLeadTransition(lead,3,12,.18,.38)','smoothLeadTransition(lead,42,60,.38,.3)','smoothLeadTransition(lead,108,132,.3,.16)'])assert.ok(fusion.includes(token),`MOSMIX-Übergangsfenster fehlt: ${token}`);
 assert.equal(baseline.releaseVersion,pkg.version,'Baseline/Paketversion nicht synchron.');
 for(const key of ['requiredRegressionTests','regressionTests'])assert.ok(baseline[key]?.includes(test),`${test} fehlt in ${key}.`);
 assert.ok(baseline.requiredFiles?.includes(test),`${test} fehlt in requiredFiles.`);

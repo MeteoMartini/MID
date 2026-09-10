@@ -1260,7 +1260,7 @@ function forecastConditionPillTexts(label:string,secondary?:string){
 }
 function ForecastConditionPills({label,secondary,regime}:{label:string;secondary?:string;regime?:ForecastDayRegime}){
  const pills=forecastConditionPillTexts(label,secondary);if(!pills.length)return null;
- return <div className="forecast-condition-pill-cluster" aria-label={[label,secondary].filter(Boolean).join(' · ')}>{pills.map((pill,index)=><span key={`${pill}:${index}`} className={`forecast-condition-pill ${index===0?`primary${regime?` regime-${regime}`:''}`:'secondary'}`}>{pill}</span>)}</div>
+ return <div className="forecast-condition-pill-cluster" aria-label={[label,secondary].filter(Boolean).join(' · ')}>{pills.map((pill,index)=><span key={`${pill}:${index}`} className={`forecast-condition-pill ${index===0?`main${regime?` regime-${regime}`:''}`:'secondary'}`}>{pill}</span>)}</div>
 }
 function normalizeDegrees(deg:number){return((Number(deg)%360)+360)%360}
 function windToDegrees(deg:number){return normalizeDegrees(deg+180)}
