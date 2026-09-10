@@ -1,3 +1,18 @@
+# MID v0.9.84.28
+
+## Extern
+- Der PowerPoint-Widget-Export funktioniert nun auch auf restriktiven Windows-Firmenclients ohne Node.js, npm, winget oder Administratorrechte. Vorhandenes Microsoft Edge übernimmt die Bildausgabe mit den normalen Unternehmensvorgaben für Proxy und Zertifikate.
+- Ein Doppelklick auf `Update-MID-Widgets.cmd` aktualisiert zwölf feste Light-PNGs für Wiesbaden, Kürecik und Malatya mit ECMWF-Temperaturfarben. Standardziel ist der persönliche Bilderordner statt eines geschützten Systemlaufwerks.
+- Falls Firmenrichtlinien Edge-Headless oder lokale DevTools sperren, werden keine Sicherheitsmechanismen umgangen; stattdessen steht eine Browser-Fallbackseite mit allen zwölf Live-Ansichten bereit.
+- PowerPoint-Dateien werden erst ersetzt, wenn alle zwölf neuen PNGs erfolgreich gerendert und als plausible PNG-Dateien validiert wurden. Bei Fehlern bleiben die letzten gültigen Offline-Bilder erhalten.
+
+## Intern
+- `Update-MID-Widgets.ps1` wurde von der Node-Hilfsdatei entkoppelt und nutzt die in Microsoft Edge enthaltene lokale Chrome-DevTools-Schnittstelle ausschließlich über `127.0.0.1`. Die eigentliche HTTPS-Verbindung zu `www.midwx.app` bleibt vollständig in Edge und übernimmt die Firmenrichtlinien.
+- Keine `--ignore-certificate-errors`, `--no-sandbox`, `ExecutionPolicy Bypass` oder Proxy-Overrides; kein Installationsversuch.
+- Ein einziger temporärer Edge-Prozess rendert die zwölf Widgets nacheinander; dadurch entfallen zwölf Browserstarts. Ein transaktionaler Staging-Ordner verhindert gemischte oder halbfertige PowerPoint-Stände.
+- Neu: `Update-MID-Widgets.cmd`, `MID-Widget-Fallback.html`, `FIRMENCLIENT-README.txt` und Regression `test-widget-corporate-client-098428.mjs`.
+- Keine Änderung an meteorologischer Logik, Wetterdatenquellen, Worker-Fachlogik oder App-Darstellung.
+
 # MID v0.9.84.27
 
 ## Extern
