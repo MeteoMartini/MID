@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.84.14",
+  "version": "0.9.84.18",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -451,7 +451,8 @@
     "test:react19-climate-colors": "node scripts/test-react19-ref-climate-colors-09832.mjs",
     "test:ruc-expanded-extreme-integration": "node scripts/test-ruc-expanded-extreme-integration-09840.mjs",
     "test:modern-five-workspaces": "node scripts/test-modern-five-workspaces-09841.mjs",
-    "test:skybar-shower-overlay-cloud-priority": "node scripts/test-skybar-shower-overlay-cloud-priority-098411.mjs"
+    "test:skybar-shower-overlay-cloud-priority": "node scripts/test-skybar-shower-overlay-cloud-priority-098411.mjs",
+    "test:update-startup-recovery": "node scripts/test-update-startup-recovery-098415.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",

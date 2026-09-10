@@ -71,6 +71,7 @@ export type ForecastPrecipitationConsistencyInput={
  leadHours?:number;
  observed?:boolean;
  probabilityUnavailable?:boolean;
+ intervalSeconds?:number;
 };
 
 export type PrecipitationCharacter='convective'|'stratiform'|'mixed'|'indeterminate';
@@ -112,17 +113,21 @@ function deterministicSignalMinimumProbability(leadHours:unknown){
 }
 function stratiformCode(code:number){return[51,53,55,56,57,61,63,65,66,67,68,69,71,73,75,77].includes(code)}
 function showerCode(code:number){return[80,81,82,83,84,85,86,95,96,97,99].includes(code)}
-function showerEquivalentCode(code:number,total:number,snowfall:number){
- if([71,73,75,77].includes(code)||snowfall>=.05)return snowfall>=2?86:85;
- if([68,69].includes(code))return total>=2.5?84:83;
+function normalizedIntervalHours(intervalSeconds:unknown){const seconds=Math.min(6*3600,Math.max(60,Number(intervalSeconds)||3600));return seconds/3600}
+function rainCodeForAmount(total:number,intervalSeconds=3600){const rate=Math.max(0,total)/normalizedIntervalHours(intervalSeconds);return rate>4?65:rate>.5?63:61}
+function snowCodeForAmount(snowfall:number,intervalSeconds=3600){const rate=Math.max(0,snowfall)/normalizedIntervalHours(intervalSeconds);return rate>4?75:rate>.5?73:71}
+function showerCodeForAmount(total:number,intervalSeconds=3600){const tenMinute=Math.max(0,total)/(Number(intervalSeconds)||3600)*600;return tenMinute>8?82:tenMinute>=.4?81:80}
+function showerEquivalentCode(code:number,total:number,snowfall:number,intervalSeconds=3600){
+ if([71,73,75,77].includes(code)||snowfall>=.05)return snowCodeForAmount(snowfall,intervalSeconds)>=75?86:85;
+ if([68,69].includes(code))return Math.max(0,total)/normalizedIntervalHours(intervalSeconds)>.5?84:83;
  if([95,96,97,99].includes(code))return code;
- return total>=10?82:total>=2.5?81:80;
+ return showerCodeForAmount(total,intervalSeconds);
 }
-function stratiformEquivalentCode(code:number,total:number,snowfall:number){
- if([85,86].includes(code)||snowfall>=.05)return snowfall>=2?75:snowfall>=.5?73:71;
- if([83,84].includes(code))return total>=2.5?69:68;
+function stratiformEquivalentCode(code:number,total:number,snowfall:number,intervalSeconds=3600){
+ if([85,86].includes(code)||snowfall>=.05)return snowCodeForAmount(snowfall,intervalSeconds);
+ if([83,84].includes(code))return Math.max(0,total)/normalizedIntervalHours(intervalSeconds)>.5?69:68;
  if([95,96,97,99].includes(code))return code;
- return total>=10?65:total>=2.5?63:61;
+ return rainCodeForAmount(total,intervalSeconds);
 }
 function finiteNumber(value:unknown){const number=Number(value);return Number.isFinite(number)?number:Number.NaN}
 function inhibitionMagnitude(value:unknown){const number=finiteNumber(value);return Number.isFinite(number)?Math.abs(number):Number.NaN}
@@ -136,7 +141,7 @@ function approximateWetBulbTemperature(input:Pick<ForecastPrecipitationConsisten
  return temperature*Math.atan(.151977*Math.sqrt(humidity+8.313659))+Math.atan(temperature+humidity)-Math.atan(humidity-1.676331)+.00391838*humidity**1.5*Math.atan(.023101*humidity)-4.686035;
 }
 function warmSurfaceRejectsFrozenPhase(input:Pick<ForecastPrecipitationConsistencyInput,'temperature'|'dewPoint'|'humidity'>){const temperature=finiteNumber(input.temperature);if(!Number.isFinite(temperature))return false;const wetBulb=approximateWetBulbTemperature(input);return temperature>=12||(Number.isFinite(wetBulb)?wetBulb>=4:temperature>=8)}
-function warmLiquidEquivalentCode(code:number,total:number,showery:boolean){if(showery)return total>=10?82:total>=2.5?81:80;if([56,57].includes(code))return total>=.5?55:total>=.1?53:51;return total>=10?65:total>=2.5?63:61}
+function warmLiquidEquivalentCode(code:number,total:number,showery:boolean,intervalSeconds=3600){const rate=Math.max(0,total)/normalizedIntervalHours(intervalSeconds);if(showery)return showerCodeForAmount(total,intervalSeconds);if([56,57].includes(code))return rate>=.5?55:rate>=.1?53:51;return rainCodeForAmount(total,intervalSeconds)}
 
 /**
  * Trennt konvektive und stratiforme Niederschlagssignale aus mehreren
@@ -200,7 +205,7 @@ export function reconcileForecastPrecipitation(input:ForecastPrecipitationConsis
  const frozenCode=[56,57,66,67,68,69,71,73,75,77,83,84,85,86].includes(code),frozenSignal=frozenCode||snowfall>=.05;
  if(!input.observed&&frozenSignal&&warmSurfaceRejectsFrozenPhase(input)){
   const total=Math.max(precipitation,rain+showers),showery=[83,84,85,86].includes(code)||showers>Math.max(.02,rain);
-  code=warmLiquidEquivalentCode(code,total,showery);snowfall=0;
+  code=warmLiquidEquivalentCode(code,total,showery,input.intervalSeconds);snowfall=0;
   if(showery){showers=Math.max(showers,precipitation);rain=0}else{rain=Math.max(rain,precipitation);showers=0}
   phaseAdjusted=true;
  }
@@ -208,11 +213,11 @@ export function reconcileForecastPrecipitation(input:ForecastPrecipitationConsis
  const stratiformSupport=evidence.character==='stratiform'||(Number.isFinite(cloud)&&cloud>=82)||(Number.isFinite(lowCloud)&&lowCloud>=65)||(Number.isFinite(humidity)&&humidity>=92)||(daylight&&Number.isFinite(sunshine)&&sunshine<=600);
  const convectiveSupport=evidence.character==='convective';
  if(stratiformCode(code)&&convectiveSupport&&![56,57,66,67].includes(code)){
-  const total=Math.max(precipitation,rain+showers,snowfall),nextCode=showerEquivalentCode(code,total,snowfall);
+  const total=Math.max(precipitation,rain+showers,snowfall),nextCode=showerEquivalentCode(code,total,snowfall,input.intervalSeconds);
   if(![83,84,85,86].includes(nextCode)&&snowfall<.05){showers=Math.max(showers,precipitation);rain=0}
   code=nextCode;phaseAdjusted=true;
  }else if(showerCode(code)&&evidence.character==='stratiform'&&![95,96,97,99].includes(code)){
-  const total=Math.max(precipitation,rain+showers,snowfall),nextCode=stratiformEquivalentCode(code,total,snowfall);
+  const total=Math.max(precipitation,rain+showers,snowfall),nextCode=stratiformEquivalentCode(code,total,snowfall,input.intervalSeconds);
   if(![68,69,71,73,75].includes(nextCode)&&snowfall<.05){rain=Math.max(rain,precipitation);showers=0}
   code=nextCode;phaseAdjusted=true;
  }else if(!input.observed&&stratiformCode(code)&&!stratiformSupport&&!convectiveSupport&&weakAmount){
@@ -274,33 +279,76 @@ function snowGrainsPlausible(h:PrecipSample,total:number){
  return lowStratusSignal(h,{humidityMinimum:88,lowCloudMinimum:75})&&weakNonConvective;
 }
 
-function rainIntensity(total:number){
- if(total>=50)return'sehr starker';
- if(total>=10)return'starker';
- if(total>=2.5)return'mäßiger';
- return'leichter';
+export type PrecipitationIntensityLevel=1|2|3|4;
+export type PrecipitationIntensityDescriptor={
+ level:PrecipitationIntensityLevel;
+ label:'leicht'|'mäßig'|'stark'|'sehr stark';
+ rateMmh:number;
+ snowRateCmh:number;
+ tenMinuteMm:number;
+ basis:string;
+};
+
+export function precipitationSampleIntervalSeconds(sample:Pick<PrecipSample,'precipitationIntervalStartEpoch'|'precipitationIntervalEndEpoch'>,fallbackSeconds=3600){
+ const start=finiteOrNaN(sample.precipitationIntervalStartEpoch),end=finiteOrNaN(sample.precipitationIntervalEndEpoch);
+ const seconds=Number.isFinite(start)&&Number.isFinite(end)&&end>start?(end-start)/1000:Number(fallbackSeconds);
+ return Math.min(6*3600,Math.max(60,Number.isFinite(seconds)&&seconds>0?seconds:3600));
 }
 
-function drizzleIntensity(total:number){
- if(total>=.5)return'starker';
- if(total>=.1)return'mäßiger';
- return'leichter';
+/**
+ * Gemeinsame Intensitätsklassifikation für Piktogramme, Texte und Skybar.
+ * Die Schwellen folgen der DWD-Bodenbeobachtung: Dauerregen <=0,5 / >0,5–4 /
+ * >4 mm/h; Regenschauer <0,4 / 0,4–<2 / 2–8 / >8 mm je 10 min (der kleine
+ * DWD-Beobachtungsübergang 0,4–0,7 wird für die kontinuierliche UI der mäßigen
+ * Klasse zugeordnet); Schnee <=0,5 / >0,5–4 / >4 cm/h Schneedeckenzuwachs.
+ * Sprühregen nutzt die DWD/WMO-Stufen bzw. 0,1/0,5 mm/h, wenn kein belastbarer
+ * Intensitätscode vorliegt.
+ */
+export function precipitationIntensityDescriptor(type:PrecipType,amount:number,snowfall:number,intervalSeconds=3600,sourceCode=0):PrecipitationIntensityDescriptor|null{
+ if(type==='none')return null;
+ const seconds=Math.min(6*3600,Math.max(60,Number(intervalSeconds)||3600)),hours=seconds/3600,rateMmh=Math.max(0,Number(amount)||0)/hours,snowRateCmh=Math.max(0,Number(snowfall)||0)/hours,tenMinuteMm=rateMmh/6,code=Math.round(Number(sourceCode)||0);
+ const result=(level:PrecipitationIntensityLevel,label:PrecipitationIntensityDescriptor['label'],basis:string):PrecipitationIntensityDescriptor=>({level,label,rateMmh,snowRateCmh,tenMinuteMm,basis});
+ if(type==='drizzle'||type==='freezingDrizzle'){
+  if(type==='drizzle'&&[51,53,55].includes(code))return code===55?result(3,'stark',`WMO/DWD-Code ${code}`):code===53?result(2,'mäßig',`WMO/DWD-Code ${code}`):result(1,'leicht',`WMO/DWD-Code ${code}`);
+  if(type==='freezingDrizzle'&&[56,57].includes(code))return code===57?result(rateMmh>=.5?3:2,rateMmh>=.5?'stark':'mäßig',`WMO/DWD-Code ${code}`):result(1,'leicht',`WMO/DWD-Code ${code}`);
+  return rateMmh>=.5?result(3,'stark',`${rateMmh.toFixed(rateMmh>=10?0:1)} mm/h`):rateMmh>=.1?result(2,'mäßig',`${rateMmh.toFixed(1)} mm/h`):result(1,'leicht',`${rateMmh.toFixed(1)} mm/h`);
+ }
+ if(type==='showers'||type==='thunderstorm'||type==='thunderstormHail'){
+  const basis=`${tenMinuteMm.toFixed(tenMinuteMm>=10?0:1)} mm/10 min`;
+  if(rateMmh<=0&&[80,81,82].includes(code))return code===82?result(4,'sehr stark',`WMO/DWD-Code ${code}`):code===81?result(2,'mäßig',`WMO/DWD-Code ${code}`):result(1,'leicht',`WMO/DWD-Code ${code}`);
+  if(tenMinuteMm<.4)return result(1,'leicht',basis);
+  if(tenMinuteMm<2)return result(2,'mäßig',basis);
+  if(tenMinuteMm<=8)return result(3,'stark',basis);
+  return result(4,'sehr stark',basis);
+ }
+ if(type==='snow'||type==='snowShowers'||type==='snowGrains'){
+  const basis=`${snowRateCmh.toFixed(snowRateCmh>=10?0:1)} cm/h Schneezuwachs`;
+  if(snowRateCmh<=0){if([75].includes(code))return result(3,'stark',`WMO/DWD-Code ${code}`);if([73,86].includes(code))return result(2,'mäßig',`WMO/DWD-Code ${code}`);return result(1,'leicht',`WMO/DWD-Code ${code||'—'}`)}
+  if(snowRateCmh<=.5)return result(1,'leicht',basis);
+  if(snowRateCmh<=4)return result(2,'mäßig',basis);
+  return result(3,'stark',basis);
+ }
+ const basis=`${rateMmh.toFixed(rateMmh>=10?0:1)} mm/h`;
+ if(rateMmh<=0){if([65,67,69,84].includes(code))return result(3,'stark',`WMO/DWD-Code ${code}`);if([63].includes(code))return result(2,'mäßig',`WMO/DWD-Code ${code}`);return result(1,'leicht',`WMO/DWD-Code ${code||'—'}`)}
+ if(rateMmh<=.5)return result(1,'leicht',basis);
+ if(rateMmh<=4)return result(2,'mäßig',basis);
+ return result(3,'stark',basis);
 }
 
-function representativePrecipitationCode(type:PrecipType,total:number,snowCm:number){
- if(type==='drizzle')return total>=.5?55:total>=.1?53:51;
- if(type==='freezingDrizzle')return total>=.5?57:56;
- if(type==='rain')return total>=10?65:total>=2.5?63:61;
- if(type==='freezingRain')return total>=2.5?67:66;
- if(type==='showers')return total>=10?82:total>=2.5?81:80;
- const snowRate=Math.max(snowCm,total);
- if(type==='snow')return snowRate>=2?75:snowRate>=.5?73:71;
+function representativePrecipitationCode(type:PrecipType,intensity:PrecipitationIntensityDescriptor|null){
+ const level=intensity?.level??1;
+ if(type==='drizzle')return level>=3?55:level>=2?53:51;
+ if(type==='freezingDrizzle')return level>=2?57:56;
+ if(type==='rain')return level>=3?65:level>=2?63:61;
+ if(type==='freezingRain')return level>=2?67:66;
+ if(type==='showers')return level>=4?82:level>=2?81:80;
+ if(type==='snow')return level>=3?75:level>=2?73:71;
  if(type==='snowGrains')return 77;
- if(type==='snowShowers')return snowRate>=2?86:85;
- if(type==='sleet')return total>=2.5?69:68;
- if(type==='sleetShowers')return total>=2.5?84:83;
- if(type==='thunderstormHail')return total>=10?99:96;
- if(type==='thunderstorm')return total>=10?97:95;
+ if(type==='snowShowers')return level>=2?86:85;
+ if(type==='sleet')return level>=2?69:68;
+ if(type==='sleetShowers')return level>=2?84:83;
+ if(type==='thunderstormHail')return level>=3?99:96;
+ if(type==='thunderstorm')return level>=3?97:95;
  return 3;
 }
 
@@ -318,7 +366,7 @@ export function precipitationParts(h:PrecipSample):PrecipitationParts{
  const showerValue=Math.max(0,Number(h.showers)||0);
  const rawSnowCm=Math.max(0,Number(h.snowfall)||0);
  const code=Math.round(Number(h.code)||0);
- const rawCodedType=WMO_PRECIP_TYPE[code],frozenSignal=['freezingDrizzle','freezingRain','sleet','sleetShowers','snow','snowGrains','snowShowers'].includes(String(rawCodedType))||rawSnowCm>=.05,warmPhaseAdjusted=frozenSignal&&warmSurfaceRejectsFrozenPhase(h),showeryWarmPhase=['sleetShowers','snowShowers'].includes(String(rawCodedType))||showerValue>Math.max(.02,rainValue),effectiveCode=warmPhaseAdjusted?warmLiquidEquivalentCode(code,total,showeryWarmPhase):code,snowCm=warmPhaseAdjusted?0:rawSnowCm;
+ const rawCodedType=WMO_PRECIP_TYPE[code],frozenSignal=['freezingDrizzle','freezingRain','sleet','sleetShowers','snow','snowGrains','snowShowers'].includes(String(rawCodedType))||rawSnowCm>=.05,warmPhaseAdjusted=frozenSignal&&warmSurfaceRejectsFrozenPhase(h),showeryWarmPhase=['sleetShowers','snowShowers'].includes(String(rawCodedType))||showerValue>Math.max(.02,rainValue),effectiveCode=warmPhaseAdjusted?warmLiquidEquivalentCode(code,total,showeryWarmPhase,precipitationSampleIntervalSeconds(h)):code,snowCm=warmPhaseAdjusted?0:rawSnowCm;
  const codedType=WMO_PRECIP_TYPE[effectiveCode];
  const hasRain=rainValue>=.05;
  const hasShowers=showerValue>=.05;
@@ -354,15 +402,16 @@ export function precipitationParts(h:PrecipSample):PrecipitationParts{
  const amount=type==='snow'||type==='snowShowers'||type==='snowGrains'||type==='sleet'||type==='sleetShowers'
   ?precipitationAmountLabel({precipitation:total,snowfall:snowCm})
   :`${formatDecimalFixed(total,1)} mm`;
+ const intervalSeconds=precipitationSampleIntervalSeconds(h),intensity=precipitationIntensityDescriptor(type,total,snowCm,intervalSeconds,effectiveCode),intensityAdjective=intensity?.label==='sehr stark'?'sehr starker':intensity?.label==='stark'?'starker':intensity?.label==='mäßig'?'mäßiger':'leichter';
  const weatherLabel=type==='rain'
-  ?`${rainIntensity(total)} Regen`
+  ?`${intensityAdjective} Regen`
   :type==='drizzle'
-   ?`${drizzleIntensity(total)} Sprühregen`
+   ?`${intensityAdjective} Sprühregen`
    :PRECIP_LABEL[type];
- // Die sichtbare Intensität folgt der finalen MID-Menge, nicht einem eventuell
- // vor der Fusion erzeugten Roh-WMO-Intensitätscode. Die Niederschlagsphase
- // bleibt unverändert, nur die geometrische Intensitätsstufe wird neu kalibriert.
- const displayCode=representativePrecipitationCode(type,total,snowCm);
+ // Die sichtbare Intensität folgt der finalen, auf das tatsächliche Zeitintervall
+ // normierten MID-Menge. Ein WMO/DWD-Code dient nur als Fallback, wenn keine
+ // belastbare Menge vorliegt; die Niederschlagsphase selbst bleibt unverändert.
+ const displayCode=representativePrecipitationCode(type,intensity);
  const label=`${weatherLabel} ${amount}`;
  return{total,type,label,weatherLabel,code,displayCode};
 }

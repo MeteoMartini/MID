@@ -20,8 +20,9 @@ for(const token of [
 ])if(!safety.includes(token))failures.push(`storageSafety fehlt: ${token}`);
 for(const token of [
  'await timeout(initializeStorageSafety(),3500)',
- 'await timeout(compactForecastVerificationLocalStorage(),5000)'
+ 'scheduleIdle(()=>{void compactForecastVerificationLocalStorage().catch(()=>0)})'
 ])if(!main.includes(token))failures.push(`main fehlt: ${token}`);
+const renderAt=main.indexOf('ReactDOM.createRoot(root).render'),compactAt=main.indexOf('scheduleIdle(()=>{void compactForecastVerificationLocalStorage()');if(!(renderAt>=0&&compactAt>renderAt))failures.push('Wetterzwilling-Kompaktierung blockiert wieder den ersten sichtbaren Render.');
 if(!persistence.includes('storageFallbackEntries()'))failures.push('Persistenz-Snapshot berücksichtigt Quota-Fallback nicht.');
 if(!portable.includes('storageFallbackEntries()'))failures.push('Gerätesync berücksichtigt Quota-Fallback nicht.');
 for(const token of [

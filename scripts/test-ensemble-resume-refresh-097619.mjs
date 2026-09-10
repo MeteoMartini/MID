@@ -5,7 +5,8 @@ const root=new URL('../',import.meta.url);
 const app=fs.readFileSync(new URL('src/App.tsx',root),'utf8');
 
 assert.ok(app.includes('[ensembleRefreshRevision,setEnsembleRefreshRevision]=useState(0)'), 'Ensemble-Refreshgeneration fehlt.');
-assert.ok(app.includes('setW(fw);markForegroundNetworkReady();setEnsembleRefreshRevision(value=>value+1)'), 'Ein erfolgreicher Dashboard-Reload stößt den Ensemble-Reload nicht erneut an.');
+assert.ok(/setW\(fw\);[\s\S]{0,500}?setEnsembleRefreshRevision\(value=>value\+1\)/.test(app), 'Ein erfolgreicher Dashboard-Reload stößt den Ensemble-Reload nicht erneut an.');
+assert.ok(app.includes("finally{finishRequest('forecast',forecastController);if(id===seq.current)markForegroundNetworkReady()}"), 'Foreground-Netzwerkbremse wird nach terminalem Forecast nicht gelöst.');
 assert.ok(/if\(!hadWeather\)\{[^}]*setEns\(\[\]\);[^}]*setEnsembleScenarios\(\[\]\);[^}]*setModels\(\[\]\);[^}]*setEnsembleRuns\(\[\]\);[^}]*\}setEnsError\(''\);setEnsLoading\(false\)/s.test(app), 'Same-location-Reload darf den letzten erfolgreichen Ensemble-Stand nicht sofort leeren.');
 assert.ok(app.includes("if(!(ensembleRequested||weatherTwinSettings.enabled)||!loc||!w){abortRequest('ensemble');return}"), 'Ensemble-Abruf muss an einen verfügbaren Kernforecast gekoppelt sein.');
 assert.ok(app.includes('w?.timezone,ensembleRefreshRevision]);'), 'Ensemble-Effect reagiert nicht auf die neue Refreshgeneration.');

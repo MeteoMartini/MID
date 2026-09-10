@@ -25,6 +25,8 @@ const cache=new Map<string,{at:number;value:Response}>()
 const officialCache=new Map<string,{at:number;value:OfficialResponse}>()
 const TTL=15*60*1000
 const OFFICIAL_TTL=10*60*1000
+const EVENT_FLIGHT_CACHE_LIMIT=24
+function rememberCache<T>(target:Map<string,{at:number;value:T}>,key:string,value:T,ttl:number){const now=Date.now();target.delete(key);target.set(key,{at:now,value});for(const[item,entry]of target)if(now-entry.at>ttl)target.delete(item);while(target.size>EVENT_FLIGHT_CACHE_LIMIT){const oldest=target.keys().next().value;if(!oldest)break;target.delete(oldest)}}
 function finite(value:unknown):number|null{if(value===null||value===undefined||value==='')return null;const n=Number(value);return Number.isFinite(n)?n:null}
 function epoch(value:number|string){if(typeof value==='number')return Math.abs(value)<1e12?value*1000:value;const parsed=Date.parse(value);return Number.isFinite(parsed)?parsed:Number.NaN}
 function valueAt(hourly:HourlyRecord,key:string,index:number){return finite(hourly[key]?.[index])}
@@ -32,14 +34,14 @@ function endpoint(lat:number,lon:number,elevation:number){const url=new URL('htt
 async function load(lat:number,lon:number,elevation:number,signal?:AbortSignal):Promise<Response>{
  const key=`${lat.toFixed(3)}:${lon.toFixed(3)}:${Math.round(elevation)}`,cached=cache.get(key)
  if(cached&&Date.now()-cached.at<=TTL)return cached.value
- if(workerBaseCandidates('meteogram').length){try{const value=await fetchWorkerJson<Response>('meteogram',{lat,lon,elevation:Math.round(elevation),model:'best_match'},{purpose:'meteogram',signal,timeoutMs:16000,maxAgeMs:TTL,staleIfErrorMs:3*60*60*1000,cacheKey:`event-flight:v2:${key}`});cache.set(key,{at:Date.now(),value});return value}catch(error){if(signal?.aborted)throw error}}
- const response=await guardedOpenMeteoFetch(endpoint(lat,lon,elevation).toString(),{signal},{priority:'background',maxRetries:0}),raw=await response.json().catch(()=>({}));if(!response.ok)throw new Error(raw?.error||raw?.reason||`Flugprofil HTTP ${response.status}`);const value:Response=raw?.data?raw:{data:raw,requestedModel:'best_match',modelLabel:'Best Match',version:VERSION};cache.set(key,{at:Date.now(),value});return value
+ if(workerBaseCandidates('meteogram').length){try{const value=await fetchWorkerJson<Response>('meteogram',{lat,lon,elevation:Math.round(elevation),model:'best_match'},{purpose:'meteogram',signal,timeoutMs:16000,maxAgeMs:TTL,staleIfErrorMs:3*60*60*1000,cacheKey:`event-flight:v2:${key}`});rememberCache(cache,key,value,TTL);return value}catch(error){if(signal?.aborted)throw error}}
+ const response=await guardedOpenMeteoFetch(endpoint(lat,lon,elevation).toString(),{signal},{priority:'background',maxRetries:0}),raw=await response.json().catch(()=>({}));if(!response.ok)throw new Error(raw?.error||raw?.reason||`Flugprofil HTTP ${response.status}`);const value:Response=raw?.data?raw:{data:raw,requestedModel:'best_match',modelLabel:'Best Match',version:VERSION};rememberCache(cache,key,value,TTL);return value
 }
 async function loadOfficial(lat:number,lon:number,startEpoch:number,endEpoch:number,signal?:AbortSignal):Promise<OfficialResponse>{
  if(!workerBaseCandidates('meteogram').length)return{signals:[],sources:[{id:'official',label:'Amtliche Flugwetterquellen',status:'not-configured',detail:'Datenquelle derzeit nicht verfügbar'}]}
  const key=`${lat.toFixed(2)}:${lon.toFixed(2)}:${Math.round(startEpoch/3600000)}:${Math.round(endEpoch/3600000)}`,cached=officialCache.get(key)
  if(cached&&Date.now()-cached.at<=OFFICIAL_TTL)return cached.value
- try{const value=await fetchWorkerJson<OfficialResponse>('aviation-hazards',{lat,lon,start:new Date(startEpoch).toISOString(),end:new Date(endEpoch).toISOString()},{purpose:'meteogram',signal,timeoutMs:18000,maxAgeMs:OFFICIAL_TTL,staleIfErrorMs:60*60*1000,cacheKey:`event-aviation-official:${key}`});officialCache.set(key,{at:Date.now(),value});return value}catch(error){if(signal?.aborted)throw error;return{signals:[],sources:[{id:'official',label:'Amtliche Flugwetterquellen',status:'unavailable',detail:error instanceof Error?error.message:'nicht erreichbar'}]}}
+ try{const value=await fetchWorkerJson<OfficialResponse>('aviation-hazards',{lat,lon,start:new Date(startEpoch).toISOString(),end:new Date(endEpoch).toISOString()},{purpose:'meteogram',signal,timeoutMs:18000,maxAgeMs:OFFICIAL_TTL,staleIfErrorMs:60*60*1000,cacheKey:`event-aviation-official:${key}`});rememberCache(officialCache,key,value,OFFICIAL_TTL);return value}catch(error){if(signal?.aborted)throw error;return{signals:[],sources:[{id:'official',label:'Amtliche Flugwetterquellen',status:'unavailable',detail:error instanceof Error?error.message:'nicht erreichbar'}]}}
 }
 function levelRank(level:EventFlightHazardLevel){return level==='caution'?2:level==='watch'?1:0}
 function stronger(a:EventFlightHazardLevel,b:EventFlightHazardLevel){return levelRank(b)>levelRank(a)?b:a}

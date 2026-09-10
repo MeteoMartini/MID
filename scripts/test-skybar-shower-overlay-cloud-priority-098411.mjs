@@ -3,8 +3,9 @@ import {readFile} from 'node:fs/promises';
 
 const root=new URL('../',import.meta.url);
 const read=path=>readFile(new URL(path,root),'utf8');
-const [skybar,renderer,app,cockpit,contract,pkgRaw,baselineRaw]=await Promise.all([
+const [skybar,precipitation,renderer,app,cockpit,contract,pkgRaw,baselineRaw]=await Promise.all([
   read('src/detailSkyBar.ts'),
+  read('src/precipitation.ts'),
   read('src/SkyBarSegments.tsx'),
   read('src/App.tsx'),
   read('src/ForecastCockpit.tsx'),
@@ -32,10 +33,22 @@ assert.ok(renderer.includes('segments.map((segment,index)=>')&&!renderer.include
 assert.ok(app.includes('Bei Sonne bleibt ein breiteres gelbes Grundband seitlich sichtbar')&&app.includes('gleich dick oder dicker, verdeckt er das gelbe Band vollständig'),'UI-Hinweis muss die Schauer-Überlagerungslogik erklären.');
 assert.ok(contract.includes('Niederschlag ist eine eigenständige Overlay-Lage und darf auch bei Sonne auftreten')&&contract.includes('ist der Niederschlagsstreifen gleich dick oder dicker, verdeckt er das gelbe Grundband vollständig'),'Vertrag muss sonnige Schauer und Dickenüberlagerung festschreiben.');
 
-// DWD rain-intensity classes plus one explicit MID-only visual split for the fourth width.
-for(const token of ['if(amount<0.05)return null;','if(amount<=0.5)return 0;','if(amount<=4)return 1;','if(amount<15)return 2;','return 3;'])assert.ok(skybar.includes(token),`Niederschlagsstufe fehlt: ${token}`);
-assert.ok(skybar.includes("const precipIntensityLabel=(amount:number)=>amount<=0.5?'leicht':amount<=4?'mäßig':amount<15?'stark':'stark · hohe Intensität'"),'Intensitätslabel muss zu denselben Grenzen passen.');
-assert.ok(contract.includes('keine zusätzliche DWD-Intensitätsklasse'),'MID-Stufe 4 muss ausdrücklich als Darstellungsunterteilung dokumentiert sein.');
+// DWD intensity classes must be phase/type aware. Continuous rain has only three
+// DWD classes; the fourth width is used only where the source classification supports it
+// (notably very strong rain showers). Snow uses snow-cover growth rather than liquid mm/h.
+for(const token of [
+  "export function precipitationIntensityDescriptor",
+  "if(rateMmh<=.5)return result(1,'leicht'",
+  "if(rateMmh<=4)return result(2,'mäßig'",
+  "return result(3,'stark'",
+  "tenMinuteMm=rateMmh/6",
+  "if(tenMinuteMm<=8)return result(3,'stark'",
+  "return result(4,'sehr stark'",
+  "if(snowRateCmh<=.5)return result(1,'leicht'",
+  "if(snowRateCmh<=4)return result(2,'mäßig'",
+])assert.ok(precipitation.includes(token),`Niederschlagsstufe fehlt: ${token}`);
+assert.ok(!precipitation.includes('amount<15')&&!precipitation.includes('amount>=15')&&!precipitation.includes('rateMmh>=15'),'Kontinuierlicher Regen darf keine erfundene vierte DWD-Klasse bei 15 mm/h erhalten.');
+assert.ok(contract.includes('keine erfundene vierte Regenklasse')&&contract.includes('leicht / mäßig / stark / sehr stark')&&contract.includes('Schneezuwachs'),'Fachvertrag muss die typabhängige DWD-Klassifikation dokumentieren.');
 
 // All current visible Skybars stay on the same central helper.
 for(const token of ['data-mid-skybar="react"','data-mid-skybar="profile"','data-mid-skybar="seven-day"','data-mid-skybar="day-card"'])assert.ok((app+cockpit).includes(token),`Appweite Skybar-Einbindung fehlt: ${token}`);

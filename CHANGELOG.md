@@ -1,3 +1,53 @@
+# MID v0.9.84.18
+
+## Extern
+- Reiner Release-/Regression-Hotfix: Wetterberechnung, Skybar, Niederschlagsdarstellung und Bedienung bleiben gegenüber v0.9.84.17 unverändert.
+- Die seit v0.9.84.15 fachlich gewollte Intensitätslogik bleibt erhalten: 0,8 mm Regen in einer Stunde ist nach dem MID/DWD-Vertrag mäßiger Regen und wird entsprechend mit dem WMO-Regenintensitätscode 63 dargestellt.
+
+## Intern
+- GitHub-Run #973 repariert: TypeScript 7 und der Vite-Produktionsbuild waren bereits erfolgreich; ausschließlich drei veraltete Regressionserwartungen verlangten weiterhin den leichten Regencode 61 bzw. „leichter Regen“ bei 0,8 mm/h.
+- Die drei Regressionen für Niederschlagscharakter, allgemeine Niederschlagsformen und Detailpiktogramme sind auf die bereits zentrale, intervallabhängige Intensitätsklassifikation synchronisiert.
+- Keine fachliche Workeränderung.
+
+# MID v0.9.84.17
+
+## Extern
+- Reiner Release-Hotfix ohne Änderung an Wetterberechnung, Darstellung, Datenquellen oder Bedienung.
+- Die Update-/Recovery-, Performance-, Skybar- und Niederschlagskorrekturen aus v0.9.84.15/16 bleiben unverändert.
+
+## Intern
+- GitHub-Run #972 repariert: Der nullable Update-Status wird vor dem Versionsvergleich auf zwei optionale skalare Werte reduziert. Dadurch muss TypeScript 7 keine Objekt-Narrowing-Annahme über `status` mehr treffen.
+- Die Update-Recovery-Regression schützt genau diese TS7-sichere Form und verhindert eine Rückkehr zum zuvor zweimal fehlgeschlagenen Ausdruck.
+- Keine fachliche Workeränderung.
+
+# MID v0.9.84.16
+
+## Extern
+- Reiner Release-Hotfix: Die Grundaudit-, Performance- und Update-Recovery-Korrekturen aus v0.9.84.15 bleiben unverändert.
+- Keine Änderung an Wetterberechnung, Darstellung, Datenquellen oder Bedienung.
+
+## Intern
+- GitHub-Run #971 repariert: Der Post-Update-Healthcheck behandelt einen nicht verfügbaren Update-Status jetzt TypeScript-sicher, bevor `pendingVersion` und `appVersion` verglichen werden.
+- Regression erweitert, damit die null-sichere Prüfung dauerhaft geschützt bleibt.
+- Keine fachliche Workeränderung.
+
+# MID v0.9.84.15
+
+## Extern
+- App-Updates sind robuster: MID wartet nicht mehr unbegrenzt auf einen festhängenden Startabruf, hält während eines wartenden Updates die laufende App-Shell versionsrein und kann einen nicht gesund gestarteten neuen Stand gezielt auf die vorherige Version zurücksetzen. Dadurch soll der bisher gelegentlich nötige manuelle Komplett-Neustart nach Updates entfallen.
+- Radar-, Sensor-, Open-Meteo-, externe Beobachtungs-/Geocoding- und Hintergrundabrufe besitzen nun belastbare Zeitgrenzen; lange Karten- oder App-Sitzungen sollen weniger anfällig für Hänger und unnötig wachsenden Speicherverbrauch sein.
+- Niederschlagsstärken werden genauer nach Niederschlagsart und tatsächlichem Zeitintervall bewertet. Sonnige Schauer bleiben in der Skybar sichtbar, Dauerregen erhält keine künstliche vierte Intensitätsklasse.
+- Eigene Wetterstationen mit Standard-JSON behandeln Regenraten jetzt korrekt als Raten und nicht als aufsummierte Niederschlagsmengen.
+
+## Intern
+- Service-Worker-Aktivierung atomisiert: neuer Cache und neuer Controller übernehmen erst gemeinsam im `activate`-Schritt; die aktive `index.html` bleibt bis dahin cachegebunden, sodass kein neuer Server-HTML-Stand mit alten JS/CSS-Assets vermischt wird. Update-Assets und Updateprüfungen besitzen harte Zeitbudgets.
+- Post-Update-Healthcheck basiert auf nutzbaren Kernforecastdaten statt nur auf gerenderten React-Frames; Offline-Zustand gilt nicht als falscher Positivnachweis. Bei einem pending Update greift online nach 20 s ein gezieltes Rollback.
+- Forecast-/Stations-/Ensemble-Preloads, Best-Match/Worker-Fallback, verbundene Stationen, externe Beobachtungs-/Geocodingdienste, Radar-/Rasterquellen, private Sensoren, Lüftungsassistent und Gerätesync sind abortierbar und zeitlich begrenzt.
+- Große Wetterzwilling-/Archivarbeiten laufen erst nach dem ersten sichtbaren Render; HY-ME-C/NG-, Event-Flugwetter-, Saison- und Terrain-Morphologie-Caches sind begrenzt.
+- Zentrale intervall- und niederschlagsartbewusste Intensitätsklassifikation; generische `rainRate`/`precipitationRate`-Semantik korrigiert.
+- Version-/Manifest-Cachebuster werden auf kanonische Cache-Schlüssel abgebildet; regelmäßige Updatechecks können den App-Shell-Cache nicht mehr mit immer neuen Query-Varianten aufblasen.
+- Keine fachliche Workeränderung.
+
 # MID v0.9.84.12
 
 ## Extern

@@ -23,7 +23,8 @@ assert.ok(forecast.includes("if(JSON.stringify(store.observations[index])===JSON
 for(const token of ['lastSnapshotSignature?:string','lastArchiveContentSignature?:string','portableSnapshotSignature','weatherTwinArchiveSignature','PORTABLE_SYNC_DEBOUNCE_MS=3000','ARCHIVE_SYNC_COALESCE_MS=10*60*1000','archiveChangeSuppressed','archiveDirty'])assert.ok(deviceSync.includes(token),`Geräte-/Archiv-Sparschutz fehlt: ${token}`);
 assert.ok(deviceSync.includes("lastSnapshotSignature===signature&&latestBefore.lastSyncAt"),'Identische portable Snapshots müssen ohne Worker-Write beendet werden.');
 assert.ok(deviceSync.includes("if(archiveTimer===undefined)archiveTimer=window.setTimeout(flushArchive,ARCHIVE_SYNC_COALESCE_MS)"),'Archivänderungen müssen in einem festen 10-Minuten-Fenster zusammengefasst werden.');
-assert.ok(deviceSync.includes("Promise.allSettled([syncPortableDeviceState(),pullWeatherTwinArchive(config)])"),'Regulärer 2-Minuten-Abgleich darf das lokale Vollarchiv nicht mehr bei jedem Tick hochladen.');
+assert.ok(deviceSync.includes("void syncPortableDeviceState().catch(()=>undefined);if(Date.now()-lastArchiveVisibilitySyncAt>=ARCHIVE_VISIBILITY_MIN_INTERVAL_MS)"),'Regulärer 2-Minuten-Abgleich darf das lokale Vollarchiv nicht mehr bei jedem Tick hochladen.');
+assert.ok(deviceSync.includes("void pullWeatherTwinArchive(readDeviceSyncConfig()).catch(()=>undefined)"),'Gedrosselter Remote-Archivabgleich muss erhalten bleiben.');
 
 // Scheduler-Index: 5-Minuten-Reaktionszeit bleibt, KV.list fällt im Normalbetrieb auf 4 Reconciliations/Tag.
 for(const token of ["PUSH_SCHEDULE_INDEX_SCHEMA='mid-push-schedule-index-v2'","PUSH_SCHEDULE_INDEX_KEY='meta:push-schedule-index:v2'",'pushSubscriptionScheduleSource','pushScheduleIndexUpsert','pushScheduleIndexRemove','date.getUTCHours()%6===0',"schema:'mid.kv-operations-audit.v3'",'listOperationsPerDayCeiling'])assert.ok(push.includes(token),`Push-Scheduler-Index fehlt: ${token}`);

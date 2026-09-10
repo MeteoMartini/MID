@@ -1,5 +1,6 @@
 import type {OperaRasterFrame} from './CompositeData';
 import type {RadarNowcast,RadarNowcastQuality} from './weather';
+import {fetchWithDeadline} from './fetchDeadline';
 
 type H5Node={value?:ArrayLike<number>|unknown;shape?:number[];attrs?:Record<string,unknown>};
 export type OperaProjection={lat0:number;lon0:number;x0:number;y0:number;a:number;e2:number;authalicRadius?:number};
@@ -74,7 +75,7 @@ export function operaRasterPoint(raster:OperaRaster,lat:number,lon:number):Opera
  return{...value,column,row};
 }
 async function decode(url:string):Promise<OperaRaster>{
- const response=await fetch(url,{cache:'force-cache'});if(!response.ok)throw new Error(`OPERA-HDF5 HTTP ${response.status}`);const buffer=await response.arrayBuffer();if(buffer.byteLength<1000)throw new Error('OPERA-HDF5-Datei ist unvollständig.');
+ const response=await fetchWithDeadline(url,{cache:'force-cache'},14000,'OPERA-Rasterabruf hat das Zeitlimit überschritten.');if(!response.ok)throw new Error(`OPERA-HDF5 HTTP ${response.status}`);const buffer=await response.arrayBuffer();if(buffer.byteLength<1000)throw new Error('OPERA-HDF5-Datei ist unvollständig.');
  const hdf5=await import('jsfive'),file=new hdf5.File(buffer,url),where=getNode(file,'where'),{dataset,what,quantity}=findDataset(file),shape=dataset.shape??[],height=Number(shape[0]),width=Number(shape[1]);
  if(!width||!height||width*height>25_000_000)throw new Error('Ungültige OPERA-Rastergröße.');const values=dataset.value as ArrayLike<number>;if(!values||values.length<width*height)throw new Error('OPERA-Raster ist unvollständig.');
  const xScale=Math.abs(scalar(attr(where,'xscale','x_scale'))??OPERA_GRID_EXTENT_X/width),yScale=Math.abs(scalar(attr(where,'yscale','y_scale'))??OPERA_GRID_EXTENT_Y/height),llX=scalar(attr(where,'LL_x','ll_x')),ulX=scalar(attr(where,'UL_x','ul_x')),urY=scalar(attr(where,'UR_y','ur_y')),ulY=scalar(attr(where,'UL_y','ul_y')),urX=scalar(attr(where,'UR_x','ur_x')),llY=scalar(attr(where,'LL_y','ll_y')),minX=llX??ulX??(urX!==undefined?urX-width*xScale:0),maxY=urY??ulY??(llY!==undefined?llY+height*yScale:0),projection=projectionFrom(where);

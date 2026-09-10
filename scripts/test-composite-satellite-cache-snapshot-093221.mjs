@@ -17,7 +17,7 @@ for(const [name,text] of [['sw.js',sw],['service-worker.js',swAlias]]){
   "request==='getmap'||request==='getfeatureinfo'||service==='wms'",
   'async function purgeDynamicCacheEntries()',
   'await purgeDynamicCacheEntries();const meta=await readMeta()',
-  "if(dynamicNetworkRequest(url))return fetch(request,{cache:'no-store'})",
+  "if(dynamicNetworkRequest(url))return fetchRuntimeWithTimeout(request,{cache:'no-store'},30000)",
   'const shellAsset=runtimeShellAsset(request,url)'
  ])need(name,text,token);
  reject(name,text,"const cached=await cache.match(request,{ignoreSearch:true});if(cached)return cached;\n  return fetch(request).then(response=>{if(response.ok&&['script','style','image','font'].includes(request.destination))");

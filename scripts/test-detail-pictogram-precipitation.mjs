@@ -28,7 +28,7 @@ const failures=[];
 
 const fallbackRain=precipitationParts(sample({code:3,precipitation:.8,rain:.8,probability:80}));
 if(fallbackRain.type!=='rain')failures.push(`Fallback-Regen nicht erkannt: ${fallbackRain.type}`);
-if(fallbackRain.displayCode!==61)failures.push(`Fallback-Regen erhält keinen Regensymbolcode: ${fallbackRain.displayCode}`);
+if(fallbackRain.displayCode!==63)failures.push(`Fallback-Regen erhält nicht den zur finalen Menge passenden mäßigen Regensymbolcode: ${fallbackRain.displayCode}`);
 
 const hours=Array.from({length:7},(_,index)=>({code:index===3?3:0,probability:index===3?85:0,isDay:true}));
 const parts=hours.map((_,index)=>precipitationParts(sample(index===3?{code:3,precipitation:1.2,rain:1.2,probability:85}:{code:0})));

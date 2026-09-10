@@ -10,6 +10,8 @@ const CHART_KEY='mid:0.7.1:chart-visibility';
 const WIDGET_KEY='mid:0.7.1:widget-settings';
 const WIDGET_NAMES_KEY='mid:0.7.1:widget-place-names';
 const nativeFetch=window.fetch.bind(window);
+function boundedNativeFetch(input:RequestInfo|URL,init:RequestInit={},timeoutMs=8000){const controller=new AbortController(),parent=init.signal,abort=()=>controller.abort(parent?.reason),timer=window.setTimeout(()=>controller.abort(new DOMException('Versionsabruf hat das Zeitlimit überschritten.','TimeoutError')),timeoutMs);if(parent?.aborted)abort();else parent?.addEventListener('abort',abort,{once:true});return nativeFetch(input,{...init,signal:controller.signal}).finally(()=>{window.clearTimeout(timer);parent?.removeEventListener('abort',abort)})}
+function boundedRegistrationUpdate(registration:ServiceWorkerRegistration,timeoutMs=6500){return new Promise<void>(resolve=>{let settled=false;const finish=()=>{if(settled)return;settled=true;window.clearTimeout(timer);resolve()},timer=window.setTimeout(finish,timeoutMs);registration.update().then(finish,finish)})}
 const defaultChartVisibility:ChartVisibility={tempMaxBand:true,tempMinBand:true,bestMax:true,bestMin:true,rainBest:true,rainLow:true,rainHigh:true};
 let chartVisibility=readJson<ChartVisibility>(CHART_KEY,defaultChartVisibility);
 let enhancing=false;
@@ -156,15 +158,20 @@ function waitForInstalledWorker(registration:ServiceWorkerRegistration,timeoutMs
  const current=registration.waiting??registration.installing;if(!current)return Promise.resolve<ServiceWorker|null>(null);if(current.state==='installed')return Promise.resolve(current);
  return new Promise<ServiceWorker|null>(resolve=>{let finished=false;const done=(worker:ServiceWorker|null)=>{if(finished)return;finished=true;window.clearTimeout(timer);current.removeEventListener('statechange',changed);resolve(worker)},changed=()=>{if(current.state==='installed')done(current);else if(current.state==='redundant')done(null)},timer=window.setTimeout(()=>done(registration.waiting??(current.state==='installed'?current:null)),timeoutMs);current.addEventListener('statechange',changed)});
 }
-function waitForControllerChange(timeoutMs=5000){return new Promise<void>(resolve=>{let finished=false;const done=()=>{if(finished)return;finished=true;window.clearTimeout(timer);navigator.serviceWorker?.removeEventListener('controllerchange',done);resolve()},timer=window.setTimeout(done,timeoutMs);navigator.serviceWorker?.addEventListener('controllerchange',done,{once:true})})}
-async function activateWaitingWorker(registration:ServiceWorkerRegistration,version:string){const worker=await waitForInstalledWorker(registration);if(!worker)return false;const changed=waitForControllerChange();worker.postMessage({type:'MID_ACTIVATE_UPDATE',version});await changed;return true}
+function waitForControllerChange(timeoutMs=5000){return new Promise<boolean>(resolve=>{let finished=false;const done=(changed=true)=>{if(finished)return;finished=true;window.clearTimeout(timer);navigator.serviceWorker?.removeEventListener('controllerchange',changedHandler);resolve(changed)},changedHandler=()=>done(true),timer=window.setTimeout(()=>done(false),timeoutMs);navigator.serviceWorker?.addEventListener('controllerchange',changedHandler,{once:true})})}
+async function activateWaitingWorker(registration:ServiceWorkerRegistration,version:string){const worker=await waitForInstalledWorker(registration);if(!worker)return false;const changed=waitForControllerChange();worker.postMessage({type:'MID_ACTIVATE_UPDATE',version});return changed}
 async function reloadForVersion(version:string){
  if(recentReloadAttempt(version))return;
  markReloadAttempt(version);removeUpdateNotice();
+ let activated=false;
  try{
   const registrations=await navigator.serviceWorker?.getRegistrations?.()??[];
-  for(const registration of registrations){await registration.update().catch(()=>undefined);if(await activateWaitingWorker(registration,version))break}
+  for(const registration of registrations){await boundedRegistrationUpdate(registration);if(await activateWaitingWorker(registration,version)){activated=true;break}}
  }catch{}
+ // Nach einem realen Controllerwechsel besitzt ausschließlich der neue Service
+ // Worker das Navigationsrecht. Ein zeitversetzter zweiter location.replace()-Sprung
+ // kann auf WKWebView noch mit client.navigate() kollidieren und eine Misch-Shell erzeugen.
+ if(activated)return;
  const url=new URL(location.href);url.searchParams.delete('mid-update');url.searchParams.set('mid-refresh',version);url.searchParams.set('_mid_reload',String(Date.now()));location.replace(url.toString());
 }
 function removeUpdateNotice(){document.querySelector<HTMLElement>('[data-mid-update-notice]')?.remove()}
@@ -181,7 +188,7 @@ function showUpdateNotice(version:string,releasedAt?:string){
 }
 async function checkVersion(force=false){
   const now=Date.now();if(!force&&now-lastVersionCheck<VERSION_CHECK_THROTTLE)return;if(versionCheckPromise)return versionCheckPromise;
-  lastVersionCheck=now;versionCheckPromise=(async()=>{try{const url=new URL('./version.json',document.baseURI);url.searchParams.set('_mid',String(Date.now()));const response=await nativeFetch(url,{cache:'no-store',headers:{'cache-control':'no-cache','pragma':'no-cache'}});if(!response.ok)return;const descriptor=await response.json() as VersionDescriptor,remote=String(descriptor.version||'').trim();if(!remote)return;if(!isNewerVersion(remote,VERSION)){removeUpdateNotice();try{sessionStorage.removeItem(RELOAD_ATTEMPT_KEY)}catch{}return}if(autoUpdateEnabled()){if(recentReloadAttempt(remote)){removeUpdateNotice();return}await reloadForVersion(remote);return}showUpdateNotice(remote,descriptor.releasedAt)}catch{}finally{versionCheckPromise=null}})();return versionCheckPromise;
+  lastVersionCheck=now;versionCheckPromise=(async()=>{try{const url=new URL('./version.json',document.baseURI);url.searchParams.set('_mid',String(Date.now()));const response=await boundedNativeFetch(url,{cache:'no-store',headers:{'cache-control':'no-cache','pragma':'no-cache'}},8000);if(!response.ok)return;const descriptor=await response.json() as VersionDescriptor,remote=String(descriptor.version||'').trim();if(!remote)return;if(!isNewerVersion(remote,VERSION)){removeUpdateNotice();try{sessionStorage.removeItem(RELOAD_ATTEMPT_KEY)}catch{}return}if(autoUpdateEnabled()){if(recentReloadAttempt(remote)){removeUpdateNotice();return}await reloadForVersion(remote);return}showUpdateNotice(remote,descriptor.releasedAt)}catch{}finally{versionCheckPromise=null}})();return versionCheckPromise;
 }
 function setupVersionChecks(){cleanUpdateQuery();void checkVersion(true);window.setInterval(()=>{if(document.visibilityState==='visible')void checkVersion()},VERSION_CHECK_INTERVAL);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')void checkVersion(true)});window.addEventListener('pageshow',()=>void checkVersion(true));window.addEventListener('focus',()=>void checkVersion())}
 

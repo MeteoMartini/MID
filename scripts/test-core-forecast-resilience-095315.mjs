@@ -16,7 +16,7 @@ assert.match(weather,/workerForecastCore/);
 assert.match(weather,/fetchWorkerJson<Weather&\{error\?:string\}>\('forecast-core'/);
 assert.match(weather,/const useDirectFirst=priority==='foreground'/);
 assert.match(weather,/directOpenMeteoCoreForecast\(lat,lon,signal,priority\)/);
-assert.match(weather,/guardedOpenMeteoJson<Weather>\(url,\{signal,cache:'no-store'\},\{priority,maxRetries:/);
+assert.match(weather,/guardedOpenMeteoJson<Weather>\(url,\{signal:request\.signal,cache:'no-store'\},\{priority,maxRetries:/);
 assert.match(worker,/async function openMeteoCoreForecast\(url\)/);
 assert.match(worker,/CORE_FORECAST_EDGE_FRESH_MS=2\*60\*1000/);
 assert.match(worker,/CORE_FORECAST_EDGE_STALE_MS=18\*3600000/);

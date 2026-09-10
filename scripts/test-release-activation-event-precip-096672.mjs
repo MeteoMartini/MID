@@ -15,9 +15,11 @@ for(const file of [test,'MID_IMPLEMENTATION_0.9.67.2.md'])assert.ok(baseline.req
 assert.equal(serviceWorker,legacyWorker,'Primärer und kompatibler Service Worker weichen ab.');
 assert.ok(serviceWorker.includes(`const CACHE='mid-shell-v${pkg.version}'`));
 const install=serviceWorker.match(/self\.addEventListener\('install',[\s\S]*?\);\nself\.addEventListener\('activate'/)?.[0]||'';
-const cacheAt=install.indexOf('await cacheShell(CACHE)'),prepareAt=install.indexOf('await prepareUpdate()'),activateAt=install.indexOf('await self.skipWaiting()');
-assert.ok(cacheAt>=0&&prepareAt>cacheAt&&activateAt>prepareAt,'Update wird nicht erst nach vollständiger Shell-Prüfung aktiviert.');
-assert.ok(install.includes('if(self.registration.active)'),'Erstinstallation und Update werden nicht getrennt.');
+const cacheAt=install.indexOf('await cacheShell(CACHE)');
+assert.ok(cacheAt>=0,'Update-Shell wird vor einer späteren Aktivierung nicht vollständig geprüft/gecached.');
+assert.ok(!install.includes('prepareUpdate()')&&!install.includes('skipWaiting()'),'Ein wartendes Update darf den aktiven Cache nicht bereits im Install-Schritt umschalten.');
+const message=serviceWorker.match(/self\.addEventListener\('message',[\s\S]*?self\.addEventListener\('push'/)?.[0]||'';
+assert.ok(message.includes("case'SKIP_WAITING':case'MID_ACTIVATE_UPDATE':await prepareUpdate()")&&message.includes('await self.skipWaiting()'),'Explizite Aktivierung des vollständig gecachten Updates fehlt.');
 assert.ok(serviceWorker.includes("const validatedUpdate=meta.pending?.targetVersion===VERSION&&meta.mode==='updating'"));
 assert.ok(serviceWorker.includes('if(retryNewerRollback||validatedUpdate)await navigateClientsForUpdate()'));
 assert.ok(serviceWorker.includes('MID_RUNTIME_HEALTHY')&&serviceWorker.includes('previousCache'),'Gesundheits-/Rückfallvertrag fehlt.');

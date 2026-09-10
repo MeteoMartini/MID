@@ -1,4 +1,4 @@
-import {precipitationParts,type PrecipSample} from './precipitation';
+import {precipitationIntensityDescriptor,precipitationParts,type PrecipSample} from './precipitation';
 import {precipitationPhaseColor,precipitationPhaseColorLabel} from './precipitationPhaseColor';
 
 export type SkyBarSegment={
@@ -64,19 +64,6 @@ const sunBandWidth=(sunshineShare:number)=>{
   return skybarThickness(skybarAboveHalfLevel(sunshineShare));
 };
 
-const precipBandLevel=(amount:number):SkyBarThicknessIndex|null=>{
-  // DWD intensity classes for continuous rain: light <=0.5 mm/h, moderate >0.5-4 mm/h,
-  // heavy >4 mm/h. MID splits the heavy class once more at 15 mm/h for the fourth
-  // visual thickness level; that extra step is a display refinement, not a new DWD class.
-  if(amount<0.05)return null;
-  if(amount<=0.5)return 0;
-  if(amount<=4)return 1;
-  if(amount<15)return 2;
-  return 3;
-};
-const precipBandWidth=(amount:number)=>{const level=precipBandLevel(amount);return level===null?0:skybarThickness(level);};
-const precipIntensityLabel=(amount:number)=>amount<=0.5?'leicht':amount<=4?'mäßig':amount<15?'stark':'stark · hohe Intensität';
-
 const sampleIntervalSeconds=(hours:PrecipSample[],index:number)=>{
   const sample=hours[index],explicitStart=Number(sample?.precipitationIntervalStartEpoch),explicitEnd=Number(sample?.precipitationIntervalEndEpoch),explicit=Number.isFinite(explicitStart)&&Number.isFinite(explicitEnd)&&explicitEnd>explicitStart?(explicitEnd-explicitStart)/1000:NaN;
   if(Number.isFinite(explicit)&&explicit>0)return clamp(explicit,60,6*3600);
@@ -137,11 +124,9 @@ const baseSkyVisual=(cloud:number,daylight:boolean,sunshineShare:number|null):We
 
 const precipitationOverlayVisual=(hour:PrecipSample,intervalSeconds:number,cloud:number):WeatherStripVisual|null=>{
   const amount=Math.max(0,Number(hour.precipitation??0));
-  const precipitationRateMmh=amount*(3600/Math.max(60,intervalSeconds));
-  const level=precipBandLevel(precipitationRateMmh),width=precipBandWidth(precipitationRateMmh);
-  if(level===null||width<=0)return null;
-  const intervalMinutes=Math.round(intervalSeconds/60);
-  const parts=precipitationParts(hour);
+  const intervalMinutes=Math.round(intervalSeconds/60),parts=precipitationParts(hour),snowfall=Math.max(0,Number(hour.snowfall??0)),intensity=precipitationIntensityDescriptor(parts.type,amount,snowfall,intervalSeconds,parts.displayCode);
+  if(!intensity)return null;
+  const {level:rawLevel,label:intensityLabel,basis:intensityBasis}=intensity,level=(rawLevel-1) as SkyBarThicknessIndex,width=skybarThickness(level);
   const rawSunshine=hour.sunshineDuration,sunshineShare=!!hour.isDay&&rawSunshine!==null&&rawSunshine!==undefined&&Number.isFinite(Number(rawSunshine))?clamp01(Number(rawSunshine)/Math.max(60,intervalSeconds)):null;
   const hasSunshineBase=!!hour.isDay&&(Number.isFinite(cloud)?clamp(cloud,0,100)<50:sunVisualShare(sunshineShare,cloud)>.5);
   return {
@@ -150,7 +135,7 @@ const precipitationOverlayVisual=(hour:PrecipSample,intervalSeconds:number,cloud
     strokeWidth:width,
     thicknessLevel:skybarThicknessLevel(level),
     opacity:1,
-    title:`${parts.label||'Niederschlag'} · ${precipitationPhaseColorLabel(parts.type)} · ${precipIntensityLabel(precipitationRateMmh)} · ${precipitationRateMmh.toFixed(precipitationRateMmh>=10?0:1)} mm/h${intervalMinutes<60?` · ${amount.toFixed(amount>=10?0:1)} mm/${intervalMinutes} min`:''}${hasSunshineBase?' · auf sonnigem Grundband':''}`,
+    title:`${parts.label||'Niederschlag'} · ${precipitationPhaseColorLabel(parts.type)} · ${intensityLabel} · ${intensityBasis}${intervalMinutes<60&&parts.type!=='showers'&&parts.type!=='thunderstorm'&&parts.type!=='thunderstormHail'?` · ${amount.toFixed(amount>=10?0:1)} mm/${intervalMinutes} min`:''}${hasSunshineBase?' · auf sonnigem Grundband':''}`,
   };
 };
 

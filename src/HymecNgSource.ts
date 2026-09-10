@@ -1,5 +1,6 @@
 import {fetchWorkerJson} from './workerClient';
 import {inverseProjectedPoint,projectWgs84,projectionFromDefinition,type RadarProjection} from './radarProjection';
+import {fetchWithDeadline} from './fetchDeadline';
 
 export type HymecNgMeta={
  available:boolean;
@@ -69,6 +70,7 @@ export const HYMEC_NG_CLASS_LEGEND=HYMEC_NG_CLASSES.map(item=>({label:item.label
 const HYMEC_NG_CLASS_BY_CODE=new Map<number,HymecNgClass>(HYMEC_NG_CLASSES.map(item=>[item.code,item]));
 const UNKNOWN_CLASS:HymecNgClass={code:-1,label:'unbekannte HymecNG-Klasse',color:'#7f7f7f',rgba:hexToRgba('#7f7f7f',.75)};
 const rasterCache=new Map<string,Promise<HymecNgRaster>>();
+const HYMEC_RASTER_CACHE_LIMIT=3;
 
 function text(value:unknown):string{
  if(typeof value==='string')return value.replace(/\0/g,'').trim();
@@ -140,12 +142,12 @@ export function loadHymecNgRaster(meta:HymecNgMeta):Promise<HymecNgRaster>{
  const key=meta.fileUrl;
  const existing=rasterCache.get(key);if(existing)return existing;
  const promise=(async()=>{
-  const response=await fetch(key,{cache:'no-store'});if(!response.ok)throw new Error(`HymecNG-Datei HTTP ${response.status}`);
+  const response=await fetchWithDeadline(key,{cache:'no-store'},14000,'HymecNG-Rasterabruf hat das Zeitlimit überschritten.');if(!response.ok)throw new Error(`HymecNG-Datei HTTP ${response.status}`);
   const buffer=await response.arrayBuffer();if(buffer.byteLength<1024)throw new Error('HymecNG-Datei ist unerwartet klein.');
   const hdf5=await import('jsfive'),file=new hdf5.File(buffer,key) as unknown as H5File,selection=findDataset(file);
   return rasterGeometry(file,selection,meta.observedAt,meta.classificationVerified===true);
  })().catch(error=>{rasterCache.delete(key);throw error});
- rasterCache.set(key,promise);return promise;
+ rasterCache.set(key,promise);while(rasterCache.size>HYMEC_RASTER_CACHE_LIMIT){const oldest=rasterCache.keys().next().value as string|undefined;if(!oldest)break;rasterCache.delete(oldest)}return promise;
 }
 
 export function hymecNgClassForRaw(raw:number,raster:HymecNgRaster):HymecNgClass{

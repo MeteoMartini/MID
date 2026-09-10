@@ -17,7 +17,8 @@ assert.equal(seasonal.finite(0),0);
 const warning=load('src/weather-src/30-ensemble-climate-hazards.tsfrag',['warningEnsembleValue']);
 for(const value of [null,undefined,'',' '])assert.ok(Number.isNaN(warning.warningEnsembleValue({hourly:{temperature_2m:[value]}},'temperature_2m','',0)));
 assert.equal(warning.warningEnsembleValue({hourly:{temperature_2m:[0]}},'temperature_2m','',0),0);
-const sky=load('src/detailSkyBar.ts',['clamp','clamp01','sunVisualShare','SKYBAR_THICKNESS_STEPS','skybarThickness','skybarThicknessLevel','skybarAboveHalfLevel','cloudBandWidth','sunBandWidth','precipBandLevel','precipBandWidth','baseSkyVisual']);
+const sky=load('src/detailSkyBar.ts',['clamp','clamp01','sunVisualShare','SKYBAR_THICKNESS_STEPS','skybarThickness','skybarThicknessLevel','skybarAboveHalfLevel','cloudBandWidth','sunBandWidth','baseSkyVisual']);
+const precipIntensity=load('src/precipitation.ts',['precipitationIntensityDescriptor']);
 assert.ok(Number.isNaN(sky.sunVisualShare(null,NaN)));
 assert.equal(sky.cloudBandWidth(NaN),0);
 assert.equal(sky.sunVisualShare(0,0),0);
@@ -32,7 +33,9 @@ const sunnyBase=sky.baseSkyVisual(20,true,.7);assert.ok(sunnyBase);assert.equal(
 assert.equal(sky.baseSkyVisual(20,false,null),null,'Klare Nacht unter 50 % Bewölkung darf weiterhin ohne Grundband bleiben.');
 assert.equal(sky.baseSkyVisual(NaN,true,.4),null,'Bei unbekannter Bewölkung bleibt ein Sonnenscheinanteil <=50 % unterhalb der Skybar-Sichtbarkeitsschwelle.');
 assert.ok(sky.baseSkyVisual(NaN,true,.7),'Bei unbekannter Bewölkung darf ausreichend hohe direkte Sonnenscheindauer das gelbe Fallback-Grundband liefern.');
-assert.deepEqual([.1,.8,5,15].map(sky.precipBandLevel),[0,1,2,3]);
+assert.deepEqual([.1,.8,5,15].map(amount=>precipIntensity.precipitationIntensityDescriptor('rain',amount,0,3600,61)?.level),[1,2,3,3],'Dauerregen besitzt nur die drei DWD-Intensitätsklassen.');
+assert.deepEqual([1,3,18,60].map(amount=>precipIntensity.precipitationIntensityDescriptor('showers',amount,0,3600,81)?.level),[1,2,3,4],'Regenschauer bilden leicht/mäßig/stark/sehr stark über 10-min-Intensität ab.');
+assert.deepEqual([.2,1,5].map(snowfall=>precipIntensity.precipitationIntensityDescriptor('snow',.1,snowfall,3600,71)?.level),[1,2,3],'Schneeintensität muss dem Schneezuwachs folgen.');
 // Legacy temperature-index checks are superseded by test-ensemble-multiparameter-097865.mjs.
 const time=load('src/weather-src/00-types-models-search.tsfrag',['parseLocalIso','partsAtEpoch','localIsoEpoch']);
 const intervalSemantics=load('src/eventIntervalSemantics.ts',['eventIntervalHasPrecipitation','eventIntervalSkyCode']);

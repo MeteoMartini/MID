@@ -8,8 +8,11 @@ for(const token of['mid:runtime-healthy','markMidRuntimeHealthy','registerMidSer
 for(const token of['MID_ROLLBACK_IF_PENDING','setTimeout','20000','mid-rollback'])if(!index.includes(token))failures.push(`Inline-Rückfallwächter fehlt: ${token}`);
 const installBody=serviceWorker.match(/self\.addEventListener\('install',[\s\S]*?\);\nself\.addEventListener\('activate'/)?.[0]||'';
 if(!installBody.includes('cacheShell(CACHE)'))failures.push('Service Worker prüft und cached den vollständigen App-Shell nicht vor Aktivierung.');
-const cacheIndex=installBody.indexOf('await cacheShell(CACHE)'),prepareIndex=installBody.indexOf('await prepareUpdate()'),activateIndex=installBody.indexOf('await self.skipWaiting()');
-if(!(cacheIndex>=0&&prepareIndex>cacheIndex&&activateIndex>prepareIndex&&installBody.includes('if(self.registration.active)')))failures.push('Ein geprüftes Update wird nicht erst nach vollständigem Shell-Cache kontrolliert aktiviert.');
+const cacheIndex=installBody.indexOf('await cacheShell(CACHE)');
+if(cacheIndex<0)failures.push('Ein Update wird nicht vorab vollständig in den Shell-Cache geschrieben.');
+if(installBody.includes('prepareUpdate()')||installBody.includes('skipWaiting()'))failures.push('Ein bloß installiertes Update darf weder den aktiven Cache umschalten noch automatisch den laufenden Client übernehmen.');
+const messageBody=serviceWorker.match(/self\.addEventListener\('message',[\s\S]*?self\.addEventListener\('push'/)?.[0]||'';
+if(!messageBody.includes("case'SKIP_WAITING':case'MID_ACTIVATE_UPDATE':await prepareUpdate()")||!messageBody.includes('await self.skipWaiting()'))failures.push('Explizite Update-Aktivierung über MID_ACTIVATE_UPDATE fehlt.');
 if(!serviceWorker.includes('retryNewerRollback||validatedUpdate')||!serviceWorker.includes('navigateClientsForUpdate()'))failures.push('Ein vollständig geprüftes Update lädt offene App-Fenster nicht auf den neuen Stand.');
 for(const token of['MID_RUNTIME_HEALTHY','MID_ROLLBACK_IF_PENDING','MID_ROLLBACK','MID_REPAIR_CACHE','MID_GET_STATUS','previousCache','rollbackDocument','__mid_shell_valid__.json'])if(!serviceWorker.includes(token))failures.push(`Service-Worker-Rückfallmerkmal fehlt: ${token}`);
 if(serviceWorker.includes("filter(key=>key.startsWith('mid-shell-')&&key!==CACHE)"))failures.push('Service Worker löscht weiterhin sämtliche vorherigen App-Versionen.');

@@ -12,7 +12,7 @@ try{
  const directRain={...base,precipitation:.8,rain:.8,showers:0,snowfall:0,code:61,cape:1200,liftedIndex:-4,convectiveInhibition:10,sunshineDuration:2000};
  assert.equal(mod.classifyPrecipitationCharacter(directRain).character,'stratiform','explizites rain-Feld bleibt stärker als CAPE allein');assert.equal(mod.reconcileForecastPrecipitation(directRain).code,61);
  const showerToRain={...base,precipitation:.8,rain:.8,showers:0,snowfall:0,code:80,cloud:95,lowCloud:90,humidity:96,cape:100,liftedIndex:2,convectiveInhibition:200,sunshineDuration:0};
- assert.equal(mod.reconcileForecastPrecipitation(showerToRain).code,61,'geschlossene stratiforme Lage korrigiert einen widersprüchlichen Schauer-Code');
+ assert.equal(mod.reconcileForecastPrecipitation(showerToRain).code,63,'geschlossene stratiforme Lage korrigiert den widersprüchlichen Schauer-Code und behält die mengenbasierte mäßige Regenintensität');
  const mixed={...base,precipitation:.6,rain:.3,showers:.3,snowfall:0,code:61,cape:400,liftedIndex:-1,convectiveInhibition:60,sunshineDuration:900};assert.equal(mod.classifyPrecipitationCharacter(mixed).character,'mixed');assert.equal(mod.reconcileForecastPrecipitation(mixed).code,61,'gemischte Aufteilung wird nicht künstlich in reine Schauer umgedeutet');
  const drizzle={...base,precipitation:.3,rain:.3,showers:0,snowfall:0,code:51,cloud:95,lowCloud:90,humidity:96,temperature:8,dewPoint:7,cloudBaseHft:1200,sunshineDuration:0};assert.equal(mod.precipitationParts(drizzle).type,'drizzle');
  const falseDrizzle={...drizzle,cloud:40,lowCloud:10,humidity:70,dewPoint:2,cloudBaseHft:6000,sunshineDuration:2500};assert.equal(mod.precipitationParts(falseDrizzle).type,'rain');

@@ -4,6 +4,14 @@ import {isMidNativeRuntime} from './runtimePlatform';
 let updateTimer:number|undefined;
 let visibilityHandler:(()=>void)|undefined;
 let focusHandler:(()=>void)|undefined;
+let updatePromise:Promise<void>|null=null;
+let lastUpdateAt=0;
+const UPDATE_EVENT_THROTTLE_MS=30_000;
+const SERVICE_WORKER_UPDATE_TIMEOUT_MS=6500;
+
+function registrationUpdateWithBudget(registration:ServiceWorkerRegistration,timeoutMs=SERVICE_WORKER_UPDATE_TIMEOUT_MS):Promise<void>{
+ return new Promise(resolve=>{let settled=false;const finish=()=>{if(settled)return;settled=true;window.clearTimeout(timer);resolve()},timer=window.setTimeout(finish,timeoutMs);registration.update().then(finish,finish)});
+}
 
 export type MidUpdateStatus={
  appVersion:string;
@@ -52,6 +60,12 @@ export async function rollbackMidVersion(){
  return reply;
 }
 
+export async function rollbackPendingMidUpdate(){
+ if(isMidNativeRuntime()||!navigator.serviceWorker?.controller)return{ok:false,error:'Kein kontrollierter Web-App-Updatepfad aktiv.'};
+ const reply=await requestWorker({type:'MID_ROLLBACK_IF_PENDING'},6000);
+ return reply;
+}
+
 export async function resetMidServiceWorker(){
  if(isMidNativeRuntime()||!('serviceWorker'in navigator))return;
  const registrations=await navigator.serviceWorker.getRegistrations();
@@ -72,12 +86,12 @@ export async function registerMidServiceWorker(){
  try{
   const scriptUrl=new URL('./service-worker.js',document.baseURI);
   const registration=await navigator.serviceWorker.register(scriptUrl,{scope:'./',updateViaCache:'none'});
-  await registration.update().catch(()=>undefined);
+  await registrationUpdateWithBudget(registration);
   if(updateTimer)window.clearInterval(updateTimer);
   if(visibilityHandler)document.removeEventListener('visibilitychange',visibilityHandler);
   if(focusHandler)window.removeEventListener('focus',focusHandler);
-  const update=()=>void registration.update().catch(()=>undefined);
-  updateTimer=window.setInterval(update,15*60*1000);
+  const update=(force=false)=>{const now=Date.now();if(!force&&now-lastUpdateAt<UPDATE_EVENT_THROTTLE_MS)return;if(updatePromise)return;lastUpdateAt=now;updatePromise=registrationUpdateWithBudget(registration).finally(()=>{updatePromise=null})};
+  updateTimer=window.setInterval(()=>update(true),15*60*1000);
   visibilityHandler=()=>{if(document.visibilityState==='visible')update()};
   focusHandler=update;
   document.addEventListener('visibilitychange',visibilityHandler);

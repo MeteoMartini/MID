@@ -17,8 +17,9 @@ const baseline=JSON.parse(baselineRaw),pkg=JSON.parse(pkgRaw);
 assert.equal(pkg.version,baseline.releaseVersion);
 assert.ok(baseline.requiredRegressionTests.includes('scripts/test-background-fetch-stability-095318.mjs'));
 
-// Foreground first: solange der sichtbare Core-Forecast nicht erfolgreich ist, darf kein
-// automatischer Favoriten-/Eventjob die gemeinsamen Wetterquellen belasten.
+// Foreground first: solange der sichtbare Core-Forecast läuft, darf kein
+// automatischer Favoriten-/Eventjob die gemeinsamen Wetterquellen belasten. Nach
+// terminalem Erfolg ODER Fehler muss die Sperre jedoch zuverlässig gelöst werden.
 assert.match(background,/const DEFAULT_QUIET_MS=45_000/);
 assert.match(background,/let foregroundBusy=true/);
 assert.match(background,/export function markForegroundNetworkBusy/);
@@ -26,7 +27,8 @@ assert.match(background,/export function markForegroundNetworkReady/);
 assert.match(background,/export function runBackgroundNetworkTask/);
 assert.match(background,/tail\.catch\(\(\)=>undefined\)\.then/,'Hintergrundjobs werden nicht global serialisiert.');
 assert.match(app,/abortAllRequests\(\);markForegroundNetworkBusy\(\)/,'Core-Reload setzt die Hintergrundbremse nicht.');
-assert.match(app,/setW\(fw\);markForegroundNetworkReady\(\)/,'Erst ein erfolgreicher Core-Forecast gibt Hintergrundnetzwerk frei.');
+assert.match(app,/finally\{finishRequest\('forecast',forecastController\);if\(id===seq\.current\)markForegroundNetworkReady\(\)\}/,'Terminaler Core-Forecast gibt die Hintergrundbremse nicht zuverlässig frei.');
+assert.doesNotMatch(app,/setW\(fw\);markForegroundNetworkReady\(\)/,'Hintergrundfreigabe darf nicht erneut nur an den Erfolgszweig gekoppelt werden.');
 
 // Die ab v0.9.53.8 eingeführten aggressiven Event-Poller dürfen nicht zurückkehren.
 assert.match(refresh,/const EVENT_STALE_AFTER_MS=60\*60\*1000/);

@@ -28,7 +28,7 @@ assert.doesNotMatch(app,/unabhängigen Ersatzmodell|unabhängige Kernvorhersage/
 // Foreground is direct Best Match first, while all requests still share the app-wide guard.
 assert.match(weather,/const useDirectFirst=priority==='foreground'/);
 assert.match(weather,/if\(useDirectFirst\)\{try\{const value=await directOpenMeteoCoreForecast/);
-assert.match(weather,/guardedOpenMeteoJson<Weather>\(url,\{signal,cache:'no-store'\},\{priority,maxRetries:/);
+assert.match(weather,/guardedOpenMeteoJson<Weather>\(url,\{signal:request\.signal,cache:'no-store'\},\{priority,maxRetries:/);
 assert.match(guard,/const MAX_ACTIVE=2/);
 assert.match(guard,/PRIORITY_WEIGHT:Record<OpenMeteoPriority,number>=\{foreground:0,normal:1,background:2\}/);
 
