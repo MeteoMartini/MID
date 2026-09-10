@@ -27,9 +27,10 @@ assert.ok(!workflow.includes('gh run list --workflow install-mid.yml'),'RUC-Publ
 assert.ok(workflow.includes('  prepare:')&&workflow.includes('  publish:'),'RUC-Vorbereitung und Pages-Publish müssen getrennte Jobs sein.');
 const prepareBlock=workflow.split('  publish:')[0];
 assert.ok(!prepareBlock.includes('group: mid-pages'),'Der teure RUC-Download darf den seriellen Pages-Lock nicht halten.');
-assert.ok(workflow.includes('group: mid-pages\n      cancel-in-progress: false'),'Nur der kurze RUC-Publish muss den seriellen Pages-Lock nutzen.');
+assert.ok(workflow.includes('group: mid-pages\n      queue: max\n      cancel-in-progress: false'),'Nur der kurze RUC-Publish muss den seriellen Pages-Lock nutzen und wartende Publishes dürfen nicht verdrängt werden.');
 for(const forbidden of ['MID_RUC_R2_ACCESS_KEY_ID','MID_RUC_R2_SECRET_ACCESS_KEY','publish_ruc_r2.sh'])assert.ok(!workflow.includes(forbidden),`free Pages workflow still requires R2: ${forbidden}`);
-assert.ok(install.match(/Bereits veröffentlichten kostenfreien RUC-Snapshot erhalten/g)?.length===3,'all three normal Pages release attempts must preserve RUC');
+assert.equal((install.match(/restore_ruc_pages_snapshot\.py/g)||[]).length,3,'all three normal Pages release attempts must retain a fail-safe RUC restore path when no reusable Pages artifact exists');
+assert.ok(install.includes("if: steps.artifact_plan.outputs.needs_upload == 'true'"),'Retries 2/3 must reuse an already valid Pages artifact instead of restoring/downloading RUC again.');
 assert.ok(install.includes('restore_ruc_pages_snapshot.py')&&install.includes('MID_RUC_PAGES_BASE_URL'));
 const restoreScript=fs.readFileSync('tools/ruc/restore_ruc_pages_snapshot.py','utf8');
 assert.ok(restoreScript.includes("if e.code == 404"),'first-run RUC bootstrap 404 must be non-fatal');

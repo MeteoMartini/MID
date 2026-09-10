@@ -12,10 +12,10 @@ const need=(area,text,token)=>{if(!text.includes(token))failures.push(`${area}: 
 for(const [area,text] of [['Installer',install],['Manueller Deploy',deploy]]){
  if(text.includes('actions/configure-pages@'))failures.push(`${area}: configure-pages darf nicht mehr als zusätzlicher Codeload-Download aktiv sein.`);
  for(const token of ['deploy_pages_1:','pages_cooldown_1:','deploy_pages_2:','pages_cooldown_2:','deploy_pages_3:','sleep 75','sleep 180'])need(area,text,token);
- for(const attempt of [1,2,3]){
-  need(area,text,`github-pages-${'${{ github.run_id }}'}-${attempt}`);
-  need(area,text,`artifact_name: github-pages-${'${{ github.run_id }}'}-${attempt}`);
- }
+ for(const attempt of [1,2,3])need(area,text,`github-pages-${'${{ github.run_id }}'}-${attempt}`);
+ for(const token of ['artifact_ready:','artifact_name:','artifact_plan','needs_upload=false','queue: max'])need(area,text,token);
+ if((text.match(/actions\/upload-pages-artifact@/g)||[]).length!==3)failures.push(`${area}: genau drei abgesicherte Uploadpfade müssen als Fallback erhalten bleiben.`);
+ if(!text.includes("if: steps.artifact_plan.outputs.needs_upload == 'true'"))failures.push(`${area}: Retry 2/3 muss einen bereits erfolgreichen Pages-Upload wiederverwenden.`);
 }
 const buildPart=install.split('  deploy_pages_1:')[0];
 if(/^dist\/?$/m.test(gitignore))failures.push('dist ist wieder gitignored; die vom Build erzeugten Pages-Dateien könnten den entkoppelten Deploy-Jobs fehlen.');
@@ -31,4 +31,4 @@ const baseline=JSON.parse(baselineText),pkg=JSON.parse(pkgText),test='scripts/te
 if(!baseline.requiredRegressionTests?.includes(test)||!baseline.regressionTests?.includes(test))failures.push('Pages-Codeload-Pflichtregression fehlt im Baseline-Vertrag.');
 if(pkg.scripts?.['test:pages-codeload-resilience']!==`node ${test}`)failures.push('Pages-Codeload-Testscript fehlt in package.json.');
 if(failures.length){console.error('Pages-Codeload-Resilienz fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Pages-Codeload-Resilienz geprüft: configure-pages entfernt, Release-Build entkoppelt und Pages-Deployment mit frischen Runnern + 75/180-s-Backoff dreifach abgesichert.');
+console.log('Pages-Codeload-Resilienz geprüft: Release-Build entkoppelt, Pages-Deployments FIFO-serialisiert und erfolgreiche Upload-Artefakte über 75/180-s-Retries wiederverwendet.');

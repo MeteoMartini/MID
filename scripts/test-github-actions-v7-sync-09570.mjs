@@ -9,10 +9,14 @@ const checkout='3d3c42e5aac5ba805825da76410c181273ba90b1',setup='820762786026740
 try{
  const workflows=path.join(tmp,'.github','workflows');await mkdir(workflows,{recursive:true});
  await writeFile(path.join(workflows,'apply-private-analytics.yml'),`name: extra\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v6\n      - uses: actions/setup-node@2951748f4c016b747952f8ca7e75fc64f2f62b53 # v6.2.0\n      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5\n      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0\n      - uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0\n`);
- await writeFile(path.join(workflows,'mid-code-revision.yml'),`name: revision\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2\n      - uses: actions/setup-node@v6\n      - uses: github/codeql-action/init@b374143c1149a9112b0c294e1934b07dc108205d # v4.37.6\n      - uses: github/codeql-action/analyze@b374143c1149a9112b0c294e1934b07dc108205d # v4.37.6\n`);
+ await writeFile(path.join(workflows,'mid-code-revision.yml'),`name: revision\non:\n  push:\n    branches:\n      - main\n      - mid-stable\n  workflow_dispatch:\n    inputs:\n      task:\n        type: string\njobs:\n  install:\n    if: >-\n      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||\n      (github.event_name == 'workflow_dispatch' && (inputs.task == 'install' || inputs.task == 'all'))\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2\n      - uses: actions/setup-node@v6\n      - uses: github/codeql-action/init@b374143c1149a9112b0c294e1934b07dc108205d # v4.37.6\n      - uses: github/codeql-action/analyze@b374143c1149a9112b0c294e1934b07dc108205d # v4.37.6\n`);
  const updated=await syncGithubConfiguration({root:tmp,sourceRoot});
  assert.ok(updated.includes(path.join('workflows','apply-private-analytics.yml')),'Zusatzworkflow wurde nicht aktualisiert.');
  assert.ok(updated.includes(path.join('workflows','mid-code-revision.yml')),'Revisionsworkflow wurde nicht aktualisiert.');
+ const revisionText=await readFile(path.join(workflows,'mid-code-revision.yml'),'utf8');
+ assert.ok(!/branches:\s*\n\s*- main\s*\n\s*- mid-stable/m.test(revisionText),'Historischer Revisionsworkflow reagiert weiterhin auf main-Pushes.');
+ assert.ok(!revisionText.includes("(github.event_name == 'push' && github.ref == 'refs/heads/main') ||\n      (github.event_name == 'workflow_dispatch'"),'Legacy-Installationsjob startet weiterhin automatisch auf main.');
+ assert.ok(revisionText.includes("github.event_name == 'workflow_dispatch' && (inputs.task == 'install' || inputs.task == 'all')"),'Manuelle Legacy-Recovery wurde unbeabsichtigt entfernt.');
  for(const file of ['apply-private-analytics.yml','mid-code-revision.yml','install-mid.yml','deploy.yml','dependency-audit.yml']){
   const text=await readFile(path.join(workflows,file),'utf8');
   if(/actions\/checkout@/.test(text))assert.ok(text.includes(`actions/checkout@${checkout} # v7.0.1`),`${file}: checkout v7 fehlt.`);
@@ -32,4 +36,4 @@ const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText),test='scripts/te
 assert.equal(pkg.scripts?.['test:github-actions-v7-sync'],`node ${test}`);
 assert.ok(baseline.requiredRegressionTests?.includes(test));
 assert.ok(baseline.regressionTests?.includes(test));
-console.log('Explizite GitHub-Workflow-Synchronisierung geprüft: checkout v7.0.1, setup-node v7.0.0, setup-python v7.0.0, upload-artifact v7.0.1, deploy-pages v5.0.1 und CodeQL 4.37.9 werden SHA-gepinnt in kanonischen und zusätzlichen MID-Workflows angewendet.');
+console.log('Explizite GitHub-Workflow-Synchronisierung geprüft: freigegebene Actions werden SHA-gepinnt und der historische v0.9.19.0-Installer wird auf main-Pushes stillgelegt, während die manuelle Recovery erhalten bleibt.');

@@ -37,7 +37,7 @@ try{
 }catch(error){
  if(error?.code!=='ENOENT')throw error;
 }
-const workerTargets=['../worker-src/00-core-observations.js','../worker/metar-proxy.js'];
+const workerTargets=['../worker-src/00-core-observations.js','../worker/metar-proxy.js','../worker.js'];
 for(const relativePath of workerTargets){
  const workerUrl=new URL(relativePath,import.meta.url);
  const worker=await readFile(workerUrl,'utf8');

@@ -40,6 +40,8 @@ must(builder.includes('hourly_targets')&&builder.includes('rapid_targets')&&buil
 must(builder.includes('native point count differs from deterministic reference')&&builder.includes('RUC-EPS native point count differs from deterministic RUC grid'),'Mixed deterministic/EPS native point counts must fail closed');
 must(builder.includes('cKDTree')&&builder.includes('max_distance_km'),'Spatial lookup must be generated and distance-verified');
 must(builder.includes('eps_summary')&&builder.includes("'precipitation_probability'")&&builder.includes("'precipitation_q75'"),'RUC-EPS probability/quantile preaggregation missing');
+must(builder.includes('ProcessPoolExecutor')&&builder.includes('MID_RUC_EPS_DECODE_WORKERS')&&builder.includes('min(4,configured,len(files))'),'RUC-EPS decode must use bounded deterministic process parallelism.');
+must(builder.includes('q25,q50,q75=np.nanquantile(safe,(.25,.50,.75),axis=1)'),'RUC-EPS quartiles must be calculated in one NumPy quantile pass.');
 must(pack.includes('EPS_SUMMARY_FIELDS')&&pack.includes("layout':'point-time-field'")&&pack.includes("layout':'point-time-member'")&&pack.includes('uint16-le'),'RUC-EPS summary/member wire contracts missing');
 must(pack.includes("'wet':0.2")&&pack.includes("'significant':5.0"),'RUC-EPS precipitation thresholds must be encoded in metadata');
 must(builder.includes("lookup_key=f'runs/{run_key}/lookup.bin'"),'Lookup must be run-immutable for atomic publication');

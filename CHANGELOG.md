@@ -1,3 +1,30 @@
+# MID v0.9.84.22
+
+## Extern
+- Reiner Release-Hotfix ohne Änderung an Wetterberechnung, Darstellung, Datenquellen oder Bedienung gegenüber v0.9.84.21.
+- Die bereits aktivierte, ressourcenschonendere RUC-/GitHub-Actions-Logik bleibt unverändert erhalten.
+
+## Intern
+- GitHub-Run #977 repariert: Produktionsbuild, Dependency-Audit und 730 von 731 Regressionen waren erfolgreich; ausschließlich `scripts/test-ruc-scheduler-watchdog-09751.mjs` erwartete noch den früheren manuellen RUC-Standard `force=true` und die sechs alten Watchdog-Slots.
+- Der Regressionstest schützt jetzt den gewünschten Vertrag `force=false` sowie den verdichteten GitHub-Watchdog `:23/:53`. Primäre RUC-Slots `:11/:41`, Active-Run-Sperre, Cooldown und unabhängiger Cloudflare-Watchdog bleiben geschützt.
+- Keine fachliche Workeränderung.
+
+# MID v0.9.84.21
+
+## Extern
+- Keine Änderung an Wetterberechnung, Darstellung oder Bedienung gegenüber v0.9.84.20.
+- GitHub-Actions konkurrieren seltener miteinander; Release- und RUC-Publishes werden verlustfrei in einer gemeinsamen Warteschlange serialisiert.
+
+## Intern
+- GitHub-RUC-Watchdog von sechs auf zwei same-provider Prüfungen pro Stunde reduziert (`:23/:53`); primäre RUC-Slots `:11/:41` und unabhängiger Cloudflare-Watchdog bleiben erhalten.
+- Manuelle RUC-Läufe verwenden standardmäßig den Freshness-Guard (`force=false`); erzwungene Vollverarbeitung bleibt explizit möglich.
+- RUC-Pages-Pfad nutzt ein schlankes Dependency-Profil ohne das nur für R2 benötigte `awscli`; RUC-EPS-Decodierung arbeitet konservativ mit zwei, maximal vier Prozessen; P25/P50/P75 werden gemeinsam berechnet.
+- Pages-Retries verwenden ein erfolgreich hochgeladenes Artefakt erneut; Neuaufbau/Neu-Upload erfolgt nur, wenn noch kein gültiges Artefakt vorliegt.
+- `mid-pages` verwendet `queue: max` bei `cancel-in-progress: false`, damit wartende Publishes nicht mehr durch neuere Pending-Jobs verdrängt werden.
+- Der historische `mid-code-revision`-Installer wird administrativ von automatischen `main`-Pushes entkoppelt; CI, Nightly, Health, Performance und CodeQL bleiben unverändert aktiv.
+- Ein einmaliger administrativer `npm run sync:github-workflows`-Commit aktiviert alle Workflowänderungen gesammelt; es sind keine manuellen YAML-Änderungen nötig.
+- Versions-Sync hält künftig auch `worker.js` und `worker/metar-proxy.js` automatisch bytegleich; der Release-Gate schützt diese Spiegelung.
+
 # MID v0.9.84.20
 
 ## 0.9.84.20

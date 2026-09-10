@@ -513,9 +513,10 @@ jobs:
             -y
 
   deploy_pages_1:
-    continue-on-error: true
     outputs:
       deployed: ${{ steps.mark_deployed.outputs.deployed }}
+      artifact_ready: ${{ steps.artifact_state.outputs.ready }}
+      artifact_name: ${{ steps.artifact_state.outputs.name }}
     name: MID auf GitHub Pages veröffentlichen · Versuch 1
     needs:
       - install_build
@@ -529,6 +530,7 @@ jobs:
       id-token: write
     concurrency:
       group: mid-pages
+      queue: max
       cancel-in-progress: false
     environment:
       name: github-pages
@@ -545,12 +547,6 @@ jobs:
           auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
           git init .
           git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
-          # Pages benötigt ausschließlich den geprüften Release-Baum. Die
-          # vorherige Variante lud zusätzlich die vollständigen main- und
-          # mid-stable-Historien; auf großen Repositories verlängert das jeden
-          # Versuch unnötig und vervielfacht die Codeload-Wartezeit bei Retries.
-          # Der direkte SHA-Fetch bleibt verifizierbar und transportiert nur
-          # den für diesen Deploymentversuch benötigten Commit und Baum.
           git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" fetch --no-tags --depth=1 origin "$RELEASE_SHA"
           git checkout --detach "$RELEASE_SHA"
           test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
@@ -569,23 +565,44 @@ jobs:
           python tools/ruc/restore_ruc_pages_snapshot.py "${args[@]}"
 
       - name: Pages-Artefakt hochladen · Versuch 1
+        id: upload_artifact
+        continue-on-error: true
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           name: github-pages-${{ github.run_id }}-1
           path: ./dist
 
+      - name: Pages-Artefaktstatus festhalten · Versuch 1
+        id: artifact_state
+        if: always()
+        shell: bash
+        env:
+          UPLOAD_OUTCOME: ${{ steps.upload_artifact.outcome }}
+        run: |
+          if [ "$UPLOAD_OUTCOME" = "success" ]; then
+            echo 'ready=true' >> "$GITHUB_OUTPUT"
+            echo 'name=github-pages-${{ github.run_id }}-1' >> "$GITHUB_OUTPUT"
+          else
+            echo 'ready=false' >> "$GITHUB_OUTPUT"
+            echo 'name=' >> "$GITHUB_OUTPUT"
+          fi
+
       - name: GitHub-Pages-Deployment · Versuch 1
         id: deployment
+        if: always() && steps.artifact_state.outputs.ready == 'true'
+        continue-on-error: true
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
         with:
-          artifact_name: github-pages-${{ github.run_id }}-1
+          artifact_name: ${{ steps.artifact_state.outputs.name }}
+
       - name: Erfolgreichen Pages-Versuch markieren
         id: mark_deployed
+        if: steps.deployment.outcome == 'success'
         shell: bash
         run: echo 'deployed=true' >> "$GITHUB_OUTPUT"
 
   pages_cooldown_1:
-    name: GitHub-Codeload-Rate-Limit abkühlen · 1
+    name: Pages-Retry abkühlen · 1
     needs:
       - install_build
       - deploy_worker
@@ -594,16 +611,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
-      - name: Vor erneutem Pages-Action-Download warten
+      - name: Backoff vor zweitem Pages-Versuch
         shell: bash
         run: |
-          echo "Erster Pages-Deploymentversuch scheiterte. 75 s Backoff vor einem frischen Runner/Action-Download."
+          echo "Erster Pages-Versuch scheiterte. 75 s Backoff; ein bereits hochgeladenes Artefakt wird wiederverwendet."
           sleep 75
 
   deploy_pages_2:
-    continue-on-error: true
     outputs:
       deployed: ${{ steps.mark_deployed.outputs.deployed }}
+      artifact_ready: ${{ steps.artifact_state.outputs.ready }}
+      artifact_name: ${{ steps.artifact_state.outputs.name }}
     name: MID auf GitHub Pages veröffentlichen · Versuch 2
     needs:
       - install_build
@@ -619,13 +637,31 @@ jobs:
       id-token: write
     concurrency:
       group: mid-pages
+      queue: max
       cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      - name: Geprüften Release-Baum ohne Checkout-Action laden
+      - name: Vorhandenes Pages-Artefakt übernehmen oder Neuaufbau planen
+        id: artifact_plan
+        shell: bash
+        env:
+          PREVIOUS_READY: ${{ needs.deploy_pages_1.outputs.artifact_ready }}
+          PREVIOUS_NAME: ${{ needs.deploy_pages_1.outputs.artifact_name }}
+        run: |
+          set -euo pipefail
+          if [ "$PREVIOUS_READY" = "true" ] && [ -n "$PREVIOUS_NAME" ]; then
+            echo 'needs_upload=false' >> "$GITHUB_OUTPUT"
+            echo "name=$PREVIOUS_NAME" >> "$GITHUB_OUTPUT"
+          else
+            echo 'needs_upload=true' >> "$GITHUB_OUTPUT"
+            echo 'name=github-pages-${{ github.run_id }}-2' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Geprüften Release-Baum nur bei fehlendem Artefakt neu laden
+        if: steps.artifact_plan.outputs.needs_upload == 'true'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -635,15 +671,13 @@ jobs:
           auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
           git init .
           git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
-          # Nur den geprüften SHA laden; vollständige Branch-Historien sind für
-          # das Pages-Artefakt nicht erforderlich (die FF-Prüfung erfolgt erst
-          # separat in finalize_release).
           git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" fetch --no-tags --depth=1 origin "$RELEASE_SHA"
           git checkout --detach "$RELEASE_SHA"
           test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
           test -f dist/index.html
 
-      - name: Bereits veröffentlichten kostenfreien RUC-Snapshot erhalten
+      - name: RUC-Snapshot nur bei fehlendem Artefakt erneut herstellen
+        if: steps.artifact_plan.outputs.needs_upload == 'true'
         shell: bash
         env:
           MID_RUC_PIPELINE_ENABLED: ${{ vars.MID_RUC_PIPELINE_ENABLED }}
@@ -655,24 +689,48 @@ jobs:
           if [ "$MID_RUC_PIPELINE_ENABLED" = "true" ]; then args+=(--required); fi
           python tools/ruc/restore_ruc_pages_snapshot.py "${args[@]}"
 
-      - name: Pages-Artefakt hochladen · Versuch 2
+      - name: Pages-Artefakt nur bei Bedarf hochladen · Versuch 2
+        id: upload_artifact
+        if: steps.artifact_plan.outputs.needs_upload == 'true'
+        continue-on-error: true
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
-          name: github-pages-${{ github.run_id }}-2
+          name: ${{ steps.artifact_plan.outputs.name }}
           path: ./dist
+
+      - name: Pages-Artefaktstatus festhalten · Versuch 2
+        id: artifact_state
+        if: always()
+        shell: bash
+        env:
+          NEEDS_UPLOAD: ${{ steps.artifact_plan.outputs.needs_upload }}
+          ARTIFACT_NAME: ${{ steps.artifact_plan.outputs.name }}
+          UPLOAD_OUTCOME: ${{ steps.upload_artifact.outcome }}
+        run: |
+          if [ "$NEEDS_UPLOAD" = "false" ] || [ "$UPLOAD_OUTCOME" = "success" ]; then
+            echo 'ready=true' >> "$GITHUB_OUTPUT"
+            echo "name=$ARTIFACT_NAME" >> "$GITHUB_OUTPUT"
+          else
+            echo 'ready=false' >> "$GITHUB_OUTPUT"
+            echo 'name=' >> "$GITHUB_OUTPUT"
+          fi
 
       - name: GitHub-Pages-Deployment · Versuch 2
         id: deployment
+        if: always() && steps.artifact_state.outputs.ready == 'true'
+        continue-on-error: true
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
         with:
-          artifact_name: github-pages-${{ github.run_id }}-2
+          artifact_name: ${{ steps.artifact_state.outputs.name }}
+
       - name: Erfolgreichen Pages-Versuch markieren
         id: mark_deployed
+        if: steps.deployment.outcome == 'success'
         shell: bash
         run: echo 'deployed=true' >> "$GITHUB_OUTPUT"
 
   pages_cooldown_2:
-    name: GitHub-Codeload-Rate-Limit abkühlen · 2
+    name: Pages-Retry abkühlen · 2
     needs:
       - install_build
       - deploy_worker
@@ -682,10 +740,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Vor letztem Pages-Action-Download länger warten
+      - name: Längerer Backoff vor letztem Pages-Versuch
         shell: bash
         run: |
-          echo "Zweiter Pages-Deploymentversuch scheiterte. 180 s Backoff vor dem letzten frischen Runner."
+          echo "Zweiter Pages-Versuch scheiterte. 180 s Backoff; vorhandenes Artefakt bleibt bevorzugt."
           sleep 180
 
   deploy_pages_3:
@@ -707,13 +765,31 @@ jobs:
       id-token: write
     concurrency:
       group: mid-pages
+      queue: max
       cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      - name: Geprüften Release-Baum ohne Checkout-Action laden
+      - name: Vorhandenes Pages-Artefakt übernehmen oder letzten Neuaufbau planen
+        id: artifact_plan
+        shell: bash
+        env:
+          PREVIOUS_READY: ${{ needs.deploy_pages_2.outputs.artifact_ready }}
+          PREVIOUS_NAME: ${{ needs.deploy_pages_2.outputs.artifact_name }}
+        run: |
+          set -euo pipefail
+          if [ "$PREVIOUS_READY" = "true" ] && [ -n "$PREVIOUS_NAME" ]; then
+            echo 'needs_upload=false' >> "$GITHUB_OUTPUT"
+            echo "name=$PREVIOUS_NAME" >> "$GITHUB_OUTPUT"
+          else
+            echo 'needs_upload=true' >> "$GITHUB_OUTPUT"
+            echo 'name=github-pages-${{ github.run_id }}-3' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Geprüften Release-Baum nur bei weiterhin fehlendem Artefakt neu laden
+        if: steps.artifact_plan.outputs.needs_upload == 'true'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -723,15 +799,13 @@ jobs:
           auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
           git init .
           git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
-          # Auch der letzte Versuch bleibt auf einen flachen SHA-Fetch
-          # begrenzt; bei Rate-Limit-Retries darf kein kompletter Repository-
-          # Download erneut anfallen.
           git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" fetch --no-tags --depth=1 origin "$RELEASE_SHA"
           git checkout --detach "$RELEASE_SHA"
           test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
           test -f dist/index.html
 
-      - name: Bereits veröffentlichten kostenfreien RUC-Snapshot erhalten
+      - name: RUC-Snapshot nur bei weiterhin fehlendem Artefakt erneut herstellen
+        if: steps.artifact_plan.outputs.needs_upload == 'true'
         shell: bash
         env:
           MID_RUC_PIPELINE_ENABLED: ${{ vars.MID_RUC_PIPELINE_ENABLED }}
@@ -743,17 +817,19 @@ jobs:
           if [ "$MID_RUC_PIPELINE_ENABLED" = "true" ]; then args+=(--required); fi
           python tools/ruc/restore_ruc_pages_snapshot.py "${args[@]}"
 
-      - name: Pages-Artefakt hochladen · Versuch 3
+      - name: Pages-Artefakt nur bei Bedarf hochladen · Versuch 3
+        if: steps.artifact_plan.outputs.needs_upload == 'true'
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
-          name: github-pages-${{ github.run_id }}-3
+          name: ${{ steps.artifact_plan.outputs.name }}
           path: ./dist
 
       - name: GitHub-Pages-Deployment · Versuch 3
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
         with:
-          artifact_name: github-pages-${{ github.run_id }}-3
+          artifact_name: ${{ steps.artifact_plan.outputs.name }}
+
       - name: Erfolgreichen Pages-Versuch markieren
         id: mark_deployed
         shell: bash
@@ -779,6 +855,7 @@ jobs:
     # Regressionen und Worker-Smoke laufen weiterhin davor.
     concurrency:
       group: mid-pages
+      queue: max
       cancel-in-progress: false
 
     steps:

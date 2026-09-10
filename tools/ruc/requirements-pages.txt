@@ -1,0 +1,6 @@
+# CI-only dependencies for the free GitHub Pages RUC preprocessing path.
+# The optional/manual R2 publisher keeps using requirements.txt (includes awscli).
+numpy>=2.0,<3
+scipy>=1.13,<2
+eccodes>=2.38,<3
+requests>=2.31,<3

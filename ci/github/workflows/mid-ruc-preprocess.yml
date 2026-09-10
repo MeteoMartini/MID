@@ -5,7 +5,7 @@ on:
       force:
         description: Vollständige RUC-Verarbeitung unabhängig vom Freshness-Guard erzwingen
         required: false
-        default: true
+        default: false
         type: boolean
       trigger_source:
         description: Auslöser des Dispatches (manual, github-watchdog, cloudflare-watchdog)
@@ -55,7 +55,7 @@ jobs:
         with:
           python-version: '3.12'
           cache: 'pip'
-          cache-dependency-path: tools/ruc/requirements.txt
+          cache-dependency-path: tools/ruc/requirements*.txt
       - name: RUC-Auslöser protokollieren
         shell: bash
         run: |
@@ -84,11 +84,17 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libeccodes-tools
-          python -m pip install --disable-pip-version-check -r tools/ruc/requirements.txt
+          requirements='tools/ruc/requirements-pages.txt'
+          if [ ! -f "$requirements" ]; then
+            echo '::notice::Lean Pages requirements not present on this older stable source; using compatible full RUC requirements once.'
+            requirements='tools/ruc/requirements.txt'
+          fi
+          python -m pip install --disable-pip-version-check -r "$requirements"
       - name: Neuesten vollständigen RUC/RUC-EPS-Lauf laden und dekodieren
         if: ${{ steps.freshness.outputs.should_run == 'true' }}
         env:
           MID_RUC_FORECAST_HOURS: '14'
+          MID_RUC_EPS_DECODE_WORKERS: '2'
         run: python tools/ruc/fetch_and_build_ruc.py --output .ruc-out
       - name: RUC-Wire- und Pages-Free-Profil prüfen
         if: ${{ steps.freshness.outputs.should_run == 'true' }}
@@ -124,6 +130,7 @@ jobs:
       id-token: write
     concurrency:
       group: mid-pages
+      queue: max
       cancel-in-progress: false
     environment:
       name: github-pages

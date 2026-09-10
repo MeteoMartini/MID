@@ -8,10 +8,10 @@ on:
       - '.github/workflows/mid-ruc-schedule-watchdog.yml'
       - '.github/workflows/mid-ruc-preprocess.yml'
   schedule:
-    # Same-provider recovery checks every ten minutes. This materially reduces
-    # exposure to isolated GitHub schedule drops, but is not provider-independent;
-    # the external Cloudflare watchdog is the second scheduler layer.
-    - cron: '8,18,28,38,48,58 * * * *'
+    # Same-provider recovery checks 12 minutes after each primary slot. This
+    # catches isolated GitHub schedule drops without six same-provider probes/h;
+    # the external Cloudflare watchdog remains the independent scheduler layer.
+    - cron: '23,53 * * * *'
 
 permissions:
   contents: read

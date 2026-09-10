@@ -19,15 +19,16 @@ assert.equal(pkg.scripts?.['test:release-upload-budget'],`node ${test}`);
 for(const key of ['requiredRegressionTests','regressionTests','requiredFiles'])assert.ok(baseline[key]?.includes(test),`${test} fehlt in ${key}.`);
 
 for(const workflow of [installCanonical,installActive]){
-  const blocks=[...workflow.matchAll(/group: mid-pages\n\s+cancel-in-progress: (true|false)/g)];
+  const blocks=[...workflow.matchAll(/group: mid-pages\n\s+queue: (max|single)\n\s+cancel-in-progress: (true|false)/g)];
   assert.equal(blocks.length,4,'Installer muss drei Pages-Deployversuche plus den kurzen Stable-/Pages-Abschluss-Lock koordinieren.');
-  assert.ok(blocks.every(match=>match[1]==='false'),'Installer darf laufende RUC-/Pages-Publikation nicht abbrechen.');
+  assert.ok(blocks.every(match=>match[1]==='max'),'Installer muss wartende Pages-Publikationen verlustfrei per queue:max halten.');
+  assert.ok(blocks.every(match=>match[2]==='false'),'Installer darf laufende RUC-/Pages-Publikation nicht abbrechen.');
   assert.ok(workflow.includes('group: mid-install-${{ github.ref }}\n  cancel-in-progress: true'),'Release-Run-Supersession muss erhalten bleiben.');
 }
 for(const workflow of [rucCanonical,rucActive]){
   assert.ok(workflow.includes("- cron: '11 * * * *'"));
   assert.ok(workflow.includes("- cron: '41 * * * *'"));
-  assert.ok(workflow.includes('group: mid-pages\n      cancel-in-progress: false'),'RUC muss denselben seriellen Pages-Lock ohne Cancellation nutzen.');
+  assert.ok(workflow.includes('group: mid-pages\n      queue: max\n      cancel-in-progress: false'),'RUC muss denselben seriellen FIFO-Pages-Lock ohne Cancellation nutzen.');
 }
 
 assert.ok(packer.includes('MAX_UPLOAD_BYTES = 24_000_000'));
@@ -41,4 +42,4 @@ assert.deepEqual(splash.images.map(image=>[image.filename,image.scale,image.appe
 for(const stale of ['splash-light-2732x2732-2x.png','splash-light-2732x2732-3x.png','splash-dark-2732x2732-2x.png','splash-dark-2732x2732-3x.png']){
   await assert.rejects(access(new URL(`ios/App/App/Assets.xcassets/Splash.imageset/${stale}`,root)),/ENOENT/,`${stale} darf nicht erneut als bytegleiche Kopie eingecheckt werden.`);
 }
-console.log('Release-Hotfix geprüft: serieller Pages-Lock, :11/:41-RUC-Catch-up, deduplizierter 2732px-Splash und <25-MB-Transportpacker.');
+console.log('Release-Hotfix geprüft: verlustfreie FIFO-Pages-Queue, :11/:41-RUC-Catch-up, deduplizierter 2732px-Splash und <25-MB-Transportpacker.');

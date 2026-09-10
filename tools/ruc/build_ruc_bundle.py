@@ -5,7 +5,7 @@ The builder is fail-closed: mixed grids, missing hourly targets, missing EPS mem
 or spatially implausible lookups abort publication before latest.json exists.
 """
 from __future__ import annotations
-import argparse,bz2,hashlib,json,math,re
+import argparse,bz2,concurrent.futures,hashlib,json,math,os,re
 from datetime import datetime,timedelta,timezone
 from pathlib import Path
 import numpy as np
@@ -37,6 +37,15 @@ def read_messages(path:Path,ensemble=False):
           except Exception:units=''
           yield valid,member,vals,units
         finally:codes_release(gid)
+
+def decode_file_batch(payload):
+    """Decode one staged GRIB file in an isolated worker process.
+
+    Returning complete per-file batches keeps result ordering deterministic while
+    allowing the CPU-heavy RUC-EPS ecCodes/bzip2 work to use more than one core.
+    """
+    path_text,ensemble=payload
+    return list(read_messages(Path(path_text),ensemble=ensemble))
 
 def read_first_values(path:Path):
     try: from eccodes import codes_grib_new_from_file,codes_get_array,codes_release
@@ -238,11 +247,24 @@ def build_lookup(lats,lons,output:Path,step=.025,max_distance_km=5.0):
 
 def collect_eps(files,targets,expected_points):
     rows={t:{} for t in targets}
-    for file in files:
-      for valid,member,vals,units in read_messages(file,ensemble=True):
-        if valid not in rows:continue
-        if len(vals)!=expected_points:raise SystemExit('RUC-EPS native point count differs from deterministic RUC grid')
-        rows[valid][member]=normalize('precipitation_acc',vals,units)
+    configured=max(1,int(os.getenv('MID_RUC_EPS_DECODE_WORKERS','2')))
+    workers=max(1,min(4,configured,len(files)))
+    tasks=[(str(file),True) for file in files]
+    if workers==1:
+      batches=(decode_file_batch(task) for task in tasks)
+      pool=None
+    else:
+      print(f'RUC-EPS decode: {len(files)} GRIB files with {workers} process workers',flush=True)
+      pool=concurrent.futures.ProcessPoolExecutor(max_workers=workers)
+      batches=pool.map(decode_file_batch,tasks,chunksize=1)
+    try:
+      for messages in batches:
+        for valid,member,vals,units in messages:
+          if valid not in rows:continue
+          if len(vals)!=expected_points:raise SystemExit('RUC-EPS native point count differs from deterministic RUC grid')
+          rows[valid][member]=normalize('precipitation_acc',vals,units)
+    finally:
+      if pool is not None:pool.shutdown(wait=True,cancel_futures=True)
     members=sorted(set.intersection(*(set(rows[t]) for t in targets))) if targets else []
     if len(members)<10:raise SystemExit(f'RUC-EPS has only {len(members)} common members')
     cube=np.stack([np.stack([rows[t][m] for m in members],axis=0) for t in targets],axis=0)
@@ -256,9 +278,7 @@ def eps_summary(interval):
     safe=np.where(valid,interval,np.nan)
     with np.errstate(invalid='ignore'):
       mean=np.nanmean(safe,axis=1)
-      q25=np.nanquantile(safe,.25,axis=1)
-      q50=np.nanquantile(safe,.50,axis=1)
-      q75=np.nanquantile(safe,.75,axis=1)
+      q25,q50,q75=np.nanquantile(safe,(.25,.50,.75),axis=1)
     wet=np.where(member_count>0,100*np.sum(valid&(interval>.2),axis=1)/np.maximum(member_count,1),np.nan)
     significant=np.where(member_count>0,100*np.sum(valid&(interval>5.0),axis=1)/np.maximum(member_count,1),np.nan)
     return {
