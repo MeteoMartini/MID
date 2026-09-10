@@ -5,6 +5,8 @@ const STORAGE_DB='mid-durable-storage-v1';
 const STORAGE_STORE='values';
 const RESERVE_KEY='mid:runtime:storage-reserve:v1';
 const RESERVE_SIZE=64*1024;
+const LOCATION_STORAGE_KEY='mid:lastLocation';
+const LOCATION_UPDATED_AT_KEY='mid:lastLocation:updated-at';
 const FAVORITES_STORAGE_KEY='mid:favorites';
 const FAVORITES_UPDATED_AT_KEY='mid:favorites:updated-at';
 const FAVORITES_SHADOW_KEY='mid:favorites:shadow:v1';
@@ -48,8 +50,8 @@ export async function flushStorageSafetyMirror(maxWaitMs=1400){const deadline=Da
 function directTimestamp(value:unknown){if(typeof value==='number'&&Number.isFinite(value)&&value>0)return value;const parsed=Date.parse(String(value||''));return Number.isFinite(parsed)&&parsed>0?parsed:0}
 function entryTimestamp(raw:string){try{const parsed=JSON.parse(raw) as unknown,direct=directTimestamp(parsed);if(direct)return direct;if(parsed&&typeof parsed==='object')for(const key of['savedAt','updatedAt','createdAt','created','time','at']){const value=(parsed as Record<string,unknown>)[key],numeric=directTimestamp(value);if(numeric)return numeric}}catch{const direct=directTimestamp(raw);if(direct)return direct}return 0}
 function tombstoneTimestamp(raw:string|null){if(!raw)return 0;try{const parsed=JSON.parse(raw) as Record<string,unknown>;let newest=0;for(const value of Object.values(parsed))newest=Math.max(newest,Number(value)||0);return Number.isFinite(newest)&&newest>0?newest:0}catch{return 0}}
-function durableSemanticRevision(key:string,raw:string|null,lookup:(key:string)=>string|null){if(raw===null)return 0;if(FAVORITE_SNAPSHOT_KEYS.has(key))return entryTimestamp(lookup(FAVORITES_UPDATED_AT_KEY)||'')||entryTimestamp(raw);if(key===FAVORITES_UPDATED_AT_KEY)return entryTimestamp(raw);if(key===FAVORITES_TOMBSTONES_KEY)return tombstoneTimestamp(raw);if(key===FAVORITES_ORDER_KEY)return entryTimestamp(raw);return entryTimestamp(raw)}
-function mirrorRevision(key:string,record:DurableRecord,records:Map<string,DurableRecord>){const semantic=durableSemanticRevision(key,record.value,other=>records.get(other)?.value??null);return semantic||Math.max(0,Number(record.updatedAt)||0)}
+function durableSemanticRevision(key:string,raw:string|null,lookup:(key:string)=>string|null){if(raw===null)return 0;if(key===LOCATION_STORAGE_KEY)return entryTimestamp(lookup(LOCATION_UPDATED_AT_KEY)||'')||entryTimestamp(raw);if(key===LOCATION_UPDATED_AT_KEY)return entryTimestamp(raw);if(FAVORITE_SNAPSHOT_KEYS.has(key))return entryTimestamp(lookup(FAVORITES_UPDATED_AT_KEY)||'')||entryTimestamp(raw);if(key===FAVORITES_UPDATED_AT_KEY)return entryTimestamp(raw);if(key===FAVORITES_TOMBSTONES_KEY)return tombstoneTimestamp(raw);if(key===FAVORITES_ORDER_KEY)return entryTimestamp(raw);return entryTimestamp(raw)}
+function mirrorRevision(key:string,record:DurableRecord,records:Map<string,DurableRecord>){const semantic=durableSemanticRevision(key,record.value,other=>records.get(other)?.value??null);if(key===LOCATION_STORAGE_KEY||key===LOCATION_UPDATED_AT_KEY)return semantic;return semantic||Math.max(0,Number(record.updatedAt)||0)}
 function transientEntries(){if(!native)return[] as {key:string;raw:string;bytes:number;time:number}[];const rows:{key:string;raw:string;bytes:number;time:number}[]=[];for(let index=native.storage.length-1;index>=0;index--){const key=native.key(index);if(!key||(!isTransientStorageKey(key)&&key!==RESERVE_KEY)||key===RESERVE_KEY)continue;const raw=native.get(key);if(raw===null)continue;rows.push({key,raw,bytes:(key.length+raw.length)*2,time:entryTimestamp(raw)})}return rows}
 
 /** Keeps reconstructible caches bounded without touching favorites, settings, archives or other user data. */

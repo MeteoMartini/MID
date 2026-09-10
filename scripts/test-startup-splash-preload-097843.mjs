@@ -5,8 +5,9 @@ const [main,preload,app,guard,baselineRaw,pkgRaw]=await Promise.all([
  read('src/main.tsx'),read('src/startupPreload.ts'),read('src/App.tsx'),read('src/openMeteoGuard.ts'),read('MID_BASELINE.json'),read('package.json')
 ]);
 const baseline=JSON.parse(baselineRaw),pkg=JSON.parse(pkgRaw),test='scripts/test-startup-splash-preload-097843.mjs';
-assert.ok(main.indexOf('const startupPreload=beginStartupDashboardPreload();')>=0,'Splash-Preload muss beim Start initialisiert werden.');
-assert.ok(main.indexOf('const startupPreload=beginStartupDashboardPreload();')<main.indexOf('await timeout(initializeStorageSafety()'),'Netz-/Chunk-Preload muss parallel zu lokalen Startarbeiten beginnen, nicht erst danach.');
+assert.ok(main.indexOf('let startupPreload=beginStartupDashboardPreload();')>=0,'Splash-Preload muss beim Start initialisiert werden.');
+assert.ok(main.indexOf('let startupPreload=beginStartupDashboardPreload();')<main.indexOf('await timeout(initializeStorageSafety()'),'Netz-/Chunk-Preload muss parallel zu lokalen Startarbeiten beginnen, nicht erst danach.');
+assert.ok(main.includes('startupPreload=beginStartupDashboardPreload()??startupPreload;'),'Nach lokaler Recovery muss der Splash-Preload den tatsächlich wiederhergestellten letzten Ort erneut abgleichen.');
 assert.ok(main.includes('startupPreload.stationPromise')&&main.includes('startupPreload.ensemblePromise'),'Schnell verfügbare Stations- und Ensemble-Daten dürfen innerhalb des bestehenden Splash-Budgets mitfertig werden.');
 assert.ok(main.includes('wait(900)'),'Splash-Datenvorbereitung muss ein hartes kurzes Zeitbudget behalten.');
 assert.ok(preload.includes("startupRequest(STARTUP_PRELOAD_FORECAST_TIMEOUT_MS,signal=>forecast(location.latitude,location.longitude,signal,{priority:'foreground'"),'Best-Match-Prognose muss sofort als begrenzter, abbrechbarer Foreground-Preload starten.');

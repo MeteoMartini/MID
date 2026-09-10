@@ -6,7 +6,7 @@ const [app,cockpit,portable,deviceSync,push,scheduler,pkgText,baselineText]=awai
 const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText);
 
 // Standort war bereits dauerhaft gespeichert; der Vertrag bleibt explizit geschützt.
-for(const token of ["const LOCATION_STORAGE_KEY='mid:lastLocation'","function storedLocation()","function initialLocation()","localStorage.setItem(LOCATION_STORAGE_KEY,JSON.stringify(normalized))"])assert.ok(app.includes(token),`Standortpersistenz fehlt: ${token}`);
+for(const token of ["const LOCATION_STORAGE_KEY='mid:lastLocation'","function storedLocation()","function initialLocation()",'persistSelectedLocation(normalized,true)'])assert.ok(app.includes(token),`Standortpersistenz fehlt: ${token}`);
 
 // Die fünf Arbeitsbereiche und ihre aktivierbaren Module werden als leichtgewichtiger UI-Zustand restauriert.
 for(const token of ["LAST_DASHBOARD_SECTION_KEY='mid:last-dashboard-section:v1'","RESTORABLE_DASHBOARD_SECTIONS:DashboardModuleId[]=['current','warnings','extreme-outlook','ventilation'","readLastDashboardSection()","persistLastDashboardSection(id)","navigateToDashboardSection(id,false,'auto')"])assert.ok(app.includes(token),`Ansichtspersistenz fehlt: ${token}`);

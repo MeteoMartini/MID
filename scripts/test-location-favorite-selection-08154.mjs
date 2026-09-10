@@ -9,7 +9,7 @@ for(const token of [
  'const favorite=matchingFavorite(favorites,tracked)',
  "return favorite?{...favoriteLocation(favorite.location),autolocated:true}:{...normalizeLocation(tracked),autolocated:true}",
  'const openTracked=(tracked:Location)=>{setTrackedLocation(tracked);if(openLocation)setLoc(trackedLocationTarget(favorites,tracked))}',
- 'if(loc&&!locationsShallowEqual(loc,normalized)){localStorage.setItem(LOCATION_STORAGE_KEY,JSON.stringify(normalized));setLocState(normalized)}',
+ 'if(loc&&!locationsShallowEqual(loc,normalized)){persistSelectedLocation(normalized,true);setLocState(normalized)}',
  "activeFavoriteId=matchingStoredFavorite(favorites,current)?.id??'',trackedActive=Boolean(locationTracking&&trackedSelectionActive",
  "currentFavoriteId=matchingStoredFavorite(favorites,current)?.id??'';",
  "const refreshTracked=locationTracking||locationSelectionSource==='tracked'",

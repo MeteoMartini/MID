@@ -66,8 +66,8 @@ assert.ok(main.includes('await timeout(restoreDeviceSyncState(),6500)'),'Kleiner
 
 // Device sync: each operation has a total fallback budget; archive refreshes are not
 // triggered every time visibility/focus pulses occur.
-for(const token of ['DEVICE_SYNC_REQUEST_TIMEOUT_MS=6000','ARCHIVE_SYNC_REQUEST_TIMEOUT_MS=18000','deadline=Date.now()+timeoutMs','ARCHIVE_VISIBILITY_MIN_INTERVAL_MS=30*60*1000','restoreWeatherTwinArchiveDeferred'])assert.ok(deviceSync.includes(token),`Gerätesync-Schutz fehlt: ${token}`);
-assert.ok(deviceSync.includes('Date.now()-lastArchiveVisibilitySyncAt>=ARCHIVE_VISIBILITY_MIN_INTERVAL_MS'),'Langzeitarchiv wird beim Sichtbarwerden wieder ungezügelt neu geladen.');
+for(const token of ['DEVICE_SYNC_REQUEST_TIMEOUT_MS=6000','ARCHIVE_SYNC_REQUEST_TIMEOUT_MS=18000','deadline=Date.now()+timeoutMs','ARCHIVE_VISIBILITY_MIN_INTERVAL_MS=30*60*1000','PORTABLE_VISIBILITY_MIN_INTERVAL_MS=15*1000','portableSyncPromise','restoreWeatherTwinArchiveDeferred'])assert.ok(deviceSync.includes(token),`Gerätesync-Schutz fehlt: ${token}`);
+assert.ok(deviceSync.includes('now-lastArchiveVisibilitySyncAt>=ARCHIVE_VISIBILITY_MIN_INTERVAL_MS'),'Langzeitarchiv wird beim Sichtbarwerden wieder ungezügelt neu geladen.');
 
 // Service-worker update checks are deduplicated across load/focus/visibility pulses.
 for(const token of ['let updatePromise:Promise<void>|null=null','UPDATE_EVENT_THROTTLE_MS=30_000','if(updatePromise)return','window.setInterval(()=>update(true),15*60*1000)'])assert.ok(pwa.includes(token),`PWA-Update-Deduplizierung fehlt: ${token}`);

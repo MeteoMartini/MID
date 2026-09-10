@@ -27,7 +27,7 @@ const DEVICE_LOCAL_PREFIXES=[
  'mid:push-subscription',
  'mid:web-push'
 ];
-const DEVICE_LOCAL_KEYS=new Set(['mid:pwaInstallHintDismissed','mid:last-dashboard-section:v1','mid:forecastCockpit:activeHorizon']);
+const DEVICE_LOCAL_KEYS=new Set(['mid:pwaInstallHintDismissed','mid:last-dashboard-section:v1','mid:forecastCockpit:activeHorizon','mid:lastLocation','mid:lastLocation:updated-at','mid:lastTrackedLocation']);
 
 export const PORTABLE_USER_DATA_EXAMPLES=['mid:ensemble:advanced','mid:ensemble:chart-open:temperature','mid:layoutMode','mid:favorites','mid:weather-twin:settings:v1'] as const;
 export const PORTABLE_USER_DATA_INCLUDED=[
@@ -35,13 +35,13 @@ export const PORTABLE_USER_DATA_INCLUDED=[
  'Darstellung, Einheiten, Standard-/Erweitert-Modus und Theme',
  'Diagramm-, Legenden- und Detailansicht-Einstellungen; Hauptmodul-Offenzustand bleibt gerätelokal',
  'Radar-, Meteogramm-, Event-/Reiseplaner- und Benachrichtigungsregeln',
- 'Wetterzwilling-Einstellungen, Standortprofile und Langzeitarchiv'
+ 'Wetterzwilling-Einstellungen, gespeicherte Standortprofile und Langzeitarchiv'
 ] as const;
 export const PORTABLE_USER_DATA_EXCLUDED=[
  'Push-Abonnements des jeweiligen Geräts',
  'Stationspasswörter, Bearer-Token und externe Zugangsschlüssel',
  'temporäre Wetter-, Karten-, Modell- und Diagnostik-Caches',
- 'Hauptmodul-Offenzustände (`mid:module:<id>:open`) des jeweiligen Geräts'
+ 'Hauptmodul-Offenzustände (`mid:module:<id>:open`), zuletzt ausgewählter Ort und letzte Geräteposition des jeweiligen Geräts'
 ] as const;
 
 export function isPortableUserDataKey(key:string){

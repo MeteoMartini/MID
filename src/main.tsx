@@ -48,12 +48,15 @@ async function signalHealthy(){
 }
 async function start(){
  markBootStart();
- const startupPreload=beginStartupDashboardPreload();
+ let startupPreload=beginStartupDashboardPreload();
  void startMidNativeRuntimeBridge().catch(()=>undefined);
  setBootStage('Startdaten werden bereits im Hintergrund geladen …');
  await timeout(initializeStorageSafety(),3500).catch(()=>false);
  setBootStage('Einstellungen und Favoriten werden wiederhergestellt …');
  await timeout(restorePersistentState(),4500).catch(()=>false);
+ // StorageSafety/Persistenz dürfen einen gerätelokal jüngeren Ort wiederherstellen.
+ // Gleicher Ort teilt den bestehenden Preload; ein abweichender Ort bricht den alten ab.
+ startupPreload=beginStartupDashboardPreload()??startupPreload;
  setBootStage('Gerätestand wird abgeglichen …');
  await timeout(restoreDeviceSyncState(),6500).catch(()=>false);
  setBootStage('Prognose, Oberfläche und Zusatzdaten werden vorbereitet …');

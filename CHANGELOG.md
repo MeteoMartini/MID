@@ -1,3 +1,18 @@
+# MID v0.9.84.25
+
+## Extern
+- iOS-Rückkehr: Der zuletzt in dieser App ausgewählte Ort bleibt beim Wechsel aus dem Hintergrund erhalten; MID springt nicht mehr durch einen Geräteabgleich auf den Standard-/ersten Favoriten zurück.
+- Beim Zurückkehren werden vorhandene Wetterdaten am aktiven Ort weiterverwendet, während eine nötige Aktualisierung im Hintergrund anläuft. Ein unnötiger Neustart mit „Wettermodelle werden geladen …“ wird dadurch vermieden.
+- Favoriten und gespeicherte Standortprofile bleiben geräteübergreifend synchronisierbar; nur der **aktuell ausgewählte Ort** und die **letzte physische Geräteposition** bleiben gerätelokal.
+
+## Intern
+- `mid:lastLocation`, seine semantische Revision und `mid:lastTrackedLocation` sind aus dem portablen Geräte-Snapshot ausgeschlossen. Remote-Snapshots können die aktive lokale Auswahl daher weder überschreiben noch als „fehlenden“ Schlüssel löschen.
+- StorageSafety bewertet `mid:lastLocation` über `mid:lastLocation:updated-at`; ein technischer IndexedDB-Mirror-Zeitstempel darf einen vorhandenen nativen Auswahlort bei der Migration nicht mehr verdrängen.
+- Reale und von WKWebView ergänzte Sichtbarkeitsimpulse werden für den portablen Sync 15 s gedrosselt und über einen gemeinsamen In-Flight-Promise entdoppelt.
+- Der frühe Dashboard-Preload bleibt parallel erhalten, wird nach StorageSafety/Persistenz aber nochmals gegen den tatsächlich wiederhergestellten Ort abgeglichen; ein falscher Preload wird abgebrochen statt den regulären Forecast zu blockieren.
+- Neuer verbindlicher Vertrag `MID_IOS_RESUME_LOCATION_CONTRACT.md` plus Regression `test-ios-resume-location-preservation-098425.mjs`.
+- Keine meteorologische Logik- oder Worker-Fachänderung.
+
 # MID v0.9.84.23
 
 ## Extern
