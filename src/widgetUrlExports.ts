@@ -1,9 +1,10 @@
 export type WidgetUrlView='cards'|'curve';
 export type WidgetUrlDays=5|7;
 export type WidgetUrlTheme='light'|'dark';
+export type WidgetUrlTemperatureColors='ecmwf';
 
 export type WidgetUrlLocation={id:number;slug:string;name:string;latitude:number;longitude:number};
-export type WidgetUrlExportRequest={location:WidgetUrlLocation;view:WidgetUrlView;days:WidgetUrlDays;theme:WidgetUrlTheme};
+export type WidgetUrlExportRequest={location:WidgetUrlLocation;view:WidgetUrlView;days:WidgetUrlDays;theme:WidgetUrlTheme;temperatureColors:WidgetUrlTemperatureColors};
 
 // Einzige Pflegestelle fuer feste Widget-Orte. Jede Ortszeile erzeugt
 // automatisch alle Kombinationen aus Ansicht und Tageszahl.
@@ -17,12 +18,13 @@ export const WIDGET_URL_VIEWS:readonly WidgetUrlView[]=['cards','curve'] as cons
 
 function normalizedView(value:string|null):WidgetUrlView|null{const key=String(value||'').trim().toLowerCase();return key==='kompakt'||key==='compact'||key==='cards'?'cards':key==='kurve'||key==='curve'?'curve':null}
 function normalizedTheme(value:string|null):WidgetUrlTheme|null{const key=String(value||'light').trim().toLowerCase();return key==='light'||key==='hell'?'light':key==='dark'||key==='dunkel'?'dark':null}
+function normalizedTemperatureColors(value:string|null):WidgetUrlTemperatureColors|null{const key=String(value||'ecmwf').trim().toLowerCase();return key==='ecmwf'?'ecmwf':null}
 
 export function readWidgetUrlExportRequest(href:string):WidgetUrlExportRequest|null{
- try{const url=new URL(href),slug=String(url.searchParams.get('widget')||url.searchParams.get('mid-widget')||'').trim().toLowerCase(),location=WIDGET_URL_LOCATIONS.find(item=>item.slug===slug),view=normalizedView(url.searchParams.get('ansicht')||url.searchParams.get('view')),days=Number(url.searchParams.get('tage')||url.searchParams.get('days')),theme=normalizedTheme(url.searchParams.get('design')||url.searchParams.get('theme'));if(!location||!view||!WIDGET_URL_DAYS.includes(days as WidgetUrlDays)||!theme)return null;return{location,view,days:days as WidgetUrlDays,theme}}catch{return null}
+ try{const url=new URL(href),slug=String(url.searchParams.get('widget')||url.searchParams.get('mid-widget')||'').trim().toLowerCase(),location=WIDGET_URL_LOCATIONS.find(item=>item.slug===slug),view=normalizedView(url.searchParams.get('ansicht')||url.searchParams.get('view')),days=Number(url.searchParams.get('tage')||url.searchParams.get('days')),theme=normalizedTheme(url.searchParams.get('design')||url.searchParams.get('theme')),temperatureColors=normalizedTemperatureColors(url.searchParams.get('farben')||url.searchParams.get('colors'));if(!location||!view||!WIDGET_URL_DAYS.includes(days as WidgetUrlDays)||!theme||!temperatureColors)return null;return{location,view,days:days as WidgetUrlDays,theme,temperatureColors}}catch{return null}
 }
 
 export function widgetUrlExportVariants(baseUrl:string,theme:WidgetUrlTheme='light'){
  const base=new URL(baseUrl);base.hash='';base.search='';
- return WIDGET_URL_LOCATIONS.flatMap(location=>WIDGET_URL_VIEWS.flatMap(view=>WIDGET_URL_DAYS.map(days=>{const url=new URL(base);url.searchParams.set('widget',location.slug);url.searchParams.set('ansicht',view==='cards'?'kompakt':'kurve');url.searchParams.set('tage',String(days));url.searchParams.set('design',theme);return{location,view,days,theme,url:url.toString()}})));
+ return WIDGET_URL_LOCATIONS.flatMap(location=>WIDGET_URL_VIEWS.flatMap(view=>WIDGET_URL_DAYS.map(days=>{const url=new URL(base);url.searchParams.set('widget',location.slug);url.searchParams.set('ansicht',view==='cards'?'kompakt':'kurve');url.searchParams.set('tage',String(days));url.searchParams.set('design',theme);url.searchParams.set('farben','ecmwf');return{location,view,days,theme,temperatureColors:'ecmwf' as const,url:url.toString()}})));
 }
