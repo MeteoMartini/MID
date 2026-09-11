@@ -1,3 +1,15 @@
+## 0.9.84.48
+
+### Extern
+- Aktuelles Wetter auf Mobilgeräten neu ausbalanciert: Tmin/Tmax bleibt vollständig innerhalb der Wetterkarte.
+- Im Hochformat nutzt der Kopfbereich wieder die verfügbare Breite; Wetter, Nowcast und Hyperlokale Analyse sind ruhiger lesbar.
+- Querformat erhält eine überlauffeste Zweispalten-Darstellung mit kompakterem Tagesbereich.
+
+### Intern
+- Responsive Regeln nach dem v0.9.84.45-Tagesbereich ergänzt, damit spätere Desktop-Regeln die Mobile-Breakpoints nicht mehr übersteuern.
+- Neuer Regressionstest schützt Hoch-/Querformat und Tmin/Tmax vor erneutem Überlauf.
+- Keine Änderung an Wetter-, Nowcast-, Hyperlokal- oder Worker-Datenlogik.
+
 ## 0.9.84.47
 
 ### Extern
