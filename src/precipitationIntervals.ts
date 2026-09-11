@@ -16,7 +16,7 @@ const MAX_GAP_MS=75*60000;
  * Sonnenscheindauer), Niederschlagswahrscheinlichkeit sowie der daraus abgeleitete
  * Niederschlags-Wettercode werden auf den sichtbaren Vorwärtsslot normalisiert.
  */
-function precipitationCode(code:number){return [51,53,55,56,57,61,63,65,66,67,68,69,71,73,75,77,80,81,82,83,84,85,86,95,96,97,99].includes(Math.round(Number(code)||0))}
+function precipitationCode(code:number){return [50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,99].includes(Math.round(Number(code)||0))}
 function drySkyCode(hour:Hour){
  const code=Math.round(Number(hour.code)||0);
  if(code===45||code===48||!precipitationCode(code))return code;

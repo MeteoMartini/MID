@@ -17,7 +17,7 @@ const checks=[
   [foundation.includes('--param-precipitation-snow:#4f9fc9')&&foundation.includes('--param-precipitation-mixed:#8c58bd')&&foundation.includes('--param-precipitation-storm:#6558d4'),'Kanonische Niederschlags-Phasenfarben fehlen im Light-Theme.'],
   [phase.includes("snow:'var(--param-precipitation-snow)'")&&phase.includes("mixed:'var(--param-precipitation-mixed)'")&&phase.includes("storm:'var(--param-precipitation-storm)'"),'TypeScript-Phasenpalette nutzt nicht die zentralen CSS-Parameterfarben.'],
   [phase.includes("if(type==='hailShowers'||type==='thunderstorm'||type==='thunderstormHail')return'storm'"),'Hagel ist nicht eindeutig der Purpur-/Sturmfamilie zugeordnet.'],
-  [phase.includes("if(kind==='snow')return'Schnee/Graupel · hellblau'")&&phase.includes("if(kind==='storm')return'Gewitter/Hagel · purpur'"),'Phasenlegendentexte stimmen nicht mit dem Farbvertrag überein.'],
+  [phase.includes("if(kind==='snow')return'Schnee/Graupel · hellblau'")&&phase.includes("if(kind==='storm')return'Gewitter/Graupel/Hagel · purpur'"),'Phasenlegendentexte stimmen nicht mit dem Farbvertrag überein.'],
   [app.includes("showers:{label:'Regenschauer',legendClass:'showers',fill:'url(#showersPattern)'}")&&app.includes('id="showersPattern"')&&app.includes('fill="var(--param-precipitation)"'),'Regenschauer verwenden nicht die Regen-Blau-Familie.'],
   [app.includes('id="freezingRainPattern"')&&app.includes('fill="var(--param-precipitation-mixed)"'),'Gefrierender Regen verwendet nicht die Misch-/Gefrier-Violettfamilie.'],
   [app.includes('id="sleetPattern"')&&app.includes('fill="var(--param-precipitation-mixed)"'),'Schneeregen verwendet nicht die Misch-/Gefrier-Violettfamilie.'],

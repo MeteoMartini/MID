@@ -98,7 +98,7 @@ gegeneinander verschoben sein.
 
 ### Verbindlicher Skybar-Farb-/Dickenvertrag
 
-- Sonnenschein ist gelb, Bewölkung grau. Niederschlag verwendet eine eigene **phasenabhängige, farbreine Overlay-Farbe**: Regen/Sprühregen/Schauer blau, Schnee hellblau, Misch-/gefrierende Phase violett, Gewitter/Hagel purpur. Die Bedeutungen werden nicht über Mischfarben mit dem Grundband codiert.
+- Sonnenschein ist gelb, Bewölkung grau. Niederschlag verwendet eine eigene **phasenabhängige, farbreine Overlay-Farbe**: Regen/Sprühregen/Schauer blau, Schnee/Eis hellblau, Misch-/gefrierende Phase violett, Gewitter/Graupel/Hagel purpur. Die Bedeutungen werden nicht über Mischfarben mit dem Grundband codiert.
 - **Gesamtbewölkung ist die primäre Himmelsgröße der Skybar.** Ab **50 % Gesamtbewölkung** ist das Grundband grau. Unter 50 % Gesamtbewölkung ist es tagsüber gelb; seine Dicke folgt dann dem komplementären Aufklarungsanteil `1 − Gesamtbewölkung`. Damit kann beispielsweise eine gleichzeitig gelieferte hohe Sonnenscheindauer **69 % Gesamtbewölkung nicht als maximal sonnig überstimmen**.
 - Gelb und Grau bleiben gegenseitig exklusiv. Die Komplementärregel ist ausdrücklich ein **Darstellungsvertrag der kompakten Skybar**, keine meteorologische Gleichsetzung von Sonnenscheindauer und `100 % − Bewölkung`. Die WMO-definierte Sonnenscheindauer bleibt als eigener Strahlungsparameter erhalten.
 - Nur wenn **Gesamtbewölkung fehlt**, darf die relative Sonnenscheindauer tagsüber als gelber Fallback dienen. Fehlende Gesamtbewölkung darf nicht als 0 % Bewölkung behandelt werden.

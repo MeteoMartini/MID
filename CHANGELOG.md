@@ -1,3 +1,42 @@
+# MID v0.9.84.43
+
+## Extern
+- Der Release-Blocker aus GitHub-Lauf #996 ist beseitigt. Die Widget-Hinweislage bleibt wie in v0.9.84.42 über den vollständig ausgewählten 3- bis 7-Tage-Zeitraum aktiv.
+- An Wetterdaten, Warnschwellen, Piktogrammen oder Widgetdarstellung wurde gegenüber v0.9.84.42 nichts zurückgenommen oder fachlich verändert.
+
+## Intern
+- Der einzige #996-Fehler war eine veraltete Regression, die weiterhin den früheren festen Aufruf `summarizeDwdWarnings(..., 24)` erwartete.
+- `test-weather-profile-pressure-hazards-09656.mjs` schützt nun den aktuellen Vertrag: 24-h-Standard außerhalb des Widgets, `throughDate` für Widgets und daraus berechnetes `startLimit`.
+- GitHub #996 hatte bereits npm ci, Dependency-Audit, TypeScript 7.0.2, Vite 8.2.2 und 740 von 741 Regressionen erfolgreich abgeschlossen.
+- Keine neue Worker-Semantik gegenüber v0.9.84.42.
+
+# MID v0.9.84.42
+
+## Extern
+- Die MID-Hinweislage in Widgets reicht jetzt über den gesamten gewählten 3-, 4-, 5-, 6- oder 7-Tage-Zeitraum. Hinweise können an jedem ausgewählten lokalen Kalendertag erscheinen; ein pauschales Ende nach 24 Stunden gibt es im Widget nicht mehr.
+- Die normale MID-Hinweislage außerhalb des Widgets bleibt unverändert kurzfristig ausgerichtet.
+- GitHub-Lauf #995 wurde behoben: TypeScript 7 und Vite waren dort bereits erfolgreich; vier veraltete Regressionserwartungen wurden an den verbindlichen Wetterpiktogramm-Standard 2.1 angepasst.
+
+## Intern
+- `hazards()` besitzt einen optionalen `throughDate`-Vertrag. Nur Widgets setzen ihn auf den letzten tatsächlich ausgewählten Tag; ohne Enddatum bleibt der 24-h-Standard erhalten.
+- Der 72-h-Folgekontext für mehrstündige DWD-Hazardfenster bleibt fachlich erhalten, während `widgetAutomaticHazardsForDay()` weiterhin nur tatsächliche Tagesüberlappungen rendert.
+- Die vier #995-Regressionen schützen nun Stations-/Present-Weather-Felder, Piktogramm-Phänomen + Tag/Nacht, die erweiterten Radarphasen-Schwellen und die aktuellen Nacht-/Gewittergradienten semantisch.
+- `MID_FORECAST_CONSISTENCY_CONTRACT.md` schreibt den vollständigen ausgewählten Widget-Hinweishorizont verbindlich fest.
+
+# MID v0.9.84.41
+
+## Extern
+- Die Wetterpiktogramme folgen jetzt app-weit dem verbindlichen Wetterpiktogramm-Standard 2.1: Eisnadeln, Schneegriesel, einzelne Schneesterne und Eiskörner sind getrennt; Gewitter mit Graupel/Hagel werden ohne Zusatzinformation nicht mehr fälschlich als reiner Hagel dargestellt.
+- Gewitter 95/97 zeigen Regen, Schnee oder Mischphase nur noch, wenn diese Niederschlagsphase tatsächlich bekannt ist. Schauer nach Gewitter (91/92) erscheinen ohne Blitz und ohne fälschlich auflockernde Sonne-/Mondkomponente.
+- Sichttrübungen wie Dunst, Rauch, Staub und Sand bleiben grafisch verwandt, werden in Texten, Tooltips und Barrierefreiheit aber eindeutig unterschieden.
+- Der PNG-/Zwischenablage-Export der Widget-Kurvenübersicht stellt die Nachtbereiche nicht mehr als schwarze Blöcke dar. SVG-Farben werden vor dem Bildexport auf stabile berechnete Werte festgeschrieben.
+
+## Intern
+- `MID_WEATHER_PICTOGRAM_STANDARD.md` auf Standard 2.1 angehoben; Present-Weather- und Phaseninformation wird durch die relevanten Prognose-, Event-, Route-, Wasser-, Radar-, Wetterkarten- und Detailpfade erhalten.
+- Alte Niederschlags-/Schnee-Whitelists wurden um 76/78/79 und die getrennten festen Phasen ergänzt; Radar-/Modelllegenden unterscheiden Schneegriesel, Schneesterne, Eisnadeln, Eiskörner, Graupel und Hagel konsistent.
+- Neuer Export-Helfer `widgetImageExport.ts`: friert `fill`, `stroke`, Gradient-Stopps und Opazitäten vor `html-to-image` als browseraufgelöste Werte ein und stellt danach den Live-DOM wieder her. Nachtbänder besitzen zusätzlich einen expliziten exportfesten Fallback.
+- Neue Regressionen für den app-weiten Piktogrammvertrag und den SVG-Export. Worker-Semantik ist durch die Present-Weather-/Phasenpräzisierung berührt und bleibt über den abgesicherten automatischen Worker-Deploypfad releasepflichtig.
+
 # MID v0.9.84.40
 
 ## Extern

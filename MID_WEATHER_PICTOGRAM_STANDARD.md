@@ -1,4 +1,4 @@
-# MID Wetterpiktogramm-Standard 2.0
+# MID Wetterpiktogramm-Standard 2.1
 
 Ab MID v0.9.78.0 ist `src/WeatherPictogram.tsx` der verbindliche appweite Darstellungsstandard für meteorologische Wetterzustände. Alte Emoji-Wetterzeichen und parallele Wettericon-Renderer dürfen in Forecast-, Tages-, Stunden-, Event-, Reise-, Wasser-, Berg-, Routen- oder Ensembleansichten nicht erneut eingeführt werden.
 
@@ -20,7 +20,7 @@ Abgedeckt werden insbesondere:
 - Schneeschauer `SHSN`;
 - Schneeregen und Schneeregenschauer als getrennte stratiforme bzw. konvektive Symbolik;
 - Eiskristalle `IC`, Eiskörner `PL`, Graupel / small hail `GS` und Hagel `GR` mit klar unterscheidbaren Partikelformen; Graupel erscheint als kleinere, weich gerundete Pellets, Hagel als größere kantig-facettierte Körner;
-- Gewitter `TS`, Gewitter mit Niederschlag sowie Hagelgewitter;
+- Gewitter `TS`, phasenbekanntes Gewitter mit Regen/Schnee/Mischphase sowie Gewitter mit neutraler Graupel-/Hagel- oder expliziter `TSGS`-/`TSGR`-Darstellung;
 - Böenlinie `SQ` und Trichterwolke `FC` für dekodierte Beobachtungsprodukte.
 
 Die Niederschlagsstärke wird nicht primär durch eine andere Farbe vermittelt, sondern durch Anzahl, Dichte, Größe und Strichstärke der Niederschlagselemente. Dadurch bleibt die Bedeutung auch bei eingeschränkter Farbwahrnehmung und in kleinen Darstellungen erhalten.
@@ -63,7 +63,7 @@ Nicht meteorologische Bedienicons, Warnstufensymbole und astronomische Spezialda
 
 ## Verbindliche Präzisierung v0.9.78.1 – Screenshot-3-Lock und Phasenkohärenz
 
-Das in MID 17.7.14 freigegebene **Weather Icon System 2.0** ist die verbindliche visuelle Referenz für die gesamte App. Daraus folgen zusätzlich:
+Das in MID 17.7.14 freigegebene **Weather Icon System 2.0** bleibt die verbindliche visuelle Referenz; der Standard **2.1** erweitert ihn verbindlich um präzisere WMO-/Present-Weather-Semantik, ohne die vertraute Grundgeometrie zu brechen. Daraus folgen zusätzlich:
 
 1. Hauptwetterglyphen werden ohne eingebettete quadratische Hintergrundplatte dargestellt. Ein umgebender UI-Chip darf existieren, darf aber nicht Teil des Wetterzeichens sein.
 2. Tages-/Nacht-, Hell-/Dunkel- und Größenvarianten verwenden dieselbe zentrale SVG-Geometrie und dieselben `--wx-icon-*`-Tokens. Separate alte Bildsätze sind unzulässig.
@@ -162,12 +162,26 @@ Die Niederschlagspiktogramme unterscheiden appweit bis zu vier sichtbare Intensi
 - Für Regenschauer gelten die DWD-bezogenen 10-Minuten-Intensitäten. Bei längeren Forecast-Akkumulationen ist eine auf 10 Minuten normierte Durchschnittsmenge jedoch nur eine **Untergrenze** für den stärksten 10-Minuten-Abschnitt. Ein expliziter WMO-Code darf deshalb nicht durch eine grobe Stundenakkumulation künstlich abgeschwächt werden; insbesondere bleibt WMO 82 `sehr stark`.
 - Codes, die amtlich mehrere Intensitäten zusammenfassen, werden ohne zusätzliche belastbare Intervallinformation nicht künstlich präzisiert. Die Darstellung bleibt konservativ.
 - WMO 87/88 werden als Graupel-/small-hail-Schauer, 89/90 als Hagelschauer dargestellt. Sie verwenden bei Schauern tagsüber Sonne und nachts Mond, sofern der Himmelskörper als Schauer-/Auflockerungskontext fachlich sinnvoll ist.
-- WMO 91/92 bedeuten **Regenschauer zur Beobachtungszeit nach einem Gewitter in der vorangegangenen Stunde**, nicht ein aktuell andauerndes Gewitter. Sie verwenden daher das Schauerpiktogramm mit Tages-/Nachthimmelskörper, aber ohne Blitz. WMO 93/94 legen Schnee, Schneeregen oder Graupel/Hagel nicht eindeutig auseinander und verwenden ein bewusst generisches winterliches Niederschlagssymbol ohne erfundene Phasenpräzision.
-- WMO 95–99 sind aktuelle Gewittercodes. 95/97 garantieren Niederschlag, legen dessen Phase aber nicht eindeutig auf Regen fest; ohne zusätzliches Phasenfeld wird deshalb kein Regenpartikel erfunden. 96/99 zeigen Graupel/Hagel ohne automatisch zusätzlichen Regen. 98 bedeutet Gewitter mit Staub-/Sandsturm und ist **kein Niederschlagsnachweis**.
-- WMO 77 (Schneegriesel) und 79 (Eiskörner) können laut DWD in unterschiedlichen Intensitäten auftreten, kodieren die konkrete Stärke im ww-Code selbst aber nicht. Aus dem Code allein bleibt die Intensität daher neutral; quantitative Zusatzdaten dürfen sie spezifizieren.
+- WMO 91/92 bedeuten **Regenschauer zur Beobachtungszeit nach einem Gewitter in der vorangegangenen Stunde**, nicht ein aktuell andauerndes Gewitter. Sie verwenden daher ein konvektives Schauerpiktogramm **ohne Blitz und ohne Sonne/Mond**; Text, Tooltip und Accessibility benennen ausdrücklich „Regenschauer nach Gewitter“. WMO 93/94 legen Schnee, Schneeregen oder Graupel/Hagel nicht eindeutig auseinander und verwenden ein bewusst generisches winterliches Niederschlagssymbol ohne erfundene Phasenpräzision.
+- WMO 95–99 sind aktuelle Gewittercodes. 95/97 garantieren Niederschlag, legen dessen Phase aber nicht eindeutig auf Regen fest. MID reicht deshalb die **tatsächlich bekannte kanonische Phase** weiter: explizite Regen-/Schauerfelder → `TSRA`, expliziter Schnee → `TSSN`, gleichzeitig bekannte flüssige und feste Phase → `TSRASN`; nur eine Gesamt-Niederschlagsmenge genügt nicht zur Phasenannahme. 96/99 verwenden ohne Zusatzinformation ein neutrales kombiniertes Graupel-/Hagelzeichen; nur explizites `TSGS` bzw. `TSGR` darf eindeutig Graupel bzw. Hagel darstellen. 98 bedeutet Gewitter mit Staub-/Sandsturm und ist **kein Niederschlagsnachweis**.
+- WMO 76 = Eisnadeln, WMO 77 = Schneegriesel, WMO 78 = vereinzelte Schneesterne/-flocken und WMO 79 = Eiskörner. **76 und 78 dürfen nicht dasselbe Piktogramm verwenden.** 77 und 79 können in unterschiedlichen Intensitäten auftreten, kodieren die konkrete Stärke im ww-Code selbst aber nicht. Aus dem Code allein bleibt die Intensität daher neutral; quantitative Zusatzdaten dürfen sie spezifizieren.
 - Für reine Mengenableitung bei Regenschauern gelten <0,4 mm/10 min leicht, 0,7–<2 mm/10 min mäßig, 2–8 mm/10 min stark und >8 mm/10 min sehr stark. Der in der DWD-Mengentabelle nicht eindeutig zugeordnete Zwischenbereich 0,4–<0,7 mm/10 min wird ohne zusätzlichen Intensitätscode konservativ als leicht dargestellt.
 - Zusammengefasste Tages-/Nachtpiktogramme übernehmen die repräsentative Intensität aus den Stunden der jeweiligen Periode. 14-Tage-/Klimaaggregate ohne belastbare Intervallintensität erhalten dagegen keine erfundene zusätzliche Präzision.
 
 Schneehöhe/Schneedecke ist von Neuschnee/Schneefallakkumulation getrennt: **sichtbare Schneehöhen werden appweit in ganzen Zentimetern ausgegeben**, während interne Rohwerte sowie Neuschnee-/Schneefallmengen ihre für Berechnung und kleine Akkumulationen notwendige Dezimalpräzision behalten.
 
 Required Regression: `scripts/test-pictogram-intensity-snow-depth-098426.mjs`.
+
+
+## Verbindliche Präzisierung v0.9.84.41 – Present Weather und appweite Semantik
+
+Diese Regeln gelten ab v0.9.84.41 für **alle** Wetterpiktogramm-Einsatzorte und haben Vorrang vor älteren, abweichenden Einzelregeln:
+
+- `WeatherPictogram` wertet gemeinsam **WMO-Code + bekannte Niederschlagsphase + dekodiertes Present Weather** aus. Kein Zwischenmodell, keine Karte und keine kompakte Zelle darf eine bereits bekannte Phase stillschweigend verwerfen.
+- METAR/SYNOP/BUFR-nahe Beobachtungen dürfen `presentWeather` bis in die aktuelle hyperlokale Stationsrepräsentanz tragen. Der aktuelle Wetterzustand verwendet dieses Signal nur bei ausreichend frischer Beobachtung; fehlendes Present Weather ist **unbekannt**, nicht „kein Phänomen“.
+- `BR`, `HZ`, `FU`, `DU` und `SA` können aus Platz- und Wiedererkennungsgründen dieselbe Sichttrübungs-Grundgeometrie teilen, müssen in sichtbarem Text, Tooltip und Accessibility aber als **feuchter Dunst**, **trockener Dunst**, **Rauch**, **Staub** bzw. **Sand** unterschieden bleiben.
+- `SQ` und `FC` werden als Böenlinie bzw. Trichterwolke behandelt, nicht als generische Gewitter- oder Wolkensymbole.
+- Kurzfrist, 24 h, Tages-/Nachtaggregate, Event, Berg, Route und Wasser führen `phenomenon` mit, sofern der kanonische Fachkern es bestimmt hat. Ensemble-/Klima-/Reiseaggregate ohne belastbare Phaseninformation erfinden weiterhin keine Zusatzpräzision.
+- Warn-, Radar-, Astronomie- und Bedienicons bleiben semantisch getrennt. Sie dürfen keine konkurrierende Wetterzustands-Symbolbibliothek bilden.
+
+Required Regression: `scripts/test-weather-pictogram-appwide-contract-098441.mjs`.

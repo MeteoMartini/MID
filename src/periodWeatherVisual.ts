@@ -2,13 +2,13 @@ import {label,type Hour} from './weather';
 import {precipitationParts,type PrecipitationVisualIntensity} from './precipitation';
 import {weatherPictogramKind,type WeatherPictogramCloudProfile,type WeatherPictogramKind} from './WeatherPictogram';
 
-export type PeriodWeatherVisual=WeatherPictogramCloudProfile&{code:number;title:string;available:boolean;intensity?:PrecipitationVisualIntensity};
+export type PeriodWeatherVisual=WeatherPictogramCloudProfile&{code:number;title:string;available:boolean;intensity?:PrecipitationVisualIntensity;phenomenon?:string};
 
 type PeriodWeatherVisualOptions={preferFallbackCode?:boolean};
 
 const SKY_KINDS=new Set<WeatherPictogramKind>(['clear','mostly-clear','partly-cloudy','cloudy','mist','fog','rime-fog','haze']);
 const FOG_KINDS=new Set<WeatherPictogramKind>(['mist','fog','rime-fog','haze']);
-const THUNDER_KINDS=new Set<WeatherPictogramKind>(['thunder','thunder-hail']);
+const THUNDER_KINDS=new Set<WeatherPictogramKind>(['thunder','thunder-solid','thunder-graupel','thunder-hail']);
 
 function meanLayer(hours:Hour[],key:'cloud'|'lowCloud'|'midCloud'|'highCloud'){
  const values=hours.map(hour=>Number(hour[key])).filter(Number.isFinite);
@@ -54,6 +54,18 @@ function representativePeriodIntensity(pool:Hour[],code:number):PrecipitationVis
  return [...scores.entries()].sort((a,b)=>b[1]-a[1])[0]?.[0];
 }
 
+
+function representativePeriodPhenomenon(pool:Hour[],code:number){
+ const targetKind=weatherPictogramKind(code),scores=new Map<string,number>();
+ for(const hour of pool){
+  const parts=displayParts(hour),phenomenon=parts.phenomenon;
+  if(!phenomenon||weatherPictogramKind(parts.displayCode)!==targetKind)continue;
+  const amount=sampleAmount(hour),probability=sampleProbability(hour),weight=(.5+probability/100)*(1+Math.min(4,amount*2));
+  scores.set(phenomenon,(scores.get(phenomenon)??0)+weight);
+ }
+ return [...scores.entries()].sort((a,b)=>b[1]-a[1])[0]?.[0];
+}
+
 function dominantPeriodCode(pool:Hour[]){
  if(!pool.length)return 3;
  const precipRows=pool.map(hour=>({hour,code:displayCode(hour),kind:sampleKind(hour),amount:sampleAmount(hour),probability:sampleProbability(hour)})).filter(row=>!SKY_KINDS.has(row.kind));
@@ -89,6 +101,6 @@ function dominantPeriodCode(pool:Hour[]){
 export function periodWeatherVisual(hours:Hour[],dayPeriod:boolean,fallbackCode:number,fallbackTitle:string,options:PeriodWeatherVisualOptions={}):PeriodWeatherVisual{
  const pool=periodPool(hours,dayPeriod),periodLabel=dayPeriod?'Tagsüber':'Nachts';
  if(!pool.length)return{code:fallbackCode,title:`${periodLabel}: ${fallbackTitle}`,available:false};
- const code=options.preferFallbackCode?fallbackCode:dominantPeriodCode(pool),baseTitle=options.preferFallbackCode?fallbackTitle:label(code)||fallbackTitle,intensity=representativePeriodIntensity(pool,code);
- return{code,title:`${periodLabel}: ${baseTitle}`,available:true,intensity,cloud:meanLayer(pool,'cloud'),lowCloud:meanLayer(pool,'lowCloud'),midCloud:meanLayer(pool,'midCloud'),highCloud:meanLayer(pool,'highCloud')};
+ const code=options.preferFallbackCode?fallbackCode:dominantPeriodCode(pool),baseTitle=options.preferFallbackCode?fallbackTitle:label(code)||fallbackTitle,intensity=representativePeriodIntensity(pool,code),phenomenon=representativePeriodPhenomenon(pool,code);
+ return{code,title:`${periodLabel}: ${baseTitle}`,available:true,intensity,phenomenon,cloud:meanLayer(pool,'cloud'),lowCloud:meanLayer(pool,'lowCloud'),midCloud:meanLayer(pool,'midCloud'),highCloud:meanLayer(pool,'highCloud')};
 }

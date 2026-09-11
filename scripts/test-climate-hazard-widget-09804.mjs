@@ -1,7 +1,8 @@
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
-const [app,climate,travel,dwd,sun,foundation,modern,pkgText,baselineText]=await Promise.all([
+const [app,weather,climate,travel,dwd,sun,foundation,modern,pkgText,baselineText]=await Promise.all([
  readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
+ readFile(new URL('../src/weather.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/ClimatePanel.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/travelPlanner.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/dwdWarnings.ts',import.meta.url),'utf8'),
@@ -17,7 +18,12 @@ need('Kanonischer DWD-Grenzvertrag',dwd,"export function dwdWindThresholdExceede
 need('Kanonische Böenstufe',dwd,'export function dwdWindWarningLevelKt');
 need('App nutzt zentrale Böenstufe',app,'function windDirectionWarningLevel(gust?:number){return dwdWindWarningLevelKt(Number(gust))}');
 need('Bergwetter nutzt zentrale Schwellen',app,'dwdWindThresholdExceededKmh(kmh,item.threshold)');
-need('Widget nutzt automatische MID-Hinweise',app,'automaticWidgetHazards=useMemo(()=>hazards(hours,undefined,elevation??0,unit)');
+need('Widget bestimmt den letzten tatsächlich ausgewählten Hinweistag',app,'widgetHazardThroughDate=days[Math.max(0,Math.min(n,days.length)-1)]?.date');
+need('Widget nutzt automatische MID-Hinweise für den vollständigen ausgewählten Zeitraum',app,'automaticWidgetHazards=useMemo(()=>hazards(hours,undefined,elevation??0,unit,undefined,widgetHazardThroughDate)');
+need('Widget-Hinweishorizont ist vom gewählten Zeitraum abhängig',app,'[hours,elevation,unit,widgetHazardThroughDate]');
+need('Kanonische Hinweisanalyse akzeptiert ein optionales Widget-Enddatum',weather,"ensemble?:WarningEnsembleSupport|null,throughDate?:string");
+need('Standard-Hinweislage bleibt ohne Widget-Enddatum auf 24 h begrenzt',weather,":Math.min(24,future.length)");
+need('Widget-Enddatum steuert den DWD-Startzeitraum statt eines festen 24-h-Limits',weather,'summarizeDwdWarnings(horizon,elevation,startLimit)');
 need('Widget ordnet Zeitfenster tagesbezogen zu',app,'widgetAutomaticHazardsForDay(d.date,automaticWidgetHazards,timezone)');
 need('Widget-Hazardtage verwenden ISO-Lokaldate',app,'const first=localDateInZone(timezone,start),last=localDateInZone(timezone,end-1)');
 assert.ok(!app.includes('hz:strongestDailyHazards(dailyHazards(d,hours,elevation??0,unit,1))'),'Widget fällt auf den alten separaten Tageswarnpfad zurück.');

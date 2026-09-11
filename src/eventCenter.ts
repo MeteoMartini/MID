@@ -8,8 +8,8 @@ import type {PrecipitationVisualIntensity} from './precipitation'
 export type EventEnvironment='indoor'|'outdoor'|'covered'
 export type EventActivity='general'|'running'|'cycling'|'hiking'|'skiing'|'climbing'|'football'|'tennis'|'golf'|'gym'|'yoga'|'watersports'|'city'|'concert'|'flight'
 export type EventStatus='good'|'watch'|'caution'
-export type EventTimelinePoint={time:string;periodLabel?:string;durationMinutes?:number;temperature:number|null;apparent:number|null;precipitationProbability:number|null;precipitation:number|null;rain?:number|null;showers?:number|null;snowfall?:number|null;weatherCode:number|null;weatherIntensity?:PrecipitationVisualIntensity;weatherLabel?:string;wind:number|null;gust:number|null;uv:number|null;visibility:number|null;humidity?:number|null;cloud?:number|null;lowCloud?:number|null;cape?:number|null;liftedIndex?:number|null;convectiveInhibition?:number|null;sunshineDuration?:number|null;isDay?:boolean;weatherSourceId?:string;weatherSourceLabel?:string}
-export type EventSummary={hours:number;temperatureAvg:number|null;temperatureMin:number|null;temperatureMax:number|null;apparentAvg:number|null;precipitationProbabilityMax:number|null;precipitationProbabilityRelevant?:number|null;precipitationProbabilitySignificant?:number|null;precipitationProbabilitySource?:'ensemble-members-dwd-event'|'hourly-window-average-fallback'|'unavailable';hourlyMeanProbability?:number|null;coverageComplete?:boolean;precipitationProbabilityMemberCount?:number;precipitationProbabilityModelFamilies?:number;precipitationTypeLabel?:string;precipitationTotal:number|null;sunshineDurationTotal:number|null;windMax:number|null;gustMax:number|null;uvMax:number|null;visibilityMin:number|null;weatherCode:number|null;weatherIntensity?:PrecipitationVisualIntensity;weatherLabel?:string;weatherSourceLabel?:string;isDay?:boolean;modelFamilyCount?:number;rapidCycleUsed?:boolean;weatherTwinApplied?:boolean;flightHazards?:EventFlightHazardSummary}
+export type EventTimelinePoint={time:string;periodLabel?:string;durationMinutes?:number;temperature:number|null;apparent:number|null;precipitationProbability:number|null;precipitation:number|null;rain?:number|null;showers?:number|null;snowfall?:number|null;weatherCode:number|null;weatherIntensity?:PrecipitationVisualIntensity;weatherPhenomenon?:string;weatherLabel?:string;wind:number|null;gust:number|null;uv:number|null;visibility:number|null;humidity?:number|null;cloud?:number|null;lowCloud?:number|null;cape?:number|null;liftedIndex?:number|null;convectiveInhibition?:number|null;sunshineDuration?:number|null;isDay?:boolean;weatherSourceId?:string;weatherSourceLabel?:string}
+export type EventSummary={hours:number;temperatureAvg:number|null;temperatureMin:number|null;temperatureMax:number|null;apparentAvg:number|null;precipitationProbabilityMax:number|null;precipitationProbabilityRelevant?:number|null;precipitationProbabilitySignificant?:number|null;precipitationProbabilitySource?:'ensemble-members-dwd-event'|'hourly-window-average-fallback'|'unavailable';hourlyMeanProbability?:number|null;coverageComplete?:boolean;precipitationProbabilityMemberCount?:number;precipitationProbabilityModelFamilies?:number;precipitationTypeLabel?:string;precipitationTotal:number|null;sunshineDurationTotal:number|null;windMax:number|null;gustMax:number|null;uvMax:number|null;visibilityMin:number|null;weatherCode:number|null;weatherIntensity?:PrecipitationVisualIntensity;weatherPhenomenon?:string;weatherLabel?:string;weatherSourceLabel?:string;isDay?:boolean;modelFamilyCount?:number;rapidCycleUsed?:boolean;weatherTwinApplied?:boolean;flightHazards?:EventFlightHazardSummary}
 export type EventAdvice={status:EventStatus;headline:string;summary:string;tips:string[];behavior:string[]}
 export type EventPlan={location:Location;title:string;date:string;startTime:string;endTime:string;environment:EventEnvironment;activity:EventActivity;timeline:EventTimelinePoint[];summary:EventSummary;advice:EventAdvice;modelInfo:BestMatchModelInfo|null;refreshedAt:number;source:string;sourceRevisionAt?:number;refreshStartedAt?:number;refreshReason?:string}
 export type EventChangeLevel='none'|'model'|'minor'|'major'
@@ -88,15 +88,15 @@ export function compareEventPlans(previous:EventPlan|null|undefined,next:EventPl
 
 function eventWeatherImpactKey(summary:EventSummary){
  const text=`${summary.precipitationTypeLabel||''} ${summary.weatherLabel||''}`.toLocaleLowerCase('de-DE')
- if(/kein(?:e|en)?\s+niederschlag|trocken/.test(text)&&!/(regen|schauer|sprühregen|schnee|graupel|eisregen|gewitter|hagel)/.test(text))return'dry'
+ if(/kein(?:e|en)?\s+niederschlag|trocken/.test(text)&&!/(regen|schauer|sprühregen|schnee|graupel|eisregen|eisnadeln|eiskörner|gewitter|hagel)/.test(text))return'dry'
  if(/gewitter|hagel/.test(text))return'thunder'
  if(/eisregen|gefrier|glatteis/.test(text))return'freezing'
- if(/schnee|graupel/.test(text))return'snow'
+ if(/schnee|graupel|eisnadeln|eiskörner/.test(text))return'snow'
  if(/regen|schauer|sprühregen|niederschlag/.test(text))return'rain'
  const code=Number(summary.weatherCode)
  if([95,96,97,98,99].includes(code))return'thunder'
  if([56,57,66,67].includes(code))return'freezing'
- if([71,73,75,77,85,86].includes(code))return'snow'
+ if([68,69,71,73,75,76,77,78,79,83,84,85,86,87,88,89,90,93,94].includes(code))return'snow'
  if([51,53,55,61,63,65,80,81,82].includes(code))return'rain'
  if([45,48].includes(code))return'fog'
  return'dry'

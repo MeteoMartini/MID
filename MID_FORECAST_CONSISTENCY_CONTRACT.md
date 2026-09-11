@@ -97,3 +97,14 @@ Lokale Parallelberechnungen sind nur zulässig, wenn sie eine bewusst andere fac
 ## 11. Regressionsschutz
 
 Der Required-Test `scripts/test-forecast-consistency-contract-095326.mjs` schützt die kanonischen Stunden-/15-Minuten-Pfade, die app-weite Verwendung und das Verbot eines erneuten UI-seitigen Hyperlokal-/Radar-Blends.
+
+## 12. Widget-Hinweislage folgt dem ausgewählten Zeitraum
+
+Die automatische **MID-Hinweislage in Widgets** muss den vollständigen vom Nutzer ausgewählten Widget-Zeitraum abdecken. Bei einer Auswahl von 3, 4, 5, 6 oder 7 Tagen dürfen neue warnwürdige Ereignisse an jedem dieser ausgewählten lokalen Kalendertage erkannt und angezeigt werden. Ein pauschales Abschneiden nach 24 Stunden ist im Widget unzulässig.
+
+Der Widget-Horizont endet am letzten tatsächlich ausgewählten lokalen Kalendertag. Die normale MID-Hinweislage außerhalb des Widgets behält ihren eigenen kurzfristigen Standardhorizont; die Widget-Erweiterung darf diesen Vertrag nicht stillschweigend global verändern. Mehrstündige DWD-Auswertefenster dürfen über das Ende des letzten ausgewählten Tages hinausschauen, soweit dies zur fachlich korrekten Bewertung eines Ereignisses nötig ist. Angezeigt wird ein Hinweis im Widget jedoch nur an den ausgewählten Tagen, die sein tatsächliches Gültigkeitsfenster überlappt.
+
+Verbindlicher Datenweg: `Widget` bestimmt `widgetHazardThroughDate` aus `days.slice(0, n)`, die zentrale `hazards()`-Analyse verwendet dieses Enddatum als Startfenstergrenze, und `widgetAutomaticHazardsForDay()` ordnet die resultierenden Hinweise anschließend anhand ihrer ISO-Gültigkeitsfenster dem jeweiligen lokalen Kalendertag zu. Karten- und Kurvenwidget verwenden dieselbe Logik.
+
+Regression: `scripts/test-climate-hazard-widget-09804.mjs` schützt die ausgewählte Enddatumsgrenze, den unveränderten 24-h-Standard außerhalb des Widgets und die tagesgenaue Zuordnung.
+

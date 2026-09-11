@@ -1,12 +1,16 @@
-export type PrecipitationSymbolPhase='mixed'|'snow'|'snow-grains'|'freezing'|'graupel'|'hail';
+export type PrecipitationSymbolPhase='mixed'|'snow'|'snow-grains'|'snow-stars'|'ice-crystals'|'ice-pellets'|'freezing'|'graupel'|'hail'|'graupel-hail';
 
 export const PRECIPITATION_SYMBOL_META:Record<PrecipitationSymbolPhase,{label:string;shortLabel:string}>={
  mixed:{label:'Schneeregen / Mischphase',shortLabel:'Schneeregen'},
  snow:{label:'Schnee',shortLabel:'Schnee'},
- 'snow-grains':{label:'Schneekörner',shortLabel:'Schneekörner'},
+ 'snow-grains':{label:'Schneegriesel',shortLabel:'Schneegriesel'},
+ 'snow-stars':{label:'Vereinzelte Schneesterne',shortLabel:'Schneesterne'},
+ 'ice-crystals':{label:'Eisnadeln',shortLabel:'Eisnadeln'},
+ 'ice-pellets':{label:'Eiskörner',shortLabel:'Eiskörner'},
  freezing:{label:'Gefrierender (Sprüh-)Regen',shortLabel:'Gefrierend'},
- graupel:{label:'Graupel / Eiskörner',shortLabel:'Graupel'},
- hail:{label:'Hagel',shortLabel:'Hagel'}
+ graupel:{label:'Graupel',shortLabel:'Graupel'},
+ hail:{label:'Hagel',shortLabel:'Hagel'},
+ 'graupel-hail':{label:'Graupel oder Hagel',shortLabel:'Graupel/Hagel'}
 };
 
 const svgOpen='<svg viewBox="0 0 32 24" width="100%" height="100%" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">';
@@ -18,8 +22,12 @@ const drop=(cx:number,cy:number,scale=1)=>`<path d="M${cx} ${(cy-3.7*scale).toFi
 export function precipitationTypeSymbolSvg(phase:PrecipitationSymbolPhase){
  let content='';
  if(phase==='graupel')content=`${hex(8,7,3.4)}${hex(20,8.5,3.4)}${hex(12.5,17,3.4)}`;
+ else if(phase==='graupel-hail')content=`${hex(7.5,7,3.2)}${hex(19.5,8.5,3.35,true)}${hex(12.5,17,3.2)}`;
  else if(phase==='hail')content=`${hex(8,7,3.45,true)}${hex(20,8.5,3.45,true)}${hex(12.5,17,3.45,true)}`;
  else if(phase==='snow')content=`${star(8,7,3.3)}${star(20,8.5,3.3)}${star(12.5,17,3.3)}`;
+ else if(phase==='snow-stars')content=`${star(8,8,2.55)}${star(21,15.5,2.55)}`;
+ else if(phase==='ice-crystals')content='<g fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"><path d="M8 3v8M4 7h8M20 11v8M16 15h8"/><path d="M5.2 4.2l5.6 5.6M10.8 4.2L5.2 9.8M17.2 12.2l5.6 5.6M22.8 12.2l-5.6 5.6" opacity=".75"/></g>';
+ else if(phase==='ice-pellets')content='<g fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="8" cy="7" r="3"/><circle cx="20" cy="8.5" r="3"/><circle cx="12.5" cy="17" r="3"/></g>';
  else if(phase==='snow-grains')content='<g fill="currentColor"><circle cx="8" cy="7" r="1.8"/><circle cx="20" cy="8.5" r="1.8"/><circle cx="12.5" cy="17" r="1.8"/></g>';
  else if(phase==='mixed')content=`${star(8,7.2,3.1)}${drop(19,9.2,.9)}${drop(13.5,18,.85)}`;
  else content='<g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5.5 14.2c0-4 3.2-7.2 7.1-7.2 3.7 0 6.6 2.6 6.6 5.9 0 2.7-2.1 4.9-4.7 4.9-2.1 0-3.8-1.6-3.8-3.5 0-1.6 1.3-2.9 2.9-2.9"/><path d="M26.5 9.8c0 4-3.2 7.2-7.1 7.2"/></g><circle cx="6.2" cy="18.1" r="1.7" fill="currentColor"/><circle cx="25.6" cy="6.2" r="1.7" fill="currentColor"/>';

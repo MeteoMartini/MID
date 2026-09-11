@@ -18,9 +18,9 @@ MID zeigt Niederschlagsart, Intensität und Tag-/Nachtcharakter appweit über de
 - WMO 85–86: Schneeschauer.
 - WMO 87–88: Graupel-/small-hail-Schauer.
 - WMO 89–90: Hagelschauer ohne aktuelles Gewitter.
-- WMO 91–92: Regenschauer zum Beobachtungszeitpunkt nach Gewitter in der vorangegangenen Stunde; daher Schauerpiktogramm mit Tag-/Nachtbezug, aber kein aktueller Blitz.
+- WMO 91–92: Regenschauer zum Beobachtungszeitpunkt nach Gewitter in der vorangegangenen Stunde; daher konvektives Schauerpiktogramm **ohne aktuellen Blitz und ohne Sonne/Mond**. Sichtbarer Text/Accessibility: „Regenschauer nach Gewitter“.
 - WMO 93–94: Schnee, Schneeregen oder Hagel nach Gewitter in der vorangegangenen Stunde; bewusst generisches winterliches Symbol, weil der Code die einzelne Phase nicht sicher festlegt.
-- WMO 95–99: aktuelles Gewitter gemäß Codegruppe. WMO 95/97 kodieren Niederschlag, aber nicht eindeutig dessen Phase (Regen, Schnee oder Schneeregen); ohne zusätzliches Phasenfeld zeichnet MID deshalb keinen erfundenen Regen. WMO 96/99 zeigen Graupel/Hagel ohne automatisch zusätzlichen Regen. WMO 98 ist Gewitter mit Staub-/Sandsturm und kein Niederschlagsnachweis.
+- WMO 95–99: aktuelles Gewitter gemäß Codegruppe. WMO 95/97 kodieren Niederschlag, aber nicht eindeutig dessen Phase (Regen, Schnee oder Schneeregen); MID zeichnet deshalb nur eine Phase, wenn explizite Regen-/Schauer- oder Schneefelder sie tragen. Eine bloße Gesamt-Niederschlagsmenge reicht nicht aus. WMO 96/99 zeigen ohne Zusatzinformation ein neutrales kombiniertes Graupel-/Hagelzeichen; `TSGS` bzw. `TSGR` dürfen auf die eindeutige Variante schalten. WMO 98 ist Gewitter mit Staub-/Sandsturm und kein Niederschlagsnachweis.
 - Schauerfamilien dürfen den Tages-/Nachthimmelskörper zeigen: Sonne am Tag, Mond in der Nacht. Dauerregen, Dauerschnee und andere stratiforme Phänomene erhalten keinen künstlichen Sonnen-/Mondrest.
 - Graupel/Hagel/WMO 93–94 müssen in Detail-, Perioden-, Berg-, Event-, Routen-, Wasser-, Kurzfrist-, Tages- und Widgetrepräsentanzpfaden berücksichtigt werden und dürfen nicht durch alte Whitelists verloren gehen.
 
@@ -40,6 +40,12 @@ MID zeigt Niederschlagsart, Intensität und Tag-/Nachtcharakter appweit über de
 `scripts/test-pictogram-intensity-snow-depth-098426.mjs` schützt diesen Vertrag zusätzlich zu den bestehenden Piktogramm-, Niederschlags-, Perioden- und Schneeeinheitentests.
 
 ## Nicht intensitätskodierte Sondercodes und WMO 98
-- WMO 76/77/78/79 tragen keine reguläre leicht/mäßig/stark-Intensitätsklasse. MID erfindet hierfür aus dem Code allein keine Intensitätsbezeichnung; eine quantitative Schneemenge darf bei Schneegriesel die Darstellung nur dann staffeln, wenn sie tatsächlich vorliegt.
+- WMO 76/77/78/79 tragen keine reguläre leicht/mäßig/stark-Intensitätsklasse. Die Phasen bleiben appweit getrennt: 76 **Eisnadeln**, 77 **Schneegriesel**, 78 **vereinzelte Schneesterne/-flocken**, 79 **Eiskörner**. Insbesondere dürfen 76 und 78 nicht dieselbe Geometrie verwenden. MID erfindet aus dem Code allein keine Intensitätsbezeichnung; eine quantitative Schneemenge darf bei Schneegriesel die Darstellung nur dann staffeln, wenn sie tatsächlich vorliegt.
 - WMO 98 bedeutet ein Gewitter mit Staub- oder Sandsturm. Der Code ist kein Niederschlagsnachweis: Das Piktogramm zeigt Gewitter/Wind, aber keine erfundenen Regentropfen; die zentrale Niederschlagslogik behandelt 98 nur dann als nass, wenn unabhängige Mengen-/Phasenfelder Niederschlag belegen.
 
+
+
+## Present-Weather-Weitergabe
+- Ein vom Fachkern bestimmtes `phenomenon` wird zusammen mit Code und Intensität durch Kurzfrist-, Detail-, Tages-/Nacht-, Event-, Berg-, Routen- und Wasserpfade gereicht.
+- Beobachtete METAR/SYNOP/BUFR-Present-Weather-Kürzel haben für die semantische Phänomenbeschreibung Vorrang vor generischen Labels, solange die Beobachtung frisch genug ist.
+- `HZ`, `FU`, `DU`, `SA` dürfen dieselbe Sichttrübungs-Grundform teilen, müssen aber textlich und in Accessibility eindeutig als trockener Dunst, Rauch, Staub bzw. Sand benannt sein.

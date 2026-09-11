@@ -135,6 +135,9 @@ function precipType(index:number,hourly:HourlyRecord){
   showers:{short:'SHRA',label:part.weatherLabel,kind:'showers'},
   snow:{short:'SN',label:part.weatherLabel,kind:'snow'},
   snowGrains:{short:'SG',label:part.weatherLabel,kind:'snow'},
+  snowStars:{short:'SN',label:part.weatherLabel,kind:'snow'},
+  iceCrystals:{short:'IC',label:part.weatherLabel,kind:'snow'},
+  icePellets:{short:'PL',label:part.weatherLabel,kind:'snow'},
   snowShowers:{short:'SHSN',label:part.weatherLabel,kind:'snow'},
   sleet:{short:'RASN',label:part.weatherLabel,kind:'mixed'},
   sleetShowers:{short:'SHRASN',label:part.weatherLabel,kind:'mixed'},
@@ -142,7 +145,7 @@ function precipType(index:number,hourly:HourlyRecord){
   hailShowers:{short:'SHGR',label:part.weatherLabel,kind:'snow'},
   wintryAfterThunder:{short:'',label:part.weatherLabel,kind:'mixed'},
   thunderstorm:{short:'TSRA',label:part.weatherLabel,kind:'showers'},
-  thunderstormHail:{short:'TSGR',label:part.weatherLabel,kind:'showers'}
+  thunderstormHail:{short:'TSGS/GR',label:part.weatherLabel,kind:'showers'}
  } as const;
  return mapped[part.type];
 }

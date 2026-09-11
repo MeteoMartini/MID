@@ -144,7 +144,7 @@ function plausiblePrecipFamily(h:Hour){
  const part=precipitationParts(h);
  if(part.type==='drizzle'||part.type==='freezingDrizzle')return'drizzle';
  if(part.type==='rain'||part.type==='freezingRain'||part.type==='sleet'||part.type==='wintryAfterThunder')return'rain';
- if(part.type==='snow'||part.type==='snowGrains')return'snow';
+ if(part.type==='snow'||part.type==='snowGrains'||part.type==='snowStars'||part.type==='iceCrystals'||part.type==='icePellets')return'snow';
  if(part.type==='showers'||part.type==='snowShowers'||part.type==='sleetShowers'||part.type==='graupelShowers'||part.type==='hailShowers')return'showers';
  if(part.type==='thunderstorm'||part.type==='thunderstormHail')return'thunder';
  return'none';
@@ -157,7 +157,7 @@ function plausiblePrecipCode(h:Hour,family:string){
 function precipCodeFamily(code:number){
  if([51,53,55,56,57].includes(code))return'drizzle';
  if([61,63,65,66,67,68,69,91,92,93,94].includes(code))return'rain';
- if([71,73,75,77].includes(code))return'snow';
+ if([71,73,75,76,77,78,79].includes(code))return'snow';
  if([80,81,82,83,84,85,86,87,88,89,90].includes(code))return'showers';
  if([95,96,97,99].includes(code))return'thunder';
  return'none';
@@ -246,13 +246,16 @@ function shortEvent(family:string,eventLabel:string){
  if(text.includes('schneeschauer'))return'Schneeschauer';
  if(text.includes('schneeregen'))return'Schneeregen';
  if(text.includes('schneegriesel'))return'Schneegriesel';
+ if(text.includes('schneesterne'))return'Schneesterne';
+ if(text.includes('eisnadeln'))return'Eisnadeln';
+ if(text.includes('eiskörner'))return'Eiskörner';
  if(text.includes('schneefall'))return'Schnee';
  if(text.includes('gefrierenden sprühregen')||text.includes('gefrierender sprühregen'))return'Gefrierender Sprühregen';
  if(text.includes('gefrierenden regen')||text.includes('gefrierender regen'))return'Gefrierender Regen';
  if(text.includes('regenschauer'))return'Regenschauer';
  if(text.includes('sprühregen'))return'Sprühregen';
  if(family==='showers')return'Schauer';
- if(family==='thunder')return text.includes('hagel')?'Gewitter mit Hagel':'Gewitter';
+ if(family==='thunder')return text.includes('graupel oder hagel')?'Gewitter mit Graupel/Hagel':text.includes('graupel')?'Gewitter mit Graupel':text.includes('hagel')?'Gewitter mit Hagel':'Gewitter';
  if(family==='snow')return'Schnee';
  if(family==='drizzle')return'Sprühregen';
  if(family==='rain')return'Regen';

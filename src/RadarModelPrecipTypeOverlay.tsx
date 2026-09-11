@@ -7,7 +7,7 @@ import type {RadarPhase} from './radarColorTables';
 import {precipitationTypeSymbolSvg,type PrecipitationSymbolPhase} from './precipitationTypeSymbols';
 
 export type RadarModelPhaseStatus='idle'|'loading'|'ready'|'error';
-type OverlayPhase=RadarPhase|'hail'|'graupel'|'snow-grains';
+type OverlayPhase=RadarPhase|'hail'|'graupel'|'graupel-hail'|'snow-grains'|'snow-stars'|'ice-crystals'|'ice-pellets';
 type PhaseResult={phase:OverlayPhase;label:string;confidence:'hoch'|'mittel'|'eingeschränkt';modelEvidence:boolean};
 type EchoSummary={covered:boolean;hits:number;maxDbz:number;meanDbz:number;maxRate:number};
 type SymbolPhase=PrecipitationSymbolPhase;
@@ -17,17 +17,21 @@ function finite(value:unknown){const number=Number(value);return Number.isFinite
 function wetBulbStull(t:number,rh:number){if(!Number.isFinite(t)||!Number.isFinite(rh))return NaN;const humidity=Math.max(1,Math.min(100,rh));return t*Math.atan(.151977*Math.sqrt(humidity+8.313659))+Math.atan(t+humidity)-Math.atan(humidity-1.676331)+.00391838*Math.pow(humidity,1.5)*Math.atan(.023101*humidity)-4.686035}
 
 function phaseFor(frame:WeatherPhaseGridFrame,index:number):PhaseResult{
- const code=Math.round(finite(frame.weatherCode[index])||0),temperature=finite(frame.temperature2m[index]),humidity=finite(frame.relativeHumidity2m[index]),directWetBulb=finite(frame.wetBulbTemperature2m[index]),wetBulb=Number.isFinite(directWetBulb)?directWetBulb:wetBulbStull(temperature,humidity),precipitation=Math.max(0,finite(frame.precipitation[index])||0),rain=Math.max(0,finite(frame.rain[index])||0),showers=Math.max(0,finite(frame.showers[index])||0),snowfall=Math.max(0,finite(frame.snowfall[index])||0),snowfallHeight=finite(frame.snowfallHeight[index]),freezingLevel=finite(frame.freezingLevelHeight[index]),elevation=finite(frame.elevation[index]),explicitFreezing=[56,57,66,67].includes(code),explicitSnow=[71,73,75,85,86].includes(code),explicitSnowGrains=[77].includes(code),explicitMixed=[68,69,83,84].includes(code),explicitGraupel=[87,88].includes(code),explicitHail=[89,90,96,99].includes(code),explicitThunderPrecip=[95,97].includes(code),explicitWintryAfterThunder=[93,94].includes(code),explicitRain=[51,53,55,61,63,65,80,81,82,91,92].includes(code),liquid=rain+showers,modelEvidence=precipitation>=.003||liquid>=.003||snowfall>=.003||explicitFreezing||explicitSnow||explicitSnowGrains||explicitMixed||explicitGraupel||explicitHail||explicitThunderPrecip||explicitWintryAfterThunder||explicitRain;
- if(explicitHail)return{phase:'hail',label:[96,99].includes(code)?'Graupel / Hagel':'Hagel',confidence:'hoch',modelEvidence};
+ const code=Math.round(finite(frame.weatherCode[index])||0),temperature=finite(frame.temperature2m[index]),humidity=finite(frame.relativeHumidity2m[index]),directWetBulb=finite(frame.wetBulbTemperature2m[index]),wetBulb=Number.isFinite(directWetBulb)?directWetBulb:wetBulbStull(temperature,humidity),precipitation=Math.max(0,finite(frame.precipitation[index])||0),rain=Math.max(0,finite(frame.rain[index])||0),showers=Math.max(0,finite(frame.showers[index])||0),snowfall=Math.max(0,finite(frame.snowfall[index])||0),snowfallHeight=finite(frame.snowfallHeight[index]),freezingLevel=finite(frame.freezingLevelHeight[index]),elevation=finite(frame.elevation[index]),explicitFreezing=[56,57,66,67].includes(code),explicitSnow=[71,73,75,85,86].includes(code),explicitIceCrystals=code===76,explicitSnowGrains=code===77,explicitSnowStars=code===78,explicitIcePellets=code===79,explicitMixed=[68,69,83,84].includes(code),explicitGraupel=[87,88].includes(code),explicitHail=[89,90].includes(code),explicitGraupelHail=[96,99].includes(code),explicitThunderPrecip=[95,97].includes(code),explicitWintryAfterThunder=[93,94].includes(code),explicitRain=[51,53,55,61,63,65,80,81,82,91,92].includes(code),liquid=rain+showers,modelEvidence=precipitation>=.003||liquid>=.003||snowfall>=.003||explicitFreezing||explicitSnow||explicitIceCrystals||explicitSnowGrains||explicitSnowStars||explicitIcePellets||explicitMixed||explicitGraupel||explicitHail||explicitGraupelHail||explicitThunderPrecip||explicitWintryAfterThunder||explicitRain;
+ if(explicitGraupelHail)return{phase:'graupel-hail',label:'Graupel oder Hagel',confidence:'hoch',modelEvidence};
+ if(explicitHail)return{phase:'hail',label:'Hagel',confidence:'hoch',modelEvidence};
  if(explicitGraupel)return{phase:'graupel',label:'Graupel',confidence:'hoch',modelEvidence};
  if(explicitFreezing)return{phase:'freezing',label:'gefrierender Niederschlag',confidence:Number.isFinite(wetBulb)&&wetBulb<=.8?'hoch':'mittel',modelEvidence};
  if(explicitMixed||(snowfall>=.003&&liquid>=.003))return{phase:'mixed',label:'Schneeregen / Mischphase',confidence:'hoch',modelEvidence};
- if(explicitSnowGrains)return{phase:'snow-grains',label:'Schneekörner',confidence:'hoch',modelEvidence};
+ if(explicitIceCrystals)return{phase:'ice-crystals',label:'Eisnadeln',confidence:'hoch',modelEvidence};
+ if(explicitSnowGrains)return{phase:'snow-grains',label:'Schneegriesel',confidence:'hoch',modelEvidence};
+ if(explicitSnowStars)return{phase:'snow-stars',label:'Vereinzelte Schneesterne',confidence:'hoch',modelEvidence};
+ if(explicitIcePellets)return{phase:'ice-pellets',label:'Eiskörner',confidence:'hoch',modelEvidence};
  const snowLevelSupports=Number.isFinite(snowfallHeight)&&Number.isFinite(elevation)&&snowfallHeight<=elevation+220,liquidLevelSupports=Number.isFinite(snowfallHeight)&&Number.isFinite(elevation)&&snowfallHeight>=elevation+320,freezeSupports=Number.isFinite(freezingLevel)&&Number.isFinite(elevation)&&freezingLevel<=elevation+280;
  if(explicitSnow||snowfall>=.003){if((Number.isFinite(wetBulb)&&wetBulb<=.9)||snowLevelSupports)return{phase:'snow',label:'Schnee',confidence:explicitSnow?'hoch':'mittel',modelEvidence};if(Number.isFinite(wetBulb)&&wetBulb<=1.7)return{phase:'mixed',label:'Mischphase möglich',confidence:'mittel',modelEvidence}}
  if(explicitRain||explicitThunderPrecip||liquid>=.003){if((Number.isFinite(wetBulb)&&wetBulb>=1.3)||liquidLevelSupports)return{phase:'rain',label:'Regen',confidence:explicitRain?'hoch':'mittel',modelEvidence};if(Number.isFinite(wetBulb)&&wetBulb>=.1&&wetBulb<1.3)return{phase:'mixed',label:'Mischphase möglich',confidence:'eingeschränkt',modelEvidence}}
  if(modelEvidence&&Number.isFinite(wetBulb)){
-  if(wetBulb<=.1&&snowLevelSupports&&precipitation>=.05)return{phase:'graupel',label:'Graupel / Eiskörner möglich',confidence:'mittel',modelEvidence};
+  if(wetBulb<=.1&&snowLevelSupports&&precipitation>=.05)return{phase:'graupel',label:'Graupel möglich',confidence:'mittel',modelEvidence};
   if(wetBulb<=.35&&snowLevelSupports)return{phase:'snow',label:'Schneephase wahrscheinlich',confidence:'mittel',modelEvidence};
   if(wetBulb>=1.7&&!freezeSupports)return{phase:'rain',label:'flüssige Phase wahrscheinlich',confidence:'mittel',modelEvidence}
  }
@@ -47,14 +51,14 @@ function radarBackedThermalPhase(base:PhaseResult,frame:WeatherPhaseGridFrame,in
  if((base.phase!=='uncertain'&&base.confidence!=='eingeschränkt')||!echo.covered||!Number.isFinite(echo.maxDbz)||echo.maxDbz<7)return base;
  const temperature=finite(frame.temperature2m[index]),humidity=finite(frame.relativeHumidity2m[index]),directWetBulb=finite(frame.wetBulbTemperature2m[index]),wetBulb=Number.isFinite(directWetBulb)?directWetBulb:wetBulbStull(temperature,humidity),snowfallHeight=finite(frame.snowfallHeight[index]),elevation=finite(frame.elevation[index]);
  if(Number.isFinite(wetBulb)&&wetBulb>=2)return{phase:'rain',label:'Regen · Radar + thermische Phase',confidence:'mittel',modelEvidence:true};
- if(Number.isFinite(wetBulb)&&wetBulb<=-.7&&echo.maxDbz>=17)return{phase:'graupel',label:'Graupel / Eiskörner · Radar + thermische Phase',confidence:'mittel',modelEvidence:true};
+ if(Number.isFinite(wetBulb)&&wetBulb<=-.7&&echo.maxDbz>=17)return{phase:'graupel',label:'Graupel · Radar + thermische Phase',confidence:'mittel',modelEvidence:true};
  if(Number.isFinite(wetBulb)&&wetBulb<=-.4&&Number.isFinite(snowfallHeight)&&Number.isFinite(elevation)&&snowfallHeight<=elevation+250)return{phase:'snow',label:'Schnee · Radar + thermische Phase',confidence:'mittel',modelEvidence:true};
  return base;
 }
 
 function distanceKm(a:PhaseSymbol,b:PhaseSymbol){const latKm=(a.lat-b.lat)*111.2,lonKm=(a.lon-b.lon)*111.2*Math.max(.3,Math.cos((a.lat+b.lat)*Math.PI/360));return Math.hypot(latKm,lonKm)}
-function phaseMinimumDbz(phase:SymbolPhase){return phase==='hail'?15:phase==='graupel'?9:phase==='snow-grains'?4:(phase==='snow'||phase==='freezing'?5:7)}
-function asSymbolPhase(phase:OverlayPhase):SymbolPhase|null{return['mixed','snow','snow-grains','freezing','hail','graupel'].includes(phase)?phase as SymbolPhase:null}
+function phaseMinimumDbz(phase:SymbolPhase){return phase==='hail'?15:phase==='graupel-hail'?12:phase==='graupel'?9:['snow-grains','snow-stars','ice-crystals','ice-pellets'].includes(phase)?4:(phase==='snow'||phase==='freezing'?5:7)}
+function asSymbolPhase(phase:OverlayPhase):SymbolPhase|null{return['mixed','snow','snow-grains','snow-stars','ice-crystals','ice-pellets','freezing','hail','graupel','graupel-hail'].includes(phase)?phase as SymbolPhase:null}
 
 function buildPhaseSymbols(data:WeatherPhaseGridData,raster:OperaRaster):PhaseSymbol[]{
  const frame=data.frame,latStep=data.lats.length>1?Math.abs(data.lats[1]-data.lats[0]):.05,lonStep=data.lons.length>1?Math.abs(data.lons[1]-data.lons[0]):.05,candidates:PhaseSymbol[]=[];
@@ -66,19 +70,23 @@ function buildPhaseSymbols(data:WeatherPhaseGridData,raster:OperaRaster):PhaseSy
  }
  const selected:PhaseSymbol[]=[];
  for(const item of candidates.sort((a,b)=>b.dbz-a.dbz)){
-  const spacing=item.phase==='hail'?18:item.phase==='graupel'?15:14;
+  const spacing=item.phase==='hail'?18:item.phase==='graupel'||item.phase==='graupel-hail'?15:14;
   if(selected.some(existing=>distanceKm(existing,item)<spacing))continue;selected.push(item);if(selected.length>=90)break
  }
  return selected;
 }
 
 function phaseSummary(symbols:PhaseSymbol[]){
- const counts={mixed:0,snow:0,'snow-grains':0,freezing:0,hail:0,graupel:0} as Record<SymbolPhase,number>;
+ const counts={mixed:0,snow:0,'snow-grains':0,'snow-stars':0,'ice-crystals':0,'ice-pellets':0,freezing:0,hail:0,graupel:0,'graupel-hail':0} as Record<SymbolPhase,number>;
  for(const item of symbols)counts[item.phase]++;
  const parts=[] as string[];
  if(counts.snow)parts.push(`${counts.snow}× Schnee`);
- if(counts['snow-grains'])parts.push(`${counts['snow-grains']}× Schneekörner`);
+ if(counts['snow-grains'])parts.push(`${counts['snow-grains']}× Schneegriesel`);
+ if(counts['snow-stars'])parts.push(`${counts['snow-stars']}× Schneesterne`);
+ if(counts['ice-crystals'])parts.push(`${counts['ice-crystals']}× Eisnadeln`);
+ if(counts['ice-pellets'])parts.push(`${counts['ice-pellets']}× Eiskörner`);
  if(counts.graupel)parts.push(`${counts.graupel}× Graupel`);
+ if(counts['graupel-hail'])parts.push(`${counts['graupel-hail']}× Graupel/Hagel`);
  if(counts.hail)parts.push(`${counts.hail}× Hagel`);
  if(counts.mixed)parts.push(`${counts.mixed}× Mischphase`);
  if(counts.freezing)parts.push(`${counts.freezing}× gefrierend`);

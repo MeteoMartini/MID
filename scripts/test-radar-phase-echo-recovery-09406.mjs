@@ -11,7 +11,11 @@ assert.match(phase,/samplesPerAxis=3/,'phase overlay must sample several radar p
 assert.match(phase,/function radarBackedThermalPhase\(/,'conservative radar-backed thermal recovery must remain');
 assert.match(phase,/asSymbolPhase\(phase\.phase\)/,'only explicitly released non-liquid precipitation phases may become symbols');
 assert.match(phase,/phase\.confidence==='eingeschränkt'\)continue/,'restricted-confidence phase must stay hidden');
-assert.match(phase,/function phaseMinimumDbz\(phase:SymbolPhase\)\{return phase==='hail'\?15:phase==='graupel'\?9:phase==='snow-grains'\?4:\(phase==='snow'\|\|phase==='freezing'\?5:7\)\}/,'echo thresholds for non-liquid symbols must remain protected');
+assert.match(phase,/phase==='hail'\?15/,'hail must retain the strongest radar-echo threshold');
+assert.match(phase,/phase==='graupel-hail'\?12/,'neutral graupel-or-hail must use its own conservative echo threshold');
+assert.match(phase,/phase==='graupel'\?9/,'graupel must retain its dedicated radar-echo threshold');
+assert.match(phase,/\['snow-grains','snow-stars','ice-crystals','ice-pellets'\]\.includes\(phase\)\?4/,'WMO 76–79 solid phases must retain the low-echo threshold appropriate for weak solid precipitation');
+assert.match(phase,/phase==='snow'\|\|phase==='freezing'\?5:7/,'snow and freezing precipitation thresholds must remain protected');
 assert.match(phase,/distanceKm\(existing,item\)<spacing/,'phase symbols must be spatially thinned');
 assert.match(phase,/HtmlMarker/,'phase overlay must render point symbols');
 assert.match(phase,/opacity:\$\{safeOpacity\.toFixed\(2\)\}/,'user opacity must control phase symbols');

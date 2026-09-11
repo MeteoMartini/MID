@@ -347,8 +347,9 @@ function trimLowerHazardBoundary(signal:DwdWarningSignal,presentation:HazardWind
  if(to<=from)return{...presentation,validFrom:undefined,validTo:undefined};return{...presentation,validFrom:new Date(from).toISOString(),validTo:new Date(to).toISOString()};
 }
 
-export function hazards(h:Hour[],_currentUv?:number,elevation=0,unit:WindUnit='kn',ensemble?:WarningEnsembleSupport|null){
- const start=warningCurrentStartIndex(h),horizon=h.slice(start,start+96);if(!horizon.length)return[] as HazardItem[];
- const signals=summarizeDwdWarnings(horizon,elevation,24),rows=signals.map(signal=>({signal,presentation:hazardPresentation(signal,horizon,unit,ensemble)}));
+export function hazards(h:Hour[],_currentUv?:number,elevation=0,unit:WindUnit='kn',ensemble?:WarningEnsembleSupport|null,throughDate?:string){
+ const start=warningCurrentStartIndex(h),future=h.slice(start);if(!future.length)return[] as HazardItem[];
+ const requestedLimit=throughDate?future.findIndex(hour=>String(hour.time??'').slice(0,10)>throughDate):-1,startLimit=throughDate?Math.max(0,requestedLimit>=0?requestedLimit:future.length):Math.min(24,future.length),horizon=future.slice(0,Math.min(future.length,startLimit+72));if(!horizon.length||startLimit<=0)return[] as HazardItem[];
+ const signals=summarizeDwdWarnings(horizon,elevation,startLimit),rows=signals.map(signal=>({signal,presentation:hazardPresentation(signal,horizon,unit,ensemble)}));
  return rows.map(row=>({row,presentation:trimLowerHazardBoundary(row.signal,row.presentation,rows)})).filter(({row,presentation})=>!row.signal.lowerIntensity||Boolean(presentation.validFrom&&presentation.validTo)).map(({row,presentation})=>{const signal=row.signal;return{level:dwdHazardClass(signal.level),title:signal.title,metric:formatDwdWarningValue(signal,unit),text:formatDwdWarningDetailWithDirection(signal,unit),...presentation,validFrom:presentation.validFrom??signal.validFrom,validTo:presentation.validTo??signal.validTo,kind:signal.kind,lowerIntensity:signal.lowerIntensity,stageRank:signal.stageRank,thresholdValue:signal.thresholdValue,windowHours:signal.windowHours}}).sort((a,b)=>levelOrder[b.level]-levelOrder[a.level]);
 }

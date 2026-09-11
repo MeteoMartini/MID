@@ -34,8 +34,12 @@ for(const token of [
 // Die Kompositphase ist ab v0.9.40.13 ein reines Symboloverlay; ab v0.9.40.16 inklusive sauber getrennter Schneekörner sowie Hagel und konservativ abgeleitetem Graupel/Eiskörnern.
 need('Symboloverlay',overlay,'HtmlMarker');
 need('Symboloverlay',overlay,'asSymbolPhase(phase.phase)');
-need('Symboloverlay',overlay,"explicitHail=[89,90,96,99].includes(code)");
-need('Symboloverlay',overlay,"explicitSnowGrains=[77].includes(code)");
+need('Symboloverlay',overlay,"explicitHail=[89,90].includes(code)");
+need('Symboloverlay',overlay,"explicitGraupelHail=[96,99].includes(code)");
+need('Symboloverlay',overlay,"explicitSnowGrains=code===77");
+need('Symboloverlay',overlay,"explicitIceCrystals=code===76");
+need('Symboloverlay',overlay,"explicitSnowStars=code===78");
+need('Symboloverlay',overlay,"explicitIcePellets=code===79");
 need('Symboloverlay',overlay,"phase:'graupel'");
 forbid('Symboloverlay',overlay,'GeoJsonLayers');
 forbid('Symboloverlay',overlay,'fill-opacity');

@@ -6,7 +6,12 @@ const styles=fs.readFileSync(new URL('../src/styles.css',import.meta.url),'utf8'
 const failures=[];
 
 for(const token of [
-  'visibility?:number;cloudCover?:number;ceilingHft?:number;cloudBaseHft?:number;precipitation?:number',
+  'visibility?:number',
+  'cloudCover?:number',
+  'presentWeather?:string',
+  'ceilingHft?:number',
+  'cloudBaseHft?:number',
+  'precipitation?:number',
   'visibility:num(w.visibility)',
   'visibility:field(\'visibility\',18000)',
   "current:['temperature_2m','relative_humidity_2m','dew_point_2m','pressure_msl','wind_speed_10m','wind_direction_10m','wind_gusts_10m','visibility','cloud_cover','precipitation','is_day'].join(',')",

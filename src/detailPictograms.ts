@@ -6,6 +6,7 @@ export type DetailPictogramPoint={
  sourceIndex:number;
  displayCode:number;
  intensity?:PrecipitationVisualIntensity;
+ phenomenon?:string;
 };
 
 const PRECIP_PRIORITY:Record<PrecipType,number>={
@@ -17,6 +18,9 @@ const PRECIP_PRIORITY:Record<PrecipType,number>={
  showers:40,
  snow:50,
  snowGrains:42,
+ snowStars:43,
+ iceCrystals:44,
+ icePellets:46,
  snowShowers:55,
  sleet:48,
  sleetShowers:58,
@@ -29,7 +33,7 @@ const PRECIP_PRIORITY:Record<PrecipType,number>={
 
 function rawWeatherPriority(code:number){
  if([95,96,97,99].includes(code))return 700;
- if([68,69,71,73,75,77,83,84,85,86,87,88,89,90,93,94].includes(code))return 500;
+ if([68,69,71,73,75,76,77,78,79,83,84,85,86,87,88,89,90,93,94].includes(code))return 500;
  if([51,53,55,56,57,61,63,65,66,67,80,81,82,91,92].includes(code))return 400;
  if([45,48].includes(code))return 250;
  if(code===3)return 180;
@@ -89,7 +93,7 @@ export function representativeDetailPictograms(
   }
   const hour=hours[best]??hours[base];
   const parts=precipitation[best]??precipitation[base];
-  return{index:base,sourceIndex:best,displayCode:detailPictogramDisplayCode(hour,parts),intensity:parts.intensity};
+  return{index:base,sourceIndex:best,displayCode:detailPictogramDisplayCode(hour,parts),intensity:parts.intensity,phenomenon:parts.phenomenon};
  });
 
  return points;

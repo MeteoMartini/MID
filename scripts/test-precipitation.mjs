@@ -7,7 +7,9 @@ import path from 'node:path';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const outDir=path.join(root,'.precip-test');
 await rm(outDir,{recursive:true,force:true});
-const compile=spawnSync('tsc',['--ignoreConfig',
+const tscVersion=spawnSync('tsc',['--version'],{cwd:root,encoding:'utf8',shell:process.platform==='win32'});
+const tscMajor=Number((tscVersion.stdout||'').match(/Version\s+(\d+)/)?.[1]||0);
+const compile=spawnSync('tsc',[...(tscMajor>=7?['--ignoreConfig']:[]),
  'src/precipitation.ts',
  '--target','ES2022',
  '--module','ES2022',
@@ -46,10 +48,29 @@ const cases=[
  ['WMO 91 bleibt leichter Regenschauer nach Gewitter in der vorangegangenen Stunde',sample({code:91,precipitation:.3,rain:.3,showers:.6,cape:900}), 'showers'],
  ['WMO 92 bleibt mäßiger/starker Regenschauer nach Gewitter in der vorangegangenen Stunde',sample({code:92,precipitation:3,rain:3,showers:.8,cape:900}), 'showers'],
  ['WMO 93 bleibt phasenoffener winterlicher Niederschlag nach vorangegangenem Gewitter',sample({code:93,precipitation:.4,snowfall:.2}), 'wintryAfterThunder'],
- ['WMO 94 bleibt phasenoffener winterlicher Niederschlag nach vorangegangenem Gewitter',sample({code:94,precipitation:3,snowfall:1}), 'wintryAfterThunder']
+ ['WMO 94 bleibt phasenoffener winterlicher Niederschlag nach vorangegangenem Gewitter',sample({code:94,precipitation:3,snowfall:1}), 'wintryAfterThunder'],
+ ['WMO 76 bleibt Eisnadeln',sample({code:76,precipitation:.1}), 'iceCrystals'],
+ ['WMO 78 bleibt vereinzelte Schneesterne',sample({code:78,precipitation:.1,snowfall:.1}), 'snowStars'],
+ ['WMO 79 bleibt Eiskörner',sample({code:79,precipitation:.4}), 'icePellets'],
+ ['WMO 96 bleibt phasenoffenes Gewitter mit Graupel oder Hagel',sample({code:96,precipitation:1.1}), 'thunderstormHail'],
+ ['WMO 99 bleibt starkes phasenoffenes Gewitter mit Graupel oder Hagel',sample({code:99,precipitation:5}), 'thunderstormHail']
 ];
 const failures=[];
 for(const [name,input,expected] of cases){const actual=precipitationParts(input).type;if(actual!==expected)failures.push(`${name}: erwartet ${expected}, erhalten ${actual}`)}
+
+const thunderUnknown=precipitationParts(sample({code:95,precipitation:4,probability:90}));
+if(thunderUnknown.phenomenon!==undefined)failures.push(`WMO 95 darf aus Gesamt-Niederschlag keine Regenphase erfinden: ${thunderUnknown.phenomenon}`);
+const thunderRain=precipitationParts(sample({code:95,precipitation:4,rain:2,probability:90}));
+if(thunderRain.phenomenon!=='TSRA')failures.push(`WMO 95 mit explizitem Regen muss TSRA erhalten: ${thunderRain.phenomenon}`);
+const thunderSnow=precipitationParts(sample({code:95,precipitation:4,snowfall:2,probability:90}));
+if(thunderSnow.phenomenon!=='TSSN')failures.push(`WMO 95 mit explizitem Schnee muss TSSN erhalten: ${thunderSnow.phenomenon}`);
+const thunderMixed=precipitationParts(sample({code:95,precipitation:4,rain:1,snowfall:1,probability:90}));
+if(thunderMixed.phenomenon!=='TSRASN')failures.push(`WMO 95 mit explizit gemischter Phase muss TSRASN erhalten: ${thunderMixed.phenomenon}`);
+const thunderSolidUnknown=precipitationParts(sample({code:96,precipitation:4,probability:90}));
+if(thunderSolidUnknown.phenomenon!==undefined||!thunderSolidUnknown.weatherLabel.includes('Graupel oder Hagel'))failures.push(`WMO 96 muss ohne Zusatzbeobachtung phasenoffen Graupel/Hagel bleiben: ${thunderSolidUnknown.phenomenon}/${thunderSolidUnknown.weatherLabel}`);
+const afterThunderText=precipitationParts(sample({code:91,precipitation:.4,showers:.4}));
+if(!afterThunderText.weatherLabel.includes('nach Gewitter'))failures.push(`WMO 91 muss im Wettertext den Nachgewitter-Kontext tragen: ${afterThunderText.weatherLabel}`);
+
 const plausibleDrizzle=precipitationParts(sample({code:53,temperature:8,dewPoint:7.5,precipitation:.3,rain:.3,humidity:96,cloud:100,lowCloud:92}));
 if(plausibleDrizzle.weatherLabel!=='mäßiger Sprühregen')failures.push(`Plausibler Sprühregen erhält falschen Wettertext: ${plausibleDrizzle.weatherLabel}`);
 if(plausibleDrizzle.displayCode!==53)failures.push(`Plausibler Sprühregen erhält falschen Anzeigecode: ${plausibleDrizzle.displayCode}`);

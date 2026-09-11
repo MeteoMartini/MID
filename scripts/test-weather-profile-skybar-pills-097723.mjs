@@ -18,7 +18,7 @@ const baseline=JSON.parse(baselineRaw);
 const test='scripts/test-weather-profile-skybar-pills-097723.mjs';
 
 assert.ok(app.includes('data-mid-sky-note="react"'),'Wetterstreifen-Hinweis fehlt in der 24h-Ansicht.');
-assert.ok(app.includes('Sonnenschein · gelb')&&app.includes('Bewölkung · grau')&&app.includes('Niederschlag · nach Phase')&&app.includes('Regen/Sprühregen/Schauer blau, Schnee hellblau, Misch-/gefrierende Phase violett, Gewitter/Hagel purpur')&&app.includes('Gesamtbewölkung die primäre Himmelsgröße')&&app.includes('69 % Gesamtbewölkung')&&app.includes('Gelb und Grau werden nie gleichzeitig gezeichnet')&&app.includes('Niederschlag liegt als eigenständige farbreine Lage darüber'),'Hinweis muss den exklusiven Wolken/Sonnen-Grundband- und Niederschlags-Overlay-Vertrag erklären.');
+assert.ok(app.includes('Sonnenschein · gelb')&&app.includes('Bewölkung · grau')&&app.includes('Niederschlag · nach Phase')&&app.includes('Regen/Sprühregen/Schauer blau, Schnee/Eis hellblau, Misch-/gefrierende Phase violett, Gewitter/Graupel/Hagel purpur')&&app.includes('Gesamtbewölkung die primäre Himmelsgröße')&&app.includes('69 % Gesamtbewölkung')&&app.includes('Gelb und Grau werden nie gleichzeitig gezeichnet')&&app.includes('Niederschlag liegt als eigenständige farbreine Lage darüber'),'Hinweis muss den exklusiven Wolken/Sonnen-Grundband- und Niederschlags-Overlay-Vertrag erklären.');
 
 for(const token of ['const weatherStripVisuals=','const baseSkyVisual=','const precipitationOverlayVisual=','precipitationPhaseColor(parts.type)','precipitationPhaseColorLabel(parts.type)','precipitationIntensityDescriptor','const SKYBAR_THICKNESS_STEPS=','const sunVisualShare=','const sampleIntervalSeconds=','Number(rawSunshine)/Math.max(60,intervalSeconds)','precipitationIntensityDescriptor(parts.type,amount,snowfall,intervalSeconds,parts.displayCode)','return [...baseSegments,...precipSegments]']){
   assert.ok(detailSkyBar.includes(token),`Skybar-Vertrag unvollständig: ${token}`);
@@ -46,7 +46,7 @@ assert.ok(curve.includes('nightBands=(()=>{')&&curve.includes('seven-day-curve-n
 assert.ok(!curve.includes('seven-day-curve-temperature-band')&&!curve.includes('P25–P75')&&!curve.includes('smoothBandPath')&&!curve.includes('interpolateTemperatureBand'),'P25–P75 muss aus der 7-Tage-Kurvenübersicht ersatzlos entfernt sein.');
 assert.ok(styles.includes('.seven-day-curve-night-band{fill:rgba(164,181,199,.14)!important')&&styles.includes(':root[data-theme=light] .seven-day-curve-night-band{fill:rgba(73,92,113,.08)!important'),'Nachtstunden müssen in dunklem und hellem Design explizit sichtbar sein.');
 
-for(const token of ['Regen/Sprühregen/Schauer blau, Schnee hellblau, Misch-/gefrierende Phase violett, Gewitter/Hagel purpur','50 % Gesamtbewölkung','vier Dickenstufen','einheitlichen Grauton','Nachtstunden wieder als zusammenhängende','P25–P75-Band um die Temperaturkurve ist ersatzlos entfernt']){
+for(const token of ['Regen/Sprühregen/Schauer blau, Schnee/Eis hellblau, Misch-/gefrierende Phase violett, Gewitter/Graupel/Hagel purpur','50 % Gesamtbewölkung','vier Dickenstufen','einheitlichen Grauton','Nachtstunden wieder als zusammenhängende','P25–P75-Band um die Temperaturkurve ist ersatzlos entfernt']){
   assert.ok(contract.includes(token),`24h-Profil-Vertrag unvollständig: ${token}`);
 }
 

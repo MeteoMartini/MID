@@ -45,8 +45,11 @@ export const PRECIPITATION_TYPE_COLORS={rain:'#21b65b',mixed:'#d45ac6',snow:'#4d
 export const PRECIPITATION_TYPE_LEGEND=[
  {phase:'mixed',label:'Mischphase / Schneeregen',color:PRECIPITATION_TYPE_COLORS.mixed,symbol:'Schneeregen'},
  {phase:'snow',label:'Schnee',color:PRECIPITATION_TYPE_COLORS.snow,symbol:'Schnee'},
- {phase:'snow-grains',label:'Schneekörner',color:PRECIPITATION_TYPE_COLORS.snow,symbol:'Schneekörner'},
- {phase:'graupel',label:'Graupel / Eiskörner',color:PRECIPITATION_TYPE_COLORS.graupel,symbol:'Graupel'},
+ {phase:'snow-grains',label:'Schneegriesel',color:PRECIPITATION_TYPE_COLORS.snow,symbol:'Schneegriesel'},
+ {phase:'snow-stars',label:'Vereinzelte Schneesterne',color:PRECIPITATION_TYPE_COLORS.snow,symbol:'Schneesterne'},
+ {phase:'ice-crystals',label:'Eisnadeln',color:PRECIPITATION_TYPE_COLORS.snow,symbol:'Eisnadeln'},
+ {phase:'ice-pellets',label:'Eiskörner',color:PRECIPITATION_TYPE_COLORS.snow,symbol:'Eiskörner'},
+ {phase:'graupel',label:'Graupel',color:PRECIPITATION_TYPE_COLORS.graupel,symbol:'Graupel'},
  {phase:'hail',label:'Hagel',color:PRECIPITATION_TYPE_COLORS.hail,symbol:'Hagel'},
  {phase:'freezing',label:'gefrierender Niederschlag',color:PRECIPITATION_TYPE_COLORS.freezing,symbol:'Gefrierend'}
 ] as const;
