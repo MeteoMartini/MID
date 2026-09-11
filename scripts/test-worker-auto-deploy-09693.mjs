@@ -10,6 +10,9 @@ for(const token of [
 ])assert.ok(workflow.includes(token),`Auto-Worker-Deploy-Vertrag fehlt: ${token}`);
 for(const token of ['keep_vars:true','no_bundle:true','compatibility_date','kv_namespaces','r2_buckets','MID_RUC_BINDING_AUTO_APPROVED','Unbekannte/noch nicht sicher abgebildete Worker-Bindings','normalizePlacement','versions',"mkdtemp(path.join(os.tmpdir(),'mid-worker-deploy-'))","mode:0o600,flag:'wx'",'config_path=${out}','meta_path=${metaOut}'])assert.ok(prepare.includes(token),`Dynamische bzw. sicher temporäre Wrangler-Konfiguration fehlt: ${token}`);
 for(const token of ['steps.remote_worker.outputs.config_path','steps.remote_worker.outputs.meta_path'])assert.ok(workflow.includes(token),`Workflow konsumiert den sicheren temporären Pfad nicht: ${token}`);
+assert.ok(workflow.includes('Gespiegelte Worker-Konfiguration ohne Geheimnisse prüfen'),'Metadatenprüfung muss als eigener Folgeschritt laufen.');
+assert.ok(workflow.includes('META_PATH: ${{ steps.remote_worker.outputs.meta_path }}'),'Folgeschritt muss den erst nach Abschluss verfügbaren meta_path als Env übernehmen.');
+assert.ok(!workflow.includes('export META_PATH="${{ steps.remote_worker.outputs.meta_path }}"'),'Ein Step darf sein eigenes GitHub-Output nicht vor Schrittende konsumieren.');
 assert.ok(!prepare.includes("process.argv[2]||'/tmp/")&&!workflow.includes('/tmp/mid-wrangler-worker.json')&&!workflow.includes('/tmp/mid-worker-deploy-meta.json'),'Vorhersagbare /tmp-Dateien dürfen nicht mehr verwendet werden.');
 assert.ok(!workflow.includes('wrangler deploy\n'),'Direkter wrangler deploy darf den 0%-Smoke-Vertrag nicht umgehen.');
 

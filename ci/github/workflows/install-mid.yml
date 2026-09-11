@@ -404,7 +404,18 @@ jobs:
         run: |
           set -euo pipefail
           node tools/cloudflare/prepare_worker_deploy.mjs
-          export META_PATH="${{ steps.remote_worker.outputs.meta_path }}"
+
+      - name: Gespiegelte Worker-Konfiguration ohne Geheimnisse prüfen
+        if: needs.install_build.outputs.worker_changed == 'true'
+        shell: bash
+        env:
+          META_PATH: ${{ steps.remote_worker.outputs.meta_path }}
+        run: |
+          set -euo pipefail
+          if [ -z "${META_PATH:-}" ] || [ ! -f "$META_PATH" ]; then
+            echo "::error::Temporäre Worker-Metadaten fehlen nach der sicheren Remote-Spiegelung."
+            exit 1
+          fi
           python3 - <<'PY'
           import json
           import os

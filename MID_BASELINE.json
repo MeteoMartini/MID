@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.84.39",
+  "releaseVersion": "0.9.84.40",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -1990,7 +1990,7 @@
     "scripts/test-day-precipitation-color-contract-098435.mjs",
     "scripts/test-ci-types-event-update-098436.mjs"
   ],
-  "version": "0.9.84.39",
+  "version": "0.9.84.40",
   "updatedAt": "2026-09-10T16:48:00+02:00",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",

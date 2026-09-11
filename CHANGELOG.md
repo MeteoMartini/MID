@@ -1,3 +1,16 @@
+# MID v0.9.84.40
+
+## Extern
+- Der verbliebene Release-Blocker aus GitHub #993 ist beseitigt. Der eigentliche MID-Build einschließlich TypeScript, Vite, Regressionen und iOS-Webkopie war bereits vollständig erfolgreich; der Lauf stoppte erst anschließend bei der sicheren Worker-Veröffentlichung.
+- Die Cloudflare-Worker-Vorbereitung und die kontrollierte Prüfung ihrer Metadaten laufen jetzt in getrennten GitHub-Actions-Schritten. Dadurch wird der temporäre, zufällig erzeugte Metadatenpfad erst verwendet, nachdem GitHub ihn tatsächlich als Step-Output bereitgestellt hat.
+- Wetterberechnung, Temperatur-/Luftdruckdarstellung, kontinuierliche RUC/MOSMIX-Fusion und die kompakten Wetterregime-Pillen bleiben gegenüber v0.9.84.39 fachlich unverändert.
+
+## Intern
+- Ursache von #993: `steps.remote_worker.outputs.meta_path` wurde innerhalb desselben Schritts referenziert, der dieses Output erst erzeugt. GitHub Actions löste den Ausdruck deshalb vor Schrittende zu einem leeren String auf; die nachfolgende Python-Prüfung scheiterte an `META_PATH=""`.
+- `remote_worker` erzeugt nun ausschließlich die private temporäre Wrangler-/Metadatenkonfiguration und deren Outputs. Ein eigener Folgeschritt übernimmt `meta_path`, validiert Existenz und liest ausschließlich die nicht geheimen Binding-Metadaten.
+- Die Regression `test-worker-auto-deploy-09693.mjs` verbietet künftig explizit die fehlerhafte Selbstreferenz eines Step-Outputs und schützt die zweistufige Übergabe. `ci/github/workflows/install-mid.yml` und `workflow-patches/install-mid.yml` sind synchron.
+- Da `mid-stable` weiterhin v0.9.84.37 ist, bleibt die fachliche RUC-Worker-Änderung aus v0.9.84.38 deployrelevant. Vor dem nächsten Release-Upload muss deshalb der aktive `.github/workflows/install-mid.yml` einmalig aus der korrigierten kanonischen Fassung synchronisiert werden.
+
 # MID v0.9.84.39
 
 ## Extern
