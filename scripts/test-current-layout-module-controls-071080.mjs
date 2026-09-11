@@ -3,10 +3,11 @@ import assert from 'node:assert/strict';
 const app=readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
 const sevenDay=readFileSync(new URL('../src/SevenDayForecastSummary.tsx',import.meta.url),'utf8');
 const water=readFileSync(new URL('../src/WaterSportsPanel.tsx',import.meta.url),'utf8');
-const css=readFileSync(new URL('../src/v078.css',import.meta.url),'utf8');
-assert.match(app,/<\/article>\{currentRange&&<span className="hero-day-range"/,'Tmin/Tmax muss als eigener geordneter Hero-Gridbereich außerhalb der Textspalte stehen');
+const css=readFileSync(new URL('../src/v078.css',import.meta.url),'utf8')+'\n'+readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
+assert.match(app,/<\/article><div className="current-weather-facts"[\s\S]*?<\/div>\{currentRange&&<span className="hero-day-range"/,'Tmin/Tmax muss nach dem eigenständigen Aktuell-Wetter-Faktenband als eigener Hero-Gridbereich stehen');
 assert.doesNotMatch(app,/hero-kicker-row"><span>Aktuelles Wetter<\/span>\{currentRange&&/,'Tmin/Tmax darf nicht mehr frei in der breiten Kicker-Zeile schweben');
-assert.match(css,/\.hero\{grid-template-columns:115px minmax\(260px,1fr\) minmax\(225px,245px\) minmax\(280px,400px\)\}/,'Desktop-Hero braucht eine feste eigene Tmin/Tmax-Spalte');
+assert.match(css,/\.current-weather-facts\{[\s\S]*?grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/,'Desktop-Hero braucht das eigenständige fünfspaltige Aktuell-Wetter-Faktenband');
+assert.match(css,/\.hero\.current-compact \.current-weather-overview>\.hero-day-range\{[\s\S]*?grid-column:1\/-1;[\s\S]*?grid-row:3/,'Tmin\/Tmax muss im neuen Hero unter dem Faktenband über die volle Breite in Zeile 3 laufen');
 assert.match(app,/className="wind-value-nowrap"/,'Wind/Böen-Wert braucht einen umbrechungsfesten Wrapper');
 assert.match(css,/\.metrics \.wind-gust-card>strong[\s\S]*white-space:nowrap/,'Wind/Böen-Einheit darf in der aktuellen Wetterkachel nicht umbrechen');
 assert.match(sevenDay,/function sevenDayHazardPhrase/,'Rechtschreibungsbehandlung für Trend-Hazards fehlt');
@@ -23,6 +24,6 @@ assert.match(app,/updateCurrentWater=useCallback[\s\S]*setFavorites/,'Wasserspor
 assert.match(css,/\.module-inline-segmented/,'Dezentes Segment-Steuerelement fehlt');
 assert.match(css,/\.module-inline-options/,'Dezente Moduloptionen fehlen');
 
-assert.match(css,/@media\(max-width:520px\)[\s\S]*?\.hero>\.hero-day-range\{[\s\S]*?position:absolute;[\s\S]*?width:auto;[\s\S]*?min-height:0;/,'Mobile Tmin/Tmax muss als unauffällige Pille ohne zusätzliche Hero-Zeile erscheinen');
-assert.match(css,/\.hero>\.hero-day-range>em,[\s\S]*?\.hero>\.hero-day-range>i\{display:none\}/,'Mobile Tmin/Tmax muss Beschriftung und Verlaufsbalken ausblenden');
+assert.match(css,/@media\(max-width:520px\) and \(orientation:portrait\)[\s\S]*?\.current-weather-facts\{[\s\S]*?grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/,'Mobil muss das Aktuell-Wetter-Faktenband auf drei Kernparameter verdichten');
+assert.match(css,/@media\(max-width:520px\) and \(orientation:portrait\)[\s\S]*?\.hero\.current-compact \.current-weather-overview>\.hero-day-range\{[\s\S]*?grid-column:1\/-1!important;[\s\S]*?grid-row:3!important/,'Mobile Tmin/Tmax muss unter dem Faktenband vollbreit und überlauffest bleiben');
 console.log('Aktuelles Wetter, Windumbruch, Trend-Rechtschreibung und direkte Berg-/Wassersportoptionen geprüft.');

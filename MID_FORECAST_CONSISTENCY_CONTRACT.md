@@ -108,3 +108,9 @@ Verbindlicher Datenweg: `Widget` bestimmt `widgetHazardThroughDate` aus `days.sl
 
 Regression: `scripts/test-climate-hazard-widget-09804.mjs` schützt die ausgewählte Enddatumsgrenze, den unveränderten 24-h-Standard außerhalb des Widgets und die tagesgenaue Zuordnung.
 
+## 14-Tage-Ensemble · sichtbare MID-Hinweiswerte
+
+- Der sichtbare Ereigniswert eines MID-Hinweises stammt aus der kanonischen Best-Match-/Punktprognose, nicht aus einem Ensemblequantil.
+- Obere Ereigniswerte werden parameterabhängig konservativ gerundet: Wind/Böen auf den nächsten sinnvollen Einheitenschritt und als „bis zu …“, Hitze auf ganze °C nach oben, Niederschlag/Schnee auf sinnvolle ganze Mengen; Frost wird nach unten gerundet.
+- Ensemble-P10/P90 und – soweit zeitlich wirklich verfügbar – das 12-km-Umfeld dienen als Unsicherheits-/Verlagerungskontext. Sie ersetzen den sichtbaren Ereigniswert nicht und erhöhen die Warnstufe nicht automatisch.
+- Methodik und probabilistischer Kontext gehören im kompakten 14d-Tooltip hinter einen Info-Zugang; die Hauptzeile bleibt kurz und entscheidungsorientiert.

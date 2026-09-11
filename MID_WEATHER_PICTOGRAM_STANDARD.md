@@ -185,3 +185,11 @@ Diese Regeln gelten ab v0.9.84.41 für **alle** Wetterpiktogramm-Einsatzorte und
 - Warn-, Radar-, Astronomie- und Bedienicons bleiben semantisch getrennt. Sie dürfen keine konkurrierende Wetterzustands-Symbolbibliothek bilden.
 
 Required Regression: `scripts/test-weather-pictogram-appwide-contract-098441.mjs`.
+
+## Verbindliche Präzisierung v0.9.84.51 – aktuelles Wetter
+
+- Die vorhandenen MID-Piktogramme bleiben das alleinige appweite Iconset; das Designkonzept führt kein alternatives Wetter-Iconset ein.
+- Frisches SYNOP/METAR/Stations-`presentWeather` bestimmt Text und Piktogramm-Intensität gemeinsam. Nach WMO/ICAO bedeutet `-` leicht, kein Intensitätspräfix mäßig und `+` stark. Deshalb ist z. B. `RA` **Mäßiger Regen**, `-RA` **Leichter Regen**, `+RA` **Starker Regen**.
+- Ein beobachtetes Phänomen darf nicht mit einer davon abweichenden modellbasierten Piktogramm-Intensität kombiniert werden.
+- Liegt keine belastbare beobachtete Intensität vor, verwendet MID die zentrale `precipitationIntensityDescriptor()`-Klassifikation. Fehlende Intensitätsdaten werden nicht erfunden.
+- Schauer bleiben Schauer; Gewitter wird weiterhin nur bei explizitem Gewitter-/Blitzsignal dargestellt.

@@ -1,3 +1,60 @@
+## 0.9.84.53
+
+### Extern
+- Release-Installer #1008 korrigiert; die Änderungen an „Aktuelles Wetter“, Niederschlagsintensitäten und MID-Piktogrammen bleiben unverändert erhalten.
+
+### Intern
+- Zwei veraltete Regressionserwartungen an die vor-v0.9.84.51-Struktur aktualisiert.
+- Appweite Niederschlagsprüfung erwartet nun `currentPictogramIntensity` statt der alten direkten `currentPrecip.intensity`-Bindung.
+- Layoutprüfung schützt jetzt das neue Aktuell-Wetter-Faktenband und den darunterliegenden Tmin/Tmax-Bereich in Desktop und Mobile.
+- Keine Änderung an meteorologischer Laufzeitlogik oder Worker-Domainlogik.
+
+## 0.9.84.52
+
+### Extern
+- Release-Installer #1005 korrigiert. Der in v0.9.84.51 eingeführte Aktuelles-Wetter-/Niederschlagsintensitätsstand bleibt unverändert erhalten.
+
+### Intern
+- Verbliebene TS2339-Ursache in `EnsemblePanel.tsx` behoben: `ensembleHazardDetail()` liefert bereits einen String; die alte nachgeschaltete `.filter(Boolean).join(' ')`-Kette wurde entfernt.
+- Regression schützt den String-Rückgabevertrag des Hazard-Detail-Helfers.
+- Keine Änderung an meteorologischer Logik, Piktogrammen, Niederschlagsintensität oder Worker-Domainlogik.
+
+## 0.9.84.51
+
+### Extern
+- „Aktuelles Wetter“ app-weit nach dem freigegebenen Konzept aufgeräumt, ohne das bestehende MID-Piktogrammset zu ersetzen.
+- Wetterzustände mit Niederschlag zeigen jetzt – soweit belastbar – auch die Intensität: z. B. „Leichter Regen“, „Mäßiger Regen“ oder „Starker Regen“.
+- Frische Stations-/SYNOP-/METAR-Angaben steuern Text und Piktogrammintensität gemeinsam; „RA“ wird als mäßiger Regen verstanden, `-RA` als leicht und `+RA` als stark.
+- Der aktuelle Wetterblock erhält eine responsive Kernparameterzeile. Mobil: Niederschlag, Wind, Feuchte; bei mehr Platz zusätzlich Sicht und Luftdruck.
+
+### Intern
+- Zeitauflösung von Stationsniederschlag fließt in die Intensitätsklassifikation ein; 10-Minuten-Mengen werden nicht mehr stillschweigend wie Stundenmengen behandelt.
+- Fehlende beobachtete Niederschlagsrate wird bei vorhandenem Present Weather nicht als 0 mm/h ausgegeben.
+- Bestehender WMO/DWD-Piktogramm-, Phasen- und Gewittervertrag bleibt erhalten.
+- Neue Regression `test-current-weather-intensity-design-098451.mjs`.
+
+## 0.9.84.50
+
+### Extern
+- Release-Installer #1003 korrigiert. Die kompakte 14-Tage-Ensemble-Hinweiszeile bleibt unverändert erhalten.
+
+### Intern
+- TypeScript-7-Buildfehler in der Verknüpfung von Windrichtung und Ensemble-/Umfeldkontext behoben.
+- Die bisherige fragile Inline-Arrayverkettung wurde durch `ensembleHazardDetail()` mit expliziter String-Typwache ersetzt.
+- Keine Änderung an meteorologischer Logik, Rundung, Warnstufe oder Worker-Domainlogik.
+
+## 0.9.84.49
+
+### Extern
+- 14-Tage-Ensemble: MID-Hinweise sind wieder meteorologisch intuitiv formuliert. Sichtbar steht der Best-Match-Ereigniswert, z. B. „Sturmböen bis zu 40 kt“, statt eines niedrigeren P90-Kontextwerts.
+- Das Tages-Overlay bleibt kompakt. Ensemble-/Umfeldmethodik und Unsicherheitsinformationen liegen hinter einem Info-Button.
+
+### Intern
+- Sichtbarer Hinweiswert und Warnbezeichnung stammen wieder aus derselben kanonischen Punktprognose.
+- P10/P90 und echtes 12-km-Umfeld bleiben ausschließlich Unsicherheits-/Verlagerungskontext und verschärfen die Warnstufe nicht automatisch.
+- Parameterabhängige Rundung: Böen/Wind einheitenbezogen aufwärts; Hitze ganze °C aufwärts; Frost abwärts; Niederschlag/Schnee auf sinnvolle Mengen.
+- Neue Regression schützt Best-Match-Hauptwert, „bis zu“-Wording und kompakten Info-Zugang.
+
 ## 0.9.84.48
 
 ### Extern
