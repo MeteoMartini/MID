@@ -1,3 +1,50 @@
+## 0.9.84.59
+
+### Extern
+- Release-Installer #1014 korrigiert; Synoptik mit Isohypsen, Fronten und Druckzentren bleibt vollständig erhalten.
+
+### Intern
+- Veralteten Performancevertrag aktualisiert: `synoptic.ts` ist seit der gewünschten Komposit-Synoptik bewusst wieder aktiv.
+- Performancegrenze bleibt erhalten: `RadarPanel` wird weiterhin per `lazy()` geladen; `synoptic.ts` ist ausschließlich über diesen lazy Radar-/Kompositpfad erreichbar.
+- Das separate alte `SynopticPanel.tsx`, Routenwetter und verworfene Rekonstruktionsmodule bleiben dormant.
+- Keine Änderung an meteorologischer Logik, Frontanalyse, Isohypsen, H/T-Zentren oder Worker-Domainlogik gegenüber v0.9.84.58.
+
+## 0.9.84.58
+
+### Extern
+- Release-Installer #1013 korrigiert; Fronten, Isohypsen, Geopotentialwerte und Druckzentren aus den vorherigen Synoptikverbesserungen bleiben unverändert erhalten.
+
+### Intern
+- TypeScript-7-Typfehler im Fronten-Tooltip behoben: das im lokalen MID-Leaflet-Typvertrag nicht unterstützte `sticky`-Prop wurde entfernt.
+- Neue Regression `test-composite-front-tooltip-types-098458.mjs` schützt den #1013-Fehler.
+- Keine fachliche Änderung an Frontanalyse, Konturen, H/T-Zentren oder Worker-Gridlogik.
+
+## 0.9.84.57
+
+### Extern
+- Release-Installer #1012 korrigiert; Synoptik-Fallback, Fronten, Isohypsen und Druckzentren aus v0.9.84.56 bleiben vollständig erhalten.
+
+### Intern
+- TypeScript-Parserfehler in `compositeFrontSymbols()` behoben. Die Frontensymbole werden nicht mehr als fragile Einzeilen-TSX-Struktur erzeugt.
+- Frontsymbol-Variante ist explizit auf `cold | warm` typisiert; `L.divIcon()` und `<Marker />` sind strukturell getrennt.
+- Neue Regression `test-composite-front-symbol-jsx-098457.mjs` schützt genau den #1012-Fehler.
+- Keine fachliche Änderung an Frontdiagnostik, Isohypsenlogik oder Worker-Gridparametern gegenüber v0.9.84.56.
+
+## 0.9.84.56
+
+### Extern
+- Komposit-Synoptik vollständig verdrahtet: 500-hPa-Isohypsen erscheinen sofort über einen DWD-WMS-Fallback und werden nach Verfügbarkeit durch geglättete MID-Konturen ersetzt.
+- H/T-Druckzentren werden aus dem großräumigen Druckraster nachgeladen.
+- Objektiv erkannte Kalt-/Warmfronten, Okklusionen, Trog- und Konvergenzachsen werden jetzt auch im Komposit-Synoptikmodus dargestellt.
+- Mobile Erstladung der großräumigen Synoptik robuster gegen langsame Netze.
+
+### Intern
+- Ursache für den Screenshotbefund: native Isobaren, geglättete Isohypsen/Druckzentren und Frontdiagnostik liefen über drei getrennte Pfade; nur der Isobarenpfad war im Komposit zuverlässig unmittelbar sichtbar.
+- Grid-Timeout für `model-contours?renderer=grid` von 15 s auf 45 s erhöht, Cache/Fallback getrennt abgesichert.
+- Worker-Gridabfrage behält das 17×25-Europa-Raster bei, erhöht aber die begrenzte Zeilenparallelität von 4 auf 6.
+- Objektive Frontanalyse aus `synoptic-analysis` in RadarPanel eingebunden.
+- Neuer Regressionsvertrag `test-composite-synoptic-completeness-098456.mjs`.
+
 ## 0.9.84.55
 
 ### Extern

@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const src=readFileSync(new URL('../src/RadarPanel.tsx',import.meta.url),'utf8');
+assert.ok(src.includes('function compositeFrontSymbols('));
+assert.ok(src.includes("icon={L.divIcon({"));
+assert.ok(src.includes("iconAnchor:[8,8],"));
+assert.ok(src.includes("})}"));
+assert.ok(src.includes("const variant:'cold'|'warm'=type==='occlusion'"));
+assert.ok(!src.includes("iconAnchor:[8,8]})}/>)"),'Alte fragile Einzeilen-JSX-Struktur darf nicht zurückkehren.');
+console.log('Composite front symbol JSX contract: OK');

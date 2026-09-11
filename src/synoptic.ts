@@ -37,8 +37,11 @@ export function describeSynopticWindChange(from?:number,to?:number){const start=
 const frontLabel=(type:SynopticFrontType)=>({cold:'Kaltfront',warm:'Warmfront',occlusion:'Okklusion',trough:'Trogachse',convergence:'Konvergenzlinie',none:'kein markanter Frontkandidat'} as const)[type];
 export {frontLabel};
 
+export async function loadSynopticAnalysisPoint(lat:number,lon:number,country='',signal?:AbortSignal){
+ return fetchWorkerJson<SynopticWorkerResponse>('synoptic-analysis',{lat,lon,country},{purpose:'radar',signal,timeoutMs:32000,maxAgeMs:20*60000,staleIfErrorMs:3*3600000,cacheKey:`${lat.toFixed(3)}:${lon.toFixed(3)}:${country}`});
+}
 export async function loadSynopticAnalysis(location:Location,signal?:AbortSignal){
- return fetchWorkerJson<SynopticWorkerResponse>('synoptic-analysis',{lat:location.latitude,lon:location.longitude,country:location.country_code||location.country||''},{purpose:'radar',signal,timeoutMs:28000,maxAgeMs:20*60000,staleIfErrorMs:3*3600000,cacheKey:`${location.latitude.toFixed(3)}:${location.longitude.toFixed(3)}`});
+ return loadSynopticAnalysisPoint(location.latitude,location.longitude,location.country_code||location.country||'',signal);
 }
 
 function localDateTime(value:string|number,timeZone?:string){const date=new Date(value);if(!Number.isFinite(date.getTime()))return'–';return new Intl.DateTimeFormat('de-DE',{timeZone:timeZone||undefined,weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(date)}

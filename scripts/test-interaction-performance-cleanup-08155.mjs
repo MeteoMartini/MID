@@ -2,12 +2,13 @@ import {readFile,readdir} from 'node:fs/promises';
 import {resolve,dirname,extname,join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
-const [app,portal,styles,stationClient,routePanel]=await Promise.all([
+const [app,portal,styles,stationClient,routePanel,radarPanel]=await Promise.all([
   readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
   readFile(new URL('../src/AppPortalPopover.tsx',import.meta.url),'utf8'),
   readFile(new URL('../src/styles.css',import.meta.url),'utf8'),
   readFile(new URL('../src/connectedStation.ts',import.meta.url),'utf8'),
-  readFile(new URL('../src/RouteWeatherPanel.tsx',import.meta.url),'utf8')
+  readFile(new URL('../src/RouteWeatherPanel.tsx',import.meta.url),'utf8'),
+  readFile(new URL('../src/RadarPanel.tsx',import.meta.url),'utf8')
 ]);
 const failures=[];
 const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
@@ -67,12 +68,16 @@ for(const token of [
 
 const srcDir=resolve(dirname(fileURLToPath(import.meta.url)),'../src'),sourceNames=(await readdir(srcDir)).filter(name=>['.ts','.tsx'].includes(extname(name))&&!name.endsWith('.d.ts')),sourcePaths=new Set(sourceNames.map(name=>join(srcDir,name))),reachable=new Set(),pending=[join(srcDir,'main.tsx')],importPattern=/(?:import|export)\s+(?:[^'"]*?\s+from\s+)?['"](\.[^'"]+)['"]|import\(\s*['"](\.[^'"]+)['"]\s*\)/g;
 while(pending.length){const file=pending.pop();if(!file||reachable.has(file)||!sourcePaths.has(file))continue;reachable.add(file);const text=await readFile(file,'utf8');for(const match of text.matchAll(importPattern)){const spec=match[1]||match[2],base=resolve(dirname(file),spec),candidates=[base,`${base}.ts`,`${base}.tsx`,join(base,'index.ts'),join(base,'index.tsx')],target=candidates.find(candidate=>sourcePaths.has(candidate));if(target&&!reachable.has(target))pending.push(target)}}
-const expectedDormant=new Set(['RouteWeatherPanel.tsx','routeWeather.ts','SynopticPanel.tsx','synoptic.ts','DwdPrecipitationMap.tsx','HymecNgOverlay.tsx','HymecNgSource.ts']),unexpectedDormant=sourceNames.filter(name=>!reachable.has(join(srcDir,name))&&!expectedDormant.has(name)),unexpectedActive=[...expectedDormant].filter(name=>reachable.has(join(srcDir,name)));
+const expectedDormant=new Set(['RouteWeatherPanel.tsx','routeWeather.ts','SynopticPanel.tsx','DwdPrecipitationMap.tsx','HymecNgOverlay.tsx','HymecNgSource.ts']),unexpectedDormant=sourceNames.filter(name=>!reachable.has(join(srcDir,name))&&!expectedDormant.has(name)),unexpectedActive=[...expectedDormant].filter(name=>reachable.has(join(srcDir,name)));
 
 if(!reachable.has(join(srcDir,'CrossSectionPanel.tsx')))failures.push('Das reaktivierte Flug-Streckenbriefing CrossSectionPanel.tsx ist nicht im aktiven Flugmeteorologiepfad erreichbar.');
 if(!app.includes("lazy(()=>import('./FlightMeteorologyPanel'))"))failures.push('Flugmeteorologie wird nicht mehr über die vorgesehene Lazy-Grenze geladen.');
+if(!app.includes("const LazyRadar=lazy(()=>import('./RadarPanel'))"))failures.push('Radar/Komposit muss weiterhin hinter der Lazy-Grenze geladen werden.');
+if(!radarPanel.includes("from './synoptic'"))failures.push('Die reaktivierte Synoptik ist nicht mehr ausschließlich über den lazy geladenen Radar-/Kompositpfad verdrahtet.');
+if(!reachable.has(join(srcDir,'synoptic.ts')))failures.push('Die bewusst reaktivierte Komposit-Synoptik ist im Lazy-Radar-Pfad nicht erreichbar.');
+if(reachable.has(join(srcDir,'SynopticPanel.tsx')))failures.push('Das separate alte SynopticPanel.tsx darf trotz reaktiviertem synoptic.ts nicht in den aktiven Bundlepfad zurückkehren.');
 if(unexpectedDormant.length)failures.push(`Unerwartete, nicht erreichbare Laufzeitmodule gefunden: ${unexpectedDormant.join(', ')}`);
 if(unexpectedActive.length)failures.push(`Bewusst deaktivierte Module sind wieder im aktiven Bundlepfad: ${unexpectedActive.join(', ')}`);
 
 if(failures.length){console.error('Interaktions-/Performancebereinigung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Interaktionsperformance geprüft: Randwischen blockiert normales Scrollen nicht mehr, Favoritenpositionierung und Drag-Reorder sind rAF-gedrosselt, Ansichtswechsel vermeiden Voll-Layoutmessungen; deaktivierte Altmodule einschließlich der verworfenen DWD-Rekonstruktionspipeline bleiben dormant; das textuelle Flug-Streckenbriefing ist bewusst wieder aktiv und bleibt lazy geladen; die Stationsintegration ist bewusst wieder aktiv; das amtliche DWD-Originalbild benötigt diese Zusatzmodule nicht.');
+console.log('Interaktionsperformance geprüft: Randwischen blockiert normales Scrollen nicht mehr, Favoritenpositionierung und Drag-Reorder sind rAF-gedrosselt, Ansichtswechsel vermeiden Voll-Layoutmessungen; deaktivierte Altmodule einschließlich der verworfenen DWD-Rekonstruktionspipeline bleiben dormant; die Komposit-Synoptik ist bewusst ausschließlich hinter dem lazy Radar-/Kompositpfad aktiv; das textuelle Flug-Streckenbriefing ist bewusst wieder aktiv und bleibt lazy geladen; die Stationsintegration ist bewusst wieder aktiv; das amtliche DWD-Originalbild benötigt diese Zusatzmodule nicht.');

@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const radar=readFileSync(new URL('../src/RadarPanel.tsx',import.meta.url),'utf8');
+const composite=readFileSync(new URL('../src/CompositeData.ts',import.meta.url),'utf8');
+const synoptic=readFileSync(new URL('../src/synoptic.ts',import.meta.url),'utf8');
+const worker=readFileSync(new URL('../worker-src/20-composite-models.js',import.meta.url),'utf8');
+assert.ok(composite.includes('timeoutMs:forceGrid?45000:15000'),'Das großräumige 17×25-Synoptikraster braucht auf Mobilnetzen einen längeren, getrennten Timeout.');
+assert.ok(composite.includes("cacheKey:`${lat.toFixed(2)}:${lon.toFixed(2)}:${forceGrid?'grid':'native'}`"),'Grid- und native Synoptikantworten müssen getrennt gecacht werden.');
+assert.ok(synoptic.includes('loadSynopticAnalysisPoint'),'Komposit muss die objektive Frontanalyse punktbezogen wiederverwenden können.');
+assert.ok(radar.includes("loadSynopticAnalysisPoint(lat,lon,'',controller.signal)"),'Komposit-Synoptik muss die objektive Frontanalyse tatsächlich laden.');
+assert.ok(radar.includes('name="mid-synoptic-fronts"')&&radar.includes('<MemoCompositeFronts'),'Objektive Fronten müssen als eigener sichtbarer Kartenlayer gerendert werden.');
+assert.ok(radar.includes("synoptic-front-marker")&&radar.includes("type==='occlusion'?(index%2?'warm':'cold')"),'Kalt-/Warmfronten und Okklusion brauchen meteorologische Frontsymbole statt nur beliebiger Linien.');
+assert.ok(radar.includes("const kind='isoheights' as const")&&radar.includes('ICON-500-hPa-Isohypsen'),'DWD-WMS-Isohypsen müssen als unmittelbarer Fallback sichtbar sein, solange das geglättete Grid lädt.');
+assert.ok(radar.includes('!hasGridIsoheights')&&radar.includes('dominantGridFrame.isoheights'),'Sobald das Grid verfügbar ist, müssen geglättete MID-Isohypsen den nativen Fallback ersetzen.');
+assert.ok(radar.includes('hasGridCenters')&&radar.includes('<MemoPressureCenters'),'H/T-Druckzentren müssen aus demselben Grid sichtbar gemacht werden.');
+assert.ok(radar.includes("if(!panelVisible||modelLines==='off'){setModelGridData({frames:[]});return}"),'Das Grid muss bei allen aktiven Synoptik-Modelllinien geladen werden, nicht nur bei expliziter Isohypsenwahl, damit H/T-Zentren nicht verschwinden.');
+assert.ok(worker.includes('start+=6')&&worker.includes('Math.min(6,rows-start)'),'Worker-Gridabruf muss mit begrenzter höherer Parallelität die mobile Erstladezeit reduzieren.');
+console.log('Composite synoptic completeness contract: OK');
