@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const workerSource=readFileSync(new URL('../worker-src/00-core-observations.js',import.meta.url),'utf8');
+const router=readFileSync(new URL('../worker-src/40-aviation-router.js',import.meta.url),'utf8');
+const weather=readFileSync(new URL('../src/weather.ts',import.meta.url),'utf8');
+const app=readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
+const css=readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
+assert.ok(router.includes("{name:'DWD CDC 10-Minuten'")&&router.includes("{name:'DWD SYNOP / OpenData POI'")&&router.includes("{name:'NOAA AviationWeather / METAR'"),'Deutschland-Istwetter muss CDC, SYNOP und METAR parallel anfragen.');
+assert.ok(router.includes("return direct.length?[]:brightSkyRows"),'Bright Sky muss nur Fallback sein und darf direkte DWD-SYNOP-Werte nicht doppeln.');
+assert.ok(workerSource.includes("function dwdPoiCloudCover(value,unit='')")&&workerSource.includes("raw*12.5"),'DWD-SYNOP-Gesamtbewölkung muss aus Achteln auf Prozent normalisiert werden.');
+assert.ok(workerSource.includes("function dwdPoiCloudObservation(cloudCover)")&&workerSource.includes("cloudCover,cloudObservation"),'DWD-SYNOP muss eine qualitative Himmelsbeobachtung für die Wolken-Plausibilisierung liefern.');
+assert.ok(weather.includes("if(field==='cloudCover'&&winner.cloudObservation)merged.cloudObservation=winner.cloudObservation"),'Bei gleicher physischer Station müssen numerischer Wolkenwert und qualitative Beobachtung derselben Gewinnerquelle folgen.');
+assert.ok(weather.includes("if(merged.cloudCover===undefined)merged.cloudCover=secondary.cloudCover"),'Sekundäres METAR darf einen bereits gewählten SYNOP-Wolkenwert nicht überschreiben.');
+assert.ok(weather.includes('Aktuelle amtliche Wolkenbeobachtungen (SYNOP/METAR) berücksichtigt'),'Wolkenabgleich muss SYNOP und METAR gemeinsam ausweisen.');
+assert.ok(app.includes('<b>Bewölkungsbasis:</b>'),'Hyperlokal-Info muss die tatsächlich verwendeten Bewölkungsquellen transparent ausweisen.');
+assert.ok(css.includes('.weatherwidget.modern.compact.widget-view-curve .seven-day-curve-grid{stroke:rgba(180,208,228,.34);stroke-width:1.15;'),'Widget-Kurvenübersicht braucht moderat deutlichere Temperatur-Hilfslinien.');
+console.log('Current observation multi-source cloud + widget grid contract: OK');

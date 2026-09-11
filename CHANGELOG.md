@@ -1,3 +1,17 @@
+## 0.9.84.60
+
+### Extern
+- Widget-Kurvenübersicht: Temperatur-Hilfslinien moderat kontrastreicher, ohne die Kurve optisch zu überlagern.
+- Aktuelles Wetter: Bewölkungsabgleich in Deutschland nutzt DWD CDC 10-min, direkten DWD-SYNOP/OpenData-POI und METAR/SPECI gemeinsam; Bright Sky bleibt ausschließlich Fallback.
+- In der Hyperlokal-Info wird die tatsächlich verwendete Bewölkungsbasis feldbezogen ausgewiesen.
+
+### Intern
+- DWD-SYNOP `cloud_cover_total` wird als Achtelwert 0–8/8 erkannt und auf 0–100 % normalisiert; 9 (Himmel nicht auswertbar/verdeckt) wird nicht als 112,5 % oder künstlich bedeckt interpretiert.
+- DWD-SYNOP-Gesamtbewölkung erzeugt eine qualitative Himmelsbeobachtung und nimmt damit an derselben offiziellen SYNOP/METAR-Plausibilisierung teil.
+- Beim Zusammenführen derselben physischen Station darf eine sekundäre METAR-Qualitativmeldung den bereits höher gewichteten SYNOP-Wolkenwert nicht mehr überschreiben.
+- BUFR wird bewusst nicht als zusätzliche unabhängige Quelle gezählt, wenn es dieselbe DWD-Stationsbeobachtung nur in einem anderen Transportformat enthält.
+- Neuer Regressionsvertrag `test-current-observation-multisource-cloud-098460.mjs`.
+
 ## 0.9.84.59
 
 ### Extern

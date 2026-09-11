@@ -1877,7 +1877,7 @@ button,input,select,textarea{font:inherit}
 .weatherwidget.modern.compact.widget-view-curve .seven-day-curve-temps em{font-size:14px}
 .weatherwidget.modern.compact.widget-view-curve .seven-day-curve-chart{padding-top:9px}
 .weatherwidget.modern.compact.widget-view-curve .seven-day-curve-chart svg{min-height:285px}
-.weatherwidget.modern.compact.widget-view-curve .seven-day-curve-grid{stroke:rgba(180,208,228,.24);stroke-dasharray:3 5}
+.weatherwidget.modern.compact.widget-view-curve .seven-day-curve-grid{stroke:rgba(180,208,228,.34);stroke-width:1.15;stroke-dasharray:3 5}
 .weatherwidget.modern.compact.widget-view-curve .seven-day-curve-axis-label,.weatherwidget.modern.compact.widget-view-curve .seven-day-curve-time-label{fill:#8ea8bd;font-size:9px}
 .weatherwidget.modern.compact.widget-view-curve.light .seven-day-curve-axis-label,.weatherwidget.modern.compact.widget-view-curve.light .seven-day-curve-time-label{fill:#60758a}
 .weatherwidget.modern.compact.widget-view-curve .seven-day-curve-day-label{fill:#d7e7f4;font-size:10px}
