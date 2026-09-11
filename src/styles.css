@@ -1930,7 +1930,7 @@ button,input,select,textarea{font:inherit}
 
 /* MID 0.9.84.9: legible curve wind, aligned hazards, ensemble export and climate aliases */
 .weatherwidget.modern.compact.widget-view-curve .seven-day-curve-wind .cockpit-inline-wind-arrow{--arrow-size:16px!important;flex:0 0 20px;display:grid;place-items:center;width:20px;height:20px;border:1px solid currentColor;border-radius:50%;background:rgba(255,255,255,.1);font-size:16px;font-weight:950;filter:drop-shadow(0 1px 1px rgba(0,0,0,.38))}
-.weatherwidget.modern.compact.widget-view-curve.light .seven-day-curve-wind .cockpit-inline-wind-arrow{background:#fff;border-width:2px;box-shadow:0 1px 3px rgba(13,42,66,.18);filter:none}
+.weatherwidget.modern.compact.widget-view-curve.light .seven-day-curve-wind .cockpit-inline-wind-arrow{background:#fff;border-width:2px;box-shadow:none;filter:none;text-shadow:none}.weatherwidget.modern.compact.widget-view-curve.light .seven-day-curve-wind .cockpit-inline-wind-arrow>span{filter:none;text-shadow:none}
 .weatherwidget.modern.compact.widget-view-curve .seven-day-curve-wind b{font-size:10px}
 .weatherwidget.modern.compact.widget-view-curve .seven-day-curve-wind small{font-size:8px}
 .weatherwidget.modern.compact.widget-view-curve .seven-day-curve-hazard-row{display:grid;grid-template-columns:repeat(var(--seven-day-curve-count),minmax(0,1fr));gap:3px;padding-left:var(--seven-day-curve-left-pad);padding-right:var(--seven-day-curve-right-pad);margin-top:3px}
@@ -3361,6 +3361,22 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .travel-source-details{border:1px solid var(--border);border-radius:13px;background:color-mix(in srgb,var(--s2) 55%,transparent);overflow:hidden}.travel-source-details>summary{display:flex;align-items:center;justify-content:space-between;gap:9px;padding:9px 10px;cursor:pointer;list-style:none}.travel-source-details>summary::-webkit-details-marker{display:none}.travel-source-details>summary>span{display:grid;gap:2px;min-width:0}.travel-source-details>summary b{font-size:9px;color:var(--text)}.travel-source-details>summary small{color:var(--muted);font-size:7px;line-height:1.35}.travel-source-details>summary>svg{flex:0 0 auto;color:var(--muted);transition:transform .18s ease}.travel-source-details[open]>summary>svg{transform:rotate(90deg)}.travel-source-details-body{display:grid;gap:8px;padding:0 10px 10px}.travel-source-details-body>p{margin:0;color:var(--muted);font-size:7.5px;line-height:1.45}.travel-source-details-body>p strong{color:var(--text)}
 .travel-source-status-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.travel-source-status-grid>article{display:grid;gap:3px;min-width:0;padding:7px 8px;border:1px solid var(--border);border-radius:10px;background:color-mix(in srgb,var(--surface) 78%,transparent)}.travel-source-status-grid>article.used{border-color:color-mix(in srgb,#42bff5 32%,var(--border))}.travel-source-status-grid>article header{display:flex;align-items:flex-start;justify-content:space-between;gap:5px}.travel-source-status-grid strong{font-size:7.5px}.travel-source-status-grid header span{flex:0 0 auto;padding:2px 5px;border-radius:999px;background:color-mix(in srgb,var(--muted) 10%,transparent);color:var(--muted);font-size:6px;font-weight:850}.travel-source-status-grid .used header span{background:color-mix(in srgb,#42bff5 13%,transparent);color:#42bff5}.travel-source-status-grid small{color:var(--muted);font-size:6.3px;line-height:1.3}.travel-source-status-grid p{margin:0;color:var(--muted);font-size:6.8px;line-height:1.4}.travel-source-warning{display:flex;align-items:flex-start;gap:5px;color:var(--warning)!important}.travel-source-warning svg{flex:0 0 auto;margin-top:1px}
 @media(max-width:520px){.travel-source-status-grid{grid-template-columns:1fr}.travel-source-details>summary{align-items:flex-start}.travel-source-details-body{padding-inline:9px}}
+
+
+/* MID v0.9.84.55 · Synoptik: sichtbare 500-hPa-Isohypsen auch auf heller Basiskarte */
+.leaflet-mid-model-lines-pane,
+.maplibre-mid-model-lines-pane{
+ z-index:665!important;
+ pointer-events:none!important;
+ mix-blend-mode:normal!important;
+}
+.leaflet-mid-model-lines-pane svg,
+.maplibre-mid-model-lines-pane svg{
+ overflow:visible!important;
+ pointer-events:none!important;
+}
+.mid-model-contour.isoheights{stroke-opacity:1}
+.mid-model-contour.foreground.isoheights{filter:none}
 /* MID v0.8.25.1 · Kompositbild: Standort, Blitzpunkte, Modelllinien und dezente Zugpfeile */
 .maplibre-mid-lightning-points-pane{z-index:710!important;pointer-events:auto!important}
 .maplibre-mid-motion-arrows-pane{z-index:525!important;pointer-events:none!important}
@@ -3377,7 +3393,7 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .radar-location-marker.selected-location .radar-location-ring{top:2px!important}
 .radar-location-marker.actual-location .radar-location-bearing.unavailable{opacity:.5;filter:saturate(.72)}
 .mid-model-contour.foreground{shape-rendering:geometricPrecision;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.82))}
-.mid-model-contour.foreground.isoheights{stroke-dasharray:12 5}
+.mid-model-contour.foreground.isoheights:not(.major){stroke-dasharray:12 5}.mid-model-contour.foreground.isoheights.major{stroke-dasharray:none}
 
 /* MID v0.8.26.5 – transparente Flugwetter-Datenherkunft */
 .meteogram-source-disclosure{margin:0 0 10px;padding:8px 10px;border:1px solid var(--border);border-radius:12px;background:color-mix(in srgb,var(--s2) 84%,var(--surface));color:var(--muted);font-size:9px;line-height:1.4}

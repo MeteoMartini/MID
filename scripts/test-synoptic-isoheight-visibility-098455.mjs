@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const radar=readFileSync(new URL('../src/RadarPanel.tsx',import.meta.url),'utf8');
+const features=readFileSync(new URL('../src/styles-src/10-features.css',import.meta.url),'utf8');
+const composite=readFileSync(new URL('../src/styles-src/20-ensemble-composite.css',import.meta.url),'utf8');
+assert.ok(radar.includes("resolvedIsoheightLineTone:ModelLineColor='multicolor'"),'Automatische Isohypsen dürfen auf heller Karte nicht mehr weiß verschwinden.');
+assert.ok(radar.includes("{main:'#e58a14',major:'#ffc247',halo:'rgba(24,16,4,.97)'"),'Isohypsen brauchen eine kontrastreiche amber/gold Palette mit dunklem Halo.');
+assert.ok(radar.includes("dashArray=type==='isoheights'?(level.major?undefined:'12 5'):undefined"),'Hauptisohypsen müssen durchgezogen, Zwischenisohypsen gestrichelt sein.');
+assert.ok(radar.includes('dominantGridFrame.isoheights')&&radar.includes('type="isoheights"'),'500-hPa-Isohypsen müssen aus dem Grid-Frame als echte Polyline-Konturen gerendert werden.');
+assert.ok(features.includes('.leaflet-mid-model-lines-pane')&&features.includes('.mid-model-contour.isoheights{stroke-opacity:1}'),'Leaflet-Konturpane und Isohypsen-Sichtbarkeit müssen explizit geschützt sein.');
+assert.ok(composite.includes('.mid-model-contour.foreground.isoheights:not(.major){stroke-dasharray:12 5}')&&composite.includes('.mid-model-contour.foreground.isoheights.major{stroke-dasharray:none}'),'Major/Minor-Isohypsen müssen visuell getrennt bleiben.');
+console.log('Synoptik 500-hPa-Isohypsen-Sichtbarkeit: OK');

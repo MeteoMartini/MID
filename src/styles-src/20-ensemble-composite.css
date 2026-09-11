@@ -14,7 +14,7 @@
 .radar-location-marker.selected-location .radar-location-ring{top:2px!important}
 .radar-location-marker.actual-location .radar-location-bearing.unavailable{opacity:.5;filter:saturate(.72)}
 .mid-model-contour.foreground{shape-rendering:geometricPrecision;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.82))}
-.mid-model-contour.foreground.isoheights{stroke-dasharray:12 5}
+.mid-model-contour.foreground.isoheights:not(.major){stroke-dasharray:12 5}.mid-model-contour.foreground.isoheights.major{stroke-dasharray:none}
 
 /* MID v0.8.26.5 – transparente Flugwetter-Datenherkunft */
 .meteogram-source-disclosure{margin:0 0 10px;padding:8px 10px;border:1px solid var(--border);border-radius:12px;background:color-mix(in srgb,var(--s2) 84%,var(--surface));color:var(--muted);font-size:9px;line-height:1.4}

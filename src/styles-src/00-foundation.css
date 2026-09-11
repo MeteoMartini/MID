@@ -1930,7 +1930,7 @@ button,input,select,textarea{font:inherit}
 
 /* MID 0.9.84.9: legible curve wind, aligned hazards, ensemble export and climate aliases */
 .weatherwidget.modern.compact.widget-view-curve .seven-day-curve-wind .cockpit-inline-wind-arrow{--arrow-size:16px!important;flex:0 0 20px;display:grid;place-items:center;width:20px;height:20px;border:1px solid currentColor;border-radius:50%;background:rgba(255,255,255,.1);font-size:16px;font-weight:950;filter:drop-shadow(0 1px 1px rgba(0,0,0,.38))}
-.weatherwidget.modern.compact.widget-view-curve.light .seven-day-curve-wind .cockpit-inline-wind-arrow{background:#fff;border-width:2px;box-shadow:0 1px 3px rgba(13,42,66,.18);filter:none}
+.weatherwidget.modern.compact.widget-view-curve.light .seven-day-curve-wind .cockpit-inline-wind-arrow{background:#fff;border-width:2px;box-shadow:none;filter:none;text-shadow:none}.weatherwidget.modern.compact.widget-view-curve.light .seven-day-curve-wind .cockpit-inline-wind-arrow>span{filter:none;text-shadow:none}
 .weatherwidget.modern.compact.widget-view-curve .seven-day-curve-wind b{font-size:10px}
 .weatherwidget.modern.compact.widget-view-curve .seven-day-curve-wind small{font-size:8px}
 .weatherwidget.modern.compact.widget-view-curve .seven-day-curve-hazard-row{display:grid;grid-template-columns:repeat(var(--seven-day-curve-count),minmax(0,1fr));gap:3px;padding-left:var(--seven-day-curve-left-pad);padding-right:var(--seven-day-curve-right-pad);margin-top:3px}

@@ -1,3 +1,29 @@
+## 0.9.84.55
+
+### Extern
+- Synoptik: 500-hPa-Isohypsen werden wieder als deutlich sichtbare Linien dargestellt, nicht nur als Geopotential-Labels. Isohypsen sind automatisch amber/gold mit dunklem Halo und damit klar von den nativen DWD-Isobaren getrennt.
+- Hauptisohypsen werden durchgezogen, Zwischenisohypsen gestrichelt; die Darstellung bleibt auf heller Karte, Satellitenunterlage und im Dark Mode kontrastreich.
+- Release-Installer #1010 korrigiert: drei veraltete bzw. folgebetroffene Regressionen zu CAVOK, Radar-Nowcast und dem absichtlich entfernten Widget-Windpfeil-Schatten wurden auf den aktuellen Vertrag synchronisiert.
+
+### Intern
+- Leaflet- und MapLibre-Modelllinien-Panes werden beide explizit abgesichert; Isohypsen erhalten eine eigene sichtbare Stroke-/Halo-Konfiguration.
+- CAVOK-Regression schützt die fachliche Trennung zwischen „keine signifikante tiefe Bewölkung“ und „0 % Gesamtbewölkung“.
+- Radar-Nowcast darf weiterhin in der aktuellen Wetterkarte direkt erscheinen; Prognoseansichten bleiben an den kanonischen 15-Minuten-/Stundenreihen.
+- Widget-Light-Export schützt explizit `box-shadow:none`, `filter:none` und `text-shadow:none` am Windrichtungspfeil.
+
+## 0.9.84.54
+
+### Extern
+- Widget-Kurvenexport: grauen Pfeilschatten in der Windkachel entfernt.
+- Aktuelles Wetter zeigt Wind und Böen sowie relative Feuchte und Taupunkt gemeinsam; frischer Standort-Radarwert wird für die aktuelle Niederschlagsrate bevorzugt.
+- Hyperlokale Bewölkung verbessert: CAVOK wird fachlich als Ausschluss signifikanter tiefer Bewölkung behandelt, nicht als 0 % Gesamtbewölkung. Einzelne entfernte Gesamtbedeckungswerte dürfen den lokalen Modellhintergrund nicht mehr ungebremst auf 8/8 ziehen.
+
+### Intern
+- Emsdetten/EDDG-Fall analysiert: öffentliches EDDG-METAR um 10:50 UTC CAVOK; vorherige Filterung verlangte zusätzlich numerischen cloudCover und verlor dadurch die qualitative CAVOK-Gegeninformation.
+- CAVOK und explizit wolkenlose Meldungen werden getrennt behandelt; Gesamtbewölkung bleibt modellgestützt, CAVOK begrenzt nur die lokale Korrektur.
+- Neue Regression schützt CAVOK-Semantik, schattenfreien Widget-Windexport und die erweiterten aktuellen Wetterwerte.
+- Keine Worker-Domainlogik geändert.
+
 ## 0.9.84.53
 
 ### Extern

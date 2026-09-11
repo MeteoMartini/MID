@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const obs=fs.readFileSync('src/weather-src/10-observations-specialized.tsfrag','utf8');
+const app=fs.readFileSync('src/App.tsx','utf8');
+const css=fs.readFileSync('src/styles.css','utf8');
+assert.ok(obs.includes("qualitativeClear=sky==='cavok'||sky==='clear'"),'CAVOK/clear muss auch ohne numerischen Gesamtbedeckungsgrad in die qualitative Gegenprüfung eingehen.');
+assert.ok(obs.includes("explicitClear=clear.filter(station=>station.cloudObservation==='clear')")&&obs.includes("cavokReports=clear.filter(station=>station.cloudObservation==='cavok')"),'CAVOK darf nicht wie explizit wolkenlos behandelt werden.');
+assert.ok(obs.includes('signifikante tiefe Bewölkung ausgeschlossen; Gesamtbewölkung modellgestützt lokal begrenzt korrigiert'),'CAVOK muss als Aussage zu signifikanter tiefer Bewölkung und nicht als 0-%-Gesamtbewölkung behandelt werden.');
+assert.ok(obs.includes('maxPositive=nearest(cavokReports)<=25000?25:18'),'Ein einzelner CAVOK-Nachbar darf die Gesamtbewölkung nur begrenzt gegenüber dem lokalen Modellhintergrund korrigieren.');
+assert.doesNotMatch(obs,/cavok\?\(nearestClear<=25000\?24:30\)/,'Alter fachlich zu starker CAVOK-Gesamtbewölkungsdeckel darf nicht zurückkehren.');
+assert.ok(app.includes('radarNowcast={radarAnalysis}'),'Aktuelles Wetter muss Zugriff auf den kanonischen Radar-Nowcast haben.');
+assert.ok(css.includes('.weatherwidget.modern.compact.widget-view-curve.light .seven-day-curve-wind .cockpit-inline-wind-arrow{background:#fff;border-width:2px;box-shadow:none;filter:none;text-shadow:none}'),'Heller Kurvenexport darf keinen grauen Pfeilschatten rendern.');
+assert.ok(css.includes('.weatherwidget.modern.compact.widget-view-curve.light .seven-day-curve-wind .cockpit-inline-wind-arrow>span{filter:none;text-shadow:none}'),'Auch der innere Windpfeil muss im Export schattenfrei bleiben.');
+console.log('Current cloud/CAVOK and widget export contract: OK');

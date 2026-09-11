@@ -28,7 +28,7 @@ for(const token of [
   "station.cloudObservation==='cavok'",
   'nearestClear<=45000',
   'clearWeight>=Math.max(.08,cloudyWeight*1.25)',
-  "Aktuelle METAR-Sichtmeldung (CAVOK) berücksichtigt",
+  "METAR CAVOK: signifikante tiefe Bewölkung ausgeschlossen; Gesamtbewölkung modellgestützt lokal begrenzt korrigiert",
   'cloudReconciliation=reconcileHyperlocalCloudCover(ranked,cloudCover.value,direct?.cloudCover,target.cloudCover,elevation)',
   'cloudCover:cloudReconciliation.value',
   'cloudAnalysisMethod:cloudReconciliation.method'
@@ -41,6 +41,7 @@ for(const token of [
 
 if(panel.includes("[windMode,setWindMode]=useState<WindChartMode>('wind')"))failures.push('Die Wind-/Böenauswahl startet weiterhin bei jedem Öffnen starr mit Wind.');
 if(weather.includes("cloudCover:cloudCover.value===undefined?direct?.cloudCover:clampNumber(cloudCover.value,0,100)"))failures.push('Die hyperlokale Bewölkung verwendet weiterhin ausschließlich die Restfeldanalyse ohne METAR-Konsolidierung.');
+if(weather.includes("station.cloudObservation==='cavok'?0"))failures.push('CAVOK darf nicht als 0 % Gesamtbewölkung interpretiert werden.');
 
 if(failures.length){console.error('Ensemble-/Hyperlokalprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
 console.log('Ensemble-Auswahl und Hyperlokalanalyse geprüft: Wind/Böen wird gespeichert; explizite aktuelle METAR-Sicht- und Wolkenmeldungen können fehlerhafte Modellbewölkung begrenzen.');

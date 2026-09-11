@@ -27,7 +27,7 @@ need('Klima lässt den Favoritennamen schalten',climate,'Favoritenname „{favor
 need('Klima speichert die Ortsnamenauswahl',climate,"mid:climate:favorite-name:");
 need('Kurvenübersicht erhält Hazarddaten pro Datum',app,'hazardsByDate={showHazards?Object.fromEntries');
 need('Kurvenübersicht begrenzt Hazardpillen kompakt',cockpit,'.slice(0,3).map((hazard,index)');
-need('Heller Kurvenwindpfeil ist kontrastverstärkt',foundation,'border-width:2px;box-shadow:0 1px 3px');
+need('Heller Kurvenwindpfeil behält kontrastreiche Kontur ohne grauen Exportschatten',foundation,'background:#fff;border-width:2px;box-shadow:none;filter:none;text-shadow:none');
 assert.equal(pkg.scripts?.['test:widget-ensemble-climate-alias'],`node ${test}`,'Package-Testeintrag fehlt.');
 for(const key of ['requiredRegressionTests','regressionTests','requiredTests','requiredFiles'])assert.ok(baseline[key]?.includes(test),`${test} fehlt in ${key}.`);
 assert.equal(baseline.releaseVersion,pkg.version,'Release- und Baseline-Version müssen übereinstimmen.');

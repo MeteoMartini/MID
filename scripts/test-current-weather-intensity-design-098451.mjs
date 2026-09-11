@@ -11,7 +11,11 @@ assert.ok(pictogram.includes("if(has('RA'))return raw.startsWith('-')?'Leichter 
 assert.ok(pictogram.includes("if(has('SH')&&has('RA'))return raw.startsWith('-')?'Leichte Regenschauer':raw.startsWith('+')?'Starke Regenschauer':'Mäßige Regenschauer';"),'Regenschauer brauchen beobachtete Intensität.');
 assert.ok(app.includes('st?.fieldTemporalResolutionMinutes?.precipitation'),'Stationsniederschlag muss seine tatsächliche zeitliche Auflösung in die Intensitätsberechnung geben.');
 assert.ok(precip.includes('Gemeinsame Intensitätsklassifikation für Piktogramme, Texte und Skybar.'),'Zentrale DWD/WMO-Intensitätsklassifikation muss erhalten bleiben.');
-for(const token of ['current-weather-facts','Niederschlag</small>','Wind</small>','Feuchte</small>','Sicht</small>','Luftdruck</small>'])assert.ok(app.includes(token),`Aktuelles-Wetter-Konzept fehlt: ${token}`);
+
+assert.ok(app.includes('radarCurrentUsable=Boolean(radarNowcast')&&app.includes('currentPrecipSourceRate=radarCurrentUsable?Math.max(0,Number(radarNowcast!.currentRate))'),'Aktuelles Wetter muss frischen Standort-Radarwert vor Stations-/Modellniederschlag verwenden.');
+assert.ok(app.includes('G{wind(displayWindGust,unit)}'),'Kompaktbereich muss Wind und Böen gemeinsam ausgeben.');
+assert.ok(app.includes('{Math.round(dew)} °C'),'Kompaktbereich muss den Taupunkt zusammen mit der relativen Feuchte ausgeben.');
+for(const token of ['current-weather-facts','Niederschlag</small>','Wind / Böen</small>','Feuchte / Taupunkt</small>','Sicht</small>','Luftdruck</small>'])assert.ok(app.includes(token),`Aktuelles-Wetter-Konzept fehlt: ${token}`);
 assert.ok(css.includes('/* MID v0.9.84.51 · Aktuelles Wetter: responsiver Informationsblock nach MID-Konzept */'));
 assert.ok(css.includes('@media(max-width:520px) and (orientation:portrait)')&&css.includes('@media(orientation:landscape) and (max-height:600px) and (max-width:950px)'),'Hoch-/Querformat müssen explizit geschützt sein.');
 console.log('Current weather intensity/design contract: OK');
