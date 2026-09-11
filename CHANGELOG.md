@@ -1,3 +1,36 @@
+## 0.9.84.47
+
+### Extern
+- Release-Installer #1000 korrigiert: Die sichtbare Bezeichnung „MID-Hinweise“ im 14-Tage-Ensemble bleibt erhalten.
+- Vier veraltete Regressionstests wurden auf die neue, fachlich eindeutige Tooltip-Bezeichnung synchronisiert.
+
+### Intern
+- `test-code-quality-0783.mjs`, `test-dwd-warning-markers.mjs`, `test-maintenance-07821.mjs` und `test-warning-ui-07822.mjs` erwarten nun `<b>MID-Hinweise</b>` statt des alten `<b>Hazards</b>`.
+- Keine Änderung an Wetterlogik, Warnstufen, Ensemble-/Umfeldwerten oder Worker-Domainlogik.
+
+## 0.9.84.46
+
+### Extern
+- 14-Tage-Ensemble: MID-Hinweise zeigen nun tatsächlich die gerundeten probabilistischen/Umfeldwerte statt weiterhin nur den ungerundeten Punkt-Hinweiswert.
+- Der Tooltip weist den zugehörigen P10/P90- bzw. 12-km-Umfeldkontext sichtbar aus.
+- Release-Installer: zwei durch das Tmin/Tmax-Redesign veraltete Regressionserwartungen aus #999 korrigiert.
+
+### Intern
+- `ensembleHazardDisplayValue()` koppelt sichtbaren Hinweiswert und `ensembleHazardContext()` an dieselbe wissenschaftliche Datenbasis.
+- Böen: P90/Umfeld-P90 mit einheitenabhängiger Aufrundung; Hitze/Frost ganze °C; Stark-/Dauerregen passende mm-Rundung.
+- Keine Warnstufenverschärfung allein durch die Zusatzdarstellung.
+- #999: TypeScript 7/Vite waren erfolgreich; nur zwei statische Alt-Tests erwarteten die frühere Tmin/Tmax-DOM-Struktur.
+
+## 0.9.84.45
+
+### Extern
+- Aktuelles Wetter: Der heutige Tmin-/Tmax-Bereich ist kompakter, besser lesbar und visuell klarer gegliedert. Tiefst- und Höchstwert stehen nun als ruhige, farblich differenzierte Wertepaarung statt weit auseinandergezogener Einzelwerte.
+
+### Intern
+- `hero-day-range` auf gemeinsame Tmin/Tmax-Wertegruppe umgestellt; responsive Darstellung für Desktop, iPhone Hoch-/Querformat abgesichert.
+- Dezente Blau-/Rot-Semantik nur für Tmin/Tmax, tabellarische Ziffern und expliziter Accessibility-Text beibehalten.
+- Regression `test-current-weather-tmin-tmax-098445.mjs` ergänzt.
+
 
 ## 0.9.84.44
 

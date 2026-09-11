@@ -13,7 +13,7 @@ for(const [token,where] of [
  ['<ForecastHazards hazards={compactHz}/>',app],
  ['tooltip-meta-line sunshine-tooltip-line',ensemble],
  ['<b>Sonnenscheindauer</b>',ensemble],
- ['<b>Hazards</b>',ensemble],
+ ['<b>MID-Hinweise</b>',ensemble],
  ["import {useDismissibleLayer} from './useDismissibleLayer';",app+await read('src/RadarPanel.tsx')],
  ["document.addEventListener('pointerdown',onPointerDown,true)",dismissible],
  ['export function niceTemperatureScale',chartMath],

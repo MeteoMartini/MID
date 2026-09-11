@@ -30,7 +30,7 @@ for(const token of [
  'observedTemperature:finalizationObservedTemperature',
  'finalizedHours=useMemo',
  'currentRange=currentDay?{min:Math.min(currentDay.min,temp),max:Math.max(currentDay.max,temp)}:null',
- 'Tagesbereich aus Vorhersage und aktuellem Wert'
+ 'Heutiger Temperaturbereich aus Vorhersage und aktuellem Wert'
 ])need('App-Einbindung',app,token);
 for(const token of [
  'MID v0.8.33.16 · iOS-Paintstabilität und durchgehender App-Hintergrund',

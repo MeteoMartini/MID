@@ -15,6 +15,6 @@ assert.match(app,/className="mountain-level-meta"/,'Wind- und Schneedaten besitz
 assert.match(app,/className="mountain-wind-values"/,'eigene Windzeile fehlt');
 assert.match(app,/className="mountain-snow-values"/,'eigene Schneezeile fehlt');
 assert.match(css,/\.mountain-level-meta\{display:grid;gap:8px/,'räumliche Trennung der Berg-Metadaten fehlt');
-assert.match(app,/<em>Heute<\/em><span className="min"><small>Tmin<\/small>/,'Tages-Min/Max-Karte besitzt keine Heute-Kennzeichnung');
+assert.match(app,/<em>Heute<\/em><span className="hero-day-range-values"><span className="min"><small>Tmin<\/small>/,'Tages-Min/Max-Karte besitzt keine Heute-Kennzeichnung');
 assert.match(legacy,/@media\(min-width:851px\)[\s\S]*?\.hero-day-range\{display:grid;grid-template-columns:auto auto 48px auto/,'hochwertige Desktop-Darstellung für Tmin/Tmax fehlt');
 console.log('Bergprofil-Persistenz, getrennte Wind-/Schneedaten und Desktop-Tagesbereich geprüft.');

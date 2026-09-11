@@ -3,6 +3,8 @@ import {readFileSync} from 'node:fs';
 const panel=readFileSync(new URL('../src/EnsemblePanel.tsx',import.meta.url),'utf8');
 const app=readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
 assert.ok(panel.includes('ensembleHazardContext(signal,x,x.date,unit,warningEnsemble??undefined)'), '14d-Ensemble-Hinweise müssen den gemeinsamen Ensemble-/Umfeldkontext erhalten.');
+assert.ok(panel.includes('ensembleHazardDisplayValue(signal,x,x.date,unit,warningEnsemble??undefined)'), 'Sichtbare 14d-Hinweiswerte müssen denselben gerundeten Ensemble-/Umfeldwert verwenden.');
+assert.ok(panel.includes('<b>MID-Hinweise</b>')&&panel.includes('hazard.detail&&<small>{hazard.detail}</small>'), 'Umfeld-/P10-P90-Kontext muss im 14d-Tooltip sichtbar sein und darf nicht nur im SVG-title liegen.');
 assert.ok(panel.includes("signal.kind==='wind'||signal.kind==='snowdrift'"), 'Wind/Böen müssen probabilistisch erweitert werden.');
 assert.ok(panel.includes('gustNeighborhoodP90'), 'Kurzfristig muss das 12-km-Umfeld-P90 für Böen einfließen.');
 assert.ok(panel.includes('temperatureNeighborhoodHighP90')&&panel.includes('temperatureNeighborhoodLowP10'), 'Hitze/Frost müssen kurzfristig räumliche Temperaturverlagerung berücksichtigen.');
