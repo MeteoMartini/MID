@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const panel=readFileSync(new URL('../src/EnsemblePanel.tsx',import.meta.url),'utf8');
+const app=readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
+assert.ok(panel.includes('ensembleHazardContext(signal,x,x.date,unit,warningEnsemble??undefined)'), '14d-Ensemble-Hinweise müssen den gemeinsamen Ensemble-/Umfeldkontext erhalten.');
+assert.ok(panel.includes("signal.kind==='wind'||signal.kind==='snowdrift'"), 'Wind/Böen müssen probabilistisch erweitert werden.');
+assert.ok(panel.includes('gustNeighborhoodP90'), 'Kurzfristig muss das 12-km-Umfeld-P90 für Böen einfließen.');
+assert.ok(panel.includes('temperatureNeighborhoodHighP90')&&panel.includes('temperatureNeighborhoodLowP10'), 'Hitze/Frost müssen kurzfristig räumliche Temperaturverlagerung berücksichtigen.');
+assert.ok(panel.includes("signal.kind==='heavyRain'&&Number(signal.windowHours??1)<=1&&rows.length"), 'Starkregen darf nur mit echter stündlicher Umfeldinformation räumlich erweitert werden.');
+assert.ok(panel.includes("signal.kind==='continuousRain'&&Number(signal.windowHours??24)>=24"), 'Dauerregen darf die passende P90-Tagesmenge nutzen.');
+assert.ok(panel.includes("Math.round(Number(day.precipitationProbability)/5)*5"), 'Niederschlagswahrscheinlichkeit muss auf robuste 5-%-Schritte gerundet werden.');
+assert.ok(panel.includes("Bei diesem Vorlauf wird keine künstliche lokale Umfeldschärfung erzeugt"), 'Lange Vorläufe müssen die Grenze der Umfeldschärfung transparent machen.');
+assert.equal((app.match(/warningEnsemble=\{warningEnsemble\}/g)??[]).length,4,'Kurzfrist-Cockpit, 14d-Cockpit, Ensemblemodul und Widget-Ensemble müssen denselben Umfeldkontext erhalten.');
+console.log('14d ensemble hazard neighborhood/rounding contract: OK');

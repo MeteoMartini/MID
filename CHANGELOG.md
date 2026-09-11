@@ -1,3 +1,16 @@
+
+## 0.9.84.44
+
+### Extern
+- 14-Tage-Ensemble-Meteogramm: MID-Hinweise nutzen nun dieselbe probabilistische Umfeld-/Rundungslogik wie die Kurzfrist-Hinweise, soweit die Daten dies fachlich tragen.
+- Wind/Böen, Hitze/Frost, Dauerregen sowie kurzfristig auch Starkregen erhalten gerundete Ensemble-/Umfeldkontexte; lange Vorläufe bleiben bewusst ohne künstliche lokale Schärfung.
+
+### Intern
+- `warningEnsemble` wird an alle EnsemblePanel-Pfade (14d-Cockpit, Ensemblemodul, Widget-Ensemble) weitergereicht.
+- P90/P10-Kontext: Böen P90, Tmax P90, Tmin P10; 12-km-Umfeld nur bei tatsächlich verfügbaren stündlichen Kurzfristdaten.
+- Starkregen nutzt nur echte stündliche Umfeld-P90-Mengen; Tages-P90 wird nicht in 1-/6-h-Mengen umgerechnet. Dauerregen darf P90-Tagesmenge nutzen.
+- Werte werden fachlich robust gerundet: Wind 5 km/h bzw. 5 kt/mph oder 2 m/s, Temperatur 1 °C, Niederschlag 1 mm, PoP 5 %.
+- Warnstufen bleiben vom zusätzlichen Unsicherheitskontext getrennt; keine automatische Hochstufung aus P90/Umfeldwerten.
 # MID v0.9.84.43
 
 ## Extern
