@@ -9904,3 +9904,181 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
 .consistency-legend.simple>span{font-size:var(--mid-text-micro);line-height:1.3}
 .quickfacts .quickfact.weather>small,.model-change-models{font-size:var(--mid-text-micro);line-height:1.25}
 @media(pointer:coarse){.ensemble-advanced-toggle{min-height:44px}}
+
+/* MID v0.9.84.69 · Apple-2026-Vertrag für adaptive WebApp auf iPhone, iPad und Desktop.
+   Web-CSS-Pixel sind keine Apple-Points; die Größen bilden Apples Interaktionshierarchie pragmatisch ab. */
+:root{
+ --mid-control-touch:44px;
+ --mid-control-touch-secondary:36px;
+ --mid-control-desktop:32px;
+ --mid-page-gutter:16px;
+ --mid-text-micro:11px;
+ --mid-text-xs:11.5px;
+ --mid-text-sm:12px;
+ --mid-text-meta:13px;
+ --mid-text-body:14px;
+ --mid-text-label:14px;
+}
+.density-compact{
+ --mid-text-micro:11px;
+ --mid-text-xs:11px;
+ --mid-text-sm:11.5px;
+ --mid-text-meta:12px;
+ --mid-text-body:13.5px;
+ --mid-text-label:13.5px;
+}
+.density-comfortable{
+ --mid-text-micro:11.5px;
+ --mid-text-xs:12px;
+ --mid-text-sm:12.5px;
+ --mid-text-meta:13.5px;
+ --mid-text-body:14.5px;
+ --mid-text-label:15px;
+}
+
+/* Safe Areas bleiben erhalten; die Inhaltssäume reagieren auf verfügbaren Platz statt Gerätetyp. */
+.app{
+ padding-left:max(var(--mid-page-gutter),calc(var(--mid-safe-left) + var(--mid-page-gutter)));
+ padding-right:max(var(--mid-page-gutter),calc(var(--mid-safe-right) + var(--mid-page-gutter)));
+}
+@media(max-width:850px){:root{--mid-page-gutter:12px}}
+@media(min-width:1200px){:root{--mid-page-gutter:20px}}
+
+/* Bedienziele nach Eingabemethode: Touch großzügig, Maus/Trackpad kompakt. */
+@media (hover:none),(pointer:coarse){
+ .app :where(button,[role="button"],summary){min-block-size:var(--mid-control-touch);min-inline-size:var(--mid-control-touch)}
+ .app :where(select,textarea,input:not([type="checkbox"]):not([type="radio"]):not([type="range"])){min-block-size:var(--mid-control-touch)}
+ .app :where(.mode-info>button,.composite-info>button,.cockpit-confidence-info>button,.system-update-button,.system-update-dialog>header button,.dashboard-section-drawer>header button,.header-install-button){min-width:var(--mid-control-touch)!important;min-height:var(--mid-control-touch)!important}
+}
+@media (hover:hover) and (pointer:fine){
+ .app :where(button,[role="button"],summary){min-block-size:var(--mid-control-desktop);min-inline-size:var(--mid-control-desktop)}
+}
+.app :where(button,[role="button"],summary):active:not(:disabled):not([aria-disabled="true"]){filter:brightness(.96)}
+
+/* Standardtexte in Einstellungen und Systemdialogen folgen einer belastbaren Lesbarkeitshierarchie. */
+.settings-dialog{--settings-copy-title:14px;--settings-copy-caption:11.5px}
+.settings-titlebar span,.settings-section>header>span{font-size:11px}
+.settings-nav button strong{font-size:12px}
+.settings-nav button small{font-size:11px;line-height:1.35}
+.settings-section>header p{font-size:12px}
+.settings-inline-note{font-size:11px;line-height:1.45}
+.system-update-dialog>header span{font-size:11px}
+.system-update-dialog>header button{width:40px;height:40px}
+.system-update-actions button{min-height:44px;font-size:12px}
+.system-update-message,.system-update-loading{font-size:12px}
+.system-update-note{font-size:11px}
+.mode-info-popover,.app>footer>.mode-info-popover{font-size:11px;line-height:1.5}
+@media(max-width:700px){
+ .settings-dialog{--settings-copy-title:13.5px;--settings-copy-caption:11.5px}
+ .settings-nav button strong{font-size:11.5px}
+ .settings-content{padding-left:max(14px,calc(var(--mid-safe-left) + 14px));padding-right:max(14px,calc(var(--mid-safe-right) + 14px))}
+}
+
+/* Mobile Navigation: fünf Bereiche bleiben sichtbar, mit iOS-typischer Trefffläche und lesbarem Label. */
+@media(max-width:850px){
+ .navigation-bottom-tabs{padding-bottom:calc(90px + var(--mid-safe-bottom))}
+ .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs{gap:3px;padding:5px}
+ .navigation-bottom-tabs .dashboard-bottom-tabs button{min-height:58px!important;padding:5px 4px!important;border-radius:18px!important;font-size:11px!important;line-height:1.05!important}
+ .navigation-bottom-tabs .dashboard-bottom-tabs button svg{width:21px;height:21px}
+ .navigation-bottom-tabs .modern-planner-hub>header small{font-size:11px}
+ .navigation-bottom-tabs .modern-planner-hub>header p{font-size:12px;line-height:1.4}
+ .navigation-bottom-tabs .modern-planner-hub>header>button{min-height:44px;font-size:11px}
+ .navigation-bottom-tabs .modern-planner-actions>button strong{font-size:12px}
+ .navigation-bottom-tabs .modern-planner-actions>button small{font-size:11px;line-height:1.3}
+ .navigation-bottom-tabs .modern-more-quick-actions strong{font-size:12px}
+ .navigation-bottom-tabs .modern-more-quick-actions small{font-size:11px;line-height:1.3}
+ .navigation-bottom-tabs .modern-more-drawer .dashboard-section-nav-list.drawer section>small{font-size:11px}
+ .dashboard-section-drawer>header small{font-size:11px}
+ .dashboard-section-drawer>header button{width:44px;height:44px}
+ .navigation-bottom-tabs .modern-forecast-horizons button{font-size:11px}
+}
+/* Breite, niedrige Fenster (z. B. Split View/Querformat) werden nach verfügbarem Raum behandelt, nicht nach orientation. */
+@media(max-width:850px) and (max-height:520px){
+ .navigation-bottom-tabs{padding-bottom:calc(76px + var(--mid-safe-bottom))}
+ .navigation-bottom-tabs .dashboard-bottom-tabs button{min-height:50px!important}
+}
+
+/* iPad-/Desktop-Navigation: dieselben fünf Bereiche werden bei regulärer Breite zur platzsparenden Seitenleiste. */
+@media(min-width:851px) and (max-width:1120px){
+ .navigation-bottom-tabs.with-section-navigation{padding-left:calc(96px + var(--mid-safe-left))}
+ .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs{left:max(12px,calc(var(--mid-safe-left) + 12px));width:72px;padding:8px}
+ .navigation-bottom-tabs .dashboard-bottom-tabs button{min-height:52px!important;padding:8px!important}
+}
+@media(min-width:1121px){
+ .navigation-bottom-tabs.with-section-navigation{padding-left:calc(196px + var(--mid-safe-left))}
+ .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs{left:max(calc(var(--mid-safe-left) + 12px),calc((100vw - 1540px)/2 + 12px))}
+ .navigation-bottom-tabs .dashboard-bottom-tabs button{font-size:12px!important}
+}
+
+/* Istwetter-Metadaten: sichtbare Fachinformationen nicht mehr unter die UI-Lesbarkeitsschwelle drücken. */
+.current-weather-facts small,.current-weather-facts em,
+.hero.current-compact .hero-day-range>em,.hero.current-compact .hero-day-range-values small,
+.hero.current-compact .current-precip-panel>em,.hero.current-compact .current-compact-source>aside small{font-size:11px!important;line-height:1.2}
+.current-weather-facts b{font-size:12px!important}
+.footer-source-overview p{font-size:12px}
+.footer-source-overview>small{font-size:11px}
+
+/* 14 Tage auf kompakten Breiten: keine Mikrotypografie – Karten werden breiter und horizontal gescrollt. */
+@media(max-width:1024px){
+ .cockpit-fourteen-grid{
+  display:grid!important;
+  grid-template-columns:none!important;
+  grid-auto-flow:column!important;
+  grid-auto-columns:196px!important;
+  gap:9px!important;
+  width:100%;min-width:0;
+  overflow-x:auto!important;overflow-y:hidden!important;
+  padding:3px 3px 8px!important;
+  scroll-snap-type:x proximity;
+  scroll-padding-inline:3px;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+ }
+ .cockpit-fourteen-grid::-webkit-scrollbar{display:none}
+ .cockpit-fourteen-card{
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-areas:"header" "temperature" "precipitation" "sunshine" "wind"!important;
+  width:196px!important;min-width:196px!important;
+  gap:7px!important;padding:10px!important;border-radius:14px!important;
+  scroll-snap-align:start;overflow:hidden!important;
+ }
+ .cockpit-fourteen-card>header{grid-template-columns:minmax(0,1fr) auto!important;grid-template-areas:"heading consistency" "regime regime" "temps temps"!important;gap:6px!important}
+ .cockpit-fourteen-heading{gap:7px!important}
+ .cockpit-fourteen-heading>.mid-weather-pictogram{width:30px!important;height:30px!important;flex:0 0 30px!important}
+ .cockpit-fourteen-card>header .cockpit-fourteen-heading-copy>b{font-size:12px!important;line-height:1.15!important}
+ .cockpit-fourteen-card>header .cockpit-fourteen-heading-copy>small,.cockpit-fourteen-heading-copy>.cockpit-fourteen-weather-label{font-size:11px!important;line-height:1.2!important}
+ .cockpit-fourteen-regime{width:max-content!important;max-width:100%;min-height:28px;padding:5px 8px!important;font-size:11px!important;line-height:1.15!important;text-align:left!important}
+ .cockpit-fourteen-temps{justify-content:flex-start!important;gap:6px!important}
+ .cockpit-fourteen-card>header>.cockpit-fourteen-temps>b{font-size:12px!important}
+ .cockpit-fourteen-card>header>.cockpit-fourteen-temps>strong{font-size:15px!important}
+ .cockpit-fourteen-card>header>.cockpit-fourteen-temps>em{font-size:11px!important}
+ .cockpit-fourteen-card>header>.cockpit-consistency-pill{min-height:28px;padding:4px 7px!important;font-size:11px!important}
+ .cockpit-fourteen-card>header>.cockpit-consistency-pill .confidence-display>small{font-size:11px!important}
+ .cockpit-fourteen-row{grid-template-columns:auto minmax(0,1fr)!important;grid-template-areas:"label value" "track track"!important;gap:5px 7px!important}
+ .cockpit-fourteen-row>label,.cockpit-fourteen-row>small,.cockpit-fourteen-row>small.cockpit-fourteen-wind-meta{font-size:11px!important;line-height:1.2!important}
+ .cockpit-fourteen-row>label>svg{width:12px!important;height:12px!important}
+ .cockpit-fourteen-row>.cockpit-anomaly-track,.cockpit-fourteen-row>.cockpit-rain-track,.cockpit-fourteen-row>.cockpit-wind-track{height:6px!important;min-height:6px!important}
+ .cockpit-fourteen-sunshine{min-height:32px!important;padding:6px 7px!important;gap:5px!important;border-radius:9px!important}
+ .cockpit-fourteen-sunshine>span,.cockpit-fourteen-sunshine>svg,.cockpit-fourteen-sunshine>b,.cockpit-fourteen-sunshine>small{font-size:11px!important;line-height:1.2!important}
+ .cockpit-fourteen-day>.cockpit-brief.compact-fourteen .cockpit-confidence-info>button{width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important}
+}
+@media(max-width:430px){
+ .cockpit-fourteen-grid{grid-auto-columns:188px!important}
+ .cockpit-fourteen-card{width:188px!important;min-width:188px!important}
+}
+
+/* Hover ist Zusatzinformation; Tastaturfokus und Touch bleiben eigenständig sichtbar. */
+@media(hover:hover) and (pointer:fine){
+ .app :where(button,[role="button"],summary):hover:not(:disabled){filter:brightness(1.03)}
+}
+/* iPad mit Trackpad/Maus behält die Touchreserve, sobald ein grober Zeiger zusätzlich verfügbar ist. */
+@media(any-pointer:coarse){
+ .app :where(button,[role="button"],summary){min-block-size:var(--mid-control-touch);min-inline-size:var(--mid-control-touch)}
+ .app :where(select,textarea,input:not([type="checkbox"]):not([type="radio"]):not([type="range"])){min-block-size:var(--mid-control-touch)}
+ .app :where(.mode-info>button,.composite-info>button,.cockpit-confidence-info>button,.system-update-button,.system-update-dialog>header button,.dashboard-section-drawer>header button,.header-install-button){min-width:var(--mid-control-touch)!important;min-height:var(--mid-control-touch)!important}
+}
+/* Portale/Sheets können außerhalb von .app gerendert werden und behalten dort dieselbe Touchgröße. */
+@media(any-pointer:coarse){
+ :where(.settings-dialog,.favorite-modal,.system-update-dialog,.dashboard-section-drawer) :where(button,[role="button"],summary){min-block-size:var(--mid-control-touch);min-inline-size:var(--mid-control-touch)}
+ .settings-titlebar>button,.favorite-modal>header button,.system-update-dialog>header button{width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important}
+}

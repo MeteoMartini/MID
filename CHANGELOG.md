@@ -1,3 +1,21 @@
+## 0.9.84.69
+
+### Extern
+- Mobile und Desktop folgen jetzt einem gemeinsamen adaptiven Bedienvertrag: Bedienelemente richten sich stärker nach verfügbarer Fläche und Eingabemethode statt nach einem festen Gerätetyp.
+- Auf Touchgeräten erhalten zentrale Schaltflächen und Infoziele eine robuste Trefferfläche; die Fünf-Bereiche-Navigation ist auf iPhone besser lesbar und bleibt in niedrigen/breiten Fenstern kompakt bedienbar.
+- iPad-/Desktop-Navigation nutzt bei regulärer Breite weiterhin die platzsparende Seitenleiste; Safe Areas, Split View und zusätzliche Trackpad-/Mausbedienung werden sauberer berücksichtigt.
+- Einstellungen, Systemdialoge, Planner, Quellenhinweise und Istwetter-Metadaten verwenden eine konsistentere Mindesttypografie.
+- 14-Tage-Karten werden auf schmaleren Breiten nicht mehr durch Mikrotypografie verdichtet, sondern als breitere, horizontal scrollbare Karten dargestellt. Alle Prognoseparameter bleiben sichtbar.
+- Keine Änderung an Wetterdaten, Modellfusion, Warnlogik, Niederschlagsfarben, MID-Piktogrammen oder wissenschaftlichen Berechnungen.
+
+### Intern
+- Neuer Apple-2026-WebApp-Vertrag mit getrennten Mindestgrößen für Touch und Fine Pointer sowie zusätzlicher `any-pointer: coarse`-Absicherung für iPad mit Trackpad/Maus.
+- Safe-Area-Innenabstände und die optionale Fünf-Bereiche-Navigation auf verfügbare Breite/Höhe standardisiert; neuer Compact-Height-Pfad ersetzt für den aktuellen Kaskadenabschluss die bisherige reine Querformatverdichtung.
+- Semantische MID-Typografietokens angehoben; normale UI-Mikrotexte beginnen bei 11 px, während datenreiche SVG-/Diagrammachsentexte bewusst separat kompakt bleiben.
+- 14-Tage-Ansicht auf kompakten Breiten auf 188–196 px breite Scroll-Snap-Karten mit lesbaren 11–15-px-Inhalten und 44-px-Infoziel umgestellt.
+- Boot-Recovery-Schaltflächen auf 44 px Mindesthöhe angehoben; `viewport-fit=cover` und bestehende Safe-Area-Verträge bleiben erhalten.
+- Neuer Pflichtvertrag `test-apple-adaptive-design-contract-098469.mjs`; Worker-Fachlogik unverändert, ausschließlich Versionssynchronisierung.
+
 ## 0.9.84.68
 
 ### Extern
