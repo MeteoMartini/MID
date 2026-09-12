@@ -1,3 +1,16 @@
+## 0.9.84.64
+
+### Extern
+- Reise-Center auf iPhone/iPad besser lesbar: Navigation, Reisezeitraum, Schnellkennwerte sowie Quellen- und Modellinformationen verwenden keine extrem kleinen 6–8-px-Beschriftungen mehr.
+- Schaltflächen zum Öffnen von Details, Bearbeiten und Lösen angehefteter Reisen besitzen größere Bedienflächen, ohne die kompakte Darstellung aufzugeben.
+- Keine Änderung an Reiseprognose, Klimareferenz, Wetterdaten oder Modellgewichtung.
+
+### Intern
+- Reise-Center schrittweise auf die bestehenden MID-Typografietokens `micro/xs/sm` migriert; das setzt den UI-/Konsistenzaudit aus 0.9.84.62 komponentenweise fort.
+- Touchziele der Reise-Center-Navigation und -Aktionen auf mindestens 36 px, auf groben Touch-Pointern teilweise 40 px angehoben.
+- Neuer Pflichtvertrag `test-travel-center-readability-098464.mjs` schützt Lesbarkeit, Touchziele und die Synchronität des kanonischen Stylesheets.
+- Worker-Fachlogik unverändert; ausschließlich Versionssynchronisierung.
+
 ## 0.9.84.63
 
 ### Extern
