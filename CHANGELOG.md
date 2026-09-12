@@ -1,3 +1,18 @@
+## 0.9.84.71
+
+### Extern
+- Visualisierungs-Audit Block 2 abgeschlossen: Wasser/Tide, Flugmeteorologie, Events/Reise, Warn-/Gefahrendarstellungen sowie Karten-/Radar-Tooltips sind auf iPhone, iPad und Desktop besser lesbar.
+- Sehr kleine historische 5–9-px-Beschriftungen wurden dort gezielt angehoben; wissenschaftlich dichte Karten-/Diagrammwerte bleiben kompakter als normale UI-Texte.
+- Auf Touchgeräten erhalten zentrale Warn-, Reise-, Event-, Flug- und Radarbedienelemente weiterhin robuste 44-px-Trefferflächen.
+- Für iPad Split View und schmale Fenster werden Wasser-, Tide-, Reise- und Flugkarten weniger stark zusammengedrückt; horizontale Zeitreihen nutzen Scroll-Snap statt Mikrotypografie.
+- Keine Änderung an Wetterdaten, Tide-/Strömungsberechnung, Fluggefahren, Warnschwellen, Event-/Reiselogik, Radar/Nowcast, Piktogrammen oder Parameterfarben.
+
+### Intern
+- Zweiter Visualisierungsvertrag in `30-modern.css` für Wasser/Tide, Flug-/Routenwetter, Events, Reise, Warn-/Gefahrendarstellungen und Karten-/Radar-Tooltips.
+- Flug-Cross-Section-Achsen/Standardwerte, Wasser-Timeline, Reise-Tagesstreifen, kompakte Radarlegende und Druck-/DWD-Kartentooltips komponentenbezogen standardisiert.
+- Neuer Pflichtvertrag `test-visualization-readability-2-098471.mjs`; Stylesheet-Aggregat erneut aus den fünf kanonischen Modulen erzeugt.
+- Releaseversion und Cache-/iOS-/Worker-Metadaten auf 0.9.84.71 synchronisiert; Worker-Fachlogik unverändert.
+
 ## 0.9.84.70
 
 ### Extern

@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.84.70",
+  "releaseVersion": "0.9.84.71",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -465,7 +465,8 @@
     "scripts/test-extreme-outlook-readability-098466.mjs",
     "scripts/test-shortterm-composite-readability-098467.mjs",
     "scripts/test-openmeteo-watch-ensemble-ui-098468.mjs",
-    "scripts/test-apple-adaptive-design-contract-098469.mjs"
+    "scripts/test-apple-adaptive-design-contract-098469.mjs",
+    "scripts/test-visualization-readability-2-098471.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -853,7 +854,8 @@
     "scripts/test-extreme-outlook-readability-098466.mjs",
     "scripts/test-shortterm-composite-readability-098467.mjs",
     "scripts/test-openmeteo-watch-ensemble-ui-098468.mjs",
-    "scripts/test-apple-adaptive-design-contract-098469.mjs"
+    "scripts/test-apple-adaptive-design-contract-098469.mjs",
+    "scripts/test-visualization-readability-2-098471.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/install-mid.yml",
@@ -2010,8 +2012,8 @@
     "scripts/test-ci-types-event-update-098436.mjs",
     "scripts/test-weather-pictogram-appwide-contract-098441.mjs"
   ],
-  "version": "0.9.84.70",
-  "updatedAt": "2026-09-12T06:10:02Z",
+  "version": "0.9.84.71",
+  "updatedAt": "2026-09-12T08:18:15.634189Z",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
     "MID_IMPLEMENTATION_0.9.77.27.md",

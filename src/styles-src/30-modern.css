@@ -4978,3 +4978,147 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
 .synoptic-phase-metrics span,.synoptic-impact-chip>span,.synoptic-station-chips b{font-size:10px!important}
 .synoptic-map-label.isobar span,.synoptic-map-label.front span,.synoptic-site-label{font-size:9px!important}
 @media(max-width:520px){.synoptic-map-legend{font-size:9.5px!important}.synoptic-phase-metrics span{font-size:9.5px!important}}
+
+/* MID v0.9.84.71 · Visualisierungs-Audit Block 2
+   Warn-/Gefahrencharts, Wasser/Tide, Flugmeteorologie, Event/Reise sowie Karten-/Radar-Tooltips.
+   Normale UI-Texte folgen dem MID-Lesbarkeitsvertrag; wissenschaftliche Karten-/Diagrammlabels
+   bleiben etwas kompakter, werden aber nicht mehr auf historische 5–8-px-Stände gedrückt. */
+
+/* Wasser / Tide: Status, Messwerte und Zeitreihe auch auf iPhone/iPad ohne Mikrotypografie. */
+.water-profile-badges b{font-size:var(--mid-text-micro)!important;line-height:1.2}
+.water-loading,.water-info{font-size:var(--mid-text-sm)!important;line-height:1.4}
+.water-assessment small,.water-assessment span,
+.water-indicators small,.water-indicators span,
+.water-tides>header span,.water-tides article span,.water-tides article small,
+.water-timeline time,.water-timeline span,.water-timeline small,
+.water-source span,.water-source small{font-size:var(--mid-text-micro)!important;line-height:1.35}
+.water-tides article strong{font-size:var(--mid-text-sm)!important}
+.water-timeline{grid-auto-columns:minmax(136px,1fr);scroll-snap-type:x proximity;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch}
+.water-timeline article{scroll-snap-align:start}
+@media(max-width:520px){
+ .water-timeline{grid-auto-columns:minmax(132px,1fr)}
+ .water-tides>div{gap:8px}
+ .water-tides article{padding:10px}
+}
+
+/* Flugmeteorologie: Bedien-/Quellentexte groß genug; fachliche SVG-Skalen separat verdichtet. */
+.flight-subsection>button small,.flight-future-feature span,.flight-future-feature small,
+.flight-section-head span:first-child,.flight-section-head p,.flight-source-badge,
+.flight-cross-form label>span,.flight-cross-form small,.flight-guide,
+.flight-result-toolbar small,.flight-legend,.flight-data-note,
+.flight-briefing-status,.flight-briefing-overview small,
+.flight-route-hazards>header small,.flight-route-official>header small,
+.flight-route-hazard-list article header span,.flight-route-hazard-list footer,
+.flight-route-clear small{font-size:var(--mid-text-micro)!important;line-height:1.35}
+.flight-cross-form input,.flight-cross-form select{min-height:40px}
+.flight-point-cards header span{font-size:var(--mid-text-micro)!important}
+.flight-point-cards header b,.flight-point-cards strong{font-size:var(--mid-text-xs)!important}
+.flight-axis-label,.flight-chart-meta{font-size:10px!important}
+.flight-axis-title{font-size:10.5px!important}
+.flight-banner-text,.flight-time-top-label,.flight-contour-label,.flight-summary-time,.flight-summary-secondary{font-size:9.5px!important}
+.flight-origin-tag,.flight-summary-coord,.flight-standard-label{font-size:9px!important}
+.flight-standard-value{font-size:8.5px!important}
+.flight-level-label{font-size:10px!important}.flight-waypoint-label{font-size:9.5px!important}
+@media(max-width:760px){
+ .flight-cross-stage{min-width:800px}
+ .flight-stage-export{overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch}
+}
+
+/* Flug-/Routenwetter: Kartenhinweise und Kontrollbeschriftungen folgen derselben Hierarchie. */
+.route-weather-controls label>span,.route-search-hint,.route-summary-metrics small,
+.route-assessment-chip,.route-checkpoints-head small,.route-checkpoint-time,
+.route-map-tooltip span{font-size:var(--mid-text-micro)!important;line-height:1.35}
+.route-map-tooltip strong{font-size:var(--mid-text-sm)!important}
+.route-map-tooltip{min-width:158px;max-width:min(260px,76vw);line-height:1.35}
+.route-search-results button small{font-size:var(--mid-text-micro)!important}
+.route-search-results button strong{font-size:var(--mid-text-sm)!important}
+@media(any-pointer:coarse){
+ .route-destination-field button,.route-mode-toggle button,.route-search-results button{min-height:44px}
+}
+
+/* Events: kompakte Karten behalten Dichte, aber keine 7–9-px-Bedien-/Statusschrift. */
+.event-workspace-nav button>span,.event-choice-block.compact strong,
+.event-guide-inline-notes article,.event-guide-quickstats span,.event-guide-pill,.event-status-badge,
+.event-metrics-grid small,.event-metrics-grid span,
+.event-guidance-section>header span,.event-guidance-grid strong,.event-guidance-grid ul,
+.event-detail-disclosure>summary small,.event-detail-disclosure .event-timeline small,
+.event-model-disclosure>summary,.event-auto-update-note,.event-expired-detail-badge,
+.event-form-grid.compact label>span{font-size:var(--mid-text-micro)!important;line-height:1.35}
+.event-detail-toolbar .secondary{font-size:var(--mid-text-micro)!important;min-height:36px}
+@media(any-pointer:coarse){
+ .event-workspace-nav button,.event-choice-block.compact button,.event-detail-toolbar .secondary,
+ .event-location-actions .secondary,.event-center-expired-delete{min-height:44px!important;min-width:44px!important}
+}
+@media(max-width:430px){
+ .event-workspace-nav button{min-height:44px!important}
+ .event-workspace-nav button>span{font-size:var(--mid-text-micro)!important}
+ .event-center-sort select{font-size:11px!important}
+ .event-metrics-grid span{font-size:var(--mid-text-micro)!important}
+}
+
+/* Reiseplanung: Tagesstreifen und Auswahlkarten werden lieber breiter als unleserlich klein. */
+.travel-head>div>span,.travel-result>header>div>span,.travel-daily-climate>header span,
+.travel-climate-badge,.travel-selected-destination em,
+.travel-location-search label>span,.travel-plan-form label>span,.travel-preference label>span,
+.travel-duration b,.travel-search-error,.travel-mode-switch strong,.travel-mode-switch small,
+.travel-preference small,.travel-snow-detail strong,.travel-snow-detail small,
+.travel-constraints summary,.travel-constraints summary small,.travel-constraints label>b,.travel-constraints>p,
+.travel-method-note,.travel-loading span,.travel-result>header p,.travel-match,
+.travel-alternatives small,.travel-alternatives strong,.travel-summary-text p,
+.travel-unmet,.travel-snow-warning,.travel-metrics small,.travel-metrics span,
+.travel-day-strip time,.travel-day-rain,.travel-day-sun,.travel-day-snow,.travel-result>footer{
+ font-size:var(--mid-text-micro)!important;line-height:1.35;
+}
+.travel-head p{font-size:var(--mid-text-sm)!important}
+.travel-search-results strong{font-size:var(--mid-text-sm)!important}
+.travel-day-strip article{flex-basis:112px;min-width:112px;padding:9px}
+.travel-day-strip{overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch}
+@media(max-width:520px){.travel-day-strip article{flex-basis:108px;min-width:108px}}
+@media(any-pointer:coarse){
+ .travel-selected-destination .secondary,.travel-location-search .secondary,.travel-mode-switch button,
+ .travel-search-results button,.travel-analyse,.travel-alternatives button{min-height:44px!important}
+}
+
+/* Warnungen/Gefahren: Gültigkeit, Stufen und Schwellen bleiben auch kompakt eindeutig lesbar. */
+.hazards.compact-list .hazard-toggle-head .hazard-validity,.hazard-validity{font-size:var(--mid-text-micro)!important;line-height:1.25}
+.hazard-title-line em{font-size:var(--mid-text-micro)!important;line-height:1.2}
+.hazards.compact-list .hazard-body span,.hazards.compact-list .hazard-body em{font-size:var(--mid-text-micro)!important;line-height:1.35}
+.forecast-hazards span,.forecast-hazards .no-hazard{font-size:var(--mid-text-micro)!important;line-height:1.2}
+.cockpit-weather-profile .wind-warning-threshold-label{font-size:8.5px!important}
+@media(max-width:620px){.cockpit-weather-profile .wind-warning-threshold-label{font-size:8px!important}}
+@media(any-pointer:coarse){.hazards.compact-list .hazard-toggle,.official-alert>button{min-height:44px!important}}
+
+/* Radar-/Komposit-Legenden: Layer-/Zeitinformation bleibt auf kleinen Displays kompakt, aber lesbar. */
+.radarlegend .radarlegend-head strong{font-size:11px!important}
+.radarlegend .radarlegend-head span{font-size:9.5px!important;line-height:1.2}
+.radarlegend>small{font-size:10px!important;line-height:1.35!important}
+.radarlegend.compact{width:min(238px,calc(100% - 18px));padding:9px 10px 8px}
+.radarlegend.compact .radarlegend-head strong{font-size:10.5px!important}
+.radarlegend.compact .radarlegend-head span,.legend-active-chips em,.lightning-age-legend span{font-size:9px!important;line-height:1.2}
+.composite-switch b{font-size:11px!important}.composite-switch small{font-size:10px!important;line-height:1.25}
+.layer-opacity-controls label span,.layer-opacity-controls label b{font-size:10.5px!important}
+.radar-color-table-control>span{font-size:11px!important}.radar-color-table-control small{font-size:10px!important;line-height:1.35}
+.composite-basemap-control select{font-size:11px!important}
+@media(max-width:520px){
+ .radarlegend.compact{width:min(226px,calc(100% - 14px));padding:8px 9px}
+ .composite-switch{flex-basis:156px}
+ .composite-basemap-control select{font-size:11px!important}
+}
+@media(any-pointer:coarse){
+ .radarlegend-toggle,.radar-color-table-control select,.composite-basemap-control select{min-height:44px!important}
+}
+
+/* Karten-/Radar-Tooltips: Touch-/Retina-Displays benötigen keine 6–8-px-Kartenschrift. */
+.mid-map-tooltip.konrad-forecast-label,.mid-map-tooltip.konrad-cell-label{font-size:9.5px!important;line-height:1.15}
+.dwd-precip-type-radar__maplibre .mid-map-tooltip{font-size:10.5px!important;line-height:1.25}
+.mid-map-tooltip.mid-contour-label{font-size:10px!important;line-height:1.15}
+.mid-map-tooltip.mid-pressure-center small{font-size:9.5px!important;line-height:1.15}
+@media(max-width:700px){.mid-map-tooltip.mid-contour-label{font-size:9.5px!important}}
+
+/* Split View / schmale iPads: keine unnötig schmalen Kacheln erzwingen. */
+@media(min-width:600px) and (max-width:1024px){
+ .water-indicators{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .water-tides>div{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .travel-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .flight-briefing-overview{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
