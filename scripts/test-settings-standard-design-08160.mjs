@@ -45,8 +45,9 @@ for(const token of [
  "summary={layoutMode==='advanced'?'Radar, Satellit, Blitz und Modellkonturen':'Radar und aktuelle Wetterbeobachtungen'}",
  "summary={layoutMode==='advanced'?'Unsicherheit, Konsistenz, Quartile und Klimavergleich':'Mögliche Entwicklung der nächsten 14 Tage'}",
  "available?'mit Messwert geprüft':'Vorhersage'",
- "advancedMode?' · Open-Meteo/CAMS':''"
+ "airCard&&<AirQualityExplanation result={airClassification} station={airStation} advanced={advancedMode}/>"
 ])need('Standardmodus und App-Texte',app,token);
+need('Luftqualitätsquelle bleibt im Info-Popover',app,'Die angezeigten Konzentrationen sind die aktuellen Standortwerte aus Open-Meteo/CAMS');
 
 for(const token of [
  '.settings-dialog{--settings-card-radius:15px;--settings-card-gap:10px}',

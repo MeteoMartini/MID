@@ -23,8 +23,10 @@ need(astronomy,'daysUntilFullMoon:number','Countdown zum Vollmond fehlt.');
 need(app,'function AstronomyExplanation','Astronomie-Infopopover fehlt.');
 need(app,'Sonnenaufgang · Goldene Stunde beginnt','Astronomie-Infopopover muss weitergehende Sonnenzeiten enthalten.');
 need(app,"label={`${x.label} – weitere Informationen`}",'Sonne/Mond-Kachel braucht einen schließbaren Infohinweis.');
-need(app,'nextMoonPhaseSummary(astronomy,true)','Mondphase und nächstes Hauptmondereignis müssen kompakt sichtbar sein.');
+need(app,"detail:<span className=\"sun-moon-phase compact\"",'Mondphase muss kompakt sichtbar bleiben.');
+need(app,'nextMoonPhaseSummary(astronomy)','Nächstes Hauptmondereignis muss im Astronomie-Infopopover erhalten bleiben.');
+need(app,'info:<AstronomyExplanation astronomy={astronomy}/>','Sonne/Mond muss die Detailinformationen über (i) zugänglich halten.');
 need(styles,'.astronomy-event-list','Styling der astronomischen Ereignisliste fehlt.');
 need(styles,'.metrics .sun-moon-card header>.mode-info','Info-Button der Sonne/Mond-Kachel ist nicht kompakt positioniert.');
 if(failures.length){console.error('Tag-/Nachtpiktogramme und Sonne/Mond-Informationen fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Tag-/Nachtpiktogramme, kompakte Mondphase und schließbare Astronomie-Detailinformationen sind geprüft.');
+console.log('Tag-/Nachtpiktogramme, kompakte Mondphase und vollständige Astronomie-Details hinter (i) sind geprüft.');

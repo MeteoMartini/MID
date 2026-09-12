@@ -11,11 +11,13 @@ for(const token of [
   'className="sun-moon-card-value"',
   'className="sun-moon-time-block"',
   'className="sun-moon-card-divider"',
-  'Sonnenaufgang',
-  'Sonnenuntergang',
-  'className="sun-moon-phase"',
-  'className="sun-moon-meta"'
+  'aria-label="Sonnenaufgang"',
+  'aria-label="Sonnenuntergang"',
+  'className="sun-moon-phase compact"',
+  'info:<AstronomyExplanation astronomy={astronomy}/>'
 ])need('Sonne-/Mond-Kartenstruktur',app,token);
+need('Astronomie-Details hinter (i)',app,'className="astronomy-moon-detail"');
+need('Astronomie-Details hinter (i)',app,'nextMoonPhaseSummary(astronomy)');
 
 for(const token of [
   '.metrics .sun-moon-card{min-height:0}',
@@ -35,4 +37,4 @@ for(const forbidden of [
 ]){if(app.includes(forbidden)||styles.includes(forbidden))failures.push(`Veraltete Sonne-/Mond-Darstellung noch aktiv: ${forbidden}`)}
 
 if(failures.length){console.error('Sonne-/Mond-Kachel-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Sonne-/Mond-Kachel geprüft: Uhrzeiten sind auf die kompakte Werttypografie der übrigen Kacheln begrenzt und bleiben auf Desktop/Mobil kompakt.');
+console.log('Sonne-/Mond-Kachel geprüft: kompakte Uhrzeiten/Phase; weiterführende Mond- und Finsternisdaten bleiben hinter (i) verfügbar.');

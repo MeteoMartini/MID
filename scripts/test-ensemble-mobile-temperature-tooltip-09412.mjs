@@ -16,7 +16,7 @@ requireText(css,'white-space:nowrap!important','Metazeilen-Label darf nicht umbr
 requireText(css,'overflow-wrap:normal!important','Werte sollen nur kontrolliert umbrechen');
 requireText(css,'word-break:normal!important','Werte dürfen nicht mitten im Wort getrennt werden');
 
-const fixBlock=css.slice(css.indexOf('/* MID v0.9.41.2 · mobiles Temperatur-Ensemble-Tooltip'));
+const fixStart=css.indexOf('/* MID v0.9.41.2 · mobiles Temperatur-Ensemble-Tooltip'),fixEnd=css.indexOf('/*',fixStart+8),fixBlock=css.slice(fixStart,fixEnd>fixStart?fixEnd:css.length);
 if(/\.compact-trend-tooltip\s*\{[^}]*\b(?:width|max-width|min-width|font-size|padding)\s*:/s.test(fixBlock))failures.push('Fix verändert Tooltip-Größe/Typografie, obwohl nur das Layout korrigiert werden soll');
 
 if(failures.length){

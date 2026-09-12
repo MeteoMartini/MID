@@ -1401,3 +1401,23 @@ button,input,select,[role="button"]{touch-action:manipulation}
  .short-term-detail>header button,.nowcard-label-row .mode-info>button{width:40px;height:40px;min-width:40px;min-height:40px}
  .radarlegend-toggle,.radarlegend.compact.collapsed .radarlegend-toggle{min-height:40px}
 }
+
+/* MID v0.9.84.73 · Detail-/Popover-Audit: Quellen-, UV- und Sekundärinformationen bleiben auch mobil lesbar. */
+.metric-source-info>p{font-size:var(--mid-text-micro);line-height:1.5}
+.metric-source-info>div>b{font-size:var(--mid-text-xs);line-height:1.3}
+.metric-source-info>div>small{font-size:var(--mid-text-micro);line-height:1.45}
+.uvi-popover-content>p{font-size:var(--mid-text-micro);line-height:1.5}
+.uvi-popover-content>small{font-size:var(--mid-text-micro);line-height:1.45}
+.uvi-current-band b{font-size:var(--mid-text-sm)}
+.uvi-current-band small{font-size:var(--mid-text-micro);line-height:1.3}
+.uvi-band-list b{font-size:var(--mid-text-xs)}
+.uvi-band-list small{font-size:var(--mid-text-micro);line-height:1.2}
+.model-change-radar>header>div small,.model-change-status,.model-change-runs span,.model-change-list small,.model-change-radar>footer{font-size:var(--mid-text-micro);line-height:1.4}
+.model-change-list strong{font-size:var(--mid-text-xs)}
+.advanced-feature-group>summary small,.advanced-feature-group-content>label small,.advanced-feature-inline>label,.advanced-feature-note{font-size:var(--mid-text-micro);line-height:1.45}
+.advanced-feature-inline select{min-height:36px;font-size:var(--mid-text-xs)}
+.push-settings-group>header>span{font-size:var(--mid-text-micro)}
+.push-settings-group>header>small,.push-interval-setting small{font-size:var(--mid-text-micro);line-height:1.45}
+@media(any-pointer:coarse){
+ .advanced-feature-group>summary,.advanced-feature-inline select,.push-interval-setting select{min-height:44px}
+}

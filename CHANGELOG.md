@@ -1,3 +1,105 @@
+## 0.9.84.77
+
+### Extern
+- Buildfix für den fehlgeschlagenen Installer #1032: NOAA MRMS bleibt in den USA die amtliche Standort-/Nowcast-Analyse, während die sichtbare Radarkarte bis zu einem eigenen MRMS-Rasteradapter explizit auf RainViewer zurückfällt.
+- Dadurch bleibt die US-Radarkarte sichtbar und die Quellen werden transparent getrennt statt einen nicht vorhandenen MRMS-Kartenlayer vorzutäuschen.
+- Keine Änderung an DWD-/OPERA-Radar, Warnungen, Modellfusion, Wetterwerten, Piktogrammen oder Design.
+
+### Intern
+- TypeScript-Fehler `TS2322` in `RadarPanel.tsx` behoben: `RadarNowcast.source='mrms'` wird nicht mehr ungeprüft als `CompositeSource` zurückgegeben.
+- `CompositeSource` bleibt bewusst auf tatsächlich renderbare Kartenquellen beschränkt; MRMS wird separat als Standortanalyse ausgewiesen.
+- Neuer Regressionstest `test-mrms-display-source-contract-098477.mjs` schützt Compilervertrag und verhindert einen leeren MRMS-Rasterpfad.
+- Temporäre lokale Diagnose-Logs der v0.9.84.76-Sandbox wurden aus dem Transportstand entfernt.
+- Worker-Fachlogik unverändert; nur Versionsmetadaten werden synchronisiert.
+
+## 0.9.84.76
+
+### Extern
+- Design-Audit fortgesetzt: Event-, Gewitter-, Klima-, Flugmet-, Radar-, Warn-, Navigations- und Einstellungsinformationen bleiben auf schmalen Displays besser lesbar; lange Eventtitel werden vollständig umgebrochen.
+- PEGELONLINE zeigt bei vorhandener `WV`-Reihe nun den tatsächlichen nächsten amtlichen Vorhersage-/Abschätzungswert statt nur „Vorhersage vorhanden“.
+- Amtliche Beobachtungsadapter erhalten einen Freshness-Schutz, damit veraltete Stationswerte bei Quellstörungen keine frischeren Fallbacks überstimmen.
+- UBA-Luftdaten werden zeitlich abgesichert und führen die amtliche Quellenattribution explizit mit.
+- Quellen-Audit bestätigt aktuelle KNMI-EDR-, SwissMetNet-STAC-, ECMWF-50r1-/AIFS-v2-, DWD-KONRAD3D/Mesozyklonen- und WIS2-Verträge; BAFU/LINDAS wird als nächster P1-Wasserpfad für die Schweiz vorgemerkt.
+
+### Intern
+- PEGELONLINE `WV/measurements.json` liefert kompakt bis zu 16 zukünftige Werte inkl. Forecast/Estimate, Initialisierungszeit und verfügbaren P10/P90.
+- Providerabhängige Freshness-Grenzen im Official Observation Broker; fehlende/unplausible Zeitstempel werden nicht priorisiert.
+- Neuer Wartungsvertrag `test-source-maintenance-098476.mjs` und erweiterter Designvertrag `test-design-readability-3-098476.mjs`.
+- Chromium-Layoutmatrix mit dem erzeugten MID-CSS für 320×568 bis 1920×1080 ohne horizontalen Auditüberlauf; geprüfte sichtbare Mikrotexte mindestens 11 px.
+- Worker-Fachlogik geändert; Worker-Deployment erforderlich.
+
+## 0.9.84.75
+
+### Extern
+- Quellen-Audit erweitert MID gezielt um amtliche und spezialisierte Datenwege: EUMETSAT MTG-LI, UBA-Luftdaten, SwissMetNet/KNMI-Beobachtungen, PEGELONLINE, MeteoAlarm EDR, NOAA MRMS, WIS2, Copernicus Marine und GloFAS.
+- Luftqualität trennt in Deutschland aktuelle UBA-Messwerte von der CAMS/Open-Meteo-Prognose; EEA bleibt Fallback.
+- Wasseransicht kann amtliche PEGELONLINE-Pegel und einen ausdrücklich als Modell gekennzeichneten GloFAS-Abflussausblick zeigen; Copernicus Marine kann Marineparameter serverseitig reduziert liefern.
+- Europäische Konvektion nutzt MTG-FCI/LI vollständiger; US-Radar kann regional NOAA MRMS verwenden. Nationale Warn-/Radar-/Beobachtungsquellen und OPERA bleiben erhalten.
+- EFAS wird wegen des öffentlichen Zeitverzugs nicht als aktuelle Hochwasserprognose ausgegeben.
+
+### Intern
+- Neue Adapter sind fail-safe und optional; Rohformate NetCDF/GRIB2/GeoTIFF/BUFR werden nicht im mobilen Requestpfad dekodiert.
+- KNMI-Legacyquellen sowie ECMWF-50r1-Legacystreams werden durch den neuen Quellenvertrag abgefangen.
+- WIS2 akzeptiert das kanonische Schema `mid-official-observation-v1`; nationale Direktquellen behalten Vorrang.
+- Neuer Pflichtvertrag `test-source-audit-official-sources-098475.mjs`; bestehende OPERA-/EEA-Regressionen bleiben aktiv.
+- Historischer Selected-Line-Test an die seit v0.9.84.74 bewusst flüchtige Profil-Overlay-Architektur angepasst; sichtbare Wind-/Luftdruckwerte bleiben geschützt.
+- Worker-Fachlogik geändert; Worker-Deployment erforderlich.
+
+## 0.9.84.74
+
+### Extern
+- Geräteübergreifender Layout-Audit mit typischen iPhone-, Android-/Handy-, iPad-/Split-View- und Desktopgrößen: kritische Text-, Karten-, Tooltip- und Overlay-Muster wurden auf Überlauf, unschöne Umbrüche und abgeschnittene Inhalte geprüft.
+- Eventplaner auf schmalen Displays vollständig lesbar: Workspace-Tabs, Sortierung, lange Eventnamen, Orte und Wetterkurzinfos werden nicht mehr per Ellipse abgeschnitten, sondern erhalten bei Bedarf zusätzlichen Platz bzw. Zeilen.
+- Das 24-h-Wetterprofil zeigt die Werte-Pillen nicht mehr dauerhaft. Maus/Trackpad: nur bei Hover/Fokus; Touch: nach Antippen zeitlich begrenzt und danach automatisch ausgeblendet. Die dauerhafte Zeitmarkierung und der Bereich „Einzeldaten“ bleiben erhalten.
+- Ensemble-Diagramm-Tooltips nutzen auf Mobilgeräten die verfügbare Viewportbreite, können intern vertikal scrollen und zeigen auch lange Modell-, Niederschlags-, Sonnenschein- und Hinweisangaben vollständig. Sehr schmale und niedrige Landscape-Fenster besitzen eigene Fallbacks; die Tooltipfläche ist deckend, damit darunterliegende Diagrammtexte die Lesbarkeit nicht beeinträchtigen.
+- Keine Änderung an Wetterdaten, Modellfusion, Ensembleberechnung, Warnlogik, Piktogrammen oder Parameterfarben.
+
+### Intern
+- Browser-Viewport-Matrix geprüft: 320×568, 360×800, 390×844, 430×932, 844×390, 600×1024, 768×1024, 834×1194, 1024×1366, 1366×768, 1440×900 und 1920×1080. Die repräsentativen Hochrisikomuster bestanden ohne dokumentweiten horizontalen Überlauf.
+- `ForecastCockpit` trennt nun dauerhafte Zeitauswahl und flüchtige Werte-Overlays; Touch-Overlay schließt nach 4,8 s, Escape/Outside/Blur sowie Pointer-Leave bei Fine Pointer schließen sofort. Outside-/Escape-Dismissal nutzt wieder die zentrale MID-Primitive `useDismissibleLayer`.
+- Event-Center-Sortierung erhält mobil eine eigene volle Zeile; Event-Workspace-Beschriftungen und Wetterkurzinfos dürfen sinnvoll umbrechen.
+- Ensemble-Tooltip beseitigt ältere hochspezifische `nowrap`-/7,8-px-Overrides bei Einzelwertzeilen; lange Schlüsselwörter werden auf breiten Tooltips nicht mitten im Wort getrennt und auf schmalen Geräten gestapelt.
+- Bestehende historische Tooltip-/Interaktionstests wurden nur dort versionsresilient gemacht, wo spätere Wartungsstände bewusst neue Layoutverträge setzen. Zusätzlich wurden die zehn im v0.9.84.73-CI noch auf die frühere ausführliche Istwetterdarstellung fixierten Verträge auf die neue kompakte `(i)`-Informationsarchitektur aktualisiert; die fachlichen Informationen bleiben erhalten.
+- Neuer Pflichtvertrag `test-responsive-layout-tooltip-098474.mjs`; Stylesheet-Aggregat erneut aus den fünf kanonischen Modulen erzeugt.
+- Releaseversion und Cache-/iOS-/Worker-Metadaten auf 0.9.84.74 synchronisiert; Worker-Fachlogik unverändert.
+
+## 0.9.84.73
+
+### Extern
+- Detailansichten, Popover und Sekundärbedienung auf iPhone, iPad und Desktop weiter vereinheitlicht: Quelleninformationen, UV-Hinweise, Modellstände und erweiterte Einstellungen sind besser lesbar.
+- Modellstand- und Inline-Steuerungen in Berg-/Wasseransichten verwenden keine historischen 7–8-px-Beschriftungen mehr; auf Touchgeräten bleiben die Bedienziele bei 44 px.
+- Ensemble-Tooltips wurden für schmale Displays neu skaliert: größere Beschriftungen und Metadaten bei weiterhin kompakter, kollisionsarmer Matrix.
+- Die mobile Tmin/Tmax-Pille unterschreitet nicht mehr die aktuelle MID-Lesbarkeitsschwelle.
+- Langfrist-/C3S-/DWD-Statusinformationen wurden nachgezogen; kleine Modell-/Qualitätslabels verwenden jetzt die semantische MID-Typografie.
+- Keine Änderung an Wetterdaten, Modellfusion, Ensembleberechnung, Warnlogik, Piktogrammen oder Parameterfarben.
+
+### Intern
+- `metric-source-info`, UVI-Popover, Modelländerungsradar, Advanced-Feature-Disclosures und Push-Hinweise auf `--mid-text-*` standardisiert.
+- Spät geladenes `v078.css` erhält einen expliziten Kaskadenabschluss für Modellstände, `module-inline-*` und die mobile Tmin/Tmax-Pille, damit ältere 6,5–8-px-Regeln die neueren Designverträge nicht mehr überschreiben.
+- Ensemble-Tooltip erhält einen 340/320-px-Desktop-/Mobile-Vertrag und einen separaten <=360-px-Fallback mit mindestens 9,5–10 px in den dichtesten Metazeilen.
+- Stunden-Tooltip-Schließen sowie Langfrist-Legenden erreichen auf groben Touch-Pointern 44 px.
+- Der v0.9.84.72-Headervertrag wurde versionsresilient gemacht, damit er Folge-Wartungsstände weiterhin schützt.
+- Buildfix für den fehlgeschlagenen v0.9.84.72-Installer: die nach der Istwetter-Verdichtung nicht mehr verwendeten Astronomie-Imports `formatDayLengthChange` und `formatDuration` wurden aus `App.tsx` entfernt; keine Funktionslogik wurde zurückgerollt.
+- Neuer Pflichtvertrag `test-secondary-detail-popover-readability-098473.mjs`; Stylesheet-Aggregat erneut aus den fünf kanonischen Modulen erzeugt.
+- Releaseversion und Cache-/iOS-/Worker-Metadaten auf 0.9.84.73 synchronisiert; Worker-Fachlogik unverändert.
+
+## 0.9.84.72
+
+### Extern
+- Screenshot-getriebener Header-/Istwetter-Audit für iPhone, iPad und Desktop: die vollständige Versionsnummer bleibt auch bei schmaler Kopfzeile sichtbar.
+- Sehr schmale Geräte erhalten einen sicheren zusätzlichen Header-Fallback, statt Versionsnummer oder Aktionsschalter zu überdecken.
+- Die kompakte Beschriftung „Feuchte / Taupunkt“ darf auf kleinen Breiten sauber zweizeilig umbrechen und kollidiert nicht mehr mit dem Feldrand.
+- Die Kacheln unter „Aktuelles Wetter > mehr“ zeigen nur noch die unmittelbar entscheidungsrelevante Kurzinfo. Quellen, Methodik und längere Einordnungen liegen hinter dem jeweiligen (i)-Button.
+- Sichtbare Karten-Zusammenfassungen sind auf höchstens zwei Zeilen begrenzt; die vollständigen Informationen bleiben erreichbar.
+- Keine Änderung an Messwerten, Modellfusion, Wettercodes, Warnlogik, Piktogrammen oder Parameterfarben.
+
+### Intern
+- Responsive Header-Kaskade für <=430 px auf getrennte `max-content`-Spalten umgestellt; <=360 px zusätzlicher dreizeiliger Fallback für Brand/Aktionen/Suche.
+- `Current`-MetricCards in Primärwert, optionale Kurzbeschreibung und ausführliche Infoebene getrennt; Datenquellen werden nicht entfernt, sondern in die bestehende Info-Popover-Struktur verschoben.
+- Taupunkt-/Feuchte-Fact erhält mobil explizite Umbruchfreigabe; Infoziele der Istwetter-Karten bleiben auf Touch bei 44 px.
+- Neuer Pflichtvertrag `test-current-header-density-098472.mjs`; Stylesheet-Aggregat erneut aus den fünf kanonischen Modulen erzeugt.
+- Releaseversion und Cache-/iOS-/Worker-Metadaten auf 0.9.84.72 synchronisiert; Worker-Fachlogik unverändert.
+
 ## 0.9.84.71
 
 ### Extern

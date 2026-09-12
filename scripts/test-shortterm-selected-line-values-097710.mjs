@@ -14,8 +14,8 @@ const checks=[
  ['selected line cloud values present',source.includes('className="cloud"')&&source.includes('Wolken ${Math.round')],
  ['selected line temperature values present',source.includes('className="temperature"')&&source.includes('gef.')&&source.includes('Td ${Math.round')],
  ['selected line precipitation values present',source.includes('className="precipitation"')&&source.includes('probabilityDisplayValue')],
- ['selected line wind values present',source.includes('className="wind"')&&source.includes('Wind ${wind(selectedVisualPoint.point.wind,unit)}')],
- ['selected line pressure values present',source.includes('className="pressure"')&&source.includes('formatDecimalFixed(selectedVisualPoint.point.pressure,1)')],
+ ['selected line wind values present',source.includes('className="wind"')&&(source.includes('Wind ${wind(selectedVisualPoint.point.wind,unit)}')||source.includes('Wind ${wind(profileOverlayVisualPoint.point.wind,unit)}'))],
+ ['selected line pressure values present',source.includes('className="pressure"')&&(source.includes('formatDecimalFixed(selectedVisualPoint.point.pressure,1)')||source.includes('formatDecimalFixed(profileOverlayVisualPoint.point.pressure,1)'))],
  ['selected values use parameter colors',css.includes('.selected-time-value-pill.temperature{color:var(--text)}')&&css.includes('.selected-time-value-pill.precipitation{color:var(--param-precipitation)}')&&css.includes('.selected-time-value-pill.wind{color:var(--param-wind)}')&&css.includes('.selected-time-value-pill.pressure{color:var(--param-pressure)}')&&css.includes('.selected-time-value-pill.cloud{color:var(--param-cloud)}')],
  ['temperature curve no longer has one visible dot per hour',!source.includes('{chartPoints.map(item=><circle key={`temp-point-')&&source.includes('className="temperature-point active"')]
 ];

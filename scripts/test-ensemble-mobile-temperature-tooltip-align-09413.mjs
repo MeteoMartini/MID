@@ -7,7 +7,7 @@ req(panel,'sunshine-tooltip-line single-value','Sonne-Metazeile fehlt');
 req(panel,'precipitation-tooltip-line single-value','Niederschlag-Metazeile fehlt');
 req(panel,'consistency-tooltip-line','Modelle-Metazeile fehlt');
 req(css,'MID v0.9.41.3 · mobile Temperatur-Ensemble-Metazeilen rechtsbündig','v0.9.41.3 Tooltip-Ausrichtung fehlt');
-const block=css.slice(css.indexOf('/* MID v0.9.41.3 · mobile Temperatur-Ensemble-Metazeilen rechtsbündig'));
+const blockStart=css.indexOf('/* MID v0.9.41.3 · mobile Temperatur-Ensemble-Metazeilen rechtsbündig'),blockEnd=css.indexOf('/*',blockStart+8),block=css.slice(blockStart,blockEnd>blockStart?blockEnd:css.length);
 req(block,'grid-template-columns:76px minmax(0,1fr)!important','gemeinsame Label-/Wertspalten fehlen');
 req(block,'justify-self:end!important','Labels sind nicht rechtsbündig');
 req(block,'text-align:right!important','Werte sind nicht rechtsbündig');

@@ -12,7 +12,7 @@ forbid('Alte Modul-Touch-Doppelaktivierung entfernt',app,'lastTouchToggle=useRef
 forbid('Alte Modul-Gestenerkennung entfernt',app,'touchGesture=useRef');
 need('Ortssuche bleibt bis echtem Außenklick stabil',app,"document.addEventListener('pointerdown',outside,true)");
 forbid('Input-Blur darf Treffer nicht vor Click aushängen',app,"onBlur={()=>window.requestAnimationFrame(()=>{if(!searchRef.current?.contains(document.activeElement))closeSearch(false)})}");
-need('Cockpit-Punkte aktivieren nur einmal',cockpit,'onClick={()=>activatePoint(item.point)}');
+need('Cockpit-Punkte aktivieren nur einmal',cockpit,'onClick={()=>showProfileOverlay(item.point,true)}');
 forbid('Cockpit-Pointerdown-Doppelaktivierung entfernt',cockpit,'onPointerDown={()=>activatePoint(item.point)}');
 forbid('Cockpit-Touchstart-Doppelaktivierung entfernt',cockpit,'onTouchStart={()=>activatePoint(item.point)}');
 for(const token of [

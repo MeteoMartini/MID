@@ -27,7 +27,7 @@ for(const token of [
  "highCloud:cloudMean('highCloud')",
  "Gesamtbewölkung und H/M/L-Schichtbewölkung sind getrennte Quellfelder",
  "nicht als 0 % ausgegeben",
- "H/M/L ${shortTermCloudLayerTriplet(selectedVisualPoint.point)}",
+ "H/M/L ${shortTermCloudLayerTriplet(profileOverlayVisualPoint.point)}",
  "Gesamt {Math.round(shortTermCloudLayers(selectedPoint).total)} % · H/M/L {shortTermCloudLayerTriplet(selectedPoint)}"
 ])assert.ok(cockpit.includes(token),`Wolkenschicht-Verfügbarkeitsvertrag fehlt: ${token}`);
 

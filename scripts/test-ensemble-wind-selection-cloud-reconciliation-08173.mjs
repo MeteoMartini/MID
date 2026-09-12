@@ -36,8 +36,9 @@ for(const token of [
 
 for(const token of [
   "cloudSource=advancedMode&&fieldFresh('cloudCover')&&st?.cloudAnalysisMethod?",
-  'detail:`${cloudBaseDetail}${cloudOktasText(cloud).split(\' · \')[1]} · ${cloudSource}`'
-])need('Transparente Bewölkungsquelle',app,token);
+  'info:metricMore(`${cloudBaseDetail}${cloudCompactDetail} · ${cloudSource}`',
+  "fieldSourceInfo([{label:'Bedeckung',fields:['cloudCover']},{label:'Untergrenze / Ceiling',fields:['cloudBaseHft','ceilingHft']}])"
+])need('Transparente Bewölkungsquelle im (i)-Popover',app,token);
 
 if(panel.includes("[windMode,setWindMode]=useState<WindChartMode>('wind')"))failures.push('Die Wind-/Böenauswahl startet weiterhin bei jedem Öffnen starr mit Wind.');
 if(weather.includes("cloudCover:cloudCover.value===undefined?direct?.cloudCover:clampNumber(cloudCover.value,0,100)"))failures.push('Die hyperlokale Bewölkung verwendet weiterhin ausschließlich die Restfeldanalyse ohne METAR-Konsolidierung.');

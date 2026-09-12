@@ -256,3 +256,23 @@
  font-size:var(--mid-text-micro);
  line-height:1.15;
 }
+
+/* MID v0.9.84.73 · spätes Legacy-CSS: Modellstände, Inline-Module und Tagesbereich folgen dem aktuellen Designvertrag. */
+.model-run-details>button{min-height:36px;padding:7px 10px;font-size:var(--mid-text-xs);line-height:1.15}
+.model-run-popover{font-size:var(--mid-text-micro);line-height:1.45}
+.model-run-popover>strong{font-size:var(--mid-text-sm)}
+.model-run-popover>p{font-size:var(--mid-text-micro);line-height:1.5}
+.model-run-row>span{font-size:var(--mid-text-xs);line-height:1.3}
+.model-run-row>small,.model-run-empty{font-size:var(--mid-text-micro);line-height:1.4;white-space:normal}
+.model-run-close{min-height:36px;font-size:var(--mid-text-xs)}
+.module-inline-segmented>span,.module-inline-options label>span{font-size:var(--mid-text-micro)!important;line-height:1.15!important}
+.module-inline-segmented button{min-height:36px;padding:6px 9px;font-size:var(--mid-text-xs)}
+.module-inline-options select{height:36px;min-height:36px;padding:6px 28px 6px 9px;font-size:var(--mid-text-xs)}
+@media(max-width:520px){
+ .hero>.hero-day-range{height:32px;min-height:32px;padding-inline:9px}
+ .hero>.hero-day-range small{font-size:10px!important;line-height:1!important}
+ .hero>.hero-day-range b{font-size:12px!important;line-height:1!important}
+}
+@media(any-pointer:coarse){
+ .model-run-details>button,.model-run-close,.module-inline-segmented button,.module-inline-options select{min-height:44px}
+}

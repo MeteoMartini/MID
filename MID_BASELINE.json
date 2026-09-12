@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.84.71",
+  "releaseVersion": "0.9.84.77",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -466,7 +466,14 @@
     "scripts/test-shortterm-composite-readability-098467.mjs",
     "scripts/test-openmeteo-watch-ensemble-ui-098468.mjs",
     "scripts/test-apple-adaptive-design-contract-098469.mjs",
-    "scripts/test-visualization-readability-2-098471.mjs"
+    "scripts/test-visualization-readability-2-098471.mjs",
+    "scripts/test-current-header-density-098472.mjs",
+    "scripts/test-secondary-detail-popover-readability-098473.mjs",
+    "scripts/test-responsive-layout-tooltip-098474.mjs",
+    "scripts/test-source-audit-official-sources-098475.mjs",
+    "scripts/test-source-maintenance-098476.mjs",
+    "scripts/test-design-readability-3-098476.mjs",
+    "scripts/test-mrms-display-source-contract-098477.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -855,7 +862,14 @@
     "scripts/test-shortterm-composite-readability-098467.mjs",
     "scripts/test-openmeteo-watch-ensemble-ui-098468.mjs",
     "scripts/test-apple-adaptive-design-contract-098469.mjs",
-    "scripts/test-visualization-readability-2-098471.mjs"
+    "scripts/test-visualization-readability-2-098471.mjs",
+    "scripts/test-current-header-density-098472.mjs",
+    "scripts/test-secondary-detail-popover-readability-098473.mjs",
+    "scripts/test-responsive-layout-tooltip-098474.mjs",
+    "scripts/test-source-audit-official-sources-098475.mjs",
+    "scripts/test-source-maintenance-098476.mjs",
+    "scripts/test-design-readability-3-098476.mjs",
+    "scripts/test-mrms-display-source-contract-098477.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/install-mid.yml",
@@ -1485,7 +1499,18 @@
     "scripts/test-update-event-sources-ios27-098434.mjs",
     "MID_IOS_26_27_DESIGN_CONTRACT.md",
     "scripts/test-day-precipitation-color-contract-098435.mjs",
-    "scripts/test-ci-types-event-update-098436.mjs"
+    "scripts/test-ci-types-event-update-098436.mjs",
+    "scripts/test-source-audit-official-sources-098475.mjs",
+    "MID_SOURCE_AUDIT_CONTRACT_0.9.84.75.md",
+    "contracts/wis2-normalized-observation.schema.json",
+    "scripts/test-source-maintenance-098476.mjs",
+    "scripts/test-design-readability-3-098476.mjs",
+    "MID_IMPLEMENTATION_0.9.84.76.md",
+    "MID_TEST_REPORT_0.9.84.76.md",
+    "MID_DESIGN_SOURCE_AUDIT_0.9.84.76.md",
+    "scripts/test-mrms-display-source-contract-098477.mjs",
+    "MID_IMPLEMENTATION_0.9.84.77.md",
+    "MID_TEST_REPORT_0.9.84.77.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1773,7 +1798,11 @@
     "src/weather-src/00-types-models-search.tsfrag",
     "scripts/test-knmi-eps-point-decoder-097722.mjs",
     "MID_IMPLEMENTATION_0.9.83.4.md",
-    "MID_TEST_REPORT_0.9.83.4.md"
+    "MID_TEST_REPORT_0.9.83.4.md",
+    "worker-src/10-radar-nowcast.js",
+    "worker-src/20-composite-models.js",
+    "src/weather-src/10-observations-specialized.tsfrag",
+    "src/WaterSportsPanel.tsx"
   ],
   "implementationProof": [
     "MID_IMPLEMENTATION_0.9.74.5.md",
@@ -2012,8 +2041,8 @@
     "scripts/test-ci-types-event-update-098436.mjs",
     "scripts/test-weather-pictogram-appwide-contract-098441.mjs"
   ],
-  "version": "0.9.84.71",
-  "updatedAt": "2026-09-12T08:18:15.634189Z",
+  "version": "0.9.84.77",
+  "updatedAt": "2026-09-12T14:10:00+02:00",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
     "MID_IMPLEMENTATION_0.9.77.27.md",
@@ -2101,7 +2130,10 @@
     "MID_IMPLEMENTATION_0.9.84.20.md",
     "MID_IMPLEMENTATION_0.9.84.25.md",
     "MID_IMPLEMENTATION_0.9.84.26.md",
-    "MID_IMPLEMENTATION_0.9.84.27.md"
+    "MID_IMPLEMENTATION_0.9.84.27.md",
+    "MID_IMPLEMENTATION_0.9.84.75.md",
+    "MID_IMPLEMENTATION_0.9.84.76.md",
+    "MID_IMPLEMENTATION_0.9.84.77.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",
@@ -2165,6 +2197,9 @@
     "MID_TEST_REPORT_0.9.84.20.md",
     "MID_TEST_REPORT_0.9.84.25.md",
     "MID_TEST_REPORT_0.9.84.26.md",
-    "MID_TEST_REPORT_0.9.84.27.md"
+    "MID_TEST_REPORT_0.9.84.27.md",
+    "MID_TEST_REPORT_0.9.84.75.md",
+    "MID_TEST_REPORT_0.9.84.76.md",
+    "MID_TEST_REPORT_0.9.84.77.md"
   ]
 }
