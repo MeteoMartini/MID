@@ -1376,3 +1376,28 @@ button,input,select,[role="button"]{touch-action:manipulation}
 }
 .mid-model-contour.isoheights{stroke-opacity:1}
 .mid-model-contour.foreground.isoheights{filter:none}
+
+/* MID v0.9.84.67 · UI-Audit: Kurzfrist-/Komposit-Legenden lesbarer und touchfreundlicher */
+.short-term-header small{font-size:var(--mid-text-micro)}
+.short-term-header>em{font-size:var(--mid-text-micro);line-height:1.35}
+.short-term-thunder{font-size:var(--mid-text-micro);line-height:1.15}
+.short-term-wind small,.short-term-precip small,.short-term-precip em{font-size:var(--mid-text-micro);line-height:1.2}
+.short-term-detail>header small{font-size:var(--mid-text-micro);line-height:1.35}
+.short-term-detail>header button{width:36px;height:36px;min-width:36px;min-height:36px}
+.short-term-detail small{font-size:var(--mid-text-micro);line-height:1.3}
+.short-term-detail strong{font-size:var(--mid-text-sm)}
+.nowcard-label-row .mode-info>button{width:36px;height:36px;min-width:36px;min-height:36px}
+.nowcast-object-legend>strong{font-size:var(--mid-text-xs)}
+.nowcast-object-legend span{font-size:var(--mid-text-micro);line-height:1.25}
+.nowcast-object-legend>small{font-size:var(--mid-text-micro);line-height:1.4}
+.radarlegend-toggle{min-height:38px;padding:7px 9px}
+.radarlegend-toggle strong{font-size:var(--mid-text-xs)}
+.radarlegend-toggle small{font-size:var(--mid-text-micro)!important;line-height:1.15}
+.radarlegend.compact.collapsed .radarlegend-toggle{min-height:36px;padding:6px 8px}
+.radarlegend.compact.collapsed .radarlegend-toggle strong{font-size:var(--mid-text-xs)}
+.radarlegend.compact.collapsed .radarlegend-toggle small{font-size:var(--mid-text-micro)!important}
+.legend-active-chips em{font-size:var(--mid-text-micro);line-height:1.15}
+@media(pointer:coarse){
+ .short-term-detail>header button,.nowcard-label-row .mode-info>button{width:40px;height:40px;min-width:40px;min-height:40px}
+ .radarlegend-toggle,.radarlegend.compact.collapsed .radarlegend-toggle{min-height:40px}
+}

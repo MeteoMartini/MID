@@ -1560,3 +1560,47 @@ body,#root{
 .mid-echo-approach-corridor,.mid-echo-approach-track,.mid-echo-approach-halo{pointer-events:none}.mid-approach-node-div-icon,.mid-approach-eta-div-icon{background:transparent!important;border:0!important;pointer-events:none!important}.mid-approach-node{display:flex;align-items:center;justify-content:center;gap:3px;color:#f7fbff;filter:drop-shadow(0 2px 4px rgba(0,0,0,.72))}.mid-approach-node>i{width:8px;height:8px;border:2px solid #f7fbff;border-radius:50%;background:#258ccd}.mid-approach-node>b{font-size:8px}.mid-approach-eta{display:grid;place-items:center;padding:5px 8px;border:1px solid rgba(255,255,255,.72);border-radius:10px;background:rgba(8,24,39,.9);color:#fff;box-shadow:0 6px 18px rgba(0,0,0,.3)}.mid-approach-eta b{font-size:8px}.mid-approach-eta small{margin-top:1px;color:#7bdcff;font-size:9px;font-weight:900}
 @media(max-width:760px){.composite-data-state{padding:5px 7px;font-size:7px!important}.composite-view-tabs>button{min-height:50px;padding:7px}.composite-view-tabs small{font-size:7px}.composite-layer-toolbar{padding:8px}.composite-layer-toolbar>header{display:grid;gap:2px}.composite-layer-switches{grid-template-columns:repeat(2,minmax(0,1fr))!important}.composite-switch.compact{min-height:58px!important}.composite-switch.compact b{font-size:10px!important}.composite-switch.compact small{font-size:7.4px!important}.composite-advanced-fields{grid-template-columns:1fr}.radarmap{height:min(64vh,560px);min-height:410px}.composite-timeline-main{grid-template-columns:1fr auto auto}.composite-timeline-range{grid-column:1/-1;grid-row:2}.composite-site-summary{grid-template-columns:1fr}.composite-site-summary>header{padding:0 2px}.composite-site-summary>div{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:480px){.composite-card{padding:10px}.composite-title-actions{gap:4px}.composite-data-state{max-width:112px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.composite-view-tabs{gap:4px;padding:4px}.composite-view-tabs>button{display:grid;justify-items:center;gap:3px;padding:6px 3px;text-align:center}.composite-view-tabs small{font-size:6.6px}.composite-layer-switches{grid-template-columns:repeat(2,minmax(0,1fr))!important}.composite-layer-switches>.composite-switch:last-child{grid-column:1/-1}.composite-advanced-switches{grid-template-columns:1fr}.radarmap{height:min(62vh,520px);min-height:390px}.composite-map-status{top:8px;left:8px;max-width:calc(100% - 60px);padding:6px 7px}.composite-map-status>small{max-width:185px}.composite-map-interaction{min-height:36px;padding:7px 9px;font-size:8px}.composite-timeline-card{padding:9px}.composite-timeline-card>header{align-items:flex-start}.composite-timeline-main{gap:6px}.composite-timeline-card time{min-width:78px}.composite-timeline-card time>span{font-size:13px}.composite-live-button{padding:6px 8px}.composite-site-summary>div{grid-template-columns:1fr}.composite-site-summary article small,.composite-site-summary article span{white-space:normal}.radarlegend.compact.collapsed{bottom:54px}}
+
+/* MID v0.9.84.67 · UI-Audit: 90-Minuten-Nowcast und Kompositbedienung standardisiert */
+.cockpit-now90>header>small{font-size:var(--mid-text-xs)!important;line-height:1.35}
+.cockpit-now90-slot>small{font-size:var(--mid-text-xs)!important}
+.cockpit-now90-weather{font-size:var(--mid-text-micro);line-height:1.25}
+.cockpit-now90-meta{font-size:var(--mid-text-micro)!important;line-height:1.2}
+.cockpit-now90-wind{font-size:var(--mid-text-micro)!important;line-height:1.2}
+.cockpit-now90-wind-text>b{font-size:var(--mid-text-xs);line-height:1.1}
+.cockpit-now90-wind-text>small{font-size:var(--mid-text-micro);line-height:1.15}
+.composite-data-state{font-size:var(--mid-text-micro)!important;line-height:1.2}
+.composite-view-tabs>button{min-height:44px}
+.composite-view-tabs small{font-size:var(--mid-text-micro)!important;line-height:1.2}
+.composite-layer-toolbar>header small{font-size:var(--mid-text-micro);line-height:1.3}
+.composite-switch.compact small{font-size:var(--mid-text-micro)!important;line-height:1.25!important}
+.composite-advanced>summary small{font-size:var(--mid-text-micro);line-height:1.3}
+.composite-advanced-fields span{font-size:var(--mid-text-micro);line-height:1.25}
+.composite-advanced-fields select{height:36px;font-size:var(--mid-text-xs)}
+.composite-map-status>span{font-size:var(--mid-text-micro);line-height:1.1}
+.composite-map-status>small{font-size:var(--mid-text-micro);line-height:1.2}
+.composite-locate-button{width:40px;height:40px;min-width:40px;min-height:40px}
+.composite-timeline-card>header small{font-size:var(--mid-text-micro);line-height:1.3}
+.composite-time-kinds>span{font-size:var(--mid-text-micro);line-height:1.2}
+.composite-timeline-card time>small{font-size:var(--mid-text-micro);line-height:1.2}
+.composite-live-button{min-height:40px;font-size:var(--mid-text-xs)}
+.composite-site-summary>header>span{font-size:var(--mid-text-micro)}
+.composite-site-summary article small,.composite-site-summary article span{font-size:var(--mid-text-micro);line-height:1.25}
+@media(max-width:760px){
+ .cockpit-now90-slot>small{font-size:var(--mid-text-xs)!important}
+ .cockpit-now90-weather,.cockpit-now90-meta,.cockpit-now90-wind{font-size:var(--mid-text-micro)!important}
+ .cockpit-now90-wind-text>b{font-size:var(--mid-text-xs)}
+ .cockpit-now90-wind-text>small{font-size:var(--mid-text-micro)}
+ .composite-view-tabs small,.composite-switch.compact small{font-size:var(--mid-text-micro)!important}
+ .composite-data-state{font-size:var(--mid-text-micro)!important}
+}
+@media(max-width:480px){
+ .composite-view-tabs small{font-size:var(--mid-text-micro)!important}
+ .composite-map-interaction{min-height:40px;font-size:var(--mid-text-micro)}
+ .composite-live-button{min-height:40px}
+}
+@media(pointer:coarse){
+ .composite-view-tabs>button,.composite-live-button,.composite-locate-button{min-height:44px}
+ .composite-locate-button{width:44px;height:44px;min-width:44px}
+ .composite-advanced-fields select{height:40px}
+}

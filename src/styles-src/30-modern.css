@@ -4626,3 +4626,68 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
  .header-favorites .favorite-bubbles>button .favorite-quick-grip{width:20px;min-width:20px;min-height:36px}
  .header-favorites .favorite-bubbles>button{grid-template-columns:20px auto auto}
 }
+
+/* MID v0.9.84.67 · UI-Audit: Kurzfrist-/24-h-Profil lesbarer ohne Verlust der Diagrammdichte */
+.cockpit-hourly-preview-head>span>small{font-size:var(--mid-text-micro)}
+.cockpit-hourly-preview-head>em{font-size:var(--mid-text-xs);line-height:1.35}
+.cockpit-hourly-day-marker{min-height:20px;font-size:var(--mid-text-micro);line-height:1.1}
+.cockpit-hourly-chip-main>small{font-size:var(--mid-text-micro);line-height:1.2}
+.cockpit-hourly-meta-row{font-size:var(--mid-text-micro);line-height:1.2}
+.cockpit-hourly-meta-row>b{font-size:var(--mid-text-xs)}
+.cockpit-hourly-meta-row>small{font-size:var(--mid-text-micro)}
+.cockpit-short-spotlight>small,.cockpit-short-matrix-head>span>small{font-size:var(--mid-text-micro)}
+.cockpit-short-spotlight>span,.cockpit-short-matrix-head>em{font-size:var(--mid-text-xs);line-height:1.4}
+.cockpit-weather-profile__signals small{font-size:var(--mid-text-micro)}
+.cockpit-weather-profile__signals b{font-size:var(--mid-text-sm)}
+.cockpit-weather-profile__signals .signal-time,.cockpit-weather-profile__signals em{font-size:var(--mid-text-micro);line-height:1.25}
+.cockpit-weather-profile__resolution button,.cockpit-weather-profile__toggle,.cockpit-weather-profile__icon-toggle{min-height:36px}
+.cockpit-weather-profile__icon-toggle{min-width:36px;width:36px}
+.cockpit-weather-profile .cockpit-meteogram-pro__overlay.time b{font-size:8px}
+.cockpit-weather-profile .cockpit-meteogram-pro__overlay.time small{font-size:6.8px}
+.cockpit-weather-profile .profile-lane-label{font-size:8.4px}
+.cockpit-weather-profile .profile-lane-unit-label{font-size:7.6px}
+.cockpit-weather-profile .profile-axis .axis-label,.cockpit-weather-profile .profile-axis .profile-scale-label{font-size:7.8px}
+.cockpit-weather-profile .profile-axis-unit{font-size:7.2px}
+.cockpit-weather-profile .profile-probability-scale{font-size:7.2px}
+.cockpit-weather-profile .wind-warning-threshold-label{font-size:6.6px}
+.cockpit-weather-profile .profile-bottom-time text{font-size:7.2px}
+.cockpit-weather-profile .profile-bottom-date{font-size:6.6px}
+.cockpit-weather-profile .profile-solar-marker text{font-size:7.2px}
+.cockpit-weather-profile .cloud-layer-label{font-size:7.2px}
+.cockpit-weather-profile .profile-selected-time-tag text{font-size:7px}
+.cockpit-weather-profile .cockpit-weather-profile__window-note{font-size:var(--mid-text-micro)}
+@media(max-width:620px){
+ .cockpit-hourly-preview-head>span>small{font-size:var(--mid-text-micro)}
+ .cockpit-hourly-chip-main>small{font-size:var(--mid-text-micro)}
+ .cockpit-hourly-meta-row,.cockpit-hourly-meta-row>small{font-size:var(--mid-text-micro)}
+ .cockpit-hourly-meta-row>b{font-size:var(--mid-text-xs)}
+}
+@media(max-width:560px){
+ .cockpit-weather-profile .profile-lane-label{font-size:8px}
+ .cockpit-weather-profile .profile-lane-unit-label{font-size:7.2px}
+ .cockpit-weather-profile .profile-axis .axis-label,.cockpit-weather-profile .profile-axis .profile-scale-label{font-size:7.2px}
+ .cockpit-weather-profile .profile-probability-scale{font-size:6.8px}
+ .cockpit-weather-profile .wind-warning-threshold-label{font-size:6.2px}
+ .cockpit-weather-profile .profile-bottom-time text{font-size:6.8px}
+ .cockpit-weather-profile .profile-bottom-date{font-size:6.2px}
+ .cockpit-weather-profile .cloud-layer-label{font-size:6.8px}
+}
+@media(pointer:coarse){
+ .cockpit-weather-profile__resolution button,.cockpit-weather-profile__toggle,.cockpit-weather-profile__icon-toggle{min-height:40px}
+ .cockpit-weather-profile__icon-toggle{min-width:40px;width:40px}
+}
+
+/* MID v0.9.84.67 · Kaskadenabschluss für Kurzfrist-/Komposit-Touchziele */
+.short-term-header.forecast-entry-head>span>small{font-size:var(--mid-text-micro)}
+.short-term-header.forecast-entry-head>em{font-size:var(--mid-text-micro);line-height:1.35}
+.short-term-thunder,.short-term-wind small,.short-term-precip small,.short-term-precip em{font-size:var(--mid-text-micro)}
+.short-term-detail>header small{font-size:var(--mid-text-micro)}
+.short-term-detail>header button{width:36px;height:36px;min-width:36px;min-height:36px}
+.radarlegend-toggle{min-height:38px}
+@media(max-width:620px){.short-term-header.forecast-entry-head>em{font-size:var(--mid-text-micro)}}
+@media(hover:none),(pointer:coarse){
+ .short-term-detail>header button,.nowcard-label-row .mode-info>button{min-width:40px!important;min-height:40px!important;width:40px;height:40px}
+ .radarlegend-toggle,.radarlegend.compact.collapsed .radarlegend-toggle{min-height:40px!important}
+ .cockpit-weather-profile__resolution button,.cockpit-weather-profile__toggle{min-height:40px!important}
+ .cockpit-weather-profile__icon-toggle,.cockpit-weather-profile__icon-toggle.compact{min-width:40px!important;min-height:40px!important;width:40px!important;height:40px!important}
+}

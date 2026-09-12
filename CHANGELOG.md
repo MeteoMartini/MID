@@ -1,3 +1,18 @@
+## 0.9.84.67
+
+### Extern
+- Kurzfrist-, 90-Minuten- und 24-h-Flächen auf iPhone/iPad besser lesbar: Wetter-, Niederschlags-, Wind- und Zeitangaben verwenden konsistentere Mindestgrößen statt historischer 5–9-px-Einzelwerte.
+- Kompositbild übersichtlicher bedienbar: Tabs, Layeruntertitel, Kartenstatus, Zeitlinie, Standortzusammenfassung und minimierte Legende wurden typografisch vereinheitlicht und zentrale Touchziele vergrößert.
+- Das 24-h-Wetterprofil behält seine wissenschaftliche Informationsdichte; Achsen-, Zeit-, Wolken- und Warnschwellenbeschriftungen wurden nur moderat vergrößert, damit Kurven und Skalen nicht überlagern.
+- Keine Änderung an Wetterdaten, Zeitintervallen, Niederschlags-/Windlogik, Komposit-Layern, Radar/Nowcast, Piktogrammen oder Warnschwellen.
+
+### Intern
+- Kurzfrist-/Nowcast-/Komposit-UI schrittweise auf `--mid-text-micro/xs/sm` weitergeführt; keine globale CSS-Vergrößerung.
+- Komposit-Tabs mindestens 44 px; Live-/Ortungs-/Legenden- und Profilaktionen erhalten robustere Touchflächen, auf groben Touch-Pointern bis 40–44 px.
+- Mobile Alt-Overrides, die 90-Minuten-/Komposittexte wieder auf 5,9–8 px verkleinerten, durch einen expliziten Kaskadenabschluss neutralisiert.
+- Neuer Pflichtvertrag `test-shortterm-composite-readability-098467.mjs` schützt Lesbarkeit, Touchziele, Funktionsbestand und kanonische Stylesheet-Synchronität.
+- Worker-Fachlogik unverändert; ausschließlich Versionssynchronisierung.
+
 ## 0.9.84.66
 
 ### Extern
