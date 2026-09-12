@@ -8,7 +8,7 @@ const css=fs.readFileSync('src/styles.css','utf8');
 assert.ok(app.includes('synopticPhenomenonPictogram(currentObservedPhenomenon)'),'Frische Present-Weather-Beobachtung muss Intensität und Piktogramm gemeinsam bestimmen.');
 assert.ok(app.includes('intensity={currentPictogramIntensity}')&&app.includes('phenomenon={currentObservedPhenomenon??currentPrecip.phenomenon}'),'Hauptpiktogramm muss dieselbe beobachtete Intensität wie der Wettertext verwenden.');
 assert.ok(pictogram.includes("if(has('RA'))return raw.startsWith('-')?'Leichter Regen':raw.startsWith('+')?'Starker Regen':'Mäßiger Regen';"),'RA muss WMO/ICAO-konform als mäßiger Regen, -RA leicht und +RA stark beschrieben werden.');
-assert.ok(pictogram.includes("if(has('SH')&&has('RA'))return raw.startsWith('-')?'Leichte Regenschauer':raw.startsWith('+')?'Starke Regenschauer':'Mäßige Regenschauer';"),'Regenschauer brauchen beobachtete Intensität.');
+assert.ok(pictogram.includes("if(has('SH')&&has('RA'))return raw.startsWith('-')?'Leichter Regenschauer':raw.startsWith('+')?'Starker Regenschauer':'Mäßiger Regenschauer';"),'Regenschauer brauchen beobachtete Intensität und grammatisch korrekten Singular.');
 assert.ok(app.includes('st?.fieldTemporalResolutionMinutes?.precipitation'),'Stationsniederschlag muss seine tatsächliche zeitliche Auflösung in die Intensitätsberechnung geben.');
 assert.ok(precip.includes('Gemeinsame Intensitätsklassifikation für Piktogramme, Texte und Skybar.'),'Zentrale DWD/WMO-Intensitätsklassifikation muss erhalten bleiben.');
 

@@ -1,3 +1,45 @@
+## 0.9.84.63
+
+### Extern
+- Release-Installer #1018 korrigiert; der Design-/Konsistenzstand aus 0.9.84.62 und sämtliche Wetterfunktionen bleiben unverändert erhalten.
+- Keine Änderung an Wetterdaten, Piktogrammen, Warnungen, Modellfusion oder Bedienlogik.
+
+### Intern
+- Veralteten Present-Weather-Regressionsvertrag an die seit 0.9.84.61 erweiterte WMO/DWD-Code-Priorisierung angepasst.
+- UI-Audit-Regression 0.9.84.62 so stabilisiert, dass spätere Wartungsversionen den geschützten Designstand weiter prüfen können, ohne an eine historische Versionsnummer als aktuelle Releaseversion gebunden zu sein.
+- Releaseversion auf 0.9.84.63 synchronisiert.
+
+## 0.9.84.62
+
+### Extern
+- Design-/Bedienaudit: Lesbarkeit und visuelle Hierarchie der zentralen Istwetter- und Einstellungsflächen vereinheitlicht, ohne Wetterfunktionen oder Datenquellen zu entfernen.
+- „Aktuelles Wetter“ zeigt Sichtweite und Luftdruck jetzt auch auf schmaleren Displays weiter an; die fünf Kernfakten ordnen sich responsiv statt ausgeblendet an.
+- Kleine Info- und Sortier-Schaltflächen besitzen auf Touch-Geräten größere Trefferflächen. Die vorhandenen Pfeiltasten als Alternative zum Ziehen werden deutlicher benannt.
+- Sehr kleine Beschriftungen im aktuellen Wetter, Temperaturbereich und ausgewählten Kompaktinformationen wurden auf eine besser lesbare semantische Typografieskala angehoben.
+
+### Intern
+- Semantische MID-Typografietokens (`micro/xs/sm/meta`) moderat standardisiert; chart- und kartenspezifische Mikrotypografie bleibt bewusst separat, damit keine Diagramme überlaufen.
+- Responsiver Istwetterblock nutzt unter 900 px ein 6-Spalten-Raster: Niederschlag/Wind/Feuchte in der ersten, Sicht/Luftdruck in der zweiten Zeile; im niedrigen Querformat bleiben fünf Werte einzeilig.
+- Dashboard-Sortierung und Favoritenreihenfolge behalten Drag-and-drop, verweisen aber expliziter auf die bereits vorhandenen Pfeiltasten als barriereärmere Alternative.
+- Bestehende Wetterfarben, Piktogramme, Modell-/Beobachtungslogik und Datenquellen unverändert.
+- Neuer Pflichtvertrag `test-ui-audit-standardization-098462.mjs`.
+- MapLibre GL 6.9.0 als verfügbares Minor-Update identifiziert, in diesem Wartungsstand aber bewusst nicht aktualisiert, da in der isolierten Build-Umgebung keine vollständige Dependency-Neuinstallation verifiziert werden konnte.
+
+## 0.9.84.61
+
+### Extern
+- Wetterzustände app-weit sprachlich und fachlich vereinheitlicht: zeitpunktbezogene Schauer werden korrekt im Singular bezeichnet, z. B. „Leichter Regenschauer“, „Mäßiger Schneeschauer“ und „Starker Hagelschauer“.
+- Numerische DWD-SYNOP-ww-Codes werden im Bereich „Aktuelles Wetter“ jetzt direkt als Wetterzustand und passende Piktogrammintensität interpretiert.
+- Der Startpfad für aktuelles Wetter/Hyperlokalanalyse wurde auf Mobilgeräten priorisiert, ohne Beobachtungsquellen oder Qualitätskontrollen zu reduzieren.
+
+### Intern
+- Present-Weather-Texte in `WeatherPictogram.tsx` grammatisch vereinheitlicht und Satzanfänge konsistent großgeschrieben.
+- DWD/WMO-ww 80–92 auf Singularformen synchronisiert; generierte Wetteraggregate neu aufgebaut.
+- Fast-Observation-Vorladung von 120 auf 40 ms vorgezogen; Ensemble-Bootstrap von 260 auf 420 ms versetzt.
+- Nichtkritische UI-Chunk-Vorladung startet erst nach Forecast/Station oder spätestens nach 700 ms.
+- Vollständige Hyperlokalanalyse nach dem Provisional-Pass von 180 auf 80 ms vorgezogen.
+- Neue Pflichtregression `test-german-weather-terminology-performance-098461.mjs`.
+
 ## 0.9.84.60
 
 ### Extern

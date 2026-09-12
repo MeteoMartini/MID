@@ -35,12 +35,13 @@ export function beginStartupDashboardPreload(){
  active?.abort();
  const ensemble=wantsStartupEnsemble(),timeZone=location.timezone||(location.autolocated?Intl.DateTimeFormat().resolvedOptions().timeZone:undefined);
  const forecastRequest=startupRequest(STARTUP_PRELOAD_FORECAST_TIMEOUT_MS,signal=>forecast(location.latitude,location.longitude,signal,{priority:'foreground',forceFresh:false,timeZone,elevation:location.elevation}));
- // Kein Start-Burst: Prognose beginnt sofort; Stations- und Ensemble-Schnellstart
- // werden leicht versetzt. Jeder Vorladepfad besitzt ein hartes Zeitlimit und
- // kann daher keinen späteren regulären Dashboard-Abruf dauerhaft festhalten.
- const stationRequest=startupRequest(STARTUP_PRELOAD_STATION_TIMEOUT_MS,async signal=>{await delay(120);if(signal.aborted)throw signal.reason;return station(location.latitude,location.longitude,location.country_code||location.country,location.elevation,location,signal,true,false)});
- const ensembleRequest=ensemble?startupRequest(STARTUP_PRELOAD_ENSEMBLE_TIMEOUT_MS,async signal=>{await delay(260);if(signal.aborted)throw signal.reason;return ensembles(location.latitude,location.longitude,signal,'foreground')}):null;
- const interfacePromise=preloadInterfaceChunks(ensemble),abort=()=>{forecastRequest.controller.abort();stationRequest.controller.abort();ensembleRequest?.controller.abort()};
+ // Kritische Daten zuerst: Prognose startet sofort, die Fast-Observation folgt nach
+ // 40 ms. Ensemble und nichtkritische UI-Chunks werden etwas später gestartet, damit
+ // mobile Verbindungen nicht durch einen Start-Burst die Istwetter-/Hyperlokal-Anzeige
+ // ausbremsen. Die Datenbasis selbst bleibt unverändert vollständig.
+ const stationRequest=startupRequest(STARTUP_PRELOAD_STATION_TIMEOUT_MS,async signal=>{await delay(40);if(signal.aborted)throw signal.reason;return station(location.latitude,location.longitude,location.country_code||location.country,location.elevation,location,signal,true,false)});
+ const ensembleRequest=ensemble?startupRequest(STARTUP_PRELOAD_ENSEMBLE_TIMEOUT_MS,async signal=>{await delay(420);if(signal.aborted)throw signal.reason;return ensembles(location.latitude,location.longitude,signal,'foreground')}):null;
+ const interfacePromise=Promise.race([forecastRequest.promise,stationRequest.promise,delay(700)]).then(()=>preloadInterfaceChunks(ensemble)),abort=()=>{forecastRequest.controller.abort();stationRequest.controller.abort();ensembleRequest?.controller.abort()};
  active={key,startedAt:Date.now(),promise:forecastRequest.promise,stationPromise:stationRequest.promise,ensemblePromise:ensembleRequest?.promise??null,interfacePromise,abort};return active
 }
 export function startupForecastForLocation(location:Location){if(!active||active.key!==locationKey(location)||Date.now()-active.startedAt>45_000)return null;return active.promise}

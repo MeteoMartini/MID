@@ -31,7 +31,8 @@ for(const token of [
  'hz=dailyHazards(d,hours,elevation,unit,1)',
  'hz:strongestDailyHazards(widgetAutomaticHazardsForDay(d.date,automaticWidgetHazards,timezone))'
 ])if(!app.includes(token))failures.push(`Appweite Plausibilisierung/Warnlogik fehlt: ${token}`);
-if(!app.includes('currentObservedPictogram=currentObservedPhenomenon?synopticPhenomenonPictogram(currentObservedPhenomenon):null')||!app.includes('currentPictogramIntensity=currentObservedPictogram?.intensity??currentPrecip.intensity'))failures.push('Aktuelles Wetter muss Present-Weather-Intensität und Piktogramm gemeinsam priorisieren.');
+const presentWeatherPriorityProtected=app.includes('currentObservedPictogram=currentObservedPhenomenon?synopticPhenomenonPictogram(currentObservedPhenomenon):null')&&app.includes('currentPictogramIntensity=currentObservedPictogram?.intensity??')&&app.includes('currentObservedWeatherCode!==undefined?weatherPictogramIntensity(currentObservedWeatherCode):currentPrecip.intensity');
+if(!presentWeatherPriorityProtected)failures.push('Aktuelles Wetter muss Present-Weather-Intensität und Piktogramm gemeinsam priorisieren.');
 for(const token of ['temperature:hour.temperature','const displayCode=precipitation.displayCode'])if(!route.includes(token))failures.push(`Routenwetter nicht zentral plausibilisiert: ${token}`);
 for(const token of ["from './precipitation';",'precipitationParts','precipitationAmountLabel','const part=precipitationParts({',"snowGrains:{short:'SG'",'cloud_cover_low'])if(!meteogram.includes(token))failures.push(`Meteogramm nicht zentral plausibilisiert: ${token}`);
 for(const token of ['return rawWeatherPriority(Math.round(Number(parts.displayCode)||0));','return parts.displayCode;'])if(!pictograms.includes(token))failures.push(`Detailpiktogramme umgehen den korrigierten Code: ${token}`);

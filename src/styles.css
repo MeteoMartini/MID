@@ -6548,7 +6548,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 :root{
  --mid-space-1:4px;--mid-space-2:6px;--mid-space-3:8px;--mid-space-4:10px;--mid-space-5:12px;--mid-space-6:14px;--mid-space-7:16px;--mid-space-8:20px;--mid-space-9:24px;
  --mid-radius-compact:10px;--mid-radius-control:12px;--mid-radius-panel:16px;--mid-radius-card:20px;--mid-radius-pill:999px;
- --mid-text-micro:8.5px;--mid-text-xs:9px;--mid-text-sm:10px;--mid-text-meta:11px;--mid-text-body:12px;--mid-text-label:13px;--mid-line-compact:1.25;
+ --mid-text-micro:9.5px;--mid-text-xs:10px;--mid-text-sm:11px;--mid-text-meta:12px;--mid-text-body:12.5px;--mid-text-label:13px;--mid-line-compact:1.25;
  --mid-status-good:#57d58a;--mid-status-watch:#ffd37a;--mid-status-caution:#ff9b92;--mid-status-info:#91d8ff;--mid-status-neutral:var(--muted);
  --mid-status-good-bg:color-mix(in srgb,var(--mid-status-good) 12%,var(--surface));
  --mid-status-watch-bg:color-mix(in srgb,var(--mid-status-watch) 12%,var(--surface));
@@ -6559,8 +6559,8 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 :root[data-theme=light]{
  --mid-status-good:#167749;--mid-status-watch:#7b5600;--mid-status-caution:#a8322a;--mid-status-info:#006f9f;
 }
-.density-compact{--mid-text-micro:8.5px;--mid-text-xs:9px;--mid-text-sm:10px;--mid-text-meta:11px}
-.density-comfortable{--mid-text-micro:9px;--mid-text-xs:9.5px;--mid-text-sm:10.5px;--mid-text-meta:11.5px}
+.density-compact{--mid-text-micro:9px;--mid-text-xs:9.5px;--mid-text-sm:10.5px;--mid-text-meta:11.5px}
+.density-comfortable{--mid-text-micro:10px;--mid-text-xs:10.5px;--mid-text-sm:11.5px;--mid-text-meta:12px}
 
 /* Gemeinsame Oberflächenhierarchie: große Karten, Panels und Controls behalten bewusst verschiedene Radienstufen. */
 .card,.forecast-cockpit,.event-center-shelf{border-radius:var(--mid-radius-card)}
@@ -9521,3 +9521,99 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
   .current-weather-facts small{font-size:6px}
   .hero.current-compact .current-weather-overview>.hero-day-range{grid-row:3}
 }
+
+/* MID v0.9.84.62 · UI-Audit: lesbare Informationshierarchie ohne Funktionsverlust */
+/* Semantische Texte werden auf Haupt-/Einstellungsflächen nicht mehr auf 5–8 px verdichtet. */
+.current-weather-facts small{
+  font-size:max(10px,var(--mid-text-micro));
+  line-height:1.15;
+}
+.current-weather-facts b{
+  font-size:max(12px,var(--mid-text-sm));
+  line-height:1.15;
+}
+.current-weather-facts em{
+  font-size:max(9.5px,var(--mid-text-micro));
+  line-height:1.15;
+}
+.hero.current-compact .hero-day-range>em,
+.hero.current-compact .hero-day-range-values small{
+  font-size:max(9.5px,var(--mid-text-micro));
+  line-height:1.15;
+}
+.hero.current-compact .current-precip-panel>em,
+.hero.current-compact .current-compact-source>aside small{
+  font-size:max(9.5px,var(--mid-text-micro));
+}
+.dashboard-module-item>label small{
+  font-size:var(--mid-text-xs);
+  line-height:1.35;
+}
+.dashboard-module-order-actions button{
+  width:32px;
+  min-width:32px;
+  height:32px;
+  min-height:32px;
+}
+.ensemble-hazard-tooltip>.ensemble-hazard-compact-row>.mode-info>button{
+  width:28px;
+  min-width:28px;
+  height:28px;
+  min-height:28px;
+}
+.ensemble-hazard-tooltip>span>small,
+.ensemble-hazard-tooltip>.ensemble-hazard-compact-row>strong{
+  font-size:var(--mid-text-xs);
+  line-height:1.3;
+}
+
+/* Sicht und Luftdruck bleiben auch mobil Teil des kompakten Istwetterblocks. */
+@media(max-width:900px){
+  .current-weather-facts{
+    grid-template-columns:repeat(6,minmax(0,1fr));
+    gap:4px 0;
+  }
+  .current-weather-facts>span{grid-column:span 2}
+  .current-weather-facts>.visibility,
+  .current-weather-facts>.pressure{
+    display:grid!important;
+    grid-column:span 3;
+    border-top:1px solid color-mix(in srgb,var(--border) 70%,transparent);
+    padding-top:5px;
+  }
+  .current-weather-facts>.humidity{border-right:0}
+  .current-weather-facts>.pressure{border-right:0}
+}
+@media(max-width:520px) and (orientation:portrait){
+  .current-weather-overview>article .hero-kicker-row span,
+  .current-weather-overview>article>small{font-size:var(--mid-text-xs)!important}
+  .current-weather-overview>article>b{font-size:var(--mid-text-sm)!important}
+  .current-weather-facts small{font-size:9.5px}
+  .current-weather-facts b{font-size:11px}
+  .current-weather-facts em{font-size:9px}
+  .hero.current-compact .hero-day-range>em,
+  .hero.current-compact .hero-day-range-values small{font-size:9.5px}
+  .hero.current-compact .current-precip-panel>em,
+  .hero.current-compact .current-compact-source>aside small{font-size:9.5px}
+}
+@media(orientation:landscape) and (max-height:600px) and (max-width:950px){
+  .current-weather-facts{grid-template-columns:repeat(5,minmax(0,1fr));gap:0}
+  .current-weather-facts>span,
+  .current-weather-facts>.visibility,
+  .current-weather-facts>.pressure{
+    display:grid!important;
+    grid-column:auto;
+    border-top:0;
+    padding-top:3px;
+  }
+  .current-weather-facts b{font-size:11px}
+  .current-weather-facts small{font-size:9px}
+}
+@media(pointer:coarse){
+  .dashboard-module-order-actions button,
+  .ensemble-hazard-tooltip>.ensemble-hazard-compact-row>.mode-info>button{
+    min-width:36px;
+    min-height:36px;
+  }
+}
+

@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.84.60",
+  "version": "0.9.84.63",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -457,7 +457,8 @@
     "test:ios-resume-location": "node scripts/test-ios-resume-location-preservation-098425.mjs",
     "test:pictogram-intensity-snow-depth": "node scripts/test-pictogram-intensity-snow-depth-098426.mjs",
     "test:travel-center-fusion": "node scripts/test-travel-center-forecast-fusion-098429.mjs",
-    "test:weather-pictogram-appwide": "node scripts/test-weather-pictogram-appwide-contract-098441.mjs"
+    "test:weather-pictogram-appwide": "node scripts/test-weather-pictogram-appwide-contract-098441.mjs",
+    "test:german-weather-terminology-performance": "node scripts/test-german-weather-terminology-performance-098461.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",

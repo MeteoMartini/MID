@@ -127,7 +127,7 @@ export function synopticPhenomenonDescription(value:string):string{
  if(has('FC'))return'Trichterwolke';
  if(has('SQ'))return'Böenlinie';
  if(has('TS')){
-  const strength=raw.startsWith('+')?'starkes ':raw.startsWith('-')?'leichtes ':'';
+  const strength=raw.startsWith('+')?'Starkes ':raw.startsWith('-')?'Leichtes ':'';
   if(has('GS'))return`${strength}Gewitter mit Graupel`;
   if(has('GR'))return`${strength}Gewitter mit Hagel`;
   if(has('RA')&&has('SN'))return`${strength}Gewitter mit Schneeregen`;
@@ -135,20 +135,20 @@ export function synopticPhenomenonDescription(value:string):string{
   if(has('RA')||has('DZ'))return`${strength}Gewitter mit Regen`;
   return`${strength}Gewitter`.trim();
  }
- if(has('FZFG'))return'gefrierender Nebel';
+ if(has('FZFG'))return'Gefrierender Nebel';
  if(has('FG'))return'Nebel';
- if(has('BR'))return'feuchter Dunst';
- if(has('HZ'))return'trockener Dunst';
+ if(has('BR'))return'Feuchter Dunst';
+ if(has('HZ'))return'Trockener Dunst';
  if(has('FU'))return'Rauch';
  if(has('DU'))return'Staub';
  if(has('SA'))return'Sand';
  if(has('FZDZ'))return raw.startsWith('-')?'Leichter gefrierender Sprühregen':raw.startsWith('+')?'Starker gefrierender Sprühregen':'Mäßiger gefrierender Sprühregen';
  if(has('FZRA'))return raw.startsWith('-')?'Leichter gefrierender Regen':raw.startsWith('+')?'Starker gefrierender Regen':'Mäßiger gefrierender Regen';
- if(has('SH')&&has('GS'))return raw.startsWith('-')?'Leichte Graupelschauer':raw.startsWith('+')?'Starke Graupelschauer':'Mäßige Graupelschauer';
- if(has('SH')&&has('GR'))return raw.startsWith('-')?'Leichte Hagelschauer':raw.startsWith('+')?'Starke Hagelschauer':'Mäßige Hagelschauer';
- if(has('SH')&&has('RA')&&has('SN'))return raw.startsWith('-')?'Leichte Schneeregenschauer':raw.startsWith('+')?'Starke Schneeregenschauer':'Mäßige Schneeregenschauer';
- if(has('SH')&&has('SN'))return raw.startsWith('-')?'Leichte Schneeschauer':raw.startsWith('+')?'Starke Schneeschauer':'Mäßige Schneeschauer';
- if(has('SH')&&has('RA'))return raw.startsWith('-')?'Leichte Regenschauer':raw.startsWith('+')?'Starke Regenschauer':'Mäßige Regenschauer';
+ if(has('SH')&&has('GS'))return raw.startsWith('-')?'Leichter Graupelschauer':raw.startsWith('+')?'Starker Graupelschauer':'Mäßiger Graupelschauer';
+ if(has('SH')&&has('GR'))return raw.startsWith('-')?'Leichter Hagelschauer':raw.startsWith('+')?'Starker Hagelschauer':'Mäßiger Hagelschauer';
+ if(has('SH')&&has('RA')&&has('SN'))return raw.startsWith('-')?'Leichter Schneeregenschauer':raw.startsWith('+')?'Starker Schneeregenschauer':'Mäßiger Schneeregenschauer';
+ if(has('SH')&&has('SN'))return raw.startsWith('-')?'Leichter Schneeschauer':raw.startsWith('+')?'Starker Schneeschauer':'Mäßiger Schneeschauer';
+ if(has('SH')&&has('RA'))return raw.startsWith('-')?'Leichter Regenschauer':raw.startsWith('+')?'Starker Regenschauer':'Mäßiger Regenschauer';
  if(has('RA')&&has('SN'))return raw.startsWith('-')?'Leichter Schneeregen':raw.startsWith('+')?'Starker Schneeregen':'Mäßiger Schneeregen';
  if(has('DZ'))return raw.startsWith('-')?'Leichter Sprühregen':raw.startsWith('+')?'Starker Sprühregen':'Mäßiger Sprühregen';
  if(has('RA'))return raw.startsWith('-')?'Leichter Regen':raw.startsWith('+')?'Starker Regen':'Mäßiger Regen';
