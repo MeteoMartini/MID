@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.84.67",
+  "releaseVersion": "0.9.84.68",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -463,7 +463,8 @@
     "scripts/test-travel-center-readability-098464.mjs",
     "scripts/test-header-favorites-readability-098465.mjs",
     "scripts/test-extreme-outlook-readability-098466.mjs",
-    "scripts/test-shortterm-composite-readability-098467.mjs"
+    "scripts/test-shortterm-composite-readability-098467.mjs",
+    "scripts/test-openmeteo-watch-ensemble-ui-098468.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -849,7 +850,8 @@
     "scripts/test-travel-center-readability-098464.mjs",
     "scripts/test-header-favorites-readability-098465.mjs",
     "scripts/test-extreme-outlook-readability-098466.mjs",
-    "scripts/test-shortterm-composite-readability-098467.mjs"
+    "scripts/test-shortterm-composite-readability-098467.mjs",
+    "scripts/test-openmeteo-watch-ensemble-ui-098468.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/install-mid.yml",
@@ -2006,7 +2008,7 @@
     "scripts/test-ci-types-event-update-098436.mjs",
     "scripts/test-weather-pictogram-appwide-contract-098441.mjs"
   ],
-  "version": "0.9.84.67",
+  "version": "0.9.84.68",
   "updatedAt": "2026-09-12T06:10:02Z",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",

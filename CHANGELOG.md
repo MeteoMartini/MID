@@ -1,3 +1,19 @@
+## 0.9.84.68
+
+### Extern
+- Open-Meteo-Watch-Patch integriert: die derzeit von Open-Meteo suspendierten KMA-UM-Pfade LDPS/GDPS werden nicht mehr als aktive Prognosemodelle angeboten oder in die MID-Fusion aufgenommen.
+- Für Südkorea nutzt der Hyperlokal-Hintergrund während der KMA-KIM-Migration JMA MSM/JMA Seamless und anschließend Open-Meteo Best Match als Fallbackkette.
+- Météo-France AROME HD 15 min bleibt aktiv und wird im Worker vor dem stündlichen AROME-HD-Fallback verwendet; damit bleibt die von Open-Meteo am 11.09.2026 korrigierte 15-min-Niederschlags-/Schneelogik nutzbar.
+- Ensemble-Offenlegung und Prognose-Kompass sind auf iPhone/iPad besser lesbar: Status-/Erklärungstexte nutzen die gemeinsame MID-Typografieskala und der zentrale Auf-/Zuklappbereich erhält größere Touchziele.
+- Keine Warn-, Schwellen-, Niederschlagsphasen-, Piktogramm- oder Modellgewichtungslogik entfernt.
+
+### Intern
+- KMA LDPS/GDPS aus Frontend- und Worker-Katalog entfernt; veraltete `globalIds`-Referenz ebenfalls bereinigt.
+- `meteofrance_arome_france_hd_15min` als erster Worker-API-Pfad der bestehenden Météo-France-AROME-Familie ergänzt; stündliches HD, AROME France und Seamless bleiben als Fallbacks erhalten.
+- Bestehenden Modellfamilienvertrag um Suspendierungs-, Südkorea-Fallback- und AROME-15-min-Schutz erweitert.
+- Neuer Pflichtvertrag `test-openmeteo-watch-ensemble-ui-098468.mjs` schützt Patchintegration, Aggregate und Ensemble-UI-Standardisierung.
+- Worker-Fachlogik geändert; Worker-Deployment ist für diesen Stand erforderlich.
+
 ## 0.9.84.67
 
 ### Extern

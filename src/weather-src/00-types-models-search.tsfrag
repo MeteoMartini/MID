@@ -204,7 +204,6 @@ const forecastCandidates:ForecastCandidate[]=[
  {id:'cmc_gem_rdps',label:'GEM RDPS 10 km',kind:'forecast',resolutionKm:10,forecastHorizonHours:84,countries:['CA','US'],bbox:[-170,20,-35,90]},
  {id:'jma_msm',label:'JMA MSM 5 km',kind:'forecast',resolutionKm:5,forecastHorizonHours:96,countries:['JP','KR'],bbox:[118,20,155,52]},
  {id:'jma_seamless',label:'JMA Seamless',kind:'forecast',resolutionKm:5,forecastHorizonHours:264,countries:['JP','KR'],bbox:[118,20,155,52]},
- {id:'kma_ldps',label:'KMA LDPS 1,5 km',kind:'forecast',resolutionKm:1.5,forecastHorizonHours:48,countries:['KR'],bbox:[120,30,134,42]},
  {id:'dwd_icon_eu',label:'DWD ICON-EU',kind:'forecast',resolutionKm:7,forecastHorizonHours:120,bbox:[-25,30,45,72]},
  {id:'meteofrance_arpege_europe',label:'Météo-France ARPEGE Europe',kind:'forecast',bbox:[-25,30,45,72]}
 ];
@@ -217,7 +216,6 @@ const globalForecastCandidates:ForecastCandidate[]=[
  {id:'ukmo_global_deterministic_10km',label:'UKMO Global 10 km',kind:'forecast',resolutionKm:10,forecastHorizonHours:168},
  {id:'cmc_gem_gdps',label:'GEM Global 15 km',kind:'forecast',resolutionKm:15,forecastHorizonHours:240},
  {id:'jma_gsm',label:'JMA GSM 55 km',kind:'forecast',resolutionKm:55,forecastHorizonHours:264},
- {id:'kma_gdps',label:'KMA GDPS 13 km',kind:'forecast',resolutionKm:13,forecastHorizonHours:288},
  {id:'bom_access_global',label:'BOM ACCESS Global 15 km',kind:'forecast',resolutionKm:15,forecastHorizonHours:240},
  {id:'cma_grapes_global',label:'CMA GRAPES Global 15 km',kind:'forecast',resolutionKm:15,forecastHorizonHours:240},
  {id:'meteofrance_arpege_world',label:'Météo-France ARPEGE World',kind:'forecast',resolutionKm:25,forecastHorizonHours:96}

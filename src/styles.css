@@ -9891,3 +9891,16 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
  .cockpit-weather-profile__resolution button,.cockpit-weather-profile__toggle{min-height:40px!important}
  .cockpit-weather-profile__icon-toggle,.cockpit-weather-profile__icon-toggle.compact{min-width:40px!important;min-height:40px!important;width:40px!important;height:40px!important}
 }
+
+
+/* MID v0.9.84.68 · UI-Audit: Ensemble-Offenlegung und Prognose-Kompass lesbarer */
+.ensemble-advanced-toggle{min-height:40px}
+.ensemble-advanced-toggle small{font-size:var(--mid-text-micro);line-height:1.2}
+.ensemble-advanced-toggle em{font-size:var(--mid-text-xs);line-height:1.35}
+.model-change-radar .ensemble-advanced-body>footer{font-size:var(--mid-text-micro);line-height:1.45}
+.ensemble-scenarios>.ensemble-advanced-body>p{font-size:var(--mid-text-xs);line-height:1.45}
+.ensemble-forecast-compass>header small{font-size:var(--mid-text-micro)}
+.ensemble-forecast-compass>div small,.ensemble-forecast-compass>div em{font-size:var(--mid-text-micro);line-height:1.35}
+.consistency-legend.simple>span{font-size:var(--mid-text-micro);line-height:1.3}
+.quickfacts .quickfact.weather>small,.model-change-models{font-size:var(--mid-text-micro);line-height:1.25}
+@media(pointer:coarse){.ensemble-advanced-toggle{min-height:44px}}

@@ -50,7 +50,7 @@ const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const MET_NORWAY_LOCATIONFORECAST='https://api.met.no/weatherapi/locationforecast/2.0/complete';
-const WORKER_VERSION='0.9.84.67';
+const WORKER_VERSION='0.9.84.68';
 const C3S_SEASONAL_POINT_SYSTEMS=[
  {centreId:'ecmwf',originatingCentre:'ecmwf',system:'51',modelKey:'ecmwf-seas5-51',independenceKey:'ecmwf-seas5-51',label:'ECMWF SEAS5'},
  {centreId:'ukmo',originatingCentre:'ukmo',system:'610',modelKey:'ukmo-glosea6-gc51-610',independenceKey:'ukmo-glosea6-gc51-610',label:'UK Met Office GloSea6-GC5.1'},
@@ -265,7 +265,7 @@ const FORECAST_FUSION_MODELS=[
  {id:'meteoswiss_icon_ch1',apiIds:['meteoswiss_icon_ch1'],label:'MeteoSwiss ICON-CH1',family:'meteoswiss-icon',independenceGroup:'meteoswiss-icon',provider:'MeteoSwiss',tier:1,maxDays:1.4,updateHours:3,resolutionKm:1,countries:['CH'],bbox:[3,43,18,50]},
  {id:'meteoswiss_icon_ch2',apiIds:['meteoswiss_icon_ch2'],label:'MeteoSwiss ICON-CH2',family:'meteoswiss-icon',independenceGroup:'meteoswiss-icon',provider:'MeteoSwiss',tier:1,maxDays:5,updateHours:6,resolutionKm:2,countries:['CH'],bbox:[3,43,18,50]},
  {id:'geosphere_arome',apiIds:['geosphere_arome_austria'],label:'GeoSphere AROME Austria',family:'geosphere-arome',independenceGroup:'geosphere-arome',provider:'GeoSphere Austria',tier:1,maxDays:2.5,updateHours:3,resolutionKm:2.5,countries:['AT'],bbox:[8,45,18,50]},
- {id:'meteofrance_arome',apiIds:['meteofrance_arome_france_hd','meteofrance_arome_france','meteofrance_seamless'],label:'Météo-France AROME / Seamless',family:'meteofrance-arome',independenceGroup:'meteofrance',provider:'Météo-France',tier:1,maxDays:2,updateHours:3,resolutionKm:1.5,countries:['FR'],bbox:[-6,41,11,52]},
+ {id:'meteofrance_arome',apiIds:['meteofrance_arome_france_hd_15min','meteofrance_arome_france_hd','meteofrance_arome_france','meteofrance_seamless'],label:'Météo-France AROME / Seamless',family:'meteofrance-arome',independenceGroup:'meteofrance',provider:'Météo-France',tier:1,maxDays:2,updateHours:3,resolutionKm:1.5,countries:['FR'],bbox:[-6,41,11,52]},
  {id:'ukmo_ukv',apiIds:['ukmo_uk_deterministic_2km','ukmo_seamless'],label:'UKMO UKV / Seamless',family:'ukmo-ukv',independenceGroup:'ukmo',provider:'UK Met Office',tier:1,maxDays:2,rapidUpdate:true,updateHours:1,resolutionKm:2,latencyHours:4,countries:['GB','IE'],bbox:[-12,48,4,62]},
  {id:'metno_nordic',apiIds:['metno_nordic','metno_nordic_pp'],label:'MET Nordic',family:'metno-nordic',independenceGroup:'metno',provider:'MET Norway',tier:1,maxDays:3,rapidUpdate:true,updateHours:1,resolutionKm:1,countries:['NO','SE','DK','FI'],bbox:[0,53,32,72]},
  {id:'hrrr',apiIds:['ncep_hrrr_conus'],label:'NOAA HRRR',family:'noaa-hrrr',independenceGroup:'noaa-nwp',provider:'NOAA/NCEP',tier:1,maxDays:2,rapidUpdate:true,updateHours:1,resolutionKm:3,countries:['US','CA'],bbox:[-130,20,-60,55]},
@@ -278,7 +278,6 @@ const FORECAST_FUSION_MODELS=[
  {id:'chmi_aladin_ce',apiIds:['chmi_aladin_central_europe_2km','chmi_aladin_seamless'],label:'CHMI ALADIN Mitteleuropa',family:'chmi-aladin-ce',independenceGroup:'chmi-aladin',provider:'CHMI',tier:2,maxDays:3,updateHours:6,resolutionKm:2.3,bbox:[-12,35,35,62],optionalCapability:true},
  {id:'italiameteo_icon2i',apiIds:['italia_meteo_arpae_icon_2i'],label:'ItaliaMeteo ICON-2I',family:'italiameteo-icon2i',independenceGroup:'italiameteo-icon2i',provider:'ItaliaMeteo',tier:1,maxDays:3,updateHours:12,resolutionKm:2,countries:['IT'],bbox:[5,35,20,49]},
  {id:'jma_msm',apiIds:['jma_msm','jma_seamless'],label:'JMA MSM / Seamless',family:'jma-msm',independenceGroup:'jma',provider:'JMA',tier:1,maxDays:4,updateHours:3,resolutionKm:5,countries:['JP','KR'],bbox:[118,20,155,52],consensusOnly:true},
- {id:'kma_ldps',apiIds:['kma_ldps'],label:'KMA LDPS',family:'kma-ldps',independenceGroup:'kma',provider:'KMA',tier:1,maxDays:2,updateHours:6,resolutionKm:1.5,countries:['KR'],bbox:[120,30,134,42],consensusOnly:true},
  {id:'gem_hrdps',apiIds:['cmc_gem_hrdps'],label:'GEM HRDPS',family:'gem-hrdps',independenceGroup:'cmc-gem',provider:'Environment Canada',tier:1,maxDays:2,updateHours:6,resolutionKm:2.5,countries:['CA','US'],bbox:[-150,35,-45,72]},
  {id:'gem_rdps',apiIds:['cmc_gem_rdps'],label:'GEM RDPS',family:'gem-rdps',independenceGroup:'cmc-gem',provider:'Environment Canada',tier:2,maxDays:3.5,updateHours:6,resolutionKm:10,countries:['CA','US'],bbox:[-170,20,-35,90]},
  {id:'arpege_europe',apiIds:['meteofrance_arpege_europe'],label:'Météo-France ARPEGE Europe',family:'meteofrance-arpege-eu',independenceGroup:'meteofrance',provider:'Météo-France',tier:2,maxDays:4,updateHours:6,resolutionKm:11,bbox:FORECAST_FUSION_EUROPE},
@@ -289,7 +288,6 @@ const FORECAST_FUSION_MODELS=[
  {id:'ukmo_global',apiIds:['ukmo_global_deterministic_10km'],label:'UKMO Global',family:'ukmo-global',independenceGroup:'ukmo',provider:'UK Met Office',tier:2,maxDays:7,updateHours:6,resolutionKm:10,latencyHours:4},
  {id:'gem_global',apiIds:['cmc_gem_gdps'],label:'GEM Global',family:'gem-gdps',independenceGroup:'cmc-gem',provider:'Environment Canada',tier:3,maxDays:10,updateHours:12,resolutionKm:15},
  {id:'jma_gsm',apiIds:['jma_gsm'],label:'JMA GSM',family:'jma-gsm',independenceGroup:'jma',provider:'JMA',tier:4,maxDays:11,updateHours:6,resolutionKm:55,consensusOnly:true},
- {id:'kma_gdps',apiIds:['kma_gdps'],label:'KMA GDPS',family:'kma-gdps',independenceGroup:'kma',provider:'KMA',tier:3,maxDays:12,updateHours:6,resolutionKm:13,consensusOnly:true},
  {id:'bom_access_global',apiIds:['bom_access_global'],label:'BOM ACCESS Global',family:'bom-access',independenceGroup:'bom',provider:'BOM',tier:3,maxDays:10,updateHours:6,resolutionKm:15,consensusOnly:true},
  {id:'cma_grapes_global',apiIds:['cma_grapes_global'],label:'CMA GRAPES Global',family:'cma-grapes',independenceGroup:'cma',provider:'CMA',tier:3,maxDays:10,updateHours:6,resolutionKm:15,consensusOnly:true},
  {id:'arpege_world',apiIds:['meteofrance_arpege_world'],label:'Météo-France ARPEGE World',family:'meteofrance-arpege-world',independenceGroup:'meteofrance',provider:'Météo-France',tier:3,maxDays:4,updateHours:6,resolutionKm:25,consensusOnly:true}
@@ -342,7 +340,7 @@ function forecastFusionSelection(lat,lon,country){
  // ergänzt. Varianten derselben Familie (z. B. IFS/AIFS oder ICON-Auflösungen)
  // kommen erst danach als Reichweiten-/Verfügbarkeitsfallback hinzu und erhalten
  // im Konsens trotzdem keine zweite Stimme.
- const globalIds=['ecmwf_ifs','gfs','icon_global','ukmo_global','gem_global','jma_gsm','kma_gdps','bom_access_global','cma_grapes_global','arpege_world','ecmwf_aifs','aigfs'],globalRows=globalIds.map(id=>applicable.find(model=>model.id===id)).filter(Boolean),seenGroups=new Set(chosen.filter(model=>!model.anchor).map(model=>model.independenceGroup||model.family));
+ const globalIds=['ecmwf_ifs','gfs','icon_global','ukmo_global','gem_global','jma_gsm','bom_access_global','cma_grapes_global','arpege_world','ecmwf_aifs','aigfs'],globalRows=globalIds.map(id=>applicable.find(model=>model.id===id)).filter(Boolean),seenGroups=new Set(chosen.filter(model=>!model.anchor).map(model=>model.independenceGroup||model.family));
  for(const model of globalRows){const group=model.independenceGroup||model.family;if(seenGroups.has(group))continue;add(model);seenGroups.add(group)}
  for(const model of globalRows)add(model);
  return chosen.slice(0,20);

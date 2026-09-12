@@ -20,7 +20,11 @@ for(const token of ['independenceGroup','independentFusionRows','consensusRole']
 assert.ok(worker.includes("result.consensusRole!=='postprocessing'"),'Postprocessing darf nicht als unabhängige Stimme gewertet werden.');
 assert.ok(worker.includes('const families=new Map()')&&worker.includes('budget=Math.max(...representatives.map(row=>row.weight))'),'Pro Horizont muss ein geeigneter Vertreter je Familie gewählt und ein gemeinsames Gruppenbudget geteilt werden.');
 assert.ok(worker.includes("maxHours:14,rapidUpdate:true"),'ICON-D2-RUC muss auf seine Rapid-Cycle-Reichweite begrenzt bleiben.');
-for(const token of ['knmi_harmonie_europe','ukmo_ukv','metno_nordic','hrrr','nam','nbm','chmi_aladin_ce','ecmwf_ifs','ecmwf_aifs','gfs','aigfs','ukmo_global','gem_global','jma_gsm','kma_gdps','bom_access_global','cma_grapes_global','arpege_world'])assert.ok(worker.includes(`id:'${token}'`),`Modellfamilie fehlt im Worker-Katalog: ${token}`);
+for(const token of ['knmi_harmonie_europe','ukmo_ukv','metno_nordic','hrrr','nam','nbm','chmi_aladin_ce','ecmwf_ifs','ecmwf_aifs','gfs','aigfs','ukmo_global','gem_global','jma_gsm','bom_access_global','cma_grapes_global','arpege_world'])assert.ok(worker.includes(`id:'${token}'`),`Modellfamilie fehlt im Worker-Katalog: ${token}`);
+for(const token of ['kma_ldps','kma_gdps'])assert.ok(!worker.includes(`id:'${token}'`),`Suspendiertes KMA-Modell darf nicht aktiv im Worker-Katalog bleiben: ${token}`);
+for(const token of ['kma_ldps','kma_gdps'])assert.ok(!weather.includes(`id:'${token}'`),`Suspendiertes KMA-Modell darf nicht aktiv im Frontend-Katalog bleiben: ${token}`);
+assert.ok(weather.includes("country==='KR'?['jma_msm','jma_seamless']"),'Südkorea muss während der KMA-KIM-Migration auf dokumentierte JMA-Modelle plus Best-Match zurückfallen.');
+assert.ok(worker.includes("apiIds:['meteofrance_arome_france_hd_15min','meteofrance_arome_france_hd'"),'AROME France HD 15-min muss als aktiver Primärpfad erhalten bleiben; Open-Meteo rekonstruiert seit 2026-09-11 fehlende 15-min Niederschlags-/Schneeschritte aus rollierenden Stundensummen.');
 assert.ok(worker.includes("return chosen.slice(0,20)"),'Multi-Modell-Auswahl muss genug Platz für unabhängige Familien plus Fallbackvarianten lassen.');
 assert.ok(worker.includes('fusionDailyPrecipitation'),'Teilweise verfügbare Globalmodelle dürfen fehlenden Niederschlag nicht als 0 mm vortäuschen.');
 assert.ok(worker.includes('weatherBundleReady:hours.length>=12'),'Tageskonsens und Wetterbündel-Reparatur müssen getrennte Verfügbarkeitskriterien haben.');
