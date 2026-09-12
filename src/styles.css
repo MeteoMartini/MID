@@ -10082,3 +10082,99 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
  :where(.settings-dialog,.favorite-modal,.system-update-dialog,.dashboard-section-drawer) :where(button,[role="button"],summary){min-block-size:var(--mid-control-touch);min-inline-size:var(--mid-control-touch)}
  .settings-titlebar>button,.favorite-modal>header button,.system-update-dialog>header button{width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important}
 }
+
+/* MID v0.9.84.70 · App-weiter Designvertrag: alle Hauptansichten übernehmen dieselbe
+   Mobile-/iPad-/Desktop-Hierarchie. Wissenschaftliche SVG-Beschriftungen bleiben separat. */
+:is(.climate-panel,.meteogram-card,.ensemble,.long-range-panel,.subseasonal-comparison,.synoptic-panel,.flight-meteorology,.water-sports,.event-planner,.travel-planner,.weather-maps-panel,.ventilation-assistant-panel,.extreme-outlook-panel,.dwd-precip-type-radar,.short-term-forecast,.warnings-responsive-shell,.radar){
+ --mid-view-caption:var(--mid-text-micro);
+ --mid-view-copy:var(--mid-text-sm);
+ --mid-view-meta:var(--mid-text-xs);
+}
+:is(.climate-panel,.meteogram-card,.ensemble,.long-range-panel,.subseasonal-comparison,.synoptic-panel,.flight-meteorology,.water-sports,.event-planner,.travel-planner,.weather-maps-panel,.ventilation-assistant-panel,.extreme-outlook-panel,.dwd-precip-type-radar,.short-term-forecast,.warnings-responsive-shell,.radar) small{
+ font-size:var(--mid-view-caption)!important;
+ line-height:1.35;
+}
+:is(.climate-panel,.meteogram-card,.ensemble,.long-range-panel,.subseasonal-comparison,.synoptic-panel,.flight-meteorology,.water-sports,.event-planner,.travel-planner,.weather-maps-panel,.ventilation-assistant-panel,.extreme-outlook-panel,.dwd-precip-type-radar,.short-term-forecast,.warnings-responsive-shell,.radar)
+ :is([class*="-meta"],[class*="-source"],[class*="-note"],[class*="-disclaimer"],[class*="-validity"],[class*="-status"]){
+ font-size:max(var(--mid-view-caption),1em);
+ line-height:1.4;
+}
+:is(.climate-panel,.meteogram-card,.ensemble,.long-range-panel,.subseasonal-comparison,.synoptic-panel,.flight-meteorology,.water-sports,.event-planner,.travel-planner,.weather-maps-panel,.ventilation-assistant-panel,.extreme-outlook-panel,.dwd-precip-type-radar,.short-term-forecast,.warnings-responsive-shell,.radar)
+ :is(.section-sticky-controls,[class*="-toolbar"],[class*="-controls"],[class*="-actions"]) :is(button,summary,select){
+ min-height:36px;
+}
+@media (hover:none),(pointer:coarse),(any-pointer:coarse){
+ :is(.climate-panel,.meteogram-card,.ensemble,.long-range-panel,.subseasonal-comparison,.synoptic-panel,.flight-meteorology,.water-sports,.event-planner,.travel-planner,.weather-maps-panel,.ventilation-assistant-panel,.extreme-outlook-panel,.dwd-precip-type-radar,.short-term-forecast,.warnings-responsive-shell,.radar)
+  :is(.section-sticky-controls,[class*="-toolbar"],[class*="-controls"],[class*="-actions"]) :is(button,summary,select,a[href]){
+  min-width:44px;
+  min-height:44px;
+ }
+}
+/* iOS/iPadOS-WebKit: Texteingaben >=16px verhindern Fokus-Zoom; Checkboxen/Range bleiben ausgenommen. */
+@media(max-width:1024px) and ((hover:none) or (pointer:coarse) or (any-pointer:coarse)){
+ .app :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),select,textarea){font-size:16px!important}
+}
+
+/* MID v0.9.84.70 · Visualisierungs-Audit Block 1: Klima, Meteogramm, Ensemble,
+   7-Tage-Kurve und Langfrist. Achsen bleiben kompakter als normale UI-Texte, aber lesbar. */
+.climate-head>div>span,.climate-source-badge,.climate-controls label>span,.climate-summary small,
+.climate-main-chart header small,.climate-wind-card header small,.climate-windrose small,
+.climate-month-grid article>small,.climate-panel>footer{font-size:var(--mid-text-micro)!important}
+.climate-legend,.climate-wind-legend span,.climate-cloud-legend span{font-size:var(--mid-text-micro)!important}
+.climate-chart text{font-size:10.5px}.climate-value-overlay text{font-size:10px}.climate-value-overlay .title{font-size:11px}
+.climate-month-grid header span{font-size:var(--mid-text-micro)}
+@media(max-width:620px){
+ .climate-presets button{font-size:11px!important}
+ .climate-chart text{font-size:10px}.climate-value-overlay text{font-size:9.5px}
+}
+
+.meteogram-block>header small,.meteogram-line-legend span,.meteogram-meta,.meteogram-disclaimer,
+.meteogram-source-disclosure,.risk-legend span{font-size:var(--mid-text-micro)!important;line-height:1.35}
+.meteogram-day-label{font-size:10px!important}.meteogram-row-label{font-size:9.5px!important}
+.meteogram-axis-label,.meteogram-axis-unit{font-size:9px!important}.meteogram-isoline-label,.meteogram-ptype{font-size:9px!important}
+.meteogram-scale{font-size:10px!important}.meteogram-tooltip{font-size:11px!important;line-height:1.4;max-width:min(300px,82vw)}
+@media(max-width:520px){
+ .meteogram-block>header{gap:8px}.meteogram-line-legend{gap:7px 10px}
+ .meteogram-day-label{font-size:9.5px!important}.meteogram-row-label{font-size:9px!important}
+ .meteogram-axis-label,.meteogram-axis-unit{font-size:8.5px!important}
+ .meteogram-disclaimer{font-size:11px!important}
+}
+
+.ensemble-metric-deck small,.ensemble-advanced-toggle small,.ensemble-advanced-toggle em,
+.ensemble-forecast-compass>header small,.ensemble-forecast-compass>div small,.ensemble-forecast-compass>div em,
+.model-change-radar .ensemble-advanced-body>footer,.ensemble-scenarios>.ensemble-advanced-body>p{font-size:var(--mid-text-micro)!important}
+.ensemble-date-axis-tick,.ensemble-external-date-labels>span{font-size:9.5px!important}
+.ensemble-temp-axis-title-left,.ensemble-rain-axis-title-left,.ensemble-wind-axis-title-left,.ensemble-rain-axis-title-right,
+.ensemble-temp-axis-title-bottom,.ensemble-rain-axis-title-bottom,.ensemble-wind-axis-title-bottom{font-size:10px!important}
+.ensemble-temp-axis-title-left small,.ensemble-rain-axis-title-left small,.ensemble-wind-axis-title-left small,.ensemble-rain-axis-title-right small{font-size:9.5px!important}
+.ensemble-temperature-canvas .recharts-cartesian-axis-tick tspan,.ensemble-rain-chart-core .recharts-cartesian-axis-tick tspan,.ensemble-wind-chart-core .recharts-cartesian-axis-tick tspan{font-size:10px!important}
+.ensemble-pro-tooltip,.rain-tooltip,.trend-tooltip{font-size:11px!important;line-height:1.4}
+.ensemble-pro-tooltip .trend-tooltip-head span,.ensemble-pro-tooltip .trend-tooltip-meta,.ensemble-pro-tooltip .trend-tooltip-matrix,
+.ensemble-pro-tooltip .tooltip-meta-line b,.ensemble-pro-tooltip .tooltip-meta-block b{font-size:10.5px!important}
+
+.seven-day-curve-overview>header small{font-size:11px}.seven-day-curve-overview>header>span{font-size:11px;line-height:1.35}
+.seven-day-curve-days>button>b{font-size:11px}.seven-day-curve-days>button>small{font-size:9.5px}
+.seven-day-curve-temps strong{font-size:12px}.seven-day-curve-temps em{font-size:10px}
+.seven-day-curve-axis-label,.seven-day-curve-day-label{font-size:9px}.seven-day-curve-time-label{font-size:8.5px}
+.seven-day-curve-overview>footer,.seven-day-curve-overview>footer>small{font-size:10.5px}
+@media(max-width:620px){
+ .seven-day-curve-days>button>b{font-size:10.5px}.seven-day-curve-days>button>small{font-size:9px}
+ .seven-day-curve-temps strong{font-size:11.5px}.seven-day-curve-temps em{font-size:9.5px}
+ .seven-day-curve-axis-label,.seven-day-curve-day-label{font-size:8.5px}.seven-day-curve-time-label{font-size:8px}
+ .seven-day-curve-overview>footer{font-size:10px}
+}
+
+.long-range-chart .axis-label{font-size:10px}.long-range-chart .month-label{font-size:9.5px}
+.long-range-scale{font-size:10px;gap:7px;padding-block:5px}
+.long-range-family-chips>span,.long-range-family-chips small,.long-range-model-line-legend b,.long-range-model-line-legend small{font-size:var(--mid-text-micro)!important;line-height:1.2}
+.subseasonal-chart .axis-label{font-size:9.5px}.subseasonal-chart .month-label{font-size:9px}
+.subseasonal-chart-legend{font-size:10.5px!important;line-height:1.3}
+.subseasonal-chart .subseasonal-point-tooltip strong{font-size:12px}.subseasonal-chart .subseasonal-point-tooltip small,.subseasonal-chart .subseasonal-point-tooltip span{font-size:11px!important}
+
+/* Synoptik bleibt kartografisch dicht; Bedien- und Erklärungstext wird jedoch lesbar gehalten. */
+.synoptic-map-legend{font-size:10px!important;line-height:1.3}
+.synoptic-phase-node header small,.synoptic-impact-chip small,.synoptic-model-lanes small,.synoptic-station-chips small,
+.synoptic-timing-graphic small,.synoptic-wind-transition small{font-size:var(--mid-text-micro)!important}
+.synoptic-phase-metrics span,.synoptic-impact-chip>span,.synoptic-station-chips b{font-size:10px!important}
+.synoptic-map-label.isobar span,.synoptic-map-label.front span,.synoptic-site-label{font-size:9px!important}
+@media(max-width:520px){.synoptic-map-legend{font-size:9.5px!important}.synoptic-phase-metrics span{font-size:9.5px!important}}

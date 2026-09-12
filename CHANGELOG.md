@@ -1,3 +1,17 @@
+## 0.9.84.70
+
+### Extern
+- Mobile, iPad und Desktop verwenden den neuen MID-Designvertrag nun über alle Hauptansichten hinweg konsistenter.
+- Klima, Meteogramme, Ensemble-, 7-Tage-, Langfrist- und Synoptikdarstellungen sind besser lesbar, ohne Wetterinformationen zu entfernen.
+- Touchbedienung und Formulare auf iPhone/iPad wurden weiter vereinheitlicht; Eingabefelder vermeiden unnötigen Safari-Fokuszoom.
+- Wetterlogik, Warnungen, Farben und Piktogramme bleiben unverändert.
+
+### Intern
+- App-weite Designabdeckung für alle Hauptmodule abgesichert.
+- Visualisierungs-Audit Block 1 mit gezielten Achsen-/Legenden-/Tooltip-Größen umgesetzt.
+- Neue Regressionen `test-appwide-design-coverage-098470.mjs` und `test-visualization-readability-098470.mjs`.
+- Releaseversion und Cache-/iOS-/Worker-Metadaten auf 0.9.84.70 synchronisiert.
+
 ## 0.9.84.69
 
 ### Extern
