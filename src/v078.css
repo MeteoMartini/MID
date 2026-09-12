@@ -250,3 +250,9 @@
 @media(max-width:850px),(hover:none),(pointer:coarse){
  .hero>.hero-day-range{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 }
+
+/* MID v0.9.84.65 · Suchergebnis-Badges folgen der semantischen MID-Mikrotypografie. */
+.search .poi-kind{
+ font-size:var(--mid-text-micro);
+ line-height:1.15;
+}

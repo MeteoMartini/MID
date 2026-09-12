@@ -2000,6 +2000,51 @@ button,input,select,textarea{font:inherit}
 .weatherwidget.modern.compact.widget-view-cards .widgetmeta-wind>b,.weatherwidget.modern.compact.widget-view-cards .widgetmeta-wind>small{justify-content:center}
 .weatherwidget.modern.compact.widget-view-curve .seven-day-curve-days>button.active{background:transparent;box-shadow:none}
 .weatherwidget.modern.compact.temperature-colors-ecmwf.widget-view-curve .seven-day-curve-temperature-halo{stroke:color-mix(in srgb,var(--text) 12%,transparent)}
+
+/* MID v0.9.84.65 · UI-Audit: Kopfzeile, Suche und Favoriten konsistent lesbar und touchfreundlich */
+.search .search-input-shell>button{
+ width:36px;
+ min-width:36px;
+ height:36px;
+ min-height:36px;
+}
+.header-favorites .favorite-bubbles>button{
+ min-height:40px;
+ padding-top:6px;
+ padding-bottom:6px;
+}
+.header-favorites .favorite-bubbles>button span{font-size:var(--mid-text-sm)}
+.header-favorites .favorite-bubbles>button small{font-size:var(--mid-text-micro);line-height:1.15}
+.header-favorites .favorite-bubbles>button b{font-size:var(--mid-text-micro);line-height:1.1}
+.favorite-group>small{font-size:var(--mid-text-micro);line-height:1.15}
+.header-favorites .favorite-strip-manage{
+ width:40px;
+ min-width:40px;
+ height:40px;
+ min-height:40px;
+ flex-basis:40px;
+}
+.favorite-toggle{width:40px;height:40px;flex-basis:40px}
+.favorite-fields>label,
+.favorite-rule-input,
+.favorite-fields details p,
+.favorite-mountain-heights label,
+.favorite-water-options label,
+.mountain-height-field{font-size:var(--mid-text-xs)!important;line-height:1.3}
+.favorite-fields summary em{font-size:var(--mid-text-micro)}
+.favorite-mountain-toggle small{font-size:var(--mid-text-xs);line-height:1.35}
+.favorite-mountain-heights b,
+.favorite-water-options b,
+.mountain-height-field>b{font-size:var(--mid-text-xs)}
+@media(max-width:520px){
+ .favorite-toggle{width:38px;height:38px;flex-basis:38px}
+}
+@media(pointer:coarse){
+ .search .search-input-shell>button{width:40px;min-width:40px;height:40px;min-height:40px}
+ .header-favorites .favorite-bubbles>button{min-height:40px}
+ .header-favorites .favorite-strip-manage{width:40px;min-width:40px;height:40px;min-height:40px;flex-basis:40px}
+ .favorite-toggle{width:40px;height:40px;flex-basis:40px}
+}
 /* MID v0.8.17.2 – offizieller UV-Gefahrenindex in den aktuellen Daten */
 .metrics .uvi-card header{align-items:center;padding-right:1px}
 .metrics .uvi-card>strong{margin-top:9px;font-size:clamp(13px,1.05vw,18px);line-height:1.12}
@@ -9618,3 +9663,31 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
   }
 }
 
+
+/* MID v0.9.84.65 · optionales Bottom-Tab-Layout behält dieselben Mindestbediengrößen wie der Standardkopf */
+.navigation-bottom-tabs .settings-header>.header-favorites .favorite-bubbles>button{
+ min-height:36px;
+ padding-top:5px;
+ padding-bottom:5px;
+}
+.navigation-bottom-tabs .settings-header>.header-favorites .favorite-strip-manage{
+ width:36px;
+ min-width:36px;
+ height:36px;
+ min-height:36px;
+ flex-basis:36px;
+}
+.header-favorites .favorite-bubbles>button .favorite-quick-grip{
+ width:16px;
+ min-width:16px;
+ min-height:30px;
+}
+.header-favorites .favorite-bubbles>button{
+ grid-template-columns:16px auto auto;
+}
+@media(pointer:coarse){
+ .navigation-bottom-tabs .settings-header>.header-favorites .favorite-bubbles>button{min-height:40px}
+ .navigation-bottom-tabs .settings-header>.header-favorites .favorite-strip-manage{width:40px;min-width:40px;height:40px;min-height:40px;flex-basis:40px}
+ .header-favorites .favorite-bubbles>button .favorite-quick-grip{width:20px;min-width:20px;min-height:36px}
+ .header-favorites .favorite-bubbles>button{grid-template-columns:20px auto auto}
+}

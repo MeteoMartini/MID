@@ -1,3 +1,19 @@
+## 0.9.84.65
+
+### Extern
+- Kopfzeile, Suche und Favoriten auf iPhone/iPad konsistenter bedienbar: kleine Suchfeldaktion und Favoriten-Schaltflächen besitzen größere Trefferflächen.
+- Favoriten-Untertexte sowie Kennzeichen wie Standard/Ski/Wasser und POI-Typen sind besser lesbar, ohne die kompakte Schnellleiste aufzugeben.
+- Im optionalen Bottom-Tab-Layout werden Favoriten nicht mehr auf 30 px Bedienhöhe verkleinert; horizontales Scrollen und kompakte Darstellung bleiben erhalten.
+- Keine Änderung an Favoritenauswahl, Standortbestimmung, Reihenfolge, Wetterdaten oder meteorologischer Fachlogik.
+
+### Intern
+- Kopf-/Favoritenbereich auf die vorhandenen MID-Typografietokens `micro/xs/sm` weitergeführt.
+- Suchfeldaktion 36 px, auf groben Touch-Pointern 40 px; Favoritenverwaltung und Schnellzugriffe erhalten konsistente Mindestgrößen.
+- Drag-Griff der Favoritenleiste sichtbar verbreitert; Drag-and-drop und vorhandene Pfeiltasten bleiben parallel erhalten.
+- Favoritenverwaltung: Regel-, Berg- und Wasserprofil-Beschriftungen von historischen Mikrogrößen auf semantische UI-Typografie angehoben.
+- Neuer Pflichtvertrag `test-header-favorites-readability-098465.mjs` schützt Lesbarkeit, Touchziele, Funktionsbestand und Stylesheet-Synchronität.
+- Worker-Fachlogik unverändert; ausschließlich Versionssynchronisierung.
+
 ## 0.9.84.64
 
 ### Extern
