@@ -1,3 +1,16 @@
+## 0.9.84.66
+
+### Extern
+- Extremwetter-Ausblick auf iPhone/iPad und Desktop besser lesbar: Zeitraum, Gültigkeit, Regionen, Legenden, Methodik und Schwellentabellen nutzen jetzt die gemeinsame MID-Typografieskala statt historischer 7–9-px-Einzelwerte.
+- Gefahrenarten, Zeitraum, Aktualisieren, Regionsauswahl, Karten-Zoom und Methodik-Info besitzen konsistentere Touchflächen; auf Touchgeräten werden zentrale Ziele auf 40–48 px angehoben.
+- Die Kartenlegende und modellierten Flächenbeschriftungen bleiben kompakt, sind aber klarer ablesbar. Fachliche I1–I4-/Wahrscheinlichkeitslogik, Schraffur, amtliche Warntrennung und Karteninhalte bleiben unverändert.
+
+### Intern
+- `25-extreme-outlook.css` komponentenweise auf `--mid-text-micro/xs/sm/meta` standardisiert; kein globaler CSS-Umbau.
+- MapLibre-Zoomtasten und Methodik-Info nur innerhalb des Extremwetter-Moduls vergrößert, damit andere Kartenmodule nicht unbeabsichtigt verändert werden.
+- Neuer Pflichtvertrag `test-extreme-outlook-readability-098466.mjs` schützt Lesbarkeit, Touchziele, wissenschaftliche Einordnung und Funktionsbestand.
+- Worker-Fachlogik unverändert; ausschließlich Versionssynchronisierung.
+
 ## 0.9.84.65
 
 ### Extern

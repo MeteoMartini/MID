@@ -76,3 +76,69 @@
 
 .card.module-shell[data-mid-view="extreme-outlook"]{margin-bottom:22px}
 @media(max-width:720px){.card.module-shell[data-mid-view="extreme-outlook"]{margin-bottom:26px}}
+
+/* MID v0.9.84.66 · UI-Audit: Extremwetter-Ausblick lesbarer, touchfreundlicher und typografisch standardisiert */
+.extreme-source-badge b{font-size:var(--mid-text-sm)}
+.extreme-source-badge small{font-size:var(--mid-text-micro);line-height:1.3}
+.extreme-hazard-tabs button{min-height:40px;font-size:var(--mid-text-xs)}
+.extreme-period-tabs button{min-height:44px}
+.extreme-period-tabs b{font-size:var(--mid-text-sm)}
+.extreme-period-tabs small{font-size:var(--mid-text-micro);line-height:1.3}
+.extreme-validity small{font-size:var(--mid-text-micro)}
+.extreme-validity b{font-size:var(--mid-text-meta)}
+.extreme-validity em{font-size:var(--mid-text-micro);line-height:1.4}
+.extreme-validity>button{min-height:40px;font-size:var(--mid-text-xs)}
+.extreme-map .maplibregl-ctrl-group button{width:36px;height:36px}
+.extreme-map-legend{width:196px;gap:6px 8px;padding:9px 10px}
+.extreme-map-legend>strong{font-size:var(--mid-text-micro);line-height:1.2}
+.extreme-map-legend>span{grid-template-columns:27px minmax(0,1fr);gap:6px;font-size:var(--mid-text-micro);line-height:1.2}
+.extreme-map-legend i{width:27px;height:19px;font-size:var(--mid-text-micro)}
+.extreme-map-legend .extreme-hatch-key{grid-template-columns:27px auto}
+.extreme-map-label>span{min-width:34px;padding:4px 5px}
+.extreme-map-label b{font-size:var(--mid-text-xs)}
+.extreme-map-label small{font-size:var(--mid-text-micro);line-height:1.15}
+.extreme-map-empty span{font-size:var(--mid-text-xs)}
+.extreme-map-note{font-size:var(--mid-text-micro)}
+.extreme-map-note-action{min-height:36px}
+.extreme-map-method-trigger>button{width:36px;height:36px;min-width:36px}
+.extreme-regions>header small{font-size:var(--mid-text-micro)}
+.extreme-regions>header>span{min-height:28px;display:inline-flex;align-items:center;font-size:var(--mid-text-micro)}
+.extreme-region-list>button{min-height:44px;padding:9px}
+.extreme-region-list i{width:30px;height:28px;font-size:var(--mid-text-micro)}
+.extreme-region-list b{font-size:var(--mid-text-sm)}
+.extreme-region-list small{font-size:var(--mid-text-micro);line-height:1.35}
+.extreme-region-list>button>strong{font-size:var(--mid-text-meta)}
+.extreme-selected-region>header>span{width:34px;height:32px;font-size:var(--mid-text-xs)}
+.extreme-selected-region>header small{font-size:var(--mid-text-micro);line-height:1.25}
+.extreme-selected-region>p{font-size:var(--mid-text-xs);line-height:1.4}
+.extreme-selected-region dt{font-size:var(--mid-text-micro);line-height:1.25}
+.extreme-selected-region dd{font-size:var(--mid-text-xs);line-height:1.3}
+.extreme-subhazards span{font-size:var(--mid-text-micro);line-height:1.2}
+.extreme-drivers{font-size:var(--mid-text-micro);line-height:1.45}
+.extreme-clear small{font-size:var(--mid-text-micro);line-height:1.45}
+.extreme-legends>section>strong{font-size:var(--mid-text-sm)}
+.extreme-legends span{font-size:var(--mid-text-micro);line-height:1.25}
+.extreme-legends span b,.extreme-legends span i{font-size:var(--mid-text-micro)}
+.extreme-legends>section>small{font-size:var(--mid-text-micro);line-height:1.45}
+.extreme-method>summary{min-height:44px}
+.extreme-method>summary b{font-size:var(--mid-text-sm)}
+.extreme-method>summary small{font-size:var(--mid-text-micro)}
+.extreme-method-content h3{font-size:var(--mid-text-meta)}
+.extreme-method-content p,.extreme-method-content li{font-size:var(--mid-text-xs);line-height:1.5}
+.extreme-method-content dl{font-size:var(--mid-text-xs);line-height:1.4}
+.extreme-threshold-table table{font-size:var(--mid-text-xs)}
+.extreme-threshold-table thead th{font-size:var(--mid-text-micro)}
+.extreme-footer{font-size:var(--mid-text-micro);line-height:1.4}
+@media(max-width:480px){
+ .extreme-outlook-head p{font-size:var(--mid-text-sm)}
+ .extreme-hazard-tabs button{min-height:40px}
+ .extreme-hazard-tabs button span{font-size:var(--mid-text-xs)}
+ .extreme-map-legend{width:190px;padding:8px 9px}
+ .extreme-map-legend>span{font-size:var(--mid-text-micro)}
+}
+@media(pointer:coarse){
+ .extreme-hazard-tabs button,.extreme-validity>button{min-height:44px}
+ .extreme-map .maplibregl-ctrl-group button{width:40px;height:40px}
+ .extreme-map-method-trigger>button{width:40px;height:40px;min-width:40px}
+ .extreme-region-list>button{min-height:48px}
+}

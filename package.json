@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.84.65",
+  "version": "0.9.84.66",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -460,7 +460,8 @@
     "test:travel-center-readability": "node scripts/test-travel-center-readability-098464.mjs",
     "test:header-favorites-readability": "node scripts/test-header-favorites-readability-098465.mjs",
     "test:weather-pictogram-appwide": "node scripts/test-weather-pictogram-appwide-contract-098441.mjs",
-    "test:german-weather-terminology-performance": "node scripts/test-german-weather-terminology-performance-098461.mjs"
+    "test:german-weather-terminology-performance": "node scripts/test-german-weather-terminology-performance-098461.mjs",
+    "test:extreme-outlook-readability": "node scripts/test-extreme-outlook-readability-098466.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",
