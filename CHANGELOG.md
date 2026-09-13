@@ -1,3 +1,18 @@
+## 0.9.84.79
+
+### Extern
+- App-weite Darstellungsprüfung aus MID 17.7.23 fortgesetzt und auf sämtliche aktivierbaren Dashboard-Module sowie Einstellungen, Quellenanalyse, Routenwetter, moderne Heute-Ansicht und Installationsdialoge ausgedehnt.
+- Die optionale moderne Heute-Ansicht verwendet keine historischen 7–9-px-Beschriftungen mehr; Wetterbeschreibung, Kennwerte und Kurztrend bleiben vollständig lesbar und dürfen sinnvoll umbrechen.
+- Lokale Istwetter-/Gefahrenhinweise, Warnkopf, Prognosegüte, Quellen-/Modellnamen und Routenwetter wurden auf die gemeinsame MID-Lesbarkeit angehoben.
+- Lange Quellennamen und Ensemble-Szenariotitel werden nicht mehr mit Ellipse abgeschnitten. Touchziele bleiben auf mobilen Geräten mindestens 44 px.
+- Keine Änderung an Wetterdaten, Modellfusion, Warnlogik, Piktogrammen oder Parameterfarben.
+
+### Intern
+- Neue Vollständigkeitsmatrix `MID_APP_VIEW_AUDIT_0.9.84.79.md` deckt alle 18 Dashboard-Module plus globale Shell-/Sekundärbereiche ab.
+- Neuer Pflichtvertrag `test-appwide-readability-continuation-098479.mjs` schützt die Rest-Audit-Regeln, die vollständige Modulliste und das kanonische Stylesheet-Aggregat.
+- 22 relevante lokale Regressionen bestanden. Zwei ältere Tests und der vollständige TypeScript-Build benötigen die im Professional-ZIP nicht enthaltenen Projektabhängigkeiten; dies ist im Testbericht transparent dokumentiert.
+- Worker-Fachlogik unverändert; ausschließlich Versionsmetadaten synchronisiert. Ein manueller Worker-Upload ist für diese UI-/Designkorrektur nicht erforderlich.
+
 ## 0.9.84.78
 
 ### Extern

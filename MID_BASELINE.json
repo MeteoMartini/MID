@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.84.78",
+  "releaseVersion": "0.9.84.79",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -475,7 +475,8 @@
     "scripts/test-design-readability-3-098476.mjs",
     "scripts/test-mrms-display-source-contract-098477.mjs",
     "scripts/test-header-version-readability-098478.mjs",
-    "scripts/test-bafu-hydrology-098478.mjs"
+    "scripts/test-bafu-hydrology-098478.mjs",
+    "scripts/test-appwide-readability-continuation-098479.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -873,7 +874,8 @@
     "scripts/test-design-readability-3-098476.mjs",
     "scripts/test-mrms-display-source-contract-098477.mjs",
     "scripts/test-header-version-readability-098478.mjs",
-    "scripts/test-bafu-hydrology-098478.mjs"
+    "scripts/test-bafu-hydrology-098478.mjs",
+    "scripts/test-appwide-readability-continuation-098479.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/install-mid.yml",
@@ -1519,7 +1521,11 @@
     "scripts/test-bafu-hydrology-098478.mjs",
     "MID_IMPLEMENTATION_0.9.84.78.md",
     "MID_TEST_REPORT_0.9.84.78.md",
-    "MID_DESIGN_SOURCE_AUDIT_0.9.84.78.md"
+    "MID_DESIGN_SOURCE_AUDIT_0.9.84.78.md",
+    "scripts/test-appwide-readability-continuation-098479.mjs",
+    "MID_IMPLEMENTATION_0.9.84.79.md",
+    "MID_TEST_REPORT_0.9.84.79.md",
+    "MID_APP_VIEW_AUDIT_0.9.84.79.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -2050,7 +2056,7 @@
     "scripts/test-ci-types-event-update-098436.mjs",
     "scripts/test-weather-pictogram-appwide-contract-098441.mjs"
   ],
-  "version": "0.9.84.78",
+  "version": "0.9.84.79",
   "updatedAt": "2026-09-12T14:10:00+02:00",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
@@ -2211,6 +2217,7 @@
     "MID_TEST_REPORT_0.9.84.75.md",
     "MID_TEST_REPORT_0.9.84.76.md",
     "MID_TEST_REPORT_0.9.84.77.md",
-    "MID_TEST_REPORT_0.9.84.78.md"
+    "MID_TEST_REPORT_0.9.84.78.md",
+    "MID_TEST_REPORT_0.9.84.79.md"
   ]
 }
