@@ -37,7 +37,10 @@ for(const token of [
   'className={`cloud-opacity-band ${row.className}`}',
   'Thermisches Empfinden',
   'Temperatur / gefühlt / Taupunkt',
-  ' K</dd>',
+  'className="profile-temperature-values"',
+  '<small>Luft</small>',
+  '<small>gefühlt</small>',
+  '<small>Taupunkt</small>',
   'Schwüle',
   'Wolken gesamt / hoch / mittel / tief + UVI',
   'data-mid-skybar="profile"',
@@ -47,7 +50,7 @@ for(const token of [
   'Wetter-Hazards',
   'Thermische Einordnung nach den DWD-Klassen der Gefühlten Temperatur'
 ])need('24-h-Wetterprofil',cockpit,token);
-for(const token of ['shortTermCloudBaseApprox','Wolkenbasis*','cockpit-meteogram-pro__overlay calendar'])reject('24-h-Wetterprofil',cockpit,token);
+for(const token of ['shortTermCloudBaseApprox','Wolkenbasis*','cockpit-meteogram-pro__overlay calendar',' K</dd>'])reject('24-h-Wetterprofil',cockpit,token);
 need('Nebelrisiko',fogRisk,'export function shortTermFogRisk(point:ShortTermFogRiskPoint):ShortTermFogRiskResult');
 need('Nebelrisiko',fogRisk,'if(point.isDay&&!explicitFog&&!restrictedVisibility)score=Math.min(score,14)');
 

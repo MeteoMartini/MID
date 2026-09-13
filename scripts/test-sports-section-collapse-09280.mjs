@@ -10,7 +10,7 @@ for(const token of [
  'summary="Höhenprofil, Bergwetter und Bedingungen" defaultOpen={false}',
  "case'water':return currentFavorite?.water.enabled?<CollapsibleModule",
  'id="water" title="Wassersport"',
- 'summary="Wasserwetter, Gezeiten und Bedingungen" defaultOpen={false}',
+ 'summary="Pegel, Wasserwetter, Gezeiten und Bedingungen" defaultOpen={false}',
  'persistModuleOpen(id,resolved)'
 ])need('Sportsektionen',app,token);
 need('Baseline',baseline,'scripts/test-sports-section-collapse-09280.mjs');

@@ -1,3 +1,44 @@
+## 0.9.84.87
+
+### Extern
+- Installerfehler aus GitHub Actions #1040 behoben. Die App selbst und die bisherigen Korrekturen bleiben unverändert; blockiert hatte ausschließlich ein versionsfest geschriebener Viewport-Regressionsvertrag.
+- Keine Änderung an Wetterdaten, Modellfusion, Warnlogik, Radar, Satellit, Karten, Pegeln oder sichtbarer Bedienlogik.
+
+### Intern
+- `test-viewport-textflow-098485.mjs` ist nicht mehr auf `0.9.84.85` fest verdrahtet. Der Test schützt weiterhin Header, Bottom-Navigation, Prognose-Kompass, 24-h-Einzeldaten und Pegelzugang, verwendet für die Protokollausgabe aber die jeweils aktuelle Paketversion.
+- Damit bleibt der Viewport-/Textflussvertrag über Wartungsreleases hinweg gültig und blockiert künftige Versionsanhebungen nicht erneut ohne fachlichen Grund.
+- Versionsmetadaten auf 0.9.84.87 synchronisiert; Worker-Fachlogik unverändert.
+
+## 0.9.84.86
+
+### Extern
+- Installerfehler aus GitHub Actions #1039 behoben. Die App selbst hatte erfolgreich gebaut; zwei ältere Regressionstests erwarteten noch die vor v0.9.84.85 gültigen Texte.
+- Die beabsichtigten Verbesserungen aus v0.9.84.85 bleiben unverändert erhalten: In den 24-h-Einzeldaten stehen Lufttemperatur, gefühlte Temperatur und Taupunkt getrennt ohne zusätzliche Delta-K-Angabe; der Wassersport-Bereich nennt „Pegel“ weiterhin ausdrücklich.
+- Keine Änderung an Wetterdaten, Modellfusion, Warnlogik, Karten-, Radar-, Satelliten- oder Pegelberechnungen.
+
+### Intern
+- `test-mid-weather-profile-thermal-sun-09320.mjs` an den aktuellen 24-h-Einzeldatenvertrag angepasst: die drei Temperaturwerte werden positiv geprüft, die veraltete sichtbare `K`-Delta-Ausgabe wird ausdrücklich verworfen.
+- `test-sports-section-collapse-09280.mjs` schützt nun die aktuelle Modulbeschreibung „Pegel, Wasserwetter, Gezeiten und Bedingungen“.
+- Der Fehler aus Installer #1039 war damit ein veralteter Testvertrag und kein Produktionsbuild- oder npm-/Dependency-Fehler.
+- Worker-Fachlogik unverändert; ausschließlich Versionsmetadaten synchronisiert. Ein manueller Worker-Upload ist nicht erforderlich.
+
+## 0.9.84.85
+
+### Extern
+- Mobile Kopfzeile und Hauptnavigation passen sich konsequenter an den verfügbaren Platz an: Versionsnummer und kurze Register bleiben vollständig lesbar, ohne mitten im Wort umzubrechen.
+- Prognose-Konfidenz und weitere kompakte Informationskarten stapeln Inhalte auf schmalen Displays geordnet, statt Text über Kartenränder laufen zu lassen.
+- Die 24-Stunden-Einzeldaten sind kompakter: Lufttemperatur, gefühlte Temperatur und Taupunkt werden als drei klar getrennte Werte gezeigt; die Delta-Temperaturangabe entfällt.
+- Pegelstände sind leichter auffindbar: Wasser/Wassersport und die Favoritenprofile benennen amtliche Pegel nun ausdrücklich.
+- Responsive Schutzprüfung über zwölf Smartphone-, Tablet- und Desktopgrößen ergänzt.
+
+### Intern
+- Mobile Header priorisiert auf schmalen iPhones Logo/Version und essentielle Aktionen; der permanente „installiert“-Status belegt dort keinen wertvollen Platz mehr.
+- Bottom-Navigation schützt kurze Register vor Worttrennung und reduziert Icons/Typografie adaptiv, ohne die vorhandenen Touchziele zu verkleinern.
+- Prognose-Konfidenzkarten wechseln mobil auf eine gestapelte Informationshierarchie; lange Methodentexte bleiben über den bestehenden Infozugang vollständig verfügbar.
+- Neue Regression `test-viewport-textflow-098485.mjs` schützt Versionsdarstellung, Pegel-Auffindbarkeit, Bottom-Navigation, Konfidenzkarten und die kompakte 24-h-Einzeldatenansicht.
+- Repräsentative Layoutgeometrie wurde für 320×568, 360×640, 375×667, 390×844, 402×874, 430×932, 768×1024, 820×1180, 1024×768, 1280×800, 1440×900 und 1920×1080 geprüft; im Audit wurden keine Grenzüberschreitungen gefunden.
+- Worker-Fachlogik unverändert; ausschließlich Versionsmetadaten synchronisiert. Ein manueller Worker-Upload ist nicht erforderlich.
+
 ## 0.9.84.84
 
 ### Extern

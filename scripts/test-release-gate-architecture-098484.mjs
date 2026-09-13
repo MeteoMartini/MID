@@ -25,4 +25,4 @@ for(const [name,source] of [['code-quality',quality],['modern-map',mapFocus],['r
 assert.ok(!react19.includes("radar.includes('useDismissibleLayer(focusLayersRef')"),'React-19-Regression darf die abgelöste Radar-Layer-Architektur nicht erzwingen.');
 assert.ok(!mapChart.includes("import \\{createPortal\\} from 'react-dom'"),'Karten-/Diagrammvertrag darf kein direktes Meteogramm-Portal mehr erzwingen.');
 
-console.log('MID v0.9.84.84 Release-Gate: gemeinsame Portalarchitektur und bereinigte Altverträge geprüft.');
+console.log('MID Release-Gate: gemeinsame Portalarchitektur und bereinigte Altverträge geprüft.');

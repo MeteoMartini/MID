@@ -38,7 +38,7 @@ export const DASHBOARD_MODULE_DEFINITIONS:DashboardModuleDefinition[]=[
  {id:'current',label:'Aktuelles Wetter',description:'Aktuelle Werte und Messwertkacheln'},
  {id:'ventilation',label:'Lüftungsassistent',description:'Innenraumsensoren und prognosegestützte Lüftungsfenster'},
  {id:'mountain',label:'Berg- und Wintersport',description:'Höhenprofil und Bergwetter',conditional:'nur bei aktivem Favoritenprofil'},
- {id:'water',label:'Wassersport',description:'Wasserwetter, Gezeiten und Bedingungen',conditional:'nur bei aktivem Favoritenprofil'},
+ {id:'water',label:'Wassersport',description:'Amtliche Pegel, Wasserwetter, Gezeiten und Bedingungen',conditional:'nur bei aktivem Favoritenprofil'},
  {id:'warnings',label:'Warnungen und Gefahren',description:'Eigene Warnindikatoren und amtliche Warnungen'},
  {id:'extreme-outlook',label:'Extremwetter-Ausblick',description:'Eigene probabilistische Mitteleuropa-Prognose im vollständigen ICON-D2-Gebiet für Gewitter, Regen, Sturm, Schnee und Eisregen'},
  {id:'short-term',label:'Kurzfristvorhersage',description:'15-Minuten-Schritte und Stundenverlauf bis +24 h'},
