@@ -1,1 +1,0 @@
-import{X as e}from"./index-DGPAL0x1.js";var t=class extends e{async show(e){}async hide(e){}};export{t as SplashScreenWeb};

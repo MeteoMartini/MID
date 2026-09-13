@@ -10771,3 +10771,63 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
 @media(max-width:620px){
   .cockpit-weather-profile .wind-warning-threshold-label{font-size:var(--mid-text-micro)!important}
 }
+
+/* MID v0.9.84.78 · Header-Audit: vollständige Versionsanzeige auf iPhone-/schmalen Layouts.
+   Version und 44-pt-Aktionsziele konkurrieren unter 430 px nicht mehr um dieselbe Zeile. */
+.settings-header .brand-version{
+ white-space:nowrap!important;
+ overflow:visible!important;
+ text-overflow:clip!important;
+ max-width:none!important;
+}
+.settings-header .brand>span{min-width:max-content}
+@media(max-width:430px){
+ .top.settings-header,
+ .navigation-bottom-tabs>.top.settings-header{
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-areas:'brand' 'actions' 'search'!important;
+  align-items:center!important;
+  gap:7px!important;
+ }
+ .settings-header .brand,
+ .navigation-bottom-tabs .settings-header .brand{
+  grid-area:brand;
+  min-width:max-content!important;
+  max-width:none!important;
+  justify-self:start;
+  gap:9px!important;
+ }
+ .settings-header .brand-logo,
+ .navigation-bottom-tabs .settings-header .brand-logo{
+  width:34px!important;
+  height:34px!important;
+  border-radius:10px!important;
+ }
+ .settings-header .brand>span,
+ .navigation-bottom-tabs .settings-header .brand>span{min-width:max-content!important}
+ .settings-header .brand-version,
+ .navigation-bottom-tabs .settings-header .brand-version{
+  display:block!important;
+  min-width:max-content!important;
+  font-size:clamp(13px,4vw,15px)!important;
+  line-height:1.1!important;
+  letter-spacing:0!important;
+ }
+ .settings-header .compact-actions,
+ .navigation-bottom-tabs .settings-header .compact-actions{
+  grid-area:actions;
+  justify-self:end!important;
+  max-width:100%;
+  min-width:0;
+  gap:4px!important;
+ }
+ .settings-header .search-stack,
+ .navigation-bottom-tabs .settings-header .search-stack{grid-area:search;min-width:0;width:100%}
+ .settings-header>.header-favorites,
+ .navigation-bottom-tabs .settings-header>.header-favorites{grid-column:1/-1!important}
+}
+@media(max-width:350px){
+ .settings-header .compact-actions,
+ .navigation-bottom-tabs .settings-header .compact-actions{gap:2px!important}
+}
+

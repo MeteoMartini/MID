@@ -59,7 +59,7 @@ const FIELD_RELEVANCE:Record<StationAnalysisField,FieldRelevanceLimits>={
 export function sourcePolicyFor(provider='',networkClass:SourceNetworkClass='unknown'):StationSourcePolicy{
  const value=provider.toLowerCase();
  if(/road-weather|straßenwetter|strassenwetter|gma|swsmos|sws\b/.test(value))return ROAD_WEATHER;
- if(/\bdwd\b|geosphere|hydromet|meteo swiss|meteoswiss|smhi|fmi|environment canada|eccc|aemet|knmi/.test(value))return OFFICIAL;
+ if(/\bdwd\b|geosphere|hydromet|meteo swiss|meteoswiss|smhi|fmi|environment canada|eccc|aemet|knmi|bafu|foen/.test(value))return OFFICIAL;
  if(/metar|aviationweather|airport observation/.test(value))return AVIATION;
  if(networkClass==='official')return GENERIC_OFFICIAL;
  if(networkClass==='professional'||/synoptic|mesowest|madis|xweather/.test(value))return PROFESSIONAL;

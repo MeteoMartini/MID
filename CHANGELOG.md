@@ -1,3 +1,17 @@
+## 0.9.84.78
+
+### Extern
+- Mobiler Header neu abgesichert: Die vollständige Versionsnummer bleibt auf schmalen iPhone-/Handybreiten sichtbar. Unter 430 px stehen Marke/Version, Aktionsleiste und Suche in getrennten Zeilen; die 44-px-Touchziele werden nicht verkleinert.
+- Schweizer Hydrologie ergänzt: Für Orte in der Schweiz kann MID die öffentliche BAFU-Datenplattform direkt über GraphQL nutzen und aktuelle Wasserstände, Abflüsse und Wassertemperaturen aus dem nationalen hydrologischen Messnetz anzeigen.
+- Schweizer Wasserstände bleiben im nativen Höhenbezug `m ü. M.`; sie werden nicht in den deutschen PEGELONLINE-cm-Vertrag umgerechnet. Deutschland bleibt unverändert auf WSV PEGELONLINE einschließlich vorhandener WV-Vorhersagen.
+- Keine Änderung an DWD-/OPERA-Radar, Warnlogik, Modellfusion, Wetterpiktogrammen oder Parameterfarben.
+
+### Intern
+- Neuer Header-Vertrag `test-header-version-readability-098478.mjs` schützt die vollständige Versionsanzeige app-weit und erzwingt bei <=430 px getrennte Layoutzeilen für Brand, Aktionen und Suche.
+- Neuer BAFU-Vertrag `test-bafu-hydrology-098478.mjs` prüft amtliche Stationsauswahl, `data_live` für W/Q/WT, native Einheiten, Freshness-Schutz und die Trennung vom PEGELONLINE-cm-Schema.
+- BAFU-GraphQL-Endpunkt `https://data.bafu.admin.ch/api` wird ohne Zugangsdaten angesprochen; aktive Stationsmetadaten werden Worker-seitig zwischengespeichert. Live-Werte älter als 90 Minuten werden nicht als aktuell ausgegeben.
+- Quellenübersicht und Worker-Health wurden um BAFU ergänzt. Worker-Fachlogik geändert; Worker-Deployment erforderlich.
+
 ## 0.9.84.77
 
 ### Extern
