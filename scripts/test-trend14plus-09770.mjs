@@ -27,7 +27,7 @@ const checks=[
   ['last selected metric is persisted',source.includes("localStorage.setItem('mid:subseasonal-trend:metric',metric)")],
   ['equal-weight multi-model resampling retained',source.includes('contributors.flatMap(samples=>resample(samples))')],
   ['point tooltip hit areas present',source.includes('subseasonal-point-hit')],
-  ['point tooltip content present',source.includes('className="subseasonal-point-tooltip"')],
+  ['point tooltip content present',source.includes('subseasonal-point-tooltip')&&source.includes('<AppPortalPopover')],
   ['tooltip separates core and outer spread',source.includes('P25–P75')&&source.includes('P10–P90')&&source.includes('subseasonal-tooltip-series')],
   ['spread legend differentiates outer and inner bands',source.includes('outer-spread')&&source.includes('inner-spread')],
   ['tmin uncertainty uses Tmin series color',source.includes("color:'var(--param-temperature-min)'")],

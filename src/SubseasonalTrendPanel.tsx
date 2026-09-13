@@ -1,6 +1,7 @@
 import {useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import {Cloud,CloudRain,Gauge,Info,RefreshCw,ThermometerSun,Wind as WindIcon} from 'lucide-react';
 import {guardedOpenMeteoFetch} from './openMeteoGuard';
+import {AppPortalPopover} from './AppPortalPopover';
 import {formatDecimalFixed} from './format';
 import type {Location,WindUnit} from './weather';
 
@@ -471,10 +472,6 @@ function trendDescription(weeks:TrendWeek[],climateWeeks:ClimateWeek[],metric:Vi
   return `Wochenmittel im Bereich von ${formatMetric(mean(values),key,windUnit)}.`;
 }
 
-function clamp(value:number,min:number,max:number){
-  return Math.min(max,Math.max(min,value));
-}
-
 function niceStep(raw:number){
   if(!Number.isFinite(raw)||raw<=0)return 1;
   const power=10**Math.floor(Math.log10(raw));
@@ -569,6 +566,7 @@ function SpreadLegend(){
 }
 
 function CombinedTrendChart({weeks,climateWeeks,series,windUnit,ariaLabel}:{weeks:TrendWeek[];climateWeeks:ClimateWeek[];series:MultiSeriesDefinition[];windUnit:WindUnit;ariaLabel:string}){
+  const activeAnchorRef=useRef<HTMLButtonElement|null>(null);
   const [activeIndex,setActiveIndex]=useState<number|null>(null);
   useEffect(()=>{setActiveIndex(null);},[series.map(item=>item.id).join('|'),weeks.map(week=>week.id).join('|')]);
   const width=640,height=244,margin={top:12,right:16,bottom:40,left:46};
@@ -627,26 +625,23 @@ function CombinedTrendChart({weeks,climateWeeks,series,windUnit,ariaLabel}:{week
       type="button"
       className={`subseasonal-point-hit ${activeIndex===index?'active':''}`}
       style={{left:`${(point.x/width)*100}%`,top:`${(pointButtonY(index)/height)*100}%`}}
-      onClick={event=>{event.stopPropagation();setActiveIndex(current=>current===index?null:index);}}
+      onClick={event=>{event.stopPropagation();activeAnchorRef.current=event.currentTarget;setActiveIndex(current=>current===index?null:index);}}
       aria-label={point.week.label}
     />:null)}
-    {activeWeek&&activeSeries.length&&Number.isFinite(activeY)?<div
-      className="subseasonal-point-tooltip"
-      style={{left:`${clamp((activeWeek.x/width)*100,14,86)}%`,top:`${clamp((activeY/height)*100,16,78)}%`}}
-      onClick={event=>event.stopPropagation()}
-    >
-      <strong>{activeWeek.week.label}</strong>
+    <AppPortalPopover anchorRef={activeAnchorRef} open={Boolean(activeWeek&&activeSeries.length&&Number.isFinite(activeY))} onClose={()=>setActiveIndex(null)} className="subseasonal-point-tooltip subseasonal-point-tooltip-portal" width={360} positionKey={activeIndex} role="dialog" ariaLabel={activeWeek?`Witterungstrend ${activeWeek.week.label}`:'Witterungstrend'} swipeToDismiss>
+      {activeWeek&&<><strong>{activeWeek.week.label}</strong>
       <small>{formatDate(activeWeek.week.startDate)} – {formatDate(activeWeek.week.endDate)}</small>
       {seriesPoints.map(entry=>{
         const point=entry.points[activeIndex!];
         if(!point?.raw)return null;
         return <span key={`tooltip-${entry.definition.id}`} className="subseasonal-tooltip-series" style={{borderLeftColor:entry.definition.color}}><b style={{color:entry.definition.color}}>{entry.definition.label}</b><em>Mittel {formatMetric(point.raw.mean,entry.definition.id,windUnit)}</em><small>P25–P75 {formatMetric(point.raw.p25,entry.definition.id,windUnit)} – {formatMetric(point.raw.p75,entry.definition.id,windUnit)}</small><small>P10–P90 {formatMetric(point.raw.p10,entry.definition.id,windUnit)} – {formatMetric(point.raw.p90,entry.definition.id,windUnit)}</small>{Number.isFinite(point.rawClimate)?<small>Klima 1991–2020 {formatMetric(point.rawClimate,entry.definition.id,windUnit)}</small>:null}</span>;
-      })}
-    </div>:null}
+      })}</>}
+    </AppPortalPopover>
   </div>;
 }
 
 function ScalarTrendChart({weeks,climateWeeks,metric,windUnit}:{weeks:TrendWeek[];climateWeeks:ClimateWeek[];metric:RawMetricKey;windUnit:WindUnit}){
+  const activeAnchorRef=useRef<HTMLButtonElement|null>(null);
   const [activeIndex,setActiveIndex]=useState<number|null>(null);
   useEffect(()=>{setActiveIndex(null);},[metric,weeks.map(week=>week.id).join('|')]);
   const width=640,height=244,margin={top:12,right:16,bottom:40,left:46};
@@ -686,21 +681,17 @@ function ScalarTrendChart({weeks,climateWeeks,metric,windUnit}:{weeks:TrendWeek[
       type="button"
       className={`subseasonal-point-hit ${activeIndex===point.index?'active':''}`}
       style={{left:`${(point.x/width)*100}%`,top:`${(point.mean/height)*100}%`}}
-      onClick={event=>{event.stopPropagation();setActiveIndex(current=>current===point.index?null:point.index);}}
+      onClick={event=>{event.stopPropagation();activeAnchorRef.current=event.currentTarget;setActiveIndex(current=>current===point.index?null:point.index);}}
       aria-label={`${point.week.label}: ${formatMetric(point.raw?.mean??Number.NaN,metric,windUnit)}`}
     />:null)}
-    {activePoint&&activePoint.raw&&Number.isFinite(activePoint.mean)?<div
-      className="subseasonal-point-tooltip"
-      style={{left:`${clamp((activePoint.x/width)*100,14,86)}%`,top:`${clamp((activePoint.mean/height)*100,16,78)}%`}}
-      onClick={event=>event.stopPropagation()}
-    >
-      <strong>{activePoint.week.label}</strong>
+    <AppPortalPopover anchorRef={activeAnchorRef} open={Boolean(activePoint&&activePoint.raw&&Number.isFinite(activePoint.mean))} onClose={()=>setActiveIndex(null)} className="subseasonal-point-tooltip subseasonal-point-tooltip-portal" width={340} positionKey={activeIndex} role="dialog" ariaLabel={activePoint?`Witterungstrend ${activePoint.week.label}`:'Witterungstrend'} swipeToDismiss>
+      {activePoint&&activePoint.raw&&<><strong>{activePoint.week.label}</strong>
       <small>{formatDate(activePoint.week.startDate)} – {formatDate(activePoint.week.endDate)}</small>
       <span>Mittel: {formatMetric(activePoint.raw.mean,metric,windUnit)}</span>
       <span>P25–P75: {formatMetric(activePoint.raw.p25,metric,windUnit)} – {formatMetric(activePoint.raw.p75,metric,windUnit)}</span>
       <span>P10–P90: {formatMetric(activePoint.raw.p10,metric,windUnit)} – {formatMetric(activePoint.raw.p90,metric,windUnit)}</span>
-      {Number.isFinite(activePoint.rawClimate)?<span>Klimamittel 1991–2020: {formatMetric(activePoint.rawClimate,metric,windUnit)}</span>:null}
-    </div>:null}
+      {Number.isFinite(activePoint.rawClimate)?<span>Klimamittel 1991–2020: {formatMetric(activePoint.rawClimate,metric,windUnit)}</span>:null}</>}
+    </AppPortalPopover>
   </div>;
 }
 

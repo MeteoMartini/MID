@@ -1,11 +1,12 @@
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 
-const [app,ensemble,radar,dismissible,climate,foundation,modern]=await Promise.all([
+const [app,ensemble,radar,dismissible,portal,climate,foundation,modern]=await Promise.all([
  readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/EnsemblePanel.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/RadarPanel.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/useDismissibleLayer.ts',import.meta.url),'utf8'),
+ readFile(new URL('../src/AppPortalPopover.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/ClimatePanel.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/styles-src/00-foundation.css',import.meta.url),'utf8'),
  readFile(new URL('../src/styles-src/30-modern.css',import.meta.url),'utf8'),
@@ -18,7 +19,8 @@ assert.ok(ensemble.includes('RefObject<HTMLElement | null>'), 'Portal-Refs müss
 assert.ok(!ensemble.includes('RefObject<HTMLDivElement>'), 'Nicht-nullfähiger Ensemble-Ref-Vertrag ist unter React 19 unzulässig.');
 assert.ok(!ensemble.includes('RefObject<HTMLElement>'), 'Nicht-nullfähiger Portal-Ref-Vertrag ist unter React 19 unzulässig.');
 assert.ok(dismissible.includes("Pick<RefObject<T | null>, 'current'>"), 'Dismissible-Layer muss nullable RefObject.current akzeptieren.');
-assert.ok(radar.includes('useDismissibleLayer(focusLayersRef'), 'Radar nutzt weiterhin den zentralen Dismissible-Layer.');
+assert.ok(portal.includes('anchorRef:RefObject<HTMLElement|null>'), 'Gemeinsame Portalprimitive muss React-19-nullfähige Anchor-Refs akzeptieren.');
+assert.ok(radar.includes('AppPortalPopover anchorRef={focusLayersButtonRef}'), 'Radar nutzt für die Ebenenauswahl weiterhin die gemeinsame viewportfeste Portalprimitive.');
 
 assert.ok(foundation.includes('--param-temperature-max-climate:var(--param-temperature-max)'), 'Klima-Tmax muss den kanonischen MID-Tmax-Farbtoken verwenden.');
 assert.ok(climate.includes('className={`climate-windrose mode-${mode}`}'), 'Windrose braucht Wind-/Böen-Modusklasse für semantische Farben.');

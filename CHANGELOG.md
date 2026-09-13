@@ -1,3 +1,77 @@
+## 0.9.84.84
+
+### Extern
+- Release-Fehler aus GitHub Actions #1037 behoben: Der Produktionsbuild war bereits erfolgreich; anschließend widersprachen vier ältere Regressionstests der inzwischen verbindlichen gemeinsamen Portal-/Popover-Architektur. Diese Altverträge wurden an den aktuellen MID-Stand angepasst.
+- Meteogramm-Tooltips verwenden nun ebenfalls die gemeinsame viewportfeste MID-Portalprimitive. Dadurch bleiben die Werte in iPhone-, iPad-, Querformat- und Desktopansichten außerhalb horizontaler Scrollcontainer lesbar; Touch-Tooltips schließen weiterhin automatisch.
+- Die in v0.9.84.83 wieder sichtbaren RADOLAN-Mengen für 1 h und 24 h bleiben unverändert erhalten.
+- Keine Änderung an Wetterdaten, Modellfusion, Warnlogik, Radar-/Satellitenfachlogik oder Niederschlagsmengen selbst.
+
+### Intern
+- `MeteogramPanel` enthält kein eigenes `react-dom/createPortal` mehr; die Punkttooltips laufen über `AppPortalPointTooltip` in `AppPortalPopover.tsx`.
+- Veraltete Regressionserwartungen in Code-Quality, Map-Focus und React-19 wurden vom früheren lokalen `useDismissibleLayer`-Pfad auf die neuere `AppPortalPopover`-Architektur migriert.
+- Neuer Release-Gate-Vertrag `test-release-gate-architecture-098484.mjs` schützt die gemeinsame Portalarchitektur und verhindert, dass widersprüchliche Altverträge den Installer erneut blockieren.
+- Der vorherige Installer #1037 erreichte erfolgreich npm-Installation, Dependency-Audit, TypeScript- und Vite-Build; er scheiterte erst an vier Regressionen. Die vier betroffenen Tests sowie die angrenzenden Overlay-/Karten-/RADOLAN-/Versionsverträge bestehen im korrigierten Stand.
+- Lokales `npm ci` konnte in der isolierten Arbeitsumgebung wegen eines Transport-Timeouts nicht vollständig bezogen werden; deshalb wird der komplette 778-Test-GitHub-Gate nicht vorgetäuscht. Der nächste Installerlauf bleibt die definitive Vollprüfung.
+- Worker-Fachlogik unverändert; ausschließlich Versionsmetadaten synchronisiert. Ein manueller Worker-Upload ist nicht erforderlich.
+
+## 0.9.84.83
+
+### Extern
+- Aktuelles Wetter → Niederschlag zeigt die vorhandene RADOLAN-Rückschau wieder vollständig sichtbar: sowohl die letzte 1-h-Menge als auch die letzte 24-h-Menge stehen direkt in der Kachel und nicht nur hinter der Info-Schaltfläche.
+- Die fachliche Herkunft bleibt transparent: für die Stunde wird angeeichtes RADOLAN RW bevorzugt; nur bei noch nicht ausreichend aktuellem RW darf RY als ausdrücklich nicht angeeichter Ersatz dienen. Die 24-h-Menge stammt weiterhin aus angeeichtem RADOLAN SF.
+- Keine Änderung an Niederschlagsberechnung, Radar-Nowcast, Modellfusion oder Mengenwerten selbst; korrigiert wurde ausschließlich die sichtbare Darstellung der bereits vorhandenen Rückschauwerte.
+
+### Intern
+- `Current` führt eine eigene kompakte sichtbare Historienzeile für 1 h und 24 h; Produkt- und Angeeicht-Status bleiben in den technischen Details erhalten.
+- Neuer Regressionstest `test-current-precip-radolan-history-visible-098483.mjs` schützt sichtbare 1-h-/24-h-Werte sowie RW/RY/SF- und Angeeicht-Vertrag.
+- Worker-Fachlogik unverändert; ausschließlich Versionsmetadaten synchronisiert. Ein manueller Worker-Upload ist nicht erforderlich.
+
+## 0.9.84.82
+
+### Extern
+- App-weiten Karten-/Diagramm-Audit fortgesetzt: Meteogramm-Tooltips werden auf iPhone, iPad und Desktop nun viewportfest angezeigt, dürfen umbrechen und verschwinden auf Touch automatisch wieder. Dadurch werden lange Werte nicht mehr am Diagrammrand oder durch horizontale Scrollcontainer abgeschnitten.
+- Wetterkarten-Kopf und Quellenblock brechen auf schmalen Displays kontrolliert untereinander um; Modell-/Quellenmetadaten bleiben vollständig lesbar statt unmarkiert zu ellipsieren.
+- DWD-Kombinationskarten zeigen die Niederschlagsarten-Legende auf mobilen Geräten als sichere, scrollbar begrenzte Viewport-Fläche inklusive Safe-Area-Abstand.
+- Synoptik und Extremwetter wurden für kleine Smartphones und Split-View nachgezogen: keine 6-px-Rückfälle bei zentralen Phasen-/Legendentexten, lange Regions-/Stationshinweise dürfen umbrechen, Kartenlegenden bleiben begrenzt und scrollbar.
+- Für flache Querformate werden Wetterkarten-, Synoptik-, Extremwetter- und Radarflächen in der Höhe begrenzt, damit Bedienelemente und Navigation nicht unnötig aus dem sichtbaren Bereich gedrängt werden.
+- Keine Änderung an Wetterdaten, Modellfusion, Warnlogik, Radar-/Satellitendaten, Piktogrammen oder Parameterfarben.
+
+### Intern
+- Meteogramm-Tooltipkoordinaten von diagramminternen SVG-Koordinaten auf `clientX/clientY` plus `react-dom`-Portal umgestellt; Touch-Tooltips besitzen einen 4,2-s-Auto-Dismiss.
+- Neuer Pflichtvertrag `test-map-chart-responsive-continuation-098482.mjs` simuliert die Tooltip-Horizontalgeometrie auf den zwölf vereinbarten iPhone-/Handy-/iPad-/Desktop-Viewports und schützt Wetterkarten-, DWD-Legenden-, Synoptik-, Extremwetter- und Querformatregeln.
+- Bestehende Verträge für Overlay-Viewport, allgemeine Tooltip-Responsivität, Visualisierungslesbarkeit, Wetterkarten, Radarinteraktion, Design-Abdeckung und appweite Touchziele bleiben bestanden. Zwei ältere fachliche Layouttests benötigen weiterhin `typescript-strada`, das im Transport-ZIP nicht enthalten ist; dies wird nicht als bestanden ausgegeben.
+- Worker-Fachlogik unverändert; ausschließlich Versionsmetadaten synchronisiert. Ein manueller Worker-Upload ist nicht erforderlich.
+- Buildfix nach dem fehlgeschlagenen Installer #1036: Der nach der Trend-14d+-Portalumstellung nicht mehr verwendete lokale `clamp`-Helfer wurde aus `SubseasonalTrendPanel.tsx` entfernt. Damit ist der gemeldete TypeScript-Fehler `TS6133` beseitigt; der Overlay-Vertrag schützt diesen Rückfall künftig mit.
+
+## 0.9.84.81
+
+### Extern
+- iPhone-Kopfbereich nach dem gemeldeten Screenshot nachgebessert: Benachrichtigungs-/Aktionsbuttons liegen nicht mehr optisch in der Suchzeile. Die Suche erhält auf regulären iPhones eine eigene volle Zeile; sehr schmale Geräte behalten einen sicheren dreizeiligen Fallback.
+- Die fünf Hauptziele der optionalen Bottom-Leiste bleiben einzeilig. „Kurzfrist“, „7 Tage“ und „14 Tage“ werden nicht mehr mitten im Wort bzw. unnötig auf zwei Zeilen getrennt.
+- Favoriten-Schnellleiste robuster gemacht: Der Standardort wird auf schmalen iPhones kompakt als „Std.“ gekennzeichnet, die Verwaltungsfläche bleibt getrennt und die Favoritenleiste horizontal scrollbar.
+- Keine Änderung an Wetterdaten, Prognosefusion, Warnlogik, Piktogrammen, Karteninhalten oder Parameterfarben.
+
+### Intern
+- Neuer Pflichtvertrag `test-mobile-header-bottom-nav-098481.mjs` schützt die Screenshot-Korrekturen gegen spätere allgemeine Lesbarkeits-/Umbruchregeln.
+- Bestehende Verträge für vollständige Versionsanzeige, Favoriten, Touch-Suche, Bottom-Navigation, Header-Dichte, appweite Touchziele, Design-Abdeckung, Versionierung und Release-Lineage bleiben bestanden.
+- Ein Headless-Chromium-Screenshotlauf wurde versucht, beendet sich in der isolierten Umgebung jedoch nicht zuverlässig; er wird deshalb ausdrücklich nicht als bestandene Sichtprüfung gewertet.
+- Worker-Fachlogik unverändert; ausschließlich Versionsmetadaten synchronisiert. Ein manueller Worker-Upload ist nicht erforderlich.
+
+## 0.9.84.80
+
+### Extern
+- App-weiten Interaktions-/Overlay-Audit fortgesetzt: Punktdetails im „Trend 14d+“ sowie Ebenen- und Dateninformationen im Kompositbild bleiben nun auch an Displayrändern vollständig im sichtbaren Bereich und können bei langem Inhalt intern scrollen.
+- Langfrist-/Witterungstrend verwendet für sichtbare Bedien-, Status- und Modelltexte keine historischen 6–9-px-Schriften mehr; wissenschaftliche Achsen bleiben bewusst kompakt.
+- Favoriten-, Einstellungs-, Update- und Installationsdialoge reagieren robuster auf dynamische iPhone-Safari-Leisten, Notch und Home Indicator.
+- Touchbedienung der neu geprüften Popover bleibt mit mindestens 44-px-Zielen abgesichert.
+- Keine Änderung an Wetterdaten, Modellfusion, Warnlogik, Piktogrammen oder Parameterfarben.
+
+### Intern
+- Trend-14d+-Punkttooltips und Komposit-Popover auf die gemeinsame `AppPortalPopover`-Architektur umgestellt.
+- Neuer Pflichtvertrag `test-overlay-viewport-continuation-098480.mjs` simuliert die Portalpositionierung auf zwölf iPhone-/Handy-/iPad-/Desktopgrößen und schützt `visualViewport`, Safe Areas, interne Scrollbarkeit und das kanonische Stylesheet-Aggregat.
+- Trend-/Langfrist-Fachregressionen für EC46/GEFS, Klimamittel 1991–2020, P10–P90/P25–P75, Parameterfarben und Fallbacks bleiben bestanden.
+- Worker-Fachlogik unverändert; ausschließlich Versionsmetadaten werden synchronisiert. Ein manueller Worker-Upload ist für diese UI-/Interaktionskorrektur nicht erforderlich.
+
 ## 0.9.84.79
 
 ### Extern

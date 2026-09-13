@@ -10981,3 +10981,330 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
   min-height:44px;
  }
 }
+
+/* MID v0.9.84.80 · Interaktions-/Overlay-Audit Fortsetzung 17.7.24.
+   Punktinformationen und Kartenebenen verwenden viewportfeste Body-Portale;
+   sichtbare Steuer-/Status-/Erklärungstexte bleiben auf der gemeinsamen
+   MID-Mindestlesbarkeit. Wissenschaftliche Achsenwerte bleiben separat. */
+.subseasonal-chart .subseasonal-point-tooltip.app-portal-popover{
+ min-width:0!important;
+ max-width:calc(100vw - 16px)!important;
+ max-height:min(72dvh,var(--mid-popover-viewport-max-height,620px))!important;
+ transform:none!important;
+ overflow:auto!important;
+ z-index:2147482400!important;
+}
+.subseasonal-chart .subseasonal-point-tooltip.app-portal-popover :is(strong,span,small,b,em),
+.subseasonal-tooltip-series :is(b,em,small){
+ font-size:var(--mid-text-micro)!important;
+ line-height:1.35!important;
+ overflow-wrap:anywhere;
+}
+.subseasonal-chart .subseasonal-point-tooltip.app-portal-popover>strong{font-size:var(--mid-text-sm)!important;line-height:1.25!important}
+
+.composite-focus-layer-popover.app-portal-popover{
+ max-width:calc(100vw - 16px)!important;
+ max-height:min(72dvh,var(--mid-popover-viewport-max-height,620px))!important;
+ overflow:auto!important;
+ z-index:2147482450!important;
+}
+.composite-info-popover.app-portal-popover{
+ max-width:calc(100vw - 16px)!important;
+ max-height:min(72dvh,var(--mid-popover-viewport-max-height,620px))!important;
+ overflow:auto!important;
+ z-index:2147482425!important;
+}
+.composite-focus-layer-trigger{font-size:var(--mid-text-micro)!important;line-height:1.1!important}
+.composite-focus-layer-popover>header small,
+.composite-focus-presets>button{
+ font-size:var(--mid-text-micro)!important;
+ line-height:1.25!important;
+}
+.composite-focus-layer-popover>header strong{font-size:var(--mid-text-sm)!important;line-height:1.25!important}
+.composite-focus-layer-popover>header>button{min-width:44px!important;min-height:44px!important}
+
+/* Langfrist-/Witterungstrend: Bedien- und Statuskopie darf nicht unter den
+   gemeinsamen Mikrotextwert fallen. */
+:is(.long-range-gateway-status b,.long-range-gateway-status em,.long-range-gateway-status small,
+.long-range-dwd p,.long-range-dwd>header>em,.long-range-dwd-periods article>header small,
+.long-range-dwd-values small,.long-range-dwd-values em,.long-range-dwd>footer,
+.long-range-dwd.pending>small,.long-range-c3s-status,.long-range-model-title>b,
+.subseasonal-model-selector b,.subseasonal-model-selector small,
+.subseasonal-metric-selector b,.subseasonal-metric-selector small,
+.subseasonal-chart-legend,.model-usage-badge,.radar-nowcast-popover,
+.cockpit-model-run-row>small,.cockpit-model-run-empty,.cockpit-model-run-close){
+ font-size:var(--mid-text-micro)!important;
+ line-height:1.3!important;
+}
+.long-range-dwd-periods article>header strong{font-size:var(--mid-text-xs)!important;line-height:1.25!important}
+.long-range-dwd-values b{font-size:var(--mid-text-meta)!important}
+.cockpit-model-run-button{font-size:var(--mid-text-micro)!important}
+
+/* iOS / dynamische Browserleisten: modale Flächen an das tatsächlich sichtbare
+   Viewport binden und Safe Areas berücksichtigen. */
+.favorite-modal{max-height:min(90dvh,900px)}
+.settings-dialog{max-height:min(92dvh,930px)}
+.system-update-dialog{max-height:min(86dvh,760px)}
+.pwa-install-dialog{max-height:min(90dvh,760px)}
+@media(max-width:700px){
+ /* Vollbilddialoge nutzen den kompletten dynamischen Viewport; die Safe Area
+    liegt innerhalb der Dialogfläche, damit Backdrop-Padding die 100dvh-Höhe
+    nicht unbeabsichtigt vergrößert. */
+ .favorite-modal-backdrop,.settings-backdrop{padding:0}
+ .favorite-modal{
+  box-sizing:border-box;
+  height:100dvh;
+  max-height:100dvh;
+  padding:var(--mid-safe-top) var(--mid-safe-right) var(--mid-safe-bottom) var(--mid-safe-left);
+ }
+ .settings-dialog{height:100dvh;max-height:100dvh}
+ /* Kompakte Dialoge bleiben zentriert, aber vollständig innerhalb von
+    Notch/Home-Indicator und dynamischen Safari-Leisten. */
+ .system-update-backdrop,.pwa-install-backdrop{
+  padding-top:max(8px,var(--mid-safe-top));
+  padding-right:max(8px,var(--mid-safe-right));
+  padding-bottom:max(8px,var(--mid-safe-bottom));
+  padding-left:max(8px,var(--mid-safe-left));
+ }
+ .system-update-dialog{max-height:calc(100dvh - var(--mid-safe-top) - var(--mid-safe-bottom) - 16px)}
+ .pwa-install-dialog{max-height:calc(100dvh - var(--mid-safe-top) - var(--mid-safe-bottom) - 16px)}
+}
+@media(hover:none),(pointer:coarse),(any-pointer:coarse){
+ :is(.subseasonal-point-tooltip.app-portal-popover,.composite-focus-layer-popover.app-portal-popover,.composite-info-popover.app-portal-popover)
+  :is(button,summary,a[href],select){min-height:44px}
+}
+
+/* MID v0.9.84.81 · iPhone-Header/Bottom-Navigation: Screenshot-Audit 17.7.24.
+   Die fünf Hauptziele bleiben einzeilig; Header-Aktionen teilen nicht mehr die Suchzeile,
+   und kompakte Favoriten-Badges dürfen die nächste Pille nicht unter den Verwaltungsbutton schieben. */
+@media(max-width:850px){
+ .navigation-bottom-tabs .dashboard-bottom-tabs button span{
+  display:block;
+  max-width:100%;
+  min-width:0;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  white-space:nowrap!important;
+  overflow-wrap:normal!important;
+  word-break:keep-all!important;
+  hyphens:none!important;
+  font-size:clamp(10.5px,2.8vw,12px)!important;
+  line-height:1.05!important;
+  text-align:center;
+ }
+ .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs{
+  grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  align-items:stretch;
+ }
+ .navigation-bottom-tabs .dashboard-bottom-tabs button{
+  min-width:0!important;
+  overflow:visible!important;
+ }
+}
+@media(max-width:430px){
+ .top.settings-header,
+ .navigation-bottom-tabs>.top.settings-header{
+  grid-template-columns:minmax(0,1fr) max-content!important;
+  grid-template-areas:'brand actions' 'search search'!important;
+  justify-content:stretch!important;
+  align-items:center!important;
+  column-gap:8px!important;
+  row-gap:8px!important;
+ }
+ .settings-header .compact-actions,
+ .navigation-bottom-tabs .settings-header .compact-actions{
+  grid-area:actions;
+  justify-self:end!important;
+  align-self:center!important;
+  min-width:0;
+  max-width:100%;
+  gap:4px!important;
+ }
+ .settings-header .search-stack,
+ .navigation-bottom-tabs .settings-header .search-stack{
+  grid-area:search!important;
+  grid-column:1/-1!important;
+  grid-row:auto!important;
+  width:100%!important;
+  min-width:0!important;
+ }
+ .settings-header .search-stack>.search,
+ .navigation-bottom-tabs .settings-header .search-stack>.search{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) 46px!important;
+  gap:7px!important;
+  width:100%!important;
+  min-width:0!important;
+ }
+ .settings-header .search-input-shell,
+ .navigation-bottom-tabs .settings-header .search-input-shell{
+  width:100%;
+  min-width:0;
+  overflow:hidden;
+ }
+ .settings-header .search-input-shell input,
+ .navigation-bottom-tabs .settings-header .search-input-shell input{
+  width:100%;
+  min-width:0!important;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+ }
+ .settings-header>.header-favorites,
+ .navigation-bottom-tabs .settings-header>.header-favorites{
+  grid-column:1/-1!important;
+  min-width:0;
+  overflow:hidden;
+ }
+ .header-favorites .favorite-bubbles{
+  min-width:0;
+  padding-right:7px!important;
+  scroll-padding-inline:2px 9px;
+ }
+ .header-favorites .favorite-bubbles>button>b{
+  min-width:0;
+  max-width:42px;
+  padding-inline:5px!important;
+  font-size:0!important;
+  white-space:nowrap!important;
+ }
+ .header-favorites .favorite-bubbles>button>b::after{
+  content:'Std.';
+  font-size:var(--mid-text-micro);
+  line-height:1.1;
+ }
+ .header-favorites .favorite-strip-manage{
+  position:relative;
+  z-index:2;
+  flex:0 0 40px!important;
+ }
+}
+@media(max-width:360px){
+ .top.settings-header,
+ .navigation-bottom-tabs>.top.settings-header{
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-areas:'brand' 'actions' 'search'!important;
+ }
+ .settings-header .compact-actions,
+ .navigation-bottom-tabs .settings-header .compact-actions{justify-self:end!important}
+ .navigation-bottom-tabs .dashboard-bottom-tabs button span{font-size:10px!important}
+}
+
+/* MID v0.9.84.82 · Karten-/Diagramm-/Querformat-Audit 17.7.24.
+   Viewportfeste Meteogramm-Tooltips, mobile Kartenlegenden und verlustfreie
+   Beschriftungen in Wetterkarten/Synoptik/Extremwetter. */
+.meteogram-tooltip-portal{
+ position:fixed!important;
+ z-index:6200!important;
+ max-width:min(320px,calc(100vw - 20px))!important;
+ max-height:min(48dvh,320px)!important;
+ overflow:auto!important;
+ padding:9px 11px!important;
+ border:1px solid color-mix(in srgb,#fff 34%,transparent)!important;
+ border-radius:11px!important;
+ background:rgba(13,25,37,.985)!important;
+ color:#fff!important;
+ box-shadow:0 10px 32px rgba(0,0,0,.38)!important;
+ line-height:1.4!important;
+ white-space:normal!important;
+ overflow-wrap:anywhere!important;
+ pointer-events:none!important;
+ transform:none!important;
+ overscroll-behavior:contain;
+}
+.meteogram-tooltip-portal.below{transform:none!important}
+.meteogram-tooltip-portal>span{display:block;min-width:0;white-space:normal!important}
+.meteogram-tooltip-portal>span+span{margin-top:2px}
+@media(max-width:430px){
+ .meteogram-tooltip-portal{max-width:calc(100vw - 16px)!important;font-size:10.5px!important}
+}
+@media(orientation:landscape) and (max-height:520px){
+ .meteogram-tooltip-portal{max-height:60dvh!important}
+}
+
+/* Wetterkarten: auf iPhone/Split-View bekommt der Titel eine eigene Zeile;
+   Quellen-/Metadaten bleiben vollständig lesbar statt unmarkiert zu ellipsieren. */
+@media(max-width:700px){
+ .weather-maps-head{display:grid!important;grid-template-columns:minmax(0,1fr);gap:8px!important}
+ .weather-maps-source{width:fit-content;max-width:100%;grid-template-columns:auto minmax(0,1fr)!important;white-space:normal!important}
+ .weather-maps-source b,.weather-maps-source small{min-width:0;overflow-wrap:anywhere}
+ .weather-maps-meta>span{align-items:start}
+ .weather-maps-meta small{overflow:visible!important;text-overflow:clip!important;white-space:normal!important;overflow-wrap:anywhere}
+}
+@media(max-width:430px){
+ .weather-maps-controls{gap:9px}
+ .weather-maps-playback{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%}
+ .weather-maps-playback button{width:100%;min-width:44px}
+}
+
+/* DWD-Kombinationskarte: die Legende darf auf kleinen Geräten nicht mehr am
+   rechten Karten-/Header-Rand abgeschnitten werden. */
+@media(max-width:760px){
+ .dwd-precip-type-radar__info[open]>.dwd-precip-type-radar__legend{
+  position:fixed!important;
+  z-index:6250!important;
+  right:max(8px,env(safe-area-inset-right))!important;
+  bottom:max(8px,env(safe-area-inset-bottom))!important;
+  left:max(8px,env(safe-area-inset-left))!important;
+  top:auto!important;
+  width:auto!important;
+  min-width:0!important;
+  max-width:none!important;
+  max-height:min(58dvh,430px)!important;
+  overflow:auto!important;
+  padding:12px!important;
+  border-radius:16px!important;
+  background:color-mix(in srgb,var(--surface) 98%,transparent)!important;
+  color:var(--text)!important;
+  box-shadow:0 18px 50px rgba(0,0,0,.34)!important;
+  overscroll-behavior:contain;
+ }
+ .dwd-precip-type-radar__legend>strong{font-size:var(--mid-text-sm)!important}
+ .dwd-precip-type-radar__legend>span{grid-template-columns:30px minmax(0,1fr)!important;font-size:var(--mid-text-micro)!important;white-space:normal!important}
+}
+
+/* Synoptik: keine 6-px-Rückfälle und keine abgeschnittenen Impact-/Stationsinfos. */
+.synoptic-impact-chip small,.synoptic-station-chips b,.synoptic-station-chips small{
+ overflow:visible!important;
+ text-overflow:clip!important;
+ white-space:normal!important;
+ overflow-wrap:anywhere;
+}
+@media(max-width:520px){
+ .synoptic-map-legend{max-height:92px;overflow:auto;overscroll-behavior:contain;font-size:max(9px,var(--mid-text-micro))!important;line-height:1.25}
+ .synoptic-phase-metrics span{font-size:max(9px,var(--mid-text-micro))!important;line-height:1.2}
+ .synoptic-station-chips b,.synoptic-station-chips small{font-size:var(--mid-text-micro)!important}
+}
+@media(max-width:360px){
+ .synoptic-map-legend{font-size:9px!important}
+ .synoptic-phase-metrics span{font-size:9px!important}
+ .synoptic-phase-metrics b{font-size:11.5px!important}
+}
+
+/* Extremwetter: Kartenlegende und Regionen bleiben auf kleinen Geräten
+   vollständig interpretierbar; lange Regionsnamen dürfen zweizeilig werden. */
+.extreme-region-list b,.extreme-region-list small{
+ overflow:visible!important;
+ text-overflow:clip!important;
+ white-space:normal!important;
+ overflow-wrap:anywhere;
+}
+@media(max-width:480px){
+ .extreme-map-legend{right:7px!important;bottom:18px!important;width:min(200px,calc(100% - 14px))!important;max-height:44%;overflow:auto;overscroll-behavior:contain}
+ .extreme-map-legend>strong{font-size:9px!important}
+ .extreme-map-legend>span,.extreme-map-legend>small{font-size:9px!important;line-height:1.2!important;white-space:normal!important}
+ .extreme-hazard-tabs,.extreme-period-tabs{scroll-padding-inline:4px;scroll-snap-type:x proximity;padding-bottom:3px}
+ .extreme-hazard-tabs button,.extreme-period-tabs button{scroll-snap-align:start}
+}
+
+/* Horizontale Fachleisten: Start/Ende dürfen in Split-View nicht unter
+   Nachbarflächen verschwinden. */
+.extreme-hazard-tabs,.extreme-period-tabs,.settings-nav,.days,.chartscroll,.detail-scroll,.trend-scroll,.meteogram-scroll{
+ scroll-padding-inline:8px;
+}
+@media(orientation:landscape) and (max-height:520px) and (max-width:950px){
+ .weather-maps-map-shell{height:min(76dvh,340px)!important;min-height:260px!important}
+ .extreme-map{height:min(78dvh,350px)!important;min-height:270px}
+ .synoptic-maplibre-map{height:min(74dvh,330px)!important;min-height:250px}
+ .radar:not(.composite-focus-mode) .radarmap{height:min(78dvh,360px)!important;min-height:280px!important}
+}
