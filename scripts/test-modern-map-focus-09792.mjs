@@ -12,10 +12,10 @@ const [app,radar,modernStyles,styles,radarColors,contract,baseline]=await Promis
 ]);
 
 assert.ok(app.includes("focusMode={navigationMode==='bottom-tabs'}"),'Map-Focus muss ausschließlich an bottom-tabs gebunden sein');
-assert.ok(app.includes("const NAVIGATION_MODE_STORAGE_KEY='mid:navigationMode:v1'"),'persistenter Navigationsmodus fehlt');
+assert.ok(app.includes("const navigationMode:NavigationMode='bottom-tabs'"),'kanonischer Bottom-Tab-Modus fehlt');
 assert.ok(app.includes("dashboard-section-nav-list ${variant}${modernDrawer?' progressive':''}"),'Beta-Mehr-Menü muss seine seltenen Bereiche progressiv offenlegen.');
 assert.ok(app.includes('<details key={group.id}'),'Seltene Beta-Bereiche dürfen erst nach Aufruf sichtbar werden.');
-assert.ok(app.includes("id:'map',label:'Karte'")||app.includes("id:'map',label:'Karten'"),'Der Karten-Hauptbereich muss verständlich benannt sein.');
+assert.ok(app.includes("!['current','short-term','forecast','ensemble'].includes(id)"),'Kartenmodule müssen nach Entfall des eigenen Karten-Tabs über Mehr erreichbar bleiben.');
 
 for(const token of [
  'focusMode=false',
@@ -55,4 +55,4 @@ assert.ok(contract.includes('keine alternative Radarfarbpalette'),'Radar-Isolati
 
 const parsed=JSON.parse(baseline);
 assert.ok(parsed.requiredRegressionTests.includes('scripts/test-modern-map-focus-09792.mjs'),'Baseline-Regression für Schritt 3 fehlt');
-console.log('Optionales Bedienkonzept Schritt 3: Map-Focus, Ebenen-Overlay, Timeline/Playback, Fallback und Radar-Isolation geprüft.');
+console.log('Kanonische Bottom-Bar: Map-Focus, Ebenen-Overlay, Erreichbarkeit über Mehr und Radar-Isolation geprüft.');

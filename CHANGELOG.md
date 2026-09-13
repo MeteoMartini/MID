@@ -1,3 +1,34 @@
+# MID v0.9.84.90
+
+- Release-Gate korrigiert: drei veraltete Radar-/Livequellen-Regressionen an die seit v0.9.84.88 bewusst verdichtete Kompositdarstellung angepasst.
+- Keine Wetter-, Radar-, Synoptik-, Push- oder Navigationslogik geändert.
+- Diagnoseinformationen zu Niederschlagsart, KONRAD3D und NowCastMIX bleiben vollständig über Status-/Infoebenen erhalten.
+
+# MID v0.9.84.89
+
+- Die mobile Web-/PWA-Navigation ist jetzt eine schwebende, iOS-inspirierte Bottom-Bar mit **Aktuell, Kurzfrist, 7 Tage, 14 Tage und Mehr**.
+- Die Beschriftungen bleiben auch auf kleinen iPhones einzeilig; die Leiste berücksichtigt Home-Indicator/Safe Areas und wird im Querformat platzsparender.
+- Beim Herunterscrollen blendet sich die Leiste nach einer kleinen Hysterese aus; beim Hochscrollen, am Seitenanfang oder bei Bedienfokus erscheint sie wieder.
+- Die frühere Einstellung **Bedienkonzept** und **Bottom-Leiste · Beta** wurde entfernt. Weitere Karten-, Planer- und Fachmodule bleiben über **Mehr** erreichbar.
+- Keine Änderung an Wetterdaten, Radar-/Satellitenprodukten, Warnlogik oder Parameterfarben.
+- Installer #1042 des vorherigen v0.9.84.88-Uploads wurde vor dem neuen Paket analysiert: einziges TypeScript-Problem war ein ungenutztes `latestLightningTime`-Binding in `RadarPanel.tsx`; dieses tote Binding ist entfernt.
+
+## 0.9.84.88
+
+### Extern
+- Tagespiktogramme bewerten Sonnenscheindauer und Tagesbewölkung ausgewogener. Ein Tag mit hohem Sonnenanteil wird nicht mehr allein wegen einzelner wolkiger Stunden als wolkendominant zusammengefasst; überwiegend dichte Bewölkung und relevante Niederschläge begrenzen sonnige Klassen weiterhin.
+- Push-Mitteilungen sind kürzer und scannbarer. Die Niederschlagsvorwarnung nennt Beginn, Dauer und Menge kompakt; der redundante Satz „Radar bestätigt die Annäherung“ entfällt. Gewitterhinweise wurden ebenfalls gestrafft, ohne den Hinweis „Keine amtliche Warnung“ zu entfernen.
+- Synoptik erhält zusätzlich großräumige modell-diagnostische Frontalzonen aus dem θe-Gradienten in 850 hPa. Lokal typisierte Kalt-/Warmfronten, Okklusionen, Tröge und Konvergenzen bleiben als strengere Mehrparameteranalyse erhalten. 500-hPa-Isohypsen werden ausschließlich als geglättete MID-Vektoren in Gold/Amber und gestrichelt dargestellt; der treppenartige weiße WMS-Isohypsenfallback wurde entfernt.
+- Die Layerfelder im Kompositbild sind deutlich kompakter: kurze Primärinformationen, kleinere Icons, eine einzeilige Statuszeile und weiterhin touchfreundliche Mindesthöhen. Ausführliche Quellen-/Methodeninformationen bleiben über den Infozugang erhalten.
+
+### Intern
+- Tagescharakteristik gewichtet Sonnenscheindauer substanzieller (`72/28` Stundenhelligkeit/Sonnenscheindauer; zusätzliche Sonnenuntergrenze) und behält harte Caps für überwiegend dichte Bewölkung bei.
+- Niederschlags-Push: Titel `MID · <Art> in <Min.>`; Body `<Ort> · Beginn … · Dauer … · ca. … mm`. Gewitter-Pushtexte ebenfalls gekürzt.
+- Europa-Synoptikraster ergänzt Temperatur und relative Feuchte in 850 hPa, berechnet θe, robuste Gradientenschwellen und zusammenhängende Frontalzonen. Diese werden ausdrücklich als Modell-Diagnose und nicht als amtliche DWD-Bodenanalyse gekennzeichnet.
+- Native DWD-Isobaren bleiben nutzbar; native DWD-500-hPa-Isohypsen werden nicht mehr als sichtbarer Fallback gerendert. MID-Isohypsen nutzen `9 5` (Zwischenlinien) bzw. `18 7` (Hauptlinien) und die vorhandene Goldpalette mit Halo.
+- Neue/aktualisierte Regressionen schützen Sonnenschein-Piktogramme, Push-Kürzung, regionale Frontalzonen, gestrichelte Isohypsen und Komposit-Layerdichte über zwölf Referenz-Viewports.
+- Worker-Fachlogik wurde geändert; für diesen Release ist ein Worker-Upload erforderlich.
+
 ## 0.9.84.87
 
 ### Extern

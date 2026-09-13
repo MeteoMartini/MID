@@ -19,7 +19,7 @@ const approach=worker.pushThunderState(misleading);
 const approachBody=worker.thunderPushBody(approach,{id:'rhein',name:'Rheidt'});
 if(approach.currentDistanceKm!==42)failures.push(`Aktuelle Entfernung wurde nicht beibehalten: ${approach.currentDistanceKm}`);
 if(approach.status!=='approaching')failures.push(`Annäherungsstatus falsch: ${approach.status}`);
-if(!approachBody.includes('aktuell etwa 42 km entfernt'))failures.push(`Aktuelle Entfernung fehlt im Pushtext: ${approachBody}`);
+if(!approachBody.includes('aktuell ca. 42 km'))failures.push(`Aktuelle Entfernung fehlt im Pushtext: ${approachBody}`);
 if(!approachBody.includes('in 30 min'))failures.push(`Annäherungszeit fehlt im Pushtext: ${approachBody}`);
 if(approachBody.includes('Abstand etwa 0 km')||approachBody.includes('aktuell etwa 0 km'))failures.push(`Widersprüchliche Nullkilometer-Angabe verblieben: ${approachBody}`);
 
@@ -36,7 +36,7 @@ const nearState=worker.pushThunderState(near);
 const nearBody=worker.thunderPushBody(nearState,{id:'rhein',name:'Mein Rheidt'});
 if(nearState.status!=='near')failures.push(`Nahstatus falsch: ${nearState.status}`);
 if(nearState.arrivalMinutes!==undefined)failures.push('Bei bereits naher Zelle darf keine spätere Annäherungszeit gemeldet werden.');
-if(!nearBody.includes('aktuell etwa 12 km von Mein Rheidt entfernt'))failures.push(`Nahtext falsch: ${nearBody}`);
+if(!nearBody.includes('aktuell ca. 12 km entfernt'))failures.push(`Nahtext falsch: ${nearBody}`);
 if(nearBody.includes('Annäherung'))failures.push(`Nahtext enthält widersprüchliche Annäherung: ${nearBody}`);
 
 if(failures.length){console.error(`Gewitter-Push-Konsistenz fehlgeschlagen:\n- ${failures.join('\n- ')}`);process.exit(1)}

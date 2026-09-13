@@ -1,1 +1,0 @@
-import{Y as e}from"./index-CE_oFsiV.js";var t=class extends e{async show(e){}async hide(e){}};export{t as SplashScreenWeb};

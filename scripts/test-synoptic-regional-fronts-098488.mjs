@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const worker=readFileSync(new URL('../worker-src/20-composite-models.js',import.meta.url),'utf8');
+const radar=readFileSync(new URL('../src/RadarPanel.tsx',import.meta.url),'utf8');
+const composite=readFileSync(new URL('../src/CompositeData.ts',import.meta.url),'utf8');
+assert.ok(worker.includes('function synopticThetaEFrontalZones('),'Großräumige θe-Frontzonendiagnose fehlt.');
+assert.ok(worker.includes("basis:'θe 850 hPa'")&&worker.includes("type:'frontal-zone'"),'Frontzonen müssen als modell-diagnostische θe-850-Struktur gekennzeichnet sein.');
+assert.ok(worker.includes('gradientKPer100Km')&&worker.includes('synopticQuantile'),'Frontzonen brauchen Gradientenschwelle und robuste Quantilselektion.');
+assert.ok(composite.includes("type:'frontal-zone'")&&composite.includes('frontalZones?:ModelFrontalZone[]'),'Frontend-Typen müssen die regionalen Frontalzonen transportieren.');
+assert.ok(radar.includes('function RegionalFrontalZones(')&&radar.includes("color:'#b451d2'")&&radar.includes("className:'mid-synoptic-front foreground frontal-zone'"),'Regionale Frontalzonen müssen sichtbar und von Isobaren/Isohypsen unterscheidbar gerendert werden.');
+assert.ok(radar.includes('regionalFrontCount')&&radar.includes('localFrontCount')&&radar.includes('frontCount=regionalFrontCount+localFrontCount'),'Status/Layerinfo muss regionale und lokal typisierte Fronten berücksichtigen.');
+console.log('Synoptik: regionale θe-850-Frontalzonen und lokale Fronttypen geprüft.');

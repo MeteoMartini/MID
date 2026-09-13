@@ -262,3 +262,8 @@ Feste Widget-URLs verwenden eine zentral gepflegte Ortsliste und erzeugen je Ort
 - Das Ensemble-Widget besitzt eine gespeicherte Einzelauswahl für Temperatur, Niederschlag oder Wind/Böen.
 - Vorschau und PNG enthalten nur das gewählte Diagramm mit Ortsname und ohne modellspezifische Begleitinformationen.
 - Feste Widget-URL-Orte werden ausschließlich über `WIDGET_URL_LOCATIONS` in `src/widgetUrlExports.ts` gepflegt.
+
+## v0.9.84.89 · Kanonische iOS-inspirierte Floating Bottom Bar
+
+`MID_NAVIGATION_BOTTOM_BAR_CONTRACT.md` ist in seiner ab v0.9.84.89 überschreibenden Fassung verbindlich. Die bisherige optionale Auswahl `classic | bottom-tabs`, der Einstellungs-Unterpunkt **Bedienkonzept** und **Bottom-Leiste · Beta** sind aufgehoben. Auf kompakten Web-/PWA-Viewports lautet die Hauptnavigation **Aktuell · Kurzfrist · 7 Tage · 14 Tage · Mehr**; Beschriftungen bleiben einzeilig. Die Leiste schwebt safe-area-konform über dem Inhalt, minimiert bei deutlichem Abwärtsscrollen und kehrt bei Aufwärtsscrollen/Seitenanfang/Fokus zurück. Weitere Fachmodule einschließlich Karten und Planer bleiben über **Mehr** erreichbar. Desktop-Sektionsleiste und sämtliche meteorologischen Daten-/Radar-/Warn-/Farbverträge bleiben unverändert. Required Regression: `scripts/test-ios-floating-bottom-bar-098489.mjs`.
+

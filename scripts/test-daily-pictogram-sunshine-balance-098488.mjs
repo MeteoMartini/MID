@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const mapping=readFileSync(new URL('../src/weather-src/20-mapping-day-character.tsfrag',import.meta.url),'utf8');
+const app=readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
+assert.ok(mapping.includes('const blendedBrightness=hourlyBrightness*.72+sunshineFraction*.28'),'Tagespiktogramme müssen die Sonnenscheindauer substanziell gewichten.');
+assert.ok(mapping.includes('Math.max(blendedBrightness,sunshineFraction*.92)'),'Ein hoher Tages-Sonnenanteil muss die Repräsentativität des Tagespiktogramms beeinflussen.');
+assert.ok(mapping.includes('weightedCloud*.78+sunshineCloud*.22'),'Effektive Tagesbewölkung muss aus Wolkenverlauf und Sonnenscheindauer gebildet werden.');
+assert.ok(mapping.includes('if(heavyCloudShare>=.5)')&&mapping.includes('if(overcastShare>=.35)'),'Überwiegend dichte Bewölkung muss weiterhin sonnige Fehlklassifikationen begrenzen.');
+assert.ok(!mapping.includes('worstHour')&&!mapping.includes('worst hour'),'Das Tagespiktogramm darf nicht schlicht die schlechteste Einzelstunde übernehmen.');
+const sunshineFraction=8/12,hourlyBrightness=.34,blendedBrightness=hourlyBrightness*.72+sunshineFraction*.28,skySignal=Math.max(blendedBrightness,sunshineFraction*.92);
+assert.ok(skySignal>=.5,`Ein Tag mit 8 h Sonne bei 12 h Tageslicht muss mindestens eine sonnenbetonte Mischklasse erreichen (${skySignal.toFixed(2)}).`);
+assert.ok(app.includes('dayWeatherCharacter')||readFileSync(new URL('../src/weather.ts',import.meta.url),'utf8').includes('dayWeatherCharacter'),'Die zentrale Tagescharakteristik muss im App-Datenpfad vorhanden bleiben.');
+console.log('Tagespiktogramm: Sonnenscheindauer, Bewölkungsmehrheit und Tageszusammenfassung geprüft.');

@@ -6272,3 +6272,158 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
 .settings-header .brand-version,.navigation-bottom-tabs .settings-header .brand-version{line-height:1.15!important;padding-block:1px}
 .profile-detail-secondary::before{content:' · '}
 @media(max-width:620px){.profile-detail-secondary::before{content:''}}
+
+
+/* MID v0.9.84.88 · Komposit-Layer: kurze Primärzeile statt textlastiger Karten.
+   Vollständige Quellen-/Methodendetails bleiben im Info-Panel bzw. title-Text. */
+.composite-layer-switches{gap:7px!important}
+.composite-switch.compact{
+ min-height:56px!important;
+ padding:7px 9px!important;
+ grid-template-columns:26px minmax(0,1fr)!important;
+ gap:8px!important;
+ align-items:center!important;
+}
+.composite-switch.compact .composite-switch-icon{width:26px!important;height:26px!important;border-radius:8px!important}
+.composite-switch.compact b{font-size:11px!important;line-height:1.15!important;min-width:0}
+.composite-switch.compact small{
+ display:block!important;
+ margin-top:2px!important;
+ min-height:0!important;
+ max-height:none!important;
+ font-size:10px!important;
+ line-height:1.15!important;
+ white-space:nowrap!important;
+ overflow:hidden!important;
+ text-overflow:ellipsis!important;
+ -webkit-line-clamp:unset!important;
+}
+@media(max-width:520px){
+ .composite-switch.compact{min-height:54px!important;padding:6px 8px!important;grid-template-columns:24px minmax(0,1fr)!important;gap:7px!important}
+ .composite-switch.compact .composite-switch-icon{width:24px!important;height:24px!important}
+ .composite-switch.compact b{font-size:10.5px!important}
+ .composite-switch.compact small{font-size:9.5px!important}
+}
+@media(any-pointer:coarse){.composite-switch.compact{min-height:54px!important}}
+
+/* MID v0.9.84.89 · kanonische iOS-27-inspirierte Floating Bottom Bar.
+   Die frühere optionale Beta-Navigation ist abgelöst: auf kompakten Web-/PWA-Viewports
+   schwebt die Hauptnavigation als eigenständige Glass-Ebene über dem Inhalt und minimiert
+   beim Abwärtsscrollen. Beschriftungen bleiben bewusst einzeilig und gleichrangig. */
+@media(max-width:850px){
+ .navigation-bottom-tabs{padding-bottom:calc(96px + var(--mid-safe-bottom))!important}
+ .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs{
+  position:fixed!important;
+  z-index:1880!important;
+  top:auto!important;
+  right:max(10px,var(--mid-safe-right))!important;
+  bottom:max(9px,var(--mid-safe-bottom))!important;
+  left:max(10px,var(--mid-safe-left))!important;
+  width:auto!important;
+  max-width:620px!important;
+  margin:0 auto!important;
+  padding:6px!important;
+  grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  gap:3px!important;
+  overflow:visible!important;
+  border:1px solid color-mix(in srgb,var(--border) 66%,rgba(255,255,255,.44))!important;
+  border-radius:27px!important;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 76%,rgba(255,255,255,.16)),color-mix(in srgb,var(--surface) 69%,transparent))!important;
+  box-shadow:0 18px 44px rgba(2,16,30,.24),0 4px 14px rgba(2,16,30,.13),inset 0 1px 0 rgba(255,255,255,.28)!important;
+  backdrop-filter:blur(30px) saturate(1.45) contrast(1.03)!important;
+  -webkit-backdrop-filter:blur(30px) saturate(1.45) contrast(1.03)!important;
+  transform:translate3d(0,0,0);
+  opacity:1;
+  transition:transform .28s cubic-bezier(.2,.78,.2,1),opacity .18s ease,box-shadow .18s ease!important;
+  will-change:transform,opacity;
+  isolation:isolate;
+ }
+ .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs::after{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  inset:1px 8px auto;
+  height:42%;
+  border-radius:24px 24px 14px 14px;
+  background:linear-gradient(180deg,rgba(255,255,255,.12),transparent);
+  pointer-events:none;
+ }
+ .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs.is-scroll-hidden{
+  transform:translate3d(0,calc(100% + 24px + var(--mid-safe-bottom)),0)!important;
+  opacity:0!important;
+  pointer-events:none!important;
+ }
+ .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs:focus-within{
+  transform:translate3d(0,0,0)!important;
+  opacity:1!important;
+  pointer-events:auto!important;
+ }
+ .navigation-bottom-tabs .dashboard-bottom-tabs button{
+  position:relative;
+  display:grid!important;
+  min-width:0!important;
+  min-height:54px!important;
+  grid-template-rows:22px 14px!important;
+  place-items:center!important;
+  align-content:center!important;
+  gap:2px!important;
+  padding:5px 2px!important;
+  border:0!important;
+  border-radius:19px!important;
+  background:transparent!important;
+  color:color-mix(in srgb,var(--muted) 92%,var(--text))!important;
+  box-shadow:none!important;
+  font-weight:780!important;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+  transition:color .16s ease,background .18s ease,box-shadow .18s ease,transform .12s ease!important;
+ }
+ .navigation-bottom-tabs .dashboard-bottom-tabs button::before{display:none!important}
+ .navigation-bottom-tabs .dashboard-bottom-tabs button svg{
+  width:21px!important;
+  height:21px!important;
+  stroke-width:2.05!important;
+  transition:transform .18s ease,color .16s ease!important;
+ }
+ .navigation-bottom-tabs .dashboard-bottom-tabs button span{
+  display:block!important;
+  justify-self:center!important;
+  width:auto!important;
+  max-width:100%!important;
+  overflow:hidden!important;
+  text-overflow:clip!important;
+  white-space:nowrap!important;
+  word-break:keep-all!important;
+  overflow-wrap:normal!important;
+  hyphens:none!important;
+  font-size:clamp(9.8px,2.55vw,11.3px)!important;
+  line-height:1!important;
+  letter-spacing:-.01em!important;
+  text-align:center!important;
+ }
+ .navigation-bottom-tabs .dashboard-bottom-tabs button.active{
+  color:var(--accent)!important;
+  background:color-mix(in srgb,var(--primary) 13%,rgba(255,255,255,.08))!important;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--primary) 20%,transparent),inset 0 1px 0 rgba(255,255,255,.18),0 4px 13px color-mix(in srgb,var(--primary) 12%,transparent)!important;
+ }
+ .navigation-bottom-tabs .dashboard-bottom-tabs button.active svg{transform:translateY(-.5px) scale(1.04)}
+ .navigation-bottom-tabs .dashboard-bottom-tabs button:active{transform:scale(.96)!important}
+ .navigation-bottom-tabs .dashboard-bottom-tabs button:disabled{opacity:.36!important}
+}
+@media(max-width:350px){
+ .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs{right:max(7px,var(--mid-safe-right))!important;left:max(7px,var(--mid-safe-left))!important;padding:5px!important;gap:1px!important;border-radius:24px!important}
+ .navigation-bottom-tabs .dashboard-bottom-tabs button{min-height:52px!important;padding-inline:1px!important;border-radius:17px!important}
+ .navigation-bottom-tabs .dashboard-bottom-tabs button svg{width:19px!important;height:19px!important}
+ .navigation-bottom-tabs .dashboard-bottom-tabs button span{font-size:9px!important;letter-spacing:-.02em!important}
+}
+@media(max-width:850px) and (orientation:landscape){
+ .navigation-bottom-tabs{padding-bottom:calc(72px + var(--mid-safe-bottom))!important}
+ .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs{max-width:560px!important;bottom:max(6px,var(--mid-safe-bottom))!important;padding:4px 5px!important;border-radius:23px!important}
+ .navigation-bottom-tabs .dashboard-bottom-tabs button{min-height:45px!important;grid-template-rows:18px 12px!important;gap:1px!important;padding:3px 2px!important;border-radius:16px!important}
+ .navigation-bottom-tabs .dashboard-bottom-tabs button svg{width:18px!important;height:18px!important}
+ .navigation-bottom-tabs .dashboard-bottom-tabs button span{font-size:9.5px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs{transition:none!important}
+ .navigation-bottom-tabs .dashboard-bottom-tabs button,.navigation-bottom-tabs .dashboard-bottom-tabs button svg{transition:none!important}
+}

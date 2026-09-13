@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.84.87",
+  "releaseVersion": "0.9.84.90",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -481,7 +481,8 @@
     "scripts/test-mobile-header-bottom-nav-098481.mjs",
     "scripts/test-map-chart-responsive-continuation-098482.mjs",
     "scripts/test-current-precip-radolan-history-visible-098483.mjs",
-    "scripts/test-release-gate-architecture-098484.mjs"
+    "scripts/test-release-gate-architecture-098484.mjs",
+    "scripts/test-ios-floating-bottom-bar-098489.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -883,7 +884,8 @@
     "scripts/test-appwide-readability-continuation-098479.mjs",
     "scripts/test-overlay-viewport-continuation-098480.mjs",
     "scripts/test-mobile-header-bottom-nav-098481.mjs",
-    "scripts/test-map-chart-responsive-continuation-098482.mjs"
+    "scripts/test-map-chart-responsive-continuation-098482.mjs",
+    "scripts/test-ios-floating-bottom-bar-098489.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/install-mid.yml",
@@ -1537,7 +1539,10 @@
     "MID_APP_VIEW_AUDIT_0.9.84.79.md",
     "MID_IMPLEMENTATION_0.9.84.80.md",
     "MID_TEST_REPORT_0.9.84.80.md",
-    "MID_APP_VIEW_AUDIT_0.9.84.80.md"
+    "MID_APP_VIEW_AUDIT_0.9.84.80.md",
+    "scripts/test-ios-floating-bottom-bar-098489.mjs",
+    "MID_IMPLEMENTATION_0.9.84.89.md",
+    "MID_TEST_REPORT_0.9.84.89.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1912,7 +1917,8 @@
     "scripts/test-ruc-expanded-extreme-integration-09840.mjs",
     "MID_IMPLEMENTATION_0.9.84.0.md",
     "MID_RUC_USAGE_AUDIT_0.9.84.0.md",
-    "MID_IMPLEMENTATION_0.9.84.81.md"
+    "MID_IMPLEMENTATION_0.9.84.81.md",
+    "MID_IMPLEMENTATION_0.9.84.89.md"
   ],
   "evidenceFiles": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -1976,7 +1982,8 @@
     "MID_RUC_USAGE_AUDIT_0.9.84.0.md",
     "MID_PRECIP_PICTOGRAM_SNOW_DEPTH_CONTRACT.md",
     "MID_TEST_REPORT_0.9.84.26.md",
-    "MID_TEST_REPORT_0.9.84.81.md"
+    "MID_TEST_REPORT_0.9.84.81.md",
+    "MID_TEST_REPORT_0.9.84.89.md"
   ],
   "releaseEvidence": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -2021,7 +2028,8 @@
     "MID_IMPLEMENTATION_0.9.84.0.md",
     "MID_TEST_REPORT_0.9.84.0.md",
     "MID_RUC_USAGE_AUDIT_0.9.84.0.md",
-    "MID_TEST_REPORT_0.9.84.81.md"
+    "MID_TEST_REPORT_0.9.84.81.md",
+    "MID_TEST_REPORT_0.9.84.89.md"
   ],
   "activeRegressionSuite": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -2069,10 +2077,11 @@
     "scripts/test-update-event-sources-ios27-098434.mjs",
     "scripts/test-day-precipitation-color-contract-098435.mjs",
     "scripts/test-ci-types-event-update-098436.mjs",
-    "scripts/test-weather-pictogram-appwide-contract-098441.mjs"
+    "scripts/test-weather-pictogram-appwide-contract-098441.mjs",
+    "scripts/test-ios-floating-bottom-bar-098489.mjs"
   ],
-  "version": "0.9.84.87",
-  "updatedAt": "2026-09-13T11:42:56.481Z",
+  "version": "0.9.84.90",
+  "updatedAt": "2026-09-13T21:20:00+02:00",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
     "MID_IMPLEMENTATION_0.9.77.27.md",
@@ -2165,7 +2174,8 @@
     "MID_IMPLEMENTATION_0.9.84.76.md",
     "MID_IMPLEMENTATION_0.9.84.77.md",
     "MID_IMPLEMENTATION_0.9.84.78.md",
-    "MID_IMPLEMENTATION_0.9.84.81.md"
+    "MID_IMPLEMENTATION_0.9.84.81.md",
+    "MID_IMPLEMENTATION_0.9.84.89.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",
@@ -2236,6 +2246,7 @@
     "MID_TEST_REPORT_0.9.84.78.md",
     "MID_TEST_REPORT_0.9.84.79.md",
     "MID_TEST_REPORT_0.9.84.80.md",
-    "MID_TEST_REPORT_0.9.84.81.md"
+    "MID_TEST_REPORT_0.9.84.81.md",
+    "MID_TEST_REPORT_0.9.84.89.md"
   ]
 }

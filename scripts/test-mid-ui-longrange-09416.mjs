@@ -16,7 +16,7 @@ for(const legacy of ["Math.hypot(event.clientX-gesture.x,event.clientY-gesture.y
 for(const token of ['defaultDashboardModuleSettings','Standard wiederherstellen'])need('Dashboard defaults',moduleSettings,token);
 for(const token of ["graupel:{label:'Graupel'","'snow-grains':{label:'Schneegriesel'","'snow-stars':{label:'Vereinzelte Schneesterne'","'ice-crystals':{label:'Eisnadeln'","'ice-pellets':{label:'Eiskörner'","hail:{label:'Hagel'",'const hex=','const star=','const drop='])need('Niederschlagssymbole',symbols,token);
 for(const token of ['precipitationTypeSymbolSvg(item.phase)','Layer aktiv · aktuell keine festen/gemischten Niederschlagsarten im sichtbaren Ausschnitt'])need('Phasenoverlay',overlay,token);
-need('Radarstatus',panel,'Phasendaten nicht erreichbar');
+for(const token of ["radarModelPhaseStatus==='error'?'nicht verfügbar'",'Niederschlagsart derzeit nicht belastbar darstellbar: {radarModelPhaseMessage}'])need('Radarstatus',panel,token);
 for(const token of ['temperatureAnomalyQ25','temperatureAnomalyQ75','precipitationAnomalyQ25','precipitationAnomalyQ75'])need('Seasonal quantiles',seasonal,token);
 for(const token of ['low:quantile(centers,.1)','q25:quantile(centers,.25)','q75:quantile(centers,.75)','high:quantile(centers,.9)','innerCount=Math.max(1,Math.ceil(normalised.length/2))','anomaly-plume outer','anomaly-plume inner'])need('LongRange plume',longRange,token);
 for(const token of ['.radar-phase-symbol>span,.radar-phase-symbol-shape{display:block;width:19px;height:15px','.long-range-chart .anomaly-plume.outer{opacity:.62','.long-range-chart .anomaly-plume.inner{opacity:.78','.module-shell-toggle{touch-action:manipulation'])need('Styles',styles,token);

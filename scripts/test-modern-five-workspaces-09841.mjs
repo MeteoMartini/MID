@@ -4,11 +4,11 @@ const app = fs.readFileSync('src/App.tsx','utf8');
 const css = fs.readFileSync('src/styles-src/30-modern.css','utf8');
 
 const checks = [
-  ['five primary labels', ['Heute','Vorhersage','Karte','Planen','Mehr'].every(value => app.includes(value))],
+  ['five primary labels', ['Aktuell','Kurzfrist','7 Tage','14 Tage','Mehr'].every(value => app.includes(value))],
   ['restorable section contract', app.includes("RESTORABLE_DASHBOARD_SECTIONS:DashboardModuleId[]=['current','warnings','extreme-outlook','ventilation'")],
   ['progressive expert navigation', app.includes('modernMoreGroups') && app.includes("variant==='drawer'" )],
   ['modern module focus rendering', app.includes("if(navigationMode==='bottom-tabs')") && app.includes('if(!visible)return null;')],
-  ['classic fallback preserved', app.includes("navigationMode!=='bottom-tabs'") && app.includes("forecastPresentationMode!=='classic'" )],
+  ['single canonical navigation mode', app.includes("type NavigationMode='bottom-tabs'") && !app.includes('Bottom-Leiste · Beta')],
   ['observer cannot overwrite modern focus', app.includes("if(navigationMode==='bottom-tabs'||!w||typeof IntersectionObserver==='undefined')return;")],
   ['desktop vertical rail', css.includes('.navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs') && css.includes('grid-template-columns:1fr')],
   ['landscape mobile support', css.includes('@media(max-width:850px) and (orientation:landscape)')],

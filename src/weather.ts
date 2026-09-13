@@ -1272,11 +1272,15 @@ export function dayWeatherCharacter(day:Day,hours:Hour[]):DayWeatherCharacter{
  const weightedCloud=relevant.reduce((sum,h)=>{const hour=Number(h.time.slice(11,13));return sum+h.cloud*(hour>=9&&hour<18?1.55:1.15)},0)/Math.max(.1,cloudWeight);
  const sunshineFraction=Math.max(0,day.sunshineDuration||0)/Math.max(1,daylightDurationSeconds(day));
  const hourlyBrightness=daylight.length?daylight.reduce((sum,h)=>sum+Math.max(0,Math.min(1,(85-h.cloud)/70)),0)/daylight.length:Math.max(0,1-weightedCloud/100);
- const skySignal=Math.max(0,Math.min(1,hourlyBrightness*.9+sunshineFraction*.1));
+ // Tagespiktogramme fassen den gesamten hellen Tagesabschnitt zusammen. Die gemessene/abgeleitete
+ // Sonnenscheindauer darf deshalb nicht von einzelnen wolkigen Stunden nahezu vollständig überstimmt werden.
+ // Gleichzeitig begrenzen heavyCloudShare/overcastShare weiter unten sonnige Klassen bei überwiegend dichter Bewölkung.
+ const blendedBrightness=hourlyBrightness*.72+sunshineFraction*.28;
+ const skySignal=Math.max(0,Math.min(1,Math.max(blendedBrightness,sunshineFraction*.92)));
  const heavyCloudShare=daylight.length?daylight.filter(h=>h.cloud>=75).length/daylight.length:0;
  const overcastShare=daylight.length?daylight.filter(h=>h.cloud>=90).length/daylight.length:0;
  const sunshineCloud=(1-skySignal)*100;
- let effectiveCloud=Math.max(0,Math.min(100,weightedCloud*.92+sunshineCloud*.08));
+ let effectiveCloud=Math.max(0,Math.min(100,weightedCloud*.78+sunshineCloud*.22));
  if(heavyCloudShare>=.5)effectiveCloud=Math.max(effectiveCloud,66);
  if(overcastShare>=.35)effectiveCloud=Math.max(effectiveCloud,78);
  let sunshineForLabel=skySignal;

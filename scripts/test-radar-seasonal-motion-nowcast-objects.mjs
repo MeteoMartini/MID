@@ -20,7 +20,7 @@ requireTokens('Meteorologischer Zugvektor',worker,[
 ]);
 requireTokens('Nowcast-Objekt-API',worker,["mode==='nowcastmix-points'",'dwdLightningPoints(lat,lon)',"'dwd-nowcastmix-lightning'"]);
 requireTokens('Komposit-Option',radar,[
- 'showNowcastObjects:boolean','label="Zellen"','nowcastButtonDetail=`${k3dButtonState} · ${mixButtonState}`','function KonradNowcastObjects(','loadNowcastMixPoints(','visibleNowcastMix','<MemoKonradNowcastObjects data={thunder}'
+ 'showNowcastObjects:boolean','label="Zellen"',"nowcastButtonDetail=(visibleNowcastMix.length||thunder?.nearbyCells?.length)?`K3D ${thunder?.nearbyCells?.length||0} · MIX ${visibleNowcastMix.length}`:'keine Zellen'",'function KonradNowcastObjects(','loadNowcastMixPoints(','visibleNowcastMix','<MemoKonradNowcastObjects data={thunder}'
 ]);
 requireTokens('Einzelne Zugspur',radar,[
  'motionAvailable=showRadar&&Boolean(approachTrack)','showMotion=showMotionOverlay&&motionAvailable','showMotionField=showMotion','function resolveEchoApproachTrack','analysis.motionAnchors??[]','item.cross<=item.width','<MemoEchoApproachTrack track={approachTrack}'

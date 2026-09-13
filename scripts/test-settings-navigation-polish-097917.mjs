@@ -13,18 +13,21 @@ const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw);
 
 assert.equal(baseline.releaseVersion,pkg.version);
 assert.equal(baseline.version,pkg.version);
-assert.ok(app.includes("type NavigationMode='classic'|'bottom-tabs'"),'Klassischer Fallback muss erhalten bleiben.');
-assert.ok(app.includes("localStorage.setItem(NAVIGATION_MODE_STORAGE_KEY,navigationMode)"),'Navigationswahl muss persistent bleiben.');
+assert.ok(app.includes("type NavigationMode='bottom-tabs'"),'Die Bottom-Bar muss der kanonische Navigationsmodus sein.');
+assert.ok(app.includes("localStorage.removeItem('mid:navigationMode:v1')"),'Der veraltete NavigationMode-Schlüssel muss migriert/entfernt werden.');
+assert.ok(!app.includes('Bottom-Leiste · Beta'),'Der alte Beta-Schalter muss entfernt sein.');
+assert.ok(!app.includes('<span>Bedienkonzept</span>'),'Bedienkonzept darf nicht mehr als Einstellungs-Unterpunkt angeboten werden.');
 for(const token of [
   '--settings-switch-width:46px',
   '.settings-toggle-card input[type=checkbox]::after',
   'transform:translateX(20px)',
   '.settings-nav button span{display:block}',
-  '.dashboard-bottom-tabs button::before',
   '@media(prefers-reduced-motion:reduce)',
-  'min-height:54px!important'
+  'min-height:54px!important',
+  'white-space:nowrap!important',
+  '.dashboard-section-quick.dashboard-bottom-tabs.is-scroll-hidden'
 ])assert.ok(modern.includes(token),`UI-Polish-Vertrag fehlt: ${token}`);
 assert.ok(styles.endsWith(modern),'Aggregiertes styles.css muss das kanonische Modern-Modul vollständig enthalten.');
 assert.ok(baseline.requiredRegressionTests.includes('scripts/test-settings-navigation-polish-097917.mjs'));
 assert.ok(implementation.includes('Mitigation'),'Umsetzungsnachweis muss die bewussten Mitigations dokumentieren.');
-console.log('Einstellungen und optionale Bottom-Navigation: Typografie, Raster, Switches, Touchziele, Fokus, Reduced Motion und klassischer Fallback geprüft.');
+console.log('Einstellungen und kanonische Bottom-Navigation: Typografie, Switches, Touchziele, Reduced Motion und entfernte Beta-Auswahl geprüft.');

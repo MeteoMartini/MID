@@ -15,7 +15,6 @@ for(const token of [
  'id="mid-modern-planner"',
  'MID · PLANEN',
  'Wetter für Entscheidungen',
- "window.dispatchEvent(new CustomEvent('mid:navigate-modern-planner'",
  "window.addEventListener('mid:navigate-modern-planner',openPlanner)",
  "window.dispatchEvent(new CustomEvent('mid:open-settings'",
  "window.addEventListener('mid:open-settings',openSettings)",
@@ -25,7 +24,7 @@ for(const token of [
  '<strong>Benachrichtigungen</strong>',
  '<strong>Favoriten & Profile</strong>',
  '<strong>Wetterzwilling</strong>',
- "!['current','short-term','forecast','composite','event-planner','travel-planner'].includes(id)",
+ "!['current','short-term','forecast','ensemble'].includes(id)",
  "navigationMode==='bottom-tabs'&&id===modernPlannerAnchor?<ModernPlannerHub",
  "dashboard-planner-section${navigationMode==='bottom-tabs'?' modern-planner-section':''}"
 ])assert.ok(app.includes(token),`Planen/Mehr-Vertrag fehlt: ${token}`);
@@ -50,8 +49,8 @@ assert.ok(radarColors.includes("export type RadarColorTableId='dwd-standard';"),
 assert.ok(!radarColors.includes('modern-planner-hub'),'Planen-UI darf Radarfarbtabellen nicht berühren');
 assert.ok(contract.includes('Schritt 6'),'Bedienvertrag dokumentiert Schritt 6 nicht');
 assert.ok(contract.includes('Planen-Hub erzeugt keine eigenen Wetterabfragen'),'Planer darf keine zweite Datenlogik einführen');
-assert.ok(contract.includes('klassische Sektions-Drawer bleibt dagegen vollständig unverändert'),'Klassischer Mehr-Fallback fehlt im Vertrag');
+assert.ok(contract.includes('**Mehr** enthält weiterhin alle übrigen Fachmodule'),'Mehr-Erreichbarkeitsvertrag fehlt');
 
 const parsed=JSON.parse(baseline);
 assert.ok(parsed.requiredRegressionTests.includes('scripts/test-modern-plan-more-hierarchy-09795.mjs'),'Baseline-Regression für Schritt 6 fehlt');
-console.log('Optionales Bedienkonzept Schritt 6: Planen-Hub, Mehr-Hierarchie, Einstellungsdirektzugriffe, klassischer Fallback, iOS-Touchziele und Radar-Isolation geprüft.');
+console.log('Kanonische Bottom-Bar: Planen-Hub bleibt über Mehr erreichbar, Mehr-Hierarchie, Einstellungsdirektzugriffe, iOS-Touchziele und Radar-Isolation geprüft.');
