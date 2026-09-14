@@ -11514,3 +11514,178 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
   bottom:max(12px,calc(var(--mid-safe-bottom) + 1px))!important;
  }
 }
+
+
+/* MID v0.9.84.98 · einheitlicher Kurzfrist-Horizont und fertiges Planen-Design auf Desktop/Tablet/Mobil */
+.navigation-bottom-tabs .modern-planner-hub{
+ display:grid;
+ gap:15px;
+ margin:12px 0 12px;
+ padding:18px;
+ border:1px solid color-mix(in srgb,var(--primary) 22%,var(--border));
+ border-radius:22px;
+ background:linear-gradient(180deg,color-mix(in srgb,var(--primary) 5%,var(--surface)),color-mix(in srgb,var(--s2) 88%,var(--surface)));
+ box-shadow:0 12px 32px rgba(18,48,76,.09);
+ scroll-margin-top:calc(var(--mid-safe-top) + 18px);
+}
+.navigation-bottom-tabs .modern-planner-hub>header{
+ display:flex;
+ align-items:flex-start;
+ justify-content:space-between;
+ gap:16px;
+}
+.navigation-bottom-tabs .modern-planner-hub>header>div{display:grid;gap:4px;min-width:0}
+.navigation-bottom-tabs .modern-planner-hub>header small{
+ color:var(--accent);
+ font-size:11px;
+ font-weight:900;
+ letter-spacing:.11em;
+ text-transform:uppercase;
+}
+.navigation-bottom-tabs .modern-planner-hub>header h2{margin:0;font-size:clamp(20px,2.2vw,27px);line-height:1.12}
+.navigation-bottom-tabs .modern-planner-hub>header p{margin:0;color:var(--muted);font-size:12px;line-height:1.45}
+.navigation-bottom-tabs .modern-planner-hub>header>button{
+ appearance:none;
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ gap:7px;
+ min-height:44px;
+ padding:0 13px;
+ border:1px solid color-mix(in srgb,var(--primary) 22%,var(--border));
+ border-radius:13px;
+ background:color-mix(in srgb,var(--surface) 94%,var(--s2));
+ color:var(--text);
+ font:inherit;
+ font-size:11px;
+ font-weight:850;
+ box-shadow:0 3px 10px rgba(6,33,55,.06);
+ cursor:pointer;
+ touch-action:manipulation;
+}
+.navigation-bottom-tabs .modern-planner-hub>header>button:hover,
+.navigation-bottom-tabs .modern-planner-hub>header>button:focus-visible{border-color:color-mix(in srgb,var(--primary) 50%,var(--border));background:color-mix(in srgb,var(--primary) 7%,var(--surface))}
+.navigation-bottom-tabs .modern-planner-actions{
+ display:grid;
+ grid-template-columns:repeat(4,minmax(0,1fr));
+ gap:10px;
+}
+.navigation-bottom-tabs .modern-planner-actions>button{
+ appearance:none;
+ display:grid;
+ grid-template-columns:42px minmax(0,1fr) 18px;
+ align-items:center;
+ gap:10px;
+ min-width:0;
+ min-height:82px;
+ padding:12px 13px;
+ border:1px solid color-mix(in srgb,var(--primary) 16%,var(--border));
+ border-radius:16px;
+ background:color-mix(in srgb,var(--surface) 96%,var(--s2));
+ color:var(--text);
+ font:inherit;
+ text-align:left;
+ box-shadow:0 4px 14px rgba(7,30,50,.055);
+ cursor:pointer;
+ transition:border-color .16s ease,background .16s ease,transform .12s ease,box-shadow .16s ease;
+ touch-action:manipulation;
+}
+.navigation-bottom-tabs .modern-planner-actions>button:hover,
+.navigation-bottom-tabs .modern-planner-actions>button:focus-visible{
+ border-color:color-mix(in srgb,var(--primary) 48%,var(--border));
+ background:color-mix(in srgb,var(--primary) 5%,var(--surface));
+ box-shadow:0 7px 20px rgba(7,30,50,.09);
+ outline:none;
+}
+.navigation-bottom-tabs .modern-planner-actions>button:active{transform:translateY(1px)}
+.navigation-bottom-tabs .modern-planner-actions>button>i{
+ display:grid;
+ place-items:center;
+ width:42px;
+ height:42px;
+ border-radius:13px;
+ background:color-mix(in srgb,var(--primary) 10%,var(--s2));
+ color:var(--accent);
+ font-style:normal;
+}
+.navigation-bottom-tabs .modern-planner-actions>button>span{display:grid;gap:3px;min-width:0}
+.navigation-bottom-tabs .modern-planner-actions>button strong{font-size:13px;line-height:1.2;white-space:normal}
+.navigation-bottom-tabs .modern-planner-actions>button small{color:var(--muted);font-size:11px;line-height:1.32;white-space:normal}
+.navigation-bottom-tabs .modern-planner-actions>button>svg{color:var(--muted);justify-self:end}
+.navigation-bottom-tabs .modern-planner-actions>button.setup{
+ border-style:solid;
+ background:color-mix(in srgb,var(--s2) 76%,var(--surface));
+}
+.navigation-bottom-tabs .modern-planner-actions>button.setup>i{background:color-mix(in srgb,var(--muted) 8%,var(--s2));color:var(--muted)}
+
+/* Die eigentlichen Planer sind Bestandteil desselben Arbeitsbereichs; kein zweiter Rohbau-Rahmen/Seitentitel. */
+.navigation-bottom-tabs .dashboard-planner-section.modern-planner-section{
+ margin:0 0 16px;
+ padding:0;
+ border:0;
+ border-radius:0;
+ background:transparent;
+ box-shadow:none;
+}
+.navigation-bottom-tabs .dashboard-planner-section.modern-planner-section>.dashboard-planner-section-head{display:none}
+.navigation-bottom-tabs .dashboard-planner-section.modern-planner-section .dashboard-planner-modules{display:grid;gap:10px}
+.navigation-bottom-tabs .dashboard-planner-section.modern-planner-section .module-shell{
+ border-radius:18px;
+ border-color:color-mix(in srgb,var(--primary) 14%,var(--border));
+ box-shadow:0 5px 18px rgba(7,30,50,.055);
+ overflow:hidden;
+}
+.navigation-bottom-tabs .dashboard-planner-section.modern-planner-section .module-shell-toggle{min-height:58px;padding:11px 14px}
+
+/* Derselbe Rohbau-Fall bestand im Mehr-Drawer auf Desktop: Schnellzugriffe erhalten dieselbe Kartenlogik. */
+.navigation-bottom-tabs .modern-more-quick-actions{
+ display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:8px;
+ padding:12px;
+ border-bottom:1px solid color-mix(in srgb,var(--border) 72%,transparent);
+}
+.navigation-bottom-tabs .modern-more-quick-actions>button{
+ appearance:none;
+ display:grid;
+ grid-template-columns:34px minmax(0,1fr);
+ align-items:center;
+ gap:9px;
+ min-height:62px;
+ padding:9px 11px;
+ border:1px solid var(--border);
+ border-radius:14px;
+ background:color-mix(in srgb,var(--s2) 88%,var(--surface));
+ color:var(--text);
+ font:inherit;
+ text-align:left;
+ cursor:pointer;
+ touch-action:manipulation;
+}
+.navigation-bottom-tabs .modern-more-quick-actions>button>svg{color:var(--accent)}
+.navigation-bottom-tabs .modern-more-quick-actions>button>span{display:grid;gap:2px;min-width:0}
+.navigation-bottom-tabs .modern-more-quick-actions strong{font-size:12px;line-height:1.2}
+.navigation-bottom-tabs .modern-more-quick-actions small{color:var(--muted);font-size:11px!important;line-height:1.3!important;white-space:normal}
+
+/* Fünf statt sechs Horizonte: alle bleiben ohne unnötigen Leerraum gleichmäßig verteilt. */
+.navigation-bottom-tabs .modern-forecast-horizons{grid-auto-flow:row;grid-template-columns:repeat(5,minmax(0,1fr));grid-auto-columns:auto;overflow-x:visible}
+.navigation-bottom-tabs .modern-forecast-horizons button{min-width:0;font-size:11px}
+
+@media(max-width:1120px){
+ .navigation-bottom-tabs .modern-planner-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:700px){
+ .navigation-bottom-tabs .modern-planner-hub{gap:12px;padding:13px;border-radius:18px}
+ .navigation-bottom-tabs .modern-planner-hub>header{gap:10px}
+ .navigation-bottom-tabs .modern-planner-hub>header h2{font-size:20px}
+ .navigation-bottom-tabs .modern-planner-hub>header p{font-size:11px}
+ .navigation-bottom-tabs .modern-planner-actions{grid-template-columns:1fr;gap:8px}
+ .navigation-bottom-tabs .modern-planner-actions>button{min-height:64px;grid-template-columns:38px minmax(0,1fr) 18px;padding:9px 10px}
+ .navigation-bottom-tabs .modern-planner-actions>button>i{width:38px;height:38px;border-radius:12px}
+ .navigation-bottom-tabs .modern-more-quick-actions{grid-template-columns:1fr}
+}
+@media(max-width:430px){
+ .navigation-bottom-tabs .modern-planner-hub>header{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start}
+ .navigation-bottom-tabs .modern-planner-hub>header>button span{display:none}
+ .navigation-bottom-tabs .modern-planner-hub>header>button{width:44px;padding:0}
+}

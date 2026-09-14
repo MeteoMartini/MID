@@ -1,3 +1,17 @@
+# MID v0.9.84.98
+
+## Extern
+- Die obere Prognoseleiste fasst **90 min** und **24 h** wieder zu einem gemeinsamen Einstieg **Kurzfrist** zusammen. In der Kurzfristansicht stehen die 90-Minuten-Übersicht und das 24-h-Wetterprofil wieder gemeinsam untereinander statt hinter zwei getrennten Horizont-Schaltflächen.
+- **MID · PLANEN** besitzt nun auf Desktop, iPad und Smartphone dieselbe fertige Karten-/Buttonsprache wie die übrigen modernen MID-Bereiche. Roh wirkende Standardbuttons, gequetschte Beschriftungen und der doppelte separate „Planer“-Kopf wurden entfernt.
+- Beim UI-Audit wurde derselbe Desktop-Cascade-Fehler auch in den Schnellzugriffen des **Mehr**-Drawers gefunden und mit derselben Kartenlogik bereinigt.
+- Die fünf Prognosehorizonte **Kurzfrist · 7 T · 14 T · 46 T · Saison** passen auch auf schmalen iPhones in eine Zeile; es entsteht kein unnötiger horizontaler Scrollbereich.
+
+## Intern
+- Persistierte Altstände mit Horizont `24h` werden beim Einlesen verlustfrei auf den gemeinsamen Kurzfrist-Horizont migriert. Die eigentlichen 90-min-/24-h-Inhalte und ihre meteorologischen Datenpfade bleiben unverändert.
+- `modern-planner-hub`, `modern-planner-actions`, `modern-planner-section` und `modern-more-quick-actions` besitzen jetzt gemeinsame Desktop/Tablet/Mobil-Basisstile statt Kernregeln nur innerhalb des Mobile-Media-Queries.
+- Neue Regression `test-shortterm-planner-polish-098498.mjs` schützt die Zusammenführung und den desktopfesten Planen-/Mehr-Designvertrag.
+- Keine Worker-Fachlogik geändert.
+
 # MID v0.9.84.97
 
 ## Extern

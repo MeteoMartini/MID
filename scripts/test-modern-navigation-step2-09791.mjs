@@ -15,31 +15,27 @@ const [app,cockpit,shortTerm,longRange,modernStyles,styles,radarColors,baseline]
 for(const token of [
  "type ModernForecastHorizon='90m'|'24h'|'7d'|'14d'|'46d'|'season'",
  'function ForecastHorizonNavigation',
- "{id:'90m',label:'90 min',module:'short-term'}",
- "{id:'24h',label:'24 h',module:'short-term'}",
+ "{id:'90m',label:'Kurzfrist',module:'short-term'}",
  "{id:'7d',label:'7 T',module:'forecast'}",
  "{id:'14d',label:'14 T',module:'ensemble'}",
  "{id:'46d',label:'46 T',module:'long-range'}",
  "{id:'season',label:'Saison',module:'long-range'}",
  "navigationMode==='bottom-tabs'&&id===forecastWorkspaceAnchor",
- "shortTermFocusWindow={navigationMode==='bottom-tabs'",
- "focusWindow={navigationMode==='bottom-tabs'",
+ "aria-label={item.id==='90m'?'Kurzfrist: 90 Minuten und 24 Stunden':undefined}",
  "initialHorizon={navigationMode==='bottom-tabs'"
 ])assert.ok(app.includes(token),`App-Horizontvertrag fehlt: ${token}`);
 
 for(const token of [
- "shortTermFocusWindow?:'90m'|'24h'",
- "focusWindow?:'90m'|'24h'",
- "focusWindow==='24h'?profileRef.current:now90Ref.current",
  'ref={now90Ref} className="cockpit-now90"',
- 'ref={profileRef} className="cockpit-meteogram-pro cockpit-weather-profile"'
-])assert.ok(cockpit.includes(token),`Cockpit-Fokusvertrag fehlt: ${token}`);
+ 'Nächste 90 Minuten',
+ 'ref={profileRef} className="cockpit-meteogram-pro cockpit-weather-profile"',
+ '24-h-Wetterprofil'
+])assert.ok(cockpit.includes(token),`Gemeinsamer Kurzfristvertrag fehlt: ${token}`);
 
 for(const token of [
- "focusWindow?:'90m'|'24h'",
- "focusWindow==='24h'?Math.max(0,points.findIndex(point=>point.source==='hourly')):0",
- 'data-focus-window={focusWindow}'
-])assert.ok(shortTerm.includes(token),`Classic-Kurzfrist-Fokusvertrag fehlt: ${token}`);
+ 'Die nächsten 24 Stunden',
+ "source:isQuarterInterval?'15-min':'hourly'"
+])assert.ok(shortTerm.includes(token),`Classic-Kurzfrist-Gesamtvertrag fehlt: ${token}`);
 
 for(const token of [
  "initialHorizon?:'46d'|'season'",
@@ -65,4 +61,6 @@ assert.ok(!radarColors.includes('modern-forecast-horizons'),'Navigation darf Rad
 
 const parsed=JSON.parse(baseline);
 assert.ok(parsed.requiredRegressionTests.includes('scripts/test-modern-navigation-step2-09791.mjs'),'Baseline-Regression für Schritt 2 fehlt');
-console.log('Optionales Bedienkonzept Schritt 2: Mobilkopf, 90m/24h/7T/14T/46T/Saison-Fokus, Touchziele und Radar-Isolation geprüft.');
+assert.ok(!app.includes("{id:'24h',label:'24 h',module:'short-term'}"),'90 min und 24 h dürfen im modernen Horizont nicht mehr getrennt erscheinen.');
+assert.ok(app.includes("return value==='24h'?'90m'"),'Persistierte alte 24-h-Auswahl muss auf den gemeinsamen Kurzfrist-Horizont migrieren.');
+console.log('Optionales Bedienkonzept Schritt 2: gemeinsamer Kurzfrist-Horizont (90 min + 24 h), 7T/14T/46T/Saison, Touchziele und Radar-Isolation geprüft.');
