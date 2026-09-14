@@ -3,7 +3,7 @@ import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {prepareReleaseRepository} from './prepare-release-repository.mjs';
-import {syncGithubConfiguration} from './sync-github-workflows.mjs';
+import {managedFiles,syncGithubConfiguration} from './sync-github-workflows.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const failures=[];
@@ -21,15 +21,13 @@ for(const [label,workflow] of [['ci/github',canonicalWorkflow],['workflow-patche
 const temp=await mkdtemp(path.join(tmpdir(),'mid-no-workflow-selfmod-'));
 try{
  await mkdir(path.join(temp,'.github','workflows'),{recursive:true});
- await mkdir(path.join(temp,'ci','github','workflows'),{recursive:true});
+ for(const [sourceRelative] of managedFiles){
+  const destination=path.join(temp,'ci','github',sourceRelative);
+  await mkdir(path.dirname(destination),{recursive:true});
+  await writeFile(destination,await readFile(path.join(root,'ci','github',sourceRelative),'utf8'));
+ }
  await writeFile(path.join(temp,'.github','workflows','dependency-audit.yml'),'name: aktiv-und-unveraendert\n');
  await writeFile(path.join(temp,'ci','github','workflows','dependency-audit.yml'),'name: kanonisch-neu\n');
- await writeFile(path.join(temp,'ci','github','workflows','install-mid.yml'),'name: install\n');
- await writeFile(path.join(temp,'ci','github','workflows','deploy.yml'),'name: deploy\n');
- for(const name of ['mid-ruc-preprocess.yml','mid-ruc-schedule-watchdog.yml','mid-ruc-cloudflare-bootstrap.yml']){
-  await writeFile(path.join(temp,'ci','github','workflows',name),await readFile(path.join(root,'ci','github','workflows',name),'utf8'));
- }
- await writeFile(path.join(temp,'ci','github','dependabot.yml'),'version: 2\n');
 
  let cleanupCalls=0;
  await prepareReleaseRepository({

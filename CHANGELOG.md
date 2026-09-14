@@ -1,3 +1,29 @@
+# MID v0.9.84.105
+
+## Extern
+- Der fehlgeschlagene Installer #1060 ist korrigiert. Die GitHub-/Codex-Schreibworkflow-Vorbereitung aus v0.9.84.104 bleibt unverändert erhalten.
+- An Wetterlogik, Karten, Isohypsen, Ceiling, Radar, Warnungen oder App-Bedienung wurde für diesen Hotfix nichts fachlich verändert.
+
+## Intern
+- Ursache: Mit dem neuen `chatgpt-pr-gate.yml` verwaltet MID nun acht statt sieben GitHub-Konfigurationsdateien. `test-github-workflow-bootstrap-08263.mjs` erwartete noch die alte Anzahl.
+- `test-no-actions-workflow-self-modification-093911.mjs` erzeugte in seinem isolierten Test-Repository noch keinen kanonischen `chatgpt-pr-gate.yml`-Fixture und lief deshalb in `ENOENT`.
+- Beide Regressionen wurden an den neuen expliziten Workflow-Synchronisationsvertrag angepasst. Die verwaltete Dateiliste wird nun direkt aus `sync-github-workflows.mjs` exportiert und von den Tests wiederverwendet, damit künftige Workflow-Erweiterungen nicht erneut durch doppelte Zähllisten auseinanderlaufen.
+- Keine Worker-Fachlogik geändert; Worker-/Service-Worker-Dateien unterscheiden sich nur durch die synchronisierte Releaseversion.
+
+# MID v0.9.84.104
+
+## Extern
+- GitHub-/Codex-Änderungen erhalten einen dauerhaften, fail-closed Repositoryvertrag: Agenten arbeiten nur auf `chatgpt/*`- bzw. `codex/*`-Branches und umgehen weder `main` noch `mid-stable`.
+- Ein neues PR-Gate ist als kanonische Workflowquelle vorbereitet. Es prüft das unversionierte `MID-professional-replacement.zip` bereits im Pull Request mit Dependency-Audit, Produktionsbuild und vollständigen Regressionen.
+- Die bestehende Release-Architektur bleibt unverändert: Erst nach grünem PR und Merge verarbeitet `install-mid.yml` das ZIP, veröffentlicht den Build und promotet anschließend den validierten Stand nach `mid-stable`.
+
+## Intern
+- `AGENTS.md` hinterlegt die verbindlichen Repositoryregeln für Codex/coding agents direkt im Projekt.
+- `MID_CHATGPT_GITHUB_CONTRACT.md` dokumentiert Branch-, PR-, Fehler- und Berechtigungsvertrag.
+- `ci/github/workflows/chatgpt-pr-gate.yml` ist die kanonische Quelle des read-only PR-Gates; `scripts/sync-github-workflows.mjs` kann sie bei einer expliziten Workflow-Wartung nach `.github/workflows/` spiegeln.
+- Neuer Regressionstest `test-chatgpt-github-write-contract-098510.mjs` schützt Least-Privilege, SHA-Pinning, Agent-Branchfilter und den vollständigen `npm run verify`-Pfad.
+- Die normale ChatGPT-GitHub-Verbindung selbst bleibt laut OpenAI-Livezugriff schreibgeschützt; direkte Repository-Schreibaktionen müssen daher über Codex oder eine gesondert autorisierte GitHub-App erfolgen.
+
 # MID v0.9.84.103
 
 ## Extern

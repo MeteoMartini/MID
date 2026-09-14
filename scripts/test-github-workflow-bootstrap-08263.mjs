@@ -2,7 +2,7 @@ import {cp,mkdir,mkdtemp,readFile,rm,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {syncGithubConfiguration} from './sync-github-workflows.mjs';
+import {managedFiles,syncGithubConfiguration} from './sync-github-workflows.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const pkg=JSON.parse(await readFile(path.join(root,'package.json'),'utf8'));
@@ -12,7 +12,7 @@ if('preverify' in (pkg.scripts??{}))failures.push('Der reguläre Installationsla
 if(pkg.scripts?.['sync:github-workflows']!=='node scripts/sync-github-workflows.mjs')failures.push('Explizites Synchronisationsskript fehlt in package.json.');
 if(!baseline.regressionTests?.includes('scripts/test-github-workflow-bootstrap-08263.mjs'))failures.push('Workflow-Paket-Regression fehlt in MID_BASELINE.json.');
 
-const managed=['workflows/install-mid.yml','workflows/deploy.yml','workflows/dependency-audit.yml','workflows/mid-ruc-preprocess.yml','workflows/mid-ruc-schedule-watchdog.yml','workflows/mid-ruc-cloudflare-bootstrap.yml','dependabot.yml'];
+const managed=managedFiles.map(([sourceRelative])=>sourceRelative);
 for(const relative of managed)await readFile(path.join(root,'ci','github',relative),'utf8');
 
 const temp=await mkdtemp(path.join(tmpdir(),'mid-workflow-package-'));
