@@ -14,9 +14,9 @@ type CompositeBasemap={label:string;detail:string;url:string;attribution:string;
 const OSM_TILE_URL='https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 const OSM_ATTRIBUTION='&copy; OpenStreetMap-Mitwirkende';
 export const COMPOSITE_BASEMAPS:Record<BasemapId,CompositeBasemap>={
- osm:{label:'OpenStreetMap',detail:'Standard · schlüsselfrei',url:OSM_TILE_URL,attribution:OSM_ATTRIBUTION},
- positron:{label:'Schlicht hell',detail:'OSM · schlüsselfrei',url:OSM_TILE_URL,attribution:OSM_ATTRIBUTION,tone:{saturation:-.9,contrast:-.08,brightnessMin:.18,brightnessMax:1}},
- dark:{label:'Schlicht dunkel',detail:'OSM · schlüsselfrei',url:OSM_TILE_URL,attribution:OSM_ATTRIBUTION,tone:{saturation:-1,contrast:.2,brightnessMin:0,brightnessMax:.48}}
+ osm:{label:'OpenStreetMap',detail:'Standard',url:OSM_TILE_URL,attribution:OSM_ATTRIBUTION},
+ positron:{label:'Schlicht hell',detail:'OSM',url:OSM_TILE_URL,attribution:OSM_ATTRIBUTION,tone:{saturation:-.9,contrast:-.08,brightnessMin:.18,brightnessMax:1}},
+ dark:{label:'Schlicht dunkel',detail:'OSM',url:OSM_TILE_URL,attribution:OSM_ATTRIBUTION,tone:{saturation:-1,contrast:.2,brightnessMin:0,brightnessMax:.48}}
 };
 export const MODEL_LINE_MODES:ModelLineMode[]=['off','isobars','isoheights','both'];
 

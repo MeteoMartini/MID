@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.84.90",
+  "releaseVersion": "0.9.84.91",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -482,7 +482,9 @@
     "scripts/test-map-chart-responsive-continuation-098482.mjs",
     "scripts/test-current-precip-radolan-history-visible-098483.mjs",
     "scripts/test-release-gate-architecture-098484.mjs",
-    "scripts/test-ios-floating-bottom-bar-098489.mjs"
+    "scripts/test-ios-floating-bottom-bar-098489.mjs",
+    "scripts/test-navigation-composite-ruc-098491.mjs",
+    "scripts/test-ruc-native-phase-radar-098491.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -1918,7 +1920,8 @@
     "MID_IMPLEMENTATION_0.9.84.0.md",
     "MID_RUC_USAGE_AUDIT_0.9.84.0.md",
     "MID_IMPLEMENTATION_0.9.84.81.md",
-    "MID_IMPLEMENTATION_0.9.84.89.md"
+    "MID_IMPLEMENTATION_0.9.84.89.md",
+    "MID_IMPLEMENTATION_0.9.84.91.md"
   ],
   "evidenceFiles": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -1983,7 +1986,8 @@
     "MID_PRECIP_PICTOGRAM_SNOW_DEPTH_CONTRACT.md",
     "MID_TEST_REPORT_0.9.84.26.md",
     "MID_TEST_REPORT_0.9.84.81.md",
-    "MID_TEST_REPORT_0.9.84.89.md"
+    "MID_TEST_REPORT_0.9.84.89.md",
+    "MID_RUC_PARAMETER_AUDIT_0.9.84.91.md"
   ],
   "releaseEvidence": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -2080,7 +2084,7 @@
     "scripts/test-weather-pictogram-appwide-contract-098441.mjs",
     "scripts/test-ios-floating-bottom-bar-098489.mjs"
   ],
-  "version": "0.9.84.90",
+  "version": "0.9.84.91",
   "updatedAt": "2026-09-13T21:20:00+02:00",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
@@ -2175,7 +2179,8 @@
     "MID_IMPLEMENTATION_0.9.84.77.md",
     "MID_IMPLEMENTATION_0.9.84.78.md",
     "MID_IMPLEMENTATION_0.9.84.81.md",
-    "MID_IMPLEMENTATION_0.9.84.89.md"
+    "MID_IMPLEMENTATION_0.9.84.89.md",
+    "MID_IMPLEMENTATION_0.9.84.91.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",
@@ -2247,6 +2252,7 @@
     "MID_TEST_REPORT_0.9.84.79.md",
     "MID_TEST_REPORT_0.9.84.80.md",
     "MID_TEST_REPORT_0.9.84.81.md",
-    "MID_TEST_REPORT_0.9.84.89.md"
+    "MID_TEST_REPORT_0.9.84.89.md",
+    "MID_TEST_REPORT_0.9.84.91.md"
   ]
 }

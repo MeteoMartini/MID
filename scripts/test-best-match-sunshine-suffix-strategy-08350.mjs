@@ -42,7 +42,7 @@ for(const token of [
  'applyLocalTwinHours(favoriteKey(loc),fusionHours,fusedDays,localTwinDays,radarAnalysis)'
 ])assert.ok(app.includes(token),`Lokale Nachkorrektur muss auf der bereits geprüften Best-Match-Prognose aufsetzen: ${token}`);
 for(const token of [
- 'const currentDetails=<MemoCurrent w={w!} hours={displayHours} days={displayDays}',
+ "case'current':return <MemoCurrent w={w!} hours={displayHours} days={displayDays}",
  '<MemoForecast key={`forecast:${layoutMode}:${layoutRevision}:${weatherTwinSettings.useAsMainForecast}`} days={displayDays} hours={displayHours}',
  '<MemoLazyEnsembles data={ens} scenarios={ensembleScenarios} models={models} runs={modelStatusRuns} days={displayDays} hours={displayHours}',
  '<Widget loc={loc!} days={displayDays} hours={displayHours}'

@@ -1,3 +1,19 @@
+# MID v0.9.84.91
+
+## Extern
+- Die mobile Bottom-Bar priorisiert jetzt **Kurzfrist · 7 Tage · 14 Tage · Komposit · Mehr**. Das frühere experimentelle „Aktuell“-Dashboard ist entfernt; das vollständige **Aktuelle Wetter** bleibt unter **Mehr → Überblick** erreichbar.
+- Die Bottom-Bar blendet beim Abwärtsscrollen deutlich später aus und bleibt im minimierten Zustand als sichtbarer Glass-Griff erreichbar. Aufwärtsscrollen oder Antippen stellt sie sofort wieder her.
+- **Komposit** ist als Primärziel direkt erreichbar. In **Mehr** stehen zusätzlich Schnellzugriffe auf Favoriten, Benachrichtigungen, Einstellungen, Wetterzwilling und Updates – Funktionen der früheren Top-Bar bleiben damit leicht auffindbar.
+- 500-hPa-Isohypsen werden im Komposit wieder als echte geglättete, gold-/amberfarbene gestrichelte Vektorlinien gerendert; die sichtbaren gpdm-Beschriftungen und die Linien teilen denselben Leaflet-Layerpfad.
+- Komposit-Auswahlen werden unmittelbar gespeichert. Unnötige Basiskartenhinweise wie „schlüsselfrei“ wurden entfernt.
+- Der Niederschlagsphasen-Layer nutzt bei vorhandenen Daten zusätzlich native **DWD ICON-D2-RUC**-Signale für Regen, Schnee und Graupel (15-minütig). Die Phase wird nur über realem OPERA-Radarecho visualisiert; die bisherige thermodynamische Regionalmodell-Phase bleibt als sicherer Fallback erhalten.
+
+## Intern
+- Breites 5-Minuten-Densifying aller RUC-Felder wurde bewusst verworfen: die zusätzliche Datenmenge wäre groß, ohne für langsam veränderliche Zustandsfelder einen proportionalen Prognosegewinn zu liefern. 5-Minuten-Niederschlagsmengen bleiben Timing-Kern, 15-Minuten-Phasen bleiben in ihrer nativen DWD-Auflösung.
+- Der bestehende RUC-Phase15-Speicherpfad (`RAIN_GSP`, `SNOW_GSP`, `GRAU_GSP`) wird nun vom Radar-Phasenadapter genutzt; fehlende/stale Daten fallen fail-safe auf den bisherigen Modellpfad zurück.
+- Die alten Beta-Heute-Regressionen und historische Navigations-Stringverträge wurden an die kanonische Bottom-Bar-/Current-Architektur angepasst.
+- Worker-Fachlogik wurde geändert; für diesen kumulativen Release ist ein Worker-Upload erforderlich.
+
 # MID v0.9.84.90
 
 - Release-Gate korrigiert: drei veraltete Radar-/Livequellen-Regressionen an die seit v0.9.84.88 bewusst verdichtete Kompositdarstellung angepasst.

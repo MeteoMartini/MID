@@ -1,20 +1,20 @@
 # MID · Kanonische schwebende Bottom-Bar
 
-**Verbindlich ab v0.9.84.89.** Dieser Abschnitt ersetzt die frühere optionale Beta-/Fallback-Regelung in den historischen Abschnitten darunter. Die historischen Schritte bleiben nur als Implementierungschronik erhalten.
+**Verbindlich ab v0.9.84.91.** Dieser Abschnitt ersetzt die frühere optionale Beta-/Fallback-Regelung in den historischen Abschnitten darunter. Die historischen Schritte bleiben nur als Implementierungschronik erhalten.
 
 ## Aktueller Navigationsvertrag
 
 - Auf kompakten Web-/PWA-Viewports verwendet MID genau **eine** mobile Hauptnavigation als schwebende Bottom-Bar. Eine separate Einstellung **Bedienkonzept** und die Bezeichnung **Bottom-Leiste · Beta** existieren nicht mehr.
 - Der frühere Schlüssel `mid:navigationMode:v1` wird beim Start entfernt und nicht mehr als aktive Nutzereinstellung geführt.
-- Die fünf gleichrangigen Hauptziele lauten **Aktuell · Kurzfrist · 7 Tage · 14 Tage · Mehr**. Die Beschriftungen bleiben einzeilig; MID trennt sie nicht mitten im Wort.
-- **Mehr** enthält weiterhin alle übrigen Fachmodule und Einstiege, insbesondere Karten/Komposit, Event/Reise, Berg/Winter, Wasser, Langfrist-, Analyse- und Profiwerkzeuge. Durch den Entfall eigener Tabs für Karte/Planen darf kein Modul unerreichbar werden.
+- Die fünf gleichrangigen Hauptziele lauten **Kurzfrist · 7 Tage · 14 Tage · Komposit · Mehr**. Die Beschriftungen bleiben einzeilig; MID trennt sie nicht mitten im Wort. Die verworfene Beta-Heute-Übersicht wird nicht mehr vor die kanonische Current-Ansicht geschaltet.
+- **Mehr** enthält weiterhin alle übrigen Fachmodule und Einstiege, insbesondere **Aktuelles Wetter**, Warnungen, Event/Reise, Berg/Winter, Wasser, Langfrist-, Analyse- und Profiwerkzeuge. Häufige Funktionen der früheren Top-Bar liegen oben als Schnellzugriffe: Einstellungen, Benachrichtigungen, Favoriten & Profile, Wetterzwilling und Updates. Komposit ist dagegen direkt als eigener Bottom-Bar-Einstieg erreichbar.
 - Auf größeren Desktopbreiten bleibt die bestehende vertikale Sektionsleiste als ergänzende Navigation erhalten.
 
 ## iOS-/PWA-Verhalten
 
 - Die Bottom-Bar schwebt mit Safe-Area-Abstand über dem Inhalt und verwendet eine zurückhaltende transluzente Glass-Ebene mit Blur, Randlicht und klarer aktiver Auswahl. Inhalt wird nicht durch eine vollflächige undurchsichtige Leiste verdeckt.
 - Touchziele sind im Hochformat mindestens 54 px hoch; im flachen Querformat bleibt die Leiste kompakter, aber bedienbar.
-- Beim deutlichen **Abwärtsscrollen** minimiert sich die Leiste. Beim **Aufwärtsscrollen**, nahe dem Seitenanfang, bei Fokus innerhalb der Leiste oder beim Öffnen von **Mehr** erscheint sie wieder. Kleine Scrollzitterbewegungen dürfen die Leiste nicht permanent umschalten.
+- Beim deutlichen **Abwärtsscrollen** minimiert sich die Leiste erst nach einer größeren zusammenhängenden Scrollstrecke. Sie verschwindet dabei nicht vollständig, sondern lässt einen sichtbaren Glass-Griff am unteren Rand stehen. Ein kurzer Aufwärtsscroll, Tap auf den Griff, Nähe zum Seitenanfang, Fokus innerhalb der Leiste oder das Öffnen von **Mehr** stellt sie vollständig wieder her. Kleine Scrollzitterbewegungen dürfen die Leiste nicht permanent umschalten.
 - `prefers-reduced-motion` deaktiviert die Übergangsanimationen.
 - Safe Areas links/rechts/unten, iPhone-Home-Indicator sowie Landscape werden berücksichtigt.
 

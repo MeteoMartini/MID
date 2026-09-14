@@ -14,10 +14,6 @@ const marker='MID v0.9.84.79 · appweiter Rest-Audit nach dem 17.7.23-Vertrag.';
 assert.ok(modern.includes(marker),'Appweiter Rest-Auditmarker fehlt.');
 
 for(const token of [
- '.navigation-bottom-tabs .modern-today-condition small',
- '.navigation-bottom-tabs .modern-today-condition b',
- '.navigation-bottom-tabs .modern-today-metrics b',
- '.navigation-bottom-tabs .modern-today-strip>header>div>small',
  '.local-now-disclosure>summary small',
  '.local-now-disclosure-body>ul',
  '.warnings-responsive-shell .hazards-responsive-head>div>span',
@@ -28,13 +24,13 @@ for(const token of [
  '.dashboard-section-nav-list.drawer.progressive>details>summary'
 ]) assert.ok(modern.includes(token),`Rest-Auditregel fehlt: ${token}`);
 
-assert.match(modern,/\.navigation-bottom-tabs \.modern-today-condition b,[\s\S]*?white-space:normal!important;[\s\S]*?text-overflow:clip!important;/,'Heute-Bedingung darf nicht per Ellipse abgeschnitten werden.');
 assert.match(modern,/\.forecast-source-weight-list article b\{[\s\S]*?white-space:normal!important;[\s\S]*?text-overflow:clip!important;/,'Quellennamen müssen vollständig umbrechen können.');
 assert.match(modern,/\.local-now-disclosure>summary em\{white-space:normal!important;/,'Lokaler Hinweisstatus muss umbrechen können.');
 assert.match(modern,/\.settings-dialog small,[\s\S]*?font-size:var\(--mid-text-micro\)!important;/,'Einstellungen müssen die gemeinsame Mikrotext-Lesbarkeit verwenden.');
 assert.match(modern,/@media\(hover:none\),\(pointer:coarse\),\(any-pointer:coarse\)\{[\s\S]*?min-height:44px;/,'Neue Sekundärbereiche brauchen auf Touch 44-px-Ziele.');
 
-for(const token of ['modern-today-overview','local-now-disclosure','warnings-responsive-shell']) assert.ok(app.includes(token),`App-Nutzung fehlt: ${token}`);
+assert.ok(!app.includes('modern-today-overview'),'Verworfene Beta-Heute-Übersicht darf nicht wiederkehren.');
+for(const token of ['local-now-disclosure','warnings-responsive-shell',"case'current':return <MemoCurrent"]) assert.ok(app.includes(token),`App-Nutzung fehlt: ${token}`);
 assert.ok(sourceDiagnostics.includes('forecast-source-weight-list'),'Quellendiagnostik-Komponente fehlt.');
 assert.ok(verification.includes('forecast-verification'),'Verifikationskomponente fehlt.');
 assert.ok(route.includes('route-weather-card'),'Routenwetter-Komponente fehlt.');
