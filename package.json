@@ -488,10 +488,10 @@
     "html-to-image": "^1.11.13",
     "jsfive": "^0.4.0",
     "lucide-react": "^1.40.0",
-    "maplibre-gl": "6.7.0",
-    "react": "19.2.8",
-    "react-dom": "19.2.8",
-    "react-is": "19.2.8",
+    "maplibre-gl": "6.9.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-is": "19.3.0",
     "recharts": "3.10.1"
   },
   "devDependencies": {
