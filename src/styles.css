@@ -5074,6 +5074,15 @@ body,#root{
  .composite-locate-button{width:44px;height:44px;min-width:44px}
  .composite-advanced-fields select{height:40px}
 }
+
+
+/* MID v0.9.84.100 · Desktop-Wetterpiktogramme ohne vertikale Sky-Plate-Randstriche */
+@media(min-width:851px){
+ .cockpit-day-weather-pair .mid-weather-skyplate>rect,
+ .forecast-icon .mid-weather-skyplate>rect,
+ .seven-day-curve-days .mid-weather-skyplate>rect,
+ .cockpit-fourteen-heading .mid-weather-skyplate>rect{stroke:none!important}
+}
 /* MID v0.9.66.9 · probabilistic DACH extreme-weather outlook */
 .extreme-outlook-panel{display:grid;gap:14px;min-width:0;padding:2px 0 8px}
 .extreme-outlook-head{display:flex;align-items:flex-start;justify-content:space-between;gap:22px;padding:2px 2px 0}

@@ -6,7 +6,7 @@ const worker=readFileSync(new URL('../worker-src/20-composite-models.js',import.
 assert.ok(radar.includes("resolvedIsoheightLineTone:ModelLineColor='multicolor'"),'Automatische Isohypsen brauchen im MID-Fallback eine kontrastreiche Palette.');
 assert.ok(worker.includes("isoheights:{layer:'dwd:Icon_reg025_fd_pl_GH'")&&worker.includes("elevation:500"),'Primäre 500-hPa-Isohypsen müssen als DWD-WMS-Produkt mit 500-hPa-Elevation verfügbar sein.');
 assert.ok(composite.includes('isoheights:SynopticWmsProduct'),'Das Synoptik-WMS muss Isohypsen als eigenes Produkt transportieren.');
-assert.ok(radar.includes("(['isobars','isoheights'] as const)")&&radar.includes("Number.isFinite(product.elevation)?{elevation:product.elevation}"),'RadarPanel muss native DWD-Isohypsen wie Isobaren tatsächlich als WMS mit Elevation rendern.');
-assert.ok(radar.includes('function IsoheightCanvasFallback(')&&radar.includes('mid-isoheight-canvas-fallback')&&radar.includes('prepareContours(levels,\'isoheights\')'),'Bei WMS-Ausfall müssen geglättete Grid-Isohypsen unabhängig vom MapLibre-GeoJSON-Layer als Canvas-Fallback sichtbar bleiben.');
-assert.ok(radar.includes('nativeIsoheightReady')&&radar.includes('hasRenderableIsoheights'),'Bereitschaft der nativen Isohypsen muss separat geprüft werden.');
-console.log('Synoptik 500-hPa-Isohypsen: DWD-WMS primär + geglätteter Canvas-Fallback geprüft.');
+assert.ok(radar.includes('modelData.wms.isobars.layer')&&!radar.includes("(['isobars','isoheights'] as const)"),'RadarPanel darf den stufigen DWD-WMS-Isohypsenstil nicht mehr als sichtbare 500-hPa-Linie verwenden; WMS bleibt auf Isobaren beschränkt.');
+assert.ok(radar.includes('function IsoheightCanvasFallback(')&&radar.includes('mid-isoheight-canvas-fallback')&&radar.includes('function IsoheightLabels(')&&radar.includes('prepareContours(levels,\'isoheights\')'),'500-hPa-Isohypsen müssen als geglättete Canvas-Linien mit eigenen gpdm-Labels sichtbar bleiben.');
+assert.ok(radar.includes('hasRenderableIsoheights=Boolean(vectorIsoheightFrame&&hasGridIsoheights)'),'Isohypsen-Bereitschaft muss ausschließlich den kontrollierten geglätteten Vektor-/Gridpfad bewerten.');
+console.log('Synoptik 500-hPa-Isohypsen: DWD-WMS nur Isobaren + geglättete Gold-Canvas-Isohypsen geprüft.');

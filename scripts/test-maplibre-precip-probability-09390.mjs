@@ -41,7 +41,7 @@ need('Radar-Modell-Phase',radar,"precipitationTypeMode:'none'|'radar-model'");
 need('Radar-Modell-Phase',radar,'OPERA-CIRRUS-Echomaske + frischestes geeignetes Rapid-/Regionalmodell als radar-/modellgestützte Phasenklassifikation');
 need('Radar-Modell-Phase',phase,'operaRasterPoint');
 need('Radar-Modell-Phase',phase,'wetBulbStull');
-need('Radar-Modell-Phase',phase,"function phaseMinimumDbz(phase:SymbolPhase){return phase==='hail'?15:phase==='graupel-hail'?12:phase==='graupel'?9:['snow-grains','snow-stars','ice-crystals','ice-pellets'].includes(phase)?4:(phase==='snow'||phase==='freezing'?5:7)}");
+need('Radar-Modell-Phase',phase,"function phaseMinimumDbz(phase:SymbolPhase){return phase==='hail'?15:phase==='graupel-hail'?12:phase==='graupel'?9:['snow-grains','snow-stars','ice-crystals','ice-pellets'].includes(phase)?4:(phase==='freezing'?9:phase==='snow'?6:7)}");
 need('Radar-Modell-Phase',phase,'Math.abs(targetMs-operaMs)>12*60000');
 need('Radar-Modell-Phase',phase,'maxTimeDelta=grid.stale?45*60000:20*60000');
 need('Radar-Modell-Phase',phase,'Number(grid.modelAgeHours)>16');

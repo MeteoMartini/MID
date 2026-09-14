@@ -1,3 +1,54 @@
+# MID v0.9.84.102
+
+## Extern
+- Der fehlgeschlagene Installer #1056 ist korrigiert. Die sichtbaren Korrekturen aus v0.9.84.99 bis v0.9.84.101 bleiben unverändert: geglättete 500-hPa-Isohypsen, bereinigte Frontdarstellung, konservativere Niederschlagsphasen und saubere Desktop-Wetterpiktogramme.
+- Für diesen Hotfix wurde keine Wetter-, Karten-, Datenquellen- oder Bedienlogik verändert.
+
+## Intern
+- GitHub #1056 hat TypeScript 7 und den Vite-Produktionsbuild erfolgreich bestanden und wurde nur noch von zwei veralteten statischen Regressionserwartungen blockiert.
+- `test-maplibre-precip-probability-09390.mjs` schützt jetzt die absichtlich strengeren Radar-Echoschwellen aus v0.9.84.99: gefrierend 9 dBZ, Schnee 6 dBZ.
+- `test-radar-colortables-09404.mjs` erwartet nicht mehr das bewusst entfernte Spiral-/„Schnecken“-Symbol, sondern das neue Regen+Eis-Piktogramm und schützt zusätzlich vor einer Rückkehr der Spiralform.
+- Keine neue Worker-Fachlogik; separater Worker-Upload ist nicht erforderlich.
+
+# MID v0.9.84.101
+
+## Extern
+- Der Installerfehler von v0.9.84.100 ist behoben. Die Korrekturen an 500-hPa-Isohypsen, Frontdarstellung, Niederschlagsart-Piktogrammen und Desktop-Wettersymbolen bleiben unverändert erhalten.
+- Für diesen Hotfix wurde keine sichtbare Wetter-, Karten- oder Bedienlogik verändert.
+
+## Intern
+- Installer #1055 scheiterte ausschließlich im TypeScript-Gate an der verwaisten Hilfsfunktion `compositeFrontDash` in `src/RadarPanel.tsx`. Sie gehörte zu den bereits entfernten parallelen Front-Renderpfaden und hatte keine aktive Verwendung mehr.
+- Die tote Hilfsfunktion wurde vollständig entfernt; TypeScript-Regeln wurden nicht abgeschwächt und es wurde keine künstliche Referenz eingeführt.
+- Relevante Synoptik-, Isohypsen-, Radarphasen-, Responsive-, Versions- und Release-Lineage-Verträge wurden erneut geprüft.
+- Keine neue Worker-Fachlogik; separater Worker-Upload ist nicht erforderlich.
+
+# MID v0.9.84.100
+
+## Extern
+- Der Buildfehler des Release-Kandidaten v0.9.84.99 ist behoben. Die Korrekturen an Synoptik, Niederschlagsart-Piktogrammen und Desktop-Wettersymbolen bleiben vollständig erhalten.
+- An der sichtbaren Wetterdarstellung wurde für diesen Hotfix nichts zurückgenommen oder neu umgestellt.
+
+## Intern
+- Installer #1054 scheiterte ausschließlich an zwei nach der Synoptik-Bereinigung übrig gebliebenen, nicht mehr verwendeten Front-Renderern. Beide toten Codepfade wurden entfernt.
+- Der Regionalfront-Regressionsvertrag schützt jetzt ausdrücklich davor, diese parallelen Fallback-Pfade wieder einzuführen.
+- Der Radar-Phasentest wurde an die bewusst strengeren Kälte-/Echo-Schwellen aus v0.9.84.99 angepasst, ohne den fachlichen Schutz zu lockern.
+- Keine neue Worker-Fachlogik; separater Worker-Upload ist nicht erforderlich.
+
+# MID v0.9.84.99
+
+## Extern
+- **Komposit / 500-hPa-Isohypsen:** Die stufige native WMS-Isohypsendarstellung wird nicht mehr sichtbar verwendet. MID zeichnet die 500-hPa-Geopotentialhöhen wieder als deutlich geglättete, gold/amber gestrichelte Konturen mit gpdm-Beschriftung; DWD-WMS bleibt für die gut funktionierenden Isobaren aktiv.
+- **Frontdarstellung:** Doppelte Roh-/Fallback-Layer und die auffälligen parallelen violetten Frontalzonen wurden aus dem sichtbaren Pfad entfernt. Angezeigt werden nur ausreichend starke, geglättete θe-850-Frontalzonen; klassische Frontfarben/-symbole erscheinen nur bei belastbarer Typisierung.
+- **Niederschlagsart:** Die missverständlichen spiraligen „Schnecken“-Symbole für gefrierenden Niederschlag wurden durch ein verständliches Regen+Eis-Piktogramm ersetzt. Gleichzeitig ist die Phasenklassifikation gegen warme False Positives deutlich strenger.
+- **Desktop-Piktogramme:** Senkrechte Randstriche an Tages-/Perioden-Wetterpiktogrammen werden in der Desktopansicht nicht mehr gezeichnet.
+
+## Intern
+- Isohypsenpfad auf kontrolliertes MID-Canvas/Vektor-Rendering mit stärkerer Binomial-/Chaikin-Glättung festgelegt; WMS-Isohypsen bleiben als Datenquelle/Metadaten verfügbar, werden aber nicht mehr als sichtbarer Linienlayer genutzt.
+- Fronten werden qualitätsgefiltert und geglättet; redundante Canvas-/Polyline-Doppelrenderings sind aus dem aktiven Pfad entfernt.
+- Radar+Modell-Niederschlagsarten verlangen für gefrierende/feste Phasen zusätzlich konsistente Temperatur-/Feuchtkugel-Unterstützung und höhere Echo-Schwellen.
+- Neuer Regressionstest `test-synoptic-phase-pictogram-cleanup-098499.mjs`; betroffene ältere Synoptiktests auf den aktuellen Renderingvertrag aktualisiert.
+- Keine semantische Worker-Fachlogik geändert; Worker-/Service-Worker-Dateien unterscheiden sich nur durch synchronisierte Release-Metadaten.
+
 # MID v0.9.84.98
 
 ## Extern

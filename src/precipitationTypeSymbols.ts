@@ -30,6 +30,7 @@ export function precipitationTypeSymbolSvg(phase:PrecipitationSymbolPhase){
  else if(phase==='ice-pellets')content='<g fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="8" cy="7" r="3"/><circle cx="20" cy="8.5" r="3"/><circle cx="12.5" cy="17" r="3"/></g>';
  else if(phase==='snow-grains')content='<g fill="currentColor"><circle cx="8" cy="7" r="1.8"/><circle cx="20" cy="8.5" r="1.8"/><circle cx="12.5" cy="17" r="1.8"/></g>';
  else if(phase==='mixed')content=`${star(8,7.2,3.1)}${drop(19,9.2,.9)}${drop(13.5,18,.85)}`;
- else content='<g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5.5 14.2c0-4 3.2-7.2 7.1-7.2 3.7 0 6.6 2.6 6.6 5.9 0 2.7-2.1 4.9-4.7 4.9-2.1 0-3.8-1.6-3.8-3.5 0-1.6 1.3-2.9 2.9-2.9"/><path d="M26.5 9.8c0 4-3.2 7.2-7.1 7.2"/></g><circle cx="6.2" cy="18.1" r="1.7" fill="currentColor"/><circle cx="25.6" cy="6.2" r="1.7" fill="currentColor"/>';
+ else if(phase==='freezing')content=`${drop(9.5,12.5,1.05)}${star(22,11.5,3.6)}<path d="M17 18.5h10" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>`;
+ else content=`${drop(10,10.5,1)}${drop(21,15.5,.9)}`;
  return `${svgOpen}${content}${svgClose}`;
 }

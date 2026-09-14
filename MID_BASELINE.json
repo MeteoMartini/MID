@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.84.98",
+  "releaseVersion": "0.9.84.102",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -488,7 +488,8 @@
     "scripts/test-bottom-bar-current-persistence-isohypses-098492.mjs",
     "scripts/test-view-simulation-bottom-isohypsen-smoothing-098494.mjs",
     "scripts/test-synoptic-startup-ceiling-098496.mjs",
-    "scripts/test-shortterm-planner-polish-098498.mjs"
+    "scripts/test-shortterm-planner-polish-098498.mjs",
+    "scripts/test-synoptic-phase-pictogram-cleanup-098499.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -892,7 +893,8 @@
     "scripts/test-mobile-header-bottom-nav-098481.mjs",
     "scripts/test-map-chart-responsive-continuation-098482.mjs",
     "scripts/test-ios-floating-bottom-bar-098489.mjs",
-    "scripts/test-synoptic-startup-ceiling-098496.mjs"
+    "scripts/test-synoptic-startup-ceiling-098496.mjs",
+    "scripts/test-synoptic-phase-pictogram-cleanup-098499.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/install-mid.yml",
@@ -2090,7 +2092,7 @@
     "scripts/test-ios-floating-bottom-bar-098489.mjs",
     "scripts/test-synoptic-startup-ceiling-098496.mjs"
   ],
-  "version": "0.9.84.98",
+  "version": "0.9.84.102",
   "updatedAt": "2026-09-13T21:20:00+02:00",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",

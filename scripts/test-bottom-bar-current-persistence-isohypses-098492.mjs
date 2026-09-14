@@ -33,7 +33,8 @@ for(const token of [
  "document.addEventListener('visibilitychange',onVisibility)",
  'persistCompositePatch({viewMode:next',
  'vectorIsoheightFrame=',
- '<MemoContours levels={vectorIsoheightFrame.isoheights} type="isoheights"'
+ 'function IsoheightLabels(',
+ '<IsoheightCanvasFallback levels={vectorIsoheightFrame.isoheights}'
 ])assert.ok(radar.includes(token),`Komposit-/Isohypsen-Vertrag fehlt: ${token}`);
 for(const token of [
  'const rowsPerRequest=4',

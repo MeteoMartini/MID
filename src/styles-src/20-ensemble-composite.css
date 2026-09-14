@@ -1604,3 +1604,12 @@ body,#root{
  .composite-locate-button{width:44px;height:44px;min-width:44px}
  .composite-advanced-fields select{height:40px}
 }
+
+
+/* MID v0.9.84.100 · Desktop-Wetterpiktogramme ohne vertikale Sky-Plate-Randstriche */
+@media(min-width:851px){
+ .cockpit-day-weather-pair .mid-weather-skyplate>rect,
+ .forecast-icon .mid-weather-skyplate>rect,
+ .seven-day-curve-days .mid-weather-skyplate>rect,
+ .cockpit-fourteen-heading .mid-weather-skyplate>rect{stroke:none!important}
+}
