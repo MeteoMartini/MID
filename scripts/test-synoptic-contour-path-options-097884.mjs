@@ -9,7 +9,7 @@ assert.ok(radar.includes("binomialContour(cleaned,type==='isoheights'?2:1)"),'Is
 assert.ok(!radar.includes('smoothFactor:'),'Nicht unterstütztes Leaflet/PathOptions-Feld smoothFactor darf nicht verwendet werden.');
 assert.ok(radar.includes("lineCap:'round'"),'Runde Linienenden müssen erhalten bleiben.');
 assert.ok(radar.includes("lineJoin:'round'"),'Runde Linienübergänge müssen erhalten bleiben.');
-assert.ok(radar.includes("const kind='isobars' as const"),'Native DWD-Isobaren müssen erhalten bleiben.');
-assert.ok(radar.includes('type="isoheights"'),'Isohypsen müssen als geglättete MID-Vektoren gerendert werden.');
+assert.ok(radar.includes("(['isobars','isoheights'] as const)"),'Native DWD-Isobaren und 500-hPa-Isohypsen müssen gemeinsam über den WMS-Pfad gerendert werden.');
+assert.ok(radar.includes('type="isoheights"')&&radar.includes('IsoheightCanvasFallback'),'Geglättete MID-Isohypsen müssen als robuster Vector-/Canvas-Fallback erhalten bleiben.');
 assert.ok(styles.includes('.composite-line-toolbar,')&&styles.includes('.composite-advanced-fields>label:nth-of-type(3){display:none!important}'),'Nicht belastbare Linienfarbwahl muss aus der Bedienung entfernt sein.');
-console.log('MID v0.9.81.2: Synoptik nutzt native DWD-Isobaren sowie binomial und per Chaikin geglättete MID-Isohypsen.');
+console.log('Synoptik nutzt native DWD-Isobaren/Isohypsen sowie binomial und per Chaikin geglättete MID-Fallbacks.');

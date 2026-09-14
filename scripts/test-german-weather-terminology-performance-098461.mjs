@@ -34,9 +34,9 @@ assert.ok(app.includes("currentObservedWeatherCode=currentObservedRaw&&/^\\d{1,2
 assert.ok(app.includes('currentWeatherLabel=label(currentObservedWeatherCode)'),'Numerisches DWD-SYNOP-ww muss den zentralen deutschen DWD/WMO-Text verwenden.');
 assert.ok(app.includes('weatherPictogramIntensity(currentObservedWeatherCode)'),'Numerisches SYNOP-ww muss auch die passende Piktogrammintensität setzen.');
 
-assert.ok(preload.includes('await delay(40)'),'Fast-Observation muss beim Start priorisiert werden.');
-assert.ok(preload.includes('await delay(420)'),'Ensemble-Start muss hinter den kritischen Istwetterpfad rücken.');
-assert.ok(preload.includes('delay(700)]).then(()=>preloadInterfaceChunks(ensemble))'),'Nichtkritische Chunks müssen nach Forecast/Station oder spätestem Soft-Delay vorladen.');
+assert.ok(preload.includes('await delay(35)'),'Fast-Observation muss beim Start priorisiert werden.');
+assert.ok(preload.includes('await delay(constrained?650:440)'),'Ensemble-Start muss hinter den kritischen Istwetter-/Radar-Pfad rücken und Data-Saver respektieren.');
+assert.ok(preload.includes('radarRequest.promise,delay(700)]).then(()=>preloadInterfaceChunks(ensemble))'),'Nichtkritische Chunks müssen nach Forecast/Station oder spätestem Soft-Delay vorladen.');
 assert.ok(app.includes('runFullStationAnalysis()},80)'),'Volle Hyperlokalanalyse muss nach dem Provisional-Pass zügig nachziehen.');
 
 console.log('German weather terminology + quality-neutral startup performance contract: OK');

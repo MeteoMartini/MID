@@ -33,7 +33,7 @@ const precipIndex=app.indexOf("label:'Niederschlag'");
 const visibilityIndex=app.indexOf("label:'Sichtweite'");
 const cloudIndex=app.indexOf("label:'Bewölkung'");
 if(!(precipIndex>=0&&visibilityIndex>precipIndex&&cloudIndex>visibilityIndex))failures.push('Sichtweite steht nicht zwischen Niederschlag und Bewölkung');
-for(const token of ["visibility=observed('visibility',st?.visibility,Number(c.visibility))",'value:visibilityLabel(visibility)','Number.isFinite(st?.visibility)','cloudOktasValue>=5','Ceiling ${ceilingHft} hft','cloudOktasValue>=1&&cloudOktasValue<=4','Wolkenuntergrenze ${cloudBaseHft} hft'])if(!app.includes(token))failures.push(`Sichtweitenkarte fehlt: ${token}`);
+for(const token of ["visibility=observed('visibility',st?.visibility,Number(c.visibility))",'value:visibilityLabel(visibility)','Number.isFinite(st?.visibility)','observedCeilingHft=fieldFresh(\'ceilingHft\')','ceilingFromModel=!Number.isFinite(observedCeilingHft)','Modell-Ceiling ~${modelCeilingHft} hft','cloudOktasValue>=1&&cloudOktasValue<=4','Wolkenuntergrenze ${cloudBaseHft} hft'])if(!app.includes(token))failures.push(`Sichtweitenkarte fehlt: ${token}`);
 
 for(const token of ['.sunshine-scale-legend>i{width:min(255px,44vw)','height:18px','opacity:.88'])if(!styles.includes(token))failures.push(`Kompakte Sonnenscheinlegende fehlt: ${token}`);
 

@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.84.95",
+  "version": "0.9.84.97",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -472,7 +472,8 @@
     "test:overlay-viewport-continuation": "node scripts/test-overlay-viewport-continuation-098480.mjs",
     "test:mobile-header-bottom-nav": "node scripts/test-mobile-header-bottom-nav-098481.mjs",
     "test:map-chart-responsive-continuation": "node scripts/test-map-chart-responsive-continuation-098482.mjs",
-    "test:ios-floating-bottom-bar": "node scripts/test-ios-floating-bottom-bar-098489.mjs"
+    "test:ios-floating-bottom-bar": "node scripts/test-ios-floating-bottom-bar-098489.mjs",
+    "test:synoptic-startup-ceiling": "node scripts/test-synoptic-startup-ceiling-098496.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",

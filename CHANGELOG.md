@@ -1,3 +1,30 @@
+# MID v0.9.84.97
+
+## Extern
+- Der fehlgeschlagene Installer #1050 wurde korrigiert. Die fachlichen Verbesserungen aus v0.9.84.96 bleiben unverändert erhalten: robustere 500-hPa-Isohypsen/Fronten, schneller gestartete hyperlokale Analyse und klar gekennzeichnetes ICON-D2-RUC-Modell-Ceiling.
+- Wetterdaten, Modellfusion, Warnlogik, Radar, Satellit, Synoptikdarstellung und UI wurden durch diesen Hotfix nicht fachlich verändert.
+
+## Intern
+- `test-ensemble-wind-selection-cloud-reconciliation-08173.mjs` schützt jetzt die aktuelle Bewölkungsprovenienz mit `baseCloudSource` sowie der zusätzlichen Modell-Ceiling-Quellenangabe, statt die entfernte Direktzuweisung zu verlangen.
+- `test-view-simulation-bottom-isohypsen-smoothing-098494.mjs` akzeptiert nun fachlich korrekt das native DWD-WMS als primären Isohypsenpfad und den geglätteten Vektor-/Canvas-Pfad als Fallback.
+- GitHub #1050 hatte `npm ci`, Dependency-Audit, TypeScript und Vite bereits erfolgreich abgeschlossen; nur diese zwei von 789 statischen Verträgen blockierten die Veröffentlichung.
+- Keine neue Worker-Fachlogik; Versionsmetadaten auf 0.9.84.97 synchronisiert.
+
+# MID v0.9.84.96
+
+## Extern
+- Die Synoptik im Komposit rendert 500-hPa-Isohypsen robuster: DWD ICON-WMS ist der bevorzugte Linienpfad; bis dieser verfügbar ist, zeigt MID dieselben Höhenfelder zusätzlich über einen geglätteten MapLibre-Canvas-Fallback. Dadurch sollen nicht mehr nur gpdm-Beschriftungen ohne zugehörige Linien erscheinen.
+- Fronten erhalten zusätzlich einen eigenen MapLibre-Canvas-Layer. Die objektiv diagnostizierten Front- und Frontalzonen bleiben damit auch dann sichtbar, wenn der bisherige Leaflet-kompatible Vektorpfad in der aktuellen Kartenengine ausfällt. Die amtliche DWD-Bodenanalyse bleibt als unveränderte Referenz verfügbar.
+- Der Start der hyperlokalen Wetteranalyse wurde parallelisiert. Stationsdaten, Radar-/Niederschlagsabgleich und vollständige Stationsanalyse beginnen auf normalen Verbindungen deutlich früher, ohne Datenquellen, Qualitätsprüfungen oder meteorologische Berechnungen zu streichen. Langsame bzw. datensparende Verbindungen behalten den konservativeren Ablauf.
+- DWD ICON-D2-RUC-Ceiling wird nun auch im aktuellen Wetter und im Flug-/Eventwetter genutzt. Frische beobachtete Ceiling-Werte bleiben vorrangig; Modellwerte werden ausdrücklich als „Modell-Ceiling“ gekennzeichnet.
+
+## Intern
+- 500-hPa-Geopotentialhöhe nutzt im Komposit den vorhandenen DWD-WMS-Pfad `Icon_reg025_fd_pl_GH` auf 500 hPa; ein Canvas-Fallback über `CanvasOverlay` bleibt aktiv, bis der native WMS-Stand geladen ist.
+- Frontdarstellung um einen von Leaflet-SVG unabhängigen Canvas-Pfad für Synoptik-Kandidaten und regionale Frontalzonen erweitert.
+- Startup-Preload auf normalen Verbindungen enger gestaffelt (`fastStation` 35 ms, Radar 85 ms, vollständige Stationsanalyse 140 ms); die spätere vollständige Fusion und alle Qualitäts-/Fallbackpfade bleiben erhalten.
+- RUC-CEILING wird in die kanonische Kurzfriststunde durchgereicht und von aktuellem Wetter sowie Flug-/Eventwetter verwendet. Reguläre ICON-D2-/ICON-EU-Ceiling-Brokerpfade bleiben eine separate Ausbaustufe.
+- Keine neue Worker-Fachlogik gegenüber v0.9.84.95; Worker-Dateien unterscheiden sich nur durch synchronisierte Release-Metadaten. Ein separater manueller Worker-Upload ist für die fachlichen Änderungen dieser Version nicht erforderlich.
+
 # MID v0.9.84.95
 
 ## Extern

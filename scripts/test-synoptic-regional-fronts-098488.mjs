@@ -7,6 +7,6 @@ assert.ok(worker.includes('function synopticThetaEFrontalZones('),'Großräumige
 assert.ok(worker.includes("basis:'θe 850 hPa'")&&worker.includes("type:'frontal-zone'"),'Frontzonen müssen als modell-diagnostische θe-850-Struktur gekennzeichnet sein.');
 assert.ok(worker.includes('gradientKPer100Km')&&worker.includes('synopticQuantile'),'Frontzonen brauchen Gradientenschwelle und robuste Quantilselektion.');
 assert.ok(composite.includes("type:'frontal-zone'")&&composite.includes('frontalZones?:ModelFrontalZone[]'),'Frontend-Typen müssen die regionalen Frontalzonen transportieren.');
-assert.ok(radar.includes('function RegionalFrontalZones(')&&radar.includes("color:'#b451d2'")&&radar.includes("className:'mid-synoptic-front foreground frontal-zone'"),'Regionale Frontalzonen müssen sichtbar und von Isobaren/Isohypsen unterscheidbar gerendert werden.');
+assert.ok(radar.includes('function RegionalFrontalZones(')&&radar.includes("color:'#b451d2'")&&radar.includes("className:'mid-synoptic-front foreground frontal-zone'")&&radar.includes('function SynopticFrontCanvasFallback('),'Regionale Frontalzonen müssen sichtbar, unterscheidbar und mit Canvas-Fallback gegen Vector-Layer-Ausfälle abgesichert sein.');
 assert.ok(radar.includes('regionalFrontCount')&&radar.includes('localFrontCount')&&radar.includes('frontCount=regionalFrontCount+localFrontCount'),'Status/Layerinfo muss regionale und lokal typisierte Fronten berücksichtigen.');
 console.log('Synoptik: regionale θe-850-Frontalzonen und lokale Fronttypen geprüft.');

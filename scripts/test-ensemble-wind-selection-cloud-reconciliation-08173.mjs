@@ -35,7 +35,8 @@ for(const token of [
 ])need('Hyperlokale Wolkenkorrektur',weather,token);
 
 for(const token of [
-  "cloudSource=advancedMode&&fieldFresh('cloudCover')&&st?.cloudAnalysisMethod?",
+  "const baseCloudSource=advancedMode&&fieldFresh('cloudCover')&&st?.cloudAnalysisMethod?",
+  "cloudSource=ceilingFromModel?`${baseCloudSource} · Ceiling ${currentForecastHour?.ceilingSourceLabel||'DWD ICON-D2-RUC · CEILING'}`:baseCloudSource",
   'info:metricMore(`${cloudBaseDetail}${cloudCompactDetail} · ${cloudSource}`',
   "fieldSourceInfo([{label:'Bedeckung',fields:['cloudCover']},{label:'Untergrenze / Ceiling',fields:['cloudBaseHft','ceilingHft']}])"
 ])need('Transparente Bewölkungsquelle im (i)-Popover',app,token);
