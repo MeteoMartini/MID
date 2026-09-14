@@ -7,7 +7,7 @@ const [radar,styles,v078]=await Promise.all([
 const failures=[];
 for(const token of [
  "function Contours({levels,type,opacity,tone}",
- "<Polyline positions={item.path as any} interactive={false} pathOptions={{pane:'mid-model-lines'",
+ "<Polyline renderer={renderer} positions={item.path as any} interactive={false} pathOptions={{pane:'mid-model-lines'",
  '<CircleMarker key={`label:${type}:${level.level}:${pathIndex}:${labelIndex}`}',
  "function contourPalette(type:'isobars'|'isoheights',tone:'white'|'black'|'multicolor')",
  "mainColor=level.major?palette.major:palette.main",
@@ -27,5 +27,5 @@ for(const token of [
  'line-height:16px;'
 ])if(!v078.includes(token))failures.push(`Mobile Tmin/Tmax-Zentrierung fehlt: ${token}`);
 if(failures.length){console.error('Mobile Tmin/Tmax-/Kontur-/Overlay-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-if(radar.includes("renderer=useMemo(()=>L.svg({pane:'mid-model-lines'"))failures.push('Eigener Leaflet-SVG-Renderer darf die Isohypsenpfade nicht mehr vom Pane trennen.');
+if(!radar.includes("renderer=useMemo(()=>L.svg({pane:'mid-model-lines'"))failures.push('Expliziter Leaflet-SVG-Renderer muss an das Modelllinien-Pane gebunden sein.');
 console.log('Mobile Tmin/Tmax-Zentrierung, panegebundene SVG-Modellkonturen und kollisionsfreie Komposit-Overlays geprüft.');

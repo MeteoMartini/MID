@@ -10,8 +10,8 @@ assert.ok(settings.includes("detail:'Standard'")&&settings.includes("detail:'OSM
 assert.ok(!settings.includes('schlüsselfrei'),'Unnötiger sichtbarer Hinweis „schlüsselfrei“ darf nicht in den Komposit-Basemapdetails stehen');
 assert.ok(radar.includes('flushCompositeSettings')&&radar.includes('pagehide')&&radar.includes('visibilitychange'),'Kompositzustand muss sofort sowie beim Verlassen zuverlässig gespeichert werden');
 assert.ok(!radar.includes('const timer=window.setTimeout(()=>{try{writeCompositeSettings'),'Kompositauswahl darf beim schnellen Verlassen nicht durch einen Debounce verloren gehen');
-assert.ok(radar.includes('<Polyline positions={item.path as any} interactive={false} pathOptions={{pane:\'mid-model-lines\''),'Isohypsen müssen als reale panegebundene Vektorpfade gerendert werden');
-assert.ok(!radar.includes("renderer=useMemo(()=>L.svg({pane:'mid-model-lines'"),'Separater SVG-Renderer darf die Isohypsen nicht vom Pane entkoppeln');
+assert.ok(radar.includes("<Polyline renderer={renderer} positions={item.path as any} interactive={false} pathOptions={{pane:'mid-model-lines'"),'Isohypsen müssen als reale panegebundene Vektorpfade mit demselben Pane-Renderer gerendert werden');
+assert.ok(radar.includes("renderer=useMemo(()=>L.svg({pane:'mid-model-lines'"),'Modelllinien müssen einen explizit an mid-model-lines gebundenen SVG-Renderer verwenden');
 for(const token of ['rucRain?:number[]','rucSnowfallWaterEquivalent?:number[]','graupelWaterEquivalent?:number[]','phaseSource?:string'])assert.ok(types.includes(token),`RUC-Phasentyp fehlt: ${token}`);
 for(const token of ['function dwdRucRapidPhaseTimeIndex','async function dwdRucStaticPhaseGrid','meta?.rapid?.phase15','graupel_water_equivalent'])assert.ok(core.includes(token),`RUC-Phasenadapter fehlt: ${token}`);
 assert.ok(models.includes('await dwdRucStaticPhaseGrid(lats,lons,targetMs,env)'),'Radar-Phasenraster muss native RUC-Phase ergänzen');
@@ -20,4 +20,4 @@ assert.ok(router.includes('precipitationPhaseGridData(lat,lon,target,env)'),'Wor
 for(const token of ['Graupel · ICON-D2-RUC','Mischphase · ICON-D2-RUC','Schnee · ICON-D2-RUC','Regen · ICON-D2-RUC'])assert.ok(phase.includes(token),`RUC-Phasenauswertung fehlt: ${token}`);
 assert.ok(contract.includes('Aktuell · Kurzfrist · 7 Tage · 14 Tage · Komposit · Mehr'),'Navigationsvertrag ist nicht aktualisiert');
 const parsed=JSON.parse(baseline);assert.ok(parsed.requiredRegressionTests.includes('scripts/test-navigation-composite-ruc-098491.mjs'),'Neue Pflichtregression fehlt');
-console.log('MID 0.9.84.92: Aktuell in der Bottom-Bar, robuste Kompositpersistenz, sichtbare Isohypsenpfade und native ICON-D2-RUC-Niederschlagsphase geschützt.');
+console.log('MID: Bottom-Bar, Kompositpersistenz, panegebundene Isohypsenpfade und native ICON-D2-RUC-Niederschlagsphase geschützt.');

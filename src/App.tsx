@@ -1496,14 +1496,20 @@ function Forecast({days,hours,minutes15,climate,selected:selectedSeed,setSelecte
  const yWind=(v:number)=>windLineBottom-(Math.max(0,v)/windMaxScale)*Math.max(1,windLineBottom-windTop);
  const windWarningBands=(showWind||showGust)?WIND_WARNING_BANDS.flatMap(band=>{if(windMaxScale<=band.lowerKt)return[];const upperKt=Math.min(windMaxScale,band.upperKt),topY=yWind(upperKt),bottomY=yWind(band.lowerKt),height=Math.max(0,bottomY-topY);return height>.5?[{...band,upperKt,y:topY,height}]:[]}):[];
  const windWarningThresholds=(showWind||showGust)?DWD_WIND_THRESHOLDS_KMH.filter(item=>windMaxScale>=item.threshold/KMH_PER_KT).map(item=>({...item,y:yWind(item.threshold/KMH_PER_KT),color:DWD_WARNING_COLORS[item.level]})):[];
- const tempPath=showTemperature?p.map((x,i)=>`${i?'L':'M'} ${xAt(i)} ${yTemp(x.temperature)}`).join(' '):'';
- const apparentPath=showApparent?p.map((x,i)=>`${i?'L':'M'} ${xAt(i)} ${yTemp(x.apparent)}`).join(' '):'';
- const dewPointPath=showDewPoint?p.map((x,i)=>`${i?'L':'M'} ${xAt(i)} ${yTemp(x.dewPoint)}`).join(' '):'';
- const pressurePath=showPressure?p.map((x,i)=>({x,i})).filter(({x})=>Number.isFinite(x.pressure)).map(({x,i},index)=>`${index?'L':'M'} ${xAt(i)} ${yPressure(x.pressure)}`).join(' '):'';
+ const temperatureCurvePoints=showTemperature?p.map((x,i)=>({x:xAt(i),y:yTemp(x.temperature)})):[];
+ const apparentCurvePoints=showApparent?p.map((x,i)=>({x:xAt(i),y:yTemp(x.apparent)})):[];
+ const dewPointCurvePoints=showDewPoint?p.map((x,i)=>({x:xAt(i),y:yTemp(x.dewPoint)})):[];
+ const pressureCurvePoints=showPressure?p.map((x,i)=>({value:x.pressure,index:i})).filter(({value})=>Number.isFinite(value)).map(({value,index})=>({x:xAt(index),y:yPressure(value)})):[];
+ const windCurvePoints=showWind?p.map((x,i)=>({x:xAt(i),y:yWind(x.wind)})):[];
+ const gustCurvePoints=showGust?p.map((x,i)=>({x:xAt(i),y:yWind(x.gust)})):[];
+ const tempPath=showTemperature?monotoneSvgPath(temperatureCurvePoints):'';
+ const apparentPath=showApparent?monotoneSvgPath(apparentCurvePoints):'';
+ const dewPointPath=showDewPoint?monotoneSvgPath(dewPointCurvePoints):'';
+ const pressurePath=showPressure?monotoneSvgPath(pressureCurvePoints):'';
  const probabilityCurvePoints=showProbability&&p.length?[{x:xAt(0),y:yProb(p[0].probability)},...p.map((item,index)=>({x:(xAt(index)+slotEndAt(index))/2,y:yProb(item.probability)})),{x:slotEndAt(p.length-1),y:yProb(p[p.length-1].probability)}]:[],probabilityPath=showProbability?monotoneSvgPath(probabilityCurvePoints):'';
- const windPath=showWind?p.map((x,i)=>`${i?'L':'M'} ${xAt(i)} ${yWind(x.wind)}`).join(' '):'';
- const gustPath=showGust?p.map((x,i)=>`${i?'L':'M'} ${xAt(i)} ${yWind(x.gust)}`).join(' '):'';
- const areaPath=showTemperature?`${tempPath} L ${xAt(p.length-1)} ${tempBottom} L ${xAt(0)} ${tempBottom} Z`:'';
+ const windPath=showWind?monotoneSvgPath(windCurvePoints):'';
+ const gustPath=showGust?monotoneSvgPath(gustCurvePoints):'';
+ const areaPath=showTemperature&&temperatureCurvePoints.length?`${tempPath} L ${temperatureCurvePoints[temperatureCurvePoints.length-1].x} ${tempBottom} L ${temperatureCurvePoints[0].x} ${tempBottom} Z`:'';
  const portraitTabletMarkers=mediumChart&&!narrowChart&&!compactLandscape,showAllDetailMarkers=narrowChart||compactLandscape||portraitTabletMarkers,markerSpacing=plotW/Math.max(1,p.length),iconFontSize=portraitTabletMarkers?Math.max(8,Math.min(11,markerSpacing*.48)):showAllDetailMarkers?Math.max(8,Math.min(13,markerSpacing*.72)):mediumChart?17:20,iconMinimumSpacing=narrowChart?34:mediumChart?36:38,maxIconCount=Math.max(2,Math.floor(plotW/iconMinimumSpacing)+1),iconIndices=maximizeVisibleIndices(p.length,maxIconCount),iconPoints=representativeDetailPictograms(iconIndices,p,precipSeries);if(showAllDetailMarkers){iconPoints.length=0;iconPoints.push(...representativeDetailPictograms(p.map((_,i)=>i),p,precipSeries))}
  const timeStep=Math.max(1,Math.ceil((p.length-1)/Math.max(1,Math.floor(plotW/(narrowChart?72:mediumChart?82:92))))),timeIndices=p.map((_,i)=>i).filter(i=>i===0||i===p.length-1||i%timeStep===0);
  const directionStep=showAllDetailMarkers?1:Math.max(1,Math.ceil((p.length-1)/Math.max(1,Math.floor(plotW/(mediumChart?32:36))))),directionIndices=p.map((_,i)=>i).filter(i=>i===0||i===p.length-1||i%directionStep===0),directionArrowSize=portraitTabletMarkers?Math.max(6,Math.min(8.5,markerSpacing*.34)):showAllDetailMarkers?Math.max(7,Math.min(10,markerSpacing*.46)):labelFont+5;

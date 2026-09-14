@@ -1,3 +1,29 @@
+# MID v0.9.84.95
+
+## Extern
+- Der fehlgeschlagene Installer #1048 wurde korrigiert. Die sichtbaren Verbesserungen aus v0.9.84.94 bleiben unverändert erhalten: sichere mobile Bottom-Bar, zuverlässigere 500-hPa-Isohypsen und geglättete Kurven im 24-h-Profil.
+- Wetterdaten, Modellfusion, Warnlogik, Radar, Satellit und meteorologische Berechnungen wurden durch diesen Hotfix nicht verändert.
+
+## Intern
+- Installer #1048 scheiterte im kombinierten Build-/Regression-Gate. Lokal ließ sich der erste Blocker exakt als veralteter Vertrag in `test-navigation-composite-ruc-098491.mjs` reproduzieren: Der Test verbot noch den inzwischen bewusst panegebundenen Leaflet-SVG-Renderer.
+- Ein anschließender vollständiger statischer Regressionsdurchlauf deckte vier weitere veraltete Quelltextverträge derselben v0.9.84.94-Änderungen auf. Aktualisiert wurden deshalb auch die Verträge für monotone Wind-/Böenkurven, das Modelllinien-Pane mit Grid-Isohypsen-Fallback, den größeren sichtbaren Bottom-Bar-Griff und die panegebundenen Konturpfade.
+- Die fünf korrigierten Altverträge sowie die angrenzenden Bottom-Bar-, Synoptik-, 24-h-, Viewport-, Versions- und Release-Lineage-Regressionen bestehen im korrigierten Stand.
+- Keine Worker-Fachlogik geändert; Versionsmetadaten wurden auf 0.9.84.95 synchronisiert.
+
+# MID v0.9.84.94
+
+## Extern
+- Die mobile Bottom-Bar bleibt auf iPhone und anderen kompakten Displays sichtbar oberhalb des unteren Bildrands. Auch im Auto-Minimierungszustand bleibt ein klar erkennbarer Griffbereich erhalten.
+- Die Bottom-Bar-Einstellung ist optisch an die Favoritenleisten-Einstellung angeglichen.
+- 500-hPa-Isohypsen werden im Synoptikmodus zuverlässiger als echte geglättete Gold-/Amber-Linien mit gpdm-Beschriftung dargestellt, auch wenn der Grid-Frame früher als der vollständige Modellframe verfügbar ist.
+- Die Linien der Tagesansicht sind ruhiger und geglättet: Temperatur, gefühlte Temperatur, Taupunkt, Luftdruck, Wind und Böen verwenden nun dieselbe monotone Kurvenführung wie bereits die Niederschlagswahrscheinlichkeit.
+
+## Intern
+- Bottom-Bar-Safe-Area-Offsets und Auto-Hide-Translation nach Viewport-/iPhone-Simulation nachgeschärft.
+- Synoptik-Bereitschaft und Modelllinien-Pane von der unnötigen Abhängigkeit eines vollständigen `dominantModelFrame` entkoppelt; Grid-Isohypsen können eigenständig rendern.
+- Tagesprofilpfade auf `monotoneSvgPath` umgestellt; die Temperaturfläche schließt entlang der geglätteten Kurve.
+- Keine neue Worker-Fachlogik; Worker-Deploy ist für diese Änderungen nicht erforderlich.
+
 # MID v0.9.84.93
 
 ## Extern
@@ -8,7 +34,7 @@
 ## Intern
 - `test-composite-buffered-playback-097881.mjs` prüft jetzt die aktuelle `compositeSettingsRef`-/Flush-Persistenz statt eines entfernten historischen `writeCompositeSettings({...} satisfies CompositeSettings)`-Quelltextmusters.
 - `test-synoptic-isoheight-visibility-098455.mjs` schützt jetzt den aktuellen Grid-first-`vectorIsoheightFrame` samt vektorfähigem Modellframe-Fallback und tatsächlichem Polyline-Rendering, statt ausschließlich den alten Direktzugriff auf `dominantGridFrame.isoheights` zu verlangen.
-- Keine zusätzliche Worker-Fachlogik in v0.9.84.93. Da v0.9.84.92 wegen Installer #1046 nicht bis zum Worker-Deploy gelangte, bleibt der kumulative Worker-Upload für den nächsten erfolgreichen Installer erforderlich.
+- Keine zusätzliche Worker-Fachlogik in v0.9.84.93. Installer #1047 veröffentlichte den kumulativen Stand erfolgreich.
 
 # MID v0.9.84.92
 

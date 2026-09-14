@@ -21,7 +21,7 @@ for(const token of [
 ])assert.ok(app.includes(token),`Bottom-Bar-Vertrag fehlt: ${token}`);
 for(const token of [
  'grid-template-columns:repeat(6,minmax(0,1fr))!important',
- 'bottom:max(6px,calc(var(--mid-safe-bottom) - 18px))!important',
+ 'bottom:max(14px,calc(var(--mid-safe-bottom) + 2px))!important',
  '[data-fixed="true"]',
  'white-space:nowrap!important'
 ])assert.ok(modern.includes(token),`Bottom-Bar-CSS fehlt: ${token}`);
@@ -32,7 +32,7 @@ for(const token of [
  "window.addEventListener('pagehide',flush)",
  "document.addEventListener('visibilitychange',onVisibility)",
  'persistCompositePatch({viewMode:next',
- 'const vectorIsoheightFrame=',
+ 'vectorIsoheightFrame=',
  '<MemoContours levels={vectorIsoheightFrame.isoheights} type="isoheights"'
 ])assert.ok(radar.includes(token),`Komposit-/Isohypsen-Vertrag fehlt: ${token}`);
 for(const token of [

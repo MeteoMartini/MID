@@ -6,10 +6,10 @@ assert.match(weather,/Preserve the wind value and reconcile only the same timest
 assert.match(weather,/not temporal smoothing/,'es muss ausdrücklich ausgeschlossen sein, dass zeitlich geglättet wird');
 assert.match(weather,/return\{wind:base,gust:adjusted\?base:gustValue,adjusted\};/,'bei Böe kleiner Wind oder fehlender Böe müssen beide Reihen mit einem endlichen Wert erhalten bleiben');
 assert.match(weather,/gustAdjusted:windPair\.adjusted/,'Stundenwerte müssen die Angleichung für die Detailansicht kennzeichnen');
-assert.match(app,/const windPath=showWind\?p\.map/,'Windpfad im Tagesdetaildiagramm fehlt');
-assert.match(app,/const gustPath=showGust\?p\.map/,'Böenpfad im Tagesdetaildiagramm fehlt');
+assert.match(app,/const windPath=showWind\?monotoneSvgPath\(windCurvePoints\)/,'geglätteter Windpfad im Tagesdetaildiagramm fehlt');
+assert.match(app,/const gustPath=showGust\?monotoneSvgPath\(gustCurvePoints\)/,'geglätteter Böenpfad im Tagesdetaildiagramm fehlt');
 assert.match(app,/stroke="var\(--param-wind\)"/,'sichtbare Windlinie fehlt');
 assert.match(app,/stroke="var\(--param-gust\)"[^>]*strokeDasharray="7 5"/,'sichtbare gestrichelte Böenlinie fehlt; bei gleichen Werten muss die Windlinie in den Lücken erkennbar bleiben');
 assert.match(app,/currentHour\.gustAdjusted&&<em>Böe auf Windniveau plausibilisiert<\/em>/,'Tooltip-Hinweis auf angeglichene Böe fehlt');
 assert.doesNotMatch(weather,/gust:.*Number\.NaN/,'die Böenreihe darf wegen eines unplausiblen Einzelwerts nicht mehr in NaN umgewandelt werden');
-console.log('Tagesdetail-Wind geprüft: nachvollziehbare punktweise Böenangleichung ohne Glättung; Wind- und Böenlinie bleiben sichtbar.');
+console.log('Tagesdetail-Wind geprüft: punktweise fachliche Böenangleichung ohne Daten-Zeitglättung; Wind- und Böenlinie werden visuell monoton verbunden.');
