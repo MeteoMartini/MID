@@ -6198,3 +6198,45 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
  .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs{transition:none!important}
  .navigation-bottom-tabs .dashboard-bottom-tabs button,.navigation-bottom-tabs .dashboard-bottom-tabs button svg{transition:none!important}
 }
+
+/* MID v0.9.84.92 · Bottom-Bar: Aktuell wieder primär, sechs gleichrangige Ziele,
+   niedrigere iPhone-Lage und optional fixierter Modus. Die Safe Area wird weiterhin
+   eingehalten, aber nicht doppelt als äußerer Abstand aufgeschlagen. */
+@media(max-width:850px){
+ .navigation-bottom-tabs{padding-bottom:calc(94px + var(--mid-safe-bottom))!important}
+ .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs{
+  grid-template-columns:repeat(6,minmax(0,1fr))!important;
+  bottom:max(6px,calc(var(--mid-safe-bottom) - 18px))!important;
+  padding:5px!important;
+  gap:2px!important;
+  border-radius:26px!important;
+ }
+ .navigation-bottom-tabs .dashboard-bottom-tabs button{
+  min-height:53px!important;
+  grid-template-rows:20px 13px!important;
+  gap:2px!important;
+  padding:4px 1px!important;
+  border-radius:18px!important;
+ }
+ .navigation-bottom-tabs .dashboard-bottom-tabs button svg{width:19px!important;height:19px!important}
+ .navigation-bottom-tabs .dashboard-bottom-tabs button span{font-size:clamp(8.8px,2.25vw,10.4px)!important;letter-spacing:-.018em!important}
+ .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs[data-fixed="true"]{transform:translate3d(0,0,0)!important;opacity:1!important}
+}
+@media(max-width:430px){
+ .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs{right:max(7px,var(--mid-safe-right))!important;left:max(7px,var(--mid-safe-left))!important;gap:1px!important}
+ .navigation-bottom-tabs .dashboard-bottom-tabs button span{font-size:8.8px!important}
+ .navigation-bottom-tabs .dashboard-bottom-tabs button svg{width:18px!important;height:18px!important}
+}
+@media(max-width:350px){
+ .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs{padding:4px!important}
+ .navigation-bottom-tabs .dashboard-bottom-tabs button{min-height:50px!important;grid-template-rows:18px 12px!important}
+ .navigation-bottom-tabs .dashboard-bottom-tabs button span{font-size:8.2px!important;letter-spacing:-.025em!important}
+ .navigation-bottom-tabs .dashboard-bottom-tabs button svg{width:17px!important;height:17px!important}
+}
+@media(max-width:850px) and (orientation:landscape){
+ .navigation-bottom-tabs{padding-bottom:calc(68px + var(--mid-safe-bottom))!important}
+ .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs{max-width:610px!important;bottom:max(4px,calc(var(--mid-safe-bottom) - 12px))!important;padding:4px!important}
+ .navigation-bottom-tabs .dashboard-bottom-tabs button{min-height:43px!important;grid-template-rows:17px 11px!important;padding:2px 1px!important}
+ .navigation-bottom-tabs .dashboard-bottom-tabs button svg{width:17px!important;height:17px!important}
+ .navigation-bottom-tabs .dashboard-bottom-tabs button span{font-size:8.8px!important}
+}

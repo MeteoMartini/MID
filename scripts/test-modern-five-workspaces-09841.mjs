@@ -1,8 +1,8 @@
 import fs from 'node:fs';
 const app=fs.readFileSync('src/App.tsx','utf8'),css=fs.readFileSync('src/styles-src/30-modern.css','utf8');
 const checks=[
- ['five primary labels', ['Kurzfrist','7 Tage','14 Tage','Komposit','Mehr'].every(value=>app.includes(value))],
- ['current moved to more', app.includes("!['short-term','forecast','ensemble','composite'].includes(id)")&&!app.includes("{id:'current',label:'Aktuell'")],
+ ['six primary labels', ['Aktuell','Kurzfrist','7 Tage','14 Tage','Komposit','Mehr'].every(value=>app.includes(value))],
+ ['current is direct and not duplicated in more', app.includes("!['current','short-term','forecast','ensemble','composite'].includes(id)")&&app.includes("{id:'current',label:'Aktuell'")],
  ['restorable section contract', app.includes("RESTORABLE_DASHBOARD_SECTIONS:DashboardModuleId[]=['current','warnings','extreme-outlook','ventilation'")],
  ['progressive expert navigation', app.includes('modernMoreGroups')&&app.includes("variant==='drawer'")],
  ['modern module focus rendering', app.includes("if(navigationMode==='bottom-tabs')")&&app.includes('if(!visible)return null;')],

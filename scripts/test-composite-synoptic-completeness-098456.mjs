@@ -12,8 +12,8 @@ assert.ok(radar.includes('name="mid-synoptic-fronts"')&&radar.includes('<MemoCom
 assert.ok(radar.includes("synoptic-front-marker")&&radar.includes("type==='occlusion'?(index%2?'warm':'cold')"),'Kalt-/Warmfronten und Okklusion brauchen meteorologische Frontsymbole statt nur beliebiger Linien.');
 assert.ok(worker.includes("temperature_850hPa,relative_humidity_850hPa")&&worker.includes('synopticThetaEFrontalZones')&&worker.includes('frontalZones'),'Das Europa-Grid muss θe-850-Frontalzonen aus Temperatur und Feuchte diagnostizieren.');
 assert.ok(!radar.includes('ICON-500-hPa-Isohypsen &copy; Deutscher Wetterdienst'),'Der treppenartige native DWD-WMS-Isohypsenfallback darf nicht mehr über den geglätteten MID-Vektoren liegen.');
-assert.ok(radar.includes('hasGridIsoheights')&&radar.includes('dominantGridFrame.isoheights'),'Synoptik muss geglättete MID-Isohypsen aus dem Raster verwenden.');
+assert.ok(radar.includes('hasGridIsoheights')&&radar.includes('vectorIsoheightFrame.isoheights'),'Synoptik muss geglättete MID-Isohypsen bevorzugt aus dem Grid und mit Vektor-Fallback rendern.');
 assert.ok(radar.includes('hasGridCenters')&&radar.includes('<MemoPressureCenters'),'H/T-Druckzentren müssen aus demselben Grid sichtbar gemacht werden.');
 assert.ok(radar.includes("if(!panelVisible||modelLines==='off'){setModelGridData({frames:[]});return}"),'Das Grid muss bei allen aktiven Synoptik-Modelllinien geladen werden, damit Isohypsen, H/T-Zentren und Frontalzonen nicht verschwinden.');
-assert.ok(worker.includes('start+=6')&&worker.includes('Math.min(6,rows-start)'),'Worker-Gridabruf muss mit begrenzter höherer Parallelität die mobile Erstladezeit reduzieren.');
+assert.ok(worker.includes('const rowsPerRequest=4')&&worker.includes('const batches=await Promise.all(chunks.map'),'Worker-Gridabruf muss mehrere Rasterzeilen pro Anfrage bündeln und parallel laden.');
 console.log('Composite synoptic completeness contract: OK');

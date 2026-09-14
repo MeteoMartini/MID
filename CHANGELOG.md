@@ -1,3 +1,31 @@
+# MID v0.9.84.93
+
+## Extern
+- Der fehlgeschlagene Installer #1046 wurde korrigiert. Der Produktionsbuild selbst war bereits erfolgreich; blockiert hatten ausschließlich zwei veraltete automatische Prüferwartungen.
+- Die mit v0.9.84.92 eingeführte robuste Speicherung der Komposit-Einstellungen bleibt unverändert erhalten, einschließlich der gewählten Wiedergabegeschwindigkeit.
+- Die 500-hPa-Isohypsen bleiben gridbevorzugte, geglättete Vektorkonturen mit sicherem Modellframe-Fallback und gpdm-Beschriftung. An Wetterdarstellung, Datenquellen oder Bedienlogik wurde für diesen Hotfix nichts fachlich geändert.
+
+## Intern
+- `test-composite-buffered-playback-097881.mjs` prüft jetzt die aktuelle `compositeSettingsRef`-/Flush-Persistenz statt eines entfernten historischen `writeCompositeSettings({...} satisfies CompositeSettings)`-Quelltextmusters.
+- `test-synoptic-isoheight-visibility-098455.mjs` schützt jetzt den aktuellen Grid-first-`vectorIsoheightFrame` samt vektorfähigem Modellframe-Fallback und tatsächlichem Polyline-Rendering, statt ausschließlich den alten Direktzugriff auf `dominantGridFrame.isoheights` zu verlangen.
+- Keine zusätzliche Worker-Fachlogik in v0.9.84.93. Da v0.9.84.92 wegen Installer #1046 nicht bis zum Worker-Deploy gelangte, bleibt der kumulative Worker-Upload für den nächsten erfolgreichen Installer erforderlich.
+
+# MID v0.9.84.92
+
+## Extern
+- **Aktuelles Wetter** ist wieder direkt über die mobile Bottom-Bar erreichbar. Die sechs Primärziele lauten jetzt **Aktuell · Kurzfrist · 7 Tage · 14 Tage · Komposit · Mehr**; „Aktuell“ wird nicht zusätzlich in „Mehr“ dupliziert.
+- Die Bottom-Bar kann unter **Einstellungen → Bottom-Leiste → Verhalten beim Scrollen** wahlweise **Auto** oder **Fixiert** betrieben werden. „Fixiert“ hält sie dauerhaft vollständig sichtbar; „Auto“ minimiert sie erst nach deutlicher Abwärtsbewegung und zeigt sie beim Hochscrollen sofort wieder vollständig.
+- Die schwebende Bottom-Bar sitzt auf iPhones näher und sauberer am Home-Indicator. Die Safe Area wird nicht mehr doppelt als äußerer Abstand aufgeschlagen; Touch-Ziele bleiben trotzdem ausreichend groß.
+- Die zuletzt gewählte **Komposit-Konfiguration** wird nun robuster gespeichert – auch bei schnellem Modulwechsel, Wechsel in den Hintergrund oder Schließen der PWA.
+- **500-hPa-Isohypsen** werden im Synoptik-Layer wieder als gold-/amberfarbene gestrichelte Vektorlinien **mit gpdm-Beschriftung** geladen. Der Abruf des Europagitters wurde beschleunigt, ohne Rasterdichte oder 8-gpdm-Konturintervall zu reduzieren.
+
+## Intern
+- Bottom-Bar-Vertrag auf sechs mobile Primärziele erweitert; Current/Aktuelles Wetter ist wieder kanonischer Direkt-Tab. Der frühere Beta-Current-Pfad bleibt entfernt.
+- Neue persistente Einstellung `mid:bottom-bar-behavior:v1` (`auto`/`fixed`) ergänzt. Der automatische Modus nutzt eine größere Abwärtshysterese und eine kleine Aufwärtshysterese.
+- Komposit-Einstellungen werden zusätzlich sofort bei Preset-/Ansichtswechsel sowie bei `pagehide` und beim Wechsel des Dokuments in den Hintergrund geschrieben; die React-Effekt-Persistenz bleibt als zusätzliche Sicherung bestehen.
+- Synoptik-Frontend nutzt einen robusten `vectorIsoheightFrame`-Fallback zwischen Grid- und Modellframe. Der Worker bündelt das 17×25-Europagitter in Vierer-Zeilenblöcke und reduziert den Open-Meteo-Abruf damit von bis zu 17 auf etwa 5 parallele Requests; Raster, Konturintervall und Frontendiagnostik bleiben fachlich unverändert.
+- Worker-Fachlogik wurde geändert; für diesen Release ist ein Worker-Upload erforderlich.
+
 # MID v0.9.84.91
 
 ## Extern

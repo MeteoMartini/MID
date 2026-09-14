@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.84.91",
+  "releaseVersion": "0.9.84.93",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -484,7 +484,8 @@
     "scripts/test-release-gate-architecture-098484.mjs",
     "scripts/test-ios-floating-bottom-bar-098489.mjs",
     "scripts/test-navigation-composite-ruc-098491.mjs",
-    "scripts/test-ruc-native-phase-radar-098491.mjs"
+    "scripts/test-ruc-native-phase-radar-098491.mjs",
+    "scripts/test-bottom-bar-current-persistence-isohypses-098492.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -2084,7 +2085,7 @@
     "scripts/test-weather-pictogram-appwide-contract-098441.mjs",
     "scripts/test-ios-floating-bottom-bar-098489.mjs"
   ],
-  "version": "0.9.84.91",
+  "version": "0.9.84.93",
   "updatedAt": "2026-09-13T21:20:00+02:00",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",

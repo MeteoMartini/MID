@@ -23,7 +23,7 @@ assert.ok(panel.includes('while(next.size>12)'),'Der begrenzte Satelliten-Ringpu
 assert.ok(panel.includes('satelliteFadeReady')&&panel.includes('radarFadeReady'),'Geladene Radar-/Satellitenstände benötigen einen expliziten Crossfade-Zustand.');
 assert.ok(panel.includes('window.requestAnimationFrame(()=>window.requestAnimationFrame(()=>setSatelliteFadeReady(true)))'),'Satelliten-Crossfade muss erst nach dem gerenderten Vorladezustand starten.');
 assert.ok(panel.includes('dwdVisualBlend'),'DWD-Radar muss den alten Stand bis zum echten Crossfade behalten.');
-assert.ok(panel.includes('playbackSeconds} satisfies CompositeSettings'),'Das gewählte Wiedergabetempo muss mit den Kartenebenen gespeichert werden.');
+assert.ok(panel.includes('compositeSettingsRef.current={')&&panel.includes('mapOverlayOpacity,playbackSeconds};')&&panel.includes('writeCompositeSettings(compositeSettingsRef.current)'),'Das gewählte Wiedergabetempo muss im aktuellen Komposit-Zustand enthalten und über den Persistenz-Flush gespeichert werden.');
 assert.ok(panel.includes("source:viewMode==='radar'?'Radar + Satellit':'Satellit',observations:satelliteObservationTimes"));assert.ok(panel.includes('satelliteDisplayFrame?[{frame:satelliteDisplayFrame,weight:1}]:[]'),'Displayed timestamp follows buffered image');assert.ok(panel.includes('satellitePreloadFrame=requestedSatelliteKey'),'History loads behind retained image');
 // Exercise real RasterTileLayer with a MapLibre test double: another source need not be idle.
 const core=read('src/MapLibreCore.tsx'),coreAst=ts.createSourceFile('core.tsx',core,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX),fn=coreAst.statements.find(n=>n.name?.text==='RasterTileLayer');
