@@ -504,7 +504,7 @@
     "esbuild": "0.28.2",
     "typescript": "7.0.2",
     "typescript-strada": "npm:typescript@6.0.3",
-    "vite": "8.2.2"
+    "vite": "8.3.0"
   },
   "packageManager": "npm@10.9.2",
   "engines": {
