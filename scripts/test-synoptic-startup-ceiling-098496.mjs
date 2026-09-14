@@ -19,7 +19,7 @@ assert.ok(app.includes('let fallbackStarted=false')&&app.includes('runFullStatio
 // Ceiling: Beobachtung bleibt vorrangig; RUC wird klar als Modellfallback geführt und auch in Flugwetter genutzt.
 assert.ok(fusion.includes("ceilingSourceLabel:Number.isFinite(weather.rucCeilingM)?'DWD ICON-D2-RUC · CEILING'"),'RUC-CEILING muss in den kanonischen Forecast-Hour-Vertrag gelangen.');
 assert.ok(app.includes('observedCeilingHft')&&app.includes('ceilingFromModel=!Number.isFinite(observedCeilingHft)'),'Aktuelles Wetter muss beobachtetes Ceiling vor dem Modellwert priorisieren.');
-assert.ok(app.includes('Modell-Ceiling ~')&&app.includes("DWD ICON-D2-RUC · CEILING"),'Modell-Ceiling muss in der aktuellen Wetterdarstellung eindeutig gekennzeichnet sein.');
+assert.ok(app.includes('Modell-Ceiling ~')&&app.includes("DWD ICON-D2-RUC · CEILING")&&app.includes('cloudVisibleDetail=[cloudCompactDetail,ceilingCompactDetail]')&&app.includes("label:'Bewölkung',value:`${cloudOktasValue}/8`,detail:cloudVisibleDetail"),'Modell-Ceiling muss direkt in der sichtbaren Bewölkungskarte und nicht nur hinter (i) gekennzeichnet sein.');
 assert.ok(event.includes("ceilingBasis=rucCeilingsFt.length?rucCeilingsFt:ceilings")&&event.includes("ceilingSource=rucCeilingsFt.length?'DWD ICON-D2-RUC · CEILING'"),'Event-/Flugwetter muss RUC-CEILING vor der Druckniveau-Diagnose verwenden.');
 assert.ok(short.includes('modelCeilingHft=Number.isFinite(Number(base.ceiling))')&&short.includes('ceilingHft:resolvedCeilingHft'),'Kurzfristiger Niederschlagsabgleich muss das kanonische Modell-Ceiling als Plausibilitätsinformation nutzen können.');
 

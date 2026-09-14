@@ -1,3 +1,16 @@
+# MID v0.9.84.103
+
+## Extern
+- Ceilinghöhen werden im aktuellen Wetter jetzt direkt in der sichtbaren Bewölkungskachel angezeigt. Eine frische beobachtete Wolkendecke bleibt vorrangig; fehlt diese, wird das verfügbare DWD-ICON-D2-RUC-Ceiling eindeutig als „Modell-Ceiling“ gekennzeichnet.
+- Die bisherige Bewölkungsbeschreibung (z. B. „stark bewölkt“) bleibt erhalten und wird um die Höhenangabe ergänzt.
+
+## Intern
+- Ursache in v0.9.84.102: CEILING war bereits vollständig vom RUC-Datenpfad bis in den kanonischen Forecast verdrahtet, wurde in `CurrentMetrics` aber nur im (i)-Detailtext zusammengesetzt. Die sichtbare Bewölkungskachel verwendete ausschließlich `cloudCompactDetail`.
+- Die sichtbare Kachel verwendet nun `cloudVisibleDetail = cloudCompactDetail + ceilingCompactDetail`.
+- Priorität: frische Beobachtung (`ceilingHft`) > DWD ICON-D2-RUC `Hour.ceiling` > bei FEW/SCT optional beobachtete Wolkenuntergrenze. Modellwerte werden nicht als beobachteter grüner Statuspunkt ausgegeben.
+- Der RUC-Lauf #549 für 2026-09-14T12:00 hat CEILING 15/15 erfolgreich dekodiert und veröffentlicht; damit ist die Datenquelle selbst nachweislich vorhanden.
+- Keine neue Worker-Fachlogik; separater Worker-Upload ist nicht erforderlich.
+
 # MID v0.9.84.102
 
 ## Extern
