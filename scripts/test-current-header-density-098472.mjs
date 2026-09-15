@@ -4,6 +4,7 @@ import {readFile} from 'node:fs/promises';
 const read=path=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 const app=await read('src/App.tsx');
 const modern=await read('src/styles-src/30-modern.css');
+const midNext=await read('src/midNext.css');
 const styles=await read('src/styles.css');
 const pkg=JSON.parse(await read('package.json'));
 const baseline=JSON.parse(await read('MID_BASELINE.json'));
@@ -25,6 +26,12 @@ assert.match(app,/label:'Sonnenschein',[\s\S]*?detail:sunshineWindowLabel[\s\S]*
 assert.match(app,/x\.detail\?<small className="current-metric-summary">\{x\.detail\}<\/small>:null/,'Kartenrendering blendet optionale Kurzbeschreibung nicht korrekt ein');
 assert.match(modern,/\.metrics article>\.current-metric-summary\{[\s\S]*-webkit-line-clamp:2/,'Sichtbare Istwetter-Zusammenfassung ist nicht auf zwei Zeilen begrenzt');
 assert.match(modern,/#current-weather-metrics \.mode-info>button\{min-width:44px!important;min-height:44px!important\}/,'Infoziele der Istwetter-Karten sind auf Touch nicht 44 px');
+
+assert.match(midNext,/MID v0\.9\.85\.8 · iPhone-Istwetter/,'v0.9.85.8 iPhone-Istwetter-Reparatur fehlt');
+assert.match(midNext,/\.hero\.current-compact \.current-weather-overview\{[\s\S]*display:grid!important;[\s\S]*grid-template-columns:minmax\(104px,\.7fr\) minmax\(180px,1\.2fr\) minmax\(340px,1\.6fr\)!important/,'MID Next löst den Istwetter-Overview weiterhin in das äußere Grid auf');
+assert.match(midNext,/@media\(max-width:620px\)\{[\s\S]*\.current-weather-facts\{[\s\S]*grid-column:1\/-1!important;[\s\S]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)!important/,'iPhone-Istwetterwerte belegen nicht die volle Breite als 2-Spalten-Raster');
+assert.match(midNext,/\.current-weather-facts>span:nth-child\(5\)\{[\s\S]*grid-column:span 2!important/,'Fünfter Istwetterwert spannt auf dem iPhone nicht über beide Spalten');
+assert.match(midNext,/\.current-weather-overview>\.hero-day-range\{[\s\S]*position:static!important;[\s\S]*transform:none!important/,'Tmin/Tmax liegt weiterhin absolut über dem mobilen Istwetterinhalt');
 
 const versionParts=String(pkg.version).split('.').map(Number);
 const minimumVersion=[0,9,84,72];
