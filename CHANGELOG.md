@@ -1,6583 +1,64 @@
-# MID v0.9.85.0
-
-## MID Next Â· Designgrundlage
-
-- Neue, klar gegliederte InstrumentenflÃ¤chen fÃ¼r aktuelle Werte, Prognosen, Karten und aufklappbare Module.
-- AbstÃ¤nde, Radien und BedienflÃ¤chen skalieren nun kontrolliert von schmalen Smartphones Ã¼ber Tablets im Hoch- und Querformat bis zum Desktop.
-- Die Informationsfarben fÃ¼r Wetter, Warnungen und Diagramme bleiben unverÃ¤ndert; das Design verbessert Hierarchie und Lesbarkeit, nicht die meteorologische Bedeutung.
-- Unter **Einstellungen â†’ Ansicht & Einheiten â†’ MID Designsystem** kann jederzeit auf **Klassisch** zurÃ¼ckgestellt werden. Diese RÃ¼ckfalloption wird pro GerÃ¤t gespeichert.
-
-## Technische Umsetzung
-
-- Opt-in-Designschicht Ã¼ber `data-mid-design` mit responsiven Tokenwerten und UnterstÃ¼tzung fÃ¼r reduzierte Bewegung.
-- Keine neue Datenabfrage, keine Ã„nderung an ZeitauflÃ¶sung oder Prognoselogik; Stunden-, Tages- und Langfristansichten verwenden dieselben Datenkomponenten.
-- Release-Preflight korrigiert: historische VersionsprÃ¼fungen akzeptieren spÃ¤tere Funktionsreleases; die ICON-D2-RUC-15-Minuten-Phasenachse verarbeitet ISO-Zeitwerte ohne Zeitzonensuffix verbindlich als UTC.
-
-# MID v0.9.84.105
-
-## Extern
-- Der fehlgeschlagene Installer #1060 ist korrigiert. Die GitHub-/Codex-Schreibworkflow-Vorbereitung aus v0.9.84.104 bleibt unverÃ¤ndert erhalten.
-- An Wetterlogik, Karten, Isohypsen, Ceiling, Radar, Warnungen oder App-Bedienung wurde fÃ¼r diesen Hotfix nichts fachlich verÃ¤ndert.
-
-## Intern
-- Ursache: Mit dem neuen `chatgpt-pr-gate.yml` verwaltet MID nun acht statt sieben GitHub-Konfigurationsdateien. `test-github-workflow-bootstrap-08263.mjs` erwartete noch die alte Anzahl.
-- `test-no-actions-workflow-self-modification-093911.mjs` erzeugte in seinem isolierten Test-Repository noch keinen kanonischen `chatgpt-pr-gate.yml`-Fixture und lief deshalb in `ENOENT`.
-- Beide Regressionen wurden an den neuen expliziten Workflow-Synchronisationsvertrag angepasst. Die verwaltete Dateiliste wird nun direkt aus `sync-github-workflows.mjs` exportiert und von den Tests wiederverwendet, damit kÃ¼nftige Workflow-Erweiterungen nicht erneut durch doppelte ZÃ¤hllisten auseinanderlaufen.
-- Keine Worker-Fachlogik geÃ¤ndert; Worker-/Service-Worker-Dateien unterscheiden sich nur durch die synchronisierte Releaseversion.
-
-# MID v0.9.84.104
-
-## Extern
-- GitHub-/Codex-Ã„nderungen erhalten einen dauerhaften, fail-closed Repositoryvertrag: Agenten arbeiten nur auf `chatgpt/*`- bzw. `codex/*`-Branches und umgehen weder `main` noch `mid-stable`.
-- Ein neues PR-Gate ist als kanonische Workflowquelle vorbereitet. Es prÃ¼ft das unversionierte `MID-professional-replacement.zip` bereits im Pull Request mit Dependency-Audit, Produktionsbuild und vollstÃ¤ndigen Regressionen.
-- Die bestehende Release-Architektur bleibt unverÃ¤ndert: Erst nach grÃ¼nem PR und Merge verarbeitet `install-mid.yml` das ZIP, verÃ¶ffentlicht den Build und promotet anschlieÃŸend den validierten Stand nach `mid-stable`.
-
-## Intern
-- `AGENTS.md` hinterlegt die verbindlichen Repositoryregeln fÃ¼r Codex/coding agents direkt im Projekt.
-- `MID_CHATGPT_GITHUB_CONTRACT.md` dokumentiert Branch-, PR-, Fehler- und Berechtigungsvertrag.
-- `ci/github/workflows/chatgpt-pr-gate.yml` ist die kanonische Quelle des read-only PR-Gates; `scripts/sync-github-workflows.mjs` kann sie bei einer expliziten Workflow-Wartung nach `.github/workflows/` spiegeln.
-- Neuer Regressionstest `test-chatgpt-github-write-contract-098510.mjs` schÃ¼tzt Least-Privilege, SHA-Pinning, Agent-Branchfilter und den vollstÃ¤ndigen `npm run verify`-Pfad.
-- Die normale ChatGPT-GitHub-Verbindung selbst bleibt laut OpenAI-Livezugriff schreibgeschÃ¼tzt; direkte Repository-Schreibaktionen mÃ¼ssen daher Ã¼ber Codex oder eine gesondert autorisierte GitHub-App erfolgen.
-
-# MID v0.9.84.103
-
-## Extern
-- CeilinghÃ¶hen werden im aktuellen Wetter jetzt direkt in der sichtbaren BewÃ¶lkungskachel angezeigt. Eine frische beobachtete Wolkendecke bleibt vorrangig; fehlt diese, wird das verfÃ¼gbare DWD-ICON-D2-RUC-Ceiling eindeutig als â€žModell-Ceilingâ€œ gekennzeichnet.
-- Die bisherige BewÃ¶lkungsbeschreibung (z. B. â€žstark bewÃ¶lktâ€œ) bleibt erhalten und wird um die HÃ¶henangabe ergÃ¤nzt.
-
-## Intern
-- Ursache in v0.9.84.102: CEILING war bereits vollstÃ¤ndig vom RUC-Datenpfad bis in den kanonischen Forecast verdrahtet, wurde in `CurrentMetrics` aber nur im (i)-Detailtext zusammengesetzt. Die sichtbare BewÃ¶lkungskachel verwendete ausschlieÃŸlich `cloudCompactDetail`.
-- Die sichtbare Kachel verwendet nun `cloudVisibleDetail = cloudCompactDetail + ceilingCompactDetail`.
-- PrioritÃ¤t: frische Beobachtung (`ceilingHft`) > DWD ICON-D2-RUC `Hour.ceiling` > bei FEW/SCT optional beobachtete Wolkenuntergrenze. Modellwerte werden nicht als beobachteter grÃ¼ner Statuspunkt ausgegeben.
-- Der RUC-Lauf #549 fÃ¼r 2026-09-14T12:00 hat CEILING 15/15 erfolgreich dekodiert und verÃ¶ffentlicht; damit ist die Datenquelle selbst nachweislich vorhanden.
-- Keine neue Worker-Fachlogik; separater Worker-Upload ist nicht erforderlich.
-
-# MID v0.9.84.102
-
-## Extern
-- Der fehlgeschlagene Installer #1056 ist korrigiert. Die sichtbaren Korrekturen aus v0.9.84.99 bis v0.9.84.101 bleiben unverÃ¤ndert: geglÃ¤ttete 500-hPa-Isohypsen, bereinigte Frontdarstellung, konservativere Niederschlagsphasen und saubere Desktop-Wetterpiktogramme.
-- FÃ¼r diesen Hotfix wurde keine Wetter-, Karten-, Datenquellen- oder Bedienlogik verÃ¤ndert.
-
-## Intern
-- GitHub #1056 hat TypeScript 7 und den Vite-Produktionsbuild erfolgreich bestanden und wurde nur noch von zwei veralteten statischen Regressionserwartungen blockiert.
-- `test-maplibre-precip-probability-09390.mjs` schÃ¼tzt jetzt die absichtlich strengeren Radar-Echoschwellen aus v0.9.84.99: gefrierend 9 dBZ, Schnee 6 dBZ.
-- `test-radar-colortables-09404.mjs` erwartet nicht mehr das bewusst entfernte Spiral-/â€žSchneckenâ€œ-Symbol, sondern das neue Regen+Eis-Piktogramm und schÃ¼tzt zusÃ¤tzlich vor einer RÃ¼ckkehr der Spiralform.
-- Keine neue Worker-Fachlogik; separater Worker-Upload ist nicht erforderlich.
-
-# MID v0.9.84.101
-
-## Extern
-- Der Installerfehler von v0.9.84.100 ist behoben. Die Korrekturen an 500-hPa-Isohypsen, Frontdarstellung, Niederschlagsart-Piktogrammen und Desktop-Wettersymbolen bleiben unverÃ¤ndert erhalten.
-- FÃ¼r diesen Hotfix wurde keine sichtbare Wetter-, Karten- oder Bedienlogik verÃ¤ndert.
-
-## Intern
-- Installer #1055 scheiterte ausschlieÃŸlich im TypeScript-Gate an der verwaisten Hilfsfunktion `compositeFrontDash` in `src/RadarPanel.tsx`. Sie gehÃ¶rte zu den bereits entfernten parallelen Front-Renderpfaden und hatte keine aktive Verwendung mehr.
-- Die tote Hilfsfunktion wurde vollstÃ¤ndig entfernt; TypeScript-Regeln wurden nicht abgeschwÃ¤cht und es wurde keine kÃ¼nstliche Referenz eingefÃ¼hrt.
-- Relevante Synoptik-, Isohypsen-, Radarphasen-, Responsive-, Versions- und Release-Lineage-VertrÃ¤ge wurden erneut geprÃ¼ft.
-- Keine neue Worker-Fachlogik; separater Worker-Upload ist nicht erforderlich.
-
-# MID v0.9.84.100
-
-## Extern
-- Der Buildfehler des Release-Kandidaten v0.9.84.99 ist behoben. Die Korrekturen an Synoptik, Niederschlagsart-Piktogrammen und Desktop-Wettersymbolen bleiben vollstÃ¤ndig erhalten.
-- An der sichtbaren Wetterdarstellung wurde fÃ¼r diesen Hotfix nichts zurÃ¼ckgenommen oder neu umgestellt.
-
-## Intern
-- Installer #1054 scheiterte ausschlieÃŸlich an zwei nach der Synoptik-Bereinigung Ã¼brig gebliebenen, nicht mehr verwendeten Front-Renderern. Beide toten Codepfade wurden entfernt.
-- Der Regionalfront-Regressionsvertrag schÃ¼tzt jetzt ausdrÃ¼cklich davor, diese parallelen Fallback-Pfade wieder einzufÃ¼hren.
-- Der Radar-Phasentest wurde an die bewusst strengeren KÃ¤lte-/Echo-Schwellen aus v0.9.84.99 angepasst, ohne den fachlichen Schutz zu lockern.
-- Keine neue Worker-Fachlogik; separater Worker-Upload ist nicht erforderlich.
-
-# MID v0.9.84.99
-
-## Extern
-- **Komposit / 500-hPa-Isohypsen:** Die stufige native WMS-Isohypsendarstellung wird nicht mehr sichtbar verwendet. MID zeichnet die 500-hPa-GeopotentialhÃ¶hen wieder als deutlich geglÃ¤ttete, gold/amber gestrichelte Konturen mit gpdm-Beschriftung; DWD-WMS bleibt fÃ¼r die gut funktionierenden Isobaren aktiv.
-- **Frontdarstellung:** Doppelte Roh-/Fallback-Layer und die auffÃ¤lligen parallelen violetten Frontalzonen wurden aus dem sichtbaren Pfad entfernt. Angezeigt werden nur ausreichend starke, geglÃ¤ttete Î¸e-850-Frontalzonen; klassische Frontfarben/-symbole erscheinen nur bei belastbarer Typisierung.
-- **Niederschlagsart:** Die missverstÃ¤ndlichen spiraligen â€žSchneckenâ€œ-Symbole fÃ¼r gefrierenden Niederschlag wurden durch ein verstÃ¤ndliches Regen+Eis-Piktogramm ersetzt. Gleichzeitig ist die Phasenklassifikation gegen warme False Positives deutlich strenger.
-- **Desktop-Piktogramme:** Senkrechte Randstriche an Tages-/Perioden-Wetterpiktogrammen werden in der Desktopansicht nicht mehr gezeichnet.
-
-## Intern
-- Isohypsenpfad auf kontrolliertes MID-Canvas/Vektor-Rendering mit stÃ¤rkerer Binomial-/Chaikin-GlÃ¤ttung festgelegt; WMS-Isohypsen bleiben als Datenquelle/Metadaten verfÃ¼gbar, werden aber nicht mehr als sichtbarer Linienlayer genutzt.
-- Fronten werden qualitÃ¤tsgefiltert und geglÃ¤ttet; redundante Canvas-/Polyline-Doppelrenderings sind aus dem aktiven Pfad entfernt.
-- Radar+Modell-Niederschlagsarten verlangen fÃ¼r gefrierende/feste Phasen zusÃ¤tzlich konsistente Temperatur-/Feuchtkugel-UnterstÃ¼tzung und hÃ¶here Echo-Schwellen.
-- Neuer Regressionstest `test-synoptic-phase-pictogram-cleanup-098499.mjs`; betroffene Ã¤ltere Synoptiktests auf den aktuellen Renderingvertrag aktualisiert.
-- Keine semantische Worker-Fachlogik geÃ¤ndert; Worker-/Service-Worker-Dateien unterscheiden sich nur durch synchronisierte Release-Metadaten.
-
-# MID v0.9.84.98
-
-## Extern
-- Die obere Prognoseleiste fasst **90 min** und **24 h** wieder zu einem gemeinsamen Einstieg **Kurzfrist** zusammen. In der Kurzfristansicht stehen die 90-Minuten-Ãœbersicht und das 24-h-Wetterprofil wieder gemeinsam untereinander statt hinter zwei getrennten Horizont-SchaltflÃ¤chen.
-- **MID Â· PLANEN** besitzt nun auf Desktop, iPad und Smartphone dieselbe fertige Karten-/Buttonsprache wie die Ã¼brigen modernen MID-Bereiche. Roh wirkende Standardbuttons, gequetschte Beschriftungen und der doppelte separate â€žPlanerâ€œ-Kopf wurden entfernt.
-- Beim UI-Audit wurde derselbe Desktop-Cascade-Fehler auch in den Schnellzugriffen des **Mehr**-Drawers gefunden und mit derselben Kartenlogik bereinigt.
-- Die fÃ¼nf Prognosehorizonte **Kurzfrist Â· 7 T Â· 14 T Â· 46 T Â· Saison** passen auch auf schmalen iPhones in eine Zeile; es entsteht kein unnÃ¶tiger horizontaler Scrollbereich.
-
-## Intern
-- Persistierte AltstÃ¤nde mit Horizont `24h` werden beim Einlesen verlustfrei auf den gemeinsamen Kurzfrist-Horizont migriert. Die eigentlichen 90-min-/24-h-Inhalte und ihre meteorologischen Datenpfade bleiben unverÃ¤ndert.
-- `modern-planner-hub`, `modern-planner-actions`, `modern-planner-section` und `modern-more-quick-actions` besitzen jetzt gemeinsame Desktop/Tablet/Mobil-Basisstile statt Kernregeln nur innerhalb des Mobile-Media-Queries.
-- Neue Regression `test-shortterm-planner-polish-098498.mjs` schÃ¼tzt die ZusammenfÃ¼hrung und den desktopfesten Planen-/Mehr-Designvertrag.
-- Keine Worker-Fachlogik geÃ¤ndert.
-
-# MID v0.9.84.97
-
-## Extern
-- Der fehlgeschlagene Installer #1050 wurde korrigiert. Die fachlichen Verbesserungen aus v0.9.84.96 bleiben unverÃ¤ndert erhalten: robustere 500-hPa-Isohypsen/Fronten, schneller gestartete hyperlokale Analyse und klar gekennzeichnetes ICON-D2-RUC-Modell-Ceiling.
-- Wetterdaten, Modellfusion, Warnlogik, Radar, Satellit, Synoptikdarstellung und UI wurden durch diesen Hotfix nicht fachlich verÃ¤ndert.
-
-## Intern
-- `test-ensemble-wind-selection-cloud-reconciliation-08173.mjs` schÃ¼tzt jetzt die aktuelle BewÃ¶lkungsprovenienz mit `baseCloudSource` sowie der zusÃ¤tzlichen Modell-Ceiling-Quellenangabe, statt die entfernte Direktzuweisung zu verlangen.
-- `test-view-simulation-bottom-isohypsen-smoothing-098494.mjs` akzeptiert nun fachlich korrekt das native DWD-WMS als primÃ¤ren Isohypsenpfad und den geglÃ¤tteten Vektor-/Canvas-Pfad als Fallback.
-- GitHub #1050 hatte `npm ci`, Dependency-Audit, TypeScript und Vite bereits erfolgreich abgeschlossen; nur diese zwei von 789 statischen VertrÃ¤gen blockierten die VerÃ¶ffentlichung.
-- Keine neue Worker-Fachlogik; Versionsmetadaten auf 0.9.84.97 synchronisiert.
-
-# MID v0.9.84.96
-
-## Extern
-- Die Synoptik im Komposit rendert 500-hPa-Isohypsen robuster: DWD ICON-WMS ist der bevorzugte Linienpfad; bis dieser verfÃ¼gbar ist, zeigt MID dieselben HÃ¶henfelder zusÃ¤tzlich Ã¼ber einen geglÃ¤tteten MapLibre-Canvas-Fallback. Dadurch sollen nicht mehr nur gpdm-Beschriftungen ohne zugehÃ¶rige Linien erscheinen.
-- Fronten erhalten zusÃ¤tzlich einen eigenen MapLibre-Canvas-Layer. Die objektiv diagnostizierten Front- und Frontalzonen bleiben damit auch dann sichtbar, wenn der bisherige Leaflet-kompatible Vektorpfad in der aktuellen Kartenengine ausfÃ¤llt. Die amtliche DWD-Bodenanalyse bleibt als unverÃ¤nderte Referenz verfÃ¼gbar.
-- Der Start der hyperlokalen Wetteranalyse wurde parallelisiert. Stationsdaten, Radar-/Niederschlagsabgleich und vollstÃ¤ndige Stationsanalyse beginnen auf normalen Verbindungen deutlich frÃ¼her, ohne Datenquellen, QualitÃ¤tsprÃ¼fungen oder meteorologische Berechnungen zu streichen. Langsame bzw. datensparende Verbindungen behalten den konservativeren Ablauf.
-- DWD ICON-D2-RUC-Ceiling wird nun auch im aktuellen Wetter und im Flug-/Eventwetter genutzt. Frische beobachtete Ceiling-Werte bleiben vorrangig; Modellwerte werden ausdrÃ¼cklich als â€žModell-Ceilingâ€œ gekennzeichnet.
-
-## Intern
-- 500-hPa-GeopotentialhÃ¶he nutzt im Komposit den vorhandenen DWD-WMS-Pfad `Icon_reg025_fd_pl_GH` auf 500 hPa; ein Canvas-Fallback Ã¼ber `CanvasOverlay` bleibt aktiv, bis der native WMS-Stand geladen ist.
-- Frontdarstellung um einen von Leaflet-SVG unabhÃ¤ngigen Canvas-Pfad fÃ¼r Synoptik-Kandidaten und regionale Frontalzonen erweitert.
-- Startup-Preload auf normalen Verbindungen enger gestaffelt (`fastStation` 35 ms, Radar 85 ms, vollstÃ¤ndige Stationsanalyse 140 ms); die spÃ¤tere vollstÃ¤ndige Fusion und alle QualitÃ¤ts-/Fallbackpfade bleiben erhalten.
-- RUC-CEILING wird in die kanonische Kurzfriststunde durchgereicht und von aktuellem Wetter sowie Flug-/Eventwetter verwendet. RegulÃ¤re ICON-D2-/ICON-EU-Ceiling-Brokerpfade bleiben eine separate Ausbaustufe.
-- Keine neue Worker-Fachlogik gegenÃ¼ber v0.9.84.95; Worker-Dateien unterscheiden sich nur durch synchronisierte Release-Metadaten. Ein separater manueller Worker-Upload ist fÃ¼r die fachlichen Ã„nderungen dieser Version nicht erforderlich.
-
-# MID v0.9.84.95
-
-## Extern
-- Der fehlgeschlagene Installer #1048 wurde korrigiert. Die sichtbaren Verbesserungen aus v0.9.84.94 bleiben unverÃ¤ndert erhalten: sichere mobile Bottom-Bar, zuverlÃ¤ssigere 500-hPa-Isohypsen und geglÃ¤ttete Kurven im 24-h-Profil.
-- Wetterdaten, Modellfusion, Warnlogik, Radar, Satellit und meteorologische Berechnungen wurden durch diesen Hotfix nicht verÃ¤ndert.
-
-## Intern
-- Installer #1048 scheiterte im kombinierten Build-/Regression-Gate. Lokal lieÃŸ sich der erste Blocker exakt als veralteter Vertrag in `test-navigation-composite-ruc-098491.mjs` reproduzieren: Der Test verbot noch den inzwischen bewusst panegebundenen Leaflet-SVG-Renderer.
-- Ein anschlieÃŸender vollstÃ¤ndiger statischer Regressionsdurchlauf deckte vier weitere veraltete QuelltextvertrÃ¤ge derselben v0.9.84.94-Ã„nderungen auf. Aktualisiert wurden deshalb auch die VertrÃ¤ge fÃ¼r monotone Wind-/BÃ¶enkurven, das Modelllinien-Pane mit Grid-Isohypsen-Fallback, den grÃ¶ÃŸeren sichtbaren Bottom-Bar-Griff und die panegebundenen Konturpfade.
-- Die fÃ¼nf korrigierten AltvertrÃ¤ge sowie die angrenzenden Bottom-Bar-, Synoptik-, 24-h-, Viewport-, Versions- und Release-Lineage-Regressionen bestehen im korrigierten Stand.
-- Keine Worker-Fachlogik geÃ¤ndert; Versionsmetadaten wurden auf 0.9.84.95 synchronisiert.
-
-# MID v0.9.84.94
-
-## Extern
-- Die mobile Bottom-Bar bleibt auf iPhone und anderen kompakten Displays sichtbar oberhalb des unteren Bildrands. Auch im Auto-Minimierungszustand bleibt ein klar erkennbarer Griffbereich erhalten.
-- Die Bottom-Bar-Einstellung ist optisch an die Favoritenleisten-Einstellung angeglichen.
-- 500-hPa-Isohypsen werden im Synoptikmodus zuverlÃ¤ssiger als echte geglÃ¤ttete Gold-/Amber-Linien mit gpdm-Beschriftung dargestellt, auch wenn der Grid-Frame frÃ¼her als der vollstÃ¤ndige Modellframe verfÃ¼gbar ist.
-- Die Linien der Tagesansicht sind ruhiger und geglÃ¤ttet: Temperatur, gefÃ¼hlte Temperatur, Taupunkt, Luftdruck, Wind und BÃ¶en verwenden nun dieselbe monotone KurvenfÃ¼hrung wie bereits die Niederschlagswahrscheinlichkeit.
-
-## Intern
-- Bottom-Bar-Safe-Area-Offsets und Auto-Hide-Translation nach Viewport-/iPhone-Simulation nachgeschÃ¤rft.
-- Synoptik-Bereitschaft und Modelllinien-Pane von der unnÃ¶tigen AbhÃ¤ngigkeit eines vollstÃ¤ndigen `dominantModelFrame` entkoppelt; Grid-Isohypsen kÃ¶nnen eigenstÃ¤ndig rendern.
-- Tagesprofilpfade auf `monotoneSvgPath` umgestellt; die TemperaturflÃ¤che schlieÃŸt entlang der geglÃ¤tteten Kurve.
-- Keine neue Worker-Fachlogik; Worker-Deploy ist fÃ¼r diese Ã„nderungen nicht erforderlich.
-
-# MID v0.9.84.93
-
-## Extern
-- Der fehlgeschlagene Installer #1046 wurde korrigiert. Der Produktionsbuild selbst war bereits erfolgreich; blockiert hatten ausschlieÃŸlich zwei veraltete automatische PrÃ¼ferwartungen.
-- Die mit v0.9.84.92 eingefÃ¼hrte robuste Speicherung der Komposit-Einstellungen bleibt unverÃ¤ndert erhalten, einschlieÃŸlich der gewÃ¤hlten Wiedergabegeschwindigkeit.
-- Die 500-hPa-Isohypsen bleiben gridbevorzugte, geglÃ¤ttete Vektorkonturen mit sicherem Modellframe-Fallback und gpdm-Beschriftung. An Wetterdarstellung, Datenquellen oder Bedienlogik wurde fÃ¼r diesen Hotfix nichts fachlich geÃ¤ndert.
-
-## Intern
-- `test-composite-buffered-playback-097881.mjs` prÃ¼ft jetzt die aktuelle `compositeSettingsRef`-/Flush-Persistenz statt eines entfernten historischen `writeCompositeSettings({...} satisfies CompositeSettings)`-Quelltextmusters.
-- `test-synoptic-isoheight-visibility-098455.mjs` schÃ¼tzt jetzt den aktuellen Grid-first-`vectorIsoheightFrame` samt vektorfÃ¤higem Modellframe-Fallback und tatsÃ¤chlichem Polyline-Rendering, statt ausschlieÃŸlich den alten Direktzugriff auf `dominantGridFrame.isoheights` zu verlangen.
-- Keine zusÃ¤tzliche Worker-Fachlogik in v0.9.84.93. Installer #1047 verÃ¶ffentlichte den kumulativen Stand erfolgreich.
-
-# MID v0.9.84.92
-
-## Extern
-- **Aktuelles Wetter** ist wieder direkt Ã¼ber die mobile Bottom-Bar erreichbar. Die sechs PrimÃ¤rziele lauten jetzt **Aktuell Â· Kurzfrist Â· 7 Tage Â· 14 Tage Â· Komposit Â· Mehr**; â€žAktuellâ€œ wird nicht zusÃ¤tzlich in â€žMehrâ€œ dupliziert.
-- Die Bottom-Bar kann unter **Einstellungen â†’ Bottom-Leiste â†’ Verhalten beim Scrollen** wahlweise **Auto** oder **Fixiert** betrieben werden. â€žFixiertâ€œ hÃ¤lt sie dauerhaft vollstÃ¤ndig sichtbar; â€žAutoâ€œ minimiert sie erst nach deutlicher AbwÃ¤rtsbewegung und zeigt sie beim Hochscrollen sofort wieder vollstÃ¤ndig.
-- Die schwebende Bottom-Bar sitzt auf iPhones nÃ¤her und sauberer am Home-Indicator. Die Safe Area wird nicht mehr doppelt als Ã¤uÃŸerer Abstand aufgeschlagen; Touch-Ziele bleiben trotzdem ausreichend groÃŸ.
-- Die zuletzt gewÃ¤hlte **Komposit-Konfiguration** wird nun robuster gespeichert â€“ auch bei schnellem Modulwechsel, Wechsel in den Hintergrund oder SchlieÃŸen der PWA.
-- **500-hPa-Isohypsen** werden im Synoptik-Layer wieder als gold-/amberfarbene gestrichelte Vektorlinien **mit gpdm-Beschriftung** geladen. Der Abruf des Europagitters wurde beschleunigt, ohne Rasterdichte oder 8-gpdm-Konturintervall zu reduzieren.
-
-## Intern
-- Bottom-Bar-Vertrag auf sechs mobile PrimÃ¤rziele erweitert; Current/Aktuelles Wetter ist wieder kanonischer Direkt-Tab. Der frÃ¼here Beta-Current-Pfad bleibt entfernt.
-- Neue persistente Einstellung `mid:bottom-bar-behavior:v1` (`auto`/`fixed`) ergÃ¤nzt. Der automatische Modus nutzt eine grÃ¶ÃŸere AbwÃ¤rtshysterese und eine kleine AufwÃ¤rtshysterese.
-- Komposit-Einstellungen werden zusÃ¤tzlich sofort bei Preset-/Ansichtswechsel sowie bei `pagehide` und beim Wechsel des Dokuments in den Hintergrund geschrieben; die React-Effekt-Persistenz bleibt als zusÃ¤tzliche Sicherung bestehen.
-- Synoptik-Frontend nutzt einen robusten `vectorIsoheightFrame`-Fallback zwischen Grid- und Modellframe. Der Worker bÃ¼ndelt das 17Ã—25-Europagitter in Vierer-ZeilenblÃ¶cke und reduziert den Open-Meteo-Abruf damit von bis zu 17 auf etwa 5 parallele Requests; Raster, Konturintervall und Frontendiagnostik bleiben fachlich unverÃ¤ndert.
-- Worker-Fachlogik wurde geÃ¤ndert; fÃ¼r diesen Release ist ein Worker-Upload erforderlich.
-
-# MID v0.9.84.91
-
-## Extern
-- Die mobile Bottom-Bar priorisiert jetzt **Kurzfrist Â· 7 Tage Â· 14 Tage Â· Komposit Â· Mehr**. Das frÃ¼here experimentelle â€žAktuellâ€œ-Dashboard ist entfernt; das vollstÃ¤ndige **Aktuelle Wetter** bleibt unter **Mehr â†’ Ãœberblick** erreichbar.
-- Die Bottom-Bar blendet beim AbwÃ¤rtsscrollen deutlich spÃ¤ter aus und bleibt im minimierten Zustand als sichtbarer Glass-Griff erreichbar. AufwÃ¤rtsscrollen oder Antippen stellt sie sofort wieder her.
-- **Komposit** ist als PrimÃ¤rziel direkt erreichbar. In **Mehr** stehen zusÃ¤tzlich Schnellzugriffe auf Favoriten, Benachrichtigungen, Einstellungen, Wetterzwilling und Updates â€“ Funktionen der frÃ¼heren Top-Bar bleiben damit leicht auffindbar.
-- 500-hPa-Isohypsen werden im Komposit wieder als echte geglÃ¤ttete, gold-/amberfarbene gestrichelte Vektorlinien gerendert; die sichtbaren gpdm-Beschriftungen und die Linien teilen denselben Leaflet-Layerpfad.
-- Komposit-Auswahlen werden unmittelbar gespeichert. UnnÃ¶tige Basiskartenhinweise wie â€žschlÃ¼sselfreiâ€œ wurden entfernt.
-- Der Niederschlagsphasen-Layer nutzt bei vorhandenen Daten zusÃ¤tzlich native **DWD ICON-D2-RUC**-Signale fÃ¼r Regen, Schnee und Graupel (15-minÃ¼tig). Die Phase wird nur Ã¼ber realem OPERA-Radarecho visualisiert; die bisherige thermodynamische Regionalmodell-Phase bleibt als sicherer Fallback erhalten.
-
-## Intern
-- Breites 5-Minuten-Densifying aller RUC-Felder wurde bewusst verworfen: die zusÃ¤tzliche Datenmenge wÃ¤re groÃŸ, ohne fÃ¼r langsam verÃ¤nderliche Zustandsfelder einen proportionalen Prognosegewinn zu liefern. 5-Minuten-Niederschlagsmengen bleiben Timing-Kern, 15-Minuten-Phasen bleiben in ihrer nativen DWD-AuflÃ¶sung.
-- Der bestehende RUC-Phase15-Speicherpfad (`RAIN_GSP`, `SNOW_GSP`, `GRAU_GSP`) wird nun vom Radar-Phasenadapter genutzt; fehlende/stale Daten fallen fail-safe auf den bisherigen Modellpfad zurÃ¼ck.
-- Die alten Beta-Heute-Regressionen und historische Navigations-StringvertrÃ¤ge wurden an die kanonische Bottom-Bar-/Current-Architektur angepasst.
-- Worker-Fachlogik wurde geÃ¤ndert; fÃ¼r diesen kumulativen Release ist ein Worker-Upload erforderlich.
-
-# MID v0.9.84.90
-
-- Release-Gate korrigiert: drei veraltete Radar-/Livequellen-Regressionen an die seit v0.9.84.88 bewusst verdichtete Kompositdarstellung angepasst.
-- Keine Wetter-, Radar-, Synoptik-, Push- oder Navigationslogik geÃ¤ndert.
-- Diagnoseinformationen zu Niederschlagsart, KONRAD3D und NowCastMIX bleiben vollstÃ¤ndig Ã¼ber Status-/Infoebenen erhalten.
-
-# MID v0.9.84.89
-
-- Die mobile Web-/PWA-Navigation ist jetzt eine schwebende, iOS-inspirierte Bottom-Bar mit **Aktuell, Kurzfrist, 7 Tage, 14 Tage und Mehr**.
-- Die Beschriftungen bleiben auch auf kleinen iPhones einzeilig; die Leiste berÃ¼cksichtigt Home-Indicator/Safe Areas und wird im Querformat platzsparender.
-- Beim Herunterscrollen blendet sich die Leiste nach einer kleinen Hysterese aus; beim Hochscrollen, am Seitenanfang oder bei Bedienfokus erscheint sie wieder.
-- Die frÃ¼here Einstellung **Bedienkonzept** und **Bottom-Leiste Â· Beta** wurde entfernt. Weitere Karten-, Planer- und Fachmodule bleiben Ã¼ber **Mehr** erreichbar.
-- Keine Ã„nderung an Wetterdaten, Radar-/Satellitenprodukten, Warnlogik oder Parameterfarben.
-- Installer #1042 des vorherigen v0.9.84.88-Uploads wurde vor dem neuen Paket analysiert: einziges TypeScript-Problem war ein ungenutztes `latestLightningTime`-Binding in `RadarPanel.tsx`; dieses tote Binding ist entfernt.
-
-## 0.9.84.88
-
-### Extern
-- Tagespiktogramme bewerten Sonnenscheindauer und TagesbewÃ¶lkung ausgewogener. Ein Tag mit hohem Sonnenanteil wird nicht mehr allein wegen einzelner wolkiger Stunden als wolkendominant zusammengefasst; Ã¼berwiegend dichte BewÃ¶lkung und relevante NiederschlÃ¤ge begrenzen sonnige Klassen weiterhin.
-- Push-Mitteilungen sind kÃ¼rzer und scannbarer. Die Niederschlagsvorwarnung nennt Beginn, Dauer und Menge kompakt; der redundante Satz â€žRadar bestÃ¤tigt die AnnÃ¤herungâ€œ entfÃ¤llt. Gewitterhinweise wurden ebenfalls gestrafft, ohne den Hinweis â€žKeine amtliche Warnungâ€œ zu entfernen.
-- Synoptik erhÃ¤lt zusÃ¤tzlich groÃŸrÃ¤umige modell-diagnostische Frontalzonen aus dem Î¸e-Gradienten in 850 hPa. Lokal typisierte Kalt-/Warmfronten, Okklusionen, TrÃ¶ge und Konvergenzen bleiben als strengere Mehrparameteranalyse erhalten. 500-hPa-Isohypsen werden ausschlieÃŸlich als geglÃ¤ttete MID-Vektoren in Gold/Amber und gestrichelt dargestellt; der treppenartige weiÃŸe WMS-Isohypsenfallback wurde entfernt.
-- Die Layerfelder im Kompositbild sind deutlich kompakter: kurze PrimÃ¤rinformationen, kleinere Icons, eine einzeilige Statuszeile und weiterhin touchfreundliche MindesthÃ¶hen. AusfÃ¼hrliche Quellen-/Methodeninformationen bleiben Ã¼ber den Infozugang erhalten.
-
-### Intern
-- Tagescharakteristik gewichtet Sonnenscheindauer substanzieller (`72/28` Stundenhelligkeit/Sonnenscheindauer; zusÃ¤tzliche Sonnenuntergrenze) und behÃ¤lt harte Caps fÃ¼r Ã¼berwiegend dichte BewÃ¶lkung bei.
-- Niederschlags-Push: Titel `MID Â· <Art> in <Min.>`; Body `<Ort> Â· Beginn â€¦ Â· Dauer â€¦ Â· ca. â€¦ mm`. Gewitter-Pushtexte ebenfalls gekÃ¼rzt.
-- Europa-Synoptikraster ergÃ¤nzt Temperatur und relative Feuchte in 850 hPa, berechnet Î¸e, robuste Gradientenschwellen und zusammenhÃ¤ngende Frontalzonen. Diese werden ausdrÃ¼cklich als Modell-Diagnose und nicht als amtliche DWD-Bodenanalyse gekennzeichnet.
-- Native DWD-Isobaren bleiben nutzbar; native DWD-500-hPa-Isohypsen werden nicht mehr als sichtbarer Fallback gerendert. MID-Isohypsen nutzen `9 5` (Zwischenlinien) bzw. `18 7` (Hauptlinien) und die vorhandene Goldpalette mit Halo.
-- Neue/aktualisierte Regressionen schÃ¼tzen Sonnenschein-Piktogramme, Push-KÃ¼rzung, regionale Frontalzonen, gestrichelte Isohypsen und Komposit-Layerdichte Ã¼ber zwÃ¶lf Referenz-Viewports.
-- Worker-Fachlogik wurde geÃ¤ndert; fÃ¼r diesen Release ist ein Worker-Upload erforderlich.
-
-## 0.9.84.87
-
-### Extern
-- Installerfehler aus GitHub Actions #1040 behoben. Die App selbst und die bisherigen Korrekturen bleiben unverÃ¤ndert; blockiert hatte ausschlieÃŸlich ein versionsfest geschriebener Viewport-Regressionsvertrag.
-- Keine Ã„nderung an Wetterdaten, Modellfusion, Warnlogik, Radar, Satellit, Karten, Pegeln oder sichtbarer Bedienlogik.
-
-### Intern
-- `test-viewport-textflow-098485.mjs` ist nicht mehr auf `0.9.84.85` fest verdrahtet. Der Test schÃ¼tzt weiterhin Header, Bottom-Navigation, Prognose-Kompass, 24-h-Einzeldaten und Pegelzugang, verwendet fÃ¼r die Protokollausgabe aber die jeweils aktuelle Paketversion.
-- Damit bleibt der Viewport-/Textflussvertrag Ã¼ber Wartungsreleases hinweg gÃ¼ltig und blockiert kÃ¼nftige Versionsanhebungen nicht erneut ohne fachlichen Grund.
-- Versionsmetadaten auf 0.9.84.87 synchronisiert; Worker-Fachlogik unverÃ¤ndert.
-
-## 0.9.84.86
-
-### Extern
-- Installerfehler aus GitHub Actions #1039 behoben. Die App selbst hatte erfolgreich gebaut; zwei Ã¤ltere Regressionstests erwarteten noch die vor v0.9.84.85 gÃ¼ltigen Texte.
-- Die beabsichtigten Verbesserungen aus v0.9.84.85 bleiben unverÃ¤ndert erhalten: In den 24-h-Einzeldaten stehen Lufttemperatur, gefÃ¼hlte Temperatur und Taupunkt getrennt ohne zusÃ¤tzliche Delta-K-Angabe; der Wassersport-Bereich nennt â€žPegelâ€œ weiterhin ausdrÃ¼cklich.
-- Keine Ã„nderung an Wetterdaten, Modellfusion, Warnlogik, Karten-, Radar-, Satelliten- oder Pegelberechnungen.
-
-### Intern
-- `test-mid-weather-profile-thermal-sun-09320.mjs` an den aktuellen 24-h-Einzeldatenvertrag angepasst: die drei Temperaturwerte werden positiv geprÃ¼ft, die veraltete sichtbare `K`-Delta-Ausgabe wird ausdrÃ¼cklich verworfen.
-- `test-sports-section-collapse-09280.mjs` schÃ¼tzt nun die aktuelle Modulbeschreibung â€žPegel, Wasserwetter, Gezeiten und Bedingungenâ€œ.
-- Der Fehler aus Installer #1039 war damit ein veralteter Testvertrag und kein Produktionsbuild- oder npm-/Dependency-Fehler.
-- Worker-Fachlogik unverÃ¤ndert; ausschlieÃŸlich Versionsmetadaten synchronisiert. Ein manueller Worker-Upload ist nicht erforderlich.
-
-## 0.9.84.85
-
-### Extern
-- Mobile Kopfzeile und Hauptnavigation passen sich konsequenter an den verfÃ¼gbaren Platz an: Versionsnummer und kurze Register bleiben vollstÃ¤ndig lesbar, ohne mitten im Wort umzubrechen.
-- Prognose-Konfidenz und weitere kompakte Informationskarten stapeln Inhalte auf schmalen Displays geordnet, statt Text Ã¼ber KartenrÃ¤nder laufen zu lassen.
-- Die 24-Stunden-Einzeldaten sind kompakter: Lufttemperatur, gefÃ¼hlte Temperatur und Taupunkt werden als drei klar getrennte Werte gezeigt; die Delta-Temperaturangabe entfÃ¤llt.
-- PegelstÃ¤nde sind leichter auffindbar: Wasser/Wassersport und die Favoritenprofile benennen amtliche Pegel nun ausdrÃ¼cklich.
-- Responsive SchutzprÃ¼fung Ã¼ber zwÃ¶lf Smartphone-, Tablet- und DesktopgrÃ¶ÃŸen ergÃ¤nzt.
-
-### Intern
-- Mobile Header priorisiert auf schmalen iPhones Logo/Version und essentielle Aktionen; der permanente â€žinstalliertâ€œ-Status belegt dort keinen wertvollen Platz mehr.
-- Bottom-Navigation schÃ¼tzt kurze Register vor Worttrennung und reduziert Icons/Typografie adaptiv, ohne die vorhandenen Touchziele zu verkleinern.
-- Prognose-Konfidenzkarten wechseln mobil auf eine gestapelte Informationshierarchie; lange Methodentexte bleiben Ã¼ber den bestehenden Infozugang vollstÃ¤ndig verfÃ¼gbar.
-- Neue Regression `test-viewport-textflow-098485.mjs` schÃ¼tzt Versionsdarstellung, Pegel-Auffindbarkeit, Bottom-Navigation, Konfidenzkarten und die kompakte 24-h-Einzeldatenansicht.
-- ReprÃ¤sentative Layoutgeometrie wurde fÃ¼r 320Ã—568, 360Ã—640, 375Ã—667, 390Ã—844, 402Ã—874, 430Ã—932, 768Ã—1024, 820Ã—1180, 1024Ã—768, 1280Ã—800, 1440Ã—900 und 1920Ã—1080 geprÃ¼ft; im Audit wurden keine GrenzÃ¼berschreitungen gefunden.
-- Worker-Fachlogik unverÃ¤ndert; ausschlieÃŸlich Versionsmetadaten synchronisiert. Ein manueller Worker-Upload ist nicht erforderlich.
-
-## 0.9.84.84
-
-### Extern
-- Release-Fehler aus GitHub Actions #1037 behoben: Der Produktionsbuild war bereits erfolgreich; anschlieÃŸend widersprachen vier Ã¤ltere Regressionstests der inzwischen verbindlichen gemeinsamen Portal-/Popover-Architektur. Diese AltvertrÃ¤ge wurden an den aktuellen MID-Stand angepasst.
-- Meteogramm-Tooltips verwenden nun ebenfalls die gemeinsame viewportfeste MID-Portalprimitive. Dadurch bleiben die Werte in iPhone-, iPad-, Querformat- und Desktopansichten auÃŸerhalb horizontaler Scrollcontainer lesbar; Touch-Tooltips schlieÃŸen weiterhin automatisch.
-- Die in v0.9.84.83 wieder sichtbaren RADOLAN-Mengen fÃ¼r 1 h und 24 h bleiben unverÃ¤ndert erhalten.
-- Keine Ã„nderung an Wetterdaten, Modellfusion, Warnlogik, Radar-/Satellitenfachlogik oder Niederschlagsmengen selbst.
-
-### Intern
-- `MeteogramPanel` enthÃ¤lt kein eigenes `react-dom/createPortal` mehr; die Punkttooltips laufen Ã¼ber `AppPortalPointTooltip` in `AppPortalPopover.tsx`.
-- Veraltete Regressionserwartungen in Code-Quality, Map-Focus und React-19 wurden vom frÃ¼heren lokalen `useDismissibleLayer`-Pfad auf die neuere `AppPortalPopover`-Architektur migriert.
-- Neuer Release-Gate-Vertrag `test-release-gate-architecture-098484.mjs` schÃ¼tzt die gemeinsame Portalarchitektur und verhindert, dass widersprÃ¼chliche AltvertrÃ¤ge den Installer erneut blockieren.
-- Der vorherige Installer #1037 erreichte erfolgreich npm-Installation, Dependency-Audit, TypeScript- und Vite-Build; er scheiterte erst an vier Regressionen. Die vier betroffenen Tests sowie die angrenzenden Overlay-/Karten-/RADOLAN-/VersionsvertrÃ¤ge bestehen im korrigierten Stand.
-- Lokales `npm ci` konnte in der isolierten Arbeitsumgebung wegen eines Transport-Timeouts nicht vollstÃ¤ndig bezogen werden; deshalb wird der komplette 778-Test-GitHub-Gate nicht vorgetÃ¤uscht. Der nÃ¤chste Installerlauf bleibt die definitive VollprÃ¼fung.
-- Worker-Fachlogik unverÃ¤ndert; ausschlieÃŸlich Versionsmetadaten synchronisiert. Ein manueller Worker-Upload ist nicht erforderlich.
-
-## 0.9.84.83
-
-### Extern
-- Aktuelles Wetter â†’ Niederschlag zeigt die vorhandene RADOLAN-RÃ¼ckschau wieder vollstÃ¤ndig sichtbar: sowohl die letzte 1-h-Menge als auch die letzte 24-h-Menge stehen direkt in der Kachel und nicht nur hinter der Info-SchaltflÃ¤che.
-- Die fachliche Herkunft bleibt transparent: fÃ¼r die Stunde wird angeeichtes RADOLAN RW bevorzugt; nur bei noch nicht ausreichend aktuellem RW darf RY als ausdrÃ¼cklich nicht angeeichter Ersatz dienen. Die 24-h-Menge stammt weiterhin aus angeeichtem RADOLAN SF.
-- Keine Ã„nderung an Niederschlagsberechnung, Radar-Nowcast, Modellfusion oder Mengenwerten selbst; korrigiert wurde ausschlieÃŸlich die sichtbare Darstellung der bereits vorhandenen RÃ¼ckschauwerte.
-
-### Intern
-- `Current` fÃ¼hrt eine eigene kompakte sichtbare Historienzeile fÃ¼r 1 h und 24 h; Produkt- und Angeeicht-Status bleiben in den technischen Details erhalten.
-- Neuer Regressionstest `test-current-precip-radolan-history-visible-098483.mjs` schÃ¼tzt sichtbare 1-h-/24-h-Werte sowie RW/RY/SF- und Angeeicht-Vertrag.
-- Worker-Fachlogik unverÃ¤ndert; ausschlieÃŸlich Versionsmetadaten synchronisiert. Ein manueller Worker-Upload ist nicht erforderlich.
-
-## 0.9.84.82
-
-### Extern
-- App-weiten Karten-/Diagramm-Audit fortgesetzt: Meteogramm-Tooltips werden auf iPhone, iPad und Desktop nun viewportfest angezeigt, dÃ¼rfen umbrechen und verschwinden auf Touch automatisch wieder. Dadurch werden lange Werte nicht mehr am Diagrammrand oder durch horizontale Scrollcontainer abgeschnitten.
-- Wetterkarten-Kopf und Quellenblock brechen auf schmalen Displays kontrolliert untereinander um; Modell-/Quellenmetadaten bleiben vollstÃ¤ndig lesbar statt unmarkiert zu ellipsieren.
-- DWD-Kombinationskarten zeigen die Niederschlagsarten-Legende auf mobilen GerÃ¤ten als sichere, scrollbar begrenzte Viewport-FlÃ¤che inklusive Safe-Area-Abstand.
-- Synoptik und Extremwetter wurden fÃ¼r kleine Smartphones und Split-View nachgezogen: keine 6-px-RÃ¼ckfÃ¤lle bei zentralen Phasen-/Legendentexten, lange Regions-/Stationshinweise dÃ¼rfen umbrechen, Kartenlegenden bleiben begrenzt und scrollbar.
-- FÃ¼r flache Querformate werden Wetterkarten-, Synoptik-, Extremwetter- und RadarflÃ¤chen in der HÃ¶he begrenzt, damit Bedienelemente und Navigation nicht unnÃ¶tig aus dem sichtbaren Bereich gedrÃ¤ngt werden.
-- Keine Ã„nderung an Wetterdaten, Modellfusion, Warnlogik, Radar-/Satellitendaten, Piktogrammen oder Parameterfarben.
-
-### Intern
-- Meteogramm-Tooltipkoordinaten von diagramminternen SVG-Koordinaten auf `clientX/clientY` plus `react-dom`-Portal umgestellt; Touch-Tooltips besitzen einen 4,2-s-Auto-Dismiss.
-- Neuer Pflichtvertrag `test-map-chart-responsive-continuation-098482.mjs` simuliert die Tooltip-Horizontalgeometrie auf den zwÃ¶lf vereinbarten iPhone-/Handy-/iPad-/Desktop-Viewports und schÃ¼tzt Wetterkarten-, DWD-Legenden-, Synoptik-, Extremwetter- und Querformatregeln.
-- Bestehende VertrÃ¤ge fÃ¼r Overlay-Viewport, allgemeine Tooltip-ResponsivitÃ¤t, Visualisierungslesbarkeit, Wetterkarten, Radarinteraktion, Design-Abdeckung und appweite Touchziele bleiben bestanden. Zwei Ã¤ltere fachliche Layouttests benÃ¶tigen weiterhin `typescript-strada`, das im Transport-ZIP nicht enthalten ist; dies wird nicht als bestanden ausgegeben.
-- Worker-Fachlogik unverÃ¤ndert; ausschlieÃŸlich Versionsmetadaten synchronisiert. Ein manueller Worker-Upload ist nicht erforderlich.
-- Buildfix nach dem fehlgeschlagenen Installer #1036: Der nach der Trend-14d+-Portalumstellung nicht mehr verwendete lokale `clamp`-Helfer wurde aus `SubseasonalTrendPanel.tsx` entfernt. Damit ist der gemeldete TypeScript-Fehler `TS6133` beseitigt; der Overlay-Vertrag schÃ¼tzt diesen RÃ¼ckfall kÃ¼nftig mit.
-
-## 0.9.84.81
-
-### Extern
-- iPhone-Kopfbereich nach dem gemeldeten Screenshot nachgebessert: Benachrichtigungs-/Aktionsbuttons liegen nicht mehr optisch in der Suchzeile. Die Suche erhÃ¤lt auf regulÃ¤ren iPhones eine eigene volle Zeile; sehr schmale GerÃ¤te behalten einen sicheren dreizeiligen Fallback.
-- Die fÃ¼nf Hauptziele der optionalen Bottom-Leiste bleiben einzeilig. â€žKurzfristâ€œ, â€ž7 Tageâ€œ und â€ž14 Tageâ€œ werden nicht mehr mitten im Wort bzw. unnÃ¶tig auf zwei Zeilen getrennt.
-- Favoriten-Schnellleiste robuster gemacht: Der Standardort wird auf schmalen iPhones kompakt als â€žStd.â€œ gekennzeichnet, die VerwaltungsflÃ¤che bleibt getrennt und die Favoritenleiste horizontal scrollbar.
-- Keine Ã„nderung an Wetterdaten, Prognosefusion, Warnlogik, Piktogrammen, Karteninhalten oder Parameterfarben.
-
-### Intern
-- Neuer Pflichtvertrag `test-mobile-header-bottom-nav-098481.mjs` schÃ¼tzt die Screenshot-Korrekturen gegen spÃ¤tere allgemeine Lesbarkeits-/Umbruchregeln.
-- Bestehende VertrÃ¤ge fÃ¼r vollstÃ¤ndige Versionsanzeige, Favoriten, Touch-Suche, Bottom-Navigation, Header-Dichte, appweite Touchziele, Design-Abdeckung, Versionierung und Release-Lineage bleiben bestanden.
-- Ein Headless-Chromium-Screenshotlauf wurde versucht, beendet sich in der isolierten Umgebung jedoch nicht zuverlÃ¤ssig; er wird deshalb ausdrÃ¼cklich nicht als bestandene SichtprÃ¼fung gewertet.
-- Worker-Fachlogik unverÃ¤ndert; ausschlieÃŸlich Versionsmetadaten synchronisiert. Ein manueller Worker-Upload ist nicht erforderlich.
-
-## 0.9.84.80
-
-### Extern
-- App-weiten Interaktions-/Overlay-Audit fortgesetzt: Punktdetails im â€žTrend 14d+â€œ sowie Ebenen- und Dateninformationen im Kompositbild bleiben nun auch an DisplayrÃ¤ndern vollstÃ¤ndig im sichtbaren Bereich und kÃ¶nnen bei langem Inhalt intern scrollen.
-- Langfrist-/Witterungstrend verwendet fÃ¼r sichtbare Bedien-, Status- und Modelltexte keine historischen 6â€“9-px-Schriften mehr; wissenschaftliche Achsen bleiben bewusst kompakt.
-- Favoriten-, Einstellungs-, Update- und Installationsdialoge reagieren robuster auf dynamische iPhone-Safari-Leisten, Notch und Home Indicator.
-- Touchbedienung der neu geprÃ¼ften Popover bleibt mit mindestens 44-px-Zielen abgesichert.
-- Keine Ã„nderung an Wetterdaten, Modellfusion, Warnlogik, Piktogrammen oder Parameterfarben.
-
-### Intern
-- Trend-14d+-Punkttooltips und Komposit-Popover auf die gemeinsame `AppPortalPopover`-Architektur umgestellt.
-- Neuer Pflichtvertrag `test-overlay-viewport-continuation-098480.mjs` simuliert die Portalpositionierung auf zwÃ¶lf iPhone-/Handy-/iPad-/DesktopgrÃ¶ÃŸen und schÃ¼tzt `visualViewport`, Safe Areas, interne Scrollbarkeit und das kanonische Stylesheet-Aggregat.
-- Trend-/Langfrist-Fachregressionen fÃ¼r EC46/GEFS, Klimamittel 1991â€“2020, P10â€“P90/P25â€“P75, Parameterfarben und Fallbacks bleiben bestanden.
-- Worker-Fachlogik unverÃ¤ndert; ausschlieÃŸlich Versionsmetadaten werden synchronisiert. Ein manueller Worker-Upload ist fÃ¼r diese UI-/Interaktionskorrektur nicht erforderlich.
-
-## 0.9.84.79
-
-### Extern
-- App-weite DarstellungsprÃ¼fung aus MID 17.7.23 fortgesetzt und auf sÃ¤mtliche aktivierbaren Dashboard-Module sowie Einstellungen, Quellenanalyse, Routenwetter, moderne Heute-Ansicht und Installationsdialoge ausgedehnt.
-- Die optionale moderne Heute-Ansicht verwendet keine historischen 7â€“9-px-Beschriftungen mehr; Wetterbeschreibung, Kennwerte und Kurztrend bleiben vollstÃ¤ndig lesbar und dÃ¼rfen sinnvoll umbrechen.
-- Lokale Istwetter-/Gefahrenhinweise, Warnkopf, PrognosegÃ¼te, Quellen-/Modellnamen und Routenwetter wurden auf die gemeinsame MID-Lesbarkeit angehoben.
-- Lange Quellennamen und Ensemble-Szenariotitel werden nicht mehr mit Ellipse abgeschnitten. Touchziele bleiben auf mobilen GerÃ¤ten mindestens 44 px.
-- Keine Ã„nderung an Wetterdaten, Modellfusion, Warnlogik, Piktogrammen oder Parameterfarben.
-
-### Intern
-- Neue VollstÃ¤ndigkeitsmatrix `MID_APP_VIEW_AUDIT_0.9.84.79.md` deckt alle 18 Dashboard-Module plus globale Shell-/SekundÃ¤rbereiche ab.
-- Neuer Pflichtvertrag `test-appwide-readability-continuation-098479.mjs` schÃ¼tzt die Rest-Audit-Regeln, die vollstÃ¤ndige Modulliste und das kanonische Stylesheet-Aggregat.
-- 22 relevante lokale Regressionen bestanden. Zwei Ã¤ltere Tests und der vollstÃ¤ndige TypeScript-Build benÃ¶tigen die im Professional-ZIP nicht enthaltenen ProjektabhÃ¤ngigkeiten; dies ist im Testbericht transparent dokumentiert.
-- Worker-Fachlogik unverÃ¤ndert; ausschlieÃŸlich Versionsmetadaten synchronisiert. Ein manueller Worker-Upload ist fÃ¼r diese UI-/Designkorrektur nicht erforderlich.
-
-## 0.9.84.78
-
-### Extern
-- Mobiler Header neu abgesichert: Die vollstÃ¤ndige Versionsnummer bleibt auf schmalen iPhone-/Handybreiten sichtbar. Unter 430 px stehen Marke/Version, Aktionsleiste und Suche in getrennten Zeilen; die 44-px-Touchziele werden nicht verkleinert.
-- Schweizer Hydrologie ergÃ¤nzt: FÃ¼r Orte in der Schweiz kann MID die Ã¶ffentliche BAFU-Datenplattform direkt Ã¼ber GraphQL nutzen und aktuelle WasserstÃ¤nde, AbflÃ¼sse und Wassertemperaturen aus dem nationalen hydrologischen Messnetz anzeigen.
-- Schweizer WasserstÃ¤nde bleiben im nativen HÃ¶henbezug `m Ã¼. M.`; sie werden nicht in den deutschen PEGELONLINE-cm-Vertrag umgerechnet. Deutschland bleibt unverÃ¤ndert auf WSV PEGELONLINE einschlieÃŸlich vorhandener WV-Vorhersagen.
-- Keine Ã„nderung an DWD-/OPERA-Radar, Warnlogik, Modellfusion, Wetterpiktogrammen oder Parameterfarben.
-
-### Intern
-- Neuer Header-Vertrag `test-header-version-readability-098478.mjs` schÃ¼tzt die vollstÃ¤ndige Versionsanzeige app-weit und erzwingt bei <=430 px getrennte Layoutzeilen fÃ¼r Brand, Aktionen und Suche.
-- Neuer BAFU-Vertrag `test-bafu-hydrology-098478.mjs` prÃ¼ft amtliche Stationsauswahl, `data_live` fÃ¼r W/Q/WT, native Einheiten, Freshness-Schutz und die Trennung vom PEGELONLINE-cm-Schema.
-- BAFU-GraphQL-Endpunkt `https://data.bafu.admin.ch/api` wird ohne Zugangsdaten angesprochen; aktive Stationsmetadaten werden Worker-seitig zwischengespeichert. Live-Werte Ã¤lter als 90 Minuten werden nicht als aktuell ausgegeben.
-- QuellenÃ¼bersicht und Worker-Health wurden um BAFU ergÃ¤nzt. Worker-Fachlogik geÃ¤ndert; Worker-Deployment erforderlich.
-
-## 0.9.84.77
-
-### Extern
-- Buildfix fÃ¼r den fehlgeschlagenen Installer #1032: NOAA MRMS bleibt in den USA die amtliche Standort-/Nowcast-Analyse, wÃ¤hrend die sichtbare Radarkarte bis zu einem eigenen MRMS-Rasteradapter explizit auf RainViewer zurÃ¼ckfÃ¤llt.
-- Dadurch bleibt die US-Radarkarte sichtbar und die Quellen werden transparent getrennt statt einen nicht vorhandenen MRMS-Kartenlayer vorzutÃ¤uschen.
-- Keine Ã„nderung an DWD-/OPERA-Radar, Warnungen, Modellfusion, Wetterwerten, Piktogrammen oder Design.
-
-### Intern
-- TypeScript-Fehler `TS2322` in `RadarPanel.tsx` behoben: `RadarNowcast.source='mrms'` wird nicht mehr ungeprÃ¼ft als `CompositeSource` zurÃ¼ckgegeben.
-- `CompositeSource` bleibt bewusst auf tatsÃ¤chlich renderbare Kartenquellen beschrÃ¤nkt; MRMS wird separat als Standortanalyse ausgewiesen.
-- Neuer Regressionstest `test-mrms-display-source-contract-098477.mjs` schÃ¼tzt Compilervertrag und verhindert einen leeren MRMS-Rasterpfad.
-- TemporÃ¤re lokale Diagnose-Logs der v0.9.84.76-Sandbox wurden aus dem Transportstand entfernt.
-- Worker-Fachlogik unverÃ¤ndert; nur Versionsmetadaten werden synchronisiert.
-
-## 0.9.84.76
-
-### Extern
-- Design-Audit fortgesetzt: Event-, Gewitter-, Klima-, Flugmet-, Radar-, Warn-, Navigations- und Einstellungsinformationen bleiben auf schmalen Displays besser lesbar; lange Eventtitel werden vollstÃ¤ndig umgebrochen.
-- PEGELONLINE zeigt bei vorhandener `WV`-Reihe nun den tatsÃ¤chlichen nÃ¤chsten amtlichen Vorhersage-/AbschÃ¤tzungswert statt nur â€žVorhersage vorhandenâ€œ.
-- Amtliche Beobachtungsadapter erhalten einen Freshness-Schutz, damit veraltete Stationswerte bei QuellstÃ¶rungen keine frischeren Fallbacks Ã¼berstimmen.
-- UBA-Luftdaten werden zeitlich abgesichert und fÃ¼hren die amtliche Quellenattribution explizit mit.
-- Quellen-Audit bestÃ¤tigt aktuelle KNMI-EDR-, SwissMetNet-STAC-, ECMWF-50r1-/AIFS-v2-, DWD-KONRAD3D/Mesozyklonen- und WIS2-VertrÃ¤ge; BAFU/LINDAS wird als nÃ¤chster P1-Wasserpfad fÃ¼r die Schweiz vorgemerkt.
-
-### Intern
-- PEGELONLINE `WV/measurements.json` liefert kompakt bis zu 16 zukÃ¼nftige Werte inkl. Forecast/Estimate, Initialisierungszeit und verfÃ¼gbaren P10/P90.
-- ProviderabhÃ¤ngige Freshness-Grenzen im Official Observation Broker; fehlende/unplausible Zeitstempel werden nicht priorisiert.
-- Neuer Wartungsvertrag `test-source-maintenance-098476.mjs` und erweiterter Designvertrag `test-design-readability-3-098476.mjs`.
-- Chromium-Layoutmatrix mit dem erzeugten MID-CSS fÃ¼r 320Ã—568 bis 1920Ã—1080 ohne horizontalen AuditÃ¼berlauf; geprÃ¼fte sichtbare Mikrotexte mindestens 11 px.
-- Worker-Fachlogik geÃ¤ndert; Worker-Deployment erforderlich.
-
-## 0.9.84.75
-
-### Extern
-- Quellen-Audit erweitert MID gezielt um amtliche und spezialisierte Datenwege: EUMETSAT MTG-LI, UBA-Luftdaten, SwissMetNet/KNMI-Beobachtungen, PEGELONLINE, MeteoAlarm EDR, NOAA MRMS, WIS2, Copernicus Marine und GloFAS.
-- LuftqualitÃ¤t trennt in Deutschland aktuelle UBA-Messwerte von der CAMS/Open-Meteo-Prognose; EEA bleibt Fallback.
-- Wasseransicht kann amtliche PEGELONLINE-Pegel und einen ausdrÃ¼cklich als Modell gekennzeichneten GloFAS-Abflussausblick zeigen; Copernicus Marine kann Marineparameter serverseitig reduziert liefern.
-- EuropÃ¤ische Konvektion nutzt MTG-FCI/LI vollstÃ¤ndiger; US-Radar kann regional NOAA MRMS verwenden. Nationale Warn-/Radar-/Beobachtungsquellen und OPERA bleiben erhalten.
-- EFAS wird wegen des Ã¶ffentlichen Zeitverzugs nicht als aktuelle Hochwasserprognose ausgegeben.
-
-### Intern
-- Neue Adapter sind fail-safe und optional; Rohformate NetCDF/GRIB2/GeoTIFF/BUFR werden nicht im mobilen Requestpfad dekodiert.
-- KNMI-Legacyquellen sowie ECMWF-50r1-Legacystreams werden durch den neuen Quellenvertrag abgefangen.
-- WIS2 akzeptiert das kanonische Schema `mid-official-observation-v1`; nationale Direktquellen behalten Vorrang.
-- Neuer Pflichtvertrag `test-source-audit-official-sources-098475.mjs`; bestehende OPERA-/EEA-Regressionen bleiben aktiv.
-- Historischer Selected-Line-Test an die seit v0.9.84.74 bewusst flÃ¼chtige Profil-Overlay-Architektur angepasst; sichtbare Wind-/Luftdruckwerte bleiben geschÃ¼tzt.
-- Worker-Fachlogik geÃ¤ndert; Worker-Deployment erforderlich.
-
-## 0.9.84.74
-
-### Extern
-- GerÃ¤teÃ¼bergreifender Layout-Audit mit typischen iPhone-, Android-/Handy-, iPad-/Split-View- und DesktopgrÃ¶ÃŸen: kritische Text-, Karten-, Tooltip- und Overlay-Muster wurden auf Ãœberlauf, unschÃ¶ne UmbrÃ¼che und abgeschnittene Inhalte geprÃ¼ft.
-- Eventplaner auf schmalen Displays vollstÃ¤ndig lesbar: Workspace-Tabs, Sortierung, lange Eventnamen, Orte und Wetterkurzinfos werden nicht mehr per Ellipse abgeschnitten, sondern erhalten bei Bedarf zusÃ¤tzlichen Platz bzw. Zeilen.
-- Das 24-h-Wetterprofil zeigt die Werte-Pillen nicht mehr dauerhaft. Maus/Trackpad: nur bei Hover/Fokus; Touch: nach Antippen zeitlich begrenzt und danach automatisch ausgeblendet. Die dauerhafte Zeitmarkierung und der Bereich â€žEinzeldatenâ€œ bleiben erhalten.
-- Ensemble-Diagramm-Tooltips nutzen auf MobilgerÃ¤ten die verfÃ¼gbare Viewportbreite, kÃ¶nnen intern vertikal scrollen und zeigen auch lange Modell-, Niederschlags-, Sonnenschein- und Hinweisangaben vollstÃ¤ndig. Sehr schmale und niedrige Landscape-Fenster besitzen eigene Fallbacks; die TooltipflÃ¤che ist deckend, damit darunterliegende Diagrammtexte die Lesbarkeit nicht beeintrÃ¤chtigen.
-- Keine Ã„nderung an Wetterdaten, Modellfusion, Ensembleberechnung, Warnlogik, Piktogrammen oder Parameterfarben.
-
-### Intern
-- Browser-Viewport-Matrix geprÃ¼ft: 320Ã—568, 360Ã—800, 390Ã—844, 430Ã—932, 844Ã—390, 600Ã—1024, 768Ã—1024, 834Ã—1194, 1024Ã—1366, 1366Ã—768, 1440Ã—900 und 1920Ã—1080. Die reprÃ¤sentativen Hochrisikomuster bestanden ohne dokumentweiten horizontalen Ãœberlauf.
-- `ForecastCockpit` trennt nun dauerhafte Zeitauswahl und flÃ¼chtige Werte-Overlays; Touch-Overlay schlieÃŸt nach 4,8 s, Escape/Outside/Blur sowie Pointer-Leave bei Fine Pointer schlieÃŸen sofort. Outside-/Escape-Dismissal nutzt wieder die zentrale MID-Primitive `useDismissibleLayer`.
-- Event-Center-Sortierung erhÃ¤lt mobil eine eigene volle Zeile; Event-Workspace-Beschriftungen und Wetterkurzinfos dÃ¼rfen sinnvoll umbrechen.
-- Ensemble-Tooltip beseitigt Ã¤ltere hochspezifische `nowrap`-/7,8-px-Overrides bei Einzelwertzeilen; lange SchlÃ¼sselwÃ¶rter werden auf breiten Tooltips nicht mitten im Wort getrennt und auf schmalen GerÃ¤ten gestapelt.
-- Bestehende historische Tooltip-/Interaktionstests wurden nur dort versionsresilient gemacht, wo spÃ¤tere WartungsstÃ¤nde bewusst neue LayoutvertrÃ¤ge setzen. ZusÃ¤tzlich wurden die zehn im v0.9.84.73-CI noch auf die frÃ¼here ausfÃ¼hrliche Istwetterdarstellung fixierten VertrÃ¤ge auf die neue kompakte `(i)`-Informationsarchitektur aktualisiert; die fachlichen Informationen bleiben erhalten.
-- Neuer Pflichtvertrag `test-responsive-layout-tooltip-098474.mjs`; Stylesheet-Aggregat erneut aus den fÃ¼nf kanonischen Modulen erzeugt.
-- Releaseversion und Cache-/iOS-/Worker-Metadaten auf 0.9.84.74 synchronisiert; Worker-Fachlogik unverÃ¤ndert.
-
-## 0.9.84.73
-
-### Extern
-- Detailansichten, Popover und SekundÃ¤rbedienung auf iPhone, iPad und Desktop weiter vereinheitlicht: Quelleninformationen, UV-Hinweise, ModellstÃ¤nde und erweiterte Einstellungen sind besser lesbar.
-- Modellstand- und Inline-Steuerungen in Berg-/Wasseransichten verwenden keine historischen 7â€“8-px-Beschriftungen mehr; auf TouchgerÃ¤ten bleiben die Bedienziele bei 44 px.
-- Ensemble-Tooltips wurden fÃ¼r schmale Displays neu skaliert: grÃ¶ÃŸere Beschriftungen und Metadaten bei weiterhin kompakter, kollisionsarmer Matrix.
-- Die mobile Tmin/Tmax-Pille unterschreitet nicht mehr die aktuelle MID-Lesbarkeitsschwelle.
-- Langfrist-/C3S-/DWD-Statusinformationen wurden nachgezogen; kleine Modell-/QualitÃ¤tslabels verwenden jetzt die semantische MID-Typografie.
-- Keine Ã„nderung an Wetterdaten, Modellfusion, Ensembleberechnung, Warnlogik, Piktogrammen oder Parameterfarben.
-
-### Intern
-- `metric-source-info`, UVI-Popover, ModellÃ¤nderungsradar, Advanced-Feature-Disclosures und Push-Hinweise auf `--mid-text-*` standardisiert.
-- SpÃ¤t geladenes `v078.css` erhÃ¤lt einen expliziten Kaskadenabschluss fÃ¼r ModellstÃ¤nde, `module-inline-*` und die mobile Tmin/Tmax-Pille, damit Ã¤ltere 6,5â€“8-px-Regeln die neueren DesignvertrÃ¤ge nicht mehr Ã¼berschreiben.
-- Ensemble-Tooltip erhÃ¤lt einen 340/320-px-Desktop-/Mobile-Vertrag und einen separaten <=360-px-Fallback mit mindestens 9,5â€“10 px in den dichtesten Metazeilen.
-- Stunden-Tooltip-SchlieÃŸen sowie Langfrist-Legenden erreichen auf groben Touch-Pointern 44 px.
-- Der v0.9.84.72-Headervertrag wurde versionsresilient gemacht, damit er Folge-WartungsstÃ¤nde weiterhin schÃ¼tzt.
-- Buildfix fÃ¼r den fehlgeschlagenen v0.9.84.72-Installer: die nach der Istwetter-Verdichtung nicht mehr verwendeten Astronomie-Imports `formatDayLengthChange` und `formatDuration` wurden aus `App.tsx` entfernt; keine Funktionslogik wurde zurÃ¼ckgerollt.
-- Neuer Pflichtvertrag `test-secondary-detail-popover-readability-098473.mjs`; Stylesheet-Aggregat erneut aus den fÃ¼nf kanonischen Modulen erzeugt.
-- Releaseversion und Cache-/iOS-/Worker-Metadaten auf 0.9.84.73 synchronisiert; Worker-Fachlogik unverÃ¤ndert.
-
-## 0.9.84.72
-
-### Extern
-- Screenshot-getriebener Header-/Istwetter-Audit fÃ¼r iPhone, iPad und Desktop: die vollstÃ¤ndige Versionsnummer bleibt auch bei schmaler Kopfzeile sichtbar.
-- Sehr schmale GerÃ¤te erhalten einen sicheren zusÃ¤tzlichen Header-Fallback, statt Versionsnummer oder Aktionsschalter zu Ã¼berdecken.
-- Die kompakte Beschriftung â€žFeuchte / Taupunktâ€œ darf auf kleinen Breiten sauber zweizeilig umbrechen und kollidiert nicht mehr mit dem Feldrand.
-- Die Kacheln unter â€žAktuelles Wetter > mehrâ€œ zeigen nur noch die unmittelbar entscheidungsrelevante Kurzinfo. Quellen, Methodik und lÃ¤ngere Einordnungen liegen hinter dem jeweiligen (i)-Button.
-- Sichtbare Karten-Zusammenfassungen sind auf hÃ¶chstens zwei Zeilen begrenzt; die vollstÃ¤ndigen Informationen bleiben erreichbar.
-- Keine Ã„nderung an Messwerten, Modellfusion, Wettercodes, Warnlogik, Piktogrammen oder Parameterfarben.
-
-### Intern
-- Responsive Header-Kaskade fÃ¼r <=430 px auf getrennte `max-content`-Spalten umgestellt; <=360 px zusÃ¤tzlicher dreizeiliger Fallback fÃ¼r Brand/Aktionen/Suche.
-- `Current`-MetricCards in PrimÃ¤rwert, optionale Kurzbeschreibung und ausfÃ¼hrliche Infoebene getrennt; Datenquellen werden nicht entfernt, sondern in die bestehende Info-Popover-Struktur verschoben.
-- Taupunkt-/Feuchte-Fact erhÃ¤lt mobil explizite Umbruchfreigabe; Infoziele der Istwetter-Karten bleiben auf Touch bei 44 px.
-- Neuer Pflichtvertrag `test-current-header-density-098472.mjs`; Stylesheet-Aggregat erneut aus den fÃ¼nf kanonischen Modulen erzeugt.
-- Releaseversion und Cache-/iOS-/Worker-Metadaten auf 0.9.84.72 synchronisiert; Worker-Fachlogik unverÃ¤ndert.
-
-## 0.9.84.71
-
-### Extern
-- Visualisierungs-Audit Block 2 abgeschlossen: Wasser/Tide, Flugmeteorologie, Events/Reise, Warn-/Gefahrendarstellungen sowie Karten-/Radar-Tooltips sind auf iPhone, iPad und Desktop besser lesbar.
-- Sehr kleine historische 5â€“9-px-Beschriftungen wurden dort gezielt angehoben; wissenschaftlich dichte Karten-/Diagrammwerte bleiben kompakter als normale UI-Texte.
-- Auf TouchgerÃ¤ten erhalten zentrale Warn-, Reise-, Event-, Flug- und Radarbedienelemente weiterhin robuste 44-px-TrefferflÃ¤chen.
-- FÃ¼r iPad Split View und schmale Fenster werden Wasser-, Tide-, Reise- und Flugkarten weniger stark zusammengedrÃ¼ckt; horizontale Zeitreihen nutzen Scroll-Snap statt Mikrotypografie.
-- Keine Ã„nderung an Wetterdaten, Tide-/StrÃ¶mungsberechnung, Fluggefahren, Warnschwellen, Event-/Reiselogik, Radar/Nowcast, Piktogrammen oder Parameterfarben.
-
-### Intern
-- Zweiter Visualisierungsvertrag in `30-modern.css` fÃ¼r Wasser/Tide, Flug-/Routenwetter, Events, Reise, Warn-/Gefahrendarstellungen und Karten-/Radar-Tooltips.
-- Flug-Cross-Section-Achsen/Standardwerte, Wasser-Timeline, Reise-Tagesstreifen, kompakte Radarlegende und Druck-/DWD-Kartentooltips komponentenbezogen standardisiert.
-- Neuer Pflichtvertrag `test-visualization-readability-2-098471.mjs`; Stylesheet-Aggregat erneut aus den fÃ¼nf kanonischen Modulen erzeugt.
-- Releaseversion und Cache-/iOS-/Worker-Metadaten auf 0.9.84.71 synchronisiert; Worker-Fachlogik unverÃ¤ndert.
-
-## 0.9.84.70
-
-### Extern
-- Mobile, iPad und Desktop verwenden den neuen MID-Designvertrag nun Ã¼ber alle Hauptansichten hinweg konsistenter.
-- Klima, Meteogramme, Ensemble-, 7-Tage-, Langfrist- und Synoptikdarstellungen sind besser lesbar, ohne Wetterinformationen zu entfernen.
-- Touchbedienung und Formulare auf iPhone/iPad wurden weiter vereinheitlicht; Eingabefelder vermeiden unnÃ¶tigen Safari-Fokuszoom.
-- Wetterlogik, Warnungen, Farben und Piktogramme bleiben unverÃ¤ndert.
-
-### Intern
-- App-weite Designabdeckung fÃ¼r alle Hauptmodule abgesichert.
-- Visualisierungs-Audit Block 1 mit gezielten Achsen-/Legenden-/Tooltip-GrÃ¶ÃŸen umgesetzt.
-- Neue Regressionen `test-appwide-design-coverage-098470.mjs` und `test-visualization-readability-098470.mjs`.
-- Releaseversion und Cache-/iOS-/Worker-Metadaten auf 0.9.84.70 synchronisiert.
-
-## 0.9.84.69
-
-### Extern
-- Mobile und Desktop folgen jetzt einem gemeinsamen adaptiven Bedienvertrag: Bedienelemente richten sich stÃ¤rker nach verfÃ¼gbarer FlÃ¤che und Eingabemethode statt nach einem festen GerÃ¤tetyp.
-- Auf TouchgerÃ¤ten erhalten zentrale SchaltflÃ¤chen und Infoziele eine robuste TrefferflÃ¤che; die FÃ¼nf-Bereiche-Navigation ist auf iPhone besser lesbar und bleibt in niedrigen/breiten Fenstern kompakt bedienbar.
-- iPad-/Desktop-Navigation nutzt bei regulÃ¤rer Breite weiterhin die platzsparende Seitenleiste; Safe Areas, Split View und zusÃ¤tzliche Trackpad-/Mausbedienung werden sauberer berÃ¼cksichtigt.
-- Einstellungen, Systemdialoge, Planner, Quellenhinweise und Istwetter-Metadaten verwenden eine konsistentere Mindesttypografie.
-- 14-Tage-Karten werden auf schmaleren Breiten nicht mehr durch Mikrotypografie verdichtet, sondern als breitere, horizontal scrollbare Karten dargestellt. Alle Prognoseparameter bleiben sichtbar.
-- Keine Ã„nderung an Wetterdaten, Modellfusion, Warnlogik, Niederschlagsfarben, MID-Piktogrammen oder wissenschaftlichen Berechnungen.
-
-### Intern
-- Neuer Apple-2026-WebApp-Vertrag mit getrennten MindestgrÃ¶ÃŸen fÃ¼r Touch und Fine Pointer sowie zusÃ¤tzlicher `any-pointer: coarse`-Absicherung fÃ¼r iPad mit Trackpad/Maus.
-- Safe-Area-InnenabstÃ¤nde und die optionale FÃ¼nf-Bereiche-Navigation auf verfÃ¼gbare Breite/HÃ¶he standardisiert; neuer Compact-Height-Pfad ersetzt fÃ¼r den aktuellen Kaskadenabschluss die bisherige reine Querformatverdichtung.
-- Semantische MID-Typografietokens angehoben; normale UI-Mikrotexte beginnen bei 11 px, wÃ¤hrend datenreiche SVG-/Diagrammachsentexte bewusst separat kompakt bleiben.
-- 14-Tage-Ansicht auf kompakten Breiten auf 188â€“196 px breite Scroll-Snap-Karten mit lesbaren 11â€“15-px-Inhalten und 44-px-Infoziel umgestellt.
-- Boot-Recovery-SchaltflÃ¤chen auf 44 px MindesthÃ¶he angehoben; `viewport-fit=cover` und bestehende Safe-Area-VertrÃ¤ge bleiben erhalten.
-- Neuer Pflichtvertrag `test-apple-adaptive-design-contract-098469.mjs`; Worker-Fachlogik unverÃ¤ndert, ausschlieÃŸlich Versionssynchronisierung.
-
-## 0.9.84.68
-
-### Extern
-- Open-Meteo-Watch-Patch integriert: die derzeit von Open-Meteo suspendierten KMA-UM-Pfade LDPS/GDPS werden nicht mehr als aktive Prognosemodelle angeboten oder in die MID-Fusion aufgenommen.
-- FÃ¼r SÃ¼dkorea nutzt der Hyperlokal-Hintergrund wÃ¤hrend der KMA-KIM-Migration JMA MSM/JMA Seamless und anschlieÃŸend Open-Meteo Best Match als Fallbackkette.
-- MÃ©tÃ©o-France AROME HD 15 min bleibt aktiv und wird im Worker vor dem stÃ¼ndlichen AROME-HD-Fallback verwendet; damit bleibt die von Open-Meteo am 11.09.2026 korrigierte 15-min-Niederschlags-/Schneelogik nutzbar.
-- Ensemble-Offenlegung und Prognose-Kompass sind auf iPhone/iPad besser lesbar: Status-/ErklÃ¤rungstexte nutzen die gemeinsame MID-Typografieskala und der zentrale Auf-/Zuklappbereich erhÃ¤lt grÃ¶ÃŸere Touchziele.
-- Keine Warn-, Schwellen-, Niederschlagsphasen-, Piktogramm- oder Modellgewichtungslogik entfernt.
-
-### Intern
-- KMA LDPS/GDPS aus Frontend- und Worker-Katalog entfernt; veraltete `globalIds`-Referenz ebenfalls bereinigt.
-- `meteofrance_arome_france_hd_15min` als erster Worker-API-Pfad der bestehenden MÃ©tÃ©o-France-AROME-Familie ergÃ¤nzt; stÃ¼ndliches HD, AROME France und Seamless bleiben als Fallbacks erhalten.
-- Bestehenden Modellfamilienvertrag um Suspendierungs-, SÃ¼dkorea-Fallback- und AROME-15-min-Schutz erweitert.
-- Neuer Pflichtvertrag `test-openmeteo-watch-ensemble-ui-098468.mjs` schÃ¼tzt Patchintegration, Aggregate und Ensemble-UI-Standardisierung.
-- Worker-Fachlogik geÃ¤ndert; Worker-Deployment ist fÃ¼r diesen Stand erforderlich.
-
-## 0.9.84.67
-
-### Extern
-- Kurzfrist-, 90-Minuten- und 24-h-FlÃ¤chen auf iPhone/iPad besser lesbar: Wetter-, Niederschlags-, Wind- und Zeitangaben verwenden konsistentere MindestgrÃ¶ÃŸen statt historischer 5â€“9-px-Einzelwerte.
-- Kompositbild Ã¼bersichtlicher bedienbar: Tabs, Layeruntertitel, Kartenstatus, Zeitlinie, Standortzusammenfassung und minimierte Legende wurden typografisch vereinheitlicht und zentrale Touchziele vergrÃ¶ÃŸert.
-- Das 24-h-Wetterprofil behÃ¤lt seine wissenschaftliche Informationsdichte; Achsen-, Zeit-, Wolken- und Warnschwellenbeschriftungen wurden nur moderat vergrÃ¶ÃŸert, damit Kurven und Skalen nicht Ã¼berlagern.
-- Keine Ã„nderung an Wetterdaten, Zeitintervallen, Niederschlags-/Windlogik, Komposit-Layern, Radar/Nowcast, Piktogrammen oder Warnschwellen.
-
-### Intern
-- Kurzfrist-/Nowcast-/Komposit-UI schrittweise auf `--mid-text-micro/xs/sm` weitergefÃ¼hrt; keine globale CSS-VergrÃ¶ÃŸerung.
-- Komposit-Tabs mindestens 44 px; Live-/Ortungs-/Legenden- und Profilaktionen erhalten robustere TouchflÃ¤chen, auf groben Touch-Pointern bis 40â€“44 px.
-- Mobile Alt-Overrides, die 90-Minuten-/Komposittexte wieder auf 5,9â€“8 px verkleinerten, durch einen expliziten Kaskadenabschluss neutralisiert.
-- Neuer Pflichtvertrag `test-shortterm-composite-readability-098467.mjs` schÃ¼tzt Lesbarkeit, Touchziele, Funktionsbestand und kanonische Stylesheet-SynchronitÃ¤t.
-- Worker-Fachlogik unverÃ¤ndert; ausschlieÃŸlich Versionssynchronisierung.
-
-## 0.9.84.66
-
-### Extern
-- Extremwetter-Ausblick auf iPhone/iPad und Desktop besser lesbar: Zeitraum, GÃ¼ltigkeit, Regionen, Legenden, Methodik und Schwellentabellen nutzen jetzt die gemeinsame MID-Typografieskala statt historischer 7â€“9-px-Einzelwerte.
-- Gefahrenarten, Zeitraum, Aktualisieren, Regionsauswahl, Karten-Zoom und Methodik-Info besitzen konsistentere TouchflÃ¤chen; auf TouchgerÃ¤ten werden zentrale Ziele auf 40â€“48 px angehoben.
-- Die Kartenlegende und modellierten FlÃ¤chenbeschriftungen bleiben kompakt, sind aber klarer ablesbar. Fachliche I1â€“I4-/Wahrscheinlichkeitslogik, Schraffur, amtliche Warntrennung und Karteninhalte bleiben unverÃ¤ndert.
-
-### Intern
-- `25-extreme-outlook.css` komponentenweise auf `--mid-text-micro/xs/sm/meta` standardisiert; kein globaler CSS-Umbau.
-- MapLibre-Zoomtasten und Methodik-Info nur innerhalb des Extremwetter-Moduls vergrÃ¶ÃŸert, damit andere Kartenmodule nicht unbeabsichtigt verÃ¤ndert werden.
-- Neuer Pflichtvertrag `test-extreme-outlook-readability-098466.mjs` schÃ¼tzt Lesbarkeit, Touchziele, wissenschaftliche Einordnung und Funktionsbestand.
-- Worker-Fachlogik unverÃ¤ndert; ausschlieÃŸlich Versionssynchronisierung.
-
-## 0.9.84.65
-
-### Extern
-- Kopfzeile, Suche und Favoriten auf iPhone/iPad konsistenter bedienbar: kleine Suchfeldaktion und Favoriten-SchaltflÃ¤chen besitzen grÃ¶ÃŸere TrefferflÃ¤chen.
-- Favoriten-Untertexte sowie Kennzeichen wie Standard/Ski/Wasser und POI-Typen sind besser lesbar, ohne die kompakte Schnellleiste aufzugeben.
-- Im optionalen Bottom-Tab-Layout werden Favoriten nicht mehr auf 30 px BedienhÃ¶he verkleinert; horizontales Scrollen und kompakte Darstellung bleiben erhalten.
-- Keine Ã„nderung an Favoritenauswahl, Standortbestimmung, Reihenfolge, Wetterdaten oder meteorologischer Fachlogik.
-
-### Intern
-- Kopf-/Favoritenbereich auf die vorhandenen MID-Typografietokens `micro/xs/sm` weitergefÃ¼hrt.
-- Suchfeldaktion 36 px, auf groben Touch-Pointern 40 px; Favoritenverwaltung und Schnellzugriffe erhalten konsistente MindestgrÃ¶ÃŸen.
-- Drag-Griff der Favoritenleiste sichtbar verbreitert; Drag-and-drop und vorhandene Pfeiltasten bleiben parallel erhalten.
-- Favoritenverwaltung: Regel-, Berg- und Wasserprofil-Beschriftungen von historischen MikrogrÃ¶ÃŸen auf semantische UI-Typografie angehoben.
-- Neuer Pflichtvertrag `test-header-favorites-readability-098465.mjs` schÃ¼tzt Lesbarkeit, Touchziele, Funktionsbestand und Stylesheet-SynchronitÃ¤t.
-- Worker-Fachlogik unverÃ¤ndert; ausschlieÃŸlich Versionssynchronisierung.
-
-## 0.9.84.64
-
-### Extern
-- Reise-Center auf iPhone/iPad besser lesbar: Navigation, Reisezeitraum, Schnellkennwerte sowie Quellen- und Modellinformationen verwenden keine extrem kleinen 6â€“8-px-Beschriftungen mehr.
-- SchaltflÃ¤chen zum Ã–ffnen von Details, Bearbeiten und LÃ¶sen angehefteter Reisen besitzen grÃ¶ÃŸere BedienflÃ¤chen, ohne die kompakte Darstellung aufzugeben.
-- Keine Ã„nderung an Reiseprognose, Klimareferenz, Wetterdaten oder Modellgewichtung.
-
-### Intern
-- Reise-Center schrittweise auf die bestehenden MID-Typografietokens `micro/xs/sm` migriert; das setzt den UI-/Konsistenzaudit aus 0.9.84.62 komponentenweise fort.
-- Touchziele der Reise-Center-Navigation und -Aktionen auf mindestens 36 px, auf groben Touch-Pointern teilweise 40 px angehoben.
-- Neuer Pflichtvertrag `test-travel-center-readability-098464.mjs` schÃ¼tzt Lesbarkeit, Touchziele und die SynchronitÃ¤t des kanonischen Stylesheets.
-- Worker-Fachlogik unverÃ¤ndert; ausschlieÃŸlich Versionssynchronisierung.
-
-## 0.9.84.63
-
-### Extern
-- Release-Installer #1018 korrigiert; der Design-/Konsistenzstand aus 0.9.84.62 und sÃ¤mtliche Wetterfunktionen bleiben unverÃ¤ndert erhalten.
-- Keine Ã„nderung an Wetterdaten, Piktogrammen, Warnungen, Modellfusion oder Bedienlogik.
-
-### Intern
-- Veralteten Present-Weather-Regressionsvertrag an die seit 0.9.84.61 erweiterte WMO/DWD-Code-Priorisierung angepasst.
-- UI-Audit-Regression 0.9.84.62 so stabilisiert, dass spÃ¤tere Wartungsversionen den geschÃ¼tzten Designstand weiter prÃ¼fen kÃ¶nnen, ohne an eine historische Versionsnummer als aktuelle Releaseversion gebunden zu sein.
-- Releaseversion auf 0.9.84.63 synchronisiert.
-
-## 0.9.84.62
-
-### Extern
-- Design-/Bedienaudit: Lesbarkeit und visuelle Hierarchie der zentralen Istwetter- und EinstellungsflÃ¤chen vereinheitlicht, ohne Wetterfunktionen oder Datenquellen zu entfernen.
-- â€žAktuelles Wetterâ€œ zeigt Sichtweite und Luftdruck jetzt auch auf schmaleren Displays weiter an; die fÃ¼nf Kernfakten ordnen sich responsiv statt ausgeblendet an.
-- Kleine Info- und Sortier-SchaltflÃ¤chen besitzen auf Touch-GerÃ¤ten grÃ¶ÃŸere TrefferflÃ¤chen. Die vorhandenen Pfeiltasten als Alternative zum Ziehen werden deutlicher benannt.
-- Sehr kleine Beschriftungen im aktuellen Wetter, Temperaturbereich und ausgewÃ¤hlten Kompaktinformationen wurden auf eine besser lesbare semantische Typografieskala angehoben.
-
-### Intern
-- Semantische MID-Typografietokens (`micro/xs/sm/meta`) moderat standardisiert; chart- und kartenspezifische Mikrotypografie bleibt bewusst separat, damit keine Diagramme Ã¼berlaufen.
-- Responsiver Istwetterblock nutzt unter 900 px ein 6-Spalten-Raster: Niederschlag/Wind/Feuchte in der ersten, Sicht/Luftdruck in der zweiten Zeile; im niedrigen Querformat bleiben fÃ¼nf Werte einzeilig.
-- Dashboard-Sortierung und Favoritenreihenfolge behalten Drag-and-drop, verweisen aber expliziter auf die bereits vorhandenen Pfeiltasten als barriereÃ¤rmere Alternative.
-- Bestehende Wetterfarben, Piktogramme, Modell-/Beobachtungslogik und Datenquellen unverÃ¤ndert.
-- Neuer Pflichtvertrag `test-ui-audit-standardization-098462.mjs`.
-- MapLibre GL 6.9.0 als verfÃ¼gbares Minor-Update identifiziert, in diesem Wartungsstand aber bewusst nicht aktualisiert, da in der isolierten Build-Umgebung keine vollstÃ¤ndige Dependency-Neuinstallation verifiziert werden konnte.
-
-## 0.9.84.61
-
-### Extern
-- WetterzustÃ¤nde app-weit sprachlich und fachlich vereinheitlicht: zeitpunktbezogene Schauer werden korrekt im Singular bezeichnet, z. B. â€žLeichter Regenschauerâ€œ, â€žMÃ¤ÃŸiger Schneeschauerâ€œ und â€žStarker Hagelschauerâ€œ.
-- Numerische DWD-SYNOP-ww-Codes werden im Bereich â€žAktuelles Wetterâ€œ jetzt direkt als Wetterzustand und passende PiktogrammintensitÃ¤t interpretiert.
-- Der Startpfad fÃ¼r aktuelles Wetter/Hyperlokalanalyse wurde auf MobilgerÃ¤ten priorisiert, ohne Beobachtungsquellen oder QualitÃ¤tskontrollen zu reduzieren.
-
-### Intern
-- Present-Weather-Texte in `WeatherPictogram.tsx` grammatisch vereinheitlicht und SatzanfÃ¤nge konsistent groÃŸgeschrieben.
-- DWD/WMO-ww 80â€“92 auf Singularformen synchronisiert; generierte Wetteraggregate neu aufgebaut.
-- Fast-Observation-Vorladung von 120 auf 40 ms vorgezogen; Ensemble-Bootstrap von 260 auf 420 ms versetzt.
-- Nichtkritische UI-Chunk-Vorladung startet erst nach Forecast/Station oder spÃ¤testens nach 700 ms.
-- VollstÃ¤ndige Hyperlokalanalyse nach dem Provisional-Pass von 180 auf 80 ms vorgezogen.
-- Neue Pflichtregression `test-german-weather-terminology-performance-098461.mjs`.
-
-## 0.9.84.60
-
-### Extern
-- Widget-KurvenÃ¼bersicht: Temperatur-Hilfslinien moderat kontrastreicher, ohne die Kurve optisch zu Ã¼berlagern.
-- Aktuelles Wetter: BewÃ¶lkungsabgleich in Deutschland nutzt DWD CDC 10-min, direkten DWD-SYNOP/OpenData-POI und METAR/SPECI gemeinsam; Bright Sky bleibt ausschlieÃŸlich Fallback.
-- In der Hyperlokal-Info wird die tatsÃ¤chlich verwendete BewÃ¶lkungsbasis feldbezogen ausgewiesen.
-
-### Intern
-- DWD-SYNOP `cloud_cover_total` wird als Achtelwert 0â€“8/8 erkannt und auf 0â€“100 % normalisiert; 9 (Himmel nicht auswertbar/verdeckt) wird nicht als 112,5 % oder kÃ¼nstlich bedeckt interpretiert.
-- DWD-SYNOP-GesamtbewÃ¶lkung erzeugt eine qualitative Himmelsbeobachtung und nimmt damit an derselben offiziellen SYNOP/METAR-Plausibilisierung teil.
-- Beim ZusammenfÃ¼hren derselben physischen Station darf eine sekundÃ¤re METAR-Qualitativmeldung den bereits hÃ¶her gewichteten SYNOP-Wolkenwert nicht mehr Ã¼berschreiben.
-- BUFR wird bewusst nicht als zusÃ¤tzliche unabhÃ¤ngige Quelle gezÃ¤hlt, wenn es dieselbe DWD-Stationsbeobachtung nur in einem anderen Transportformat enthÃ¤lt.
-- Neuer Regressionsvertrag `test-current-observation-multisource-cloud-098460.mjs`.
-
-## 0.9.84.59
-
-### Extern
-- Release-Installer #1014 korrigiert; Synoptik mit Isohypsen, Fronten und Druckzentren bleibt vollstÃ¤ndig erhalten.
-
-### Intern
-- Veralteten Performancevertrag aktualisiert: `synoptic.ts` ist seit der gewÃ¼nschten Komposit-Synoptik bewusst wieder aktiv.
-- Performancegrenze bleibt erhalten: `RadarPanel` wird weiterhin per `lazy()` geladen; `synoptic.ts` ist ausschlieÃŸlich Ã¼ber diesen lazy Radar-/Kompositpfad erreichbar.
-- Das separate alte `SynopticPanel.tsx`, Routenwetter und verworfene Rekonstruktionsmodule bleiben dormant.
-- Keine Ã„nderung an meteorologischer Logik, Frontanalyse, Isohypsen, H/T-Zentren oder Worker-Domainlogik gegenÃ¼ber v0.9.84.58.
-
-## 0.9.84.58
-
-### Extern
-- Release-Installer #1013 korrigiert; Fronten, Isohypsen, Geopotentialwerte und Druckzentren aus den vorherigen Synoptikverbesserungen bleiben unverÃ¤ndert erhalten.
-
-### Intern
-- TypeScript-7-Typfehler im Fronten-Tooltip behoben: das im lokalen MID-Leaflet-Typvertrag nicht unterstÃ¼tzte `sticky`-Prop wurde entfernt.
-- Neue Regression `test-composite-front-tooltip-types-098458.mjs` schÃ¼tzt den #1013-Fehler.
-- Keine fachliche Ã„nderung an Frontanalyse, Konturen, H/T-Zentren oder Worker-Gridlogik.
-
-## 0.9.84.57
-
-### Extern
-- Release-Installer #1012 korrigiert; Synoptik-Fallback, Fronten, Isohypsen und Druckzentren aus v0.9.84.56 bleiben vollstÃ¤ndig erhalten.
-
-### Intern
-- TypeScript-Parserfehler in `compositeFrontSymbols()` behoben. Die Frontensymbole werden nicht mehr als fragile Einzeilen-TSX-Struktur erzeugt.
-- Frontsymbol-Variante ist explizit auf `cold | warm` typisiert; `L.divIcon()` und `<Marker />` sind strukturell getrennt.
-- Neue Regression `test-composite-front-symbol-jsx-098457.mjs` schÃ¼tzt genau den #1012-Fehler.
-- Keine fachliche Ã„nderung an Frontdiagnostik, Isohypsenlogik oder Worker-Gridparametern gegenÃ¼ber v0.9.84.56.
-
-## 0.9.84.56
-
-### Extern
-- Komposit-Synoptik vollstÃ¤ndig verdrahtet: 500-hPa-Isohypsen erscheinen sofort Ã¼ber einen DWD-WMS-Fallback und werden nach VerfÃ¼gbarkeit durch geglÃ¤ttete MID-Konturen ersetzt.
-- H/T-Druckzentren werden aus dem groÃŸrÃ¤umigen Druckraster nachgeladen.
-- Objektiv erkannte Kalt-/Warmfronten, Okklusionen, Trog- und Konvergenzachsen werden jetzt auch im Komposit-Synoptikmodus dargestellt.
-- Mobile Erstladung der groÃŸrÃ¤umigen Synoptik robuster gegen langsame Netze.
-
-### Intern
-- Ursache fÃ¼r den Screenshotbefund: native Isobaren, geglÃ¤ttete Isohypsen/Druckzentren und Frontdiagnostik liefen Ã¼ber drei getrennte Pfade; nur der Isobarenpfad war im Komposit zuverlÃ¤ssig unmittelbar sichtbar.
-- Grid-Timeout fÃ¼r `model-contours?renderer=grid` von 15 s auf 45 s erhÃ¶ht, Cache/Fallback getrennt abgesichert.
-- Worker-Gridabfrage behÃ¤lt das 17Ã—25-Europa-Raster bei, erhÃ¶ht aber die begrenzte ZeilenparallelitÃ¤t von 4 auf 6.
-- Objektive Frontanalyse aus `synoptic-analysis` in RadarPanel eingebunden.
-- Neuer Regressionsvertrag `test-composite-synoptic-completeness-098456.mjs`.
-
-## 0.9.84.55
-
-### Extern
-- Synoptik: 500-hPa-Isohypsen werden wieder als deutlich sichtbare Linien dargestellt, nicht nur als Geopotential-Labels. Isohypsen sind automatisch amber/gold mit dunklem Halo und damit klar von den nativen DWD-Isobaren getrennt.
-- Hauptisohypsen werden durchgezogen, Zwischenisohypsen gestrichelt; die Darstellung bleibt auf heller Karte, Satellitenunterlage und im Dark Mode kontrastreich.
-- Release-Installer #1010 korrigiert: drei veraltete bzw. folgebetroffene Regressionen zu CAVOK, Radar-Nowcast und dem absichtlich entfernten Widget-Windpfeil-Schatten wurden auf den aktuellen Vertrag synchronisiert.
-
-### Intern
-- Leaflet- und MapLibre-Modelllinien-Panes werden beide explizit abgesichert; Isohypsen erhalten eine eigene sichtbare Stroke-/Halo-Konfiguration.
-- CAVOK-Regression schÃ¼tzt die fachliche Trennung zwischen â€žkeine signifikante tiefe BewÃ¶lkungâ€œ und â€ž0 % GesamtbewÃ¶lkungâ€œ.
-- Radar-Nowcast darf weiterhin in der aktuellen Wetterkarte direkt erscheinen; Prognoseansichten bleiben an den kanonischen 15-Minuten-/Stundenreihen.
-- Widget-Light-Export schÃ¼tzt explizit `box-shadow:none`, `filter:none` und `text-shadow:none` am Windrichtungspfeil.
-
-## 0.9.84.54
-
-### Extern
-- Widget-Kurvenexport: grauen Pfeilschatten in der Windkachel entfernt.
-- Aktuelles Wetter zeigt Wind und BÃ¶en sowie relative Feuchte und Taupunkt gemeinsam; frischer Standort-Radarwert wird fÃ¼r die aktuelle Niederschlagsrate bevorzugt.
-- Hyperlokale BewÃ¶lkung verbessert: CAVOK wird fachlich als Ausschluss signifikanter tiefer BewÃ¶lkung behandelt, nicht als 0 % GesamtbewÃ¶lkung. Einzelne entfernte Gesamtbedeckungswerte dÃ¼rfen den lokalen Modellhintergrund nicht mehr ungebremst auf 8/8 ziehen.
-
-### Intern
-- Emsdetten/EDDG-Fall analysiert: Ã¶ffentliches EDDG-METAR um 10:50 UTC CAVOK; vorherige Filterung verlangte zusÃ¤tzlich numerischen cloudCover und verlor dadurch die qualitative CAVOK-Gegeninformation.
-- CAVOK und explizit wolkenlose Meldungen werden getrennt behandelt; GesamtbewÃ¶lkung bleibt modellgestÃ¼tzt, CAVOK begrenzt nur die lokale Korrektur.
-- Neue Regression schÃ¼tzt CAVOK-Semantik, schattenfreien Widget-Windexport und die erweiterten aktuellen Wetterwerte.
-- Keine Worker-Domainlogik geÃ¤ndert.
-
-## 0.9.84.53
-
-### Extern
-- Release-Installer #1008 korrigiert; die Ã„nderungen an â€žAktuelles Wetterâ€œ, NiederschlagsintensitÃ¤ten und MID-Piktogrammen bleiben unverÃ¤ndert erhalten.
-
-### Intern
-- Zwei veraltete Regressionserwartungen an die vor-v0.9.84.51-Struktur aktualisiert.
-- Appweite NiederschlagsprÃ¼fung erwartet nun `currentPictogramIntensity` statt der alten direkten `currentPrecip.intensity`-Bindung.
-- LayoutprÃ¼fung schÃ¼tzt jetzt das neue Aktuell-Wetter-Faktenband und den darunterliegenden Tmin/Tmax-Bereich in Desktop und Mobile.
-- Keine Ã„nderung an meteorologischer Laufzeitlogik oder Worker-Domainlogik.
-
-## 0.9.84.52
-
-### Extern
-- Release-Installer #1005 korrigiert. Der in v0.9.84.51 eingefÃ¼hrte Aktuelles-Wetter-/NiederschlagsintensitÃ¤tsstand bleibt unverÃ¤ndert erhalten.
-
-### Intern
-- Verbliebene TS2339-Ursache in `EnsemblePanel.tsx` behoben: `ensembleHazardDetail()` liefert bereits einen String; die alte nachgeschaltete `.filter(Boolean).join(' ')`-Kette wurde entfernt.
-- Regression schÃ¼tzt den String-RÃ¼ckgabevertrag des Hazard-Detail-Helfers.
-- Keine Ã„nderung an meteorologischer Logik, Piktogrammen, NiederschlagsintensitÃ¤t oder Worker-Domainlogik.
-
-## 0.9.84.51
-
-### Extern
-- â€žAktuelles Wetterâ€œ app-weit nach dem freigegebenen Konzept aufgerÃ¤umt, ohne das bestehende MID-Piktogrammset zu ersetzen.
-- WetterzustÃ¤nde mit Niederschlag zeigen jetzt â€“ soweit belastbar â€“ auch die IntensitÃ¤t: z. B. â€žLeichter Regenâ€œ, â€žMÃ¤ÃŸiger Regenâ€œ oder â€žStarker Regenâ€œ.
-- Frische Stations-/SYNOP-/METAR-Angaben steuern Text und PiktogrammintensitÃ¤t gemeinsam; â€žRAâ€œ wird als mÃ¤ÃŸiger Regen verstanden, `-RA` als leicht und `+RA` als stark.
-- Der aktuelle Wetterblock erhÃ¤lt eine responsive Kernparameterzeile. Mobil: Niederschlag, Wind, Feuchte; bei mehr Platz zusÃ¤tzlich Sicht und Luftdruck.
-
-### Intern
-- ZeitauflÃ¶sung von Stationsniederschlag flieÃŸt in die IntensitÃ¤tsklassifikation ein; 10-Minuten-Mengen werden nicht mehr stillschweigend wie Stundenmengen behandelt.
-- Fehlende beobachtete Niederschlagsrate wird bei vorhandenem Present Weather nicht als 0 mm/h ausgegeben.
-- Bestehender WMO/DWD-Piktogramm-, Phasen- und Gewittervertrag bleibt erhalten.
-- Neue Regression `test-current-weather-intensity-design-098451.mjs`.
-
-## 0.9.84.50
-
-### Extern
-- Release-Installer #1003 korrigiert. Die kompakte 14-Tage-Ensemble-Hinweiszeile bleibt unverÃ¤ndert erhalten.
-
-### Intern
-- TypeScript-7-Buildfehler in der VerknÃ¼pfung von Windrichtung und Ensemble-/Umfeldkontext behoben.
-- Die bisherige fragile Inline-Arrayverkettung wurde durch `ensembleHazardDetail()` mit expliziter String-Typwache ersetzt.
-- Keine Ã„nderung an meteorologischer Logik, Rundung, Warnstufe oder Worker-Domainlogik.
-
-## 0.9.84.49
-
-### Extern
-- 14-Tage-Ensemble: MID-Hinweise sind wieder meteorologisch intuitiv formuliert. Sichtbar steht der Best-Match-Ereigniswert, z. B. â€žSturmbÃ¶en bis zu 40 ktâ€œ, statt eines niedrigeren P90-Kontextwerts.
-- Das Tages-Overlay bleibt kompakt. Ensemble-/Umfeldmethodik und Unsicherheitsinformationen liegen hinter einem Info-Button.
-
-### Intern
-- Sichtbarer Hinweiswert und Warnbezeichnung stammen wieder aus derselben kanonischen Punktprognose.
-- P10/P90 und echtes 12-km-Umfeld bleiben ausschlieÃŸlich Unsicherheits-/Verlagerungskontext und verschÃ¤rfen die Warnstufe nicht automatisch.
-- ParameterabhÃ¤ngige Rundung: BÃ¶en/Wind einheitenbezogen aufwÃ¤rts; Hitze ganze Â°C aufwÃ¤rts; Frost abwÃ¤rts; Niederschlag/Schnee auf sinnvolle Mengen.
-- Neue Regression schÃ¼tzt Best-Match-Hauptwert, â€žbis zuâ€œ-Wording und kompakten Info-Zugang.
-
-## 0.9.84.48
-
-### Extern
-- Aktuelles Wetter auf MobilgerÃ¤ten neu ausbalanciert: Tmin/Tmax bleibt vollstÃ¤ndig innerhalb der Wetterkarte.
-- Im Hochformat nutzt der Kopfbereich wieder die verfÃ¼gbare Breite; Wetter, Nowcast und Hyperlokale Analyse sind ruhiger lesbar.
-- Querformat erhÃ¤lt eine Ã¼berlauffeste Zweispalten-Darstellung mit kompakterem Tagesbereich.
-
-### Intern
-- Responsive Regeln nach dem v0.9.84.45-Tagesbereich ergÃ¤nzt, damit spÃ¤tere Desktop-Regeln die Mobile-Breakpoints nicht mehr Ã¼bersteuern.
-- Neuer Regressionstest schÃ¼tzt Hoch-/Querformat und Tmin/Tmax vor erneutem Ãœberlauf.
-- Keine Ã„nderung an Wetter-, Nowcast-, Hyperlokal- oder Worker-Datenlogik.
-
-## 0.9.84.47
-
-### Extern
-- Release-Installer #1000 korrigiert: Die sichtbare Bezeichnung â€žMID-Hinweiseâ€œ im 14-Tage-Ensemble bleibt erhalten.
-- Vier veraltete Regressionstests wurden auf die neue, fachlich eindeutige Tooltip-Bezeichnung synchronisiert.
-
-### Intern
-- `test-code-quality-0783.mjs`, `test-dwd-warning-markers.mjs`, `test-maintenance-07821.mjs` und `test-warning-ui-07822.mjs` erwarten nun `<b>MID-Hinweise</b>` statt des alten `<b>Hazards</b>`.
-- Keine Ã„nderung an Wetterlogik, Warnstufen, Ensemble-/Umfeldwerten oder Worker-Domainlogik.
-
-## 0.9.84.46
-
-### Extern
-- 14-Tage-Ensemble: MID-Hinweise zeigen nun tatsÃ¤chlich die gerundeten probabilistischen/Umfeldwerte statt weiterhin nur den ungerundeten Punkt-Hinweiswert.
-- Der Tooltip weist den zugehÃ¶rigen P10/P90- bzw. 12-km-Umfeldkontext sichtbar aus.
-- Release-Installer: zwei durch das Tmin/Tmax-Redesign veraltete Regressionserwartungen aus #999 korrigiert.
-
-### Intern
-- `ensembleHazardDisplayValue()` koppelt sichtbaren Hinweiswert und `ensembleHazardContext()` an dieselbe wissenschaftliche Datenbasis.
-- BÃ¶en: P90/Umfeld-P90 mit einheitenabhÃ¤ngiger Aufrundung; Hitze/Frost ganze Â°C; Stark-/Dauerregen passende mm-Rundung.
-- Keine WarnstufenverschÃ¤rfung allein durch die Zusatzdarstellung.
-- #999: TypeScript 7/Vite waren erfolgreich; nur zwei statische Alt-Tests erwarteten die frÃ¼here Tmin/Tmax-DOM-Struktur.
-
-## 0.9.84.45
-
-### Extern
-- Aktuelles Wetter: Der heutige Tmin-/Tmax-Bereich ist kompakter, besser lesbar und visuell klarer gegliedert. Tiefst- und HÃ¶chstwert stehen nun als ruhige, farblich differenzierte Wertepaarung statt weit auseinandergezogener Einzelwerte.
-
-### Intern
-- `hero-day-range` auf gemeinsame Tmin/Tmax-Wertegruppe umgestellt; responsive Darstellung fÃ¼r Desktop, iPhone Hoch-/Querformat abgesichert.
-- Dezente Blau-/Rot-Semantik nur fÃ¼r Tmin/Tmax, tabellarische Ziffern und expliziter Accessibility-Text beibehalten.
-- Regression `test-current-weather-tmin-tmax-098445.mjs` ergÃ¤nzt.
-
-
-## 0.9.84.44
-
-### Extern
-- 14-Tage-Ensemble-Meteogramm: MID-Hinweise nutzen nun dieselbe probabilistische Umfeld-/Rundungslogik wie die Kurzfrist-Hinweise, soweit die Daten dies fachlich tragen.
-- Wind/BÃ¶en, Hitze/Frost, Dauerregen sowie kurzfristig auch Starkregen erhalten gerundete Ensemble-/Umfeldkontexte; lange VorlÃ¤ufe bleiben bewusst ohne kÃ¼nstliche lokale SchÃ¤rfung.
-
-### Intern
-- `warningEnsemble` wird an alle EnsemblePanel-Pfade (14d-Cockpit, Ensemblemodul, Widget-Ensemble) weitergereicht.
-- P90/P10-Kontext: BÃ¶en P90, Tmax P90, Tmin P10; 12-km-Umfeld nur bei tatsÃ¤chlich verfÃ¼gbaren stÃ¼ndlichen Kurzfristdaten.
-- Starkregen nutzt nur echte stÃ¼ndliche Umfeld-P90-Mengen; Tages-P90 wird nicht in 1-/6-h-Mengen umgerechnet. Dauerregen darf P90-Tagesmenge nutzen.
-- Werte werden fachlich robust gerundet: Wind 5 km/h bzw. 5 kt/mph oder 2 m/s, Temperatur 1 Â°C, Niederschlag 1 mm, PoP 5 %.
-- Warnstufen bleiben vom zusÃ¤tzlichen Unsicherheitskontext getrennt; keine automatische Hochstufung aus P90/Umfeldwerten.
-# MID v0.9.84.43
-
-## Extern
-- Der Release-Blocker aus GitHub-Lauf #996 ist beseitigt. Die Widget-Hinweislage bleibt wie in v0.9.84.42 Ã¼ber den vollstÃ¤ndig ausgewÃ¤hlten 3- bis 7-Tage-Zeitraum aktiv.
-- An Wetterdaten, Warnschwellen, Piktogrammen oder Widgetdarstellung wurde gegenÃ¼ber v0.9.84.42 nichts zurÃ¼ckgenommen oder fachlich verÃ¤ndert.
-
-## Intern
-- Der einzige #996-Fehler war eine veraltete Regression, die weiterhin den frÃ¼heren festen Aufruf `summarizeDwdWarnings(..., 24)` erwartete.
-- `test-weather-profile-pressure-hazards-09656.mjs` schÃ¼tzt nun den aktuellen Vertrag: 24-h-Standard auÃŸerhalb des Widgets, `throughDate` fÃ¼r Widgets und daraus berechnetes `startLimit`.
-- GitHub #996 hatte bereits npm ci, Dependency-Audit, TypeScript 7.0.2, Vite 8.2.2 und 740 von 741 Regressionen erfolgreich abgeschlossen.
-- Keine neue Worker-Semantik gegenÃ¼ber v0.9.84.42.
-
-# MID v0.9.84.42
-
-## Extern
-- Die MID-Hinweislage in Widgets reicht jetzt Ã¼ber den gesamten gewÃ¤hlten 3-, 4-, 5-, 6- oder 7-Tage-Zeitraum. Hinweise kÃ¶nnen an jedem ausgewÃ¤hlten lokalen Kalendertag erscheinen; ein pauschales Ende nach 24 Stunden gibt es im Widget nicht mehr.
-- Die normale MID-Hinweislage auÃŸerhalb des Widgets bleibt unverÃ¤ndert kurzfristig ausgerichtet.
-- GitHub-Lauf #995 wurde behoben: TypeScript 7 und Vite waren dort bereits erfolgreich; vier veraltete Regressionserwartungen wurden an den verbindlichen Wetterpiktogramm-Standard 2.1 angepasst.
-
-## Intern
-- `hazards()` besitzt einen optionalen `throughDate`-Vertrag. Nur Widgets setzen ihn auf den letzten tatsÃ¤chlich ausgewÃ¤hlten Tag; ohne Enddatum bleibt der 24-h-Standard erhalten.
-- Der 72-h-Folgekontext fÃ¼r mehrstÃ¼ndige DWD-Hazardfenster bleibt fachlich erhalten, wÃ¤hrend `widgetAutomaticHazardsForDay()` weiterhin nur tatsÃ¤chliche TagesÃ¼berlappungen rendert.
-- Die vier #995-Regressionen schÃ¼tzen nun Stations-/Present-Weather-Felder, Piktogramm-PhÃ¤nomen + Tag/Nacht, die erweiterten Radarphasen-Schwellen und die aktuellen Nacht-/Gewittergradienten semantisch.
-- `MID_FORECAST_CONSISTENCY_CONTRACT.md` schreibt den vollstÃ¤ndigen ausgewÃ¤hlten Widget-Hinweishorizont verbindlich fest.
-
-# MID v0.9.84.41
-
-## Extern
-- Die Wetterpiktogramme folgen jetzt app-weit dem verbindlichen Wetterpiktogramm-Standard 2.1: Eisnadeln, Schneegriesel, einzelne Schneesterne und EiskÃ¶rner sind getrennt; Gewitter mit Graupel/Hagel werden ohne Zusatzinformation nicht mehr fÃ¤lschlich als reiner Hagel dargestellt.
-- Gewitter 95/97 zeigen Regen, Schnee oder Mischphase nur noch, wenn diese Niederschlagsphase tatsÃ¤chlich bekannt ist. Schauer nach Gewitter (91/92) erscheinen ohne Blitz und ohne fÃ¤lschlich auflockernde Sonne-/Mondkomponente.
-- SichttrÃ¼bungen wie Dunst, Rauch, Staub und Sand bleiben grafisch verwandt, werden in Texten, Tooltips und Barrierefreiheit aber eindeutig unterschieden.
-- Der PNG-/Zwischenablage-Export der Widget-KurvenÃ¼bersicht stellt die Nachtbereiche nicht mehr als schwarze BlÃ¶cke dar. SVG-Farben werden vor dem Bildexport auf stabile berechnete Werte festgeschrieben.
-
-## Intern
-- `MID_WEATHER_PICTOGRAM_STANDARD.md` auf Standard 2.1 angehoben; Present-Weather- und Phaseninformation wird durch die relevanten Prognose-, Event-, Route-, Wasser-, Radar-, Wetterkarten- und Detailpfade erhalten.
-- Alte Niederschlags-/Schnee-Whitelists wurden um 76/78/79 und die getrennten festen Phasen ergÃ¤nzt; Radar-/Modelllegenden unterscheiden Schneegriesel, Schneesterne, Eisnadeln, EiskÃ¶rner, Graupel und Hagel konsistent.
-- Neuer Export-Helfer `widgetImageExport.ts`: friert `fill`, `stroke`, Gradient-Stopps und OpazitÃ¤ten vor `html-to-image` als browseraufgelÃ¶ste Werte ein und stellt danach den Live-DOM wieder her. NachtbÃ¤nder besitzen zusÃ¤tzlich einen expliziten exportfesten Fallback.
-- Neue Regressionen fÃ¼r den app-weiten Piktogrammvertrag und den SVG-Export. Worker-Semantik ist durch die Present-Weather-/PhasenprÃ¤zisierung berÃ¼hrt und bleibt Ã¼ber den abgesicherten automatischen Worker-Deploypfad releasepflichtig.
-
-# MID v0.9.84.40
-
-## Extern
-- Der verbliebene Release-Blocker aus GitHub #993 ist beseitigt. Der eigentliche MID-Build einschlieÃŸlich TypeScript, Vite, Regressionen und iOS-Webkopie war bereits vollstÃ¤ndig erfolgreich; der Lauf stoppte erst anschlieÃŸend bei der sicheren Worker-VerÃ¶ffentlichung.
-- Die Cloudflare-Worker-Vorbereitung und die kontrollierte PrÃ¼fung ihrer Metadaten laufen jetzt in getrennten GitHub-Actions-Schritten. Dadurch wird der temporÃ¤re, zufÃ¤llig erzeugte Metadatenpfad erst verwendet, nachdem GitHub ihn tatsÃ¤chlich als Step-Output bereitgestellt hat.
-- Wetterberechnung, Temperatur-/Luftdruckdarstellung, kontinuierliche RUC/MOSMIX-Fusion und die kompakten Wetterregime-Pillen bleiben gegenÃ¼ber v0.9.84.39 fachlich unverÃ¤ndert.
-
-## Intern
-- Ursache von #993: `steps.remote_worker.outputs.meta_path` wurde innerhalb desselben Schritts referenziert, der dieses Output erst erzeugt. GitHub Actions lÃ¶ste den Ausdruck deshalb vor Schrittende zu einem leeren String auf; die nachfolgende Python-PrÃ¼fung scheiterte an `META_PATH=""`.
-- `remote_worker` erzeugt nun ausschlieÃŸlich die private temporÃ¤re Wrangler-/Metadatenkonfiguration und deren Outputs. Ein eigener Folgeschritt Ã¼bernimmt `meta_path`, validiert Existenz und liest ausschlieÃŸlich die nicht geheimen Binding-Metadaten.
-- Die Regression `test-worker-auto-deploy-09693.mjs` verbietet kÃ¼nftig explizit die fehlerhafte Selbstreferenz eines Step-Outputs und schÃ¼tzt die zweistufige Ãœbergabe. `ci/github/workflows/install-mid.yml` und `workflow-patches/install-mid.yml` sind synchron.
-- Da `mid-stable` weiterhin v0.9.84.37 ist, bleibt die fachliche RUC-Worker-Ã„nderung aus v0.9.84.38 deployrelevant. Vor dem nÃ¤chsten Release-Upload muss deshalb der aktive `.github/workflows/install-mid.yml` einmalig aus der korrigierten kanonischen Fassung synchronisiert werden.
-
-# MID v0.9.84.39
-
-## Extern
-- Der Release-Blocker aus GitHub #992 wurde beseitigt. Die fachlichen Ã„nderungen aus v0.9.84.38 an Temperatur-/Luftdruckkonsistenz, kontinuierlicher Tagesfusion, RUC/MOSMIX-ÃœbergÃ¤ngen und den kompakten Regime-Pillen bleiben unverÃ¤ndert erhalten.
-- Es wurden keine Wetterwerte, Gewichte oder Darstellungen gegenÃ¼ber v0.9.84.38 erneut verÃ¤ndert; korrigiert wurden ausschlieÃŸlich vier nach den bewussten .38-Ã„nderungen veraltete Regressionserwartungen und eine explizite Vertragsdokumentation im Fusionscode.
-
-## Intern
-- `test-coherent-weather-bundles-08340.mjs` und `test-priority-forecast-fusion-08320.mjs` erkennen wieder den expliziten Vertrag, dass Menge, Phase, Wahrscheinlichkeit, Wettercode und relevante Wolken-/Konvektionsfelder als kohÃ¤rentes WetterbÃ¼ndel erhalten bleiben.
-- `test-mosmix-adaptive-fusion-08330.mjs` schÃ¼tzt nun die kontinuierliche `mosmixHourlyLeadStrength()`-Funktion und verbietet den frÃ¼heren harten +6-h-Gewichtssprung.
-- `test-weather-profile-daily-extremes-consistency-09402.mjs` prÃ¼ft die gemeinsame kanonische Stundenbasis `profileStateSource` fÃ¼r Temperaturkurve, Extrema und Luftdruckskala statt des alten direkten `profileTemperatureSource.map`-Literals.
-- GitHub #992 hatte TypeScript 7 und Vite bereits erfolgreich abgeschlossen; der Abbruch erfolgte ausschlieÃŸlich bei diesen vier von 739 Regressionen.
-- Keine neue fachliche Worker-Ã„nderung gegenÃ¼ber v0.9.84.38; da v0.9.84.38 nicht verÃ¶ffentlicht wurde, bleibt der in .38 enthaltene RUC-Worker-Fix gegenÃ¼ber `mid-stable` v0.9.84.37 deployrelevant.
-
-# MID v0.9.84.38
-
-## Extern
-- Der auffÃ¤llige Temperaturverlauf im 24-h-Profil wurde auf Datenfusion und Darstellungsebene geprÃ¼ft. Echte stÃ¼ndliche TemperaturÃ¤nderungen bleiben erhalten; kÃ¼nstliche Knicke an Modell-/Tagesgrenzen werden vermieden.
-- Temperatur, gefÃ¼hlte Temperatur, Taupunkt und Luftdruck stehen konsequent auf derselben stÃ¼ndlichen Zeitbasis. Beim Wechsel auf 3 h werden punktbezogene Zustandswerte nicht zu kÃ¼nstlichen 3-h-Mittelwerten geglÃ¤ttet oder verschoben.
-- Tagesbasierte Temperaturkorrekturen gehen nun kontinuierlich zwischen den lokalen Tagesmitten ineinander Ã¼ber, statt am Kalendertageswechsel einen harten Sprung erzeugen zu kÃ¶nnen. ICON-D2-RUC lÃ¤uft vor +14 h weich aus; MOSMIX-StundenbeitrÃ¤ge verwenden geglÃ¤ttete Lead-Time-ÃœbergÃ¤nge.
-- Die Luftdruckachse bleibt dynamisch in hPa; der 6-h-Drucktrend wird unabhÃ¤ngig von der gewÃ¤hlten Darstellungsdichte aus der stÃ¼ndlichen Reihe bestimmt.
-- In der klassischen 7-Tage-Ansicht erscheinen â€žSonnigâ€œ, â€žRuhigâ€œ, â€žSchauerâ€œ usw. nun als dieselben kompakten Wetterregime-Pillen wie in den Ã¼brigen Prognoseansichten. Die versehentlich Ã¼bergroÃŸen blauen SchaltflÃ¤chen sind entfernt.
-
-## Intern
-- `applyForecastFusionHours()` interpoliert die affine Tageskorrektur fÃ¼r Temperatur sowie Wind/BÃ¶en zeitlich stetig zwischen lokalen Tagesmitten. Die bisherige harte, datumsweise Transformation ist entfernt.
-- DWD ICON-D2-RUC verwendet geglÃ¤ttete GewichtsÃ¼bergÃ¤nge und lÃ¤uft zwischen +12 und +14 h kontinuierlich auf null aus. Damit kann das Ende des realen RUC-Horizonts keine kÃ¼nstliche Kante erzeugen.
-- Der 3-h-Aggregator verÃ¤ndert Temperatur, gefÃ¼hlte Temperatur, Feuchte/Taupunkt und Luftdruck nicht mehr zu Blockmittelwerten; punktbezogene Zustandswerte bleiben am gÃ¼ltigen Stundenzeitpunkt erhalten.
-- Temperatur-/Thermik- und Luftdruckpfade sowie Druckskala und Drucktrend verwenden dieselbe kanonische stÃ¼ndliche 24-h-Quelle. Niederschlagsakkumulationen bleiben echte IntervallgrÃ¶ÃŸen.
-- `ForecastConditionPills` verwendet fÃ¼r die Haupt-Regimepille nicht lÃ¤nger die globale `.primary`-Klasse. Die klassische Regime-Pille Ã¼bernimmt den gemeinsamen kompakten 2Ã—6-px-/Regimefarbvertrag.
-- Bestehende Regressionen fÃ¼r kanonische Temperatur-Extrema, RUC/MOSMIX-Konsens und gemeinsame Wetterregime schÃ¼tzen die neuen KontinuitÃ¤tsvertrÃ¤ge.
-- Fachliche Worker-Ã„nderung durch die geglÃ¤ttete RUC-Gewichtung: Worker-Upload fÃ¼r v0.9.84.38 erforderlich.
-
-# MID v0.9.84.37
-
-## Extern
-- Der Release-Blocker aus GitHub #990 wurde beseitigt; die sechs betroffenen Regressionen prÃ¼fen jetzt die tatsÃ¤chlich aktuelle MID-Funktion statt veralteter Texte oder alter Farbwerte.
-- Die Quellenangabe benennt DWD Open Data fÃ¼r ICON-D2/RUC/RUC-EPS/MOSMIX wieder ausdrÃ¼cklich und prÃ¤zisiert das europÃ¤ische Radarkomposit als EUMETNET OPERA CIRRUS-Komposit.
-- ICAO-Suche, eigenstÃ¤ndige Gewitterinformation und das neue Niederschlags-Farbkonzept bleiben unverÃ¤ndert funktional erhalten.
-
-## Intern
-- `test-appwide-parameter-colors-09779.mjs` prÃ¼ft die zentralen Niederschlags-Phasentokens statt obsoleter Hexwerte.
-- `test-pictogram-intensity-snow-depth-098426.mjs` schÃ¼tzt die neue Trennung Graupel/Schnee, Misch-/Gefrierphase und Hagel/Gewitter.
-- ICAO- und Gewitter-Regressionen wurden von Ã¼berholten LiteralÃ¼berschriften auf die aktuelle funktionale/strukturelle UI umgestellt.
-- Quellen-/Visible-Internals-VertrÃ¤ge wurden an die aktuelle nutzerorientierte FuÃŸleiste angepasst.
-- Keine Ã„nderung an Prognoseberechnung, Event-PoP-Logik, Update-Algorithmus oder Worker-Funktion.
-
-# MID v0.9.84.36
-
-## Extern
-- Der Release-Build wurde nach dem fehlgeschlagenen GitHub-Lauf #989 gezielt gehÃ¤rtet. Die bereits eingefÃ¼hrte Event-PoP- und Update-Logik bleibt fachlich unverÃ¤ndert.
-- Sporadisch fehlende Niederschlagswahrscheinlichkeiten kÃ¶nnen weiterhin nicht allein eine Event-VerschÃ¤rfung auslÃ¶sen.
-
-## Intern
-- Event-PoP-Deltas verwenden vor der Subtraktion explizit validierte endliche Werte; damit ist die Null-/Undefined-Behandlung unter TypeScript 7 eindeutig.
-- Die Service-Worker-Registrierungsabfrage akzeptiert den aktuellen DOM-Vertrag `readonly ServiceWorkerRegistration[]` und materialisiert erst lokal eine filterbare Kopie.
-- Die bestehende Update/Event-Regression wurde auf den typsicheren Ausdruck aktualisiert; zusÃ¤tzlicher CI-Typvertrag `scripts/test-ci-types-event-update-098436.mjs`.
-- Keine fachliche Ã„nderung an Wetterfusion, Event-Bewertungsschwellen oder Worker-Logik.
-
-# MID v0.9.84.35
-
-## Extern
-- Die Niederschlagsbalken der Tagesansicht folgen jetzt sichtbar und vollstÃ¤ndig dem MID-Farbvertrag. Regen, SprÃ¼hregen und Schauer bleiben in derselben blauen Niederschlagsfamilie; Schauer erscheinen nicht mehr als eigenstÃ¤ndiger tÃ¼rkisfarbener Parameter.
-- Schnee und Graupel werden hellblau dargestellt, Misch-/gefrierender Niederschlag violett und Gewitter/Hagel purpur. Graupel und Hagel sind zusÃ¤tzlich Ã¼ber unterschiedliche Balkenmuster unterscheidbar.
-- Die gestrichelte Niederschlagswahrscheinlichkeitskurve bleibt bewusst blau und damit als eigener Wahrscheinlichkeitsparameter unabhÃ¤ngig von der Niederschlagsphase erkennbar.
-- Die in v0.9.84.34 umgesetzten Verbesserungen fÃ¼r Updateprozess, QuellenfuÃŸ, Event-PoP-LÃ¼cken und iOS-26/27-Navigation bleiben vollstÃ¤ndig erhalten.
-
-## Intern
-- Zentrale Phasenfarbtokens `--param-precipitation-snow`, `--param-precipitation-mixed` und `--param-precipitation-storm` in der kanonischen Foundation eingefÃ¼hrt; Hell-/Dunkelmodus besitzen jeweils abgestimmte Werte.
-- `precipitationPhaseColor.ts`, Tagesdetail-SVG-Muster und Legenden verwenden denselben zentralen Vertrag. `hailShowers` ist der Purpur-/Sturmfamilie zugeordnet; Graupel bleibt in der hellblauen Schnee-/Graupelfamilie.
-- Gefrierender Regen und Schneeregen verwenden nicht lÃ¤nger Ã¼berwiegend blaue FÃ¼llungen, sondern die verbindliche violette Misch-/Gefrierphase.
-- Neue Regression `scripts/test-day-precipitation-color-contract-098435.mjs`; der Ã¤ltere Skybar-Phasentest wurde auf zentrale Tokens statt veralteter Hex-Literale aktualisiert.
-- Keine fachliche Ã„nderung an Wetterberechnung oder Cloudflare-Worker-Logik.
-
-# MID v0.9.84.34
-
-## Extern
-- Der Updatevorgang wurde weiter gegen seltene HÃ¤nger abgesichert. Langsam installierende App-Shells werden lÃ¤nger beobachtet, ein noch nicht fertiges Update lÃ¤sst die laufende Version unangetastet, und nach einem bestÃ¤tigten Service-Worker-Wechsel gibt es einen iOS/PWA-Sicherheitsfallback. Ein vorÃ¼bergehender Ausfall einer Wetterdatenquelle kann eine technisch korrekt gestartete MID-Version nicht mehr fÃ¤lschlich zurÃ¼ckrollen.
-- Die QuellenÃ¼bersicht in der FuÃŸleiste wurde auf den aktuellen MID-Datenstand gebracht und nach Leitprognose/Kurzfrist, Ensembles, Langfrist/Saison, Beobachtungen, Warnungen/Radar/Satellit, Klima/Reise/Wasser, Flugmeteorologie sowie Karten/LuftqualitÃ¤t gegliedert. Sie macht deutlicher, dass Quellen nur nach Ort, Horizont und tatsÃ¤chlicher VerfÃ¼gbarkeit genutzt werden.
-- Event-Bewertungen werden nicht mehr allein deshalb verschÃ¤rft, weil vorÃ¼bergehend keine formale Ereignis-Niederschlagswahrscheinlichkeit geliefert wird. Bei vollstÃ¤ndiger Stundenabdeckung kann transparent ein zeitgewichtetes Stunden-PoP-Mittel einspringen; fehlt auch dieses, bleiben die Ã¼brigen Wetterparameter trotzdem neutral weiter bewertbar.
-- Die optionale moderne Navigation wurde behutsam an das aktuelle iOS-Designsystem herangefÃ¼hrt: schwebende, safe-area-fÃ¤hige Navigation mit glasartiger Funktionsschicht, zurÃ¼ckhaltender Akzentfarbe sowie eigenen Fallbacks fÃ¼r reduzierte Transparenz und erhÃ¶hten Kontrast. Wetterkarten und InhaltsflÃ¤chen bleiben bewusst klar und informationsorientiert.
-
-## Intern
-- Updateinstallation: `updatefound`-Beobachtung bis 45 s, automatische Aktivierungswiederholung und 3-s-Navigationsfallback ausschlieÃŸlich nach echtem `controllerchange`; kein Reload durch einen alten Controller. Shell-Assets werden begrenzt parallel und weiterhin all-or-nothing gecacht.
-- Runtime-Health trennt jetzt stabile App-Shell von Datenquellen-Health. Rollback bleibt fÃ¼r echte Startup-/Shell-Fehler erhalten; Core-Daten werden separat als `ready`/`degraded` diagnostiziert.
-- Event-PoP: Ensemble-Ereigniswahrscheinlichkeit bleibt PrioritÃ¤t; vollstÃ¤ndige Stunden-PoP-Abdeckung ermÃ¶glicht expliziten `hourly-window-average-fallback`. PoP-Deltas werden nur zwischen derselben Quelle verglichen; ein frischer gecachter Event-PoP darf partielle Ensemble-Nachladungen Ã¼berbrÃ¼cken, ohne sein Alter zu erneuern.
-- Neuer Designvertrag `MID_IOS_26_27_DESIGN_CONTRACT.md` und neue kombinierte Regression `test-update-event-sources-ios27-098434.mjs`. Bestehende Update-/Event-VertrÃ¤ge und Regressionen wurden auf den korrigierten Datenwahrheits- und Recovery-Vertrag aktualisiert.
-
-# MID v0.9.84.33
-
-## Extern
-- Der Prognose-Designstand aus v0.9.84.31/32 bleibt nun auch im tatsÃ¤chlichen Release-Build vollstÃ¤ndig erhalten. Die vereinheitlichten Einstiege, mobilen 90-min/24-h-Umschalter, 7-/14-Tage-Layouts und Niederschlagsfarben werden beim Build nicht mehr zurÃ¼ckgesetzt.
-- Keine Ã„nderung an den meteorologischen Daten oder Berechnungen gegenÃ¼ber v0.9.84.32.
-
-## Intern
-- Die Forecast-/Responsive-CSS-Regeln wurden aus der generierten Datei `src/styles.css` in die kanonische Quelle `src/styles-src/30-modern.css` Ã¼berfÃ¼hrt. `build-maintenance-aggregates` erzeugt sie damit reproduzierbar in jedem lokalen und GitHub-CI-Build.
-- Die Regression `test-forecast-entry-consistency-098430.mjs` schÃ¼tzt diesen Quellvertrag weiterhin und lÃ¤uft nach dem Aggregat-Neubau grÃ¼n.
-- Der in Run #987 bereits erfolgreiche TypeScript-7- und Vite-Buildpfad bleibt unverÃ¤ndert; behoben wird ausschlieÃŸlich der nachgelagerte Regression-RÃ¼ckfall durch die CSS-Aggregation.
-- Keine fachliche Worker-Ã„nderung.
-
-# MID v0.9.84.32
-
-## Extern
-- Der nach dem Upload von v0.9.84.31 fehlgeschlagene GitHub-Release wird gezielt repariert; die sichtbaren Prognose- und Niederschlagsdarstellungen aus v0.9.84.31 bleiben unverÃ¤ndert erhalten.
-- Die farbigen Niederschlagsbalken der 7-Tage-KurvenÃ¼bersicht verwenden weiterhin das MID-Phasenfarbkonzept, jetzt ohne TypeScript-Buildfehler.
-
-## Intern
-- GitHub-Run #986 analysiert: ZIP-Validierung, npm-ci und Dependency-Audit waren erfolgreich; der Abbruch entstand ausschlieÃŸlich im TypeScript-Build in `src/ForecastCockpit.tsx`.
-- `curveRainBarStyle()` leitet die Niederschlagsphase nun korrekt aus `precipitationParts(hour).type` ab. Der fehlerhafte Einzelstunden-Aufruf von `dominantPrecipitationForm()` wurde entfernt.
-- CSS-Custom-Properties der Kurven-Niederschlagsbalken werden explizit als `CSSProperties` typisiert.
-- Der bestehende Modern-Workspace-Regressionstest wurde auf die neue gemeinsame Forecast-Headerklasse aktualisiert, statt den neuen Headervertrag fÃ¤lschlich als Regression zu werten.
-- `test-forecast-entry-consistency-098430.mjs` schÃ¼tzt jetzt zusÃ¤tzlich genau die in Run #986 sichtbar gewordenen Typfehler.
-- Keine fachliche Worker-Ã„nderung.
-
-# MID v0.9.84.31
-
-## Extern
-- Die Prognose-Einstiege fÃ¼r 90 Minuten, 24 Stunden, 7 Tage, 14 Tage und 46 Tage+ wurden noch einmal gemeinsam auf Smartphone, Querformat und Desktop abgeglichen. Ãœberschriften, AbstÃ¤nde, Akzentfarben und Zeithorizont-Navigation wirken nun einheitlicher.
-- Der Umschalter zwischen 90-Minuten- und 24-Stunden-Ansicht nutzt auf kleinen Displays die volle Breite und bleibt besser bedienbar.
-- Die 14-Tage-Ansicht wurde auf MobilgerÃ¤ten besser lesbar: Im Hochformat sind Schrift und Kennwerte grÃ¶ÃŸer; im Querformat werden die Tageskarten nicht mehr auf sieben extrem schmale Spalten zusammengedrÃ¼ckt, sondern bleiben lesbar horizontal verschiebbar.
-- Niederschlagsbalken der Tagesansicht Ã¼bernehmen konsequent die MID-Farblogik fÃ¼r Niederschlagsart und IntensitÃ¤t. Auch die 7-Tage-KurvenÃ¼bersicht verwendet denselben Parameterfarbvertrag.
-- Der im Release-Lauf sichtbare TypeScript-Fehler im Reiseprognose-Pfad ist bereinigt.
-
-## Intern
-- Der gemeinsame `forecast-entry-head`-Vertrag wurde so verfeinert, dass Eyebrow, Titel, Beschreibung und Statuszeilen nicht mehr versehentlich dieselbe GroÃŸschreibungs-/Akzentformatierung erben.
-- Mobile Scroll-/Snap-Regeln fÃ¼r Prognosehorizonte und 14-Tage-Karten wurden vereinheitlicht; die 14-Tage-Landschaftsansicht verwendet feste lesbare Kartenbreiten statt Mikroschrift.
-- Die Tagesansicht nutzt `precipitationPhaseColor()` plus die vorhandenen Phasenmuster fÃ¼r ihre Niederschlagsbalken; die IntensitÃ¤t steuert zusÃ¤tzlich Deckkraft und Kontur.
-- `mediumDay()` im Reise-Fusionspfad enthÃ¤lt keinen ungenutzten `date`-Parameter mehr.
-- Regression `test-forecast-entry-consistency-098430.mjs` wurde auf die verfeinerte Darstellung erweitert.
-- Keine fachliche Ã„nderung am Cloudflare-Worker; nur die Releaseversionsmarke wird synchronisiert.
-
-# MID v0.9.84.30
-
-## Extern
-- Die Prognose-Einstiege wurden in mobiler und Desktop-Ansicht gestalterisch vereinheitlicht: Kurzfrist-, Prognose-, Warn-, Langfrist- und Reiseplaner-KÃ¶pfe nutzen nun ein gemeinsames, farblich abgestimmtes Einstiegsmuster.
-- Die Tagesansicht nutzt das MID-Farbkonzept jetzt auch bei Niederschlagsbalken konsequenter. Phase und IntensitÃ¤t treten dadurch klarer hervor.
-- Ein Build-/Release-Fehler im Reiseprognose-Fusionspfad wurde bereinigt, damit der ZIP-Installationsworkflow nicht mehr an einem ungenutzten TypeScript-Parameter scheitert.
-
-## Intern
-- Neue gemeinsame CSS-Basis `forecast-entry-head` fÃ¼r prognosenahe Einstiege inklusive Responsive-Fallbacks und angeglichener Modern-Forecast-Horizon-Navigation.
-- Niederschlagsbalken in Tagesansicht und 7-Tage-KurvenÃ¼bersicht erhalten phasenabhÃ¤ngige Farb-/Kontursteuerung statt nur einer generischen Standarddarstellung.
-- `src/travelForecastFusion.ts` entfernt den ungenutzten `date`-Parameter in `mediumDay`, womit der TypeScript-Verifier wieder sauber lÃ¤uft.
-- Neue Regression `scripts/test-forecast-entry-consistency-098430.mjs`.
-
-# MID v0.9.84.29
-
-## Extern
-- Der Reiseplaner erhÃ¤lt ein eigenes Reise-Center: geplante Reisen kÃ¶nnen festgepinnt und spÃ¤ter direkt wieder geÃ¶ffnet oder bearbeitet werden.
-- Festgepinnte Reisen zeigen bereits in der Ãœbersicht die bekannten Kernwerte Temperatur, Niederschlag/Regentage, Sonnenschein, Wind, Schnee und â€“ sofern verfÃ¼gbar â€“ Wassertemperatur. Die vollstÃ¤ndige bisherige Auswertung bleibt Ã¼ber â€žDetailsâ€œ erreichbar.
-- Liegt ein Reisezeitraum innerhalb aktueller Modellhorizonte, flieÃŸen kÃ¼nftig passende Prognose-, Ensemble- oder Witterungssignale ein. MID kennzeichnet sichtbar, ob die Bewertung aus Modellprognose + Klima, Witterungstrend + Klima, Saisontrend + Klima oder nur aus Klimatologie besteht.
-- Mit wachsendem Vorlauf nimmt der Modellanteil kontrolliert ab; weit entfernte Termine werden weiterhin Ã¼berwiegend klimatologisch bewertet, statt tÃ¤gliche Scheingenauigkeit vorzutÃ¤uschen.
-
-## Intern
-- Neuer persistenter Reise-Center-State getrennt von Ortsfavoriten und Event-Center-EintrÃ¤gen.
-- Neue horizontabhÃ¤ngige Forecast-/Klimafusion: operationelle Prognose/Ensembles bis Tag 14, ECMWF-EC46-Wochenanomalien mit GEFS-BestÃ¤tigung fÃ¼r Tag 15â€“46 und schwach gewichtete saisonale Multi-Modell-Anomalien ab Tag 47.
-- Modellfamilien werden Ã¼ber UnabhÃ¤ngigkeitsgruppen zusammengefÃ¼hrt; Ensemblemitglieder werden nicht als zusÃ¤tzliche QualitÃ¤tsstimmen gezÃ¤hlt. DWD GCFS2.2/EPISODES kann im passenden Gebiet Ã¼ber vorhandene GÃ¼temaÃŸe als QualitÃ¤tsanker wirken.
-- Quellen auÃŸerhalb ihres Prognosehorizonts werden nicht unnÃ¶tig geladen. Quellenstatus, modellgestÃ¼tzte Reisetage, Modellanteil und unabhÃ¤ngige Modellfamilien werden im Detailbereich transparent ausgewiesen.
-- Neuer Vertrag `MID_TRAVEL_CENTER_FORECAST_FUSION_CONTRACT.md` und Regression `scripts/test-travel-center-forecast-fusion-098429.mjs`.
-- Keine fachliche Ã„nderung an der Cloudflare-Worker-Logik; NOAA OISST v2.1 bleibt fÃ¼r KÃ¼sten-Wassertemperaturen unverÃ¤ndert die klimatologische Referenz.
-
-# MID v0.9.84.28
-
-## Extern
-- Weather Icon System 2.0 unterscheidet Graupel und Hagel nun klarer: Graupel erscheint als kleinere, weich gerundete Pellets; Hagel als grÃ¶ÃŸere, kantigere KÃ¶rner.
-- Die zuletzt eingefÃ¼hrte NachschÃ¤rfung bei gefrierendem Regen und den gleichmÃ¤ÃŸigeren NiederschlagsintensitÃ¤ten bleibt unverÃ¤ndert erhalten.
-
-## Intern
-- `src/WeatherPictogram.tsx` trennt Graupel- und Hagelpartikel jetzt auch bei kleinen Darstellungen geometrisch deutlicher Ã¼ber Rundung, Facettierung, Kontur und Lichtkante.
-- Der bestehende Audit `test-pictogram-intensity-snow-depth-098426.mjs` prÃ¼ft zusÃ¤tzlich, dass Graupel rund und Hagel facettiert gerendert wird.
-- Keine fachliche Ã„nderung an Wetterberechnung, Datenquellen oder Cloudflare-Worker-Logik.
-
-# MID v0.9.84.27
-
-## Extern
-- Keine sichtbare FunktionsÃ¤nderung gegenÃ¼ber v0.9.84.26: Die neue NiederschlagsintensitÃ¤ts-, Tag-/Nacht- und SchneehÃ¶hendarstellung bleibt unverÃ¤ndert erhalten.
-- Der Release-Installer wird nicht mehr durch Ã¤ltere PrÃ¼fregeln blockiert, die noch die vorherige Piktogramm- und SchneehÃ¶henlogik erwarteten.
-
-## Intern
-- 17 Regressionen aus GitHub-Run #982 an den v0.9.84.26-Fachvertrag angepasst.
-- DWD/WMO 91/92 bleiben Regenschauer nach Gewitter in der vorangegangenen Stunde; WMO 89/90 sind explizite Hagelschauer, WMO 98 bleibt Gewitter ohne erfundenen Niederschlag.
-- SchauerprÃ¼fungen respektieren die konservative DWD-LÃ¼cke 0,4â€“<0,7 mm/10 min sowie die vierte Stufe fÃ¼r WMO 82.
-- SchneehÃ¶hen-, Sonnenstands-, Ensemble- und Skybar-Regressionen prÃ¼fen die aktuelle Semantik statt veralteter JSX-/Implementierungsdetails.
-
-# MID v0.9.84.26
-
-## Extern
-- Wetterpiktogramme unterscheiden NiederschlagsstÃ¤rken appweit klarer; sehr starke Regenschauer erhalten eine eigene krÃ¤ftigste Stufe. Graupel- und Hagelschauer sind als eigene PhÃ¤nomene erkennbar.
-- Schauer zeigen den Tages-/Nachtbezug weiterhin nur dort, wo er meteorologisch sinnvoll ist: Sonne tagsÃ¼ber, Mond nachts. Dauerregen/-schnee erhalten keinen kÃ¼nstlichen HimmelskÃ¶rper.
-- Niederschlag nach einem bereits vorangegangenen Gewitter wird nicht mehr mit einem aktuell andauernden Gewitter verwechselt.
-- SchneehÃ¶hen und Schneedecken werden in der gesamten App in ganzen Zentimetern angezeigt. Neuschnee-/Schneefallmengen bleiben als separate AkkumulationsgrÃ¶ÃŸe ausreichend prÃ¤zise.
-
-## Intern
-- WMO 82 wird als sehr starke SchauerintensitÃ¤t geschÃ¼tzt; grÃ¶bere Stundenakkumulationen dÃ¼rfen einen expliziten Schauer-IntensitÃ¤tscode nicht kÃ¼nstlich abschwÃ¤chen.
-- WMO 87â€“90, 91/92 und 93/94 wurden in Piktogramm-, Detail-, Perioden-, Berg-, Wasser-, Event-, Routen- und Farblogik konsistent ergÃ¤nzt.
-- WMO 95â€“99 wurden ebenfalls vereinheitlicht: 95/97 erfinden ohne zusÃ¤tzliche Phaseninformation keinen Regen, 96/99 zeigen Hagel/Graupel ohne Zusatzregen, 98 bleibt Gewitter mit Staub/Sand ohne erfundenen Niederschlag.
-- Ein Ã¤lterer Tag-/Nacht-Strukturtest fÃ¼r den HÃ¶henwetter-Verlauf wurde auf die inzwischen korrekte IntensitÃ¤tsdurchleitung aktualisiert; die astronomische Tag-/Nachtlogik selbst blieb erhalten.
-- Perioden-/Impact-Whitelists wurden erweitert, damit Graupel/Hagel und phasenunscharfer winterlicher Niederschlag nicht durch Ã¤ltere Selektoren verloren gehen.
-- SchneehÃ¶henformatierung und -achse verwenden ganze cm; interne Rohdaten bleiben ungerundet.
-- Neuer Vertrag `MID_PRECIP_PICTOGRAM_SNOW_DEPTH_CONTRACT.md` plus Regression `test-pictogram-intensity-snow-depth-098426.mjs`.
-
-# MID v0.9.84.25
-
-## Extern
-- iOS-RÃ¼ckkehr: Der zuletzt in dieser App ausgewÃ¤hlte Ort bleibt beim Wechsel aus dem Hintergrund erhalten; MID springt nicht mehr durch einen GerÃ¤teabgleich auf den Standard-/ersten Favoriten zurÃ¼ck.
-- Beim ZurÃ¼ckkehren werden vorhandene Wetterdaten am aktiven Ort weiterverwendet, wÃ¤hrend eine nÃ¶tige Aktualisierung im Hintergrund anlÃ¤uft. Ein unnÃ¶tiger Neustart mit â€žWettermodelle werden geladen â€¦â€œ wird dadurch vermieden.
-- Favoriten und gespeicherte Standortprofile bleiben gerÃ¤teÃ¼bergreifend synchronisierbar; nur der **aktuell ausgewÃ¤hlte Ort** und die **letzte physische GerÃ¤teposition** bleiben gerÃ¤telokal.
-
-## Intern
-- `mid:lastLocation`, seine semantische Revision und `mid:lastTrackedLocation` sind aus dem portablen GerÃ¤te-Snapshot ausgeschlossen. Remote-Snapshots kÃ¶nnen die aktive lokale Auswahl daher weder Ã¼berschreiben noch als â€žfehlendenâ€œ SchlÃ¼ssel lÃ¶schen.
-- StorageSafety bewertet `mid:lastLocation` Ã¼ber `mid:lastLocation:updated-at`; ein technischer IndexedDB-Mirror-Zeitstempel darf einen vorhandenen nativen Auswahlort bei der Migration nicht mehr verdrÃ¤ngen.
-- Reale und von WKWebView ergÃ¤nzte Sichtbarkeitsimpulse werden fÃ¼r den portablen Sync 15 s gedrosselt und Ã¼ber einen gemeinsamen In-Flight-Promise entdoppelt.
-- Der frÃ¼he Dashboard-Preload bleibt parallel erhalten, wird nach StorageSafety/Persistenz aber nochmals gegen den tatsÃ¤chlich wiederhergestellten Ort abgeglichen; ein falscher Preload wird abgebrochen statt den regulÃ¤ren Forecast zu blockieren.
-- Neuer verbindlicher Vertrag `MID_IOS_RESUME_LOCATION_CONTRACT.md` plus Regression `test-ios-resume-location-preservation-098425.mjs`.
-- Keine meteorologische Logik- oder Worker-FachÃ¤nderung.
-
-# MID v0.9.84.23
-
-## Extern
-- Widget-Tageskarten halten Wetterbild, Beschreibung, Tmin/Tmax sowie Niederschlag, Sonnenschein und Wind/BÃ¶en jetzt Ã¼ber alle Tage auf festen, gleich hohen Zeilen. LÃ¤ngere Wettertexte verschieben nachfolgende Parameter nicht mehr.
-- In der KurvenÃ¼bersicht des Export-Widgets wird der erste Tag nicht mehr hellblau als scheinbar ausgewÃ¤hlt hinterlegt.
-- Aktivierte ECMWF-Temperaturfarben bleiben sowohl in den Tageswerten als auch in der Temperaturkurve erhalten; ohne ECMWF-Option gelten weiterhin die normalen MID-Parameterfarben.
-
-## Intern
-- Die kompakte Kartenansicht verwendet ein explizites vertikales Raster mit festen HÃ¶hen fÃ¼r Piktogramm, Wettertext, Temperaturzeile und Parameterpillen; Wind/BÃ¶en bleiben unverÃ¤ndert zweizeilig.
-- `SevenDayCurveOverview` trennt interaktive Tagesauswahl von `presentationReady`: Export-/PowerPoint-Widgets setzen keine kÃ¼nstliche aktive TagesflÃ¤che mehr. Eine CSS-Fallback-Regel verhindert auch bei Ã¤lteren ZustÃ¤nden eine aktive HintergrundtÃ¶nung im Kurvenexport.
-- Bestehende Widget-RegressionsvertrÃ¤ge wurden erweitert; kein zusÃ¤tzlicher regelmÃ¤ÃŸiger CI-Testjob nÃ¶tig. Keine meteorologische Berechnungs- oder DatenquellenÃ¤nderung.
-
-# MID v0.9.84.22
-
-## Extern
-- Reiner Release-Hotfix ohne Ã„nderung an Wetterberechnung, Darstellung, Datenquellen oder Bedienung gegenÃ¼ber v0.9.84.21.
-- Die bereits aktivierte, ressourcenschonendere RUC-/GitHub-Actions-Logik bleibt unverÃ¤ndert erhalten.
-
-## Intern
-- GitHub-Run #977 repariert: Produktionsbuild, Dependency-Audit und 730 von 731 Regressionen waren erfolgreich; ausschlieÃŸlich `scripts/test-ruc-scheduler-watchdog-09751.mjs` erwartete noch den frÃ¼heren manuellen RUC-Standard `force=true` und die sechs alten Watchdog-Slots.
-- Der Regressionstest schÃ¼tzt jetzt den gewÃ¼nschten Vertrag `force=false` sowie den verdichteten GitHub-Watchdog `:23/:53`. PrimÃ¤re RUC-Slots `:11/:41`, Active-Run-Sperre, Cooldown und unabhÃ¤ngiger Cloudflare-Watchdog bleiben geschÃ¼tzt.
-- Keine fachliche WorkerÃ¤nderung.
-
-# MID v0.9.84.21
-
-## Extern
-- Keine Ã„nderung an Wetterberechnung, Darstellung oder Bedienung gegenÃ¼ber v0.9.84.20.
-- GitHub-Actions konkurrieren seltener miteinander; Release- und RUC-Publishes werden verlustfrei in einer gemeinsamen Warteschlange serialisiert.
-
-## Intern
-- GitHub-RUC-Watchdog von sechs auf zwei same-provider PrÃ¼fungen pro Stunde reduziert (`:23/:53`); primÃ¤re RUC-Slots `:11/:41` und unabhÃ¤ngiger Cloudflare-Watchdog bleiben erhalten.
-- Manuelle RUC-LÃ¤ufe verwenden standardmÃ¤ÃŸig den Freshness-Guard (`force=false`); erzwungene Vollverarbeitung bleibt explizit mÃ¶glich.
-- RUC-Pages-Pfad nutzt ein schlankes Dependency-Profil ohne das nur fÃ¼r R2 benÃ¶tigte `awscli`; RUC-EPS-Decodierung arbeitet konservativ mit zwei, maximal vier Prozessen; P25/P50/P75 werden gemeinsam berechnet.
-- Pages-Retries verwenden ein erfolgreich hochgeladenes Artefakt erneut; Neuaufbau/Neu-Upload erfolgt nur, wenn noch kein gÃ¼ltiges Artefakt vorliegt.
-- `mid-pages` verwendet `queue: max` bei `cancel-in-progress: false`, damit wartende Publishes nicht mehr durch neuere Pending-Jobs verdrÃ¤ngt werden.
-- Der historische `mid-code-revision`-Installer wird administrativ von automatischen `main`-Pushes entkoppelt; CI, Nightly, Health, Performance und CodeQL bleiben unverÃ¤ndert aktiv.
-- Ein einmaliger administrativer `npm run sync:github-workflows`-Commit aktiviert alle WorkflowÃ¤nderungen gesammelt; es sind keine manuellen YAML-Ã„nderungen nÃ¶tig.
-- Versions-Sync hÃ¤lt kÃ¼nftig auch `worker.js` und `worker/metar-proxy.js` automatisch bytegleich; der Release-Gate schÃ¼tzt diese Spiegelung.
-
-# MID v0.9.84.20
-
-## 0.9.84.20
-- Release-PrÃ¼fung korrigiert: Die Widget-Erweiterung aus v0.9.84.19 bleibt unverÃ¤ndert erhalten.
-- Wind/BÃ¶en bleiben im Widget zweizeilig; die optionalen ECMWF-Temperaturfarben bleiben fÃ¼r Standard-Exporte aktiviert.
-- Keine Ã„nderung an Wetterberechnung, Datenquellen, Darstellung oder Bedienung gegenÃ¼ber v0.9.84.19.
-
-## Intern
-- GitHub-Run #975 repariert: TypeScript 7.0.2 und Vite 8.2.2 waren bereits vollstÃ¤ndig erfolgreich; nur zwei Ã¤ltere, quelltextorientierte Regressionen erwarteten noch die Struktur vor dem neuen optionalen `ecmwfTemperatureColors`-Prop.
-- Der 7-Tage-Test akzeptiert jetzt die optionale ECMWF-Farbsteuerung und schÃ¼tzt zugleich, dass die Standardansicht weiter mit `ecmwfTemperatureColors=true` startet.
-- Der Widget-Kurventest prÃ¼ft Wind und ECMWF-Farboption unabhÃ¤ngig voneinander statt eine zufÃ¤llige Prop-Reihenfolge festzuschreiben.
-- Keine fachliche WorkerÃ¤nderung.
-
-# MID v0.9.84.18
-
-## 0.9.84.19
-- Widget: Wind und BÃ¶en bleiben auch bei knappen Tageskarten konsequent in zwei Zeilen und brechen nicht mehr zusÃ¤tzlich um.
-- Export: ECMWF-Temperaturfarben kÃ¶nnen fÃ¼r die Widget-/PNG-Ausgabe ein- oder ausgeschaltet werden; neue Standard-Exporte verwenden sie automatisch.
-- Die Temperaturfarben sind in Hell/Dunkel kontrastiert und gelten auch fÃ¼r die KurvenÃ¼bersicht sowie feste Live-Export-URLs.
-
-## Extern
-- Reiner Release-/Regression-Hotfix: Wetterberechnung, Skybar, Niederschlagsdarstellung und Bedienung bleiben gegenÃ¼ber v0.9.84.17 unverÃ¤ndert.
-- Die seit v0.9.84.15 fachlich gewollte IntensitÃ¤tslogik bleibt erhalten: 0,8 mm Regen in einer Stunde ist nach dem MID/DWD-Vertrag mÃ¤ÃŸiger Regen und wird entsprechend mit dem WMO-RegenintensitÃ¤tscode 63 dargestellt.
-
-## Intern
-- GitHub-Run #973 repariert: TypeScript 7 und der Vite-Produktionsbuild waren bereits erfolgreich; ausschlieÃŸlich drei veraltete Regressionserwartungen verlangten weiterhin den leichten Regencode 61 bzw. â€žleichter Regenâ€œ bei 0,8 mm/h.
-- Die drei Regressionen fÃ¼r Niederschlagscharakter, allgemeine Niederschlagsformen und Detailpiktogramme sind auf die bereits zentrale, intervallabhÃ¤ngige IntensitÃ¤tsklassifikation synchronisiert.
-- Keine fachliche WorkerÃ¤nderung.
-
-# MID v0.9.84.17
-
-## Extern
-- Reiner Release-Hotfix ohne Ã„nderung an Wetterberechnung, Darstellung, Datenquellen oder Bedienung.
-- Die Update-/Recovery-, Performance-, Skybar- und Niederschlagskorrekturen aus v0.9.84.15/16 bleiben unverÃ¤ndert.
-
-## Intern
-- GitHub-Run #972 repariert: Der nullable Update-Status wird vor dem Versionsvergleich auf zwei optionale skalare Werte reduziert. Dadurch muss TypeScript 7 keine Objekt-Narrowing-Annahme Ã¼ber `status` mehr treffen.
-- Die Update-Recovery-Regression schÃ¼tzt genau diese TS7-sichere Form und verhindert eine RÃ¼ckkehr zum zuvor zweimal fehlgeschlagenen Ausdruck.
-- Keine fachliche WorkerÃ¤nderung.
-
-# MID v0.9.84.16
-
-## Extern
-- Reiner Release-Hotfix: Die Grundaudit-, Performance- und Update-Recovery-Korrekturen aus v0.9.84.15 bleiben unverÃ¤ndert.
-- Keine Ã„nderung an Wetterberechnung, Darstellung, Datenquellen oder Bedienung.
-
-## Intern
-- GitHub-Run #971 repariert: Der Post-Update-Healthcheck behandelt einen nicht verfÃ¼gbaren Update-Status jetzt TypeScript-sicher, bevor `pendingVersion` und `appVersion` verglichen werden.
-- Regression erweitert, damit die null-sichere PrÃ¼fung dauerhaft geschÃ¼tzt bleibt.
-- Keine fachliche WorkerÃ¤nderung.
-
-# MID v0.9.84.15
-
-## Extern
-- App-Updates sind robuster: MID wartet nicht mehr unbegrenzt auf einen festhÃ¤ngenden Startabruf, hÃ¤lt wÃ¤hrend eines wartenden Updates die laufende App-Shell versionsrein und kann einen nicht gesund gestarteten neuen Stand gezielt auf die vorherige Version zurÃ¼cksetzen. Dadurch soll der bisher gelegentlich nÃ¶tige manuelle Komplett-Neustart nach Updates entfallen.
-- Radar-, Sensor-, Open-Meteo-, externe Beobachtungs-/Geocoding- und Hintergrundabrufe besitzen nun belastbare Zeitgrenzen; lange Karten- oder App-Sitzungen sollen weniger anfÃ¤llig fÃ¼r HÃ¤nger und unnÃ¶tig wachsenden Speicherverbrauch sein.
-- NiederschlagsstÃ¤rken werden genauer nach Niederschlagsart und tatsÃ¤chlichem Zeitintervall bewertet. Sonnige Schauer bleiben in der Skybar sichtbar, Dauerregen erhÃ¤lt keine kÃ¼nstliche vierte IntensitÃ¤tsklasse.
-- Eigene Wetterstationen mit Standard-JSON behandeln Regenraten jetzt korrekt als Raten und nicht als aufsummierte Niederschlagsmengen.
-
-## Intern
-- Service-Worker-Aktivierung atomisiert: neuer Cache und neuer Controller Ã¼bernehmen erst gemeinsam im `activate`-Schritt; die aktive `index.html` bleibt bis dahin cachegebunden, sodass kein neuer Server-HTML-Stand mit alten JS/CSS-Assets vermischt wird. Update-Assets und UpdateprÃ¼fungen besitzen harte Zeitbudgets.
-- Post-Update-Healthcheck basiert auf nutzbaren Kernforecastdaten statt nur auf gerenderten React-Frames; Offline-Zustand gilt nicht als falscher Positivnachweis. Bei einem pending Update greift online nach 20 s ein gezieltes Rollback.
-- Forecast-/Stations-/Ensemble-Preloads, Best-Match/Worker-Fallback, verbundene Stationen, externe Beobachtungs-/Geocodingdienste, Radar-/Rasterquellen, private Sensoren, LÃ¼ftungsassistent und GerÃ¤tesync sind abortierbar und zeitlich begrenzt.
-- GroÃŸe Wetterzwilling-/Archivarbeiten laufen erst nach dem ersten sichtbaren Render; HY-ME-C/NG-, Event-Flugwetter-, Saison- und Terrain-Morphologie-Caches sind begrenzt.
-- Zentrale intervall- und niederschlagsartbewusste IntensitÃ¤tsklassifikation; generische `rainRate`/`precipitationRate`-Semantik korrigiert.
-- Version-/Manifest-Cachebuster werden auf kanonische Cache-SchlÃ¼ssel abgebildet; regelmÃ¤ÃŸige Updatechecks kÃ¶nnen den App-Shell-Cache nicht mehr mit immer neuen Query-Varianten aufblasen.
-- Keine fachliche WorkerÃ¤nderung.
-
-# MID v0.9.84.12
-
-## Extern
-- Release-Korrektur ohne sichtbare Ã„nderung: Die neue Skybar-Logik aus v0.9.84.11 bleibt vollstÃ¤ndig erhalten.
-- GesamtbewÃ¶lkung steuert weiterhin das gelbe/graue Grundband; sonnige Schauer bleiben als farbiger Niederschlagslayer Ã¼ber Sonne sichtbar.
-
-## Intern
-- GitHub-Run #966 repariert: direkter Sonnenscheinparameter und wolkenbasierter visueller Sonnenanteil sind wieder sauber getrennt.
-- Der wissenschaftliche Auditvertrag `sunVisualShare(0,0) = 0` ist wieder erfÃ¼llt, ohne die WolkenprioritÃ¤t der Skybar zurÃ¼ckzunehmen.
-- Keine fachliche WorkerÃ¤nderung.
-
-# MID v0.9.84.11
-
-## Extern
-- Skybar: GesamtbewÃ¶lkung ist jetzt die primÃ¤re HimmelsgrÃ¶ÃŸe. Hohe Sonnenscheindauer kann eine Ã¼berwiegend bewÃ¶lkte Stunde nicht mehr als maximal sonnig darstellen.
-- Klassische Schauerlagen bleiben sichtbar: farbiger Niederschlag liegt Ã¼ber einem vorhandenen gelben Sonnenband; ein breiteres Sonnenband bleibt seitlich sichtbar, ein gleich dicker oder dickerer Niederschlagsbalken verdeckt es vollstÃ¤ndig.
-- Niederschlagsdicken orientieren sich an den DWD-IntensitÃ¤ten leicht/mÃ¤ÃŸig/stark; die hÃ¶chste vierte Dicke ist eine klar dokumentierte MID-Darstellungsunterteilung innerhalb â€žstarkâ€œ.
-
-## Intern
-- Zentrale `detailSkyBar`-Engine fÃ¼r alle sichtbaren Skybar-Verwendungen vereinheitlicht.
-- WolkenprioritÃ¤t, Sunshine-Fallback, Schauer-Layerreihenfolge und IntensitÃ¤tsschwellen regressionsgeschÃ¼tzt.
-- Keine fachliche WorkerÃ¤nderung.
-
-# MID v0.9.84.0
-
-## Extern
-- Kurzfristige Starkregen-, Schnee- und Eisrisiken nutzen ICON-D2-RUC und RUC-EPS jetzt gemeinsam vorsichtiger und aussagekrÃ¤ftiger. RUC-EPS kann die kurzfristige Eintrittswahrscheinlichkeit bestÃ¤tigen oder begrenzt dÃ¤mpfen, ohne eine bereits ensemblegestÃ¼tzte Gefahr einfach verschwinden zu lassen.
-- Sehr nasse einzelne RUC-LÃ¤ufe werden zusÃ¤tzlich mit der RUC-EPS-Verteilung abgeglichen. Dadurch reagieren lokale Niederschlagsprognosen weniger empfindlich auf isolierte AusreiÃŸer.
-- Im Extremwetter-Ausblick ist transparenter erkennbar, wann RUC/RUC-EPS die GefahreneinschÃ¤tzung stÃ¼tzt und welche Kurzfristdaten dahinterstehen.
-- Weitere EinsatzmÃ¶glichkeiten in Push-Mitteilungen, Flugmeteorologie, Bergwetter, Mehrlauf-Trends und Wind-Ensembles wurden geprÃ¼ft und nach Nutzen/Risiko priorisiert.
-
-## Intern
-- `rapid-extreme.json` auf Schema v4 erweitert: voraggregierte RUC-EPS-Niederschlagsevidenz pro 0â€“6/6â€“12/12â€“14-h-Fenster, ohne VerÃ¶ffentlichung nativer Member-Cubes.
-- Hyperlokaler RUC-Niederschlagskonsens nutzt RUC-EPS-Q75 nur als kontinuierliche Upper-Tail-Plausibilisierung, nicht als hartes Mengen-Capping.
-- Extremwetter-Regen erhÃ¤lt begrenzte bidirektionale RUC-EPS-Kalibrierung; Gewitter nutzt RUC-EPS als NiederschlagsstÃ¼tze; Schnee/Eis koppeln RUC-EPS an deterministische Phasen-/Temperaturdiagnostik.
-- Keine synthetische RUC-EPS-Windwahrscheinlichkeit: der aktuelle EPS-Preprocessor enthÃ¤lt nur Niederschlagsmember.
-- RÃ¼ckwÃ¤rtskompatibel zu rapid-extreme v1â€“v3; v4-Funktionen aktivieren sich automatisch nach dem nÃ¤chsten vollstÃ¤ndigen RUC-Preprocessing.
-
-# MID v0.9.83.5
-
-- Klima: tÃ¤gliche ERA5-Bedeckungsmittel werden nun zuerst plausibel auf 0â€“8 Oktas gerundet und danach in die beschrifteten Achtelklassen gruppiert.
-- Klima: Wind- und BÃ¶entexte verwenden auÃŸerhalb der Diagrammlegende eine einheitliche neutrale Textfarbe; Wert und Einheit bleiben zusammen.
-- Komposit: SatellitenstÃ¤nde werden in einem Ringpuffer mit bis zu zwÃ¶lf realen Nachbarbildern verdeckt vorgeladen und beim Wechsel Ã¼berblendet.
-- Synoptik: native DWD-Isobaren bleiben erhalten; geglÃ¤ttete MID-Isohypsen werden separat aus dem Rasterpfad geladen und wieder sichtbar gezeichnet.
-- Karte: der Lokalisierungsbutton stoppt laufende Kartenbewegungen, aktualisiert die KartengrÃ¶ÃŸe und zentriert zuverlÃ¤ssig auf GerÃ¤te- oder Favoritenort.
-- Keine Logo- und keine Workflow-YAML-Ã„nderungen.
-
-# MID v0.9.83.4
-
-## Extern
-- Der Release-Installer wird nicht mehr durch einen administrativ noch nicht synchronisierten GitHub-RUC-Workflow blockiert. Wetterdaten, RUC-Berechnung und Darstellung bleiben unverÃ¤ndert.
-- Die vollstÃ¤ndige Build- und RegressionsprÃ¼fung bleibt bestehen; nur die ZustÃ¤ndigkeit fÃ¼r aktive GitHub-Workflowdateien ist jetzt sauber vom normalen ZIP-Release getrennt.
-
-## Intern
-- Drei RUC-Fachregressionen prÃ¼fen ausschlieÃŸlich den kanonischen `ci/github`-Workflow, den das Release tatsÃ¤chlich mitliefert.
-- Die aktive `.github`-Konfiguration bleibt wie vorgesehen vom automatischen Release-Installer geschÃ¼tzt und wird weiterhin separat Ã¼ber die vorhandenen Admin-Sync-/Transition-Regressionen fail-closed validiert.
-- Kein Lockern des RUC-Catch-up-, Pages-, Speicher-, Health- oder Workflow-Sicherheitsvertrags.
-
-# MID v0.9.83.3
-
-- GitHub-Release-Lauf #942 repariert: Die beiden isolierten Extremwetter-/Flugwetter-Regressionen erhalten `esbuild` wieder als ausdrÃ¼ckliche, im Lockfile fixierte EntwicklungsabhÃ¤ngigkeit.
-- Drei nach der Vite-8- und Klima-Farbmigration veraltete PrÃ¼ferwartungen korrigiert: ein nicht mehr installierter `browserslist`-Pfad gilt als nicht betroffen, Klima-Tmax darf auf den zentralen Tmax-Token verweisen, und die Plugin-React-Policy bleibt maschinenlesbar.
-- Die Vite-8/Rolldown-Produktionspipeline bleibt unverÃ¤ndert; `esbuild` wird ausschlieÃŸlich von den zwei bestehenden Node-TesthÃ¼llen zum BÃ¼ndeln einzelner TypeScript-Fachmodule verwendet.
-- Keine Ã„nderung an App-Verhalten, Wetterberechnung, Darstellung oder Worker-Fachlogik.
-
-# MID v0.9.83.2
-
-- Release-Installation unter React 19 repariert: Ensemble- und Radar-Bedienelemente verwenden jetzt die korrekten Referenztypen; der in GitHub-Lauf #941 aufgetretene TypeScript-Abbruch ist damit gezielt behoben.
-- Klima: Tmax verwendet wieder die appweite MID-Temperaturfarbe. Wind und BÃ¶en sind in Zusammenfassung, Monatswerten, Umschalter und Windrose eindeutig in den bekannten MID-Parameterfarben dargestellt.
-- Keine fachliche Ã„nderung an Wetter-, Warn-, Klima- oder Worker-Berechnungen.
-
-# MID v0.9.83.1
-
-## Extern
-- Widget: Wenn fÃ¼r einen Tag keine warnwÃ¼rdigen MID-Ereignisse vorliegen, wird keine leere Entwarnungs-/Hinweispille mehr angezeigt.
-- Klima: Die Temperaturachse im Jahresverlauf verwendet jetzt automatisch glatte, leicht lesbare Skalenwerte statt krummer Zwischenwerte.
-- Klima: Wind- und BÃ¶enwerte werden in Zusammenfassung, Windrose und Monatskarten einheitlich als ganze Werte dargestellt.
-
-## Intern
-- Klima-Temperaturskala verwendet adaptive Nice-Steps (1/2/5/10/20/50 Â°C) mit sauber aufgerundeten Achsgrenzen.
-- Widget-Hazardbereich wird nur gerendert, wenn tatsÃ¤chlich mindestens ein warnwÃ¼rdiges Ereignis fÃ¼r den jeweiligen Tag vorliegt; der Gesamtzustand behandelt ein komplett warnfreies Widget layoutseitig wie â€žHazards ausâ€œ.
-- Keine Ã„nderung an Warnschwellen, Wetterdaten, Klimadatenquellen oder Worker-Fachlogik.
-
-# MID v0.9.83.0
-
-## Extern
-- Keine Ã„nderung an Wetterdaten, Vorhersagen, Warnungen, Radar/Satellit, Synoptik, Klima oder Bedienlogik.
-- Die technische Basis der App wurde modernisiert, damit MID mit den aktuellen React-/Vite-Werkzeugen weiterentwickelt werden kann, ohne den bestehenden Funktionsumfang anzutasten.
-- Symbole und interne Build-Werkzeuge wurden aktualisiert; Darstellung und gespeicherte NutzerzustÃ¤nde bleiben erhalten.
-
-## Intern
-- React, React DOM und react-is gemeinsam auf 19.2.8 sowie die zugehÃ¶rigen Typen auf die React-19-Reihe migriert; Recharts 3.10.1 bleibt erhalten und ist peer-kompatibel.
-- Vite 8.2.2 und @vitejs/plugin-react 6.1.1 gemeinsam Ã¼bernommen. Der Build nutzt nun Oxc, Lightning CSS und Rolldown-codeSplitting statt der veralteten esbuild-/manualChunks-Konfiguration.
-- Lucide React auf 1.40.0 aktualisiert; TypeScript bleibt exakt auf 7.0.2, der bestehende Strada-Testalias auf 6.0.3.
-- deploy-pages auf 5.0.1 und CodeQL init/analyze gemeinsam auf 4.37.9 SHA-gepinnt.
-- Keine fachliche WorkerÃ¤nderung; nur Versionssynchronisierung.
-
-# MID v0.9.82.1
-
-## Extern
-- Keine Ã„nderung an Wetter-, Klima- oder Reiseplanerfunktionen gegenÃ¼ber v0.9.82.0.
-- Der fehlgeschlagene Release-Lauf #939 ist korrigiert; MID kann den bereits geprÃ¼ften v0.9.82.0-Funktionsstand wieder regulÃ¤r verÃ¶ffentlichen.
-
-## Intern
-- Zwei veraltete Reiseplaner-Regressionen wurden an den in v0.9.82.0 ergÃ¤nzten optionalen BÃ¶enabruf angepasst.
-- Der Abrufbudget-Test prÃ¼ft nun den regulÃ¤ren Gust-Pfad und den kompatiblen Fallback, statt die frÃ¼here statische `daily:DAILY_VARIABLES`-Form vorauszusetzen.
-- Die beiden isolierten Reiseplaner-TesthÃ¼llen setzen `--ignoreConfig` nur unter TypeScript 7 und bleiben damit auch mit Ã¤lteren lokalen Compilern prÃ¼fbar.
-- Produktionsbuild, TypeScript-PrÃ¼fung und 718 weitere Regressionen waren in GitHub Actions #939 bereits erfolgreich; es gibt keine fachliche WorkerÃ¤nderung.
-
-# MID v0.9.82.0
-
-## Extern
-- Klima: Die Windrose kann zwischen Wind und BÃ¶en umgeschaltet werden, wenn fÃ¼r den gewÃ¤hlten Ort historische BÃ¶endaten vorhanden sind. Fehlen BÃ¶endaten, bleibt die OberflÃ¤che unverÃ¤ndert und zeigt keinen leeren Schalter.
-- Klima: FÃ¼r den gewÃ¤hlten Zeitraum wird zusÃ¤tzlich die stÃ¤rkste modellierte BÃ¶e aus der Klimaperiode 1991â€“2020 angezeigt; auch die Monatskarten fÃ¼hren sie mit, sofern verfÃ¼gbar.
-- Klima: Niederschlags- und Schneefalltage werden jetzt als ganze Tage angezeigt.
-- Klima: Das Wertefeld im Jahresverlauf ordnet Temperatur- und Niederschlagswerte auf zwei klar getrennte Zeilen, sodass alle Inhalte innerhalb des Tooltips bleiben.
-
-## Intern
-- Das bestehende ERA5-Seamless-Tagesarchiv wird optional um das tÃ¤gliche BÃ¶enmaximum ergÃ¤nzt; bei fehlender UnterstÃ¼tzung fÃ¤llt MID automatisch auf den bisherigen Klimadatensatz zurÃ¼ck.
-- BÃ¶en werden nach der tÃ¤glichen Hauptwindrichtung gruppiert. MID behauptet damit keine separat gemessene BÃ¶enrichtung.
-- Der Klima-Cache wurde wegen der zusÃ¤tzlichen BÃ¶enfelder auf Schema v7 angehoben.
-- Keine funktionale WorkerÃ¤nderung.
-
-# MID v0.9.80.7
-
-## Extern
-- Die parallelen Ã„nderungen aus den beiden zuletzt gleich bezeichneten v0.9.80.6-StÃ¤nden sind in einem eindeutigen Release zusammengefÃ¼hrt.
-- Kompositbild: Radar und Satellit laufen Ã¼ber eine gemeinsame reale Zeitachse, bereiten den nÃ¤chsten Stand vor und blenden geladene Nachbarbilder weich ineinander; die wÃ¤hlbaren Tempi bleiben erhalten.
-- Synoptik: Linienart ist als PrimÃ¤rwahl erreichbar; Isobaren und geglÃ¤ttete 500-hPa-Isohypsen kÃ¶nnen einzeln oder gemeinsam dargestellt werden.
-- 24-h-Profil, Klima und Widget behalten die zuletzt korrigierte Ausrichtung, Lesbarkeit, Farbtrennung und geglÃ¤ttete Niederschlagswahrscheinlichkeit.
-
-## Intern
-- Versionskollision der parallelen v0.9.80.6-Entwicklungszweige durch den konsolidierten Stand v0.9.80.7 aufgelÃ¶st.
-- Die Komposit-Wiedergabe verwendet ausschlieÃŸlich echte bestÃ¤tigte Produktzeiten und erfindet keine meteorologischen ZwischenstÃ¤nde.
-- Die Klima-, Zeitachsen-, UI-, Synoptik- und Widget-VertrÃ¤ge sowie die Light-/Dark-Logo-Assets bleiben gemeinsam erhalten.
-- Keine funktionale WorkerÃ¤nderung.
-
-# MID v0.9.80.6
-
-## Extern
-- Im kompakten Widget stehen Sonnensymbol und Sonnenscheindauer jetzt sauber zentriert und mit erkennbarem Abstand in ihrer Pille.
-- Die Niederschlagswahrscheinlichkeit im 24-h-Wetterprofil und in der Tagesansicht wird wieder als ruhige, geglÃ¤ttete Linie dargestellt; die zugrunde liegenden Stundenintervalle bleiben unverÃ¤ndert.
-- Die Bedeckungsanteile im Klimabereich sind auch in den dunkleren Klassen gut lesbar.
-- Der Klima-Jahresverlauf unterscheidet Mitteltemperatur und Tmin kontrastreicher; das Wertefeld beim Antippen eines Monats ist deutlich grÃ¶ÃŸer und besser lesbar.
-
-## Intern
-- PoP-Kurven verwenden eine monotone kubische Hermite-Interpolation mit Ãœberschwingungsschutz; Niederschlagsmengen, Auswahlpunkte und Tooltips behalten die kanonische VorwÃ¤rtsintervall-Geometrie.
-- Klimafarben: Mitteltemperatur in der Hellansicht #111827, Tmin #174f9e; in der Dunkelansicht bleiben kontrastgerechte Ã¤quivalente Tokens erhalten.
-- BedeckungslegendeneintrÃ¤ge verwenden neutrale FlÃ¤chen und separate Farbmuster statt dunkler VollflÃ¤chen hinter dem Text.
-- Keine funktionale WorkerÃ¤nderung.
-
-# MID v0.9.80.5
-
-## Extern
-- Der GitHub-Installer kann den aktuellen MID-Stand wieder verÃ¶ffentlichen; die Wetterdarstellung und fachliche Logik aus v0.9.80.4 bleiben unverÃ¤ndert.
-- Die PrÃ¼fung des kompakten Widgets berÃ¼cksichtigt dessen neue BÃ¶en-Warnfarben korrekt, ohne den Schutz vor abgeschnittenen Wetterwerten zu lockern.
-
-## Intern
-- CI-Hotfix nach Release-Lauf #934: zwei direkte TypeScript-PrÃ¼fungen erkennen TypeScript 7 und setzen dort den erforderlichen `--ignoreConfig`-Schalter; Ã¤ltere lokale Compiler bleiben weiterhin lauffÃ¤hig.
-- Die Nicht-Abschneiden-Regression erkennt die dynamische Widget-Windklasse `warning-*` und prÃ¼ft weiterhin Regen-, Wind- und BÃ¶en-Teilzeilen.
-- Keine Ã„nderung an Wetter-, Hazard-, Klima- oder Workerfachlogik gegenÃ¼ber v0.9.80.4; Worker-/Service-Worker-Versionen sind lediglich releasesynchronisiert.
-
-# MID v0.9.80.4
-
-## Extern
-- Klima ist klarer lesbar: HÃ¶chst-, Mittel- und Tiefsttemperatur sowie Niederschlag haben dauerhaft unterschiedliche Farben.
-- Bedeckung wird in fÃ¼nf verstÃ¤ndlichen Anteilen gezeigt; Niederschlags- und Schneefalltage ergÃ¤nzen die Monatswerte.
-- Die Windrose erklÃ¤rt nun eindeutig, dass sie auf typischen Tageswindrichtungen basiert und wie sich ihre Arme nach WindstÃ¤rke aufteilen.
-- Das MID-Widget verwendet dieselben automatischen Wetterhinweise und BÃ¶en-Warnstufen wie die App; Sonnenscheindauer wird dort platzsparend auf ganze Stunden gerundet.
-- Die Windwarnfarben sind zwischen Warnhinweisen, Windpfeilen, Forecast-Cockpit und Bergwetter vereinheitlicht.
-
-## Intern
-- Zentraler DWD-Windschwellenvertrag fÃ¼r alle beteiligten OberflÃ¤chen; 50 und 140 km/h bleiben als strikte â€žÃ¼berâ€œ-Grenzen erhalten.
-- Widget-Hinweise werden aus den kanonischen probabilistischen Hazard-Zeitfenstern abgeleitet.
-- Klima-Cache auf Schema v6 erweitert, um Schneefalltage ohne zusÃ¤tzliche Netzabfrage aus derselben Tagesreihe zu bestimmen.
-- Eigene Klima-Farbtokens fÃ¼r Tmax, Mittel und Tmin sowie neue Regression fÃ¼r Klima/Hazard/Widget.
-- Keine fachliche WorkerÃ¤nderung.
-
-# MID v0.9.80.1
-
-## Extern
-- Ã„nderungen aus dem neueren Klima-/Konzeptstand v0.9.80.0 mit dem zuvor korrigierten v0.9.79.20-Release zusammengefÃ¼hrt.
-- Die neue, standardmÃ¤ÃŸig geschlossene Klima-Sektion bleibt vollstÃ¤ndig erhalten; Warn-/LT- und CI-Korrekturen aus v0.9.79.20 bleiben unverÃ¤ndert wirksam.
-
-## Intern
-- Vor dem Merge wurden die drei in Release #929 korrigierten Regressionen bytegleich gegen v0.9.79.20 geprÃ¼ft.
-- Klima-Komponente und Klima-RegressionsprÃ¼fung sind jetzt zusÃ¤tzlich in der Baseline als Pflichtbestandteile verankert, damit sie bei spÃ¤teren Release-Merges nicht still verloren gehen.
-- Keine neue fachliche WorkerÃ¤nderung gegenÃ¼ber v0.9.80.0.
-
-# MID v0.9.80.0
-
-## Extern
-- Neue, standardmÃ¤ÃŸig geschlossene Sektion â€žKlimaâ€œ fÃ¼r den gewÃ¤hlten Ort.
-- Klimanormalen 1991â€“2020 fÃ¼r Tmax, Tmin, Mitteltemperatur, Niederschlag, mittleren Wind und Bedeckungsgrad.
-- Frei wÃ¤hlbare, auch jahresÃ¼bergreifende MonatszeitrÃ¤ume; Direktwahl fÃ¼r Dezemberâ€“MÃ¤rz, Sommer und Gesamtjahr.
-- Gemeinsamer Jahresverlauf, Monatskarten und Windrose in MID-Parameterfarben; fÃ¼r Mobil-Hoch- und Querformat optimiert.
-
-## Intern
-- Klimadaten werden erst beim Ã–ffnen geladen, ortsbezogen gerastert und bis zu drei Jahre lokal wiederverwendet.
-- Ein einzelner ERA5-Seamless-Tagesabruf versorgt alle Darstellungen; Monatsfilter und Windrose werden ohne weitere Netz- oder Workerabrufe lokal berechnet.
-- Windrichtungen werden zirkulÃ¤r gemittelt; Quellen- und Grenzenhinweis trennt modellierte Klimatologie klar von Vorhersage und lokaler Messung.
-- Keine fachliche WorkerÃ¤nderung.
-
-# MID v0.9.79.20
-
-- CI-Fix fÃ¼r Release #929: drei veraltete Regressionstests an die bereits beabsichtigte v0.9.79.19-Darstellung von Warnstufe, Warnzeitfenster und `LT` angepasst.
-- Keine Ã„nderung an der produktiven Wetter-, Warn- oder Workerlogik.
-
-# MID v0.9.79.19
-
-## Extern
-- Windhinweise nennen die Richtung direkt und weisen markante Drehungen mit einem zeitlich aufgelÃ¶sten Wechsel aus.
-- Warnstufe und Warnzeitfenster werden im 24-h-Wetterprofil aus denselben Warnobjekten wie in der WarnÃ¼bersicht Ã¼bernommen.
-- In Lokalzeit umgerechnete absolute Zeitstempel werden mit â€žLTâ€œ gekennzeichnet, damit UTC-/Quellzeiten und Lokalzeit nicht verwechselt werden.
-
-## Intern
-- Wetterprofil-HazardbÃ¤nder fÃ¼hren die kanonische Stufe und `validFrom`/`validTo` weiter.
-- CI-Fehler #928 behoben: die UI-Regression v0.9.79.17 ist nicht mehr an eine historische Patch-Version gekoppelt.
-- Keine fachliche WorkerÃ¤nderung.
-
-# MID v0.9.79.18
-
-## Extern
-- Keine Ã„nderung an der Wetterdarstellung: Niederschlagswahrscheinlichkeit, Mengenbalken und die seit v0.9.79.16 geltende VorwÃ¤rtsintervall-Geometrie bleiben unverÃ¤ndert.
-
-## Intern
-- CI-Fehler aus Release #927 behoben: die historische Regression fÃ¼r Niederschlagswahrscheinlichkeit erwartete noch den frÃ¼heren punktweise aufgebauten `p.map`-Pfad.
-- Der Test prÃ¼ft nun die aktuelle stufenfÃ¶rmige VorwÃ¤rtsintervall-Kurve (`p.reduce`) und zusÃ¤tzlich explizit, dass die PoP-Kurve unabhÃ¤ngig von vorhandenen Niederschlagsmengenbalken gerendert wird.
-- Kein fachlicher Rollback und keine Ã„nderung an Forecast-, Skybar- oder Workerlogik.
-
-# MID v0.9.79.17
-
-## Extern
-- Einstellungen nutzen ein einheitlicheres Typografie-, Abstands- und Kartenraster.
-- Schalter in Einstellungen und Push-Regeln besitzen nun eine konsistente iOS-Geometrie und bessere FokuszustÃ¤nde.
-- Mobile Einstellungsnavigation zeigt wieder kurze Bereichsnamen; die optionale Bottom-Leiste hat klarere AktivzustÃ¤nde und einheitliche Touchziele.
-- Der klassische Navigationsmodus bleibt unverÃ¤ndert als persistenter Fallback erhalten.
-
-## Intern
-- UI-Polish aus dem parallelen Zweig â€žLogos und Konzepteâ€œ auf den fachlich neueren v0.9.79.16-Stand konsolidiert.
-- MOSMIX-S/L-Frischelogik und Niederschlags-VorwÃ¤rtsintervallgeometrie aus v0.9.79.16 bleiben unverÃ¤ndert erhalten.
-- Neuer Pflichtregressionstest schÃ¼tzt Einstellungsraster, Switch-Geometrie, mobile Bereichsnamen, Fokus, Reduced Motion und klassischen Fallback.
-
-# MID v0.9.79.16
-
-## Extern
-- MOSMIX-S wird als stÃ¼ndliche Kurzfrist-AktualitÃ¤tsreferenz ausgewiesen; MOSMIX-L bleibt separat fÃ¼r 03/09/15/21 UTC sichtbar.
-- Niederschlag und Skybar liegen nun geometrisch im tatsÃ¤chlich bezeichneten VorwÃ¤rtsintervall (z. B. 19:00â€“20:00).
-- Niederschlagswahrscheinlichkeit im 24-h-Profil wird als Intervalltreppe statt als linear interpolierter Zeitpunktwert dargestellt.
-
-## Intern
-- DWD-MOSMIX-S/L-Laufindizes werden getrennt verifiziert; kein L-Init-Fallback als scheinbar stÃ¼ndliche S-AktualitÃ¤t.
-- Skybar-x-Positionen sind Slotstarts; 24-h-Tagesachse reserviert die rechte Kante fÃ¼r 24:00.
-- Neue Pflichtregressionen sichern MOSMIX-S/L und Niederschlags-Intervallgeometrie.
-
-## v0.9.79.15 â€“ MOSMIX-Anteil und LaufaktualitÃ¤t
-- Modellstand beziffert den ungefÃ¤hren direkten MOSMIX-Korrekturanteil fÃ¼r Temperatur, Tmin/Tmax, Taupunkt, Druck, Wind/BÃ¶en und den RR1c-Niederschlagskonsens.
-- MOSMIX-L-Init wird aus dem offiziellen DWD-OpenData-Laufindex gelesen; â€žQuelle bereitâ€œ und Laufalter bleiben getrennt.
-- Modellzeilen kennzeichnen den Lauf als aktuell oder warnen bei ungewÃ¶hnlich altem Init.
-- Falls der offizielle Laufindex nicht verifiziert werden kann, wird kein Init geraten.
-- Fachliche WorkerÃ¤nderung erforderlich.
-
-## v0.9.79.14 â€“ CI-Buildfix nach Release #925
-- GitHub-Release #925 scheiterte im TypeScript-Parser an einer rohen `<50 %`-Schreibweise innerhalb eines JSX-Hilfetexts in `App.tsx`.
-- Die Formulierung lautet nun parserfest â€žunter 50 % BewÃ¶lkungâ€œ; die fachliche Skybar-No-gap-Regel aus v0.9.79.13 bleibt unverÃ¤ndert.
-- Der bestehende No-gap-Pflichttest schÃ¼tzt zusÃ¤tzlich gegen eine erneute rohe `<50 %`-Schreibweise im JSX.
-- Keine fachliche Ã„nderung an Forecast, Skybar-Schwellen, Worker oder Datenquellen.
-
-## v0.9.79.13 â€“ Skybar tagsÃ¼ber lÃ¼ckenfrei
-- Zentrale Ursache der sichtbaren TageslÃ¼cken behoben: direkte Sonnenscheindauer â‰¤50 % plus GesamtbewÃ¶lkung <50 % konnte bislang weder Gelb noch Grau erzeugen.
-- Bewertbare Tages-Slots erhalten nun immer ein Grundband; im kritischen Zwischenbereich ein graues Mindestband der ersten Dickenstufe.
-- 24-h-Tagesdetail, 24-h-Profil, 7-Tage-Kurve und Tageskarten profitieren Ã¼ber dieselbe zentrale Skybar-Engine.
-- Klare NÃ¤chte und echte DatenlÃ¼cken bleiben bewusst ausnehmbar; Niederschlagsfarben/-Overlay und vier Dickenstufen bleiben unverÃ¤ndert.
-
-## v0.9.79.12 â€“ CI-Regressionsfix nach Release #923
-- Vier historische Regressionen auf den seit v0.9.79.11 zentralen `forecastRegime.ts`-Vertrag umgestellt.
-- Keine RÃ¼ckkehr zu paralleler Regimelogik in `ForecastCockpit.tsx`; Farben und Klassifikation bleiben zentral.
-- Keine meteorologische, visuelle oder Worker-FachÃ¤nderung.
-
-## v0.9.79.11 â€“ Wetterregime appweit gekoppelt
-- Gemeinsame Regimeklassifikation fÃ¼r 7d/14d und klassische 7d-Ansicht.
-- Regimefarben vollstÃ¤ndig auf zentrale Palette/`--mid-weather-regime-accent` gefÃ¼hrt.
-- Schauer-Regime und klassische Wetterpille per Regression abgesichert.
-
-# Changelog
-
-## 0.9.79.9
-
-- Skybar appweit erneut geprÃ¼ft und die vier Dickenstufen auf kleinen Displays klarer voneinander getrennt: `2.4 / 3.6 / 4.8 / 6.0`.
-- Sonne und BewÃ¶lkung nutzen explizite 50â€“62,5 / 62,5â€“75 / 75â€“87,5 / 87,5â€“100-%-Klassen; Niederschlag behÃ¤lt vier zeitnormalisierte IntensitÃ¤tsklassen.
-- Jedes Segment trÃ¤gt die tatsÃ¤chlich verwendete Stufe 1â€“4 als DOM-Diagnoseattribut.
-- Die bisher 7 Einheiten hohe Grundschiene der 7-Tage-Tageskarten wurde auf eine dezente 1,2-Einheiten-Achse reduziert, damit sie die vier realen Dicken nicht mehr optisch nivelliert.
-- Tagesdetail/24 h, 24-h-Profil, 7-Tage-Kurve und Tageskarten bleiben auf derselben zentralen Skybar-Engine.
-- Keine fachliche Ã„nderung an Wetterdaten, Radar/Satellit oder Workerlogik.
-
-## 0.9.79.8
-
-- CI-Regressionsfix nach Release-Run #920: fÃ¼nf noch auf die vor Bottom-Bar-Struktur zugeschnittene Quelltext-Regressionen auf den funktional gleichwertigen v0.9.79.x-Vertrag aktualisiert.
-- Sonnenstunden- und Niederschlagsregressionen erkennen die weiterhin zentral reconcilierten `displayHours` nun auch in der optionalen Heute-Fokusstruktur.
-- 14-Tage-Favoritenregression prÃ¼ft die Mindestversion semantisch statt ausschlieÃŸlich innerhalb der alten `0.9.78.x`-Linie.
-- Planer-/Kurzfristregressionen akzeptieren den neuen Planen-Hub und die gemeinsame Horizontnavigation, ohne die geschÃ¼tzten Event-/Reiseplaner-, Modul-, QR- oder KurzfristvertrÃ¤ge abzuschwÃ¤chen.
-- Keine fachliche Ã„nderung an Wetterdaten, Forecast-Fusion, Radar-/Satellitenprodukten, Radarfarben, Parameterfarben, Einheiten oder Workerlogik.
-
-## 0.9.79.7
-
-- CI-Buildfix fÃ¼r das optionale Bottom-Leisten-Bedienkonzept: die deduplizierten Prognosekandidaten werden vor dem `filter()` explizit als `DashboardModuleId[]` typisiert.
-- Behebt den TypeScript-Fehler `TS2322: Type 'string[]' is not assignable to type 'DashboardModuleId[]'` aus Release-Run #919.
-- Die bestehende Schritt-5-Regression wurde auf den typstabilen Kandidatenaufbau aktualisiert; der Funktionsvertrag selbst bleibt unverÃ¤ndert.
-- Keine fachliche Ã„nderung an Navigation, Forecastlogik, Radar-/Satellitenprodukten, Radarfarben, Parameterfarben, Einheiten oder Worker-Fachlogik.
-
-## 0.9.79.6
-
-- Parallelstand v0.9.78.84/.85 vollstÃ¤ndig in den Bottom-Bar-Zweig integriert: Synoptik-Buildfix ohne `smoothFactor`, Composite-v3-Linienfarben/Persistenz, Sat/Rad-Wiedergabevertrag und Event-Hitzeempfehlungen bleiben erhalten.
-- Optionales Bottom-Leisten-Bedienkonzept, Schritt 7: â€žHeuteâ€œ folgt jetzt **Ãœbersicht â†’ Fokus â†’ Details**; die vollstÃ¤ndige Current-Ansicht erscheint im Beta-Modus erst nach explizitem Details-Aufruf.
-- Ein erneuter Tap auf â€žHeuteâ€œ fÃ¼hrt zurÃ¼ck zur Ãœbersicht; der klassische Current-Bereich bleibt unverÃ¤ndert.
-- â€žKarteâ€œ Ã¶ffnet im Beta-Modus das bestehende Kompositbild direkt ohne zusÃ¤tzliche Ã¤uÃŸere Aufklappstufe.
-- Keine Ã„nderung an Radar-/Satellitenprodukten, Radarfarben, Parameterfarben, Einheiten, Forecast-Datenpfaden oder Worker-Fachlogik.
-
-## 0.9.79.5
-
-- Optionales Bottom-Leisten-Bedienkonzept, Schritt 6: neuer Planen-Hub als gemeinsamer Einstieg in Event, Reise, Berg/Winter und Wasser.
-- Nicht eingerichtete AktivitÃ¤tsprofile fÃ¼hren direkt in Favoriten & Profile; vorhandene Module und Datenpfade bleiben unverÃ¤ndert.
-- â€žMehrâ€œ erhÃ¤lt im Beta-Modus kompakte Schnellzugriffe auf Einstellungen, Benachrichtigungen, Favoriten/Profile und Wetterzwilling sowie eine deduplizierte Liste weiterer Fachmodule.
-- Klassischer Sektions-Drawer, Radar-/Satellitenprodukte, Radarfarben, Parameterfarben, Einheiten und Worker-Fachlogik bleiben unverÃ¤ndert.
-
-## 0.9.79.4
-
-- Optionales Bottom-Leisten-Bedienkonzept, Schritt 5: Prognose als verdichteter Arbeitsraum mit der gemeinsamen Horizontleiste `90 min Â· 24 h Â· 7 T Â· 14 T Â· 46 T Â· Saison`.
-- Der zuletzt gewÃ¤hlte Prognosehorizont wird persistent gespeichert; der Bottom-Tab Prognose kehrt bevorzugt dorthin zurÃ¼ck.
-- Im Beta-Cockpit entfallen doppelte Cockpit-Kopfzeile und interne Horizonttabs; klassische Prognosemodule werden nur im Beta-Modus visuell verdichtet.
-- Klassischer Modus, Forecast-Datenpfade, Radar-/Satellitenprodukte, Radarfarben, Parameterfarben, Piktogramme, Einheiten und Worker-Fachlogik bleiben unverÃ¤ndert.
-
-## 0.9.79.3
-
-- Optionales Bottom-Leisten-Bedienkonzept, Schritt 4: kompakte mobile â€žHeuteâ€œ-Ãœbersicht aus den bestehenden MID-Datenpfaden.
-- â€žHeute relevantâ€œ priorisiert bis zu drei vorhandene Signale; stÃ¼ndliche Kurzleiste und 7-Tage-Kurzblick fÃ¼hren in die bestehenden Detailmodule.
-- Die bisherige Current-Detailansicht bleibt vollstÃ¤ndig erhalten; â€žAlle Detailsâ€œ fÃ¼hrt dorthin.
-- GroÃŸe Orts-Nowcards werden nur im mobilen Bottom-Leisten-Modus aus der Kopfzone genommen; klassischer Modus bleibt unverÃ¤ndert.
-- Keine Ã„nderung an Radar-/Satellitenprodukten, Radarfarben, Parameterfarben, Einheiten oder Worker-Fachlogik.
-
-## 0.9.79.2
-
-- Optionaler Bottom-Leisten-Modus: Kompositbild als map-first Fokusansicht mit grÃ¶ÃŸerer direkter KartenflÃ¤che.
-- Ebenen/Schnellwahl liegen im Fokusmodus als kompakter Karten-Overlay-Dialog; klassische Toolbar bleibt im Fallback unverÃ¤ndert.
-- MapLibre-Pan/Pinch und die vorhandenen +/âˆ’-Controls bleiben verbindlich; Standortzentrierung bleibt separat erreichbar.
-- Timeline, Play/Pause und Geschwindigkeit bleiben direkt unter der Karte; erweiterte Darstellung/Deckkraft folgt danach.
-- Keine Ã„nderung an Radarfarbtabellen, Radar-/Satellitenprodukten, Parametern oder Datenpfaden.
-
-
-## 0.9.79.1
-
-- Optionales Bottom-Bar-Bedienkonzept, Schritt 2: mobiler Kopfbereich im Beta-Modus kompakter; klassischer Modus unverÃ¤ndert.
-- Gemeinsame Prognoseleiste `90 min Â· 24 h Â· 7 T Â· 14 T Â· 46 T Â· Saison` fÃ¼hrt in die bestehenden MID-Prognosemodule statt neue Datenpfade anzulegen.
-- 90 min/24 h fokussieren innerhalb von Kurzfrist bzw. Prognose-Cockpit den passenden Abschnitt; 46 T/Saison fokussieren die vorhandenen Langfrist-Unterbereiche.
-- Alle neuen Horizont- und Kopf-Aktionsziele bleiben auf iOS mindestens 44 px hoch/breit.
-- Radarprodukte und Radarfarben bleiben unverÃ¤ndert auf dem bestehenden Standardfarbenvertrag. Keine fachliche WorkerÃ¤nderung.
-
-
-## 0.9.79.0
-- Optionales neues mobiles Bedienkonzept als persistenter Fallback-sicherer Modus.
-- Bottom-Tab-Bar â€žHeute Â· Prognose Â· Karte Â· Planen Â· Mehrâ€œ auf kompakten Breiten mit iOS-Safe-Area.
-- Klassische Navigation bleibt Standard und jederzeit in den Einstellungen wiederherstellbar.
-- Radarprodukte/-farben, Parameterfarben, Einheiten und Datenpfade bleiben unverÃ¤ndert.
-
-# 0.9.78.85
-
-CI-Regressionsfix nach Release #917: stabiler `mid:composite-settings:v3`-Persistenzvertrag mit den neuen Linienfarbfeldern, seriÃ¶se Trinkwasser-/Erholungspausen-Semantik im Eventplaner, TypeScript-7-kompatible Event-Regressionen sowie auf die manuell geglÃ¤tteten/fÃ¤rbbaren MID-Konturen und die nicht mehr scrollbedingt pausierende Sat/Rad-Wiedergabe aktualisierte Komposit-Regressionen. Keine fachliche WorkerÃ¤nderung.
-
-# 0.9.78.84
-
-Synoptik-Buildfix: ungÃ¼ltige `smoothFactor`-Eigenschaften aus den Leaflet/MapLibre-Polyline-Optionen entfernt. Die MID-eigene KonturglÃ¤ttung, Schwarz/WeiÃŸ/Akzent-Farbwahl fÃ¼r Isobaren/Isohypsen und die robustere Sat/Rad-Wiedergabe bleiben erhalten. Keine fachliche WorkerÃ¤nderung.
-
-# 0.9.78.83
-
-Eventplaner-Empfehlungen fachlich plausibilisiert: aktivitÃ¤ts- und umgebungsbezogene Bekleidungs-/Thermiklogik statt pauschaler Ãœbergangskleidung, spezielle Profile fÃ¼r Sport/Indoor/Ski/Wassersport sowie fehlende Ereigniswahrscheinlichkeiten nicht mehr als scheinbare 0 %. Keine fachliche WorkerÃ¤nderung.
-
-# 0.9.78.82
-
-Konsolidierter Stand aus den beiden parallelen 0.9.78.81-Arbeitszweigen: Die gepufferte, quellenwahre Satellitenwiedergabe des hochgeladenen Standes bleibt vollstÃ¤ndig erhalten; zusÃ¤tzlich sind die Skybar-Korrekturen fÃ¼r Open-Meteo-Sonnenscheindauer integriert. Stunden- und 15-Minuten-Akkumulationen werden auf den sichtbaren VorwÃ¤rtsslot ausgerichtet, 3-h-Sonnenschein vollstÃ¤ndig summiert und Wolkenfelder bei Verdichtung als Intervallmittel behandelt. Keine fachliche WorkerÃ¤nderung gegenÃ¼ber 0.9.78.81.
-
-# 0.9.78.81
-
-Satellit im Live-Komposit trotz Quellenlatenz sichtbar; bildbereite Wiedergabe mit drei Geschwindigkeiten, gepuffertem Wechsel und wahrheitsgetreuer Zeitbeschriftung. Gesamtstand 0.9.78.80 Ã¼bernommen.
-
-# MID v0.9.78.80
-
-- 14-Tage-Cockpit: runder Parameter-/Zeitraum-Info-Button direkt neben Modellstand; die bisherige zusÃ¤tzliche Info-Zeile im Prognose-Kompass entfÃ¤llt.
-- Hochformat: Regime-/Kurzaussage wieder in der ersten Zeile; Tmin/Tmax kompakter zusammengerÃ¼ckt, ohne Werte oder Konfidenz abzuschneiden.
-
-# 0.9.78.79
-
-14-Tage-Karten: Die vergrÃ¶ÃŸerte Konfidenzpille erhÃ¤lt im Hochformat eine kollisionsfreie KopfzeilenflÃ¤che. Regime-Kurzaussage, Wettertext und kompakte Metadaten werden bei knapper Breite nicht mehr abgeschnitten, sondern kÃ¶nnen umbrechen; Desktopkarten sind moderat verbreitert. Keine fachliche WorkerÃ¤nderung. Siehe MID_IMPLEMENTATION_0.9.78.79.md.
-
-# 0.9.78.78
-
-14-Tage-Konfidenzpille mit grÃ¶ÃŸerem AuÃŸenabstand zu Temperatur und Wind/BÃ¶en sowie klarerer Trennung zwischen Empfangsbalken und 0â€“100-Index. FÃ¼nfstufige Balken- und kontinuierliche Farbsemantik bleiben unverÃ¤ndert. Keine fachliche WorkerÃ¤nderung. Siehe MID_IMPLEMENTATION_0.9.78.78.md.
-
-# 0.9.78.76
-
-24-h-Wetterprofil: fehlende bzw. offensichtlich widersprÃ¼chliche H/M/L-Wolkenschichtwerte werden nicht lÃ¤nger als echte 0 % angezeigt. GesamtbewÃ¶lkung bleibt unverÃ¤ndert; Schichten werden nicht aus dem Gesamtwert rekonstruiert. Teilweise fehlende Schichten erscheinen als `â€“`, vollstÃ¤ndig nicht belastbare Schichtinformation als `n. v.`. Keine fachliche WorkerÃ¤nderung. Siehe MID_IMPLEMENTATION_0.9.78.76.md.
-
-# 0.9.78.75
-
-Kompositbild: direkte Kartenbedienung mit gemeinsamen +/- Tasten, reale Satellitenhistorie bis etwa âˆ’90 min, reparierte WMS-Zeit-/Layerparser und native, lauf- und zeitgebundene DWD-Isobaren/500-hPa-Isohypsen mit numerischem Fallback. Basis 0.9.78.74 vollstÃ¤ndig Ã¼bernommen. Siehe MID_IMPLEMENTATION_0.9.78.75.md. Worker-Update erforderlich.
-
-# v0.9.78.72
-
-- 90-Minuten-Cockpit: Restintervalle unter fÃ¼nf Minuten direkt vor dem nÃ¤chsten 15-Minuten-Slot werden nicht mehr als eigene Kachel angezeigt. Die zugrunde liegende Kurzfristserie bleibt unverÃ¤ndert; sichtbar beginnt die Leiste am nÃ¤chsten belastbaren Slot.
-- Wetterzwilling: identische Modellbezeichnungen derselben UnabhÃ¤ngigkeitsgruppe werden in der Gewichtungsanzeige defensiv zusammengefÃ¼hrt. Die Berechnung behÃ¤lt die bereits vorhandenen Modellfamilien-/UnabhÃ¤ngigkeitsbudgets bei; eine doppelte DWD-Anzeige ist nicht als zusÃ¤tzliche unabhÃ¤ngige Stimme zu verstehen.
-- Schneefallgrenze: Niederschlagssignale werden als zusammenhÃ¤ngende ZeitbÃ¤nder statt regelmÃ¤ÃŸiger Einzelstreifen dargestellt. Ab Ende der stÃ¼ndlichen HÃ¶henprognose werden native 6-h-Ensemblefenster zeitlich verwendet; die Tageswahrscheinlichkeit aktiviert nicht mehr automatisch jeden 3-/6-h-Punkt. Nicht zeitlich aufgelÃ¶ste Tageswahrscheinlichkeiten werden ausdrÃ¼cklich als Tagesband markiert.
-- Ãœbergang stÃ¼ndlich â†’ Ensemble bereinigt: 6-h-Fenster auf dem Ãœbergangstag werden am letzten stÃ¼ndlichen Datenzeitpunkt abgeschnitten, sodass z. B. ein bereits stÃ¼ndlich belegtes 03â€“06-Uhr-Ereignis nicht zusÃ¤tzlich als 00â€“06-Uhr-Ensemblefenster erscheint.
-
-## 0.9.78.72
-
-- 14d-Konfidenz wahlweise als Signalbalken, Ampel oder Text+Index; Signalbalken Standard.
-- Parameter/weitere ZeitrÃ¤ume hinter kompaktem (i)-Popover.
-- 15-Tage-Rohabruf fÃ¼r vollstÃ¤ndigen 14. Ensemble-Kalendertag; UI bleibt 14 Tage.
-- DatenqualitÃ¤t bleibt vom meteorologischen Konfidenzindex getrennt.
-- Event-Stundenintervall- und SymbolkompaktierungsvertrÃ¤ge beibehalten und abgesichert.
-
-## 0.9.78.70 â€“ 2026-09-05
-
-- 14d-Konfidenzfenster konsistent zur Tagesbewertung: DatenqualitÃ¤t zerreiÃŸt kein meteorologisch hohes Fenster mehr; echte Unterabdeckung bleibt separat sichtbar.
-- Nachlaufender nicht bewertbarer Ensemble-Randtag wird als `teilw.`/Randabdeckung statt als vermeintlicher Konfidenzabfall behandelt.
-- Kompakte Tagesbadges und Prognose-Kompass zeigen den intuitiven 0â€“100-Konfidenzindex, ausdrÃ¼cklich ohne ihn als Treffer-% zu deklarieren.
-- Event-Stundenintervall korrigiert: vorangehende Niederschlags-/Sonnenscheinsummen werden nicht mehr durch einen Instantan-Wettercode am Stundenende rÃ¼ckwirkend falsch beschriftet.
-- Appweiter Symbolaudit: eindeutige Mikrometriken in 14d, Event-Timeline und Widget platzsparend icon-basiert; Barrierefreiheitsnamen und Einheiten bleiben erhalten.
-- Neuer verbindlicher `MID_COMPACT_SYMBOL_CONTRACT.md` und fokussierte Regressionen fÃ¼r Konfidenz-Randtag, Intervallsemantik und Symbolkompaktheit.
-
-## 0.9.78.69 â€“ 2026-09-05
-
-- CI-Hotfix nach GitHub-Run #903: veraltete Mehrparameter-Erwartung entfernt, die schwache Datenbasis fÃ¤lschlich als meteorologische Mittel-Konfidenz erzwang.
-- Verbindlicher Vertrag: KonfidenzfÃ¼llung bewertet meteorologische Ãœbereinstimmung; DatenvollstÃ¤ndigkeit/Frische bleibt separat im QualitÃ¤tsring.
-- Fehlender einzelner Kernparameter, unbekannte Lauf-Frische oder reduzierte Member-Abdeckung dÃ¼rfen bei sonst stark Ã¼bereinstimmenden Kernsignalen `hoch` bleiben; weniger als zwei Kernparameter bleiben fail-closed nicht bewertbar.
-- Neue Regression schÃ¼tzt die Trennung von meteorologischer Konfidenz und DatenqualitÃ¤t.
-
-## 0.9.78.68
-
-- CI-Hotfix: sieben nach der 14d-Konfidenzmodernisierung veraltete Regressionserwartungen an die aktuellen, verbindlichen UI-/DatenqualitÃ¤ts-/iOS-Touch-VertrÃ¤ge angepasst; keine Produktionslogik zurÃ¼ckgebaut.
-- TypeScript-7-Regressionshygiene: `test-ensemble-multiparameter-097865.mjs` verwendet ausschlieÃŸlich `typescript-strada` und enthÃ¤lt keinen Root-TypeScript-Strada-Fallback mehr.
-- Release-HÃ¤rtung: Der kanonische Professional-ZIP-Packer fÃ¼hrt ab jetzt zwingend einen vollstÃ¤ndigen lokalen Preflight aus (TS7 + Vite, Worker-Syntax, alle Regressionen, Version, Baseline, Lineage, Uploadbudget) und prÃ¼ft anschlieÃŸend die ZIP-IntegritÃ¤t.
-
-## 0.9.78.67 â€“ 2026-09-05
-- 14-Tage-Vorhersagekonfidenz robust statt â€žschwÃ¤chster Parameter gewinntâ€œ: Niederschlag 32 %, Temperatur 28 %, Wind/BÃ¶en 28 %, Sonne 12 %.
-- DatenqualitÃ¤t (`gut/eingeschrÃ¤nkt/schwach/nicht ausreichend`) von meteorologischer Konfidenz getrennt; parameterbezogene erwartete Ensemblefamilien verhindern kÃ¼nstliche AusfÃ¤lle.
-- 50:50-Niederschlagsereignis wird als offener Ausgang, nicht als schlechte Prognose gewertet.
-- P10â€“P90-Spread wird vorlaufabhÃ¤ngig normalisiert; Langfrist-Caps verhindern unrealistisch hohe Sicherheit in Woche 2.
-- Lokale MID-Verifikation kann bis 96 h mit stark geschrumpften Fehler-/Brier-Korrekturen einflieÃŸen; keine Extrapolation in den Langfristbereich.
-- Cockpit und EnsemblePanel nutzen denselben zentralen Konfidenzpfad; DatenqualitÃ¤t wird separat am Konfidenzindikator visualisiert.
-- Veraltete 14d-/Bootstrap-RegressionsvertrÃ¤ge auf die neue Kalibrierungs- und DatenqualitÃ¤tsarchitektur aktualisiert.
-
-## 0.9.78.66
-
-- 14d-Wetter-Kurzaussagen bleiben appweit in den Ãœbersichtskacheln einzeilig; historische Responsive-Regeln mit erzwungenem Umbruch werden final Ã¼bersteuert.
-- Favoriten-Schnellleiste auf Touch-GerÃ¤ten gehÃ¤rtet: normaler Tap nutzt wieder den nativen Button-Pfad, Drag startet erst nach 8 px Bewegung.
-- Antippen des Sortiergriffs wÃ¤hlt den Favoriten ebenfalls aus; Klicks werden nur nach einem echten Drag unterdrÃ¼ckt.
-- Sortiergriff wieder als regulÃ¤res Grid-Element statt absoluter Touch-Ãœberlagerung; horizontales Scrollen bleibt unverÃ¤ndert erhalten.
-
-## 0.9.78.65
-
-- Gemeinsame Vierparameter-Bewertung in klassischer 14d-Ansicht und Cockpit statt Temperaturindex und 72-Punkte-Grenze.
-- Native Parameterabdeckung, vollstÃ¤ndige lokale Tage und Laufalter verhindern hohe Einstufung bei DatenlÃ¼cken oder veralteten LÃ¤ufen.
-- Kalendergenaue gemeinsame und parameterspezifische ZeitrÃ¤ume, spÃ¤tere Fenster und begrenzende Bereiche sichtbar.
-- Qualitative, textlich erklÃ¤rte Details; keine unkalibrierte Genauigkeits-Prozentzahl.
-- Ensemblecache v17, Verhaltenstests und wissenschaftliche Methodendokumentation ergÃ¤nzt.
-
-## 0.9.78.64
-
-- 14d-Anzeige wissenschaftlich eingegrenzt: unkalibrierter Temperatur-Konsistenzindex statt behaupteter Prognosesicherheit in Prozent; kompakte und ausfÃ¼hrliche Streuungsberechnung vereinheitlicht.
-- Plausible Ensemble-MinderheitslÃ¶sungen werden nicht mehr durch Median-/IQR-Beschneidung aus den UnsicherheitsbÃ¤ndern entfernt; Ensemblecache erneuert.
-- Fehlende Saison-, Warn-, Skybar- und LÃ¼ftungsdaten bleiben unbekannt; erhÃ¶htes COâ‚‚ priorisiert das frÃ¼heste geeignete Fenster.
-- Eventfenster Ã¼ber Mitternacht und Ortszeitzonen korrigiert; kein Stundenmittel als Ersatz fÃ¼r Ereigniswahrscheinlichkeit, vollstÃ¤ndige Member-Intervallabdeckung erforderlich.
-- Radar-ETA auf Beobachtung +120 min begrenzt; fehlende Bewegungskonfidenz und unbekannte KONRAD-Zeitstempel gesperrt; Szenarioanteile korrekt beschriftet.
-- Flugprofile unterscheiden GelÃ¤nde-AGL, ISA-DruckflÃ¤chen und geometrische MSL-Schichtgrenzen; keine Randwertextrapolation oder Entwarnung bei unvollstÃ¤ndiger Datengrundlage.
-- Klimatische NasshÃ¤ufigkeit nutzt die gÃ¼ltige Niederschlagsstichprobe; betroffene Cachegenerationen erneuert.
-- Neue wissenschaftliche Verhaltenstests und Dokumentation: MID_IMPLEMENTATION_0.9.78.64.md.
-
-## 0.9.78.63
-- Skybar-Sonnenklassifikation korrigiert: Gelb beginnt tagsÃ¼ber erst oberhalb 50 % relativer Sonnenscheindauer und nutzt bis 100 % vier symmetrische Dickenstufen.
-- Graues BewÃ¶lkungsband bleibt ab 50 % GesamtbewÃ¶lkung bis 100 % vierstufig; Gelb und Grau sind als Grundband strikt gegenseitig exklusiv.
-- Direkte Sonnenscheindauer ist primÃ¤r; GesamtbewÃ¶lkung dient nur bei fehlender Sonnenscheindauer als komplementÃ¤rer Sonnenfallback.
-- Alte `max(Sonnenschein, Aufklarung)`-Logik entfernt, die geringe BewÃ¶lkung systematisch zu einem zu dicken gelben Band machen konnte.
-- 3-h-/aggregierte Skybar-Werte werden an der realen IntervalllÃ¤nge normalisiert; dadurch kein kÃ¼nstliches Hochskalieren aufsummierter Sonnenscheindauer.
-
-## 0.9.78.62
-- GitHub-Installer #896 repariert: TypeScript 7 und Vite-Produktionsbuild waren bereits erfolgreich; nur 1 von 680 Regressionen war veraltet.
-- Niederschlagsformen-/Schneemengenregression auf den verbindlichen zentralen `compactSevenDayConditionLabel`-Pfad migriert.
-- Kompakte 7-Tage-Einzeiler und phasentreue Labels fÃ¼r Regen, Schauer, Schnee und Schneeregen bleiben unverÃ¤ndert erhalten.
-- Keine fachliche Produktions- oder Worker-Ã„nderung.
-
-## 0.9.78.61
-- Luftdruck-Y-Achsen im 24-h-Wetterprofil und Tagesdetail auf ganzzahlige, gleichmÃ¤ÃŸig verteilte hPa-Ticks umgestellt.
-- Gemeinsame adaptive 2/4/5/10-hPa-Achsenschritte mit sauberer Randreserve eingefÃ¼hrt.
-- 7-Tage-Kurzpillen-Vertrag beibehalten und bestehende Altregressionen darauf synchronisiert.
-
-# 0.9.78.60 â€” 2026-09-04
-
-- Sektion **Kompositbild** als moderne, kartenorientierte Ãœbersicht mit den klar getrennten Modi Radar, Satellit und Synoptik neu geordnet.
-- Zeitachse zeigt ausschlieÃŸlich tatsÃ¤chlich verfÃ¼gbare ProduktstÃ¤nde im festen Bereich âˆ’1 bis +2 Stunden; Beobachtung, Nowcast und Modellprognose sind eindeutig getrennt.
-- UnzuverlÃ¤ssigen pauschalen Zeitpfeil durch echogebundene Zugspuren ersetzt: Eine ETA entsteht nur bei realem Radaranker auf Standortkurs und ausreichender BewegungsqualitÃ¤t; Unsicherheitskorridor, +15- bis +120-Minuten-Knoten und Wachstumstrend werden sichtbar.
-- Radar- und Satellitenwechsel mit stabilem Vordergrundbild, Hintergrund-Vorladen, begrenztem Framecache und Fehlerquorum gegen leere/flackernde Vorschauen gehÃ¤rtet.
-- Untimed Satellit, 250-m-Radar, Warnkarte, Blitze und KONRAD3D/NowCastMIX werden nicht mehr in fachlich unzulÃ¤ssige Vergangenheits- oder ZukunftsstÃ¤nde kopiert.
-- Schnellwahl, verstÃ¤ndliche Overlay-Bezeichnungen, kompakte Facheinstellungen, Datenstatus, Live-RÃ¼ckkehr und Standortzusammenfassung ergÃ¤nzt; mobile Darstellung auf eine klare zweispaltige Bedienung optimiert.
-- Neue Regression `test-composite-temporal-truth-zugspuren-097860.mjs`; alle historischen KompositprÃ¼fungen auf den neuen Zeit- und Zugspurenvertrag migriert.
-
-# 0.9.78.54 â€” 2026-09-04
-
-- GitHub Release #886 repariert: TypeScript-7-/Vite-Produktionsbuild war bereits erfolgreich; ausschlieÃŸlich 7 von 675 historischen Regressionen blockierten anschlieÃŸend den Release.
-- Veraltete Warnungsregressionen an den seit v0.9.78.49â€“.53 verbindlichen probabilistischen Warnvertrag angepasst: entfernte Hilfstexte bleiben entfernt, Windrichtung bleibt inline, probabilistische Zeitfenster bleiben sichtbar.
-- Ensemble-Resume-Test gegen den neuen `warningEnsemble`-Zustand gehÃ¤rtet, ohne den Schutz des letzten erfolgreichen Ensemble-Stands zu lockern.
-- Keine fachliche Produktionslogik geÃ¤ndert; Worker nur versionssynchronisiert.
-
-# 0.9.78.53 â€” 2026-09-04
-
-- Warnrelevante MID-Prognosehinweise erhalten echte kurzfristige EPS-UnterstÃ¼tzung fÃ¼r BÃ¶en, Niederschlag und Temperatur.
-- 12-km-UmfeldprÃ¼fung mit Standort plus vier Nachbarpunkten; rÃ¤umliche Extrema werden pro Ensemblemitglied vor der Quantilbildung gebildet, damit keine Pseudomitglieder entstehen.
-- Bis zu zwei unabhÃ¤ngige Ensemble-Modellfamilien stÃ¼tzen Warnfenster; Modellfamilien derselben `independenceGroup` werden nicht doppelt gewertet.
-- Wind-/Niederschlags-/Schnee-/Hitzehinweise verwenden `bis zu â€¦` statt pseudogenauer Von-bis-Spannen.
-- Amtliche Originalwarntexte bleiben unverÃ¤ndert; sichtbare MID-Knotenangaben bleiben `kt`.
-- Baseline-Verweise fÃ¼r v0.9.78.50â€“53 vervollstÃ¤ndigt.
-
-## 0.9.78.52 - 2026-09-04
-- GitHub-Release #884 repariert: probabilistische Warnfenster verwendeten drei nicht existierende `Hour`-Felder (`precip`, `temp`) bzw. einen falschen Summen-Key und scheiterten deshalb im TypeScript-7-Check.
-- Warnlogik nutzt jetzt kanonisch `precipitation`, `temperature` und `snowfall`; Probabilistik, erweiterte Zeitfenster und der `kt`-Anzeigevertrag bleiben unverÃ¤ndert.
-- Neue Regression `test-warning-probabilistic-hour-fields-buildfix-097852.mjs` schÃ¼tzt Fragment und generiertes Aggregat.
-
-## 0.9.78.51 - 2026-09-04
-
-- Knoten-Anzeigevertrag prÃ¤zisiert: MID-generierte Inhalte verwenden sichtbar ausschlieÃŸlich `kt`; `kn` bleibt nur interner/API-Transportwert.
-- Amtliche Originalwarntexte bleiben wortgetreu und dÃ¼rfen daher weiterhin `kn` enthalten, wenn die Quelle dies so liefert.
-- Die kompakte MID-Zusammenfassung einer amtlichen Windwarnung liest `kn`/`kt`/`Knoten` aus dem Original, beschriftet den Ã¼bernommenen Zahlenwert aber einheitlich als `kt`.
-- Verbindlicher Warnvertrag und Regression `test-wind-kt-display-contract-097851.mjs` ergÃ¤nzt.
-
-## 0.9.78.50 - 2026-09-04
-
-- Warnungsbereich Ã¼berarbeitet: amtliche DWD-Untertitel ziehen Windwerte nun bevorzugt direkt aus den offiziellen DWD-Einheitenangaben (inkl. `kn`/`kt`) statt aus MID-intern rÃ¼ckgerechneten Werten.
-- MID-Prognosehinweise berechnen GÃ¼ltigkeitsfenster jetzt probabilistisch erweitert und kennzeichnen sie als Wahrscheinlichkeitsbereich; dadurch werden enge Einzelstunden-Treffer bei WindbÃ¶en und anderen warnfÃ¤higen Parametern vermieden.
-- Prompt-/Hilfstexte innerhalb und unterhalb der MID-Hinweissektion entfernt, damit nur fachlich relevante Inhalte angezeigt werden.
-
-## 0.9.78.49
-- Warnungen & Hinweise als Hybrid-Zentrum neu geordnet: amtliche Warnungen zuerst, MID-Prognosehinweise danach; Ã¼berlappende Hinweise als MID-ErgÃ¤nzung.
-- Amtliche Warnstufenfarben exklusiv fÃ¼r amtliche Meldungen; MID-Hinweise nutzen Parameterfarben.
-- Kompakte amtliche Windzusammenfassungen folgen der gewÃ¤hlten Windeinheit, Originaltexte bleiben unverÃ¤ndert.
-- Automatische Warninhalte vermeiden trÃ¼gerische Genauigkeit: Wind/Regensummen/Schnee/Temperatur als Bereiche, Nebel/GlÃ¤tte/Gewitter rÃ¤umlich-qualitativ; schauergebundene Gefahren kennzeichnen unsicheren Ortstreffer.
-- Neuer verbindlicher Vertrag `MID_WARNING_HYBRID_CONTRACT.md` und Regression `test-warning-hybrid-uncertainty-097849.mjs`.
-
-## 0.9.78.48
-- Release #881 repariert: 19 veraltete Regressionen nach dem Forward-Slot-Niederschlagsvertrag auf den aktuellen Fachstand migriert.
-- Isolierte `forecastFusion.ts`-Testharnesses kapseln die neue `precipitationIntervals`-AbhÃ¤ngigkeit, statt wegen eines fehlenden Temp-Moduls abzubrechen.
-- Sichtbare Niederschlagszeiten bleiben startgestempelt; Rohakkumulationen bleiben intern endgestempelt.
-- 24-h-, Current/Kurzfrist-, Wasser-, HÃ¶henwetter-, Solar-, Radar- und 7d-Beschriftungsregressionen an die bereits verbindlichen ProduktionsvertrÃ¤ge angepasst.
-- Neue Meta-Regression schÃ¼tzt die Forward-Slot-/Harness-KompatibilitÃ¤t dauerhaft.
-
-## 0.9.78.47
-- GitHub-Release #880 repariert: `src/ShortTermForecast.tsx` enthielt nach der VorwÃ¤rts-Slot-Umstellung noch die ungenutzte Hilfsvariable `targetOffsetMinutes`; TypeScript 7.0.2 blockierte deshalb mit TS6133.
-- Die Ã¼berflÃ¼ssige Variable ist entfernt. Der fachliche v0.9.78.46-Vertrag bleibt unverÃ¤ndert: sichtbarer Niederschlag ist am Beginn des Zukunftsintervalls beschriftet, Rohakkumulationen werden weiterhin korrekt am Intervallende gelesen.
-- Neue Regression `test-shortterm-forward-slot-buildfix-097847.mjs` verhindert sowohl den TS6133-RÃ¼ckfall als auch eine versehentliche RÃ¼ckkehr zur Endstempel-Anzeige.
-
-## 0.9.78.46
-- Sichtbare Niederschlagszeiten auf erwartbare VorwÃ¤rtsslots umgestellt: `08:00` mit Niederschlag bedeutet nun `08:00â€“09:00`; rohe Open-Meteo-/DWD-Akkumulationen bleiben intern weiterhin am Intervallende.
-- Zentraler PrÃ¤sentationsadapter koppelt Niederschlagsmenge, PoP, Phase und niederschlagsbestimmten Wettercode an denselben sichtbaren Slot; Temperatur/Wind/BewÃ¶lkung bleiben punktbezogen.
-- 15-min-/1-h-Ãœbergang, 24-h-Profil, 7d-Kurve/Karten/Skybar, Tag-/Folgenacht-Piktogramme, Widget, Ensemble-Best-Match, Wasser-/Bergsport und Meteogramm auf denselben Zeitvertrag ausgerichtet.
-- Berg-/Wintersport-3-h-Matrix zusÃ¤tzlich korrigiert: Zeitlabel = Slotbeginn; Niederschlag wird aus den normalisierten Einzelstunden summiert, PoP daraus maximiert und das reprÃ¤sentative Piktogramm aus demselben Intervall gewÃ¤hlt.
-- Fehlende Anschlussprobe wird fail-safe nicht als alte Niederschlagsstunde in die Zukunft verschoben; trockene Slots verlieren dabei einen eventuell alten nassen Rohcode.
-- Neue Regression `test-precipitation-forward-slot-presentation-097846.mjs`; veraltete statische 7d-/PoP-Assertions an die PrÃ¤sentationsschicht angepasst.
-
-## 0.9.78.45
-- 7-Tage-Cockpit: sichtbare Wetterbeschreibung stammt jetzt aus demselben `dayWeatherCharacter` wie das Tagespiktogramm statt aus der groben Regimeklasse. Dadurch wird z. B. `Wolkig, oft sonnig` nicht mehr pauschal als `Sonnig` beschriftet.
-- Die kleine Glyphe in der Beschreibungspille verwendet denselben `dayVisual`-Code und dasselbe Wolkenprofil wie das groÃŸe Tagespiktogramm; Regime bleibt nur sekundÃ¤re Farb-/UI-Metadaten.
-- Neuer Regressionstest schÃ¼tzt Text-/Piktogramm-KohÃ¤renz der 7-Tage-Tageskarten.
-
-## 0.9.78.44
-- Release #878 repariert: der Ã¤ltere Event-Lifecycle-Regressionstest erwartete noch das frÃ¼here 550-ms-Splashbudget und blockierte damit die bewusst auf maximal 900 ms erweiterte v0.9.78.43-Startvorladung.
-- Event-Lifecycle-Regression prÃ¼ft nun dauerhaft ein hartes Splashbudget von hÃ¶chstens 900 ms statt einer veralteten exakten Millisekundenzahl.
-- Startup-Vertrag an die aktuelle Architektur angeglichen: leichter Mean/Spread-Ensemble-Bootstrap und benÃ¶tigte UI-Chunks dÃ¼rfen im Splash vorladen; volle Member-/Mehrmodellfusion, Radar und andere schwere SekundÃ¤rdaten bleiben nach dem App-Mount.
-- Keine fachliche Ã„nderung an Wetterdaten, Piktogrammen, Skybar oder Worker-Runtime.
-
-## 0.9.78.43
-- App-Start auf iPhone/PWA vorgezogen: Best-Match-Prognose beginnt unmittelbar nach dem Bootmarker parallel zu Storage-/Persistenz-Restore; Schnellstation, Ensemble-Mean/Spread-Bootstrap und benÃ¶tigte Ensemble-UI-Chunks werden gestaffelt im Splash vorgewÃ¤rmt und anschlieÃŸend von `App.tsx` Ã¼ber dieselben Promises weiterverwendet statt doppelt abgefragt.
-- Das Splash-Wartebudget bleibt hart auf 900 ms nach den lokalen Restore-Schritten begrenzt; volle Ensemble-Memberfusion, Radar-, Warn- und weitere SekundÃ¤rabrufe werden bewusst nicht zusÃ¤tzlich in den Splash gezogen. Der globale Open-Meteo-Guard bleibt auf maximal zwei aktive Abrufe mit Startabstand begrenzt.
-- Wetterpiktogramme appweit konsolidiert: neuer zentraler `periodWeatherVisual`-Vertrag koppelt Tagespiktogramme an `dayWeatherCharacter`; kurze Einzelstunden dÃ¼rfen zusammengefasste Nacht-/Periodenpiktogramme nicht mehr allein dominieren.
-- 7-Tage-Karten mit zwei Symbolen trennen nun verbindlich Tagescharakter und tatsÃ¤chlich folgende Nacht: groÃŸes Tagespiktogramm folgt Tageslicht-/Sonnenschein-/Niederschlagscharakter, kleines Nachtpiktogramm aggregiert ausschlieÃŸlich die Folgenacht nach Dauer, Wahrscheinlichkeit, Menge, Nebel und mittlerer BewÃ¶lkung.
-- Derselbe Periodenvertrag wird in klassischer 7-Tage-Ansicht, Cockpit-7d, Tagesdetail und Widget-Vorschau verwendet; lokale konkurrierende Perioden-Icon-Selektoren wurden entfernt. Weather Icon System 2.0 bleibt der einzige Renderer.
-
-## 0.9.78.42
-- CI-Hotfix fÃ¼r Release-Run #876: TypeScript 7, Vite-Produktionsbuild und 663 von 664 weiteren Regressionen waren bereits grÃ¼n; ausschlieÃŸlich der appweite Parameterfarbtest erwartete nach der zentralisierten Phasenpalette noch den alten Inline-String im ForecastCockpit.
-- `test-appwide-parameter-colors-09779.mjs` prÃ¼ft nun den aktiven gemeinsamen Vertrag: flÃ¼ssiger Niederschlag nutzt weiterhin `--param-precipitation`, Schnee hellblau, Misch-/gefrierende Phase violett und Gewitter/Hagel purpur; ForecastCockpit und Skybar greifen auf dieselbe zentrale Palette zu.
-- Keine meteorologische Fachlogik verÃ¤ndert. Die phasenabhÃ¤ngigen Skybar-/Cockpitfarben, 24-h-Tageskarten-Skybar, Ensemble-HÃ¤rtung und die erweiterte 7d-NachtflÃ¤che bleiben unverÃ¤ndert.
-
-## 0.9.78.41
-- CI-Buildfix fÃ¼r GitHub Release-Run #875: den nach der phasenabhÃ¤ngigen Skybar-Umstellung ungenutzten `sunshineShare`-Parameter aus `precipitationOverlayVisual` entfernt; dadurch wird TypeScript 7 `TS6133` beseitigt.
-- PhasenabhÃ¤ngige Niederschlagsfarben, vier Skybar-Dickenstufen, v0.9.78.40-NachtflÃ¤chen und Installer-HÃ¤rtung bleiben unverÃ¤ndert.
-- Neue Regression schÃ¼tzt den Buildfix.
-
-## 0.9.78.40
-- GitHub-Release-Installer gegen flÃ¼chtige frÃ¼he CI-AbbrÃ¼che gehÃ¤rtet: `npm ci` und das Produktions-Dependency-Audit werden jetzt bis zu drei Mal mit Bereinigung bzw. kurzer Backoff-Pause wiederholt, bevor der Lauf hart fehlschlÃ¤gt.
-- 7-Tage-KurvenÃ¼bersicht: der Nachtgraubereich spannt jetzt bewusst von oberhalb der Skybar bis unter die Niederschlagsbasis, damit Nachtstunden auch hinter Wetterstreifen und Niederschlagsbalken zusammenhÃ¤ngend sichtbar bleiben.
-- Parallel-Chat-Stand erneut gegengeprÃ¼ft: die phasenabhÃ¤ngigen Skybar-Niederschlagsfarben sowie die bereits vereinigten Sicherheits-/Ensemble-/Sonnen-Fixes bleiben unverÃ¤ndert erhalten.
-- Neue Regressionen schÃ¼tzen sowohl die Installer-Retries als auch die erweiterte NachtflÃ¤chen-Geometrie.
-
-## 0.9.78.39
-- Parallel-Chat-v0.9.78.34 vollstÃ¤ndig mit dem neueren v0.9.78.38-Hauptstand vereinigt: CodeQL #81â€“#90, flÃ¼chtiger Netatmo-OAuth-Handoff, sichere zufÃ¤llige Worker-Deploy-Tempdateien sowie die zugehÃ¶rigen Schutztests bleiben erhalten.
-- Neuere Ensemble-/Skybar-/Sonnen-Fixes v0.9.78.35â€“.38 bleiben gleichzeitig vollstÃ¤ndig bestehen.
-- Skybar-Niederschlag nach Art/Phase eingefÃ¤rbt: Regen/Schauer blau, Schnee hellblau, Misch-/gefrierende Phase violett, Gewitter/Hagel purpur; gemeinsame Palette mit dem Forecast-Cockpit.
-- Skybar-Legende auf phasenabhÃ¤ngige Niederschlagsfarben umgestellt.
-
-## 0.9.78.38
-- Skybar verbindlich auf Gelb/Grau/Blau umgestellt: Sonnenschein gelb, BewÃ¶lkung einheitlich grau, Niederschlag unabhÃ¤ngig von der Phase blau; keine Grauton- oder Opacity-Abstufung mehr.
-- 50-%-Schwelle prÃ¤zisiert: ab 50 % GesamtbewÃ¶lkung vier Graudicken von 50â€“100 %, darunter tagsÃ¼ber vier Sonnendicken aus relativer Sonnenscheindauer bzw. Aufklarung.
-- Vier Dickenstufen leicht verstÃ¤rkt auf 2,4 / 3,3 / 4,2 / 5,1 SVG-Einheiten; mobile Tageskarten-Skybar bleibt auch unter 480 px 16 px hoch.
-- Legende auf drei eindeutige EintrÃ¤ge â€žSonnenschein Â· gelbâ€œ, â€žBewÃ¶lkung Â· grauâ€œ, â€žNiederschlag Â· blauâ€œ sowie den 50-%-Vertrag umgestellt.
-- Einheitliche Farbe/Opacity beseitigt kÃ¼nstliche Unterbrechungen bei gleich dicken aufeinanderfolgenden BewÃ¶lkungs- bzw. Niederschlagssegmenten.
-
-## 0.9.78.37
-- Vollensemble startet 2 s nach dem sichtbaren Mean/Spread-Bootstrap; lange unabhÃ¤ngige Modellfamilien werden zuerst geladen.
-- Vollfusion auf sechs erfolgreiche Modellrouten bei maximal zwei parallelen Open-Meteo-Requests begrenzt; 20-s-Modellbudget und fehlerabhÃ¤ngige Variablenfallbacks reduzieren Blockade- und Request-Risiko.
-- Finaler Ensemblecache auf 60 min verlÃ¤ngert, um identische Neuabrufe zwischen Modellupdates zu vermeiden.
-- Relative 14-Tage-Sonne zeichnet immer alle acht Strahlen und skaliert die StrichstÃ¤rke sauber bei 12â€“14 px.
-- Release-Run #872: fÃ¼nf veraltete PoP-Stringregressionen mit dem 24-h-Skybar-Vertrag wieder kompatibel gemacht.
-
-## 0.9.78.36
-- Ensemble-Erststart auf iOS auf einen seriellen Mean/Spread-first-Pfad umgestellt: zunÃ¤chst eine echte Ensemblefamilie sichtbar, anschlieÃŸend automatische Vollfusion statt parallelem GroÃŸabruf.
-- Bootstrap auf einen gleichzeitigen Modellabruf begrenzt; Memberdaten dienen nur als Fallback, wenn Mean/Spread nicht verfÃ¼gbar ist.
-- Einzelmodell-Bootstrap wird in der Konsistenz bewusst schwÃ¤cher bewertet; finaler Mehrmodellvertrag bleibt unverÃ¤ndert.
-- Versionssynchronisierung hÃ¤lt `MID_BASELINE.json.releaseVersion` und das Legacy-Feld `version` gemeinsam aktuell.
-
-## v0.9.78.28
-
-- Wartungsbereinigung ohne Funktionsabbau: zwei veraltete TypeScript-5.8-Buildartefakte und generierte PrÃ¼fartefakte dauerhaft aus Professional-Releases ausgeschlossen; 33 innerhalb ihrer Quellmodule exakt doppelte CSS-Regeln konsolidiert.
-- â€žAktuellâ€œ-Ansicht rechenÃ¤rmer: der Minutentimer nutzt nur noch das gecachte Sonnenfenster; die vollstÃ¤ndige Sonnen-/Mond-/FinsternisÃ¼bersicht wird hÃ¶chstens stÃ¼ndlich neu berechnet.
-- iPhone-Handling verbessert: 1-h-/3-h-Schalter des 24-h-Wetterprofils erhalten im Grobzeigermodus dieselbe verlÃ¤ssliche 36-px-TrefferhÃ¶he wie benachbarte Kompaktsteuerungen.
-- MapLibre GL JS 6.7.0 und Capacitor Core/iOS/CLI 8.5.1 nach kompatiblem Wartungslauf Ã¼bernommen; React 18, Recharts 3, Vite 6 und TypeScript 7 bleiben unverÃ¤ndert.
-- Bewusst dormant gehaltene Altmodule bleiben vollstÃ¤ndig als reaktivierbare Referenz erhalten; keine fachliche WorkerÃ¤nderung und kein Worker-Upload erforderlich.
-
-## v0.9.78.21
-
-- CI-Hotfix fÃ¼r GitHub Release-Run #858: TypeScript 7, Vite-Produktionsbuild und 649 von 650 Regressionen waren bereits grÃ¼n; ausschlieÃŸlich `test-seven-day-ecmwf-hourly-09781.mjs` erwartete noch die frÃ¼here Nachtdeckkraft `0.18`.
-- Regression auf den verbindlichen v0.9.78.20-Vertrag synchronisiert: zusammenhÃ¤ngende Nachtstunden bleiben mit `fillOpacity={0.07}` nochmals deutlich heller; P25â€“P75-Temperaturband, Skybar-Abstufung und alle Fachberechnungen bleiben unverÃ¤ndert.
-- Keine fachliche App-, Forecast-, RUC- oder Workerlogik geÃ¤ndert; Worker nur versionssynchronisiert.
-
-## v0.9.78.20
-
-- 7-Tage-KurvenÃ¼bersicht: NachtflÃ¤chen nochmals deutlich aufgehellt und zusammenhÃ¤ngend Ã¼ber Mitternacht belassen.
-- Temperaturkurve ergÃ¤nzt um ein hellgraues P25â€“P75-Unsicherheitsband aus den verfÃ¼gbaren Ensemblequartilen der ersten sieben Tage.
-- Skybar fachlich korrigiert: `sunshineDuration` wird entsprechend dem MID-Vertrag als Sekundenwert behandelt und jetzt durch die reale IntervalllÃ¤nge (15 min bzw. 1 h) normiert; dadurch entstehen wieder echte abgestufte Sonnenscheinanteile statt nahezu sofortiger 100-%-SÃ¤ttigung.
-- Niederschlagsdicke wird zeitauflÃ¶sungsneutral aus der auf mm/h normierten IntensitÃ¤t abgeleitet, damit 15-Minuten- und Stundenwerte dieselben vier Dickenstufen fachlich gleich nutzen.
-- Skybar ohne 3D-Unterlage und ohne Ã¼berstehende Round-Cap-Ãœberlappungen: jedes Segment bleibt als abgerundetes Rechteck innerhalb seiner eigenen Zeit-Zelle.
-- Keine fachliche WorkerÃ¤nderung; Worker nur versionssynchronisiert.
-
-## v0.9.78.16
-
-- Weather Icon System 2.0: NiederschlagsintensitÃ¤t fÃ¼r alle Phasen weiter geschÃ¤rft; Regen/SprÃ¼hregen sowie Schnee, Schneegriesel, Eiskristalle, EiskÃ¶rner, Graupel und Hagel nutzen klar unterscheidbare Partikelanzahl/-dichte/-grÃ¶ÃŸe.
-- Sichtbare NiederschlagsintensitÃ¤t wird fÃ¼r Forecastdaten aus der finalen MID-Menge nach Fusion/Plausibilisierung rekalibriert, ohne die Niederschlagsphase umzudeuten.
-- Niederschlagselemente unter der Wolke kontrastreicher und bei kleinen Piktogrammen besser erkennbar.
-- Run #852: sechs veraltete Regressionen auf die aktuellen VertrÃ¤ge migriert; entfernte Prompt-/Supersession-Texte werden nicht wieder verlangt, die neue mehrschichtige Wetterstreifenlogik ersetzt den alten `detailSkyBarSample`-Anker.
-- Release-Installer behandelt ein fachlich bereits identisch installiertes ZIP als erfolgreichen No-op statt als Fehler.
-
-## v0.9.78.12
-
-- CI-Hotfix fÃ¼r GitHub Release-Run #850: TypeScript-7-PrÃ¼fung und Vite-Produktionsbuild waren vollstÃ¤ndig grÃ¼n; ausschlieÃŸlich drei Regressionstests erwarteten nach der v0.9.78.10-Niederschlagsintervallkorrektur bzw. dem v0.9.78.11-TS6133-Hotfix noch supersedierte Quelltextanker.
-- Kurzfrist-Regression auf den trailing-interval-Vertrag migriert: das erste laufende 15-Minuten-Fenster zeigt nur den tatsÃ¤chlich noch zukÃ¼nftigen Anteil ab jetzt (z. B. 7 min), danach folgen volle 15-Minuten-Intervalle.
-- Sonne/Niederschlag-KohÃ¤renztest auf die aktuelle fachliche ErlÃ¤uterung migriert; PoP bleibt Eintrittswahrscheinlichkeit und wird nicht als Regendauer interpretiert.
-- 24-h-Zellgeometrietest schÃ¼tzt nun die aktive intervalgebundene `profileBandGeometry` direkt und verbietet ausdrÃ¼cklich die RÃ¼ckkehr des in v0.9.78.11 entfernten toten `probabilityCellGeometry`-Helpers.
-- Keine fachliche App-, Forecast-, Niederschlags- oder Workerlogik geÃ¤ndert; ausschlieÃŸlich Regressionen an den bereits aktiven Fachvertrag angepasst.
-
-## v0.9.78.11
-
-- CI-Hotfix fÃ¼r GitHub Release-Run #849: unbenutzten Resthelfer `probabilityCellGeometry` aus `ForecastCockpit.tsx` entfernt.
-- Der Fehler war rein typseitig (`TS6133`) und blockierte `verify:types`; die Niederschlags-Intervall-/Nowcast-Fachlogik aus v0.9.78.10 bleibt unverÃ¤ndert erhalten.
-- Neuer Regression-Lock verhindert die erneute EinfÃ¼hrung des unbenutzten Helpers.
-- Keine fachliche WorkerÃ¤nderung; Worker nur versionssynchronisiert.
-
-## v0.9.78.10
-
-- Niederschlags-Intervallsemantik appweit korrigiert: Open-Meteo-/MOSMIX-Akkumulationen werden als rÃ¼ckblickende Intervalle mit Zeitstempel = Intervallende behandelt; Radarfenster sind nicht mehr um den Modellzeitpunkt zentriert.
-- 24-h-Wetterprofil â€žab jetztâ€œ zeigt keine bereits vollstÃ¤ndig vergangene Stundenmenge mehr. Das erste laufende Intervall wird nur mit seinem Zukunftsanteil bilanziert; finalisierte 15-Minuten-/Radarwerte speisen die ersten StundenblÃ¶cke.
-- Niederschlagsbalken und PoP liegen auf ihren realen Intervallgrenzen, wÃ¤hrend Temperatur, Wind und Druck punktbezogen bleiben.
-- Radar-NWP-Blend gehÃ¤rtet: trockene Standort-Radarstrecken dÃ¤mpfen auch Modellmengen >1 mm; Echo nur im Umfeld darf die PoP stÃ¼tzen, aber keine ungestÃ¼tzte Standortmenge unverÃ¤ndert durchreichen.
-- Kurzfrist-Fallback und hyperlokale Niederschlagsassimilation verwenden das Akkumulationsintervall, das den Ziel-/Beobachtungszeitpunkt enthÃ¤lt.
-- Resttages-Niederschlag zÃ¤hlt nur zukÃ¼nftige Intervallanteile; Tmin/Tmax bleiben unverÃ¤ndert.
-- Neuer verbindlicher Vertrag `MID_PRECIPITATION_INTERVAL_CONTRACT.md` und Regression `test-precipitation-trailing-interval-nowcast-097810.mjs`.
-- Keine fachliche WorkerÃ¤nderung.
-
-## v0.9.78.9
-
-- Weather Icon System 2.0 visuell appweit verriegelt: H/M/L-Wolkendiagnostik darf die Hauptglyphe nicht mehr in wellige Cirrus-/Altostratusformen umformen; Bedeckt, Niederschlag, Schauer, Gewitter und Nebel folgen nun unabhÃ¤ngig davon der freigegebenen Symbolfamilie.
-- Appweite Wetterzustands-Pfade fÃ¼r Aktuell, Kurzfrist, 7/14 Tage, Ensemble, Event, Reise, Route, Wasser und Widget bleiben auf `WeatherPictogram`; Radar-/Komposit-Schalter und Forecast-Parametericons wurden von Wetter-Emoji-Darstellungen auf Vektor-/Lucide-Symbole bereinigt.
-- 14-Tage-Desktopdarstellung ab 1025 CSS-px mit 224-px-Karten, horizontalem Scrollband, lesbarer Typografie und klar getrennten Wetter-/Temperatur-/Niederschlags-/Sonnenschein-/Windbereichen. Das 7Ã—2-Mikrolayout bleibt auf Mobil-/Tablet-Querformat bis 1024 px beschrÃ¤nkt.
-- Keine fachliche WorkerÃ¤nderung.
-
-## v0.9.78.8
-
-- GitHub-Regression `test-location-thunder-water-tide-layout-09644.mjs` auf den aktuellen Nachfolgevertrag migriert: die separate Kachel â€žGewitterrisikoâ€œ bleibt entfernt; relevante Gewitterinformationen werden kompakt in der Niederschlagskachel gefÃ¼hrt, wÃ¤hrend Aktuell und Wassersport weiterhin dieselbe kanonische 6-h-Ortsanalyse verwenden.
-- 14-Tage-Desktopdarstellung repariert: der extrem verdichtete 7Ã—2-Querformatmodus greift nur noch bis 1024 CSS-Pixel. Desktopbreiten erhalten wieder mindestens 190 px breite, horizontal scrollbar angeordnete Tageskarten.
-- 14-Tage-Kartenkopf und Parameterzeilen kollisionsfrei neu gegliedert; keine Mikroschrift bzw. Ã¼bereinanderliegenden Tmin/Tmax-, Wind- oder Konsistenzwerte mehr auf Desktop.
-- Keine fachliche WorkerÃ¤nderung.
-
-## v0.9.78.5
-
-- GitHub-Installer-Run #843 gezielt korrigiert: Produktionsbuild, TypeScript 7, Vite und 645 von 646 Regressionen waren bereits grÃ¼n; ausschlieÃŸlich `test-tmin-tmax-number-tone-097717.mjs` erwartete noch die vor v0.9.78.4 gÃ¼ltige stÃ¤rkere Tmin/Tmax-Hintergrund-/RahmenintensitÃ¤t.
-- Regression auf den verbindlichen v0.9.78.4-Vertrag migriert: 7-Tage-ECMWF-Tmin/Tmax behalten den bewusst schwachen 10-%-Hintergrund ohne Min/Max-Zusatzlabel; 14-Tage-Tmin/Tmax reagieren weiterhin nichtlinear auf Klimaabweichungen, jedoch mit der gedÃ¤mpften 5â€“16-%-Hintergrund- und 20â€“46-%-Rahmenskala.
-- `MID_PARAMETER_COLOR_CONTRACT.md` prÃ¤zisiert: im 14-Tage-/Ensemblebereich bleibt die signierte Klimareaktion erhalten, wÃ¤hrend der 7-Tage-Modus ausschlieÃŸlich absolute ECMWF-Farben ohne Klimadelta verwendet.
-- Keine fachliche App-, Forecast-, RUC- oder WorkerlogikÃ¤nderung; Worker nur versionssynchronisiert.
-
-## v0.9.78.4
-
-- 7-Tage-KurvenÃ¼bersicht geometrisch auf die gleiche Tagesbreite wie der Piktogramm-/Tageskopf fixiert: die oberen Tagessegmente verwenden jetzt exakt dieselben linken/rechten PlotrÃ¤nder wie die 00â€“24-h-Tagesabschnitte im Diagramm. Dadurch liegen Tageskopf und Kurventeil pro Kalendertag deckungsgleich Ã¼bereinander.
-- 7-Tage-Tageskarten im Forecast-Cockpit zeigen Tmin/Tmax jetzt kompakter ohne die zusÃ¤tzlichen "Min"/"Max"-Beschriftungen.
-- Klassische 7-Tage-Listenansicht ebenfalls auf die kompakte Tmin/Tmax-Darstellung ohne "Min"/"Max" umgestellt.
-- HintergrundflÃ¤chen der Tmin/Tmax-Badges in 7 und 14 Tagen bewusst abgeschwÃ¤cht, damit Zahlen bei warmen und kalten Extremen besser lesbar bleiben; Farbcharakter und Warnwirkung bleiben erhalten.
-- Keine fachliche WorkerÃ¤nderung; Worker nur versionssynchronisiert.
-
-## v0.9.78.3
-
-- GitHub-Installer-Run #841 gezielt korrigiert: TypeScript 7, Vite-Build, npm-Installation und Dependency-Audit waren bereits grÃ¼n; ausschlieÃŸlich zwei veraltete Regressionen blockierten den Release.
-- `test-cockpit-hourly-climate-redundancy-09140.mjs` auf den verbindlichen v0.9.78.1-Nachfolgevertrag migriert: 7 Tage nutzen absolute ECMWF-Temperaturfarben ohne Klima-Delta, stÃ¼ndliche Temperaturen bleiben neutral, 14 Tage behalten signierte Tmin/Tmax-Klimadeltas.
-- `test-ruc-pages-free-storage-09700.mjs` verlangt wÃ¤hrend des ZIP-Installers keine unzulÃ¤ssige Bytegleichheit mehr zwischen aktiver `.github/workflows/install-mid.yml` und der neu installierten kanonischen Kopie. Stattdessen wird der sichere Mindestvertrag der aktiven Pipeline geprÃ¼ft; der bewusste `.github`-Self-Modification-Schutz bleibt damit erhalten.
-- Keine fachliche App-, Forecast-, Wetterpiktogramm-, RUC- oder WorkerlogikÃ¤nderung.
-
-## v0.9.78.2
-
-- Installer-Hotfix fÃ¼r GitHub Release-Run #840: die im Release mitgefÃ¼hrte Spiegeldatei `workflow-patches/install-mid.yml` ist wieder bytegleich zur kanonischen Pipeline unter `ci/github/workflows/install-mid.yml`.
-- Damit sind Race-Schutz auf `main`, Ausschluss der automatischen `.github`-Selbstmodifikation, serieller `mid-pages`-Lock ohne Cancellation sowie der gestufte Worker-/Pages-/Stable-Promote-Vertrag wieder konsistent regressionsgeschÃ¼tzt.
-- Keine fachliche App-, Forecast- oder WorkerlogikÃ¤nderung; der Fix betrifft ausschlieÃŸlich die mit dem Release transportierte Installer-Spiegeldatei und die Versionsfortschreibung auf v0.9.78.2.
-
-## v0.9.78.1
-
-- Weather Icon System 2.0 als echter appweiter Screenshot-3-Lock: Wetterglyphen standardmÃ¤ÃŸig standalone ohne eingebettete Sky-Plate; zusÃ¤tzliche CSS-Sperre verhindert die RÃ¼ckkehr alter quadratischer Piktogrammplatten.
-- Tagespiktogramme in klassischer 7-Tage-Ansicht und Forecast Cockpit verwenden die kanonisch korrigierte Niederschlagsphase; Regenschauer, Regen, Schnee usw. kÃ¶nnen nicht mehr durch einen rohen cloud-only Stunden-Code dasselbe Symbol wie trockene Bedingungen erhalten.
-- 7-Tage-KurvenÃ¼bersicht auf reale Stundenwerte umgestellt: gemeinsame 00/12-Zeitachse fÃ¼r Temperatur und Niederschlag, stÃ¼ndliche Niederschlagsbalken, horizontale Temperaturhilfslinien und geglÃ¤ttete Stundenkurve.
-- 7-Tage-Temperaturen nutzen eine zentral interpolierte ECMWF-inspirierte Absoluttemperaturskala in Kurve, Tmin/Tmax und Rangebar; Klimaabweichungen/Â±K sind im 7-Tage-Modus entfernt. 14-Tage-Klimaanomalien bleiben bestehen.
-- Piktogramm-, Farb- und Source-of-Truth-VertrÃ¤ge sowie Regressionen auf v0.9.78.1 erweitert. Keine fachliche WorkerÃ¤nderung.
-
-## v0.9.78.0
-
-- Verbindlicher appweiter Wetterpiktogramm-Standard 2.0: ein zentraler skalierbarer SVG-Renderer fÃ¼r Forecast-, Tages-, Stunden-, Event-, Reise-, Wasser-, Berg-, Routen-, Ensemble- und kompakte Widgetdarstellungen.
-- Tag/Nacht und Hell/Dunkel zentralisiert; keine getrennten Rasterassets.
-- Niederschlagsarten und -stÃ¤rken nach WMO-/synoptischer Present-Weather-Logik erweitert: u. a. SprÃ¼hregen, gefrierender SprÃ¼hregen/Regen, Regen/Schauer, Schnee, Schneegriesel, Schneeschauer, Schneeregen, Eiskristalle, EiskÃ¶rner, Graupel, Hagel sowie Gewitter-/Hagelvarianten.
-- Leicht/mÃ¤ÃŸig/stark wird Ã¼ber Dichte, Anzahl, GrÃ¶ÃŸe und Strichgewicht unterscheidbar, nicht nur Ã¼ber Farbe.
-- SYNOP-/BUFR-/METAR-BrÃ¼cke fÃ¼r dekodierte Present-Weather-KÃ¼rzel ergÃ¤nzt; alter Forecast-Emoji-Hilfspfad entfernt.
-- Keine fachliche WorkerÃ¤nderung; Worker nur versionssynchronisiert.
-
-## v0.9.77.29
-
-- Witterungstrend Tag 15â€“46 gegen hÃ¤ngende ERA5-Klimatologie entkoppelt: EC46/GEFS erhalten feste Quellbudgets, Klima ein separates Kurzbudget; vorhandene Modellwerte werden nicht mehr dauerhaft hinter â€žwird geladen â€¦â€œ versteckt.
-- Stale-Witterungsfallback auf 36 h erweitert.
-- Langfristvertrag erweitert: numerische Ensemble-Mittel und geeignete deterministische LÃ¤ufe dÃ¼rfen wie EPS-Systeme beitragen; weiterhin exakt eine Stimme je unabhÃ¤ngiger Modelllinie. DWD Subseasonal EPISODES zÃ¤hlt als regionaler ECMWF-Downscaling-/QualitÃ¤tsanker, nicht als zweite EC46-Stimme.
-- Neue responsive 7-Tage-KurvenÃ¼bersicht direkt oberhalb der Tageskarten: Wetterpiktogramme, Tmin/Tmax, geglÃ¤tteter Temperaturverlauf, Niederschlagsbalken und direkte Tagesauswahl.
-- Keine fachliche WorkerÃ¤nderung gegenÃ¼ber v0.9.77.28; Worker nur versionssynchronisiert.
-
-## v0.9.77.26
-
-- Hotfix Langfristtrend: Saison-Rauchfahnen bleiben bereits bei einer numerisch verfÃ¼gbaren Modellfamilie sichtbar; der reine Single-Model-Hinweiskasten ersetzt die Grafik nicht mehr.
-- Bei einer Quelle zeigt MID deren echte Temperatur-/Niederschlags-Ensemble-Streuung; ab zwei Quellen wird automatisch wieder das gleichgewichtete Poor-Manâ€™s-Ensemble plus gemeinsamer Einzelmodellvergleich verwendet.
-- Fehlerursache war ausschlieÃŸlich die Frontend-Gate-Logik aus v0.9.77.25; saisonale Workerquellen und Multi-Modell-Vertrag bleiben unverÃ¤ndert.
-- Keine fachliche WorkerÃ¤nderung; Worker nur versionssynchronisiert.
-
-## v0.9.77.25
-
-- Witterungstrend Tag 15â€“46 bestÃ¤tigt und regressionsgeschÃ¼tzt: Temperatur ist Standard, die letzte gÃ¼ltige Parameterauswahl wird dauerhaft gespeichert.
-- Season auf ein transparentes Poor-Manâ€™s-Ensemble umgestellt: alle tatsÃ¤chlich numerisch verfÃ¼gbaren unabhÃ¤ngigen Modellfamilien erhalten je eine Stimme; alle Einzelmodelle werden zusÃ¤tzlich gemeinsam in einer skalierenden Grafik gezeigt.
-- Nicht-numerische Katalog-/Status-/ZusatzmodellkÃ¤sten und der redundante Einzelmodell-Kartenstreifen aus der Season-Hauptansicht entfernt.
-- Tmin/Tmax in 7-/14-Tage wieder als kleine blaue/rote KÃ¤stchen; nichtlineare Klimamittelreaktion macht bereits kleine Abweichungen deutlich sichtbar.
-- Keine fachliche WorkerÃ¤nderung; Worker nur versionssynchronisiert.
-
-## v0.9.77.24
-
-- KNMI-HARMONIE-EPS Abschnitt 4/4 kostenneutral bis zum reproduzierbaren ecCodes-Wasm32/MEMFS/Nearest-Point-Quellprototyp fortgefÃ¼hrt.
-- Direkte In-Memory-GRIB1-ABI Ã¼ber `codes_handle_new_from_message_copy` und native `codes_grib_nearest_find`; kein Vollgittertransfer nach JavaScript.
-- Forschungsbuild pinnt ecCodes 2.48.1, verzichtet auf wasm64/NODEFS, begrenzt Wasm auf 24 MiB initial / 96 MiB maximal und reserviert 2,5 MB gzip als fail-closed Bundlebudget.
-- Keine npm-Wasm-Dependency, keine Queue, kein neues Cloudflare-Binding, kein Paid-Plan und keine fachliche WorkerÃ¤nderung. Reale P4a-Build-/CPU-/RAM-/Numerikverifikation bleibt offen.
-
-## v0.9.77.23
-
-- 24-h-Wertepillen am aktiven Auswahlcursor leicht transparent (`fill-opacity: .8`), damit darunterliegende Diagramminhalte sichtbar bleiben.
-- GesamtbewÃ¶lkungs-Grauzellenzeile im 24-h-Profil durch exakt dieselbe Sonne-/GesamtbewÃ¶lkungs-Leiste wie in der Tagesansicht ersetzt.
-- `detailSkyBarSegments` in `src/detailSkyBar.ts` zentralisiert; Tagesansicht und 24-h-Profil teilen Farben, vier StÃ¤rken sowie Tag-/Nacht-Semantik.
-- H/M/L-WolkenintensitÃ¤tsbÃ¤nder und gemeinsame `profileXForEpoch`-Zeitachse bleiben erhalten.
-- Keine Worker-/Forecast-/KNMI-FachlogikÃ¤nderung.
-- Abschnitt 4/4 bleibt fail-closed, erhÃ¤lt aber einen geprÃ¼ften kostenfreien Forschungspfad: fokussierter ecCodes-Wasm32/MEMFS/Nearest-Point-Prototyp und optional asynchroner Cloudflare-Queues-Free-Consumer; in diesem Release werden weder Wasm-Dependency noch Queue/Ressource aktiviert.
-
-## v0.9.77.22
-
-- Dritter der vier verbleibenden KNMI-HARMONIE-EPS-Hauptabschnitte: externer GRIB1-Punktdecoder unter `tools/knmi_eps_decoder/`, strikt an das Worker-Rolling-Manifest und HTTP-206-Ranges gebunden.
-- P4a-Rolling-Regen wird batchweise am ersten gemeinsamen Zeitpunkt baselined und in stÃ¼ndliche Mengen differenziert; Signed-URLs bleiben aus Logs und persistenten Caches heraus.
-- KNMI-P4a-Europe-Metadaten auf 5,5 km und stÃ¼ndliche Aktualisierung korrigiert; hÃ¶her aufgelÃ¶ste 2â€“2,5-km-HARMONIE-DomÃ¤nen bleiben davon getrennt.
-- Kein Hosting/Cloudflare-Dienst/Workflow aktiviert; reale End-to-End-Aktivierung bleibt Abschnitt 4/4 und unterliegt der Kostenfreigabe.
-
-## v0.9.77.21
-
-- Installer #830 korrigiert: `test-api-contract-health-resilience-09778.mjs` erwartet nicht lÃ¤nger den alten generischen Namen â€žHourly Min/Max Aggregationâ€œ, sondern den seit v0.9.77.20 tatsÃ¤chlich geprÃ¼ften Kernvertrag `ECMWF IFS native 3h Min/Max`.
-- Die Regression schÃ¼tzt zusÃ¤tzlich `models=ecmwf_ifs`, `forecast_hours=24` sowie `temperature_2m_min` und `temperature_2m_max`; damit wird der Healthcheck nicht durch bloÃŸes Umbenennen grÃ¼n.
-- Keine fachliche Forecast-/WorkerÃ¤nderung gegenÃ¼ber v0.9.77.20; TemperaturglÃ¤ttung und KNMI-HARMONIE-EPS-Produktivpfad bleiben unverÃ¤ndert.
-
-## v0.9.77.20
-
-- Installer #829 korrigiert: zwei veraltete String-/Einpunkt-Regressionen auf den bereits gÃ¼ltigen zentralen Current-/Radar-Endstufenvertrag migriert; Produktionslogik der v0.9.77.19-TemperaturglÃ¤ttung bleibt erhalten.
-- NÃ¤chtliche Revision / Issue #28: `browserslist` auf den sicherheitskorrigierten 4.28.7-Pfad (plus kompatibles `baseline-browser-mapping`) angehoben; High-Audit GHSA-73wf-gq98-2v4g und GHSA-c83g-rgw3-j3cx beseitigt.
-- Open-Meteo-Min/Max-Healthcheck an den dokumentierten ECMWF-IFS-3-h-Vertrag gebunden statt die nicht allgemein garantierten Best-Match-`hourly_6`-Min/Max zu erzwingen.
-- KNMI-HARMONIE-EPS-/produktiver-Cache-/Workerstand aus v0.9.77.18/19 bleibt vollstÃ¤ndig erhalten.
-
-## v0.9.77.19
-
-- Zweiter der vier verbleibenden Hauptabschnitte: KNMI HARMONIE EPS nutzt den produktiven TAR-Indexcache jetzt im Worker fÃ¼r sechs stÃ¼ndliche 5er-Batches, 30 Rolling-Member, 0â€“54-h-Alignment und exakte Sparse-Range-Manifeste; GRIB-Dekodierung bleibt auÃŸerhalb Cloudflare.
-- Current-Temperatur wird mit dem echten standortlokalen Beobachtungszeitpunkt als weiche 120/180-min-BrÃ¼cke in `displayHours` assimiliert statt einen einzelnen Stundenpunkt zu ersetzen; die sichtbare Delle in 24-h-Profil und Tagesansicht entfÃ¤llt.
-- GitHub Installer #828: veraltete Modularisierungsregression um `worker-src/05-knmi-eps-cache.js` ergÃ¤nzt; TypeScript/Vite waren im fehlgeschlagenen Run bereits erfolgreich.
-- Keine neue Cloudflare-Ressource und kein neuer Workflow; Worker-FachÃ¤nderung erfordert den regulÃ¤ren gestagten Worker-Deploy.
-
-## v0.9.77.17
-
-- Klimatische Tmin/Tmax-Abweichung wird ausschlieÃŸlich Ã¼ber die **Zahlfarbe** sichtbar; Hintergrund und Rahmen der Werte bleiben neutral/transparent.
-- Blaue Tmin- und rote Tmax-Zahlen behalten die signierte KlimasÃ¤ttigung, ohne farbige Pillen/Hinterlegungen zu erzeugen.
-- 7-Tage-Legende und Parameter-Farbvertrag auf â€žZahlfarbe = Abweichung vom jeweiligen Klimamittelâ€œ prÃ¤zisiert.
-- Neuer Regressionstest schÃ¼tzt die reine Zahlfarben-Codierung appweit; keine fachliche Worker-Ã„nderung.
-
-## v0.9.77.16
-
-- 24-h-Wert-Pills im Hell-/Dunkeldesign kontrastfest: definierte Meteogramm-Tooltipfarben statt ungÃ¼ltiger SVG-Hintergrundvariablen.
-- Tmin/Tmax- und aktiver Temperaturmarker im 24-h-Wetterprofil deutlich verkleinert.
-- Redundanten â€žModellstandâ€œ im Header des Witterungstrends entfernt; tatsÃ¤chliche LÃ¤ufe bleiben in den Modell-Pills, Datenabruf/Cache bleibt separat sichtbar.
-- Langfristige Temperatur-/Niederschlags- und Schneelinien-Diagramme skalieren ohne horizontales Scrollen vollstÃ¤ndig auf die verfÃ¼gbare Breite.
-- Keine fachliche Worker-Ã„nderung; manueller Worker-Upload nicht erforderlich.
-
-## v0.9.77.15
-
-- Extremwetter-Popups nennen jetzt die konkrete Gefahr der dargestellten FlÃ¤che (z. B. â€žGewitterâ€œ) statt generisch â€žModellierte GefahrenflÃ¤cheâ€œ.
-- Aktuelle und stÃ¼ndliche Temperaturwerte einschlieÃŸlich â€žNÃ¤chste 90 Minutenâ€œ, Tagesdetail und ausgewÃ¤hltem 24-h-Zeitwert werden neutral in der Theme-Textfarbe dargestellt.
-- Tmin/Tmax in 7-/14-Tage-Ansichten verwenden ausschlieÃŸlich Blau/Rot; die SÃ¤ttigung folgt jetzt der signierten Abweichung vom jeweiligen klimatologischen Tmin/Tmax.
-- Parameter-Farbvertrag und veraltete Regressionen auf die neue, im Anhang definierte Semantik migriert.
-- Keine fachliche Worker-Ã„nderung; manueller Worker-Upload nicht erforderlich.
-
-## v0.9.77.14
-
-- Regionale Modellwahl auf reale/konservative Modell-BBoxen vereinheitlicht: BBox gilt vor LÃ¤nderkennung; grenzÃ¼berschreitende Nutzung innerhalb des Modellgebiets ist erlaubt.
-- MeteoSwiss ICON-CH1/CH2 und GeoSphere AROME Austria kÃ¶nnen damit auch im abgedeckten angrenzenden Mitteleuropa als zusÃ¤tzliche Wetterzwilling-Quellen einflieÃŸen, ohne die nationale Priorisierung zu verdrÃ¤ngen.
-- App-Modellstandfilter fÃ¼r ALADIN CZ, AROME France/HD, KNMI HARMONIE NL, UKV, MET Nordic sowie HRRR/NAM/NBM an die Worker-Gebiete angeglichen.
-- DMI HARMONIE AROME Europe konsistent auf 2 km und 2,5 Tage gestellt; UWC-West-UnabhÃ¤ngigkeitsgruppe bleibt mit KNMI gemeinsam.
-- Neuer Regressionstest schÃ¼tzt Modellgebiete, grenzÃ¼berschreitende Fusion und Doppelgewichtung.
-
-## v0.9.77.13
-
-- Open-Meteo Rapid-Refresh/RUC-Quellenvertrag korrigiert: echter DWD ICON-D2-RUC bleibt ausschlieÃŸlich direkt Ã¼ber die MID-DWD-Pipeline; nicht vorhandene Open-Meteo-RUC-Modellalias-Probes entfernt.
-- Open-Meteo ICON-D2-15-min wird korrekt als 3-stÃ¼ndlich aktualisiertes Regionalmodell behandelt; HRRR-/AROME-15-min-Rapidpfade explizit geschÃ¼tzt.
-- Neuer Regressionstest schÃ¼tzt Best-Match-`minutely_15`, direkte RUC-Frische und die Quellenabgrenzung.
-
-# Changelog
-
-## 0.9.77.12
-
-- Appweiter Parameter-Farbvertrag auch in Tagesdetail/24-h vollstÃ¤ndig durchgesetzt.
-- Warnstufen fÃ¤rben Windpfeile; Tmin/Tmax-TÃ¶ne bleiben Blau/Rot und werden klimatologisch nur in ihrer IntensitÃ¤t gewichtet.
-- 24-h-Auswahlwerte an der blauen Zeitlinie als lesbare Parameter-Pills; stÃ¼ndliche Temperaturpunkte reduziert.
-
-
-## v0.9.77.11 - 2026-09-01
-
-- Trend 14d+: Klimareferenz von einem unvollstÃ¤ndigen ERA5-Land-Gesamtabruf auf ERA5-Seamless 1991â€“2020 umgestellt; fachlicher ERA5-Land/ERA5-Fallback schÃ¼tzt Temperatur sowie Niederschlag, Luftdruck, BewÃ¶lkung und Wind.
-- Appweiter Parameter-Farbvertrag verbindlich eingefÃ¼hrt und 24-h-Wetterprofil sowie 7-Tage-Tagesansichten auf die zentralen `--param-*`-Farben vereinheitlicht.
-- Lokale absolute Temperaturfarbskalen und Klimaabweichungsfarben Ã¼berschreiben tatsÃ¤chliche Tmin/Tmax-/Temperaturwerte in den betroffenen Ansichten nicht mehr.
-
-## v0.9.77.10 - 2026-09-01
-- Install-/Deploy-Run #817: fÃ¼nf TypeScript-Blocker im Berg-/Witterungstrend-Pfad behoben.
-- Witterungstrend zeigt den tatsÃ¤chlichen Open-Meteo-Modellinitialisierungsstand fÃ¼r EC46/GEFS; Datenabruf wird separat ausgewiesen.
-- Kurzfristdiagramm zeigt an der blauen ausgewÃ¤hlten Zeitlinie Werte fÃ¼r Wolken, Temperatur/gefÃ¼hlt/Taupunkt, Niederschlag, Wind/BÃ¶en und Luftdruck in Parameterfarben.
-
-## v0.9.77.8 - 2026-09-01
-- CI-Hotfix nach Installer #815: TypeScript und Vite waren bereits grÃ¼n; 617/618 Regressionen bestanden. `test-extreme-rain-profile-night-097628.mjs` wurde vom veralteten Quelltext-Stringvertrag auf den aktuellen semantischen v0.9.77.8-Vertrag umgestellt: I-Schwelle + tatsÃ¤chliches Modellsignal sowie identifier-unabhÃ¤ngiger RUC-Regenfallback. Produktionslogik unverÃ¤ndert.
-- CI-Hotfix nach Installer #814: ungenutzter `height`-Parameter im Trend-14d+-Chart entfernt; TypeScript-`noUnusedParameters`-Gate wieder erfÃ¼llbar.
-- ProduktivprÃ¼fung nach Issue #27 gehÃ¤rtet: kritische Kern-APIs bleiben fail-closed, regionale MÃ©tÃ©o-France-/JMA-EinzelmodellstÃ¶rungen werden als Provider-Degradation statt als kompletter MID-Ausfall bewertet.
-- JMA-DruckniveauprÃ¼fung auf den expliziten MSM-Profilpfad getrennt; GSM/Seamless werden nicht mehr pauschal an denselben Profilvertrag gekoppelt.
-- Extremwetter I/P-Audit: Schwellenreferenz und tatsÃ¤chliches Modellsignal werden getrennt dargestellt; P1â€“P4 bezeichnet ausdrÃ¼cklich die Wahrscheinlichkeit der jeweiligen I-Stufe.
-- Regen-/Schnee-Rollfenster sind periodengrenzenfest; Werte aus dem vorherigen Zeitraum kÃ¶nnen die nÃ¤chste Periode nicht mehr hochstufen.
-- ICON-D2-RUC-Extremwetterpfad auf Schema v3 erweitert: native 5/15-min-Diagnostik +0â€“6 h, stÃ¼ndlicher Zustandskern +6â€“12 h und +12â€“14 h; keine RUC-Unterstellung ab +14 h.
-- Subthreshold-RUC-Werte erzeugen keine hÃ¶here I-Stufe mehr. Regen/Wind werden an realen I-Schwellen gegatet; Gewitter bleibt ingredient-basiert.
-- C3S/ExtremflÃ¤chen-UI aktualisiert Schwellenreferenzen zusammen mit der dargestellten KonturintensitÃ¤t.
-- PR #24/#25/#26 fachlich als erledigt identifiziert; GitHub-Connector verweigert das SchlieÃŸen mit HTTP 403. #6/#18/#20/#21 bleiben bewusst zurÃ¼ckgestellt.
-- Worker-Fachlogik und RUC-Payload geÃ¤ndert: Worker-Upload erforderlich.
-
-## v0.9.77.7 - 2026-09-01
-- Witterungstrend kombiniert Tmax/Tmin und bereinigt Klimamittel-/Farbkonzept sowie numerisch aktive Langfristmodellquellen.
-- Keine fachliche Worker-Ã„nderung.
-
-## v0.9.77.6 - 2026-09-01
-- GitHub-Installer Run #812 gefixt: exakt definierter RUC setup-python-v5â†’v7-Admin-Sync-Ãœbergang wird als pending-admin-sync akzeptiert.
-- Jede zusÃ¤tzliche RUC-Workflow-Abweichung bleibt fail-closed.
-- Neuer Regressionstest schÃ¼tzt den Pin-only-Ãœbergang und lehnt kombinierte Drift ab.
-
-# v0.9.77.5
-
-- CI-Hotfix fÃ¼r GitHub Actions Run #811: ZIP-Entpacken, `npm ci` und Dependency-Audit waren grÃ¼n; ausschlieÃŸlich der TypeScript-Build des neuen Trend-14d+-Panels schlug fehl.
-- `SubseasonalTrendPanel` verwendet wieder den kanonischen MID-`WindUnit` (`kn` intern, Anzeige weiterhin `kt`), wodurch die Ãœbergabe aus `LongRangePanel` wieder typsicher ist.
-- Nicht vorhandenes Lucide-Icon `Rain` durch `CloudRain` ersetzt; Tmin nutzt `Snowflake`, WindbÃ¶en den bereits verwendeten Wind-Iconpfad.
-- Lucide-Icon-Typisierung und die Nullability der Klimadifferenz wurden TypeScript-sicher korrigiert.
-- Tmin/Tmax, WindbÃ¶en, EC46-Klimamittel-Zeitachsenfix und Punkt-Tooltips aus v0.9.77.4 bleiben vollstÃ¤ndig erhalten.
-- Keine fachliche Worker-Ã„nderung; manueller Worker-Upload nicht erforderlich.
-
-# Changelog
-
-## v0.9.77.4 - 2026-09-01
-- Witterungstrend Tag 15-46 fachlich nachgeschÃ¤rft: EC46-Klimamittel werden jetzt Ã¼ber die Wochen-Zeitachse statt Ã¼ber starre Indexe zugeordnet, damit Teilwochen und Endbereiche konsistent bleiben.
-- Temperatur-Slot in der Subseasonal-Ansicht in Tmax und Tmin aufgeteilt; Wind um WindbÃ¶en erweitert, jeweils mit dem appweiten Farbkonzept.
-- Hauptdiagramm des Witterungstrends um Klick-/Tipp-Tooltips pro Kurvenpunkt ergÃ¤nzt, analog zum 24d-Ensemble.
-- Wind- und BÃ¶enwerte im Witterungstrend auf kn-basierte API-Abfrage vereinheitlicht, damit die Einheiten appweit konsistent bleiben.
-- Release-Upload-Budget erneut geprÃ¼ft; Professional- und Worker-ZIP bleiben innerhalb des vorgesehenen GrÃ¶ÃŸenrahmens.
-
-# v0.9.77.3
-
-- RUC-Infrastrukturwartung separat durchgefÃ¼hrt: Dependabot-PR #26 MID-konform Ã¼bernommen; `actions/setup-python` ist im kanonischen RUC-Workflow und im administrativen Sync auf 7.0.0 / SHA `5fda3b95a4ea91299a34e894583c3862153e4b97` angehoben.
-- Python 3.12, pip-Cache, RUC-Scheduler :11/:41, Guard, Pages-Storage und meteorologische RUC-Fachlogik bleiben unverÃ¤ndert.
-- Neuer fokussierter PR-Wartungstest schÃ¼tzt #25/#24/#26 gemeinsam und hÃ¤lt React 19, React DOM 19, react-is 19 sowie plugin-react 6 ausdrÃ¼cklich zurÃ¼ckgestellt.
-- Keine fachliche Worker-Ã„nderung; Worker-Upload nicht erforderlich.
-
-# v0.9.77.2
-
-- GitHub-Actions-Wartung: Dependabot-PR #25 MID-konform Ã¼bernommen; `actions/upload-artifact` ist kanonisch auf 7.0.1 / SHA `043fb46d1a93c77aae656e7c1c64a875d1fc6a0a` angehoben.
-- CodeQL-PR #24 korrigiert Ã¼bernommen: `init` und `analyze` werden gemeinsam auf 4.37.9 / SHA `cdf488f595d80d6e07e03d4674febd5ab45fa938` gepinnt; der im Original-PR entstandene Versionsmix ist ausgeschlossen.
-- Expliziter Workflow-Sync und Regressionen schÃ¼tzen nun auch `upload-artifact`; `.github` bleibt im normalen Release-Installer unverÃ¤ndert.
-- React-19- und plugin-react-6-Majors bleiben bewusst zurÃ¼ckgestellt.
-- Keine fachliche Worker-Ã„nderung; Worker-Upload nicht erforderlich.
-
-# v0.9.76.35
-
-- P0 Gewittersemantik: Blitznachweis klassifiziert weiterhin den **aktuellen Radar-/KONRAD3D-Zustand**, ist aber keine Voraussetzung mehr fÃ¼r eine numerische Gewitterprognose.
-- ICON-D2-RUC: Der alte numerische Blitz-Gate wurde entfernt; RUC-/RUC-EPS-Kalibrierung darf bestehende WMO-Gewittercodes nicht mehr zu Schauercodes herabstufen.
-- ICON-D2-RUC Rapid: neue ingredient-basierte Mehrparameterdiagnostik aus CAPE/MU-CAPE, CIN/MU-CIN, 5-/15-min-Niederschlag, modellierter ReflektivitÃ¤t, LPI, UH, EchoTop und Aufwind. Kein einzelnes Rapid-Feld allein erzeugt einen synthetischen Gewittercode.
-- 15-min-Prognose: hinreichend stark und mehrfach gestÃ¼tzte Rapid-Konvektion darf prognostisch WMO 95 erzeugen; 96/97/99 werden nicht heuristisch erfunden.
-- Gewitterinformation: numerische Gewitterprognosen bleiben auch ohne Rapid-Daten mÃ¶glich. Eine blitzlose aktuelle K3D-Zelle bleibt zugleich korrekt als starke Schauerzelle bezeichnet; numerische Gewitterentwicklung wird davon getrennt dargestellt.
-- Worker-Fachlogik geÃ¤ndert; aktualisierter Worker ist erforderlich.
-
-# v0.9.76.34
-
-- CI-Hotfix fÃ¼r GitHub-Run #805: Sechs veraltete Regressionserwartungen wurden an den bereits freigegebenen 24-h-Profilvertrag aus v0.9.76.33 angepasst.
-- Die Tests erwarten jetzt die neue Wetterpiktogramm-HÃ¶he `y=78`, die nach oben verlegten WolkenbÃ¤nder (`cloudTop=101`), den darunter liegenden Temperaturbereich (`tempTop=150`), die verschobene Luftdruckspur (`498â€“550`) sowie die dÃ¼nnere Temperaturkurve (`2.75`).
-- Produktcode und fachliche Wetterlogik bleiben unverÃ¤ndert; kein Rollback der neuen Wolkenanordnung oder des 23â†’00-Uhr-Fixes.
-- Keine fachliche Worker-Ã„nderung.
-
-# v0.9.76.33
-
-- Tagesdetail-Stundennavigation: Der Schritt von 23:00 Uhr springt beim Weiterklicken nun korrekt auf 00:00 Uhr des Folgetags statt auf den 12-Uhr-Fallback. Die gewÃ¼nschte Zieluhrzeit bleibt dabei so lange vorgemerkt, bis der neue Tag tatsÃ¤chlich den passenden Zeitslot ausgewÃ¤hlt hat.
-- 24-h-Wetterprofil: Die WolkenbÃ¤nder (Gesamt/H/M/L) sitzen jetzt direkt unter den Wetter-Piktogrammen und damit vor dem Temperaturbereich.
-- 24-h-Wetterprofil: Temperatur- und gefÃ¼hlte Temperaturkurve wurden bewusst etwas dÃ¼nner ausgefÃ¼hrt, um den oberen Profilbereich ruhiger und prÃ¤ziser wirken zu lassen.
-- Keine fachliche Worker-Ã„nderung; nur Versionssynchronisierung des gekoppelten Notfall-/Audit-Artefakts. Ein neuer manueller Worker-Upload ist nicht erforderlich.
-
-# v0.9.76.32
-
-- Release-Gate-Sicherung fÃ¼r die v0.9.76.31-Korrekturen ergÃ¤nzt.
-- Reiseplaner-Vertrag schÃ¼tzt nun explizit den aktuell ausgewÃ¤hlten MID-Ort als Standardziel und verhindert die Wiederkehr eines alten persistenten Reiseziels als Startwert.
-- Komposit-Vertrag schÃ¼tzt den robusten Boundary-Fallback sowie numerische/stringbasierte `admin_level`-/`maritime`-Werte, damit oberhalb des Wetterbilds nicht nur StÃ¤dte, sondern auch Grenzen sichtbar bleiben.
-- Keine fachliche Worker-Ã„nderung; kein neuer manueller Worker-Upload erforderlich.
-
-# v0.9.76.31
-
-- Reiseplaner: Das ausgewÃ¤hlte Ziel startet standardmÃ¤ÃŸig wieder mit dem aktuell gewÃ¤hlten MID-Ort. Ein zuvor lokal gespeichertes Reiseziel Ã¼berschreibt den Startzustand nicht mehr ungewollt.
-- Reiseplaner: Solange kein alternatives Reiseziel gewÃ¤hlt wurde, bleibt die Zielkarte automatisch mit dem aktuellen MID-Ort synchron.
-- Kompositbild: Der obere Referenzlayer zeichnet Grenzen robuster. ZusÃ¤tzlich zum hervorgehobenen LÃ¤nder-/Regionsrahmen wird ein allgemeiner Boundary-Fallback eingeblendet, und `admin_level`/`maritime` werden sowohl numerisch als auch als String akzeptiert.
-- Keine fachliche Worker-Ã„nderung; ein neuer Worker-Upload ist fÃ¼r diese Korrektur nicht erforderlich.
-
-# v0.9.76.30
-
-- CI-Hotfix: Zwei veraltete 24-h-Wetterprofil-Regressionen wurden an den seit v0.9.76.28 gÃ¼ltigen Nacht-Fade-Vertrag angepasst.
-- GeschÃ¼tzt bleiben eine einzige 24/00-Uhr-Tagesgrenze sowie der dezente Nacht-Hintergrund mit weichem Fade an Sonnenuntergang und Sonnenaufgang; die frÃ¼here Schraffur wird nicht wieder eingefÃ¼hrt.
-- Keine fachliche oder sichtbare RÃ¼cknahme der v0.9.76.28/29-Ã„nderungen.
-
-# v0.9.76.29
-
-- Release-Gate-Hotfix nach GitHub-Actions-Run #801: TypeScript, Vite-Build und 604 von 605 Regressionen waren grÃ¼n; ausschlieÃŸlich `test-thunder-affected-places-route-09151.mjs` erwartete noch den vor v0.9.76.26 verwendeten Text `+{hidden} weitere im (i)`.
-- Der historische Gewitter-Orts-/Zugbahntest schÃ¼tzt nun den aktuellen Vertrag: sichtbarer RestzÃ¤hler, Rest-Pille und `Weitere Orte anzeigen (...)`-Disclosure bei unverÃ¤ndert vollstÃ¤ndiger Now/likely/possible/corridor-Fachlogik.
-- Kein Rollback der verdichteten mobilen Gewitterdarstellung. Die Extremregen-, GelÃ¤ndehÃ¶hen- und 24-h-Nachtprofil-Korrekturen aus v0.9.76.28 bleiben vollstÃ¤ndig enthalten.
-- Fachlicher Worker-Diff aus v0.9.76.28 bleibt enthalten; aktualisierter Worker ist weiterhin erforderlich.
-
-# v0.9.76.28
-
-- Extremwetter-Ausblick: Bei Regenlagen im 0â€“6-h-Fenster Ã¼bernehmen Regionsliste und Detailkarte nun bevorzugt die verfÃ¼gbare ICON-D2-RUC-Akkumulation, sodass irrefÃ¼hrende `0 mm`-Anzeigen trotz vorhandener Rapid-Signale entfallen.
-- Extremwetter-Details: GelÃ¤ndehÃ¶hen werden lesbarer auf 10 m bzw. 100 m gerundet.
-- 24-h-Wetterprofil: Es wird nur noch eine einzige senkrechte Tagesgrenze fÃ¼r 24/00 Uhr gezeichnet; zusÃ¤tzliche hervorgehobene VollhÃ¶henlinien entfallen.
-- 24-h-Wetterprofil: Nachtstunden erhalten einen dezenten Hintergrund mit weichem Fade an Sonnenuntergang und Sonnenaufgang statt der bisherigen harten Schraffur.
-- Fachliche Worker-Ã„nderung enthalten; ein aktualisierter Worker-Upload ist erforderlich.
-
-# v0.9.76.25
-
-- CI-Hotfix nach Release-Run #799: TypeScript 7.0.2, Vite 6.4.3, Dependency-Audit und 602 von 603 Regressionen waren grÃ¼n; ausschlieÃŸlich der historische RUC-Watchdog-Test erwartete noch zwei getrennte `:18/:48`-Cron-EintrÃ¤ge.
-- Der bestehende Watchdog-Test schÃ¼tzt nun die fachlich bereits aktive Scheduler-Resilienz: eine sechsfach gestaffelte `:08/:18/:28/:38/:48/:58`-Cron-Expression, Active-Run-Sperre, 18-Minuten-Cooldown, `force=false`, `trigger_source=github-watchdog` und Push-Self-Test.
-- PrimÃ¤rer RUC-Vertrag `:11/:41` unverÃ¤ndert; GitHub-Watchdog bleibt ausdrÃ¼cklich same-provider. Der optionale Cloudflare-Cron-Watchdog bleibt nur quellseitig vorbereitet.
-- Kein Produktcode-Rollback und keine fachliche Worker-Ã„nderung; manueller Worker-Upload bleibt unnÃ¶tig.
-
-# v0.9.76.22
-
-- CI-Vertragshotfix nach Release-Run #795: TypeScript 7.0.2, Vite 6.4.3 und Dependency-Audit waren bereits grÃ¼n; vier veraltete Regressionserwartungen wurden an die bewusst freigegebenen v0.9.76.21-VertrÃ¤ge angepasst.
-- Wolkenprofil-Tests schÃ¼tzen nun die kollisionsfreie `cloudCellGeometry` statt frÃ¼here randberÃ¼hrende/Ã¼berlappende RechteckmaÃŸe zu verlangen.
-- Szenariocluster-Test schÃ¼tzt die Resume-Recovery, bei der eine transiente leere Teilantwort den letzten erfolgreichen Ensemble-Stand nicht mehr lÃ¶scht.
-- Pages-/Installer-Test schÃ¼tzt jetzt den neuen `MID / release-candidate-quality`-Status, die VorfahrprÃ¼fung und die ausschlieÃŸlich Fast-Forward erfolgende Stable-Promotion ohne Force-Push.
-- Kein Produktcode-Rollback und keine fachliche Worker-Ã„nderung. Die UI-/Budget-/Stable-HÃ¤rtung aus v0.9.76.21 bleibt vollstÃ¤ndig erhalten.
-
-# v0.9.76.21
-
-- Parallelkonsolidierung ohne Rollback: die separat auf v0.9.76.20 erstellten UI-Ã„nderungen werden unter der eindeutigen nÃ¤chsten Releaseversion Ã¼bernommen. Das 24-h-Wetterprofil nutzt echte ZellzwischenrÃ¤ume, einheitliche Achsenwert-AbstÃ¤nde und eine dÃ¼nnere Temperaturkurve; der DWD-Ortsausschnitt zeigt nur noch die kompakte Stecknadel, und Tages-/Stunden-Windpfeile Ã¼bernehmen die appweiten DWD-BÃ¶enwarnfarben.
-- Auto-Revision/Build-Budget: komprimierbarer Webcode und bereits komprimierte statische Medien werden getrennt budgetiert. 5,2 MB Code/Text-gzip, 7,0 MB statische Medien und 8,5 MB Gesamt-gzip bilden getrennte Sicherheitsnetze.
-- Stable-HÃ¤rtung: der kanonische Installer setzt nach Build/Audit/Regressionen/Worker-Gate/Pages zuerst `MID / release-candidate-quality` und promotet anschlieÃŸend ausschlieÃŸlich per Fast-Forward ohne Force-Push nach `mid-stable`; divergierende Historien brechen fail-closed ab.
-- Startperformance: der Boot-Logo-Preload erhÃ¤lt seinen `href` erst nach synchroner Theme-/LogoauflÃ¶sung und lÃ¤dt damit nicht unnÃ¶tig zuerst die Light-Variante.
-- Regression: der Parallel-UI-Test bleibt vollstÃ¤ndig erhalten und wird mit den drei Budget-/Stable-Hardening-Tests gemeinsam geschÃ¼tzt. Keine fachliche Worker-Ã„nderung; nur Versionssynchronisierung, daher kein manueller Worker-Upload erforderlich.
-
-# v0.9.76.20
-
-- CI-Hotfix nach Install-Run #793: drei veraltete Regressionserwartungen wurden auf den bereits erfolgreich mit TypeScript 7.0.2 und Vite 6.4.3 gebauten Produktvertrag migriert.
-- Wolkenprofil-Regressionen schÃ¼tzen nun ausdrÃ¼cklich die nicht Ã¼berlappenden Gesamt/H/M/L-Zellen (`x = columnLeft + 0,7`, `width = columnWidth - 1,4`) statt die frÃ¼here Ã¼berlappende Geometrie zu verlangen.
-- Szenariocluster-Regression schÃ¼tzt jetzt den Resume-Recovery-Vertrag: eine transiente Teilantwort darf vorhandene Ensemble-Szenarien nicht mit einem leeren Array Ã¼berschreiben.
-- Kein Produktcode-Rollback, keine fachliche Worker-Ã„nderung. Der Ensemble-Resume-Fix und die 24-h-/DWD-UI-Finalisierung aus v0.9.76.19 bleiben vollstÃ¤ndig erhalten.
-
-# v0.9.76.19
-
-- 14-Tage-Ensemble: same-location Resume/Reload startet Ensemble-Daten zuverlÃ¤ssig neu; der bisherige Lebenszyklusfehler, bei dem der Ensemble-State geleert und der Request nicht erneut ausgelÃ¶st wurde, ist behoben.
-- Letzter erfolgreicher Ensemble-Stand bleibt bei transienten Fehlern sichtbar; bei sichtbarer Online-App folgt nach 45 s automatisch ein neuer Versuch.
-- 24-h-Profil-Finalisierung: Nacht-Schraffur wieder sichtbar, rote Jetzt-Linie/â€žJETZTâ€œ entfernt, gewÃ¤hlte Uhrzeit an der blauen Auswahlachse, kein â€žgleitend ab â€¦â€œ, keine Ã¼berlappenden Thermik-/Wolken-/Hazard-Zellen.
-- DWD Wolken/Niederschlagsart: dÃ¼nnere Stecknadel als Ortsmarker. Kein fachlicher Worker-Upload erforderlich.
-
-# v0.9.76.18
-
-- CI-Hotfix: zwei Ã¼berholte 24-h-Wetterprofil-Regressionen an den bereits produktiv gÃ¼ltigen kompakten Profilvertrag angepasst (vollzÃ¤hlige Stundenpiktogramme, aktuelle SVG-Position und responsive 2/4/8-px-Dateninsets).
-- Kein RÃ¼ckbau des neuen 24-h-Layouts und keine fachliche Worker-Ã„nderung.
-
-# v0.9.76.17
-
-- DWD â€žWolken + Niederschlagsartâ€œ: Zentrierung des standortbezogenen Originalbild-Ausschnitts nach Zoomwechsel robuster gemacht, indem der Ortsmittelpunkt nach Layout-/Scroll-Updates mehrfach nachgefÃ¼hrt wird. Bei hÃ¶heren Zoomstufen bleibt der Zielort damit deutlich zuverlÃ¤ssiger im Fokus.
-- DWD-Ortsmarker optisch entschÃ¤rft (kleiner, transparenter) und die fest eingebettete Originallegende weiter verkleinert, damit weniger Bildinhalt verdeckt wird.
-- 24-h-Wetterprofil: obere Zeitmarker nÃ¤her an die Zeitachse gerÃ¼ckt, linke/rechte DiagrammrÃ¤nder weiter verdichtet und die Lane â€žTherm. Empfindenâ€œ zweizeilig ausgefÃ¼hrt, sodass die Nutzbreite insbesondere mobil besser ausgenutzt wird.
-- Achsenpolitur im 24-h-Profil: Niederschlags-, Wind- und Luftdruck-Skalen erhalten mehr Abstand zur Achse; Wetterpiktogramme werden nun vollstÃ¤ndig, etwas kleiner und mit besserer Konturierung dargestellt.
-- Nachtstunden im 24-h-Profil werden jetzt als zusammenhÃ¤ngende, hellere FlÃ¤chen statt unruhiger Streifen hervorgehoben; gemeinsamer Browser/PWA/iOS-Fachkern bleibt erhalten. Keine fachliche Worker-Ã„nderung und kein manueller Worker-Upload erforderlich.
-
-# v0.9.76.16
-
-- Lucide React 1.34.0 â†’ 1.35.0 nach isoliertem Dependabot-Kandidatenlauf; TypeScript/Vite und CodeQL waren grÃ¼n.
-- Zwei historische Versionspin-Regressionen auf den qualifizierten Lucide-Stand aktualisiert; neue Regression schÃ¼tzt den isolierten Wartungsschritt.
-- React 18.3.1, Vite 6.4.3 und plugin-react 4.7.0 bleiben unverÃ¤ndert; keine funktionale Wetter-, UI-, Karten-, Worker- oder iOS-Ã„nderung.
-
-# v0.9.76.15
-
-- MapLibre GL JS 6.6.0 qualifiziert und Ã¼bernommen; die bisherigen 6.5.0-Pin-Regressionen folgen dem neuen reproduzierbaren Vertrag.
-- `uuid@7.0.3` als transitiver Dev-/iOS-Tooling-Pfad `@capacitor/cli -> xcode -> uuid` dokumentiert und gegen riskante Overrides geschÃ¼tzt.
-- `MID_BRANCH_RULESET.json` als konkrete Stable-Schutzvorlage mit `MID CI verify`, Release-Evidenzstatus und gezieltem Workflow-Bypass gehÃ¤rtet.
-- Keine fachliche Wetter-, Karten-, Radar-, Worker-, React- oder Vite-Major-Ã„nderung.
-
-## v0.9.76.14
-
-- CI-Hotfix nach Run #788: drei historische 24-h-Profil-Regressionen auf den bereits fachlich freigegebenen, kompakteren v0.9.76.13-Achsenvertrag migriert; kein Produktcode-Rollback.
-- Die Tests erwarten nun die reduzierten mobilen SeitenrÃ¤nder, die vereinfachte obere Zeitachse ohne dominante Kalenderzeile, kompakte Tageswechselmarker sowie den aktuellen `major`-/`profile-bottom-date`-Vertrag.
-- TypeScript 7.0.2 und Vite 6.4.3 waren in #788 bereits vollstÃ¤ndig grÃ¼n; DWD-Ortsausschnitt, Originalpixel-Auswertung und 24-h-Profil-Feinschliff bleiben unverÃ¤ndert erhalten.
-- Gemeinsamer Browser/PWA/iOS-Fachkern bleibt erhalten; keine Worker-FachÃ¤nderung.
-
-## v0.9.76.13
-
-- Buildfix fÃ¼r den einzigen Fehler aus GitHub-Release #787: nach Entfernung der redundanten 24-h-Zeitpille verblieb `profileWindowEndLabel` als unbenutzte Konstante und wurde von TypeScript 7 mit TS6133 abgewiesen.
-- Die Konstante ist entfernt und die zugehÃ¶rige 24-h-Profil-Regression schÃ¼tzt den Fehler kÃ¼nftig explizit. Die in v0.9.76.12 zusammengefÃ¼hrten DWD-Ortsausschnitt- und 24-h-ProfilÃ¤nderungen bleiben vollstÃ¤ndig erhalten.
-- Keine funktionale Worker-Ã„nderung.
-
-## v0.9.76.12
-
-- Konsolidiert die beiden nahezu zeitgleich auf v0.9.76.10 entstandenen v0.9.76.11-Linien ohne Rollback: der DWD-Ortsausschnitt mit Originallegende/Originalpixel-Auswertung und der mobile Feinschliff des 24-h-Wetterprofils sind gemeinsam enthalten.
-- 24-h-Profil: redundante Zeit-Pille entfernt, linke/rechte DiagrammrÃ¤nder deutlich verdichtet, Achsen-/Einheiten-/Wolkenbeschriftungen gegen Ãœberdeckung gehÃ¤rtet, Nachtstunden weniger dominant und obere/untere Zeitachse auf eine sparsame gemeinsame Struktur reduziert.
-- DWD â€žWolken + Niederschlagsartâ€œ: standortzentrierter Deutschland-Ausschnitt, feste Originallegende, Originalpixel-Klickauswertung, Georeferenzierungs-/Randtests und zugehÃ¶rige UI-Geometrie aus dem hochgeladenen parallelen v0.9.76.11-Stand bleiben vollstÃ¤ndig erhalten.
-- Gemeinsamer Browser/PWA/iOS-Fachkern bleibt erhalten; keine Worker-FachÃ¤nderung und kein manueller Worker-Upload erforderlich.
-
-## v0.9.76.11
-
-- â€žWolken + Niederschlagsartâ€œ startet fÃ¼r deutsche Standorte und Favoriten als standortzentrierter, verschieb- und zoombarer Ausschnitt des unverÃ¤nderten amtlichen DWD-Originalbilds.
-- Standortmarker und freie Bildklicks bleiben an den normierten Originalpixeln des vollstÃ¤ndigen DWD-PNG gebunden. Die reine Ansichtsabbildung wurde an 17 sichtbaren DWD-Stadtankern sowie fÃ¼nf deutschen Randorten geprÃ¼ft und erzeugt keinen Kartenlayer.
-- Die im amtlichen DWD-Bild eingebettete Originallegende bleibt fest am Ausschnitt sichtbar und stammt aus derselben Bildantwort. Reisewetter v0.9.76.9 und das modernisierte 24-h-Wetterprofil v0.9.76.10 bleiben vollstÃ¤ndig erhalten.
-- Keine Ã„nderung an Worker-Fachlogik oder iOS-Architektur; kein manueller Worker-Upload erforderlich.
-
-## v0.9.76.10
-
-- 24-h-Wetterprofil grafisch nach dem klareren Prinzip der Tagesansicht neu geordnet: rollend von jetzt bis +24 h, alle Parameter exakt auf denselben senkrechten Zeitschritten und ohne mobile Verkleinerung eines kÃ¼nstlich Ã¼berbreiten Diagramms.
-- Windbereich ergÃ¤nzt um die appweit identischen DWD-BÃ¶enwarnschwellen mit dezenten WarnbÃ¤ndern/-linien; die Windskala zeigt mindestens die erste Warnschwelle.
-- Nachtstunden werden Ã¼ber alle Bahnen gemeinsam abgedunkelt; Sonnenaufgang und Sonnenuntergang stehen dezent an ihrer exakten Zeitposition. Einheitliche Parameter-/Einheitenspalte, sparsamere Skalen und eine zweite kompakte Zeitreferenz am unteren Rand verbessern die vertikale Lesbarkeit.
-- Gemeinsamer Browser/PWA/iOS-Fachkern bleibt erhalten; keine Worker-FachÃ¤nderung.
-
-## v0.9.76.9
-
-- Reisewetter/Fester Zeitraum: historische modellierte ERA5-SchneehÃ¶he wird jetzt immer mit ausgewertet; Schneefall bleibt getrennte Zusatzinformation und wird bei einem SchneehÃ¶hen-Ausfall nicht als Ersatzwert ausgegeben.
-- Wunschzeitraum: Alternative ReisezeitrÃ¤ume werden nicht mehr in nahezu identische, tageweise verschobene Fenster verdichtet. Neuer editierbarer Mindestabstand; Standard = Reisedauer, Untergrenze = 50 % der Reisedauer.
-- Bei 7 Tagen Reisedauer betrÃ¤gt der Standardabstand damit 7 Tage; der Nutzer kann ihn bis minimal 4 Tage korrigieren. Browser/PWA/iOS teilen weiterhin denselben Fachkern; keine Worker-FachÃ¤nderung.
-
-## v0.9.76.7
-
-- Kurzfristtexte sprachlich geglÃ¤ttet: relative Uhrzeiten werden satzgrammatisch statt durch bloÃŸes Voranstellen einer PrÃ¤position erzeugt. Dadurch heiÃŸt es z. B. â€žmorgen um 19:00 Uhrâ€œ und â€žmorgen ab 14:00 Uhrâ€œ statt â€žum morgen 19:00â€œ bzw. â€žab morgen 14:00â€œ.
-- Derselbe Zeitphrasen-Helfer gilt fÃ¼r trockene, Niederschlags- und BÃ¶en-Zusammenfassungen im Prognose-Cockpit; Tagesbezug und â€žUhrâ€œ bleiben auch fÃ¼r Ã¼bermorgen bzw. spÃ¤tere Tage eindeutig.
-- Keine Ã„nderung an Forecast-Daten, RUC-Fusion, Worker-Fachlogik oder iOS-Architektur.
-
-## v0.9.76.5
-
-- ModellstÃ¤nde: Best Match wird nicht mehr irrefÃ¼hrend mit `Init â€“` dargestellt, sondern als modellabhÃ¤ngiger Laufverbund. Bei tatsÃ¤chlich verwendeten Quellen ohne publizierten Init-Zeitstempel steht explizit â€žvon Quelle nicht ausgewiesenâ€œ; bekannte Einzelmodell-Inits bleiben in UTC erhalten.
-- 24-h-Wetterprofil: Maximum und Minimum werden robust aus der vollstÃ¤ndigen kanonischen stÃ¼ndlichen 24-h-Temperaturkurve bestimmt und immer am tatsÃ¤chlichen Kurvenpunkt markiert. Sichtbar steht nur noch der Wert (`21Â°`, `15Â°`) ohne `Tmax`/`Tmin`-PrÃ¤fix; der 3-h-Modus verliert die Extrema nicht.
-- Reisewetter â€žHohe Schneelageâ€œ: Optimierung basiert zwingend auf historischer SchneehÃ¶he und Schneedeckendauer. Kumulierter Schneefall ist nur noch Zusatzinformation und ersetzt die SchneehÃ¶he bei einem Quellfehler nicht. Die Schneelage-Kachel zeigt primÃ¤r Ã˜ SchneehÃ¶he und zusÃ¤tzlich die Schneefallsumme.
-- Langfrist: kostenneutraler Ausbaupfad fÃ¼r C3S-CDS, DWD GCFS2.2/EPISODES, NOAA NMME und eine getrennte Extended-Range-Ebene dokumentiert; keine zusÃ¤tzlichen kostenpflichtigen Dienste aktiviert.
-
-## 0.9.76.4
-- CI/iOS-Status: `MID_IOS_STATUS.json.releaseVersion` wird bei VersionsÃ¤nderungen nun idempotent durch `sync-version.mjs` mitgefÃ¼hrt; damit kann ein Patch-Bump die iOS-Strukturregressionen nicht mehr durch veraltete Release-Metadaten blockieren.
-- Release #778 bestÃ¤tigte bereits TypeScript 7.0.2 und Vite 6.4.3; der Patch Ã¤ndert keinen Forecast-, RUC-, Worker-, 24-h-, Modellstand- oder Komposit-Fachcode.
-
-## 0.9.76.3
-
-- Mitigiert die fÃ¼nf verbliebenen Regression-Gate-Fehler aus GitHub-Run #777, nachdem TypeScript 7.0.2 und Vite bereits vollstÃ¤ndig grÃ¼n waren.
-- Akzeptiert im RUC-Sync-Vertrag ausschlieÃŸlich den real aktiven, bekannten `:11/:41`-Pre-Watchdog-Zwischenstand; unbekannte Workflow-Drift bleibt fail-closed.
-- Entkoppelt den TypeScript-7-Meilensteintest von einer hart codierten Patchversion und hÃ¤lt Compiler/Lockfile/Strada-Vertrag weiterhin exakt.
-- Entfernt die veraltete SEO-Erwartung eines sichtbaren `kostenlos`-Hinweises; Discoverability bleibt unverÃ¤ndert geschÃ¼tzt.
-
-## v0.9.76.1
-
-## 0.9.76.2
-
-- Behebt die vier im realen GitHub-TypeScript-7-Gate von Release #776 gefundenen Strict-Compilerfehler.
-- Korrigiert die `timezone`-Ãœbergabe im Modellstand der ForecastCockpit-Ansicht.
-- Entfernt drei nach den UI-/Diagnosebereinigungen ungenutzte TypeScript-Symbole, ohne Fachlogik zu verÃ¤ndern.
-- TypeScript bleibt 7.0.2; die TS7-/Capacitor-JSON-Migration aus v0.9.76.1 bleibt vollstÃ¤ndig bestehen.
-
-- Kanonische Tmin-/Tmax-Konsistenz appweit geschlossen: vollstÃ¤ndig abgedeckte Tage beziehen ihre Extrema aus `displayHours`; im 24-h-Profil stehen `Tmin` und `Tmax` wieder direkt an den tatsÃ¤chlichen Punkten der T-Kurve, auch bei 3-h-Anzeigedichte.
-- ModellstÃ¤nde fachlich prÃ¤zisiert: `Init`, `Quelle bereit` und `Eingeflossen` sind getrennte ZustÃ¤nde; nur tatsÃ¤chlich in der kanonischen Forecast-Fusion verwendete Quellen erhalten `Eingeflossen`. Dieselbe Transparenz wird auch fÃ¼r die Kurzfristvorhersage bereitgestellt.
-- Sichtbare Entwicklungs-/Hosting-/Kosteninterna aus Produkttexten entfernt, ohne interne Architektur-, Kosten- oder DeploymentvertrÃ¤ge anzutasten.
-- Kompositbild repariert: oberster Referenzlayer ist transparent und vektorbasiert und zeichnet nur Grenzen/Orte Ã¼ber das weiterhin sichtbare Satellitenbild.
-- RUC-Resilienz erweitert: PrimÃ¤rslots `:11`/`:41` bleiben bestehen; kanonischer `force=false`-Recovery-Dispatch und unabhÃ¤ngiger Watchdog sind fÃ¼r den expliziten GitHub-Workflow-Sync vorbereitet.
-- TypeScript bleibt exakt 7.0.2; den unter Node 22.16 gescheiterten Capacitor-Konfigurationspfad beseitigt, indem die Ã¤quivalente reine Metakonfiguration von `capacitor.config.ts` nach `capacitor.config.json` verschoben wurde. Kein TypeScript-Downgrade und kein iOS-Fork.
-- Worker-Metadaten zur tatsÃ¤chlichen Modellnutzung sind semantisch geÃ¤ndert; der bestehende semantische Release-Gate soll den automatischen Worker-Deploy auslÃ¶sen. Kein manueller Worker-Upload vorgesehen.
-
-## v0.9.76.0
-
-- EigenstÃ¤ndigen TypeScript-7-KompatibilitÃ¤tsmeilenstein abgeschlossen: Compiler und Lockfile von 5.9.3 auf exakt 7.0.2 angehoben.
-- App- und Node-Typecheck bleiben artefaktfrei und bestehen ohne fachliche Quellcode- oder `tsconfig`-Ã„nderung; React/React DOM/react-is 18.3.1, Vite 6.4.3 und @vitejs/plugin-react 4.7.0 bleiben bewusst unverÃ¤ndert.
-- Die von TypeScript 7 entfernte Strada-JavaScript-Compiler-API wird fÃ¼r API-basierte Regressionen Ã¼ber den offiziell vorgesehenen Side-by-side-Alias `typescript-strada` 6.0.3 bereitgestellt; Produkt-Typecheck und alle `tsc`-Aufrufe bleiben ausschlieÃŸlich auf 7.0.2.
-- Dependency-Policy und historische WartungswÃ¤chter auf den qualifizierten TypeScript-7-Stable-Vertrag umgestellt; neue Required Regression schÃ¼tzt Compiler-/Lockfile-Stand, No-Emit-Konfiguration, Plattformgleichlauf und die Abgrenzung zu React 19/Vite 8/plugin-react 6.
-- Gemeinsamer Browser/PWA/iOS-Fachkern und Worker-Semantik unverÃ¤ndert; kein iOS-Fork und kein manueller Worker-Upload erforderlich.
-
-## v0.9.75.0
-
-- 24-h-Wetterprofil auf eine verbindliche gemeinsame Zeitgeometrie umgestellt: Wetterpiktogramme, Stundenraster, Sonnenereignisse, Kurven, Windpfeile, Wolken, Hazards und Auswahlcursor stehen jetzt senkrecht exakt Ã¼bereinander.
-- BewÃ¶lkung als vier schmale, kontinuierlich ein-/ausfadende GrauintensitÃ¤tsbÃ¤nder in der Reihenfolge Gesamt/H/M/L umgesetzt. Rechte Wolken-Prozentbeschriftung entfernt; exakte Werte bleiben in Tooltips und Einzeldaten erhalten.
-- Luftdruckbahn vergrÃ¶ÃŸert und Kurve in Hell-/Dunkelmodus deutlich kontrastreicher ausgefÃ¼hrt; responsive Hochformat- und Querformat-Master-/Detailansicht bleibt erhalten.
-- Grundlage ist der verbindliche letzte Build-Stand v0.9.74.10 einschlieÃŸlich PNG-IntegritÃ¤ts- und 24-MB-Uploadbudget-VertrÃ¤gen. Gemeinsamer Browser/PWA/iOS-Fachkern, keine Worker-FachÃ¤nderung und kein manueller Worker-Upload erforderlich.
-
-## v0.9.74.10
-
-- RUC-/Release-Pages-Collision behoben: alle drei Release-Pages-Jobs teilen `mid-pages` nun mit `cancel-in-progress: false`; laufende RUC-Publikationen werden dadurch nicht mehr von einem Release abgebrochen. Release-Supersession auf `mid-install-${{ github.ref }}` bleibt bewusst aktiv.
-- RUC-Resilienz unverÃ¤ndert: versetzte `:11`-/`:41`-Schedule-Slots plus Freshness-/Catch-up-Guard; ein von GitHub verworfener best-effort-Schedule-Event kann weiterhin erst durch den nÃ¤chsten Slot aufgefangen werden.
-- GitHub-Browser-Upload wieder ermÃ¶glicht: native Light-/Dark-Splashscreens auf je eine vollstÃ¤ndige 2732Ã—2732-Asset-Catalog-Quelle dedupliziert und reproduzierbaren Professional-Packer ergÃ¤nzt. Generiertes `ios/App/App/public` wird nicht transportiert, sondern im Installer nach grÃ¼nem Build via `cap copy ios` neu erzeugt.
-- Professional-Packer erzwingt 24.000.000 Byte Sicherheitsbudget; Forecast-/Worker-/RUC-Fachlogik und Apple-Capabilities unverÃ¤ndert, kein manueller Worker-Upload erforderlich.
-
-## v0.9.74.9
-
-- iOS-Light-Splash-Hotfix: alle drei zuvor abgeschnittenen `2732 Ã— 2732`-PNG-Dateien aus dem verbindlichen Light-Splash-Asset vollstÃ¤ndig neu erzeugt.
-- Neuer echter PNG-IntegritÃ¤tsvertrag prÃ¼ft Signatur, Chunkgrenzen, CRC, IEND und IDAT-Dekompression fÃ¼r native Light-/Dark-Splashscreens und App-Icons; reine IHDR-AbmessungsprÃ¼fungen reichen nicht mehr aus.
-- Keine fachliche Worker-, RUC-, Forecast-, PWA- oder Apple-Capability-Ã„nderung; nÃ¤chstes Gate bleibt die macOS-/Xcode-Simulator-QualitÃ¤tssicherung.
-
-## v0.9.74.8
-
-- Verbindliche Light-/Dark-Logo-Sets fÃ¼r Header, Web-Bootscreen, Favicons, Social Card, PWA-Icons sowie native iOS-App-Icons und Splashscreens eingefÃ¼hrt; Auto folgt dem wirksamen Theme, manuelle Auswahl bleibt persistent.
-- Einsatzspezifische Kompakt-, Horizontal-, Icon- und Splash-Assets ersetzen die bisherige Mehrfachverwendung eines quadratischen Logos; beide Theme-Sets werden offline vorgehalten.
-- iOS-Webcontainer mit demselben geprÃ¼ften React/Vite-Build synchronisiert; kein Plattformfork und keine neue native Berechtigung.
-- TypeScript, Vite, Worker-Syntax und alle 579 Regressionen bestanden. Worker-Fachlogik unverÃ¤ndert; kein manueller Worker-Upload erforderlich.
-
-## v0.9.74.7
-
-- Release-CI Run #771 mitigiert: npm ci, Dependency-Audit, TypeScript und Vite waren grÃ¼n; 576/577 Regressionen bestanden. AusschlieÃŸlich `test-ruc-dwd-pipeline-09690.mjs` enthielt noch ein v0.9.74.5-only Ãœbergangsfenster.
-- Drei verteilte, versionsgebundene RUC-Workflow-Ausnahmen durch einen gemeinsamen zustandsgebundenen Sync-Vertrag ersetzt: bytegleich synchron oder exakt bekannter geschÃ¼tzter Legacy-.github-Zustand bei vollstÃ¤ndig validiertem kanonischem :11/:41-Catch-up-Workflow.
-- Unbekannte Workflow-Drift und unvollstÃ¤ndiger kanonischer Catch-up-Stand bleiben fail-closed. Neue Regression prÃ¼ft synced, pending-admin-sync, unsafe-drift und invalid-canonical.
-- RUC-Fachdaten, Pages-Free/950-MB-Grenze, Forecast-Fusion, iOS und Worker-Semantik unverÃ¤ndert; manueller Worker-Upload bleibt unnÃ¶tig.
-
-## v0.9.74.6
-
-- Release-CI Run #770 mitigiert: npm ci, Dependency-Audit, TypeScript, Vite und 576/577 Regressionen waren grÃ¼n; ausschlieÃŸlich `test-ruc-pages-free-storage-09700.mjs` erwartete trotz bewusst geschÃ¼tztem `.github`-Self-Modification-Block noch Bytegleichheit zum bereits aktualisierten kanonischen RUC-Workflow.
-- Release-vor-Admin-Sync-Ausnahme konsistent auf beide RUC-Workflow-Regressionen angewendet und exakt auf v0.9.74.5/.6 sowie den bekannten Legacy-Workflowzustand begrenzt. Ab v0.9.74.7 ist die Ausnahme automatisch wieder geschlossen.
-- RUC-Catch-up (:11/:41), 950-MB-Pages-Limit, Forecast-/Worker-Semantik und Kostenvertrag unverÃ¤ndert. Nach grÃ¼nem v0.9.74.6-Release ist der explizite Workflow-Sync auf `main` und `mid-stable` unmittelbar nachzuholen; manueller Worker-Upload bleibt unnÃ¶tig.
-
-## v0.9.74.5
-
-- Release-CI Run #769 mitigiert: npm ci, Audit, TypeScript und Vite waren grÃ¼n; die einzigen 2/576 Fehler waren historische CARTO-Token-Regressionsasserts. Sie schÃ¼tzen nun den seit v0.9.74.3 gÃ¼ltigen schlÃ¼sselfreien OSM+MapLibre-Tone-Vertrag statt entfernte CARTO-URLs.
-- DWD-RUC-Scheduler gegen ausgelassene GitHub-`schedule`-Ereignisse gehÃ¤rtet: bestehender :41-Slot plus versetzter :11-Recovery-Slot, Ã¤uÃŸeres `cancel-in-progress: false` und billiger exact-run Catch-up/Freshness-Guard vor apt/ecCodes/pip.
-- Der Guard Ã¼berspringt nur bei strukturell gÃ¼ltigem, exakt aktuellem Pages-Free-RUC; neuer/stale/unklarer Stand lÃ¤uft fail-open in die vollstÃ¤ndige Verarbeitung. `fetch_and_build_ruc.py` bleibt authoritative Completeness-Gate.
-- Pages-Free-Projektion, 950-MB-Grenze, Post-Deploy-Health-Convergence, Forecast-Fusion und Worker-Runtime bleiben unverÃ¤ndert. RUC-Workflow-Sync ist explizit erforderlich; manueller Worker-Upload nicht.
-
-## v0.9.74.4
-
-- DWD-RUC Run #12 analysiert: RUC/RUC-EPS-Build, Pages-Free-PrÃ¼fung, 918-MB-Seitenzusammenstellung, Artifact-Upload und Pages-Deployment waren erfolgreich; ausschlieÃŸlich der unmittelbar folgende Worker-Health-Probe sah noch den vorherigen stale `latest.json`.
-- Post-Pages-Healthcheck um ein kurzes begrenztes Konvergenzfenster mit eindeutigen No-Cache-Probes und Backoff ergÃ¤nzt. Der neue verÃ¶ffentlichte Lauf muss weiterhin exakt `ready + fresh + schemaValid` werden; stale/falsche Runs werden niemals akzeptiert.
-- Persistiert der stale Zustand nach dem Retry-Budget, bleibt der Workflow fail-closed. Neue Required Regression simuliert sowohl `stale -> stale -> fresh` als auch dauerhaft stale.
-- Keine Ã„nderung an RUC-Fachlogik, Forecast-Fusion, Pages-Free-Profil, Worker-Runtime oder iOS-NativfÃ¤higkeiten; kein manueller Worker-Upload erforderlich.
-
-## v0.9.74.3
-
-- Kompositbild: die anonym inzwischen gesperrten CARTO-Positron-/Dark-Matter-Kacheln samt "API KEY REQUIRED"-Wasserzeichen vollstÃ¤ndig entfernt; bestehende Kartenbasis-IDs bleiben fÃ¼r Persistenz erhalten.
-- SchlÃ¼sselfreie OpenStreetMap-Kacheln bilden nun Standard, "Schlicht hell" und "Schlicht dunkel". Die beiden schlichten Varianten werden ausschlieÃŸlich lokal Ã¼ber MapLibre-Raster-SÃ¤ttigung, Kontrast und Helligkeit aufbereitet; kein API-Key, Konto oder kostenpflichtiger Kartendienst erforderlich.
-- Gleichen Schutz appweit auf Wetterkarten und Synoptikkarte ausgeweitet, damit der bereits bei der Extremwetterkarte behobene CARTO-Ausfall nicht in anderen Kartenmodulen wiederkehrt.
-- Neue Required Regression verhindert produktive `basemaps.cartocdn.com`-RÃ¼ckfÃ¤lle und schÃ¼tzt die persistierten hell/dunkel-Auswahlvarianten sowie den lokalen Raster-Tone-Vertrag. Worker- und Wetterdatenlogik bleiben unverÃ¤ndert.
-
-## v0.9.74.2
-
-- Pages-Release-Restore gegen transiente `HTTP 429/500/502/503/504`- und Netzwerkfehler gehÃ¤rtet: begrenzte Retry-/Backoff-Logik mit `Retry-After`-Beachtung statt sofortigem Abbruch eines kompletten Release-Versuchs.
-- RUC-Snapshot-Restore intern auf maximal 8 parallele Chunk-Downloads begrenzt, um Lastspitzen auf `midwx.app`/GitHub Pages zu vermeiden; Workflow-Selbsterneuerung ist dafÃ¼r nicht erforderlich.
-- Fail-closed bleibt erhalten: persistente Fehler brechen nach dem Retry-Budget weiterhin ab; GrÃ¶ÃŸe und SHA-256 jedes Chunks werden unverÃ¤ndert geprÃ¼ft, unvollstÃ¤ndige temporÃ¤re Restores werden verworfen.
-- Anlass war Run #766: Versuch 1 traf einen transienten HTTP 503, Versuch 2 war erfolgreich; der Gesamt-Release v0.9.74.1 war bereits grÃ¼n.
-
-## v0.9.74.1
-
-- Release-CI-Hotfix nach Run #765: `midCloud` und `highCloud` bleiben im ShortTermForecastPoint optional; die neue SVG-Wolkenstruktur akzeptiert daher korrekt `number | undefined` und normiert fehlende Werte auf 0 %.
-- Keine Ã„nderung am visuellen Wolkenkonzept, an Forecast/RUC/Worker-Semantik oder an nativen iOS-FÃ¤higkeiten.
-- Regression des 24-h-Wolkenprofils um den optionalen H/M-TypeScript-Vertrag erweitert; zwei Ã¤ltere Texttoken-RegressionsprÃ¼fungen auf die seit v0.9.74.0 korrekte Beschriftung Gesamt/H/M/L synchronisiert.
-
-## v0.9.74.0
-
-- 24-h-Wetterprofil: Wolkenbereich nach dem abgestimmten Konzept neu aufgebaut â€“ GesamtbewÃ¶lkung plus hÃ¶hentypische H/M/L-Strukturen statt optisch gleichartiger WolkenblÃ¶cke.
-- Hohe Wolken cirrusartig/faserig, mittlere Wolken altocumulus-/schichtartig und tiefe Wolken cumulus-/stratocumulusartig; 0â€“100-%-Bedeckung steuert sichtbar Dichte, Breite, Masse und OpazitÃ¤t.
-- Nachbarstunden-Fading gilt nun fÃ¼r Gesamt + alle drei WolkenhÃ¶hen; Randwerte und Einzeldaten zeigen Gesamt/H/M/L.
-- Kanonischer Forecast-/RUC-Datenvertrag unverÃ¤ndert; Pages-Free-Speichermitigation aus v0.9.73.13 bleibt enthalten, kein zusÃ¤tzlicher Worker-Fachpfad und keine kostenpflichtige Infrastruktur.
-
-## v0.9.73.13
-
-- Release-Run #762 vollstÃ¤ndig analysiert: ZIP, Dependencies, TypeScript, Vite, Regressionen und Capacitor waren grÃ¼n; der einzige Fehler lag im separaten Worker-Smoke, weil ein stale RUC-Snapshot die Promotion blockierte.
-- ZirkulÃ¤res RUC-Bootstrap-Gate behoben: Ein **schema- und metadatenvalider** Snapshot mit exakt `RUC-Lauf nicht frisch` darf den Worker-Release einmalig bootstrap-sicher passieren; alle anderen RUC-Healthfehler bleiben fail-closed.
-- Stale RUC-Daten bleiben im Forecast weiterhin deaktiviert; der RUC-Preprocessor verlangt nach VerÃ¶ffentlichung unverÃ¤ndert einen echten `ready + fresh`-Lauf.
-- Automatischer 0-%-Worker-Smoke, Rollback und Kostenvertrag bleiben unverÃ¤ndert; kein manueller Worker-Upload und kein R2 erforderlich.
-
-## v0.9.73.12
-
-- Release-CI-Hotfix nach Run #761: veraltete exakte Extremwetter-Funktionssignatur-Regression an die bereits gÃ¼ltige `env`-Verdrahtung angepasst; fachlicher Mitteleuropa-Extremwetterpfad unverÃ¤ndert.
-- Der parameter-native ICON-D2-RUC-Multiproduktpfad aus v0.9.73.11 bleibt unverÃ¤ndert: stÃ¼ndlicher Zustandskern, 5-minÃ¼tiges `TOT_PREC` sowie separate 15-minÃ¼tige Konvektions-/Diagnostikprodukte.
-- Produktionsvalidierung bleibt fail-closed: erst grÃ¼ner Release-CI-Lauf, danach automatischer semantischer Worker-Deploy und frischer RUC-Workflow; kein manueller Worker-Upload und keine kostenpflichtige Infrastruktur.
-
-## v0.9.73.11
-
-- DWD ICON-D2-RUC appweit auf parameter-native Taktung umgestellt: gemeinsamer Zustandskern stÃ¼ndlich bis +14 h, `TOT_PREC` nativ 5-minÃ¼tlich bis +6 h und Konvektions-/ReflektivitÃ¤ts-/Phasenprodukte 15-minÃ¼tlich bis +6 h.
-- 114 aktuell gelistete RUC-v1-Parameter appweit auditiert; hochwirksame Severe-, Strahlungs- und Specialist-Diagnostik gezielt ergÃ¤nzt, groÃŸe/mehrdimensionale oder redundante Felder bewusst zurÃ¼ckgestellt.
-- 0â€“6-h-Extremwetterpfad um rÃ¤umliche RUC-Rapid-Signale fÃ¼r Niederschlagsrate, CAPE/CIN und optionale DBZ/UH/LPI/EchoTop/Hagel-Diagnostik erweitert.
-- `VIS`, `CEILING`, `HZEROCL`, `SNOWLMT`, `CLCM`, `CLCH`, `T_G`, `H_SNOW` als stÃ¼ndliche Specialist-Diagnostik; Sicht mit 10-m-WireauflÃ¶sung ohne 32,7-km-Clipping.
-- `SRH` und `WSHEAR_U/V` wegen zusÃ¤tzlicher DWD-`lvt1`-Layersemantik bewusst nicht blind importiert; separater Layer-Audit vorgesehen.
-- RUC-Strahlungsfelder werden diagnostisch gefÃ¼hrt, ersetzen aber den appweiten Sunshine-Duration-Contract nicht ohne DNI-/Sonnengeometrie-Validierung.
-
-## v0.9.73.10
-
-- Produktiven RUC-Run #6 repariert: gemeinsames ICON-D2-RUC-Mehrparameterbundle nutzt die tatsÃ¤chlich gemeinsame native Stundenachse 0â€¦+14 h statt nicht vorhandene Viertelstundenwerte fÃ¼r Temperatur/Wind/Druck/Wolken zu verlangen.
-- Kein kÃ¼nstliches Interpolieren auf :15/:30/:45; native 15-Minuten-/Radar-/Nowcast-Quellen bleiben fÃ¼r die feine Kurzfrist zustÃ¤ndig, RUC bleibt kanonischer stÃ¼ndlicher Kurzfristkalibrator.
-- RUC-EPS bleibt stÃ¼ndlich; Worker-/Modellmetadaten melden fÃ¼r den gemeinsamen RUC-Punktadapter korrekt 3600 s.
-- Neuer Common-Hourly-Axis-Regressionsschutz; letzter fehlerhafter Run #6 ist im RUC-Status dokumentiert und wird nicht auf dem alten SHA erneut ausgefÃ¼hrt.
-
-## v0.9.73.9
-
-- Beide neuen MID-Logovarianten integriert und in den Einstellungen als Auto / Dunkles Logo / Helles Logo wÃ¤hlbar gemacht; Auto folgt dem Layoutkontrast und greift auch im Startbildschirm.
-- WolkenkÃ¤stchen im 24-h-Wetterprofil wieder sauber an die Stundenwerte gekoppelt: H/M/L als eingerÃ¼ckte Rasterzellen mit dezenten Frames statt losgelÃ¶ster Vollbandoptik.
-
-## v0.9.73.8
-
-- Release-Gate-Hotfix: veralteten Integrationsassert zur frÃ¼heren RUC-â€žVerfÃ¼gbarkeitsquelleâ€œ auf den produktiven DWDâ†’Pagesâ†’Worker-Vertrag umgestellt.
-- Run #759 hatte TypeScript, Vite und 567/568 Regressionen grÃ¼n; der einzige Fehler war dieser historische Wortlaut-Test.
-- v0.9.73.7-Fachstand bleibt vollstÃ¤ndig erhalten: RUC 0â€“6 h / 15 min, danach stÃ¼ndlich bis +14 h; RUC-EPS stÃ¼ndlich; appweite Modelltexte/Badges und Wolkenprofil unverÃ¤ndert.
-
-## v0.9.73.7
-
-- DWD-RUC-Hybridraster: deterministisch 0â€“6 h in 15-Minuten-Schritten, danach stÃ¼ndlich bis +14 h; RUC-EPS bleibt stÃ¼ndlich.
-- Wolkenprofil vereinheitlicht: ein neutraler Grauton fÃ¼r H/M/L, IntensitÃ¤t ausschlieÃŸlich nach jeweiligem Bedeckungsgrad und weichere Fade-in/Fade-out-ÃœbergÃ¤nge.
-- Modellstand-/RUC-Texte app-weit an den produktiven DWD Open Data â†’ GitHub Pages â†’ Worker-Pfad angepasst.
-- `RUC`-Badge nur noch fÃ¼r echte DWD ICON-D2-RUC/RUC-EPS-Zeilen; andere Rapid-Update-Modelle tragen `Rapid`.
-- RUC-Downloader konsistent zum Hybridraster nachgezogen; bestehende Modellmeta-/RUC-/Pipeline-Regressionen aktualisiert und bestanden.
-
-## v0.9.73.6
-
-- DWD ICON-D2-RUC: native triangular-grid lookup now derives coordinates from authoritative `CLAT`/`CLON` fields instead of unavailable ecCodes `latitudes`/`longitudes` arrays.
-- RUC preprocessing keeps v0.9.73.5 hourly preselection and bounded parallel downloads (`TOT_PREC` 15/325; RUC-EPS 300/6500 observed in run #4).
-- Added fail-closed coordinate, point-count and radians-to-degrees validation.
-
-## v0.9.73.5
-
-- Release-Gate-Hotfix: historische Extremwetter-Persistenzregression auf den aktuellen semantischen StorageSafety-Revisionsvergleich angepasst.
-- RUC-Workflow-Spiegel wieder byteidentisch zum geschÃ¼tzten produktiven `.github`-Workflow; die Beschleunigung bleibt vollstÃ¤ndig im Python-Fetcher und benÃ¶tigt keine WorkflowÃ¤nderung.
-- v0.9.73.4-Favoriten- und RUC-Fachfixes unverÃ¤ndert beibehalten; keine Worker-/R2-/Apple-/KostenÃ¤nderung.
-
-## v0.9.73.4
-
-- RUC-Preprocessing beschleunigt: FÃ¼r das 0â€“14-h-Bundle werden aus DWD-`PTxxxHyyM`-BÃ¤umen vor dem Download nur die 15 benÃ¶tigten vollen Stunden ausgewÃ¤hlt; 5-/15-Minuten-ZwischenstÃ¤nde und spÃ¤tere Leads werden nicht mehr unnÃ¶tig geladen.
-- RUC-Download mit begrenzten 8 parallelen Transfers und sichtbarem Fortschritt; ecCodes extrahiert das native Lat/Lon-Gitter pro Parameter/EPS-Gitter nur einmal.
-- Favoriten-Dauerhaftigkeit repariert: StorageSafety vergleicht PrimÃ¤r-/Shadow-Favoriten jetzt Ã¼ber `mid:favorites:updated-at`, sodass ein Ã¤lterer IndexedDB-Mirror einen neueren nativen Favoritenstand nach Suspend/Reload nicht mehr zurÃ¼cksetzen kann.
-- Keine fachliche Worker-, R2-, Apple-Capability- oder KostenÃ¤nderung.
-
-## 0.9.73.1
-
-## v0.9.73.3
-
-- RUC-Bootstrap-Hotfix: iOS-Statusversion mit Release synchronisiert; keine fachliche RUC-/Worker-Ã„nderung.
-- Generierte Python-`__pycache__`-Artefakte aus dem Release entfernt.
-
-## 0.9.73.2
-- RUC Pages bootstrap: ein noch nicht vorhandenes `/ruc/latest.json` (HTTP 404) blockiert den allerersten Release nach Aktivierung der kostenlosen RUC-Pipeline nicht mehr. Andere Restore-Fehler bleiben fail-closed.
-
-
-- Hotfix fÃ¼r die kostenlose DWD ICON-D2-RUC/RUC-EPS-Pipeline: URL-kodierte DWD-Laufverzeichnisse (`%3A`) werden vor der Run-Erkennung dekodiert.
-- Verhindert den falschen Fehler `No common DWD RUC/RUC-EPS run directories found` bei vorhandenen stÃ¼ndlichen LÃ¤ufen.
-- Fail-safe-VollstÃ¤ndigkeitsprÃ¼fung, gemeinsamer RUC/RUC-EPS-Lauf, Pages-Pfad und deaktiviertes R2 bleiben unverÃ¤ndert.
-
-## 0.9.73.0
-
-- iOS Privacy: Haupt-App und `MIDWidgets` besitzen jeweils ein eigenes, im Target gebÃ¼ndeltes `PrivacyInfo.xcprivacy`; Tracking bleibt Ã¼berall deaktiviert.
-- App-Manifest: Precise Location, optionaler zufÃ¤lliger Device-Sync-Identifier, verschlÃ¼sselter portabler Nutzerinhalt sowie Cloudflare-RUM Produktinteraktion/Performance sind mit passenden AppFunctionality-/Analytics-Zwecken deklariert.
-- Required Reason API: `@capacitor/filesystem` wird mit `NSPrivacyAccessedAPICategoryFileTimestamp` / `C617.1` abgedeckt.
-- Widget-Manifest: ausschlieÃŸlich Precise Location und frei eingegebener Standortinhalt fÃ¼r `mid.native.widget.v1`; keine Tracking-Domains und keine Required-Reason-API.
-- iOS Regression: historische Adaptertests verwenden nun eine zentrale semantische Next-Milestone-Funktion, damit abgeschlossene Apple-Meilensteine nicht erneut durch harte Altvergleiche blockiert werden.
-- Keine neue Apple-Berechtigung oder Capability: kein ATT, kein Push-Opt-in, kein Background Mode, kein `aps-environment`, keine Signierung. NÃ¤chstes Gate ist macOS/Xcode-SimulatorqualitÃ¤t.
-
-## 0.9.71.1
-
-## 0.9.72.0
-
-- iOS: APNs-Callback- und BGAppRefresh-Quellen im Haupt-App-Target vorbereitet, ohne Berechtigungs-, Entitlement-, Token-Upload- oder Scheduling-Aktivierung.
-- iOS: `BGTaskSchedulerPermittedIdentifiers` enthÃ¤lt den vorbereiteten Identifier `app.midwx.weather.background-refresh`; `UIBackgroundModes` und `aps-environment` bleiben absichtlich deaktiviert.
-- Vertrag: `MID_APPLE_PUSH_BACKGROUND_CONTRACT.md` schÃ¼tzt den gemeinsamen React/Vite-/Worker-Fachkern und das Apple-/Kosten-Gate.
-- RUC/Push/Widget: v0.9.71.1-Auditfixes bleiben enthalten; Ortsforecast-Schattenpfade nutzen die kanonische Forecast-Fusion.
-
-
-- Vier veraltete iOS-Regressionen erwarten ab v0.9.71.0 korrekt `apple-push-background-refresh-source-preparation`; die WidgetKit-Xcode-Struktur bleibt vollstÃ¤ndig erhalten.
-- RUC-Appweit-Audit: LÃ¼ftungsassistent/-Push und PrognoseÃ¤nderungs-Push verwenden die kanonische `forecast-fusion` statt eigener Best-Match-Ortsprognosen.
-- Der native `mid.native.widget.v1`-Feed Ã¼bernimmt stÃ¼ndliche/tÃ¤gliche Forecastwerte aus der kanonischen Mehrmodell-/RUC-Fusion; Current und Astronomie bleiben als RohhÃ¼lle erhalten.
-- DWD ICON-D2-RUC/ICON-D2 teilen weiterhin das DWD-ICON-Familienbudget; KNMI/DMI HARMONIE werden konservativ unter `uwc-west-harmonie` gruppiert, ohne Anbieterdiagnostik zu verlieren.
-- Wasser-/Warnquellen benennen die kanonische MID-Ortsprognose korrekt; Druckniveau-, Berg-, Marine-, Radar-/Raster- und Mitteleuropa-Extremwetterpfade bleiben fachlich getrennte Spezialdaten.
-- KNMI Direkt-GRIB wird nicht zusÃ¤tzlich aktiviert: vorhandener kostenloser Open-Meteo-Pfad deckt die stÃ¼ndliche HARMONIE-Rapid-Quelle ab, wÃ¤hrend ein zweiter Datei/API-Key-/Dekodierpfad derzeit nur Betriebsaufwand duplizieren wÃ¼rde. R2 bleibt deaktiviert.
-
-## 0.9.71.0
-
-- Das vorbereitete Apple-Widget-GerÃ¼st ist als echtes `MIDWidgets`-App-Extension-Target in `ios/App/App.xcodeproj` integriert und wird Ã¼ber `Embed Foundation Extensions` samt Target-AbhÃ¤ngigkeit in die bestehende Capacitor-App eingebettet.
-- Die Widget-Swiftquellen liegen nun kanonisch unter `ios/App/MIDWidgets`; parallele alte Swift-Kopien unter `native/apple` wurden entfernt. Der gemeinsame Wetter-/Worker-Fachkern bleibt unverÃ¤ndert.
-- Der unverÃ¤nderte Datenvertrag `mid.native.widget.v1` wird beim Decodieren explizit validiert; der Widget-Provider nutzt den produktiven HTTPS-Endpunkt `mid-data-proxy.midwx.workers.dev`.
-- Die Widget Extension verwendet iOS/iPadOS 17.0 fÃ¼r `AppIntentConfiguration`; das Haupttarget bleibt auf iOS 15.0. iOS unterstÃ¼tzt systemSmall/Medium/Large und die Lock-Screen-Familien Inline/Circular/Rectangular; `accessoryCorner` ist fÃ¼r ein spÃ¤teres watchOS-Target per Compile-Grenze geschÃ¼tzt.
-- Keine App Group, kein Apple-Entitlement, keine Signierung und kein kostenpflichtiger Dienst werden in diesem Quellmilestone aktiviert. Neue Regression schÃ¼tzt Xcode-Target, Einbettung, Info.plist, Bundle-ID, Plattformgrenzen und den Feedvertrag.
-
-## 0.9.70.2
-
-- Release-Hotfix fÃ¼r den Lifecycle-/Offline-Meilenstein: die historische v0.9.53.14-Core-Cache-Regression prÃ¼ft nicht lÃ¤nger eine einzelne alte Quelltextzeile, sondern den aktuellen dreistufigen Cachevertrag aus Offline-Warmstart, Fresh-Cache und Stale-Netzfallback.
-- Die Laufzeitlogik selbst bleibt unverÃ¤ndert: Offline wird vor jedem Netzpfad auf einen lokalen Kernforecast zurÃ¼ckgegriffen; frische Cachewerte werden normal wiederverwendet und ein belastbarer letzter Stand bleibt nach Netz-/Rate-Limit-Ausfall als begrenzter Fallback verfÃ¼gbar.
-- Run #749 bestÃ¤tigte vor dem Testabbruch TypeScript und Vite-Build fÃ¼r v0.9.70.1 sowie 563 von 564 Regressionen; Worker, Pages und `mid-stable` blieben fail-closed unangetastet.
-
-## 0.9.70.1
-
-- Gemeinsamer Browser/PWA-/Capacitor-Lifecycle-Bridge: `pagehide`, Sichtbarkeit und nativer `appStateChange` sichern den lokalen Persistenzstand best-effort, ohne Favoriten, Events, Einstellungen oder Wetterzwilling-Daten zu lÃ¶schen oder zurÃ¼ckzusetzen.
-- Offline-Warmstart: ein hÃ¶chstens 18 Stunden alter erfolgreicher Kernforecast wird ohne aussichtslosen Netzwerkversuch sofort aus dem lokalen Cache geliefert; ohne Cache endet der Ladevorgang unmittelbar mit einer verstÃ¤ndlichen Offline-Meldung statt in einem Endlos-Ladezustand.
-- Die OberflÃ¤che kennzeichnet Offline-Betrieb kompakt samt Standzeit des gespeicherten Wetterstands; bei NetzrÃ¼ckkehr und nach lÃ¤ngerer Wiederaufnahme wird derselbe gemeinsame Forecast-Loader gezielt neu angestoÃŸen.
-- Bestehende Browser-/PWA-Sichtbarkeits-Refreshpfade werden beim nativen Resume weiterverwendet; es entsteht kein iOS-Fachlogik-Fork und keine neue native Datenhaltung.
-- Neue Required Regression schÃ¼tzt Lifecycle, Offline-Short-Circuit, Cache-Metadaten, lokalen Datenbestand und Dark-Mode-Offlinestatus.
-
-## 0.9.70.0
-
-- DWD ICON-D2-RUC/RUC-EPS kann ohne Cloudflare R2 Ã¼ber den kostenfreien GitHub-Pages-Pfad `pages-free-v1` verÃ¶ffentlicht werden; GRIB-Decodierung bleibt vollstÃ¤ndig im GitHub-Actions/ecCodes-Vorprozessor.
-- Deterministischer RUC, voraggregierte RUC-EPS-Wahrscheinlichkeiten/Quantile und rÃ¤umlicher Lookup werden als kleine immutable Chunks publiziert; der Worker benÃ¶tigt fÃ¼r Pages keine HTTP-Range-Requests.
-- Normale MID-Pages-Releases bewahren einen vorhandenen RUC-Snapshot mit GrÃ¶ÃŸen-/SHA-256-PrÃ¼fung und brechen bei aktivierter Pipeline fail-closed ab, statt RUC-Daten lautlos zu lÃ¶schen.
-- Tagesansicht: Niederschlagswahrscheinlichkeit bleibt nun auch bei gleichzeitig sichtbaren Niederschlagsbalken als kontrastierte cyanfarbene Kurve sichtbar.
-- Tagesansicht: Windrichtungspfeile erhalten in der dunklen Ansicht einen hellen, leicht konturierten Kontrast; eine zuvor globale dunkle Cockpit-CSS-Regel ist auf das Cockpit begrenzt.
-- R2 bleibt vollstÃ¤ndig optional und inaktiv; fÃ¼r diesen Meilenstein wird kein kostenpflichtiger Speicher aktiviert.
-
-## 0.9.69.7
-
-- Extremwetter-Ausblick vom versehentlich wiederverwendeten v0.9.66.19-DACH-Stand auf den bereits in v0.9.67.7â€“v0.9.67.11 eingefÃ¼hrten vollstÃ¤ndigen Mitteleuropa-/ICON-D2-Vertrag zurÃ¼ckgefÃ¼hrt.
-- Native ICON-D2-Gebietsmaske, erweitertes Regionsnetz, resilienter Batch-/Teilcache und 0â€“6-h-KONRAD3D-/Meso-Beobachtungsabgleich wiederhergestellt; Browser-Direktpfad bleibt derselbe Fachkern.
-- Freie OSM-Kontextlage wird Ã¼ber sÃ¤mtlichen GefahrenflÃ¤chen erneut gezeichnet; LÃ¤ndergrenzen, Kartenlinien und StÃ¤dtenamen bleiben auch bei mehreren Ã¼berlagerten Gebietslayern sichtbar.
-- Neue Required Regression verhindert einen erneuten DACH-/v4-RÃ¼ckfall und schÃ¼tzt die Karten-Layerreihenfolge.
-
-## 0.9.69.6
-
-- Worker-Auto-Deploy: reale `cloudflare/wrangler-action`-Ausgabe wird Ã¼ber den dokumentierten `command-output` statt Ã¼ber eine nicht erzeugte `/tmp`-Datei ausgewertet.
-- Version-ID-Erkennung bleibt fail-closed und akzeptiert exakt eine Worker-Version-ID.
-- Regression deckt die echte Wrangler-4.125.0-Zeile `Worker Version ID: ...` ab.
-
-## 0.9.69.5
-
-- Worker-Auto-Deploy-Hotfix: der in einer temporÃ¤ren `/tmp`-Wrangler-Konfiguration gespeicherte Worker-Einstiegspfad ist jetzt absolut und zeigt sicher auf den ausgecheckten Release-Arbeitsbaum.
-- Regression schÃ¼tzt davor, `worker/metar-proxy.js` kÃ¼nftig wieder relativ zum Speicherort der temporÃ¤ren Config statt zum Repository aufzulÃ¶sen.
-- Der v0.9.69.4-Fehlversuch stoppte erneut vor Staging/Traffic; Pages und `mid-stable` blieben korrekt blockiert.
-
-## 0.9.69.4
-
-- Worker-Auto-Deploy-Hotfix: ein leeres Cloudflare-`placement` wird nicht mehr als ungÃ¼ltiges `placement: {}` an Wrangler Ã¼bergeben.
-- GÃ¼ltiges Smart Placement bzw. genau ein expliziter Placement-Hinweis bleibt erhalten; unbekannte oder widersprÃ¼chliche Remote-Angaben brechen weiterhin fail-closed ab.
-- Der fehlgeschlagene v0.9.69.3-Erstlauf Ã¤nderte keinen produktiven Traffic; Pages und `mid-stable` blieben korrekt blockiert.
-
-## 0.9.69.3
-
-- Sicherer automatischer Cloudflare-Worker-Deploy mit fachlicher Ã„nderungserkennung, Remote-Konfigurationsspiegel, 0-%-Staging, Versionsoverride-Smoke, 100-%-Promotion und automatischem Rollback.
-- Dashboard-Variablen/Secrets bleiben erhalten; unbekannte Bindings und mehrdeutige Split-Deployments blockieren fail-closed.
-
-## 0.9.69.2
-
-- Cloudflare-R2-Betrieb auf **private-by-default** gehÃ¤rtet: `r2.dev` wird beim einmaligen Bootstrap deaktiviert; ein Custom Domain bleibt optional und benÃ¶tigt weiterhin eine gesonderte Freigabe.
-- Bootstrap validiert Cloudflares aktuelle kleingeschriebene R2-Location-Hints (`weur`, `eeur`, â€¦); der bisherige vorbereitete GroÃŸschrift-Default wird nicht mehr an die API gesendet.
-- Lifecycle-Leckschutz fÃ¼r verwaiste `runs/` auf 48 h gesetzt. Die unmittelbare Vier-Run-Bereinigung bleibt Aufgabe des atomaren Publishers, der den aktuell durch `latest.json` referenzierten vollstÃ¤ndigen Lauf vor dem Pointerwechsel niemals lÃ¶scht.
-- Neuer `ruc-health`-Workerpfad prÃ¼ft Binding, Metadatenschema, Laufalter, Punkt-/Zeit-/EPS-Vertrag und die tatsÃ¤chliche Existenz aller vier Laufobjekte, ohne Bucketnamen, Tokens oder URLs offenzulegen.
-- GitHub-Stundenpublisher bleibt auf einen bucket-spezifischen R2-Object-Read-&-Write-Zugang begrenzbar; Bucket-/Lifecycle-Administration bleibt vom laufenden Publisher getrennt.
-- Browser/PWA und iOS bleiben auf demselben React/Vite-/Worker-Fachkern; keine native Sonderlogik oder PersistenzÃ¤nderung.
-
-## 0.9.69.1
-
-- Kostenfreien DWD-RUC-Produktionspfad gehÃ¤rtet: der GitHub-Actions/ecCodes-Vorprozessor versucht mehrere gemeinsame RUC/RUC-EPS-Laufkandidaten und verÃ¶ffentlicht nur einen vollstÃ¤ndig dekodierten 0â€“14-h-Lauf.
-- RUC-EPS wird fÃ¼r den normalen Forecast bereits im Vorprozessor zu >0,2-mm- und >5-mm-Wahrscheinlichkeit, Mittel sowie Q25/Q50/Q75 verdichtet; native Member bleiben ausschlieÃŸlich fÃ¼r die kurzfristige Event-Ensembleauswertung abrufbar.
-- Alle Laufobjekte einschlieÃŸlich `lookup.bin` liegen unverÃ¤nderlich unter `runs/<run>/`; `latest.json` wird erst nach Remote-GrÃ¶ÃŸenprÃ¼fung zuletzt ersetzt. Ein identischer vollstÃ¤ndiger Lauf verursacht beim nÃ¤chsten Workflow keine neuen Schreiboperationen.
-- Alte RUC-LÃ¤ufe werden erst nach erfolgreichem Pointerwechsel entfernt; vier vollstÃ¤ndige LÃ¤ufe bleiben als RÃ¼ckfallreserve erhalten. Best Match/ICON-D2/ICON-D2-EPS bleiben jederzeit sichere Fallbacks.
-- Cloudflare-R2-Bootstrap als Dry-Run/Fail-Closed-Werkzeug ergÃ¤nzt. R2-Erstellung erfordert `MID_RUC_COST_APPROVED=true`; ein Ã¶ffentliches Custom Domain zusÃ¤tzlich `MID_RUC_PUBLIC_DOMAIN_APPROVED=true`. Ohne ausdrÃ¼ckliche Freigabe wird nichts im Cloudflare-Konto verÃ¤ndert.
-- Browser/PWA und iOS verwenden weiterhin denselben React/Vite-/Worker-Fachkern; der nÃ¤chste native Lifecycle-/Offline-Meilenstein bleibt unverÃ¤ndert.
-
-## 0.9.68.1
-
-- Netatmo-OAuth wird im nativen Container Ã¼ber Capacitor Browser im iOS-Systembrowser geÃ¶ffnet; Browser/PWA behalten den bestehenden externen beziehungsweise Same-Window-Pfad.
-- Der eng begrenzte RÃ¼cksprung `midwx://oauth/netatmo` verarbeitet Warm- und Kaltstarts, validiert Callback-Daten und Ã¶ffnet anschlieÃŸend die vorhandene MID-Stationsansicht.
-- Fremde Deep Links, unsichere externe Zieladressen und ungÃ¼ltige Stationskennungen werden verworfen; Fachwerte und Stationspersistenz bleiben auÃŸerhalb des Adapters.
-
-## 0.9.68.0
-
-- Der gemeinsame React-/Vite-Kern verwendet fÃ¼r eine ausdrÃ¼ckliche Standortaktion im nativen Container den Capacitor-Geolocation-Adapter; Browser/PWA behalten den bisherigen `navigator.geolocation`-Pfad.
-- Berechtigungen werden erst bei Bedarf angefordert. Es gibt weder einen Standort-Watcher noch Hintergrund-Ortung oder neue Koordinatenpersistenz.
-- Nicht berechtigungsbedingte BrÃ¼ckenfehler kÃ¶nnen auf den bestehenden Browserpfad zurÃ¼ckfallen; eine Ablehnung wird nicht mit einem zweiten Prompt umgangen.
-- Die iOS-Berechtigungsbeschreibungen und eine neue Required Regression schÃ¼tzen den Adaptervertrag.
-
-## 0.9.67.5
-
-- MapLibre GL JS 6.5 erhÃ¤lt im Vite-Produktionsbuild wieder den vorgeschriebenen selbststÃ¤ndigen ESM-Worker; dadurch erscheinen die modellierten DACH-GefahrenflÃ¤chen wieder, wÃ¤hrend Browser/PWA und iOS denselben Kartenkern behalten.
-- Ein neuer Required-Test prÃ¼ft die Worker-URL vor der ersten Karte sowie den gebÃ¼ndelten Produktions-Worker und verhindert einen erneuten lautlosen Ausfall der GeoJSON-FlÃ¤chen.
-
-## 0.9.67.4
-
-- Release-Hotfix fÃ¼r den v0.9.67.3-Installer: Der Dependency-/Actions-Wartungstest verlangt nicht lÃ¤nger, dass der absichtlich vor Workflow-Selbstmodifikation geschÃ¼tzte aktive `.github`-Stand bereits innerhalb desselben ZIP-Installationslaufs aktualisiert wurde.
-- `sync-github-workflows.mjs` synchronisiert beim ausdrÃ¼cklich administrativen Lauf nun neben checkout v7.0.1 und setup-node v7.0.0 auch CodeQL `init`/`analyze` auf 4.37.7 (`ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd`).
-- Der Installer-Sicherheitsvertrag bleibt unverÃ¤ndert: `.github` wird weder durch das Release-Overlay noch durch den automatischen Release-Commit selbst verÃ¤ndert; die Workflow-Aktualisierung erfolgt getrennt Ã¼ber den expliziten Sync.
-- Versionssynchronisierung gehÃ¤rtet: `sync-version.mjs` aktualisiert nun auch die kanonische Worker-Teilquelle, damit der Aggregate-Neubau den Release-Worker nicht auf die Vorversion zurÃ¼cksetzen kann.
-- Keine Ã„nderung an Wetterlogik, UI, MapLibre/Lucide-Versionen oder Datenquellen gegenÃ¼ber v0.9.67.3.
-
-## 0.9.67.3
-
-- PR #16 Ã¼bernommen: Lucide React 1.31.x â†’ 1.34.0; Package/Lockfile, Dependency-Policy und Freigabetest sind gemeinsam auf den neuen Stable-Pin umgestellt.
-- PR #17 Ã¼bernommen: MapLibre GL JS 5.24.0 â†’ 6.5.0 einschlieÃŸlich synchronisierter Transitivreihen und MapLibre-Pin-Regression; der verwendete Stand enthÃ¤lt die DOM-Sanitizing-Korrektur aus der 6.4.1-Linie.
-- PR #15 Ã¼bernommen: CodeQL 4.37.7 ist fÃ¼r `init` und `analyze` auf `ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd` SHA-gepinnt.
-- PR #1/#2 nicht blind gemergt: `sync-github-workflows.mjs` synchronisiert alle Workflows auf checkout v7.0.1 (`3d3c42e5aac5ba805825da76410c181273ba90b1`) und setup-node v7.0.0 (`820762786026740c76f36085b0efc47a31fe5020`).
-- React 18.3.1, TypeScript 5.9.3, Vite 6.4.3 und @vitejs/plugin-react 4.7.0 bleiben unverÃ¤ndert; die grÃ¶ÃŸeren Toolchain-SprÃ¼nge sind weiterhin separat zurÃ¼ckgestellt.
-
-## 0.9.67.2
-
-- Ein vollstÃ¤ndig gecachtes Browser-/PWA-Update wird nun kontrolliert aktiviert und lÃ¤dt offene App-Fenster auf den neuen Stand. Die vorherige geprÃ¼fte Version bleibt bis zur erfolgreichen Laufzeit-Gesundheitsmeldung als RÃ¼ckfallversion erhalten.
-- Dadurch kann nach einem erfolgreichen Release-Upload nicht lÃ¤nger unbemerkt eine wartende neue Version neben der weiterhin sichtbaren Altversion laufen.
-- Die kompakte Event-Center-Ãœbersicht zeigt neben Niederschlagsart und -wahrscheinlichkeit wieder die fÃ¼r den gesamten Eventzeitraum berechnete Niederschlagsmenge in mm.
-
-## 0.9.66.19
-
-- Regionsnamen von modellierten GefahrenflÃ¤chen werden ausschlieÃŸlich aus der rÃ¤umlichen Lage der jeweiligen Kontur bestimmt; meteorologische Spitzenwerte einer entfernten Rasterzelle kÃ¶nnen das Popup nicht mehr falsch benennen.
-- â€žStÃ¤rkste Regionenâ€œ fasst nur noch identische Kombinationen aus Region, Gefahr und IntensitÃ¤t zusammen und behÃ¤lt dabei die hÃ¶chste Wahrscheinlichkeit. Mehrfache gleichlautende EintrÃ¤ge wie â€žOstschweizâ€œ entfallen.
-- Flug-Events behandeln fehlende Wolkenuntergrenzen strikt nullsicher. Ein noch nicht vorhandener TAF-/Ceiling-Wert wird nicht mehr durch `Number(null)` zu 0 und anschlieÃŸend als â€žunter 100 ft AGLâ€œ formatiert.
-- Sehr niedrige diagnostische Untergrenzen bleiben zusÃ¤tzlich gegen Sichtweite, tiefe BewÃ¶lkung und Wettercode plausibilisiert; Ã¤ltere Flugwetter-Zwischenspeicher werden Ã¼ber einen neuen Cachevertrag entwertet.
-
-## 0.9.66.18
-
-- DACH-Extremwetterkarte und â€žStÃ¤rkste Regionenâ€œ verwenden nun denselben flÃ¤chenbezogenen Konturdatensatz. Zwei getrennte GefahrenflÃ¤chen bleiben auch dann zwei ListeneintrÃ¤ge, wenn ihre frÃ¼here grobe Regionsbezeichnung identisch war.
-- Jede modellierte GefahrenflÃ¤che erhÃ¤lt eine stabile ID; Auswahl, Marker, Prozentwert und Detailkarte sind dadurch eindeutig gekoppelt.
-- Karten-Popups zeigen wieder die zur jeweiligen FlÃ¤che gehÃ¶rende Regionsbezeichnung vor Prognosestufe und Wahrscheinlichkeit.
-- Alpenregionen feiner zugeordnet: Wallis, Zentralschweiz, Tessin, GraubÃ¼nden, Vorarlberg und Tirol ersetzen zu grobe Sammelzuordnungen.
-
-## 0.9.66.17
-
-- DACH-Extremwetterkarte: Beschriftungen werden nun aus den tatsÃ¤chlich dargestellten, getrennten Konturkomponenten erzeugt. Zwei rÃ¤umlich getrennte Felder derselben zusammengefassten Region erhalten damit jeweils eine eigene Stufen- und Prozentangabe; eingebettete stÃ¤rkere Kerne verdrÃ¤ngen doppelte HÃ¼llenbeschriftungen.
-- Die in der Extremwetterkarte anonym nicht mehr nutzbaren CARTO-Kacheln wurden durch eine schlÃ¼sselfreie OpenStreetMap-Kartenbasis mit transparentem Orientierungslayer ersetzt. Das von CARTO gelieferte Wasserzeichen â€žAPI KEY REQUIREDâ€œ erscheint dort nicht mehr.
-- Flug-Events: Standortbezogene Zusammenfassungen fÃ¼r Wolkenuntergrenze, Sicht und BÃ¶en bleiben strikt auf dem lokalen Modell-/Druckniveaupfad. RÃ¤umlich entfernte METAR-/TAF-Hazards bleiben im amtlichen Hazard-Screening sichtbar, dÃ¼rfen aber lokale Eckwerte nicht mehr Ã¼berschreiben.
-- UngÃ¼ltige bzw. nicht spezifizierte Terminal-Cloud-Basen unter 100 ft und auÃŸerhalb des physikalischen Wertebereichs werden bereits im Worker verworfen. Die bestehende Low-Cloud-/Sicht-/Wettercode-Plausibilisierung bleibt zusÃ¤tzlich aktiv.
-
-## 0.9.66.16
-
-- Vier veraltete Extremwetter-DACH-Regressionen an die seit 0.9.66.14 getrennte Kontur-/GeoJSON-Architektur angepasst. Die Tests prÃ¼fen nun `extremeOutlookAreaGeoJson.ts` und `buildExtremeOutlookContourGeoJson` statt entfernte Implementierungsstrings im Overlay.
-- Keine RÃ¼cknahme der fachlichen FlÃ¤chenkorrektur: Multipolygone, Lochringe, >60-%-Kerne und Schraffur bleiben unverÃ¤ndert.
-- Korrekturen aus 0.9.66.15 fÃ¼r GeoJSON-TypeScript-Build, Wolkenuntergrenzen-PlausibilitÃ¤t und chronologische amtliche Warnungen bleiben erhalten.
-
-## 0.9.66.15
-
-- Produktionsbuild repariert: ExtremflÃ¤chen-GeoJSONs sind nun explizit als `FeatureCollection<MultiPolygon, ...>` typisiert; der TypeScript-Fehler `type: string` gegen `type: "Feature"` ist beseitigt.
-- Flug-Events: sehr niedrige modell-diagnostische Wolkenuntergrenzen werden gegen `cloud_cover_low`, Sicht und Wettercode plausibilisiert; insbesondere wird `unter 100 ft AGL` bei guter Sicht ohne stÃ¼tzendes Low-Cloud-Signal nicht mehr ausgegeben.
-- Amtliche Wetterwarnungen werden chronologisch nach Beginn, dann Ende sortiert; Warnstufe oder Provider-Reihenfolge Ã¼bersteuern die Zeitachse nicht mehr.
-
-## 0.9.66.14
-- Flug-Event-PlausibilitÃ¤t fÃ¼r Wolkenuntergrenzen verbessert: diagnostische Angaben wie "unter 100 ft AGL" werden nur noch gezeigt, wenn Low-Cloud-, Sicht- oder Wettercode-Signale diese niedrige Untergrenze stÃ¼tzen; bei guter Sicht ohne Low-Cloud-Support bleibt die Angabe nun aus.
-- Build-Fix fÃ¼r ExtremflÃ¤chen-GeoJSON: `buildExtremeOutlookContourGeoJson` liefert nun explizit typisierte GeoJSON-FeatureCollections/MultiPolygons, damit der Produktionsbuild nicht mehr an `Feature<Geometry, GeoJsonProperties>` scheitert.
-
-- DACH-Extremwetterkarte: rechteckig wirkende >60-%-TeilflÃ¤chen ursÃ¤chlich behoben. Die bereits fachlich korrekten Konturringe werden nun als sauber verschachtelte GeoJSON-Multipolygone an MapLibre Ã¼bergeben, statt AuÃŸenringe, Lochringe und innere Inseln implizit zu vermischen.
-- Schraffur unter 60 % und ungeschraffte Kerne Ã¼ber 60 % bleiben auch bei geschachtelten FlÃ¤chen korrekt getrennt; Inseln innerhalb einer Aussparung werden als eigene FlÃ¤che erhalten.
-- Das Overlay aktualisiert seine GeoJSON-Quellen nun auch fÃ¼r leere ZwischenzustÃ¤nde sauber weiter. Veraltete Restgeometrien bleiben dadurch nicht auf der Karte stehen.
-- Meteorologische Feldberechnung, Schwellen, Diagnostik und Worker-Fachlogik bleiben unverÃ¤ndert; fachlich ist dies ein Frontend-Fix.
-
-## 0.9.66.13
-
-- Fachlich falsche Umrechnung der stÃ¼ndlichen Niederschlagswahrscheinlichkeit in Niederschlagsminuten entfernt: 66 % werden nicht mehr als 40 Minuten Regen ausgegeben. Ohne zeitlich aufgelÃ¶ste Teilintervalle zeigt MID keine Scheindauer.
-- Sonnenscheindauer appweit nach der letzten Modell-, Wetterzwilling-, Lokal- und Radarstufe plausibilisiert: Nacht sowie mehrfach gestÃ¼tzter Nebel, geschlossene tiefe BewÃ¶lkung und stratiformer Niederschlag begrenzen widersprÃ¼chliche Werte; Wahrscheinlichkeit allein und Schauer-/Gewitterlagen tun dies ausdrÃ¼cklich nicht.
-- Fehlende Sonnenscheinwerte bleiben fehlend. Die 3-Stunden-Ansicht summiert die drei Stundenwerte korrekt und kann bis 180 Minuten anzeigen, statt einen Mittelwert auf 60 Minuten zu begrenzen.
-- Aktuelle Ansicht, 15-Minuten-/Stundenprofil, Tagesaggregation, Events und native Widgets verwenden denselben Zeitkonsistenzvertrag. FÃ¼r native Apple-Widgets ist der synchronisierte Worker erforderlich.
-
-## 0.9.66.12
-
-- Aktuelle Radar-Nowcast-Karte gegen BreitenÃ¼berlauf abgesichert: Summen- und Ensembleangaben ordnen sich abhÃ¤ngig von der tatsÃ¤chlichen Kartenbreite neu an, statt Diagramm, Balken oder Info-SchaltflÃ¤che zu Ã¼berdecken.
-- Zeitmarken und die Jetzt-Markierung besitzen getrennte Lesebereiche; der komplette Nowcast-Rahmen bleibt innerhalb seiner Karte.
-- Derselbe responsive Kartenvertrag gilt fÃ¼r Gewitter-, Starkregen- und Sturzflut-Zusatzfelder: lange Ãœberschriften, Statusangaben, Ortszeilen, Fakten und Quellen brechen innerhalb der verfÃ¼gbaren Breite um.
-
-## 0.9.66.11
-
-- Der lange Methodik- und EinschrÃ¤nkungstext unter der DACH-Gefahrenkarte wurde aus dem normalen Layout entfernt. Er ist vollstÃ¤ndig Ã¼ber einen kompakten, appweit standardisierten Info-Button abrufbar.
-
-## 0.9.66.10
-
-- Kartenlegende des DACH-Extremwetter-Ausblicks deutlich verkleinert: I1â€“I4 stehen nun in einem zweispaltigen Raster mit kurzen Kartenbezeichnungen; die vollstÃ¤ndigen fachlichen Benennungen bleiben in der ausfÃ¼hrlichen Legende unterhalb der Karte erhalten.
-- Der redundante ErklÃ¤rungstext zu Farbe, Prozent und Deckkraft wurde aus der Kartenlegende entfernt. Die Schraffur wird dort nur noch kompakt als Wahrscheinlichkeit unter 60 % ausgewiesen.
-- LÃ¤nder-, Verwaltungs- und Verkehrsgrenzen werden Ã¼ber einen transparenten Karten-Kontextlayer oberhalb der GefahrenflÃ¤chen nachgezeichnet; der separate Beschriftungslayer bleibt als oberste Orientierungsebene erhalten.
-- Wahrscheinlichkeitsband und Prozentanzeige verwenden dieselbe Rundungsbasis. Der Grenzfall eines intern knapp unter 10 % liegenden Signals kann daher nicht mehr gleichzeitig als `10 %` und `P0` erscheinen; angezeigt wird konsistent `10 % Â· P1`.
-
-## 0.9.66.9
-
-- Extremwetterkarte auf die kontrastreichere CARTO-Voyager-Orientierungskarte umgestellt. Beschriftungen bleiben als eigener Vordergrundlayer oberhalb der GefahrenflÃ¤chen; geringere FlÃ¤chendeckkraft hÃ¤lt LÃ¤nder- und Verwaltungsgrenzen besser erkennbar.
-- MID-Prognosestufen fachlich an die DWD-Warnlogik angenÃ¤hert, ohne eine amtliche Warnung vorzutÃ¤uschen: Wettergefahr, markante Wettergefahr, Unwetterpotenzial und extremes Unwetterpotenzial. Die frÃ¼here grÃ¼ne Stufe entfÃ¤llt zugunsten der gelbâ€“orangeâ€“rotâ€“violetten Gefahrenskala.
-- Schraffur korrigiert: Sie folgt nun dem interpolierten Wahrscheinlichkeitsfeld innerhalb eines Gefahrengebiets und kennzeichnet exakt die TeilflÃ¤chen unter 60 %, nicht mehr pauschal den Spitzenwert der gesamten zusammenhÃ¤ngenden FlÃ¤che. Legende und KartenerklÃ¤rung nennen die Bedeutung ausdrÃ¼cklich.
-- Dashboard-Reihenfolge erhÃ¤lt einen eigenen Ã„nderungszeitpunkt. Neu hinzugekommene Sektionen werden einmalig verlustfrei migriert; die Migration wird gespeichert. Beim Start gewinnt ein neuerer synchroner Wert gegen einen veralteten IndexedDB-Spiegel, und der GerÃ¤teabgleich schÃ¼tzt die lokal neuere Sektionsreihenfolge vor Ã¤lteren Remote-StÃ¤nden.
-
-## 0.9.66.8
-
-- DACH-Kartenbeschriftungen wurden als eigener Vordergrundlayer Ã¼ber die Gefahrenpolygone gelegt; GÃ¼ltigkeits- und Popuptexte erhielten mehr Kontrast.
-- DatumsÃ¼bergreifende Vorhersagefenster nennen Start- und Enddatum. `GefrierhÃ¶he` heiÃŸt im Ausblick nun `Nullgradgrenze`.
-- SektionsÃ¤nderungen werden funktional und synchron geschrieben; 0.9.66.9 ergÃ¤nzt die notwendige Revisions- und Spiegelkonfliktbehandlung.
-
-## 0.9.66.7
-
-- Fehlende Wassertemperatur im Reiseplaner ursÃ¤chlich behoben: Der bisherige Open-Meteo-/ERA5-Ocean-Aufruf lieferte real ausschlieÃŸlich leere SST-Werte und wurde vollstÃ¤ndig entfernt.
-- KÃ¼stennahe Wassertemperaturen stammen nun aus dem tÃ¤glichen NOAA-OISST-v2.1-Langzeitmittel der Normperiode 1991â€“2020. MID wÃ¤hlt fÃ¼r den konkreten Reisezeitraum die nÃ¤chste vollstÃ¤ndige 0,25Â°-Meereszelle innerhalb von 80 km; Binnenland erhÃ¤lt weiterhin keinen Ersatzwert.
-- Neuer CORS-sicherer Workervertrag `travel-water-climate` mit strikt validiertem Schema, gezielten OPeNDAP-Zeit-/Raumausschnitten, Land-/Fehlwertfilter, Schaltjahrbehandlung und transparenter NOAA-Kennzeichnung in der OberflÃ¤che.
-- Alte leere SST-Caches werden durch `noaa-oisst-1991-2020:v5` invalidiert. Nur positive Ergebnisse werden langfristig gespeichert; Fehler und saubere NichtverfÃ¼gbarkeit bleiben wiederholbar. Ein alter Worker wird sichtbar diagnostiziert.
-- Der konkrete Nutzerfall Iberostar Waves Creta Panorama, 18.â€“27.10.2026, wurde gegen den realen NOAA-Datensatz verifiziert: 22,66 Â°C am 3,6 km entfernten Meeresgitter. Professional-App und Worker mÃ¼ssen gemeinsam auf 0.9.66.7 aktualisiert werden.
-
-## 0.9.66.6
-
-- Wiederholt gleichfÃ¶rmige Sechseck-/StÃ¼tzkernflÃ¤chen im DACH-Extremwetter-Ausblick entfernt. Gefahrengebiete entstehen nun als Schwellenkonturen aus dem vollstÃ¤ndigen rÃ¤umlichen I1â€“I4-Wahrscheinlichkeitsfeld und nicht mehr als Puffer um ausschlieÃŸlich sichtbare StÃ¼tzpunkte.
-- Der Datenvertrag liefert fÃ¼r jedes Rasterfeld auch Wahrscheinlichkeiten unterhalb der Darstellungsschwelle. Dadurch bestimmen reale Modellgradienten Lage, Ausrichtung, Ausdehnung und Rand der Gebiete; benachbarte Signale verschmelzen fachlich, stÃ¤rkere IntensitÃ¤tskerne kÃ¶nnen innerhalb grÃ¶ÃŸerer FlÃ¤chen liegen.
-- Die bestehenden Schwellen bleiben unverÃ¤ndert: 40 % in der Gesamtlage, 10 % je Einzelgefahr und 5 % fÃ¼r I4-Ausnahmesignale. Farbe, Deckkraft, Schraffur, appweite Einheiten, Mehrparameterdiagnostik und Trennung von amtlichen Warnungen bleiben erhalten.
-- Worker und kostenloser Browser-Direktweg nutzen dieselbe erweiterte Feldberechnung ohne zusÃ¤tzliche Modellabrufe. Ein Ã¤lterer Worker bleibt kompatibel; die volle durch Unterschwellenwerte geformte Geometrie setzt Worker 0.9.66.6 oder den Direktweg voraus.
-- VollstÃ¤ndig auf MID 0.9.66.5 aufgebaut: Die dort reparierte klimatologische Reise-Wassertemperatur und ihre SST-v4-Regression bleiben unverÃ¤ndert Bestandteil beider neuen Builds.
-
-## 0.9.66.5
-
-- Reiseplaner: klimatologische Wassertemperatur fÃ¼r KÃ¼stenziele robust gemacht. Alle acht ERA5-Ocean-Referenzjahre werden unabhÃ¤ngig geprÃ¼ft; 1991 ist kein harter Gatekeeper mehr.
-- Alte SST-Negativcaches werden durch den neuen v4-Cachevertrag invalidiert; negative/unvollstÃ¤ndige Ergebnisse werden nicht mehr Ã¼ber Jahre gespeichert und kÃ¶nnen sich beim nÃ¤chsten Abruf erholen.
-- KÃ¼stenradius an das native ERA5-Ocean-0,5Â°-Raster angepasst (80 km statt 45 km), ohne binnenlÃ¤ndische Ersatzwerte zu erfinden. Technische SST-AusfÃ¤lle werden im Reiseergebnis sichtbar, wÃ¤hrend die Ã¼brige Klimatologie verfÃ¼gbar bleibt.
-- Neue dynamische Regression prÃ¼ft fehlendes Referenzjahr, grobe gÃ¼ltige Meereszelle und Wiederherstellung nach einem negativen SST-Versuch.
-
-## 0.9.66.4
-
-- Der DACH-Extremwetter-Ausblick bleibt auch bei ausgeschÃ¶pftem tÃ¤glichem Cloudflare-Worker-Kontingent verfÃ¼gbar: Nach dem bevorzugten Worker-Abruf berechnet die App dieselbe Prognose kostenfrei direkt im Browser aus DWD ICON-D2-EPS und ICON-D2.
-- Die Direktberechnung wird automatisch aus derselben kanonischen Worker-Fachquelle erzeugt. Raster, Schwellen, Mehrparameterdiagnosen, Wahrscheinlichkeiten, IntensitÃ¤ten, appweite Einheiten und Zeitdarstellung bleiben daher identisch.
-- Ein persistenter lokaler Ausfallcache hÃ¤lt gÃ¼ltige Prognosen Ã¼ber App-Neustarts hinweg vor. Erkanntes Worker-Tageslimit wird bis zum Tageswechsel lokal vorgemerkt; aussichtslose Wiederholungsaufrufe entfallen.
-- Datenweg und Ausfallstatus werden verstÃ¤ndlich auf Deutsch ausgewiesen. Die pauschale DNS-/CORS-/Netzwerkdiagnose erscheint nicht mehr als Endzustand des Moduls.
-- Worker-Fachcache und Antwortcache wurden auf 30 Minuten verlÃ¤ngert; Browser-Direktabruf und bestehende Open-Meteo-Schutzlogik verursachen keine zusÃ¤tzlichen Kosten oder kostenpflichtigen AbhÃ¤ngigkeiten.
-
-## 0.9.66.3
-
-- Rechteckige DACH-Rasterzellen durch geglÃ¤ttete, georeferenzierte IsoplethenflÃ¤chen ersetzt. Direkt und diagonal benachbarte StÃ¼tzfelder gleicher IntensitÃ¤t verschmelzen zu unregelmÃ¤ÃŸigen, zusammenhÃ¤ngenden Gefahrengebieten; isolierte Signale erhalten abgerundete Konturen.
-- Farbe bleibt an I1â€“I4 gekoppelt, Deckkraft und Prozentmarker bleiben an die Wahrscheinlichkeit gekoppelt. Gebiete unter 60 % werden zusÃ¤tzlich dezent schraffiert; eine helle AuÃŸen- und farbige Innenkontur hÃ¤lt die Abgrenzung auf der Basiskarte lesbar.
-- Auch die unsichtbaren Popup-TrefferflÃ¤chen sind nicht mehr rechteckig. Kartenlegende und ErlÃ¤uterung unterscheiden die geglÃ¤ttete Regionalprognose ausdrÃ¼cklich von amtlichen Warnpolygonen und gemeindescharfen Aussagen.
-- Keine Ã„nderung an DACH-Raster, Modellen, meteorologischen Schwellen, Diagnosen, Datenquellen, Abrufzahl oder appweiten Einheiten. Professional-App und Worker sind gemeinsam auf 0.9.66.3 synchronisiert.
-
-## 0.9.66.2
-
-- DACH-Extremwetterkarte zeigt die Gefahrenfelder nun zuverlÃ¤ssig als flÃ¤chig eingefÃ¤rbtes Regionalraster: IntensitÃ¤t bestimmt die Farbe, Wahrscheinlichkeit die Deckkraft; klare farbgleiche Konturen erhalten die rÃ¤umliche Abgrenzung.
-- Die FlÃ¤chen werden Ã¼ber ein eigenes, mit Zoom, Bewegung und GrÃ¶ÃŸenÃ¤nderung synchronisiertes Karten-Canvas gerendert und hÃ¤ngen damit nicht mehr von der Sichtbarkeit des MapLibre-VektorfÃ¼lllayers ab.
-- Prozent-/IntensitÃ¤tsmarker sind auf hÃ¶chstens sechs regionale Maxima begrenzt. Sie verdecken damit nicht mehr nahezu jede RasterflÃ¤che, wÃ¤hrend alle betroffenen Felder und die vollstÃ¤ndige Rangliste erhalten bleiben.
-- Keine Ã„nderung an DACH-Raster, Modellen, Schwellen, Wahrscheinlichkeiten, IntensitÃ¤ten, Datenquellen oder Einheiten. Professional-App und Worker sind gemeinsam auf 0.9.66.2 synchronisiert.
-
-## 0.9.66.1
-
-- Startfehler des neuen DACH-Extremwetter-Ausblicks behoben: Dezimalwerte fÃ¼r Niederschlag, Schnee, Glatteis, Schichtung, Scherung und Aufwind verwenden nun die korrekte Reihenfolge der appweiten Nachkommastellenparameter.
-- Der zentrale deutsche Zahlenformatierer normalisiert ungÃ¼ltige oder vertauschte Nachkommastellenbereiche defensiv. Ein einzelner fehlerhafter Aufruf kann MID dadurch nicht mehr mit `minimumFractionDigits > maximumFractionDigits` am Start hindern.
-- Keine Ã„nderung an Modellen, Schwellen, Wahrscheinlichkeiten, IntensitÃ¤ten, Datenquellen oder appweiten Einheiten. Professional-App und Worker sind gemeinsam auf 0.9.66.1 synchronisiert.
-
-## 0.9.66.0
-
-- Neuer â€žMID Extremwetter-Ausblick Â· DACHâ€œ als eigener, konfigurierbarer Hauptbereich direkt nach den Warnungen: Gesamtlage sowie Gewitter, Stark-/Dauerregen, Sturm, Schnee und GlÃ¤tte/Eisregen fÃ¼r 0â€“6, +6â€“12, +12â€“24 und +24â€“48 Stunden.
-- Eigene probabilistische MID-Prognose aus DWD ICON-D2-EPS und deterministischer ICON-D2-Diagnostik; amtliche Warnungen bleiben fachlich und optisch getrennt.
-- Feste Wahrscheinlichkeitsklassen P1â€“P4 und WirkungsintensitÃ¤ten I1â€“I4 mit transparenten Schwellen. Die Gesamtkarte blendet unter 40 % aus, Einzelgefahren unter 10 %; mÃ¶gliche I4-Extremereignisse werden vorsorglich ab 5 % gezeigt.
-- Gewitterbewertung verwendet CAPE nicht allein, sondern zusammen mit CIN, 850â€“500-hPa-Temperaturgradient, 700-hPa-Feuchte, vektorieller Scherung, Aufwind/LPI, Niederschlag und GefrierhÃ¶he; Hagel-, Downburst- und Starkregenpotenzial werden als Umfeldsignale ausgewiesen.
-- Regen wird Ã¼ber 1-/6-/24-h-Akkumulationen, Sturm Ã¼ber EPS-BÃ¶en und hÃ¶henabhÃ¤ngige Exposition, Schnee Ã¼ber 6-/24-h-Neuschnee und HÃ¶henzonen sowie Eisregen Ã¼ber Niederschlags-, Feuchttemperatur-, Wettercode-, Dauer- und Glatteisindikatoren bewertet.
-- Ãœbersichtliche MapLibre-DACH-Karte mit IntensitÃ¤tsfarben, Prozentmarken, Liste der stÃ¤rksten Regionen, Detailparametern, barrierefreier Textlegende, Mobilansicht, Fehler-/Stale-Zustand und manueller Aktualisierung.
-- Appweite Vorgaben werden Ã¼bernommen: Wind in der gewÃ¤hlten MID-Einheit, Niederschlag in mm, Schnee in cm, HÃ¶he in m sowie Zeitangaben gemÃ¤ÃŸ Lokal-/Z-Zeit-Einstellung.
-
-## 0.9.65.16
-
-- Kurzfrist-Wetterprofil: Windrichtungspfeile deutlich schlanker dimensioniert, damit sie die Windkurve nicht mehr optisch Ã¼berdecken.
-- Pfeile erhalten eine schmale, kontrastierende Kontur (Halo) hinter einem dÃ¼nnen farbigen Kern; dadurch bleiben Richtung und Pfeilspitze in Hell- und Dunkelmodus auch bei Kurvenkreuzungen klar erkennbar.
-- Keine meteorologische Daten-, Warn-, Forecast- oder Worker-Fachlogik geÃ¤ndert.
-
-## 0.9.65.15
-
-- Streckenbriefing: HÃ¶heneingabe mit expliziter Wahl zwischen FL und ft AGL repariert; keine EinheitssprÃ¼nge wÃ¤hrend der Eingabe.
-- Unter FL050 sind 100-ft-genaue AGL-Eingaben mÃ¶glich; ab FL050 wird erst beim Commit auf 10-FL-Schritte gerundet.
-- Neue Regression schÃ¼tzt die Flugniveau-Eingabe.
-
-
-## 0.9.65.14
-
-- Reiseplaner: historische Wassertemperatur auf die korrekte Open-Meteo Marine API / ERA5-Ocean umgestellt; fehlerhaften SST-Archive-Pfad entfernt und Wasserklima-Cache auf v3 migriert.
-# v0.9.65.13
-
-- Reiseplaner: Wassertemperatur wird bei KÃ¼stenzielen nicht mehr Ã¼ber einen sehr groÃŸen 30-Jahres-Stundenabruf nachgeladen. Stattdessen nutzt MID kleine, exakt auf die Kalendertage des geplanten Reisezeitraums begrenzte historische ERA5-SST-Ausschnitte aus gleichmÃ¤ÃŸig Ã¼ber 1991â€“2020 verteilten Referenzjahren. Der alte v1-Wasserklimacache wird invalidiert.
-- Das erste Reiseergebnis wartet auf die klimatologische Wassertemperatur-Auswertung, sodass die Wassertemperatur-Kachel bei erfolgreicher KÃ¼stenprÃ¼fung direkt mit dem Ergebnis erscheint statt erst nachtrÃ¤glich. Aktuelle Marinewerte bleiben ausgeschlossen.
-- Event-Center: Sonnenscheindauer wird wieder aus der kompakten Ãœbersichtszeile entfernt. Die Ãœbersicht bleibt bei Temperatur, Niederschlag/PoP, Wind und BÃ¶en.
-- Sunshine-Duration-Contract prÃ¤zisiert: stÃ¼ndliche Event-Zeitfenster zeigen Sonnenscheindauer in Minuten; die Ã¼ber ein mehrstÃ¼ndiges Event aggregierte Sonnenscheindauer erscheint in Detail-/Ratansichten in Stunden.
-- Neue Regression schÃ¼tzt Reise-SST-Sichtbarkeit, Cachemigration und Event-Sunshine-Einheiten.
-
-# v0.9.65.12
-
-- Automatische Warnlage: laufende Stundenwarnungen werden nicht mehr nach der halben Stunde durch den nÃ¤chstgelegenen Folgestundenwert verdrÃ¤ngt.
-- Warnhorizont verwendet jetzt den letzten bereits begonnenen Stundenwert (`epoch <= jetzt`); Wechsel erst zum tatsÃ¤chlichen Beginn der nÃ¤chsten Stunde.
-- Neue Regression fÃ¼r WarnzustÃ¤nde an Stunden-/Halbstundengrenzen.
-
-# v0.9.65.11
-
-- Aktuelle Niederschlagskarte: Bei trockenem Radar-/Modellkonsens und hÃ¶chstens 5 % Rest-PoP wird kein kÃ¼nstlicher 5-%-Wert mehr angezeigt, sondern 0 %. Echte niedrige Prognosewahrscheinlichkeiten auÃŸerhalb dieses klar trockenen Nowcast-Falls bleiben erhalten.
-- Reisewetter: erwartete Niederschlagstage werden in der OberflÃ¤che und im Narrativ auf ganze Tage gerundet; die interne kontinuierliche Erwartung bleibt fÃ¼r Bewertung und Optimierung erhalten.
-- KÃ¼stenreiseziele erhalten eine klimatologische Wassertemperatur fÃ¼r den tatsÃ¤chlich gewÃ¤hlten Reisezeitraum. MID bildet dazu aus historischen ERA5-Stundenwerten der MeeresoberflÃ¤chentemperatur 1991â€“2020 Tagesklimatologien am nÃ¤chsten geeigneten Meeresgitter; aktuelle Marinewerte werden dafÃ¼r nicht verwendet.
-- Reisebeginn, Reiseende und Reisedauer bleiben lokal gespeichert; nach Ã„nderung des Startdatums kann das Enddatum weder per Picker noch per Zustandslogik vor dem Start liegen.
-- Der aktuelle automatische Warnkopf bleibt strikt gÃ¼ltigkeitszeitbezogen: Ein erst kÃ¼nftig beginnendes Warnfenster ist bis zu seinem `validFrom` keine aktuelle Warnlage.
-- Neue Regression schÃ¼tzt trockenen Nowcast, Reise-SST, ganze Niederschlagstage und den zeitstrengen Warnkopf; Professional- und Worker-Version sind synchron.
-
-# v0.9.65.10
-
-- Appweiter Niederschlagswahrscheinlichkeitsvertrag korrigiert: Es gibt keine kÃ¼nstliche 5-%-Untergrenze mehr. 0 %, 1 %, 2 %, 3 % und 4 % bleiben als echte Modell-/Fusionswerte erhalten und werden entsprechend angezeigt.
-- Kurzfristfusion und 24-h-Wetterprofil Ã¼bernehmen die kanonische PoP unverfÃ¤lscht; Darstellungslogik darf niedrige Wahrscheinlichkeiten weder anheben noch als Niederschlagssignal erfinden.
-- Prognose-Kompass und Ensemble-Kompass verwenden eine gemeinsame Trockenheitsformulierung: Bei hÃ¶chstens 0,1 mm im betrachteten Folgeabschnitt und maximal 5 % PoP lautet die Tendenz eindeutig â€žtrockenâ€œ statt â€žÃ¼berwiegend trockenâ€œ.
-- Geringes, aber reales Restniederschlagsrisiko behÃ¤lt die abgestufte Formulierung â€žÃ¼berwiegend trockenâ€œ; erhÃ¶hte Regenneigung und wechselhaftes Risiko bleiben unverÃ¤ndert abgestuft.
-- Neue Regression schÃ¼tzt Nullboden und Wortlaut appweit; Professional-/Worker-Versionen bleiben synchron.
-
-# v0.9.65.6
-
-- Das rollierende 24-h-Wetterprofil ergÃ¤nzt zwischen Wind und Wolken eine sehr kompakte Luftdruckspur mit dynamischer hPa-Skala, Verlaufslinie und selektiertem Wert. Die Gesamt-SVG-HÃ¶he bleibt unverÃ¤ndert.
-- Wetter-Hazards werden aus derselben finalen Stundenreihe und mit derselben `summarizeDwdWarnings(..., 24)`-Logik wie die appweite WarnÃ¼bersicht abgeleitet. 1 h/3 h verdichtet nur die Anzeige.
-- Hazardfarben sind an die zentralen DWD-Stufen gekoppelt; warnungsfreie Stunden werden grÃ¼n dargestellt.
-- Keine zusÃ¤tzlichen API-, Radar-, Cache- oder KV-Zugriffe. Worker-Fachlogik unverÃ¤ndert; Worker nur auf 0.9.65.6 synchronisiert.
-
-# v0.9.65.5
-
-- Appweiter Sunshine-Duration-Contract: 15-Minuten-Werte bilden vollstÃ¤ndige Stunden; vollstÃ¤ndige lokale Stunden bilden den Kalendertag. Daily bleibt Fallback und QualitÃ¤tsreferenz.
-- Physikalische Grenzen gelten zentral: hÃ¶chstens 15 min je Viertelstunde, 60 min je Stunde und je Tag hÃ¶chstens die astronomische Zeit zwischen Sonnenauf- und -untergang. Fehlende Werte bleiben fehlend statt 0.
-- Tageskacheln, Detailansicht, 7 Tage, 14 Tage/Ensemble, Events/AktivitÃ¤ten sowie Web- und Apple-Widgets verwenden dieselbe kanonische Sonnenscheindauer. StÃ¼ndliche Darstellungen zeigen Minuten, Tages-/Ensemblewerte Stunden.
-- Best Match bleibt in der Ensembleansicht der Hauptwert; P10â€“P90 zeigt die Modellbandbreite. Tooltips verwenden die vollstÃ¤ndige Bezeichnung â€žSonnenscheindauerâ€œ.
-- Der Worker-Widgetfeed liefert optionale Sonnenscheinwerte mit Intervall-/Tageslichtbegrenzung. Professional-App und Worker bilden gemeinsam Release 0.9.65.5.
-
-# v0.9.65.4
-
-- Der Ortskopf verwendet die freigegebene Compact-Variante: aktuelles Wetter, Tmin/Tmax, Niederschlagswahrscheinlichkeit, Radarkurzlage und Datenbasis sind in einer gemeinsamen responsiven Karte zusammengefÃ¼hrt; der Detailschalter sitzt platzsparend in der Quellenzeile.
-- Lokale Gewitter-/Starker-Schauer- und Starkregen-/Sturzflutkarten sind generische Compact-Disclosures. Alle bisherigen Status-, Orts-, Zugbahn-, Fakten-, technischen Detail- und Quelleninformationen bleiben erreichbar.
-- Die automatische WarnÃ¼bersicht ist eine gemeinsame, nach Tagen gruppierte Karte. Zeitfenster Ã¶ffnen ihre Details unmittelbar unter der jeweiligen Zeile und kehren beim Zuklappen zur kompakten Ansicht zurÃ¼ck; DWD-Stufenfarben und Kennwerte bleiben erhalten.
-- Amtliche CAP-Warnungen sind optisch direkt angebunden, ohne Textverlust: Originalbeschreibung, Handlungsanweisung, Gebiet, Sprache, Quelle und GÃ¼ltigkeit werden weiterhin vollstÃ¤ndig dargestellt.
-- Eigene Hoch-/Querformatregeln verhindern abgeschnittene Information. Wetter-, Radar-, Warn- und KV-Abfragebudgets bleiben unverÃ¤ndert; Professional-App und Worker bilden gemeinsam Release 0.9.65.4.
-
-# v0.9.65.3
-
-- Das Wetterprofil verwendet ein exakt ab der aktuellen Zeit laufendes 24-h-Fenster; die Ansicht aktualisiert den Zeitanker automatisch und bietet eine persistente 1-h-/3-h-Darstellungswahl, ohne die stÃ¼ndlichen Rohdaten zu verÃ¤ndern.
-- Nachtstunden, Tageswechsel sowie Sonnenauf- und -untergang werden dezent, aber eindeutig markiert. Eigene vertikale Bahnen und responsive Hoch-/Querformatlayouts verhindern das Ãœberdecken von Zeittexten, Wettersymbolen, Pfeilen und Messwerten.
-- Temperatur, gefÃ¼hlte Temperatur und Taupunkt stehen gemeinsam auf einer Skala; das thermische Empfinden verwendet zentral dieselben DWD-Farben wie die Ã¼brige App.
-- Niederschlagsmenge und -wahrscheinlichkeit besitzen getrennte Balken-/Kurvendarstellungen. Hohe, mittelhohe und tiefe BewÃ¶lkung bleibt mit eigenstÃ¤ndigen 0â€“100-%-Zellen und selektierten Prozentwerten klar erkennbar.
-- SÃ¤mtliche Warngebiets-, KV-/Sync-, Info-Button- und ERA5-Seamless-ReiseplanerÃ¤nderungen aus v0.9.64.8 bis v0.9.65.2 bleiben erhalten. Der Open-Meteo-Audit ergÃ¤nzt lediglich den aktuellen UKMO-Seamless-Fallback; zusÃ¤tzliche Kernabfragen oder KV-SchreibvorgÃ¤nge entstehen nicht.
-
-# v0.9.65.2
-
-- Reiseplaner-Klimatologie von einem fachlich unvollstÃ¤ndigen ERA5-Land-Basisabruf auf Open-Meteo ERA5-Seamless umgestellt: ERA5-Land liefert die feinere Landtemperatur, ERA5 ergÃ¤nzt Niederschlag, Solarstrahlung/Sonnenschein und Wind; optionale historische SchneehÃ¶he bleibt separat auf ERA5-Land.
-- Reise-Klimacache auf v3 migriert, damit bereits lokal gespeicherte fehlerhafte 0-h-/0-Wind-DatensÃ¤tze nicht wiederverwendet werden.
-- Nullwerte historischer API-Felder werden nicht lÃ¤nger per `Number(null)` als meteorologische 0 interpretiert; PlausibilitÃ¤tsguards verwerfen unvollstÃ¤ndige Reihen sowie unmÃ¶gliche durchgehende 0-h-Sonnenschein- bzw. 0-Wind-Serien statt daraus Texte wie â€žeher sonnenarmâ€œ abzuleiten.
-- Appweiter Einheitenvertrag auf den Reiseplaner Ã¼bertragen: Wind wird intern wie im Ã¼brigen MID in Knoten gefÃ¼hrt, Ausgabe und Wind-Grenzwerte folgen der globalen Auswahl kt/km/h/m/s/mph; Temperatur bleibt Â°C, Niederschlag mm und Schnee cm.
-- Quellen-/Methodentexte auf ERA5-Seamless standardisiert und irrefÃ¼hrende reine ERA5-Land-/10-km-Aussagen entfernt. Worker-Fachlogik bleibt unverÃ¤ndert.
-
-# v0.9.65.1
-
-- Installations-Hotfix fÃ¼r die drei in v0.9.65.0 aufgedeckten Regressionen.
-- Benannte Worker-Testexports fÃ¼r synoptische RichtungsprÃ¼fung und Gewitter-Push-Konsistenz wiederhergestellt, ohne Produktionslogik zu verÃ¤ndern.
-- 36-px-Touchvertrag bleibt erhalten, wird bei Info-Buttons aber ausschlieÃŸlich Ã¼ber eine unsichtbare TrefferflÃ¤che erfÃ¼llt; sichtbare Buttons bleiben kompakt.
-- SÃ¤mtliche KV-/Sync-/Wetterzwilling-Einsparungen aus v0.9.65.0 bleiben unverÃ¤ndert bestehen.
-
-# v0.9.65.0
-
-- KV-Scheduler-Index reduziert regulÃ¤re `list()`-Operationen bei unverÃ¤nderter 5-Minuten-Push-Kadenz auf vier automatische Reconciliations pro Tag plus Bootstrap/Recovery.
-- Wetterzwilling speichert fachlich identische Beobachtungs-/Capture-/ReferenzstÃ¤nde nicht erneut und bÃ¼ndelt Cloud-Vollarchive Ã¼ber zehn Minuten.
-- GerÃ¤te-Sync erhÃ¤lt SHA-256-Inhaltssignaturen und 3-s-Burst-Deduplizierung; identische portable ZustÃ¤nde bleiben write-frei.
-- Touch-Regressionsfix: sichtbare Info-Buttons wieder kompakt, TrefferflÃ¤che weiterhin groÃŸ und layoutneutral.
-- Push-Unsubscribe-Routerpfad ist nun vollstÃ¤ndig implementiert und bereinigt den Scheduler-Index.
-
-# v0.9.63.1
-
-- CI-KompatibilitÃ¤t: die Flugbriefing- und Wartungsvertragsregressionen werden unter dem festgelegten Node.js 22.16.0 Ã¼ber das projektlokale TypeScript transpiliert statt `.ts`-Dateien direkt zu importieren.
-- Wartungsregressionen: isolierte Forecast-Fusion-Tests berÃ¼cksichtigen den gemeinsamen Cachevertrag; historische Persistenz- und Radar-ZeitpfeilprÃ¼fungen validieren die ausgelagerten NutzervertrÃ¤ge statt frÃ¼here Quelltextformen.
-- Keine Ã„nderung an Wetterzwilling, Modellfusion, Radar-/Nowcast-Fachlogik, Kompositdarstellung, Persistenzsemantik oder Worker-Datenquellen gegenÃ¼ber v0.9.63.0.
-
-# v0.9.60.2
-
-- CI/TypeScript: TS7006 im eventbezogenen Ensemble-Frischecallback dauerhaft in der kanonischen weather-Teilquelle behoben.
-- Regression schÃ¼tzt, dass `maintain:aggregates` die Typisierung nicht wieder entfernt.
-
-# v0.9.60.1
-
-- Wetterzwilling: stabile Modellfamilien, gruppengeteilte Modellbudgets und effektive StichprobengrÃ¶ÃŸe aus eindeutigen Zieltagen.
-- P0: abgeleitete MID-Fusionen aus dem Modelllernen ausgeschlossen und tÃ¤gliche Niederschlagswahrscheinlichkeit semantisch vereinheitlicht.
-- P1: tatsÃ¤chliche Lauf-Frische, horizonweise Variantenwahl und MeteoSwiss-CH1/CH2-Reichweiten konsolidiert.
-- P2: AuflÃ¶sungsprior gedÃ¤mpft/parameterspezifisch; Mean/Spread klar von nativer Member-PoP getrennt.
-
-# v0.9.59.2
-
-- Flugmeteorologie: Cross Section als nicht-grafisches Streckenbriefing fÃ¼r 2â€“8 FlugplÃ¤tze reaktiviert; Route, Flight Level sowie Start-/Landezeiten steuern orts- und zeitbezogene Gefahrenhinweise.
-- Flugstrecke: Modellprofil-Diagnosen fÃ¼r Vereisung, Windscherung/Turbulenz, Konvektion, HÃ¶henwind, Niederschlag, Sicht und Wolkenuntergrenze plus verfÃ¼gbare amtliche/operative Signale an Start, En-route und Ziel.
-- Kompositbild: Zeitpfeil verwendet primÃ¤r eine wolkengewichtete vertikale SchwerpunktstrÃ¶mung aus dem 950â€“300-hPa-Profil; Radar-/KONRAD-Verlagerung dient als Plausibilisierung/Fallback.
-- Kompositbild: Bewegungsachse und Pfeilspitze werden explizit in eigenen Leaflet/MapLibre-KompatibilitÃ¤tspane gerendert, damit der Zeitpfeil oberhalb der Wetter-/Referenzlayer sichtbar bleibt.
-
-# v0.9.58.4
-
-- Ortsfavoriten-Reihenfolge erhÃ¤lt eine eigene persistente Order-Revision und wird bei Appstart/Shadow-Recovery wiederhergestellt.
-- GerÃ¤te-Sync migriert die lokale Reihenfolge vor dem ersten Pull und merged konkurrierende Reihenfolgen nach eigener Revision, ohne Favoriten zu verlieren.
-
-# v0.9.58.3
-
-- Regression-Hardening: zwei historische Radar-/Zeitpfeiltests auf den aktuellen SchwerpunktstrÃ¶mungs-Vertrag migriert.
-- Keine funktionale Ã„nderung an Zeitpfeil, Radar-Nowcast oder Workerlogik.
-
-# v0.9.58.2
-
-- TypeScript-Fix fÃ¼r den neuen Komposit-Zeitpfeil: `CompatBounds` stellt nun SÃ¼dwest-/Nordost-Ecken typisiert bereit.
-- Keine fachliche Ã„nderung an Zeitpfeil, SchwerpunktstrÃ¶mung oder Radar-/Nowcast-Logik.
-- Neue Regression gegen erneute TS2339-Fehler im MapLibre-KompatibilitÃ¤tsadapter.
-
-# v0.9.58.1
-
-- Komposit-Zeitpfeil vollstÃ¤ndig neu aufgebaut: lange viewportbezogene Achse, kleine nordreferenzierte Zielpfeilspitze am gewÃ¤hlten Ort, zwei dezente Zeitmarken und SchwerpunktstrÃ¶mung aus der OPERA-Mehrframe-Regressionsbewegung; der frÃ¼here 90Â°-Darstellungsversatz der Pfeilspitze ist ausgeschlossen.
-- Kurzfrist-Nebelrisiko verschÃ¤rft: ein 2-K-Spread allein erzeugt tagsÃ¼ber/bei guter Sicht kein erhÃ¶htes Nebelrisiko; echte SichtbeschrÃ¤nkung, WMO-Nebelcode und schwachwindige NachtsÃ¤ttigung bleiben wirksam.
-- lucide-react kontrolliert auf 1.31.0 aktualisiert; React 19, Vite/plugin-react 6 und TypeScript 7 bleiben zurÃ¼ckgestellt.
-
-# v0.9.58.0
-
-- Release-Pipeline gegen GitHub-Codeload-429 gehÃ¤rtet: configure-pages entfernt; Pages-Deployment vom Release-Build entkoppelt und mit drei frischen Runner-Versuchen sowie 75/180-s-Backoff abgesichert.
-- Pages-Artefakte je Versuch eindeutig benannt; fehlgeschlagene Versuche 1/2 sind recoverable, Versuch 3 bleibt harter Fehler.
-- Stable-Finalisierung lÃ¤uft erst nach tatsÃ¤chlich erfolgreichem Pages-Versuch; Status-API bleibt 429/5xx-resilient.
-- Manueller Stable-Deploy erhÃ¤lt denselben Pages-Retry-Vertrag.
-
-# v0.9.57.4
-
-- Installer: Release-ZIP wird vor dem Entpacken auf DateigrÃ¶ÃŸe, SHA-256, ZIP-Signatur und CRC-IntegritÃ¤t geprÃ¼ft.
-- Wartung: kanonische Worker-Teilquelle auf denselben Release-Stand synchronisiert, damit `maintain:aggregates` die Worker-Version nicht zurÃ¼ckstuft.
-- Regression: Installer-ZIP-Schutz wird sowohl im Workflow-Patch als auch in der kanonischen Workflowquelle geprÃ¼ft.
-
-# v0.9.57.3
-
-- Stable-Release-Abschluss gegen temporÃ¤re GitHub-API-/Transport-5xx gehÃ¤rtet: harter mid-stable-SHA-Vertrag mit Retry sowie Quality-Status mit fÃ¼nf Backoff-Versuchen.
-- Ein ausschlieÃŸlich temporÃ¤rer GitHub-Status-API-5xx markiert einen bereits gebauten, deployten und SHA-verifizierten Release nicht mehr fÃ¤lschlich als fehlgeschlagen; 4xx/Auth-Fehler und SHA-Abweichungen bleiben harte Fehler.
-
-# v0.9.57.2
-
-- Installer gegen paralleles Weiterlaufen von `main` gehÃ¤rtet: eventgebundener Checkout, sicherer Fetch/Rebase nur fÃ¼r `.github`, Abbruch bei neueren fachlichen Ã„nderungen und Push-Retry ohne Force-Push.
-
-# v0.9.57.1
-
-- RegressionsvertrÃ¤ge fÃ¼r den finalen Komposit-Zeitpfeil auf lange sichtbare Achse, Zielspitze am Standort und reduzierte Zeitlabels aktualisiert.
-- Flug-Event-Einheitenregression auf die amtliche METAR/TAF-Priorisierung vor der Modell-Diagnose aktualisiert.
-- Keine fachliche RÃ¼cknahme der Funktionen aus v0.9.57.0.
-
-# v0.9.57.0
-
-- Kompositbild auf einen einzelnen langen Zeitpfeil mit Zielspitze am gewÃ¤hlten Ort umgestellt.
-- Lucide React auf 1.30.0 und Recharts kontrolliert auf 3.10.1 aktualisiert.
-- GitHub Actions checkout auf 7.0.1 und setup-node auf 7.0.0 angehoben und SHA-gepinnt.
-- React 19, TypeScript 7 und Vite/plugin-react 8/6 bleiben zurÃ¼ckgestellt.
-
-# v0.9.56.0
-
-- Funktionsneutrales Wartungsrelease: 7-Tage-Trend und App-Laufzeitcaches aus `App.tsx` ausgelagert.
-- Styles, `weather.ts` und Worker besitzen nun kanonische, kleinere Quellfragmente; die bisherigen Aggregate werden vor Typecheck/Regression bytegleich generiert, sodass CSS-Kaskade, Weather-ImportoberflÃ¤che, Cloudflare-Deployment und bestehende VertrÃ¤ge unverÃ¤ndert bleiben.
-- Veraltete Regressionen fÃ¼r heutigen Niederschlag und die neue einzelne Radar-Zugbahn auf den aktuellen Vertrag migriert.
-- Keine Datenquellen-, UI-, Persistenz- oder WetterlogikÃ¤nderung.
-
-# v0.9.55.4
-
-- 7-Tage-Trend: Der aktuelle Kalendertag berÃ¼cksichtigt Niederschlag aus 00â€“24 Uhr, auch wenn Niederschlagsphasen bereits vor â€žJetztâ€œ liegen.
-- FÃ¼r die Wettercharakteristik bleibt der verbleibende Tagesverlauf maÃŸgeblich; vergangener Tagesniederschlag wird jedoch nicht mehr aus der Trendklassifikation entfernt.
-
-# v0.9.55.3
-
-- Flug-Events verwenden konsistente flugmeteorologische Einheiten: Wind/BÃ¶en folgen der gewÃ¤hlten MID-Windeinheit, Sicht wird in m bzw. km dargestellt und Wolkenuntergrenzen in ft AGL.
-- Die kompakte Flug-Event-Ãœbersicht zeigt Sicht und Wolkenuntergrenze statt des fÃ¼r Flugplanung weniger relevanten UVI-Felds.
-- Amtliche METAR/TAF-Wind-, Sicht- und Ceiling-Signale liefern zusÃ¤tzlich strukturierte Rohwerte; Sicht wird nicht mehr in Statute Miles ausgegeben.
-
-# v0.9.55.2
-
-- Kompositbild: Zugpfeile in â€žZugbahnâ€œ umbenannt.
-- Deutlicher Zielpfeil mit lesbarer Achsenbeschriftung ergÃ¤nzt; Pfeil wird nun oberhalb des Standortmarkers gerendert.
-- Zugrichtung gegen das aktuelle Echofeld verifiziert und bei deutlichen Abweichungen aus den lokalen Bewegungsankern korrigiert bzw. gemischt.
-
-# v0.9.55.1
-
-- Produktions-Typecheck des Kompositbilds repariert: ungenutzte Altpfade `motionTimeMarkers`/`displayMotionAnchors` samt ausschlieÃŸlich dafÃ¼r benÃ¶tigter Hilfstypen entfernt.
-- Die neue einzelne Zugspur aus v0.9.55.0 bleibt unverÃ¤ndert aktiv: Pfeilspitze am gewÃ¤hlten Ort, Zeitmarken stromaufwÃ¤rts entgegen der Zugrichtung.
-- Neue Buildfix-Regression verhindert kÃ¼nftig die RÃ¼ckkehr toter Motion-Altpfade.
-- Keine funktionale Worker-Ã„nderung; Worker nur versionssynchronisiert.
-
-# v0.9.55.0
-
-- 14-Tage-Modellstand zeigt Ensemblemodelle und deterministische Best-Match-/Kontrollmodelle getrennt; JMA MSM/Seamless/GSM werden dort fachlich korrekt als deterministische Modelle statt als nicht existentes JMA-Ensemble gefÃ¼hrt.
-- Ensemble-/Mean-Spread-Katalog app-weit vervollstÃ¤ndigt: zusÃ¤tzliche DWD-ICON-EPS- und GEFS-Mean/Spread-Reservevarianten sowie regionale MeteoSwiss-ICON-CH-Ensembles in der alpinen Schneefallgrenzenanalyse.
-- Kompositbild besitzt eine oberste transparente Referenzkartenebene fÃ¼r Grenzen und Ortsnamen mit eigenem Deckkraftregler.
-- Das bisherige Mehrpfeilfeld wurde durch genau eine Zugspur ersetzt: Pfeilspitze am gewÃ¤hlten Ort, Zeitlabels entgegen der Zugrichtung stromaufwÃ¤rts.
-- Die Stable-/Dependency-/Recharts-Hardening-VertrÃ¤ge aus v0.9.53.57 und die Open-Meteo-AuditvertrÃ¤ge aus v0.9.54.x bleiben Bestandteil der Regression.
-
-# v0.9.54.2
-
-- CI-Regressionsfix fÃ¼r den in v0.9.54.1 Ã¼bernommenen Vendor-Chunking-Vertrag: `test-performance-budget.mjs` akzeptiert jetzt ausschlieÃŸlich die auditierte `ReactVendor`-/`ChartsVendor`-Aufteilung.
-- Generisches oder zusÃ¤tzliches manuelles Vendor-Chunking bleibt gesperrt; MapLibre darf weiterhin nicht manuell gechunkt werden und behÃ¤lt seine bestehende Lazy-Importgrenze.
-- Keine Ã„nderung an Open-Meteo-, AQI-, JMA-, MÃ©tÃ©o-France-, Ensemble-, Favoriten-, Event- oder Worker-Wetterlogik.
-
-# v0.9.54.1
-
-- Audit-Nachtrag aus v0.9.53.57 Ã¼bernommen: React sowie Recharts/D3 werden als stabile Vendor-Chunks vom Hauptbundle getrennt; die bestehende MapLibre-Lazy-Grenze bleibt erhalten.
-- Dependency-Audit sichert den vollstÃ¤ndigen npm-Auditbericht auch bei Befund fÃ¼r 30 Tage als Artefakt; das High-Severity-Gate bleibt hart.
-- Release-CI verifiziert nach Pages-Deployment den tatsÃ¤chlich verÃ¶ffentlichten `mid-stable`-SHA und setzt darauf `MID / stable-release-quality`.
-- Recharts-Wartungsvertrag verlangt weiterhin einen exakt reproduzierbaren 3.x-Lockstand, blockiert kompatible 3.x-Minor-/Patch-Kandidaten aber nicht mehr durch einen historischen 3.8.1-Literal.
-- Eigene Stable-Hardening-Regression schÃ¼tzt Vendor-Chunking, Audit-Artefakt, Stable-SHA-Status und Recharts-3-KompatibilitÃ¤tsvertrag dauerhaft.
-- Historischer BuildstabilitÃ¤tsvertrag akzeptiert nur die auditierte React-/Charts-Aufteilung; generisches Vendor-Chunking und erzwungenes MapLibre-Chunking bleiben verboten.
-
-# v0.9.54.0
-
-- Open-Meteo-Audit 17.08.2026 Ã¼bernommen: AIFS-Europe-Ensemble mit Cloud-/Niederschlags-PlausibilitÃ¤tsgate.
-- MÃ©tÃ©o-France-Migrationsvertrag aktualisiert: AROME/ARPEGE, Seamless, 15-Minuten-Varianten sowie Niederschlag/Wind/BewÃ¶lkung/Sonnenschein regressionsgeschÃ¼tzt.
-- JMA MSM/GSM/Seamless ergÃ¤nzt; japanischer Meteogramm-Best-Match-, HÃ¶hen- und Druckniveaupfad vereinheitlicht.
-- EU-AQI auf Open-Meteo-Gesamt-/Teilindizes erweitert; stÃ¼ndliche PM-/AQI-Reihen werden mitgefÃ¼hrt, Konzentrationsschwellen bleiben Fallback.
-- API-Regression fÃ¼r getrennte 6-h-Min/Max-Aggregationen, Mondfelder und DWD-ICON-BegleitvertrÃ¤ge ergÃ¤nzt.
-
-# v0.9.53.56
-
-- Niederschlagswarnungen: einstellbare Vorwarnzeit (15â€“120 min) und Mindestmenge (0,1â€“5,0 mm); keine verspÃ¤tete Beginnwarnung erst bei bereits laufendem Niederschlag. Bestehende Meldungspause bleibt verbindlich.
-- Aktuelle Niederschlagswahrscheinlichkeit: textlicher Hinweis auf erwarteten Niederschlag jenseits des betrachteten +2-h-Nowcastfensters.
-
-## 0.9.53.54
-
-- Netatmo OAuth-RÃ¼cksprung auf iOS/PWA gehÃ¤rtet: Callback bleibt als sichtbare Erfolgs-/Fehlerseite stehen statt sofort zur App zurÃ¼ckzuspringen.
-- Letztes OAuth-Ergebnis wird 30 Minuten serverseitig je MID-Verbindung gespeichert und vom Stationsstatus zurÃ¼ckgegeben; Fehler gehen beim Wechsel zwischen Safari und installierter PWA nicht mehr verloren.
-- Callback-Information wird zusÃ¤tzlich in sessionStorage und localStorage gespiegelt.
-
-## 0.9.53.53
-
-- Netatmo OAuth auf iOS/PWA: Autorisierungs-URL wird vor dem Nutzertap vorbereitet und in Standalone-PWAs direkt in einem externen Browserkontext geÃ¶ffnet.
-- OAuth-Callback transportiert die `connectionId`, damit die Verbindung auch bei getrennten Safari-/PWA-Storage-Kontexten korrekt zugeordnet wird.
-- RÃ¼ckkehr aus dem OAuth-Browser aktualisiert den Netatmo-Status automatisch.
-
-## 0.9.53.52
-
-- Netatmo-OAuth-Start fÃ¼r iOS/PWA synchronisiert: der Nutzer-Tap navigiert ohne vorgeschaltetes `await` unmittelbar zum Worker; der bereits geladene Worker-Status entscheidet vor dem Tap Ã¼ber die VerfÃ¼gbarkeit.
-- Jeder OAuth-Versuch erhÃ¤lt einen eindeutigen Cache-Buster; Worker- und Callback-302-Antworten tragen explizit `no-store/no-cache`, damit Safari bzw. Edge keine frÃ¼here Fehlweiterleitung wiederverwenden.
-- OAuth-RÃ¼ckkehr wird vor dem Ã–ffnen der Einstellungen in `sessionStorage` gesichert; Fehler/Erfolg gehen dadurch auch bei verzÃ¶gertem Mount des Stationsbereichs nicht verloren.
-- Netatmo-Status liefert die tatsÃ¤chlich laufende Worker-Version zur sichtbaren Diagnose in den Einstellungen.
-
-## 0.9.53.51
-
-- Netatmo OAuth auf browserfeste direkte Worker-Weiterleitung (HTTP 302) umgestellt; damit wird die externe Netatmo-Seite insbesondere auf iOS/PWA nicht mehr von asynchronen UI-Schritten abhÃ¤ngig.
-- OAuth-Fehler werden nach dem RÃ¼cksprung mit Phase und sanitisiertem Netatmo-Fehlertext sichtbar statt still durch den Status-Refresh Ã¼berschrieben.
-- Neue Regression fÃ¼r Direkt-Redirect und Callback-Fehlerdiagnose.
-
-# v0.9.53.47
-
-- CI-Regressionsvertrag gehÃ¤rtet: `test-mid-followups-095323.mjs` prÃ¼ft Default-Closed-Hauptmodule jetzt mengenbasiert statt Ã¼ber eine fragile feste Array-Reihenfolge.
-- Veraltete Sensor-Deaktivierungsannahme aus `test-weather-twin-stages-0800.mjs` entfernt; eigene Sensoren sind seit der reaktivierten Stations-/LÃ¼ftungsintegration wieder zulÃ¤ssig und werden durch dedizierte Funktionsregressionen abgesichert.
-- Keine Ã„nderung an Wetter-, OAuth-, Stations-, Wetterzwilling- oder LÃ¼ftungslogik.
-
-# v0.9.53.46
-
-- GitHub-Actions-Regressionsfix: zwei veraltete TestvertrÃ¤ge an die bereits beabsichtigten Ã„nderungen aus v0.9.53.45 angepasst.
-- `test-mid-followups-095323.mjs` akzeptiert den neuen default-closed Hauptmodulvertrag mit vorangestelltem LÃ¼ftungsassistenten.
-- `test-weather-twin-stages-0800.mjs` erwartet wieder die bewusst reaktivierte private Sensorintegration statt des historischen Deaktivierungszustands.
-- Keine funktionale Ã„nderung an Wetter-, Stations-, OAuth-, Wetterzwilling- oder LÃ¼ftungslogik.
-
-# v0.9.53.45
-
-- Eigene Wetterstationen wieder aktiviert: Netatmo wird per OAuth/Login statt manueller Token-Eingabe verbunden; Tokens bleiben Worker-seitig verschlÃ¼sselt.
-- Netatmo-Innenraumsensoren werden als RÃ¤ume erkannt und liefern Temperatur, Feuchte und COâ‚‚ fÃ¼r den neuen LÃ¼ftungsassistenten.
-- Neuer LÃ¼ftungsassistent Stufe 1: pro Raum erlaubte Zeiten, absolute-Feuchte-/KÃ¼hlpotenzial, COâ‚‚-Dringlichkeit sowie Wetter-SicherheitsprÃ¼fung aus Niederschlag, Gewitter und BÃ¶en.
-- LÃ¼ftungsfenster erscheinen im Dashboard und kÃ¶nnen Ã¼ber den bestehenden Web-Push angekÃ¼ndigt werden. Stufe 1 steuert ausdrÃ¼cklich keine Fenster, LÃ¼fter oder Anlagen.
-- Plausible private AuÃŸenmessungen kÃ¶nnen wieder â€žAktuelles Wetterâ€œ ergÃ¤nzen und in die lokale Wetterzwilling-Verifikation einflieÃŸen.
-
-# MID v0.9.53.36
-
-- Ensemble-Modellauswahl success-driven: fehlgeschlagene Quellen und nicht konfigurierte optionale Regionaladapter verbrauchen keinen Erfolgsplatz.
-- ECMWF IFS/AIFS ENS verwenden in Europa einen Native-Europeâ†’Global-Fallback innerhalb derselben Variantengruppe, ohne Doppelgewichtung.
-- Modellstanddiagnose zeigt numerisch aktive Modelle auch bei fehlenden Laufmetadaten und kennzeichnet Aktiv, Fallback, Nicht verfÃ¼gbar, Adapter fehlt und Reserve.
-- Open-Meteo Mean/Spread-Reserve um NOAA AIGEFS, UKMO Global/UK, MeteoSwiss CH1/CH2 und BOM ACCESS erweitert.
-- Worker-Capability-Endpunkt fÃ¼r KNMI HARMONIE-AROME EPS und ECCC REPS sowie verbindlicher Modellquellen-/Adaptervertrag ergÃ¤nzt.
-
-# MID v0.9.53.33
-
-- App-weiter astronomischer Tag-/Nachtsymbolvertrag: zeitpunktbezogene Wetterpiktogramme wechseln exakt an Sonnenaufgang/Sonnenuntergang des jeweiligen Prognoseortes.
-- 90-Minuten-/15-Minuten-Punkte Ã¼bernehmen nicht mehr blind `is_day` der nÃ¤chstgelegenen vollen Stunde; minutengenaue Sonnenstandsgrenzen werden in den kanonischen Forecast-Reihen mitgefÃ¼hrt.
-- Aktuelles Wetter, Komposit/Radar, Kurzfrist-/Stundenpfade und Berg-/HÃ¶henwetter auf denselben zentralen `astronomicalIsDayAt()`-Entscheider vereinheitlicht.
-- Native Widgets verwenden `sunrise`/`sunset` statt Provider-`is_day` als primÃ¤re Symbolgrenze; Worker-Update erforderlich.
-- Neuer verbindlicher `MID_SOLAR_SYMBOL_CONTRACT.md` und Required Regression `test-solar-symbol-contract-095333.mjs`.
-
-# MID v0.9.53.32
-
-- Langfrist-/Hauptsektions-Startzustand nachhaltig repariert: Modul-OffenzustÃ¤nde sind jetzt aus Recovery-Snapshot und StorageSafety-IndexedDB-Spiegel ausgeschlossen.
-- Alte Spiegelwerte werden beim Start verworfen; `mid:module-open-contract:v5` setzt alle Hauptsektionen einmalig geschlossen.
-- Ã–ffnen/SchlieÃŸen wird synchron mit der Nutzeraktion gespeichert, nicht erst in einem nachgelagerten React-Effect.
-- Neue Required Regression `test-module-open-recovery-isolation-095332.mjs`.
-
-# MID v0.9.53.31
-
-- Favoritenstern auf einen einzigen semantischen Click-Pfad umgestellt; verspÃ¤tete iOS-Synthetic-Clicks kÃ¶nnen einen neu gespeicherten Favoriten nicht mehr unmittelbar wieder entfernen.
-- Mutierende FavoritenidentitÃ¤t von groÃŸzÃ¼giger NavigationsnÃ¤he getrennt; Koordinaten-/NamensnÃ¤he darf keine LÃ¶schung auslÃ¶sen.
-- Derselbe Ort kann ausdrÃ¼cklich gleichzeitig Event/Event-Favorit und Ortsfavorit sein. Event-Metadaten werden aus Ortsfavoriten defensiv entfernt.
-- Favoriten-AuthoritÃ¤tsref wird nur noch commit-sicher synchronisiert, nicht wÃ¤hrend des Renderns zurÃ¼ckgesetzt.
-- Neue Required Regression `test-favorite-event-coexistence-touch-095331.mjs`.
-
-# MID Changelog
-
-## v0.9.53.30
-
-- Favoriten werden bei jeder Ã„nderung sofort und atomar in PrimÃ¤r-/Shadow-Snapshot geschrieben; Start-Recovery wendet LÃ¶sch-Tombstones zwingend an.
-- Tombstones verfallen nicht mehr still und GerÃ¤te-Sync arbeitet bei Pending-Ã„nderungen mit Favoriten-pull/merge/push.
-- Push-Status prÃ¼ft Browser, Workerregistrierung und Scheduler-Heartbeat statt nur das lokale Browser-Abonnement.
-- Ende-zu-Ende-Testmitteilung und Reparatur der Workerregistrierung ergÃ¤nzt.
-- Niederschlagsbeginn auf kanonische 15-Minuten-Reconciliation inkl. Wahrscheinlichkeit und 45-Minuten-Vorwarnfenster umgestellt.
-- Push-Scheduler paginiert alle KV-EmpfÃ¤nger; stilles 24-Favoriten-Limit entfernt.
-
-## 0.9.53.29
-
-- Produktionsbuild-Fix fÃ¼r den verlustfreien Favoriten-/GerÃ¤te-Sync: `mergeFavoriteSnapshots` akzeptiert einen fehlenden Remote-Snapshot nun explizit als `null`.
-- Behebt GitHub Actions `TS2345` in `src/deviceSync.ts` aus v0.9.53.28, ohne Favoriten-Union, Shadow-Recovery, Tombstones oder Event-/Ortsfavoriten-Trennung zu verÃ¤ndern.
-- Neue Required Regression `test-device-sync-nullability-buildfix-095329.mjs` typecheckt genau den zuvor fehlerhaften Nullability-Pfad.
-
-## 0.9.53.28
-
-- Dezente, platzneutrale Wetter-Ampel in den kompakten Eventdarstellungen ergÃ¤nzt: grÃ¼n = gut umsetzbar, gelb/amber = mÃ¶gliche BeeintrÃ¤chtigung, rot = deutlich beeintrÃ¤chtigt/kritisch, neutral = noch nicht analysiert.
-- Glocken-Popover und Event-Center-Kurzkarte zeigen den Punkt als Overlay direkt am bestehenden Wetterpiktogramm; KartenhÃ¶he und Zeilenanzahl bleiben unverÃ¤ndert.
-- AusfÃ¼hrliche Eventbewertung nutzt dieselbe gemeinsame Komponente in der vorhandenen Statusplakette.
-- Die Ampel verwendet ausschlieÃŸlich den zentralen `EventAdvice.status`; kein zusÃ¤tzlicher paralleler Wetterscore oder neue Schwellenwertlogik.
-- Barrierearme Textbeschreibung sowie zusÃ¤tzliche Musterunterscheidung fÃ¼r kritische/ungeklÃ¤rte ZustÃ¤nde ergÃ¤nzt.
-- Dauerhaft im UI-Architekturvertrag und als Required Regression `test-event-feasibility-indicator-095328.mjs` geschÃ¼tzt.
-
-## 0.9.53.27
-
-- FavoritenintegritÃ¤t app-weit verschÃ¤rft: keine stille 20er-Kappung oder VerdrÃ¤ngung beim HinzufÃ¼gen, Laden oder Import.
-- Ortsfavoriten und Event-Favoriten dauerhaft getrennt; Event-artige DatensÃ¤tze kÃ¶nnen `mid:favorites` nicht ersetzen oder Ã¼berlagern.
-- Ortsfavoriten erhalten Shadow-Recovery sowie explizite LÃ¶sch-Tombstones; GerÃ¤te-Sync vereinigt konkurrierende FavoritenstÃ¤nde statt komplette Listen gegeneinander auszutauschen.
-- Einheitlicher Hauptsektionsvertrag v4: alle groÃŸen `CollapsibleModule`-Sektionen starten bei Vertragsmigration geschlossen und bewahren danach nur die jeweilige lokale Nutzerentscheidung.
-- Alte `#mid-section-*`-Hashes werden bei jedem App-Bootstrap neutralisiert; Hauptmodul-OffenzustÃ¤nde sind bewusst gerÃ¤telokal und werden nicht Ã¼ber GerÃ¤te-Sync Ã¼berschrieben.
-- Neuer verbindlicher `MID_STATE_INTEGRITY_CONTRACT.md` sowie Required Regression `test-state-integrity-contract-095327.mjs`.
-
-## 0.9.53.26
-
-- Verbindlicher appweiter Prognose-Konsistenzvertrag: sichtbare Forecastmodule verwenden die kanonischen Reihen `displayHours` und `displayMinutes15`.
-- Hyperlokale Beobachtungskorrekturen werden feldbezogen und zeitlich abklingend zentral in die operative Stundenprognose Ã¼bernommen.
-- ErhÃ¶hte lokale Niederschlagswahrscheinlichkeit, Radar-/Nowcast- und Konvektivsignale flieÃŸen konsistent in 90-Minuten-, Kurzfrist-, Stunden-/Tagesdarstellungen, Widget, Hazards sowie Event-/AktivitÃ¤tsauswertungen ein.
-- 15-Minuten-Daten werden vor der sichtbaren Verwendung zentral finalisiert; ansichtsspezifische Doppel-Assimilation von Radar oder Stationsankern ist entfernt.
-- Architekturregel dauerhaft in `MID_FORECAST_CONSISTENCY_CONTRACT.md`, Hyperlokalvertrag und Source-of-Truth verankert; Required-Regression ergÃ¤nzt.
-
-## 0.9.53.24
-
-- Aktuelles Wetter wieder kompakter: marginale Temperatur-/GelÃ¤nde-Windkorrekturen werden als â€žTemp./Wind nahe Modellâ€œ zusammengefasst; relevante Abweichungen bleiben numerisch sichtbar.
-- Einzelparameter-Kacheln von redundanten Modell-/Korrekturhinweisen entlastet.
-- Datenbasis-Infos erweitert: Modellhintergrund, Analyseverfahren, Kontextquellen und parameterbezogene Messwertquellen bleiben Ã¼ber die Info-Dialoge vollstÃ¤ndig nachvollziehbar.
-- Ohne geeignete aktuelle Messwertquelle kennzeichnet MID ausdrÃ¼cklich den Modellhintergrund als Datenbasis.
-- Buildfix: `forecastSourceLabel` wird vor der Hyperlokal-Datenbasis deklariert; die Required-Regression schÃ¼tzt diese Deklarationsreihenfolge kÃ¼nftig ausdrÃ¼cklich.
-
-## 0.9.53.23
-
-- Hauptmodul-Ã–ffnungszustand auf v3 migriert; insbesondere `Langfrist` wird nicht mehr durch einen alten gespeicherten Offen-Zustand als Standard geÃ¶ffnet.
-- Eventhinweise sachlicher formuliert und in Lagehinweise sowie empfohlene MaÃŸnahmen gegliedert; Hitzehinweise nennen Trinkwasserversorgung, Erholungspausen und reduzierte direkte Sonnenexposition.
-- 7-Tage-PoP: DWD-6-h-Zeitfenster nur bei klarer Abweichung vom Mittel der Tagesfenster; 0 % weiterhin ohne Zeitfenster, ansonsten 00â€“24 h ohne markanten Schwerpunkt.
-- Events: Niederschlagswahrscheinlichkeit gilt Ã¼ber das vollstÃ¤ndige Eventfenster; Ensemble-Member werden Ã¼ber den Zeitraum aufsummiert, der Stundenfallback ist zeitgewichtet statt Maximum einer Einzelstunde.
-- Aktuelles Wetter und Parameterkacheln zeigen den hyperlokalen Modellhintergrund (z. B. DWD ICON-D2) sowie Temperatur- und GelÃ¤nde-/OberflÃ¤chen-Windkorrekturen wieder transparent an.
-
-## 0.9.53.22
-
-- AQI-ErklÃ¤rung sprachlich neutralisiert: sichtbare Prompt-/Gestaltungsbegriffe entfernt.
-- Standort-RÃ¼ckkehr appweit auf Request-Reuse umgestellt: Stationsanalyse, LuftqualitÃ¤t, Radar, Radarhistorie, amtliche Warnungen, Gewitter- und Starkregenbasis werden innerhalb fachlich geeigneter Frischefenster rÃ¤umlich tolerant wiederverwendet, statt beim ZurÃ¼ckwechseln unnÃ¶tig komplett neu geladen zu werden.
-- Automatische Standortbestimmung nutzt einen 14-Tage-Cache fÃ¼r Reverse-Geocoding mit GPS-Jitter-Toleranz; Open-Meteo/CAMS-LuftqualitÃ¤t erhÃ¤lt 15 Minuten Fresh-Cache plus 2 Stunden Stale-if-error.
-- EEA-Messstationsmetadaten sind cache-first; Push-Abonnementssync erfolgt nur noch bei tatsÃ¤chlich geÃ¤ndertem Payload.
-- Manueller Reload bleibt ausdrÃ¼cklich force-fresh; periodische Hazard-Aktualisierung und alle Funktionen bleiben erhalten.
-- Neue Required-Regression `test-location-return-request-reuse-095322.mjs`.
-
-## 0.9.53.21
-
-- EU-AQI-Detaildialog erweitert: Jeder Einzelparameter (PM2,5, PM10, NOâ‚‚, Oâ‚ƒ, SOâ‚‚) zeigt jetzt eine kompakte horizontale Vergleichsskala mit offizieller sechsstufiger EU-AQI-Einteilung.
-- Ein Positionsmarker verdeutlicht zusÃ¤tzlich die relative Lage des Messwerts innerhalb der jeweiligen Stufe; die aktive Belastungsstufe wird visuell hervorgehoben.
-- LuftqualitÃ¤tsdialog auf schmaleren Ansichten responsiv verdichtet.
-
-## 0.9.53.20
-
-- Hauptmodule verwenden einen einheitlichen persistenten Ã–ffnen-/SchlieÃŸen-Vertrag. Ein beim letzten Navigieren verbliebener `#mid-section-*`-Hash Ã¶ffnet beim App-Neustart kein Modul mehr automatisch.
-- Einmalige Migration bereinigt den aus Ã¤lteren Versionen potenziell erzwungenen Offen-Zustand der standardmÃ¤ÃŸig geschlossenen groÃŸen Module; danach gilt ausschlieÃŸlich die jeweilige Nutzerauswahl.
-- ModulzustÃ¤nde werden Ã¼ber denselben zentralen SchlÃ¼sselvertrag gespeichert und optional zwischen offenen Tabs synchronisiert.
-
-## 0.9.53.19
-
-- Hyperlokale Analyse fachlich geprÃ¼ft: sehr kleine Restfeldkorrekturen sind zulÃ¤ssig und bedeuten, dass Messung und Modellhintergrund bereits eng Ã¼bereinstimmen. Die kompakte Ergebniszeile hebt deshalb Temperaturkorrekturen erst ab 0,2 K und GelÃ¤nde-/OberflÃ¤chen-Windkorrekturen erst ab 1 % hervor; kleinere Werte werden als â€žTemp./Wind nahe Modellâ€œ zusammengefasst. Die Detailinfo behÃ¤lt die exakten Werte und kennzeichnet sie als vernachlÃ¤ssigbar.
-- Event-Glocke: jedem Eintrag ist nun dasselbe Wetterpiktogramm wie im Event-Center vorangestellt. Glocke und Event-Center verwenden dabei den gespeicherten Tag-/Nachtstatus des reprÃ¤sentativen Event-Wetters.
-
-## 0.9.53.18
-
-- Datenabruf wieder foreground-first stabilisiert: sichtbare Best-Match-Kernvorhersage erhÃ¤lt exklusiven Vorrang; automatische Event-/Favoritenjobs warten auf einen erfolgreichen Core-Forecast und eine ruhige Netzwerkphase.
-- Aggressive Event-Hintergrundlogik aus v0.9.53.8 zurÃ¼ckgebaut: kein 5-Minuten-Modellmetadatenpolling je Eventort und kein erzwungener 30-Minuten-Fullrefresh mehr. Events werden passiv stÃ¼ndlich fÃ¤llig, alle 15 Minuten geprÃ¼ft, hÃ¶chstens vier pro Hintergrundzyklus und strikt seriell aktualisiert.
-- Nur manuelle Event-Reloads erzwingen `forceFresh`; automatische Pflege nutzt Cache-/Freshness-VertrÃ¤ge.
-- Best-Match-Modellmetadaten werden als Aggregat 20 Minuten gecacht (6 h stale-if-error), statt bei jedem Eventlauf erneut viele Einzelabfragen auszulÃ¶sen.
-- Open-Meteo-429-Cooldown wird PWA-neustartfest gespeichert; wÃ¤hrend eines aktiven Cooldowns versucht der sichtbare Forecast zuerst Worker/Cache statt den limitierten Direktpfad erneut zu belasten.
-- Automatisches Wetterzwilling-Lernen aller Favoriten ist wieder Opt-in und lÃ¤uft bei Aktivierung Ã¼ber dieselbe globale Hintergrund-Netzwerkbremse.
-- Neue Required-Regression `test-background-fetch-stability-095318.mjs`; Ã¤ltere Event-Regressionen auf den ressourcenschonenden Vertrag aktualisiert.
-
-# 0.9.53.17
-
-- VollstÃ¤ndige Best-Match-Vorhersage und etablierte Kacheldarstellung wiederhergestellt: kein feldÃ¤rmerer Fremdprovider mehr als Ersatz fÃ¼r die Standard-Kernprognose.
-- Foreground-Prognose wieder direkt Best-Match-priorisiert; appweiter Open-Meteo-Guard, 429-Cooldown und gestaffelte Hintergrundabrufe bleiben erhalten.
-- Worker dient fÃ¼r `forecast-core` nur noch als Cache/Resilienzpfad fÃ¼r vollstÃ¤ndiges Open-Meteo Best Match; alte MET-Norway-Fallback-Caches werden verworfen.
-- Standard-Herkunft der Stunden-/Tagesdaten, PoP, Sichtweite und Kachelsemantik wiederhergestellt; DWD-nahe Tages-PoP-Zeitfenster aus 0.9.53.14 bleiben erhalten.
-- Neue Required-Regression `test-core-forecast-restoration-095317.mjs`.
-
-## 0.9.53.16
-
-- Kernvorhersage ohne Single-Provider-Ausfallpunkt: alle Core-Abrufe worker-first; Open-Meteo bleibt PrimÃ¤rquelle, MET Norway Locationforecast dient bei 429/5xx/Timeout und fehlendem Cache als unabhÃ¤ngiger globaler Ersatzpfad.
-- Worker-Fallback wird transparent als tatsÃ¤chliche Kernquelle ausgewiesen; Zeitzone/HÃ¶he werden appweit an sichtbare, Event- und Favoriten-Core-Abrufe weitergegeben.
-- Fehlende Niederschlagswahrscheinlichkeit des unabhÃ¤ngigen Ersatzproviders wird als `â€“` statt als kÃ¼nstliche `0 %` dargestellt; deterministische Niederschlags-/Wetterdaten bleiben nutzbar und die Quelle wird transparent ausgewiesen.
-- Open-Meteo-429 aus dem Worker setzt zugleich den zentralen Browser-Cooldown, damit Hintergrundmodule den limitierten Dienst nicht weiter belasten.
-- Neue Runtime-Regression simuliert ausdrÃ¼cklich Cold Start ohne Cache bei Open-Meteo-429 und verlangt trotzdem einen nutzbaren Kernforecast.
-
-## 0.9.53.15
-
-- Kernvorhersage gegen anhaltende Open-Meteo-HTTP-429 nach App-Reaktivierung gehÃ¤rtet: foreground-first Worker-Proxy mit Edge-Cache und 18-h-Stale-Fallback.
-- Forecast-Cache toleriert GPS-Jitter und migriert vorhandene v1-CacheeintrÃ¤ge; ein Neustart verliert den letzten belastbaren Stand nicht mehr wegen geringfÃ¼gig verÃ¤nderter Standortkoordinaten.
-- Direkter Open-Meteo-Zugriff bleibt als RÃ¼ckfallpfad erhalten.
-
-# 0.9.53.14
-
-- Buildfix nach fehlgeschlagenem Installerlauf: TravelPlanner-Regressions lÃ¶sen den neu zentralisierten `openMeteoGuard` im temporÃ¤r kompilierten ESM-Test korrekt als `.js` auf; Produktionscode und Open-Meteo-Guard bleiben unverÃ¤ndert.
-
-- TypeScript-Buildfix fÃ¼r den Open-Meteo-Guard: `RequestInit.signal` wird vor Queue-/Wait-Helfern von `AbortSignal | null | undefined` auf `AbortSignal | undefined` normalisiert; behebt den GitHub-TS2345-Produktionsbuild ohne funktionale Ã„nderung der Rate-Limit-Logik.
-
-- 7-Tage-PoP wieder DWD-nah: 00â€“24 h oder nur bei klar isoliertem Schwerpunkt ein klassisches 6-h-Fenster; bei 0 % ohne Zeitfenster.
-- Appweiter Open-Meteo-Request-Guard mit Priorisierung, Deduplizierung, begrenzter ParallelitÃ¤t und gemeinsamem 429-Cooldown.
-- Favoriten-/Resume-Resilienz: Kernvorhersage mit Fresh-/Stale-Cache; bei Rate Limit bleibt die letzte erfolgreiche Wetterlage sichtbar und MID versucht automatisch erneut, statt rohes `HTTP 429` als Vollfehler zu zeigen.
-- Wetterzwilling, Event-Flugwetter, Meteogramm, Berg-/Wintersport, Referenzdaten, Saison- und Reise-Klimadaten auf denselben Open-Meteo-Schutzpfad gezogen.
-- Neue Required-Regression `test-dwd-pop-and-openmeteo-rate-guard-095314.mjs`; Worker fachlich unverÃ¤ndert.
-
-# 0.9.53.13
-
-- Event-Favoriten und normale Ortsfavoriten strikt getrennt; gleiche Orte dÃ¼rfen gleichzeitig in beiden Favoritenarten gefÃ¼hrt werden.
-- GerÃ¤te-Sync fÃ¼hrt Event-Favoritenrevision und Wetterplan unabhÃ¤ngig zusammen.
-- Event-Ortssuche auf appweite Live-Suche mit Debounce, Request-Abbruch, PLZ/ICAO/POI und mobiler Search-Semantik umgestellt.
-- Neue Required-Regression `test-event-favorite-search-independence-095313.mjs`; Worker fachlich unverÃ¤ndert.
-
-# 0.9.53.12
-
-- Event-Persistenz an der eigentlichen Speicherursache korrigiert: quota-sicherer Durable-Store ist fÃ¼r Eventdaten und Refresh-Marker nun direkt maÃŸgeblich, statt von einer Ã¼berschreibbaren `localStorage`-Methode abzuhÃ¤ngen.
-- Bei iOS/Safari konnte ein Quota-Fallback bereits den neuen Eventplan in IndexedDB/Fallback speichern, wÃ¤hrend ein Ã¤lterer nativer `localStorage`-Wert weiter bevorzugt gelesen wurde. Dadurch erschien dauerhaft z. B. â€žStand 13.08., 07:41â€œ, obwohl Refreshes tatsÃ¤chlich liefen.
-- Durable Reads priorisieren jetzt den gespiegelt neuesten Wert; Event-Center liest und schreibt seine Daten explizit Ã¼ber diese Schicht. Cross-Tab-Storage-Ã„nderungen synchronisieren den Fallback mit.
-- Alle bisherigen Reload-, Modelllauf-, Hintergrund- und GerÃ¤te-Sync-Regeln bleiben bestehen; neue Required-Regression `test-event-durable-storage-fallback-095312.mjs`.
-- Worker fachlich unverÃ¤ndert.
-
-# 0.9.53.11
-
-- Event-Refresh grundlegend korrigiert: ein erfolgreich spÃ¤ter gestarteter Fresh-Reload ist nun die maÃŸgebliche Persistenzfrische; optionale/partielle Modellmetadaten dÃ¼rfen einen neuen Plan nicht mehr wegen einer niedrigeren Quellenrevision blockieren.
-- Der konkrete RÃ¼cksprung auf alte Event-StÃ¤nde (z. B. 13.08., 07:41) wird damit an der eigentlichen Ursache behoben: Quellenrevision ist nur noch Provenienz/Tie-Breaker, nicht Commit-AutoritÃ¤t.
-- Nach jedem Event-Refresh wird der Plan aus LocalStorage erneut gelesen; erst ein tatsÃ¤chlich dauerhaft gespeicherter neuer Transaktionsstand gilt als erfolgreicher Reload.
-- GerÃ¤te-Sync und geÃ¶ffnete Eventdetails verwenden dieselbe transaktionsbasierte Frischeordnung, sodass Ã¤ltere Remote-/UI-Snapshots den neuen Stand nicht zurÃ¼cksetzen kÃ¶nnen.
-- ModelllaufÃ¼berwachung bleibt vollstÃ¤ndig aktiv: neue LÃ¤ufe lÃ¶sen weiterhin die zentrale Event-Neuberechnung aus, ohne selbst die Persistenzreihenfolge zu dominieren.
-- Neue Required-Regression `test-event-refresh-transaction-authority-095311.mjs`; bestehende Event-Refresh-/Sync-Regressionen auf den korrigierten Frischevertrag aktualisiert.
-- Security-Patches aus v0.9.53.10 (nanoid 3.3.18, protocol-buffers-schema 3.6.1) bleiben enthalten. Worker fachlich unverÃ¤ndert.
-
-# 0.9.53.10
-
-- Security-Wartung nach nÃ¤chtlichem Dependency-Audit: nanoid im kompatiblen 3.x-Pfad auf 3.3.18 und protocol-buffers-schema auf 3.6.1 angehoben.
-- Bestehende nÃ¤chtliche Dependency-Regression verschÃ¤rft und um protocol-buffers-schema ergÃ¤nzt; keine Major-/Toolchain-Migration.
-- Dependency-Upgrade-Policy um sofortige kompatible Security-Patches ergÃ¤nzt.
-- Worker fachlich unverÃ¤ndert; kein funktionaler Worker-Upload erforderlich.
-
-# 0.9.53.9
-
-- Event-Wetteraktualisierung vollstÃ¤ndig aus der lazy EventPlanner-UI herausgelÃ¶st: zentraler appweiter Refresh-Broker und eigenstÃ¤ndige Event-Wetterengine.
-- Alle Reload-Wege (App-Kopfzeile, Event-Center-Popover, Event-Ãœbersicht, Einzelkarte und Detail) verwenden denselben awaitbaren Fresh-Refresh und lesen nach dem Commit den persistenten Stand neu ein.
-- Serielle Per-Event-Queue plus 55-s-Transaktionsgrenze verhindert verspÃ¤tete RÃ¼ckschreibungen und dauerhaft blockierende Hintergrundrequests.
-- Event-Persistenz, geÃ¶ffnete Details und GerÃ¤te-Sync priorisieren Modell-/Quellenrevision und Refresh-Start vor einem bloÃŸ spÃ¤teren `refreshedAt`.
-- Event-Monitor startet unabhÃ¤ngig von der geÃ¶ffneten Sektion; Start/Resume/Fokus/Online, 5-Minuten-Stale-Check, neue ModelllÃ¤ufe und 30-Minuten-Fallback lÃ¶sen passende Neubewertungen aus.
-- Favoriten-SammellÃ¤ufe bleiben vollstÃ¤ndig; allgemeine 20-Event-Grenze gilt nicht fÃ¼r Favoriten oder explizite Modelllauf-Ziele.
-- Neue Required-Regression `test-event-refresh-broker-model-runs-09539.mjs`; bestehende Event-/Modell-/Hyperlokal-VertrÃ¤ge auf die UI-unabhÃ¤ngige Engine umgestellt.
-- Worker fachlich unverÃ¤ndert; kein Worker-Upload erforderlich.
-
-# 0.9.53.8
-
-- Aktuelles Wetter: Piktogramme wechseln am standortbezogenen Sonnenauf-/untergang und werden bei Resume/Fokus neu bewertet.
-- Event-Refresh-AuftrÃ¤ge werden persistent nachgefÃ¼hrt; 5-Minuten-FÃ¤lligkeitsprÃ¼fung und geschÃ¼tzter 30-Minuten-Autorefresh ergÃ¤nzt.
-- FrÃ¼here Event-Refresh-Koordination blieb noch an einer versteckten/lazy EventPlanner-Instanz gekoppelt und wird mit v0.9.53.9 vollstÃ¤ndig ersetzt.
-
-# 0.9.53.7
-
-- Event-Center: verhindert RÃ¼cksprung auf alte WetterstÃ¤nde nach erfolgreichem Reload.
-- GerÃ¤te-Sync fÃ¼hrt Event-PlÃ¤ne konfliktfest nach `plan.refreshedAt` zusammen und schÃ¼tzt lokale Ã„nderungen, die wÃ¤hrend eines laufenden Pull/Push entstehen.
-- Lokaler Event-Store verwirft verspÃ¤tete Ã¤ltere Plan-SchreibvorgÃ¤nge.
-
-# 0.9.53.6
-
-- Hyperlokale 2-m-Temperatur erkennt stabile, schwachwindige NÃ¤chte nur bei tatsÃ¤chlich erhÃ¶hter rÃ¤umlicher Temperatur-/Residualstreuung.
-- Temperaturresiduen werden dann dynamisch enger lokalisiert; nahe standortÃ¤hnliche Messpunkte gewinnen, entfernte bzw. thermisch unÃ¤hnliche Stationen werden stÃ¤rker gedÃ¤mpft.
-- Entfernte Flugplatz-/METAR-Temperaturen werden fÃ¼r urbane/suburbane Zielpunkte im stabilen Nachtregime konservativer gewichtet, ohne METAR-Wind/Sicht/Wolken abzuwerten.
-- Kein pauschaler Nachtabschlag: Korrekturen bleiben vollstÃ¤ndig beobachtungs- und modellresidualgestÃ¼tzt.
-- Hyperlokal-Info zeigt aktives thermisches Nachtregime, Gewichtungsreichweite und Stationsstreuung.
-- Neue Required-Regression `test-stable-night-hyperlocal-temperature-09536.mjs`; Tages-, Wind-, BewÃ¶lkungs- und HomogenitÃ¤ts-Gegenproben enthalten.
-- Worker fachlich unverÃ¤ndert; kein Worker-Upload erforderlich.
-
-# 0.9.53.5
-
-- Appweiter Reload aktualisiert gespeicherte Events bis zum sichtbar neuen `Stand`; Event-Refresh hÃ¤ngt nicht mehr von einem bereits vollstÃ¤ndig geladenen Ortsforecast ab.
-- Optionale langsame Zusatzquellen kÃ¶nnen den Kern-Eventrefresh nicht mehr unbegrenzt blockieren.
-- LocalStorage, Event-Ref und sichtbarer Event-State werden nach erfolgreicher Neuberechnung gemeinsam aktualisiert.
-- Glockenlogik bleibt meteorologisch relevant: ein neuer Zeitstempel allein erzeugt keine rote Ã„nderung.
-- Worker fachlich unverÃ¤ndert; kein Worker-Upload erforderlich.
-
-# 0.9.53.4
-
-- Events & AktivitÃ¤ten: alle Reload-SchaltflÃ¤chen erzwingen jetzt eine echte Neuberechnung statt Wiederverwendung der bereits gerenderten Ortsvorhersage.
-- Forecast-Fusion und Event-Ensemble umgehen beim expliziten Reload lokale Fresh-Caches; der Worker unterstÃ¼tzt `refresh=1` und umgeht dabei den 20-Minuten-Upstream-Cache.
-- Automatischer 30-Minuten-Eventrefresh nutzt denselben Fresh-Pfad.
-- Hyperlokaler Info-Button rechts innerhalb der bestehenden Analysekarte positioniert, ohne zusÃ¤tzliche KartenhÃ¶he.
-- Worker funktional geÃ¤ndert; Cloudflare-Upload erforderlich.
-
-# 0.9.53.3
-
-- Tages-Niederschlagswahrscheinlichkeit wieder mit 00â€“24-h- bzw. klar erhÃ¶htem 6-h-Zeitfenster.
-- Best-Match-Fallback bleibt als stÃ¼ndliches Maximum transparent gekennzeichnet.
-- Niederschlagsdauer wird bei vorhandener Dauer kompakt in ganzen Stunden ergÃ¤nzt.
-
-# 0.9.53.2
-
-- Hyperlokale Analyse platzsparend verdichtet; Details hinter Info.
-- Event-Aktualisierung repariert: echte Neuberechnung und sofortige Synchronisierung des sichtbaren Stand-Zeitpunkts.
-
-# MID Changelog
-
-## 0.9.53.1
-
-- CI-/Regressions-Hotfix fÃ¼r v0.9.53.0: vier veraltete bzw. durch die neue Architektur Ã¼berholte Assertions an den aktuellen Funktionsvertrag angepasst.
-- Event Center: Favoritenlauf prÃ¼ft alle aktiven Favoriten; die 20er-Grenze gilt nur fÃ¼r den allgemeinen Hintergrundlauf.
-- Hyperlokale Analyse: dynamische Ergebniswerte (Modellhintergrund, lokale Korrektur, GelÃ¤nde, Windexposition und OberflÃ¤chenkontext) bleiben im erweiterten Modus direkt sichtbar; nur Methodik/ErklÃ¤rung liegt hinter dem Info-Hinweis.
-- ICON-D2-RUC-Regression an den optionalen Worker-Punktadapter und den weiterhin gÃ¼ltigen Availability-only-Rohdatenpfad angepasst.
-- Forecast-Fusion-Regression an den env-fÃ¤higen Worker-Aufruf `forecastFusionResponse(u,env)` angepasst.
-- Keine neue kostenpflichtige RUC-Infrastruktur und keine Aktivierung eines RUC-Punktdecoders.
-- Worker fachlich unverÃ¤ndert; kein Worker-Upload erforderlich.
-
-
-## 0.9.53.0
-
-- Event Center: automatische Neubewertung aktiver Events bei sichtbarer App sowie Catch-up nach Wiederaufnahme/Fokus; zusÃ¤tzlicher `Neu laden`-Button direkt im Glocken-Popover.
-- Bergwetter: zentrale DWD-NÃ¤herung der Schneefallgrenze aus T850 und tatsÃ¤chlichem Z850 mit 0,65 K/100 m und +2-Â°C-Schneefallgrenzenansatz; Ensemble-Spread wird in HÃ¶henunsicherheit Ã¼bertragen.
-- Gezeiten: `Flut`/`Ebbe` statt `Hochpunkt`/`Tiefpunkt`.
-- Eventplaner: kompakter Niederschlagsblock ohne Zusatzwort `Zeitraum`; Niederschlagsart-Symbol statt `PoP` in den Details.
-- Hyperlokale Analyse: statische/methodische ErklÃ¤rungen der erweiterten Ansicht in appweites Info-Popover verschoben.
-- ICON-D2-RUC: optionaler numerischer Worker-Punktadapter (`MID_DWD_RUC_POINT_ENDPOINT`) ergÃ¤nzt; direkte DWD-VerfÃ¼gbarkeitsprÃ¼fung bleibt erhalten.
-- Copernicus CLMS: direkte LCM10-Abfrage Ã¼ber CDSE/Sentinel-Hub Statistical API mit OAuth-Client-Credentials; GIS-OberflÃ¤chenkontext vor OSM-Proxy priorisiert.
-- Hyperlokale Exposition: acht richtungsabhÃ¤ngige DEM-Sektoren, Interpolation zur aktuellen Modellwindrichtung und konservative dynamische Wind-/BÃ¶enkorrektur unter Einbezug der Rauigkeit.
-- Synoptik: aktuelle DWD-Synoptische Ãœbersichten Kurz-/Mittelfrist als kontrollierte Fachvokabularquelle; keine Ãœbernahme fremder Textpassagen.
-- Neue Required-Regression `test-mid-nine-step-integration-09530.mjs`.
-- Worker funktional geÃ¤ndert; Worker-Upload erforderlich.
-
-
-## 0.9.52.3
-
-- Appweiter ResponsivitÃ¤ts-/Touch-Cleanup ohne Funktionsabbau: native Einzelaktivierung fÃ¼r einklappbare Dashboardmodule statt paralleler Pointer-/Click-Umschaltung.
-- Forecast-Cockpit-HitflÃ¤chen lÃ¶sen die Auswahl nur noch einmal Ã¼ber den nativen Click-Pfad aus; redundante PointerDown-/TouchStart-State-Updates entfallen.
-- Ortssuche auf iOS stabilisiert: Treffer bleiben beim Fokusverlust des Eingabefelds erhalten und werden erst Ã¼ber den bestehenden AuÃŸenklick-/Fokuswechsel-Mechanismus geschlossen, sodass der erste Tap auf einen Treffer zuverlÃ¤ssig ankommt.
-- Appweiter Touchvertrag ergÃ¤nzt (`touch-action: manipulation`, unterdrÃ¼ckte Tap-Highlights/Touch-Callouts, dekorative SVGs ohne eigenes Hit-Target).
-- Kompakte Touch-Controls erhalten auf groben Zeigern mindestens 36 px TrefferhÃ¶he/-breite, ohne Desktop-Dichte oder Funktionen zu verÃ¤ndern.
-- Neue Required-Regression `test-appwide-touch-responsiveness-09523.mjs`.
-- Worker fachlich unverÃ¤ndert; nur Versionssynchronisation.
-
-## 0.9.52.2
-
-- Regression-Hotfix: `test-hyperlocal-quality-audit-08200.mjs` an den seit v0.9.52.0 verpflichtenden OberflÃ¤chenkontext angepasst.
-- Eine hochwertige Stationsanalyse gilt nur dann als vollstÃ¤ndig, wenn `surfaceClass` vorhanden ist; fehlender OberflÃ¤chenkontext lÃ¶st weiterhin bewusst die DGM-/Landnutzungs-/Rauigkeitsanreicherung aus.
-- Keine Ã„nderung an meteorologischer Hyperlokal-, DWD-10-Minuten-, DGM-, Versiegelungs-, UHI-, Rauigkeits- oder Wetterzwilling-Logik.
-
-## 0.9.52.1
-
-- Build-Hotfix: `LocalSurfaceContext` erfÃ¼llt jetzt den Fehlervertrag von `fetchWorkerJson<T extends WorkerPayload>`.
-- Keine Ã„nderung an Hyperlokal-, DGM-, DWD-10-Minuten-, Versiegelungs-, Rauigkeits- oder Wetterzwilling-Logik.
-- Neue Required-Regression `test-local-surface-worker-payload-type-09521.mjs`.
-
-## 0.9.52.0
-
-- Hyperlokale QualitÃ¤tsstufe 2: direkte DWD-CDC-10-Minuten-Netze fÃ¼r Temperatur/Feuchte, Mittelwind/Windrichtung, BÃ¶enspitzen und Niederschlag; zusÃ¤tzlich das DWD-Stadtklima-10-Minuten-Netz fÃ¼r urbane Thermodynamik.
-- Kleine CDC-ZIP-Produkte werden im Worker nativ per `DecompressionStream('deflate-raw')` gelesen; Feldzeitstempel und native 10-Minuten-AuflÃ¶sung bleiben erhalten.
-- Copernicus-DEM-GLO-90-Mikroreliefprofil fÃ¼r Ziel und Stationskandidaten: Hangneigung, Exposition/Aspekt, lokales Relief sowie Kuppen-/Senkenposition beeinflussen parameterabhÃ¤ngig die RestfeldÃ¼bertragung.
-- OberflÃ¤chenkontext ergÃ¤nzt: exakter GIS-Punktadapter fÃ¼r Versiegelung, LCZ, Bebauungsanteil und RauigkeitslÃ¤nge; ohne Adapter ausschlieÃŸlich klar gekennzeichneter OpenStreetMap-Morphologieproxy.
-- Thermische StandortÃ¤hnlichkeit berÃ¼cksichtigt bei echten GIS-Daten Versiegelungsunterschiede stÃ¤rker nachts und bei schwachem Wind; kein pauschaler UHI-Temperaturzuschlag.
-- Wind-Restfelder werden bei stark unterschiedlicher OberflÃ¤chenrauigkeit bzw. Kuppen-/Abschirmungslage deutlicher gedÃ¤mpft; kein blindes logarithmisches Windprofil ohne bekannte Modell-/Stationsrauigkeit.
-- Keine doppelte pauschale HÃ¶henkorrektur: der bereits hÃ¶hen-downskalierte hochaufgelÃ¶ste Modellhintergrund bleibt Basis; DEM dient zur Morphologie- und Ãœbertragbarkeitsbewertung.
-- Fast-Analyse wird bei fehlendem OberflÃ¤chenkontext automatisch durch eine vollstÃ¤ndige QualitÃ¤tsanalyse angereichert.
-- Neuer verbindlicher `MID_HYPERLOCAL_DOWNSCALING_CONTRACT.md` und Required-Regression `test-hyperlocal-downscaling-09520.mjs`.
-
-## 0.9.51.0
-
-- Hyperlokale Analyse konsequent parameterbezogen: harte Alters-, Distanz- und HÃ¶hengrenzen verhindern Ã¼bermÃ¤ÃŸigen Einfluss alter/weiter Messwerte.
-- Feldzeitstempel und native Datenintervalle werden getrennt transportiert; kein kÃ¼nstliches VerjÃ¼ngen alter Temperatur durch aktuellere andere Stationsfelder.
-- Restfeldkorrektur ohne festen Mindestanteil; hochaufgelÃ¶ste Regionalmodelle dienen landesabhÃ¤ngig als Hintergrund vor Best Match.
-- Stadt/Land/Suburban- und HÃ¶henanpassung prÃ¤zisiert; generische PPL-Orte werden nicht mehr pauschal urban gewertet.
-- Hochfrequente amtliche Beobachtungen ausgebaut: DWD/GeoSphere/KNMI/MeteoSwiss-Metadaten sowie SMHI-Minutenparameter.
-- Aktuelles Wetter, Kurzfrist und Event-Anker auf gemeinsame feldbezogene Frische-/ReprÃ¤sentativitÃ¤tsprÃ¼fung umgestellt; die Haupttemperatur gilt nur bei selbst frischer Temperaturquelle als stationsgeprÃ¼ft.
-- Wetterzwilling-Lernreferenzen ebenfalls feldweise abgesichert: alte Temperatur/Niederschlag/BÃ¶e/BewÃ¶lkung werden nicht mehr Ã¼ber einen jÃ¼ngeren fremden Stationsparameter mitarchiviert.
-- Neuer verbindlicher `MID_HYPERLOCAL_ANALYSIS_CONTRACT.md` und Required-Regression `test-hyperlocal-parameter-relevance-09510.mjs`.
-
-## 0.9.50.0
-- UI-/Architekturstandardisierung ohne Funktionsabbau: gemeinsame `AppPortalPopover`-Primitive fÃ¼r appweite verankerte Popover und Forecast-Cockpit.
-- `AppInfoHint` nutzt nur noch die gemeinsame Body-Portal-/AuÃŸenklick-/Escape-/Scroll-Positionierungslogik.
-- Neuer verbindlicher `MID_UI_ARCHITECTURE_CONTRACT.md` fÃ¼r neue Sektionen, MenÃ¼s, Tooltips, Drawer, Zeit-/Einheitenformatierung, Responsive-Verhalten und kanonische Fachpfade.
-- Neue Regression verhindert kÃ¼nftig generische Portal-/Dismiss-Kopien in neuen Dateien; spezialisierte Ensemble-Charttooltips bleiben eng begrenzte Ausnahme.
-
-## 0.9.49.1
-
-- Event-PoP visuell eindeutig als **Zeitraumwahrscheinlichkeit** gekennzeichnet; ausgewerteter Start-/Endzeitraum steht direkt an der Niederschlagskachel.
-- StÃ¼ndliche Event-Niederschlagswerte an die Open-Meteo-Semantik â€žvorangehende Stundeâ€œ angepasst: nur tatsÃ¤chlich mit dem Event Ã¼berlappende Intervalle werden dargestellt und summiert.
-- Teilstunden werden fÃ¼r Mengen zeitanteilig zugeschnitten; Einzelstunden-PoP bleibt als Wahrscheinlichkeit des jeweils ausgewiesenen Stundenintervalls erhalten.
-- Der bisherige Â±30-Minuten-Punktfilter wurde fÃ¼r Event-Niederschlag entfernt, damit z. B. die 12:00-PoP (11â€“12 Uhr) nicht fÃ¤lschlich in ein ab 12:00 Uhr beginnendes Event einflieÃŸt.
-- Neue Regression `test-event-period-pop-alignment-09491.mjs`.
-
-## 0.9.49.0
-
-- Event-Niederschlagswahrscheinlichkeit jetzt fÃ¼r den **exakten Start-/Endzeitraum** aus echten Ensemble-Mitgliedern mit den appweiten DWD-nahen Schwellen >0,2 mm und >5,0 mm berechnet; Modellfamilien werden entkorreliert, Stunden nur nach tatsÃ¤chlicher ZeitÃ¼berdeckung gewertet.
-- Bei unzureichender Ensembleabdeckung bleibt das bisherige Stundenmaximum ausschlieÃŸlich als klarer Fallback erhalten.
-- Wetterzwilling geprÃ¼ft und an v0.9.48.x-Endstufe angepasst: lokal validierte Temperatur-/BÃ¶en-Biases gelten nun auch fÃ¼r abweichende Eventorte mit vorhandenem Lernstand; Events am aktiven Ort Ã¼bernehmen den bereits angewandten Twin-Status korrekt.
-- Doppelten Wetterzwilling-Radarblend entfernt: operativer Radar-/Konvektiv-Nowcast lÃ¤uft ausschlieÃŸlich Ã¼ber die gemeinsame `finalizeForecastHours(...)`-Endstufe; der Twin-Schalter steuert nur noch Radarlernen/RÃ¼ckblick.
-- Neue Regression `test-event-pop-weather-twin-09490.mjs`; bestehende Event-/PoP-/Twin-/RadarvertrÃ¤ge fortgeschrieben.
-
-## 0.9.48.1
-
-- Release-Pipeline: veraltete versionsfeste TS18048-Regression auf fortlaufenden Schutzvertrag umgestellt.
-- Wetterzwilling-Regression an die zentrale finale Forecast-Pipeline von v0.9.48.0 angepasst.
-- Keine fachliche Ã„nderung an Event-, Astronomie- oder Hyperlokallogik.
-
-## 0.9.48.0
-
-- Event-Wetter nutzt app-weit dieselbe finale MID-Prognosekette wie die regulÃ¤re Ortsvorhersage; am identischen aktiven Ort werden exakt dieselben finalisierten Stundenwerte Ã¼bernommen.
-- Sonne/Mond-Astronomie vollstÃ¤ndig auf Astronomy Engine 2.1.19 vereinheitlicht: Auf-/UntergÃ¤nge, DÃ¤mmerung, Mondphase/-beleuchtung/-alter und Finsternis-Sichtbarkeit aus einer gemeinsamen Ephemeridenbasis.
-- Hyperlokale Stationsanalyse nach v0.9.47-Quellenausbau neu kalibriert: GMA/StraÃŸenwetter fÃ¼r allgemeine Luftwerte deutlich gedÃ¤mpft und nahe geeignete Stationen mit sanftem LokalitÃ¤tsbonus versehen.
-- Neue Regression `test-event-astronomy-hyperlocal-consistency-09480.mjs`; v0.9.47-Quellenbroker-Regression versionsfortschreibungsfest gemacht.
-
-# MID v0.9.47.1
-
-- Build-Hotfix fÃ¼r v0.9.47.0: die parameterbezogene Messquellenanzeige gibt ihre Quellenzeilen jetzt explizit als `StationFieldSource[]` zurÃ¼ck.
-- Dadurch sind `rows`, `rows.length`, `rows[0]` und `group.rows.map(...)` unter TypeScript `strictNullChecks` nicht mehr fÃ¤lschlich als mÃ¶glicherweise `undefined` typisiert.
-- Keine fachliche Wetter-, Quellen-, Ensemble-, UI- oder Worker-Logik gegenÃ¼ber v0.9.47.0 geÃ¤ndert; der Worker ist nur versionssynchronisiert.
-- Neue Regression `test-current-source-info-type-safety-09471.mjs` schÃ¼tzt den Buildvertrag.
-
-# MID v0.9.47.0
-
-- â€žAktuelles Wetterâ€œ nutzt fÃ¼r Deutschland direkte DWD-SYNOP/POI-Beobachtungen vor dem bisherigen Bright-Sky-RÃ¼ckfall.
-- LÃ¤nderabhÃ¤ngiger amtlicher Beobachtungsbroker ergÃ¤nzt: direkte Pfade fÃ¼r SMHI, FMI, NWS/MADIS und ECCC/SWOB-GeoMet; GeoSphere bleibt fÃ¼r Ã–sterreich erhalten; AEMET ist mit Worker-Secret nutzbar. MeteoSwiss, KNMI, MÃ©tÃ©o-France und DWD-StraÃŸenwetter besitzen explizite numerische Punktadapter.
-- Quellenbewertung bleibt parameterbezogen. StraÃŸenwetter/GMA ist als `road-weather` spezialisiert und darf allgemeine Wind-, Sicht-, Wolken- oder Niederschlagswerte nicht wegen bloÃŸer NÃ¤he dominieren.
-- Hyperlokale Analyse fÃ¼hrt nun je Parameter konkrete Herkunftsmetadaten (Quelle, Station, Entfernung, Messzeit und QC); die erweiterten Info-Popover von â€žAktuelles Wetterâ€œ zeigen diese Herkunft an.
-- Ensemblekatalog erweitert: HGEFS ausschlieÃŸlich als Mittel/Spread; KNMI HARMONIE-AROME Cy43 EPS und ECCC REPS als regionale, gebiets- und horizontbegrenzte Ensemblequellen mit Familien-/AbhÃ¤ngigkeitsgruppen.
-- Regionale Direktmodelle werden ausschlieÃŸlich Ã¼ber numerische Punktadapter geladen; es gibt keinen stillen Open-Meteo-Fallback mit unbekannten Modellkennungen und keine erfundenen Einzelmitglieder.
-- Bewusst kein allgemeiner BUFR-/GRIB-Decoder im Worker; binÃ¤re amtliche Produkte werden nur Ã¼ber dokumentierte numerische Adapter angebunden.
-- Worker funktional erweitert; Deployment des neuen Workers ist erforderlich.
-
-# MID v0.9.46.0
-
-- Events & AktivitÃ¤ten: kompakte BÃ¶enabkÃ¼rzung **G** statt **B**.
-- AktivitÃ¤t Flug nutzt amtliche ICAO-SIGMET/TAF, bei Nahterminen METAR/SPECI und PIREP/AIREP sowie regionale AWC-Hazardprodukte.
-- WAFS-SIGWX beider WAFC wird Ã¼ber den autorisierten WIFS-API-Pfad standort- und zeitbezogen ausgewertet; Polygon- und Punktgeometrien sowie Hazard-/IntensitÃ¤tskennungen aus IWXXM-Attributen werden berÃ¼cksichtigt.
-- Optionaler direkter KNMI-AIRMET-/SIGMET-Pfad fÃ¼r die Amsterdam FIR ergÃ¤nzt; weitere nationale SWC-Spezialprodukte werden nur bei dokumentierter API-/Nutzungsfreigabe angebunden.
-- Quellenstatus und technische HintergrÃ¼nde liegen hinter dem Info-Button; die Hauptansicht bleibt kompakt.
-- Neuer Worker-Modus `aviation-hazards`; Worker-Deployment ist erforderlich.
-
-# MID v0.9.45.5
-
-- CI-/Regression-Hotfix fÃ¼r den fehlgeschlagenen v0.9.45.4-Installerlauf.
-- Historische Funktionssuite `test-feature-suite-0797.mjs` auf den aktuellen Standortvertrag synchronisiert: der veraltete Quellcode-Zwang `locate(false)` wurde entfernt.
-- Die aktive Standortlogik bleibt unverÃ¤ndert: gespeicherter/manueller Ort bleibt geschÃ¼tzt; die separate aktuelle GPS-Standortermittlung wird weiterhin durch die neueren Standort-/Favoriten-Regressionen abgesichert.
-- Keine fachliche Wetter-, Event-, Planer-, UI- oder Worker-Ã„nderung gegenÃ¼ber v0.9.45.4.
-
-# MID v0.9.45.2
-
-## Sonne / Mond
-
-- NÃ¤chste standortrelevante Sonnen- oder Mondfinsternis mit zukÃ¼nftigem Maximum, Datum, Detailzeiten und sinnvoller Verdeckungsangabe ergÃ¤nzt.
-- Sonnenfinsternisse werden lokal berechnet; reine Halbschatten-Mondfinsternisse werden ohne irrefÃ¼hrende 0-%-Angabe ausgewiesen.
-
-# MID v0.9.45.2
-
-- **Events & AktivitÃ¤ten kompakter:** gespeicherte Events zeigen zunÃ¤chst nur Titel, Rahmen/AktivitÃ¤t, Termin, Ort und Wetter-Kernwerte.
-- Analyseheadline, Bewertung, Ã„nderungsdetails sowie Bearbeiten/Aktualisieren/LÃ¶schen liegen jetzt in einer gezielt aufklappbaren Detailansicht.
-- Der Favoritenstern bleibt direkt in der Kurzansicht erreichbar; Mehrfachfavoriten bleiben unverÃ¤ndert unterstÃ¼tzt.
-- Das Event-Center unter der Glocke nutzt dieselbe progressive Darstellung: kompakte Eventzeile, aufklappbare Zusatzinfo und eindeutiger Sprung in den vollstÃ¤ndigen Eventplaner.
-- AbstÃ¤nde, KartenhÃ¶hen, AktionsflÃ¤chen und Mobile-Layout wurden weiter verdichtet; Hell-/Dunkel-Design bleibt Ã¼ber die bestehenden MID-Themevariablen konsistent.
-- Neuer Regressionstest `test-event-progressive-disclosure-09451.mjs`.
-
-# MID v0.9.45.0
-
-- Neue sichtbare Dashboard-Sektion **Planer** bÃ¼ndelt Eventplaner und Reiseplaner.
-- Beide Planer bleiben in den Einstellungen weiterhin separat aktivier- und deaktivierbar.
-- Eventplaner: **Rahmen** und **AktivitÃ¤t** jetzt deutlich kompakter als platzsparende, umbrechende Chips statt groÃŸflÃ¤chiger Kacheln.
-- Neuer Regressionstest `test-planner-section-compact-event-controls-09450.mjs`.
-
-# MID v0.9.44.0
-
-- Event-Center: chronologische Standardsortierung plus wÃ¤hlbare Sortierung.
-- Gespeicherte Events sind nun eindeutig bearbeitbar.
-- Wind wird zusammen mit BÃ¶en ausgegeben.
-- Niederschlags-% werden an die dominante plausibilisierte Niederschlagsform gekoppelt.
-
-# MID v0.9.43.0
-
-- **Event-Center mit echten Mehrfachfavoriten:** mehrere gespeicherte Events kÃ¶nnen gleichzeitig favorisiert und gemeinsam nacheinander aktualisiert werden; ein zuvor geladenes Event Ã¼berschreibt beim Anlegen eines neuen Termins keinen anderen Favoriten mehr.
-- Event-Center und Eventplaner fÃ¼r **helles und dunkles Design** neu abgestimmt; Status-, Ã„nderungs- und Favoritenfarben verwenden theme-adaptive Kontraste.
-- PrimÃ¤ransicht deutlich verdichtet: erklÃ¤rende Hintergrundtexte, Modellmethodik und Update-Hinweise liegen hinter kompakten Info-Bedienelementen.
-- Texte und Statusbezeichnungen vereinheitlicht und professioneller formuliert; unnÃ¶tige Wiederholungen in Ergebnis- und Eventkarten entfernt.
-- Eventparameter an die appweiten Formatregeln angeglichen: gewÃ¤hlte **Windeinheit** wird Ã¼bernommen, **UVI wird ganzzahlig** dargestellt, Niederschlagswahrscheinlichkeit und Sicht bleiben konsistent formatiert.
-- Neue AktivitÃ¤t **Flug**. ZusÃ¤tzlich zum normalen Event-Wetter fÃ¼hrt MID ein Flugwetter-Screening aus Druckniveau-Daten durch: Gewitter/Konvektion, Vereisung, Turbulenz, CAT, Wolkenuntergrenze, Sicht und BÃ¶en; Nullgradgrenze wird ergÃ¤nzend ausgewiesen.
-- Flugwetter-Hazards sind ausdrÃ¼cklich diagnostische MID-Indikatoren und keine amtliche Flugwetterberatung oder Navigationsgrundlage.
-- Neuer Regressionstest `test-event-center-flight-multifavorite-09430.mjs` schÃ¼tzt Mehrfachfavoriten, FlugaktivitÃ¤t, Flugwetter-Hazards, Theme-Kontrast, Info-Verdichtung sowie appweite UVI-/Windeinheiten.
-
-# MID v0.9.42.0
-
-- **Event-Center deutlich unauffÃ¤lliger:** der groÃŸe Dashboard-Block entfÃ¤llt; gespeicherte Events sind jetzt Ã¼ber eine kompakte Glocke in der Top-Leiste erreichbar.
-- Bei ungesehenen Ã„nderungen erhÃ¤lt die Glocke einen dezenten roten Statuspunkt und Akzent. Das Popover zeigt die nÃ¤chsten Events und fÃ¼hrt direkt zum jeweiligen Eintrag im Eventplaner.
-- Technisches Status-Wording korrigiert: statt â€žEinschÃ¤tzung jetzt Achtung statt beobachtenâ€œ erscheinen natÃ¼rliche Formulierungen wie â€žBewertung verschÃ¤rft: jetzt â€žAchtungâ€œ (zuvor â€žBeobachtenâ€œ).â€œ
-- Bereits gespeicherte alte Event-Center-Texte werden beim Einlesen automatisch in die neue Form migriert.
-- Navigation neu geordnet: Berg-/Wintersport und Wassersport liegen unter **Profile**; **Eventplaner** und **Reiseplaner** gemeinsam unter der neuen Oberkategorie **Planer**.
-- Eventplaner und Reiseplaner bleiben in den Dashboard-Einstellungen jeweils separat aktivier- und deaktivierbar.
-- Neuer Regressionstest `test-event-center-topbar-planner-group-09420.mjs` schÃ¼tzt die neue Topbar-, Text- und Planerstruktur.
-
-# MID v0.9.41.7
-
-- CI-/Regressionsfix fÃ¼r den fehlgeschlagenen v0.9.41.6-Installerlauf: zehn veraltete TestvertrÃ¤ge auf den tatsÃ¤chlich bereits in v0.9.41.5/v0.9.41.6 eingefÃ¼hrten Stand synchronisiert.
-- Forecast-Fusion-Cache v7 und Ensemble-Cache v12 sind nun auch in allen historischen Schutztests konsistent hinterlegt; die beabsichtigte Cache-Migration bleibt unverÃ¤ndert.
-- Navigationstest erwartet jetzt `Profile & Planung`; AIFS-MetadatenprÃ¼fung nutzt die exakte aktuelle `ecmwf_aifs025_single`-ID.
-- Ensemble-ModellprÃ¼fung behandelt `bom_access_global` korrekt als gÃ¼ltige deterministische Modellkennung und verwechselt sie nicht mehr mit einer veralteten Ensemble-ID.
-- Keine funktionale Wetter-/UI-Ã„nderung gegenÃ¼ber v0.9.41.6; ausschlieÃŸlich Build-/CI-Stabilisierung.
-
-# MID v0.9.41.6
-
-- **Wetterplaner auf gemeinsamen MID-Vorhersagepfad umgestellt:** Event-Auswertungen verwenden dieselbe Mehrmodell-Fusion, Radar-/Nowcast-Korrektur, konvektive Plausibilisierung und zentrale `precipitationParts()`-Logik wie Kurzfrist, 7-Tage und Dashboard. SprÃ¼hregen, Schauer und konvektiver Niederschlag werden dadurch nicht mehr in einer separaten Parallel-Logik bewertet.
-- Wettertitel, Piktogramme und Niederschlagsbeschreibung im Event-Center werden aus dem plausibilisierten Stundenpfad abgeleitet; fÃ¼r Termine im Nowcast-Fenster flieÃŸen vorhandene Radar-/Gewittersignale ein.
-- **App-weite ModellfamilienprÃ¼fung:** Forecast-Fusion, Ensemble und Schneefallgrenze unterscheiden jetzt Modellvarianten/auflÃ¶sungen von unabhÃ¤ngigen Modellfamilien. Mehrere Varianten derselben UnabhÃ¤ngigkeitsgruppe bleiben als Datenquellen/Fallback sichtbar, erhalten im Konsens aber nicht mehrfaches Gewicht.
-- Rapid-Cycle-Modelle werden innerhalb ihrer tatsÃ¤chlichen Vorhersagereichweite priorisiert. DWD ICON-D2-RUC/RUC-EPS bleiben als VerfÃ¼gbarkeits-/Ausbaupfad gekennzeichnet, solange kein numerischer Adapter verfÃ¼gbar ist; es werden keine Ersatzwerte erzeugt.
-- NOAA-NBM und DWD-MOSMIX werden als Postprocessing behandelt und nicht als zusÃ¤tzliche unabhÃ¤ngige Modellstimme gewertet.
-- Ensemblegewichtung gruppiert DWD-, NOAA-, ECMWF-, CMC-, UKMO- und MeteoSwiss-Varianten nach UnabhÃ¤ngigkeitsgruppe; Szenarioanteile und Modellzahlen folgen derselben Familienlogik. Ensemblecache auf v12 angehoben.
-- Schneefallgrenze gruppiert ECMWF IFS/AIFS und andere Varianten familienweise; die Varianten bleiben sichtbar, verdoppeln aber nicht das Familiengewicht.
-- Saison-/Langfristpfad behÃ¤lt die bereits vorhandene Deduplizierung nach Modellfamilie bei.
-- Forecast-Fusion-Cache auf v7 angehoben, damit alte Ergebnisse mit frÃ¼herer Gewichtungslogik nicht wiederverwendet werden.
-- Neuer Regressionstest `test-model-family-consistency-09416.mjs` schÃ¼tzt Wetterplaner-Plausibilisierung, Rapid-Cycle-Reichweiten, unabhÃ¤ngige Modellgruppen, Postprocessing-Ausschluss, Ensemble-/Schneefallgrenzengewichtung und saisonale Familiendeduplizierung.
-
-# MID v0.9.41.2
-
-- Mobiles Temperatur-Ensemble-Tooltip korrigiert: Sonne, Niederschlag und Modelle verwenden eine gemeinsame Beschriftungsspalte mit sauber getrennter flexibler Wertspalte.
-- Lange Metawerte umbrechen nur rechts und an natÃ¼rlichen Trennstellen; insbesondere â€žNiederschlagâ€œ lÃ¤uft nicht mehr in den Werttext.
-- Tooltip-GrÃ¶ÃŸe, Padding, SchriftgrÃ¶ÃŸen, Temperaturmatrix und Desktop-Darstellung bleiben unverÃ¤ndert.
-
-# MID v0.9.41.1
-
-- CI-KompatibilitÃ¤tsfix: Die Langfrist-Methodik formuliert die gleichgewichtete Modellfamilienlogik wieder vertragskompatibel als â€žgewichtet Modellfamilien gleichâ€œ, ohne die fachliche EinschrÃ¤nkung auf unabhÃ¤ngige Modellfamilien zu verlieren.
-- Keine Ã„nderung an C3S-/DWD-Datenpfaden, Ensembleberechnung oder UI-FunktionalitÃ¤t gegenÃ¼ber v0.9.41.0.
-
-# MID v0.9.41.0
-
-- **C3S numerisch vorbereitet:** Die neun aktuellen C3S-Zentren bleiben als Modellkatalog sichtbar; ein neuer serverseitiger CDS-/Worker-Pfad kann echte lokale monatliche Ensemblewerte von ECMWF, UK Met Office, MÃ©tÃ©o-France, DWD, CMCC, NCEP, JMA, ECCC und BOM dekodieren. Nicht konfigurierte Zentren bleiben ausdrÃ¼cklich â€žKatalogâ€œ und liefern keine Ersatzwerte; Kartenfarben werden niemals zu Zahlen rekonstruiert.
-- FÃ¼r echte C3S-Rauchfahnen ist `seasonal-monthly-single-levels` als numerischer Memberpfad vorgesehen; `seasonal-postprocessed-single-levels` kann die monatliche Anomalie-/Bias-Referenz liefern. Der Browser erhÃ¤lt ausschlieÃŸlich normalisierte Punktwerte und Verteilungen.
-- **DWD GCFS2.2 / EPISODES:** eigener Deutschland-Pfad fÃ¼r 3-Monats-Anomalien (Monate 1â€“3, 2â€“4, 3â€“5, 4â€“6), `tasAnom`/`prAnom`, Referenz 1991â€“2020 und `DE-015x01` (~10 km). Roh-QA `mse`/`corr_pea` sowie optional numerisch bezogene MSESS/RPSS werden unterstÃ¼tzt; GCFS2.1-Karten werden nicht als GCFS2.2 ausgegeben.
-- Langfristansicht zeigt den Live-/Konfigurationsstatus der neuen Datenpfade, trennt C3S-Rauchfahnen von der DWD-Deutschlandperspektive und kennzeichnet C3S-Zentren eindeutig als **Numerisch** oder **Katalog**.
-- Neue globale Einstellung **Informationsdichte: Auto / Kompakt / Komfortabel**. Auto reagiert auf Displaybreite und Hoch-/Querformat; die Einstellung wird Ã¼ber den bestehenden MID-Einstellungs-/Sync-Pfad persistiert.
-- Mobile Bedienlogik vereinheitlicht: zentrale Popover reagieren auf Outside-Tap, Escape und Swipe-down; TouchflÃ¤chen und AbstÃ¤nde folgen gemeinsamen MID-GrÃ¶ÃŸenvariablen.
-- Dynamische Langfristlegenden: im Standardmodus zunÃ¤chst kompakt, Details per Tippen; der erweiterte Modus zeigt die vollstÃ¤ndige Diagnostik.
-- Section-local Sticky Controls fÃ¼r Langfrist, Ensemble-Trend/Wind/Niederschlag und Wetterkarten halten Modell-/Zeitraum-/Layersteuerung in langen Ansichten erreichbar.
-- Progressive Disclosure bleibt konsequent erhalten: technische Adapter-/Quellendetails erscheinen im erweiterten Modus statt in primÃ¤ren BedienflÃ¤chen.
-- Sichtbarkeitsgesteuertes Rendering baut auf dem vorhandenen `ViewportGate` auf und umfasst nun zusÃ¤tzlich Berg-/Wintersport; vorhandene iOS-StabilitÃ¤tsregeln werden nicht durch aggressives `content-visibility` Ã¼berschrieben.
-- Prognose-Cockpit bewahrt horizont-/sektionseigene Scrollpositionen beim Wechsel Kurzfrist/7/14 Tage; bestehende Tages-/Modellauswahlen werden nicht unnÃ¶tig zurÃ¼ckgesetzt. Langfristmodell und Modellstreifenposition werden standortbezogen gespeichert.
-- Release auf **v0.9.41.0** synchronisiert; neuer Regressionstest schÃ¼tzt C3S/DWD-DatenvertrÃ¤ge, Informationsdichte, Sticky Controls, Gesten und Scroll-Restore.
-
-# MID v0.9.40.16
-
-- Favoritenleiste in den Einstellungen auf **Auto / Dauerhaft / Aus** umstellbar; Auto bewahrt das bisherige Verhalten.
-- Dashboard-Sektionskonfiguration erhÃ¤lt **Standard wiederherstellen** und setzt Reihenfolge sowie Sichtbarkeit auf die MID-Defaults zurÃ¼ck.
-- Auf-/Zuklappen von Modulen, insbesondere des Kompositbilds, auf TouchgerÃ¤ten robuster: Bewegungsfilter und UnterdrÃ¼ckung des nachlaufenden Klicks verhindern Doppel-/FehlauslÃ¶sungen beim Scrollen.
-- Niederschlagsart-Layer nutzt kompakte meteorologische SchwarzweiÃŸ-SVG-Symbole nach der gelieferten Vorlage. UnterstÃ¼tzt werden Schnee, SchneekÃ¶rner, Schneeregen/Mischphase, gefrierender (SprÃ¼h-)Regen, Graupel/EiskÃ¶rner und Hagel; reiner Regen bleibt ohne Zusatzsymbol.
-- Technischer Fehlertext im Niederschlagsart-Schalter wird zu **Phasendaten nicht erreichbar** verkÃ¼rzt; Details bleiben im Status-/Info-Bereich.
-- Langfristansicht zu echter Rauchfahnen-Darstellung erweitert: P10â€“P90 Ã¼ber den gesamten Horizont, P25â€“P75 in der ersten HÃ¤lfte. ECMWF nutzt echte Memberquantile; alle im aktuellen NOAA-NMME-ENSMEAN-Lauf lesbaren unabhÃ¤ngigen Modellfamilien flieÃŸen gleichgewichtet in das Multi-Modell ein, CFSv2 E1/E2/E3 bleibt Fallback.
-- Niederschlagsanomalien erhalten auch in mm/Tag echte P10/P25/P75/P90-Felder, soweit die Quelle Ensemble-/Initialisierungsdaten liefert.
-- C3S-Modellkatalog bleibt als Ausbaupfad fÃ¼r ECMWF, UKMO, MÃ©tÃ©o-France, DWD, CMCC, NCEP, JMA, ECCC und BOM sichtbar; keine Rekonstruktion numerischer Punktwerte aus Kartenfarben.
-
-# MID v0.9.40.15
-
-- CI-/Regressionsbereinigung: drei veraltete Schutztests wurden auf den aktuellen Niederschlagsart-Vertrag mit Hagel und Graupel/EiskÃ¶rnern sowie den aktuellen Rapid-Update-Statuspfad migriert.
-- Die neue Symbolerweiterung aus v0.9.40.14 bleibt unverÃ¤ndert erhalten; es wird keine Funktion zurÃ¼ckgenommen.
-- Der neue Regressionstest fÃ¼r Layerstatus, Hagel und Graupel/EiskÃ¶rner ist nun Bestandteil des Baseline-Vertrags.
-- Versionssynchronisierung umfasst jetzt auch package-lock, Service-Worker-Cache, public/version.json, Baseline und Worker.
-
-# MID v0.9.40.14
-
-- Komposit-Niederschlagsart gibt jetzt im Layerstatus eindeutig RÃ¼ckmeldung, ob der Layer aktiv ist und ob im aktuell sichtbaren Ausschnitt momentan Ã¼berhaupt feste, gemischte oder gefrierende Niederschlagsarten erkannt werden. So ist auch bei rein flÃ¼ssigem Niederschlag nachvollziehbar, dass der Layer funktioniert.
-- Die Symbolik wurde erweitert: zusÃ¤tzlich zu Schnee, Mischphase und gefrierendem Niederschlag werden nun auch Hagel sowie Graupel/EiskÃ¶rner als kleine semitransparente meteorologische Symbole auf dem ausgewÃ¤hlten Radarbild dargestellt.
-- Die SymbolgrÃ¶ÃŸen bleiben bewusst klein, damit Staffelungen der Radarechos erkennbar bleiben; Hagel- und Graupelsymbole erhalten zugleich etwas stÃ¤rkere Abstandsregeln, damit sie lesbar bleiben.
-- Die Legende im Kompositbild erklÃ¤rt nun auch, dass ein fehlendes Symbol bei aktivem Layer schlicht bedeuten kann, dass im aktuellen Ausschnitt keine feste bzw. gemischte Niederschlagsphase vorliegt.
-
-# MID v0.9.40.9
-
-- Niederschlagswahrscheinlichkeit app-weit vereinheitlicht: Ensemble-Tageswerte werden explizit als 00â€“24-h-Ereigniswahrscheinlichkeit bezeichnet und zusammen mit dem stÃ¤rksten 6-h-Zeitfenster angezeigt.
-- Mathematische Konsistenz abgesichert: Die 00â€“24-h-Wahrscheinlichkeit kann nicht unter der Wahrscheinlichkeit eines darin enthaltenen 6-h-Fensters liegen; Entsprechendes gilt fÃ¼r die >5-mm-Schwelle.
-- Best-Match-Fallback eindeutig gekennzeichnet: statt eines scheinbaren Tageswerts erscheint â€žmax. Std.â€œ fÃ¼r das Stundenmaximum.
-- EnsembleÃ¼bersicht, 7-Tage-/Cockpit-Tageskarten, klassische Vorhersage sowie Widget/PNG nutzen denselben 00â€“24-h-/6-h-Vertrag.
-- Alle Komposit-/RadarÃ¤nderungen aus v0.9.40.8 bleiben vollstÃ¤ndig enthalten.
-
-# MID v0.9.40.6
-
-- TypeScript-Buildfix: `RadarPhase` wird wieder als Union-Typ aus `radarColorTables.ts` exportiert; dadurch sind die festen Niederschlagsartfarben ohne `any`-Indexierung typisiert.
-- Farbtabellen-Scope unverÃ¤ndert: Auswahl ausschlieÃŸlich fÃ¼r 1-km-/250-m-Radar, feste klassische Phasefarben im Niederschlagsartmodellradar.
-
-## 0.9.40.5
-- Korrektur der Radar-Farbtabellen: Auswahl gilt ausschlieÃŸlich fÃ¼r das normale 1-km-Radar und das 250-m-PX/HX-Radar.
-- Einstellungen enthalten dafÃ¼r DWD Standard und DWD Starkregen mit kleiner Farbvorschau; beim 1-km-DWD-RV wird der offiziell dokumentierte WMS-Stil `Starkregen` verwendet.
-- Das Niederschlagsartmodellradar besitzt keine Farbtabelle-Auswahl mehr und nutzt fest die klassischen meteorologischen Phasenfarben: Regen grÃ¼n, Mischphase pink/violett, Schnee blau, gefrierender Niederschlag rot.
-- Der temporÃ¤re v0.9.40.3-Latest-only-Eingriff in den normalen 1-km-Radarpfad wurde zurÃ¼ckgenommen; 1-km-DWD-Zeitframes und 250-m-PX/HX-Pfade bleiben wie im bewÃ¤hrten v0.9.40.2-Vertrag erhalten.
-
-## 0.9.40.4
-- Niederschlagsart-Radar erhÃ¤lt wÃ¤hlbare professionelle Farbtabellen (Meteo klassisch, Meteo krÃ¤ftig, Barrierearm) inklusive kleiner Vorschau in den Komposit-Einstellungen.
-- Legende des Niederschlagsart-Layers zeigt jetzt die aktive Farbtabelle samt Vorschau und Phasenfarben direkt im Kompositbild.
-- Die Anpassung bleibt auf das Niederschlagsart-Radar begrenzt; die bestehenden 1-km-DWD-, OPERA- und 250-m-PX/HX-Radarpfade bleiben unverÃ¤ndert aktiv.
-
-# MID v0.9.40.3
-
-- Kompositbild: der DWD-Radarpfad behandelt den `dwd:Niederschlagsradar`-Alias jetzt wieder korrekt als Latest-only-WMS-Layer und erzwingt dort keinen fehlerhaften `TIME`-Parameter mehr; dadurch werden die Radarechos im Komposit wieder angezeigt.
-- FÃ¼r Latest-only-DWD-Radar rendert MID genau einen Snapshot mit stabiler Fehlerbehandlung, statt denselben Alias mehrfach als zeitgebundene Frames anzufragen.
-- Die Komposit-Legende wird mit aktiven Overlays nun direkt geÃ¶ffnet und blendet die Niederschlags-/Radar-Skala zuverlÃ¤ssig im Panel ein.
-- Neue Regression `test-composite-radar-legend-buildfix-09403.mjs` schÃ¼tzt DWD-Radar-Snapshot und Legendenverhalten dauerhaft.
-
-# MID v0.9.40.2
-
-- 24-h-Wetterprofil: Tmin/Tmax verwenden jetzt exakt dieselben zentral reconcilierten Tageswerte (`displayDays[].min/max`) wie 7-Tage-Ansicht, 14-Tage-Best-Match, Widget und klassische Vorhersage.
-- Stundenwerte dienen im Wetterprofil nur noch zur zeitlichen Positionierung des jeweiligen Tagesextrems auf der Kurve; sie erzeugen keine abweichenden Extremwert-Zahlen mehr.
-- Tagesminimum/-maximum werden weiterhin nur eingeblendet, wenn der zugehÃ¶rige Stunden-Proxy des betreffenden Kalendertags innerhalb des sichtbaren 24-h-Intervalls liegt; das sichtbare Fenster selbst wird nicht als falsches Tages-Tmin/Tmax interpretiert.
-- Neue Regression `test-weather-profile-daily-extremes-consistency-09402.mjs` schÃ¼tzt die app-weite Konsistenz der Extremwerte.
-
-# MID v0.9.40.0
-
-- App-weite Rapid-Update-Policy: hochauflÃ¶sende stÃ¼ndliche Regionalmodelle werden im Kurzfristbereich nach Standort, Frische, AuflÃ¶sung und Datenlatenz priorisiert; mit zunehmendem Vorlauf sinkt ihr Gewicht.
-- DWD ICON-D2-RUC/RUC-EPS werden Ã¼ber DWD Open Data als echte Rapid-LÃ¤ufe erkannt; numerische Verwendung bleibt ehrlich capability-gated, solange kein JSON-/GRIB2-Adapter verfÃ¼gbar ist.
-- Radar-/Modell-Niederschlagsart wÃ¤hlt dynamisch das frischeste geeignete Rapid-/Regionalmodell; MÃ©tÃ©o-France AROME 15-min nutzt den dedizierten API-Endpunkt, HRRR die dokumentierte Modell-ID.
-- Forecast-Fusion reicht Rapid-Provenienz bis ins Frontend durch; KNMI HARMONIE Europe/NL, UKV, MET Nordic, HRRR/NBM werden standort- und vorlaufabhÃ¤ngig berÃ¼cksichtigt.
-- Meteogramme um KNMI HARMONIE Europe und UKV ergÃ¤nzt; UKMO UK Ensemble 2 km innerhalb seiner Domain hÃ¶her priorisiert.
-- Konservative Phase-/Rate-Limit-Schutzmechanismen aus v0.9.39.13 bleiben bestehen und wurden um laufaltersabhÃ¤ngige Rapid-Freshness ergÃ¤nzt.
-
-# MID v0.9.39.12
-
-- 7- und 14-Tage-Cockpit: dezente, touch-taugliche SchaltflÃ¤che â€žModellstandâ€œ mit Best-Match- bzw. Ensemble-Laufmetadaten.
-- 14-Tage-Cockpit: Konsistenz-Prozentpillen Ã¶ffnen per Klick/Tipp einen randfesten Tooltip analog zur klassischen Ensembleansicht mit Klassifikation, Modellzahl, Mitgliederzahl und Streuungshinweis.
-- 14-Tage-Tageskarten semantisch entkoppelt, damit die interaktive Konsistenzpille kein verschachtelter Button ist und beim Ã–ffnen nicht gleichzeitig den Tag wechselt.
-- TemporÃ¤re Regressionstest-Verzeichnisse werden nicht mehr als Releaseinhalt bzw. Commit-Artefakte mitgefÃ¼hrt.
-
-# MID v0.9.39.9
-
-- CI-Regressionsfix: der historische node_modules-Bootstrap-Test untersucht nach `npm ci` nicht mehr das live befuellte Projektverzeichnis.
-- Der alte Installervertrag wird isoliert in einem temporaeren Checkout mit `minimist/.git`-Rest reproduziert.
-- Der einmalige leere `node_modules/minimist/`-Bootstrap bleibt fuer den noch alten Installer auf `main` erhalten.
-
-## v0.9.39.6
-
-- GitHub-Installer gegen versehentlich versioniertes `node_modules/` gehÃ¤rtet; lokale Paketinstallation wird vor dem Releasevergleich entfernt bzw. ausgeschlossen.
-- `.gitignore` schÃ¼tzt `node_modules/` dauerhaft, und der CI-Prebuild entfernt historische Node-Pakete aus dem Git-Index, ohne die lokale Installation zu lÃ¶schen.
-- Verwaltete GitHub-Workflows werden vor dem Build aus `ci/github` synchronisiert, damit der korrigierte Installer im selben Release-Commit dauerhaft Ã¼bernommen wird.
-- Ein einmaliger ZIP-Bootstrap-Platzhalter erlaubt v0.9.39.6 auch mit dem noch auf `main` aktiven alten Installer zu installieren; `npm ci` entfernt ihn vor dem Build.
-- Neue Regression reproduziert den v0.9.39.5-Fehler und schÃ¼tzt die Repository-Hygiene.
-
-## v0.9.39.5
-
-- Komposit-Niederschlagsart: DWD HymecNG vollstÃ¤ndig aus dem aktiven Layerpfad entfernt; einzige aktive Variante ist beobachtetes OPERA-CIRRUS-Echo + zeitnahes ICON-D2-Phasenfeld.
-- Radar-/Modellfusion gehÃ¤rtet: konservative ZeitprÃ¼fung, mindestens 90 % vollstÃ¤ndige Modellstichpunkte, verdichtetes lokales Phasenraster ohne kÃ¼nstliche Unterteilung und transparente GrenzfÃ¤lle statt erfundener Klassifikation.
-- Hagel wird nicht mehr allein aus einem Modell-Wettercode als beobachtete Niederschlagsart ausgegeben.
-- 15-minÃ¼tige ICON-D2-Phasenfelder werden clientseitig zeitlich normalisiert und wiederverwendet, damit 5-min-Radarscrubbing keine redundanten Modellraster lÃ¤dt.
-- 7-Tage-Trend sprachlich korrigiert: vollstÃ¤ndige Mischwetter-SÃ¤tze, korrekt flektierte Tropennacht-Formulierung und groÃŸgeschriebene Wetterereignisse mit finitem Verb (z. B. â€žIn der Nacht zum Sonntag sind Schauer mÃ¶glich.â€œ).
-- Neue Regression schÃ¼tzt exklusiven Radar-/ICON-D2-Pfad und Trend-Grammatik.
-
-## v0.9.39.4
-
-- Fachliche Wetterwerte in kompakten Karten werden nicht mehr per Ellipsis abgeschnitten; enge Ansichten nutzen kÃ¼rzere Notation, Umbruch und volle verfÃ¼gbare Breite.
-- DWD-nahe 6-h-Niederschlagswahrscheinlichkeit in Tageskarten kompakter dargestellt; redundante `0 min` entfallen, echte Niederschlagsdauer bleibt vollstÃ¤ndig sichtbar.
-- Appweiter Audit fÃ¼r Warnungen, Wettertexte, Quickfacts, Ensemble-Szenarien, Synoptik-, Radar-/Karten- und Detailwerte; Ellipsis bleibt nur fÃ¼r Navigation bzw. technische Namen zulÃ¤ssig.
-
-## v0.9.39.3
-
-- TypeScript-Buildfix fÃ¼r die MapLibre-Migration: dynamische GeoJSON-Layer werden als `maplibregl.AddLayerObject` an `Map.addLayer()` Ã¼bergeben.
-- Marker-Anchor-Typ von nicht vorhandenem `maplibregl.Anchor` auf den in MapLibre 5.24 exportierten `maplibregl.PositionAnchor` korrigiert.
-- Ensemble-Mean/Spread-Fallback erzeugt nun ebenfalls die vier 6-h-Niederschlagsfenster 00â€“06, 06â€“12, 12â€“18 und 18â€“24 Uhr und erfÃ¼llt damit den vollstÃ¤ndigen `MemberDay`-Vertrag.
-- Neue Pflichtregression schÃ¼tzt die drei GitHub-CI-Buildfehler aus v0.9.39.2 dauerhaft.
-
-## v0.9.39.2
-
-- Niederschlagswahrscheinlichkeit DWD-nah zeitbezogen umgesetzt: Ereignisschwellen > 0,2 mm und > 5,0 mm werden fÃ¼r 24 h sowie die vier Ortszeitfenster 00â€“06, 06â€“12, 12â€“18 und 18â€“24 Uhr aus Ensemble-Membern berechnet.
-- Kompakte Tagesdarstellung zeigt das relevanteste 6-h-Fenster (z. B. `12â€“18 h Â· 70%`) statt eines irrefÃ¼hrenden Stundenmaximums als Tageswahrscheinlichkeit; vollstÃ¤ndige 24-h-/6-h-AufschlÃ¼sselung im Tooltip.
-- Ohne Ensembleauswertung wird das Best-Match-Stundenmaximum nur noch als `zeitw. bis â€¦ %` gekennzeichnet und ausdrÃ¼cklich nicht als DWD-Tagesereigniswahrscheinlichkeit ausgegeben.
-- Ereigniswahrscheinlichkeiten werden vor der robusten Mengen-AusreiÃŸerfilterung aus allen plausiblen Ensemble-Membern berechnet; Mengenquantile und Eintrittswahrscheinlichkeit sind statistisch getrennt.
-- Ensemble-Cache auf v11 invalidiert, damit alte Tages-PoP-DatensÃ¤tze ohne 6-h-Zeitfenster nicht weiterverwendet werden.
-
-## v0.9.39.1
-
-- Tages-Niederschlagswahrscheinlichkeit auf DWD-Ereignisschwellen > 0,2 mm und > 5,0 mm umgestellt.
-- Eigene >= 0,1-mm-Tagesdefinition aus v0.9.39.0 entfernt.
-- Zweite DWD-Wahrscheinlichkeit (> 5,0 mm) in Tages-/Ensembleinformationen ergÃ¤nzt.
-- Prognoseverifikation auf dasselbe > 0,2-mm-Ereignis synchronisiert.
-- Ensemble-Cache invalidiert (v10), damit alte PoP-Werte nicht fortgeschrieben werden.
-
-## v0.9.39.0
-
-- Kartenengine: MID app-weit von Leaflet/react-leaflet auf MapLibre GL JS 5.24.0 migriert; gemeinsamer Kartenkern fÃ¼r Raster/WMS, GeoJSON, Marker, projektionstreue Canvas-Raster und deterministische Layerreihenfolge.
-- Kompositbild: OPERA wird bei verfÃ¼gbarem DWD-Radar nicht mehr optisch Ã¼ber das DWD-Bild gemischt, sondern als Kontroll- und Phasenquelle genutzt; als sichtbares Radar erscheint OPERA nur, wenn es selbst die aktive Radarquelle ist.
-- Niederschlagsart: frisches DWD HymecNG bleibt PrimÃ¤rklassifikation; fehlt es, kombiniert MID beobachtete OPERA-Echos mit zeitnahem ICON-D2 (WMO-Code, Schneefall, bodennahe Temperatur/Feuchte und Feuchtkugeltemperatur). AuÃŸerhalb realer Radarechos wird keine Niederschlagsart erzeugt.
-- Niederschlagswahrscheinlichkeit: Tageswerte verwenden bei verfÃ¼gbarer Ensembleauswertung den modellgewichteten Anteil nasser Ensemble-Member ab 0,1 mm/Tag statt des hÃ¶chsten Stundenwerts; `precipitation_probability_max` bleibt klar gekennzeichneter Fallback. StÃ¼ndliche und 15-Minuten-Ansichten behalten ihre zeitintervallspezifischen Wahrscheinlichkeiten.
-- Tages-PoP in Vorhersage, 7-Tage-Cockpit und Widget kompakt/Ã¼berlaufsicher integriert; Herkunft ist per Tooltip nachvollziehbar.
-- Worker: ICON-D2-Wetterkartenraster liefert zusÃ¤tzlich 2-m-Temperatur, 2-m-relative Feuchte, Wettercode, Niederschlag und Schneefall fÃ¼r die Radar-Modell-Phasenklassifikation.
-- Regressionen: rendererabhÃ¤ngige Leaflet-PrÃ¼fungen auf identische MapLibre-FachvertrÃ¤ge migriert und neuer kombinierter Schutztest fÃ¼r Kartenengine, Tages-PoP und Radar-Modell-Niederschlagsart ergÃ¤nzt.
-
-## v0.9.38.6
-
-- Kompositbild: HymecNG-Projektion wertet ODIM `+ellps=WGS84` und `+ellps=GRS80` nun als echtes Ellipsoid statt als Kugel aus; dadurch wird das aktuelle DWD-HDF5 korrekt in Leaflet/WebMercator zurÃ¼ckprojiziert.
-- Satellit: kontrollierter DWD-RGB/IR-Live-Snapshot als Fallback, wenn der offene 3-h-WMS-Layer keine auswertbare TIME-Dimension liefert; EUMETSAT bleibt TIME-pflichtig.
-- Satelliten-Live-Snapshot erhÃ¤lt eine eigene Revision und wird Ã¼ber den Worker mit `no-store`/Cache-Buster geladen, ohne benachbarte Frames zu mischen.
-- Legacy-HG (BUFR/BZip2) bleibt ausschlieÃŸlich Diagnosepfad; das kartierte Niederschlagsartenprodukt bleibt das offizielle HymecNG-HDF5.
-- Regressionen fÃ¼r WGS84/GRS80-HymecNG und DWD-Satellit ohne TIME-Dimension ergÃ¤nzt bzw. bestehende Live-/Performance-VertrÃ¤ge angepasst.
-
-## v0.9.38.5
-
-- Komposit-Satellitenbild: produktspezifische Frischefenster statt pauschaler 55-Minuten-Sperre.
-- Amtlicher DWD-Meteosat-3h-Layer bleibt bis zum nÃ¤chsten regulÃ¤ren 3h-Termin als explizit zeitgestempelter Fallback sichtbar.
-- EUMETSAT-NRT bleibt streng auf aktuelle explizite ZeitstÃ¤nde begrenzt; Snapshot-Schutz gegen Mischkacheln bleibt erhalten.
-
-## v0.9.38.4
-
-- Komposit/HymecNG: direkter offizieller `composite_HymecNG_LATEST_000-hd5`-Pfad vor Directory-Index, mit Root-Frischevergleich und Cache-Busting.
-- HymecNG: interner HDF5-Zeitstempel, defensive 0â€“10-Klassencodierung und bounds-freies natives Leaflet-Tile-Rendering.
-- Legacy-HG (`HG_LATEST_000.bz2`) wird nur diagnostisch geprÃ¼ft; kein ungeoreferenzierter/undekodierter Ersatzlayer.
-
-## v0.9.38.3
-
-- Kompositbild: HymecNG-Layer-Lifecycle stabilisiert; ODIM-HDF5-Klassencodes werden mit gain/offset dekodiert und vor dem Rendern plausibilisiert.
-- HymecNG: beide offiziellen DWD-Open-Data-Roots werden geprÃ¼ft; nur der jÃ¼ngste Stand und maximal 25 Minuten alte Live-Daten werden angezeigt.
-- Satellit: ausschlieÃŸlich ein explizit zeitgestempelter, frischer WMS-Snapshot; unzeitgestempeltes latest und Nachbarframe-Preloading entfernt, um alte/neue Tile-Mosaike auszuschlieÃŸen.
-- Neue Regression schÃ¼tzt HymecNG-Frische/Klassendekodierung und Satelliten-Snapshot-Konsistenz.
-
-## v0.9.38.2
-
-- Tagesdetaildiagramm: schlanke Leiste â€žThermisches Empfindenâ€œ zwischen Temperatur und Luftdruck, mit denselben Belastungsklassen/Farben wie im 24-h-Wetterprofil.
-- Tagesdetail-Einzeldaten: thermisches Empfinden direkt unter â€žTemperatur / gefÃ¼hltâ€œ.
-- 24-h-Wetterprofil: sichtbare Stunde-zurÃ¼ck/-vor-Steuerung sowie Desktop-Bedienung per Pfeil links/rechts und Mausrad Ã¼ber der DiagrammflÃ¤che.
-- 24-h-Wetterprofil: dynamische BÃ¶en-/Hazard-Details folgen konsequent der gewÃ¤hlten Windeinheit.
-
-## v0.9.38.1
-
-- App-Neustart nach Update korrigiert: normale `midwx.app`-, Update-, Refresh- und Rollback-URLs werden nicht mehr fÃ¤lschlich als GerÃ¤te-Synchronisationscode interpretiert.
-- Nur explizite `#mid-sync=â€¦`, `?mid-sync=â€¦`, `mid-sync:â€¦` oder eigenstÃ¤ndige Synchronisationscodes Ã¶ffnen weiterhin Einstellungen â†’ Synchronisation.
-- Neuer Regressionstest schÃ¼tzt den normalen Startpfad nach Service-Worker-/Update-Neustarts.
-
-## v0.9.38.0
-
-- Stable-Audit 10.08.2026 vollstÃ¤ndig umgesetzt: explizite finale TypeScript- und Vite-Produktionsbuildphasen im Releasevertrag.
-- Langfrist/Saisonmodelle: gemeinsamer 4-h-Cache, bis 36 h Stale-if-error und bewusster manueller Refresh fÃ¼r ECMWF sowie NOAA NMME/CFSv2.
-- Druckniveau-Meteogramm: 15-min-TTL, 3-h-Stale-Fallback, expliziter Refresh, Memoisierung und Offscreen-Rendering-Containment.
-- OPERA-Raster: begrenzter Cache fertig projizierter Viewport-Canvases nach Frame, Zoom, Bounds und GrÃ¶ÃŸe zur Vermeidung identischer Neuberechnungen.
-- Dependency-Policy: React 18.3.1, Recharts 3.8.1, TypeScript 5.9.3 und Vite 6.4.3 reproduzierbar geschÃ¼tzt; grÃ¶ÃŸere Upgrades nur isoliert bzw. als getrennte KompatibilitÃ¤tsmigration.
-- Bestehende mid-stable-Schedule-Pins und HymecNG-Dormant-/Performance-VertrÃ¤ge bleiben erhalten.
-
-## v0.9.37.3
-
-- CI-/Performance-Fix fÃ¼r HymecNG: die historisch gesperrten Module `HymecNgSource.ts` und `HymecNgOverlay.tsx` bleiben dormant.
-- Der echte DWD-HymecNG-Kompositlayer lÃ¤uft jetzt Ã¼ber einen separaten lazy geladenen Pfad (`CompositeHymecNgSource.ts` / `CompositeHymecNgOverlay.tsx`).
-- Regression `test-interaction-performance-cleanup-08155.mjs` und HymecNG-Schutztest entsprechend abgesichert.
-
-## v0.9.37.2
-
-- Kompositbild: neuer echter DWD-HymecNG-Layer fÃ¼r "Niederschlagsart" statt recyceltem WN/Cloud-PNG.
-- HymecNG wird im Komposit nativ aus dem aktuellen DWD-HDF5 gerendert, inklusive ODIM-Georeferenzierung und eigener Deckkraftregelung.
-- Quellenhinweise, Legende und Komposit-Infos auf HymecNG aktualisiert.
-
-## v0.9.37.1
-- Kompositbild: den irrefÃ¼hrenden Layer â€žNiederschlagsartâ€œ vollstÃ¤ndig entfernt. Er verwendete kein WN-/HymecNG-Radarraster, sondern recycelte das kombinierte DWD-Webbild â€žWolken + Niederschlagsartâ€œ und spannte es Ã¼ber feste Kartenbounds.
-- Fachliche Produktkorrektur: DWD WN ist ein ReflektivitÃ¤tskomposit und darf nicht als Niederschlagsart bezeichnet werden. Das aktuelle echte DWD-Produkt fÃ¼r die bodennahe Hydrometeorklasse ist HymecNG (HDF5).
-- HymecNG wird im Komposit bewusst noch nicht aktiviert: Die vorhandene MID-Implementierung besitzt weder eine verifizierte HDF5-Klassencodetabelle noch einen anhand aktueller Dateien nachgewiesenen vollstÃ¤ndigen Renderpfad. Es werden keine Klassen oder Georeferenzierungen geraten.
-- HymecNG-Parser gehÃ¤rtet: fehlende native ODIM-Projektionsdefinition fÃ¼hrt jetzt zum Abbruch; der historische Kugel-/RADOLAN-Fallback ist entfernt.
-- Das eigenstÃ¤ndige DWD-Originalbild â€žWolken + Niederschlagsartâ€œ bleibt als separat gekennzeichnete optionale Darstellung erhalten, wird aber nicht mehr als Kartenlayer missbraucht.
-- Regression `test-composite-precipitation-type-layer-09366.mjs` prÃ¼ft nun explizit gegen PNG-Recycling, WN-Fehlbezeichnung und Legacy-Georeferenzierung.
-
-## v0.9.37.0
-- Radar-Nowcast: DWD-RS wird in der Enrichment-Stufe als amtlicher 1-h-Mengenanker fÃ¼r die ersten zwei Stunden eingebunden; RV bleibt fÃ¼r 5-Minuten-Timing und IntensitÃ¤tsstruktur maÃŸgeblich. AbwÃ¤rtskorrekturen sind vollstÃ¤ndig mÃ¶glich, AufwÃ¤rtskorrekturen werden begrenzt.
-- Radar-Nowcast: DWD-HX 250 m wird ausschlieÃŸlich bei unsicheren Randtreffern zur StandorttrefferprÃ¼fung genutzt und verÃ¤ndert keine Niederschlagsmenge eigenstÃ¤ndig.
-- Radar-Nowcast: leichtgewichtiges Wachstum-/Zerfallsmodell und lokales Bewegungsfeld aus den bereits geladenen Radarframes ergÃ¤nzt; dadurch entstehen keine zusÃ¤tzlichen Radarrequests fÃ¼r diese beiden Schritte.
-- Radar-Nowcast: 9-Member-Mikroensemble aus Timing- und IntensitÃ¤tsvarianten liefert Trefferwahrscheinlichkeit sowie P25/Median/P75 der 2-h-Menge. Die Nowcast-Leiste summiert kalibrierte 5-Minuten-Mengen statt roher mm/h-Werte.
-- Radar-Nowcast: frische, nahe DWD-Niederschlagsstationen dÃ¼rfen die Kurzfristmenge vorsichtig nachkalibrieren; Einfluss sinkt mit Distanz, Alter, Lead Time und KonvektivitÃ¤t.
-- Ladezeit: schneller Radar-Erstpfad bleibt unverÃ¤ndert; RS und Stationsabgleich laufen erst im verzÃ¶gerten Enrichment, HX nur bei tatsÃ¤chlichen GrenzfÃ¤llen.
-
-## v0.9.36.9
-- Kompositbild: zusÃ¤tzlicher Layer "Niederschlagsart" ergÃ¤nzt. MID prÃ¼ft jetzt vorrangig DWD HymecNG und blendet â€“ solange keine verifizierte Klassenabbildung vorliegt â€“ automatisch das amtliche DWD-WN-Originalprodukt als sichere Ersatzdarstellung ein.
-- FÃ¼r den neuen Layer gibt es einen eigenen Schalter, eine separate Deckkraftregelung sowie eine Ã¼ber die Komposit-Legende ausblendbare Niederschlagsart-Legende.
-- Quellen-/Hinweistext des Kompositbilds und die globale Quellenliste wurden um DWD HymecNG bzw. DWD WN erweitert.
-- Neue Regression `test-composite-precipitation-type-layer-09366.mjs`.
-
-## v0.9.36.4
-- 14-Tage-Ensemble-Niederschlag â€žkumuliertâ€œ: ENS-Mittel ist jetzt unabhÃ¤ngig vom Standard-/Erweitert-Modus immer als eigene gestrichelte kumulierte Linie sichtbar.
-- Kumulierte Legende und Tooltip zeigen ENS-Mittel ebenfalls immer; Export-Metadaten enthalten es verbindlich.
-- CI-Analyse: der gemeldete Wartungstest ist auf den exakten v0.9.36.2- und v0.9.36.3-StÃ¤nden sowie nach allen 188 davor laufenden Regressionen unter simuliertem GitHub-Actions-Umfeld reproduzierbar grÃ¼n. Der zeitgleiche Dependabot-PR fÃ¼r Recharts 3.10.1 erklÃ¤rt den roten PR-CI-Lauf, weil der Stable-Vertrag bewusst Recharts 3.8.1 festschreibt. Stable-Code wird deshalb nicht aufgeweicht.
-- Neue Regression `test-ensemble-cumulative-ens-mean-09364.mjs`.
-
-## v0.9.36.3
-- 14-Tage-Ensemble-Niederschlag â€žkumuliertâ€œ: P10/P25/P75/P90 und ENS-Mittel werden jetzt statistisch korrekt aus den **kumulierten Niederschlagssummen jedes einzelnen Ensemblemitglieds** berechnet. Die in v0.9.36.2 verwendete Addition tÃ¤glicher Quantile wurde entfernt.
-- Dadurch bleibt das innere P25â€“P75-Band auch bei tageweise stark null-inflationiertem Niederschlag aussagekrÃ¤ftig und kann nicht mehr allein deshalb auf `0,0â€“0,0 mm` kollabieren, weil die tÃ¤glichen Quartile jeweils null waren.
-- Bestehende Ensemble-Caches ohne memberbasierte kumulierte Quantile werden automatisch verworfen und einmalig frisch berechnet; sonstige Cache-/Favoriten-/Nutzerdaten bleiben unangetastet.
-- Tooltip, P10â€“P90- und P25â€“P75-FlÃ¤chen sowie ENS-Mittel verwenden denselben kumulierten Member-Datensatz.
-- Neue Regression `test-ensemble-cumulative-member-quantiles-09363.mjs`; die bisherigen kumulierten NiederschlagsvertrÃ¤ge auf die fachlich korrekte Member-Trajektorien-Methode aktualisiert.
-
-## v0.9.36.2
-- 14-Tage-Ensemble-Niederschlag, Modus â€žkumuliertâ€œ: zusÃ¤tzliches inneres P25â€“P75-Unsicherheitsband ergÃ¤nzt, bewusst dunkler als der Ã¤uÃŸere P10â€“P90-Bereich.
-- P25/P75 werden bereits in der tÃ¤glichen gewichteten Niederschlags-Ensembleverteilung berechnet und anschlieÃŸend analog zu P10/P90 kumuliert.
-- Kumulierte Legende, Tooltip, ErklÃ¤rung und Export-Metadaten um P25â€“P75 erweitert; die normale Tagesansicht bleibt unverÃ¤ndert.
-- Neue Regression `test-ensemble-cumulative-rain-quartiles-09362.mjs`; Navigationsregression releasefest gemacht.
-
-## v0.9.36.1
-- Navigationskonzept umgesetzt: Mobile Schnellnavigation â€žHeute Â· Kurzfrist Â· 7 Tage Â· Mehrâ€œ, vollstÃ¤ndiger Sektionen-Drawer, einklappbare Desktop/Tablet-Seitenleiste und fachliche Gruppen.
-- Navigation nutzt weiterhin ausschlieÃŸlich die bestehende Dashboard-Modulkonfiguration fÃ¼r Sichtbarkeit/Reihenfolge; bedingte Berg-/Wasser- sowie Profi-Module werden automatisch berÃ¼cksichtigt.
-- Abschnittsanker, Browser-ZurÃ¼ck, Auto-Expand eingeklappter Module und direkte Cockpit-Horizontumschaltung fÃ¼r Kurzfrist/7/14 Tage ergÃ¤nzt.
-- 24-h-Wetterprofil: erster Stundenpunkt erhÃ¤lt einen zusÃ¤tzlichen inneren X-Abstand zur linken Y-Achse; Achsenbeschriftung und erster Datenpunkt Ã¼berdecken sich nicht mehr.
-- Neue Regression `test-section-navigation-profile-inset-09361.mjs`; Ã¤ltere Geometrie-/Dashboard-VertrÃ¤ge auf die neue Anker- und Innenabstandslogik synchronisiert.
-
-## v0.9.36.0
-- 14-Tage-Ensemble-Niederschlag: neue optionale kumulierte Ansicht mit monoton ansteigender Best-Match-Kurve, kumuliertem P10â€“P90-Unsicherheitsband und optionalem kumuliertem ENS-Mittel. Die bestehende Tagesansicht bleibt Standard.
-- Navigationskonzept fÃ¼r die wachsende Zahl an MID-Sektionen ergÃ¤nzt: Dashboard beibehalten, zusÃ¤tzlich Sektionen-Drawer mit fachlichen Gruppen und bestehender Modulverwaltung als Single Source of Truth.
-
-## v0.9.35.2
-- 24-h-Wetterprofil: Diagramm verwendet wieder ausschlieÃŸlich stÃ¼ndliche Werte und beginnt mit der aktuellen Stunde; die 15-Minuten-Schritte bleiben auf Kurzfrist/Nowcast beschrÃ¤nkt.
-- Schneefallgrenzen-Ensemble: fehlende API-Werte werden nicht mehr durch `Number(null)` fÃ¤lschlich als 0 m interpretiert; der Nullgradgrenzen-Fallback greift wieder korrekt.
-- Schneefallgrenzendiagramm: feste Y-Achse 0â€“4,5 km, bestehende Multi-Modell-/10â€“90-%-Unsicherheitsdarstellung bleibt erhalten.
-- Schneefallgrenzendiagramm: Zeitschritte mit erwartbarem Niederschlag werden dezent als vertikale Hintergrundmarkierungen angezeigt und im gewÃ¤hlten Zeitschritt kompakt quantifiziert.
-
-## v0.9.35.1
-- 24-h-Wetterprofil: Diagramm startet nun bereits mit dem ersten verfÃ¼gbaren Kurzfrist-Zeitschritt (15-Minuten-Raster) statt erst nach dem 90-Minuten-Block mit dem ersten reinen Stundenpunkt.
-- 24-h-Wetterprofil: X-Achse auf echte ZeitabstÃ¤nde umgestellt, damit 15-Minuten-Punkte am Anfang und spÃ¤tere Stundenpunkte proportional korrekt verteilt werden.
-- 24-h-Wetterprofil: Achsenbeschriftung zeitbasiert statt indexbasiert; volle Kurzfristserie bis zum 24-h-Horizont flieÃŸt in Diagramm, Hazards und Einzeldaten ein.
-
-## v0.9.35.0
-- Langfrist: echtes numerisches Multi-Modell statt mehrerer ECMWF-Varianten. ECMWF EC46/SEAS5 wird mit allen im aktuellsten verfÃ¼gbaren NOAA-NMME-ENSMEAN-Lauf direkt numerisch verfÃ¼gbaren unabhÃ¤ngigen Modellfamilien kombiniert; CFSv2-E1/E2/E3 bleibt als Fallback erhalten.
-- Langfrist: Multi-Modell-Rauchfahne gewichtet Modellfamilien gleich. Temperatur zeigt Ensemble-/Intermodell-Spanne in K; Niederschlag wird im gemeinsamen Modellvergleich als Anomalie in mm/Tag relativ zum jeweiligen Modellklima dargestellt. Einzelmodelle bleiben separat auswÃ¤hlbar.
-- Langfrist: Monatspositionen mit zusÃ¤tzlichem linken Innenabstand, damit der erste Monat nicht mit der Y-Achsenbeschriftung kollidiert.
-- Berg-/Wintersport: Schneefallgrenze als einklappbare Multi-Modell-Ensemble-SchnellÃ¼bersicht neu aufgebaut. Auswahl 1/3/7/14 Tage, kompakter selektierter Zeitschritt, vertikale Auswahlmarke, Modell-/Memberzahl sowie 25â€“75- und 10â€“90-%-Unsicherheitsband.
-- Schneefallgrenze: Bereich oberhalb der Medianlinie blau, darunter grÃ¼n; konfiguriertes Tal/Mitte/Berg als kontrastreiche HÃ¶henlinien direkt im Diagramm.
-- Schneefallgrenzen-Ensemble nutzt Open-Meteo Ensemble Mean/Spread fÃ¼r mehrere Systeme (u. a. ICON-EPS, ECMWF IFS/AIFS, GEFS, GEM/GEPS, WeatherNext soweit am Standort verfÃ¼gbar); Best Match bleibt als Fallback erhalten.
-- Neuer Worker-Endpunkt fÃ¼r NOAA-NMME/CFSv2-Monatsanomalien mit NetCDF-Classic-Punktparser und 6-h-Edge-Cache.
-- Neue Regression `test-true-multimodel-snowline-09350.mjs`; bestehende Langfrist-VertrÃ¤ge auf echtes Modellfamilien-Multi-Modell aktualisiert.
-
-## v0.9.34.1
-- Buildfix Langfrist: drei Ã¤ltere Regressionstests prÃ¼ften fÃ¤lschlich exakt auf v0.9.33.2 und blockierten dadurch jede spÃ¤tere Releaseversion. Die VertrÃ¤ge prÃ¼fen jetzt Baseline-SynchronitÃ¤t und mindestens den EinfÃ¼hrungsstand v0.9.33.2.
-- Neuer Schutztest sichert die releasefeste LangfristprÃ¼fung, die Multi-Modell-Rauchfahne und die Schneefallgrenzen-SchnellÃ¼bersicht ab.
-
-## v0.9.32.22
-
-- Niederschlagsformen appweit konsolidiert: Tageskarten verwenden die zentrale phasentreue Niederschlagsart statt pauschal â€žRegenâ€œ/â€žSchauerâ€œ.
-- Schneefall wird bei vorhandenem Modellfeld zusÃ¤tzlich kompakt in cm angegeben (`mm Â· â„ x,x cm`) und ersetzt die Niederschlagsmenge in mm nicht.
-- Kurzfrist-, 24-h-, Tages-, Detail-, Meteogramm-, Ensemble-, Wasserwetter- und Widgetausgaben auf die gemeinsame Mengenformatierung umgestellt, soweit Schneefalldaten verfÃ¼gbar sind.
-- Neue Regression schÃ¼tzt Schnee, Schneeschauer, Schneeregen, Schneeregenschauer, Schneegriesel, gefrierende Formen und die zusÃ¤tzliche cm-Ausgabe.
-
-## v0.9.32.20
-
-- Kompositbild: EUMETSAT EUMETView bleibt die direkte PrimÃ¤rquelle fÃ¼r MTG-FCI-RGB/GeoColour; die Produktauswahl priorisiert nun den tatsÃ¤chlich jÃ¼ngsten nominellen Satellitenstand vor einer bloÃŸen QuellenprioritÃ¤t.
-- Satelliten-/Radar-/Blitz-WMS-Raster werden wÃ¤hrend eines Zoomvorgangs wieder vollstÃ¤ndig ausgehÃ¤ngt und nach `zoomend` mit einem neuen Cache-/Layer-SchlÃ¼ssel aufgebaut. Damit wird eine frÃ¼here Schutzlogik aus v0.7.34/v0.7.35 wiederhergestellt, die im aktuellen Code versehentlich zu `tileRevision=0` / `rasterZooming=false` zurÃ¼ckgefallen war.
-- Satelliten-Layer behalten keine WMS-Kacheln Ã¼ber Zoomstufen hinweg (`keepBuffer=0`, kein Update wÃ¤hrend Zoom).
-- FÃ¼r EUMETView-Produkte ohne belastbare Zeitdimension wird kein alter `latestTime` mehr als `TIME` erzwungen. Stattdessen wird der offizielle WMS-Default â€žlatestâ€œ genutzt und bei jedem Metadatenrefresh mit einem neuen MID-Token neu geladen.
-
-## v0.9.32.19
-- 24-h-Wetterprofil: UVI platzsparend in die bestehende Einzeldatenzeile â€žWolken H/M/L + UVIâ€œ integriert; der UVI wird aus demselben Best-Match-Zeitschritt wie die Ã¼brigen Einzeldaten Ã¼bernommen.
-- 24-Stunden-Leiste auf Handydisplays deutlich flacher konsolidiert: kleinere AbstÃ¤nde, kompaktere Tages-/Zeit-/Temperaturdarstellung, kleinere Piktogramme und engere Niederschlags-/Windzeilen, ohne Wetterparameter zu entfernen.
-
-## v0.9.32.18
-- Buildfix der quota-sicheren Wetterzwilling-Archivwarteschlange: `mirrorStore()` behÃ¤lt seinen Erfolgsstatus fÃ¼r Sicherheitsentscheidungen, die Queue verwirft diesen RÃ¼ckgabewert jedoch korrekt und bleibt `Promise<void>`-kompatibel.
-- Keine funktionale RÃ¼cknahme der in v0.9.32.17 eingefÃ¼hrten Storage-/Quota-Sicherung.
-
-## v0.9.32.17
-- Nachhaltige Quota-Sicherung: zentrale lokale Speicherverwaltung mit automatischer Bereinigung ausschlieÃŸlich rekonstruierbarer Caches, Retry des ursprÃ¼nglichen Schreibvorgangs und zusÃ¤tzlicher IndexedDB-Spiegelung dauerhafter Nutzerdaten.
-- Favoriten und andere dauerhafte Einstellungen bleiben auch dann erhalten, wenn Safari/iOS `localStorage` vorÃ¼bergehend nicht mehr beschreiben kann.
-- Wetterzwilling-Langzeitdaten bleiben vollstÃ¤ndig in IndexedDB/Sync erhalten; nur die redundante lokale Schnellstartkopie wurde platzsparend begrenzt.
-
-## v0.9.32.16
-- 24-h-Kurzfristkacheln vollstÃ¤ndig auf denselben 24-Stunden-Datensatz wie die sichtbare 24-h-Leiste umgestellt; keine 12-h-/Gesamtdatensatz-Mischung mehr.
-- Favoriten-Synchronisation mit eigener Favoritenrevision abgesichert: Ã¤ltere Favoritenlisten aus anderen verbundenen Safari-/PWA-Instanzen kÃ¶nnen neuere lokale Favoriten nicht mehr zurÃ¼cksetzen.
-- POI-Favoriten erkennen nahe Namensvarianten mit gemeinsamen Kernbegriffen robuster, z. B. SponsorenprÃ¤fixe bei Stadien.
-
-## v0.9.32.15
-- Favoriten-Dauerhaftigkeit: HinzufÃ¼gen/Entfernen Ã¼ber den Stern wird jetzt sofort in `mid:favorites` persistiert, statt erst nach dem verzÃ¶gerten Idle-Speicherfenster. Das schlieÃŸt insbesondere unter iOS/PWA eine Suspend-/Reload-LÃ¼cke.
-- FavoritenidentitÃ¤t fÃ¼r POIs prÃ¤zisiert: gespeicherte Orte werden Ã¼ber exakte Koordinaten/stabile ID bzw. gleichen Namen mit enger Toleranz (POI 120 m, sonst 450 m) erkannt. Die bisherige allgemeine 350/900-m-Nahbereichslogik bleibt nur fÃ¼r GPS-/Standorttracking erhalten.
-- Dadurch kÃ¶nnen nahe, aber unterschiedliche POIs nicht mehr gegenseitig als derselbe Favorit behandelt oder versehentlich entfernt werden.
-- Neue Regression `test-favorite-durable-poi-093215.mjs`; Ã¤ltere Favoriten-Navigationstests auf die Trennung zwischen FavoritenidentitÃ¤t und GPS-NÃ¤he synchronisiert.
-
-## v0.9.32.14
-- `MID-ribbons-ui-text-cleanup.patch` angewendet: redundante ErklÃ¤rtexte in Kurzfrist-, 7-/14-Tage-Ribbons und 24-h-Wetterprofil entfernt bzw. gekÃ¼rzt; Drucktrend-/Nebel-Signalkarten ohne zusÃ¤tzliche ErklÃ¤rungssÃ¤tze.
-- DWD â€žWolken + Niederschlagsartâ€œ: Zoom in festen 100-%-Schritten von 100 bis 500 % erweitert.
-- Zoom-Sicherheit auf TouchgerÃ¤ten verbessert: vertikales Overscroll-Chaining zurÃ¼ck zur App und stets erreichbarer 100-%-Reset Ã¼ber dem Bildfenster verhindern ein FesthÃ¤ngen im vergrÃ¶ÃŸerten Originalbild.
-
-## v0.9.32.13
-- CI-/Regression-Fix fÃ¼r die in v0.9.32.12 bewusst auf 5-Minuten-Niederschlagsmengen umgestellte Radar-Nowcast-Skala.
-- Drei Ã¤ltere Schutztests auf den neuen Sollvertrag synchronisiert: Achse `mm/5 min`, BalkenhÃ¶he aus der jeweiligen 5-Minuten-Menge und aktuelle Releaseversion.
-- Die neue Radar-Nowcast-Darstellung selbst bleibt unverÃ¤ndert.
-
-## v0.9.32.12
-- Radar-Nowcast-Leiste: y-Achse auf Niederschlagsmenge je 5-Minuten-Balken umgestellt (`mm/5 min`) statt auf stÃ¼ndliche Rate.
-- BalkenhÃ¶hen orientieren sich nun direkt an der prognostizierten bzw. beobachteten 5-Minuten-Menge je Balken; dadurch bleiben schwache Signale sichtbar, ohne Ã¼berhÃ¶ht zu wirken.
-- Umfeld-/Nahbereichsechos ohne direkten Standorttreffer bleiben weiterhin erkennbar, werden aber deutlich zurÃ¼ckhaltender dargestellt.
-
-## v0.9.32.10
-- Buildfix fÃ¼r die kombinierten Kurzfrist-/7-Tage-Mini-Diagramme: `tempMin` wird in beiden Temperatur-Skalierungen wieder korrekt definiert.
-- Regression ergÃ¤nzt, die diesen TypeScript-Buildfehler kÃ¼nftig verhindert.
-
-## v0.9.32.9
-- Cockpit-Registerkarten â€žKurzfristâ€œ und â€ž7 Tageâ€œ: Mini-Diagramme zu einem kombinierten Verlauf zusammengefÃ¼hrt. Temperaturtrend und Niederschlagsbalken werden nun jeweils in einem gemeinsamen, kompakteren Mini-Chart dargestellt und ersetzen die getrennten Darstellungen.
-
-## v0.9.32.8
-- 24-h-Wetterprofil: Tmin- und Tmax-Markierungen im Temperaturfeld vergrÃ¶ÃŸert, mit stÃ¤rkerem Kontrast/Halo versehen und vertikal etwas weiter vom Kurvenverlauf abgesetzt, damit die Werte auf mobilen Displays besser lesbar sind.
-
-## v0.9.32.7
-
-- 24-h-Wetterprofil: Zeitangaben in den oberen Signalkarten verwenden jetzt wie die unteren Kurzfristfelder â€žheuteâ€œ bzw. â€žmorgenâ€œ vor der Uhrzeit.
-- Betrifft insbesondere Nebel-/Sichtsignal und â€žStÃ¤rkste EinschrÃ¤nkungâ€œ; DatumsanhÃ¤nge hinter der Uhrzeit entfallen dort.
-
-## v0.9.32.6
-
-- 24-h-Wetterprofil: â€žWetterberuhigungâ€œ vollstÃ¤ndig entfernt; stÃ¤rkstes Warnsignal wird als â€žStÃ¤rkste EinschrÃ¤nkungâ€œ ausgewiesen.
-- Wetter-Hazards verwenden nun direkt die zentrale appweite MID/DWD-Warnauswertung samt identischen Warnschwellen und Warnfarben.
-- Zustand der 24-h-Legende wird favoritenÃ¼bergreifend in `localStorage` gespeichert und beim nÃ¤chsten Standort/Favoriten wiederhergestellt.
-- Header-Pille â€žStÃ¼ndlich Â· ein Blickâ€œ entfernt; 24-h-Leiste ohne Hinweis â€žSeitlich wischbar â€¦â€œ.
-- SÃ¤mtliche y-Achsenbeschriftungen und Einheiten des Wetterprofils auf die linke Diagrammseite verlegt.
-- Temperaturkurve: Tagesmaximum nur bei tatsÃ¤chlich im Anzeigeintervall liegendem Tagesmaximum; nÃ¤chtliches Minimum nur einmal je zusammenhÃ¤ngender Nacht.
-- Info-SchaltflÃ¤che der Einzeldaten platzsparend direkt in die Titelzeile integriert.
-- Kurzfrist-Spotlights kennzeichnen Uhrzeiten jetzt explizit mit â€žheuteâ€œ bzw. â€žmorgenâ€œ.
-- Neue Regression `test-mid-weather-profile-ux-hazards-09326.mjs`; bestehende Wetterprofil-VertrÃ¤ge auf den neuen Sollstand synchronisiert.
-- VollstÃ¤ndige Regression: 331/331 Tests bestanden.
-
-## v0.9.32.5
-
-- 24-h-Einzeldaten: FÃ¼llwort â€žsignifikantâ€œ aus den negativen Risiko-/Hazard-Angaben entfernt (â€žkein Risikoâ€œ, â€žkeine Wettergefahrenâ€œ).
-- SchwÃ¼le wird nur noch bei tatsÃ¤chlich erfÃ¼llter Mehrfaktorenlage angezeigt; bei unauffÃ¤lliger Lage heiÃŸt das Feld ausschlieÃŸlich â€žTaupunktâ€œ.
-- Die frÃ¼here starre SchwÃ¼leprÃ¼fung `Td â‰¥ 17 Â°C` wurde durch eine DWD-orientierte Mehrfaktorenbewertung ersetzt: Wasserdampfdruck aus Taupunkt/Feuchte als Feuchtekern, Luft- und gefÃ¼hlte Temperatur, Windentlastung sowie Strahlungsproxy aus Sonnenscheindauer/BewÃ¶lkung.
-- KrÃ¤ftiger Wind kann grenznahe SchwÃ¼lelagen abschwÃ¤chen; starke Feuchte bleibt dabei robust berÃ¼cksichtigt.
-- Fachhinweis hinter (i) auf die Grenzen gegenÃ¼ber dem vollstÃ¤ndigen Klima-Michel-Verfahren prÃ¤zisiert.
-- Neue Regression `test-mid-weather-profile-sultry-09325.mjs`; Ã¤ltere Wetterprofil-VertrÃ¤ge entsprechend synchronisiert.
-
-## v0.9.32.4
-
-- 24-h-Wetterprofil: Info-SchaltflÃ¤che bereinigt; nur noch das eigentliche Informationssymbol wird angezeigt.
-- ResponsivitÃ¤tsfix fÃ¼r das 24-h-Wetterprofil: Canvas-HÃ¶he passt sich der real verfÃ¼gbaren Breite an; Ã¼bergroÃŸer Leerraum auf mobilen Displays entfÃ¤llt.
-- Touch-Bedienung des Wetterprofils robuster gemacht; Zeitschritte reagieren direkter auf Taps/Touches.
-- Zeitlabels oberhalb des Profils folgen jetzt einem regelmÃ¤ÃŸigen Raster statt ungleichmÃ¤ÃŸiger AbstÃ¤nde.
-- Tages-Tmin/Tmax werden je Kalendertag als Zahlenwert am Verlauf markiert, jedoch nur innerhalb des tatsÃ¤chlich sichtbaren Anzeigeintervalls.
-- Wetterpiktogramme im Profil ohne querlaufenden Hintergrundstreifen; Windpfeile etwas dezenter.
-- WolkenbÃ¤nder H/M/L ohne zusÃ¤tzlichen kontrastreichen Hintergrund; Kontrast entsteht nur noch durch echte BewÃ¶lkungsanteile.
-- Versions- und Regressionsstand vollstÃ¤ndig auf v0.9.32.4 synchronisiert; 329/329 Tests bestanden.
-
-## v0.9.32.3
-
-- 24-h-Wetterprofil: vertikale AbstÃ¤nde oberhalb des Diagramms reduziert; Stunden-, Kalender- und Piktogramme rÃ¼cken nÃ¤her an die Grafik.
-- Temperaturachse auf runde Tickwerte umgestellt; Tagesmaximum und -minimum im sichtbaren Zeitraum werden direkt im Temperaturverlauf markiert.
-- StÃ¼ndliche Wetterpiktogramme vollstÃ¤ndig dargestellt; Zeitlabels oberhalb des Diagramms auf kleinen Viewports entzerrt.
-- WolkenbÃ¤nder optisch neutralisiert: gleicher Hintergrund fÃ¼r H/M/L und kontrastreichere BewÃ¶lkung, damit die tatsÃ¤chliche AusprÃ¤gung klarer erkennbar bleibt.
-- 24-h-Signalkarten nur noch bei fachlichem Bedarf sichtbar; â€žRuhiges Fensterâ€œ verstÃ¤ndlich in â€žWetterberuhigungâ€œ umbenannt.
-- Legende jetzt ein-/ausblendbar; ErklÃ¤rtexte Ã¼ber ein (i) erreichbar.
-- Einzeldaten kompakter gefasst: Temperatur+gefÃ¼hlt, Taupunkt+SchwÃ¼le sowie Sichtweite+Nebelrisiko jeweils kombiniert.
-- CI-/Regression-VertrÃ¤ge auf den neuen v0.9.32.3-Sollstand synchronisiert; kein Test pinnt mehr die VorgÃ¤ngerversion v0.9.32.2. Neue Layout-Schutzregression ergÃ¤nzt.
-
-## v0.9.32.2
-
-- 24-h-Wetterprofil: Achsen optisch und funktional verfeinert.
-- Temperatur links mit sauberer Â°C-Skala und Tickmarken; Niederschlag und Wind rechts mit eigenen Einheiten/Skalen.
-- Zeitachse mit Grundlinie, Ticks und klareren Tageswechseln; Rasterlinien ruhiger abgestimmt.
-
-## v0.9.32.0
-- 24-h-Wetterprofil mit klickgebundener senkrechter Zeitschrittmarkierung erweitert; Zeitangaben nach Tageswechsel tragen zusÃ¤tzlich das Datum.
-- Wolkenbasis-NÃ¤herung entfernt. Temperaturdifferenzen werden fachgerecht in Kelvin ausgewiesen.
-- Neues Band â€žThermisches Empfindenâ€œ: Best-Match-GefÃ¼hlte-Temperatur wird nach den DWD-Klassen von sehr kalt bis sehr heiÃŸ eingeordnet; Einflussfaktoren wie WindkÃ¼hlung, Feuchte und Sonneneinstrahlung werden transparent benannt.
-- Thermische Belastung und Wetter-Hazards fachlich getrennt; Nebel/SichteinschrÃ¤nkung, Gewitter, Niederschlagsgefahren und Wind/BÃ¶en verbleiben im Hazard-Band.
-- Windrichtungspfeile fÃ¼r jeden 24-h-Zeitschritt ergÃ¤nzt und analog zur bestehenden MID-Warnlogik grÃ¼n bzw. nach Warnstufe eingefÃ¤rbt.
-- Wolkenschichten als lÃ¼ckenlose H/M/L-BÃ¤nder (H oben, L unten) mit zeitlichem Fading dargestellt; markante sprunghafte BewÃ¶lkungsÃ¤nderungen bleiben als schÃ¤rferer Ãœbergang erhalten.
-- Ensemble-Temperaturdiagramm: Sonnenscheinband neu kalibriert; â‰¤ 50 % der astronomisch mÃ¶glichen Sonnenscheindauer entspricht bereits Grau, 50â€“100 % bildet den Verlauf bis Gelb ab.
-- Neue Regression `test-mid-weather-profile-thermal-sun-09320.mjs`; v0.9.31.0-Wetterprofilregression auf die bewusst entfernte Wolkenbasis synchronisiert.
-
-## v0.9.31.0
-- Wolken + Niederschlagsart: im DWD-Abdeckungsgebiet wieder das amtliche DWD-Kombinationsbild als unverÃ¤nderte Quelle; 100â€“300 % Zoom mit verschiebbarem Bildfenster und bildgebundenen Radar-/SatellitenzeitstÃ¤nden.
-- 24-h-Meteogramm durch ein gemeinsames Wetterprofil fÃ¼r Temperatur/GefÃ¼hlt/Taupunkt, Niederschlag/Wahrscheinlichkeit, Wind/BÃ¶en, Wolkenschichten und Wetterbelastung ersetzt.
-- Abgeleitete Nutzersignale ergÃ¤nzt: ruhiges Wetterfenster, 6-h-Drucktrend, Feuchte-/Nebelhinweis, Wetterbelastungsindex und gekennzeichnete Tâ€“Td-Wolkenbasis-NÃ¤herung.
-- Betroffene Altregressionen auf die neue Sollarchitektur synchronisiert; zusÃ¤tzliche Regression `test-mid-original-dwd-weather-profile-09310.mjs`.
-
-## v0.9.22.1
-- Buildfix fÃ¼r das DWD-Niederschlagsarten-Radar: `RadarMeta` und `RadarPointInfo` erfÃ¼llen jetzt den `WorkerPayload`-Vertrag von `fetchWorkerJson`, wodurch die TypeScript-Fehler TS2559 im Produktionsbuild beseitigt werden.
-- Neue Regression `test-dwd-radar-worker-payload-buildfix-09221.mjs` sichert die WorkerPayload-KompatibilitÃ¤t dauerhaft ab.
-
-## v0.9.22.0
-- DWD-Niederschlagsarten-Radar geometrisch neu kalibriert: Standortposition linear an die geografischen Bildgrenzen gekoppelt, um die bisherige systematische SÃ¼dverschiebung durch eine ungeeignete Web-Mercator-Interpolation zu beseitigen.
-- Radar-Komposit erweitert um Bild-/KompositzeitstÃ¤nde, semitransparente Legende, transparenten ein-/ausblendbaren Standortmarker und eine Klickanalyse fÃ¼r Niederschlagsklasse sowie Wolkensignal am Bildpunkt.
-- Wetterkartenmodul auf reine DWD-Modell-/Nowcastkarten bereinigt: Meteosat/Satellitenkarte entfernt, explizite Zeitschrittauswahl ergÃ¤nzt, NowCastMIX-Karten fÃ¼r signifikantes Wetter geprÃ¼ft/erweitert und die Ã¶ffentlich verfÃ¼gbaren ICON-, ICON-EU-, ICON-EPS- sowie AICON-WMS-Serien verbreitert.
-- DWD-WMS-Layerabgleich im Worker namespace-robust gemacht und Radar-Metadaten-/Punktanalyse-Endpunkte ergÃ¤nzt.
-- Wetterkarten-Regression `test-weather-maps-module-09210.mjs` an die neue reine Modellkartenarchitektur angepasst; zusÃ¤tzliche Interaktionsregression `test-radar-weather-maps-interaction-09220.mjs` ergÃ¤nzt.
-
-## v0.9.21.2
-- Regression-Fix fÃ¼r das Wetterkartenmodul: `test-weather-maps-module-09210.mjs` prÃ¼ft die Versionskonsistenz nun dynamisch statt die Ursprungsreleaseversion `0.9.21.0` fest zu verdrahten.
-- Package-, Baseline- und Worker-Version mÃ¼ssen Ã¼bereinstimmen; Folgereleases ab v0.9.21.0 bleiben damit testbar.
-- Behebt den GitHub-Actions-Abbruch beim Installieren von v0.9.21.1.
-
-## v0.9.21.1
-- DWD-Niederschlagsarten-Radar: Ortsausschnitt und Standortmarker verwenden jetzt dieselbe ungerundete Mercator-/Bounding-Box-Projektion. Das Bild wird Ã¼ber eine echte Bildtransformation exakt auf den aktiven Ort zentriert; die bisherige CSS-Background-Positionierung mit systematischem Versatz entfÃ¤llt.
-- DWD-Niederschlagsarten-Radar: vollstÃ¤ndige Klassenlegende gemÃ¤ÃŸ DWD-Produkt hinter einem kompakten `(i)` ergÃ¤nzt (groÃŸer/kleiner Hagel, Graupel, gefrierender Regen/SprÃ¼hregen, Schnee/Schneeregen, Regen/SprÃ¼hregen, nicht klassifizierbar, kein Niederschlag).
-- Kurzfristmeteogramm: Wetterpiktogramme liegen nun direkt im SVG-Koordinatensystem des Temperaturgraphen und verwenden exakt dieselben X-Punkte. Dadurch laufen Piktogramme bei responsiver Skalierung nicht mehr vom Graphen auseinander.
-
-## v0.9.21.0
-- Start-/Splashscreen mit deutlich grÃ¶ÃŸerem, responsivem MID-Logo und ruhigerem Startbildschirm Ã¼berarbeitet.
-- Optionales Wetterkartenmodul fÃ¼r den erweiterten Modus ergÃ¤nzt; standardmÃ¤ÃŸig deaktiviert und Ã¼ber die Dashboard-Einstellungen aktivierbar.
-- DWD-WMS-Auswahl fÃ¼r ICON-EU, ICON, ICON-EPS, NowCastMIX und Meteosat mit Karten-, Modell-, Zeitschritt-, DruckflÃ¤chen-, Basiskarten- und Deckkraftsteuerung ergÃ¤nzt.
-- Worker um freigegebene, validierte Wetterkarten-WMS- und Metadaten-Endpunkte erweitert.
-
-## v0.9.20.1
-- Buildfix: drei Cockpit-Meteogrammregressionen an das aktuelle Vollbreitenlayout und Einzeldatenfeld synchronisiert.
-- CSS-PrÃ¼fungen der betroffenen Regressionen whitespace- und formatierungsrobust gemacht, ohne die fachlichen LayoutvertrÃ¤ge abzuschwÃ¤chen.
-- Neue Meta-Regression `test-cockpit-regression-sync-09201.mjs` schÃ¼tzt die Synchronisierung dauerhaft.
-- DWD-Niederschlagsarten-Radar aus v0.9.20.0 unverÃ¤ndert beibehalten; dessen Regression akzeptiert nun Folgereleases ab v0.9.20.0 statt nur exakt v0.9.20.0.
-
-## v0.9.19.2
-- 24-h-Meteogramm und erweiterte Einzeldaten auf die verÃ¶ffentlichte Stable-Codeoptimierung v0.9.19.0 portiert.
-- Automatisierte Code-Revisions-, Live-, API-, Browser- und Build-Budget-PrÃ¼fungen aus v0.9.19.0 beibehalten.
-
-## v0.9.18.7
-- Kurzfrist-Meteogramm optisch an der meteorologischen Vorlage ausgerichtet: Hauptzeitachse jetzt mit sauberer 6-Stunden-Beschriftung bei weiterhin stÃ¼ndlicher DatenauflÃ¶sung.
-- Overlay-Positionen fÃ¼r Zeit, Tageslabel, Wetterpiktogramme, Windfiedern und Hitlayer auf prozentuale Breiten-Skalierung umgestellt, damit Mobil- und Desktop-Layout korrekt mit dem SVG mitlaufen.
-- Meteorologische Windfiedern im 24-h-Meteogramm prÃ¤ziser an der Zeitachse ausgerichtet; Datum/Zeitachse und Windreihe bleiben nun vollstÃ¤ndig sichtbar.
-- Neue Regression: responsive Meteogramm-Overlay-Skalierung und 6h-Hauptzeitachse abgesichert (`scripts/test-cockpit-meteogram-overlay-scale-09186.mjs`).
-
-## v0.9.18.5
-- Buildfix: Windfiedern verwenden die gÃ¼ltige interne WindUnit `kn`; ungenutzter ForecastCockpit-Windpfeil-Helfer entfernt.
-- Fix: Die Screenreader-Hinweistexte der Kurzfrist-Hitlayer werden wieder korrekt versteckt und erscheinen nicht mehr im 24-h-Meteogramm.
-- Fix: Die optische Auswahlumrandung im 24-h-Meteogramm wurde entfernt; die Einzeldatenkarte bleibt als primÃ¤res Feedback erhalten.
-- UI: Plotgeometrie des 24-h-Meteogramms nachgeschÃ¤rft, um die Darstellung auf schmalen Displays vollstÃ¤ndiger und kompakter auszubalancieren.
-
-## v0.9.18.5
-- Kurzfrist-Meteogramm: Titel auf â€ž24-h-Meteogrammâ€œ verkÃ¼rzt.
-- Kurzfrist-Meteogramm: Ã¼berlagernde Auswahlumrandung entfernt und Einzeldatenfeld unter dem Diagramm wiederhergestellt.
-- Kurzfrist-Meteogramm: 24-h-Vollansicht fÃ¼r alle Displaybreiten beibehalten und Beschriftung auf Einzeldatenfokus prÃ¤zisiert.
-
-## v0.9.18.2
-- Buildfix: acht veraltete Cockpit-Regressionen auf den bewusst entfernten 1-h/3-h-Schalter, das entfernte Zusatzdatenfeld und das nun vollbreit skalierende Meteogramm synchronisiert.
-- Kurzfrist-Meteogramm dauerhaft auf einstÃ¼ndige Darstellung umgestellt; 1 h-/3 h-Schalter entfernt.
-- Diagrammbereich bereinigt: zusÃ¤tzliche stÃ¶rende Textlayer am/Ã¼ber dem Plot entfernt.
-- Meteogramm auf vollbreit skalierende Darstellung umgestellt, sodass es ohne horizontales Scrollen vollstÃ¤ndig sichtbar bleibt.
-- 24-h-Leiste erneut komprimiert und flacher gestaltet.
-
-## v0.9.18.1
-- Buildfix: ungenutzten Alt-Helfer `shortTermVisibilityText` nach Entfernung der redundanten Detailkarte beseitigt; TS6133 verhindert.
-- Kurzfrist-Meteogramm bereinigt: stÃ¶renden Detailtext aus dem Diagrammbereich entfernt.
-- ZusÃ¤tzliches Detailfeld zwischen Legende und 24-h-Leiste entfernt.
-- Datenfeld unter dem Diagramm komprimiert (ganzzahlige Temperaturen, Wind inkl. BÃ¶enspitze, Luftdruck statt BÃ¶en-Zeile).
-- 24-h-Leiste weiter abgeflacht und kompakter gestaltet.
-
-# MID v0.9.18.0
-
-- Kurzfristdiagramm im Cockpit vollstÃ¤ndig als eigenstÃ¤ndiges, hochauflÃ¶sendes Meteogramm neu aufgebaut.
-- Dark Mode und Light Mode erhalten nun jeweils eigene, kontraststarke Meteogramm-Farbvariablen.
-- Temperatur wird als ECMWF-Farbverlauf dargestellt; die gefÃ¼hlte Temperatur bleibt als neutrale gestrichelte Vergleichslinie erkennbar und wird nicht als Tmin/Tmax-Farbcodierung interpretiert.
-- Desktop zeigt ein echtes Overlay, MobilgerÃ¤te eine separate kompakte Detailbox unterhalb des Diagramms.
-- Alte kollidierende Diagramm-CSS-Klassen werden nicht mehr verwendet; dadurch entfallen die schwarze, leere PlotflÃ¤che und die seitlich herausgerÃ¼ckte Legende.
-- Der TS5076-Regressionscheck ist jetzt vollstÃ¤ndig deterministisch und ohne lokale TypeScript-Pfade.
-
-# MID v0.9.17.5
-
-- Buildfix: ungÃ¼ltige Mischung aus Nullish-Coalescing (`??`) und logischem ODER (`||`) in der Berechnung der Meteogramm-Achsenschritte beseitigt; die Tick-Fallbacks sind nun explizit getrennt. Die dedizierte TS5076-Regression lÃ¤dt TypeScript portabel aus den ProjektabhÃ¤ngigkeiten und verwendet den CAAS-Pfad nur noch als lokalen Fallback.
-- Feinschliff: Achsen, Raster und Tagestrennung des Kurzfrist-Meteogramms optisch nÃ¤her an einer professionellen Meteogramm-Darstellung ausgerichtet.
-- Tooltip des Kurzfristdiagramms als kompakte Infobox mit Wettericon, klaren Parameterzeilen und besserer Lesbarkeit auf MobilgerÃ¤ten Ã¼berarbeitet.
-- Korrektur: Ganzzahlige maximale Niederschlagswahrscheinlichkeit im Cockpit wieder mit dem bestehenden Build-Regressionstest synchronisiert.
-- Cockpit-Kurzfristbereich als kompaktes Meteogramm neu aufgebaut
-- Tooltip/Overlay passt sich auf schmalen Displays mobil unten an statt Inhalte zu verdecken
-- Temperatur- und gefÃ¼hlte Temperatur im Kurzfristdiagramm farblich konsistent ohne alte Blau/Rot-GegenÃ¼berstellung
-- 24-Stunden-Leiste und Kurzfrist-Insights beibehalten, aber auf das neue Diagramm abgestimmt
-
-# MID v0.9.17.4
-
-- Die Cockpit-Kurzfristansicht ersetzt die bisherige Kurzfristmatrix nun durch eine neue, innovative Parametertimeline. Wetter, ECMWF-Temperatur, Niederschlag, Wind/BÃ¶en sowie Wolken- und Sichtsignal werden je Zeitpunkt in einer diagrammatischen Lane-Struktur verdichtet.
-- Die 24-h-Leiste kennzeichnet Start und Ende jetzt eindeutig mit Datum und Uhrzeit. Damit entfÃ¤llt die missverstÃ¤ndliche reine Zeitspannen-Anzeige.
-- FÃ¼r schmale/mobile Ansichten wird die 24-h-Leiste deutlich flacher und kompakter gerendert. Die Stundenchips bÃ¼ndeln weiterhin Temperatur, Wetter, Niederschlag und Wind, verbrauchen aber spÃ¼rbar weniger HÃ¶he.
-- Responsive CSS- und Interaktionsanpassungen sichern, dass sowohl die neue Kurzfristdiagrammansicht als auch die verdichtete 24-h-Leiste auf kleinen Displays nutzbar bleiben.
-- CI-Korrektur: Die Temperatur-Lane erklÃ¤rt weiterhin ausdrÃ¼cklich das Temperaturmittel, sodass der bestehende Cockpit-Usability-Vertrag und die zugehÃ¶rige Regression erfÃ¼llt bleiben.
-
-# MID v0.9.17.3
-
-- Die Cockpit-Kurzfristansicht reagiert nun wirklich auf Klick/Tipp: Sowohl die Kurzfristmatrix als auch 90-Minuten-Slots und 24h-Stundenfelder Ã¶ffnen bzw. aktualisieren sofort die Kurzfristdetails.
-- Temperaturen in den Kurzfristansichten werden jetzt mit einer ECMWF-orientierten Farbskala dargestellt.
-- Die bisherige Grafik wurde durch eine neue interaktive Kurzfristmatrix ersetzt, die Temperatur, gefÃ¼hlte Temperatur, Wetter, Niederschlag, Wind/BÃ¶en, BewÃ¶lkung, Feuchte, Sicht und Gewittersignal direkt pro Zeitpunkt zusammenfÃ¼hrt.
-- FÃ¼r schmale/mobile Displays werden die Kurzfristkacheln gezielt in flache, horizontal gestreckte Felder umgebaut. Damit bleiben Scrollen und Ãœberblick auf kleinen GerÃ¤ten deutlich besser nutzbar.
-- Die responsive 24h-Vorschau wurde ebenfalls auf echte Interaktion und mobile Einspaltigkeit nachgeschÃ¤rft. Eine neue Regression prÃ¼ft InteraktivitÃ¤t, ECMWF-Farben, Matrixdarstellung und mobile Flachfelder.
-
-# MID v0.9.17.2
-
-- Der Kurzfristbereich unterhalb der 90-Minuten-Vorhersage wurde gestalterisch erneut Ã¼berarbeitet. Statt einer einfachen Kachelmatrix erscheint dort jetzt eine hochwertigere, professionellere Kurzfrist-Sektion mit klarerer Informationshierarchie.
-- Die stÃ¼ndliche Vorschau zeigt nun bis zu 24 Stunden in einer kompakten, horizontal scrollbaren Timeline-Leiste. Damit entfallen die bislang als unzweckmÃ¤ÃŸig bewerteten zweispaltigen Stundenkacheln.
-- Die Kurzfrist-Metriken bleiben als Premium-Spotlights sichtbar und passen sich je nach Displaybreite abgestuft an Desktop, Tablet und Smartphone an. FÃ¼r schmale GerÃ¤te werden nur die Kennzahlen gestapelt; die Stundenleiste bleibt einspaltig beziehungsweise horizontal nebeneinander.
-- Die Ã„nderung folgt ausdrÃ¼cklich dem MID-Grundsatz, neue UI-Bausteine immer displaygrÃ¶ÃŸen- und gerÃ¤tegerecht auszuarbeiten. Eine neue Regression sichert 24h-Timeline, Premium-Layout und responsive Einspaltigkeit der Kurzfristvorschau ab.
-
-# MID v0.9.17.1
-
-- Das Kurzfrist-Cockpit unterhalb der 90-Minuten-Vorhersage wurde grafisch neu aufgebaut. Die bisherige knappe Kennzahlenleiste wird durch eine responsive Kurzfrist-Insight-Zone mit stÃ¼ndlicher Vorschau, Temperaturspanne, Windspitze und Niederschlagsfenster ersetzt.
-- Die Kurzfristgrafik nutzt kompaktere Proportionen mit weniger Leerraum und bleibt je nach Rasterwahl beziehungsweise Displaybreite besser lesbar. Unterhalb des Diagramms passt sich die Stunden-Vorschau flexibel an schmale und breite Displays an.
-- In den Cockpit-Ãœbersichten wird der zusÃ¤tzliche 14-Tage-Streuungstext oberhalb des MID-Prognose-Kompasses entfernt, da der Kompass diese Information bereits inhaltlich abdeckt. Die Ãœberschrift bleibt erhalten, die Legende bleibt kompakt sichtbar.
-- Neue Regression schÃ¼tzt die neue Kurzfrist-Insight-Zone, die stÃ¼ndliche Vorschau und das Entfallen des redundanten 14-Tage-Textblocks im Cockpit.
-- CI-Korrektur: Die maximale Niederschlagswahrscheinlichkeit wird im neu gestalteten Bereich weiterhin direkt ganzzahlig aus allen dargestellten Kurzfristpunkten berechnet; der bestehende Schutztest `test-build-percent-integers-091513.mjs` bleibt damit erfÃ¼llt.
-
-# MID v0.9.16.1
-
-- Die 14-Tage-Ãœbersicht verhindert auf Smartphones im Querformat Ãœberlagerungen zwischen benachbarten Karten. Kartenkopf, Konsistenzfeld und Messzeilen besitzen nun feste responsive Raster und bleiben vollstÃ¤ndig innerhalb ihrer Kachel.
-- Konsistenzwerte werden stets einzeilig dargestellt. Auf schmalen Displays liegen Messwert und Bezeichnung Ã¼ber dem zugehÃ¶rigen Balken, sodass Regen- und Windangaben nicht mehr in die nÃ¤chste Karte ragen.
-- Der Widget-/PNG-Generator erhÃ¤lt eine moderat breitere ExportflÃ¤che und grÃ¶ÃŸere Schriften fÃ¼r alle wesentlichen Inhalte.
-- Widget-Hazards werden auf die hÃ¶chste am jeweiligen Tag vorhandene Warnstufe begrenzt; niedrigere Warnstufen werden in dieser kompakten Exportansicht ausgeblendet.
-- Neue Regression schÃ¼tzt Querformatlayout, Konsistenzfelder, Widget-Lesbarkeit und Hazard-Priorisierung.
-
-# MID v0.9.15.14
-
-- KONRAD3D rendert im Kompositbild jetzt die vollstÃ¤ndigen Vektorelemente nicht mehr nur fÃ¼r genau eine, sondern fÃ¼r bis zu drei der relevantesten sichtbaren Zellen. Dadurch erscheinen Zugbahn, Unsicherheitskorridor, Ellipsen und Prognosepunkte wieder vollstÃ¤ndig, wenn mehrere plausible K3D-Zellen im Kartenausschnitt liegen.
-- Die K3D-Vektorlayer wurden optisch nachgeschÃ¤rft. Spur, ZellflÃ¤che, Ellipsen und Korridor erhalten nun stÃ¤rkere Konturen beziehungsweise Schatten und nutzen im dedizierten Pane einen normalen Mischmodus, damit sie Ã¼ber Radar- und Satellitenraster auch im Dark-Theme zuverlÃ¤ssig sichtbar bleiben.
-- Die Prognoseellipsen werden bei den hervorgehobenen Zellen dichter dargestellt, sodass fehlende Zwischenelemente im 5-Minuten-Raster nicht mehr wie abgerissene K3D-Spuren wirken.
-
-# MID v0.9.15.13
-
-- Produktionsbuild repariert: `RadarNowcastInterval` wird in `forecastFusion.ts` nun als TypeScript-Typ importiert. Die Intervallauswertung fÃ¼r die appweite DWD-RV-Punkt-Nowcast-Fusion kompiliert dadurch ohne TS2304.
-- Prozentanzeigen werden an der OberflÃ¤che konsequent ganzzahlig ausgegeben. Insbesondere zeigt das Kurzfrist-Cockpit das maximale Niederschlagsrisiko gerundet statt mit langen FlieÃŸkommazahlen.
-- Weitere potenziell kontinuierliche Prozentwerte in Wetterzwilling, Modellverifikation, Gewitterrisiko, Ensemble-Konsistenz, Radar-Deckkraft und Synoptik werden vor der Anzeige gerundet; interne Berechnungen behalten ihre volle Genauigkeit.
-- Bestehende Gewitter-Detailregressionen wurden auf die nun ausdrÃ¼cklich ganzzahlige Prozentdarstellung aktualisiert.
-- Neue Regression schÃ¼tzt den fehlenden `RadarNowcastInterval`-Import und verhindert die erneute Ausgabe ungerundeter Prozentwerte an den betroffenen OberflÃ¤chen.
-
-# MID v0.9.15.12
-
-- Die 5-Minuten-DWD-RV-Standortserie aus dem Radar-Nowcast wird zentral in alle Kurzfristdarstellungen Ã¼bernommen. Standalone-Kurzfrist, Cockpit und Wetterzwilling verwenden damit dieselben direkten Standorttreffer, trockenen Intervalle, Unterbrechungen und reinen Umfeldsignale.
-- Direkte Standorttreffer werden Ã¼ber sÃ¤mtliche im Zielintervall liegenden 5-Minuten-Schritte mengen- und wahrscheinlichkeitsgewichtet. Unterbrochene Phasen bleiben getrennt; reine Umfeldechos erhÃ¶hen keine Standortmenge und dÃ¼rfen die Standortwahrscheinlichkeit nur begrenzt beeinflussen.
-- FÃ¼r Ã¤ltere beziehungsweise reduzierte Radarantworten ohne Punktserie bleibt ein eng begrenzter, standortgebundener Aggregat-Fallback erhalten; als â€žnearbyâ€œ oder â€žapproximateâ€œ gekennzeichnete Echos sind davon ausgeschlossen.
-- KONRAD3D Ã¼bernimmt die amtliche aktuelle ZellflÃ¤che aus den geodÃ¤tischen Polygonkoordinaten und nutzt deren plausibilisierten Mittelpunkt fÃ¼r Marker, ZellflÃ¤che und die konsistent verschobene Prognosespur.
-- K3D-Vektoren und HTML-Marker liegen in getrennten, expliziten Leaflet-Panes. Prognosepunkte werden als robuste HTML-Marker gerendert; nur die relevanteste sichtbare, radarbestÃ¤tigte Zelle erhÃ¤lt die vollstÃ¤ndig beschriftete Zugbahn.
-- Lokale K3D-Zellen werden gegen aktuelle DWD-Radaranker plausibilisiert. Zellen ohne rÃ¤umlich passende Radarechos werden im Nahbereich nicht mehr Ã¼ber der Karte angezeigt. ZellflÃ¤che, Geschwindigkeitseinheiten und FlÃ¤chenangaben werden aus den amtlichen XML-Feldern normalisiert.
-- Neue Regression schÃ¼tzt die appweite Punkt-Nowcast-Fusion, den Ausschluss reiner Umfeldechos, unterbrochene Standortphasen, K3D-Polygon-/Geschwindigkeitsauswertung, getrennte Pane-Ebenen und die rÃ¤umliche Echo-Plausibilisierung.
-
-# MID v0.9.15.10
-
-- KONRAD3D-Objekte werden an den aktuell gewÃ¤hlten Radarzeitstand gebunden; auÃŸerhalb eines engen Zehn-Minuten-Fensters werden keine zeitlich fremden Zellobjekte Ã¼ber das Radar gelegt.
-- K3D-Zugbahnen werden nur noch fÃ¼r Zellen gezeichnet, deren aktuelles Zellzentrum im sichtbaren Kartenausschnitt liegt. Beim Verschieben der Karte erscheinen daher keine losgelÃ¶sten Prognosespuren ohne zugehÃ¶rige aktuelle Zelle mehr.
-- VollstÃ¤ndige Zugbahn, Prognosepunkte und Unsicherheitsgeometrie werden auf die zwei relevantesten sichtbaren Zellen begrenzt; weitere sichtbare Zellen behalten Marker und aktuelle ZellflÃ¤che.
-- Amtliche Prognosepunkte werden rÃ¤umlich gegen Zellgeschwindigkeit und Vorlauf plausibilisiert. Unplausibel weit versetzte Koordinaten werden verworfen und nur bei belastbarem Zugvektor transparent ersetzt.
-- Unsicherheitsradien und permanente Zeitbeschriftungen wurden begrenzt, damit fehlerhafte Einheiten oder viele benachbarte Zellen keine kartengroÃŸen Ellipsen und Beschriftungsteppiche erzeugen.
-- Der KONRAD3D-Worker liest bei LÃ¤ngenfeldern nun sowohl das amtliche XML-Attribut `unit` als auch `units`; Meterwerte werden dadurch nicht mehr fÃ¤lschlich als Kilometer interpretiert.
-- Neue Regression schÃ¼tzt Kartenausschnitt-, Zeit- und GeometrieplausibilitÃ¤t sowie die Singularform des DWD-Einheitenattributs.
-
-# MID v0.9.15.9
-
-- Ein Tipp auf eine Push-Benachrichtigung Ã¶ffnet immer die normale MID-Startansicht im Scope-Root. Von Push-Payloads mitgegebene Deep-Links oder Einstellungs-Hashes werden verworfen; der Benachrichtigungsort bleibt Ã¼ber sichere Standortparameter erhalten.
-- Bereits geÃ¶ffnete MID-Fenster erhalten ein eigenes `MID_NOTIFICATION_OPEN`-Signal, schlieÃŸen Einstellungs- und Impressumsdialoge und springen an den Anfang der Startansicht.
-- KONRAD3D-Vektorelemente verwenden einen expliziten Leaflet-SVG-Renderer im dedizierten Nowcast-Pane. ZellflÃ¤che, Zugbahn, Unsicherheitskorridor, Ellipsen und Prognosepunkte liegen dadurch zuverlÃ¤ssig oberhalb des Radarrasters.
-- K3D-Geometrien erhalten kontrastierende Halos und permanente, kompakte Zeitmarken. Bei fehlenden Einzelpunkten kann zusÃ¤tzlich eine vorhandene prognostizierte Endposition zur transparent abgeleiteten Spur bis +60 Minuten genutzt werden.
-- Neue Regression schÃ¼tzt Startansicht bei Benachrichtigung, Overlay-SchlieÃŸung, K3D-Pane/Renderer, sichtbare Geometrie und Endpunkt-Fallback.
-
-# MID v0.9.15.8
-
-- DWD-HX-250-m-Radar wird nicht mehr als rechteckiges WGS84-Bild Ã¼ber die Karte gestreckt, sondern kachelweise und projektionstreu aus der im HDF5 hinterlegten ellipsoidischen Polarstereografie nach Web-Mercator abgebildet.
-- Die HX-Rasterachse wird gemÃ¤ÃŸ Produktmetadaten korrekt behandelt: Pixelzentren beginnen bei x=0/y=0, die y-Koordinate nimmt je Rasterzeile um 250 m ab.
-- Falsche Verortungen gegenÃ¼ber dem DWD-RV-1-km-Komposit, insbesondere im Westen und Norden Deutschlands, werden dadurch beseitigt.
-- Sichtbare Kartenausschnitte werden als Leaflet-Canvas-Kacheln berechnet; Farb-Lookup, Kachelpuffer und asynchrones Rendering begrenzen Rechenlast und Speicherbedarf.
-- Neues Projektionsmodul verarbeitet `+a`, `+b`, `+x_0`, `+y_0`, `+lat_ts` und `+lon_0` aus `projdef` einschlieÃŸlich ellipsoidischer VorwÃ¤rts- und RÃ¼cktransformation.
-- Neue Regression prÃ¼ft alle vier amtlichen HX-Eckreferenzen auf Zentimetergenauigkeit sowie die Rasterzelle fÃ¼r MÃ¼nster.
-
-# MID v0.9.15.7
-
-- Produktionsbuild repariert: `ResolvedKonradTrackPoint[]` ist fÃ¼r die verÃ¤nderliche KONRAD3D-Prognosepunktliste nun explizit typisiert.
-- Amtliche und abgeleitete K3D-Punkte kÃ¶nnen dadurch gemeinsam verarbeitet werden; `derived` ist im TypeScript-Build zulÃ¤ssig.
-- Keine funktionale Ã„nderung an Radar-, Nowcast- oder Worker-Datenlogik.
-
-# MID v0.9.15.6
-
-- Ensemble-Diagramme fÃ¼r Temperatur, Niederschlag und Wind besitzen am Desktop nun eine eigene, von Recharts unabhÃ¤ngige Treffer- und Tooltip-Schicht. Hover, Klick zum Fixieren, AuÃŸenklick, Escape sowie Pfeiltasten funktionieren einheitlich; eine senkrechte FÃ¼hrungslinie kennzeichnet den aktiven Tag.
-- Das 250-m-Radar verwendet in Deutschland vorrangig das flÃ¤chendeckende DWD-HX-Deutschlandkomposit statt eines einzelnen Standortradars. Lokales PX250 bleibt nur als klar gekennzeichneter Fallback erhalten.
-- HX-/PX250-ReflektivitÃ¤t wird fÃ¼r die gemeinsame Darstellung Ã¼ber Z=200Â·R^1,6 in eine Ã¤quivalente Regenrate umgerechnet und mit derselben mm/h-Farbskala wie das 1-km-Radar dargestellt.
-- Der KONRAD3D-XML-Parser verarbeitet die amtlichen `forecast/centroid_forecasts/centroid_forecast`-Elemente einschlieÃŸlich aller 5-Minuten-Positionen und Unsicherheitsellipsen. Ein fehlerhaft escaptes dynamisches RegExp, das Prognosepunkte verschluckte, wurde korrigiert.
-- Das Kompositbild zeichnet aktuelle ZellflÃ¤che, Zugbahn bis +60 Minuten, Prognosepunkte, 1Ïƒ-Korridor und Unsicherheitsellipsen oberhalb des Radars. Nur bei fehlenden amtlichen Einzelpunkten wird eine transparent gekennzeichnete Vektor-Spur ergÃ¤nzt.
-- Neue Regression prÃ¼ft alle drei Desktop-Ensemble-Interaktionen, HX-Priorisierung, gemeinsame Regenratenskala sowie das echte amtliche KONRAD3D-XML-Schema funktional.
-
-# MID v0.9.15.5
-
-- Tagescharaktere werden appweit ausschlieÃŸlich aus dem astronomischen beziehungsweise zivilen Tagesfenster abgeleitet; Nachtregen desselben Kalendertags beeinflusst weder Text noch Tagespiktogramm.
-- Die auf einen Tag folgende Nacht wird zentral und datumsÃ¼bergreifend als Abend des Prognosetags plus Morgen des Folgetags gebildet. Cockpit, klassische Tageskarten, Detailansicht, Widgets und TropennachtprÃ¼fung verwenden dieselbe Grenze.
-- Das 7-Tage-Cockpit weist relevante Tagesschauer auch bei moderater Tageswahrscheinlichkeit als â€žSchauerâ€œ aus und fÃ¤llt nicht mehr auf â€žRuhigâ€œ zurÃ¼ck.
-- Die 7-Tage-Kurzinterpretation verwendet fÃ¼r Wetterregime und NiederschlagsstÃ¤rke nur Tagesstunden; kalendernÃ¤chtliche Mengen kÃ¶nnen den Tagesabschnitt nicht mehr als regnerisch deklarieren.
-- Neue Regression schÃ¼tzt Tages-/Folgenachtgrenzen, Nachtregen-Ausschluss, Tagesschauerklassifikation und die gemeinsame appweite Periodenlogik.
-
-# MID v0.9.15.4
-
-- Gewitter-Ortslisten werden bei zu wenigen Overpass-Treffern aktiv durch entlang der 60-Minuten-Zugbahn gesampelte Ortsabfragen ergÃ¤nzt; der Bezugsort bleibt nur ein Eintrag unter mehreren.
-- Eine fehlende oder zu kurze KONRAD3D-Prognosespur wird aus offizieller Zugrichtung und -geschwindigkeit in 10-Minuten-Schritten transparent ergÃ¤nzt.
-- Overpass-Endpunkte werden parallel abgefragt, RÃ¼ckwÃ¤rtsgeokodierungen gecacht und begrenzt parallelisiert; dadurch bleibt die Gewitterinformation trotz Mehrortanalyse reaktionsfÃ¤hig.
-- Radar- und Nowcast-Layer bleiben beim Zoomen montiert, behalten Kachelpuffer und laden angrenzende ZeitstÃ¤nde mit minimaler Deckkraft vor. Dadurch sinken Flackern und Nachladen beim Panning, Zoomen und Abspielen.
-- Die Wetterblick-PrÃ¼fung wurde als Transfer-Audit dokumentiert: Bedienprinzipien werden eigenstÃ¤ndig nachgebaut; proprietÃ¤rer Code und Wetterblick-Daten werden nicht kopiert oder gescrapt.
-- Neuer Regressionstest schÃ¼tzt Mehrort-Fallback, 60-Minuten-Spur, Quellenkennzeichnung und Layer-Performance.
-
-# MID v0.9.15.3
-
-- Cockpit-Registeransicht: Die 14-Tage-Angabe zur zunehmenden Unsicherheit nennt neben dem Wochentag nun immer auch das eindeutige Datum im Format dd.mm.
-- Auch die Tooltip-Beschriftung des 14-Tage-Mini-Ribbons kombiniert Wochentag und Datum.
-- Neuer Regressionstest schÃ¼tzt die Datumsangabe in der Registerzusammenfassung.
-
-# MID v0.9.15.2
-
-- 7-Tage-StundenÃ¼bersicht: ECMWF-orientierte Temperaturfarben deutlich dezenter und kompakter dargestellt.
-- Ensemble-Diagramme: Desktop-Hover nach dem SchlieÃŸen oder einem AuÃŸenklick zuverlÃ¤ssig reaktiviert; Tooltips stehlen dem Diagramm nicht lÃ¤nger den Mauszeiger.
-- Regressionstest fÃ¼r Temperaturfeld-Geometrie und Desktop-Tooltip-Reaktivierung ergÃ¤nzt.
-
-# Changelog
-
-## 0.9.66.8
-
-- DACH-GefahrenflÃ¤chen sind native MapLibre-MultiPolygone; ein separater Beschriftungs-Rasterlayer rendert Grenzen, LÃ¤nder-, Regions- und StÃ¤dtenamen darÃ¼ber.
-- DatumsÃ¼bergreifende Zeitfenster zeigen Start- und Enddatum eindeutig, â€žGefrierhÃ¶heâ€œ heiÃŸt im Extremwetter-Ausblick nun â€žNullgradgrenzeâ€œ, und Popup-/Diagnosefelder sind kontrastreicher und grÃ¶ÃŸer gesetzt.
-- Ã„nderungen an Sichtbarkeit und Reihenfolge der Dashboard-Sektionen werden synchron und mit funktionalen ZustandsÃ¤nderungen gespeichert, sodass sie einen App-Neustart zuverlÃ¤ssig Ã¼berstehen.
-
-## 0.9.15.11
-
-- Niederschlags-Nowcast: vollstÃ¤ndige 5-Minuten-DWD-RV-Punktserie bis +120 Minuten.
-- Getrennte Niederschlagsphasen werden mit Unterbrechungen und tatsÃ¤chlicher letzter Endzeit ausgewiesen.
-- Echos im Kilometerumfeld werden nicht mehr als Standorttreffer oder Standortmenge gewertet.
-- Aktuelle Standortbeobachtung wird mit nativem RADOLAN YW gegengeprÃ¼ft; OPERA dient nur als Kontrollabgleich.
-
-## 0.9.15.1
-- Gewitterinformationen weisen jetzt mehrere aktuell vom radarbestimmten Zellbereich erfasste Orte mit â€žJetztâ€œ aus.
-- Auf der prognostizierten Zugbahn liegende Orte erhalten eine individuelle lokale Ankunftszeit beziehungsweise ein Zeitfenster und werden chronologisch sortiert.
-- Vier klar getrennte Ortsstatus verhindern falsche Sicherheit: aktuell betroffen, voraussichtlich auf der Zugbahn, mÃ¶glicher Treffer und nur im Unsicherheitskorridor.
-- Die Ortsbestimmung kombiniert den geometrischen KONRAD3D-Zell- und Prognosekorridor mit OpenStreetMap/Overpass; ein sparsamer BigDataCloud-Sampling-Fallback bleibt bei AusfÃ¤llen verfÃ¼gbar.
-- Der Bezugsort wird separat gegen aktuelle ZellflÃ¤che, Zugachse und Prognoseunsicherheit geprÃ¼ft und bei Relevanz in die Ortsliste aufgenommen.
-- Direkt in der Gewitterkachel erscheinen die wichtigsten Orte; die vollstÃ¤ndige Liste mit StatusbegrÃ¼ndung, Zugachsenabstand, Ankunftsfenster und Quellenangabe liegt hinter dem Info-Button.
-- Neue Regression schÃ¼tzt Ortskorridor, Statusklassifizierung, Zeitlokalisierung, vollstÃ¤ndige UI-Liste und Worker-/Frontend-Datenvertrag.
-
-## 0.9.15.0
-- Kurzfristige Temperatur- und GefÃ¼hlstemperaturwerte erhalten eine meteorologische PlausibilitÃ¤tsprÃ¼fung gegen isolierte 15-Minuten-AusreiÃŸer. Bei ruhiger, trockener Wetterlage werden einzelne ungestÃ¼tzte SprÃ¼nge zeitlich interpoliert und transparent als plausibilisiert gekennzeichnet.
-- Die klassische 7-Tage-StundenÃ¼bersicht Ã¶ffnet den aktuellen Tag direkt an der aktuellen Ortsstunde. Im 3-Stunden-Raster werden alle Zeitschritte gezeigt; im 1-Stunden-Raster zunÃ¤chst ein sinnvoll zentriertes Zeitfenster und auf Wunsch der vollstÃ¤ndige Tag.
-- Wettertexte der Stundenkacheln wandern in ein Hover-/Fokus-Overlay; die Piktogramme werden grÃ¶ÃŸer. Temperaturfelder verwenden eine ECMWF-orientierte 2-m-Temperaturfarbskala mit kontrastangepasster Schrift.
-- Gewitterinformationen Ã¼bernehmen zusÃ¤tzliche KONRAD3D-, HYMEC-, Radar-, Zell-, Zugbahn-, Hagel-, Starkregen-, Wind- und NWP-Parameter. Relevante Auswirkungen stehen direkt in der Kachel; vollstÃ¤ndige Detailgruppen einschlieÃŸlich optionaler DWD-Mesozyklonenerkennung liegen hinter dem Info-Button.
-- Historische Release-Hinweise zu spÃ¤ter vollstÃ¤ndig entfernten oder stillgelegten GroÃŸfunktionen wurden aus der nutzerseitigen Historie bereinigt. Statusmeldungen zur Stilllegung bleiben erhalten; der Wetterstationsanbieter â€žSynoptic Dataâ€œ ist davon ausdrÃ¼cklich nicht betroffen.
-- Neue Regression schÃ¼tzt Plausibilisierung, Stundenfokus, 3h-/1h-Umfang, Piktogramm-Overlay, Temperaturfarblogik, Gewitterdetails und bereinigte Release-Historie.
-
-## 0.9.14.5
-- Empfehlungen aus den zuletzt gesichteten Wartungs-/UI-Hinweisen werden fÃ¼r kommende Releases als fortlaufende Release-Leitlinie Ã¼bernommen.
-- Nachtpiktogramme wurden kontrastreicher gemacht: hellere Nacht-HintergrÃ¼nde, hellere Nachtwolken und stÃ¤rkere Mond-/Niederschlagskontraste verbessern die Erkennbarkeit auf hellen Karten und in kleinen GrÃ¶ÃŸen.
-- Tag- und Nachtpiktogramm stehen in Tageskarten, klassischer 7-Tage-Ansicht und Widget/Quickfacts nun nebeneinander; das Nachticon liegt nicht mehr auf dem Tagesicon.
-- GrÃ¶ÃŸenverhÃ¤ltnis von Tages- zu Nachtpiktogrammen harmonisiert; Nachticons bleiben kleiner, aber deutlich besser lesbar.
-- BÃ¶enangaben im 7-Tage-Cockpit werden nicht mehr abgeschnitten; das Layout reserviert mehr Platz und die kompakte Beschriftung bleibt vollstÃ¤ndig sichtbar.
-- Klassische 7-Tage-Stundenansicht: Wetter-/BewÃ¶lkungstext wird nicht mehr hart abgeschnitten und die Temperaturkachel wurde optisch an das Ã¼brige App-Design angeglichen.
-- Neuer Regressionstest schÃ¼tzt die UI-Politur fÃ¼r Nachtpiktogramme, BÃ¶enlayout und klassische Stundenliste.
-
-## 0.9.14.4
-- Buildfix im 3-Stunden-Aggregator des Prognose-Cockpits: `wind` ist jetzt im typisierten Mittelwertvertrag enthalten; der GitHub-Fehler TS2345 ist beseitigt.
-- Eigener Regressionstest schÃ¼tzt die Windaggregation im 3-Stunden-Raster.
-- Der Piktogramm-/ISO-Test isoliert die WMO-Klassifikationsfunktion robust, auch nachdem zusÃ¤tzliche SVG-Hilfskomponenten ergÃ¤nzt wurden.
-
-## 0.9.14.3
-- Wolkenformen werden zusÃ¤tzlich zum Wolkenstockwerk klassifiziert: Stratus/Hochnebel, Altostratus, Cirrus, Cumulus, Cumulonimbus und mehrschichtige BewÃ¶lkung besitzen nun klar getrennte SVG-Formen.
-- Flache SchichtbewÃ¶lkung, mittelhohe Wolkendecken, faserige hohe Wolken, Haufenwolken und hochreichende Gewitterwolken sind in kleinen Tages-, Nacht- und Stundenpiktogrammen deutlicher unterscheidbar.
-- Tag-/Nacht-HintergrÃ¼nde reagieren jetzt zusÃ¤tzlich auf die Wolkenform; Nachtnebel, SchichtbewÃ¶lkung und konvektive Lagen bleiben dadurch auch auf hellen Karten lesbar.
-- Bei hoher bzw. mittelhoher SchichtbewÃ¶lkung kann Sonne oder Mond gedÃ¤mpft hinter der Wolkendecke erscheinen; nÃ¤chtlicher Nebel erhÃ¤lt einen schwach durchscheinenden Mondhinweis.
-- Neuer Regressionstest schÃ¼tzt Wolkenformklassifikation, Tag-/Nacht-Hintergrund und appweite Metadatenattribute der Piktogramme.
-
-## 0.9.14.2
-- Wetterpiktogramme weiter geschÃ¤rft: klarere visuelle Trennung zwischen SchichtbewÃ¶lkung, mehrschichtiger BewÃ¶lkung und konvektiver BewÃ¶lkung.
-- Tages- und Nachtpiktogramme erhalten nun einen dezenten semitransparenten Hintergrund: tagsÃ¼ber heller, nachts dunkler, damit der Tag-/Nachtcharakter schneller erkennbar bleibt.
-- Nachtpiktogramme sind dadurch auf hellen Karten und in kleinen Darstellungen besser ablesbar, ohne stilistisch aus dem App-Bild zu fallen.
-- Hohe BewÃ¶lkung und Quellwolken wurden zeichnerisch kontrastreicher ausgearbeitet, damit die Wolkenstockwerke stÃ¤rker voneinander unterscheidbar sind.
-
-## 0.9.14.1
-- 3h-/1h-Umschalter im Prognose-Cockpit summieren Niederschlagsmengen im 3-Stunden-Raster jetzt korrekt auf; Wahrscheinlichkeiten und reprÃ¤sentative Wettercodes werden blockweise neu verdichtet.
-- Tages- und Nachtpiktogramme nutzen nun konsequent die Folgnachtlogik: Das kleine Nachticon eines Tages wertet nur die folgende Nacht aus und nicht mehr die zurÃ¼ckliegende Nacht desselben Kalendertages.
-- Nachtpiktogramme wurden appweit vereinheitlicht (auch im Cockpit, in Widgets und Tageskarten): transparenter Stil ohne weiÃŸe Kachel, klarerer GrÃ¶ÃŸenunterschied zu Tagesicons und stÃ¤rkere Erkennbarkeit auf hellem Hintergrund.
-- Klassische Tagesansicht klappt die Stundenliste jetzt auch am Desktop direkt unter dem jeweiligen Tag auf; damit werden redundante Parallelansichten reduziert.
-- BewÃ¶lkungsdarstellung der Piktogramme kontrastreicher verfeinert, insbesondere fÃ¼r hohe BewÃ¶lkung und klare Nachtlagen.
-
-## 0.9.14.0
-- Tmin/Tmax in Tageskarten werden relativ zum jeweiligen Klimamittel dezent abgestuft; hÃ¶here Tmax-Abweichungen erscheinen dunkler rot, deutlich kÃ¼hlere Tmin dunkler blau.
-- 7-Tage-Cockpit: Tageskarte Ã¶ffnet direkt den einstÃ¼ndigen klassischen Tagesverlauf als Akkordeon; RÃ¼ckkehr Ã¼ber â€žTagesansichtâ€œ.
-- Redundante vollstÃ¤ndige Kurzfrist- und 7-Tage-Module aus Cockpit-UntermenÃ¼s entfernt; nur die eigenstÃ¤ndige Ensemble-Analyse bleibt separat aufklappbar.
-- Register- und Ribbon-Cockpit in den Einstellungen klarer voneinander abgegrenzt.
-
-## 0.9.13.3
-- SEO-Buildfix: Die statische HTML-Releaseversion wird nun durch `sync-version.mjs` automatisch mit Paket, Baseline, Worker und Service Worker synchronisiert.
-- Der Regressionstest `test-seo-discoverability-0990.mjs` lÃ¤uft damit wieder erfolgreich.
-
-## 0.9.13.2
-- Buildfix fÃ¼r die meteoblue-Ã¤hnliche Tagesdetailansicht: `detailListWeatherLabel()` verwendet jetzt korrekt `PrecipitationParts` statt `PrecipSample`.
-- Die dadurch ausgelÃ¶sten TS2339-/TS2345-Fehler fÃ¼r `type`, `displayCode` und `weatherLabel` sind beseitigt.
-- Neuer Regressionstest schÃ¼tzt den Niederschlagstypvertrag der aufklappbaren Tagesdetails.
-
-## 0.9.13.1
-- Tageskarten zeigen das kleine Nachtpiktogramm jetzt ohne zusÃ¤tzlichen â€žNachtâ€œ-Schriftzug; Tages- und Nachticon Ã¼berlappen dabei nicht mehr.
-- Die tageweise Vorhersage erhÃ¤lt fÃ¼r kompakte Ansichten ein meteoblue-Ã¤hnliches Akkordeon: Klick auf einen Tag klappt 3h-Details direkt darunter auf, inklusive Umschalter auf 1h.
-- Das 14-Tage-/Cockpit-Tag-Nacht-Paar Ã¼bernimmt ebenfalls die schriftzugfreie Nachtpiktogramm-Darstellung.
-- Regressionstests fÃ¼r Wolkenschicht-/Tag-Nacht-Piktogramme und Tagesdetails an die neue UI angepasst.
-
-## 0.9.12.2
-- GitHub-Produktionsbuild repariert: die nach der Radar-Metadatenverdichtung ungenutzte Hilfsfunktion `radarClockRange` wurde entfernt.
-- Radarzeitformatierung, hervorgehobene 2-h-Summe und Info-Popover aus v0.9.12.1 bleiben unverÃ¤ndert.
-- Eigener Regressionstest verhindert die erneute EinfÃ¼hrung der ungenutzten Deklaration.
-
-## 0.9.11.1
-- GitHub-Produktionsbuild repariert: `RadarNowcast | null` wird an den drei neuen Kurzfrist-/Cockpit-Props explizit zu `undefined` normalisiert.
-- Keine fachliche Ã„nderung gegenÃ¼ber v0.9.11.0.
-
-## 0.9.11.0
-- Kurzfrist-Nowcasting auf die ersten 90 Minuten erweitert: standardmÃ¤ÃŸig 5â€“6 15-Minuten-Kacheln statt nur vier, inklusive Radar-/Nowcast-Einfluss auf Niederschlagswahrscheinlichkeit und -signal.
-- Windpfeile im Prognose-Cockpit, in der Kurzfristvorhersage und in den Tageskarten weiter vereinheitlicht; warnstufenabhÃ¤ngige EinfÃ¤rbung bleibt konsistent.
-- Kurzfrist-Zusammenfassung sprachlich korrigiert: keine irrefÃ¼hrenden Formulierungen wie â€žKlar ab 16:00 Uhrâ€œ mehr, sondern zukunftsbezogene oder laufende Aussagen.
-- Kurzfristdiagramm optisch entzerrt: mehr vertikaler Platz, getrennte Ebenen fÃ¼r Piktogramme, Temperaturwerte, Windpfeile und Uhrzeit, sodass keine Ãœberlagerungen mehr auftreten.
-- Professionelle Wetterpiktogramme werden in den betroffenen Kurzfrist- und Cockpit-Modulen konsistent verwendet.
-
-## 0.9.10.0
-- 14-Tage-Cockpit um professionelle Wetterpiktogramme je Tag und in der Fokuskarte ergÃ¤nzt.
-- Windpfeile in Kurzfrist-, 7-Tage- und 14-Tage-Cockpit vereinheitlicht; Richtung und warnstufenabhÃ¤ngige Farbformatierung entsprechen der Kurzfristvorhersage.
-- Hyperlokaler Stationsanker wird gemeinsam auf 90-Minuten-Ultrakurzfrist, Cockpit-Kurzfrist und vollstÃ¤ndige Kurzfristvorhersage angewandt.
-- Kurzfristtexte verdichtet: z. B. â€žTrocken Â· BÃ¶en bis 26 kt um 21:00â€œ statt der sperrigen bisherigen Formulierung.
-
-## 0.9.9.0
-- Suchmaschinen-Discoverability fÃ¼r `https://www.midwx.app/` ergÃ¤nzt: Canonical, indexierbare Meta-Tags, Open Graph, strukturierte WebApplication-Daten, robots.txt, XML-Sitemap, CNAME und statischer No-JavaScript-Fallback.
-- Prognose-Cockpit auf Desktop repariert: Icon, Titel, Zusammenfassung und Mini-Ribbon besitzen feste Gridbereiche; kein seitliches Verrutschen oder unkontrolliertes Umbrechen von â€ž7 Tageâ€œ.
-- Register- und Ribbon-Cockpit fÃ¼r 1, 2 und 3 aktive Horizonte sowie Desktop, Tablet und Smartphone responsiv abgesichert; klassische Ansicht bleibt unberÃ¼hrt.
-
-## 0.9.8.0
-- Warnungsbereiche fÃ¼r automatische und amtliche Warnungen auf allen DisplaygrÃ¶ÃŸen deutlich verdichtet; Titel und GÃ¼ltigkeit bleiben im eingeklappten Zustand sichtbar.
-- Kurzfrist-Cockpit mit eindeutiger 3-h/1-h-Umschaltung, meteorologisch vollstÃ¤ndigem 90-Minuten-Schnellblick, verbesserten Achsen, Wetterpiktogrammen und warnstufenabhÃ¤ngig eingefÃ¤rbten Windpfeilen.
-- 14-Tage-Schalter fachlich neu aufgebaut: Temperatur relativ zum Klimamittel, ein kombinierter Niederschlagsbalken und Wind/BÃ¶en in den Farben der vollstÃ¤ndigen Diagramme.
-- Temperaturabweichungen werden in Kelvin, Tmin blau und Tmax rot dargestellt.
-- Niederschlagsdiagramm: P10â€“P90-Schalter blendet nur die schwarzen Spannen aus; Achsen und Diagrammrahmen bleiben erhalten.
-- Ensemble-Tooltips auf Desktop auf Hover/Fine-Pointer umgestellt; TouchgerÃ¤te behalten Klickbedienung.
-- Nutzlose durchschnittliche Ensemble-Mitglieder-Zeile entfernt und Konsistenz-/Modellstatus kompakter dargestellt.
-
-## 0.9.7.1
-- GitHub-Produktionsbuild repariert: fÃ¼nf ungenutzte Deklarationen in `ForecastCockpit.tsx` entfernt (`CloudRain`, `Compass`, `GaugeCircle`, `finite`, `circularDelta`).
-- Keine fachliche oder visuelle Ã„nderung gegenÃ¼ber v0.9.7.0.
-
-## 0.9.7.0
-- Prognose-Cockpit: Kurzfrist standardmÃ¤ÃŸig auf 3h-Darstellung mit 1h-Umschaltung und 90-Minuten-Schnellblick erweitert.
-- 7-Tage-Farblogik durch Legende und geschÃ¤rfte Tagesregime verstÃ¤ndlicher gemacht.
-- 14-Tage-Ãœbersicht auf 3-Parameter-Tageskarten umgestellt und Konsistenzformel app-weit harmonisiert.
-- Amtliche Warnungen standardmÃ¤ÃŸig eingeklappt; sichtbarer Fokus auf Titel und GÃ¼ltigkeitspille.
-- Niederschlagssystematik fÃ¼r konvektiv vs. stratiform in Frontend und Worker nachgeschÃ¤rft.
-
-# MID v0.9.7.0
-
-- Kurzfristansicht auf klare 3-Stunden-Standarddarstellung umgestellt; per Umschalter lÃ¤sst sich stÃ¼ndlich verdichten.
-- Die horizontale Temperatur-Referenzlinie in der Kurzfrist ist nun explizit als 24h-Mittel ausgewiesen; die bisher missverstÃ¤ndliche Darstellung wurde ersetzt.
-- ZusÃ¤tzlicher 90-Minuten-Schnellblick mit kompakten 15-Minuten-Slots fÃ¼r Niederschlag/Wahrscheinlichkeit direkt im Prognose-Cockpit.
-- 7-Tage-Karten inhaltlich entschÃ¤rft und objektiver gemacht: `Regenreich`/`Windig` werden nicht mehr bei geringen Mengen oder Einzelereignissen ausgelÃ¶st.
-- 14-Tage-Ãœbersicht erhÃ¤lt pro Tag drei selbsterklÃ¤rende Parameterbalken fÃ¼r Temperatur relativ zum Klimamittel, kombinierten Niederschlag sowie Wind/BÃ¶en.
-- Konsistenz im 14-Tage-Cockpit an dieselbe Bewertungslogik wie in der vollstÃ¤ndigen Analyse angeglichen.
-- Amtliche Warnungen bleiben standardmÃ¤ÃŸig kompakt eingeklappt; Titel und GÃ¼ltigkeitspille sind sofort sichtbar.
-- Relevante Regressionen bestanden: Cockpit-Klarheit, optionale Prognose-Cockpits sowie app-weite konvektiv/stratiforme Niederschlagslogik.
-
-# MID v0.9.6.0
-
-- Prognose-Cockpit auf eine sofort lesbare Stunden-/TagesÃ¼bersicht umgestellt; nichtssagende blaue Platzhalter und die unpassende BalkenerklÃ¤rung entfernt.
-- Kurzfrist-Ribbon zeigt konkrete SchlÃ¼sselzeitpunkte, Temperatur, Niederschlag und BÃ¶en; die erweiterte Ansicht fasst die drei wichtigsten Wetterfaktoren kompakt zusammen.
-- Sieben-Tage-Darstellung verwendet benannte Wetterkategorien und direkt sichtbare Mengen/Wahrscheinlichkeiten statt schwer interpretierbarer Phasenbalken.
-- App-weite objektive Klassifikation fÃ¼r konvektiven, stratiformen, gemischten und unbestimmten Niederschlag ergÃ¤nzt.
-- Explizite Modellanteile `rain`/`showers` fÃ¼hren; Wettercode, CAPE, Lifted Index, CIN, Feuchte, BewÃ¶lkung und Sonnenschein dienen als konsistente Zusatzbelege.
-- SprÃ¼hregen und Schneegriesel bleiben nur bei passender tiefer SchichtbewÃ¶lkung und Feuchte bestehen.
-- Forecast-Fusion, Tagesaggregation, Kurzfrist, Meteogramm, Widget-/Push-Feed und Worker nutzen dieselbe Niederschlagskonsistenz.
-- 262 automatisch erkannte Regressionstests bestanden.
-
-# MID v0.9.5.1
-
-- GitHub-Buildfehler `TS2345` in der Wind-/BÃ¶en-Vorschau behoben.
-- Interne Einheit auf den zentralen `WindUnit`-Wert `kn` korrigiert; sichtbare Ausgabe bleibt `kt`.
-- Regressionstest fÃ¼r den WindUnit-Vertrag ergÃ¤nzt.
-
-# MID v0.9.4.1
-
-- GitHub-Produktionsbuild repariert: ungenutzte `quartileFill`-Deklaration entfernt.
-- Nicht mehr verwendete lokale `weatherFamily`-Hilfsfunktion aus dem Prognose-Cockpit entfernt.
-- Ãœberholten `frame`-Parameter aus `mapBounds` und dessen Aufruf entfernt.
-- Die Ã¼brigen meteorologischen und visuellen Funktionen von v0.9.4.0 bleiben unverÃ¤ndert.
-- Neuer Regressionstest schÃ¼tzt alle drei `TS6133`-Buildfehler.
-
-# MID v0.9.4.0
-
-- Winddarstellung vereinheitlicht: Phasenpfeile und Stationswindfahnen zeigen ohne zusÃ¤tzliche 180-Grad-Drehung die meteorologische Herkunftsrichtung â€žWind ausâ€œ.
-- Gemeinsames Temperatur-/Niederschlag-/Wind-BÃ¶en-Deck oberhalb der klassischen Ensembleansicht und im 14-Tage-Cockpit.
-- Cockpit verwendet dieselben professionellen Ensemblediagramme wie die vollstÃ¤ndige Analyse; Temperaturwerte sind rot/blau beschriftet und spÃ¤te Tage konsistenzabhÃ¤ngig ausgeblendet.
-- Horizontales Scrollen in der 7-Tage-Matrix lÃ¶st keinen Cockpit-Horizontwechsel mehr aus.
-- Zentrale Niederschlagsplausibilisierung verhindert ungestÃ¼tzte SprÃ¼hregenvisualisierung.
-- 256 automatisch erkannte Regressionstests bestanden.
-
-# MID v0.9.2.0
-
-- Zwei zusÃ¤tzliche optionale PrognoseoberflÃ¤chen: gemeinsames Register-Cockpit und kompakter Ribbon-Stapel.
-- Die klassische Darstellung von Kurzfrist, 7 Tagen und 14 Tagen bleibt unverÃ¤ndert der Standard.
-- Adaptive 24-Stunden-MeteoRibbon mit priorisierten Wetterwechseln, Temperatur, Niederschlag und Wind.
-- Sieben-Tage-Wetterband mit gemeinsamer Temperaturskala, Wetterphasen und synchronem Tagesfokus.
-- Vierzehn-Tage-Unsicherheitshorizont mit Parameter-Miniaturen, Ensembleband, Konsistenz und Szenarien.
-- Persistente Auswahl Ã¼ber die Einstellungen, Wischbedienung und vollstÃ¤ndige alte Analysen als zweite Ebene.
-- 253 bestehende und neue Regressionstests bestanden.
-
-# MID v0.8.35.0
-
-- Sonnenstunden des aktuellen Tages bleiben die vollstÃ¤ndige tÃ¤gliche Best-Match-Aggregation und werden abends nicht mehr auf die noch verbleibenden Stunden gekÃ¼rzt.
-- Reine Best-Match-Tage behalten die offizielle Tagesaggregation; nur vollstÃ¤ndig abgedeckte Zukunftstage mit tatsÃ¤chlicher kohÃ¤renter Stundenreparatur werden neu summiert.
-- Best Match ist wieder die operative Hauptprognose fÃ¼r Kurzfrist, 7 Tage und alle gemeinsamen Wettersektionen.
-- Multi-Model-Antworten werden Ã¼ber die tatsÃ¤chlich gelieferten API-Suffixe getrennt und diagnostiziert; ein fehlendes Modell wird gezielt einzeln nachgeladen.
-- WidersprÃ¼chliche Best-Match-Stunden werden ausschlieÃŸlich als vollstÃ¤ndiges WetterbÃ¼ndel aus einem einzigen plausiblen Modell ersetzt.
-- Modellvergleich, MOSMIX und Wetterzwilling korrigieren nur eng begrenzte geeignete Parameter; Niederschlag, Wettercode, BewÃ¶lkung und Sonne bleiben gekoppelt.
-- Der lokale Wetterzwilling setzt nun auf den bereits geprÃ¼ften Fusion-Stunden und -Tagen auf und kann BÃ¼ndelreparaturen oder MOSMIX nicht mehr umgehen.
-
-# MID v0.8.33.17
-
-- Ursache von Niederschlagsmengen bei 0 % behoben: Ein nasser WMO-Code kann keine Tagesmenge mehr auf eine probabilistisch ungestÃ¼tzte Stunde ziehen.
-- Forecast-Menge, Niederschlagsart und Wettercode werden bei 0â€“5 % nun unabhÃ¤ngig von der MengenhÃ¶he zentral gemeinsam entfernt.
-- Finale Stundenreihe wird nach Fusion, Wetterzwilling, Nowcast und Tages-/Stundenabgleich nochmals vollstÃ¤ndig reconciliert.
-- Aktuelles Wetter, Wassersport, Gewitterauswertung, Tagesdetail, 7-Tage-Prognose, Ensemble-Referenz, Widgets und Worker verwenden dieselbe Konsistenzregel.
-
-# MID v0.8.33.16
-
-- iOS-Scrollpfad ohne globale Karten-Neustilisierung und ohne fortlaufende Scroll-rAF-Schleife.
-- Durchgehender Root-Hintergrund und reduzierte mobile Blur-/Compositor-Ebenen gegen weiÃŸe ScrollflÃ¤chen.
-- Viewport-Module aktivieren im Vorladebereich ohne zusÃ¤tzliche Timer-/Idle-VerzÃ¶gerung.
-- Aktuelle Temperatur erweitert den heutigen Tagesbereich nach oben oder unten und wird in Stunden-/Tagesansichten konsistent berÃ¼cksichtigt.
-
-# Changelog
-
-## 0.8.33.15
-
-- Suchfeld erhÃ¤lt einen bewegungstoleranten Touch-end-Fokuspfad, sodass der erste Tap auch unmittelbar nach einer Momentum-Scrollbewegung aktiviert.
-- Tagespfeile der stÃ¼ndlichen Detailansicht reagieren direkt auf Touch-end, unterdrÃ¼cken Ghost-Clicks und besitzen mobil 44 Ã— 44 Pixel groÃŸe TrefferflÃ¤chen.
-- Aktiver Detailtag aus dem globalen App-State in die Forecast-Komponente verlagert; ein Tageswechsel rendert nicht mehr das gesamte Dashboard neu.
-- Statische Inhalte der sieben Tageszeilen von der aktiven Auswahl entkoppelt, damit Tages-Hazards und Tagescharaktere beim Pfeiltipp nicht erneut berechnet werden.
-- Fast-Scroll-Erkennung von Timeout-Neuanlage je Scrollereignis auf einen einzelnen rAF-Settle-Zyklus umgestellt; Header-Blur bleibt wÃ¤hrend des Nachlaufs deaktiviert.
-
-## 0.8.33.14
-
-- Mobile Ersttipper abgesichert: Radar- und EnsembleflÃ¤chen bleiben auch unmittelbar nach Scrollbewegungen interaktiv; der Fast-Scroll-Modus reduziert nur noch visuelle Effekte.
-- StÃ¼ndliches Detaildiagramm reagiert direkt Ã¼ber einen bewegungstoleranten Pointer-Tap-Pfad und erzwingt auf TouchgerÃ¤ten keinen unnÃ¶tigen Fokus mehr.
-- Ensemble-Tooltips werden bereits beim Pointer-down freigeschaltet, damit ein zuvor geschlossenes Tooltip beim nÃ¤chsten Tap sofort erscheint.
-- Einstellungsdialog, Schalter und Diagramme erhalten konsistente Touch-Actions; layoutverÃ¤ndernde Hover-Effekte sind auf groben Zeigern deaktiviert.
-- Flugmeteogramm-Tooltips werden pro Animationsframe gebÃ¼ndelt statt bei jeder Pointerbewegung neu gerendert.
-- React-Hook-Reihenfolge der 7-Tage-/Detailkomponente repariert und unzulÃ¤ssigen State-Update aus einem Meteogramm-`useMemo` entfernt.
-- Tageszeilen der 7-Tage-Vorhersage memoisiert, damit die Auswahl einer Detailstunde nicht erneut alle Tages-Hazards und Tagescharaktere berechnet.
-
-## 0.8.33.11
-
-- Hauptkarte und BewÃ¶lkungskarte verwenden denselben frischen hyperlokalen Himmelszustand.
-- 7/8 BewÃ¶lkung wird als â€žStark bewÃ¶lktâ€œ, 8/8 als â€žBedecktâ€œ bezeichnet; lokaler Nebel behÃ¤lt Vorrang.
-
-## 0.8.33.10
-
-- Luftdruckkarte zeigt Werte mit einer Nachkommastelle.
-- Technische Feldbezeichnung `pressure_msl` aus der sichtbaren Quellenzeile entfernt.
-
-## 0.8.33.9
-
-- Warnfreier Status auf â€žKeine Warnungâ€œ verkÃ¼rzt.
-- Tagespiktogramm und Tagesbeschreibung gewichten den dominierenden Tagesverlauf stÃ¤rker; ein einzelner schwacher Regenimpuls am spÃ¤ten Abend erscheint nur noch als Zusatz â€žabends Regen mÃ¶glichâ€œ.
-- 7-Tage-Karte, Detailansicht und 14-Tage-Ãœbersicht verwenden denselben vollstÃ¤ndigen Tagescharakter.
-
-## 0.8.33.8
-- Stunden-Detailansicht: Niederschlagsart wird in der Niederschlagskachel nicht mehr doppelt wiederholt.
-- Der frei gewordene Platz zeigt bei vorhandener Konvektion das Gewitterrisiko vollstÃ¤ndig an.
-
-## 0.8.33.6
-- Niederschlagswerte zwischen 7-Tage-Karte, Tagesdetail und finaler Stundenreihe konsistent zusammengefÃ¼hrt
-
-## 0.8.33.5
-- UVI app-weit auf ganze Indexwerte vereinheitlicht
-- Aktuelle Niederschlagswahrscheinlichkeit an die trockene operative Nowcast-Gewichtung angeglichen
-
-## 0.8.33.4
-- GitHub-CI-Fix fÃ¼r den Nowcast-/Tageskonsistenztest: projektlokale TypeScript-AuflÃ¶sung statt exklusivem festem NVM-Pfad
-- Keine Ã„nderung der Prognose- oder Nowcast-Logik
-
-## 0.8.33.3
-- Radar-Nowcast und trockener MOSMIX-/Mehrquellenkonsens im Kurzfristbereich stÃ¤rker priorisiert
-- Regen-Wettercodes bei belastbar trockenem Nowcast bereinigt
-- 7-Tage-Karte, Tagesdetail und Kurzfristvorhersage auf dieselben finalen Niederschlagswerte vereinheitlicht
-- Heutiger 7-Tage-Trend ignoriert abgelaufene Modellstunden
-
-## 0.8.33.2
-- Temperatur-Ensembletooltip: Sonne-Wertblock leicht nach rechts versetzt, damit Beschriftung und Werte klar getrennt und vollstÃ¤ndig lesbar bleiben
-
-## 0.8.33.1
-- Temperatur-Ensembletooltip: Sonne samt P10â€“P90 und Niederschlag samt Wahrscheinlichkeit jeweils bÃ¼ndig in einer einzigen Zeile dargestellt.
-- Ortssuche: Suchfeld reagiert Ã¼ber die gesamte EingabeflÃ¤che bereits auf die erste BerÃ¼hrung und fokussiert ohne Scrollsprung.
-- Favoriten: Standortstern, Standort-Schnellzugriff und Favoritenblasen reagieren auf Touch unmittelbar beim ersten gÃ¼ltigen Tap; stÃ¶rende Pointer-Capture-Logik entfernt.
-
-## 0.8.33.0
-- DWD MOSMIX als stationsbezogene statistische Nachkorrektur der adaptiven Mehrquellen-Prognose integriert.
-- MOSMIX wird wegen seiner ICON-/IFS-Basis nicht als zusÃ¤tzliche unabhÃ¤ngige Modellfamilie gezÃ¤hlt, sondern nur nach robustem Mehrmodellkonsens angewendet.
-- Kurzfristvorhersage erhÃ¤lt direkte stÃ¼ndliche MOSMIX-Korrekturen; Radar- und Gewitternowcast bleiben im unmittelbaren Niederschlagszeitraum vorrangig.
-- 7-Tage- und 14-Tage-Best-Match-Referenz verwenden die adaptive Fusion; MOSMIX wirkt nur innerhalb seiner maximalen Zehn-Tage-Abdeckung.
-- Wetterzwilling archiviert Modellfusion mit und ohne MOSMIX getrennt, damit der lokale Zusatznutzen messbar wird.
-- Nicht blockierende Hintergrundabfrage mit Worker-/Local-Cache und QualitÃ¤tsfiltern fÃ¼r Entfernung und HÃ¶henunterschied.
-
-## 0.8.32.1
-- Modelllauf-Metadaten fÃ¼r ECMWF AIFS auf die aktuelle Open-Meteo-Quelle `ecmwf_aifs025_single` umgestellt.
-- Monatealte oder zeitlich unplausible Modelllauf-Metadaten werden nicht mehr angezeigt oder fÃ¼r die Mehrquellenfusion verwendet.
-- Best-Match-Information fachlich prÃ¤zisiert: statt einer nicht belegbaren Modellkette zeigt MID nur noch potenziell relevante Regionalmodelle und kennzeichnet die Metadatenquelle.
-- Worker-Aliase und Forecast-Fusion fÃ¼r ECMWF AIFS Single aktualisiert.
-
-## 0.8.31.0
-- Einstellungs- und FavoritenmenÃ¼s Ã¶ffnen mit sofortiger DialoghÃ¼lle und verzÃ¶gertem Inhaltsaufbau.
-- Viewport-Gates aktivieren schwere Module nur noch nach stabiler Sichtbarkeit und in einer Idle-Phase.
-- iOS-ScrollstabilitÃ¤t verbessert: problematisches content-visibility fÃ¼r schwere Dashboard-/Ensemblebereiche deaktiviert.
-- Schnelle Scrollphasen reduzieren temporÃ¤r teure visuelle Effekte und Karten-/Chart-Interaktionen.
-
-## 0.8.30.9
-- Ensemble-Tooltips schlieÃŸen zuverlÃ¤ssig durch Antippen/Klicken der geÃ¶ffneten Tooltipkarte sowie weiterhin durch AuÃŸenklick und Escape.
-- Niederschlags- und Wind/BÃ¶en-Diagramm verwenden wieder dieselbe Recharts-Datumsachse wie das Temperaturdiagramm; die problematische externe HTML-Achse wurde entfernt.
-- Senkrechte Tageshilfslinien fÃ¼r Niederschlag und Wind/BÃ¶en werden als achsgebundene Referenzlinien sichtbar Ã¼ber den DatenflÃ¤chen gerendert.
-- Hochformat-, Querformat- und Desktop-Geometrie der Ensemble-Achsen durch neue Layoutregression abgesichert.
-
-## 0.8.30.8
-- Niederschlag und Wind/BÃ¶en: robuste externe Datumsachse im Hochformat; alle 14 Tage bleiben sichtbar.
-- Ensemble-Tooltips: Tippen auf die geÃ¶ffnete Tooltipkarte schlieÃŸt sie wieder; AuÃŸenklick und Escape bleiben erhalten.
-- Niederschlag und Wind/BÃ¶en: senkrechte Tageshilfslinien werden direkt vom gemeinsamen Recharts-Tagesraster erzeugt.
-
-## 0.8.30.7
-- Niederschlagsdiagramm: Zeitachsenbeschriftung im Hochformat wieder dauerhaft sichtbar.
-- Ensemble-Tooltips: Interaktion innerhalb der Tooltipkarte schlieÃŸt die Auswahl nicht mehr.
-- Niederschlag und Wind/BÃ¶en: senkrechte Tageshilfslinien als sichtbare Vordergrundebene ergÃ¤nzt.
-
-## 0.8.30.6
-- Temperatur-Ensemble: senkrechte Tageshilfslinien wieder sichtbar und direkt aus den tatsÃ¤chlich gerenderten X-Achsenmarken abgeleitet.
-- Temperatur-Ensemble: Sonne-/WolkenkÃ¤stchen verwenden dieselben vermessenen Tageszentren; Zellgrenzen liegen exakt in der Mitte benachbarter Achsmarken â€“ einschlieÃŸlich des letzten Tages rechts.
-- ZusÃ¤tzliche Regression verhindert die RÃ¼ckkehr zur theoretischen, nach rechts driftenden Wetterband-Geometrie.
-
-## 0.8.30.4
-- TypeScript-Buildfix: ungenutzte `cellSlotWidth`-Deklaration entfernt
-- Prognose-Kompass professioneller und meteorologisch konkreter formuliert
-- Szenario-Cluster mit sofort sichtbarer ProzentÃ¼bersicht und Anteilsskalen ergÃ¤nzt
-
-## 0.8.30.2
-- Synchronisations-Worker: `midwx.app` und `www.midwx.app` dauerhaft als freigegebene UrsprÃ¼nge ergÃ¤nzt.
-- Konfigurierte Cloudflare-Originlisten ergÃ¤nzen nun die MID-Standarddomains, statt sie zu ersetzen.
-- Originwerte werden auf den tatsÃ¤chlichen URL-Ursprung normalisiert; abschlieÃŸende SchrÃ¤gstriche verursachen keine Fehlablehnung mehr.
-- EinstellungsmenÃ¼ zeigt bei einem noch veralteten Worker eine konkrete Upload-Anweisung.
-
-## 0.8.30.1
-- Temperatur-Ensemble: Sonne-/Wolkenleiste nutzt exakte Tagesintervallgrenzen; die letzte Zelle endet exakt am Plotrand und alle Zellmittel liegen auf den Tagesmarken.
-- Temperatur-Ensemble: ZellfÃ¼llungen ohne Ã¼berstehende Einzelrahmen, mit gemeinsamer AuÃŸenkontur und exakt positionierten Tagestrennern.
-- Kurzfristvorhersage: ausschlieÃŸlich eine Detailkachel gleichzeitig geÃ¶ffnet; Wechsel auf eine andere Zeit ersetzt die bisherige Auswahl unmittelbar.
-- Kurzfristvorhersage: doppelte Touch-/Click-AuslÃ¶sung entfernt und Auswahl bei Datenaktualisierung abgesichert.
-
-## 0.8.30.0
-- MenÃ¼ â€žDaten & Synchronisationâ€œ widerspruchsfrei neu geordnet: automatische Web-App-Synchronisation zuerst, manuelle iCloud-Sicherheitskopie als zusÃ¤tzlicher Notfallschutz.
-- Gemeinsame portable Datenrichtlinie fÃ¼r Sicherung und Synchronisation eingefÃ¼hrt; Ensemble-, Diagramm-, Modul- und weitere App-Einstellungen werden nicht mehr durch zu breite AusschlÃ¼sse Ã¼bergangen.
-- VollstÃ¤ndiger Snapshot-Abgleich v2 synchronisiert nun auch LÃ¶schungen und setzt portable Einstellungen auf verbundenen Web-Apps konsistent gleich.
-- Sicherungsformat v3 Ã¼bernimmt auf Wunsch den bestehenden GerÃ¤teverbund und stellt WiederherstellungsstÃ¤nde fÃ¼r weitere Web-Apps bereit.
-- Klare iOS-Hinweise ergÃ¤nzt: Safari und installierte Home-Bildschirm-Web-Apps mÃ¼ssen einmal mit demselben Synchronisationscode verbunden werden.
-
-## 0.8.28.1
-- Ensemble-Diagramme im Hochformat verbreitert und in der HÃ¶he reduziert; Achsen, Legenden und leicht diagonale Tagesbeschriftungen vereinheitlicht.
-- Ensemble-Tooltips auf Klick/Tipp umgestellt, Animation und Blur entfernt und Outside-Dismiss ergÃ¤nzt, um iOS-Lags zu vermeiden.
-- Temperatur-Tooltip verdichtet; â€žBest Matchâ€œ in der Niederschlagszeile entfernt und Tmin/Tmax-Spalten enger angeordnet.
-
-## 0.8.28.0
-- Neue iCloud-Drive-Dateisicherung fÃ¼r Favoriten, App-Einstellungen, Profile und vollstÃ¤ndige Wetterzwilling-Langzeitdaten einschlieÃŸlich Wiederherstellung und IntegritÃ¤tsprÃ¼fung
-- VollstÃ¤ndiger Neuaufbau der Ensemble-Diagramme auf einer gemeinsamen professionellen Chart-Engine mit identischen Tagespositionen, Achsen, PlotmaÃŸen und responsiven Tooltips
-- Temperatur-Wetterleiste als lÃ¼ckenlose Tageszellen; Tageshilfslinien liegen exakt in den Zellmitten
-- Mehrstufiger PWA-Startschutz gegen weiÃŸe Startseiten mit Cache-Reparatur ohne LÃ¶schung lokaler Daten
-- WiederherstellungsoberflÃ¤che ermÃ¶glicht vor Reparatur eine Datensicherung
-
-## 0.8.27.14
-- SÃ¤mtliche veralteten Ensemble-, Achsen-, Tooltip-, Wetterband-, Export- und Touch-Regressionstests auf den aktuellen Funktionsvertrag synchronisiert
-- GitHub-Installer wird nicht mehr durch PrÃ¼fungen der frÃ¼heren Einzelgeometrien blockiert
-- Prognose-Kompass bleibt dynamisch: weitgehend gesicherte Prognosedauer statt pauschal drei Tage
-
-## 0.8.27.13
-- GitHub-/CI-Buildfix fÃ¼r gemeinsame Ensemble-Achs- und DiagrammhÃ¶hen
-- Prognose-Kompass zeigt jetzt die tatsÃ¤chlich weitgehend gesicherte Prognosedauer statt pauschal 3 Tage
-
-## 0.8.27.12
-- Ensemble-Tagesleisten und Tagesachsen vereinheitlicht
-- Detailansicht-Pillen verdichtet und UVI kompakter benannt
-- Ortssuche und Kurzfrist-Kacheln reaktionsschneller
-
-## 0.8.27.11
-
-- VerÃ¶ffentlichungsfehler nach erfolgreichem Produktionsbuild behoben: veraltete Regressionstests an die aktuelle Temperatur-Ensemble-, Tooltip- und Achsengeometrie angepasst
-- Schutztests fÃ¼r Hoch-/Querformat, Exportgeometrie, Datumsachse, Wetter-/Hazardband und Tooltip-Randsicherung auf den aktuellen Vertrag aktualisiert
-- Interaktions-, Referenzdesign-, UI- und Gezeiten-/Tooltip-Layering-PrÃ¼fungen mit der neuen responsiven Darstellung synchronisiert
-- VollstÃ¤ndiger Lauf aller automatisch erkannten MID-Regressionen erfolgreich
-
-## 0.8.27.10
-
-- Ensemble-Temperaturtrend weiter verdichtet: Tooltip nochmals deutlich kompakter, mobile X-Achse freier und Wetter-/Hazardband sauberer Ã¼ber der Datumsachse positioniert
-- Temperatur-Ensemble responsiver abgestimmt: mehr vertikale Reserve fÃ¼r Achsentitel, bessere mobile Geometrie und sicherere Tooltip-Auslenkung am rechten Rand
-- Ortssuche spÃ¼rbar direkter: schnellere SuchauslÃ¶sung, suchoptimierte Eingabeeigenschaften und direktere Touch-Bedienung
-- Kurzfrist-Kacheln fÃ¼r Touch-Bedienung entschÃ¤rft: direktere Tap-Reaktion und mobile Interaktion mit weniger VerzÃ¶gerung
-
-## 0.8.27.9
-- Ensemble-Temperaturtooltip wieder deutlich kompakter und dichter gesetzt.
-- Ensemble-Temperaturdiagramm: zusÃ¤tzliche FreirÃ¤ume fÃ¼r WetterkÃ¤stchen, Datumsachse und Achsentitel.
-- WetterkÃ¤stchen schmaler und hÃ¶her positioniert, damit die X-Achsenbeschriftung nicht mehr verdeckt wird.
-- Tooltip-Rechtsausrichtung weiter verschÃ¤rft, damit rechte Inhalte nicht abgeschnitten werden.
-
-## 0.8.27.8
-- Ensemble-Temperaturdiagramm: TageskÃ¤stchen optisch enger und klarer auf die Tagesachsen zentriert.
-- Ensemble-Temperaturdiagramm: mehr vertikale Reserve fÃ¼r Datumsachse und Achsentitel, damit Hoch- und Querformat stabiler aussehen.
-- Temperatur-Tooltip: bei rechten Datenpunkten automatische Linksverschiebung, damit die rechte Spalte nicht mehr abgeschnitten wird.
-- Regressionstests fÃ¼r Temperaturband und Tooltip-Geometrie erweitert.
-
-## 0.8.27.7
-- GitHub-VerÃ¶ffentlichung repariert: acht veraltete Regressionstests auf die seit v0.8.27.6 beabsichtigte Temperaturachsen- und Wetterkachelgeometrie aktualisiert.
-- Historische VersionsprÃ¼fungen prÃ¼fen nun Mindeststand und SynchronitÃ¤t mit `MID_BASELINE.json`, statt spÃ¤tere Wartungsreleases fÃ¤lschlich abzulehnen.
-- Die sichtbaren Achsen- und Kachelkorrekturen aus v0.8.27.6 bleiben unverÃ¤ndert erhalten.
-
-## 0.8.27.6
-- Ensemble-Temperaturdiagramm: Tagesachsenbeschriftung wieder klar sichtbar gemacht.
-- Wetter-/BewÃ¶lkungskÃ¤stchen im Temperatur-Ensemble hÃ¶her positioniert, damit Datumslabels nicht verdeckt werden.
-- Wetterkacheln im Temperatur-Ensemble kompakter und prÃ¤ziser auf die Tagesachse ausgerichtet.
-
-## 0.8.27.5
-- Tagesdetailansicht: kompaktere Info-Pillen oberhalb des Diagramms.
-- Neue UVI-Pille in der Detailansicht mit dem maximalen UV-Index des gewÃ¤hlten Tages.
-- Wetter-Pille der Detailansicht platzsparender gestaltet, damit die Zusatzinformation erhalten bleibt ohne unnÃ¶tig HÃ¶he zu verbrauchen.
-
-## 0.8.27.4
-- Vite-Build mit explizitem 4-GB-Heap und deterministischen Vendor-Chunks gegen lange HÃ¤nger bei â€žrendering chunks â€¦â€œ abgesichert.
-- Dynamischen `:has()`-Selektor der Tooltip-Ebene durch eine statische, browser- und buildstabile Ebenenreihenfolge ersetzt.
-- Explizite esbuild-Minifizierung fÃ¼r JavaScript und CSS festgelegt; komprimierte GrÃ¶ÃŸenberechnung bleibt deaktiviert.
-- SÃ¤mtliche fachlichen und optischen Ã„nderungen aus v0.8.27.3 bleiben erhalten.
-
-## 0.8.27.3
-- Ensemble-Tooltip Ã¼ber Temperaturdiagrammen priorisiert, damit es auf MobilgerÃ¤ten nicht mehr vom nachfolgenden Diagramm Ã¼berdeckt wird.
-- Wetter-/BewÃ¶lkungskÃ¤stchen im Ensemble-Temperaturdiagramm neu zentriert und mit prÃ¤ziserer Plot-Geometrie an die Tagesachsen angebunden.
-- Niederschlags-/Gewittersymbole in den KÃ¤stchen vergrÃ¶ÃŸert; Blitzsymbol kontrastreicher und besser erkennbar innerhalb des KÃ¤stchenrahmens.
-
-## 0.8.27.2
-- Ensemble-Temperaturtooltips halten Metadatenzeilen nun ohne unerwÃ¼nschte UmbrÃ¼che zusammen.
-- Wind-/BÃ¶endiagramme reservieren einen eigenen Bereich fÃ¼r diagonale Datumsbeschriftungen und den Achsentitel.
-- Favoriten reagieren auf Touch-/Pen-Eingaben bereits beim ersten eindeutigen Antippen; das Verschieben bleibt Ã¼ber den Griff erhalten.
-- Hintergrundlernen der Wetterzwillinge wird bei Nutzerinteraktion sofort abgebrochen und erst nach einer Ruhephase fortgesetzt.
-
-## 0.8.27.1
-- TypeScript-Buildfehler TS2353 in der hyperlokal angepassten Kurzfristvorhersage behoben.
-- Die GewitterrisikoprÃ¼fung erhÃ¤lt nun ausschlieÃŸlich die im `DetailThunderRiskSample` definierten meteorologischen Felder; die benÃ¶tigten InstabilitÃ¤tsparameter bleiben vollstÃ¤ndig erhalten.
-- Eigene Regression gegen erneut eingeschleuste, nicht unterstÃ¼tzte Felder ergÃ¤nzt.
-
-## 0.8.27.0
-- Modelllauf-Ã„nderungsradar und Szenario-Cluster nur noch im erweiterten Modus, jeweils einklappbar und im geschlossenen Zustand nicht gerendert.
-- Tagesdetail-Sonne-/BewÃ¶lkungsbalken direkt an den aktuellen React-Datenstand gebunden; veraltete DOM-Nachbearbeitung entfernt.
-- Weitere Rendering-, Observer-, Scroll-, Resize- und Ensemble-Aufbereitungsbremsen beseitigt; MID-Prognose-Kompass ergÃ¤nzt.
-
-## 0.8.26.19
-- Kurzfristvorhersage wird bei frischer hyperlokaler oder stationsgestÃ¼tzter Analyse fÃ¼r die ersten Zeitstufen kontrolliert an Temperatur, Feuchte, Taupunkt, QFF-Luftdruck, Wind/BÃ¶en, Windrichtung, BewÃ¶lkung, Sicht und Niederschlag angeglichen.
-- Wetterpiktogramme und Detailwerte folgen der lokalen Ausgangslage und laufen je nach VerÃ¤nderlichkeit des Parameters gestuft zum Best Match zurÃ¼ck.
-- Veraltete Stationswerte bleiben ausgeschlossen; km/h-Stationswind wird vor der Angleichung korrekt in kt umgerechnet und die aktive Datenbasis wird in der Kurzfristkarte gekennzeichnet.
-
-## 0.8.26.18
-- Gezeitenzeiten werden mittels robuster lokaler Kurvenanpassung zwischen den ModellstÃ¼tzstellen minutengenau geschÃ¤tzt.
-- Ensemble-Hazardmarker erhalten mehr Abstand zum BewÃ¶lkungsband; Niederschlagssymbole werden zusÃ¤tzlich im jeweiligen Tagesfeld beschnitten.
-- Temperatur-, Niederschlags- und Windkarten erhalten eindeutige Ebenen, damit Tooltips weder von Hazardmarkern noch von nachfolgenden DiagrammÃ¼berschriften verdeckt werden.
-
-## 0.8.26.17
-- Wasserwetter-Zeile auf â€žGezeitenâ€œ verkÃ¼rzt und Wendepunktzeiten per Zwischenwertberechnung minutengenau ausgegeben.
-- Ensemble-Hazards oberhalb der BewÃ¶lkungsfelder angeordnet; mehrere Marker stehen kollisionsfrei nebeneinander.
-- Niederschlagssymbole werden dynamisch auf die Abmessungen des jeweiligen BewÃ¶lkungsfeldes begrenzt.
-
-## 0.8.26.15
-- TypeScript-Buildfehler TS18048 in der hyperlokalen Kurzfrist-TemperaturbrÃ¼cke behoben; optionale Anker- und Horizontwerte werden vor dem Vergleich typsicher normalisiert.
-- Eigene Regression gegen die erneute direkte GegenÃ¼berstellung optionaler Werte ergÃ¤nzt.
-
-## 0.8.26.14
-- Gewitterinformation auf der Startseite kompakter und vollstÃ¤ndiger dargestellt; Ortsbezug bevorzugt nun Stadtniveau statt Stadtteilniveau.
-- Kurzfristvorhersage fÃ¼r die ersten 15-Minuten-Schritte thermisch an die aktuelle hyperlokale Analyse angenÃ¤hert.
-- Szenariocluster sprachlich und strukturell verstÃ¤ndlicher aufbereitet.
-
-## 0.8.26.13
-
-- Ensemble-Hochformat: Temperatur-Tooltip in GrÃ¶ÃŸe, Aufbau und Inhalt auf den bewÃ¤hrten Stand v0.8.25.4 zurÃ¼ckgefÃ¼hrt.
-- Ensemble-Temperaturdiagramm: Sonne-/Wolkenfelder, Niederschlagssymbolik und Hazardmarker werden wieder tagesgenau am unteren Plotrand statt mitten im Diagramm dargestellt.
-- Recharts 3: Die Wetterebene erhÃ¤lt eine explizit aus ChartgrÃ¶ÃŸe, Achsenreserven und TagesdomÃ¤ne berechnete SVG-Geometrie; die Linien bleiben darÃ¼ber sichtbar, Hazardmarker darÃ¼ber.
-- Ensemble-Geometrie: identische TagesdomÃ¤nen und Achsenreserven der Temperatur-, Niederschlags- und Winddiagramme bleiben erhalten.
-
-## 0.8.26.12
-
-- Ensemble-Diagramme: Optik und Bedienung des Temperaturdiagramms wieder auf den bewÃ¤hrten Stand von v0.8.25.4 zurÃ¼ckgefÃ¼hrt, weiterhin mit stabilem Recharts-3-GrÃ¶ÃŸenrahmen.
-- Ensemble-Diagramme: schmale tagesgenaue Sonne-/Wolkenfelder, Niederschlagssymbolik und Hazardmarker als leichte, exakt an der gemeinsamen Tagesachse ausgerichtete Ebene wiederhergestellt.
-- Ensemble-Diagramme: Temperatur-Tooltip kompakt und vollstÃ¤ndig ohne partielle ZeilenumbrÃ¼che; lange technische Bezeichnungen wurden fachlich verkÃ¼rzt statt abgeschnitten.
-- Performance: zusÃ¤tzliche Recharts-Accessibility-Schicht, experimentelle Skalenebenen, groÃŸe Wetterkarten-Overlays und content-visibility-Rasterisierung entfernt; vertikales Touch-Scrollen priorisiert.
-
-## 0.8.26.11
-
-- Buildfix: Der im Temperatur-Ensemble-Tooltip verwendete Helfer `compactPrecipitationTooltipLabel` ist wieder eindeutig deklariert.
-- Ensemble-FunktionalitÃ¤t bleibt unverÃ¤ndert: WetterkÃ¤stchen, Niederschlagssymbolik, Hazardmarker, Tooltips und die gemeinsame Tagesausrichtung werden nicht verÃ¤ndert.
-- Neue Regression verhindert eine erneute Verwendung des Tooltip-Helfers ohne passende Deklaration.
-
-## 0.8.26.10
-
-- Ensemble-Temperaturdiagramm: Sonne-/Wolken-KÃ¤stchen, Niederschlagssymbolik und Hazardmarker werden wieder als eigenstÃ¤ndige, stets sichtbare Tageszeile oberhalb der Datumsachse dargestellt. Die Tagespositionen nutzen dieselben linken und rechten Achsenreserven wie alle drei Ensemble-Diagramme.
-- Ensemble-Temperaturtooltip: sÃ¤mtliche Tabellen-, Zusatz- und Hazardzeilen bleiben einzeilig; lange Inhalte werden kontrolliert gekÃ¼rzt statt umgebrochen.
-- Ensemble-Performance: experimentelle Recharts-Skalenhooks und die zusÃ¤tzliche Accessibility-DOM-Schicht wurden entfernt. ResizeObserver nutzt direkt die gelieferten MaÃŸe, Offscreen-Diagramme verwenden content-visibility und Touch-FlÃ¤chen erlauben ungehindertes vertikales Scrollen.
-- Regressionen: Sichtbarkeit der Wetterzeile, Niederschlags- und Hazardmarker, gemeinsame Tagesgeometrie, Tooltip-Zeilen und mobile Scrollentlastung sind zusÃ¤tzlich abgesichert.
-
-## 0.8.26.9
-
-- Ensemble-Diagramme: TypeScript-Buildfehler der wiederhergestellten Niederschlagssymbolik behoben. Der Zustand `none` wird vor der Ãœbergabe an das Regen-/Schnee-/Mischform-Piktogramm explizit ausgeschlossen.
-- Neue Regression schÃ¼tzt die sichtbaren Sonne-/Wolken-KÃ¤stchen, Niederschlagssymbole und Hazardmarker vor einer erneuten ungÃ¼ltigen TypÃ¼bergabe unter Recharts 3.
-
-## 0.8.26.8
-
-- Ensemble-Temperaturdiagramm: Sonne-/Wolken-KÃ¤stchen, Niederschlagssymbole und Hazardmarker werden unter Recharts 3 Ã¼ber eine eigene hoch priorisierte Koordinatenebene zuverlÃ¤ssig oberhalb der DiagrammflÃ¤chen gerendert.
-- Ensemble-Temperaturtooltip: Werte, Ãœberschriften und Metadaten bleiben einzeilig; lange Niederschlags- und Hazardtexte werden kompakt dargestellt und behalten den vollstÃ¤ndigen Inhalt als Titelinformation.
-- Ensemble-Geometrie: gemeinsame TagesdomÃ¤ne, Tickfolge und horizontale Ausrichtung von Temperatur-, Niederschlags- und Winddiagramm bleiben unverÃ¤ndert erhalten.
-
-## 0.8.26.7
-
-- Ensemble-Diagramme: Interaktive Darstellung wie vor dem Wartungsaudit wiederhergestellt; Temperatur-, Niederschlags- und Winddiagramm verwenden wieder zuverlÃ¤ssig Tooltips und explizit gemessene Recharts-3-Pixelabmessungen.
-- Temperatur-Ensemble: Sonne-/Wolken-KÃ¤stchen, Niederschlagssymbolik und Hazardmarker werden wieder innerhalb der DiagrammflÃ¤che dargestellt.
-- Ensemble-Ausrichtung: Alle drei Diagramme verwenden dieselbe linke und rechte Achsenreserve, dieselbe TagesdomÃ¤ne und dieselbe Exportbreite, sodass identische Vorhersagetage vertikal exakt Ã¼bereinanderliegen.
-- Ensemble-Achsen: Die Beschriftung â€žVorhersagetagâ€œ wurde enger an die Datumsachse angebunden und optisch vom nachfolgenden Inhalt abgegrenzt.
-
-## 0.8.26.6
-
-- Buildfix: In der Gezeiten-GlÃ¤ttung des Wasserwetter-Moduls wurde ein ungenutzter Callback-Parameter entfernt, der bei aktiviertem `noUnusedParameters` den TypeScript-Produktionsbuild mit TS6133 abbrach.
-- Regression ergÃ¤nzt, damit derselbe Buildfehler nicht erneut eingefÃ¼hrt wird.
-- Die Ensemble-/Flugwetterquellen-Regression akzeptiert nun spÃ¤tere WartungsstÃ¤nde der v0.8.26-Linie und blockiert dadurch keine legitimen Buildfix-Releases mehr.
-
-## 0.8.26.5
-
-- Ensemble-Diagramme: Recharts-3-Liveansicht auf den nativen responsiven Diagrammmodus umgestellt und mit einer belastbaren MindesthÃ¶he versehen; Temperatur-, Niederschlags- und Winddiagramme kollabieren dadurch nicht mehr auf 0 Pixel.
-- Ensemble-Export: feste, deterministische PNG-Geometrie bleibt unverÃ¤ndert erhalten und ist vom responsiven Livepfad getrennt.
-- Flugmeteogramme: Datenherkunft fÃ¼r Vereisungs- und Turbulenzfelder transparent gekennzeichnet. Die dargestellten Felder bleiben MID-Diagnosen aus Druckniveaudaten und werden nicht fÃ¤lschlich als direkte DWD-ADWICE- oder WAWFOR-EDP-Produkte bezeichnet.
-- DWD-FlugwetterprÃ¼fung dokumentiert: ADWICE ist ein Produkt fÃ¼r den europÃ¤ischen Luftraum; globale Turbulenz-/EDP-Daten werden Ã¼ber den vertragspflichtigen WAWFOR-Datensatz in GRIB2 bereitgestellt und sind kein frei abrufbares Open-Data-Produkt.
-
-## 0.8.26.4
-
-- Wasserwetter-Verlauf: Gezeitenwendepunkte werden mit einer amplitudenadaptiven, zeitfensterbasierten Extremenerkennung ermittelt. Dadurch werden Hoch- und Tiefpunkte auch bei flachen 15-Minuten-Wasserstandskurven zuverlÃ¤ssig erkannt.
-- Gezeiten: unvollstÃ¤ndige oder fÃ¼r die Wendepunkterkennung ungeeignete 15-Minuten-Daten fallen automatisch auf die vollstÃ¤ndige stÃ¼ndliche Wasserstandsreihe zurÃ¼ck.
-- Marine-Datenabruf: der 15-Minuten-Wasserstand wird ausdrÃ¼cklich fÃ¼r den vollstÃ¤ndigen achtÃ¤gigen Vorhersagezeitraum angefordert; nicht benÃ¶tigte 15-Minuten-StrÃ¶mungsfelder entfallen zugunsten geringerer Datenlast.
-
-## 0.8.26.3
-
-- GitHub-Regressionen von der im Repository bereits aktiven Workflowgeneration entkoppelt: geprÃ¼ft wird nun das kanonische, im Release gebÃ¼ndelte Workflowpaket. Dadurch bleibt der regulÃ¤re MID-Installer auch mit dem Ã¤lteren aktiven Installationsworkflow lauffÃ¤hig.
-- Automatische SelbstÃ¤nderung von `.github/workflows` aus dem laufenden Installationsjob entfernt. Der jobgebundene `GITHUB_TOKEN` besitzt hierfÃ¼r keinen eigenstÃ¤ndigen Workflow-Schreibvertrag; Workflowupdates werden daher bewusst als separates, manuell einzuspielendes Paket bereitgestellt.
-- Kanonische CI-Dateien zusÃ¤tzlich unter `ci/github/` aufgenommen und mit einem expliziten, idempotenten Synchronisationsskript versehen. Nicht von MID verwaltete Workflows bleiben dabei unangetastet.
-- Neue Regression simuliert ausdrÃ¼cklich einen alten aktiven Installer und stellt sicher, dass Build- und WartungsprÃ¼fungen trotzdem reproduzierbar bestehen.
-
-## 0.8.26.2
-
-- CI-RegressionsprÃ¼fungen stabilisiert: WorkflowprÃ¼fung ist nicht mehr von unverbindlichen Versionskommentaren abhÃ¤ngig und kontrolliert ausschlieÃŸlich die verbindlichen MID-Workflows.
-- Wartungs-/Recharts-3-Test vollstÃ¤ndig deterministisch gemacht: die umgebungsabhÃ¤ngige Offline-npm-UnterprozessprÃ¼fung wurde durch direkte Lockfile-Struktur-, Quellen- und IntegritÃ¤tskontrollen ersetzt.
-- Neue Regression schÃ¼tzt die GitHub-Actions-PrÃ¼fungen vor AbhÃ¤ngigkeiten vom Runner-Cache, von npm-Metadaten und von Workflow-Kommentaren.
-
-## 0.8.26.1
-
-- Recharts-3-Buildfix: die nicht mehr unterstÃ¼tzte `isFront`-Eigenschaft der beiden `ReferenceDot`-Marker wurde durch das offizielle `zIndex`-Prop ersetzt. Niederschlags- und Hazardmarker bleiben damit oberhalb der DiagrammflÃ¤chen sichtbar.
-- Die nach der Recharts-3-Migration ungenutzte Konstante `ENSEMBLE_EXPORT_PLOT_WIDTH` wurde entfernt und der TypeScript-Produktionsbuild dadurch von TS6133 bereinigt.
-- Neue Regression prÃ¼ft sÃ¤mtliche `ReferenceDot`-Marker auf Recharts-3-kompatible Props und verhindert die WiedereinfÃ¼hrung der ungenutzten Exportkonstante.
-- Die Wartungsregression prÃ¼ft Versionsgleichheit nun ohne einen fest codierten Einzelrelease und bleibt dadurch auch fÃ¼r nachfolgende WartungsstÃ¤nde wirksam.
-
-## 0.8.26.0
-
-- Ensemble-Diagramme auf **Recharts 3.8.1** migriert; `react-is` ist passend zu React 18.3.1 festgeschrieben. Temperatur-, Niederschlags- und Winddiagramm behalten sÃ¤mtliche Datenreihen, Tooltips, Fehlerbalken, Warnmarker und PNG-Exporte.
-- Die drei Ensemble-Diagramme verwenden die Recharts-3-ZugÃ¤nglichkeitsschicht; responsive GrÃ¶ÃŸenÃ¤nderungen werden gedrosselt und der feste Exportpfad wurde in ein eigenes, wiederverwendbares Chart-Frame-Modul ausgelagert.
-- Buildwerkzeuge auf die bereits geprÃ¼ften stabilen StÃ¤nde TypeScript 5.9.3, Vite 6.4.3 und `@vitejs/plugin-react` 4.7.0 festgeschrieben. Node-/npm-Vertrag Ã¼ber `engines` und `packageManager` ergÃ¤nzt.
-- Versionssynchronisierung aktualisiert nun auch `package-lock.json`; Paket, Lockfile, Frontend, Baseline, Service Worker und Cloudflare Worker werden gemeinsam auf denselben Releasewert gesetzt.
-- TypeScript-PrÃ¼fung auf artefaktfreies `--noEmit` umgestellt. Generierte `*.tsbuildinfo`- und `vite.config.*`-Ausgaben werden nicht mehr Bestandteil der Quell- oder Releasebasis.
-- Radarhistorie, KOSTRA-Punktdaten und Reise-/Klimatologiecache erhalten LRU-Grenzen, Ablaufbereinigung und bei Local-Storage-EngpÃ¤ssen einen kontrollierten Bereinigungs-/Wiederholungsversuch. Bestehende Cache- und Stale-Fallback-Funktionen bleiben erhalten.
-- Die nachtrÃ¤gliche UI-Aufwertung beobachtet nicht mehr das gesamte Dokument einschlieÃŸlich AttributÃ¤nderungen. Sie ist auf den App-Baum, relevante Interaktionen und GrÃ¶ÃŸenÃ¤nderungen der betroffenen Diagrammcontainer begrenzt.
-- GitHub Actions auf vollstÃ¤ndige Commit-SHAs festgeschrieben, Berechtigungen je Job reduziert und regelmÃ¤ÃŸige npm-SicherheitsprÃ¼fung sowie Dependabot fÃ¼r npm und GitHub Actions ergÃ¤nzt.
-- Das Release enthÃ¤lt eine kanonische, separat einspielbare `.github`-Konfiguration mit SHA-fixierten Actions, Audits und Dependabot; WorkflowÃ¤nderungen werden aus SicherheitsgrÃ¼nden nicht vom laufenden Installationsjob selbst geschrieben.
-- Neue Wartungsregression schÃ¼tzt Recharts-3-Vertrag, Lockfile-Konsistenz, Cachegrenzen, DOM-Beobachtung, SHA-Pinning, Audits, Laufzeitvertrag und Release-Sauberkeit.
-
-## 0.8.25.4
-
-- Wasserwetter-Verlauf: Gezeiten- und Wasserstandswendepunkte werden je angezeigtem Prognosetag fÃ¼r den vollstÃ¤ndigen Kalendertag ermittelt und nicht mehr auf das jeweilige Tageslicht-, AktivitÃ¤ts- oder Stundenfenster begrenzt.
-- FÃ¼r angebrochene 15-Minuten-Datenreihen verwendet MID automatisch die vollstÃ¤ndigere stÃ¼ndliche Wasserstandsreihe, damit am aktuellen Tag auch bereits vor dem sichtbaren Verlauf liegende Hoch- und Tiefpunkte aufgefÃ¼hrt werden.
-- Die kompakte allgemeine GezeitenÃ¼bersicht bleibt auf kommende Wendepunkte beschrÃ¤nkt; nur die Tageszeile im Wasserwetter-Verlauf zeigt sÃ¤mtliche FÃ¤lle des jeweiligen Kalendertags.
-
-## 0.8.25.3
-
-- 7-Tage-Trend: Eine Tropennacht wird nun auf die dem jeweiligen Prognosetag folgende Nacht bezogen. Bevorzugt werden die Stunden von 20:00 Uhr bis 08:00 Uhr ausgewertet; der Tiefstwert des Folgetags dient nur als Fallback.
-- Tageswarnungen: Stark- und Dauerregenhinweise werden nicht mehr einem trockenen Kalendertag zugeordnet, nur weil ein langes 12-/24-/48-/72-Stunden-Fenster erst spÃ¤ter einsetzenden Niederschlag umfasst.
-- 7-Tage-Trend und Tageskarten bleiben dadurch konsistent: Bei 0,0 mm und trockener Stundenprognose erscheint keine vorgezogene Dauerregen-Aussage mehr.
-
-## 0.8.25.2
-
-- Produktionsbuild repariert: Die in `RadarPanel.tsx` nicht verwendete Variable `pxFactor` wurde entfernt.
-- Die Sichtbarkeitslogik des DWD-250-m-Radars bleibt Ã¼ber die explizit verwendete Bedingung `pxDisplayAvailable` vollstÃ¤ndig erhalten.
-- Eine neue Regression verhindert, dass der ungenutzte PX250-Faktor oder eine gleichartige TypeScript-TS6133-Regression erneut in den Produktionsstand gelangt.
-
-## 0.8.25.1
-
-- Kompositbild: Die Blickrichtungsspitze erscheint nur noch beim tatsÃ¤chlich per GerÃ¤teortung geÃ¶ffneten Standort; bei gesuchten Orten und Favoriten wird ausschlieÃŸlich der neutrale Ortsmarker angezeigt.
-- Kompositbild: Isobaren und 500-hPa-Isohypsen werden nach dem Laden der MID-Modellkonturen mehrfach geglÃ¤ttet und mit abgerundeten Linien gezeichnet; der DWD-ICON-WMS bleibt als schneller Lade- und Ausfallfallback erhalten.
-- Kompositbild: DWD PX250/HX wurde durch redundante DWD-Open-Data-Endpunkte, tolerantere AktualitÃ¤tsfenster, robustere HDF5-Datensatzerkennung, korrigierte Projektionsparameter und eine statische Darstellung des neuesten Einzelstands stabilisiert.
-- Kompositbild: Blitzpunkte besitzen nun eine eigene, Ã¼ber Radar-, Satelliten- und Warnrastern liegende Kartenebene sowie deutlich sichtbare gefÃ¼llte Marker mit Halo.
-- Kompositbild: Zugpfeile werden kleiner und transparenter dargestellt, nur noch an tatsÃ¤chlich nassen Ankerpunkten gesetzt und innerhalb eines Sicherheitsabstands zum Kartenrand ausgeblendet; kÃ¼nstliche Ersatzanker entfallen.
-- Radar-Bewegungsanalyse: Ankerpunkte aus den Ã¤uÃŸeren Rasterzellen werden verworfen, damit NoData- und KompositrÃ¤nder keine scheinbaren Verlagerungspfeile erzeugen.
-
-## 0.8.25.0
-
-- Kompositbild: OPERA CIRRUS wird nach erfolgreicher HDF5-Rastervalidierung auch dann geladen, wenn der gewÃ¤hlte Standort in einem trockenen oder lokalen NoData-Pixel liegt; die Kartenreprojektion wurde auf mobilen GerÃ¤ten entlastet.
-- Kompositbild: optionale amtliche DWD-Warnkarte auf Gemeindeebene mit eigener Deckkraftsteuerung ergÃ¤nzt.
-- Kompositbild: Isobaren und 500-hPa-Geopotential werden primÃ¤r als serverseitig gerenderte DWD-ICON-WMS-Layer geladen; die bisherigen MID-Konturen bleiben als automatischer Fallback erhalten.
-- Kompositbild: Blitzdarstellung verwendet bei fehlenden Punktdaten nun zuverlÃ¤ssig das jeweils aktuelle DWD-Blitzdichte- beziehungsweise EUMETSAT-MTG-LI-Raster auch ohne verÃ¶ffentlichte Zeitdimension; NowCastMIX-Punkte unterdrÃ¼cken das Blitzraster nicht mehr.
-- Kompositbild: KONRAD3D nutzt fÃ¼r Zuglinie und Wahrscheinlichkeitskegel den zeitlich weitesten belastbaren Prognosepunkt; falls nur Bewegungsrichtung und Geschwindigkeit vorliegen, wird ein gekennzeichneter 30-Minuten-Zugpfad abgeleitet.
-- Kurzfristvorhersage: Ãœberschreitet die prognostizierte BÃ¶e eine DWD-Warnschwelle, erhÃ¤lt der Windrichtungspfeil die Farbe der hÃ¶chsten erreichten Warnstufe.
-
-## 0.8.24.2
-
-- Eigene Warnungen: Der erlÃ¤uternde FuÃŸtext wurde auf den einzigen Satz â€žAutomatisch aus Best Match abgeleitet.â€œ gekÃ¼rzt.
-- Aktuelles Wetter: Die SchaltflÃ¤che fÃ¼r die Messwertkacheln heiÃŸt jetzt kompakt â€žmehrâ€œ beziehungsweise im geÃ¶ffneten Zustand â€žwenigerâ€œ.
-- Aktuelles Wetter: Die SchaltflÃ¤che wurde aus dem Inhaltskopf an den unteren rechten Modulrand verlegt. Reservierter AuÃŸenabstand, eigener Ebenenwert und mobile AbstÃ¤nde verhindern Ãœberdeckungen mit Tmin/Tmax, Wettertext, Analysekarte und nachfolgenden Modulen.
-
-## 0.8.24.1
-
-- Ensemble-Diagramme: Datumsbeschriftungen der Temperatur-, Niederschlags- und Windachsen werden jetzt diagonal dargestellt, sodass alle 14 Vorhersagetage auch auf schmalen Displays eindeutig lesbar bleiben.
-- Ensemble-Diagramme: Mobile Achsenticks verwenden eine stÃ¤rkere Neigung als Desktop und Export; zusÃ¤tzlicher Achsenraum verhindert Ãœberdeckungen mit Diagramminhalten und dem externen Achsentitel.
-
-## 0.8.24.0
-
-- Aktuelles Wetter: Die nachfolgenden Messwertkacheln lassen sich Ã¼ber eine kompakte SchaltflÃ¤che im Kopfbereich ein- und ausklappen.
-- Der gewÃ¤hlte Zustand der Aktuell-Wetter-Kacheln wird lokal gespeichert und beim nÃ¤chsten Ã–ffnen von MID wiederhergestellt.
-- Die SchaltflÃ¤che ist fÃ¼r Maus, Touch und Tastatur bedienbar und weist ihren Zustand Ã¼ber `aria-expanded` aus.
-
-## 0.8.23.0
-
-- Wetterdarstellung vollstÃ¤ndig auf ein transparentes, skalierbares SVG-Piktogrammsystem umgestellt. Alle relevanten WMO-Wettergruppen besitzen eigenstÃ¤ndige professionelle Symbole fÃ¼r Tag und Nacht, einschlieÃŸlich Nebel, Reifnebel, SprÃ¼hregen, gefrierendem Niederschlag, Schneeregen, Schneegriesel, Schauern, Gewitter und Hagel.
-- Das bisher plattformabhÃ¤ngig eckig oder intransparent gerenderte Nebel-Emoji wurde durch ein transparentes Vektor-Piktogramm mit Wolken- und NebelbÃ¤ndern ersetzt.
-- Die neuen Wetterpiktogramme werden konsistent in aktuellem Wetter, Kurzfristvorhersage, 7-Tage-Prognose, Tagesdetail, Ensemble, Widget sowie Berg-, Wasser- und Reisewetter verwendet.
-- Gewitterinformation: Bezugsort, aktuelle Zellposition und prognostizierte Zellposition erhalten hinter dem Ortsnamen den dreistelligen ISO-3166-Alpha-3-LÃ¤ndercode, beispielsweise â€žNiederkassel, DEUâ€œ.
-- Der Ortsnamencache der Gewitterinformation wurde auf eine neue Version migriert, damit vorhandene EintrÃ¤ge ohne LÃ¤ndercode nicht weiterverwendet werden.
-
-## 0.8.22.3
-
-- Kurzfristvorhersage: Die Karten zeigen in der obersten Zeile jetzt direkt die Uhrzeit; die relative +xx-min-Angabe entfÃ¤llt aus der Kartenansicht und bleibt nur in der Detailansicht erhalten.
-- Kurzfristvorhersage: Der Hinweis im Header wurde auf die fachliche Quellenangabe â€žBest Matchâ€œ reduziert; der Zusatz â€žohne zusÃ¤tzlichen Abrufâ€œ entfÃ¤llt.
-- Kurzfristvorhersage: Windpfeile der Karten wurden erneut korrigiert und berÃ¼cksichtigen nun die 45Â°-Grundausrichtung des Navigationssymbols, sodass Pfeilrichtung und ausgeschriebene Herkunftsrichtung wieder konsistent zusammenpassen.
-
-## 0.8.22.2
-
-- Radar-Nowcast: Der bisher missverstÃ¤ndliche Relativtext â€žRadarecho erreicht den Standort in â€¦ Minutenâ€œ wurde fÃ¼r prognostizierte StandortniederschlÃ¤ge durch einen eindeutigen Uhrzeitraum ersetzt.
-- Radar-Nowcast: Sichere Standorttreffer werden als â€žNiederschlag am Standort voraussichtlich von HH:MM bis HH:MM Uhrâ€œ ausgegeben; unsichere Umgebungsechos bleiben ausdrÃ¼cklich als mÃ¶gliches Trefferfenster gekennzeichnet.
-- Worker: Das Ende eines prognostizierten Niederschlagsereignisses entspricht nun dem Ende des letzten nassen Radarintervalls statt dessen Beginn. Dadurch entfallen widersprÃ¼chliche Angaben wie Ankunft bis 20:30 Uhr und Ende bereits 19:50 Uhr.
-
-## 0.8.22.1
-
-- Kurzfristvorhersage: Zeitachsenstufen rasten nun auf die nÃ¤chste volle Viertelstunde ein, zeigen vier 15-Minuten-Schritte und wechseln danach auf volle Stunden bis +24 Stunden.
-- Kurzfristvorhersage: Windpfeile zeigen jetzt konsistent in die Richtung, in die der Wind weht, wÃ¤hrend die Himmelsrichtung weiterhin die Herkunftsrichtung des Windes benennt.
-- Kurzfristvorhersage: Gewitter-Badges erhalten auf schmalen Karten eine eigene Zeile und Ã¼berdecken dadurch weder Temperatur noch Wettersymbol.
-
-## 0.8.22.0
-
-- Gewitterinformation: modellierte BÃ¶engeschwindigkeiten verwenden nun durchgÃ¤ngig die in MID gewÃ¤hlte Windeinheit.
-- Neue optionale Kurzfristvorhersage direkt zwischen Warnungen und 7-Tage-Prognose: +15, +30, +45 Minuten, +1 Stunde und anschlieÃŸend stÃ¼ndlich bis +24 Stunden; horizontal scrollbar und mit kompakter Detailansicht bei Auswahl. Die Darstellung nutzt ausschlieÃŸlich bereits geladene 15-Minuten- und Best-Match-Stundendaten und verursacht keine zusÃ¤tzlichen Abrufe.
-- Dashboard-Sektionen kÃ¶nnen in den Einstellungen einzeln ein- oder ausgeschaltet sowie per Drag-and-drop, Touch-Griff oder SchaltflÃ¤chen neu angeordnet werden. Deaktivierte Module werden nicht gerendert und lÃ¶sen dadurch keine modulbezogenen LadevorgÃ¤nge aus.
-- GerÃ¤tesynchronisation: lokal erzeugter QR-Code mit sicherem Fragmenttransfer. Das ZielgerÃ¤t kann den Code Ã¼ber die Kamera-App scannen, MID Ã¶ffnen und die Ãœbernahme nach ausdrÃ¼cklicher BestÃ¤tigung durchfÃ¼hren; der SchlÃ¼ssel wird weder an einen QR-Dienst noch als URL-Anfrage an den Server Ã¼bertragen.
-
-## 0.8.21.0
-
-- Hyperlokale Analyse: zentrales QuellenqualitÃ¤tsregister mit feldspezifischer Bewertung von Entfernung, Alter, Standorttyp und Vertrauensfaktor
-- Hyperlokale Analyse: lokale Restfeldkorrekturen werden bei geringer StationsstÃ¼tzung konservativ gedÃ¤mpft; mehrere Ã¼bereinstimmende Messpunkte erhalten stÃ¤rkeres Gewicht
-- Niederschlagsmessungen: explizite 10-/60-Minuten-Bezugsintervalle und einheitliche Normalisierung vor der lokalen Assimilation
-- Performance: Kurzzeitcache fÃ¼r Stationsanalyse und Modellhintergrund, begrenzte Stale-Fallbacks sowie Cache-GrÃ¶ÃŸenlimits
-- Workerzugriffe: lokaler Antwortcache, Stale-if-error und temporÃ¤rer Circuit-Breaker fÃ¼r wiederholt fehlschlagende Endpunkte
-- Worker: Quellenvertrag um Niederschlagsintervalle fÃ¼r DWD/Bright Sky, GeoSphere und Synoptic ergÃ¤nzt; Stations- und Warnantworten abrufschonend zwischengespeichert
-
-## 0.8.20.0
-
-- Hyperlokale Analyse: physische Stationsentdopplung Ã¼ber Kennung, Lage, HÃ¶he, Messzeit und TemperaturplausibilitÃ¤t; Quellenalias-Dopplungen werden vor der Gewichtung entfernt.
-- Hyperlokale Analyse: zirkulÃ¤re modellgestÃ¼tzte Restfeldanalyse der Windrichtung sowie abschlieÃŸende KonsistenzprÃ¼fung von Temperatur/Taupunkt/Feuchte und Wind/BÃ¶en.
-- Hyperlokale Analyse: Sicht, BewÃ¶lkung, Ceiling, Wolkenuntergrenze und Niederschlag werden nur aus amtlichen beziehungsweise professionellen Beobachtungsnetzen korrigiert.
-- Abrufbudget: GeoSphere/Bright Sky werden bei vorhandenem Worker nur bei fehlender Quelle direkt nachgeladen; ein zweiter Stationslauf erfolgt nur bei geringer Dichte, hoher Unsicherheit oder groÃŸer effektiver Entfernung.
-- Quellen- und QualitÃ¤tsaudit fÃ¼r nowcast/LINET, weitere Beobachtungsquellen, App-Architektur, Cachevertrag und Buildprozess ergÃ¤nzt.
-
-## 0.8.19.12
-
-- 7-Tage-Vorhersage: Haupt- und Untertitel beginnen zuverlÃ¤ssig mit GroÃŸbuchstaben.
-- Gewitterinformation: aktuelle und prognostizierte Zellposition erhalten nach MÃ¶glichkeit einen Ortsnamen; die OrtsauflÃ¶sung wird rÃ¤umlich gerastert und 12 Stunden lokal zwischengespeichert.
-- Gewitterinformation: nÃ¤chste AnnÃ¤herung beziehungsweise mÃ¶glicher Standorttreffer wird mit Ortszeit und Abstand zum ausgewÃ¤hlten Ort deutlich benannt.
-- Gewitterkarte kompakter gestaltet; der freie doppelte Zusammenfassungstext entfÃ¤llt und Kerndaten stehen ausschlieÃŸlich in Status- und Unterfeldern.
-
-## 0.8.19.11
-
-- GitHub-Produktionsbuild repariert: Der nach der Gewittertext-Verfeinerung nicht mehr benÃ¶tigte Parameter `cell` wurde aus `threatHeadline` und dem zugehÃ¶rigen Aufruf vollstÃ¤ndig entfernt.
-- Die verfeinerte Gewitterinformation und die natÃ¼rlichere Sprache der 7-Tage-Untertitel bleiben unverÃ¤ndert erhalten.
-
-## 0.8.19.10
-
-- Gewitterinformation weiter verfeinert: natÃ¼rliche, wirkungsorientierte Ãœberschriften, klar priorisierte Zellbewegung und farblich differenzierte Kernauswirkungen.
-- Erweiterte Gewitterdetails erscheinen in einem grÃ¶ÃŸeren, mobilen Infofenster mit SchlieÃŸen-SchaltflÃ¤che.
-- 7-Tage-Untertitel verwenden natÃ¼rliche Zeit-vor-Ereignis-Formulierungen wie â€žAbends Regen mÃ¶glichâ€œ.
-
-## 0.8.19.9
-
-- Gewitterinformation erweitert: kompakte Kerndaten jetzt direkt auf der Gewitterkarte sichtbar
-- AusfÃ¼hrlichere KONRAD3D-Gewitterdetails per Info-Button als strukturierte Ãœbersicht mit Schwerpunkt, AnnÃ¤herung, BÃ¶en-, Hagel-, Blitz- und Zugbahnangaben
-
-## 0.8.19.8
-
-- Tagesdetailansicht: Die kompakte Gewitterrisiko-Prozentangabe erscheint jetzt ab 30 %. Die Schwelle bleibt an die kombinierte Mehrindexdiagnose aus InstabilitÃ¤t, Feuchte, AuslÃ¶sung und CIN gekoppelt; CAPE allein erzeugt weiterhin kein Signal.
-- 7-Tage-Trend: Gewitterformulierungen verwenden jetzt dieselbe stÃ¼ndliche Mehrindexdiagnose wie die Tagesdetailansicht. Die frÃ¼here grobe Ersatzregel aus CAPE â‰¥ 700 J/kg und Tages-Niederschlagswahrscheinlichkeit â‰¥ 45 % wurde entfernt.
-- Bei 30â€“69 % wird im Trend von Gewitterrisiko gesprochen; erst bei direktem WMO-/Warnsignal oder mindestens 70 % von Gewittern. Dadurch bleiben Kurztrend, Tagesdetail und eigene Warnungen konsistent.
-
-## 0.8.19.7
-
-- Tagesdetailansicht: Gewitterrisiko in der stÃ¼ndlichen Niederschlagskachel jetzt als kompakte Prozentangabe dargestellt
-- 14-Tage-Ensemble: Niederschlags-/Schneesymbole bleiben innerhalb der BewÃ¶lkungskÃ¤stchen; Blitzsymbol fÃ¼r Gewitter deutlicher und besser erkennbar
-
-# MID v0.8.19.6
-
-- Tagesdetailansicht: Das kompakte stÃ¼ndliche Gewitterrisiko basiert nicht mehr im Wesentlichen auf CAPE und Niederschlag, sondern auf einer kombinierten Best-Match-Diagnose aus WMO-Gewittercode, CAPE, Lifted Index, konvektiver Hemmung (CIN), Feuchteprofil, integriertem Wasserdampf sowie Schauer-/Niederschlags- und AuslÃ¶sesignalen.
-- Hohe CAPE-Werte allein lÃ¶sen keine Gewitteranzeige mehr aus. Eine starke konvektive Hemmung kann das Signal unterdrÃ¼cken, wÃ¤hrend Ã¼bereinstimmende InstabilitÃ¤ts-, Feuchte- und Triggerparameter die Stufe â€žerhÃ¶htâ€œ oder â€žhochâ€œ stÃ¼tzen.
-- Die Darstellung in der Niederschlagskachel bleibt unverÃ¤ndert kompakt als â€žâš¡ erhÃ¶htâ€œ beziehungsweise â€žâš¡ hochâ€œ; die KachelgrÃ¶ÃŸe wird nicht verÃ¤ndert.
-- Die zusÃ¤tzlichen Open-Meteo-Parameter werden im bestehenden Best-Match-Abruf mitgefÃ¼hrt und verursachen keine weiteren Netzaufrufe.
-- Neuer Regressionstest schÃ¼tzt Datenvertrag, Mehrindex-Bewertung, starke CIN-Deckelung, konservativen Fallback und direkte WMO-Gewittersignale.
-
-# MID v0.8.19.5
-
-- Tagesdetailansicht: Die bestehende stÃ¼ndliche Niederschlagskachel nennt bei signifikantem Modellhinweis nun kompakt ein erhÃ¶htes oder hohes Gewitterrisiko. WMO-Gewittercodes werden unmittelbar berÃ¼cksichtigt; zusÃ¤tzlich werden CAPE, Niederschlagssignal und Niederschlagswahrscheinlichkeit gemeinsam plausibilisiert.
-- Die Gewitterinformation wird in der vorhandenen Detailzeile der Niederschlagskachel ausgegeben und per Ein-Zeilen-KÃ¼rzung begrenzt, sodass die KachelgrÃ¶ÃŸe unverÃ¤ndert bleibt.
-- Ensemble-Temperaturtrend: Die Niederschlagsmenge wird in den BewÃ¶lkungs-/SonnenkÃ¤stchen nur noch Ã¼ber ein kleines oder groÃŸes Symbol unterschieden. Regen nutzt einen Tropfen, Schnee eine Schneeflocke; Mischformen kombinieren beide kompakt.
-- Gewitterblitze werden neben das Niederschlagssymbol versetzt und passend verkleinert, damit weder Blitz noch Tropfen/Flocke einander verdecken und die Symbolik vollstÃ¤ndig innerhalb des bestehenden KÃ¤stchens bleibt.
-- Neuer Regressionstest schÃ¼tzt die stÃ¼ndliche Gewitterrisikologik, die kompakte Kachelintegration und die vereinfachte Ensemble-Symbolik.
-
-# MID v0.8.19.4
-
-- GitHub-/TypeScript-Buildfix fÃ¼r die ICAO-Ortssuche: Der RÃ¼ckgabetyp des neuen Worker-Aufrufs wurde an den bestehenden `fetchWorkerJson`-Vertrag angepasst. Damit ist `Location` nicht mehr fÃ¤lschlich direkt gegen den optionalen Worker-Fehlerumschlag typisiert.
-- Die ICAO-Suche, ihr 30-Tage-Cache, die NOAA-AviationWeather-AuflÃ¶sung und die Darstellung in Haupt- und Reisewettersuche bleiben funktional unverÃ¤ndert.
-- Neuer Regressionstest schÃ¼tzt vor dem konkreten TS2559-Buildfehler.
-
-# MID v0.8.19.3
-
-- Ortssuchen erweitert: Neben Ort, Region, PLZ und POI kÃ¶nnen nun weltweit exakte vierstellige ICAO Location Indicators wie EDDG, EDDF oder KJFK eingegeben werden.
-- Die gemeinsame Suchfunktion steht damit auch in der Hauptsuche und im Reisewetter-Reiseplaner zur VerfÃ¼gung. ICAO-Treffer werden als Flughafen gekennzeichnet und mit Koordinaten sowie HÃ¶henlage Ã¼bernommen.
-- Abrufschutz: Eine ICAO-Abfrage wird nur bei einem exakten vierstelligen Suchmuster und fehlendem gleichnamigem Orts-/PLZ-Treffer ausgelÃ¶st. Erfolgreiche Ergebnisse werden 30 Tage lokal gespeichert; parallele identische Abfragen werden zusammengefÃ¼hrt.
-- Der Worker lÃ¶st ICAO-Kennungen Ã¼ber NOAA AviationWeather auf und speichert erfolgreiche Antworten zusÃ¤tzlich mit einem 30-Tage-HTTP-Cache.
-- Neuer Regressionstest schÃ¼tzt Datenvertrag, Caching, Worker-Endpunkt und alle drei SuchoberflÃ¤chen.
-
-# MID v0.8.19.2
-
-- Ensemble-Temperaturdiagramm: In den BewÃ¶lkungs-/SonnenkÃ¤stchen erscheinen nun bei Best-Match-Niederschlag kompakte Niederschlagssymbole direkt innerhalb des bestehenden Rahmens. Je nach Niederschlagsart werden Tropfen, Schneeflocken oder gemischte Symbole gezeigt; Gewittertage erhalten zusÃ¤tzlich einen Blitz.
-- Die Symbolik wird nach Best-Match-Niederschlagsmenge und -wahrscheinlichkeit in ein bis drei Zeichen abgestuft, ohne die DiagrammgrÃ¶ÃŸe oder die KÃ¤stchengeometrie zu verÃ¤ndern.
-- Der Tooltip des Temperaturtrends nennt zusÃ¤tzlich die zugehÃ¶rige Best-Match-Niederschlagsart, -menge und die Best-Match-Wahrscheinlichkeit.
-
-# MID v0.8.19.1
-
-- Reisewetter-Abrufe deutlich reduziert, ohne die Sektion zu deaktivieren: pro ungefÃ¤hr 10-km-Klimaraster und HÃ¶henklasse wird nur ein kompakter Basisdatensatz angefordert und anschlieÃŸend drei Jahre lokal wiederverwendet.
-- Parallele oder wiederholte identische Klimaanfragen werden zusammengefÃ¼hrt; mehrfaches Tippen beziehungsweise gleichzeitige Auswertungen lÃ¶sen dadurch keinen doppelten Netzabruf aus.
-- Der Basisabruf wurde um nicht benÃ¶tigte historische Variablen verkleinert. Temperaturmittel und BewÃ¶lkungsnÃ¤he werden aus den verbleibenden Tageswerten abgeleitet.
-- Detaillierte historische SchneehÃ¶he wird nicht mehr automatisch allein durch die Optimierung â€žHohe Schneelageâ€œ geladen. Sie erfordert eine ausdrÃ¼ckliche Zusatzoption oder eine definierte MindestschneehÃ¶he; ohne Zusatzabruf bewertet MID das bereits enthaltene Schneefallpotenzial.
-- Die Reisewetter-Sektion nutzt weiterhin keinen MID-Worker und bleibt standardmÃ¤ÃŸig eingeklappt. Ein neuer Regressionstest schÃ¼tzt Abrufbudget, In-Flight-Entdopplung, Rastercache, reduzierten Variablensatz und die explizite SchneehÃ¶henfreigabe.
-
-# MID v0.8.19.0
-
-- Neue, standardmÃ¤ÃŸig eingeklappte Sektion â€žReisewetter & Reiseplanerâ€œ im unteren App-Bereich. Sie ist im Standard- und Erweiterten Modus verfÃ¼gbar und wird erst beim Scrollen beziehungsweise Ã–ffnen lazy geladen.
-- Freie Zielortsuche unabhÃ¤ngig vom aktuell geÃ¶ffneten MID-Ort. FÃ¼r einen festen Reisezeitraum werden klimatologisch erwartbare Temperatur, Niederschlagstage, Sonnenschein, Wind, Schneefall und ein kompakter Tagesverlauf dargestellt.
-- Flexibler Reiseplaner: Innerhalb eines Suchzeitraums von bis zu 120 Tagen kann ein 2- bis 42-tÃ¤giges Reisefenster nach â€žausgewogenâ€œ, mÃ¶glichst trocken, warm, kalt, sonnig, schneereich oder windarm optimiert werden.
-- Optional definierbare Bedingungen: Mindest-/HÃ¶chsttemperatur, maximale Regentage, Mindestsonnenschein, maximales Windmaximum und MindestschneehÃ¶he. Falls kein Fenster alle Bedingungen erfÃ¼llt, zeigt MID transparent die beste AnnÃ¤herung und die noch verfehlten Kriterien.
-- Datengrundlage ist die Open-Meteo-ERA5-Land-Reanalyse 1991â€“2020. Historische SchneehÃ¶he wird nur bei ausdrÃ¼cklicher Schneewahl zusÃ¤tzlich aus Stundenwerten geladen; alle Klimadaten werden lokal aggregiert und fÃ¼r 180 Tage zwischengespeichert. Die Sektion erzeugt keine automatischen Workerzugriffe.
-- Neuer Regressionstest schÃ¼tzt Modulposition, eingeklappten Standardzustand, Zielortsuche, feste und flexible Planung, Bedingungen, Klimadatenpfad, optionale SchneehÃ¶he und die dynamische Auswahl des besten Zeitfensters.
-
-# MID v0.8.18.15
-
-- Wasserwetter-Verlauf: Gezeiten- und Wasserstandswendepunkte werden nun direkt in der Tagesmatrix angezeigt. Jeder Tag enthÃ¤lt eine kompakte Tabellenzeile mit Hoch-/Tiefpunkt, exakter Uhrzeit und modelliertem Wasserstand.
-- Die Wendepunktanalyse wurde von sechs auf bis zu 18 Ereignisse erweitert, damit beim Aufklappen der Option â€žNÃ¤chste 3 Tageâ€œ alle verfÃ¼gbaren Tageswendepunkte abgedeckt werden kÃ¶nnen.
-- Die neue Zeile spannt Ã¼bersichtlich Ã¼ber die Zeitspalten, bleibt horizontal scrollbar und unterscheidet Hoch- und Tiefpunkte farblich, ohne die stÃ¼ndlichen beziehungsweise dreistÃ¼ndlichen Wasserstandswerte zu verdrÃ¤ngen.
-- Neuer Regressionstest schÃ¼tzt Drei-Tage-Abdeckung, DatenÃ¼bergabe, Tabellenintegration und responsive Darstellung.
-
-# MID v0.8.18.14
-
-- Eigene Warnkarten: Identische niedrigere Warnphasen werden jetzt Ã¼ber eine dazwischenliegende hÃ¶here Warnstufe hinweg zu einem einzigen einrahmenden GÃ¼ltigkeitszeitraum verbunden. Im gezeigten WÃ¤rmebeispiel gilt die starke WÃ¤rmebelastung damit einmal von 11:00 bis 21:00 Uhr, wÃ¤hrend die extreme WÃ¤rmebelastung weiterhin separat von 15:00 bis 17:00 Uhr ausgewiesen wird.
-- Eine niedrigere Warnung wird nur zusammengefÃ¼hrt, wenn Warntyp, Warnstufe und sichtbarer Inhalt unverÃ¤ndert bleiben und die zeitliche LÃ¼cke vollstÃ¤ndig durch eine hÃ¶here Warnstufe desselben Typs abgedeckt ist. Inhaltlich unterschiedliche Phasen bleiben getrennt.
-- Neuer Regressionstest schÃ¼tzt die einrahmende Zusammenfassung und verhindert zugleich das versehentliche ZusammenfÃ¼hren unterschiedlicher Warninhalte.
-
-# MID v0.8.18.13
-
-- Ensemble-Temperaturdiagramm: Warnmarker werden nun vor der Darstellung nach Warntyp zusammengefasst. Je Warntyp erscheint ausschlieÃŸlich die hÃ¶chste erreichte Warnstufe; unterschiedliche Warntypen bleiben parallel sichtbar.
-- Ensemble-Tooltip: Auch die Hazard-Liste enthÃ¤lt je Warntyp nur noch die hÃ¶chste Warnung. Niedrigere Schwellen desselben Typs werden dort nicht mehr doppelt aufgefÃ¼hrt.
-- Neuer Regressionstest schÃ¼tzt die gemeinsame Filterung von Diagrammmarkern und Tooltip sowie den Erhalt verschiedener Warntypen.
-
-# MID v0.8.18.12
-
-- 7-Tage-Vorhersage: Die kompakten Warnsymbole zeigen pro Warntyp nur noch die hÃ¶chste erreichte Warnstufe. Mehrere Wind-, Schnee-, Regen- oder andere IntensitÃ¤tsstufen werden in dieser engen Ãœbersicht nicht mehr gestapelt.
-- Die vollstÃ¤ndige Mehrstufenanzeige mit niedrigeren IntensitÃ¤ten, GÃ¼ltigkeitszeitrÃ¤umen und Windrichtung bleibt in den ausfÃ¼hrlichen eigenen Warnkarten unverÃ¤ndert erhalten.
-- Neuer Regressionstest schÃ¼tzt die Trennung zwischen kompakter TagesÃ¼bersicht und vollstÃ¤ndiger Warnkartendarstellung.
-
-# MID v0.8.18.11
-
-- GitHub-/TypeScript-Buildfix fÃ¼r die Mehrstufen-Warnlogik: Die nach der Umstellung nicht mehr verwendeten Hilfsfunktionen `levelFromThresholds` und `windClassification` wurden entfernt.
-- Die aktive Mehrstufenberechnung Ã¼ber `windClassifications` sowie alle niedrigeren Warnstufen, GÃ¼ltigkeitszeitrÃ¤ume und Windrichtungstexte bleiben unverÃ¤ndert erhalten.
-- Neuer Regressionstest schÃ¼tzt vor erneutem Einbringen ungenutzter Warnungs-Helper und sichert die aktive Mehrstufen-Windlogik ab.
-
-# MID v0.8.18.10
-
-- Eigene Warnungen: Beim Ãœberschreiten mehrerer Schwellen werden nun neben der hÃ¶chsten Warnstufe auch die niedrigeren IntensitÃ¤tsstufen ausgegeben.
-- Jede Warnstufe erhÃ¤lt einen eigenen, automatisch berechneten GÃ¼ltigkeitszeitraum; bei Wind bleibt die niedrigere Stufe Ã¼ber den gesamten Zeitraum aktiv, in dem ihre Schwelle Ã¼berschritten wird, wÃ¤hrend hÃ¶here Stufen als zusÃ¤tzliche engere Warnphase erscheinen.
-- Windwarnungen nennen bei niedrigeren Stufen Schwellenwert und zeitweilige Spitze, etwa â€žWindbÃ¶en Ã¼ber 50 km/h; zeitweise bis 71 km/hâ€œ, einschlieÃŸlich Windrichtung beziehungsweise RichtungsÃ¤nderung.
-- Niedrigere Warnstufen werden kompakt als solche gekennzeichnet, ohne die bestehende Ã¼bersichtliche Kartenstruktur oder die Datums-/Zeitkapsel zu vergrÃ¶ÃŸern.
-- Neuer Regressionstest schÃ¼tzt Mehrstufenlogik, Ã¼berlappende WarnzeitrÃ¤ume, Windrichtungstext, Datenvertrag und responsive Darstellung.
-
-# MID v0.8.18.9
-
-- Eigene Windwarnungen korrigiert: Die reale stÃ¼ndliche Best-Match-Windrichtung wurde intern im Feld `direction` gefÃ¼hrt, die Warnlogik hatte jedoch ausschlieÃŸlich `windDirection` ausgewertet. Dadurch blieb die Richtung trotz vorhandener Daten im Warntext leer.
-- Die Warnlogik akzeptiert nun beide Feldbezeichnungen und Ã¼bernimmt damit die tatsÃ¤chlich von MID verwendeten Stundenwerte zuverlÃ¤ssig.
-- Stabile Richtungen erscheinen direkt im Satz, etwa â€žWindbÃ¶en bis 29 kt (54 km/h) aus westlicher Richtung.â€œ; markante Drehungen werden weiterhin als â€žanfangs â€¦, spÃ¤ter â€¦â€œ formuliert.
-- Neuer dynamischer Regressionstest verwendet ausdrÃ¼cklich den echten `Hour.direction`-Datenvertrag und schÃ¼tzt sowohl konstante Richtung als auch Richtungswechsel vor erneutem Ausfall.
-
-# MID v0.8.18.8
-
-- Eigene Windwarnungen: Die modellierte Windrichtung steht nun direkt im laufenden Warntext â€“ analog zur Formulierung amtlicher DWD-Warnungen â€“ und nicht mehr in einer separaten Kapsel.
-- Bei stabiler Richtung lautet die Warnung beispielsweise â€žSturmbÃ¶en bis 39 kt (71 km/h) aus westlicher Richtung.â€œ
-- Bei markanter Drehung wird der Text unmittelbar erweitert, etwa â€žâ€¦; anfangs aus sÃ¼dwestlicher, spÃ¤ter aus nordwestlicher Richtung.â€œ
-- Die separate Windrichtungs-Kapsel einschlieÃŸlich ihrer CSS-Regeln wurde entfernt; die kompakte GÃ¼ltigkeitskapsel bleibt unverÃ¤ndert bestehen.
-- Regressionstests schÃ¼tzen die Inline-Formulierung, Richtungswechsel, den 360Â°-/0Â°-Ãœbergang und das Fehlen der separaten Richtungsanzeige.
-
-# MID v0.8.18.7
-
-- Eigene Windwarnungen zeigen jetzt zusÃ¤tzlich die modellierte Windrichtung im jeweiligen Warnzeitraum.
-- Bei stabiler Windrichtung erscheint eine kompakte Angabe wie â€žAus sÃ¼dwestlicher Richtungâ€œ.
-- Markante RichtungsÃ¤nderungen werden zeitlich verstÃ¤ndlich beschrieben, beispielsweise â€žAnfangs aus sÃ¼dwestlicher, spÃ¤ter aus nordwestlicher Richtungâ€œ.
-- Die Richtungsbewertung verwendet zirkulÃ¤re Mittelwerte, sodass der Ãœbergang Ã¼ber 360Â°/0Â° korrekt als nÃ¶rdliche StrÃ¶mung erkannt wird.
-- Die aktuelle Warnkarte erhÃ¤lt eine kompakte Windrichtungs-Kapsel; Tages-, Widget- und Ensemble-Hazard-Tooltips Ã¼bernehmen die Richtungsinformation ebenfalls.
-- Neuer Regressionstest schÃ¼tzt konstante Windrichtung, Richtungswechsel, 360Â°-ÃœbergÃ¤nge und responsive Darstellung.
-
-# MID v0.8.18.6
-
-- Eigene Warnindikatoren: WarnzeitrÃ¤ume, die erst morgen beginnen, zeigen nun kompakt sowohl â€žMorgenâ€œ als auch das konkrete Datum, zum Beispiel â€žMorgen, 30.07. Â· 08:00â€“12:00 Uhrâ€œ.
-- SpÃ¤tere Warnungen tragen ebenfalls das Datum; heutige Warnungen bleiben platzsparend bei der Uhrzeit. ZeitrÃ¤ume Ã¼ber Mitternacht zeigen weiterhin Start- und Enddatum vollstÃ¤ndig.
-- Neuer Regressionstest prÃ¼ft Morgen-, Folgetag-, Heute- und Mitternachtsdarstellung in der Ortszeitzone.
-
-# MID v0.8.18.5
-
-- Eigene Warnindikatoren zeigen jetzt einen kompakten GÃ¼ltigkeitszeitraum in Ortszeit. Aktive Zeitfenster beginnen verstÃ¤ndlich mit â€žjetztâ€œ, kÃ¼nftige sowie Ã¼ber Mitternacht reichende ZeitrÃ¤ume werden mit Uhrzeit beziehungsweise Datum dargestellt.
-- Die GÃ¼ltigkeit wird aus den zusammenhÃ¤ngenden Stunden beziehungsweise Akkumulationsfenstern des jeweiligen Warnsignals berechnet; getrennte Ereignisse werden nicht zu einem einzigen langen Zeitraum vermischt.
-- Die neue Zeitangabe erscheint als platzsparende, responsive Kapsel direkt in der Warnkarte und bleibt auf schmalen Displays umbrechbar. Amtliche Warnungen und deren bestehende CAP-ZeitrÃ¤ume bleiben unverÃ¤ndert.
-- Neuer Regressionstest schÃ¼tzt Berechnung, Datenvertrag, Ortszeitformatierung und kompakte Darstellung.
-
-# MID v0.8.18.4
-
-- Dauerhaft erreichbares Impressum im App-Footer ergÃ¤nzt und zusÃ¤tzlich als eigener Bereich â€žRechtlichesâ€œ im EinstellungsmenÃ¼ aufgenommen.
-- Anbieterkennzeichnung mit vollstÃ¤ndigem Namen und ladungsfÃ¤higer Anschrift integriert.
-- Die Kontaktadresse liegt weder im initialen DOM noch als zusammenhÃ¤ngender Klartext im App-Quellcode vor. Sie wird erst nach bewusster Nutzerinteraktion aus getrennten Zeichencodes zusammengesetzt und anschlieÃŸend als anklickbare E-Mail-Adresse angeboten.
-- Barrierearmes Impressumsdialogfenster mit Escape-, AuÃŸenklick- und mobiler Vollbildbedienung ergÃ¤nzt.
-- Neuer Regressionstest schÃ¼tzt Erreichbarkeit, Pflichtangaben, responsives Design und die E-Mail-Obfuskation.
-
-# MID v0.8.18.3
-
-- Cross Section vorerst vollstÃ¤ndig pausiert: Im Erweiterten Modus erscheint nur noch eine statische Karte â€žTo be continuedâ€œ. Das aktive Flugmeteorologie-Modul importiert oder rendert die Cross-Section-Komponente nicht mehr.
-- Der Worker-Endpunkt `flight-cross-section` ist hart deaktiviert, aus dem Health-Servicekatalog entfernt und antwortet ohne externe Datenabrufe mit HTTP 410. Dadurch entstehen durch diese Funktion keine NOAA-, Open-Meteo- oder Elevation-Subrequests mehr.
-- Druckniveau-Meteogramme bleiben unverÃ¤ndert aktiv. Der Cross-Section-Quellcode wird fÃ¼r eine spÃ¤tere Weiterentwicklung erhalten, aber nicht in den aktiven Frontendpfad eingebunden.
-- Neuer Regressionstest schÃ¼tzt die UI-Pausierung, den entfernten Frontendpfad und die serverseitige Sperre.
-
-# MID v0.8.17.0
-
-- Aktuelle Daten: Die Uhrzeiten der Kachel â€žSonne / Mondâ€œ verwenden nun eine ausdrÃ¼cklich begrenzte, an den Ã¼brigen Kachelwerten orientierte SchriftgrÃ¶ÃŸe. Die Kachel besitzt keine eigene MindesthÃ¶he mehr und vergrÃ¶ÃŸert die gesamte Parameterzeile weder auf Desktop noch mobil.
-- Ensemble: Unterhalb des Niederschlagsdiagramms wurde ein zusÃ¤tzliches Winddiagramm ergÃ¤nzt. Es lÃ¤sst sich zwischen tÃ¤glichem Windmaximum und BÃ¶enspitzen umschalten und zeigt Best Match, gewichtetes Ensemble-Mittel sowie P10â€“P90 im Stil des Temperaturtrends.
-- Die Open-Meteo-Ensembleabfrage und der Worker-Proxy liefern Wind und BÃ¶en einheitlich in Knoten. Der Ensemblecache wurde wegen des erweiterten Datenvertrags invalidiert.
-- Temperatur-, Niederschlags- und Winddiagramm kÃ¶nnen einzeln ein- und ausgeklappt werden. Der Zustand wird lokal gespeichert; PNG-Export, Tooltips, Legenden und mobile Darstellung bleiben je Diagramm erhalten.
-- Neue und erweiterte Regressionstests schÃ¼tzen Wind-/BÃ¶endaten, Worker-Proxy, Exportgeometrie, Diagrammreihenfolge, EinklappzustÃ¤nde sowie die kompakte Sonne-/Mond-Kachel.
-
-# MID v0.8.16.1
-
-- Aktuelle Daten: Die Kachel â€žSonne / Mondâ€œ wurde kompakter abgestimmt. Die Zeitwerte fÃ¼r Sonnenaufgang und Sonnenuntergang verwenden nun deutlich kleinere, an die Ã¼brigen Kacheln angeglichene SchriftgrÃ¶ÃŸen.
-- Die MindesthÃ¶he der Sonne-/Mond-Kachel wurde spÃ¼rbar reduziert, damit die gesamte Zeile der aktuellen Daten auf Desktop und mobil nicht unnÃ¶tig in die HÃ¶he gezogen wird.
-- Die Trennung von Sonnenaufgang, Sonnenuntergang, Mondphase und TageslÃ¤nge bleibt erhalten, jedoch mit dichterem vertikalem Rhythmus und platzsparenderen Details.
-- Der bestehende Regressionstest fÃ¼r die Astronomie-Kachel prÃ¼ft jetzt ausdrÃ¼cklich die kompaktere Typografie und die verringerte KartenhÃ¶he.
-
-# MID v0.8.15.7
-
-- Aktuelle Daten: Die Kachel â€žSonne / Mondâ€œ wurde erneut an das Standarddesign der Ã¼brigen Kacheln angeglichen. Sonnenaufgang und Sonnenuntergang erscheinen nun als zwei untereinander liegende, sauber getrennte ZeitblÃ¶cke mit Trennlinie statt in einer Sonderdarstellung.
-- Desktop- und Mobilansicht wurden auf Ã¼berlappungsfreie Darstellung optimiert: mehr vertikale Reserve, stabile Typografie, kein Zusammenlaufen der Ãœberschriften und keine Kollision mit der Info-SchaltflÃ¤che.
-- Mondphase, nÃ¤chste Mondphase und TageslÃ¤nge bleiben darunter kompakt erhalten.
-- Der Regressionstest fÃ¼r die Astronomie-Kachel prÃ¼ft jetzt ausdrÃ¼cklich das standardnahe Kartenlayout sowie die Ã¼berlappungsfreie Desktop-/Mobilstruktur.
-
-# MID v0.8.15.4
-
-- Standortauswahl mit Favoritenabgleich korrigiert: Nach einer GerÃ¤teortung prÃ¼ft MID die bewÃ¤hrte geografische Nahbereichszuordnung. Entspricht die Position einem gespeicherten Favoriten, wird dessen kanonischer Ort geÃ¶ffnet statt eines separaten Reverse-Geocoding-Punkts.
-- Dadurch werden fÃ¼r die Standortauswahl automatisch die vollstÃ¤ndigen Favoritenprofile verwendet, insbesondere Wetterzwilling-Daten, lokale Lernhistorie sowie Berg-/Winter- und Wasserprofile. Die tatsÃ¤chlich gemessene GerÃ¤teposition bleibt separat fÃ¼r Standortstatus und DistanzprÃ¼fung gespeichert.
-- Favorit und Standort dÃ¼rfen nun gleichzeitig aktiv markiert sein: Der passende Favorit bleibt in Schnellleiste, SuchmenÃ¼ und Favoritenverwaltung blau markiert; zusÃ¤tzlich erhÃ¤lt der Standort-Eintrag seinen blauen Rahmen, solange die Auswahl tatsÃ¤chlich von der GerÃ¤teortung stammt.
-- Eine manuelle Orts- oder Favoritenauswahl entfernt weiterhin sofort ausschlieÃŸlich den Standort-Rahmen. Beim Standortabgleich wird auf den ausdrÃ¼cklich zugeordneten kanonischen Favoritenort umgeschaltet, damit Wetterdaten, FavoritenschlÃ¼ssel und Profildaten konsistent aus derselben Ortsbasis stammen.
-- Neuer Regressionstest schÃ¼tzt Favoritenabgleich der GerÃ¤teposition, kanonische Favoritenauswahl, gleichzeitige Standort-/Favoritenmarkierung und das ZurÃ¼cksetzen des Standortstatus bei manueller Auswahl.
-
-# MID v0.8.15.3
-
-- Berg-/Wintersport: Der vollstÃ¤ndige HÃ¶henwetter-Verlauf ist im Sommer- wie im Winterprofil standardmÃ¤ÃŸig eingeklappt und lÃ¤sst sich Ã¼ber eine kompakte Kopfzeile gezielt Ã¶ffnen und wieder schlieÃŸen.
-- Beim Wechsel zwischen Sommer- und Winterprofil wird der HÃ¶henwetter-Verlauf erneut geschlossen; auch eine zuvor aufgeklappte Drei-Tage-Ansicht kehrt in den kompakten Ausgangszustand zurÃ¼ck.
-- Die 1-/3-Stunden-Umschaltung und die Erweiterung auf die nÃ¤chsten drei Tage bleiben nach dem Ã–ffnen unverÃ¤ndert verfÃ¼gbar. Auf mobilen Displays beansprucht die geschlossene Darstellung nur noch eine kompakte Zeile.
-- Neuer Regressionstest schÃ¼tzt den geschlossenen Startzustand, beide Saisonbezeichnungen, den Saisonwechsel und die bedingte Darstellung der umfangreichen HÃ¶henmatrix.
-
-# MID v0.8.15.2
-
-- Favoriten-Nahbereichslogik wiederhergestellt: Exakte Koordinaten werden weiterhin bevorzugt; Orte und POIs innerhalb der bewÃ¤hrten plausiblen Distanz- und HÃ¶henschwellen werden wieder demselben Favoriten zugeordnet. Dadurch entstehen bei nur wenigen hundert Metern Abweichung keine unnÃ¶tigen zusÃ¤tzlichen Favoriten oder Datenneuladungen.
-- Die in v0.8.15.1 eingefÃ¼hrte strikte 150-m-/ID-PrÃ¼fung wurde vollstÃ¤ndig zurÃ¼ckgenommen. FavoritenmenÃ¼, Schnellleiste, Favoritenstern, Ortswechsel und mobile Rand-Wischnavigation verwenden wieder dieselbe konsistente Nahbereichszuordnung.
-- Standort-Aktivrahmen grundlegend entkoppelt: Die blaue Markierung richtet sich nun nach der ausdrÃ¼cklich zuletzt gewÃ¤hlten Quelle â€žGerÃ¤testandortâ€œ oder â€žmanuelle Orts-/Favoritenauswahlâ€œ und nicht mehr allein nach einem potenziell veralteten `autolocated`-Merkmal im Ortsobjekt.
-- Auch wenn ein Ortswechsel wegen geringer Entfernung ohne Datenneuladung abgekÃ¼rzt wird, wird die Auswahlquelle sofort aktualisiert. Ein manuell gewÃ¤hlter Favorit nimmt daher zuverlÃ¤ssig die Standort-Markierung zurÃ¼ck; ein tatsÃ¤chlich aufgerufener GerÃ¤testandort aktiviert sie gezielt.
-- Der Standort-Rahmen verlangt zusÃ¤tzlich weiterhin eine geografische Ãœbereinstimmung mit der zuletzt ermittelten GerÃ¤teposition. Ein rund 200 km entfernter Ort kann damit weder Ã¼ber die Auswahlquelle noch Ã¼ber die DistanzprÃ¼fung als aktiver Standort erscheinen.
-- Regressionstest erweitert: geprÃ¼ft werden Nahbereichszuordnung Ã¼ber wenige hundert Meter, Ablehnung weit entfernter Orte, Quellenwechsel vor dem Kurzschluss, MenÃ¼sprung und die einheitlichen Info-SchaltflÃ¤chen.
-
-# MID v0.8.15.1
-
-- Aktuelle Daten: Die Info-SchaltflÃ¤chen der Kacheln â€žLuftqualitÃ¤tâ€œ und â€žSonne / Mondâ€œ verwenden nun dieselbe GrÃ¶ÃŸe, Ausrichtung und visuelle Gestaltung.
-- FavoritenmenÃ¼ stabilisiert: Beim Ã–ffnen werden der aktuell angezeigte Favorit sowohl im SuchmenÃ¼ als auch in der Favoritenverwaltung nach dem vollstÃ¤ndigen Layout mehrfach abgesichert und direkt mittig in den sichtbaren Bereich gefÃ¼hrt. GrÃ¶ÃŸenÃ¤nderungen des MenÃ¼s lÃ¶sen die Positionierung erneut aus.
-- Favoriten-Schnellleiste springt auch unter iOS/Safari zuverlÃ¤ssig zum aktiven Favoriten; spÃ¤tere LayoutÃ¤nderungen und horizontale ÃœberlÃ¤ufe werden berÃ¼cksichtigt.
-- Standortstatus korrigiert: Gespeicherte Favoriten Ã¼bernehmen den internen Auto-Standortstatus nicht mehr. Der blaue Aktivrahmen des dynamischen â€žStandortâ€œ-Eintrags erscheint ausschlieÃŸlich bei einer tatsÃ¤chlich Ã¼ber die GerÃ¤teortung geÃ¶ffneten Position.
-- Die aktive Favoritenerkennung verwendet fÃ¼r die OberflÃ¤che keine groÃŸzÃ¼gige geografische NÃ¤herungsprÃ¼fung mehr, sodass andere Orte oder nahe POIs nicht fÃ¤lschlich als aktiver Favorit markiert werden.
-- Auch der eigentliche Ortswechsel und die mobile Favoriten-Wischzuordnung verwenden nun dieselbe strikte IdentitÃ¤t; nahe, aber unterschiedliche Orte werden nicht mehr als bereits geÃ¶ffnet verworfen.
-- Neuer Regressionstest schÃ¼tzt Info-SchaltflÃ¤chen, direkten MenÃ¼sprung, Favoritenverwaltung, Schnellleiste und die Trennung zwischen Auto-Standort und gespeichertem Favoriten.
-
-# MID v0.8.15.0
-
-- GitHub-Produktionsbuild korrigiert: Die Favoriten-Persistenz verwendet fÃ¼r optionale Idle-Callbacks keine TypeScript-Narrowing-Verzweigung mehr, durch die `window` im Fallback als `never` interpretiert wurde. Der bisherige Fehler TS2339 bei `clearTimeout` ist damit behoben.
-- Tagesdetaildiagramm um einen eigenen Luftdruckverlauf in hPa ergÃ¤nzt. Die adaptive Druckskala erhÃ¤lt eine separate kompakte Diagrammspur; der Verlauf ist standardmÃ¤ÃŸig sichtbar und Ã¼ber die Legende deaktivierbar.
-- Die Detaillegende lÃ¤sst sich vollstÃ¤ndig ein- und ausklappen. Der Zustand wird gespeichert; auf schmalen Displays startet sie beim ersten Aufruf platzsparend eingeklappt.
-- StÃ¼ndliche Detailkacheln neu geordnet: Luftdruck mit kurzfristiger Tendenz beziehungsweise Tagesbereich ergÃ¤nzt; BewÃ¶lkung und UVI zu einer gemeinsamen Kachel zusammengefÃ¼hrt, sodass die mobile Darstellung trotz zusÃ¤tzlicher Information kompakt bleibt.
-- Neuer Regressionstest schÃ¼tzt Buildfix, Luftdruck-Datenpfad, Diagrammspur, schaltbare und persistente Legende sowie die mobile Kachelstruktur.
-
-# MID v0.8.14.0
-
-- Neue Favoriten starten ohne aktive numerische persÃ¶nliche Regeln. Bestehende unverÃ¤nderte Standardregeln werden bei der Migration ebenfalls als deaktiviert erkannt; individuell angepasste Regeln und Push-Regeln bleiben erhalten. Ein eigener Schalter aktiviert die 24-Stunden-PrÃ¼fung bewusst je Favorit.
-- FavoritenmenÃ¼ korrigiert: Beim Ã–ffnen wird der aktuell angezeigte Favorit nach vollstÃ¤ndig aufgebautem MenÃ¼ zuverlÃ¤ssig mittig in den sichtbaren Bereich gefÃ¼hrt. Die Positionierung wird Ã¼ber zwei Renderframes und einen kurzen Layout-Fallback abgesichert.
-- Performance-Audit erweitert: FavoritenÃ¤nderungen werden entprellt und in Browser-Leerlaufphasen gespeichert, bei Ausblenden oder SchlieÃŸen aber sofort gesichert. UnverÃ¤nderte Push-/Lernsignaturen werden memoisiert, Wetterzwilling-Ableitungen reagieren nur noch auf tatsÃ¤chlich relevante Schalter, und lange Favoritenlisten werden per Rendering-Containment entlastet.
-- Deaktivierte persÃ¶nliche Regeln erzeugen weder Regelberechnungen noch die zugehÃ¶rigen kontrollierten Eingabefelder; Push-Benachrichtigungsregeln bleiben davon unabhÃ¤ngig.
-- Neuer Regressionstest schÃ¼tzt Standardzustand, Legacy-Migration, robustes Zentrieren des aktiven Favoriten und die zusÃ¤tzlichen Performance-MaÃŸnahmen.
-
-# MID v0.8.13.0
-
-- Wetterpiktogramme konsequent um Tages-/Nachtvarianten ergÃ¤nzt: BewÃ¶lkung, SprÃ¼hregen und Schauer verwenden nachts keine Sonnenpiktogramme mehr. Der HÃ¶henwetter-Verlauf Ã¼bernimmt dafÃ¼r nun ebenfalls den jeweiligen `is_day`-Status je Zeitabschnitt.
-- Sonne-/Mond-Kachel verdichtet: Sonnenauf- und -untergang bleiben kompakt im PrimÃ¤rwert; Mondphase und die verbleibenden Tage bis zum nÃ¤chsten Neu- oder Vollmond erscheinen direkt darunter.
-- SchlieÃŸbares Astronomie-Info-Popover ergÃ¤nzt. Es zeigt chronologisch astronomische, nautische und bÃ¼rgerliche DÃ¤mmerung, blaue und goldene Stunde, SonnenhÃ¶chststand sowie Mondauf- und -untergang. AuÃŸenklick/-tippen und Escape schlieÃŸen wie bei den Ã¼brigen MID-Tooltips.
-- Astronomiekern erweitert um zusÃ¤tzliche SonnenhÃ¶hen-Ereignisse und Countdown zum nÃ¤chsten Neu-/Vollmond.
-- Neuer Regressionstest schÃ¼tzt Nachtpiktogramme, HÃ¶henwetter-Tag/Nacht-Bezug, kompakte Mondanzeige und das Astronomie-Popover.
-
-# MID v0.8.12.0
-
-- Wassersportmodul sprachlich auf â€žWassersportâ€œ verkÃ¼rzt; Favoritenprofil, Schnellzugriff und Modulkopf verwenden nun dieselbe Bezeichnung.
-- Neuer standardmÃ¤ÃŸig eingeklappter â€žWasserwetter-Verlaufâ€œ analog zur HÃ¶henwetter-Matrix: umschaltbar zwischen 1- und 3-Stunden-AuflÃ¶sung, mit aufklappbaren nÃ¤chsten drei Tagen und Tageslichtfenstern.
-- Der Verlauf zeigt Wetter, Luft-/gefÃ¼hlte Temperatur, Wind/BÃ¶en, Niederschlag, Sicht sowie Gewitter/UVI; an geeigneten Meeresstandorten zusÃ¤tzlich Welle/Richtung, Wellenperiode, Wassertemperatur, StrÃ¶mung und modellierten Wasserstand.
-- Automatische Bergsaison korrigiert: AuÃŸerhalb der klassischen Skisaison wird im Automatikmodus konsequent â€žSommerâ€œ gewÃ¤hlt; einzelne Restschnee- oder Neuschneesignalwerte erzwingen dann kein Winterprofil mehr.
-- Neuer Regressionstest schÃ¼tzt Wasserwetter-Verlauf, eingeklappten Startzustand, Wassersport-Wording und die saisonale Sommerwahl.
-
-# MID v0.8.10.2
-
-- Aktuelle Sonnenscheindauer wird in der Wetterkachel konsequent als Minutenwert je ausgewiesenem Stundenfenster dargestellt: beispielsweise â€ž60 minâ€œ statt â€ž1 hâ€œ.
-- Die Anzeige bleibt auf die tatsÃ¤chlich abgedeckte Zeitspanne und grundsÃ¤tzlich auf hÃ¶chstens 60 Minuten begrenzt; bei nur 45 Minuten Datenabdeckung kÃ¶nnen daher maximal 45 min erscheinen.
-- Tages- und Ensembleangaben bleiben weiterhin in Stunden, da dort mehrstÃ¼ndige beziehungsweise tÃ¤gliche Summen dargestellt werden.
-- Neuer Regressionstest schÃ¼tzt Minutenformat, Stundenobergrenze und die Verwendung der aggregierten 60-Minuten-Auswertung in der aktuellen Wetterkachel.
-
-# MID v0.8.10.1
-
-- Aktuelle Sonnenscheindauer korrigiert: Die 60-Minuten-Auswertung verwendet jetzt exakt die letzten vier 15-Minuten-Intervalle statt durch die inklusive Zeitgrenze versehentlich fÃ¼nf Werte zu summieren. Eine Anzeige wie â€ž1 h 15 min in den letzten 60 Minutenâ€œ ist damit ausgeschlossen.
-- Jedes 15-Minuten-Intervall wird zusÃ¤tzlich auf hÃ¶chstens 900 Sekunden Sonnenschein begrenzt; auch Current- und Stunden-Fallback kÃ¶nnen den ausgewiesenen Zeitraum nicht mehr Ã¼berschreiten.
-- Volle 60 Minuten werden kompakt als â€ž1 hâ€œ statt â€ž1 h 00 minâ€œ dargestellt.
-- Neuer Regressionstest schÃ¼tzt Intervallzahl, physikalische Obergrenze und Ausgabeformat.
-
-# MID v0.8.10.0
-
-- Mobile Favoritennavigation ergÃ¤nzt: Eine deutliche Wischgeste vom linken beziehungsweise rechten Bildschirmrand zur Mitte Ã¶ffnet den vorherigen beziehungsweise nÃ¤chsten Favoriten. Die Gesten sind ausschlieÃŸlich in der Appansicht aktiv und bleiben im Einstellungsdialog gesperrt.
-- Favoritenwechsel auf MobilgerÃ¤ten und per Desktop-Klick bewahren nun die aktuelle Ansicht: MID merkt sich den sichtbaren Modul-/Sektionsanker, die relative Bildschirmposition und den ausgewÃ¤hlten Prognosetag. Dadurch bleibt beispielsweise das Tagesdetaildiagramm beim Ortswechsel geÃ¶ffnet und im Sichtbereich.
-- Aktuelle Sonnenscheindauer korrigiert: Statt das einzelne 15-Minuten-Current-Intervall fÃ¤lschlich als letzte Stunde auszugeben, summiert MID bis zu vier echte 15-Minuten-Werte zu einem gleitenden 60-Minuten-Fenster. Der Zeitraum und die Zahl der Intervalle werden transparent ausgewiesen.
-- Die aktuelle Viertelstunde der Sonnenscheindauer erhÃ¤lt bei Ã¼bereinstimmend dichter lokaler und modellierter BewÃ¶lkung einen vorsichtigen PlausibilitÃ¤tscheck; Ã¤ltere Viertelstunden des 60-Minuten-Fensters bleiben unverÃ¤ndert.
-- Neuer Regressionstest schÃ¼tzt Rand-Wischgesten, Ansichts-/Tageserhalt, die 60-Minuten-Sonnenscheinaggregation und den lokalen BewÃ¶lkungsabgleich.
-
-# MID v0.8.9.0
-
-- Berg-/Wintersport-HÃ¶henwetter farblich aufgewertet: Wind-/BÃ¶enzellen erhalten ab den bestehenden DWD-nahen Schwellen dezente, textkontrastschonende Warnstufen-HintergrÃ¼nde; Niederschlagszellen reichen von blassem Blau bei geringen Mengen bis zu dunkelblau mit weiÃŸer Schrift bei hÃ¶heren Intervallsummen.
-- Wolkenbasis eindeutig referenziert: Die HÃ¶henmatrix zeigt die Untergrenze in Meter Ã¼ber NHN und zusÃ¤tzlich relativ Ã¼ber dem jeweiligen Tal-/Mittel-/Bergniveau. Unterschiede zwischen HÃ¶henzonen werden als Ergebnis getrennter Punktprognosen und Vertikalprofile erklÃ¤rt.
-- Wolkenschicht- und SichtplausibilitÃ¤t ergÃ¤nzt: MID lÃ¤dt begrenzte Druckniveau-Wolken- und Geopotentialprofile, erkennt Schichten mit mehr als 5/8 Bedeckung und stuft die Sicht innerhalb einer solchen Schicht konservativ als stark reduziert ein. Diese Korrektur flieÃŸt auch in die HÃ¶henzonenbewertung ein.
-- Neuer Regressionstest schÃ¼tzt Windwarnfarben, NiederschlagsintensitÃ¤tsfarben, NHN-/Grundbezug und Wolkenschicht-SichtprÃ¼fung.
-
-# MID v0.8.8.1
-
-- Szenariocluster: Temperaturdifferenzen gegenÃ¼ber Referenzszenario A werden physikalisch korrekt in Kelvin (K) statt in Grad Celsius beziehungsweise mit Gradzeichen ausgewiesen.
-- Absolute Temperaturwerte und Temperaturspannen bleiben weiterhin in Grad Celsius (Â°C).
-- Neuer Regressionstest schÃ¼tzt die saubere Trennung zwischen absoluten Temperaturen in Â°C und Temperaturabweichungen in K.
-
-# MID v0.8.8.0
-
-- Berg-/Wintersport um einen kompakten HÃ¶henwetter-Verlauf erweitert: FÃ¼r Tal-, Mittel- und Bergzone werden Wetter, Temperatur, Sicht, Wolkenuntergrenze, Wind/BÃ¶en, Niederschlag und Schneefallgrenze im Tagesverlauf dargestellt. Die AuflÃ¶sung ist zwischen 1 Stunde und 3 Stunden umschaltbar; die nÃ¤chsten drei Tage lassen sich bei Bedarf aufklappen.
-- Die bisherige einfache Bergprognose wurde durch die hÃ¶henzonierte Vergleichsmatrix ersetzt. Bei 3-Stunden-AuflÃ¶sung werden Niederschlags- und Schneemengen je Intervall summiert; alle Ã¼brigen Parameter bleiben zeitpunktbezogen und kompakt vergleichbar.
-- Saison- und Profilstatus im Bergmodul sprachlich und rÃ¤umlich getrennt: Statt zusammengeschriebenem â€žWinterAutomatisch Â· hohe Sicherheitâ€œ erscheint nun beispielsweise â€žWinter Â· Saison automatisch erkannt Â· Profil automatisch abgeleitet Â· hohe Sicherheitâ€œ.
-- Szenariocluster vollstÃ¤ndig neu visualisiert: Statt blauer NiederschlagssÃ¤ulen zeigt jede Variante nun sieben Tageskarten mit Temperaturspanne, Niederschlagsmenge und BÃ¶enspitze. Ab Szenario B werden die konkreten Tagesabweichungen gegenÃ¼ber Szenario A direkt ausgewiesen und farblich nach nasser, trockener, wÃ¤rmer, kÃ¼hler oder windiger unterschieden.
-- Neuer Regressionstest schÃ¼tzt HÃ¶henwetter-Matrix, AuflÃ¶sungsumschalter, Drei-Tage-Erweiterung, Profilwording und den neuen siebentÃ¤gigen Szenariovergleich.
-
-# MID v0.8.7.4
-
-- Berg-/Wintersport: Die Analyse nach HÃ¶henzone bewertet nun ausschlieÃŸlich das Tageslichtfenster von Sonnenaufgang bis Sonnenuntergang des laufenden Tages. Nach Sonnenuntergang wird automatisch der Folgetag ausgewertet und deutlich als â€žMorgenâ€œ gekennzeichnet.
-- HÃ¶henzonenanalyse um einen gestuften Tagesverlauf erweitert: MID ermittelt stundenweise die gÃ¼nstigste HÃ¶henzone und beschreibt relevante Wechsel, etwa eine gÃ¼nstigere Hochlage bis zum Nachmittag und anschlieÃŸend bessere Bedingungen im Tal wegen Niederschlag, Sichtverschlechterung, BÃ¶en oder Gewitterrisiko.
-- Gewitterpotenzial und UVI im Bergmodul werden nicht mehr aus dem gesamten 72-Stunden-Zeitraum gebildet, sondern nur aus dem tatsÃ¤chlich bewerteten Tageslichtfenster. Ein erst Ã¼bermorgen erwartetes Gewitter beeinflusst damit die heutige oder morgige HÃ¶henzonenanalyse nicht mehr.
-- Neuer Regressionstest schÃ¼tzt Tageslichtfenster, Folgetagswechsel, gestufte HÃ¶henzonen und die tagesbezogene Gewitterauswertung.
-
-# MID v0.8.7.3
-
-- Desktop-Hovertext fÃ¼r die niedrigste Gewitterstufe sprachlich korrigiert: Statt â€žGewitter: Einfaches Gewitterâ€œ erscheint nun schlicht â€žGewitterâ€œ.
-- HÃ¶here Gewitterstufen bleiben weiterhin als â€žStarkes Gewitterâ€œ, â€žSchweres Gewitterâ€œ bzw. â€žExtremes Gewitterâ€œ differenziert.
-- Neuer Regressionstest schÃ¼tzt das Wording der niedrigsten Gewitterstufe.
-
-# MID v0.8.7.2
-
-- Szenariocluster sprachlich prÃ¤zisiert: Die bisher unklare Bezeichnung â€žabweichende zeitliche Verteilungâ€œ wurde entfernt. MID benennt nun konkret, worin die zeitliche Abweichung besteht, zum Beispiel â€žNiederschlagsschwerpunkt am Montag statt am Freitagâ€œ, â€žmehr Niederschlag am Sonntagâ€œ, â€žwÃ¤rmer am Donnerstagâ€œ oder â€žwindiger am Samstagâ€œ.
-- Die konkrete Beschreibung wird aus dem stÃ¤rksten Unterschied der TagesverlÃ¤ufe gegenÃ¼ber dem fÃ¼hrenden Szenario abgeleitet; identische generische Szenariobezeichnungen werden dadurch ebenfalls vermieden.
-- Neuer Regressionstest schÃ¼tzt die konkrete parameter- und wochentagsbezogene Szenariobeschreibung.
-
-# MID v0.8.7.1
-
-- Ensemble-Szenariocluster transparenter gemacht: FÃ¼r jede vertretene Modellfamilie zeigt MID nun, wie viele ihrer Mitglieder dem jeweiligen Szenario zugeordnet sind und welchem Anteil innerhalb dieser Modellfamilie das entspricht. Dadurch ist nachvollziehbar, warum beispielsweise ICON EPS Seamless gleichzeitig in mehreren Szenarien vorkommen kann.
-- Szenariobezeichnungen nachgeschÃ¤rft: Szenario B/C werden relativ zum fÃ¼hrenden Szenario beschrieben; doppelte Beschriftungen wie mehrfach â€žnahe am Ensemble-Schwerpunktâ€œ werden vermieden.
-- Divergenzerkennung robuster eingestellt: Der heutige, bereits teilweise abgelaufene Tag lÃ¶st keine normale Trennung mehr aus. Eine markante Divergenz wird frÃ¼hestens ab morgen bei mindestens zwei aufeinanderfolgenden auffÃ¤lligen Tagen oder ausnahmsweise bei einer auÃŸergewÃ¶hnlich starken eintÃ¤gigen Abweichung ausgewiesen. Temperatur, Tagesniederschlag und BÃ¶en flieÃŸen gemeinsam ein.
-- Ensemblecache auf Generation v7 angehoben, damit Ã¤ltere Szenariodaten ohne Modellfamilienanteile oder mit der frÃ¼heren empfindlichen Divergenzlogik nicht weiterverwendet werden.
-- Neuer Regressionstest schÃ¼tzt Modellfamilienanteile, eindeutige Szenariolabels und die robuste zukÃ¼nftige Divergenzerkennung.
-
-# MID v0.8.7.0
-
-- â€žLokaler Standortfingerabdruckâ€œ in â€žLokales Standortprofilâ€œ umbenannt und als standardmÃ¤ÃŸig eingeklappte, persistente Detailsektion neu gestaltet. Im geschlossenen Zustand bleiben GelÃ¤ndeform, Exposition, Kaltluft-, Nebel- und GewÃ¤ssereinfluss direkt ablesbar; zum Bearbeiten wird die Sektion wie bisher aufgeklappt.
-- Vorbereitung fÃ¼r native Apple-Widgets und watchOS-Komplikationen ergÃ¤nzt: stabiler Worker-Datenfeed `mid.native.widget.v1`, prÃ¼f- und kopierbare Feed-Adresse unter â€žDaten & Synchronisationâ€œ, kompakter 12-Stunden-/5-Tage-Datenvertrag sowie SF-Symbol-Zuordnung.
-- Native WidgetKit-Grundstruktur fÃ¼r iOS, iPadOS und watchOS hinzugefÃ¼gt, einschlieÃŸlich Swift-`Codable`-Modell, `AppIntentTimelineProvider` und Vorlagen fÃ¼r Home-Screen-, Lock-Screen-, Smart-Stack- und Komplikationsfamilien.
-- Neuer Regressionstest schÃ¼tzt Standortprofil-Zusammenfassung, Worker-Feed, Apple-Widgetfamilien und das native StartgerÃ¼st.
-
-# MID v0.8.6.2
-
-- Ensemble-Szenariocluster: Die sichtbaren Szenarioanteile werden nun gemeinsam nach dem grÃ¶ÃŸten-Rest-Verfahren gerundet und ergeben deshalb immer exakt 100 %. Einzelnes kaufmÃ¤nnisches Runden konnte zuvor wie im Screenshot 42 % + 39 % + 20 % = 101 % erzeugen.
-- Die Prozentwerte werden vor der Rundung auf die tatsÃ¤chlich dargestellten zwei oder drei Szenarien normalisiert; ausgeblendete statistische Restcluster verfÃ¤lschen die sichtbare Summe damit nicht.
-- ErklÃ¤rung und Tooltip weisen jetzt ausdrÃ¼cklich darauf hin, dass es sich um relative, gemeinsam gerundete Ensembleanteile und nicht um amtliche Eintrittswahrscheinlichkeiten handelt.
-- Neuer funktionaler Regressionstest schÃ¼tzt die exakte 100-%-Summe auch bei Drittelverteilungen, Nullwerten und nicht ganzzahlig summierenden Rohanteilen.
-
-# MID v0.8.6.1
-
-- Open-Meteo-Upstream-PrÃ¼fung erweitert: Relevante, verifizierte Ã„nderungen sollen kÃ¼nftig automatisch in den nÃ¤chsten MID-Entwicklungsstand Ã¼bernommen werden; unsichere oder inkompatible Ã„nderungen bleiben bis zur fachlichen Verifikation unangetastet.
-- PersÃ¶nlicher Entscheidungszwilling wird im RÃ¼ckblickmodul vollstÃ¤ndig ausgeblendet, solange â€žPersÃ¶nliche Empfehlungenâ€œ in den Einstellungen deaktiviert ist. Die AktivitÃ¤tsbezeichnung â€žDrauÃŸenaktivitÃ¤tâ€œ wurde appweit durch â€žOutdoorâ€œ ersetzt.
-- Direkte DatenÃ¼bernahme von Netatmo, Standard-JSON und anderen privaten Wetterstationen bis auf Weiteres vollstÃ¤ndig deaktiviert. Bestehende Konfigurationen bleiben fÃ¼r eine spÃ¤tere Reaktivierung erhalten, werden aber weder abgefragt noch in â€žAktuelles Wetterâ€œ oder das Lernarchiv Ã¼bernommen.
-- Harte technische Sperren verhindern Stationsabrufe, OAuth-Starts und private Sensorarchivierung; bei deaktivierter Funktion wird auch kein periodischer Stations-Timer mehr gestartet.
-- Neuer Regressionstest schÃ¼tzt bedingte Anzeige des Entscheidungszwillings, Outdoor-Wording und die vollstÃ¤ndige Stationssperre.
-
-# MID v0.8.6.0
-
-- Lokale MID-Prognose erhÃ¤lt eine explizite QualitÃ¤tsfreigabe: Sie wird erst nach mindestens sechs abgeschlossenen Kontrolltagen, mindestens zwei Modellfamilien, zwei belastbaren aktuellen Prognosetagen und einem mindestens gleichwertigen Vergleich mit Open-Meteo Best Match als Hauptprognose zugelassen.
-- Ist die QualitÃ¤tsfreigabe erreicht und die Hauptprognose noch nicht aktiviert, erscheint im Dashboard sowie im Modul â€žPrognosegÃ¼te und RÃ¼ckblickâ€œ ein direktes Aktivierungsangebot.
-- Aktivierte lokale Prognosen werden eindeutig als â€žMID Wetterzwilling Â· lokal gewichteter Modellmixâ€œ gekennzeichnet. ZusÃ¤tzlich zeigt MID das fÃ¼hrende Modell als Schwerpunkt mit seinem aktuellen Gewichtsanteil; Best Match bleibt ausdrÃ¼cklich die unverÃ¤nderte Kontrollgruppe.
-- Eine vorzeitig in den Einstellungen aktivierte Hauptprognose wird nur vorgemerkt und erst nach der QualitÃ¤tsfreigabe tatsÃ¤chlich angewendet.
-- Neuer Regressionstest schÃ¼tzt QualitÃ¤tsfreigabe, Aktivierungsangebot, Modellmix-Kennzeichnung und den Best-Match-Kontrollschutz.
-
-# MID v0.8.5.0
-
-- GerÃ¤teÃ¼bergreifende Synchronisation erweitert: Neben dem kompakten `localStorage`-Stand wird nun das vollstÃ¤ndige Wetterzwilling-Langzeitarchiv aus IndexedDB mit sÃ¤mtlichen Prognosesnapshots, Beobachtungen und RÃ¼ckblicken exportiert, im Browser per AES-GCM verschlÃ¼sselt, in begrenzte Archivteile zerlegt und Ã¼ber den bestehenden Cloudflare-KV-GerÃ¤teverbund gesichert.
-- Beim Abruf auf einem weiteren GerÃ¤t wird das vollstÃ¤ndige Langzeitarchiv entschlÃ¼sselt und verlustfrei mit dem dortigen lokalen Archiv zusammengefÃ¼hrt. Kein GerÃ¤t Ã¼berschreibt dabei Ã¤ltere oder zusÃ¤tzliche LernfÃ¤lle eines anderen GerÃ¤ts; der zusammengefÃ¼hrte Stand wird anschlieÃŸend wieder verschlÃ¼sselt gesichert.
-- Der Synchronisationsstatus zeigt nun gesondert Zeitpunkt, Standortzahl und Datensatzumfang des vollstÃ¤ndigen Wetterzwilling-Archivs. Manuelle Synchronisation umfasst Einstellungen und Langzeitarchiv; automatische Abgleiche Ã¼bertragen das Archiv nur bei einem neueren Datenstand.
-- Worker um atomare, segmentierte Archivablage mit Manifest, 180-Tage-Aufbewahrung und Bereinigung der vorherigen Archivgeneration erweitert. Es ist weiterhin kein zusÃ¤tzliches Cloudflare-Binding erforderlich; das vorhandene `MID_PUSH_SUBSCRIPTIONS`-KV wird genutzt.
-- Netatmo-Einrichtungsdiagnose verbessert: MID zeigt nun konkret an, welche Worker-Bindings oder Secrets fehlen, deaktiviert den OAuth-Start bis zur vollstÃ¤ndigen Konfiguration und erlÃ¤utert die notwendigen Schritte direkt im Einstellungsbereich.
-- Neuer funktionaler Regressionstest schÃ¼tzt Vollarchiv-Export/-Import, verschlÃ¼sselte SegmentÃ¼bertragung, Worker-Manifest, Abruf einzelner Archivteile und die Netatmo-Konfigurationsdiagnose.
-
-# MID v0.8.4.0
-
-- Lokaler Wetterzwilling lernt beim Ã–ffnen beziehungsweise Wieder-Sichtbarwerden der App nun standardmÃ¤ÃŸig fÃ¼r sÃ¤mtliche gespeicherten Favoriten und nicht mehr nur fÃ¼r den gerade angezeigten Standort. Die Favoriten werden ressourcenschonend nacheinander verarbeitet; identische Standorte werden entdoppelt, der aktive Ort wird nicht doppelt geladen und jeder Favorit wird hÃ¶chstens einmal innerhalb von sechs Stunden erneut abgerufen.
-- FÃ¼r jeden fÃ¤lligen Favoriten werden Best-Match- und Ensembleprognosen archiviert sowie abgeschlossene RÃ¼ckblicke nachgefÃ¼hrt. VorÃ¼bergehende Fehler eines Ortes blockieren die Ã¼brige Warteschlange nicht; abgebrochene LÃ¤ufe werden beim nÃ¤chsten Ã–ffnen erneut aufgenommen.
-- Neuer Wetterzwilling-Schalter â€žAlle Favoriten beim Ã–ffnen nachfÃ¼hrenâ€œ mit sichtbarem Laufstatus und Zeitstempel. Die Funktion ist standardmÃ¤ÃŸig aktiv, kann aber unabhÃ¤ngig vom eigentlichen Wetterzwilling deaktiviert werden.
-- EinstellungsmenÃ¼ neu geordnet: Ansicht, Farbdesign und Einheiten sind in â€žAnsicht & Einheitenâ€œ gebÃ¼ndelt; â€žLokaler Wetterzwillingâ€œ, â€žDaten & Synchronisationâ€œ sowie â€žSystem & Updatesâ€œ besitzen eigenstÃ¤ndige, intuitiv auffindbare Bereiche. Favoriten heiÃŸen nun â€žFavoriten & Profileâ€œ.
-- GerÃ¤tespezifische Favoritenlauf- und Cooldown-ZustÃ¤nde sind von der GerÃ¤te-Synchronisation ausgeschlossen; die eigentlichen Prognosearchive und Lernprofile bleiben synchronisierbar.
-- Neuer Regressionstest schÃ¼tzt das Favoritenlernen, die Drosselung, die getrennte Einstellungsnavigation und den Ausschluss technischer LaufzustÃ¤nde aus dem GerÃ¤teabgleich.
-
-# MID v0.8.3.0
-
-- Eigene vernetzte Wetterstationen reaktiviert und automatisierbar umgesetzt: Netatmo kann Ã¼ber den offiziellen OAuth-Zugriff mit reinem Stations-Leserecht verbunden, eine Station samt AuÃŸenmodul ausgewÃ¤hlt und regelmÃ¤ÃŸig in MID Ã¼bernommen werden.
-- AnbieterÃ¼bergreifender Standard-JSON-Adapter ergÃ¤nzt. Damit kÃ¶nnen unter anderem Home-Assistant-, Ecowitt-, WeatherLink- oder vergleichbare Bridges Ã¼ber einen HTTPS-Endpunkt Stationswerte an MID bereitstellen.
-- Ãœbernommene Eigenmessungen durchlaufen eine feldweise PlausibilitÃ¤tsprÃ¼fung auf Alter, Standortdistanz, meteorologische Wertebereiche, Abweichung zur Referenzanalyse sowie Wind-/BÃ¶enkonsistenz. Unplausible Einzelfelder werden verworfen; plausible Werte bleiben nutzbar.
-- Plausible Stationswerte ergÃ¤nzen â€žAktuelles Wetterâ€œ und werden mit eigener Quellenkennzeichnung in das Lernarchiv des lokalen Wetterzwillings aufgenommen. Amtliche, analysierte und modellbasierte Referenzen bleiben getrennt nachvollziehbar.
-- Netatmo-Zugriffstoken werden im Worker AES-GCM-verschlÃ¼sselt gespeichert; lokale StationszugÃ¤nge und Bearer-Token sind von der gerÃ¤teÃ¼bergreifenden Synchronisation ausgeschlossen.
-- Neue Worker-Routen fÃ¼r OAuth-Start, Callback, Status, Beobachtungsabruf und Trennung sowie neuer funktionaler Regressionstest fÃ¼r Netatmo und Standard-JSON.
-
-# MID v0.8.2.2
-
-- Ensemble-Szenariocluster sprachlich korrigiert: Bei genau einer beteiligten Modellfamilie steht nun â€ž1 Modellfamilieâ€œ, bei mehreren weiterhin â€žModellfamilienâ€œ. Die gleiche Singular-/Plural-Logik gilt fÃ¼r die Zusammenfassung der aktiven Modellfamilien.
-- Eigene Sensoren bis auf Weiteres vollstÃ¤ndig deaktiviert: Eingabefelder und automatischer Abruf wurden aus dem RÃ¼ckblickmodul entfernt; zusÃ¤tzlich blockiert der Lernkern sowohl manuelle als auch automatische private SensorÃ¼bernahmen. Die Implementierung bleibt stillgelegt fÃ¼r eine spÃ¤tere belastbare Automatisierung erhalten.
-- KPI zur Regenwahrscheinlichkeit eindeutig umbenannt: â€žGÃ¼te der Regenwahrscheinlichkeitâ€œ bezeichnet nun ausdrÃ¼cklich die historische KalibrierungsqualitÃ¤t der Best-Match-Wahrscheinlichkeiten und nicht die aktuelle Regenwahrscheinlichkeit. Der zugehÃ¶rige Brier-Score wird direkt angezeigt und erlÃ¤utert.
-- Neuer Regressionstest schÃ¼tzt Modellfamilien-Wording, die technische Sensor-Deaktivierung und die eindeutige Regenwahrscheinlichkeits-KPI.
-
-# MID v0.8.2.1
-
-- Release-Paketierung korrigiert: Das vorherige ZIP war inkrementell aktualisiert worden und enthielt dadurch neben dem aktuellen Regressionstest noch die veraltete Datei `test-scenario-settings-regime-0820.mjs` sowie Ã¤ltere QuellstÃ¤nde. GitHub fÃ¼hrte deshalb 108 statt 107 Tests aus; der obsolete Test schlug erwartungsgemÃ¤ÃŸ fehl.
-- Das Professional-Replacement wird nun als vollstÃ¤ndig neu erzeugtes Archiv ausgegeben. GelÃ¶schte oder umbenannte Dateien kÃ¶nnen damit nicht mehr aus einer VorgÃ¤ngerversion im ZIP verbleiben.
-- Neuer Regressionstest schÃ¼tzt die Release-Sauberkeit und erkennt den veralteten Szenario-/Regime-Test ausdrÃ¼cklich. Die funktionalen Korrekturen aus v0.8.2.0 zu Szenarioclustern, Dauerregenklassifikation und zentralen Wetterzwilling-Einstellungen bleiben vollstÃ¤ndig erhalten.
-
-# MID v0.8.2.0
-
-- Ensemble-Szenariocluster fachlich und visuell Ã¼berarbeitet: Die fÃ¼hrende Karte verwendet keine globale PrimÃ¤rbutton-Klasse mehr, wodurch alle Texte auch im hellen Design lesbar bleiben. Temperaturspanne, FÃ¼nf-Tage-Niederschlag und BÃ¶enspitze werden nun getrennt ausgewiesen; die Balken sind ausdrÃ¼cklich als Tagesniederschlag beschriftet.
-- Isolierte, statistisch unplausible NiederschlagsausreiÃŸer einzelner Ensemblefamilien werden mit einer robusten Median-/MAD-PrÃ¼fung vor der Szenarioclusterung entfernt. Der Ensemblecache wurde deshalb auf Generation v6 angehoben.
-- Wetterlagenklassifikation korrigiert: Eine Tagesmenge von 5 mm fÃ¼hrt nicht mehr pauschal zur â€žDauerregenlageâ€œ. Dauerregen erfordert nun eine mindestens sechsstÃ¼ndige zusammenhÃ¤ngende Regenphase mit relevanter Menge oder eine DWD-nahe hohe Tagesmenge; StundenverlÃ¤ufe werden beim Prognosearchiv und aktuellen RÃ¼ckblick berÃ¼cksichtigt. Alte gespeicherte Referenzklassifikationen werden neu bewertet.
-- Globale Wetterzwilling-Schalter fÃ¼r Hauptprognose, Nowcast-Assimilation, Bias-Korrektur, Wahrscheinlichkeitskalibrierung und persÃ¶nliche Empfehlungen wurden zentral unter Einstellungen â†’ MID-System zusammengefÃ¼hrt. Das RÃ¼ckblicksmodul zeigt nur noch den Betriebsstatus; standortbezogene Profile und AktivitÃ¤tsprofile bleiben dort editierbar.
-- Neuer Regressionstest schÃ¼tzt SzenarioplausibilitÃ¤t, Kennwertdarstellung, Dauerregenklassifikation und die zentrale Einstellungsstruktur.
-
-# MID v0.8.1.0
-
-- Starre 58-%-Grenze der lokalen Modellgewichtung durch eine adaptive, vertrauensabhÃ¤ngige Obergrenze ersetzt. Die zulÃ¤ssige Dominanz eines Modells richtet sich nun nach globaler und wetterlagen-/horizontspezifischer Stichprobe sowie dem echten Kontrollvergleich von â€žMID lokal gewichtetâ€œ gegen Best Match.
-- Adaptive Schutzstaffel eingefÃ¼hrt: in frÃ¼her Lernphase typischerweise 48â€“54 %, bei wachsender Evidenz 56â€“62 % und nur bei ausreichend belegter, nachgewiesener Verbesserung maximal 65 %. Bei negativer KontrollgÃ¼te wird die Grenze automatisch wieder abgesenkt.
-- Parametergewichte fÃ¼r Temperatur, Niederschlag, Wahrscheinlichkeit, BÃ¶en und Sonnenschein erhalten zusÃ¤tzlich eigene, von der jeweiligen Stichprobe abhÃ¤ngige Obergrenzen. Die aktuell wirksame Grenze, Vertrauensstufe und KontrollgÃ¼te werden in der PrognoseerklÃ¤rung ausgewiesen.
-- Standortfingerabdruck grundlegend verbessert: MID kombiniert Orts-/POI-Metadaten mit einem 17-Punkte-DEM-HÃ¶henprofil im 10-km-Umfeld und leitet daraus GelÃ¤ndeform, Exposition, Kaltluftsenken-, Nebel- und GewÃ¤ssereinfluss ab.
-- Die Vorauswahl bleibt vollstÃ¤ndig editierbar. Ein neuer Schalter â€žNeu ableitenâ€œ beziehungsweise â€žAutomatik wiederherstellenâ€œ verwirft bei Bedarf manuelle Ã„nderungen und berechnet das Profil erneut. Die AbleitungsgrÃ¼nde sowie DEM-Relief und relative HÃ¶henlage werden transparent angezeigt.
-- Neuer Regressionstest schÃ¼tzt adaptive Gewichtsobergrenzen, Kontrollgruppenbezug, parameterbezogene Grenzen, DEM-/Metadatenableitung und die editierbare RÃ¼ckkehr zur Automatik.
-
-# MID v0.8.0.1
-
-- Umfassendes Audit sÃ¤mtlicher mit v0.8.0 eingefÃ¼hrter Wetterzwilling-Funktionen durchgefÃ¼hrt und dabei Einheiten-, Herkunfts-, Zeit- und Archivfehler korrigiert.
-- RÃ¤umliche Umfeldanalyse korrigiert: Stationsentfernungen werden zuverlÃ¤ssig von Metern in Kilometer umgerechnet; bereits gespeicherte fehlerhafte v0.8.0-Werte werden automatisch migriert. Unrealistische Entfernungen werden nicht mehr als regulÃ¤re Referenz angezeigt.
-- Echozugdarstellung abgesichert: Eine Richtung von 0Â° wird nur noch bei tatsÃ¤chlich belastbarer Bewegung ausgegeben; sonst erscheint ein klarer Hinweis. QualitÃ¤tsstufen werden vollstÃ¤ndig deutsch dargestellt.
-- Beobachtungswahrheit bereinigt: Stations-, Radar- und Modellwerte bleiben getrennte Quellen; Radar und Station werden bei der Tagesmenge nicht mehr doppelt gezÃ¤hlt. Hyperlokale Restfeld- und Stationsmittelanalysen werden korrekt als analysiert statt als direkt gemessen gekennzeichnet.
-- Zeitzonen- und Tagesgrenzen korrigiert: Prognosehorizonte, Tagesabschluss, Sensorwerte, RÃ¼ckblicke und persÃ¶nliche Zeitfenster verwenden nun konsequent die Zeitzone des Standorts.
-- Prognosearchiv robuster gemacht: IndexedDB und lokaler Speicher werden verlustfrei zusammengefÃ¼hrt, SchreibvorgÃ¤nge serialisiert und Ã¤ltere fehlerhafte Archivdaten migriert.
-- Lernlogik gegen Scheingenauigkeit abgesichert: Mindestzahl unabhÃ¤ngiger Tage, gedeckelte Modellgewichte, getrennte Parameterfreigaben und keine vorzeitige Ausweisung eines Modellsiegers.
-- Ensemble-Szenarien widerstandsfÃ¤higer gemacht: optionale BÃ¶en-/Sonnenscheinfelder kÃ¶nnen fehlen, ohne ganze Modelle oder Cluster unbrauchbar zu machen; entsprechende API-Abfragen besitzen einen reduzierten Fallback.
-- Berg-/Wintersportanalyse nach HÃ¶henzone gegen fehlende Werte und NaN-Scores abgesichert; Zeitfenster enden nun am Ende der letzten ausgewerteten Stunde.
-- Hintergrundlernen vervollstÃ¤ndigt: Archivwiederherstellung und RÃ¼ckblicksaktualisierung funktionieren auch, wenn das PrognosegÃ¼te-Modul nicht geÃ¶ffnet wird.
-- Neuer Wetterzwilling-Audit-Test schÃ¼tzt Einheiten, Quellenherkunft, Zeitzonen, Lernfreigaben, Assimilation, Szenarien und HÃ¶henzonen.
-
-# MID v0.8.0
-
-- Lokaler Wetterzwilling Stufe 1 â€“ Wahrheits-, Standort- und Archivkern: UnverÃ¤nderliche Prognosesnapshots, unabhÃ¤ngige Beobachtungshierarchie aus Messung, Radar/Analyse, ERA5-Land-Reanalyse und gekennzeichnetem Modell-Fallback; QuellenqualitÃ¤t, Vertrauen und Abdeckung werden mitgefÃ¼hrt. Langzeitspiegel in IndexedDB und Migration bestehender RÃ¼ckblicksdaten ergÃ¤nzt.
-- Dauerhafter Standortfingerabdruck je Favorit mit GelÃ¤ndeform, Exposition, Kaltluft-, Nebel- und GewÃ¤ssereinfluss. Eine rÃ¤umliche Umfeldanalyse macht Stationsdistanz, Echozugrichtung und Standortwirkung sichtbar.
-- Wetterzwilling-Archive und Profile bleiben Ã¼ber die vorhandene verschlÃ¼sselte GerÃ¤tesynchronisation Ã¼bertragbar.
-- Lokaler Wetterzwilling Stufe 2 â€“ Lernkern: PrognosegÃ¼te getrennt nach Temperatur, Niederschlag, Regenwahrscheinlichkeit, BÃ¶en und Sonnenschein sowie nach Wetterlage und +12/+24/+48/+72 Stunden. Lokale Bias-Korrektur, Brier-Score, Wahrscheinlichkeitskalibrierung, Regularisierung, Mindeststichproben und Vertrauensstufen schÃ¼tzen vor Ãœberanpassung.
-- Kontrollgruppen integriert: Open-Meteo Best Match, einfaches Multimodellmittel und MID lokal gewichtet werden parallel archiviert und nachtrÃ¤glich objektiv verglichen. Modellgewichte werden je Parameter, Wetterlage und Horizont berechnet und begrenzt.
-- Lokaler Wetterzwilling Stufe 3 â€“ aktiver Zwilling: Die lokal gelernte Vorhersage ist in den Einstellungen als Hauptprognose aktivierbar. Ohne ausreichende Datenbasis bleibt unverÃ¤ndert Best Match aktiv. FÃ¼r die ersten Stunden kÃ¶nnen Radar-/Nowcast-Signale nachvollziehbar assimiliert werden; Rohprognosen bleiben unverÃ¤ndert im Archiv.
-- Lokaler Wetterzwilling Stufe 4 â€“ persÃ¶nlicher Entscheidungszwilling: AktivitÃ¤tsprofile fÃ¼r Arbeitsweg, DrauÃŸenaktivitÃ¤ten, Garten, Rudern, Hundespaziergang, Berg-/Wintersport und Hitzeschutz. MID ermittelt geeignete Zeitfenster, nennt Auswirkungen und Unsicherheit und lernt Ã¼ber hilfreiche/nicht passende RÃ¼ckmeldungen.
-- Ensemble-Datenbasis fÃ¼r den Lernkern um BÃ¶en und Sonnenscheindauer erweitert. Neue Regression schÃ¼tzt sÃ¤mtliche vier Wetterzwilling-Stufen und die aktive App-Integration.
-
-# MID v0.7.111.1
-
-- GitHub-Produktionsbuild repariert: Zwei durch die neuen Lern-/Szenariofunktionen verbliebene, ungenutzte Funktionsparameter wurden entfernt. Dadurch bestehen `noUnusedLocals` und `noUnusedParameters` wieder ohne TS6133-Abbruch.
-- `currentWeightedForecasts` erhÃ¤lt nur noch die tatsÃ¤chlich verwendeten Prognose-, Ensemble- und Auswertungsdaten; die FunktionalitÃ¤t der lokal gewichteten Prognose bleibt unverÃ¤ndert.
-- Die Ermittlung des ersten Szenario-Divergenztags verwendet keinen ungenutzten Datumsparameter mehr; Ensemble-Szenariocluster bleiben unverÃ¤ndert.
-- ZusÃ¤tzliche CompilerprÃ¼fung Ã¼ber sÃ¤mtliche TS-/TSX-Quelldateien bestÃ¤tigt: keine verbliebenen TS6133-/TS6192-/TS6196-Diagnosen.
-
-# MID v0.7.111.0
-
-- PrognosegÃ¼te zum lokalen Lernsystem ausgebaut: Modellfehler werden getrennt nach Wetterlage sowie +12-, +24-, +48- und +72-Stunden-Horizont bewertet. Die RÃ¼ckblicksreferenz wurde um Wettercode, BÃ¶en und Sonnenscheindauer erweitert, um Hochdruck-, Schauer-, Dauerregen-, Gewitter-, Sturm- und winterliche Lagen zu unterscheiden.
-- Lokal lernende Modellgewichtung umgesetzt: Gewichte werden aus historischen Fehlern je Wetterlage und Vorhersagehorizont mit globaler Regularisierung, Mindeststichprobe und Gewichtsobergrenze abgeleitet. MID speichert die daraus erzeugte Prognose als eigenen Vergleich und weist die nachtrÃ¤glich gemessene Verbesserung oder Verschlechterung gegenÃ¼ber Open-Meteo Best Match aus.
-- Ensemble-Szenariocluster ergÃ¤nzt: vollstÃ¤ndige Ensemble-Mitglieder werden Ã¼ber bis zu sieben Tage nach Temperatur- und Niederschlagsverlauf gruppiert. MID zeigt zwei bis drei gewichtete Szenarien mit Anteil, beteiligten Modellfamilien, Verlaufszusammenfassung und dem ersten markanten Divergenztag.
-- Berg-/Wintersportanalyse nach HÃ¶henzone ergÃ¤nzt: FÃ¼r Tal-, Mittel- und Bergzone werden die nÃ¤chsten Stunden anhand von Temperatur, Wet-Bulb-Temperatur, Sicht, Niederschlag, Gewitterpotenzial und BÃ¶en bewertet. MID nennt die gÃ¼nstigste HÃ¶henzone, das beste Zeitfenster, SchneequalitÃ¤t und relevante EinschrÃ¤nkungen.
-- Bestehende Prognosearchive der v1-Struktur werden verlustarm in das erweiterte v2-Archiv migriert; die Daten bleiben Ã¼ber die vorhandene verschlÃ¼sselte GerÃ¤tesynchronisation Ã¼bertragbar.
-- Neuer Regressionstest schÃ¼tzt Lerngewichtung, Wetterlagen-/Horizontbewertung, Szenariocluster, HÃ¶henzonenanalyse und deren App-/UI-Verdrahtung.
-
-# MID v0.7.110.0
-
-- Modelllauf-Ã„nderungsradar auf die nÃ¤chsten drei Tage fokussiert. Jede erkannte Ã„nderung nennt nun ausdrÃ¼cklich die betroffene Best-Match- oder Ensemble-Modellfamilie; auch die serverseitige Push-PrÃ¼fung verwendet dasselbe Drei-Tage-Fenster.
-- Optionale gerÃ¤teÃ¼bergreifende Synchronisation in den Systemeinstellungen ergÃ¤nzt. Favoriten, Darstellungsoptionen, Spezialprofile und AuswertungsverlÃ¤ufe werden vor dem Upload im Browser mit AES-GCM verschlÃ¼sselt und Ã¼ber einen persÃ¶nlichen Synchronisationscode zwischen MID-GerÃ¤ten abgeglichen.
-- Routenwetter vorlÃ¤ufig aus Dashboard, Einstellungen und aktiver Laufzeit entfernt. Die Quellmodule bleiben ausschlieÃŸlich als stillgelegte Basis fÃ¼r eine spÃ¤tere Reaktivierung erhalten.
-- Im erweiterten Modus das neue Modul â€žPrognosegÃ¼te und RÃ¼ckblickâ€œ ergÃ¤nzt. MID archiviert PrognosestÃ¤nde fÃ¼r die nÃ¤chsten drei Tage, vergleicht abgeschlossene Tage bevorzugt mit der nachtrÃ¤glichen ERA5-Land-Reanalyse und verwendet fÃ¼r noch nicht verfÃ¼gbare Tage einen klar gekennzeichneten Best-Match-RÃ¼ckblick als vorlÃ¤ufige Referenz. Daraus werden Temperaturfehler, Niederschlagsfehler, Brier-Score, lokale Modellrangfolge, tagesbezogene Sieger sowie vorlÃ¤ufige Lerngewichte berechnet.
-- GerÃ¤tesynchronisation im Worker ergÃ¤nzt und der bestehende KV-Speicher wiederverwendet; es sind keine neuen Bindings erforderlich, sofern MID_PUSH_SUBSCRIPTIONS bereits fÃ¼r Push eingerichtet ist.
-- Neue Regression schÃ¼tzt Drei-Tage-Fenster, Modellangaben, verschlÃ¼sselte GerÃ¤tesynchronisation, Routenwetter-Stilllegung und PrognosegÃ¼te.
-
-# MID v0.7.109.2
-
-- Kompositbild: FÃ¼r KONRAD3D-Zellen wird im K3D-/NowCastMIX-Layer nun zusÃ¤tzlich ein Wahrscheinlichkeitskegel der Zugbahn gerendert. Der Kegel nutzt die verfÃ¼gbare Prognoseposition und den Unsicherheitsradius und macht die erwartete Verlagerung wieder direkt auf der Karte sichtbar.
-- Die Zellprognose selbst wird im Overlay wieder klar visualisiert: gestrichelte Prognoselinie, markierter Prognosepunkt sowie ein eigener Overlay-Pane sorgen dafÃ¼r, dass die Darstellung auch Ã¼ber Radar- und Satellitenlayern sichtbar bleibt.
-- Die Legende des Kompositbilds wurde passend ergÃ¤nzt und erlÃ¤utert nun sowohl die Zellprognose als auch den Wahrscheinlichkeitskegel.
-- Neuer Regressionstest schÃ¼tzt Wahrscheinlichkeitskegel, Prognosepunkt, Overlay-Pane und Legendenhinweis.
-
-# MID v0.7.109.1
-
-- Tagesdetaildiagramm im Tablet-Hochformat verbessert: Alle stÃ¼ndlichen Wetterpiktogramme und Windrichtungspfeile bleiben sichtbar.
-- Wetterpiktogramme und Richtungspfeile werden im Tablet-Hochformat abhÃ¤ngig vom verfÃ¼gbaren Stundenabstand kompakter skaliert, damit sich die 24 Stunden nicht Ã¼berdecken.
-- Querformat- und Smartphone-Verhalten bleiben unverÃ¤ndert; ein neuer Regressionstest schÃ¼tzt den zusÃ¤tzlichen Tablet-Hochformatmodus.
-
-# MID v0.7.109.0
-
-- Dezenter, einmaliger Hinweis zur Nutzung als Web-App ergÃ¤nzt. Der Hinweis kann Ã¼ber das X dauerhaft geschlossen werden; die Auswahl wird lokal gespeichert und erscheint bei spÃ¤teren Neustarts nicht erneut.
-- PWA-Status aus dem Footer in die Kopfzeile verlagert: links neben Einstellungen steht nun ein kleines â€žAppâ€œ-Feld; bei installierter MID-App wird es kompakt als installiert markiert. Die vollstÃ¤ndigen Installationshinweise bleiben Ã¼ber dieses Feld erreichbar.
-- 7-Tage-Trend als belastbarer Standard abgesichert: Ohne gespeicherte PrÃ¤ferenz ist er nach jedem Neustart aktiv; nur eine ausdrÃ¼cklich gespeicherte Deaktivierung hÃ¤lt ihn ausgeschaltet.
-- Neue Regressionstests schÃ¼tzen die persistente Hinweis-Ausblendung, den kompakten Kopfzeilenstatus und die Standardaktivierung des 7-Tage-Trends.
-
-# MID v0.7.108.3
-
-- Aktuelles Wetter mobil: Die kompakte Tmin-/Tmax-Pille besitzt nun eine feste geringe HÃ¶he; Beschriftungen, Trennpunkt und Temperaturwerte sind vertikal sauber zentriert.
-- Kompositbild: Isobaren und 500-hPa-Isohypsen werden unabhÃ¤ngig vom globalen Leaflet-Canvasmodus Ã¼ber einen eigenen SVG-Renderer im Modelllinien-Pane gezeichnet. Linienkontrast, StrichstÃ¤rke und Halo wurden erhÃ¶ht, damit vollstÃ¤ndige Konturen Ã¼ber Radar- und SatellitenflÃ¤chen sichtbar bleiben.
-- Mobile Komposit-Overlays neu angeordnet: Das Feld â€žScrollenâ€œ steht links oberhalb des KartenfuÃŸes und kollidiert nicht mehr mit dem rechts unten liegenden, verkleinerten â€žJetztâ€œ-Overlay.
-- Neuer Regressionstest schÃ¼tzt mobile Tmin/Tmax-Zentrierung, explizite SVG-Modellkonturen und die kollisionsfreie Overlay-Anordnung.
-
-# MID v0.7.108.2
-
-- Ensemble-Temperaturdiagramm: Achsentitel analog zum Niederschlagsdiagramm aus der Recharts-SVG-FlÃ¤che herausgelÃ¶st. â€žTemperaturâ€œ/â€žÂ°Câ€œ und â€žVorhersagetagâ€œ besitzen nun reservierte Layoutbereiche und bleiben auf Desktop, MobilgerÃ¤ten sowie im PNG-Export lesbar.
-- Temperatur-Exportgeometrie angepasst: Der feste 1096-px-Bereich enthÃ¤lt einen 1000-px-Diagrammkern mit getrennten Achsentitel- und Ausgleichsspalten; dadurch bleiben Plot und Achsenticks sauber ausgerichtet.
-- Aktuelles Wetter mobil: Tmin/Tmax wird als kleine, dezente Pille am oberen Modulrand dargestellt und aus dem normalen Gridfluss genommen. Dadurch entsteht keine zusÃ¤tzliche breite Hero-Zeile und kein unnÃ¶tiger HÃ¶henbedarf.
-- Neue bzw. angepasste Regressionstests schÃ¼tzen die externen Temperatur-Achsentitel, die feste Exportgeometrie und die platzsparende mobile Tmin-/Tmax-Anzeige.
-
-# MID v0.7.108.1
-
-- Ensemble-Niederschlagsdiagramm: Achsentitel aus der Recharts-SVG-FlÃ¤che herausgelÃ¶st und als eigenstÃ¤ndige, reservierte Layoutbereiche umgesetzt. Dadurch kÃ¶nnen â€žNiederschlagâ€œ, â€žWahrscheinlichkeitâ€œ und â€žVorhersagetagâ€œ weder von Achsenticks noch vom Teilen-/Infobereich Ã¼berlagert oder abgeschnitten werden.
-- Responsive Darstellung angepasst: Auf Desktop stehen die beiden y-Achsentitel in festen seitlichen Spalten; auf schmalen MobilgerÃ¤ten wechseln sie in eine kompakte horizontale Kopfzeile Ã¼ber dem Plot.
-- Exportgeometrie erweitert: Der 1096-px-Exportbereich wird in feste Achsentitelspalten und einen 992-px-Diagrammkern aufgeteilt, sodass die Titel auch in mobil erzeugten PNGs korrekt positioniert bleiben.
-- Neuer Regressionstest schÃ¼tzt Desktop-, Mobil- und Exportposition der Niederschlagsachsen; bestehender Test fÃ¼r die feste Ensemble-Exportgeometrie wurde auf den variablen Diagrammkern erweitert.
-
-# MID v0.7.108.0
-
-- Aktuelles Wetter: Tmin/Tmax aus der frei schwebenden Kicker-Zeile entfernt und als eigener, sauber begrenzter Grid-Bereich zwischen Wettertext und Analysekarte angeordnet. Die Darstellung folgt auf Desktop, Tablet und Mobil nun festen Modulgrenzen.
-- Wind-/BÃ¶en-Kachel: Wert und Einheit werden als zusammenhÃ¤ngende, responsive Zeile dargestellt; ein unschÃ¶ner Umbruch innerhalb der BÃ¶eneinheit wird verhindert.
-- 7-Tage-Trend: Rechtschreibung der Hazard-SÃ¤tze korrigiert. Substantive wie â€žSturmbÃ¶enâ€œ bleiben groÃŸgeschrieben; nur tatsÃ¤chlich vorangestellte Adjektive werden im Satzkontext kleingeschrieben.
-- Berg-/Wintersport: dezenter, direkt bedienbarer Saisonumschalter Auto/Sommer/Winter im Anzeigebereich ergÃ¤nzt und dauerhaft im zugehÃ¶rigen Favoritenprofil gespeichert.
-- Wassersport: GewÃ¤ssertyp und AktivitÃ¤t als kompakte Direktoptionen in den Anzeigebereich aufgenommen; Ã„nderungen werden ebenfalls dauerhaft im Favoritenprofil gespeichert.
-- Neuer Regressionstest schÃ¼tzt Hero-Raster, Windumbruch, Trend-Rechtschreibung und die persistenten Direktoptionen beider Spezialmodule.
-
-# MID v0.7.107.0
-
-- Grundlegendes Performance-Audit ohne Funktionsabbau: Ensemble-Aufrufe nutzen nun einen 20-minÃ¼tigen Frischcache, Open-Meteo-Modellabfragen werden regional priorisiert und doppelte globale ECMWF-Abfragen in Europa vermieden.
-- Kompositdarstellung entlastet: Statt mehrerer gleichzeitig Ã¼berblendeter Konturframes wird nur der zeitlich maÃŸgebliche Frame gerendert; vorberechnete Konturgeometrien, wiederverwendete Datumsformatierer und verzÃ¶gertes Speichern der Kartenoptionen reduzieren Rechen-, DOM- und Speicherlast.
-- Isobaren und 500-hPa-Isohypsen wieder deutlich sichtbar: eigener Leaflet-Layer oberhalb der Wetterebenen, kontrastreiche Doppelkontur mit dunklem Halo, stÃ¤rkere Hauptlinien und besser lesbare Beschriftungen sowie Druckzentren.
-- Open-Meteo-Modellbestand aktualisiert: regionale ECMWF-IFS- und AIFS-Ensembles fÃ¼r Europa einschlieÃŸlich offizieller Ensemble-Mittel integriert und gegenÃ¼ber redundanten globalen Varianten bevorzugt.
-- Abrufstrategie an die Open-Meteo-Aktualisierung angepasst: Konturdaten werden client- und worker-seitig 30 Minuten zwischengespeichert, im sichtbaren Modul stÃ¼ndlich geprÃ¼ft und bei kurzzeitigen Abruffehlern nicht mehr sofort aus der Karte entfernt.
-- Neuer Regressionstest schÃ¼tzt die Performanceoptimierungen, aktuellen Open-Meteo-Modellkennungen sowie die sichtbaren Isobaren/Isohypsen. Insgesamt 93 automatische MID-Regressionstests bestanden.
-
-# MID v0.7.106.3
-
-- Berg-/Wintersport-Favoriten robuster gespeichert: automatisch ermittelte Lift-/Stationsprofile werden synchron sowohl im Favoritenbestand als auch separat je Standort gesichert und unmittelbar in die persistente IndexedDB-/Cache-Sicherung Ã¼bernommen.
-- Automatische Lift-/Stationssuche erhÃ¤lt einen zweiten Abrufdurchlauf. Bei einem vorÃ¼bergehenden Dienstfehler bleibt ein bereits erfolgreich ermitteltes automatisches Profil erhalten, statt durch abgeleitete Standardwerte Ã¼berschrieben zu werden.
-- Wind- und Schneedeckendaten in den HÃ¶henkacheln rÃ¤umlich getrennt und als eigenstÃ¤ndige InformationsblÃ¶cke beschriftet.
-- Desktopdarstellung von Tmin/Tmax im aktuellen Wetter zu einer grÃ¶ÃŸeren, klar gegliederten Tagesbereichskarte mit Temperaturverlauf aufgewertet; mobile Darstellung bleibt kompakt.
-- Neuer Regressionstest schÃ¼tzt Bergprofil-Persistenz, Abruffallback, getrennte Wind-/Schneedaten und die Ã¼berarbeitete Desktop-Tagesbereichsanzeige.
-
-# MID v0.7.106.2
-
-- Ensemble-PNG-Export grundlegend stabilisiert: WÃ¤hrend des Exports werden Temperatur- und Niederschlagsdiagramm nicht mehr nachtrÃ¤glich Ã¼ber einen bereits gerenderten responsiven Recharts-Container verbreitert, sondern in einer festen, gerÃ¤teunabhÃ¤ngigen Plot-Geometrie neu gerendert.
-- Ursache der fehlerhaften Exporte beseitigt: Beim Wechsel von der Bildschirmbreite auf 1180 px konnten Achsen bereits die neue Breite verwenden, wÃ¤hrend Kurven, FlÃ¤chen oder deren Clip-Pfad noch auf der alten Mobil- bzw. Desktopbreite beruhten. Das fÃ¼hrte mobil zur Stauchung/Abschneidung und am Desktop zum Ãœberlaufen rechts Ã¼ber den Achsenbereich.
-- Exportmodus nutzt nun einen festen 1096-px-Plot, Desktop-AchsenabstÃ¤nde unabhÃ¤ngig vom GerÃ¤te-Viewport, einen expliziten Export-Renderzustand und wartet auf den tatsÃ¤chlich neu aufgebauten Recharts-Wrapper.
-- Recharts-Animationen fÃ¼r die statischen Ensemblekurven und -flÃ¤chen deaktiviert, damit wÃ¤hrend der PNG-Aufnahme keine Zwischengeometrie oder unvollstÃ¤ndiger Clip-Pfad erfasst wird.
-- Exportbereich wird streng beschnitten; Metadaten bleiben wie gewÃ¼nscht als FuÃŸnote unter dem Diagramm. Neuer Regressionstest schÃ¼tzt die feste Desktop-/Mobil-Geometrie, animationsfreie Aufnahme und den vollstÃ¤ndigen Plotbereich.
-
-# MID v0.7.106.1
-
-- Tagesdetaildiagramm: Ursache fÃ¼r Windwerte oberhalb der BÃ¶en eingegrenzt. MID verwendet Wind und BÃ¶en aus demselben Open-Meteo-Best-Match-Abruf, in identischer Einheit und am identischen Stundenindex; bekannte Modell-/Interpolationskonstellationen kÃ¶nnen dennoch `wind_gusts_10m < wind_speed_10m` liefern.
-- PlausibilitÃ¤tsbehandlung angepasst: Der Windwert bleibt unverÃ¤ndert. Eine fehlende oder kleinere BÃ¶e wird ausschlieÃŸlich punktweise fÃ¼r denselben Zeitpunkt auf das Windniveau gesetzt â€“ ohne zeitliche GlÃ¤ttung, Mittelwertbildung oder VerÃ¤nderung benachbarter Stunden.
-- Wind- und BÃ¶enlinie bleiben im Diagramm erhalten. Bei identischen Werten bleibt die grÃ¼ne Windlinie durch die LÃ¼cken der gestrichelten BÃ¶enlinie sichtbar; der Stunden-Tooltip kennzeichnet eine vorgenommene Angleichung.
-- Neue Regression schÃ¼tzt die punktweise Angleichung, die endlichen Diagrammwerte und die Sichtbarkeit beider Kurven.
-
-# MID v0.7.106.0
-
-- 7-Tage-Trend fachlich neu gewichtet: Die ersten Prognosetage erhalten deutlich mehr Einfluss als das Ende des Zeitraums; kurze spÃ¤tere AusreiÃŸer verdrÃ¤ngen damit nicht mehr den unmittelbar bevorstehenden Wettercharakter.
-- Wetterverlauf differenzierter ausgewertet: heiter/sonnig, Sonne und Wolken, stark bzw. meist bewÃ¶lkt, regnerisch, gewittrig und winterlich werden als eigene zeitliche Regime behandelt. BewÃ¶lkungstexte haben Vorrang vor einer isoliert hohen Sonnenscheindauer; die Sonnenscheindauer wird zusÃ¤tzlich relativ zur astronomischen TageslÃ¤nge bewertet.
-- Temperaturbeschreibung an DWD-Kenntage angelehnt: Sommertag ab 25 Â°C, heiÃŸer Tag ab 30 Â°C, sehr heiÃŸ ab 35 Â°C, extrem heiÃŸ ab 40 Â°C, Tropennacht ab 20 Â°C Mindesttemperatur sowie Eistag bei einem Tagesmaximum unter 0 Â°C. VerfÃ¼gbare ERA5-Land-Klimamittel 1991â€“2020 flieÃŸen fÃ¼r markante Abweichungen vom Ã¶rtlichen Klimamittel ein.
-- Markante automatische DWD-nahe Warnsignale werden priorisiert in den Kurztrend aufgenommen; dafÃ¼r bleibt bei einem Hazard stets Platz im maximal dreisÃ¤tzigen Text.
-- Klimamittel werden nun bereits fÃ¼r die aktivierte 7-Tage-Kurzinterpretation geladen und nicht erst nach dem Ã–ffnen des Ensemble-Moduls.
-- Quellengetreue Wind-/BÃ¶enbehandlung nachgezogen: keine GlÃ¤ttung und keine kÃ¼nstliche Anhebung der BÃ¶e mehr. Ist ein BÃ¶enwert kleiner als der zugehÃ¶rige Wind, wird er als unplausibel behandelt und als nicht verfÃ¼gbar dargestellt.
-- Neue und angepasste Regressionstests schÃ¼tzen FrÃ¼hgewichtung, DWD-Kenntage, Klimavergleich, Hazard-PrioritÃ¤t, BewÃ¶lkungsverlauf und die unverfÃ¤lschte Wind-/BÃ¶enprÃ¼fung.
-
-# MID v0.7.105.5
-
-- Exportdarstellung der Ensemble-Diagramme stabilisiert: Temperatur- und Niederschlagsgrafiken erhalten ausgewogenere AuÃŸenabstÃ¤nde, damit Achsen und Kurven in Desktop- und Mobil-Exports nicht mehr nach rechts verrutschen.
-- Export-Metadaten neu angeordnet: â€žDarstellungâ€œ, â€žQuellenâ€œ, â€žModellstÃ¤ndeâ€œ und â€žMIDâ€œ stehen nun als FuÃŸnote unter dem Diagramm statt oberhalb der Grafik.
-- Neuer Regressionstest schÃ¼tzt die FuÃŸnotenposition und die exportstabilen Diagrammmargen; der bestehende Interaktionstest akzeptiert die angepassten AuÃŸenmaÃŸe.
-
-# MID v0.7.105.4
-
-- Bergmodul sprachlich auf â€žBerg-/Wintersportâ€œ umgestellt und die Kachelstruktur saisonal aufgewertet: UVI erscheint wieder als eigenstÃ¤ndige Kachel; zusÃ¤tzlich zeigt der Sommermodus das Gewitterpotenzial und der Wintermodus den prognostizierten Neuschnee +24 h.
-- Bergindikatoren layoutseitig flexibilisiert, damit die zusÃ¤tzlichen saisonalen Kacheln auf Desktop und Mobil sauber umbrechen.
-- Wind- und BÃ¶enwerte appweit fÃ¼r Stunden- und Tagesmapping sowie in den aktuellen und bergbezogenen Anzeigen geglÃ¤ttet: BÃ¶en werden nun niemals kleiner als der zugehÃ¶rige Wind dargestellt.
-- Neuer Regressionstest schÃ¼tzt Berg-/Wintersport-Kacheln und die Wind/BÃ¶en-Normalisierung; bestehender Wind-Test wurde auf die normalisierte Darstellung erweitert.
-
-# MID v0.7.105.3
-
-- Kachel â€žLuftqualitÃ¤tâ€œ gestalterisch an die Ã¼brigen Aktuell-Wetter-Kacheln angenÃ¤hert: Die groÃŸe PrimÃ¤rschrift ist kompakter, EU-AQI steht nun in der Ãœberschrift und die doppelte Wiederholung der Einstufung entfÃ¤llt.
-- AQI-Kachel inhaltlich gestrafft: PrimÃ¤rwert zeigt nur noch die Stufe, die Detailzeile nennt kompakt den maÃŸgeblichen Stoff mit Konzentration und Quelle.
-- Neuer Regressionstest schÃ¼tzt die kompaktere AQI-Kachel mit EU-AQI in der Ãœberschrift und ohne doppelte Statusanzeige.
-
-# MID v0.7.105.2
-
-- Desktop-Darstellung der 7-Tage-Vorhersage Ã¼berarbeitet: Die Temperaturbalken erhalten auf Desktop etwas kompaktere Spalten, damit Niederschlags-, Sonnen- und Windtext nicht mehr von den Temperaturwerten Ã¼berdeckt wird.
-- Die Forecast-Zeile verteilt den verfÃ¼gbaren Platz auf Desktop nun textfreundlicher; auf mittleren Desktopbreiten darf die Metazeile bei Bedarf umbrechen, auf groÃŸen Desktopbreiten bleibt sie weiterhin einzeilig.
-- Neuer Regressionstest schÃ¼tzt das Desktop-Layout der 7-Tage-Vorhersage mit schmaleren Temperaturbalken und den angepassten Spaltenbreiten.
-
-# MID v0.7.105.1
-
-- Radar-Nowcast: Die Niederschlagssumme fÃ¼r die nÃ¤chsten zwei Stunden wird nun konsistent aus allen kÃ¼nftig sichtbaren 5-Minuten-Segmenten der Diagrammleiste gebildet. Dadurch erscheinen heranziehende bzw. unsichere Treffer nicht mehr mit Balken, aber gleichzeitig mit 0,00 mm in der Summenzeile.
-- 7-Tage-Kurzinterpretation sprachlich und meteorologisch verfeinert: Der Text wertet jetzt den tatsÃ¤chlich dargestellten Tagescharakter grÃ¶ber aus, vermeidet doppelte Formulierungen wie â€žwechselhaft, danach wechselhaftâ€œ und beginnt am aktuellen ersten Tag natÃ¼rlich mit â€žHeuteâ€œ statt â€žbis Montagâ€œ.
-- Neue Regressionstests schÃ¼tzen die korrigierte Radar-Summenlogik sowie die verbesserte deutsche Satzbildung der 7-Tage-Kurzinterpretation.
-
-# MID v0.7.105.0
-
-- Neue, standardmÃ¤ÃŸig aktive 7-Tage-Kurzinterpretation vor dem ersten Prognosetag. ZusammenhÃ¤ngende Wetterphasen werden zu einem mÃ¶glichst kurzen deutschen Satz verdichtet, etwa â€žBis Dienstag wechselhaft, ab Mittwoch sonnig, trocken und heiÃŸ.â€œ
-- Eigener Schalter unter Einstellungen â†’ Ansicht zum vollstÃ¤ndigen Deaktivieren der Kurzinterpretation; Auswahl wird dauerhaft lokal gespeichert.
-- Tagesdetaildiagramm erkennt zusÃ¤tzlich sÃ¤mtliche Querformat-Displays und zeigt dort sÃ¤mtliche stÃ¼ndlichen Wetterpiktogramme sowie alle Windrichtungspfeile.
-- Piktogramme und Richtungspfeile werden abhÃ¤ngig vom verfÃ¼gbaren Punktabstand dynamisch verkleinert, statt Zeitpunkte auszudÃ¼nnen.
-- Neuer Regressionstest schÃ¼tzt Einstellungs-Persistenz, Position vor dem ersten Prognosetag, phasenbasierte Kurzinterpretation sowie vollstÃ¤ndige Hoch- und Querformatmarker.
-
-# MID v0.7.104.0
-
-- Radar-Nowcast als durchgehend horizontal erkundbarer 5-Minuten-Scrubber umgesetzt: Fingerbewegung nach links/rechts aktualisiert den MID-typischen Portal-Tooltip am jeweils berÃ¼hrten Zeitschritt; AuÃŸenklick, erneutes Antippen und Escape schlieÃŸen ihn.
-- 5-Minuten-Mengen fachlich korrigiert: Standortwert und Umgebungsecho werden getrennt; ein stÃ¤rkeres Echo im Suchumfeld ersetzt nicht mehr den tatsÃ¤chlichen Standortwert. Unsichere Prognoseersatzwerte werden begrenzt und transparent gekennzeichnet.
-- +2-h-Niederschlagssumme deutlich zurÃ¼ckgenommen und nur aus zukÃ¼nftigen Standorttreffern gebildet; Umgebungsechos flieÃŸen nicht in die Standortsumme ein.
-- Radar-Analyse auf einen progressiven Schnellpfad umgestellt: zuerst wenige WMS-Punktwerte ohne aufwendige Bewegungsfelder/KONRAD-Kontext, anschlieÃŸend vollstÃ¤ndige DWD-/OPERA-Analyse im Hintergrund. Letzte erfolgreiche Analyse wird ortsbezogen kurzzeitig zwischengespeichert.
-- Hyperlokale Analyse progressiv beschleunigt: sofortige Kernnetzauswertung mit reduziertem Kandidatenbudget, danach vollstÃ¤ndige Mehrnetz-/Restfeldanalyse im Hintergrund; letzte erfolgreiche Ortsanalyse wird kurzzeitig zwischengespeichert.
-- Aktuelle Wetterdaten um RADOLAN-RÃ¼ckschau ergÃ¤nzt: letzte Stunde aus angeeichtem RW, bei noch nicht ausreichend aktuellem RW aus nicht angeeichten RY-5-Minuten-Produkten; letzte 24 Stunden aus dem aktuellen angeeichten SF-Produkt.
-- Neue Worker-Endpunkte `radolan-history-meta` und `radolan-history-file` mit DWD-ProduktprÃ¼fung, Caching und ortsbezogener Browserauswertung ergÃ¤nzt.
-- Neuer Regressionstest schÃ¼tzt Touch-Scrubbing, progressive Schnellpfade, Trennung von Standort-/Umgebungsecho und die RADOLAN-RÃ¼ckschau.
-
-# MID v0.7.103.4
-
-- EEA-Messstationssuche auf die aktuellen offiziellen ArcGIS-Dienste `air.discomap.eea.europa.eu` und `eeha.discomap.eea.europa.eu` umgestellt.
-- Der bisherige einzelne Legacy-Host, der HTTP 403 lieferte, ist nicht mehr alleinige Datenquelle.
-- Worker probiert nun zwei EEA-Spiegelserver und zwei rÃ¤umliche Abfragestrategien (Umkreissuche und Bounding-Envelope).
-- Browserseitiger direkter EEA-Fallback ergÃ¤nzt, falls der Cloudflare-Worker oder dessen Upstream vorÃ¼bergehend nicht erreichbar ist.
-- Letzte erfolgreich gefundene EEA-Messstation wird ortsbezogen bis zu 30 Tage als RÃ¼ckfall gespeichert und im Tooltip transparent gekennzeichnet.
-- Stationsklasse des aktuellen EEA-Layers wird als Messumfang statt irrefÃ¼hrend als Verkehrs-/Umgebungsklasse erklÃ¤rt.
-- Technische Rohfehlermeldungen werden im AQI-Tooltip durch eine verstÃ¤ndliche Statusmeldung ersetzt.
-- Neuer Regressionstest fÃ¼r EEA-Hostwechsel, Spiegelserver, Geometrie-Fallback, Browser-RÃ¼ckfall und Cache.
-
-# MID v0.7.103.3
-
-- GitHub-/TypeScript-Buildfehler `TS2540: Cannot assign to current because it is a read-only property` im Radar-Nowcast behoben.
-- Der dynamische Popover-Anker der 5-Minuten-Balken verwendet nun ein ausdrÃ¼cklich schreibbares `useRef<HTMLButtonElement | null>`.
-- Das MID-typische Verhalten bleibt vollstÃ¤ndig erhalten: Antippen eines Balkens Ã¶ffnet dessen Tooltip; erneutes Antippen, AuÃŸenklick oder Escape schlieÃŸen ihn.
-- Neuer Regressionstest schÃ¼tzt die schreibbare Ref-Typisierung und die Zuordnung des aktiven Balkens als Popover-Anker.
-
-# MID v0.7.103.2
-
-- Radar-Nowcast deutlich verdichtet und auf durchgÃ¤ngige 5-Minuten-Balken umgestellt. Jeder Balken Ã¶ffnet per Klick/Tippen einen MID-typischen Portal-Tooltip mit Zeitraum, Status, IntensitÃ¤t in mm/h und abgeleiteter 5-Minuten-Menge; AuÃŸenklick und Escape schlieÃŸen den Tooltip.
-- ErklÃ¤rtexte und zusÃ¤tzliche Ereigniskarten unter der Nowcast-Leiste entfernt; die numerische IntensitÃ¤tsskala bleibt kompakt erhalten.
-- Standortmarker im Kompositbild auf die halbe bisherige GrÃ¶ÃŸe reduziert, Blickrichtung und Sensorfunktion bleiben erhalten.
-- Ensemble-Diagramme nach EinfÃ¼hrung der Export-Wrapper wieder strikt an die verfÃ¼gbare Viewportbreite gebunden. Der historische globale Mindestwert von 760 px wird innerhalb beider Diagramm-Wrapper aufgehoben.
-- Achsen, RÃ¤nder, Legenden und DiagrammhÃ¶hen werden auf schmalen Displays kompakt angepasst, sodass Temperatur- und Niederschlagsdiagramm vollstÃ¤ndig im Bildschirm bleiben.
-- Neuer Regressionstest fÃ¼r 5-Minuten-Nowcast, Portal-Tooltip, MarkergrÃ¶ÃŸe und mobile Ensemblebreite.
-
-# MID v0.7.103.1
-
-- Tagesdetail-Tooltip neu angeordnet: **Taupunkt / Feuchte** steht vor **Wind / BÃ¶en**; innerhalb des Feuchtefelds wird zuerst der Taupunkt und danach die relative Feuchte angezeigt.
-- Aktuelle Windkachel an die Tagesdetaildarstellung angeglichen: Windrichtungspfeil, Windgeschwindigkeit und BÃ¶en stehen gemeinsam im Hauptwert; Richtung und Datenquelle folgen getrennt in der Detailzeile.
-- Zentrale SprÃ¼hregen-/Schneegriesel-Plausibilisierung verschÃ¤rft, ohne die Niederschlagsphase zu verÃ¤ndern. Neben Luftfeuchte und tiefer BewÃ¶lkung werden Taupunktspreizung, geschÃ¤tzte beziehungsweise beobachtete Wolkenbasis, Niederschlagsrate und Schauersignal berÃ¼cksichtigt.
-- SprÃ¼hregen bei geschÃ¤tzter/erfasster Wolkenbasis Ã¼ber 3000 ft GND wird innerhalb der flÃ¼ssigen Phase zu Regen verallgemeinert; bei gleichzeitigem Schauersignal zu Regenschauern. Schneegriesel wird unter unplausiblen Bedingungen ausschlieÃŸlich zu Schnee beziehungsweise Schneeschauern verallgemeinert.
-- Taupunktinformationen werden nun in aktuellem Wetter, Tagesdetail, Meteogramm sowie Berg-/Wintersport an dieselbe zentrale Plausibilisierung Ã¼bergeben.
-- Push-Mitteilungen nennen statt des generischen Wortes â€žFavoritâ€œ den gegebenenfalls manuell geÃ¤nderten Ortsnamen; beim dynamischen Standort lautet der Bezug **â€žam Standortâ€œ**. Dies gilt fÃ¼r Titel und Texte von Niederschlags- und Gewittermeldungen.
-- Neuer Regressionstest schÃ¼tzt Feldreihenfolge, Winddarstellung, appweite Taupunkt-/WolkenbasisprÃ¼fung und ortsbezogene Push-Texte.
-
-# MID v0.7.103.0
-
-- Ensemble-Datenpfad grundlegend stabilisiert: statt bis zu 14 parallelen Mitgliedermodellfamilien werden hÃ¶chstens acht priorisierte, rÃ¤umlich passende Modelle mit maximal zwei gleichzeitigen Abrufen geladen.
-- Neuer Cloudflare-Proxy fÃ¼r Open-Meteo-Ensemble- und Modellmetadaten ergÃ¤nzt, um Browser-/CORS-/Rate-Limit-AusfÃ¤lle zu reduzieren und ModellstÃ¤nde zuverlÃ¤ssig bereitzustellen.
-- Offizielle Ensemble-Mittel-/Spread-Reserve verwendet Temperatur- und Niederschlagsspreizung zur Rekonstruktion belastbarer Quantile, falls einzelne Mitgliedermodelle ausfallen.
-- Letzter erfolgreicher Ensemble-Stand wird ortsbezogen 24 Stunden lokal vorgehalten, sodass Diagramme und Modelllauf-Radar bei vorÃ¼bergehender API-StÃ¶rung nicht vollstÃ¤ndig verschwinden.
-- KONRAD3D-AnnÃ¤herungslogik korrigiert: Eine Zelle gilt nur als nÃ¤herkommend, wenn das prognostizierte Zellzentrum tatsÃ¤chlich nÃ¤her liegt; eine grÃ¶ÃŸere Unsicherheitsellipse darf keine scheinbare AnnÃ¤herung erzeugen.
-- Radar-Nowcast auf 5- bis 15-minÃ¼tige Einzelintervalle erweitert. Die BalkenhÃ¶he nutzt eine dynamische mm/h-y-Achse; zusammenhÃ¤ngende ZeitrÃ¤ume zeigen maximale IntensitÃ¤t und grob abgeleitete Niederschlagsmenge.
-- Neuer Regressionstest schÃ¼tzt Ensemble-Recovery, Worker-Proxy, Modellmetadaten, Zellzentrum-Plausibilisierung sowie Nowcast-y-Achse und Intervallmengen.
-
-# MID v0.7.102.1
-
-- Ensemble-Ladezustand repariert: Ein geÃ¶ffnetes 14-Tage-Ensemble bleibt wÃ¤hrend des Wetterladens und bei Ortswechseln aktiv und startet fÃ¼r den neuen Ort zuverlÃ¤ssig einen neuen Ensemble- und Klimadatenabruf.
-- Der gespeicherte Offen-Zustand des Ensemble-Moduls initialisiert die Datenanforderung bereits beim App-Start.
-- Die PNG-Exportbibliothek wird erst beim tatsÃ¤chlichen Antippen von â€žTeilenâ€œ dynamisch geladen. Ein Fehler des optionalen Exportpfads kann Diagramme, ModellstÃ¤nde und Modelllauf-Ã„nderungsradar dadurch nicht mehr gemeinsam ausblenden.
-- ModellstÃ¤nde und Modelllauf-Ã„nderungsradar bleiben auch im vorlÃ¤ufigen Ensemble-/Ladezustand sichtbar.
-- Neuer Regressionstest schÃ¼tzt die Ensemble-Sichtbarkeit, den Ladepfad und die Entkopplung der Teilen-Funktion.
-
-# MID v0.7.102.0
-
-- Standortmarker im Kompositbild durch ein richtungsabhÃ¤ngiges Symbol mit blauem Positionsring und Pfeil in Blickrichtung ersetzt.
-- GerÃ¤tekompass nutzt auf iPhone/iPad `webkitCompassHeading` und fordert die notwendige Bewegungssensor-Berechtigung erst nach einem bewussten Antippen des Markers an. Auf anderen GerÃ¤ten wird ein absoluter Device-Orientation-Wert verwendet; die Anzeige wird geglÃ¤ttet.
-- Fehlende oder verweigerte Kompassfreigabe wird transparent im Standort-Popup erklÃ¤rt, ohne die Karten- oder Positionsfunktion einzuschrÃ¤nken.
-- Beide Ensemble-Diagramme erhalten einen eigenen Teilen-Button: Temperaturtrend und Niederschlagsdiagramm kÃ¶nnen als PNG Ã¼ber das native Teilen-MenÃ¼ ausgegeben werden.
-- Der Export Ã¼bernimmt exakt die aktuell ausgewÃ¤hlte Diagrammdarstellung, einschlieÃŸlich ENS-Mittel, Klimamittel, P25â€“P75 und Niederschlagswahrscheinlichkeit.
-- Exportbilder enthalten MID-Name und Version, Standort, aktive Modellfamilien, Initialisierungs-/VerfÃ¼gbarkeitszeiten, Darstellungsoptionen und Quellenhinweis.
-- Fallback fÃ¼r Browser ohne Datei-Teilen: Das PNG wird lokal heruntergeladen.
-- Neuer Regressionstest schÃ¼tzt Standort-Blickrichtung, iOS-Berechtigung, beide Teilen-Buttons und den vollstÃ¤ndigen Quellenblock.
-
-# MID v0.7.101.1
-
-- WidersprÃ¼chliche Gewitter-Pushmeldung korrigiert: Der sichtbare Abstand stammt nun ausschlieÃŸlich aus der tatsÃ¤chlichen aktuellen Zellposition und nicht mehr aus dem durch Prognoseunsicherheit reduzierten Relevanzabstand.
-- Aktuelle NÃ¤he und kÃ¼nftige AnnÃ¤herung werden getrennt behandelt. Befindet sich eine Zelle bereits hÃ¶chstens 20 km entfernt, wird keine zusÃ¤tzliche spÃ¤tere AnnÃ¤herungszeit mehr angezeigt.
-- Bei weniger als 1 km Abstand lautet der Hinweis â€žunmittelbar am Favoritenâ€œ statt â€ž0 km entferntâ€œ.
-- Bei einer noch entfernten Zelle nennt die Pushmeldung aktuelle Entfernung, AnnÃ¤herungszeit und prognostizierten Rohabstand getrennt.
-- Dieselbe Grenzlogik wurde in der sichtbaren Gewitterkarte und in der KONRAD3D-Kurzbeschreibung vereinheitlicht.
-- Neuer funktionaler Regressionstest bildet den problematischen Fall â€žaktueller Abstand 42 km, effektiver Prognoseabstand 0 km, AnnÃ¤herung in 30 minâ€œ sowie unmittelbare und nahe Zelllagen ab.
-
-# MID v0.7.101.0
-
-- LuftqualitÃ¤tskachel auf die offiziellen sechs Stufen des European Air Quality Index der EEA umgestellt. PM2,5, PM10, NOâ‚‚, Oâ‚ƒ und SOâ‚‚ werden anhand ihrer aktuellen Konzentration klassifiziert; die schlechteste Einzelstufe bestimmt die Gesamtstufe.
-- Offizielle EEA-Farbpalette Ã¼bernommen: Gut, MittelmÃ¤ÃŸig, Mittel, Schlecht, Sehr schlecht und Ã„uÃŸerst schlecht.
-- Erweiterter AQI-Tooltip zeigt sÃ¤mtliche Einzelkonzentrationen, deren jeweilige EU-AQI-Stufe und die nÃ¤chstgelegene EEA-Messstation mit Name, Entfernung, Klasse und EoI-Kennung.
-- Neuer Worker-Endpunkt fÃ¼r die nÃ¤chstgelegene EEA-LuftgÃ¼temessstation; die zusÃ¤tzliche Abfrage lÃ¤uft nur im erweiterten Modus.
-- KONRAD3D-Abfrage auf primÃ¤ren und offiziellen DWD-Spiegelserver erweitert und als eigener fÃ¼nfminÃ¼tiger Liveabruf aus dem initialen Wetter-LadebÃ¼ndel entkoppelt.
-- NowCastMIX prÃ¼ft sowohl Accumulated Flash Geometry als auch Accumulated Flash Area Ã¼ber primÃ¤ren und redundanten DWD-WFS-Dienst. Eine erfolgreiche Nullmenge wird nun als â€žDienst erreichbar, keine Objekteâ€œ statt als Fehler behandelt.
-- Kompositbild zeigt fÃ¼r K3D und NowCastMIX eindeutig Datenstand, erreichbaren Leerdatensatz oder Dienstfehler.
-- App-weite PerformanceprÃ¼fung: doppelte Stunden-/Tageskartierung in der aktuellen Wetterkachel entfernt, Detaildiagramm-Uhr nur bei sichtbarem geÃ¶ffnetem Tageschart aktiv und sÃ¤mtliche Komposit-Pollings/Animationen auÃŸerhalb des Sichtbereichs pausiert.
-- Neuer Regressionstest schÃ¼tzt EU-AQI, EEA-Station, Offscreen-Pause und K3D-/NowCastMIX-Fallbacks.
-
-# MID v0.7.100.5
-
-- GroÃŸes textliches Zugrichtungs-Overlay im Kompositbild entfernt. Richtung und Geschwindigkeit bleiben im kompakten Layerbutton, im Infofenster und im Standort-Popup verfÃ¼gbar.
-- Niederschlags-Zugpfeile als hoch liegende weiÃŸe Div-Marker neu umgesetzt. Dadurch bleiben sie unabhÃ¤ngig vom Canvasrenderer und von Radar-/Satellitenrastern sichtbar.
-- KONRAD3D-Zellen als deutliche farbige Marker mit K3D-Stufe und verfÃ¼gbaren Hagel-, Starkregen-, Blitz- und BÃ¶ensymbolen neu gerendert.
-- NowCastMIX-Blitzobjekte als violette Blitzmarker in einer eigenen, gut sichtbaren Markerebene dargestellt.
-- Layerbuttons oberhalb der Karte deutlich verdichtet. Kurze Bezeichnungen wie â€žRadar Â· 1 kmâ€œ, â€žK3D / MIXâ€œ und â€žZugpfeileâ€œ zeigen darunter den aktuellen Datenstand beziehungsweise Objektzahlen.
-- Scrollen auf TouchgerÃ¤ten verbessert: Die Karte startet mobil im Scrollmodus und fÃ¤ngt Ein-Finger-Seitenscrollen nicht mehr ab. Ãœber â€žKarte aktivâ€œ lÃ¤sst sich Verschieben/Zoomen jederzeit wieder einschalten.
-- Blitz- und NowCastMIX-Vektoren werden rÃ¤umlich ausgedÃ¼nnt und auf ein gerÃ¤tegerechtes Renderingbudget begrenzt. Die Daten bleiben abrufbar; nur Ã¼berlagerte Marker werden zusammengefasst.
-- Laufende Kompositanimation stoppt beim Seitenscrollen, um Layer-Neuaufbau wÃ¤hrend der Scrollbewegung zu vermeiden.
-- Neuer Regressionstest fÃ¼r kompaktes Layerband, sichtbare Zugpfeile/Nowcast-Symbole und touchfreundliches Karten-Scrolling.
-
-# MID v0.7.100.4
-
-- GitHub-Produktionsbuild repariert: `ChevronDown` wird fÃ¼r die einklappbare Komposit-Legende wieder vollstÃ¤ndig aus `lucide-react` importiert. Dadurch ist der TypeScript-Fehler `TS2304: Cannot find name ChevronDown` beseitigt.
-- Die Gewitterinformation verwendet nun exakt dieselbe sichtbare Ortsbezeichnung wie der Seitenkopf. Ein manuell vergebener Favoritenname beziehungsweise Alias (z. B. â€žRheidtâ€œ) ersetzt damit auch in Kurztext und KONRAD3D-Tooltip die automatisch rÃ¼ckwÃ¤rtsgeocodierte Bezeichnung (z. B. â€žMondorfâ€œ).
-- Ã„nderungen des Favoritennamens lÃ¶sen unmittelbar eine Neuberechnung der memoisierten Gewittertexte aus. Koordinaten, Entfernungsberechnung und KONRAD3D-Abfrage bleiben unverÃ¤ndert auf dem tatsÃ¤chlichen Standort.
-- Zwei Regressionen schÃ¼tzen die Favoriten-Ortsbezeichnung und den zuvor fehlenden Icon-Import.
-
-# MID v0.7.100.3
-
-- Laufende Ortszeit aus dem groÃŸen App-Renderpfad isoliert, sodass nicht mehr alle 30 Sekunden das vollstÃ¤ndige Dashboard neu aufgebaut wird.
-- Dashboard-, Karten- und Vektorbereiche memoisiert sowie Radar-/Starkregen-Abrufe bei Fokuswechsel entdoppelt.
-- Leaflet-Canvas und reduzierte Touch-Effekte verbessern die ResponsivitÃ¤t ohne Funktionsabbau.
-
-# MID v0.7.100.2
-
-- Die Kompositbild-Legende startet nun standardmÃ¤ÃŸig in einer sehr kompakten Ansicht mit Zeitangabe und aktiver Radarquelle. Per Klick oder Tippen lÃ¤sst sie sich aufklappen und wieder minimieren.
-- Die aufgeklappte Legende enthÃ¤lt weiterhin aktive Layer, Niederschlagsfarbskala, Blitzalter sowie KONRAD3D-/NowCastMIX-ErklÃ¤rung, wurde aber in AbstÃ¤nden und BedienflÃ¤che mÃ¶glichst kompakt gehalten.
-- Die zentrale PlausibilitÃ¤tsprÃ¼fung fÃ¼r SprÃ¼hregen und Schneegriesel wurde fachlich eingegrenzt: Sie verallgemeinert nur die seltene Unterart, verÃ¤ndert aber niemals die vom WMO-Code vorgegebene flÃ¼ssige, gefrierende, gemischte oder feste Niederschlagsphase.
-- Unplausibler SprÃ¼hregen wird zu Regen, unplausibler gefrierender SprÃ¼hregen zu gefrierendem Regen und unplausibler Schneegriesel zu Schnee beziehungsweise Schneeschauern. Schnee- und Schneeschauercodes bleiben unabhÃ¤ngig von bodennaher Temperatur oder parallelen Regenfeldern fest.
-- Neuer Regressionstest schÃ¼tzt einklappbare Legende und phasenerhaltende Niederschlagslogik.
-
-# MID v0.7.100.1
-
-- TypeScript-Buildfehler `TS18047: loc is possibly null` in der Gewitterinformation behoben. Der Ortsname wird nun nullsicher aus `loc?.name` abgeleitet und fÃ¤llt wÃ¤hrend der initialen StandortauflÃ¶sung auf â€žStandortâ€œ zurÃ¼ck.
-- Die Ortsbezeichnung wurde in die AbhÃ¤ngigkeiten der memoisierten Gewitterauswertung aufgenommen, damit ein spÃ¤ter aufgelÃ¶ster oder gewechselter Ort zuverlÃ¤ssig neu bewertet wird.
-- Neuer Regressionstest verhindert direkte Zugriffe auf `loc.name` innerhalb der Gewitterauswertung und schÃ¼tzt damit exakt den in GitHub Actions aufgetretenen Fehler.
-
-# MID v0.7.100.0
-
-- Die Gewitterinformation trennt jetzt die **aktuelle Entfernung** einer KONRAD3D-Zelle sauber von der prognostizierten grÃ¶ÃŸten AnnÃ¤herung. Zuvor konnte der um die Unsicherheitsellipse verminderte Prognoseabstand wie eine aktuelle Entfernung wirken.
-- Jede KONRAD3D-Zelle erhÃ¤lt einen vom ausgewÃ¤hlten MID-Ort aus berechneten Richtungswinkel. Die Kurzkarte nennt aktuelle Distanz, relative Himmelsrichtung, erwartete AnnÃ¤herungszeit und den unverfÃ¤lschten Prognoseabstand.
-- Neuer schlieÃŸbarer Info-Tooltip in der Gewitterkarte mit Zellkennung, aktuellen und prognostizierten Koordinaten, Zellstufe/Trend, Zugrichtung und -geschwindigkeit, Blitzrate, Hagel-/Starkregen-/BÃ¶ensignalen, Unsicherheitsradius, Datenalter und Zahl erkannter Zellen.
-- Die KONRAD3D-Karten-Popups wurden um dieselben verfÃ¼gbaren Zellinformationen erweitert.
-- Das Kompositbild besitzt eine eigene Legende fÃ¼r KONRAD3D-Stufen, Zellprognosebahnen und NowCastMIX-Blitzgeometrien.
-- Das Verlagerungsoverlay ist nun als eigener, dauerhaft gespeicherter Schalter verfÃ¼gbar. Er blendet Niederschlagspfeile, Zughinweis und Standort-Zuglabel gemeinsam ein oder aus, ohne Radar oder Nowcast-Objekte abzuschalten.
-- Neuer Regressionstest schÃ¼tzt Ortsbezug, Distanztrennung, Unsicherheitsangabe, Objektlegende und Verlagerungsschalter.
-
-# MID v0.7.99.2
-
-- Im UntermenÃ¼ **Benachrichtigungen** eine dauerhaft gespeicherte Auswahl fÃ¼r den Mindestabstand zwischen Push-Mitteilungen ergÃ¤nzt. VerfÃ¼gbar sind 15, 30, 60, 120 und 180 Minuten; Standard ist 30 Minuten.
-- Das Intervall gilt gerÃ¤teweit fÃ¼r Niederschlagsbeginn, GewitterannÃ¤herung und materielle ModelllaufÃ¤nderungen. Der Cloudflare-Cron darf weiterhin alle fÃ¼nf Minuten prÃ¼fen, der Worker sendet innerhalb des gewÃ¤hlten Zeitraums jedoch hÃ¶chstens eine Mitteilung an dieses GerÃ¤t.
-- Der Mindestabstand wird zusammen mit dem Push-Abonnement im privaten Cloudflare-KV-Eintrag gespeichert und bei jeder EinstellungsÃ¤nderung automatisch synchronisiert.
-- WÃ¤hrend der Sperrzeit erkannte Ereignisse werden nicht als bereits gemeldet verbucht. Sie bleiben ausstehend und werden nach Ablauf des Intervalls erneut geprÃ¼ft, sofern das Signal noch relevant ist.
-- Bestehende Abonnements ohne gespeicherten Wert verwenden im Worker vorsichtshalber 60 Minuten, bis die aktualisierte App das gewÃ¤hlte Intervall synchronisiert.
-- Neue funktionale Regression prÃ¼ft UI-Auswahl, lokale Persistenz, Client-Ãœbertragung sowie die serverseitige ZeitprÃ¼fung.
-
-# MID v0.7.99.1
-
-- Automatische Berg-/Wintersport-Profilermittlung von der Auswahl eines einzelnen Liftpaares auf das zusammenhÃ¤ngende Wander-/Skigebiet umgestellt. MID wÃ¤hlt nun die niedrigste plausible Talstation, eine explizite beziehungsweise vernetzte Mittelstation und die hÃ¶chste verbundene Bergstation. Der Referenzfall SÃ¶lden schÃ¼tzt Giggijoch-Talniveau, Gaislachkogl-Mittelstation und 3.340-m-Bergniveau.
-- HÃ¶henhÃ¼lle fÃ¼r hochalpine, aber noch lokal verbundene Bergstationen erweitert; ortsfremde Gruppen bleiben Ã¼ber NÃ¤he, GelÃ¤ndeanker, Clusterverbindung und maximale Gebietsspanne ausgeschlossen.
-- Modelllauf-Ã„nderungsradar speichert die einzelnen eingebundenen ModellstÃ¤nde im Snapshot. Bei identischen Sammelzeiten zeigt es nun das tatsÃ¤chlich geÃ¤nderte Modell sowie dessen alten und neuen Initialisierungs- beziehungsweise VerfÃ¼gbarkeitsstand.
-- Push-Deep-Links repariert: fehlende Koordinatenparameter werden nicht mehr durch `Number(null)` als 0Â°/0Â° interpretiert. Koordinaten, Ortsname und Land werden zusÃ¤tzlich im Notification-Payload gespeichert und beim Ã–ffnen durch beide Service Worker erneut in die Ziel-URL geschrieben.
-- Dynamischer Standort und nahezu deckungsgleicher statischer Favorit kÃ¶nnen gleichzeitig aktiv sein. Die Zuordnung berÃ¼cksichtigt horizontale Entfernung und, sofern vorhanden, die HÃ¶hendifferenz.
-- Neue funktionale Regression prÃ¼ft Skigebiets-ExtremhÃ¶hen, Modelllaufidentifikation, Push-Koordinaten und Favoriten-Gleichsetzung.
-
-# MID v0.7.98.1
-
-- GitHub-Produktionsbuild repariert: Die optionale Radar-Nowcast-Leiste greift wÃ¤hrend des initialen Wetterladens nicht mehr direkt auf einen mÃ¶glicherweise noch nicht verfÃ¼gbaren Wetterdatensatz zu.
-- Der Zeitzonenwert wird nullsicher an die Nowcast-Leiste Ã¼bergeben; bis zum Eintreffen der Wetterdaten verwendet die Darstellung den vorhandenen lokalen Fallback.
-- Neue Regression schÃ¼tzt den exakten TS18047-Fall (`w` mÃ¶glicherweise `null`) und verhindert eine erneute nicht-nullgesicherte Ãœbergabe in der Ortskopfzeile.
-
-# MID v0.7.98.0
-
-- Kompositbild um ein flÃ¤chiges Niederschlags-Bewegungsfeld erweitert. Richtungspfeile werden nicht mehr nur am ausgewÃ¤hlten Ort, sondern an aus dem aktuellen Radarbild ermittelten Niederschlagsankern dargestellt.
-- DWD-RV erzeugt dafÃ¼r ein zusÃ¤tzliches groÃŸrÃ¤umiges Bewegungsfeld aus dem neuesten Radarstand; RainViewer- und OPERA-Raster liefern ebenfalls rÃ¤umliche Niederschlagsanker als Fallback.
-- OPERA-CIRRUS vergleicht aufeinanderfolgende RasterstÃ¤nde jetzt auch flÃ¤chig, um Zugrichtung und Geschwindigkeit auÃŸerhalb der DWD-Abdeckung abzuleiten.
-- Pfeildesign an die gewÃ¼nschte Radaroptik angepasst: helle, kontrastgerahmte Bewegungsvektoren direkt auf den Niederschlagsfeldern.
-- Zugrichtung und Zuggeschwindigkeit am ausgewÃ¤hlten Ort werden zusÃ¤tzlich als permanentes Standortlabel und als frei platzierte Statuskarte angezeigt. Die Anzeige liegt unterhalb der Karten-SchaltflÃ¤chen und wird nicht mehr von Zoom-, Kartenbasis- oder Standortsteuerung verdeckt.
-- Radar-Nowcast-Zeitreihe um standortbezogene Beobachtungs- und Vorhersageframes ergÃ¤nzt.
-- Neue, in den Einstellungen aktivierbare â€žRadar-Nowcast-Leisteâ€œ in der Kachel â€žAktuelle Niederschlagswahrscheinlichkeitâ€œ. Sie erscheint nur bei erkanntem oder heranziehendem Radarecho und zeigt eine Zeitachse von âˆ’1 bis +2 Stunden mit Jetzt-Markierung und IntensitÃ¤tssegmenten.
-- Einstellung wird versionsunabhÃ¤ngig unter `mid:radarDisplaySettings` gespeichert.
-- Neue Regression schÃ¼tzt flÃ¤chige Echoanker, Standortkennzeichnung, Nowcast-Datenreihe, Einstellungspersistenz und responsive Zeitachse.
-
-# MID v0.7.97.1
-
-- Automatische Bergprofil-Ermittlung gegen ortsfremde Liftkombinationen gehÃ¤rtet. Der bisherige 25-km-Suchraum und die unbeschrÃ¤nkte Kombination beliebiger Tal- und Bergpunkte konnten extreme, nicht zusammengehÃ¶rige Profile erzeugen.
-- Suchradius auf 18 km begrenzt und Kandidaten zusÃ¤tzlich an die GelÃ¤ndehÃ¶he des gewÃ¤hlten Ortes gekoppelt. Bei normalen Bergorten darf das automatische Talniveau hÃ¶chstens 500 m unter beziehungsweise 450 m Ã¼ber der OrtshÃ¶he liegen; der Gipfelpunkt muss oberhalb liegen und bleibt ebenfalls hÃ¶henbegrenzt.
-- Liftstationen werden nur noch innerhalb rÃ¤umlich zusammenhÃ¤ngender Liftgruppen kombiniert. Endpunkte derselben Liftanlage werden bevorzugt; Einzelkandidaten aus verschiedenen Skigebieten dÃ¼rfen nicht mehr allein wegen groÃŸer HÃ¶hendifferenz gekoppelt werden.
-- Stationsknoten werden nahe gelegenen Liftenden zugeordnet, damit Tal-/Bergrollen und Anlagenzusammenhang belastbarer erkannt werden. Eine Mittelstation wird nur noch bei expliziter Mittelrollen-Kennzeichnung oder tatsÃ¤chlichem Bezug zur gewÃ¤hlten Liftanlage Ã¼bernommen.
-- ZusÃ¤tzliche Maximalgrenzen fÃ¼r HÃ¶hendifferenz, horizontale Spannweite und Entfernung zum Favoriten verhindern Profile wie 490 m TalhÃ¶he bei einem Ort auf rund 1.958 m.
-- Bereits gespeicherte automatische Altprofile werden beim Versionswechsel geprÃ¼ft. Unplausible HÃ¶hen oder Koordinaten werden auf sichere lokale Ausgangswerte zurÃ¼ckgesetzt; manuell bearbeitete Profile bleiben unangetastet.
-- Neue Regression bildet den gemeldeten Obergurgl-/Hochgurgl-Fall nach und schÃ¼tzt Suchradius, lokale HÃ¶henhÃ¼lle, Liftcluster und Altprofilmigration.
-
-# MID v0.7.97.0
-
-- Berg-/Wintersportmodus vollstÃ¤ndig geprÃ¼ft und auf Schema 2 gehÃ¤rtet: Saisonprofile Automatisch/Sommer/Winter, Lift-/Stations- und GelÃ¤ndehÃ¶henprofil, optionale Mittelstation, editierbare Stationsdaten und hÃ¶henbezogene Einzelkoordinaten bleiben erhalten.
-- Winterdaten je HÃ¶henstufe erweitert: Schneedecke wird getrennt als GeoSphere-Messwert und Open-Meteo-Modellwert dargestellt; Neuschnee der vergangenen 24 Stunden sowie Prognosen fÃ¼r +24 und +48 Stunden bleiben separat sichtbar.
-- GeoSphere-Schneemessungen fÃ¼r Ã–sterreich Ã¼ber den MID-Worker ergÃ¤nzt. Messwerte werden nur bei hÃ¶chstens 25 km Entfernung, hÃ¶chstens 350 m HÃ¶hendifferenz, maximal drei Stunden Alter und plausibler SchneehÃ¶he Ã¼bernommen.
-- Sommerliche Bergparameter wie UV-Index, Sicht, Wind/BÃ¶en und Gewitterpotenzial sowie die automatische Migration Ã¤lterer Favoritenprofile auf das neue Bergschema abgesichert.
-- Cloudflare Web Analytics wieder funktionsfÃ¤hig verdrahtet: Bei vorhandener GitHub-Buildvariable erzeugt MID den offiziellen Beacon im Produktionsbuild selbst und zeigt den Lade-/Blockierstatus im Systembereich an.
-- UntermenÃ¼ â€žBenachrichtigungenâ€œ optisch an die Ã¼brigen Einstellungen angeglichen: gruppierte Auswahlkarten, aktive ZustÃ¤nde und einheitliche AbstÃ¤nde/Radien.
-- Push-Mitteilungen enthalten nun einen Zielort-Deep-Link. Beim Antippen Ã¶ffnet beziehungsweise navigiert die installierte App direkt zum betroffenen Favoriten; Koordinaten dienen als sicherer RÃ¼ckfall.
-- Normales Ã–ffnen der App lÃ¤dt wieder den zuletzt geÃ¶ffneten Ort. Automatische Standortverfolgung aktualisiert nur die Benachrichtigungsposition und Ã¼berschreibt den sichtbaren Ort nicht mehr.
-- Kompositbild um aus Radarbildfolgen abgeleitete Zugrichtung ergÃ¤nzt. Mehrere Richtungspfeile werden direkt auf dem Radarbild angezeigt; Richtung, Geschwindigkeit und Sicherheitsstufe stehen zusÃ¤tzlich in der Quelleninformation.
-- Modelllauf-Ã„nderungsradar auf ein versionsunabhÃ¤ngiges Sammelarchiv umgestellt. Je Ort bleiben mehrere StÃ¤nde in localStorage sowie der bestehenden IndexedDB-/Cache-Sicherung erhalten und werden aus Ã¤lteren EinzelstÃ¤nden migriert.
-- Neue Gesamtsuite schÃ¼tzt Berg-/Wintersport, GeoSphere-Schnee, Analytics, Benachrichtigungsdesign und Deep-Links, letzten Ort, Radar-Zugrichtung sowie das versionsfeste Modellarchiv.
-
-# MID v0.7.95.30
-
-- Niederschlags-Plausibilisierung appweit vereinheitlicht: aktuelles Wetter, 7-Tage-Vorhersage, stÃ¼ndliche Detailansicht, Ensemble, Meteogramm und Berg-/Wintersportmodul verwenden nun dieselbe zentrale Ableitung fÃ¼r Wettertext, Piktogramm und Niederschlagsart.
-- Regen/SprÃ¼hregen-PrÃ¼fung vollstÃ¤ndig wiederhergestellt: SprÃ¼hregen-Codes werden nur noch bei plausibler feuchter tiefer Stratuslage und schwacher nicht-konvektiver Rate Ã¼bernommen; andernfalls erfolgt eine konsistente Umstufung zu Regen, Schauer oder trockener BewÃ¶lkung.
-- PlausibilitÃ¤tsprÃ¼fung auf Schnee und Schneegriesel erweitert. Bodentemperatur, explizite Schneemenge, Feuchte, tiefe BewÃ¶lkung, Niederschlagsrate und konvektiver Anteil verhindern warme oder dynamisch unplausible Schneesymbole; valide nasse SchneefÃ¤lle mit explizitem Schneefeld bleiben erhalten.
-- Auch trockene Fehlcodes werden korrigiert: Ein unplausibler Niederschlagscode ohne messbaren Niederschlag fÃ¤llt auf einen zur BewÃ¶lkung passenden trockenen WMO-Code zurÃ¼ck.
-- Meteogramm-Abfrage um Gesamt- und tiefe BewÃ¶lkung ergÃ¤nzt, damit die zentrale PlausibilitÃ¤tsprÃ¼fung dort dieselben Eingangsdaten wie die Ã¼brige App verwendet.
-- Tagesbezogene DWD-Hazard-Auswertung korrigiert: Warnungen werden nur aus Startstunden des angezeigten Tages gebildet, erhalten aber bis zu 72 Stunden Vorlaufdaten fÃ¼r Schwellen und nÃ¤chtliche AbkÃ¼hlung. Dadurch entspricht der Temperaturwert im WÃ¤rme-Warnbutton wieder der maximalen gefÃ¼hlten Temperatur des Tages.
-- Neue appweite Regression schÃ¼tzt Niederschlagskonsistenz und den TageshÃ¶chstwert der gefÃ¼hlten Temperatur; synthetischer Testfall 34 Â°C am Vormittag und 36 Â°C am Nachmittag erwartet korrekt 36 Â°C im Warnhinweis.
-
-# MID v0.7.95.29
-
-- Einstellungsdialog wieder vollstÃ¤ndig an das geschÃ¼tzte Design von MID v0.7.95.26 angeglichen: zweispaltiger Desktopdialog, mobile Bereichsnavigation, Auswahlkarten, Einheitenauswahl und eingebettete Detailbereiche.
-- Design der erweiterten Funktionen auf die v0.7.95.26-Kartenstruktur zurÃ¼ckgestellt; das Modelllauf-Ã„nderungsradar besitzt wieder die ursprÃ¼nglichen Gruppen-, Auswahl- und Konfigurationselemente.
-- SÃ¤mtliche Ensemble-Hilfe- und ModellstÃ¤nde-Popover wieder nach v0.7.95.26 umgesetzt: Body-Portale, AuÃŸenklick/-tippen, Escape, erneutes Antippen sowie responsive Positionierung.
-- Prognosekonsistenzpunkte verwenden wieder den geschÃ¼tzten v0.7.95.26-Tooltip mit Hover auf MausgerÃ¤ten, Ein-Tap-Bedienung und sicherem AuÃŸenklick-SchlieÃŸen.
-- Temperaturtrend-Tooltip wieder als sehr kompakte Tmin/Tmax-Matrix von v0.7.95.26 hergestellt, einschlieÃŸlich P25â€“P75, P10â€“P90, ENS-Mittel, Klima, Sonne, Modellzahl und Hazards.
-- Veraltete Regressionserwartungen an die wiederhergestellte v0.7.95.26-Darstellung angepasst und neuer verbindlicher Referenztest fÃ¼r Einstellungen und Ensemble-Tooltips ergÃ¤nzt.
-
-# MID v0.7.95.28
-
-- GitHub-TypeScript-Buildfehler der Luftdrucktendenz behoben: `Hour.pressure` ist wieder typisiert, `pressure_msl` wird stÃ¼ndlich geladen und in `mapHours()` Ã¼bernommen.
-- Eigener Regressionstest schÃ¼tzt API-Feld, Typdefinition, Mapping und dreistÃ¼ndige Drucktendenz gemeinsam.
-- Verbindliche maschinenlesbare Quellbasis `MID_BASELINE.json` ergÃ¤nzt; sie verankert den vollstÃ¤ndigen Referenzstand v0.7.95.26 am Commit `213ab6a52a48dcd073066e95551b5d7f057570be`.
-- Release-Workflow aktualisiert nach erfolgreichem Build und Pages-Deployment automatisch den Zweig `mid-stable`; manuelle Deployments verwenden ausschlieÃŸlich diesen letzten erfolgreich verÃ¶ffentlichten Stand.
-- Neuer Quellbasis-Test verhindert fehlende ReferenzvertrÃ¤ge, unsynchronisierte Releaseversionen und einen RÃ¼ckfall auf unbestÃ¤tigte App-Basen.
-
-# MID v0.7.95.27
-
-- VollstÃ¤ndige FunktionskontinuitÃ¤t auf Basis des Referenzstands v0.7.95.26 wiederhergestellt; der fehlerhafte Funktionsabbau der nachfolgenden Paketbasis wurde nicht Ã¼bernommen.
-- Info-SchaltflÃ¤chen und ModellstÃ¤nde in Best-Match- und Ensemble-Bereichen als robuste Body-Portale abgesichert; AuÃŸenklick/-tippen, Escape, erneutes Antippen, Scrollen und GrÃ¶ÃŸenÃ¤nderungen funktionieren zuverlÃ¤ssig.
-- Tooltips der farbigen Prognosekonsistenzpunkte schlieÃŸen bei Klick oder Tippen auÃŸerhalb; Interaktionen auf Punkt und Tooltip selbst bleiben erhalten.
-- Luftdrucktendenz, Sonne/Mond, Modelllauf-Ã„nderungsradar, Benachrichtigungen, erweitertes Bergprofil, Web-Analytics-Diagnose und die zugehÃ¶rige Worker-/Service-Worker-UnterstÃ¼tzung wieder vollstÃ¤ndig verdrahtet.
-- Automatischer v0.7.95.26-Funktionsvertrag und Popover-Regression ergÃ¤nzt; alle vorhandenen MID-Regressionstests werden weiterhin automatisch erkannt.
-
-# MID v0.7.90.4
-
-- LuftqualitÃ¤tskarte um einen kompakten Info-Button zur Zusammensetzung des europÃ¤ischen AQI ergÃ¤nzt.
-- Der Gesamt-AQI wird als hÃ¶chster Teilindex aus PM2,5, PM10, NOâ‚‚, Oâ‚ƒ und SOâ‚‚ erlÃ¤utert; die unterschiedlichen BezugszeitrÃ¤ume von Feinstaub und Gasen werden genannt.
-- EigenstÃ¤ndiger sechsstufiger AQI-Indikator mit Rautenmarkierung, Kategorienbezeichnung und farbiger Segmentleiste ergÃ¤nzt. Er unterscheidet sich bewusst vom runden grÃ¼nen Stationsabgleich-Punkt der hyperlokalen Analyse.
-- Die fÃ¼nf europÃ¤ischen AQI-Teilindizes sowie SOâ‚‚ werden zusÃ¤tzlich von Open-Meteo geladen; der aktuell maÃŸgebliche Schadstoff wird in der Kartenzeile genannt.
-- Neuer Regressionstest fÃ¼r AQI-Datenfelder, ErklÃ¤rung und Indikatordesign.
-- README, Changelog, Service-Worker-Cache und Versionsstellen aktualisiert.
-- Cloudflare Worker ohne funktionale Ã„nderung.
-
-# MID v0.7.90.3
-
-- Layout der Metadaten in der 7-Tage-Vorhersage korrigiert.
-- Niederschlagsmenge und -wahrscheinlichkeit, Sonnenscheindauer sowie Windsymbol, exakter 360Â°-Pfeil, Windgeschwindigkeit und BÃ¶en stehen wieder gemeinsam in einer Zeile.
-- Auf schmalen Displays nutzt die Metazeile die Breite bis zum rechten Kartenrand und eine responsive SchriftgrÃ¶ÃŸe, statt die Windangabe in eine zweite Zeile zu zwingen.
-- Hazard-Hinweise bleiben separat in der zweiten Kartenzeile.
-- Regressionstest fÃ¼r das einzeilige Windlayout aktualisiert.
-- README, Changelog, Service-Worker-Cache und Versionsstellen aktualisiert.
-- Cloudflare Worker ohne funktionale Ã„nderung.
-
-# MID v0.7.90.2
-
-- Ursache unpassender Wetterpiktogramme im stÃ¼ndlichen Detaildiagramm behoben.
-- Open-Meteo liefert `weather_code` als Momentaufnahme, Niederschlagsmengen dagegen als Summe des vorangegangenen Stundenintervalls. Deshalb konnte ein trockener Momentcode Ã¼ber einem vorhandenen Niederschlagsbalken erscheinen.
-- Aus Mengenfeldern abgeleitete Niederschlagsarten erhalten jetzt immer einen passenden reprÃ¤sentativen WMO-Anzeigecode fÃ¼r Regen, Schauer, Schnee, Schneeregen, gefrierenden Niederschlag oder Gewitter.
-- Bei responsiv ausgedÃ¼nnten Wetterpiktogrammen reprÃ¤sentiert jedes Symbol nun sein umliegendes Zeitfenster. Ein kurzes Niederschlagsereignis zwischen zwei bisherigen Abtaststunden wird dadurch nicht mehr Ã¼bersprungen.
-- Die Piktogrammpositionen bleiben konfliktfrei gleichmÃ¤ÃŸig verteilt; jedes Symbol reprÃ¤sentiert das zugehÃ¶rige Zeitfenster und Ã¼bernimmt darin ein vorhandenes Niederschlagsereignis.
-- Neuer ausfÃ¼hrbarer Regressionstest fÃ¼r Intervallbezug, Fallback-Anzeigecodes und kurze Niederschlagsereignisse.
-- README, Changelog, Service-Worker-Cache und Versionsstellen aktualisiert.
-- Cloudflare Worker ohne funktionale Ã„nderung.
-
-# MID v0.7.90.1
-
-- Verrutschte Windangabe in den mobilen Karten der 7-Tage-Vorhersage korrigiert.
-- Wind-Symbol, 360-Grad-Richtungspfeil, Geschwindigkeit und BÃ¶en werden als untrennbare, eigene zweite Metazeile dargestellt.
-- Niederschlagsmenge und Sonnenscheindauer bleiben in der ersten Metazeile und kÃ¶nnen sich bei sehr schmalen Displays weiterhin responsiv anordnen.
-- Neuer Regressionstest verhindert das erneute Aufteilen der Windangabe.
-- README, Changelog, Service-Worker-Cache und Versionsstellen aktualisiert.
-- Cloudflare Worker ohne funktionale Ã„nderung.
-
-# MID v0.7.90
-
-- Sichtbaren Info-/Installationsbutton â€žMID als App nutzenâ€œ im App-Footer ergÃ¤nzt.
-- UnterstÃ¼tzte Chromium-Browser Ã¶ffnen Ã¼ber `beforeinstallprompt` den nativen Installationsdialog.
-- iPhone und iPad erhalten eine integrierte Safari-Anleitung fÃ¼r â€žZum Home-Bildschirm hinzufÃ¼genâ€œ und â€žAls Web-App Ã¶ffnenâ€œ.
-- Standalone-Erkennung berÃ¼cksichtigt CSS-Display-Mode und den iOS-Navigatorstatus; bereits installierte Instanzen werden erkannt.
-- Responsiver, zugÃ¤nglicher Dialog mit Escape-/Hintergrund-SchlieÃŸen, Installationsstatus und klaren Vorteilen.
-- Neuer Regressionstest prÃ¼ft Manifest, Apple-PWA-Metadaten, Installationsereignisse und responsive OberflÃ¤che.
-- README, Changelog, Service-Worker-Cache und Versionsstellen aktualisiert.
-- Cloudflare Worker ohne funktionale Ã„nderung.
-
-# MID v0.7.89.5
-
-- Die Felder unter dem Detaildiagramm wurden vollstÃ¤ndig auf die Regen-/SprÃ¼hregen-PlausibilitÃ¤tsprÃ¼fung umgestellt.
-- Das Niederschlagsfeld nutzte bereits die plausibilisierte Form; nun verwenden auch Wettertext, Wettersymbol und die Wetterpiktogramme im Detaildiagramm denselben korrigierten Anzeigecode.
-- Ein unplausibler Open-Meteo-SprÃ¼hregencode erscheint damit Ã¼berall in der Detailansicht konsistent als leichter, mÃ¤ÃŸiger oder starker Regen.
-- Die Niederschlagsarten der Detaillegende werden nicht mehr als dÃ¼nne Linien, sondern als kompakte Balken im jeweiligen Farb- und Musterdesign dargestellt.
-- Neuer Regressionstest fÃ¼r die Konsistenz der Detailansicht und ihrer Niederschlagslegende.
-- README, Changelog, Service-Worker-Cache und Versionsstellen aktualisiert.
-- Cloudflare Worker ohne funktionale Ã„nderung.
-
-# MID v0.7.89.4
-
-- Windrichtungspfeile in aktueller Lage, Tageskarten, Stunden-Detailansicht, Tooltips, Bergmodus und Widget verwenden jetzt den exakten Winkel von 0 bis 359,9 Grad statt eines Acht-Richtungen-Rasters in 45-Grad-Schritten.
-- Die bisherige MID-Konvention bleibt erhalten: Der Pfeil zeigt in die Richtung, in die der Wind weht; im zugÃ¤nglichen Titel werden Herkunfts- und Zielrichtung in Grad genannt.
-- Das Meteogramm nutzte bereits die vollstÃ¤ndige 360-Grad-Drehung und bleibt unverÃ¤ndert konsistent.
-- Neuer Regressionstest verhindert die RÃ¼ckkehr der diskreten Unicode-Pfeile.
-- README, Changelog, Service-Worker-Cache und Versionsstellen aktualisiert.
-- Cloudflare Worker ohne funktionale Ã„nderung.
-
-# MID v0.7.89.3
-
-- Kritischen Laufzeitfehler nach dem Start von v0.7.89.x behoben.
-- Die manuelle Aufteilung von React, Icons, Diagramm-, Karten-, Export- und HDF5-Bibliotheken wurde vollstÃ¤ndig zurÃ¼ckgenommen. Sie brachte bei den Ã¼berwiegend statischen Importen keinen verlÃ¤sslichen Bedarfsladevorteil und konnte eine fehlerhafte Initialisierungsreihenfolge der erzeugten Browser-Chunks verursachen.
-- Das bewÃ¤hrte Vite-Standard-Bundling ist wieder aktiv. Das echte Lazy-Loading der groÃŸen MID-Module bleibt unverÃ¤ndert erhalten.
-- Sichere Optimierungen bleiben bestehen: ES2020-Ziel, CSS-Code-Splitting, deaktivierte Produktions-Source-Maps, Rendering-Containment, Touch-Scrolling, mobile Tooltip-Begrenzung und reduzierte Bewegung.
-- Der Performance-Test verhindert kÃ¼nftig ausdrÃ¼cklich die erneute Aktivierung manueller Vendor-Chunks.
-- Service-Worker-Cache auf v0.7.89.3 erhÃ¶ht, damit fehlerhafte Assets der vorherigen Version nicht weiterverwendet werden.
-- README, Changelog und sÃ¤mtliche Versionsstellen aktualisiert.
-- Cloudflare Worker ohne funktionale Ã„nderung.
-
-# MID v0.7.89.2
-
-- Zweiten GitHub-Buildfehler in `vite.config.ts` behoben.
-- Die vorherige Ersetzung hatte `indexOf(...) >= 0` falsch geklammert und dadurch einen Vergleich innerhalb des Funktionsarguments erzeugt.
-- SÃ¤mtliche PfadprÃ¼fungen der manuellen Chunk-Aufteilung verwenden nun korrekt `id.indexOf('...') >= 0`.
-- README, Changelog und Versionsstellen aktualisiert.
-- Cloudflare Worker ohne funktionale Ã„nderung.
-
-# MID v0.7.89.1
-
-- GitHub-Buildfehler in `vite.config.ts` behoben.
-- Die Chunk-Aufteilung verwendet nun `indexOf(...) >= 0` statt `String.prototype.includes(...)` und ist damit mit der im Node-TypeScript-Projekt verwendeten Bibliothekskonfiguration kompatibel.
-- Die Performance-Optimierungen und die funktionale Aufteilung der Ladepakete bleiben unverÃ¤ndert erhalten.
-- README, Changelog und Versionsstellen aktualisiert.
-- Cloudflare Worker ohne funktionale Ã„nderung.
-
-# MID v0.7.89
-
-- Intensive Code- und Release-Revision mit Schwerpunkt auf ResponsivitÃ¤t, Ladeverhalten und PaketgrÃ¶ÃŸe ohne Funktionsabbau.
-- Vite-Build in getrennte, bedarfsgerecht ladbare Bibliotheks-Chunks fÃ¼r Diagramme, Karten, Export, HDF5, React und Icons aufgeteilt; Source-Maps im Produktionsbuild deaktiviert.
-- Unterhalb des sichtbaren Bereichs liegende Module werden browserseitig Ã¼ber `content-visibility` und intrinsische Platzhalter effizienter dargestellt.
-- Horizontale Diagramm- und Zeitachsen erhalten stabileres Touch-Scrolling, begrenztes Overscrolling und mobile Scroll-Snap-UnterstÃ¼tzung.
-- Tooltips und Informationsdialoge wurden fÃ¼r schmale Displays gegen Ãœberbreite, abgeschnittene Inhalte und unkontrollierte UmbrÃ¼che abgesichert.
-- UnterstÃ¼tzung fÃ¼r `prefers-reduced-motion` ergÃ¤nzt und unnÃ¶tige Build-Artefakte aus dem Release-ZIP entfernt.
-- README, Changelog und sÃ¤mtliche Versionsstellen aktualisiert.
-- Cloudflare Worker ohne funktionale Ã„nderung; Versionsnummer nur synchronisiert.
-
-# MID v0.7.88.3
-
-- Darstellungsfehler im Tooltip des 14-Tage-Ensemble-Trends behoben.
-- Der Prozentwert der Prognosekonsistenz wird nun als untrennbare Einheit dargestellt und bricht auch auf schmalen Bildschirmen nicht mehr zwischen Zahl und Prozentzeichen um.
-- README, Changelog und Versionsstellen aktualisiert.
-- Cloudflare Worker ohne funktionale Ã„nderung.
-
-# MID v0.7.88.2
-
-- Die mit v0.7.88.1 eingefÃ¼hrte SprÃ¼hregen-Plausibilisierung gilt nun konsequent auch fÃ¼r die Wettertexte und Wettersymbole der 7-Tage-Vorhersage, des Widgets und des 14-Tage-Ensemble-Trends.
-- Unplausible WMO-SprÃ¼hregen-Codes 51â€“55 werden in Tageszusammenfassungen nicht mehr als â€žSprÃ¼hregenâ€œ weitergereicht, sondern anhand der DWD/WMO-Stundenschwellen als leichter, mÃ¤ÃŸiger oder starker Regen behandelt.
-- Tagesereignisse, Zeitangaben und reprÃ¤sentative Wettersymbole greifen jetzt auf dieselbe zentralisierte Niederschlagsform-Auswertung wie die Stundenansicht zurÃ¼ck.
-- README, Changelog und sÃ¤mtliche Versionsstellen aktualisiert.
-- Cloudflare Worker ohne funktionale Ã„nderung.
-
-# MID v0.7.88.1
-
-- PlausibilitÃ¤tsprÃ¼fung fÃ¼r Open-Meteo-SprÃ¼hregen ergÃ¤nzt: WMO-Codes 51â€“55 werden nur noch bei hoher relativer Feuchte, ausgeprÃ¤gter tiefer BewÃ¶lkung und schwacher stratiformer Niederschlagsrate als SprÃ¼hregen dargestellt.
-- Fehlen die typischen Stratus-/Feuchtemerkmale oder ist die Niederschlagsrate zu hoch, wird der Niederschlag als Regen klassifiziert.
-- RegenintensitÃ¤ten werden nach den DWD/WMO-Stundenschwellen als leicht, mÃ¤ÃŸig, stark oder sehr stark bezeichnet; SprÃ¼hregen nutzt seine eigenen DWD-IntensitÃ¤tsstufen.
-- `cloud_cover_low` wird jetzt in der Best-Match-Stundenprognose geladen und zusammen mit relativer Feuchte, GesamtbewÃ¶lkung, Schauersignal und Niederschlagsmenge ausgewertet.
-- Regressionstests sichern plausiblen SprÃ¼hregen und die Umklassifizierung unplausibler SprÃ¼hregen-Codes ab.
-- Cloudflare Worker ohne funktionale Ã„nderung; Versionsnummer lediglich synchronisiert.
-
-# MID v0.7.87.1
-
-- Release-Pipeline korrigiert: `package-lock.json` enthÃ¤lt keine internen OpenAI-Paketserver mehr; `jsfive` und `pako` werden Ã¼ber die Ã¶ffentliche npm-Registry bezogen.
-- ZIP-Installation und GitHub-Pages-Deployment sind im Installationsworkflow direkt verkettet, weil ein Bot-Commit mit `GITHUB_TOKEN` keinen weiteren Push-Workflow startet.
-- Pages-Actions auf `configure-pages@v6`, `upload-pages-artifact@v5` und `deploy-pages@v5` aktualisiert; vorzeitiges Deployment beim reinen ZIP-Upload wird verhindert.
-- OPERA-Nutzung erneut gehÃ¤rtet: Der Worker ermittelt aktuelle CIRRUS-DBZH-Dateien jetzt primÃ¤r Ã¼ber die offizielle MeteoGate-ORD-API und parallel Ã¼ber den offenen S3-Index.
-- Falls beide Verzeichnisdienste ausfallen, bleibt der begrenzte HDF5-Range-Probe-Fallback aktiv. Dadurch hÃ¤ngt OPERA weder allein vom S3-Listing noch von geschÃ¤tzten Zeitstempeln ab.
-- Kompositbild und aktuelle Niederschlagswahrscheinlichkeit verwenden weiterhin denselben validierten HDF5-Rasterpfad; DWD bleibt in Deutschland primÃ¤r, OPERA ist sichtbare Unterlage und unabhÃ¤ngiger Abgleich.
-- OPERA-Regressionstest um den ORD-API-Pfad erweitert.
-
-# MID v0.7.87
-
-- Belastbare erste Ausbaustufe des automatischen Starkregen-/Ãœberflutungsindikators ergÃ¤nzt: RADOLAN-YW-Summen fÃ¼r 15/30/60/180/360 Minuten, DWD-RV-Nowcast-Summen bis +120 Minuten, KONRAD3D-Starkregenflag und Zellzug, KOSTRA-DWD-2020-Einordnung fÃ¼r 30/60/360 Minuten sowie DWD-Stationsabgleich.
-- Die Starkregenkarte erscheint ausschlieÃŸlich bei einem tatsÃ¤chlichen Mess-, Nowcast-, KONRAD-, KOSTRA- oder nahen Stationssignal und bleibt vollstÃ¤ndig von amtlichen Warnungen getrennt.
-- OPERA-CIRRUS-Georeferenzierung korrigiert: Das offizielle LAEA-Raster verwendet eine Oberkante von y=0 m und den negativen Projektionsursprung y_0=-2.100.000 m. Die frÃ¼here Ersatzgeometrie verschob Standortabfragen um 4.400 km und fÃ¼hrte dadurch zu NoData.
-- Das Kompositbild deklariert OPERA erst nach erfolgreichem Download, HDF5-Dekodierung und realer StandortabdeckungsprÃ¼fung als bereit. OPERA wird als europÃ¤ische Unterlage dargestellt, DWD liegt in Deutschland darÃ¼ber.
-- Die aktuelle Niederschlagswahrscheinlichkeit prÃ¼ft DWD und OPERA parallel. DWD bleibt in Deutschland primÃ¤r; OPERA dient als unabhÃ¤ngiger Abgleich und Ã¼bernimmt bei DWD-Ausfall. RainViewer bleibt der letzte Fallback.
-- OPERA-Bereitschaft, Datenstand und Fehlergrund werden im Infodialog des Kompositbildes ausgewiesen.
-
-# MID v0.7.86.1
-
-- Fehler im isolierten Ensemble-Nullability-Regressionstest behoben: Der Test verwendet nun eine eigene temporÃ¤re TypeScript-Konfiguration mit `moduleResolution: Bundler`, `skipLibCheck: true` und leerer `types`-Liste.
-- Dadurch werden bei der kleinen Testdatei keine projektexternen Ambient-Typdefinitionen aus `node_modules/@types` mehr unnÃ¶tig mitkompiliert.
-- Die im GitHub-Lauf gemeldeten TS2792-Fehler zu `@babel/parser`, `@babel/types` und `csstype` treten nicht mehr auf; der eigentliche strikte Nullability-Test bleibt erhalten.
-- Keine funktionale Ã„nderung an Wetterdarstellung oder Cloudflare Worker.
-
-# MID v0.7.86
-
-- AusfÃ¼hrliche Quellen-, Produkt-, AuflÃ¶sungs-, Zeit-, Alters-, Status- und Lizenzangaben des Kompositbildes in einen barrierefrei beschrifteten Infodialog verschoben.
-- OPERA-CIRRUS-Erkennung korrigiert: Der Worker liest nun die tatsÃ¤chlich vorhandenen DBZH-HDF5-Objekte aus dem offiziellen S3-Index, statt Zeitstempel zu erraten.
-- Nur real vorhandene OPERA-Frames werden an Karte und aktuelle Niederschlagswahrscheinlichkeit Ã¼bergeben; bei einem nicht verfÃ¼gbaren Index folgt ein kontrollierter Range-Probe-Fallback.
-- OPERA-Dateiproxy verwendet validierte ObjektschlÃ¼ssel und liefert Diagnoseheader fÃ¼r Quelle, Produkt, SchlÃ¼ssel und Worker-Version.
-- Regressionstest fÃ¼r Infodialog, reale OPERA-Objektliste, fehlertolerante Erkennung und CORS-HDF5-Proxy erweitert.
-
-# MID v0.7.85
-
-- Z-Zeit unter dem Ortsnamen einheitlich als `hhmmZ` ohne Doppelpunkt dargestellt.
-- Separate Gewitterinformation neben der aktuellen Niederschlagswahrscheinlichkeit ergÃ¤nzt.
-- DWD KONRAD3D wird fÃ¼nfminÃ¼tig fÃ¼r Zellposition, Zugrichtung, Schweregrad, Trend, Blitzrate, Hagel-, Starkregen- und BÃ¶enflags ausgewertet.
-- Amtliche DWD-WFS/CAP-Gewitterwarnungen haben Vorrang; Radar, Best-Match und Stationsniederschlag dienen ergÃ¤nzend der Plausibilisierung.
-- Neue Workerroute `thunderstorm-nowcast` und Regressionstest ergÃ¤nzt.
-
-# MID v0.7.84.1
-
-- GitHub-Buildfehler TS18048 im OPERA-Rasteroverlay behoben.
-- Statt des optional typisierten `pixelBounds.min` verwendet die Darstellung nun Leaflets eindeutig typisierten Karten-Pixelursprung.
-- Regressionstest verhindert die erneute Verwendung des optionalen Bounds-Minimums.
-- Cloudflare Worker ohne funktionale Ã„nderung; nur Versionssynchronisierung.
-
-# MID v0.7.84
-
-- Phase 1 der europÃ¤ischen Radarintegration auf Basis von MID v0.7.83.3 umgesetzt.
-- Das Kompositbild lÃ¤dt das echte EUMETNET-OPERA-CIRRUS-DBZH-Komposit als ODIM-HDF5-Raster mit 1 km Rasterweite und fÃ¼nfminÃ¼tigem Produktzyklus.
-- RadarprioritÃ¤t vereinheitlicht: DWD-HX/PX250 beziehungsweise DWD-RV â†’ OPERA CIRRUS â†’ RainViewer als letzter Fallback.
-- Die frÃ¼here OPERA-Punkt-/StÃ¼tzstellenauswertung wurde vollstÃ¤ndig entfernt.
-- Karte und aktuelle Niederschlagswahrscheinlichkeit verwenden denselben OPERA-Rasterdecoder; Standortpixel und 30-km-Umfeld flieÃŸen in die Radar-/Best-Match-Kombination ein.
-- Neue Worker-Routen `opera-raster-meta` und `opera-raster-file` liefern validierte Metadaten und CORS-sichere HDF5-Dateien.
-- Regressionstest fÃ¼r OPERA-Raster, Quellenreihenfolge und Entfernung der Altlogik ergÃ¤nzt.
-
-# MID v0.7.83.3
-
-- Achsentick-Beschriftungen im Ensemble-Temperaturdiagramm vertikal korrigiert.
-- Die zusÃ¤tzliche CSS-Baseline `dominant-baseline: hanging`, die X- und Y-Achsenwerte leicht nach unten verschob, wurde entfernt.
-- Recharts Ã¼bernimmt wieder die vorgesehene mittige Standardausrichtung der Tickwerte.
-- Regressionstest fÃ¼r die Achsenausrichtung ergÃ¤nzt.
-- Cloudflare Worker ohne funktionale Ã„nderung; nur Versionssynchronisierung.
-
-# MID v0.7.83.2
-
-- GitHub-Actions-Warnung zur erzwungenen Node.js-24-AusfÃ¼hrung entfernt: `actions/checkout` und `actions/setup-node` wurden in Installations- und Deployment-Workflow von v4 auf v6 aktualisiert.
-- Der Installer-Workflow ist zusÃ¤tzlich als Wiederherstellungs-/Referenzkopie Bestandteil des vollstÃ¤ndigen MID-Projekts.
-- Regressionstest verhindert kÃ¼nftig die erneute Verwendung der Node-20-basierten Action-Versionen v1 bis v4.
-- Das Projekt selbst wird weiterhin bewusst mit Node.js 22 gebaut; geÃ¤ndert wurde ausschlieÃŸlich die interne Laufzeit der GitHub-Actions-Bausteine.
-- Cloudflare Worker ohne funktionale Ã„nderung; nur Versionssynchronisierung.
-
-# MID v0.7.83.1
-
-- GitHub-Buildfehler in `src/EnsemblePanel.tsx` behoben: optionale Klimawerte werden vor der Formatierung gemeinsam als endliche Zahlen eingegrenzt.
-- Die Temperatur-Skalierung filtert `number | undefined` nun Ã¼ber einen echten TypeScript-Type-Guard statt Ã¼ber einen unzulÃ¤ssigen `number`-Callback.
-- Eine leere optionale Klimareihe fÃ¤llt fÃ¼r die Skalenberechnung sicher auf die Best-Match-Werte zurÃ¼ck.
-- Strikter Regressionstest fÃ¼r die Ensemble-Nullability ergÃ¤nzt.
-- Cloudflare Worker ohne funktionale Ã„nderung; nur Versionssynchronisierung.
-
-# MID v0.7.83
-
-- Warnfreie Tage werden in der 7-Tage-Vorhersage kompakt als â€žKeine Hazardsâ€œ gekennzeichnet.
-- Sonnenscheindauer, Prognosekonsistenz und Best-Match-Hazards verwenden im Ensemble-Tooltip einen einheitlichen Abschnittsaufbau.
-- Gemeinsame Popover- und Diagrammhilfen reduzieren redundante Listener und doppelte Skalenlogik.
-- Ensemble-Diagramm- und Tooltip-Daten wurden stÃ¤rker typisiert; stabile React-SchlÃ¼ssel und ein automatischer CodeCheck wurden ergÃ¤nzt.
-- Cloudflare Worker ohne funktionale Ã„nderung; nur Versionssynchronisierung.
-
-# MID v0.7.82.2
-
-- Die 7-Tage-Vorhersage zeigt an warnfreien Tagen wieder einen dezenten Hinweis â€žKeine Warnhinweiseâ€œ.
-- Best-Match-Hazards ab interner IntensitÃ¤tsstufe 2 erscheinen im Ensemble-Temperaturtrend wieder als kompakte, farbcodierte Piktogramme direkt oberhalb des Sonnenschein-/BewÃ¶lkungsbands; die vollstÃ¤ndigen Angaben bleiben im Tages-Tooltip.
-- Schriftart und Textfarben des Ensemble-Temperatur-Tooltips wurden vereinheitlicht.
-- Aus sÃ¤mtlichen automatisch erzeugten Warntexten und Windschwellen-Tooltips wurden ausgeschriebene Hinweise auf DWD-Warnstufen entfernt; die interne Farbcodierung und Schwellenlogik bleiben unverÃ¤ndert.
-- Cloudflare Worker ohne funktionale Ã„nderung; nur Versionssynchronisierung.
-
-# MID v0.7.82.1
-
-- Die ausgeschriebene Bezeichnung zeigt die Anfangsbuchstaben **M**, **I** und **D** innerhalb von â€žMeteorological Information Dashboardâ€œ fett.
-- Das RÃ¼ckfallsystem versucht eine neuere, vollstÃ¤ndig gecachte MID-Version nun automatisch erneut; die RÃ¼ckfallleiste verschwindet beim manuellen erneuten Test sofort und bleibt nicht dauerhaft an einer Ã¤lteren Version hÃ¤ngen.
-- Warnfelder der 7-Tage-Vorhersage zeigen nur noch den prognostizierten Wert in der gewÃ¤hlten Einheit, ohne zusÃ¤tzliche Umrechnung oder Beaufortangabe; der vollstÃ¤ndige Warntext bleibt im Tooltip.
-- Best-Match-Warnhinweise ab Warnstufe 2 wurden im Ensemble-Temperaturtrend aus der DiagrammflÃ¤che entfernt und platzsparend in den Tages-Tooltip integriert.
-- Im Detaildiagramm besitzt die Niederschlagswahrscheinlichkeit eine unabhÃ¤ngige rechte 0-/50-/100-%-Achse. Niederschlagsbalken werden an den Plotgrenzen beschnitten und kÃ¶nnen die rechte Achse nicht mehr Ã¼berdecken.
-- Cloudflare Worker ohne funktionale Ã„nderung; nur Versionssynchronisierung.
-
-# MID v0.7.82
-
-- Warntexte und kompakte Hazardwerte verwenden die gewÃ¤hlte Windeinheit; bei kt, m/s oder mph wird der km/h-Wert ergÃ¤nzt, bei km/h die BeaufortstÃ¤rke.
-- Warntexte zeigen prognostizierte Temperaturen und Mengen ausschlieÃŸlich als ganze Werte ohne Dezimalkomma.
-- Die 7-Tage-Vorhersage zeigt ab DWD-Warnstufe 1 nur noch kompakte, stufenfarbige Symbole mit erwartetem Wert; die ausfÃ¼hrliche ErlÃ¤uterung bleibt im Tooltip.
-- Best-Match-Warnmarker wurden aus dem stÃ¼ndlichen Detaildiagramm entfernt. Die dezenten WindwarnflÃ¤chen und horizontalen DWD-Schwellenlinien bleiben bestehen.
-- Im Ensemble-Temperaturtrend erscheinen oberhalb des Sonnenschein-/BewÃ¶lkungsbands stufenfarbige Best-Match-Hazards ab Warnstufe 2.
-- Allgemeine Best-Match-Gefahrenkarten verwenden dieselbe ganzzahlige und einheitenbewusste Warntextformatierung.
-- Cloudflare Worker ohne funktionale Ã„nderung; nur Versionssynchronisierung.
-
-# MID v0.7.81.1
-
-- DWD-Warnstufe 1 in der zentralen Best-Match-Auswertung ergÃ¤nzt und fachlich korrigiert.
-- WindbÃ¶en werden ab Ãœberschreiten von 50 km/h als Stufe 1 erkannt; der Windbereich besitzt nun zusÃ¤tzlich die gelbe Schraffur und Trennlinie zwischen 50 und 65 km/h.
-- Einfache Gewitter, leichter Schneefall, GlÃ¤tte bei Niederschlag und Frost, Frost unter 0 Â°C bis 800 m, Nebel unter 150 m Sichtweite und starke WÃ¤rmebelastung Ã¼ber etwa 32 Â°C bei geringer AbkÃ¼hlung werden als Stufe 1 berÃ¼cksichtigt.
-- Die kompakte Warnsymbolzeile oberhalb des Sonnenschein-/BewÃ¶lkungsbands zeigt gemÃ¤ÃŸ Vorgabe weiterhin ausschlieÃŸlich Stufen 2 bis 4; Stufe 1 flieÃŸt in die allgemeine 24-Stunden-Gefahrenauswertung und Windskalierung ein.
-- UV-Warnstufe 1 wird nicht kÃ¼nstlich aus dem UVI allein erzeugt, weil das DWD-Kriterium zusÃ¤tzlich eine regionale beziehungsweise klimatologische Abweichung verlangt.
-- Regressionstests um sÃ¤mtliche automatisch ableitbaren Stufe-1-Kriterien und die Filterung der Symbolzeile erweitert.
-- Cloudflare Worker ohne funktionale Ã„nderung; nur Versionssynchronisierung.
-
-# MID v0.7.81
-
-- Best-Match-basierte Warnhinweise wurden in beiden Modi als eigene Symbolzeile unmittelbar oberhalb des Sonnenschein-/BewÃ¶lkungsbands ergÃ¤nzt.
-- Es werden ausschlieÃŸlich modellseitig Ã¼berschrittene DWD-Warnstufen 2 bis 4 dargestellt; Ereignisart, Warnfarbe und Stufennummer sind direkt unterscheidbar.
-- Warnmarker fassen zusammenhÃ¤ngende ZeitrÃ¤ume zusammen und Ã¶ffnen per Klick, Tippen oder Tastatur einen kurzen Tooltip; sie sind ausdrÃ¼cklich keine amtlichen Warnungen.
-- DWD-Warnkriterien fÃ¼r Wind, Gewitter, Stark- und Dauerregen, Schneefall, Schneeverwehung, markante GlÃ¤tte/Glatteis, strengen Frost und extreme WÃ¤rmebelastung zentralisiert.
-- Windwarnbereiche auf die offiziellen Schwellen 65, 90, 105, 120 und Ã¼ber 140 km/h umgestellt; jede neue Schwelle wird zusÃ¤tzlich durch eine dezente horizontale Linie markiert.
-- Automatische Hazard-Karten und Tagesindikatoren verwenden dieselbe zentrale DWD-Logik und keine bisherigen Mischschwellen aus DWD, Meteoalarm und NWS mehr.
-- Regressionstest fÃ¼r DWD-Schwellen, Warnmarker, IntensitÃ¤ten, Tooltips und horizontale Schwellenlinien ergÃ¤nzt.
-- Cloudflare Worker ohne funktionale Ã„nderung; nur Versionssynchronisierung.
-
-# MID v0.7.80
-
-- Im Windbereich der erweiterten stÃ¼ndlichen Detailansicht werden die vorhandenen DWD-/Meteoalarm-Warnschwellen ab 50, 75, 89 und 103 km/h als dezente gelbe, orangefarbene, rote und violette Schraffurbereiche dargestellt.
-- Die WarnflÃ¤chen werden ausschlieÃŸlich innerhalb des tatsÃ¤chlich sichtbaren Windbereichs gezeichnet und liegen hinter Wind-, BÃ¶en- und Richtungselementen.
-- Meteogramm und Widget-/PNG-Generator besitzen keine eigene zweite Ein-/Ausklappsteuerung mehr; beide werden ausschlieÃŸlich Ã¼ber den jeweiligen Ã¤uÃŸeren Modulschalter geÃ¶ffnet und geschlossen.
-- Beim SchlieÃŸen der Module werden die enthaltenen Komponenten weiterhin ausgehÃ¤ngt und laufende Meteogrammabrufe abgebrochen.
-- Regressionstest fÃ¼r WindwarnflÃ¤chen und eindeutige Modulsteuerung ergÃ¤nzt.
-- Cloudflare Worker ohne funktionale Ã„nderung; nur Versionssynchronisierung.
-
-# MID v0.7.79.3
-
-- Die Zahl der Wetterpiktogramme in der stÃ¼ndlichen Detailansicht wird nun aus der tatsÃ¤chlich verfÃ¼gbaren Diagrammbreite bestimmt und bis zur konfliktfrei mÃ¶glichen HÃ¶chstzahl erhÃ¶ht.
-- Auf breiten Tablet- und Desktopansichten kÃ¶nnen alle stÃ¼ndlichen Piktogramme erscheinen; auf schmaleren Displays werden sie gleichmÃ¤ÃŸig Ã¼ber den Tag verteilt.
-- Der bisher sehr groÃŸzÃ¼gige feste Mindestabstand wurde durch eine an SymbolgrÃ¶ÃŸe und Ansichtsbreite angepasste Verteilung ersetzt.
-- Cloudflare Worker ohne funktionale Ã„nderung; nur Versionssynchronisierung.
-
-# MID v0.7.79.2
-
-- In beiden Ansichtsmodi folgt der Kopfbereich der stÃ¼ndlichen Detailansicht nun der Reihenfolge: JETZT-Zeitmarkierung, Wetterpiktogramme, Sonnenschein-/BewÃ¶lkungsband, eigentliche DiagrammflÃ¤che.
-- Die blaue Markierung des ausgewÃ¤hlten Zeitschritts reicht jetzt bis in die Piktogramm-Lane und wird hinter den Wetterpiktogrammen gezeichnet, damit diese lesbar bleiben.
-- Vertikale AbstÃ¤nde und DiagrammhÃ¶he wurden fÃ¼r schmale und breite Ansichten gemeinsam angepasst.
-- Cloudflare Worker ohne funktionale Ã„nderung; nur einheitliche Versionssynchronisierung.
-
-# MID v0.7.79.1
-
-- In der stÃ¼ndlichen Detailansicht wurden Wetterpiktogramme und Sonnenschein-/BewÃ¶lkungsband vertikal getauscht: Die Piktogramme stehen nun oben, das Band direkt darunter.
-- AbstÃ¤nde zur Jetzt-Zeitmarkierung und zur eigentlichen DiagrammflÃ¤che wurden entsprechend angepasst, damit alle Elemente weiterhin getrennt bleiben.
-- Cloudflare Worker ohne funktionale Ã„nderung; nur einheitliche Versionssynchronisierung.
-
-# MID v0.7.79
-
-- Im Erweiterten Modus zeigt die Ortszeile nun die aktuelle Ortszeit mit GMT-Abweichung und zusÃ¤tzlich die Z-Zeit in Klammern; die einzeilige Darstellung passt ihre SchriftgrÃ¶ÃŸe responsiv an.
-- ErklÃ¤rungen der stÃ¼ndlichen Detailansicht, der 14-Tage-Ensemble-Ãœbersicht sowie der Temperatur- und Niederschlagsdiagramme wurden auch im Erweiterten Modus in dezente, bei AuÃŸenklick schlieÃŸbare Info-Popover verschoben.
-- P10â€“P90-Fehlerbalken im Ensemble-Niederschlagsdiagramm werden unabhÃ¤ngig vom Best-Match-Wert exakt zwischen P10 und P90 gezeichnet.
-- Oberen Bereich der Detailansicht in getrennte Ebenen fÃ¼r Sonnenschein-/BewÃ¶lkungsband, Wetterpiktogramme und aktuelle Uhrzeit gegliedert, damit keine Ãœberdeckungen entstehen.
-- Temperatur-, Niederschlags- und Windachsen verwenden nun mÃ¶glichst glatte, an runden Schrittweiten ausgerichtete Werte.
-- Dichte der Windrichtungspfeile wird anhand der tatsÃ¤chlich verfÃ¼gbaren Diagrammbreite automatisch maximiert, ohne benachbarte Pfeile zu Ã¼berdecken.
-- Regressionstests fÃ¼r Z-Zeit, Info-Popover, exakte P10â€“P90-Spanne, adaptive Kopfleiste, Achsenskalierung und Windpfeildichte ergÃ¤nzt.
-- Cloudflare Worker ohne funktionale Ã„nderung; nur einheitliche Versionssynchronisierung.
-
-# MID v0.7.78.1
-
-- TypeScript-Buildfehler TS2367 in der Niederschlagsdarstellung der erweiterten Detailansicht behoben.
-- Den Niederschlagstyp `none` vor der Verwendung des engeren `DetailPrecipType` jetzt Ã¼ber einen expliziten Type-Guard ausgeschlossen.
-- Dieselbe typsichere PrÃ¼fung wird auch fÃ¼r die dynamische Niederschlagsskala verwendet.
-- Regressionstest erweitert, damit die fehlerhafte Kombination aus Exclude-Typcast und anschlieÃŸendem `none`-Vergleich nicht erneut eingefÃ¼hrt wird.
-- Cloudflare Worker ohne funktionale Ã„nderung; nur einheitliche Versionssynchronisierung.
-
-# MID v0.7.78
-
-- Open-Meteo-Modellkatalog um CHMI ALADIN Seamless, ALADIN Mitteleuropa 2,3 km und ALADIN Tschechien 1 km ergÃ¤nzt, damit aktuelle ModellstÃ¤nde im Best-Match-Status korrekt benannt werden.
-- Die jÃ¼ngsten serverseitigen Open-Meteo-Korrekturen fÃ¼r ECMWF-Solarinterpolation, AIGEFS-Abruf und GFS-Niederschlags-Deakkumulation werden automatisch Ã¼ber die bestehenden APIs genutzt; hierfÃ¼r ist keine eigene MID-Datenumrechnung erforderlich.
-- Im Erweiterten Modus lassen sich Temperatur, gefÃ¼hlte Temperatur, Taupunkt, einzelne Niederschlagsarten, Niederschlagswahrscheinlichkeit, Wind, BÃ¶en und Windrichtung unmittelbar Ã¼ber die Legende ein- und ausblenden.
-- Taupunkt als zurÃ¼ckhaltende Linie ergÃ¤nzt; unter dem Niederschlagsbereich erscheinen Wind und BÃ¶en sowie darunter Richtungspfeile.
-- Nicht mehr benÃ¶tigte Temperatur-, Niederschlags- und Windbereiche werden dynamisch entfernt. Das SVG passt ViewBox und HÃ¶he per ResizeObserver an Hoch-/Querformat und verfÃ¼gbare Bildschirmbreite an, ohne die Darstellung zu verzerren.
-- Legendenmuster der gefÃ¼hlten Temperatur in Standard- und Erweitertem Modus an die gestrichelte Diagrammlinie angeglichen.
-- Auswahl der erweiterten Detailparameter wird lokal gespeichert.
-- Cloudflare Worker ohne funktionale Ã„nderung; nur einheitliche Versionssynchronisierung.
-
-# MID v0.7.77.1
-
-- Beschriftung der gelb-grauen Sonnenschein-/BewÃ¶lkungslegende in allen Farbdesigns mit einer festen dunklen Schriftfarbe lesbar gemacht.
-- Deutsche Wortstellung bei spÃ¤ter einsetzenden Schauern korrigiert, z. B. `Stark bewÃ¶lkt, abends Schauer` statt `Stark bewÃ¶lkt, Schauer abends`.
-- Cloudflare Worker ohne funktionale Ã„nderung; nur einheitliche Versionssynchronisierung.
-
-# MID v0.7.77
-
-- Widget-/PNG-Generator und Druckniveau-Meteogramm stehen ausschlieÃŸlich im Erweiterten Modus zur VerfÃ¼gung.
-- Quellen bleiben in beiden Modi Ã¼ber die FuÃŸzeilen-SchaltflÃ¤che `Quellen` erreichbar und Ã¶ffnen sich als bei AuÃŸenklick, Touch oder Escape schlieÃŸbares Popover.
-- Beim erstmaligen Ã–ffnen des Standardmodus werden die stÃ¼ndliche Detailansicht sowie alle nachfolgenden einklappbaren Module geschlossen initialisiert.
-- Bestehende ModulzustÃ¤nde bleiben nach der Erstinitialisierung weiterhin lokal gespeichert.
-- Der Zusatz `Ortsname aus Geodatenbank` wurde in beiden Ansichtsmodi entfernt.
-- Cloudflare Worker ohne funktionale Ã„nderung; nur einheitliche Versionssynchronisierung.
-
-# MID v0.7.76
-
-- ModellstÃ¤nde-Popover in Best-Match- und Ensemble-Bereichen schlieÃŸen nun zuverlÃ¤ssig bei Klick oder Tippen auÃŸerhalb sowie mit Escape.
-- Bisherigen Kompaktmodus in `Standardmodus` umbenannt und als Erststartmodus festgelegt; bestehende Compact-Einstellungen werden automatisch Ã¼bernommen.
-- Bisherigen VollstÃ¤ndig-Modus durch den `Erweiterten Modus` ersetzt. Dieser verwendet weiterhin einklappbare Module, ergÃ¤nzt jedoch meteorologische und technische HintergrÃ¼nde direkt in der OberflÃ¤che.
-- Im Standardmodus werden ausgewÃ¤hlte Bedien- und DatenerklÃ¤rungen Ã¼ber dezente Info-SchaltflÃ¤chen geÃ¶ffnet und bei AuÃŸenklick, Touch oder Escape wieder geschlossen.
-- AusfÃ¼hrliche Stationsanalyse, Ensemble-Methodik, Bedienhinweise und lange technische Quellen-/HaftungserklÃ¤rungen werden im erweiterten Modus direkt angezeigt.
-- Alte gespeicherte Vollansicht wird automatisch in den erweiterten Modus migriert.
-- Cloudflare Worker ohne funktionale Ã„nderung; nur einheitliche Versionssynchronisierung.
-
-# MID v0.7.75
-
-- Dezente Tagespfeile der stÃ¼ndlichen Detailansicht stehen nun auf Handy, Tablet im Hoch- und Querformat sowie Desktop dauerhaft bereit.
-- Die Pfeile bleiben responsiv: Auf kleinen Smartphones nur als Symbole, auf grÃ¶ÃŸeren Displays zusÃ¤tzlich mit abgekÃ¼rztem Wochentag.
-- Neu angelegte Favoriten werden nicht mehr vorne einsortiert, sondern am Ende der bestehenden Reihenfolge ergÃ¤nzt.
-- Auch importierte, bisher noch nicht vorhandene Favoriten werden hinter den vorhandenen EintrÃ¤gen angefÃ¼gt; die Reihenfolge innerhalb des Imports bleibt erhalten.
-- Cloudflare Worker ohne funktionale Ã„nderung; nur einheitliche Versionssynchronisierung.
-
-# MID v0.7.74
-
-- Favoriten-Schnellleiste platzsparend als eigene zweite Reihe unter der Kopfleiste reaktiviert.
-- Aktuelle Position und alle gespeicherten Favoriten sind wieder direkt auswÃ¤hlbar; aktiver Ort, Standardort, Gruppe sowie Berg-/Ski- und Wassersportprofile bleiben erkennbar.
-- Reihenfolge lÃ¤sst sich unmittelbar in der Schnellleiste per Maus-Drag&Drop und auf TouchgerÃ¤ten Ã¼ber den Griff verschieben; die neue Reihenfolge wird wie bisher lokal gespeichert.
-- Das kleine Verwaltungssymbol Ã¶ffnet direkt den Favoriten-Unterbereich der zentralen Einstellungen. Umbenennen, Gruppen, Regeln, Import/Export, Standardort und Profile bleiben ausschlieÃŸlich dort.
-- Cloudflare Worker ohne funktionale Ã„nderung; nur einheitliche Versionssynchronisierung.
-
-# MID v0.7.73
-
-- Ensemble-Temperaturtooltip horizontal wieder an Diagramm und Viewport begrenzt; am rechten beziehungsweise linken Rand wechselt die Position automatisch zur sichtbaren Seite.
-- METAR-WolkenhÃ¶he fachlich differenziert: `Ceiling` erscheint nur bei mindestens 5/8 BewÃ¶lkung aus BKN/OVC/VV, bei 1/8 bis 4/8 wird die niedrigste FEW-/SCT-Lage als `Wolkenuntergrenze` in hft angezeigt.
-- Hyperlokale Stationsanalyse um die separate Wolkenuntergrenze erweitert, ohne aus dÃ¼nner BewÃ¶lkung fÃ¤lschlich eine Ceiling abzuleiten.
-- StÃ¼ndliche Detailansicht auf Handy und Tablet um dezente Randtasten fÃ¼r den tageweisen Wechsel ergÃ¤nzt; die gewÃ¤hlte Uhrzeit wird beim Tageswechsel beibehalten.
-- Konsistenzpunkte im mobilen 14-Tage-Ensemble-Trend reagieren nun beim ersten Tippen. Hover wird ausschlieÃŸlich auf GerÃ¤ten mit echter Maus-/Trackpad-Hoverfunktion verwendet.
-- Cloudflare Worker ohne funktionale Ã„nderung; nur einheitliche Versionssynchronisierung.
-
-# MID v0.7.72
-
-- Zentrales EinstellungsmenÃ¼ ergÃ¤nzt und die bisher verteilten Kopfbereichsregler dort logisch zusammengefÃ¼hrt.
-- Ansichtsoptionen, Farbdesign (Auto/Hell/Dunkel), Windeinheit, Favoritenverwaltung und MID-Systemstatus besitzen eigene Unterbereiche.
-- Favoritenverwaltung vollstÃ¤ndig als UntermenÃ¼ eingebettet; Gruppen, Reihenfolge, Standardort, Import/Export sowie Berg-/Ski- und Wassersportprofile bleiben erhalten.
-- Permanenten Favoritenstreifen sowie direkte Ansicht-, Design-, Einheiten- und Systemstatusregler aus dem Kopfbereich entfernt. Favoriten bleiben Ã¼ber die Ortssuche schnell erreichbar.
-- Kopfbereich auf allen Plattformen auf Ortssuche, Standort, Einstellungen und Neuladen reduziert; responsive Vollbilddarstellung des EinstellungsmenÃ¼s auf MobilgerÃ¤ten ergÃ¤nzt.
-- Cloudflare Worker ohne funktionale Ã„nderung; nur einheitliche Versionssynchronisierung.
-
-# MID v0.7.71
-
-- Update-System grundlegend erweitert: Eine neue Version wird vor der Aktivierung vollstÃ¤ndig in einen eigenen App-Shell-Cache geladen, einschlieÃŸlich der tatsÃ¤chlich im produktiven `index.html` referenzierten JavaScript- und CSS-Dateien.
-- Die zuletzt geprÃ¼fte Vorversion bleibt erhalten. SchlÃ¤gt der Start der neuen App fehl und wird innerhalb von 20 Sekunden keine Laufzeit-Gesundheitsmeldung gesendet, schaltet MID automatisch auf die vorherige Version zurÃ¼ck.
-- Manuelle Systemverwaltung ergÃ¤nzt: App-/Worker-/aktive Version anzeigen, MID-Cache neu aufbauen, vorherige Version wiederherstellen und Service Worker samt App-Caches zurÃ¼cksetzen. Favoriten und Einstellungen bleiben beim Reset erhalten.
-- RÃ¼ckfallversion erhÃ¤lt eine feste Wiederherstellungsleiste, Ã¼ber die die aktuelle Version erneut getestet werden kann.
-- Datenabrufe entkoppelt: Best Match, Stationsanalyse, LuftqualitÃ¤t, Radar, amtliche Warnungen und Modellinformationen verwenden getrennte AbortController und blockieren einander nicht.
-- Ensemble und Klimatologie laden unabhÃ¤ngig voneinander. Ortswechsel, manuelles Neuladen und Ansichtswechsel brechen veraltete Requests ab, damit alte Ergebnisse keinen neuen Standort Ã¼berschreiben.
-- Such-, Meteogramm- und PX250-Metadatenabrufe zusÃ¤tzlich gegen Ã¼berholte Antworten und weiterlaufende Netzwerkzugriffe abgesichert.
-- Cloudflare Worker ohne funktionale Ã„nderung; nur einheitliche Versionssynchronisierung.
-
-# MID v0.7.70.4
-
-- Weltweiten NOAA-AviationWeather-/METAR-Abruf korrigiert: Die geografische Bounding-Box wird entsprechend der aktuellen API-Reihenfolge als Breitengrad/LÃ¤ngengrad Ã¼bergeben.
-- METAR-Zeitfenster auf drei Stunden erweitert und internationale Suchweite auÃŸerhalb Deutschlands von 140 auf 220 km erhÃ¶ht.
-- Mehrfachmeldungen derselben ICAO-Station werden auf die jeweils neueste Beobachtung reduziert.
-- METAR-Sichtweite wird nun auch Ã¼ber den Worker vollstÃ¤ndig an die hyperlokale Analyse weitergereicht.
-- Eigener Regressionstest fÃ¼r internationale METAR-Orte ergÃ¤nzt; funktionale Worker-Ã„nderung, daher Worker vor dem Hauptprojekt bereitstellen.
-
-# MID v0.7.70.3
-
-- Im Ensemble-Niederschlagsdiagramm die getrennten P10-/P90-Kurven durch einen dunkelgrauen P10â€“P90-Fehlerbalken Ã¼ber dem Best-Match-Niederschlagsbalken ersetzt.
-- Fehlerbalken werden nur an Tagen mit Best-Match-Niederschlag angezeigt.
-
-# MID v0.7.70.2
-
-- Mausradnavigation der stÃ¼ndlichen Detailansicht auf die eigentliche SVG-DiagrammflÃ¤che begrenzt; Legende, Ãœberschrift, Quickfacts und Stunden-Tooltip scrollen die Seite wieder normal.
-- Ursache der ausgefallenen Ensemble-Auswertung behoben: veraltete Open-Meteo-Modellkennungen fÃ¼r Mitgliedsmodelle und Ensemble-Mittel durch die aktuellen API-Kennungen ersetzt.
-- Ensemble-Abrufe auf vier parallele Modellanfragen begrenzt und bei HTTP 429/5xx mit kurzen Wiederholungsversuchen abgesichert.
-- Ensemble-Mittel-Reserve vollstÃ¤ndig auf die aktuellen DWD-, NOAA-, ECMWF-, GEM-, BOM-, UKMO-, MeteoSwiss- und Google-Kennungen aktualisiert.
-- Diagnose bei vollstÃ¤ndigem Ausfall prÃ¤zisiert; keine funktionale Worker-Ã„nderung, nur Versionssynchronisierung.
-
-# MID v0.7.70.1
-
-- Ensemble-Diagramm-Tooltip prÃ¤zisiert: Bei der Sonnenscheindauer heiÃŸt der Klammerzusatz nun `P10â€“P90` statt des unspezifischen Ausdrucks `Bandbreite`.
-- Versionsschema auf aufwertungsabhÃ¤ngige Releases umgestellt: FunktionsstÃ¤nde verwenden `0.7.x`, eng begrenzte WartungsÃ¤nderungen `0.7.x.y`.
-- Versionssynchronisierung, Anzeigeersetzung und Updater-Vergleich fÃ¼r vierteilige Wartungsversionen abgesichert.
-- Keine funktionale Worker-Ã„nderung; nur einheitliche Versionssynchronisierung auf `0.7.70.1`.
-
-# MID v0.7.70
-
-- Sichtbare Mess- und Prognosewerte auf einheitliche deutsche Dezimaldarstellung geprÃ¼ft und erweitert.
-- Aktuelle BewÃ¶lkung um die METAR-Ceiling in hunderten FuÃŸ Ã¼ber Grund (`hft`) ergÃ¤nzt; geeignete BKN-, OVC- und VV-Lagen flieÃŸen stationsgewichtet in die hyperlokale Analyse ein.
-- Desktop-Kacheln der aktuellen Einzelparameter platzsparender angeordnet, sodass bei ausreichender Breite alle Parameter in einer Zeile stehen.
-- Cloudflare Worker funktional um strukturierte Wolkenlagen, vertikale Sichtweite und METAR-Rohmeldung erweitert.
-
-# MID v0.7.69
-
-- Sonnenscheindauer in der 7-Tage-Vorhersage und im Ensemble-Tooltip mit maximal einer Nachkommastelle formatiert: volle Stunden erscheinen ohne unnÃ¶tige Dezimalstelle (`15 h` statt `15,0 h`), Zwischenwerte weiterhin mit deutschem Dezimalkomma.
-- Gelb-graue Sonnenscheinlegende im Ensemble-Temperaturdiagramm verkleinert und optisch zurÃ¼ckgenommen, ohne das eigentliche Datenband zu verÃ¤ndern.
-- Aktuelle Messwerte um die Karte â€žSichtweiteâ€œ zwischen Niederschlag und BewÃ¶lkung ergÃ¤nzt.
-- Hyperlokale Analyse um Sichtweite erweitert und zugleich BewÃ¶lkung sowie Niederschlag in die modellgestÃ¼tzte Restfeldanalyse aufgenommen; Temperatur, Feuchte, Taupunkt, Luftdruck, Wind, BÃ¶en, Sichtweite, BewÃ¶lkung und Niederschlag nutzen nun alle verfÃ¼gbaren geeigneten Stationsmessungen.
-- Bright-Sky-Sichtweite wird in Metern Ã¼bernommen; METAR-Sichtweiten werden aus Statute Miles zuverlÃ¤ssig in Meter normalisiert. METAR-Wolkenlagen werden zusÃ¤tzlich in eine FlÃ¤chenbedeckung Ã¼berfÃ¼hrt.
-- Cloudflare Worker ohne funktionale Ã„nderung; nur einheitliche Versionsanhebung.
-
-# MID v0.7.67
-
-- Niederschlagsform im stÃ¼ndlichen Detaildiagramm vereinheitlicht: WMO-Wettercode steuert nun Wettertext, Symbol, Balkenmuster, Legende und Stunden-Tooltip konsistent.
-- Fehler behoben, durch den reiner Schneefall beziehungsweise Schneeschauer wegen des WasserÃ¤quivalents im Feld `precipitation` fÃ¤lschlich als Schneeregen oder Schneeregenschauer dargestellt wurde.
-- Mischformen werden bei fehlendem geeigneten WMO-Code nur noch dann abgeleitet, wenn gleichzeitig ein messbarer fester und flÃ¼ssiger Niederschlagsanteil vorliegt.
-- Niederschlagsklassifikation in ein separat testbares Modul ausgelagert und mit Regressionstests fÃ¼r Schnee, Schneeschauer, Schneeregen, Schneeregenschauer, Regen und gefrierenden Regen abgesichert.
-- Cloudflare Worker ohne funktionale Ã„nderung; nur einheitliche Versionsanhebung.
-
-# MID v0.7.66
-
-- BewÃ¶lkungs-/Sonnenband im Temperaturtrend farblich an die Referenzskala angepasst: krÃ¤ftiges Gelb fÃ¼r viel Sonne, abgestufte Beige-TÃ¶ne und neutrales Grau fÃ¼r wenig Sonne.
-- Die Bandfarbe wird ausschlieÃŸlich aus der tÃ¤glichen Best-Match-Sonnenscheindauer gebildet; ungÃ¼ltige oder physikalisch zu hohe Werte werden auf das lokale Intervall zwischen Sonnenauf- und Sonnenuntergang begrenzt.
-- Ensembleabruf um `sunshine_duration` je Mitglied erweitert; tÃ¤gliche Summen werden modellgewichtet zu P10, Mittel und P90 aggregiert. Modelle ohne diese Variable bleiben durch einen automatischen Fallback weiterhin fÃ¼r Temperatur und Niederschlag nutzbar.
-- Tooltip ersetzt â€žBewÃ¶lkungâ€œ durch die Best-Match-Sonnenscheindauer in Stunden sowie die P10â€“P90-Bandbreite in Stunden mit deutschem Dezimalformat und responsivem Zeilenumbruch.
-- Kompakte Sonnen-/Wolken-Farbskala nach Referenzmuster direkt in die Diagrammlegende aufgenommen, ohne die AuÃŸenhÃ¶he des Diagramms zu verÃ¤ndern.
-- RegressionsprÃ¼fung um Best-Match-Datenpfad, Ensemble-Sonnenbandbreite, Tooltiptext und Farbskala ergÃ¤nzt.
-- Cloudflare Worker ohne funktionale Ã„nderung; nur einheitliche Versionsanhebung.
-
-# MID v0.7.65
-
-- Temperatur- und Niederschlagsdiagramm verwenden nun dieselbe symmetrische Tagesachse mit je einem halben Zeitschritt Abstand zu linker und rechter y-Achse; erste und letzte Werte liegen nicht mehr auf den Achsen.
-- Abstand, Beschriftung und InnenrÃ¤nder der x-Achsen wurden vereinheitlicht; BewÃ¶lkungsband, Temperaturkurven, Niederschlagsbalken und Wahrscheinlichkeitskurve bleiben taggenau deckungsgleich.
-- Einheitenfehler der hyperlokalen Windanalyse behoben: Bright-Sky/DWD-Windwerte werden von km/h nach kt umgerechnet, bevor sie mit dem in kt angeforderten Open-Meteo-Hintergrundfeld verrechnet werden.
-- ZusÃ¤tzliche zentrale Normalisierung fÃ¤ngt kÃ¼nftig sÃ¤mtliche StationsdatensÃ¤tze mit `windUnit: kmh` vor Restfeldanalyse und robuster Mittelung ab.
-- RegressionsprÃ¼fung um symmetrische Diagrammachsen, identische AchsenabstÃ¤nde und Stationswind-Normalisierung ergÃ¤nzt.
-- Cloudflare Worker ohne funktionale Ã„nderung; nur einheitliche Versionsanhebung.
-
-# MID v0.7.64
-
-- Tooltip und interaktive Temperaturlegende rÃ¤umlich getrennt, sodass der Tooltip die Legende nicht mehr Ã¼berdeckt.
-- Temperatur- und Niederschlagsdiagramm zunÃ¤chst auf ein gemeinsames Tagesraster ausgerichtet.
-- Cloudflare Worker ohne funktionale Ã„nderung; nur einheitliche Versionsanhebung.
-
-# MID v0.7.63
-
-- Buildfehler `TS2304: Cannot find name 'RainTooltip'` in der Ensemble-Niederschlagsgrafik behoben.
-- Fehlende `RainTooltip`-Komponente wiederhergestellt und gegen nicht numerische beziehungsweise fehlende Diagrammwerte abgesichert.
-- Semantische TypeScript-PrÃ¼fung der geÃ¤nderten Ensemble-Komponente sowie die vorhandenen Updater-, Interaktions- und RadarprÃ¼fungen erfolgreich ausgefÃ¼hrt.
-- Cloudflare Worker ohne funktionale Ã„nderung; nur einheitliche Versionsanhebung.
-
-# MID v0.7.62
-
-- Ensemble-Konsistenztooltips werden Ã¼ber ein viewportfestes Portal gerendert, an allen BildschirmrÃ¤ndern automatisch eingerÃ¼ckt und nicht mehr durch horizontal scrollende Kartenbereiche abgeschnitten.
-- Hover und Tastaturfokus Ã¶ffnen den Konsistenztooltip unmittelbar; beim Verlassen schlieÃŸt er automatisch, Touch/Klick bleibt ergÃ¤nzend nutzbar.
-- Im Diagramm â€žTemperaturtrend und Prognoseunsicherheitâ€œ zeigt ein tÃ¤gliches BewÃ¶lkungsband direkt oberhalb der x-Achse Grau fÃ¼r wenig Sonne bis Gelb fÃ¼r viel Sonne.
-- Das BewÃ¶lkungsband wird aus der Best-Match-Sonnenscheindauer relativ zur astronomischen TageslÃ¤nge berechnet und im Diagrammtooltip zusÃ¤tzlich erlÃ¤utert.
-- HÃ¶he, AuÃŸenabstÃ¤nde und Achsenreserven des Temperaturdiagramms bleiben unverÃ¤ndert.
-- Cloudflare Worker ohne funktionale Ã„nderung; nur einheitliche Versionsanhebung.
-
-# MID v0.7.61
-
-- Tageswechsel im Desktop-Detaildiagramm bewahrt die ausgewÃ¤hlte Ortsstunde: Pfeil hoch springt zum Folgetag und Pfeil runter zum Vortag jeweils auf denselben stÃ¼ndlichen Zeitschritt; an Zeitumstellungstagen wird der nÃ¤chstliegende vorhandene Stundenwert verwendet.
-- Native Dropdownlisten Ã¼bernehmen das aktive Hell-/Dunkel-Farbschema einschlieÃŸlich expliziter Hintergrund- und Schriftfarben fÃ¼r Optionen und Optionsgruppen.
-- InteraktionsprÃ¼fung um Regressionstests fÃ¼r Stundenerhalt beim Tageswechsel und Dropdown-Kontrast ergÃ¤nzt.
-- Cloudflare Worker ohne funktionale Ã„nderung; nur einheitliche Versionsanhebung.
-
-# MID v0.7.60
-
-- Updatearchitektur bereinigt: nur noch ein zentral registrierter Service Worker; Installation und Aktivierung sind getrennt, der Seitenwechsel erfolgt erst nach `controllerchange` und anschlieÃŸend cachefrei per `location.replace`.
-- Such-/Favoritenbereich schlieÃŸt zuverlÃ¤ssig bei AuÃŸenklick, Fokuswechsel, Escape, Ortswahl und Ã¼ber einen dauerhaft erreichbaren SchlieÃŸen-Button.
-- Ensemble-Konsistenzpunkte besitzen einen CSS-gesteuerten Hover-/Fokus-Tooltip, der ohne Klick erscheint und beim Verlassen automatisch verschwindet.
-- Desktop-Detaildiagramm erhÃ¤lt native, nicht-passive Eingabehandler: Pfeil hoch/runter wechselt den Tag, Pfeil links/rechts und Mausrad wechseln stÃ¼ndlich.
-- Radarabgleich korrigiert DWD-Kartenpixel durch GetFeatureInfo-Punktwerte auch bei scheinbar trockenem PNG-Pixel, begrenzt Teilabrufe, prÃ¼ft AktualitÃ¤t und 3-Stunden-Horizont und aktualisiert alle fÃ¼nf Minuten sowie bei Sichtbarkeit/Fokus.
-- GitHub-Pages-Build Ã¼bernimmt explizite Radar-, Same-Origin- und Fallback-Worker-Endpunkte.
-- Automatisierte PrÃ¼fungen fÃ¼r Updater, UI-Interaktionen und den konkreten DWD-Radarfehler ergÃ¤nzt.
-
-# MID v0.7.59
-
-- Updateablauf stabilisiert: kein automatischer Reload beim Aktivieren der Option, keine Update-URL-Schleife und aktualisierter Service-Worker-Cache.
-- Such-/FavoritenmenÃ¼ schlieÃŸt bei Klick auÃŸerhalb und mit Escape.
-- Konsistenzpunkte zeigen ihren Tooltip bereits beim Hover/Fokus und schlieÃŸen beim Verlassen.
-- Desktop-Detaildiagramm: Pfeil hoch/runter wechselt tageweise; Mausrad navigiert stÃ¼ndlich.
-- Radarabgleich mit Cache-Buster, Wiederholungsversuch und automatischer Aktualisierung alle fÃ¼nf Minuten robuster gemacht.
-
-# Changelog
-
-## 0.7.59
-- Widget: Der Wettertext erhÃ¤lt einen festen, zweizeiligen Bereich mit sauberem Umbruch; beide Textzeilen bleiben vollstÃ¤ndig sichtbar und kollidieren nicht mehr mit den Temperaturwerten.
-- Cloudflare Worker ohne funktionale Ã„nderung; nur einheitliche Versionsanhebung.
-
-## 0.7.55
-- Desktop: Ansichtswahl aus der breiten Favoriten-/Suchspalte entfernt und als kompakte Auswahl direkt neben Suchfeld und Standortbutton platziert; auf schmalen Ansichten bleibt der gut bedienbare Segment-Schalter erhalten.
-- Worker-Aufrufe verwenden nun mehrere konfigurierbare Endpunkte mit automatischem Failover, Zeitlimit und gespeichertem zuletzt erfolgreichen Endpunkt.
-- Optionaler gleichursprÃ¼nglicher Worker-Pfad und zusÃ¤tzliche Fallback-Adressen schÃ¼tzen insbesondere gegen gesperrte `workers.dev`-Domains; vollstÃ¤ndiger Schutz gegen lokale, DNS- oder Unternehmensnetz-Blockaden ist technisch nicht erzwingbar.
-- METAR behÃ¤lt den direkten AviationWeather-Fallback; das Meteogramm fÃ¤llt bei blockiertem Worker automatisch auf Open-Meteo direkt zurÃ¼ck.
-- Warnungen, Radar-Nowcast, Kompositdaten, Blitz, 250-m-Radar und Modellkonturen melden nach AusschÃ¶pfen aller Endpunkte eine eindeutige Blockade-/Netzwerkdiagnose.
-- Cloudflare Worker ohne funktionale Ã„nderung; nur einheitliche Versionsanhebung.
-
-## 0.7.54
-- Buildkorrektur: Typdeklaration fÃ¼r `import.meta.env` ergÃ¤nzt, damit `src/pwa.ts` im GitHub-Workflow kompiliert.
-- Buildkorrektur: ungenutzten Tageszeit-Helfer entfernt; TypeScript-PrÃ¼fung mit `noUnusedLocals` lÃ¤uft wieder fehlerfrei.
-- Tagesbeschreibung, Wetter-Icon und Tagescharakter werden konsequent aus denselben stÃ¼ndlichen Daten abgeleitet; die tÃ¤gliche Sonnenscheindauer dient nur noch als schwacher PlausibilitÃ¤tsfaktor.
-- BewÃ¶lkte Stunden kÃ¶nnen dadurch nicht mehr zugleich zu einem unpassenden Tagescharakter wie â€žHeiterâ€œ fÃ¼hren.
-- Wettertexte besitzen feste, semantisch gekÃ¼rzte LÃ¤ngenlimits: Haupttext maximal 30, Zusatztext maximal 28 Zeichen.
-- UnnatÃ¼rliche Zeitspannen wie â€žnachts bis abendsâ€œ entfallen; getrennte Ereignisfenster erscheinen kurz als â€žnachts/abendsâ€œ, lÃ¤ngere Verteilungen als â€žzeitweiseâ€œ.
-- Niederschlagswahrscheinlichkeiten werden nicht mehr doppelt im Beschreibungstext wiederholt, da sie bereits in den Tageswerten stehen.
-- Cloudflare Worker ohne funktionale Ã„nderung; nur einheitliche Versionsanhebung.
-
-## 0.7.53
-- PWA-Manifest, Apple-Web-App-Metadaten und vorsichtiger Service Worker mit Network-First fÃ¼r Navigation und version.json.
-- Favoriten und Einstellungen werden zusÃ¤tzlich in IndexedDB und Cache Storage gespiegelt und bei leerem localStorage automatisch wiederhergestellt.
-- Wettercharakter und Icon werden vorrangig aus der stÃ¼ndlichen TagesbewÃ¶lkung abgeleitet; Sonnenstunden dienen nur noch als PlausibilitÃ¤tsfaktor.
-- Favoriten-Griff links zwischen Rand und Stern verlegt.
-- Updater um Service-Worker-Aktualisierung ergÃ¤nzt und durch automatisierten Konsistenztest geprÃ¼ft.
-
-## 0.7.52
-
-- Wetter-Icons werden nun mit der vollstÃ¤ndigen Tagesbeschreibung einschlieÃŸlich BewÃ¶lkungstrend abgeglichen.
-- Bei â€žStark bewÃ¶lkt, ab Mittag auflockerndâ€œ erscheint ein Sonne-Wolken-Symbol statt einer reinen Sonne.
-- â€žHeiterâ€œ nutzt ein leicht bewÃ¶lktes Sonnensymbol; â€žHeiter, spÃ¤ter wolkigerâ€œ und Ã¤hnliche ÃœbergÃ¤nge ein reprÃ¤sentatives Mischsymbol.
-- Niederschlags- und Gewittersymbole bleiben bei dominanten oder markanten Ereignissen vorrangig.
-
-## 0.7.51
-
-- Kurze Tagesbeschreibungen berÃ¼cksichtigen nun markante WetterÃ¤nderungen im Tagesverlauf.
-- SpÃ¤ter einsetzende Schauer, Regen, Schnee oder Gewitter werden direkt mit Tageszeit genannt, z. B. â€žSonnig, ab Nachmittag Schauerâ€œ.
-- Deutliche BewÃ¶lkungstrends erscheinen knapp als â€žab Mittag wolkigerâ€œ oder â€žab Mittag auflockerndâ€œ.
-- FrÃ¼h endender Niederschlag wird als Verlauf wie â€žSchauer am Morgen, spÃ¤ter heiterâ€œ beschrieben.
-
-## 0.7.50
-
-- Mobile Detailansicht ohne technische KÃ¼rzel wie â€žNSâ€œ oder â€žNS-Wkt.â€œ; stattdessen eindeutige Wetter-Symbole und kurze Klartextangaben.
-- â€žUVâ€œ und â€žUV-Indexâ€œ in der OberflÃ¤che konsequent durch â€žUVIâ€œ ersetzt.
-- UVI-Werte werden fÃ¼r Standorte oberhalb von 500 m transparent nÃ¤herungsweise hÃ¶henkorrigiert (+10 % je weitere 1000 m, gedeckelt auf +35 %).
-- Die aktuelle UVI-Kachel weist eine aktive HÃ¶henkorrektur samt Zuschlag und StandortshÃ¶he aus.
-
-# v0.7.46
-
-## 0.7.49
-
-- Tagescharakter der 7-Tage-Vorhersage prÃ¤zisiert: Sonnenscheindauer, TageslÃ¤nge und effektive TagesbewÃ¶lkung werden gemeinsam bewertet.
-- Statt pauschalem â€žStark bewÃ¶lktâ€œ erscheinen je nach VerhÃ¤ltnis nun kurze Abstufungen wie â€žHeiterâ€œ, â€žWolkig, oft sonnigâ€œ, â€žSonne und Wolkenâ€œ, â€žMeist bewÃ¶lktâ€œ oder â€žBedecktâ€œ.
-- Mobile Detailansicht platzsparender beschriftet, unter anderem mit â€žÎ£ NSâ€œ, â€žmax. NS-Wkt.â€œ, â€žTemp.â€œ und â€žNS-Wkt.â€œ in der Legende.
-- Desktop-Beschriftungen bleiben ausgeschrieben.
-
-## 0.7.48
-
-- Ansichtswahl direkt unter der Favoritenleiste als kompakte Auswahl â€žKompaktâ€œ oder â€žVollstÃ¤ndigâ€œ mit Kurzbeschreibung.
-- HÃ¶henkachel aus den aktuellen Wetterdaten entfernt.
-- Sonnenscheindauer der letzten Stunde als aktuelle Kennzahl ergÃ¤nzt.
-- Sonnenscheindauer platzsparend in die Tageswerte der 7-Tage-Vorhersage aufgenommen.
-
-## 0.7.47
-
-- Kompakte Startansicht als neuer Standard mit dauerhaft sichtbarer 7-Tage-Vorhersage.
-- StÃ¼ndliche Details der 7-Tage-Vorhersage sind in der kompakten Ansicht einblendbar.
-- Kompositbild, 14-Tage-Ensemble, Meteogramm und Widget-Generator sind einklappbar und werden erst beim Ã–ffnen vorbereitet.
-- ModulzustÃ¤nde und gewÃ¤hlte Ansichtsart werden lokal gespeichert.
-- Fallback-Schalter zur bisherigen vollstÃ¤ndigen Ansicht ergÃ¤nzt.
-
-
-- Meteogramm-HÃ¶henachsen: Flight Levels werden konsequent nach unten auf volle Zehner gerundet; hft-Angaben nach unten auf durch fÃ¼nf teilbare Werte.
-
-# 0.7.44 â€” stabiler heller Meteogramm-Export
-
-- Problematischen geklonten Theme-Export entfernt.
-- Meteogramm-PNG wird direkt aus dem sichtbaren Diagrammbaum in einem temporÃ¤ren, festen hellen Export-Theme erzeugt.
-- iOS/Safari erhÃ¤lt damit keine leeren schwarzen oder weiÃŸen Exportbilder mehr.
-
-## 0.7.42
-
-- Theme-Auswahl um Auto erweitert; folgt der Betriebssystemeinstellung und reagiert live auf Systemwechsel.
-- Bestehende Hell-/Dunkel-Auswahl bleibt gespeichert und kompatibel.
-
-# v0.7.41
-
-- VollstÃ¤ndiger TypeScript- und Worker-Check; ungenutzte Imports, Variablen und Hilfsfunktionen entfernt.
-- `noUnusedLocals` und `noUnusedParameters` als dauerhafte Build-PrÃ¼fungen aktiviert.
-- Versionsnummer zentral aus `package.json` synchronisiert (`src/version.ts`, `public/version.json`, Worker), um erneute Updater-Abweichungen zu verhindern.
-- Ãœberdimensioniertes Logo von 1672Ã—941 auf 512Ã—288 px reduziert; Darstellung bleibt bei maximal 42 px unverÃ¤ndert, Download- und ProjektgrÃ¶ÃŸe sinken deutlich.
-- Build-AbhÃ¤ngigkeit `@vitejs/plugin-react` korrekt in die EntwicklungsabhÃ¤ngigkeiten verschoben.
-- Generierte lokale Build-Artefakte werden nicht mehr ausgeliefert. Keine FunktionsÃ¤nderung am Worker.
-
-## v0.7.40 â€“ 2026-07-21
-
-- Updater: lokale Laufzeitversion und verÃ¶ffentlichte `version.json` werden wieder aus demselben Versionsstand erzeugt; die in v0.7.37 verbliebene interne Kennung v0.7.36 wurde korrigiert.
-- Ensembles: P25â€“P75 besitzt in der Legende getrennte farbige FlÃ¤chenfelder fÃ¼r Tmax und Tmin.
-
-## v0.7.37 â€“ 2026-07-21
-
-- Ensembles: zusÃ¤tzliches, etwas dunkleres P25â€“P75-Temperaturband fÃ¼r die Vorhersagetage 1â€“7; Ã¼ber die Legende ein- und ausblendbar.
-- Ensemble-Aggregation liefert dafÃ¼r gewichtete 25- und 75-Prozent-Quantile fÃ¼r Tagesminimum und Tagesmaximum.
-- Kompositbild: aktive Layer (Niederschlag, 250-m-Radar, Satellit, Blitze und Modelllinienmodus) werden separat und dauerhaft im Browser gespeichert und beim nÃ¤chsten Ã–ffnen wiederhergestellt.
-- Worker: keine funktionale Ã„nderung; nur einheitliche Versionsanhebung.
-
-# Changelog
-
-## v0.7.37 â€” Meteogramm-Datenkonsistenz, exportfeste Linien und kompaktere Mobilkarten
-
-- Fehlende API-Werte werden nicht mehr irrtÃ¼mlich als `0` interpretiert; die Meteogrammzeitachse endet am letzten zusammenhÃ¤ngenden Boden- und Druckniveau-Datensatz.
-- Best Match verwendet fÃ¼r das Druckniveau-Meteogramm eine durchgÃ¤ngige ECMWF-IFS-HRES-Zeitreihe, statt nach kurzer Regionalmodelllaufzeit leere Profilfelder zu erzeugen.
-- Linien, Niederschlagsbalken, SchneehÃ¶henkurve und Niederschlagsfarben werden im SVG direkt gesetzt und bleiben dadurch auch im iOS-PNG-Export sichtbar.
-- QFF-Achsenwerte werden ohne Tausenderpunkt ausgegeben; die SchneehÃ¶henachse entfÃ¤llt vollstÃ¤ndig, wenn keine messbare SchneehÃ¶he vorliegt.
-- Tagesbezeichnungen werden Ã¼ber dem jeweiligen Tagesabschnitt zentriert und Ã¼berlappen am ersten unvollstÃ¤ndigen Tag nicht mehr.
-- Mobile 7-Tage-Kacheln enthalten unverÃ¤ndert alle Angaben, benÃ¶tigen durch kleinere AbstÃ¤nde, kompaktere Typografie und eine flachere Temperaturzeile aber deutlich weniger HÃ¶he.
-- NOAA GFS fÃ¼r Druckniveauprofile auf die druckniveaugeeignete 0,25Â°-Variante vereinheitlicht.
-
-## v0.7.35 â€” stabiler Meteogramm-Export, echte Tooltips und feste SatellitenstÃ¤nde
-
-- Meteogramm-Export erzeugt nur noch eine PNG-Datei und sperrt MehrfachauslÃ¶sungen.
-- Export verwendet `toBlob`, einen festen 1120-px-Arbeitsbereich, ein kompaktes Layout und blendet unsichtbare InteraktionsflÃ¤chen aus.
-- Diagramme besitzen sichtbare Hover-/Touch-Tooltips mit Zeit, Niveau und Messwerten.
-- ModellabhÃ¤ngige Meteogramm-Laufzeiten werden bereits im Worker angefordert und im Frontend zusÃ¤tzlich begrenzt.
-- Satellitenraster werden wÃ¤hrend des Zoomens ausgeblendet und danach mit neuem Cache-SchlÃ¼ssel vollstÃ¤ndig geladen.
-
-## v0.7.34 â€” Kompositkarte und Meteogramm-Feinschliff
-
-- Aktivieren der Modelllinien verÃ¤ndert den Kartenausschnitt nicht mehr.
-- Bodendruckzentren werden aus dem Modellfeld erkannt und als H beziehungsweise T mit Druckwert markiert.
-- Satelliten-, Radar- und Blitzraster werden nach Zoomwechsel mit eindeutigem Layerstand neu aufgebaut; zeitlose Satellitenlayer werden, sofern mÃ¶glich, auf den letzten exakten Produktzeitpunkt fixiert.
-- Meteogramm-Isolinien dÃ¼rfen wieder regulÃ¤r am Diagrammrand oder an DatenlÃ¼cken enden.
-- Relative Feuchte farblich von trockenem Gelb bis feuchtem GrÃ¼n abgestuft.
-- Horizontale Hilfslinien auf sÃ¤mtlichen Druckniveaus, HauptflÃ¤chen stÃ¤rker hervorgehoben.
-- SchneehÃ¶henachse zeigt bei kleinen Werten passende Dezimalstellen statt gerundeter Doppelwerte.
-- Worker funktional erweitert: Druckzentren und fixer letzter Satellitenzeitpunkt.
-
-## v0.7.33 â€” Meteogramm-Konturen, Windfiedern und Download
-
-- UnvollstÃ¤ndige Isolinien an internen DatenlÃ¼cken wurden verworfen; Konturen auf den Datenbereich begrenzt.
-- Horizontale Hilfslinien auf ausgewÃ¤hlten HauptdruckflÃ¤chen.
-- Relative Feuchte mit Isolinien im 20-Prozentpunkte-Raster.
-- WMO-Windfiedern zur Herkunftsrichtung verlÃ¤ngert und Windstille als Kreis dargestellt.
-- Tooltips fÃ¼r Profil-, Linien-, Niederschlags- und Risikodiagramme erweitert.
-- Download mit â€žSpeichern unterâ€¦â€œ, System-Freigabe oder Browser-Fallback.
-- Worker funktional unverÃ¤ndert; nur Versionsanhebung.
-
-
-## v0.7.32 â€” Updater- und Modelllinien-Korrektur
-
-- Zentrale Versionskonstante fÃ¼r App, Zusatzmodul und Meteogramm; der Updater vergleicht nicht mehr irrtÃ¼mlich die aktuelle VerÃ¶ffentlichung mit einer veralteten internen Versionsnummer.
-- Modelllinien: ungÃ¼ltigen Parameter `elevation=nan` entfernt.
-- Modelllinien-Raster weiterhin in kurzen Zeilenabfragen; maximal vier parallele Abrufe.
-- Europa: ICON-EU bleibt erste Wahl, bei unvollstÃ¤ndiger Modellabdeckung automatischer einheitlicher Fallback auf ICON Global.
-- Nordamerika verwendet fÃ¼r Druckniveaukarten GFS 0,25Â° statt des Modells ohne benÃ¶tigte Druckniveauvariablen.
-- Upstream-Fehlermeldungen werden konkret ausgewertet statt nur als pauschales HTTP 400 angezeigt.
-
-## 0.7.31
-
-- Meteogrammprofile und optionale Risikoebenen vertikal gedreht: hohe AtmosphÃ¤re oben, Boden bzw. bodennahe DruckflÃ¤chen unten
-- Wind- und BÃ¶enachsen beginnen zwingend bei 0 kt; eingehende Windwerte werden defensiv auf nichtnegative Werte begrenzt
-- Windpfeile fÃ¼r helle und dunkle Ansicht mit kontrastreicher Kontur neu gezeichnet
-- Cloudflare Worker funktional unverÃ¤ndert, nur einheitliche Versionsanhebung
-
-## 0.7.29
-
-- Modelllinien auf groÃŸrÃ¤umige, ortsabhÃ¤ngige Kartenausschnitte erweitert; fÃ¼r Standorte in Deutschland wird der europÃ¤ische ICON-EU-Ausschnitt verwendet
-- Konturen bilinear verdichtet, zu durchgehenden Pfaden verbunden und geglÃ¤ttet
-- Isobarenabstand dynamisch auf 1, 2 oder 4 hPa nach dem Druckgradienten angepasst; Ziel ist eine auch bei schwachen Gradienten erkennbare Liniendichte von ungefÃ¤hr 100 km
-- 500-hPa-Isohypsen auf den meteorologischen Abstand von 8 gpdm umgestellt
-- Konturbeschriftungen vergrÃ¶ÃŸert, kontrastreicher gestaltet und entlang langer Linien wiederholt
-- EuCom als DWD-Flugwetterprodukt geprÃ¼ft; mangels Ã¶ffentlicher, lizenzierter Abrufschnittstelle nicht in den Ã¶ffentlichen Worker integriert
-
-## v0.7.29
-
-- neue, beim Start geschlossene Kachel â€žMeteogrammâ€œ unmittelbar vor dem Widget-/PNG-Generator
-- Modellauswahl mit Best Match sowie ausgewÃ¤hlten regionalen und globalen deterministischen Modellen
-- siebentÃ¤giges beziehungsweise auf die verfÃ¼gbare Modelllaufzeit begrenztes Vertikalprofil von Stationsniveau bis 300 hPa
-- relative Feuchte als HÃ¶hen-Zeit-Querschnitt sowie kombinierte Temperatur-/Winddarstellung mit Richtungspfeilen
-- zusÃ¤tzliche Zeitreihen fÃ¼r 2-m- und 850-hPa-Temperatur, QFF, Wind/BÃ¶en sowie Niederschlag, Niederschlagsform und SchneehÃ¶he
-- optional einblendbare diagnostische HÃ¶henbÃ¤nder fÃ¼r Vereisung sowie Turbulenz/CAT; ausdrÃ¼cklich nicht als amtliche Flugwetterprodukte gekennzeichnet
-- Druckniveaus unterhalb des GelÃ¤ndes werden zeitabhÃ¤ngig ausgeblendet
-- Meteogramm wird als eigener Lazy-Load-Chunk geladen; Modelldaten werden erst beim Ã–ffnen der Kachel abgerufen und im Worker zwischengespeichert
-- Cloudflare Worker um die Route `mode=meteogram` erweitert; Frontend und Worker einheitlich auf v0.7.29 angehoben
-
-## v0.7.29
-
-- Kompositfilm auf eine feste relative Achse von âˆ’1 Stunde bis +2 Stunden umgestellt; nicht vorhandene LayerstÃ¤nde werden weich ausgeblendet, reale benachbarte Frames Ã¼berblendet.
-- RainViewer-Metadaten Ã¼ber eine gecachte Workerroute angebunden; letzter realer Radarstand bleibt mit Zeitstempel sichtbar und wird ohne erfundene Zukunftsframes ausgefadet.
-- Satelliten-AktualitÃ¤tsprÃ¼fung um einen Publikationspuffer erweitert; bis 150 Minuten Historie und verspÃ¤tet verÃ¶ffentlichte nominal Ã¤ltere Bilder bleiben nutzbar.
-- DWD-/MTG-LI-Blitzzeitachsen auf bis zu 130 Minuten Historie erweitert; Rasterfallback wird auch dann genutzt, wenn Punktdaten am ausgewÃ¤hlten historischen Zeitschritt fehlen.
-- H-SAF-Satellitenniederschlagsrate als ergÃ¤nzende RadarflÃ¤che integriert; automatischer MTG-H40B-Vorrang, sobald der Layer im Ã¶ffentlichen EUMETView-WMS erscheint, mit MSG-H60B als aktuellem Fallback.
-- OrtsabhÃ¤ngige Isobaren und 500-hPa-Isohypsen aus Open-Meteo Best Match ergÃ¤nzt.
-- Gemeinsame `CompositeTimeline`-Logik, Worker-Caching und Rendering von maximal zwei Blendframes reduzieren doppelte Berechnungen und Kartenlast.
-- Frontend und funktional erweiterter Cloudflare Worker einheitlich auf v0.7.29 angehoben.
-
-# Changelog
-
-## v0.7.26
-
-- 14-Tage-Ensemble: beide Diagramme verwenden nun dieselbe numerische Tagesachse; jeder Vorhersagetag besitzt in Temperatur- und Niederschlagsdiagramm exakt dieselbe x-Koordinate, unabhÃ¤ngig von Balken oder zweiter y-Achse.
-- Widget-Export in â€žin Zwischenablage kopierenâ€œ umbenannt.
-- HochauflÃ¶sendes Radar: aktuelles nationales DWD-HX-Komposit mit 250-m-Raster als erste Wahl fÃ¼r Deutschland integriert; PX250 bleibt als Standort-Fallback erhalten.
-- GroÃŸe HX-HDF5-Raster werden speicherschonend und gerÃ¤teabhÃ¤ngig gerendert, ohne die native QuellenauflÃ¶sung falsch auszuweisen.
-- Frontend und funktional erweiterter Cloudflare Worker einheitlich auf v0.7.26 angehoben.
-
-## v0.7.25
-
-- Niederschlag 1 km und Niederschlag 250 m als gegenseitig ausschlieÃŸende Auswahl mit einheitlicher Benennung umgesetzt.
-- Veraltete PX250-Metadaten und HDF5-Dateiverweise in Frontend und Worker doppelt abgesichert; PX250 beeinflusst keine fremde Kompositzeitachse mehr.
-- Zeitvalidierung fÃ¼r Radar, Satellit und Blitz gegen eine plausible Worker-Serverzeit gehÃ¤rtet und WMS-Abrufe auÃŸerhalb der zulÃ¤ssigen Live-/Nowcast-Fenster blockiert.
-- Satellitenlayer werden je tatsÃ¤chlichem Produktzeitpunkt neu geladen; Quellen ohne verlÃ¤ssliche Zeitdimension verwenden den echten neuesten Stand ohne erfundene Uhrzeit.
-- Blitzringe auf eine Blitzortung-inspirierte Altersfarbskala in 20-Minuten-Stufen von WeiÃŸ bis Dunkelrot umgestellt; Blitzortung selbst wird wegen der Zugriffs- und Weitergabebedingungen nicht als Rohdatenquelle integriert.
-- Frontend und funktional erweiterter Cloudflare Worker einheitlich auf v0.7.25 angehoben.
-
-## v0.7.24
-
-- Fehlerhafte Kompositzeiten behoben: Worker-Zeitwerte werden unabhÃ¤ngig davon korrekt verarbeitet, ob sie als ISO-Zeit, Unix-Sekunden oder Epoch-Millisekunden eintreffen; die bisherige Vermischung von Sekunden und Millisekunden kann keine Werte wie â€žâˆ’5555 minâ€œ mehr erzeugen.
-- KÃ¼nstlich erzeugte Radarzeitpunkte entfernt. DWD-Radar, Satellit und Blitzraster werden nur noch mit Zeitstempeln abgefragt, die der konkrete Produktlayer tatsÃ¤chlich in seinen WMS-Capabilities meldet.
-- Leere Radar- und Satellitenkarten behoben: DWD- und EUMETSAT-WMS-Kacheln werden CORS-sicher Ã¼ber den Cloudflare Worker ausgeliefert; beim DWD bleibt der offizielle Ausfallserver als RÃ¼ckfall aktiv.
-- DWD-RV verwendet bevorzugt den expliziten 1-km-RV-Layer und stellt â€“ soweit von der Quelle vorhanden â€“ ausschlieÃŸlich das reale Fenster von relativ âˆ’1 Stunde bis +2 Stunden bereit.
-- Satellitenquelle wird anhand der aktuell wirklich verfÃ¼gbaren Produktzeiten gewÃ¤hlt: bevorzugt hochaufgelÃ¶stes MTG-FCI, anschlieÃŸend MSG-HRV/IR und zuletzt ein aktuelles DWD-Meteosat-Produkt. Bei einem fehlerhaften Tagesbild wechselt MID automatisch auf das IR-Produkt.
-- Relative Zeitangabe bezieht sich jetzt auf die aktuelle Uhrzeit; Ortszeit und Prognosekennzeichnung stehen separat darunter. Produktzeiten auÃŸerhalb von âˆ’1 h bis +2 h werden verworfen.
-- Worker-Antwort `composite-times` um reale DWD-Radarzeiten, verwendeten Radar-Layer und Serverzeit ergÃ¤nzt; WMS-Proxy auf freigegebene Layer und valide Zeitstempel begrenzt.
-- Frontend und funktional erweiterter Cloudflare Worker einheitlich auf v0.7.24 angehoben.
-
-## v0.7.23
-
-- Kompositbild um einen kleinen â€žLocate Meâ€œ-Button ergÃ¤nzt, der die verschobene Karte animiert auf den gewÃ¤hlten Standort zurÃ¼ckfÃ¼hrt, ohne Zoomstufe oder Layerauswahl zurÃ¼ckzusetzen.
-- HÃ¶henkonfiguration des Berg-/Skimodus auf direkt editierbare Meterfelder mit Mobil-Zifferntastatur, zuverlÃ¤ssigem Zwischenzustand und zusÃ¤tzlichen Â±50-m-SchaltflÃ¤chen umgestellt.
-- Tal- und Gipfelwerte weisen die verwendete HÃ¶he nun ausdrÃ¼cklich in m Ã¼. NHN aus; aktuelle und zeitliche Gipfelprognosen zeigen Temperatur und gefÃ¼hlte Temperatur gemeinsam.
-- Bezeichnung â€žSchneegrenzeâ€œ im Berg-/Skimodus fachlich zu â€žSchneefallgrenzeâ€œ prÃ¤zisiert.
-- Auto-Standort in Schnellzugriff, Suche und Favoritenverwaltung einheitlich von â€ž1. Standortâ€œ zu â€žStandortâ€œ umbenannt.
-- Temperatur- und Niederschlagsdiagramm des 14-Tage-Ensemble-Trends verwenden identische feste Achsenreserven. Das Ein-/Ausblenden der Niederschlagswahrscheinlichkeit verÃ¤ndert damit nicht mehr die horizontale Position der Vorhersagetage.
-- Frontend und funktional unverÃ¤nderter Cloudflare Worker einheitlich auf v0.7.23 angehoben.
-
-## v0.7.22
-
-- Widget- und PNG-Generator um einen direkten PowerPoint-Export erweitert: hochauflÃ¶sendes PNG wird per Clipboard API kopiert; bei fehlender Browserfreigabe erscheint ein kopierbares Rechtsklick-/Long-Press-Fallbackbild.
-- Layerauswahl, Kartenbasis und individuelle DeckkrÃ¤fte fÃ¼r Niederschlag, Satellit und Blitze dauerhaft gespeichert; Deckkraftregler dynamisch auf aktive Layer begrenzt.
-- Gemeinsame Komposit-Zeitachse auf reale verfÃ¼gbare Produktzeiten begrenzt und bis ungefÃ¤hr Â±1 Stunde erweitert, wo Radar-Nowcast beziehungsweise Historie dies erlauben; ÃœbergÃ¤nge zwischen Kartenframes geglÃ¤ttet.
-- OrtsabhÃ¤ngige AuflÃ¶sungsprioritÃ¤t dokumentiert und umgesetzt: PX250 250 m, DWD-RV 1 km, OPERA 2 km, anschlieÃŸend RainViewer.
-- Optionalen weltweiten Vaisala-Xweather-/GLD360-Blitzpunktabruf im Worker ergÃ¤nzt; freie Fallbacks bleiben DWD und EUMETSAT MTG-LI. Blitzpunkte werden als alterscodierte, skalierte Ringe statt gefÃ¼llter Kreise dargestellt.
-- Favoriten kÃ¶nnen nun direkt in der Schnellzugriffsleiste auf der Startebene per Maus sowie Touch/Pointer verschoben werden.
-- Frontend und funktional erweiterter Cloudflare Worker einheitlich auf v0.7.22 angehoben.
-
-## v0.7.21
-
-- DWD-PX250-Abruf vom direkten Browserzugriff auf einen CORS-sicheren Worker-Proxy umgestellt; VerfÃ¼gbarkeitsprÃ¼fung und HDF5-Datei werden Ã¼ber neue Worker-Modi bereitgestellt.
-- Sichtbare RadarprioritÃ¤t korrigiert: DWD-RV, danach EUMETNET OPERA/ORD als europÃ¤ischer Erst-Fallback und erst anschlieÃŸend RainViewer. OPERA erhÃ¤lt eine eigene Kartenvisualisierung als RATE-Punktraster.
-- Kartenbasis um CARTO Positron und CARTO Dark Matter ergÃ¤nzt; Auswahl wird je Browser gespeichert.
-- DWD-Blitzgeometrien als zeitcodierte, mit zunehmendem Alter verblassende Kreise ergÃ¤nzt; DWD-Blitzdichte und EUMETSAT MTG-LI bleiben als robuste Raster-Fallbacks erhalten.
-- Kompositlegende verschlankt und dynamisch an die aktiven Radar-, Satelliten- und Blitzlayer angepasst.
-- Favoritenreihenfolge Ã¼ber einen dedizierten Drag-&-Drop-Griff einschlieÃŸlich Touch-/Pointer-UnterstÃ¼tzung Ã¤nderbar; Pfeilnavigation bleibt erhalten.
-- Frontend und funktional erweiterter Cloudflare Worker einheitlich auf v0.7.21 angehoben.
-
-## v0.7.20.2
-
-- Die bisherige Niederschlagsradarkachel heiÃŸt nun **Kompositbild** und besitzt getrennte Schalter fÃ¼r Niederschlag, natives DWD-PX250-Radar, hochaufgelÃ¶ste MTG-FCI-Satellitenbilder und MTG-LI-BlitzaktivitÃ¤t.
-- DWD-PX250 wird nur angeboten, wenn der gewÃ¤hlte Standort innerhalb der etwa 150-km-Reichweite eines passenden Radarstandorts liegt und eine aktuelle HDF5-Datei verfÃ¼gbar ist. Die native Rasterweite betrÃ¤gt 250 m; die Datei wird erst nach Aktivierung geladen und im Browser gerendert.
-- TagsÃ¼ber verwendet die Satellitenebene den sichtbaren MTG-FCI-HRFI-Kanal VIS 0,6 mit nominal 0,5 km am Nadir; nachts wird automatisch IR 10,5 mit nominal 1 km verwendet. Bei einem nicht verfÃ¼gbaren Tageslayer fÃ¤llt MID auf IR zurÃ¼ck.
-- Echtzeit-BlitzaktivitÃ¤t verwendet in Deutschland die DWD-NowCastMIX-Blitzdichte im 1-km-Raster mit 5-Minuten-Aktualisierung; auÃŸerhalb dient EUMETSAT MTG-LI AFA im 2-km-Raster als NRT-Fallback. Die Anzeige ist keine metergenaue Bodeneinschlagskarte.
-- Radarfilm und Nowcast bleiben fÃ¼r DWD-RV beziehungsweise RainViewer erhalten; PX250 ist bewusst ein aktueller hochaufgelÃ¶ster Einzelstand ohne kÃ¼nstliche Zukunftsframes.
-- Frontend und Worker einheitlich auf v0.7.20.2 angehoben; der Worker erhÃ¤lt ausschlieÃŸlich die neue Versionskennung und bleibt funktional unverÃ¤ndert. `jsfive` wird als eigener Lazy-Load-Chunk erst fÃ¼r PX250 geladen.
-
-## v0.7.20.1
-
-- Angaben zu Temperaturabweichungen, Temperaturunsicherheit und lokaler Modellkorrektur werden nun fachlich korrekt in Kelvin (K) statt in Grad Celsius ausgegeben.
-- Absolute Temperaturen bleiben unverÃ¤ndert in Grad Celsius (Â°C).
-- Frontend und kompatibler Cloudflare Worker auf v0.7.20.1 angehoben.
-
-## v0.7.20
-
-- ModellgestÃ¼tzte hyperlokale Analyse fÃ¼r aktuelle Temperatur, relative Feuchte, Taupunkt, QFF sowie Wind und BÃ¶en ergÃ¤nzt.
-- Offizielle DWD-Open-Data-Beobachtungen werden Ã¼ber Bright Sky an mehreren Suchpunkten gesammelt; dadurch stehen mehr DWD-Messpunkte als nur die nÃ¤chste WMO-/METAR-Station zur VerfÃ¼gung.
-- openSenseMap-/senseBox-AuÃŸenmessungen als offene Citizen-Science-Zusatzquelle integriert; sie werden wegen uneinheitlicher Aufstellung nur mit geringer Gewichtung und nach strengen AktualitÃ¤ts-, Wertebereichs- und AusreiÃŸerprÃ¼fungen verwendet.
-- Synoptic Data nutzt nun die vollstÃ¤ndige `synopticlabs`-QC-Suite mit grundlegenden und erweiterten PrÃ¼fungen.
-- Stationswerte werden nicht direkt hÃ¶henkorrigiert gemittelt: MID ermittelt an jeder Station die Abweichung zum dortigen Open-Meteo-Best-Match-Hintergrund und interpoliert nur diese lokalen Restfelder zum Zielort.
-- Gewichtung berÃ¼cksichtigt Entfernung, HÃ¶henunterschied, Messalter, NetzqualitÃ¤t, Stationsanzahl sowie Stadt-/Umland-/Land-KompatibilitÃ¤t; private und Citizen-Science-Netze erhalten kÃ¼rzere Reichweiten und strengere Altersgrenzen.
-- Aktuelle-Wetter-Anzeige nennt nun effektiven Analyseradius, Temperaturunsicherheit, lokale Modellkorrektur und beteiligte Netze.
-- Cloudflare Worker und Frontend auf v0.7.20 aktualisiert.
-
-## v0.7.19
-
-- Wassersportmodus als aktivierbares Favoritenprofil ergÃ¤nzt.
-- Open-Meteo Marine Best Match fÃ¼r MeeresoberflÃ¤chentemperatur, WellenhÃ¶he/-richtung/-periode, Peak-Periode, Windsee, DÃ¼nung, StrÃ¶mung und Wasserstand inklusive Tide integriert.
-- modellierte Hoch-/Tiefpunkte, Wasserstandstendenz und 24-Stunden-Spanne ergÃ¤nzt; nautische EinschrÃ¤nkungen werden deutlich ausgewiesen.
-- Wetter-, Sicht-, UV-, Niederschlags- und Gewitterparameter mit konfigurierbaren Schwellen fÃ¼r Wellen, BÃ¶en und Kaltwasser kombiniert.
-- See- und Flussprofile ersetzen fehlende BinnengewÃ¤sserdaten nicht durch entfernte Meeresgitter.
-- Wassersportmodul wird nur bei aktivem Profil und erst beim Scrollen geladen; Favoritenexport auf Schema-Version 4 angehoben.
-- Frontend und kompatibler Worker auf v0.7.19 aktualisiert.
-
-
-## v0.7.18
-
-- Initiales Laden deutlich verkleinert: Leaflet/Radar und Recharts/Ensembletrend sind in eigene dynamische Chunks ausgelagert und werden erst bei AnnÃ¤herung an den sichtbaren Bereich geladen.
-- Widgetwerkzeuge bleiben bis zum Aufklappen inaktiv; `html-to-image` wird ausschlieÃŸlich beim tatsÃ¤chlichen PNG-Export nachgeladen. Der Berg-/Skimodus bleibt an ein aktiviertes Favoritenprofil gebunden.
-- Datenabrufe priorisiert: Best Match wird zuerst angezeigt; Stationsdaten, LuftqualitÃ¤t, Radar, Warnungen und ModellstÃ¤nde folgen anschlieÃŸend. Klimatologie und Ensembles starten erst beim Ensemblebereich.
-- Detaildiagramm um eine markante dynamische Jetzt-Linie mit ortslokaler Uhrzeit ergÃ¤nzt; Position und Beschriftung werden alle 30 Sekunden aktualisiert.
-- GeoSphere/TAWES-Druckverarbeitung gehÃ¤rtet: `PRED` und Stationsdruck `P` werden getrennt, QFF wird hÃ¶hen- und differenzbezogen plausibilisiert und Werte wie 854 hPa in SÃ¶lden werden als Stationsdruck erkannt beziehungsweise verworfen.
-- Fehlt ein plausibler TAWES-QFF-Wert, verwendet MID konsequent Open-Meteo `pressure_msl`; der Worker liefert den Rohdruck nur noch separat.
-- Frontend und Worker auf v0.7.18 aktualisiert.
-
-## v0.7.17
-
-- Mobile Kopfzeile korrigiert: Die Ortssuche nutzt wieder die vollstÃ¤ndige verfÃ¼gbare Breite und kann nicht mehr auf ein schmales Symbolfeld zusammenschrumpfen.
-- Favoriten stehen unmittelbar unter der Suchleiste wieder als einzelne horizontal scrollbarere Bubbles; der dynamische â€ž1. Standortâ€œ und die Verwaltungs-SchaltflÃ¤che bleiben integriert.
-- Widget- und PNG-Generator ist beim Laden standardmÃ¤ÃŸig eingeklappt und lÃ¤sst sich Ã¼ber eine kompakte SchaltflÃ¤che Ã¶ffnen.
-- Ã–sterreichische TAWES-Druckdaten werden ausschlieÃŸlich Ã¼ber `PRED` (reduzierter Luftdruck) als MeereshÃ¶hendruck/QFF Ã¼bernommen; der Stationsdruck `P` wird nicht mehr versehentlich angezeigt.
-- METAR-QNH und nicht eindeutig reduzierte StationsdrÃ¼cke werden nicht als QFF ausgegeben; in diesem Fall fÃ¤llt MID auf Open-Meteo `pressure_msl` zurÃ¼ck.
-- Frontend und kompatibler Workerstand auf v0.7.17 aktualisiert.
-
-## v0.7.16
-
-- Optionale Standortverfolgung als **â€ž1. Standortâ€œ** ergÃ¤nzt: Bei jedem Ã–ffnen wird die aktuelle GerÃ¤teposition neu bestimmt und als erster Schnellzugriff angeboten.
-- Standardort und zuletzt verwendeter Ort bleiben als Fallback erhalten, falls die Browser-Ortung nicht verfÃ¼gbar oder nicht erlaubt ist.
-- Favoriten-Schnellzugriff direkt unter das Suchfeld verlegt und nach den frei vergebenen Favoritengruppen geordnet.
-- Leeres Suchfeld zeigt den aktuellen Standort sowie gruppierte Favoriten ebenfalls in derselben Reihenfolge.
-- Berg-/Skimodus wird nun ausschlieÃŸlich pro Favorit in der Favoritenverwaltung aktiviert; Tal- und GipfelhÃ¶he werden dort konfiguriert.
-- Die deaktivierte Berg-/Ski-Hinweiskarte und die HÃ¶hen-Eingabefelder im Dashboard wurden entfernt, sodass der Modus ohne Aktivierung keinen Platz beansprucht.
+YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíÛxãÄèµ©hºÚn¶X§zÍHÈRQŒŽKŽKB‚ˆÈÈRQ\ÚYÛœÞ\Ý[H0­ÈÛ[XKR[œÝ[Y[B‚‹HÛ[XH™\Ù[™][ˆRQ™^[ˆZ[™HØ[™Üš^›Û[ØÜ›Û˜\™H[Û˜]ÛZ\ÝNˆZ[ˆ\ðé^ZÝZ[™[ˆ[Û˜]ØZ\ÛÛ‹PÚ\È™]ØZ™[ˆÚ[\‹ÛÛ[Y\ˆ[™Ø[žš˜Zˆ[È\Ø[[Y[š0é™Ù[™H™\™ÛZXÚÜ°é[YK‚‹H][œÝ[™[™Û[X[\Ø\Ú[™[ÈÛÛ\ZÝHRQR[œÝ[Y[HÚXÚ˜\‹ˆYHÛ[X]Ù\KTMKT™Y™\™[ž‹Ú[™›ÜÙH[™YH˜XÚXÚH™\™XÚ[™È›ZX™[ˆ[™\°é™\‚‹HYHZ\ÝH\Ý]YˆØÚX[[ˆTÛ™\ÈÜš^›Û[™YY[˜˜\ˆ[™ðéÚÝ]YˆX›]Ô]Y\™›Ü›X]Ñ\ÚÝÜÚ™H0ï™\˜œ™Z]H]\ÝØZ™[\ˆZ]‚‹HÛ\ÜÚ\ØÚ›ZX[È\œÚ\Ý[K[šÝ[ÛœÙÛZXÚH°ïÚÙ˜[[œÚXÚ\š[[‹‚‚ˆÈRQŒŽKŽK‚ˆÈÈRQ\ÚYÛœÞ\Ý[H0­ÈØ\›œÜ\ˆ[™][™\˜]Y[‚‚‹H[]XÚHØ\›[™Ù[ˆ\œØÚZ[™[ˆ[ˆRQ™^[ÈZYÙK™Z]XÚ\Ø˜\™H\™ZYÛš\ÜÜ\‹ˆ˜\˜™H›ZX]\ÜØÚYpçÛXÚ\ˆØ\›œÝY™H›Ü˜™Z[[ŽÈ[ÙZ\ÙHÚ\šÙ[ˆšXÚYZˆÚYH[\›ZØ\[‹‚‹HYH]Y[[‹H[™Ù]ÚXÚ[™ÜØ[œÚXÚ™ZYÝ™]][™\˜]Y[‹Ù]™[›H[Ù[˜[Z[Y[ˆ[™YHØ[›Ûš\ØÚH]\ÙØX™^™Z]™ZZH[ˆZ[™\ˆÛÛ\ZÝ[ˆ[œÝ[Y[[™›0éÚK‚‹HÞ[›ÜZÙ›0éÚ[ˆ›ÛÙ[ˆ\ˆÛZXÚ[ˆZYÙ[ˆX]\šX[]0éˆ˜XÚXÚHœ›ÛK\ÛØ˜\™[‹H[™]Y[[˜[™ØX™[ˆ›ZX™[ˆ[™\°é™\˜XÚ›ÛšYZ˜\‹‚‹H[Øš[HØ\›‹H[™]Y[[˜[œÚXÚ[ˆ™Z[[ˆÝXÚQ›0éÚ[‹\Ø˜\™H[™Ý^H[™ÝXš[H˜Z[˜œ™Z][‹ˆÛ\ÜÚ\ØÚ›ZX[™\°é™\[È\œÚ\Ý[H˜[˜XÚËP[œÚXÚ\š[[‹‚‚ˆÈRQŒŽKŽKŒÂ‚ˆÈÈRQ\ÚYÛœÞ\Ý[H0­È˜XÚ[Ù[H[™][™\˜]Y[‚‚‹H[œÙ[X›KP[œÚXÚ[ˆ\š[[ˆZ[™HÙ\ØÚÜÜÙ[™H\˜™Z]Ù›0éÚHZ]ZYÙ\ˆ\˜[Y]\˜]\ÝØZZ[™]]YÙ[ˆXYÜ˜[[^›Û™[ˆ[™ÝXÚÚXÚ\™[ˆ™YY[™[[Y[[‹‚‹HÛ[XH°ï™[]\ÝØZ\Ø[[Y[™˜\ÜÝ[™Ë]\XYÜ˜[[H[™Ú[™[œÝ[Y[H[ˆ\œÙ[™[ˆ[œÝ[Y[[›X]\šX[]0éÈYH[Û˜]ÛZ\ÝH›ZX]YˆØÚX[[ˆÙ\°é[ˆÜš^›Û[™YY[˜˜\‹‚‹HÚYÙ]QY]Ü‹ÜÜ[]H[™][š\šÝ[™›ÛÙ[ˆ\ˆÙ[YZ[œØ[Y[ˆY\˜\˜ÚYKˆÛÛ\ZÝH[™Ý\™[°ï™\œÚXÚ›ZX™[ˆ[ˆKH[™ËUYÙKU˜\šX[[ˆÛ\ˆ›Û™Z[˜[™\ˆ[\œØÚZY˜\‹‚‹HYH0á™\[™Ù[ˆÜ™ZY™[ˆ]\ÜØÚYpçÛXÚ[ˆ
+Š“RQ™^
+Š‹ˆ
+Š’Û\ÜÚ\ØÚ
+Šˆ›ZXYH\œÚ\Ý[K[šÝ[ÛœÙÛZXÚH˜[˜XÚËP[œÚXÚÈ›ÙÛ›ÜÙ]Ù\K]Y[[ˆ[™ÛÜšÙ\ˆ›ZX™[ˆ[™\°é™\‚‚ˆÈRQŒŽKŽKŒ‚‚ˆÈÈRQ\ÚYÛœÞ\Ý[H0­È›ÙÛ›ÜÙKØ\[˜[˜[\ÙH[™Ø\›[™Ù[‚‚‹HÙ]\šØ\[ˆ\™ðéž™[ˆYHÙ[YZ[œØ[YH[Y[[™KRÛÛœÛÛH[HZ[™HÝ\ž™K™[YÝHRQRØ\[˜[˜[\ÙHZ]]Y[H[™ðïYÚÙZ]Þ™Z]‚‹HËKÌMUYÙKQ[[Y[H›ÛÙ[ˆ[ˆRQ™^Z[™\ˆZYÙ[ˆ™Z[[›ÙÚZÈÝ]›Û™Z[˜[™\ˆÙ[0íœÝ\ˆØXÚ[ŽÈYHZÝ]™H™Z[H›ZX0ï™\ˆZ[™HØÚX[HY][Ü›ÛÙÚ\ØÚHX\šÚY\[™È\šÙ[›˜˜\‹‚‹HÞ[›ÜZÙ›0éÚ[ˆ[™]Y[[œÝ]\È\š[[ˆY\Ù[™HÛÛYH[œÝ[Y[[›X]\šX[]0éÚYHØ\[ˆ[™›ÙÛ›ÜÙ[‹‚‹H[]XÚHØ\›[™Ù[ˆ[™RQR[ÙZ\ÙHÙ\™[ˆ[È\°ïÚÚ[[™H\™ZYÛš\ÜÜ\ˆÙY°ïˆ˜\˜™H›ZX]\ÜØÚYpçÛXÚ\ˆØ\›œÝY™H›Ü˜™Z[[‹‚‚ˆÈRQŒŽKŽKŒB‚ˆÈÈRQ\ÚYÛœÞ\Ý[H0­È\œÝH[\Ù][™Â‚‹HRQ™^™\Ú]™]Z[™HXÚHÛÛ\Û™[[˜˜\Ú\È°ïˆY\ÜÙ›0éÚ[‹Y\ÜÝÙ\K][œÝ]\Ë™Z]Ý]Y\[™Ë^Y\‹PÚ\Ë[˜[\ÙZ[ÙZ\ÙH[™™\ÜÛœÚ]™H]Z[TÚY]Ë‚‹HYHÝ\ž™œš\Ý›ÙÛ›ÜÙH\š0éZ[™[ˆ™\˜š[™[™[ˆ[\\˜]\™˜Y[ˆZ]Y\ÜÜ[šÝÈZ[™H[™Ù]\H™Z]0í™™›™][HRQQ\ÚYÛˆZ[™HšYYšYÙH]Z[[œÚXÚÝ]Z[™\È]Y\šYÚXÚ˜\™[ˆÛÛ\Ë‚‹HÙ]\šØ\[ˆ™\Ù[™[ˆ[ˆYHÙ[YZ[œØ[YH[Y[[™KRÛÛœÛÛHZ]^KÔ]\ÙK™Z]ØÚ\™™[HØÜX˜™\ˆ[™][œÝ]\ËˆØ\[™X™[™[ˆÙ\™[ˆ\ðé›XÚ[ÈØÚ[šÙHRQPÚ\È[™ÙX›Ý[‹‚‹HZÝY[\ÈÙ]\‹›ÙÛ›ÜÙ^™Z[[ˆ[™YH›ÝÛKP˜\ˆ\š[[ˆZYÙKÛÛYH[œÝ[Y[[™›0éÚ[‹ˆYH›ÝÛKP˜\ˆ™\›Y\[ˆÛ\ËQY™™ZÝ[™ØZÙZ]\š[ˆ[ˆÚXÚ\™[ˆXœÝ[™\ˆÛYKR[™ZØ]Ü‹V›Û™K‚‹HYH[œÚXÚ
+Š’Û\ÜÚ\ØÚ
+Šˆ›ZX[™\°é™\[È\œÚ\Ý[Ù\ÜZXÚ\H°ïÚÙ˜[Ü[Ûˆ™\™°ïØ˜\‹‚‚ˆÈÈXÚš\ØÚ‚‹H™]YHÜZ[‹RÛÛ\Û™[[ˆ[ˆZY\ÚYÛ‹Þ[™ÚÙ[œÈ[ˆZY\ÚYÛ‹˜ÜÜØÈÙZ[™HÙ]\œ]Y[K™Z]]Y›0íœÝ[™ÈÙ\ˆ˜XÚXÚH™\™XÚ[™ÈÝ\™HÙpé™\‚‚ˆÈRQŒŽKŽKŒ‚ˆÈÈRQ™^0­È\ÚYÛ™Ü[™YÙB‚‹H™]YKÛ\ˆÙYÛYY\H[œÝ[Y[[™›0éÚ[ˆ°ïˆZÝY[HÙ\K›ÙÛ›ÜÙ[‹Ø\[ˆ[™]YšÛ\˜\™H[Ù[K‚‹HXœÝ0é™K˜YY[ˆ[™™YY[™›0éÚ[ˆÚØ[Y\™[ˆ[ˆÛÛ›ÛY\›ÛˆØÚX[[ˆÛX\Û™\È0ï™\ˆX›]È[HØÚH[™]Y\™›Ü›X]š\È[H\ÚÝÜ‚‹HYH[™›Ü›X][ÛœÙ˜\˜™[ˆ°ïˆÙ]\‹Ø\›[™Ù[ˆ[™XYÜ˜[[YH›ZX™[ˆ[™\°é™\È\È\ÚYÛˆ™\˜™\ÜÙ\Y\˜\˜ÚYH[™\Ø˜\šÙZ]šXÚYHY][Ü›ÛÙÚ\ØÚH™Y]][™Ë‚‹H[\ˆ
+Š‘Z[œÝ[[™Ù[ˆ8¡¤ˆ[œÚXÚ	ˆZ[šZ][ˆ8¡¤ˆRQ\ÚYÛœÞ\Ý[JŠˆØ[›ˆ™Y\ž™Z]]Yˆ
+Š’Û\ÜÚ\ØÚ
+Šˆ\°ïÚÙÙ\Ý[Ù\™[‹ˆY\ÙH°ïÚÙ˜[Ü[ÛˆÚ\™›ÈÙ\°éÙ\ÜZXÚ\‚‚ˆÈÈXÚš\ØÚH[\Ù][™Â‚‹HÜZ[‹Q\ÚYÛœØÚXÚ0ï™\ˆ]K[ZYY\ÚYÛ˜Z]™\ÜÛœÚ]™[ˆÚÙ[Ù\[ˆ[™[\œÝ0ï[™È°ïˆ™Y^šY\H™]ÙYÝ[™Ë‚‹HÙZ[™H™]YH][˜X™œ˜YÙKÙZ[™H0á™\[™È[ˆ™Z]]Y›0íœÝ[™ÈÙ\ˆ›ÙÛ›ÜÙ[ÙÚZÎÈÝ[™[‹KYÙ\ËH[™[™Ùœš\Ý[œÚXÚ[ˆ™\Ù[™[ˆY\Ù[™[ˆ][šÛÛ\Û™[[‹‚‹H™[X\ÙKT™Y›YÚÛÜœšYÚY\ˆ\ÝÜš\ØÚH™\œÚ[ÛœÜ°ï[™Ù[ˆZÞ™\Y\™[ˆÜ0é\™H[šÝ[ÛœÜ™[X\Ù\ÎÈYHPÓÓ‹Q‹T•PËLMKSZ[][‹T\Ù[˜XÚÙH™\˜\˜™Z]]TÓËV™Z]Ù\HÚ™H™Z]›Û™[œÝY™š^™\˜š[™XÚ[ÈUË‚‚ˆÈRQŒŽKŽŒLB‚ˆÈÈ^\›‚‹H\ˆ™ZÙ\ØÚYÙ[™H[œÝ[\ˆÌLŒ\ÝÛÜœšYÚY\ˆYHÚ]X‹KÐÛÙ^TØÚ™ZXÛÜšÙ›ÝËU›Ü˜™\™Z][™È]\ÈŒŽKŽŒL›ZX[™\°é™\\š[[‹‚‹H[ˆÙ]\›ÙÚZËØ\[‹\ÛÚ\Ù[‹ÙZ[[™Ë˜Y\‹Ø\›[™Ù[ˆÙ\ˆ\P™YY[[™ÈÝ\™H°ïˆY\Ù[ˆÝš^šXÚÈ˜XÚXÚ™\°é™\‚‚ˆÈÈ[\›‚‹H\œØXÚNˆZ][H™]Y[ˆÚ]Ü\‹YØ]Kž[[™\Ø[]RQ[ˆXÚÝ]ÚYX™[ˆÚ]X‹RÛÛ™šYÝ\˜][ÛœÙ]ZY[‹ˆ\ÝYÚ]X‹]ÛÜšÙ›ÝËX›ÛÝÝ˜\LŒË›ZœØ\Ø\]H›ØÚYH[H[ž˜Z‚‹H\Ý[›ËXXÝ[ÛœË]ÛÜšÙ›ÝË\Ù[‹[[ÙYšXØ][Û‹LLÎLLK›ZœØ\ž™]YÝH[ˆÙZ[™[H\ÛÛY\[ˆ\ÝT™\ÜÚ]ÜžH›ØÚÙZ[™[ˆØ[›Ûš\ØÚ[ˆÚ]Ü\‹YØ]Kž[[Qš^\™H[™YYˆ\Ú[ˆ[ˆS“ÑS•‚‹H™ZYH™YÜ™\ÜÚ[Û™[ˆÝ\™[ˆ[ˆ[ˆ™]Y[ˆ^^š][ˆÛÜšÙ›ÝËTÞ[˜Ú›Ûš\Ø][ÛœÝ™\˜YÈ[™Ù\\ÜÝˆYH™\Ø[]H]Z[\ÝHÚ\™[ˆ\™ZÝ]\ÈÞ[˜ËYÚ]X‹]ÛÜšÙ›ÝÜË›ZœØ^ÜY\[™›Ûˆ[ˆ\ÝÈÚYY\™\Ù[™][Z]ðï™YÙHÛÜšÙ›ÝËQ\ÙZ]\[™Ù[ˆšXÚ\›™]]\˜ÚÜ[H°é\Ý[ˆ]\ÙZ[˜[™\›]Y™[‹‚‹HÙZ[™HÛÜšÙ\‹Q˜XÚÙÚZÈÙpé™\ÈÛÜšÙ\‹KÔÙ\šXÙKUÛÜšÙ\‹Q]ZY[ˆ[\œØÚZY[ˆÚXÚ\ˆ\˜ÚYHÞ[˜Ú›Ûš\ÚY\H™[X\Ù]™\œÚ[Û‹‚‚ˆÈRQŒŽKŽŒL‚ˆÈÈ^\›‚‹HÚ]X‹KÐÛÙ^pá™\[™Ù[ˆ\š[[ˆZ[™[ˆ]Y\šY[‹˜Z[XÛÜÙY™\ÜÚ]Üž]™\˜YÎˆYÙ[[ˆ\˜™Z][ˆ\ˆ]YˆÚ]ÜÊ˜HžËˆÛÙ^Ê˜Pœ˜[˜Ú\È[™[YÙZ[ˆÙY\ˆXZ[˜›ØÚZY\ÝX›X‚‹HZ[ˆ™]Y\È‹QØ]H\Ý[ÈØ[›Ûš\ØÚHÛÜšÙ›ÝÜ]Y[H›Ü˜™\™Z]]ˆ\È°ï\È[™\œÚ[ÛšY\HRQ\›Ù™\ÜÚ[Û˜[\™\XÙ[Y[žš\™\™Z]È[H[™\]Y\ÝZ]\[™[˜ÞKP]Y]›ÙZÝ[ÛœØZ[[™›ÛÝ0é™YÙ[ˆ™YÜ™\ÜÚ[Û™[‹‚‹HYH™\ÝZ[™H™[X\ÙKP\˜Ú]ZÝ\ˆ›ZX[™\°é™\ˆ\œÝ˜XÚÜ°ï™[Hˆ[™Y\™ÙH™\˜\˜™Z]][œÝ[[ZYž[[\È’T™\°í™™™[XÚ[ˆZ[[™›Û[Ý][œØÚYpçÙ[™[ˆ˜[YY\[ˆÝ[™˜XÚZY\ÝX›X‚‚ˆÈÈ[\›‚‹HQÑS•Ë›Y[\›YÝYH™\˜š[™XÚ[ˆ™\ÜÚ]Üž\™YÙ[ˆ°ïˆÛÙ^ØÛÙ[™ÈYÙ[È\™ZÝ[H›Ú™ZÝ‚‹HRQÐÒUÔÑÒUP—ÐÓÓ•PÕ›YÚÝ[Y[Y\œ˜[˜ÚK‹K™Z\‹H[™™\™XÚYÝ[™ÜÝ™\˜YË‚‹HÚKÙÚ]X‹ÝÛÜšÙ›ÝÜËØÚ]Ü\‹YØ]Kž[[\ÝYHØ[›Ûš\ØÚH]Y[H\È™XY[Û›H‹QØ]\ÎÈØÜš\ËÜÞ[˜ËYÚ]X‹]ÛÜšÙ›ÝÜË›ZœØØ[›ˆÚYH™ZHZ[™\ˆ^^š][ˆÛÜšÙ›ÝËUØ\[™È˜XÚ™Ú]X‹ÝÛÜšÙ›ÝÜËØÜYYÙ[‹‚‹H™]Y\ˆ™YÜ™\ÜÚ[ÛœÝ\Ý\ÝXÚ]ÜYÚ]X‹]Üš]KXÛÛ˜XÝLNLL›ZœØØÚ0ïX\ÝTš]š[YÙKÒKT[›š[™ËYÙ[Pœ˜[˜Úš[\ˆ[™[ˆ›ÛÝ0é™YÙ[ˆœH[ˆ™\šYžXT˜Y‚‹HYH›Ü›X[HÚ]ÔQÚ]X‹U™\˜š[™[™ÈÙ[œÝ›ZX]]Ü[RKS]™^YÜšY™ˆØÚ™ZX™Ù\ØÚ0ïÈ\™ZÝH™\ÜÚ]ÜžKTØÚ™ZX˜ZÝ[Û™[ˆpïÜÙ[ˆZ\ˆ0ï™\ˆÛÙ^Ù\ˆZ[™HÙ\ÛÛ™\]]Üš\ÚY\HÚ]X‹P\\™›ÛÙ[‹‚‚ˆÈRQŒŽKŽŒLÂ‚ˆÈÈ^\›‚‹HÙZ[[™Ú0íš[ˆÙ\™[ˆ[HZÝY[[ˆÙ]\ˆ™]\™ZÝ[ˆ\ˆÚXÚ˜\™[ˆ™]ðí›Ý[™ÜÚØXÚ[[™Ù^™ZYÝˆZ[™Hœš\ØÚH™[Ø˜XÚ]HÛÛÙ[™XÚÙH›ZX›Üœ˜[™ÚYÎÈ™ZY\ÙKÚ\™\È™\™°ïØ˜\™HÑRPÓÓ‹Q‹T•PËPÙZ[[™ÈZ[™]]YÈ[È8 '“[Ù[PÙZ[[™ø 'ÙZÙ[›ž™ZXÚ™]‚‹HYHš\Ú\šYÙH™]ðí›Ý[™ÜØ™\ØÚ™ZX[™È
+‹ˆ‹ˆ8 'œÝ\šÈ™]ðí›Ý8 '
+H›ZX\š[[ˆ[™Ú\™[HYH0íš[˜[™ØX™H\™ðéž‚‚ˆÈÈ[\›‚‹H\œØXÚH[ˆŒŽKŽŒLŽˆÑRSS‘ÈØ\ˆ™\™Z]È›ÛÝ0é™YÈ›ÛH•PËQ][œ˜Yš\È[ˆ[ˆØ[›Ûš\ØÚ[ˆ›Ü™XØ\Ý™\™˜Z]Ý\™H[ˆÝ\œ™[Y]šXÜØX™\ˆ\ˆ[H
+JKQ]Z[^\Ø[[Y[™Ù\Ù]ˆYHÚXÚ˜\™H™]ðí›Ý[™ÜÚØXÚ[™\Ù[™]H]\ÜØÚYpçÛXÚÛÝYÛÛ\XÝ]Z[‚‹HYHÚXÚ˜\™HØXÚ[™\Ù[™][ˆÛÝYš\ÚX›Q]Z[HÛÝYÛÛ\XÝ]Z[
+ÈÙZ[[™ÐÛÛ\XÝ]Z[‚‹Hš[Üš]0éˆœš\ØÚH™[Ø˜XÚ[™È
+ÙZ[[™Ò
+HˆÑPÓÓ‹Q‹T•PÈÝ\‹˜ÙZ[[™Øˆ™ZH‘UËÔÐÕÜ[Û˜[™[Ø˜XÚ]HÛÛÙ[[\™Ü™[ž™Kˆ[Ù[Ù\HÙ\™[ˆšXÚ[È™[Ø˜XÚ]\ˆÜ°ï™\ˆÝ]\Ü[šÝ]\ÙÙYÙX™[‹‚‹H\ˆ•PËS]YˆÍMH°ïˆŒ‹LKLMLŽŒ]ÑRSS‘ÈMKÌMH\™›ÛÜ™ZXÚZÛÙY\[™™\°í™™™[XÚÈ[Z]\ÝYH][œ]Y[HÙ[œÝ˜XÚÙZ\ÛXÚ›Üš[™[‹‚‹HÙZ[™H™]YHÛÜšÙ\‹Q˜XÚÙÚZÎÈÙ\\˜]\ˆÛÜšÙ\‹U\ØY\ÝšXÚ\™›Ü™\›XÚ‚‚ˆÈRQŒŽKŽŒL‚‚ˆÈÈ^\›‚‹H\ˆ™ZÙ\ØÚYÙ[™H[œÝ[\ˆÌLMˆ\ÝÛÜœšYÚY\ˆYHÚXÚ˜\™[ˆÛÜœ™ZÝ\™[ˆ]\ÈŒŽKŽŽNHš\ÈŒŽKŽŒLH›ZX™[ˆ[™\°é™\ˆÙYÛ0é]HLZKR\ÛÚ\Ù[‹™\™Z[šYÝHœ›Û\œÝ[[™ËÛÛœÙ\˜]]™\™HšYY\œØÚYÜÜ\Ù[ˆ[™Ø]X™\™H\ÚÝÜUÙ]\œZÝÙÜ˜[[YK‚‹H°ïˆY\Ù[ˆÝš^Ý\™HÙZ[™HÙ]\‹KØ\[‹K][œ]Y[[‹HÙ\ˆ™YY[›ÙÚZÈ™\°é™\‚‚ˆÈÈ[\›‚‹HÚ]XˆÌLMˆ]\TØÜš\È[™[ˆš]KT›ÙZÝ[ÛœØZ[\™›ÛÜ™ZXÚ™\Ý[™[ˆ[™Ý\™H\ˆ›ØÚ›ÛˆÙZH™\˜[][ˆÝ]\ØÚ[ˆ™YÜ™\ÜÚ[ÛœÙ\Ø\[™Ù[ˆ›ØÚÚY\‚‹H\Ý[X\Xœ™K\™XÚ\\›Ø˜Xš[]KLLÎL›ZœØØÚ0ï™]YHXœÚXÚXÚÝ™[™Ù\™[ˆ˜Y\‹QXÚÜØÚÙ[[ˆ]\ÈŒŽKŽŽNNˆÙYœšY\™[™H–‹ØÚ™YHˆ–‹‚‹H\Ý\˜Y\‹XÛÛÜX›\ËLM›ZœØ\Ø\]šXÚYZˆ\È™]Ý\ÜÝ[™\›HÜ\˜[Kø '”ØÚ™XÚÙ[¸ 'TÞ[X›ÛÛÛ™\›ˆ\È™]YH™YÙ[ŠÑZ\ËTZÝÙÜ˜[[H[™ØÚ0ï\ðé›XÚ›ÜˆZ[™\ˆ°ïÚÚÙZˆ\ˆÜ\˜[›Ü›K‚‹HÙZ[™H™]YHÛÜšÙ\‹Q˜XÚÙÚZÎÈÙ\\˜]\ˆÛÜšÙ\‹U\ØY\ÝšXÚ\™›Ü™\›XÚ‚‚ˆÈRQŒŽKŽŒLB‚ˆÈÈ^\›‚‹H\ˆ[œÝ[\™™Z\ˆ›ÛˆŒŽKŽŒL\Ý™ZØ™[‹ˆYHÛÜœ™ZÝ\™[ˆ[ˆLZKR\ÛÚ\Ù[‹œ›Û\œÝ[[™ËšYY\œØÚYÜØ\TZÝÙÜ˜[[Y[ˆ[™\ÚÝÜUÙ]\œÞ[X›Û[ˆ›ZX™[ˆ[™\°é™\\š[[‹‚‹H°ïˆY\Ù[ˆÝš^Ý\™HÙZ[™HÚXÚ˜\™HÙ]\‹KØ\[‹HÙ\ˆ™YY[›ÙÚZÈ™\°é™\‚‚ˆÈÈ[\›‚‹H[œÝ[\ˆÌLMHØÚZ]\H]\ÜØÚYpçÛXÚ[H\TØÜš\QØ]H[ˆ\ˆ™\ØZ\Ý[ˆ[œÙ[šÝ[ÛˆÛÛ\ÜÚ]Qœ›Û\Ú[ˆÜ˜ËÔ˜Y\”[™[ÞˆÚYHÙZ0íœHH[ˆ™\™Z]È[™\›[ˆ\˜[[[ˆœ›ÛT™[™\œ˜Y[ˆ[™]HÙZ[™HZÝ]™H™\Ù[™[™ÈYZ‹‚‹HYHÝH[œÙ[šÝ[ÛˆÝ\™H›ÛÝ0é™YÈ[™\›È\TØÜš\T™YÙ[ˆÝ\™[ˆšXÚX™Ù\ØÚðéÚ[™\ÈÝ\™HÙZ[™HðïœÝXÚH™Y™\™[žˆZ[™ÙY°ï‚‹H™[]˜[HÞ[›ÜZËK\ÛÚ\Ù[‹K˜Y\œ\Ù[‹K™\ÜÛœÚ]™KK™\œÚ[ÛœËH[™™[X\ÙKS[™XYÙKU™\°éÙHÝ\™[ˆ\›™]]Ù\°ï‚‹HÙZ[™H™]YHÛÜšÙ\‹Q˜XÚÙÚZÎÈÙ\\˜]\ˆÛÜšÙ\‹U\ØY\ÝšXÚ\™›Ü™\›XÚ‚‚ˆÈRQŒŽKŽŒL‚ˆÈÈ^\›‚‹H\ˆZ[™Z\ˆ\È™[X\ÙKRØ[™Y][ˆŒŽKŽŽNH\Ý™ZØ™[‹ˆYHÛÜœ™ZÝ\™[ˆ[ˆÞ[›ÜZËšYY\œØÚYÜØ\TZÝÙÜ˜[[Y[ˆ[™\ÚÝÜUÙ]\œÞ[X›Û[ˆ›ZX™[ˆ›ÛÝ0é™YÈ\š[[‹‚‹H[ˆ\ˆÚXÚ˜\™[ˆÙ]\™\œÝ[[™ÈÝ\™H°ïˆY\Ù[ˆÝš^šXÚÈ\°ïÚÙÙ[›Û[Y[ˆÙ\ˆ™]H[YÙ\Ý[‚‚ˆÈÈ[\›‚‹H[œÝ[\ˆÌLMØÚZ]\H]\ÜØÚYpçÛXÚ[ˆÙZH˜XÚ\ˆÞ[›ÜZËP™\™Z[šYÝ[™È0ïœšYÈÙX›YX™[™[‹šXÚYZˆ™\Ù[™][ˆœ›ÛT™[™\™\›‹ˆ™ZYHÝ[ˆÛÙ\˜YHÝ\™[ˆ[™\›‚‹H\ˆ™YÚ[Û˜[œ›ÛT™YÜ™\ÜÚ[ÛœÝ™\˜YÈØÚ0ï™]]\Ù°ïÚÛXÚ]›Ü‹Y\ÙH\˜[[[ˆ˜[˜XÚËT˜YHÚYY\ˆZ[žY°ï™[‹‚‹H\ˆ˜Y\‹T\Ù[\ÝÝ\™H[ˆYH™]Ý\ÜÝÝ™[™Ù\™[ˆðéKKÑXÚËTØÚÙ[[ˆ]\ÈŒŽKŽŽNH[™Ù\\ÜÝÚ™H[ˆ˜XÚXÚ[ˆØÚ]ˆHØÚÙ\›‹‚‹HÙZ[™H™]YHÛÜšÙ\‹Q˜XÚÙÚZÎÈÙ\\˜]\ˆÛÜšÙ\‹U\ØY\ÝšXÚ\™›Ü™\›XÚ‚‚ˆÈRQŒŽKŽŽNB‚ˆÈÈ^\›‚‹H
+Š’ÛÛ\ÜÚ]ÈLZKR\ÛÚ\Ù[ŽŠŠˆYHÝYšYÙH˜]]™HÓTËR\ÛÚ\Ù[™\œÝ[[™ÈÚ\™šXÚYZˆÚXÚ˜\ˆ™\Ù[™]ˆRQ™ZXÚ™]YHLZKQÙ[ÜÝ[X[0íš[ˆÚYY\ˆ[È]]XÚÙYÛ0é]KÛÛØ[X™\ˆÙ\ÝšXÚ[HÛÛ\™[ˆZ]ÜKP™\ØÚšY[™ÎÈÑUÓTÈ›ZX°ïˆYHÝ][šÝ[ÛšY\™[™[ˆ\ÛØ˜\™[ˆZÝ]‹‚‹H
+Š‘œ›Û\œÝ[[™ÎŠŠˆÜ[H›ÚKÑ˜[˜XÚËS^Y\ˆ[™YH]Y™°éYÙ[ˆ\˜[[[ˆš[Û][ˆœ›Û[›Û™[ˆÝ\™[ˆ]\È[HÚXÚ˜\™[ˆ˜Y[™\›ˆ[™Ù^™ZYÝÙ\™[ˆ\ˆ]\Ü™ZXÚ[™Ý\šÙKÙYÛ0é]H3®KNLQœ›Û[›Û™[ŽÈÛ\ÜÚ\ØÚHœ›Û˜\˜™[‹Ë\Þ[X›ÛH\œØÚZ[™[ˆ\ˆ™ZH™[\Ý˜\™\ˆ\\ÚY\[™Ë‚‹H
+Š“šYY\œØÚYÜØ\ŠŠˆYHZ\ÜÝ™\œÝ0é™XÚ[ˆÜ\˜[YÙ[ˆ8 '”ØÚ™XÚÙ[¸ 'TÞ[X›ÛH°ïˆÙYœšY\™[™[ˆšYY\œØÚYÈÝ\™[ˆ\˜ÚZ[ˆ™\œÝ0é™XÚ\È™YÙ[ŠÑZ\ËTZÝÙÜ˜[[H\œÙ]ˆÛZXÚ™Z]YÈ\ÝYH\Ù[šÛ\ÜÚYšZØ][ÛˆÙYÙ[ˆØ\›YH˜[ÙHÜÚ]]™\È]]XÚÝ™[™Ù\‹‚‹H
+Š‘\ÚÝÜTZÝÙÜ˜[[YNŠŠˆÙ[šÜ™XÚH˜[™ÝšXÚH[ˆYÙ\ËKÔ\š[Ù[‹UÙ]\œZÝÙÜ˜[[Y[ˆÙ\™[ˆ[ˆ\ˆ\ÚÝÜ[œÚXÚšXÚYZˆÙ^™ZXÚ™]‚‚ˆÈÈ[\›‚‹H\ÛÚ\Ù[œ˜Y]YˆÛÛ›ÛY\\ÈRQPØ[˜\ËÕ™ZÝÜ‹T™[™\š[™ÈZ]Ý0éšÙ\™\ˆš[›ÛZX[KÐÚZZÚ[‹QÛ0é[™È™\ÝÙ[YÝÈÓTËR\ÛÚ\Ù[ˆ›ZX™[ˆ[È][œ]Y[KÓY]Y][ˆ™\™°ïØ˜\‹Ù\™[ˆX™\ˆšXÚYZˆ[ÈÚXÚ˜\™\ˆ[šY[›^Y\ˆÙ[]‚‹Hœ›Û[ˆÙ\™[ˆ]X[]0éÙÙYš[\[™ÙYÛ0é]È™Y[™[HØ[˜\ËKÔÛ[[™KQÜ[™[™\š[™ÜÈÚ[™]\È[HZÝ]™[ˆ˜Y[™\›‚‹H˜Y\ŠÓ[Ù[SšYY\œØÚYÜØ\[ˆ™\›[™Ù[ˆ°ïˆÙYœšY\™[™KÙ™\ÝH\Ù[ˆ\ðé›XÚÛÛœÚ\Ý[H[\\˜]\‹KÑ™]XÚÝYÙ[U[\œÝ0ï[™È[™0íš\™HXÚËTØÚÙ[[‹‚‹H™]Y\ˆ™YÜ™\ÜÚ[ÛœÝ\Ý\Ý\Þ[›ÜXË\\ÙK\XÝÙÜ˜[KXÛX[\LNNK›ZœØÈ™]›Ù™™[™H0é\™HÞ[›ÜZÝ\ÝÈ]Yˆ[ˆZÝY[[ˆ™[™\š[™Ý™\˜YÈZÝX[\ÚY\‚‹HÙZ[™HÙ[X[\ØÚHÛÜšÙ\‹Q˜XÚÙÚZÈÙpé™\ÈÛÜšÙ\‹KÔÙ\šXÙKUÛÜšÙ\‹Q]ZY[ˆ[\œØÚZY[ˆÚXÚ\ˆ\˜ÚÞ[˜Ú›Ûš\ÚY\H™[X\ÙKSY]Y][‹‚‚ˆÈRQŒŽKŽŽN‚ˆÈÈ^\›‚‹HYHØ™\™H›ÙÛ›ÜÙ[Z\ÝH˜\ÜÝ
+ŠŽLZ[ŠŠˆ[™
+ŠŒ
+ŠˆÚYY\ˆHZ[™[HÙ[YZ[œØ[Y[ˆZ[œÝYYÈ
+Š’Ý\ž™œš\Ý
+Šˆ\Ø[[Y[‹ˆ[ˆ\ˆÝ\ž™œš\Ý[œÚXÚÝZ[ˆYHLSZ[][‹pç™\œÚXÚ[™\ÈZUÙ]\œ›Ùš[ÚYY\ˆÙ[YZ[œØ[H[\™Z[˜[™\ˆÝ][\ˆÙZHÙ]™[›[ˆÜš^›ÛTØÚ[›0éÚ[‹‚‹H
+Š“RQ0­ÈS‘SŠŠˆ™\Ú][ˆ]Yˆ\ÚÝÜTY[™ÛX\Û™HY\Ù[™H™\YÙHØ\[‹KÐ]ÛœÜ˜XÚHÚYHYH0ïœšYÙ[ˆ[Ù\›™[ˆRQP™\™ZXÚKˆ›ÚÚ\šÙ[™HÝ[™\™]ÛœËÙ\]Y]ØÚH™\ØÚšY[™Ù[ˆ[™\ˆÜ[HÙ\\˜]H8 '”[™\¸ 'RÛÜˆÝ\™[ˆ[™\›‚‹H™Z[HRKP]Y]Ý\™H\œÙ[™H\ÚÝÜPØ\ØØYKQ™Z\ˆ]XÚ[ˆ[ˆØÚ™[YÜšY™™[ˆ\È
+Š“YZŠŠ‹Q˜]Ù\œÈÙY[™[ˆ[™Z]\œÙ[™[ˆØ\[›ÙÚZÈ™\™Z[šYÝ‚‹HYH°ï™ˆ›ÙÛ›ÜÙZÜš^›ÛH
+Š’Ý\ž™œš\Ý0­ÈÈ0­ÈM0­Èˆ0­ÈØZ\ÛÛŠŠˆ\ÜÙ[ˆ]XÚ]YˆØÚX[[ˆTÛ™\È[ˆZ[™H™Z[NÈ\È[ÝZÙZ[ˆ[›°íYÙ\ˆÜš^›Û[\ˆØÜ›Û™\™ZXÚ‚‚ˆÈÈ[\›‚‹H\œÚ\ÝY\H[Ý0é™HZ]Üš^›ÛÙ\™[ˆ™Z[HZ[›\Ù[ˆ™\›\Ýœ™ZH]Yˆ[ˆÙ[YZ[œØ[Y[ˆÝ\ž™œš\ÝRÜš^›ÛZYÜšY\ˆYHZYÙ[XÚ[ˆL[Z[‹KÌZR[š[H[™Z™HY][Ü›ÛÙÚ\ØÚ[ˆ][œ˜YH›ZX™[ˆ[™\°é™\‚‹H[Ù\›‹\[›™\‹ZX˜[Ù\›‹\[›™\‹XXÝ[ÛœØ[Ù\›‹\[›™\‹\ÙXÝ[Û˜[™[Ù\›‹[[Ü™K\]ZXÚËXXÝ[ÛœØ™\Ú]™[ˆ™]Ù[YZ[œØ[YH\ÚÝÜÕX›]Ó[Øš[P˜\Ú\ÜÝ[HÝ]Ù\›œ™YÙ[ˆ\ˆ[›™\š[ˆ\È[Øš[KSYYXKT]Y\šY\Ë‚‹H™]YH™YÜ™\ÜÚ[Ûˆ\Ý\ÚÜ\›K\[›™\‹\Û\ÚLNN›ZœØØÚ0ïYH\Ø[[Y[™°ï[™È[™[ˆ\ÚÝÜ™\Ý[ˆ[™[‹KÓYZ‹Q\ÚYÛ™\˜YË‚‹HÙZ[™HÛÜšÙ\‹Q˜XÚÙÚZÈÙpé™\‚‚ˆÈRQŒŽKŽŽMÂ‚ˆÈÈ^\›‚‹H\ˆ™ZÙ\ØÚYÙ[™H[œÝ[\ˆÌLLÝ\™HÛÜœšYÚY\ˆYH˜XÚXÚ[ˆ™\˜™\ÜÙ\[™Ù[ˆ]\ÈŒŽKŽŽMˆ›ZX™[ˆ[™\°é™\\š[[Žˆ›Ø\Ý\™HLZKR\ÛÚ\Ù[‹Ñœ›Û[‹ØÚ™[\ˆÙ\Ý\]H\\›ÚØ[H[˜[\ÙH[™Û\ˆÙZÙ[›ž™ZXÚ™]\ÈPÓÓ‹Q‹T•PËS[Ù[PÙZ[[™Ë‚‹HÙ]\™][‹[Ù[\Ú[Û‹Ø\››ÙÚZË˜Y\‹Ø][]Þ[›ÜZÙ\œÝ[[™È[™RHÝ\™[ˆ\˜ÚY\Ù[ˆÝš^šXÚ˜XÚXÚ™\°é™\‚‚ˆÈÈ[\›‚‹H\ÝY[œÙ[X›K]Ú[™\Ù[XÝ[Û‹XÛÝY\™XÛÛ˜Ú[X][Û‹LMÌË›ZœØØÚ0ï™]YHZÝY[H™]ðí›Ý[™ÜÜ›Ý™[šY[žˆZ]˜\ÙPÛÝYÛÝ\˜ÙXÛÝÚYH\ˆ\ðé›XÚ[ˆ[Ù[PÙZ[[™ËT]Y[[˜[™ØX™KÝ]YH[™\›H\™ZÝ]ÙZ\Ý[™ÈH™\›[™Ù[‹‚‹H\Ý]šY]Ë\Ú[][][Û‹X›ÝÛKZ\ÛÚ\Ù[‹\Û[ÛÝ[™ËLNM›ZœØZÞ™\Y\[ˆ˜XÚXÚÛÜœ™ZÝ\È˜]]™HÑUÓTÈ[Èš[pé™[ˆ\ÛÚ\Ù[œ˜Y[™[ˆÙYÛ0é][ˆ™ZÝÜ‹KÐØ[˜\ËT˜Y[È˜[˜XÚË‚‹HÚ]XˆÌLL]HœHÚX\[™[˜ÞKP]Y]\TØÜš\[™š]H™\™Z]È\™›ÛÜ™ZXÚX™Ù\ØÚÜÜÙ[ŽÈ\ˆY\ÙHÙZH›ÛˆÎHÝ]\ØÚ[ˆ™\°éÙ[ˆ›ØÚÚY\[ˆYH™\°í™™™[XÚ[™Ë‚‹HÙZ[™H™]YHÛÜšÙ\‹Q˜XÚÙÚZÎÈ™\œÚ[ÛœÛY]Y][ˆ]YˆŽKŽŽMÈÞ[˜Ú›Ûš\ÚY\‚‚ˆÈRQŒŽKŽŽM‚‚ˆÈÈ^\›‚‹HYHÞ[›ÜZÈ[HÛÛ\ÜÚ]™[™\LZKR\ÛÚ\Ù[ˆ›Ø\Ý\ŽˆÑPÓÓ‹UÓTÈ\Ý\ˆ™]›ÜžYÝH[šY[œ˜YÈš\ÈY\Ù\ˆ™\™°ïØ˜\ˆ\Ý™ZYÝRQY\Ù[™[ˆ0íš[™™[\ˆ\ðé›XÚ0ï™\ˆZ[™[ˆÙYÛ0é][ˆX\Xœ™KPØ[˜\ËQ˜[˜XÚËˆY\˜ÚÛÛ[ˆšXÚYZˆ\ˆÜKP™\ØÚšY[™Ù[ˆÚ™HYÙZ0íœšYÙH[šY[ˆ\œØÚZ[™[‹‚‹Hœ›Û[ˆ\š[[ˆ\ðé›XÚZ[™[ˆZYÙ[™[ˆX\Xœ™KPØ[˜\ËS^Y\‹ˆYHØš™ZÝ]ˆXYÛ›ÜÝ^šY\[ˆœ›ÛH[™œ›Û[›Û™[ˆ›ZX™[ˆ[Z]]XÚ[›ˆÚXÚ˜\‹Ù[›ˆ\ˆš\Ú\šYÙHXY›]ZÛÛ\]X›H™ZÝÜœ˜Y[ˆ\ˆZÝY[[ˆØ\[™[™Ú[™H]\Ù°éˆYH[]XÚHÑP›Ù[˜[˜[\ÙH›ZX[È[™\°é™\H™Y™\™[žˆ™\™°ïØ˜\‹‚‹H\ˆÝ\\ˆ\\›ÚØ[[ˆÙ]\˜[˜[\ÙHÝ\™H\˜[[\ÚY\ˆÝ][ÛœÙ][‹˜Y\‹KÓšYY\œØÚYÜØX™ÛZXÚ[™›ÛÝ0é™YÙHÝ][ÛœØ[˜[\ÙH™YÚ[›™[ˆ]Yˆ›Ü›X[[ˆ™\˜š[™[™Ù[ˆ]]XÚœ°ï\‹Ú™H][œ]Y[[‹]X[]0éÜ°ï[™Ù[ˆÙ\ˆY][Ü›ÛÙÚ\ØÚH™\™XÚ[™Ù[ˆHÝ™ZXÚ[‹ˆ[™ÜØ[YHžËˆ][œÜ\™[™H™\˜š[™[™Ù[ˆ™Z[[ˆ[ˆÛÛœÙ\˜]]™\™[ˆX›]Y‹‚‹HÑPÓÓ‹Q‹T•PËPÙZ[[™ÈÚ\™[ˆ]XÚ[HZÝY[[ˆÙ]\ˆ[™[H›YËKÑ]™[Ù]\ˆÙ[]ˆœš\ØÚH™[Ø˜XÚ]HÙZ[[™ËUÙ\H›ZX™[ˆ›Üœ˜[™ÚYÎÈ[Ù[Ù\HÙ\™[ˆ]\Ù°ïÚÛXÚ[È8 '“[Ù[PÙZ[[™ø 'ÙZÙ[›ž™ZXÚ™]‚‚ˆÈÈ[\›‚‹HLZKQÙ[ÜÝ[X[0íšH][HÛÛ\ÜÚ][ˆ›Üš[™[™[ˆÑUÓTËT˜YXÛÛ—Ü™YÌWÙ™ÜÑÒ]YˆLNÈZ[ˆØ[˜\ËQ˜[˜XÚÈ0ï™\ˆØ[˜\ÓÝ™\›^X›ZXZÝ]‹š\È\ˆ˜]]™HÓTËTÝ[™Ù[Y[ˆ\Ý‚‹Hœ›Û\œÝ[[™È[HZ[™[ˆ›ÛˆXY›]TÕ‘È[˜Xš0é™ÚYÙ[ˆØ[˜\ËT˜Y°ïˆÞ[›ÜZËRØ[™Y][ˆ[™™YÚ[Û˜[Hœ›Û[›Û™[ˆ\ÙZ]\‚‹HÝ\\T™[ØY]Yˆ›Ü›X[[ˆ™\˜š[™[™Ù[ˆ[™Ù\ˆÙ\ÝY™™[
+˜\ÝÝ][Û˜ÍH\Ë˜Y\ˆH\Ë›ÛÝ0é™YÙHÝ][ÛœØ[˜[\ÙHM\ÊNÈYHÜ0é\™H›ÛÝ0é™YÙH\Ú[Ûˆ[™[H]X[]0éËKÑ˜[˜XÚÜ˜YH›ZX™[ˆ\š[[‹‚‹H•PËPÑRSS‘ÈÚ\™[ˆYHØ[›Ûš\ØÚHÝ\ž™œš\ÝÝ[™H\˜ÚÙ\™ZXÚ[™›ÛˆZÝY[[HÙ]\ˆÛÝÚYH›YËKÑ]™[Ù]\ˆ™\Ù[™]ˆ™YÝ[0é™HPÓÓ‹Q‹KÒPÓÓ‹QUKPÙZ[[™ËPœ›ÚÙ\œ˜YH›ZX™[ˆZ[™HÙ\\˜]H]\Ø˜]\ÝY™K‚‹HÙZ[™H™]YHÛÜšÙ\‹Q˜XÚÙÚZÈÙYÙ[°ï™\ˆŒŽKŽŽMNÈÛÜšÙ\‹Q]ZY[ˆ[\œØÚZY[ˆÚXÚ\ˆ\˜ÚÞ[˜Ú›Ûš\ÚY\H™[X\ÙKSY]Y][‹ˆZ[ˆÙ\\˜]\ˆX[Y[\ˆÛÜšÙ\‹U\ØY\Ý°ïˆYH˜XÚXÚ[ˆ0á™\[™Ù[ˆY\Ù\ˆ™\œÚ[ÛˆšXÚ\™›Ü™\›XÚ‚‚ˆÈRQŒŽKŽŽMB‚ˆÈÈ^\›‚‹H\ˆ™ZÙ\ØÚYÙ[™H[œÝ[\ˆÌLÝ\™HÛÜœšYÚY\ˆYHÚXÚ˜\™[ˆ™\˜™\ÜÙ\[™Ù[ˆ]\ÈŒŽKŽŽM›ZX™[ˆ[™\°é™\\š[[ŽˆÚXÚ\™H[Øš[H›ÝÛKP˜\‹]™\›0éÜÚYÙ\™HLZKR\ÛÚ\Ù[ˆ[™ÙYÛ0é]HÝ\™[ˆ[HZT›Ùš[‚‹HÙ]\™][‹[Ù[\Ú[Û‹Ø\››ÙÚZË˜Y\‹Ø][][™Y][Ü›ÛÙÚ\ØÚH™\™XÚ[™Ù[ˆÝ\™[ˆ\˜ÚY\Ù[ˆÝš^šXÚ™\°é™\‚‚ˆÈÈ[\›‚‹H[œÝ[\ˆÌLØÚZ]\H[HÛÛXš[šY\[ˆZ[KÔ™YÜ™\ÜÚ[Û‹QØ]KˆÚØ[YpçÈÚXÚ\ˆ\œÝH›ØÚÙ\ˆ^ZÝ[È™\˜[]\ˆ™\˜YÈ[ˆ\Ý[˜]šYØ][Û‹XÛÛ\ÜÚ]K\XËLNLK›ZœØ™\›Ù^šY\™[Žˆ\ˆ\Ý™\˜›Ý›ØÚ[ˆ[žÚ\ØÚ[ˆ™]Ý\ÜÝ[™YÙX[™[™[ˆXY›]TÕ‘ËT™[™\™\‹‚‹HZ[ˆ[œØÚYpçÙ[™\ˆ›ÛÝ0é™YÙ\ˆÝ]\ØÚ\ˆ™YÜ™\ÜÚ[ÛœÙ\˜Ú]YˆXÚÝHšY\ˆÙZ]\™H™\˜[]H]Y[^™\°éÙH\œÙ[™[ˆŒŽKŽŽMpá™\[™Ù[ˆ]Y‹ˆZÝX[\ÚY\Ý\™[ˆ\Ú[ˆ]XÚYH™\°éÙH°ïˆ[Û›ÝÛ™HÚ[™KÐ°í™[šÝ\™[‹\È[Ù[[šY[‹T[™HZ]ÜšYR\ÛÚ\Ù[‹Q˜[˜XÚË[ˆÜ°í°çÙ\™[ˆÚXÚ˜\™[ˆ›ÝÛKP˜\‹QÜšY™ˆ[™YH[™YÙX[™[™[ˆÛÛ\œ˜YK‚‹HYH°ï™ˆÛÜœšYÚY\[ˆ[™\°éÙHÛÝÚYHYH[™Ü™[ž™[™[ˆ›ÝÛKP˜\‹KÞ[›ÜZËKZKšY]ÜÜK™\œÚ[ÛœËH[™™[X\ÙKS[™XYÙKT™YÜ™\ÜÚ[Û™[ˆ™\ÝZ[ˆ[HÛÜœšYÚY\[ˆÝ[™‚‹HÙZ[™HÛÜšÙ\‹Q˜XÚÙÚZÈÙpé™\È™\œÚ[ÛœÛY]Y][ˆÝ\™[ˆ]YˆŽKŽŽMHÞ[˜Ú›Ûš\ÚY\‚‚ˆÈRQŒŽKŽŽM‚ˆÈÈ^\›‚‹HYH[Øš[H›ÝÛKP˜\ˆ›ZX]YˆTÛ™H[™[™\™[ˆÛÛ\ZÝ[ˆ\Ü^\ÈÚXÚ˜\ˆØ™\š[ˆ\È[\™[ˆš[˜[™Ëˆ]XÚ[H]]ËSZ[š[ZY\[™ÜÞ\Ý[™›ZXZ[ˆÛ\ˆ\šÙ[›˜˜\™\ˆÜšY™˜™\™ZXÚ\š[[‹‚‹HYH›ÝÛKP˜\‹QZ[œÝ[[™È\ÝÜ\ØÚ[ˆYH˜]›Üš][›Z\Ý[‹QZ[œÝ[[™È[™ÙYÛXÚ[‹‚‹HLZKR\ÛÚ\Ù[ˆÙ\™[ˆ[HÞ[›ÜZÛ[Ù\È]™\›0éÜÚYÙ\ˆ[ÈXÚHÙYÛ0é]HÛÛKÐ[X™\‹S[šY[ˆZ]ÜKP™\ØÚšY[™È\™Ù\Ý[]XÚÙ[›ˆ\ˆÜšYQœ˜[YHœ°ï\ˆ[È\ˆ›ÛÝ0é™YÙH[Ù[œ˜[YH™\™°ïØ˜\ˆ\Ý‚‹HYH[šY[ˆ\ˆYÙ\Ø[œÚXÚÚ[™ZYÙ\ˆ[™ÙYÛ0é]ˆ[\\˜]\‹ÙY°ïH[\\˜]\‹]\[šÝYXÚËÚ[™[™°í™[ˆ™\Ù[™[ˆ[ˆY\Ù[™H[Û›ÝÛ™HÝ\™[™°ï[™ÈÚYH™\™Z]ÈYHšYY\œØÚYÜÝØZœØÚZ[›XÚÙZ]‚‚ˆÈÈ[\›‚‹H›ÝÛKP˜\‹TØY™KP\™XKSÙ™œÙ]È[™]]ËRYKU˜[œÛ][Ûˆ˜XÚšY]ÜÜKÚTÛ™KTÚ[][][Ûˆ˜XÚÙ\ØÚ0é™‚‹HÞ[›ÜZËP™\™Z]ØÚY[™[Ù[[šY[‹T[™H›Ûˆ\ˆ[›°íYÙ[ˆXš0é™ÚYÚÙZ]Z[™\È›ÛÝ0é™YÙ[ˆÛZ[˜[[Ù[œ˜[YX[ÛÜ[ÈÜšYR\ÛÚ\Ù[ˆðí››™[ˆZYÙ[œÝ0é™YÈ™[™\›‹‚‹HYÙ\Ü›Ùš[˜YH]Yˆ[Û›ÝÛ™TÝ™Ô][YÙ\Ý[ÈYH[\\˜]\™›0éÚHØÚYpçÝ[[™È\ˆÙYÛ0é][ˆÝ\™K‚‹HÙZ[™H™]YHÛÜšÙ\‹Q˜XÚÙÚZÎÈÛÜšÙ\‹Q\ÞH\Ý°ïˆY\ÙH0á™\[™Ù[ˆšXÚ\™›Ü™\›XÚ‚‚ˆÈRQŒŽKŽŽLÂ‚ˆÈÈ^\›‚‹H\ˆ™ZÙ\ØÚYÙ[™H[œÝ[\ˆÌLˆÝ\™HÛÜœšYÚY\ˆ\ˆ›ÙZÝ[ÛœØZ[Ù[œÝØ\ˆ™\™Z]È\™›ÛÜ™ZXÚÈ›ØÚÚY\][ˆ]\ÜØÚYpçÛXÚÙZH™\˜[]H]]ÛX]\ØÚH°ï™\Ø\[™Ù[‹‚‹HYHZ]ŒŽKŽŽLˆZ[™ÙY°ïH›Ø\ÝHÜZXÚ\[™È\ˆÛÛ\ÜÚ]QZ[œÝ[[™Ù[ˆ›ZX[™\°é™\\š[[‹Z[œØÚYpçÛXÚ\ˆÙ]ðé[ˆÚYY\™ØX™YÙ\ØÚÚ[™YÚÙZ]‚‹HYHLZKR\ÛÚ\Ù[ˆ›ZX™[ˆÜšY™]›ÜžYÝKÙYÛ0é]H™ZÝÜšÛÛ\™[ˆZ]ÚXÚ\™[H[Ù[œ˜[YKQ˜[˜XÚÈ[™ÜKP™\ØÚšY[™Ëˆ[ˆÙ]\™\œÝ[[™Ë][œ]Y[[ˆÙ\ˆ™YY[›ÙÚZÈÝ\™H°ïˆY\Ù[ˆÝš^šXÚÈ˜XÚXÚÙpé™\‚‚ˆÈÈ[\›‚‹H\ÝXÛÛ\ÜÚ]KXY™™\™Y\^X˜XÚËLMÎK›ZœØ°ï™]YHZÝY[HÛÛ\ÜÚ]TÙ][™ÜÔ™Y˜KÑ›\ÚT\œÚ\Ý[žˆÝ]Z[™\È[™\›[ˆ\ÝÜš\ØÚ[ˆÜš]PÛÛ\ÜÚ]TÙ][™ÜÊË‹‹ŸHØ]\ÙšY\ÈÛÛ\ÜÚ]TÙ][™ÜÊXT]Y[^]\Ý\œË‚‹H\Ý\Þ[›ÜXËZ\ÛÚZYÚ]š\ÚXš[]KLNMK›ZœØØÚ0ï™][ˆZÝY[[ˆÜšYYš\œÝX™XÝÜ’\ÛÚZYÚœ˜[YXØ[]™ZÝÜ™°éYÙ[H[Ù[œ˜[YKQ˜[˜XÚÈ[™]ðéÚXÚ[HÛ[[™KT™[™\š[™ËÝ]]\ÜØÚYpçÛXÚ[ˆ[[ˆ\™ZÝYÜšY™ˆ]YˆÛZ[˜[ÜšYœ˜[YKš\ÛÚZYÚØH™\›[™Ù[‹‚‹HÙZ[™H\ðé›XÚHÛÜšÙ\‹Q˜XÚÙÚZÈ[ˆŒŽKŽŽLËˆ[œÝ[\ˆÌLÈ™\°í™™™[XÚH[ˆÝ[][]]™[ˆÝ[™\™›ÛÜ™ZXÚ‚‚ˆÈRQŒŽKŽŽL‚‚ˆÈÈ^\›‚‹H
+ŠZÝY[\ÈÙ]\ŠŠˆ\ÝÚYY\ˆ\™ZÝ0ï™\ˆYH[Øš[H›ÝÛKP˜\ˆ\œ™ZXÚ˜\‹ˆYHÙXÚÈš[péžšY[H]][ˆ™]
+ŠZÝY[0­ÈÝ\ž™œš\Ý0­ÈÈYÙH0­ÈMYÙH0­ÈÛÛ\ÜÚ]0­ÈYZŠŠŽÈ8 'ZÝY[8 'Ú\™šXÚ\ðé›XÚ[ˆ8 '“YZ¸ '\^šY\‚‹HYH›ÝÛKP˜\ˆØ[›ˆ[\ˆ
+Š‘Z[œÝ[[™Ù[ˆ8¡¤ˆ›ÝÛKSZ\ÝH8¡¤ˆ™\š[[ˆ™Z[HØÜ›Û[ŠŠˆØZÙZ\ÙH
+Š]]ÊŠˆÙ\ˆ
+Š‘š^Y\
+Šˆ™]šYX™[ˆÙ\™[‹ˆ8 '‘š^Y\8 '0éÚYH]Y\šY›ÛÝ0é™YÈÚXÚ˜\ŽÈ8 ']]ø 'Z[š[ZY\ÚYH\œÝ˜XÚ]]XÚ\ˆXðéØ™]ÙYÝ[™È[™™ZYÝÚYH™Z[HØÚØÜ›Û[ˆÛÙ›ÜÚYY\ˆ›ÛÝ0é™YË‚‹HYHØÚÙX™[™H›ÝÛKP˜\ˆÚ]]YˆTÛ™\È°é\ˆ[™Ø]X™\™\ˆ[HÛYKR[™XØ]Ü‹ˆYHØY™H\™XHÚ\™šXÚYZˆÜ[[È0épçÙ\™\ˆXœÝ[™]Y™Ù\ØÚYÙ[ŽÈÝXÚVšY[H›ZX™[ˆ›Ý™[H]\Ü™ZXÚ[™Ü›ðçË‚‹HYH[]Ù]ðéH
+Š’ÛÛ\ÜÚ]RÛÛ™šYÝ\˜][ÛŠŠˆÚ\™[ˆ›Ø\Ý\ˆÙ\ÜZXÚ\8 $È]XÚ™ZHØÚ™[[H[Ù[ÙXÚÙ[ÙXÚÙ[[ˆ[ˆ[\™Ü[™Ù\ˆØÚYpçÙ[ˆ\ˆÐK‚‹H
+ŠLZKR\ÛÚ\Ù[ŠŠˆÙ\™[ˆ[HÞ[›ÜZËS^Y\ˆÚYY\ˆ[ÈÛÛKØ[X™\™˜\˜™[™HÙ\ÝšXÚ[H™ZÝÜ›[šY[ˆ
+Š›Z]ÜKP™\ØÚšY[™ÊŠˆÙ[Y[‹ˆ\ˆXœYˆ\È]\›ÜYÚ]\œÈÝ\™H™\ØÚ][šYÝÚ™H˜\Ý\™XÚHÙ\ˆYÜKRÛÛ\š[\˜[H™Y^šY\™[‹‚‚ˆÈÈ[\›‚‹H›ÝÛKP˜\‹U™\˜YÈ]YˆÙXÚÈ[Øš[Hš[péžšY[H\ÙZ]\ÈÝ\œ™[ÐZÝY[\ÈÙ]\ˆ\ÝÚYY\ˆØ[›Ûš\ØÚ\ˆ\™ZÝUX‹ˆ\ˆœ°ï\™H™]KPÝ\œ™[T˜Y›ZX[™\›‚‹H™]YH\œÚ\Ý[HZ[œÝ[[™ÈZY˜›ÝÛKX˜\‹X™Z]š[ÜŽŒX
+]]ØØš^Y
+H\™ðéžˆ\ˆ]]ÛX]\ØÚH[Ù\È]Z[™HÜ°í°çÙ\™HXðéÚ\Ý\™\ÙH[™Z[™HÛZ[™H]YðéÚ\Ý\™\ÙK‚‹HÛÛ\ÜÚ]QZ[œÝ[[™Ù[ˆÙ\™[ˆ\ðé›XÚÛÙ›Ü™ZH™\Ù]KÐ[œÚXÚÝÙXÚÙ[ÛÝÚYH™ZHYÙZYX[™™Z[HÙXÚÙ[\ÈÚÝ[Y[È[ˆ[ˆ[\™Ü[™Ù\ØÚšYX™[ŽÈYH™XXÝQY™™ZÝT\œÚ\Ý[žˆ›ZX[È\ðé›XÚHÚXÚ\[™È™\ÝZ[‹‚‹HÞ[›ÜZËQœ›Û[™]Z[™[ˆ›Ø\Ý[ˆ™XÝÜ’\ÛÚZYÚœ˜[YXQ˜[˜XÚÈÚ\ØÚ[ˆÜšYH[™[Ù[œ˜[YKˆ\ˆÛÜšÙ\ˆ°ï™[\ÈMðåÌKQ]\›ÜYÚ]\ˆ[ˆšY\™\‹V™Z[[˜›0í˜ÚÙH[™™Y^šY\[ˆÜ[‹SY][ËPXœYˆ[Z]›Ûˆš\ÈHMÈ]Yˆ]ØHH\˜[[H™\]Y\ÝÎÈ˜\Ý\‹ÛÛ\š[\˜[[™œ›Û[™XYÛ›ÜÝZÈ›ZX™[ˆ˜XÚXÚ[™\°é™\‚‹HÛÜšÙ\‹Q˜XÚÙÚZÈÝ\™HÙpé™\È°ïˆY\Ù[ˆ™[X\ÙH\ÝZ[ˆÛÜšÙ\‹U\ØY\™›Ü™\›XÚ‚‚ˆÈRQŒŽKŽŽLB‚ˆÈÈ^\›‚‹HYH[Øš[H›ÝÛKP˜\ˆš[Üš\ÚY\™]
+Š’Ý\ž™œš\Ý0­ÈÈYÙH0­ÈMYÙH0­ÈÛÛ\ÜÚ]0­ÈYZŠŠ‹ˆ\Èœ°ï\™H^\š[Y[[H8 'ZÝY[8 'Q\Ú›Ø\™\Ý[™\›È\È›ÛÝ0é™YÙH
+ŠZÝY[HÙ]\ŠŠˆ›ZX[\ˆ
+Š“YZˆ8¡¤ˆ0ç™\˜›XÚÊŠˆ\œ™ZXÚ˜\‹‚‹HYH›ÝÛKP˜\ˆ›[™]™Z[HXðéÜØÜ›Û[ˆ]]XÚÜ0é\ˆ]\È[™›ZX[HZ[š[ZY\[ˆ\Ý[™[ÈÚXÚ˜\™\ˆÛ\ÜËQÜšY™ˆ\œ™ZXÚ˜\‹ˆ]YðéÜØÜ›Û[ˆÙ\ˆ[\[ˆÝ[ÚYHÛÙ›ÜÚYY\ˆ\‹‚‹H
+Š’ÛÛ\ÜÚ]
+Šˆ\Ý[Èš[péžšY[\™ZÝ\œ™ZXÚ˜\‹ˆ[ˆ
+Š“YZŠŠˆÝZ[ˆ\ðé›XÚØÚ™[YÜšY™™H]Yˆ˜]›Üš][‹™[˜XÚšXÚYÝ[™Ù[‹Z[œÝ[[™Ù[‹Ù]\žÚ[[™È[™\]\È8 $È[šÝ[Û™[ˆ\ˆœ°ï\™[ˆÜP˜\ˆ›ZX™[ˆ[Z]ZXÚ]Y™š[™˜\‹‚‹HLZKR\ÛÚ\Ù[ˆÙ\™[ˆ[HÛÛ\ÜÚ]ÚYY\ˆ[ÈXÚHÙYÛ0é]KÛÛKØ[X™\™˜\˜™[™HÙ\ÝšXÚ[H™ZÝÜ›[šY[ˆÙ\™[™\ÈYHÚXÚ˜\™[ˆÜKP™\ØÚšY[™Ù[ˆ[™YH[šY[ˆZ[[ˆ[œÙ[™[ˆXY›]S^Y\œ˜Y‚‹HÛÛ\ÜÚ]P]\ÝØZ[ˆÙ\™[ˆ[›Z][˜\ˆÙ\ÜZXÚ\ˆ[›°íYÙH˜\Ú\ÚØ\[š[ÙZ\ÙHÚYH8 'œØÚ0ïÜÙ[œ™Zx 'Ý\™[ˆ[™\›‚‹H\ˆšYY\œØÚYÜÜ\Ù[‹S^Y\ˆ]™ZH›Üš[™[™[ˆ][ˆ\ðé›XÚ˜]]™H
+Š‘ÑPÓÓ‹Q‹T•PÊŠ‹TÚYÛ˜[H°ïˆ™YÙ[‹ØÚ™YH[™Ü˜]\[
+MK[Z[°ïYÊKˆYH\ÙHÚ\™\ˆ0ï™\ˆ™X[[HÔTKT˜Y\™XÚÈš\ÝX[\ÚY\ÈYHš\Ú\šYÙH\›[Ù[˜[Z\ØÚH™YÚ[Û˜[[Ù[T\ÙH›ZX[ÈÚXÚ\™\ˆ˜[˜XÚÈ\š[[‹‚‚ˆÈÈ[\›‚‹Hœ™Z]\ÈKSZ[][‹Q[œÚYžZ[™È[\ˆ•PËQ™[\ˆÝ\™H™]Ý\ÜÝ™\ÛÜ™™[ŽˆYH\ðé›XÚH][›Y[™ÙHðé™HÜ›ðçËÚ™H°ïˆ[™ÜØ[H™\°é™\›XÚH\Ý[™Ù™[\ˆZ[™[ˆ›ÜÜ[Û˜[[ˆ›ÙÛ›ÜÙYÙ]Ú[›ˆHYY™\›‹ˆKSZ[][‹SšYY\œØÚYÜÛY[™Ù[ˆ›ZX™[ˆ[Z[™ËRÙ\›‹MKSZ[][‹T\Ù[ˆ›ZX™[ˆ[ˆZ™\ˆ˜]]™[ˆÑP]Y›0íœÝ[™Ë‚‹H\ˆ™\ÝZ[™H•PËT\ÙLMKTÜZXÚ\œ˜Y
+RS—ÑÔÔÓ“Õ×ÑÔÔÔUWÑÔÔ
+HÚ\™[ˆ›ÛH˜Y\‹T\Ù[˜Y\\ˆÙ[]È™Z[™KÜÝ[H][ˆ˜[[ˆ˜Z[\ØY™H]Yˆ[ˆš\Ú\šYÙ[ˆ[Ù[˜Y\°ïÚË‚‹HYH[[ˆ™]KR]]KT™YÜ™\ÜÚ[Û™[ˆ[™\ÝÜš\ØÚH˜]šYØ][ÛœËTÝš[™Ý™\°éÙHÝ\™[ˆ[ˆYHØ[›Ûš\ØÚH›ÝÛKP˜\‹KÐÝ\œ™[P\˜Ú]ZÝ\ˆ[™Ù\\ÜÝ‚‹HÛÜšÙ\‹Q˜XÚÙÚZÈÝ\™HÙpé™\È°ïˆY\Ù[ˆÝ[][]]™[ˆ™[X\ÙH\ÝZ[ˆÛÜšÙ\‹U\ØY\™›Ü™\›XÚ‚‚ˆÈRQŒŽKŽŽL‚‹H™[X\ÙKQØ]HÛÜœšYÚY\ˆ™ZH™\˜[]H˜Y\‹KÓ]™\]Y[[‹T™YÜ™\ÜÚ[Û™[ˆ[ˆYHÙZ]ŒŽKŽŽ™]Ý\ÜÝ™\™XÚ]HÛÛ\ÜÚ]\œÝ[[™È[™Ù\\ÜÝ‚‹HÙZ[™HÙ]\‹K˜Y\‹KÞ[›ÜZËK\ÚHÙ\ˆ˜]šYØ][ÛœÛÙÚZÈÙpé™\‚‹HXYÛ›ÜÙZ[™›Ü›X][Û™[ˆHšYY\œØÚYÜØ\ÓÓ”QÑ[™›ÝÐØ\ÝRV›ZX™[ˆ›ÛÝ0é™YÈ0ï™\ˆÝ]\ËKÒ[™›ÙX™[™[ˆ\š[[‹‚‚ˆÈRQŒŽKŽŽB‚‹HYH[Øš[HÙX‹KÔÐKS˜]šYØ][Ûˆ\Ý™]Z[™HØÚÙX™[™KSÔËZ[œÜ\šY\H›ÝÛKP˜\ˆZ]
+ŠZÝY[Ý\ž™œš\ÝÈYÙKMYÙH[™YZŠŠ‹‚‹HYH™\ØÚšY[™Ù[ˆ›ZX™[ˆ]XÚ]YˆÛZ[™[ˆTÛ™\ÈZ[ž™Z[YÎÈYHZ\ÝH™\°ïÚÜÚXÚYÝÛYKR[™XØ]Ü‹ÔØY™H\™X\È[™Ú\™[H]Y\™›Ü›X]]œÜ\™[™\‹‚‹H™Z[H\[\œØÜ›Û[ˆ›[™]ÚXÚYHZ\ÝH˜XÚZ[™\ˆÛZ[™[ˆ\Ý\™\ÙH]\ÎÈ™Z[HØÚØÜ›Û[‹[HÙZ][˜[™˜[™ÈÙ\ˆ™ZH™YY[™›ÚÝ\È\œØÚZ[ÚYHÚYY\‹‚‹HYHœ°ï\™HZ[œÝ[[™È
+Š™YY[šÛÛž™\
+Šˆ[™
+Š›ÝÛKSZ\ÝH0­È™]JŠˆÝ\™H[™\›ˆÙZ]\™HØ\[‹K[™\‹H[™˜XÚ[Ù[H›ZX™[ˆ0ï™\ˆ
+Š“YZŠŠˆ\œ™ZXÚ˜\‹‚‹HÙZ[™H0á™\[™È[ˆÙ]\™][‹˜Y\‹KÔØ][][œ›ÙZÝ[‹Ø\››ÙÚZÈÙ\ˆ\˜[Y]\™˜\˜™[‹‚‹H[œÝ[\ˆÌLˆ\È›Üš\šYÙ[ˆŒŽKŽŽU\ØYÈÝ\™H›Üˆ[H™]Y[ˆZÙ][˜[\ÚY\ˆZ[žšYÙ\È\TØÜš\T›Ø›[HØ\ˆZ[ˆ[™Ù[]\È]\ÝYÚš[™Õ[YXPš[™[™È[ˆ˜Y\”[™[ÞÈY\Ù\ÈÝHš[™[™È\Ý[™\›‚‚ˆÈÈŽKŽŽ‚ˆÈÈÈ^\›‚‹HYÙ\ÜZÝÙÜ˜[[YH™]Ù\[ˆÛÛ›™[œØÚZ[™]Y\ˆ[™YÙ\Ø™]ðí›Ý[™È]\ÙÙ]ÛÙÙ[™\‹ˆZ[ˆYÈZ]Ú[HÛÛ›™[˜[Z[Ú\™šXÚYZˆ[Z[ˆÙYÙ[ˆZ[ž™[™\ˆÛÛÚYÙ\ˆÝ[™[ˆ[ÈÛÛÙ[™ÛZ[˜[\Ø[[Y[™ÙY˜\ÜÝÈ0ï™\ÚYYÙ[™XÚH™]ðí›Ý[™È[™™[]˜[HšYY\œØÚ0éÙH™YÜ™[ž™[ˆÛÛ›šYÙHÛ\ÜÙ[ˆÙZ]\š[‹‚‹H\ÚSZ]Z[[™Ù[ˆÚ[™ðïž™\ˆ[™ØØ[›˜˜\™\‹ˆYHšYY\œØÚYÜÝ›ÜØ\›[™È™[›™YÚ[›‹]Y\ˆ[™Y[™ÙHÛÛ\ZÝÈ\ˆ™Y[™[HØ]ˆ8 '”˜Y\ˆ™\Ý0éYÝYH[›°é\[™ø '[°éˆÙ]Ú]\š[ÙZ\ÙHÝ\™[ˆX™[™˜[ÈÙ\Ý˜Y™Ú™H[ˆ[ÙZ\È8 '’ÙZ[™H[]XÚHØ\›[™ø 'H[™\›™[‹‚‹HÞ[›ÜZÈ\š0é\ðé›XÚÜ›ðçÜ°é[ZYÙH[Ù[YXYÛ›ÜÝ\ØÚHœ›Û[›Û™[ˆ]\È[H3®KQÜ˜YY[[ˆ[ˆLKˆÚØ[\\ÚY\HØ[KÕØ\›Yœ›Û[‹ÚÚÛ\Ú[Û™[‹°í™ÙH[™ÛÛ™\™Ù[ž™[ˆ›ZX™[ˆ[ÈÝ™[™Ù\™HYZœ\˜[Y]\˜[˜[\ÙH\š[[‹ˆLZKR\ÛÚ\Ù[ˆÙ\™[ˆ]\ÜØÚYpçÛXÚ[ÈÙYÛ0é]HRQU™ZÝÜ™[ˆ[ˆÛÛÐ[X™\ˆ[™Ù\ÝšXÚ[\™Ù\Ý[È\ˆ™\[˜\YÙHÙZpçÙHÓTËR\ÛÚ\Ù[™˜[˜XÚÈÝ\™H[™\›‚‹HYH^Y\™™[\ˆ[HÛÛ\ÜÚ]š[Ú[™]]XÚÛÛ\ZÝ\ŽˆÝ\ž™Hš[péš[™›Ü›X][Û™[‹ÛZ[™\™HXÛÛœËZ[™HZ[ž™Z[YÙHÝ]\Þ™Z[H[™ÙZ]\š[ˆÝXÚœ™][™XÚHZ[™\Ý0íš[‹ˆ]\Ù°ï›XÚH]Y[[‹KÓY]Ù[š[™›Ü›X][Û™[ˆ›ZX™[ˆ0ï™\ˆ[ˆ[™›ÞYØ[™È\š[[‹‚‚ˆÈÈÈ[\›‚‹HYÙ\ØÚ\˜ZÝ\š\ÝZÈÙ]ÚXÚ]ÛÛ›™[œØÚZ[™]Y\ˆÝXœÝ[žšY[\ˆ
+Ì‹ÌŽÝ[™[š[YÚÙZ]ÔÛÛ›™[œØÚZ[™]Y\ŽÈ\ðé›XÚHÛÛ›™[[\™Ü™[ž™JH[™™Z0é\HØ\È°ïˆ0ï™\ÚYYÙ[™XÚH™]ðí›Ý[™È™ZK‚‹HšYY\œØÚYÜËT\Úˆ][RQ0­È\ˆ[ˆZ[‹˜È›ÙHÜˆ0­È™YÚ[›ˆ8 )ˆ0­È]Y\ˆ8 )ˆ0­ÈØKˆ8 )ˆ[XˆÙ]Ú]\‹T\Ú^HX™[™˜[ÈÙZðïž‚‹H]\›ÜKTÞ[›ÜZÜ˜\Ý\ˆ\™ðéž[\\˜]\ˆ[™™[]]™H™]XÚH[ˆLK™\™XÚ™]3®K›Ø\ÝHÜ˜YY[[œØÚÙ[[ˆ[™\Ø[[Y[š0é™Ù[™Hœ›Û[›Û™[‹ˆY\ÙHÙ\™[ˆ]\Ù°ïÚÛXÚ[È[Ù[QXYÛ›ÜÙH[™šXÚ[È[]XÚHÑP›Ù[˜[˜[\ÙHÙZÙ[›ž™ZXÚ™]‚‹H˜]]™HÑR\ÛØ˜\™[ˆ›ZX™[ˆ]˜˜\ŽÈ˜]]™HÑMLZKR\ÛÚ\Ù[ˆÙ\™[ˆšXÚYZˆ[ÈÚXÚ˜\™\ˆ˜[˜XÚÈÙ\™[™\ˆRQR\ÛÚ\Ù[ˆ]™[ˆHX
+Ú\ØÚ[›[šY[ŠHžËˆNØ
+]\[šY[ŠH[™YH›Üš[™[™HÛÛ[]HZ][Ë‚‹H™]YKØZÝX[\ÚY\H™YÜ™\ÜÚ[Û™[ˆØÚ0ï™[ˆÛÛ›™[œØÚZ[‹TZÝÙÜ˜[[YK\ÚRðïž[™Ë™YÚ[Û˜[Hœ›Û[›Û™[‹Ù\ÝšXÚ[H\ÛÚ\Ù[ˆ[™ÛÛ\ÜÚ]S^Y\™XÚH0ï™\ˆðí›ˆ™Y™\™[ž‹UšY]ÜÜË‚‹HÛÜšÙ\‹Q˜XÚÙÚZÈÝ\™HÙpé™\È°ïˆY\Ù[ˆ™[X\ÙH\ÝZ[ˆÛÜšÙ\‹U\ØY\™›Ü™\›XÚ‚‚ˆÈÈŽKŽŽÂ‚ˆÈÈÈ^\›‚‹H[œÝ[\™™Z\ˆ]\ÈÚ]XˆXÝ[ÛœÈÌL™ZØ™[‹ˆYH\Ù[œÝ[™YHš\Ú\šYÙ[ˆÛÜœ™ZÝ\™[ˆ›ZX™[ˆ[™\°é™\È›ØÚÚY\]H]\ÜØÚYpçÛXÚZ[ˆ™\œÚ[ÛœÙ™\ÝÙ\ØÚšYX™[™\ˆšY]ÜÜT™YÜ™\ÜÚ[ÛœÝ™\˜YË‚‹HÙZ[™H0á™\[™È[ˆÙ]\™][‹[Ù[\Ú[Û‹Ø\››ÙÚZË˜Y\‹Ø][]Ø\[‹YÙ[ˆÙ\ˆÚXÚ˜\™\ˆ™YY[›ÙÚZË‚‚ˆÈÈÈ[\›‚‹H\Ý]šY]ÜÜ]^›ÝËLNK›ZœØ\ÝšXÚYZˆ]YˆŽKŽŽX™\Ý™\™˜Z]ˆ\ˆ\ÝØÚ0ïÙZ]\š[ˆXY\‹›ÝÛKS˜]šYØ][Û‹›ÙÛ›ÜÙKRÛÛ\\ÜËZQZ[ž™[][ˆ[™YÙ[YØ[™Ë™\Ù[™]°ïˆYH›ÝÚÛÛ]\ÙØX™HX™\ˆYH™]ÙZ[ÈZÝY[HZÙ]™\œÚ[Û‹‚‹H[Z]›ZX\ˆšY]ÜÜKÕ^›\ÜÝ™\˜YÈ0ï™\ˆØ\[™ÜÜ™[X\Ù\È[ÙYÈðïYÈ[™›ØÚÚY\ðï™YÙH™\œÚ[ÛœØ[šX[™Ù[ˆšXÚ\›™]]Ú™H˜XÚXÚ[ˆÜ[™‚‹H™\œÚ[ÛœÛY]Y][ˆ]YˆŽKŽŽÈÞ[˜Ú›Ûš\ÚY\ÈÛÜšÙ\‹Q˜XÚÙÚZÈ[™\°é™\‚‚ˆÈÈŽKŽŽ‚‚ˆÈÈÈ^\›‚‹H[œÝ[\™™Z\ˆ]\ÈÚ]XˆXÝ[ÛœÈÌLÎH™ZØ™[‹ˆYH\Ù[œÝ]H\™›ÛÜ™ZXÚÙX˜]]ÈÙZH0é\™H™YÜ™\ÜÚ[ÛœÝ\ÝÈ\Ø\][ˆ›ØÚYH›ÜˆŒŽKŽŽHðïYÙ[ˆ^K‚‹HYH™XXœÚXÚYÝ[ˆ™\˜™\ÜÙ\[™Ù[ˆ]\ÈŒŽKŽŽH›ZX™[ˆ[™\°é™\\š[[Žˆ[ˆ[ˆZQZ[ž™[][ˆÝZ[ˆY[\\˜]\‹ÙY°ïH[\\˜]\ˆ[™]\[šÝÙ]™[›Ú™H\ðé›XÚH[KRËP[™ØX™NÈ\ˆØ\ÜÙ\œÜÜP™\™ZXÚ™[›8 '”YÙ[8 'ÙZ]\š[ˆ]\Ù°ïÚÛXÚ‚‹HÙZ[™H0á™\[™È[ˆÙ]\™][‹[Ù[\Ú[Û‹Ø\››ÙÚZËØ\[‹K˜Y\‹KØ][][‹HÙ\ˆYÙ[™\™XÚ[™Ù[‹‚‚ˆÈÈÈ[\›‚‹H\Ý[ZY]ÙX]\‹\›Ùš[K]\›X[\Ý[‹LLÌŒ›ZœØ[ˆ[ˆZÝY[[ˆZQZ[ž™[][™\˜YÈ[™Ù\\ÜÝˆYH™ZH[\\˜]\Ù\HÙ\™[ˆÜÚ]]ˆÙ\°ïYH™\˜[]HÚXÚ˜\™HØQ[KP]\ÙØX™HÚ\™]\Ù°ïÚÛXÚ™\ÛÜ™™[‹‚‹H\Ý\ÜÜË\ÙXÝ[Û‹XÛÛ\ÙKLLŽ›ZœØØÚ0ï[ˆYHZÝY[H[Ù[™\ØÚ™ZX[™È8 '”YÙ[Ø\ÜÙ\Ù]\‹Ù^™Z][ˆ[™™Y[™Ý[™Ù[¸ '‚‹H\ˆ™Z\ˆ]\È[œÝ[\ˆÌLÎHØ\ˆ[Z]Z[ˆ™\˜[]\ˆ\Ý™\˜YÈ[™ÙZ[ˆ›ÙZÝ[ÛœØZ[HÙ\ˆœKKÑ\[™[˜ÞKQ™Z\‹‚‹HÛÜšÙ\‹Q˜XÚÙÚZÈ[™\°é™\È]\ÜØÚYpçÛXÚ™\œÚ[ÛœÛY]Y][ˆÞ[˜Ú›Ûš\ÚY\ˆZ[ˆX[Y[\ˆÛÜšÙ\‹U\ØY\ÝšXÚ\™›Ü™\›XÚ‚‚ˆÈÈŽKŽŽB‚ˆÈÈÈ^\›‚‹H[Øš[HÛÜž™Z[H[™]\˜]šYØ][Ûˆ\ÜÙ[ˆÚXÚÛÛœÙ\]Y[\ˆ[ˆ[ˆ™\™°ïØ˜\™[ˆ]ˆ[Žˆ™\œÚ[ÛœÛ[[Y\ˆ[™Ý\ž™H™YÚ\Ý\ˆ›ZX™[ˆ›ÛÝ0é™YÈ\Ø˜\‹Ú™HZ][ˆ[HÛÜ[^Xœ™XÚ[‹‚‹H›ÙÛ›ÜÙKRÛÛ™šY[žˆ[™ÙZ]\™HÛÛ\ZÝH[™›Ü›X][ÛœÚØ\[ˆÝ\[ˆ[š[H]YˆØÚX[[ˆ\Ü^\ÈÙ[Ü™™]Ý]^0ï™\ˆØ\[œ°é™\ˆ]Y™[ˆH\ÜÙ[‹‚‹HYHTÝ[™[‹QZ[ž™[][ˆÚ[™ÛÛ\ZÝ\ŽˆY[\\˜]\‹ÙY°ïH[\\˜]\ˆ[™]\[šÝÙ\™[ˆ[È™ZHÛ\ˆÙ]™[›HÙ\HÙ^™ZYÝÈYH[KU[\\˜]\˜[™ØX™H[°é‚‹HYÙ[Ý0é™HÚ[™ZXÚ\ˆ]Y™š[™˜\ŽˆØ\ÜÙ\‹ÕØ\ÜÙ\œÜÜ[™YH˜]›Üš][œ›Ùš[H™[™[›™[ˆ[]XÚHYÙ[[ˆ]\Ù°ïÚÛXÚ‚‹H™\ÜÛœÚ]™HØÚ]œ°ï[™È0ï™\ˆðí›ˆÛX\Û™KKX›]H[™\ÚÝÜÜ°í°çÙ[ˆ\™ðéž‚‚ˆÈÈÈ[\›‚‹H[Øš[HXY\ˆš[Üš\ÚY\]YˆØÚX[[ˆTÛ™\ÈÙÛËÕ™\œÚ[Ûˆ[™\ÜÙ[Y[HZÝ[Û™[ŽÈ\ˆ\›X[™[H8 'š[œÝ[Y\8 'TÝ]\È™[YÝÜÙZ[™[ˆÙ\›Û[ˆ]ˆYZ‹‚‹H›ÝÛKS˜]šYØ][ÛˆØÚ0ïÝ\ž™H™YÚ\Ý\ˆ›ÜˆÛÜ™[›[™È[™™Y^šY\XÛÛœËÕ\ÙÜ˜YšYHY\]‹Ú™HYH›Üš[™[™[ˆÝXÚšY[HH™\šÛZ[™\›‹‚‹H›ÙÛ›ÜÙKRÛÛ™šY[žšØ\[ˆÙXÚÙ[ˆ[Øš[]YˆZ[™HÙ\Ý\[H[™›Ü›X][ÛœÚY\˜\˜ÚYNÈ[™ÙHY]Ù[^H›ZX™[ˆ0ï™\ˆ[ˆ™\ÝZ[™[ˆ[™›ÞYØ[™È›ÛÝ0é™YÈ™\™°ïØ˜\‹‚‹H™]YH™YÜ™\ÜÚ[Ûˆ\Ý]šY]ÜÜ]^›ÝËLNK›ZœØØÚ0ï™\œÚ[ÛœÙ\œÝ[[™ËYÙ[P]Y™š[™˜\šÙZ]›ÝÛKS˜]šYØ][Û‹ÛÛ™šY[žšØ\[ˆ[™YHÛÛ\ZÝHZQZ[ž™[][˜[œÚXÚ‚‹H™\°éÙ[]]™H^[Ý]Ù[ÛY]šYHÝ\™H°ïˆÌŒ0åÍMŽÍŒ0åÍÍÍpåÍËÎL0åÎ°åÎÍÌ0åÎLÌ‹ÍŽ0åÌLŒ0åÌLNL0åÍÍŽLŽ0åÎM0åÎL[™NLŒ0åÌLÙ\°ïÈ[H]Y]Ý\™[ˆÙZ[™HÜ™[ž°ï™\œØÚ™Z][™Ù[ˆÙY[™[‹‚‹HÛÜšÙ\‹Q˜XÚÙÚZÈ[™\°é™\È]\ÜØÚYpçÛXÚ™\œÚ[ÛœÛY]Y][ˆÞ[˜Ú›Ûš\ÚY\ˆZ[ˆX[Y[\ˆÛÜšÙ\‹U\ØY\ÝšXÚ\™›Ü™\›XÚ‚‚ˆÈÈŽKŽŽ‚ˆÈÈÈ^\›‚‹H™[X\ÙKQ™Z\ˆ]\ÈÚ]XˆXÝ[ÛœÈÌLÍÈ™ZØ™[Žˆ\ˆ›ÙZÝ[ÛœØZ[Ø\ˆ™\™Z]È\™›ÛÜ™ZXÚÈ[œØÚYpçÙ[™ÚY\œÜ˜XÚ[ˆšY\ˆ0é\™H™YÜ™\ÜÚ[ÛœÝ\ÝÈ\ˆ[žÚ\ØÚ[ˆ™\˜š[™XÚ[ˆÙ[YZ[œØ[Y[ˆÜ[KÔÜÝ™\‹P\˜Ú]ZÝ\‹ˆY\ÙH[™\°éÙHÝ\™[ˆ[ˆ[ˆZÝY[[ˆRQTÝ[™[™Ù\\ÜÝ‚‹HY][ÙÜ˜[[KUÛÛ\È™\Ù[™[ˆ[ˆX™[™˜[ÈYHÙ[YZ[œØ[YHšY]ÜÜ™\ÝHRQTÜ[š[Z]]™KˆY\˜Ú›ZX™[ˆYHÙ\H[ˆTÛ™KKTYK]Y\™›Ü›X]H[™\ÚÝÜ[œÚXÚ[ˆ]pçÙ\š[ˆÜš^›Û[\ˆØÜ›ÛÛÛZ[™\ˆ\Ø˜\ŽÈÝXÚUÛÛ\ÈØÚYpçÙ[ˆÙZ]\š[ˆ]]ÛX]\ØÚ‚‹HYH[ˆŒŽKŽŽÈÚYY\ˆÚXÚ˜\™[ˆQÓS‹SY[™Ù[ˆ°ïˆH[™›ZX™[ˆ[™\°é™\\š[[‹‚‹HÙZ[™H0á™\[™È[ˆÙ]\™][‹[Ù[\Ú[Û‹Ø\››ÙÚZË˜Y\‹KÔØ][][™˜XÚÙÚZÈÙ\ˆšYY\œØÚYÜÛY[™Ù[ˆÙ[œÝ‚‚ˆÈÈÈ[\›‚‹HY][ÙÜ˜[T[™[[0éÙZ[ˆZYÙ[™\È™XXÝYÛKØÜ™X]TÜ[YZŽÈYH[šÝÛÛ\È]Y™[ˆ0ï™\ˆ\Ü[Ú[ÛÛ\[ˆ\Ü[ÜÝ™\‹Þ‚‹H™\˜[]H™YÜ™\ÜÚ[ÛœÙ\Ø\[™Ù[ˆ[ˆÛÙKT]X[]KX\Q›ØÝ\È[™™XXÝLNHÝ\™[ˆ›ÛHœ°ï\™[ˆÚØ[[ˆ\ÙQ\ÛZ\ÜÚX›S^Y\˜T˜Y]YˆYH™]Y\™H\Ü[ÜÝ™\˜P\˜Ú]ZÝ\ˆZYÜšY\‚‹H™]Y\ˆ™[X\ÙKQØ]KU™\˜YÈ\Ý\™[X\ÙKYØ]KX\˜Ú]XÝ\™KLN›ZœØØÚ0ïYHÙ[YZ[œØ[YHÜ[\˜Ú]ZÝ\ˆ[™™\š[™\\ÜÈÚY\œÜ°ïÚXÚH[™\°éÙH[ˆ[œÝ[\ˆ\›™]]›ØÚÚY\™[‹‚‹H\ˆ›Üš\šYÙH[œÝ[\ˆÌLÍÈ\œ™ZXÚH\™›ÛÜ™ZXÚœKR[œÝ[][Û‹\[™[˜ÞKP]Y]\TØÜš\H[™š]KPZ[È\ˆØÚZ]\H\œÝ[ˆšY\ˆ™YÜ™\ÜÚ[Û™[‹ˆYHšY\ˆ™]›Ù™™[™[ˆ\ÝÈÛÝÚYHYH[™Ü™[ž™[™[ˆÝ™\›^KKÒØ\[‹KÔQÓS‹KÕ™\œÚ[ÛœÝ™\°éÙH™\ÝZ[ˆ[HÛÜœšYÚY\[ˆÝ[™‚‹HÚØ[\ÈœHÚXÛÛ›H[ˆ\ˆ\ÛÛY\[ˆ\˜™Z]Ý[YÙX[™ÈÙYÙ[ˆZ[™\È˜[œÜÜU[Y[Ý]ÈšXÚ›ÛÝ0é™YÈ™^›ÙÙ[ˆÙ\™[ŽÈ\Ú[ˆÚ\™\ˆÛÛ\]HÍÎU\ÝQÚ]X‹QØ]HšXÚ›Ü™Ù]0é\ØÚˆ\ˆ°éÚÝH[œÝ[\›]Yˆ›ZXYHYš[š]]™H›Û°ï[™Ë‚‹HÛÜšÙ\‹Q˜XÚÙÚZÈ[™\°é™\È]\ÜØÚYpçÛXÚ™\œÚ[ÛœÛY]Y][ˆÞ[˜Ú›Ûš\ÚY\ˆZ[ˆX[Y[\ˆÛÜšÙ\‹U\ØY\ÝšXÚ\™›Ü™\›XÚ‚‚ˆÈÈŽKŽŽÂ‚ˆÈÈÈ^\›‚‹HZÝY[\ÈÙ]\ˆ8¡¤ˆšYY\œØÚYÈ™ZYÝYH›Üš[™[™HQÓS‹T°ïÚÜØÚ]HÚYY\ˆ›ÛÝ0é™YÈÚXÚ˜\ŽˆÛÝÛÚYH]HKZSY[™ÙH[È]XÚYH]HZSY[™ÙHÝZ[ˆ\™ZÝ[ˆ\ˆØXÚ[[™šXÚ\ˆ[\ˆ\ˆ[™›ËTØÚ[›0éÚK‚‹HYH˜XÚXÚH\šÝ[™›ZX˜[œÜ\™[ˆ°ïˆYHÝ[™HÚ\™[™ÙYZXÚ\ÈQÓSˆ•È™]›ÜžYÝÈ\ˆ™ZH›ØÚšXÚ]\Ü™ZXÚ[™ZÝY[[H•È\™ˆ–H[È]\Ù°ïÚÛXÚšXÚ[™ÙYZXÚ\ˆ\œØ]ˆY[™[‹ˆYHZSY[™ÙHÝ[[]ÙZ]\š[ˆ]\È[™ÙYZXÚ[HQÓSˆÑ‹‚‹HÙZ[™H0á™\[™È[ˆšYY\œØÚYÜØ™\™XÚ[™Ë˜Y\‹S›ÝØØ\Ý[Ù[\Ú[ÛˆÙ\ˆY[™Ù[Ù\[ˆÙ[œÝÈÛÜœšYÚY\Ý\™H]\ÜØÚYpçÛXÚYHÚXÚ˜\™H\œÝ[[™È\ˆ™\™Z]È›Üš[™[™[ˆ°ïÚÜØÚ]]Ù\K‚‚ˆÈÈÈ[\›‚‹HÝ\œ™[°ïZ[™HZYÙ[™HÛÛ\ZÝHÚXÚ˜\™H\ÝÜšY[ž™Z[H°ïˆH[™È›ÙZÝH[™[™ÙYZXÚTÝ]\È›ZX™[ˆ[ˆ[ˆXÚš\ØÚ[ˆ]Z[È\š[[‹‚‹H™]Y\ˆ™YÜ™\ÜÚ[ÛœÝ\Ý\ÝXÝ\œ™[\™XÚ\\˜YÛ[‹Z\ÝÜžK]š\ÚX›KLNË›ZœØØÚ0ïÚXÚ˜\™HKZKÌZUÙ\HÛÝÚYH•ËÔ–KÔÑ‹H[™[™ÙYZXÚU™\˜YË‚‹HÛÜšÙ\‹Q˜XÚÙÚZÈ[™\°é™\È]\ÜØÚYpçÛXÚ™\œÚ[ÛœÛY]Y][ˆÞ[˜Ú›Ûš\ÚY\ˆZ[ˆX[Y[\ˆÛÜšÙ\‹U\ØY\ÝšXÚ\™›Ü™\›XÚ‚‚ˆÈÈŽKŽŽ‚‚ˆÈÈÈ^\›‚‹H\]ÙZ][ˆØ\[‹KÑXYÜ˜[[KP]Y]›ÜÙ\Ù]ˆY][ÙÜ˜[[KUÛÛ\ÈÙ\™[ˆ]YˆTÛ™KTY[™\ÚÝÜ[ˆšY]ÜÜ™\Ý[™Ù^™ZYÝ0ï™™[ˆ[Xœ™XÚ[ˆ[™™\œØÚÚ[™[ˆ]YˆÝXÚ]]ÛX]\ØÚÚYY\‹ˆY\˜ÚÙ\™[ˆ[™ÙHÙ\HšXÚYZˆ[HXYÜ˜[[\˜[™Ù\ˆ\˜ÚÜš^›Û[HØÜ›ÛÛÛZ[™\ˆX™Ù\ØÚš][‹‚‹HÙ]\šØ\[‹RÛÜˆ[™]Y[[˜›ØÚÈœ™XÚ[ˆ]YˆØÚX[[ˆ\Ü^\ÈÛÛ›ÛY\[\™Z[˜[™\ˆ[NÈ[Ù[KÔ]Y[[›Y]Y][ˆ›ZX™[ˆ›ÛÝ0é™YÈ\Ø˜\ˆÝ][›X\šÚY\H[\ÚY\™[‹‚‹HÑRÛÛXš[˜][ÛœÚØ\[ˆ™ZYÙ[ˆYHšYY\œØÚYÜØ\[‹SYÙ[™H]Yˆ[Øš[[ˆÙ\°é[ˆ[ÈÚXÚ\™KØÜ›Û˜\ˆ™YÜ™[žHšY]ÜÜQ›0éÚH[šÛ\Ú]™HØY™KP\™XKPXœÝ[™‚‹HÞ[›ÜZÈ[™^™[]Ù]\ˆÝ\™[ˆ°ïˆÛZ[™HÛX\Û™\È[™Ü]UšY]È˜XÚÙ^›ÙÙ[ŽˆÙZ[™H‹\T°ïÚÙ°éH™ZH™[˜[[ˆ\Ù[‹KÓYÙ[™[^[‹[™ÙH™YÚ[ÛœËKÔÝ][ÛœÚ[ÙZ\ÙH0ï™™[ˆ[Xœ™XÚ[‹Ø\[›YÙ[™[ˆ›ZX™[ˆ™YÜ™[ž[™ØÜ›Û˜\‹‚‹H°ïˆ›XÚH]Y\™›Ü›X]HÙ\™[ˆÙ]\šØ\[‹KÞ[›ÜZËK^™[]Ù]\‹H[™˜Y\™›0éÚ[ˆ[ˆ\ˆ0íšH™YÜ™[ž[Z]™YY[™[[Y[H[™˜]šYØ][ÛˆšXÚ[›°íYÈ]\È[HÚXÚ˜\™[ˆ™\™ZXÚÙY°é™ÝÙ\™[‹‚‹HÙZ[™H0á™\[™È[ˆÙ]\™][‹[Ù[\Ú[Û‹Ø\››ÙÚZË˜Y\‹KÔØ][][™][‹ZÝÙÜ˜[[Y[ˆÙ\ˆ\˜[Y]\™˜\˜™[‹‚‚ˆÈÈÈ[\›‚‹HY][ÙÜ˜[[KUÛÛ\ÛÛÜ™[˜][ˆ›ÛˆXYÜ˜[[Z[\›™[ˆÕ‘ËRÛÛÜ™[˜][ˆ]YˆÛY[ØÛY[X\È™XXÝYÛXTÜ[[YÙ\Ý[ÈÝXÚUÛÛ\È™\Ú]™[ˆZ[™[ˆ‹\ËP]]ËQ\ÛZ\ÜË‚‹H™]Y\ˆ›XÚ™\˜YÈ\Ý[X\XÚ\\™\ÜÛœÚ]™KXÛÛ[X][Û‹LN‹›ZœØÚ[][Y\YHÛÛ\RÜš^›Û[Ù[ÛY]šYH]Yˆ[ˆðí›ˆ™\™Z[˜˜\[ˆTÛ™KKÒ[™KKÚTYKÑ\ÚÝÜUšY]ÜÜÈ[™ØÚ0ïÙ]\šØ\[‹KÑSYÙ[™[‹KÞ[›ÜZËK^™[]Ù]\‹H[™]Y\™›Ü›X]™YÙ[‹‚‹H™\ÝZ[™H™\°éÙH°ïˆÝ™\›^KUšY]ÜÜ[Ù[YZ[™HÛÛ\T™\ÜÛœÚ]š]0éš\ÝX[\ÚY\[™ÜÛ\Ø˜\šÙZ]Ù]\šØ\[‹˜Y\š[\˜ZÝ[Û‹\ÚYÛ‹PX™XÚÝ[™È[™\ÙZ]HÝXÚšY[H›ZX™[ˆ™\Ý[™[‹ˆÙZH0é\™H˜XÚXÚH^[Ý]\ÝÈ™[°íYÙ[ˆÙZ]\š[ˆ\\ØÜš\\Ý˜YX\È[H˜[œÜÜV’TšXÚ[[[ˆ\ÝÈY\ÈÚ\™šXÚ[È™\Ý[™[ˆ]\ÙÙYÙX™[‹‚‹HÛÜšÙ\‹Q˜XÚÙÚZÈ[™\°é™\È]\ÜØÚYpçÛXÚ™\œÚ[ÛœÛY]Y][ˆÞ[˜Ú›Ûš\ÚY\ˆZ[ˆX[Y[\ˆÛÜšÙ\‹U\ØY\ÝšXÚ\™›Ü™\›XÚ‚‹HZ[š^˜XÚ[H™ZÙ\ØÚYÙ[™[ˆ[œÝ[\ˆÌLÍŽˆ\ˆ˜XÚ\ˆ™[™LM
+ËTÜ[[\Ý[[™ÈšXÚYZˆ™\Ù[™]HÚØ[HÛ[\R[™\ˆÝ\™H]\ÈÝXœÙX\ÛÛ˜[™[™[™[Þ[™\›ˆ[Z]\Ý\ˆÙ[Y[]H\TØÜš\Q™Z\ˆÍŒLÌØ™\ÙZ]YÝÈ\ˆÝ™\›^KU™\˜YÈØÚ0ïY\Ù[ˆ°ïÚÙ˜[ðï™YÈZ]‚‚ˆÈÈŽKŽŽB‚ˆÈÈÈ^\›‚‹HTÛ™KRÛÜ˜™\™ZXÚ˜XÚ[HÙ[Y[][ˆØÜ™Y[œÚÝ˜XÚÙX™\ÜÙ\ˆ™[˜XÚšXÚYÝ[™ÜËKÐZÝ[ÛœØ]ÛœÈYYÙ[ˆšXÚYZˆÜ\ØÚ[ˆ\ˆÝXÚ™Z[KˆYHÝXÚH\š0é]Yˆ™YÝ[0é™[ˆTÛ™\ÈZ[™HZYÙ[™H›ÛH™Z[NÈÙZˆØÚX[HÙ\°éH™Z[[ˆZ[™[ˆÚXÚ\™[ˆ™Z^™Z[YÙ[ˆ˜[˜XÚË‚‹HYH°ï™ˆ]\šY[H\ˆÜ[Û˜[[ˆ›ÝÛKSZ\ÝH›ZX™[ˆZ[ž™Z[YËˆ8 '’Ý\ž™œš\Ý8 '8 'ÈYÙx '[™8 'ŒMYÙx 'Ù\™[ˆšXÚYZˆZ][ˆ[HÛÜžËˆ[›°íYÈ]YˆÙZH™Z[[ˆÙ]™[›‚‹H˜]›Üš][‹TØÚ™[Z\ÝH›Ø\Ý\ˆÙ[XXÚˆ\ˆÝ[™\™ÜÚ\™]YˆØÚX[[ˆTÛ™\ÈÛÛ\ZÝ[È8 '”Ý¸ 'ÙZÙ[›ž™ZXÚ™]YH™\Ø[[™ÜÙ›0éÚH›ZXÙ]™[›[™YH˜]›Üš][›Z\ÝHÜš^›Û[ØÜ›Û˜\‹‚‹HÙZ[™H0á™\[™È[ˆÙ]\™][‹›ÙÛ›ÜÙY\Ú[Û‹Ø\››ÙÚZËZÝÙÜ˜[[Y[‹Ø\[š[š[[ˆÙ\ˆ\˜[Y]\™˜\˜™[‹‚‚ˆÈÈÈ[\›‚‹H™]Y\ˆ›XÚ™\˜YÈ\Ý[[Øš[KZXY\‹X›ÝÛK[˜]‹LNK›ZœØØÚ0ïYHØÜ™Y[œÚÝRÛÜœ™ZÝ\™[ˆÙYÙ[ˆÜ0é\™H[Ù[YZ[™H\Ø˜\šÙZ]ËKÕ[XœXÚ™YÙ[‹‚‹H™\ÝZ[™H™\°éÙH°ïˆ›ÛÝ0é™YÙH™\œÚ[ÛœØ[ž™ZYÙK˜]›Üš][‹ÝXÚTÝXÚK›ÝÛKS˜]šYØ][Û‹XY\‹QXÚK\ÙZ]HÝXÚšY[K\ÚYÛ‹PX™XÚÝ[™Ë™\œÚ[ÛšY\[™È[™™[X\ÙKS[™XYÙH›ZX™[ˆ™\Ý[™[‹‚‹HZ[ˆXY\ÜËPÚ›ÛZ][KTØÜ™Y[œÚÝ]YˆÝ\™H™\œÝXÚ™Y[™]ÚXÚ[ˆ\ˆ\ÛÛY\[ˆ[YÙX[™È™YØÚšXÚ]™\›0éÜÚYÎÈ\ˆÚ\™\Ú[ˆ]\Ù°ïÚÛXÚšXÚ[È™\Ý[™[™HÚXÚ°ï[™ÈÙ]Ù\]‚‹HÛÜšÙ\‹Q˜XÚÙÚZÈ[™\°é™\È]\ÜØÚYpçÛXÚ™\œÚ[ÛœÛY]Y][ˆÞ[˜Ú›Ûš\ÚY\ˆZ[ˆX[Y[\ˆÛÜšÙ\‹U\ØY\ÝšXÚ\™›Ü™\›XÚ‚‚ˆÈÈŽKŽŽ‚ˆÈÈÈ^\›‚‹H\]ÙZ][ˆ[\˜ZÝ[ÛœËKÓÝ™\›^KP]Y]›ÜÙ\Ù]ˆ[šÝ]Z[È[H8 '•™[™M
+ø 'ÛÝÚYHX™[™[‹H[™][š[™›Ü›X][Û™[ˆ[HÛÛ\ÜÚ]š[›ZX™[ˆ[ˆ]XÚ[ˆ\Ü^\°é™\›ˆ›ÛÝ0é™YÈ[HÚXÚ˜\™[ˆ™\™ZXÚ[™ðí››™[ˆ™ZH[™Ù[H[š[[\›ˆØÜ›Û[‹‚‹H[™Ùœš\ÝKÕÚ]\[™ÜÝ™[™™\Ù[™]°ïˆÚXÚ˜\™H™YY[‹KÝ]\ËH[™[Ù[^HÙZ[™H\ÝÜš\ØÚ[ˆ¸ $ÎK\TØÚšY[ˆYZŽÈÚ\ÜÙ[œØÚYXÚHXÚÙ[ˆ›ZX™[ˆ™]Ý\ÜÝÛÛ\ZÝ‚‹H˜]›Üš][‹KZ[œÝ[[™ÜËK\]KH[™[œÝ[][ÛœÙX[ÙÙH™XYÚY\™[ˆ›Ø\Ý\ˆ]Yˆ[˜[Z\ØÚHTÛ™KTØY˜\šKSZ\Ý[‹›ÝÚ[™ÛYH[™XØ]Ü‹‚‹HÝXÚ™YY[[™È\ˆ™]HÙ\°ï[ˆÜÝ™\ˆ›ZXZ]Z[™\Ý[œÈ\VšY[[ˆX™Ù\ÚXÚ\‚‹HÙZ[™H0á™\[™È[ˆÙ]\™][‹[Ù[\Ú[Û‹Ø\››ÙÚZËZÝÙÜ˜[[Y[ˆÙ\ˆ\˜[Y]\™˜\˜™[‹‚‚ˆÈÈÈ[\›‚‹H™[™LM
+ËT[šÝÛÛ\È[™ÛÛ\ÜÚ]TÜÝ™\ˆ]YˆYHÙ[YZ[œØ[YH\Ü[ÜÝ™\˜P\˜Ú]ZÝ\ˆ[YÙ\Ý[‚‹H™]Y\ˆ›XÚ™\˜YÈ\Ý[Ý™\›^K]šY]ÜÜXÛÛ[X][Û‹LN›ZœØÚ[][Y\YHÜ[ÜÚ][ÛšY\[™È]Yˆðí›ˆTÛ™KKÒ[™KKÚTYKÑ\ÚÝÜÜ°í°çÙ[ˆ[™ØÚ0ïš\ÝX[šY]ÜÜØY™H\™X\Ë[\›™HØÜ›Û˜\šÙZ][™\ÈØ[›Ûš\ØÚHÝ[\ÚY]PYÙÜ™YØ]‚‹H™[™KÓ[™Ùœš\ÝQ˜XÚ™YÜ™\ÜÚ[Û™[ˆ°ïˆPÍ‹ÑÑQ”ËÛ[X[Z][NNLx $ÌŒŒL8 $ÔLÔx $ÔÍK\˜[Y]\™˜\˜™[ˆ[™˜[˜XÚÜÈ›ZX™[ˆ™\Ý[™[‹‚‹HÛÜšÙ\‹Q˜XÚÙÚZÈ[™\°é™\È]\ÜØÚYpçÛXÚ™\œÚ[ÛœÛY]Y][ˆÙ\™[ˆÞ[˜Ú›Ûš\ÚY\ˆZ[ˆX[Y[\ˆÛÜšÙ\‹U\ØY\Ý°ïˆY\ÙHRKKÒ[\˜ZÝ[ÛœÚÛÜœ™ZÝ\ˆšXÚ\™›Ü™\›XÚ‚‚ˆÈÈŽKŽÎB‚ˆÈÈÈ^\›‚‹H\]ÙZ]H\œÝ[[™ÜÜ°ï[™È]\ÈRQMËËŒŒÈ›ÜÙ\Ù][™]Yˆðé]XÚHZÝ]šY\˜˜\™[ˆ\Ú›Ø\™S[Ù[HÛÝÚYHZ[œÝ[[™Ù[‹]Y[[˜[˜[\ÙK›Ý][Ù]\‹[Ù\›™H]]KP[œÚXÚ[™[œÝ[][ÛœÙX[ÙÙH]\ÙÙYZ‚‹HYHÜ[Û˜[H[Ù\›™H]]KP[œÚXÚ™\Ù[™]ÙZ[™H\ÝÜš\ØÚ[ˆø $ÎK\P™\ØÚšY[™Ù[ˆYZŽÈÙ]\˜™\ØÚ™ZX[™ËÙ[›Ù\H[™Ý\ž™[™›ZX™[ˆ›ÛÝ0é™YÈ\Ø˜\ˆ[™0ï™™[ˆÚ[››Û[Xœ™XÚ[‹‚‹HÚØ[H\ÝÙ]\‹KÑÙY˜Z™[š[ÙZ\ÙKØ\›šÛÜ‹›ÙÛ›ÜÙYðïK]Y[[‹KÓ[Ù[˜[Y[ˆ[™›Ý][Ù]\ˆÝ\™[ˆ]YˆYHÙ[YZ[œØ[YHRQS\Ø˜\šÙZ][™ÙZØ™[‹‚‹H[™ÙH]Y[[›˜[Y[ˆ[™[œÙ[X›KTÞ™[˜\š[Ý][Ù\™[ˆšXÚYZˆZ][\ÙHX™Ù\ØÚš][‹ˆÝXÚšY[H›ZX™[ˆ]Yˆ[Øš[[ˆÙ\°é[ˆZ[™\Ý[œÈ‚‹HÙZ[™H0á™\[™È[ˆÙ]\™][‹[Ù[\Ú[Û‹Ø\››ÙÚZËZÝÙÜ˜[[Y[ˆÙ\ˆ\˜[Y]\™˜\˜™[‹‚‚ˆÈÈÈ[\›‚‹H™]YH›ÛÝ0é™YÚÙZ]ÛX]š^RQÐTÕ’QU×ÐUQUÌŽKŽÎK›YXÚÝ[HN\Ú›Ø\™S[Ù[H\ÈÛØ˜[HÚ[KÔÙZÝ[™0é˜™\™ZXÚHX‹‚‹H™]Y\ˆ›XÚ™\˜YÈ\ÝX\ÚYK\™XYXš[]KXÛÛ[X][Û‹LNÎK›ZœØØÚ0ïYH™\ÝP]Y]T™YÙ[‹YH›ÛÝ0é™YÙH[Ù[\ÝH[™\ÈØ[›Ûš\ØÚHÝ[\ÚY]PYÙÜ™YØ]‚‹HŒˆ™[]˜[HÚØ[H™YÜ™\ÜÚ[Û™[ˆ™\Ý[™[‹ˆÙZH0é\™H\ÝÈ[™\ˆ›ÛÝ0é™YÙH\TØÜš\PZ[™[°íYÙ[ˆYH[H›Ù™\ÜÚ[Û˜[V’TšXÚ[[[™[ˆ›Ú™ZÝXš0é™ÚYÚÙZ][ŽÈY\È\Ý[H\Ý™\šXÚ˜[œÜ\™[ÚÝ[Y[Y\‚‹HÛÜšÙ\‹Q˜XÚÙÚZÈ[™\°é™\È]\ÜØÚYpçÛXÚ™\œÚ[ÛœÛY]Y][ˆÞ[˜Ú›Ûš\ÚY\ˆZ[ˆX[Y[\ˆÛÜšÙ\‹U\ØY\Ý°ïˆY\ÙHRKKÑ\ÚYÛšÛÜœ™ZÝ\ˆšXÚ\™›Ü™\›XÚ‚‚ˆÈÈŽKŽÎ‚ˆÈÈÈ^\›‚‹H[Øš[\ˆXY\ˆ™]HX™Ù\ÚXÚvÓÞ8òÚ$z{-®éÜj×eiskarte und die HÃ¶hen-Eingabefelder im Dashboard wurden entfernt, sodass der Modus ohne Aktivierung keinen Platz beansprucht.
 - Favoriten-JSON auf Schema-Version 3 erweitert; Standortverfolgung und Berg-/Ski-Konfiguration werden exportiert, importiert und aus Ã¤lteren EintrÃ¤gen migriert.
 - Frontend und kompatibler Workerstand auf v0.7.16 aktualisiert.
 
