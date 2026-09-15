@@ -46,8 +46,10 @@ jobs:
               exit 1
             fi
           done
-          if [ -f MID-professional-replacement.zip ]; then
-            echo "::error::Agent-PRs dürfen künftig kein Release-ZIP mehr transportieren. Das Paket wird nach grünem Gate serverseitig erzeugt."
+          # Das Release-Paket kann aus einem vorigen, bereits veröffentlichten main-Stand
+          # stammen. Nur ein durch diesen PR neu geändertes ZIP ist unzulässig.
+          if git diff --name-only "${{ github.event.pull_request.base.sha }}" HEAD -- MID-professional-replacement.zip | grep -qx 'MID-professional-replacement.zip'; then
+            echo "::error::Agent-PRs dürfen kein Release-ZIP verändern. Das Paket wird nach grünem Gate serverseitig erzeugt."
             exit 1
           fi
 
