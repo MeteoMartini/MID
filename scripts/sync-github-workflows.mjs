@@ -40,6 +40,8 @@ function maintainHistoricalWorkflow(name,source){
 export const managedFiles=[
  ['workflows/install-mid.yml','workflows/install-mid.yml'],
  ['workflows/chatgpt-pr-gate.yml','workflows/chatgpt-pr-gate.yml'],
+ ['workflows/agent-source-release.yml','workflows/agent-source-release.yml'],
+ ['workflows/release-self-heal.yml','workflows/release-self-heal.yml'],
  ['workflows/deploy.yml','workflows/deploy.yml'],
  ['workflows/dependency-audit.yml','workflows/dependency-audit.yml'],
  ['workflows/mid-ruc-preprocess.yml','workflows/mid-ruc-preprocess.yml'],
