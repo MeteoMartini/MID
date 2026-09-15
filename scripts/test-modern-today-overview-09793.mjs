@@ -6,7 +6,7 @@ assert.ok(!app.includes('mid-modern-today-overview'),'Beta-Heute-DOM darf nicht 
 assert.ok(!app.includes('modernTodayDetailsOpen'),'Beta-Detailszustand darf nicht mehr existieren');
 assert.ok(app.includes("case'current':return <MemoCurrent"),'Aktuelles Wetter muss wieder direkt die kanonische Current-Ansicht rendern');
 assert.ok(app.includes("{id:'current',label:'Aktuell'"),'Aktuell muss wieder Bottom-Bar-Primärziel sein');
-assert.ok(app.includes("!['current','short-term','forecast','ensemble','composite'].includes(id)"),'Aktuelles Wetter darf nicht zusätzlich im Mehr-Menü dupliziert werden');
+assert.ok(app.includes("!['current','warnings','short-term','forecast','ensemble','composite'].includes(id)"),'Aktuelles Wetter darf nicht zusätzlich im Mehr-Menü dupliziert werden');
 assert.equal((radarColors.match(/id:'dwd-standard'/g)||[]).length,1,'Radarstandard muss weiterhin genau eine Farbtabellen-ID besitzen');
 assert.ok(contract.includes('Aktuelles Wetter'),'Navigationsvertrag muss den neuen Zugang zu Aktuelles Wetter dokumentieren');
 const parsed=JSON.parse(baseline);assert.ok(parsed.requiredRegressionTests.includes('scripts/test-modern-today-overview-09793.mjs'),'Baseline-Regression muss erhalten bleiben');
