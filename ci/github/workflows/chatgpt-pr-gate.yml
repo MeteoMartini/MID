@@ -1,12 +1,15 @@
-name: MID ChatGPT/Codex Release-PR Gate
-run-name: MID-Release-ZIP aus Agent-PR prüfen
+name: MID ChatGPT/Codex Source-PR Gate
+run-name: MID-Agent-Quellstand prüfen
 
 on:
   pull_request:
     branches:
       - main
-    paths:
-      - MID-professional-replacement.zip
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
 
 permissions:
   contents: read
@@ -16,79 +19,99 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  validate_release_zip:
-    name: Agent-Release-ZIP prüfen
-    if: startsWith(github.head_ref, 'chatgpt/') || startsWith(github.head_ref, 'codex/')
+  validate_source:
+    name: Agent-Quellstand vollständig prüfen
+    if: >-
+      (startsWith(github.head_ref, 'chatgpt/') || startsWith(github.head_ref, 'codex/')) &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.draft == false
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     permissions:
       contents: read
 
     steps:
-      - name: PR laden
+      - name: PR-Mergezustand laden
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
 
-      - name: Release-ZIP sicher entpacken
+      - name: MID-Quellstruktur prüfen
         shell: bash
         run: |
           set -euo pipefail
-          archive="MID-professional-replacement.zip"
-          target="/tmp/mid-agent-candidate"
-          test -f "$archive"
-          rm -rf "$target"
-          mkdir -p "$target"
-          ARCHIVE="$archive" TARGET="$target" python3 - <<'PY'
-          import os
-          import stat
-          from pathlib import Path
-          from zipfile import ZipFile, is_zipfile
+          for required in package.json package-lock.json MID_BASELINE.json MID_SOURCE_OF_TRUTH.md src worker public ios; do
+            if [ ! -e "$required" ]; then
+              echo "::error::Im Agent-Quellstand fehlt: ${required}"
+              exit 1
+            fi
+          done
+          if [ -f MID-professional-replacement.zip ]; then
+            echo "::error::Agent-PRs dürfen künftig kein Release-ZIP mehr transportieren. Das Paket wird nach grünem Gate serverseitig erzeugt."
+            exit 1
+          fi
 
-          archive = Path(os.environ['ARCHIVE'])
-          target = Path(os.environ['TARGET']).resolve()
-          if not is_zipfile(archive):
-              raise SystemExit('Release-Datei ist kein gültiges ZIP')
-          with ZipFile(archive) as zip_file:
-              corrupt = zip_file.testzip()
-              if corrupt is not None:
-                  raise SystemExit(f'Beschädigter ZIP-Eintrag: {corrupt}')
-              for entry in zip_file.infolist():
-                  relative = Path(entry.filename)
-                  if relative.is_absolute() or '..' in relative.parts:
-                      raise SystemExit(f'Unsicherer ZIP-Pfad: {entry.filename}')
-                  if stat.S_ISLNK(entry.external_attr >> 16):
-                      raise SystemExit(f'Links sind im Release-ZIP nicht zulässig: {entry.filename}')
-                  destination = (target / relative).resolve()
-                  if target != destination and target not in destination.parents:
-                      raise SystemExit(f'ZIP-Pfad verlässt Zielverzeichnis: {entry.filename}')
-              zip_file.extractall(target)
-          for required in ('package.json','package-lock.json','MID_BASELINE.json','MID_SOURCE_OF_TRUTH.md','src','worker','public'):
-              if not (target / required).exists():
-                  raise SystemExit(f'Im Release-ZIP fehlt: {required}')
-          PY
-
-      - name: Node.js 22 einrichten
+      - name: Node.js 22 mit npm-Cache einrichten
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22.16.0
+          cache: npm
+          cache-dependency-path: package-lock.json
 
-      - name: Abhängigkeiten reproduzierbar installieren
-        working-directory: /tmp/mid-agent-candidate
+      - name: Lockfile und npm-Registry prüfen
         shell: bash
         run: |
           set -euo pipefail
           npm config set registry https://registry.npmjs.org/
           npm config set fetch-retries 2
+          npm config set fetch-retry-factor 2
+          npm config set fetch-retry-mintimeout 3000
+          npm config set fetch-retry-maxtimeout 15000
           npm config set fetch-timeout 60000
-          npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps --loglevel=notice
+          node <<'NODE'
+          const fs = require('node:fs');
+          const lock = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
+          const invalid = [];
+          for (const [name, entry] of Object.entries(lock.packages ?? {})) {
+            const resolved = entry && typeof entry === 'object' ? entry.resolved : undefined;
+            if (typeof resolved !== 'string') continue;
+            if (/internal\.api\.openai\.org|applied-caas-gateway|localhost|127\.0\.0\.1/i.test(resolved)) invalid.push(`${name || '(root)'}: ${resolved}`);
+          }
+          if (invalid.length) {
+            console.error('Nicht öffentlich erreichbare Paket-URLs im Lockfile:\n' + invalid.join('\n'));
+            process.exit(1);
+          }
+          NODE
+
+      - name: Abhängigkeiten reproduzierbar installieren
+        shell: bash
+        timeout-minutes: 8
+        run: |
+          set -euo pipefail
+          installed=false
+          for attempt in 1 2 3; do
+            if npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps --loglevel=notice; then
+              installed=true
+              break
+            fi
+            echo "::warning::npm ci fehlgeschlagen (Versuch ${attempt}/3); temporärer Fehler wird automatisch erneut versucht."
+            rm -rf node_modules
+            npm cache verify || true
+            sleep $((attempt * 3))
+          done
+          if [ "$installed" != true ]; then
+            echo "::error::npm ci konnte nach drei Versuchen nicht erfolgreich abgeschlossen werden."
+            exit 1
+          fi
 
       - name: Produktionsabhängigkeiten prüfen
-        working-directory: /tmp/mid-agent-candidate
         shell: bash
+        timeout-minutes: 5
         run: npm run audit:dependencies
 
       - name: Produktionsbuild und Regressionen prüfen
-        working-directory: /tmp/mid-agent-candidate
         shell: bash
+        timeout-minutes: 15
         env:
           VITE_METAR_PROXY_URL: ${{ vars.VITE_METAR_PROXY_URL }}
           VITE_ALERT_PROXY_URL: ${{ vars.VITE_ALERT_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
@@ -97,3 +120,60 @@ jobs:
           VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}
           VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN: ${{ vars.VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN }}
         run: npm run verify
+
+      - name: Geprüften Web-Build in die iOS-Hülle übernehmen und prüfen
+        shell: bash
+        timeout-minutes: 4
+        run: |
+          set -euo pipefail
+          ./node_modules/.bin/cap copy ios
+          node scripts/test-cross-platform-ios-shell-09670.mjs
+          node scripts/test-runtime-lifecycle-offline-resume-09701.mjs
+          package_version="$(node -p "require('./package.json').version")"
+          ios_web_version="$(node -p "require('./ios/App/App/public/version.json').version")"
+          if [ "$ios_web_version" != "$package_version" ]; then
+            echo "::error::Capacitor-iOS-Web-Bundle ${ios_web_version} != Release ${package_version}."
+            exit 1
+          fi
+
+      - name: Server-seitige Release-Paketierung vorprüfen
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          import subprocess
+          from pathlib import Path
+          from zipfile import ZIP_DEFLATED, ZipFile, is_zipfile
+
+          out = Path('/tmp/MID-professional-replacement.zip')
+          excluded_roots = {'.github', '.git', 'node_modules', 'dist'}
+          excluded_files = {'MID-professional-replacement.zip'}
+          tracked = subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0')
+          with ZipFile(out, 'w', ZIP_DEFLATED, compresslevel=9) as zf:
+              for raw in tracked:
+                  if not raw:
+                      continue
+                  path = Path(raw)
+                  if path.parts and path.parts[0] in excluded_roots:
+                      continue
+                  if path.name in excluded_files:
+                      continue
+                  if path.is_symlink():
+                      raise SystemExit(f'Symlink im Release-Quellstand unzulässig: {path}')
+                  if path.is_file():
+                      zf.write(path, path.as_posix())
+          if not is_zipfile(out):
+              raise SystemExit('Serverseitige Release-Paketierung ergab kein gültiges ZIP')
+          with ZipFile(out) as zf:
+              names = set(zf.namelist())
+              for required in ('package.json', 'package-lock.json', 'MID_BASELINE.json', 'MID_SOURCE_OF_TRUTH.md'):
+                  if required not in names:
+                      raise SystemExit(f'Release-Paketierung fehlt: {required}')
+              for required_prefix in ('src/', 'worker/', 'public/', 'ios/'):
+                  if not any(name.startswith(required_prefix) for name in names):
+                      raise SystemExit(f'Release-Paketierung fehlt: {required_prefix}')
+              corrupt = zf.testzip()
+              if corrupt is not None:
+                  raise SystemExit(f'Beschädigter ZIP-Eintrag: {corrupt}')
+          print(f'Release-Paketierung vorgeprüft: {out.stat().st_size} Byte')
+          PY
