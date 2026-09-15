@@ -4,7 +4,7 @@ const [app,radar,compositeSettings,radarColors,eventPolicy,contract,baseline]=aw
  readFile('src/App.tsx','utf8'),readFile('src/RadarPanel.tsx','utf8'),readFile('src/compositeSettings.ts','utf8'),readFile('src/radarColorTables.ts','utf8'),readFile('src/eventRecommendationPolicy.ts','utf8'),readFile('MID_NAVIGATION_BOTTOM_BAR_CONTRACT.md','utf8'),readFile('MID_BASELINE.json','utf8')
 ]);
 assert.ok(!app.includes('ModernTodayOverview'),'Verworfener Heute-Beta-Fokus darf nicht zurückkehren');
-for(const token of ['className="modern-map-focus-shell"',"navigationMode==='bottom-tabs'?<section key={`composite-focus:${layoutMode}:${layoutRevision}`}","focusMode={navigationMode==='bottom-tabs'}",'title="Kompositbild"',"label:'Komposit'", "candidates:['composite']"])assert.ok(app.includes(token),`Direkter Komposit-Fokus fehlt: ${token}`);
+for(const token of ['className="modern-map-focus-shell"',"navigationMode==='bottom-tabs'?<section key={`composite-focus:${layoutMode}:${layoutRevision}`}","focusMode={navigationMode==='bottom-tabs'}",'title="Kompositbild"',"label:'Karten'", "candidates:['composite']"])assert.ok(app.includes(token),`Direkter Kartenfokus fehlt: ${token}`);
 for(const token of ['modelLineTone','isobarLineColor','isoheightLineColor'])assert.ok(compositeSettings.includes(token),`Synoptik-Persistenzvertrag fehlt: ${token}`);
 assert.ok(compositeSettings.includes("mid:composite-settings:v3"),'Stabiler Composite-v3-Speicherschlüssel fehlt');
 assert.ok(!radar.includes('smoothFactor'),'Ungültige smoothFactor-Option darf nicht zurückkehren');
