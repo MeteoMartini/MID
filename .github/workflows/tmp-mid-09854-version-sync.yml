@@ -1,0 +1,69 @@
+name: MID one-time v0.9.85.4 version sync
+
+on:
+  push:
+    branches:
+      - chatgpt/mid-0.9.85.4-release
+
+permissions:
+  contents: write
+
+jobs:
+  sync_version:
+    if: ${{ !contains(github.event.head_commit.message, '[skip-version-sync]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Branch laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: chatgpt/mid-0.9.85.4-release
+          fetch-depth: 0
+
+      - name: Node.js 22 einrichten
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.16.0
+
+      - name: Kanonische Version minimal auf 0.9.85.4 setzen
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main
+          node <<'NODE'
+          const fs = require('node:fs');
+          const path = 'package.json';
+          const pkg = JSON.parse(fs.readFileSync(path, 'utf8'));
+          if (pkg.version !== '0.9.85.0') {
+            throw new Error(`Unerwartete Ausgangsversion: ${pkg.version}`);
+          }
+          pkg.version = '0.9.85.4';
+          fs.writeFileSync(path, `${JSON.stringify(pkg, null, 2)}\n`);
+          NODE
+          patch="$(git diff --unified=0 origin/main -- package.json)"
+          printf '%s\n' "$patch"
+          changes="$(printf '%s\n' "$patch" | grep -E '^[+-]' | grep -vE '^---|^\+\+\+' || true)"
+          test "$(printf '%s\n' "$changes" | sed '/^$/d' | wc -l | tr -d ' ')" = "2"
+          printf '%s\n' "$changes" | grep -Fx -- '-  "version": "0.9.85.0",'
+          printf '%s\n' "$changes" | grep -Fx -- '+  "version": "0.9.85.4",'
+
+      - name: Vorhandenen MID-Versionsvertrag synchronisieren
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/sync-version.mjs
+          node -e "const p=require('./package.json'); if(p.version!=='0.9.85.4') process.exit(1)"
+          node -e "const p=require('./package-lock.json'); if(p.version!=='0.9.85.4'||p.packages?.['']?.version!=='0.9.85.4') process.exit(1)"
+          node -e "const b=require('./MID_BASELINE.json'); if(b.releaseVersion!=='0.9.85.4') process.exit(1)"
+          node -e "const v=require('./public/version.json'); if(v.version!=='0.9.85.4') process.exit(1)"
+
+      - name: Synchronisierte Metadaten committen
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add package.json package-lock.json MID_BASELINE.json MID_IOS_STATUS.json index.html ios/App/App.xcodeproj/project.pbxproj public/service-worker.js public/sw.js public/version.json src/version.ts worker/metar-proxy.js worker-src/00-core-observations.js worker.js
+          git diff --cached --quiet && { echo '::error::Keine Versionsänderungen erzeugt.'; exit 1; }
+          git commit -m 'MID v0.9.85.4: synchronize release metadata [skip-version-sync]'
+          git push origin HEAD:chatgpt/mid-0.9.85.4-release
