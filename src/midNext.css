@@ -90,3 +90,108 @@ html[data-mid-design='next'] :is(.modern-forecast-horizons,.forecast-cockpit-tab
 @media (prefers-reduced-motion:reduce){
  html[data-mid-design='next'] *{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}
 }
+
+/* MID v0.9.85.8 · iPhone-Istwetter: der Overview-Block bleibt ein echtes
+   verschachteltes Grid. display:contents in der v0.9.85.7-Oberfläche ließ
+   WebKit die Instrumentwerte in die schmale Piktogrammspalte einordnen. */
+html[data-mid-design='next'] .hero.current-compact{
+ display:block!important;
+ min-width:0;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-overview{
+ position:relative;
+ display:grid!important;
+ grid-template-columns:minmax(104px,.7fr) minmax(180px,1.2fr) minmax(340px,1.6fr)!important;
+ grid-template-rows:auto auto!important;
+ gap:0!important;
+ width:100%;
+ min-width:0;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-icon{
+ grid-column:1!important;
+ grid-row:1!important;
+ min-width:0;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-overview>article{
+ grid-column:2!important;
+ grid-row:1!important;
+ min-width:0;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-facts{
+ grid-column:3!important;
+ grid-row:1!important;
+ width:100%!important;
+ min-width:0;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-overview>.hero-day-range{
+ position:static!important;
+ grid-column:1/-1!important;
+ grid-row:2!important;
+ justify-self:stretch;
+ width:auto!important;
+ margin:0!important;
+ transform:none!important;
+}
+html[data-mid-design='next'] .hero.current-compact :is(.current-nowcards,.current-compact-source){
+ position:relative;
+ z-index:1;
+ width:100%;
+ min-width:0;
+}
+
+@media(max-width:900px){
+ html[data-mid-design='next'] .hero.current-compact .current-weather-overview{
+  grid-template-columns:102px minmax(0,1fr)!important;
+  grid-template-rows:auto auto auto!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts{
+  grid-column:1/-1!important;
+  grid-row:2!important;
+  grid-template-columns:repeat(5,minmax(0,1fr))!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-overview>.hero-day-range{
+  grid-row:3!important;
+ }
+}
+
+@media(max-width:620px){
+ html[data-mid-design='next'] .hero.current-compact .current-weather-overview{
+  grid-template-columns:82px minmax(0,1fr)!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts{
+  grid-column:1/-1!important;
+  grid-row:2!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  width:100%!important;
+  gap:0!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts>span{
+  min-width:0;
+  min-height:68px!important;
+  padding:10px 11px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts>span:nth-child(5){
+  grid-column:span 2!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts>.humidity small{
+  white-space:normal!important;
+  text-wrap:balance;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-overview>.hero-day-range{
+  grid-column:1/-1!important;
+  grid-row:3!important;
+  transform:none!important;
+ }
+}
+
+@media(max-width:850px) and (orientation:landscape){
+ html[data-mid-design='next'] .hero.current-compact .current-weather-overview{
+  grid-template-columns:96px minmax(0,1fr)!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts{
+  grid-column:1/-1!important;
+  grid-row:2!important;
+  grid-template-columns:repeat(5,minmax(0,1fr))!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-overview>.hero-day-range{grid-row:3!important}
+}
