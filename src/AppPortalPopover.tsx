@@ -24,3 +24,11 @@ export function AppPortalPointTooltip({open,onClose,className='',children,x,y,wi
  const style={left:position.left,top:position.top,width:position.width,'--mid-popover-viewport-max-height':`${position.maxHeight}px`} as CSSProperties;
  return createPortal(<div ref={layerRef} className={`${className} app-portal-popover app-portal-point-tooltip${position.above?' above':' below'}`.trim()} role="tooltip" aria-label={ariaLabel} style={style}>{children}</div>,document.body);
 }
+
+/** Full-viewport portal for modal sheets. It shares the same outside-tap,
+ * Escape and scroll-dismiss contract as anchored MID overlays. */
+export function AppPortalFullscreen({open,onClose,className='',children,ariaLabel}:{open:boolean;onClose:()=>void;className?:string;children:ReactNode;ariaLabel?:string}){
+ useEffect(()=>{if(!open)return;const closeOnScroll=()=>onClose(),escape=(event:KeyboardEvent)=>{if(event.key==='Escape')onClose()};window.addEventListener('scroll',closeOnScroll,{capture:true,passive:true});document.addEventListener('keydown',escape);return()=>{window.removeEventListener('scroll',closeOnScroll,true);document.removeEventListener('keydown',escape)}},[onClose,open]);
+ if(!open||typeof document==='undefined')return null;
+ return createPortal(<div className={className} role="presentation" aria-label={ariaLabel} onPointerDown={event=>{if(event.target===event.currentTarget)onClose()}}>{children}</div>,document.body);
+}

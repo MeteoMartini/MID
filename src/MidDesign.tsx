@@ -1,6 +1,6 @@
-import {useEffect,useId,type CSSProperties,type HTMLAttributes,type ReactNode} from 'react';
+import {useId,type CSSProperties,type HTMLAttributes,type ReactNode} from 'react';
 import {ChevronLeft,ChevronRight,Pause,Play,X} from 'lucide-react';
-import {createPortal} from 'react-dom';
+import {AppPortalFullscreen} from './AppPortalPopover';
 
 /** Shared building blocks for the opt-in MID Next system. They deliberately keep
  * meteorological colour semantics in the calling module rather than inventing
@@ -36,9 +36,8 @@ export function MidInsight({eyebrow='MID Analyse',title,children,source,classNam
 export function MidForecastRow({className='',children,...props}:{className?:string;children:ReactNode}&HTMLAttributes<HTMLDivElement>){return <div {...props} className={`mid-forecast-row${className?` ${className}`:''}`}>{children}</div>}
 
 export function MidDetailSheet({open,onClose,title,children,className='',ariaLabel}:{open:boolean;onClose:()=>void;title:string;children:ReactNode;className?:string;ariaLabel?:string}){
- const titleId=useId();useEffect(()=>{if(!open)return;const closeOnScroll=()=>onClose(),escape=(event:KeyboardEvent)=>{if(event.key==='Escape')onClose()};window.addEventListener('scroll',closeOnScroll,{capture:true,passive:true});window.addEventListener('keydown',escape);return()=>{window.removeEventListener('scroll',closeOnScroll,true);window.removeEventListener('keydown',escape)}},[open,onClose]);
- if(!open||typeof document==='undefined')return null;
- return createPortal(<div className="mid-detail-sheet-backdrop" role="presentation" onPointerDown={event=>{if(event.target===event.currentTarget)onClose()}}><section className={`mid-detail-sheet${className?` ${className}`:''}`} role="dialog" aria-modal="true" aria-labelledby={titleId} aria-label={ariaLabel}><header><div><small>Details</small><strong id={titleId}>{title}</strong></div><button type="button" onClick={onClose} aria-label="Details schließen"><X size={18}/></button></header><div className="mid-detail-sheet-content">{children}</div></section></div>,document.body)
+ const titleId=useId();
+ return <AppPortalFullscreen open={open} onClose={onClose} className="mid-detail-sheet-backdrop" ariaLabel={ariaLabel}><section className={`mid-detail-sheet${className?` ${className}`:''}`} role="dialog" aria-modal="true" aria-labelledby={titleId} aria-label={ariaLabel}><header><div><small>Details</small><strong id={titleId}>{title}</strong></div><button type="button" onClick={onClose} aria-label="Details schließen"><X size={18}/></button></header><div className="mid-detail-sheet-content">{children}</div></section></AppPortalFullscreen>
 }
 
 export function midThreadStyle(values:number[]):CSSProperties{return{'--mid-thread-count':Math.max(2,values.filter(Number.isFinite).length)} as CSSProperties}
