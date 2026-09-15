@@ -195,3 +195,82 @@ html[data-mid-design='next'] .hero.current-compact :is(.current-nowcards,.curren
  }
  html[data-mid-design='next'] .hero.current-compact .current-weather-overview>.hero-day-range{grid-row:3!important}
 }
+
+/* MID-C3 · Tabletvertrag: Auf iPad/Tablet bleibt die primäre Navigation eine
+   kompakte Instrumentenleiste. Sie reserviert ihren Raum und darf niemals den
+   Ortskopf oder Wetterkarten überdecken. Die Punkte stehen oben gebündelt statt
+   über die gesamte Displayhöhe verteilt. */
+@media (min-width:851px) and (max-width:1399px){
+ html[data-mid-design='next'] .app.navigation-bottom-tabs.with-section-navigation{
+  padding-left:100px!important;
+  padding-right:clamp(14px,2vw,28px)!important;
+  padding-bottom:0!important;
+ }
+ html[data-mid-design='next'] .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs{
+  display:grid!important;
+  position:fixed!important;
+  left:max(12px,env(safe-area-inset-left))!important;
+  right:auto!important;
+  top:max(104px,calc(18px + env(safe-area-inset-top)))!important;
+  bottom:auto!important;
+  width:72px!important;
+  min-width:72px!important;
+  max-width:72px!important;
+  height:max-content!important;
+  min-height:0!important;
+  max-height:calc(100dvh - 122px - env(safe-area-inset-bottom))!important;
+  grid-template-columns:1fr!important;
+  grid-auto-flow:row!important;
+  grid-auto-rows:minmax(52px,auto)!important;
+  align-content:start!important;
+  align-items:stretch!important;
+  gap:4px!important;
+  padding:6px!important;
+  margin:0!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain;
+ }
+ html[data-mid-design='next'] .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs button{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  grid-template-rows:1fr!important;
+  place-items:center!important;
+  align-content:center!important;
+  justify-content:center!important;
+  min-width:0!important;
+  width:100%!important;
+  min-height:52px!important;
+  height:52px!important;
+  padding:6px!important;
+  margin:0!important;
+  gap:0!important;
+ }
+ html[data-mid-design='next'] .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs button svg{
+  width:21px!important;
+  height:21px!important;
+ }
+ html[data-mid-design='next'] .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs button span{
+  display:none!important;
+ }
+ html[data-mid-design='next'] .navigation-bottom-tabs .dashboard-section-rail{
+  display:none!important;
+ }
+ html[data-mid-design='next'] .app.navigation-bottom-tabs.with-section-navigation :is(.top.settings-header,.favorites-strip,.main,.dashboard-section-anchor){
+  min-width:0;
+ }
+}
+
+/* Breiter Desktop: C3 darf die beschriftete Desktop-Navigation nicht in einen
+   Tabletmodus zwingen. Der 196-px-Inset entspricht der vorhandenen 168-px-Leiste
+   plus ruhigem Abstand zum Inhalt. */
+@media (min-width:1400px){
+ html[data-mid-design='next'] .app.navigation-bottom-tabs.with-section-navigation{
+  padding-left:196px!important;
+ }
+ html[data-mid-design='next'] .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs{
+  align-content:start!important;
+  height:max-content!important;
+  bottom:auto!important;
+ }
+}
