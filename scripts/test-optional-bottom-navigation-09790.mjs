@@ -5,8 +5,8 @@ const [app,styles,portable,radarColors,baseline]=await Promise.all([
 ]);
 for(const token of [
  "type NavigationMode='bottom-tabs'","const navigationMode:NavigationMode='bottom-tabs'","localStorage.removeItem('mid:navigationMode:v1')",'data-navigation-mode={navigationMode}',
- "label:'Aktuell'","label:'Kurzfrist'","label:'7 Tage'","label:'14 Tage'","label:'Komposit'",'<span>Mehr</span>','bottomBarHidden','downDistance>=118','upDistance>=8','is-scroll-hidden','data-scroll-hidden',
- "dashboard-section-nav-list ${variant}${modernDrawer?' progressive':''}",'<details key={group.id}',"!['current','short-term','forecast','ensemble','composite'].includes(id)"
+ "label:'Aktuell'","label:'Warnungen'","label:'Kurzfrist'","label:'7 Tage'","label:'Karten'",'<span>Mehr</span>','bottomBarHidden','downDistance>=118','upDistance>=8','is-scroll-hidden','data-scroll-hidden',
+ "dashboard-section-nav-list ${variant}${modernDrawer?' progressive':''}",'<details key={group.id}',"!['current','warnings','short-term','forecast','ensemble','composite'].includes(id)"
 ])assert.ok(app.includes(token),`Kanonischer Bottom-Bar-Vertrag fehlt: ${token}`);
 assert.ok(app.includes("{id:'current',label:'Aktuell'"),'Aktuell muss als Primärtab direkt erreichbar sein');
 assert.ok(!app.includes('Bottom-Leiste · Beta'),'Der alte Beta-Schalter darf nicht mehr in der App stehen.');
@@ -19,4 +19,4 @@ assert.ok(!portable.includes("'mid:navigationMode:v1'"),'Veralteter Navigationss
 assert.ok(radarColors.includes('dwd-standard'),'DWD-Standard-Radarfarbvertrag fehlt');
 assert.ok(!radarColors.includes('navigation-bottom-tabs'),'Navigation darf den Radarfarbvertrag nicht verändern');
 const parsed=JSON.parse(baseline);assert.ok(parsed.requiredRegressionTests.includes('scripts/test-optional-bottom-navigation-09790.mjs'),'Baseline-Regression fehlt');
-console.log('Kanonische Bottom-Bar: Aktuell/Kurzfrist/7T/14T/Komposit/Mehr, optional fixiert, sichere iPhone-Lage und Radarfarb-Isolation geprüft.');
+console.log('Kanonische Bottom-Bar: Aktuell/Warnungen/Kurzfrist/7T/Karten/Mehr, optional fixiert, sichere iPhone-Lage und Radarfarb-Isolation geprüft.');

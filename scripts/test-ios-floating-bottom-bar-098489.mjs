@@ -16,10 +16,10 @@ for(const token of [
   "const navigationMode:NavigationMode='bottom-tabs'",
   "localStorage.removeItem('mid:navigationMode:v1')",
   "label:'Aktuell'",
+  "label:'Warnungen'",
   "label:'Kurzfrist'",
   "label:'7 Tage'",
-  "label:'14 Tage'",
-  "label:'Komposit'",
+  "label:'Karten'",
   "candidates:['composite']",
   'bottomBarHidden',
   "window.addEventListener('scroll',onScroll,{passive:true})",
@@ -60,4 +60,4 @@ for(const token of [
 ])assert.ok(modern.includes(token),`Floating-Bar-CSS fehlt: ${token}`);
 assert.ok(styles.endsWith(modern),'styles.css muss das vollständige Modern-Modul als kanonisches Ende enthalten');
 assert.ok(baseline.requiredRegressionTests.includes('scripts/test-ios-floating-bottom-bar-098489.mjs'),'Neue Pflichtregression fehlt in Baseline');
-console.log('Schwebende Bottom-Bar: Aktuell und Komposit direkt, optional fixiert, sichere iPhone-Lage und sanftes Autohide mit sichtbarem Griff geprüft.');
+console.log('Schwebende Bottom-Bar: Aktuell, Warnungen und Karten direkt, optional fixiert, sichere iPhone-Lage und sanftes Autohide mit sichtbarem Griff geprüft.');
