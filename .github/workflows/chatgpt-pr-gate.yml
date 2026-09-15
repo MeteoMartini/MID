@@ -1,0 +1,99 @@
+name: MID ChatGPT/Codex Release-PR Gate
+run-name: MID-Release-ZIP aus Agent-PR prüfen
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - MID-professional-replacement.zip
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mid-agent-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  validate_release_zip:
+    name: Agent-Release-ZIP prüfen
+    if: startsWith(github.head_ref, 'chatgpt/') || startsWith(github.head_ref, 'codex/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+
+    steps:
+      - name: PR laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Release-ZIP sicher entpacken
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive="MID-professional-replacement.zip"
+          target="/tmp/mid-agent-candidate"
+          test -f "$archive"
+          rm -rf "$target"
+          mkdir -p "$target"
+          ARCHIVE="$archive" TARGET="$target" python3 - <<'PY'
+          import os
+          import stat
+          from pathlib import Path
+          from zipfile import ZipFile, is_zipfile
+
+          archive = Path(os.environ['ARCHIVE'])
+          target = Path(os.environ['TARGET']).resolve()
+          if not is_zipfile(archive):
+              raise SystemExit('Release-Datei ist kein gültiges ZIP')
+          with ZipFile(archive) as zip_file:
+              corrupt = zip_file.testzip()
+              if corrupt is not None:
+                  raise SystemExit(f'Beschädigter ZIP-Eintrag: {corrupt}')
+              for entry in zip_file.infolist():
+                  relative = Path(entry.filename)
+                  if relative.is_absolute() or '..' in relative.parts:
+                      raise SystemExit(f'Unsicherer ZIP-Pfad: {entry.filename}')
+                  if stat.S_ISLNK(entry.external_attr >> 16):
+                      raise SystemExit(f'Links sind im Release-ZIP nicht zulässig: {entry.filename}')
+                  destination = (target / relative).resolve()
+                  if target != destination and target not in destination.parents:
+                      raise SystemExit(f'ZIP-Pfad verlässt Zielverzeichnis: {entry.filename}')
+              zip_file.extractall(target)
+          for required in ('package.json','package-lock.json','MID_BASELINE.json','MID_SOURCE_OF_TRUTH.md','src','worker','public'):
+              if not (target / required).exists():
+                  raise SystemExit(f'Im Release-ZIP fehlt: {required}')
+          PY
+
+      - name: Node.js 22 einrichten
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.16.0
+
+      - name: Abhängigkeiten reproduzierbar installieren
+        working-directory: /tmp/mid-agent-candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm config set registry https://registry.npmjs.org/
+          npm config set fetch-retries 2
+          npm config set fetch-timeout 60000
+          npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps --loglevel=notice
+
+      - name: Produktionsabhängigkeiten prüfen
+        working-directory: /tmp/mid-agent-candidate
+        shell: bash
+        run: npm run audit:dependencies
+
+      - name: Produktionsbuild und Regressionen prüfen
+        working-directory: /tmp/mid-agent-candidate
+        shell: bash
+        env:
+          VITE_METAR_PROXY_URL: ${{ vars.VITE_METAR_PROXY_URL }}
+          VITE_ALERT_PROXY_URL: ${{ vars.VITE_ALERT_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
+          VITE_RADAR_PROXY_URL: ${{ vars.VITE_RADAR_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
+          VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH }}
+          VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}
+          VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN: ${{ vars.VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN }}
+        run: npm run verify
