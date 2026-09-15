@@ -62,3 +62,8 @@ html[data-mid-design='next'] .synoptic-panel>.synoptic-change-card,html[data-mid
 @media(max-width:620px){html[data-mid-design='next'] .hero.current-compact .current-weather-facts{grid-template-columns:repeat(2,minmax(0,1fr))}.hero.current-compact .current-weather-facts>span:nth-child(5){grid-column:span 2}.hero.current-compact+.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.mid-map-timeline-console{grid-template-columns:1fr!important}.mid-map-timeline-console .mid-data-status{padding-inline:4px}}
 @media(max-width:620px){html[data-mid-design='next'] .ensemble-panel :is(.ensemble-tabs,.ensemble-metric-switch){overflow-x:auto;scrollbar-width:none}.climate-panel .climate-month-picker{width:100%;max-width:100%;padding-bottom:5px}.climate-panel .climate-month-picker button{flex-basis:39px}.climate-panel .climate-month-grid article{flex-basis:154px}.widget-embedded .widgetlayout{grid-template-columns:1fr!important}.widget-embedded .widget-controls{border-right:0;border-bottom:1px solid var(--mid-surface-line)}}
 @media(min-width:700px){html[data-mid-design='next'] .mid-detail-sheet{margin-bottom:max(12px,env(safe-area-inset-bottom));border-radius:24px}}
+/* Messpunkte gehören zur aktiven Zeit-Lupe: Die Linien bleiben in Ruhe lesbar,
+   Recharts zeichnet den einzelnen active-dot weiterhin nur bei geöffnetem Detail. */
+html[data-mid-design='next'] .ensemble-panel .ensemble-temperature-value,
+html[data-mid-design='next'] .ensemble-panel :is(.ensemble-temperature-canvas,.ensemble-rain-chart-core,.ensemble-wind-chart-core) .recharts-line-dots{display:none}
+html[data-mid-design='next'] .ensemble-panel .recharts-active-dot .ensemble-temperature-value{display:inline}
