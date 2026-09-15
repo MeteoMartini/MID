@@ -12,7 +12,7 @@ const [app,radar,modern,styles,models,contract,baselineRaw]=await Promise.all([
 ]);
 for(const token of [
  "{id:'current',label:'Aktuell'",
- "!['current','short-term','forecast','ensemble','composite'].includes(id)",
+ "!['current','warnings','short-term','forecast','ensemble','composite'].includes(id)",
  "const BOTTOM_BAR_BEHAVIOR_KEY='mid:bottom-bar-behavior:v1'",
  "type BottomBarBehavior='auto'|'fixed'",
  "bottomBarBehavior==='fixed'",
@@ -42,7 +42,7 @@ for(const token of [
  'const batches=await Promise.all(chunks.map',
  "geopotential_height_500hPa"
 ])assert.ok(models.includes(token),`Beschleunigter Isohypsen-Gridpfad fehlt: ${token}`);
-assert.ok(contract.includes('Aktuell · Kurzfrist · 7 Tage · 14 Tage · Komposit · Mehr'),'Navigationsvertrag ist nicht auf sechs direkte Ziele aktualisiert');
+assert.ok(contract.includes('Aktuell · Warnungen · Kurzfrist · 7 Tage · Karten · Mehr'),'Navigationsvertrag ist nicht auf die direkte Warnlage aktualisiert');
 assert.ok(contract.includes('**Fixiert**'),'Fixierter Bottom-Bar-Modus fehlt im Vertrag');
 const baseline=JSON.parse(baselineRaw);
 assert.ok(baseline.requiredRegressionTests.includes('scripts/test-bottom-bar-current-persistence-isohypses-098492.mjs'),'Pflichtregression fehlt in MID_BASELINE');
