@@ -33,6 +33,13 @@ assert.match(midNext,/@media\(max-width:620px\)\{[\s\S]*\.current-weather-facts\
 assert.match(midNext,/\.current-weather-facts>span:nth-child\(5\)\{[\s\S]*grid-column:span 2!important/,'Fünfter Istwetterwert spannt auf dem iPhone nicht über beide Spalten');
 assert.match(midNext,/\.current-weather-overview>\.hero-day-range\{[\s\S]*position:static!important;[\s\S]*transform:none!important/,'Tmin/Tmax liegt weiterhin absolut über dem mobilen Istwetterinhalt');
 
+assert.match(midNext,/MID-C3 · Tabletvertrag/,'MID-C3 Tabletvertrag fehlt');
+assert.match(midNext,/@media \(min-width:851px\) and \(max-width:1399px\)\{[\s\S]*padding-left:100px!important/,'Tabletmodus reserviert keinen sicheren linken Inhaltsabstand');
+assert.match(midNext,/\.navigation-bottom-tabs \.dashboard-section-quick\.dashboard-bottom-tabs\{[\s\S]*width:72px!important;[\s\S]*height:max-content!important;[\s\S]*align-content:start!important/,'Tablet-Navigation ist nicht als kompakte, oben gebündelte 72-px-Leiste ausgeführt');
+assert.match(midNext,/button span\{[\s\S]*display:none!important/,'Tablet-Navigation blendet die breiten Textlabels nicht aus');
+assert.match(midNext,/\.dashboard-section-rail\{[\s\S]*display:none!important/,'Zusätzliche Tablet-Rail würde den Inhalt weiter überdecken');
+assert.match(midNext,/@media \(min-width:1400px\)\{[\s\S]*padding-left:196px!important/,'Breiter Desktop besitzt keinen getrennten Navigationsvertrag');
+
 const versionParts=String(pkg.version).split('.').map(Number);
 const minimumVersion=[0,9,84,72];
 const isAtLeastMinimum=versionParts.length===4&&versionParts.every(Number.isFinite)&&versionParts.reduce((comparison,part,index)=>comparison!==0?comparison:part-minimumVersion[index],0)>=0;
