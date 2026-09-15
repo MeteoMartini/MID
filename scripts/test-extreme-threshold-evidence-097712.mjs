@@ -27,7 +27,7 @@ assert.ok(areas.includes('metrics[`snow${levelKey}WindowHours`]'),'Contour snow 
 assert.ok(areas.includes('metrics[`wind${levelKey}Mean`]'),'Contour wind signal must use evidence of the contour intensity.');
 assert.ok(panel.includes("function evidenceSourceLabel"),'UI evidence-source label missing.');
 assert.ok(panel.includes('EPS-Streuung Akkumulation'),'Rain EPS spread must be visible in detail.');
-assert.ok(panel.includes('Überschreitungswahrscheinlichkeit'),'I/P relationship must be explicit in detail.');
+assert.ok(panel.includes('Schwellenchance'),'I/P relationship must be explicit in detail.');
 assert.ok(panel.includes("`${signal.probability} % (${signal.probabilityBand}) für ≥ I${signal.intensity}`"),'Probability must explicitly refer to the displayed I-level.');
 
 
