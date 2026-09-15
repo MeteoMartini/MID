@@ -251,14 +251,14 @@ function maximizeVisibleIndices(length:number,maxVisible:number){
 }
 const importRadarPanel=()=>import('./RadarPanel');
 const importExtremeWeatherOutlookPanel=()=>import('./ExtremeWeatherOutlookPanel');
-const LazyRadar=lazy(importRadarPanel);
+const LazyRadar=lazy(()=>import('./RadarPanel'));
 const LazyEnsembles=lazy(()=>import('./EnsemblePanel'));
 const LazyLongRange=lazy(()=>import('./LongRangePanel'));
 const LazyClimate=lazy(()=>import('./ClimatePanel'));
 const LazyWaterSports=lazy(()=>import('./WaterSportsPanel'));
 const LazyFlightMeteorology=lazy(()=>import('./FlightMeteorologyPanel'));
 const LazyWeatherMaps=lazy(()=>import('./WeatherMapsPanel'));
-const LazyExtremeWeatherOutlook=lazy(importExtremeWeatherOutlookPanel);
+const LazyExtremeWeatherOutlook=lazy(()=>import('./ExtremeWeatherOutlookPanel'));
 const LazyTravelPlanner=lazy(()=>import('./TravelPlannerPanel'));
 const LazyEventPlanner=lazy(()=>import('./EventPlannerPanel'));
 const LazyForecastVerification=lazy(()=>import('./ForecastVerificationPanel'));
