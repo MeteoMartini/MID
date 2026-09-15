@@ -1,0 +1,166 @@
+name: MID Agent Source Release
+run-name: Geprüften Agent-PR automatisch veröffentlichen
+
+on:
+  workflow_run:
+    workflows:
+      - MID ChatGPT/Codex Source-PR Gate
+    types:
+      - completed
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+concurrency:
+  group: mid-agent-source-release
+  cancel-in-progress: false
+
+jobs:
+  merge_package_dispatch:
+    name: PR mergen, Release-ZIP erzeugen und Installer starten
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Geprüften PR streng identifizieren
+        id: pr
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          pr_count="$(jq '.workflow_run.pull_requests | length' "$GITHUB_EVENT_PATH")"
+          if [ "$pr_count" != "1" ]; then
+            echo "::error::Erwartet wurde genau ein geprüfter PR, gefunden: ${pr_count}."
+            exit 1
+          fi
+          pr_number="$(jq -r '.workflow_run.pull_requests[0].number' "$GITHUB_EVENT_PATH")"
+          pr_json="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${pr_number}")"
+          state="$(jq -r '.state' <<<"$pr_json")"
+          draft="$(jq -r '.draft' <<<"$pr_json")"
+          head_branch="$(jq -r '.head.ref' <<<"$pr_json")"
+          head_repo="$(jq -r '.head.repo.full_name' <<<"$pr_json")"
+          head_sha="$(jq -r '.head.sha' <<<"$pr_json")"
+          if [ "$state" != "open" ] || [ "$draft" != "false" ]; then
+            echo "::error::Der geprüfte PR ist nicht mehr offen und merge-bereit."
+            exit 1
+          fi
+          if [ "$head_repo" != "$GITHUB_REPOSITORY" ]; then
+            echo "::error::Automatisches Merge ist ausschließlich für Branches desselben MID-Repositories erlaubt."
+            exit 1
+          fi
+          case "$head_branch" in
+            chatgpt/*|codex/*) ;;
+            *) echo "::error::Nicht autorisierter Agent-Branch: ${head_branch}"; exit 1 ;;
+          esac
+          echo "number=${pr_number}" >> "$GITHUB_OUTPUT"
+          echo "head_sha=${head_sha}" >> "$GITHUB_OUTPUT"
+
+      - name: Geprüften Agent-PR automatisch zusammenführen
+        id: merge
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          EXPECTED_HEAD_SHA: ${{ steps.pr.outputs.head_sha }}
+        run: |
+          set -euo pipefail
+          response="$(gh api --method PUT "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/merge" -f merge_method=squash -f sha="${EXPECTED_HEAD_SHA}" -f commit_title="MID Agent-Release PR #${PR_NUMBER}")"
+          if [ "$(jq -r '.merged' <<<"$response")" != "true" ]; then
+            echo "::error::GitHub hat den geprüften Agent-PR nicht zusammengeführt."
+            jq . <<<"$response"
+            exit 1
+          fi
+          echo "merge_sha=$(jq -r '.sha' <<<"$response")" >> "$GITHUB_OUTPUT"
+
+      - name: Zusammengeführten main-Stand laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Release-ZIP aus dem aktuellen main-Quellstand erzeugen und committen
+        id: package
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          make_zip() {
+            rm -f MID-professional-replacement.zip
+            python3 <<'PY'
+          import subprocess
+          from pathlib import Path
+          from zipfile import ZIP_DEFLATED, ZipFile, is_zipfile
+          out = Path('MID-professional-replacement.zip')
+          excluded_roots = {'.github', '.git', 'node_modules', 'dist'}
+          excluded_files = {'MID-professional-replacement.zip'}
+          tracked = subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0')
+          with ZipFile(out, 'w', ZIP_DEFLATED, compresslevel=9) as zf:
+              for raw in tracked:
+                  if not raw:
+                      continue
+                  path = Path(raw)
+                  if path.parts and path.parts[0] in excluded_roots:
+                      continue
+                  if path.name in excluded_files:
+                      continue
+                  if path.is_symlink():
+                      raise SystemExit(f'Symlink im Release-Quellstand unzulässig: {path}')
+                  if path.is_file():
+                      zf.write(path, path.as_posix())
+          if not is_zipfile(out):
+              raise SystemExit('Release-Paket ist kein gültiges ZIP')
+          with ZipFile(out) as zf:
+              corrupt = zf.testzip()
+              if corrupt is not None:
+                  raise SystemExit(f'Beschädigter ZIP-Eintrag: {corrupt}')
+              names = set(zf.namelist())
+              for required in ('package.json', 'package-lock.json', 'MID_BASELINE.json', 'MID_SOURCE_OF_TRUTH.md'):
+                  if required not in names:
+                      raise SystemExit(f'Release-Paket fehlt: {required}')
+              for prefix in ('src/', 'worker/', 'public/', 'ios/'):
+                  if not any(name.startswith(prefix) for name in names):
+                      raise SystemExit(f'Release-Paket fehlt: {prefix}')
+          print(f'Release-ZIP: {out.stat().st_size} Byte')
+          PY
+          }
+          pushed=false
+          for attempt in 1 2 3; do
+            git fetch --no-tags origin main
+            git reset --hard origin/main
+            make_zip
+            git add -f MID-professional-replacement.zip
+            git commit -m "Prepare MID agent release from PR #${{ steps.pr.outputs.number }}"
+            package_sha="$(git rev-parse HEAD)"
+            if git push origin HEAD:main; then
+              pushed=true
+              echo "package_sha=${package_sha}" >> "$GITHUB_OUTPUT"
+              break
+            fi
+            echo "::warning::main wurde parallel fortgeführt; Release-Paket wird aus dem neuesten main-Stand neu erzeugt (Versuch ${attempt}/3)."
+            sleep $((attempt * 2))
+          done
+          if [ "$pushed" != true ]; then
+            echo "::error::Release-Paket konnte nach drei race-sicheren Versuchen nicht nach main übertragen werden."
+            exit 1
+          fi
+
+      - name: Bewährten MID-Installer explizit starten
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh workflow run install-mid.yml --ref main
+          {
+            echo "### Automatischer MID-Release gestartet"
+            echo
+            echo "- PR: #${{ steps.pr.outputs.number }}"
+            echo "- Merge: ${{ steps.merge.outputs.merge_sha }}"
+            echo "- Release-Paket: ${{ steps.package.outputs.package_sha }}"
+            echo "- Installer: install-mid.yml via workflow_dispatch"
+          } >> "$GITHUB_STEP_SUMMARY"
