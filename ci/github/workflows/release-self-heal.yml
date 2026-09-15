@@ -1,0 +1,73 @@
+name: MID Release Self-Heal
+run-name: Temporäre Releasefehler automatisch behandeln
+
+on:
+  workflow_run:
+    workflows:
+      - Install MID release and deploy
+    types:
+      - completed
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: mid-release-self-heal-${{ github.event.workflow_run.id }}
+  cancel-in-progress: false
+
+jobs:
+  classify_and_retry:
+    name: Releasefehler klassifizieren und sicher erneut versuchen
+    if: >-
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.run_attempt < 3
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - name: Fehlgeschlagene Logs abrufen und Fehlerklasse bestimmen
+        id: classify
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          set -euo pipefail
+          gh run view "$RUN_ID" --repo "$GITHUB_REPOSITORY" --log-failed > /tmp/mid-failed.log 2>&1 || true
+          cat /tmp/mid-failed.log
+          deterministic='TS[0-9]{4}:|AssertionError|SyntaxError|ReferenceError|TypeError|Regression|Tests? failed|Test .* failed|build failed|nicht bestanden|Capacitor-iOS-Web-Bundle .* != Release|Dependency-Audit konnte|high severity|critical severity|ERESOLVE'
+          transient='ECONNRESET|ETIMEDOUT|EAI_AGAIN|ENETUNREACH|ECONNREFUSED|socket hang up|TLS handshake|temporarily unavailable|Temporary failure|HTTP (429|500|502|503|504)|status code (429|500|502|503|504)|rate limit|codeload|network timeout|upstream.*(502|503|504)|Cloudflare.*(429|500|502|503|504)|Pages.*(429|500|502|503|504)'
+          if grep -Eiq "$deterministic" /tmp/mid-failed.log; then
+            echo "retry=false" >> "$GITHUB_OUTPUT"
+            echo "reason=deterministic" >> "$GITHUB_OUTPUT"
+          elif grep -Eiq "$transient" /tmp/mid-failed.log; then
+            echo "retry=true" >> "$GITHUB_OUTPUT"
+            echo "reason=transient" >> "$GITHUB_OUTPUT"
+          else
+            echo "retry=false" >> "$GITHUB_OUTPUT"
+            echo "reason=unknown" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Nur temporär klassifizierte Fehler automatisch erneut ausführen
+        if: steps.classify.outputs.retry == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          set -euo pipefail
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/rerun-failed-jobs"
+          echo "Temporärer Releasefehler: fehlgeschlagene Jobs werden automatisch erneut ausgeführt." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Deterministische oder unbekannte Fehler sicher blockieren
+        if: steps.classify.outputs.retry != 'true'
+        shell: bash
+        run: |
+          {
+            echo "### Kein automatisches Code-Umschreiben"
+            echo
+            echo "Fehlerklasse: ${{ steps.classify.outputs.reason }}."
+            echo
+            echo "MID veröffentlicht diesen Stand nicht. Echte Build-, Test-, Typ-, Sicherheits- oder unbekannte Fehler werden absichtlich nicht blind durch CI verändert."
+          } >> "$GITHUB_STEP_SUMMARY"
