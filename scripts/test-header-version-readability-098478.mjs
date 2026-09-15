@@ -19,6 +19,7 @@ assert.match(modern,/\.settings-header \.search-stack,[\s\S]*?grid-area:search;[
 const modules=await Promise.all(['00-foundation.css','10-features.css','20-ensemble-composite.css','25-extreme-outlook.css','30-modern.css'].map(name=>read(`src/styles-src/${name}`)));
 assert.equal(aggregate,modules.join(''),'styles.css ist nicht mit den kanonischen CSS-Modulen synchron.');
 const parts=String(pkg.version).split('.').map(Number);
-assert.ok(parts.length===4&&parts[0]===0&&parts[1]===9&&parts[2]===84&&parts[3]>=78,`Release liegt vor v0.9.84.78: ${pkg.version}`);
+const minimumVersion=[0,9,84,78];
+assert.ok(parts.length===4&&parts.every(Number.isFinite)&&parts.reduce((comparison,part,index)=>comparison!==0?comparison:part-minimumVersion[index],0)>=0,`Release liegt vor v0.9.84.78: ${pkg.version}`);
 for(const key of ['requiredRegressionTests','regressionTests'])assert.ok((baseline[key]||[]).includes('scripts/test-header-version-readability-098478.mjs'),`${key} enthält den Header-Pflichtvertrag nicht.`);
 console.log('OK header version readability 098478');

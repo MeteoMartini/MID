@@ -27,7 +27,9 @@ assert.match(modern,/\.metrics article>\.current-metric-summary\{[\s\S]*-webkit-
 assert.match(modern,/#current-weather-metrics \.mode-info>button\{min-width:44px!important;min-height:44px!important\}/,'Infoziele der Istwetter-Karten sind auf Touch nicht 44 px');
 
 const versionParts=String(pkg.version).split('.').map(Number);
-assert.ok(versionParts.length===4&&versionParts[0]===0&&versionParts[1]===9&&versionParts[2]===84&&versionParts[3]>=72,`package.json liegt vor dem v0.9.84.72-Vertrag: ${pkg.version}`);
+const minimumVersion=[0,9,84,72];
+const isAtLeastMinimum=versionParts.length===4&&versionParts.every(Number.isFinite)&&versionParts.reduce((comparison,part,index)=>comparison!==0?comparison:part-minimumVersion[index],0)>=0;
+assert.ok(isAtLeastMinimum,`package.json liegt vor dem v0.9.84.72-Vertrag: ${pkg.version}`);
 for(const key of ['requiredRegressionTests','regressionTests'])assert.ok((baseline[key]||[]).includes('scripts/test-current-header-density-098472.mjs'),`${key} enthält den neuen Pflichtvertrag nicht`);
 const modules=await Promise.all(['00-foundation.css','10-features.css','20-ensemble-composite.css','25-extreme-outlook.css','30-modern.css'].map(name=>read(`src/styles-src/${name}`)));
 assert.equal(styles,modules.join(''),'styles.css ist nicht mit den kanonischen Modulen synchron');

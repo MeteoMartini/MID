@@ -41,7 +41,8 @@ const astronomyImport=app.match(/import\s*\{([^}]*)\}\s*from '\.\/astronomy';/)?
 assert.doesNotMatch(astronomyImport,/\b(?:formatDayLengthChange|formatDuration)\b/,'Nach der v0.9.84.72-Verdichtung verbleiben ungenutzte Astronomie-Imports und brechen TypeScript noUnusedLocals');
 
 const versionParts=pkg.version.split('.').map(Number);
-assert.ok(versionParts[0]===0&&versionParts[1]===9&&versionParts[2]===84&&versionParts[3]>=73,'package.json ist älter als v0.9.84.73');
+const minimumVersion=[0,9,84,73];
+assert.ok(versionParts.length===4&&versionParts.every(Number.isFinite)&&versionParts.reduce((comparison,part,index)=>comparison!==0?comparison:part-minimumVersion[index],0)>=0,'package.json ist älter als v0.9.84.73');
 for(const key of ['requiredRegressionTests','regressionTests'])assert.ok((baseline[key]||[]).includes('scripts/test-secondary-detail-popover-readability-098473.mjs'),`${key} enthält den neuen Pflichtvertrag nicht`);
 const modules=await Promise.all(['00-foundation.css','10-features.css','20-ensemble-composite.css','25-extreme-outlook.css','30-modern.css'].map(name=>read(`src/styles-src/${name}`)));
 assert.equal(styles,modules.join(''),'styles.css ist nicht mit den kanonischen Modulen synchron');

@@ -30,7 +30,7 @@ for(const token of ['<span>Kurzfrist</span>','<span>7 Tage</span>','<span>14 Tag
 
 const modules=await Promise.all(['00-foundation.css','10-features.css','20-ensemble-composite.css','25-extreme-outlook.css','30-modern.css'].map(name=>read(`src/styles-src/${name}`)));
 assert.equal(aggregate,modules.join(''),'src/styles.css ist nicht aus den kanonischen Style-Modulen synchronisiert.');
-const parts=String(pkg.version).split('.').map(Number);assert.ok(parts.length>=4&&parts[0]===0&&parts[1]===9&&parts[2]===84&&parts[3]>=81,'Release muss den Screenshot-Fix v0.9.84.81 oder neuer enthalten.');
+const parts=String(pkg.version).split('.').map(Number),minimumVersion=[0,9,84,81];assert.ok(parts.length===4&&parts.every(Number.isFinite)&&parts.reduce((comparison,part,index)=>comparison!==0?comparison:part-minimumVersion[index],0)>=0,'Release muss den Screenshot-Fix v0.9.84.81 oder neuer enthalten.');
 const test='scripts/test-mobile-header-bottom-nav-098481.mjs';
 for(const key of ['requiredRegressionTests','regressionTests'])assert.ok((baseline[key]||[]).includes(test),`${test} fehlt in ${key}.`);
 console.log('OK mobile header + bottom navigation 098481');

@@ -1,3 +1,18 @@
+# MID v0.9.85.0
+
+## MID Next · Designgrundlage
+
+- Neue, klar gegliederte Instrumentenflächen für aktuelle Werte, Prognosen, Karten und aufklappbare Module.
+- Abstände, Radien und Bedienflächen skalieren nun kontrolliert von schmalen Smartphones über Tablets im Hoch- und Querformat bis zum Desktop.
+- Die Informationsfarben für Wetter, Warnungen und Diagramme bleiben unverändert; das Design verbessert Hierarchie und Lesbarkeit, nicht die meteorologische Bedeutung.
+- Unter **Einstellungen → Ansicht & Einheiten → MID Designsystem** kann jederzeit auf **Klassisch** zurückgestellt werden. Diese Rückfalloption wird pro Gerät gespeichert.
+
+## Technische Umsetzung
+
+- Opt-in-Designschicht über `data-mid-design` mit responsiven Tokenwerten und Unterstützung für reduzierte Bewegung.
+- Keine neue Datenabfrage, keine Änderung an Zeitauflösung oder Prognoselogik; Stunden-, Tages- und Langfristansichten verwenden dieselben Datenkomponenten.
+- Release-Preflight korrigiert: historische Versionsprüfungen akzeptieren spätere Funktionsreleases; die ICON-D2-RUC-15-Minuten-Phasenachse verarbeitet ISO-Zeitwerte ohne Zeitzonensuffix verbindlich als UTC.
+
 # MID v0.9.84.105
 
 ## Extern

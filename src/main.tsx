@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './styles.css';
+import './midNext.css';
 import './v078';
 import App from './App';
 import {restorePersistentState,startPersistenceBridge} from './persistence';

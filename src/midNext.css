@@ -1,0 +1,92 @@
+/* MID Next: opt-in instrument panel layer. Meteorological colour semantics stay in the source components. */
+html[data-mid-design='next']{
+ --mid-next-surface:color-mix(in srgb,var(--surface) 94%,#f5fbff);
+ --mid-next-raised:color-mix(in srgb,var(--s2) 88%,#e9f6ff);
+ --mid-next-line:color-mix(in srgb,var(--border) 72%,var(--accent));
+ --mid-next-soft-line:color-mix(in srgb,var(--border) 88%,transparent);
+ --mid-next-accent:var(--accent);
+ --mid-next-shadow:0 16px 36px rgba(3,28,51,.10),0 2px 7px rgba(3,28,51,.06);
+ --mid-next-radius:clamp(16px,2vw,24px);
+ --mid-next-gap:clamp(10px,1.6vw,18px);
+}
+html[data-theme='dark'][data-mid-design='next']{
+ --mid-next-surface:color-mix(in srgb,var(--surface) 94%,#071c2d);
+ --mid-next-raised:color-mix(in srgb,var(--s2) 86%,#0b2940);
+ --mid-next-line:color-mix(in srgb,var(--border) 68%,#4cb8ec);
+ --mid-next-shadow:0 18px 38px rgba(0,0,0,.28),0 2px 8px rgba(0,0,0,.22);
+}
+html[data-mid-design='next'] .app{
+ background:linear-gradient(145deg,color-mix(in srgb,var(--bg) 92%,var(--mid-next-accent) 8%),var(--bg) 42%,color-mix(in srgb,var(--bg) 96%,#7fd5f7 4%));
+}
+html[data-mid-design='next'] .top.settings-header{
+ border-bottom:1px solid var(--mid-next-soft-line);
+ background:color-mix(in srgb,var(--surface) 92%,transparent);
+ box-shadow:0 8px 26px rgba(3,28,51,.05);
+}
+html[data-mid-design='next'] :is(.card,.forecast-cockpit,.event-center-shelf,.modern-map-focus-shell,.module-shell){
+ border:1px solid var(--mid-next-soft-line);
+ background:var(--mid-next-surface);
+ box-shadow:var(--mid-next-shadow);
+}
+html[data-mid-design='next'] :is(.hero.current-compact,.forecast-cockpit,.modern-map-focus-shell){
+ border-color:var(--mid-next-line);
+ border-radius:var(--mid-next-radius);
+}
+html[data-mid-design='next'] .hero.current-compact{
+ background:linear-gradient(135deg,var(--mid-next-surface),color-mix(in srgb,var(--mid-next-raised) 78%,transparent));
+}
+html[data-mid-design='next'] .module-shell-toggle{
+ background:linear-gradient(90deg,color-mix(in srgb,var(--mid-next-raised) 64%,transparent),transparent 72%);
+}
+html[data-mid-design='next'] .module-shell-toggle:not(:disabled):hover{background:color-mix(in srgb,var(--mid-next-accent) 8%,var(--mid-next-raised))}
+html[data-mid-design='next'] :is(.settings-dialog,.dashboard-section-drawer){
+ border-color:var(--mid-next-line);
+ background:var(--mid-next-surface);
+ box-shadow:0 30px 86px rgba(1,18,33,.34);
+}
+html[data-mid-design='next'] .settings-choice-grid>button{
+ border-color:var(--mid-next-soft-line);
+ background:var(--mid-next-raised);
+}
+html[data-mid-design='next'] .settings-choice-grid>button.active{
+ border-color:var(--mid-next-accent);
+ box-shadow:inset 3px 0 0 var(--mid-next-accent),0 8px 18px rgba(3,28,51,.07);
+}
+html[data-mid-design='next'] .design-system-settings{
+ margin-bottom:var(--mid-next-gap);
+ border:1px solid var(--mid-next-line);
+ background:linear-gradient(135deg,color-mix(in srgb,var(--mid-next-accent) 9%,var(--mid-next-surface)),var(--mid-next-surface));
+}
+html[data-mid-design='next'] .design-system-settings header>span{color:var(--mid-next-accent);font-weight:900;letter-spacing:.11em;text-transform:uppercase}
+html[data-mid-design='next'] .dashboard-section-quick.dashboard-bottom-tabs{
+ border-top:1px solid var(--mid-next-line);
+ background:color-mix(in srgb,var(--mid-next-surface) 96%,transparent);
+ box-shadow:0 -12px 28px rgba(3,28,51,.14);
+}
+html[data-mid-design='next'] .dashboard-bottom-tabs button.active{box-shadow:inset 0 3px 0 var(--mid-next-accent)}
+html[data-mid-design='next'] :is(.modern-forecast-horizons,.forecast-cockpit-tabs,.composite-view-tabs){
+ border:1px solid var(--mid-next-soft-line);
+ background:color-mix(in srgb,var(--mid-next-raised) 72%,transparent);
+}
+@media (min-width:700px){
+ html[data-mid-design='next'] .dashboard-section-anchor{margin-bottom:var(--mid-next-gap)}
+ html[data-mid-design='next'] :is(.card,.forecast-cockpit,.event-center-shelf,.modern-map-focus-shell,.module-shell){border-radius:var(--mid-next-radius)}
+ html[data-mid-design='next'] .settings-choice-grid:not(.three){grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (min-width:1024px){
+ html[data-mid-design='next'] .app{padding-inline:clamp(14px,2vw,34px)}
+ html[data-mid-design='next'] .dashboard-section-anchor{max-width:1480px;margin-inline:auto}
+}
+@media (max-width:480px){
+ html[data-mid-design='next'] .settings-choice-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ html[data-mid-design='next'] .settings-choice-grid>button{min-width:0;padding:12px 10px}
+ html[data-mid-design='next'] .dashboard-bottom-tabs button span{white-space:nowrap;font-size:max(9px,.65rem)}
+ html[data-mid-design='next'] .hero.current-compact{gap:8px}
+}
+@media (max-width:850px) and (orientation:landscape){
+ html[data-mid-design='next'] .top.settings-header{box-shadow:0 4px 15px rgba(3,28,51,.07)}
+ html[data-mid-design='next'] .dashboard-section-quick.dashboard-bottom-tabs{box-shadow:0 -6px 16px rgba(3,28,51,.13)}
+}
+@media (prefers-reduced-motion:reduce){
+ html[data-mid-design='next'] *{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}
+}
