@@ -22,19 +22,21 @@ const summaryFields=[
  {name:'precipitation_q75',scale:.01,offset:0,value:.65}
 ];
 const i16Record=(specs)=>{const b=new ArrayBuffer(times.length*specs.length*2),v=new DataView(b);for(let t=0;t<times.length;t++)for(let f=0;f<specs.length;f++)v.setInt16((t*specs.length+f)*2,Math.round(specs[f].value/specs[f].scale),true);return b};
-const det=i16Record(fields),epsSummary=i16Record(summaryFields);
+const det=i16Record(fields),epsSummary=i16Record(summaryFields),rapidFields=[{name:'precipitation',scale:.01,offset:0,value:.3},{name:'cape',scale:.1,offset:0,value:1000},{name:'convective_inhibition',scale:.1,offset:0,value:30}],rapid=i16Record(rapidFields);
 const members=20,eps=new ArrayBuffer(times.length*members*2),ev=new DataView(eps);for(let t=0;t<times.length;t++)for(let m=0;m<members;m++)ev.setUint16((t*members+m)*2,m<15?50:0,true); // 0.50 mm for 75% of members
 const lookup=new Uint8Array(4);new DataView(lookup.buffer).setUint32(0,0,true);
 const run='x'+now.toISOString().replace(/[^0-9]/g,'').slice(0,10),prefix=`runs/${run}`;
-const meta={schema:'mid.dwd.ruc.grid.v2',run:now.toISOString(),times,pointCount:1,grid:{latMin:50,lonMin:7,dx:.025,dy:.025,nx:1,ny:1},lookup:{key:`${prefix}/lookup.bin`},deterministic:{key:`${prefix}/deterministic.bin`,recordBytes:det.byteLength,fields},epsSummary:{key:`${prefix}/eps-summary.bin`,recordBytes:epsSummary.byteLength,fields:summaryFields,thresholdsMm:{wet:.2,significant:5}},eps:{key:`${prefix}/eps-members.bin`,recordBytes:eps.byteLength,memberCount:members,scale:.01}};
+const meta={schema:'mid.dwd.ruc.grid.v2',run:now.toISOString(),times,pointCount:1,grid:{latMin:50,lonMin:7,dx:.025,dy:.025,nx:1,ny:1},lookup:{key:`${prefix}/lookup.bin`},deterministic:{key:`${prefix}/deterministic.bin`,recordBytes:det.byteLength,fields},rapid:{convection15:{key:`${prefix}/rapid-convection-15m.bin`,recordBytes:rapid.byteLength,fields:rapidFields,times}},epsSummary:{key:`${prefix}/eps-summary.bin`,recordBytes:epsSummary.byteLength,fields:summaryFields,thresholdsMm:{wet:.2,significant:5}},eps:{key:`${prefix}/eps-members.bin`,recordBytes:eps.byteLength,memberCount:members,scale:.01}};
 const bytes=x=>new Uint8Array(x instanceof ArrayBuffer?x:x.buffer,x.byteOffset??0,x.byteLength??x.length);
-context.__reads={latest:0,lookup:0,det:0,summary:0,members:0};
-context.__bucket={async get(key,options){let data;if(key==='latest.json'){context.__reads.latest++;data=new TextEncoder().encode(JSON.stringify(meta))}else if(key===`${prefix}/lookup.bin`){context.__reads.lookup++;data=lookup}else if(key.endsWith('deterministic.bin')){context.__reads.det++;data=bytes(det)}else if(key.endsWith('eps-summary.bin')){context.__reads.summary++;data=bytes(epsSummary)}else if(key.endsWith('eps-members.bin')){context.__reads.members++;data=bytes(eps)}else return null;const range=options?.range;if(range)data=data.slice(range.offset,range.offset+range.length);return{text:async()=>new TextDecoder().decode(data),arrayBuffer:async()=>data.buffer.slice(data.byteOffset,data.byteOffset+data.byteLength)}}};
+context.__reads={latest:0,lookup:0,det:0,rapid:0,summary:0,members:0};
+context.__bucket={async get(key,options){let data;if(key==='latest.json'){context.__reads.latest++;data=new TextEncoder().encode(JSON.stringify(meta))}else if(key===`${prefix}/lookup.bin`){context.__reads.lookup++;data=lookup}else if(key.endsWith('deterministic.bin')){context.__reads.det++;data=bytes(det)}else if(key.endsWith('rapid-convection-15m.bin')){context.__reads.rapid++;data=bytes(rapid)}else if(key.endsWith('eps-summary.bin')){context.__reads.summary++;data=bytes(epsSummary)}else if(key.endsWith('eps-members.bin')){context.__reads.members++;data=bytes(eps)}else return null;const range=options?.range;if(range)data=data.slice(range.offset,range.offset+range.length);return{text:async()=>new TextDecoder().decode(data),arrayBuffer:async()=>data.buffer.slice(data.byteOffset,data.byteOffset+data.byteLength)}}};
 context.__env={MID_DWD_RUC_DATA:context.__bucket};
 context.__model={id:'icon_d2_ruc',label:'DWD ICON-D2-RUC',family:'dwd-icon-ruc',maxHours:14,rapidUpdate:true};
 context.__p=await call('dwdRucR2PointPayload(50,7,__env)');if(!context.__p)throw new Error('R2 deterministic payload unavailable');
+if(!Array.isArray(context.__p.rapid?.convection15?.cape)||context.__reads.rapid!==1)throw new Error('R2 payload did not preserve native rapid parameters');
 context.__parsed=await call("parseDwdRucPointPayload(__p,__model,'test')");
 if(!context.__parsed.successful||context.__parsed.hours.length<6)throw new Error('RUC hourly parser rejected valid R2 data');
+if(!Array.isArray(context.__parsed.rapid?.convection15?.precipitation))throw new Error('RUC parser discarded native rapid parameters');
 const first=context.__parsed.hours[0];for(const key of ['temperature','dewPoint','pressure','wind','gust','direction','precipitation','cloud','lowCloud','humidity','cape','convectiveInhibition'])if(!Number.isFinite(first[key]))throw new Error(`RUC physical field missing: ${key}`);
 
 // Normal forecast path must read the preaggregated EPS summary and must NOT touch native members.

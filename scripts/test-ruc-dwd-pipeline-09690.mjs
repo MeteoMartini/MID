@@ -8,7 +8,7 @@ const must=(condition,message)=>{if(!condition)throw new Error(message)};
 must(worker.includes("bbox:[-3.85,43.18,20.22,58.05]"),'RUC must use verified DWD domain');
 must(worker.includes("meta.schema!=='mid.dwd.ruc.grid.v2'"),'Worker must reject other RUC wire schemas');
 must(worker.includes('Date.now()-stamp<=4*3600000'),'Worker must reject stale RUC products');
-must(worker.includes('dwdRucR2PointPayload')&&worker.includes('dwdRucEpsSummaryR2Payload')&&worker.includes('dwdRucEpsR2Payload'),'Optional R2 deterministic, preaggregated EPS and native-event EPS adapters required');
+must(worker.includes('dwdRucR2PointPayload')&&worker.includes('dwdRucR2RapidPayload')&&worker.includes('dwdRucEpsSummaryR2Payload')&&worker.includes('dwdRucEpsR2Payload'),'Optional R2 deterministic, full rapid-parameter, preaggregated EPS and native-event EPS adapters required');
 must(worker.includes('dwdRucStaticPointPayload')&&worker.includes('dwdRucEpsSummaryStaticPayload')&&worker.includes("pages-free-v1"),'Free GitHub Pages deterministic and preaggregated EPS adapters required');
 must(worker.includes('dwdRucStorageHealth')&&worker.includes("DWD_RUC_STATIC_DEFAULT='https://midwx.app/ruc/'"),'Backend-neutral RUC health/static default missing');
 must(worker.includes("aggregation:'preprocessed'")&&worker.includes("aggregation:'native-members-event-only'"),'Normal EPS path must use preaggregation and native members only for event path');
