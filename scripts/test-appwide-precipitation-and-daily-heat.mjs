@@ -22,7 +22,7 @@ for(const token of [
 for(const token of [
  'currentPrecip=precipitationParts({',
  'currentWeatherCode=currentPrecip.displayCode',
- '<WeatherPictogram code={currentWeatherCode} intensity={currentPictogramIntensity} phenomenon={currentObservedPhenomenon??currentPrecip.phenomenon} day={currentIsDay}',
+ '<WeatherPictogram code={currentWeatherCode} intensity={currentPictogramIntensity} phenomenon={currentObservedPhenomenon??reconciledCurrentPrecip.phenomenon} day={currentIsDay}',
  '<b>{currentWeatherLabel}</b>',
  'function mountainPrecipitationParts',
  'parts=mountainPrecipitationParts(source)',
@@ -31,7 +31,7 @@ for(const token of [
  'hz=dailyHazards(d,hours,elevation,unit,1)',
  'hz:strongestDailyHazards(widgetAutomaticHazardsForDay(d.date,automaticWidgetHazards,timezone))'
 ])if(!app.includes(token))failures.push(`Appweite Plausibilisierung/Warnlogik fehlt: ${token}`);
-const presentWeatherPriorityProtected=app.includes('currentObservedPictogram=currentObservedPhenomenon?synopticPhenomenonPictogram(currentObservedPhenomenon):null')&&app.includes('currentPictogramIntensity=currentObservedPictogram?.intensity??')&&app.includes('currentObservedWeatherCode!==undefined?weatherPictogramIntensity(currentObservedWeatherCode):currentPrecip.intensity');
+const presentWeatherPriorityProtected=app.includes('currentObservedPictogram=currentObservedPhenomenon?synopticPhenomenonPictogram(currentObservedPhenomenon):null')&&app.includes('currentPictogramIntensity=currentObservedPictogram?.intensity??')&&app.includes('currentObservedWeatherCode!==undefined?weatherPictogramIntensity(currentObservedWeatherCode):reconciledCurrentPrecip.intensity');
 if(!presentWeatherPriorityProtected)failures.push('Aktuelles Wetter muss Present-Weather-Intensität und Piktogramm gemeinsam priorisieren.');
 for(const token of ['temperature:hour.temperature','const displayCode=precipitation.displayCode'])if(!route.includes(token))failures.push(`Routenwetter nicht zentral plausibilisiert: ${token}`);
 for(const token of ["from './precipitation';",'precipitationParts','precipitationAmountLabel','const part=precipitationParts({',"snowGrains:{short:'SG'",'cloud_cover_low'])if(!meteogram.includes(token))failures.push(`Meteogramm nicht zentral plausibilisiert: ${token}`);
