@@ -24,7 +24,7 @@ for(const token of [
  '<strong>Benachrichtigungen</strong>',
  '<strong>Favoriten & Profile</strong>',
  '<strong>Wetterzwilling</strong>',
- "!['current','warnings','short-term','forecast','ensemble','composite'].includes(id)",
+ "!['current','short-term','forecast','ensemble','composite'].includes(id)",
  "navigationMode==='bottom-tabs'&&id===modernPlannerAnchor?<ModernPlannerHub",
  "dashboard-planner-section${navigationMode==='bottom-tabs'?' modern-planner-section':''}"
 ])assert.ok(app.includes(token),`Planen/Mehr-Vertrag fehlt: ${token}`);

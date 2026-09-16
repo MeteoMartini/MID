@@ -16,7 +16,7 @@ assert.ok(app.includes("const navigationMode:NavigationMode='bottom-tabs'"),'kan
 assert.ok(app.includes("dashboard-section-nav-list ${variant}${modernDrawer?' progressive':''}"),'Beta-Mehr-Menü muss seine seltenen Bereiche progressiv offenlegen.');
 assert.ok(app.includes('<details key={group.id}'),'Seltene Beta-Bereiche dürfen erst nach Aufruf sichtbar werden.');
 assert.ok(app.includes("{id:'composite',label:'Karten'"),'Karten muss als direktes Bottom-Bar-Primärziel erreichbar sein.');
-assert.ok(app.includes("!['current','warnings','short-term','forecast','ensemble','composite'].includes(id)"),'Übrige Fachmodule müssen weiterhin über Mehr erreichbar bleiben.');
+assert.ok(app.includes("!['current','short-term','forecast','ensemble','composite'].includes(id)"),'Übrige Fachmodule müssen weiterhin über Mehr erreichbar bleiben; Warnungen sind über den Ortskopf direkt erreichbar.');
 
 for(const token of [
  'focusMode=false',

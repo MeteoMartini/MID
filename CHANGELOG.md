@@ -1,3 +1,12 @@
+# MID v0.9.85.13
+
+## MID-C3 · Schritt 1: klare Hauptnavigation und Warnstatus
+
+- Die schwebende Hauptnavigation führt auf kompakten Geräten jetzt mit fünf eindeutigen Zielen: **Aktuell · Heute · Vorhersage · Karten · Mehr**.
+- Warnungen nehmen keinen gleichwertigen Tabplatz mehr ein, bleiben aber als gut sichtbarer, jederzeit antippbarer Status direkt im Ortskopf erreichbar.
+- Der Status unterscheidet amtliche Warnungen, MID-Hinweise, eine ruhige Entwarnungslage und eine Störung der amtlichen Quelle. Eine Störung wird nie als „keine Warnlage“ ausgegeben.
+- **Heute** öffnet die kanonische Kurzfristansicht; **Vorhersage** führt in den passenden zuletzt verwendeten Prognosehorizont. Wetterdaten, Warnlogik, Radarfarben, Favoriten und Einheiten bleiben unverändert.
+
 # MID v0.9.85.0
 
 ## MID Next · Designgrundlage
