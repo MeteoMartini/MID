@@ -6,9 +6,10 @@ function finite(value:unknown){const number=Number(value);return Number.isFinite
 function currentNumber(current:Weather['current'],key:string){return finite(current[key])}
 function stationWindKnots(value:number|undefined,unit:Station['windUnit']){const number=finite(value);return number===undefined?undefined:unit==='kmh'?number/1.852:number}
 function observedSkyCode(fallback:number,cloud:number|undefined,lowCloud:number|undefined,visibility:number|undefined,humidity:number|undefined,temperature:number|undefined){
- const code=Math.round(Number(fallback)||0),vis=Number(visibility),hum=Number(humidity),temp=Number(temperature),cover=Math.max(Number(cloud)||0,Number(lowCloud)||0);
+ const code=Math.round(Number(fallback)||0),vis=Number(visibility),hum=Number(humidity),temp=Number(temperature),covers=[cloud,lowCloud].map(value=>value===null||value===undefined||String(value).trim()===''?Number.NaN:Number(value)).filter(Number.isFinite),cover=covers.length?Math.max(...covers):Number.NaN;
  if(Number.isFinite(vis)&&vis<=1000&&Number.isFinite(hum)&&hum>=92)return Number.isFinite(temp)&&temp<=0?48:45;
  if((code===45||code===48)&&Number.isFinite(vis)&&vis<=2500)return code;
+ if(!Number.isFinite(cover))return 2;
  if(cover>=87.5)return 3;if(cover>=37.5)return 2;if(cover>=12.5)return 1;return 0;
 }
 

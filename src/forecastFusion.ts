@@ -444,7 +444,7 @@ function localAssimilatedValue(observed:number|undefined,modelNow:number|undefin
 function localAssimilatedDirection(observed:number|undefined,modelNow:number|undefined,base:number,offsetMinutes:number){const anchor=Number(observed),model=Number(modelNow);if(!Number.isFinite(anchor)||!Number.isFinite(model)||!Number.isFinite(base))return((Number(base)||0)%360+360)%360;const correction=((anchor-model+540)%360)-180;return((base+correction*localAdjustmentWeight(offsetMinutes,90))%360+360)%360}
 function localPrecipitationCode(code:number){const rounded=Math.round(Number(code)||0);return rounded>=51&&rounded<=99}
 function localObservedSkyCode(fallback:number,cloud:number|undefined,lowCloud:number|undefined,visibility:number|undefined,humidity:number|undefined,temperature:number|undefined){
- const code=Math.round(Number(fallback)||0),vis=Number(visibility),hum=Number(humidity),temp=Number(temperature),cover=Math.max(Number(cloud)||0,Number(lowCloud)||0);if(Number.isFinite(vis)&&vis<=1000&&Number.isFinite(hum)&&hum>=92)return Number.isFinite(temp)&&temp<=0?48:45;if((code===45||code===48)&&Number.isFinite(vis)&&vis<=2500)return code;if(cover>=87.5)return 3;if(cover>=37.5)return 2;if(cover>=12.5)return 1;return 0
+ const code=Math.round(Number(fallback)||0),vis=Number(visibility),hum=Number(humidity),temp=Number(temperature),covers=[cloud,lowCloud].map(value=>value===null||value===undefined||String(value).trim()===''?Number.NaN:Number(value)).filter(Number.isFinite),cover=covers.length?Math.max(...covers):Number.NaN;if(Number.isFinite(vis)&&vis<=1000&&Number.isFinite(hum)&&hum>=92)return Number.isFinite(temp)&&temp<=0?48:45;if((code===45||code===48)&&Number.isFinite(vis)&&vis<=2500)return code;if(!Number.isFinite(cover))return 2;if(cover>=87.5)return 3;if(cover>=37.5)return 2;if(cover>=12.5)return 1;return 0
 }
 function localReconciledWeatherCode(forecastCode:number,anchorCode:number|undefined,cloud:number,lowCloud:number,visibility:number,humidity:number,temperature:number,precipitation:number,probability:number,offsetMinutes:number,localAdjustment:number){
  const raw=Math.round(Number(forecastCode)||0),observed=Math.round(Number(anchorCode));if(raw===98)return raw;if([95,96,97,99].includes(raw)&&probability>=30)return raw;if(precipitation>=.01||(localPrecipitationCode(raw)&&probability>=30))return raw;if(localPrecipitationCode(raw)&&probability<30)return localObservedSkyCode(Number.isFinite(observed)?observed:raw,cloud,lowCloud,visibility,humidity,temperature);if(localAdjustment<=0)return raw;if(Number.isFinite(observed)&&localPrecipitationCode(observed)&&offsetMinutes<=30)return observed;return localObservedSkyCode(Number.isFinite(observed)?observed:raw,cloud,lowCloud,visibility,humidity,temperature)
@@ -605,12 +605,12 @@ function precipitationWeatherCode(code:number){const value=Math.round(Number(cod
 function forecastIntervalDaylightSeconds(epoch:number,intervalSeconds:number,sunriseEpoch?:number,sunsetEpoch?:number){if(!Number.isFinite(sunriseEpoch)||!Number.isFinite(sunsetEpoch)||Number(sunsetEpoch)<=Number(sunriseEpoch))return undefined;const start=epoch-Math.max(60,intervalSeconds)*1000;return Math.max(0,(Math.min(epoch,Number(sunsetEpoch))-Math.max(start,Number(sunriseEpoch)))/1000)}
 function drySkyCode(hour:Hour){
  const code=Math.round(Number(hour.code));if([45,48].includes(code))return code;
- const cloud=Number(hour.cloud);if(!Number.isFinite(cloud))return hour.isDay?2:1;
+ const cloudValue=hour.cloud,cloud=cloudValue===null||cloudValue===undefined||String(cloudValue).trim()===''?Number.NaN:Number(cloudValue);if(!Number.isFinite(cloud))return hour.isDay?2:1;
  if(cloud<=15)return 0;if(cloud<=45)return 1;if(cloud<=80)return 2;return 3;
 }
 function dryMinute15SkyCode(row:Minute15,reference:Hour|undefined){
  const code=Math.round(Number(reference?.code??row.code));if([45,48].includes(code))return code;
- const cloud=Number(reference?.cloud),isDay=row.isDay??reference?.isDay??true;
+ const cloudValue=reference?.cloud,cloud=cloudValue===null||cloudValue===undefined||String(cloudValue).trim()===''?Number.NaN:Number(cloudValue),isDay=row.isDay??reference?.isDay??true;
  if(!Number.isFinite(cloud))return isDay?2:1;
  if(cloud<=15)return 0;if(cloud<=45)return 1;if(cloud<=80)return 2;return 3;
 }
@@ -664,11 +664,15 @@ function convectivePersistenceFactor(hour:Hour,blend:RadarTargetBlend,leadMinute
 function refineOperationalRadarBlend(hour:Hour,radar:RadarNowcast,blend:RadarTargetBlend,leadMinutes:number){
  if(blend.mode==='dry')return blend;
  const layer=groundLayerState(hour),
-  lowCloud=clamp(Number(hour.lowCloud)||0,0,100),
-  cloud=clamp(Number(hour.cloud)||0,0,100),
+  lowCloudValue=hour.lowCloud,
+  cloudValue=hour.cloud,
+  lowCloudRaw=lowCloudValue===null||lowCloudValue===undefined||String(lowCloudValue).trim()===''?Number.NaN:Number(lowCloudValue),
+  cloudRaw=cloudValue===null||cloudValue===undefined||String(cloudValue).trim()===''?Number.NaN:Number(cloudValue),
+  lowCloud=Number.isFinite(lowCloudRaw)?clamp(lowCloudRaw,0,100):Number.NaN,
+  cloud=Number.isFinite(cloudRaw)?clamp(cloudRaw,0,100):Number.NaN,
   snowAware=Math.max(0,Number(hour.snowfall)||0)>.01||Number(hour.temperature)<=1,
   lowCloudBonus=lowCloud>=65?.05:cloud>=88?.03:0,
-  evaporationGuard=layer.state==='very-dry'&&lowCloud<25&&cloud<60&&!snowAware ? .92 : 1,
+  evaporationGuard=layer.state==='very-dry'&&Number.isFinite(lowCloud)&&Number.isFinite(cloud)&&lowCloud<25&&cloud<60&&!snowAware ? .92 : 1,
   rateConfidenceGuard=radar.rateUncertain ? .92 : radar.rateApproximate ? .96 : 1,
   groundFactor=clamp(layer.saturation+lowCloudBonus,snowAware ? .62 : .55,1),
   persistenceFactor=convectivePersistenceFactor(hour,blend,leadMinutes),

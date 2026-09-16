@@ -1,3 +1,10 @@
+# MID v0.9.85.22
+
+## MID-C6 · fehlend ist nicht klar
+
+- Fehlende Wolken- oder Tiefwolkenwerte werden in Vorwärtsintervallen, kurzzeitiger Ortsanpassung und der zentralen Nowcast-/RUC-Endstufe nicht mehr als 0 % Bewölkung gelesen. Ohne belastbare Wolkeninformation bleibt die trockene Darstellung neutral statt einen klaren Himmel zu behaupten.
+- Die operative Radar-Mengenanpassung wendet ihren Trockenluft-Abschlag nur noch bei tatsächlich vorhandener niedriger und Gesamtbewölkung an. Fehlende Wolkenfelder erzeugen damit weder eine zusätzliche Entwarnung noch Niederschlag.
+
 # MID v0.9.85.21
 
 ## MID-C6 · 90-Minuten-Nowcast und RUC-Abgleich

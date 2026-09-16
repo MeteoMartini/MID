@@ -20,8 +20,12 @@ function precipitationCode(code:number){return [50,51,52,53,54,55,56,57,58,59,60
 function drySkyCode(hour:Hour){
  const code=Math.round(Number(hour.code)||0);
  if(code===45||code===48||!precipitationCode(code))return code;
- const visibility=Number(hour.visibility),humidity=Number(hour.humidity),temperature=Number(hour.temperature),cloud=Math.max(0,Math.min(100,Number(hour.cloud)||0));
+ const visibility=Number(hour.visibility),humidity=Number(hour.humidity),temperature=Number(hour.temperature),cloudValue=hour.cloud,cloudRaw=cloudValue===null||cloudValue===undefined||String(cloudValue).trim()===''?Number.NaN:Number(cloudValue),cloud=Number.isFinite(cloudRaw)?Math.max(0,Math.min(100,cloudRaw)):Number.NaN;
  if(Number.isFinite(visibility)&&visibility<=1000&&Number.isFinite(humidity)&&humidity>=92)return Number.isFinite(temperature)&&temperature<=0?48:45;
+ // Fehlende Wolkenbeobachtung ist kein Klarhimmel-Signal. Der neutrale
+ // Bewölkungs-Code verhindert, dass ein trockener Intervallschutz die Lage
+ // gleichzeitig als "klar" behauptet.
+ if(!Number.isFinite(cloud))return 2;
  if(cloud<12.5)return 0;
  if(cloud<37.5)return 1;
  if(cloud<75)return 2;
