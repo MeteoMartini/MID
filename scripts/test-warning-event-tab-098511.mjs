@@ -9,6 +9,6 @@ const [app,css,extreme]=await Promise.all([
 
 for(const token of ['function WarningEventTab(','warningEventIsRelevant(','warning-event-tab','warning-event-track','official-warning-${a.id}','mid-warning-${id}','warmCompositePanel','warmExtremeWeatherOutlook'])assert.ok(app.includes(token),`Warnereignis-Vertrag fehlt: ${token}`);
 for(const token of ['.warning-event-tab','.warning-event-track','.warning-event-row','.warning-event-origin'])assert.ok(css.includes(token),`Warnereignis-Stil fehlt: ${token}`);
-assert.ok(extreme.includes('Schwellenchance'),'Kompakte Bezeichnung für die I-Stufen-Wahrscheinlichkeit fehlt.');
+assert.ok(extreme.includes('Eintrittswahrscheinlichkeit'),'Kompakte Bezeichnung für die I-Stufen-Wahrscheinlichkeit fehlt.');
 assert.ok(!extreme.includes('Überschreitungswahrscheinlichkeit {displayProbability} %'),'Die lange UI-Bezeichnung darf nicht mehr in der Regionskarte stehen.');
 console.log('warning event tab contract ok');
