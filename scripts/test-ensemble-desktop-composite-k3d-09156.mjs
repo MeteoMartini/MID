@@ -31,7 +31,9 @@ assert.match(worker,/uncertainty_ellipse/,'KONRAD3D uncertainty ellipse is not p
 assert.match(worker,/uncertaintyOrientationDeg/,'KONRAD3D ellipse angle is not exposed');
 assert.match(weather,/uncertaintyOrientationDeg\?:number/,'frontend KONRAD3D type misses ellipse angle');
 assert.match(radar,/function resolvedKonradTrack\(/,'KONRAD3D track resolver missing');
-assert.match(radar,/for\(let minutes=5;minutes<=60;minutes\+=5\)/,'KONRAD3D vector fallback must create a 5-minute track through +60 minutes');
+assert.match(radar,/trackQuality\?:'official'\|'insufficient'/,'KONRAD3D must suppress a route without an official multi-point association');
+assert.match(radar,/explicit\.some\(point=>\(point as KonradTrackPoint&\{derived\?:boolean\}\)\.derived\)/,'derived place-routing points must never reappear as a map trajectory');
+assert.match(worker,/cell\.trackQuality!=='official'\)return\{\.\.\.cell,trackForecasts/,'unverified K3D cells must not produce projected affected places');
 assert.match(radar,/konradForecastCorridor/,'KONRAD3D uncertainty corridor missing');
 assert.match(radar,/konrad-uncertainty-ellipse/,'KONRAD3D uncertainty ellipses missing');
 assert.match(radar,/konrad-forecast-node/,'KONRAD3D forecast nodes missing');
@@ -50,5 +52,6 @@ assert.equal(cells.length,1,'official KONRAD3D sample cell not parsed');
 assert.deepEqual(Array.from(cells[0].trackForecasts,point=>point.minutes),[5,10,15,60],'all official 5-minute forecast positions must survive parsing');
 assert.equal(cells[0].trackForecasts[0].uncertaintyOrientationDeg,82,'uncertainty ellipse angle lost');
 assert.ok(cells[0].motionDirectionDeg>=0&&cells[0].motionDirectionDeg<360,'track direction not derived');
+assert.equal(cells[0].trackQuality,'official','multi-point KONRAD3D projections must be marked as official');
 
 console.log('MID v0.9.15.6 desktop ensemble and composite/KONRAD3D regression passed.');
