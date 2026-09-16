@@ -754,8 +754,12 @@ async function stationUncached(lat:number,lon:number,country?:string,elevation?:
  if(!workerStationsAvailable&&geoSphereApplies(lat,lon,c))tasks.push(geoSphereStation(lat,lon,elevation,signal));
  if(fast&&workerStationsAvailable&&inGermany)tasks.push(brightSkyStation(lat,lon,elevation,signal));
  if(!workerStationsAvailable&&inGermany)tasks.push(brightSkyStation(lat,lon,elevation,signal));
- const settled=await Promise.allSettled(tasks);let results=settled.filter((x):x is PromiseFulfilledResult<Station[]|Station|null>=>x.status==='fulfilled').flatMap(x=>Array.isArray(x.value)?x.value:x.value?[x.value]:[]);
- if(workerStationsAvailable){const fallbacks:Promise<Station|null>[]=[];if(geoSphereApplies(lat,lon,c)&&!results.some(item=>/geosphere/i.test(String(item.provider||''))))fallbacks.push(geoSphereStation(lat,lon,elevation,signal));if(inGermany&&!results.some(item=>/dwd synop|dwd open data|bright sky/i.test(String(item.provider||''))))fallbacks.push(brightSkyStation(lat,lon,elevation,signal));if(fallbacks.length){const extra=await Promise.allSettled(fallbacks);results=[...results,...extra.filter((item):item is PromiseFulfilledResult<Station|null>=>item.status==='fulfilled').flatMap(item=>item.value?[item.value]:[])]}}
+ const completed:(Station[]|Station|null)[]=[],observedTasks=tasks.map(task=>task.then(value=>{completed.push(value);return value})),settled=Promise.allSettled(observedTasks);
+ // Nach 1,6 s wird ein bereits vorliegender amtlicher Punktstand sichtbar. Der
+ // anschließende Full-Pass bleibt die alleinige Quelle für die teurere Restfeldanalyse.
+ if(fast)await Promise.race([settled,new Promise<void>(resolve=>setTimeout(resolve,1600))]);else await settled;
+ let results=completed.flatMap(value=>Array.isArray(value)?value:value?[value]:[]);
+ if(workerStationsAvailable&&!fast){const fallbacks:Promise<Station|null>[]=[];if(geoSphereApplies(lat,lon,c)&&!results.some(item=>/geosphere/i.test(String(item.provider||''))))fallbacks.push(geoSphereStation(lat,lon,elevation,signal));if(inGermany&&!results.some(item=>/dwd synop|dwd open data|bright sky/i.test(String(item.provider||''))))fallbacks.push(brightSkyStation(lat,lon,elevation,signal));if(fallbacks.length){const extra=await Promise.allSettled(fallbacks);results=[...results,...extra.filter((item):item is PromiseFulfilledResult<Station|null>=>item.status==='fulfilled').flatMap(item=>item.value?[item.value]:[])]}}
  if(!results.length)return null;
  // Fast- und Full-Pass besitzen absichtlich getrennte Antwortcaches, weil nur der
  // Full-Pass optionale private/professionelle Netze ergänzt. Dadurch darf aber ein
