@@ -1,3 +1,11 @@
+# MID v0.9.85.23
+
+## MID-C7 · fokussierte Arbeitsbereiche
+
+- MID Next startet bei **Aktuell** mit einer verdichteten Übersicht. Weitere Messwerte bleiben über **Mehr** jederzeit verfügbar und die persönliche Wahl wird wie bisher auf dem Gerät gespeichert.
+- **Vorhersage**, **Karten** und **Planen** besitzen nun jeweils eine eigene sichtbare Arbeitsfläche. Die Horizontleiste erscheint nur in der Vorhersage; Planer-Inhalte erscheinen nur im Planen-Bereich.
+- Die Navigation bleibt auf Desktop, Tablet und Smartphone vollständig erreichbar. Insbesondere wird die Desktop-Leiste nicht mehr aus dem sichtbaren Bereich verschoben.
+
 # MID v0.9.85.22
 
 ## MID-C6 · fehlend ist nicht klar

@@ -10,7 +10,7 @@ const failures=[];
 const need=(area,text,token)=>{if(!text.includes(token))failures.push(`${area}: ${token}`)};
 
 for(const token of [
- "localStorage.getItem('mid:current-metrics-open')!=='0'",
+ "localStorage.getItem('mid:current-metrics-open')==='1'",
  "localStorage.setItem('mid:current-metrics-open',metricsOpen?'1':'0')",
  'className="current-metrics-toggle"',
  'aria-expanded={metricsOpen}',
