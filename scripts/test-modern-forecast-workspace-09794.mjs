@@ -17,7 +17,7 @@ for(const token of [
  'useState<ModernForecastHorizon>(readModernForecastHorizon)',
  'localStorage.setItem(MODERN_FORECAST_HORIZON_STORAGE_KEY,modernForecastHorizon)',
  'forecastTarget:DashboardModuleId',
- "const forecastCandidateSource:DashboardModuleId[]=[forecastTarget,'short-term','forecast','ensemble','long-range'],forecastCandidates=forecastCandidateSource.filter",
+ "const forecastCandidateSource:DashboardModuleId[]=[forecastTarget,'forecast','ensemble','long-range'],forecastCandidates=forecastCandidateSource.filter",
  "workspaceMode={navigationMode==='bottom-tabs'}",
  "if(dashboardModuleSettings.enabled[module])return",
  "const fallback:ModernForecastHorizon=dashboardModuleSettings.enabled['short-term']?'90m':dashboardModuleSettings.enabled.forecast?'7d':dashboardModuleSettings.enabled.ensemble?'14d':'46d'",

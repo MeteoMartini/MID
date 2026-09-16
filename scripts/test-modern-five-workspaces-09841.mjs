@@ -1,8 +1,8 @@
 import fs from 'node:fs';
 const app=fs.readFileSync('src/App.tsx','utf8'),css=fs.readFileSync('src/styles-src/30-modern.css','utf8');
 const checks=[
- ['six primary labels', ['Aktuell','Warnungen','Kurzfrist','7 Tage','Karten','Mehr'].every(value=>app.includes(value))],
- ['current and warnings are direct and not duplicated in more', app.includes("!['current','warnings','short-term','forecast','ensemble','composite'].includes(id)")&&app.includes("{id:'current',label:'Aktuell'")&&app.includes("{id:'warnings',label:'Warnungen'")],
+ ['five primary labels', ['Aktuell','Heute','Vorhersage','Karten','Mehr'].every(value=>app.includes(value))],
+ ['warning status is direct while the full warning module remains under more', app.includes("!['current','short-term','forecast','ensemble','composite'].includes(id)")&&app.includes("{id:'current',label:'Aktuell'")&&app.includes('place-warning-status')],
  ['restorable section contract', app.includes("RESTORABLE_DASHBOARD_SECTIONS:DashboardModuleId[]=['current','warnings','extreme-outlook','ventilation'")],
  ['progressive expert navigation', app.includes('modernMoreGroups')&&app.includes("variant==='drawer'")],
  ['modern module focus rendering', app.includes("if(navigationMode==='bottom-tabs')")&&app.includes('if(!visible)return null;')],
