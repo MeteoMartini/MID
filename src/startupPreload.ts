@@ -40,19 +40,19 @@ export function beginStartupDashboardPreload(){
  active?.abort();
  const ensemble=wantsStartupEnsemble(),timeZone=location.timezone||(location.autolocated?Intl.DateTimeFormat().resolvedOptions().timeZone:undefined);
  const forecastRequest=startupRequest(STARTUP_PRELOAD_FORECAST_TIMEOUT_MS,signal=>forecast(location.latitude,location.longitude,signal,{priority:'foreground',forceFresh:false,timeZone,elevation:location.elevation}));
- // Kritische Daten zuerst: Prognose startet sofort, Fast-Observation nach 35 ms und
- // Radar-/Niederschlagsabgleich kurz danach. Hyperlokale Vollanalyse, Ensemble und
- // nichtkritische UI-Chunks werden gestaffelt parallelisiert, damit mobile Verbindungen
- // nicht durch einen Start-Burst ausgebremst werden. Die Datenbasis bleibt unverändert.
- const stationRequest=startupRequest(STARTUP_PRELOAD_STATION_TIMEOUT_MS,async signal=>{await delay(35);if(signal.aborted)throw signal.reason;return station(location.latitude,location.longitude,location.country_code||location.country,location.elevation,location,signal,true,false)});
+ // Hyperlokale Beobachtungen konkurrieren nicht mehr künstlich mit BestMatch um Zeit:
+ // der schnelle Stationspfad startet sofort parallel zur Prognose. Qualitäts-, Distanz-,
+ // Höhen- und Altersregeln bleiben vollständig in station() erhalten.
+ const stationRequest=startupRequest(STARTUP_PRELOAD_STATION_TIMEOUT_MS,signal=>station(location.latitude,location.longitude,location.country_code||location.country,location.elevation,location,signal,true,false));
  const constrained=constrainedStartupNetwork();
  // Radar-/Niederschlagsabgleich ist unabhängig von der vollständigen Prognose und darf
  // deshalb bereits während deren Aufbau beginnen. Das verkürzt ausschließlich die
  // Wartezeit; Quelle, Auswertealgorithmus und Qualitätsregeln bleiben unverändert.
- const radarRequest=startupRequest(STARTUP_PRELOAD_RADAR_TIMEOUT_MS,async signal=>{await delay(constrained?210:85);if(signal.aborted)throw signal.reason;return radarNowcast(location.latitude,location.longitude,location.country_code||location.country,signal,true)});
- // Die vollständige hyperlokale Analyse startet nach dem schnellen Stationspfad schon
- // parallel zur Prognose. Auf Data-Saver/2G bleibt der bisherige sparsame Pfad erhalten.
- const stationEnrichmentRequest=!constrained?startupRequest(STARTUP_PRELOAD_STATION_ENRICHMENT_TIMEOUT_MS,async signal=>{await stationRequest.promise;await delay(70);if(signal.aborted)throw signal.reason;return station(location.latitude,location.longitude,location.country_code||location.country,location.elevation,location,signal,false,false)}):null;
+ const radarRequest=startupRequest(STARTUP_PRELOAD_RADAR_TIMEOUT_MS,async signal=>{await delay(constrained?210:70);if(signal.aborted)throw signal.reason;return radarNowcast(location.latitude,location.longitude,location.country_code||location.country,signal,true)});
+ // Die vollständige Stationsanalyse startet auf normalen Verbindungen ebenfalls früh und
+ // unabhängig vom schnellen Pfad. So blockiert ein langsamer Fast-Request die bessere
+ // Beobachtung nicht; auf Data-Saver/2G bleibt der sparsame Pfad erhalten.
+ const stationEnrichmentRequest=!constrained?startupRequest(STARTUP_PRELOAD_STATION_ENRICHMENT_TIMEOUT_MS,async signal=>{await delay(20);if(signal.aborted)throw signal.reason;return station(location.latitude,location.longitude,location.country_code||location.country,location.elevation,location,signal,false,false)}):null;
  const ensembleRequest=ensemble?startupRequest(STARTUP_PRELOAD_ENSEMBLE_TIMEOUT_MS,async signal=>{await delay(constrained?650:440);if(signal.aborted)throw signal.reason;return ensembles(location.latitude,location.longitude,signal,'foreground')}):null;
  const interfacePromise=Promise.race([forecastRequest.promise,stationRequest.promise,radarRequest.promise,delay(700)]).then(()=>preloadInterfaceChunks(ensemble)),abort=()=>{forecastRequest.controller.abort();stationRequest.controller.abort();stationEnrichmentRequest?.controller.abort();radarRequest.controller.abort();ensembleRequest?.controller.abort()};
  active={key,startedAt:Date.now(),promise:forecastRequest.promise,stationPromise:stationRequest.promise,stationEnrichmentPromise:stationEnrichmentRequest?.promise??null,radarPromise:radarRequest.promise,ensemblePromise:ensembleRequest?.promise??null,interfacePromise,abort};return active
