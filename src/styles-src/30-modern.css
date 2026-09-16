@@ -6491,3 +6491,20 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
  .place-warning-status{margin-top:8px}
 }
 @media(prefers-reduced-motion:reduce){.place-warning-status.loading>svg{animation:none}}
+
+/* MID-C3 · Schritt 2: ein gemeinsames Seitenraster für alle Arbeitsräume.
+   Ortskopf, Kernaussage, Datenmodule und Quellenabschluss verwenden dieselbe
+   vertikale Taktung statt individueller Kartenstapel. */
+html[data-mid-design='next'] .mid-page-grid{display:grid;align-content:start;gap:var(--mid-page-gap,14px);min-width:0;padding-bottom:calc(20px + env(safe-area-inset-bottom))}
+html[data-mid-design='next'] .mid-page-grid>.place{display:grid;gap:12px;margin:0;padding:clamp(10px,1.8vw,18px);border:1px solid var(--mid-surface-line);border-radius:var(--mid-content-radius);background:var(--mid-surface-base)}
+html[data-mid-design='next'] .mid-page-grid>.place>.place-nowcards{margin:0;padding-top:10px;border-top:1px solid var(--mid-surface-line)}
+html[data-mid-design='next'] .mid-page-grid>.dashboard-section-anchor,.mid-page-grid>.dashboard-planner-section{display:grid;min-width:0;margin:0;scroll-margin-top:calc(var(--mid-safe-top) + 94px)}
+html[data-mid-design='next'] .mid-page-grid>.dashboard-section-anchor[data-dashboard-section='current']{order:-1}
+html[data-mid-design='next'] .mid-page-grid>.dashboard-section-anchor>:is(.card,.module-shell,.short-term-forecast,.forecast-cockpit,.modern-map-focus-shell),html[data-mid-design='next'] .mid-page-grid>.dashboard-planner-section{margin:0!important}
+html[data-mid-design='next'] .app>footer{display:flex;align-items:center;gap:10px;min-height:48px;margin-top:var(--mid-page-gap,14px);padding:10px clamp(10px,1.8vw,18px);border-top:1px solid var(--mid-surface-line);background:color-mix(in srgb,var(--mid-surface-raised) 72%,transparent)}
+@media(min-width:851px){
+ html[data-mid-design='next'] .mid-page-grid{--mid-page-gap:18px;max-width:1320px;margin-inline:auto}
+ html[data-mid-design='next'] .mid-page-grid>.place{grid-template-columns:minmax(0,1fr) minmax(360px,.9fr);align-items:start}
+ html[data-mid-design='next'] .mid-page-grid>.place>.place-nowcards{padding-top:0;padding-left:14px;border-top:0;border-left:1px solid var(--mid-surface-line)}
+}
+@media(max-width:850px){html[data-mid-design='next'] .mid-page-grid{--mid-page-gap:10px}.mid-page-grid>.dashboard-section-anchor{scroll-margin-top:calc(var(--mid-safe-top) + 86px)}}

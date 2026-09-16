@@ -1,3 +1,11 @@
+# MID v0.9.85.14
+
+## MID-C3 · Schritt 2: gemeinsames Seitenraster
+
+- MID Next ordnet Ortskopf, Kernaussage, Datenmodule und Quellenabschluss jetzt nach einem gemeinsamen vertikalen Raster.
+- Auf Tablets und Desktop wird der Ortskopf bewusst zweispaltig gruppiert; auf schmalen Geräten bleiben die Informationsgruppen ruhig untereinander lesbar.
+- Abschnittsflächen verwenden dieselben Oberkanten, Abstände und Scrollanker. Wetterdaten, Warnlogik, Quellen und Parameterfarben bleiben unverändert.
+
 # MID v0.9.85.13
 
 ## MID-C3 · Schritt 1: klare Hauptnavigation und Warnstatus
