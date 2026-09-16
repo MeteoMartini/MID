@@ -20,7 +20,7 @@ export const COMPOSITE_BASEMAPS:Record<BasemapId,CompositeBasemap>={
 };
 export const MODEL_LINE_MODES:ModelLineMode[]=['off','isobars','isoheights','both'];
 
-const DEFAULTS:CompositeSettings={basemap:'positron',viewMode:'radar',showRadar:true,highResolution:false,showPrecipitationType:false,showSatellite:false,showLightning:false,showNowcastObjects:false,showMotionOverlay:true,motionTimeMode:'relative',showWarnings:false,modelLines:'off',modelLineTone:'auto',isobarLineColor:'white',isoheightLineColor:'white',radarOpacity:76,radarColorTable:DEFAULT_RADAR_COLOR_TABLE,precipitationTypeOpacity:84,satelliteOpacity:58,lightningOpacity:92,warningOpacity:72,modelOpacity:70,mapOverlayOpacity:86,playbackSeconds:2.4};
+const DEFAULTS:CompositeSettings={basemap:'positron',viewMode:'radar',showRadar:true,highResolution:false,showPrecipitationType:false,showSatellite:false,showLightning:false,showNowcastObjects:true,showMotionOverlay:true,motionTimeMode:'relative',showWarnings:false,modelLines:'off',modelLineTone:'auto',isobarLineColor:'white',isoheightLineColor:'white',radarOpacity:76,radarColorTable:DEFAULT_RADAR_COLOR_TABLE,precipitationTypeOpacity:84,satelliteOpacity:58,lightningOpacity:92,warningOpacity:72,modelOpacity:70,mapOverlayOpacity:86,playbackSeconds:2.4};
 const clamp=(value:number,minimum:number,maximum:number)=>Math.max(minimum,Math.min(maximum,value));
 const storedNumber=(value:unknown,fallback:number)=>value!==null&&value!==undefined&&value!==''&&Number.isFinite(Number(value))?Number(value):fallback;
 type LayerSettings=Pick<CompositeSettings,'showRadar'|'highResolution'|'showPrecipitationType'|'showSatellite'|'showLightning'|'showNowcastObjects'|'showMotionOverlay'|'showWarnings'|'modelLines'>;
